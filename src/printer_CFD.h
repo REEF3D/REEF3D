@@ -23,11 +23,11 @@ Author: Hans Bihs
 #ifndef PRINTER_CFD_H_
 #define PRINTER_CFD_H_
 
-#include "field5.h"
-#include "increment.h"
-#include "printer.h"
+#include"printer.h"
+#include"increment.h"
+#include"field5.h"
 
-#include "vtks.h"
+#include"vtks.h"
 
 class turbulence;
 class heat;
@@ -63,29 +63,29 @@ class printer_CFD final : public printer, public increment
 {
 
 public:
-    printer_CFD(lexer *, fdm *, ghostcell *);
+    printer_CFD(lexer*,fdm*,ghostcell*);
     virtual ~printer_CFD() = default;
-    void start(lexer *, fdm *, ghostcell *, turbulence *, heat *, ioflow *, expdata *, concentration *, multiphase *, sediment *) override final;
-    void print_stop(lexer *, fdm *, ghostcell *, turbulence *, heat *, ioflow *, expdata *, concentration *, multiphase *, sediment *) override final;
-    void print_end(lexer *, fdm *, ghostcell *, turbulence *, heat *, ioflow *, expdata *, concentration *, multiphase *, sediment *) override final;
-    void amr_probes(const amr_grid_lookup *) override final;
-    void ckpt_state(std::vector<double> &) override final;
-    void ckpt_restore(const std::vector<double> &) override final;
+    void start(lexer*,fdm*,ghostcell*,turbulence*,heat*,ioflow*,expdata*,concentration*,multiphase*,sediment*) override final;
+    void print_stop(lexer*,fdm*,ghostcell*,turbulence*,heat*,ioflow*,expdata*,concentration*,multiphase*,sediment*) override final;
+    void print_end(lexer*,fdm*,ghostcell*,turbulence*,heat*,ioflow*,expdata*,concentration*,multiphase*,sediment*) override final;
+    void amr_probes(const amr_grid_lookup*) override final;
+    void ckpt_state(std::vector<double>&) override final;
+    void ckpt_restore(const std::vector<double>&) override final;
     void flush_outputs() override final;
 
 private:
-    void print3D(lexer *, fdm *, ghostcell *, turbulence *, heat *, expdata *, concentration *, multiphase *, sediment *);
-    void print_fsf(lexer *, fdm *, ghostcell *);
-    int last_print = -1;  // the iteration of the last volume output (print_end)
-    int last_fsf = -1;    // and of the last free surface output
-    void parallel(lexer *, fdm *, ghostcell *, turbulence *, heat *, expdata *, concentration *, multiphase *, sediment *, int);
+    void print3D(lexer*,fdm*,ghostcell*,turbulence*,heat*,expdata*,concentration*,multiphase*,sediment*);
+    void print_fsf(lexer*,fdm*,ghostcell*);
+    int last_print = -1;    // the iteration of the last volume output (print_end)
+    int last_fsf = -1;      // and of the last free surface output
+    void parallel(lexer*,fdm*,ghostcell*,turbulence*,heat*,expdata*,concentration*,multiphase*,sediment*,int);
 
     vtk3D *outputFormat;
     bool initial_print = true;
     size_t file_offset = 0;
 
     char name[200];
-    int n, iin, offset[300];
+    int n,iin,offset[300];
     float ffn;
     double *printtime_wT;
     double *printfsftime_wT;
@@ -95,19 +95,19 @@ private:
     print_wsfline_x *pwsfline_x;
     print_wsfline_y *pwsfline_y;
     force **pforce;
-    int nforce = 0;  // P 81
+    int nforce = 0;     // P 81
     vorticity *pvort;
     probe_point *pprobe;
     probe_pressure *ppressprobe;
-    probe_line *pline;
-
-    gage_discharge_x *pq;
+	probe_line *pline;
+	
+	gage_discharge_x *pq;
     gage_discharge_window_x *pqw;
-    fsf_vtp *pfsf = nullptr;
-    topo_vtp *ptopo = nullptr;
-    int nP35 = 0;
-    int nP185 = 0;
-    bool force_ini_pending = false;  // restart from a checkpoint: the force surfaces once more
+    fsf_vtp *pfsf=nullptr;
+    topo_vtp *ptopo=nullptr;
+    int nP35=0;
+    int nP185=0;
+    bool force_ini_pending=false;    // restart from a checkpoint: the force surfaces once more
     cfd_state *pstate;
     cfd_state *pstate_restart;
     sloshing_force *pslosh;

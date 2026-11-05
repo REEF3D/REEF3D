@@ -20,20 +20,20 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "ghostcell.h"
-#include "patchBC_codes.h"
+#include"ghostcell.h"
+#include"patchBC_codes.h"
 
 // ghost-cell label of v (kernel chosen in gcdistro2)
 // gcv: 2/11 v, 8 projection, 15 / 111 / 115 / 118 special treatments, 18, 50 Neumann; cs: side of the face
 // walls, beach, lid, wave generation and topography as for u and w
 int ghostcell::gceval2(lexer *p, int gcv, int bc, int cs)
 {
-    const bool para = (cs == 1 || cs == 4 || cs == 5 || cs == 6);             // face parallel to v
-    const bool orth = (cs == 2 || cs == 3);                                   // face normal to v
-    const bool wall = (bc == 21 || bc == 22 || (bc == 7 && awa_lable == 0));  // walls; beach without active absorption
-    const bool walltopo = (bc == 21 || bc == 22 || bc == 5);
-    const bool patch_out = patch_outlet(bc);  // patch outlet: zero gradient, inlet: set by patchBC
-    const bool outflow = (bc == 2 && gclabel_outflow == 1);
+    const bool para = (cs==1||cs==4||cs==5||cs==6);          // face parallel to v
+    const bool orth = (cs==2||cs==3);                        // face normal to v
+    const bool wall = (bc==21||bc==22||(bc==7&&awa_lable==0)); // walls; beach without active absorption
+    const bool walltopo = (bc==21||bc==22||bc==5);
+    const bool patch_out = patch_outlet(bc);                 // patch outlet: zero gradient, inlet: set by patchBC
+    const bool outflow = (bc==2 && gclabel_outflow==1);
 
     switch(gcv)
     {
@@ -44,101 +44,70 @@ int ghostcell::gceval2(lexer *p, int gcv, int bc, int cs)
     case 11:
         if(para)
         {
-            if(wall)
-                return gclabel_v;
-            if(bc == 5)
-                return gclabel_vtopo;
-            if(outflow || bc == 3)
-                return 4;
-            if(bc == 9 && cs == 6)
-                return 4;
+            if(wall)                return gclabel_v;
+            if(bc==5)               return gclabel_vtopo;
+            if(outflow || bc==3)    return 4;
+            if(bc==9 && cs==6)      return 4;
         }
         if(orth)
         {
-            if(walltopo || wall || bc == 3)
-                return gclabel_v_orth;
-            if(outflow)
-                return gclabel_v_out;
+            if(walltopo || wall || bc==3) return gclabel_v_orth;
+            if(outflow)             return gclabel_v_out;
         }
-        if(bc == 6)
-            return gclabel_v_in;
-        if(patch_out)
-            return 4;
+        if(bc==6)                   return gclabel_v_in;
+        if(patch_out)               return 4;
         return 0;
 
     case 8:
-        if(orth && (walltopo || wall))
-            return gclabel_vel;
-        if(bc == 6)
-            return gclabel_v_in;
-        if(patch_out)
-            return 4;
+        if(orth && (walltopo || wall)) return gclabel_vel;
+        if(bc==6)                   return gclabel_v_in;
+        if(patch_out)               return 4;
         return 0;
 
     case 15:
         return walltopo ? 4 : 0;
 
     case 18:
-        if(bc == 3 && para)
-            return 4;
-        if(bc == 3 && orth)
-            return gclabel_v_orth;
-        if(bc == 9 && cs == 6)
-            return 4;
+        if(bc==3 && para)           return 4;
+        if(bc==3 && orth)           return gclabel_v_orth;
+        if(bc==9 && cs==6)          return 4;
         return 0;
 
     case 111:
-        return (para && (wall || bc == 5)) ? 5 : 0;
+        return (para && (wall || bc==5)) ? 5 : 0;
 
     case 115:
-        if(para && wall)
-            return gclabel_v;
-        if(para && bc == 5)
-            return gclabel_vtopo;
+        if(para && wall)            return gclabel_v;
+        if(para && bc==5)           return gclabel_vtopo;
         return 0;
 
     case 118:
-        if(para && wall)
-            return 4;
-        if(para && bc == 5)
-            return gclabel_vtopo;
+        if(para && wall)            return 4;
+        if(para && bc==5)           return gclabel_vtopo;
         return 0;
     }
 
     return 0;
 }
 
-void ghostcell::gcdistro2(lexer *p, field &f, int ii, int jj, int kk, int nn, double dist, int gcv, int bc, int cs)
-{
-    i = ii;
-    j = jj;
-    k = kk;
-    n = nn;
 
-    bc_label = gceval2(p, gcv, bc, cs);
+void ghostcell::gcdistro2(lexer *p,field& f, int ii, int jj, int kk, int nn, double dist,  int gcv, int bc, int cs)
+{
+    i=ii;
+	j=jj;
+	k=kk;
+	n=nn;
+
+	bc_label=gceval2(p,gcv,bc,cs);
 
     switch(bc_label)
     {
-    case 1:
-        dirichlet_ortho(p, f, dist, gcv, bc, cs);
-        break;
-    case 2:
-        dirichlet_para(p, f, dist, gcv, bc, cs);
-        break;
-    case 4:
-        neumann(f, gcv, bc, cs);
-        break;
-    case 5:
-        noslip(f, dist, gcv, bc, cs);
-        break;
-    case 6:
-        outflow(p, f, gcv, bc, cs);
-        break;
-    case 11:
-        dirichlet_ortho_reflect(p, f, dist, gcv, bc, cs);
-        break;
-    case 12:
-        dirichlet_para_reflect(p, f, dist, gcv, bc, cs);
-        break;
+    case 1: dirichlet_ortho(p,f,dist,gcv,bc,cs); break;
+    case 2: dirichlet_para(p,f,dist,gcv,bc,cs); break;
+    case 4: neumann(f,gcv,bc,cs); break;
+    case 5: noslip(f,dist,gcv,bc,cs); break;
+    case 6: outflow(p,f,gcv,bc,cs); break;
+    case 11: dirichlet_ortho_reflect(p,f,dist,gcv,bc,cs); break;
+    case 12: dirichlet_para_reflect(p,f,dist,gcv,bc,cs); break;
     }
 }

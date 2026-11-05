@@ -25,43 +25,43 @@ Author: Hans Bihs
 #ifndef HYPRE_AIJ_H_
 #define HYPRE_AIJ_H_
 
-#include "increment.h"
 #include "solver.h"
+#include "increment.h"
 #include "vec.h"
-#include <HYPRE.h>
-#include <HYPRE_krylov.h>
-#include <HYPRE_parcsr_ls.h>
 #include <_hypre_utilities.h>
+#include <HYPRE_krylov.h>
+#include <HYPRE.h>
+#include <HYPRE_parcsr_ls.h>
 
 using namespace std;
 
 class hypre_aij final : public solver, public increment
 {
 public:
-    hypre_aij(lexer *, fdm *, ghostcell *);
+    hypre_aij(lexer*, fdm*, ghostcell*);
     virtual ~hypre_aij() = default;
 
-    void start(lexer *, fdm *, ghostcell *, field &, vec &, int) override final;
-    void startf(lexer *, ghostcell *, field &, vec &, matrix_diag &, int) override final {};
-    void startF(lexer *, ghostcell *, double *, vec &, matrix_diag &, int) override final;
-    void startM(lexer *, ghostcell *, double *, double *, double *, int) override final {};
-    void startV(lexer *, ghostcell *, double *, vec &, matrix_diag &, int) override final {};
+    void start(lexer*, fdm*, ghostcell*, field&, vec&, int) override final;
+    void startf(lexer*, ghostcell*, field&, vec&, matrix_diag&, int) override final {};
+    void startF(lexer*, ghostcell*, double*, vec&, matrix_diag&, int) override final;
+    void startM(lexer*, ghostcell*, double*, double*, double*, int) override final {};
+    void startV(lexer*, ghostcell*, double*, vec&, matrix_diag&, int) override final {};
 
-    void solve(lexer *, fdm *, ghostcell *, vec &, vec &, int, int, int &);
+    void solve(lexer*, fdm*, ghostcell*, vec&, vec&, int, int, int&);
 
-    void fill_matrix_F_7p(lexer *, ghostcell *, matrix_diag &, double *, double *, vec &);
-    void fill_matrix_7p(lexer *, fdm *, ghostcell *, field &);
+    void fill_matrix_F_7p(lexer*, ghostcell*, matrix_diag&, double*, double*, vec&);
+    void fill_matrix_7p(lexer*, fdm*, ghostcell*, field&);
 
-    void fillbackvec(lexer *, fdm *, field &, vec &, int);
-    void fillbackvec_F(lexer *, double *, double *, int);
-    void fillbackvec_F_v2(lexer *, double *, double *, int);
+    void fillbackvec(lexer*, fdm*, field&, vec&, int);
+    void fillbackvec_F(lexer*, double*, double*, int);
+    void fillbackvec_F_v2(lexer*, double*, double*, int);
 
-    void make_grid(lexer *, ghostcell *);
-    void make_grid_F(lexer *, ghostcell *);
-    void delete_grid(lexer *, ghostcell *);
+    void make_grid(lexer*, ghostcell*);
+    void make_grid_F(lexer*, ghostcell*);
+    void delete_grid(lexer*, ghostcell*);
 
-    void create_solvers(lexer *, ghostcell *);
-    void delete_solvers(lexer *, ghostcell *);
+    void create_solvers(lexer*, ghostcell*);
+    void delete_solvers(lexer*, ghostcell*);
 
 private:
     // HYPRE

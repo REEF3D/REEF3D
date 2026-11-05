@@ -20,11 +20,12 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
+
 #ifndef SEASTATE_REMOTE_H_
 #define SEASTATE_REMOTE_H_
 
-#include "seastate_coupling.h"
-#include <mpi.h>
+#include"seastate_coupling.h"
+#include<mpi.h>
 
 class lexer;
 class ghostcell;
@@ -59,17 +60,17 @@ rebalance stop (G 46) is switched off in both.
 class seastate_remote
 {
 public:
-    static void roles(lexer *, ghostcell *);
+    static void roles(lexer*, ghostcell*);
 
     // called by ghostcell::final (normal end): the host stops the waves
     static void finish();
 
-    static bool host() { return role == 1; }
-    static bool waves() { return role == 2; }
+    static bool host() {return role==1;}
+    static bool waves() {return role==2;}
 
-    static MPI_Comm ic;              // intercommunicator host <-> waves
-    static int role;                 // 0 none, 1 host, 2 waves
-    static seastate_coupling *link;  // host: the coupling object (stop message)
+    static MPI_Comm ic;                     // intercommunicator host <-> waves
+    static int role;                        // 0 none, 1 host, 2 waves
+    static seastate_coupling *link;         // host: the coupling object (stop message)
     static lexer *plex;
 
     static const int tag_ic = 4900;
@@ -79,20 +80,20 @@ public:
 class seastate_remote_wave : public seastate_coupling
 {
 public:
-    seastate_remote_wave(lexer *);
+    seastate_remote_wave(lexer*);
     virtual ~seastate_remote_wave() = default;
 
     // set-up, then wave steps until the host stops; ends with ghostcell::final
-    void run(lexer *, ghostcell *);
+    void run(lexer*, ghostcell*);
 
 private:
     // the host fields at the wave cells: the area mean over the host cells inside a wave cell (eta, U, V over the wet ones,
     // WL over all), bilinear where the host grid is coarser; cells outside the host grid keep the own still water
-    void map_host(lexer *);
+    void map_host(lexer*);
     bool ic_null() const;
 
     slice4 etaW, WLW, UW, VW, wetd;
-    std::vector<double> hwx, hwy;  // widths of the host cells (area weights of the box mean)
+    std::vector<double> hwx, hwy;           // widths of the host cells (area weights of the box mean)
 };
 
 #endif

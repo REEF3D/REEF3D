@@ -20,17 +20,17 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "fdm_fnpf.h"
-#include "fnpf_amr.h"
-#include "fnpf_amr_fill.h"
-#include "ghostcell.h"
-#include "lagoon_output.h"
-#include "lexer.h"
-#include "reef3d_mpmd.h"
-#include "reefckpt.h"
-#include <cstdio>
-#include <iomanip>
-#include <mpi.h>
+#include"reefckpt.h"
+#include"reef3d_mpmd.h"
+#include"fnpf_amr.h"
+#include"fnpf_amr_fill.h"
+#include"lexer.h"
+#include"fdm_fnpf.h"
+#include"ghostcell.h"
+#include"lagoon_output.h"
+#include<mpi.h>
+#include<iomanip>
+#include<cstdio>
 
 //  Output of FNPF AMR: the free surface of level 0 and of every patch as VTK rectilinear
 //  grids (REEF3D_FNPF_AMR/*.vtr, indexed by a .vtm per output time; with P 180 1 at the interval
@@ -41,40 +41,41 @@ Architect: Hans Bihs
 //  into the vector, as SFLOW's) and bed. P 18: the grids also in the LAGOON store (P 18 1:
 //  instead of the .vtr and .vtm files).
 
-namespace {
-inline int lij(const lexer *q, int ii, int jj) { return (ii - q->imin) * q->jmax + (jj - q->jmin); }
-}  // namespace
+namespace
+{
+inline int lij(const lexer *q, int ii, int jj) { return (ii-q->imin)*q->jmax + (jj-q->jmin); }
+}
 
 void fnpf_amr::print(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 {
-    if(maxlev < 1)
-        return;
+    if(maxlev<1)
+    return;
 
     // the grids are the free surface: with P 180 1 at its interval (P 182 in time, P 181 in
     // iterations, as REEF3D_FNPF_VTP_FSF), else at that of the 3D output (P 30, P 20; P 10)
-    const bool fsf = p->P180 == 1;
+    const bool fsf = p->P180==1;
     const double every = fsf ? p->P182 : p->P30;
     const int every_it = fsf ? p->P181 : p->P20;
-    const bool on = fsf || p->P10 > 0;
+    const bool on = fsf || p->P10>0;
 
-    bool doprint = false;
+    bool doprint=false;
 
-    if((every_it > 0 && p->count % every_it == 0 && every < 0.0 && on) || (p->count == 0 && every < 0.0))
-        doprint = true;
+    if((every_it>0 && p->count%every_it==0 && every<0.0 && on) || (p->count==0 && every<0.0))
+    doprint=true;
 
-    if((p->simtime > printtime_amr && every > 0.0 && on) || (p->count == 0 && every > 0.0))
+    if((p->simtime>printtime_amr && every>0.0 && on) || (p->count==0 && every>0.0))
     {
-        doprint = true;
+        doprint=true;
         printtime_amr += every;
     }
 
-    if(p->P51 > 0)
-        gauges(p, c, pgc);
+    if(p->P51>0)
+    gauges(p,c,pgc);
 
-    if(p->mpirank == 0)
-        logout << p->count << " \t " << setprecision(10) << p->simtime << " \t " << p->dt << " \t " << patches_total << " \t " << cells_total << " \t "
-               << lap_it_last << " \t " << setprecision(4) << lap_res_last << " \t " << lap_it_phi_max << " \t " << lap_it_psi_max << " \t "
-               << lap_solves_step << " \t " << lap_it_step << " \t " << layout_id << " \t " << regrids_skipped << endl;
+    if(p->mpirank==0)
+    logout<<p->count<<" \t "<<setprecision(10)<<p->simtime<<" \t "<<p->dt<<" \t "<<patches_total<<" \t "<<cells_total<<" \t "
+          <<lap_it_last<<" \t "<<setprecision(4)<<lap_res_last<<" \t "<<lap_it_phi_max<<" \t "<<lap_it_psi_max<<" \t "
+          <<lap_solves_step<<" \t "<<lap_it_step<<" \t "<<layout_id<<" \t "<<regrids_skipped<<endl;
 
     lap_it_phi_max = lap_it_psi_max = lap_solves_step = 0;
     lap_it_step = 0;
@@ -84,80 +85,80 @@ void fnpf_amr::print(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     if(doprint)
     {
         double tmx[9];
-        for(int k = 0; k < 9; ++k)
-            tmx[k] = tm[k];
-        pgc->globalmax(tmx, 9);
+        for(int k=0; k<9; ++k)
+        tmx[k] = tm[k];
+        pgc->globalmax(tmx,9);
         const double cmax = pgc->globalmax(double(cells_local));
 
-        if(p->mpirank == 0)
+        if(p->mpirank==0)
         {
-            cout << "FNPF AMR: " << patches_total << " patches, " << cells_total << " columns (max " << (long)cmax << " per rank); max over ranks: patch stages "
-                 << setprecision(4) << tmx[0] << " s, Laplace " << tmx[1] << " s (preconditioner " << tmx[2] << " s, operator " << tmx[3] << " s, assembly and coarsening "
-                 << tmx[7] << " s, setup " << tmx[5] << " s), mean iterations " << (lap_solves > 0 ? double(lap_it_total) / lap_solves : 0.0);
+            cout<<"FNPF AMR: "<<patches_total<<" patches, "<<cells_total<<" columns (max "<<(long)cmax<<" per rank); max over ranks: patch stages "
+                <<setprecision(4)<<tmx[0]<<" s, Laplace "<<tmx[1]<<" s (preconditioner "<<tmx[2]<<" s, operator "<<tmx[3]<<" s, assembly and coarsening "
+                <<tmx[7]<<" s, setup "<<tmx[5]<<" s), mean iterations "<<(lap_solves>0 ? double(lap_it_total)/lap_solves : 0.0);
             // a body: the psi solves of its loads (pressure, added mass) against the phi solves
-            if(lap_solves_psi > 0)
+            if(lap_solves_psi>0)
             {
-                const long nphi = lap_solves - lap_solves_psi;
-                cout << "; psi solves " << lap_solves_psi << " of " << lap_solves << ": " << tmx[6] << " s (assembly and coarsening " << tmx[8]
-                     << " s), mean iterations " << double(lap_it_psi) / lap_solves_psi
-                     << " (phi " << (nphi > 0 ? double(lap_it_total - lap_it_psi) / nphi : 0.0) << ")";
+                const long nphi = lap_solves-lap_solves_psi;
+                cout<<"; psi solves "<<lap_solves_psi<<" of "<<lap_solves<<": "<<tmx[6]<<" s (assembly and coarsening "<<tmx[8]
+                    <<" s), mean iterations "<<double(lap_it_psi)/lap_solves_psi
+                    <<" (phi "<<(nphi>0 ? double(lap_it_total-lap_it_psi)/nphi : 0.0)<<")";
             }
-            if(lap_kept > 0)
-                cout << "; rows and preconditioner kept for " << lap_kept << " of " << lap_solves << " solves";
-            if(regrid_int > 0)
-                cout << ", regrid " << tmx[4] << " s, layouts " << layout_id << ", regrids skipped " << regrids_skipped;
-            if(lap_restarts > 0)
-                cout << ", " << lap_restarts << " BiCGStab restarts";
-            if(lap_stalls > 0)
-                cout << ", " << lap_stalls << " solves stopped stagnating below 100 N 44";
-            if(lap_capped > 0)
-                cout << ", " << lap_capped << " solves at N 46";
-            cout << endl;
+            if(lap_kept>0)
+            cout<<"; rows and preconditioner kept for "<<lap_kept<<" of "<<lap_solves<<" solves";
+            if(regrid_int>0)
+            cout<<", regrid "<<tmx[4]<<" s, layouts "<<layout_id<<", regrids skipped "<<regrids_skipped;
+            if(lap_restarts>0)
+            cout<<", "<<lap_restarts<<" BiCGStab restarts";
+            if(lap_stalls>0)
+            cout<<", "<<lap_stalls<<" solves stopped stagnating below 100 N 44";
+            if(lap_capped>0)
+            cout<<", "<<lap_capped<<" solves at N 46";
+            cout<<endl;
         }
     }
 
     if(!doprint)
-        return;
+    return;
 
     // P 18: the grids in the LAGOON store; P 18 1: instead of the .vtr and .vtm files
     bool stored = false;
-    if(p->P18 > 0)
-        stored = print_lagoon(p, c, pgc);
+    if(p->P18>0)
+    stored = print_lagoon(p,c,pgc);
 
-    if(!lagoon_amr_output::files_needed(p, stored))
+    if(!lagoon_amr_output::files_needed(p,stored))
     {
         ++printcount_amr;
         return;
     }
 
-    write_vtr0(p, c);
+    write_vtr0(p,c);
 
-    for(int n = 0; n < (int)P.size(); ++n)
-        write_vtr(p, *FP(n), n);
+    for(int n=0; n<(int)P.size(); ++n)
+    write_vtr(p,*FP(n),n);
 
     int np = (int)P.size();
-    vector<int> all(p->mpi_size, 0);
-    MPI_Allgather(&np, 1, MPI_INT, &all[0], 1, MPI_INT, reef3d_comm());
+    vector<int> all(p->mpi_size,0);
+    MPI_Allgather(&np,1,MPI_INT,&all[0],1,MPI_INT,reef3d_comm());
 
-    if(p->mpirank == 0)
+    if(p->mpirank==0)
     {
         char name[256];
-        snprintf(name, sizeof(name), "./REEF3D_FNPF_AMR/REEF3D-FNPF-AMR-%08i.vtm", printcount_amr);
+        snprintf(name,sizeof(name),"./REEF3D_FNPF_AMR/REEF3D-FNPF-AMR-%08i.vtm",printcount_amr);
         ofstream out(name);
-        out << "<?xml version=\"1.0\"?>\n<VTKFile type=\"vtkMultiBlockDataSet\" version=\"1.0\">\n<vtkMultiBlockDataSet>\n";
-        out << "<Block index=\"0\" name=\"level 0\">\n";
-        for(int r = 0; r < p->mpi_size; ++r)
-            out << "<DataSet index=\"" << r << "\" file=\"REEF3D-FNPF-AMR-L0-" << setw(8) << setfill('0') << printcount_amr << "-" << setw(4) << r + 1 << ".vtr\"/>\n";
-        out << setfill(' ') << "</Block>\n<Block index=\"1\" name=\"patches\">\n";
-        int idx = 0;
-        for(int r = 0; r < p->mpi_size; ++r)
-            for(int q = 0; q < all[r]; ++q)
-            {
-                out << "<DataSet index=\"" << idx << "\" file=\"REEF3D-FNPF-AMR-" << setw(8) << setfill('0') << printcount_amr << "-" << setw(4) << r + 1 << "-" << setw(4) << q + 1 << ".vtr\"/>\n";
-                out << setfill(' ');
-                ++idx;
-            }
-        out << "</Block>\n</vtkMultiBlockDataSet>\n</VTKFile>\n";
+        out<<"<?xml version=\"1.0\"?>\n<VTKFile type=\"vtkMultiBlockDataSet\" version=\"1.0\">\n<vtkMultiBlockDataSet>\n";
+        out<<"<Block index=\"0\" name=\"level 0\">\n";
+        for(int r=0; r<p->mpi_size; ++r)
+        out<<"<DataSet index=\""<<r<<"\" file=\"REEF3D-FNPF-AMR-L0-"<<setw(8)<<setfill('0')<<printcount_amr<<"-"<<setw(4)<<r+1<<".vtr\"/>\n";
+        out<<setfill(' ')<<"</Block>\n<Block index=\"1\" name=\"patches\">\n";
+        int idx=0;
+        for(int r=0; r<p->mpi_size; ++r)
+        for(int q=0; q<all[r]; ++q)
+        {
+        out<<"<DataSet index=\""<<idx<<"\" file=\"REEF3D-FNPF-AMR-"<<setw(8)<<setfill('0')<<printcount_amr<<"-"<<setw(4)<<r+1<<"-"<<setw(4)<<q+1<<".vtr\"/>\n";
+        out<<setfill(' ');
+        ++idx;
+        }
+        out<<"</Block>\n</vtkMultiBlockDataSet>\n</VTKFile>\n";
         out.close();
     }
 
@@ -168,145 +169,134 @@ void fnpf_amr::print(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 void fnpf_amr::gauges(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 {
     const int ng = p->P51;
-    vector<double> lv(ng, -1.0), val(ng, 0.0);
+    vector<double> lv(ng,-1.0), val(ng,0.0);
 
     auto find = [&](lexer *q, int i0, int i1, int j0, int j1, double x, double y, int &ii, int &jj)
     {
-        ii = -1;
-        jj = -1;
-        for(int a = i0; a <= i1; ++a)
-            if(x >= q->XN[a + marge] && x < q->XN[a + 1 + marge])
-            {
-                ii = a;
-                break;
-            }
-        for(int a = j0; a <= j1; ++a)
-            if(y >= q->YN[a + marge] && y < q->YN[a + 1 + marge])
-            {
-                jj = a;
-                break;
-            }
-        if(q->j_dir == 0)  // 2D grid: the strip, wherever y is
-            jj = j0;
-        return ii >= 0 && jj >= 0;
+        ii=-1; jj=-1;
+        for(int a=i0; a<=i1; ++a)
+        if(x>=q->XN[a+marge] && x<q->XN[a+1+marge]) { ii=a; break; }
+        for(int a=j0; a<=j1; ++a)
+        if(y>=q->YN[a+marge] && y<q->YN[a+1+marge]) { jj=a; break; }
+        if(q->j_dir==0)     // 2D grid: the strip, wherever y is
+        jj = j0;
+        return ii>=0 && jj>=0;
     };
 
     // bilinear between the cell centres around (x,y); (ii,jj) is the cell that holds the point
     auto ipol = [&](lexer *q, slice &f, int ii, int jj, double x, double y)
     {
-        int a = (x >= q->XP[ii + marge]) ? ii : ii - 1;
-        double wx = (x - q->XP[a + marge]) / (q->XP[a + 1 + marge] - q->XP[a + marge]);
-        if(q->j_dir == 0)  // 2D grid: linear in x
+        int a = (x>=q->XP[ii+marge]) ? ii : ii-1;
+        double wx = (x-q->XP[a+marge])/(q->XP[a+1+marge]-q->XP[a+marge]);
+        if(q->j_dir==0)     // 2D grid: linear in x
         {
-            if(q->flagslice4[lij(q, a, jj)] < 0 || q->flagslice4[lij(q, a + 1, jj)] < 0)
-                return f(ii, jj);
-            return (1.0 - wx) * f(a, jj) + wx * f(a + 1, jj);
+            if(q->flagslice4[lij(q,a,jj)]<0 || q->flagslice4[lij(q,a+1,jj)]<0)
+            return f(ii,jj);
+            return (1.0-wx)*f(a,jj) + wx*f(a+1,jj);
         }
-        int b = (y >= q->YP[jj + marge]) ? jj : jj - 1;
-        double wy = (y - q->YP[b + marge]) / (q->YP[b + 1 + marge] - q->YP[b + marge]);
-        if(q->flagslice4[lij(q, a, b)] < 0 || q->flagslice4[lij(q, a + 1, b)] < 0 || q->flagslice4[lij(q, a, b + 1)] < 0 || q->flagslice4[lij(q, a + 1, b + 1)] < 0)
-            return f(ii, jj);
-        return (1.0 - wx) * (1.0 - wy) * f(a, b) + wx * (1.0 - wy) * f(a + 1, b) + (1.0 - wx) * wy * f(a, b + 1) + wx * wy * f(a + 1, b + 1);
+        int b = (y>=q->YP[jj+marge]) ? jj : jj-1;
+        double wy = (y-q->YP[b+marge])/(q->YP[b+1+marge]-q->YP[b+marge]);
+        if(q->flagslice4[lij(q,a,b)]<0 || q->flagslice4[lij(q,a+1,b)]<0 || q->flagslice4[lij(q,a,b+1)]<0 || q->flagslice4[lij(q,a+1,b+1)]<0)
+        return f(ii,jj);
+        return (1.0-wx)*(1.0-wy)*f(a,b) + wx*(1.0-wy)*f(a+1,b) + (1.0-wx)*wy*f(a,b+1) + wx*wy*f(a+1,b+1);
     };
 
-    for(int k = 0; k < ng; ++k)
+    for(int k=0; k<ng; ++k)
     {
-        int ii, jj;
+        int ii,jj;
         const double x = p->P51_x[k], y = p->P51_y[k];
-        if(find(p, 0, NX0 - 1, 0, NY0 - 1, x, y, ii, jj))
+        if(find(p,0,NX0-1,0,NY0-1,x,y,ii,jj))
         {
-            lv[k] = 0.0;
-            val[k] = ipol(p, c->eta, ii, jj, x, y);
+            lv[k]=0.0;
+            val[k]=ipol(p,c->eta,ii,jj,x,y);
         }
         for(auto q : P)
-            if(q->lev > lv[k] && find(q->pp, EXT, EXT + q->nx - 1, EY, EY + q->ny - 1, x, y, ii, jj))
-            {
-                lv[k] = q->lev;
-                val[k] = ipol(q->pp, FP(q)->c->eta, ii, jj, x, y);
-            }
+        if(q->lev>lv[k] && find(q->pp,EXT,EXT+q->nx-1,EY,EY+q->ny-1,x,y,ii,jj))
+        {
+            lv[k]=q->lev;
+            val[k]=ipol(q->pp,FP(q)->c->eta,ii,jj,x,y);
+        }
     }
 
     vector<double> lmax(ng);
-    MPI_Allreduce(&lv[0], &lmax[0], ng, MPI_DOUBLE, MPI_MAX, reef3d_comm());
-    for(int k = 0; k < ng; ++k)
-        if(lv[k] != lmax[k])
-            val[k] = 0.0;
+    MPI_Allreduce(&lv[0],&lmax[0],ng,MPI_DOUBLE,MPI_MAX,reef3d_comm());
+    for(int k=0; k<ng; ++k)
+    if(lv[k]!=lmax[k])
+    val[k]=0.0;
     vector<double> vs(ng);
-    MPI_Allreduce(&val[0], &vs[0], ng, MPI_DOUBLE, MPI_SUM, reef3d_comm());
+    MPI_Allreduce(&val[0],&vs[0],ng,MPI_DOUBLE,MPI_SUM,reef3d_comm());
 
-    if(p->mpirank == 0)
+    if(p->mpirank==0)
     {
         if(!gaugeout.is_open())
-            if(reefckpt_open(gaugeout, "./REEF3D_FNPF_AMR/REEF3D_FNPF_AMR_gauges.dat", p->I45))  // I 45: continued
-            {
-                gaugeout << "# simtime";
-                for(int k = 0; k < ng; ++k)
-                    gaugeout << " \t eta(" << p->P51_x[k] << "," << p->P51_y[k] << ")";
-                gaugeout << " \t levels" << endl;
-            }
-        gaugeout << setprecision(10) << p->simtime;
-        for(int k = 0; k < ng; ++k)
-            gaugeout << " \t " << setprecision(10) << vs[k];
-        for(int k = 0; k < ng; ++k)
-            gaugeout << " \t " << int(lmax[k]);
-        gaugeout << endl;
+        if(reefckpt_open(gaugeout,"./REEF3D_FNPF_AMR/REEF3D_FNPF_AMR_gauges.dat",p->I45))   // I 45: continued
+        {
+            gaugeout<<"# simtime";
+            for(int k=0; k<ng; ++k)
+            gaugeout<<" \t eta("<<p->P51_x[k]<<","<<p->P51_y[k]<<")";
+            gaugeout<<" \t levels"<<endl;
+        }
+        gaugeout<<setprecision(10)<<p->simtime;
+        for(int k=0; k<ng; ++k)
+        gaugeout<<" \t "<<setprecision(10)<<vs[k];
+        for(int k=0; k<ng; ++k)
+        gaugeout<<" \t "<<int(lmax[k]);
+        gaugeout<<endl;
     }
 }
 
 void fnpf_amr::write_vtr0(lexer *p, fdm_fnpf *c)
 {
     char name[256];
-    snprintf(name, sizeof(name), "./REEF3D_FNPF_AMR/REEF3D-FNPF-AMR-L0-%08i-%04i.vtr", printcount_amr, p->mpirank + 1);
+    snprintf(name,sizeof(name),"./REEF3D_FNPF_AMR/REEF3D-FNPF-AMR-L0-%08i-%04i.vtr",printcount_amr,p->mpirank+1);
 
-    const int nx = p->knox, ny = p->knoy, m = marge;
+    const int nx=p->knox, ny=p->knoy, m=marge;
     ofstream out(name);
-    out << "<?xml version=\"1.0\"?>\n";
-    out << "<VTKFile type=\"RectilinearGrid\" version=\"0.1\" byte_order=\"LittleEndian\">\n";
-    out << "<RectilinearGrid WholeExtent=\"0 " << nx << " 0 " << ny << " 0 0\">\n";
-    out << "<FieldData><DataArray type=\"Float64\" Name=\"TimeValue\" NumberOfTuples=\"1\">" << p->simtime << "</DataArray>";
-    out << "<DataArray type=\"Int32\" Name=\"level\" NumberOfTuples=\"1\">0</DataArray></FieldData>\n";
-    out << "<Piece Extent=\"0 " << nx << " 0 " << ny << " 0 0\">\n<CellData Scalars=\"eta\">\n";
+    out<<"<?xml version=\"1.0\"?>\n";
+    out<<"<VTKFile type=\"RectilinearGrid\" version=\"0.1\" byte_order=\"LittleEndian\">\n";
+    out<<"<RectilinearGrid WholeExtent=\"0 "<<nx<<" 0 "<<ny<<" 0 0\">\n";
+    out<<"<FieldData><DataArray type=\"Float64\" Name=\"TimeValue\" NumberOfTuples=\"1\">"<<p->simtime<<"</DataArray>";
+    out<<"<DataArray type=\"Int32\" Name=\"level\" NumberOfTuples=\"1\">0</DataArray></FieldData>\n";
+    out<<"<Piece Extent=\"0 "<<nx<<" 0 "<<ny<<" 0 0\">\n<CellData Scalars=\"eta\">\n";
 
     auto field = [&](const char *nm, slice &f, double shift)
     {
-        out << "<DataArray type=\"Float64\" Name=\"" << nm << "\" format=\"ascii\">\n";
-        for(int jj = 0; jj < ny; ++jj)
+        out<<"<DataArray type=\"Float64\" Name=\""<<nm<<"\" format=\"ascii\">\n";
+        for(int jj=0; jj<ny; ++jj)
         {
-            for(int ii = 0; ii < nx; ++ii)
-                out << setprecision(17) << f(ii, jj) + shift << " ";
-            out << "\n";
+            for(int ii=0; ii<nx; ++ii)
+            out<<setprecision(17)<<f(ii,jj)+shift<<" ";
+            out<<"\n";
         }
-        out << "</DataArray>\n";
+        out<<"</DataArray>\n";
     };
     // the velocity at the free surface (the top node of the sigma grid), as REEF3D_FNPF_VTP_FSF
     auto surface = [&](const char *nm, const double *A)
     {
-        out << "<DataArray type=\"Float64\" Name=\"" << nm << "\" format=\"ascii\">\n";
-        for(int jj = 0; jj < ny; ++jj)
+        out<<"<DataArray type=\"Float64\" Name=\""<<nm<<"\" format=\"ascii\">\n";
+        for(int jj=0; jj<ny; ++jj)
         {
-            for(int ii = 0; ii < nx; ++ii)
-                out << setprecision(17) << A[fidx(p, ii, jj, p->knoz)] << " ";
-            out << "\n";
+            for(int ii=0; ii<nx; ++ii)
+            out<<setprecision(17)<<A[fidx(p,ii,jj,p->knoz)]<<" ";
+            out<<"\n";
         }
-        out << "</DataArray>\n";
+        out<<"</DataArray>\n";
     };
-    field("eta", c->eta, 0.0);
-    field("elevation", c->eta, p->wd);
-    field("Fifsf", c->Fifsf, 0.0);
-    surface("u", c->U);
-    surface("v", c->V);
-    surface("w", c->W);
-    field("bed", c->bed, 0.0);
+    field("eta",c->eta,0.0);
+    field("elevation",c->eta,p->wd);
+    field("Fifsf",c->Fifsf,0.0);
+    surface("u",c->U);
+    surface("v",c->V);
+    surface("w",c->W);
+    field("bed",c->bed,0.0);
 
-    out << "</CellData>\n<Coordinates>\n";
-    out << "<DataArray type=\"Float64\" Name=\"x\" format=\"ascii\">";
-    for(int ii = 0; ii <= nx; ++ii)
-        out << setprecision(12) << p->XN[ii + m] << " ";
-    out << "</DataArray>\n<DataArray type=\"Float64\" Name=\"y\" format=\"ascii\">";
-    for(int jj = 0; jj <= ny; ++jj)
-        out << setprecision(12) << p->YN[jj + m] << " ";
-    out << "</DataArray>\n<DataArray type=\"Float64\" Name=\"z\" format=\"ascii\">0</DataArray>\n";
-    out << "</Coordinates>\n</Piece>\n</RectilinearGrid>\n</VTKFile>\n";
+    out<<"</CellData>\n<Coordinates>\n";
+    out<<"<DataArray type=\"Float64\" Name=\"x\" format=\"ascii\">";
+    for(int ii=0; ii<=nx; ++ii) out<<setprecision(12)<<p->XN[ii+m]<<" ";
+    out<<"</DataArray>\n<DataArray type=\"Float64\" Name=\"y\" format=\"ascii\">";
+    for(int jj=0; jj<=ny; ++jj) out<<setprecision(12)<<p->YN[jj+m]<<" ";
+    out<<"</DataArray>\n<DataArray type=\"Float64\" Name=\"z\" format=\"ascii\">0</DataArray>\n";
+    out<<"</Coordinates>\n</Piece>\n</RectilinearGrid>\n</VTKFile>\n";
     out.close();
 }
 
@@ -315,58 +305,56 @@ void fnpf_amr::write_vtr(lexer *p, fnpf_amr_patch &c, int id)
     lexer *pp = c.pp;
     fdm_fnpf *cc = c.c;
     char name[256];
-    snprintf(name, sizeof(name), "./REEF3D_FNPF_AMR/REEF3D-FNPF-AMR-%08i-%04i-%04i.vtr", printcount_amr, p->mpirank + 1, id + 1);
+    snprintf(name,sizeof(name),"./REEF3D_FNPF_AMR/REEF3D-FNPF-AMR-%08i-%04i-%04i.vtr",printcount_amr,p->mpirank+1,id+1);
 
     ofstream out(name);
-    out << "<?xml version=\"1.0\"?>\n";
-    out << "<VTKFile type=\"RectilinearGrid\" version=\"0.1\" byte_order=\"LittleEndian\">\n";
-    out << "<RectilinearGrid WholeExtent=\"0 " << c.nx << " 0 " << c.ny << " 0 0\">\n";
-    out << "<FieldData><DataArray type=\"Float64\" Name=\"TimeValue\" NumberOfTuples=\"1\">" << p->simtime << "</DataArray>";
-    out << "<DataArray type=\"Int32\" Name=\"level\" NumberOfTuples=\"1\">" << c.lev << "</DataArray></FieldData>\n";
-    out << "<Piece Extent=\"0 " << c.nx << " 0 " << c.ny << " 0 0\">\n";
-    out << "<CellData Scalars=\"eta\">\n";
+    out<<"<?xml version=\"1.0\"?>\n";
+    out<<"<VTKFile type=\"RectilinearGrid\" version=\"0.1\" byte_order=\"LittleEndian\">\n";
+    out<<"<RectilinearGrid WholeExtent=\"0 "<<c.nx<<" 0 "<<c.ny<<" 0 0\">\n";
+    out<<"<FieldData><DataArray type=\"Float64\" Name=\"TimeValue\" NumberOfTuples=\"1\">"<<p->simtime<<"</DataArray>";
+    out<<"<DataArray type=\"Int32\" Name=\"level\" NumberOfTuples=\"1\">"<<c.lev<<"</DataArray></FieldData>\n";
+    out<<"<Piece Extent=\"0 "<<c.nx<<" 0 "<<c.ny<<" 0 0\">\n";
+    out<<"<CellData Scalars=\"eta\">\n";
 
     auto field = [&](const char *nm, slice &f, double shift)
     {
-        out << "<DataArray type=\"Float64\" Name=\"" << nm << "\" format=\"ascii\">\n";
-        for(int jj = EY; jj < EY + c.ny; ++jj)
+        out<<"<DataArray type=\"Float64\" Name=\""<<nm<<"\" format=\"ascii\">\n";
+        for(int jj=EY; jj<EY+c.ny; ++jj)
         {
-            for(int ii = EXT; ii < EXT + c.nx; ++ii)
-                out << setprecision(17) << f(ii, jj) + shift << " ";
-            out << "\n";
+            for(int ii=EXT; ii<EXT+c.nx; ++ii)
+            out<<setprecision(17)<<f(ii,jj)+shift<<" ";
+            out<<"\n";
         }
-        out << "</DataArray>\n";
+        out<<"</DataArray>\n";
     };
     // the velocity at the free surface (the top node of the sigma grid), as REEF3D_FNPF_VTP_FSF
     auto surface = [&](const char *nm, const double *A)
     {
-        out << "<DataArray type=\"Float64\" Name=\"" << nm << "\" format=\"ascii\">\n";
-        for(int jj = EY; jj < EY + c.ny; ++jj)
+        out<<"<DataArray type=\"Float64\" Name=\""<<nm<<"\" format=\"ascii\">\n";
+        for(int jj=EY; jj<EY+c.ny; ++jj)
         {
-            for(int ii = EXT; ii < EXT + c.nx; ++ii)
-                out << setprecision(17) << A[fidx(pp, ii, jj, pp->knoz)] << " ";
-            out << "\n";
+            for(int ii=EXT; ii<EXT+c.nx; ++ii)
+            out<<setprecision(17)<<A[fidx(pp,ii,jj,pp->knoz)]<<" ";
+            out<<"\n";
         }
-        out << "</DataArray>\n";
+        out<<"</DataArray>\n";
     };
-    field("eta", cc->eta, 0.0);
-    field("elevation", cc->eta, p->wd);
-    field("Fifsf", cc->Fifsf, 0.0);
-    surface("u", cc->U);
-    surface("v", cc->V);
-    surface("w", cc->W);
-    field("bed", cc->bed, 0.0);
+    field("eta",cc->eta,0.0);
+    field("elevation",cc->eta,p->wd);
+    field("Fifsf",cc->Fifsf,0.0);
+    surface("u",cc->U);
+    surface("v",cc->V);
+    surface("w",cc->W);
+    field("bed",cc->bed,0.0);
 
-    out << "</CellData>\n<Coordinates>\n";
+    out<<"</CellData>\n<Coordinates>\n";
     const int m = marge;
-    out << "<DataArray type=\"Float64\" Name=\"x\" format=\"ascii\">";
-    for(int ii = EXT; ii <= EXT + c.nx; ++ii)
-        out << setprecision(12) << pp->XN[ii + m] << " ";
-    out << "</DataArray>\n<DataArray type=\"Float64\" Name=\"y\" format=\"ascii\">";
-    for(int jj = EY; jj <= EY + c.ny; ++jj)
-        out << setprecision(12) << pp->YN[jj + m] << " ";
-    out << "</DataArray>\n<DataArray type=\"Float64\" Name=\"z\" format=\"ascii\">0</DataArray>\n";
-    out << "</Coordinates>\n</Piece>\n</RectilinearGrid>\n</VTKFile>\n";
+    out<<"<DataArray type=\"Float64\" Name=\"x\" format=\"ascii\">";
+    for(int ii=EXT; ii<=EXT+c.nx; ++ii) out<<setprecision(12)<<pp->XN[ii+m]<<" ";
+    out<<"</DataArray>\n<DataArray type=\"Float64\" Name=\"y\" format=\"ascii\">";
+    for(int jj=EY; jj<=EY+c.ny; ++jj) out<<setprecision(12)<<pp->YN[jj+m]<<" ";
+    out<<"</DataArray>\n<DataArray type=\"Float64\" Name=\"z\" format=\"ascii\">0</DataArray>\n";
+    out<<"</Coordinates>\n</Piece>\n</RectilinearGrid>\n</VTKFile>\n";
     out.close();
 }
 
@@ -375,8 +363,8 @@ void fnpf_amr::write_vtr(lexer *p, fnpf_amr_patch &c, int id)
 bool fnpf_amr::print_lagoon(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 {
     static lagoon_amr_output *writer = nullptr;
-    if(writer == nullptr)
-        writer = new lagoon_amr_output("FNPF", {{"eta", false}, {"elevation", false}, {"Fifsf", false}, {"u", false}, {"v", false}, {"w", false}, {"bed", false}});
+    if(writer==nullptr)
+    writer = new lagoon_amr_output("FNPF", {{"eta",false}, {"elevation",false}, {"Fifsf",false}, {"u",false}, {"v",false}, {"w",false}, {"bed",false}});
 
     const int m = marge;
     vector<lagoon_amr::grid> grids;
@@ -386,34 +374,32 @@ bool fnpf_amr::print_lagoon(lexer *p, fdm_fnpf *c, ghostcell *pgc)
         g.level = level;
         g.nx = nx;
         g.ny = ny;
-        for(int ii = i0; ii <= i0 + nx; ++ii)
-            g.x.push_back(q->XN[ii + m]);
-        for(int jj = j0; jj <= j0 + ny; ++jj)
-            g.y.push_back(q->YN[jj + m]);
+        for(int ii=i0; ii<=i0+nx; ++ii) g.x.push_back(q->XN[ii+m]);
+        for(int jj=j0; jj<=j0+ny; ++jj) g.y.push_back(q->YN[jj+m]);
         auto field = [&](slice &s, double shift)
         {
-            for(int jj = j0; jj < j0 + ny; ++jj)
-                for(int ii = i0; ii < i0 + nx; ++ii)
-                    g.values.push_back(s(ii, jj) + shift);
+            for(int jj=j0; jj<j0+ny; ++jj)
+            for(int ii=i0; ii<i0+nx; ++ii)
+            g.values.push_back(s(ii,jj)+shift);
         };
-        auto surface = [&](const double *A)  // the velocity at the free surface (top node)
+        auto surface = [&](const double *A)   // the velocity at the free surface (top node)
         {
-            for(int jj = j0; jj < j0 + ny; ++jj)
-                for(int ii = i0; ii < i0 + nx; ++ii)
-                    g.values.push_back(A[fidx(q, ii, jj, q->knoz)]);
+            for(int jj=j0; jj<j0+ny; ++jj)
+            for(int ii=i0; ii<i0+nx; ++ii)
+            g.values.push_back(A[fidx(q,ii,jj,q->knoz)]);
         };
-        field(f->eta, 0.0);
-        field(f->eta, p->wd);
-        field(f->Fifsf, 0.0);
+        field(f->eta,0.0);
+        field(f->eta,p->wd);
+        field(f->Fifsf,0.0);
         surface(f->U);
         surface(f->V);
         surface(f->W);
-        field(f->bed, 0.0);
+        field(f->bed,0.0);
         grids.push_back(std::move(g));
     };
-    take(p, c, 0, 0, p->knox, p->knoy, 0);
-    for(int n = 0; n < (int)P.size(); ++n)
-        take(FP(n)->pp, FP(n)->c, EXT, EY, FP(n)->nx, FP(n)->ny, FP(n)->lev);
+    take(p,c,0,0,p->knox,p->knoy,0);
+    for(int n=0; n<(int)P.size(); ++n)
+    take(FP(n)->pp,FP(n)->c,EXT,EY,FP(n)->nx,FP(n)->ny,FP(n)->lev);
 
-    return writer->write(p, pgc, grids, printcount_amr);
+    return writer->write(p,pgc,grids,printcount_amr);
 }

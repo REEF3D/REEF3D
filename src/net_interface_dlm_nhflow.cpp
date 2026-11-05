@@ -20,16 +20,16 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "fdm_nhf.h"
-#include "ghostcell.h"
-#include "lexer.h"
-#include "net.h"
-#include "net_interface.h"
+#include"net_interface.h"
+#include"lexer.h"
+#include"fdm_nhf.h"
+#include"ghostcell.h"
+#include"net.h"
+#include<sys/stat.h>
 #include <Eigen/Dense>
-#include <sys/stat.h>
 
 void net_interface::dlm_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, int nNet)
-{
+{ 
     // Distribute net forces (per unit fluid density) on surrounding cells.
     //
     // NHFLOW specifics:
@@ -46,90 +46,90 @@ void net_interface::dlm_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, int nNet)
     double dx, dy, dz, Dx, Dy, sum, fac, w;
     double Dzk[7];
 
-    const EigenMat &lagrangePoints = pnet[nNet]->getLagrangePoints();
-    const EigenMat &lagrangeForces = pnet[nNet]->getLagrangeForces();
+    const EigenMat& lagrangePoints = pnet[nNet]->getLagrangePoints();
+    const EigenMat& lagrangeForces = pnet[nNet]->getLagrangeForces();
 
-    for(int pI = 0; pI < lagrangePoints.size(); pI++)
+    for (int pI = 0; pI < lagrangePoints.size(); pI++)
     {
-        const Eigen::Vector3d &forcesI = lagrangeForces[pI];
-
-        if(forcesI.norm() == 0.0)
-            continue;
-
-        const Eigen::Vector3d &coordI = lagrangePoints[pI];
+        const Eigen::Vector3d& forcesI = lagrangeForces[pI];
+        
+        if (forcesI.norm()==0.0)
+        continue;
+        
+        const Eigen::Vector3d& coordI = lagrangePoints[pI];
 
         ii = p->posc_i(coordI(0));
         jj = p->posc_j(coordI(1));
 
-        dx = p->DXN[MAX(MIN(ii, p->knox - 1), 0) + marge];
-        dy = p->DYN[MAX(MIN(jj, p->knoy - 1), 0) + marge];
-
+        dx = p->DXN[MAX(MIN(ii,p->knox-1),0) + marge];
+        dy = p->DYN[MAX(MIN(jj,p->knoy-1),0) + marge];
+        
         // interior cells of this subdomain inside the kernel support
-        is = MAX(ii - 2, 0);
-        ie = MIN(ii + 2, p->knox - 1);
-        js = MAX(jj - 2, 0);
-        je = MIN(jj + 2, p->knoy - 1);
+        is = MAX(ii-2,0);
+        ie = MIN(ii+2,p->knox-1);
+        js = MAX(jj-2,0);
+        je = MIN(jj+2,p->knoy-1);
+        
+        if(p->j_dir==0)
+        js = je = 0;
 
-        if(p->j_dir == 0)
-            js = je = 0;
-
-        for(i = is; i <= ie; ++i)
+        for(i=is; i<=ie; ++i)
         {
-            Dx = kernel_peskin(fabs(p->XP[IP] - coordI(0)) / dx);
-
-            if(Dx == 0.0)
-                continue;
-
-            for(j = js; j <= je; ++j)
+            Dx = kernel_peskin(fabs(p->XP[IP] - coordI(0))/dx);
+            
+            if(Dx==0.0)
+            continue;
+            
+            for(j=js; j<=je; ++j)
             {
                 // 2D: the force acts over the full width of the single cell row
-                Dy = (p->j_dir == 0) ? 1.0 : kernel_peskin(fabs(p->YP[JP] - coordI(1)) / dy);
-
-                if(Dy == 0.0 || p->wet[IJ] == 0)
-                    continue;
-
+                Dy = (p->j_dir==0) ? 1.0 : kernel_peskin(fabs(p->YP[JP] - coordI(1))/dy);
+                
+                if(Dy==0.0 || p->wet[IJ]==0)
+                continue;
+                
                 // vertical position in this column (posc_sig overwrites i,j,k)
                 isave = i;
                 jsave = j;
-                kk = p->posc_sig(i, j, coordI(2));
+                kk = p->posc_sig(i,j,coordI(2));
                 i = isave;
                 j = jsave;
-
-                kc = MAX(MIN(kk, p->knoz - 1), 0);
-                dz = p->DZN[kc + marge] * d->WL(i, j);
-
-                ks = MAX(kk - 3, 0);
-                ke = MIN(kk + 3, p->knoz - 1);
-
-                if(ke < ks || dz < 1.0e-20)
-                    continue;
-
+                
+                kc = MAX(MIN(kk,p->knoz-1),0);
+                dz = p->DZN[kc + marge]*d->WL(i,j);
+                
+                ks = MAX(kk-3,0);
+                ke = MIN(kk+3,p->knoz-1);
+                
+                if(ke<ks || dz<1.0e-20)
+                continue;
+                
                 sum = 0.0;
-                for(k = ks; k <= ke; ++k)
+                for(k=ks; k<=ke; ++k)
                 {
-                    Dzk[k - ks] = kernel_peskin(fabs(p->ZSP[IJK] - coordI(2)) / dz);
-                    sum += Dzk[k - ks] * p->DZN[KP] * d->WL(i, j);
+                    Dzk[k-ks] = kernel_peskin(fabs(p->ZSP[IJK] - coordI(2))/dz);
+                    sum += Dzk[k-ks]*p->DZN[KP]*d->WL(i,j);
                 }
-
-                if(sum < 1.0e-20)
-                    continue;
-
+                
+                if(sum<1.0e-20)
+                continue;
+                
                 // Dx/dx*Dy/dy*Dz/sum integrates to one over the cells; times WL for d(UH)/dt
-                fac = (Dx / dx) * (p->j_dir == 0 ? 1.0 / dy : Dy / dy) * d->WL(i, j) / sum;
-
-                for(k = ks; k <= ke; ++k)
+                fac = (Dx/dx)*(p->j_dir==0 ? 1.0/dy : Dy/dy)*d->WL(i,j)/sum;
+                
+                for(k=ks; k<=ke; ++k)
                 {
-                    w = fac * Dzk[k - ks];
-
-                    d->Fext[IJK] -= forcesI(0) * w;
-                    d->Gext[IJK] -= forcesI(1) * w;
-                    d->Hext[IJK] -= forcesI(2) * w;
+                    w = fac*Dzk[k-ks];
+                    
+                    d->Fext[IJK] -= forcesI(0)*w;
+                    d->Gext[IJK] -= forcesI(1)*w;
+                    d->Hext[IJK] -= forcesI(2)*w;
                 }
             }
         }
-    }
-
-    pgc->start4V(p, d->Fext, 10);
-    pgc->start4V(p, d->Gext, 11);
-    pgc->start4V(p, d->Hext, 12);
+    } 
+    
+    pgc->start4V(p,d->Fext,10); 
+    pgc->start4V(p,d->Gext,11); 
+    pgc->start4V(p,d->Hext,12); 
 }

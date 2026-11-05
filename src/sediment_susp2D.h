@@ -23,10 +23,10 @@ Architect: Hans Bihs
 #ifndef SEDIMENT_SUSP2D_H_
 #define SEDIMENT_SUSP2D_H_
 
-#include "increment.h"
-#include "slice1.h"
-#include "slice2.h"
-#include "slice4.h"
+#include"increment.h"
+#include"slice1.h"
+#include"slice2.h"
+#include"slice4.h"
 
 class lexer;
 class fdm2D;
@@ -94,40 +94,40 @@ exchange is distributed with the active-layer composition).
 class sediment_susp2D : public increment
 {
 public:
-    sediment_susp2D(lexer *);
+    sediment_susp2D(lexer*);
     virtual ~sediment_susp2D();
-
+    
     // allocate the mass flux accumulator of the continuity
-    void ini(lexer *, fdm2D *, ghostcell *, sediment_fdm *);
-
+    void ini(lexer*, fdm2D*, ghostcell*, sediment_fdm*);
+    
     // one flow step: C_eq (bed shear, waves and transport formula already evaluated), then transport and exchange
-    void start(lexer *, fdm2D *, ghostcell *, sediment_fdm *, bedload_waves *);
-
+    void start(lexer*, fdm2D*, ghostcell*, sediment_fdm*, bedload_waves*);
+    
     // the mean exchange rate E - D since the last bed update into s->edrate; reset after the bed update
-    void bed_rate(lexer *, ghostcell *, sediment_fdm *);
-    void bed_done(lexer *);
-
-    double total(lexer *, ghostcell *);  // suspended volume in the domain [m^3]
-
-    slice4 M, C, Ceq, ED, hn, rate, beta;
-
+    void bed_rate(lexer*, ghostcell*, sediment_fdm*);
+    void bed_done(lexer*);
+    
+    double total(lexer*, ghostcell*);   // suspended volume in the domain [m^3]
+    
+    slice4 M,C,Ceq,ED,hn,rate,beta;
+    
 private:
-    void equilibrium(lexer *, fdm2D *, ghostcell *, sediment_fdm *, bedload_waves *);
-    void advection(lexer *, fdm2D *, ghostcell *, sediment_fdm *);
-    void diffusion(lexer *, fdm2D *, ghostcell *);
-    void exchange(lexer *, fdm2D *, ghostcell *, sediment_fdm *);
+    void equilibrium(lexer*, fdm2D*, ghostcell*, sediment_fdm*, bedload_waves*);
+    void advection(lexer*, fdm2D*, ghostcell*, sediment_fdm*);
+    void diffusion(lexer*, fdm2D*, ghostcell*);
+    void exchange(lexer*, fdm2D*, ghostcell*, sediment_fdm*);
     double rouse(double h, double a, double Z) const;
-    double cin(lexer *, int, int);
-
+    double cin(lexer*, int, int);
+    
     // the inflow concentration (S 124 or the time series of S 129 2)
     const sediment_inflow *pin = nullptr;
     static double minmod(double, double);
-
-    slice1 Fx, Gx;
-    slice2 Fy, Gy;
-
-    double tacc[2];  // flow time since the last bed update, initialised flag (checkpoints)
-    double clip;     // volume added by clipping negative M (log)
+    
+    slice1 Fx,Gx;
+    slice2 Fy,Gy;
+    
+    double tacc[2];             // flow time since the last bed update, initialised flag (checkpoints)
+    double clip;                // volume added by clipping negative M (log)
     unsigned long long ckid;
 };
 

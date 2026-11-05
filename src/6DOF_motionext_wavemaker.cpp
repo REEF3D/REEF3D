@@ -20,26 +20,27 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Authors: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "6DOF_motionext_wavemaker.h"
-#include "fdm.h"
-#include "ghostcell.h"
-#include "lexer.h"
+#include"6DOF_motionext_wavemaker.h"
+#include"lexer.h"
+#include"fdm.h"
+#include"ghostcell.h"
 
 sixdof_motionext_wavemaker::sixdof_motionext_wavemaker(lexer *p, ghostcell *pgc)
 {
-    if(p->mpirank == 0)
-        cout << "6DOF_motion  Wavemaker " << endl;
-
-    ini(p, pgc);
-
+    if(p->mpirank==0)
+    cout<<"6DOF_motion  Wavemaker "<<endl;
+    
+    
+    ini(p,pgc);
+    
     // number of file columns
     colnum = 2;
-
-    timecount_old = 0;
-    timecount = 1;
-
+    
+    timecount_old=0;
+	timecount=1;
+    
     // read file
-    read_format_1(p, pgc);
+    read_format_1(p,pgc);
 }
 
 sixdof_motionext_wavemaker::~sixdof_motionext_wavemaker()
@@ -57,77 +58,73 @@ void sixdof_motionext_wavemaker::ini(lexer *p, ghostcell *pgc)
     Rext = 0.0;
 }
 
-void sixdof_motionext_wavemaker::motionext_trans(lexer *p, ghostcell *pgc, Eigen::Vector3d &dp_, Eigen::Vector3d &dc_)
+void sixdof_motionext_wavemaker::motionext_trans(lexer *p, ghostcell *pgc, Eigen::Vector3d& dp_, Eigen::Vector3d& dc_)
 {
     // find correct time step
-    if(p->simtime <= te)
+    if (p->simtime <= te)
     {
-        if(p->simtime > data[timecount][0])
-            timecount_old = timecount;
-
-        while(p->simtime > data[timecount][0])
-            ++timecount;
+        if(p->simtime>data[timecount][0])
+        timecount_old=timecount;
+        
+        while(p->simtime>data[timecount][0])
+        ++timecount;
     }
+    
+    
+        if (dof[0] == 2)
+        {
+            Uext = 0.0;
+            
+            if(p->simtime>=ts && p->simtime<=te)
+            Uext = (data[timecount][1]-data[timecount_old][1])/(data[timecount][0]-data[timecount_old][0]);
+            
+            
+            dp_(0) = 0.0;
+            dc_(0) = Uext*ramp_vel(p);
+        }
 
-    if(dof[0] == 2)
-    {
-        Uext = 0.0;
-
-        if(p->simtime >= ts && p->simtime <= te)
-            Uext = (data[timecount][1] - data[timecount_old][1]) / (data[timecount][0] - data[timecount_old][0]);
-
-        dp_(0) = 0.0;
-        dc_(0) = Uext * ramp_vel(p);
-    }
-
-    if(dof[1] == 2)
-    {
-        dp_(1) = 0.0;
-        dc_(1) = 0.0;
-    }
-
-    if(dof[2] == 2)
-    {
-        dp_(2) = 0.0;
-        dc_(2) = 0.0;
-    }
+        if (dof[1] == 2)
+        {
+            dp_(1) = 0.0;
+            dc_(1) = 0.0;
+        }
+        
+        if (dof[2] == 2)
+        {
+            dp_(2) = 0.0;
+            dc_(2) = 0.0;
+        }
 }
 
-void sixdof_motionext_wavemaker::motionext_rot(lexer *p, Eigen::Vector3d &dh_, Eigen::Vector3d &h_, Eigen::Vector4d &de_, Eigen::Matrix<double, 3, 4> &G_, Eigen::Matrix3d &I_)
+void sixdof_motionext_wavemaker::motionext_rot(lexer *p, Eigen::Vector3d& dh_, Eigen::Vector3d& h_, Eigen::Vector4d& de_, Eigen::Matrix<double, 3, 4>&G_,  Eigen::Matrix3d&I_)
 {
-    if(dof[3] == 2)
-        dh_(0) = 0.0;
-    if(dof[4] == 2)
-        dh_(1) = 0.0;
-    if(dof[5] == 2)
-        dh_(2) = 0.0;
-
-    omega_ = I_.inverse() * h_;
-
-    if(dof[3] == 2)
-        omega_(0) = 0.0;
-    if(dof[4] == 2)
-        omega_(1) = 0.0;
-    if(dof[5] == 2)
-        omega_(2) = 0.0;
-
-    h_ = I_ * omega_;
-
-    de_ = 0.5 * G_.transpose() * omega_;
+        if (dof[3] == 2) dh_(0) = 0.0;
+        if (dof[4] == 2) dh_(1) = 0.0;
+        if (dof[5] == 2) dh_(2) = 0.0;
+        
+        omega_ = I_.inverse() * h_;
+        
+        if (dof[3] == 2) omega_(0) = 0.0;
+        if (dof[4] == 2) omega_(1) = 0.0;
+        if (dof[5] == 2) omega_(2) = 0.0;
+        
+        h_ = I_*omega_;
+        
+        de_ = 0.5*G_.transpose()*omega_;
 }
 
 double sixdof_motionext_wavemaker::ramp_vel(lexer *p)
 {
-    double f = 1.0;
+    double f=1.0;
 
-    if(p->X205 == 1 && p->X206 == 1 && p->simtime >= p->X206_ts && p->simtime < p->X206_te)
-        f = (p->simtime - p->X206_ts) / (p->X206_te - p->X206_ts);
+    if(p->X205==1 && p->X206==1 && p->simtime>=p->X206_ts && p->simtime<p->X206_te)
+    f = (p->simtime-p->X206_ts)/(p->X206_te-p->X206_ts);
 
-    if(p->X205 == 2 && p->X206 == 1 && p->simtime >= p->X206_ts && p->simtime < p->X206_te)
-        f = (p->simtime - p->X206_ts) / (p->X206_te - p->X206_ts) - (1.0 / PI) * sin(PI * (p->simtime - p->X206_ts) / (p->X206_te - p->X206_ts));
+    if(p->X205==2 && p->X206==1 && p->simtime>=p->X206_ts && p->simtime<p->X206_te)
+    f = (p->simtime-p->X206_ts)/(p->X206_te-p->X206_ts)-(1.0/PI)*sin(PI*(p->simtime-p->X206_ts)/(p->X206_te-p->X206_ts));
 
-    if(p->X206 == 1 && p->simtime < p->X206_ts)
-        f = 0.0;
+    if(p->X206==1 && p->simtime<p->X206_ts)
+    f=0.0;
 
     return f;
 }

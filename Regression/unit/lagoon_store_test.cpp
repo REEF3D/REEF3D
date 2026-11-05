@@ -2,87 +2,83 @@
 // Build:  g++ -O2 -std=c++20 -I../../src lagoon_store_test.cpp ../../src/lagoon_store.cpp -lz -lpthread -o lagoon_store_test
 // Run:    ./lagoon_store_test     (writes and reads back lagoon_store_test.lagoon in the current folder)
 // The files follow LAGOON's lagoon-format SPEC.md 0.1; LAGOON reads them with lagoon_format.store.
-#include "lagoon_store.h"
-#include <cmath>
-#include <cstdint>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
-#include <fstream>
-#include <iostream>
-#include <limits>
-#include <random>
-#include <sstream>
-#include <string>
-#include <vector>
-#include <zlib.h>
+#include"lagoon_store.h"
+#include<cmath>
+#include<cstdint>
+#include<cstdio>
+#include<cstdlib>
+#include<cstring>
+#include<fstream>
+#include<iostream>
+#include<limits>
+#include<random>
+#include<sstream>
+#include<string>
+#include<vector>
+#include<zlib.h>
 
 static int nfail = 0;
 static void check(bool ok, const std::string &what)
 {
-    std::cout << (ok ? "  PASS  " : "  FAIL  ") << what << std::endl;
-    if(!ok)
-        ++nfail;
+    std::cout<<(ok ? "  PASS  " : "  FAIL  ")<<what<<std::endl;
+    if(!ok) ++nfail;
 }
 
 static std::string slurp(const std::string &file)
 {
     std::ifstream in(file.c_str(), std::ios::binary);
     std::stringstream s;
-    s << in.rdbuf();
+    s<<in.rdbuf();
     return s.str();
 }
 
 static uint64_t u64(const unsigned char *p)
 {
-    uint64_t v = 0;
-    for(int b = 7; b >= 0; --b)
-        v = (v << 8) | p[b];
+    uint64_t v=0;
+    for(int b=7;b>=0;--b) v=(v<<8)|p[b];
     return v;
 }
 
 static uint32_t crc32c(const unsigned char *d, size_t n)
 {
-    uint32_t c = 0xFFFFFFFFu;
-    for(size_t i = 0; i < n; ++i)
+    uint32_t c=0xFFFFFFFFu;
+    for(size_t i=0;i<n;++i)
     {
-        c ^= d[i];
-        for(int k = 0; k < 8; ++k)
-            c = (c & 1) ? (c >> 1) ^ 0x82F63B78u : c >> 1;
+        c^=d[i];
+        for(int k=0;k<8;++k) c=(c&1) ? (c>>1)^0x82F63B78u : c>>1;
     }
-    return c ^ 0xFFFFFFFFu;
+    return c^0xFFFFFFFFu;
 }
 
 // one inner chunk of a shard: gunzip, unshuffle (4-byte elements); empty if not written
 static std::vector<float> inner_chunk(const std::string &shard, size_t entries, size_t entry, size_t values, bool &crc_ok)
 {
-    const unsigned char *d = reinterpret_cast<const unsigned char *>(shard.data());
-    const size_t index_bytes = 16 * entries;
+    const unsigned char *d = reinterpret_cast<const unsigned char*>(shard.data());
+    const size_t index_bytes = 16*entries;
     const unsigned char *index = d + shard.size() - index_bytes - 4;
-    uint32_t stored = 0;
-    for(int b = 3; b >= 0; --b)
-        stored = (stored << 8) | index[index_bytes + b];
-    crc_ok = stored == crc32c(index, index_bytes);
-    const uint64_t offset = u64(index + 16 * entry), size = u64(index + 16 * entry + 8);
-    if(offset == UINT64_MAX && size == UINT64_MAX)
+    uint32_t stored=0;
+    for(int b=3;b>=0;--b) stored=(stored<<8)|index[index_bytes+b];
+    crc_ok = stored==crc32c(index,index_bytes);
+    const uint64_t offset=u64(index+16*entry), size=u64(index+16*entry+8);
+    if(offset==UINT64_MAX && size==UINT64_MAX)
         return {};
-    std::vector<unsigned char> raw(values * 4);
+    std::vector<unsigned char> raw(values*4);
     z_stream zs;
-    std::memset(&zs, 0, sizeof(zs));
-    inflateInit2(&zs, 15 + 32);
-    zs.next_in = const_cast<unsigned char *>(d + offset);
-    zs.avail_in = size;
-    zs.next_out = raw.data();
-    zs.avail_out = raw.size();
-    const int status = inflate(&zs, Z_FINISH);
+    std::memset(&zs,0,sizeof(zs));
+    inflateInit2(&zs,15+32);
+    zs.next_in=const_cast<unsigned char*>(d+offset);
+    zs.avail_in=size;
+    zs.next_out=raw.data();
+    zs.avail_out=raw.size();
+    const int status=inflate(&zs,Z_FINISH);
     inflateEnd(&zs);
-    if(status != Z_STREAM_END || zs.total_out != raw.size())
+    if(status!=Z_STREAM_END || zs.total_out!=raw.size())
         return {};
     std::vector<float> out(values);
-    unsigned char *o = reinterpret_cast<unsigned char *>(out.data());
-    for(size_t e = 0; e < values; ++e)
-        for(int b = 0; b < 4; ++b)
-            o[4 * e + b] = raw[b * values + e];
+    unsigned char *o=reinterpret_cast<unsigned char*>(out.data());
+    for(size_t e=0;e<values;++e)
+        for(int b=0;b<4;++b)
+            o[4*e+b]=raw[b*values+e];
     return out;
 }
 
@@ -90,7 +86,7 @@ int main()
 {
     char s[300];
 
-    std::cout << "VTU header" << std::endl;
+    std::cout<<"VTU header"<<std::endl;
     {
         const std::string header =
             "<VTKFile type=\"UnstructuredGrid\">\n<UnstructuredGrid>\n<Piece NumberOfPoints=\"60\" NumberOfCells=\"24\">\n"
@@ -101,302 +97,273 @@ int main()
             "<Cells>\n<DataArray type=\"Int32\" Name=\"connectivity\" format=\"appended\" offset=\"1692\"/>\n</Cells>\n"
             "</Piece>\n</UnstructuredGrid>\n<AppendedData encoding=\"raw\">\n_";
         std::vector<lagoon_store::vtu_array> fields;
-        long long points = -1;
-        const bool ok = lagoon_store::parse_vtu_header(header, fields, points);
-        check(ok && fields.size() == 2, "two point arrays found");
-        check(ok && fields[0].var.name == "velocity" && fields[0].var.components == 3 && fields[0].offset == 0 && fields[0].var.units == "m/s", "velocity: 3 components at offset 0, in m/s");
-        check(ok && fields[1].var.name == "pressure" && fields[1].var.components == 1 && fields[1].offset == 724, "pressure: scalar at offset 724");
-        check(points == 968, "points at offset 968 (not the cells)");
+        long long points=-1;
+        const bool ok = lagoon_store::parse_vtu_header(header,fields,points);
+        check(ok && fields.size()==2, "two point arrays found");
+        check(ok && fields[0].var.name=="velocity" && fields[0].var.components==3 && fields[0].offset==0
+                 && fields[0].var.units=="m/s", "velocity: 3 components at offset 0, in m/s");
+        check(ok && fields[1].var.name=="pressure" && fields[1].var.components==1 && fields[1].offset==724, "pressure: scalar at offset 724");
+        check(points==968, "points at offset 968 (not the cells)");
     }
 
-    std::cout << "level offsets" << std::endl;
+    std::cout<<"level offsets"<<std::endl;
     {
-        const std::vector<double> sigma = {0.0, 0.3, 0.7, 1.0};
-        std::vector<float> z(4 * 2), off;
-        for(int k = 0; k < 4; ++k)
-        {
-            z[k * 2] = float(-2.0 + sigma[k] * 2.1);
-            z[k * 2 + 1] = float(-1.0 + sigma[k] * 1.1);
-        }
-        lagoon_store::level_offsets(z.data(), 4, 2, sigma, off);
-        bool zero = true;
-        for(float v : off)
-            zero = zero && v == 0.0f;
+        const std::vector<double> sigma={0.0,0.3,0.7,1.0};
+        std::vector<float> z(4*2), off;
+        for(int k=0;k<4;++k) { z[k*2]=float(-2.0+sigma[k]*2.1); z[k*2+1]=float(-1.0+sigma[k]*1.1); }
+        lagoon_store::level_offsets(z.data(),4,2,sigma,off);
+        bool zero=true; for(float v:off) zero = zero && v==0.0f;
         check(zero, "levels at their sigma: all offsets exactly 0");
-        z[1 * 2 + 1] = float(-1.0 + 0.25 * 1.1);
-        lagoon_store::level_offsets(z.data(), 4, 2, sigma, off);
-        snprintf(s, 300, "a level off its sigma: offset %.6f (exact %.6f), the others 0", off[1 * 2 + 1], -0.05 * 1.1);
-        check(std::fabs(off[1 * 2 + 1] + 0.055) < 1e-6 && off[1 * 2] == 0.0f && off[2 * 2 + 1] == 0.0f, s);
+        z[1*2+1] = float(-1.0+0.25*1.1);
+        lagoon_store::level_offsets(z.data(),4,2,sigma,off);
+        snprintf(s,300,"a level off its sigma: offset %.6f (exact %.6f), the others 0",off[1*2+1],-0.05*1.1);
+        check(std::fabs(off[1*2+1]+0.055)<1e-6 && off[1*2]==0.0f && off[2*2+1]==0.0f, s);
     }
 
-    std::cout << "store files" << std::endl;
+    std::cout<<"store files"<<std::endl;
     {
-        const std::string path = "lagoon_store_test.lagoon";
-        if(std::system(("rm -rf " + path).c_str()) != 0)
-            std::cout << "  (could not clear " << path << ")" << std::endl;
-        const int NX = 5, NY = 3, NZ = 4, T = 2;
-        std::vector<double> x = {0, 1, 2, 3, 4}, y = {0, 1, 2}, sigma = {0.0, 0.3, 0.7, 1.0};
-        std::vector<lagoon_store::variable> vars = {{"velocity", 3, "m/s"}, {"pressure", 1, "Pa"}};
-        lagoon_store store(path, T, 1);
-        store.create_root("NHFLOW", "{\"type\": \"run\", \"run\": \"R1\"}");
-        store.create_output("volume", "sigma", x, y, sigma, vars, 1, "test");
-        store.create_block("volume", 0, 0, 0, NX, NY, NZ, vars, 0);
-        std::vector<std::vector<float>> pressure(3);
-        long long size_after_first = 0;
-        for(int t = 0; t < 3; ++t)
+        const std::string path="lagoon_store_test.lagoon";
+        if(std::system(("rm -rf "+path).c_str())!=0) std::cout<<"  (could not clear "<<path<<")"<<std::endl;
+        const int NX=5, NY=3, NZ=4, T=2;
+        std::vector<double> x={0,1,2,3,4}, y={0,1,2}, sigma={0.0,0.3,0.7,1.0};
+        std::vector<lagoon_store::variable> vars={{"velocity",3,"m/s"},{"pressure",1,"Pa"}};
+        lagoon_store store(path,T,1);
+        store.create_root("NHFLOW","{\"type\": \"run\", \"run\": \"R1\"}");
+        store.create_output("volume","sigma",x,y,sigma,vars,1,"test");
+        store.create_block("volume",0,0,0,NX,NY,NZ,vars,0);
+        std::vector<std::vector<float> > pressure(3);
+        long long size_after_first=0;
+        for(int t=0;t<3;++t)
         {
-            std::vector<float> bed(NX * NY, -2.0f), top(NX * NY), u(3 * NX * NY * NZ), p(NX * NY * NZ), off(NX * NY * NZ, 0.0f);
-            for(int q = 0; q < NX * NY; ++q)
-                top[q] = float(0.1 * t + 0.01 * q);
-            for(int n = 0; n < NX * NY * NZ; ++n)
-            {
-                p[n] = float(1000 * t + n);
-                u[3 * n] = float(t);
-                u[3 * n + 1] = float(n);
-                u[3 * n + 2] = -float(n);
-            }
-            pressure[t] = p;
-            store.write("volume", 0, t, "z_bed", bed.data());
-            store.write("volume", 0, t, "z_surface", top.data());
-            store.write("volume", 0, t, "z_offset", off.data());
-            store.write("volume", 0, t, "velocity", u.data());
-            store.write("volume", 0, t, "pressure", p.data());
-            store.commit("volume", t, 0.5 * t, 10 * t);
-            if(t == 0)
-                size_after_first = (long long)slurp(path + "/volume/blocks/b0000/pressure/c/0/0/0/0").size();
+            std::vector<float> bed(NX*NY,-2.0f), top(NX*NY), u(3*NX*NY*NZ), p(NX*NY*NZ), off(NX*NY*NZ,0.0f);
+            for(int q=0;q<NX*NY;++q) top[q]=float(0.1*t+0.01*q);
+            for(int n=0;n<NX*NY*NZ;++n) { p[n]=float(1000*t+n); u[3*n]=float(t); u[3*n+1]=float(n); u[3*n+2]=-float(n); }
+            pressure[t]=p;
+            store.write("volume",0,t,"z_bed",bed.data());
+            store.write("volume",0,t,"z_surface",top.data());
+            store.write("volume",0,t,"z_offset",off.data());
+            store.write("volume",0,t,"velocity",u.data());
+            store.write("volume",0,t,"pressure",p.data());
+            store.commit("volume",t,0.5*t,10*t);
+            if(t==0) size_after_first=(long long)slurp(path+"/volume/blocks/b0000/pressure/c/0/0/0/0").size();
         }
-        const std::string root = slurp(path + "/zarr.json");
-        check(root.find("\"format\": \"lagoon\"") != std::string::npos && root.find("\"outputs\": [\"volume\"]") != std::string::npos && root.find("\"run\": \"R1\"") != std::string::npos, "root group: format, outputs, run");
-        const std::string meta = slurp(path + "/volume/blocks/b0000/pressure/zarr.json");
-        check(meta.find("\"shape\": [3, 4, 3, 5]") != std::string::npos, "pressure: shape (3 outputs, 4 levels, 3, 5)");
-        check(meta.find("\"chunk_shape\": [2, 4, 3, 5]") != std::string::npos && meta.find("\"chunk_shape\": [1, 4, 3, 5]") != std::string::npos,
+        const std::string root=slurp(path+"/zarr.json");
+        check(root.find("\"format\": \"lagoon\"")!=std::string::npos && root.find("\"outputs\": [\"volume\"]")!=std::string::npos
+              && root.find("\"run\": \"R1\"")!=std::string::npos, "root group: format, outputs, run");
+        const std::string meta=slurp(path+"/volume/blocks/b0000/pressure/zarr.json");
+        check(meta.find("\"shape\": [3, 4, 3, 5]")!=std::string::npos, "pressure: shape (3 outputs, 4 levels, 3, 5)");
+        check(meta.find("\"chunk_shape\": [2, 4, 3, 5]")!=std::string::npos && meta.find("\"chunk_shape\": [1, 4, 3, 5]")!=std::string::npos,
               "shards of 2 outputs, inner chunks of one output (small block: all levels)");
-        check(slurp(path + "/volume/time/zarr.json").find("\"shape\": [3]") != std::string::npos, "time: 3 outputs committed");
-        const std::string time = slurp(path + "/volume/time/c/0");
-        double t2;
-        std::memcpy(&t2, time.data() + 16, 8);
-        check(time.size() == 4096 * 8 && t2 == 1.0, "time of output 2 is 1.0 s");
-        check(!std::ifstream((path + "/volume/blocks/b0000/z_offset/zarr.json").c_str()), "z_offset all zero: not stored");
+        check(slurp(path+"/volume/time/zarr.json").find("\"shape\": [3]")!=std::string::npos, "time: 3 outputs committed");
+        const std::string time=slurp(path+"/volume/time/c/0");
+        double t2; std::memcpy(&t2,time.data()+16,8);
+        check(time.size()==4096*8 && t2==1.0, "time of output 2 is 1.0 s");
+        check(!std::ifstream((path+"/volume/blocks/b0000/z_offset/zarr.json").c_str()), "z_offset all zero: not stored");
 
-        const std::string shard0 = slurp(path + "/volume/blocks/b0000/pressure/c/0/0/0/0");
-        const std::string shard1 = slurp(path + "/volume/blocks/b0000/pressure/c/1/0/0/0");
-        check((long long)shard0.size() > size_after_first, "shard 0 grew when output 1 was appended");
-        bool crc0 = false, crc1 = false;
-        const std::vector<float> p1 = inner_chunk(shard0, 2, 1, NX * NY * NZ, crc0);
-        const std::vector<float> p0 = inner_chunk(shard0, 2, 0, NX * NY * NZ, crc0);
-        const std::vector<float> p2 = inner_chunk(shard1, 2, 0, NX * NY * NZ, crc1);
-        const std::vector<float> none = inner_chunk(shard1, 2, 1, NX * NY * NZ, crc1);
+        const std::string shard0=slurp(path+"/volume/blocks/b0000/pressure/c/0/0/0/0");
+        const std::string shard1=slurp(path+"/volume/blocks/b0000/pressure/c/1/0/0/0");
+        check((long long)shard0.size()>size_after_first, "shard 0 grew when output 1 was appended");
+        bool crc0=false, crc1=false;
+        const std::vector<float> p1=inner_chunk(shard0,2,1,NX*NY*NZ,crc0);
+        const std::vector<float> p0=inner_chunk(shard0,2,0,NX*NY*NZ,crc0);
+        const std::vector<float> p2=inner_chunk(shard1,2,0,NX*NY*NZ,crc1);
+        const std::vector<float> none=inner_chunk(shard1,2,1,NX*NY*NZ,crc1);
         check(crc0 && crc1, "shard indexes carry a valid CRC-32C");
-        check(p0 == pressure[0] && p1 == pressure[1], "outputs 0 and 1 read back from shard 0 (after the append)");
-        check(p2 == pressure[2], "output 2 reads back from shard 1");
+        check(p0==pressure[0] && p1==pressure[1], "outputs 0 and 1 read back from shard 0 (after the append)");
+        check(p2==pressure[2], "output 2 reads back from shard 1");
         check(none.empty(), "output 3 is not written: empty index entry");
-        bool v_ok = false;
-        const std::string vshard = slurp(path + "/volume/blocks/b0000/velocity/c/0/0/0/0/0");
-        const std::vector<float> v1 = inner_chunk(vshard, 2, 1, 3 * NX * NY * NZ, v_ok);
-        check(v_ok && v1.size() == size_t(3 * NX * NY * NZ) && v1[3 * 7] == 1.0f && v1[3 * 7 + 1] == 7.0f && v1[3 * 7 + 2] == -7.0f,
+        bool v_ok=false;
+        const std::string vshard=slurp(path+"/volume/blocks/b0000/velocity/c/0/0/0/0/0");
+        const std::vector<float> v1=inner_chunk(vshard,2,1,3*NX*NY*NZ,v_ok);
+        check(v_ok && v1.size()==size_t(3*NX*NY*NZ) && v1[3*7]==1.0f && v1[3*7+1]==7.0f && v1[3*7+2]==-7.0f,
               "velocity: the components of a point together");
     }
 
-    std::cout << "Cartesian grid split in z (CFD)" << std::endl;
+    std::cout<<"Cartesian grid split in z (CFD)"<<std::endl;
     {
-        const std::string path = "lagoon_store_test_cfd.lagoon";
-        if(std::system(("rm -rf " + path).c_str()) != 0)
-            std::cout << "  (could not clear " << path << ")" << std::endl;
-        std::vector<double> x = {0, 1, 2, 3}, y = {0, 1, 2}, z = {0.0, 0.5, 1.0, 1.5, 2.0};
-        std::vector<lagoon_store::variable> vars = {{"pressure", 1, "Pa"}};
-        lagoon_store store(path, 16, 1);
-        store.create_root("CFD", "");
-        store.create_output("volume", "cartesian", x, y, z, vars, 2, "test");
-        store.create_block("volume", 0, 0, 0, 4, 3, 3, vars, 0, true, 0);
-        store.create_block("volume", 1, 0, 0, 4, 3, 3, vars, 1, true, 2);
-        for(int b = 0; b < 2; ++b)
+        const std::string path="lagoon_store_test_cfd.lagoon";
+        if(std::system(("rm -rf "+path).c_str())!=0) std::cout<<"  (could not clear "<<path<<")"<<std::endl;
+        std::vector<double> x={0,1,2,3}, y={0,1,2}, z={0.0,0.5,1.0,1.5,2.0};
+        std::vector<lagoon_store::variable> vars={{"pressure",1,"Pa"}};
+        lagoon_store store(path,16,1);
+        store.create_root("CFD","");
+        store.create_output("volume","cartesian",x,y,z,vars,2,"test");
+        store.create_block("volume",0,0,0,4,3,3,vars,0,true,0);
+        store.create_block("volume",1,0,0,4,3,3,vars,1,true,2);
+        for(int b=0;b<2;++b)
         {
-            std::vector<float> p(4 * 3 * 3);
-            for(int k = 0; k < 3; ++k)
-                for(int q = 0; q < 12; ++q)
-                    p[k * 12 + q] = float(1000.0 * (2.0 - z[2 * b + k]));
-            store.write("volume", b, 0, "pressure", p.data());
+            std::vector<float> p(4*3*3);
+            for(int k=0;k<3;++k) for(int q=0;q<12;++q) p[k*12+q]=float(1000.0*(2.0-z[2*b+k]));
+            store.write("volume",b,0,"pressure",p.data());
         }
-        store.commit("volume", 0, 0.0, 0);
-        const std::string b1 = slurp(path + "/volume/blocks/b0001/zarr.json");
-        check(b1.find("\"start\": [0, 0, 2]") != std::string::npos && b1.find("\"size\": [4, 3, 3]") != std::string::npos,
+        store.commit("volume",0,0.0,0);
+        const std::string b1=slurp(path+"/volume/blocks/b0001/zarr.json");
+        check(b1.find("\"start\": [0, 0, 2]")!=std::string::npos && b1.find("\"size\": [4, 3, 3]")!=std::string::npos,
               "block 1: start (0, 0, k0 = 2), size (4, 3, 3 levels)");
-        const std::string zs = slurp(path + "/volume/z/c/0");
-        double z4;
-        std::memcpy(&z4, zs.data() + 32, 8);
-        check(zs.size() == 5 * 8 && z4 == 2.0, "the heights of the levels: z (5 values)");
-        check(!std::ifstream((path + "/volume/blocks/b0000/z_bed/zarr.json").c_str()), "no heights per output");
-        check(slurp(path + "/volume/zarr.json").find("\"grid\": \"cartesian\"") != std::string::npos, "grid: cartesian");
+        const std::string zs=slurp(path+"/volume/z/c/0");
+        double z4; std::memcpy(&z4,zs.data()+32,8);
+        check(zs.size()==5*8 && z4==2.0, "the heights of the levels: z (5 values)");
+        check(!std::ifstream((path+"/volume/blocks/b0000/z_bed/zarr.json").c_str()), "no heights per output");
+        check(slurp(path+"/volume/zarr.json").find("\"grid\": \"cartesian\"")!=std::string::npos, "grid: cartesian");
     }
 
-    std::cout << "noisy values, compressed by several threads" << std::endl;
+    std::cout<<"noisy values, compressed by several threads"<<std::endl;
     {
         // 40 x 30 points, 4 levels: inner chunks of 2 levels (2400 values), 2 per output.
         // The low bytes of noisy values are stored in the gzip stream as they are, the
         // others compressed; the same files with 1 and 4 threads.
-        const int NX = 40, NY = 30, NZ = 4, N = NX * NY * NZ;
-        std::vector<double> x(NX), y(NY), sigma = {0.0, 0.3, 0.7, 1.0};
-        for(int i = 0; i < NX; ++i)
-            x[i] = i;
-        for(int j = 0; j < NY; ++j)
-            y[j] = j;
-        std::vector<lagoon_store::variable> vars = {{"pressure", 1, "Pa"}};
+        const int NX=40, NY=30, NZ=4, N=NX*NY*NZ;
+        std::vector<double> x(NX), y(NY), sigma={0.0,0.3,0.7,1.0};
+        for(int i=0;i<NX;++i) x[i]=i;
+        for(int j=0;j<NY;++j) y[j]=j;
+        std::vector<lagoon_store::variable> vars={{"pressure",1,"Pa"}};
         std::mt19937 rng(3);
-        std::normal_distribution<float> noise(0.0f, 1.0f);
-        std::vector<std::vector<float>> p(2, std::vector<float>(N));
-        for(int n = 0; n < N; ++n)
-            p[0][n] = 1000.0f + noise(rng);
-        for(int n = 0; n < N; ++n)
-            p[1][n] = n < N / 2 ? std::numeric_limits<float>::quiet_NaN() : noise(rng);  // levels 0, 1: fill
+        std::normal_distribution<float> noise(0.0f,1.0f);
+        std::vector<std::vector<float> > p(2, std::vector<float>(N));
+        for(int n=0;n<N;++n) p[0][n]=1000.0f+noise(rng);
+        for(int n=0;n<N;++n) p[1][n]= n<N/2 ? std::numeric_limits<float>::quiet_NaN() : noise(rng);  // levels 0, 1: fill
         std::string shards[2];
-        for(int run = 0; run < 2; ++run)
+        for(int run=0;run<2;++run)
         {
-            const std::string path = run == 0 ? "lagoon_store_test_1.lagoon" : "lagoon_store_test_4.lagoon";
-            if(std::system(("rm -rf " + path).c_str()) != 0)
-                std::cout << "  (could not clear " << path << ")" << std::endl;
-            lagoon_store store(path, 16, 1);
-            store.set_threads(run == 0 ? 1 : 4);
-            store.create_root("FNPF", "");
-            store.create_output("volume", "sigma", x, y, sigma, vars, 1, "test");
-            store.create_block("volume", 0, 0, 0, NX, NY, NZ, vars, 0);
-            for(int t = 0; t < 2; ++t)
-                store.write("volume", 0, t, "pressure", p[t].data());
-            store.commit("volume", 1, 0.1, 1);
-            shards[run] = slurp(path + "/volume/blocks/b0000/pressure/c/0/0/0/0");
+            const std::string path = run==0 ? "lagoon_store_test_1.lagoon" : "lagoon_store_test_4.lagoon";
+            if(std::system(("rm -rf "+path).c_str())!=0) std::cout<<"  (could not clear "<<path<<")"<<std::endl;
+            lagoon_store store(path,16,1);
+            store.set_threads(run==0 ? 1 : 4);
+            store.create_root("FNPF","");
+            store.create_output("volume","sigma",x,y,sigma,vars,1,"test");
+            store.create_block("volume",0,0,0,NX,NY,NZ,vars,0);
+            for(int t=0;t<2;++t)
+                store.write("volume",0,t,"pressure",p[t].data());
+            store.commit("volume",1,0.1,1);
+            shards[run]=slurp(path+"/volume/blocks/b0000/pressure/c/0/0/0/0");
         }
-        check(!shards[0].empty() && shards[0] == shards[1], "1 and 4 threads write the same shard");
-        bool crc = false;
-        const size_t half = N / 2;
-        const std::vector<float> a = inner_chunk(shards[1], 32, 0, half, crc), b = inner_chunk(shards[1], 32, 1, half, crc);
-        const std::vector<float> c = inner_chunk(shards[1], 32, 2, half, crc), d = inner_chunk(shards[1], 32, 3, half, crc);
-        check(crc && a == std::vector<float>(p[0].begin(), p[0].begin() + half) && b == std::vector<float>(p[0].begin() + half, p[0].end()),
+        check(!shards[0].empty() && shards[0]==shards[1], "1 and 4 threads write the same shard");
+        bool crc=false;
+        const size_t half=N/2;
+        const std::vector<float> a=inner_chunk(shards[1],32,0,half,crc), b=inner_chunk(shards[1],32,1,half,crc);
+        const std::vector<float> c=inner_chunk(shards[1],32,2,half,crc), d=inner_chunk(shards[1],32,3,half,crc);
+        check(crc && a==std::vector<float>(p[0].begin(),p[0].begin()+half) && b==std::vector<float>(p[0].begin()+half,p[0].end()),
               "output 0: both chunks read back (gunzip as any reader does)");
-        check(c.empty() && d == std::vector<float>(p[1].begin() + half, p[1].end()), "output 1: the chunk of fill values is left out");
+        check(c.empty() && d==std::vector<float>(p[1].begin()+half,p[1].end()), "output 1: the chunk of fill values is left out");
     }
 
     // the georeference: the case's georef.json goes into the store's root, on one line
     {
-        std::cout << "georef.json into the root" << std::endl;
+        std::cout<<"georef.json into the root"<<std::endl;
         const std::string path = "lagoon_store_test_georef.lagoon";
-        if(std::system(("rm -rf " + path).c_str()) != 0)
-            std::cout << "  (could not clear " << path << ")" << std::endl;
+        if(std::system(("rm -rf "+path).c_str())!=0) std::cout<<"  (could not clear "<<path<<")"<<std::endl;
         {
             std::ofstream out("georef.json");
-            out << "{\n  \"version\": 1,\n  \"crs\": \"EPSG:25833\",\n  \"origin\": [270000.0, 7040000.0],\n"
-                << "  \"rotation_deg\": 30.0\n}\n";
+            out<<"{\n  \"version\": 1,\n  \"crs\": \"EPSG:25833\",\n  \"origin\": [270000.0, 7040000.0],\n"
+               <<"  \"rotation_deg\": 30.0\n}\n";
         }
-        lagoon_store store(path, 16, 1);
-        store.create_root("NHFLOW", "");
-        const std::string root = slurp(path + "/zarr.json");
-        check(root.find("\"georef\": {   \"version\": 1,   \"crs\": \"EPSG:25833\",   \"origin\": [270000.0, 7040000.0],   \"rotation_deg\": 30.0 }}}") != std::string::npos,
+        lagoon_store store(path,16,1);
+        store.create_root("NHFLOW","");
+        const std::string root=slurp(path+"/zarr.json");
+        check(root.find("\"georef\": {   \"version\": 1,   \"crs\": \"EPSG:25833\",   \"origin\": [270000.0, 7040000.0],   \"rotation_deg\": 30.0 }}}")!=std::string::npos,
               "georef: the block, on one line, at the end of the root's attributes");
-        check(root.find("\"version\": \"0.5\"") != std::string::npos, "format version 0.5");
+        check(root.find("\"version\": \"0.5\"")!=std::string::npos, "format version 0.5");
         {
             std::ofstream out("georef.json");
-            out << "[1, 2]\n";
+            out<<"[1, 2]\n";
         }
-        store.create_root("NHFLOW", "");
-        check(slurp(path + "/zarr.json").find("georef") == std::string::npos, "georef: not an object, left out");
+        store.create_root("NHFLOW","");
+        check(slurp(path+"/zarr.json").find("georef")==std::string::npos, "georef: not an object, left out");
         std::remove("georef.json");
-        store.create_root("NHFLOW", "");
-        check(slurp(path + "/zarr.json").find("georef") == std::string::npos, "no georef.json: no georef");
+        store.create_root("NHFLOW","");
+        check(slurp(path+"/zarr.json").find("georef")==std::string::npos, "no georef.json: no georef");
     }
 
     // a curvilinear grid (G 50, SPEC 2.2): xc and yc, the place of every grid point
     {
-        std::cout << "curvilinear surface: xc, yc" << std::endl;
+        std::cout<<"curvilinear surface: xc, yc"<<std::endl;
         const std::string path = "lagoon_store_test_curv.lagoon";
-        if(std::system(("rm -rf " + path).c_str()) != 0)
-            std::cout << "  (could not clear " << path << ")" << std::endl;
-        const int CX = 4, CY = 3;
+        if(std::system(("rm -rf "+path).c_str())!=0) std::cout<<"  (could not clear "<<path<<")"<<std::endl;
+        const int CX=4, CY=3;
         std::vector<double> x, y, xc, yc;
-        for(int i = 0; i < CX; ++i)
-            x.push_back(i);
-        for(int j = 0; j < CY; ++j)
-            y.push_back(j);
-        for(int j = 0; j < CY; ++j)
-            for(int i = 0; i < CX; ++i)
+        for(int i=0;i<CX;++i) x.push_back(i);
+        for(int j=0;j<CY;++j) y.push_back(j);
+        for(int j=0;j<CY;++j)
+            for(int i=0;i<CX;++i)
             {
-                const double a = 0.5 * i, r = 10.0 + j;
-                xc.push_back(r * std::cos(a));
-                yc.push_back(r * std::sin(a));
+                const double a = 0.5*i, r = 10.0 + j;
+                xc.push_back(r*std::cos(a));
+                yc.push_back(r*std::sin(a));
             }
-        lagoon_store store(path, 16, 1);
-        store.create_root("SFLOW", "");
-        store.create_output("free_surface", "surface", x, y, {}, {{"eta", 1, "m"}}, 1, "REEF3D_SFLOW_VTP_FSF", &xc, &yc);
-        const std::string meta = slurp(path + "/free_surface/zarr.json");
-        check(meta.find("\"horizontal\": \"curvilinear\"") != std::string::npos, "horizontal: curvilinear");
-        const std::string xmeta = slurp(path + "/free_surface/xc/zarr.json");
-        check(xmeta.find("\"shape\": [3, 4]") != std::string::npos && xmeta.find("\"dimension_names\": [\"y\", \"x\"]") != std::string::npos,
+        lagoon_store store(path,16,1);
+        store.create_root("SFLOW","");
+        store.create_output("free_surface","surface",x,y,{},{{"eta",1,"m"}},1,"REEF3D_SFLOW_VTP_FSF",&xc,&yc);
+        const std::string meta=slurp(path+"/free_surface/zarr.json");
+        check(meta.find("\"horizontal\": \"curvilinear\"")!=std::string::npos, "horizontal: curvilinear");
+        const std::string xmeta=slurp(path+"/free_surface/xc/zarr.json");
+        check(xmeta.find("\"shape\": [3, 4]")!=std::string::npos && xmeta.find("\"dimension_names\": [\"y\", \"x\"]")!=std::string::npos,
               "xc: (ny, nx) = (3, 4), dimensions y, x");
-        const std::string xs = slurp(path + "/free_surface/xc/c/0/0");
-        const std::string ys = slurp(path + "/free_surface/yc/c/0/0");
-        double x5 = 0.0, y5 = 0.0;
-        if(xs.size() == 12 * 8 && ys.size() == 12 * 8)
+        const std::string xs=slurp(path+"/free_surface/xc/c/0/0");
+        const std::string ys=slurp(path+"/free_surface/yc/c/0/0");
+        double x5=0.0, y5=0.0;
+        if(xs.size()==12*8 && ys.size()==12*8)
         {
-            std::memcpy(&x5, xs.data() + 5 * 8, 8);
-            std::memcpy(&y5, ys.data() + 5 * 8, 8);
+            std::memcpy(&x5, xs.data()+5*8, 8);
+            std::memcpy(&y5, ys.data()+5*8, 8);
         }
-        check(x5 == 11.0 * std::cos(0.5) && y5 == 11.0 * std::sin(0.5), "point (i 1, j 1): x fastest, float64 as given");
-        lagoon_store plain("lagoon_store_test_plain.lagoon", 16, 1);
-        plain.create_root("SFLOW", "");
-        plain.create_output("bed", "surface", x, y, {}, {{"z", 1, "m"}}, 1, "");
-        check(slurp("lagoon_store_test_plain.lagoon/bed/zarr.json").find("horizontal") == std::string::npos && !std::ifstream("lagoon_store_test_plain.lagoon/bed/xc/zarr.json"), "a rectilinear grid: no xc, yc");
-        if(std::system("rm -rf lagoon_store_test_plain.lagoon") != 0)
-            std::cout << "  (could not clear)" << std::endl;
+        check(x5==11.0*std::cos(0.5) && y5==11.0*std::sin(0.5), "point (i 1, j 1): x fastest, float64 as given");
+        lagoon_store plain("lagoon_store_test_plain.lagoon",16,1);
+        plain.create_root("SFLOW","");
+        plain.create_output("bed","surface",x,y,{},{{"z",1,"m"}},1,"");
+        check(slurp("lagoon_store_test_plain.lagoon/bed/zarr.json").find("horizontal")==std::string::npos
+              && !std::ifstream("lagoon_store_test_plain.lagoon/bed/xc/zarr.json"), "a rectilinear grid: no xc, yc");
+        if(std::system("rm -rf lagoon_store_test_plain.lagoon")!=0) std::cout<<"  (could not clear)"<<std::endl;
     }
 
     // a store holds one run: the first writer of a new run moves the store of an earlier
     // run aside (SFLOW writes no volume: its surfaces and AMR start the store)
     {
-        std::cout << "a new run: a new store, the earlier one moved aside" << std::endl;
-        if(std::system("rm -rf lagoon_store_test_run*.lagoon*") != 0)
-            std::cout << "  (could not clear)" << std::endl;
+        std::cout<<"a new run: a new store, the earlier one moved aside"<<std::endl;
+        if(std::system("rm -rf lagoon_store_test_run*.lagoon*")!=0) std::cout<<"  (could not clear)"<<std::endl;
         const std::string path = "lagoon_store_test_run.lagoon";
         const std::string run_a = "{\"type\": \"run\", \"run\": \"20261015T173119Z-fc5d\"}";
         const std::string run_b = "{\"type\": \"run\", \"run\": \"20261015T211317Z-6b67\"}";
-        check(lagoon_store::run_id(run_a) == "20261015T173119Z-fc5d", "the run id of a run record");
+        check(lagoon_store::run_id(run_a)=="20261015T173119Z-fc5d", "the run id of a run record");
         {
-            lagoon_store earlier(path, 16, 1);  // the store of run a, with an AMR group
+            lagoon_store earlier(path,16,1);  // the store of run a, with an AMR group
             earlier.create_root("SFLOW", run_a);
-            if(std::system(("mkdir -p " + path + "/amr/sflow_amr && touch " + path + "/amr/sflow_amr/zarr.json").c_str()) != 0)
-                std::cout << "  (could not make the AMR group)" << std::endl;
+            if(std::system(("mkdir -p "+path+"/amr/sflow_amr && touch "+path+"/amr/sflow_amr/zarr.json").c_str())!=0)
+                std::cout<<"  (could not make the AMR group)"<<std::endl;
         }
-        check(lagoon_store::run_id(slurp(path + "/zarr.json")) == "20261015T173119Z-fc5d", "the run id of a store's root");
-        lagoon_store surfaces(path, 16, 1);  // run b: its free surface starts the store
+        check(lagoon_store::run_id(slurp(path+"/zarr.json"))=="20261015T173119Z-fc5d", "the run id of a store's root");
+        lagoon_store surfaces(path,16,1);   // run b: its free surface starts the store
         const std::string aside = surfaces.begin_run("SFLOW", run_b);
-        check(aside == "lagoon_store_test_run-20261015T173119Z-fc5d.lagoon-earlier", "run a's store moved aside, named by its run");
-        check(std::ifstream((aside + "/amr/sflow_amr/zarr.json").c_str()).good(), "run a's AMR goes with it");
-        check(!std::ifstream((path + "/amr/sflow_amr/zarr.json").c_str()), "the new store has no AMR of run a");
-        check(lagoon_store::run_id(slurp(path + "/zarr.json")) == "20261015T211317Z-6b67", "the new root is run b's");
-        surfaces.create_output("free_surface", "surface", {0.0, 1.0}, {0.0, 1.0}, {}, {{"eta", 1, "m"}}, 1, "REEF3D_SFLOW_VTP_FSF");
-        lagoon_store amr(path, 16, 1);  // run b's AMR writer, later: writes into the same store
-        check(amr.begin_run("SFLOW", run_b).empty() && std::ifstream((path + "/free_surface/zarr.json").c_str()).good(),
+        check(aside=="lagoon_store_test_run-20261015T173119Z-fc5d.lagoon-earlier", "run a's store moved aside, named by its run");
+        check(std::ifstream((aside+"/amr/sflow_amr/zarr.json").c_str()).good(), "run a's AMR goes with it");
+        check(!std::ifstream((path+"/amr/sflow_amr/zarr.json").c_str()), "the new store has no AMR of run a");
+        check(lagoon_store::run_id(slurp(path+"/zarr.json"))=="20261015T211317Z-6b67", "the new root is run b's");
+        surfaces.create_output("free_surface","surface",{0.0,1.0},{0.0,1.0},{},{{"eta",1,"m"}},1,"REEF3D_SFLOW_VTP_FSF");
+        lagoon_store amr(path,16,1);        // run b's AMR writer, later: writes into the same store
+        check(amr.begin_run("SFLOW", run_b).empty() && std::ifstream((path+"/free_surface/zarr.json").c_str()).good(),
               "a second writer of the run keeps the store");
-        check(slurp(path + "/zarr.json").find("\"outputs\": [\"free_surface\"]") != std::string::npos, "and its root");
+        check(slurp(path+"/zarr.json").find("\"outputs\": [\"free_surface\"]")!=std::string::npos, "and its root");
         // a store without a run id (no run log), moved aside twice by the same name
         const std::string other = "lagoon_store_test_run2.lagoon";
-        for(int k = 0; k < 2; ++k)
+        for(int k=0; k<2; ++k)
         {
-            lagoon_store plain(other, 16, 1);
-            plain.create_root("SFLOW", "");
+            lagoon_store plain(other,16,1);
+            plain.create_root("SFLOW","");
         }
-        lagoon_store first(other, 16, 1);
-        check(first.begin_run("SFLOW", run_b) == "lagoon_store_test_run2-earlier.lagoon-earlier", "no run id: -earlier");
-        if(std::system(("rm -rf " + other + " && mkdir " + other + " && touch " + other + "/zarr.json").c_str()) != 0)
-            std::cout << "  (could not remake)" << std::endl;
-        lagoon_store again("./" + other, 16, 1);  // another path string: begun anew
-        check(again.begin_run("SFLOW", run_b) == "./lagoon_store_test_run2-earlier-2.lagoon-earlier", "a second one: -2");
+        lagoon_store first(other,16,1);
+        check(first.begin_run("SFLOW", run_b)=="lagoon_store_test_run2-earlier.lagoon-earlier", "no run id: -earlier");
+        if(std::system(("rm -rf "+other+" && mkdir "+other+" && touch "+other+"/zarr.json").c_str())!=0)
+            std::cout<<"  (could not remake)"<<std::endl;
+        lagoon_store again("./"+other,16,1);  // another path string: begun anew
+        check(again.begin_run("SFLOW", run_b)=="./lagoon_store_test_run2-earlier-2.lagoon-earlier", "a second one: -2");
         // an empty folder (a writer made it before the root) is no earlier store
-        if(std::system("rm -rf lagoon_store_test_run3.lagoon && mkdir lagoon_store_test_run3.lagoon") != 0)
-            std::cout << "  (could not make)" << std::endl;
-        lagoon_store empty("lagoon_store_test_run3.lagoon", 16, 1);
+        if(std::system("rm -rf lagoon_store_test_run3.lagoon && mkdir lagoon_store_test_run3.lagoon")!=0)
+            std::cout<<"  (could not make)"<<std::endl;
+        lagoon_store empty("lagoon_store_test_run3.lagoon",16,1);
         check(empty.begin_run("SFLOW", run_b).empty() && std::ifstream("lagoon_store_test_run3.lagoon/zarr.json").good(),
               "an empty folder: the root made in it, nothing moved");
-        if(std::system("rm -rf lagoon_store_test_run*.lagoon*") != 0)
-            std::cout << "  (could not clear)" << std::endl;
+        if(std::system("rm -rf lagoon_store_test_run*.lagoon*")!=0) std::cout<<"  (could not clear)"<<std::endl;
     }
 
-    std::cout << (nfail ? "FAILED: " : "all tests passed") << (nfail ? std::to_string(nfail) : "") << std::endl;
+    std::cout<<(nfail ? "FAILED: " : "all tests passed")<<(nfail ? std::to_string(nfail) : "")<<std::endl;
     return nfail ? 1 : 0;
 }

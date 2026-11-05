@@ -20,42 +20,42 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Tobias Martin
 --------------------------------------------------------------------*/
 
-#include "fdm.h"
-#include "fdm_nhf.h"
-#include "ghostcell.h"
-#include "lexer.h"
-#include "net_barDyn.h"
+#include"net_barDyn.h"
+#include"lexer.h"
+#include"fdm.h"
+#include"fdm_nhf.h"
+#include"ghostcell.h"	
 
 void net_barDyn::initialize_cfd(lexer *p, fdm *a, ghostcell *pgc)
-{
+{    
     //- Initialise net model
-    if(p->X320_type[nNet] == 12)
+    if (p->X320_type[nNet]==12)   
     {
-        cyl_ini(p, pgc);
-
-        buildNet_cyl(p);
+        cyl_ini(p,pgc);
+ 
+        buildNet_cyl(p); 
     }
-    else if(p->X320_type[nNet] == 13)
+    else if (p->X320_type[nNet]==13)   
     {
-        wall_ini(p, pgc);
-
-        buildNet_wall(p);
-    }
-    else if(p->X320_type[nNet] == 14)
+        wall_ini(p,pgc);
+        
+        buildNet_wall(p);    
+    } 
+    else if (p->X320_type[nNet]==14)   
     {
-        cone_ini(p, pgc);
+        cone_ini(p,pgc);
+        
+        buildNet_wall(p);    
+    } 
 
-        buildNet_wall(p);
-    }
-
-    //- Initialise old variables
-    xnn_ = x_;
+    //- Initialise old variables   
+    xnn_ = x_;    
     xn_ = x_;
-    xdotnn_ = xdot_;
+    xdotnn_ = xdot_;    
     xdotn_ = xdot_;
-
-    if(p->X325_dt == 0.0)
-    {
+    
+    if (p->X325_dt==0.0)
+    {   
         dtnn_ = p->dt;
         dtn_ = p->dt;
         dt_ = p->dt;
@@ -72,51 +72,52 @@ void net_barDyn::initialize_cfd(lexer *p, fdm *a, ghostcell *pgc)
     //- Initialise printing
     printtime = 0.0;
     // a restart (I 45): no print at the start, the outputs continue from the checkpoint
-    if(p->I45 != 1)
-        print(p);
-
+    if(p->I45!=1)
+    print(p);
+    
     //- Update porous zone
-    coupling_dlm_cfd(p, a, pgc);
+    coupling_dlm_cfd(p,a,pgc);
 }
 
+
 void net_barDyn::initialize_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
-{
+{    
     //- Initialise net model
-    if(p->X320_type[nNet] == 12)
+    if (p->X320_type[nNet]==12)   
     {
-        cyl_ini(p, pgc);
-
-        buildNet_cyl(p);
+        cyl_ini(p,pgc);
+ 
+        buildNet_cyl(p); 
     }
-    else if(p->X320_type[nNet] == 13)
+    else if (p->X320_type[nNet]==13)   
     {
-        wall_ini(p, pgc);
-
-        buildNet_wall(p);
-    }
-    else if(p->X320_type[nNet] == 14)
+        wall_ini(p,pgc);
+        
+        buildNet_wall(p);    
+    } 
+    else if (p->X320_type[nNet]==14)   
     {
-        cone_ini(p, pgc);
-
-        buildNet_wall(p);
-    }
+        cone_ini(p,pgc);
+        
+        buildNet_wall(p);    
+    } 
 
     //- NHFLOW: the grid z-range (originz/endz) is the sigma box, not physical z.
     //  There is no vertical decomposition, so only x/y decide the owning rank.
-    for(int qn = 0; qn < p->mpi_size; qn++)
+    for (int qn = 0; qn < p->mpi_size; qn++)
     {
         zstart[qn] = -1.0e20;
-        zend[qn] = 1.0e20;
+        zend[qn]   =  1.0e20;
     }
 
-    //- Initialise old variables
-    xnn_ = x_;
+    //- Initialise old variables   
+    xnn_ = x_;    
     xn_ = x_;
-    xdotnn_ = xdot_;
+    xdotnn_ = xdot_;    
     xdotn_ = xdot_;
-
-    if(p->X325_dt == 0.0)
-    {
+    
+    if (p->X325_dt==0.0)
+    {   
         dtnn_ = p->dt;
         dtn_ = p->dt;
         dt_ = p->dt;
@@ -133,9 +134,9 @@ void net_barDyn::initialize_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
     //- Initialise printing
     printtime = 0.0;
     // a restart (I 45): no print at the start, the outputs continue from the checkpoint
-    if(p->I45 != 1)
-        print(p);
-
+    if(p->I45!=1)
+    print(p);
+    
     //- Update porous zone
-    coupling_dlm_nhflow(p, d, pgc);
+    coupling_dlm_nhflow(p,d,pgc);
 }

@@ -20,152 +20,166 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "nhflow_reconstruct_weno.h"
-#include "fdm_nhf.h"
-#include "ghostcell.h"
-#include "lexer.h"
-#include "patchBC_interface.h"
+#include"nhflow_reconstruct_weno.h"
+#include"lexer.h"
+#include"ghostcell.h"
+#include"fdm_nhf.h"
+#include"patchBC_interface.h"
 
-nhflow_reconstruct_weno::nhflow_reconstruct_weno(lexer *p, patchBC_interface *ppBC) : weno_nug_func(p), dfdx(p), dfdy(p)
+nhflow_reconstruct_weno::nhflow_reconstruct_weno(lexer* p, patchBC_interface *ppBC) : weno_nug_func(p), dfdx(p), dfdy(p)
 {
     pBC = ppBC;
-    p->Darray(DFDX, p->imax * p->jmax * (p->kmax + 2));
-
-    uf = vf = wf = 0;
-
+    p->Darray(DFDX,p->imax*p->jmax*(p->kmax+2));
+    
+    uf=vf=wf=0;
+    
     // nonlinear weights for all reconstruction paths (A527: 0 WENO-JS, 1 WENO-Z, 2 TENO5)
-    set_weno_weights(p->A527, p->A528);
+    set_weno_weights(p->A527,p->A528);
 }
 
 nhflow_reconstruct_weno::~nhflow_reconstruct_weno()
 {
-    delete[] DFDX;
+    delete [] DFDX;
 }
 
-void nhflow_reconstruct_weno::reconstruct_2D_x(lexer *p, ghostcell *pgc, fdm_nhf *, slice &f, slice &fs, slice &fn)
+void nhflow_reconstruct_weno::reconstruct_2D_x(lexer* p, ghostcell *pgc, fdm_nhf*, slice& f, slice &fs, slice &fn)
 {
-    uf = 1;
-    vf = 0;
-    wf = 0;
-
+    uf=1;
+    vf=0;
+    wf=0;
+    
     SLICELOOP1
     {
-        // left
-        iqmin_sl(p, f);
-        is_min_x();
-        weight_min_x();
+    // left
+	iqmin_sl(p,f);
+	is_min_x();
+	weight_min_x();
 
-        fs(i, j) = w1x * (q4 + qfx[IP][uf][0][0] * (q3 - q4) - qfx[IP][uf][0][1] * (q5 - q4))
-
-                   + w2x * (q3 + qfx[IP][uf][1][0] * (q4 - q3) - qfx[IP][uf][1][1] * (q2 - q3))
-
-                   + w3x * (q2 + qfx[IP][uf][2][0] * (q1 - q2) + qfx[IP][uf][2][1] * (q3 - q2));
-
-        // right
-        iqmax_sl(p, f);
-        is_max_x();
-        weight_max_x();
-
-        fn(i, j) = w1x * (q4 + qfx[IP][uf][3][0] * (q3 - q4) + qfx[IP][uf][3][1] * (q5 - q4))
-
-                   + w2x * (q3 + qfx[IP][uf][4][0] * (q2 - q3) - qfx[IP][uf][4][1] * (q4 - q3))
-
-                   + w3x * (q2 + qfx[IP][uf][5][0] * (q3 - q2) - qfx[IP][uf][5][1] * (q1 - q2));
-    }
-
+	fs(i,j) = w1x*(q4 + qfx[IP][uf][0][0]*(q3-q4) - qfx[IP][uf][0][1]*(q5-q4))
+    
+            + w2x*(q3 + qfx[IP][uf][1][0]*(q4-q3) - qfx[IP][uf][1][1]*(q2-q3))
+          
+            + w3x*(q2 + qfx[IP][uf][2][0]*(q1-q2) + qfx[IP][uf][2][1]*(q3-q2));
+	
+    // right
+	iqmax_sl(p,f);
+	is_max_x();
+	weight_max_x();
+    
+	fn(i,j) = w1x*(q4 + qfx[IP][uf][3][0]*(q3-q4) + qfx[IP][uf][3][1]*(q5-q4))
+    
+            + w2x*(q3 + qfx[IP][uf][4][0]*(q2-q3) - qfx[IP][uf][4][1]*(q4-q3))
+          
+            + w3x*(q2 + qfx[IP][uf][5][0]*(q3-q2) - qfx[IP][uf][5][1]*(q1-q2));
+	}
+    
     // wetting and drying: a stencil with a dry cell (eta = film - depth there, metres above the
     // water level on a bank) takes the limited slope of the wet cells instead (wetdry_x)
-    wetdry_x(p, f, fs, fn);
-
-    // pgc->gcsl_start1(p,fs,1);  // face states are only read at their own face (IJK / (i,j)): no halo/BC needed
-    // pgc->gcsl_start1(p,fn,1);  // face states are only read at their own face (IJK / (i,j)): no halo/BC needed
+    wetdry_x(p,f,fs,fn);
+    
+    //pgc->gcsl_start1(p,fs,1);  // face states are only read at their own face (IJK / (i,j)): no halo/BC needed
+    //pgc->gcsl_start1(p,fn,1);  // face states are only read at their own face (IJK / (i,j)): no halo/BC needed
     /*
     // Dirichlet Wave Generation
     if(p->B98>2)
-    {
+    {   
     for(n=0;n<p->gcslin_count;n++)
     for(i=p->gcslin[n][0];i<p->gcslin[n][0]+5;++i)
     {
         // i
         j=p->gcslin[n][1];
-
+        
         dfdx_plus = (f(i+1,j) - f(i,j))/p->DXP[IP];
         dfdx_min  = (f(i,j) - f(i-1,j))/p->DXP[IM1];
-
+        
         dfdx(i,j) = limiter(dfdx_plus,dfdx_min);
-
+        
     }
-
+    
     pgc->gcsl_start1(p,dfdx,1);
-
+    
     // reconstruct
     for(n=0;n<p->gcslin_count;n++)
     for(i=p->gcslin[n][0];i<p->gcslin[n][0]+4;++i)
     {
     j=p->gcslin[n][1];
 
-
-        fs(i,j) = f(i,j)   + 0.5*p->DXP[IM1]*dfdx(i,j);
+        
+        fs(i,j) = f(i,j)   + 0.5*p->DXP[IM1]*dfdx(i,j); 
         fn(i,j) = f(i+1,j) - 0.5*p->DXP[IP]*dfdx(i+1,j);
     }
-
+    
     //pgc->gcsl_start1(p,fs,1);  // face states are only read at their own face (IJK / (i,j)): no halo/BC needed
     //pgc->gcsl_start1(p,fn,1);  // face states are only read at their own face (IJK / (i,j)): no halo/BC needed
     }*/
 }
 
-void nhflow_reconstruct_weno::reconstruct_2D_y(lexer *p, ghostcell *pgc, fdm_nhf *, slice &f, slice &fe, slice &fw)
+void nhflow_reconstruct_weno::reconstruct_2D_y(lexer* p, ghostcell *pgc, fdm_nhf*, slice& f, slice &fe, slice &fw)
 {
-    uf = 0;
-    vf = 1;
-    wf = 0;
+    uf=0;
+    vf=1;
+    wf=0;
+    
+    if(p->j_dir==1)
+    SLICELOOP2
+	{
+	jqmin_sl(p,f);
+	is_min_y();
+	weight_min_y();
+	
+	fe(i,j) = w1y*(q4 + qfy[JP][vf][0][0]*(q3-q4) - qfy[JP][vf][0][1]*(q5-q4))
+    
+            + w2y*(q3 + qfy[JP][vf][1][0]*(q4-q3) - qfy[JP][vf][1][1]*(q2-q3))
+          
+            + w3y*(q2 + qfy[JP][vf][2][0]*(q1-q2) + qfy[JP][vf][2][1]*(q3-q2));
 
-    jqmax_sl(p, f);
-    is_max_y();
-    weight_max_y();
-
-    fw(i, j) = w1y * (q4 + qfy[JP][vf][3][0] * (q3 - q4) + qfy[JP][vf][3][1] * (q5 - q4))
-
-               + w2y * (q3 + qfy[JP][vf][4][0] * (q2 - q3) - qfy[JP][vf][4][1] * (q4 - q3))
-
-               + w3y * (q2 + qfy[JP][vf][5][0] * (q3 - q2) - qfy[JP][vf][5][1] * (q1 - q2));
+	jqmax_sl(p,f);
+	is_max_y();
+	weight_max_y();
+	
+	fw(i,j) = w1y*(q4 + qfy[JP][vf][3][0]*(q3-q4) + qfy[JP][vf][3][1]*(q5-q4))
+    
+            + w2y*(q3 + qfy[JP][vf][4][0]*(q2-q3) - qfy[JP][vf][4][1]*(q4-q3))
+          
+            + w3y*(q2 + qfy[JP][vf][5][0]*(q3-q2) - qfy[JP][vf][5][1]*(q1-q2));
+	}
+    
+    if(p->j_dir==1)
+    wetdry_y(p,f,fe,fw);
+    
+    //pgc->gcsl_start2(p,fe,1);  // face states are only read at their own face (IJK / (i,j)): no halo/BC needed
+    //pgc->gcsl_start2(p,fw,1);  // face states are only read at their own face (IJK / (i,j)): no halo/BC needed
 }
 
-if(p->j_dir == 1)
-    wetdry_y(p, f, fe, fw);
-
-// pgc->gcsl_start2(p,fe,1);  // face states are only read at their own face (IJK / (i,j)): no halo/BC needed
-// pgc->gcsl_start2(p,fw,1);  // face states are only read at their own face (IJK / (i,j)): no halo/BC needed
-}
-
-void nhflow_reconstruct_weno::reconstruct_2D_WL(lexer *p, ghostcell *pgc, fdm_nhf *d)
+void nhflow_reconstruct_weno::reconstruct_2D_WL(lexer* p, ghostcell *pgc, fdm_nhf *d)
 {
-    // water level
+    // water level  
     SLICELOOP1
-    d->dfx(i, j) = 0.5 * (d->depth(i + 1, j) + d->depth(i, j));
-
+    d->dfx(i,j) = 0.5*(d->depth(i+1,j)+d->depth(i,j));
+    
     SLICELOOP2
-    d->dfy(i, j) = 0.5 * (d->depth(i, j + 1) + d->depth(i, j));
+    d->dfy(i,j) = 0.5*(d->depth(i,j+1)+d->depth(i,j));
+    
+    pgc->gcsl_start1(p,d->dfx,1);
+    pgc->gcsl_start2(p,d->dfy,1);
 
-    pgc->gcsl_start1(p, d->dfx, 1);
-    pgc->gcsl_start2(p, d->dfy, 1);
-
+    
     SLICELOOP1
     {
-        d->Ds(i, j) = MAX(d->ETAs(i, j) + 0.5 * (d->depth(i + 1, j) + d->depth(i, j)), p->A544);
-        d->Dn(i, j) = MAX(d->ETAn(i, j) + 0.5 * (d->depth(i + 1, j) + d->depth(i, j)), p->A544);
+    d->Ds(i,j) = MAX(d->ETAs(i,j) + 0.5*(d->depth(i+1,j)+d->depth(i,j)), p->A544);
+    d->Dn(i,j) = MAX(d->ETAn(i,j) + 0.5*(d->depth(i+1,j)+d->depth(i,j)), p->A544);
     }
-
+    
     SLICELOOP2
     {
-        d->De(i, j) = MAX(d->ETAe(i, j) + 0.5 * (d->depth(i, j + 1) + d->depth(i, j)), p->A544);
-        d->Dw(i, j) = MAX(d->ETAw(i, j) + 0.5 * (d->depth(i, j + 1) + d->depth(i, j)), p->A544);
+    d->De(i,j) = MAX(d->ETAe(i,j)  + 0.5*(d->depth(i,j+1)+d->depth(i,j)), p->A544);
+    d->Dw(i,j) = MAX(d->ETAw(i,j)  + 0.5*(d->depth(i,j+1)+d->depth(i,j)), p->A544);
     }
-
-    // pgc->gcsl_start1(p,d->Ds,1);  // face states are only read at their own face (IJK / (i,j)): no halo/BC needed
-    // pgc->gcsl_start1(p,d->Dn,1);  // face states are only read at their own face (IJK / (i,j)): no halo/BC needed
-    // pgc->gcsl_start2(p,d->De,1);  // face states are only read at their own face (IJK / (i,j)): no halo/BC needed
-    // pgc->gcsl_start2(p,d->Dw,1);  // face states are only read at their own face (IJK / (i,j)): no halo/BC needed
+    
+    //pgc->gcsl_start1(p,d->Ds,1);  // face states are only read at their own face (IJK / (i,j)): no halo/BC needed
+    //pgc->gcsl_start1(p,d->Dn,1);  // face states are only read at their own face (IJK / (i,j)): no halo/BC needed
+    //pgc->gcsl_start2(p,d->De,1);  // face states are only read at their own face (IJK / (i,j)): no halo/BC needed
+    //pgc->gcsl_start2(p,d->Dw,1);  // face states are only read at their own face (IJK / (i,j)): no halo/BC needed
 }
 
 // ---------------------------------------------------------------------------
@@ -176,7 +190,8 @@ void nhflow_reconstruct_weno::reconstruct_2D_WL(lexer *p, ghostcell *pgc, fdm_nh
 // ---------------------------------------------------------------------------
 #define WCHUNK 32
 
-namespace {
+namespace
+{
 struct weno_coef
 {
     double qf[6][2];
@@ -186,20 +201,20 @@ struct weno_coef
 
 static inline __attribute__((always_inline)) void weno_coef_load(weno_coef &c, double ***QF, double ***ISF, double **CF, int dir)
 {
-    for(int r = 0; r < 6; ++r)
+    for(int r=0;r<6;++r)
     {
-        c.qf[r][0] = QF[dir][r][0];
-        c.qf[r][1] = QF[dir][r][1];
-        c.isf[r][0] = ISF[dir][r][0];
-        c.isf[r][1] = ISF[dir][r][1];
-        c.isf[r][2] = ISF[dir][r][2];
-        c.cf[r] = CF[dir][r];
+    c.qf[r][0]=QF[dir][r][0];
+    c.qf[r][1]=QF[dir][r][1];
+    c.isf[r][0]=ISF[dir][r][0];
+    c.isf[r][1]=ISF[dir][r][1];
+    c.isf[r][2]=ISF[dir][r][2];
+    c.cf[r]=CF[dir][r];
     }
 }
 
 // sub-stencil set s=0 (min / left state) or s=3 (max / right state)
 static inline __attribute__((always_inline)) void weno_is(const weno_coef &c, int s, double q1, double q2, double q3, double q4, double q5,
-                                                          double &is1, double &is2, double &is3)
+                    double &is1, double &is2, double &is3)
 {
     const double dq12 = q1 - q2;
     const double dq23 = q2 - q3;
@@ -208,230 +223,235 @@ static inline __attribute__((always_inline)) void weno_is(const weno_coef &c, in
     const double dq43 = q4 - q3;
     const double dq54 = q5 - q4;
 
-    is1 = c.isf[s + 0][0] * dq54 * dq54 + c.isf[s + 0][1] * (dq54) * (dq34) + c.isf[s + 0][2] * dq34 * dq34;
-    is2 = c.isf[s + 1][0] * dq23 * dq23 + c.isf[s + 1][1] * (dq43) * (dq23) + c.isf[s + 1][2] * dq43 * dq43;
-    is3 = c.isf[s + 2][0] * dq12 * dq12 + c.isf[s + 2][1] * (dq32) * (dq12) + c.isf[s + 2][2] * dq32 * dq32;
+    is1 = c.isf[s+0][0]*dq54*dq54 + c.isf[s+0][1]*(dq54)*(dq34) + c.isf[s+0][2]*dq34*dq34;
+    is2 = c.isf[s+1][0]*dq23*dq23 + c.isf[s+1][1]*(dq43)*(dq23) + c.isf[s+1][2]*dq43*dq43;
+    is3 = c.isf[s+2][0]*dq12*dq12 + c.isf[s+2][1]*(dq32)*(dq12) + c.isf[s+2][2]*dq32*dq32;
 }
 
 template<int WT>
 static inline __attribute__((always_inline)) void weno_w(const weno_coef &c, int s, double epsilon, double psi, double ct, double is1, double is2, double is3,
-                                                         double &w1, double &w2, double &w3)
+                   double &w1, double &w2, double &w3)
 {
-    if constexpr(WT != 0)
+    if constexpr(WT!=0)
     {
-        weno_weights_zt(WT, ct, psi, c.cf[s + 0], c.cf[s + 1], c.cf[s + 2], is1, is2, is3, w1, w2, w3);
-        return;
+    weno_weights_zt(WT,ct,psi,c.cf[s+0],c.cf[s+1],c.cf[s+2],is1,is2,is3,w1,w2,w3);
+    return;
     }
-
+    
     const double a1 = is1 + psi;
     const double a2 = is2 + psi;
     const double a3 = is3 + psi;
 
-    w1 = c.cf[s + 0] / (epsilon + (a1 * a1) * (c.cf[s + 0] / (a1 * a1) + c.cf[s + 1] / (a2 * a2) + c.cf[s + 2] / (a3 * a3)));
-    w2 = c.cf[s + 1] / (epsilon + (a2 * a2) * (c.cf[s + 0] / (a1 * a1) + c.cf[s + 1] / (a2 * a2) + c.cf[s + 2] / (a3 * a3)));
-    w3 = c.cf[s + 2] / (epsilon + (a3 * a3) * (c.cf[s + 0] / (a1 * a1) + c.cf[s + 1] / (a2 * a2) + c.cf[s + 2] / (a3 * a3)));
+    w1 = c.cf[s+0]/(epsilon + (a1*a1)*(c.cf[s+0]/(a1*a1) + c.cf[s+1]/(a2*a2) + c.cf[s+2]/(a3*a3)));
+    w2 = c.cf[s+1]/(epsilon + (a2*a2)*(c.cf[s+0]/(a1*a1) + c.cf[s+1]/(a2*a2) + c.cf[s+2]/(a3*a3)));
+    w3 = c.cf[s+2]/(epsilon + (a3*a3)*(c.cf[s+0]/(a1*a1) + c.cf[s+1]/(a2*a2) + c.cf[s+2]/(a3*a3)));
 }
 
 // left state at face i+1/2 from F[-2..2], right state from F[-1..3] (stride st)
 template<int WT>
 static inline __attribute__((always_inline)) void weno_face(const weno_coef &c, double epsilon, double psi, double ct, const double *F, long st,
-                                                            double &fs, double &fn)
+                      double &fs, double &fn)
 {
-    double is1, is2, is3, w1, w2, w3;
+    double is1,is2,is3,w1,w2,w3;
 
     // left (min)
     {
-        const double q1 = F[-2 * st], q2 = F[-st], q3 = F[0], q4 = F[st], q5 = F[2 * st];
-        weno_is(c, 0, q1, q2, q3, q4, q5, is1, is2, is3);
-        weno_w<WT>(c, 0, epsilon, psi, ct, is1, is2, is3, w1, w2, w3);
+    const double q1=F[-2*st], q2=F[-st], q3=F[0], q4=F[st], q5=F[2*st];
+    weno_is(c,0,q1,q2,q3,q4,q5,is1,is2,is3);
+    weno_w<WT>(c,0,epsilon,psi,ct,is1,is2,is3,w1,w2,w3);
 
-        fs = w1 * (q4 + c.qf[0][0] * (q3 - q4) - c.qf[0][1] * (q5 - q4)) + w2 * (q3 + c.qf[1][0] * (q4 - q3) - c.qf[1][1] * (q2 - q3)) + w3 * (q2 + c.qf[2][0] * (q1 - q2) + c.qf[2][1] * (q3 - q2));
+    fs =  w1*(q4 + c.qf[0][0]*(q3-q4) - c.qf[0][1]*(q5-q4))
+        + w2*(q3 + c.qf[1][0]*(q4-q3) - c.qf[1][1]*(q2-q3))
+        + w3*(q2 + c.qf[2][0]*(q1-q2) + c.qf[2][1]*(q3-q2));
     }
 
     // right (max)
     {
-        const double q1 = F[-st], q2 = F[0], q3 = F[st], q4 = F[2 * st], q5 = F[3 * st];
-        weno_is(c, 3, q1, q2, q3, q4, q5, is1, is2, is3);
-        weno_w<WT>(c, 3, epsilon, psi, ct, is1, is2, is3, w1, w2, w3);
+    const double q1=F[-st], q2=F[0], q3=F[st], q4=F[2*st], q5=F[3*st];
+    weno_is(c,3,q1,q2,q3,q4,q5,is1,is2,is3);
+    weno_w<WT>(c,3,epsilon,psi,ct,is1,is2,is3,w1,w2,w3);
 
-        fn = w1 * (q4 + c.qf[3][0] * (q3 - q4) + c.qf[3][1] * (q5 - q4)) + w2 * (q3 + c.qf[4][0] * (q2 - q3) - c.qf[4][1] * (q4 - q3)) + w3 * (q2 + c.qf[5][0] * (q3 - q2) - c.qf[5][1] * (q1 - q2));
+    fn =  w1*(q4 + c.qf[3][0]*(q3-q4) + c.qf[3][1]*(q5-q4))
+        + w2*(q3 + c.qf[4][0]*(q2-q3) - c.qf[4][1]*(q4-q3))
+        + w3*(q2 + c.qf[5][0]*(q3-q2) - c.qf[5][1]*(q1-q2));
     }
 }
-}  // namespace
+}
 
-void nhflow_reconstruct_weno::reconstruct_3D_x(lexer *p, ghostcell *pgc, fdm_nhf *d, double *Fx, double *Fs, double *Fn)
+void nhflow_reconstruct_weno::reconstruct_3D_x(lexer* p, ghostcell *pgc, fdm_nhf *d, double *Fx, double *Fs, double *Fn)
 {
-    uf = 1;
-    vf = 0;
-    wf = 0;
+    uf=1;
+    vf=0;
+    wf=0;
 
-    const long sti = long(p->jmax) * long(p->kmax);
+    const long sti = long(p->jmax)*long(p->kmax);
     const double eps_ = epsilon, psi_ = psi, ct_ = teno_ct;
     const int wt_ = wtype;
     const int *__restrict flag = p->flag1;
     weno_coef c;
 
-    for(i = 0; i < p->knox - p->ulast; ++i)
+    for(i=0; i<p->knox-p->ulast; ++i)
     {
-        weno_coef_load(c, qfx[IP], isfx[IP], cfx[IP], uf);
+    weno_coef_load(c, qfx[IP], isfx[IP], cfx[IP], uf);
 
-        for(j = 0; j < p->knoy; ++j)
+        for(j=0; j<p->knoy; ++j)
         {
-            k = 0;
-            const long n0 = IJK;
-            const int nk = p->knoz;
+        k=0;
+        const long n0 = IJK;
+        const int nk = p->knoz;
 
             // two passes per chunk: pure (vectorisable) evaluation, then masked store
-            for(int k0 = 0; k0 < nk; k0 += WCHUNK)
+            for(int k0=0; k0<nk; k0+=WCHUNK)
             {
-                const int kn = (nk - k0 < WCHUNK) ? nk - k0 : WCHUNK;
-                double ts[WCHUNK], tn[WCHUNK];
+            const int kn = (nk-k0<WCHUNK) ? nk-k0 : WCHUNK;
+            double ts[WCHUNK], tn[WCHUNK];
 
                 // weight type is fixed per run: branch per chunk, inner loops stay branch-free
-                if(wt_ == 0)
-                    for(int kk = 0; kk < kn; ++kk)
-                        weno_face<0>(c, eps_, psi_, ct_, Fx + n0 + k0 + kk, sti, ts[kk], tn[kk]);
-                else if(wt_ == 1)
-                    for(int kk = 0; kk < kn; ++kk)
-                        weno_face<1>(c, eps_, psi_, ct_, Fx + n0 + k0 + kk, sti, ts[kk], tn[kk]);
+                if(wt_==0)
+                for(int kk=0; kk<kn; ++kk)
+                weno_face<0>(c, eps_, psi_, ct_, Fx+n0+k0+kk, sti, ts[kk], tn[kk]);
+                else if(wt_==1)
+                for(int kk=0; kk<kn; ++kk)
+                weno_face<1>(c, eps_, psi_, ct_, Fx+n0+k0+kk, sti, ts[kk], tn[kk]);
                 else
-                    for(int kk = 0; kk < kn; ++kk)
-                        weno_face<2>(c, eps_, psi_, ct_, Fx + n0 + k0 + kk, sti, ts[kk], tn[kk]);
+                for(int kk=0; kk<kn; ++kk)
+                weno_face<2>(c, eps_, psi_, ct_, Fx+n0+k0+kk, sti, ts[kk], tn[kk]);
 
-                for(int kk = 0; kk < kn; ++kk)
+                for(int kk=0; kk<kn; ++kk)
                 {
-                    const long n = n0 + k0 + kk;
-                    if(flag[n] > 0)
-                    {
-                        Fs[n] = ts[kk];
-                        Fn[n] = tn[kk];
-                    }
+                const long n = n0 + k0 + kk;
+                if(flag[n]>0)
+                {
+                Fs[n] = ts[kk];
+                Fn[n] = tn[kk];
+                }
                 }
             }
         }
     }
-
-    // pgc->start1V(p,Fs,1);  // face states are only read at their own face (IJK / (i,j)): no halo/BC needed
-    // pgc->start1V(p,Fn,1);  // face states are only read at their own face (IJK / (i,j)): no halo/BC needed
+    
+    //pgc->start1V(p,Fs,1);  // face states are only read at their own face (IJK / (i,j)): no halo/BC needed
+    //pgc->start1V(p,Fn,1);  // face states are only read at their own face (IJK / (i,j)): no halo/BC needed
 }
 
-void nhflow_reconstruct_weno::reconstruct_3D_y(lexer *p, ghostcell *pgc, fdm_nhf *d, double *Fy, double *Fe, double *Fw)
+void nhflow_reconstruct_weno::reconstruct_3D_y(lexer* p, ghostcell *pgc, fdm_nhf *d, double *Fy, double *Fe, double *Fw)
 {
-    uf = 0;
-    vf = 1;
-    wf = 0;
-
-    if(p->j_dir == 1)
+    uf=0;
+    vf=1;
+    wf=0;
+    
+    if(p->j_dir==1)
     {
-        const long stj = long(p->kmax);
-        const double eps_ = epsilon, psi_ = psi, ct_ = teno_ct;
-        const int wt_ = wtype;
-        const int *__restrict flag = p->flag2;
-        weno_coef c;
+    const long stj = long(p->kmax);
+    const double eps_ = epsilon, psi_ = psi, ct_ = teno_ct;
+    const int wt_ = wtype;
+    const int *__restrict flag = p->flag2;
+    weno_coef c;
 
-        for(i = 0; i < p->knox; ++i)
-            for(j = 0; j < p->knoy - p->vlast; ++j)
+    for(i=0; i<p->knox; ++i)
+    for(j=0; j<p->knoy-p->vlast; ++j)
+    {
+    weno_coef_load(c, qfy[JP], isfy[JP], cfy[JP], vf);
+
+        k=0;
+        const long n0 = IJK;
+        const int nk = p->knoz;
+
+            // two passes per chunk: pure (vectorisable) evaluation, then masked store
+            for(int k0=0; k0<nk; k0+=WCHUNK)
             {
-                weno_coef_load(c, qfy[JP], isfy[JP], cfy[JP], vf);
+            const int kn = (nk-k0<WCHUNK) ? nk-k0 : WCHUNK;
+            double ts[WCHUNK], tn[WCHUNK];
 
-                k = 0;
-                const long n0 = IJK;
-                const int nk = p->knoz;
+                // weight type is fixed per run: branch per chunk, inner loops stay branch-free
+                if(wt_==0)
+                for(int kk=0; kk<kn; ++kk)
+                weno_face<0>(c, eps_, psi_, ct_, Fy+n0+k0+kk, stj, ts[kk], tn[kk]);
+                else if(wt_==1)
+                for(int kk=0; kk<kn; ++kk)
+                weno_face<1>(c, eps_, psi_, ct_, Fy+n0+k0+kk, stj, ts[kk], tn[kk]);
+                else
+                for(int kk=0; kk<kn; ++kk)
+                weno_face<2>(c, eps_, psi_, ct_, Fy+n0+k0+kk, stj, ts[kk], tn[kk]);
 
-                // two passes per chunk: pure (vectorisable) evaluation, then masked store
-                for(int k0 = 0; k0 < nk; k0 += WCHUNK)
+                for(int kk=0; kk<kn; ++kk)
                 {
-                    const int kn = (nk - k0 < WCHUNK) ? nk - k0 : WCHUNK;
-                    double ts[WCHUNK], tn[WCHUNK];
-
-                    // weight type is fixed per run: branch per chunk, inner loops stay branch-free
-                    if(wt_ == 0)
-                        for(int kk = 0; kk < kn; ++kk)
-                            weno_face<0>(c, eps_, psi_, ct_, Fy + n0 + k0 + kk, stj, ts[kk], tn[kk]);
-                    else if(wt_ == 1)
-                        for(int kk = 0; kk < kn; ++kk)
-                            weno_face<1>(c, eps_, psi_, ct_, Fy + n0 + k0 + kk, stj, ts[kk], tn[kk]);
-                    else
-                        for(int kk = 0; kk < kn; ++kk)
-                            weno_face<2>(c, eps_, psi_, ct_, Fy + n0 + k0 + kk, stj, ts[kk], tn[kk]);
-
-                    for(int kk = 0; kk < kn; ++kk)
-                    {
-                        const long n = n0 + k0 + kk;
-                        if(flag[n] > 0)
-                        {
-                            Fe[n] = ts[kk];
-                            Fw[n] = tn[kk];
-                        }
-                    }
+                const long n = n0 + k0 + kk;
+                if(flag[n]>0)
+                {
+                Fe[n] = ts[kk];
+                Fw[n] = tn[kk];
+                }
                 }
             }
     }
-
-    // pgc->start2V(p,Fe,1);  // face states are only read at their own face (IJK / (i,j)): no halo/BC needed
-    // pgc->start2V(p,Fw,1);  // face states are only read at their own face (IJK / (i,j)): no halo/BC needed
+    }
+    
+    //pgc->start2V(p,Fe,1);  // face states are only read at their own face (IJK / (i,j)): no halo/BC needed
+    //pgc->start2V(p,Fw,1);  // face states are only read at their own face (IJK / (i,j)): no halo/BC needed
 }
 
-void nhflow_reconstruct_weno::reconstruct_3D_z(lexer *p, ghostcell *pgc, fdm_nhf *d, double *Fz, double *Fb, double *Ft)
+void nhflow_reconstruct_weno::reconstruct_3D_z(lexer* p, ghostcell *pgc, fdm_nhf *d, double *Fz, double *Fb, double *Ft)
 {
-    if(p->A514 == 4)
+    if(p->A514==4)
     {
         // gradient
         LOOP
-            DFDX[IJK] = 0.0;
-
-        LOOP WETDRY
+        DFDX[IJK] = 0.0;
+        
+        LOOP
+        WETDRY
         {
-            dfdz_plus = (Fz[IJKp1] - Fz[IJK]) / p->DZP[KP];
-            dfdz_min = (Fz[IJK] - Fz[IJKm1]) / p->DZP[KM1];
-
-            DFDX[IJK] = limiter(dfdz_plus, dfdz_min);
+        dfdz_plus = (Fz[IJKp1] - Fz[IJK])/p->DZP[KP];
+        dfdz_min  = (Fz[IJK] - Fz[IJKm1])/p->DZP[KM1];
+        
+        DFDX[IJK] = limiter(dfdz_plus,dfdz_min);
         }
-
-        pgc->start3V(p, DFDX, 1);
-
+        
+        pgc->start3V(p,DFDX,1);
+        
         // reconstruct
-        WLOOP
+        WLOOP 
         {
-            Fb[IJK] = (Fz[IJK] + 0.5 * p->DZN[KP] * DFDX[IJK]);
-            Ft[IJK] = (Fz[IJKp1] - 0.5 * p->DZN[KP1] * DFDX[IJKp1]);
+        Fb[IJK] = (Fz[IJK]    + 0.5*p->DZN[KP]*DFDX[IJK]); 
+        Ft[IJK] = (Fz[IJKp1]  - 0.5*p->DZN[KP1]*DFDX[IJKp1]);
         }
     }
-
-    if(p->A514 == 5)
+   
+    if(p->A514==5)
     {
         WLOOP
         {
-            // left
-            kqmin(p, Fz);
-            is_min_z();
-            weight_min_z();
+        // left
+        kqmin(p,Fz);
+        is_min_z();
+        weight_min_z();
 
-            Fb[IJK] = w1z * (q4 + qfz[KP][wf][0][0] * (q3 - q4) - qfz[KP][wf][0][1] * (q5 - q4))
-
-                      + w2z * (q3 + qfz[KP][wf][1][0] * (q4 - q3) - qfz[KP][wf][1][1] * (q2 - q3))
-
-                      + w3z * (q2 + qfz[KP][wf][2][0] * (q1 - q2) + qfz[KP][wf][2][1] * (q3 - q2));
-
-            // right
-            kqmax(p, Fz);
-            is_max_z();
-            weight_max_z();
-
-            Ft[IJK] = w1z * (q4 + qfz[KP][wf][3][0] * (q3 - q4) + qfz[KP][wf][3][1] * (q5 - q4))
-
-                      + w2z * (q3 + qfz[KP][wf][4][0] * (q2 - q3) - qfz[KP][wf][4][1] * (q4 - q3))
-
-                      + w3z * (q2 + qfz[KP][wf][5][0] * (q3 - q2) - qfz[KP][wf][5][1] * (q1 - q2));
+        Fb[IJK] =     w1z*(q4 + qfz[KP][wf][0][0]*(q3-q4) - qfz[KP][wf][0][1]*(q5-q4))
+        
+                    + w2z*(q3 + qfz[KP][wf][1][0]*(q4-q3) - qfz[KP][wf][1][1]*(q2-q3))
+              
+                    + w3z*(q2 + qfz[KP][wf][2][0]*(q1-q2) + qfz[KP][wf][2][1]*(q3-q2));
+        
+        // right
+        kqmax(p,Fz);
+        is_max_z();
+        weight_max_z();
+        
+        Ft[IJK] =     w1z*(q4 + qfz[KP][wf][3][0]*(q3-q4) + qfz[KP][wf][3][1]*(q5-q4))
+        
+                    + w2z*(q3 + qfz[KP][wf][4][0]*(q2-q3) - qfz[KP][wf][4][1]*(q4-q3))
+              
+                    + w3z*(q2 + qfz[KP][wf][5][0]*(q3-q2) - qfz[KP][wf][5][1]*(q1-q2));
         }
     }
-
-    // pgc->start3V(p,Fb,1);  // face states are only read at their own face (IJK / (i,j)): no halo/BC needed
-    // pgc->start3V(p,Ft,1);  // face states are only read at their own face (IJK / (i,j)): no halo/BC needed
+    
+    //pgc->start3V(p,Fb,1);  // face states are only read at their own face (IJK / (i,j)): no halo/BC needed
+    //pgc->start3V(p,Ft,1);  // face states are only read at their own face (IJK / (i,j)): no halo/BC needed
 }
 
 void nhflow_reconstruct_weno::iqmin(lexer *p, double *F)
-{
+{	 
     q1 = F[Im2JK];
     q2 = F[Im1JK];
     q3 = F[IJK];
@@ -477,47 +497,47 @@ void nhflow_reconstruct_weno::jqmax(lexer *p, double *F)
 
 void nhflow_reconstruct_weno::kqmax(lexer *p, double *F)
 {
-    q1 = F[IJKm1];
+	q1 = F[IJKm1];
     q2 = F[IJK];
     q3 = F[IJKp1];
     q4 = F[IJKp2];
     q5 = F[IJKp3];
 }
 
-void nhflow_reconstruct_weno::iqmin_sl(lexer *p, slice &f)
-{
-    q1 = f(i - 2, j);
-    q2 = f(i - 1, j);
-    q3 = f(i, j);
-    q4 = f(i + 1, j);
-    q5 = f(i + 2, j);
+void nhflow_reconstruct_weno::iqmin_sl(lexer *p, slice& f)
+{	
+	q1 = f(i-2,j);
+	q2 = f(i-1,j);
+	q3 = f(i,j);
+	q4 = f(i+1,j);
+	q5 = f(i+2,j);
 }
 
-void nhflow_reconstruct_weno::jqmin_sl(lexer *p, slice &f)
+void nhflow_reconstruct_weno::jqmin_sl(lexer *p, slice& f)
 {
-    q1 = f(i, j - 2);
-    q2 = f(i, j - 1);
-    q3 = f(i, j);
-    q4 = f(i, j + 1);
-    q5 = f(i, j + 2);
+	q1 = f(i,j-2);
+	q2 = f(i,j-1);
+	q3 = f(i,j);
+	q4 = f(i,j+1);
+	q5 = f(i,j+2);
 }
 
-void nhflow_reconstruct_weno::iqmax_sl(lexer *p, slice &f)
+void nhflow_reconstruct_weno::iqmax_sl(lexer *p, slice& f)
 {
-    q1 = f(i - 1, j);
-    q2 = f(i, j);
-    q3 = f(i + 1, j);
-    q4 = f(i + 2, j);
-    q5 = f(i + 3, j);
+	q1 = f(i-1,j);
+	q2 = f(i,j);
+	q3 = f(i+1,j);
+	q4 = f(i+2,j);
+	q5 = f(i+3,j);
 }
 
-void nhflow_reconstruct_weno::jqmax_sl(lexer *p, slice &f)
+void nhflow_reconstruct_weno::jqmax_sl(lexer *p, slice& f)
 {
-    q1 = f(i, j - 1);
-    q2 = f(i, j);
-    q3 = f(i, j + 1);
-    q4 = f(i, j + 2);
-    q5 = f(i, j + 3);
+	q1 = f(i,j-1);
+	q2 = f(i,j);
+	q3 = f(i,j+1);
+	q4 = f(i,j+2);
+	q5 = f(i,j+3);
 }
 
 // The face states of eta next to dry cells.  A dry cell holds eta = A 544 - depth: on a bank that is the bank
@@ -529,34 +549,34 @@ void nhflow_reconstruct_weno::jqmax_sl(lexer *p, slice &f)
 // zero in a dry cell and next to one.  Away from the shore nothing changes.
 double nhflow_reconstruct_weno::slope_wd(lexer *p, double fm, double f0, double fp, double dm, double dp, int ii, int jj)
 {
-    const int q = (ii - p->imin) * p->jmax + (jj - p->jmin);
-    if(p->wet[q] == 0 || p->wet[q + p->jmax] == 0 || p->wet[q - p->jmax] == 0 || (p->j_dir == 1 && (p->wet[q + 1] == 0 || p->wet[q - 1] == 0)))
-        return 0.0;
+    const int q = (ii-p->imin)*p->jmax + (jj-p->jmin);
+    if(p->wet[q]==0 || p->wet[q+p->jmax]==0 || p->wet[q-p->jmax]==0 || (p->j_dir==1 && (p->wet[q+1]==0 || p->wet[q-1]==0)))
+    return 0.0;
 
-    const double v1 = (fp - f0) / dp;
-    const double v2 = (f0 - fm) / dm;
+    const double v1 = (fp-f0)/dp;
+    const double v2 = (f0-fm)/dm;
     double d = fabs(v1) + fabs(v2);
-    d = fabs(d) > 1.0e-10 ? d : 1.0e10;
-    return (v1 * fabs(v2) + fabs(v1) * v2) / d;
+    d = fabs(d)>1.0e-10 ? d : 1.0e10;
+    return (v1*fabs(v2) + fabs(v1)*v2)/d;
 }
 
 void nhflow_reconstruct_weno::wetdry_x(lexer *p, slice &f, slice &fs, slice &fn)
 {
     auto wetrun = [&](int a, int b)
     {
-        for(int q = a; q <= b; ++q)
-            if(p->wet[(q - p->imin) * p->jmax + (j - p->jmin)] == 0)
-                return false;
+        for(int q=a; q<=b; ++q)
+        if(p->wet[(q-p->imin)*p->jmax + (j-p->jmin)]==0)
+        return false;
         return true;
     };
 
     SLICELOOP1
     {
-        if(!wetrun(i - 2, i + 2))
-            fs(i, j) = f(i, j) + 0.5 * p->DXP[IM1] * slope_wd(p, f(i - 1, j), f(i, j), f(i + 1, j), p->DXP[IM1], p->DXP[IP], i, j);
+        if(!wetrun(i-2,i+2))
+        fs(i,j) = f(i,j) + 0.5*p->DXP[IM1]*slope_wd(p,f(i-1,j),f(i,j),f(i+1,j),p->DXP[IM1],p->DXP[IP],i,j);
 
-        if(!wetrun(i - 1, i + 3))
-            fn(i, j) = f(i + 1, j) - 0.5 * p->DXP[IP] * slope_wd(p, f(i, j), f(i + 1, j), f(i + 2, j), p->DXP[IP], p->DXP[IP1], i + 1, j);
+        if(!wetrun(i-1,i+3))
+        fn(i,j) = f(i+1,j) - 0.5*p->DXP[IP]*slope_wd(p,f(i,j),f(i+1,j),f(i+2,j),p->DXP[IP],p->DXP[IP1],i+1,j);
     }
 }
 
@@ -564,42 +584,43 @@ void nhflow_reconstruct_weno::wetdry_y(lexer *p, slice &f, slice &fe, slice &fw)
 {
     auto wetrun = [&](int a, int b)
     {
-        for(int q = a; q <= b; ++q)
-            if(p->wet[(i - p->imin) * p->jmax + (q - p->jmin)] == 0)
-                return false;
+        for(int q=a; q<=b; ++q)
+        if(p->wet[(i-p->imin)*p->jmax + (q-p->jmin)]==0)
+        return false;
         return true;
     };
 
     SLICELOOP2
     {
-        if(!wetrun(j - 2, j + 2))
-            fe(i, j) = f(i, j) + 0.5 * p->DYP[JM1] * slope_wd(p, f(i, j - 1), f(i, j), f(i, j + 1), p->DYP[JM1], p->DYP[JP], i, j);
+        if(!wetrun(j-2,j+2))
+        fe(i,j) = f(i,j) + 0.5*p->DYP[JM1]*slope_wd(p,f(i,j-1),f(i,j),f(i,j+1),p->DYP[JM1],p->DYP[JP],i,j);
 
-        if(!wetrun(j - 1, j + 3))
-            fw(i, j) = f(i, j + 1) - 0.5 * p->DYP[JP] * slope_wd(p, f(i, j), f(i, j + 1), f(i, j + 2), p->DYP[JP], p->DYP[JP1], i, j + 1);
+        if(!wetrun(j-1,j+3))
+        fw(i,j) = f(i,j+1) - 0.5*p->DYP[JP]*slope_wd(p,f(i,j),f(i,j+1),f(i,j+2),p->DYP[JP],p->DYP[JP1],i,j+1);
     }
 }
 
 double nhflow_reconstruct_weno::limiter(double v1, double v2)
 {
-    val = 0.0;
+    val=0.0;
+    
+    r=v2/(fabs(v1)>1.0e-10?v1:1.0e20);
 
-    r = v2 / (fabs(v1) > 1.0e-10 ? v1 : 1.0e20);
+    if(r<0.0)
+    phi = 0.0;
+    
+    if(r>=0.0 && r<0.5)
+    phi = 2.0*r;
+    
+    if(r>=0.5 && r<1.0)
+    phi = 1.0;
+    
+    if(r>=1.0)
+    phi = MIN(MIN(r,2.0), 2.0/(1.0+r));
+    
+    val = 0.5*phi*(v1+v2);
 
-    if(r < 0.0)
-        phi = 0.0;
-
-    if(r >= 0.0 && r < 0.5)
-        phi = 2.0 * r;
-
-    if(r >= 0.5 && r < 1.0)
-        phi = 1.0;
-
-    if(r >= 1.0)
-        phi = MIN(MIN(r, 2.0), 2.0 / (1.0 + r));
-
-    val = 0.5 * phi * (v1 + v2);
-
+    
     return val;
 }
 

@@ -23,9 +23,9 @@ Author: Hans Bihs
 #ifndef DIFF_WALLGHOST_H_
 #define DIFF_WALLGHOST_H_
 
-#include "field1.h"
-#include "increment.h"
-#include <vector>
+#include"increment.h"
+#include"field1.h"
+#include<vector>
 
 class lexer;
 class ghostcell;
@@ -53,18 +53,18 @@ those two cells, and the ghost cell belongs to this face alone.
 class diff_wallghost : public increment
 {
 public:
-    diff_wallghost(lexer *);
+    diff_wallghost(lexer*);
     virtual ~diff_wallghost();
 
     // c = 0, 1, 2 (u, v, w), gcv: ghost-cell label of the velocity component
-    void update(lexer *, ghostcell *, int c, int gcv);
+    void update(lexer*, ghostcell*, int c, int gcv);
 
     // face cs (1 x-, 2 y+, 3 y-, 4 x+, 5 z-, 6 z+) of cell (ii,jj,kk), after update() for its component
-    bool coef(lexer *, int ii, int jj, int kk, int cs, double &c1, double &c2);
+    bool coef(lexer*, int ii, int jj, int kk, int cs, double &c1, double &c2);
 
 private:
-    void probe(lexer *, ghostcell *, int, int *, int, std::vector<double> &);
-    int ghost_index(lexer *, int, int, int, int);
+    void probe(lexer*, ghostcell*, int, int*, int, std::vector<double>&);
+    int ghost_index(lexer*, int, int, int, int);
 
     field1 P;
     std::vector<int> owner;

@@ -20,48 +20,45 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Authors: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "6DOF_motionext_wavemaker.h"
-#include "fdm.h"
-#include "ghostcell.h"
-#include "lexer.h"
+#include"6DOF_motionext_wavemaker.h"
+#include"lexer.h"
+#include"fdm.h"
+#include"ghostcell.h"
 
 void sixdof_motionext_wavemaker::read_format_1(lexer *p, ghostcell *pgc)
 {
     char name[100];
-    double val, val0, val1;
-    double sign, beta, s;
-    int count;
+	double val,val0,val1;
+    double sign,beta,s;
+	int count;
+	
+	sprintf(name,"6DOF_motion.dat");
 
-    sprintf(name, "6DOF_motion.dat");
-
-    try
-    {
+    try {
         auto table = readTable(name, colnum);
         ptnum = table.size();
-
+        
         // copy data directly
         data = std::move(table);
-    }
-    catch(const std::exception &e)
-    {
+    } catch(const std::exception& e) {
         cout << "Error: " << e.what() << endl;
         pgc->final(EXIT_FAILURE);
     }
-
+    
     ts = data[0][0];
-    te = data[ptnum - 1][0];
-
+    te = data[ptnum-1][0];
+    
     // newline check
-    while(te < 1.0e-10 && ptnum > 0)
+    while(te<1.0e-10 && ptnum>0)
     {
-        --ptnum;
-        te = data[ptnum - 1][0];
+    --ptnum;
+    te = data[ptnum-1][0];
     }
-
-    if(p->mpirank == 0)
-        cout << "6DOF_motion  ts: " << ts << " te: " << te << " ptnum: " << ptnum << endl;
-
-    // add deltas
-    for(qn = 0; qn < ptnum; ++qn)
-        data[qn][0] += p->X241;
+    
+    if(p->mpirank==0)
+    cout<<"6DOF_motion  ts: "<<ts<<" te: "<<te<<" ptnum: "<<ptnum<<endl;
+    
+// add deltas
+    for(qn=0;qn<ptnum;++qn)
+    data[qn][0] += p->X241;
 }

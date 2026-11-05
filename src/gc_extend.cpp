@@ -19,123 +19,127 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-#include "fdm.h"
-#include "field.h"
-#include "ghostcell.h"
-#include "lexer.h"
-#include "vec.h"
+#include"lexer.h"
+#include"fdm.h"
+#include"ghostcell.h"
+#include"field.h"
+#include"vec.h"
 
-void ghostcell::extend(lexer *p, field &f, double dist, int gcv, int bc, int cs)
+void ghostcell::extend(lexer *p,field& f,double dist,int gcv, int bc, int cs)
 {
-    weight = 1.0;
-
+    weight=1.0;
+    
     double dx;
+    
+    if(cs==1||cs==4)
+    dx = p->DXP[IP];
+    
+    if(cs==2||cs==3)
+    dx = p->DYP[JP];
+    
+    if(cs==5||cs==6)
+    dx = p->DZP[KP];
 
-    if(cs == 1 || cs == 4)
-        dx = p->DXP[IP];
+//fill pos[]
+    int orderext=2;
 
-    if(cs == 2 || cs == 3)
-        dx = p->DYP[JP];
+    if(bc_label==35)
+    orderext=2;
+	
 
-    if(cs == 5 || cs == 6)
-        dx = p->DZP[KP];
+	for(m=0;m<=orderext-3;m++)
+	pos[m]=-dx*double(orderext-m-2);
 
-    // fill pos[]
-    int orderext = 2;
+	pos[orderext-2]=0.0;
+	pos[orderext-1]=dx;
 
-    if(bc_label == 35)
-        orderext = 2;
+	for(m=0;m<margin;m++)
+	x[m]=dx*double(m+2);
+	
+	
 
-    for(m = 0; m <= orderext - 3; m++)
-        pos[m] = -dx * double(orderext - m - 2);
+//fill y[]
 
-    pos[orderext - 2] = 0.0;
-    pos[orderext - 1] = dx;
+	//Inflow
+	if(cs==1 )
+	for(m=0;m<orderext;m++)
+	y[m]=f(i+orderext-m-1,j,k);
 
-    for(m = 0; m < margin; m++)
-        x[m] = dx * double(m + 2);
+	//left
+	if(cs==2)
+	for(m=0;m<orderext;m++)
+	y[m]=f(i,j-orderext+m+1,k);
 
-    // fill y[]
+	//right
+	if(cs==3)
+	for(m=0;m<orderext;m++)
+	y[m]=f(i,j+orderext-m-1,k);
 
-    // Inflow
-    if(cs == 1)
-        for(m = 0; m < orderext; m++)
-            y[m] = f(i + orderext - m - 1, j, k);
+	//outlflow
+	if(cs==4)
+	for(m=0;m<orderext;m++)
+	y[m]=f(i-orderext+m+1,j,k);
 
-    // left
-    if(cs == 2)
-        for(m = 0; m < orderext; m++)
-            y[m] = f(i, j - orderext + m + 1, k);
+	//bottom
+	if(cs==5)
+	for(m=0;m<orderext;m++)
+	y[m]=f(i,j,k+orderext-m-1);
 
-    // right
-    if(cs == 3)
-        for(m = 0; m < orderext; m++)
-            y[m] = f(i, j + orderext - m - 1, k);
+	//top
+	if(cs==6)
+	for(m=0;m<orderext;m++)
+	y[m]=f(i,j,k-orderext+m+1);
+	
+	
+	for(q=0; q<margin; ++q)
+	{
+	    y[orderext+q]=0.0;
 
-    // outlflow
-    if(cs == 4)
-        for(m = 0; m < orderext; m++)
-            y[m] = f(i - orderext + m + 1, j, k);
+		for(m=0;m<orderext;m++)
+		{
+			weight=1.0;
+			for(n=0;n<orderext;++n)
+			{
+			if(m!=n)
+			weight*=(x[q]-pos[n])/(pos[m]-pos[n]+1.0e-20);
+			}
+		y[orderext+q]+=weight*y[m];
+		}
+	}
 
-    // bottom
-    if(cs == 5)
-        for(m = 0; m < orderext; m++)
-            y[m] = f(i, j, k + orderext - m - 1);
+// write extrapolated ghost cell values into f()
 
-    // top
-    if(cs == 6)
-        for(m = 0; m < orderext; m++)
-            y[m] = f(i, j, k - orderext + m + 1);
+	//inflow
+	if(cs==1)
+	for(q=0;q<margin;++q)
+	f(i-q-1,j,k)=y[orderext+q];
 
-    for(q = 0; q < margin; ++q)
-    {
-        y[orderext + q] = 0.0;
+	//left
+	if(cs==2)
+	for(q=0;q<margin;++q)
+	f(i,j+q+1,k)=y[orderext+q];
 
-        for(m = 0; m < orderext; m++)
-        {
-            weight = 1.0;
-            for(n = 0; n < orderext; ++n)
-            {
-                if(m != n)
-                    weight *= (x[q] - pos[n]) / (pos[m] - pos[n] + 1.0e-20);
-            }
-            y[orderext + q] += weight * y[m];
-        }
-    }
+	//right
+	if(cs==3)
+	for(q=0;q<margin;++q)
+	f(i,j-q-1,k)=y[orderext+q];
 
-    // write extrapolated ghost cell values into f()
+	//outflow
+	if(cs==4)
+	for(q=0;q<margin;++q)
+	f(i+q+1,j,k)=y[orderext+q];
 
-    // inflow
-    if(cs == 1)
-        for(q = 0; q < margin; ++q)
-            f(i - q - 1, j, k) = y[orderext + q];
+	//bottom
+	if(cs==5)
+	{
+	for(q=0;q<margin;++q)
+	f(i,j,k-q-1)=y[orderext+q];
+	
+	//cout<<" LSM: "<<f(i,j,k+1)<<" "<<f(i,j,k)<<" "<<y[2]<<" "<<y[3]<<" "<<y[4]<<endl;
+	}
 
-    // left
-    if(cs == 2)
-        for(q = 0; q < margin; ++q)
-            f(i, j + q + 1, k) = y[orderext + q];
-
-    // right
-    if(cs == 3)
-        for(q = 0; q < margin; ++q)
-            f(i, j - q - 1, k) = y[orderext + q];
-
-    // outflow
-    if(cs == 4)
-        for(q = 0; q < margin; ++q)
-            f(i + q + 1, j, k) = y[orderext + q];
-
-    // bottom
-    if(cs == 5)
-    {
-        for(q = 0; q < margin; ++q)
-            f(i, j, k - q - 1) = y[orderext + q];
-
-        // cout<<" LSM: "<<f(i,j,k+1)<<" "<<f(i,j,k)<<" "<<y[2]<<" "<<y[3]<<" "<<y[4]<<endl;
-    }
-
-    // top
-    if(cs == 6)
-        for(q = 0; q < margin; ++q)
-            f(i, j, k + q + 1) = y[orderext + q];
+	//top
+	if(cs==6)
+	for(q=0;q<margin;++q)
+	f(i,j,k+q+1)=y[orderext+q];
 }

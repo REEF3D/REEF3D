@@ -23,9 +23,9 @@ Author: Hans Bihs
 #ifndef SFLOW_AMR_LINESOLVE_H_
 #define SFLOW_AMR_LINESOLVE_H_
 
-#include "increment.h"
-#include "solver2D.h"
-#include <vector>
+#include"solver2D.h"
+#include"increment.h"
+#include<vector>
 
 using namespace std;
 
@@ -37,11 +37,11 @@ using namespace std;
 class sflow_amr_linesolve final : public solver2D, public increment
 {
 public:
-    void start(lexer *, ghostcell *, slice &, matrix2D &, vec2D &, vec2D &, int) override final;
+    void start(lexer*, ghostcell*, slice&, matrix2D&, vec2D&, vec2D&, int) override final;
 
 private:
     vector<int> id;
-    vector<double> a, bb, c, d;
+    vector<double> a,bb,c,d;
 };
 
 #endif

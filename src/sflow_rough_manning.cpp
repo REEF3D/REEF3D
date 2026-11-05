@@ -20,13 +20,13 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "sflow_rough_manning.h"
-#include "fdm2D.h"
-#include "lexer.h"
+#include"sflow_rough_manning.h"
+#include"lexer.h"
+#include"fdm2D.h"
 
-#define WLIJ (WL(i, j) > p->A244 ? WL(i, j) : 1.0e20)
+#define WLIJ (WL(i,j)>p->A244?WL(i,j):1.0e20)
 
-sflow_rough_manning::sflow_rough_manning(lexer *p)
+sflow_rough_manning::sflow_rough_manning(lexer* p) 
 {
 }
 
@@ -41,10 +41,10 @@ void sflow_rough_manning::u_source(lexer *p, fdm2D *b, slice &U, slice &V, slice
     SLICELOOP4
     WETDRY
     {
-        manning = pow(b->ks(i, j), 1.0 / 6.0) / 20.0;
-        cf = pow(manning, 2.0) * fabs(p->W22) / pow(WLIJ, 1.0 / 3.0);
-
-        b->F(i, j) -= cf * U(i, j) * sqrt(U(i, j) * U(i, j) + V(i, j) * V(i, j));
+    manning = pow(b->ks(i,j),1.0/6.0)/20.0;
+    cf = pow(manning,2.0)*fabs(p->W22)/pow(WLIJ,1.0/3.0);
+    
+    b->F(i,j) -= cf*U(i,j)*sqrt(U(i,j)*U(i,j) + V(i,j)*V(i,j));
     }
 }
 
@@ -53,9 +53,9 @@ void sflow_rough_manning::v_source(lexer *p, fdm2D *b, slice &U, slice &V, slice
     SLICELOOP4
     WETDRY
     {
-        manning = pow(b->ks(i, j), 1.0 / 6.0) / 20.0;
-        cf = pow(manning, 2.0) * fabs(p->W22) / pow(WLIJ, 1.0 / 3.0);
-
-        b->G(i, j) -= cf * V(i, j) * sqrt(U(i, j) * U(i, j) + V(i, j) * V(i, j));
+    manning = pow(b->ks(i,j),1.0/6.0)/20.0;
+    cf = pow(manning,2.0)*fabs(p->W22)/pow(WLIJ,1.0/3.0);
+    
+    b->G(i,j) -= cf*V(i,j)*sqrt(U(i,j)*U(i,j) + V(i,j)*V(i,j));
     }
 }

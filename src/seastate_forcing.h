@@ -20,12 +20,13 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
+
 #ifndef SEASTATE_FORCING_H_
 #define SEASTATE_FORCING_H_
 
-#include <fstream>
-#include <string>
-#include <vector>
+#include<fstream>
+#include<string>
+#include<vector>
 
 class seastate_grid;
 
@@ -67,16 +68,16 @@ class seastate_spc_series
 {
 public:
     bool open(const std::string &file, const seastate_grid &g, std::string &error);
-    bool advance(double t, std::string &error);  // t: seconds, same clock as time()
+    bool advance(double t, std::string &error);       // t: seconds, same clock as time()
     double weight(double t) const;
 
-    const std::vector<float> &N(int k, int loc) const { return rec[k][loc]; }
-    double time(int k) const { return rtime[k]; }
-    bool stationary() const { return !timed; }
+    const std::vector<float> &N(int k, int loc) const {return rec[k][loc];}
+    double time(int k) const {return rtime[k];}
+    bool stationary() const {return !timed;}
 
-    std::vector<double> xs, ys;  // locations
+    std::vector<double> xs, ys;                      // locations
     int nloc = 0, records = 0;
-    std::vector<double> f, dir;  // file frequencies [Hz], Cartesian directions [deg]
+    std::vector<double> f, dir;                      // file frequencies [Hz], Cartesian directions [deg]
 
 private:
     bool read_record(std::vector<std::vector<float>> &out, double &t, std::string &error);
@@ -86,10 +87,10 @@ private:
     std::string file;
     bool timed = false, nautical = false, energy = false, eof = false;
     double exception = -99.0;
-    std::vector<size_t> order;  // sorted direction -> file direction
+    std::vector<size_t> order;                        // sorted direction -> file direction
     std::vector<std::vector<float>> rec[2];
     double rtime[2] = {0.0, 0.0};
-    std::string pending;  // first key of the next record
+    std::string pending;                              // first key of the next record
 };
 
 #endif

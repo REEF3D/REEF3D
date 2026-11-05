@@ -98,13 +98,13 @@ Author: Hans Bihs
 //    a lower resistance (1e3) and compression 0.001 (the iterated coupling does not converge for wrinkling fabric).
 //    Shapes: box, cylinder, cylcone (cylinder on a cone; the cone is the floor, sloped floor in the static pressure).
 
-#include "increment.h"
-#include "net.h"
-#include "vtp3D.h"
-#include <Eigen/Dense>
-#include <array>
-#include <string>
-#include <vector>
+#include"net.h"
+#include"increment.h"
+#include"vtp3D.h"
+#include<vector>
+#include<array>
+#include<string>
+#include<Eigen/Dense>
 
 class lexer;
 class fdm;
@@ -113,194 +113,194 @@ class ghostcell;
 class slice;
 class nhflow_thinbody;
 
-#include <functional>
+#include<functional>
 using namespace std;
 
 struct membrane_param
 {
     string name;
-    int shape = 0;                                  // 1: box, 2: cylinder, 3: cylinder on a cone (cylcone)
-    double x0 = 0.0, x1 = 0.0, y0 = 0.0, y1 = 0.0;  // box footprint
-    double xc = 0.0, yc = 0.0, R = 0.0;             // cylinder footprint
-    double zb = 0.0, zt = 0.0;                      // bottom (floor) and top of the bag; cylcone: zb the cone tip
-    double zc = 0.0;                                // cylcone: cone base = bottom of the cylinder
-    double Rn = 1.0e4, Rt = -1.0;                   // hydraulic resistance normal / tangential [m/s]; Rt<0: 0 fixed, Rn moving
-                                                    // (link mode: 0)
-    int Rngiven = 0;                                // 1: resistance given in membrane.dat (sharp mode default R_n 1e5)
-    double delta = -1.0;                            // half width of the smeared layer [m], <0: 1.5 max(dx,dy,dz)
-    double h = -1.0;                                // target triangle edge length [m], <0: min cell size (fixed), max cell size
-                                                    // (moving), 1.5 delta (coupling iterated)
-    double fill = 0.0;                              // initial inner water level above the undisturbed level [m]
-    double filling = -1.0;                          // filling level V_water/V_bag (<0: not given, fill applies)
-    double drain = 0.0;                             // >0: the missing water is pumped out of the bag over this time [s]
-    double printdt = -1.0;                          // vtp print interval [s]; <0: NHFLOW print control (P 20 / P 30), 0: off
-    int projections = 1;                            // projection passes per stage (1: Rhie-Chow flux, >1: converged wide divergence)
-    int poisson = 1;                                // 1: membrane mobility in the pressure Poisson equation, 0: off (diagnostics)
-    int link = 0;                                   // pressure coupling: 0 layer (isotropic mobility of the layer cells), 1 link
-                                                    // (porous-jump mobility only on the links crossing the membrane), 2 sharp
-                                                    // (blocked links only, wall fluxes, nhflow_thinbody)
-    int floorp = -1;                                // static pressure below the floor: 0 uniform dh, 1 local, 3 averaged ramp;
-                                                    // -1: 3 for a fixed membrane, 0 for a moving one
-    double tau = 2.0;                               // averaging time of the ramp shape (floorpressure 3), frozen at 2 tau [s]
+    int shape=0;                // 1: box, 2: cylinder, 3: cylinder on a cone (cylcone)
+    double x0=0.0,x1=0.0,y0=0.0,y1=0.0;     // box footprint
+    double xc=0.0,yc=0.0,R=0.0;             // cylinder footprint
+    double zb=0.0,zt=0.0;                   // bottom (floor) and top of the bag; cylcone: zb the cone tip
+    double zc=0.0;                          // cylcone: cone base = bottom of the cylinder
+    double Rn=1.0e4, Rt=-1.0;               // hydraulic resistance normal / tangential [m/s]; Rt<0: 0 fixed, Rn moving
+                                            // (link mode: 0)
+    int Rngiven=0;                          // 1: resistance given in membrane.dat (sharp mode default R_n 1e5)
+    double delta=-1.0;                      // half width of the smeared layer [m], <0: 1.5 max(dx,dy,dz)
+    double h=-1.0;                          // target triangle edge length [m], <0: min cell size (fixed), max cell size
+                                            // (moving), 1.5 delta (coupling iterated)
+    double fill=0.0;                        // initial inner water level above the undisturbed level [m]
+    double filling=-1.0;                    // filling level V_water/V_bag (<0: not given, fill applies)
+    double drain=0.0;                       // >0: the missing water is pumped out of the bag over this time [s]
+    double printdt=-1.0;                    // vtp print interval [s]; <0: NHFLOW print control (P 20 / P 30), 0: off
+    int projections=1;                      // projection passes per stage (1: Rhie-Chow flux, >1: converged wide divergence)
+    int poisson=1;                          // 1: membrane mobility in the pressure Poisson equation, 0: off (diagnostics)
+    int link=0;                             // pressure coupling: 0 layer (isotropic mobility of the layer cells), 1 link
+                                            // (porous-jump mobility only on the links crossing the membrane), 2 sharp
+                                            // (blocked links only, wall fluxes, nhflow_thinbody)
+    int floorp=-1;                          // static pressure below the floor: 0 uniform dh, 1 local, 3 averaged ramp;
+                                            // -1: 3 for a fixed membrane, 0 for a moving one
+    double tau=2.0;                         // averaging time of the ramp shape (floorpressure 3), frozen at 2 tau [s]
 
     // structure
-    int structure = 0;         // 0 fixed, 1 rigid (moves with the floating body), 2 flexible
-    double mA = 1.0;           // fabric mass per area [kg/m^2]
-    double rhom = 1300.0;      // fabric density [kg/m^3] (buoyancy)
-    double EA = 5.0e5;         // membrane stiffness E t [N/m]
-    double zeta = 0.1;         // damping ratio of the edge dampers
-    double compr = 0.01;       // stiffness in compression as a fraction of E t (wrinkling fabric)
-    int smooth = -1;           // mobility sharp, flexible: smoothing passes of the membrane geometry the fluid
-                               // sees (displacement and velocity), <0: 2
-    double EI = -1.0;          // bending stiffness [N m] (regularisation of grid-scale folds), <0: 1e-3 for
-                               // mobility sharp, 0 otherwise
-    double sinker = 0.0;       // submerged weight along the floor edge [N/m]
-    double zattach = -1.0e20;  // nodes at or above this height are attached, default: top edge
-    double Mbody = -1.0;       // added mass of the coupling to the floating body [kg], <0: 2 rho V_bag
-    double ma = -1.0;          // mobility sharp, flexible: added mass per area of the staggered coupling
-                               // [kg/m^2], <0: 2 rho (L + H) (L: radius of a cylinder bag, half width of a
-                               // box; H: depth of the bag bottom below the still water level)
+    int structure=0;                        // 0 fixed, 1 rigid (moves with the floating body), 2 flexible
+    double mA=1.0;                          // fabric mass per area [kg/m^2]
+    double rhom=1300.0;                     // fabric density [kg/m^3] (buoyancy)
+    double EA=5.0e5;                        // membrane stiffness E t [N/m]
+    double zeta=0.1;                        // damping ratio of the edge dampers
+    double compr=0.01;                      // stiffness in compression as a fraction of E t (wrinkling fabric)
+    int smooth=-1;                          // mobility sharp, flexible: smoothing passes of the membrane geometry the fluid
+                                            // sees (displacement and velocity), <0: 2
+    double EI=-1.0;                         // bending stiffness [N m] (regularisation of grid-scale folds), <0: 1e-3 for
+                                            // mobility sharp, 0 otherwise
+    double sinker=0.0;                      // submerged weight along the floor edge [N/m]
+    double zattach=-1.0e20;                 // nodes at or above this height are attached, default: top edge
+    double Mbody=-1.0;                      // added mass of the coupling to the floating body [kg], <0: 2 rho V_bag
+    double ma=-1.0;                         // mobility sharp, flexible: added mass per area of the staggered coupling
+                                            // [kg/m^2], <0: 2 rho (L + H) (L: radius of a cylinder bag, half width of a
+                                            // box; H: depth of the bag bottom below the still water level)
 
     // fluid-structure coupling of a flexible membrane
-    int coupling = -1;      // 0 staggered (once per step, implicit porous damper), 1 iterated per stage,
-                            // -1 not given: iterated for a flexible membrane
-    double crtol = 1.0e-3;  // iterated: relative tolerance of the node velocities
-    double catol = 1.0e-5;  //           absolute tolerance [m/s] (rms)
-    int citer = 50;         //           maximum iterations per stage
-    int creuse = 8;         //           IQN-ILS: converged stages kept for the next ones
-    double crelax = 0.5;    //           relaxation of the first iteration without history
-    int clog = 0;           //           1: residual of every iteration on screen
-    double crobin = 16.0;   //           scale of the Robin matrix (local layer response)
-    int ccols = 100;        //           IQN-ILS: maximum number of columns
-    double cfilt = 1.0e-2;  //           IQN-ILS: QR filter (drop columns nearly dependent on newer ones)
-    int cqn = 0;            //           quasi-Newton: 0 IQN-ILS, 1 IQN-IMVJ
+    int coupling=-1;                        // 0 staggered (once per step, implicit porous damper), 1 iterated per stage,
+                                            // -1 not given: iterated for a flexible membrane
+    double crtol=1.0e-3;                    // iterated: relative tolerance of the node velocities
+    double catol=1.0e-5;                    //           absolute tolerance [m/s] (rms)
+    int citer=50;                           //           maximum iterations per stage
+    int creuse=8;                           //           IQN-ILS: converged stages kept for the next ones
+    double crelax=0.5;                      //           relaxation of the first iteration without history
+    int clog=0;                             //           1: residual of every iteration on screen
+    double crobin=16.0;                     //           scale of the Robin matrix (local layer response)
+    int ccols=100;                          //           IQN-ILS: maximum number of columns
+    double cfilt=1.0e-2;                    //           IQN-ILS: QR filter (drop columns nearly dependent on newer ones)
+    int cqn=0;                              //           quasi-Newton: 0 IQN-ILS, 1 IQN-IMVJ
 
     // flexible collar (membrane.dat 'collar'): the top edge of a flexible bag is a floating pipe ring
-    int collar = 0;
-    double cD = 0.5;                // pipe diameter [m]
-    double cm = 60.0;               // mass per length [kg/m] (pipe, brackets, walkway)
-    double cEA = 4.5e7;             // axial stiffness [N]
-    double cEI = 1.2e6;             // bending stiffness [N m^2]
-    double cCd = 1.0, cCa = 1.0;    // Morison drag and added-mass coefficients (normal to the pipe axis)
-    vector<array<double, 5>> moor;  // mooring springs: anchor x y z, stiffness [N/m], pretension [N]
+    int collar=0;
+    double cD=0.5;                          // pipe diameter [m]
+    double cm=60.0;                         // mass per length [kg/m] (pipe, brackets, walkway)
+    double cEA=4.5e7;                       // axial stiffness [N]
+    double cEI=1.2e6;                       // bending stiffness [N m^2]
+    double cCd=1.0, cCa=1.0;                // Morison drag and added-mass coefficients (normal to the pipe axis)
+    vector<array<double,5> > moor;          // mooring springs: anchor x y z, stiffness [N/m], pretension [N]
 };
 
 class net_membrane final : public net, public increment, private vtp3D
 {
 public:
-    net_membrane(int, const membrane_param &);
+    net_membrane(int, const membrane_param&);
     virtual ~net_membrane();
 
     // net interface (the membrane runs through the membrane_* calls of net_interface)
-    void start_cfd(lexer *, fdm *, ghostcell *, double, Eigen::Matrix3d &, bool) override final {};
-    void start_nhflow(lexer *, fdm_nhf *, ghostcell *, double, Eigen::Matrix3d &, bool) override final {};
-    void initialize_cfd(lexer *, fdm *, ghostcell *) override final {};
-    void initialize_nhflow(lexer *, fdm_nhf *, ghostcell *) override final;
-    void netForces(lexer *, double &, double &, double &, double &, double &, double &) override final;
+    void start_cfd(lexer*, fdm*, ghostcell*, double, Eigen::Matrix3d&, bool) override final {};
+    void start_nhflow(lexer*, fdm_nhf*, ghostcell*, double, Eigen::Matrix3d&, bool) override final {};
+    void initialize_cfd(lexer*, fdm*, ghostcell*) override final {};
+    void initialize_nhflow(lexer*, fdm_nhf*, ghostcell*) override final;
+    void netForces(lexer*, double&, double&, double&, double&, double&, double&) override final;
 
-    const EigenMat &getLagrangePoints() override final { return empty_; }
-    const EigenMat &getLagrangeForces() override final { return empty_; }
-    const EigenMat &getCollarVel() override final { return empty_; }
-    const EigenMat &getCollarPoints() override final { return empty_; }
+    const EigenMat& getLagrangePoints() override final {return empty_;}
+    const EigenMat& getLagrangeForces() override final {return empty_;}
+    const EigenMat& getCollarVel() override final {return empty_;}
+    const EigenMat& getCollarPoints() override final {return empty_;}
 
     // NHFLOW coupling, called per RK stage: kinematics, mobility (builds the cell map), forcing, reaction
-    void kinematics_nhflow(lexer *, fdm_nhf *, ghostcell *);
-    void mobility_nhflow(lexer *, fdm_nhf *, ghostcell *, double);
-    void forcing_nhflow(lexer *, fdm_nhf *, ghostcell *, double, double *, double *, double *, slice &);
-    void static_pressure_nhflow(lexer *, fdm_nhf *, ghostcell *, double, double *, double *, double *, slice &);
-    void reaction_nhflow(lexer *, fdm_nhf *, ghostcell *, double, slice &, bool);
+    void kinematics_nhflow(lexer*, fdm_nhf*, ghostcell*);
+    void mobility_nhflow(lexer*, fdm_nhf*, ghostcell*, double);
+    void forcing_nhflow(lexer*, fdm_nhf*, ghostcell*, double, double*, double*, double*, slice&);
+    void static_pressure_nhflow(lexer*, fdm_nhf*, ghostcell*, double, double*, double*, double*, slice&);
+    void reaction_nhflow(lexer*, fdm_nhf*, ghostcell*, double, slice&, bool);
 
     // floating body: body frame at the start, current kinematics, load on the body
-    void attach_body(lexer *, const Eigen::Vector3d &, const Eigen::Matrix3d &);
-    void set_body(const Eigen::Vector3d &, const Eigen::Matrix3d &, const Eigen::Vector3d &, const Eigen::Vector3d &);
-    void body_load(lexer *, const Eigen::Vector3d &, const Eigen::Matrix3d &, double &, double &, double &, double &, double &, double &) const;
-    double body_addedmass(lexer *) const;
-    Eigen::Matrix3d body_addedinertia(lexer *) const;
-    Eigen::Matrix3d body_stiffness() const { return (moving() && body_) ? Eigen::Matrix3d(Jb_.block<3, 3>(0, 0)) : Eigen::Matrix3d::Zero(); }
+    void attach_body(lexer*, const Eigen::Vector3d&, const Eigen::Matrix3d&);
+    void set_body(const Eigen::Vector3d&, const Eigen::Matrix3d&, const Eigen::Vector3d&, const Eigen::Vector3d&);
+    void body_load(lexer*, const Eigen::Vector3d&, const Eigen::Matrix3d&, double&, double&, double&, double&, double&, double&) const;
+    double body_addedmass(lexer*) const;
+    Eigen::Matrix3d body_addedinertia(lexer*) const;
+    Eigen::Matrix3d body_stiffness() const {return (moving() && body_) ? Eigen::Matrix3d(Jb_.block<3,3>(0,0)) : Eigen::Matrix3d::Zero();}
 
     // initial inner water level, or water pumped out of the bag over the drain time
-    void fill_nhflow(lexer *, fdm_nhf *, ghostcell *);
-    void drain_nhflow(lexer *, fdm_nhf *, ghostcell *);
+    void fill_nhflow(lexer*, fdm_nhf*, ghostcell*);
+    void drain_nhflow(lexer*, fdm_nhf*, ghostcell*);
 
     // strong coupling (net_membrane_coupling.cpp): forcing update for new node velocities, coupling iteration
-    bool iterated() const { return prm.coupling == 1 && prm.structure == 2; }
-    void reforce_nhflow(lexer *, fdm_nhf *, ghostcell *, double, double *, double *, double *, slice &);
-    bool couple_nhflow(lexer *, fdm_nhf *, ghostcell *, int, double, slice &, int);
+    bool iterated() const {return prm.coupling==1 && prm.structure==2;}
+    void reforce_nhflow(lexer*, fdm_nhf*, ghostcell*, double, double*, double*, double*, slice&);
+    bool couple_nhflow(lexer*, fdm_nhf*, ghostcell*, int, double, slice&, int);
 
-    const membrane_param &param() const { return prm; }
+    const membrane_param& param() const {return prm;}
 
 private:
     // geometry
-    void mesh(lexer *);
+    void mesh(lexer*);
     void merge_nodes();
     void update_geometry();
-    void add_panel(const Eigen::Vector3d &, const Eigen::Vector3d &, const Eigen::Vector3d &, int, int, const Eigen::Vector3d &, int);
+    void add_panel(const Eigen::Vector3d&, const Eigen::Vector3d&, const Eigen::Vector3d&, int, int, const Eigen::Vector3d&, int);
     void add_cylinder_wall(int, int, double);
     void add_disk(int, int, double, double);
-    void add_tri(int, int, int, const Eigen::Vector3d &, int);
+    void add_tri(int, int, int, const Eigen::Vector3d&, int);
     bool inside_footprint(double, double, double) const;
     bool outside_footprint(double, double, double) const;
 
     // cell map
-    void build_map(lexer *, fdm_nhf *, ghostcell *);
-    static Eigen::Vector3d closest_point(const Eigen::Vector3d &, const Eigen::Vector3d &, const Eigen::Vector3d &,
-                                         const Eigen::Vector3d &, double &, double &, double &);
+    void build_map(lexer*, fdm_nhf*, ghostcell*);
+    static Eigen::Vector3d closest_point(const Eigen::Vector3d&, const Eigen::Vector3d&, const Eigen::Vector3d&,
+                                         const Eigen::Vector3d&, double&, double&, double&);
     Eigen::Vector3d membrane_vel(int, double, double, double) const;
-    Eigen::Vector3d membrane_vel(const vector<Eigen::Vector3d> &, int, const double *) const;
-    void compute_loads(lexer *, fdm_nhf *, ghostcell *, slice &);
+    Eigen::Vector3d membrane_vel(const vector<Eigen::Vector3d>&, int, const double*) const;
+    void compute_loads(lexer*, fdm_nhf*, ghostcell*, slice&);
     double indicator(double) const;
     double dindicator(double) const;
     double smoothstep(double) const;
-    double footprint_distance(double, double, double &, double &) const;
-    void footprint_weight(double, double, double &, double &, double &) const;
-    void footprint_weight_ext(double, double, double &, double &, double &) const;
-    void footprint_weight_int(double, double, double &, double &, double &) const;
+    double footprint_distance(double, double, double&, double&) const;
+    void footprint_weight(double, double, double&, double&, double&) const;
+    void footprint_weight_ext(double, double, double&, double&, double&) const;
+    void footprint_weight_int(double, double, double&, double&, double&) const;
     double dstep(double) const;
-    void floor_geometry(lexer *);
-    double zfloor(lexer *, int, int) const;
-    double zbag() const { return prm.shape == 3 ? prm.zc - (prm.zc - prm.zb) / 3.0 : prm.zb; }  // flat floor of the same volume
-    double Abag(lexer *) const;                                                                 // waterplane area of the bag
-    bool sloped() const { return prm.shape == 3; }                                              // floor height varies over the footprint
+    void floor_geometry(lexer*);
+    double zfloor(lexer*, int, int) const;
+    double zbag() const {return prm.shape==3 ? prm.zc - (prm.zc-prm.zb)/3.0 : prm.zb;}   // flat floor of the same volume
+    double Abag(lexer*) const;              // waterplane area of the bag
+    bool sloped() const {return prm.shape==3;}  // floor height varies over the footprint
 
     // structure (net_membrane_structure.cpp)
-    void ini_structure(lexer *, ghostcell *);
-    void advance_structure(lexer *, double);
-    void structure_solve(lexer *, double, int, const vector<Eigen::Matrix3d> &, const vector<Eigen::Vector3d> &,
-                         const vector<Eigen::Vector3d> &, const vector<Eigen::Vector3d> &, bool = false);
+    void ini_structure(lexer*, ghostcell*);
+    void advance_structure(lexer*, double);
+    void structure_solve(lexer*, double, int, const vector<Eigen::Matrix3d>&, const vector<Eigen::Vector3d>&,
+                         const vector<Eigen::Vector3d>&, const vector<Eigen::Vector3d>&, bool=false);
     void free_factor();
-    struct structure_factor *sfac_ = nullptr;  // factorised structure matrix, reused in the coupling iterations of a stage
-    bool sfac_ok_ = false;
-    void internal_forces(lexer *, const vector<Eigen::Vector3d> &, const vector<Eigen::Vector3d> &, vector<Eigen::Vector3d> &) const;
-    void external_forces(lexer *, vector<Eigen::Vector3d> &) const;
-    void update_body_load(lexer *);
-    void attach_response(lexer *, double, const vector<Eigen::Matrix3d> * = nullptr);
-    void update_body_fluid_load(lexer *);
+    struct structure_factor *sfac_=nullptr;   // factorised structure matrix, reused in the coupling iterations of a stage
+    bool sfac_ok_=false;
+    void internal_forces(lexer*, const vector<Eigen::Vector3d>&, const vector<Eigen::Vector3d>&, vector<Eigen::Vector3d>&) const;
+    void external_forces(lexer*, vector<Eigen::Vector3d>&) const;
+    void update_body_load(lexer*);
+    void attach_response(lexer*, double, const vector<Eigen::Matrix3d>* =nullptr);
+    void update_body_fluid_load(lexer*);
     Eigen::Vector3d attached_position(int) const;
-    Eigen::Vector3d body_velocity(const Eigen::Vector3d &) const;
-    bool moving() const { return prm.structure > 0; }
+    Eigen::Vector3d body_velocity(const Eigen::Vector3d&) const;
+    bool moving() const {return prm.structure>0;}
 
     // flexible collar (net_membrane_collar.cpp)
-    void ini_collar(lexer *);
-    void sample_collar(lexer *, fdm_nhf *, ghostcell *);
-    void collar_step_end(lexer *);
-    void collar_assemble(lexer *, double, const vector<int> &, const function<void(int, int, const Eigen::Matrix3d &)> &, Eigen::VectorXd &);
-    void collar_output(lexer *);
-    bool collar() const { return prm.collar == 1 && prm.structure == 2; }
-    vector<int> cn_;                            // collar nodes in ring order
-    vector<double> cl_, cL0_;                   // length per node, rest length of the segment i -> i+1
-    vector<Eigen::Vector3d> cxr_;               // reference ring relative to its centroid
+    void ini_collar(lexer*);
+    void sample_collar(lexer*, fdm_nhf*, ghostcell*);
+    void collar_step_end(lexer*);
+    void collar_assemble(lexer*, double, const vector<int>&, const function<void(int,int,const Eigen::Matrix3d&)>&, Eigen::VectorXd&);
+    void collar_output(lexer*);
+    bool collar() const {return prm.collar==1 && prm.structure==2;}
+    vector<int> cn_;                        // collar nodes in ring order
+    vector<double> cl_, cL0_;               // length per node, rest length of the segment i -> i+1
+    vector<Eigen::Vector3d> cxr_;           // reference ring relative to its centroid
     vector<Eigen::Vector3d> cuf_, cuf0_, caf_;  // fluid velocity at the collar nodes (stage, last step), fluid acceleration
-    vector<double> ceta_;                       // free surface (absolute) above the collar nodes
-    double ctn_ = -1.0;                         // time of cuf0_
-    vector<int> mfl_;                           // fairlead node of each mooring spring
-    vector<double> mL0_;                        // initial length of each mooring spring
-    vector<double> mT_;                         // mooring tensions
-    double cMmax_ = 0.0, cNmax_ = 0.0;          // largest bending moment and axial force in the collar
+    vector<double> ceta_;                   // free surface (absolute) above the collar nodes
+    double ctn_=-1.0;                       // time of cuf0_
+    vector<int> mfl_;                       // fairlead node of each mooring spring
+    vector<double> mL0_;                    // initial length of each mooring spring
+    vector<double> mT_;                     // mooring tensions
+    double cMmax_=0.0, cNmax_=0.0;          // largest bending moment and axial force in the collar
 
     // output (net_membrane_print.cpp)
-    void print_timeseries(lexer *, fdm_nhf *, ghostcell *);
-    void print_vtp(lexer *);
-    bool print_now(lexer *);
+    void print_timeseries(lexer*, fdm_nhf*, ghostcell*);
+    void print_vtp(lexer*);
+    bool print_now(lexer*);
 
     int nMem;
     membrane_param prm;
@@ -308,130 +308,128 @@ private:
 
     // triangulation
     vector<Eigen::Vector3d> x_, xdot_;
-    vector<array<int, 3>> tri_;
-    vector<Eigen::Vector3d> tn_, tc_;  // outward unit normal, centroid
-    vector<Eigen::Vector3d> tn0_;      // outward unit normal of the undeformed mesh (orientation classes)
-    vector<double> ta_;                // area
-    vector<int> ttag_;                 // 0: wall, 1: floor
+    vector<array<int,3> > tri_;
+    vector<Eigen::Vector3d> tn_, tc_;       // outward unit normal, centroid
+    vector<Eigen::Vector3d> tn0_;           // outward unit normal of the undeformed mesh (orientation classes)
+    vector<double> ta_;                     // area
+    vector<int> ttag_;                      // 0: wall, 1: floor
     double Afloor;
 
     // smeared layer
     double delta, Kn, Kt;
-    double rmap_ = -1.0;  // radius of the cell map (delta; link mode: at least the longest link)
+    double rmap_=-1.0;                      // radius of the cell map (delta; link mode: at least the longest link)
 
     struct cellentry
     {
-        int i, j, k;
-        int ns;    // distinct surface orientations within delta (up to 3)
-        int t[3];  // closest triangle of each orientation
+        int i,j,k;
+        int ns;             // distinct surface orientations within delta (up to 3)
+        int t[3];           // closest triangle of each orientation
         double dd[3], H[3];
-        double bw[3][3];  // barycentric weights of the closest point on t[r]
+        double bw[3][3];    // barycentric weights of the closest point on t[r]
         double Hmax;
-        int tc;  // closest triangle overall
+        int tc;             // closest triangle overall
         double dc, Hc;
-        double w0, w1, w2;  // barycentric weights of the closest point on tc
+        double w0,w1,w2;    // barycentric weights of the closest point on tc
     };
     vector<cellentry> cells_;
     vector<int> slot_;
-    vector<double> xc_, yc_;  // local cell centres for the bounding box search
+    vector<double> xc_, yc_;                // local cell centres for the bounding box search
 
     // link mode (net_membrane_link.cpp): cell centres and nodes on either side of the membrane, link mobilities,
     // loads from the forcing impulse and the pressure difference across the blocked links
-    void link_ini(lexer *);
+    void link_ini(lexer*);
     void pseudonormals();
-    int side_of(const Eigen::Vector3d &, int, double, double, double) const;
-    int side_near(const Eigen::Vector3d &, const cellentry &) const;
-    void link_mobility(lexer *, fdm_nhf *, ghostcell *, double);
-    void link_loads(lexer *, fdm_nhf *, ghostcell *, slice &, const function<void(int, const double *, const Eigen::Vector3d &)> &);
-    double *sideC_ = nullptr;            // side of the cell centres in the layer: +1 outside, -1 inside, 0 not set
-    vector<signed char> sideN_;          // side of the nodes (FIJK) in the layer
-    vector<int> sideCq_, sideNq_;        // indices set in this stage
-    vector<Eigen::Vector3d> vpn_, epn_;  // angle-weighted vertex and edge pseudo normals
-    vector<array<int, 2>> etri_;         // triangles of each edge (-1: boundary edge)
-    vector<Eigen::Vector3d> fimp_;       // per layer cell: force of the forcing on the membrane in this stage [N]
-    double sdist_of(const Eigen::Vector3d &, int, double, double, double) const;
-    double sdist_near(const Eigen::Vector3d &, const cellentry &) const;
-    vector<signed char> hC_, hN_;  // moving sharp membrane: sides of the last stage (hysteresis)
+    int side_of(const Eigen::Vector3d&, int, double, double, double) const;
+    int side_near(const Eigen::Vector3d&, const cellentry&) const;
+    void link_mobility(lexer*, fdm_nhf*, ghostcell*, double);
+    void link_loads(lexer*, fdm_nhf*, ghostcell*, slice&, const function<void(int,const double*,const Eigen::Vector3d&)>&);
+    double *sideC_=nullptr;                 // side of the cell centres in the layer: +1 outside, -1 inside, 0 not set
+    vector<signed char> sideN_;             // side of the nodes (FIJK) in the layer
+    vector<int> sideCq_, sideNq_;           // indices set in this stage
+    vector<Eigen::Vector3d> vpn_, epn_;     // angle-weighted vertex and edge pseudo normals
+    vector<array<int,2> > etri_;            // triangles of each edge (-1: boundary edge)
+    vector<Eigen::Vector3d> fimp_;          // per layer cell: force of the forcing on the membrane in this stage [N]
+    double sdist_of(const Eigen::Vector3d&, int, double, double, double) const;
+    double sdist_near(const Eigen::Vector3d&, const cellentry&) const;
+    vector<signed char> hC_, hN_;           // moving sharp membrane: sides of the last stage (hysteresis)
     vector<int> hCq_, hNq_;
-    double hyst_ = 0.0;  // hysteresis distance of a side change [m]
-    struct blockedlink
-    {
-        int i, j, k, dir, t;
-        double w[3];
-    };
-    vector<blockedlink> blocked_;  // links crossing the membrane in this stage
+    double hyst_=0.0;                       // hysteresis distance of a side change [m]
+    struct blockedlink {int i,j,k,dir,t; double w[3];};
+    vector<blockedlink> blocked_;           // links crossing the membrane in this stage
 public:
-    nhflow_thinbody *tb_ = nullptr;  // sharp mode: thin-body service (blocked links, wall fluxes)
+    nhflow_thinbody *tb_=nullptr;           // sharp mode: thin-body service (blocked links, wall fluxes)
 private:
+
+
     // loads
-    vector<double> tf_;  // 3 per triangle, reaction on the membrane [N]
-    vector<double> nf_;  // 3 per node, reaction on the membrane [N]
-    double Fx, Fy, Fz, Fzfloor, Qleak, urelmax;
-    double dh, etaref;     // eta_in - eta_out and eta_out used for the static floor pressure
-    vector<double> etab_;  // averaged free surface (floorpressure 3)
-    double erefb = 0.0, dhb = 0.0;
-    double dVdrain_ = 0.0, Vdrained_ = 0.0;  // volume to pump out of the bag, pumped so far
+    vector<double> tf_;                     // 3 per triangle, reaction on the membrane [N]
+    vector<double> nf_;                     // 3 per node, reaction on the membrane [N]
+    double Fx,Fy,Fz,Fzfloor,Qleak,urelmax;
+    double dh, etaref;                      // eta_in - eta_out and eta_out used for the static floor pressure
+    vector<double> etab_;                   // averaged free surface (floorpressure 3)
+    double erefb=0.0, dhb=0.0;
+    double dVdrain_=0.0, Vdrained_=0.0;     // volume to pump out of the bag, pumped so far
 
     // moving floor: footprint offset (floor edge centroid), floor height per column
-    vector<int> ring_;  // nodes on the floor edge
+    vector<int> ring_;                      // nodes on the floor edge
     Eigen::Vector3d ringc0_;
-    double offx_ = 0.0, offy_ = 0.0, zring_ = 0.0;
-    vector<double> zf_, zfx_, zfy_;  // floor height per column and its slope
+    double offx_=0.0, offy_=0.0, zring_=0.0;
+    vector<double> zf_, zfx_, zfy_;         // floor height per column and its slope
 
     // structure
-    vector<Eigen::Vector3d> x0_;   // initial node positions
-    vector<Eigen::Vector3d> vs_;   // structural node velocity
-    vector<Eigen::Vector3d> xan_;  // attached node positions at the start of the step
-    vector<Eigen::Vector3d> rb_;   // node positions in the body frame
-    vector<Eigen::Vector3d> nn_;   // node normals
-    vector<array<int, 2>> edge_;
+    vector<Eigen::Vector3d> x0_;            // initial node positions
+    vector<Eigen::Vector3d> vs_;            // structural node velocity
+    vector<Eigen::Vector3d> xan_;           // attached node positions at the start of the step
+    vector<Eigen::Vector3d> rb_;            // node positions in the body frame
+    vector<Eigen::Vector3d> nn_;            // node normals
+    vector<array<int,2> > edge_;
     vector<double> L0_, ke_, ce_;
-    vector<double> an_, mn_, ws_;        // node area, mass, sinker weight
-    vector<char> att_;                   // attached to the floating body (or fixed)
-    vector<int> grp_;                    // representative node of the group (2D: the node pairs across the slice)
-    vector<vector<int>> gm_;             // groups of free nodes, moving together
-    vector<array<int, 3>> tedge_;        // edges of each triangle
-    vector<int> flo_;                    // floor nodes
-    vector<char> cornerE_, cornerN_;     // edges between panels of different orientation (floor edge, box corners), their nodes
-    vector<array<int, 4>> hinge_;        // bending: edge nodes 0, 1 and the opposite vertices 2, 3 of the two triangles
-    vector<array<double, 4>> hK_;        // bending: cotangent weights of the hinge (Bergou et al. 2006)
-    vector<double> hc_;                  // bending: EI 3/(A_1 + A_2)
-    vector<vector<int>> nbr_;            // node neighbours (edges)
-    vector<Eigen::Vector3d> xst_, vst_;  // structure positions and velocities while x_, xdot_ hold the smoothed geometry
-    bool fluidgeo_ = false;              //   of the fluid (mobility sharp, flexible)
+    vector<double> an_, mn_, ws_;           // node area, mass, sinker weight
+    vector<char> att_;                      // attached to the floating body (or fixed)
+    vector<int> grp_;                       // representative node of the group (2D: the node pairs across the slice)
+    vector<vector<int> > gm_;               // groups of free nodes, moving together
+    vector<array<int,3> > tedge_;           // edges of each triangle
+    vector<int> flo_;                       // floor nodes
+    vector<char> cornerE_, cornerN_;        // edges between panels of different orientation (floor edge, box corners), their nodes
+    vector<array<int,4> > hinge_;           // bending: edge nodes 0, 1 and the opposite vertices 2, 3 of the two triangles
+    vector<array<double,4> > hK_;           // bending: cotangent weights of the hinge (Bergou et al. 2006)
+    vector<double> hc_;                     // bending: EI 3/(A_1 + A_2)
+    vector<vector<int> > nbr_;              // node neighbours (edges)
+    vector<Eigen::Vector3d> xst_, vst_;     // structure positions and velocities while x_, xdot_ hold the smoothed geometry
+    bool fluidgeo_=false;                   //   of the fluid (mobility sharp, flexible)
     void smooth_geometry();
     void restore_geometry();
-    int nsub_ = 0;
-    double Tmax_ = 0.0, vmax_ = 0.0;
+    int nsub_=0;
+    double Tmax_=0.0, vmax_=0.0;
 
     // floating body
-    bool body_ = false;
-    Eigen::Vector3d cb_ = Eigen::Vector3d::Zero(), vb_ = Eigen::Vector3d::Zero(), wb_ = Eigen::Vector3d::Zero();
-    Eigen::Matrix3d Rb_ = Eigen::Matrix3d::Identity();
-    Eigen::Vector3d Fb_ = Eigen::Vector3d::Zero(), Mb_ = Eigen::Vector3d::Zero();    // load on the body, moment about the origin
-    Eigen::Matrix3d Iab_ = Eigen::Matrix3d::Zero();                                  // 2 rho x inertia of the bag water about the CoG, body frame
-    Eigen::Matrix<double, 6, 6> Jb_ = Eigen::Matrix<double, 6, 6>::Zero();           // d(F, M_origin)/d(body translation, rotation)
-    Eigen::Vector3d Ffl_ = Eigen::Vector3d::Zero(), Mfl_ = Eigen::Vector3d::Zero();  // fluid load on the attached edge (flexible), every stage
-    Eigen::Vector3d cbn_ = Eigen::Vector3d::Zero();                                  // body position and orientation of Fb_, Mb_
-    Eigen::Matrix3d Rbn_ = Eigen::Matrix3d::Identity();
+    bool body_=false;
+    Eigen::Vector3d cb_=Eigen::Vector3d::Zero(), vb_=Eigen::Vector3d::Zero(), wb_=Eigen::Vector3d::Zero();
+    Eigen::Matrix3d Rb_=Eigen::Matrix3d::Identity();
+    Eigen::Vector3d Fb_=Eigen::Vector3d::Zero(), Mb_=Eigen::Vector3d::Zero();   // load on the body, moment about the origin
+    Eigen::Matrix3d Iab_=Eigen::Matrix3d::Zero();                           // 2 rho x inertia of the bag water about the CoG, body frame
+    Eigen::Matrix<double,6,6> Jb_=Eigen::Matrix<double,6,6>::Zero();            // d(F, M_origin)/d(body translation, rotation)
+    Eigen::Vector3d Ffl_=Eigen::Vector3d::Zero(), Mfl_=Eigen::Vector3d::Zero(); // fluid load on the attached edge (flexible), every stage
+    Eigen::Vector3d cbn_=Eigen::Vector3d::Zero();                               // body position and orientation of Fb_, Mb_
+    Eigen::Matrix3d Rbn_=Eigen::Matrix3d::Identity();
 
     // strong coupling (net_membrane_coupling.cpp)
-    void layer_matrix(const cellentry &, const vector<Eigen::Vector3d> &, Eigen::Matrix3d &, Eigen::Vector3d &) const;
-    void robin_matrix(lexer *, ghostcell *, double, slice &);
-    void stage_begin(lexer *, ghostcell *, int, double, slice &);
-    void stage_commit(lexer *);
-    void group_vector(const vector<Eigen::Vector3d> &, Eigen::VectorXd &, bool) const;
-    void group_scatter(const Eigen::VectorXd &, vector<Eigen::Vector3d> &) const;
-    vector<Eigen::Vector3d> xn_, vsn_;       // structure at the start of the time step
-    vector<Eigen::Vector3d> xk_, vsk_;       // structure after the last converged stage
-    vector<Eigen::Vector3d> xbase_, vbase_;  // base state of the current stage, (1-alpha) n + alpha k
-    vector<Eigen::Vector3d> xdotf_;          // node velocities of the forcing of this stage
-    vector<Eigen::Vector3d> xr_, vr_;        // structure result of the current iteration
-    vector<Eigen::Matrix3d> Cr_;             // Robin matrix per node: local response of the layer fluid
-    class iqn_ils *pqn_ = nullptr;
-    bool pending_ = false;  // converged stage result waiting for reaction_nhflow
-    int citstep_ = 0, citmax_ = 0, cwarn_ = 0;
-    double cres_ = 0.0, rbest_ = 0.0;
+    void layer_matrix(const cellentry&, const vector<Eigen::Vector3d>&, Eigen::Matrix3d&, Eigen::Vector3d&) const;
+    void robin_matrix(lexer*, ghostcell*, double, slice&);
+    void stage_begin(lexer*, ghostcell*, int, double, slice&);
+    void stage_commit(lexer*);
+    void group_vector(const vector<Eigen::Vector3d>&, Eigen::VectorXd&, bool) const;
+    void group_scatter(const Eigen::VectorXd&, vector<Eigen::Vector3d>&) const;
+    vector<Eigen::Vector3d> xn_, vsn_;      // structure at the start of the time step
+    vector<Eigen::Vector3d> xk_, vsk_;      // structure after the last converged stage
+    vector<Eigen::Vector3d> xbase_, vbase_; // base state of the current stage, (1-alpha) n + alpha k
+    vector<Eigen::Vector3d> xdotf_;         // node velocities of the forcing of this stage
+    vector<Eigen::Vector3d> xr_, vr_;       // structure result of the current iteration
+    vector<Eigen::Matrix3d> Cr_;            // Robin matrix per node: local response of the layer fluid
+    class iqn_ils *pqn_=nullptr;
+    bool pending_=false;                    // converged stage result waiting for reaction_nhflow
+    int citstep_=0, citmax_=0, cwarn_=0;
+    double cres_=0.0, rbest_=0.0;
 
     // print
     double printtime;

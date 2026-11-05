@@ -20,14 +20,14 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "fnpf_body.h"
-#include "fnpf_6DOF.h"
-#include "lexer.h"
+#include"fnpf_body.h"
+#include"fnpf_6DOF.h"
+#include"lexer.h"
 
-fnpf_body *fnpf_body::create(lexer *p, fdm_fnpf *c, ghostcell *pgc)
+fnpf_body* fnpf_body::create(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 {
-    if(p->X10 > 0)
-        return new fnpf_6DOF(p, c, pgc);
-
+    if(p->X10>0)
+    return new fnpf_6DOF(p,c,pgc);
+    
     return new fnpf_body();
 }

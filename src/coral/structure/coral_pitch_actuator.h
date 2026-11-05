@@ -29,58 +29,45 @@ Architect: Hans Bihs
 #ifndef CORAL_PITCH_ACTUATOR_H_
 #define CORAL_PITCH_ACTUATOR_H_
 
-#include "coral/core/coral_load.h"
-#include <string>
-#include <vector>
+#include"coral/core/coral_load.h"
+#include<string>
+#include<vector>
 
-namespace coral {
-class joint;
-
-class pitch_actuator : public load
+namespace coral
 {
-public:
-    pitch_actuator(std::vector<const joint *> joints, double k, double c, double theta0, const std::string &name = "pitch");
+    class joint;
 
-    std::string name() const override { return name_; }
-    coupling_kind coupling() const override { return coupling_kind::local; }
-    void coupled_bodies(std::vector<int> &) const override;
-    void eval(const model &, double t, VecX &f) const override;
-    void channel_names(std::vector<std::string> &) const override;
-    void channel_values(const model &, double t, std::vector<double> &) const override;
-
-    void set_command(int blade, double theta)
+    class pitch_actuator : public load
     {
-        cmd_[blade] = theta;
-        table_ = false;
-    }
-    void set_command_all(double theta)
-    {
-        for(double &c : cmd_)
-            c = theta;
-        table_ = false;
-    }
-    void set_table(std::vector<double> t, std::vector<double> th)
-    {
-        tt_ = std::move(t);
-        tv_ = std::move(th);
-        table_ = !tt_.empty();
-    }
-    // command and its rate at t
-    void command(int blade, double t, double &th, double &rate) const;
-    double angle(const model &, int blade) const;
-    double rate(const model &, int blade) const;
-    double torque(const model &, int blade, double t) const;
-    int blades() const { return (int)j_.size(); }
+    public:
+        pitch_actuator(std::vector<const joint*> joints, double k, double c, double theta0, const std::string &name="pitch");
 
-    double k, c;
+        std::string name() const override {return name_;}
+        coupling_kind coupling() const override {return coupling_kind::local;}
+        void coupled_bodies(std::vector<int>&) const override;
+        void eval(const model&, double t, VecX &f) const override;
+        void channel_names(std::vector<std::string>&) const override;
+        void channel_values(const model&, double t, std::vector<double>&) const override;
 
-private:
-    std::vector<const joint *> j_;
-    double theta0_;
-    std::vector<double> cmd_, tt_, tv_;
-    bool table_ = false;
-    std::string name_;
-};
-}  // namespace coral
+        void set_command(int blade, double theta) {cmd_[blade] = theta; table_ = false;}
+        void set_command_all(double theta) {for(double &c : cmd_) c = theta; table_ = false;}
+        void set_table(std::vector<double> t, std::vector<double> th) {tt_ = std::move(t); tv_ = std::move(th); table_ = !tt_.empty();}
+        // command and its rate at t
+        void command(int blade, double t, double &th, double &rate) const;
+        double angle(const model&, int blade) const;
+        double rate(const model&, int blade) const;
+        double torque(const model&, int blade, double t) const;
+        int blades() const {return (int)j_.size();}
+
+        double k, c;
+
+    private:
+        std::vector<const joint*> j_;
+        double theta0_;
+        std::vector<double> cmd_, tt_, tv_;
+        bool table_ = false;
+        std::string name_;
+    };
+}
 
 #endif

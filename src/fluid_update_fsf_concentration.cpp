@@ -20,67 +20,68 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "fluid_update_fsf_concentration.h"
-#include "concentration.h"
-#include "fdm.h"
-#include "ghostcell.h"
-#include "heaviside.h"
-#include "interface_width.h"
-#include "lexer.h"
+#include"interface_width.h"
+#include"fluid_update_fsf_concentration.h"
+#include"lexer.h"
+#include"fdm.h"
+#include"ghostcell.h"
+#include"concentration.h"
+#include"heaviside.h"
 
-fluid_update_fsf_concentration::fluid_update_fsf_concentration(lexer *p, fdm *a, ghostcell *pgc, concentration *&ppconcentration) : dx(p->DXM)
+fluid_update_fsf_concentration::fluid_update_fsf_concentration(lexer *p, fdm* a, ghostcell* pgc, concentration *&ppconcentration) : dx(p->DXM)
 {
-    gcval_ro = 1;
-    gcval_visc = 1;
+    gcval_ro=1;
+	gcval_visc=1;
 
-    visc_air = p->W4;
-    visc_water = p->W2;
-    ro_air = p->W3;
-    ro_water = p->W1;
-
-    pconcentration = ppconcentration;
+	visc_air = p->W4;
+	visc_water = p->W2;
+	ro_air = p->W3;
+	ro_water = p->W1;
+	
+	pconcentration = ppconcentration;
 }
 
 fluid_update_fsf_concentration::~fluid_update_fsf_concentration()
 {
 }
 
-void fluid_update_fsf_concentration::start(lexer *p, fdm *a, ghostcell *pgc, field &u, field &v, field &w)
+void fluid_update_fsf_concentration::start(lexer *p, fdm* a, ghostcell* pgc, field &u, field &v, field &w)
 {
-    double H = 0.0;
-    double conc;
-    p->volume1 = 0.0;
-    p->volume2 = 0.0;
+	double H=0.0;
+	double conc;
+	p->volume1=0.0;
+	p->volume2=0.0;
 
-    if(p->count > iter)
-        iocheck = 0;
-    iter = p->count;
+    if(p->count>iter)
+    iocheck=0;
+	iter=p->count;
+    
 
-    LOOP
+	LOOP
+	{        
+        
+		H = heaviside(a->phi(i,j,k),interface_width(p,a->phi,i,j,k));
+		
+		conc=pconcentration->val(i,j,k);
+
+		a->ro(i,j,k)=      (ro_water+conc*p->C1)*H +   (ro_air+conc*p->C3)*(1.0-H);
+		
+		a->visc(i,j,k)=    (visc_water+conc*p->C2)*H + (visc_air+conc*p->C4)*(1.0-H);
+
+		p->volume1 += p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*H*PORVAL4;
+		p->volume2 += p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*(1.0-H)*PORVAL4;
+	}
+
+	pgc->start4(p,a->ro,gcval_ro);
+	pgc->start4(p,a->visc,gcval_visc);
+
+	p->volume1 = pgc->globalsum(p->volume1);
+	p->volume2 = pgc->globalsum(p->volume2);
+
+    if(p->mpirank==0 && iocheck==0 && (p->count%p->P12==0))
     {
-
-        H = heaviside(a->phi(i, j, k), interface_width(p, a->phi, i, j, k));
-
-        conc = pconcentration->val(i, j, k);
-
-        a->ro(i, j, k) = (ro_water + conc * p->C1) * H + (ro_air + conc * p->C3) * (1.0 - H);
-
-        a->visc(i, j, k) = (visc_water + conc * p->C2) * H + (visc_air + conc * p->C4) * (1.0 - H);
-
-        p->volume1 += p->DXN[IP] * p->DYN[JP] * p->DZN[KP] * H * PORVAL4;
-        p->volume2 += p->DXN[IP] * p->DYN[JP] * p->DZN[KP] * (1.0 - H) * PORVAL4;
-    }
-
-    pgc->start4(p, a->ro, gcval_ro);
-    pgc->start4(p, a->visc, gcval_visc);
-
-    p->volume1 = pgc->globalsum(p->volume1);
-    p->volume2 = pgc->globalsum(p->volume2);
-
-    if(p->mpirank == 0 && iocheck == 0 && (p->count % p->P12 == 0))
-    {
-        cout << "Volume 1: " << p->volume1 << endl;
-        cout << "Volume 2: " << p->volume2 << endl;
+	cout<<"Volume 1: "<<p->volume1<<endl;
+	cout<<"Volume 2: "<<p->volume2<<endl;
     }
     ++iocheck;
 }

@@ -35,61 +35,62 @@ Architect: Hans Bihs
 #ifndef CORAL_RADIATION_H_
 #define CORAL_RADIATION_H_
 
-#include "coral/core/coral_types.h"
-#include <vector>
+#include"coral/core/coral_types.h"
+#include<vector>
 
-namespace coral {
-class hydro_db;
-
-class retardation
+namespace coral
 {
-public:
-    // samples K(k dt), k = 0 .. tmax/dt
-    void compute(const hydro_db &, double tmax, double dt);
-    MatX at(double t) const;  // linear interpolation, zero beyond tmax
-    double dt() const { return dt_; }
-    double tmax() const { return tmax_; }
-    int nsample() const { return (int)K_.size(); }
-    const MatX &sample(int k) const { return K_[k]; }
-    int ndof() const { return K_.empty() ? 0 : (int)K_[0].rows(); }
+    class hydro_db;
 
-private:
-    double dt_ = 0.0, tmax_ = 0.0;
-    std::vector<MatX> K_;
-};
-
-// infinite-frequency added mass from A(w) and K(t) (Ogilvie)
-MatX ogilvie_ainf(const hydro_db &, const retardation &);
-
-class radiation_ss
-{
-public:
-    struct pair
+    class retardation
     {
-        int i = 0, j = 0;       // force i from velocity j
-        Eigen::VectorXcd lam;   // continuous poles
-        Eigen::VectorXcd b, c;  // input and output weights (diagonal form)
-        double error = 0.0;     // max |K_ss - K| / max |K_ij| over the samples
+    public:
+        // samples K(k dt), k = 0 .. tmax/dt
+        void compute(const hydro_db&, double tmax, double dt);
+        MatX at(double t) const;      // linear interpolation, zero beyond tmax
+        double dt() const {return dt_;}
+        double tmax() const {return tmax_;}
+        int nsample() const {return (int)K_.size();}
+        const MatX &sample(int k) const {return K_[k];}
+        int ndof() const {return K_.empty() ? 0 : (int)K_[0].rows();}
+
+    private:
+        double dt_ = 0.0, tmax_ = 0.0;
+        std::vector<MatX> K_;
     };
 
-    // realization of every K_ij with max |K_ij| > skip * max |K|; order up to rmax, chosen so that
-    // the discarded Hankel singular values are below tol of their sum
-    void identify(const retardation &, double tol = 1.0e-4, int rmax = 12, double skip = 1.0e-6);
+    // infinite-frequency added mass from A(w) and K(t) (Ogilvie)
+    MatX ogilvie_ainf(const hydro_db&, const retardation&);
 
-    double kernel(int p, double t) const;  // K of pair p at t
+    class radiation_ss
+    {
+    public:
+        struct pair
+        {
+            int i = 0, j = 0;            // force i from velocity j
+            Eigen::VectorXcd lam;        // continuous poles
+            Eigen::VectorXcd b, c;       // input and output weights (diagonal form)
+            double error = 0.0;          // max |K_ss - K| / max |K_ij| over the samples
+        };
 
-    // states x of pair p over a step h with the velocity going linearly from u0 to u1
-    static void advance(const pair &, Eigen::VectorXcd &x, double u0, double u1, double h);
-    // radiation force of pair p (the memory part, K * u) for the states x
-    static double output(const pair &q, const Eigen::VectorXcd &x) { return (q.c.cwiseProduct(x)).sum().real(); }
-    int nstates() const;
-    int ndof() const { return ndof_; }
+        // realization of every K_ij with max |K_ij| > skip * max |K|; order up to rmax, chosen so that
+        // the discarded Hankel singular values are below tol of their sum
+        void identify(const retardation&, double tol=1.0e-4, int rmax=12, double skip=1.0e-6);
 
-    std::vector<pair> pairs;
+        double kernel(int p, double t) const;    // K of pair p at t
 
-private:
-    int ndof_ = 0;
-};
-}  // namespace coral
+        // states x of pair p over a step h with the velocity going linearly from u0 to u1
+        static void advance(const pair&, Eigen::VectorXcd &x, double u0, double u1, double h);
+        // radiation force of pair p (the memory part, K * u) for the states x
+        static double output(const pair &q, const Eigen::VectorXcd &x) {return (q.c.cwiseProduct(x)).sum().real();}
+        int nstates() const;
+        int ndof() const {return ndof_;}
+
+        std::vector<pair> pairs;
+
+    private:
+        int ndof_ = 0;
+    };
+}
 
 #endif

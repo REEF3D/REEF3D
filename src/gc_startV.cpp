@@ -20,40 +20,39 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "nhflow_curv.h"
+#include"nhflow_curv.h"
 
-#include <unordered_map>
+#include<unordered_map>
 
 // curvilinear NHFLOW: per grid (lexer) the last U and UH of the velocity pair and their time step
 // (start4V); per grid, as the grids of the mesh refinement and the blocks call start4V in turn
-namespace {
+namespace
+{
 struct curv_pair_state
 {
     double *up = nullptr, *uhp = nullptr;
     int uc = -1, uhc = -1;
 };
-std::unordered_map<const lexer *, curv_pair_state> curv_pairs;
+std::unordered_map<const lexer*,curv_pair_state> curv_pairs;
 }
 
 void nhflow_curv::pair_forget(const lexer *p)
 {
     curv_pairs.erase(p);
 }
-#include "fdm_nhf.h"
-#include "ghostcell.h"
-#include "lexer.h"
-#include "nhflow_xwall.h"
-#include "sliceint.h"
+#include"lexer.h"
+#include"fdm_nhf.h"
+#include"sliceint.h"
+#include"ghostcell.h"
+#include"nhflow_xwall.h"
 
 // iterate over the precomputed boundary-cell list L (same order as the full sweep)
 // entries are (i,j,k,h): h=1 if the cell has a flagged neighbour in x or y,
 // h=0 if only the bottom/top neighbour is flagged. For h=0 cells only the
 // vertical BC statements (the tail of each loop body) can fire.
-#define GCBL_LOOP(T)                                           \
-    const std::vector<int> &gcbl_L_ = gcbl_get(p, T, i, j, k); \
-    int gcbl_h = 0;                                            \
-    for(size_t qq_ = 0; qq_ < gcbl_L_.size(); qq_ += 4)        \
-        if((i = gcbl_L_[qq_], j = gcbl_L_[qq_ + 1], k = gcbl_L_[qq_ + 2], gcbl_h = gcbl_L_[qq_ + 3], true))
+#define GCBL_LOOP(T) const std::vector<int> &gcbl_L_ = gcbl_get(p,T,i,j,k); int gcbl_h=0; \
+    for(size_t qq_=0; qq_<gcbl_L_.size(); qq_+=4) \
+    if((i=gcbl_L_[qq_], j=gcbl_L_[qq_+1], k=gcbl_L_[qq_+2], gcbl_h=gcbl_L_[qq_+3], true))
 
 // boundary-cell lists for the V-type BC sweeps (NHFLOW/FNPF):
 // cells of a ULOOP/VLOOP/WLOOP/LOOP/FLOOP that have at least one face
@@ -62,94 +61,69 @@ void nhflow_curv::pair_forget(const lexer *p)
 // Rebuilt once per time step (p->count) and whenever flags are rebuilt.
 // The lists live in the lexer they were built from (lexer::gcbl_ijk), so every grid - the rank
 // grid and each mesh refinement patch - has its own, and a patch's lists go with its lexer.
-#include <vector>
+#include<vector>
 
 void gcbl_reset_all(lexer *p)
 {
-    for(int n = 0; n < 8; ++n)
-        p->gcbl_count[n] = -2;
+    for(int n=0; n<8; ++n)
+    p->gcbl_count[n]=-2;
 }
 
 static void gcbl_build_impl(lexer *p, int type, int &i, int &j, int &k)
 {
     // during initialisation (count==0) flags may still change: always rebuild
-    if(p->gcbl_count[type] == p->count && p->count > 0)
-        return;
+    if(p->gcbl_count[type]==p->count && p->count>0)
+    return;
 
     std::vector<int> &L = p->gcbl_ijk[type];
     L.clear();
 
-    if(type == 1)
-        ULOOP
-        {
-            const int h = (p->flag1[Im1JK] < 0 || p->flag1[Ip1JK] < 0 || p->flag1[IJm1K] < 0 || p->flag1[IJp1K] < 0) ? 1 : 0;
-            if(h == 1 || p->flag1[IJKm1] < 0 || p->flag1[IJKp1] < 0)
-            {
-                L.push_back(i);
-                L.push_back(j);
-                L.push_back(k);
-                L.push_back(h);
-            }
-        }
+    if(type==1)
+    ULOOP
+    {
+    const int h = (p->flag1[Im1JK]<0 || p->flag1[Ip1JK]<0 || p->flag1[IJm1K]<0 || p->flag1[IJp1K]<0) ? 1 : 0;
+    if(h==1 || p->flag1[IJKm1]<0 || p->flag1[IJKp1]<0)
+    {L.push_back(i); L.push_back(j); L.push_back(k); L.push_back(h);}
+    }
 
-    if(type == 2)
-        VLOOP
-        {
-            const int h = (p->flag2[Im1JK] < 0 || p->flag2[Ip1JK] < 0 || p->flag2[IJm1K] < 0 || p->flag2[IJp1K] < 0) ? 1 : 0;
-            if(h == 1 || p->flag2[IJKm1] < 0 || p->flag2[IJKp1] < 0)
-            {
-                L.push_back(i);
-                L.push_back(j);
-                L.push_back(k);
-                L.push_back(h);
-            }
-        }
+    if(type==2)
+    VLOOP
+    {
+    const int h = (p->flag2[Im1JK]<0 || p->flag2[Ip1JK]<0 || p->flag2[IJm1K]<0 || p->flag2[IJp1K]<0) ? 1 : 0;
+    if(h==1 || p->flag2[IJKm1]<0 || p->flag2[IJKp1]<0)
+    {L.push_back(i); L.push_back(j); L.push_back(k); L.push_back(h);}
+    }
 
-    if(type == 3)
-        WLOOP
-        {
-            const int h = (p->flag3[Im1JK] < 0 || p->flag3[Ip1JK] < 0 || p->flag3[IJm1K] < 0 || p->flag3[IJp1K] < 0) ? 1 : 0;
-            if(h == 1 || p->flag3[IJKm1] < 0 || p->flag3[IJKp1] < 0)
-            {
-                L.push_back(i);
-                L.push_back(j);
-                L.push_back(k);
-                L.push_back(h);
-            }
-        }
+    if(type==3)
+    WLOOP
+    {
+    const int h = (p->flag3[Im1JK]<0 || p->flag3[Ip1JK]<0 || p->flag3[IJm1K]<0 || p->flag3[IJp1K]<0) ? 1 : 0;
+    if(h==1 || p->flag3[IJKm1]<0 || p->flag3[IJKp1]<0)
+    {L.push_back(i); L.push_back(j); L.push_back(k); L.push_back(h);}
+    }
 
-    if(type == 4)
-        LOOP
-        {
-            const int h = (p->flag4[Im1JK] < 0 || p->flag4[Ip1JK] < 0 || p->flag4[IJm1K] < 0 || p->flag4[IJp1K] < 0) ? 1 : 0;
-            if(h == 1 || p->flag4[IJKm1] < 0 || p->flag4[IJKp1] < 0)
-            {
-                L.push_back(i);
-                L.push_back(j);
-                L.push_back(k);
-                L.push_back(h);
-            }
-        }
+    if(type==4)
+    LOOP
+    {
+    const int h = (p->flag4[Im1JK]<0 || p->flag4[Ip1JK]<0 || p->flag4[IJm1K]<0 || p->flag4[IJp1K]<0) ? 1 : 0;
+    if(h==1 || p->flag4[IJKm1]<0 || p->flag4[IJKp1]<0)
+    {L.push_back(i); L.push_back(j); L.push_back(k); L.push_back(h);}
+    }
 
-    if(type == 7)
-        FLOOP
-        {
-            const int h = (p->flag7[FIm1JK] < 0 || p->flag7[FIp1JK] < 0 || p->flag7[FIJm1K] < 0 || p->flag7[FIJp1K] < 0) ? 1 : 0;
-            if(h == 1 || p->flag7[FIJKm1] < 0 || p->flag7[FIJKp1] < 0)
-            {
-                L.push_back(i);
-                L.push_back(j);
-                L.push_back(k);
-                L.push_back(h);
-            }
-        }
+    if(type==7)
+    FLOOP
+    {
+    const int h = (p->flag7[FIm1JK]<0 || p->flag7[FIp1JK]<0 || p->flag7[FIJm1K]<0 || p->flag7[FIJp1K]<0) ? 1 : 0;
+    if(h==1 || p->flag7[FIJKm1]<0 || p->flag7[FIJKp1]<0)
+    {L.push_back(i); L.push_back(j); L.push_back(k); L.push_back(h);}
+    }
 
-    p->gcbl_count[type] = p->count;
+    p->gcbl_count[type]=p->count;
 }
 
-static const std::vector<int> &gcbl_get(lexer *p, int type, int &i, int &j, int &k)
+static const std::vector<int>& gcbl_get(lexer *p, int type, int &i, int &j, int &k)
 {
-    gcbl_build_impl(p, type, i, j, k);
+    gcbl_build_impl(p,type,i,j,k);
     return p->gcbl_ijk[type];
 }
 
@@ -157,707 +131,533 @@ void ghostcell::start1V(lexer *p, double *f, int gcv)
 {
     //  MPI Boundary Swap
     if(do_comms)
-        gcparaxV1(p, f, gcv);
+    gcparaxV1(p, f, gcv);
     if(do_comms)
-        gcparacoxV1(p, f, gcv);
+    gcparacoxV1(p, f, gcv);
+    
 
     // inflow outflow logic
 
-    int inflow = 0;
-    int outflow = 0;
+    int inflow=0;
+    int outflow=0;
 
-    if(p->B60 >= 1 && p->river_xm == 1)
-        inflow = 1;
+    if(p->B60>=1 && p->river_xm==1)
+        inflow=1;
 
-    if(p->B98 >= 3)
-        inflow = 1;
+    if(p->B98>=3)
+        inflow=1;
 
-    if(p->B99 >= 3)
-        outflow = 1;
+    if(p->B99>=3)
+        outflow=1;
 
-    if(p->B60 >= 1 && p->river_xp == 1)
-        outflow = 1;
+    if(p->B60>=1 && p->river_xp==1)
+        outflow=1;
 
     // iowave Riemann / Flather edges (B 520 method 3, 4)
-    if(p->open_xm == 1)
-        inflow = 1;
+    if(p->open_xm==1)
+        inflow=1;
 
-    if(p->open_xp == 1)
-        outflow = 1;
+    if(p->open_xp==1)
+        outflow=1;
 
     // 10 U
     // 11 V
     // 12 W
     // 14 ETA
-    starttime = timer();
+    starttime=timer();
     GCBL_LOOP(1)
     {
-        if(gcbl_h == 1)
-        {
-            // s
-            // U
-            if(p->flag1[Im1JK] < 0 && gcv == 10 && inflow == 0)
-                f[Im1JK] = 0.5 * fabs(p->W22) * d->eta(i - 1, j) * d->eta(i - 1, j) + fabs(p->W22) * d->eta(i - 1, j) * d->dfx(i, j);
+    if(gcbl_h==1)
+    {
+        // s
+        // U
+        if(p->flag1[Im1JK]<0 && gcv==10 && inflow==0)
+            f[Im1JK] = 0.5*fabs(p->W22)*d->eta(i-1,j)*d->eta(i-1,j) + fabs(p->W22)*d->eta(i-1,j)*d->dfx(i,j);
 
-            if(p->flag1[Im1JK] < 0 && gcv == 10 && inflow == 1)
-                f[Im1JK] = d->UH[Im1JK] * d->U[Im1JK] + 0.5 * fabs(p->W22) * d->eta(i - 1, j) * d->eta(i - 1, j) + fabs(p->W22) * d->eta(i - 1, j) * d->dfx(i, j);
+        if(p->flag1[Im1JK]<0 && gcv==10 && inflow==1)
+            f[Im1JK] = d->UH[Im1JK]*d->U[Im1JK] + 0.5*fabs(p->W22)*d->eta(i-1,j)*d->eta(i-1,j) + fabs(p->W22)*d->eta(i-1,j)*d->dfx(i,j);
 
-            // V
-            if(p->flag1[Im1JK] < 0 && gcv == 11 && inflow == 0)
-                f[Im1JK] = 0.0;
+        // V
+        if(p->flag1[Im1JK]<0 && gcv==11 && inflow==0)
+            f[Im1JK] = 0.0;
 
-            if(p->flag1[Im1JK] < 0 && gcv == 11 && inflow >= 1)
-                f[Im1JK] = d->VH[Im1JK] * d->U[Im1JK];
+        if(p->flag1[Im1JK]<0 && gcv==11 && inflow>=1)
+            f[Im1JK] = d->VH[Im1JK]*d->U[Im1JK];
 
-            // W
-            if(p->flag1[Im1JK] < 0 && gcv == 12 && inflow == 0)
-                f[Im1JK] = 0.0;
+        // W
+        if(p->flag1[Im1JK]<0 && gcv==12 && inflow==0)
+            f[Im1JK] = 0.0;
 
-            if(p->flag1[Im1JK] < 0 && gcv == 12 && inflow >= 1)
-                f[Im1JK] = d->WH[Im1JK] * d->U[Im1JK];
+        if(p->flag1[Im1JK]<0 && gcv==12 && inflow>=1)
+            f[Im1JK] = d->WH[Im1JK]*d->U[Im1JK];
 
-            // ETA
-            if(p->flag1[Im1JK] < 0 && gcv == 14 && inflow == 0)
-                f[Im1JK] = 0.0;
+        // ETA
+        if(p->flag1[Im1JK]<0 && gcv==14 && inflow==0)
+            f[Im1JK] = 0.0;
 
-            if(p->flag1[Im1JK] < 0 && gcv == 14 && inflow >= 1)
-                f[Im1JK] = d->UH[Im1JK];
+        if(p->flag1[Im1JK]<0 && gcv==14 && inflow>=1)
+            f[Im1JK] = d->UH[Im1JK];
 
-            // n
-            // U
-            if(p->flag1[Ip1JK] < 0 && gcv == 10 && outflow == 0)
-                f[Ip1JK] = 0.5 * fabs(p->W22) * d->eta(i + 2, j) * d->eta(i + 2, j) + fabs(p->W22) * d->eta(i + 2, j) * d->dfx(i + 1, j);
+        // n
+        // U
+        if(p->flag1[Ip1JK]<0 && gcv==10 && outflow==0)
+            f[Ip1JK] = 0.5*fabs(p->W22)*d->eta(i+2,j)*d->eta(i+2,j) + fabs(p->W22)*d->eta(i+2,j)*d->dfx(i+1,j);
 
-            if(p->flag1[Ip1JK] < 0 && gcv == 10 && outflow == 1)
-                f[Ip1JK] = d->UH[Ip2JK] * d->U[Ip2JK] + 0.5 * fabs(p->W22) * d->eta(i + 2, j) * d->eta(i + 2, j) + fabs(p->W22) * d->eta(i + 2, j) * d->dfx(i + 1, j);
+        if(p->flag1[Ip1JK]<0 && gcv==10 && outflow==1)
+            f[Ip1JK] = d->UH[Ip2JK]*d->U[Ip2JK] + 0.5*fabs(p->W22)*d->eta(i+2,j)*d->eta(i+2,j) + fabs(p->W22)*d->eta(i+2,j)*d->dfx(i+1,j);
 
-            // V
-            if(p->flag1[Ip1JK] < 0 && gcv == 11 && outflow == 0)
-                f[Ip1JK] = 0.0;
+        // V
+        if(p->flag1[Ip1JK]<0 && gcv==11 && outflow==0)
+            f[Ip1JK] = 0.0;
 
-            if(p->flag1[Ip1JK] < 0 && gcv == 11 && outflow == 1)
-                f[Ip1JK] = d->VH[Ip2JK] * d->U[Ip2JK];
+        if(p->flag1[Ip1JK]<0 && gcv==11 && outflow==1)
+            f[Ip1JK] = d->VH[Ip2JK]*d->U[Ip2JK];
 
-            // W
-            if(p->flag1[Ip1JK] < 0 && gcv == 12 && outflow == 0)
-                f[Ip1JK] = 0.0;
+        // W
+        if(p->flag1[Ip1JK]<0 && gcv==12 && outflow==0)
+            f[Ip1JK] = 0.0;
 
-            if(p->flag1[Ip1JK] < 0 && gcv == 12 && outflow == 1)
-                f[Ip1JK] = d->WH[Ip2JK] * d->U[Ip2JK];
+        if(p->flag1[Ip1JK]<0 && gcv==12 && outflow==1)
+            f[Ip1JK] = d->WH[Ip2JK]*d->U[Ip2JK];
 
-            // ETA
-            if(p->flag1[Ip1JK] < 0 && gcv == 14 && outflow == 0)
-                f[Ip1JK] = 0.0;
+        // ETA
+        if(p->flag1[Ip1JK]<0 && gcv==14 && outflow==0)
+            f[Ip1JK] = 0.0;
 
-            if(p->flag1[Ip1JK] < 0 && gcv == 14 && outflow == 1)
-                f[Ip1JK] = d->UH[Ip2JK];
+        if(p->flag1[Ip1JK]<0 && gcv==14 && outflow==1)
+            f[Ip1JK] = d->UH[Ip2JK];
 
-            // e
-            if(p->flag1[IJm1K] < 0 && p->j_dir == 1)
-                f[IJm1K] = 0.0;
+        // e
+        if(p->flag1[IJm1K]<0 && p->j_dir==1)
+            f[IJm1K] = 0.0;
 
-            // w
-            if(p->flag1[IJp1K] < 0 && p->j_dir == 1)
-                f[IJp1K] = 0.0;
+        // w
+        if(p->flag1[IJp1K]<0 && p->j_dir==1)
+        f[IJp1K] = 0.0;
 
-            // b
-            if(p->flag1[IJKm1] < 0)
-                f[IJKm1] = 0.0;
+        // b
+        if(p->flag1[IJKm1]<0)
+            f[IJKm1] = 0.0;
 
-            // t
-            if(p->flag1[IJKp1] < 0)
-                f[IJKp1] = 0.0;
-        }
-        else
-        {
-            if(p->flag1[IJKm1] < 0)
-                f[IJKm1] = 0.0;
-
-            // t
-            if(p->flag1[IJKp1] < 0)
-                f[IJKp1] = 0.0;
-        }
+        // t
+        if(p->flag1[IJKp1]<0)
+            f[IJKp1] = 0.0;
     }
-    p->gctime += timer() - starttime;
+    else
+    {
+        if(p->flag1[IJKm1]<0)
+            f[IJKm1] = 0.0;
+
+        // t
+        if(p->flag1[IJKp1]<0)
+            f[IJKp1] = 0.0;
+    
+    }
+    }
+    p->gctime+=timer()-starttime;
 }
 
 void ghostcell::start2V(lexer *p, double *f, int gcv)
 {
     //  MPI Boundary Swap
     if(do_comms)
-        gcparaxV1(p, f, gcv);
+    gcparaxV1(p, f, gcv);
     if(do_comms)
-        gcparacoxV1(p, f, gcv);
+    gcparacoxV1(p, f, gcv);
+    
+    int inflow=0;
+    int outflow=0;
 
-    if(p->B98 >= 3 || (p->B60 >= 1 && p->river_xm == 1))
-        inflow = 1;
+    if(p->B98>=3 || (p->B60>=1 && p->river_xm==1))
+    inflow=1;
 
-    if(p->B98 >= 3 || p->B60 >= 1)
-        inflow = 1;
+    if(p->B99>=3)
+    outflow=1;
 
-    if(p->B60 >= 1 && p->river_xp == 1)
-        outflow = 1;
+    if(p->B60>=1 && p->river_xp==1)
+    outflow=1;
 
     // 10 U
     // 11 V
     // 12 W
     // 14 ETA
-    starttime = timer();
+    starttime=timer();
     GCBL_LOOP(2)
     {
-        if(gcbl_h == 1)
+    if(gcbl_h==1)
+    {
+    // s
+        if(p->flag2[Im1JK]<0)
         {
-            // s
-            if(p->flag2[Im1JK] < 0)
-            {
-                f[Im1JK] = 0.0;
-            }
-
-            // n
-            if(p->flag2[Ip1JK] < 0)
-            {
-                f[Ip1JK] = 0.0;
-            }
-
-            // e
-            // iowave Riemann / Flather edge on y- (ghost cells set by iowave): fluxes from the ghost cell
-            const int openm = (p->open_ym == 1 && p->origin_j + j == 0) ? 1 : 0;
-            const int openp = (p->open_yp == 1 && p->origin_j + j + 1 == p->gknoy - 1) ? 1 : 0;
-
-            if(p->flag2[IJm1K] < 0 && p->j_dir == 1 && openm == 1)
-            {
-                if(gcv == 11)
-                    f[IJm1K] = d->VH[IJm1K] * d->V[IJm1K] + 0.5 * fabs(p->W22) * d->eta(i, j - 1) * d->eta(i, j - 1) + fabs(p->W22) * d->eta(i, j - 1) * d->dfy(i, j);
-
-                if(gcv == 14)
-                    f[IJm1K] = d->VH[IJm1K];
-
-                if(gcv == 10)
-                    f[IJm1K] = d->UH[IJm1K] * d->V[IJm1K];
-
-                if(gcv == 12)
-                    f[IJm1K] = d->WH[IJm1K] * d->V[IJm1K];
-            }
-
-            // V
-            if(p->flag2[IJm1K] < 0 && gcv == 11 && p->j_dir == 1 && openm == 0)
-            {
-                f[IJm1K] = 0.5 * fabs(p->W22) * d->eta(i, j - 1) * d->eta(i, j - 1) + fabs(p->W22) * d->eta(i, j - 1) * d->dfy(i, j);
-            }
-
-            // ETA
-            if(p->flag2[IJm1K] < 0 && gcv == 14 && p->j_dir == 1 && openm == 0)
-            {
-                f[IJm1K] = 0.0;
-            }
-
-            // U,W
-            if(p->flag2[IJm1K] < 0 && gcv != 11 && gcv != 14 && p->j_dir == 1 && openm == 0)
-            {
-                f[IJm1K] = 0.0;
-            }
-
-            // w
-            // iowave Riemann / Flather edge on y+: fluxes from the first ghost cell
-            if(p->flag2[IJp1K] < 0 && p->j_dir == 1 && openp == 1)
-            {
-                if(gcv == 11)
-                    f[IJp1K] = d->VH[IJp2K] * d->V[IJp2K] + 0.5 * fabs(p->W22) * d->eta(i, j + 2) * d->eta(i, j + 2) + fabs(p->W22) * d->eta(i, j + 2) * d->dfy(i, j + 1);
-
-                if(gcv == 14)
-                    f[IJp1K] = d->VH[IJp2K];
-
-                if(gcv == 10)
-                    f[IJp1K] = d->UH[IJp2K] * d->V[IJp2K];
-
-                if(gcv == 12)
-                    f[IJp1K] = d->WH[IJp2K] * d->V[IJp2K];
-            }
-
-            // V
-            if(p->flag2[IJp1K] < 0 && gcv == 11 && p->j_dir == 1 && openp == 0)
-            {
-                f[IJp1K] = 0.5 * fabs(p->W22) * d->eta(i, j + 2) * d->eta(i, j + 2) + fabs(p->W22) * d->eta(i, j + 2) * d->dfy(i, j + 1);
-            }
-
-            // ETA
-            if(p->flag2[IJp1K] < 0 && gcv == 14 && p->j_dir == 1 && openp == 0)
-            {
-                f[IJp1K] = 0.0;
-            }
-
-            // U,W
-            if(p->flag2[IJp1K] < 0 && gcv != 11 && gcv != 14 && p->j_dir == 1 && openp == 0)
-            {
-                f[IJp1K] = 0.0;
-            }
-
-            // b
-            if(p->flag2[IJKm1] < 0 && p->j_dir == 1)
-            {
-                f[IJKm1] = 0.0;
-            }
-
-            // t
-            if(p->flag2[IJKp1] < 0 && p->j_dir == 1)
-            {
-                f[IJKp1] = 0.0;
-            }
+        f[Im1JK] = 0.0;
         }
-        else
-        {
-            if(p->flag2[IJKm1] < 0 && p->j_dir == 1)
-            {
-                f[IJKm1] = 0.0;
-            }
 
-            // t
-            if(p->flag2[IJKp1] < 0 && p->j_dir == 1)
-            {
-                f[IJKp1] = 0.0;
-            }
+    // n
+        if(p->flag2[Ip1JK]<0)
+        {
+        f[Ip1JK] = 0.0;
+        }
+
+    // e
+        // iowave Riemann / Flather edge on y- (ghost cells set by iowave): fluxes from the ghost cell
+        const int openm = (p->open_ym==1 && p->origin_j+j==0) ? 1 : 0;
+        const int openp = (p->open_yp==1 && p->origin_j+j+1==p->gknoy-1) ? 1 : 0;
+        
+        if(p->flag2[IJm1K]<0 && p->j_dir==1 && openm==1)
+        {
+        if(gcv==11)
+        f[IJm1K] = d->VH[IJm1K]*d->V[IJm1K] + 0.5*fabs(p->W22)*d->eta(i,j-1)*d->eta(i,j-1) + fabs(p->W22)*d->eta(i,j-1)*d->dfy(i,j);
+        
+        if(gcv==14)
+        f[IJm1K] = d->VH[IJm1K];
+        
+        if(gcv==10)
+        f[IJm1K] = d->UH[IJm1K]*d->V[IJm1K];
+        
+        if(gcv==12)
+        f[IJm1K] = d->WH[IJm1K]*d->V[IJm1K];
+        }
+        
+        // V
+        if(p->flag2[IJm1K]<0 &&  gcv==11 && p->j_dir==1 && openm==0)
+        {
+        f[IJm1K] = 0.5*fabs(p->W22)*d->eta(i,j-1)*d->eta(i,j-1) + fabs(p->W22)*d->eta(i,j-1)*d->dfy(i,j);
+        }
+
+        // ETA
+        if(p->flag2[IJm1K]<0 &&  gcv==14 && p->j_dir==1 && openm==0)
+        {
+        f[IJm1K] = 0.0;
+        }
+
+        // U,W
+        if(p->flag2[IJm1K]<0 && gcv!=11 && gcv!=14 && p->j_dir==1 && openm==0)
+        {
+        f[IJm1K] = 0.0;
+        }
+
+    // w
+        // iowave Riemann / Flather edge on y+: fluxes from the first ghost cell
+        if(p->flag2[IJp1K]<0 && p->j_dir==1 && openp==1)
+        {
+        if(gcv==11)
+        f[IJp1K] = d->VH[IJp2K]*d->V[IJp2K] + 0.5*fabs(p->W22)*d->eta(i,j+2)*d->eta(i,j+2) + fabs(p->W22)*d->eta(i,j+2)*d->dfy(i,j+1);
+        
+        if(gcv==14)
+        f[IJp1K] = d->VH[IJp2K];
+        
+        if(gcv==10)
+        f[IJp1K] = d->UH[IJp2K]*d->V[IJp2K];
+        
+        if(gcv==12)
+        f[IJp1K] = d->WH[IJp2K]*d->V[IJp2K];
+        }
+        
+        // V
+        if(p->flag2[IJp1K]<0 &&  gcv==11 && p->j_dir==1 && openp==0)
+        {
+        f[IJp1K] = 0.5*fabs(p->W22)*d->eta(i,j+2)*d->eta(i,j+2) + fabs(p->W22)*d->eta(i,j+2)*d->dfy(i,j+1);
+        }
+
+        // ETA
+        if(p->flag2[IJp1K]<0 &&  gcv==14 && p->j_dir==1 && openp==0)
+        {
+        f[IJp1K] = 0.0;
+        }
+
+        // U,W
+        if(p->flag2[IJp1K]<0 && gcv!=11 && gcv!=14 && p->j_dir==1 && openp==0)
+        {
+        f[IJp1K] = 0.0;
+        }
+
+    // b
+        if(p->flag2[IJKm1]<0 && p->j_dir==1)
+        {
+        f[IJKm1] = 0.0;
+        }
+
+    // t
+        if(p->flag2[IJKp1]<0 && p->j_dir==1)
+        {
+        f[IJKp1] = 0.0;
         }
     }
-    p->gctime += timer() - starttime;
+    else
+    {
+        if(p->flag2[IJKm1]<0 && p->j_dir==1)
+        {
+        f[IJKm1] = 0.0;
+        }
+
+    // t
+        if(p->flag2[IJKp1]<0 && p->j_dir==1)
+        {
+        f[IJKp1] = 0.0;
+        }
+    
+    }
+    }
+    p->gctime+=timer()-starttime;
 }
 
 void ghostcell::start3V(lexer *p, double *f, int gcv)
 {
     if(do_comms)
-        gcparaxV1(p, f, gcv);
+    gcparaxV1(p, f, gcv);
     if(do_comms)
-        gcparacoxV1(p, f, gcv);
+    gcparacoxV1(p, f, gcv);
 
-    int inflow = 0;
-    int outflow = 0;
+    int inflow=0;
+    int outflow=0;
 
-    if(p->B98 >= 3 || (p->B60 >= 1 && p->river_xm == 1))
-        inflow = 1;
+    if(p->B98>=3 || (p->B60>=1 && p->river_xm==1))
+    inflow=1;
 
-    if(p->B99 >= 3)
-        outflow = 1;
+    if(p->B99>=3)
+    outflow=1;
 
-    if(p->B60 >= 1 && p->river_xp == 1)
-        outflow = 1;
+    if(p->B60>=1 && p->river_xp==1)
+    outflow=1;
 
     // 10 U
     // 11 V
     // 12 W
     // 14 ETA
-    starttime = timer();
+    starttime=timer();
     GCBL_LOOP(3)
     {
-        if(gcbl_h == 1)
+    if(gcbl_h==1)
+    {
+        if(p->flag3[Im1JK]<0)
         {
-            if(p->flag3[Im1JK] < 0)
-            {
-                f[Im1JK] = 0.0;
-            }
-
-            if(p->flag3[Ip1JK] < 0)
-            {
-                f[Ip1JK] = 0.0;
-            }
-
-            if(p->flag3[IJm1K] < 0)
-            {
-                f[IJm1K] = 0.0;
-            }
-
-            if(p->flag3[IJp1K] < 0)
-            {
-                f[IJp1K] = 0.0;
-            }
-
-            if(p->flag3[IJKm1] < 0)
-            {
-                f[IJKm1] = 0.0;
-            }
-
-            if(p->flag3[IJKp1] < 0 && gcv != 10)
-            {
-                f[IJKp1] = 0.0;
-            }
-
-            if(p->flag3[IJKp1] < 0 && gcv == 10)
-            {
-                f[IJKp1] = 0.0;
-            }
+        f[Im1JK] = 0.0;
         }
-        else
+
+        if(p->flag3[Ip1JK]<0)
         {
-            if(p->flag3[IJKm1] < 0)
-            {
-                f[IJKm1] = 0.0;
-            }
+        f[Ip1JK] = 0.0;
+        }
 
-            if(p->flag3[IJKp1] < 0 && gcv != 10)
-            {
-                f[IJKp1] = 0.0;
-            }
+        if(p->flag3[IJm1K]<0)
+        {
+        f[IJm1K] = 0.0;
+        }
 
-            if(p->flag3[IJKp1] < 0 && gcv == 10)
-            {
-                f[IJKp1] = 0.0;
-            }
+        if(p->flag3[IJp1K]<0)
+        {
+        f[IJp1K] = 0.0;
+        }
+
+        if(p->flag3[IJKm1]<0)
+        {
+        f[IJKm1] = 0.0;
+        }
+
+        if(p->flag3[IJKp1]<0 && gcv!=10)
+        {
+        f[IJKp1] = 0.0;
+        }
+
+        if(p->flag3[IJKp1]<0 && gcv==10)
+        {
+        f[IJKp1] = 0.0;
         }
     }
-    p->gctime += timer() - starttime;
+    else
+    {
+        if(p->flag3[IJKm1]<0)
+        {
+        f[IJKm1] = 0.0;
+        }
+
+        if(p->flag3[IJKp1]<0 && gcv!=10)
+        {
+        f[IJKp1] = 0.0;
+        }
+
+        if(p->flag3[IJKp1]<0 && gcv==10)
+        {
+        f[IJKp1] = 0.0;
+        }
+    
+    }
+    }
+    p->gctime+=timer()-starttime;
 }
 
 void ghostcell::start4V_par(lexer *p, double *f, int gcv)
 {
     if(do_comms)
-        gcparaxV(p, f, gcv);
+    gcparaxV(p, f, gcv);
     if(do_comms)
-        gcparacoxV(p, f, gcv);
+    gcparacoxV(p, f, gcv);
 }
 
 void ghostcell::start4V(lexer *p, double *f, int gcv)
 {
     if(do_comms)
-        gcparaxV(p, f, gcv);
+    gcparaxV(p, f, gcv);
     if(do_comms)
-        gcparacoxV(p, f, gcv);
+    gcparacoxV(p, f, gcv);
 
-    int inflow = 0;
-    int outflow = 0;
+    int inflow=0;
+    int outflow=0;
 
-    if(p->B98 >= 3 || (p->B60 >= 1 && p->river_xm == 1))
-        inflow = 1;
+    if(p->B98>=3 || (p->B60>=1 && p->river_xm==1))
+        inflow=1;
 
-    if(p->B99 >= 3)
-        outflow = 1;
+    if(p->B99>=3)
+        outflow=1;
 
-    if(p->B60 >= 1 && p->river_xp == 1)
-        outflow = 2;
+    if(p->B60>=1 && p->river_xp==1)
+        outflow=2;
 
     // waves on a current with relaxation wave generation (B 98 2, B 60 1): the relaxation zone
     // prescribes the velocity, the inflow ghost cells take it over (zero gradient) as without current
-    if(p->B98 == 2 && p->B60 >= 1)
-        inflow = 0;
+    if(p->B98==2 && p->B60>=1)
+        inflow=0;
 
     // iowave Riemann / Flather edges (B 520 method 3, 4): ghost cells set by iowave
-    if(p->open_xm == 1)
-        inflow = 1;
+    if(p->open_xm==1)
+        inflow=1;
 
-    if(p->open_xp == 1)
-        outflow = 1;
+    if(p->open_xp==1)
+        outflow=1;
 
-    starttime = timer();
-    const bool xslip_s = nhflow_xwall_slip(p, 1);
-    const bool xslip_n = nhflow_xwall_slip(p, 4);
-
+    starttime=timer();
+    const bool xslip_s = nhflow_xwall_slip(p,1);
+    const bool xslip_n = nhflow_xwall_slip(p,4);
+    
     GCBL_LOOP(4)
     {
-        if(gcbl_h == 1)
+    if(gcbl_h==1)
+    {
+        // xxxxxxx
+        // walls (IO 0: C 11 / C 14 neither inflow nor outflow) are slip walls as the y sides below: the normal
+        // velocity (U, UH: gcv 10, 14) mirrored antisymmetrically, the others symmetrically. The inflow / outflow
+        // ghost values (U copied or 0, V and W 0) applied there before and, with the pressure correction 0 at
+        // the wall (nhflow_poisson_pcorr), damped the waves of a flume along y.
+        // (not where waves along x are generated or absorbed: nhflow_xwall.h)
+        const bool wall_s = p->flag4[Im1JK]<0 && p->IO[Im1JK]==0 && xslip_s;
+        const bool wall_n = p->flag4[Ip1JK]<0 && p->IO[Ip1JK]==0 && xslip_n;
+        
+        if(wall_s)
         {
-            // xxxxxxx
-            // walls (IO 0: C 11 / C 14 neither inflow nor outflow) are slip walls as the y sides below: the normal
-            // velocity (U, UH: gcv 10, 14) mirrored antisymmetrically, the others symmetrically. The inflow / outflow
-            // ghost values (U copied or 0, V and W 0) applied there before and, with the pressure correction 0 at
-            // the wall (nhflow_poisson_pcorr), damped the waves of a flume along y.
-            // (not where waves along x are generated or absorbed: nhflow_xwall.h)
-            const bool wall_s = p->flag4[Im1JK] < 0 && p->IO[Im1JK] == 0 && xslip_s;
-            const bool wall_n = p->flag4[Ip1JK] < 0 && p->IO[Ip1JK] == 0 && xslip_n;
-
-            if(wall_s)
-            {
-                const double sg = (gcv == 10 || gcv == 14) ? -1.0 : 1.0;
-                f[Im1JK] = sg * f[IJK];
-                f[Im2JK] = sg * f[Ip1JK];
-                f[Im3JK] = sg * f[Ip2JK];
-            }
-
-            if(wall_n)
-            {
-                const double sg = (gcv == 10 || gcv == 14) ? -1.0 : 1.0;
-                f[Ip1JK] = sg * f[IJK];
-                f[Ip2JK] = sg * f[Im1JK];
-                f[Ip3JK] = sg * f[Im2JK];
-            }
-
-            // s
-            if(!wall_s && p->flag4[Im1JK] < 0 && (gcv == 10 || gcv == 14) && (inflow == 0 && p->B98 != 2))
-            {
-                f[Im1JK] = 0.0;
-                f[Im2JK] = 0.0;
-                f[Im3JK] = 0.0;
-            }
-
-            if(!wall_s && p->flag4[Im1JK] < 0 && (gcv == 10 || gcv == 14) && (inflow == 0 && p->B98 == 2))
-            {
-                f[Im1JK] = f[IJK];
-                f[Im2JK] = f[IJK];
-                f[Im3JK] = f[IJK];
-            }
-
-            if(!wall_s && p->flag4[Im1JK] < 0 && (gcv != 10 && gcv != 14) && inflow == 0)
-            {
-                f[Im1JK] = 0.0;
-                f[Im2JK] = 0.0;
-                f[Im3JK] = 0.0;
-            }
-
-            // n
-            if(!wall_n && p->flag4[Ip1JK] < 0 && (gcv == 10 || gcv == 14) && outflow == 0)
-            {
-                f[Ip1JK] = 0.0;
-                f[Ip2JK] = 0.0;
-                f[Ip3JK] = 0.0;
-            }
-
-            if(!wall_n && p->flag4[Ip1JK] < 0 && (gcv == 10 || gcv == 14) && outflow == 2)
-            {
-                f[Ip1JK] = MAX(0.0, f[IJK] - p->dt / p->DXP[IP] * p->Uo * (f[IJK] - f[Im1JK]));
-                f[Ip2JK] = MAX(0.0, f[IJK]);
-                f[Ip3JK] = MAX(0.0, f[IJK]);
-            }
-
-            if(!wall_n && p->flag4[Ip1JK] < 0 && (gcv != 10 && gcv != 14) && outflow == 0)
-            {
-                f[Ip1JK] = 0.0;
-                f[Ip2JK] = 0.0;
-                f[Ip3JK] = 0.0;
-            }
-
-            if(!wall_n && p->flag4[Ip1JK] < 0 && (gcv != 10 && gcv != 14) && outflow == 2)
-            {
-                f[Ip1JK] = f[IJK];
-                f[Ip2JK] = f[IJK];
-                f[Ip3JK] = f[IJK];
-            }
-
-            // yyyyy
-            // side walls are slip walls: the normal velocity (V, VH: gcv 11, 15) is mirrored
-            // antisymmetrically, all other fields (U, W, UH, WH, scalars) symmetrically.
-            // (Setting the tangential components to 0 acted like a no-slip wall and, through
-            // the reconstruction and the HLL dissipation, damped waves in 3D.)
-            if(p->flag4[IJm1K] < 0 && p->j_dir == 1 && (gcv == 11 || gcv == 15) && (p->open_ym == 0 || p->origin_j + j > 0))
-            {
-                f[IJm1K] = -f[IJK];
-                f[IJm2K] = -f[IJp1K];
-                f[IJm3K] = -f[IJp2K];
-            }
-
-            if(p->flag4[IJm1K] < 0 && p->j_dir == 1 && (gcv != 11 && gcv != 15) && (p->open_ym == 0 || p->origin_j + j > 0))
-            {
-                f[IJm1K] = f[IJK];
-                f[IJm2K] = f[IJp1K];
-                f[IJm3K] = f[IJp2K];
-            }
-
-            if(p->flag4[IJp1K] < 0 && p->j_dir == 1 && (gcv == 11 || gcv == 15) && (p->open_yp == 0 || p->origin_j + j < p->gknoy - 1))
-            {
-                f[IJp1K] = -f[IJK];
-                f[IJp2K] = -f[IJm1K];
-                f[IJp3K] = -f[IJm2K];
-            }
-
-            if(p->flag4[IJp1K] < 0 && p->j_dir == 1 && (gcv != 11 && gcv != 15) && (p->open_yp == 0 || p->origin_j + j < p->gknoy - 1))
-            {
-                f[IJp1K] = f[IJK];
-                f[IJp2K] = f[IJm1K];
-                f[IJp3K] = f[IJm2K];
-            }
-
-            // zzzzz
-            if(p->flag4[IJKp1] < 0 && (gcv == 14))
-            {
-                f[IJKp1] = 0.0;
-                f[IJKp2] = 0.0;
-                f[IJKp3] = 0.0;
-            }
-
-            if(p->flag4[IJKp1] < 0 && (gcv == 10 || gcv == 11 || gcv == 14 || gcv == 15))
-            {
-                f[IJKp1] = f[IJK];
-                f[IJKp2] = f[IJK];
-                f[IJKp3] = f[IJK];
-            }
-
-            if(p->flag4[IJKp1] < 0 && gcv == 12)
-            {
-                f[IJKp1] = f[IJK];
-                f[IJKp2] = f[IJK];
-                f[IJKp3] = f[IJK];
-            }
-
-            // bed
-            if(p->flag4[IJKm1] < 0 && (gcv == 10 || gcv == 11 || gcv == 14 || gcv == 15))
-            {
-                if(p->A518 == 1)
-                {
-                    f[Im1JK] = 0.0;
-                    f[Im2JK] = 0.0;
-                    f[Im3JK] = 0.0;
-                }
-
-                if(p->flag4[Im1JK] < 0 && (gcv == 10 || gcv == 14) && (inflow == 0 && p->B98 == 2))
-                {
-                    f[Im1JK] = f[IJK];
-                    f[Im2JK] = f[IJK];
-                    f[Im3JK] = f[IJK];
-                }
-
-                if(p->flag4[Im1JK] < 0 && (gcv != 10 && gcv != 14) && inflow == 0)
-                {
-                    f[Im1JK] = 0.0;
-                    f[Im2JK] = 0.0;
-                    f[Im3JK] = 0.0;
-                }
-
-                // n
-                if(p->flag4[Ip1JK] < 0 && (gcv == 10 || gcv == 14) && outflow == 0)
-                {
-                    f[Ip1JK] = 0.0;
-                    f[Ip2JK] = 0.0;
-                    f[Ip3JK] = 0.0;
-                }
-
-                if(p->flag4[Ip1JK] < 0 && (gcv == 10 || gcv == 14) && outflow == 2)
-                {
-                    f[Ip1JK] = MAX(0.0, f[IJK] - p->dt / p->DXP[IP] * p->Uo * (f[IJK] - f[Im1JK]));
-                    f[Ip2JK] = MAX(0.0, f[IJK]);
-                    f[Ip3JK] = MAX(0.0, f[IJK]);
-                }
-
-                if(p->flag4[Ip1JK] < 0 && (gcv != 10 && gcv != 14) && outflow == 0)
-                {
-                    f[Ip1JK] = 0.0;
-                    f[Ip2JK] = 0.0;
-                    f[Ip3JK] = 0.0;
-                }
-
-                if(p->flag4[Ip1JK] < 0 && (gcv != 10 && gcv != 14) && outflow == 2)
-                {
-                    f[Ip1JK] = f[IJK];
-                    f[Ip2JK] = f[IJK];
-                    f[Ip3JK] = f[IJK];
-                }
-
-                // yyyyy
-                // side walls are slip walls: the normal velocity (V, VH: gcv 11, 15) is mirrored
-                // antisymmetrically, all other fields (U, W, UH, WH, scalars) symmetrically.
-                // (Setting the tangential components to 0 acted like a no-slip wall and, through
-                // the reconstruction and the HLL dissipation, damped waves in 3D.)
-                if(p->flag4[IJm1K] < 0 && p->j_dir == 1 && (gcv == 11 || gcv == 15))
-                {
-                    f[IJm1K] = -f[IJK];
-                    f[IJm2K] = -f[IJp1K];
-                    f[IJm3K] = -f[IJp2K];
-                }
-
-                if(p->flag4[IJm1K] < 0 && p->j_dir == 1 && (gcv != 11 && gcv != 15))
-                {
-                    f[IJm1K] = f[IJK];
-                    f[IJm2K] = f[IJp1K];
-                    f[IJm3K] = f[IJp2K];
-                }
-
-                if(p->flag4[IJp1K] < 0 && p->j_dir == 1 && (gcv == 11 || gcv == 15))
-                {
-                    f[IJp1K] = -f[IJK];
-                    f[IJp2K] = -f[IJm1K];
-                    f[IJp3K] = -f[IJm2K];
-                }
-
-                if(p->flag4[IJp1K] < 0 && p->j_dir == 1 && (gcv != 11 && gcv != 15))
-                {
-                    f[IJp1K] = f[IJK];
-                    f[IJp2K] = f[IJm1K];
-                    f[IJp3K] = f[IJm2K];
-                }
-
-                // zzzzz
-                if(p->flag4[IJKp1] < 0 && (gcv == 14))
-                {
-                    f[IJKp1] = 0.0;
-                    f[IJKp2] = 0.0;
-                    f[IJKp3] = 0.0;
-                }
-
-                if(p->flag4[IJKp1] < 0 && (gcv == 10 || gcv == 11 || gcv == 14 || gcv == 15))
-                {
-                    f[IJKp1] = f[IJK];
-                    f[IJKp2] = f[IJK];
-                    f[IJKp3] = f[IJK];
-                }
-
-                if(p->flag4[IJKp1] < 0 && gcv == 12)
-                {
-                    f[IJKp1] = f[IJK];
-                    f[IJKp2] = f[IJK];
-                    f[IJKp3] = f[IJK];
-                }
-
-                // bed
-                if(p->flag4[IJKm1] < 0 && (gcv == 10 || gcv == 11 || gcv == 14 || gcv == 15))
-                {
-                    if(p->A518 == 1)
-                    {
-                        f[IJKm1] = f[IJK];
-                        f[IJKm2] = f[IJK];
-                        f[IJKm3] = f[IJK];
-                    }
-                    if(p->A518 == 2)
-                    {
-                        f[IJKm1] = 0.0;
-                        f[IJKm2] = 0.0;
-                        f[IJKm3] = 0.0;
-                    }
-                }
-            }
-            else
-            {
-                if(p->flag4[IJKp1] < 0 && (gcv == 14))
-                {
-                    f[IJKp1] = 0.0;
-                    f[IJKp2] = 0.0;
-                    f[IJKp3] = 0.0;
-                }
-
-                if(p->flag4[IJKp1] < 0 && (gcv == 10 || gcv == 11 || gcv == 14 || gcv == 15))
-                {
-                    f[IJKp1] = f[IJK];
-                    f[IJKp2] = f[IJK];
-                    f[IJKp3] = f[IJK];
-                }
-
-                if(p->flag4[IJKp1] < 0 && gcv == 12)
-                {
-                    f[IJKp1] = f[IJK];
-                    f[IJKp2] = f[IJK];
-                    f[IJKp3] = f[IJK];
-                }
-
-                // bed
-                if(p->flag4[IJKm1] < 0 && (gcv == 10 || gcv == 11 || gcv == 14 || gcv == 15))
-                {
-                    if(p->A518 == 1)
-                    {
-                        f[IJKm1] = f[IJK];
-                        f[IJKm2] = f[IJK];
-                        f[IJKm3] = f[IJK];
-                    }
-                    if(p->A518 == 2)
-                    {
-                        f[IJKm1] = 0.0;
-                        f[IJKm2] = 0.0;
-                        f[IJKm3] = 0.0;
-                    }
-                }
-            }
+            const double sg = (gcv==10 || gcv==14) ? -1.0 : 1.0;
+            f[Im1JK] = sg*f[IJK];
+            f[Im2JK] = sg*f[Ip1JK];
+            f[Im3JK] = sg*f[Ip2JK];
+        }
+        
+        if(wall_n)
+        {
+            const double sg = (gcv==10 || gcv==14) ? -1.0 : 1.0;
+            f[Ip1JK] = sg*f[IJK];
+            f[Ip2JK] = sg*f[Im1JK];
+            f[Ip3JK] = sg*f[Im2JK];
+        }
+        
+        // s
+        if(!wall_s && p->flag4[Im1JK]<0 && (gcv==10 || gcv==14) && (inflow==0 && p->B98!=2))
+        {
+            f[Im1JK] = 0.0;
+            f[Im2JK] = 0.0;
+            f[Im3JK] = 0.0;
+        }
+        
+        if(!wall_s && p->flag4[Im1JK]<0 && (gcv==10 || gcv==14) && (inflow==0 && p->B98==2))
+        {
+            f[Im1JK] = f[IJK];
+            f[Im2JK] = f[IJK];
+            f[Im3JK] = f[IJK];
         }
 
-        if(p->flag4[IJKp1] < 0 && (gcv == 10 || gcv == 11 || gcv == 14 || gcv == 15))
+        if(!wall_s && p->flag4[Im1JK]<0 && (gcv!=10 && gcv!=14) && inflow==0)
+        {
+            f[Im1JK] = 0.0;
+            f[Im2JK] = 0.0;
+            f[Im3JK] = 0.0;
+        }
+
+        // n
+        if(!wall_n && p->flag4[Ip1JK]<0 && (gcv==10 || gcv==14) && outflow==0)
+        {
+            f[Ip1JK] = 0.0;
+            f[Ip2JK] = 0.0;
+            f[Ip3JK] = 0.0;
+        }
+
+        if(!wall_n && p->flag4[Ip1JK]<0 && (gcv==10 || gcv==14) && outflow==2)
+        {
+            f[Ip1JK] = MAX(0.0,f[IJK] - p->dt/p->DXP[IP]*p->Uo*(f[IJK]-f[Im1JK]));
+            f[Ip2JK] = MAX(0.0,f[IJK]);
+            f[Ip3JK] = MAX(0.0,f[IJK]);
+        }
+
+        if(!wall_n && p->flag4[Ip1JK]<0 && (gcv!=10 && gcv!=14) && outflow==0)
+        {
+            f[Ip1JK] = 0.0;
+            f[Ip2JK] = 0.0;
+            f[Ip3JK] = 0.0;
+        }
+
+        if(!wall_n && p->flag4[Ip1JK]<0 && (gcv!=10 && gcv!=14) && outflow==2)
+        {
+            f[Ip1JK] = f[IJK];
+            f[Ip2JK] = f[IJK];
+            f[Ip3JK] = f[IJK];
+        }
+
+        // yyyyy
+        // side walls are slip walls: the normal velocity (V, VH: gcv 11, 15) is mirrored
+        // antisymmetrically, all other fields (U, W, UH, WH, scalars) symmetrically.
+        // (Setting the tangential components to 0 acted like a no-slip wall and, through
+        // the reconstruction and the HLL dissipation, damped waves in 3D.)
+        if(p->flag4[IJm1K]<0 && p->j_dir==1 && (gcv==11 || gcv==15) && (p->open_ym==0 || p->origin_j+j>0))
+        {
+            f[IJm1K] = -f[IJK];
+            f[IJm2K] = -f[IJp1K];
+            f[IJm3K] = -f[IJp2K];
+        }
+
+        if(p->flag4[IJm1K]<0 && p->j_dir==1 && (gcv!=11 && gcv!=15) && (p->open_ym==0 || p->origin_j+j>0))
+        {
+            f[IJm1K] = f[IJK];
+            f[IJm2K] = f[IJp1K];
+            f[IJm3K] = f[IJp2K];
+        }
+
+        if(p->flag4[IJp1K]<0 && p->j_dir==1 && (gcv==11 || gcv==15) && (p->open_yp==0 || p->origin_j+j<p->gknoy-1))
+        {
+            f[IJp1K] = -f[IJK];
+            f[IJp2K] = -f[IJm1K];
+            f[IJp3K] = -f[IJm2K];
+        }
+
+        if(p->flag4[IJp1K]<0 && p->j_dir==1 && (gcv!=11 && gcv!=15) && (p->open_yp==0 || p->origin_j+j<p->gknoy-1))
+        {
+            f[IJp1K] = f[IJK];
+            f[IJp2K] = f[IJm1K];
+            f[IJp3K] = f[IJm2K];
+        }
+
+        // zzzzz
+        if(p->flag4[IJKp1]<0 && (gcv==14))
+        {
+            f[IJKp1] = 0.0;
+            f[IJKp2] = 0.0;
+            f[IJKp3] = 0.0;
+        }
+
+        if(p->flag4[IJKp1]<0 && (gcv==10||gcv==11||gcv==14||gcv==15))
         {
             f[IJKp1] = f[IJK];
             f[IJKp2] = f[IJK];
             f[IJKp3] = f[IJK];
         }
 
-        if(p->flag4[IJKp1] < 0 && gcv == 12)
+        if(p->flag4[IJKp1]<0 && gcv==12)
         {
             f[IJKp1] = f[IJK];
             f[IJKp2] = f[IJK];
@@ -865,15 +665,15 @@ void ghostcell::start4V(lexer *p, double *f, int gcv)
         }
 
         // bed
-        if(p->flag4[IJKm1] < 0 && (gcv == 10 || gcv == 11 || gcv == 14 || gcv == 15))
+        if(p->flag4[IJKm1]<0 && (gcv==10||gcv==11||gcv==14||gcv==15))
         {
-            if(p->A518 == 1)
+            if(p->A518==1)
             {
                 f[IJKm1] = f[IJK];
                 f[IJKm2] = f[IJK];
                 f[IJKm3] = f[IJK];
             }
-            if(p->A518 == 2)
+             if(p->A518==2)
             {
                 f[IJKm1] = 0.0;
                 f[IJKm2] = 0.0;
@@ -881,174 +681,223 @@ void ghostcell::start4V(lexer *p, double *f, int gcv)
             }
         }
     }
-}
-
-// curvilinear grid (G 50, NHFLOW): the side walls (j-faces) mirror the normal velocity of the
-// face, not V: once U (gcv 10) or UH (14) and then V (11) or VH (15) have their ghost cells, with
-// the last U (UH) of the same grid in the same time step (nhflow_curv::pair_bc)
-if(p->geo_curv == 1)
-{
-    const bool uh = (gcv == 14 || gcv == 15);
-    curv_pair_state &S = curv_pairs[p];
-    double *&up = uh ? S.uhp : S.up;
-    int &uc = uh ? S.uhc : S.uc;
-
-    if(gcv == 10 || gcv == 14)
+    else
     {
-        up = f;
-        uc = p->count;
+        if(p->flag4[IJKp1]<0 && (gcv==14))
+        {
+            f[IJKp1] = 0.0;
+            f[IJKp2] = 0.0;
+            f[IJKp3] = 0.0;
+        }
+
+        if(p->flag4[IJKp1]<0 && (gcv==10||gcv==11||gcv==14||gcv==15))
+        {
+            f[IJKp1] = f[IJK];
+            f[IJKp2] = f[IJK];
+            f[IJKp3] = f[IJK];
+        }
+
+        if(p->flag4[IJKp1]<0 && gcv==12)
+        {
+            f[IJKp1] = f[IJK];
+            f[IJKp2] = f[IJK];
+            f[IJKp3] = f[IJK];
+        }
+
+        // bed
+        if(p->flag4[IJKm1]<0 && (gcv==10||gcv==11||gcv==14||gcv==15))
+        {
+            if(p->A518==1)
+            {
+                f[IJKm1] = f[IJK];
+                f[IJKm2] = f[IJK];
+                f[IJKm3] = f[IJK];
+            }
+             if(p->A518==2)
+            {
+                f[IJKm1] = 0.0;
+                f[IJKm2] = 0.0;
+                f[IJKm3] = 0.0;
+            }
+        }
+    
+    }
     }
 
-    if((gcv == 11 || gcv == 15) && up != nullptr && uc == p->count && up != f)
-        nhflow_curv::pair_bc(p, up, f);
+    // curvilinear grid (G 50, NHFLOW): the side walls (j-faces) mirror the normal velocity of the
+    // face, not V: once U (gcv 10) or UH (14) and then V (11) or VH (15) have their ghost cells, with
+    // the last U (UH) of the same grid in the same time step (nhflow_curv::pair_bc)
+    if(p->geo_curv==1)
+    {
+        const bool uh = (gcv==14 || gcv==15);
+        curv_pair_state &S = curv_pairs[p];
+        double *&up = uh ? S.uhp : S.up;
+        int &uc = uh ? S.uhc : S.uc;
+        
+        if(gcv==10 || gcv==14)
+        {
+        up = f;
+        uc = p->count;
+        }
+        
+        if((gcv==11 || gcv==15) && up!=nullptr && uc==p->count && up!=f)
+        nhflow_curv::pair_bc(p,up,f);
 
-    // G 52 1: the other fields symmetric at the i-walls, as at the j-walls
-    if(p->G52 == 1 && gcv != 10 && gcv != 11 && gcv != 14 && gcv != 15)
-        nhflow_curv::iwall_sym(p, f);
-}
-
-p->gctime += timer() - starttime;
+        // G 52 1: the other fields symmetric at the i-walls, as at the j-walls
+        if(p->G52==1 && gcv!=10 && gcv!=11 && gcv!=14 && gcv!=15)
+        nhflow_curv::iwall_sym(p,f);
+    }
+    
+    p->gctime+=timer()-starttime;
 }
 
 void ghostcell::start5V(lexer *p, double *f, int gcv)
 {
     GCBL_LOOP(4)
     {
-        if(gcbl_h == 1)
+    if(gcbl_h==1)
+    {
+        if(p->flag4[Im1JK]<0)
         {
-            f[Im1JK] = f[IJK];
-            f[Im2JK] = f[IJK];
-            f[Im3JK] = f[IJK];
+        f[Im1JK] = f[IJK];
+        f[Im2JK] = f[IJK];
+        f[Im3JK] = f[IJK];
+        }
+        
+        //
+        if(p->flag4[Ip1JK]<0)
+        {
+        f[Ip1JK] = f[IJK];
+        f[Ip2JK] = f[IJK];
+        f[Ip3JK] = f[IJK];
+        }
+        
+        //
+        if(p->flag4[IJm1K]<0 && p->j_dir==1)
+        {
+        f[IJm1K] = f[IJK];
+        f[IJm2K] = f[IJK];
+        f[IJm3K] = f[IJK];
+        }
+        
+        //
+        if(p->flag4[IJp1K]<0 && p->j_dir==1)
+        {
+        f[IJp1K] = f[IJK];
+        f[IJp2K] = f[IJK];
+        f[IJp3K] = f[IJK];
         }
 
         //
-        if(p->flag4[Ip1JK] < 0)
+        if(p->flag4[IJKm1]<0)
         {
-            f[Ip1JK] = f[IJK];
-            f[Ip2JK] = f[IJK];
-            f[Ip3JK] = f[IJK];
+        f[IJKm1] = f[IJK];
+        f[IJKm2] = f[IJK];
+        f[IJKm3] = f[IJK];
         }
 
         //
-        if(p->flag4[IJm1K] < 0 && p->j_dir == 1)
+        if(p->flag4[IJKp1]<0)
         {
-            f[IJm1K] = f[IJK];
-            f[IJm2K] = f[IJK];
-            f[IJm3K] = f[IJK];
-        }
-
-        //
-        if(p->flag4[IJp1K] < 0 && p->j_dir == 1)
-        {
-            f[IJp1K] = f[IJK];
-            f[IJp2K] = f[IJK];
-            f[IJp3K] = f[IJK];
-        }
-
-        //
-        if(p->flag4[IJKm1] < 0)
-        {
-            f[IJKm1] = f[IJK];
-            f[IJKm2] = f[IJK];
-            f[IJKm3] = f[IJK];
-        }
-
-        //
-        if(p->flag4[IJKp1] < 0)
-        {
-            f[IJKp1] = f[IJK];
-            f[IJKp2] = f[IJK];
-            f[IJKp3] = f[IJK];
+        f[IJKp1] = f[IJK];
+        f[IJKp2] = f[IJK];
+        f[IJKp3] = f[IJK];
         }
     }
     else
     {
-        if(p->flag4[IJKm1] < 0)
+        if(p->flag4[IJKm1]<0)
         {
-            f[IJKm1] = f[IJK];
-            f[IJKm2] = f[IJK];
-            f[IJKm3] = f[IJK];
+        f[IJKm1] = f[IJK];
+        f[IJKm2] = f[IJK];
+        f[IJKm3] = f[IJK];
         }
 
         //
-        if(p->flag4[IJKp1] < 0)
+        if(p->flag4[IJKp1]<0)
         {
-            f[IJKp1] = f[IJK];
-            f[IJKp2] = f[IJK];
-            f[IJKp3] = f[IJK];
+        f[IJKp1] = f[IJK];
+        f[IJKp2] = f[IJK];
+        f[IJKp3] = f[IJK];
         }
+    
     }
-}
+    }
 
-if(do_comms)
+    if(do_comms)
     gcparaxV(p, f, gcv);
-if(do_comms)
+    if(do_comms)
     gcparacoxV(p, f, gcv);
 }
 
 void ghostcell::start5Vfull(lexer *p, double *f, int gcv)
 {
-    if(p->j_dir == 0)
-        LOOP
-        {
-
-            f[IJm1K] = f[IJK];
-            f[IJm2K] = f[IJK];
-            f[IJm3K] = f[IJK];
-
-            f[IJp1K] = f[IJK];
-            f[IJp2K] = f[IJK];
-            f[IJp3K] = f[IJK];
-        }
-
+    if(p->j_dir==0)
     LOOP
     {
-        if(p->flag4[Im1JK] < 0)
+        
+        f[IJm1K] = f[IJK];
+        f[IJm2K] = f[IJK];
+        f[IJm3K] = f[IJK];
+        
+        f[IJp1K] = f[IJK];
+        f[IJp2K] = f[IJK];
+        f[IJp3K] = f[IJK];
+    }
+        
+    LOOP
+    {
+        if(p->flag4[Im1JK]<0)
         {
-            f[Im1JK] = f[IJK];
-            f[Im2JK] = f[IJK];
-            f[Im3JK] = f[IJK];
+        f[Im1JK] = f[IJK];
+        f[Im2JK] = f[IJK];
+        f[Im3JK] = f[IJK];
+        }
+        
+        
+        if(p->flag4[Ip1JK]<0)
+        {
+        f[Ip1JK] = f[IJK];
+        f[Ip2JK] = f[IJK];
+        f[Ip3JK] = f[IJK];
+        }
+        
+        
+        if(p->flag4[IJm1K]<0 && p->j_dir==1)
+        {
+        f[IJm1K] = f[IJK];
+        f[IJm2K] = f[IJK];
+        f[IJm3K] = f[IJK];
+        }
+        
+        
+        if(p->flag4[IJp1K]<0 && p->j_dir==1)
+        {
+        f[IJp1K] = f[IJK];
+        f[IJp2K] = f[IJK];
+        f[IJp3K] = f[IJK];
         }
 
-        if(p->flag4[Ip1JK] < 0)
+        
+        if(p->flag4[IJKm1]<0)
         {
-            f[Ip1JK] = f[IJK];
-            f[Ip2JK] = f[IJK];
-            f[Ip3JK] = f[IJK];
+        f[IJKm1] = f[IJK];
+        f[IJKm2] = f[IJK];
+        f[IJKm3] = f[IJK];
         }
 
-        if(p->flag4[IJm1K] < 0 && p->j_dir == 1)
+        
+        if(p->flag4[IJKp1]<0)
         {
-            f[IJm1K] = f[IJK];
-            f[IJm2K] = f[IJK];
-            f[IJm3K] = f[IJK];
-        }
-
-        if(p->flag4[IJp1K] < 0 && p->j_dir == 1)
-        {
-            f[IJp1K] = f[IJK];
-            f[IJp2K] = f[IJK];
-            f[IJp3K] = f[IJK];
-        }
-
-        if(p->flag4[IJKm1] < 0)
-        {
-            f[IJKm1] = f[IJK];
-            f[IJKm2] = f[IJK];
-            f[IJKm3] = f[IJK];
-        }
-
-        if(p->flag4[IJKp1] < 0)
-        {
-            f[IJKp1] = f[IJK];
-            f[IJKp2] = f[IJK];
-            f[IJKp3] = f[IJK];
+        f[IJKp1] = f[IJK];
+        f[IJKp2] = f[IJK];
+        f[IJKp3] = f[IJK];
         }
     }
 
     if(do_comms)
-        gcparaxV(p, f, gcv);
-    // gcparacoxV(p, f, gcv);
+    gcparaxV(p, f, gcv);
+    //gcparacoxV(p, f, gcv);
 }
 
 // x- inflow ghost cells of k, eps/omega and nu_t keep their values only where nhflow_rans_io::inflow writes the
@@ -1056,207 +905,44 @@ void ghostcell::start5Vfull(lexer *p, double *f, int gcv)
 // B 98 >= 3) get zero gradient (the ghosts were never written and stayed 0)
 static inline bool nhflow_turb_profile_ghost(lexer *p, int ijk)
 {
-    return p->B60 >= 1 && (p->A560 == 1 || p->A560 == 21 || p->A560 == 2 || p->A560 == 22) && p->IO[ijk] == 1;
+    return p->B60>=1 && (p->A560==1 || p->A560==21 || p->A560==2 || p->A560==22) && p->IO[ijk]==1;
 }
 
-void ghostcell::start20V(lexer *p, double *f, int gcv)  // KIN
+void ghostcell::start20V(lexer *p, double *f, int gcv) //KIN
 {
     if(do_comms)
-        gcparaxV(p, f, gcv);
+    gcparaxV(p, f, gcv);
     if(do_comms)
-        gcparacoxV(p, f, gcv);
+    gcparacoxV(p, f, gcv);
 
-    int inflow = 0;
-    int outflow = 0;
+    int inflow=0;
+    int outflow=0;
 
-    if(p->B98 >= 3 || (p->B60 >= 1 && p->river_xm == 1))
-        inflow = 1;
+    if(p->B98>=3 || (p->B60>=1 && p->river_xm==1))
+    inflow=1;
 
-    if(p->B99 >= 3)
-        outflow = 1;
+    if(p->B99>=3)
+    outflow=1;
 
-    if(p->B60 >= 1 && p->river_xp == 1)
-        outflow = 2;
+    if(p->B60>=1 && p->river_xp==1)
+    outflow=2;
 
-    starttime = timer();
-    LOOP if(p->DF[IJK] > 0)
-    {
-
-        // xxxxxxx
-        // s
-        if((p->flag4[Im1JK] < 0 && (inflow == 0 || !nhflow_turb_profile_ghost(p, Im1JK))) || (p->DF[Im1JK] < 0))
-        {
-            if(p->B11 == 1)
-            {
-                f[Im1JK] = f[IJK];
-                f[Im2JK] = f[IJK];
-                f[Im3JK] = f[IJK];
-            }
-
-            //
-            if(p->flag4[Ip1JK] < 0)
-            {
-                f[Ip1JK] = f[IJK];
-                f[Ip2JK] = f[IJK];
-                f[Ip3JK] = f[IJK];
-            }
-
-            //
-            if(p->flag4[IJm1K] < 0 && p->j_dir == 1)
-            {
-                f[IJm1K] = f[IJK];
-                f[IJm2K] = f[IJK];
-                f[IJm3K] = f[IJK];
-            }
-
-            //
-            if(p->flag4[IJp1K] < 0 && p->j_dir == 1)
-            {
-                f[IJp1K] = f[IJK];
-                f[IJp2K] = f[IJK];
-                f[IJp3K] = f[IJK];
-            }
-
-            //
-            if(p->flag4[IJKm1] < 0)
-            {
-                f[IJKm1] = f[IJK];
-                f[IJKm2] = f[IJK];
-                f[IJKm3] = f[IJK];
-            }
-
-            //
-            if(p->flag4[IJKp1] < 0)
-            {
-                f[IJKp1] = f[IJK];
-                f[IJKp2] = f[IJK];
-                f[IJKp3] = f[IJK];
-            }
-        }
-        else
-        {
-            if(p->flag4[IJKm1] < 0)
-            {
-                f[IJKm1] = f[IJK];
-                f[IJKm2] = f[IJK];
-                f[IJKm3] = f[IJK];
-            }
-
-            //
-            if(p->flag4[IJKp1] < 0)
-            {
-                f[IJKp1] = f[IJK];
-                f[IJKp2] = f[IJK];
-                f[IJKp3] = f[IJK];
-            }
-        }
-    }
-
-    if(do_comms)
-        gcparaxV(p, f, gcv);
-    if(do_comms)
-        gcparacoxV(p, f, gcv);
-}
-
-void ghostcell::start5Vfull(lexer *p, double *f, int gcv)
-{
-    if(p->j_dir == 0)
-        LOOP
-        {
-
-            f[IJm1K] = f[IJK];
-            f[IJm2K] = f[IJK];
-            f[IJm3K] = f[IJK];
-
-            f[IJp1K] = f[IJK];
-            f[IJp2K] = f[IJK];
-            f[IJp3K] = f[IJK];
-        }
-
+    starttime=timer();
     LOOP
-    {
-        if(p->flag4[Im1JK] < 0)
-        {
-            f[Im1JK] = f[IJK];
-            f[Im2JK] = f[IJK];
-            f[Im2JK] = f[IJK];
-        }
-
-        if(p->flag4[Ip1JK] < 0)
-        {
-            f[Ip1JK] = f[IJK];
-            f[Ip2JK] = f[IJK];
-            f[Ip3JK] = f[IJK];
-        }
-
-        if(p->flag4[IJm1K] < 0 && p->j_dir == 1)
-        {
-            f[IJm1K] = f[IJK];
-            f[IJm2K] = f[IJK];
-            f[IJm3K] = f[IJK];
-        }
-
-        if(p->flag4[IJp1K] < 0 && p->j_dir == 1)
-        {
-            f[IJp1K] = f[IJK];
-            f[IJp2K] = f[IJK];
-            f[IJp3K] = f[IJK];
-        }
-
-        if(p->flag4[IJKm1] < 0)
-        {
-            f[IJKm1] = f[IJK];
-            f[IJKm2] = f[IJK];
-            f[IJKm3] = f[IJK];
-        }
-
-        if(p->flag4[IJKp1] < 0)
-        {
-            f[IJKp1] = f[IJK];
-            f[IJKp2] = f[IJK];
-            f[IJKp3] = f[IJK];
-        }
-    }
-
-    if(do_comms)
-        gcparaxV(p, f, gcv);
-    // gcparacoxV(p, f, gcv);
-}
-
-void ghostcell::start20V(lexer *p, double *f, int gcv)  // KIN
-{
-    if(do_comms)
-        gcparaxV(p, f, gcv);
-    if(do_comms)
-        gcparacoxV(p, f, gcv);
-
-    int inflow = 0;
-    int outflow = 0;
-
-    if(p->B98 >= 3 || p->B60 >= 1)
-        inflow = 1;
-
-    if(p->B99 >= 3)
-        outflow = 1;
-
-    if(p->B60 >= 1)
-        outflow = 2;
-
-    starttime = timer();
-    LOOP if(p->DF[IJK] > 0)
+    if(p->DF[IJK]>0)
     {
 
         // xxxxxxx
         // s
-        if((p->flag4[Im1JK] < 0 && inflow == 0) || (p->DF[Im1JK] < 0))
+        if((p->flag4[Im1JK]<0 && (inflow==0 || !nhflow_turb_profile_ghost(p,Im1JK))) || (p->DF[Im1JK]<0))
         {
-            if(p->B11 == 1)
+            if(p->B11==1)
             {
                 f[Im1JK] = f[IJK];
                 f[Im2JK] = f[IJK];
                 f[Im3JK] = f[IJK];
             }
-            else if(p->B11 == 0)
+            else if(p->B11==0)
             {
                 f[Im1JK] = 0.0;
                 f[Im2JK] = 0.0;
@@ -1272,15 +958,15 @@ void ghostcell::start20V(lexer *p, double *f, int gcv)  // KIN
         }*/
 
         // n
-        if((p->flag4[Ip1JK] < 0 && outflow == 0) || (p->DF[Ip1JK] < 0))
+        if((p->flag4[Ip1JK]<0 && outflow==0) || (p->DF[Ip1JK]<0))
         {
-            if(p->B11 == 1)
+            if(p->B11==1)
             {
                 f[Ip1JK] = f[IJK];
                 f[Ip2JK] = f[IJK];
                 f[Ip3JK] = f[IJK];
             }
-            else if(p->B11 == 0)
+            else if(p->B11==0)
             {
                 f[Ip1JK] = 0.0;
                 f[Ip2JK] = 0.0;
@@ -1288,7 +974,7 @@ void ghostcell::start20V(lexer *p, double *f, int gcv)  // KIN
             }
         }
 
-        if(p->flag4[Ip1JK] < 0 && outflow == 2)
+        if(p->flag4[Ip1JK]<0 && outflow==2)
         {
             f[Ip1JK] = f[IJK];
             f[Ip2JK] = f[IJK];
@@ -1296,15 +982,15 @@ void ghostcell::start20V(lexer *p, double *f, int gcv)  // KIN
         }
 
         // yyyyy
-        if((p->flag4[IJm1K] < 0 || (p->DF[IJm1K] < 0)) && p->j_dir == 1)
+        if((p->flag4[IJm1K]<0  || (p->DF[IJm1K]<0)) && p->j_dir==1)
         {
-            if(p->B11 == 1)
+            if(p->B11==1)
             {
                 f[IJm1K] = f[IJK];
                 f[IJm2K] = f[IJK];
                 f[IJm3K] = f[IJK];
             }
-            else if(p->B11 == 0)
+            else if(p->B11==0)
             {
                 f[IJm1K] = 0.0;
                 f[IJm2K] = 0.0;
@@ -1312,15 +998,15 @@ void ghostcell::start20V(lexer *p, double *f, int gcv)  // KIN
             }
         }
 
-        if((p->flag4[IJp1K] < 0 || (p->DF[IJp1K] < 0)) && p->j_dir == 1)
+        if((p->flag4[IJp1K]<0  || (p->DF[IJp1K]<0)) && p->j_dir==1)
         {
-            if(p->B11 == 1)
+            if(p->B11==1)
             {
                 f[IJp1K] = f[IJK];
                 f[IJp2K] = f[IJK];
                 f[IJp3K] = f[IJK];
             }
-            else if(p->B11 == 0)
+            else if(p->B11==0)
             {
                 f[IJp1K] = 0.0;
                 f[IJp2K] = 0.0;
@@ -1329,24 +1015,24 @@ void ghostcell::start20V(lexer *p, double *f, int gcv)  // KIN
         }
 
         // zzzzz
-        if(p->flag4[IJKp1] < 0 || (p->DF[IJKp1] < 0) || k == p->knoz - 1)
+        if(p->flag4[IJKp1]<0  || (p->DF[IJKp1]<0) || k==p->knoz-1)
         {
 
-            f[IJKp1] = f[IJK];
-            f[IJKp2] = f[IJK];
-            f[IJKp3] = f[IJK];
+                f[IJKp1] = f[IJK];
+                f[IJKp2] = f[IJK];
+                f[IJKp3] = f[IJK];
         }
 
         // bed
-        if(p->flag4[IJKm1] < 0 || (p->DF[IJKm1] < 0 && p->B11 == 1) || (k == 0 && p->B11 == 1))
+        if(p->flag4[IJKm1]<0  || (p->DF[IJKm1]<0 && p->B11==1)   || (k==0 && p->B11==1))
         {
-            if(p->B11 == 1)
+            if(p->B11==1)
             {
                 f[IJKm1] = f[IJK];
                 f[IJKm2] = f[IJK];
                 f[IJKm3] = f[IJK];
             }
-            else if(p->B11 == 0)
+            else if(p->B11==0)
             {
                 f[IJKm1] = 0.0;
                 f[IJKm2] = 0.0;
@@ -1356,36 +1042,37 @@ void ghostcell::start20V(lexer *p, double *f, int gcv)  // KIN
     }
 
     if(do_comms)
-        gcparacoxV(p, f, gcv);
+    gcparacoxV(p, f, gcv);
 
-    p->gctime += timer() - starttime;
+    p->gctime+=timer()-starttime;
 }
 
-void ghostcell::start24V(lexer *p, double *f, int gcv)  // EDDYV
+void ghostcell::start24V(lexer *p, double *f, int gcv) //EDDYV
 {
     if(do_comms)
-        gcparaxV(p, f, gcv);
+    gcparaxV(p, f, gcv);
     if(do_comms)
-        gcparacoxV(p, f, gcv);
+    gcparacoxV(p, f, gcv);
 
-    int inflow = 0;
-    int outflow = 0;
+    int inflow=0;
+    int outflow=0;
 
-    if(p->B98 >= 3 || (p->B60 >= 1 && p->river_xm == 1))
-        inflow = 1;
+    if(p->B98>=3 || (p->B60>=1 && p->river_xm==1))
+        inflow=1;
 
-    if(p->B99 >= 3)
-        outflow = 1;
+    if(p->B99>=3)
+        outflow=1;
 
-    if(p->B60 >= 1 && p->river_xp == 1)
-        outflow = 2;
+    if(p->B60>=1 && p->river_xp==1)
+        outflow=2;
 
-    starttime = timer();
-    LOOP if(p->DF[IJK] > 0)
+    starttime=timer();
+    LOOP
+    if(p->DF[IJK]>0)
     {
         // xxxxxxx
         // s
-        if(p->flag4[Im1JK] < 0 && (inflow == 0 || !nhflow_turb_profile_ghost(p, Im1JK)))
+        if(p->flag4[Im1JK]<0 && (inflow==0 || !nhflow_turb_profile_ghost(p,Im1JK)))
         {
             f[Im1JK] = f[IJK];
             f[Im2JK] = f[IJK];
@@ -1400,21 +1087,21 @@ void ghostcell::start24V(lexer *p, double *f, int gcv)  // EDDYV
         }*/
 
         // n
-        if(p->flag4[Ip1JK] < 0 && outflow == 0)
+        if(p->flag4[Ip1JK]<0 && outflow==0)
         {
             f[Ip1JK] = f[IJK];
             f[Ip2JK] = f[IJK];
             f[Ip3JK] = f[IJK];
         }
 
-        if(p->flag4[Ip1JK] < 0 && outflow == 1)
+        if(p->flag4[Ip1JK]<0 && outflow==1)
         {
             f[Ip1JK] = f[IJK];
             f[Ip2JK] = f[IJK];
             f[Ip3JK] = f[IJK];
         }
 
-        if(p->flag4[Ip1JK] < 0 && outflow == 2)
+        if(p->flag4[Ip1JK]<0 && outflow==2)
         {
             f[Ip1JK] = f[IJK];
             f[Ip2JK] = f[IJK];
@@ -1422,14 +1109,14 @@ void ghostcell::start24V(lexer *p, double *f, int gcv)  // EDDYV
         }
 
         // yyyyy
-        if(p->flag4[IJm1K] < 0 && p->j_dir == 1)
+        if(p->flag4[IJm1K]<0 && p->j_dir==1)
         {
             f[IJm1K] = f[IJK];
             f[IJm2K] = f[IJK];
             f[IJm3K] = f[IJK];
         }
 
-        if(p->flag4[IJp1K] < 0 && p->j_dir == 1)
+        if(p->flag4[IJp1K]<0 && p->j_dir==1)
         {
             f[IJp1K] = f[IJK];
             f[IJp2K] = f[IJK];
@@ -1437,7 +1124,7 @@ void ghostcell::start24V(lexer *p, double *f, int gcv)  // EDDYV
         }
 
         // zzzzz
-        if(p->flag4[IJKp1] < 0 || k == p->knoz - 1)
+        if(p->flag4[IJKp1]<0 || k==p->knoz-1)
         {
             f[IJKp1] = f[IJK];
             f[IJKp2] = f[IJK];
@@ -1445,7 +1132,7 @@ void ghostcell::start24V(lexer *p, double *f, int gcv)  // EDDYV
         }
 
         // bed
-        if(p->flag4[IJKm1] < 0)
+        if(p->flag4[IJKm1]<0)
         {
             f[IJKm1] = f[IJK];
             f[IJKm2] = f[IJK];
@@ -1454,36 +1141,37 @@ void ghostcell::start24V(lexer *p, double *f, int gcv)  // EDDYV
     }
 
     if(do_comms)
-        gcparacoxV(p, f, gcv);
+    gcparacoxV(p, f, gcv);
 
-    p->gctime += timer() - starttime;
+    p->gctime+=timer()-starttime;
 }
 
-void ghostcell::start30V(lexer *p, double *f, int gcv)  // EPS
+void ghostcell::start30V(lexer *p, double *f, int gcv) // EPS
 {
     if(do_comms)
-        gcparaxV(p, f, gcv);
+    gcparaxV(p, f, gcv);
     if(do_comms)
-        gcparacoxV(p, f, gcv);
+    gcparacoxV(p, f, gcv);
 
-    int inflow = 0;
-    int outflow = 0;
+    int inflow=0;
+    int outflow=0;
 
-    if(p->B98 >= 3 || (p->B60 >= 1 && p->river_xm == 1))
-        inflow = 1;
+    if(p->B98>=3 || (p->B60>=1 && p->river_xm==1))
+        inflow=1;
 
-    if(p->B99 >= 3)
-        outflow = 1;
+    if(p->B99>=3)
+        outflow=1;
 
-    if(p->B60 >= 1 && p->river_xp == 1)
-        outflow = 2;
+    if(p->B60>=1 && p->river_xp==1)
+        outflow=2;
 
-    starttime = timer();
-    LOOP if(p->DF[IJK] > 0)
+    starttime=timer();
+    LOOP
+    if(p->DF[IJK]>0)
     {
         // xxxxxxx
         // s
-        if((p->flag4[Im1JK] < 0 && (inflow == 0 || !nhflow_turb_profile_ghost(p, Im1JK))) || (p->DF[Im1JK] < 0))
+        if((p->flag4[Im1JK]<0 && (inflow==0 || !nhflow_turb_profile_ghost(p,Im1JK))) || (p->DF[Im1JK]<0))
         {
             f[Im1JK] = f[IJK];
             f[Im2JK] = f[IJK];
@@ -1498,14 +1186,14 @@ void ghostcell::start30V(lexer *p, double *f, int gcv)  // EPS
         }*/
 
         // n
-        if((p->flag4[Ip1JK] < 0 && outflow == 0) || (p->DF[Ip1JK] < 0))
+        if((p->flag4[Ip1JK]<0 && outflow==0) || (p->DF[Ip1JK]<0))
         {
             f[Ip1JK] = f[IJK];
             f[Ip2JK] = f[IJK];
             f[Ip3JK] = f[IJK];
         }
 
-        if(p->flag4[Ip1JK] < 0 && outflow == 2)
+        if(p->flag4[Ip1JK]<0 && outflow==2)
         {
             f[Ip1JK] = f[IJK];
             f[Ip2JK] = f[IJK];
@@ -1513,14 +1201,14 @@ void ghostcell::start30V(lexer *p, double *f, int gcv)  // EPS
         }
 
         // yyyyy
-        if((p->flag4[IJm1K] < 0 || (p->DF[IJm1K] < 0)) && p->j_dir == 1)
+        if((p->flag4[IJm1K]<0  || (p->DF[IJm1K]<0)) && p->j_dir==1)
         {
             f[IJm1K] = f[IJK];
             f[IJm2K] = f[IJK];
             f[IJm3K] = f[IJK];
         }
 
-        if((p->flag4[IJp1K] < 0 || (p->DF[IJp1K] < 0)) && p->j_dir == 1)
+        if((p->flag4[IJp1K]<0  || (p->DF[IJp1K]<0)) && p->j_dir==1)
         {
             f[IJp1K] = f[IJK];
             f[IJp2K] = f[IJK];
@@ -1528,7 +1216,7 @@ void ghostcell::start30V(lexer *p, double *f, int gcv)  // EPS
         }
 
         // zzzzz
-        if(p->flag4[IJKp1] < 0 || (p->DF[IJKp1] < 0) || k == p->knoz - 1)
+        if(p->flag4[IJKp1]<0  || (p->DF[IJKp1]<0) || k==p->knoz-1)
         {
             f[IJKp1] = f[IJK];
             f[IJKp2] = f[IJK];
@@ -1536,7 +1224,7 @@ void ghostcell::start30V(lexer *p, double *f, int gcv)  // EPS
         }
 
         // bed
-        if(p->flag4[IJKm1] < 0 || (p->DF[IJKm1] < 0) || k == 0)
+        if(p->flag4[IJKm1]<0  || (p->DF[IJKm1]<0) || k==0)
         {
             f[IJKm1] = f[IJK];
             f[IJKm2] = f[IJK];
@@ -1545,7 +1233,7 @@ void ghostcell::start30V(lexer *p, double *f, int gcv)  // EPS
     }
 
     if(do_comms)
-        gcparacoxV(p, f, gcv);
+    gcparacoxV(p, f, gcv);
 }
 
 void ghostcell::start49V(lexer *p, double *f, int gcv)
@@ -1555,59 +1243,60 @@ void ghostcell::start49V(lexer *p, double *f, int gcv)
         // if(p->flag4[Im1JK]<0 && p->IO[Im1JK]!=1)
         //     f[Im1JK] = f[IJK];
 
-        if(p->flag4[Im1JK] < 0)
-            f[Im1JK] = f[IJK] - p->Ui * p->DXP[IM1];  // dpsi/dx = Ui at the inflow, same sign as the Laplace rhs in nhflow_potential_f
+        if(p->flag4[Im1JK]<0)
+            f[Im1JK] = f[IJK] - p->Ui*p->DXP[IM1];   // dpsi/dx = Ui at the inflow, same sign as the Laplace rhs in nhflow_potential_f
 
         // if(p->flag4[Ip1JK]<0 && p->IO[Ip1JK]!=2)
         //     f[Ip1JK] = f[IJK];
 
-        if(p->flag4[Ip1JK] < 0)
-            f[Ip1JK] = p->Uo * p->DXP[IP] + f[IJK];
+        if(p->flag4[Ip1JK]<0)
+            f[Ip1JK] = p->Uo*p->DXP[IP] + f[IJK];
 
-        if(p->flag4[IJm1K] < 0)
+        if(p->flag4[IJm1K]<0)
             f[IJm1K] = f[IJK];
 
-        if(p->flag4[IJp1K] < 0)
+        if(p->flag4[IJp1K]<0)
             f[IJp1K] = f[IJK];
 
-        if(p->flag4[IJKm1] < 0)
+        if(p->flag4[IJKm1]<0)
             f[IJKm1] = f[IJK];
 
-        if(p->flag4[IJKp1] < 0)
+        if(p->flag4[IJKp1]<0)
             f[IJKp1] = f[IJK];
     }
 
     if(do_comms)
-        gcparaxV(p, f, gcv);
+    gcparaxV(p, f, gcv);
     if(do_comms)
-        gcparacoxV(p, f, gcv);
+    gcparacoxV(p, f, gcv);
 }
 
-void ghostcell::start60V(lexer *p, double *f, int gcv)  // EPS
+void ghostcell::start60V(lexer *p, double *f, int gcv) // EPS
 {
     if(do_comms)
-        gcparaxV(p, f, gcv);
+    gcparaxV(p, f, gcv);
     if(do_comms)
-        gcparacoxV(p, f, gcv);
+    gcparacoxV(p, f, gcv);
 
-    int inflow = 0;
-    int outflow = 0;
+    int inflow=0;
+    int outflow=0;
 
-    if(p->B98 >= 3 || (p->B60 >= 1 && p->river_xm == 1))
-        inflow = 1;
+    if(p->B98>=3 || (p->B60>=1 && p->river_xm==1))
+        inflow=1;
 
-    if(p->B99 >= 3)
-        outflow = 1;
+    if(p->B99>=3)
+        outflow=1;
 
-    if(p->B60 >= 1 && p->river_xp == 1)
-        outflow = 2;
+    if(p->B60>=1 && p->river_xp==1)
+        outflow=2;
 
-    starttime = timer();
-    LOOP if(p->DF[IJK] > 0)
+    starttime=timer();
+    LOOP
+    if(p->DF[IJK]>0)
     {
         // xxxxxxx
         // s
-        if((p->flag4[Im1JK] < 0 && inflow == 0) || (p->DF[Im1JK] < 0))
+        if((p->flag4[Im1JK]<0 && inflow==0) || (p->DF[Im1JK]<0))
         {
             f[Im1JK] = f[IJK];
             f[Im2JK] = f[IJK];
@@ -1622,14 +1311,14 @@ void ghostcell::start60V(lexer *p, double *f, int gcv)  // EPS
         }*/
 
         // n
-        if((p->flag4[Ip1JK] < 0 && outflow == 0) || (p->DF[Ip1JK] < 0))
+        if((p->flag4[Ip1JK]<0 && outflow==0) || (p->DF[Ip1JK]<0))
         {
             f[Ip1JK] = f[IJK];
             f[Ip2JK] = f[IJK];
             f[Ip3JK] = f[IJK];
         }
 
-        if(p->flag4[Ip1JK] < 0 && outflow == 2)
+        if(p->flag4[Ip1JK]<0 && outflow==2)
         {
             f[Ip1JK] = f[IJK];
             f[Ip2JK] = f[IJK];
@@ -1637,14 +1326,14 @@ void ghostcell::start60V(lexer *p, double *f, int gcv)  // EPS
         }
 
         // yyyyy
-        if((p->flag4[IJm1K] < 0 || (p->DF[IJm1K] < 0)) && p->j_dir == 1)
+        if((p->flag4[IJm1K]<0  || (p->DF[IJm1K]<0)) && p->j_dir==1)
         {
             f[IJm1K] = f[IJK];
             f[IJm2K] = f[IJK];
             f[IJm3K] = f[IJK];
         }
 
-        if((p->flag4[IJp1K] < 0 || (p->DF[IJp1K] < 0)) && p->j_dir == 1)
+        if((p->flag4[IJp1K]<0  || (p->DF[IJp1K]<0)) && p->j_dir==1)
         {
             f[IJp1K] = f[IJK];
             f[IJp2K] = f[IJK];
@@ -1652,7 +1341,7 @@ void ghostcell::start60V(lexer *p, double *f, int gcv)  // EPS
         }
 
         // zzzzz
-        if(p->flag4[IJKp1] < 0 || p->DF[IJKp1] < 0 || k == p->knoz - 1)
+        if(p->flag4[IJKp1]<0  || p->DF[IJKp1]<0 || k==p->knoz-1)
         {
             f[IJKp1] = 0.0;
             f[IJKp2] = 0.0;
@@ -1660,7 +1349,7 @@ void ghostcell::start60V(lexer *p, double *f, int gcv)  // EPS
         }
 
         // bed
-        if(p->flag4[IJKm1] < 0 || p->DF[IJKm1] < 0 || k == 0)
+        if(p->flag4[IJKm1]<0  || p->DF[IJKm1]<0 || k==0)
         {
             f[IJKm1] = f[IJK];
             f[IJKm2] = f[IJK];
@@ -1669,62 +1358,64 @@ void ghostcell::start60V(lexer *p, double *f, int gcv)  // EPS
     }
 
     if(do_comms)
-        gcparacoxV(p, f, gcv);
+    gcparacoxV(p, f, gcv);
 }
 
 void ghostcell::startintV(lexer *p, int *f, int gcv)
 {
     LOOP
     {
-        if(p->flag4[Im1JK] < 0)
-            f[Im1JK] = f[IJK];
+        if(p->flag4[Im1JK]<0)
+        f[Im1JK] = f[IJK];
 
-        if(p->flag4[Ip1JK] < 0)
-            f[Ip1JK] = f[IJK];
+        if(p->flag4[Ip1JK]<0)
+        f[Ip1JK] = f[IJK];
 
-        if(p->flag4[IJm1K] < 0)
-            f[IJm1K] = f[IJK];
+        if(p->flag4[IJm1K]<0)
+        f[IJm1K] = f[IJK];
 
-        if(p->flag4[IJp1K] < 0)
-            f[IJp1K] = f[IJK];
+        if(p->flag4[IJp1K]<0)
+        f[IJp1K] = f[IJK];
 
-        if(p->flag4[IJKm1] < 0)
-            f[IJKm1] = f[IJK];
+        if(p->flag4[IJKm1]<0)
+        f[IJKm1] = f[IJK];
 
-        if(p->flag4[IJKp1] < 0)
-            f[IJKp1] = f[IJK];
+        if(p->flag4[IJKp1]<0)
+        f[IJKp1] = f[IJK];
     }
 
     if(do_comms)
-        gcparaxintV(p, f, gcv);
+    gcparaxintV(p, f, gcv);
 }
 
 void ghostcell::startintVF(lexer *p, int *f, int gcv)
 {
     FLOOP
     {
-        if(p->flag7[FIm1JK] < 0)
-            f[FIm1JK] = f[FIJK];
+        if(p->flag7[FIm1JK]<0)
+        f[FIm1JK] = f[FIJK];
 
-        if(p->flag7[FIp1JK] < 0)
-            f[FIp1JK] = f[FIJK];
+        if(p->flag7[FIp1JK]<0)
+        f[FIp1JK] = f[FIJK];
 
-        if(p->flag7[FIJm1K] < 0)
-            f[FIJm1K] = f[FIJK];
+        if(p->flag7[FIJm1K]<0)
+        f[FIJm1K] = f[FIJK];
 
-        if(p->flag7[FIJp1K] < 0)
-            f[FIJp1K] = f[FIJK];
+        if(p->flag7[FIJp1K]<0)
+        f[FIJp1K] = f[FIJK];
 
-        if(p->flag7[FIJKm1] < 0)
-            f[FIJKm1] = f[FIJK];
+        if(p->flag7[FIJKm1]<0)
+        f[FIJKm1] = f[FIJK];
 
-        if(p->flag7[FIJKp1] < 0)
-            f[FIJKp1] = f[FIJK];
+        if(p->flag7[FIJKp1]<0)
+        f[FIJKp1] = f[FIJK];
     }
-
+    
+    
     if(do_comms)
     {
-        gcparax7int(p, f, 7);
+        gcparax7int(p,f,7);
+        
     }
 }
 
@@ -1732,61 +1423,64 @@ void ghostcell::start7V(lexer *p, double *f, sliceint &bc, int gcv)
 {
     if(do_comms)
     {
-        gcparax7(p, f, 7);
-        gcparax7co(p, f, 7);
+        gcparax7(p,f,7);
+        gcparax7co(p,f,7);
     }
 
-    if(gcv == 250)
-        fivec(p, f, bc);
-
-    else if(gcv == 150)
-        fivec2D(p, f, bc);
-
-    else if(gcv == 210)
-        fivec_vel(p, f, bc);
-
-    else if(gcv == 110)
-        fivec2D_vel(p, f, bc);
+    
+    if(gcv==250)
+    fivec(p,f,bc);
+        
+    else if(gcv==150)
+    fivec2D(p,f,bc);
+        
+    else if(gcv==210)
+    fivec_vel(p,f,bc);
+        
+    else if(gcv==110)
+    fivec2D_vel(p,f,bc);
+    
 }
 
 void ghostcell::start7P(lexer *p, double *f, int gcv)
 {
     GCBL_LOOP(7)
     {
-        if(gcbl_h == 1)
-        {
-            if(p->flag7[FIm1JK] < 0)
-                f[FIm1JK] = f[FIJK];
+    if(gcbl_h==1)
+    {
+        if(p->flag7[FIm1JK]<0)
+        f[FIm1JK] = f[FIJK];
 
-            if(p->flag7[FIp1JK] < 0)
-                f[FIp1JK] = f[FIJK];
+        if(p->flag7[FIp1JK]<0)
+        f[FIp1JK] = f[FIJK];
 
-            if(p->flag7[FIJm1K] < 0)
-                f[FIJm1K] = f[FIJK];
+        if(p->flag7[FIJm1K]<0)
+        f[FIJm1K] = f[FIJK];
 
-            if(p->flag7[FIJp1K] < 0)
-                f[FIJp1K] = f[FIJK];
+        if(p->flag7[FIJp1K]<0)
+        f[FIJp1K] = f[FIJK];
 
-            if(p->flag7[FIJKm1] < 0)
-                f[FIJKm1] = f[FIJK];
+        if(p->flag7[FIJKm1]<0)
+        f[FIJKm1] = f[FIJK];
 
-            if(p->flag7[FIJKp1] < 0)
-                f[FIJKp1] = 0.0;
-        }
-        else
-        {
-            if(p->flag7[FIJKm1] < 0)
-                f[FIJKm1] = f[FIJK];
+        if(p->flag7[FIJKp1]<0)
+        f[FIJKp1] = 0.0;
+    }
+    else
+    {
+        if(p->flag7[FIJKm1]<0)
+        f[FIJKm1] = f[FIJK];
 
-            if(p->flag7[FIJKp1] < 0)
-                f[FIJKp1] = 0.0;
-        }
+        if(p->flag7[FIJKp1]<0)
+        f[FIJKp1] = 0.0;
+    
+    }
     }
 
     if(do_comms)
     {
-        gcparax7(p, f, 7);
-        gcparax7co(p, f, 7);
+        gcparax7(p,f,7);
+        gcparax7co(p,f,7);
     }
 }
 
@@ -1794,39 +1488,40 @@ void ghostcell::start7S(lexer *p, double *f, int gcv)
 {
     GCBL_LOOP(7)
     {
-        if(gcbl_h == 1)
-        {
-            if(p->flag7[FIm1JK] < 0)
-                f[FIm1JK] = f[FIJK];
+    if(gcbl_h==1)
+    {
+        if(p->flag7[FIm1JK]<0)
+        f[FIm1JK] = f[FIJK];
 
-            if(p->flag7[FIp1JK] < 0)
-                f[FIp1JK] = f[FIJK];
+        if(p->flag7[FIp1JK]<0)
+        f[FIp1JK] = f[FIJK];
 
-            if(p->flag7[FIJm1K] < 0)
-                f[FIJm1K] = f[FIJK];
+        if(p->flag7[FIJm1K]<0)
+        f[FIJm1K] = f[FIJK];
 
-            if(p->flag7[FIJp1K] < 0)
-                f[FIJp1K] = f[FIJK];
+        if(p->flag7[FIJp1K]<0)
+        f[FIJp1K] = f[FIJK];
 
-            if(p->flag7[FIJKm1] < 0)
-                f[FIJKm1] = f[FIJK];
+        if(p->flag7[FIJKm1]<0)
+        f[FIJKm1] = f[FIJK];
 
-            if(p->flag7[FIJKp1] < 0)
-                f[FIJKp1] = f[FIJK];
-        }
-        else
-        {
-            if(p->flag7[FIJKm1] < 0)
-                f[FIJKm1] = f[FIJK];
+        if(p->flag7[FIJKp1]<0)
+        f[FIJKp1] = f[FIJK];
+    }
+    else
+    {
+        if(p->flag7[FIJKm1]<0)
+        f[FIJKm1] = f[FIJK];
 
-            if(p->flag7[FIJKp1] < 0)
-                f[FIJKp1] = f[FIJK];
-        }
+        if(p->flag7[FIJKp1]<0)
+        f[FIJKp1] = f[FIJK];
+    
+    }
     }
 
     if(do_comms)
     {
-        gcparax7(p, f, 7);
-        gcparax7co(p, f, 7);
+        gcparax7(p,f,7);
+        gcparax7co(p,f,7);
     }
 }

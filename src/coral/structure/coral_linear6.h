@@ -27,33 +27,34 @@ Architect: Hans Bihs
 #ifndef CORAL_LINEAR6_H_
 #define CORAL_LINEAR6_H_
 
-#include "coral/core/coral_load.h"
-#include "coral/core/coral_types.h"
+#include"coral/core/coral_load.h"
+#include"coral/core/coral_types.h"
 
-namespace coral {
-class linear6 : public load
+namespace coral
 {
-public:
-    linear6(const model &, int body, const Vec3 &P, const Mat6 &K, const Mat6 &C,
-            const Vec6 &F0 = Vec6::Zero(), const std::string &name = "linear6");
+    class linear6 : public load
+    {
+    public:
+        linear6(const model&, int body, const Vec3 &P, const Mat6 &K, const Mat6 &C,
+                const Vec6 &F0=Vec6::Zero(), const std::string &name="linear6");
 
-    std::string name() const override { return name_; }
-    coupling_kind coupling() const override { return coupling_kind::local; }
-    void coupled_bodies(std::vector<int> &b) const override { b.push_back(b_); }
-    void eval(const model &, double t, VecX &f) const override;
-    double potential(const model &) const override;
+        std::string name() const override {return name_;}
+        coupling_kind coupling() const override {return coupling_kind::local;}
+        void coupled_bodies(std::vector<int> &b) const override {b.push_back(b_);}
+        void eval(const model&, double t, VecX &f) const override;
+        double potential(const model&) const override;
 
-    Vec6 displacement(const model &) const;
-    Vec6 velocity(const model &) const;
+        Vec6 displacement(const model&) const;
+        Vec6 velocity(const model&) const;
 
-private:
-    std::string name_;
-    int b_;
-    Vec3 s_, p0_;
-    Mat3 R0_;
-    Mat6 K_, C_;
-    Vec6 F0_;
-};
-}  // namespace coral
+    private:
+        std::string name_;
+        int b_;
+        Vec3 s_, p0_;
+        Mat3 R0_;
+        Mat6 K_, C_;
+        Vec6 F0_;
+    };
+}
 
 #endif

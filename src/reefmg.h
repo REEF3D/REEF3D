@@ -23,9 +23,9 @@ Author: Hans Bihs
 #ifndef REEFMG_H_
 #define REEFMG_H_
 
+#include "solver.h"
 #include "increment.h"
 #include "reefmg_core.h"
-#include "solver.h"
 
 class lexer;
 class fdm;
@@ -49,58 +49,60 @@ using namespace std;
 class reefmg final : public solver, public increment, public sc_operator
 {
 public:
-    reefmg(lexer *, ghostcell *, int, int);
+
+    reefmg(lexer*, ghostcell*, int, int);
     virtual ~reefmg();
 
-    void start(lexer *, fdm *, ghostcell *, field &, vec &, int) override final;
-    void startf(lexer *, ghostcell *, field &, vec &, matrix_diag &, int) override final;
-    void startF(lexer *, ghostcell *, double *, vec &, matrix_diag &, int) override final;
-    void startV(lexer *, ghostcell *, double *, vec &, matrix_diag &, int) override final;
-    void startM(lexer *, ghostcell *, double *, double *, double *, int) override final;
+    void start(lexer*, fdm*, ghostcell*, field&, vec&, int) override final;
+    void startf(lexer*, ghostcell*, field&, vec&, matrix_diag&, int) override final;
+    void startF(lexer*, ghostcell*, double*, vec&, matrix_diag&, int) override final;
+    void startV(lexer*, ghostcell*, double*, vec&, matrix_diag&, int) override final;
+    void startM(lexer*, ghostcell*, double*, double*, double*, int) override final;
 
     //  exact fine operator for the Krylov iteration in fp32 mode (sc_operator)
-    void fine_apply(const sc_level &L, const double *x, double *y) override;
+    void fine_apply(const sc_level &L,const double *x,double *y) override;
 
 private:
-    void topology(lexer *, ghostcell *);
-    void start_solver8(lexer *, ghostcell *, double *, vec &, matrix_diag &, int);
-    void fill_matrix8(lexer *, double *, vec &, matrix_diag &);
-    void fillbackvec8(lexer *, double *);
+
+    void topology(lexer*, ghostcell*);
+    void start_solver8(lexer*, ghostcell*, double*, vec&, matrix_diag&, int);
+    void fill_matrix8(lexer*, double*, vec&, matrix_diag&);
+    void fillbackvec8(lexer*, double*);
 
     //  CFD pressure Poisson equation, start(...,5): pjm, pjm_corr
-    void start_solver5(lexer *, ghostcell *, field &, vec &, matrix_diag &);
-    void fill_matrix5(lexer *, field &, vec &, matrix_diag &);
-    void fillbackvec5(lexer *, field &);
+    void start_solver5(lexer*, ghostcell*, field&, vec&, matrix_diag&);
+    void fill_matrix5(lexer*, field&, vec&, matrix_diag&);
+    void fillbackvec5(lexer*, field&);
 
     //  first row of every fully active column with consecutive rows (fp32)
-    void build_colrow0(const sc_level &);
+    void build_colrow0(const sc_level&);
 
     //  Potential-flow initialisation, var 44: NHFLOW through startV (double*,
     //  ff==0) and CFD through start (field, ff!=0).
-    void start_solver44(lexer *, fdm *, ghostcell *, field *, double *, vec &, matrix_diag &);
-    void fill_matrix44(lexer *, reefmg_core &, field *, double *, vec &, matrix_diag &);
-    void fillbackvec44(lexer *, reefmg_core &, field *, double *);
+    void start_solver44(lexer*, fdm*, ghostcell*, field*, double*, vec&, matrix_diag&);
+    void fill_matrix44(lexer*, reefmg_core&, field*, double*, vec&, matrix_diag&);
+    void fillbackvec44(lexer*, reefmg_core&, field*, double*);
 
     reefmg_core mg;
 
     int *CVAL4;
 
-    matrix_diag *Mcur;            // REEF3D's matrix for the current solve
-    bool mixed = false;           // Mcur carries the FNPF sigma cross-couplings
-                                  // nt..eb (A 328 1): Krylov operator via
-                                  // fine_apply() also in fp64 mode
-    std::vector<int> rowmap;      // reefmg fine cell -> matrix_diag row, -1 inactive
-    std::vector<int> colrow0;     // first row of a fully active column with
-                                  // consecutive rows, -1 otherwise
-    bool fill_ini = false;        // CVAL4 and the zero halo set up (first fill)
-    std::vector<int> wetsig;      // p->wet at the last rowmap/colrow0 build
-    bool fill_topo = true;        // the wet/dry pattern changed in the last fill_matrix8
-    unsigned long long mkey = 0;  // var 8: hash of the rows of the last coarsen()
-    bool mkey_ok = false;         // (cleared by the other paths that coarsen mg)
+    matrix_diag *Mcur;          // REEF3D's matrix for the current solve
+    bool mixed=false;           // Mcur carries the FNPF sigma cross-couplings
+                                // nt..eb (A 328 1): Krylov operator via
+                                // fine_apply() also in fp64 mode
+    std::vector<int> rowmap;    // reefmg fine cell -> matrix_diag row, -1 inactive
+    std::vector<int> colrow0;   // first row of a fully active column with
+                                // consecutive rows, -1 otherwise
+    bool fill_ini=false;        // CVAL4 and the zero halo set up (first fill)
+    std::vector<int> wetsig;    // p->wet at the last rowmap/colrow0 build
+    bool fill_topo=true;        // the wet/dry pattern changed in the last fill_matrix8
+    unsigned long long mkey=0;  // var 8: hash of the rows of the last coarsen()
+    bool mkey_ok=false;         // (cleared by the other paths that coarsen mg)
     int count;
 
     int solve_mode, presweep, postsweep;
-    int npx, npy, cx, cy;
+    int npx,npy,cx,cy;
 
     double starttime;
 };

@@ -20,30 +20,30 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "wave_lib_linear.h"
-#include "fdm.h"
-#include "ghostcell.h"
-#include "lexer.h"
+#include"wave_lib_linear.h"
+#include"lexer.h"
+#include"fdm.h"
+#include"ghostcell.h"
 
-wave_lib_linear::wave_lib_linear(lexer *p, ghostcell *pgc) : wave_lib_parameters(p, pgc)
-{
-    parameters(p, pgc);
-
+wave_lib_linear::wave_lib_linear(lexer *p, ghostcell *pgc) : wave_lib_parameters(p,pgc) 
+{ 
+    parameters(p,pgc);
+    
     // waves on a background (B 530): sigma and depth of the orbital velocities, as constructed
     wsig = ww;
     wdk = wdt;
     wa0 = wa;
     waf = 1.0;
-
-    if(p->mpirank == 0)
+    
+    if(p->mpirank==0)
     {
-        cout << "Wave_Lib: linear waves " << endl;
-        cout << "k: " << wk << " w: " << ww << " f: " << wf << " T: " << wT << " L: " << wL << " d: " << wdt << " kd: " << wdt * wk << " c: " << p->wC << endl;
-        cout << "d/gT^2: " << wdt / (fabs(p->W22) * wT * wT) << " H/gT^2: " << wH / (fabs(p->W22) * wT * wT) << endl;
+    cout<<"Wave_Lib: linear waves "<<endl;
+    cout<<"k: "<<wk<<" w: "<<ww<<" f: "<<wf<<" T: "<<wT<<" L: "<<wL<<" d: "<<wdt<<" kd: "<<wdt*wk<<" c: "<<p->wC<<endl;
+    cout<<"d/gT^2: "<<wdt/(fabs(p->W22)*wT*wT)<<" H/gT^2: "<<wH/(fabs(p->W22)*wT*wT)<<endl;
     }
-
-    singamma = sin((p->B105_1) * (PI / 180.0));
-    cosgamma = cos((p->B105_1) * (PI / 180.0));
+    
+    singamma = sin((p->B105_1)*(PI/180.0));
+    cosgamma = cos((p->B105_1)*(PI/180.0));
 }
 
 wave_lib_linear::~wave_lib_linear()
@@ -54,49 +54,49 @@ double wave_lib_linear::wave_u(lexer *p, double x, double y, double z)
 {
     double vel;
 
-    vel = wave_horzvel(p, x, y, z);
+    vel = wave_horzvel(p,x,y,z);
 
-    return cosgamma * vel;
+    return cosgamma*vel;
 }
 
 double wave_lib_linear::wave_v(lexer *p, double x, double y, double z)
 {
     double vel;
 
-    vel = wave_horzvel(p, x, y, z);
+    vel = wave_horzvel(p,x,y,z);
 
-    return singamma * vel;
+    return singamma*vel;
 }
 
 double wave_lib_linear::wave_horzvel(lexer *p, double x, double y, double z)
 {
-    double vel = 0.0;
+    double vel=0.0;
+	
+	teta = wk*x-ww*(p->wavetime) + pshift;
 
-    teta = wk * x - ww * (p->wavetime) + pshift;
-
-    vel = wsig * wa * (cosh(wk * (wdt + z)) / sinhkd()) * cos(teta);
+    vel = wsig*wa*( cosh(wk*(wdt+z))/sinhkd() ) * cos(teta);
 
     return vel;
 }
 
 double wave_lib_linear::wave_w(lexer *p, double x, double y, double z)
 {
-    double vel = 0.0;
+    double vel=0.0;
+	
+	teta = wk*x-ww*(p->wavetime) + pshift;
 
-    teta = wk * x - ww * (p->wavetime) + pshift;
-
-    vel = wsig * wa * (sinh(wk * (wdt + z)) / sinhkd()) * sin(teta);
+    vel = wsig*wa*( sinh(wk*(wdt+z))/sinhkd() ) * sin(teta);
 
     return vel;
 }
 
 double wave_lib_linear::wave_eta(lexer *p, double x, double y)
 {
-    double eta = 0.0;
+    double eta=0.0;
 
-    teta = wk * x - ww * (p->wavetime) + pshift;
+	teta = wk*x-ww*(p->wavetime) + pshift;
 
-    eta = wa * cos(teta);
+    eta =  wa * cos(teta);
 
     return eta;
 }
@@ -104,21 +104,21 @@ double wave_lib_linear::wave_eta(lexer *p, double x, double y)
 double wave_lib_linear::wave_fi(lexer *p, double x, double y, double z)
 {
     double fi;
-
-    teta = wk * x - ww * (p->wavetime) + pshift;
-
-    fi = ((wsig * 0.5 * wH) / (wk)) * (cosh(wk * (wdt + z)) / sinhkd()) * sin(teta);
-
+    
+    teta = wk*x-ww*(p->wavetime) + pshift;
+    
+    fi = ((wsig*0.5*wH)/(wk))*( cosh(wk*(wdt+z))/sinhkd() ) * sin(teta);
+    
     return fi;
 }
 
 void wave_lib_linear::wave_uvw_c(lexer *p, int q, double z, double &u, double &v, double &w)
 {
-    const double vel = wave_horzvel(p, cache_x[q], cache_y[q], z);
-
-    u = cosgamma * vel;
-    v = singamma * vel;
-    w = wave_w(p, cache_x[q], cache_y[q], z);
+    const double vel = wave_horzvel(p,cache_x[q],cache_y[q],z);
+    
+    u = cosgamma*vel;
+    v = singamma*vel;
+    w = wave_w(p,cache_x[q],cache_y[q],z);
 }
 
 void wave_lib_linear::parameters(lexer *p, ghostcell *pgc)
@@ -143,5 +143,5 @@ void wave_lib_linear::wave_comp_set(int n, double k, double sigma, double af)
     wk = k;
     wsig = sigma;
     waf = af;
-    wa = wa0 * af;
+    wa = wa0*af;
 }

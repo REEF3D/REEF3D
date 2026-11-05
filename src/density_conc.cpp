@@ -20,18 +20,19 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "density_conc.h"
-#include "concentration.h"
-#include "fdm.h"
-#include "heaviside.h"
-#include "interface_width.h"
-#include "lexer.h"
+#include"interface_width.h"
+#include"density_conc.h"
+#include"lexer.h"
+#include"fdm.h"
+#include"concentration.h"
+#include"heaviside.h"
 
-density_conc::density_conc(lexer *p, concentration *&ppconc)
+density_conc::density_conc(lexer* p, concentration *& ppconc) 
 {
-    pconc = ppconc;
-
-    H = 0.0;
+        pconc = ppconc;
+    
+        
+        H=0.0;
 }
 
 density_conc::~density_conc()
@@ -42,14 +43,20 @@ double density_conc::roface(lexer *p, fdm *a, int aa, int bb, int cc)
 {
     double concval;
 
-    phival = 0.5 * (a->phi(i, j, k) + a->phi(i + aa, j + bb, k + cc));
+        phival = 0.5*(a->phi(i,j,k) + a->phi(i+aa,j+bb,k+cc));
+        
+        concval = 0.5*(pconc->val(i,j,k) + pconc->val(i+aa,j+bb,k+cc));
+        
 
-    concval = 0.5 * (pconc->val(i, j, k) + pconc->val(i + aa, j + bb, k + cc));
+        H = heaviside_face(p,a->phi,phival,i,j,k,aa,bb,cc);
+        
+        roval = (p->W1+concval*p->C1)*H + (p->W3+concval*p->C3)*(1.0-H);
+    
 
-    H = heaviside_face(p, a->phi, phival, i, j, k, aa, bb, cc);
-
-    roval = (p->W1 + concval * p->C1) * H + (p->W3 + concval * p->C3) * (1.0 - H);
-
-    return roval;
+	
+	return roval;		
 }
+
+
+
 

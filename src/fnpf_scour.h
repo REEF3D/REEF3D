@@ -23,7 +23,7 @@ Author: Hans Bihs
 #ifndef FNPF_SCOUR_H_
 #define FNPF_SCOUR_H_
 
-#include "scour_core.h"
+#include"scour_core.h"
 
 class fdm_fnpf;
 
@@ -33,14 +33,14 @@ class fdm_fnpf;
 class fnpf_scour : public scour_core
 {
 public:
-    fnpf_scour(lexer *, fdm_fnpf *, ghostcell *);
+    fnpf_scour(lexer*,fdm_fnpf*,ghostcell*);
     virtual ~fnpf_scour() = default;
 
     // every time step: the bed velocity and its statistics
-    void sample(lexer *, fdm_fnpf *, ghostcell *);
+    void sample(lexer*,fdm_fnpf*,ghostcell*);
 
 private:
-    void bedvel(lexer *, fdm_fnpf *);
+    void bedvel(lexer*,fdm_fnpf*);
 };
 
 #endif

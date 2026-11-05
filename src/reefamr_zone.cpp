@@ -20,10 +20,10 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "6DOF_obj.h"
-#include "lexer.h"
-#include "reefamr.h"
-#include <cmath>
+#include"reefamr.h"
+#include"lexer.h"
+#include"6DOF_obj.h"
+#include<cmath>
 
 //  Refinement zone of the moving bodies (zone_bodies of the module): a margin zr around the
 //  wetted hull, reaching ahead of the bow by the distance travelled until the next regrid,
@@ -35,27 +35,27 @@ Author: Hans Bihs
 // triangles below the still water level and the refinement zone of every body
 void reefamr::zone_setup(lexer *p)
 {
-    vector<sixdof_obj *> obj;
+    vector<sixdof_obj*> obj;
     zone_bodies(obj);
 
-    const double psi = 1.0e-8 * p->DXM;
+    const double psi = 1.0e-8*p->DXM;
     const int nbody = (int)obj.size();
 
-    ztri.assign(nbody, vector<int>());
-    zones.assign(nbody, reefamr_zone());
+    ztri.assign(nbody,vector<int>());
+    zones.assign(nbody,reefamr_zone());
 
-    if((int)zx0.size() != nbody)
+    if((int)zx0.size()!=nbody)
     {
         zx0.resize(nbody);
         zy0.resize(nbody);
-        for(int nb = 0; nb < nbody; ++nb)
+        for(int nb=0; nb<nbody; ++nb)
         {
             zx0[nb] = obj[nb]->amr_c(0);
             zy0[nb] = obj[nb]->amr_c(1);
         }
     }
 
-    for(int nb = 0; nb < nbody; ++nb)
+    for(int nb=0; nb<nbody; ++nb)
     {
         sixdof_obj *o = obj[nb];
         double **tx = o->amr_tri(0), **ty = o->amr_tri(1), **tz = o->amr_tri(2);
@@ -67,16 +67,17 @@ void reefamr::zone_setup(lexer *p)
         // heading: direction of motion, the yaw angle for a body at rest; zalign: the x axis
         // (a moored body has no meaningful heading, and every swing of it changed the zone)
         double ux = o->amr_u(0), uy = o->amr_u(1);
-        double sp = sqrt(ux * ux + uy * uy);
+        double sp = sqrt(ux*ux + uy*uy);
         if(par.zalign)
         {
             z.ex = 1.0;
             z.ey = 0.0;
         }
-        else if(sp > 1.0e-6)
+        else
+        if(sp>1.0e-6)
         {
-            z.ex = ux / sp;
-            z.ey = uy / sp;
+            z.ex = ux/sp;
+            z.ey = uy/sp;
         }
         else
         {
@@ -89,44 +90,40 @@ void reefamr::zone_setup(lexer *p)
         z.bx0 = z.by0 = 1.0e20;
         z.bx1 = z.by1 = -1.0e20;
 
-        for(int n = 0; n < o->amr_tricount(); ++n)
+        for(int n=0; n<o->amr_tricount(); ++n)
         {
-            if(tz[n][0] > p->wd + psi && tz[n][1] > p->wd + psi && tz[n][2] > p->wd + psi)
-                continue;
+            if(tz[n][0]>p->wd+psi && tz[n][1]>p->wd+psi && tz[n][2]>p->wd+psi)
+            continue;
 
             ztri[nb].push_back(n);
 
-            for(int q = 0; q < 3; ++q)
+            for(int q=0; q<3; ++q)
             {
-                z.bx0 = MIN(z.bx0, tx[n][q]);
-                z.bx1 = MAX(z.bx1, tx[n][q]);
-                z.by0 = MIN(z.by0, ty[n][q]);
-                z.by1 = MAX(z.by1, ty[n][q]);
+                z.bx0 = MIN(z.bx0,tx[n][q]); z.bx1 = MAX(z.bx1,tx[n][q]);
+                z.by0 = MIN(z.by0,ty[n][q]); z.by1 = MAX(z.by1,ty[n][q]);
             }
 
-            for(int q = 0; q < 3; ++q)
-                if(tz[n][q] <= p->wd + psi)
-                {
-                    double dx = tx[n][q] - z.cx, dy = ty[n][q] - z.cy;
-                    double s = dx * z.ex + dy * z.ey;
-                    double r = -dx * z.ey + dy * z.ex;
-                    z.smin = MIN(z.smin, s);
-                    z.smax = MAX(z.smax, s);
-                    z.nmin = MIN(z.nmin, r);
-                    z.nmax = MAX(z.nmax, r);
-                }
+            for(int q=0; q<3; ++q)
+            if(tz[n][q]<=p->wd+psi)
+            {
+                double dx = tx[n][q]-z.cx, dy = ty[n][q]-z.cy;
+                double s = dx*z.ex + dy*z.ey;
+                double r = -dx*z.ey + dy*z.ex;
+                z.smin = MIN(z.smin,s); z.smax = MAX(z.smax,s);
+                z.nmin = MIN(z.nmin,r); z.nmax = MAX(z.nmax,r);
+            }
         }
 
         // the zone reaches ahead of the bow by the distance travelled until the next regrid
-        const double ahead = 1.5 * sp * p->dt * MAX(regrid_int, 1);
+        const double ahead = 1.5*sp*p->dt*MAX(regrid_int,1);
         z.sfront = z.smax + par.zr + ahead;
         z.sback = z.smin - par.zr;
         z.nlo = z.nmin - par.zr;
         z.nhi = z.nmax + par.zr;
 
         // the wake wedge reaches back to where the bow has been
-        double trav = sqrt(pow(z.cx - zx0[nb], 2.0) + pow(z.cy - zy0[nb], 2.0));
-        z.wake = MIN(par.zL, (z.smax - z.smin) + trav + par.zr);
+        double trav = sqrt(pow(z.cx-zx0[nb],2.0) + pow(z.cy-zy0[nb],2.0));
+        z.wake = MIN(par.zL, (z.smax-z.smin) + trav + par.zr);
 
         // aligned zone: the travel distance on every side, no wake
         if(par.zalign)
@@ -137,38 +134,38 @@ void reefamr::zone_setup(lexer *p)
             z.wake = 0.0;
         }
 
-        if(z.smin > z.smax)  // no part of the body in the water
-            z.smin = z.smax = z.nmin = z.nmax = z.sfront = z.sback = z.nlo = z.nhi = z.wake = 0.0;
+        if(z.smin>z.smax)       // no part of the body in the water
+        z.smin = z.smax = z.nmin = z.nmax = z.sfront = z.sback = z.nlo = z.nhi = z.wake = 0.0;
     }
 }
 
 bool reefamr::zone_test(double x, double y)
 {
     const double r = par.zr;
-    const double ta = tan(par.za * PI / 180.0);
+    const double ta = tan(par.za*PI/180.0);
 
     for(auto &z : zones)
     {
-        if(z.smin >= z.smax)
-            continue;
+        if(z.smin>=z.smax)
+        continue;
 
-        double dx = x - z.cx, dy = y - z.cy;
-        double s = dx * z.ex + dy * z.ey;
-        double n = -dx * z.ey + dy * z.ex;
+        double dx = x-z.cx, dy = y-z.cy;
+        double s = dx*z.ex + dy*z.ey;
+        double n = -dx*z.ey + dy*z.ex;
 
         // hull
-        if(s >= z.sback && s <= z.sfront && n >= z.nlo && n <= z.nhi)
-            return true;
+        if(s>=z.sback && s<=z.sfront && n>=z.nlo && n<=z.nhi)
+        return true;
 
         // wake: wedge from the bow with half angle za, length zL at most (only where the bow has been)
-        if(z.wake > 0.0)
+        if(z.wake>0.0)
         {
             double d = z.smax - s;
-            if(d >= 0.0 && d <= z.wake)
+            if(d>=0.0 && d<=z.wake)
             {
-                double half = 0.5 * (z.nmax - z.nmin) + r + d * ta;
-                if(fabs(n - 0.5 * (z.nmin + z.nmax)) <= half)
-                    return true;
+                double half = 0.5*(z.nmax-z.nmin) + r + d*ta;
+                if(fabs(n - 0.5*(z.nmin+z.nmax))<=half)
+                return true;
             }
         }
     }

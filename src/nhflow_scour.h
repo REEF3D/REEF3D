@@ -23,7 +23,7 @@ Author: Hans Bihs
 #ifndef NHFLOW_SCOUR_H_
 #define NHFLOW_SCOUR_H_
 
-#include "scour_core.h"
+#include"scour_core.h"
 
 class fdm_nhf;
 
@@ -34,11 +34,11 @@ class fdm_nhf;
 class nhflow_scour : public scour_core
 {
 public:
-    nhflow_scour(lexer *, fdm_nhf *, ghostcell *);
+    nhflow_scour(lexer*,fdm_nhf*,ghostcell*);
     virtual ~nhflow_scour() = default;
 
     // every time step: the near-bed and depth-averaged velocity and their statistics
-    void sample(lexer *, fdm_nhf *, ghostcell *);
+    void sample(lexer*,fdm_nhf*,ghostcell*);
 };
 
 #endif

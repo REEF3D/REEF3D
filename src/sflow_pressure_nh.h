@@ -23,7 +23,7 @@ Author: Hans Bihs
 #ifndef SFLOW_PRESSURE_NH_H_
 #define SFLOW_PRESSURE_NH_H_
 
-#include "sflow_pressure.h"
+#include"sflow_pressure.h"
 
 class sflow_amr;
 
@@ -40,13 +40,13 @@ class sflow_pressure_nh : public sflow_pressure
 public:
     sflow_amr *amr = nullptr;
 
-    virtual void assemble(lexer *, fdm2D *, ghostcell *, slice &UH, slice &VH, slice &WL, slice &Un, slice &Vn, double alpha) = 0;
-    virtual void correct(lexer *, fdm2D *, slice &UH, slice &VH, slice &WH, slice &WL, double alpha) = 0;
-    virtual int is_active(lexer *, fdm2D *, int, int) = 0;
-    virtual int gcval() const = 0;
+    virtual void assemble(lexer*, fdm2D*, ghostcell*, slice &UH, slice &VH, slice &WL, slice &Un, slice &Vn, double alpha)=0;
+    virtual void correct(lexer*, fdm2D*, slice &UH, slice &VH, slice &WH, slice &WL, double alpha)=0;
+    virtual int is_active(lexer*, fdm2D*, int, int)=0;
+    virtual int gcval() const=0;
     // coefficients of the bed pressure in the u, v correction and of the w correction (G 7 1:
     // the synchronisation projection of sflow_amr)
-    virtual void coef(double &cbq, double &cwq) const = 0;
+    virtual void coef(double &cbq, double &cwq) const=0;
 };
 
 #endif

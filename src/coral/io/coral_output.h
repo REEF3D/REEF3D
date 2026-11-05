@@ -26,26 +26,27 @@ Architect: Hans Bihs
 #ifndef CORAL_OUTPUT_H_
 #define CORAL_OUTPUT_H_
 
-#include <fstream>
-#include <string>
-#include <vector>
+#include<fstream>
+#include<string>
+#include<vector>
 
-namespace coral {
-class model;
-
-class time_series
+namespace coral
 {
-public:
-    void open(const std::string &file, const model &, bool append = false);  // append: continue the file (restart)
-    void write(const model &, double t);
-    void close() { out_.close(); }
-    void flush() { out_.flush(); }
-    const std::vector<std::string> &columns() const { return cols_; }
+    class model;
 
-private:
-    std::ofstream out_;
-    std::vector<std::string> cols_;
-};
-}  // namespace coral
+    class time_series
+    {
+    public:
+        void open(const std::string &file, const model&, bool append=false);   // append: continue the file (restart)
+        void write(const model&, double t);
+        void close() {out_.close();}
+        void flush() {out_.flush();}
+        const std::vector<std::string> &columns() const {return cols_;}
+
+    private:
+        std::ofstream out_;
+        std::vector<std::string> cols_;
+    };
+}
 
 #endif

@@ -20,14 +20,15 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "sediment_cds_hj.h"
-#include "fnpf_discrete_weights.h"
-#include "lexer.h"
-#include "slice.h"
-#include "vec.h"
+#include"sediment_cds_hj.h"
+#include"lexer.h"
+#include"slice.h"
+#include"vec.h"
+#include"fnpf_discrete_weights.h"
 
-sediment_cds_hj::sediment_cds_hj(lexer *p)
+sediment_cds_hj::sediment_cds_hj(lexer* p) 
 {
+
 }
 
 sediment_cds_hj::~sediment_cds_hj()
@@ -35,25 +36,25 @@ sediment_cds_hj::~sediment_cds_hj()
 }
 
 double sediment_cds_hj::sx(lexer *p, slice &f, double ivel1, double ivel2)
-{
-    if(p->S31 == 1)
-        grad = 0.5 * (ivel1 + ivel2) * (f(i + 1, j) - f(i - 1, j)) / (p->DXP[IP] + p->DXP[IM1]);
-
+{   
+    if(p->S31==1)
+    grad = 0.5*(ivel1+ivel2)*(f(i+1,j)-f(i-1,j))/(p->DXP[IP]+p->DXP[IM1]);
+    
     // S 31 2/3: same face form as sediment_cds
-    if(p->S31 >= 2)
-        grad = (0.5 * (f(i, j) + f(i + 1, j)) * (ivel2 != 0.0 ? 1.0 : 0.0) - 0.5 * (f(i - 1, j) + f(i, j)) * (ivel1 != 0.0 ? 1.0 : 0.0)) / p->DXN[IP];
-
+    if(p->S31>=2)
+    grad = (0.5*(f(i,j)+f(i+1,j))*(ivel2!=0.0?1.0:0.0) - 0.5*(f(i-1,j)+f(i,j))*(ivel1!=0.0?1.0:0.0))/p->DXN[IP];
+        
     return grad;
 }
 
 double sediment_cds_hj::sy(lexer *p, slice &f, double jvel1, double jvel2)
 {
-    if(p->S31 == 1)
-        grad = 0.5 * (jvel1 + jvel2) * (f(i, j + 1) - f(i, j - 1)) / (p->DYP[JP] + p->DYP[JM1]);
-
-    if(p->S31 >= 2)
-        grad = (0.5 * (f(i, j) + f(i, j + 1)) * (jvel2 != 0.0 ? 1.0 : 0.0) - 0.5 * (f(i, j - 1) + f(i, j)) * (jvel1 != 0.0 ? 1.0 : 0.0)) / p->DYN[JP];
-
-    return grad;
+    if(p->S31==1)
+    grad = 0.5*(jvel1+jvel2)*(f(i,j+1)-f(i,j-1))/(p->DYP[JP]+p->DYP[JM1]);
+    
+    if(p->S31>=2)
+    grad = (0.5*(f(i,j)+f(i,j+1))*(jvel2!=0.0?1.0:0.0) - 0.5*(f(i,j-1)+f(i,j))*(jvel1!=0.0?1.0:0.0))/p->DYN[JP];
+			  
+    return grad;  
 }
 

@@ -23,9 +23,9 @@ Authors: Hans Bihs, Tobias Martin
 #ifndef SIXDOF_GEOMETRY_H_
 #define SIXDOF_GEOMETRY_H_
 
-#include "increment.h"
-#include <Eigen/Dense>
-#include <vector>
+#include"increment.h"
+#include<vector>
+#include<Eigen/Dense>
 
 class lexer;
 class ghostcell;
@@ -50,30 +50,31 @@ using namespace std;
 class sixdof_geometry : public increment
 {
 public:
+
     sixdof_geometry(int);
     virtual ~sixdof_geometry();
 
     // ---- set-up
-    void allocate(lexer *);                 // triangle arrays for all input objects
-    void primitives(lexer *, ghostcell *);  // X 110, 131-133, 153, 163, 164
-    void read_stl(lexer *, ghostcell *);    // X 180: floating.stl / floating-<id>.stl
-    void orient(lexer *, ghostcell *);      // consistent outward orientation (ray test)
-    void refine(lexer *, ghostcell *);      // X 185: split (1-3) or remesh (4) to the grid spacing
+    void allocate(lexer*);                      // triangle arrays for all input objects
+    void primitives(lexer*, ghostcell*);        // X 110, 131-133, 153, 163, 164
+    void read_stl(lexer*, ghostcell*);          // X 180: floating.stl / floating-<id>.stl
+    void orient(lexer*, ghostcell*);            // consistent outward orientation (ray test)
+    void refine(lexer*, ghostcell*);            // X 185: split (1-3) or remesh (4) to the grid spacing
 
     // ---- pose
-    void store_body_frame(const Eigen::Vector3d &);                    // tri0 = tri - c
-    void rotate(double, double, double, const Eigen::Vector3d &);      // rotate tri about c (Euler angles)
-    void transform(const Eigen::Matrix3d &, const Eigen::Vector3d &);  // tri = R tri0 + c
+    void store_body_frame(const Eigen::Vector3d&);                  // tri0 = tri - c
+    void rotate(double, double, double, const Eigen::Vector3d&);    // rotate tri about c (Euler angles)
+    void transform(const Eigen::Matrix3d&, const Eigen::Vector3d&); // tri = R tri0 + c
 
     // rotation of a point about (x0,y0,z0) with the Euler angles phi, theta, psi
-    static void rotation_tri(double, double, double, double &, double &, double &,
-                             const double &, const double &, const double &);
+    static void rotation_tri(double, double, double, double&, double&, double&,
+                             const double&, const double&, const double&);
 
     // ---- properties
-    double volume() const;  // enclosed volume (divergence theorem)
+    double volume() const;                      // enclosed volume (divergence theorem)
 
     // ---- data
-    const int id;  // body number
+    const int id;                               // body number
     double **tri_x, **tri_y, **tri_z, **tri_x0, **tri_y0, **tri_z0;
     int tricount;
     int entity_count, entity_sum;
@@ -81,7 +82,7 @@ public:
 
     // X 185 4: the remesher closed holes of the surface (volume and mass properties change)
     bool holes_closed;
-
+    
     // horizontal spacing factor of the triangle sizing (finest level of a mesh refinement zone)
     double amr_hfac;
     // vertical spacing factor of the triangle sizing (finest level with doubled sigma layers, G 6 1)
@@ -89,19 +90,19 @@ public:
 
 private:
     // primitives
-    void box(lexer *, int);
-    void cylinder_x(lexer *, int);
-    void cylinder_y(lexer *, int);
-    void cylinder_z(lexer *, int);
-    void wedge_sym(lexer *, int);
-    void wedge(lexer *, int);
-    void hexahedron(lexer *, int);
+    void box(lexer*, int);
+	void cylinder_x(lexer*, int);
+	void cylinder_y(lexer*, int);
+	void cylinder_z(lexer*, int);
+	void wedge_sym(lexer*, int);
+    void wedge(lexer*, int);
+    void hexahedron(lexer*, int);
 
     // refinement
-    void geometry_refinement(lexer *, ghostcell *);
-    void geometry_remesh(lexer *, ghostcell *);
-    void create_triangle(double &, double &, double &, double &, double &, double &, double &, double &, double &, const double &, const double &, const double &);
-    vector<vector<double>> tri_x_r, tri_y_r, tri_z_r;
+    void geometry_refinement(lexer*, ghostcell*);
+	void geometry_remesh(lexer*, ghostcell*);
+	void create_triangle(double&,double&,double&,double&,double&,double&,double&,double&,double&,const double&,const double&,const double&);
+    vector<vector<double> > tri_x_r, tri_y_r, tri_z_r;
 
     // orientation
     int *tri_switch, *tri_switch_local;

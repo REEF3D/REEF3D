@@ -20,93 +20,99 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "fdm.h"
-#include "gradient.h"
-#include "lexer.h"
+#include"gradient.h"
+#include"fdm.h"
+#include"lexer.h"
 // **********************************************************
 // XDX2
 // **********************************************************
 
-double gradient::pudx(lexer *p, fdm *a)
+double gradient::pudx(lexer *p, fdm* a)
 {
-    grad = (a->u(i, j, k) - a->u(i - 1, j, k)) / p->DXN[IP];
+	grad = (a->u(i,j,k) - a->u(i-1,j,k))/p->DXN[IP];
 
-    return grad;
+	return grad;
 }
 
-double gradient::pudy(lexer *p, fdm *a)
+double gradient::pudy(lexer *p, fdm* a)
 {
     f1 = f2 = 0.5;
+    
+    
+	grad = ((f2*a->u(i,j+1,k)+f1*a->u(i-1,j+1,k)) - (f2*a->u(i,j-1,k)+f1*a->u(i-1,j-1,k)))/(p->DYP[JP]+p->DYP[JM1]);
 
-    grad = ((f2 * a->u(i, j + 1, k) + f1 * a->u(i - 1, j + 1, k)) - (f2 * a->u(i, j - 1, k) + f1 * a->u(i - 1, j - 1, k))) / (p->DYP[JP] + p->DYP[JM1]);
-
-    return grad;
+	return grad;
 }
 
-double gradient::pudz(lexer *p, fdm *a)
+double gradient::pudz(lexer *p, fdm* a)
 {
     f1 = f2 = 0.5;
-
-    grad = ((f2 * a->u(i, j, k + 1) + f1 * a->u(i - 1, j, k + 1)) - (f2 * a->u(i, j, k - 1) + f1 * a->u(i - 1, j, k - 1))) / (p->DZP[KP] + p->DZP[KM1]);
-
-    return grad;
+    
+    
+	grad = ((f2*a->u(i,j,k+1)+f1*a->u(i-1,j,k+1)) - (f2*a->u(i,j,k-1)+f1*a->u(i-1,j,k-1)))/(p->DZP[KP]+p->DZP[KM1]);
+    
+	return grad;
 }
 
 // **********************************************************
 // YDX2
 // **********************************************************
 
-double gradient::pvdx(lexer *p, fdm *a)
+double gradient::pvdx(lexer *p, fdm* a)
 {
     f1 = f2 = 0.5;
+    
+    
+	grad = ((f2*a->v(i+1,j,k)+f1*a->v(i+1,j-1,k)) - (f2*a->v(i-1,j,k)+f1*a->v(i-1,j-1,k)))/(p->DXP[IP]+p->DXP[IM1]);
 
-    grad = ((f2 * a->v(i + 1, j, k) + f1 * a->v(i + 1, j - 1, k)) - (f2 * a->v(i - 1, j, k) + f1 * a->v(i - 1, j - 1, k))) / (p->DXP[IP] + p->DXP[IM1]);
-
-    return grad;
+	return grad;
 }
 
-double gradient::pvdy(lexer *p, fdm *a)
+double gradient::pvdy(lexer *p, fdm* a)
 {
-    grad = (a->v(i, j, k) - a->v(i, j - 1, k)) / (p->DYN[JP]);
+	grad = (a->v(i,j,k) - a->v(i,j-1,k))/(p->DYN[JP]);
 
-    return grad;
+	return grad;
 }
 
-double gradient::pvdz(lexer *p, fdm *a)
+double gradient::pvdz(lexer *p, fdm* a)
 {
     f1 = f2 = 0.5;
+    
+    
+	grad = ((f2*a->v(i,j,k+1)+f1*a->v(i,j-1,k+1)) - (f2*a->v(i,j,k-1)+f1*a->v(i,j-1,k-1)))/(p->DZP[KP]+p->DZP[KM1]); 
 
-    grad = ((f2 * a->v(i, j, k + 1) + f1 * a->v(i, j - 1, k + 1)) - (f2 * a->v(i, j, k - 1) + f1 * a->v(i, j - 1, k - 1))) / (p->DZP[KP] + p->DZP[KM1]);
-
-    return grad;
+	return grad;
 }
 
 // **********************************************************
 // ZX2
 // **********************************************************
 
-double gradient::pwdx(lexer *p, fdm *a)
+double gradient::pwdx(lexer *p, fdm* a)
 {
     f1 = f2 = 0.5;
+    
+    
+	grad = ((f2*a->w(i+1,j,k)+f1*a->w(i+1,j,k-1)) - (f2*a->w(i-1,j,k)+f1*a->w(i-1,j,k-1)))/(p->DXP[IP]+p->DXP[IM1]);
 
-    grad = ((f2 * a->w(i + 1, j, k) + f1 * a->w(i + 1, j, k - 1)) - (f2 * a->w(i - 1, j, k) + f1 * a->w(i - 1, j, k - 1))) / (p->DXP[IP] + p->DXP[IM1]);
-
-    return grad;
+	return grad;
 }
 
-double gradient::pwdy(lexer *p, fdm *a)
+double gradient::pwdy(lexer *p, fdm* a)
 {
     f1 = f2 = 0.5;
+    
+    
+	grad = ((f2*a->w(i,j+1,k)+f1*a->w(i,j+1,k-1)) - (f2*a->w(i,j-1,k)+f1*a->w(i,j-1,k-1)))/(p->DYP[JP]+p->DYP[JM1]);
 
-    grad = ((f2 * a->w(i, j + 1, k) + f1 * a->w(i, j + 1, k - 1)) - (f2 * a->w(i, j - 1, k) + f1 * a->w(i, j - 1, k - 1))) / (p->DYP[JP] + p->DYP[JM1]);
-
-    return grad;
+	return grad;
 }
 
-double gradient::pwdz(lexer *p, fdm *a)
+double gradient::pwdz(lexer *p, fdm* a)
 {
-    grad = (a->w(i, j, k) - a->w(i, j, k - 1)) / (p->DZN[KP]);
+	grad = (a->w(i,j,k) - a->w(i,j,k-1))/(p->DZN[KP]);
 
-    return grad;
+	return grad;
 }
 

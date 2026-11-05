@@ -23,13 +23,13 @@ Author: Hans Bihs
 #ifndef MOMENTUM_RK_H_
 #define MOMENTUM_RK_H_
 
-#include "bcmom.h"
-#include "field1.h"
-#include "field2.h"
-#include "field3.h"
-#include "field4.h"
-#include "momentum.h"
-#include "momentum_forcing.h"
+#include"momentum.h"
+#include"momentum_forcing.h"
+#include"bcmom.h"
+#include"field1.h"
+#include"field2.h"
+#include"field3.h"
+#include"field4.h"
 
 class convection;
 class diffusion;
@@ -90,77 +90,76 @@ diffusion are added.
 class momentum_rk final : public momentum, public momentum_forcing, public bcmom
 {
 public:
-    momentum_rk(lexer *, fdm *, ghostcell *, convection *, convection *, diffusion *, pressure *, poisson *,
-                turbulence *, solver *, solver *, ioflow *, heat *&, concentration *&, reini *, fsi *);
-    virtual ~momentum_rk();
-    void start(lexer *, fdm *, ghostcell *, vrans *, sixdof *) override final;
+	momentum_rk(lexer*, fdm*, ghostcell*, convection*, convection*, diffusion*, pressure*, poisson*,
+                turbulence*, solver*, solver*, ioflow*, heat*&, concentration*&, reini*, fsi*);
+	virtual ~momentum_rk();
+	void start(lexer*, fdm*, ghostcell*, vrans*, sixdof*) override final;
 
     // mesh refinement (cfd_amr, G 15): the SSP step in parts, called grid by grid with the fills of
     // the patches and the composite projection in between (step_ssp calls them in this order)
-    int amr_stages() const { return stages; }
-    bool amr_ssp() const { return scheme == SSP && !conservative; }
-    double amr_alpha(int s) const { return ssp_b[s]; }
-    void amr_step_begin(lexer *, fdm *, ghostcell *);
-    void amr_ls_transport(lexer *, fdm *, ghostcell *, int);
-    void amr_ls_finish(lexer *, fdm *, ghostcell *, int, bool, int);
-    void amr_ls_reini(lexer *, fdm *, ghostcell *, int, int);
-    int amr_reini_iters(lexer *, int) const;
-    void amr_momentum(lexer *, fdm *, ghostcell *, vrans *, sixdof *, int, int);
-    void amr_project_after(lexer *, fdm *, ghostcell *, field &, field &, field &);
-    void amr_projection(lexer *, fdm *, ghostcell *, int);
-    void amr_solid_forcing(lexer *, fdm *, ghostcell *, field &, field &, field &, double);
-    void amr_stage_end(lexer *, fdm *, ghostcell *, int);
-    field &amr_vel(fdm *, int c, int s);
-    field &amr_velout(fdm *, int c, int s);
-    field4 &amr_phi_in(int s);
-    field4 &amr_phi_out(int s);
+    int amr_stages() const {return stages;}
+    bool amr_ssp() const {return scheme==SSP && !conservative;}
+    double amr_alpha(int s) const {return ssp_b[s];}
+    void amr_step_begin(lexer*, fdm*, ghostcell*);
+    void amr_ls_transport(lexer*, fdm*, ghostcell*, int);
+    void amr_ls_finish(lexer*, fdm*, ghostcell*, int, bool, int);
+    void amr_ls_reini(lexer*, fdm*, ghostcell*, int, int);
+    int amr_reini_iters(lexer*, int) const;
+    void amr_momentum(lexer*, fdm*, ghostcell*, vrans*, sixdof*, int, int);
+    void amr_project_after(lexer*, fdm*, ghostcell*, field&, field&, field&);
+    void amr_projection(lexer*, fdm*, ghostcell*, int);
+    void amr_solid_forcing(lexer*, fdm*, ghostcell*, field&, field&, field&, double);
+    void amr_stage_end(lexer*, fdm*, ghostcell*, int);
+    field& amr_vel(fdm*, int c, int s);
+    field& amr_velout(fdm*, int c, int s);
+    field4& amr_phi_in(int s);
+    field4& amr_phi_out(int s);
 
     // the diffusion and its solver (the mesh refinement: the implicit diffusion of heat and
     // concentration on the grid of this object)
-    diffusion *amr_diffusion() { return pdiff; }
-    solver *amr_solver() { return psolv; }
+    diffusion* amr_diffusion() { return pdiff; }
+    solver* amr_solver() { return psolv; }
 
 private:
-    enum { SSP = 0,
-           LOWSTORAGE = 1 };
+    enum {SSP=0, LOWSTORAGE=1};
 
-    void step_ssp(lexer *, fdm *, ghostcell *, vrans *, sixdof *);
-    void step_lowstorage(lexer *, fdm *, ghostcell *, vrans *, sixdof *);
+    void step_ssp(lexer*, fdm*, ghostcell*, vrans*, sixdof*);
+    void step_lowstorage(lexer*, fdm*, ghostcell*, vrans*, sixdof*);
 
-    void levelset_transport(lexer *, fdm *, ghostcell *, int);
-    void levelset_finish(lexer *, fdm *, ghostcell *, int, bool, int);
-    void levelset_lowstorage(lexer *, fdm *, ghostcell *, int);
+    void levelset_transport(lexer*, fdm*, ghostcell*, int);
+    void levelset_finish(lexer*, fdm*, ghostcell*, int, bool, int);
+    void levelset_lowstorage(lexer*, fdm*, ghostcell*, int);
 
-    void component_ssp(lexer *, fdm *, ghostcell *, vrans *, int, int);
-    void convection_conservative(lexer *, fdm *, ghostcell *, int);
-    void component_lowstorage(lexer *, fdm *, ghostcell *, vrans *, int, int);
+    void component_ssp(lexer*, fdm*, ghostcell*, vrans*, int, int);
+    void convection_conservative(lexer*, fdm*, ghostcell*, int);
+    void component_lowstorage(lexer*, fdm*, ghostcell*, vrans*, int, int);
 
-    void sources(lexer *, fdm *, ghostcell *, vrans *, int, field &);
-    void rhs(lexer *, fdm *, int);
-    void convection_start(lexer *, fdm *, int, field &, field &, field &, field &);
-    void diffusion_start(lexer *, fdm *, ghostcell *, int, field &, field &, field &, field &, double);
-    void projection(lexer *, fdm *, ghostcell *, field &, field &, field &, double);
+    void sources(lexer*, fdm*, ghostcell*, vrans*, int, field&);
+    void rhs(lexer*, fdm*, int);
+    void convection_start(lexer*, fdm*, int, field&, field&, field&, field&);
+    void diffusion_start(lexer*, fdm*, ghostcell*, int, field&, field&, field&, field&, double);
+    void projection(lexer*, fdm*, ghostcell*, field&, field&, field&, double);
 
     // second-order implicit diffusion
-    void imex_step_setup(lexer *);
-    void imex_pre(lexer *, fdm *, int, int, field &);
-    void imex_accumulate(lexer *, fdm *, ghostcell *, int, field &, field &, field &);
-    field &DC(int c);
+    void imex_step_setup(lexer*);
+    void imex_pre(lexer*, fdm*, int, int, field&);
+    void imex_accumulate(lexer*, fdm*, ghostcell*, int, field&, field&, field&);
+    field& DC(int c);
 
     // stage fields
-    field &vel(fdm *, int c, int s);     // input velocity component c of SSP stage s
-    field &velout(fdm *, int c, int s);  // output velocity component c of SSP stage s
-    field &comp(fdm *, field &, field &, field &, int c);
-    field &FGH(fdm *, int c);
-    void clear_FGH(lexer *, fdm *);
+    field& vel(fdm*, int c, int s);         // input velocity component c of SSP stage s
+    field& velout(fdm*, int c, int s);      // output velocity component c of SSP stage s
+    field& comp(fdm*, field&, field&, field&, int c);
+    field& FGH(fdm*, int c);
+    void clear_FGH(lexer*, fdm*);
 
     // conservative form
-    void face_density(lexer *, fdm *, ghostcell *, field &, field &, field &);
-    double vel_limiter(lexer *, fdm *, field &, field &, field &, field &);
-    double ro_filter(lexer *, fdm *, field &);
-    field &M(int c, int idx);
-    field &RO(int c, int idx);
-    field &UR(int c);
+    void face_density(lexer*, fdm*, ghostcell*, field&, field&, field&);
+    double vel_limiter(lexer*, fdm*, field&, field&, field&, field&);
+    double ro_filter(lexer*, fdm*, field&);
+    field& M(int c, int idx);
+    field& RO(int c, int idx);
+    field& UR(int c);
 
     int scheme;
     int stages;
@@ -175,8 +174,8 @@ private:
 
     // SSP: stage velocities; low storage: urk1 = stage velocity, urk2 = convection of the previous stage
     field1 urk1, urk2, fx;
-    field2 vrk1, vrk2, fy;
-    field3 wrk1, wrk2, fz;
+	field2 vrk1, vrk2, fy;
+	field3 wrk1, wrk2, fz;
 
     // level set (N40 = 2, 3, 4): ls = phi(n), frk1/frk2 = stages; low storage: frk1 = convection of the previous stage
     field4 *ls, *frk1, *frk2;
@@ -184,7 +183,7 @@ private:
     // second-order implicit diffusion: implicit weight, accumulation weight of the solved D and
     // whether the accumulated correction is added, per stage
     bool imex;
-    double imex_valid;  // D(u(n)) of the last step available (1); a double for the checkpoints (ckpt_registry)
+    double imex_valid;          // D(u(n)) of the last step available (1); a double for the checkpoints (ckpt_registry)
     unsigned long long ckid_imex;
     double imex_g[3], imex_w[3];
     bool imex_use[3];
@@ -206,19 +205,19 @@ private:
     fluid_update *pupdate;
     picard *ppicard;
 
-    int gcval_u, gcval_v, gcval_w;
+	int gcval_u, gcval_v, gcval_w;
     int gcval_phi;
-    double starttime;
+	double starttime;
 
-    convection *pconvec;
+	convection *pconvec;
     convection *pfsfdisc;
-    diffusion *pdiff;
-    pressure *ppress;
-    poisson *ppois;
-    turbulence *pturb;
-    solver *psolv;
+	diffusion *pdiff;
+	pressure *ppress;
+	poisson *ppois;
+	turbulence *pturb;
+	solver *psolv;
     solver *ppoissonsolv;
-    ioflow *pflow;
+	ioflow *pflow;
     reini *preini;
     sixdof *p6dof;
     fsi *pfsi;

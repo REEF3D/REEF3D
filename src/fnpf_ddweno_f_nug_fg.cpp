@@ -20,19 +20,19 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "field.h"
 #include "fnpf_ddweno_f_nug.h"
 #include "lexer.h"
+#include "field.h"
 #include "slice.h"
 
-double fnpf_ddweno_f_nug::ddwenox(field &f, double uw)
+double fnpf_ddweno_f_nug::ddwenox(field& f, double uw)
 {
-    if(uw > 0.0)
+    if(uw>0.0)
     {
         iqmin(f);
         return weno_min_x();
     }
-    else if(uw < 0.0)
+    else if(uw<0.0)
     {
         iqmax(f);
         return weno_max_x();
@@ -41,14 +41,14 @@ double fnpf_ddweno_f_nug::ddwenox(field &f, double uw)
         return 0.0;
 }
 
-double fnpf_ddweno_f_nug::ddwenoy(field &f, double uw)
+double fnpf_ddweno_f_nug::ddwenoy(field& f, double uw)
 {
-    if(uw > 0.0)
+    if(uw>0.0)
     {
         jqmin(f);
         return weno_min_y();
     }
-    else if(uw < 0.0)
+    else if(uw<0.0)
     {
         jqmax(f);
         return weno_max_y();
@@ -57,14 +57,14 @@ double fnpf_ddweno_f_nug::ddwenoy(field &f, double uw)
         return 0.0;
 }
 
-double fnpf_ddweno_f_nug::ddwenoz(field &f, double uw)
+double fnpf_ddweno_f_nug::ddwenoz(field& f, double uw)
 {
-    if(uw > 0.0)
+    if(uw>0.0)
     {
         kqmin(f);
         return weno_min_z();
     }
-    else if(uw < 0.0)
+    else if(uw<0.0)
     {
         kqmax(f);
         return weno_max_z();

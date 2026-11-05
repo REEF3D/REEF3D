@@ -20,39 +20,39 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "fdm_fnpf.h"
-#include "ghostcell.h"
-#include "lexer.h"
-#include "potentialfile_out.h"
-#include <sys/stat.h>
-#include <sys/types.h>
+#include"potentialfile_out.h"
+#include"lexer.h"
+#include"fdm_fnpf.h"
+#include"ghostcell.h"
+#include<sys/stat.h>
+#include<sys/types.h>
 
 void potentialfile_out::header_file_ini(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 {
-    if(p->mpirank == 0)
-        for(n = 0; n < p->P240; ++n)
-        {
-            // open file
-            sprintf(headername, "./REEF3D_FlowFile/REEF3D-potentialheader.r3d");
-
-            // openfile
-            headerout.open(headername, ios::binary);
-        }
-
-    // header
-    if(p->mpirank == 0)
+    if(p->mpirank==0)
+    for(n=0;n<p->P240;++n)
     {
-        iin = p->P240;
-        headerout.write((char *)&iin, sizeof(int));
+    // open file
+    sprintf(headername,"./REEF3D_FlowFile/REEF3D-potentialheader.r3d");
+		
+    // openfile
+    headerout.open(headername, ios::binary);
+    }
+    
+     // header
+    if(p->mpirank==0)
+    {
+        iin=p->P240;
+        headerout.write((char*)&iin, sizeof (int));
+        
+        for(n=0;n<p->P240;++n)
+        {  
+            iin=n;
+            headerout.write((char*)&iin, sizeof (int));
+            ffn=float(p->P240_x[n]);
+            headerout.write((char*)&ffn, sizeof (float));
 
-        for(n = 0; n < p->P240; ++n)
-        {
-            iin = n;
-            headerout.write((char *)&iin, sizeof(int));
-            ffn = float(p->P240_x[n]);
-            headerout.write((char *)&ffn, sizeof(float));
-
-            headerout.close();
+        headerout.close();
         }
     }
 }

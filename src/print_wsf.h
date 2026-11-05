@@ -23,9 +23,9 @@ Author: Hans Bihs
 #ifndef PRINT_WSF_H_
 #define PRINT_WSF_H_
 
-#include "boundarycheck.h"
-#include <fstream>
-#include <iostream>
+#include"boundarycheck.h"
+#include<iostream>
+#include<fstream>
 
 class lexer;
 class fdm;
@@ -39,27 +39,29 @@ class amr_grid_lookup;
 class print_wsf : public boundarycheck
 {
 public:
-    void flush_files() { wsfout.flush(); }  // a rebalance stop (G 46)
-    print_wsf(lexer *, fdm *, ghostcell *, int);
-    virtual ~print_wsf();
+    void flush_files() { wsfout.flush(); }   // a rebalance stop (G 46)
+    print_wsf(lexer*,fdm*,ghostcell*,int);
+	virtual ~print_wsf();
 
-    void height_gauge(lexer *, fdm *, ghostcell *, field &);
+	void height_gauge(lexer*, fdm*, ghostcell*,field&);
 
-    const amr_grid_lookup *amr = nullptr;  // CFD mesh refinement: the free surface on the finest grid
+    const amr_grid_lookup *amr = nullptr;     // CFD mesh refinement: the free surface on the finest grid
+
 
 private:
-    void ini_location(lexer *, fdm *, ghostcell *);
-    void amr_gauge(lexer *, int);
-    void write(lexer *, fdm *, ghostcell *);
+    void ini_location(lexer*, fdm*, ghostcell*);
+    void amr_gauge(lexer*, int);
+    void write(lexer*, fdm*, ghostcell*);
+	
+	double *x,*y;
+	int gauge_num;
 
-    double *x, *y;
-    int gauge_num;
-
-    int *iloc, *jloc, *flag;
+    int *iloc,*jloc,*flag;
     double *wsf;
     int n;
     ofstream wsfout;
     const int fileFlushMaxCount;
+
 };
 
 #endif

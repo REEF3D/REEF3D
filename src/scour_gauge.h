@@ -23,8 +23,8 @@ Author: Hans Bihs
 #ifndef SCOUR_GAUGE_H_
 #define SCOUR_GAUGE_H_
 
-#include <fstream>
-#include <vector>
+#include<fstream>
+#include<vector>
 
 class lexer;
 
@@ -62,42 +62,42 @@ class scour_gauge
 {
 public:
     // type 0: P 83 (Sumer-Fredsoe incremental), 1: P 84 (sediment balance); module "FNPF" or "NHFLOW"
-    scour_gauge(lexer *, int type, const char *module);
+    scour_gauge(lexer*, int type, const char *module);
     ~scour_gauge();
 
     // smp: per gauge ub, vb, uc, vc, h (scour_gauge::nsmp values, reduced, the same on all ranks);
     // ub < -1e19: the gauge lies outside the domain
-    void step(lexer *, const double *smp);
+    void step(lexer*, const double *smp);
 
     // checkpoints (P 48, I 45): the state of all gauges (the same on all ranks)
-    void ckpt_state(std::vector<double> &) const;
-    void ckpt_restore(const std::vector<double> &, size_t &pos);
+    void ckpt_state(std::vector<double>&) const;
+    void ckpt_restore(const std::vector<double>&, size_t &pos);
 
     static const int nsmp = 5;
 
     int num;
-    const double *x, *y, *D;
+    const double *x,*y,*D;
 
 private:
     struct stats
     {
-        double Um, Uc, Ucw, Tp, KC, fw, theta_w, theta_c, ufc2, Slb, r, h, L;
-        double ecx, ecy;  // the direction of the current
+        double Um,Uc,Ucw,Tp,KC,fw,theta_w,theta_c,ufc2,Slb,r,h,L;
+        double ecx,ecy;     // the direction of the current
     };
 
-    void statistics(lexer *, int n, stats &) const;
+    void statistics(lexer*, int n, stats&) const;
     double seq_live(double KC, double Ucw, double DL) const;
-    void write(lexer *, int n, const stats &, double a, double b);
+    void write(lexer*, int n, const stats&, double a, double b);
     double depth_from_volume(double V, double R, double S0) const;
 
     const int type;
-    int eq;  // P 89
-    double g, s, d50, poro, thcr, cotphi, ks, q0;
-    double Tw, Tp_in, cb, dtout;
-    double amax, beta, kB;
+    int eq;     // P 89
+    double g,s,d50,poro,thcr,cotphi,ks,q0;
+    double Tw,Tp_in,cb,dtout;
+    double amax,beta,kB;
 
     // the state per gauge: running weights and means, the scour depth, the scour hole volume
-    std::vector<double> wsum, mub, mvb, muu, mvv, muc, mvc, maa, mh, ubp, vbp, hasp, tact, S, V;
+    std::vector<double> wsum,mub,mvb,muu,mvv,muc,mvc,maa,mh,ubp,vbp,hasp,tact,S,V;
     double nextprint;
     bool warned;
 

@@ -23,7 +23,7 @@ Author: Hans Bihs
 #ifndef WAVE_INTERFACE_H_
 #define WAVE_INTERFACE_H_
 
-#include <vector>
+#include<vector>
 
 class lexer;
 class fdm;
@@ -33,94 +33,100 @@ class wave_field;
 
 using namespace std;
 
-class wave_interface
+class wave_interface 
 {
 
 public:
-    wave_interface(lexer *, ghostcell *);
-    virtual ~wave_interface();
+	wave_interface(lexer*, ghostcell*);
+	virtual ~wave_interface();
+	
 
-    double wave_u(lexer *, ghostcell *, double, double, double);
-    double wave_v(lexer *, ghostcell *, double, double, double);
-    double wave_w(lexer *, ghostcell *, double, double, double);
-    double wave_h(lexer *, ghostcell *, double, double, double);
-    double wave_fi(lexer *, ghostcell *, double, double, double);
-    double wave_eta(lexer *, ghostcell *, double, double);
-
+	double wave_u(lexer*,ghostcell*,double,double,double);
+	double wave_v(lexer*,ghostcell*,double,double,double);
+    double wave_w(lexer*,ghostcell*,double,double,double);
+    double wave_h(lexer*,ghostcell*,double,double,double);
+    double wave_fi(lexer*,ghostcell*,double,double,double);
+    double wave_eta(lexer*,ghostcell*,double,double);
+    
     // cached-point evaluation (wave_lib.h): register the generation-zone
     // cells once, then evaluate by index; same time window and z clamp as above
-    void wave_cache_points(lexer *, ghostcell *, const std::vector<double> &, const std::vector<double> &);
-    double wave_eta_c(lexer *, ghostcell *, int);
-    double wave_fi_c(lexer *, ghostcell *, int, double);
-    void wave_uvw_c(lexer *, ghostcell *, int, double, double &, double &, double &);
-    double wave_um(lexer *, ghostcell *, double, double);
-
+    void wave_cache_points(lexer*,ghostcell*,const std::vector<double>&,const std::vector<double>&);
+    double wave_eta_c(lexer*,ghostcell*,int);
+    double wave_fi_c(lexer*,ghostcell*,int,double);
+    void wave_uvw_c(lexer*,ghostcell*,int,double,double&,double&,double&);
+    double wave_um(lexer*,ghostcell*,double,double);
+    
     // eta of the B 92 wave at one point for the times tv (iowave::timeseries); false with additional sources
-    bool wave_eta_series(lexer *, ghostcell *, double, double, const std::vector<double> &, std::vector<double> &);
-    double wave_vm(lexer *, ghostcell *, double, double);
-
+    bool wave_eta_series(lexer*,ghostcell*,double,double,const std::vector<double>&,std::vector<double>&);
+    double wave_vm(lexer*,ghostcell*,double,double);
+    
+    
     // decomp
-    double wave_u_space_sin(lexer *, ghostcell *, double, double, double, int);
-    double wave_u_space_cos(lexer *, ghostcell *, double, double, double, int);
-    double wave_u_time_sin(lexer *, ghostcell *, int);
-    double wave_u_time_cos(lexer *, ghostcell *, int);
-
-    double wave_v_space_sin(lexer *, ghostcell *, double, double, double, int);
-    double wave_v_space_cos(lexer *, ghostcell *, double, double, double, int);
-    double wave_v_time_sin(lexer *, ghostcell *, int);
-    double wave_v_time_cos(lexer *, ghostcell *, int);
-
-    double wave_w_space_sin(lexer *, ghostcell *, double, double, double, int);
-    double wave_w_space_cos(lexer *, ghostcell *, double, double, double, int);
-    double wave_w_time_sin(lexer *, ghostcell *, int);
-    double wave_w_time_cos(lexer *, ghostcell *, int);
-
-    double wave_eta_space_sin(lexer *, ghostcell *, double, double, int);
-    double wave_eta_space_cos(lexer *, ghostcell *, double, double, int);
-    double wave_eta_time_sin(lexer *, ghostcell *, int);
-    double wave_eta_time_cos(lexer *, ghostcell *, int);
-
-    double wave_fi_space_sin(lexer *, ghostcell *, double, double, double, int);
-    double wave_fi_space_cos(lexer *, ghostcell *, double, double, double, int);
-    double wave_fi_time_sin(lexer *, ghostcell *, int);
-    double wave_fi_time_cos(lexer *, ghostcell *, int);
-
-    void wave_prestep(lexer *, ghostcell *);
-
+    double wave_u_space_sin(lexer*,ghostcell*,double,double,double,int);
+    double wave_u_space_cos(lexer*,ghostcell*,double,double,double,int);
+    double wave_u_time_sin(lexer*,ghostcell*,int);
+    double wave_u_time_cos(lexer*,ghostcell*,int);
+    
+    double wave_v_space_sin(lexer*,ghostcell*,double,double,double,int);
+    double wave_v_space_cos(lexer*,ghostcell*,double,double,double,int);
+    double wave_v_time_sin(lexer*,ghostcell*,int);
+    double wave_v_time_cos(lexer*,ghostcell*,int);
+    
+    double wave_w_space_sin(lexer*,ghostcell*,double,double,double,int);
+    double wave_w_space_cos(lexer*,ghostcell*,double,double,double,int);
+    double wave_w_time_sin(lexer*,ghostcell*,int);
+    double wave_w_time_cos(lexer*,ghostcell*,int);
+    
+    double wave_eta_space_sin(lexer*,ghostcell*,double,double,int);
+    double wave_eta_space_cos(lexer*,ghostcell*,double,double,int);
+    double wave_eta_time_sin(lexer*,ghostcell*,int);
+    double wave_eta_time_cos(lexer*,ghostcell*,int);
+    
+    double wave_fi_space_sin(lexer*,ghostcell*,double,double,double,int);
+    double wave_fi_space_cos(lexer*,ghostcell*,double,double,double,int);
+    double wave_fi_time_sin(lexer*,ghostcell*,int);
+    double wave_fi_time_cos(lexer*,ghostcell*,int);
+    
+    void wave_prestep(lexer*,ghostcell*);
+    
     // decomposed precalc (B 89 1): number of components of all sources (the B 92 wave first);
     // components from decomp_L on belong to the additional sources (wave_field)
-    int decomp_ncomp(lexer *);
+    int decomp_ncomp(lexer*);
     // direction (rad, relative to B 105) of decomposed component n: the B 92 wave from its library,
     // the additional sources along their main direction (I 30 2 exposure masks)
-    double decomp_dir(lexer *, int);
-
+    double decomp_dir(lexer*,int);
+    
     // sources used by the cached evaluation (wave_eta_c, wave_fi_c, wave_uvw_c):
     // ids as in B 524 (1: the B 92 wave); nullptr: all sources
-    void select_sources(const std::vector<int> *);
+    void select_sources(const std::vector<int>*);
     bool source_exists(int) const;
-
+    
     // all sources, n = 0 the B 92 wave, n >= 1 the B 500 ones: library, id, B 92 type, direction relative to B 105 [deg]
     int wave_nsources() const;
     wave_lib *wave_source_lib(int n, int &id, int &type, double &rot) const;
 
-    double wave_paddle_Q(lexer *, ghostcell *, double);
-    double wave_eta_arc(lexer *, ghostcell *, double);
+    double wave_paddle_Q(lexer*,ghostcell*,double);
+    double wave_eta_arc(lexer*,ghostcell*,double);
     bool wave_arc();
-    void wave_paddle_setup(lexer *, ghostcell *, double);
+    void wave_paddle_setup(lexer*,ghostcell*,double);
+
 
 private:
-    wave_lib *pwave;         // source 1: the B 92 wave, unchanged path
-    wave_field *pfield;      // additional sources (B 500-504), summed on top
-    bool legacy_on;          // the B 92 wave is among the selected sources
-    int decomp_L = 1 << 30;  // decomposed components of the B 92 wave (set by decomp_ncomp)
-
-    int n, m, count;
+    wave_lib *pwave;      // source 1: the B 92 wave, unchanged path
+    wave_field *pfield;   // additional sources (B 500-504), summed on top
+    bool legacy_on;       // the B 92 wave is among the selected sources
+    int decomp_L = 1<<30; // decomposed components of the B 92 wave (set by decomp_ncomp)
+    
+    
+    int n,m,count;
     int wtype;
     double wD;
 
-    double starttime, endtime;
+	double starttime,endtime;
     static int printcheck;
+
 };
 
 #endif
+
 

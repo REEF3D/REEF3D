@@ -20,210 +20,215 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "ddweno3_f_nug.h"
-#include "field.h"
-#include "ghostcell.h"
-#include "lexer.h"
-#include "slice.h"
-#include "vec.h"
+#include"ddweno3_f_nug.h"
+#include"lexer.h"
+#include"field.h"
+#include"slice.h"
+#include"ghostcell.h"
+#include"vec.h"
 
-ddweno3_f_nug::ddweno3_f_nug(lexer *pp) : weno3_nug_func(pp)
+ddweno3_f_nug::ddweno3_f_nug(lexer* pp):weno3_nug_func(pp)
 {
-    p = pp;
+    p=pp;
 }
 
 ddweno3_f_nug::~ddweno3_f_nug()
 {
 }
 
-double ddweno3_f_nug::ddwenox(field &f, double uw)
+double ddweno3_f_nug::ddwenox(field& f, double uw)
 {
     DX = p->DXP;
     DY = p->DYP;
     DZ = p->DZP;
-    uf = 0;
+    uf=0;
+    
+	grad=0.0;
 
-    grad = 0.0;
+	if(uw>=0.0)
+	{
+	iqmin(p,f);
+	is_min_x();
+	weight_min_x();
 
-    if(uw >= 0.0)
-    {
-        iqmin(p, f);
-        is_min_x();
-        weight_min_x();
+	grad = w1x*(qfx[IP][uf][0][0]*q2 + qfx[IP][uf][0][1]*q3)
+    
+         + w2x*(qfx[IP][uf][1][0]*q2 - qfx[IP][uf][1][1]*q1);
+	}
 
-        grad = w1x * (qfx[IP][uf][0][0] * q2 + qfx[IP][uf][0][1] * q3)
+	if(uw<0.0)
+	{
+	iqmax(p,f);
+	is_max_x();
+	weight_max_x();
+    
+    
+	grad = w1x*(qfx[IP][uf][2][0]*q2 - qfx[IP][uf][2][1]*q3)
+    
+         + w2x*(qfx[IP][uf][3][0]*q1 + qfx[IP][uf][3][1]*q2);
+	}
 
-               + w2x * (qfx[IP][uf][1][0] * q2 - qfx[IP][uf][1][1] * q1);
-    }
-
-    if(uw < 0.0)
-    {
-        iqmax(p, f);
-        is_max_x();
-        weight_max_x();
-
-        grad = w1x * (qfx[IP][uf][2][0] * q2 - qfx[IP][uf][2][1] * q3)
-
-               + w2x * (qfx[IP][uf][3][0] * q1 + qfx[IP][uf][3][1] * q2);
-    }
-
-    return grad;
+	return grad;
 }
 
-double ddweno3_f_nug::ddwenoy(field &f, double uw)
+double ddweno3_f_nug::ddwenoy(field& f, double uw)
 {
     DX = p->DXP;
     DY = p->DYP;
     DZ = p->DZP;
-    vf = 0;
+    vf=0;
+    
+	grad=0.0;
 
-    grad = 0.0;
+	if(uw>=0.0)
+	{
+	jqmin(p,f);
+	is_min_y();
+	weight_min_y();
+	
+	grad = w1y*(qfy[JP][vf][0][0]*q2 + qfy[JP][vf][0][1]*q3)
+    
+         + w2y*(qfy[JP][vf][1][0]*q2 - qfy[JP][vf][1][1]*q1);
+	}
 
-    if(uw >= 0.0)
-    {
-        jqmin(p, f);
-        is_min_y();
-        weight_min_y();
+	if(uw<0.0)
+	{
+	jqmax(p,f);
+	is_max_y();
+	weight_max_y();
+	
+	grad = w1y*(qfy[JP][vf][2][0]*q2 - qfy[JP][vf][2][1]*q3)
+    
+         + w2y*(qfy[JP][vf][3][0]*q1 + qfy[JP][vf][3][1]*q2);
+	}
 
-        grad = w1y * (qfy[JP][vf][0][0] * q2 + qfy[JP][vf][0][1] * q3)
-
-               + w2y * (qfy[JP][vf][1][0] * q2 - qfy[JP][vf][1][1] * q1);
-    }
-
-    if(uw < 0.0)
-    {
-        jqmax(p, f);
-        is_max_y();
-        weight_max_y();
-
-        grad = w1y * (qfy[JP][vf][2][0] * q2 - qfy[JP][vf][2][1] * q3)
-
-               + w2y * (qfy[JP][vf][3][0] * q1 + qfy[JP][vf][3][1] * q2);
-    }
-
-    return grad;
+	return grad;
 }
 
-double ddweno3_f_nug::dswenox(slice &f, double uw)
+
+
+double ddweno3_f_nug::dswenox(slice& f, double uw)
 {
     DX = p->DXP;
     DY = p->DYP;
     DZ = p->DZP;
-    uf = 0;
+    uf=0;
+    
+	grad=0.0;
 
-    grad = 0.0;
+	if(uw>=0.0)
+	{
+	isqmin(p,f);
+	is_min_x();
+	weight_min_x();
 
-    if(uw >= 0.0)
-    {
-        isqmin(p, f);
-        is_min_x();
-        weight_min_x();
+	grad = w1x*(qfx[IP][uf][0][0]*q2 + qfx[IP][uf][0][1]*q3)
+    
+         + w2x*(qfx[IP][uf][1][0]*q2 - qfx[IP][uf][1][1]*q1);
+	}
 
-        grad = w1x * (qfx[IP][uf][0][0] * q2 + qfx[IP][uf][0][1] * q3)
+	if(uw<0.0)
+	{
+	isqmax(p,f);
+	is_max_x();
+	weight_max_x();
 
-               + w2x * (qfx[IP][uf][1][0] * q2 - qfx[IP][uf][1][1] * q1);
-    }
+	grad = w1x*(qfx[IP][uf][2][0]*q2 - qfx[IP][uf][2][1]*q3)
+    
+         + w2x*(qfx[IP][uf][3][0]*q1 + qfx[IP][uf][3][1]*q2);
+	}
 
-    if(uw < 0.0)
-    {
-        isqmax(p, f);
-        is_max_x();
-        weight_max_x();
-
-        grad = w1x * (qfx[IP][uf][2][0] * q2 - qfx[IP][uf][2][1] * q3)
-
-               + w2x * (qfx[IP][uf][3][0] * q1 + qfx[IP][uf][3][1] * q2);
-    }
-
-    return grad;
+	return grad;
 }
 
-double ddweno3_f_nug::dswenoy(slice &f, double uw)
+double ddweno3_f_nug::dswenoy(slice& f, double uw)
 {
     DX = p->DXP;
     DY = p->DYP;
     DZ = p->DZP;
-    vf = 0;
+    vf=0;
+    
+	grad=0.0;
 
-    grad = 0.0;
+	if(uw>=0.0)
+	{
+	jsqmin(p,f);
+	is_min_y();
+	weight_min_y();
+	
+	grad = w1y*(qfy[JP][vf][0][0]*q2 + qfy[JP][vf][0][1]*q3)
+    
+         + w2y*(qfy[JP][vf][1][0]*q2 - qfy[JP][vf][1][1]*q1);
+	}
 
-    if(uw >= 0.0)
-    {
-        jsqmin(p, f);
-        is_min_y();
-        weight_min_y();
+	if(uw<0.0)
+	{
+	jsqmax(p,f);
+	is_max_y();
+	weight_max_y();
+	
+	grad = w1y*(qfy[JP][vf][2][0]*q2 - qfy[JP][vf][2][1]*q3)
+    
+         + w2y*(qfy[JP][vf][3][0]*q1 + qfy[JP][vf][3][1]*q2);
+	}
 
-        grad = w1y * (qfy[JP][vf][0][0] * q2 + qfy[JP][vf][0][1] * q3)
-
-               + w2y * (qfy[JP][vf][1][0] * q2 - qfy[JP][vf][1][1] * q1);
-    }
-
-    if(uw < 0.0)
-    {
-        jsqmax(p, f);
-        is_max_y();
-        weight_max_y();
-
-        grad = w1y * (qfy[JP][vf][2][0] * q2 - qfy[JP][vf][2][1] * q3)
-
-               + w2y * (qfy[JP][vf][3][0] * q1 + qfy[JP][vf][3][1] * q2);
-    }
-
-    return grad;
+	return grad;
 }
 
-void ddweno3_f_nug::iqmin(lexer *p, field &f)
-{
-    q1 = (f(i - 1, j, k) - f(i - 2, j, k)) / DX[IM2];
-    q2 = (f(i, j, k) - f(i - 1, j, k)) / DX[IM1];
-    q3 = (f(i + 1, j, k) - f(i, j, k)) / DX[IP];
+void ddweno3_f_nug::iqmin(lexer *p,field& f)
+{	
+	q1 = (f(i-1,j,k)-f(i-2,j,k))/DX[IM2];
+	q2 = (f(i,j,k)-f(i-1,j,k))/DX[IM1];
+	q3 = (f(i+1,j,k)-f(i,j,k))/DX[IP];
 }
 
-void ddweno3_f_nug::jqmin(lexer *p, field &f)
+void ddweno3_f_nug::jqmin(lexer *p,field& f)
 {
-    q1 = (f(i, j - 1, k) - f(i, j - 2, k)) / DY[JM2];
-    q2 = (f(i, j, k) - f(i, j - 1, k)) / DY[JM1];
-    q3 = (f(i, j + 1, k) - f(i, j, k)) / DY[JP];
+	q1 = (f(i,j-1,k)-f(i,j-2,k))/DY[JM2];
+	q2 = (f(i,j,k)-f(i,j-1,k))/DY[JM1];
+	q3 = (f(i,j+1,k)-f(i,j,k))/DY[JP];
 }
 
-void ddweno3_f_nug::iqmax(lexer *p, field &f)
+void ddweno3_f_nug::iqmax(lexer *p,field& f)
 {
-    q1 = (f(i, j, k) - f(i - 1, j, k)) / DX[IM1];
-    q2 = (f(i + 1, j, k) - f(i, j, k)) / DX[IP];
-    q3 = (f(i + 2, j, k) - f(i + 1, j, k)) / DX[IP1];
+    q1 = (f(i,j,k)-f(i-1,j,k))/DX[IM1];
+	q2 = (f(i+1,j,k)-f(i,j,k))/DX[IP];
+	q3 = (f(i+2,j,k)-f(i+1,j,k))/DX[IP1];
 }
 
-void ddweno3_f_nug::jqmax(lexer *p, field &f)
+void ddweno3_f_nug::jqmax(lexer *p,field& f)
 {
-    q1 = (f(i, j, k) - f(i, j - 1, k)) / DY[JM1];
-    q2 = (f(i, j + 1, k) - f(i, j, k)) / DY[JP];
-    q3 = (f(i, j + 2, k) - f(i, j + 1, k)) / DY[JP1];
+	q1 = (f(i,j,k)-f(i,j-1,k))/DY[JM1];
+	q2 = (f(i,j+1,k)-f(i,j,k))/DY[JP];
+	q3 = (f(i,j+2,k)-f(i,j+1,k))/DY[JP1];
 }
 
-void ddweno3_f_nug::isqmin(lexer *p, slice &f)
-{
-    q1 = (f(i - 1, j) - f(i - 2, j)) / DX[IM2];
-    q2 = (f(i, j) - f(i - 1, j)) / DX[IM1];
-    q3 = (f(i + 1, j) - f(i, j)) / DX[IP];
+
+
+void ddweno3_f_nug::isqmin(lexer *p,slice& f)
+{	
+	q1 = (f(i-1,j)-f(i-2,j))/DX[IM2];
+	q2 = (f(i,j)-f(i-1,j))/DX[IM1];
+	q3 = (f(i+1,j)-f(i,j))/DX[IP];
 }
 
-void ddweno3_f_nug::jsqmin(lexer *p, slice &f)
+void ddweno3_f_nug::jsqmin(lexer *p,slice& f)
 {
-    q1 = (f(i, j - 1) - f(i, j - 2)) / DY[JM2];
-    q2 = (f(i, j) - f(i, j - 1)) / DY[JM1];
-    q3 = (f(i, j + 1) - f(i, j)) / DY[JP];
+	q1 = (f(i,j-1)-f(i,j-2))/DY[JM2];
+	q2 = (f(i,j)-f(i,j-1))/DY[JM1];
+	q3 = (f(i,j+1)-f(i,j))/DY[JP];
 }
 
-void ddweno3_f_nug::isqmax(lexer *p, slice &f)
+void ddweno3_f_nug::isqmax(lexer *p,slice& f)
 {
-    q1 = (f(i, j) - f(i - 1, j)) / DX[IM1];
-    q2 = (f(i + 1, j) - f(i, j)) / DX[IP];
-    q3 = (f(i + 2, j) - f(i + 1, j)) / DX[IP1];
+    q1 = (f(i,j)-f(i-1,j))/DX[IM1];
+	q2 = (f(i+1,j)-f(i,j))/DX[IP];
+	q3 = (f(i+2,j)-f(i+1,j))/DX[IP1];
 }
 
-void ddweno3_f_nug::jsqmax(lexer *p, slice &f)
+void ddweno3_f_nug::jsqmax(lexer *p,slice& f)
 {
-    q1 = (f(i, j) - f(i, j - 1)) / DY[JM1];
-    q2 = (f(i, j + 1) - f(i, j)) / DY[JP];
-    q3 = (f(i, j + 2) - f(i, j + 1)) / DY[JP1];
+	q1 = (f(i,j)-f(i,j-1))/DY[JM1];
+	q2 = (f(i,j+1)-f(i,j))/DY[JP];
+	q3 = (f(i,j+2)-f(i,j+1))/DY[JP1];
 }

@@ -42,89 +42,90 @@ Architect: Hans Bihs
 #ifndef CORAL_TIMEINT_H_
 #define CORAL_TIMEINT_H_
 
-#include "coral/core/coral_linsolve.h"
-#include "coral/core/coral_types.h"
-#include <vector>
+#include"coral/core/coral_types.h"
+#include"coral/core/coral_linsolve.h"
+#include<vector>
 
-namespace coral {
-class model;
-
-struct timeint_settings
+namespace coral
 {
-    double rho_inf = 0.8;  // spectral radius at infinite frequency, [0,1]
-    double tol = 1.0e-12;  // Newton: position (velocity) increments <= tol (1 + max |x| (|nu|))
-    int max_iter = 30;
-    bool full_newton = false;  // new Jacobian in every iteration
-    double fd_eps = 1.0e-7;    // relative perturbation of the finite-difference Jacobian
-    int dense_max = 400;       // dense LU up to this many unknowns, sparse LU above
-};
+    class model;
 
-struct timeint_stats
-{
-    long steps = 0;
-    long iterations = 0;
-    long jacobians = 0;
-    long retries = 0;
-    long failures = 0;
-    double max_constraint = 0.0;  // max |g| after the steps
-};
+    struct timeint_settings
+    {
+        double rho_inf = 0.8;       // spectral radius at infinite frequency, [0,1]
+        double tol = 1.0e-12;       // Newton: position (velocity) increments <= tol (1 + max |x| (|nu|))
+        int max_iter = 30;
+        bool full_newton = false;   // new Jacobian in every iteration
+        double fd_eps = 1.0e-7;     // relative perturbation of the finite-difference Jacobian
+        int dense_max = 400;        // dense LU up to this many unknowns, sparse LU above
+    };
 
-class timeint
-{
-public:
-    explicit timeint(const timeint_settings &s = timeint_settings());
+    struct timeint_stats
+    {
+        long steps = 0;
+        long iterations = 0;
+        long jacobians = 0;
+        long retries = 0;
+        long failures = 0;
+        double max_constraint = 0.0;    // max |g| after the steps
+    };
 
-    // consistent accelerations and multipliers at t0 (initializes the loads)
-    void initialize(model &, double t0);
+    class timeint
+    {
+    public:
+        explicit timeint(const timeint_settings &s = timeint_settings());
 
-    // advance from t to t+h; on return the model holds the state at t+h.
-    // false if Newton did not converge (the model is then back at t).
-    bool step(model &, double t, double h);
+        // consistent accelerations and multipliers at t0 (initializes the loads)
+        void initialize(model&, double t0);
 
-    // Lagrange multipliers of the last step (constraint forces on the bodies: -G^T lambda)
-    const VecX &multipliers() const { return lam_; }
+        // advance from t to t+h; on return the model holds the state at t+h.
+        // false if Newton did not converge (the model is then back at t).
+        bool step(model&, double t, double h);
 
-    // generalized constraint forces -G^T lambda of the last step
-    VecX reactions(const model &) const;
+        // Lagrange multipliers of the last step (constraint forces on the bodies: -G^T lambda)
+        const VecX &multipliers() const {return lam_;}
 
-    const timeint_settings &settings() const { return set_; }
-    double alpha_m() const { return am_; }
-    double alpha_f() const { return af_; }
-    double gamma() const { return gam_; }
-    double beta() const { return beta_; }
+        // generalized constraint forces -G^T lambda of the last step
+        VecX reactions(const model&) const;
 
-    timeint_stats stats;
-    // restart from a checkpoint: the state at t_n and the Jacobian of the modified Newton (its
-    // factorization is computed again from the stored matrix)
-    void save_state(std::vector<double> &) const;
-    bool load_state(const model &, const std::vector<double> &, size_t &k);
+        const timeint_settings &settings() const {return set_;}
+        double alpha_m() const {return am_;}
+        double alpha_f() const {return af_;}
+        double gamma() const {return gam_;}
+        double beta() const {return beta_;}
 
-private:
-    bool converged(const model &, double ddnu, double h) const;
-    bool stagnated(const model &, double ddnu, double h) const;
-    void store(const model &);
-    void restore(model &) const;
-    void trial(model &, const VecX &dnu, double h) const;
-    void residual(model &, double t1, double h, const VecX &u, VecX &r, bool fd_only = false);
-    void residual_initial(model &, double t0, const VecX &c, const VecX &u, VecX &r, bool fd_only = false);
-    void build_jacobian(model &, double t1, double h, const VecX &u, const VecX &r, bool initial, const VecX &c);
+        timeint_stats stats;
+        // restart from a checkpoint: the state at t_n and the Jacobian of the modified Newton (its
+        // factorization is computed again from the stored matrix)
+        void save_state(std::vector<double>&) const;
+        bool load_state(const model&, const std::vector<double>&, size_t &k);
 
-    timeint_settings set_;
-    double am_, af_, gam_, beta_;
-    double scale_ = 1.0;  // multiplier scaling (typical mass)
+    private:
+        bool converged(const model&, double ddnu, double h) const;
+        bool stagnated(const model&, double ddnu, double h) const;
+        void store(const model&);
+        void restore(model&) const;
+        void trial(model&, const VecX &dnu, double h) const;
+        void residual(model&, double t1, double h, const VecX &u, VecX &r, bool fd_only=false);
+        void residual_initial(model&, double t0, const VecX &c, const VecX &u, VecX &r, bool fd_only=false);
+        void build_jacobian(model&, double t1, double h, const VecX &u, const VecX &r, bool initial, const VecX &c);
 
-    std::vector<Vec3> xn_;
-    std::vector<Mat3> Rn_;
-    VecX cqn_;  // generalized coordinates at t_n
-    VecX nun_, dnun_, an_, lam_;
-    std::vector<Eigen::Triplet<double>> T_;
-    linear_solver lu_;
-    bool jac_ok_ = false;
-    double jac_h_ = 0.0;
+        timeint_settings set_;
+        double am_, af_, gam_, beta_;
+        double scale_ = 1.0;           // multiplier scaling (typical mass)
 
-    VecX f_, in_, g_;
-    MatX G_;
-};
-}  // namespace coral
+        std::vector<Vec3> xn_;
+        std::vector<Mat3> Rn_;
+        VecX cqn_;                     // generalized coordinates at t_n
+        VecX nun_, dnun_, an_, lam_;
+        std::vector<Eigen::Triplet<double>> T_;
+        linear_solver lu_;
+        bool jac_ok_ = false;
+        double jac_h_ = 0.0;
+
+        VecX f_, in_, g_;
+        MatX G_;
+    };
+}
 
 #endif

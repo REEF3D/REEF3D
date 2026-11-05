@@ -20,23 +20,28 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "mgcslice4.h"
-#include "ghostcell.h"
-#include "lexer.h"
+#include"mgcslice4.h"
+#include"lexer.h"
+#include"ghostcell.h"
+
 
 mgcslice4::mgcslice4(lexer *p)
 {
-    imin = p->imin;
-    imax = p->imax;
-    jmin = p->jmin;
-    jmax = p->jmax;
+	imin=p->imin;
+    imax=p->imax;
+    jmin=p->jmin;
+    jmax=p->jmax;
 }
 
 mgcslice4::~mgcslice4()
 {
 }
 
-void mgcslice4::makemgc(lexer *p)
+void mgcslice4::makemgc(lexer* p)
 {
+
 }
+
+
+
 

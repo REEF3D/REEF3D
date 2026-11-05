@@ -20,114 +20,114 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "fnpf_vel_probe_theory.h"
-#include "fdm_fnpf.h"
-#include "ghostcell.h"
-#include "ioflow.h"
-#include "lexer.h"
-#include "probe_core.h"
-#include <sys/stat.h>
-#include <sys/types.h>
+#include"probe_core.h"
+#include"fnpf_vel_probe_theory.h"
+#include"lexer.h"
+#include"fdm_fnpf.h"
+#include"ioflow.h"
+#include"ghostcell.h"
+#include<sys/stat.h>
+#include<sys/types.h>
 
 fnpf_vel_probe_theory::fnpf_vel_probe_theory(lexer *p, fdm_fnpf *c) : probenum(p->P66)
 {
 
-    p->Iarray(iloc, probenum);
-    p->Iarray(jloc, probenum);
-    p->Iarray(kloc, probenum);
-    p->Iarray(flag, probenum);
-    p->Darray(val, probenum * 3);
-
-    // Create Folder
-    if(p->mpirank == 0)
-        mkdir("./REEF3D_FNPF_ProbePoint", 0777);
-
-    pout = new ofstream[probenum];
-
-    if(p->mpirank == 0 && probenum > 0)
+    p->Iarray(iloc,probenum);
+	p->Iarray(jloc,probenum);
+	p->Iarray(kloc,probenum);
+	p->Iarray(flag,probenum);
+    p->Darray(val,probenum*3);
+	
+	// Create Folder
+	if(p->mpirank==0)
+	mkdir("./REEF3D_FNPF_ProbePoint",0777);
+	
+	pout = new ofstream[probenum];
+	
+    if(p->mpirank==0 && probenum>0)
     {
-        cout << "probepoint_num: " << probenum << endl;
-        // open file
-        for(n = 0; n < probenum; ++n)
-        {
-            sprintf(name, "./REEF3D_FNPF_ProbePoint/REEF3D-FNPF-Vel-Probe-Theory-%i.dat", n + 1);
+		cout<<"probepoint_num: "<<probenum<<endl;
+		// open file
+		for(n=0;n<probenum;++n)
+		{
+		sprintf(name,"./REEF3D_FNPF_ProbePoint/REEF3D-FNPF-Vel-Probe-Theory-%i.dat",n+1);
+		
+		pout[n].open(name);
+        
+        //cout<<pout[n].is_open()<<" "<<n+1<<endl;
 
-            pout[n].open(name);
+	    pout[n]<<"Vel Probe Theory ID:  "<<n<<endl<<endl;
+		pout[n]<<"x_coord     y_coord     z_coord"<<endl;
+		
+		pout[n]<<n+1<<"\t "<<p->P66_x[n]<<"\t "<<p->P66_y[n]<<"\t "<<p->P66_z[n]<<endl;
 
-            // cout<<pout[n].is_open()<<" "<<n+1<<endl;
-
-            pout[n] << "Vel Probe Theory ID:  " << n << endl
-                    << endl;
-            pout[n] << "x_coord     y_coord     z_coord" << endl;
-
-            pout[n] << n + 1 << "\t " << p->P66_x[n] << "\t " << p->P66_y[n] << "\t " << p->P66_z[n] << endl;
-
-            pout[n] << endl
-                    << endl;
-
-            pout[n] << "t \t U \t V \t W " << endl;
-        }
+		pout[n]<<endl<<endl;
+		
+		pout[n]<<"t \t U \t V \t W "<<endl;
+		
+		}
     }
+	
 }
 
 fnpf_vel_probe_theory::~fnpf_vel_probe_theory()
 {
-    for(n = 0; n < probenum; ++n)
-        pout[n].close();
-
-    delete[] pout;
+    for(n=0;n<probenum;++n)
+    pout[n].close();
+    
+    delete [] pout;
 }
 
 void fnpf_vel_probe_theory::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, ioflow *pflow)
 {
-    double xp, yp, zp;
+    double xp,yp,zp;
+    
+    ini_location(p,c);
+	
+	for(n=0;n<probenum;++n)
+	{
+	uval=vval=wval=-1.0e20;
+	
+		if(flag[n]>0)
+		{
+		xp=p->P66_x[n];
+		yp=p->P66_y[n];
+		zp=p->P66_z[n];
+    
+		uval = pflow->wave_xvel(p,pgc, xp, yp, zp);
+		vval = pflow->wave_yvel(p,pgc, xp, yp, zp);
+		wval = pflow->wave_zvel(p,pgc, xp, yp, zp);
+		}
+	
+	val[n*3+0]=uval;
+	val[n*3+1]=vval;
+	val[n*3+2]=wval;
+	}
 
-    ini_location(p, c);
-
-    for(n = 0; n < probenum; ++n)
-    {
-        uval = vval = wval = -1.0e20;
-
-        if(flag[n] > 0)
-        {
-            xp = p->P66_x[n];
-            yp = p->P66_y[n];
-            zp = p->P66_z[n];
-
-            uval = pflow->wave_xvel(p, pgc, xp, yp, zp);
-            vval = pflow->wave_yvel(p, pgc, xp, yp, zp);
-            wval = pflow->wave_zvel(p, pgc, xp, yp, zp);
-        }
-
-        val[n * 3 + 0] = uval;
-        val[n * 3 + 1] = vval;
-        val[n * 3 + 2] = wval;
-    }
-
-    probe_rows(p, pgc, pout, val, probenum, 3);
+    probe_rows(p,pgc,pout,val,probenum,3);	
 }
 
 void fnpf_vel_probe_theory::ini_location(lexer *p, fdm_fnpf *c)
 {
     int check;
 
-    for(n = 0; n < probenum; ++n)
+    for(n=0;n<probenum;++n)
     {
-        check = 0;
+    check=0;
+    
+    iloc[n]=p->posc_i(p->P66_x[n]);
+    
+    if(p->j_dir==0)
+    jloc[n]=0;
+    
+    if(p->j_dir==1)
+    jloc[n]=p->posc_j(p->P66_y[n]);
+    
+	kloc[n]=p->posf_sig(iloc[n],jloc[n],p->P66_z[n]);
 
-        iloc[n] = p->posc_i(p->P66_x[n]);
-
-        if(p->j_dir == 0)
-            jloc[n] = 0;
-
-        if(p->j_dir == 1)
-            jloc[n] = p->posc_j(p->P66_y[n]);
-
-        kloc[n] = p->posf_sig(iloc[n], jloc[n], p->P66_z[n]);
-
-        check = boundcheck(p, iloc[n], jloc[n], kloc[n], 0);
-        // cout<<p->mpirank<<" PROBE check: "<<check<<" i: "<<iloc[n]<<" j: "<<jloc[n]<<" k: "<<kloc[n]<<" ZSN: "<<p->ZSN[10+marge]<<endl;
-        if(check == 1)
-            flag[n] = 1;
+    check=boundcheck(p,iloc[n],jloc[n],kloc[n],0);
+    //cout<<p->mpirank<<" PROBE check: "<<check<<" i: "<<iloc[n]<<" j: "<<jloc[n]<<" k: "<<kloc[n]<<" ZSN: "<<p->ZSN[10+marge]<<endl;
+    if(check==1)
+    flag[n]=1;
     }
 }

@@ -20,17 +20,17 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "nhflow_fsf_body.h"
-#include "6DOF.h"
-#include "definitions.h"
-#include "fdm_nhf.h"
-#include "ghostcell.h"
-#include "ioflow.h"
-#include "lexer.h"
-#include "reefckpt.h"
-#include "slice.h"
-#include <cmath>
-#include <sys/stat.h>
+#include"nhflow_fsf_body.h"
+#include"reefckpt.h"
+#include"lexer.h"
+#include"fdm_nhf.h"
+#include"ghostcell.h"
+#include"slice.h"
+#include<cmath>
+#include<sys/stat.h>
+#include"definitions.h"
+#include"6DOF.h"
+#include"ioflow.h"
 
 // Water level in the columns pierced by a floating body (X 13 1, direct forcing X 10 1/2).
 //
@@ -70,23 +70,23 @@ Author: Hans Bihs
 
 nhflow_fsf_body::nhflow_fsf_body(lexer *p) : Hb(p), Hbold(p), etaext(p), ratio(p), phitop(p)
 {
-    mode = (p->X13 == 1 && (p->X10 == 1 || p->X10 == 2) && p->X16 == 0) ? 1 : 0;
+    mode = (p->X13==1 && (p->X10==1 || p->X10==2) && p->X16==0) ? 1 : 0;
     patch = false;
     told = false;
 
     gcval_eta = 50;
 
-    if(p->F50 == 1)
-        gcval_eta = 51;
+    if(p->F50==1)
+	gcval_eta = 51;
 
-    if(p->F50 == 2)
-        gcval_eta = 52;
+    if(p->F50==2)
+	gcval_eta = 52;
 
-    if(p->F50 == 3)
-        gcval_eta = 53;
+    if(p->F50==3)
+	gcval_eta = 53;
 
-    if(p->F50 == 4)
-        gcval_eta = 54;
+    if(p->F50==4)
+	gcval_eta = 54;
 
     nfoot = 0;
     itstep = 0;
@@ -97,17 +97,17 @@ nhflow_fsf_body::nhflow_fsf_body(lexer *p) : Hb(p), Hbold(p), etaext(p), ratio(p
 
     SLICELOOP4
     {
-        Hb(i, j) = 0.0;
-        Hbold(i, j) = 0.0;
-        etaext(i, j) = 0.0;
-        ratio(i, j) = 1.0;
+    Hb(i,j) = 0.0;
+    Hbold(i,j) = 0.0;
+    etaext(i,j) = 0.0;
+    ratio(i,j) = 1.0;
     }
 }
 
 nhflow_fsf_body::~nhflow_fsf_body()
 {
     if(out.is_open())
-        out.close();
+    out.close();
 }
 
 void nhflow_fsf_body::level(lexer *p, fdm_nhf *d, ghostcell *pgc, sixdof *p6dof, ioflow *pflow, int iter, slice &WL, double alpha)
@@ -116,33 +116,33 @@ void nhflow_fsf_body::level(lexer *p, fdm_nhf *d, ghostcell *pgc, sixdof *p6dof,
     {
         told = true;
 
-        if(p->mpirank == 0 && !patch)
+        if(p->mpirank==0 && !patch)
         {
-            if(mode == 1)
-                cout << "NHFLOW 6DOF X 13 1: water level in the pierced columns from the surrounding free surface" << endl;
+            if(mode==1)
+            cout<<"NHFLOW 6DOF X 13 1: water level in the pierced columns from the surrounding free surface"<<endl;
 
-            if(mode == 0 && p->X13 == 1)
-                cout << "NHFLOW 6DOF X 13 1 ignored: needs X 10 1 or 2 and no porous body (X 16)" << endl;
+            if(mode==0 && p->X13==1)
+            cout<<"NHFLOW 6DOF X 13 1 ignored: needs X 10 1 or 2 and no porous body (X 16)"<<endl;
         }
     }
 
     pending = false;
 
-    if(mode == 0)
-        return;
+    if(mode==0)
+    return;
 
     starttime = pgc->timer();
     pflow_ = pflow;
 
     // distance of the top cell centre to the hull at the pose of this stage (the body is advanced
     // first); without it (nets, membranes, ship loads) the level set of the last ray cast
-    const bool fresh = (p6dof != nullptr) && p6dof->top_phi_nhflow(p, d, pgc, iter, WL, phitop);
+    const bool fresh = (p6dof!=nullptr) && p6dof->top_phi_nhflow(p,d,pgc,iter,WL,phitop);
 
     if(!fresh)
     {
-        k = p->knoz - 1;
+        k = p->knoz-1;
         SLICELOOP4
-        phitop(i, j) = d->FB[IJK];
+        phitop(i,j) = d->FB[IJK];
     }
 
     // footprint: smoothed Heaviside of the top-cell distance
@@ -151,107 +151,107 @@ void nhflow_fsf_body::level(lexer *p, fdm_nhf *d, ghostcell *pgc, sixdof *p6dof,
 
     SLICELOOP4
     {
-        Hbold(i, j) = Hb(i, j);
-        Hb(i, j) = 0.0;
-        ratio(i, j) = 1.0;
+        Hbold(i,j) = Hb(i,j);
+        Hb(i,j) = 0.0;
+        ratio(i,j) = 1.0;
 
         // relaxation zones keep their level (the relaxation sets it, once per stage)
-        if(p->wet[IJ] == 1 && (pflow == nullptr || !pflow->relax_zone(p->XP[IP], p->YP[JP])))
+        if(p->wet[IJ]==1 && (pflow==nullptr || !pflow->relax_zone(p->XP[IP],p->YP[JP])))
         {
             double psi;
 
-            if(p->j_dir == 0)
-                psi = p->A526 * p->DXN[IP];
+            if(p->j_dir==0)
+            psi = p->A526*p->DXN[IP];
 
             else
-                psi = p->A526 * 0.5 * (p->DXN[IP] + p->DYN[JP]);
+            psi = p->A526*0.5*(p->DXN[IP] + p->DYN[JP]);
 
             // ramp over half the forcing width: the first column inside the hull is (nearly) fully treated,
             // also where the top cell centre is less than a forcing width above the keel
-            const double dr = 0.5 * psi;
-            const double phi = -phitop(i, j);
+            const double dr = 0.5*psi;
+            const double phi = -phitop(i,j);
 
             if(phi >= dr)
-                Hb(i, j) = 1.0;
+            Hb(i,j) = 1.0;
 
             else if(phi > 0.0)
             {
-                const double t = phi / dr;
-                Hb(i, j) = t * t * (3.0 - 2.0 * t);
+            const double t = phi/dr;
+            Hb(i,j) = t*t*(3.0 - 2.0*t);
             }
         }
 
-        if(Hb(i, j) > 0.0)
+        if(Hb(i,j)>0.0)
         {
-            fi.push_back(i);
-            fj.push_back(j);
+        fi.push_back(i);
+        fj.push_back(j);
 
-            // column entering the footprint: start the extension from its current level
-            if(Hbold(i, j) <= 0.0)
-                etaext(i, j) = d->eta(i, j);
+        // column entering the footprint: start the extension from its current level
+        if(Hbold(i,j)<=0.0)
+        etaext(i,j) = d->eta(i,j);
         }
     }
 
-    nfoot = gsum_i(pgc, int(fi.size()));
+    nfoot = gsum_i(pgc,int(fi.size()));
 
-    if(nfoot == 0)
+    if(nfoot==0)
     {
-        tstep += pgc->timer() - starttime;
-        return;
+    tstep += pgc->timer() - starttime;
+    return;
     }
 
-    pgc->gcsl_start4(p, Hb, 1);
-    pgc->gcsl_start4(p, etaext, 1);
+    pgc->gcsl_start4(p,Hb,1);
+    pgc->gcsl_start4(p,etaext,1);
 
-    solve(p, d, pgc);
+    solve(p,d,pgc);
 
     // new level, depth and grid velocity of the footprint columns
     const int nf = int(fi.size());
-    double dVe = 0.0;
+    double dVe=0.0;
 
-    for(int n = 0; n < nf; ++n)
+    for(int n=0; n<nf; ++n)
     {
         i = fi[n];
         j = fj[n];
 
-        const double e0 = d->eta(i, j);
-        double e1 = e0 + Hb(i, j) * (etaext(i, j) - e0);
-        const double dA = p->DXN[IP] * p->DYN[JP];
+        const double e0 = d->eta(i,j);
+        double e1 = e0 + Hb(i,j)*(etaext(i,j) - e0);
+        const double dA = p->DXN[IP]*p->DYN[JP];
 
         // keep the column wet
-        if(e1 + d->depth(i, j) < 2.0 * p->A544)
-            e1 = e0;
+        if(e1 + d->depth(i,j) < 2.0*p->A544)
+        e1 = e0;
 
-        if(Hb(i, j) >= 1.0)
-            dVcore += (e1 - e0) * dA;
+        if(Hb(i,j)>=1.0)
+        dVcore += (e1 - e0)*dA;
 
         else
-            dVe += (e1 - e0) * dA;
+        dVe += (e1 - e0)*dA;
 
-        set_level(p, d, WL, e1, alpha);
+        set_level(p,d,WL,e1,alpha);
     }
 
     // transition columns (0 < Hb < 1) hold real water: their volume change is given back to the
     // free surface around the footprint (ring of free columns within two cells), uniformly
     ring(p);
 
-    const double dVe_tot = gsum(pgc, dVe);
-    const double Aring = gsum(pgc, aring);
+    const double dVe_tot = gsum(pgc,dVe);
+    const double Aring = gsum(pgc,aring);
 
-    if(Aring > 0.0 && fabs(dVe_tot) > 0.0)
+    if(Aring>0.0 && fabs(dVe_tot)>0.0)
     {
-        const double de = -dVe_tot / Aring;
+        const double de = -dVe_tot/Aring;
         const int nr = int(ri.size());
 
-        for(int n = 0; n < nr; ++n)
+        for(int n=0; n<nr; ++n)
         {
             i = ri[n];
             j = rj[n];
 
-            const double e0 = d->eta(i, j);
-            const double e1 = (e0 + de + d->depth(i, j) > 2.0 * p->A544) ? e0 + de : e0;
+            const double e0 = d->eta(i,j);
+            const double e1 = (e0 + de + d->depth(i,j) > 2.0*p->A544) ? e0 + de : e0;
 
-            set_level(p, d, WL, e1, alpha);
+            set_level(p,d,WL,e1,alpha);
         }
 
         dVcomp += -dVe_tot;
@@ -259,9 +259,9 @@ void nhflow_fsf_body::level(lexer *p, fdm_nhf *d, ghostcell *pgc, sixdof *p6dof,
 
     dVedge += dVe;
 
-    pgc->gcsl_start4(p, d->eta, gcval_eta);
-    pgc->gcsl_start4(p, WL, gcval_eta);
-    pgc->gcsl_start4(p, d->detadt, 1);
+    pgc->gcsl_start4(p,d->eta,gcval_eta);
+    pgc->gcsl_start4(p,WL,gcval_eta);
+    pgc->gcsl_start4(p,d->detadt,1);
 
     tstep += pgc->timer() - starttime;
 }
@@ -269,19 +269,19 @@ void nhflow_fsf_body::level(lexer *p, fdm_nhf *d, ghostcell *pgc, sixdof *p6dof,
 void nhflow_fsf_body::set_level(lexer *p, fdm_nhf *d, slice &WL, double e1, double alpha)
 {
     // column (i,j): new level, depth, the momentum scaling for momentum() and the grid velocity
-    const double e0 = d->eta(i, j);
-    const double wl0 = WL(i, j);
-    const double wl1 = e1 + d->depth(i, j);
+    const double e0 = d->eta(i,j);
+    const double wl0 = WL(i,j);
+    const double wl1 = e1 + d->depth(i,j);
 
-    d->eta(i, j) = e1;
-    WL(i, j) = wl1;
+    d->eta(i,j) = e1;
+    WL(i,j) = wl1;
 
-    ratio(i, j) = (wl0 > p->A544 && wl1 > p->A544) ? wl1 / wl0 : 1.0;
+    ratio(i,j) = (wl0>p->A544 && wl1>p->A544) ? wl1/wl0 : 1.0;
 
-    d->detadt(i, j) += (e1 - e0) / (alpha * p->dt);
+    d->detadt(i,j) += (e1 - e0)/(alpha*p->dt);
 
-    if(ratio(i, j) != 1.0)
-        pending = true;
+    if(ratio(i,j)!=1.0)
+    pending = true;
 }
 
 void nhflow_fsf_body::ring(lexer *p)
@@ -294,27 +294,27 @@ void nhflow_fsf_body::ring(lexer *p)
     const int r = 2;
 
     SLICELOOP4
-    if(Hb(i, j) <= 0.0 && p->wet[IJ] == 1 && (pflow_ == nullptr || !pflow_->relax_zone(p->XP[IP], p->YP[JP])))
+    if(Hb(i,j)<=0.0 && p->wet[IJ]==1 && (pflow_==nullptr || !pflow_->relax_zone(p->XP[IP],p->YP[JP])))
     {
-        bool near = false;
+        bool near=false;
 
-        for(int qi = -r; qi <= r && !near; ++qi)
-            for(int qj = (p->j_dir == 1 ? -r : 0); qj <= (p->j_dir == 1 ? r : 0) && !near; ++qj)
-            {
-                const int ii = i + qi, jj = j + qj;
+        for(int qi=-r; qi<=r && !near; ++qi)
+        for(int qj=(p->j_dir==1?-r:0); qj<=(p->j_dir==1?r:0) && !near; ++qj)
+        {
+            const int ii=i+qi, jj=j+qj;
 
-                if(ii < -1 || ii > p->knox || jj < -1 || jj > p->knoy)
-                    continue;
+            if(ii<-1 || ii>p->knox || jj<-1 || jj>p->knoy)
+            continue;
 
-                if(Hb(ii, jj) > 0.0)
-                    near = true;
-            }
+            if(Hb(ii,jj)>0.0)
+            near=true;
+        }
 
         if(near)
         {
-            ri.push_back(i);
-            rj.push_back(j);
-            aring += p->DXN[IP] * p->DYN[JP];
+        ri.push_back(i);
+        rj.push_back(j);
+        aring += p->DXN[IP]*p->DYN[JP];
         }
     }
 }
@@ -337,15 +337,15 @@ void nhflow_fsf_body::solve(lexer *p, fdm_nhf *d, ghostcell *pgc)
     // with a halo exchange each); the halo is exchanged every sweep only when the footprint spans
     // ranks
     const int nf = int(fi.size());
-    const int nrank = patch ? 1 : pgc->globalisum(nf > 0 ? 1 : 0);
-    const double tol = 1.0e-6 * MAX(p->DXM, 1.0e-12);
+    const int nrank = patch ? 1 : pgc->globalisum(nf>0 ? 1 : 0);
+    const double tol = 1.0e-6*MAX(p->DXM,1.0e-12);
     const int itmax = 500;
     const int ncheck = 4;
 
     // SOR factor of the model problem with N cells across the footprint
-    const double N = (p->j_dir == 1) ? sqrt(double(nfoot)) : double(nfoot);
-    omega = 2.0 / (1.0 + sin(PI / (N + 1.0)));
-    omega = MIN(MAX(omega, 1.0), 1.9);
+    const double N = (p->j_dir==1) ? sqrt(double(nfoot)) : double(nfoot);
+    omega = 2.0/(1.0 + sin(PI/(N + 1.0)));
+    omega = MIN(MAX(omega,1.0),1.9);
 
     auto add = [&](int ii, int jj, double w, double &s, double &ws)
     {
@@ -353,69 +353,69 @@ void nhflow_fsf_body::solve(lexer *p, fdm_nhf *d, ghostcell *pgc)
         // the parent level (or a wall copy) and are used as they are
         if(!patch)
         {
-            if((ii < 0 && p->nb1 < 0) || (ii >= p->knox && p->nb4 < 0))
-                return;
-
-            if(p->j_dir == 1)
-                if((jj < 0 && p->nb3 < 0) || (jj >= p->knoy && p->nb2 < 0))
-                    return;
-        }
-
-        if(p->wet[(ii - p->imin) * p->jmax + (jj - p->jmin)] == 0)
+            if((ii<0 && p->nb1<0) || (ii>=p->knox && p->nb4<0))
             return;
 
-        s += w * (Hb(ii, jj) > 0.0 ? etaext(ii, jj) : d->eta(ii, jj));
+            if(p->j_dir==1)
+            if((jj<0 && p->nb3<0) || (jj>=p->knoy && p->nb2<0))
+            return;
+        }
+
+        if(p->wet[(ii-p->imin)*p->jmax + (jj-p->jmin)]==0)
+        return;
+
+        s  += w*(Hb(ii,jj)>0.0 ? etaext(ii,jj) : d->eta(ii,jj));
         ws += w;
     };
 
     int it;
 
-    for(it = 0; it < itmax; ++it)
+    for(it=0; it<itmax; ++it)
     {
         double rmax = 0.0;
 
-        for(int n = 0; n < nf; ++n)
+        for(int n=0; n<nf; ++n)
         {
             i = fi[n];
             j = fj[n];
 
-            double s = 0.0, ws = 0.0;
+            double s=0.0, ws=0.0;
 
-            add(i + 1, j, 1.0 / (p->DXN[IP] * p->DXP[IP]), s, ws);
-            add(i - 1, j, 1.0 / (p->DXN[IP] * p->DXP[IM1]), s, ws);
+            add(i+1,j,1.0/(p->DXN[IP]*p->DXP[IP]),s,ws);
+            add(i-1,j,1.0/(p->DXN[IP]*p->DXP[IM1]),s,ws);
 
-            if(p->j_dir == 1)
+            if(p->j_dir==1)
             {
-                add(i, j + 1, 1.0 / (p->DYN[JP] * p->DYP[JP]), s, ws);
-                add(i, j - 1, 1.0 / (p->DYN[JP] * p->DYP[JM1]), s, ws);
+            add(i,j+1,1.0/(p->DYN[JP]*p->DYP[JP]),s,ws);
+            add(i,j-1,1.0/(p->DYN[JP]*p->DYP[JM1]),s,ws);
             }
 
-            if(ws > 0.0)
+            if(ws>0.0)
             {
-                const double res = s / ws - etaext(i, j);
-                etaext(i, j) += omega * res;
-                rmax = MAX(rmax, fabs(res));
+            const double res = s/ws - etaext(i,j);
+            etaext(i,j) += omega*res;
+            rmax = MAX(rmax,fabs(res));
             }
         }
 
-        if(nrank > 1)
-            pgc->gcsl_start4(p, etaext, 1);
+        if(nrank>1)
+        pgc->gcsl_start4(p,etaext,1);
 
-        if((it + 1) % ncheck == 0)
+        if((it+1)%ncheck==0)
         {
-            if(nrank > 1)
-                rmax = pgc->globalmax(rmax);
+            if(nrank>1)
+            rmax = pgc->globalmax(rmax);
 
-            if(rmax < tol)
+            if(rmax<tol)
             {
-                ++it;
-                break;
+            ++it;
+            break;
             }
         }
     }
 
-    if(nrank <= 1)
-        pgc->gcsl_start4(p, etaext, 1);
+    if(nrank<=1)
+    pgc->gcsl_start4(p,etaext,1);
 
     itstep += patch ? it : pgc->globalimax(it);
 }
@@ -423,32 +423,32 @@ void nhflow_fsf_body::solve(lexer *p, fdm_nhf *d, ghostcell *pgc)
 void nhflow_fsf_body::momentum(lexer *p, double *UH, double *VH, double *WH)
 {
     // velocities of the columns whose depth level() changed (footprint and ring) stay as they are
-    if(mode == 0 || !pending)
-        return;
+    if(mode==0 || !pending)
+    return;
 
     auto scale = [&](const vector<int> &ci, const vector<int> &cj)
     {
         const int nc = int(ci.size());
 
-        for(int n = 0; n < nc; ++n)
+        for(int n=0; n<nc; ++n)
         {
             i = ci[n];
             j = cj[n];
 
-            const double r = ratio(i, j);
+            const double r = ratio(i,j);
 
-            if(r != 1.0)
-                KLOOP
-                {
-                    UH[IJK] *= r;
-                    VH[IJK] *= r;
-                    WH[IJK] *= r;
-                }
+            if(r!=1.0)
+            KLOOP
+            {
+            UH[IJK] *= r;
+            VH[IJK] *= r;
+            WH[IJK] *= r;
+            }
         }
     };
 
-    scale(fi, fj);
-    scale(ri, rj);
+    scale(fi,fj);
+    scale(ri,rj);
 
     pending = false;
 }
@@ -456,17 +456,18 @@ void nhflow_fsf_body::momentum(lexer *p, double *UH, double *VH, double *WH)
 void nhflow_fsf_body::print(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL)
 {
     // every X 19 steps; sweeps, volume changes and wall time are summed in between
-    if(mode == 0 || patch || p->count % p->X19 != 0)
-        return;
+    if(mode==0 || patch || p->count%p->X19!=0)
+    return;
 
-    double Vt = 0.0, Vw = 0.0;
+    double Vt=0.0, Vw=0.0;
 
     SLICELOOP4
-    if(p->wet[IJ] == 1)
-        Vt += WL(i, j) * p->DXN[IP] * p->DYN[JP];
+    if(p->wet[IJ]==1)
+    Vt += WL(i,j)*p->DXN[IP]*p->DYN[JP];
 
-    LOOP if(p->wet[IJ] == 1)
-        Vw += (1.0 - MIN(MAX(d->FHB[IJK], 0.0), 1.0)) * p->DXN[IP] * p->DYN[JP] * p->DZN[KP] * WL(i, j);
+    LOOP
+    if(p->wet[IJ]==1)
+    Vw += (1.0 - MIN(MAX(d->FHB[IJK],0.0),1.0))*p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*WL(i,j);
 
     Vt = pgc->globalsum(Vt);
     Vw = pgc->globalsum(Vw);
@@ -474,22 +475,22 @@ void nhflow_fsf_body::print(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL)
     const double dVc = pgc->globalsum(dVcore);
     const double dVe = pgc->globalsum(dVedge);
     const double dVk = dVcomp;
-    const double ts = pgc->globalmax(tstep);
+    const double ts  = pgc->globalmax(tstep);
 
     dVedge_sum += dVe;
     ttot += ts;
 
-    if(p->mpirank == 0)
+    if(p->mpirank==0)
     {
         if(!out.is_open())
         {
-            mkdir("./REEF3D_NHFLOW_6DOF", 0777);
-            if(reefckpt_open(out, "./REEF3D_NHFLOW_6DOF/REEF3D_6DOF_pierced.dat", p->I45))
-                out << "time \t columns \t sweeps \t omega \t dV_core \t dV_trans \t dV_trans_sum \t dV_returned_sum \t V_total \t V_water \t t_step \t t_total" << endl;
+        mkdir("./REEF3D_NHFLOW_6DOF",0777);
+        if(reefckpt_open(out,"./REEF3D_NHFLOW_6DOF/REEF3D_6DOF_pierced.dat",p->I45))
+        out<<"time \t columns \t sweeps \t omega \t dV_core \t dV_trans \t dV_trans_sum \t dV_returned_sum \t V_total \t V_water \t t_step \t t_total"<<endl;
         }
 
-        out << p->simtime << " \t " << nfoot << " \t " << itstep << " \t " << omega << " \t " << dVc << " \t " << dVe << " \t " << dVedge_sum << " \t " << dVk
-            << " \t " << Vt << " \t " << Vw << " \t " << ts << " \t " << ttot << endl;
+        out<<p->simtime<<" \t "<<nfoot<<" \t "<<itstep<<" \t "<<omega<<" \t "<<dVc<<" \t "<<dVe<<" \t "<<dVedge_sum<<" \t "<<dVk
+           <<" \t "<<Vt<<" \t "<<Vw<<" \t "<<ts<<" \t "<<ttot<<endl;
     }
 
     dVcore = dVedge = 0.0;

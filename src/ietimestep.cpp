@@ -20,14 +20,14 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "ietimestep.h"
-#include "fdm.h"
-#include "ghostcell.h"
-#include "lexer.h"
-#include "turbulence.h"
-#include <iomanip>
+#include"ietimestep.h"
+#include<iomanip>
+#include"lexer.h"
+#include"fdm.h"
+#include"ghostcell.h"
+#include"turbulence.h"
 
-ietimestep::ietimestep(lexer *p) : epsi(1.0e-19), c0_orig(p->N47)
+ietimestep::ietimestep(lexer* p):epsi(1.0e-19),c0_orig(p->N47)
 {
 }
 
@@ -37,318 +37,284 @@ ietimestep::~ietimestep()
 
 void ietimestep::start(fdm *a, lexer *p, ghostcell *pgc, turbulence *pturb)
 {
-    p->umax = p->vmax = p->wmax = p->viscmax = irsm = jrsm = krsm = 0.0;
-    p->epsmax = p->kinmax = p->pressmax = 0.0;
-    p->pressmin = 1.0e9;
-    p->dt_old = p->dt;
+    p->umax=p->vmax=p->wmax=p->viscmax=irsm=jrsm=krsm=0.0;
+    p->epsmax=p->kinmax=p->pressmax=0.0;
+	p->pressmin=1.0e9;
+    p->dt_old=p->dt;
 
-    p->umax = p->vmax = p->wmax = p->viscmax = 0.0;
+	p->umax=p->vmax=p->wmax=p->viscmax=0.0;
+    
+    p->umax=MAX(p->W11_u,p->umax);
+    p->umax=MAX(p->W12_u,p->umax);
+    p->umax=MAX(p->W13_u,p->umax);
+    p->umax=MAX(p->W14_u,p->umax);
+    p->umax=MAX(p->W15_u,p->umax);
+    p->umax=MAX(p->W16_u,p->umax);
+    
+    p->vmax=MAX(p->W11_v,p->vmax);
+    p->vmax=MAX(p->W12_v,p->vmax);
+    p->vmax=MAX(p->W13_v,p->vmax);
+    p->vmax=MAX(p->W14_v,p->vmax);
+    p->vmax=MAX(p->W15_v,p->vmax);
+    p->vmax=MAX(p->W16_v,p->vmax);
+    
+    p->wmax=MAX(p->W11_w,p->wmax);
+    p->wmax=MAX(p->W12_w,p->wmax);
+    p->wmax=MAX(p->W13_w,p->wmax);
+    p->wmax=MAX(p->W14_w,p->wmax);
+    p->wmax=MAX(p->W15_w,p->wmax);
+    p->wmax=MAX(p->W16_w,p->wmax);
+    
+	sqd=1.0/(p->DXM*p->DXM);
+	
+// maximum values: local first, then one reduction over all ranks
+	ULOOP
+	p->umax=MAX(p->umax,fabs(a->u(i,j,k)));
 
-    p->umax = MAX(p->W11_u, p->umax);
-    p->umax = MAX(p->W12_u, p->umax);
-    p->umax = MAX(p->W13_u, p->umax);
-    p->umax = MAX(p->W14_u, p->umax);
-    p->umax = MAX(p->W15_u, p->umax);
-    p->umax = MAX(p->W16_u, p->umax);
+	VLOOP
+	p->vmax=MAX(p->vmax,fabs(a->v(i,j,k)));
 
-    p->vmax = MAX(p->W11_v, p->vmax);
-    p->vmax = MAX(p->W12_v, p->vmax);
-    p->vmax = MAX(p->W13_v, p->vmax);
-    p->vmax = MAX(p->W14_v, p->vmax);
-    p->vmax = MAX(p->W15_v, p->vmax);
-    p->vmax = MAX(p->W16_v, p->vmax);
+	WLOOP
+	p->wmax=MAX(p->wmax,fabs(a->w(i,j,k)));
 
-    p->wmax = MAX(p->W11_w, p->wmax);
-    p->wmax = MAX(p->W12_w, p->wmax);
-    p->wmax = MAX(p->W13_w, p->wmax);
-    p->wmax = MAX(p->W14_w, p->wmax);
-    p->wmax = MAX(p->W15_w, p->wmax);
-    p->wmax = MAX(p->W16_w, p->wmax);
+	LOOP
+	p->viscmax=MAX(p->viscmax, a->visc(i,j,k)+a->eddyv(i,j,k));
 
-    sqd = 1.0 / (p->DXM * p->DXM);
-
-    // maximum values: local first, then one reduction over all ranks
-    ULOOP
-    p->umax = MAX(p->umax, fabs(a->u(i, j, k)));
-
-    VLOOP
-    p->vmax = MAX(p->vmax, fabs(a->v(i, j, k)));
-
-    WLOOP
-    p->wmax = MAX(p->wmax, fabs(a->w(i, j, k)));
+	LOOP
+	p->kinmax=MAX(p->kinmax,pturb->kinval(i,j,k));
 
     LOOP
-        p->viscmax = MAX(p->viscmax, a->visc(i, j, k) + a->eddyv(i, j, k));
-
-    LOOP
-        p->kinmax = MAX(p->kinmax, pturb->kinval(i, j, k));
-
-    LOOP
-        p->epsmax = MAX(p->epsmax, pturb->epsval(i, j, k));
+	p->epsmax=MAX(p->epsmax,pturb->epsval(i,j,k));
 
     LOOP
     {
-        p->pressmax = MAX(p->pressmax, a->press(i, j, k));
-        p->pressmin = MIN(p->pressmin, a->press(i, j, k));
+	p->pressmax=MAX(p->pressmax,a->press(i,j,k));
+	p->pressmin=MIN(p->pressmin,a->press(i,j,k));
     }
 
     {
-        double gmax[12] = {p->umax, p->vmax, p->wmax, a->maxF, a->maxG, a->maxH, p->fbmax,
-                           p->viscmax, p->kinmax, p->epsmax, p->pressmax, -p->pressmin};
+    double gmax[12] = {p->umax, p->vmax, p->wmax, a->maxF, a->maxG, a->maxH, p->fbmax,
+                       p->viscmax, p->kinmax, p->epsmax, p->pressmax, -p->pressmin};
 
-        pgc->globalmax(gmax, 12);
+    pgc->globalmax(gmax,12);
 
-        p->umax = gmax[0];
-        p->vmax = gmax[1];
-        p->wmax = gmax[2];
-        a->maxF = gmax[3];
-        a->maxG = gmax[4];
-        a->maxH = gmax[5];
-        p->fbmax = gmax[6];
-        p->viscmax = gmax[7];
-        p->kinmax = gmax[8];
-        p->epsmax = gmax[9];
-        p->pressmax = gmax[10];
-        p->pressmin = -gmax[11];
+    p->umax=gmax[0];
+    p->vmax=gmax[1];
+    p->wmax=gmax[2];
+    a->maxF=gmax[3];
+    a->maxG=gmax[4];
+    a->maxH=gmax[5];
+    p->fbmax=gmax[6];
+    p->viscmax=gmax[7];
+    p->kinmax=gmax[8];
+    p->epsmax=gmax[9];
+    p->pressmax=gmax[10];
+    p->pressmin=-gmax[11];
     }
 
-    p->vmax = pgc->globalmax(p->vmax);
-
-    WLOOP
-    p->wmax = MAX(p->wmax, fabs(a->w(i, j, k)));
-
-    p->wmax = pgc->globalmax(p->wmax);
-
-    velmax = max(p->umax, p->vmax, p->wmax);
-
-    if(p->mpirank == 0 && (p->count % p->P12 == 0))
+    if(p->mpirank==0 && (p->count%p->P12==0))
     {
-        cout << "umax: " << setprecision(3) << p->umax << " \t utime: " << p->utime << endl;
-        cout << "vmax: " << setprecision(3) << p->vmax << " \t vtime: " << p->vtime << endl;
-        cout << "wmax: " << setprecision(3) << p->wmax << " \t wtime: " << p->wtime << endl;
+	cout<<"umax: "<<setprecision(3)<<p->umax<<" \t utime: "<<p->utime<<endl;
+	cout<<"vmax: "<<setprecision(3)<<p->vmax<<" \t vtime: "<<p->vtime<<endl;
+	cout<<"wmax: "<<setprecision(3)<<p->wmax<<" \t wtime: "<<p->wtime<<endl;
     }
+	
+	p->umax=MAX(p->umax,p->ufbmax);
+	p->vmax=MAX(p->vmax,p->vfbmax);
+	p->wmax=MAX(p->wmax,p->wfbmax);
 
-    velmax = max(p->umax, p->vmax, p->wmax);
+    velmax=max(p->umax,p->vmax,p->wmax);
 
-    if(p->mpirank == 0 && (p->count % p->P12 == 0))
-        cout << "viscmax: " << p->viscmax << endl;
+    if(p->mpirank==0 && (p->count%p->P12==0))
+	cout<<"viscmax: "<<p->viscmax<<endl;
 
-    if(p->mpirank == 0 && (p->count % p->P12 == 0))
-        cout << "kinmax: " << p->kinmax << endl;
+    if(p->mpirank==0 && (p->count%p->P12==0))
+	cout<<"kinmax: "<<p->kinmax<<endl;
 
-    if(p->mpirank == 0 && (p->count % p->P12 == 0))
-        cout << "epsmax: " << p->epsmax << endl;
+    if(p->mpirank==0 && (p->count%p->P12==0))
+	cout<<"epsmax: "<<p->epsmax<<endl;
 
-    //----kin
+
+// maximum reynolds stress source term
+	visccrit=p->viscmax*(6.0/pow(p->DXM,2.0));
+	
+    
+    cu=1.0e10;
+    cv=1.0e10;
+    cw=1.0e10;
+    cb=1.0e10;
+    
+    if(p->N50==1)
     LOOP
-        p->kinmax = MAX(p->kinmax, pturb->kinval(i, j, k));
+    {
+    dx = MIN3(p->DXN[IP],p->DYN[JP],p->DZN[KP]);
 
-    // maximum reynolds stress source term
-    visccrit = p->viscmax * (6.0 / pow(p->DXM, 2.0));
-
-    cu = 1.0e10;
-    cv = 1.0e10;
-    cw = 1.0e10;
-    cb = 1.0e10;
-
-    if(p->N50 == 1)
-        LOOP
-        {
-            dx = MIN3(p->DXN[IP], p->DYN[JP], p->DZN[KP]);
-
-            cu = MIN(cu, 2.0 / ((sqrt(p->umax * p->umax + p->vmax * p->vmax + p->wmax * p->wmax)) / dx
-
-                                + sqrt((4.0 * fabs(MAX3(a->maxF, a->maxG, a->maxH))) / dx)));
-        }
-
-    if(p->N50 == 2)
-        LOOP
-        {
-            cu = MIN(cu, 2.0 / ((sqrt(p->umax * p->umax)) / p->DXN[IP]
-
-                                + sqrt((4.0 * fabs(a->maxF)) / p->DXN[IP])));
-
-            cv = MIN(cv, 2.0 / ((sqrt(p->vmax * p->vmax)) / p->DYN[JP]
-
-                                + sqrt((4.0 * fabs(a->maxG)) / p->DYN[JP])));
-
-            cw = MIN(cw, 2.0 / ((sqrt(p->wmax * p->wmax)) / p->DZN[KP]
-
-                                + sqrt((4.0 * fabs(a->maxH)) / p->DZN[KP])));
-        }
-
-    cu = MIN3(cu, cv, cw);
-
+	cu = MIN(cu, 2.0/((sqrt(p->umax*p->umax + p->vmax*p->vmax + p->wmax*p->wmax))/dx
+    
+            + sqrt((4.0*fabs(MAX3(a->maxF,a->maxG,a->maxH)))/dx)));
+    }
+    
+    if(p->N50==2)
+    LOOP
+    {
+	cu = MIN(cu, 2.0/((sqrt(p->umax*p->umax))/p->DXN[IP]
+    
+            + sqrt((4.0*fabs(a->maxF))/p->DXN[IP])));
+            
+    cv = MIN(cv, 2.0/((sqrt(p->vmax*p->vmax))/p->DYN[JP]
+    
+            + sqrt((4.0*fabs(a->maxG))/p->DYN[JP])));
+            
+    cw = MIN(cw, 2.0/((sqrt(p->wmax*p->wmax))/p->DZN[KP]
+    
+            + sqrt((4.0*fabs(a->maxH))/p->DZN[KP])));
+    }
+    
+    cu = MIN3(cu,cv,cw);
+    
     // fbdt
     LOOP
     {
-        dx = MIN3(p->DXN[IP], p->DYN[JP], p->DZN[KP]);
+    dx = MIN3(p->DXN[IP],p->DYN[JP],p->DZN[KP]);
 
-        cb = MIN(cb, 2.0 / sqrt((4.0 * fabs(p->fbmax)) / dx));
+	cb = MIN(cb, 2.0/sqrt((4.0*fabs(p->fbmax))/dx));
     }
-
+    
     // minimum over all ranks (was the value of rank 0, i.e. of its cells only)
     {
-        double gmax[2] = {-cu, -cb};
-        pgc->globalmax(gmax, 2);
-        cu = -gmax[0];
-        cb = -gmax[1];
+    double gmax[2] = {-cu,-cb};
+    pgc->globalmax(gmax,2);
+    cu=-gmax[0];
+    cb=-gmax[1];
     }
+    
+	p->dt=p->N47*cu;
+    p->fbdt=p->N47*cb;
 
-    p->dt = p->N47 * cu;
-    p->fbdt = p->N47 * cb;
-
-    p->fbdt = p->N47 * cb;
-    p->fbdt = pgc->timesync(p->fbdt);
-
-    a->maxF = 0.0;
-    a->maxG = 0.0;
-    a->maxH = 0.0;
+	a->maxF=0.0;
+	a->maxG=0.0;
+	a->maxH=0.0;
+    
 }
 
-void ietimestep::ini(fdm *a, lexer *p, ghostcell *pgc)
-{
+void ietimestep::ini(fdm* a, lexer* p,ghostcell* pgc)
+{  
     dx = p->DXM;
+    
+	p->umax=p->vmax=p->wmax=p->viscmax=-1e19;
+    
+    p->viscmax = MAX(p->W2,p->W4);
 
-    p->umax = p->vmax = p->wmax = p->viscmax = -1e19;
-
-    p->viscmax = MAX(p->W2, p->W4);
-
-    p->umax = MAX(p->W10, p->umax);
-
-    p->umax = MAX(p->W11_u, p->umax);
-    p->umax = MAX(p->W12_u, p->umax);
-    p->umax = MAX(p->W13_u, p->umax);
-    p->umax = MAX(p->W14_u, p->umax);
-    p->umax = MAX(p->W15_u, p->umax);
-    p->umax = MAX(p->W16_u, p->umax);
-
-    p->vmax = MAX(p->W11_v, p->vmax);
-    p->vmax = MAX(p->W12_v, p->vmax);
-    p->vmax = MAX(p->W13_v, p->vmax);
-    p->vmax = MAX(p->W14_v, p->vmax);
-    p->vmax = MAX(p->W15_v, p->vmax);
-    p->vmax = MAX(p->W16_v, p->vmax);
-
-    p->wmax = MAX(p->W11_w, p->wmax);
-    p->wmax = MAX(p->W12_w, p->wmax);
-    p->wmax = MAX(p->W13_w, p->wmax);
-    p->wmax = MAX(p->W14_w, p->wmax);
-    p->wmax = MAX(p->W15_w, p->wmax);
-    p->wmax = MAX(p->W16_w, p->wmax);
-
+	p->umax=MAX(p->W10,p->umax);
+    
+    p->umax=MAX(p->W11_u,p->umax);
+    p->umax=MAX(p->W12_u,p->umax);
+    p->umax=MAX(p->W13_u,p->umax);
+    p->umax=MAX(p->W14_u,p->umax);
+    p->umax=MAX(p->W15_u,p->umax);
+    p->umax=MAX(p->W16_u,p->umax);
+    
+    p->vmax=MAX(p->W11_v,p->vmax);
+    p->vmax=MAX(p->W12_v,p->vmax);
+    p->vmax=MAX(p->W13_v,p->vmax);
+    p->vmax=MAX(p->W14_v,p->vmax);
+    p->vmax=MAX(p->W15_v,p->vmax);
+    p->vmax=MAX(p->W16_v,p->vmax);
+    
+    p->wmax=MAX(p->W11_w,p->wmax);
+    p->wmax=MAX(p->W12_w,p->wmax);
+    p->wmax=MAX(p->W13_w,p->wmax);
+    p->wmax=MAX(p->W14_w,p->wmax);
+    p->wmax=MAX(p->W15_w,p->wmax);
+    p->wmax=MAX(p->W16_w,p->wmax);
+    
     ULOOP
-    p->umax = MAX(p->umax, fabs(a->u(i, j, k)));
+	p->umax=MAX(p->umax,fabs(a->u(i,j,k)));
 
-    p->umax = pgc->globalmax(p->umax);
+	p->umax=pgc->globalmax(p->umax);
 
-    VLOOP
-    p->vmax = MAX(p->vmax, fabs(a->v(i, j, k)));
 
-    p->vmax = pgc->globalmax(p->vmax);
+	VLOOP
+	p->vmax=MAX(p->vmax,fabs(a->v(i,j,k)));
 
-    WLOOP
-    p->wmax = MAX(p->wmax, fabs(a->w(i, j, k)));
+	p->vmax=pgc->globalmax(p->vmax);
 
-    p->wmax = pgc->globalmax(p->wmax);
 
-    p->umax = MAX(p->umax, 2.0 * p->ufbmax);
-    p->umax = MAX(p->umax, 2.0 * p->vfbmax);
-    p->umax = MAX(p->umax, 2.0 * p->wfbmax);
+	WLOOP
+	p->wmax=MAX(p->wmax,fabs(a->w(i,j,k)));
 
-    p->umax = MAX(p->umax, 2.0 * p->X210_u);
-    p->umax = MAX(p->umax, 2.0 * p->X210_v);
-    p->umax = MAX(p->umax, 2.0 * p->X210_w);
+	p->wmax=pgc->globalmax(p->wmax);
 
-    p->umax = MAX(p->umax, 2.0);
-
-    cu = 1.0e10;
-    cv = 1.0e10;
-    cw = 1.0e10;
-
-    if(p->N50 == 1)
-        LOOP
-        {
-            dx = MIN3(p->DXN[IP], p->DYN[JP], p->DZN[KP]);
-
-            cu = MIN(cu, 2.0 / ((sqrt(p->umax * p->umax + p->vmax * p->vmax + p->wmax * p->wmax)) / dx
-
-                                + sqrt((4.0 * fabs(MAX3(a->maxF, a->maxG, a->maxH))) / dx)));
-        }
-
-    if(p->N50 == 2)
-        LOOP
-        {
-            cu = MIN(cu, 2.0 / ((sqrt(p->umax * p->umax)) / p->DXN[IP]
-
-                                + sqrt((4.0 * fabs(a->maxF)) / p->DXN[IP])));
-
-            cv = MIN(cv, 2.0 / ((sqrt(p->vmax * p->vmax)) / p->DYN[JP]
-
-                                + sqrt((4.0 * fabs(a->maxG)) / p->DYN[JP])));
-
-            cw = MIN(cw, 2.0 / ((sqrt(p->wmax * p->wmax)) / p->DZN[KP]
-
-                                + sqrt((4.0 * fabs(a->maxH)) / p->DZN[KP])));
-        }
-
-    cu = MIN3(cu, cv, cw);
-
-    p->dt = p->N47 * cu * 0.25;
-    p->dt = MAX(p->dt, 1.0e-6);
-
-    p->dt = pgc->timesync(p->dt);
-    p->dt_old = p->dt;
-
-    cu = MIN(cu, 2.0 / ((sqrt(p->umax * p->umax + p->vmax * p->vmax + p->wmax * p->wmax)) / dx
-
-                        + sqrt((4.0 * fabs(MAX3(a->maxF, a->maxG, a->maxH))) / dx)));
-}
-
-if(p->N50 == 2)
+	p->umax=MAX(p->umax,2.0*p->ufbmax);
+	p->umax=MAX(p->umax,2.0*p->vfbmax);
+	p->umax=MAX(p->umax,2.0*p->wfbmax);
+    
+    p->umax=MAX(p->umax,2.0*p->X210_u);
+	p->umax=MAX(p->umax,2.0*p->X210_v);
+	p->umax=MAX(p->umax,2.0*p->X210_w);
+    
+    p->umax=MAX(p->umax,2.0);
+    
+    
+    cu=1.0e10;
+    cv=1.0e10;
+    cw=1.0e10;
+    
+    if(p->N50==1)
     LOOP
     {
-        cu = MIN(cu, 2.0 / ((sqrt(p->umax * p->umax)) / p->DXN[IP]
+    dx = MIN3(p->DXN[IP],p->DYN[JP],p->DZN[KP]);
 
-                            + sqrt((4.0 * fabs(a->maxF)) / p->DXN[IP])));
-
-        cv = MIN(cv, 2.0 / ((sqrt(p->vmax * p->vmax)) / p->DYN[JP]
-
-                            + sqrt((4.0 * fabs(a->maxG)) / p->DYN[JP])));
-
-        cw = MIN(cw, 2.0 / ((sqrt(p->wmax * p->wmax)) / p->DZN[KP]
-
-                            + sqrt((4.0 * fabs(a->maxH)) / p->DZN[KP])));
+	cu = MIN(cu, 2.0/((sqrt(p->umax*p->umax + p->vmax*p->vmax + p->wmax*p->wmax))/dx
+    
+            + sqrt((4.0*fabs(MAX3(a->maxF,a->maxG,a->maxH)))/dx)));
     }
-
-cu = MIN3(cu, cv, cw);
-
-cu = pgc->globalmin(cu);
-
-p->dt = p->N47 * cu * 0.25;
-p->dt = MAX(p->dt, 1.0e-6);
-p->dt_old = p->dt;
-
-a->maxF = fabs(a->gi);
-a->maxG = fabs(a->gj);
-a->maxH = fabs(a->gk);
+    
+    if(p->N50==2)
+    LOOP
+    {
+	cu = MIN(cu, 2.0/((sqrt(p->umax*p->umax))/p->DXN[IP]
+    
+            + sqrt((4.0*fabs(a->maxF))/p->DXN[IP])));
+            
+    cv = MIN(cv, 2.0/((sqrt(p->vmax*p->vmax))/p->DYN[JP]
+    
+            + sqrt((4.0*fabs(a->maxG))/p->DYN[JP])));
+            
+    cw = MIN(cw, 2.0/((sqrt(p->wmax*p->wmax))/p->DZN[KP]
+    
+            + sqrt((4.0*fabs(a->maxH))/p->DZN[KP])));
+    }
+    
+    cu = MIN3(cu,cv,cw);
+    
+    cu = pgc->globalmin(cu);
+    
+	p->dt=p->N47*cu*0.25;
+    p->dt = MAX(p->dt,1.0e-6);
+	p->dt_old=p->dt;
+    
+    a->maxF = fabs(a->gi);
+    a->maxG = fabs(a->gj);
+    a->maxH = fabs(a->gk);
+    
 }
 
-double ietimestep::max(double val1, double val2, double val3)
+double ietimestep::max(double val1,double val2,double val3)
 {
-    double maxi;
+	double maxi;
 
-    maxi = val1;
+	maxi=val1;
 
-    if(maxi < val2)
-        maxi = val2;
+	if(maxi<val2)
+	maxi=val2;
 
-    if(maxi < val3)
-        maxi = val3;
+	if(maxi<val3)
+	maxi=val3;
 
-    if(maxi < 0.0)
-        maxi = 0.0;
+	if(maxi<0.0)
+	maxi=0.0;
 
-    return maxi;
+	return maxi;
 }
 

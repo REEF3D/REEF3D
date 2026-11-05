@@ -22,18 +22,18 @@ Author: Hans Bihs
 
 #ifdef REEF3D_USE_HYPRE  // hypre is opt-in: make HYPRE=1 / cmake -DREEF3D_USE_HYPRE=ON
 
-#include "fdm.h"
-#include "field.h"
-#include "ghostcell.h"
 #include "hypre_struct.h"
 #include "lexer.h"
+#include "fdm.h"
+#include "ghostcell.h"
+#include "field.h"
 #include "vec.h"
 
-void hypre_struct::solve1234(lexer *p)
+void hypre_struct::solve1234(lexer* p)
 {
-    p->solver_status = 0;
+    p->solver_status=0;
 
-    p->solveriter = 0;
+    p->solveriter=0;
 
     HYPRE_StructBiCGSTABSetup(solver, A, b, x);
     p->solver_status = HYPRE_StructBiCGSTABSolve(solver, A, b, x);
@@ -41,17 +41,17 @@ void hypre_struct::solve1234(lexer *p)
     HYPRE_StructBiCGSTABGetNumIterations(solver, &num_iterations);
     HYPRE_StructBiCGSTABGetFinalRelativeResidualNorm(solver, &final_res_norm);
 
-    p->solveriter = num_iterations;
+    p->solveriter=num_iterations;
     p->final_res = final_res_norm;
 }
 
-void hypre_struct::solve(lexer *p, ghostcell *pgc)
+void hypre_struct::solve(lexer* p, ghostcell *pgc)
 {
-    p->solver_status = 0;
+    p->solver_status=0;
 
-    p->solveriter = 0;
+    p->solveriter=0;
 
-    if(solve_type == 11)
+    if(solve_type==11)
     {
         HYPRE_StructPCGSetup(solver, A, b, x);
         p->solver_status = HYPRE_StructPCGSolve(solver, A, b, x);
@@ -59,7 +59,7 @@ void hypre_struct::solve(lexer *p, ghostcell *pgc)
         HYPRE_StructPCGGetNumIterations(solver, &num_iterations);
         HYPRE_StructPCGGetFinalRelativeResidualNorm(solver, &final_res_norm);
     }
-    else if(solve_type == 12)
+    else if(solve_type==12)
     {
         HYPRE_StructGMRESSetup(solver, A, b, x);
         p->solver_status = HYPRE_StructGMRESSolve(solver, A, b, x);
@@ -67,7 +67,7 @@ void hypre_struct::solve(lexer *p, ghostcell *pgc)
         HYPRE_StructGMRESGetNumIterations(solver, &num_iterations);
         HYPRE_StructGMRESGetFinalRelativeResidualNorm(solver, &final_res_norm);
     }
-    else if(solve_type == 13)
+    else if(solve_type==13)
     {
         HYPRE_StructLGMRESSetup(solver, A, b, x);
         p->solver_status = HYPRE_StructLGMRESSolve(solver, A, b, x);
@@ -75,7 +75,7 @@ void hypre_struct::solve(lexer *p, ghostcell *pgc)
         HYPRE_StructLGMRESGetNumIterations(solver, &num_iterations);
         HYPRE_StructLGMRESGetFinalRelativeResidualNorm(solver, &final_res_norm);
     }
-    else if(solve_type == 14)
+    else if(solve_type==14)
     {
         HYPRE_StructBiCGSTABSetup(solver, A, b, x);
         p->solver_status = HYPRE_StructBiCGSTABSolve(solver, A, b, x);
@@ -83,7 +83,7 @@ void hypre_struct::solve(lexer *p, ghostcell *pgc)
         HYPRE_StructBiCGSTABGetNumIterations(solver, &num_iterations);
         HYPRE_StructBiCGSTABGetFinalRelativeResidualNorm(solver, &final_res_norm);
     }
-    else if(solve_type == 15 || solve_type == 16 || solve_type == 17)
+    else if(solve_type==15 || solve_type==16 || solve_type==17)
     {
         HYPRE_StructHybridSetup(solver, A, b, x);
         p->solver_status = HYPRE_StructHybridSolve(solver, A, b, x);
@@ -91,7 +91,7 @@ void hypre_struct::solve(lexer *p, ghostcell *pgc)
         HYPRE_StructHybridGetNumIterations(solver, &num_iterations);
         HYPRE_StructHybridGetFinalRelativeResidualNorm(solver, &final_res_norm);
     }
-    else if(solve_type == 18)
+    else if(solve_type==18)
     {
         HYPRE_StructPFMGSetup(solver, A, b, x);
         p->solver_status = HYPRE_StructPFMGSolve(solver, A, b, x);
@@ -99,7 +99,7 @@ void hypre_struct::solve(lexer *p, ghostcell *pgc)
         HYPRE_StructPFMGGetNumIterations(solver, &num_iterations);
         HYPRE_StructPFMGGetFinalRelativeResidualNorm(solver, &final_res_norm);
     }
-    else if(solve_type == 19)
+    else if(solve_type==19)
     {
         HYPRE_StructSMGSetup(solver, A, b, x);
         p->solver_status = HYPRE_StructSMGSolve(solver, A, b, x);
@@ -108,17 +108,17 @@ void hypre_struct::solve(lexer *p, ghostcell *pgc)
         HYPRE_StructSMGGetFinalRelativeResidualNorm(solver, &final_res_norm);
     }
 
-    p->solveriter = num_iterations;
+    p->solveriter=num_iterations;
     p->final_res = final_res_norm;
 
     error_flag = HYPRE_GetError();
 }
 
-void hypre_struct::solve44(lexer *p)
+void hypre_struct::solve44(lexer* p)
 {
-    p->solver_status = 0;
+    p->solver_status=0;
 
-    p->solveriter = 0;
+    p->solveriter=0;
 
     HYPRE_StructGMRESSetup(solver, A, b, x);
     p->solver_status = HYPRE_StructGMRESSolve(solver, A, b, x);
@@ -126,7 +126,7 @@ void hypre_struct::solve44(lexer *p)
     HYPRE_StructGMRESGetNumIterations(solver, &num_iterations);
     HYPRE_StructGMRESGetFinalRelativeResidualNorm(solver, &final_res_norm);
 
-    p->solveriter = num_iterations;
+    p->solveriter=num_iterations;
     p->final_res = final_res_norm;
 }
 

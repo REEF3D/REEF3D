@@ -20,125 +20,132 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "fdm_nhf.h"
-#include "ghostcell.h"
-#include "iowave.h"
-#include "lexer.h"
+#include"iowave.h"
+#include"lexer.h"
+#include"fdm_nhf.h"
+#include"ghostcell.h"
 
 void iowave::nhflow_wavegen_precalc_decomp_relax(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
-    /*
-    a: space
-    b: time
+        /*
+        a: space
+        b: time
+        
+        sin(a + b) = sin(a) cos(b) + cos(a) sin(b)
+        cos(a + b) = cos(a) cos(b) - sin(a) sin(b)
+        */
 
-    sin(a + b) = sin(a) cos(b) + cos(a) sin(b)
-    cos(a + b) = cos(a) cos(b) - sin(a) sin(b)
-    */
-
-    /*
-     U: cos()
-     V: cos()
-     W: sin()
-     ETA: cos()
-    */
+        /*
+         U: cos()
+         V: cos()
+         W: sin()
+         ETA: cos()
+        */
 
     int qn;
 
-    // ETA
-    count = 0;
-    if(!zc_built)
-        zonecol_build(p);
+
+// ETA
+    count=0;
+    if(!zc_built) zonecol_build(p);
     ZSLICELOOP4
     {
-        dg = distgen(p);
+		dg = distgen(p);
 
-        if(p->B98 == 2 && h_switch == 1)
+        if(p->B98==2 && h_switch==1)
         {
             // Zone 1
-            if(dg < 1.0e20)
+            if(dg<1.0e20)
             {
-                eta(i, j) = 0.0;
+                eta(i,j) = 0.0;
+                
+                for(qn=0;qn<wave_comp;++qn)
+                eta(i,j) += etaval_S_cos[count][qn]*etaval_T_cos[qn] - etaval_S_sin[count][qn]*etaval_T_sin[qn];
 
-                for(qn = 0; qn < wave_comp; ++qn)
-                    eta(i, j) += etaval_S_cos[count][qn] * etaval_T_cos[qn] - etaval_S_sin[count][qn] * etaval_T_sin[qn];
-
-                ++count;
+            ++count;
             }
-        }
+		}
     }
-    pgc->gcsl_start4(p, eta, 50);
+    pgc->gcsl_start4(p,eta,50);
 
-    int dbcount = 0;
+    
+    int dbcount=0;
+    
+// U
+    count=0;
+    ZLOOP
+    {
+        dg = distgen(p);
+		
+		// Wave Generation
+		if(p->B98==2 && u_switch==1)
+        {
+            
+            // Zone 1
+            if(dg<1.0e20)
+            {
+            uval[count]=0.0;
+            
+            for(qn=0;qn<wave_comp;++qn)
+            uval[count] += uval_S_cos[count][qn]*uval_T_cos[qn] - uval_S_sin[count][qn]*uval_T_sin[qn];
+            
+            UHval[count] = (eta(i,j) + d->depth(i,j))*uval[count];
+            
+            ++count;
+            }
+		}
+    }
 
-    // U
-    count = 0;
+
+    count=0;
+    ZLOOP
+    {
+        dg = distgen(p);
+        
+		// Wave Generation
+		if(p->B98==2 && v_switch==1)
+        {
+            // Zone 1
+            if(dg<1.0e20)
+            {
+            vval[count]=0.0;
+            
+            for(qn=0;qn<wave_comp;++qn)
+            vval[count] += vval_S_cos[count][qn]*vval_T_cos[qn] - vval_S_sin[count][qn]*vval_T_sin[qn];
+            
+            VHval[count] = (eta(i,j) + d->depth(i,j))*vval[count];
+            
+            ++count;
+            }
+		}
+    }
+
+
+    count=0;
     ZLOOP
     {
         dg = distgen(p);
 
-        // Wave Generation
-        if(p->B98 == 2 && u_switch == 1)
-        {
-
-            // Zone 1
-            if(dg < 1.0e20)
-            {
-                uval[count] = 0.0;
-
-                for(qn = 0; qn < wave_comp; ++qn)
-                    uval[count] += uval_S_cos[count][qn] * uval_T_cos[qn] - uval_S_sin[count][qn] * uval_T_sin[qn];
-
-                UHval[count] = (eta(i, j) + d->depth(i, j)) * uval[count];
-
-                ++count;
-            }
-        }
-    }
-
-    count = 0;
-    ZLOOP
-    {
-        dg = distgen(p);
-
-        // Wave Generation
-        if(p->B98 == 2 && v_switch == 1)
+		// Wave Generation
+		if(p->B98==2 && w_switch==1)
         {
             // Zone 1
-            if(dg < 1.0e20)
+            if(dg<1.0e20)
             {
-                vval[count] = 0.0;
+            wval[count]=0.0;
 
-                for(qn = 0; qn < wave_comp; ++qn)
-                    vval[count] += vval_S_cos[count][qn] * vval_T_cos[qn] - vval_S_sin[count][qn] * vval_T_sin[qn];
+            for(qn=0;qn<wave_comp;++qn)
+            wval[count] += wval_S_cos[count][qn]*wval_T_sin[qn] + wval_S_sin[count][qn]*wval_T_cos[qn];
+            
+            WHval[count] = (eta(i,j) + d->depth(i,j))*wval[count];
 
-                VHval[count] = (eta(i, j) + d->depth(i, j)) * vval[count];
-
-                ++count;
+            ++count;
             }
-        }
-    }
+		}
+    }	
+    
 
-    count = 0;
-    ZLOOP
-    {
-        dg = distgen(p);
 
-        // Wave Generation
-        if(p->B98 == 2 && w_switch == 1)
-        {
-            // Zone 1
-            if(dg < 1.0e20)
-            {
-                wval[count] = 0.0;
-
-                for(qn = 0; qn < wave_comp; ++qn)
-                    wval[count] += wval_S_cos[count][qn] * wval_T_sin[qn] + wval_S_sin[count][qn] * wval_T_cos[qn];
-
-                WHval[count] = (eta(i, j) + d->depth(i, j)) * wval[count];
-
-                ++count;
-            }
-        }
-    }
+    
 }
-
+    

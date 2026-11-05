@@ -44,22 +44,22 @@ enum {
 
 inline bool patch_bc(int bc)
 {
-    return bc >= PATCH_INLET && bc <= PATCH_OUTLET_FSF;
+    return bc>=PATCH_INLET && bc<=PATCH_OUTLET_FSF;
 }
 
 inline bool patch_inlet(int bc)
 {
-    return bc == PATCH_INLET || bc == PATCH_INLET_FSF;
+    return bc==PATCH_INLET || bc==PATCH_INLET_FSF;
 }
 
 inline bool patch_outlet(int bc)
 {
-    return bc == PATCH_OUTLET || bc == PATCH_OUTLET_FSF;
+    return bc==PATCH_OUTLET || bc==PATCH_OUTLET_FSF;
 }
 
 inline bool patch_fsf(int bc)
 {
-    return bc == PATCH_INLET_FSF || bc == PATCH_OUTLET_FSF;
+    return bc==PATCH_INLET_FSF || bc==PATCH_OUTLET_FSF;
 }
 
 #endif

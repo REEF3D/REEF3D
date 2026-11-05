@@ -20,14 +20,14 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "sflow_turb_parabolic.h"
-#include "fdm2D.h"
-#include "ghostcell.h"
-#include "lexer.h"
+#include"sflow_turb_parabolic.h"
+#include"lexer.h"
+#include"fdm2D.h"
+#include"ghostcell.h"
 
-#define HPIJ (fabs(b->hp(i, j)) > 1.0e-20 ? b->hp(i, j) : 1.0e20)
+#define HPIJ (fabs(b->hp(i,j))>1.0e-20?b->hp(i,j):1.0e20)
 
-sflow_turb_parabolic::sflow_turb_parabolic(lexer *p) : sflow_turb_io_void(p)
+sflow_turb_parabolic::sflow_turb_parabolic(lexer* p) : sflow_turb_io_void(p)
 {
 }
 
@@ -37,36 +37,38 @@ sflow_turb_parabolic::~sflow_turb_parabolic()
 
 void sflow_turb_parabolic::start(lexer *p, fdm2D *b, ghostcell *pgc, sflow_convection *pconvec, sflow_diffusion *pdiff, solver2D *psolv, ioflow *pflow)
 {
-    double dudx, dvdy, dudy, dvdx;
-    double alpha_t, Ustar, uvel, vvel;
-    double manning, cf;
-
+    double dudx,dvdy,dudy,dvdx;
+    double alpha_t,Ustar,uvel,vvel;
+    double manning,cf;
+    
     alpha_t = p->A262;
-
-    SLICELOOP4
+    
+	SLICELOOP4
     {
-        manning = pow(b->ks(i, j), 1.0 / 6.0) / 20.0;  // same as sflow_rough_manning
-
-        cf = pow(manning, 2.0) * fabs(p->W22) / pow(HPIJ, 1.0 / 3.0);
-
-        uvel = b->U(i, j);  // cell-centred velocity, as sflow_rough_manning (face averages are halved next to dry cells)
-        vvel = b->V(i, j);
-
-        Ustar = sqrt(cf * (uvel * uvel + vvel * vvel));
-
-        b->eddyv(i, j) = alpha_t * Ustar * b->hp(i, j);
-
-        if(p->wet[IJ] == 0)
-            b->eddyv(i, j) = 0.0;
+    manning = pow(b->ks(i,j),1.0/6.0)/20.0;   // same as sflow_rough_manning
+    
+    cf = pow(manning,2.0)*fabs(p->W22)/pow(HPIJ,1.0/3.0);
+    
+    uvel = b->U(i,j);   // cell-centred velocity, as sflow_rough_manning (face averages are halved next to dry cells)
+    vvel = b->V(i,j);
+    
+    Ustar = sqrt(cf*(uvel*uvel + vvel*vvel));
+    
+    b->eddyv(i,j) = alpha_t*Ustar*b->hp(i,j);
+    
+    if(p->wet[IJ]==0)
+    b->eddyv(i,j) = 0.0;
     }
-
-    pgc->gcsl_start4(p, b->eddyv, 24);
+    
+    pgc->gcsl_start4(p,b->eddyv,24);
 }
 
-void sflow_turb_parabolic::ktimesave(lexer *p, fdm2D *b, ghostcell *pgc)
+void sflow_turb_parabolic::ktimesave(lexer* p, fdm2D *b, ghostcell *pgc)
 {
+
 }
 
-void sflow_turb_parabolic::etimesave(lexer *p, fdm2D *b, ghostcell *pgc)
+void sflow_turb_parabolic::etimesave(lexer* p, fdm2D *b, ghostcell *pgc)
 {
+
 }

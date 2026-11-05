@@ -20,15 +20,15 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "fdm_nhf.h"
-#include "ghostcell.h"
-#include "iqn_ils.h"
-#include "lexer.h"
-#include "net_membrane.h"
-#include "slice.h"
-#include <cmath>
-#include <iostream>
-#include <mpi.h>
+#include"net_membrane.h"
+#include"iqn_ils.h"
+#include"lexer.h"
+#include"fdm_nhf.h"
+#include"ghostcell.h"
+#include"slice.h"
+#include<mpi.h>
+#include<iostream>
+#include<cmath>
 
 // Strong (iterated) coupling of a flexible membrane with NHFLOW, membrane.dat 'coupling iterated'.
 //
@@ -55,60 +55,58 @@ Author: Hans Bihs
 void net_membrane::reforce_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, double alpha, double *UH, double *VH, double *WH, slice &WL)
 {
     if(!iterated())
-        return;
+    return;
 
-    const double a = alpha * p->dt;
+    const double a = alpha*p->dt;
     const Eigen::Matrix3d I = Eigen::Matrix3d::Identity();
 
     vector<Eigen::Vector3d> dv(xdot_.size());
-    for(size_t q = 0; q < xdot_.size(); ++q)
-        dv[q] = xdot_[q] - xdotf_[q];
+    for(size_t q=0; q<xdot_.size(); ++q)
+    dv[q] = xdot_[q] - xdotf_[q];
 
     for(const auto &e : cells_)
     {
-        i = e.i;
-        j = e.j;
-        k = e.k;
+        i=e.i; j=e.j; k=e.k;
 
         Eigen::Matrix3d A;
         Eigen::Vector3d b;
-        layer_matrix(e, dv, A, b);
+        layer_matrix(e,dv,A,b);
 
-        Eigen::Vector3d du = (I + a * A).ldlt().solve(a * b);
+        Eigen::Vector3d du = (I + a*A).ldlt().solve(a*b);
 
-        if(p->j_dir == 0)
-            du(1) = 0.0;
+        if(p->j_dir==0)
+        du(1)=0.0;
 
         d->U[IJK] += du(0);
-        UH[IJK] += du(0) * WL(i, j);
+        UH[IJK]   += du(0)*WL(i,j);
 
-        if(p->j_dir == 1)
+        if(p->j_dir==1)
         {
-            d->V[IJK] += du(1);
-            VH[IJK] += du(1) * WL(i, j);
+        d->V[IJK] += du(1);
+        VH[IJK]   += du(1)*WL(i,j);
         }
 
         d->W[IJK] += du(2);
-        WH[IJK] += du(2) * WL(i, j);
+        WH[IJK]   += du(2)*WL(i,j);
     }
 }
 
 bool net_membrane::couple_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, int iter, double alpha, slice &WL, int it)
 {
     if(!iterated() || gm_.empty())
-        return true;
+    return true;
 
     const size_t nn = x_.size();
-    const double h = alpha * p->dt;
+    const double h = alpha*p->dt;
 
-    if(it == 0)
+    if(it==0)
     {
-        sample_collar(p, d, pgc);
-        stage_begin(p, pgc, iter, alpha, WL);
+    sample_collar(p,d,pgc);
+    stage_begin(p,pgc,iter,alpha,WL);
     }
 
     // loads of this iteration
-    compute_loads(p, d, pgc, WL);
+    compute_loads(p,d,pgc,WL);
 
     // structure: backward Euler of the stage from the base state, attached nodes to their current position
     const vector<Eigen::Vector3d> xg = x_, vg = vs_;
@@ -116,7 +114,7 @@ bool net_membrane::couple_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, int iter,
     x_ = xbase_;
     vs_ = vbase_;
 
-    structure_solve(p, h, 1, Cr_, xdot_, xbase_, xg, true);
+    structure_solve(p,h,1,Cr_,xdot_,xbase_,xg,true);
 
     xr_ = x_;
     vr_ = vs_;
@@ -125,46 +123,46 @@ bool net_membrane::couple_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, int iter,
 
     // fixed point on the free node velocities
     Eigen::VectorXd xin, xout;
-    group_vector(xdot_, xin, p->j_dir == 0);
-    group_vector(vr_, xout, p->j_dir == 0);
+    group_vector(xdot_,xin,p->j_dir==0);
+    group_vector(vr_,xout,p->j_dir==0);
 
     const double rn = (xout - xin).norm();
     const double on = xout.norm();
-    const double sn = sqrt(double(MAX(1, (int)xin.size())));
+    const double sn = sqrt(double(MAX(1,(int)xin.size())));
     // the unconverged Robin term C (v~ - v) acts on the structure as a spurious force; with the Robin matrix scaled
     // by f the velocity tolerance is scaled by 1/f, so that this force error does not depend on f
-    const double rtol = prm.crtol / prm.crobin, atol = prm.catol / prm.crobin;
-    bool conv = rn <= rtol * on + atol * sn;
-
+    const double rtol = prm.crtol/prm.crobin, atol = prm.catol/prm.crobin;
+    bool conv = rn <= rtol*on + atol*sn;
+    
     // the structure is replicated on all ranks; agree on the decision, so that rounding differences of the reductions
     // can never let one rank leave the loop while the others call the pressure solver again
     {
         int c = conv ? 1 : 0;
-        MPI_Allreduce(MPI_IN_PLACE, &c, 1, MPI_INT, MPI_MIN, pgc->mpi_comm);
-        conv = c == 1;
+        MPI_Allreduce(MPI_IN_PLACE,&c,1,MPI_INT,MPI_MIN,pgc->mpi_comm);
+        conv = c==1;
     }
 
     ++citstep_;
 
-    if(prm.clog == 1 && p->mpirank == 0)
-        cout << "Membrane " << nMem << " coupling: t " << p->simtime << " stage " << iter << " it " << it << "  |r|/|v| " << rn / MAX(on, 1.0e-20)
-             << "  |v|rms " << on / sn << "  columns " << pqn_->columns() << endl;
+    if(prm.clog==1 && p->mpirank==0)
+    cout<<"Membrane "<<nMem<<" coupling: t "<<p->simtime<<" stage "<<iter<<" it "<<it<<"  |r|/|v| "<<rn/MAX(on,1.0e-20)
+        <<"  |v|rms "<<on/sn<<"  columns "<<pqn_->columns()<<endl;
 
-    if(conv || it + 1 >= prm.citer)
+    if(conv || it+1>=prm.citer)
     {
-        cres_ = MAX(cres_, rn / MAX(on, atol * sn));
+        cres_ = MAX(cres_, rn/MAX(on, atol*sn));
 
         if(!conv)
         {
             ++cwarn_;
 
-            if(p->mpirank == 0 && (cwarn_ <= 10 || cwarn_ % 100 == 0))
-                cout << "Membrane " << nMem << ": coupling not converged in " << prm.citer << " iterations, |r|/|v| = " << rn / MAX(on, 1.0e-20)
-                     << " (t = " << p->simtime << ", " << cwarn_ << " times)" << endl;
+            if(p->mpirank==0 && (cwarn_<=10 || cwarn_%100==0))
+            cout<<"Membrane "<<nMem<<": coupling not converged in "<<prm.citer<<" iterations, |r|/|v| = "<<rn/MAX(on,1.0e-20)
+                <<" (t = "<<p->simtime<<", "<<cwarn_<<" times)"<<endl;
         }
 
         // keep the secant information of this stage for the next ones
-        pqn_->next(xin, xout);
+        pqn_->next(xin,xout);
         pqn_->end();
 
         // the structure result is taken over in reaction_nhflow (stage_commit), after the loads of the final velocity
@@ -175,14 +173,14 @@ bool net_membrane::couple_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, int iter,
 
     // safeguard: a residual far above the best one of this stage means the secant model (columns of earlier stages,
     // noise of the fluid solution) misleads the update: drop the history and continue with relaxed steps
-    if(it == 0 || rn < rbest_)
-        rbest_ = rn;
-
-    if(it > 0 && rn > 10.0 * rbest_ && rn > atol * sn)
-        pqn_->restart();
-
-    const Eigen::VectorXd xnext = pqn_->next(xin, xout);
-    group_scatter(xnext, xdot_);
+    if(it==0 || rn<rbest_)
+    rbest_ = rn;
+    
+    if(it>0 && rn>10.0*rbest_ && rn>atol*sn)
+    pqn_->restart();
+    
+    const Eigen::VectorXd xnext = pqn_->next(xin,xout);
+    group_scatter(xnext,xdot_);
 
     return false;
 }
@@ -191,18 +189,18 @@ void net_membrane::stage_begin(lexer *p, ghostcell *pgc, int iter, double alpha,
 {
     const size_t nn = x_.size();
 
-    if(pqn_ == nullptr)
-        pqn_ = new iqn_ils(4, prm.crelax, prm.creuse, prm.ccols, prm.cfilt, prm.cqn == 1);
+    if(pqn_==nullptr)
+    pqn_ = new iqn_ils(4,prm.crelax,prm.creuse,prm.ccols,prm.cfilt,prm.cqn==1);
 
     // structure at the start: initial positions at rest
-    if(xk_.size() != nn)
+    if(xk_.size()!=nn)
     {
         xk_ = x0_;
-        vsk_.assign(nn, Eigen::Vector3d::Zero());
+        vsk_.assign(nn,Eigen::Vector3d::Zero());
     }
 
     // first stage: start of the time step
-    if(iter == 0)
+    if(iter==0)
     {
         xn_ = xk_;
         vsn_ = vsk_;
@@ -214,14 +212,14 @@ void net_membrane::stage_begin(lexer *p, ghostcell *pgc, int iter, double alpha,
     xbase_.resize(nn);
     vbase_.resize(nn);
 
-    for(size_t q = 0; q < nn; ++q)
+    for(size_t q=0; q<nn; ++q)
     {
-        xbase_[q] = (1.0 - alpha) * xn_[q] + alpha * xk_[q];
-        vbase_[q] = (1.0 - alpha) * vsn_[q] + alpha * vsk_[q];
+        xbase_[q] = (1.0-alpha)*xn_[q] + alpha*xk_[q];
+        vbase_[q] = (1.0-alpha)*vsn_[q] + alpha*vsk_[q];
     }
 
-    robin_matrix(p, pgc, alpha, WL);
-
+    robin_matrix(p,pgc,alpha,WL);
+    
     // new base geometry, step and Robin matrix: the structure matrix is factorised again in the first iteration
     sfac_ok_ = false;
 
@@ -237,27 +235,27 @@ void net_membrane::stage_commit(lexer *p)
     vs_ = vr_;
     xk_ = xr_;
     vsk_ = vr_;
-
+    
     // the fluid of the next stage starts from the converged node velocities
-    for(size_t q = 0; q < x_.size(); ++q)
-        if(!att_[q])
-            xdot_[q] = vr_[q];
+    for(size_t q=0; q<x_.size(); ++q)
+    if(!att_[q])
+    xdot_[q] = vr_[q];
 
     update_geometry();
     update_body_load(p);
 
     if(body_)
-        attach_response(p, p->dt, &Cr_);
+    attach_response(p,p->dt,&Cr_);
 
     vmax_ = 0.0;
-    for(size_t q = 0; q < x_.size(); ++q)
-        if(!att_[q])
-            vmax_ = MAX(vmax_, xdot_[q].norm());
+    for(size_t q=0; q<x_.size(); ++q)
+    if(!att_[q])
+    vmax_ = MAX(vmax_, xdot_[q].norm());
 
     Tmax_ = 0.0;
-    for(size_t e = 0; e < edge_.size(); ++e)
-        if(grp_[edge_[e][0]] != grp_[edge_[e][1]])
-            Tmax_ = MAX(Tmax_, prm.EA * ((x_[edge_[e][1]] - x_[edge_[e][0]]).norm() - L0_[e]) / L0_[e]);
+    for(size_t e=0; e<edge_.size(); ++e)
+    if(grp_[edge_[e][0]]!=grp_[edge_[e][1]])
+    Tmax_ = MAX(Tmax_, prm.EA*((x_[edge_[e][1]]-x_[edge_[e][0]]).norm() - L0_[e])/L0_[e]);
 }
 
 void net_membrane::robin_matrix(lexer *p, ghostcell *pgc, double alpha, slice &WL)
@@ -266,78 +264,76 @@ void net_membrane::robin_matrix(lexer *p, ghostcell *pgc, double alpha, slice &W
     // u = (I + a A)^-1 (u* + a b(v)), so the load F = rho dV (A u - b) changes with the membrane velocity by
     // dF/dv_m = -rho dV (I + a A)^-1 A (before the projection), distributed with the barycentric weights
     const size_t nn = x_.size();
-    const double a = alpha * p->dt;
+    const double a = alpha*p->dt;
     const double rho = p->W1;
     const Eigen::Matrix3d I = Eigen::Matrix3d::Identity();
 
-    vector<double> buf(9 * nn, 0.0);
+    vector<double> buf(9*nn,0.0);
 
     for(const auto &e : cells_)
     {
-        i = e.i;
-        j = e.j;
-        k = e.k;
+        i=e.i; j=e.j; k=e.k;
 
-        if(p->wet[IJ] == 0)
-            continue;
+        if(p->wet[IJ]==0)
+        continue;
 
         Eigen::Matrix3d A;
         Eigen::Vector3d b;
-        layer_matrix(e, xdot_, A, b);
+        layer_matrix(e,xdot_,A,b);
 
-        const double dV = p->DXN[IP] * p->DYN[JP] * p->DZN[KP] * WL(i, j);
-        const Eigen::Matrix3d C = rho * dV * (I + a * A).ldlt().solve(A);
-        const double w[3] = {e.w0, e.w1, e.w2};
+        const double dV = p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*WL(i,j);
+        const Eigen::Matrix3d C = rho*dV*(I + a*A).ldlt().solve(A);
+        const double w[3] = {e.w0,e.w1,e.w2};
 
-        for(int q = 0; q < 3; ++q)
+        for(int q=0; q<3; ++q)
         {
             const int nd = tri_[e.tc][q];
 
-            for(int r = 0; r < 3; ++r)
-                for(int c = 0; c < 3; ++c)
-                    buf[9 * nd + 3 * r + c] += w[q] * C(r, c);
+            for(int r=0; r<3; ++r)
+            for(int c=0; c<3; ++c)
+            buf[9*nd+3*r+c] += w[q]*C(r,c);
         }
     }
 
-    MPI_Allreduce(MPI_IN_PLACE, buf.data(), (int)buf.size(), MPI_DOUBLE, MPI_SUM, pgc->mpi_comm);
+    MPI_Allreduce(MPI_IN_PLACE,buf.data(),(int)buf.size(),MPI_DOUBLE,MPI_SUM,pgc->mpi_comm);
 
-    Cr_.assign(nn, Eigen::Matrix3d::Zero());
+    Cr_.assign(nn,Eigen::Matrix3d::Zero());
 
-    for(size_t q = 0; q < nn; ++q)
-        for(int r = 0; r < 3; ++r)
-            for(int c = 0; c < 3; ++c)
-                Cr_[q](r, c) = 0.5 * prm.crobin * (buf[9 * q + 3 * r + c] + buf[9 * q + 3 * c + r]);
+    for(size_t q=0; q<nn; ++q)
+    for(int r=0; r<3; ++r)
+    for(int c=0; c<3; ++c)
+    Cr_[q](r,c) = 0.5*prm.crobin*(buf[9*q+3*r+c] + buf[9*q+3*c+r]);
 }
 
 void net_membrane::group_vector(const vector<Eigen::Vector3d> &v, Eigen::VectorXd &out, bool twod) const
 {
     // velocity of the free node groups (first node of each group), 2D without the y component
     const int dim = twod ? 2 : 3;
-    out.resize(dim * gm_.size());
+    out.resize(dim*gm_.size());
 
-    for(size_t g = 0; g < gm_.size(); ++g)
+    for(size_t g=0; g<gm_.size(); ++g)
     {
         const Eigen::Vector3d &u = v[gm_[g][0]];
 
         if(twod)
         {
-            out(2 * g + 0) = u(0);
-            out(2 * g + 1) = u(2);
+            out(2*g+0) = u(0);
+            out(2*g+1) = u(2);
         }
         else
-            out.segment<3>(3 * g) = u;
+        out.segment<3>(3*g) = u;
     }
 }
 
 void net_membrane::group_scatter(const Eigen::VectorXd &x, vector<Eigen::Vector3d> &v) const
 {
-    const bool twod = x.size() == 2 * (int)gm_.size();
+    const bool twod = x.size()==2*(int)gm_.size();
 
-    for(size_t g = 0; g < gm_.size(); ++g)
+    for(size_t g=0; g<gm_.size(); ++g)
     {
-        const Eigen::Vector3d u = twod ? Eigen::Vector3d(x(2 * g + 0), 0.0, x(2 * g + 1)) : Eigen::Vector3d(x.segment<3>(3 * g));
+        const Eigen::Vector3d u = twod ? Eigen::Vector3d(x(2*g+0),0.0,x(2*g+1)) : Eigen::Vector3d(x.segment<3>(3*g));
 
         for(int q : gm_[g])
-            v[q] = u;
+        v[q] = u;
     }
 }

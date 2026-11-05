@@ -23,11 +23,11 @@ Architect: Hans Bihs
 #ifndef CFD_AMR_6DOF_H_
 #define CFD_AMR_6DOF_H_
 
-#include "6DOF.h"
-#include "field4a.h"
-#include "fieldint5.h"
-#include "increment.h"
-#include <vector>
+#include"6DOF.h"
+#include"increment.h"
+#include"fieldint5.h"
+#include"field4a.h"
+#include<vector>
 
 class sixdof_cfd;
 class reinidisc_f;
@@ -48,45 +48,45 @@ using namespace std;
 class cfd_amr_6dof final : public sixdof, public increment
 {
 public:
-    cfd_amr_6dof(lexer *, sixdof_cfd *);
+    cfd_amr_6dof(lexer*, sixdof_cfd*);
     virtual ~cfd_amr_6dof();
 
     // the hull on the grid without forcing: fb, the flags of the solid boundary (patch set-up)
-    void body(lexer *, fdm *, ghostcell *);
+    void body(lexer*, fdm*, ghostcell*);
 
-    void start_cfd(lexer *, fdm *, ghostcell *, int, field &, field &, field &, field &, field &, field &, bool) override final;
-    void start_nhflow(lexer *, fdm_nhf *, ghostcell *, int, double *, double *, double *, double *, double *, double *, slice &, slice &, bool) override final {}
-    void start_sflow(lexer *, fdm2D *, ghostcell *, int, slice &, slice &, slice &, slice &, slice &, slice &, slice &, bool) override final {}
+    void start_cfd(lexer*,fdm*,ghostcell*,int,field&,field&,field&,field&,field&,field&,bool) override final;
+    void start_nhflow(lexer*,fdm_nhf*,ghostcell*,int,double*,double*,double*,double*,double*,double*,slice&,slice&,bool) override final {}
+    void start_sflow(lexer*,fdm2D*,ghostcell*,int,slice&,slice&,slice&,slice&,slice&,slice&,slice&,bool) override final {}
 
-    void reforce_nhflow(lexer *, fdm_nhf *, ghostcell *, int, double *, double *, double *, double *, double *, double *, slice &, slice &, bool) override final {}
+    void reforce_nhflow(lexer*,fdm_nhf*,ghostcell*,int,double*,double*,double*,double*,double*,double*,slice&,slice&,bool) override final {}
 
-    void ini(lexer *, ghostcell *) override final {}
-    void initialize(lexer *, fdm *, ghostcell *) override final {}
-    void initialize(lexer *, fdm2D *, ghostcell *) override final {}
-    void initialize(lexer *, fdm_nhf *, ghostcell *) override final {}
+    void ini(lexer*,ghostcell*) override final {}
+    void initialize(lexer*, fdm*, ghostcell*) override final {}
+    void initialize(lexer*, fdm2D*, ghostcell*) override final {}
+    void initialize(lexer*, fdm_nhf*, ghostcell*) override final {}
 
-    void isource(lexer *, fdm *, ghostcell *) override final {}
-    void jsource(lexer *, fdm *, ghostcell *) override final {}
-    void ksource(lexer *, fdm *, ghostcell *) override final {}
+    void isource(lexer*,fdm*,ghostcell*) override final {}
+    void jsource(lexer*,fdm*,ghostcell*) override final {}
+    void ksource(lexer*,fdm*,ghostcell*) override final {}
 
-    void isource(lexer *, fdm_nhf *, ghostcell *, slice &) override final {}
-    void jsource(lexer *, fdm_nhf *, ghostcell *, slice &) override final {}
-    void ksource(lexer *, fdm_nhf *, ghostcell *, slice &) override final {}
+    void isource(lexer*,fdm_nhf*,ghostcell*,slice&) override final {}
+    void jsource(lexer*,fdm_nhf*,ghostcell*,slice&) override final {}
+    void ksource(lexer*,fdm_nhf*,ghostcell*,slice&) override final {}
 
-    void isource2D(lexer *, fdm2D *, ghostcell *) override final {}
-    void jsource2D(lexer *, fdm2D *, ghostcell *) override final {}
+    void isource2D(lexer*,fdm2D*,ghostcell*) override final {}
+    void jsource2D(lexer*,fdm2D*,ghostcell*) override final {}
 
 private:
-    void cast(lexer *, fdm *, ghostcell *, int);
+    void cast(lexer*, fdm*, ghostcell*, int);
     bool unchanged(double);
-    void reset_fbh(lexer *, fdm *, ghostcell *);
+    void reset_fbh(lexer*, fdm*, ghostcell*);
 
     sixdof_cfd *b;
     fieldint5 cutl, cutr, fbio;
     field4a frk1, L, dt;
     reinidisc_f *prdisc;
-    int box[6];                   // the box of the body on the grid (ray_cast_amr)
-    vector<vector<double>> last;  // the triangles of the bodies at the last cast on this grid
+    int box[6];             // the box of the body on the grid (ray_cast_amr)
+    vector<vector<double>> last;    // the triangles of the bodies at the last cast on this grid
 };
 
 #endif

@@ -23,9 +23,9 @@ Author: Hans Bihs
 #ifndef ICE_CONTACT_NSCD_H_
 #define ICE_CONTACT_NSCD_H_
 
-#include "ice_contact.h"
-#include <map>
-#include <tuple>
+#include"ice_contact.h"
+#include<map>
+#include<tuple>
 
 using namespace std;
 
@@ -50,45 +50,45 @@ using namespace std;
 class ice_contact_nscd final : public ice_contact
 {
 public:
-    ice_contact_nscd(double mu, double e, int iter, int walls, double xmin, double xmax, double ymin, double ymax, double sigc = 0.0);
+    ice_contact_nscd(double mu, double e, int iter, int walls, double xmin, double xmax, double ymin, double ymax, double sigc=0.0);
     virtual ~ice_contact_nscd() = default;
 
-    void solve(vector<ice_body2D> &, double dt, int is2D) override final;
-    const vector<ice_contact_record> &records() const override final { return rec; }
+    void solve(vector<ice_body2D>&, double dt, int is2D) override final;
+    const vector<ice_contact_record>& records() const override final {return rec;}
 
 private:
     struct contact
     {
-        int a, b;       // bodies, b = -1-wall for a wall
-        double nx, ny;  // normal, from a to b
-        double px, py;  // contact point
-        double sep;     // signed gap (<0 penetration)
-        long key;       // feature key for warm starting
-        double rax, ray, rbx, rby;
-        double mn, mt;           // effective masses
-        double bias;             // target normal velocity
-        double Pnmax = 1.0e300;  // crushing cap on the normal impulse
-        double wc = 0.0;         // contact width of the pair (crushing)
-        double Fcap = 0.0;       // crushing force cap of the pair sigma_c*h*w, 0: none
+        int a,b;              // bodies, b = -1-wall for a wall
+        double nx,ny;         // normal, from a to b
+        double px,py;         // contact point
+        double sep;           // signed gap (<0 penetration)
+        long key;             // feature key for warm starting
+        double rax,ray,rbx,rby;
+        double mn,mt;         // effective masses
+        double bias;          // target normal velocity
+        double Pnmax = 1.0e300; // crushing cap on the normal impulse
+        double wc = 0.0;        // contact width of the pair (crushing)
+        double Fcap = 0.0;      // crushing force cap of the pair sigma_c*h*w, 0: none
         double Pn = 0.0, Pt = 0.0;
     };
 
-    void broadphase(vector<ice_body2D> &, double dt);
-    void collide(vector<ice_body2D> &, int, int, double);
-    void walls(vector<ice_body2D> &, int, double);
-    double max_separation(const ice_body2D &, const ice_body2D &, int &) const;
+    void broadphase(vector<ice_body2D>&, double dt);
+    void collide(vector<ice_body2D>&, int, int, double);
+    void walls(vector<ice_body2D>&, int, double);
+    double max_separation(const ice_body2D&, const ice_body2D&, int&) const;
 
-    double mu, e;
+    double mu,e;
     int iter;
     int wallflag;
-    double xmin, xmax, ymin, ymax;
-    double beta, slop, vrest;
-    double sigc;  // crushing strength, <=0: off
+    double xmin,xmax,ymin,ymax;
+    double beta,slop,vrest;
+    double sigc;          // crushing strength, <=0: off
 
     vector<contact> con;
     vector<ice_contact_record> rec;
-    map<tuple<int, int, long>, pair<double, double>> cache;
-    map<pair<int, int>, pair<int, int>> crushref, newcrushref;  // crushing pairs (ids): reference face (flip, edge) kept while they overlap
+    map<tuple<int,int,long>,pair<double,double>> cache;
+    map<pair<int,int>,pair<int,int>> crushref,newcrushref;  // crushing pairs (ids): reference face (flip, edge) kept while they overlap
 };
 
 #endif

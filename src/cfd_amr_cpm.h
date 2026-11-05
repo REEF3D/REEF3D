@@ -23,8 +23,8 @@ Architect: Hans Bihs
 #ifndef CFD_AMR_CPM_H_
 #define CFD_AMR_CPM_H_
 
-#include <string>
-#include <vector>
+#include<vector>
+#include<string>
 
 class lexer;
 class ghostcell;
@@ -58,18 +58,18 @@ struct cfd_amr_cpm
     solver *psolv = nullptr;
     patchBC_interface *pBC = nullptr;
 
-    int L = 0;              // the level of the grid (the finest)
-    int lo[3] = {0, 0, 0};  // its first cell on the index space of level L
-    int n[3] = {0, 0, 0};   // its cells
+    int L = 0;                  // the level of the grid (the finest)
+    int lo[3] = {0,0,0};        // its first cell on the index space of level L
+    int n[3] = {0,0,0};         // its cells
 
     // the copy between the patches of level L and this grid: per rank the items requested from it
     // (this rank: their position in the arrays of the grid, sorted by rank) and served to it (the patch
     // and its cell); in the interior of the grid (the bed goes back from those only)
-    std::vector<int> scnt, sdsp, rcnt, rdsp;  // items: sent to / received from each rank (requests)
-    std::vector<int> mine;                    // requested items: the flat index in the arrays of the grid
-    std::vector<char> inner;                  //   in the interior of the grid
-    std::vector<int> sv_g, sv_q;              // served items: the local patch, the flat index in its arrays
-    std::vector<char> sv_in;                  //   in the interior of the grid (the bed back)
+    std::vector<int> scnt, sdsp, rcnt, rdsp;    // items: sent to / received from each rank (requests)
+    std::vector<int> mine;                      // requested items: the flat index in the arrays of the grid
+    std::vector<char> inner;                    //   in the interior of the grid
+    std::vector<int> sv_g, sv_q;                // served items: the local patch, the flat index in its arrays
+    std::vector<char> sv_in;                    //   in the interior of the grid (the bed back)
 };
 
 #endif

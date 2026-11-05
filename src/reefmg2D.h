@@ -23,11 +23,12 @@ Author: Hans Bihs
 #ifndef REEFMG2D_H_
 #define REEFMG2D_H_
 
+#include "solver2D.h"
 #include "increment.h"
-#include "reefamr_xzlu.h"
 #include "reefmg_core.h"
-#include <mpi.h>
+#include "reefamr_xzlu.h"
 #include <vector>
+#include <mpi.h>
 
 class lexer;
 class ghostcell;
@@ -61,56 +62,58 @@ using namespace std;
 class reefmg2D final : public solver2D, public increment, public sc_operator
 {
 public:
-    reefmg2D(lexer *, ghostcell *);
+
+    reefmg2D(lexer*, ghostcell*);
     //  local: the grid of this rank alone (a block of a multi-block grid, nhflow_amr_si): a 1 x 1
     //  topology on MPI_COMM_SELF, no reductions over the ranks; for vcycle() as a preconditioner
-    reefmg2D(lexer *, ghostcell *, bool local);
+    reefmg2D(lexer*, ghostcell*, bool local);
     virtual ~reefmg2D();
 
-    void start(lexer *, ghostcell *, slice &, matrix2D &, vec2D &, vec2D &, int) override final;
+    void start(lexer*, ghostcell*, slice&, matrix2D&, vec2D&, vec2D&, int) override final;
 
     //  One V-cycle z = M^-1 r from a zero initial guess: the level-0 part of the
     //  preconditioner of the composite non-hydrostatic solve (SFLOW mesh
     //  refinement).  rebuild: M changed, coarsen again.
-    void vcycle(lexer *, ghostcell *, slice &, matrix2D &, vec2D &, bool);
+    void vcycle(lexer*, ghostcell*, slice&, matrix2D&, vec2D&, bool);
 
     //  vcycle(): on a grid with one cell in y, the exact solve of the x line (several ranks: of all ranks)
     //  (reefamr_xzlu) in place of the V-cycle (SFLOW mesh refinement on a 2D grid)
     void set_exact_line(bool on) { exact_line = on; }
 
     //  exact fine operator for the Krylov iteration in fp32 mode (sc_operator)
-    void fine_apply(const sc_level &L, const double *x, double *y) override;
+    void fine_apply(const sc_level &L,const double *x,double *y) override;
 
 private:
-    void topology(lexer *, ghostcell *);
+
+    void topology(lexer*, ghostcell*);
 
     //  Copies matrix2D into the fine level of core.  Returns the global
     //  maximum over active rows of the screening length in cells, l/dx
     //  (a large value for unscreened rows), and in singular whether no row
     //  anywhere carries a reaction or Dirichlet term (pure Neumann).
-    double fill(lexer *, ghostcell *, reefmg_core &, slice &, matrix2D &, vec2D &, bool &singular);
-    void fillback(lexer *, reefmg_core &, slice &);
+    double fill(lexer*, ghostcell*, reefmg_core&, slice&, matrix2D&, vec2D&, bool &singular);
+    void fillback(lexer*, reefmg_core&, slice&);
 
-    void solve_neumann(lexer *, ghostcell *, slice &, matrix2D &, vec2D &, vec2D &, int);
-    void solve_hypre(lexer *, ghostcell *, slice &, matrix2D &, vec2D &, vec2D &, int);
+    void solve_neumann(lexer*, ghostcell*, slice&, matrix2D&, vec2D&, vec2D&, int);
+    void solve_hypre(lexer*, ghostcell*, slice&, matrix2D&, vec2D&, vec2D&, int);
 
-    int screened_levels(double ldx, int nlev) const;
+    int  screened_levels(double ldx, int nlev) const;
 
     reefmg_core mg;
     reefamr_xzlu xz;
     bool exact_line = false, xzon = false;
 
-    matrix2D *Mcur;                  // matrix of the current solve (fine_apply)
-    std::vector<int> cval;           // slice index IJ -> matrix2D row, -1 if none
-    std::vector<int> rowmap;         // fine cell -> matrix2D row, -1 inactive
-    std::vector<unsigned char> nbm;  // fine cell: couplings kept (1 n, 2 s, 4 w, 8 e)
-    std::vector<double> dval;        // fine cell: value of a decoupled row, 0 otherwise
-    std::vector<char> dflag;         // fine cell: 1 decoupled row, solved directly
-    std::vector<double> amask;       // fine cell incl. halo: 1 active, 0 not
-    std::vector<double> dhalo;       // fine cell incl. halo: decoupled values
+    matrix2D *Mcur;               // matrix of the current solve (fine_apply)
+    std::vector<int> cval;        // slice index IJ -> matrix2D row, -1 if none
+    std::vector<int> rowmap;      // fine cell -> matrix2D row, -1 inactive
+    std::vector<unsigned char> nbm; // fine cell: couplings kept (1 n, 2 s, 4 w, 8 e)
+    std::vector<double> dval;     // fine cell: value of a decoupled row, 0 otherwise
+    std::vector<char> dflag;      // fine cell: 1 decoupled row, solved directly
+    std::vector<double> amask;    // fine cell incl. halo: 1 active, 0 not
+    std::vector<double> dhalo;    // fine cell incl. halo: decoupled values
 
     int solve_mode, presweep, postsweep;
-    int npx, npy, ndir;
+    int npx,npy,ndir;
     bool local = false;
     MPI_Comm cartc = MPI_COMM_NULL;
     double starttime;

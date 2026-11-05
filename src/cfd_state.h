@@ -23,8 +23,8 @@ Author: Hans Bihs
 #ifndef CFD_STATE_H_
 #define CFD_STATE_H_
 
-#include "increment.h"
-#include <fstream>
+#include"increment.h"
+#include<fstream>
 
 class lexer;
 class fdm;
@@ -38,37 +38,40 @@ class cfd_state : public increment
 {
 
 public:
-    cfd_state(lexer *, fdm *, ghostcell *, int);
-    virtual ~cfd_state();
-    void write(lexer *, fdm *, ghostcell *, turbulence *, sediment *);
-    void read(lexer *, fdm *, ghostcell *, turbulence *, sediment *);
-
-    void write_result(lexer *, fdm *, ghostcell *, turbulence *, sediment *);
-
+	cfd_state(lexer*,fdm*,ghostcell*,int);
+	virtual ~cfd_state();
+	void write(lexer*,fdm*,ghostcell*,turbulence*,sediment*);
+    void read(lexer*,fdm*,ghostcell*,turbulence*,sediment*);
+    
+    
+    void write_result(lexer*,fdm*,ghostcell*,turbulence*,sediment*);
+	
 private:
-    void filename(lexer *, fdm *, ghostcell *, int);
-
-    void filename_continuous(lexer *, fdm *, ghostcell *);
+    void filename(lexer*,fdm*,ghostcell*,int);
+    
+    void filename_continuous(lexer*,fdm*,ghostcell*);
 
     char name[500];
     float ffn;
-    int iin;
-    double ddn;
-    int printcount;
+	int iin;
+	double ddn;
+	int printcount;
     int ini_token;
-    int file_version, file_type;
+    int file_version,file_type;
     int restart;
     int qn;
     ofstream result;
-
-    int is, ie, js, je;
-    int is_global, ie_global, js_global, je_global;
-    int is_global_root, ie_global_root, js_global_root, je_global_root;
-    int is_flag, ie_flag, js_flag, je_flag;
+    
+    int is,ie,js,je;
+    int is_global,ie_global,js_global,je_global;
+    int is_global_root,ie_global_root,js_global_root,je_global_root;
+    int is_flag,ie_flag,js_flag,je_flag;
     int flag;
     int *flag_all;
-    int *is_flag_all, *ie_flag_all, *js_flag_all, *je_flag_all;
-    int *is_global_all, *ie_global_all, *js_global_all, *je_global_all;
+    int *is_flag_all,*ie_flag_all,*js_flag_all,*je_flag_all;
+    int *is_global_all,*ie_global_all,*js_global_all,*je_global_all;
+    
+    
 };
 
 #endif

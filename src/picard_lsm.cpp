@@ -20,17 +20,17 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "picard_lsm.h"
-#include "ckpt_registry.h"
-#include "fdm.h"
-#include "ghostcell.h"
-#include "heaviside.h"
-#include "interface_width.h"
-#include "lexer.h"
+#include"interface_width.h"
+#include"picard_lsm.h"
+#include"ckpt_registry.h"
+#include"lexer.h"
+#include"fdm.h"
+#include"ghostcell.h"
+#include"heaviside.h"
 
 picard_lsm::picard_lsm(lexer *p) : gradient(p), vol1(0.0), vol2(0.0), dvol2(0.0)
 {
-    ckid = ckpt_registry::add_raw(p, vs, 3, false);
+    ckid = ckpt_registry::add_raw(p,vs,3,false);
 }
 
 picard_lsm::~picard_lsm()
@@ -38,75 +38,78 @@ picard_lsm::~picard_lsm()
     ckpt_registry::remove(ckid);
 }
 
-void picard_lsm::volcalc(lexer *p, fdm *a, ghostcell *pgc, field &b)
+void picard_lsm::volcalc(lexer *p, fdm *a, ghostcell *pgc, field& b)
 {
 
     double H = 0.0;
-    vol1 = 0.0;
+    vol1=0.0;
 
     LOOP
-    {
-        H = heaviside(b(i, j, k), interface_width(p, b, i, j, k));
+	{
+		H = heaviside(b(i,j,k),interface_width(p,b,i,j,k));
 
-        vol1 += p->DXN[IP] * p->DYN[JP] * p->DZN[KP] * H;
-    }
+		vol1+=p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*H;
+	}
 
-    vol1 = pgc->globalsum(vol1);
+	vol1 = pgc->globalsum(vol1);
 
-    // reference volume from the first call: the time loop can call the
-    // momentum scheme already during the initialisation (count 0), so
-    // count==1 came too late and the correction removed all the water
-    if(!vol_ini)
-    {
-        inivol = vol1;
-        netvol = vol1;
-        vol_ini = 1.0;
-    }
+
+	// reference volume from the first call: the time loop can call the
+	// momentum scheme already during the initialisation (count 0), so
+	// count==1 came too late and the correction removed all the water
+	if(!vol_ini)
+	{
+	inivol=vol1;
+	netvol=vol1;
+	vol_ini=1.0;
+	}
 }
 
-void picard_lsm::volcalc2(lexer *p, fdm *a, ghostcell *pgc, field &b)
+void picard_lsm::volcalc2(lexer *p, fdm *a, ghostcell *pgc, field& b)
 {
     // volume and its derivative with respect to a uniform shift of the level set,
     // dV/dw = sum delta(phi) dV (the interface area for a signed distance)
     double V = 0.0;
-    vol2 = 0.0;
-    dvol2 = 0.0;
+    vol2=0.0;
+    dvol2=0.0;
 
     LOOP
-    {
-        V = p->DXN[IP] * p->DYN[JP] * p->DZN[KP];
+	{
+        V = p->DXN[IP]*p->DYN[JP]*p->DZN[KP];
 
-        double epsi = interface_width(p, b, i, j, k);
+        double epsi = interface_width(p,b,i,j,k);
 
-        vol2 += V * heaviside(b(i, j, k), epsi);
-        dvol2 += V * heaviside_delta(b(i, j, k), epsi);
-    }
+		vol2  += V*heaviside(b(i,j,k),epsi);
+		dvol2 += V*heaviside_delta(b(i,j,k),epsi);
+	}
 
-    vol2 = pgc->globalsum(vol2);
-    dvol2 = pgc->globalsum(dvol2);
+	vol2  = pgc->globalsum(vol2);
+	dvol2 = pgc->globalsum(dvol2);
+
 }
 
-void picard_lsm::correct_ls(lexer *p, fdm *a, ghostcell *pgc, field &b)
+
+void picard_lsm::correct_ls(lexer *p, fdm *a, ghostcell *pgc, field& b)
 {
     double w;
 
     if(!vol_ini)
-        return;
+    return;
 
-    netvol = netvol + p->Qi * p->dt - p->Qo * p->dt;
+    netvol=netvol + p->Qi*p->dt - p->Qo*p->dt;
 
     // Newton iterations for a uniform shift w of the level set that restores the
     // net volume: w = (V_net - V) / (dV/dw)
-    for(int n = 0; n < p->F47; ++n)
+    for(int n=0;n<p->F47;++n)
     {
-        volcalc2(p, a, pgc, b);
+    volcalc2(p,a,pgc,b);
 
-        if(dvol2 <= 1.0e-20)
-            break;
+    if(dvol2<=1.0e-20)
+    break;
 
-        w = (netvol - vol2) / dvol2;
+    w = (netvol-vol2)/dvol2;
 
-        LOOP
-            b(i, j, k) += w;
+    LOOP
+    b(i,j,k)+=w;
     }
 }

@@ -28,25 +28,26 @@ Architect: Hans Bihs
 #ifndef CORAL_MODES_OUT_H_
 #define CORAL_MODES_OUT_H_
 
-#include "coral/core/coral_types.h"
-#include <array>
-#include <string>
+#include"coral/core/coral_types.h"
+#include<array>
+#include<string>
 
-namespace coral {
-class model;
-struct mode_result;
+namespace coral
+{
+    class model;
+    struct mode_result;
 
-// fractions of the modal kinetic energy of mode q: x y z rx ry rz (sum 1)
-std::array<double, 6> energy_split(const model &, const mode_result &, int q);
+    // fractions of the modal kinetic energy of mode q: x y z rx ry rz (sum 1)
+    std::array<double,6> energy_split(const model&, const mode_result&, int q);
 
-// short name of the dominant direction ("x", "y", "z", "rx", "ry", "rz")
-std::string dominant(const std::array<double, 6> &);
+    // short name of the dominant direction ("x", "y", "z", "rx", "ry", "rz")
+    std::string dominant(const std::array<double,6>&);
 
-// modes.dat and mode_shapes.dat in the folder dir (with the trailing '/' or empty)
-void write_modes(const std::string &dir, const model &, const mode_result &);
+    // modes.dat and mode_shapes.dat in the folder dir (with the trailing '/' or empty)
+    void write_modes(const std::string &dir, const model&, const mode_result&);
 
-// the table on stdout
-void print_modes(const model &, const mode_result &, bool damped);
-}  // namespace coral
+    // the table on stdout
+    void print_modes(const model&, const mode_result&, bool damped);
+}
 
 #endif

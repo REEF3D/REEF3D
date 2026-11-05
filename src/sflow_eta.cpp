@@ -20,186 +20,188 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "sflow_eta.h"
-#include "fdm2D.h"
-#include "ghostcell.h"
-#include "ioflow.h"
-#include "lexer.h"
-#include "patchBC_interface.h"
-#include "seastate_sflow.h"
+#include"sflow_eta.h"
+#include"lexer.h"
+#include"fdm2D.h"
+#include"ghostcell.h"
+#include"seastate_sflow.h"
+#include"ioflow.h"
+#include"patchBC_interface.h"
 
-sflow_eta::sflow_eta(lexer *p, fdm2D *b, ghostcell *pgc, patchBC_interface *ppBC) : eps(1.0e-6), K(p)
-{
+sflow_eta::sflow_eta(lexer *p, fdm2D *b , ghostcell *pgc, patchBC_interface *ppBC) : eps(1.0e-6), K(p)
+{   
     pBC = ppBC;
-
-    if(p->F50 == 1)
-        gcval_eta = 51;
-
-    if(p->F50 == 2)
-        gcval_eta = 52;
-
-    if(p->F50 == 3)
-        gcval_eta = 53;
-
-    if(p->F50 == 4)
-        gcval_eta = 54;
-
-    p->phimean = p->F60;
-
+    
+    if(p->F50==1)
+	gcval_eta = 51;
+    
+    if(p->F50==2)
+	gcval_eta = 52;
+    
+    if(p->F50==3)
+	gcval_eta = 53;
+    
+    if(p->F50==4)
+	gcval_eta = 54;
+    
+    p->phimean=p->F60;
+    
     SLICELOOP4
-    b->eta(i, j) = 0.0;
-
-    pgc->gcsl_start4(p, b->eta, gcval_eta);
-
-    wd_criterion = p->A244;
-
-    p->Iarray(temp, p->imax * p->jmax);
+    b->eta(i,j) = 0.0;
+    
+    pgc->gcsl_start4(p,b->eta,gcval_eta);
+    
+    wd_criterion=p->A244;
+    
+    p->Iarray(temp,p->imax*p->jmax);
 }
 
 sflow_eta::~sflow_eta()
 {
-    delete[] temp;
+    delete [] temp;
 }
 
 void sflow_eta::update(lexer *p, fdm2D *b, ghostcell *pgc, ioflow *pflow, slice &WLout, slice &WL0, slice &WLs, double a)
 {
-    starttime = pgc->timer();
-
+    starttime=pgc->timer();
+    
     // continuity: dWL/dt = -div(FE)
     SLICELOOP4
-    K(i, j) = 0.0;
-
-    if(p->geo_curv == 1)
-        SLICELOOP4
+    K(i,j) = 0.0;
+    
+    if(p->geo_curv==1)
+    SLICELOOP4
     WETDRY
-    K(i, j) = -(b->FEx(i, j) * p->LEN1[IJ] - b->FEx(i - 1, j) * p->LEN1[Im1J] + b->FEy(i, j) * p->LEN2[IJ] - b->FEy(i, j - 1) * p->LEN2[IJm1]) / p->AREA2D[IJ];
-
-    if(p->geo_curv == 0)
-        SLICELOOP4
+    K(i,j) = -(b->FEx(i,j)*p->LEN1[IJ] - b->FEx(i-1,j)*p->LEN1[Im1J]
+             + b->FEy(i,j)*p->LEN2[IJ] - b->FEy(i,j-1)*p->LEN2[IJm1])/p->AREA2D[IJ];
+    
+    if(p->geo_curv==0)
+    SLICELOOP4
     WETDRY
-    K(i, j) = -(b->FEx(i, j) - b->FEx(i - 1, j)) / p->DXN[IP] - (b->FEy(i, j) - b->FEy(i, j - 1)) / p->DYN[JP] * p->y_dir;
+    K(i,j) = -(b->FEx(i,j) - b->FEx(i-1,j))/p->DXN[IP] 
+             -(b->FEy(i,j) - b->FEy(i,j-1))/p->DYN[JP]*p->y_dir;
 
     // REEF3D::SEASTATE vortex force (A 751 2): Stokes transport
-    if(b->wave != nullptr)
-        b->wave->mass_source(p, b, K);
-
+    if(b->wave!=nullptr)
+    b->wave->mass_source(p,b,K);
+    
     // depth-averaged suspended load (S 120 > 0): the mass flux of the step, weighted as the stages, so that
     // WL^n+1 = WL^n - dt div(FEacc) (stage output a WL0 + (1-a)(WLs + dt K): FEacc = (1-a)(FEacc + FE))
-    if(b->FEacc_x != nullptr && p->geo_curv == 0)
+    if(b->FEacc_x!=nullptr && p->geo_curv==0)
     {
-        const double w = 1.0 - a;
-
-        if(a == 0.0)
+    const double w = 1.0-a;
+    
+        if(a==0.0)
         {
-            for(i = -1; i < p->knox; ++i)
-                for(j = 0; j < p->knoy; ++j)
-                    (*b->FEacc_x)(i, j) = 0.0;
-
-            for(i = 0; i < p->knox; ++i)
-                for(j = -1; j < p->knoy; ++j)
-                    (*b->FEacc_y)(i, j) = 0.0;
+        for(i=-1; i<p->knox; ++i)
+        for(j=0; j<p->knoy; ++j)
+        (*b->FEacc_x)(i,j) = 0.0;
+        
+        for(i=0; i<p->knox; ++i)
+        for(j=-1; j<p->knoy; ++j)
+        (*b->FEacc_y)(i,j) = 0.0;
         }
-
-        for(i = -1; i < p->knox; ++i)
-            for(j = 0; j < p->knoy; ++j)
-                (*b->FEacc_x)(i, j) = w * ((*b->FEacc_x)(i, j) + b->FEx(i, j));
-
-        for(i = 0; i < p->knox; ++i)
-            for(j = -1; j < p->knoy; ++j)
-                (*b->FEacc_y)(i, j) = w * ((*b->FEacc_y)(i, j) + b->FEy(i, j));
-
-        b->FEacc_step = p->count;
+    
+        for(i=-1; i<p->knox; ++i)
+        for(j=0; j<p->knoy; ++j)
+        (*b->FEacc_x)(i,j) = w*((*b->FEacc_x)(i,j) + b->FEx(i,j));
+        
+        for(i=0; i<p->knox; ++i)
+        for(j=-1; j<p->knoy; ++j)
+        (*b->FEacc_y)(i,j) = w*((*b->FEacc_y)(i,j) + b->FEy(i,j));
+    
+    b->FEacc_step = p->count;
     }
-
+    
     SLICELOOP4
-    WLout(i, j) = a * WL0(i, j) + (1.0 - a) * (WLs(i, j) + p->dt * K(i, j));
-
+    WLout(i,j) = a*WL0(i,j) + (1.0-a)*(WLs(i,j) + p->dt*K(i,j));
+    
     // eta + boundary conditions
     SLICELOOP4
-    b->eta(i, j) = WLout(i, j) - b->depth(i, j);
-
-    pflow->waterlevel2D(p, b, pgc, b->eta);
-    pflow->eta_relax(p, pgc, b->eta);
-    pgc->gcsl_start4(p, b->eta, gcval_eta);
-
+    b->eta(i,j) = WLout(i,j) - b->depth(i,j);
+    
+    pflow->waterlevel2D(p,b,pgc,b->eta);
+    pflow->eta_relax(p,pgc,b->eta);
+    pgc->gcsl_start4(p,b->eta,gcval_eta);
+    
     SLICELOOP4
-    WLout(i, j) = MAX(b->eta(i, j) + b->depth(i, j), 0.0);
-
-    pgc->gcsl_start4(p, WLout, gcval_eta);
-
+    WLout(i,j) = MAX(b->eta(i,j) + b->depth(i,j), 0.0);
+    
+    pgc->gcsl_start4(p,WLout,gcval_eta);
+    
     // wetting & drying
-    wetdry(p, b, pgc, WLout);
-
-    p->lsmtime += pgc->timer() - starttime;
+    wetdry(p,b,pgc,WLout);
+    
+    p->lsmtime+=pgc->timer()-starttime;
 }
 
-void sflow_eta::depth_update(lexer *p, fdm2D *b, ghostcell *pgc, slice &WL)
+void sflow_eta::depth_update(lexer *p, fdm2D *b , ghostcell *pgc, slice &WL)
 {
-    // still water depth
-    SLICELOOP4
-    b->depth(i, j) = p->wd - b->bed(i, j);
-
-    pgc->gcsl_start4(p, b->depth, 50);
-
+	// still water depth
+	SLICELOOP4
+	b->depth(i,j) = p->wd - b->bed(i,j);
+    
+    pgc->gcsl_start4(p,b->depth,50);
+    
     // the water column is kept: eta follows the bed
     SLICELOOP4
-    b->eta(i, j) = WL(i, j) - b->depth(i, j);
-
+    b->eta(i,j) = WL(i,j) - b->depth(i,j);
+    
     // set fsf outflow
-    double wsfout = p->phimean;
-    double f = 1.0;
-
-    if(p->F62 > 1.0e-20)
+    double wsfout=p->phimean;
+    double f=1.0;
+    
+    if(p->F62>1.0e-20)
     {
-        if(p->F64 == 0)
-            wsfout = p->F62;
-
-        if(p->F64 > 0)
+        if(p->F64==0)
+        wsfout=p->F62;
+        
+        if(p->F64>0)
         {
-            if(p->count < p->F64)
-                f = 0.5 * cos(PI + PI * double(p->count) / double(p->F64)) + 0.5;
-
-            if(p->count >= p->F64)
-                f = 1.0;
-
-            wsfout = f * p->F62 + (1.0 - f) * p->F60;
+        if(p->count<p->F64)
+        f = 0.5*cos(PI + PI*double(p->count)/double(p->F64)) + 0.5;
+        
+        if(p->count>=p->F64)
+        f = 1.0;
+        
+        wsfout = f*p->F62 + (1.0-f)*p->F60;
         }
     }
-
-    if(p->F50 == 2 || p->F50 == 3)
-        for(n = 0; n < p->gcslout_count; n++)
-        {
-            i = p->gcslout[n][0];
-            j = p->gcslout[n][1];
-
-            // not at iowave Riemann / Flather / clamped edges (B 520 methods 3-6)
-            const int cs = p->gcslout[n][3];
-            if((cs == 4 && p->open_xp == 1) || (cs == 3 && p->open_ym == 1) || (cs == 2 && p->open_yp == 1) || (cs == 1 && p->open_xm == 1))
-                continue;
-
-            if(p->wet[IJ] == 1)
-                b->eta(i, j) = wsfout - p->wd;
-        }
-
-    pgc->gcsl_start4(p, b->eta, gcval_eta);
-
+    
+    if(p->F50==2 || p->F50==3)
+    for(n=0;n<p->gcslout_count;n++)
+    {
+    i=p->gcslout[n][0];
+    j=p->gcslout[n][1];
+    
+    // not at iowave Riemann / Flather / clamped edges (B 520 methods 3-6)
+    const int cs = p->gcslout[n][3];
+    if((cs==4 && p->open_xp==1) || (cs==3 && p->open_ym==1) || (cs==2 && p->open_yp==1) || (cs==1 && p->open_xm==1))
+    continue;
+    
+    if(p->wet[IJ]==1)
+    b->eta(i,j) = wsfout-p->wd;
+    }
+    
+    pgc->gcsl_start4(p,b->eta,gcval_eta);
+    
     SLICELOOP4
-    WL(i, j) = MAX(b->eta(i, j) + b->depth(i, j), 0.0);
-
-    pgc->gcsl_start4(p, WL, gcval_eta);
-
+    WL(i,j) = MAX(b->eta(i,j) + b->depth(i,j), 0.0);
+    
+    pgc->gcsl_start4(p,WL,gcval_eta);
+    
     // wetdry
-    wetdry(p, b, pgc, WL);
+    wetdry(p,b,pgc,WL);
 }
 
-void sflow_eta::ini(lexer *p, fdm2D *b, ghostcell *pgc, ioflow *pflow)
+void sflow_eta::ini(lexer *p, fdm2D *b , ghostcell *pgc, ioflow *pflow)
 {
-    p->phimean = p->F60;
-
+    p->phimean=p->F60;
+    
     SLICELOOP4
-    b->eta(i, j) = 0.0;
-
-    pflow->eta_relax(p, pgc, b->eta);
-
-    pgc->gcsl_start4(p, b->eta, gcval_eta);
+    b->eta(i,j) = 0.0;
+    
+    pflow->eta_relax(p,pgc,b->eta);
+    
+    pgc->gcsl_start4(p,b->eta,gcval_eta);
 }

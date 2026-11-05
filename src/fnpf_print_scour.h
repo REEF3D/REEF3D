@@ -23,8 +23,8 @@ Author: Hans Bihs
 #ifndef FNPF_PRINT_SCOUR_H_
 #define FNPF_PRINT_SCOUR_H_
 
-#include "increment.h"
-#include <vector>
+#include"increment.h"
+#include<vector>
 
 class lexer;
 class fdm_fnpf;
@@ -38,16 +38,16 @@ class scour_gauge;
 class fnpf_print_scour : public increment
 {
 public:
-    fnpf_print_scour(lexer *, fdm_fnpf *);
+    fnpf_print_scour(lexer*,fdm_fnpf*);
     virtual ~fnpf_print_scour();
 
-    void start(lexer *, fdm_fnpf *, ghostcell *);
+    void start(lexer*,fdm_fnpf*,ghostcell*);
 
-    void ckpt_state(std::vector<double> &) const;
-    void ckpt_restore(const std::vector<double> &, size_t &);
+    void ckpt_state(std::vector<double>&) const;
+    void ckpt_restore(const std::vector<double>&, size_t&);
 
 private:
-    void sample(lexer *, fdm_fnpf *, ghostcell *, scour_gauge *);
+    void sample(lexer*,fdm_fnpf*,ghostcell*,scour_gauge*);
 
     scour_gauge *psf = nullptr;
     scour_gauge *psb = nullptr;

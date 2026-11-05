@@ -29,53 +29,54 @@ Architect: Hans Bihs
 #ifndef CORAL_FRAME_H_
 #define CORAL_FRAME_H_
 
-#include "coral/core/coral_types.h"
-#include "coral/structure/coral_beam.h"
-#include <map>
-#include <string>
-#include <vector>
+#include"coral/core/coral_types.h"
+#include"coral/structure/coral_beam.h"
+#include<map>
+#include<string>
+#include<vector>
 
-namespace coral {
-class model;
-
-struct member_spec
+namespace coral
 {
-    std::string name;
-    Vec3 p1 = Vec3::Zero(), p2 = Vec3::Zero();
-    int n = 10;
-    beam_section s1, s2;          // sections at p1 and p2 (linear in between)
-    bool tapered = false;         // false: s1 everywhere
-    Vec3 orient = Vec3::UnitZ();  // local y axis (projected normal to the member)
-    double beta = 0.0;            // stiffness-proportional damping [s]
-    int body1 = -2, body2 = -2;   // -2: node; -1: ground; >= 0: the end sits on that rigid body
-};
+    class model;
 
-class frame_builder
-{
-public:
-    explicit frame_builder(model &m, double tol = 1.0e-9) : m_(m), tol_(tol) {}
+    struct member_spec
+    {
+        std::string name;
+        Vec3 p1 = Vec3::Zero(), p2 = Vec3::Zero();
+        int n = 10;
+        beam_section s1, s2;           // sections at p1 and p2 (linear in between)
+        bool tapered = false;          // false: s1 everywhere
+        Vec3 orient = Vec3::UnitZ();   // local y axis (projected normal to the member)
+        double beta = 0.0;             // stiffness-proportional damping [s]
+        int body1 = -2, body2 = -2;    // -2: node; -1: ground; >= 0: the end sits on that rigid body
+    };
 
-    // adds the member; returns the model body index of each station (-1/-2 for ends on the ground
-    // or a body). The elements are added to the model as loads.
-    std::vector<int> add_member(const member_spec &);
+    class frame_builder
+    {
+    public:
+        explicit frame_builder(model &m, double tol=1.0e-9) : m_(m), tol_(tol) {}
 
-    // the node at p (existing within tol, else a new massless node named name)
-    int node_at(const Vec3 &p, const std::string &name);
+        // adds the member; returns the model body index of each station (-1/-2 for ends on the ground
+        // or a body). The elements are added to the model as loads.
+        std::vector<int> add_member(const member_spec&);
 
-    // moves the lumped masses into the node bodies; call once after the last member
-    void finish();
+        // the node at p (existing within tol, else a new massless node named name)
+        int node_at(const Vec3 &p, const std::string &name);
 
-    const std::vector<int> &nodes() const { return nodes_; }
+        // moves the lumped masses into the node bodies; call once after the last member
+        void finish();
 
-private:
-    model &m_;
-    double tol_;
-    std::vector<int> nodes_;
-    std::map<int, int> index_;  // node body -> position in nodes_
-    std::vector<double> mass_;
-    std::vector<Mat3> inertia_;
-    bool finished_ = false;
-};
-}  // namespace coral
+        const std::vector<int> &nodes() const {return nodes_;}
+
+    private:
+        model &m_;
+        double tol_;
+        std::vector<int> nodes_;
+        std::map<int,int> index_;      // node body -> position in nodes_
+        std::vector<double> mass_;
+        std::vector<Mat3> inertia_;
+        bool finished_ = false;
+    };
+}
 
 #endif

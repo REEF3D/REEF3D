@@ -23,59 +23,62 @@ Author: Hans Bihs
 #ifndef BICGSTAB_IJK_2D_H_
 #define BICGSTAB_IJK_2D_H_
 
-#include "increment.h"
-#include "solver.h"
+#include"solver.h"
+#include"increment.h"
 
-#include <vector>
+#include<vector>
 
 using namespace std;
+
 
 class bicgstab_ijk_2D final : public solver, public increment
 {
 public:
-    bicgstab_ijk_2D(lexer *, fdm *, ghostcell *);
+	bicgstab_ijk_2D(lexer*,fdm*,ghostcell*);
 
-    virtual ~bicgstab_ijk_2D();
+	virtual ~bicgstab_ijk_2D();
 
-    void start(lexer *, fdm *, ghostcell *, field &, vec &, int) override final;
-    void startf(lexer *, ghostcell *, field &, vec &, matrix_diag &, int) override final;
-    void startF(lexer *, ghostcell *, double *, vec &, matrix_diag &, int) override final;
-    void startV(lexer *, ghostcell *, double *, vec &, matrix_diag &, int) override final;
-    void startM(lexer *, ghostcell *, double *, double *, double *, int) override final;
+	void start(lexer*,fdm*, ghostcell*, field&, vec&, int) override final;
+    void startf(lexer*, ghostcell*, field&, vec&, matrix_diag&, int) override final;
+    void startF(lexer*, ghostcell*, double*, vec&, matrix_diag&, int) override final;
+    void startV(lexer*, ghostcell*, double*, vec&, matrix_diag&, int) override final;
+    void startM(lexer*, ghostcell*, double*, double*, double*, int) override final;
+    
+	void solve(lexer*, ghostcell*, vec&, matrix_diag&, int, int&,int,double);
+	
+	void fillxvec(lexer*,fdm*,field&,vec&);
+	void finalize(lexer*,fdm*,field&);
 
-    void solve(lexer *, ghostcell *, vec &, matrix_diag &, int, int &, int, double);
+	void fillxvecV(lexer*,double*,vec&);
+	void finalizeV(lexer*,double*);
+    
 
-    void fillxvec(lexer *, fdm *, field &, vec &);
-    void finalize(lexer *, fdm *, field &);
-
-    void fillxvecV(lexer *, double *, vec &);
-    void finalizeV(lexer *, double *);
-
-    double res_calc(lexer *, ghostcell *, double *, matrix_diag &);
-    void matvec_axb(lexer *, double *, double *, matrix_diag &);
-    void matvec_std(lexer *, double *, double *, matrix_diag &);
-
-    void precon_setup(lexer *, ghostcell *, matrix_diag &);
-    void precon_solve(lexer *, ghostcell *, double *, double *, matrix_diag &);
+	double res_calc(lexer*,ghostcell*, double*, matrix_diag&);
+	void matvec_axb(lexer*, double*, double*, matrix_diag&);
+	void matvec_std(lexer*, double*, double*, matrix_diag&);
+    
+    void precon_setup(lexer*,ghostcell*, matrix_diag&);
+    void precon_solve(lexer*,ghostcell*,double*,double*, matrix_diag&);
+	
 
 private:
-    double *sj, *rj, *r0, *vj, *tj, *pj, *ph, *sh, *x, *rhs, *aii;
 
-    double *sj, *rj, *r0, *vj, *tj, *pj, *ph, *sh, *x, *rhs, *aii;
-    std::vector<unsigned long long> ckids;  // checkpoints (ckpt_registry.h)
+	double *sj,*rj,*r0,*vj,*tj,*pj,*ph,*sh,*x,*rhs,*aii;
+    std::vector<unsigned long long> ckids;     // checkpoints (ckpt_registry.h)
+	
+	int *sizeM,*range;
 
-    int *sizeM, *range;
+	const double epsi;
 
-    const double epsi;
-
-    int count;
-    int margin;
-    int ulast, vlast, wlast;
+	int count;
+	int margin;
+    int ulast,vlast,wlast;
     int *flag;
     double stop_crit;
-
-    double alpha, beta, w1, w2, w, residual, norm_vj, norm_r0, norm_sj, norm_rj;
-    double r_j1, r_j, sigma;
+	
+	double alpha,beta,w1,w2,w,residual,norm_vj,norm_r0,norm_sj,norm_rj ;
+    double r_j1, r_j, sigma ;
+    
 };
 
 #endif

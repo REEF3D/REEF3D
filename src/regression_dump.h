@@ -23,10 +23,10 @@ Author: Hans Bihs
 #ifndef REGRESSION_DUMP_H_
 #define REGRESSION_DUMP_H_
 
-#include "increment.h"
-#include <fstream>
-#include <string>
-#include <vector>
+#include"increment.h"
+#include<fstream>
+#include<string>
+#include<vector>
 
 class lexer;
 class fdm;
@@ -60,49 +60,49 @@ Files, one set per MPI rank r:
 class regression_dump : public increment
 {
 public:
-    regression_dump(lexer *);
+    regression_dump(lexer*);
     virtual ~regression_dump();
 
-    bool active() const { return is_active; }
+    bool active() const {return is_active;}
 
     // CFD
-    void cfd_ini(lexer *, fdm *, ghostcell *, turbulence *, concentration *);    // after initialisation
-    void cfd_step(lexer *, fdm *, ghostcell *, turbulence *, concentration *);   // end of each time step
-    void cfd_final(lexer *, fdm *, ghostcell *, turbulence *, concentration *);  // after the main loop
+    void cfd_ini(lexer*, fdm*, ghostcell*, turbulence*, concentration*);     // after initialisation
+    void cfd_step(lexer*, fdm*, ghostcell*, turbulence*, concentration*);    // end of each time step
+    void cfd_final(lexer*, fdm*, ghostcell*, turbulence*, concentration*);   // after the main loop
 
     // NHFLOW
-    void nhflow_ini(lexer *, fdm_nhf *, ghostcell *);
-    void nhflow_step(lexer *, fdm_nhf *, ghostcell *);
-    void nhflow_final(lexer *, fdm_nhf *, ghostcell *);
+    void nhflow_ini(lexer*, fdm_nhf*, ghostcell*);
+    void nhflow_step(lexer*, fdm_nhf*, ghostcell*);
+    void nhflow_final(lexer*, fdm_nhf*, ghostcell*);
 
     // FNPF
-    void fnpf_ini(lexer *, fdm_fnpf *, ghostcell *);
-    void fnpf_step(lexer *, fdm_fnpf *, ghostcell *);
-    void fnpf_final(lexer *, fdm_fnpf *, ghostcell *);
+    void fnpf_ini(lexer*, fdm_fnpf*, ghostcell*);
+    void fnpf_step(lexer*, fdm_fnpf*, ghostcell*);
+    void fnpf_final(lexer*, fdm_fnpf*, ghostcell*);
 
     // SFLOW
-    void sflow_ini(lexer *, fdm2D *, ghostcell *);
-    void sflow_step(lexer *, fdm2D *, ghostcell *);
-    void sflow_final(lexer *, fdm2D *, ghostcell *);
+    void sflow_ini(lexer*, fdm2D*, ghostcell*);
+    void sflow_step(lexer*, fdm2D*, ghostcell*);
+    void sflow_final(lexer*, fdm2D*, ghostcell*);
 
     // SEASTATE
-    void seastate_ini(lexer *, fdm_seastate *, ghostcell *);
-    void seastate_step(lexer *, fdm_seastate *, ghostcell *);
-    void seastate_final(lexer *, fdm_seastate *, ghostcell *);
+    void seastate_ini(lexer*, fdm_seastate*, ghostcell*);
+    void seastate_step(lexer*, fdm_seastate*, ghostcell*);
+    void seastate_final(lexer*, fdm_seastate*, ghostcell*);
 
 private:
-    void cfd_state(lexer *, fdm *, turbulence *, concentration *);
-    void cfd_collect(lexer *, fdm *, turbulence *, concentration *);
-    void nhflow_state(lexer *, fdm_nhf *);
-    void nhflow_collect(lexer *, fdm_nhf *);
-    void fnpf_state(lexer *, fdm_fnpf *);
-    void fnpf_collect(lexer *, fdm_fnpf *);
-    void sflow_state(lexer *, fdm2D *);
-    void sflow_collect(lexer *, fdm2D *);
-    void seastate_state(lexer *, fdm_seastate *);
-    void seastate_collect(lexer *, fdm_seastate *);
-    void add(const char *, int);
-    void write_state(lexer *);
+    void cfd_state(lexer*, fdm*, turbulence*, concentration*);
+    void cfd_collect(lexer*, fdm*, turbulence*, concentration*);
+    void nhflow_state(lexer*, fdm_nhf*);
+    void nhflow_collect(lexer*, fdm_nhf*);
+    void fnpf_state(lexer*, fdm_fnpf*);
+    void fnpf_collect(lexer*, fdm_fnpf*);
+    void sflow_state(lexer*, fdm2D*);
+    void sflow_collect(lexer*, fdm2D*);
+    void seastate_state(lexer*, fdm_seastate*);
+    void seastate_collect(lexer*, fdm_seastate*);
+    void add(const char*, int);
+    void write_state(lexer*);
 
     bool is_active;
     int every;

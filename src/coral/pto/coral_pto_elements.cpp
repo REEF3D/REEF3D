@@ -36,17 +36,17 @@ pto_output pto_damper::force(const pto_state &s)
 {
     pto_output o;
 
-    o.F = -B * s.qd;
+    o.F     = -B*s.qd;
     o.dFdqd = -B;
-    o.P = -o.F * s.qd;
+    o.P     = -o.F*s.qd;
 
     return o;
 }
 
 void pto_damper::set_param(const std::string &key, double val)
 {
-    if(key == "B")
-        B = val;
+    if(key=="B")
+    B = val;
 }
 
 // --- spring-damper ---
@@ -62,15 +62,15 @@ pto_output pto_springdamper::force(const pto_state &s)
     o.F     = F0 - K*(s.q - q0) - B*s.qd;
     o.dFdq  = -K;
     o.dFdqd = -B;
-    o.P = -o.F * s.qd;
+    o.P     = -o.F*s.qd;
 
     return o;
 }
 
 void pto_springdamper::set_param(const std::string &key, double val)
 {
-    if(key == "K")
-        K = val;
+    if(key=="K")
+    K = val;
 
     if(key=="B")
     B = val;
@@ -119,31 +119,31 @@ pto_output pto_endstop::force(const pto_state &s)
     // into the stop when it moves out of it (F is clipped to zero then)
     pto_output o;
 
-    if(s.q > qmax)
+    if(s.q>qmax)
     {
-        const double F = -K * (s.q - qmax) - C * s.qd;
+        const double F = -K*(s.q - qmax) - C*s.qd;
 
-        if(F < 0.0)
+        if(F<0.0)
         {
-            o.F = F;
-            o.dFdq = -K;
-            o.dFdqd = -C;
+        o.F     = F;
+        o.dFdq  = -K;
+        o.dFdqd = -C;
         }
     }
 
-    else if(s.q < qmin)
+    else if(s.q<qmin)
     {
-        const double F = -K * (s.q - qmin) - C * s.qd;
+        const double F = -K*(s.q - qmin) - C*s.qd;
 
-        if(F > 0.0)
+        if(F>0.0)
         {
-            o.F = F;
-            o.dFdq = -K;
-            o.dFdqd = -C;
+        o.F     = F;
+        o.dFdq  = -K;
+        o.dFdqd = -C;
         }
     }
 
-    o.P = -o.F * s.qd;
+    o.P = -o.F*s.qd;
 
     return o;
 }

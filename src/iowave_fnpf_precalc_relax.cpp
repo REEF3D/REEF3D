@@ -20,58 +20,49 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "ghostcell.h"
-#include "iowave.h"
-#include "lexer.h"
+#include"iowave.h"
+#include"lexer.h"
+#include"ghostcell.h"
 
 void iowave::fnpf_precalc_relax(lexer *p, ghostcell *pgc)
 {
-    p->wavetime = p->simtime + p->RK_alpha * p->dt;
-
-    if(!gen_built)
-        genzone4_build(p, pgc);
-
+    p->wavetime = p->simtime + p->RK_alpha*p->dt;
+    
+    if(!gen_built) genzone4_build(p,pgc);
+    
     const bool zsel = zones.has_sources();
-
+    
     // eta and Fifsf of a cell together, so the cell's cached phases are read
     // once (they do not fit in cache for many components). Fifsf is evaluated
     // at the surface eta(i,j) just computed, which the halo exchange below
     // does not change at interior cells; the Fifsfval count sequence is that
     // of the relaxation functions (SLICELOOP4 order).
-    count = 0;
-
+    count=0;
+    
     if(relax_gen)
-        for(size_t q = 0; q < gen_i.size(); ++q)
+    for(size_t q=0; q<gen_i.size(); ++q)
+    {
+        i = gen_i[q];
+        j = gen_j[q];
+        
+        if(zsel)
+        select_sources(gen_src[q]);
+        
+        PSLICECHECK4
         {
-            i = gen_i[q];
-            j = gen_j[q];
-
-            if(zsel)
-                select_sources(gen_src[q]);
-
-            PSLICECHECK4
-            {
-                i = gen_i[q];
-                j = gen_j[q];
-
-                if(zsel)
-                    select_sources(gen_src[q]);
-
-                PSLICECHECK4
-                {
-                    eta(i, j) = wave_eta_c(p, pgc, int(q));
-
-                    if(f_switch == 1)
-                    {
-                        Fifsfval[count] = wave_fi_c(p, pgc, int(q), eta(i, j));
-                        ++count;
-                    }
-                }
-            }
-
-            if(zsel)
-                select_sources(nullptr);
-
-            pgc->gcsl_start4(p, eta, 50);
+        eta(i,j) = wave_eta_c(p,pgc,int(q));
+        
+        if(f_switch==1)
+        {
+        Fifsfval[count] = wave_fi_c(p,pgc,int(q),eta(i,j));
+        ++count;
         }
-
+        }
+    }
+    
+    if(zsel)
+    select_sources(nullptr);
+    
+    pgc->gcsl_start4(p,eta,50);
+}
+    

@@ -23,7 +23,7 @@ Author: Hans Bihs
 #ifndef PATCHBC_CORE_H_
 #define PATCHBC_CORE_H_
 
-#include "patchBC_interface.h"
+#include"patchBC_interface.h"
 
 using namespace std;
 
@@ -32,38 +32,38 @@ using namespace std;
 class patchBC_core : public patchBC_interface, public increment
 {
 public:
-    patchBC_core() = default;
-    virtual ~patchBC_core() = default;
-
+	patchBC_core() = default;
+	virtual ~patchBC_core() = default;
+    
 protected:
     // creates the patch objects, reads and checks the B 41x/42x settings; aborts on errors
-    void patch_setup(lexer *, ghostcell *);
-
+    void patch_setup(lexer*, ghostcell*);
+    
     // patch index of a face (cell ii,jj,kk, side cs), -1 if in no patch geometry; twoD: no z test
-    int patch_find(lexer *, int ii, int jj, int kk, int cs, bool twoD);
-
+    int patch_find(lexer*, int ii, int jj, int kk, int cs, bool twoD);
+    
     // after the face selection: global face counts, face dependent checks, summary output
-    void patch_check(lexer *, ghostcell *);
-
+    void patch_check(lexer*, ghostcell*);
+    
     // allocates patch[qq]->gcb from the selected faces (i,j,k,cs,index)
-    void patch_faces(lexer *, int qq, const int *list, int count);
-
+    void patch_faces(lexer*, int qq, const int *list, int count);
+    
     // hydrograph values at the current time
-    void patch_hydrograph(lexer *);
-
+    void patch_hydrograph(lexer*);
+    
     // wetted fraction of a side face from the level set of the cell, 0..1
     static double wetfrac(double phival, double dz);
-
-    void patch_error(lexer *, ghostcell *, const char *, int ID);
-
+    
+    void patch_error(lexer*, ghostcell*, const char*, int ID);
+    
 private:
-    void hydrograph_read(lexer *, ghostcell *, const char *, int ID, double **&, int &);
-    double hydrograph_ipol(lexer *, double **, int);
-
-    void face_center(lexer *, int ii, int jj, int kk, int cs, bool twoD, double &, double &, double &);
+    void hydrograph_read(lexer*, ghostcell*, const char*, int ID, double **&, int &);
+    double hydrograph_ipol(lexer*, double**, int);
+    
+    void face_center(lexer*, int ii, int jj, int kk, int cs, bool twoD, double&, double&, double&);
     int patch_index(int ID);
-
-    int error_count = 0;
+    
+    int error_count=0;
 };
 
 #endif

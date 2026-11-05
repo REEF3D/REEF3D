@@ -20,26 +20,27 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "lagoon_output.h"
-#include "ghostcell.h"
-#include "lexer.h"
-#include "runlog.h"
-#include <algorithm>
-#include <cctype>
-#include <chrono>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
-#include <fstream>
-#include <iomanip>
-#include <iostream>
-#include <iterator>
-#include <limits>
-#include <sstream>
-#include <stdexcept>
-#include <sys/stat.h>
+#include"lagoon_output.h"
+#include"lexer.h"
+#include"ghostcell.h"
+#include"runlog.h"
+#include<algorithm>
+#include<cctype>
+#include<chrono>
+#include<cstdio>
+#include<cstdlib>
+#include<cstring>
+#include<fstream>
+#include<iomanip>
+#include<iostream>
+#include<iterator>
+#include<limits>
+#include<sstream>
+#include<stdexcept>
+#include<sys/stat.h>
 
-namespace {
+namespace
+{
 std::string store_path(const char *solver)
 {
     return std::string("./REEF3D_") + solver + ".lagoon";
@@ -51,10 +52,10 @@ std::string store_path(const char *solver)
 void log_stored(lexer *p, const std::string &output, const std::string &group, const std::string &solver,
                 int num, double time, long long iteration, int pieces)
 {
-    if(p->mpirank != 0 || !p->plog)
+    if(p->mpirank!=0 || !p->plog)
         return;
     const std::string path = store_path(solver.c_str());
-    const std::string role = group.rfind("amr/", 0) == 0 ? "amr" : output;
+    const std::string role = group.rfind("amr/", 0)==0 ? "amr" : output;
     p->plog->stored(p, num, time, iteration, ("lagoon_" + output).c_str(), role.c_str(),
                     path.c_str(), group.c_str(), pieces);
 }
@@ -75,10 +76,10 @@ double seconds_since(std::chrono::steady_clock::time_point start)
 // a structured grid: no moving or tilted grids (B 180-192 change x and z per point)
 bool fixed_grid(lexer *p)
 {
-    if(p->B180 > 0 || p->B191 > 0 || p->B192 > 0)
+    if(p->B180>0 || p->B191>0 || p->B192>0)
     {
-        if(p->mpirank == 0)
-            std::cout << "LAGOON: P 18 needs a fixed grid (no B 180, B 191, B 192); no LAGOON store written" << std::endl;
+        if(p->mpirank==0)
+            std::cout<<"LAGOON: P 18 needs a fixed grid (no B 180, B 191, B 192); no LAGOON store written"<<std::endl;
         return false;
     }
     return true;
@@ -92,10 +93,10 @@ void grid_lines(lexer *p, ghostcell *pgc, std::vector<double> &x, std::vector<do
     x.assign(gnx, -1.0e300);
     y.assign(gny, -1.0e300);
     const int marge = increment::marge;  // for IP1, JP1
-    int i, j;
-    for(i = -1; i < p->knox; ++i)
+    int i,j;
+    for(i=-1; i<p->knox; ++i)
         x[p->origin_i + i + 1] = p->XN[IP1];
-    for(j = -1; j < p->knoy; ++j)
+    for(j=-1; j<p->knoy; ++j)
         y[p->origin_j + j + 1] = p->YN[JP1];
     pgc->globalmax(x.data(), gnx);
     pgc->globalmax(y.data(), gny);
@@ -106,25 +107,25 @@ void grid_lines(lexer *p, ghostcell *pgc, std::vector<double> &x, std::vector<do
 // for a rectilinear grid
 bool curvilinear_nodes(lexer *p, std::vector<double> &xc, std::vector<double> &yc)
 {
-    if(p->geo_curv != 1)
+    if(p->geo_curv!=1)
         return false;
     const int gnx = p->gknox + 1;
     const int gny = p->gknoy + 1;
-    xc.assign(size_t(gnx) * gny, 0.0);
-    yc.assign(size_t(gnx) * gny, 0.0);
+    xc.assign(size_t(gnx)*gny, 0.0);
+    yc.assign(size_t(gnx)*gny, 0.0);
     double z;
-    for(int L = 0; L < gny; ++L)
-        for(int K = 0; K < gnx; ++K)
-            p->curv_node(K, L, xc[size_t(L) * gnx + K], yc[size_t(L) * gnx + K], z);
+    for(int L=0; L<gny; ++L)
+        for(int K=0; K<gnx; ++K)
+            p->curv_node(K, L, xc[size_t(L)*gnx + K], yc[size_t(L)*gnx + K], z);
     return true;
 }
-}  // namespace
+}
 
 // ======================================================================== timing
 int lagoon_timing::compress_threads(ghostcell *pgc)
 {
     static int threads = 0;  // the same for every output of the run
-    if(threads == 0)
+    if(threads==0)
     {
         MPI_Comm node;
         MPI_Comm_split_type(pgc->mpi_comm, MPI_COMM_TYPE_SHARED, 0, MPI_INFO_NULL, &node);
@@ -133,26 +134,26 @@ int lagoon_timing::compress_threads(ghostcell *pgc)
         MPI_Comm_free(&node);
         const int cores = int(std::thread::hardware_concurrency());
         // each rank goes on computing on its own core while its output is written
-        threads = std::max(1, std::min(8, cores / std::max(ranks, 1) - 1));
+        threads = std::max(1, std::min(8, cores/std::max(ranks,1) - 1));
     }
     return threads;
 }
 
 void lagoon_timing::report(lexer *p, ghostcell *pgc, const std::string &what)
 {
-    const double slowest = pgc->globalmax(outputs > 0 ? writing / outputs : 0.0);
+    const double slowest = pgc->globalmax(outputs>0 ? writing/outputs : 0.0);
     const double wait = pgc->globalmax(waited);
-    if(p->mpirank == 0 && outputs > 0)
-        std::cout << "LAGOON " << what << ": " << outputs << (outputs == 1 ? " output, " : " outputs, ") << std::fixed << std::setprecision(3) << slowest
-                  << " s each to write (" << threads << (threads == 1 ? " thread" : " threads") << " per rank, while the solver goes on), the solver waited "
-                  << std::setprecision(2) << wait << " s for them" << std::defaultfloat << std::endl;
+    if(p->mpirank==0 && outputs>0)
+        std::cout<<"LAGOON "<<what<<": "<<outputs<<(outputs==1 ? " output, " : " outputs, ")<<std::fixed<<std::setprecision(3)<<slowest
+                 <<" s each to write ("<<threads<<(threads==1 ? " thread" : " threads")<<" per rank, while the solver goes on), the solver waited "
+                 <<std::setprecision(2)<<wait<<" s for them"<<std::defaultfloat<<std::endl;
 }
 
 lagoon_output::lagoon_output(lexer *p, ghostcell *pgc, const char *solver_)
     : solver(solver_), store(store_path(solver_)), ready(false), usable(true), cartesian(false), t(0), nx(0), ny(0), nz(0), rank(p->mpirank)
 {
     // a store holds one run: the store of an earlier run in this folder is moved aside
-    if(p->mpirank == 0)
+    if(p->mpirank==0)
         store.begin_run(solver, run_record(p));
     timing.threads = lagoon_timing::compress_threads(pgc);
     store.set_threads(timing.threads);
@@ -160,9 +161,9 @@ lagoon_output::lagoon_output(lexer *p, ghostcell *pgc, const char *solver_)
     MPI_Barrier(pgc->mpi_comm);
 }
 
-std::vector<lagoon_output *> &lagoon_output::all()
+std::vector<lagoon_output*> &lagoon_output::all()
 {
-    static std::vector<lagoon_output *> writers;  // made on every rank alike
+    static std::vector<lagoon_output*> writers;  // made on every rank alike
     return writers;
 }
 
@@ -175,7 +176,7 @@ void lagoon_output::finish_all(lexer *p, ghostcell *pgc)
 
 bool lagoon_output::vtu_files(lexer *p)
 {
-    return p->P18 != 1 || failed;
+    return p->P18!=1 || failed;
 }
 
 bool lagoon_output::start(lexer *p, ghostcell *pgc, const std::vector<lagoon_store::variable> &fields)
@@ -191,29 +192,29 @@ bool lagoon_output::start(lexer *p, ghostcell *pgc, const std::vector<lagoon_sto
 
     // FNPF and NHFLOW: σ-levels, the same in every rank; CFD: Cartesian levels at
     // fixed heights, the grid split in z as well
-    cartesian = solver == "CFD";
+    cartesian = solver=="CFD";
     std::vector<double> levels;
     if(cartesian)
     {
         levels.assign(p->gknoz + 1, -1.0e300);
-        for(k = -1; k < p->knoz; ++k)
+        for(k=-1; k<p->knoz; ++k)
             levels[p->origin_k + k + 1] = p->ZN[KP1];
         pgc->globalmax(levels.data(), int(levels.size()));
     }
     else
     {
         sigma.resize(nz);
-        for(k = -1; k < p->knoz; ++k)
-            sigma[k + 1] = p->ZN[KP1];
+        for(k=-1; k<p->knoz; ++k)
+            sigma[k+1] = p->ZN[KP1];
         levels = sigma;
     }
 
-    if(p->mpirank == 0)
+    if(p->mpirank==0)
     {
         std::vector<double> xc, yc;
         const bool curvilinear = curvilinear_nodes(p, xc, yc);
         store.create_output("volume", cartesian ? "cartesian" : "sigma", x, y, levels, fields,
-                            p->M10 > 0 ? p->M10 : 1, std::string("REEF3D_") + solver + "_VTU",
+                            p->M10>0 ? p->M10 : 1, std::string("REEF3D_") + solver + "_VTU",
                             curvilinear ? &xc : nullptr, curvilinear ? &yc : nullptr);
     }
     store.create_block("volume", p->mpirank, p->origin_i, p->origin_j, nx, ny, nz, fields, p->mpirank,
@@ -229,19 +230,19 @@ void lagoon_output::write_job(job *j)
     {
         if(!j->z.empty())  // σ-grids: the heights of the levels in every column
         {
-            const size_t column = size_t(nx) * ny;
+            const size_t column = size_t(nx)*ny;
             std::vector<float> offsets;
             lagoon_store::level_offsets(j->z.data(), nz, int(column), sigma, offsets);
             store.write("volume", rank, j->t, "z_bed", &j->z[0]);
-            store.write("volume", rank, j->t, "z_surface", &j->z[(nz - 1) * column]);
+            store.write("volume", rank, j->t, "z_surface", &j->z[(nz-1)*column]);
             store.write("volume", rank, j->t, "z_offset", offsets.data());
         }
-        for(const std::pair<std::string, std::vector<float>> &f : j->fields)
+        for(const std::pair<std::string, std::vector<float> > &f : j->fields)
             store.write("volume", rank, j->t, f.first, f.second.data());
     }
     catch(std::exception &error)
     {
-        std::cout << "LAGOON rank " << rank << ": " << error.what() << std::endl;
+        std::cout<<"LAGOON rank "<<rank<<": "<<error.what()<<std::endl;
         j->ok = false;
     }
     timing.writing += seconds_since(start);
@@ -251,7 +252,7 @@ void lagoon_output::write_job(job *j)
 
 bool lagoon_output::settle(lexer *p, ghostcell *pgc)
 {
-    if(pending.t < 0)
+    if(pending.t<0)
         return true;
     if(worker.joinable())
     {
@@ -262,14 +263,14 @@ bool lagoon_output::settle(lexer *p, ghostcell *pgc)
     // every block has the output (also a barrier): only then is it counted
     if(pgc->globalmax(pending.ok ? 0.0 : 1.0) > 0.0)
     {
-        if(p->mpirank == 0)
-            std::cout << "LAGOON: a rank could not write its block; no more LAGOON output" << std::endl;
+        if(p->mpirank==0)
+            std::cout<<"LAGOON: a rank could not write its block; no more LAGOON output"<<std::endl;
         usable = false;
         failed = true;
         pending = job();
         return false;
     }
-    if(p->mpirank == 0)
+    if(p->mpirank==0)
     {
         store.commit("volume", pending.t, pending.time, pending.num);
         log_stored(p, "volume", "volume", solver, pending.num, pending.time, pending.iteration, p->M10);
@@ -280,12 +281,12 @@ bool lagoon_output::settle(lexer *p, ghostcell *pgc)
 
 bool lagoon_output::waiting() const
 {
-    return usable && !finished && pending.t >= 0;
+    return usable && !finished && pending.t>=0;
 }
 
 void lagoon_output::poll_all(lexer *p, ghostcell *pgc)
 {
-    if(p->P18 <= 0)
+    if(p->P18<=0)
         return;
     // an output pending on this rank is pending on every rank (outputs are made by
     // all ranks alike): then one reduction says whether every rank has written it
@@ -339,25 +340,25 @@ void lagoon_output::vtu_piece(lexer *p, ghostcell *pgc, const std::vector<char> 
         return;
 
     // copy what this output needs, then write it in the background
-    const size_t n = size_t(nx) * ny * nz;
+    const size_t n = size_t(nx)*ny*nz;
     pending.t = t;
     pending.num = num;
     pending.time = p->simtime;
     pending.iteration = p->count;
-    pending.ok = readable && size_t(p->pointnum) == n;
+    pending.ok = readable && size_t(p->pointnum)==n;
     if(pending.ok)
     {
         if(!cartesian)
         {
-            const float *points = reinterpret_cast<const float *>(&buffer[data_start + points_offset + sizeof(int)]);
+            const float *points = reinterpret_cast<const float*>(&buffer[data_start + points_offset + sizeof(int)]);
             pending.z.resize(n);
-            for(size_t q = 0; q < n; ++q)
-                pending.z[q] = points[3 * q + 2];
+            for(size_t q=0; q<n; ++q)
+                pending.z[q] = points[3*q+2];
         }
         for(const lagoon_store::vtu_array &a : parsed)
         {
-            const float *values = reinterpret_cast<const float *>(&buffer[data_start + a.offset + sizeof(int)]);
-            pending.fields.emplace_back(a.var.name, std::vector<float>(values, values + n * a.var.components));
+            const float *values = reinterpret_cast<const float*>(&buffer[data_start + a.offset + sizeof(int)]);
+            pending.fields.emplace_back(a.var.name, std::vector<float>(values, values + n*a.var.components));
         }
         written = false;
         worker = std::thread(&lagoon_output::write_job, this, &pending);
@@ -375,19 +376,19 @@ lagoon_surface::lagoon_surface(lexer *p, ghostcell *pgc, const char *solver_, co
     all().push_back(this);
 }
 
-std::vector<lagoon_surface *> &lagoon_surface::all()
+std::vector<lagoon_surface*> &lagoon_surface::all()
 {
-    static std::vector<lagoon_surface *> writers;  // made on every rank alike
+    static std::vector<lagoon_surface*> writers;  // made on every rank alike
     return writers;
 }
 
 void lagoon_surface::piece_written(lexer *p, ghostcell *pgc, lagoon_surface *&writer, const char *solver,
                                    const char *output, const char *source, const char *file, int num)
 {
-    if(p->P18 <= 0)
+    if(p->P18<=0)
         return;
     settle_all(p, pgc);  // the outputs before this one, also of the other surfaces (the bed)
-    if(writer == nullptr)
+    if(writer==nullptr)
         writer = new lagoon_surface(p, pgc, solver, output, source);
     std::ifstream in(file, std::ios::binary);
     std::stringstream text;
@@ -397,14 +398,15 @@ void lagoon_surface::piece_written(lexer *p, ghostcell *pgc, lagoon_surface *&wr
     writer->vtp_piece(p, pgc, buffer, num, file);
 }
 
-namespace {
+namespace
+{
 bool write_piece_file(const char *file, const std::string &buffer)
 {
     std::ofstream out(file, std::ios::binary);
     out.write(buffer.data(), std::streamsize(buffer.size()));
     return bool(out);
 }
-}  // namespace
+}
 
 void lagoon_surface::piece(lexer *p, ghostcell *pgc, lagoon_surface *&writer, const char *solver,
                            const char *output, const char *source, const char *file, int num, std::string &buffer)
@@ -412,10 +414,10 @@ void lagoon_surface::piece(lexer *p, ghostcell *pgc, lagoon_surface *&writer, co
     const bool files = lagoon_output::vtu_files(p);
     if(files)
         write_piece_file(file, buffer);
-    if(p->P18 <= 0)
+    if(p->P18<=0)
         return;
     settle_all(p, pgc);  // the outputs before this one, also of the other surfaces (the bed)
-    if(writer == nullptr)
+    if(writer==nullptr)
         writer = new lagoon_surface(p, pgc, solver, output, source);
     // (no file to remove once the store has the output when none was written)
     writer->vtp_piece(p, pgc, buffer, num, files ? std::string(file) : std::string());
@@ -429,13 +431,13 @@ void lagoon_surface::settle_all(lexer *p, ghostcell *pgc)
     // not an output of this iteration (the free surface just before the volume): it
     // goes on being written while the solver computes
     for(lagoon_surface *writer : all())
-        if(writer->usable && !writer->finished && writer->pending.t >= 0 && writer->pending.iteration < p->count)
+        if(writer->usable && !writer->finished && writer->pending.t>=0 && writer->pending.iteration<p->count)
             writer->settle(p, pgc);
 }
 
 bool lagoon_surface::waiting() const
 {
-    return usable && !finished && pending.t >= 0;
+    return usable && !finished && pending.t>=0;
 }
 
 void lagoon_surface::poll_all(lexer *p, ghostcell *pgc)
@@ -475,12 +477,12 @@ bool lagoon_surface::start(lexer *p, ghostcell *pgc, const std::vector<lagoon_st
     ny = p->knoy + 1;
     std::vector<double> x, y;
     grid_lines(p, pgc, x, y);
-    if(p->mpirank == 0)
+    if(p->mpirank==0)
     {
         store.begin_run(solver, run_record(p));  // a new run: a new store (the volume's, if any)
         std::vector<double> xc, yc;
         const bool curvilinear = curvilinear_nodes(p, xc, yc);
-        store.create_output(output, "surface", x, y, std::vector<double>(), fields, p->M10 > 0 ? p->M10 : 1, source,
+        store.create_output(output, "surface", x, y, std::vector<double>(), fields, p->M10>0 ? p->M10 : 1, source,
                             curvilinear ? &xc : nullptr, curvilinear ? &yc : nullptr);
     }
     MPI_Barrier(pgc->mpi_comm);
@@ -494,14 +496,15 @@ void lagoon_surface::vtp_piece(lexer *p, ghostcell *pgc, std::string &buffer, in
     if(!usable)
         return;
     const size_t appended = buffer.find("<AppendedData");
-    const size_t data_start = appended == std::string::npos ? std::string::npos : buffer.find('_', appended);
+    const size_t data_start = appended==std::string::npos ? std::string::npos : buffer.find('_', appended);
     std::vector<lagoon_store::vtu_array> parsed;
     long long points_offset = -1;
-    bool readable = data_start != std::string::npos && lagoon_store::parse_vtu_header(buffer.substr(0, data_start), parsed, points_offset);
+    bool readable = data_start!=std::string::npos
+                    && lagoon_store::parse_vtu_header(buffer.substr(0, data_start), parsed, points_offset);
     long long npoints = -1;
     {
         const size_t at = buffer.find("NumberOfPoints=\"");
-        if(at != std::string::npos)
+        if(at!=std::string::npos)
             npoints = std::atoll(buffer.c_str() + at + 16);
     }
     std::vector<lagoon_store::variable> fields;
@@ -517,8 +520,8 @@ void lagoon_surface::vtp_piece(lexer *p, ghostcell *pgc, std::string &buffer, in
         ready = true;
         if(!usable)
         {
-            if(p->mpirank == 0 && !fine)
-                std::cout << "LAGOON: the " << output << " VTP cannot be read for the store; no LAGOON " << output << std::endl;
+            if(p->mpirank==0 && !fine)
+                std::cout<<"LAGOON: the "<<output<<" VTP cannot be read for the store; no LAGOON "<<output<<std::endl;
             return;
         }
     }
@@ -528,13 +531,13 @@ void lagoon_surface::vtp_piece(lexer *p, ghostcell *pgc, std::string &buffer, in
 
     // the points are the grid nodes, x outermost; the worker puts z and the arrays
     // x fastest and writes them
-    const size_t n = size_t(nx) * ny;
+    const size_t n = size_t(nx)*ny;
     pending.t = t;
     pending.num = num;
     pending.time = p->simtime;
     pending.iteration = p->count;
     pending.file = file;
-    pending.ok = readable && npoints == (long long)n && data_start + 1 + size_t(points_offset) + 4 + 12 * n <= buffer.size();
+    pending.ok = readable && npoints==(long long)n && data_start + 1 + size_t(points_offset) + 4 + 12*n <= buffer.size();
     if(pending.ok)
     {
         pending.data = data_start + 1;
@@ -551,7 +554,7 @@ void lagoon_surface::vtp_piece(lexer *p, ghostcell *pgc, std::string &buffer, in
 void lagoon_surface::write_job(job *j)
 {
     const std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
-    const size_t n = size_t(nx) * ny;
+    const size_t n = size_t(nx)*ny;
     try
     {
         const char *data = j->buffer.data() + j->data;
@@ -559,30 +562,30 @@ void lagoon_surface::write_job(job *j)
         auto arranged = [&](long long offset, int components, int component)
         {
             values.assign(n, 0.0f);
-            const float *from = reinterpret_cast<const float *>(data + offset + sizeof(int));
-            for(int i = 0; i < nx; ++i)
-                for(int jj = 0; jj < ny; ++jj)
-                    values[size_t(jj) * nx + i] = from[(size_t(i) * ny + jj) * components + component];
+            const float *from = reinterpret_cast<const float*>(data + offset + sizeof(int));
+            for(int i=0; i<nx; ++i)
+                for(int jj=0; jj<ny; ++jj)
+                    values[size_t(jj)*nx + i] = from[(size_t(i)*ny + jj)*components + component];
         };
         arranged(j->points, 3, 2);
         store.write(output, rank, j->t, "z", values.data());
         for(const lagoon_store::vtu_array &a : j->parsed)
         {
-            if(j->data + size_t(a.offset) + 4 + size_t(4) * a.var.components * n > j->buffer.size())
+            if(j->data + size_t(a.offset) + 4 + size_t(4)*a.var.components*n > j->buffer.size())
                 throw std::runtime_error("the VTP piece is shorter than its arrays");
-            std::vector<float> all(n * a.var.components);
-            for(int c = 0; c < a.var.components; ++c)
+            std::vector<float> all(n*a.var.components);
+            for(int c=0; c<a.var.components; ++c)
             {
                 arranged(a.offset, a.var.components, c);
-                for(size_t q = 0; q < n; ++q)
-                    all[q * a.var.components + c] = values[q];
+                for(size_t q=0; q<n; ++q)
+                    all[q*a.var.components + c] = values[q];
             }
             store.write(output, rank, j->t, a.var.name, all.data());
         }
     }
     catch(std::exception &error)
     {
-        std::cout << "LAGOON rank " << rank << ": " << error.what() << std::endl;
+        std::cout<<"LAGOON rank "<<rank<<": "<<error.what()<<std::endl;
         j->ok = false;
     }
     j->buffer = std::string();  // the piece is not needed any more
@@ -593,7 +596,7 @@ void lagoon_surface::write_job(job *j)
 
 bool lagoon_surface::settle(lexer *p, ghostcell *pgc)
 {
-    if(pending.t < 0)
+    if(pending.t<0)
         return true;
     if(worker.joinable())
     {
@@ -604,19 +607,19 @@ bool lagoon_surface::settle(lexer *p, ghostcell *pgc)
     // every block has the output (also a barrier): only then is it counted
     if(pgc->globalmax(pending.ok ? 0.0 : 1.0) > 0.0)
     {
-        if(p->mpirank == 0)
-            std::cout << "LAGOON: a rank could not write its " << output << " block; no more LAGOON " << output << std::endl;
+        if(p->mpirank==0)
+            std::cout<<"LAGOON: a rank could not write its "<<output<<" block; no more LAGOON "<<output<<std::endl;
         usable = false;
         lagoon_output::failed = true;
         pending = job();
         return false;
     }
-    if(p->mpirank == 0)
+    if(p->mpirank==0)
     {
         store.commit(output, pending.t, pending.time, pending.num);
         log_stored(p, output, output, solver, pending.num, pending.time, pending.iteration, p->M10);
     }
-    if(p->P18 == 1 && !pending.file.empty())  // the store has it: no VTP file
+    if(p->P18==1 && !pending.file.empty())  // the store has it: no VTP file
         std::remove(pending.file.c_str());
     pending = job();
     return true;
@@ -630,7 +633,7 @@ lagoon_amr_output::lagoon_amr_output(const char *solver_, const std::vector<lago
 
 bool lagoon_amr_output::files_needed(lexer *p, bool stored)
 {
-    return !(stored && p->P18 == 1);
+    return !(stored && p->P18==1);
 }
 
 bool lagoon_amr_output::write(lexer *p, ghostcell *pgc, const std::vector<lagoon_amr::grid> &grids, int printcount)
@@ -646,7 +649,7 @@ bool lagoon_amr_output::write(lexer *p, ghostcell *pgc, const std::vector<lagoon
     }
     catch(std::exception &problem)
     {
-        std::cout << "LAGOON: " << problem.what() << std::endl;
+        std::cout<<"LAGOON: "<<problem.what()<<std::endl;
         mine.clear();
         ok = 0;
     }
@@ -656,17 +659,17 @@ bool lagoon_amr_output::write(lexer *p, ghostcell *pgc, const std::vector<lagoon
         ok = 0;
     }
     int ok_all = 0;
-    MPI_Allreduce(&ok, &ok_all, 1, MPI_INT, MPI_MIN, pgc->mpi_comm);
+    MPI_Allreduce(&ok,&ok_all,1,MPI_INT,MPI_MIN,pgc->mpi_comm);
 
     // every rank's grids to rank 0
     int count = int(mine.size());
-    std::vector<int> counts(p->mpi_size, 0), starts(p->mpi_size, 0);
-    MPI_Gather(&count, 1, MPI_INT, counts.data(), 1, MPI_INT, 0, pgc->mpi_comm);
+    std::vector<int> counts(p->mpi_size,0), starts(p->mpi_size,0);
+    MPI_Gather(&count,1,MPI_INT,counts.data(),1,MPI_INT,0,pgc->mpi_comm);
     std::vector<double> all;
-    if(p->mpirank == 0)
+    if(p->mpirank==0)
     {
         long long total = 0;
-        for(int r = 0; r < p->mpi_size; ++r)
+        for(int r=0; r<p->mpi_size; ++r)
         {
             starts[r] = int(total);
             total += counts[r];
@@ -676,29 +679,29 @@ bool lagoon_amr_output::write(lexer *p, ghostcell *pgc, const std::vector<lagoon
         else
             all.resize(size_t(total));
     }
-    MPI_Bcast(&ok_all, 1, MPI_INT, 0, pgc->mpi_comm);
-    if(ok_all == 1)
-        MPI_Gatherv(mine.data(), count, MPI_DOUBLE, all.data(), counts.data(), starts.data(), MPI_DOUBLE, 0, pgc->mpi_comm);
+    MPI_Bcast(&ok_all,1,MPI_INT,0,pgc->mpi_comm);
+    if(ok_all==1)
+        MPI_Gatherv(mine.data(),count,MPI_DOUBLE,all.data(),counts.data(),starts.data(),MPI_DOUBLE,0,pgc->mpi_comm);
 
-    if(p->mpirank == 0 && ok_all == 1)
+    if(p->mpirank==0 && ok_all==1)
     {
         // level 0 of every rank, then the patches, rank by rank (as the .vtm lists them)
         std::vector<lagoon_amr::grid> level0, patches;
-        for(int r = 0; r < p->mpi_size && ok_all == 1; ++r)
+        for(int r=0; r<p->mpi_size && ok_all==1; ++r)
         {
             std::vector<lagoon_amr::grid> one;
             if(!lagoon_amr::unpack(all.data() + starts[r], size_t(counts[r]), int(fields.size()), r, one))
             {
-                std::cout << "LAGOON: the AMR grids of rank " << r << " did not arrive whole" << std::endl;
+                std::cout<<"LAGOON: the AMR grids of rank "<<r<<" did not arrive whole"<<std::endl;
                 ok_all = 0;
                 break;
             }
             for(lagoon_amr::grid &g : one)
-                (g.level == 0 ? level0 : patches).push_back(std::move(g));
+                (g.level==0 ? level0 : patches).push_back(std::move(g));
         }
-        if(ok_all == 1)
+        if(ok_all==1)
         {
-            if(writer == nullptr)
+            if(writer==nullptr)
             {
                 const std::string run = run_record(p);
                 std::string key = solver;
@@ -709,7 +712,7 @@ bool lagoon_amr_output::write(lexer *p, ghostcell *pgc, const std::vector<lagoon
             }
             level0.insert(level0.end(), std::make_move_iterator(patches.begin()), std::make_move_iterator(patches.end()));
             ok_all = writer->output(p->simtime, printcount, level0) ? 1 : 0;
-            if(ok_all == 1)
+            if(ok_all==1)
             {
                 std::string key = solver;
                 for(char &c : key)
@@ -718,13 +721,13 @@ bool lagoon_amr_output::write(lexer *p, ghostcell *pgc, const std::vector<lagoon
             }
         }
     }
-    MPI_Bcast(&ok_all, 1, MPI_INT, 0, pgc->mpi_comm);
-    if(ok_all != 1)
+    MPI_Bcast(&ok_all,1,MPI_INT,0,pgc->mpi_comm);
+    if(ok_all!=1)
     {
         usable = false;
         lagoon_output::failed = true;
-        if(p->mpirank == 0)
-            std::cout << "LAGOON: no more " << solver << " AMR output in the store; the .vtr and .vtm files are written" << std::endl;
+        if(p->mpirank==0)
+            std::cout<<"LAGOON: no more "<<solver<<" AMR output in the store; the .vtr and .vtm files are written"<<std::endl;
     }
-    return ok_all == 1;
+    return ok_all==1;
 }

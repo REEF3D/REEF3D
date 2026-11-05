@@ -20,140 +20,144 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "bedconc_VR.h"
-#include "bedload.h"
-#include "bedload_direction.h"
-#include "bedload_waves.h"
-#include "bedshear.h"
-#include "bedshear_reduction.h"
-#include "bedslope.h"
-#include "fdm_nhf.h"
-#include "ghostcell.h"
-#include "ioflow.h"
-#include "lexer.h"
-#include "nhflow_diffusion.h"
-#include "nhflow_scalar_convection.h"
-#include "nhflow_suspended.h"
-#include "reinitopo.h"
-#include "sandslide.h"
-#include "seastate_nhflow.h"
-#include "sediment_f.h"
-#include "sediment_fdm.h"
-#include "sediment_mixture.h"
-#include "sediment_roughness.h"
-#include "sediment_waves.h"
-#include "topo.h"
-#include "topo_relax.h"
+#include"sediment_f.h"
+#include"sediment_fdm.h"
+#include"lexer.h"
+#include"fdm_nhf.h"
+#include"ghostcell.h"
+#include"ioflow.h"
+#include"topo.h"
+#include"reinitopo.h"
+#include"nhflow_suspended.h"
+#include"nhflow_diffusion.h"
+#include"nhflow_scalar_convection.h"
+#include"bedload.h"
+#include"bedconc_VR.h"
+#include"bedshear.h"
+#include"sandslide.h"
+#include"topo_relax.h"
+#include"bedslope.h"
+#include"bedshear_reduction.h"
+#include"bedload_direction.h"
+#include"sediment_roughness.h"
+#include"sediment_mixture.h"
+#include"sediment_waves.h"
+#include"bedload_waves.h"
+#include"seastate_nhflow.h"
 
 void sediment_f::sediment_algorithm_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow)
 {
-    starttime = pgc->timer();
-
+    starttime=pgc->timer();
+    
     ++p->sediter;
-
+    
     // mesh refinement, multi-block grids: all grids together (sediment_amr.cpp)
-    if(grids != nullptr)
+    if(grids!=nullptr)
     {
-        grids->sediment_step_nhflow(p, d, pgc, pflow, this);
-
-        // the grids keep the exchange of the last flow step (sediment_amr.cpp)
-        pnhfsusp->bed_done(p, s);
+    grids->sediment_step_nhflow(p,d,pgc,pflow,this);
+    
+    // the grids keep the exchange of the last flow step (sediment_amr.cpp)
+    pnhfsusp->bed_done(p,s);
     }
     else
     {
-        // prep NHFLOW -------
-        prep_nhflow(p, d, pgc);
-
-        // waves of SEASTATE with the radiation stress (S 110 1, S 119 0): the Eulerian current of the bottom layer
-        if(pwaves != nullptr)
-            pwaves->eulerian_nhflow(p, d, pgc, s);
-
-        // bedslope cds ******
-        pslope->slope_cds(p, pgc, s);
-
-        // bedslope reduction ******
-        preduce->start(p, pgc, s);
-
-        // bed roughness -------
-        pks->start(p, pgc, s, d->WL);
-
-        // bedshear stress -------
-        pbedshear->taubed(p, d, pgc, s);
-
-        // waves (S 110): the wave parameters, the wave and current bed shear stress
-        if(pwaves != nullptr)
-        {
-            pwaves->start(p, d->wave, pgc, s);
-            pwaves->bedshear(p, pgc, s);
-        }
-
-        pbedshear->taucritbed(p, d, pgc, s);
-
-        // wave formulas (S 11 6-9): the depth-averaged current of the log profile through the bottom layer
-        if(pbedw != nullptr)
-            sediment_waves::depth_mean_nhflow(p, pgc, s);
-
-        // bedload *******
-        if(s->pmix == nullptr)
-            pbed->start(p, pgc, s);
-
-        if(s->pmix != nullptr)
-            s->pmix->bedload_fractions(p, pgc, s, pbed);
-
-        // wave formulas (S 11 6-9): the Exner step in the direction of the transport
-        if(pbedw != nullptr)
-            transport_direction(p, pgc, 1);
-
-        // bedload_direction *******
-        pbeddir->start(p, pgc, s);
-
-        // suspended load -------
-        pcbed->start(p, pgc, s);
-
-        // relax *******
-        prelax->start(p, pgc, s);
-
-        // suspended load: the mean exchange rate of several flow steps since the last bed update (S 62 1)
-        pnhfsusp->bed_rate(p, pgc, s);
-
-        // Exner *******
-        ptopo->start(p, pgc, s);
-        p->sedtime += p->dtsed;
-
-        pnhfsusp->bed_done(p, s);
-
-        if(pbedw != nullptr)
-            transport_direction(p, pgc, 0);
-
-        // sandslide ********
-        if(p->sediter % p->S94 == 0)
-            pslide->start(p, pgc, s);
-
-        // relax *******
-        prelax->start(p, pgc, s);
-
-        // update sflow  --------
-        update_nhflow(p, d, pgc, pflow);
+    // prep NHFLOW -------
+    prep_nhflow(p,d,pgc);
+    
+    // waves of SEASTATE with the radiation stress (S 110 1, S 119 0): the Eulerian current of the bottom layer
+    if(pwaves!=nullptr)
+    pwaves->eulerian_nhflow(p,d,pgc,s);
+    
+    // bedslope cds ******
+    pslope->slope_cds(p,pgc,s);
+    
+    // bedslope reduction ******
+    preduce->start(p,pgc,s);
+    
+    // bed roughness -------
+    pks->start(p,pgc,s,d->WL);
+    
+    // bedshear stress -------
+	pbedshear->taubed(p,d,pgc,s);
+    
+    // waves (S 110): the wave parameters, the wave and current bed shear stress
+    if(pwaves!=nullptr)
+    {
+    pwaves->start(p,d->wave,pgc,s);
+    pwaves->bedshear(p,pgc,s);
     }
-
+    
+    pbedshear->taucritbed(p,d,pgc,s);
+    
+    // wave formulas (S 11 6-9): the depth-averaged current of the log profile through the bottom layer
+    if(pbedw!=nullptr)
+    sediment_waves::depth_mean_nhflow(p,pgc,s);
+    
+    // bedload *******
+    if(s->pmix==nullptr)
+    pbed->start(p,pgc,s);
+    
+    if(s->pmix!=nullptr)
+    s->pmix->bedload_fractions(p,pgc,s,pbed);
+    
+    // wave formulas (S 11 6-9): the Exner step in the direction of the transport
+    if(pbedw!=nullptr)
+    transport_direction(p,pgc,1);
+    
+    // bedload_direction *******
+    pbeddir->start(p,pgc,s);
+    
+    // suspended load -------
+    pcbed->start(p,pgc,s);
+	
+    // relax *******
+	prelax->start(p,pgc,s);
+    
+    // suspended load: the mean exchange rate of several flow steps since the last bed update (S 62 1)
+    pnhfsusp->bed_rate(p,pgc,s);
+    
+    // Exner *******
+    ptopo->start(p,pgc,s);
+    p->sedtime+=p->dtsed;
+    
+    pnhfsusp->bed_done(p,s);
+    
+    if(pbedw!=nullptr)
+    transport_direction(p,pgc,0);
+    
+    // sandslide ********
+    if(p->sediter%p->S94==0)
+    pslide->start(p,pgc,s);
+    
+    // relax *******
+	prelax->start(p,pgc,s);
+    
+    // update sflow  --------
+    update_nhflow(p,d,pgc,pflow);
+    }
+    
     // sediment print
-    print_probes(p, pgc, s, pflow);
-
+    print_probes(p,pgc,s,pflow);
+    
     // sediment log
     sedimentlog(p);
+    
+    if(s->pmix!=nullptr)
+    s->pmix->print_log(p,pgc);
+    
+    
+    if(p->mpirank==0 && p->count>0)
+    cout<<"Sediment Iter: "<<p->sediter<<" Sediment Timestep: "<<p->dtsed<<"  Total Time: "<<setprecision(7)<<p->sedtime<<endl;
 
-    if(s->pmix != nullptr)
-        s->pmix->print_log(p, pgc);
-
-    if(p->mpirank == 0 && p->count > 0)
-        cout << "Sediment Iter: " << p->sediter << " Sediment Timestep: " << p->dtsed << "  Total Time: " << setprecision(7) << p->sedtime << endl;
-
-    if(p->mpirank == 0)
-        cout << "Sediment CompTime: " << setprecision(5) << pgc->timer() - starttime << endl;
+	if(p->mpirank==0)
+    cout<<"Sediment CompTime: "<<setprecision(5)<<pgc->timer()-starttime<<endl;
 }
 
 void sediment_f::start_susp_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow, solver *psolv)
 {
-    pnhfsusp->start(p, d, pgc, pnhfsuspdisc, pnhfsuspdiff, psolv, pflow, s);
+    pnhfsusp->start(p,d,pgc,pnhfsuspdisc,pnhfsuspdiff,psolv,pflow,s);
 }
+
+
+
 

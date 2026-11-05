@@ -22,10 +22,10 @@ Author: Hans Bihs
 
 #ifndef SIXDOF_CFD_H_
 #define SIXDOF_CFD_H_
-#include "6DOF.h"
-#include "6DOF_obj.h"
 #include <Eigen/Dense>
-#include <vector>
+#include"6DOF.h"
+#include"6DOF_obj.h"
+#include<vector>
 
 class mooring;
 class net;
@@ -38,51 +38,53 @@ using namespace std;
 class net_interface : public increment
 {
 public:
-    net_interface(lexer *, ghostcell *);
-    virtual ~net_interface();
+	net_interface(lexer*, ghostcell*);
+	virtual ~net_interface();
 
-    void start_cfd(lexer *, fdm *, ghostcell *, double, Eigen::Matrix3d, bool) {};
-    void start_nhflow(lexer *, fdm_nhf *, ghostcell *, double, Eigen::Matrix3d, bool) {};
+    void start_cfd(lexer*, fdm*, ghostcell*, double, Eigen::Matrix3d, bool) {};
+    void start_nhflow(lexer*, fdm_nhf*, ghostcell*, double, Eigen::Matrix3d, bool) {};
 
-    void netForces_cfd(lexer *, fdm *, ghostcell *, double, Eigen::Matrix3d, vector<double> &, vector<double> &,
-                       vector<double> &, vector<double> &, vector<double> &, vector<double> &, bool);
+    void netForces_cfd(lexer*, fdm*, ghostcell*, double, Eigen::Matrix3d, vector<double>&, vector<double>&, 
+                        vector<double>&, vector<double>&, vector<double>&, vector<double>&, bool);
+                        
+    void netForces_nhflow(lexer*, fdm_nhf*, ghostcell*, double, Eigen::Matrix3d, vector<double>&, vector<double>&, 
+                        vector<double>&, vector<double>&, vector<double>&, vector<double>&, bool);
+    
 
-    void netForces_nhflow(lexer *, fdm_nhf *, ghostcell *, double, Eigen::Matrix3d, vector<double> &, vector<double> &,
-                          vector<double> &, vector<double> &, vector<double> &, vector<double> &, bool);
-
-    void dlm_cfd(lexer *, fdm *, ghostcell *, int);
-    void dlm_nhflow(lexer *, fdm_nhf *, ghostcell *, int);
-
-    void initialize_cfd(lexer *, fdm *, ghostcell *);
-    void initialize_nhflow(lexer *, fdm_nhf *, ghostcell *);
-
+    void dlm_cfd(lexer*, fdm*, ghostcell*, int);
+    void dlm_nhflow(lexer*, fdm_nhf*, ghostcell*, int);
+    
+    void initialize_cfd(lexer*, fdm*, ghostcell*);
+    void initialize_nhflow(lexer*, fdm_nhf*, ghostcell*);
+    
     // impermeable membranes (X 330, membrane.dat), NHFLOW
-    void membrane_ini_nhflow(lexer *, fdm_nhf *, ghostcell *);
-    void membrane_links_nhflow(lexer *, fdm_nhf *, ghostcell *, double);
-    void membrane_forcing_nhflow(lexer *, fdm_nhf *, ghostcell *, double, double *, double *, double *, slice &);
-    void membrane_reaction_nhflow(lexer *, fdm_nhf *, ghostcell *, double, slice &, bool);
-    void membrane_pgrad(lexer *, fdm_nhf *, double, double *, double *, double *, slice &, int);
+    void membrane_ini_nhflow(lexer*, fdm_nhf*, ghostcell*);
+    void membrane_links_nhflow(lexer*, fdm_nhf*, ghostcell*, double);
+    void membrane_forcing_nhflow(lexer*, fdm_nhf*, ghostcell*, double, double*, double*, double*, slice&);
+    void membrane_reaction_nhflow(lexer*, fdm_nhf*, ghostcell*, double, slice&, bool);
+    void membrane_pgrad(lexer*, fdm_nhf*, double, double*, double*, double*, slice&, int);
     bool membrane_iterated();
-    void membrane_reforce_nhflow(lexer *, fdm_nhf *, ghostcell *, double, double *, double *, double *, slice &);
-    bool membrane_couple_nhflow(lexer *, fdm_nhf *, ghostcell *, int, double, slice &, int);
-    void membrane_attach_nhflow(lexer *, const Eigen::Vector3d &, const Eigen::Matrix3d &);
-    void membrane_body_nhflow(const Eigen::Vector3d &, const Eigen::Matrix3d &, const Eigen::Vector3d &, const Eigen::Vector3d &);
-    void membraneForces_nhflow(lexer *, const Eigen::Vector3d &, const Eigen::Matrix3d &, double &, double &, double &, double &, double &, double &);
-    double membrane_addedmass_nhflow(lexer *);
-    Eigen::Matrix3d membrane_addedinertia_nhflow(lexer *);
-    Eigen::Matrix3d membrane_stiffness_nhflow(lexer *);
-
+    void membrane_reforce_nhflow(lexer*, fdm_nhf*, ghostcell*, double, double*, double*, double*, slice&);
+    bool membrane_couple_nhflow(lexer*, fdm_nhf*, ghostcell*, int, double, slice&, int);
+    void membrane_attach_nhflow(lexer*, const Eigen::Vector3d&, const Eigen::Matrix3d&);
+    void membrane_body_nhflow(const Eigen::Vector3d&, const Eigen::Matrix3d&, const Eigen::Vector3d&, const Eigen::Vector3d&);
+    void membraneForces_nhflow(lexer*, const Eigen::Vector3d&, const Eigen::Matrix3d&, double&, double&, double&, double&, double&, double&);
+    double membrane_addedmass_nhflow(lexer*);
+    Eigen::Matrix3d membrane_addedinertia_nhflow(lexer*);
+    Eigen::Matrix3d membrane_stiffness_nhflow(lexer*);
+    
     typedef vector<Eigen::Vector3d> EigenMat;
 
     // checkpoints (P 48, I 45): the nets (X 320), each with its length; false: the nets do not fit
-    void ckpt_state(std::vector<double> &) const;
-    bool ckpt_restore(const std::vector<double> &);
+    void ckpt_state(std::vector<double>&) const;
+    bool ckpt_restore(const std::vector<double>&);
 
 private:
-    vector<net *> pnet;
-    vector<net_membrane *> pmem;
-
-    double kernel_peskin(const double &);
+    vector<net*> pnet;
+    vector<net_membrane*> pmem;
+   
+   double kernel_peskin(const double&);
+   
 };
 
 #endif

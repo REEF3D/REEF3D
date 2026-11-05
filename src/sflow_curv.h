@@ -23,7 +23,7 @@ Author: Hans Bihs
 #ifndef SFLOW_CURV_H_
 #define SFLOW_CURV_H_
 
-#include "increment.h"
+#include"increment.h"
 
 class lexer;
 class fdm2D;
@@ -53,77 +53,77 @@ class sflow_curv : public increment
 {
 public:
     // unsupported options are refused (P1a: hydrostatic, single level)
-    static void check(lexer *);
+    static void check(lexer*);
 
     // Us/Un, Ve/Vw: normal velocity from (U,V) at both sides of the face (after the reconstruction
     // of U and V on the i-faces (Us/Un, Vs/Vn) and j-faces (Ue/Uw, Ve/Vw))
-    static void normal_velocities(lexer *, fdm2D *);
+    static void normal_velocities(lexer*, fdm2D*);
 
     // face fluxes of the states (sflow_flux_build_f): ipol 1 UH, 2 VH, 3 WH, 4 mass
-    static void flux(lexer *, fdm2D *, int ipol);
+    static void flux(lexer*, fdm2D*, int ipol);
 
     // boundary faces: walls (mirrored state), inflow and outflow (physical flux of the ghost state)
-    static void flux_bc(lexer *, fdm2D *, int ipol, slice &Fx, slice &Fy, int inflow, int outflow);
+    static void flux_bc(lexer*, fdm2D*, int ipol, slice &Fx, slice &Fy, int inflow, int outflow);
 
     // f -= div(F) over the cell area
-    static void divergence(lexer *, fdm2D *, slice &f, slice &Fx, slice &Fy);
+    static void divergence(lexer*, fdm2D*, slice &f, slice &Fx, slice &Fy);
 
     // bed-slope source of the pre-balanced fluxes: comp 1 x (to b->F), comp 2 y (to b->G)
-    static void pgrad(lexer *, fdm2D *, slice &eta, slice &f, int comp);
+    static void pgrad(lexer*, fdm2D*, slice &eta, slice &f, int comp);
 
     // 1/sigma of the CFL condition of a cell: sum over the two directions of (|u.n|+c) L / A
-    static double sigma(lexer *, fdm2D *, int i, int j, double c);
+    static double sigma(lexer*, fdm2D*, int i, int j, double c);
 
     // free-slip wall: ghost velocity = interior velocity with the normal component reversed
-    static void wall_mirror(lexer *, slice &u, slice &v, int i, int j, int cs, int depth = 3);
+    static void wall_mirror(lexer*, slice &u, slice &v, int i, int j, int cs, int depth=3);
 
     // unit normal and length of face i+1/2 (dir 1) or j+1/2 (dir 2) of cell (i,j)
-    static void normal(lexer *, int dir, int i, int j, double &nx, double &ny, double &len);
+    static void normal(lexer*, int dir, int i, int j, double &nx, double &ny, double &len);
 
     // ---- collocated differential operators (non-hydrostatic pressure, Boussinesq)
     // central gradient from the values at the four neighbours, by the chain rule with the cell
     // centres (Cartesian grid: the central differences of the Cartesian kernels)
-    static void grad5(lexer *, int i, int j, double fE, double fW, double fN, double fS, double &fx, double &fy);
-    static void grad(lexer *, slice &f, int i, int j, double &fx, double &fy);
-    static double ddx(lexer *, slice &f, int i, int j);
-    static double ddy(lexer *, slice &f, int i, int j);
+    static void grad5(lexer*, int i, int j, double fE, double fW, double fN, double fS, double &fx, double &fy);
+    static void grad(lexer*, slice &f, int i, int j, double &fx, double &fy);
+    static double ddx(lexer*, slice &f, int i, int j);
+    static double ddy(lexer*, slice &f, int i, int j);
 
     // face i+1/2 (dir 1) or j+1/2 (dir 2) of cell (i,j): distance of the two cell centres along
     // the face normal, and the non-orthogonal part k = S - d |S|^2/(S.d) of the face vector
-    static double dnorm(lexer *, int dir, int i, int j);
-    static void kvec(lexer *, int dir, int i, int j, double &kx, double &ky);
+    static double dnorm(lexer*, int dir, int i, int j);
+    static void kvec(lexer*, int dir, int i, int j, double &kx, double &ky);
 
     // compact Laplacian of cell (i,j): L/(A dn) of its east, west, north and south faces
     // (orthogonal part; the rest is kflux)
-    static void lapcoef(lexer *, int i, int j, double &cE, double &cW, double &cN, double &cS);
+    static void lapcoef(lexer*, int i, int j, double &cE, double &cW, double &cN, double &cS);
 
     // non-orthogonal flux of grad f through the faces of cell (i,j) over the cell area, faces to
     // neighbours with ok(i,j) only (deferred correction)
     template<class OK>
     static double kflux(lexer *p, slice &f, int ii, int jj, OK ok)
     {
-        double s = 0.0, kx, ky, gx0, gy0, gx, gy;
-        grad(p, f, ii, jj, gx0, gy0);
-        const int di[4] = {1, -1, 0, 0}, dj[4] = {0, 0, 1, -1};
-        for(int d = 0; d < 4; ++d)
+        double s=0.0, kx, ky, gx0, gy0, gx, gy;
+        grad(p,f,ii,jj,gx0,gy0);
+        const int di[4]={1,-1,0,0}, dj[4]={0,0,1,-1};
+        for(int d=0; d<4; ++d)
         {
-            const int a = ii + di[d], b = jj + dj[d];
-            if(!ok(a, b))
-                continue;
-            const int dir = (d < 2) ? 1 : 2;
-            const int fi = (d == 1) ? ii - 1 : ii, fj = (d == 3) ? jj - 1 : jj;
-            kvec(p, dir, fi, fj, kx, ky);
-            grad(p, f, a, b, gx, gy);
-            const double sg = (d == 0 || d == 2) ? 1.0 : -1.0;
-            s += sg * 0.5 * ((gx0 + gx) * kx + (gy0 + gy) * ky);
+            const int a=ii+di[d], b=jj+dj[d];
+            if(!ok(a,b))
+            continue;
+            const int dir = (d<2) ? 1 : 2;
+            const int fi = (d==1) ? ii-1 : ii, fj = (d==3) ? jj-1 : jj;
+            kvec(p,dir,fi,fj,kx,ky);
+            grad(p,f,a,b,gx,gy);
+            const double sg = (d==0 || d==2) ? 1.0 : -1.0;
+            s += sg*0.5*((gx0+gx)*kx + (gy0+gy)*ky);
         }
-        return s / area(p, ii, jj);
+        return s/area(p,ii,jj);
     }
 
-    static double area(lexer *, int i, int j);
+    static double area(lexer*, int i, int j);
 
     // 1/dx^2 + 1/dy^2 of cell (i,j) with the mean face lengths (dispersion and diffusion limits)
-    static double inv2(lexer *, int i, int j);
+    static double inv2(lexer*, int i, int j);
 };
 
 #endif

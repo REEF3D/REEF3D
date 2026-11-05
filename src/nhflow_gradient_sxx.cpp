@@ -20,20 +20,21 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "fdm_nhf.h"
-#include "lexer.h"
-#include "nhflow_gradient.h"
-#include "slice.h"
+#include"nhflow_gradient.h"
+#include"fdm_nhf.h"
+#include"lexer.h"
+#include"slice.h"
 
 double nhflow_gradient::sxx(slice &f)
 {
-    return ((f(i + 1, j) - f(i, j)) / p->DXP[IP] - (f(i, j) - f(i - 1, j)) / p->DXP[IM1]) / p->DXN[IP];
+    return ((f(i+1,j)-f(i,j))/p->DXP[IP] - (f(i,j)-f(i-1,j))/p->DXP[IM1])/p->DXN[IP];
+    
 }
 
 double nhflow_gradient::syy(slice &f)
 {
-    return ((f(i, j + 1) - f(i, j)) / p->DYP[JP] - (f(i, j) - f(i, j - 1)) / p->DYP[JM1]) / p->DYN[JP];
-
+    return ((f(i,j+1)-f(i,j))/p->DYP[JP] - (f(i,j)-f(i,j-1))/p->DYP[JM1])/p->DYN[JP];  
+    
     /*return (-f(i,j+2) + 8.0*f(i,j+1) - 8.0*f(i,j-1) + f(i,j-2))
           /(-p->YP[JP2] + 8.0*p->YP[JP1] - 8.0*p->YP[JM1] + p->YP[JM2]);*/
 }

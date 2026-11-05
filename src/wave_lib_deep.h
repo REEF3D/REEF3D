@@ -23,32 +23,33 @@ Author: Hans Bihs
 #ifndef WAVE_LIB_DEEP_H_
 #define WAVE_LIB_DEEP_H_
 
-#include "increment.h"
-#include "wave_lib_parameters.h"
-#include "wave_lib_precalc.h"
+#include"wave_lib_precalc.h"
+#include"wave_lib_parameters.h"
+#include"increment.h"
 
 using namespace std;
 
 class wave_lib_deep final : public wave_lib_precalc, public wave_lib_parameters, public increment
 {
 public:
-    int wave_lexer_fields() const override { return 0; }
-    wave_lib_deep(lexer *, ghostcell *);
-    virtual ~wave_lib_deep();
-
-    double wave_horzvel(lexer *, double, double, double);
-
-    double wave_u(lexer *, double, double, double) override final;
-    double wave_v(lexer *, double, double, double) override final;
-    double wave_w(lexer *, double, double, double) override final;
-    double wave_eta(lexer *, double, double) override final;
-    double wave_fi(lexer *, double, double, double) override final;
-
-    void parameters(lexer *, ghostcell *) override final;
-    void wave_prestep(lexer *, ghostcell *) override final;
-
+    int wave_lexer_fields() const override {return 0;}
+    wave_lib_deep(lexer*, ghostcell*);
+	virtual ~wave_lib_deep();
+    
+    double wave_horzvel(lexer*,double,double,double);
+    
+    double wave_u(lexer*,double,double,double) override final;
+    double wave_v(lexer*,double,double,double) override final;
+    double wave_w(lexer*,double,double,double) override final;
+    double wave_eta(lexer*,double,double) override final;
+    double wave_fi(lexer*,double,double,double) override final;
+    
+    
+    void parameters(lexer*,ghostcell*) override final;
+    void wave_prestep(lexer*,ghostcell*) override final;
+    
 private:
-    double singamma, cosgamma;
+    double singamma,cosgamma;
 };
 
 #endif

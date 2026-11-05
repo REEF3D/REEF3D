@@ -23,7 +23,7 @@ Author: Hans Bihs
 #ifndef WAVE_LIB_PRECALC_H_
 #define WAVE_LIB_PRECALC_H_
 
-#include "wave_lib.h"
+#include"wave_lib.h"
 
 using namespace std;
 
@@ -31,34 +31,35 @@ class wave_lib_precalc : public wave_lib
 {
 public:
     wave_lib_precalc();
-    virtual ~wave_lib_precalc();
+	virtual ~wave_lib_precalc();
+    
 
-    double wave_u_space_sin(lexer *, double, double, double, int) override final;
-    double wave_u_space_cos(lexer *, double, double, double, int) override final;
-    double wave_u_time_sin(lexer *, int) override final;
-    double wave_u_time_cos(lexer *, int) override final;
-
-    double wave_v_space_sin(lexer *, double, double, double, int) override final;
-    double wave_v_space_cos(lexer *, double, double, double, int) override final;
-    double wave_v_time_sin(lexer *, int) override final;
-    double wave_v_time_cos(lexer *, int) override final;
-
-    double wave_w_space_sin(lexer *, double, double, double, int) override final;
-    double wave_w_space_cos(lexer *, double, double, double, int) override final;
-    double wave_w_time_sin(lexer *, int) override final;
-    double wave_w_time_cos(lexer *, int) override final;
-
-    double wave_eta_space_sin(lexer *, double, double, int) override final;
-    double wave_eta_space_cos(lexer *, double, double, int) override final;
-    double wave_eta_time_sin(lexer *, int) override final;
-    double wave_eta_time_cos(lexer *, int) override final;
-
-    double wave_fi_space_sin(lexer *, double, double, double, int) override final;
-    double wave_fi_space_cos(lexer *, double, double, double, int) override final;
-    double wave_fi_time_sin(lexer *, int) override final;
-    double wave_fi_time_cos(lexer *, int) override final;
-
-    double vel, T, eta, fi;
+    double wave_u_space_sin(lexer*,double,double,double,int) override final;
+    double wave_u_space_cos(lexer*,double,double,double,int) override final;
+    double wave_u_time_sin(lexer*,int) override final;
+    double wave_u_time_cos(lexer*,int) override final;
+    
+    double wave_v_space_sin(lexer*,double,double,double,int) override final;
+    double wave_v_space_cos(lexer*,double,double,double,int) override final;
+    double wave_v_time_sin(lexer*,int) override final;
+    double wave_v_time_cos(lexer*,int) override final;
+    
+    double wave_w_space_sin(lexer*,double,double,double,int) override final;
+    double wave_w_space_cos(lexer*,double,double,double,int) override final;
+    double wave_w_time_sin(lexer*,int) override final;
+    double wave_w_time_cos(lexer*,int) override final;
+    
+    double wave_eta_space_sin(lexer*,double,double,int) override final;
+    double wave_eta_space_cos(lexer*,double,double,int) override final;
+    double wave_eta_time_sin(lexer*,int) override final;
+    double wave_eta_time_cos(lexer*,int) override final;
+    
+    double wave_fi_space_sin(lexer*,double,double,double,int) override final;
+    double wave_fi_space_cos(lexer*,double,double,double,int) override final;
+    double wave_fi_time_sin(lexer*,int) override final;
+    double wave_fi_time_cos(lexer*,int) override final;
+    
+    double vel,T,eta,fi;
 };
 
 #endif

@@ -23,10 +23,10 @@ Author: Hans Bihs
 #ifndef SFLOW_BOUSSINESQ_H_
 #define SFLOW_BOUSSINESQ_H_
 
-#include "increment.h"
-#include "slice4.h"
-#include <functional>
-#include <vector>
+#include"increment.h"
+#include"slice4.h"
+#include<functional>
+#include<vector>
 
 class lexer;
 class fdm2D;
@@ -67,28 +67,28 @@ using namespace std;
 class sflow_boussinesq : public increment
 {
 public:
-    sflow_boussinesq(lexer *, fdm2D *, ghostcell *);
-    virtual ~sflow_boussinesq();
-
-    void mask_update(lexer *, fdm2D *, ghostcell *, slice &);
-    void source(lexer *, fdm2D *, ghostcell *, slice &);
-    void invert(lexer *, fdm2D *, ghostcell *, solver2D *, slice &, slice &, slice &);
-    void invert_prepare(lexer *, fdm2D *, ghostcell *, slice &, slice &, slice &);
-    void invert_solve(lexer *, fdm2D *, solver2D *, ghostcell *);
-
+	sflow_boussinesq(lexer*, fdm2D*, ghostcell*);
+	virtual ~sflow_boussinesq();
+    
+    void mask_update(lexer*, fdm2D*, ghostcell*, slice&);
+    void source(lexer*, fdm2D*, ghostcell*, slice&);
+    void invert(lexer*, fdm2D*, ghostcell*, solver2D*, slice&, slice&, slice&);
+    void invert_prepare(lexer*, fdm2D*, ghostcell*, slice&, slice&, slice&);
+    void invert_solve(lexer*, fdm2D*, solver2D*, ghostcell*);
+    
     // rows of the line systems for u_a (p, n, s, right-hand side) and v_a (p, e, w, rhs)
     // (curvilinear grid: the rows of the preconditioner for a, b, the right-hand side in Ra, Rb)
-    slice4 Xp, Xn, Xs, Xr, Yp, Ye, Yw, Yr;
-    void flux(lexer *, fdm2D *, ghostcell *, slice &);
-    void forward(lexer *, fdm2D *, ghostcell *, slice &, slice &, slice &, int);
-    void save(lexer *, fdm2D *);
-
+    slice4 Xp,Xn,Xs,Xr,Yp,Ye,Yw,Yr;
+    void flux(lexer*, fdm2D*, ghostcell*, slice&);
+    void forward(lexer*, fdm2D*, ghostcell*, slice&, slice&, slice&, int);
+    void save(lexer*, fdm2D*);
+    
     // grid-aligned basis vector e1 of cell (i,j) (e2 = e1 turned by 90 deg)
-    void basis(lexer *, int, int, double &, double &);
-
+    void basis(lexer*, int, int, double&, double&);
+    
     // ghost cells of UA, VA: partition and physical boundaries (sflow_momentum_func::vel_bc)
-    std::function<void(lexer *, fdm2D *, ghostcell *)> velbc;
-
+    std::function<void(lexer*, fdm2D*, ghostcell*)> velbc;
+    
     // curvilinear grid: the inversion V = H (u_a + V1'(u_a)) in the grid-aligned components a, b
     // (u_a = a e1 + b e2), per component with the other one lagged as on the Cartesian grid, the
     // own component with all its terms (also the non-orthogonal ones): BiCGStab with the operator
@@ -98,47 +98,47 @@ public:
     //   apply_curv: y = (u_a + V1'(u_a)).e1, .e2 in the wet cells (others y = x); u_a from (xa,xb)
     //   in the cells (all: every cell inside the domain, else the computed cells), UA, VA outside
     //   them from ucart, vcart (in- and outflow ghost values), then velbc
-    void apply_curv(lexer *, fdm2D *, ghostcell *, slice &xa, slice &xb, slice &ya, slice &yb, bool all);
+    void apply_curv(lexer*, fdm2D*, ghostcell*, slice &xa, slice &xb, slice &ya, slice &yb, bool all);
     //   prec_curv: z = M^-1 r, the rows of a (dir 0) along i, of b (dir 1) along j (Thomas, the
     //   computed cells)
-    void prec_curv(lexer *, int dir, slice &r, slice &z);
+    void prec_curv(lexer*, int dir, slice &r, slice &z);
     //   u_a, v_a everywhere from (xa,xb) in the cells as apply_curv, ucart, vcart outside
-    void set_curv(lexer *, fdm2D *, slice &xa, slice &xb, bool all);
-    slice4 Ra, Rb;        // right-hand side V.e1/H, V.e2/H (wet cells)
-    slice4 ucart, vcart;  // u_a, v_a before prepare_curv
-    int last_it = 0;      // iterations of the last solve_curv
-
+    void set_curv(lexer*, fdm2D*, slice &xa, slice &xb, bool all);
+    slice4 Ra,Rb;           // right-hand side V.e1/H, V.e2/H (wet cells)
+    slice4 ucart,vcart;     // u_a, v_a before prepare_curv
+    int last_it = 0;        // iterations of the last solve_curv
+    
 private:
-    void cellterms(lexer *, fdm2D *, ghostcell *);
-    void operators(lexer *, fdm2D *, ghostcell *);
-    void explicitterms(lexer *, fdm2D *, ghostcell *);
-
-    double za(lexer *, fdm2D *, int, int);
-    double ddx(lexer *, slice &);
-    double ddy(lexer *, slice &);
-    double lx(lexer *, fdm2D *, slice &);
-    double ly(lexer *, fdm2D *, slice &);
-
-    void coef_x(lexer *, fdm2D *, double &, double &, double &);
-    void coef_y(lexer *, fdm2D *, double &, double &, double &);
-
+    void cellterms(lexer*, fdm2D*, ghostcell*);
+    void operators(lexer*, fdm2D*, ghostcell*);
+    void explicitterms(lexer*, fdm2D*, ghostcell*);
+    
+    double za(lexer*, fdm2D*, int, int);
+    double ddx(lexer*, slice&);
+    double ddy(lexer*, slice&);
+    double lx(lexer*, fdm2D*, slice&);
+    double ly(lexer*, fdm2D*, slice&);
+    
+    void coef_x(lexer*, fdm2D*, double&, double&, double&);
+    void coef_y(lexer*, fdm2D*, double&, double&, double&);
+    
     // curvilinear grid: compact face operators with the face normals
-    void operators_curv(lexer *, fdm2D *, ghostcell *);
-    void coef_curv(lexer *, fdm2D *, int dir, double *c, double &cC);
-    void prepare_curv(lexer *, fdm2D *, ghostcell *, slice &, slice &, slice &);
-    void solve_curv(lexer *, fdm2D *, ghostcell *);
-    std::vector<slice4 *> kv;  // BiCGStab vectors of solve_curv
-
+    void operators_curv(lexer*, fdm2D*, ghostcell*);
+    void coef_curv(lexer*, fdm2D*, int dir, double *c, double &cC);
+    void prepare_curv(lexer*, fdm2D*, ghostcell*, slice&, slice&, slice&);
+    void solve_curv(lexer*, fdm2D*, ghostcell*);
+    std::vector<slice4*> kv;    // BiCGStab vectors of solve_curv
+    
     const double zeta, breakratio;
     int q;
-
-    slice4 A, B, Ax, Ay, Bx, By;
-    slice4 U4, V4, U1p, V1p, Cx, Cy;
-    slice4 T1, T2, etat;
-    slice4 vy, hvy, ux, hux;
-    slice4 uy, vx, huy, hvx;
-    slice4 mask, io;
-    slice4 ua_n, va_n, f;
+    
+    slice4 A,B,Ax,Ay,Bx,By;
+    slice4 U4,V4,U1p,V1p,Cx,Cy;
+    slice4 T1,T2,etat;
+    slice4 vy,hvy,ux,hux;
+    slice4 uy,vx,huy,hvx;
+    slice4 mask,io;
+    slice4 ua_n,va_n,f;
 };
 
 #endif

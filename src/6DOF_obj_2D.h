@@ -23,8 +23,8 @@ Authors: Hans Bihs, Tobias Martin
 #ifndef SIXDOF_OBJ_2D_H_
 #define SIXDOF_OBJ_2D_H_
 
-#include "6DOF_obj.h"
-#include <functional>
+#include"6DOF_obj.h"
+#include<functional>
 
 //  6DOF body on a horizontal (2D) grid: level set of the waterline section and the pressure
 //  patch of the hull (ship waves, X 400) for SFLOW and the NHFLOW ship-wave mode (X 10 3).
@@ -32,40 +32,42 @@ Authors: Hans Bihs, Tobias Martin
 class sixdof_obj_2D : public sixdof_obj
 {
 public:
-    sixdof_obj_2D(lexer *, ghostcell *, int);
-    virtual ~sixdof_obj_2D();
-
-    void initialize_shipwave(lexer *, ghostcell *, slice &, slice &);
-    void update_position_2D(lexer *, ghostcell *, slice &);
-    double Hsolidface_2D(lexer *, int, int);
-    void updateForcing_box(lexer *, ghostcell *, slice &);
-    void updateForcing_stl(lexer *, ghostcell *, slice &, slice &);
-    void updateForcing_oned(lexer *, ghostcell *, slice &);
-    void update_forcing_sflow(lexer *, ghostcell *, slice &, slice &, slice &, slice &, slice &, slice &, int);
-    void solve_eqmotion_sflow(lexer *, ghostcell *, int, bool);
-    void solve_eqmotion_oneway_sflow(lexer *, ghostcell *, int, bool);
-    slice &amr_fs() { return fs; }
+    
+    sixdof_obj_2D(lexer*, ghostcell*, int);
+	virtual ~sixdof_obj_2D();
+    
+    void initialize_shipwave(lexer*,ghostcell*,slice&,slice&);
+    void update_position_2D(lexer*, ghostcell*,slice&);
+    double Hsolidface_2D(lexer*, int,int);
+    void updateForcing_box(lexer*, ghostcell*, slice&);
+    void updateForcing_stl(lexer*, ghostcell*, slice&, slice&);
+    void updateForcing_oned(lexer*, ghostcell*, slice&);
+    void update_forcing_sflow(lexer*, ghostcell*, slice&, slice&, slice&, slice&, slice&, slice&, int);
+    void solve_eqmotion_sflow(lexer*,ghostcell*,int,bool);
+    void solve_eqmotion_oneway_sflow(lexer*,ghostcell*,int,bool);
+    slice& amr_fs() {return fs;}
     // checkpoints (P 48, I 45): the slices of the body on the grid (level set of the waterline
     // section, draft, pressure patch, their stage values), name with the prefix
-    void ckpt_2D_fields(const char *, const std::function<void(const char *, char, double *)> &, const std::function<void(const char *, char, int *)> &);
+    void ckpt_2D_fields(const char*, const std::function<void(const char*,char,double*)>&, const std::function<void(const char*,char,int*)>&);
 
 protected:
-    void geometry_parameters_2D(lexer *, ghostcell *);
-    void update_trimesh_2D(lexer *, ghostcell *);
-    void ray_cast_2D(lexer *, ghostcell *);
-    void ray_cast_2D_io_x(lexer *, ghostcell *, int, int);
-    void ray_cast_2D_io_ycorr(lexer *, ghostcell *, int, int);
-    void ray_cast_2D_x(lexer *, ghostcell *, int, int);
-    void ray_cast_2D_y(lexer *, ghostcell *, int, int);
-    void ray_cast_2D_z(lexer *, ghostcell *, int, int);
-    void reini_2D(lexer *, ghostcell *, slice &);
-    void ray_cast_2D_curv(lexer *, ghostcell *);  // curvilinear grid (G 50): waterline segments, exact distance
+    
+    void geometry_parameters_2D(lexer*, ghostcell*);
+    void update_trimesh_2D(lexer*, ghostcell*);
+    void ray_cast_2D(lexer*, ghostcell*);
+    void ray_cast_2D_io_x(lexer*, ghostcell*,int,int);
+    void ray_cast_2D_io_ycorr(lexer*, ghostcell*,int,int);
+    void ray_cast_2D_x(lexer*, ghostcell*,int,int);
+    void ray_cast_2D_y(lexer*, ghostcell*,int,int);
+    void ray_cast_2D_z(lexer*, ghostcell*,int,int);
+    void reini_2D(lexer*,ghostcell*,slice&);
+    void ray_cast_2D_curv(lexer*, ghostcell*);   // curvilinear grid (G 50): waterline segments, exact distance
     double curv_dsm = 0.0;
-    void disc_2D(lexer *, ghostcell *, slice &);
-    void time_preproc_2D(lexer *);
-
-    slice4 press, lrk1, lrk2, K, dts, fs, Ls, Bs, Rxmin, Rxmax, Rymin, Rymax, draft;
-    sliceint5 cl, cr, fsio;
+    void disc_2D(lexer*,ghostcell*,slice&);
+    void time_preproc_2D(lexer*);
+    
+    slice4 press,lrk1,lrk2,K,dts,fs,Ls,Bs,Rxmin,Rxmax,Rymin,Rymax,draft;
+    sliceint5 cl,cr,fsio;
 };
 
 #endif

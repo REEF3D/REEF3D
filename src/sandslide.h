@@ -23,7 +23,7 @@ Author: Hans Bihs
 #ifndef SANDSLIDE_H_
 #define SANDSLIDE_H_
 
-#include "sediment_curv.h"
+#include"sediment_curv.h"
 
 class lexer;
 class ghostcell;
@@ -38,22 +38,23 @@ using namespace std;
 //           (volume conserving on non-uniform grids)
 // SLIDE_NB: the neighbour lies inside the global domain (no transfer into physical boundary ghost
 //           cells, where it was lost) and, in 2D (j_dir 0), in the same row
-#define SLIDE_AR(di, dj) ((p->DXN[IP] * p->DYN[JP]) / (p->DXN[IP + (di)] * p->DYN[JP + (dj)]))
+#define SLIDE_AR(di,dj) ((p->DXN[IP]*p->DYN[JP])/(p->DXN[IP+(di)]*p->DYN[JP+(dj)]))
 // curvilinear grid (G 50, the *_curv functions): SLIDE_ARC the area ratio of the geometry layer, SLIDE_D the
 // distance between the centres of the cell and its neighbour (cart: the Cartesian expression), sediment_curv.h
-#define SLIDE_ARC(di, dj) (sediment_curv::aratio(p, i, j, (di), (dj)))
-#define SLIDE_D(di, dj, cart) (p->geo_curv == 1 ? sediment_curv::dist(p, i, j, (di), (dj)) : (cart))
-#define SLIDE_NB(di, dj) (i + p->origin_i + (di) >= 0 && i + p->origin_i + (di) < p->gknox && j + p->origin_j + (dj) >= 0 && j + p->origin_j + (dj) < p->gknoy && ((dj) == 0 || (p->j_dir == 1 && p->gknoy > 1)))
+#define SLIDE_ARC(di,dj) (sediment_curv::aratio(p,i,j,(di),(dj)))
+#define SLIDE_D(di,dj,cart) (p->geo_curv==1 ? sediment_curv::dist(p,i,j,(di),(dj)) : (cart))
+#define SLIDE_NB(di,dj) (i+p->origin_i+(di)>=0 && i+p->origin_i+(di)<p->gknox && j+p->origin_j+(dj)>=0 && j+p->origin_j+(dj)<p->gknoy && ((dj)==0 || (p->j_dir==1 && p->gknoy>1)))
 
 // mesh refinement and multi-block grids (nhflow_amr, sflow_amr): only the cells with amr_donor > 0.5 give
 // material (the cells of the grid; not the cells around it, the ring of a native grid, the covered cells)
-#define SLIDE_DONOR if(amr_donor == nullptr || (*amr_donor)(i, j) > 0.5)
+#define SLIDE_DONOR if(amr_donor==nullptr || (*amr_donor)(i,j)>0.5)
 
-class sandslide
+class sandslide  
 {
 public:
-    virtual ~sandslide() {}
-    virtual void start(lexer *, ghostcell *, sediment_fdm *) = 0;
+
+    virtual ~sandslide(){}
+	virtual void start(lexer*,ghostcell*,sediment_fdm*)=0;
 
     // mesh refinement and multi-block grids: one iteration of start() in steps, run by the driver over all
     // grids in turn, with the exchanges between the grids between the steps (sediment_amr.cpp)
@@ -62,10 +63,10 @@ public:
     //              ghost cells: the driver adds them to the cells they stand for); returns the number of
     //              over-steep cells
     //   amr_apply: slide_fh += fh, bedzh += fh in the sediment cells
-    void amr_begin(lexer *, sediment_fdm *);
-    virtual int amr_sweep(lexer *, ghostcell *, sediment_fdm *) { return 0; }
-    void amr_apply(lexer *, sediment_fdm *);
-    virtual slice *amr_fh() { return nullptr; }  // the transfers of the last sweep (nullptr: no slide)
+    void amr_begin(lexer*,sediment_fdm*);
+    virtual int amr_sweep(lexer*,ghostcell*,sediment_fdm*) { return 0; }
+    void amr_apply(lexer*,sediment_fdm*);
+    virtual slice* amr_fh() { return nullptr; }     // the transfers of the last sweep (nullptr: no slide)
     slice *amr_donor = nullptr;
 };
 

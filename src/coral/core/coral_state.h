@@ -28,143 +28,110 @@ Architect: Hans Bihs
 #ifndef CORAL_STATE_H_
 #define CORAL_STATE_H_
 
-#include "coral/core/coral_types.h"
-#include <complex>
-#include <deque>
-#include <vector>
+#include"coral/core/coral_types.h"
+#include<complex>
+#include<deque>
+#include<vector>
 
-namespace coral {
-struct state_out
+namespace coral
 {
-    std::vector<double> &v;
+    struct state_out
+    {
+        std::vector<double> &v;
 
-    void d(double x) { v.push_back(x); }
-    void i(long x) { v.push_back(double(x)); }
-    void b(bool x) { v.push_back(x ? 1.0 : 0.0); }
-    template<class M>
-    void m(const M &a)
-    {
-        v.push_back(double(a.rows()));
-        v.push_back(double(a.cols()));
-        for(index c = 0; c < a.cols(); ++c)
-            for(index r = 0; r < a.rows(); ++r)
-                v.push_back(double(a(r, c)));
-    }
-    void cx(const Eigen::VectorXcd &a)
-    {
-        v.push_back(double(a.size()));
-        for(index k = 0; k < a.size(); ++k)
+        void d(double x) {v.push_back(x);}
+        void i(long x) {v.push_back(double(x));}
+        void b(bool x) {v.push_back(x ? 1.0 : 0.0);}
+        template<class M>
+        void m(const M &a)
         {
-            v.push_back(a(k).real());
-            v.push_back(a(k).imag());
+            v.push_back(double(a.rows()));
+            v.push_back(double(a.cols()));
+            for(index c=0; c<a.cols(); ++c)
+                for(index r=0; r<a.rows(); ++r)
+                    v.push_back(double(a(r,c)));
         }
-    }
-    void vd(const std::vector<double> &a)
-    {
-        v.push_back(double(a.size()));
-        v.insert(v.end(), a.begin(), a.end());
-    }
-    template<class T, class F>
-    void list(const T &a, F f)
-    {
-        v.push_back(double(a.size()));
-        for(const auto &x : a)
-            f(x);
-    }
-};
-
-struct state_in
-{
-    const std::vector<double> &v;
-    size_t k = 0;
-    bool ok = true;
-
-    bool has(size_t n)
-    {
-        if(k + n > v.size())
-            ok = false;
-        return ok;
-    }
-    double next() { return has(1) ? v[k++] : 0.0; }
-    void d(double &x)
-    {
-        if(has(1))
-            x = v[k++];
-    }
-    void i(int &x)
-    {
-        if(has(1))
-            x = int(v[k++]);
-    }
-    void i(long &x)
-    {
-        if(has(1))
-            x = long(v[k++]);
-    }
-    void i(size_t &x)
-    {
-        if(has(1))
-            x = size_t(v[k++]);
-    }
-    void b(bool &x)
-    {
-        if(has(1))
-            x = v[k++] > 0.5;
-    }
-    template<class M>
-    void m(M &a)
-    {
-        if(!has(2))
-            return;
-        const index r = index(v[k]), c = index(v[k + 1]);
-        k += 2;
-        if(!has(size_t(r * c)))
-            return;
-        a.resize(r, c);
-        for(index cc = 0; cc < c; ++cc)
-            for(index rr = 0; rr < r; ++rr)
-                a(rr, cc) = typename M::Scalar(v[k++]);
-    }
-    void cx(Eigen::VectorXcd &a)
-    {
-        if(!has(1))
-            return;
-        const index n = index(v[k++]);
-        if(!has(size_t(2 * n)))
-            return;
-        a.resize(n);
-        for(index q = 0; q < n; ++q)
+        void cx(const Eigen::VectorXcd &a)
         {
-            a(q) = std::complex<double>(v[k], v[k + 1]);
-            k += 2;
+            v.push_back(double(a.size()));
+            for(index k=0; k<a.size(); ++k)
+            {
+                v.push_back(a(k).real());
+                v.push_back(a(k).imag());
+            }
         }
-    }
-    void vd(std::vector<double> &a)
+        void vd(const std::vector<double> &a) {v.push_back(double(a.size())); v.insert(v.end(), a.begin(), a.end());}
+        template<class T, class F>
+        void list(const T &a, F f) {v.push_back(double(a.size())); for(const auto &x : a) f(x);}
+    };
+
+    struct state_in
     {
-        if(!has(1))
-            return;
-        const size_t n = size_t(v[k++]);
-        if(!has(n))
-            return;
-        a.assign(v.begin() + k, v.begin() + k + n);
-        k += n;
-    }
-    // a list: its size, then f(element) for each (the container resized first)
-    template<class T, class F>
-    void list(T &a, F f)
-    {
-        if(!has(1))
-            return;
-        const size_t n = size_t(v[k++]);
-        a.resize(n);
-        for(auto &x : a)
+        const std::vector<double> &v;
+        size_t k = 0;
+        bool ok = true;
+
+        bool has(size_t n) {if(k + n > v.size()) ok = false; return ok;}
+        double next() {return has(1) ? v[k++] : 0.0;}
+        void d(double &x) {if(has(1)) x = v[k++];}
+        void i(int &x) {if(has(1)) x = int(v[k++]);}
+        void i(long &x) {if(has(1)) x = long(v[k++]);}
+        void i(size_t &x) {if(has(1)) x = size_t(v[k++]);}
+        void b(bool &x) {if(has(1)) x = v[k++] > 0.5;}
+        template<class M>
+        void m(M &a)
         {
-            if(!ok)
+            if(!has(2))
                 return;
-            f(x);
+            const index r = index(v[k]), c = index(v[k+1]);
+            k += 2;
+            if(!has(size_t(r*c)))
+                return;
+            a.resize(r, c);
+            for(index cc=0; cc<c; ++cc)
+                for(index rr=0; rr<r; ++rr)
+                    a(rr,cc) = typename M::Scalar(v[k++]);
         }
-    }
-};
-}  // namespace coral
+        void cx(Eigen::VectorXcd &a)
+        {
+            if(!has(1))
+                return;
+            const index n = index(v[k++]);
+            if(!has(size_t(2*n)))
+                return;
+            a.resize(n);
+            for(index q=0; q<n; ++q)
+            {
+                a(q) = std::complex<double>(v[k], v[k+1]);
+                k += 2;
+            }
+        }
+        void vd(std::vector<double> &a)
+        {
+            if(!has(1))
+                return;
+            const size_t n = size_t(v[k++]);
+            if(!has(n))
+                return;
+            a.assign(v.begin() + k, v.begin() + k + n);
+            k += n;
+        }
+        // a list: its size, then f(element) for each (the container resized first)
+        template<class T, class F>
+        void list(T &a, F f)
+        {
+            if(!has(1))
+                return;
+            const size_t n = size_t(v[k++]);
+            a.resize(n);
+            for(auto &x : a)
+            {
+                if(!ok)
+                    return;
+                f(x);
+            }
+        }
+    };
+}
 
 #endif

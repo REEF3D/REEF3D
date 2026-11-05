@@ -23,20 +23,21 @@ Author: Hans Bihs
 #ifndef SURFTENS_H_
 #define SURFTENS_H_
 
-#include "gradient.h"
+#include"gradient.h"
 
 using namespace std;
 
 class surftens : public gradient
 {
 public:
-    surftens(lexer *);
-    virtual ~surftens();
-    void surface_tension(fdm *, lexer *, field &, int);
+	surftens(lexer*);
+	virtual ~surftens();
+	void surface_tension(fdm*,lexer*,field&,int);
 
 private:
     double epsi;
-    double tension, dirac, curv;
+	double tension,dirac,curv;
+
 };
 #endif
 

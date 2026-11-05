@@ -20,6 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+
 #ifndef NHFLOW_H_
 #define NHFLOW_H_
 
@@ -45,8 +46,12 @@ using namespace std;
 
 class nhflow
 {
-public:
-    virtual void ini(lexer *, fdm_nhf *, ghostcell *, ioflow *, nhflow_fsf *) = 0;
+public:    
+
+    virtual void ini(lexer*, fdm_nhf*, ghostcell*, ioflow*, nhflow_fsf*)=0;
+    
+
+
 };
 
 #endif

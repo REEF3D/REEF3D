@@ -20,13 +20,14 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "coral/hydro/coral_sampled_kinematics.h"
-#include "coral/core/coral_model.h"
-#include "coral/core/coral_state.h"
-#include <algorithm>
-#include <limits>
+#include"coral/hydro/coral_sampled_kinematics.h"
+#include"coral/core/coral_state.h"
+#include"coral/core/coral_model.h"
+#include<algorithm>
+#include<limits>
 
-namespace coral {
+namespace coral
+{
 
 double sampled_kinematics::elevation(double x, double y, double t) const
 {
@@ -89,18 +90,18 @@ int sampled_kinematics::weights(double t, double *w, double *dw) const
     const int ns = (int)lev_.size();
     const int k = std::min(ns, std::max(0, order) + 1);
     const int i0 = ns - k;
-    for(int i = 0; i < k; ++i)
+    for(int i=0; i<k; ++i)
     {
-        const double ti = lev_[i0 + i].t;
+        const double ti = lev_[i0+i].t;
         double l = 1.0, dl = 0.0;
-        for(int j = 0; j < k; ++j)
+        for(int j=0; j<k; ++j)
         {
             if(j == i)
                 continue;
-            const double tj = lev_[i0 + j].t, c = 1.0 / (ti - tj);
+            const double tj = lev_[i0+j].t, c = 1.0/(ti - tj);
             // derivative of the product: d/dt prod (t - tj) c
-            dl = dl * (t - tj) * c + l * c;
-            l *= (t - tj) * c;
+            dl = dl*(t - tj)*c + l*c;
+            l *= (t - tj)*c;
         }
         w[i] = l;
         dw[i] = dl;
@@ -117,8 +118,8 @@ double sampled_kinematics::elevation_at(const void *owner, int index, const Vec3
     const int k = weights(t, w, dw);
     const int i0 = (int)lev_.size() - k;
     double e = 0.0;
-    for(int i = 0; i < k; ++i)
-        e += w[i] * lev_[i0 + i].eta[q];
+    for(int i=0; i<k; ++i)
+        e += w[i]*lev_[i0+i].eta[q];
     return e;
 }
 
@@ -135,15 +136,15 @@ void sampled_kinematics::kinematics_at(const void *owner, int index, const Vec3 
     const int i0 = (int)lev_.size() - k;
     u.setZero();
     du.setZero();
-    for(int i = 0; i < k; ++i)
+    for(int i=0; i<k; ++i)
     {
-        u += w[i] * lev_[i0 + i].u[q];
-        du += dw[i] * lev_[i0 + i].u[q];
+        u += w[i]*lev_[i0+i].u[q];
+        du += dw[i]*lev_[i0+i].u[q];
     }
     p_rho = 0.0;
 }
 
-double sampled_kinematics::bed_at(const void *owner, int index, const Vec3 &) const
+double sampled_kinematics::bed_at(const void *owner, int index, const Vec3&) const
 {
     const int q = find(owner, index);
     if(q < 0 || lev_.empty() || lev_.back().bed.empty())
@@ -156,12 +157,13 @@ void sampled_kinematics::save_state(std::vector<double> &v) const
     state_out o{v};
     o.i(n_);
     o.list(lev_, [&](const level &l)
-           {
+    {
         o.d(l.t);
         o.list(l.u, [&](const Vec3 &x){o.m(x);});
         o.vd(l.eta);
         o.list(l.in, [&](int x){o.i(x);});
-        o.vd(l.bed); });
+        o.vd(l.bed);
+    });
 }
 
 bool sampled_kinematics::load_state(const std::vector<double> &v, size_t &k)
@@ -169,14 +171,15 @@ bool sampled_kinematics::load_state(const std::vector<double> &v, size_t &k)
     state_in in{v, k};
     in.i(n_);
     in.list(lev_, [&](level &l)
-            {
+    {
         in.d(l.t);
         in.list(l.u, [&](Vec3 &x){in.m(x);});
         in.vd(l.eta);
         in.list(l.in, [&](int &x){in.i(x);});
-        in.vd(l.bed); });
+        in.vd(l.bed);
+    });
     k = in.k;
     return in.ok;
 }
 
-}  // namespace coral
+}

@@ -23,11 +23,11 @@ Author: Hans Bihs
 #ifndef OUTFLOW_PRESSURE_H_
 #define OUTFLOW_PRESSURE_H_
 
-#include "fdm.h"
-#include "heaviside.h"
-#include "increment.h"
-#include "lexer.h"
-#include <cmath>
+#include<cmath>
+#include"lexer.h"
+#include"fdm.h"
+#include"heaviside.h"
+#include"increment.h"
 
 // pressure in the outflow ghost cells of the boundary cell (i,j,k), B 77
 // (one definition for the ghost cells of ioflow_f / iowave / ioflow_v and the Poisson rows)
@@ -42,21 +42,21 @@ inline double outflow_pressure(lexer *p, fdm *a, int i, int j, int k)
 {
     const int marge = increment::marge;
 
-    if(p->B77 == 1 && (p->F50 == 2 || p->F50 == 3) && !(p->B90 > 0 && (p->B99 == 1 || p->B99 == 2)))
+    if(p->B77==1 && (p->F50==2 || p->F50==3) && !(p->B90>0 && (p->B99==1 || p->B99==2)))
     {
-        double z = (p->G502 == 1) ? p->ZSP[IJK] : p->ZP[KP];
+    double z = (p->G502==1) ? p->ZSP[IJK] : p->ZP[KP];
 
-        return (p->fsfout - z) * a->ro(i, j, k) * fabs(p->W22);
+    return (p->fsfout - z)*a->ro(i,j,k)*fabs(p->W22);
     }
 
-    if(p->B77 == 10)
+    if(p->B77==10)
     {
-        double eps = 0.6 * (1.0 / 3.0) * (p->DXN[IP] + p->DYN[JP] + p->DZN[KP]);
+    double eps = 0.6*(1.0/3.0)*(p->DXN[IP] + p->DYN[JP] + p->DZN[KP]);
 
-        return (1.0 - heaviside(a->phi(i, j, k), eps)) * a->press(i, j, k);
+    return (1.0-heaviside(a->phi(i,j,k),eps))*a->press(i,j,k);
     }
 
-    return a->press(i, j, k);
+    return a->press(i,j,k);
 }
 
 #endif

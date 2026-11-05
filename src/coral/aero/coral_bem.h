@@ -48,72 +48,73 @@ Architect: Hans Bihs
 #ifndef CORAL_BEM_H_
 #define CORAL_BEM_H_
 
-#include "coral/aero/coral_airfoil.h"
-#include <string>
-#include <vector>
+#include"coral/aero/coral_airfoil.h"
+#include<string>
+#include<vector>
 
-namespace coral {
-struct bem_options
+namespace coral
 {
-    bool induction = true;
-    bool tip_loss = true, hub_loss = true;
-    bool tangential = true;         // a'
-    bool drag_in_induction = true;  // cd in cn and ct of the momentum balance (AeroDyn's AIDrag, TIDrag)
-    bool buhl = true;               // Buhl's high-induction correction, else the momentum relation a = k/(1 + k) for all k
-    double tol = 1.0e-10;           // on phi
-};
+    struct bem_options
+    {
+        bool induction = true;
+        bool tip_loss = true, hub_loss = true;
+        bool tangential = true;        // a'
+        bool drag_in_induction = true; // cd in cn and ct of the momentum balance (AeroDyn's AIDrag, TIDrag)
+        bool buhl = true;              // Buhl's high-induction correction, else the momentum relation a = k/(1 + k) for all k
+        double tol = 1.0e-10;          // on phi
+    };
 
-struct bem_element
-{
-    double r = 0.0, chord = 0.0, theta = 0.0;  // radius, chord, twist + pitch [rad]
-    double R = 1.0, R_hub = 0.0;               // tip and hub radius
-    int B = 3;
-    const airfoil *af = nullptr;
-    double re = 0.0;  // Reynolds number for the table blending (0: first table)
-};
+    struct bem_element
+    {
+        double r = 0.0, chord = 0.0, theta = 0.0;   // radius, chord, twist + pitch [rad]
+        double R = 1.0, R_hub = 0.0;                // tip and hub radius
+        int B = 3;
+        const airfoil *af = nullptr;
+        double re = 0.0;                             // Reynolds number for the table blending (0: first table)
+    };
 
-struct bem_result
-{
-    double phi = 0.0, alpha = 0.0, a = 0.0, ap = 0.0, F = 1.0, W = 0.0;
-    double cl = 0.0, cd = 0.0, cm = 0.0, cn = 0.0, ct = 0.0;
-    double fn = 0.0, ft = 0.0, mz = 0.0;  // per unit span
-    int region = 0;                       // 0 no induction, 1 windmill (0, pi/2], 2 propeller brake, 3 (pi/2, pi)
-    bool converged = true;
-};
+    struct bem_result
+    {
+        double phi = 0.0, alpha = 0.0, a = 0.0, ap = 0.0, F = 1.0, W = 0.0;
+        double cl = 0.0, cd = 0.0, cm = 0.0, cn = 0.0, ct = 0.0;
+        double fn = 0.0, ft = 0.0, mz = 0.0;         // per unit span
+        int region = 0;     // 0 no induction, 1 windmill (0, pi/2], 2 propeller brake, 3 (pi/2, pi)
+        bool converged = true;
+    };
 
-bem_result bem_solve(const bem_element &, double Vx, double Vy, double rho, const bem_options & = bem_options(), double skew = 0.0);
-// the residual of Ning's method at phi (tests)
-double bem_residual(const bem_element &, double Vx, double Vy, double phi, const bem_options &, double *a = nullptr, double *ap = nullptr);
+    bem_result bem_solve(const bem_element&, double Vx, double Vy, double rho, const bem_options& = bem_options(), double skew=0.0);
+    // the residual of Ning's method at phi (tests)
+    double bem_residual(const bem_element&, double Vx, double Vy, double phi, const bem_options&, double *a=nullptr, double *ap=nullptr);
 
-struct blade_station
-{
-    double r = 0.0;  // radius from the rotor axis
-    double chord = 0.0;
-    double twist = 0.0;  // rad
-    int airfoil = 0;     // index into rotor_def::airfoils
-};
+    struct blade_station
+    {
+        double r = 0.0;          // radius from the rotor axis
+        double chord = 0.0;
+        double twist = 0.0;      // rad
+        int airfoil = 0;         // index into rotor_def::airfoils
+    };
 
-struct rotor_def
-{
-    int B = 3;
-    double R_hub = 0.0, R_tip = 1.0;
-    std::vector<blade_station> stations;  // increasing r
-    std::vector<airfoil> airfoils;
-};
+    struct rotor_def
+    {
+        int B = 3;
+        double R_hub = 0.0, R_tip = 1.0;
+        std::vector<blade_station> stations;     // increasing r
+        std::vector<airfoil> airfoils;
+    };
 
-struct rotor_result
-{
-    double T = 0.0, Q = 0.0, P = 0.0;  // thrust, torque, power
-    double Cp = 0.0, Ct = 0.0, lambda = 0.0;
-    std::vector<bem_result> el;
-};
+    struct rotor_result
+    {
+        double T = 0.0, Q = 0.0, P = 0.0;        // thrust, torque, power
+        double Cp = 0.0, Ct = 0.0, lambda = 0.0;
+        std::vector<bem_result> el;
+    };
 
-// AeroDyn 15 blade file: NumBlNds rows BlSpn BlCrvAC BlSwpAC BlCrvAng BlTwist BlChord BlAFID [...]; the stations at
-// r = R_hub + BlSpn (the span from the blade root), twist in rad, airfoil = BlAFID - 1 (the order of AeroDyn's AFNames)
-bool read_aerodyn_blade(const std::string &file, double R_hub, std::vector<blade_station> &, std::string &msg);
-bool read_aerodyn_blade_string(const std::string &text, double R_hub, std::vector<blade_station> &, std::string &msg);
+    // AeroDyn 15 blade file: NumBlNds rows BlSpn BlCrvAC BlSwpAC BlCrvAng BlTwist BlChord BlAFID [...]; the stations at
+    // r = R_hub + BlSpn (the span from the blade root), twist in rad, airfoil = BlAFID - 1 (the order of AeroDyn's AFNames)
+    bool read_aerodyn_blade(const std::string &file, double R_hub, std::vector<blade_station>&, std::string &msg);
+    bool read_aerodyn_blade_string(const std::string &text, double R_hub, std::vector<blade_station>&, std::string &msg);
 
-rotor_result rotor_steady(const rotor_def &, double U, double Omega, double pitch, double rho, const bem_options & = bem_options());
-}  // namespace coral
+    rotor_result rotor_steady(const rotor_def&, double U, double Omega, double pitch, double rho, const bem_options& = bem_options());
+}
 
 #endif

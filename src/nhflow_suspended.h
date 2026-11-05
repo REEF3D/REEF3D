@@ -37,18 +37,19 @@ using namespace std;
 class nhflow_suspended
 {
 public:
-    virtual ~nhflow_suspended() {}
-    virtual void start(lexer *, fdm_nhf *, ghostcell *, nhflow_scalar_convection *, nhflow_diffusion *, solver *, ioflow *, sediment_fdm *) = 0;
-    virtual void ctimesave(lexer *, fdm_nhf *) = 0;
+
+    virtual ~nhflow_suspended(){}
+	virtual void start(lexer*, fdm_nhf*, ghostcell*, nhflow_scalar_convection*, nhflow_diffusion*, solver*, ioflow*, sediment_fdm*)=0;
+    virtual void ctimesave(lexer*, fdm_nhf*)=0;
 
     // checkpoints (P 48, I 45): the depth of the stored concentration (slice layout) and its flag
-    virtual double *ckpt_wln() { return nullptr; }
-    virtual int *ckpt_wlini() { return nullptr; }
-
+    virtual double* ckpt_wln() {return nullptr;}
+    virtual int* ckpt_wlini() {return nullptr;}
+    
     // the exchange with the bed of the flow steps since the last bed update (S 62 1): with more than one flow step
     // its mean rate goes to the Exner equation (s->edrate), bed_done resets it after the bed update
-    virtual void bed_rate(lexer *, ghostcell *, sediment_fdm *) {}
-    virtual void bed_done(lexer *, sediment_fdm *) {}
+    virtual void bed_rate(lexer*, ghostcell*, sediment_fdm*) {}
+    virtual void bed_done(lexer*, sediment_fdm*) {}
 };
 
 #endif

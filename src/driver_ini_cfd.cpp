@@ -19,232 +19,232 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-#include "6DOF_cfd.h"
-#include "6DOF_header.h"
-#include "6DOF_obj.h"
-#include "FSI_header.h"
-#include "benchmark_header.h"
-#include "concentration_header.h"
-#include "convection_header.h"
-#include "driver.h"
-#include "fdm.h"
-#include "fdm_header.h"
-#include "field_header.h"
-#include "freesurface_header.h"
-#include "ghostcell.h"
-#include "heat_header.h"
-#include "lexer.h"
-#include "momentum_header.h"
-#include "pressure_header.h"
-#include "sediment_header.h"
-#include "solver_header.h"
-#include "turbulence_header.h"
-#include "waves_header.h"
-#include <sys/stat.h>
-#include <sys/types.h>
+#include"driver.h"
+#include"ghostcell.h"
+#include"lexer.h"
+#include"fdm.h"
+#include"freesurface_header.h"
+#include"turbulence_header.h"
+#include"momentum_header.h"
+#include"pressure_header.h"
+#include"fdm_header.h"
+#include"sediment_header.h"
+#include"convection_header.h"
+#include"solver_header.h"
+#include"field_header.h"
+#include"heat_header.h"
+#include"concentration_header.h"
+#include"benchmark_header.h"
+#include"6DOF_header.h"
+#include"FSI_header.h"
+#include"waves_header.h"
+#include"6DOF_cfd.h"
+#include"6DOF_obj.h"
+#include<sys/stat.h>
+#include<sys/types.h>
 
 void driver::driver_ini_cfd()
 {
+    
+    p->count=0;
 
-    p->count = 0;
+    p->cellnumtot=pgc->globalisum(p->cellnum);
+    p->pointnumtot=pgc->globalisum(p->pointnum);
 
-    p->cellnumtot = pgc->globalisum(p->cellnum);
-    p->pointnumtot = pgc->globalisum(p->pointnum);
+    if(p->mpirank==0)
+    cout<<"number of cells: "<<p->cellnumtot<<endl;
 
-    if(p->mpirank == 0)
-        cout << "number of cells: " << p->cellnumtot << endl;
+        log_ini();
 
-    log_ini();
-
-    if(p->mpirank == 0)
-        cout << "starting driver_ini" << endl;
-
+    if(p->mpirank==0)
+    cout<<"starting driver_ini"<<endl;
+    
     // 6DOF_df and FSI
     // with the mesh refinement the hull triangles (X 185) are sized for the finest level
     // (sixdof_obj::amr_hfac, as nhflow_amr), before the initialisation builds them: sized for
     // level 0 a propeller of D = 6 level-0 cells came out as 186 triangles on the patches.  The CFD
     // patches are refined in the vertical as well (amr_vfac): sized for the level-0 dz the walls
     // of a box had half the triangles of the uniform grid of the finest cells
-    if(p->X10 == 1 && p->G1 > 0)
-        if(sixdof_cfd *b6 = dynamic_cast<sixdof_cfd *>(p6dof))
-            for(int nb = 0; nb < b6->objects(); ++nb)
-            {
-                b6->object(nb)->amr_hfac = 1.0 / double(1 << MAX(p->G1, 0));
-                b6->object(nb)->amr_vfac = b6->object(nb)->amr_hfac;
-            }
-
+    if(p->X10==1 && p->G1>0)
+    if(sixdof_cfd *b6 = dynamic_cast<sixdof_cfd*>(p6dof))
+    for(int nb=0; nb<b6->objects(); ++nb)
+    {
+    b6->object(nb)->amr_hfac = 1.0/double(1<<MAX(p->G1,0));
+    b6->object(nb)->amr_vfac = b6->object(nb)->amr_hfac;
+    }
+    
     p6dof->initialize(p, a, pgc);
-
-    if(p->mpirank == 0)
-        if(p->X10 == 1 || p->Z10 > 0)
-            cout << "driver FSI initialize" << endl;
-
-    if(p->Z10 > 0)
-        pfsi->initialize(p, a, pgc, pturb);
-
-    // Solid
-    if(p->solidread == 1)
+     
+    if(p->mpirank==0)
+    if(p->X10==1 || p->Z10>0)
+    cout<<"driver FSI initialize"<<endl;
+    
+    if(p->Z10>0)
+    pfsi->initialize(p,a,pgc,pturb);
+    
+	// Solid
+    if(p->solidread==1)
     {
-        solid solid_object(p, a, pgc);
-        solid_object.start(p, a, pgc, pflow, pconvec, preso);
+    solid solid_object(p,a,pgc);
+    solid_object.start(p,a,pgc,pflow,pconvec,preso);
     }
-
+    
     // VRANS ini
-    pvrans->initialize_cfd(p, a, pgc);
-
+    pvrans->initialize_cfd(p,a,pgc);
+    
     // Geotopo
-    if(p->toporead > 0)
+    if(p->toporead>0)
     {
-        geotopo gtopo(p, a, pgc);
-        gtopo.start(p, a, pgc, pflow, preto, pvrans);
+    geotopo gtopo(p,a,pgc);
+    gtopo.start(p,a,pgc,pflow,preto,pvrans);
     }
-
+    
     SLICELOOP4
-    a->bed(i, j) = p->bed[IJ];
-
+	a->bed(i,j) = p->bed[IJ];
+    
     // Solid Forcing
-    if(p->mpirank == 0)
-        cout << "driver solid forcing initialize" << endl;
-
-    pgc->solid_forcing_ini(p, a);
-
+    if(p->mpirank==0)
+    cout<<"driver solid forcing initialize"<<endl;
+    
+    pgc->solid_forcing_ini(p,a);
+    
     // Sediment
-    if(p->S10 > 0)
+	if(p->S10>0)
     {
-        if(p->Q10 >= 1)
+        if(p->Q10>=1)
         {
-            psed->ini_cfd(p, a, pgc);
-            psed->update_cfd(p, a, pgc, pflow, preto);
+            psed->ini_cfd(p,a,pgc);
+            psed->update_cfd(p,a,pgc,pflow,preto);
         }
         else
         {
-            psed->ini_cfd(p, a, pgc);
-            for(int qn = 0; qn < 5; ++qn)
-                psed->relax(p, pgc);
-            preto->start(p, a, pgc, a->topo);
-            psed->update_cfd(p, a, pgc, pflow, preto);
-            pgc->start4a(p, a->topo, 150);
+            psed->ini_cfd(p,a,pgc);
+            for(int qn=0;qn<5;++qn)
+                psed->relax(p,pgc);
+            preto->start(p,a,pgc,a->topo);
+            psed->update_cfd(p,a,pgc,pflow,preto);
+            pgc->start4a(p,a->topo,150);
         }
-
+    
         // Solid Forcing
 
-        if(p->mpirank == 0)
-            cout << "driver solid forcing initialize" << endl;
+        if(p->mpirank==0)
+        cout<<"driver solid forcing initialize"<<endl;
+        
+        pgc->solid_forcing_ini(p,a);
 
-        pgc->solid_forcing_ini(p, a);
-
+        
         SLICEBASELOOP
-        p->wet[IJ] = 1;
-
-        pgc->gcsl_start4Vint(p, p->wet, 50);
+        p->wet[IJ]=1;
+        
+        pgc->gcsl_start4Vint(p,p->wet,50);
     }
-
+    
     // patchBC ini
-    pBC->patchBC_ini(p, pgc);
-    // ioflow ini --------------------------------------------------------------
-    pflow->ini(p, a, pgc);
+    pBC->patchBC_ini(p,pgc);
+    //ioflow ini --------------------------------------------------------------
+    pflow->ini(p,a,pgc);
+    
+	starttime=pgc->timer();
+    if(p->B60>0 || p->T36==2)
+	pgc->walldistance(p,a,pconvec,preini,pflow,a->walld);
+	
+	pflow->inflow_walldist(p,a,pgc,pconvec,preini,pflow);
+	
+	double walltime=pgc->timer()-starttime;
+	
+	if(p->mpirank==0 && (p->count%p->P12==0))
+	cout<<"Walldist time: "<<setprecision(4)<<walltime<<endl;
+	
+	pdata->start(p,a,pgc);
+    
 
-    starttime = pgc->timer();
-    if(p->B60 > 0 || p->T36 == 2)
-        pgc->walldistance(p, a, pconvec, preini, pflow, a->walld);
+    pheat->heat_ini(p,a,pgc,pheat);
+    pmp->ini(p,a,pgc,pflow,pconvec,psolv);
+	pconc->ini(p,a,pgc,pconc);
 
-    pflow->inflow_walldist(p, a, pgc, pconvec, preini, pflow);
-
-    double walltime = pgc->timer() - starttime;
-
-    if(p->mpirank == 0 && (p->count % p->P12 == 0))
-        cout << "Walldist time: " << setprecision(4) << walltime << endl;
-
-    pdata->start(p, a, pgc);
-
-    pheat->heat_ini(p, a, pgc, pheat);
-    pmp->ini(p, a, pgc, pflow, pconvec, psolv);
-    pconc->ini(p, a, pgc, pconc);
-
-    ptstep->ini(a, p, pgc);
-    pini->iniphi_io(a, p, pgc);
-    pflow->gcio_update(p, a, pgc);
-    pflow->pressure_io(p, a, pgc);
-    if(p->F80 > 0)
+    ptstep->ini(a,p,pgc);
+    pini->iniphi_io(a,p,pgc);
+	pflow->gcio_update(p,a,pgc);
+	pflow->pressure_io(p,a,pgc);
+    if (p->F80>0)
     {
-        pflow->vof_relax(p, a, pgc, a->vof);
+        pflow->vof_relax(p,a,pgc,a->vof);
     }
-    else if(p->F30 > 0 || p->F40 > 0)
+    else if(p->F30>0 || p->F40>0)
     {
-        pini->inipsi(p, a, pgc);
-        for(int qn = 0; qn < 20; ++qn)
-            pflow->phi_relax(p, pgc, a->phi);
-        preini->start(a, p, a->phi, pgc, pflow);
-        pfsf->update(p, a, pgc, a->phi);
-        pini->iniphi_surfarea(p, a, pgc);
-    }
-
-    pini->iniphi_io(a, p, pgc);
-    pflow->discharge(p, a, pgc);
-    pflow->inflow(p, a, pgc, a->u, a->v, a->w);
-    potflow->start(p, a, ppoissonsolv, pgc);
-    pflow->wavegen_precalc(p, pgc);
-
-    if(p->I12 >= 1)
-        pini->hydrostatic(p, a, pgc);
-
-    if(p->X10 == 0)
-        ptstep->start(a, p, pgc, pturb);
-
-    if(p->I13 == 1)
-        pturb->ini(p, a, pgc);
-
-    if(p->I58_2 > 0.0)
-        pini->droplet_ini(p, a, pgc);
-
-    pflow->pressure_io(p, a, pgc);
-
-    ppress->ini(p, a, pgc);
-
-    pgc->start1(p, a->u, 10);
-    pgc->start2(p, a->v, 11);
-    pgc->start3(p, a->w, 12);
-
-    pgc->start4(p, a->press, 40);
-
-    if(p->I40 == 1)
-    {
-        pini->stateini(p, a, pgc, pturb, psed);
-
-        pgc->start4(p, a->press, 40);
-        ppress->ini(p, a, pgc);
-
-        pgc->start1(p, a->u, 10);
-        pgc->start2(p, a->v, 11);
-        pgc->start3(p, a->w, 12);
-        if(p->X10 == 0)
-            ptstep->start(a, p, pgc, pturb);
-
-        p->dt *= 0.1;
-
-        if(p->S10 == 1 || (p->Q10 >= 1 && p->S10 == 2))
-            psed->ini_cfd(p, a, pgc);
+        pini->inipsi(p,a,pgc);
+        for(int qn=0;qn<20;++qn)
+        pflow->phi_relax(p,pgc,a->phi);
+        preini->start(a,p, a->phi, pgc, pflow);
+        pfsf->update(p,a,pgc,a->phi);        
+        pini->iniphi_surfarea(p,a,pgc);
     }
 
-    pgc->start4(p, a->press, 40);
+	pini->iniphi_io(a,p,pgc);
+	pflow->discharge(p,a,pgc);
+	pflow->inflow(p,a,pgc,a->u,a->v,a->w);
+	potflow->start(p,a,ppoissonsolv,pgc);
+    pflow->wavegen_precalc(p,pgc);
+    
+	if(p->I12>=1)
+	pini->hydrostatic(p,a,pgc);
+    
+    if(p->X10==0)
+    ptstep->start(a,p,pgc,pturb);
+    
+    if(p->I13==1)
+    pturb->ini(p,a,pgc);
+	
+    if(p->I58_2>0.0)
+	pini->droplet_ini(p,a,pgc);
 
+	pflow->pressure_io(p,a,pgc);
+    
+    ppress->ini(p,a,pgc);
+    
+	pgc->start1(p,a->u,10);
+	pgc->start2(p,a->v,11);
+	pgc->start3(p,a->w,12);
+
+    pgc->start4(p,a->press,40);
+
+	if(p->I40==1)
+    {
+	pini->stateini(p,a,pgc,pturb,psed);
+
+    pgc->start4(p,a->press,40);
+    ppress->ini(p,a,pgc);
+
+    pgc->start1(p,a->u,10);
+    pgc->start2(p,a->v,11);
+    pgc->start3(p,a->w,12);
+    if(p->X10==0)
+    ptstep->start(a,p,pgc,pturb);
+
+    p->dt *= 0.1;
+    
+    if(p->S10==1||(p->Q10>=1 && p->S10==2))
+    psed->ini_cfd(p,a,pgc);
+    }
+
+	pgc->start4(p,a->press,40);
+    
     // the first output (not on a restart, I 45 1: the checkpoint is a state already printed)
-    if(p->I45 != 1)
-        pprint->start(p, a, pgc, pturb, pheat, pflow, pdata, pconc, pmp, psed);
+    if(p->I45!=1)
+    pprint->start(p,a,pgc,pturb,pheat,pflow,pdata,pconc,pmp,psed);
 
-    pprint->start(p, a, pgc, pturb, pheat, pflow, pdata, pconc, pmp, psed);
-
-    // ini variables
-    for(int qn = 0; qn < 2; ++qn)
+// ini variables
+    for(int qn=0; qn<2; ++qn)
     {
-        pturb->ktimesave(p, a, pgc);
-        pturb->etimesave(p, a, pgc);
+    pturb->ktimesave(p,a,pgc);
+    pturb->etimesave(p,a,pgc);
     }
 
-    p->gctime = 0.0;
-    p->xtime = 0.0;
-    p->reinitime = 0.0;
-    p->wavecalctime = 0.0;
-    p->field4time = 0.0;
+    p->gctime=0.0;
+    p->xtime=0.0;
+	p->reinitime=0.0;
+	p->wavecalctime=0.0;
+	p->field4time=0.0;
 }
 

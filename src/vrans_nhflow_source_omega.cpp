@@ -20,35 +20,35 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "fdm_nhf.h"
-#include "ghostcell.h"
-#include "lexer.h"
-#include "vrans_nhflow_f.h"
+#include"vrans_nhflow_f.h"
+#include"lexer.h"
+#include"fdm_nhf.h"
+#include"ghostcell.h"
 
 // k-omega, omega-equation: + beta omega_inf^2 (no factor n: with the k-source n eps_inf this gives k = n k_inf, omega = omega_inf, same as k-eps),  omega_inf = eps_inf/(cmu k_inf)
 // (balances the beta omega^2 sink at omega = omega_inf)
 void vrans_nhflow_f::omega_source(lexer *p, fdm_nhf *d, double *KIN, double *EPS, double beta)
 {
-    double kinf, einf, winf;
-
-    count = 0;
-    if(p->B295 == 1)
-        LOOP
+    double kinf,einf,winf;
+    
+    count=0;
+    if(p->B295==1)
+    LOOP
+    {
+        porous_coeff(p,d);
+        
+        if(H>1.0e-12)
         {
-            porous_coeff(p, d);
-
-            if(H > 1.0e-12)
-            {
-                turb_inf(p, d, kinf, einf);
-
-                if(kinf > 1.0e-20)
-                {
-                    winf = einf / (p->cmu * kinf);
-
-                    d->rhsvec.V[count] += beta * winf * winf;
-                }
-            }
-
-            ++count;
+        turb_inf(p,d,kinf,einf);
+        
+        if(kinf>1.0e-20)
+        {
+        winf = einf/(p->cmu*kinf);
+        
+        d->rhsvec.V[count] += beta*winf*winf;
         }
+        }
+        
+    ++count;
+    }
 }

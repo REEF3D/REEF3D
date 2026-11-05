@@ -20,22 +20,22 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "fdm_seastate.h"
-#include "ghostcell.h"
-#include "lexer.h"
-#include "seastate_f.h"
-#include "seastate_grid.h"
-#include "seastate_implicit.h"
-#include "seastate_param.h"
-#include "seastate_store.h"
-#include "wave_lib_spectrum.h"
-#include <algorithm>
-#include <cmath>
-#include <functional>
-#include <iomanip>
-#include <iostream>
-#include <string>
-#include <vector>
+#include"seastate_f.h"
+#include"seastate_implicit.h"
+#include"fdm_seastate.h"
+#include"seastate_grid.h"
+#include"seastate_store.h"
+#include"seastate_param.h"
+#include"wave_lib_spectrum.h"
+#include"lexer.h"
+#include"ghostcell.h"
+#include<algorithm>
+#include<functional>
+#include<cmath>
+#include<iostream>
+#include<iomanip>
+#include<string>
+#include<vector>
 
 /*--------------------------------------------------------------------
 Parametric initial spectrum, A 710 1, from the wave keys of REEF3D's
@@ -63,21 +63,21 @@ spreading conserves the energy of S exactly.
 void seastate_f::initial_parametric(lexer *p, ghostcell *pgc)
 {
     std::vector<float> N;
-    parametric_spectrum(p, pgc, *e->grid, N, "A 710 1");
+    parametric_spectrum(p,pgc,*e->grid,N,"A 710 1");
 
     // the rows shared out to the threads (A 798, Phase 13): they touch the pages of the spectra first
-    const int nt = std::max(1, std::min(p->A798, p->knox + 2 * p->margin));
+    const int nt = std::max(1,std::min(p->A798,p->knox+2*p->margin));
     const std::function<void(int)> job = [&](int t)
     {
-        for(int ii = -p->margin + t; ii < p->knox + p->margin; ii += nt)
-            for(int jj = -p->margin; jj < p->knoy + p->margin; ++jj)
-                if(e->wet(ii, jj) == 1)
-                {
-                    float *s = e->N->spec(ii, jj);
-                    std::copy(N.begin(), N.end(), s);
-                }
+        for(int ii=-p->margin+t; ii<p->knox+p->margin; ii+=nt)
+        for(int jj=-p->margin; jj<p->knoy+p->margin; ++jj)
+        if(e->wet(ii,jj)==1)
+        {
+        float *s = e->N->spec(ii,jj);
+        std::copy(N.begin(),N.end(),s);
+        }
     };
-    seastate_implicit::run_threads(nt, job);
+    seastate_implicit::run_threads(nt,job);
 }
 
 void seastate_f::parametric_spectrum(lexer *p, ghostcell *pgc, const seastate_grid &g, std::vector<float> &N, const char *key)
@@ -85,124 +85,121 @@ void seastate_f::parametric_spectrum(lexer *p, ghostcell *pgc, const seastate_gr
     const double pi = 3.14159265358979323846;
     std::string msg;
 
-    if(!(p->B93_1 > 0.0) || !(p->B93_2 > 0.0))
-        msg = std::string(key) + " needs B 93 (Hs, Tp)";
-    else if(p->B85 != 1 && p->B85 != 2 && p->B85 != 3)
-        msg = std::string(key) + ": B 85 must be 1 (PM), 2 (JONSWAP) or 3 (Torsethaugen)";
-    else if(p->B130 != 0 && p->B130 != 1 && p->B130 != 2)
-        msg = std::string(key) + ": B 130 must be 0, 1 or 2";
+    if(!(p->B93_1>0.0) || !(p->B93_2>0.0))
+    msg = std::string(key) + " needs B 93 (Hs, Tp)";
+    else if(p->B85!=1 && p->B85!=2 && p->B85!=3)
+    msg = std::string(key) + ": B 85 must be 1 (PM), 2 (JONSWAP) or 3 (Torsethaugen)";
+    else if(p->B130!=0 && p->B130!=1 && p->B130!=2)
+    msg = std::string(key) + ": B 130 must be 0, 1 or 2";
 
     if(!msg.empty())
     {
-        if(p->mpirank == 0)
-            cout << endl
-                 << "SEASTATE input error  --  " << msg << endl
-                 << endl;
+        if(p->mpirank==0)
+        cout<<endl<<"SEASTATE input error  --  "<<msg<<endl<<endl;
 
         pgc->final(true);
     }
 
     p->wHs = p->B93_1;
     p->wTp = p->B93_2;
-    p->wwp = 2.0 * pi / p->wTp;
+    p->wwp = 2.0*pi/p->wTp;
 
     wave_lib_spectrum spec;
 
-    const double main = p->B131 * pi / 180.0;
+    const double main = p->B131*pi/180.0;
 
     // nearest direction bin of the main direction
-    double mw = std::fmod(main, 2.0 * pi);
-    if(mw < 0.0)
-        mw += 2.0 * pi;
+    double mw = std::fmod(main,2.0*pi);
+    if(mw<0.0)
+    mw += 2.0*pi;
     const int mmain = g.direction_bin(mw);
 
-    N.assign(g.nbin, 0.0f);
+    N.assign(g.nbin,0.0f);
     std::vector<double> D(g.ndir);
 
-    for(int l = 0; l < g.nsig; ++l)
+    for(int l=0; l<g.nsig; ++l)
     {
-        const double S = spec.wave_spectrum(p, g.sig[l]);
-        double sum = 0.0;
+    const double S = spec.wave_spectrum(p,g.sig[l]);
+    double sum = 0.0;
 
-        if(p->B130 > 0)
+        if(p->B130>0)
         {
-            // spreading_function works with B 131 in radians
-            const double b131 = p->B131;
-            p->B131 = main;
+        // spreading_function works with B 131 in radians
+        const double b131 = p->B131;
+        p->B131 = main;
 
-            for(int m = 0; m < g.ndir; ++m)
+            for(int m=0; m<g.ndir; ++m)
             {
-                double beta = g.theta[m];
+            double beta = g.theta[m];
 
-                while(beta - main > pi)
-                    beta -= 2.0 * pi;
+            while(beta-main>pi)
+            beta -= 2.0*pi;
 
-                while(beta - main < -pi)
-                    beta += 2.0 * pi;
+            while(beta-main<-pi)
+            beta += 2.0*pi;
 
-                D[m] = spec.spreading_function(p, beta, g.sig[l]);
+            D[m] = spec.spreading_function(p,beta,g.sig[l]);
 
-                if(!(D[m] > 0.0))
-                    D[m] = 0.0;
+            if(!(D[m]>0.0))
+            D[m] = 0.0;
 
-                sum += D[m] * g.dth[m];
+            sum += D[m]*g.dth[m];
             }
 
             // compact computational sector (A 717, Phase 12): normalised over the full circle as well, the
             // directions beyond the sector (theta0 + m dtheta, m >= ndir) added
             if(g.compact)
             {
-                const int nfull = int(std::lround(2.0 * pi / g.dtheta));
-                for(int m = g.ndir; m < nfull; ++m)
+            const int nfull = int(std::lround(2.0*pi/g.dtheta));
+                for(int m=g.ndir; m<nfull; ++m)
                 {
-                    double beta = g.theta0 + double(m) * g.dtheta;
-                    while(beta - main > pi)
-                        beta -= 2.0 * pi;
-                    while(beta - main < -pi)
-                        beta += 2.0 * pi;
-                    const double d = spec.spreading_function(p, beta, g.sig[l]);
-                    if(d > 0.0)
-                        sum += d * g.dtheta;
+                double beta = g.theta0 + double(m)*g.dtheta;
+                while(beta-main>pi)
+                beta -= 2.0*pi;
+                while(beta-main<-pi)
+                beta += 2.0*pi;
+                const double d = spec.spreading_function(p,beta,g.sig[l]);
+                if(d>0.0)
+                sum += d*g.dtheta;
                 }
             }
 
-            p->B131 = b131;
+        p->B131 = b131;
         }
 
         // unidirectional, or spreading narrower than one bin
-        if(!(sum > 0.0))
+        if(!(sum>0.0))
         {
-            std::fill(D.begin(), D.end(), 0.0);
-            D[mmain] = 1.0;
-            sum = g.dth[mmain];
+        std::fill(D.begin(),D.end(),0.0);
+        D[mmain] = 1.0;
+        sum = g.dth[mmain];
 
             // compact computational sector (A 717): no energy if the main direction lies outside the sector
             if(g.compact)
             {
-                double d = std::fmod(mw - g.theta0, 2.0 * pi);
-                if(d < 0.0)
-                    d += 2.0 * pi;
-                const int nfull = int(std::lround(2.0 * pi / g.dtheta));
-                if(int(std::lround(d / g.dtheta)) % nfull >= g.ndir)
-                    D[mmain] = 0.0;
+            double d = std::fmod(mw-g.theta0,2.0*pi);
+            if(d<0.0)
+            d += 2.0*pi;
+            const int nfull = int(std::lround(2.0*pi/g.dtheta));
+            if(int(std::lround(d/g.dtheta))%nfull>=g.ndir)
+            D[mmain] = 0.0;
             }
         }
 
         // normalised over the full circle; with a computational sector (A 717) the directions outside hold
         // no energy (as SWAN, the part of the spectrum outside the sector is not imposed)
-        for(int m = 0; m < g.ndir; ++m)
-            N[g.bin(l, m)] = (g.act.empty() || g.act[m]) ? float(S * D[m] / sum / g.sig[l]) : 0.0f;
+        for(int m=0; m<g.ndir; ++m)
+        N[g.bin(l,m)] = (g.act.empty() || g.act[m]) ? float(S*D[m]/sum/g.sig[l]) : 0.0f;
     }
 
     seastate_param sp;
-    sp.compute(g, N.data());
+    sp.compute(g,N.data());
 
-    if(p->mpirank == 0)
+    if(p->mpirank==0)
     {
-        cout << "SEASTATE parametric spectrum (" << key << "): B 85 " << p->B85 << ", Hs " << p->wHs << " m, Tp " << p->wTp << " s, direction " << p->B131 << " deg, B 130 " << p->B130 << endl;
-        cout << "  discrete: Hs " << setprecision(5) << sp.Hs << " m, Tp " << sp.Tp << " s, Tm01 " << sp.Tm01 << " s, direction " << sp.dir << " deg, spread " << sp.spread << " deg" << endl
-             << endl;
-        cout << setprecision(6);
+    cout<<"SEASTATE parametric spectrum ("<<key<<"): B 85 "<<p->B85<<", Hs "<<p->wHs<<" m, Tp "<<p->wTp<<" s, direction "<<p->B131<<" deg, B 130 "<<p->B130<<endl;
+    cout<<"  discrete: Hs "<<setprecision(5)<<sp.Hs<<" m, Tp "<<sp.Tp<<" s, Tm01 "<<sp.Tm01<<" s, direction "<<sp.dir<<" deg, spread "<<sp.spread<<" deg"<<endl<<endl;
+    cout<<setprecision(6);
     }
 }
 
@@ -222,76 +219,76 @@ refraction and diffraction away from the incident directions. With B 130
 
 void seastate_f::auto_sector(lexer *p, ghostcell *pgc, const seastate_grid &g)
 {
-    const double pi = 3.14159265358979323846, deg = pi / 180.0;
+    const double pi = 3.14159265358979323846, deg = pi/180.0;
 
     p->wHs = p->B93_1;
     p->wTp = p->B93_2;
-    p->wwp = 2.0 * pi / p->wTp;
+    p->wwp = 2.0*pi/p->wTp;
 
     wave_lib_spectrum spec;
-    const double main = p->B131 * deg;
+    const double main = p->B131*deg;
 
     // D(theta) on theta = main + a, a in [-180, 180) deg
     const int na = 1440;
-    std::vector<double> D(na, 0.0);
+    std::vector<double> D(na,0.0);
 
-    if(p->B130 > 0)
+    if(p->B130>0)
     {
-        const double b131 = p->B131;
-        p->B131 = main;
+    const double b131 = p->B131;
+    p->B131 = main;
 
-        for(int l = 0; l < g.nsig; ++l)
+        for(int l=0; l<g.nsig; ++l)
         {
-            const double S = spec.wave_spectrum(p, g.sig[l]);
-            if(!(S > 0.0))
-                continue;
+        const double S = spec.wave_spectrum(p,g.sig[l]);
+        if(!(S>0.0))
+        continue;
 
-            for(int n = 0; n < na; ++n)
+            for(int n=0; n<na; ++n)
             {
-                const double a = (-180.0 + 0.25 * double(n)) * deg;
-                const double v = spec.spreading_function(p, main + a, g.sig[l]);
-                if(v > 0.0)
-                    D[n] += S * v * g.dsig[l];
+            const double a = (-180.0 + 0.25*double(n))*deg;
+            const double v = spec.spreading_function(p,main+a,g.sig[l]);
+            if(v>0.0)
+            D[n] += S*v*g.dsig[l];
             }
         }
 
-        p->B131 = b131;
+    p->B131 = b131;
     }
 
-    const double dmax = *std::max_element(D.begin(), D.end());
+    const double dmax = *std::max_element(D.begin(),D.end());
     double a1 = 0.0, a2 = 0.0;
 
-    if(dmax > 0.0)
+    if(dmax>0.0)
     {
-        const int c = na / 2;  // a = 0
-        int n1 = c, n2 = c;
-        while(n1 > 0 && D[n1 - 1] >= 1.0e-4 * dmax)
-            --n1;
-        while(n2 < na - 1 && D[n2 + 1] >= 1.0e-4 * dmax)
-            ++n2;
-        a1 = -180.0 + 0.25 * double(n1);
-        a2 = -180.0 + 0.25 * double(n2);
+    const int c = na/2;                 // a = 0
+    int n1 = c, n2 = c;
+    while(n1>0 && D[n1-1]>=1.0e-4*dmax)
+    --n1;
+    while(n2<na-1 && D[n2+1]>=1.0e-4*dmax)
+    ++n2;
+    a1 = -180.0 + 0.25*double(n1);
+    a2 = -180.0 + 0.25*double(n2);
     }
 
     a1 -= p->A716_m;
     a2 += p->A716_m;
 
-    const double dth = g.dtheta / deg;
-    const int k = std::max(1, int(std::ceil(dth / p->A716_w - 1.0e-9)));
+    const double dth = g.dtheta/deg;
+    const int k = std::max(1,int(std::ceil(dth/p->A716_w - 1.0e-9)));
 
-    if(a2 - a1 >= 360.0)
+    if(a2-a1>=360.0)
     {
-        a1 = -180.0;
-        a2 = 180.0 - 1.0e-6;
+    a1 = -180.0;
+    a2 = 180.0 - 1.0e-6;
     }
 
     p->A715_th1 = p->B131 + a1;
     p->A715_th2 = p->B131 + a2;
     p->A715_k = k;
 
-    if(p->mpirank == 0)
-        cout << "SEASTATE automatic direction sector (A 716): the boundary spreading within " << a1 + p->A716_m << " to " << a2 - p->A716_m
-             << " deg of " << p->B131 << " deg, margin " << p->A716_m << " deg: sector " << p->A715_th1 << " to " << p->A715_th2
-             << " deg, A 703 bins divided by " << k << " (" << dth / double(k) << " deg)" << endl;
+    if(p->mpirank==0)
+    cout<<"SEASTATE automatic direction sector (A 716): the boundary spreading within "<<a1+p->A716_m<<" to "<<a2-p->A716_m
+        <<" deg of "<<p->B131<<" deg, margin "<<p->A716_m<<" deg: sector "<<p->A715_th1<<" to "<<p->A715_th2
+        <<" deg, A 703 bins divided by "<<k<<" ("<<dth/double(k)<<" deg)"<<endl;
 }
 

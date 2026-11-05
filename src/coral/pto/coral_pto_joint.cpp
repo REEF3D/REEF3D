@@ -29,27 +29,27 @@ void pto_joint_prismatic::initialize(const Eigen::Vector3d &axis, const Eigen::V
                                      const Eigen::Vector3d &c, const Eigen::Matrix3d &R)
 {
     // axis: inertial, x_att: inertial position of the attachment at t=0, c/R: initial body pose
-    a = axis.normalized();
-    rb = R.transpose() * (x_att - c);
+    a  = axis.normalized();
+    rb = R.transpose()*(x_att - c);
     x0 = x_att;
 
     J.head<3>() = a;
-    J.tail<3>() = (R * rb).cross(a);
+    J.tail<3>() = (R*rb).cross(a);
 }
 
 pto_state pto_joint_prismatic::state(const Eigen::Vector3d &c, const Eigen::Matrix3d &R,
                                      const Eigen::Vector3d &v, const Eigen::Vector3d &w, double t)
 {
-    const Eigen::Vector3d r = R * rb;
+    const Eigen::Vector3d r = R*rb;
 
     J.head<3>() = a;
     J.tail<3>() = r.cross(a);
 
     pto_state s;
 
-    s.q = a.dot(c + r - x0);
+    s.q  = a.dot(c + r - x0);
     s.qd = a.dot(v) + J.tail<3>().dot(w);
-    s.t = t;
+    s.t  = t;
 
     return s;
 }

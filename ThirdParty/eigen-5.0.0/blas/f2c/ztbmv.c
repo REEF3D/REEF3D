@@ -17,9 +17,8 @@ static inline void d_cnjg(doublecomplex *r, doublecomplex *z) {
   r->i = -(z->i);
 }
 
-/* Subroutine */ void ztbmv_(char *uplo, char *trans, char *diag, integer *n,
-                             integer *k, doublecomplex *a, integer *lda,
-                             doublecomplex *x, integer *incx) {
+/* Subroutine */ void ztbmv_(char *uplo, char *trans, char *diag, integer *n, integer *k, doublecomplex *a,
+                             integer *lda, doublecomplex *x, integer *incx) {
   /* System generated locals */
   integer a_dim1, a_offset, i__1, i__2, i__3, i__4, i__5;
   doublecomplex z__1, z__2, z__3;
@@ -191,8 +190,7 @@ static inline void d_cnjg(doublecomplex *r, doublecomplex *z) {
   info = 0;
   if (!lsame_(uplo, "U") && !lsame_(uplo, "L")) {
     info = 1;
-  } else if (!lsame_(trans, "N") && !lsame_(trans, "T") &&
-             !lsame_(trans, "C")) {
+  } else if (!lsame_(trans, "N") && !lsame_(trans, "T") && !lsame_(trans, "C")) {
     info = 2;
   } else if (!lsame_(diag, "U") && !lsame_(diag, "N")) {
     info = 3;
@@ -251,8 +249,7 @@ static inline void d_cnjg(doublecomplex *r, doublecomplex *z) {
               i__2 = i__;
               i__3 = i__;
               i__5 = l + i__ + j * a_dim1;
-              z__2.r = temp.r * a[i__5].r - temp.i * a[i__5].i,
-              z__2.i = temp.r * a[i__5].i + temp.i * a[i__5].r;
+              z__2.r = temp.r * a[i__5].r - temp.i * a[i__5].i, z__2.i = temp.r * a[i__5].i + temp.i * a[i__5].r;
               z__1.r = x[i__3].r + z__2.r, z__1.i = x[i__3].i + z__2.i;
               x[i__2].r = z__1.r, x[i__2].i = z__1.i;
               /* L10: */
@@ -285,8 +282,7 @@ static inline void d_cnjg(doublecomplex *r, doublecomplex *z) {
               i__4 = ix;
               i__2 = ix;
               i__5 = l + i__ + j * a_dim1;
-              z__2.r = temp.r * a[i__5].r - temp.i * a[i__5].i,
-              z__2.i = temp.r * a[i__5].i + temp.i * a[i__5].r;
+              z__2.r = temp.r * a[i__5].r - temp.i * a[i__5].i, z__2.i = temp.r * a[i__5].i + temp.i * a[i__5].r;
               z__1.r = x[i__2].r + z__2.r, z__1.i = x[i__2].i + z__2.i;
               x[i__4].r = z__1.r, x[i__4].i = z__1.i;
               ix += *incx;
@@ -323,8 +319,7 @@ static inline void d_cnjg(doublecomplex *r, doublecomplex *z) {
               i__1 = i__;
               i__3 = i__;
               i__2 = l + i__ + j * a_dim1;
-              z__2.r = temp.r * a[i__2].r - temp.i * a[i__2].i,
-              z__2.i = temp.r * a[i__2].i + temp.i * a[i__2].r;
+              z__2.r = temp.r * a[i__2].r - temp.i * a[i__2].i, z__2.i = temp.r * a[i__2].i + temp.i * a[i__2].r;
               z__1.r = x[i__3].r + z__2.r, z__1.i = x[i__3].i + z__2.i;
               x[i__1].r = z__1.r, x[i__1].i = z__1.i;
               /* L50: */
@@ -357,8 +352,7 @@ static inline void d_cnjg(doublecomplex *r, doublecomplex *z) {
               i__4 = ix;
               i__1 = ix;
               i__2 = l + i__ + j * a_dim1;
-              z__2.r = temp.r * a[i__2].r - temp.i * a[i__2].i,
-              z__2.i = temp.r * a[i__2].i + temp.i * a[i__2].r;
+              z__2.r = temp.r * a[i__2].r - temp.i * a[i__2].i, z__2.i = temp.r * a[i__2].i + temp.i * a[i__2].r;
               z__1.r = x[i__1].r + z__2.r, z__1.i = x[i__1].i + z__2.i;
               x[i__4].r = z__1.r, x[i__4].i = z__1.i;
               ix -= *incx;
@@ -394,8 +388,7 @@ static inline void d_cnjg(doublecomplex *r, doublecomplex *z) {
           if (noconj) {
             if (nounit) {
               i__3 = kplus1 + j * a_dim1;
-              z__1.r = temp.r * a[i__3].r - temp.i * a[i__3].i,
-              z__1.i = temp.r * a[i__3].i + temp.i * a[i__3].r;
+              z__1.r = temp.r * a[i__3].r - temp.i * a[i__3].i, z__1.i = temp.r * a[i__3].i + temp.i * a[i__3].r;
               temp.r = z__1.r, temp.i = z__1.i;
             }
             /* Computing MAX */
@@ -413,8 +406,7 @@ static inline void d_cnjg(doublecomplex *r, doublecomplex *z) {
           } else {
             if (nounit) {
               d_cnjg(&z__2, &a[kplus1 + j * a_dim1]);
-              z__1.r = temp.r * z__2.r - temp.i * z__2.i,
-              z__1.i = temp.r * z__2.i + temp.i * z__2.r;
+              z__1.r = temp.r * z__2.r - temp.i * z__2.i, z__1.i = temp.r * z__2.i + temp.i * z__2.r;
               temp.r = z__1.r, temp.i = z__1.i;
             }
             /* Computing MAX */
@@ -423,8 +415,7 @@ static inline void d_cnjg(doublecomplex *r, doublecomplex *z) {
             for (i__ = j - 1; i__ >= i__3; --i__) {
               d_cnjg(&z__3, &a[l + i__ + j * a_dim1]);
               i__4 = i__;
-              z__2.r = z__3.r * x[i__4].r - z__3.i * x[i__4].i,
-              z__2.i = z__3.r * x[i__4].i + z__3.i * x[i__4].r;
+              z__2.r = z__3.r * x[i__4].r - z__3.i * x[i__4].i, z__2.i = z__3.r * x[i__4].i + z__3.i * x[i__4].r;
               z__1.r = temp.r + z__2.r, z__1.i = temp.i + z__2.i;
               temp.r = z__1.r, temp.i = z__1.i;
               /* L100: */
@@ -446,8 +437,7 @@ static inline void d_cnjg(doublecomplex *r, doublecomplex *z) {
           if (noconj) {
             if (nounit) {
               i__3 = kplus1 + j * a_dim1;
-              z__1.r = temp.r * a[i__3].r - temp.i * a[i__3].i,
-              z__1.i = temp.r * a[i__3].i + temp.i * a[i__3].r;
+              z__1.r = temp.r * a[i__3].r - temp.i * a[i__3].i, z__1.i = temp.r * a[i__3].i + temp.i * a[i__3].r;
               temp.r = z__1.r, temp.i = z__1.i;
             }
             /* Computing MAX */
@@ -466,8 +456,7 @@ static inline void d_cnjg(doublecomplex *r, doublecomplex *z) {
           } else {
             if (nounit) {
               d_cnjg(&z__2, &a[kplus1 + j * a_dim1]);
-              z__1.r = temp.r * z__2.r - temp.i * z__2.i,
-              z__1.i = temp.r * z__2.i + temp.i * z__2.r;
+              z__1.r = temp.r * z__2.r - temp.i * z__2.i, z__1.i = temp.r * z__2.i + temp.i * z__2.r;
               temp.r = z__1.r, temp.i = z__1.i;
             }
             /* Computing MAX */
@@ -476,8 +465,7 @@ static inline void d_cnjg(doublecomplex *r, doublecomplex *z) {
             for (i__ = j - 1; i__ >= i__3; --i__) {
               d_cnjg(&z__3, &a[l + i__ + j * a_dim1]);
               i__4 = ix;
-              z__2.r = z__3.r * x[i__4].r - z__3.i * x[i__4].i,
-              z__2.i = z__3.r * x[i__4].i + z__3.i * x[i__4].r;
+              z__2.r = z__3.r * x[i__4].r - z__3.i * x[i__4].i, z__2.i = z__3.r * x[i__4].i + z__3.i * x[i__4].r;
               z__1.r = temp.r + z__2.r, z__1.i = temp.i + z__2.i;
               temp.r = z__1.r, temp.i = z__1.i;
               ix -= *incx;
@@ -500,8 +488,7 @@ static inline void d_cnjg(doublecomplex *r, doublecomplex *z) {
           if (noconj) {
             if (nounit) {
               i__4 = j * a_dim1 + 1;
-              z__1.r = temp.r * a[i__4].r - temp.i * a[i__4].i,
-              z__1.i = temp.r * a[i__4].i + temp.i * a[i__4].r;
+              z__1.r = temp.r * a[i__4].r - temp.i * a[i__4].i, z__1.i = temp.r * a[i__4].i + temp.i * a[i__4].r;
               temp.r = z__1.r, temp.i = z__1.i;
             }
             /* Computing MIN */
@@ -519,8 +506,7 @@ static inline void d_cnjg(doublecomplex *r, doublecomplex *z) {
           } else {
             if (nounit) {
               d_cnjg(&z__2, &a[j * a_dim1 + 1]);
-              z__1.r = temp.r * z__2.r - temp.i * z__2.i,
-              z__1.i = temp.r * z__2.i + temp.i * z__2.r;
+              z__1.r = temp.r * z__2.r - temp.i * z__2.i, z__1.i = temp.r * z__2.i + temp.i * z__2.r;
               temp.r = z__1.r, temp.i = z__1.i;
             }
             /* Computing MIN */
@@ -529,8 +515,7 @@ static inline void d_cnjg(doublecomplex *r, doublecomplex *z) {
             for (i__ = j + 1; i__ <= i__4; ++i__) {
               d_cnjg(&z__3, &a[l + i__ + j * a_dim1]);
               i__1 = i__;
-              z__2.r = z__3.r * x[i__1].r - z__3.i * x[i__1].i,
-              z__2.i = z__3.r * x[i__1].i + z__3.i * x[i__1].r;
+              z__2.r = z__3.r * x[i__1].r - z__3.i * x[i__1].i, z__2.i = z__3.r * x[i__1].i + z__3.i * x[i__1].r;
               z__1.r = temp.r + z__2.r, z__1.i = temp.i + z__2.i;
               temp.r = z__1.r, temp.i = z__1.i;
               /* L160: */
@@ -552,8 +537,7 @@ static inline void d_cnjg(doublecomplex *r, doublecomplex *z) {
           if (noconj) {
             if (nounit) {
               i__4 = j * a_dim1 + 1;
-              z__1.r = temp.r * a[i__4].r - temp.i * a[i__4].i,
-              z__1.i = temp.r * a[i__4].i + temp.i * a[i__4].r;
+              z__1.r = temp.r * a[i__4].r - temp.i * a[i__4].i, z__1.i = temp.r * a[i__4].i + temp.i * a[i__4].r;
               temp.r = z__1.r, temp.i = z__1.i;
             }
             /* Computing MIN */
@@ -572,8 +556,7 @@ static inline void d_cnjg(doublecomplex *r, doublecomplex *z) {
           } else {
             if (nounit) {
               d_cnjg(&z__2, &a[j * a_dim1 + 1]);
-              z__1.r = temp.r * z__2.r - temp.i * z__2.i,
-              z__1.i = temp.r * z__2.i + temp.i * z__2.r;
+              z__1.r = temp.r * z__2.r - temp.i * z__2.i, z__1.i = temp.r * z__2.i + temp.i * z__2.r;
               temp.r = z__1.r, temp.i = z__1.i;
             }
             /* Computing MIN */
@@ -582,8 +565,7 @@ static inline void d_cnjg(doublecomplex *r, doublecomplex *z) {
             for (i__ = j + 1; i__ <= i__4; ++i__) {
               d_cnjg(&z__3, &a[l + i__ + j * a_dim1]);
               i__1 = ix;
-              z__2.r = z__3.r * x[i__1].r - z__3.i * x[i__1].i,
-              z__2.i = z__3.r * x[i__1].i + z__3.i * x[i__1].r;
+              z__2.r = z__3.r * x[i__1].r - z__3.i * x[i__1].i, z__2.i = z__3.r * x[i__1].i + z__3.i * x[i__1].r;
               z__1.r = temp.r + z__2.r, z__1.i = temp.i + z__2.i;
               temp.r = z__1.r, temp.i = z__1.i;
               ix += *incx;

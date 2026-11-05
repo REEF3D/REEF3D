@@ -23,8 +23,8 @@ Architect: Hans Bihs
 #ifndef SEASTATE_FAS2_H_
 #define SEASTATE_FAS2_H_
 
-#include "increment.h"
-#include <vector>
+#include"increment.h"
+#include<vector>
 
 class lexer;
 class ghostcell;
@@ -103,26 +103,26 @@ public:
     // field (A 730 2) or nullptr
     // depth: the number of this coarse grid (1 the first); further coarse grids are built while every rank holds
     // more than one cell and depth < maxdepth
-    seastate_fas2(lexer *, ghostcell *, fdm_seastate *, seastate_implicit *, seastate_exchange *, seastate_source *,
+    seastate_fas2(lexer*, ghostcell*, fdm_seastate*, seastate_implicit*, seastate_exchange*, seastate_source*,
                   const vector<float> *const Nside[4], slice *wU, slice *wD, int depth = 1, int maxdepth = 6,
                   const vector<char> *fine_coast = nullptr, const seastate_obstacle *fine_obs = nullptr);
     virtual ~seastate_fas2();
 
     // one correction; N0 the spectra of the start of the step (nonstationary) or nullptr
-    void correct(lexer *, ghostcell *, const seastate_store *N0, double rdt, const vector<float> &Nb, const int side[4],
+    void correct(lexer*, ghostcell*, const seastate_store *N0, double rdt, const vector<float> &Nb, const int side[4],
                  bool refraction, bool fshift, int ncoarse);
 
-    double last() const { return change; }
-    long coarse_cells() const { return ncoarse_wet; }
-    int levels() const { return child != nullptr ? 1 + child->levels() : 1; }
-    long cells_of_level(int k) const { return k <= 1 ? ncoarse_wet : (child != nullptr ? child->cells_of_level(k - 1) : 0); }
-    long coarse_bytes() const;  // all coarse grids of this rank
+    double last() const {return change;}
+    long coarse_cells() const {return ncoarse_wet;}
+    int levels() const {return child!=nullptr ? 1+child->levels() : 1;}
+    long cells_of_level(int k) const {return k<=1 ? ncoarse_wet : (child!=nullptr ? child->cells_of_level(k-1) : 0);}
+    long coarse_bytes() const;                  // all coarse grids of this rank
 
 private:
-    void build_lexer(lexer *, ghostcell *);
-    void build_fields(lexer *, const vector<char> *fine_coast, const seastate_obstacle *fine_obs);
+    void build_lexer(lexer*, ghostcell*);
+    void build_fields(lexer*, const vector<char> *fine_coast, const seastate_obstacle *fine_obs);
     void forcing();
-    int child0(int I, int n, int nc) const;  // first fine index under coarse index I (n fine, nc coarse cells)
+    int child0(int I, int n, int nc) const;     // first fine index under coarse index I (n fine, nc coarse cells)
     int children(int I, int n, int nc, int c[2]) const;
 
     lexer *p0, *pc;
@@ -130,20 +130,20 @@ private:
     seastate_implicit *fsolv, *csolv;
     seastate_exchange *fex, *cex;
     seastate_source *src;
-    seastate_store *Nt = nullptr, *Tc = nullptr, *N0c = nullptr;  // restricted N, tau, restricted N0 (nonstationary)
+    seastate_store *Nt = nullptr, *Tc = nullptr, *N0c = nullptr;     // restricted N, tau, restricted N0 (nonstationary)
     const vector<float> *Nsf[4];
     vector<float> Nsc[4];
     slice *wUf, *wDf;
     slice4 *wUc = nullptr, *wDc = nullptr;
-    vector<char> coast;  // per coarse cell: a dry cell of the original grid under it
+    vector<char> coast;                         // per coarse cell: a dry cell of the original grid under it
     int nbin, kx, ky, ms;
-    int ci0, cj0, cgx, cgy;  // global index of the coarse cell (0,0) and the coarse domain (boundary tests)
+    int ci0, cj0, cgx, cgy;                     // global index of the coarse cell (0,0) and the coarse domain (boundary tests)
     long ncoarse_wet = 0;
-    seastate_fas2 *child = nullptr;     // the next coarser grid (FAS V-cycle)
-    seastate_obstacle *cobs = nullptr;  // Phase 15: the faces of the coarse grid (obstacles, coasts), nullptr: none
+    seastate_fas2 *child = nullptr;             // the next coarser grid (FAS V-cycle)
+    seastate_obstacle *cobs = nullptr;          // Phase 15: the faces of the coarse grid (obstacles, coasts), nullptr: none
     int depth;
     double change = 0.0;
-    int gcount[4] = {0, 0, 0, 0};
+    int gcount[4] = {0,0,0,0};
 };
 
 #endif

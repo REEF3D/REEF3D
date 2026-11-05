@@ -20,12 +20,12 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "CPM.h"
-#include "fdm.h"
-#include "ghostcell.h"
-#include "lexer.h"
-#include "sediment_fdm.h"
-#include "turbulence.h"
+#include"CPM.h"
+#include"lexer.h"
+#include"fdm.h"
+#include"ghostcell.h"
+#include"sediment_fdm.h"
+#include"turbulence.h"
 
 // drag per unit particle mass Dp [1/s], force = m Dp (Uf - Up); vel: |Uf - Up|
 //
@@ -38,30 +38,30 @@ Author: Hans Bihs
 //   thf >= 0.8: Wen & Yu    Dp = 18 mu/(rho_p d^2) (1 + 0.15 Re^0.687) thf^-2.65,  Re = thf rho_f |Uf-Up| d/mu
 double CPM::drag_model(lexer *p, double d, double rhoS, double vel, double Ts)
 {
-    double Tf = MAX(1.0 - Ts, 1.0 - theta_max);
-    Tf = MIN(Tf, 1.0);
-
+    double Tf = MAX(1.0-Ts, 1.0-theta_max);
+    Tf = MIN(Tf,1.0);
+    
     vel = fabs(vel);
-
-    double mu = p->W2 * p->W1;
+    
+    double mu = p->W2*p->W1;
     double Dp;
-
-    if(p->Q51 == 2)
+    
+    if(p->Q51==2)
     {
-        if(Tf < 0.8)
-            Dp = 150.0 * (1.0 - Tf) * mu / (Tf * rhoS * d * d) + 1.75 * p->W1 * vel / (rhoS * d);
-
+        if(Tf<0.8)
+        Dp = 150.0*(1.0-Tf)*mu/(Tf*rhoS*d*d) + 1.75*p->W1*vel/(rhoS*d);
+        
         else
         {
-            double Re = Tf * p->W1 * vel * d / mu;
-            Dp = 18.0 * mu / (rhoS * d * d) * (Re < 1000.0 ? 1.0 + 0.15 * pow(Re, 0.687) : 0.44 * Re / 24.0) * pow(Tf, -2.65);
+            double Re = Tf*p->W1*vel*d/mu;
+            Dp = 18.0*mu/(rhoS*d*d) * (Re<1000.0 ? 1.0 + 0.15*pow(Re,0.687) : 0.44*Re/24.0) * pow(Tf,-2.65);
         }
     }
-
+    
     else
     {
-        double Rep = vel * d / p->W2;
-        Dp = 18.0 * p->W2 * p->W1 / (rhoS * d * d) * (pow(Tf, -2.65) + (1.0 / 6.0) * pow(Rep, 2.0 / 3.0) * pow(Tf, -1.78));
+        double Rep = vel*d/p->W2;
+        Dp = 18.0*p->W2*p->W1/(rhoS*d*d) * (pow(Tf,-2.65) + (1.0/6.0)*pow(Rep,2.0/3.0)*pow(Tf,-1.78));
     }
 
     return Dp;

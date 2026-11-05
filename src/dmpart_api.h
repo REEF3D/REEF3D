@@ -29,16 +29,17 @@ Author: Hans Bihs
 // its keys (M 11-13, 20, 21, 30-35, 41, 45) are those of the DIVEMesh control file.
 // false and a message if the file is missing or inconsistent.
 
-#include <string>
-#include <vector>
+#include<vector>
+#include<string>
 
-namespace dmpart {
+namespace dmpart
+{
 // weighted: 1 the weighted partition with the load map (M 20 5, M 35 1) whatever the DIVEMesh keys are
 // boxes: if given, the subdomains (i0, j0, k0, ni, nj, nk per rank); boxes_only: no grid files built
-bool build(const char *fname, int nranks, std::vector<std::vector<char>> &rankbuf, std::string &msg, int weighted = 0,
-           std::vector<int> *boxes = nullptr, bool boxes_only = false);
+bool build(const char *fname, int nranks, std::vector<std::vector<char>> &rankbuf, std::string &msg, int weighted=0,
+           std::vector<int> *boxes=nullptr, bool boxes_only=false);
 // the same from a global grid file in memory (the box grid of CPM on the mesh refinement, cfd_amr_cpm.cpp)
 bool build_mem(std::vector<char> &&glob, int nranks, std::vector<std::vector<char>> &rankbuf, std::string &msg);
-}  // namespace dmpart
+}
 
 #endif

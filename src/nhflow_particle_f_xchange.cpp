@@ -20,11 +20,11 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "ghostcell.h"
-#include "lexer.h"
-#include "nhflow_particle_f.h"
-#include <cstring>
-#include <mpi.h>
+#include"nhflow_particle_f.h"
+#include"lexer.h"
+#include"ghostcell.h"
+#include<mpi.h>
+#include<cstring>
 
 // Particles that left the subdomain are sent to the face neighbour (x first, then y).
 // Particles crossing a corner arrive at the x-neighbour and are forwarded in the next pass.
@@ -33,33 +33,33 @@ Author: Hans Bihs
 void nhflow_particle_f::xchange(lexer *p, ghostcell *pgc)
 {
     const int nb[4] = {p->nb1, p->nb2, p->nb3, p->nb4};
-    const int opp[4] = {3, 2, 1, 0};
+    const int opp[4] = {3,2,1,0};
     const int tagbase = 7700;
 
-    for(int pass = 0; pass < 6; ++pass)
+    for(int pass=0; pass<6; ++pass)
     {
         std::vector<double> sendbuf[4], recvbuf[4];
-        int sendnum[4] = {0, 0, 0, 0}, recvnum[4] = {0, 0, 0, 0};
+        int sendnum[4]={0,0,0,0}, recvnum[4]={0,0,0,0};
 
-        size_t q = 0;
-        while(q < P.size())
+        size_t q=0;
+        while(q<P.size())
         {
             const nhflow_particle_data &a = P[q];
-            int dir = -1;
+            int dir=-1;
 
-            if(a.x < xloc_s && nb[0] != -2)
-                dir = 0;
-            else if(a.x >= xloc_e && nb[3] != -2)
-                dir = 3;
-            else if(p->j_dir == 1 && a.y < yloc_s && nb[2] != -2)
-                dir = 2;
-            else if(p->j_dir == 1 && a.y >= yloc_e && nb[1] != -2)
-                dir = 1;
+            if(a.x<xloc_s && nb[0]!=-2)
+            dir=0;
+            else if(a.x>=xloc_e && nb[3]!=-2)
+            dir=3;
+            else if(p->j_dir==1 && a.y<yloc_s && nb[2]!=-2)
+            dir=2;
+            else if(p->j_dir==1 && a.y>=yloc_e && nb[1]!=-2)
+            dir=1;
 
-            if(dir >= 0)
+            if(dir>=0)
             {
-                const double *v = reinterpret_cast<const double *>(&a);
-                sendbuf[dir].insert(sendbuf[dir].end(), v, v + NF);
+                const double *v = reinterpret_cast<const double*>(&a);
+                sendbuf[dir].insert(sendbuf[dir].end(),v,v+NF);
                 ++sendnum[dir];
 
                 P[q] = P.back();
@@ -70,40 +70,40 @@ void nhflow_particle_f::xchange(lexer *p, ghostcell *pgc)
             ++q;
         }
 
-        int moved = sendnum[0] + sendnum[1] + sendnum[2] + sendnum[3];
+        int moved = sendnum[0]+sendnum[1]+sendnum[2]+sendnum[3];
         moved = pgc->globalisum(moved);
 
-        if(moved == 0)
-            break;
+        if(moved==0)
+        break;
 
         MPI_Request req[8];
-        int nreq = 0;
+        int nreq=0;
 
-        for(int dir = 0; dir < 4; ++dir)
-            if(nb[dir] != -2)
-            {
-                MPI_Isend(&sendnum[dir], 1, MPI_INT, nb[dir], tagbase + dir, pgc->mpi_comm, &req[nreq++]);
-                MPI_Irecv(&recvnum[dir], 1, MPI_INT, nb[dir], tagbase + opp[dir], pgc->mpi_comm, &req[nreq++]);
-            }
-        MPI_Waitall(nreq, req, MPI_STATUSES_IGNORE);
+        for(int dir=0; dir<4; ++dir)
+        if(nb[dir]!=-2)
+        {
+        MPI_Isend(&sendnum[dir],1,MPI_INT,nb[dir],tagbase+dir,pgc->mpi_comm,&req[nreq++]);
+        MPI_Irecv(&recvnum[dir],1,MPI_INT,nb[dir],tagbase+opp[dir],pgc->mpi_comm,&req[nreq++]);
+        }
+        MPI_Waitall(nreq,req,MPI_STATUSES_IGNORE);
 
-        nreq = 0;
-        for(int dir = 0; dir < 4; ++dir)
-            if(nb[dir] != -2)
-            {
-                recvbuf[dir].resize(size_t(recvnum[dir]) * NF + 1);
-                sendbuf[dir].resize(size_t(sendnum[dir]) * NF + 1);
-                MPI_Isend(sendbuf[dir].data(), sendnum[dir] * NF, MPI_DOUBLE, nb[dir], tagbase + 10 + dir, pgc->mpi_comm, &req[nreq++]);
-                MPI_Irecv(recvbuf[dir].data(), recvnum[dir] * NF, MPI_DOUBLE, nb[dir], tagbase + 10 + opp[dir], pgc->mpi_comm, &req[nreq++]);
-            }
-        MPI_Waitall(nreq, req, MPI_STATUSES_IGNORE);
+        nreq=0;
+        for(int dir=0; dir<4; ++dir)
+        if(nb[dir]!=-2)
+        {
+        recvbuf[dir].resize(size_t(recvnum[dir])*NF+1);
+        sendbuf[dir].resize(size_t(sendnum[dir])*NF+1);
+        MPI_Isend(sendbuf[dir].data(),sendnum[dir]*NF,MPI_DOUBLE,nb[dir],tagbase+10+dir,pgc->mpi_comm,&req[nreq++]);
+        MPI_Irecv(recvbuf[dir].data(),recvnum[dir]*NF,MPI_DOUBLE,nb[dir],tagbase+10+opp[dir],pgc->mpi_comm,&req[nreq++]);
+        }
+        MPI_Waitall(nreq,req,MPI_STATUSES_IGNORE);
 
-        for(int dir = 0; dir < 4; ++dir)
-            for(int n2 = 0; n2 < recvnum[dir]; ++n2)
-            {
-                nhflow_particle_data a;
-                std::memcpy(&a, &recvbuf[dir][size_t(n2) * NF], sizeof(nhflow_particle_data));
-                P.push_back(a);
-            }
+        for(int dir=0; dir<4; ++dir)
+        for(int n2=0; n2<recvnum[dir]; ++n2)
+        {
+            nhflow_particle_data a;
+            std::memcpy(&a,&recvbuf[dir][size_t(n2)*NF],sizeof(nhflow_particle_data));
+            P.push_back(a);
+        }
     }
 }

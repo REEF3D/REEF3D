@@ -31,10 +31,10 @@ class solver;
 class ghostcell;
 class ioflow;
 class turbulence;
-#include <fstream>
-#include <iostream>
-#include <sstream>
-#include <vector>
+#include<iostream>
+#include<fstream>
+#include<sstream>
+#include<vector>
 
 using namespace std;
 
@@ -43,16 +43,17 @@ class concentration
 public:
     virtual ~concentration() = default;
 
-    virtual void start(fdm *, lexer *, convection *, diffusion *, turbulence *, solver *, ghostcell *, ioflow *) = 0;
-    virtual void ini(lexer *, fdm *, ghostcell *, concentration *pconcentration) = 0;
-    virtual void ttimesave(lexer *, fdm *) = 0;
 
-    virtual void print_3D(lexer *, fdm *, ghostcell *, std::vector<char> &, size_t &) = 0;
-    virtual double val(int, int, int) = 0;
+	virtual void start(fdm*, lexer*, convection*, diffusion*, turbulence*, solver*, ghostcell*, ioflow*)=0;
+	virtual void ini(lexer*, fdm*, ghostcell*, concentration *pconcentration)=0;
+	virtual void ttimesave(lexer*, fdm*)=0;
 
-    virtual void name_ParaView_parallel(lexer *, ofstream &) = 0;
-    virtual void name_ParaView(lexer *, ostream &, int *, int &) = 0;
-    virtual void offset_ParaView(lexer *, int *, int &) = 0;
+	virtual void print_3D(lexer*, fdm*, ghostcell*, std::vector<char>&, size_t&)=0;
+	virtual double val(int,int,int)=0;
+
+    virtual void name_ParaView_parallel(lexer*, ofstream&)=0;
+    virtual void name_ParaView(lexer*, ostream&, int*, int &)=0;
+    virtual void offset_ParaView(lexer*, int*, int &)=0;
 };
 
 #endif

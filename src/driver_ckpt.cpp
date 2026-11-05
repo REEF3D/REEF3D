@@ -39,31 +39,31 @@ Author: Hans Bihs
 //  Not there yet (refused with a message): 6DOF wavemaker objects; FEM structures, SEASTATE; NHFLOW with
 //  Lagrangian particles, membranes; CFD with FSI.
 
-#include "6DOF.h"
-#include "cfd_amr.h"
-#include "cfd_ckpt.h"
-#include "coral/reef3d/coral_reef3d.h"
-#include "dem.h"
-#include "driver.h"
-#include "fdm.h"
-#include "fdm_fnpf.h"
-#include "fdm_nhf.h"
-#include "fnpf.h"
-#include "fnpf_amr.h"
-#include "fnpf_body.h"
-#include "fnpf_ckpt_fields.h"
-#include "ghostcell.h"
-#include "ioflow.h"
-#include "lexer.h"
-#include "nhflow_amr.h"
-#include "nhflow_ckpt_fields.h"
-#include "nhflow_longrun.h"
-#include "nhflow_momentum.h"
-#include "nhflow_turbulence.h"
-#include "printer.h"
-#include "reefckpt.h"
-#include "reefrun_ckpt.h"
-#include "sediment.h"
+#include"driver.h"
+#include"lexer.h"
+#include"ghostcell.h"
+#include"fdm_fnpf.h"
+#include"fdm.h"
+#include"printer.h"
+#include"fnpf_amr.h"
+#include"fnpf.h"
+#include"fnpf_body.h"
+#include"reefckpt.h"
+#include"reefrun_ckpt.h"
+#include"fnpf_ckpt_fields.h"
+#include"nhflow_ckpt_fields.h"
+#include"fdm_nhf.h"
+#include"nhflow_amr.h"
+#include"nhflow_turbulence.h"
+#include"nhflow_momentum.h"
+#include"nhflow_longrun.h"
+#include"ioflow.h"
+#include"cfd_ckpt.h"
+#include"dem.h"
+#include"sediment.h"
+#include"cfd_amr.h"
+#include"6DOF.h"
+#include"coral/reef3d/coral_reef3d.h"
 
 using namespace std;
 
@@ -71,223 +71,212 @@ using namespace std;
 string driver::ckpt_unsupported()
 {
     // (SFLOW and SEASTATE: their own checks, sflow_f_ckpt.cpp and seastate_f_ckpt.cpp)
-    if(p->A10 != 3 && p->A10 != 5 && p->A10 != 6)
-        return "the checkpoints of the driver are there for FNPF, NHFLOW and CFD only";
+    if(p->A10!=3 && p->A10!=5 && p->A10!=6)
+    return "the checkpoints of the driver are there for FNPF, NHFLOW and CFD only";
     // 6DOF: rigid bodies (free, towed; NHFLOW also the ship-wave pressure patch; FNPF the resolved
     // bodies with their grids) with all moorings, motion files, the ship load models and the power
     // take-off
-    if(p->X10 == 4)
-        return "6DOF wavemaker objects (X 10 4) are not in the checkpoints yet";
-    if(p->A10 == 6)
+    if(p->X10==4)
+    return "6DOF wavemaker objects (X 10 4) are not in the checkpoints yet";
+    if(p->A10==6)
     {
-        if(p->Z10 > 0 || p->Z30 > 0)
-            return "FSI and FEM structures are not in the checkpoints yet";
-        if(p->A750 > 0)
-            return "SEASTATE is not in the checkpoints yet";
+        if(p->Z10>0 || p->Z30>0) return "FSI and FEM structures are not in the checkpoints yet";
+        if(p->A750>0) return "SEASTATE is not in the checkpoints yet";
     }
-    if(p->A10 == 5)
+    if(p->A10==5)
     {
-        if(p->L10 > 0)
-            return "NHFLOW Lagrangian particles are not in the checkpoints yet";
-        if(p->Z30 > 0)
-            return "FEM structures are not in the checkpoints yet";
-        if(p->A750 > 0)
-            return "SEASTATE is not in the checkpoints yet";
-        if(p->X330 > 0)
-            return "membranes are not in the checkpoints yet";
+        if(p->L10>0) return "NHFLOW Lagrangian particles are not in the checkpoints yet";
+        if(p->Z30>0) return "FEM structures are not in the checkpoints yet";
+        if(p->A750>0) return "SEASTATE is not in the checkpoints yet";
+        if(p->X330>0) return "membranes are not in the checkpoints yet";
     }
     return "";
 }
 
-reefrun_ckpt &driver::ckpt()
+reefrun_ckpt& driver::ckpt()
 {
-    if(rck != nullptr)
-        return *rck;
+    if(rck!=nullptr)
+    return *rck;
 
     reefrun_ckpt::hooks h;
 
-    h.unsupported = [this]()
-    { return ckpt_unsupported(); };
+    h.unsupported = [this](){ return ckpt_unsupported(); };
 
     h.write = [this](reefckpt &ck)
     {
-        auto wd = [&](const char *n, char k, double *V)
-        { if(V==nullptr) return; if(k=='S') ck.put_S(n,V); else if(k=='F') ck.put_F(n,V); else ck.put_C(n,V); };
-        auto wi = [&](const char *n, char k, int *V)
-        { if(V==nullptr) return; if(k=='S') ck.put_Si(n,V); else if(k=='F') ck.put_Fi(n,V); else ck.put_Ci(n,V); };
+        auto wd = [&](const char *n, char k, double *V){ if(V==nullptr) return; if(k=='S') ck.put_S(n,V); else if(k=='F') ck.put_F(n,V); else ck.put_C(n,V); };
+        auto wi = [&](const char *n, char k, int *V)   { if(V==nullptr) return; if(k=='S') ck.put_Si(n,V); else if(k=='F') ck.put_Fi(n,V); else ck.put_Ci(n,V); };
 
-        if(p->A10 == 3)
+        if(p->A10==3)
         {
-            fnpf_ckpt_fields(p, c, wd, wi);
-            if(ppfsg->body() != nullptr)
-                ppfsg->body()->ckpt_fields(wd, wi);
-            if(pfamr != nullptr)
-                pfamr->ckpt_write(ck);
+            fnpf_ckpt_fields(p,c,wd,wi);
+            if(ppfsg->body()!=nullptr)
+            ppfsg->body()->ckpt_fields(wd,wi);
+            if(pfamr!=nullptr)
+            pfamr->ckpt_write(ck);
         }
-        if(p->A10 == 5)
+        if(p->A10==5)
         {
-            nhflow_ckpt_fields(p, d, wd, wi);
-            pnhfturb->ckpt_fields(wd, wi);
-            pnhfmom->ckpt_fields(wd, wi);
-            wd("dem_ALPHAV", 'C', pdem->ckpt_alpha());
-            if(pnhfamr != nullptr)
-                pnhfamr->ckpt_write(ck);
-            if(plongrun != nullptr)
-                plongrun->ckpt_write(p, ck, pnhfamr);
+            nhflow_ckpt_fields(p,d,wd,wi);
+            pnhfturb->ckpt_fields(wd,wi);
+            pnhfmom->ckpt_fields(wd,wi);
+            wd("dem_ALPHAV",'C',pdem->ckpt_alpha());
+            if(pnhfamr!=nullptr)
+            pnhfamr->ckpt_write(ck);
+            if(plongrun!=nullptr)
+            plongrun->ckpt_write(p,ck,pnhfamr);
         }
-        if(p->A10 == 6)
+        if(p->A10==6)
         {
-            cfd_ckpt_write(p, ck);
-            if(pcfdamr != nullptr)
-                pcfdamr->ckpt_write(ck);
+            cfd_ckpt_write(p,ck);
+            if(pcfdamr!=nullptr)
+            pcfdamr->ckpt_write(ck);
         }
 
         // the 6DOF bodies (the same on all ranks); FNPF: the resolved bodies
-        if(p->X10 > 0 && p->A10 == 3 && ppfsg->body() != nullptr)
+        if(p->X10>0 && p->A10==3 && ppfsg->body()!=nullptr)
         {
             vector<double> sd;
-            ppfsg->body()->ckpt_state(p, sd);
-            ck.blob("sixdof", sd);
+            ppfsg->body()->ckpt_state(p,sd);
+            ck.blob("sixdof",sd);
             vector<double> sr;
             ppfsg->body()->ckpt_rank_state(sr);
-            ck.rank_blob("sixdof_rank", sr);
+            ck.rank_blob("sixdof_rank",sr);
         }
-        if(p->X10 > 0 && p->A10 != 3)
+        if(p->X10>0 && p->A10!=3)
         {
             vector<double> sd;
-            p6dof->ckpt_state(p, sd);
-            ck.blob("sixdof", sd);
-            wd("sixdof_slice", 'S', p6dof->ckpt_slice());
+            p6dof->ckpt_state(p,sd);
+            ck.blob("sixdof",sd);
+            wd("sixdof_slice",'S',p6dof->ckpt_slice());
         }
 
         // without a floating body: the fixed nets (X 320) and mooring lines (X 310) of sixdof_void
-        if(p->X10 == 0 && p->A10 != 3 && (p->X320 > 0 || p->X310 > 0))
+        if(p->X10==0 && p->A10!=3 && (p->X320>0 || p->X310>0))
         {
             vector<double> sd;
-            p6dof->ckpt_state(p, sd);
-            ck.blob("sixdof_void", sd);
+            p6dof->ckpt_state(p,sd);
+            ck.blob("sixdof_void",sd);
         }
 
         // REEF3D::CORAL (the same on all ranks), its outputs on disk up to the checkpoint
-        if(pcoral != nullptr)
+        if(pcoral!=nullptr)
         {
             vector<double> cs;
             pcoral->ckpt_state(cs);
-            ck.blob("coral", cs);
+            ck.blob("coral",cs);
             pcoral->flush();
         }
 
         // sediment (S 10): NHFLOW the registry of its grid (the slices of the sediment objects; CFD has them with
         // its fields), the scalars, those of the rank (CPM: the parcels), the sediment cell flags, the depth of
         // the NHFLOW suspended load
-        if(p->S10 > 0 && (p->A10 == 5 || p->A10 == 6))
+        if(p->S10>0 && (p->A10==5 || p->A10==6))
         {
-            if(p->A10 == 5)
-                cfd_ckpt_write(p, ck, "reg");
+            if(p->A10==5)
+            cfd_ckpt_write(p,ck,"reg");
             vector<double> sv, sr;
-            psed->ckpt_state(p, sv);
-            ck.blob("sediment", sv);
-            psed->ckpt_rank_state(p, sr);
-            ck.rank_blob("sediment_rank", sr);
-            if(p->DFBED != nullptr)
-                ck.put_Si("DFBED", p->DFBED);
-            if(psed->ckpt_wln() != nullptr)
-                ck.put_S("sed_WLN", psed->ckpt_wln());
+            psed->ckpt_state(p,sv);
+            ck.blob("sediment",sv);
+            psed->ckpt_rank_state(p,sr);
+            ck.rank_blob("sediment_rank",sr);
+            if(p->DFBED!=nullptr)
+            ck.put_Si("DFBED",p->DFBED);
+            if(psed->ckpt_wln()!=nullptr)
+            ck.put_S("sed_WLN",psed->ckpt_wln());
         }
 
         // DEM (E 10): the scalars, the particles of the rank
-        if(p->E10 > 0 && (p->A10 == 5 || p->A10 == 6))
+        if(p->E10>0 && (p->A10==5 || p->A10==6))
         {
             vector<double> dg, dr;
-            pdem->ckpt_state(p, dg, dr);
-            ck.blob("dem", dg);
-            ck.rank_blob("dem_rank", dr);
+            pdem->ckpt_state(p,dg,dr);
+            ck.blob("dem",dg);
+            ck.rank_blob("dem_rank",dr);
         }
 
         // the state of the boundary conditions (local to the rank)
         vector<double> io;
-        pflow->ckpt_state(p, io);
-        ck.rank_blob("ioflow", io);
+        pflow->ckpt_state(p,io);
+        ck.rank_blob("ioflow",io);
     };
 
     h.read = [this](reefckpt &ck, string &msg)
     {
         bool ok = true;
-        auto rd = [&](const char *n, char k, double *V)
-        { if(V==nullptr || !ck.has(n)) return; ok = (k=='S' ? ck.get_S(n,V) : (k=='F' ? ck.get_F(n,V) : ck.get_C(n,V))) && ok; };
-        auto ri = [&](const char *n, char k, int *V)
-        { if(V==nullptr || !ck.has(n)) return; ok = (k=='S' ? ck.get_Si(n,V) : (k=='F' ? ck.get_Fi(n,V) : ck.get_Ci(n,V))) && ok; };
+        auto rd = [&](const char *n, char k, double *V){ if(V==nullptr || !ck.has(n)) return; ok = (k=='S' ? ck.get_S(n,V) : (k=='F' ? ck.get_F(n,V) : ck.get_C(n,V))) && ok; };
+        auto ri = [&](const char *n, char k, int *V)   { if(V==nullptr || !ck.has(n)) return; ok = (k=='S' ? ck.get_Si(n,V) : (k=='F' ? ck.get_Fi(n,V) : ck.get_Ci(n,V))) && ok; };
         auto level0 = [&]()
         {
-            if(p->A10 == 3)
+            if(p->A10==3)
             {
-                fnpf_ckpt_fields(p, c, rd, ri);
-                if(ppfsg->body() != nullptr)
-                    ppfsg->body()->ckpt_fields(rd, ri);
+            fnpf_ckpt_fields(p,c,rd,ri);
+            if(ppfsg->body()!=nullptr)
+            ppfsg->body()->ckpt_fields(rd,ri);
             }
-            if(p->A10 == 5)
+            if(p->A10==5)
             {
-                nhflow_ckpt_fields(p, d, rd, ri);
-                pnhfturb->ckpt_fields(rd, ri);
-                pnhfmom->ckpt_fields(rd, ri);
-                rd("dem_ALPHAV", 'C', pdem->ckpt_alpha());
+                nhflow_ckpt_fields(p,d,rd,ri);
+                pnhfturb->ckpt_fields(rd,ri);
+                pnhfmom->ckpt_fields(rd,ri);
+                rd("dem_ALPHAV",'C',pdem->ckpt_alpha());
             }
         };
 
         // NHFLOW with sediment: the registry of its grid first, the explicit lists after it
-        if(p->S10 > 0 && p->A10 == 5 && !cfd_ckpt_read(p, ck, msg, "reg"))
-            return false;
+        if(p->S10>0 && p->A10==5 && !cfd_ckpt_read(p,ck,msg,"reg"))
+        return false;
 
         level0();
-        if(p->A10 == 5)
-            pnhfmom->ckpt_restored();
-        if(p->A10 == 6)
+        if(p->A10==5)
+        pnhfmom->ckpt_restored();
+        if(p->A10==6)
         {
-            if(!cfd_ckpt_read(p, ck, msg))
-                return false;
+            if(!cfd_ckpt_read(p,ck,msg))
+            return false;
 
             // mesh refinement: the hierarchy and the patches, then level 0 once more (the regrid to the
             // layout of the checkpoint restricted its patches)
-            if(pcfdamr != nullptr)
+            if(pcfdamr!=nullptr)
             {
-                if(!pcfdamr->ckpt_read(ck, msg))
-                    return false;
-                if(!cfd_ckpt_read(p, ck, msg))
-                    return false;
+                if(!pcfdamr->ckpt_read(ck,msg))
+                return false;
+                if(!cfd_ckpt_read(p,ck,msg))
+                return false;
             }
 
             // the flags of the geometry (direct forcing, wall ghost cells): rebuilt as the first step of
             // the run did (momentum_forcing, when the geometry changed)
-            if(pgc->geometry_changed(p, a))
+            if(pgc->geometry_changed(p,a))
             {
-                pgc->solid_forcing_flag_update(p, a);
-                pgc->gcdf_update(p, a);
-                pgc->gcb_velflagio(p, a);
+            pgc->solid_forcing_flag_update(p,a);
+            pgc->gcdf_update(p,a);
+            pgc->gcb_velflagio(p,a);
             }
         }
-        if(p->A10 == 3)
-            ok = ck.has("eta") && ck.has("Fifsf") && ck.has("Fi") && ok;
-        if(p->A10 == 5)
-            ok = ck.has("eta") && ck.has("UH") && ck.has("P") && ok;
+        if(p->A10==3)
+        ok = ck.has("eta") && ck.has("Fifsf") && ck.has("Fi") && ok;
+        if(p->A10==5)
+        ok = ck.has("eta") && ck.has("UH") && ck.has("P") && ok;
 
         // mesh refinement: the patches, then level 0 once more (the regrid to the layout of the
         // checkpoint restricted its patches)
-        if(pfamr != nullptr || pnhfamr != nullptr)
+        if(pfamr!=nullptr || pnhfamr!=nullptr)
         {
-            const bool aok = (pfamr != nullptr) ? pfamr->ckpt_read(ck, msg) : pnhfamr->ckpt_read(ck, msg);
+            const bool aok = (pfamr!=nullptr) ? pfamr->ckpt_read(ck,msg) : pnhfamr->ckpt_read(ck,msg);
             if(!aok)
-                return false;
+            return false;
             level0();
         }
 
         // NHFLOW long-run statistics (P 160): after the patches (the blocks are grids of the record)
-        if(p->A10 == 5 && plongrun != nullptr && !plongrun->ckpt_read(p, d, ck, pnhfamr, msg))
-            return false;
+        if(p->A10==5 && plongrun!=nullptr && !plongrun->ckpt_read(p,d,ck,pnhfamr,msg))
+        return false;
 
         // FNPF: the resolved bodies (after the patches: their body grids)
-        if(p->X10 > 0 && p->A10 == 3 && ppfsg->body() != nullptr)
+        if(p->X10>0 && p->A10==3 && ppfsg->body()!=nullptr)
         {
-            if(!ck.has("sixdof") || !ppfsg->body()->ckpt_restore(p, pgc, ck.get_blob("sixdof")))
+            if(!ck.has("sixdof") || !ppfsg->body()->ckpt_restore(p,pgc,ck.get_blob("sixdof")))
             {
                 msg = "the 6DOF bodies of the checkpoint do not fit this run";
                 return false;
@@ -295,39 +284,39 @@ reefrun_ckpt &driver::ckpt()
             if(ck.has("sixdof_rank"))
             {
                 if(ck.same_decomposition())
-                    ppfsg->body()->ckpt_rank_restore({ck.get_rank_blob("sixdof_rank", p->mpirank)});
+                ppfsg->body()->ckpt_rank_restore({ck.get_rank_blob("sixdof_rank",p->mpirank)});
                 else
-                    ppfsg->body()->ckpt_rank_restore(ck.get_rank_blobs("sixdof_rank"));
+                ppfsg->body()->ckpt_rank_restore(ck.get_rank_blobs("sixdof_rank"));
             }
         }
 
         // the 6DOF bodies: their state, the trimesh at the pose (the arrays on the grid are in the fields)
-        if(p->X10 > 0 && p->A10 != 3)
+        if(p->X10>0 && p->A10!=3)
         {
-            if(!ck.has("sixdof") || !p6dof->ckpt_restore(p, pgc, ck.get_blob("sixdof")))
+            if(!ck.has("sixdof") || !p6dof->ckpt_restore(p,pgc,ck.get_blob("sixdof")))
             {
                 msg = "the 6DOF bodies of the checkpoint do not fit this run";
                 return false;
             }
-            rd("sixdof_slice", 'S', p6dof->ckpt_slice());
-            if(p->A10 == 6)
-                pgc->gcdf_update(p, a);
+            rd("sixdof_slice",'S',p6dof->ckpt_slice());
+            if(p->A10==6)
+            pgc->gcdf_update(p,a);
 
             // NHFLOW: the ghost cells of the water level at the bodies (nhflow_forcing, from DF)
-            if(p->A10 == 5 && (p->A516 == 2 || p->A516 == 4 || p->X240 == 21 || p->X10 == 4))
-                pgc->gcsldf_update(p);
+            if(p->A10==5 && (p->A516==2 || p->A516==4 || p->X240==21 || p->X10==4))
+            pgc->gcsldf_update(p);
         }
 
         // without a floating body: the fixed nets and mooring lines
-        if(p->X10 == 0 && p->A10 != 3 && (p->X320 > 0 || p->X310 > 0))
-            if(!ck.has("sixdof_void") || !p6dof->ckpt_restore(p, pgc, ck.get_blob("sixdof_void")))
-            {
-                msg = "the nets (X 320) or mooring lines (X 310) of the checkpoint do not fit this run";
-                return false;
-            }
+        if(p->X10==0 && p->A10!=3 && (p->X320>0 || p->X310>0))
+        if(!ck.has("sixdof_void") || !p6dof->ckpt_restore(p,pgc,ck.get_blob("sixdof_void")))
+        {
+            msg = "the nets (X 320) or mooring lines (X 310) of the checkpoint do not fit this run";
+            return false;
+        }
 
         // REEF3D::CORAL: its state for coral_ini (the model is set up after the fluid)
-        if(p->Z40 > 0)
+        if(p->Z40>0)
         {
             if(!ck.has("coral"))
             {
@@ -338,32 +327,32 @@ reefrun_ckpt &driver::ckpt()
         }
 
         // sediment (S 10): after the arrays and the flags of the geometry
-        if(p->S10 > 0 && (p->A10 == 5 || p->A10 == 6))
+        if(p->S10>0 && (p->A10==5 || p->A10==6))
         {
-            if(!ck.has("sediment") || !psed->ckpt_restore(p, pgc, ck.get_blob("sediment")))
+            if(!ck.has("sediment") || !psed->ckpt_restore(p,pgc,ck.get_blob("sediment")))
             {
                 msg = "the checkpoint has no sediment state that fits this run (S 10)";
                 return false;
             }
-            const vector<vector<double>> sr = ck.same_decomposition() ? vector<vector<double>>{ck.get_rank_blob("sediment_rank", p->mpirank)}
+            const vector<vector<double>> sr = ck.same_decomposition() ? vector<vector<double>>{ck.get_rank_blob("sediment_rank",p->mpirank)}
                                                                       : ck.get_rank_blobs("sediment_rank");
-            if(!psed->ckpt_rank_restore(p, pgc, sr, ck.same_decomposition()))
+            if(!psed->ckpt_rank_restore(p,pgc,sr,ck.same_decomposition()))
             {
                 msg = "the sediment state of the ranks does not fit this run (S 10)";
                 return false;
             }
-            if(p->DFBED != nullptr && ck.has("DFBED"))
-                ok = ck.get_Si("DFBED", p->DFBED) && ok;
-            if(psed->ckpt_wln() != nullptr && ck.has("sed_WLN"))
-                ok = ck.get_S("sed_WLN", psed->ckpt_wln()) && ok;
+            if(p->DFBED!=nullptr && ck.has("DFBED"))
+            ok = ck.get_Si("DFBED",p->DFBED) && ok;
+            if(psed->ckpt_wln()!=nullptr && ck.has("sed_WLN"))
+            ok = ck.get_S("sed_WLN",psed->ckpt_wln()) && ok;
         }
 
         // DEM (E 10): applied at its first step, after the set-up from dem.txt
-        if(p->E10 > 0 && (p->A10 == 5 || p->A10 == 6))
+        if(p->E10>0 && (p->A10==5 || p->A10==6))
         {
-            const vector<vector<double>> dr = ck.same_decomposition() ? vector<vector<double>>{ck.get_rank_blob("dem_rank", p->mpirank)}
+            const vector<vector<double>> dr = ck.same_decomposition() ? vector<vector<double>>{ck.get_rank_blob("dem_rank",p->mpirank)}
                                                                       : ck.get_rank_blobs("dem_rank");
-            if(!ck.has("dem") || !pdem->ckpt_restore(p, ck.get_blob("dem"), dr, ck.same_decomposition()))
+            if(!ck.has("dem") || !pdem->ckpt_restore(p,ck.get_blob("dem"),dr,ck.same_decomposition()))
             {
                 msg = "the checkpoint has no DEM state that fits this run (E 10)";
                 return false;
@@ -372,42 +361,40 @@ reefrun_ckpt &driver::ckpt()
 
         // the state of the boundary conditions: on the same decomposition (else they start again)
         if(ck.same_decomposition())
-            pflow->ckpt_restore(p, ck.get_rank_blob("ioflow", p->mpirank));
+        pflow->ckpt_restore(p,ck.get_rank_blob("ioflow",p->mpirank));
         return ok;
     };
 
-    h.printer_state = [this](vector<double> &v)
-    { pprint->ckpt_state(v); };
-    h.printer_restore = [this](const vector<double> &v)
-    { pprint->ckpt_restore(v); };
+    h.printer_state = [this](vector<double> &v){ pprint->ckpt_state(v); };
+    h.printer_restore = [this](const vector<double> &v){ pprint->ckpt_restore(v); };
 
     h.flush = [this]()
     {
         pprint->flush_outputs();
-        if(pcoral != nullptr)
-            pcoral->flush();
-        if(pfamr != nullptr)
-            pfamr->flush_outputs();
-        if(pnhfamr != nullptr)
-            pnhfamr->flush_outputs();
-        if(pcfdamr != nullptr)
-            pcfdamr->flush_outputs();
+        if(pcoral!=nullptr)
+        pcoral->flush();
+        if(pfamr!=nullptr)
+        pfamr->flush_outputs();
+        if(pnhfamr!=nullptr)
+        pnhfamr->flush_outputs();
+        if(pcfdamr!=nullptr)
+        pcfdamr->flush_outputs();
     };
 
     h.loadmap = [this](lexer *pp)
     {
-        if(pfamr != nullptr)
-            pfamr->write_loadmap(pp);
-        if(pnhfamr != nullptr)
-            pnhfamr->write_loadmap(pp);
-        if(pcfdamr != nullptr)
-            pcfdamr->write_loadmap(pp);
+        if(pfamr!=nullptr)
+        pfamr->write_loadmap(pp);
+        if(pnhfamr!=nullptr)
+        pnhfamr->write_loadmap(pp);
+        if(pcfdamr!=nullptr)
+        pcfdamr->write_loadmap(pp);
         // CFD with CPM (no mesh refinement): the parcels per cell (CPM_loadmap.cpp)
-        if(pp->A10 == 6 && pcfdamr == nullptr && pp->S10 > 0 && psed != nullptr)
-            psed->loadmap(pp, a, pgc);
+        if(pp->A10==6 && pcfdamr==nullptr && pp->S10>0 && psed!=nullptr)
+        psed->loadmap(pp,a,pgc);
     };
 
-    rck = new reefrun_ckpt(p, pgc, std::move(h));
+    rck = new reefrun_ckpt(p,pgc,std::move(h));
     return *rck;
 }
 

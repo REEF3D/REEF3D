@@ -23,8 +23,8 @@ Architect: Hans Bihs
 #ifndef SEASTATE_OBSTACLE_H_
 #define SEASTATE_OBSTACLE_H_
 
+#include<vector>
 #include <cstddef>
-#include <vector>
 
 class lexer;
 class ghostcell;
@@ -116,23 +116,23 @@ class seastate_obstacle
 public:
     struct face
     {
-        float kt2 = 1.0f;    // energy transmission
-        float kr2 = 0.0f;    // energy reflection
-        float alpha = 0.0f;  // direction of the obstacle line or the coastline [rad]
-        int obs = -1;        // obstacle (A 722 index), -1: coast (A 723)
-        int fq = -1;         // per-frequency coefficients (index into the pools), -1: kt2, kr2
-        int wd = -1;         // diffuse reflection (index into the weights), -1: specular
+        float kt2 = 1.0f;       // energy transmission
+        float kr2 = 0.0f;       // energy reflection
+        float alpha = 0.0f;     // direction of the obstacle line or the coastline [rad]
+        int obs = -1;           // obstacle (A 722 index), -1: coast (A 723)
+        int fq = -1;            // per-frequency coefficients (index into the pools), -1: kt2, kr2
+        int wd = -1;            // diffuse reflection (index into the weights), -1: specular
     };
 
     seastate_obstacle(lexer *p, const seastate_grid *g);
 
-    bool active() const { return nobs > 0 || coast; }
+    bool active() const {return nobs>0 || coast;}
 
     // the faces of the grid of lexer q (level 0 or a REEFAMR patch) and field e: obstacles, and (A 723)
     // coasts between active cells and land cells inside the domain; global index = local + (oi, oj),
     // the domain gnx x gny cells of the level; pgc: the coastline directions of the ghost cells from the
     // neighbouring ranks (level 0), nullptr: from the cells of the grid (patches)
-    void build(lexer *q, fdm_seastate *e, int oi, int oj, int gnx, int gny, ghostcell *pgc = nullptr);
+    void build(lexer *q, fdm_seastate *e, int oi, int oj, int gnx, int gny, ghostcell *pgc=nullptr);
 
     // Goda, d'Angremond and porous coefficients from the present spectra; coasts rebuilt after a change
     // of the active cells
@@ -142,23 +142,19 @@ public:
     const face *north(int i, int j) const;
 
     // energy transmission per frequency (nullptr: kt2 for all) and reflection of frequency l
-    const float *kt2f(const face *f) const { return f->fq < 0 ? nullptr : &fkt[size_t(f->fq) * nsig]; }
-    double kr2(const face *f, int l) const { return f->fq < 0 ? double(f->kr2) : double(fkr[size_t(f->fq) * nsig + l]); }
+    const float *kt2f(const face *f) const {return f->fq<0 ? nullptr : &fkt[size_t(f->fq)*nsig];}
+    double kr2(const face *f, int l) const {return f->fq<0 ? double(f->kr2) : double(fkr[size_t(f->fq)*nsig+l]);}
 
     // diffuse reflection: weights of the directions -nd..nd around the specular one, nullptr: specular
     const float *diffuse(const face *f, int &nd) const
     {
-        if(f->wd < 0)
-        {
-            nd = 0;
-            return nullptr;
-        }
-        nd = int(wdif[f->wd].size() / 2);
+        if(f->wd<0) {nd = 0; return nullptr;}
+        nd = int(wdif[f->wd].size()/2);
         return wdif[f->wd].data();
     }
 
-    int faces_blocked() const { return int(faces.size()); }
-    int faces_coast() const { return ncoast; }
+    int faces_blocked() const {return int(faces.size());}
+    int faces_coast() const {return ncoast;}
 
 private:
     const seastate_grid *g;
@@ -166,20 +162,20 @@ private:
     bool coast;
     double kr2c;
     int radius;
-    int imin = 0, jmin = 0, ni = 0, nj = 0, oi = 0, oj = 0, gnx = 0, gny = 0;
+    int imin=0, jmin=0, ni=0, nj=0, oi=0, oj=0, gnx=0, gny=0;
     std::vector<double> xs, ys, xe, ye, kt, kr, zc;
-    std::vector<int> type;                     // per obstacle: 0 Kt (Goda for Kt < 0), 1 d'Angremond, 2 table, 3 porous
-    std::vector<double> pa, pb, pc;            // structure parameters
-    std::vector<std::vector<float>> tkt, tkr;  // type 2: Kt^2, Kr^2 per frequency
-    std::vector<int> wobs;                     // per obstacle: diffuse weights, -1 specular
+    std::vector<int> type;                          // per obstacle: 0 Kt (Goda for Kt < 0), 1 d'Angremond, 2 table, 3 porous
+    std::vector<double> pa, pb, pc;                 // structure parameters
+    std::vector<std::vector<float>> tkt, tkr;       // type 2: Kt^2, Kr^2 per frequency
+    std::vector<int> wobs;                          // per obstacle: diffuse weights, -1 specular
     int wcoast = -1;
-    std::vector<std::vector<float>> wdif;  // diffuse weights, 2 nd + 1 each
-    std::vector<int> fe, fn;               // index into faces, -1 none
+    std::vector<std::vector<float>> wdif;           // diffuse weights, 2 nd + 1 each
+    std::vector<int> fe, fn;                        // index into faces, -1 none
     std::vector<face> faces;
-    std::vector<int> fi, fj, fdir;  // cell and side (0 east, 1 north) of each face
-    std::vector<float> fkt, fkr;    // per-frequency coefficients
-    std::vector<char> wmask;        // active cells at the last build (coasts), ghost layers exchanged
-    std::vector<char> wraw;         // ... as the field had them (wetting and drying)
+    std::vector<int> fi, fj, fdir;                  // cell and side (0 east, 1 north) of each face
+    std::vector<float> fkt, fkr;                    // per-frequency coefficients
+    std::vector<char> wmask;                        // active cells at the last build (coasts), ghost layers exchanged
+    std::vector<char> wraw;                         // ... as the field had them (wetting and drying)
     int ncoast = 0;
     ghostcell *pgc = nullptr;
     int weights(double pown);

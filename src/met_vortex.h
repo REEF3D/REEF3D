@@ -23,8 +23,8 @@ Architect: Hans Bihs
 #ifndef MET_VORTEX_H_
 #define MET_VORTEX_H_
 
-#include <string>
-#include <vector>
+#include<string>
+#include<vector>
 
 /*--------------------------------------------------------------------
 REEF3D parametric tropical cyclone vortex (W 200 3). No lexer or MPI
@@ -78,11 +78,11 @@ struct met_vortex_rec
 
 struct met_vortex_par
 {
-    int model = 2;            // W 215
-    double wrf = 0.9;         // W 216
-    double one2ten = 0.8928;  // W 217
-    int inflow = 1;           // W 218
-    int trans = 1;            // W 219
+    int model = 2;              // W 215
+    double wrf = 0.9;           // W 216
+    double one2ten = 0.8928;    // W 217
+    int inflow = 1;             // W 218
+    int trans = 1;              // W 219
 };
 
 class met_vortex
@@ -109,8 +109,8 @@ public:
     static void destination(double lon, double lat, double brg, double d, double &lon2, double &lat2);
 
     // first and last time of the track
-    double t_first() const { return rec.front().t; }
-    double t_last() const { return rec.back().t; }
+    double t_first() const {return rec.front().t;}
+    double t_last() const {return rec.back().t;}
 
     // profiles (public for the unit test)
     static void dist_bearing(double lon1, double lat1, double lon2, double lat2, double &d, double &brg);

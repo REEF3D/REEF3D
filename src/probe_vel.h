@@ -23,9 +23,9 @@ Author: Hans Bihs
 #ifndef PROBE_VEL_H_
 #define PROBE_VEL_H_
 
-#include "boundarycheck.h"
-#include <fstream>
-#include <iostream>
+#include"boundarycheck.h"
+#include<iostream>
+#include<fstream>
 
 class lexer;
 class fdm;
@@ -37,23 +37,29 @@ using namespace std;
 class probe_vel : public boundarycheck
 {
 public:
-    probe_vel(lexer *, fdm *);
-    virtual ~probe_vel();
+    probe_vel(lexer*,fdm*);
+	virtual ~probe_vel();
 
-    void start(lexer *, fdm *, ghostcell *);
+	void start(lexer*, fdm*, ghostcell*);
+
 
 private:
-    void ini_location(lexer *, fdm *);
+    void ini_location(lexer*, fdm*);
 
-    char name[100];
 
-    int *iloc, *jloc, *kloc, *flag;
-    int n, q;
-    const int probenum;
+	char name[100];
+
+    int *iloc,*jloc,*kloc,*flag;
+    int n,q;
+	const int probenum;
     ofstream *pout;
     double *val;
+	
+	double uval,vval,wval,pval,kval,eval,edval;
+    
+    
+    
 
-    double uval, vval, wval, pval, kval, eval, edval;
 };
 
 #endif

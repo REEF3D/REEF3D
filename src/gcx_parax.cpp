@@ -20,230 +20,230 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "field.h"
-#include "ghostcell.h"
-#include "lexer.h"
+#include"ghostcell.h"
+#include"lexer.h"
+#include"field.h"
 
-void ghostcell::gcparax(lexer *p, field &f, int gcv)
+void ghostcell::gcparax(lexer* p, field& f, int gcv)
 {
-    gcparax_pack(p, f, gcv);
+    gcparax_pack(p,f,gcv);
 
-    Sendrecv_double(p->gcpara1_count * paramargin, p->gcpara2_count * paramargin, p->gcpara3_count * paramargin, p->gcpara4_count * paramargin, p->gcpara5_count * paramargin, p->gcpara6_count * paramargin);
+    Sendrecv_double(p->gcpara1_count*paramargin,p->gcpara2_count*paramargin,p->gcpara3_count*paramargin,p->gcpara4_count*paramargin,p->gcpara5_count*paramargin,p->gcpara6_count*paramargin);
 
-    gcparax_unpack(p, f, gcv);
+    gcparax_unpack(p,f,gcv);
 }
 
 // gcparax and gcparacox in one message: the paraco cells follow the gcpara cells in the buffers
 // (the receive order is the same as gcparax followed by gcparacox)
-void ghostcell::gcparax_co(lexer *p, field &f, int gcv)
+void ghostcell::gcparax_co(lexer* p, field& f, int gcv)
 {
-    paramargin = margin;
+    paramargin=margin;
 
-    const int off[6] = {p->gcpara1_count * paramargin, p->gcpara2_count * paramargin, p->gcpara3_count * paramargin,
-                        p->gcpara4_count * paramargin, p->gcpara5_count * paramargin, p->gcpara6_count * paramargin};
+    const int off[6] = {p->gcpara1_count*paramargin, p->gcpara2_count*paramargin, p->gcpara3_count*paramargin,
+                        p->gcpara4_count*paramargin, p->gcpara5_count*paramargin, p->gcpara6_count*paramargin};
 
-    gcparax_pack(p, f, gcv);
-    gcparaco_pack(p, f, off);
+    gcparax_pack(p,f,gcv);
+    gcparaco_pack(p,f,off);
 
-    Sendrecv_double(off[0] + p->gcparaco1_count, off[1] + p->gcparaco2_count, off[2] + p->gcparaco3_count,
-                    off[3] + p->gcparaco4_count, off[4] + p->gcparaco5_count, off[5] + p->gcparaco6_count);
+    Sendrecv_double(off[0]+p->gcparaco1_count,off[1]+p->gcparaco2_count,off[2]+p->gcparaco3_count,
+                    off[3]+p->gcparaco4_count,off[4]+p->gcparaco5_count,off[5]+p->gcparaco6_count);
 
-    gcparax_unpack(p, f, gcv);
-    gcparaco_unpack(p, f, off);
+    gcparax_unpack(p,f,gcv);
+    gcparaco_unpack(p,f,off);
 }
 
-void ghostcell::gcparax_pack(lexer *p, field &f, int gcv)
+void ghostcell::gcparax_pack(lexer* p, field& f, int gcv)
 {
-    paramargin = margin;
+    paramargin=margin;
 
     //  FILL SEND
-    count = 0;
-    for(q = 0; q < p->gcpara1_count; ++q)
+    count=0;
+    for(q=0;q<p->gcpara1_count;++q)
     {
-        i = p->gcpara1[q][0] - 1;
-        j = p->gcpara1[q][1];
-        k = p->gcpara1[q][2];
+        i=p->gcpara1[q][0]-1;
+        j=p->gcpara1[q][1];
+        k=p->gcpara1[q][2];
 
-        if(p->gcpara1[q][2 + gcv] >= 1)
-            for(n = 0; n < paramargin; ++n)
-            {
-                send1[count] = f(i + n + 1, j, k);
-                ++count;
-            }
+        if(p->gcpara1[q][2+gcv]>=1)
+        for(n=0;n<paramargin;++n)
+        {
+            send1[count]=f(i+n+1,j,k);
+            ++count;
+        }
     }
 
-    count = 0;
-    for(q = 0; q < p->gcpara3_count; ++q)
+    count=0;
+    for(q=0;q<p->gcpara3_count;++q)
     {
-        i = p->gcpara3[q][0];
-        j = p->gcpara3[q][1] - 1;
-        k = p->gcpara3[q][2];
+        i=p->gcpara3[q][0];
+        j=p->gcpara3[q][1]-1;
+        k=p->gcpara3[q][2];
 
-        if(p->gcpara3[q][2 + gcv] >= 1)
-            for(n = 0; n < paramargin; ++n)
-            {
-                send3[count] = f(i, j + n + 1, k);
-                ++count;
-            }
+        if(p->gcpara3[q][2+gcv]>=1)
+        for(n=0;n<paramargin;++n)
+        {
+            send3[count]=f(i,j+n+1,k);
+            ++count;
+        }
     }
 
-    count = 0;
-    for(q = 0; q < p->gcpara5_count; ++q)
+    count=0;
+    for(q=0;q<p->gcpara5_count;++q)
     {
-        i = p->gcpara5[q][0];
-        j = p->gcpara5[q][1];
-        k = p->gcpara5[q][2] - 1;
+        i=p->gcpara5[q][0];
+        j=p->gcpara5[q][1];
+        k=p->gcpara5[q][2]-1;
 
-        if(p->gcpara5[q][2 + gcv] >= 1)
-            for(n = 0; n < paramargin; ++n)
-            {
-                send5[count] = f(i, j, k + n + 1);
-                ++count;
-            }
+        if(p->gcpara5[q][2+gcv]>=1)
+        for(n=0;n<paramargin;++n)
+        {
+            send5[count]=f(i,j,k+n+1);
+            ++count;
+        }
     }
 
-    count = 0;
-    for(q = 0; q < p->gcpara4_count; ++q)
+    count=0;
+    for(q=0;q<p->gcpara4_count;++q)
     {
-        i = p->gcpara4[q][0] + 1;
-        j = p->gcpara4[q][1];
-        k = p->gcpara4[q][2];
+        i=p->gcpara4[q][0]+1;
+        j=p->gcpara4[q][1];
+        k=p->gcpara4[q][2];
 
-        if(p->gcpara4[q][2 + gcv] >= 1)
-            for(n = 0; n < paramargin; ++n)
-            {
-                send4[count] = f(i - n - 1, j, k);
-                ++count;
-            }
+        if(p->gcpara4[q][2+gcv]>=1)
+        for(n=0;n<paramargin;++n)
+        {
+            send4[count]=f(i-n-1,j,k);
+            ++count;
+        }
     }
 
-    count = 0;
-    for(q = 0; q < p->gcpara2_count; ++q)
+    count=0;
+    for(q=0;q<p->gcpara2_count;++q)
     {
-        i = p->gcpara2[q][0];
-        j = p->gcpara2[q][1] + 1;
-        k = p->gcpara2[q][2];
+        i=p->gcpara2[q][0];
+        j=p->gcpara2[q][1]+1;
+        k=p->gcpara2[q][2];
 
-        if(p->gcpara2[q][2 + gcv] >= 1)
-            for(n = 0; n < paramargin; ++n)
-            {
-                send2[count] = f(i, j - n - 1, k);
-                ++count;
-            }
+        if(p->gcpara2[q][2+gcv]>=1)
+        for(n=0;n<paramargin;++n)
+        {
+            send2[count]=f(i,j-n-1,k);
+            ++count;
+        }
     }
 
-    count = 0;
-    for(q = 0; q < p->gcpara6_count; ++q)
+    count=0;
+    for(q=0;q<p->gcpara6_count;++q)
     {
-        i = p->gcpara6[q][0];
-        j = p->gcpara6[q][1];
-        k = p->gcpara6[q][2] + 1;
+        i=p->gcpara6[q][0];
+        j=p->gcpara6[q][1];
+        k=p->gcpara6[q][2]+1;
 
-        if(p->gcpara6[q][2 + gcv] >= 1)
-            for(n = 0; n < paramargin; ++n)
-            {
-                send6[count] = f(i, j, k - n - 1);
-                ++count;
-            }
+        if(p->gcpara6[q][2+gcv]>=1)
+        for(n=0;n<paramargin;++n)
+        {
+            send6[count]=f(i,j,k-n-1);
+            ++count;
+        }
     }
 }
 
-void ghostcell::gcparax_unpack(lexer *p, field &f, int gcv)
+void ghostcell::gcparax_unpack(lexer* p, field& f, int gcv)
 {
     //  FILL RECEIVE
-    count = 0;
-    for(q = 0; q < p->gcpara1_count; ++q)
+    count=0;
+    for(q=0;q<p->gcpara1_count;++q)
     {
-        i = p->gcpara1[q][0];
-        j = p->gcpara1[q][1];
-        k = p->gcpara1[q][2];
+        i=p->gcpara1[q][0];
+        j=p->gcpara1[q][1];
+        k=p->gcpara1[q][2];
 
-        if(p->gcpara1[q][2 + gcv] >= 1)
-            for(n = 0; n < paramargin; ++n)
-            {
-                if(p->gcpara1[q][2 + gcv] == 1)
-                    f(i - n - 1, j, k) = recv1[count];
-                ++count;
-            }
+        if(p->gcpara1[q][2+gcv]>=1)
+        for(n=0;n<paramargin;++n)
+        {
+            if(p->gcpara1[q][2+gcv]==1)
+                f(i-n-1,j,k)=recv1[count];
+            ++count;
+        }
     }
 
-    count = 0;
-    for(q = 0; q < p->gcpara3_count; ++q)
+    count=0;
+    for(q=0;q<p->gcpara3_count;++q)
     {
-        i = p->gcpara3[q][0];
-        j = p->gcpara3[q][1];
-        k = p->gcpara3[q][2];
+        i=p->gcpara3[q][0];
+        j=p->gcpara3[q][1];
+        k=p->gcpara3[q][2];
 
-        if(p->gcpara3[q][2 + gcv] >= 1)
-            for(n = 0; n < paramargin; ++n)
-            {
-                if(p->gcpara3[q][2 + gcv] == 1)
-                    f(i, j - n - 1, k) = recv3[count];
-                ++count;
-            }
+        if(p->gcpara3[q][2+gcv]>=1)
+        for(n=0;n<paramargin;++n)
+        {
+            if(p->gcpara3[q][2+gcv]==1)
+                f(i,j-n-1,k)=recv3[count];
+            ++count;
+        }
     }
 
-    count = 0;
-    for(q = 0; q < p->gcpara5_count; ++q)
+    count=0;
+    for(q=0;q<p->gcpara5_count;++q)
     {
-        i = p->gcpara5[q][0];
-        j = p->gcpara5[q][1];
-        k = p->gcpara5[q][2];
+        i=p->gcpara5[q][0];
+        j=p->gcpara5[q][1];
+        k=p->gcpara5[q][2];
 
-        if(p->gcpara5[q][2 + gcv] >= 1)
-            for(n = 0; n < paramargin; ++n)
-            {
-                if(p->gcpara5[q][2 + gcv] == 1)
-                    f(i, j, k - n - 1) = recv5[count];
-                ++count;
-            }
+        if(p->gcpara5[q][2+gcv]>=1)
+        for(n=0;n<paramargin;++n)
+        {
+            if(p->gcpara5[q][2+gcv]==1)
+                f(i,j,k-n-1)=recv5[count];
+            ++count;
+        }
     }
 
-    count = 0;
-    for(q = 0; q < p->gcpara4_count; ++q)
+    count=0;
+    for(q=0;q<p->gcpara4_count;++q)
     {
-        i = p->gcpara4[q][0];
-        j = p->gcpara4[q][1];
-        k = p->gcpara4[q][2];
+        i=p->gcpara4[q][0];
+        j=p->gcpara4[q][1];
+        k=p->gcpara4[q][2];
 
-        if(p->gcpara4[q][2 + gcv] >= 1)
-            for(n = 0; n < paramargin; ++n)
-            {
-                if(p->gcpara4[q][2 + gcv] == 1)
-                    f(i + n + 1, j, k) = recv4[count];
-                ++count;
-            }
+        if(p->gcpara4[q][2+gcv]>=1)
+        for(n=0;n<paramargin;++n)
+        {
+            if(p->gcpara4[q][2+gcv]==1)
+                f(i+n+1,j,k)=recv4[count];
+            ++count;
+        }
     }
 
-    count = 0;
-    for(q = 0; q < p->gcpara2_count; ++q)
+    count=0;
+    for(q=0;q<p->gcpara2_count;++q)
     {
-        i = p->gcpara2[q][0];
-        j = p->gcpara2[q][1];
-        k = p->gcpara2[q][2];
+        i=p->gcpara2[q][0];
+        j=p->gcpara2[q][1];
+        k=p->gcpara2[q][2];
 
-        if(p->gcpara2[q][2 + gcv] >= 1)
-            for(n = 0; n < paramargin; ++n)
-            {
-                if(p->gcpara2[q][2 + gcv] == 1)
-                    f(i, j + n + 1, k) = recv2[count];
-                ++count;
-            }
+        if(p->gcpara2[q][2+gcv]>=1)
+        for(n=0;n<paramargin;++n)
+        {
+            if(p->gcpara2[q][2+gcv]==1)
+                f(i,j+n+1,k)=recv2[count];
+            ++count;
+        }
     }
 
-    count = 0;
-    for(q = 0; q < p->gcpara6_count; ++q)
+    count=0;
+    for(q=0;q<p->gcpara6_count;++q)
     {
-        i = p->gcpara6[q][0];
-        j = p->gcpara6[q][1];
-        k = p->gcpara6[q][2];
+        i=p->gcpara6[q][0];
+        j=p->gcpara6[q][1];
+        k=p->gcpara6[q][2];
 
-        if(p->gcpara6[q][2 + gcv] >= 1)
-            for(n = 0; n < paramargin; ++n)
-            {
-                if(p->gcpara6[q][2 + gcv] == 1)
-                    f(i, j, k + n + 1) = recv6[count];
-                ++count;
-            }
+        if(p->gcpara6[q][2+gcv]>=1)
+        for(n=0;n<paramargin;++n)
+        {
+            if(p->gcpara6[q][2+gcv]==1)
+                f(i,j,k+n+1)=recv6[count];
+            ++count;
+        }
     }
 }

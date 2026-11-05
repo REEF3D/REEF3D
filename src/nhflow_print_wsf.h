@@ -23,10 +23,10 @@ Author: Hans Bihs
 #ifndef NHFLOW_PRINT_WSF_H_
 #define NHFLOW_PRINT_WSF_H_
 
-#include "amr_grid_lookup.h"
-#include "increment.h"
-#include <fstream>
-#include <iostream>
+#include"increment.h"
+#include"amr_grid_lookup.h"
+#include<iostream>
+#include<fstream>
 
 class lexer;
 class fdm_nhf;
@@ -41,34 +41,31 @@ public:
     // the mesh refinement: the points read the finest grid (amr_grid_lookup.h), nullptr: level 0
     const amr_column_lookup *amr = nullptr;
 
-    nhflow_print_wsf(lexer *, fdm_nhf *);
-    virtual ~nhflow_print_wsf();
+    nhflow_print_wsf(lexer*,fdm_nhf*);
+	virtual ~nhflow_print_wsf();
 
-    void height_gauge(lexer *, fdm_nhf *, ghostcell *, slice &);
+	void height_gauge(lexer*, fdm_nhf*, ghostcell*,slice&);
+
 
 private:
-    void ini_location(lexer *, fdm_nhf *);
-    void fill_eta(lexer *, fdm_nhf *, ghostcell *, slice &);
-    void fill_deta(lexer *, fdm_nhf *, ghostcell *, slice &);
-    void fill_Uhorz(lexer *, fdm_nhf *, ghostcell *, slice &);
+    void ini_location(lexer*, fdm_nhf*);
+    void fill_eta(lexer*, fdm_nhf*, ghostcell*,slice&);
+    void fill_deta(lexer*, fdm_nhf*, ghostcell*,slice&);
+    void fill_Uhorz(lexer*, fdm_nhf*, ghostcell*,slice&);
 
-    double *x, *y;
-    int gauge_num;
+	
+	double *x,*y;
+	int gauge_num;
 
-    int *iloc, *jloc, *flag;
-    double *wsf, *deta, *Uhorz;
+    int *iloc,*jloc,*flag;
+    double *wsf,*deta,*Uhorz;
     int n;
-    ofstream wsfout, detaout, Uhorzout;
-
+    ofstream wsfout,detaout,Uhorzout;
 public:
-    void flush_files()
-    {
-        wsfout.flush();
-        detaout.flush();
-        Uhorzout.flush();
-    }  // a rebalance stop (G 46)
+    void flush_files() { wsfout.flush(); detaout.flush(); Uhorzout.flush(); }   // a rebalance stop (G 46)
 private:
     const int fileFlushMaxCount;
+
 };
 
 #endif

@@ -45,100 +45,99 @@ Architect: Hans Bihs
 #ifndef CORAL_SOIL_H_
 #define CORAL_SOIL_H_
 
-#include "coral/core/coral_load.h"
-#include "coral/core/coral_types.h"
-#include <string>
-#include <vector>
+#include"coral/core/coral_load.h"
+#include"coral/core/coral_types.h"
+#include<string>
+#include<vector>
 
-namespace coral {
-class model;
-
-struct soil_curve
+namespace coral
 {
-    std::vector<double> y, p;       // y[0] = 0, p[0] = 0, increasing y
-    bool compression_only = false;  // force only for y > 0 (Q-z: y = settlement)
+    class model;
 
-    double force(double y) const;
-    double slope(double y) const;
-    bool empty() const { return y.size() < 2; }
-    soil_curve scaled(double s) const;  // force times s
-    static soil_curve linear(double k, double ymax = 1.0e3);
-};
+    struct soil_curve
+    {
+        std::vector<double> y, p;      // y[0] = 0, p[0] = 0, increasing y
+        bool compression_only = false; // force only for y > 0 (Q-z: y = settlement)
 
-struct soil_layer
-{
-    enum class kind { sand,
-                      clay,
-                      linear };
-    kind type = kind::sand;
-    double top = 0.0, bottom = 0.0;  // depths below the mudline [m]
-    double gamma = 10.0e3;           // submerged unit weight [N/m^3]
-    // sand
-    double phi = 30.0;    // friction angle [deg]
-    double k = 0.0;       // initial modulus of subgrade reaction [N/m^3]
-    double delta = -1.0;  // pile-soil friction angle [deg] (< 0: phi - 5)
-    double K = 0.8;       // lateral earth pressure coefficient (t-z)
-    double Nq = 40.0;     // bearing capacity factor
-    // clay
-    double su_top = 0.0, su_bottom = -1.0;  // undrained shear strength [Pa] (bottom < 0: constant)
-    double eps50 = 0.01;
-    double J = 0.5;
-    double residual = 0.9;  // t-z residual t/t_max
-    // linear (Winkler): lateral and axial modulus per length [N/m^2], tip stiffness [N/m]
-    double kh = 0.0, kv = 0.0, kq = 0.0;
-    bool cyclic = false;
+        double force(double y) const;
+        double slope(double y) const;
+        bool empty() const {return y.size() < 2;}
+        soil_curve scaled(double s) const;          // force times s
+        static soil_curve linear(double k, double ymax=1.0e3);
+    };
 
-    double su(double depth) const;
-};
+    struct soil_layer
+    {
+        enum class kind {sand, clay, linear};
+        kind type = kind::sand;
+        double top = 0.0, bottom = 0.0;             // depths below the mudline [m]
+        double gamma = 10.0e3;                      // submerged unit weight [N/m^3]
+        // sand
+        double phi = 30.0;                          // friction angle [deg]
+        double k = 0.0;                             // initial modulus of subgrade reaction [N/m^3]
+        double delta = -1.0;                        // pile-soil friction angle [deg] (< 0: phi - 5)
+        double K = 0.8;                             // lateral earth pressure coefficient (t-z)
+        double Nq = 40.0;                           // bearing capacity factor
+        // clay
+        double su_top = 0.0, su_bottom = -1.0;      // undrained shear strength [Pa] (bottom < 0: constant)
+        double eps50 = 0.01;
+        double J = 0.5;
+        double residual = 0.9;                      // t-z residual t/t_max
+        // linear (Winkler): lateral and axial modulus per length [N/m^2], tip stiffness [N/m]
+        double kh = 0.0, kv = 0.0, kq = 0.0;
+        bool cyclic = false;
 
-class soil_profile
-{
-public:
-    std::string name;
-    double mudline = 0.0;  // z of the mudline
-    std::vector<soil_layer> layers;
+        double su(double depth) const;
+    };
 
-    const soil_layer *layer_at(double depth) const;
-    double effective_stress(double depth) const;  // p0' [Pa]
-    soil_curve py(double depth, double D) const;  // lateral force per length against y
-    soil_curve tz(double depth, double D) const;  // axial force per length against z
-    soil_curve qz(double depth, double D) const;  // tip force against settlement (closed tip)
-};
+    class soil_profile
+    {
+    public:
+        std::string name;
+        double mudline = 0.0;                       // z of the mudline
+        std::vector<soil_layer> layers;
 
-class soil_spring : public load
-{
-public:
-    // node body b at its current position, pile axis a; lateral and axial curves are already per
-    // node (times the tributary length), tip curve only at the pile tip (else empty)
-    soil_spring(const model &, int b, const Vec3 &axis, const soil_curve &lateral, const soil_curve &axial,
-                const soil_curve &tip, const std::string &name, double radius = 0.0);
+        const soil_layer *layer_at(double depth) const;
+        double effective_stress(double depth) const;     // p0' [Pa]
+        soil_curve py(double depth, double D) const;     // lateral force per length against y
+        soil_curve tz(double depth, double D) const;     // axial force per length against z
+        soil_curve qz(double depth, double D) const;     // tip force against settlement (closed tip)
+    };
 
-    std::string name() const override { return name_; }
-    coupling_kind coupling() const override { return coupling_kind::local; }
-    void coupled_bodies(std::vector<int> &b) const override { b.push_back(b_); }
-    void eval(const model &, double t, VecX &f) const override;
-    bool has_tangent() const override { return true; }
-    void tangent(const model &, double t, double cK, double cC, double cM, std::vector<triplet> &) const override;
-    void channel_names(std::vector<std::string> &) const override;
-    void channel_values(const model &, double t, std::vector<double> &) const override;
+    class soil_spring : public load
+    {
+    public:
+        // node body b at its current position, pile axis a; lateral and axial curves are already per
+        // node (times the tributary length), tip curve only at the pile tip (else empty)
+        soil_spring(const model&, int b, const Vec3 &axis, const soil_curve &lateral, const soil_curve &axial,
+                    const soil_curve &tip, const std::string &name, double radius=0.0);
 
-    // soil force on the node (global)
-    Vec3 force(const model &) const;
+        std::string name() const override {return name_;}
+        coupling_kind coupling() const override {return coupling_kind::local;}
+        void coupled_bodies(std::vector<int> &b) const override {b.push_back(b_);}
+        void eval(const model&, double t, VecX &f) const override;
+        bool has_tangent() const override {return true;}
+        void tangent(const model&, double t, double cK, double cC, double cM, std::vector<triplet>&) const override;
+        void channel_names(std::vector<std::string>&) const override;
+        void channel_values(const model&, double t, std::vector<double>&) const override;
 
-private:
-    std::string name_;
-    int b_;
-    Vec3 a_, x0_;
-    Mat3 R0_;
-    double r_;
-    soil_curve lat_, ax_, tip_;
-};
+        // soil force on the node (global)
+        Vec3 force(const model&) const;
 
-// springs along a pile made of frame nodes (bodies at the given stations, top to tip or tip to top):
-// nodes below the mudline get p-y (and t-z, Q-z at the deepest node) with tributary lengths;
-// linear: the initial slopes only. Returns the number of springs added.
-int add_pile_springs(model &, const soil_profile &, const std::vector<int> &nodes, double D, bool py, bool tz,
-                     bool qz, bool linear, const std::string &name);
-}  // namespace coral
+    private:
+        std::string name_;
+        int b_;
+        Vec3 a_, x0_;
+        Mat3 R0_;
+        double r_;
+        soil_curve lat_, ax_, tip_;
+    };
+
+    // springs along a pile made of frame nodes (bodies at the given stations, top to tip or tip to top):
+    // nodes below the mudline get p-y (and t-z, Q-z at the deepest node) with tributary lengths;
+    // linear: the initial slopes only. Returns the number of springs added.
+    int add_pile_springs(model&, const soil_profile&, const std::vector<int> &nodes, double D, bool py, bool tz,
+                         bool qz, bool linear, const std::string &name);
+}
 
 #endif

@@ -38,79 +38,76 @@ Architect: Hans Bihs
 #ifndef CORAL_BEAM_H_
 #define CORAL_BEAM_H_
 
-#include "coral/core/coral_load.h"
-#include "coral/core/coral_types.h"
+#include"coral/core/coral_load.h"
+#include"coral/core/coral_types.h"
 
-namespace coral {
-struct beam_section
+namespace coral
 {
-    double EA = 0.0, EIy = 0.0, EIz = 0.0, GJ = 0.0;
-    double GAy = 0.0, GAz = 0.0;             // shear stiffness (0: no shear deformation)
-    double m = 0.0;                          // mass per length [kg/m]
-    double rIx = 0.0, rIy = 0.0, rIz = 0.0;  // rotary inertia per length (rho J, rho Iy, rho Iz) [kg m]
-    double D = 0.0;                          // outer diameter (hydrodynamics, output)
-
-    // circular tube, outer diameter D, wall t; shear factor 0.5 of a thin tube
-    static beam_section tube(double D, double t, double E, double G, double rho);
-    static beam_section blend(const beam_section &a, const beam_section &b, double s);  // (1-s) a + s b
-};
-
-struct beam_end
-{
-    int body = -1;          // -1: ground
-    Vec3 p = Vec3::Zero();  // global position at creation
-};
-
-class beam_element : public load
-{
-public:
-    beam_element(const model &, const beam_end &a, const beam_end &b, const beam_section &,
-                 const Vec3 &orient = Vec3::UnitZ(), double beta = 0.0, const std::string &name = "beam");
-
-    std::string name() const override { return name_; }
-    coupling_kind coupling() const override { return coupling_kind::local; }
-    void coupled_bodies(std::vector<int> &b) const override
+    struct beam_section
     {
-        b.push_back(ba_);
-        b.push_back(bb_);
-    }
-    void eval(const model &, double t, VecX &f) const override;
-    bool has_tangent() const override { return true; }
-    void tangent(const model &, double t, double cK, double cC, double cM, std::vector<triplet> &) const override;
-    double potential(const model &) const override;
+        double EA = 0.0, EIy = 0.0, EIz = 0.0, GJ = 0.0;
+        double GAy = 0.0, GAz = 0.0;             // shear stiffness (0: no shear deformation)
+        double m = 0.0;                          // mass per length [kg/m]
+        double rIx = 0.0, rIy = 0.0, rIz = 0.0;  // rotary inertia per length (rho J, rho Iy, rho Iz) [kg m]
+        double D = 0.0;                          // outer diameter (hydrodynamics, output)
 
-    // B = dd/dq of the current state (7 x 12: dx_a, dtheta_a, dx_b, dtheta_b), for tests
-    Eigen::Matrix<double, 7, 12> strain_matrix(const model &) const;
+        // circular tube, outer diameter D, wall t; shear factor 0.5 of a thin tube
+        static beam_section tube(double D, double t, double E, double G, double rho);
+        static beam_section blend(const beam_section &a, const beam_section &b, double s);    // (1-s) a + s b
+    };
 
-    double length0() const { return L0_; }
-    const beam_section &section() const { return s_; }
-    // deformations d = (u, ta_x, ta_y, ta_z, tb_x, tb_y, tb_z) and local forces f = K d
-    Eigen::Matrix<double, 7, 1> deformation(const model &) const;
-    Eigen::Matrix<double, 7, 1> local_forces(const Eigen::Matrix<double, 7, 1> &d) const;
-    // current element frame (columns x, y, z) and end positions
-    Mat3 frame(const model &, Vec3 &pa, Vec3 &pb) const;
+    struct beam_end
+    {
+        int body = -1;               // -1: ground
+        Vec3 p = Vec3::Zero();       // global position at creation
+    };
 
-private:
-    using Vec7 = Eigen::Matrix<double, 7, 1>;
-    using Mat7x12 = Eigen::Matrix<double, 7, 12>;
-    using Vec12 = Eigen::Matrix<double, 12, 1>;
-    Eigen::Matrix<double, 7, 1> deformation(const Vec3 &pa, const Mat3 &Ta, const Vec3 &pb, const Mat3 &Tb) const;
-    void ends(const model &, Vec3 &pa, Mat3 &Ta, Vec3 &pb, Mat3 &Tb) const;
-    // deformation and B for end bodies at (xa, Ra), (xb, Rb)
-    void kinematics(const Vec3 &xa, const Mat3 &Ra, const Vec3 &xb, const Mat3 &Rb, Vec7 &d, Mat7x12 &B) const;
-    // element forces on the 12 coordinates for the given end states (velocities v global, w body)
-    Vec12 element_force(const Vec3 &xa, const Mat3 &Ra, const Vec3 &xb, const Mat3 &Rb, const Vec12 &qd) const;
-    Eigen::Matrix<double, 7, 7> local_stiffness() const;
-    Vec12 rates(const model &) const;
+    class beam_element : public load
+    {
+    public:
+        beam_element(const model&, const beam_end &a, const beam_end &b, const beam_section&,
+                     const Vec3 &orient=Vec3::UnitZ(), double beta=0.0, const std::string &name="beam");
 
-    std::string name_;
-    int ba_, bb_;
-    Vec3 sa_, sb_;  // end points in the body frames
-    Mat3 Qa_, Qb_;  // element frame at creation in the body frames
-    double L0_;
-    beam_section s_;
-    double beta_;
-};
-}  // namespace coral
+        std::string name() const override {return name_;}
+        coupling_kind coupling() const override {return coupling_kind::local;}
+        void coupled_bodies(std::vector<int> &b) const override {b.push_back(ba_); b.push_back(bb_);}
+        void eval(const model&, double t, VecX &f) const override;
+        bool has_tangent() const override {return true;}
+        void tangent(const model&, double t, double cK, double cC, double cM, std::vector<triplet>&) const override;
+        double potential(const model&) const override;
+
+        // B = dd/dq of the current state (7 x 12: dx_a, dtheta_a, dx_b, dtheta_b), for tests
+        Eigen::Matrix<double,7,12> strain_matrix(const model&) const;
+
+        double length0() const {return L0_;}
+        const beam_section &section() const {return s_;}
+        // deformations d = (u, ta_x, ta_y, ta_z, tb_x, tb_y, tb_z) and local forces f = K d
+        Eigen::Matrix<double,7,1> deformation(const model&) const;
+        Eigen::Matrix<double,7,1> local_forces(const Eigen::Matrix<double,7,1> &d) const;
+        // current element frame (columns x, y, z) and end positions
+        Mat3 frame(const model&, Vec3 &pa, Vec3 &pb) const;
+
+    private:
+        using Vec7 = Eigen::Matrix<double,7,1>;
+        using Mat7x12 = Eigen::Matrix<double,7,12>;
+        using Vec12 = Eigen::Matrix<double,12,1>;
+        Eigen::Matrix<double,7,1> deformation(const Vec3 &pa, const Mat3 &Ta, const Vec3 &pb, const Mat3 &Tb) const;
+        void ends(const model&, Vec3 &pa, Mat3 &Ta, Vec3 &pb, Mat3 &Tb) const;
+        // deformation and B for end bodies at (xa, Ra), (xb, Rb)
+        void kinematics(const Vec3 &xa, const Mat3 &Ra, const Vec3 &xb, const Mat3 &Rb, Vec7 &d, Mat7x12 &B) const;
+        // element forces on the 12 coordinates for the given end states (velocities v global, w body)
+        Vec12 element_force(const Vec3 &xa, const Mat3 &Ra, const Vec3 &xb, const Mat3 &Rb, const Vec12 &qd) const;
+        Eigen::Matrix<double,7,7> local_stiffness() const;
+        Vec12 rates(const model&) const;
+
+        std::string name_;
+        int ba_, bb_;
+        Vec3 sa_, sb_;           // end points in the body frames
+        Mat3 Qa_, Qb_;           // element frame at creation in the body frames
+        double L0_;
+        beam_section s_;
+        double beta_;
+    };
+}
 
 #endif

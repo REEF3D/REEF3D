@@ -20,14 +20,14 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "ghostcell.h"
-#include "lexer.h"
-#include "wave_lib_hdc.h"
+#include"wave_lib_hdc.h"
+#include"lexer.h"
+#include"ghostcell.h"
 
 void wave_lib_hdc::wave_prestep_fnpf(lexer *p, ghostcell *pgc)
 {
-    time_levels(p, pgc, false);
-
+    time_levels(p,pgc,false);
+    
     // time interpolation
     time_interpol_fnpf(p);
 }

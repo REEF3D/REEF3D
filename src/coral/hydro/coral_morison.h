@@ -30,56 +30,51 @@ Architect: Hans Bihs
 #ifndef CORAL_MORISON_H_
 #define CORAL_MORISON_H_
 
-#include "coral/core/coral_load.h"
-#include "coral/hydro/coral_waves.h"
-#include <memory>
-#include <string>
-#include <vector>
+#include"coral/core/coral_load.h"
+#include"coral/hydro/coral_waves.h"
+#include<memory>
+#include<string>
+#include<vector>
 
-namespace coral {
-struct morison_member
+namespace coral
 {
-    Vec3 p1 = Vec3::Zero(), p2 = Vec3::Zero();  // end points (global, at creation)
-    double D = 1.0;
-    double Cd = 1.0;
-    double Ca = 1.0;
-    double Cm = 2.0;  // 1 + Ca for a member in waves (Froude-Krylov + diffraction)
-    int n = 20;
-};
-
-class morison_load : public load
-{
-public:
-    morison_load(const model &, int body, const std::vector<morison_member> &, std::shared_ptr<const wave_kinematics>,
-                 double rho = 1025.0, const Vec3 &current = Vec3::Zero(), const std::string &name = "morison");
-
-    std::string name() const override { return name_; }
-    coupling_kind coupling() const override { return coupling_kind::local; }
-    void coupled_bodies(std::vector<int> &b) const override { b.push_back(b_); }
-    void eval(const model &, double t, VecX &f) const override;
-    void kinematics_points(const model &, const void *source, std::vector<Vec3> &) const override;
-    void channel_names(std::vector<std::string> &) const override;
-    void channel_values(const model &, double t, std::vector<double> &) const override;
-
-    // total force (global) and moment about the origin (global) of the members
-    void total(const model &, double t, Vec3 &F, Vec3 &M) const;
-
-private:
-    struct strip
+    struct morison_member
     {
-        Vec3 s;
-        Vec3 e;
-        double L;
-        double D, Cd, Ca, Cm;
-    };  // body frame: centre, axis
-    bool strip_force(const model &, int index, double t, Vec3 &p, Vec3 &f) const;
-    std::string name_;
-    int b_;
-    std::vector<strip> strips_;
-    std::shared_ptr<const wave_kinematics> waves_;
-    double rho_;
-    Vec3 current_;
-};
-}  // namespace coral
+        Vec3 p1 = Vec3::Zero(), p2 = Vec3::Zero();    // end points (global, at creation)
+        double D = 1.0;
+        double Cd = 1.0;
+        double Ca = 1.0;
+        double Cm = 2.0;      // 1 + Ca for a member in waves (Froude-Krylov + diffraction)
+        int n = 20;
+    };
+
+    class morison_load : public load
+    {
+    public:
+        morison_load(const model&, int body, const std::vector<morison_member>&, std::shared_ptr<const wave_kinematics>,
+                     double rho=1025.0, const Vec3 &current=Vec3::Zero(), const std::string &name="morison");
+
+        std::string name() const override {return name_;}
+        coupling_kind coupling() const override {return coupling_kind::local;}
+        void coupled_bodies(std::vector<int> &b) const override {b.push_back(b_);}
+        void eval(const model&, double t, VecX &f) const override;
+        void kinematics_points(const model&, const void *source, std::vector<Vec3>&) const override;
+        void channel_names(std::vector<std::string>&) const override;
+        void channel_values(const model&, double t, std::vector<double>&) const override;
+
+        // total force (global) and moment about the origin (global) of the members
+        void total(const model&, double t, Vec3 &F, Vec3 &M) const;
+
+    private:
+        struct strip {Vec3 s; Vec3 e; double L; double D, Cd, Ca, Cm;};    // body frame: centre, axis
+        bool strip_force(const model&, int index, double t, Vec3 &p, Vec3 &f) const;
+        std::string name_;
+        int b_;
+        std::vector<strip> strips_;
+        std::shared_ptr<const wave_kinematics> waves_;
+        double rho_;
+        Vec3 current_;
+    };
+}
 
 #endif

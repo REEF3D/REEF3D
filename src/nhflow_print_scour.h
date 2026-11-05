@@ -23,8 +23,8 @@ Author: Hans Bihs
 #ifndef NHFLOW_PRINT_SCOUR_H_
 #define NHFLOW_PRINT_SCOUR_H_
 
-#include "increment.h"
-#include <vector>
+#include"increment.h"
+#include<vector>
 
 class lexer;
 class fdm_nhf;
@@ -38,16 +38,16 @@ class scour_gauge;
 class nhflow_print_scour : public increment
 {
 public:
-    nhflow_print_scour(lexer *, fdm_nhf *);
+    nhflow_print_scour(lexer*,fdm_nhf*);
     virtual ~nhflow_print_scour();
 
-    void start(lexer *, fdm_nhf *, ghostcell *);
+    void start(lexer*,fdm_nhf*,ghostcell*);
 
-    void ckpt_state(std::vector<double> &) const;
-    void ckpt_restore(const std::vector<double> &, size_t &);
+    void ckpt_state(std::vector<double>&) const;
+    void ckpt_restore(const std::vector<double>&, size_t&);
 
 private:
-    void sample(lexer *, fdm_nhf *, ghostcell *, scour_gauge *);
+    void sample(lexer*,fdm_nhf*,ghostcell*,scour_gauge*);
 
     scour_gauge *psf = nullptr;
     scour_gauge *psb = nullptr;

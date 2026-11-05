@@ -23,7 +23,7 @@ Author: Hans Bihs
 #ifndef DEM_VOID_H_
 #define DEM_VOID_H_
 
-#include "dem.h"
+#include"dem.h"
 
 class dem_void final : public dem
 {
@@ -31,10 +31,10 @@ public:
     dem_void() = default;
     virtual ~dem_void() = default;
 
-    void start_cfd(lexer *, fdm *, ghostcell *) override final {}
-    void start_nhflow(lexer *, fdm_nhf *, ghostcell *) override final {}
-    void forcing_cfd(lexer *, fdm *, ghostcell *, int, double, field &, field &, field &, bool) override final {}
-    void forcing_nhflow(lexer *, fdm_nhf *, ghostcell *, int, double, double *, double *, double *, slice &, bool, bool) override final {}
+    void start_cfd(lexer*, fdm*, ghostcell*) override final {}
+    void start_nhflow(lexer*, fdm_nhf*, ghostcell*) override final {}
+    void forcing_cfd(lexer*, fdm*, ghostcell*, int, double, field&, field&, field&, bool) override final {}
+    void forcing_nhflow(lexer*, fdm_nhf*, ghostcell*, int, double, double*, double*, double*, slice&, bool, bool) override final {}
 };
 
 #endif

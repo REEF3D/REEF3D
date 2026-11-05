@@ -32,58 +32,58 @@ Architect: Hans Bihs
 #ifndef CORAL_MEMBER_MORISON_H_
 #define CORAL_MEMBER_MORISON_H_
 
-#include "coral/core/coral_load.h"
-#include "coral/core/coral_points.h"
-#include "coral/hydro/coral_waves.h"
-#include <memory>
-#include <string>
-#include <utility>
-#include <vector>
+#include"coral/core/coral_load.h"
+#include"coral/core/coral_points.h"
+#include"coral/hydro/coral_waves.h"
+#include<memory>
+#include<string>
+#include<utility>
+#include<vector>
 
-namespace coral {
-struct member_morison_coef
+namespace coral
 {
-    double D = 1.0;
-    double Cd = 1.0;
-    double Ca = 1.0;
-    double Cm = -1.0;  // < 0: 1 + Ca
-    int n = 2;         // strips per element
-    bool buoyancy = true;
-};
+    struct member_morison_coef
+    {
+        double D = 1.0;
+        double Cd = 1.0;
+        double Ca = 1.0;
+        double Cm = -1.0;          // < 0: 1 + Ca
+        int n = 2;                 // strips per element
+        bool buoyancy = true;
+    };
 
-class member_morison : public load
-{
-public:
-    // elements: pairs of point indices of pts
-    member_morison(std::shared_ptr<const point_set> pts, const std::vector<std::pair<int, int>> &elements,
-                   const member_morison_coef &, std::shared_ptr<const wave_kinematics>, double rho, double g,
-                   const Vec3 &current, const std::string &name);
+    class member_morison : public load
+    {
+    public:
+        // elements: pairs of point indices of pts
+        member_morison(std::shared_ptr<const point_set> pts, const std::vector<std::pair<int,int>> &elements,
+                       const member_morison_coef&, std::shared_ptr<const wave_kinematics>, double rho, double g,
+                       const Vec3 &current, const std::string &name);
 
-    std::string name() const override { return name_; }
-    coupling_kind coupling() const override { return coupling_kind::local; }
-    void coupled_bodies(std::vector<int> &b) const override { b.insert(b.end(), bodies_.begin(), bodies_.end()); }
-    void coupled_coordinates(std::vector<int> &c) const override { c.insert(c.end(), coords_.begin(), coords_.end()); }
-    void eval(const model &, double t, VecX &f) const override;
-    void kinematics_points(const model &, const void *source, std::vector<Vec3> &) const override;
-    void channel_names(std::vector<std::string> &) const override;
-    void channel_values(const model &, double t, std::vector<double> &) const override;
+        std::string name() const override {return name_;}
+        coupling_kind coupling() const override {return coupling_kind::local;}
+        void coupled_bodies(std::vector<int> &b) const override {b.insert(b.end(), bodies_.begin(), bodies_.end());}
+        void coupled_coordinates(std::vector<int> &c) const override {c.insert(c.end(), coords_.begin(), coords_.end());}
+        void eval(const model&, double t, VecX &f) const override;
+        void kinematics_points(const model&, const void *source, std::vector<Vec3>&) const override;
+        void channel_names(std::vector<std::string>&) const override;
+        void channel_values(const model&, double t, std::vector<double>&) const override;
 
-    // total force (global) and moment about the origin of all strips
-    void total(const model &, double t, Vec3 &F, Vec3 &M) const;
+        // total force (global) and moment about the origin of all strips
+        void total(const model&, double t, Vec3 &F, Vec3 &M) const;
 
-private:
-    template<class Sink>
-    void strips(const model &, double t, Sink sink) const;
-    std::string name_;
-    std::shared_ptr<const point_set> pts_;
-    std::vector<std::pair<int, int>> elem_;
-    std::vector<int> pidx_;  // the two end points of each element
-    member_morison_coef c_;
-    std::shared_ptr<const wave_kinematics> waves_;
-    double rho_, g_;
-    Vec3 current_;
-    std::vector<int> bodies_, coords_;
-};
-}  // namespace coral
+    private:
+        template<class Sink> void strips(const model&, double t, Sink sink) const;
+        std::string name_;
+        std::shared_ptr<const point_set> pts_;
+        std::vector<std::pair<int,int>> elem_;
+        std::vector<int> pidx_;        // the two end points of each element
+        member_morison_coef c_;
+        std::shared_ptr<const wave_kinematics> waves_;
+        double rho_, g_;
+        Vec3 current_;
+        std::vector<int> bodies_, coords_;
+    };
+}
 
 #endif

@@ -20,83 +20,87 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "fdm_fnpf.h"
-#include "fnpf_breaking.h"
-#include "ghostcell.h"
-#include "lexer.h"
+#include"fnpf_breaking.h"
+#include"lexer.h"
+#include"fdm_fnpf.h"
+#include"ghostcell.h"
 
 void fnpf_breaking::breaking_kennedy(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, slice &eta_n, slice &Fifsf, double alpha)
 {
     // ini
-
+    
     // detect breaking
     // stage value eta against eta_n (was c->eta, i.e. zero or the wrong stage)
     SLICELOOP4
-    eta_t(i, j) = (eta(i, j) - eta_n(i, j)) / (alpha * p->dt);
+    eta_t(i, j) = (eta(i, j) - eta_n(i, j)) /(alpha* p->dt);
 
-    double threshold_I, threshold_F;
+    
+     double threshold_I, threshold_F;
 
     SLICELOOP4
     {
-
+        
         //---------------
         // Shallow Water
         //---------------
         // dry cells (A 343 2/3) do not break: WL = 0 there gives a zero onset threshold
-        if(p->wet[IJ] == 0)
+        if(p->wet[IJ]==0)
         {
-            c->breaking(i, j) = 0;
-            B_coeff(i, j) = 0.0;
+            c->breaking(i,j) = 0;
+            B_coeff(i,j)  = 0.0;
             continue;
         }
-
-        if((p->A351 == 1 || p->A351 == 3) && p->count > 1)
+        
+        if((p->A351==1 || p->A351==3) && p->count>1)
         {
-            // Onset threshold: eta_t > eta_I * sqrt(g * h)
-            threshold_I = eta_I * sqrt(9.81 * c->WL(i, j));
+        // Onset threshold: eta_t > eta_I * sqrt(g * h)
+        threshold_I = eta_I * sqrt(9.81 * c->WL(i,j));
 
-            // Cessation threshold: eta_t < eta_F * sqrt(g * h)
-            threshold_F = eta_F * sqrt(9.81 * c->WL(i, j));
+        // Cessation threshold: eta_t < eta_F * sqrt(g * h)
+        threshold_F = eta_F * sqrt(9.81 * c->WL(i,j));
 
-            // Check for breaking onset
-            if(c->breaking(i, j) == 0 && eta_t(i, j) > threshold_I)
-            {
-                c->breaking(i, j) = 1;
-                t_break(i, j) = p->simtime;
-            }
-
-            // Check for breaking cessation
-            if(c->breaking(i, j) == 1 && eta_t(i, j) < threshold_F)
-            {
-                c->breaking(i, j) = 0;
-                B_coeff(i, j) = 0.0;
-                c->vb(i, j) = 0.0;
-            }
+        // Check for breaking onset
+        if (c->breaking(i,j) == 0 && eta_t(i,j) > threshold_I)
+        {
+            c->breaking(i,j) = 1;
+            t_break(i,j)  = p->simtime;
         }
-
+        
+        // Check for breaking cessation
+        if(c->breaking(i,j) == 1 && eta_t(i,j) < threshold_F)
+        {
+            c->breaking(i,j) = 0;
+            B_coeff(i,j)  = 0.0;
+            c->vb(i,j)     = 0.0;
+        }
+        }
+        
         //---------------
         // Deep Water
         //---------------
         // steepness detection
-        if((p->A351 == 2 || p->A351 == 3) && p->count > 1)
+        if((p->A351==2 || p->A351==3) && p->count>1)
         {
-            if(c->breaking(i, j) == 0 && (fabs(c->Ex(i, j)) > p->A355 || fabs(c->Ey(i, j)) > p->A355))
-            {
-                c->breaking(i, j) = 2;
-                t_break(i, j) = p->simtime;
-            }
-
-            // Check for breaking cessation
-            // was (|Ex|<.. && |Ey|<..) || j_dir==0: in 2D every flag 2 was cleared in the step it was set
-            if(c->breaking(i, j) == 2 && fabs(c->Ex(i, j)) < p->A356 * p->A355 && (p->j_dir == 0 || fabs(c->Ey(i, j)) < p->A356 * p->A355))
-            {
-                c->breaking(i, j) = 0;
-                B_coeff(i, j) = 0.0;
-                c->vb(i, j) = 0.0;
-            }
+        if (c->breaking(i,j) == 0 && (fabs(c->Ex(i,j)) > p->A355 || fabs(c->Ey(i,j)) > p->A355))
+        {
+            c->breaking(i,j) = 2;
+            t_break(i,j)  = p->simtime;
+        }
+        
+        // Check for breaking cessation
+        // was (|Ex|<.. && |Ey|<..) || j_dir==0: in 2D every flag 2 was cleared in the step it was set
+        if(c->breaking(i,j) == 2 && fabs(c->Ex(i,j)) < p->A356*p->A355 && (p->j_dir==0 || fabs(c->Ey(i,j)) < p->A356*p->A355))
+        {
+            c->breaking(i,j) = 0;
+            B_coeff(i,j)  = 0.0;
+            c->vb(i,j)     = 0.0;
+        }
+        
+        
         }
     }
-
+    
+    
     // calculate viscosity
     // pass 1: viscosity of the breaking cells (vb_brk), pass 2: spread over +-2 cells in x and y
     // (max of the sources). The spreading used to write vb(i+1,j), vb(i+2,j), ... inside the cell
@@ -106,82 +110,85 @@ void fnpf_breaking::breaking_kennedy(lexer *p, fdm_fnpf *c, ghostcell *pgc, slic
 
     SLICELOOP4
     {
-        vb_brk(i, j) = 0.0;
-
-        if(c->breaking(i, j) == 1 || c->breaking(i, j) == 2)
+        vb_brk(i,j) = 0.0;
+        
+        if(c->breaking(i,j)==1 || c->breaking(i,j)==2)
         {
-
+   
             // Ramp-up timescale: T* = T_star_coeff * sqrt(h/g)
-            T_ramp = T_star * sqrt(c->WL(i, j) / 9.81);
+            T_ramp = T_star * sqrt(c->WL(i,j)/ 9.81);
 
             // Time since breaking onset
-            dt_break = p->simtime + p->dt - t_break(i, j);
+            dt_break = p->simtime + p->dt - t_break(i,j);
 
             // Temporal ramp coefficient B(t)
-            if(dt_break < T_ramp && T_ramp > 1.0e-10)
-                B_coeff(i, j) = dt_break / T_ramp;
-
+            if (dt_break < T_ramp && T_ramp > 1.0e-10)
+            B_coeff(i, j) = dt_break / T_ramp;
+            
             else
-                B_coeff(i, j) = 1.0;
+            B_coeff(i, j) = 1.0;
 
             B_coeff(i, j) = MIN(B_coeff(i, j), 1.0);
             B_coeff(i, j) = MAX(B_coeff(i, j), 0.0);
 
             // Eddy viscosity: c->vb = B * delta_b^2 * h * |eta_t|
             // Using |eta_t| to ensure positive viscosity
-            // visc = B_coeff(i,j) * p->A365 * p->A365 * c->WL(i,j) * fabs(eta_t(i, j));
+            //visc = B_coeff(i,j) * p->A365 * p->A365 * c->WL(i,j) * fabs(eta_t(i, j));
             visc = 0.0;
-
-            if(c->breaking(i, j) == 1)
-                visc = p->A365 * p->A365 * c->WL(i, j) * fabs(eta_t(i, j));
-
-            if(c->breaking(i, j) == 2)
-                visc = p->A365 * p->A365 * c->WL(i, j);
-
+            
+            if(c->breaking(i,j)==1)
+            visc = p->A365 * p->A365 * c->WL(i,j) * fabs(eta_t(i, j));
+            
+            if(c->breaking(i,j)==2)
+            visc = p->A365 * p->A365 * c->WL(i,j);
+            
             visc = MIN(visc, vb_max);
             visc = MAX(visc, 0.0);
-
-            vb_brk(i, j) = visc;
+            
+            vb_brk(i,j) = visc;
         }
-
+        
         else
-            B_coeff(i, j) = 0.0;
+        B_coeff(i, j) = 0.0;
     }
-
+    
     pgc->gcsl_start4(p, vb_brk, 1);
-
+    
     SLICELOOP4
     {
         visc = 0.0;
-
-        for(int q = -2; q <= 2; ++q)
+        
+        for(int q=-2; q<=2; ++q)
         {
-            visc = MAX(visc, vb_brk(i + q, j));
-
-            if(p->j_dir == 1)
-                visc = MAX(visc, vb_brk(i, j + q));
+            visc = MAX(visc, vb_brk(i+q,j));
+            
+            if(p->j_dir==1)
+            visc = MAX(visc, vb_brk(i,j+q));
         }
-
-        c->vb(i, j) = (p->wet[IJ] == 1) ? visc : 0.0;
+        
+        c->vb(i,j) = (p->wet[IJ]==1) ? visc : 0.0;
     }
 
     pgc->gcsl_start4(p, c->vb, 1);
-
+    
+    
     SLICELOOP4
-    c->breaklog(i, j) = 0;
-
+    c->breaklog(i,j)=0;
+    
     // breaklog
-    int count = 0;
-
+    int count=0; 
+    
     SLICELOOP4
-    if(c->breaking(i, j) > 0)
+    if(c->breaking(i,j)>0)
     {
-        c->breaklog(i, j) = 1;
-        ++count;
+    c->breaklog(i,j)=1;
+    ++count;
     }
-
-    count = pgc->globalisum(count);
-
-    if(p->mpirank == 0 && (p->count % p->P12 == 0))
-        cout << "breaking: " << count << endl;
+    
+    
+    count=pgc->globalisum(count);
+    
+    if(p->mpirank==0 && (p->count%p->P12==0))
+    cout<<"breaking: "<<count<<endl;
+    
 }

@@ -23,7 +23,8 @@ Authors: Hans Bihs, Alexander Hanke
 #ifndef PART_H_
 #define PART_H_
 
-enum {
+enum
+{
     EMPTY = -1,
     PASSIVE = 1,
     ACTIVE = 10,
@@ -31,9 +32,9 @@ enum {
     MOVING = 20
 };
 
-#include "increment.h"
-#include <functional>
-#include <vector>
+#include"increment.h"
+#include<vector>
+#include<functional>
 
 class lexer;
 class ghostcell;
@@ -42,44 +43,44 @@ class slice;
 class part : public increment
 {
 public:
-    part(lexer *, ghostcell *);
+    part(lexer*, ghostcell *);
     virtual ~part();
 
     // functions
     // add
 
-    void resize(lexer *, int);
+    void resize(lexer*,int);
 
     // remove
     void remove(int);
     void erase_all();
 
     // parallel
-    void xchange(lexer *, ghostcell *, slice &, int);
-    void xchange_count(lexer *, ghostcell *, int);
-    void xchange_sendid(lexer *, ghostcell *, int);
-    void xchange_fill_flag(lexer *, ghostcell *, int);
-    void xchange_fillback_flag(lexer *, ghostcell *, slice &, int);
-    void xchange_resize(lexer *, ghostcell *, int);
+    void xchange(lexer*, ghostcell*,slice&,int);
+    void xchange_count(lexer*, ghostcell*,int);
+    void xchange_sendid(lexer*, ghostcell*,int);
+    void xchange_fill_flag(lexer*, ghostcell*,int);
+    void xchange_fillback_flag(lexer*, ghostcell*,slice&,int);
+    void xchange_resize(lexer*, ghostcell*, int);
 
     // checkpoints (P 48, I 45): the parcel slots of the rank as they are (with the free-slot stack, so the
     // order of the slots and of the sums over them stays); ckpt_set: the parcels of another decomposition
-    void ckpt_state(std::vector<double> &) const;
-    bool ckpt_restore(lexer *, const std::vector<double> &, size_t &);
+    void ckpt_state(std::vector<double>&) const;
+    bool ckpt_restore(lexer*, const std::vector<double>&, size_t&);
     // the parcels (not empty) of a stored part whose position the test keeps, appended to the slots
-    static void ckpt_parcels(const std::vector<double> &, size_t &, const std::function<bool(double, double, double)> &, std::vector<std::vector<double>> &);
-    void ckpt_set(lexer *, const std::vector<std::vector<double>> &);
+    static void ckpt_parcels(const std::vector<double>&, size_t&, const std::function<bool(double,double,double)>&, std::vector<std::vector<double>>&);
+    void ckpt_set(lexer*, const std::vector<std::vector<double>>&);
 
     // data arrays
-    double *U, *V, *W;
-    double *URK1, *VRK1, *WRK1;
+    double *U,*V,*W;
+    double *URK1,*VRK1,*WRK1;
 
-    double *X, *Y, *Z;
-    double *XRK1, *YRK1, *ZRK1;
+    double *X,*Y,*Z;
+    double *XRK1,*YRK1,*ZRK1;
 
-    double *Uf, *Vf, *Wf;
+    double *Uf,*Vf,*Wf;
 
-    double *D, *RO;
+    double *D,*RO;
 
     double *Test;
 
@@ -94,33 +95,34 @@ public:
     // parcel came about (number), carried along to other ranks; 0 while it has none. Not in the checkpoints:
     // after a restart the parcels are numbered again
     double *ID;
-    void number(lexer *);
+    void number(lexer*);
 
-    int *Empty, *Flag;
+    int *Empty,*Flag;
 
-    double d50, rhosed;
+    double d50,rhosed;
     double ParcelFactor;
 
     // iterators
-    int index;                      // replace loopindex
-    int index_empty, index_empty0;  //
-    int numactive, numempty;        // number of active particles
-    int capacity;                   // length of allocated array
-    int capacity_para, capacity_buf, maxnum;
+    int index; // replace loopindex
+    int index_empty,index_empty0; //
+    int numactive,numempty;   // number of active particles
+    int capacity; // length of allocated array
+    int capacity_para,capacity_buf,maxnum;
 
+    int n,q;
 private:
-    double id_next = 0.0;  // ID = 1 + rank + ranks * id_next: unique over the ranks
+    double id_next = 0.0;   // ID = 1 + rank + ranks * id_next: unique over the ranks
 
-    int sendnum[6], recvnum[6];
-    int sendcount[6], recvcount[6];
+    int sendnum[6],recvnum[6];
+    int sendcount[6],recvcount[6];
     int **sendid;
-    double **send, **recv;
-
+    double **send,**recv;
+    
     // xchange: target side of each parcel (0: stays, 1..6: neighbour), found once per call in xchange_count;
     // the cell indices of the last position looked up are kept per parcel slot with that position
     std::vector<signed char> xdest;
-    std::vector<double> xkx, xky, xkz;
-    std::vector<int> xki, xkj, xkk;
+    std::vector<double> xkx,xky,xkz;
+    std::vector<int> xki,xkj,xkk;
 };
 
 #endif

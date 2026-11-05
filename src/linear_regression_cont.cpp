@@ -20,17 +20,18 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "linear_regression_cont.h"
-#include "ghostcell.h"
-#include "lexer.h"
+#include"linear_regression_cont.h"
+#include"lexer.h"
+#include"ghostcell.h"
 
-linear_regression_cont::linear_regression_cont(lexer *p)
+linear_regression_cont::linear_regression_cont (lexer *p)
 {
-    num = 1.0;
-    xm = ym = 0.0;
-    SS_xy = SS_xx = 0.0;
-    xsum = ysum = 0.0;
-    xx_sum = xy_sum = 0.0;
+    num=1.0;
+    xm=ym=0.0;
+    SS_xy=SS_xx=0.0; 
+    xsum=ysum=0.0;
+    xx_sum=xy_sum=0.0;
+    
 }
 
 linear_regression_cont::~linear_regression_cont()

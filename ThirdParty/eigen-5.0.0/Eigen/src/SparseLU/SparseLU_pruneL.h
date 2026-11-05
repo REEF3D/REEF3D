@@ -52,88 +52,76 @@ namespace internal {
  * \param glu Global LU data
  *
  */
-template<typename Scalar, typename StorageIndex>
-void SparseLUImpl<Scalar, StorageIndex>::pruneL(const Index jcol, const IndexVector &perm_r, const Index pivrow,
-                                                const Index nseg, const IndexVector &segrep, BlockIndexVector repfnz,
-                                                IndexVector &xprune, GlobalLU_t &glu)
-{
-    // For each supernode-rep irep in U(*,j]
-    Index jsupno = glu.supno(jcol);
-    Index i, irep, irep1;
-    bool movnum, do_prune = false;
-    Index kmin = 0, kmax = 0, minloc, maxloc, krow;
-    for(i = 0; i < nseg; i++)
-    {
-        irep = segrep(i);
-        irep1 = irep + 1;
-        do_prune = false;
+template <typename Scalar, typename StorageIndex>
+void SparseLUImpl<Scalar, StorageIndex>::pruneL(const Index jcol, const IndexVector& perm_r, const Index pivrow,
+                                                const Index nseg, const IndexVector& segrep, BlockIndexVector repfnz,
+                                                IndexVector& xprune, GlobalLU_t& glu) {
+  // For each supernode-rep irep in U(*,j]
+  Index jsupno = glu.supno(jcol);
+  Index i, irep, irep1;
+  bool movnum, do_prune = false;
+  Index kmin = 0, kmax = 0, minloc, maxloc, krow;
+  for (i = 0; i < nseg; i++) {
+    irep = segrep(i);
+    irep1 = irep + 1;
+    do_prune = false;
 
-        // Don't prune with a zero U-segment
-        if(repfnz(irep) == emptyIdxLU)
-            continue;
+    // Don't prune with a zero U-segment
+    if (repfnz(irep) == emptyIdxLU) continue;
 
-        // If a snode overlaps with the next panel, then the U-segment
-        // is fragmented into two parts -- irep and irep1. We should let
-        // pruning occur at the rep-column in irep1s snode.
-        if(glu.supno(irep) == glu.supno(irep1))
-            continue;  // don't prune
+    // If a snode overlaps with the next panel, then the U-segment
+    // is fragmented into two parts -- irep and irep1. We should let
+    // pruning occur at the rep-column in irep1s snode.
+    if (glu.supno(irep) == glu.supno(irep1)) continue;  // don't prune
 
-        // If it has not been pruned & it has a nonz in row L(pivrow,i)
-        if(glu.supno(irep) != jsupno)
-        {
-            if(xprune(irep) >= glu.xlsub(irep1))
-            {
-                kmin = glu.xlsub(irep);
-                kmax = glu.xlsub(irep1) - 1;
-                for(krow = kmin; krow <= kmax; krow++)
-                {
-                    if(glu.lsub(krow) == pivrow)
-                    {
-                        do_prune = true;
-                        break;
-                    }
-                }
+    // If it has not been pruned & it has a nonz in row L(pivrow,i)
+    if (glu.supno(irep) != jsupno) {
+      if (xprune(irep) >= glu.xlsub(irep1)) {
+        kmin = glu.xlsub(irep);
+        kmax = glu.xlsub(irep1) - 1;
+        for (krow = kmin; krow <= kmax; krow++) {
+          if (glu.lsub(krow) == pivrow) {
+            do_prune = true;
+            break;
+          }
+        }
+      }
+
+      if (do_prune) {
+        // do a quicksort-type partition
+        // movnum=true means that the num values have to be exchanged
+        movnum = false;
+        if (irep == glu.xsup(glu.supno(irep)))  // Snode of size 1
+          movnum = true;
+
+        while (kmin <= kmax) {
+          if (perm_r(glu.lsub(kmax)) == emptyIdxLU)
+            kmax--;
+          else if (perm_r(glu.lsub(kmin)) != emptyIdxLU)
+            kmin++;
+          else {
+            // kmin below pivrow (not yet pivoted), and kmax
+            // above pivrow: interchange the two subscripts
+            std::swap(glu.lsub(kmin), glu.lsub(kmax));
+
+            // If the supernode has only one column, then we
+            // only keep one set of subscripts. For any subscript
+            // intercnahge performed, similar interchange must be
+            // done on the numerical values.
+            if (movnum) {
+              minloc = glu.xlusup(irep) + (kmin - glu.xlsub(irep));
+              maxloc = glu.xlusup(irep) + (kmax - glu.xlsub(irep));
+              std::swap(glu.lusup(minloc), glu.lusup(maxloc));
             }
+            kmin++;
+            kmax--;
+          }
+        }  // end while
 
-            if(do_prune)
-            {
-                // do a quicksort-type partition
-                // movnum=true means that the num values have to be exchanged
-                movnum = false;
-                if(irep == glu.xsup(glu.supno(irep)))  // Snode of size 1
-                    movnum = true;
-
-                while(kmin <= kmax)
-                {
-                    if(perm_r(glu.lsub(kmax)) == emptyIdxLU)
-                        kmax--;
-                    else if(perm_r(glu.lsub(kmin)) != emptyIdxLU)
-                        kmin++;
-                    else
-                    {
-                        // kmin below pivrow (not yet pivoted), and kmax
-                        // above pivrow: interchange the two subscripts
-                        std::swap(glu.lsub(kmin), glu.lsub(kmax));
-
-                        // If the supernode has only one column, then we
-                        // only keep one set of subscripts. For any subscript
-                        // intercnahge performed, similar interchange must be
-                        // done on the numerical values.
-                        if(movnum)
-                        {
-                            minloc = glu.xlusup(irep) + (kmin - glu.xlsub(irep));
-                            maxloc = glu.xlusup(irep) + (kmax - glu.xlsub(irep));
-                            std::swap(glu.lusup(minloc), glu.lusup(maxloc));
-                        }
-                        kmin++;
-                        kmax--;
-                    }
-                }  // end while
-
-                xprune(irep) = StorageIndex(kmin);  // Pruning
-            }  // end if do_prune
-        }  // end pruning
-    }  // End for each U-segment
+        xprune(irep) = StorageIndex(kmin);  // Pruning
+      }                                     // end if do_prune
+    }                                       // end pruning
+  }                                         // End for each U-segment
 }
 
 }  // end namespace internal

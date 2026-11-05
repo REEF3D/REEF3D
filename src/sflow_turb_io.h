@@ -23,10 +23,10 @@ Author: Hans Bihs
 #ifndef SFLOW_TURB_IO_H_
 #define SFLOW_TURB_IO_H_
 
-#include "increment.h"
-#include "sflow_turbulence.h"
-#include "slice4.h"
-#include <fstream>
+#include"sflow_turbulence.h"
+#include"increment.h"
+#include"slice4.h"
+#include<fstream>
 
 class fdm2D;
 class lexer;
@@ -38,35 +38,37 @@ class sflow_turb_io : public sflow_turbulence, public increment
 {
 
 public:
-    void ckpt_fields(const std::function<void(const char *, char, double *)> &fd, const std::function<void(const char *, char, int *)> &fi) override
+
+    void ckpt_fields(const std::function<void(const char*, char, double*)> &fd, const std::function<void(const char*, char, int*)> &fi) override
     {
-        fd("turb_io_kin", 'S', kin.V);
-        fd("turb_io_eps", 'S', eps.V);
+        fd("turb_io_kin",'S',kin.V); fd("turb_io_eps",'S',eps.V);
     }
-    sflow_turb_io(lexer *);
-    virtual ~sflow_turb_io();
-
-    void print_2D(lexer *, fdm2D *, ghostcell *, std::ostream &) override final;
-
-    void kinget(int, int, double) override final;
-    void epsget(int, int, double) override final;
-
-    double kinval(int, int) override final;
-    double epsval(int, int) override final;
-
-    void name_pvtp(lexer *, fdm2D *, ghostcell *, ofstream &) override final;
-    void name_vtp(lexer *, fdm2D *, ghostcell *, std::ostream &, int *, int &) override final;
-
-    void offset_ParaView_2D(lexer *, int *, int &) override final;
-
+    sflow_turb_io(lexer*);
+	virtual ~sflow_turb_io();
+    
+    void print_2D(lexer*, fdm2D*, ghostcell*,std::ostream&) override final;
+    
+    void kinget(int,int,double) override final;
+    void epsget(int,int,double) override final;
+    
+    double kinval(int,int) override final;
+    double epsval(int,int) override final;
+    
+	void name_pvtp(lexer*, fdm2D*, ghostcell*,ofstream&) override final;
+    void name_vtp(lexer*, fdm2D*, ghostcell*,std::ostream &, int*, int &) override final;
+    
+    void offset_ParaView_2D(lexer*, int*, int &) override final;
+    
     slice4 kin, eps;
-
-    int gcval_eps, gcval_kin;
-
+    
+    int gcval_eps,gcval_kin;
+    
 private:
+    
     double val;
     float ffn;
     int iin;
+    
 };
 
 #endif

@@ -8,18 +8,16 @@ namespace internal {
 #define EIGEN_LSX_GEBP_NR 8
 #endif
 
-template<>
+template <>
 struct gebp_traits<float, float, false, false, Architecture::LSX, GEBPPacketFull>
-    : gebp_traits<float, float, false, false, Architecture::Generic, GEBPPacketFull>
-{
-    enum { nr = EIGEN_LSX_GEBP_NR };
+    : gebp_traits<float, float, false, false, Architecture::Generic, GEBPPacketFull> {
+  enum { nr = EIGEN_LSX_GEBP_NR };
 };
 
-template<>
+template <>
 struct gebp_traits<double, double, false, false, Architecture::LSX, GEBPPacketFull>
-    : gebp_traits<double, double, false, false, Architecture::Generic, GEBPPacketFull>
-{
-    enum { nr = EIGEN_LSX_GEBP_NR };
+    : gebp_traits<double, double, false, false, Architecture::Generic, GEBPPacketFull> {
+  enum { nr = EIGEN_LSX_GEBP_NR };
 };
 }  // namespace internal
 }  // namespace Eigen

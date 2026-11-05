@@ -20,40 +20,40 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "met_forcing.h"
-#include "ghostcell.h"
-#include "lexer.h"
-#include "met_drag.h"
-#include "met_frame.h"
-#include "met_provider.h"
-#include "slice.h"
-#include <algorithm>
-#include <cmath>
-#include <iostream>
+#include"met_forcing.h"
+#include"met_provider.h"
+#include"met_frame.h"
+#include"met_drag.h"
+#include"lexer.h"
+#include"ghostcell.h"
+#include"slice.h"
+#include<cmath>
+#include<algorithm>
+#include<iostream>
 
 met_forcing::met_forcing(lexer *p, ghostcell *pgc) : U10(p), V10(p), Pa(p), Tx(p), Ty(p), Gx(p), Gy(p), Fc(p)
 {
-    wind = p->W200 > 0;
-    pressure = wind && p->W208 == 1;
-    coriolis = p->W211 > 0;
+    wind = p->W200>0;
+    pressure = wind && p->W208==1;
+    coriolis = p->W211>0;
 
     if(wind)
     {
-        pm = met_provider::get(p, pgc);
+    pm = met_provider::get(p,pgc);
 
-        // box of the cell centres of the grid incl. its ghost cells: the part of the met file the rank reads
-        double xs = 1.0e300, xe = -1.0e300, ys = 1.0e300, ye = -1.0e300;
+    // box of the cell centres of the grid incl. its ghost cells: the part of the met file the rank reads
+    double xs = 1.0e300, xe = -1.0e300, ys = 1.0e300, ye = -1.0e300;
 
         // curvilinear grid (G 50): the physical cell centres
-        if(p->geo_curv == 1)
+        if(p->geo_curv==1)
         {
             IMALOOP
             JMALOOP
             {
-                xs = std::min(xs, p->XC2D[IJ]);
-                xe = std::max(xe, p->XC2D[IJ]);
-                ys = std::min(ys, p->YC2D[IJ]);
-                ye = std::max(ye, p->YC2D[IJ]);
+            xs = std::min(xs,p->XC2D[IJ]);
+            xe = std::max(xe,p->XC2D[IJ]);
+            ys = std::min(ys,p->YC2D[IJ]);
+            ye = std::max(ye,p->YC2D[IJ]);
             }
         }
 
@@ -61,47 +61,47 @@ met_forcing::met_forcing(lexer *p, ghostcell *pgc) : U10(p), V10(p), Pa(p), Tx(p
         {
             IMALOOP
             {
-                xs = std::min(xs, p->XP[IP]);
-                xe = std::max(xe, p->XP[IP]);
+            xs = std::min(xs,p->XP[IP]);
+            xe = std::max(xe,p->XP[IP]);
             }
 
             JMALOOP
             {
-                ys = std::min(ys, p->YP[JP]);
-                ye = std::max(ye, p->YP[JP]);
+            ys = std::min(ys,p->YP[JP]);
+            ye = std::max(ye,p->YP[JP]);
             }
         }
 
-        pm->window(xs, xe, ys, ye);
+    pm->window(xs,xe,ys,ye);
     }
 
     // Coriolis parameter f = 2 Omega sin(latitude)
     if(coriolis)
     {
-        const double Omega = 7.2921159e-5;
-        const double rad = 3.14159265358979323846 / 180.0;
-        met_frame fr;
+    const double Omega = 7.2921159e-5;
+    const double rad = 3.14159265358979323846/180.0;
+    met_frame fr;
 
-        if(p->W205 == 1)
-            fr = met_frame(p->W205_lon, p->W205_lat, p->W205_rot, p->W206_x, p->W206_y);
+        if(p->W205==1)
+        fr = met_frame(p->W205_lon,p->W205_lat,p->W205_rot,p->W206_x,p->W206_y);
 
-        const double f0 = p->W212 != 0.0 ? p->W212 : 2.0 * Omega * std::sin(p->W205_lat * rad);
+    const double f0 = p->W212!=0.0 ? p->W212 : 2.0*Omega*std::sin(p->W205_lat*rad);
 
         IMALOOP
         JMALOOP
         {
-            if(p->W211 == 1)
-                Fc(i, j) = f0;
+            if(p->W211==1)
+            Fc(i,j) = f0;
 
-            if(p->W211 == 2)
+            if(p->W211==2)
             {
-                double lon, lat;
-                // curvilinear grid (G 50): the physical cell centre (XP, YP are the logical coordinates there)
-                if(p->geo_curv == 1)
-                    fr.to_geo(p->XC2D[IJ], p->YC2D[IJ], lon, lat);
-                else
-                    fr.to_geo(p->XP[IP], p->YP[JP], lon, lat);
-                Fc(i, j) = 2.0 * Omega * std::sin(lat * rad);
+            double lon, lat;
+            // curvilinear grid (G 50): the physical cell centre (XP, YP are the logical coordinates there)
+            if(p->geo_curv==1)
+            fr.to_geo(p->XC2D[IJ],p->YC2D[IJ],lon,lat);
+            else
+            fr.to_geo(p->XP[IP],p->YP[JP],lon,lat);
+            Fc(i,j) = 2.0*Omega*std::sin(lat*rad);
             }
         }
     }
@@ -109,64 +109,64 @@ met_forcing::met_forcing(lexer *p, ghostcell *pgc) : U10(p), V10(p), Pa(p), Tx(p
 
 void met_forcing::update(lexer *p, ghostcell *pgc)
 {
-    if(!wind || (has_t && p->simtime == tlast))
-        return;
+    if(!wind || (has_t && p->simtime==tlast))
+    return;
 
-    pm->update(p, pgc, p->simtime);
+    pm->update(p,pgc,p->simtime);
 
-    const double r = pm->ramp(p, p->simtime);
-    const double ra = r * p->W3 / p->W1;
-    const int law = met_drag_law(p->W207, p->W200);
+    const double r = pm->ramp(p,p->simtime);
+    const double ra = r*p->W3/p->W1;
+    const int law = met_drag_law(p->W207,p->W200);
     double u, v, pa, speed;
 
     IMALOOP
     JMALOOP
     {
-        if(p->geo_curv == 1)
-            pm->at(p->XC2D[IJ], p->YC2D[IJ], u, v, pa);
-        else
-            pm->at(p->XP[IP], p->YP[JP], u, v, pa);
+    if(p->geo_curv==1)
+    pm->at(p->XC2D[IJ],p->YC2D[IJ],u,v,pa);
+    else
+    pm->at(p->XP[IP],p->YP[JP],u,v,pa);
 
-        speed = std::sqrt(u * u + v * v);
+    speed = std::sqrt(u*u + v*v);
 
-        U10(i, j) = u;
-        V10(i, j) = v;
-        Pa(i, j) = pa;
+    U10(i,j) = u;
+    V10(i,j) = v;
+    Pa(i,j)  = pa;
 
-        double Cd;
+    double Cd;
 
-        if(law == 7 && z0w != nullptr)
+        if(law==7 && z0w!=nullptr)
         {
-            const double z = (*z0w)(i, j);
-            Cd = z < 0.0 ? met_drag(5, speed, p->W213) : met_drag_z0(p->W229 == 1 ? std::max(z, charnock(speed)) : z, p->W228);
+        const double z = (*z0w)(i,j);
+        Cd = z<0.0 ? met_drag(5,speed,p->W213) : met_drag_z0(p->W229==1 ? std::max(z,charnock(speed)) : z,p->W228);
         }
         else
-            Cd = met_drag(law, speed, p->W213, p->W214);
+        Cd = met_drag(law,speed,p->W213,p->W214);
 
-        Tx(i, j) = ra * Cd * speed * u;
-        Ty(i, j) = ra * Cd * speed * v;
+    Tx(i,j) = ra*Cd*speed*u;
+    Ty(i,j) = ra*Cd*speed*v;
     }
 
     // kinematic air pressure gradient, central differences (the ghost cells hold the source's values)
     if(pressure)
     {
-        const double rp = r / p->W1;
+    const double rp = r/p->W1;
 
         SLICELOOP4
         {
             // curvilinear grid: the physical gradient from the four neighbours (chain rule on the cell centres)
-            if(p->geo_curv == 1)
+            if(p->geo_curv==1)
             {
-                double gx, gy;
-                p->geo_grad(i, j, Pa(i + 1, j), Pa(i - 1, j), Pa(i, j + 1), Pa(i, j - 1), gx, gy);
-                Gx(i, j) = rp * gx;
-                Gy(i, j) = p->j_dir == 1 ? rp * gy : 0.0;
+            double gx, gy;
+            p->geo_grad(i,j,Pa(i+1,j),Pa(i-1,j),Pa(i,j+1),Pa(i,j-1),gx,gy);
+            Gx(i,j) = rp*gx;
+            Gy(i,j) = p->j_dir==1 ? rp*gy : 0.0;
             }
 
             else
             {
-                Gx(i, j) = rp * (Pa(i + 1, j) - Pa(i - 1, j)) / (p->DXP[IP] + p->DXP[IM1]);
-                Gy(i, j) = p->j_dir == 1 ? rp * (Pa(i, j + 1) - Pa(i, j - 1)) / (p->DYP[JP] + p->DYP[JM1]) : 0.0;
+            Gx(i,j) = rp*(Pa(i+1,j) - Pa(i-1,j))/(p->DXP[IP] + p->DXP[IM1]);
+            Gy(i,j) = p->j_dir==1 ? rp*(Pa(i,j+1) - Pa(i,j-1))/(p->DYP[JP] + p->DYP[JM1]) : 0.0;
             }
         }
     }
@@ -181,192 +181,193 @@ void met_forcing::waves(lexer *p, slice *Hs, slice *Tp, slice *WL)
     wTp = Tp;
     wWL = WL;
 
-    if(z0w == nullptr)
-        z0w = new slice4(p);
+    if(z0w==nullptr)
+    z0w = new slice4(p);
 
     // the Charnock roughness up to 150 m/s (linear between the entries: relative error below 1e-5)
     if(z0c.empty())
-        for(int n = 0; n <= 3000; ++n)
-            z0c.push_back(met_z0_charnock(n * dz0c));
+    for(int n=0; n<=3000; ++n)
+    z0c.push_back(met_z0_charnock(n*dz0c));
 
     waves_update(p);
 }
 
 void met_forcing::waves_update(lexer *p)
 {
-    if(z0w == nullptr)
-        return;
+    if(z0w==nullptr)
+    return;
 
     IMALOOP
-    JMALOOP (*z0w)(i, j) = met_z0_waves((*wHs)(i, j), (*wTp)(i, j), (*wWL)(i, j));
+    JMALOOP
+    (*z0w)(i,j) = met_z0_waves((*wHs)(i,j),(*wTp)(i,j),(*wWL)(i,j));
 
     has_t = false;
 }
 
 double met_forcing::charnock(double U) const
 {
-    const double x = U / dz0c;
-    const int n = std::min(int(x), int(z0c.size()) - 2);
-    const double w = std::min(x - n, 1.0);
+    const double x = U/dz0c;
+    const int n = std::min(int(x),int(z0c.size())-2);
+    const double w = std::min(x-n,1.0);
 
-    return (1.0 - w) * z0c[n] + w * z0c[n + 1];
+    return (1.0-w)*z0c[n] + w*z0c[n+1];
 }
 
 void met_forcing::source_sflow(lexer *p, ghostcell *pgc, slice &F, int dir, slice &WL, slice &UH, slice &VH)
 {
-    update(p, pgc);
+    update(p,pgc);
 
-    if(dir == 1 && p->j_dir == 0)
-        return;
+    if(dir==1 && p->j_dir==0)
+    return;
 
-    slice4 &T = (dir == 0) ? Tx : Ty;
-    slice4 &G = (dir == 0) ? Gx : Gy;
+    slice4 &T = (dir==0) ? Tx : Ty;
+    slice4 &G = (dir==0) ? Gx : Gy;
 
     if(wind)
-        SLICELOOP4
+    SLICELOOP4
     WETDRY
-    F(i, j) += T(i, j);
+    F(i,j) += T(i,j);
 
     if(pressure)
-        SLICELOOP4
+    SLICELOOP4
     WETDRY
-    F(i, j) -= WL(i, j) * G(i, j);
+    F(i,j) -= WL(i,j)*G(i,j);
 
     if(coriolis)
     {
-        if(dir == 0)
-            SLICELOOP4
+        if(dir==0)
+        SLICELOOP4
         WETDRY
-        F(i, j) += Fc(i, j) * VH(i, j);
+        F(i,j) += Fc(i,j)*VH(i,j);
 
-        if(dir == 1)
-            SLICELOOP4
+        if(dir==1)
+        SLICELOOP4
         WETDRY
-        F(i, j) -= Fc(i, j) * UH(i, j);
+        F(i,j) -= Fc(i,j)*UH(i,j);
     }
 }
 
 void met_forcing::source_nhflow(lexer *p, ghostcell *pgc, double *F, int dir, slice &WL, double *UH, double *VH)
 {
-    update(p, pgc);
+    update(p,pgc);
 
-    if(dir == 1 && p->j_dir == 0)
-        return;
+    if(dir==1 && p->j_dir==0)
+    return;
 
-    slice4 &T = (dir == 0) ? Tx : Ty;
-    slice4 &G = (dir == 0) ? Gx : Gy;
+    slice4 &T = (dir==0) ? Tx : Ty;
+    slice4 &G = (dir==0) ? Gx : Gy;
 
     // surface stress in the top layer
     if(wind)
     {
-        k = p->knoz - 1;
+    k = p->knoz-1;
 
         SLICELOOP4
         WETDRY
-        F[IJK] += T(i, j) / p->DZN[KP];
+        F[IJK] += T(i,j)/p->DZN[KP];
     }
 
     // air pressure gradient and Coriolis force in every layer
     if(pressure)
-        LOOP
-            WETDRY
-                F[IJK] -= WL(i, j) * G(i, j);
+    LOOP
+    WETDRY
+    F[IJK] -= WL(i,j)*G(i,j);
 
     if(coriolis)
     {
-        if(dir == 0)
-            LOOP
-                WETDRY
-                    F[IJK] += Fc(i, j) * VH[IJK];
+        if(dir==0)
+        LOOP
+        WETDRY
+        F[IJK] += Fc(i,j)*VH[IJK];
 
-        if(dir == 1)
-            LOOP
-                WETDRY
-                    F[IJK] -= Fc(i, j) * UH[IJK];
+        if(dir==1)
+        LOOP
+        WETDRY
+        F[IJK] -= Fc(i,j)*UH[IJK];
     }
 }
 
 void met_forcing::offset_vtp(lexer *p, int *offset, int &n)
 {
     if(!wind)
-        return;
+    return;
 
     // wind10 (3 components), air_pressure, wind_stress (3 components)
-    offset[n] = offset[n - 1] + sizeof(float) * (p->pointnum2D) * 3 + sizeof(int);
+    offset[n]=offset[n-1]+sizeof(float)*(p->pointnum2D)*3+sizeof(int);
     ++n;
-    offset[n] = offset[n - 1] + sizeof(float) * (p->pointnum2D) + sizeof(int);
+    offset[n]=offset[n-1]+sizeof(float)*(p->pointnum2D)+sizeof(int);
     ++n;
-    offset[n] = offset[n - 1] + sizeof(float) * (p->pointnum2D) * 3 + sizeof(int);
+    offset[n]=offset[n-1]+sizeof(float)*(p->pointnum2D)*3+sizeof(int);
     ++n;
 }
 
 void met_forcing::name_vtp(std::ostream &result, int *offset, int &n)
 {
     if(!wind)
-        return;
+    return;
 
-    result << "<DataArray type=\"Float32\" Name=\"wind10\" NumberOfComponents=\"3\" format=\"appended\" offset=\"" << offset[n] << "\"/>\n";
+    result<<"<DataArray type=\"Float32\" Name=\"wind10\" NumberOfComponents=\"3\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
     ++n;
-    result << "<DataArray type=\"Float32\" Name=\"air_pressure\" format=\"appended\" offset=\"" << offset[n] << "\"/>\n";
+    result<<"<DataArray type=\"Float32\" Name=\"air_pressure\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
     ++n;
-    result << "<DataArray type=\"Float32\" Name=\"wind_stress\" NumberOfComponents=\"3\" format=\"appended\" offset=\"" << offset[n] << "\"/>\n";
+    result<<"<DataArray type=\"Float32\" Name=\"wind_stress\" NumberOfComponents=\"3\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
     ++n;
 }
 
 void met_forcing::name_pvtp(ofstream &result)
 {
     if(!wind)
-        return;
+    return;
 
-    result << "<PDataArray type=\"Float32\" Name=\"wind10\" NumberOfComponents=\"3\"/>\n";
-    result << "<PDataArray type=\"Float32\" Name=\"air_pressure\"/>\n";
-    result << "<PDataArray type=\"Float32\" Name=\"wind_stress\" NumberOfComponents=\"3\"/>\n";
+    result<<"<PDataArray type=\"Float32\" Name=\"wind10\" NumberOfComponents=\"3\"/>\n";
+    result<<"<PDataArray type=\"Float32\" Name=\"air_pressure\"/>\n";
+    result<<"<PDataArray type=\"Float32\" Name=\"wind_stress\" NumberOfComponents=\"3\"/>\n";
 }
 
 void met_forcing::print_vtp(lexer *p, std::ostream &result)
 {
     if(!wind)
-        return;
+    return;
 
     int iin;
     float ffn;
 
     // wind10
-    iin = sizeof(float) * p->pointnum2D * 3;
-    result.write((char *)&iin, sizeof(int));
+    iin=sizeof(float)*p->pointnum2D*3;
+    result.write((char*)&iin, sizeof(int));
     TPSLICELOOP
     {
-        ffn = float(p->sl_ipol4(U10));
-        result.write((char *)&ffn, sizeof(float));
+    ffn=float(p->sl_ipol4(U10));
+    result.write((char*)&ffn, sizeof(float));
 
-        ffn = float(p->sl_ipol4(V10));
-        result.write((char *)&ffn, sizeof(float));
+    ffn=float(p->sl_ipol4(V10));
+    result.write((char*)&ffn, sizeof(float));
 
-        ffn = 0.0;
-        result.write((char *)&ffn, sizeof(float));
+    ffn=0.0;
+    result.write((char*)&ffn, sizeof(float));
     }
 
     // air_pressure
-    iin = sizeof(float) * p->pointnum2D;
-    result.write((char *)&iin, sizeof(int));
+    iin=sizeof(float)*p->pointnum2D;
+    result.write((char*)&iin, sizeof(int));
     TPSLICELOOP
     {
-        ffn = float(p->sl_ipol4(Pa));
-        result.write((char *)&ffn, sizeof(float));
+    ffn=float(p->sl_ipol4(Pa));
+    result.write((char*)&ffn, sizeof(float));
     }
 
     // wind_stress [N/m^2]
-    iin = sizeof(float) * p->pointnum2D * 3;
-    result.write((char *)&iin, sizeof(int));
+    iin=sizeof(float)*p->pointnum2D*3;
+    result.write((char*)&iin, sizeof(int));
     TPSLICELOOP
     {
-        ffn = float(p->W1 * p->sl_ipol4(Tx));
-        result.write((char *)&ffn, sizeof(float));
+    ffn=float(p->W1*p->sl_ipol4(Tx));
+    result.write((char*)&ffn, sizeof(float));
 
-        ffn = float(p->W1 * p->sl_ipol4(Ty));
-        result.write((char *)&ffn, sizeof(float));
+    ffn=float(p->W1*p->sl_ipol4(Ty));
+    result.write((char*)&ffn, sizeof(float));
 
-        ffn = 0.0;
-        result.write((char *)&ffn, sizeof(float));
+    ffn=0.0;
+    result.write((char*)&ffn, sizeof(float));
     }
 }

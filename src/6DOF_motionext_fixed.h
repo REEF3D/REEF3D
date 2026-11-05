@@ -23,7 +23,7 @@ Author: Hans Bihs
 #ifndef SIXDOF_MOTIONEXT_FIXED_H_
 #define SIXDOF_MOTIONEXT_FIXED_H_
 
-#include "6DOF_motionext.h"
+#include"6DOF_motionext.h"
 #include <Eigen/Dense>
 
 class lexer;
@@ -39,20 +39,20 @@ class sixdof_motionext_fixed final : public sixdof_motionext
 {
 public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
+    
+    void motionext_trans(lexer*, ghostcell*, Eigen::Vector3d&, Eigen::Vector3d&) override final;
+    void motionext_rot(lexer*, Eigen::Vector3d&, Eigen::Vector3d&, Eigen::Vector4d&, Eigen::Matrix<double, 3, 4>&,  Eigen::Matrix3d&) override final;
 
-    void motionext_trans(lexer *, ghostcell *, Eigen::Vector3d &, Eigen::Vector3d &) override final;
-    void motionext_rot(lexer *, Eigen::Vector3d &, Eigen::Vector3d &, Eigen::Vector4d &, Eigen::Matrix<double, 3, 4> &, Eigen::Matrix3d &) override final;
-
-    void ini(lexer *, ghostcell *) override final;
-
-    sixdof_motionext_fixed(lexer *, ghostcell *);
-    virtual ~sixdof_motionext_fixed();
-
+    void ini(lexer*,ghostcell*) override final;
+    
+    sixdof_motionext_fixed(lexer*, ghostcell*);
+	virtual ~sixdof_motionext_fixed();
+    
 private:
-    double ramp_vel(lexer *);
-
+    double ramp_vel(lexer*);
+    
     Eigen::Vector3d omega_;
-
+    
     double Uext, Vext, Wext, Pext, Qext, Rext;
 };
 

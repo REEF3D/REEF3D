@@ -20,106 +20,104 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "fdm.h"
-#include "ghostcell.h"
-#include "heaviside.h"
-#include "interface_width.h"
-#include "ioflow.h"
-#include "lexer.h"
-#include "sediment_f.h"
-#include "sediment_fdm.h"
-#include "topo_relax.h"
-#include "vrans_f.h"
-#include "vrans_v.h"
+#include"interface_width.h"
+#include"sediment_f.h"
+#include"lexer.h"
+#include"fdm.h"
+#include"ghostcell.h"
+#include"sediment_fdm.h"
+#include"topo_relax.h"
+#include"ioflow.h"
+#include"vrans_v.h"
+#include"vrans_f.h"
+#include"heaviside.h"
 
 void sediment_f::bedlevel(lexer *p, ghostcell *pgc)
 {
-    p->bedmin = 1.0e15;
-    p->bedmax = -1.0e15;
+    p->bedmin=1.0e15;
+    p->bedmax=-1.0e15;
 
     SLICELOOP4
     {
-        p->bedmin = MIN(p->bedmin, s->bedzh(i, j));
-        p->bedmax = MAX(p->bedmax, s->bedzh(i, j));
+        p->bedmin = MIN(p->bedmin, s->bedzh(i,j));
+        p->bedmax = MAX(p->bedmax, s->bedzh(i,j));
     }
+	
+    p->bedmin=pgc->globalmin(p->bedmin);
+    p->bedmax=pgc->globalmax(p->bedmax);
 
-    p->bedmin = pgc->globalmin(p->bedmin);
-    p->bedmax = pgc->globalmax(p->bedmax);
-
-    if(p->mpirank == 0)
+    if(p->mpirank==0)
     {
-        cout << "bedmin: " << setprecision(4) << p->bedmin << endl;
-        cout << "bedmax: " << setprecision(4) << p->bedmax << endl
-             << endl;
+    cout<<"bedmin: "<<setprecision(4)<<p->bedmin<<endl;
+    cout<<"bedmax: "<<setprecision(4)<<p->bedmax<<endl<<endl;
     }
 }
 
 void sediment_f::relax(lexer *p, ghostcell *pgc)
 {
-    prelax->start(p, pgc, s);
+    prelax->start(p,pgc,s);
 }
 
-void sediment_f::topo_zh_update(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
+void sediment_f::topo_zh_update(lexer *p, fdm *a,ghostcell *pgc, sediment_fdm *s)
 {
-    for(int qn = 0; qn < 3; ++qn)
-        prelax->start(p, pgc, s);
-
-    pgc->gcsl_start4(p, s->bedzh, 1);
-
+    for(int qn=0;qn<3;++qn)
+    prelax->start(p,pgc,s);
+    
+	pgc->gcsl_start4(p,s->bedzh,1);
+	
     // inside the S 77 window, and outside wherever the bed has changed (sand slide receivers next
     // to the window, S 75 relaxation): the CFD has to see every bed change of bedzh
     LOOP
     {
-        if((p->pos_x() > p->S77_xs && p->pos_x() < p->S77_xe) || fabs(s->bedzh(i, j) - s->bedzh0(i, j)) > 1.0e-12)
-            a->topo(i, j, k) = -s->bedzh(i, j) + p->pos_z();
+    if((p->pos_x()>p->S77_xs && p->pos_x()<p->S77_xe) || fabs(s->bedzh(i,j)-s->bedzh0(i,j))>1.0e-12)
+    a->topo(i,j,k)=-s->bedzh(i,j)+p->pos_z();
     }
-
+    
     SLICELOOP4
-    a->bed(i, j) = s->bedzh(i, j);
-
-    pgc->start4a(p, a->topo, 150);
-
-    pgc->gcsl_start4(p, a->bed, 50);
-
-    fill_bedk(p, a, pgc);
+	a->bed(i,j)=s->bedzh(i,j);
+    
+	pgc->start4a(p,a->topo,150);
+    
+    pgc->gcsl_start4(p,a->bed,50);
+    
+    fill_bedk(p,a,pgc);
 }
 
 void sediment_f::bedchange_update(lexer *p, ghostcell *pgc)
 {
     SLICELOOP4
-    s->bedch(i, j) = s->bedzh(i, j) - s->bedzh0(i, j);
-
-    pgc->gcsl_start4(p, s->bedch, 50);
+    s->bedch(i,j) = s->bedzh(i,j) - s->bedzh0(i,j);
+    
+    pgc->gcsl_start4(p,s->bedch,50);
 }
 
-void sediment_f::volume_calc(lexer *p, fdm *a, ghostcell *pgc)
+void sediment_f::volume_calc(lexer *p, fdm *a,ghostcell *pgc)
 {
-    double H = 0.0;
-    double volume = 0.0;
+    double H=0.0;
+	double volume=0.0;
     double epsi;
 
-    LOOP
-    {
-        epsi = interface_width(p, a->topo, i, j, k);
+	LOOP
+	{
+       epsi = interface_width(p,a->topo,i,j,k);
+        
+		H = heaviside(a->topo(i,j,k),epsi);
 
-        H = heaviside(a->topo(i, j, k), epsi);
+		volume += p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*(1.0-H);
+	}
+    
+        
+	volume = pgc->globalsum(volume);
 
-        if(fabs(a->topo(i, j, k)) <= epsi)
-            H = 0.5 * (1.0 + a->topo(i, j, k) / epsi + (1.0 / PI) * sin((PI * a->topo(i, j, k)) / epsi));
-
-        volume += p->DXN[IP] * p->DYN[JP] * p->DZN[KP] * (1.0 - H);
-    }
-
-    volume = pgc->globalsum(volume);
-
-    if(volume_token == 0)
+    if(volume_token==0)
     {
         volume0 = volume;
-        volume_token = 1;
+        volume_token=1;
     }
 
-    if(p->mpirank == 0 && (p->count % p->P12 == 0))
+    
+    if(p->mpirank==0 && (p->count%p->P12==0))
     {
-        cout << "Sediment Volume: " << volume << "  vol0: " << volume0 << " Volume Change: " << 100.0 * (volume - volume0) / volume0 << " %" << endl;
+	cout<<"Sediment Volume: "<<volume<<"  vol0: "<<volume0<<" Volume Change: "<<100.0*(volume-volume0)/volume0<<" %"<<endl;
     }
 }

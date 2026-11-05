@@ -20,35 +20,35 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Authors: Tobias Martin, Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "6DOF_obj.h"
-#include "6DOF_motionext_CoG.h"
-#include "6DOF_motionext_file.h"
-#include "6DOF_motionext_fixed.h"
-#include "6DOF_motionext_void.h"
-#include "6DOF_motionext_wavemaker.h"
-#include "fdm.h"
-#include "ghostcell.h"
-#include "lexer.h"
-#include "net_interface.h"
-#include "nhflow_reinidisc_fsf.h"
-#include "reinidisc_f.h"
-#include "ship.h"
+#include"6DOF_obj.h"
+#include"lexer.h"
+#include"fdm.h"
+#include"ghostcell.h"
+#include"reinidisc_f.h"
+#include"nhflow_reinidisc_fsf.h"
+#include"6DOF_motionext_fixed.h"
+#include"6DOF_motionext_file.h"
+#include"6DOF_motionext_CoG.h"
+#include"6DOF_motionext_wavemaker.h"
+#include"6DOF_motionext_void.h"
+#include"net_interface.h"
+#include"ship.h"
 
 sixdof_obj::sixdof_obj(lexer *p, ghostcell *pgc, int number) : ddweno_f_nug(p),
-                                                               georay(p), n6DOF(number),
-                                                               epsifb(1.6 * p->DXM), epsi(1.6),
-                                                               interfac(1.6), zero(0.0),
-                                                               Mass_fb(rb.mass),
-                                                               p_(rb.p), c_(rb.c), h_(rb.h), dc_(rb.dc), e_(rb.e),
-                                                               R_(rb.R), I_(rb.I), quatRotMat(rb.R),
-                                                               omega_B(rb.omega_B), omega_I(rb.omega_I),
-                                                               phi(rb.phi), theta(rb.theta), psi(rb.psi),
-                                                               Ffb_(rb.F), Mfb_(rb.M),
-                                                               geom(number), amr_hfac(geom.amr_hfac), amr_vfac(geom.amr_vfac),
-                                                               tri_x(geom.tri_x), tri_y(geom.tri_y), tri_z(geom.tri_z),
-                                                               tri_x0(geom.tri_x0), tri_y0(geom.tri_y0), tri_z0(geom.tri_z0),
-                                                               entity_sum(geom.entity_sum), tstart(geom.tstart), tend(geom.tend),
-                                                               tricount(geom.tricount), entity_count(geom.entity_count)
+                                                                                georay(p),n6DOF(number),
+                                                                                epsifb(1.6*p->DXM), epsi(1.6),
+                                                                                interfac(1.6),zero(0.0),
+                                                                                Mass_fb(rb.mass),
+                                                                                p_(rb.p),c_(rb.c),h_(rb.h),dc_(rb.dc),e_(rb.e),
+                                                                                R_(rb.R),I_(rb.I),quatRotMat(rb.R),
+                                                                                omega_B(rb.omega_B),omega_I(rb.omega_I),
+                                                                                phi(rb.phi),theta(rb.theta),psi(rb.psi),
+                                                                                Ffb_(rb.F),Mfb_(rb.M),
+                                                                                geom(number),amr_hfac(geom.amr_hfac),amr_vfac(geom.amr_vfac),
+                                                                                tri_x(geom.tri_x),tri_y(geom.tri_y),tri_z(geom.tri_z),
+                                                                                tri_x0(geom.tri_x0),tri_y0(geom.tri_y0),tri_z0(geom.tri_z0),
+                                                                                entity_sum(geom.entity_sum),tstart(geom.tstart),tend(geom.tend),
+                                                                                tricount(geom.tricount),entity_count(geom.entity_count)
 {
     // rigid-body core: DOF modes (X 11) and linear damping (X 25, X 26)
     rb.dof[0] = p->X11_u;
@@ -57,136 +57,143 @@ sixdof_obj::sixdof_obj(lexer *p, ghostcell *pgc, int number) : ddweno_f_nug(p),
     rb.dof[3] = p->X11_p;
     rb.dof[4] = p->X11_q;
     rb.dof[5] = p->X11_r;
-
+    
     // single bodies (X 111 id u v w p q r): own DOF modes, e.g. prescribed lock gates and a free ship
-    for(int n = 0; n < p->X111; ++n)
-        if(p->X111_id[n] == number)
-        {
-            rb.dof[0] = p->X111_u[n];
-            rb.dof[1] = p->X111_v[n];
-            rb.dof[2] = p->X111_w[n];
-            rb.dof[3] = p->X111_p[n];
-            rb.dof[4] = p->X111_q[n];
-            rb.dof[5] = p->X111_r[n];
-        }
-
-    rb.twoD = (p->j_dir == 0);
+    for(int n=0; n<p->X111; ++n)
+    if(p->X111_id[n]==number)
+    {
+    rb.dof[0] = p->X111_u[n];
+    rb.dof[1] = p->X111_v[n];
+    rb.dof[2] = p->X111_w[n];
+    rb.dof[3] = p->X111_p[n];
+    rb.dof[4] = p->X111_q[n];
+    rb.dof[5] = p->X111_r[n];
+    }
+    
+    rb.twoD = (p->j_dir==0);
     rb.Cdamp_t[0] = p->X26_Cu;
     rb.Cdamp_t[1] = p->X26_Cv;
     rb.Cdamp_t[2] = p->X26_Cw;
     rb.Cdamp_r[0] = p->X25_Cp;
     rb.Cdamp_r[1] = p->X25_Cq;
     rb.Cdamp_r[2] = p->X25_Cr;
+    
+    // ship module (X 350): hull resistance, damping and propulsion models from ship.dat
+    if(p->X350==1)
+    pload.push_back(new ship(p,number));
 
     // nets and membranes (X 320, X 330) act in CFD and NHFLOW only; their interface holds six fields of the whole
     // grid, which a FNPF body (A 10 3) never uses: with many bodies they were most of the memory (20 FNPF floats,
     // 3.7 M nodes: 5.5 GB)
-    pnetinter = (p->A10 != 3) ? new net_interface(p, pgc) : nullptr;
-
-    triangle_token = 0;
-    printnormal_count = 0;
-
-    alpha[0] = 8.0 / 15.0;
-    alpha[1] = 2.0 / 15.0;
-    alpha[2] = 2.0 / 6.0;
-
-    gamma[0] = 8.0 / 15.0;
-    gamma[1] = 5.0 / 12.0;
-    gamma[2] = 3.0 / 4.0;
-
+    pnetinter = (p->A10!=3) ? new net_interface(p,pgc) : nullptr;
+    
+    triangle_token=0;
+    printnormal_count=0;
+    
+    alpha[0] = 8.0/15.0;
+    alpha[1] = 2.0/15.0;
+    alpha[2] = 2.0/6.0;
+    
+    gamma[0] = 8.0/15.0;
+    gamma[1] = 5.0/12.0;
+    gamma[2] = 3.0/4.0;
+    
     zeta[0] = 0.0;
-    zeta[1] = -17.0 / 60.0;
-    zeta[2] = -5.0 / 12.0;
-
-    if(((p->N40 == 3 || p->N40 == 13 || p->N40 == 23 || p->N40 == 33) && p->A10 == 6) || (p->A510 == 3 && p->A10 == 5) || (p->A210 == 3 && p->A10 == 2))
+    zeta[1] = -17.0/60.0;
+    zeta[2] = -5.0/12.0;
+    
+    if(((p->N40==3 || p->N40==13 || p->N40==23 || p->N40==33) && p->A10==6) || (p->A510==3 && p->A10==5) || (p->A210==3 && p->A10==2)) 
     {
-        alpha[0] = 1.0;
-        alpha[1] = 0.25;
-        alpha[2] = 2.0 / 3.0;
-
-        gamma[0] = 0.0;
-        gamma[1] = 0.0;
-        gamma[2] = 0.0;
-
-        zeta[0] = 0.0;
-        zeta[1] = 0.0;
-        zeta[2] = 0.0;
+    alpha[0] = 1.0;
+    alpha[1] = 0.25;
+    alpha[2] = 2.0/3.0;
+    
+    gamma[0] = 0.0;
+    gamma[1] = 0.0;
+    gamma[2] = 0.0;
+    
+    zeta[0] = 0.0;
+    zeta[1] = 0.0;
+    zeta[2] = 0.0;
     }
-
-    if(((p->N40 == 2 || p->N40 == 12 || p->N40 == 22) && p->A10 == 6) || (p->A510 == 2 && p->A10 == 5) || (p->A210 == 2 && p->A10 == 2))
+    
+    if(((p->N40==2 || p->N40==12 || p->N40==22) && p->A10==6) || (p->A510==2 && p->A10==5) || (p->A210==2 && p->A10==2)) 
     {
-        alpha[0] = 1.0;
-        alpha[1] = 0.5;
-
-        gamma[0] = 0.0;
-        gamma[1] = 0.0;
-        gamma[2] = 0.0;
-
-        zeta[0] = 0.0;
-        zeta[1] = 0.0;
-        zeta[2] = 0.0;
+    alpha[0] = 1.0;
+    alpha[1] = 0.5;
+    
+    gamma[0] = 0.0;
+    gamma[1] = 0.0;
+    gamma[2] = 0.0;
+    
+    zeta[0] = 0.0;
+    zeta[1] = 0.0;
+    zeta[2] = 0.0;
     }
-
+    
+    
     // external motion: motion files (X 240 1, 11) with 6DOF_motion-<id>.dat of the body, otherwise
     // 6DOF_motion.dat; a body without prescribed DOF (X 111) needs none
-    bool prescribed = false;
-    for(int n = 0; n < 6; ++n)
-        if(rb.dof[n] == 2)
-            prescribed = true;
-
-    if(p->X240 == 21)
-        pmotion = new sixdof_motionext_wavemaker(p, pgc);
-
-    else if(p->X240 == 1 && prescribed)
-        pmotion = new sixdof_motionext_file(p, pgc, number);
-
-    else if(p->X240 == 11 && prescribed)
-        pmotion = new sixdof_motionext_file_CoG(p, pgc, number);
-
-    else if((p->X210 == 1 || p->X211 == 1) && p->X240 == 0)
-        pmotion = new sixdof_motionext_fixed(p, pgc);
-
+    bool prescribed=false;
+    for(int n=0; n<6; ++n)
+    if(rb.dof[n]==2)
+    prescribed=true;
+    
+    if(p->X240==21)
+    pmotion = new sixdof_motionext_wavemaker(p,pgc);
+    
+    else if(p->X240==1 && prescribed)
+    pmotion = new sixdof_motionext_file(p,pgc,number);
+    
+    else if(p->X240==11 && prescribed)
+    pmotion = new sixdof_motionext_file_CoG(p,pgc,number);
+    
+    else if((p->X210==1 || p->X211==1) && p->X240==0)
+    pmotion = new sixdof_motionext_fixed(p,pgc);
+    
     else
-        pmotion = new sixdof_motionext_void(p, pgc);
-
+    pmotion = new sixdof_motionext_void(p,pgc);
+    
     // the prescribed DOF of this body (X 11 or X 111)
     pmotion->set_dof(rb.dof);
-
-    Mass_fb = Rfb = Vfb = 1.0;
-
+    
+    Mass_fb =  Rfb = Vfb = 1.0;
+    
     // body velocity and added mass: Eigen does not zero them, and the wavemaker (X 10 4) and the
     // NHFLOW body (no FNPF added mass) never set them before use
     u_fb.setZero();
     Aadd_.setZero();
-
+    
     // wavemaker kinematics
-    timecount = 1;
-    timecount_old = 0;
-    ptnum = 0;
-    xwm1 = zwm1 = xwm2 = zwm2 = 0.0;
-
+    timecount=1;
+    timecount_old=0;
+    ptnum=0;
+    xwm1=zwm1=xwm2=zwm2=0.0;
+    
     // porous floating body (X 16): Darcy-Forchheimer coefficients, same closure as vrans_nhflow_f
     // K = Apor_fb*visc + Bpor_fb*|u - u_fb|  [1/s]
-    Xd = Yd = Zd = Kd = Md = Nd = 0.0;
-    Apor_fb = Bpor_fb = 0.0;
-    Dpor_t = Dpor_r[0] = Dpor_r[1] = Dpor_r[2] = 0.0;
-
-    if(p->X16 == 1)
+    Xd=Yd=Zd=Kd=Md=Nd=0.0;
+    Apor_fb=Bpor_fb=0.0;
+    Dpor_t=Dpor_r[0]=Dpor_r[1]=Dpor_r[2]=0.0;
+    
+    if(p->X16==1)
     {
-        Apor_fb = p->X16_alpha * (pow(1.0 - p->X16_n, 2.0) / pow(p->X16_n, 3.0)) / pow(p->X16_d50, 2.0);
-        Bpor_fb = p->X16_beta * (1.0 + 7.5 / p->B264) * ((1.0 - p->X16_n) / pow(p->X16_n, 4.0)) / p->X16_d50;
+    Apor_fb = p->X16_alpha*(pow(1.0-p->X16_n,2.0)/pow(p->X16_n,3.0))/pow(p->X16_d50,2.0);
+    Bpor_fb = p->X16_beta*(1.0 + 7.5/p->B264)*((1.0-p->X16_n)/pow(p->X16_n,4.0))/p->X16_d50;
     }
-
-    if(p->X10 == 4)
+    
+    
+    
+    if(p->X10==4)
     {
-        p->Darray(uwm, (p->kmax + 2));
-        p->Darray(wwm, (p->kmax + 2));
+    p->Darray(uwm,(p->kmax+2)); 
+    p->Darray(wwm,(p->kmax+2));   
     }
 }
 
 sixdof_obj::~sixdof_obj()
 {
-    for(size_t ql = 0; ql < pload.size(); ++ql)
-        delete pload[ql];
+    for(size_t ql=0; ql<pload.size(); ++ql)
+    delete pload[ql];
 }
-
+    

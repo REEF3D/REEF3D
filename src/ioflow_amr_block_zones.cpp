@@ -20,15 +20,15 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "fdm2D.h"
-#include "fdm_nhf.h"
-#include "ghostcell.h"
-#include "ioflow_amr_block.h"
-#include "lexer.h"
-#include "slice.h"
-#include "wave_interface.h"
-#include <cmath>
-#include <iostream>
+#include"ioflow_amr_block.h"
+#include"fdm2D.h"
+#include"lexer.h"
+#include"fdm_nhf.h"
+#include"ghostcell.h"
+#include"slice.h"
+#include"wave_interface.h"
+#include<cmath>
+#include<iostream>
 
 // Relaxation and beach zones on the faces of a block 1.. of a multi-block grid (B 520 method 1 or 2 with
 // B 522 b, NHFLOW), as the zones of iowave on the native grid (iowave_nhflow_relax.cpp, bc_zone_set::relax_weight,
@@ -45,36 +45,34 @@ Architect: Hans Bihs
 // The waves are evaluated at the cell centres in the frame of B 105 (iowave xgen, ygen), the velocities at the
 // sigma levels of the cells.
 
-namespace {
+namespace
+{
 inline double zone_r(double x)
 {
-    return 1.0 - (exp(pow(x, 3.5)) - 1.0) / (EE - 1.0);
+    return 1.0 - (exp(pow(x,3.5))-1.0)/(EE-1.0);
 }
-}  // namespace
+}
 
 void ioflow_amr_block::open_zones(lexer *p, const bc_zone *zm, const bc_zone *zp, const background_state &bg, bool waves,
                                   int i0, int ni, int j0, int nj, const bc_zone *zjm, const bc_zone *zjp)
 {
-    zi0 = i0;
-    zni = ni;
-    zj0 = j0;
-    znj = nj;
+    zi0 = i0; zni = ni; zj0 = j0; znj = nj;
     rzone.clear();
     rz[0] = rz[1] = rz[2] = rz[3] = -1;
-    const bc_zone *zf[4] = {zm, zp, zjm, zjp};
-    for(int f = 0; f < 4; ++f)
-        if(zf[f] != nullptr)
-        {
-            rz[f] = int(rzone.size());
-            rzone.push_back(*zf[f]);
-        }
+    const bc_zone *zf[4] = {zm,zp,zjm,zjp};
+    for(int f=0; f<4; ++f)
+    if(zf[f]!=nullptr)
+    {
+        rz[f] = int(rzone.size());
+        rzone.push_back(*zf[f]);
+    }
     gen_waves = waves;
     zbuilt = false;
 
     if(!rzone.empty())
     {
         bgs = bg;
-        bgs.update(p, p->simtime);
+        bgs.update(p,p->simtime);
     }
 }
 
@@ -84,7 +82,7 @@ void ioflow_amr_block::open_zones(lexer *p, const bc_zone *zm, const bc_zone *zp
 
 void ioflow_amr_block::wave_get(const lexer *p, wave_run &w)
 {
-    int q = 0;
+    int q=0;
 #define G(m) w.v[q++] = p->m;
     IOAMR_WAVE_D(G)
 #undef G
@@ -93,7 +91,7 @@ void ioflow_amr_block::wave_get(const lexer *p, wave_run &w)
 
 void ioflow_amr_block::wave_set(lexer *p, const wave_run &w)
 {
-    int q = 0;
+    int q=0;
 #define S(m) p->m = w.v[q++];
     IOAMR_WAVE_D(S)
 #undef S
@@ -103,26 +101,26 @@ void ioflow_amr_block::wave_set(lexer *p, const wave_run &w)
 // the block's wave members in, the ones of level 0 kept in w
 void ioflow_amr_block::wave_in(lexer *p, wave_run &w) const
 {
-    wave_get(p, w);
-    wave_set(p, wown);
+    wave_get(p,w);
+    wave_set(p,wown);
 }
 
 // the wave members of level 0 back (the block keeps its own, the time aside)
 void ioflow_amr_block::wave_out(lexer *p, const wave_run &w) const
 {
-    wave_set(p, w);
+    wave_set(p,w);
 }
 
 // the waves (B 92, the sources of B 500-504) on the grid of the block, built at the first use
 bool ioflow_amr_block::wave_on(lexer *p, ghostcell *pgc)
 {
-    if(pwave == nullptr)
+    if(pwave==nullptr)
     {
         wave_run l0;
-        wave_get(p, l0);
-        pwave = new wave_interface(p, pgc);
-        wave_get(p, wown);
-        wave_set(p, l0);
+        wave_get(p,l0);
+        pwave = new wave_interface(p,pgc);
+        wave_get(p,wown);
+        wave_set(p,l0);
     }
     return true;
 }
@@ -130,14 +128,14 @@ bool ioflow_amr_block::wave_on(lexer *p, ghostcell *pgc)
 // iowave::ramp (B 101, B 102)
 double ioflow_amr_block::wramp(lexer *p) const
 {
-    double f = 1.0;
-    const double tr = (p->B95 != 0.0) ? p->wavetime : p->simtime;
+    double f=1.0;
+    const double tr = (p->B95!=0.0) ? p->wavetime : p->simtime;
 
-    if(p->B101 == 1 && tr < p->B102 * p->wT)
-        f = tr / (p->B102 * p->wT) - (1.0 / PI) * sin(PI * (tr / (p->B102 * p->wT)));
+    if(p->B101==1 && tr<p->B102*p->wT)
+    f = tr/(p->B102*p->wT) - (1.0/PI)*sin(PI*(tr/(p->B102*p->wT)));
 
-    if(p->B101 == 2 && tr < p->B102)
-        f = tr / (p->B102) - (1.0 / PI) * sin(PI * (tr / (p->B102)));
+    if(p->B101==2 && tr<p->B102)
+    f = tr/(p->B102) - (1.0/PI)*sin(PI*(tr/(p->B102)));
 
     return f;
 }
@@ -145,40 +143,40 @@ double ioflow_amr_block::wramp(lexer *p) const
 // the frame of the waves (iowave xgen, ygen): along B 105_1 from (B 105_2, B 105_3)
 void ioflow_amr_block::wave_frame(lexer *p, double x, double y, double &xg, double &yg) const
 {
-    const double g = p->B105_1 * (PI / 180.0);
-    xg = (x - p->B105_2) * cos(g) + (y - p->B105_3) * sin(g);
-    yg = -(x - p->B105_2) * sin(g) + (y - p->B105_3) * cos(g);
+    const double g = p->B105_1*(PI/180.0);
+    xg = (x-p->B105_2)*cos(g) + (y-p->B105_3)*sin(g);
+    yg = -(x-p->B105_2)*sin(g) + (y-p->B105_3)*cos(g);
 }
 
 // the non-hydrostatic pressure of the incoming waves at the nodes of the -i edge column (i,j) (iowave::nhflow_edge_pressure):
 // p(z) = rho int_z^eta dw/dt dz, the Dirichlet value of the Poisson equation at the edge
 void ioflow_amr_block::edge_pressure(lexer *p, fdm_nhf *d, ghostcell *pgc, double xs, double ys)
 {
-    if(d->Pbc == nullptr)
-        p->Darray(d->Pbc, p->imax * p->jmax * (p->kmax + 2));
+    if(d->Pbc==nullptr)
+    p->Darray(d->Pbc,p->imax*p->jmax*(p->kmax+2));
 
     const double rw = wramp(p);
-    const double dt = p->dt > 0.0 ? p->dt : 1.0e-3;
+    const double dt = p->dt>0.0 ? p->dt : 1.0e-3;
     const double wt = p->wavetime;
-    std::vector<double> a(p->knoz + 1), zz(p->knoz + 1);
+    std::vector<double> a(p->knoz+1), zz(p->knoz+1);
 
-    for(k = 0; k <= p->knoz; ++k)
+    for(k=0; k<=p->knoz; ++k)
     {
-        zz[k] = p->ZN[KP] * d->WL(i, j) + d->bed(i, j);
-        a[k] = pwave->wave_w(p, pgc, xs, ys, zz[k] - p->phimean);
+        zz[k] = p->ZN[KP]*d->WL(i,j) + d->bed(i,j);
+        a[k] = pwave->wave_w(p,pgc,xs,ys,zz[k]-p->phimean);
     }
 
     p->wavetime = wt - dt;
-    for(k = 0; k <= p->knoz; ++k)
-        a[k] = rw * (a[k] - pwave->wave_w(p, pgc, xs, ys, zz[k] - p->phimean)) / dt;
+    for(k=0; k<=p->knoz; ++k)
+    a[k] = rw*(a[k] - pwave->wave_w(p,pgc,xs,ys,zz[k]-p->phimean))/dt;
     p->wavetime = wt;
 
     double pn = 0.0;
     k = p->knoz;
     d->Pbc[FIm1JK] = 0.0;
-    for(k = p->knoz - 1; k >= 0; --k)
+    for(k=p->knoz-1; k>=0; --k)
     {
-        pn += p->W1 * 0.5 * (a[k] + a[k + 1]) * (zz[k + 1] - zz[k]);
+        pn += p->W1*0.5*(a[k]+a[k+1])*(zz[k+1]-zz[k]);
         d->Pbc[FIm1JK] = pn;
     }
 }
@@ -188,72 +186,72 @@ void ioflow_amr_block::edge_pressure(lexer *p, fdm_nhf *d, ghostcell *pgc, doubl
 void ioflow_amr_block::zones_build(lexer *p)
 {
     zbuilt = true;
-    const size_t n2 = size_t(p->imax) * size_t(p->jmax);
+    const size_t n2 = size_t(p->imax)*size_t(p->jmax);
     zcol.clear();
-    vector<double> xg(n2, -1.0), rb(n2, 0.0);
-    vector<int> cb(n2, 0), zg(n2, -1), zb(n2, -1);
+    vector<double> xg(n2,-1.0), rb(n2,0.0);
+    vector<int> cb(n2,0), zg(n2,-1), zb(n2,-1);
 
-    for(int f = 0; f < 4; ++f)
+    for(int f=0; f<4; ++f)
     {
-        if(rz[f] < 0)
-            continue;
+        if(rz[f]<0)
+        continue;
 
         const bc_zone &z = rzone[rz[f]];
         const double w = z.d;
 
         // the lines across the face: along i from an i face, along j from a j face
-        const bool jf = (f >= 2);
+        const bool jf = (f>=2);
         const int nline = jf ? zni : znj, nlen = jf ? znj : zni;
 
-        for(int l = 0; l < nline; ++l)
+        for(int l=0; l<nline; ++l)
         {
             int a, c;
             if(!jf)
             {
-                j = zj0 + l;
-                const int in = (f == 0) ? zi0 : zi0 + zni;
-                a = p->nij(in, j);
-                c = p->nij(in, j + 1);
+                j = zj0+l;
+                const int in = (f==0) ? zi0 : zi0+zni;
+                a = p->nij(in,j);
+                c = p->nij(in,j+1);
             }
             else
             {
-                i = zi0 + l;
-                const int jn = (f == 2) ? zj0 : zj0 + znj;
-                a = p->nij(i, jn);
-                c = p->nij(i + 1, jn);
+                i = zi0+l;
+                const int jn = (f==2) ? zj0 : zj0+znj;
+                a = p->nij(i,jn);
+                c = p->nij(i+1,jn);
             }
-            double xo = 0.5 * (p->XN2D[a] + p->XN2D[c]);
-            double yo = 0.5 * (p->YN2D[a] + p->YN2D[c]);
+            double xo = 0.5*(p->XN2D[a] + p->XN2D[c]);
+            double yo = 0.5*(p->YN2D[a] + p->YN2D[c]);
             double s = 0.0;
 
-            for(int m = 0; m < nlen; ++m)
+            for(int m=0; m<nlen; ++m)
             {
                 if(!jf)
-                    i = (f == 0) ? zi0 + m : zi0 + zni - 1 - m;
+                i = (f==0) ? zi0+m : zi0+zni-1-m;
                 else
-                    j = (f == 2) ? zj0 + m : zj0 + znj - 1 - m;
+                j = (f==2) ? zj0+m : zj0+znj-1-m;
                 const double xc = p->XC2D[IJ], yc = p->YC2D[IJ];
-                const double ds = sqrt((xc - xo) * (xc - xo) + (yc - yo) * (yc - yo));
+                const double ds = sqrt((xc-xo)*(xc-xo) + (yc-yo)*(yc-yo));
                 s += ds;
                 xo = xc;
                 yo = yc;
 
-                if(s >= w)
-                    break;
+                if(s>=w)
+                break;
 
                 // the zone reaches beyond the other face of the block (a G 55 piece): it ends there
-                if(m == nlen - 1 && s + ds < w && !ztold)
+                if(m==nlen-1 && s+ds<w && !ztold)
                 {
                     ztold = true;
-                    std::cout << "!!! zone " << z.id << " (B 522) is " << w << " m wide, its block (G 55: its piece) ends " << s
-                              << " m from its face: the zone ends there !!!" << std::endl;
+                    std::cout<<"!!! zone "<<z.id<<" (B 522) is "<<w<<" m wide, its block (G 55: its piece) ends "<<s
+                             <<" m from its face: the zone ends there !!!"<<std::endl;
                 }
 
-                if(z.method == bc_method::relax)
+                if(z.method==bc_method::relax)
                 {
                     // the closest zone sets the weight and the target (bc_zone_set::relax_weight)
-                    const double x = MAX(1.0 - s / w, 0.0);
-                    if(x > xg[IJ])
+                    const double x = MAX(1.0-s/w,0.0);
+                    if(x>xg[IJ])
                     {
                         xg[IJ] = x;
                         zg[IJ] = rz[f];
@@ -262,7 +260,7 @@ void ioflow_amr_block::zones_build(lexer *p)
                 else
                 {
                     // overlapping beach zones: the mean of their weights (bc_zone_set::beach_weight)
-                    const double x = MAX((w - s) / (w * z.fac), 0.0);
+                    const double x = MAX((w-s)/(w*z.fac),0.0);
                     rb[IJ] += zone_r(x);
                     ++cb[IJ];
                     zb[IJ] = rz[f];
@@ -271,20 +269,17 @@ void ioflow_amr_block::zones_build(lexer *p)
         }
     }
 
-    zgen0.clear();
-    zbch0.clear();
-    zgz.clear();
-    zbz.clear();
-    for(i = zi0; i < zi0 + zni; ++i)
-        for(j = zj0; j < zj0 + znj; ++j)
-            if(zg[IJ] >= 0 || zb[IJ] >= 0)
-            {
-                zcol.push_back(IJ);
-                zgen0.push_back(zg[IJ] >= 0 ? zone_r(xg[IJ]) : 1.0);
-                zbch0.push_back(zb[IJ] >= 0 ? rb[IJ] / double(cb[IJ]) : 1.0);
-                zgz.push_back(zg[IJ]);
-                zbz.push_back(zb[IJ]);
-            }
+    zgen0.clear(); zbch0.clear(); zgz.clear(); zbz.clear();
+    for(i=zi0; i<zi0+zni; ++i)
+    for(j=zj0; j<zj0+znj; ++j)
+    if(zg[IJ]>=0 || zb[IJ]>=0)
+    {
+        zcol.push_back(IJ);
+        zgen0.push_back(zg[IJ]>=0 ? zone_r(xg[IJ]) : 1.0);
+        zbch0.push_back(zb[IJ]>=0 ? rb[IJ]/double(cb[IJ]) : 1.0);
+        zgz.push_back(zg[IJ]);
+        zbz.push_back(zb[IJ]);
+    }
     zgen = zgen0;
     zbch = zbch0;
     zfac = 1.0;
@@ -294,29 +289,29 @@ void ioflow_amr_block::zones_build(lexer *p)
 void ioflow_amr_block::zone_stage(lexer *p)
 {
     if(!zbuilt)
-        zones_build(p);
+    zones_build(p);
 
     double dtref = p->B95;
-    if(p->B95 < 0.0)
-        dtref = p->dt;
+    if(p->B95<0.0)
+    dtref = p->dt;
 
-    const double f = p->dt / (dtref > 1.0e-20 ? dtref : 1.0e-20);
-    if(f == zfac)
-        return;
+    const double f = p->dt/(dtref>1.0e-20 ? dtref : 1.0e-20);
+    if(f==zfac)
+    return;
 
     zfac = f;
-    for(size_t q = 0; q < zcol.size(); ++q)
+    for(size_t q=0; q<zcol.size(); ++q)
     {
         const double rw = zgen0[q], rb = zbch0[q];
-        zgen[q] = (rw > 0.0 && rw < 1.0) ? pow(rw, f) : rw;
-        zbch[q] = (rb > 0.0 && rb < 1.0) ? pow(rb, f) : rb;
+        zgen[q] = (rw>0.0 && rw<1.0) ? pow(rw,f) : rw;
+        zbch[q] = (rb>0.0 && rb<1.0) ? pow(rb,f) : rb;
     }
 }
 
 void ioflow_amr_block::wavegen_stage_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, double t)
 {
-    if(rzone.empty() || p->B95 == 0.0 || !gen_waves)
-        return;
+    if(rzone.empty() || p->B95==0.0 || !gen_waves)
+    return;
 
     zone_stage(p);
     tstage = t;
@@ -325,7 +320,7 @@ void ioflow_amr_block::wavegen_stage_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc
 // the time of the targets: B 95 the stage, else the start of the step
 double ioflow_amr_block::zone_time(lexer *p) const
 {
-    return (p->B95 != 0.0 && gen_waves && tstage > -1.0e19) ? tstage : p->simtime;
+    return (p->B95!=0.0 && gen_waves && tstage>-1.0e19) ? tstage : p->simtime;
 }
 
 // every column (i, j set) of the zones: f(q, r_gen, r_beach, zone_gen, zone_beach)
@@ -333,25 +328,26 @@ template<class F>
 void ioflow_amr_block::zone_columns(lexer *p, F &&fn)
 {
     if(!zbuilt)
-        zones_build(p);
+    zones_build(p);
 
-    for(size_t q = 0; q < zcol.size(); ++q)
+    for(size_t q=0; q<zcol.size(); ++q)
     {
-        i = zcol[q] / p->jmax + p->imin;
-        j = zcol[q] % p->jmax + p->jmin;
-        fn(q, zgen[q], zbch[q], zgz[q], zbz[q]);
+        i = zcol[q]/p->jmax + p->imin;
+        j = zcol[q]%p->jmax + p->jmin;
+        fn(q,zgen[q],zbch[q],zgz[q],zbz[q]);
     }
 }
 
-void ioflow_amr_block::zone_cells(lexer *p, const std::function<void(int, int)> &f)
+void ioflow_amr_block::zone_cells(lexer *p, const std::function<void(int,int)> &f)
 {
     if(rzone.empty())
-        return;
+    return;
 
-    zone_columns(p, [&](size_t q, double rg, double rb, int zg, int zb)
-                 {
+    zone_columns(p,[&](size_t q, double rg, double rb, int zg, int zb)
+    {
         if(zg>=0 || zb>=0)
-        f(i,j); });
+        f(i,j);
+    });
 }
 
 // the turbulence in the zones (k, epsilon/omega, the eddy viscosities): towards 0 with the weight of the zone, as
@@ -359,10 +355,10 @@ void ioflow_amr_block::zone_cells(lexer *p, const std::function<void(int, int)> 
 void ioflow_amr_block::turb_relax_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, double *F)
 {
     if(rzone.empty())
-        return;
+    return;
 
-    zone_columns(p, [&](size_t q, double rg, double rb, int zg, int zb)
-                 {
+    zone_columns(p,[&](size_t q, double rg, double rb, int zg, int zb)
+    {
         for(k=0; k<p->knoz; ++k)
         if(p->flag4[IJK]>0)
         {
@@ -370,25 +366,26 @@ void ioflow_amr_block::turb_relax_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, d
             F[IJK] = rg*F[IJK];
             if(zb>=0)
             F[IJK] = rb*F[IJK];
-        } });
+        }
+    });
 }
 
 void ioflow_amr_block::WL_relax(lexer *p, ghostcell *pgc, slice &WL, slice &depth)
 {
     if(rzone.empty())
-        return;
+    return;
 
-    const bool waves = gen_waves && wave_on(p, pgc);
+    const bool waves = gen_waves && wave_on(p,pgc);
     wave_run l0;
     if(waves)
     {
-        wave_in(p, l0);
-        p->wavetime = zone_time(p);
+    wave_in(p,l0);
+    p->wavetime = zone_time(p);
     }
     const double rmp = waves ? wramp(p) : 0.0;
 
-    zone_columns(p, [&](size_t q, double rg, double rb, int zg, int zb)
-                 {
+    zone_columns(p,[&](size_t q, double rg, double rb, int zg, int zb)
+    {
         const double x = p->XC2D[IJ], y = p->YC2D[IJ];
 
         // relaxation zone: still water depth + background + the ramped waves
@@ -416,29 +413,30 @@ void ioflow_amr_block::WL_relax(lexer *p, ghostcell *pgc, slice &WL, slice &dept
             const int b = z.bg>0 ? bgs.index(z.bg) : -1;
             const double eb = (b>=0) ? bgs.eta(b,x,y) : 0.0;
             WL(i,j) = (1.0-rb)*(depth(i,j) + eb) + rb*WL(i,j);
-        } });
+        }
+    });
 
     if(waves)
-        wave_out(p, l0);
+    wave_out(p,l0);
 }
 
 // the targets of the relaxation zones as iowave::U_relax, V_relax, W_relax (the inflow current B 60 aside)
 void ioflow_amr_block::U_relax(lexer *p, ghostcell *pgc, double *U, double *UH)
 {
     if(rzone.empty())
-        return;
+    return;
 
-    const bool waves = gen_waves && wave_on(p, pgc);
+    const bool waves = gen_waves && wave_on(p,pgc);
     wave_run l0;
     if(waves)
     {
-        wave_in(p, l0);
-        p->wavetime = zone_time(p);
+    wave_in(p,l0);
+    p->wavetime = zone_time(p);
     }
     const double rmp = waves ? wramp(p) : 0.0;
 
-    zone_columns(p, [&](size_t q, double rg, double rb, int zg, int zb)
-                 {
+    zone_columns(p,[&](size_t q, double rg, double rb, int zg, int zb)
+    {
         const double x = p->XC2D[IJ], y = p->YC2D[IJ];
         const double h0 = p->wd - p->bed[IJ];
 
@@ -506,28 +504,29 @@ void ioflow_amr_block::U_relax(lexer *p, ghostcell *pgc, double *U, double *UH)
                     UH[IJK] = rb*UH[IJK] + (1.0-rb)*ub*fp*(h0+eb);
                 }
             }
-        } });
+        }
+    });
 
     if(waves)
-        wave_out(p, l0);
+    wave_out(p,l0);
 }
 
 void ioflow_amr_block::V_relax(lexer *p, ghostcell *pgc, double *V, double *VH)
 {
-    if(rzone.empty() || p->j_dir == 0)
-        return;
+    if(rzone.empty() || p->j_dir==0)
+    return;
 
-    const bool waves = gen_waves && wave_on(p, pgc);
+    const bool waves = gen_waves && wave_on(p,pgc);
     wave_run l0;
     if(waves)
     {
-        wave_in(p, l0);
-        p->wavetime = zone_time(p);
+    wave_in(p,l0);
+    p->wavetime = zone_time(p);
     }
     const double rmp = waves ? wramp(p) : 0.0;
 
-    zone_columns(p, [&](size_t q, double rg, double rb, int zg, int zb)
-                 {
+    zone_columns(p,[&](size_t q, double rg, double rb, int zg, int zb)
+    {
         const double x = p->XC2D[IJ], y = p->YC2D[IJ];
         const double h0 = p->wd - p->bed[IJ];
 
@@ -595,28 +594,29 @@ void ioflow_amr_block::V_relax(lexer *p, ghostcell *pgc, double *V, double *VH)
                     VH[IJK] = rb*VH[IJK] + (1.0-rb)*vb*fp*(h0+eb);
                 }
             }
-        } });
+        }
+    });
 
     if(waves)
-        wave_out(p, l0);
+    wave_out(p,l0);
 }
 
 void ioflow_amr_block::W_relax(lexer *p, ghostcell *pgc, double *W, double *WH)
 {
     if(rzone.empty())
-        return;
+    return;
 
-    const bool waves = gen_waves && wave_on(p, pgc);
+    const bool waves = gen_waves && wave_on(p,pgc);
     wave_run l0;
     if(waves)
     {
-        wave_in(p, l0);
-        p->wavetime = zone_time(p);
+    wave_in(p,l0);
+    p->wavetime = zone_time(p);
     }
     const double rmp = waves ? wramp(p) : 0.0;
 
-    zone_columns(p, [&](size_t q, double rg, double rb, int zg, int zb)
-                 {
+    zone_columns(p,[&](size_t q, double rg, double rb, int zg, int zb)
+    {
         const double x = p->XC2D[IJ], y = p->YC2D[IJ];
         const double h0 = p->wd - p->bed[IJ];
 
@@ -650,22 +650,24 @@ void ioflow_amr_block::W_relax(lexer *p, ghostcell *pgc, double *W, double *WH)
         {
             W[IJK]  = rb*W[IJK];
             WH[IJK] = rb*WH[IJK];
-        } });
+        }
+    });
 
     if(waves)
-        wave_out(p, l0);
+    wave_out(p,l0);
 }
 
 void ioflow_amr_block::P_relax(lexer *p, ghostcell *pgc, double *P)
 {
     if(rzone.empty())
-        return;
+    return;
 
-    zone_columns(p, [&](size_t q, double rg, double rb, int zg, int zb)
-                 {
+    zone_columns(p,[&](size_t q, double rg, double rb, int zg, int zb)
+    {
         if(zb>=0 && rb<1.0)
         for(k=0; k<=p->knoz; ++k)
-        P[FIJK] = rb*P[FIJK]; });
+        P[FIJK] = rb*P[FIJK];
+    });
 }
 
 // the zones at the start, as iowave::ini_nhflow and driver_ini_nhflow: the velocities relaxed once, the water level of
@@ -674,25 +676,26 @@ void ioflow_amr_block::P_relax(lexer *p, ghostcell *pgc, double *P)
 void ioflow_amr_block::zones_ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
     if(rzone.empty())
-        return;
+    return;
 
-    U_relax(p, pgc, d->U, d->UH);
-    V_relax(p, pgc, d->V, d->VH);
-    W_relax(p, pgc, d->W, d->WH);
+    U_relax(p,pgc,d->U,d->UH);
+    V_relax(p,pgc,d->V,d->VH);
+    W_relax(p,pgc,d->W,d->WH);
 
     zgen_only = true;
-    for(int qn = 0; qn < 20; ++qn)
-        WL_relax(p, pgc, d->WL, d->depth);
+    for(int qn=0; qn<20; ++qn)
+    WL_relax(p,pgc,d->WL,d->depth);
     zgen_only = false;
 
-    zone_columns(p, [&](size_t q, double rg, double rb, int zg, int zb)
-                 {
+    zone_columns(p,[&](size_t q, double rg, double rb, int zg, int zb)
+    {
         if(zg>=0 && rg<1.0 && p->wet[IJ]==1 && p->deep[IJ]==1)
         {
             d->eta(i,j) = d->WL(i,j) - d->depth(i,j);
             d->eta_n(i,j) = d->eta(i,j);
             p->WL[IJ] = d->WL(i,j);
-        } });
+        }
+    });
 }
 
 // ------------------------------------------------------------------------------------------------- SFLOW
@@ -706,42 +709,42 @@ void ioflow_amr_block::zones_ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
 // the waves of a column at (x, y): eta and the depth-averaged u, v, w (not ramped)
 void ioflow_amr_block::wave_col2D(lexer *p, ghostcell *pgc, const bc_zone &z, double eb, double &ew, double &uw, double &vw, double &ww)
 {
-    double xg, yg;
-    wave_frame(p, p->XC2D[IJ], p->YC2D[IJ], xg, yg);
+    double xg,yg;
+    wave_frame(p,p->XC2D[IJ],p->YC2D[IJ],xg,yg);
     pwave->select_sources(z.sources.empty() ? nullptr : &z.sources);
-    ew = pwave->wave_eta(p, pgc, xg, yg);
-    const double dz = (eb + ew + p->wd - zb2->bed(i, j)) / double(p->B160);
-    double su = 0.0, sv = 0.0, sw = 0.0;
+    ew = pwave->wave_eta(p,pgc,xg,yg);
+    const double dz = (eb + ew + p->wd - zb2->bed(i,j))/double(p->B160);
+    double su=0.0, sv=0.0, sw=0.0;
     double zl = -p->wd;
-    for(int qn = 0; qn <= p->B160; ++qn)
+    for(int qn=0; qn<=p->B160; ++qn)
     {
-        su += pwave->wave_u(p, pgc, xg, yg, zl);
-        sv += pwave->wave_v(p, pgc, xg, yg, zl);
-        sw += pwave->wave_w(p, pgc, xg, yg, zl);
+        su += pwave->wave_u(p,pgc,xg,yg,zl);
+        sv += pwave->wave_v(p,pgc,xg,yg,zl);
+        sw += pwave->wave_w(p,pgc,xg,yg,zl);
         zl += dz;
     }
-    uw = su / double(p->B160 + 1);
-    vw = (p->j_dir == 1) ? sv / double(p->B160 + 1) : 0.0;
-    ww = sw / double(p->B160 + 1);
+    uw = su/double(p->B160+1);
+    vw = (p->j_dir==1) ? sv/double(p->B160+1) : 0.0;
+    ww = sw/double(p->B160+1);
     pwave->select_sources(nullptr);
 }
 
 void ioflow_amr_block::eta_relax(lexer *p, ghostcell *pgc, slice &f)
 {
-    if(rzone.empty() || zb2 == nullptr)
-        return;
+    if(rzone.empty() || zb2==nullptr)
+    return;
 
-    const bool waves = gen_waves && wave_on(p, pgc);
+    const bool waves = gen_waves && wave_on(p,pgc);
     wave_run l0;
     if(waves)
     {
-        wave_in(p, l0);
-        p->wavetime = p->simtime;
+    wave_in(p,l0);
+    p->wavetime = p->simtime;
     }
     const double rmp = waves ? wramp(p) : 0.0;
 
-    zone_columns(p, [&](size_t q, double rg, double rb, int zg, int zb)
-                 {
+    zone_columns(p,[&](size_t q, double rg, double rb, int zg, int zb)
+    {
         const double x = p->XC2D[IJ], y = p->YC2D[IJ];
 
         if(zg>=0 && rg<1.0)
@@ -767,29 +770,30 @@ void ioflow_amr_block::eta_relax(lexer *p, ghostcell *pgc, slice &f)
             const int b = z.bg>0 ? bgs.index(z.bg) : -1;
             const double eb = (b>=0) ? bgs.eta(b,x,y) : 0.0;
             f(i,j) = rb*f(i,j) + (1.0-rb)*eb;
-        } });
+        }
+    });
 
     if(waves)
-        wave_out(p, l0);
+    wave_out(p,l0);
 }
 
 // comp 0 u, 1 v, 2 w
 void ioflow_amr_block::uvw_relax2D(lexer *p, ghostcell *pgc, slice &U, slice &UH, slice &WL, int comp)
 {
-    if(rzone.empty() || zb2 == nullptr || (comp == 1 && p->j_dir == 0))
-        return;
+    if(rzone.empty() || zb2==nullptr || (comp==1 && p->j_dir==0))
+    return;
 
-    const bool waves = gen_waves && wave_on(p, pgc);
+    const bool waves = gen_waves && wave_on(p,pgc);
     wave_run l0;
     if(waves)
     {
-        wave_in(p, l0);
-        p->wavetime = p->simtime;
+    wave_in(p,l0);
+    p->wavetime = p->simtime;
     }
     const double rmp = waves ? wramp(p) : 0.0;
 
-    zone_columns(p, [&](size_t q, double rg, double rb, int zg, int zb)
-                 {
+    zone_columns(p,[&](size_t q, double rg, double rb, int zg, int zb)
+    {
         const double x = p->XC2D[IJ], y = p->YC2D[IJ];
         const double h0 = zb2->depth(i,j);
 
@@ -818,36 +822,38 @@ void ioflow_amr_block::uvw_relax2D(lexer *p, ghostcell *pgc, slice &U, slice &UH
             const double tg = (comp==0) ? ub : (comp==1) ? vb : 0.0;
             U(i,j)  = rb*U(i,j) + (1.0-rb)*tg;
             UH(i,j) = rb*UH(i,j) + (1.0-rb)*tg*WL(i,j);
-        } });
+        }
+    });
 
     if(waves)
-        wave_out(p, l0);
+    wave_out(p,l0);
 }
 
 void ioflow_amr_block::um_relax(lexer *p, ghostcell *pgc, slice &U, slice &UH, slice &WL)
 {
-    uvw_relax2D(p, pgc, U, UH, WL, 0);
+    uvw_relax2D(p,pgc,U,UH,WL,0);
 }
 
 void ioflow_amr_block::vm_relax(lexer *p, ghostcell *pgc, slice &V, slice &VH, slice &WL)
 {
-    uvw_relax2D(p, pgc, V, VH, WL, 1);
+    uvw_relax2D(p,pgc,V,VH,WL,1);
 }
 
 void ioflow_amr_block::wm_relax(lexer *p, ghostcell *pgc, slice &W, slice &WH, slice &WL)
 {
-    uvw_relax2D(p, pgc, W, WH, WL, 2);
+    uvw_relax2D(p,pgc,W,WH,WL,2);
 }
 
 void ioflow_amr_block::pm_relax(lexer *p, ghostcell *pgc, slice &f)
 {
     if(rzone.empty())
-        return;
+    return;
 
-    zone_columns(p, [&](size_t q, double rg, double rb, int zg, int zb)
-                 {
+    zone_columns(p,[&](size_t q, double rg, double rb, int zg, int zb)
+    {
         if(zb>=0 && rb<1.0)
-        f(i,j) = rb*f(i,j); });
+        f(i,j) = rb*f(i,j);
+    });
 }
 
 // the zones at the start, as sflow_f::ini: U, V relaxed once with the water depth of the initial state, then eta
@@ -856,14 +862,15 @@ void ioflow_amr_block::zones_ini2D(lexer *p, fdm2D *b, ghostcell *pgc)
 {
     zb2 = b;
     if(rzone.empty())
-        return;
+    return;
 
-    um_relax(p, pgc, b->U, b->UH, b->WL);
-    vm_relax(p, pgc, b->V, b->VH, b->WL);
-    eta_relax(p, pgc, b->eta);
+    um_relax(p,pgc,b->U,b->UH,b->WL);
+    vm_relax(p,pgc,b->V,b->VH,b->WL);
+    eta_relax(p,pgc,b->eta);
 
-    zone_columns(p, [&](size_t q, double rg, double rb, int zg, int zb)
-                 {
+    zone_columns(p,[&](size_t q, double rg, double rb, int zg, int zb)
+    {
         b->eta_n(i,j) = b->eta(i,j);
-        b->WL(i,j) = MAX(b->eta(i,j) + b->depth(i,j),0.0); });
+        b->WL(i,j) = MAX(b->eta(i,j) + b->depth(i,j),0.0);
+    });
 }

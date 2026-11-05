@@ -23,12 +23,12 @@ Author: Hans Bihs
 #ifndef INTERFACE_WIDTH_H_
 #define INTERFACE_WIDTH_H_
 
-#include "field.h"
-#include "heaviside.h"
-#include "increment.h"
-#include "lexer.h"
-#include <algorithm>
-#include <cmath>
+#include<cmath>
+#include<algorithm>
+#include"lexer.h"
+#include"field.h"
+#include"increment.h"
+#include"heaviside.h"
 
 // half width of the smoothed interface (Heaviside / delta) of the level set f in cell (i,j,k):
 // F 45 times the local cell size in the direction of the interface normal,
@@ -39,30 +39,30 @@ inline double interface_width(lexer *p, field &f, int i, int j, int k)
 {
     const int marge = increment::marge;
 
-    double nx = (f(i + 1, j, k) - f(i - 1, j, k)) / (p->DXP[IP] + p->DXP[IM1]);
-    double ny = p->j_dir == 1 ? (f(i, j + 1, k) - f(i, j - 1, k)) / (p->DYP[JP] + p->DYP[JM1]) : 0.0;
-    double nz = (f(i, j, k + 1) - f(i, j, k - 1)) / (p->DZP[KP] + p->DZP[KM1]);
+    double nx = (f(i+1,j,k)-f(i-1,j,k))/(p->DXP[IP]+p->DXP[IM1]);
+    double ny = p->j_dir==1 ? (f(i,j+1,k)-f(i,j-1,k))/(p->DYP[JP]+p->DYP[JM1]) : 0.0;
+    double nz = (f(i,j,k+1)-f(i,j,k-1))/(p->DZP[KP]+p->DZP[KM1]);
 
-    double g2 = nx * nx + ny * ny + nz * nz;
+    double g2 = nx*nx + ny*ny + nz*nz;
 
-    if(g2 < 1.0e-20)
+    if(g2<1.0e-20)
     {
-        if(p->j_dir == 0)
-            return p->F45 * 0.5 * (p->DXN[IP] + p->DZN[KP]);
+        if(p->j_dir==0)
+        return p->F45*0.5*(p->DXN[IP] + p->DZN[KP]);
 
-        return p->F45 * (1.0 / 3.0) * (p->DXN[IP] + p->DYN[JP] + p->DZN[KP]);
+        return p->F45*(1.0/3.0)*(p->DXN[IP] + p->DYN[JP] + p->DZN[KP]);
     }
 
-    double h2 = (nx * nx * p->DXN[IP] * p->DXN[IP] + ny * ny * p->DYN[JP] * p->DYN[JP] + nz * nz * p->DZN[KP] * p->DZN[KP]) / g2;
+    double h2 = (nx*nx*p->DXN[IP]*p->DXN[IP] + ny*ny*p->DYN[JP]*p->DYN[JP] + nz*nz*p->DZN[KP]*p->DZN[KP])/g2;
 
-    return p->F45 * sqrt(h2);
+    return p->F45*sqrt(h2);
 }
 
 // width on the face between cell (i,j,k) and its neighbour (i+aa,j+bb,k+cc): mean of the two cells
 // (symmetric, so the face density is the same seen from both cells)
 inline double interface_width_face(lexer *p, field &f, int i, int j, int k, int aa, int bb, int cc)
 {
-    return 0.5 * (interface_width(p, f, i, j, k) + interface_width(p, f, i + aa, j + bb, k + cc));
+    return 0.5*(interface_width(p,f,i,j,k) + interface_width(p,f,i+aa,j+bb,k+cc));
 }
 
 // the smoothed step heaviside(x, interface_width_face(..)) of the value x at the face between cell
@@ -74,12 +74,12 @@ inline double interface_width_face(lexer *p, field &f, int i, int j, int k, int 
 inline double heaviside_face(lexer *p, field &f, double x, int i, int j, int k, int aa, int bb, int cc)
 {
     const int marge = increment::marge;
-    double h = std::max(std::max(p->DXN[IP], p->DZN[KP]), std::max(p->DXN[IP + aa], p->DZN[KP + cc]));
-    if(p->j_dir == 1)
-        h = std::max(h, std::max(p->DYN[JP], p->DYN[JP + bb]));
-    if(std::fabs(x) > p->F45 * h * (1.0 + 1.0e-9))
-        return x > 0.0 ? 1.0 : 0.0;
-    return heaviside(x, interface_width_face(p, f, i, j, k, aa, bb, cc));
+    double h = std::max(std::max(p->DXN[IP],p->DZN[KP]),std::max(p->DXN[IP+aa],p->DZN[KP+cc]));
+    if(p->j_dir==1)
+    h = std::max(h,std::max(p->DYN[JP],p->DYN[JP+bb]));
+    if(std::fabs(x) > p->F45*h*(1.0+1.0e-9))
+    return x>0.0 ? 1.0 : 0.0;
+    return heaviside(x,interface_width_face(p,f,i,j,k,aa,bb,cc));
 }
 
 #endif

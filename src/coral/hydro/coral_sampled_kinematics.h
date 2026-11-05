@@ -35,63 +35,57 @@ Architect: Hans Bihs
 #ifndef CORAL_SAMPLED_KINEMATICS_H_
 #define CORAL_SAMPLED_KINEMATICS_H_
 
-#include "coral/hydro/coral_waves.h"
-#include <deque>
-#include <memory>
-#include <unordered_map>
-#include <vector>
+#include"coral/hydro/coral_waves.h"
+#include<deque>
+#include<memory>
+#include<unordered_map>
+#include<vector>
 
-namespace coral {
-class model;
-
-class sampled_kinematics : public wave_kinematics
+namespace coral
 {
-public:
-    explicit sampled_kinematics(std::shared_ptr<const wave_field> background = nullptr) : bg_(std::move(background)) {}
+    class model;
 
-    double elevation(double x, double y, double t) const override;
-    void kinematics(const Vec3 &p, double t, Vec3 &u, Vec3 &du, double &p_rho) const override;
-    double elevation_at(const void *owner, int index, const Vec3 &p, double t) const override;
-    void kinematics_at(const void *owner, int index, const Vec3 &p, double t, Vec3 &u, Vec3 &du, double &p_rho) const override;
-    // the bed under the point in the last sample (NaN outside the fluid domain or without bed samples)
-    double bed_at(const void *owner, int index, const Vec3 &p) const override;
-
-    // the points of all loads that take their kinematics from here, at their current positions (in
-    // sampling order); a change in the number of points drops the earlier samples
-    void collect(const model &, std::vector<Vec3> &points);
-    // the fluid at time t at the points of the last collect: velocity, surface elevation, inside (0/1)
-    void add_sample(double t, const std::vector<Vec3> &u, const std::vector<double> &eta, const std::vector<int> &inside,
-                    const std::vector<double> &bed = {});
-
-    int npoints() const { return n_; }
-    int nsamples() const { return (int)lev_.size(); }
-    double sample_time() const { return lev_.empty() ? 0.0 : lev_.back().t; }
-    const std::shared_ptr<const wave_field> &background() const { return bg_; }
-
-    int order = 2;  // polynomial order in time (0, 1, 2)
-    // restart from a checkpoint: the samples (the points are collected again)
-    void save_state(std::vector<double> &) const;
-    bool load_state(const std::vector<double> &, size_t &k);
-
-private:
-    struct level
+    class sampled_kinematics : public wave_kinematics
     {
-        double t;
-        std::vector<Vec3> u;
-        std::vector<double> eta;
-        std::vector<int> in;
-        std::vector<double> bed;
-    };
-    // index of (owner, index) in the samples, -1: none
-    int find(const void *owner, int index) const;
-    // Lagrange weights of the last levels at t and of their time derivative
-    int weights(double t, double *w, double *dw) const;
+    public:
+        explicit sampled_kinematics(std::shared_ptr<const wave_field> background=nullptr) : bg_(std::move(background)) {}
 
-    std::shared_ptr<const wave_field> bg_;
-    std::unordered_map<const void *, std::pair<int, int>> owners_;  // owner -> first point, count
-    std::deque<level> lev_;
-    int n_ = 0;
-};
-}  // namespace coral
+        double elevation(double x, double y, double t) const override;
+        void kinematics(const Vec3 &p, double t, Vec3 &u, Vec3 &du, double &p_rho) const override;
+        double elevation_at(const void *owner, int index, const Vec3 &p, double t) const override;
+        void kinematics_at(const void *owner, int index, const Vec3 &p, double t, Vec3 &u, Vec3 &du, double &p_rho) const override;
+        // the bed under the point in the last sample (NaN outside the fluid domain or without bed samples)
+        double bed_at(const void *owner, int index, const Vec3 &p) const override;
+
+        // the points of all loads that take their kinematics from here, at their current positions (in
+        // sampling order); a change in the number of points drops the earlier samples
+        void collect(const model&, std::vector<Vec3> &points);
+        // the fluid at time t at the points of the last collect: velocity, surface elevation, inside (0/1)
+        void add_sample(double t, const std::vector<Vec3> &u, const std::vector<double> &eta, const std::vector<int> &inside,
+                        const std::vector<double> &bed={});
+
+        int npoints() const {return n_;}
+        int nsamples() const {return (int)lev_.size();}
+        double sample_time() const {return lev_.empty() ? 0.0 : lev_.back().t;}
+        const std::shared_ptr<const wave_field> &background() const {return bg_;}
+
+        int order = 2;          // polynomial order in time (0, 1, 2)
+        // restart from a checkpoint: the samples (the points are collected again)
+        void save_state(std::vector<double>&) const;
+        bool load_state(const std::vector<double>&, size_t &k);
+
+    private:
+        struct level {double t; std::vector<Vec3> u; std::vector<double> eta; std::vector<int> in; std::vector<double> bed;};
+        // index of (owner, index) in the samples, -1: none
+        int find(const void *owner, int index) const;
+        // Lagrange weights of the last levels at t and of their time derivative
+        int weights(double t, double *w, double *dw) const;
+
+        std::shared_ptr<const wave_field> bg_;
+        std::unordered_map<const void*, std::pair<int,int>> owners_;   // owner -> first point, count
+        std::deque<level> lev_;
+        int n_ = 0;
+    };
+}
 
 #endif

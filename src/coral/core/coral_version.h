@@ -24,15 +24,16 @@ Architect: Hans Bihs
 #ifndef CORAL_VERSION_H_
 #define CORAL_VERSION_H_
 
-namespace coral {
-// "REEF3D::CORAL"
-const char *name();
-// "Coupled Offshore Rotor Analysis and Loads"
-const char *long_name();
-// version of the CORAL module, independent of the REEF3D git version
-const char *version();
-// one line for logs: name, version and long name
-const char *banner();
-}  // namespace coral
+namespace coral
+{
+    // "REEF3D::CORAL"
+    const char *name();
+    // "Coupled Offshore Rotor Analysis and Loads"
+    const char *long_name();
+    // version of the CORAL module, independent of the REEF3D git version
+    const char *version();
+    // one line for logs: name, version and long name
+    const char *banner();
+}
 
 #endif

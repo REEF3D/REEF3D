@@ -20,110 +20,111 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "sflow_vtp_fsf.h"
-#include "fdm2D.h"
-#include "fnpf_print_Hs.h"
-#include "ghostcell.h"
-#include "lagoon_output.h"
-#include "lexer.h"
-#include "met_forcing.h"
-#include "sediment.h"
-#include "sflow_print_max.h"
-#include "sflow_print_probe_da.h"
-#include "sflow_print_wsf.h"
-#include "sflow_print_wsf_theory.h"
-#include "sflow_print_wsfline.h"
-#include "sflow_print_wsfline_y.h"
-#include "sflow_state.h"
-#include "sflow_turbulence.h"
-#include "vtp_piece_buffer.h"
-#include <sstream>
-#include <sys/stat.h>
-#include <sys/types.h>
+#include"sflow_vtp_fsf.h"
+#include"lexer.h"
+#include"fdm2D.h"
+#include"met_forcing.h"
+#include"ghostcell.h"
+#include"sediment.h"
+#include"sflow_print_wsf.h"
+#include"sflow_print_wsf_theory.h"
+#include"sflow_print_wsfline.h"
+#include"sflow_print_wsfline_y.h"
+#include"sflow_print_probe_da.h"
+#include"sflow_turbulence.h"
+#include"sflow_state.h"
+#include"fnpf_print_Hs.h"
+#include"sflow_print_max.h"
+#include"lagoon_output.h"
+#include"vtp_piece_buffer.h"
+#include<sstream>
+#include<sys/stat.h>
+#include<sys/types.h>
 
-namespace {
+namespace
+{
 lagoon_surface *lagoon_free_surface = nullptr;  // P 18
 }
 
 sflow_vtp_fsf::sflow_vtp_fsf(lexer *p, fdm2D *b, ghostcell *pgc)
 {
-    if(p->I40 == 0)
+    if(p->I40==0)
     {
-        p->printtime = 0.0;
-        p->probeprinttime = 0.0;
-        p->stateprinttime = 0.0;
+        p->printtime=0.0;
+        p->probeprinttime=0.0;
+        p->stateprinttime=0.0;
     }
 
-    p->printcount = 0;
+    p->printcount=0;
 
     // Create Folder
-    if(p->mpirank == 0)
-        mkdir("./REEF3D_SFLOW_VTP_FSF", 0777);
+    if(p->mpirank==0)
+        mkdir("./REEF3D_SFLOW_VTP_FSF",0777);
 
-    pwsf = new sflow_print_wsf(p, b);
+    pwsf = new sflow_print_wsf(p,b);
 
-    pwsf_theory = new sflow_print_wsf_theory(p, b, pgc);
+    pwsf_theory = new sflow_print_wsf_theory(p,b,pgc);
 
-    pwsfline = new sflow_print_wsfline(p, b, pgc);
+    pwsfline = new sflow_print_wsfline(p,b,pgc);
 
-    pwsfline_y = new sflow_print_wsfline_y(p, b, pgc);
+    pwsfline_y = new sflow_print_wsfline_y(p,b,pgc);
 
-    pprobe = new sflow_print_probe_da(p, b, pgc);
+    pprobe = new sflow_print_probe_da(p,b,pgc);
 
-    // if(p->P37>0)
-    // pstate_restart = new sflow_state(p,b,pgc,1);
+    //if(p->P37>0)
+        //pstate_restart = new sflow_state(p,b,pgc,1);
 
-    if(p->P40 > 0)
-        pstate = new sflow_state(p, b, pgc, 0);
+    if(p->P40>0)
+        pstate = new sflow_state(p,b,pgc,0);
 
-    if(p->P110 == 1)
-        phs = new fnpf_print_Hs(p, b->Hs);
+    if(p->P110==1)
+        phs = new fnpf_print_Hs(p,b->Hs);
 
     // maxima of the run (P 112, P 115)
     if(sflow_print_max::active(p))
-        pmax = new sflow_print_max(p, b, pgc);
+        pmax = new sflow_print_max(p,b,pgc);
 }
 
-void sflow_vtp_fsf::start(lexer *p, fdm2D *b, ghostcell *pgc, ioflow *pflow, sflow_turbulence *pturb, sediment *psed)
+void sflow_vtp_fsf::start(lexer *p, fdm2D* b, ghostcell* pgc, ioflow *pflow, sflow_turbulence *pturb, sediment *psed)
 {
     // maxima of the run (P 112, P 115): the state at the end of the step
-    if(pmax != nullptr && p->count > 0)
-        pmax->update(p, b, pgc);
+    if(pmax!=nullptr && p->count>0)
+        pmax->update(p,b,pgc);
 
     // Print out based on iteration
-    if((p->count % p->P181 == 0 && p->P182 < 0.0 && p->P10 > 0 && p->P181 > 0) || (p->count == 0 && p->P182 < 0.0))
+    if((p->count%p->P181==0 && p->P182<0.0 && p->P10>0 && p->P181>0)  || (p->count==0 &&  p->P182<0.0))
     {
-        print2D(p, b, pgc, pturb, psed);
+        print2D(p,b,pgc,pturb,psed);
     }
 
     // Print out based on time
-    if((p->simtime > p->printtime && p->P182 > 0.0 && p->P10 > 0) || (p->count == 0 && p->P182 > 0.0))
+    if((p->simtime>p->printtime && p->P182>0.0 && p->P10>0) || (p->count==0 &&  p->P182>0.0))
     {
-        print2D(p, b, pgc, pturb, psed);
+        print2D(p,b,pgc,pturb,psed);
 
-        p->printtime += p->P182;
+        p->printtime+=p->P182;
     }
 
     // WSF Gages
-    if(p->P51 > 0)
-        pwsf->height_gauge(p, b, pgc, b->eta);
+    if(p->P51>0)
+        pwsf->height_gauge(p,b,pgc,b->eta);
 
-    if(p->P50 > 0)
-        pwsf_theory->height_gauge(p, b, pgc, pflow);
+    if(p->P50>0)
+        pwsf_theory->height_gauge(p,b,pgc,pflow);
 
-    if((p->P52 > 0 && p->count % p->P54 == 0 && p->P55 < 0.0) || ((p->P52 > 0 && p->simtime > p->probeprinttime && p->P55 > 0.0) || (p->count == 0 && p->P55 > 0.0)))
-        pwsfline->start(p, b, pgc, pflow, b->eta);
+    if((p->P52>0 && p->count%p->P54==0 && p->P55<0.0) || ((p->P52>0 && p->simtime>p->probeprinttime && p->P55>0.0) || (p->count==0 &&  p->P55>0.0)))
+        pwsfline->start(p,b,pgc,pflow,b->eta);
 
-    if((p->P56 > 0 && p->count % p->P54 == 0 && p->P55 < 0.0) || ((p->P56 > 0 && p->simtime > p->probeprinttime && p->P55 > 0.0) || (p->count == 0 && p->P55 > 0.0)))
-        pwsfline_y->start(p, b, pgc, pflow, b->eta);
+    if((p->P56>0 && p->count%p->P54==0 && p->P55<0.0) || ((p->P56>0 && p->simtime>p->probeprinttime && p->P55>0.0) || (p->count==0 &&  p->P55>0.0)))
+        pwsfline_y->start(p,b,pgc,pflow,b->eta);
 
     // DA Gages
-    if(p->P63 > 0 && p->count % p->P54 == 0)
-        pprobe->start(p, b, pgc);
+    if(p->P63>0 && p->count%p->P54==0)
+        pprobe->start(p,b,pgc);
 
     // Hs
-    if(p->P110 == 1)
-        phs->start(p, pgc, b->eta, b->Hs);
+    if(p->P110==1)
+        phs->start(p,pgc,b->eta,b->Hs);
 
     // Print state restart out based on iteration
     /*if(p->count%p->P38==0 && p->P37>0)
@@ -132,402 +133,391 @@ void sflow_vtp_fsf::start(lexer *p, fdm2D *b, ghostcell *pgc, ioflow *pflow, sfl
     }*/
 
     // Print state out based on iteration
-    if(p->P40 > 0 && p->P41 > 0 && p->count % p->P41 == 0 && p->P42 < 0.0 && (p->P46 == 0 || (p->count >= p->P46_is && p->count < p->P46_ie)))
+    if(p->P40>0 && p->P41>0 && p->count%p->P41==0 && p->P42<0.0 && (p->P46==0 || (p->count>=p->P46_is && p->count<p->P46_ie)))
     {
-        pstate->write(p, b, pgc);
+        pstate->write(p,b,pgc);
     }
 
     // Print state out based on time
-    if(p->P40 > 0 && p->P42 > 0.0 && (p->simtime > p->stateprinttime || p->count == 0) && (p->P47 == 0 || (p->simtime >= p->P47_ts && p->simtime < p->P47_te)))
+    if(p->P40>0 && p->P42>0.0 && (p->simtime>p->stateprinttime || p->count==0) && (p->P47==0 || (p->simtime>=p->P47_ts && p->simtime<p->P47_te)))
     {
-        pstate->write(p, b, pgc);
+        pstate->write(p,b,pgc);
 
-        p->stateprinttime += p->P42;
+        p->stateprinttime+=p->P42;
     }
 
-    if(p->P55 > 0.0 && (p->simtime > p->probeprinttime || p->count == 0))
-        p->probeprinttime += p->P55;
+    if(p->P55>0.0 && (p->simtime>p->probeprinttime || p->count==0))
+        p->probeprinttime+=p->P55;
 }
 
-void sflow_vtp_fsf::print_end(lexer *p, fdm2D *b, ghostcell *pgc, sflow_turbulence *pturb, sediment *psed)
+void sflow_vtp_fsf::print_end(lexer *p, fdm2D* b, ghostcell* pgc, sflow_turbulence *pturb, sediment *psed)
 {
     // the state at the end of the run, also when it ends between two outputs (N 45 before P 182)
-    if(p->P10 > 0 && (p->P181 > 0 || p->P182 > 0.0) && last_print != p->count)
-        print2D(p, b, pgc, pturb, psed);
+    if(p->P10>0 && (p->P181>0 || p->P182>0.0) && last_print!=p->count)
+        print2D(p,b,pgc,pturb,psed);
 }
 
-void sflow_vtp_fsf::print2D(lexer *p, fdm2D *b, ghostcell *pgc, sflow_turbulence *pturb, sediment *psed)
+void sflow_vtp_fsf::print2D(lexer *p, fdm2D* b, ghostcell* pgc, sflow_turbulence *pturb, sediment *psed)
 {
     last_print = p->count;
 
     int num = 0;
-    if(p->P15 == 1)
+    if(p->P15==1)
         num = p->printcount;
-    else if(p->P15 == 2)
+    else if(p->P15==2)
         num = p->count;
+    
+    if(p->mpirank==0 && lagoon_output::vtu_files(p))  // P 18 1: the store instead
+        pvtp(p,b,pgc,pturb,psed,num);
 
-    if(p->mpirank == 0 && lagoon_output::vtu_files(p))  // P 18 1: the store instead
-        pvtp(p, b, pgc, pturb, psed, num);
-
-    if(p->mpirank == 0)
-        pvtp(p, b, pgc, pturb, psed, num);
-
-    if(p->origin_i == 0 && p->origin_j == 0)
+    if(p->origin_i==0 && p->origin_j==0)
     {
-        i = 0;
-        j = 0;
+        i=0;
+        j=0;
         p->wet[Im1Jm1] = p->wet[IJ];
     }
 
-    if(p->origin_i == 0 && p->gknoy == p->knoy + p->origin_j)
+    if(p->origin_i==0 && p->gknoy==p->knoy+p->origin_j)
     {
-        i = 0;
-        j = p->knoy - 1;
+        i=0;
+        j=p->knoy-1;
         p->wet[Im1Jp1] = p->wet[IJ];
     }
 
-    if(p->gknox == p->knox + p->origin_i && p->origin_j == 0)
+    if(p->gknox==p->knox+p->origin_i && p->origin_j==0)
     {
-        i = p->knox - 1;
-        j = 0;
+        i=p->knox-1;
+        j=0;
         p->wet[Ip1Jm1] = p->wet[IJ];
     }
 
-    if(p->gknox == p->knox + p->origin_i && p->gknoy == p->knoy + p->origin_j)
+    if(p->gknox==p->knox+p->origin_i && p->gknoy==p->knoy+p->origin_j)
     {
-        i = p->knox - 1;
-        j = p->knoy - 1;
+        i=p->knox-1;
+        j=p->knoy-1;
         p->wet[Ip1Jp1] = p->wet[IJ];
     }
 
     // offsets
-    n = 0;
-    offset[n] = 0;
+    n=0;
+    offset[n]=0;
     ++n;
 
     // Points
-    offset[n] = offset[n - 1] + sizeof(float) * p->pointnum2D * 3 + sizeof(int);
+    offset[n]=offset[n-1]+sizeof(float)*p->pointnum2D*3+sizeof(int);
     ++n;
 
     // velocity
-    offset[n] = offset[n - 1] + sizeof(float) * p->pointnum2D * 3 + sizeof(int);
+    offset[n]=offset[n-1]+sizeof(float)*p->pointnum2D*3+sizeof(int);
     ++n;
 
     // pressure
-    offset[n] = offset[n - 1] + sizeof(float) * p->pointnum2D + sizeof(int);
+    offset[n]=offset[n-1]+sizeof(float)*p->pointnum2D+sizeof(int);
     ++n;
 
     // eddyv
-    offset[n] = offset[n - 1] + sizeof(float) * p->pointnum2D + sizeof(int);
+    offset[n]=offset[n-1]+sizeof(float)*p->pointnum2D+sizeof(int);
     ++n;
 
     // k and eps
-    pturb->offset_ParaView_2D(p, offset, n);
+    pturb->offset_ParaView_2D(p,offset,n);
 
     // eta
-    offset[n] = offset[n - 1] + sizeof(float) * p->pointnum2D + sizeof(int);
+    offset[n]=offset[n-1]+sizeof(float)*p->pointnum2D+sizeof(int);
     ++n;
 
     // waterlevel
-    offset[n] = offset[n - 1] + sizeof(float) * p->pointnum2D + sizeof(int);
+    offset[n]=offset[n-1]+sizeof(float)*p->pointnum2D+sizeof(int);
     ++n;
 
     // wetdry
-    offset[n] = offset[n - 1] + sizeof(float) * p->pointnum2D + sizeof(int);
+    offset[n]=offset[n-1]+sizeof(float)*p->pointnum2D+sizeof(int);
     ++n;
 
     // breaking
-    offset[n] = offset[n - 1] + sizeof(float) * p->pointnum2D + sizeof(int);
+    offset[n]=offset[n-1]+sizeof(float)*p->pointnum2D+sizeof(int);
     ++n;
 
     // test
-    if(p->P23 == 1)
+    if(p->P23==1)
     {
-        offset[n] = offset[n - 1] + sizeof(float) * p->pointnum2D + sizeof(int);
+        offset[n]=offset[n-1]+sizeof(float)*p->pointnum2D+sizeof(int);
         ++n;
     }
 
     // fb
-    if(p->P28 == 1)
+    if(p->P28==1)
     {
-        offset[n] = offset[n - 1] + sizeof(float) * p->pointnum2D + sizeof(int);
+        offset[n]=offset[n-1]+sizeof(float)*p->pointnum2D+sizeof(int);
         ++n;
     }
 
     // Hs
-    if(p->P110 == 1)
+    if(p->P110==1)
     {
-        offset[n] = offset[n - 1] + sizeof(float) * p->pointnum2D + sizeof(int);
+        offset[n]=offset[n-1]+sizeof(float)*p->pointnum2D+sizeof(int);
         ++n;
     }
 
     // atmospheric forcing (W 200)
-    if(b->met != nullptr)
-        b->met->offset_vtp(p, offset, n);
+    if(b->met!=nullptr)
+        b->met->offset_vtp(p,offset,n);
 
     // Cells
-    offset[n] = offset[n - 1] + sizeof(int) * p->polygon_sum * 3 + sizeof(int);
+    offset[n]=offset[n-1] + sizeof(int)*p->polygon_sum*3+sizeof(int);
     ++n;
-    offset[n] = offset[n - 1] + sizeof(int) * p->polygon_sum + sizeof(int);
+    offset[n]=offset[n-1] + sizeof(int)*p->polygon_sum+sizeof(int);
     ++n;
 
     // Open File
-    sprintf(name, "./REEF3D_SFLOW_VTP_FSF/REEF3D-SFLOW-FSF-%08i-%06i.vtp", num, p->mpirank + 1);
+    sprintf(name,"./REEF3D_SFLOW_VTP_FSF/REEF3D-SFLOW-FSF-%08i-%06i.vtp",num,p->mpirank+1);
     // the piece in memory: lagoon_surface::piece writes the file where it is wanted (vtp_piece_buffer.h)
     std::ostringstream result(std::ios::out | std::ios::binary);
     vtp_piece_buffer bin;
-    bin.s.reserve(size_t(p->pointnum2D) * 80);
+    bin.s.reserve(size_t(p->pointnum2D)*80);
 
-    vtp3D::beginning(p, result, p->pointnum2D, 0, 0, 0, p->polygon_sum);
+    vtp3D::beginning(p,result,p->pointnum2D,0,0,0,p->polygon_sum);
 
-    n = 0;
-    result << "<Points>\n";
-    result << "<DataArray type=\"Float32\" NumberOfComponents=\"3\" format=\"appended\" offset=\"" << offset[n] << "\"/>\n";
+    n=0;
+    result<<"<Points>\n";
+    result<<"<DataArray type=\"Float32\" NumberOfComponents=\"3\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
     ++n;
-    result << "</Points>\n";
+    result<<"</Points>\n";
 
-    result << "<PointData>\n";
-    result << "<DataArray type=\"Float32\" Name=\"velocity\" NumberOfComponents=\"3\" format=\"appended\" offset=\"" << offset[n] << "\"/>\n";
+    result<<"<PointData>\n";
+    result<<"<DataArray type=\"Float32\" Name=\"velocity\" NumberOfComponents=\"3\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
     ++n;
-    result << "<DataArray type=\"Float32\" Name=\"pressure\" format=\"appended\" offset=\"" << offset[n] << "\"/>\n";
+    result<<"<DataArray type=\"Float32\" Name=\"pressure\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
     ++n;
-    result << "<DataArray type=\"Float32\" Name=\"eddyv\" format=\"appended\" offset=\"" << offset[n] << "\"/>\n";
+    result<<"<DataArray type=\"Float32\" Name=\"eddyv\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
     ++n;
-    pturb->name_vtp(p, b, pgc, result, offset, n);
-    result << "<DataArray type=\"Float32\" Name=\"eta\" format=\"appended\" offset=\"" << offset[n] << "\"/>\n";
+    pturb->name_vtp(p,b,pgc,result,offset,n);
+    result<<"<DataArray type=\"Float32\" Name=\"eta\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
     ++n;
-    result << "<DataArray type=\"Float32\" Name=\"waterlevel\" format=\"appended\" offset=\"" << offset[n] << "\"/>\n";
+    result<<"<DataArray type=\"Float32\" Name=\"waterlevel\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
     ++n;
-    result << "<DataArray type=\"Float32\" Name=\"wetdry\" format=\"appended\" offset=\"" << offset[n] << "\"/>\n";
+    result<<"<DataArray type=\"Float32\" Name=\"wetdry\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
     ++n;
-    result << "<DataArray type=\"Float32\" Name=\"breaking\" format=\"appended\" offset=\"" << offset[n] << "\"/>\n";
+    result<<"<DataArray type=\"Float32\" Name=\"breaking\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
     ++n;
-    if(p->P23 == 1)
+    if(p->P23==1)
     {
-        result << "<DataArray type=\"Float32\" Name=\"test\" format=\"appended\" offset=\"" << offset[n] << "\"/>\n";
+        result<<"<DataArray type=\"Float32\" Name=\"test\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
         ++n;
     }
-    if(p->P28 == 1)
+    if(p->P28==1)
     {
-        result << "<DataArray type=\"Float32\" Name=\"fb\" format=\"appended\" offset=\"" << offset[n] << "\"/>\n";
+        result<<"<DataArray type=\"Float32\" Name=\"fb\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
         ++n;
     }
-    if(p->P110 == 1)
+    if(p->P110==1)
     {
-        result << "<DataArray type=\"Float32\" Name=\"Hs\" format=\"appended\" offset=\"" << offset[n] << "\"/>\n";
+        result<<"<DataArray type=\"Float32\" Name=\"Hs\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
         ++n;
     }
-    if(b->met != nullptr)
-        b->met->name_vtp(result, offset, n);
-    result << "</PointData>\n";
+    if(b->met!=nullptr)
+        b->met->name_vtp(result,offset,n);
+    result<<"</PointData>\n";
 
-    vtp3D::polys(result, offset, n);
+    vtp3D::polys(result,offset,n);
 
     vtp3D::ending(result);
 
     //----------------------------------------------------------------------------
 
     //  XYZ
-    iin = sizeof(float) * p->pointnum2D * 3;
-    bin.write((char *)&iin, sizeof(int));
+    iin=sizeof(float)*p->pointnum2D*3;
+    bin.write((char*)&iin, sizeof(int));
     TPSLICELOOP
     {
-        ffn = (p->geo_curv == 1) ? p->XN2D[p->nij(i + 1, j + 1)] : p->XN[IP1];
-        bin.write((char *)&ffn, sizeof(float));
+        ffn=(p->geo_curv==1) ? p->XN2D[p->nij(i+1,j+1)] : p->XN[IP1];
+        bin.write((char*)&ffn, sizeof(float));
 
-        ffn = (p->geo_curv == 1) ? p->YN2D[p->nij(i + 1, j + 1)] : p->YN[JP1];
-        bin.write((char *)&ffn, sizeof(float));
+        ffn=(p->geo_curv==1) ? p->YN2D[p->nij(i+1,j+1)] : p->YN[JP1];
+        bin.write((char*)&ffn, sizeof(float));
 
-        if(p->P73 == 0)
+        if(p->P73==0)
         {
-            ffn = p->sl_ipol4eta(p->wet, b->eta, b->bed) + p->wd;
-            if(p->wet[IJ] == 1 && p->wet[Ip1J] == 1 && p->wet[IJp1] == 1 && p->wet[Ip1Jp1] == 1)
-                ffn = MAX(ffn, b->bednode(i, j) + p->A244);
+            ffn=p->sl_ipol4eta(p->wet,b->eta,b->bed) + p->wd;
+            if(p->wet[IJ]==1 && p->wet[Ip1J]==1 && p->wet[IJp1]==1 && p->wet[Ip1Jp1]==1)
+                ffn = MAX(ffn,b->bednode(i,j)+p->A244);
         }
-        else if(p->P73 == 1)
-            ffn = 0.5 * (b->hx(i, j) + b->hx(i, j + 1)) + p->sl_ipol4(b->bed);
-        else if(p->P73 == 2)
-            ffn = 0.5 * (b->hy(i, j) + b->hy(i + 1, j)) + p->sl_ipol4(b->bed);
-        else if(p->P73 == 3)
-            ffn = p->sl_ipol4(b->eta) + p->wd;
+        else if(p->P73==1)
+            ffn=0.5*(b->hx(i,j)+b->hx(i,j+1)) + p->sl_ipol4(b->bed);
+        else if(p->P73==2)
+            ffn=0.5*(b->hy(i,j)+b->hy(i+1,j)) + p->sl_ipol4(b->bed);
+        else if(p->P73==3)
+            ffn=p->sl_ipol4(b->eta) + p->wd;
         else
-            ffn = 0;
+            ffn=0;
 
-        bin.write((char *)&ffn, sizeof(float));
+        bin.write((char*)&ffn, sizeof(float));
     }
 
     //  Velocities
-    iin = sizeof(float) * p->pointnum2D * 3;
-    bin.write((char *)&iin, sizeof(int));
+    iin=sizeof(float)*p->pointnum2D*3;
+    bin.write((char*)&iin, sizeof(int));
     TPSLICELOOP
     {
-        ffn = float(p->sl_ipol4(b->U));
-        bin.write((char *)&ffn, sizeof(float));
+        ffn=float(p->sl_ipol4(b->U));
+        bin.write((char*)&ffn, sizeof(float));
 
-        ffn = float(p->sl_ipol4(b->V));
-        bin.write((char *)&ffn, sizeof(float));
+        ffn=float(p->sl_ipol4(b->V));
+        bin.write((char*)&ffn, sizeof(float));
 
-        ffn = float(p->sl_ipol4(b->ws));
-        bin.write((char *)&ffn, sizeof(float));
+        ffn=float(p->sl_ipol4(b->ws));
+        bin.write((char*)&ffn, sizeof(float));
     }
 
     //  Pressure
-    iin = sizeof(float) * p->pointnum2D;
-    bin.write((char *)&iin, sizeof(int));
+    iin=sizeof(float)*p->pointnum2D;
+    bin.write((char*)&iin, sizeof(int));
     TPSLICELOOP
     {
-        ffn = float(p->sl_ipol4(b->press));
-        bin.write((char *)&ffn, sizeof(float));
+        ffn=float(p->sl_ipol4(b->press));
+        bin.write((char*)&ffn, sizeof(float));
     }
 
     //  eddyv
-    iin = sizeof(float) * p->pointnum2D;
-    bin.write((char *)&iin, sizeof(int));
+    iin=sizeof(float)*p->pointnum2D;
+    bin.write((char*)&iin, sizeof(int));
     TPSLICELOOP
     {
-        ffn = float(p->sl_ipol4(b->eddyv));
-        bin.write((char *)&ffn, sizeof(float));
+        ffn=float(p->sl_ipol4(b->eddyv));
+        bin.write((char*)&ffn, sizeof(float));
     }
 
     //  turbulence
-    {
-        std::ostringstream part(std::ios::out | std::ios::binary);
-        pturb->print_2D(p, b, pgc, part);
-        bin.s += part.str();
-    }
+    {std::ostringstream part(std::ios::out | std::ios::binary); pturb->print_2D(p,b,pgc,part); bin.s += part.str();}
 
     //  Eta
-    iin = sizeof(float) * p->pointnum2D;
-    bin.write((char *)&iin, sizeof(int));
+    iin=sizeof(float)*p->pointnum2D;
+    bin.write((char*)&iin, sizeof(int));
     TPSLICELOOP
     {
-        ffn = float(p->sl_ipol4eta_wd(p->wet, b->eta, b->bed));
-        bin.write((char *)&ffn, sizeof(float));
+        ffn=float(p->sl_ipol4eta_wd(p->wet,b->eta,b->bed));
+        bin.write((char*)&ffn, sizeof(float));
     }
 
     //  Waterlevel
-    iin = sizeof(float) * p->pointnum2D;
-    bin.write((char *)&iin, sizeof(int));
+    iin=sizeof(float)*p->pointnum2D;
+    bin.write((char*)&iin, sizeof(int));
     TPSLICELOOP
     {
-        ffn = float(p->sl_ipol4(b->hp));
-        bin.write((char *)&ffn, sizeof(float));
+        ffn=float(p->sl_ipol4(b->hp));
+        bin.write((char*)&ffn, sizeof(float));
     }
 
     //  wetdry
-    iin = sizeof(float) * p->pointnum2D;
-    bin.write((char *)&iin, sizeof(int));
+    iin=sizeof(float)*p->pointnum2D;
+    bin.write((char*)&iin, sizeof(int));
     TPSLICELOOP
     {
-        ffn = 0.25 * float((p->wet[IJ] + p->wet[Ip1J] + p->wet[IJp1] + p->wet[Ip1Jp1]));
-        bin.write((char *)&ffn, sizeof(float));
+        ffn=0.25*float((p->wet[IJ]+p->wet[Ip1J]+p->wet[IJp1]+p->wet[Ip1Jp1]));
+        bin.write((char*)&ffn, sizeof(float));
     }
 
     //  Breaking
-    iin = sizeof(float) * p->pointnum2D;
-    bin.write((char *)&iin, sizeof(int));
+    iin=sizeof(float)*p->pointnum2D;
+    bin.write((char*)&iin, sizeof(int));
     TPSLICELOOP
     {
-        ffn = float(p->sl_ipol4(b->breaking_print));
-        bin.write((char *)&ffn, sizeof(float));
+        ffn=float(p->sl_ipol4(b->breaking_print));
+        bin.write((char*)&ffn, sizeof(float));
     }
 
     //  test
-    if(p->P23 == 1)
+    if(p->P23==1)
     {
-        iin = sizeof(float) * p->pointnum2D;
-        bin.write((char *)&iin, sizeof(int));
+        iin=sizeof(float)*p->pointnum2D;
+        bin.write((char*)&iin, sizeof(int));
         TPSLICELOOP
         {
-            ffn = float(p->sl_ipol4(b->test));
-            bin.write((char *)&ffn, sizeof(float));
+            ffn=float(p->sl_ipol4(b->test));
+            bin.write((char*)&ffn, sizeof(float));
         }
     }
 
     //  fb
-    if(p->P28 == 1)
+    if(p->P28==1)
     {
-        iin = sizeof(float) * p->pointnum2D;
-        bin.write((char *)&iin, sizeof(int));
+        iin=sizeof(float)*p->pointnum2D;
+        bin.write((char*)&iin, sizeof(int));
         TPSLICELOOP
         {
-            ffn = float(p->sl_ipol4(b->fs));
-            bin.write((char *)&ffn, sizeof(float));
+            ffn=float(p->sl_ipol4(b->fs));
+            bin.write((char*)&ffn, sizeof(float));
         }
     }
 
     //  Hs
-    if(p->P110 == 1)
+    if(p->P110==1)
     {
-        iin = sizeof(float) * p->pointnum2D;
-        bin.write((char *)&iin, sizeof(int));
+        iin=sizeof(float)*p->pointnum2D;
+        bin.write((char*)&iin, sizeof(int));
         TPSLICELOOP
         {
-            ffn = float(p->sl_ipol4(b->Hs));
-            bin.write((char *)&ffn, sizeof(float));
+            ffn=float(p->sl_ipol4(b->Hs));
+            bin.write((char*)&ffn, sizeof(float));
         }
     }
 
     //  wind10, air_pressure, wind_stress (W 200)
-    if(b->met != nullptr)
-    {
-        std::ostringstream part(std::ios::out | std::ios::binary);
-        b->met->print_vtp(p, part);
-        bin.s += part.str();
-    }
+    if(b->met!=nullptr)
+        {std::ostringstream part(std::ios::out | std::ios::binary); b->met->print_vtp(p,part); bin.s += part.str();}
 
     //  Connectivity
-    iin = sizeof(int) * p->polygon_sum * 3;
-    bin.write((char *)&iin, sizeof(int));
+    iin=sizeof(int)*p->polygon_sum*3;
+    bin.write((char*)&iin, sizeof(int));
     SLICEBASELOOP
     {
         // Triangle 1
-        iin = int(b->nodeval(i - 1, j - 1)) - 1;
-        bin.write((char *)&iin, sizeof(int));
+        iin=int(b->nodeval(i-1,j-1))-1;
+        bin.write((char*)&iin, sizeof(int));
 
-        iin = int(b->nodeval(i, j - 1)) - 1;
-        bin.write((char *)&iin, sizeof(int));
+        iin=int(b->nodeval(i,j-1))-1;
+        bin.write((char*)&iin, sizeof(int));
 
-        iin = int(b->nodeval(i, j)) - 1;
-        bin.write((char *)&iin, sizeof(int));
+        iin=int(b->nodeval(i,j))-1;
+        bin.write((char*)&iin, sizeof(int));
 
         // Triangle 2
-        iin = int(b->nodeval(i - 1, j - 1)) - 1;
-        bin.write((char *)&iin, sizeof(int));
+        iin=int(b->nodeval(i-1,j-1))-1;
+        bin.write((char*)&iin, sizeof(int));
 
-        iin = int(b->nodeval(i, j)) - 1;
-        bin.write((char *)&iin, sizeof(int));
+        iin=int(b->nodeval(i,j))-1;
+        bin.write((char*)&iin, sizeof(int));
 
-        iin = int(b->nodeval(i - 1, j)) - 1;
-        bin.write((char *)&iin, sizeof(int));
+        iin=int(b->nodeval(i-1,j))-1;
+        bin.write((char*)&iin, sizeof(int));
     }
 
     // Offset of Connectivity
-    iin = sizeof(int) * p->polygon_sum;
-    bin.write((char *)&iin, sizeof(int));
-    for(n = 0; n < p->polygon_sum; ++n)
+    iin=sizeof(int)*p->polygon_sum;
+    bin.write((char*)&iin, sizeof(int));
+    for(n=0;n<p->polygon_sum;++n)
     {
-        iin = (n + 1) * 3;
-        bin.write((char *)&iin, sizeof(int));
+        iin=(n+1)*3;
+        bin.write((char*)&iin, sizeof(int));
     }
 
     // the header, the binary part and the footer
     std::string piece = result.str();
     piece += bin.s;
     {
-        std::ostringstream foot;
-        vtp3D::footer(foot);
-        piece += foot.str();
+    std::ostringstream foot;
+    vtp3D::footer(foot);
+    piece += foot.str();
     }
 
     // P 18: the piece in the LAGOON store (P 18 1: instead of the file, P 18 2: as well)
-    lagoon_surface::piece(p, pgc, lagoon_free_surface, "SFLOW", "free_surface", "REEF3D_SFLOW_VTP_FSF", name, num, piece);
+    lagoon_surface::piece(p,pgc,lagoon_free_surface,"SFLOW","free_surface","REEF3D_SFLOW_VTP_FSF",name,num,piece);
 
     ++p->printcount;
 
     // the maxima so far (P 112, P 115), with every print of the free surface
-    if(pmax != nullptr)
-        pmax->write(p, b, pgc);
+    if(pmax!=nullptr)
+        pmax->write(p,b,pgc);
 }
 
 void sflow_vtp_fsf::amr_columns(const amr_column_lookup *amr)
@@ -543,12 +533,12 @@ void sflow_vtp_fsf::flush_outputs()
 
 void sflow_vtp_fsf::finish(lexer *p, fdm2D *b, ghostcell *pgc)
 {
-    if(pmax != nullptr)
-        pmax->write(p, b, pgc);
+    if(pmax!=nullptr)
+        pmax->write(p,b,pgc);
 }
 
-void sflow_vtp_fsf::ckpt_fields(const std::function<void(const char *, char, double *)> &fd, const std::function<void(const char *, char, int *)> &fi)
+void sflow_vtp_fsf::ckpt_fields(const std::function<void(const char*, char, double*)> &fd, const std::function<void(const char*, char, int*)> &fi)
 {
-    if(pmax != nullptr)
-        pmax->ckpt_fields(fd, fi);
+    if(pmax!=nullptr)
+        pmax->ckpt_fields(fd,fi);
 }

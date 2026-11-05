@@ -32,9 +32,9 @@ version 3 or later (see seastate_source.cpp).
 #ifndef SEASTATE_SOURCE_H_
 #define SEASTATE_SOURCE_H_
 
-#include "seastate_st4.h"
+#include<vector>
 #include <cstddef>
-#include <vector>
+#include"seastate_st4.h"
 
 class seastate_grid;
 
@@ -139,10 +139,10 @@ No lexer or MPI dependency (unit test Regression/unit/seastate_test.cpp).
 struct seastate_source_param
 {
     bool wind = false;
-    double U10 = 0.0, wdir = 0.0;                   // [m/s], direction the wind blows to [rad]
-    double Alin = 1.5e-3;                           // linear growth coefficient, 0: off
-    int drag = 0;                                   // drag of u_star: 0 Wu (1982), else the law of met_drag.h (A 729 1: W 207, A 729 2: A 728)
-    double drag_cap = 2.5e-3, drag_floor = 1.5e-3;  // ... its cap and floor (W 213, W 214)
+    double U10 = 0.0, wdir = 0.0;        // [m/s], direction the wind blows to [rad]
+    double Alin = 1.5e-3;                // linear growth coefficient, 0: off
+    int drag = 0;                        // drag of u_star: 0 Wu (1982), else the law of met_drag.h (A 729 1: W 207, A 729 2: A 728)
+    double drag_cap = 2.5e-3, drag_floor = 1.5e-3;      // ... its cap and floor (W 213, W 214)
 
     bool komen = false;                  // whitecapping (and exponential wind input with wind)
     bool westh = false;                  // ... as van der Westhuysen et al. (2007): Yan wind input, saturation-based whitecapping (SWAN GEN3 WESTH)
@@ -150,12 +150,12 @@ struct seastate_source_param
     bool st4 = false;                    // ... as Ardhuin et al. (2010), ecWAM IPHYS 1 (A 732 3, Phase 20; A 732 4 with st4p.gc, normagam, Phase 21): wind input with sheltering,
                                          // swell damping, saturation-based whitecapping, u* from the wave stress, diagnostic tail
     seastate_st4_param st4p;
-    bool dia = false;      // quadruplets
-    double limiter = 0.1;  // action density limiter gamma with komen, 0: off
+    bool dia = false;                    // quadruplets
+    double limiter = 0.1;                // action density limiter gamma with komen, 0: off
 
     bool breaking = false;
-    bool emax = false;       // Battjes-Janssen: total energy limited to (gamma d)^2/4 (SWAN SINTGRL)
-    int breaking_model = 1;  // 1 Battjes-Janssen, 2 Roelvink (1993) for wave groups (surfbeat)
+    bool emax = false;                   // Battjes-Janssen: total energy limited to (gamma d)^2/4 (SWAN SINTGRL)
+    int breaking_model = 1;              // 1 Battjes-Janssen, 2 Roelvink (1993) for wave groups (surfbeat)
     double alpha = 1.0, gamma = 0.73, nroel = 10.0;
 
     bool friction = false;
@@ -164,53 +164,44 @@ struct seastate_source_param
     bool triads = false;
     double alphaEB = 0.05, cutfr = 2.5, urcrit = 0.63, urslim = 0.1;
 
-    int vegetation = 0;                              // 1 Dalrymple / Suzuki et al. (2011), 2 per frequency, Jacobsen et al. (2019)
-    double vh = 0.0, vd = 0.0, vn = 0.0, vcd = 1.0;  // height [m], stem diameter [m], stems per m^2, drag coefficient
+    int vegetation = 0;                  // 1 Dalrymple / Suzuki et al. (2011), 2 per frequency, Jacobsen et al. (2019)
+    double vh = 0.0, vd = 0.0, vn = 0.0, vcd = 1.0;     // height [m], stem diameter [m], stems per m^2, drag coefficient
 
-    bool any() const { return wind || komen || dia || breaking || friction || triads || vegetation > 0; }
+    bool any() const {return wind || komen || dia || breaking || friction || triads || vegetation>0;}
 };
 
 class seastate_source
 {
 public:
-    seastate_source(const seastate_grid &, const seastate_source_param &);
+    seastate_source(const seastate_grid&, const seastate_source_param&);
 
-    const seastate_source_param &param() const { return prm; }
+    const seastate_source_param &param() const {return prm;}
 
     // wind field (A 730 2): wind of the cell before compute [m/s], direction the wind blows to [rad]
-    void set_wind(double U10, double wdir)
-    {
-        prm.U10 = U10;
-        prm.wdir = wdir;
-    }
+    void set_wind(double U10, double wdir) {prm.U10 = U10; prm.wdir = wdir;}
 
     // vegetation field (A 756 1): stems per m^2 of the cell before compute
-    void set_vegetation(double nv) { prm.vn = nv; }
+    void set_vegetation(double nv) {prm.vn = nv;}
 
     // the parameters of another source object of the same grid (Phase 12: the copies kept for the threads)
-    void sync_param(const seastate_source &o) { prm = o.prm; }
+    void sync_param(const seastate_source &o) {prm = o.prm;}
 
     // spectral sparsity (A 795): energy may appear in any bin of the cell (wind input, DIA)
-    bool fills_spectrum() const { return (prm.wind && prm.U10 > 0.0) || prm.dia; }
+    bool fills_spectrum() const {return (prm.wind && prm.U10>0.0) || prm.dia;}
     // LTA triads: the lowest frequency offset (negative) that feeds a bin, 0 without triads
-    int triad_reach() const { return (prm.triads && nsig > 1) ? tsm1 : 0; }
+    int triad_reach() const {return (prm.triads && nsig>1) ? tsm1 : 0;}
     // the triads acted in the last compute (Ursell number above urslim)
-    bool triads_active() const { return prm.triads && ursell >= prm.urslim; }
+    bool triads_active() const {return prm.triads && ursell>=prm.urslim;}
     // row sums (over the directions per frequency) of the spectrum of the next cap()/compute(), known
     // to the caller (spectral sparsity: the sums over the active ranges)
-    void set_rows(const double *r) const
-    {
-        for(int l = 0; l < nsig; ++l)
-            row[l] = r[l];
-        rows_ready = true;
-    }
+    void set_rows(const double *r) const {for(int l=0; l<nsig; ++l) row[l] = r[l]; rows_ready = true;}
 
     // N of one cell (nbin), k and cg of the cell (nsig); P and D of size nbin (overwritten)
     // directions ma..mb and frequencies la..lb only (the quadrant of a sweep, the band of the spectral
     // sparsity; mb, lb < 0: all). The integral parameters use the whole spectrum; P and D outside are not
     // set. With DIA the transfers are computed for all bins.
-    void compute(const float *N, double depth, const float *k, const float *cg, double *P, double *D, int ma = 0, int mb = -1,
-                 int la = 0, int lb = -1);
+    void compute(const float *N, double depth, const float *k, const float *cg, double *P, double *D, int ma=0, int mb=-1,
+                 int la=0, int lb=-1);
 
     // maximum energy (prm.emax, Battjes-Janssen breaking): scales the spectrum of a cell down to the
     // total energy (gamma d)^2/4 (tail included, as SWAN SINTGRL); true if it was scaled
@@ -221,50 +212,42 @@ public:
     void triads(const float *N, double depth, const float *k, const float *cg, double *S);
 
     // maximum change of N per iteration of the last call (per frequency), nullptr: no limiter
-    const double *limit() const { return (prm.komen && prm.limiter > 0.0) ? dNmax.data() : nullptr; }
+    const double *limit() const {return (prm.komen && prm.limiter>0.0) ? dNmax.data() : nullptr;}
 
     // Phase 21b (A 767 1, the source terms of a cell taken from the evaluation in the first sweep of the iteration):
     // the limiter of the cell (k, cg) for all frequencies without the source terms, and the row sums of set_rows()
     // or cap() dropped (they belong to this cell, the next compute() is for another)
     void limits(const float *k, const float *cg);
-    void drop_rows() const { rows_ready = false; }
+    void drop_rows() const {rows_ready = false;}
     // ST4 (A 732 3): keep u*, the growth rates and the cut-off of the last compute for the next computes of the
     // same cell (the widened windows of the spectral sparsity, A 795), true until freeze(false)
-    void freeze(bool f) { frozen = f; }
+    void freeze(bool f) {frozen = f;}
     // ST4: the diagnostic tail after the solve of a cell, directions ma..mb (the cut-off of the last compute)
     void project(float *N, const float *k, const float *cg, int ma, int mb) const;
     // ST4: the first frequency of the diagnostic tail of the last compute, nsig without a tail
-    int tail_from() const { return (prm.st4 && prm.wind && prm.U10 > 0.0) ? st4s.tail_from() : nsig; }
+    int tail_from() const {return (prm.st4 && prm.wind && prm.U10>0.0) ? st4s.tail_from() : nsig;}
     // A 767 1: the tail of the kept evaluation of the cell (tail_from() of that evaluation) for project(); the next
     // compute() drops it
-    void take_tail(int lt)
-    {
-        if(prm.st4)
-            st4s.take_tail(lt);
-    }
+    void take_tail(int lt) {if(prm.st4) st4s.take_tail(lt);}
     // ST4: the upper bound of N per frequency (ecWAM FLMAX, Phillips alpha_p,max / pi per bin), nullptr: none
-    const double *upper() const { return prm.st4 ? st4s.upper() : nullptr; }
-    const seastate_st4 &st4() const { return st4s; }
+    const double *upper() const {return prm.st4 ? st4s.upper() : nullptr;}
+    const seastate_st4 &st4() const {return st4s;}
     // ST4 (Phase 23, A 768 1): the next compute() starts from the wave stress and u* of the last time step of the cell
     // (ecWAM); lag_tauw(), lag_tauwdir(), lag_ustar(): the state after compute() for the next time step (0 without wind)
-    bool lags() const { return prm.st4 && prm.wind; }
-    void lag(double tw, double twd, double us)
-    {
-        if(prm.st4)
-            st4s.lag(tw, twd, us);
-    }
-    double lag_tauw() const { return (prm.st4 && prm.wind && prm.U10 > 0.0 && !st4s.calmed) ? st4s.tauw : 0.0; }
-    double lag_tauwdir() const { return (prm.st4 && prm.wind && prm.U10 > 0.0 && !st4s.calmed) ? st4s.tauwdir : 0.0; }
-    double lag_ustar() const { return (prm.st4 && prm.wind && prm.U10 > 0.0 && !st4s.calmed) ? st4s.ust : 0.0; }
+    bool lags() const {return prm.st4 && prm.wind;}
+    void lag(double tw, double twd, double us) {if(prm.st4) st4s.lag(tw,twd,us);}
+    double lag_tauw() const {return (prm.st4 && prm.wind && prm.U10>0.0 && !st4s.calmed) ? st4s.tauw : 0.0;}
+    double lag_tauwdir() const {return (prm.st4 && prm.wind && prm.U10>0.0 && !st4s.calmed) ? st4s.tauwdir : 0.0;}
+    double lag_ustar() const {return (prm.st4 && prm.wind && prm.U10>0.0 && !st4s.calmed) ? st4s.ust : 0.0;}
 
     // integral parameters of the last call
     double Etot = 0.0, sigm01 = 0.0, sigm_10 = 0.0, km_wam = 0.0, Hs = 0.0, Qb = 0.0, ursell = 0.0;
     double ustar = 0.0;
-    double brk_rate = 0.0;  // Roelvink breaking: dissipation rate D/E [1/s] of the last call (roller source)
+    double brk_rate = 0.0;              // Roelvink breaking: dissipation rate D/E [1/s] of the last call (roller source)
 
-    static double Qb_bj(double Hrms, double Hm);  // Battjes-Janssen fraction of breaking waves
-    static double ustar_wu(double U10);           // friction velocity, drag of Wu (1982)
-    double ustar_of(double U10) const;            // friction velocity of the drag prm.drag
+    static double Qb_bj(double Hrms, double Hm);      // Battjes-Janssen fraction of breaking waves
+    static double ustar_wu(double U10);               // friction velocity, drag of Wu (1982)
+    double ustar_of(double U10) const;                // friction velocity of the drag prm.drag
 
 private:
     void moments(const float *N, double depth, const float *k);
@@ -274,30 +257,30 @@ private:
     void split(const float *N, double *P, double *D);
     seastate_st4 st4s;
     bool frozen = false;
-    int wa = 0, wb = 0;  // direction window of the current compute
-    int fa = 0, fb = 0;  // frequency band of the current compute
+    int wa = 0, wb = 0;             // direction window of the current compute
+    int fa = 0, fb = 0;             // frequency band of the current compute
 
     // DIA arrays with the directions continued periodically beyond 0 and ndir-1 (no index wrapping in
     // the loops): UE for m = -2 dpad .. ndir-1+2 dpad, SA1/SA2 and the derivatives for m = -dpad .. ndir-1+dpad
     // (compact sector, not periodic: zero beyond 0 .. ndir-1 from the allocation, never written; Phase 21b)
-    double &ue(int l, int m) { return UE[size_t(l + uoff) * uw + size_t(m + 2 * dpad)]; }
-    double &sa1(int l, int m) { return SA1[sx(l, m)]; }
-    double &sa2(int l, int m) { return SA2[sx(l, m)]; }
-    size_t sx(int l, int m) const { return size_t(l + soff) * sw + size_t(m + dpad); }
-    int dw(int m) const { return ((m % ndir) + ndir) % ndir; }
+    double &ue(int l, int m) {return UE[size_t(l+uoff)*uw + size_t(m+2*dpad)];}
+    double &sa1(int l, int m) {return SA1[sx(l,m)];}
+    double &sa2(int l, int m) {return SA2[sx(l,m)];}
+    size_t sx(int l, int m) const {return size_t(l+soff)*sw + size_t(m+dpad);}
+    int dw(int m) const {return ((m%ndir)+ndir)%ndir;}
 
     const seastate_grid &g;
     seastate_source_param prm;
     int nsig, ndir, nbin;
     double lnr;
 
-    std::vector<double> S;      // nonlinear transfers dN/dt, split into P and D
-    std::vector<double> L;      // diagonal derivative dS/dN of the quadruplets
-    std::vector<double> dNmax;  // action density limiter per frequency
+    std::vector<double> S;          // nonlinear transfers dN/dt, split into P and D
+    std::vector<double> L;          // diagonal derivative dS/dN of the quadruplets
+    std::vector<double> dNmax;      // action density limiter per frequency
 
     // DIA (FAC4WW): interpolation indices and weights, E(f,theta) incl. the tail, SA1/SA2
     int isp, isp1, ism, ism1, idp, idp1, idm, idm1, uoff, ulen, soff, slen;
-    int dpad = 0, uw = 0, sw = 0;  // largest direction offset of the interactions, row lengths of UE and SA
+    int dpad = 0, uw = 0, sw = 0;      // largest direction offset of the interactions, row lengths of UE and SA
     double awg[8], dal1, dal2, dal3;
     std::vector<double> UE, SA1, SA2, DA1C, DA1P, DA1M, DA2C, DA2P, DA2M, af11;
 
@@ -305,10 +288,10 @@ private:
     int tsm, tsm1, tsp, tsp1;
     double twm, twm1, twp, twp1;
     std::vector<double> EL, SAL, TQ;
-    std::vector<double> VE, VS, VQ;   // vegetation per frequency: E dsig, the integral over the height, S_u/E
-    mutable std::vector<double> row;  // sums over the directions per frequency (rows)
+    std::vector<double> VE, VS, VQ;     // vegetation per frequency: E dsig, the integral over the height, S_u/E
+    mutable std::vector<double> row;    // sums over the directions per frequency (rows)
     mutable bool rows_ready = false;
-    double pw_smax = 0.0, pw_se0 = 0.0, pw_se1 = 0.0, pw_se2 = 0.0, pw_fachfr = 0.0;  // tail powers
+    double pw_smax = 0.0, pw_se0 = 0.0, pw_se1 = 0.0, pw_se2 = 0.0, pw_fachfr = 0.0;   // tail powers
     void rows(const float *N) const;
 };
 

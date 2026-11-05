@@ -23,8 +23,8 @@ Author: Hans Bihs
 #ifndef REEFCOUPLE_H_
 #define REEFCOUPLE_H_
 
-#include <mpi.h>
-#include <vector>
+#include<mpi.h>
+#include<vector>
 
 class lexer;
 class ghostcell;
@@ -87,31 +87,31 @@ class reefcouple
 {
 public:
     // collective on MPI_COMM_WORLD, after lexer_read: roles of the apps, intercommunicators
-    static void roles(lexer *, ghostcell *);
+    static void roles(lexer*, ghostcell*);
 
     // called by ghostcell::final: closes the exchange (end markers, stop, drain)
     static void finish();
 
-    static bool source() { return !recv_ic.empty(); }
-    static bool receiver() { return src_ic != MPI_COMM_NULL; }
+    static bool source() {return !recv_ic.empty();}
+    static bool receiver() {return src_ic!=MPI_COMM_NULL;}
 
-    static MPI_Comm src_ic;                // receiver: intercommunicator to the FNPF source
-    static std::vector<MPI_Comm> recv_ic;  // source: intercommunicators to the receivers
-    static std::vector<int> recv_app;      // source: app numbers of the receivers
-    static std::vector<int> recv_model;    // source: A 10 of the receivers
+    static MPI_Comm src_ic;                 // receiver: intercommunicator to the FNPF source
+    static std::vector<MPI_Comm> recv_ic;   // source: intercommunicators to the receivers
+    static std::vector<int> recv_app;       // source: app numbers of the receivers
+    static std::vector<int> recv_model;     // source: A 10 of the receivers
 
     static fnpf_couple_send *sender;
     static wave_lib_fnpf_couple *recv;
 
     // protocol
     static const int version = 2;
-    static const int depth = 4;  // levels the source may run ahead
-    static const int tag_bed = 4811;
+    static const int depth = 4;             // levels the source may run ahead
+    static const int tag_bed  = 4811;
     static const int tag_data = 4812;
-    static const int tag_end = 4813;
+    static const int tag_end  = 4813;
     static const int tag_stop = 4814;
-    static const int tag_fb = 4815;
-    static const int tag_fbc = 4816;
+    static const int tag_fb   = 4815;
+    static const int tag_fbc  = 4816;
 };
 
 #endif

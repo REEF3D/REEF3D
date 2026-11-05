@@ -27,22 +27,23 @@ Architect: Hans Bihs
 #ifndef CORAL_BLADE_TABLE_H_
 #define CORAL_BLADE_TABLE_H_
 
-#include <string>
-#include <vector>
+#include<string>
+#include<vector>
 
-namespace coral {
-struct blade_structure
+namespace coral
 {
-    std::vector<double> frac, pitch_axis, twist, mass, EI_flap, EI_edge;  // twist in rad
+    struct blade_structure
+    {
+        std::vector<double> frac, pitch_axis, twist, mass, EI_flap, EI_edge;   // twist in rad
 
-    // linear in the fraction (held at the ends)
-    double mass_at(double f) const;
-    // mass of the blade of length L
-    double total_mass(double L) const;
+        // linear in the fraction (held at the ends)
+        double mass_at(double f) const;
+        // mass of the blade of length L
+        double total_mass(double L) const;
 
-    static bool read(const std::string &file, blade_structure &, std::string &msg);
-    static bool read_string(const std::string &text, blade_structure &, std::string &msg);
-};
-}  // namespace coral
+        static bool read(const std::string &file, blade_structure&, std::string &msg);
+        static bool read_string(const std::string &text, blade_structure&, std::string &msg);
+    };
+}
 
 #endif

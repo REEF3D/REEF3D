@@ -31,23 +31,29 @@ class solver;
 
 using namespace std;
 
+
 class diffusion
 {
 
 public:
     virtual ~diffusion() = default;
 
-    virtual void diff_u(lexer *, fdm *, ghostcell *, solver *, field &, field &, field &, field &, field &, double) = 0;
-    virtual void diff_v(lexer *, fdm *, ghostcell *, solver *, field &, field &, field &, field &, field &, double) = 0;
-    virtual void diff_w(lexer *, fdm *, ghostcell *, solver *, field &, field &, field &, field &, field &, double) = 0;
+
+	virtual void diff_scalar(lexer*, fdm*, ghostcell*, solver*, field&, field&, field&, double, double)=0;
+	virtual void diff_scalar(lexer*, fdm*, ghostcell*, solver*, field&, field&, field&, field&, double, double)=0;
+    virtual void idiff_scalar(lexer*, fdm*, ghostcell*, solver*, field&, field&, double, double)=0;
+
+	virtual void diff_u(lexer*, fdm*, ghostcell*, solver*, field&, field&, field&, field&, field&, double)=0;
+	virtual void diff_v(lexer*, fdm*, ghostcell*, solver*, field&, field&, field&, field&, field&, double)=0;
+	virtual void diff_w(lexer*, fdm*, ghostcell*, solver*, field&, field&, field&, field&, field&, double)=0;
 
     // explicit evaluation of the discrete diffusion operator of the implicit scheme (same stencil and
     // boundary treatment): D = (diffusion of the velocity component, incl. cross terms)/CPOR, evaluated
     // at the given velocities. Only the implicit schemes that provide it return true.
-    virtual bool apply_available() { return false; }
-    virtual void apply_u(lexer *, fdm *, ghostcell *, field &, field &, field &, field &) {}
-    virtual void apply_v(lexer *, fdm *, ghostcell *, field &, field &, field &, field &) {}
-    virtual void apply_w(lexer *, fdm *, ghostcell *, field &, field &, field &, field &) {}
+    virtual bool apply_available() {return false;}
+    virtual void apply_u(lexer*, fdm*, ghostcell*, field&, field&, field&, field&) {}
+    virtual void apply_v(lexer*, fdm*, ghostcell*, field&, field&, field&, field&) {}
+    virtual void apply_w(lexer*, fdm*, ghostcell*, field&, field&, field&, field&) {}
 };
 
 #endif

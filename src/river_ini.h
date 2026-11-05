@@ -23,8 +23,8 @@ Architect: Hans Bihs
 #ifndef RIVER_INI_H_
 #define RIVER_INI_H_
 
-#include "increment.h"
-#include <vector>
+#include"increment.h"
+#include<vector>
 
 class lexer;
 class ghostcell;
@@ -59,39 +59,39 @@ public:
     // solve for the levels from the bed levels of the cells; 0: F 65 off (or not on this grid), 1: done;
     // verbose 1 prints the levels at the inflow and outflow
     // law 0: Manning n = ks^(1/6)/20 (SFLOW); 1: log law at the centre of the bottom layer (NHFLOW A 519 1)
-    int start(lexer *, ghostcell *, slice &bed, int verbose, int law);
+    int start(lexer*, ghostcell*, slice &bed, int verbose, int law);
 
     // eta of cell (ii,jj) (local indices) relative to p->wd: the column level for the connected wet
     // cells, the bed (depth 0) for the others
-    double eta(lexer *, int ii, int jj, double bed) const;
+    double eta(lexer*, int ii, int jj, double bed) const;
 
     // F 65 2: Cartesian velocity of cell (ii,jj); 0 for dry cells
-    void velocity(lexer *, int ii, int jj, double bed, double &u, double &v) const;
+    void velocity(lexer*, int ii, int jj, double bed, double &u, double &v) const;
 
 private:
     struct xsec
     {
-        std::vector<double> zb, w, ds;  // bed, width across, length along of the cells of the column
-        std::vector<int> J;             // their j index
-        int nmin = 0;                   // the lowest cell
+        std::vector<double> zb, w, ds;     // bed, width across, length along of the cells of the column
+        std::vector<int> J;                // their j index
+        int nmin=0;                        // the lowest cell
     };
 
     std::vector<xsec> xs;
     std::vector<double> wl;
     std::vector<char> inrun;
-    int NI = 0, NJ = 0;
-    double Q = 0.0, kst = 0.0, g = 9.81, ksl = 0.05, dz0 = 1.0;
-    int law = 0;
+    int NI=0, NJ=0;
+    double Q=0.0, kst=0.0, g=9.81, ksl=0.05, dz0=1.0;
+    int law=0;
 
     double strip(double d) const;
 
-    static void xs_run(const xsec &, double h, int &n0, int &n1);
-    static double xs_area(const xsec &, double h);
-    double xs_conv(const xsec &, double h, double kst, double &dsw) const;
-    static double xs_zmin(const xsec &);
-    static double xs_dsmean(const xsec &);
-    static double xs_energy(const xsec &, double h, double Q, double g);
-    static double xs_critical(const xsec &, double Q, double g, double hmax);
+    static void xs_run(const xsec&, double h, int &n0, int &n1);
+    static double xs_area(const xsec&, double h);
+    double xs_conv(const xsec&, double h, double kst, double &dsw) const;
+    static double xs_zmin(const xsec&);
+    static double xs_dsmean(const xsec&);
+    static double xs_energy(const xsec&, double h, double Q, double g);
+    static double xs_critical(const xsec&, double Q, double g, double hmax);
 };
 
 #endif

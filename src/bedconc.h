@@ -29,11 +29,16 @@ class ghostcell;
 
 using namespace std;
 
-class bedconc
+class bedconc 
 {
 public:
-    virtual ~bedconc() {}
-    virtual void start(lexer *, ghostcell *, sediment_fdm *) = 0;
+
+    virtual ~bedconc(){}
+	virtual void start(lexer*,ghostcell*,sediment_fdm*)=0;
+
+
 };
 #endif
+
+
 

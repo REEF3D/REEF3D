@@ -23,8 +23,8 @@ Architect: Hans Bihs
 #ifndef SEASTATE_SWAN_SPC_H_
 #define SEASTATE_SWAN_SPC_H_
 
-#include <string>
-#include <vector>
+#include<string>
+#include<vector>
 
 class seastate_grid;
 
@@ -47,10 +47,10 @@ No lexer dependency (unit test Regression/unit/seastate_test.cpp).
 
 struct seastate_swan_spc
 {
-    std::vector<double> f;    // Hz, ascending
-    std::vector<double> dir;  // Cartesian direction of propagation [deg], 0..360
-    std::vector<double> E;    // variance density [m2/Hz/degr], E[nf*ndir]: f major
-    double x = 0.0, y = 0.0;  // location
+    std::vector<double> f;          // Hz, ascending
+    std::vector<double> dir;        // Cartesian direction of propagation [deg], 0..360
+    std::vector<double> E;          // variance density [m2/Hz/degr], E[nf*ndir]: f major
+    double x = 0.0, y = 0.0;        // location
 
     bool read(const std::string &file, std::string &error);
     void to_grid(const seastate_grid &g, std::vector<float> &N) const;

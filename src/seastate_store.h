@@ -23,12 +23,12 @@ Architect: Hans Bihs
 #ifndef SEASTATE_STORE_H_
 #define SEASTATE_STORE_H_
 
-#include <algorithm>
-#include <cstddef>
-#include <cstdlib>
-#include <new>
-#include <utility>
-#include <vector>
+#include<algorithm>
+#include<cstddef>
+#include<cstdlib>
+#include<new>
+#include<utility>
+#include<vector>
 
 // Phase 13: the pool of the spectra comes zeroed from calloc and is not written on allocation, so that its pages
 // are first touched by the threads that fill or solve the cells (the serial zero fill took about 1 s per 2 GB)
@@ -37,28 +37,23 @@ struct seastate_calloc_allocator
 {
     typedef T value_type;
     seastate_calloc_allocator() = default;
-    template<class U>
-    seastate_calloc_allocator(const seastate_calloc_allocator<U> &) {}
+    template<class U> seastate_calloc_allocator(const seastate_calloc_allocator<U>&) {}
 
     T *allocate(size_t n)
     {
-        void *m = std::calloc(n ? n : 1, sizeof(T));
-        if(m == nullptr)
-            throw std::bad_alloc();
-        return static_cast<T *>(m);
+        void *m = std::calloc(n ? n : 1,sizeof(T));
+        if(m==nullptr)
+        throw std::bad_alloc();
+        return static_cast<T*>(m);
     }
-    void deallocate(T *m, size_t) { std::free(m); }
+    void deallocate(T *m, size_t) {std::free(m);}
 
     // value initialisation (resize) leaves the zeros of calloc; with a value: placement new
-    template<class U>
-    void construct(U *) {}
-    template<class U, class A, class... B>
-    void construct(U *m, A &&a, B &&...b) { ::new (static_cast<void *>(m)) U(std::forward<A>(a), std::forward<B>(b)...); }
+    template<class U> void construct(U*) {}
+    template<class U, class A, class... B> void construct(U *m, A &&a, B &&...b) {::new(static_cast<void*>(m)) U(std::forward<A>(a),std::forward<B>(b)...);}
 
-    template<class U>
-    bool operator==(const seastate_calloc_allocator<U> &) const { return true; }
-    template<class U>
-    bool operator!=(const seastate_calloc_allocator<U> &) const { return false; }
+    template<class U> bool operator==(const seastate_calloc_allocator<U>&) const {return true;}
+    template<class U> bool operator!=(const seastate_calloc_allocator<U>&) const {return false;}
 };
 
 /*--------------------------------------------------------------------
@@ -89,64 +84,64 @@ public:
     seastate_store(int imin, int jmin, int ni, int nj, int nbin, int tile);
 
     void build(const int *mask);
-    void fill(float val, int nt = 1);        // nt threads (rows shared out), Phase 13
-    bool copy_from(const seastate_store &);  // same layout only (same index range, tiles and mask)
+    void fill(float val, int nt=1);   // nt threads (rows shared out), Phase 13
+    bool copy_from(const seastate_store&);      // same layout only (same index range, tiles and mask)
 
     float *spec(int i, int j)
     {
-        const long o = offset(i, j);
-        return o < 0 ? nullptr : &pool[size_t(o)];
+        const long o = offset(i,j);
+        return o<0 ? nullptr : &pool[size_t(o)];
     }
 
     const float *spec(int i, int j) const
     {
-        const long o = offset(i, j);
-        return o < 0 ? nullptr : &pool[size_t(o)];
+        const long o = offset(i,j);
+        return o<0 ? nullptr : &pool[size_t(o)];
     }
 
     bool active(int i, int j) const
     {
-        if(i < imin || j < jmin || i >= imin + ni || j >= jmin + nj)
-            return false;
-        return act[size_t(i - imin) * nj + (j - jmin)] != 0;
+        if(i<imin || j<jmin || i>=imin+ni || j>=jmin+nj)
+        return false;
+        return act[size_t(i-imin)*nj + (j-jmin)]!=0;
     }
 
-    int nbins() const { return nbin; }
-    int tile_size() const { return tile; }
-    int tiles_total() const { return ntx * nty; }
-    int tiles_allocated() const { return ntile_alloc; }
-    long cells_allocated() const { return ncell_alloc; }
-    long cells_active() const { return ncell_active; }
-    size_t bytes() const { return pool.size() * sizeof(float) + toff.size() * (sizeof(int) + sizeof(long)) + act.size(); }
-    size_t bytes_dense() const { return size_t(ni) * nj * nbin * sizeof(float); }
+    int nbins() const {return nbin;}
+    int tile_size() const {return tile;}
+    int tiles_total() const {return ntx*nty;}
+    int tiles_allocated() const {return ntile_alloc;}
+    long cells_allocated() const {return ncell_alloc;}
+    long cells_active() const {return ncell_active;}
+    size_t bytes() const {return pool.size()*sizeof(float) + toff.size()*(sizeof(int)+sizeof(long)) + act.size();}
+    size_t bytes_dense() const {return size_t(ni)*nj*nbin*sizeof(float);}
 
 private:
     long offset(int i, int j) const
     {
-        if(i < imin || j < jmin || i >= imin + ni || j >= jmin + nj)
-            return -1;
+        if(i<imin || j<jmin || i>=imin+ni || j>=jmin+nj)
+        return -1;
 
-        const int ii = i - imin;
-        const int jj = j - jmin;
-        const int tj = jj / tile;
-        const size_t t = size_t(ii / tile) * nty + tj;
+        const int ii = i-imin;
+        const int jj = j-jmin;
+        const int tj = jj/tile;
+        const size_t t = size_t(ii/tile)*nty + tj;
 
-        if(toff[t] < 0)
-            return -1;
+        if(toff[t]<0)
+        return -1;
 
-        const int wj = std::min(tile, nj - tj * tile);
+        const int wj = std::min(tile,nj-tj*tile);
 
-        return (tbase[t] + long(ii % tile) * wj + (jj % tile)) * nbin;
+        return (tbase[t] + long(ii%tile)*wj + (jj%tile))*nbin;
     }
 
     int imin, jmin, ni, nj, nbin, tile;
     int ntx, nty, ntile_alloc;
     long ncell_active, ncell_alloc;
 
-    std::vector<int> toff;                                      // tile -> allocated tile number, -1: not allocated
-    std::vector<long> tbase;                                    // tile -> first cell of the tile in the pool
-    std::vector<char> act;                                      // active flag per cell
-    std::vector<float, seastate_calloc_allocator<float>> pool;  // allocated tiles x tile^2 cells x nbin
+    std::vector<int> toff;      // tile -> allocated tile number, -1: not allocated
+    std::vector<long> tbase;    // tile -> first cell of the tile in the pool
+    std::vector<char> act;      // active flag per cell
+    std::vector<float,seastate_calloc_allocator<float>> pool;    // allocated tiles x tile^2 cells x nbin
 };
 
 #endif

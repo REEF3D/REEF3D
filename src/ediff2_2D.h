@@ -23,8 +23,8 @@ Author: Hans Bihs
 #ifndef DIFF2XP_2D_H_
 #define DIFF2XP_2D_H_
 
-#include "diffusion.h"
-#include "gradient.h"
+#include"gradient.h"
+#include"diffusion.h"
 
 using namespace std;
 
@@ -32,21 +32,23 @@ class ediff2_2D final : public diffusion, public gradient
 {
 
 public:
-    ediff2_2D(lexer *);
-    virtual ~ediff2_2D();
 
-    void diff_scalar(lexer *, fdm *, ghostcell *, solver *, field &, field &, field &, double, double) override final;
-    void diff_scalar(lexer *, fdm *, ghostcell *, solver *, field &, field &, field &, field &, double, double) override final;
-    void idiff_scalar(lexer *, fdm *, ghostcell *, solver *, field &, field &, double, double) override final;
+	ediff2_2D(lexer*);
+	virtual ~ediff2_2D();
 
-    void diff_u(lexer *, fdm *, ghostcell *, solver *, field &, field &, field &, field &, field &, double) override final;
-    void diff_v(lexer *, fdm *, ghostcell *, solver *, field &, field &, field &, field &, field &, double) override final;
-    void diff_w(lexer *, fdm *, ghostcell *, solver *, field &, field &, field &, field &, field &, double) override final;
+	void diff_scalar(lexer*, fdm*, ghostcell*, solver*, field&, field&, field&, double, double) override final;
+	void diff_scalar(lexer*, fdm*, ghostcell*, solver*, field&, field&, field&, field&, double, double) override final;
+    void idiff_scalar(lexer*, fdm*, ghostcell*, solver*, field&, field&, double, double) override final;
+    
+    void diff_u(lexer*, fdm*, ghostcell*, solver*, field&, field&, field&, field&, field&, double) override final;
+	void diff_v(lexer*, fdm*, ghostcell*, solver*, field&, field&, field&, field&, field&, double) override final;
+	void diff_w(lexer*, fdm*, ghostcell*, solver*, field&, field&, field&, field&, field&, double) override final;
 
 private:
-    int gcval_u, gcval_v, gcval_w, gcval_scalar;
-    double D;
-    double ga;
-    double u_ijk, v_ijk, w_ijk, ev_ijk, visc_ijk;
+    
+	int gcval_u,gcval_v,gcval_w,gcval_scalar;
+	double D;
+	double ga;
+	double u_ijk,v_ijk,w_ijk,ev_ijk,visc_ijk;
 };
 #endif

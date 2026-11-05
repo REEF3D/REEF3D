@@ -20,46 +20,48 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "fdm_fnpf.h"
-#include "ghostcell.h"
-#include "iowave.h"
-#include "lexer.h"
+#include"iowave.h"
+#include"lexer.h"
+#include"fdm_fnpf.h"
+#include"ghostcell.h"
 
 void iowave::wavegen_precalc_fnpf(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 {
-    starttime = pgc->timer();
-
+    starttime=pgc->timer();
+    
     // prestep
-    wave_prestep(p, pgc);
+    wave_prestep(p,pgc);
+    
 
-    if(p->B89 == 0)
-    {
-        if(relax_gen)
-            fnpf_precalc_relax(p, pgc);
-
-        // B 98 6: zone above, absorbing generating edge here
-        if(gen_lp)
-            fnpf_precalc_edge(p, pgc);
-
-        else if(p->B98 == 3 || p->B98 == 4)
-            fnpf_precalc_dirichlet(p, pgc);
-    }
-
-    if(p->B89 == 1)
-    {
-        if(p->B98 == 2)
+        if(p->B89==0)
         {
-            wavegen_precalc_decomp_time_fnpf(p, pgc);
-            wavegen_precalc_decomp_relax_fnpf(p, pgc);
+            if(relax_gen)
+            fnpf_precalc_relax(p,pgc);
+            
+            // B 98 6: zone above, absorbing generating edge here
+            if(gen_lp)
+            fnpf_precalc_edge(p,pgc);
+            
+            else
+            if(p->B98==3 || p->B98==4)
+            fnpf_precalc_dirichlet(p,pgc);
+        }
+        
+        if(p->B89==1)
+        {
+            if(p->B98==2)
+            {
+            wavegen_precalc_decomp_time_fnpf(p,pgc);
+            wavegen_precalc_decomp_relax_fnpf(p,pgc);
+            }
+            
+            if(p->B98==3 || p->B98==4)
+            {
+            wavegen_precalc_decomp_time_fnpf(p,pgc);
+            wavegen_precalc_decomp_dirichlet_fnpf(p,pgc);
+            }
         }
 
-        if(p->B98 == 3 || p->B98 == 4)
-        {
-            wavegen_precalc_decomp_time_fnpf(p, pgc);
-            wavegen_precalc_decomp_dirichlet_fnpf(p, pgc);
-        }
-    }
-
-    p->wavecalctime += pgc->timer() - starttime;
+    p->wavecalctime+=pgc->timer()-starttime;
 }
-
+    

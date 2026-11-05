@@ -23,12 +23,12 @@ Author: Alexander Hanke
 #ifndef VTK3D_H_
 #define VTK3D_H_
 
-#include <cstring>
-#include <iomanip>
 #include <ostream>
 #include <sstream>
-#include <string>
 #include <vector>
+#include <string>
+#include <cstring>
+#include <iomanip>
 
 class lexer;
 class fdm;
@@ -38,57 +38,50 @@ class ghostcell;
 
 class vtk3D
 {
-public:
-    virtual void folder(const char *) {};
-    virtual void fileName(char *, const unsigned int, const char *, const int, const int) {};
-    virtual void parallelFileName(char *, const unsigned int, const char *, const int) {};
-    virtual void extent(lexer *, ghostcell *) {};
+    public:
+        virtual void folder(const char*) {};
+        virtual void fileName(char*, const unsigned int, const char*, const int, const int) {};
+        virtual void parallelFileName(char*, const unsigned int, const char*, const int) {};
+        virtual void extent(lexer*,ghostcell*) {};
 
-    virtual void offset(lexer *, int *, int &) {};
-    virtual void beginning(lexer *, std::ostream &) {};
-    virtual void beginning(lexer *, std::ostream &, int, int, int, int, int) {};
-    virtual void beginningParallel(lexer *, std::ostream &) {};
-    virtual void ending(std::ostream &, const int *, int &) {};
-    virtual void ending(std::ostream &) {};
-    virtual void endingParallel(std::ostream &, const char *, const int, const int) {};
-    virtual void endingParallel(std::ostream &) {};
+        virtual void offset(lexer*,int*,int&) {};
+        virtual void beginning(lexer*, std::ostream&) {};
+        virtual void beginning(lexer*, std::ostream&, int, int, int, int, int) {};
+        virtual void beginningParallel(lexer*, std::ostream&) {};
+        virtual void ending(std::ostream&, const int*, int&) {};
+        virtual void ending(std::ostream&) {};
+        virtual void endingParallel(std::ostream&, const char*, const int, const int) {};
+        virtual void endingParallel(std::ostream&) {};
 
-    virtual void structureWrite(lexer *, fdm *, std::vector<char> &, size_t &) {};
-    virtual void structureWrite(lexer *, fdm_fnpf *, std::vector<char> &, size_t &) {};
-    virtual void structureWrite(lexer *, fdm_nhf *, std::vector<char> &, size_t &) {};
-
-protected:
-    void xmlVersion(std::ostream &result) { result << "<?xml version=\"1.0\"?>\n"; };
-    void vtkVersion(std::ostream &result) { result << "version=\"1.0\" byte_order=\"LittleEndian\">\n"; };  // header_type=\"UInt32\"
-    // field data: the simulation time (ParaView reads TimeValue as the time of the
-    // file) and, with a run log, the run that wrote it (LAGOON RUN.md). VTK writes
-    // ASCII strings as their character codes, each string ending in 0.
-    void timeValue(std::ostream &result, const double time, const std::string &run_id = std::string())
-    {
-        result << "<FieldData>\n<DataArray type=\"Float64\" Name=\"TimeValue\" NumberOfTuples=\"1\" format=\"ascii\"> "
-               << std::setprecision(15) << time << "\n</DataArray>\n";
-        if(!run_id.empty())
+        virtual void structureWrite(lexer*, fdm*, std::vector<char>&, size_t&) {};
+        virtual void structureWrite(lexer*, fdm_fnpf*, std::vector<char>&, size_t&) {};
+        virtual void structureWrite(lexer*, fdm_nhf*, std::vector<char>&, size_t&) {};
+    protected:
+        void xmlVersion(std::ostream &result) {result<<"<?xml version=\"1.0\"?>\n";};
+        void vtkVersion(std::ostream &result) {result<<"version=\"1.0\" byte_order=\"LittleEndian\">\n";}; // header_type=\"UInt32\"
+        // field data: the simulation time (ParaView reads TimeValue as the time of the
+        // file) and, with a run log, the run that wrote it (LAGOON RUN.md). VTK writes
+        // ASCII strings as their character codes, each string ending in 0.
+        void timeValue(std::ostream &result, const double time, const std::string &run_id=std::string())
         {
-            result << "<DataArray type=\"String\" Name=\"RunId\" NumberOfTuples=\"1\" format=\"ascii\">";
-            for(unsigned char c : run_id)
-                result << " " << int(c);
-            result << " 0\n</DataArray>\n";
-        }
-        result << "</FieldData>\n";
-    };
-    void appendData(std::ostream &result) { result << "<AppendedData encoding=\"raw\">\n_"; };
-    void structureWriteEnd(std::vector<char> &buffer, size_t &m)
-    {
-        std::stringstream result;
-        result << "\n</AppendedData>\n</VTKFile>" << std::flush;
-        std::memcpy(&buffer[m], result.str().data(), result.str().size());
-    };
-
-public:
-    enum type { none,
-                vtu,
-                vts,
-                vtr };
+            result<<"<FieldData>\n<DataArray type=\"Float64\" Name=\"TimeValue\" NumberOfTuples=\"1\" format=\"ascii\"> "
+                  <<std::setprecision(15)<<time<<"\n</DataArray>\n";
+            if(!run_id.empty())
+            {
+                result<<"<DataArray type=\"String\" Name=\"RunId\" NumberOfTuples=\"1\" format=\"ascii\">";
+                for(unsigned char c : run_id)
+                result<<" "<<int(c);
+                result<<" 0\n</DataArray>\n";
+            }
+            result<<"</FieldData>\n";
+        };
+        void appendData(std::ostream &result) {result<<"<AppendedData encoding=\"raw\">\n_";};
+        void structureWriteEnd(std::vector<char> &buffer, size_t &m) {
+            std::stringstream result;
+            result<<"\n</AppendedData>\n</VTKFile>"<<std::flush;
+            std::memcpy(&buffer[m],result.str().data(),result.str().size());};
+    public:
+        enum type {none, vtu, vts, vtr};
 };
 
 #endif

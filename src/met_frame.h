@@ -54,10 +54,10 @@ public:
     void to_model(double lon, double lat, double &x, double &y) const;
     void to_geo(double x, double y, double &lon, double &lat) const;
     double north(double x, double y) const;
-    double north_geo(double lon, double lat) const;  // the same at (lon, lat)
+    double north_geo(double lon, double lat) const;     // the same at (lon, lat)
 
     bool set = false;
-    double lon0 = 0.0, lat0 = 0.0, rot = 0.0, X0 = 0.0, Y0 = 0.0;  // as given [deg], [m]
+    double lon0 = 0.0, lat0 = 0.0, rot = 0.0, X0 = 0.0, Y0 = 0.0;   // as given [deg], [m]
 
     static constexpr double R = 6371000.0;
 

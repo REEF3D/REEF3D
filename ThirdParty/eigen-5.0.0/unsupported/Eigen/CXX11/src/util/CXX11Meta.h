@@ -10,8 +10,8 @@
 #ifndef EIGEN_CXX11META_H
 #define EIGEN_CXX11META_H
 
-#include "../../../../../Eigen/src/Core/util/EmulateArray.h"
 #include <vector>
+#include "../../../../../Eigen/src/Core/util/EmulateArray.h"
 
 #include "CXX11Workarounds.h"
 

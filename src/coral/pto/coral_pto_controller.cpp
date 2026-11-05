@@ -20,30 +20,31 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "coral/pto/coral_pto_controller.h"
-#include <algorithm>
-#include <cctype>
-#include <cmath>
-#include <fstream>
-#include <sstream>
+#include"coral/pto/coral_pto_controller.h"
+#include<algorithm>
+#include<cctype>
+#include<cmath>
+#include<fstream>
+#include<sstream>
 
-namespace coral {
+namespace coral
+{
 
 // --- zero crossing ---
 
 bool pto_zero_crossing::detect(double t, double qd)
 {
-    const int s = (qd > 0.0) - (qd < 0.0);
+    const int s = (qd>0.0) - (qd<0.0);
 
-    if(s == 0)
-        return false;
+    if(s==0)
+    return false;
 
     bool hit = false;
 
-    if(sref != 0 && s != sref)
+    if(sref!=0 && s!=sref)
     {
-        hit = true;
-        t_cross = (qd_last != qd) ? t_last + (t - t_last) * qd_last / (qd_last - qd) : t;
+    hit = true;
+    t_cross = (qd_last!=qd) ? t_last + (t - t_last)*qd_last/(qd_last - qd) : t;
     }
 
     sref = s;
@@ -66,21 +67,21 @@ void pto_ctrl_latching::update(const pto_ctrl_in &in, pto_composite &pto)
         // the latch element itself releases at the stage time t_release
         if(in.t >= t_release - 1.0e-12)
         {
-            pto.set_param("latch", "latch", 0.0);
-            latched = false;
-            zc.reset();  // the next zero is the one after the motion has resumed
+        pto.set_param("latch","latch",0.0);
+        latched = false;
+        zc.reset();        // the next zero is the one after the motion has resumed
         }
 
         return;
     }
 
-    if(zc.detect(in.t, in.qd))
+    if(zc.detect(in.t,in.qd))
     {
-        t_release = zc.t_cross + t_hold;
-        pto.set_param("latch", "q0", in.q);
-        pto.set_param("latch", "t_release", t_release);
-        pto.set_param("latch", "latch", 1.0);
-        latched = true;
+    t_release = zc.t_cross + t_hold;
+    pto.set_param("latch","q0",in.q);
+    pto.set_param("latch","t_release",t_release);
+    pto.set_param("latch","latch",1.0);
+    latched = true;
     }
 }
 
@@ -92,17 +93,17 @@ pto_ctrl_declutching::pto_ctrl_declutching(double t_off_) : t_off(t_off_)
 
 void pto_ctrl_declutching::update(const pto_ctrl_in &in, pto_composite &pto)
 {
-    const bool zero = zc.detect(in.t, in.qd);  // keep tracking the sign while off
+    const bool zero = zc.detect(in.t,in.qd);     // keep tracking the sign while off
 
     if(off && in.t >= t_on - 1.0e-12)
-        off = false;
+    off = false;
 
-    if(!off && zero && t_off > 0.0)
+    if(!off && zero && t_off>0.0)
     {
-        off = true;
-        t_on = zc.t_cross + t_off;
-        pto.t_off0 = in.t;  // from this step on (the zero lies in the last step)
-        pto.t_off1 = t_on;  // to the stage time t_on
+    off = true;
+    t_on = zc.t_cross + t_off;
+    pto.t_off0 = in.t;          // from this step on (the zero lies in the last step)
+    pto.t_off1 = t_on;          // to the stage time t_on
     }
 }
 
@@ -113,94 +114,89 @@ bool pto_hydro_table::read(const std::string &file)
     std::ifstream in(file);
 
     if(!in.good())
-        return false;
+    return false;
 
-    w_.clear();
-    A_.clear();
-    B_.clear();
+    w_.clear(); A_.clear(); B_.clear();
 
     std::string line;
 
-    while(std::getline(in, line))
+    while(std::getline(in,line))
     {
-        std::replace(line.begin(), line.end(), ',', ' ');
+        std::replace(line.begin(),line.end(),',',' ');
 
         size_t i = line.find_first_not_of(" \t\r");
 
-        if(i == std::string::npos)
-            continue;
+        if(i==std::string::npos)
+        continue;
 
         const char c0 = line[i];
 
-        if(!(std::isdigit(static_cast<unsigned char>(c0)) || c0 == '.' || c0 == '-' || c0 == '+'))
-            continue;
+        if(!(std::isdigit(static_cast<unsigned char>(c0)) || c0=='.' || c0=='-' || c0=='+'))
+        continue;
 
         std::istringstream ss(line);
         double w, A, B;
 
-        if(ss >> w >> A >> B && std::isfinite(w) && std::isfinite(A) && std::isfinite(B))
+        if(ss>>w>>A>>B && std::isfinite(w) && std::isfinite(A) && std::isfinite(B))
         {
-            w_.push_back(w);
-            A_.push_back(A);
-            B_.push_back(B);
+        w_.push_back(w);
+        A_.push_back(A);
+        B_.push_back(B);
         }
     }
 
     // ascending in w
     std::vector<size_t> idx(w_.size());
 
-    for(size_t n = 0; n < idx.size(); ++n)
-        idx[n] = n;
+    for(size_t n=0; n<idx.size(); ++n)
+    idx[n]=n;
 
-    std::sort(idx.begin(), idx.end(), [&](size_t a, size_t b)
-              { return w_[a] < w_[b]; });
+    std::sort(idx.begin(),idx.end(),[&](size_t a, size_t b){return w_[a]<w_[b];});
 
     std::vector<double> w2, A2, B2;
 
     for(size_t n : idx)
     {
-        w2.push_back(w_[n]);
-        A2.push_back(A_[n]);
-        B2.push_back(B_[n]);
+    w2.push_back(w_[n]);
+    A2.push_back(A_[n]);
+    B2.push_back(B_[n]);
     }
 
-    w_.swap(w2);
-    A_.swap(A2);
-    B_.swap(B2);
+    w_.swap(w2); A_.swap(A2); B_.swap(B2);
 
-    return w_.size() >= 2;
+    return w_.size()>=2;
 }
 
 double pto_hydro_table::interp(const std::vector<double> &f, double w) const
 {
-    if(w <= w_.front())
-        return f.front();
+    if(w<=w_.front())
+    return f.front();
 
-    if(w >= w_.back())
-        return f.back();
+    if(w>=w_.back())
+    return f.back();
 
-    const size_t n = std::upper_bound(w_.begin(), w_.end(), w) - w_.begin();
-    const double s = (w - w_[n - 1]) / (w_[n] - w_[n - 1]);
+    const size_t n = std::upper_bound(w_.begin(),w_.end(),w) - w_.begin();
+    const double s = (w - w_[n-1])/(w_[n] - w_[n-1]);
 
-    return (1.0 - s) * f[n - 1] + s * f[n];
+    return (1.0-s)*f[n-1] + s*f[n];
 }
 
 double pto_hydro_table::A(double w) const
 {
-    return interp(A_, w);
+    return interp(A_,w);
 }
 
 double pto_hydro_table::B(double w) const
 {
-    return interp(B_, w);
+    return interp(B_,w);
 }
 
 double pto_bopt(double w, double m, double A, double Brad, double C, double Bloss)
 {
-    const double X = w * (m + A) - C / w;
+    const double X = w*(m + A) - C/w;
     const double Bd = Brad + Bloss;
 
-    return std::sqrt(Bd * Bd + X * X);
+    return std::sqrt(Bd*Bd + X*X);
 }
 
-}  // namespace coral
+}

@@ -36,9 +36,9 @@ class nhflow_particle
 public:
     virtual ~nhflow_particle() = default;
 
-    virtual void ini(lexer *, fdm_nhf *, ghostcell *) = 0;
-    virtual void step_begin(lexer *, fdm_nhf *, ghostcell *) = 0;
-    virtual void step_end(lexer *, fdm_nhf *, ghostcell *) = 0;
+    virtual void ini(lexer*, fdm_nhf*, ghostcell*)=0;
+    virtual void step_begin(lexer*, fdm_nhf*, ghostcell*)=0;
+    virtual void step_end(lexer*, fdm_nhf*, ghostcell*)=0;
 };
 
 #endif

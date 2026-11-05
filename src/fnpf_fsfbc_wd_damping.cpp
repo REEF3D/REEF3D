@@ -20,164 +20,172 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "fdm_fnpf.h"
-#include "fnpf_fsfbc_wd.h"
-#include "ghostcell.h"
-#include "lexer.h"
-#include "sflow_bicgstab.h"
-#include "solver2D.h"
+#include"fnpf_fsfbc_wd.h"
+#include"lexer.h"
+#include"fdm_fnpf.h"
+#include"ghostcell.h"
+#include"solver2D.h"
+#include"sflow_bicgstab.h"
 
 void fnpf_fsfbc_wd::damping(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &f, int gcval, double alpha)
 {
-    double starttime = pgc->timer();
-
-    int check = 0;
-    double alpha_eta = 1.0;
-
+    double starttime=pgc->timer();
+    
+    int check=0;
+    double alpha_eta=1.0;
+    
     // Fifsf damping
-    if((gcval == 60 || gcval == 160) && (p->A357 == 1 || p->A357 == 2))
+    if((gcval==60 || gcval==160) && (p->A357==1 || p->A357==2))
     {
-        check = 1;
-        alpha_eta = 1.0;
+    check=1;
+    alpha_eta=1.0;
     }
-
+    
     // eta damping
-    if((gcval == 55 || gcval == 155) && (p->A357 == 1 || p->A357 == 3))
+    if((gcval==55 || gcval==155) && (p->A357==1 || p->A357==3))
     {
-        check = 1;
-        alpha_eta = p->A366;
+    check=1;
+    alpha_eta=p->A366;
     }
-
+    
     // With vb==0 everywhere the implicit damping system is diagonal with
     // solution f, so the global 2D BiCGStab solve is skipped. This is the
     // normal state whenever no cell is breaking.
-    if(p->A350 > 0 && check == 1)
+    if(p->A350>0 && check==1)
     {
-        double vbmax = 0.0;
+        double vbmax=0.0;
         SLICELOOP4
-        vbmax = MAX(vbmax, fabs(c->vb(i, j)));
-
+        vbmax = MAX(vbmax,fabs(c->vb(i,j)));
+        
         vbmax = pgc->globalmax(vbmax);
-
-        if(vbmax <= 0.0)
-            check = 0;
+        
+        if(vbmax<=0.0)
+        check=0;
     }
-
-    if(p->A350 > 0 && check == 1)
+    
+    if(p->A350>0 && check==1)
     {
-        n = 0;
+        n=0;
         SLICELOOP4
         {
-            if(p->wet[IJ] == 1 || p->A343 >= 1)
+            if(p->wet[IJ]==1 || p->A343>=1)
             {
-                visc = alpha_eta * c->vb(i, j);
-
-                c->N.p[n] = visc / (p->DXP[IM1] * p->DXN[IP]) * p->x_dir + visc / (p->DXP[IP] * p->DXN[IP]) * p->x_dir + visc / (p->DYP[JM1] * p->DYN[JP]) * p->y_dir + visc / (p->DYP[JP] * p->DYN[JP]) * p->y_dir
-
-                            + 1.0 / (alpha * p->dt);
-
-                c->rvec.V[n] = f(i, j) / (alpha * p->dt);
-
-                c->N.s[n] = -visc / (p->DXP[IM1] * p->DXN[IP]) * p->x_dir;
-                c->N.n[n] = -visc / (p->DXP[IP] * p->DXN[IP]) * p->x_dir;
-
-                c->N.e[n] = -visc / (p->DYP[JM1] * p->DYN[JP]) * p->y_dir;
-                c->N.w[n] = -visc / (p->DYP[JP] * p->DYN[JP]) * p->y_dir;
+             visc = alpha_eta*c->vb(i,j);
+                
+             c->N.p[n] =   visc/(p->DXP[IM1]*p->DXN[IP])*p->x_dir
+                         + visc/(p->DXP[IP]*p->DXN[IP])*p->x_dir
+                         + visc/(p->DYP[JM1]*p->DYN[JP])*p->y_dir
+                         + visc/(p->DYP[JP]*p->DYN[JP])*p->y_dir
+                           
+                           + 1.0/(alpha*p->dt);
+            
+             c->rvec.V[n] =   f(i,j)/(alpha*p->dt);
+             
+             c->N.s[n] = -visc/(p->DXP[IM1]*p->DXN[IP])*p->x_dir;
+             c->N.n[n] = -visc/(p->DXP[IP]*p->DXN[IP])*p->x_dir;
+             
+             c->N.e[n] = -visc/(p->DYP[JM1]*p->DYN[JP])*p->y_dir;
+             c->N.w[n] = -visc/(p->DYP[JP]*p->DYN[JP])*p->y_dir;
             }
 
-            if(p->wet[IJ] == 0 && p->A343 >= 1)
+            if(p->wet[IJ]==0 && p->A343>=1)
             {
-                c->N.p[n] = 1.0;
-
-                // A343 2/3: keep eta/Fifsf of temporarily dry cells (eta=0 would
-                // put a full water column under a dry flag, released on rewetting)
-                c->rvec.V[n] = (p->A343 >= 2) ? f(i, j) : 0.0;
-
-                c->N.s[n] = 0.0;
-                c->N.n[n] = 0.0;
-
-                c->N.e[n] = 0.0;
-                c->N.w[n] = 0.0;
+             c->N.p[n] =  1.0;
+            
+             // A343 2/3: keep eta/Fifsf of temporarily dry cells (eta=0 would
+             // put a full water column under a dry flag, released on rewetting)
+             c->rvec.V[n] =   (p->A343>=2) ? f(i,j) : 0.0;
+             
+             c->N.s[n] = 0.0;
+             c->N.n[n] = 0.0;
+             
+             c->N.e[n] = 0.0;
+             c->N.w[n] = 0.0;
             }
-
-            ++n;
+     
+         ++n;
         }
-
+        
+        
         // walls: zero gradient of the new value (the diagonal takes the coupling). Before, the coupling went to the
         // right-hand side with the old value f(i,j), which damped the change of the cells next to a wall less: in a
         // Ting & Kirby flume 4 cells across, the surf zone kept 7 % more wave height than in 2D. Dry neighbours keep
         // the lagged form, and so does mesh refinement (G 1): with the implicit wall, fnpf_3d_amr_break_romero (A 350 3
         // on patches near the coast) went unstable at t = 6.6 s
-        const bool implicit_wall = (p->G1 == 0 && p->amr_patch == 0);
-
-        n = 0;
+        const bool implicit_wall = (p->G1==0 && p->amr_patch==0);
+        
+        n=0;
         SLICELOOP4
         {
-            if(p->wet[IJ] == 1 || p->A343 >= 1)
+            if(p->wet[IJ]==1 || p->A343>=1)
             {
-                if(p->flagslice4[Im1J] < 0 && implicit_wall)
+                if(p->flagslice4[Im1J]<0 && implicit_wall)
                 {
-                    c->N.p[n] += c->N.s[n];
-                    c->N.s[n] = 0.0;
+                c->N.p[n] += c->N.s[n];
+                c->N.s[n] = 0.0;
                 }
-                else if(p->flagslice4[Im1J] < 0 || (p->wet[Im1J] == 0 && p->A343 >= 1))
+                else
+                if(p->flagslice4[Im1J]<0 || (p->wet[Im1J]==0 && p->A343>=1))
                 {
-                    c->rvec.V[n] -= c->N.s[n] * f(i, j);
-                    c->N.s[n] = 0.0;
+                c->rvec.V[n] -= c->N.s[n]*f(i,j);
+                c->N.s[n] = 0.0;
                 }
-
-                if(p->flagslice4[Ip1J] < 0 && implicit_wall)
+                
+                if(p->flagslice4[Ip1J]<0 && implicit_wall)
                 {
-                    c->N.p[n] += c->N.n[n];
-                    c->N.n[n] = 0.0;
+                c->N.p[n] += c->N.n[n];
+                c->N.n[n] = 0.0;
                 }
-                else if(p->flagslice4[Ip1J] < 0 || (p->wet[Ip1J] == 0 && p->A343 >= 1))
+                else
+                if(p->flagslice4[Ip1J]<0 || (p->wet[Ip1J]==0 && p->A343>=1))
                 {
-                    c->rvec.V[n] -= c->N.n[n] * f(i, j);
-                    c->N.n[n] = 0.0;
+                c->rvec.V[n] -= c->N.n[n]*f(i,j);
+                c->N.n[n] = 0.0;
                 }
-
-                if(p->flagslice4[IJm1] < 0 && implicit_wall)
+                
+                if(p->flagslice4[IJm1]<0 && implicit_wall)
                 {
-                    c->N.p[n] += c->N.e[n];
-                    c->N.e[n] = 0.0;
+                c->N.p[n] += c->N.e[n];
+                c->N.e[n] = 0.0;
                 }
-                else if(p->flagslice4[IJm1] < 0 || (p->wet[IJm1] == 0 && p->A343 >= 1))
+                else
+                if(p->flagslice4[IJm1]<0 || (p->wet[IJm1]==0 && p->A343>=1))
                 {
-                    c->rvec.V[n] -= c->N.e[n] * f(i, j);
-                    c->N.e[n] = 0.0;
+                c->rvec.V[n] -= c->N.e[n]*f(i,j);
+                c->N.e[n] = 0.0;
                 }
-
-                if(p->flagslice4[IJp1] < 0 && implicit_wall)
+                
+                if(p->flagslice4[IJp1]<0 && implicit_wall)
                 {
-                    c->N.p[n] += c->N.w[n];
-                    c->N.w[n] = 0.0;
+                c->N.p[n] += c->N.w[n];
+                c->N.w[n] = 0.0;
                 }
-                else if(p->flagslice4[IJp1] < 0 || (p->wet[IJp1] == 0 && p->A343 >= 1))
+                else
+                if(p->flagslice4[IJp1]<0 || (p->wet[IJp1]==0 && p->A343>=1))
                 {
-                    c->rvec.V[n] -= c->N.w[n] * f(i, j);
-                    c->N.w[n] = 0.0;
+                c->rvec.V[n] -= c->N.w[n]*f(i,j);
+                c->N.w[n] = 0.0;
                 }
             }
-
-            ++n;
+     
+        ++n;
         }
-
-        pgc->gcsl_start4(p, f, gcval);
-
+        
+        pgc->gcsl_start4(p,f,gcval);
+        
         // the rows with viscosity only (Jacobi, same residual), BiCGStab over all columns if that does not converge
-        if(!damping_local(p, c, pgc, f))
+        if(!damping_local(p,c,pgc,f))
         {
-            if(psolv == nullptr)
-                psolv = new sflow_bicgstab(p, pgc);
-
-            psolv->start(p, pgc, f, c->N, c->xvec, c->rvec, 4);
+            if(psolv==nullptr)
+            psolv = new sflow_bicgstab(p,pgc);
+            
+            psolv->start(p,pgc,f,c->N,c->xvec,c->rvec,4);
         }
-
-        double time = pgc->timer() - starttime;
-
-        if(p->mpirank == 0 && p->count % p->P12 == 0 && p->D21 == 1)
-            cout << "fsfbc_damping: " << p->solveriter << "  fsfbc_damping_time: " << setprecision(3) << time << endl;
+        
+        double time=pgc->timer()-starttime;
+        
+        if(p->mpirank==0 && p->count%p->P12==0 && p->D21==1)
+        cout<<"fsfbc_damping: "<<p->solveriter<<"  fsfbc_damping_time: "<<setprecision(3)<<time<<endl;
     }
 }
 
@@ -194,72 +202,76 @@ void fnpf_fsfbc_wd::damping(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &f, int
 // and the caller solves with BiCGStab.
 bool fnpf_fsfbc_wd::damping_local(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &f)
 {
-    const int nij = p->imax * p->jmax;
-
-    if(int(damp_x.size()) != nij)
-        damp_x.assign(nij, 0.0);
-
+    const int nij = p->imax*p->jmax;
+    
+    if(int(damp_x.size())!=nij)
+    damp_x.assign(nij,0.0);
+    
     double *const x = damp_x.data();
     const int sI = p->jmax;
-
+    
     // diagonal rows directly, coupled rows into the list
     damp_act.clear();
-
-    n = 0;
+    
+    n=0;
     SLICELOOP4
     {
-        if(c->N.s[n] != 0.0 || c->N.n[n] != 0.0 || c->N.e[n] != 0.0 || c->N.w[n] != 0.0)
+        if(c->N.s[n]!=0.0 || c->N.n[n]!=0.0 || c->N.e[n]!=0.0 || c->N.w[n]!=0.0)
         {
-            damp_act.push_back({IJ, n});
-            x[IJ] = f(i, j);
+            damp_act.push_back({IJ,n});
+            x[IJ] = f(i,j);
         }
         else
-            x[IJ] = c->rvec.V[n] / c->N.p[n];
-
+        x[IJ] = c->rvec.V[n]/c->N.p[n];
+        
         ++n;
     }
-
+    
     const int na = int(damp_act.size());
     damp_r.resize(na);
-
+    
     p->solveriter = 0;
     double residual0 = 0.0;
-
+    
     while(true)
     {
-        pgc->gcslparaxijk_single(p, x, 4);
-
+        pgc->gcslparaxijk_single(p,x,4);
+        
         double sum = 0.0;
-
-        for(int a = 0; a < na; ++a)
+        
+        for(int a=0; a<na; ++a)
         {
             const int q = damp_act[a].q;
             const int m = damp_act[a].n;
-
-            const double r = c->rvec.V[m] - (c->N.p[m] * x[q] + c->N.n[m] * x[q + sI] + c->N.s[m] * x[q - sI] + c->N.w[m] * x[q + 1] + c->N.e[m] * x[q - 1]);
+            
+            const double r = c->rvec.V[m] - (c->N.p[m]*x[q]
+                                           + c->N.n[m]*x[q+sI]
+                                           + c->N.s[m]*x[q-sI]
+                                           + c->N.w[m]*x[q+1]
+                                           + c->N.e[m]*x[q-1]);
             damp_r[a] = r;
-            sum += r * r;
+            sum += r*r;
         }
-
+        
         const double residual = sqrt(pgc->globalsum(sum));
-
-        if(p->solveriter == 0)
-            residual0 = residual;
-
-        if(residual <= 1.0e-10 * residual0)
-            break;
-
-        if(p->solveriter >= p->N46)
-            return false;
-
-        for(int a = 0; a < na; ++a)
-            x[damp_act[a].q] += damp_r[a] / c->N.p[damp_act[a].n];
-
+        
+        if(p->solveriter==0)
+        residual0 = residual;
+        
+        if(residual<=1.0e-10*residual0)
+        break;
+        
+        if(p->solveriter>=p->N46)
+        return false;
+        
+        for(int a=0; a<na; ++a)
+        x[damp_act[a].q] += damp_r[a]/c->N.p[damp_act[a].n];
+        
         ++p->solveriter;
     }
-
+    
     SLICELOOP4
-    f(i, j) = x[IJ];
-
+    f(i,j) = x[IJ];
+    
     return true;
 }

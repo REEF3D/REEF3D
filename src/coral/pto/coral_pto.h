@@ -37,88 +37,87 @@ Architect: Hans Bihs
 #ifndef CORAL_PTO_H_
 #define CORAL_PTO_H_
 
-#include "coral/core/coral_load.h"
-#include "coral/pto/coral_pto_controller.h"
-#include "coral/pto/coral_pto_element.h"
-#include <limits>
-#include <memory>
-#include <string>
-#include <vector>
+#include"coral/core/coral_load.h"
+#include"coral/pto/coral_pto_element.h"
+#include"coral/pto/coral_pto_controller.h"
+#include<memory>
+#include<limits>
+#include<string>
+#include<vector>
 
-namespace coral {
-class joint;
-
-enum class pto_control { passive,
-                         latching,
-                         declutching };
-
-struct pto_settings
+namespace coral
 {
-    double k = 0.0, c = 0.0, q0 = 0.0, F0 = 0.0;
-    double coulomb = 0.0, v_eps = 1.0e-3;
-    double c_loss = 0.0, coulomb_loss = 0.0;  // drive-train losses, 0: none
-    double F_max = 0.0;                       // 0: no force limit
-    double P_max = 0.0;                       // 0: no power limit
-    double q_min = -std::numeric_limits<double>::infinity();
-    double q_max = std::numeric_limits<double>::infinity();
-    double k_stop = 0.0, c_stop = 0.0;
-    pto_control control = pto_control::passive;
-    double t_hold = 0.0;
-    double c_latch = 0.0, k_latch = 0.0;
-};
+    class joint;
 
-class pto_load : public load
-{
-public:
-    // the joint must live as long as the load (it is owned by the model)
-    pto_load(const joint &, bool rotational, const pto_settings &, const std::string &name = "pto");
+    enum class pto_control {passive, latching, declutching};
 
-    std::string name() const override { return name_; }
-    coupling_kind coupling() const override { return coupling_kind::local; }
-    void coupled_bodies(std::vector<int> &) const override;
-    void initialize(const model &, double t0) override;
-    void eval(const model &, double t, VecX &f) const override;
-    void commit(const model &, double t, double dt) override;
-    // restart from a checkpoint (coral_state.h)
-    void save_state(std::vector<double> &) const override;
-    bool load_state(const std::vector<double> &, size_t &k) override;
-    double potential(const model &) const override;
-    void channel_names(std::vector<std::string> &) const override;
-    void channel_values(const model &, double t, std::vector<double> &) const override;
+    struct pto_settings
+    {
+        double k = 0.0, c = 0.0, q0 = 0.0, F0 = 0.0;
+        double coulomb = 0.0, v_eps = 1.0e-3;
+        double c_loss = 0.0, coulomb_loss = 0.0;    // drive-train losses, 0: none
+        double F_max = 0.0;          // 0: no force limit
+        double P_max = 0.0;          // 0: no power limit
+        double q_min = -std::numeric_limits<double>::infinity();
+        double q_max = std::numeric_limits<double>::infinity();
+        double k_stop = 0.0, c_stop = 0.0;
+        pto_control control = pto_control::passive;
+        double t_hold = 0.0;
+        double c_latch = 0.0, k_latch = 0.0;
+    };
 
-    double coordinate(const model &) const;
-    double rate(const model &) const;
-    double force(const model &) const;  // force (torque) of the PTO in the current state
-    double force(const model &, double t) const;
-    double power(const model &m) const;                  // absorbed power of the generator
-    double loss_power(const model &) const;              // power dissipated in the drive-train losses
-    double energy() const { return energy_; }            // absorbed energy so far
-    double loss_energy() const { return energy_loss_; }  // dissipated energy so far
-    bool has_loss() const { return settings.c_loss > 0.0 || settings.coulomb_loss > 0.0; }
-    double mean_power(double t) const { return t > t0_ ? energy_ / (t - t0_) : 0.0; }
-    bool held() const;  // latched or declutched
+    class pto_load : public load
+    {
+    public:
+        // the joint must live as long as the load (it is owned by the model)
+        pto_load(const joint&, bool rotational, const pto_settings&, const std::string &name="pto");
 
-    // the elements (built from the settings in initialize())
-    const pto_composite &composite() const { return pto_; }
+        std::string name() const override {return name_;}
+        coupling_kind coupling() const override {return coupling_kind::local;}
+        void coupled_bodies(std::vector<int>&) const override;
+        void initialize(const model&, double t0) override;
+        void eval(const model&, double t, VecX &f) const override;
+        void commit(const model&, double t, double dt) override;
+        // restart from a checkpoint (coral_state.h)
+        void save_state(std::vector<double>&) const override;
+        bool load_state(const std::vector<double>&, size_t &k) override;
+        double potential(const model&) const override;
+        void channel_names(std::vector<std::string>&) const override;
+        void channel_values(const model&, double t, std::vector<double>&) const override;
 
-    pto_settings settings;
+        double coordinate(const model&) const;
+        double rate(const model&) const;
+        double force(const model&) const;      // force (torque) of the PTO in the current state
+        double force(const model&, double t) const;
+        double power(const model &m) const;    // absorbed power of the generator
+        double loss_power(const model&) const;   // power dissipated in the drive-train losses
+        double energy() const {return energy_;}            // absorbed energy so far
+        double loss_energy() const {return energy_loss_;}  // dissipated energy so far
+        bool has_loss() const {return settings.c_loss > 0.0 || settings.coulomb_loss > 0.0;}
+        double mean_power(double t) const {return t > t0_ ? energy_/(t - t0_) : 0.0;}
+        bool held() const;                     // latched or declutched
 
-private:
-    void build();
-    pto_output evaluate(const model &, double t) const;
+        // the elements (built from the settings in initialize())
+        const pto_composite &composite() const {return pto_;}
 
-    std::string name_;
-    const joint *j_;
-    bool rot_;
-    mutable pto_composite pto_;
-    std::vector<std::unique_ptr<pto_controller>> ctrl_;
-    double t_ = 0.0;  // time of the last converged state
-    double P_last_ = 0.0;
-    double energy_ = 0.0;
-    double Ploss_last_ = 0.0;
-    double energy_loss_ = 0.0;
-    double t0_ = 0.0;
-};
-}  // namespace coral
+        pto_settings settings;
+
+    private:
+        void build();
+        pto_output evaluate(const model&, double t) const;
+
+        std::string name_;
+        const joint *j_;
+        bool rot_;
+        mutable pto_composite pto_;
+        std::vector<std::unique_ptr<pto_controller>> ctrl_;
+        double t_ = 0.0;             // time of the last converged state
+        double P_last_ = 0.0;
+        double energy_ = 0.0;
+        double Ploss_last_ = 0.0;
+        double energy_loss_ = 0.0;
+        double t0_ = 0.0;
+    };
+}
 
 #endif

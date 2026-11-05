@@ -23,10 +23,10 @@ Author: Hans Bihs
 #ifndef PRINTER_FNPF_H_
 #define PRINTER_FNPF_H_
 
-#include "increment.h"
-#include "printer.h"
+#include"printer.h"
+#include"increment.h"
 
-#include "vtks.h"
+#include"vtks.h"
 
 class fdm_fnpf;
 class fnpf_force_ale;
@@ -55,38 +55,38 @@ class printer_fnpf final : public printer, public increment
 {
 
 public:
-    void amr_columns(lexer *, const amr_column_lookup *) override;
+    void amr_columns(lexer*, const amr_column_lookup*) override;
 
-    printer_fnpf(lexer *, fdm_fnpf *, ghostcell *);
+    printer_fnpf(lexer*,fdm_fnpf*,ghostcell*);
     virtual ~printer_fnpf() = default;
-    void start(lexer *, fdm_fnpf *, ghostcell *, ioflow *) override final;
-    void print_stop(lexer *, fdm_fnpf *, ghostcell *) override final;
-    void print_end(lexer *, fdm_fnpf *, ghostcell *) override final;
-    void ckpt_state(std::vector<double> &) override;
-    void ckpt_restore(const std::vector<double> &) override;
+    void start(lexer*,fdm_fnpf*,ghostcell*,ioflow*) override final;
+    void print_stop(lexer*,fdm_fnpf*,ghostcell*) override final;
+    void print_end(lexer*,fdm_fnpf*,ghostcell*) override final;
+    void ckpt_state(std::vector<double>&) override;
+    void ckpt_restore(const std::vector<double>&) override;
     void flush_outputs() override;
 
 private:
-    void print(lexer *, fdm_fnpf *, ghostcell *);
-    void print_fsf(lexer *, fdm_fnpf *, ghostcell *);
-    int last_print = -1;  // the iteration of the last volume output (print_end)
-    int last_fsf = -1;    // and of the last free surface output
-    void parallel(lexer *, int);
+    void print(lexer*,fdm_fnpf*,ghostcell*);
+    void print_fsf(lexer*,fdm_fnpf*,ghostcell*);
+    int last_print = -1;    // the iteration of the last volume output (print_end)
+    int last_fsf = -1;      // and of the last free surface output
+    void parallel(lexer*,int);
 
     vtk3D *outputFormat;
     bool initial_print = true;
     size_t file_offset = 0;
 
     char name[200];
-    int n, iin, offset[200];
+    int n,iin,offset[200];
     float ffn;
-    int gcval_phi, gcval_phiext;
+    int gcval_phi,gcval_phiext;
     double *printtime_wT;
     double *printfsftime_wT;
 
     int printcount;
-    bool bed_printed = false;  // the bed of this run (also after a restart, I 45: a new LAGOON store)
-    int nP35 = 0, nP185 = 0;   // sizes of printtime_wT, printfsftime_wT
+    bool bed_printed = false;   // the bed of this run (also after a restart, I 45: a new LAGOON store)
+    int nP35 = 0, nP185 = 0;        // sizes of printtime_wT, printfsftime_wT
 
     fnpf_print_wsf *pwsf = nullptr;
     fnpf_print_wsf_theory *pwsf_theory;
@@ -105,7 +105,7 @@ private:
     fnpf_vel_probe_theory *pveltheo;
     fnpf_print_kinematics **pkin;
     fnpf_print_scour *pscour = nullptr;  // P 83, P 84: scour gauges
-    lagoon_output *plagoon = nullptr;    // P 18: LAGOON store of the volume
+    lagoon_output *plagoon = nullptr;  // P 18: LAGOON store of the volume
 };
 
 #endif

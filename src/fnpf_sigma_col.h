@@ -23,10 +23,10 @@ Author: Hans Bihs
 #ifndef FNPF_SIGMA_COL_H_
 #define FNPF_SIGMA_COL_H_
 
-#include "fdm_fnpf.h"
-#include "fnpf_memory.h"
-#include "lexer.h"
-#include <cmath>
+#include"lexer.h"
+#include"fdm_fnpf.h"
+#include"fnpf_memory.h"
+#include<cmath>
 
 // The sigma metrics of FNPF are affine in sigma within a column: sigx, sigy and sigxx follow from
 // the depth W and the bed and surface slopes and curvatures of the column (fsfdisc), and
@@ -38,46 +38,49 @@ Author: Hans Bihs
 // in every RK stage).
 struct fnpf_sigma_col
 {
-    double W, W2, bxW, exW, byW, eyW, tbx, tex, tby, tey, sbex, bex, sbey, bey;
-
+    double W,W2,bxW,exW,byW,eyW,tbx,tex,tby,tey,sbex,bex,sbey,bey;
+    
     // the column (i,j); W as WLVL in fnpf_sigma_update.cpp
     inline void set(lexer *p, fdm_fnpf *c, int i, int j)
     {
-        W = (fabs(c->WL(i, j)) > 1.0e-20 ? c->WL(i, j) : 1.0e-5);
-        W2 = W * W;
-        const double bx = c->Bx(i, j), by = c->By(i, j);
-        const double ex = c->Ex(i, j), ey = c->Ey(i, j);
-        const double bxx = c->Bxx(i, j), byy = c->Byy(i, j);
-        const double exx = c->Exx(i, j), eyy = c->Eyy(i, j);
-        bxW = bx / W;
-        exW = ex / W;
-        byW = by / W;
-        eyW = ey / W;
-        tbx = bxx - bx * bx / W;
-        tex = exx - ex * ex / W;
-        tby = byy - by * by / W;
-        tey = eyy - ey * ey / W;
-        sbex = bx + ex;
-        bex = bx * ex;
-        sbey = by + ey;
-        bey = by * ey;
+        W   = (fabs(c->WL(i,j))>1.0e-20?c->WL(i,j):1.0e-5);
+        W2  = W*W;
+        const double bx  = c->Bx(i,j),  by  = c->By(i,j);
+        const double ex  = c->Ex(i,j),  ey  = c->Ey(i,j);
+        const double bxx = c->Bxx(i,j), byy = c->Byy(i,j);
+        const double exx = c->Exx(i,j), eyy = c->Eyy(i,j);
+        bxW = bx/W; exW = ex/W;
+        byW = by/W; eyW = ey/W;
+        tbx = bxx - bx*bx/W;
+        tex = exx - ex*ex/W;
+        tby = byy - by*by/W;
+        tey = eyy - ey*ey/W;
+        sbex = bx + ex; bex = bx*ex;
+        sbey = by + ey; bey = by*ey;
     }
-
+    
     inline double sx(double s) const
     {
-        const double sgx = (1.0 - s) * bxW - s * exW;
+        const double sgx = (1.0 - s)*bxW - s*exW;
         return sgx;
     }
-
+    
     inline double sy(double s) const
     {
-        const double sgy = (1.0 - s) * byW - s * eyW;
+        const double sgy = (1.0 - s)*byW - s*eyW;
         return sgy;
     }
-
+    
     inline double sxx(double s, double sgx, double sgy) const
     {
-        const double v = ((1.0 - s) / W) * tbx - (s / W) * tex - (sgx / W) * sbex - ((1.0 - 2.0 * s) / W2) * bex + ((1.0 - s) / W) * tby - (s / W) * tey - (sgy / W) * sbey - ((1.0 - 2.0 * s) / W2) * bey;
+        const double v = ((1.0 - s)/W)*tbx
+                       - (s/W)*tex
+                       - (sgx/W)*sbex
+                       - ((1.0 - 2.0*s)/W2)*bex
+                       + ((1.0 - s)/W)*tby
+                       - (s/W)*tey
+                       - (sgy/W)*sbey
+                       - ((1.0 - 2.0*s)/W2)*bey;
         return v;
     }
 };

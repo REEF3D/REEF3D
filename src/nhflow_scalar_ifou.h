@@ -23,8 +23,8 @@ Author: Hans Bihs
 #ifndef NHFLOW_SCALAR_IFOU_H_
 #define NHFLOW_SCALAR_IFOU_H_
 
-#include "increment.h"
-#include "nhflow_scalar_convection.h"
+#include"nhflow_scalar_convection.h"
+#include"increment.h"
 
 class nhflow_scalar_advec;
 
@@ -33,30 +33,26 @@ using namespace std;
 class nhflow_scalar_ifou final : public nhflow_scalar_convection, public increment
 {
 public:
-    nhflow_scalar_ifou(lexer *, int = 0);
-    virtual ~nhflow_scalar_ifou();
+	nhflow_scalar_ifou (lexer*, int=0);
+	virtual ~nhflow_scalar_ifou();
 
-    void start(lexer *, fdm_nhf *, double *, int, double *, double *, double *) override final;
-
-private:
-    void start_advective(lexer *, fdm_nhf *, double *, int, double *, double *, double *);
-    void start_conservative(lexer *, fdm_nhf *, double *, int, double *, double *, double *);
+	void start(lexer*,fdm_nhf*,double*,int,double*,double*,double*) override final;
 
 private:
-    int count;
-    const int advective;  // 0: flux form d(uF)/dx (default), 1: advective form u dF/dx (sigma-consistent for non-D-weighted scalars)
+    void start_advective(lexer*,fdm_nhf*,double*,int,double*,double*,double*);
+    void start_conservative(lexer*,fdm_nhf*,double*,int,double*,double*,double*);
 
-    double ivel1, ivel2, jvel1, jvel2, kvel1, kvel2;
-    double udir, vdir, wdir;
+private:
 
-    int count;
-    const int advective;  // 0: flux form d(uF)/dx (default), 1: advective form u dF/dx (sigma-consistent for non-D-weighted scalars),
-                          // 2: conservative form d(D F)/dt + d(D u F)/dx + d(W F)/dsigma, coefficients divided by D (suspended load)
-
-    double ivel1, ivel2, jvel1, jvel2, kvel1, kvel2;
-    double udir, vdir, wdir;
-
+	int count;
+    const int advective; // 0: flux form d(uF)/dx (default), 1: advective form u dF/dx (sigma-consistent for non-D-weighted scalars),
+                         // 2: conservative form d(D F)/dt + d(D u F)/dx + d(W F)/dsigma, coefficients divided by D (suspended load)
+    
+    double ivel1,ivel2,jvel1,jvel2,kvel1,kvel2;
+    double udir,vdir,wdir;
+    
     nhflow_scalar_advec *padvec;
+    
 };
 
 #endif

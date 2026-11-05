@@ -23,8 +23,8 @@ Author: Hans Bihs
 #ifndef GEO_RAYCAST_H_
 #define GEO_RAYCAST_H_
 
-#include "increment.h"
-#include <vector>
+#include"increment.h"
+#include<vector>
 
 class lexer;
 
@@ -56,7 +56,7 @@ using namespace std;
 struct geo_cart
 {
     // cells of the computation [is,ie) x [js,je) x [ks,ke)
-    int is, ie, js, je, ks, ke;
+    int is,ie,js,je,ks,ke;
 
     // true:  the cells are the subdomain interior, cell search with p->posc_*,
     //        only active cells (flag4>0), IO valid in one ghost layer (6DOF)
@@ -76,43 +76,43 @@ struct geo_cart
     //    unlike the tilt it also leaves the diagonals of axis-aligned faces
     int raystyle;
 
-    double psi;  // ray offset against rays through edges and vertices
-    double ext;  // ray extension beyond the global domain
+    double psi;     // ray offset against rays through edges and vertices
+    double ext;     // ray extension beyond the global domain
 };
 
 struct geo_ray
 {
-    double Px, Py, Pz, Qx, Qy, Qz;
+    double Px,Py,Pz,Qx,Qy,Qz;
 };
 
 class geo_raycast : public increment
 {
 public:
-    geo_raycast(lexer *);
+    geo_raycast(lexer*);
     virtual ~geo_raycast();
 
     // 6DOF set-up: interior cells, clipped triangles
-    static geo_cart interior(lexer *);
+    static geo_cart interior(lexer*);
 
     // grid solids: interior plus the ghost cells of the fields
-    static geo_cart extended(lexer *, double dxm);
+    static geo_cart extended(lexer*, double dxm);
 
     // Cartesian
-    void cart_io(lexer *, int dir, double **tri_x, double **tri_y, double **tri_z, int ts, int te,
-                 const geo_cart &, int *IO, int *CL, int *CR);
+    void cart_io(lexer*, int dir, double **tri_x, double **tri_y, double **tri_z, int ts, int te,
+                 const geo_cart&, int *IO, int *CL, int *CR);
 
-    void cart_dist(lexer *, int dir, double **tri_x, double **tri_y, double **tri_z, int ts, int te,
-                   const geo_cart &, const int *IO, double *LS, double *bed = nullptr);
+    void cart_dist(lexer*, int dir, double **tri_x, double **tri_y, double **tri_z, int ts, int te,
+                   const geo_cart&, const int *IO, double *LS, double *bed=nullptr);
 
-    void cart_vertexdist(lexer *, double **tri_x, double **tri_y, double **tri_z, int ts, int te, double *LS);
+    void cart_vertexdist(lexer*, double **tri_x, double **tri_y, double **tri_z, int ts, int te, double *LS);
 
     // sigma
-    void sigma_io(lexer *, double **tri_x, double **tri_y, double **tri_z, int ts, int te,
+    void sigma_io(lexer*, double **tri_x, double **tri_y, double **tri_z, int ts, int te,
                   double DSM, int raymode, int *IO, int *CL, int *CR);
 
     // use: optional per-triangle flag, triangles with use[n]==0 are skipped (VRANS exposed surface)
-    void sigma_band(lexer *, double **tri_x, double **tri_y, double **tri_z, int ts, int te,
-                    double band, double *LS, const int *use = nullptr);
+    void sigma_band(lexer*, double **tri_x, double **tri_y, double **tri_z, int ts, int te,
+                    double band, double *LS, const int *use=nullptr);
 
     static double dist2_tri(double Px, double Py, double Pz,
                             double Ax, double Ay, double Az,
@@ -120,17 +120,17 @@ public:
                             double Cx, double Cy, double Cz);
 
     // columns: hits[i*knoy+j], i in [0,knox), j in [0,knoy)
-    void column_hits(lexer *, double **tri_x, double **tri_y, double **tri_z, int ts, int te,
-                     double dxm, vector<vector<double>> &hits);
+    void column_hits(lexer*, double **tri_x, double **tri_y, double **tri_z, int ts, int te,
+                     double dxm, vector<vector<double> > &hits);
 
 private:
     // cell index search, Cartesian
-    int cell(lexer *, int dir, double x, const geo_cart &);
+    int cell(lexer*, int dir, double x, const geo_cart&);
     static int cell_ext(const double *N, int lo, int hi, double x);
-    void bracket(lexer *, int d, double s, double e, const geo_cart &, int &is, int &ie);
-    void setray(lexer *, int dir, int i, int j, int k, const geo_cart &, geo_ray &);
+    void bracket(lexer*, int d, double s, double e, const geo_cart&, int &is, int &ie);
+    void setray(lexer*, int dir, int i, int j, int k, const geo_cart&, geo_ray&);
 
-    bool checkin(lexer *, int dir, double Ax, double Ay, double Az,
+    bool checkin(lexer*, int dir, double Ax, double Ay, double Az,
                  double Bx, double By, double Bz, double Cx, double Cy, double Cz);
 
     const double epsi;

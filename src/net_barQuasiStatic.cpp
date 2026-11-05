@@ -20,277 +20,278 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Authors: Tobias Martin, Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "net_barQuasiStatic.h"
-#include "ckpt_pack.h"
-#include "fdm.h"
-#include "ghostcell.h"
-#include "lexer.h"
+#include"net_barQuasiStatic.h"
+#include"lexer.h"
+#include"fdm.h"
+#include"ghostcell.h"	
+#include"ckpt_pack.h"
 
-net_barQuasiStatic::net_barQuasiStatic(int number, lexer *p) : nNet(number), f_(p), dt(p), frk1(p), frk2(p), L_(p), cutl(p), cutr(p)
+net_barQuasiStatic::net_barQuasiStatic(int number, lexer *p):nNet(number),f_(p),dt(p),frk1(p),frk2(p),L_(p), cutl(p), cutr(p)
 {
 }
 
 net_barQuasiStatic::~net_barQuasiStatic()
-{
+{    
 }
 
 void net_barQuasiStatic::start_cfd(lexer *p, fdm *a, ghostcell *pgc, double alpha, Eigen::Matrix3d &quatRotMat, bool finalize)
 {
-    double starttime1 = pgc->timer();
-
+    double starttime1=pgc->timer();     
+    
     double norm, error;
     int iter = 1;
-
+   
     //- Get velocities at knots
-    updateField_cfd(p, a, pgc, 0);
-    updateField_cfd(p, a, pgc, 1);
-    updateField_cfd(p, a, pgc, 2);
-
+    updateField_cfd(p,a,pgc,0);
+    updateField_cfd(p,a,pgc,1);	
+    updateField_cfd(p,a,pgc,2);
+    
     //- Get density at knots
-    updateField_cfd(p, a, pgc, 3);
+    updateField_cfd(p,a,pgc,3);
 
-    //- Solving the system of equations
-    while(iter < 200)
-    {
+	//- Solving the system of equations
+	while(iter < 200)
+	{
         //- Fill right-hand side Bh with gravity and hydrodynamic forces
-        if(p->X320_type[nNet] == 1)
+        if (p->X320_type[nNet]==1)
         {
             fillRhs_bag(p);
         }
         else
         {
-            // fillRhs_Morison(p);
+            // fillRhs_Morison(p);  
             fillRhs_Screen(p);
         }
-
+		
         //- Solve the system A * fi = Bh
-        // fi = A.lu().solve(Bh);
+        // fi = A.lu().solve(Bh); 
 
-        //-  Correct system such that length of normal vectors equals one
-        error = 0.0;
-        for(int j = 0; j < nf; j++)
-        {
+		//-  Correct system such that length of normal vectors equals one
+		error = 0.0;
+		for (int j = 0; j < nf; j++)
+		{
             norm = fi.row(j).norm();
 
-            fi(j, 0) /= norm;
-            fi(j, 1) /= norm;
-            fi(j, 2) /= norm;
-
-            for(int k = 0; k < niK; k++)
-            {
-                A(k, j) *= norm;
-            }
-
-            error = max(error, fabs(norm - 1.0));
-        }
+            fi(j,0) /= norm;
+            fi(j,1) /= norm;
+            fi(j,2) /= norm;
+        
+			for (int k = 0; k < niK; k++) 
+			{
+				A(k,j) *= norm;
+			}
+            
+            error = max(error,fabs(norm-1.0));
+		}	
 
         //- Check convergence
-        if(error < 1e-2)
-            break;
+        if (error < 1e-2)
+        break;
 
         else
-            iter++;
+        iter++;
 
-        //- Correct length of bars
+		//- Correct length of bars
         updateLength();
-    }
-
-    if(p->mpirank == 0)
-        cout << "Number of iterations = " << iter << setprecision(5) << " with error = " << error << endl;
-
-    //- Build and save net
-    if(finalize == true)
-        print(p);
-
+	}
+   
+    if (p->mpirank==0)
+    cout<<"Number of iterations = "<<iter<<setprecision(5)<<" with error = "<<error<<endl;
+    
+	//- Build and save net	
+    if(finalize==true)
+	print(p);	
+ 
+    
     //- Update porous zone and coefficients
-    coupling_dlm_cfd(p, a, pgc);
+    coupling_dlm_cfd(p,a,pgc);
 
-    double endtime1 = pgc->timer() - starttime1;
-    if(p->mpirank == 0)
-        cout << "Net time: " << endtime1 << endl;
+    double endtime1 = pgc->timer()-starttime1; 
+    if (p->mpirank==0) cout<<"Net time: "<<endtime1<<endl;    
 }
 
 void net_barQuasiStatic::start_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, double alpha, Eigen::Matrix3d &quatRotMat, bool finalize)
 {
-    double starttime1 = pgc->timer();
-
+    double starttime1=pgc->timer();     
+    
     double norm, error;
     int iter = 1;
-
+   
     //- Get velocities at knots
-    updateField_nhflow(p, d, pgc, 0);
-    updateField_nhflow(p, d, pgc, 1);
-    updateField_nhflow(p, d, pgc, 2);
-
+    updateField_nhflow(p,d,pgc,0);
+    updateField_nhflow(p,d,pgc,1);
+    updateField_nhflow(p,d,pgc,2);
+    
     //- Get density at knots
-    updateField_nhflow(p, d, pgc, 3);
+    updateField_nhflow(p,d,pgc,3);
 
-    //- Solving the system of equations
-    while(iter < 200)
-    {
+	//- Solving the system of equations
+	while(iter < 200)
+	{
         //- Fill right-hand side Bh with gravity and hydrodynamic forces
-        if(p->X320_type[nNet] == 1)
+        if (p->X320_type[nNet]==1)
         {
             fillRhs_bag(p);
         }
         else
         {
-            // fillRhs_Morison(p);
+            // fillRhs_Morison(p);  
             fillRhs_Screen(p);
         }
-
+		
         //- Solve the system A * fi = Bh
-        // fi = A.lu().solve(Bh);
+        // fi = A.lu().solve(Bh); 
 
-        //-  Correct system such that length of normal vectors equals one
-        error = 0.0;
-        for(int j = 0; j < nf; j++)
-        {
+		//-  Correct system such that length of normal vectors equals one
+		error = 0.0;
+		for (int j = 0; j < nf; j++)
+		{
             norm = fi.row(j).norm();
 
-            fi(j, 0) /= norm;
-            fi(j, 1) /= norm;
-            fi(j, 2) /= norm;
-
-            for(int k = 0; k < niK; k++)
-            {
-                A(k, j) *= norm;
-            }
-
-            error = max(error, fabs(norm - 1.0));
-        }
+            fi(j,0) /= norm;
+            fi(j,1) /= norm;
+            fi(j,2) /= norm;
+        
+			for (int k = 0; k < niK; k++) 
+			{
+				A(k,j) *= norm;
+			}
+            
+            error = max(error,fabs(norm-1.0));
+		}	
 
         //- Check convergence
-        if(error < 1e-2)
-            break;
+        if (error < 1e-2)
+        break;
 
         else
-            iter++;
+        iter++;
 
-        //- Correct length of bars
+		//- Correct length of bars
         updateLength();
-    }
-
-    if(p->mpirank == 0)
-        cout << "Number of iterations = " << iter << setprecision(5) << " with error = " << error << endl;
-
-    //- Build and save net
-    if(finalize == true)
-        print(p);
-
+	}
+   
+    if (p->mpirank==0)
+    cout<<"Number of iterations = "<<iter<<setprecision(5)<<" with error = "<<error<<endl;
+    
+	//- Build and save net	
+    if(finalize==true)
+	print(p);	
+ 
+    
     //- Update porous zone and coefficients
-    coupling_dlm_nhflow(p, d, pgc);
+    coupling_dlm_nhflow(p,d,pgc);
 
-    double endtime1 = pgc->timer() - starttime1;
-    if(p->mpirank == 0)
-        cout << "Net time: " << endtime1 << endl;
+    double endtime1 = pgc->timer()-starttime1; 
+    if (p->mpirank==0) cout<<"Net time: "<<endtime1<<endl;    
 }
+
 
 void net_barQuasiStatic::fillRhs_Screen(lexer *p)
 {
     // Screen force model of Kristiansen (2012)
     // Assign hydrodynamic forces to knot from each adjoint screen
-
+    
     Fx = 0.0;
     Fy = 0.0;
     Fz = 0.0;
-
+    
     int nBars;
     int index = 0;
-
-    Vector3d v_rel(1, 3);
-    Vector3d n_v(1, 3);
+    
+    Vector3d v_rel(1,3);
+    Vector3d n_v(1,3);
     double v_mag, rho;
-
-    for(int i = 0; i < niK; i++)
+    
+    for (int i = 0; i < niK; i++)
     {
-        int *&barsiKI = nfK[i];
-        int &kI = barsiKI[0];
-
+        int*& barsiKI = nfK[i];
+        int& kI = barsiKI[0];
+        
         // Assign gravity force to knot
         Bh.row(i) = B.row(i);
 
         // Count number of screens
         nBars = 4;
-
-        for(int k = 1; k < 5; k++)
+        
+        for (int k = 1; k < 5; k++)
         {
-            if(barsiKI[k] == -1)
-                nBars--;
+            if (barsiKI[k]==-1) nBars--;
         }
-
+        
         // Access velocity at knot
         v_rel << coupledField[kI][0], coupledField[kI][1], coupledField[kI][2];
 
         v_mag = v_rel.norm();
 
-        n_v = v_rel / (v_mag + 1e-10);
-
+        n_v = v_rel/(v_mag + 1e-10);
+        
         // Access density at knot
         rho = coupledField[kI][3];
-
+ 
         // Calculate hydrodynamic forces
-        if(nBars == 2)  // Corner screens
+        if (nBars==2)         // Corner screens
         {
-            Bh.row(index) -= screenForce(p, rho, v_rel, n_v, v_mag, barsiKI[1], barsiKI[2]);
+            Bh.row(index) -= screenForce(p,rho,v_rel,n_v,v_mag,barsiKI[1],barsiKI[2]);
+        }      
+        else if (nBars==3)    // Edge screens
+        {
+            Bh.row(index) -= screenForce(p,rho,v_rel,n_v,v_mag,barsiKI[1],barsiKI[3]);
+            Bh.row(index) -= screenForce(p,rho,v_rel,n_v,v_mag,barsiKI[2],barsiKI[3]);
         }
-        else if(nBars == 3)  // Edge screens
+        else                    // Inner screens
         {
-            Bh.row(index) -= screenForce(p, rho, v_rel, n_v, v_mag, barsiKI[1], barsiKI[3]);
-            Bh.row(index) -= screenForce(p, rho, v_rel, n_v, v_mag, barsiKI[2], barsiKI[3]);
-        }
-        else  // Inner screens
-        {
-            Bh.row(index) -= screenForce(p, rho, v_rel, n_v, v_mag, barsiKI[1], barsiKI[4]);
-            Bh.row(index) -= screenForce(p, rho, v_rel, n_v, v_mag, barsiKI[4], barsiKI[2]);
-            Bh.row(index) -= screenForce(p, rho, v_rel, n_v, v_mag, barsiKI[2], barsiKI[3]);
-            Bh.row(index) -= screenForce(p, rho, v_rel, n_v, v_mag, barsiKI[1], barsiKI[3]);
+            Bh.row(index) -= screenForce(p,rho,v_rel,n_v,v_mag,barsiKI[1],barsiKI[4]);
+            Bh.row(index) -= screenForce(p,rho,v_rel,n_v,v_mag,barsiKI[4],barsiKI[2]);
+            Bh.row(index) -= screenForce(p,rho,v_rel,n_v,v_mag,barsiKI[2],barsiKI[3]);
+            Bh.row(index) -= screenForce(p,rho,v_rel,n_v,v_mag,barsiKI[1],barsiKI[3]);            
         }
 
-        index++;
+        index++;        
     }
 }
+
 
 void net_barQuasiStatic::fillRhs_bag(lexer *p)
 {
     double vn_mag, cn, ct;
-
-    int index = 0;
+    
+	int index = 0;
     bool bk;
-
-    for(int j = 0; j < nK; j++)
+		
+    for (int j = 0; j < nK; j++)
     {
         bk = false;
-
-        for(int k = 0; k < 2 * nd + 2 * nl; k++)
+		
+        for (int k = 0; k < 2*nd+2*nl; k++)
         {
-            if(j == Pb[k] || j == Nb[k])
+            if (j==Pb[k] || j==Nb[k])
             {
                 bk = true;
                 break;
             }
         }
-
-        if(bk == false)
+			
+        if (bk==false)
         {
             Bh.row(index) = B.row(index);
 
-            for(int k = 0; k < 4; k++)
+            for (int k = 0; k < 4; k++)
             {
-                int nfKik = nfK[index][k];
+                int nfKik = nfK[index][k]; 	
 
-                vn_mag = sqrt(v_n[nfKik][0] * v_n[nfKik][0] + v_n[nfKik][1] * v_n[nfKik][1] + v_n[nfKik][2] * v_n[nfKik][2]);
-
-                morisonForceCoeff(cn, ct, vn_mag);
-
-                Bh(index, 0) -= (p->W1 / 2.0 * d_c * l[nfKik] / 2.0 * cn * vn_mag * v_n[nfKik][0] + ct * v_t[nfKik][0]);
-                Bh(index, 1) -= (p->W1 / 2.0 * d_c * l[nfKik] / 2.0 * cn * vn_mag * v_n[nfKik][1] + ct * v_t[nfKik][1]);
-                Bh(index, 2) -= (p->W1 / 2.0 * d_c * l[nfKik] / 2.0 * cn * vn_mag * v_n[nfKik][2] + ct * v_t[nfKik][2]);
+                vn_mag = sqrt(v_n[nfKik][0]*v_n[nfKik][0] + v_n[nfKik][1]*v_n[nfKik][1] + v_n[nfKik][2]*v_n[nfKik][2]);
+                    
+                morisonForceCoeff(cn,ct,vn_mag);
+					
+                Bh(index,0) -= (p->W1/2.0*d_c*l[nfKik]/2.0*cn*vn_mag*v_n[nfKik][0] + ct*v_t[nfKik][0]);
+                Bh(index,1) -= (p->W1/2.0*d_c*l[nfKik]/2.0*cn*vn_mag*v_n[nfKik][1] + ct*v_t[nfKik][1]);
+                Bh(index,2) -= (p->W1/2.0*d_c*l[nfKik]/2.0*cn*vn_mag*v_n[nfKik][2] + ct*v_t[nfKik][2]);
             }
-
+							
             index++;
         }
-    }
+    } 
 }
 
 // checkpoints (P 48, I 45): the bar directions and the system (iterated from the last solution, the
@@ -298,43 +299,43 @@ void net_barQuasiStatic::fillRhs_bag(lexer *p)
 void net_barQuasiStatic::ckpt_state(std::vector<double> &v) const
 {
     ckpt_put w{v};
-    for(const MatrixXd *a : {&fi, &A, &B, &Bh})
-        w.md(*a);
-    w.ad(l, nf);
-    for(int n = 0; n < nf; ++n)
+    for(const MatrixXd *a : {&fi,&A,&B,&Bh})
+    w.md(*a);
+    w.ad(l,nf);
+    for(int n=0; n<nf; ++n)
     {
-        w.ad(v_t[n], 3);
-        w.ad(v_n[n], 3);
+        w.ad(v_t[n],3);
+        w.ad(v_n[n],3);
     }
-    for(int n = 0; n < nK; ++n)
+    for(int n=0; n<nK; ++n)
     {
-        w.ad(K[n], 3);
-        w.ad(K_[n], 3);
-        w.ad(coupledField[n], 4);
+        w.ad(K[n],3);
+        w.ad(K_[n],3);
+        w.ad(coupledField[n],4);
     }
-    for(double x : {printtime, Fx, Fy, Fz})
-        w.d(x);
+    for(double x : {printtime,Fx,Fy,Fz})
+    w.d(x);
 }
 
 void net_barQuasiStatic::ckpt_restore(const std::vector<double> &v, size_t &k)
 {
     ckpt_get r{v};
     r.k = k;
-    for(MatrixXd *a : {&fi, &A, &B, &Bh})
-        r.md(*a);
-    r.ad(l, nf);
-    for(int n = 0; n < nf; ++n)
+    for(MatrixXd *a : {&fi,&A,&B,&Bh})
+    r.md(*a);
+    r.ad(l,nf);
+    for(int n=0; n<nf; ++n)
     {
-        r.ad(v_t[n], 3);
-        r.ad(v_n[n], 3);
+        r.ad(v_t[n],3);
+        r.ad(v_n[n],3);
     }
-    for(int n = 0; n < nK; ++n)
+    for(int n=0; n<nK; ++n)
     {
-        r.ad(K[n], 3);
-        r.ad(K_[n], 3);
-        r.ad(coupledField[n], 4);
+        r.ad(K[n],3);
+        r.ad(K_[n],3);
+        r.ad(coupledField[n],4);
     }
-    for(double *x : {&printtime, &Fx, &Fy, &Fz})
-        r.d(*x);
+    for(double *x : {&printtime,&Fx,&Fy,&Fz})
+    r.d(*x);
     k = r.k;
 }

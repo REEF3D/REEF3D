@@ -38,12 +38,12 @@ Author: Hans Bihs
 // The structure is replicated on every rank (small), all ranks advance it
 // with identical, all-reduced fluid data.
 
-#include "increment.h"
-#include "rodtree.h"
-#include <algorithm>
-#include <cmath>
-#include <string>
-#include <vector>
+#include"increment.h"
+#include"rodtree.h"
+#include<vector>
+#include<algorithm>
+#include<cmath>
+#include<string>
 
 class lexer;
 class fdm;
@@ -55,35 +55,35 @@ class slice;
 class rodtree_coupling : public increment
 {
 public:
-    rodtree_coupling(lexer *, ghostcell *);
+    rodtree_coupling(lexer*, ghostcell*);
     virtual ~rodtree_coupling();
 
     // NHFLOW: applies the spread acceleration directly to U,V,W and UH,VH,WH
-    void start_nhflow(lexer *, fdm_nhf *, ghostcell *, double alpha, double *, double *, double *, slice &, bool finalize);
+    void start_nhflow(lexer*, fdm_nhf*, ghostcell*, double alpha, double*, double*, double*, slice&, bool finalize);
 
     // CFD: adds the spread acceleration to the staggered forcing fields
-    void start_cfd(lexer *, fdm *, ghostcell *, double alpha, field &, field &, field &, field &, field &, field &, bool finalize);
+    void start_cfd(lexer*, fdm*, ghostcell*, double alpha, field&, field&, field&, field&, field&, field&, bool finalize);
 
 private:
-    void ini_points(lexer *, ghostcell *);
-    void reduce_samples(ghostcell *);
+    void ini_points(lexer*, ghostcell*);
+    void reduce_samples(ghostcell*);
     void apply_samples();
-    void finish_step(lexer *, ghostcell *, bool finalize);
-    void print(lexer *);
+    void finish_step(lexer*, ghostcell*, bool finalize);
+    void print(lexer*);
     double kernel(double) const;
     double self_weight(double frac) const;
     // horizontally widened kernel for representative colonies (scale s >= 1 cells)
-    double kernel_s(double r, double s) const { return kernel(r / s) / s; }
+    double kernel_s(double r, double s) const {return kernel(r/s)/s;}
     double self_weight_s(double frac, double s) const;
-    int stencil_h(double s) const { return std::max(2, (int)std::ceil(2.0 * s)); }
+    int stencil_h(double s) const {return std::max(2,(int)std::ceil(2.0*s));}
 
     rodtree rt;
 
     // Lagrangian points: nq per element
-    std::vector<int> nq, first;    // points per element, offset
-    std::vector<double> wgt, shk;  // per element: representative weight, horizontal kernel scale
+    std::vector<int> nq, first;                 // points per element, offset
+    std::vector<double> wgt, shk;               // per element: representative weight, horizontal kernel scale
     int npts;
-    std::vector<double> buf;  // 4 per point: u,v,w,in-fluid
+    std::vector<double> buf;                    // 4 per point: u,v,w,in-fluid
     std::vector<Eigen::Vector3d> ufprev;
     double tprev;
     bool have_prev;

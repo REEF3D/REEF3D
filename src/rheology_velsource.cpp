@@ -19,251 +19,260 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 Authors: Hans Bihs, Alexander Hanke
 --------------------------------------------------------------------*/
-#include "fdm.h"
-#include "ghostcell.h"
-#include "interface_width.h"
-#include "lexer.h"
-#include "rheology_f.h"
-#include <algorithm>
+#include"interface_width.h"
+#include"rheology_f.h"
+#include"lexer.h"
+#include"fdm.h"
+#include"ghostcell.h" 
+#include<algorithm>
 
 void rheology_f::u_source(lexer *p, fdm *a)
 {
     // Force base F = A*tau
     double tau;
+    
+ 
+    count=0;
+    if(p->W110==2 || p->W110==3)
+    ULOOP
+    {
+        pressurePhi(p,a,1,0,0);
+        
+        tau = yield_stress(p,a);
 
-    count = 0;
-    if(p->W110 == 2 || p->W110 == 3)
-        ULOOP
-        {
-            pressurePhi(p, a, 1, 0, 0);
+         
+        if(p->W110==3)
+        tau += p->W97*pow(gamma,p->W98);
+        
+        f = fabs(a->u(i,j,k))>1.0e-20?(a->u(i,j,k)/fabs(a->u(i,j,k))):0.0;
+        
+        phival = 0.5*(a->phi(i,j,k)+a->phi(i+1,j,k));
+        epsi = interface_width_face(p,a->phi,i,j,k,1,0,0);
 
-            tau = yield_stress(p, a);
+        H = heaviside(phival);
+        
+        a->rhsvec.V[count] -= H*f*(tau/(p->DZN[KP]*0.5*(a->ro(i,j,k)+a->ro(i+1,j,k))));
 
-            if(p->W110 == 3)
-                tau += p->W97 * pow(gamma, p->W98);
-
-            f = fabs(a->u(i, j, k)) > 1.0e-20 ? (a->u(i, j, k) / fabs(a->u(i, j, k))) : 0.0;
-
-            phival = 0.5 * (a->phi(i, j, k) + a->phi(i + 1, j, k));
-            epsi = interface_width_face(p, a->phi, i, j, k, 1, 0, 0);
-
-            H = heaviside(phival);
-
-            a->rhsvec.V[count] -= H * f * (tau / (p->DZN[KP] * 0.5 * (a->ro(i, j, k) + a->ro(i + 1, j, k))));
-
-            ++count;
-        }
-
+        ++count;
+    }
+    
     // Gradient based
-    double dudx, dudy, dudz;
-    double fxx, fxy, fxz;
-    double dpdx, dpdy, dpdz;
+    double dudx,dudy,dudz;
+    double fxx,fxy,fxz;
+    double dpdx,dpdy,dpdz;
+  
+    count=0;
+    if(p->W110==4 || p->W110==5)
+    ULOOP
+    {
+        pressurePhiGradient(p,a,1,0,0);
 
-    count = 0;
-    if(p->W110 == 4 || p->W110 == 5)
-        ULOOP
+        // Yield Stress
+        yieldStressGradient(p,a,1,0,0);
+         
+        if(p->W110==5)
         {
-            pressurePhiGradient(p, a, 1, 0, 0);
-
-            // Yield Stress
-            yieldStressGradient(p, a, 1, 0, 0);
-
-            if(p->W110 == 5)
-            {
-                tau01 += p->W97 * pow(gamma, p->W98);
-                tau02 += p->W97 * pow(gamma2, p->W98);
-            }
-
-            f = fabs(a->u(i, j, k)) > 1.0e-20 ? (a->u(i, j, k) / fabs(a->u(i, j, k))) : 0.0;
-
-            phival = 0.5 * (a->phi(i, j, k) + a->phi(i + 1, j, k));
-            epsi = interface_width_face(p, a->phi, i, j, k, 1, 0, 0);
-
-            H = heaviside(phival);
-
-            a->rhsvec.V[count] += H * ((tau02 - tau01) / (p->DXP[IP] * 0.5 * (a->ro(i, j, k) + a->ro(i + 1, j, k))));  // *f ?
-
-            ++count;
+            tau01 +=  p->W97*pow(gamma,p->W98);
+            tau02 +=  p->W97*pow(gamma2,p->W98);
         }
+        
+        f = fabs(a->u(i,j,k))>1.0e-20?(a->u(i,j,k)/fabs(a->u(i,j,k))):0.0;
+        
+        phival = 0.5*(a->phi(i,j,k)+a->phi(i+1,j,k));
+        epsi = interface_width_face(p,a->phi,i,j,k,1,0,0);
 
-    count = 0;
-    if(p->W110 == 6 || p->W110 == 7)
-        ULOOP
-        {
-            // PFo: Adding direction to the yield stress gradient below. Should be *f for each term, where f = (pu_idx_j)/fabs(pu_idx_j)
-            // f(pwdx)*tau_x-term, f(pwdy)*tau_y-term, f(pwdz)*tau_z-term - PFo not sure how to write this
-            // Try with u_x first instead: f = (a->u(i,j,k)/fabs(a->u(i,j,k)))
+        H = heaviside(phival);
+        
+        a->rhsvec.V[count] += H*((tau02-tau01)/(p->DXP[IP]*0.5*(a->ro(i,j,k)+a->ro(i+1,j,k)))); // *f ?
 
-            // Velocity gradients at location of u(i,j,k):
-            dudx = (a->u(i + 1, j, k) - a->u(i - 1, j, k)) / (p->DXN[IP] + p->DXN[IP1]);
-            dudy = (a->u(i, j + 1, k) - a->u(i, j - 1, k)) / (p->DYN[JP] + p->DYN[JP1]);
-            dudz = (a->u(i, j, k + 1) - a->u(i, j, k - 1)) / (p->DZN[KP] + p->DZN[KP1]);
+        ++count;
+	}
+    
+    
+    count=0;
+    if(p->W110==6 || p->W110==7)
+    ULOOP
+    {
+        // PFo: Adding direction to the yield stress gradient below. Should be *f for each term, where f = (pu_idx_j)/fabs(pu_idx_j) 
+        // f(pwdx)*tau_x-term, f(pwdy)*tau_y-term, f(pwdz)*tau_z-term - PFo not sure how to write this
+        // Try with u_x first instead: f = (a->u(i,j,k)/fabs(a->u(i,j,k)))
 
-            // Sign of velocity gradients, which determines the sign of the deviatoric stress gradient contributions to the source term in x-direction
-            fxx = fabs(dudx) > 1.0e-20 ? (dudx / fabs(dudx)) : 0.0;  // dudx
-            fxy = fabs(dudy) > 1.0e-20 ? (dudy / fabs(dudy)) : 0.0;  // dudy
-            fxz = fabs(dudz) > 1.0e-20 ? (dudz / fabs(dudz)) : 0.0;  // dudz
+        // Velocity gradients at location of u(i,j,k):
+        dudx = (a->u(i+1,j,k) - a->u(i-1,j,k))/(p->DXN[IP]+p->DXN[IP1]);
+        dudy = (a->u(i,j+1,k) - a->u(i,j-1,k))/(p->DYN[JP]+p->DYN[JP1]);
+        dudz = (a->u(i,j,k+1) - a->u(i,j,k-1))/(p->DZN[KP]+p->DZN[KP1]);
+        
+        // Sign of velocity gradients, which determines the sign of the deviatoric stress gradient contributions to the source term in x-direction
+        fxx = fabs(dudx)>1.0e-20?(dudx/fabs(dudx)):0.0; // dudx
+        fxy = fabs(dudy)>1.0e-20?(dudy/fabs(dudy)):0.0; // dudy
+        fxz = fabs(dudz)>1.0e-20?(dudz/fabs(dudz)):0.0; // dudz
 
-            // Pressure gradients at location of u(i,j,k):
-            dpdx = (a->press(i + 1, j, k) - a->press(i, j, k)) / p->DXP[IP];
-            dpdy = (0.5 * (a->press(i, j + 1, k) + a->press(i + 1, j + 1, k)) - 0.5 * (a->press(i, j - 1, k) + a->press(i + 1, j - 1, k))) / (p->DYP[JM1] + p->DYP[JP]);
-            dpdz = (0.5 * (a->press(i, j, k + 1) + a->press(i + 1, j, k + 1)) - 0.5 * (a->press(i, j, k - 1) + a->press(i + 1, j, k - 1))) / (p->DZP[KM1] + p->DZP[KP]);
+        // Pressure gradients at location of u(i,j,k):
+        dpdx = (a->press(i+1,j,k) - a->press(i,j,k))/p->DXP[IP];
+        dpdy = (0.5*(a->press(i,j+1,k)+a->press(i+1,j+1,k)) - 0.5*(a->press(i,j-1,k)+a->press(i+1,j-1,k)))/(p->DYP[JM1]+p->DYP[JP]);
+        dpdz = (0.5*(a->press(i,j,k+1)+a->press(i+1,j,k+1)) - 0.5*(a->press(i,j,k-1)+a->press(i+1,j,k-1)))/(p->DZP[KM1]+p->DZP[KP]);
 
-            phival = 0.5 * (a->phi(i, j, k) + a->phi(i + 1, j, k));
-            epsi = interface_width_face(p, a->phi, i, j, k, 1, 0, 0);
+        phival = 0.5*(a->phi(i,j,k)+a->phi(i+1,j,k));
+        epsi = interface_width_face(p,a->phi,i,j,k,1,0,0);
+        
+        H = heaviside(phival);
+                 
+        a->rhsvec.V[count] += H*tanphi*(fxx*dpdx + fxy*dpdy + fxz*dpdz)/(0.5*(a->ro(i,j,k)+a->ro(i+1,j,k)));
 
-            H = heaviside(phival);
-
-            a->rhsvec.V[count] += H * tanphi * (fxx * dpdx + fxy * dpdy + fxz * dpdz) / (0.5 * (a->ro(i, j, k) + a->ro(i + 1, j, k)));
-
-            ++count;
-        }
+        ++count;
+    }
 }
 
 void rheology_f::v_source(lexer *p, fdm *a)
 {
-    double dvdx, dvdy, dvdz;
-    double fyx, fyy, fyz;
-    double dpdx, dpdy, dpdz;
+    double dvdx,dvdy,dvdz;
+    double fyx,fyy,fyz;
+    double dpdx,dpdy,dpdz;
+    
+    
+    count=0;
+    if(p->W110==2 || p->W110==3)
+    VLOOP
+    {
+        pressurePhi(p,a,0,1,0);
+        
+        tau0 = yield_stress(p,a);
+        
+        if(p->W110==3)
+            tau0 += p->W97*pow(gamma,p->W98);
+        
+        f = fabs(a->v(i,j,k))>1.0e-20?(a->v(i,j,k)/fabs(a->v(i,j,k))):0.0;
+        
+        phival = 0.5*(a->phi(i,j,k)+a->phi(i,j+1,k));
+        epsi = interface_width_face(p,a->phi,i,j,k,0,1,0);
+        
+        H = heaviside(phival);
+        
+        a->rhsvec.V[count] -= H*f*(tau0/(p->DZN[KP]*0.5*(a->ro(i,j,k)+a->ro(i,j+1,k))));
+        
+        ++count;
+    }
 
-    count = 0;
-    if(p->W110 == 2 || p->W110 == 3)
-        VLOOP
-        {
-            pressurePhi(p, a, 0, 1, 0);
+        
+    count=0;
+    if(p->W110==6 || p->W110==7)
+    VLOOP
+    {
+        // Velocity gradients at location of v(i,j,k):
+        dvdx = (a->v(i+1,j,k) - a->v(i-1,j,k))/(p->DXN[IP]+p->DXN[IP1]);
+        dvdy = (a->v(i,j+1,k) - a->v(i,j-1,k))/(p->DYN[JP]+p->DYN[JP1]);
+        dvdz = (a->v(i,j,k+1) - a->v(i,j,k-1))/(p->DZN[KP]+p->DZN[KP1]);
+        
+        // Sign of velocity gradients, which determines the sign of the deviatoric stress gradient contributions to the source term in y-direction
+        fyx = fabs(dvdx)>1.0e-20?(dvdx/fabs(dvdx)):0.0; // dvdx
+        fyy = fabs(dvdy)>1.0e-20?(dvdy/fabs(dvdy)):0.0; // dvdy
+        fyz = fabs(dvdz)>1.0e-20?(dvdz/fabs(dvdz)):0.0; // dvdz
 
-            tau0 = yield_stress(p, a);
+        // Pressure gradients at location of v(i,j,k):
+        dpdx = (0.5*(a->press(i+1,j,k)+a->press(i+1,j+1,k)) - 0.5*(a->press(i-1,j,k)+a->press(i-1,j+1,k)))/(p->DXP[IM1]+p->DXP[IP]);
+        dpdy = (a->press(i,j+1,k) - a->press(i,j,k))/p->DYP[JP];
+        dpdz = (0.5*(a->press(i,j,k+1)+a->press(i,j+1,k+1)) - 0.5*(a->press(i,j,k-1)+a->press(i,j+1,k-1)))/(p->DZP[KM1]+p->DZP[KP]);
 
-            if(p->W110 == 3)
-                tau0 += p->W97 * pow(gamma, p->W98);
+        phival = 0.5*(a->phi(i,j,k)+a->phi(i,j+1,k));
+        epsi = interface_width_face(p,a->phi,i,j,k,0,1,0);
+        
+        H = heaviside(phival);
+                 
+        a->rhsvec.V[count] += H*tanphi*(fyx*dpdx + fyy*dpdy + fyz*dpdz)/(0.5*(a->ro(i,j,k)+a->ro(i,j+1,k)));
 
-            f = fabs(a->v(i, j, k)) > 1.0e-20 ? (a->v(i, j, k) / fabs(a->v(i, j, k))) : 0.0;
-
-            phival = 0.5 * (a->phi(i, j, k) + a->phi(i, j + 1, k));
-            epsi = interface_width_face(p, a->phi, i, j, k, 0, 1, 0);
-
-            H = heaviside(phival);
-
-            a->rhsvec.V[count] -= H * f * (tau0 / (p->DZN[KP] * 0.5 * (a->ro(i, j, k) + a->ro(i, j + 1, k))));
-
-            ++count;
-        }
-
-    count = 0;
-    if(p->W110 == 6 || p->W110 == 7)
-        VLOOP
-        {
-            // Velocity gradients at location of v(i,j,k):
-            dvdx = (a->v(i + 1, j, k) - a->v(i - 1, j, k)) / (p->DXN[IP] + p->DXN[IP1]);
-            dvdy = (a->v(i, j + 1, k) - a->v(i, j - 1, k)) / (p->DYN[JP] + p->DYN[JP1]);
-            dvdz = (a->v(i, j, k + 1) - a->v(i, j, k - 1)) / (p->DZN[KP] + p->DZN[KP1]);
-
-            // Sign of velocity gradients, which determines the sign of the deviatoric stress gradient contributions to the source term in y-direction
-            fyx = fabs(dvdx) > 1.0e-20 ? (dvdx / fabs(dvdx)) : 0.0;  // dvdx
-            fyy = fabs(dvdy) > 1.0e-20 ? (dvdy / fabs(dvdy)) : 0.0;  // dvdy
-            fyz = fabs(dvdz) > 1.0e-20 ? (dvdz / fabs(dvdz)) : 0.0;  // dvdz
-
-            // Pressure gradients at location of v(i,j,k):
-            dpdx = (0.5 * (a->press(i + 1, j, k) + a->press(i + 1, j + 1, k)) - 0.5 * (a->press(i - 1, j, k) + a->press(i - 1, j + 1, k))) / (p->DXP[IM1] + p->DXP[IP]);
-            dpdy = (a->press(i, j + 1, k) - a->press(i, j, k)) / p->DYP[JP];
-            dpdz = (0.5 * (a->press(i, j, k + 1) + a->press(i, j + 1, k + 1)) - 0.5 * (a->press(i, j, k - 1) + a->press(i, j + 1, k - 1))) / (p->DZP[KM1] + p->DZP[KP]);
-
-            phival = 0.5 * (a->phi(i, j, k) + a->phi(i, j + 1, k));
-            epsi = interface_width_face(p, a->phi, i, j, k, 0, 1, 0);
-
-            H = heaviside(phival);
-
-            a->rhsvec.V[count] += H * tanphi * (fyx * dpdx + fyy * dpdy + fyz * dpdz) / (0.5 * (a->ro(i, j, k) + a->ro(i, j + 1, k)));
-
-            ++count;
-        }
+        ++count;
+    }
 }
 
 void rheology_f::w_source(lexer *p, fdm *a)
-{
+{   
+    
+    
+    count=0;
+    if(p->W110==2 || p->W110==3)
+    WLOOP
+    {
+        pressurePhi(p,a,0,0,1);
+        
+        tau0 = yield_stress(p,a);
+            
+        if(p->W110==3)
+            tau0 += p->W97*pow(gamma,p->W98);
+        
+        f = fabs(a->w(i,j,k))>1.0e-20?(a->w(i,j,k)/fabs(a->w(i,j,k))):0.0;
+        
+        phival = 0.5*(a->phi(i,j,k)+a->phi(i,j,k+1));
+        epsi = interface_width_face(p,a->phi,i,j,k,0,0,1);
 
-    count = 0;
-    if(p->W110 == 2 || p->W110 == 3)
-        WLOOP
-        {
-            pressurePhi(p, a, 0, 0, 1);
+        H = heaviside(phival);
+        
+        a->rhsvec.V[count] -= H*f*(tau0/(p->DZP[KP]*0.5*(a->ro(i,j,k)+a->ro(i,j,k+1))));
 
-            tau0 = yield_stress(p, a);
-
-            if(p->W110 == 3)
-                tau0 += p->W97 * pow(gamma, p->W98);
-
-            f = fabs(a->w(i, j, k)) > 1.0e-20 ? (a->w(i, j, k) / fabs(a->w(i, j, k))) : 0.0;
-
-            phival = 0.5 * (a->phi(i, j, k) + a->phi(i, j, k + 1));
-            epsi = interface_width_face(p, a->phi, i, j, k, 0, 0, 1);
-
-            H = heaviside(phival);
-
-            a->rhsvec.V[count] -= H * f * (tau0 / (p->DZP[KP] * 0.5 * (a->ro(i, j, k) + a->ro(i, j, k + 1))));
-
-            ++count;
-        }
-
+        ++count;
+	}
+    
     // Gradient Based
-    double dwdx, dwdy, dwdz;
-    double fzx, fzy, fzz;
-    double dpdx, dpdy, dpdz;
+    double dwdx,dwdy,dwdz;
+    double fzx,fzy,fzz;
+    double dpdx,dpdy,dpdz;
+    
+    count=0;
+    if(p->W110==4 || p->W110==5)
+    WLOOP
+    {
+        pressurePhiGradient(p,a,0,0,1);
 
-    count = 0;
-    if(p->W110 == 4 || p->W110 == 5)
-        WLOOP
+        // Yield Stress
+        yieldStressGradient(p,a,0,0,1);
+         
+        if(p->W110==5)
         {
-            pressurePhiGradient(p, a, 0, 0, 1);
-
-            // Yield Stress
-            yieldStressGradient(p, a, 0, 0, 1);
-
-            if(p->W110 == 5)
-            {
-                tau01 += p->W97 * pow(gamma, p->W98);
-                tau02 += p->W97 * pow(gamma2, p->W98);
-            }
-
-            f = fabs(a->w(i, j, k)) > 1.0e-20 ? (a->w(i, j, k) / fabs(a->w(i, j, k))) : 0.0;
-
-            phival = 0.5 * (a->phi(i, j, k) + a->phi(i, j, k + 1));
-            epsi = interface_width_face(p, a->phi, i, j, k, 0, 0, 1);
-
-            H = heaviside(phival);
-
-            a->rhsvec.V[count] += H * ((tau02 - tau01) / (p->DZP[KP] * 0.5 * (a->ro(i, j, k) + a->ro(i, j, k + 1))));  // PFo: Missing "*f" ?
-
-            ++count;
+            tau01 +=  p->W97*pow(gamma,p->W98);
+            tau02 +=  p->W97*pow(gamma2,p->W98);
         }
+        
+        f = fabs(a->w(i,j,k))>1.0e-20?(a->w(i,j,k)/fabs(a->w(i,j,k))):0.0;
+        
+        phival = 0.5*(a->phi(i,j,k)+a->phi(i,j,k+1));
+        epsi = interface_width_face(p,a->phi,i,j,k,0,0,1);
 
-    count = 0;
-    if(p->W110 == 6 || p->W110 == 7)
-        WLOOP
-        {
-            // Velocity gradients at location of w(i,j,k):
-            dwdx = (a->w(i + 1, j, k) - a->w(i - 1, j, k)) / (p->DXN[IP] + p->DXN[IP1]);
-            dwdy = (a->w(i, j + 1, k) - a->w(i, j - 1, k)) / (p->DYN[JP] + p->DYN[JP1]);
-            dwdz = (a->w(i, j, k + 1) - a->w(i, j, k - 1)) / (p->DZN[KP] + p->DZN[KP1]);
+        H = heaviside(phival);
+        
+        a->rhsvec.V[count] += H*((tau02-tau01)/(p->DZP[KP]*0.5*(a->ro(i,j,k)+a->ro(i,j,k+1)))); // PFo: Missing "*f" ?
 
-            // Sign of velocity gradients, which determines the sign of the deviatoric stress gradient contributions to the source term in w-direction
-            fzx = fabs(dwdx) > 1.0e-20 ? (dwdx / fabs(dwdx)) : 0.0;  // dwdx
-            fzy = fabs(dwdy) > 1.0e-20 ? (dwdy / fabs(dwdy)) : 0.0;  // dwdy
-            fzz = fabs(dwdz) > 1.0e-20 ? (dwdz / fabs(dwdz)) : 0.0;  // dwdz
+        ++count;
+	}
+    
+    
+    count=0;
+    if(p->W110==6 || p->W110==7)
+    WLOOP
+    {
+        // Velocity gradients at location of w(i,j,k):
+        dwdx = (a->w(i+1,j,k) - a->w(i-1,j,k))/(p->DXN[IP]+p->DXN[IP1]);
+        dwdy = (a->w(i,j+1,k) - a->w(i,j-1,k))/(p->DYN[JP]+p->DYN[JP1]);
+        dwdz = (a->w(i,j,k+1) - a->w(i,j,k-1))/(p->DZN[KP]+p->DZN[KP1]);
+    
+        
+        // Sign of velocity gradients, which determines the sign of the deviatoric stress gradient contributions to the source term in w-direction
+        fzx = fabs(dwdx)>1.0e-20?(dwdx/fabs(dwdx)):0.0; // dwdx
+        fzy = fabs(dwdy)>1.0e-20?(dwdy/fabs(dwdy)):0.0; // dwdy
+        fzz = fabs(dwdz)>1.0e-20?(dwdz/fabs(dwdz)):0.0; // dwdz
+       
 
-            // Pressure gradients at location of w(i,j,k):
-            dpdx = (0.5 * (a->press(i + 1, j, k) + a->press(i + 1, j, k + 1)) - 0.5 * (a->press(i - 1, j, k) + a->press(i - 1, j, k + 1))) / (p->DXP[IM1] + p->DXP[IP]);
-            dpdy = (0.5 * (a->press(i, j + 1, k) + a->press(i, j + 1, k + 1)) - 0.5 * (a->press(i, j - 1, k) + a->press(i, j - 1, k + 1))) / (p->DYP[JM1] + p->DYP[JP]);
-            dpdz = (a->press(i, j, k + 1) - a->press(i, j, k)) / p->DZP[KP];
+        // Pressure gradients at location of w(i,j,k):
+        dpdx = (0.5*(a->press(i+1,j,k)+a->press(i+1,j,k+1)) - 0.5*(a->press(i-1,j,k)+a->press(i-1,j,k+1)))/(p->DXP[IM1]+p->DXP[IP]);
+        dpdy = (0.5*(a->press(i,j+1,k)+a->press(i,j+1,k+1)) - 0.5*(a->press(i,j-1,k)+a->press(i,j-1,k+1)))/(p->DYP[JM1]+p->DYP[JP]);
+        dpdz = (a->press(i,j,k+1) - a->press(i,j,k))/p->DZP[KP];
 
-            phival = 0.5 * (a->phi(i, j, k) + a->phi(i, j, k + 1));
-            epsi = interface_width_face(p, a->phi, i, j, k, 0, 0, 1);
+        phival = 0.5*(a->phi(i,j,k)+a->phi(i,j,k+1));
+        epsi = interface_width_face(p,a->phi,i,j,k,0,0,1);
+        
+        H = heaviside(phival);
+                         
+        a->rhsvec.V[count] += H*tanphi*(fzx*dpdx + fzy*dpdy + fzz*dpdz)/(0.5*(a->ro(i,j,k)+a->ro(i,j,k+1)));
 
-            H = heaviside(phival);
-
-            a->rhsvec.V[count] += H * tanphi * (fzx * dpdx + fzy * dpdy + fzz * dpdz) / (0.5 * (a->ro(i, j, k) + a->ro(i, j, k + 1)));
-
-            ++count;
-        }
+        ++count;
+    }
 }
 

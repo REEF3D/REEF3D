@@ -24,8 +24,8 @@ Author: Hans Bihs
 #define REEFMG_CORE_H_
 
 #include <mpi.h>
-#include <string>
 #include <vector>
+#include <string>
 
 class reefmg_device;
 
@@ -46,30 +46,30 @@ class reefmg_device;
 
 struct sc_level
 {
-    int lid;         // level index, used for the message tags
-    int nx, ny, nz;  // local interior extent
-    int rx, ry;      // coarsening ratio from the next finer level (1 or 2)
-    int gnx, gny;    // global horizontal extent (diagnostics only)
+    int lid;               // level index, used for the message tags
+    int nx,ny,nz;          // local interior extent
+    int rx,ry;             // coarsening ratio from the next finer level (1 or 2)
+    int gnx,gny;           // global horizontal extent (diagnostics only)
 
-    std::vector<double> p, n, s, w, e, t, b;  // 7 diagonals, halo included
-    std::vector<char> act;                    // 0 = identity row (dry, solid, padding)
-    std::vector<double> tc, ti;               // factorised column matrices: modified
-                                              // super-diagonal and reciprocal pivots
-    std::vector<char> colact;                 // 1 if the column has any active cell
-    std::vector<long> zcol[2];                // active columns by red-black colour
+    std::vector<double> p,n,s,w,e,t,b;   // 7 diagonals, halo included
+    std::vector<char>   act;             // 0 = identity row (dry, solid, padding)
+    std::vector<double> tc,ti;           // factorised column matrices: modified
+                                         // super-diagonal and reciprocal pivots
+    std::vector<char>   colact;          // 1 if the column has any active cell
+    std::vector<long>   zcol[2];         // active columns by red-black colour
 
     //  Coefficients live in exactly one of the two sets, depending on the
     //  storage precision chosen before setup: p..b and tc,ti in fp64 mode,
     //  pf..bf and tcf,tif in fp32 mode.  The other set stays empty.
-    std::vector<float> pf, nf, sf, wf, ef, tf, bf, tcf, tif;
-    std::vector<double> u, f, r;
-    std::vector<double> hx, hy;  // cell widths, index i+1 for i in [-1,nx]
+    std::vector<float>  pf,nf,sf,wf,ef,tf,bf,tcf,tif;
+    std::vector<double> u,f,r;
+    std::vector<double> hx,hy;           // cell widths, index i+1 for i in [-1,nx]
 
-    long idx(int i, int j, int k) const
+    long idx(int i,int j,int k) const
     {
-        return ((long)(i + 1) * (ny + 2) + (j + 1)) * nz + k;
+        return ((long)(i+1)*(ny+2) + (j+1))*nz + k;
     }
-    long size() const { return (long)(nx + 2) * (ny + 2) * nz; }
+    long size() const {return (long)(nx+2)*(ny+2)*nz;}
 };
 
 //  Exact fine-level operator supplied by the host code.  In fp32 mode no
@@ -80,15 +80,16 @@ struct sc_level
 class sc_operator
 {
 public:
-    virtual ~sc_operator() {}
+    virtual ~sc_operator(){}
 
     //  y = A x on the interior of the fine level; x already has a valid halo
-    virtual void fine_apply(const sc_level &L, const double *x, double *y) = 0;
+    virtual void fine_apply(const sc_level &L,const double *x,double *y)=0;
 };
 
 class reefmg_core
 {
 public:
+
     reefmg_core();
     ~reefmg_core();
 
@@ -107,13 +108,13 @@ public:
     //  agglomerate volume and centre distance instead of assuming a factor of
     //  four, which is what makes ragged and stretched grids behave.
     bool setup(MPI_Comm cart,
-               int nx, int ny, int nz, int gnx, int gny, int maxlevel,
-               const double *dxn = 0, const double *dyn = 0,
-               int perx = 0, int pery = 0);  // periodic in x / y
+               int nx,int ny,int nz,int gnx,int gny,int maxlevel,
+               const double *dxn=0,const double *dyn=0,
+               int perx=0,int pery=0);   // periodic in x / y
 
-    sc_level &fine() { return lev[0]; }
-    const sc_level &coarsest() const { return lev.back(); }
-    int levels() const { return (int)lev.size(); }
+    sc_level& fine(){return lev[0];}
+    const sc_level& coarsest() const {return lev.back();}
+    int levels() const {return (int)lev.size();}
 
     //  Use only the first n levels of the hierarchy built by setup(), without
     //  rebuilding it: level n-1 becomes the coarsest and gets the coarsest-
@@ -125,11 +126,11 @@ public:
     //  hierarchy the agglomerated coarse solve is bypassed.
     void set_active_levels(int n)
     {
-        const int nl = (int)lev.size();
-        nuse = (n < 1 ? 1 : (n > nl ? nl : n));
+        const int nl=(int)lev.size();
+        nuse=(n<1?1:(n>nl?nl:n));
     }
-    int active_levels() const { return nuse; }
-    const char *err() const { return errmsg; }
+    int active_levels() const {return nuse;}
+    const char* err() const {return errmsg;}
 
     //  Build the coarse operators from the fine ones.  Call after the fine
     //  level coefficients have been filled, i.e. once per solve.
@@ -137,19 +138,19 @@ public:
 
     //  BiCGStab preconditioned by one V-cycle.  Returns the iteration count;
     //  relres receives the achieved relative residual.
-    int solve(double tol, int maxiter, double &relres, int pre, int post);
+    int solve(double tol,int maxiter,double &relres,int pre,int post);
 
     //  Plain V-cycle iteration, for cases where the extra robustness of a
     //  Krylov wrapper is not needed.
-    int solve_vcycle(double tol, int maxiter, double &relres, int pre, int post);
+    int solve_vcycle(double tol,int maxiter,double &relres,int pre,int post);
 
     //  mode 0: V-cycles only, 1: BiCGStab only, 2: V-cycles with automatic
     //  fallback to BiCGStab if the cycle stalls.  Mode 2 is the default: the
     //  cycle alone is cheaper, the wrapper is there for the awkward matrices.
-    int solve_auto(double tol, int maxiter, double &relres, int pre, int post, int mode);
+    int solve_auto(double tol,int maxiter,double &relres,int pre,int post,int mode);
 
-    int fallbacks() const { return nfallback; }
-    void set_sweepstyle(int s) { sweepstyle = s; }
+    int fallbacks() const {return nfallback;}
+    void set_sweepstyle(int s){sweepstyle=s;}
 
     //  Storage precision of the coefficients, either/or:
     //    64: every level stored in double, as the host provides the matrix.
@@ -160,8 +161,8 @@ public:
     //        answer is unchanged; only the preconditioner is approximated.
     //  Both must be called before setup(); fp32 without a fine operator is
     //  refused by setup().
-    void set_precision(int bits) { pcbits = (bits == 32 ? 32 : 64); }
-    void set_fine_operator(sc_operator *op) { fineop = op; }
+    void set_precision(int bits){pcbits=(bits==32?32:64);}
+    void set_fine_operator(sc_operator *op){fineop=op;}
 
     //  Krylov operator from the host also in fp64 mode, for a fine operator
     //  the hierarchy does not hold - the FNPF Laplace equation with its
@@ -169,12 +170,12 @@ public:
     //  full operator with its 7-point part.  Needs set_fine_operator() and
     //  BiCGStab (solve_auto mode 1); V-cycles alone would converge to the
     //  7-point solution.  May change from one solve to the next.
-    void set_fine_exact(bool on) { fexact = on; }
+    void set_fine_exact(bool on){fexact=on;}
 
     //  line-GS sweeps on the coarsest level (default 16).  Only matters when
     //  the coarsest grid is large - chiefly for pure-Neumann problems, where
     //  the coarsest level carries the depth-uniform mode across the domain.
-    void set_coarse_sweeps(int n) { coarse_sweeps = (n > 0 ? n : 16); }
+    void set_coarse_sweeps(int n){coarse_sweeps=(n>0?n:16);}
 
     //  bytes held by the hierarchy and the Krylov work space
     long memory_bytes() const;
@@ -189,20 +190,20 @@ public:
     //  domain (pure-Neumann problems); optional otherwise.  Refused, and left
     //  off, if the gathered problem would be too large to hold on every rank.
     //  0 off, 1 on.  Must be called before setup().
-    void set_agglomeration(int mode) { aggmode = (mode == 1 ? 1 : 0); }
-    void set_agglomeration_cycles(int n) { agg_cycles = (n > 0 ? n : 1); }
-    bool agglomerated() const { return agg != 0; }
-    long agglomerated_cells() const { return agg_cells; }
+    void set_agglomeration(int mode){aggmode=(mode==1?1:0);}
+    void set_agglomeration_cycles(int n){agg_cycles=(n>0?n:1);}
+    bool agglomerated() const {return agg!=0;}
+    long agglomerated_cells() const {return agg_cells;}
 
-    reefmg_core(const reefmg_core &) = delete;
-    reefmg_core &operator=(const reefmg_core &) = delete;
+    reefmg_core(const reefmg_core&)=delete;
+    reefmg_core& operator=(const reefmg_core&)=delete;
 
     //  0: lexicographic line Gauss-Seidel, columns solved one after another.
     //  1: red-black (zebra) line Gauss-Seidel.  Columns of one colour are
     //     independent, so they are solved in batches with the tridiagonal
     //     recurrence running across SIMD lanes.
-    void set_ordering(int o) { ordering = (o == 1 ? 1 : 0); }
-    int precision() const { return pcbits; }
+    void set_ordering(int o){ordering=(o==1?1:0);}
+    int  precision() const {return pcbits;}
 
     //  The preconditioner on a device (N 16): 0 CPU (default), 1 the Apple
     //  Silicon GPU (Metal), 2 the reference device (the device kernels in
@@ -222,7 +223,7 @@ public:
     //  defect correction; the CPU coarse levels are not built; coarse-grid
     //  agglomeration (N 15) is not needed.  If the device cannot be set up,
     //  the solver stays on the CPU and device_status() says why.
-    void set_device(int kind) { devkind = (kind > 0) ? kind : 0; }
+    void set_device(int kind){devkind=(kind>0)?kind:0;}
 
     //  Strength of the preconditioner on the device (N 17, N 19): ncycle
     //  V-cycles per application and sweeps pre- and post-smoothing sweeps
@@ -230,11 +231,7 @@ public:
     //  a BiCGStab iteration on the CPU ranks, and 2 x 2 halves the
     //  iterations (FNPF basin on 12 ranks, M3 Max: 1.42x the CPU at
     //  7.7 M cells, against 1.27x with one cycle and one sweep).
-    void set_device_cycle(int ncycle, int sweeps)
-    {
-        devcycles = ncycle;
-        devsweeps = sweeps;
-    }
+    void set_device_cycle(int ncycle,int sweeps){devcycles=ncycle; devsweeps=sweeps;}
 
     //  Precision of the device smoother's coefficients (N 21): 16 (the
     //  default, also for 0) or 32.  With 16 the couplings of every cell are
@@ -242,15 +239,15 @@ public:
     //  smoother, three quarters of the GPU time, reads 12 instead of 28
     //  bytes of coefficients per cell; the coarse operators, the residual
     //  and everything else stay in single precision.
-    void set_device_precision(int bits) { devprec = bits; }
-    bool on_device() const { return devmode; }
-    const std::string &device_status() const { return devmsg; }
+    void set_device_precision(int bits){devprec=bits;}
+    bool on_device() const {return devmode;}
+    const std::string& device_status() const {return devmsg;}
 
     //  wall time spent in the preconditioner (V-cycles applied by BiCGStab
     //  and the stationary iteration), CPU or device, and the number of
     //  applications, since construction or the last reset
-    double precondition_time() const { return pctime; }
-    long precondition_calls() const { return pccount; }
+    double precondition_time() const {return pctime;}
+    long precondition_calls() const {return pccount;}
     void reset_timers();
 
     //  device path: where the time went since the last reset_timers(), on
@@ -262,101 +259,96 @@ public:
     //  GPU time per kind of kernel (Metal with REEFMG_DEVICE_PROFILE=1)
     std::string device_profile() const;
 
-    void vcycle(int l, int pre, int post);
-    void residual(sc_level &L);        // always double: Krylov and convergence test
-    void residual_cycle(sc_level &L);  // inside the V-cycle, follows set_precision
+    void vcycle(int l,int pre,int post);
+    void residual(sc_level &L);          // always double: Krylov and convergence test
+    void residual_cycle(sc_level &L);    // inside the V-cycle, follows set_precision
     void halo(sc_level &L);
-    void halo_vec(sc_level &L, std::vector<double> &v);
-    double dot(const sc_level &L, const std::vector<double> &a,
-               const std::vector<double> &b) const;
+    void halo_vec(sc_level &L,std::vector<double> &v);
+    double dot(const sc_level &L,const std::vector<double> &a,
+                                 const std::vector<double> &b) const;
 
 private:
-    void line_gs(sc_level &L, int l, int sweeps, int dir);  // dir 0 fwd, 1 bwd, 2 symmetric
-    template<class C>
-    void line_gs_t(sc_level &L, int sweeps, int dir);
-    template<class C>
-    void point_gs_t(sc_level &L, int sweeps, int dir);  // nz==1
-    template<class C>
-    void line_zebra_t(sc_level &L, int sweeps, int dir);
-    template<class C>
-    void residual_t(sc_level &L);
-    template<class T>
-    void coarsen_t();
-    template<class T>
-    void factor_lines_t();
-    void build_widths(const double *dxn, const double *dyn);
+
+    void line_gs(sc_level &L,int l,int sweeps,int dir);   // dir 0 fwd, 1 bwd, 2 symmetric
+    template<class C> void line_gs_t(sc_level &L,int sweeps,int dir);
+    template<class C> void point_gs_t(sc_level &L,int sweeps,int dir);   // nz==1
+    template<class C> void line_zebra_t(sc_level &L,int sweeps,int dir);
+    template<class C> void residual_t(sc_level &L);
+    template<class T> void coarsen_t();
+    template<class T> void factor_lines_t();
+    void build_widths(const double *dxn,const double *dyn);
     void exchange_widths(sc_level &L);
-    void restrict_xy(sc_level &F, sc_level &C);
-    void prolong_xy(const sc_level &C, sc_level &F);
-    void apply(sc_level &L, int l, std::vector<double> &x, std::vector<double> &y);
-    void precondition(std::vector<double> &rhs, std::vector<double> &x, int pre, int post);
-    void cycle_step(int pre, int post);  // one stationary step, defect correction in fp32
+    void restrict_xy(sc_level &F,sc_level &C);
+    void prolong_xy(const sc_level &C,sc_level &F);
+    void apply(sc_level &L,int l,std::vector<double> &x,std::vector<double> &y);
+    void precondition(std::vector<double> &rhs,std::vector<double> &x,int pre,int post);
+    void cycle_step(int pre,int post);   // one stationary step, defect correction in fp32
     void factor_lines();
 
     //  device path (N 16), see set_device()
-    void device_setup(int maxlevel, int perx, int pery);
+    void device_setup(int maxlevel,int perx,int pery);
     void device_release();
     void device_upload();
-    void device_precondition(std::vector<double> &rhs, std::vector<double> &x, int pre, int post);
-    void device_vcycle0(int pre, int post);
+    void device_precondition(std::vector<double> &rhs,std::vector<double> &x,int pre,int post);
+    void device_vcycle0(int pre,int post);
     void device_sync();
-    int device_levels() const;
-    float *window_array(int a) const;
+    int  device_levels() const;
+    float* window_array(int a) const;
 
-    int devkind;         // requested device, 0 none
-    bool devmode;        // the preconditioner runs on the device (all ranks)
-    reefmg_device *dev;  // the device, rank 0 only
+    int devkind;             // requested device, 0 none
+    bool devmode;            // the preconditioner runs on the device (all ranks)
+    reefmg_device *dev;      // the device, rank 0 only
     std::string devmsg;
-    MPI_Win devwin;            // shared memory: the device's fine level
-    char *dev0;                // its start on this rank
-    bool dev0copy;             // rank 0: the device keeps its own fine level, copied
-    int devgx, devgy;          // global fine extent
-    int devox, devoy;          // offset of this rank's block in it
-    int devnlev;               // levels of the device hierarchy
-    int devcycles, devsweeps;  // see set_device_cycle()
-    int devprec;               // see set_device_precision()
-    bool devhalf() const { return devprec != 32; }
+    MPI_Win devwin;          // shared memory: the device's fine level
+    char *dev0;              // its start on this rank
+    bool dev0copy;           // rank 0: the device keeps its own fine level, copied
+    int devgx,devgy;         // global fine extent
+    int devox,devoy;         // offset of this rank's block in it
+    int devnlev;             // levels of the device hierarchy
+    int devcycles,devsweeps; // see set_device_cycle()
+    int devprec;             // see set_device_precision()
+    bool devhalf() const {return devprec!=32;}
     std::vector<double> kd;  // device_vcycle0
     double pctime;           // see precondition_time()
     long pccount;
-    double devt[4];  // see device_timing()
+    double devt[4];          // see device_timing()
 
     std::vector<sc_level> lev;
 
     MPI_Comm comm;
-    int myrank, nprocs;
-    int nbx0, nbx1, nby0, nby1;  // neighbour ranks, MPI_PROC_NULL at the edge
+    int myrank,nprocs;
+    int nbx0,nbx1,nby0,nby1;     // neighbour ranks, MPI_PROC_NULL at the edge
 
-    std::vector<double> sbuf, rbuf;
+    std::vector<double> sbuf,rbuf;
     //  BiCGStab work space, fine level.  s shares kr - see solve() - so there
     //  are seven vectors here, not the eight the algorithm is usually written
     //  with.
-    std::vector<double> kr, krhat, kp, kv, kt, ky, kz;
+    std::vector<double> kr,krhat,kp,kv,kt,ky,kz;
 
     int coarse_sweeps;
-    int nuse;                              // levels in use, see set_active_levels()
-    int pcbits;                            // 64 or 32: storage precision of the coefficients
-    sc_operator *fineop;                   // exact fine operator, required in fp32 mode
-    bool fexact;                           // Krylov operator from fineop in fp64 mode as well
-    int ordering;                          // 0 lexicographic, 1 red-black batched
-    std::vector<double> zr, zb, zti, ztc;  // transposed scratch for batched columns
-    std::vector<int> pj, pja;              // prolongation tables for nz==1
+    int nuse;                // levels in use, see set_active_levels()
+    int pcbits;              // 64 or 32: storage precision of the coefficients
+    sc_operator *fineop;     // exact fine operator, required in fp32 mode
+    bool fexact;             // Krylov operator from fineop in fp64 mode as well
+    int ordering;            // 0 lexicographic, 1 red-black batched
+    std::vector<double> zr,zb,zti,ztc;   // transposed scratch for batched columns
+    std::vector<int> pj,pja;             // prolongation tables for nz==1
     std::vector<double> pwy;
-    int sweepstyle;  // 0: alternating fwd/bwd, 1: symmetric both ways
+    int sweepstyle;          // 0: alternating fwd/bwd, 1: symmetric both ways
     int nfallback;
     char errmsg[512];
 
     //  coarse-grid agglomeration
-    void setup_agglomeration(int npx, int npy);
+    void setup_agglomeration(int npx,int npy);
     void gather_coarse_matrix();
     void coarse_solve_agg();
 
-    reefmg_core *agg;  // serial sub-hierarchy, on every rank
-    int aggmode, agg_cycles;
-    long agg_cells;                                   // cells of the gathered problem
-    std::vector<int> agg_ox, agg_oy, agg_nx, agg_ny;  // every rank's block of the coarsest level
-    std::vector<int> agg_cnt, agg_disp;               // gather counts and offsets, in cells
-    std::vector<double> agg_send, agg_recv;
+    reefmg_core *agg;                               // serial sub-hierarchy, on every rank
+    int  aggmode, agg_cycles;
+    long agg_cells;                                 // cells of the gathered problem
+    std::vector<int> agg_ox,agg_oy,agg_nx,agg_ny;   // every rank's block of the coarsest level
+    std::vector<int> agg_cnt,agg_disp;              // gather counts and offsets, in cells
+    std::vector<double> agg_send,agg_recv;
 };
 
 #endif

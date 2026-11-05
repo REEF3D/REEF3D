@@ -274,82 +274,72 @@ Architect: Hans Bihs
 #ifndef CORAL_INPUT_H_
 #define CORAL_INPUT_H_
 
-#include "coral/aero/coral_rotor.h"
-#include "coral/core/coral_model.h"
-#include "coral/core/coral_timeint.h"
-#include "coral/hydro/coral_waves.h"
-#include "coral/wind/coral_wind.h"
-#include <map>
-#include <memory>
-#include <string>
-#include <vector>
+#include"coral/core/coral_model.h"
+#include"coral/core/coral_timeint.h"
+#include"coral/hydro/coral_waves.h"
+#include"coral/wind/coral_wind.h"
+#include"coral/aero/coral_rotor.h"
+#include<map>
+#include<memory>
+#include<string>
+#include<vector>
 
-namespace coral {
-class joint;
-class fluid_load;
-class sampled_kinematics;
-class member_fluid_load;
-
-struct run_settings
+namespace coral
 {
-    double t_start = 0.0;
-    double t_end = 10.0;
-    double dt = 0.01;
-    double out_dt = 0.0;  // 0: every step
-    std::string out_file = "coral_results.dat";
-    double vtp_dt = -1.0;     // < 0: no VTP output of the structure
-    bool static_ini = false;  // static equilibrium before the time integration
-    int modes = 0;            // number of modes of the linear analysis (0: none)
-    bool modes_damped = false;
-    timeint_settings ti;
-};
+    class joint;
+    class fluid_load;
+    class sampled_kinematics;
+    class member_fluid_load;
 
-class coral_case
-{
-public:
-    // read the input file; throws std::runtime_error with the line number on errors
-    void read(const std::string &file);
-    // the same from a string (tests)
-    void read_string(const std::string &text, const std::string &dir = ".");
-
-    model m;
-    run_settings run;
-    std::shared_ptr<wave_field> waves;
-    std::shared_ptr<wind_inflow> wind;
-    std::map<std::string, rotor_handles> rotors;  // rotor <name>
-    double rho_air = 1.225;
-    std::map<std::string, joint *> joints;
-    double rho = 1025.0;
-
-    // bodies driven by the resolved fluid of REEF3D (fluid_body) and their load
-    struct fluid_body_spec
+    struct run_settings
     {
-        int body = -1;
-        int n = 0;
-        bool own_mass = false;
-        bool one_way = false;
-        bool excitation = false;
-        Vec6 added_mass = Vec6::Zero();
+        double t_start = 0.0;
+        double t_end = 10.0;
+        double dt = 0.01;
+        double out_dt = 0.0;          // 0: every step
+        std::string out_file = "coral_results.dat";
+        double vtp_dt = -1.0;         // < 0: no VTP output of the structure
+        bool static_ini = false;      // static equilibrium before the time integration
+        int modes = 0;                // number of modes of the linear analysis (0: none)
+        bool modes_damped = false;
+        timeint_settings ti;
     };
-    std::vector<fluid_body_spec> fluid_bodies;
-    fluid_load *fluid = nullptr;
-    std::shared_ptr<sampled_kinematics> fluid_kin;  // fluid_kinematics
-    bool fluid_bed = false;                         // bathymetry fluid: the mooring lines on the fluid's bed
-    struct fluid_member_spec
-    {
-        member_fluid_load *load = nullptr;
-        int n = 0;
-    };
-    std::vector<fluid_member_spec> fluid_members;  // fluid_member
-    Vec3 fluid_origin = Vec3::Zero();
-    std::string fluid_record;  // fluid_coupling record <file>
-    int fluid_order = 2;
-    bool fluid_predictor = true;
 
-private:
-    std::map<std::string, rotor_spec> rotor_specs_;
-    void parse(const std::vector<std::pair<int, std::vector<std::string>>> &lines, const std::string &dir);
-};
-}  // namespace coral
+    class coral_case
+    {
+    public:
+        // read the input file; throws std::runtime_error with the line number on errors
+        void read(const std::string &file);
+        // the same from a string (tests)
+        void read_string(const std::string &text, const std::string &dir=".");
+
+        model m;
+        run_settings run;
+        std::shared_ptr<wave_field> waves;
+        std::shared_ptr<wind_inflow> wind;
+        std::map<std::string, rotor_handles> rotors;       // rotor <name>
+        double rho_air = 1.225;
+        std::map<std::string, joint*> joints;
+        double rho = 1025.0;
+
+        // bodies driven by the resolved fluid of REEF3D (fluid_body) and their load
+        struct fluid_body_spec {int body = -1; int n = 0; bool own_mass = false; bool one_way = false; bool excitation = false;
+                               Vec6 added_mass = Vec6::Zero();};
+        std::vector<fluid_body_spec> fluid_bodies;
+        fluid_load *fluid = nullptr;
+        std::shared_ptr<sampled_kinematics> fluid_kin;     // fluid_kinematics
+        bool fluid_bed = false;                             // bathymetry fluid: the mooring lines on the fluid's bed
+        struct fluid_member_spec {member_fluid_load *load = nullptr; int n = 0;};
+        std::vector<fluid_member_spec> fluid_members;       // fluid_member
+        Vec3 fluid_origin = Vec3::Zero();
+        std::string fluid_record;                           // fluid_coupling record <file>
+        int fluid_order = 2;
+        bool fluid_predictor = true;
+
+    private:
+        std::map<std::string, rotor_spec> rotor_specs_;
+        void parse(const std::vector<std::pair<int, std::vector<std::string>>> &lines, const std::string &dir);
+    };
+}
 
 #endif

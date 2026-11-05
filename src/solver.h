@@ -39,11 +39,13 @@ class solver
 public:
     virtual ~solver() = default;
 
-    virtual void start(lexer *, fdm *, ghostcell *, field &, vec &, int) = 0;
-    virtual void startf(lexer *, ghostcell *, field &, vec &, matrix_diag &, int) = 0;
-    virtual void startF(lexer *, ghostcell *, double *, vec &, matrix_diag &, int) = 0;
-    virtual void startV(lexer *, ghostcell *, double *, vec &, matrix_diag &, int) = 0;
-    virtual void startM(lexer *, ghostcell *, double *, double *, double *, int) = 0;
+
+	virtual void start(lexer*,fdm*, ghostcell*, field&, vec&, int)=0;
+    virtual void startf(lexer*, ghostcell*, field&, vec&, matrix_diag&, int)=0;
+    virtual void startF(lexer*, ghostcell*, double*, vec&, matrix_diag&, int)=0;
+    virtual void startV(lexer*, ghostcell*, double*, vec&, matrix_diag&, int)=0;
+    virtual void startM(lexer*, ghostcell*, double*, double*, double*, int)=0;
+	
 };
 
 #endif

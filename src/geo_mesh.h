@@ -23,8 +23,8 @@ Author: Hans Bihs
 #ifndef GEO_MESH_H_
 #define GEO_MESH_H_
 
-#include <string>
-#include <vector>
+#include<vector>
+#include<string>
 
 class lexer;
 
@@ -39,12 +39,12 @@ using namespace std;
 
 struct geo_object
 {
-    int role;     // 1 solid, 2 topo, 3 zero-thickness plate (wall surfaces only)
-    int keyword;  // DIVEMesh keyword: 1 STL, 10 box, 11 box array, 32 cylinder_y, ...
-    int index;    // entity number of the keyword
-    int raymode;  // 1: inside where the crossing counts are odd, 2: even
-    int invert;   // inside/outside of the field swapped after this object (S 9 2, T 9 2)
-    int ts, te;   // triangle range
+    int role;       // 1 solid, 2 topo, 3 zero-thickness plate (wall surfaces only)
+    int keyword;    // DIVEMesh keyword: 1 STL, 10 box, 11 box array, 32 cylinder_y, ...
+    int index;      // entity number of the keyword
+    int raymode;    // 1: inside where the crossing counts are odd, 2: even
+    int invert;     // inside/outside of the field swapped after this object (S 9 2, T 9 2)
+    int ts, te;     // triangle range
     vector<double> param;
 };
 
@@ -59,7 +59,7 @@ public:
     static const int role_plate = 3;
 
     // DIVEMesh_Grid/grid-geometry.dat
-    void read(lexer *, const char *name);
+    void read(lexer*, const char *name);
 
     int count(int role) const;
     int tricount(int role) const;
@@ -71,8 +71,8 @@ public:
 
     // GHDR
     int solidread, toporead;
-    int geodat;  // geodat bed level (GEOB) belongs to: 0 none, 1 solid, 2 topo
-    double dxm;  // DIVEMesh mean cell size
+    int geodat;     // geodat bed level (GEOB) belongs to: 0 none, 1 solid, 2 topo
+    double dxm;     // DIVEMesh mean cell size
 
     // CURV (optional): river corridor grid of DIVEMesh (R 1), read and checked, not used by a solver yet
     //   nodes (i,j), i=0..curv_ni along the river from the inflow, j=0..curv_nj from the right bank,
@@ -84,17 +84,14 @@ public:
     // with a ring of blk_ring cells on its interface faces, blk[0].ring), blocks 1.. carry their
     // nodes; interface segments: face, lo, hi (cells along it), neighbour block and face, cell
     // transform i' = sign0*c[perm0]+off0, j' = sign1*c[perm1]+off1, c = (i,j)
-    struct blk_seg
-    {
-        int face, lo, hi, nbr, nface, perm[2], sign[2], off[2];
-    };
+    struct blk_seg { int face, lo, hi, nbr, nface, perm[2], sign[2], off[2]; };
     struct blk_block
     {
-        int ni = 0, nj = 0;
-        int ring[4] = {0, 0, 0, 0};
+        int ni=0, nj=0;
+        int ring[4] = {0,0,0,0};
         vector<blk_seg> seg;
         vector<double> x, y, zb;
-        int orig = 0, oi = 0, oj = 0;  // G 55: the block of DIVEMesh this piece is cut from, its first cell there
+        int orig=0, oi=0, oj=0;     // G 55: the block of DIVEMesh this piece is cut from, its first cell there
     };
     vector<blk_block> blk;
     int blk_ring = 0;
@@ -103,9 +100,9 @@ public:
     // without open faces) of at most (cells of the blocks 1..) / (m ranks) cells each, at least 16 cells deep;
     // a piece is a block of its own (the first piece keeps the number of its block, the others follow the
     // blocks of DIVEMesh), the interfaces between the pieces and to the neighbours rebuilt cell by cell
-    void split_blocks(lexer *);
-    int nblk_orig = 0;             // the blocks of DIVEMesh (blk.size() before the cut)
-    vector<int> orig_ni, orig_nj;  // their sizes
+    void split_blocks(lexer*);
+    int nblk_orig = 0;              // the blocks of DIVEMesh (blk.size() before the cut)
+    vector<int> orig_ni, orig_nj;   // their sizes
     // the piece that holds face f (0 -i, 1 +i, 2 -j, 3 +j) of block b of DIVEMesh whole; -1: cut across it
     int face_piece(int b, int f) const;
 
@@ -114,24 +111,24 @@ public:
     // face; a block whose open faces are j faces or reversed is turned by quarter turns of its indices (the
     // nodes and the interfaces, before G 55) so that they become these faces.  blk_turn[b]: the quarter turns of
     // block b of DIVEMesh (0-3; a turn maps the faces -i, +i, -j, +j to +j, -j, -i, +i)
-    void turn_blocks(lexer *);
+    void turn_blocks(lexer*);
     vector<int> blk_turn;
-    int face_turned(int b, int f) const;  // face f of block b of DIVEMesh (0 -i, 1 +i, 2 -j, 3 +j) after the turns
-    static int g54_kind(int t);           // G 54 type t: 1 discharge, 2 water level, 3 discharge series, 4 level series
-    static int g54_face(int t);           // the face of DIVEMesh of type t (0 -i, 1 +i, 2 -j, 3 +j); -1 bad type
+    int face_turned(int b, int f) const;    // face f of block b of DIVEMesh (0 -i, 1 +i, 2 -j, 3 +j) after the turns
+    static int g54_kind(int t);             // G 54 type t: 1 discharge, 2 water level, 3 discharge series, 4 level series
+    static int g54_face(int t);             // the face of DIVEMesh of type t (0 -i, 1 +i, 2 -j, 3 +j); -1 bad type
 
     // G 56 a dz (geo_mesh_split.cpp): the load of a cell relative to a wet cell, a when its bed lies above the
     // still water level + dz (F 60, else F 62 with F 65); without G 56 (a = 1) or a still water level every cell 1
-    static double load_level(const lexer *);
-    static bool load_weighted(const lexer *);
-    static double cell_load(const lexer *, double zb);
-    double blk_cell_load(const lexer *, int b, int ci, int cj) const;  // blocks 1..: the bed is the mean of the cell's nodes
-    double blk_load(const lexer *, int b) const;
+    static double load_level(const lexer*);
+    static bool load_weighted(const lexer*);
+    static double cell_load(const lexer*, double zb);
+    double blk_cell_load(const lexer*, int b, int ci, int cj) const;   // blocks 1..: the bed is the mean of the cell's nodes
+    double blk_load(const lexer*, int b) const;
 
 private:
-    int seg_check() const;                              // interface cells that do not map back
-    int zone_cells(const lexer *, int b, int f) const;  // G 55: the cells of the zones of B 522 at face f of block b
-    void turn_block(int b);                             // one quarter turn of block b (1..)
+    int seg_check() const;                  // interface cells that do not map back
+    int zone_cells(const lexer*, int b, int f) const;   // G 55: the cells of the zones of B 522 at face f of block b
+    void turn_block(int b);                 // one quarter turn of block b (1..)
     void allocate(int);
     void release();
 };

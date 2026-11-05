@@ -21,12 +21,12 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include "ddweno_f_nug.h"
-#include "field.h"
-#include "ghostcell.h"
 #include "lexer.h"
+#include "field.h"
 #include "slice.h"
+#include "ghostcell.h"
 
-ddweno_f_nug::ddweno_f_nug(lexer *p) : weno_nug_func(p)
+ddweno_f_nug::ddweno_f_nug(lexer* p):weno_nug_func(p)
 {
     // only the uniform-flux coefficient set is used
     uf = vf = wf = 0;
@@ -38,7 +38,7 @@ ddweno_f_nug::~ddweno_f_nug()
 
 double ddweno_f_nug::ddwenox(field &f, double uw)
 {
-    if(uw >= 0.0)
+    if(uw>=0.0)
     {
         iqmin(f);
         return weno_min_x();
@@ -52,7 +52,7 @@ double ddweno_f_nug::ddwenox(field &f, double uw)
 
 double ddweno_f_nug::ddwenoy(field &f, double uw)
 {
-    if(uw >= 0.0)
+    if(uw>=0.0)
     {
         jqmin(f);
         return weno_min_y();
@@ -66,7 +66,7 @@ double ddweno_f_nug::ddwenoy(field &f, double uw)
 
 double ddweno_f_nug::ddwenoz(field &f, double uw)
 {
-    if(uw >= 0.0)
+    if(uw>=0.0)
     {
         kqmin(f);
         return weno_min_z();
@@ -80,7 +80,7 @@ double ddweno_f_nug::ddwenoz(field &f, double uw)
 
 double ddweno_f_nug::dswenox(slice &f, double uw)
 {
-    if(uw >= 0.0)
+    if(uw>=0.0)
     {
         isqmin(f);
         return weno_min_x();
@@ -94,7 +94,7 @@ double ddweno_f_nug::dswenox(slice &f, double uw)
 
 double ddweno_f_nug::dswenoy(slice &f, double uw)
 {
-    if(uw >= 0.0)
+    if(uw>=0.0)
     {
         jsqmin(f);
         return weno_min_y();

@@ -20,75 +20,75 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "bc_noflux.h"
-#include "lexer.h"
-#include "patchBC_codes.h"
+#include"bc_noflux.h"
+#include"lexer.h"
+#include"patchBC_codes.h"
 
 void bc_noflux_mask(lexer *p, std::vector<int> &mask, int what)
 {
-    mask.assign(size_t(p->imax) * size_t(p->jmax) * size_t(p->kmax), 0);
+    mask.assign(size_t(p->imax)*size_t(p->jmax)*size_t(p->kmax),0);
 
-    const int fixed_scalar[7] = {0, p->H61, p->H62, p->H63, p->H64, p->H65, p->H66};
+    const int fixed_scalar[7] = {0,p->H61,p->H62,p->H63,p->H64,p->H65,p->H66};
 
-    for(int n = 0; n < p->gcb4_count; ++n)
+    for(int n=0;n<p->gcb4_count;++n)
     {
         int bc = p->gcb4[n][4];
         int cs = p->gcb4[n][3];
 
-        if(cs < 1 || cs > 6)
-            continue;
+        if(cs<1 || cs>6)
+        continue;
 
-        if(bc_periodic_face(p, p->gcb4[n][0], p->gcb4[n][1], p->gcb4[n][2], cs))
-            continue;
+        if(bc_periodic_face(p,p->gcb4[n][0],p->gcb4[n][1],p->gcb4[n][2],cs))
+        continue;
 
-        bool noflux = false;
+        bool noflux=false;
 
-        if((what & BC_NOFLUX_WALLS) && (bc == 3 || bc == 5 || bc == 21 || bc == 22))
-            noflux = true;
+        if((what & BC_NOFLUX_WALLS) && (bc==3 || bc==5 || bc==21 || bc==22))
+        noflux=true;
 
-        if((what & BC_NOFLUX_INFLOW) && (bc == 1 || bc == 6))
-            noflux = true;
+        if((what & BC_NOFLUX_INFLOW) && (bc==1 || bc==6))
+        noflux=true;
 
         // patch inlets: velocity prescribed, pressure Neumann (patch outlets: pressure Dirichlet)
         if((what & BC_NOFLUX_INFLOW) && patch_inlet(bc))
-            noflux = true;
+        noflux=true;
 
-        if((what & BC_NOFLUX_SCALAR) && fixed_scalar[cs] == 1)
-            noflux = false;
-
+        if((what & BC_NOFLUX_SCALAR) && fixed_scalar[cs]==1)
+        noflux=false;
+        
         if((what & BC_PATCH_OUTLET) && patch_outlet(bc))
-            noflux = true;
+        noflux=true;
 
         if(noflux)
         {
-            int i = p->gcb4[n][0];
-            int j = p->gcb4[n][1];
-            int k = p->gcb4[n][2];
+        int i=p->gcb4[n][0];
+        int j=p->gcb4[n][1];
+        int k=p->gcb4[n][2];
 
-            mask[(i - p->imin) * p->jmax * p->kmax + (j - p->jmin) * p->kmax + k - p->kmin] |= (1 << (cs - 1));
+        mask[(i-p->imin)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin] |= (1<<(cs-1));
         }
     }
 }
 
 bool bc_periodic_face(lexer *p, int i, int j, int k, int cs)
 {
-    if(cs == 1 && p->periodic1 == 1 && i + p->origin_i == 0)
-        return true;
+    if(cs==1 && p->periodic1==1 && i+p->origin_i==0)
+    return true;
 
-    if(cs == 4 && p->periodic1 == 1 && i + p->origin_i == p->gknox - 1)
-        return true;
+    if(cs==4 && p->periodic1==1 && i+p->origin_i==p->gknox-1)
+    return true;
 
-    if(cs == 3 && p->periodic2 == 1 && j + p->origin_j == 0)
-        return true;
+    if(cs==3 && p->periodic2==1 && j+p->origin_j==0)
+    return true;
 
-    if(cs == 2 && p->periodic2 == 1 && j + p->origin_j == p->gknoy - 1)
-        return true;
+    if(cs==2 && p->periodic2==1 && j+p->origin_j==p->gknoy-1)
+    return true;
 
-    if(cs == 5 && p->periodic3 == 1 && k + p->origin_k == 0)
-        return true;
+    if(cs==5 && p->periodic3==1 && k+p->origin_k==0)
+    return true;
 
-    if(cs == 6 && p->periodic3 == 1 && k + p->origin_k == p->gknoz - 1)
-        return true;
+    if(cs==6 && p->periodic3==1 && k+p->origin_k==p->gknoz-1)
+    return true;
 
     return false;
 }

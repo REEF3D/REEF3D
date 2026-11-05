@@ -45,65 +45,55 @@ namespace lapacke_helpers {
 //        Dispatch for rank update handling upper and lower parts
 // -------------------------------------------------------------------------------------------------------------------
 
-template<UpLoType Mode>
-struct rank_update
-{};
+template <UpLoType Mode>
+struct rank_update {};
 
-template<>
-struct rank_update<Lower>
-{
-    template<typename MatrixType, typename VectorType>
-    static Index run(MatrixType &mat, const VectorType &vec, const typename MatrixType::RealScalar &sigma)
-    {
-        return Eigen::internal::llt_rank_update_lower(mat, vec, sigma);
-    }
+template <>
+struct rank_update<Lower> {
+  template <typename MatrixType, typename VectorType>
+  static Index run(MatrixType &mat, const VectorType &vec, const typename MatrixType::RealScalar &sigma) {
+    return Eigen::internal::llt_rank_update_lower(mat, vec, sigma);
+  }
 };
 
-template<>
-struct rank_update<Upper>
-{
-    template<typename MatrixType, typename VectorType>
-    static Index run(MatrixType &mat, const VectorType &vec, const typename MatrixType::RealScalar &sigma)
-    {
-        Transpose<MatrixType> matt(mat);
-        return Eigen::internal::llt_rank_update_lower(matt, vec.conjugate(), sigma);
-    }
+template <>
+struct rank_update<Upper> {
+  template <typename MatrixType, typename VectorType>
+  static Index run(MatrixType &mat, const VectorType &vec, const typename MatrixType::RealScalar &sigma) {
+    Transpose<MatrixType> matt(mat);
+    return Eigen::internal::llt_rank_update_lower(matt, vec.conjugate(), sigma);
+  }
 };
 
 // -------------------------------------------------------------------------------------------------------------------
 //        Generic lapacke llt implementation that hands of to the dispatches
 // -------------------------------------------------------------------------------------------------------------------
 
-template<typename Scalar, UpLoType Mode>
-struct lapacke_llt
-{
-    EIGEN_STATIC_ASSERT(((Mode == Lower) || (Mode == Upper)), MODE_MUST_BE_UPPER_OR_LOWER)
-    template<typename MatrixType>
-    static Index blocked(MatrixType &m)
-    {
-        eigen_assert(m.rows() == m.cols());
-        if(m.rows() == 0)
-        {
-            return -1;
-        }
-        /* Set up parameters for ?potrf */
-        lapack_int size = to_lapack(m.rows());
-        lapack_int matrix_order = lapack_storage_of(m);
-        constexpr char uplo = Mode == Upper ? 'U' : 'L';
-        Scalar *a = &(m.coeffRef(0, 0));
-        lapack_int lda = to_lapack(m.outerStride());
-
-        lapack_int info = potrf(matrix_order, uplo, size, to_lapack(a), lda);
-        info = (info == 0) ? -1 : info > 0 ? info - 1
-                                           : size;
-        return info;
+template <typename Scalar, UpLoType Mode>
+struct lapacke_llt {
+  EIGEN_STATIC_ASSERT(((Mode == Lower) || (Mode == Upper)), MODE_MUST_BE_UPPER_OR_LOWER)
+  template <typename MatrixType>
+  static Index blocked(MatrixType &m) {
+    eigen_assert(m.rows() == m.cols());
+    if (m.rows() == 0) {
+      return -1;
     }
+    /* Set up parameters for ?potrf */
+    lapack_int size = to_lapack(m.rows());
+    lapack_int matrix_order = lapack_storage_of(m);
+    constexpr char uplo = Mode == Upper ? 'U' : 'L';
+    Scalar *a = &(m.coeffRef(0, 0));
+    lapack_int lda = to_lapack(m.outerStride());
 
-    template<typename MatrixType, typename VectorType>
-    static Index rankUpdate(MatrixType &mat, const VectorType &vec, const typename MatrixType::RealScalar &sigma)
-    {
-        return rank_update<Mode>::run(mat, vec, sigma);
-    }
+    lapack_int info = potrf(matrix_order, uplo, size, to_lapack(a), lda);
+    info = (info == 0) ? -1 : info > 0 ? info - 1 : size;
+    return info;
+  }
+
+  template <typename MatrixType, typename VectorType>
+  static Index rankUpdate(MatrixType &mat, const VectorType &vec, const typename MatrixType::RealScalar &sigma) {
+    return rank_update<Mode>::run(mat, vec, sigma);
+  }
 };
 }  // namespace lapacke_helpers
 // end namespace lapacke_helpers
@@ -114,13 +104,11 @@ struct lapacke_llt
  * in LLT.h for double, float and complex double, complex float types.
  */
 
-#define EIGEN_LAPACKE_LLT(EIGTYPE)                                                           \
-    template<>                                                                               \
-    struct llt_inplace<EIGTYPE, Lower> : public lapacke_helpers::lapacke_llt<EIGTYPE, Lower> \
-    {};                                                                                      \
-    template<>                                                                               \
-    struct llt_inplace<EIGTYPE, Upper> : public lapacke_helpers::lapacke_llt<EIGTYPE, Upper> \
-    {};
+#define EIGEN_LAPACKE_LLT(EIGTYPE)                                                             \
+  template <>                                                                                  \
+  struct llt_inplace<EIGTYPE, Lower> : public lapacke_helpers::lapacke_llt<EIGTYPE, Lower> {}; \
+  template <>                                                                                  \
+  struct llt_inplace<EIGTYPE, Upper> : public lapacke_helpers::lapacke_llt<EIGTYPE, Upper> {};
 
 EIGEN_LAPACKE_LLT(double)
 EIGEN_LAPACKE_LLT(float)

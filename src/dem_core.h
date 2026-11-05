@@ -34,12 +34,12 @@ may supply extra contacts (e.g. against the REEF3D topo/solid level set).
 #ifndef DEM_CORE_H_
 #define DEM_CORE_H_
 
-#include <Eigen/Dense>
-#include <cstdint>
-#include <functional>
-#include <string>
-#include <unordered_map>
-#include <vector>
+#include<Eigen/Dense>
+#include<vector>
+#include<string>
+#include<functional>
+#include<unordered_map>
+#include<cstdint>
 
 using namespace std;
 
@@ -47,7 +47,8 @@ typedef Eigen::Vector3d dem_vec;
 typedef Eigen::Matrix3d dem_mat;
 typedef Eigen::Quaterniond dem_quat;
 
-enum dem_shape_type {
+enum dem_shape_type
+{
     DEM_SPHERE = 0,
     DEM_BOX = 1,
     DEM_CYLINDER = 2,
@@ -70,9 +71,9 @@ public:
     // builders, all shapes are centred at their centroid and aligned with their principal axes
     void build_sphere(double r);
     void build_box(double lx, double ly, double lz);
-    void build_cylinder(double r, double length);  // axis along body z
+    void build_cylinder(double r, double length);             // axis along body z
     void build_ellipsoid(double a, double b, double c, int res);
-    bool build_mesh(const string &file, double scale, int res);  // ASCII or binary STL
+    bool build_mesh(const string &file, double scale, int res); // ASCII or binary STL
 
     void make_nodes(double spacing);
     void make_quadrature(int n);
@@ -82,12 +83,12 @@ public:
     dem_vec sdf_grad(const dem_vec &y) const;
 
     int type = DEM_SPHERE;
-    dem_vec dim = dem_vec::Zero();  // sphere: (r,-,-) box: half extents, cylinder: (r,r,half length), ellipsoid: semi axes
+    dem_vec dim = dem_vec::Zero();      // sphere: (r,-,-) box: half extents, cylinder: (r,r,half length), ellipsoid: semi axes
 
     double volume = 0.0;
     double area = 0.0;
-    double rbound = 0.0;  // bounding radius about centroid
-    double deq = 0.0;     // volume equivalent diameter
+    double rbound = 0.0;                // bounding radius about centroid
+    double deq = 0.0;                   // volume equivalent diameter
     double sphericity = 1.0;
     dem_vec inertia_unit = dem_vec::Zero();  // principal moments per unit density
 
@@ -105,7 +106,7 @@ public:
 private:
     void mesh_mass_properties(dem_vec &com, dem_mat &J, double &vol);
     void build_sdf_grid(int res);
-    void finish_mesh_shape(bool rotate = true);
+    void finish_mesh_shape(bool rotate=true);
     double sdf_grid(const dem_vec &y) const;
     dem_vec sdf_grid_grad(const dem_vec &y) const;
     double mesh_distance(const dem_vec &y, double &winding) const;
@@ -114,7 +115,7 @@ private:
     // SDF grid
     dem_vec g0 = dem_vec::Zero();
     double gdx = 1.0;
-    int gn[3] = {0, 0, 0};
+    int gn[3] = {0,0,0};
     vector<float> sdfval;
 };
 
@@ -129,18 +130,18 @@ struct dem_cpl
 
     dem_vec Fibm = dem_vec::Zero(), Tibm = dem_vec::Zero();
     double mfl = 0.0, hvol = 0.0;
-    dem_vec Fs[3] = {dem_vec::Zero(), dem_vec::Zero(), dem_vec::Zero()};
-    dem_vec Ts[3] = {dem_vec::Zero(), dem_vec::Zero(), dem_vec::Zero()};
+    dem_vec Fs[3] = {dem_vec::Zero(),dem_vec::Zero(),dem_vec::Zero()};
+    dem_vec Ts[3] = {dem_vec::Zero(),dem_vec::Zero(),dem_vec::Zero()};
 
     dem_vec Ifl = dem_vec::Zero(), Lfl = dem_vec::Zero(), Ifl_old = dem_vec::Zero(), Lfl_old = dem_vec::Zero();
     bool Ifl_valid = false;
 
     dem_vec vprev = dem_vec::Zero(), wprev = dem_vec::Zero();
     dem_vec Ffp = dem_vec::Zero(), Fhyd = dem_vec::Zero();
-    double sw[4] = {0.0, 0.0, 0.0, 0.0};
-    double aself = 0.0;            // own contribution to the solid fraction at the centroid
-    dem_vec Aq = dem_vec::Zero();  // E 26: sum qw r x (u_q - u_mean) over the submerged quadrature points
-    double vq = 0.0;               // E 26: submerged quadrature volume
+    double sw[4] = {0.0,0.0,0.0,0.0};
+    double aself = 0.0;         // own contribution to the solid fraction at the centroid
+    dem_vec Aq = dem_vec::Zero();   // E 26: sum qw r x (u_q - u_mean) over the submerged quadrature points
+    double vq = 0.0;                // E 26: submerged quadrature volume
     int basemode = 0;
 };
 
@@ -151,29 +152,29 @@ struct dem_body
     int id = 0;
     bool fixed = false;
     bool active = true;
-    int mode = 0;  // 0 unresolved, 1 resolved (set by the adapter)
+    int mode = 0;               // 0 unresolved, 1 resolved (set by the adapter)
 
     // domain decomposition: tier 0 particles are owned by one rank and appear as ghosts on the
     // neighbours, tier 1 (large) particles are replicated on all ranks
     int tier = 0;
     int owner = 0;
     bool ghost = false;
-    dem_vec vs = dem_vec::Zero(), ws = dem_vec::Zero();  // velocities at the last solver synchronisation
+    dem_vec vs = dem_vec::Zero(), ws = dem_vec::Zero();    // velocities at the last solver synchronisation
     dem_vec vps = dem_vec::Zero(), wps = dem_vec::Zero();
-    double split = 1.0;  // number of ranks that solve contacts of the particle
+    double split = 1.0;         // number of ranks that solve contacts of the particle
 
     dem_cpl cpl;
 
-    double m = 0.0;                // mass
-    dem_vec Ib = dem_vec::Zero();  // principal inertia (body frame)
+    double m = 0.0;             // mass
+    dem_vec Ib = dem_vec::Zero(); // principal inertia (body frame)
 
     dem_vec x = dem_vec::Zero();
     dem_quat q = dem_quat::Identity();
     dem_vec v = dem_vec::Zero();
-    dem_vec w = dem_vec::Zero();  // angular velocity, world frame
+    dem_vec w = dem_vec::Zero(); // angular velocity, world frame
     dem_vec vold = dem_vec::Zero();
     dem_vec wold = dem_vec::Zero();
-    dem_vec vp = dem_vec::Zero();  // split-impulse pseudo velocities (position correction only)
+    dem_vec vp = dem_vec::Zero();   // split-impulse pseudo velocities (position correction only)
     dem_vec wp = dem_vec::Zero();
 
     // loads set by the adapter before each step (not including gravity)
@@ -195,8 +196,8 @@ struct dem_body
 
 struct dem_contact
 {
-    int a = -1;  // body receiving +P
-    int b = -1;  // second body, <0 for a wall
+    int a = -1;                 // body receiving +P
+    int b = -1;                 // second body, <0 for a wall
     uint64_t key = 0;
     dem_vec x = dem_vec::Zero();
     dem_vec n = dem_vec::UnitZ();  // unit normal pointing from b to a
@@ -206,20 +207,20 @@ struct dem_contact
     dem_vec vwall = dem_vec::Zero();
 
     // solver work
-    dem_vec t1, t2, ra, rb;
+    dem_vec t1,t2,ra,rb;
     dem_mat Wl;
-    dem_vec P = dem_vec::Zero();  // local impulse (n,t1,t2)
+    dem_vec P = dem_vec::Zero();    // local impulse (n,t1,t2)
     double target = 0.0;
     double stab = 0.0;
-    double Pp = 0.0;  // split-impulse normal pseudo impulse
+    double Pp = 0.0;            // split-impulse normal pseudo impulse
     double un0 = 0.0;
     bool speculative = false;
 };
 
 struct dem_plane
 {
-    dem_vec n = dem_vec::UnitZ();  // unit normal pointing into the domain
-    double d = 0.0;                // plane: n.x = d
+    dem_vec n = dem_vec::UnitZ();   // unit normal pointing into the domain
+    double d = 0.0;                 // plane: n.x = d
 };
 
 class dem_core;
@@ -235,10 +236,10 @@ class dem_core;
 // Gauss-Seidel iteration with a particular contact order, as on one rank.
 struct dem_hooks
 {
-    std::function<void(dem_core &)> ghosts;
-    std::function<void(dem_core &)> split;
-    std::function<double(dem_core &, int, double, bool)> sync;
-    std::function<double(double)> maxall;  // global maximum
+    std::function<void(dem_core&)> ghosts;
+    std::function<void(dem_core&)> split;
+    std::function<double(dem_core&, int, double, bool)> sync;
+    std::function<double(double)> maxall;     // global maximum
     int ncolors = 1;
     int mycolor = 0;
 };
@@ -249,16 +250,16 @@ public:
     dem_core() = default;
 
     // wall callback: adds contacts for the given margin; must give identical results on all ranks
-    typedef std::function<void(dem_core &, double, vector<dem_contact> &)> wallfunc;
+    typedef std::function<void(dem_core&, double, vector<dem_contact>&)> wallfunc;
 
     void initialize();
-    void step(double dt, const wallfunc &walls, const dem_hooks *hooks = nullptr);
+    void step(double dt, const wallfunc &walls, const dem_hooks *hooks=nullptr);
 
     // contact ownership in the domain decomposition
     bool mine(int a, int b) const;
     int myrank = 0;
-    double vref_ext = 0.0;  // global velocity scale for the residual (0: local)
-    double vmax_ext = 0.0;  // global max particle velocity (distributed contact margin)
+    double vref_ext = 0.0;      // global velocity scale for the residual (0: local)
+    double vmax_ext = 0.0;      // global max particle velocity (distributed contact margin)
 
     double kinetic_energy() const;
     double max_velocity() const;
@@ -267,8 +268,8 @@ public:
     uint64_t make_key(int a, int b, int feature) const;
 
     // checkpoints: the warm-start caches of the last step (key in two 32-bit halves, then the values)
-    void cache_state(vector<double> &) const;
-    void cache_restore(const vector<double> &, size_t &);
+    void cache_state(vector<double>&) const;
+    void cache_restore(const vector<double>&, size_t&);
 
     vector<dem_shape> shapes;
     vector<dem_material> mats;
@@ -276,21 +277,21 @@ public:
     vector<dem_plane> planes;
     dem_material wallmat;
 
-    dem_vec gravity = dem_vec(0.0, 0.0, -9.81);
-    bool plane2D = false;  // restrict motion to the x-z plane (REEF3D 2D: j_dir==0)
+    dem_vec gravity = dem_vec(0.0,0.0,-9.81);
+    bool plane2D = false;       // restrict motion to the x-z plane (REEF3D 2D: j_dir==0)
 
     // solver parameters
     int maxiter = 1000;
     double tol = 1.0e-5;
-    double theta = 0.5;      // Moreau-Jean midpoint for contact activation
-    double beta = 0.2;       // penetration stabilisation
-    double slop = 1.0e-5;    // allowed penetration [m]
-    double vstab_max = 0.5;  // max stabilisation velocity [m/s]
-    double vrest = 1.0e-3;   // restitution threshold velocity
+    double theta = 0.5;         // Moreau-Jean midpoint for contact activation
+    double beta = 0.2;          // penetration stabilisation
+    double slop = 1.0e-5;       // allowed penetration [m]
+    double vstab_max = 0.5;     // max stabilisation velocity [m/s]
+    double vrest = 1.0e-3;      // restitution threshold velocity
     double warmstart = 1.0;
-    int manifold = 6;     // max contacts kept per body pair and normal cluster (0: keep all)
-    int pseudoiter = 50;  // split-impulse iterations
-    double sor = 1.0;     // relaxation factor of the Gauss-Seidel updates
+    int manifold = 6;           // max contacts kept per body pair and normal cluster (0: keep all)
+    int pseudoiter = 50;        // split-impulse iterations
+    double sor = 1.0;           // relaxation factor of the Gauss-Seidel updates
 
     // statistics of the last step
     int ncontacts = 0;
@@ -301,7 +302,7 @@ public:
     vector<dem_contact> contacts;
 
     // helpers for wall/other contact generators
-    dem_vec node_world(const dem_body &B, const dem_vec &y) const { return B.x + B.R * y; }
+    dem_vec node_world(const dem_body &B, const dem_vec &y) const {return B.x + B.R*y;}
 
 private:
     void update_mass(double dt);
@@ -321,8 +322,8 @@ private:
     dem_vec relvel(const dem_contact &C) const;
 
     const dem_hooks *hk = nullptr;
-    unordered_map<uint64_t, dem_vec> cacheP;  // world impulse of last step
-    unordered_map<uint64_t, double> cacheU;   // approach velocity of speculative contacts
+    unordered_map<uint64_t,dem_vec> cacheP;     // world impulse of last step
+    unordered_map<uint64_t,double> cacheU;      // approach velocity of speculative contacts
 };
 
 #endif

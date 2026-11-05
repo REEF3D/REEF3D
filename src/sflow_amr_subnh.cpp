@@ -20,19 +20,19 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "fdm2D.h"
-#include "ghostcell.h"
-#include "lexer.h"
-#include "matrix2D.h"
-#include "sflow_amr.h"
-#include "sflow_curv.h"
-#include "sflow_momentum_RK3.h"
-#include "sflow_pressure_nh.h"
-#include "slice.h"
-#include "vec2D.h"
-#include <algorithm>
-#include <cmath>
-#include <mpi.h>
+#include"sflow_curv.h"
+#include"sflow_amr.h"
+#include"lexer.h"
+#include"fdm2D.h"
+#include"ghostcell.h"
+#include"slice.h"
+#include"matrix2D.h"
+#include"vec2D.h"
+#include"sflow_pressure_nh.h"
+#include"sflow_momentum_RK3.h"
+#include<cmath>
+#include<mpi.h>
+#include<algorithm>
 
 //  Subcycling in time (G 7 1) with the non-hydrostatic pressure (A 220 1-3), as nhflow_amr 0019:
 //
@@ -57,14 +57,15 @@ Architect: Hans Bihs
 //  l > 0 are fixed at 0; the correction of UH, VH, WH as sflow_pjm_lin/quad without the bed
 //  acceleration of the quadratic pressure; the pressure itself is kept.
 
-namespace {
-inline int lij(const lexer *q, int ii, int jj) { return (ii - q->imin) * q->jmax + (jj - q->jmin); }
+namespace
+{
+inline int lij(const lexer *q, int ii, int jj) { return (ii-q->imin)*q->jmax + (jj-q->jmin); }
 
 typedef reefamr_comms_off comms_off;
 
 // times of the RK3 stage outputs in the step (SSP RK3: t+dt, t+dt/2, t+dt)
 const double rko[3] = {1.0, 0.5, 1.0};
-}  // namespace
+}
 
 // the pressure of the level-l stage s of step k (0, 1)
 void sflow_amr::nh_level(lexer *p, ghostcell *pgc, int l, int k, int s)
@@ -73,14 +74,14 @@ void sflow_amr::nh_level(lexer *p, ghostcell *pgc, int l, int k, int s)
 
     // cells around the patches: the parent pressure at the time of the stage output (siblings:
     // the previous pressure, overwritten by the solve)
-    const double th = 0.5 * (double(k) + rko[s]);
-    fill_run(l, 1, 7350 + l, [&](const reefamr_fill &f, double *v)
-             { v[0] = nh_eval_t(f, th, 4); }, [&](reefamr_patch *c, int n, const reefamr_fill &f, const double *w)
-             { nh_vec(n, -1)(f.di, f.dj) = w[0]; });
+    const double th = 0.5*(double(k)+rko[s]);
+    fill_run(l,1,7350+l,
+             [&](const reefamr_fill &f, double *v) { v[0] = nh_eval_t(f,th,4); },
+             [&](reefamr_patch *c, int n, const reefamr_fill &f, const double *w) { nh_vec(n,-1)(f.di,f.dj) = w[0]; });
 
     wlo = whi = l;
     nh_edge = true;
-    nh_prepare(pgc, true);
+    nh_prepare(pgc,true);
     nh_core(p);
     nh_edge = false;
     wlo = 0;
@@ -90,18 +91,18 @@ void sflow_amr::nh_level(lexer *p, ghostcell *pgc, int l, int k, int s)
 
     // velocity correction and the rest of the stage
     {
-        comms_off guard(pgc);
-        for(int n : lev[l])
-        {
-            sflow_amr_patch *c = SP(n);
-            sflow_momentum_RK3 *m = c->pmom;
-            pgc->gcsl_start4(c->pp, c->b->press, c->pnh->gcval());
-            c->pnh->correct(c->pp, c->b, *m->nhUH, *m->nhVH, *m->nhWH, *m->nhWL, m->nh_alpha);
-            m->stage_finish(c->pp, c->b, pgc, *m->nhUH, *m->nhVH, *m->nhWH, *m->nhWL);
-        }
+    comms_off guard(pgc);
+    for(int n : lev[l])
+    {
+        sflow_amr_patch *c = SP(n);
+        sflow_momentum_RK3 *m = c->pmom;
+        pgc->gcsl_start4(c->pp,c->b->press,c->pnh->gcval());
+        c->pnh->correct(c->pp,c->b,*m->nhUH,*m->nhVH,*m->nhWH,*m->nhWL,m->nh_alpha);
+        m->stage_finish(c->pp,c->b,pgc,*m->nhUH,*m->nhVH,*m->nhWH,*m->nhWL);
+    }
     }
 
-    tm[5] += MPI_Wtime() - t0;
+    tm[5] += MPI_Wtime()-t0;
 }
 
 // constraint residual WL div u + 2 (w + u.grad d) of the cells of grid g with a non-hydrostatic row
@@ -110,59 +111,47 @@ void sflow_amr::nh_resid(int g, vector<double> &R)
     gh G = grid(g);
     lexer *q = G.q;
     fdm2D *pb = G.b;
-    sflow_pressure_nh *pn = (g < 0) ? pnh0 : SP(g)->pnh;
+    sflow_pressure_nh *pn = (g<0) ? pnh0 : SP(g)->pnh;
 
-    R.assign((size_t)q->imax * q->jmax, 0.0);
+    R.assign((size_t)q->imax*q->jmax,0.0);
 
-    int i0, i1, j0, j1;
-    if(g < 0)
+    int i0,i1,j0,j1;
+    if(g<0) { i0=0; i1=NX0-1; j0=0; j1=NY0-1; }
+    else    { i0=EXT; i1=EXT+P[g]->nx-1; j0=EY; j1=EY+P[g]->ny-1; }
+
+    for(int ii=i0; ii<=i1; ++ii)
+    for(int jj=j0; jj<=j1; ++jj)
     {
-        i0 = 0;
-        i1 = NX0 - 1;
-        j0 = 0;
-        j1 = NY0 - 1;
-    }
-    else
-    {
-        i0 = EXT;
-        i1 = EXT + P[g]->nx - 1;
-        j0 = EY;
-        j1 = EY + P[g]->ny - 1;
-    }
+        if(q->flagslice4[lij(q,ii,jj)]<=0 || pn->is_active(q,pb,ii,jj)==0)
+        continue;
 
-    for(int ii = i0; ii <= i1; ++ii)
-        for(int jj = j0; jj <= j1; ++jj)
+        double dudx,dvdy,dddx,dddy;
+
+        // curvilinear grid: chain-rule gradients as in sflow_pjm_lin/quad
+        if(q->geo_curv==1)
         {
-            if(q->flagslice4[lij(q, ii, jj)] <= 0 || pn->is_active(q, pb, ii, jj) == 0)
-                continue;
-
-            double dudx, dvdy, dddx, dddy;
-
-            // curvilinear grid: chain-rule gradients as in sflow_pjm_lin/quad
-            if(q->geo_curv == 1)
-            {
-                double a1;
-                sflow_curv::grad(q, pb->U, ii, jj, dudx, a1);
-                sflow_curv::grad(q, pb->V, ii, jj, a1, dvdy);
-                sflow_curv::grad(q, pb->depth, ii, jj, dddx, dddy);
-            }
-            else
-            {
-                const double dx = q->DXP[ii + marge] + q->DXP[ii - 1 + marge];
-                const double dy = q->DYP[jj + marge] + q->DYP[jj - 1 + marge];
-                dudx = (pb->U(ii + 1, jj) - pb->U(ii - 1, jj)) / dx;
-                dvdy = (pb->V(ii, jj + 1) - pb->V(ii, jj - 1)) / dy * p0->y_dir;
-                dddx = (pb->depth(ii + 1, jj) - pb->depth(ii - 1, jj)) / dx;
-                dddy = (pb->depth(ii, jj + 1) - pb->depth(ii, jj - 1)) / dy * p0->y_dir;
-            }
-
-            R[lij(q, ii, jj)] = pb->WL(ii, jj) * (dudx + dvdy) + 2.0 * (pb->W(ii, jj) + pb->U(ii, jj) * dddx + pb->V(ii, jj) * dddy);
+        double a1;
+        sflow_curv::grad(q,pb->U,ii,jj,dudx,a1);
+        sflow_curv::grad(q,pb->V,ii,jj,a1,dvdy);
+        sflow_curv::grad(q,pb->depth,ii,jj,dddx,dddy);
         }
+        else
+        {
+        const double dx = q->DXP[ii+marge] + q->DXP[ii-1+marge];
+        const double dy = q->DYP[jj+marge] + q->DYP[jj-1+marge];
+        dudx = (pb->U(ii+1,jj) - pb->U(ii-1,jj))/dx;
+        dvdy = (pb->V(ii,jj+1) - pb->V(ii,jj-1))/dy*p0->y_dir;
+        dddx = (pb->depth(ii+1,jj) - pb->depth(ii-1,jj))/dx;
+        dddy = (pb->depth(ii,jj+1) - pb->depth(ii,jj-1))/dy*p0->y_dir;
+        }
+
+        R[lij(q,ii,jj)] = pb->WL(ii,jj)*(dudx + dvdy) + 2.0*(pb->W(ii,jj) + pb->U(ii,jj)*dddx + pb->V(ii,jj)*dddy);
+    }
 }
 
 void sflow_amr::nh_store_end(int g)
 {
-    nh_resid(g, (g < 0) ? nh0_rend : SP(g)->rend);
+    nh_resid(g, (g<0) ? nh0_rend : SP(g)->rend);
 }
 
 // synchronisation projection of the levels l..L at the end of a level-l step (dt: its step)
@@ -171,19 +160,19 @@ void sflow_amr::nh_project(lexer *p, ghostcell *pgc, int l, double dt)
     const double t0 = MPI_Wtime();
 
     vector<int> grids;
-    if(l == 0)
-        grids.push_back(-1);
-    for(int m = MAX(l, 1); m <= maxlev; ++m)
-        for(int id : lev[m])
-            grids.push_back(id);
+    if(l==0)
+    grids.push_back(-1);
+    for(int m=MAX(l,1); m<=maxlev; ++m)
+    for(int id : lev[m])
+    grids.push_back(id);
 
     // cells around the patches of the levels above l at this time (all synchronous); the cells
     // around level l keep the values of its last fill (the parent is fixed)
     auto refill = [&]()
     {
         cache_stage(0);
-        for(int m = l + 1; m <= maxlev; ++m)
-            fill_level(pgc, m, 0);
+        for(int m=l+1; m<=maxlev; ++m)
+        fill_level(pgc,m,0);
     };
     refill();
 
@@ -193,49 +182,49 @@ void sflow_amr::nh_project(lexer *p, ghostcell *pgc, int l, double dt)
     vector<double> dts(grids.size());
     vector<double> Rnow;
 
-    for(size_t n = 0; n < grids.size(); ++n)
+    for(size_t n=0; n<grids.size(); ++n)
     {
         const int g = grids[n];
         gh G = grid(g);
         lexer *q = G.q;
         fdm2D *pb = G.b;
-        sflow_pressure_nh *pn = (g < 0) ? pnh0 : SP(g)->pnh;
+        sflow_pressure_nh *pn = (g<0) ? pnh0 : SP(g)->pnh;
 
         dts[n] = q->dt;
         q->dt = dt;
 
-        const size_t nc = (size_t)q->imax * q->jmax;
-        psave[n].assign(pb->press.V, pb->press.V + nc);
-        std::fill(pb->press.V, pb->press.V + nc, 0.0);
+        const size_t nc = (size_t)q->imax*q->jmax;
+        psave[n].assign(pb->press.V,pb->press.V+nc);
+        std::fill(pb->press.V,pb->press.V+nc,0.0);
 
-        if(g < 0)
-            pn->assemble(q, pb, pgc, pb->UH, pb->VH, pb->WL, pb->U, pb->V, 1.0);
+        if(g<0)
+        pn->assemble(q,pb,pgc,pb->UH,pb->VH,pb->WL,pb->U,pb->V,1.0);
         else
         {
             comms_off guard(pgc);
-            pn->assemble(q, pb, pgc, pb->UH, pb->VH, pb->WL, pb->U, pb->V, 1.0);
+            pn->assemble(q,pb,pgc,pb->UH,pb->VH,pb->WL,pb->U,pb->V,1.0);
         }
 
         // right-hand side: the change of the residual since the end of the grid's own step
-        nh_resid(g, Rnow);
-        const vector<double> &Re = (g < 0) ? nh0_rend : SP(g)->rend;
-        const bool have = (Re.size() == Rnow.size());
+        nh_resid(g,Rnow);
+        const vector<double> &Re = (g<0) ? nh0_rend : SP(g)->rend;
+        const bool have = (Re.size()==Rnow.size());
 
-        int r = 0;
-        for(int ii = 0; ii < q->knox; ++ii)
-            for(int jj = 0; jj < q->knoy; ++jj)
-                if(q->flagslice4[lij(q, ii, jj)] > 0)
-                {
-                    const int c = lij(q, ii, jj);
-                    pb->rhsvec.V[r] = (have && pn->is_active(q, pb, ii, jj)) ? -(Rnow[c] - Re[c]) / dt : 0.0;
-                    ++r;
-                }
+        int r=0;
+        for(int ii=0; ii<q->knox; ++ii)
+        for(int jj=0; jj<q->knoy; ++jj)
+        if(q->flagslice4[lij(q,ii,jj)]>0)
+        {
+            const int c = lij(q,ii,jj);
+            pb->rhsvec.V[r] = (have && pn->is_active(q,pb,ii,jj)) ? -(Rnow[c]-Re[c])/dt : 0.0;
+            ++r;
+        }
     }
 
     wlo = l;
     whi = -1;
-    nh_edge = (l > 0);
-    nh_prepare(pgc, false);
+    nh_edge = (l>0);
+    nh_prepare(pgc,false);
     nh_core(p);
     nh_edge = false;
     wlo = 0;
@@ -244,97 +233,87 @@ void sflow_amr::nh_project(lexer *p, ghostcell *pgc, int l, double dt)
     ++sub_sy_n;
 
     // velocity correction (as sflow_pjm_lin/quad, without the bed acceleration), velocities
-    for(size_t n = 0; n < grids.size(); ++n)
+    for(size_t n=0; n<grids.size(); ++n)
     {
         const int g = grids[n];
         gh G = grid(g);
         lexer *q = G.q;
         fdm2D *pb = G.b;
-        sflow_pressure_nh *pn = (g < 0) ? pnh0 : SP(g)->pnh;
+        sflow_pressure_nh *pn = (g<0) ? pnh0 : SP(g)->pnh;
         double cbq, cwq;
-        pn->coef(cbq, cwq);
+        pn->coef(cbq,cwq);
 
         auto correct = [&]()
         {
-            pgc->gcsl_start4(q, pb->press, pn->gcval());
+            pgc->gcsl_start4(q,pb->press,pn->gcval());
 
-            int i0, i1, j0, j1;
-            if(g < 0)
-            {
-                i0 = 0;
-                i1 = NX0 - 1;
-                j0 = 0;
-                j1 = NY0 - 1;
-            }
-            else
-            {
-                i0 = EXT;
-                i1 = EXT + P[g]->nx - 1;
-                j0 = EY;
-                j1 = EY + P[g]->ny - 1;
-            }
+            int i0,i1,j0,j1;
+            if(g<0) { i0=0; i1=NX0-1; j0=0; j1=NY0-1; }
+            else    { i0=EXT; i1=EXT+P[g]->nx-1; j0=EY; j1=EY+P[g]->ny-1; }
 
             slice &Pc = pb->press;
             slice &WL = pb->WL;
-            const double f = dt / p0->W1;
+            const double f = dt/p0->W1;
 
-            for(int ii = i0; ii <= i1; ++ii)
-                for(int jj = j0; jj <= j1; ++jj)
+            for(int ii=i0; ii<=i1; ++ii)
+            for(int jj=j0; jj<=j1; ++jj)
+            {
+                if(q->flagslice4[lij(q,ii,jj)]<=0 || pn->is_active(q,pb,ii,jj)==0)
+                continue;
+
+                if(q->geo_curv==1)
                 {
-                    if(q->flagslice4[lij(q, ii, jj)] <= 0 || pn->is_active(q, pb, ii, jj) == 0)
-                        continue;
-
-                    if(q->geo_curv == 1)
-                    {
-                        double gx, gy, dx_, dy_;
-                        sflow_curv::grad5(q, ii, jj, WL(ii + 1, jj) * Pc(ii + 1, jj), WL(ii - 1, jj) * Pc(ii - 1, jj),
-                                          WL(ii, jj + 1) * Pc(ii, jj + 1), WL(ii, jj - 1) * Pc(ii, jj - 1), gx, gy);
-                        sflow_curv::grad(q, pb->depth, ii, jj, dx_, dy_);
-                        pb->UH(ii, jj) -= f * (gx - cbq * Pc(ii, jj) * dx_);
-                        pb->VH(ii, jj) -= f * (gy - cbq * Pc(ii, jj) * dy_);
-                        pb->WH(ii, jj) += f * cwq * Pc(ii, jj);
-                        continue;
-                    }
-
-                    const double dx = q->DXP[ii + marge] + q->DXP[ii - 1 + marge];
-                    pb->UH(ii, jj) -= f * ((WL(ii + 1, jj) * Pc(ii + 1, jj) - WL(ii - 1, jj) * Pc(ii - 1, jj)) / dx - cbq * Pc(ii, jj) * (pb->depth(ii + 1, jj) - pb->depth(ii - 1, jj)) / dx);
-
-                    if(p0->j_dir == 1)
-                    {
-                        const double dy = q->DYP[jj + marge] + q->DYP[jj - 1 + marge];
-                        pb->VH(ii, jj) -= f * ((WL(ii, jj + 1) * Pc(ii, jj + 1) - WL(ii, jj - 1) * Pc(ii, jj - 1)) / dy - cbq * Pc(ii, jj) * (pb->depth(ii, jj + 1) - pb->depth(ii, jj - 1)) / dy);
-                    }
-
-                    pb->WH(ii, jj) += f * cwq * Pc(ii, jj);
+                double gx,gy,dx_,dy_;
+                sflow_curv::grad5(q,ii,jj,WL(ii+1,jj)*Pc(ii+1,jj),WL(ii-1,jj)*Pc(ii-1,jj),
+                                         WL(ii,jj+1)*Pc(ii,jj+1),WL(ii,jj-1)*Pc(ii,jj-1),gx,gy);
+                sflow_curv::grad(q,pb->depth,ii,jj,dx_,dy_);
+                pb->UH(ii,jj) -= f*(gx - cbq*Pc(ii,jj)*dx_);
+                pb->VH(ii,jj) -= f*(gy - cbq*Pc(ii,jj)*dy_);
+                pb->WH(ii,jj) += f*cwq*Pc(ii,jj);
+                continue;
                 }
 
-            G.m->velcalc(q, pb, pgc, pb->UH, pb->VH, pb->WH, pb->WL, 2);
+                const double dx = q->DXP[ii+marge] + q->DXP[ii-1+marge];
+                pb->UH(ii,jj) -= f*((WL(ii+1,jj)*Pc(ii+1,jj) - WL(ii-1,jj)*Pc(ii-1,jj))/dx
+                                    - cbq*Pc(ii,jj)*(pb->depth(ii+1,jj) - pb->depth(ii-1,jj))/dx);
+
+                if(p0->j_dir==1)
+                {
+                const double dy = q->DYP[jj+marge] + q->DYP[jj-1+marge];
+                pb->VH(ii,jj) -= f*((WL(ii,jj+1)*Pc(ii,jj+1) - WL(ii,jj-1)*Pc(ii,jj-1))/dy
+                                    - cbq*Pc(ii,jj)*(pb->depth(ii,jj+1) - pb->depth(ii,jj-1))/dy);
+                }
+
+                pb->WH(ii,jj) += f*cwq*Pc(ii,jj);
+            }
+
+            G.m->velcalc(q,pb,pgc,pb->UH,pb->VH,pb->WH,pb->WL,2);
         };
 
-        if(g < 0)
-            correct();
+        if(g<0)
+        correct();
         else
         {
             comms_off guard(pgc);
             correct();
         }
 
-        std::copy(psave[n].begin(), psave[n].end(), pb->press.V);
+        std::copy(psave[n].begin(),psave[n].end(),pb->press.V);
         q->dt = dts[n];
     }
 
     // the levels above l into level l again, the level-0 halo, the cells around the patches
-    for(int m = maxlev; m >= l + 1; --m)
-        restrict_level(p0, m, 2);
+    for(int m=maxlev; m>=l+1; --m)
+    restrict_level(p0,m,2);
 
-    if(l == 0)
-        exchange_level0(p0, b0, pgc, 2);
+    if(l==0)
+    exchange_level0(p0,b0,pgc,2);
 
     refill();
 
     // the residual of the coupled state is the reference of the next synchronisation
     for(int g : grids)
-        nh_store_end(g);
+    nh_store_end(g);
 
-    tm[5] += MPI_Wtime() - t0;
+    tm[5] += MPI_Wtime()-t0;
 }

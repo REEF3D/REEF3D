@@ -20,219 +20,222 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "ghostcell.h"
-#include "lexer.h"
-#include "reef3d_mpmd.h"
-#include "wave_lib_spectrum.h"
-#include <fstream>
-#include <iostream>
-#include <sstream>
-#include <string>
+#include"wave_lib_spectrum.h"
+#include"reef3d_mpmd.h"
+#include"lexer.h"
+#include"ghostcell.h"
+#include<iostream>
+#include<fstream>
+#include<string>
+#include<sstream>
 
 using namespace std;
+
 
 double wave_lib_spectrum::spectrum_file(lexer *p, double w)
 {
 
-    Sval = 0.0;
+	Sval = 0.0;
 
-    for(int n = 0; n < ptnum - 1; ++n)
-        if(w > spectrum[n][0] && w < spectrum[n + 1][0])
-            Sval = ((spectrum[n + 1][1] - spectrum[n][1]) / (spectrum[n + 1][0] - spectrum[n][0])) * (w - spectrum[n][0]) + spectrum[n][1];
+	for(int n=0;n<ptnum-1;++n)
+	if(w>spectrum[n][0] && w<spectrum[n+1][0])
+	Sval = ((spectrum[n+1][1]-spectrum[n][1])/(spectrum[n+1][0]-spectrum[n][0]))*(w-spectrum[n][0]) + spectrum[n][1];
 
-    if(w < spectrum[0][0] || w > spectrum[ptnum - 1][0])
-        Sval = 0.0;
+	if(w<spectrum[0][0] || w>spectrum[ptnum-1][0])
+	Sval = 0.0;
 
-    return Sval;
+	return Sval;
 }
 
 void wave_lib_spectrum::spectrum_file_read(lexer *p)
 {
-    char name[100];
-    double val, val0, val1, Sval;
-    int count;
+  char name[100];
+	double val,val0,val1,Sval;
+	int count;
 
-    double ts, te;
-    int timecount;
 
-    sprintf(name, "spectrum-file.dat");
+	double ts,te;
+	int timecount;
 
-    // open file------------
-    ifstream file(name, ios_base::in);
+	sprintf(name,"spectrum-file.dat");
 
-    if(!file)
-    {
-        cout << endl
-             << ("no 'spectrum-file.dat' file found") << endl
-             << endl;
-    }
+// open file------------
+	ifstream file(name, ios_base::in);
 
-    count = 0;
-    while(!file.eof())
-    {
-        file >> val0 >> val1;
-        ++count;
-    }
+	if(!file)
+	{
+		cout<<endl<<("no 'spectrum-file.dat' file found")<<endl<<endl;
 
-    file.close();
+	}
 
-    ptnum = count;
+	count=0;
+	while(!file.eof())
+	{
+	file>>val0>>val1;
+	++count;
+	}
 
-    p->Darray(spectrum, ptnum, 2);
+	file.close();
 
-    file.open("spectrum-file.dat", ios_base::in);
 
-    count = 0;
-    while(!file.eof())
-    {
+    ptnum=count;
 
-        file >> val0 >> val1;
+	p->Darray(spectrum,ptnum,2);
 
-        spectrum[count][0] = val0;
-        spectrum[count][1] = val1;
-        ++count;
-    }
+	file.open ("spectrum-file.dat", ios_base::in);
 
-    ts = spectrum[0][0];
-    te = spectrum[ptnum - 1][0];
+	count=0;
+	while(!file.eof())
+	{
+
+	file>>val0>>val1;
+
+
+	spectrum[count][0] = val0;
+	spectrum[count][1] = val1;
+	++count;
+	}
+
+	ts = spectrum[0][0];
+	te = spectrum[ptnum-1][0];
+
 }
 
 void wave_lib_spectrum::spectrum_file_2d_read(lexer *p)
 {
-    char name[100];
-    int n, m;
-    double val;
-    string header;
+	char name[100];
+	int n, m;
+	double val;
+	string header;
 
-    sprintf(name, "spectrum-file-2d.dat");
+	sprintf(name,"spectrum-file-2d.dat");
 
-    ifstream file(name, ios_base::in);
+	ifstream file(name, ios_base::in);
 
-    if(!file)
-    {
-        if(p->mpirank == 0)
-            cout << endl
-                 << ("no 'spectrum-file-2d.dat' file found") << endl
-                 << endl;
-    }
+	if(!file)
+	{
+		if(p->mpirank==0)
+			cout<<endl<<("no 'spectrum-file-2d.dat' file found")<<endl<<endl;
+	}
 
-    // Read header line to determine number of directions
-    if(file.is_open())
-        getline(file, header);
-    else
-        header = "";
-    istringstream iss(header);
-    string temp;
-    iss >> temp;  // Skip "fq_dir"
+	// Read header line to determine number of directions
+	if(file.is_open())
+		getline(file, header);
+	else
+		header = "";
+	istringstream iss(header);
+	string temp;
+	iss >> temp; // Skip "fq_dir"
 
-    ptnum_dir_2d = 0;
-    if(file.is_open())
-    {
-        while(iss >> val)
-            ++ptnum_dir_2d;
-    }
+	ptnum_dir_2d = 0;
+	if(file.is_open())
+	{
+		while(iss >> val)
+			++ptnum_dir_2d;
+	}
 
-    // Ensure minimum size even if file failed
-    if(ptnum_dir_2d == 0)
-        ptnum_dir_2d = 1;
+	// Ensure minimum size even if file failed
+	if(ptnum_dir_2d == 0)
+		ptnum_dir_2d = 1;
 
-    // Allocate direction array (use standard new[] to avoid Darray alignment issues)
-    dir_2d = new double[ptnum_dir_2d];
+	// Allocate direction array (use standard new[] to avoid Darray alignment issues)
+	dir_2d = new double[ptnum_dir_2d];
 
-    // Re-read header to get direction values
-    if(file.is_open())
-    {
-        file.clear();
-        file.seekg(0, ios::beg);
-        getline(file, header);
-        istringstream iss2(header);
-        iss2 >> temp;  // Skip "fq_dir"
+	// Re-read header to get direction values
+	if(file.is_open())
+	{
+		file.clear();
+		file.seekg(0, ios::beg);
+		getline(file, header);
+		istringstream iss2(header);
+		iss2 >> temp; // Skip "fq_dir"
 
-        for(m = 0; m < ptnum_dir_2d; ++m)
-            iss2 >> dir_2d[m];
-    }
-    else
-    {
-        // Initialize with dummy values
-        for(m = 0; m < ptnum_dir_2d; ++m)
-            dir_2d[m] = 0.0;
-    }
+		for(m = 0; m < ptnum_dir_2d; ++m)
+			iss2 >> dir_2d[m];
 
-    // Count number of frequency lines
-    ptnum_freq_2d = 0;
-    if(file.is_open())
-    {
-        while(!file.eof())
-        {
-            getline(file, header);
-            if(header.length() > 0)
-                ++ptnum_freq_2d;
-        }
-        file.close();
-    }
+	}
+	else
+	{
+		// Initialize with dummy values
+		for(m = 0; m < ptnum_dir_2d; ++m)
+			dir_2d[m] = 0.0;
+	}
 
-    // Ensure minimum size even if file failed
-    if(ptnum_freq_2d == 0)
-        ptnum_freq_2d = 1;
+	// Count number of frequency lines
+	ptnum_freq_2d = 0;
+	if(file.is_open())
+	{
+		while(!file.eof())
+		{
+			getline(file, header);
+			if(header.length() > 0)
+				++ptnum_freq_2d;
+		}
+		file.close();
+	}
 
-    // MPI: Broadcast dimensions from rank 0 to all other ranks
-    int temp_vals[2];
-    if(p->mpirank == 0)
-    {
-        temp_vals[0] = ptnum_freq_2d;
-        temp_vals[1] = ptnum_dir_2d;
-    }
-    MPI_Bcast(temp_vals, 2, MPI_INT, 0, reef3d_comm());
-    ptnum_freq_2d = temp_vals[0];
-    ptnum_dir_2d = temp_vals[1];
+	// Ensure minimum size even if file failed
+	if(ptnum_freq_2d == 0)
+		ptnum_freq_2d = 1;
 
-    // Allocate arrays (use standard new[] to avoid Darray alignment issues)
-    freq_2d = new double[ptnum_freq_2d];
-    spectrum_2d_1d = new double[ptnum_freq_2d * ptnum_dir_2d];
+	// MPI: Broadcast dimensions from rank 0 to all other ranks
+	int temp_vals[2];
+	if(p->mpirank == 0)
+	{
+		temp_vals[0] = ptnum_freq_2d;
+		temp_vals[1] = ptnum_dir_2d;
+	}
+	MPI_Bcast(temp_vals, 2, MPI_INT, 0, reef3d_comm());
+	ptnum_freq_2d = temp_vals[0];
+	ptnum_dir_2d = temp_vals[1];
 
-    // Allocate direction array on all ranks (was only allocated on rank 0 before)
-    if(p->mpirank != 0)
-        dir_2d = new double[ptnum_dir_2d];
+	// Allocate arrays (use standard new[] to avoid Darray alignment issues)
+	freq_2d = new double[ptnum_freq_2d];
+	spectrum_2d_1d = new double[ptnum_freq_2d * ptnum_dir_2d];
 
-    // Re-open and read data
-    file.open(name, ios_base::in);
+	// Allocate direction array on all ranks (was only allocated on rank 0 before)
+	if(p->mpirank != 0)
+		dir_2d = new double[ptnum_dir_2d];
 
-    if(file.is_open())
-    {
-        getline(file, header);  // Skip header line
+	// Re-open and read data
+	file.open(name, ios_base::in);
 
-        n = 0;
-        while(n < ptnum_freq_2d && !file.eof())
-        {
-            file >> freq_2d[n];
-            for(m = 0; m < ptnum_dir_2d; ++m)
-                file >> spectrum_2d_1d[n * ptnum_dir_2d + m];  // 1D indexing
-            ++n;
-        }
+	if(file.is_open())
+	{
+		getline(file, header); // Skip header line
 
-        file.close();
+		n = 0;
+		while(n < ptnum_freq_2d && !file.eof())
+		{
+			file >> freq_2d[n];
+			for(m = 0; m < ptnum_dir_2d; ++m)
+				file >> spectrum_2d_1d[n * ptnum_dir_2d + m];  // 1D indexing
+			++n;
+		}
 
-        if(p->mpirank == 0)
-        {
-            cout << "2D Spectrum file read successfully" << endl;
-            cout << "Frequencies: " << ptnum_freq_2d << " Directions: " << ptnum_dir_2d << endl;
-            cout << "Freq range: " << freq_2d[0] << " to " << freq_2d[ptnum_freq_2d - 1] << endl;
-            cout << "Dir range: " << dir_2d[0] << " to " << dir_2d[ptnum_dir_2d - 1] << endl;
-        }
-    }
-    else
-    {
-        // Initialize with dummy values if file couldn't be read
-        for(n = 0; n < ptnum_freq_2d; ++n)
-        {
-            freq_2d[n] = 0.0;
-            for(m = 0; m < ptnum_dir_2d; ++m)
-                spectrum_2d_1d[n * ptnum_dir_2d + m] = 0.0;  // 1D indexing
-        }
-    }
+		file.close();
 
-    // MPI: Broadcast all data arrays from rank 0 to all other ranks
-    MPI_Bcast(freq_2d, ptnum_freq_2d, MPI_DOUBLE, 0, reef3d_comm());
-    MPI_Bcast(dir_2d, ptnum_dir_2d, MPI_DOUBLE, 0, reef3d_comm());
-    MPI_Bcast(spectrum_2d_1d, ptnum_freq_2d * ptnum_dir_2d, MPI_DOUBLE, 0, reef3d_comm());
+		if(p->mpirank == 0)
+		{
+			cout << "2D Spectrum file read successfully" << endl;
+			cout << "Frequencies: " << ptnum_freq_2d << " Directions: " << ptnum_dir_2d << endl;
+			cout << "Freq range: " << freq_2d[0] << " to " << freq_2d[ptnum_freq_2d-1] << endl;
+			cout << "Dir range: " << dir_2d[0] << " to " << dir_2d[ptnum_dir_2d-1] << endl;
+		}
+	}
+	else
+	{
+		// Initialize with dummy values if file couldn't be read
+		for(n = 0; n < ptnum_freq_2d; ++n)
+		{
+			freq_2d[n] = 0.0;
+			for(m = 0; m < ptnum_dir_2d; ++m)
+				spectrum_2d_1d[n * ptnum_dir_2d + m] = 0.0;  // 1D indexing
+		}
+	}
+
+	// MPI: Broadcast all data arrays from rank 0 to all other ranks
+	MPI_Bcast(freq_2d, ptnum_freq_2d, MPI_DOUBLE, 0, reef3d_comm());
+	MPI_Bcast(dir_2d, ptnum_dir_2d, MPI_DOUBLE, 0, reef3d_comm());
+	MPI_Bcast(spectrum_2d_1d, ptnum_freq_2d * ptnum_dir_2d, MPI_DOUBLE, 0, reef3d_comm());
 }

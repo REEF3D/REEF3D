@@ -23,11 +23,11 @@ Architect: Hans Bihs
 #ifndef FNPF_6DOF_H_
 #define FNPF_6DOF_H_
 
-#include "fnpf_body.h"
-#include "increment.h"
-#include "slice4.h"
-#include <Eigen/Dense>
-#include <vector>
+#include<Eigen/Dense>
+#include"increment.h"
+#include"fnpf_body.h"
+#include"slice4.h"
+#include<vector>
 
 class lexer;
 class fdm_fnpf;
@@ -70,20 +70,20 @@ struct fnpf_6DOF_grid
     lexer *p = nullptr;
     fdm_fnpf *c = nullptr;
     fnpf_fsf *pf = nullptr;
-    int id = -1;         // fnpf_amr grid id, -1: level 0
-    int serial = -1;     // fnpf_amr patch serial number (the grid follows its patch)
-    bool fresh = false;  // body geometry not yet built
-    bool l0 = true;      // level 0: MPI exchange and global reductions; patch: local
-    double del = 0.0;    // load sampling distance off the hull
+    int id = -1;                    // fnpf_amr grid id, -1: level 0
+    int serial = -1;                // fnpf_amr patch serial number (the grid follows its patch)
+    bool fresh = false;             // body geometry not yet built
+    bool l0 = true;                 // level 0: MPI exchange and global reductions; patch: local
+    double del = 0.0;               // load sampling distance off the hull
     double *psi0 = nullptr;
-    double *psi[6] = {nullptr, nullptr, nullptr, nullptr, nullptr, nullptr};
+    double *psi[6] = {nullptr,nullptr,nullptr,nullptr,nullptr,nullptr};
     // several bodies (X 20): the unit modes of the bodies 1, 2, ... [6*(nb-1)+m] (body 0: psi), each
     // body's own last solution as the start value of its next unit-mode solve
-    vector<double *> psib;
-    double *cal[6] = {nullptr, nullptr, nullptr, nullptr, nullptr, nullptr};  // X 36 1: scratch of the calibration
+    vector<double*> psib;
+    double *cal[6] = {nullptr,nullptr,nullptr,nullptr,nullptr,nullptr};    // X 36 1: scratch of the calibration
     double *zero = nullptr;
     int *mark = nullptr;
-    vector<int> todo;  // scratch: the open body nodes (extrapolate, body_velocities), the footprint columns
+    vector<int> todo;               // scratch: the open body nodes (extrapolate, body_velocities), the footprint columns
     slice4 *foot = nullptr, *psiD = nullptr, *zeroslice = nullptr, *eta_ext = nullptr, *fi_ext = nullptr;
     bool ext_ini = false;
     int footcount = 0;
@@ -93,11 +93,11 @@ struct fnpf_6DOF_grid
     long pockets_closed = 0;
     fnpf_bed_update *pbed = nullptr;
     fnpf_fsf_update *pvel = nullptr;
-    slice *Keta = nullptr, *Kfi = nullptr;  // patch: tendencies of the current stage
+    slice *Keta = nullptr, *Kfi = nullptr;      // patch: tendencies of the current stage
     // X 35: the last two solutions of every kind of psi solve (slot: the stage of psi_0, a unit
     // mode, the stage of a finest-level psi_0) and their times, the initial guess of the next one
     // of the kind by linear extrapolation (psi_guess, psi_record)
-    std::vector<double *> h1, h2;
+    std::vector<double*> h1, h2;
     std::vector<double> ht1, ht2;
 };
 
@@ -105,9 +105,8 @@ struct fnpf_6DOF_grid
 class fnpf_psi_tol
 {
 public:
-    fnpf_psi_tol(lexer *);
+    fnpf_psi_tol(lexer*);
     ~fnpf_psi_tol();
-
 private:
     lexer *p;
     const double n44;
@@ -116,72 +115,72 @@ private:
 class fnpf_6DOF : public fnpf_body, public increment
 {
 public:
-    fnpf_6DOF(lexer *, fdm_fnpf *, ghostcell *);
+    fnpf_6DOF(lexer*, fdm_fnpf*, ghostcell*);
     virtual ~fnpf_6DOF();
-
+    
     // fnpf_body hooks
-    void initialize(lexer *, fdm_fnpf *, ghostcell *) override;
-    void stage(lexer *, fdm_fnpf *, ghostcell *, solver *, fnpf_fsf *, slice &, slice &, int) override;
-    void surface(lexer *, fdm_fnpf *, ghostcell *, slice &, slice &, int, int) override;
-    void velocity(lexer *, fdm_fnpf *, ghostcell *) override;
-    fnpf_laplace *laplace(fnpf_laplace *) override;
-
+    void initialize(lexer*, fdm_fnpf*, ghostcell*) override;
+    void stage(lexer*, fdm_fnpf*, ghostcell*, solver*, fnpf_fsf*, slice&, slice&, int) override;
+    void surface(lexer*, fdm_fnpf*, ghostcell*, slice&, slice&, int, int) override;
+    void velocity(lexer*, fdm_fnpf*, ghostcell*) override;
+    fnpf_laplace* laplace(fnpf_laplace*) override;
+    
     // mesh refinement (fnpf_amr)
-    bool present() const override { return true; }
-    void amr_attach(fnpf_amr *) override;
-    void amr_grids(lexer *, ghostcell *) override;
-    void amr_geometry(lexer *, fdm_fnpf *, ghostcell *) override;
-    void amr_post_solve(lexer *, fdm_fnpf *, ghostcell *, double *) override;
-    void amr_surface(lexer *, ghostcell *, int, slice &, slice &) override;
-    void amr_bodies(vector<sixdof_obj *> &) override;
-
+    bool present() const override {return true;}
+    void amr_attach(fnpf_amr*) override;
+    void amr_grids(lexer*, ghostcell*) override;
+    void amr_geometry(lexer*, fdm_fnpf*, ghostcell*) override;
+    void amr_post_solve(lexer*, fdm_fnpf*, ghostcell*, double*) override;
+    void amr_surface(lexer*, ghostcell*, int, slice&, slice&) override;
+    void amr_bodies(vector<sixdof_obj*>&) override;
+    
     // mesh refinement with subcycling (fnpf_amr G 7 1, fnpf_6DOF_sub.cpp): the finest level
     // advances the body with its stages and the loads of a psi solve on its patches; level 0
     // (the loads and the added mass of all grids at the start of its step) and the levels in
     // between step with a predicted copy
     void amr_save();
-    void amr_restore(lexer *, ghostcell *);
-    void amr_sub_predict(lexer *, ghostcell *, int, double, double);
-    void amr_sub_finest(lexer *, fdm_fnpf *, ghostcell *, int, int, double, double, bool, bool);
-    void amr_geometry_level(lexer *, ghostcell *, int);
-    void amr_post_solve_level(lexer *, ghostcell *, int);
-
+    void amr_restore(lexer*, ghostcell*);
+    void amr_sub_predict(lexer*, ghostcell*, int, double, double);
+    void amr_sub_finest(lexer*, fdm_fnpf*, ghostcell*, int, int, double, double, bool, bool);
+    void amr_geometry_level(lexer*, ghostcell*, int);
+    void amr_post_solve_level(lexer*, ghostcell*, int);
+    
     // used by the decorated Laplace solver around the phi solve:
     // body geometry on the new sigma grid, then extrapolation of the body band
-    void pre_solve(lexer *, fdm_fnpf *, ghostcell *);
-    void post_solve(lexer *, fdm_fnpf *, ghostcell *, double *);
-
+    void pre_solve(lexer*, fdm_fnpf*, ghostcell*);
+    void post_solve(lexer*, fdm_fnpf*, ghostcell*, double*);
+    
     // checkpoints (P 48, I 45, fnpf_6DOF_ckpt.cpp)
-    void ckpt_state(lexer *, std::vector<double> &) override;
-    bool ckpt_restore(lexer *, ghostcell *, const std::vector<double> &) override;
-    void ckpt_rank_state(std::vector<double> &) override;
-    void ckpt_rank_restore(const std::vector<std::vector<double>> &) override;
-    void ckpt_fields(const ckpt_fd &, const ckpt_fi &) override;
-    void amr_ckpt_fields(lexer *, const ckpt_fd &, const ckpt_fi &) override;
-    void amr_ckpt_grids(lexer *, ghostcell *) override;
-
+    void ckpt_state(lexer*, std::vector<double>&) override;
+    bool ckpt_restore(lexer*, ghostcell*, const std::vector<double>&) override;
+    void ckpt_rank_state(std::vector<double>&) override;
+    void ckpt_rank_restore(const std::vector<std::vector<double>>&) override;
+    void ckpt_fields(const ckpt_fd&, const ckpt_fi&) override;
+    void amr_ckpt_fields(lexer*, const ckpt_fd&, const ckpt_fi&) override;
+    void amr_ckpt_grids(lexer*, ghostcell*) override;
+    
     bool initialized;
-
+    
 private:
-    void geometry(fnpf_6DOF_grid &, ghostcell *);
-    void extrapolate(fnpf_6DOF_grid &, ghostcell *, double *);
-    void close_pockets(fnpf_6DOF_grid &, double *FBF);
-    void body_velocities(fnpf_6DOF_grid &, ghostcell *);
-    void ini(lexer *, fdm_fnpf *, ghostcell *);
-    void forces(lexer *, fdm_fnpf *, ghostcell *, solver *, fnpf_fsf *, slice &, slice &, int);
-    void forces_amr(lexer *, fdm_fnpf *, ghostcell *, solver *, fnpf_fsf *, slice &, slice &, int);
-    void motion(lexer *, fdm_fnpf *, ghostcell *, int);
-    void footprint(fnpf_6DOF_grid &, ghostcell *, slice &, slice &, int, int);
-    void solve_psi(lexer *, fdm_fnpf *, ghostcell *, solver *, fnpf_laplace *, fnpf_fsf *, double *, slice &, int);
-    void solve_psi_amr(lexer *, fdm_fnpf *, ghostcell *, solver *, fnpf_fsf *, int, bool, int, int nb = 0);
+    void geometry(fnpf_6DOF_grid&, ghostcell*);
+    void extrapolate(fnpf_6DOF_grid&, ghostcell*, double*);
+    void close_pockets(fnpf_6DOF_grid&, double *FBF);
+    void body_velocities(fnpf_6DOF_grid&, ghostcell*);
+    void ini(lexer*, fdm_fnpf*, ghostcell*);
+    void forces(lexer*, fdm_fnpf*, ghostcell*, solver*, fnpf_fsf*, slice&, slice&, int);
+    void forces_amr(lexer*, fdm_fnpf*, ghostcell*, solver*, fnpf_fsf*, slice&, slice&, int);
+    void motion(lexer*, fdm_fnpf*, ghostcell*, int);
+    void footprint(fnpf_6DOF_grid&, ghostcell*, slice&, slice&, int, int);
+    void solve_psi(lexer*, fdm_fnpf*, ghostcell*, solver*, fnpf_laplace*, fnpf_fsf*, double*, slice&, int);
+    void solve_psi_amr(lexer*, fdm_fnpf*, ghostcell*, solver*, fnpf_fsf*, int, bool, int, int nb=0);
     // X 36: the unit mode m of body nb on the patches of its window only (wout[nb]: the patches outside,
     // 1); the windows of all bodies at an added-mass refresh (windows): per body the patches that reach
     // into its zone (fnpf_amr::zone_box), whether it has one on some rank (wok; without: the solve on all
     // grids), and whose zones they reach (wmeet[nb*nbody+nb2]: the cross added mass of nb2 from the modes
     // of nb, 0 otherwise)
-    void solve_psi_window(lexer *, fdm_fnpf *, ghostcell *, int, int, int);
-    void windows(lexer *, ghostcell *);
-    bool win_on(lexer *) const;
+    void solve_psi_window(lexer*, fdm_fnpf*, ghostcell*, int, int, int);
+    void windows(lexer*, ghostcell*);
+    bool win_on(lexer*) const;
     vector<vector<char>> wout, wgp;
     vector<int> wmeet;
     vector<char> wok;
@@ -190,83 +189,78 @@ private:
     // fnpf_6DOF_grid::cal: scratch arrays outside its window), the differences of the added mass (own
     // block cal_dA, cross blocks cal_dC) to the window solves are kept and added to the window results
     // until the next calibration
-    void solve_psi_cal(lexer *, fdm_fnpf *, ghostcell *, solver *, fnpf_fsf *, int, int);
-    vector<Eigen::Matrix<double, 6, 6>> cal_dA, cal_dC;
+    void solve_psi_cal(lexer*, fdm_fnpf*, ghostcell*, solver*, fnpf_fsf*, int, int);
+    vector<Eigen::Matrix<double,6,6>> cal_dA, cal_dC;
     bool cal_have = false, cal_stale = false;
     int am_refreshes = 0, cal_refresh = -1;
     // X 35: the initial guess of a psi solve of kind slot at time t from the last two of the kind
     // (psi_slot: 0-3 psi_0 of the stage, 4-9 the unit modes, 10-13 psi_0 of a finest-level stage,
     // 14 + 6 (nb-1) + m the unit modes of the bodies nb = 1, 2, ...)
-    static int psi_slot(int m, int iter, bool level, int nb = 0) { return m >= 0 ? (nb == 0 ? 4 + m : 14 + 6 * (nb - 1) + m) : (level ? 10 + iter : iter); }
-    double psi_time(lexer *, int) const;
-    void psi_guess(fnpf_6DOF_grid &, int, double *, double);
-    void psi_record(fnpf_6DOF_grid &, int, const double *, double);
+    static int psi_slot(int m, int iter, bool level, int nb=0) { return m>=0 ? (nb==0 ? 4+m : 14+6*(nb-1)+m) : (level ? 10+iter : iter); }
+    double psi_time(lexer*, int) const;
+    void psi_guess(fnpf_6DOF_grid&, int, double*, double);
+    void psi_record(fnpf_6DOF_grid&, int, const double*, double);
     // the unit mode m of body nb on grid G (allocated when missing)
-    double *mode_array(fnpf_6DOF_grid &, int nb, int m);
+    double* mode_array(fnpf_6DOF_grid&, int nb, int m);
     // start value of the rotation mode m (3-5) of body nb on grid G: its last solution moved to the new
     // centre of gravity with the translation modes tr of this refresh (d: c now - c of the last one)
-    void mode_shift(fnpf_6DOF_grid &, int nb, int m, double *const *tr, const Eigen::Vector3d &d);
-    void zero_face(fnpf_6DOF_grid &);
-    void exchange_face(fnpf_6DOF_grid &, ghostcell *);
-    void free_grid(fnpf_6DOF_grid &);
-    void amr_fresh(ghostcell *);
-    void grid_fields(fnpf_6DOF_grid *, const ckpt_fd &, const ckpt_fi &);
-    bool ckpt_grids = false;  // restart: the body grids of the patches wait for their arrays
+    void mode_shift(fnpf_6DOF_grid&, int nb, int m, double *const *tr, const Eigen::Vector3d &d);
+    void zero_face(fnpf_6DOF_grid&);
+    void exchange_face(fnpf_6DOF_grid&, ghostcell*);
+    void free_grid(fnpf_6DOF_grid&);
+    void amr_fresh(ghostcell*);
+    void grid_fields(fnpf_6DOF_grid*, const ckpt_fd&, const ckpt_fi&);
+    bool ckpt_grids = false;        // restart: the body grids of the patches wait for their arrays
     bool amr_on() const;
     bool amr_sub() const;
-    void forces_level(lexer *, fdm_fnpf *, ghostcell *, int, int);
-
-    vector<sixdof_obj_fnpf *> fb_obj;
+    void forces_level(lexer*, fdm_fnpf*, ghostcell*, int, int);
+    
+    vector<sixdof_obj_fnpf*> fb_obj;
     int nbody;
 
     // external dynamics (6DOF_external.h, e.g. REEF3D::CORAL with fluid_body in coral.txt): the
     // bodies follow the external solver, their loads and added mass go to it (fnpf_6DOF_external.cpp)
-    void ext_connect(lexer *, ghostcell *);
-    void motion_external(lexer *, fdm_fnpf *, ghostcell *, int, bool output = true);
-    void ext_predict_copy(lexer *, ghostcell *, int, double, double);
-    void ext_loads(lexer *, double, bool, bool);
-    void ext_stage_nodes(lexer *, int, double &, double &) const;
+    void ext_connect(lexer*, ghostcell*);
+    void motion_external(lexer*, fdm_fnpf*, ghostcell*, int, bool output=true);
+    void ext_predict_copy(lexer*, ghostcell*, int, double, double);
+    void ext_loads(lexer*, double, bool, bool);
+    void ext_stage_nodes(lexer*, int, double&, double&) const;
     sixdof_external *pext = nullptr;
     bool ext_checked = false;
-    bool ext_twoway = false;  // at least one body two-way (the external solver steps inside the step)
+    bool ext_twoway = false;        // at least one body two-way (the external solver steps inside the step)
 
     // several bodies (X 20): cross added mass A_ij (load on body i from the unit modes of body j),
     // refreshed with the unit-mode solves at the first stage, used in the coupled solve of motion()
-    std::vector<Eigen::Matrix<double, 6, 6>> Across;
+    std::vector<Eigen::Matrix<double,6,6>> Across;
 
     // terminal: one line per step with the psi solves of the bodies (pressure, added mass) and their Laplace
     // iterations (psi_report) instead of the loads and poses of every body
     int psi_solves = 0, psi_itmax = 0;
     long long psi_iter = 0;
-    void psi_count(int it)
-    {
-        ++psi_solves;
-        psi_iter += it;
-        psi_itmax = it > psi_itmax ? it : psi_itmax;
-    }
-    void psi_report(lexer *, ghostcell *);
+    void psi_count(int it) {++psi_solves; psi_iter += it; psi_itmax = it>psi_itmax ? it : psi_itmax;}
+    void psi_report(lexer*, ghostcell*);
     // the time of the loads since the start (all ranks, the maximum printed): the whole of forces,
     // forces_amr and forces_level, of it the psi solves, of these the body-band extrapolation
     double t_loads = 0.0, t_psi = 0.0, t_band = 0.0;
 
     // X 28: the added mass (unit-mode solves, cross terms) every X 28 steps, earlier when a body has
     // moved by more than X 29 since (am_due); the step and the poses of the last one
-    bool am_due(lexer *, int);
+    bool am_due(lexer*, int);
     int am_count = -1;
     std::vector<Eigen::Vector3d> am_c, am_ang;
-    void motion_coupled(lexer *, fdm_fnpf *, ghostcell *, int, bool);
+    void motion_coupled(lexer*, fdm_fnpf*, ghostcell*, int, bool);
     int gcval;
     double *psi0;
     double *psi[6];
     double *zero;
     int *mark;
-    slice4 foot, psiD, zeroslice;
-    slice4 eta_ext, fi_ext;
-
+    slice4 foot,psiD,zeroslice;
+    slice4 eta_ext,fi_ext;
+    
     fnpf_bed_update *pbed;
     fnpf_fsf_update *pvel;
     fnpf_laplace *plap;
-
+    
     // level 0 and the patches (mesh refinement)
     fnpf_6DOF_grid g0;
     vector<fnpf_6DOF_grid> gp;

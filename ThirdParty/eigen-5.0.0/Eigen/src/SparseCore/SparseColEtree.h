@@ -38,19 +38,17 @@ namespace Eigen {
 namespace internal {
 
 /** Find the root of the tree/set containing the vertex i : Use Path halving */
-template<typename Index, typename IndexVector>
-Index etree_find(Index i, IndexVector &pp)
-{
-    Index p = pp(i);   // Parent
-    Index gp = pp(p);  // Grand parent
-    while(gp != p)
-    {
-        pp(i) = gp;  // Parent pointer on find path is changed to former grand parent
-        i = gp;
-        p = pp(i);
-        gp = pp(p);
-    }
-    return p;
+template <typename Index, typename IndexVector>
+Index etree_find(Index i, IndexVector& pp) {
+  Index p = pp(i);   // Parent
+  Index gp = pp(p);  // Grand parent
+  while (gp != p) {
+    pp(i) = gp;  // Parent pointer on find path is changed to former grand parent
+    i = gp;
+    p = pp(i);
+    gp = pp(p);
+  }
+  return p;
 }
 
 /** Compute the column elimination tree of a sparse matrix
@@ -59,123 +57,105 @@ Index etree_find(Index i, IndexVector &pp)
  * \param firstRowElt The column index of the first element in each row
  * \param perm The permutation to apply to the column of \b mat
  */
-template<typename MatrixType, typename IndexVector>
-int coletree(const MatrixType &mat, IndexVector &parent, IndexVector &firstRowElt,
-             typename MatrixType::StorageIndex *perm = 0)
-{
-    typedef typename MatrixType::StorageIndex StorageIndex;
-    StorageIndex nc = convert_index<StorageIndex>(mat.cols());  // Number of columns
-    StorageIndex m = convert_index<StorageIndex>(mat.rows());
-    StorageIndex diagSize = (std::min)(nc, m);
-    IndexVector root(nc);  // root of subtree of etree
-    root.setZero();
-    IndexVector pp(nc);  // disjoint sets
-    pp.setZero();        // Initialize disjoint sets
-    parent.resize(mat.cols());
-    // Compute first nonzero column in each row
-    firstRowElt.resize(m);
-    firstRowElt.setConstant(nc);
-    firstRowElt.segment(0, diagSize).setLinSpaced(diagSize, 0, diagSize - 1);
-    bool found_diag;
-    for(StorageIndex col = 0; col < nc; col++)
-    {
-        StorageIndex pcol = col;
-        if(perm)
-            pcol = perm[col];
-        for(typename MatrixType::InnerIterator it(mat, pcol); it; ++it)
-        {
-            Index row = it.row();
-            firstRowElt(row) = (std::min)(firstRowElt(row), col);
-        }
+template <typename MatrixType, typename IndexVector>
+int coletree(const MatrixType& mat, IndexVector& parent, IndexVector& firstRowElt,
+             typename MatrixType::StorageIndex* perm = 0) {
+  typedef typename MatrixType::StorageIndex StorageIndex;
+  StorageIndex nc = convert_index<StorageIndex>(mat.cols());  // Number of columns
+  StorageIndex m = convert_index<StorageIndex>(mat.rows());
+  StorageIndex diagSize = (std::min)(nc, m);
+  IndexVector root(nc);  // root of subtree of etree
+  root.setZero();
+  IndexVector pp(nc);  // disjoint sets
+  pp.setZero();        // Initialize disjoint sets
+  parent.resize(mat.cols());
+  // Compute first nonzero column in each row
+  firstRowElt.resize(m);
+  firstRowElt.setConstant(nc);
+  firstRowElt.segment(0, diagSize).setLinSpaced(diagSize, 0, diagSize - 1);
+  bool found_diag;
+  for (StorageIndex col = 0; col < nc; col++) {
+    StorageIndex pcol = col;
+    if (perm) pcol = perm[col];
+    for (typename MatrixType::InnerIterator it(mat, pcol); it; ++it) {
+      Index row = it.row();
+      firstRowElt(row) = (std::min)(firstRowElt(row), col);
     }
-    /* Compute etree by Liu's algorithm for symmetric matrices,
-            except use (firstRowElt[r],c) in place of an edge (r,c) of A.
-      Thus each row clique in A'*A is replaced by a star
-      centered at its first vertex, which has the same fill. */
-    StorageIndex rset, cset, rroot;
-    for(StorageIndex col = 0; col < nc; col++)
-    {
-        found_diag = col >= m;
-        pp(col) = col;
-        cset = col;
-        root(cset) = col;
-        parent(col) = nc;
-        /* The diagonal element is treated here even if it does not exist in the matrix
-         * hence the loop is executed once more */
-        StorageIndex pcol = col;
-        if(perm)
-            pcol = perm[col];
-        for(typename MatrixType::InnerIterator it(mat, pcol); it || !found_diag;
-            ++it)
-        {  //  A sequence of interleaved find and union is performed
-            Index i = col;
-            if(it)
-                i = it.index();
-            if(i == col)
-                found_diag = true;
+  }
+  /* Compute etree by Liu's algorithm for symmetric matrices,
+          except use (firstRowElt[r],c) in place of an edge (r,c) of A.
+    Thus each row clique in A'*A is replaced by a star
+    centered at its first vertex, which has the same fill. */
+  StorageIndex rset, cset, rroot;
+  for (StorageIndex col = 0; col < nc; col++) {
+    found_diag = col >= m;
+    pp(col) = col;
+    cset = col;
+    root(cset) = col;
+    parent(col) = nc;
+    /* The diagonal element is treated here even if it does not exist in the matrix
+     * hence the loop is executed once more */
+    StorageIndex pcol = col;
+    if (perm) pcol = perm[col];
+    for (typename MatrixType::InnerIterator it(mat, pcol); it || !found_diag;
+         ++it) {  //  A sequence of interleaved find and union is performed
+      Index i = col;
+      if (it) i = it.index();
+      if (i == col) found_diag = true;
 
-            StorageIndex row = firstRowElt(i);
-            if(row >= col)
-                continue;
-            rset = internal::etree_find(row, pp);  // Find the name of the set containing row
-            rroot = root(rset);
-            if(rroot != col)
-            {
-                parent(rroot) = col;
-                pp(cset) = rset;
-                cset = rset;
-                root(cset) = col;
-            }
-        }
+      StorageIndex row = firstRowElt(i);
+      if (row >= col) continue;
+      rset = internal::etree_find(row, pp);  // Find the name of the set containing row
+      rroot = root(rset);
+      if (rroot != col) {
+        parent(rroot) = col;
+        pp(cset) = rset;
+        cset = rset;
+        root(cset) = col;
+      }
     }
-    return 0;
+  }
+  return 0;
 }
 
 /**
  * Depth-first search from vertex n.  No recursion.
  * This routine was contributed by Cédric Doucet, CEDRAT Group, Meylan, France.
  */
-template<typename IndexVector>
-void nr_etdfs(typename IndexVector::Scalar n, IndexVector &parent, IndexVector &first_kid, IndexVector &next_kid,
-              IndexVector &post, typename IndexVector::Scalar postnum)
-{
-    typedef typename IndexVector::Scalar StorageIndex;
-    StorageIndex current = n, first, next;
-    while(postnum != n)
-    {
-        // No kid for the current node
-        first = first_kid(current);
+template <typename IndexVector>
+void nr_etdfs(typename IndexVector::Scalar n, IndexVector& parent, IndexVector& first_kid, IndexVector& next_kid,
+              IndexVector& post, typename IndexVector::Scalar postnum) {
+  typedef typename IndexVector::Scalar StorageIndex;
+  StorageIndex current = n, first, next;
+  while (postnum != n) {
+    // No kid for the current node
+    first = first_kid(current);
 
-        // no kid for the current node
-        if(first == -1)
-        {
-            // Numbering this node because it has no kid
-            post(current) = postnum++;
+    // no kid for the current node
+    if (first == -1) {
+      // Numbering this node because it has no kid
+      post(current) = postnum++;
 
-            // looking for the next kid
-            next = next_kid(current);
-            while(next == -1)
-            {
-                // No more kids : back to the parent node
-                current = parent(current);
-                // numbering the parent node
-                post(current) = postnum++;
+      // looking for the next kid
+      next = next_kid(current);
+      while (next == -1) {
+        // No more kids : back to the parent node
+        current = parent(current);
+        // numbering the parent node
+        post(current) = postnum++;
 
-                // Get the next kid
-                next = next_kid(current);
-            }
-            // stopping criterion
-            if(postnum == n + 1)
-                return;
+        // Get the next kid
+        next = next_kid(current);
+      }
+      // stopping criterion
+      if (postnum == n + 1) return;
 
-            // Updating current node
-            current = next;
-        }
-        else
-        {
-            current = first;
-        }
+      // Updating current node
+      current = next;
+    } else {
+      current = first;
     }
+  }
 }
 
 /**
@@ -184,29 +164,27 @@ void nr_etdfs(typename IndexVector::Scalar n, IndexVector &parent, IndexVector &
  * \param parent Input tree
  * \param post postordered tree
  */
-template<typename IndexVector>
-void treePostorder(typename IndexVector::Scalar n, IndexVector &parent, IndexVector &post)
-{
-    typedef typename IndexVector::Scalar StorageIndex;
-    IndexVector first_kid, next_kid;  // Linked list of children
-    StorageIndex postnum;
-    // Allocate storage for working arrays and results
-    first_kid.resize(n + 1);
-    next_kid.setZero(n + 1);
-    post.setZero(n + 1);
+template <typename IndexVector>
+void treePostorder(typename IndexVector::Scalar n, IndexVector& parent, IndexVector& post) {
+  typedef typename IndexVector::Scalar StorageIndex;
+  IndexVector first_kid, next_kid;  // Linked list of children
+  StorageIndex postnum;
+  // Allocate storage for working arrays and results
+  first_kid.resize(n + 1);
+  next_kid.setZero(n + 1);
+  post.setZero(n + 1);
 
-    // Set up structure describing children
-    first_kid.setConstant(-1);
-    for(StorageIndex v = n - 1; v >= 0; v--)
-    {
-        StorageIndex dad = parent(v);
-        next_kid(v) = first_kid(dad);
-        first_kid(dad) = v;
-    }
+  // Set up structure describing children
+  first_kid.setConstant(-1);
+  for (StorageIndex v = n - 1; v >= 0; v--) {
+    StorageIndex dad = parent(v);
+    next_kid(v) = first_kid(dad);
+    first_kid(dad) = v;
+  }
 
-    // Depth-first search from dummy root vertex #n
-    postnum = 0;
-    internal::nr_etdfs(n, parent, first_kid, next_kid, post, postnum);
+  // Depth-first search from dummy root vertex #n
+  postnum = 0;
+  internal::nr_etdfs(n, parent, first_kid, next_kid, post, postnum);
 }
 
 }  // end namespace internal

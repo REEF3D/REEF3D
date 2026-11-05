@@ -20,23 +20,23 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "fdm_nhf.h"
-#include "ghostcell.h"
-#include "lexer.h"
-#include "nhflow_amr.h"
-#include "nhflow_amr_fill.h"
-#include "nhflow_pressure.h"
-#include "reef3d_mpmd.h"
-#include "reefamr_krylov.h"
-#include "reefmg_core.h"
-#include <Eigen/Sparse>
-#include <Eigen/SparseLU>
-#include <algorithm>
-#include <cmath>
-#include <iomanip>
-#include <limits>
-#include <map>
-#include <mpi.h>
+#include"nhflow_amr.h"
+#include"reef3d_mpmd.h"
+#include"nhflow_amr_fill.h"
+#include"lexer.h"
+#include"fdm_nhf.h"
+#include"ghostcell.h"
+#include"nhflow_pressure.h"
+#include"reefmg_core.h"
+#include"reefamr_krylov.h"
+#include<cmath>
+#include<mpi.h>
+#include<iomanip>
+#include<algorithm>
+#include<limits>
+#include<map>
+#include<Eigen/Sparse>
+#include<Eigen/SparseLU>
 
 //  Composite pressure projection of REEF3D::NHFLOW on level 0 and the patches (A 520 1, 2).
 //
@@ -58,7 +58,8 @@ Architect: Hans Bihs
 
 using namespace nhflow_amr_detail;
 
-namespace {
+namespace
+{
 typedef reefamr_comms_off comms_off;
 
 // N 14 32: the V-cycles of the preconditioner keep their coefficients in float.  reefmg_core then
@@ -66,10 +67,10 @@ typedef reefamr_comms_off comms_off;
 // vcycle(), which smooths with the float coefficients, so this one is never used.
 struct pr_fineop : public sc_operator
 {
-    void fine_apply(const sc_level &, const double *, double *) override
+    void fine_apply(const sc_level&, const double*, double*) override
     {
-        cout << "NHFLOW AMR: fine operator of the preconditioner called" << endl;
-        MPI_Abort(MPI_COMM_WORLD, -2761);
+        cout<<"NHFLOW AMR: fine operator of the preconditioner called"<<endl;
+        MPI_Abort(MPI_COMM_WORLD,-2761);
     }
 };
 pr_fineop pr_fineop_none;
@@ -77,37 +78,18 @@ pr_fineop pr_fineop_none;
 // coefficients of row lq of the fine level, in the storage precision of the multigrid
 inline void pr_coef(reefmg_core *mg, sc_level &L, long lq, double p, double n, double s, double w, double e, double t, double b)
 {
-    if(mg->precision() == 32)
+    if(mg->precision()==32)
     {
-        L.pf[lq] = (float)p;
-        L.nf[lq] = (float)n;
-        L.sf[lq] = (float)s;
-        L.wf[lq] = (float)w;
-        L.ef[lq] = (float)e;
-        L.tf[lq] = (float)t;
-        L.bf[lq] = (float)b;
+        L.pf[lq]=(float)p; L.nf[lq]=(float)n; L.sf[lq]=(float)s; L.wf[lq]=(float)w; L.ef[lq]=(float)e; L.tf[lq]=(float)t; L.bf[lq]=(float)b;
     }
     else
     {
-        L.p[lq] = p;
-        L.n[lq] = n;
-        L.s[lq] = s;
-        L.w[lq] = w;
-        L.e[lq] = e;
-        L.t[lq] = t;
-        L.b[lq] = b;
+        L.p[lq]=p; L.n[lq]=n; L.s[lq]=s; L.w[lq]=w; L.e[lq]=e; L.t[lq]=t; L.b[lq]=b;
     }
 }
 
-enum { NR = REEFAMR_NR,
-       NRH = REEFAMR_NRH,
-       NPV = REEFAMR_NPV,
-       NVV = REEFAMR_NVV,
-       NS = REEFAMR_NS,
-       NT = REEFAMR_NT,
-       NPH = REEFAMR_NPH,
-       NSH = REEFAMR_NSH,
-       NVEC = REEFAMR_NVEC };
+enum { NR=REEFAMR_NR, NRH=REEFAMR_NRH, NPV=REEFAMR_NPV, NVV=REEFAMR_NVV, NS=REEFAMR_NS, NT=REEFAMR_NT,
+       NPH=REEFAMR_NPH, NSH=REEFAMR_NSH, NVEC=REEFAMR_NVEC };
 
 // safety net of the BiCGStab (reefamr_krylov.h, as the composite Laplace of FNPF AMR): a solve whose
 // residual has not dropped by 5 % over 8 iterations restarts from its current residual (a new shadow
@@ -116,12 +98,12 @@ enum { NR = REEFAMR_NR,
 const double STAGTOL = 100.0;
 }
 
-double *nhflow_amr::pvec(int g, int k)
+double* nhflow_amr::pvec(int g, int k)
 {
-    if(k < 0)
-        return (g < 0) ? ptgt0 : NP(g)->ptgt;
+    if(k<0)
+    return (g<0) ? ptgt0 : NP(g)->ptgt;
 
-    return (g < 0) ? kv0[k] : NP(g)->kv[k];
+    return (g<0) ? kv0[k] : NP(g)->kv[k];
 }
 
 // row numbering as the assembly in nhflow_poisson (LOOP: ILOOP JLOOP KLOOP, flag4>0); leaf and
@@ -129,7 +111,7 @@ double *nhflow_amr::pvec(int g, int k)
 // column (di,dj) (patch lexer index) of patch c lies in a patch of its level (any rank)
 bool nhflow_amr::pr_sib(const reefamr_patch *c, int di, int dj)
 {
-    return covered(c->lev, di - EXT + c->I0, dj - EY + c->J0);
+    return covered(c->lev,di-EXT+c->I0,dj-EY+c->J0);
 }
 
 // The overlap of the patch multigrids: EXT columns across every side of a patch where a patch of
@@ -146,51 +128,47 @@ void nhflow_amr::pr_overlap()
     // (a column of a patch of the level of another rank)
     auto remote = [&](int l, int I, int J, int rank) -> bool
     {
-        const int g = gpatch_at(l, I, J);
-        return g >= 0 && GP[g].rank != rank;
+        const int g = gpatch_at(l,I,J);
+        return g>=0 && GP[g].rank!=rank;
     };
     int any = 0;
     for(auto q : P)
     {
         nhflow_amr_patch *c = NP(q);
-        for(int s = 0; s < 4; ++s)
-            c->ov[s] = 0;
-        if(nblk > 0 || q->lev < 1)
-            continue;
+        for(int s=0; s<4; ++s)
+        c->ov[s] = 0;
+        if(nblk>0 || q->lev<1)
+        continue;
         const int me = my_rank();
-        for(int J = q->J0; J <= q->J1; ++J)
+        for(int J=q->J0; J<=q->J1; ++J)
         {
-            if(remote(q->lev, q->I0 - 1, J, me))
-                c->ov[0] = EXT;
-            if(remote(q->lev, q->I1 + 1, J, me))
-                c->ov[1] = EXT;
+            if(remote(q->lev,q->I0-1,J,me)) c->ov[0] = EXT;
+            if(remote(q->lev,q->I1+1,J,me)) c->ov[1] = EXT;
         }
-        for(int I = q->I0; I <= q->I1; ++I)
+        for(int I=q->I0; I<=q->I1; ++I)
         {
-            if(remote(q->lev, I, q->J0 - 1, me))
-                c->ov[2] = EXT;
-            if(remote(q->lev, I, q->J1 + 1, me))
-                c->ov[3] = EXT;
+            if(remote(q->lev,I,q->J0-1,me)) c->ov[2] = EXT;
+            if(remote(q->lev,I,q->J1+1,me)) c->ov[3] = EXT;
         }
     }
 
     // (from the global patch list, the same on every rank without a reduction: pr_rows is not
     // called by all ranks together)
-    if(nblk == 0)
-        for(const reefamr_gpatch &G : GP)
-        {
-            if(G.lev < 1)
-                continue;
-            for(int J = G.J0; J <= G.J1 && !any; ++J)
-                if(remote(G.lev, G.I0 - 1, J, G.rank) || remote(G.lev, G.I1 + 1, J, G.rank))
-                    any = 1;
-            for(int I = G.I0; I <= G.I1 && !any; ++I)
-                if(remote(G.lev, I, G.J0 - 1, G.rank) || remote(G.lev, I, G.J1 + 1, G.rank))
-                    any = 1;
-            if(any)
-                break;
-        }
-    pr_ovl = (any > 0);
+    if(nblk==0)
+    for(const reefamr_gpatch &G : GP)
+    {
+        if(G.lev<1)
+        continue;
+        for(int J=G.J0; J<=G.J1 && !any; ++J)
+        if(remote(G.lev,G.I0-1,J,G.rank) || remote(G.lev,G.I1+1,J,G.rank))
+        any = 1;
+        for(int I=G.I0; I<=G.I1 && !any; ++I)
+        if(remote(G.lev,I,G.J0-1,G.rank) || remote(G.lev,I,G.J1+1,G.rank))
+        any = 1;
+        if(any)
+        break;
+    }
+    pr_ovl = (any>0);
 }
 
 // a fill of nm arrays (sel(m, g), F layout) of the level-l patches from the patches of the level
@@ -199,9 +177,10 @@ template<class SEL>
 void nhflow_amr::pr_fill_sib(int l, int nm, int tag, SEL sel)
 {
     const int knf = klev(l);
-    const int nc = knf + 1;
+    const int nc = knf+1;
 
-    fill_run(l, nm * nc, tag, [&](const reefamr_fill &f, double *v)
+    fill_run(l,nm*nc,tag,
+             [&](const reefamr_fill &f, double *v)
              {
                  if(f.kind==0 && f.g>=0 && P[f.g]->lev==l)
                  {
@@ -216,7 +195,9 @@ void nhflow_amr::pr_fill_sib(int l, int nm, int tag, SEL sel)
                  }
                  else
                  for(int n=0; n<nm*nc; ++n)
-                 v[n] = 0.0; }, [&](reefamr_patch *c, int id, const reefamr_fill &f, const double *w)
+                 v[n] = 0.0;
+             },
+             [&](reefamr_patch *c, int id, const reefamr_fill &f, const double *w)
              {
                  if(!pr_sib(c,f.di,f.dj))
                  return;
@@ -226,42 +207,37 @@ void nhflow_amr::pr_fill_sib(int l, int nm, int tag, SEL sel)
                      double *dst = sel(m,id);
                      for(int kk=0; kk<=knf; ++kk)
                      dst[n0+kk] = w[m*nc+kk];
-                 } });
+                 }
+             });
 }
 
 // the matrix rows of the patches of the window into their kc7, filled into the columns around
 // them from the patches of the level (collective)
 void nhflow_amr::pr_kc7_fill()
 {
-    for(int l = MAX(wlo, 1); l <= wtop(); ++l)
+    for(int l=MAX(wlo,1); l<=wtop(); ++l)
     {
         for(int id : lev[l])
         {
             nhflow_amr_patch *c = NP(id);
             lexer *pp = c->pp;
             const matrix_diag &M = c->d->M;
-            const size_t n = (size_t)pp->imax * pp->jmax * (pp->kmax + 2);
+            const size_t n = (size_t)pp->imax*pp->jmax*(pp->kmax+2);
             for(double *a : c->kc7)
-                std::fill(a, a + n, 0.0);
-            for(int ii = EXT; ii < EXT + c->nx; ++ii)
-                for(int jj = EY; jj < EY + c->ny; ++jj)
-                    for(int kk = 0; kk < pp->knoz; ++kk)
-                    {
-                        const int qq = fidx(pp, ii, jj, kk);
-                        const int r = c->row[qq];
-                        if(r < 0)
-                            continue;
-                        c->kc7[0][qq] = M.p[r];
-                        c->kc7[1][qq] = M.n[r];
-                        c->kc7[2][qq] = M.s[r];
-                        c->kc7[3][qq] = M.w[r];
-                        c->kc7[4][qq] = M.e[r];
-                        c->kc7[5][qq] = M.t[r];
-                        c->kc7[6][qq] = M.b[r];
-                    }
+            std::fill(a,a+n,0.0);
+            for(int ii=EXT; ii<EXT+c->nx; ++ii)
+            for(int jj=EY; jj<EY+c->ny; ++jj)
+            for(int kk=0; kk<pp->knoz; ++kk)
+            {
+                const int qq = fidx(pp,ii,jj,kk);
+                const int r = c->row[qq];
+                if(r<0)
+                continue;
+                c->kc7[0][qq] = M.p[r]; c->kc7[1][qq] = M.n[r]; c->kc7[2][qq] = M.s[r];
+                c->kc7[3][qq] = M.w[r]; c->kc7[4][qq] = M.e[r]; c->kc7[5][qq] = M.t[r]; c->kc7[6][qq] = M.b[r];
+            }
         }
-        pr_fill_sib(l, 7, 7650 + l, [&](int m, int g) -> double *
-                    { return NP(g)->kc7[m]; });
+        pr_fill_sib(l,7,7650+l,[&](int m, int g) -> double* { return NP(g)->kc7[m]; });
     }
 }
 
@@ -269,18 +245,18 @@ void nhflow_amr::pr_rows()
 {
     auto number = [&](lexer *q, vector<int> &row)
     {
-        row.assign(q->imax * q->jmax * (q->kmax + 2), -1);
-        int n = 0;
-        for(int ii = 0; ii < q->knox; ++ii)
-            for(int jj = 0; jj < q->knoy; ++jj)
-                for(int kk = 0; kk < q->knoz; ++kk)
-                    if(q->flag4[cidx(q, ii, jj, kk)] > 0)
-                        row[fidx(q, ii, jj, kk)] = n++;
+        row.assign(q->imax*q->jmax*(q->kmax+2),-1);
+        int n=0;
+        for(int ii=0; ii<q->knox; ++ii)
+        for(int jj=0; jj<q->knoy; ++jj)
+        for(int kk=0; kk<q->knoz; ++kk)
+        if(q->flag4[cidx(q,ii,jj,kk)]>0)
+        row[fidx(q,ii,jj,kk)] = n++;
     };
 
-    number(p0, rowmap0);
+    number(p0,rowmap0);
     for(auto q : P)
-        number(q->pp, NP(q)->row);
+    number(q->pp,NP(q)->row);
 
     // the fill entries next to the patch: the columns the rows of the patch reach
     for(auto q : P)
@@ -288,756 +264,709 @@ void nhflow_amr::pr_rows()
         nhflow_amr_patch *c = NP(q);
         c->fill1.clear();
         c->fill2.clear();
-        for(size_t e = 0; e < c->fill.size(); ++e)
+        for(size_t e=0; e<c->fill.size(); ++e)
         {
             const reefamr_fill &f = c->fill[e];
-            if(f.di >= EXT - 1 && f.di <= EXT + c->nx && f.dj >= EY - 1 && f.dj <= EY + c->ny)
-                c->fill1.push_back((int)e);
-            if(f.di >= EXT - 2 && f.di <= EXT + c->nx + 1 && f.dj >= EY - 2 && f.dj <= EY + c->ny + 1)
-                c->fill2.push_back((int)e);
+            if(f.di>=EXT-1 && f.di<=EXT+c->nx && f.dj>=EY-1 && f.dj<=EY+c->ny)
+            c->fill1.push_back((int)e);
+            if(f.di>=EXT-2 && f.di<=EXT+c->nx+1 && f.dj>=EY-2 && f.dj<=EY+c->ny+1)
+            c->fill2.push_back((int)e);
         }
     }
 
     pr_overlap();
 
-    pg.assign(P.size() + 1, pgrid());
+    pg.assign(P.size()+1,pgrid());
 
-    for(int g = -1; g < (int)P.size(); ++g)
+    for(int g=-1; g<(int)P.size(); ++g)
     {
         lexer *q = glex(g);
-        vector<int> &row = (g < 0) ? rowmap0 : NP(g)->row;
-        pgrid &L = pg[g + 1];
-        const int l = (g < 0) ? 0 : P[g]->lev;
+        vector<int> &row = (g<0) ? rowmap0 : NP(g)->row;
+        pgrid &L = pg[g+1];
+        const int l = (g<0) ? 0 : P[g]->lev;
 
         // G 7 1: the grids of the level window only (wlo..wtop: all levels without subcycling)
-        if(l < wlo || l > wtop())
+        if(l<wlo || l>wtop())
+        continue;
+
+        int i0,i1,j0,j1;
+        if(g<0) { i0=0; i1=NX0-1; j0=0; j1=NY0-1; }
+        else    { i0=EXT; i1=EXT+P[g]->nx-1; j0=EY; j1=EY+P[g]->ny-1; }
+
+        for(int ii=i0; ii<=i1; ++ii)
+        for(int jj=j0; jj<=j1; ++jj)
+        {
+            int I = (g<0) ? ii+O0i : ii-EXT+P[g]->I0;
+            int J = (g<0) ? jj+O0j : jj-EY+P[g]->J0;
+
+            // multi-block: the ring of the native grid stands for cells of the other blocks
+            if(g<0 && nblk>0 && native_ring(I,J))
             continue;
 
-        int i0, i1, j0, j1;
-        if(g < 0)
-        {
-            i0 = 0;
-            i1 = NX0 - 1;
-            j0 = 0;
-            j1 = NY0 - 1;
-        }
-        else
-        {
-            i0 = EXT;
-            i1 = EXT + P[g]->nx - 1;
-            j0 = EY;
-            j1 = EY + P[g]->ny - 1;
-        }
+            const bool cov = (l<wtop() && covered(l+1,2*I,ychild(J)));
 
-        for(int ii = i0; ii <= i1; ++ii)
-            for(int jj = j0; jj <= j1; ++jj)
+            for(int kk=0; kk<q->knoz; ++kk)
             {
-                int I = (g < 0) ? ii + O0i : ii - EXT + P[g]->I0;
-                int J = (g < 0) ? jj + O0j : jj - EY + P[g]->J0;
+                const int qq = fidx(q,ii,jj,kk);
+                const int r = row[qq];
+                if(r<0)
+                continue;
 
-                // multi-block: the ring of the native grid stands for cells of the other blocks
-                if(g < 0 && nblk > 0 && native_ring(I, J))
-                    continue;
-
-                const bool cov = (l < wtop() && covered(l + 1, 2 * I, ychild(J)));
-
-                for(int ii = i0; ii <= i1; ++ii)
-                    for(int jj = j0; jj <= j1; ++jj)
-                    {
-                        int I = (g < 0) ? ii + O0i : ii - EXT + P[g]->I0;
-                        int J = (g < 0) ? jj + O0j : jj - EXT + P[g]->J0;
-                        const bool cov = (l < maxlev && covered(l + 1, 2 * I, 2 * J));
-
-                        for(int kk = 0; kk < q->knoz; ++kk)
-                        {
-                            const int qq = fidx(q, ii, jj, kk);
-                            const int r = row[qq];
-                            if(r < 0)
-                                continue;
-
-                            if(cov)
-                                L.cq.push_back(qq);
-                            else
-                            {
-                                L.aq.push_back(qq);
-                                L.ar.push_back(r);
-                                L.aw.push_back((ii - q->imin) * q->jmax + (jj - q->jmin));
-                            }
-                        }
-                    }
+                if(cov)
+                L.cq.push_back(qq);
+                else
+                {
+                    L.aq.push_back(qq);
+                    L.ar.push_back(r);
+                    L.aw.push_back((ii-q->imin)*q->jmax + (jj-q->jmin));
+                }
             }
+        }
+    }
+}
+
+// vectors, multigrids and their coefficients for this solve
+void nhflow_amr::pr_prepare(ghostcell *pgc)
+{
+    // row lists of the layout and of the level window (G 7 1: level solves and synchronisation
+    // projections over part of the levels)
+    const int wkey = wlo*1000 + wtop();
+    if(pr_layout!=layout_id || pr_wkey!=wkey)
+    {
+        pr_rows();
+        pr_wkey = wkey;
     }
 
-    // vectors, multigrids and their coefficients for this solve
-    void nhflow_amr::pr_prepare(ghostcell * pgc)
+    if(pr_layout!=layout_id)
     {
-        // row lists of the layout and of the level window (G 7 1: level solves and synchronisation
-        // projections over part of the levels)
-        const int wkey = wlo * 1000 + wtop();
-        if(pr_layout != layout_id || pr_wkey != wkey)
-        {
-            pr_rows();
-            pr_wkey = wkey;
-        }
 
-        if(pr_layout != layout_id)
-        {
+        const int n0 = p0->imax*p0->jmax*(p0->kmax+2);
+        if(kv0.empty())
+        for(int k=0; k<NVEC; ++k)
+        kv0.push_back(new double[n0]());
 
-            const int n0 = p0->imax * p0->jmax * (p0->kmax + 2);
-            if(kv0.empty())
-                for(int k = 0; k < NVEC; ++k)
-                    kv0.push_back(new double[n0]());
-
-            for(auto q : P)
-            {
-                nhflow_amr_patch *c = NP(q);
-                const int n = c->pp->imax * c->pp->jmax * (c->pp->kmax + 2);
-                if(c->kv.empty())
-                    for(int k = 0; k < NVEC; ++k)
-                        c->kv.push_back(new double[n]());
-
-                // (the box of the patch with its overlap columns, pr_overlap)
-                const bool same = (c->mo[0] == c->ov[0] && c->mo[1] == c->ov[1] && c->mo[2] == c->ov[2] && c->mo[3] == c->ov[3]);
-                if(c->mg != nullptr && !same)
-                {
-                    delete c->mg;
-                    c->mg = nullptr;
-                }
-                if(c->mg == nullptr)
-                {
-                    lexer *pp = c->pp;
-                    const int *o = c->ov;
-                    const int nx = c->nx + o[0] + o[1], ny = c->ny + o[2] + o[3];
-                    c->mg = new reefmg_core;
-                    c->mg->set_precision(pp->N14 == 32 ? 32 : 64);
-                    c->mg->set_fine_operator(&pr_fineop_none);
-                    if(!c->mg->setup(MPI_COMM_SELF, nx, ny, pp->knoz, nx, ny, 0, pp->DXN + marge + EXT - 1 - o[0], pp->DYN + marge + EY - 1 - o[2]))
-                        cout << "NHFLOW AMR: patch multigrid " << c->mg->err() << endl;
-                    for(int s = 0; s < 4; ++s)
-                        c->mo[s] = o[s];
-                }
-
-                if(pr_ovl && c->kc7.empty())
-                    for(int m = 0; m < 7; ++m)
-                        c->kc7.push_back(new double[n]());
-            }
-
-            if(mg0 == nullptr)
-            {
-                mg0 = new reefmg_core;
-                mg0->set_precision(p0->N14 == 32 ? 32 : 64);
-                mg0->set_fine_operator(&pr_fineop_none);
-                // N 16: the level-0 V-cycle on a device (the Apple GPU), as the uniform solver (reefmg.cpp);
-                // the patch-local cycles stay on the CPU.  A 2D grid with one block solves level 0
-                // exactly (xz0), no device
-                const bool l0dev = !(sy == 0 && nblk == 0);
-                if(l0dev)
-                {
-                    mg0->set_device(p0->N16);
-                    mg0->set_device_cycle(p0->N17, p0->N19);
-                    mg0->set_device_precision(p0->N21);
-                }
-                if(!mg0->setup(pgc->cart(), p0->knox, p0->knoy, p0->knoz, p0->gknox, p0->gknoy, p0->N13, p0->DXN + marge - 1, p0->DYN + marge - 1))
-                {
-                    if(p0->mpirank == 0)
-                        cout << "NHFLOW AMR: level-0 multigrid " << mg0->err() << endl;
-                    MPI_Abort(MPI_COMM_WORLD, -2760);
-                }
-                if(p0->mpirank == 0 && p0->N16 > 0)
-                    cout << "NHFLOW AMR: level-0 multigrid: " << (l0dev ? mg0->device_status() : string("the exact x-z solve of a 2D grid, N 16 not used")) << endl;
-            }
-
-            pr_layout = layout_id;
-        }
-
-        // identity rows (dry or shallow cells: P = 0) are no unknowns
-        auto fixed = [&](const matrix_diag &M, int r)
-        {
-            return M.p[r] == 1.0 && M.n[r] == 0.0 && M.s[r] == 0.0 && M.w[r] == 0.0 && M.e[r] == 0.0 && M.t[r] == 0.0 && M.b[r] == 0.0;
-        };
-
-        for(int g = -1; g < (int)P.size(); ++g)
-        {
-            pgrid &L = pg[g + 1];
-            const matrix_diag &M = gfd(g)->M;
-            lexer *q = glex(g);
-            L.lq.clear();
-            L.lr.clear();
-            L.fq.clear();
-            for(size_t n = 0; n < L.aq.size(); ++n)
-                if(!fixed(M, L.ar[n]))
-                {
-                    L.lq.push_back(L.aq[n]);
-                    L.lr.push_back(L.ar[n]);
-                }
-                else if(q->wet[L.aw[n]] == 1)
-                    L.fq.push_back(L.aq[n]);
-        }
-
-        auto clear = [](sc_level &L)
-        {
-            std::fill(L.p.begin(), L.p.end(), 0.0);
-            std::fill(L.n.begin(), L.n.end(), 0.0);
-            std::fill(L.s.begin(), L.s.end(), 0.0);
-            std::fill(L.w.begin(), L.w.end(), 0.0);
-            std::fill(L.e.begin(), L.e.end(), 0.0);
-            std::fill(L.t.begin(), L.t.end(), 0.0);
-            std::fill(L.b.begin(), L.b.end(), 0.0);
-            std::fill(L.pf.begin(), L.pf.end(), 0.0f);
-            std::fill(L.nf.begin(), L.nf.end(), 0.0f);
-            std::fill(L.sf.begin(), L.sf.end(), 0.0f);
-            std::fill(L.wf.begin(), L.wf.end(), 0.0f);
-            std::fill(L.ef.begin(), L.ef.end(), 0.0f);
-            std::fill(L.tf.begin(), L.tf.end(), 0.0f);
-            std::fill(L.bf.begin(), L.bf.end(), 0.0f);
-            std::fill(L.u.begin(), L.u.end(), 0.0);
-            std::fill(L.f.begin(), L.f.end(), 0.0);
-            std::fill(L.act.begin(), L.act.end(), 0);
-        };
-
-        // level 0: all rows of the rank grid (G 7 1, a level solve: the operator of the coarse
-        // correction, from the matrix of the last level-0 solve)
-        {
-            sc_level &L = mg0->fine();
-            clear(L);
-            const matrix_diag &M = d0->M;
-
-            // multi-block: the ring is no unknown, the V-cycle of block 0 corrects against zero there
-            auto ring = [&](int ii, int jj)
-            { return nblk > 0 && native_ring(ii + O0i, jj + O0j); };
-
-            for(int ii = 0; ii < p0->knox; ++ii)
-                for(int jj = 0; jj < p0->knoy; ++jj)
-                    for(int kk = 0; kk < p0->knoz; ++kk)
-                    {
-                        const long lq = L.idx(ii, jj, kk);
-                        const int r = rowmap0[fidx(p0, ii, jj, kk)];
-                        if(r < 0 || ring(ii, jj))
-                        {
-                            pr_coef(mg0, L, lq, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
-                            continue;
-                        }
-                        if(nblk > 0)
-                            pr_coef(mg0, L, lq, M.p[r], ring(ii + 1, jj) ? 0.0 : M.n[r], ring(ii - 1, jj) ? 0.0 : M.s[r],
-                                    ring(ii, jj + 1) ? 0.0 : M.w[r], ring(ii, jj - 1) ? 0.0 : M.e[r], M.t[r], M.b[r]);
-                        else
-                            pr_coef(mg0, L, lq, M.p[r], M.n[r], M.s[r], M.w[r], M.e[r], M.t[r], M.b[r]);
-                        L.act[lq] = fixed(M, r) ? 0 : 1;
-                    }
-            // a 2D grid: level 0 is one x-z problem, solved exactly (reefamr_xzlu; several ranks: the
-            // problem of all ranks on every rank).  The factorisation of the first solve of the step is
-            // kept for its other solves (xz_keep; collective: factor_mpi is made by all ranks together)
-            bool keep = false;
-            if(sy == 0 && nblk == 0 && xz0on)
-                keep = (pgc0->globalimin(xz_keep(xz0key, xz0act, L, wkey) ? 1 : 0) == 1);
-
-            if(keep)
-                ++xz_kept;
-            else
-            {
-                xz0on = false;
-                if(sy == 0 && nblk == 0 && p0->mpi_size == 1)
-                {
-                    xz0.factor(L, mg0->precision());
-                    xz0on = true;
-                }
-                else if(sy == 0 && nblk == 0)
-                    xz0on = xz0.factor_mpi(L, mg0->precision(), reef3d_comm(), p0->origin_i, p0->gknox);
-                if(!xz0on)
-                    mg0->coarsen();
-                if(xz0on)
-                {
-                    ++xz_made;
-                    xz0key[0] = layout_id;
-                    xz0key[1] = wkey;
-                    xz0key[2] = p0->count;
-                    xz0act = L.act;
-                }
-            }
-        }
-
-        // a 2D grid: the exact patch-local factorisation, kept within the step (xz_keep; patch-local,
-        // MPI_COMM_SELF: the decision of the patch alone)
-        auto patch_xz = [&](nhflow_amr_patch *c, const sc_level &L)
-        {
-            if(xz_keep(c->xzkey, c->xzact, L, wkey))
-            {
-                ++xz_kept;
-                return;
-            }
-            c->xz.factor(L, c->mg->precision());
-            ++xz_made;
-            c->xzkey[0] = layout_id;
-            c->xzkey[1] = wkey;
-            c->xzkey[2] = p0->count;
-            c->xzact = L.act;
-        };
-
-        // the overlap: the rows of the patches next to a patch
-        if(pr_ovl)
-            pr_kc7_fill();
-
-        // patches: interior rows, couplings to the cells around the patch dropped (with the overlap:
-        // over the box with the overlap columns, their rows those of the patch there, the couplings out
-        // of the box and to the columns of the coarser level dropped)
         for(auto q : P)
         {
-            if(q->lev < wlo || q->lev > wtop())
-                continue;
-
             nhflow_amr_patch *c = NP(q);
-            lexer *pp = c->pp;
-            sc_level &L = c->mg->fine();
-            clear(L);
-            const matrix_diag &M = c->d->M;
+            const int n = c->pp->imax*c->pp->jmax*(c->pp->kmax+2);
+            if(c->kv.empty())
+            for(int k=0; k<NVEC; ++k)
+            c->kv.push_back(new double[n]());
 
-            const int *o = c->ov;
-            if(o[0] + o[1] + o[2] + o[3] > 0)
+            // (the box of the patch with its overlap columns, pr_overlap)
+            const bool same = (c->mo[0]==c->ov[0] && c->mo[1]==c->ov[1] && c->mo[2]==c->ov[2] && c->mo[3]==c->ov[3]);
+            if(c->mg!=nullptr && !same)
             {
-                const int i0 = EXT - o[0], i1 = EXT + c->nx + o[1], j0 = EY - o[2], j1 = EY + c->ny + o[3];
-                auto in_int = [&](int ii, int jj)
-                { return ii >= EXT && ii < EXT + c->nx && jj >= EY && jj < EY + c->ny; };
-                auto row_o = [&](int ii, int jj)
-                { return ii >= i0 && ii < i1 && jj >= j0 && jj < j1 && !in_int(ii, jj) && pr_sib(c, ii, jj); };
-                auto keep = [&](int ii, int jj)
-                { return in_int(ii, jj) || row_o(ii, jj); };
-
-                for(int ii = i0; ii < i1; ++ii)
-                    for(int jj = j0; jj < j1; ++jj)
-                    {
-                        const bool inr = in_int(ii, jj), ovr = !inr && row_o(ii, jj);
-                        const bool kn = keep(ii + 1, jj), ks = keep(ii - 1, jj), kw = keep(ii, jj + 1), ke = keep(ii, jj - 1);
-                        for(int kk = 0; kk < pp->knoz; ++kk)
-                        {
-                            const long lq = L.idx(ii - i0, jj - j0, kk);
-                            const int qq = fidx(pp, ii, jj, kk);
-                            double cc[7];
-                            if(inr)
-                            {
-                                const int r = c->row[qq];
-                                if(r < 0)
-                                {
-                                    pr_coef(c->mg, L, lq, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
-                                    continue;
-                                }
-                                cc[0] = M.p[r];
-                                cc[1] = M.n[r];
-                                cc[2] = M.s[r];
-                                cc[3] = M.w[r];
-                                cc[4] = M.e[r];
-                                cc[5] = M.t[r];
-                                cc[6] = M.b[r];
-                            }
-                            else if(ovr && c->kc7[0][qq] != 0.0)
-                            {
-                                for(int m = 0; m < 7; ++m)
-                                    cc[m] = c->kc7[m][qq];
-                            }
-                            else
-                            {
-                                pr_coef(c->mg, L, lq, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
-                                continue;
-                            }
-                            pr_coef(c->mg, L, lq, cc[0], kn ? cc[1] : 0.0, ks ? cc[2] : 0.0, kw ? cc[3] : 0.0, ke ? cc[4] : 0.0, cc[5], cc[6]);
-                            const bool fx = (cc[0] == 1.0 && cc[1] == 0.0 && cc[2] == 0.0 && cc[3] == 0.0 && cc[4] == 0.0 && cc[5] == 0.0 && cc[6] == 0.0);
-                            L.act[lq] = fx ? 0 : 1;
-                        }
-                    }
-                // a 2D grid: the patch-local problem is an x-z problem, solved exactly (reefamr_xzlu),
-                // the factorisation of the first solve of the step kept for its other solves (xz_keep)
-                if(sy == 0)
-                    patch_xz(c, L);
-                else
-                    c->mg->coarsen();
-                continue;
+                delete c->mg;
+                c->mg = nullptr;
+            }
+            if(c->mg==nullptr)
+            {
+                lexer *pp = c->pp;
+                const int *o = c->ov;
+                const int nx = c->nx+o[0]+o[1], ny = c->ny+o[2]+o[3];
+                c->mg = new reefmg_core;
+                c->mg->set_precision(pp->N14==32 ? 32 : 64);
+                c->mg->set_fine_operator(&pr_fineop_none);
+                if(!c->mg->setup(MPI_COMM_SELF,nx,ny,pp->knoz,nx,ny,0,pp->DXN+marge+EXT-1-o[0],pp->DYN+marge+EY-1-o[2]))
+                cout<<"NHFLOW AMR: patch multigrid "<<c->mg->err()<<endl;
+                for(int s=0; s<4; ++s)
+                c->mo[s] = o[s];
             }
 
-            for(int ii = EXT; ii < EXT + c->nx; ++ii)
-                for(int jj = EY; jj < EY + c->ny; ++jj)
-                    for(int kk = 0; kk < pp->knoz; ++kk)
-                    {
-                        const long lq = L.idx(ii - EXT, jj - EY, kk);
-                        const int r = c->row[fidx(pp, ii, jj, kk)];
-                        if(r < 0)
-                        {
-                            pr_coef(c->mg, L, lq, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
-                            continue;
-                        }
-                        pr_coef(c->mg, L, lq, M.p[r],
-                                (ii + 1 < EXT + c->nx) ? M.n[r] : 0.0,
-                                (ii - 1 >= EXT) ? M.s[r] : 0.0,
-                                (jj + 1 < EY + c->ny) ? M.w[r] : 0.0,
-                                (jj - 1 >= EY) ? M.e[r] : 0.0,
-                                M.t[r], M.b[r]);
-                        L.act[lq] = fixed(M, r) ? 0 : 1;
-                    }
-            if(sy == 0)
-                patch_xz(c, L);
-            else
-                c->mg->coarsen();
+            if(pr_ovl && c->kc7.empty())
+            for(int m=0; m<7; ++m)
+            c->kc7.push_back(new double[n]());
         }
 
-        pr_stencils();
+        if(mg0==nullptr)
+        {
+            mg0 = new reefmg_core;
+            mg0->set_precision(p0->N14==32 ? 32 : 64);
+            mg0->set_fine_operator(&pr_fineop_none);
+            // N 16: the level-0 V-cycle on a device (the Apple GPU), as the uniform solver (reefmg.cpp);
+            // the patch-local cycles stay on the CPU.  A 2D grid with one block solves level 0
+            // exactly (xz0), no device
+            const bool l0dev = !(sy==0 && nblk==0);
+            if(l0dev)
+            {
+                mg0->set_device(p0->N16);
+                mg0->set_device_cycle(p0->N17,p0->N19);
+                mg0->set_device_precision(p0->N21);
+            }
+            if(!mg0->setup(pgc->cart(),p0->knox,p0->knoy,p0->knoz,p0->gknox,p0->gknoy,p0->N13,p0->DXN+marge-1,p0->DYN+marge-1))
+            {
+                if(p0->mpirank==0)
+                cout<<"NHFLOW AMR: level-0 multigrid "<<mg0->err()<<endl;
+                MPI_Abort(MPI_COMM_WORLD,-2760);
+            }
+            if(p0->mpirank==0 && p0->N16>0)
+            cout<<"NHFLOW AMR: level-0 multigrid: "<<(l0dev ? mg0->device_status() : string("the exact x-z solve of a 2D grid, N 16 not used"))<<endl;
+        }
 
-        cs_build(pgc);
+        pr_layout = layout_id;
     }
 
-    // a 2D grid: the exact x-z factorisation of a grid is kept for the other pressure solves of the step
-    // (key: the layout, the level window and the step of the factorisation), as the composite Laplace of
-    // FNPF AMR.  The coefficients follow the free surface and the sigma grid of the stage: the
-    // factorisation of the first solve of the step is the preconditioner of its other solves.  A change
-    // of the active rows (wetting and drying: identity rows) refactorises
-    bool nhflow_amr::xz_keep(const long *key, const vector<char> &act0, const sc_level &L, int wkey) const
+    // identity rows (dry or shallow cells: P = 0) are no unknowns
+    auto fixed = [&](const matrix_diag &M, int r)
     {
-        return key[0] == layout_id && key[1] == wkey && key[2] == p0->count && act0 == L.act;
-    }
-
-    // ---- multi-block: the coarse space across the blocks (G 53)
-    struct nhflow_amr::cs_impl
-    {
-        vector<vector<double>> agg;  // [g+1]: aggregate of the unknowns (F layout), -1 none
-        Eigen::SparseLU<Eigen::SparseMatrix<double>> lu;
-        vector<double> rl, rc;
+        return M.p[r]==1.0 && M.n[r]==0.0 && M.s[r]==0.0 && M.w[r]==0.0 && M.e[r]==0.0 && M.t[r]==0.0 && M.b[r]==0.0;
     };
 
-    void nhflow_amr::cs_free()
+    for(int g=-1; g<(int)P.size(); ++g)
     {
-        delete cs;
-        cs = nullptr;
+        pgrid &L = pg[g+1];
+        const matrix_diag &M = gfd(g)->M;
+        lexer *q = glex(g);
+        L.lq.clear();
+        L.lr.clear();
+        L.fq.clear();
+        for(size_t n=0; n<L.aq.size(); ++n)
+        if(!fixed(M,L.ar[n]))
+        {
+            L.lq.push_back(L.aq[n]);
+            L.lr.push_back(L.ar[n]);
+        }
+        else if(q->wet[L.aw[n]]==1)
+        L.fq.push_back(L.aq[n]);
     }
 
-    void nhflow_amr::cs_build(ghostcell * pgc)
+    auto clear = [](sc_level &L)
     {
-        cs_n = 0;
-        if(nblk == 0 || csw <= 0 || wlo != 0)
-            return;
+        std::fill(L.p.begin(),L.p.end(),0.0);
+        std::fill(L.n.begin(),L.n.end(),0.0); std::fill(L.s.begin(),L.s.end(),0.0);
+        std::fill(L.w.begin(),L.w.end(),0.0); std::fill(L.e.begin(),L.e.end(),0.0);
+        std::fill(L.t.begin(),L.t.end(),0.0); std::fill(L.b.begin(),L.b.end(),0.0);
+        std::fill(L.pf.begin(),L.pf.end(),0.0f);
+        std::fill(L.nf.begin(),L.nf.end(),0.0f); std::fill(L.sf.begin(),L.sf.end(),0.0f);
+        std::fill(L.wf.begin(),L.wf.end(),0.0f); std::fill(L.ef.begin(),L.ef.end(),0.0f);
+        std::fill(L.tf.begin(),L.tf.end(),0.0f); std::fill(L.bf.begin(),L.bf.end(),0.0f);
+        std::fill(L.u.begin(),L.u.end(),0.0); std::fill(L.f.begin(),L.f.end(),0.0);
+        std::fill(L.act.begin(),L.act.end(),0);
+    };
 
-        if(cs == nullptr)
-            cs = new cs_impl;
+    // level 0: all rows of the rank grid (G 7 1, a level solve: the operator of the coarse
+    // correction, from the matrix of the last level-0 solve)
+    {
+        sc_level &L = mg0->fine();
+        clear(L);
+        const matrix_diag &M = d0->M;
 
-        // the level-0 grids: the native grid (-1) and the blocks 1..
-        vector<int> grids(1, -1);
-        for(int id : lev[0])
-            grids.push_back(id);
+        // multi-block: the ring is no unknown, the V-cycle of block 0 corrects against zero there
+        auto ring = [&](int ii, int jj) { return nblk>0 && native_ring(ii+O0i,jj+O0j); };
 
-        // aggregates of csw x csw columns of every grid (the unknowns of all layers), numbered on the rank
-        cs->agg.assign(P.size() + 1, vector<double>());
-        int nloc = 0;
-        for(int g : grids)
+        for(int ii=0; ii<p0->knox; ++ii)
+        for(int jj=0; jj<p0->knoy; ++jj)
+        for(int kk=0; kk<p0->knoz; ++kk)
         {
-            lexer *q = glex(g);
-            vector<double> &A = cs->agg[g + 1];
-            A.assign((size_t)q->imax * q->jmax * (q->kmax + 2), -1.0);
-            std::map<long, int> ids;
-            const pgrid &L = pg[g + 1];
-            const int o = (g < 0) ? 0 : EXT;
-            for(int qq : L.lq)
+            const long lq = L.idx(ii,jj,kk);
+            const int r = rowmap0[fidx(p0,ii,jj,kk)];
+            if(r<0 || ring(ii,jj))
             {
-                const int ii = qq / (q->jmax * q->kmaxF) + q->imin, jj = (qq / q->kmaxF) % q->jmax + q->jmin;
-                const long key = long((ii - o) / csw) * 100000L + long((jj - o) / csw);
-                auto it = ids.find(key);
-                if(it == ids.end())
-                    it = ids.emplace(key, nloc++).first;
-                A[qq] = it->second;
+                pr_coef(mg0,L,lq,1.0,0.0,0.0,0.0,0.0,0.0,0.0);
+                continue;
+            }
+            if(nblk>0)
+            pr_coef(mg0,L,lq,M.p[r],ring(ii+1,jj) ? 0.0 : M.n[r],ring(ii-1,jj) ? 0.0 : M.s[r],
+                    ring(ii,jj+1) ? 0.0 : M.w[r],ring(ii,jj-1) ? 0.0 : M.e[r],M.t[r],M.b[r]);
+            else
+            pr_coef(mg0,L,lq,M.p[r],M.n[r],M.s[r],M.w[r],M.e[r],M.t[r],M.b[r]);
+            L.act[lq] = fixed(M,r) ? 0 : 1;
+        }
+        // a 2D grid: level 0 is one x-z problem, solved exactly (reefamr_xzlu; several ranks: the
+        // problem of all ranks on every rank).  The factorisation of the first solve of the step is
+        // kept for its other solves (xz_keep; collective: factor_mpi is made by all ranks together)
+        bool keep = false;
+        if(sy==0 && nblk==0 && xz0on)
+        keep = (pgc0->globalimin(xz_keep(xz0key,xz0act,L,wkey) ? 1 : 0)==1);
+
+        if(keep)
+        ++xz_kept;
+        else
+        {
+            xz0on = false;
+            if(sy==0 && nblk==0 && p0->mpi_size==1)
+            {
+                xz0.factor(L,mg0->precision());
+                xz0on = true;
+            }
+            else
+            if(sy==0 && nblk==0)
+            xz0on = xz0.factor_mpi(L,mg0->precision(),reef3d_comm(),p0->origin_i,p0->gknox);
+            if(!xz0on)
+            mg0->coarsen();
+            if(xz0on)
+            {
+                ++xz_made;
+                xz0key[0] = layout_id; xz0key[1] = wkey; xz0key[2] = p0->count;
+                xz0act = L.act;
             }
         }
-
-        int off = 0;
-        MPI_Exscan(&nloc, &off, 1, MPI_INT, MPI_SUM, reef3d_comm());
-        if(p0->mpirank == 0)
-            off = 0;
-        int ntot = 0;
-        MPI_Allreduce(&nloc, &ntot, 1, MPI_INT, MPI_SUM, reef3d_comm());
-        for(int g : grids)
-            for(double &a : cs->agg[g + 1])
-                if(a >= 0.0)
-                    a += off;
-
-        // the aggregates of the cells around the blocks and of the ring
-        pr_fill0([&](int g) -> double *
-                 { return cs->agg[g + 1].data(); });
-
-        // the coarse operator: the rows summed over the aggregates
-        std::map<std::pair<int, int>, double> T;
-        for(int g : grids)
-        {
-            lexer *q = glex(g);
-            const matrix_diag &M = gfd(g)->M;
-            const vector<double> &A = cs->agg[g + 1];
-            const pgrid &L = pg[g + 1];
-            const int sI = q->jmax * q->kmaxF, sJ = q->kmaxF;
-            for(size_t n = 0; n < L.lq.size(); ++n)
-            {
-                const int qq = L.lq[n], r = L.lr[n];
-                const int I = int(A[qq]);
-                T[{I, I}] += M.p[r];
-                const int nb[6] = {qq + sI, qq - sI, qq + sJ, qq - sJ, qq + 1, qq - 1};
-                const double cf[6] = {M.n[r], M.s[r], M.w[r], M.e[r], M.t[r], M.b[r]};
-                for(int m = 0; m < 6; ++m)
-                    if(cf[m] != 0.0 && A[nb[m]] >= 0.0)
-                        T[{I, int(A[nb[m]])}] += cf[m];
-            }
-        }
-
-        // on every rank the whole coarse operator, factorized
-        vector<int> ti, tj;
-        vector<double> tv;
-        for(auto &e : T)
-        {
-            ti.push_back(e.first.first);
-            tj.push_back(e.first.second);
-            tv.push_back(e.second);
-        }
-        const int np = p0->mpi_size;
-        int nt = int(tv.size());
-        vector<int> cnt(np), dsp(np, 0);
-        MPI_Allgather(&nt, 1, MPI_INT, &cnt[0], 1, MPI_INT, reef3d_comm());
-        for(int r = 1; r < np; ++r)
-            dsp[r] = dsp[r - 1] + cnt[r - 1];
-        const int nall = dsp[np - 1] + cnt[np - 1];
-        vector<int> ai(MAX(nall, 1)), aj(MAX(nall, 1));
-        vector<double> av(MAX(nall, 1));
-        MPI_Allgatherv(ti.data(), nt, MPI_INT, &ai[0], &cnt[0], &dsp[0], MPI_INT, reef3d_comm());
-        MPI_Allgatherv(tj.data(), nt, MPI_INT, &aj[0], &cnt[0], &dsp[0], MPI_INT, reef3d_comm());
-        MPI_Allgatherv(tv.data(), nt, MPI_DOUBLE, &av[0], &cnt[0], &dsp[0], MPI_DOUBLE, reef3d_comm());
-
-        if(ntot == 0)
-            return;
-
-        std::vector<Eigen::Triplet<double>> trip;
-        trip.reserve(nall);
-        for(int k = 0; k < nall; ++k)
-            trip.emplace_back(ai[k], aj[k], av[k]);
-        Eigen::SparseMatrix<double> Ac(ntot, ntot);
-        Ac.setFromTriplets(trip.begin(), trip.end());
-        Ac.makeCompressed();
-        cs->lu.compute(Ac);
-        if(cs->lu.info() != Eigen::Success)
-        {
-            if(p0->mpirank == 0)
-                cout << "NHFLOW multi-block grid: coarse space across the blocks singular, off for this solve" << endl;
-            return;
-        }
-        cs->rl.assign(ntot, 0.0);
-        cs->rc.assign(ntot, 0.0);
-        cs_n = ntot;
     }
 
-    // z = P Ac^-1 R r on the unknowns of the level-0 grids (z 0 elsewhere on these grids)
-    void nhflow_amr::cs_correct(int kr, int kz)
+    // a 2D grid: the exact patch-local factorisation, kept within the step (xz_keep; patch-local,
+    // MPI_COMM_SELF: the decision of the patch alone)
+    auto patch_xz = [&](nhflow_amr_patch *c, const sc_level &L)
     {
-        std::fill(cs->rl.begin(), cs->rl.end(), 0.0);
-
-        vector<int> grids(1, -1);
-        for(int id : lev[0])
-            grids.push_back(id);
-
-        for(int g : grids)
+        if(xz_keep(c->xzkey,c->xzact,L,wkey))
         {
-            const double *r = pvec(g, kr);
-            const vector<double> &A = cs->agg[g + 1];
-            for(int qq : pg[g + 1].lq)
-                cs->rl[int(A[qq])] += r[qq];
+            ++xz_kept;
+            return;
+        }
+        c->xz.factor(L,c->mg->precision());
+        ++xz_made;
+        c->xzkey[0] = layout_id; c->xzkey[1] = wkey; c->xzkey[2] = p0->count;
+        c->xzact = L.act;
+    };
+
+    // the overlap: the rows of the patches next to a patch
+    if(pr_ovl)
+    pr_kc7_fill();
+
+    // patches: interior rows, couplings to the cells around the patch dropped (with the overlap:
+    // over the box with the overlap columns, their rows those of the patch there, the couplings out
+    // of the box and to the columns of the coarser level dropped)
+    for(auto q : P)
+    {
+        if(q->lev<wlo || q->lev>wtop())
+        continue;
+
+        nhflow_amr_patch *c = NP(q);
+        lexer *pp = c->pp;
+        sc_level &L = c->mg->fine();
+        clear(L);
+        const matrix_diag &M = c->d->M;
+
+        const int *o = c->ov;
+        if(o[0]+o[1]+o[2]+o[3]>0)
+        {
+            const int i0 = EXT-o[0], i1 = EXT+c->nx+o[1], j0 = EY-o[2], j1 = EY+c->ny+o[3];
+            auto in_int = [&](int ii, int jj) { return ii>=EXT && ii<EXT+c->nx && jj>=EY && jj<EY+c->ny; };
+            auto row_o = [&](int ii, int jj) { return ii>=i0 && ii<i1 && jj>=j0 && jj<j1 && !in_int(ii,jj) && pr_sib(c,ii,jj); };
+            auto keep = [&](int ii, int jj) { return in_int(ii,jj) || row_o(ii,jj); };
+
+            for(int ii=i0; ii<i1; ++ii)
+            for(int jj=j0; jj<j1; ++jj)
+            {
+                const bool inr = in_int(ii,jj), ovr = !inr && row_o(ii,jj);
+                const bool kn = keep(ii+1,jj), ks = keep(ii-1,jj), kw = keep(ii,jj+1), ke = keep(ii,jj-1);
+                for(int kk=0; kk<pp->knoz; ++kk)
+                {
+                    const long lq = L.idx(ii-i0,jj-j0,kk);
+                    const int qq = fidx(pp,ii,jj,kk);
+                    double cc[7];
+                    if(inr)
+                    {
+                        const int r = c->row[qq];
+                        if(r<0)
+                        {
+                            pr_coef(c->mg,L,lq,1.0,0.0,0.0,0.0,0.0,0.0,0.0);
+                            continue;
+                        }
+                        cc[0]=M.p[r]; cc[1]=M.n[r]; cc[2]=M.s[r]; cc[3]=M.w[r]; cc[4]=M.e[r]; cc[5]=M.t[r]; cc[6]=M.b[r];
+                    }
+                    else if(ovr && c->kc7[0][qq]!=0.0)
+                    {
+                        for(int m=0; m<7; ++m)
+                        cc[m] = c->kc7[m][qq];
+                    }
+                    else
+                    {
+                        pr_coef(c->mg,L,lq,1.0,0.0,0.0,0.0,0.0,0.0,0.0);
+                        continue;
+                    }
+                    pr_coef(c->mg,L,lq,cc[0],kn ? cc[1] : 0.0,ks ? cc[2] : 0.0,kw ? cc[3] : 0.0,ke ? cc[4] : 0.0,cc[5],cc[6]);
+                    const bool fx = (cc[0]==1.0 && cc[1]==0.0 && cc[2]==0.0 && cc[3]==0.0 && cc[4]==0.0 && cc[5]==0.0 && cc[6]==0.0);
+                    L.act[lq] = fx ? 0 : 1;
+                }
+            }
+            // a 2D grid: the patch-local problem is an x-z problem, solved exactly (reefamr_xzlu),
+            // the factorisation of the first solve of the step kept for its other solves (xz_keep)
+            if(sy==0)
+            patch_xz(c,L);
+            else
+            c->mg->coarsen();
+            continue;
         }
 
-        MPI_Allreduce(cs->rl.data(), cs->rc.data(), cs_n, MPI_DOUBLE, MPI_SUM, reef3d_comm());
-
-        Eigen::Map<Eigen::VectorXd> rc(cs->rc.data(), cs_n);
-        Eigen::VectorXd zc = cs->lu.solve(rc);
-
-        for(int g : grids)
+        for(int ii=EXT; ii<EXT+c->nx; ++ii)
+        for(int jj=EY; jj<EY+c->ny; ++jj)
+        for(int kk=0; kk<pp->knoz; ++kk)
         {
-            lexer *q = glex(g);
-            double *z = pvec(g, kz);
-            const size_t n = (size_t)q->imax * q->jmax * (q->kmax + 2);
-            std::fill(z, z + n, 0.0);
-            const vector<double> &A = cs->agg[g + 1];
-            for(int qq : pg[g + 1].lq)
-                z[qq] = zc[int(A[qq])];
+            const long lq = L.idx(ii-EXT,jj-EY,kk);
+            const int r = c->row[fidx(pp,ii,jj,kk)];
+            if(r<0)
+            {
+                pr_coef(c->mg,L,lq,1.0,0.0,0.0,0.0,0.0,0.0,0.0);
+                continue;
+            }
+            pr_coef(c->mg,L,lq,M.p[r],
+                    (ii+1<EXT+c->nx) ? M.n[r] : 0.0,
+                    (ii-1>=EXT) ? M.s[r] : 0.0,
+                    (jj+1<EY+c->ny) ? M.w[r] : 0.0,
+                    (jj-1>=EY) ? M.e[r] : 0.0,
+                    M.t[r],M.b[r]);
+            L.act[lq] = fixed(M,r) ? 0 : 1;
         }
+        if(sy==0)
+        patch_xz(c,L);
+        else
+        c->mg->coarsen();
     }
 
-    // pcol with the weights of a solve kept: the source offsets and weights of the 5x5 stencil
-    void nhflow_amr::pst_make(int g, int ic, int jc, int ox, int oy, pstencil &st)
+    pr_stencils();
+
+    cs_build(pgc);
+}
+
+// a 2D grid: the exact x-z factorisation of a grid is kept for the other pressure solves of the step
+// (key: the layout, the level window and the step of the factorisation), as the composite Laplace of
+// FNPF AMR.  The coefficients follow the free surface and the sigma grid of the stage: the
+// factorisation of the first solve of the step is the preconditioner of its other solves.  A change
+// of the active rows (wetting and drying: identity rows) refactorises
+bool nhflow_amr::xz_keep(const long *key, const vector<char> &act0, const sc_level &L, int wkey) const
+{
+    return key[0]==layout_id && key[1]==wkey && key[2]==p0->count && act0==L.act;
+}
+
+// ---- multi-block: the coarse space across the blocks (G 53)
+struct nhflow_amr::cs_impl
+{
+    vector<vector<double>> agg;          // [g+1]: aggregate of the unknowns (F layout), -1 none
+    Eigen::SparseLU<Eigen::SparseMatrix<double>> lu;
+    vector<double> rl, rc;
+};
+
+void nhflow_amr::cs_free()
+{
+    delete cs;
+    cs = nullptr;
+}
+
+void nhflow_amr::cs_build(ghostcell *pgc)
+{
+    cs_n = 0;
+    if(nblk==0 || csw<=0 || wlo!=0)
+    return;
+
+    if(cs==nullptr)
+    cs = new cs_impl;
+
+    // the level-0 grids: the native grid (-1) and the blocks 1..
+    vector<int> grids(1,-1);
+    for(int id : lev[0])
+    grids.push_back(id);
+
+    // aggregates of csw x csw columns of every grid (the unknowns of all layers), numbered on the rank
+    cs->agg.assign(P.size()+1,vector<double>());
+    int nloc = 0;
+    for(int g : grids)
     {
         lexer *q = glex(g);
-        const int sI = q->jmax * q->kmaxF;
-        const int sJ = q->kmaxF;
-
-        double w[25];
-        pweights(q, ic, jc, ox, oy, w, 2);
-
-        st.nw = 0;
-        const int n0 = fidx(q, ic, jc, 0);
-        for(int di = -2; di <= 2; ++di)
-            for(int dj = -2; dj <= 2; ++dj)
-            {
-                const double c = w[(di + 2) * 5 + (dj + 2)];
-                if(c == 0.0)
-                    continue;
-                st.off[st.nw] = n0 + di * sI + dj * sJ;
-                st.w[st.nw] = c;
-                ++st.nw;
-            }
-    }
-
-    void nhflow_amr::pst_col(const pstencil &st, const double *src, int kc, int knf, double *v) const
-    {
-        const int fz = knf / kc;
-
-        for(int kk = 0; kk <= kc; ++kk)
+        vector<double> &A = cs->agg[g+1];
+        A.assign((size_t)q->imax*q->jmax*(q->kmax+2),-1.0);
+        std::map<long,int> ids;
+        const pgrid &L = pg[g+1];
+        const int o = (g<0) ? 0 : EXT;
+        for(int qq : L.lq)
         {
-            double r = 0.0;
-            for(int m = 0; m < st.nw; ++m)
-                r += st.w[m] * src[st.off[m] + kk];
-            v[fz * kk] = r;
+            const int ii = qq/(q->jmax*q->kmaxF) + q->imin, jj = (qq/q->kmaxF)%q->jmax + q->jmin;
+            const long key = long((ii-o)/csw)*100000L + long((jj-o)/csw);
+            auto it = ids.find(key);
+            if(it==ids.end())
+            it = ids.emplace(key,nloc++).first;
+            A[qq] = it->second;
         }
-
-        if(fz == 2)
-            for(int kk = 0; kk < kc; ++kk)
-                v[2 * kk + 1] = 0.5 * (v[2 * kk] + v[2 * kk + 2]);
     }
 
-    // the restriction blocks, interior prolongation stencils and active index lists of this solve
-    void nhflow_amr::pr_stencils()
-    {
-        // restriction: the blocks of the local patches (their parent on any rank)
-        pr_rbk.assign(P.size(), vector<prblock>());
-        for(int id = 0; id < (int)P.size(); ++id)
-        {
-            reefamr_patch *c = P[id];
-            if(c->lev == 0)  // multi-block: the blocks 1.. have no parent
-                continue;
-            lexer *pp = c->pp;
-            const int nby = c->ny >> sy;
-            pr_rbk[id].resize(c->rgrid.size());
+    int off = 0;
+    MPI_Exscan(&nloc,&off,1,MPI_INT,MPI_SUM,reef3d_comm());
+    if(p0->mpirank==0)
+    off = 0;
+    int ntot = 0;
+    MPI_Allreduce(&nloc,&ntot,1,MPI_INT,MPI_SUM,reef3d_comm());
+    for(int g : grids)
+    for(double &a : cs->agg[g+1])
+    if(a>=0.0)
+    a += off;
 
-            for(int bi = 0; bi < c->nx / 2; ++bi)
-                for(int bj = 0; bj < nby; ++bj)
+    // the aggregates of the cells around the blocks and of the ring
+    pr_fill0([&](int g) -> double* { return cs->agg[g+1].data(); });
+
+    // the coarse operator: the rows summed over the aggregates
+    std::map<std::pair<int,int>,double> T;
+    for(int g : grids)
+    {
+        lexer *q = glex(g);
+        const matrix_diag &M = gfd(g)->M;
+        const vector<double> &A = cs->agg[g+1];
+        const pgrid &L = pg[g+1];
+        const int sI = q->jmax*q->kmaxF, sJ = q->kmaxF;
+        for(size_t n=0; n<L.lq.size(); ++n)
+        {
+            const int qq = L.lq[n], r = L.lr[n];
+            const int I = int(A[qq]);
+            T[{I,I}] += M.p[r];
+            const int nb[6] = {qq+sI,qq-sI,qq+sJ,qq-sJ,qq+1,qq-1};
+            const double cf[6] = {M.n[r],M.s[r],M.w[r],M.e[r],M.t[r],M.b[r]};
+            for(int m=0; m<6; ++m)
+            if(cf[m]!=0.0 && A[nb[m]]>=0.0)
+            T[{I,int(A[nb[m]])}] += cf[m];
+        }
+    }
+
+    // on every rank the whole coarse operator, factorized
+    vector<int> ti, tj;
+    vector<double> tv;
+    for(auto &e : T)
+    {
+        ti.push_back(e.first.first);
+        tj.push_back(e.first.second);
+        tv.push_back(e.second);
+    }
+    const int np = p0->mpi_size;
+    int nt = int(tv.size());
+    vector<int> cnt(np), dsp(np,0);
+    MPI_Allgather(&nt,1,MPI_INT,&cnt[0],1,MPI_INT,reef3d_comm());
+    for(int r=1; r<np; ++r)
+    dsp[r] = dsp[r-1] + cnt[r-1];
+    const int nall = dsp[np-1] + cnt[np-1];
+    vector<int> ai(MAX(nall,1)), aj(MAX(nall,1));
+    vector<double> av(MAX(nall,1));
+    MPI_Allgatherv(ti.data(),nt,MPI_INT,&ai[0],&cnt[0],&dsp[0],MPI_INT,reef3d_comm());
+    MPI_Allgatherv(tj.data(),nt,MPI_INT,&aj[0],&cnt[0],&dsp[0],MPI_INT,reef3d_comm());
+    MPI_Allgatherv(tv.data(),nt,MPI_DOUBLE,&av[0],&cnt[0],&dsp[0],MPI_DOUBLE,reef3d_comm());
+
+    if(ntot==0)
+    return;
+
+    std::vector<Eigen::Triplet<double>> trip;
+    trip.reserve(nall);
+    for(int k=0; k<nall; ++k)
+    trip.emplace_back(ai[k],aj[k],av[k]);
+    Eigen::SparseMatrix<double> Ac(ntot,ntot);
+    Ac.setFromTriplets(trip.begin(),trip.end());
+    Ac.makeCompressed();
+    cs->lu.compute(Ac);
+    if(cs->lu.info()!=Eigen::Success)
+    {
+        if(p0->mpirank==0)
+        cout<<"NHFLOW multi-block grid: coarse space across the blocks singular, off for this solve"<<endl;
+        return;
+    }
+    cs->rl.assign(ntot,0.0);
+    cs->rc.assign(ntot,0.0);
+    cs_n = ntot;
+}
+
+// z = P Ac^-1 R r on the unknowns of the level-0 grids (z 0 elsewhere on these grids)
+void nhflow_amr::cs_correct(int kr, int kz)
+{
+    std::fill(cs->rl.begin(),cs->rl.end(),0.0);
+
+    vector<int> grids(1,-1);
+    for(int id : lev[0])
+    grids.push_back(id);
+
+    for(int g : grids)
+    {
+        const double *r = pvec(g,kr);
+        const vector<double> &A = cs->agg[g+1];
+        for(int qq : pg[g+1].lq)
+        cs->rl[int(A[qq])] += r[qq];
+    }
+
+    MPI_Allreduce(cs->rl.data(),cs->rc.data(),cs_n,MPI_DOUBLE,MPI_SUM,reef3d_comm());
+
+    Eigen::Map<Eigen::VectorXd> rc(cs->rc.data(),cs_n);
+    Eigen::VectorXd zc = cs->lu.solve(rc);
+
+    for(int g : grids)
+    {
+        lexer *q = glex(g);
+        double *z = pvec(g,kz);
+        const size_t n = (size_t)q->imax*q->jmax*(q->kmax+2);
+        std::fill(z,z+n,0.0);
+        const vector<double> &A = cs->agg[g+1];
+        for(int qq : pg[g+1].lq)
+        z[qq] = zc[int(A[qq])];
+    }
+}
+
+// pcol with the weights of a solve kept: the source offsets and weights of the 5x5 stencil
+void nhflow_amr::pst_make(int g, int ic, int jc, int ox, int oy, pstencil &st)
+{
+    lexer *q = glex(g);
+    const int sI = q->jmax*q->kmaxF;
+    const int sJ = q->kmaxF;
+
+    double w[25];
+    pweights(q,ic,jc,ox,oy,w,2);
+
+    st.nw = 0;
+    const int n0 = fidx(q,ic,jc,0);
+    for(int di=-2; di<=2; ++di)
+    for(int dj=-2; dj<=2; ++dj)
+    {
+        const double c = w[(di+2)*5+(dj+2)];
+        if(c==0.0)
+        continue;
+        st.off[st.nw] = n0 + di*sI + dj*sJ;
+        st.w[st.nw] = c;
+        ++st.nw;
+    }
+}
+
+void nhflow_amr::pst_col(const pstencil &st, const double *src, int kc, int knf, double *v) const
+{
+    const int fz = knf/kc;
+
+    for(int kk=0; kk<=kc; ++kk)
+    {
+        double r = 0.0;
+        for(int m=0; m<st.nw; ++m)
+        r += st.w[m]*src[st.off[m]+kk];
+        v[fz*kk] = r;
+    }
+
+    if(fz==2)
+    for(int kk=0; kk<kc; ++kk)
+    v[2*kk+1] = 0.5*(v[2*kk]+v[2*kk+2]);
+}
+
+// the restriction blocks, interior prolongation stencils and active index lists of this solve
+void nhflow_amr::pr_stencils()
+{
+    // restriction: the blocks of the local patches (their parent on any rank)
+    pr_rbk.assign(P.size(),vector<prblock>());
+    for(int id=0; id<(int)P.size(); ++id)
+    {
+        reefamr_patch *c = P[id];
+        if(c->lev==0)       // multi-block: the blocks 1.. have no parent
+        continue;
+        lexer *pp = c->pp;
+        const int nby = c->ny>>sy;
+        pr_rbk[id].resize(c->rgrid.size());
+
+        for(int bi=0; bi<c->nx/2; ++bi)
+        for(int bj=0; bj<nby; ++bj)
+        {
+            const int k = bi*nby+bj;
+            if(c->rgrid[k]==-2)
+            continue;
+
+            const int i0 = EXT+2*bi, j0 = EY+ychild(bj);
+
+            bool hi = (bi>0 && bi<c->nx/2-1 && bj>0 && bj<nby-1) && rcubic(pp,i0,j0) && sub==0;
+
+            int na = 4;
+            double wa[4] = {0.25,0.25,0.25,0.25};
+            if(shore)
+            {
+                for(int a=-1; a<=2 && hi; ++a)
+                for(int b=-1; b<=2 && hi; ++b)
+                if(!wet_at(pp,i0+a,j0+b,2))
+                hi = false;
+
+                na = 0;
+                for(int a=0; a<2; ++a)
+                for(int b=0; b<=sy; ++b)
                 {
-                    const int k = bi * nby + bj;
-                    if(c->rgrid[k] == -2)
-                        continue;
-
-                    const int i0 = EXT + 2 * bi, j0 = EY + ychild(bj);
-
-                    bool hi = (bi > 0 && bi < c->nx / 2 - 1 && bj > 0 && bj < nby - 1) && rcubic(pp, i0, j0) && sub == 0;
-
-                    int na = 4;
-                    double wa[4] = {0.25, 0.25, 0.25, 0.25};
-                    if(shore)
-                    {
-                        const int k = bi * nby + bj;
-                        if(c->rgrid[k] == -2)
-                            continue;
-
-                        na = 0;
-                        for(int a = 0; a < 2; ++a)
-                            for(int b = 0; b <= sy; ++b)
-                            {
-                                for(int a = -1; a <= 2 && hi; ++a)
-                                    for(int b = -1; b <= 2 && hi; ++b)
-                                        if(!wet_at(pp, i0 + a, j0 + b, 2))
-                                            hi = false;
-
-                                na = 0;
-                                for(int a = 0; a < 2; ++a)
-                                    for(int b = 0; b < 2; ++b)
-                                    {
-                                        wa[2 * a + b] = wet_at(pp, i0 + a, j0 + b, 2) ? 1.0 : 0.0;
-                                        na += (int)wa[2 * a + b];
-                                    }
-                                for(int m = 0; m < 4; ++m)
-                                    wa[m] = (na > 0) ? wa[m] / double(na) : 0.0;
-                            }
-
-                        prblock &B = pr_rbk[id][k];
-                        B.mode = hi ? 1 : (na == 4 ? 2 : 3);
-                        B.src = fidx(pp, i0, j0, 0);
-                        for(int m = 0; m < 4; ++m)
-                            B.wa[m] = wa[m];
-                    }
+                    wa[2*a+b] = wet_at(pp,i0+a,j0+b,2) ? 1.0 : 0.0;
+                    na += (int)wa[2*a+b];
                 }
-
-            // interior prolongation: the stencils of the parents this rank holds, made at first use
-            pr_pik.assign(maxlev + 1, vector<pstencil>());
-            pr_pik_ok.assign(maxlev + 1, vector<char>());
-            for(int l = 1; l <= maxlev; ++l)
-            {
-                pr_pik[l].resize(4 * (size_t)block_keys(l));
-                pr_pik_ok[l].assign(4 * (size_t)block_keys(l), 0);
+                for(int m=0; m<4; ++m)
+                wa[m] = (na>0) ? wa[m]/double(na) : 0.0;
             }
 
-            pr_fs.clear();
+            prblock &B = pr_rbk[id][k];
+            B.mode = hi ? 1 : (na==4 ? 2 : 3);
+            B.src = fidx(pp,i0,j0,0);
+            for(int m=0; m<4; ++m)
+            B.wa[m] = wa[m];
+        }
+    }
 
-            // the level-0 rows of the V-cycle (G 7 1: also for the coarse correction of a level solve)
+    // interior prolongation: the stencils of the parents this rank holds, made at first use
+    pr_pik.assign(maxlev+1,vector<pstencil>());
+    pr_pik_ok.assign(maxlev+1,vector<char>());
+    for(int l=1; l<=maxlev; ++l)
+    {
+        pr_pik[l].resize(4*(size_t)block_keys(l));
+        pr_pik_ok[l].assign(4*(size_t)block_keys(l),0);
+    }
+
+    pr_fs.clear();
+
+    // the level-0 rows of the V-cycle (G 7 1: also for the coarse correction of a level solve)
+    {
+        const sc_level &L = mg0->fine();
+        pr_l0a.clear();
+        pr_l0f.clear();
+        pr_l0z.clear();
+        for(int ii=0; ii<p0->knox; ++ii)
+        for(int jj=0; jj<p0->knoy; ++jj)
+        for(int kk=0; kk<p0->knoz; ++kk)
+        {
+            const long lq = L.idx(ii,jj,kk);
+            if(L.act[lq])
             {
-                const sc_level &L = mg0->fine();
-                pr_l0a.clear();
-                pr_l0f.clear();
-                pr_l0z.clear();
-                for(int ii = 0; ii < p0->knox; ++ii)
-                    for(int jj = 0; jj < p0->knoy; ++jj)
-                        for(int kk = 0; kk < p0->knoz; ++kk)
-                        {
-                            const long lq = L.idx(ii, jj, kk);
-                            if(L.act[lq])
-                            {
-                                pr_l0a.push_back(lq);
-                                pr_l0f.push_back(fidx(p0, ii, jj, kk));
-                            }
-                            else
-                                pr_l0z.push_back(fidx(p0, ii, jj, kk));
-                        }
+                pr_l0a.push_back(lq);
+                pr_l0f.push_back(fidx(p0,ii,jj,kk));
             }
+            else
+            pr_l0z.push_back(fidx(p0,ii,jj,kk));
+        }
+    }
 
-            pr_pa.assign(P.size(), vector<pact>());
-            pr_po.assign(P.size(), vector<pact>());
-            for(int id = 0; id < (int)P.size(); ++id)
+    pr_pa.assign(P.size(),vector<pact>());
+    pr_po.assign(P.size(),vector<pact>());
+    for(int id=0; id<(int)P.size(); ++id)
+    {
+        nhflow_amr_patch *c = NP(id);
+        lexer *pp = c->pp;
+        const sc_level &L = c->mg->fine();
+        const int *o = c->ov;
+        for(int ii=EXT; ii<EXT+c->nx; ++ii)
+        for(int jj=EY; jj<EY+c->ny; ++jj)
+        for(int kk=0; kk<pp->knoz; ++kk)
+        {
+            const long lq = L.idx(ii-EXT+o[0],jj-EY+o[2],kk);
+            if(L.act[lq]==0)
+            continue;
+            const int qq = fidx(pp,ii,jj,kk);
+            pr_pa[id].push_back({lq,qq,c->row[qq]});
+        }
+        // the overlap cells (their right-hand side: the residual of the patch there)
+        if(o[0]+o[1]+o[2]+o[3]>0)
+        for(int ii=EXT-o[0]; ii<EXT+c->nx+o[1]; ++ii)
+        for(int jj=EY-o[2]; jj<EY+c->ny+o[3]; ++jj)
+        {
+            if(ii>=EXT && ii<EXT+c->nx && jj>=EY && jj<EY+c->ny)
+            continue;
+            for(int kk=0; kk<pp->knoz; ++kk)
             {
-                nhflow_amr_patch *c = NP(id);
-                lexer *pp = c->pp;
-                const sc_level &L = c->mg->fine();
-                const int *o = c->ov;
-                for(int ii = EXT; ii < EXT + c->nx; ++ii)
-                    for(int jj = EY; jj < EY + c->ny; ++jj)
-                        for(int kk = 0; kk < pp->knoz; ++kk)
-                        {
-                            const long lq = L.idx(ii - EXT + o[0], jj - EY + o[2], kk);
-                            if(L.act[lq] == 0)
-                                continue;
-                            const int qq = fidx(pp, ii, jj, kk);
-                            pr_pa[id].push_back({lq, qq, c->row[qq]});
-                        }
-                // the overlap cells (their right-hand side: the residual of the patch there)
-                if(o[0] + o[1] + o[2] + o[3] > 0)
-                    for(int ii = EXT - o[0]; ii < EXT + c->nx + o[1]; ++ii)
-                        for(int jj = EY - o[2]; jj < EY + c->ny + o[3]; ++jj)
-                        {
-                            if(ii >= EXT && ii < EXT + c->nx && jj >= EY && jj < EY + c->ny)
-                                continue;
-                            for(int kk = 0; kk < pp->knoz; ++kk)
-                            {
-                                const long lq = L.idx(ii - EXT + o[0], jj - EY + o[2], kk);
-                                if(L.act[lq] == 0)
-                                    continue;
-                                pr_po[id].push_back({lq, fidx(pp, ii, jj, kk), -1});
-                            }
-                        }
+                const long lq = L.idx(ii-EXT+o[0],jj-EY+o[2],kk);
+                if(L.act[lq]==0)
+                continue;
+                pr_po[id].push_back({lq,fidx(pp,ii,jj,kk),-1});
             }
         }
+    }
+}
 
-        // restrict_col with the blocks of pr_stencils
-        template<class SEL>
-        void nhflow_amr::pr_restrict(SEL sel)
-        {
-            using namespace nhflow_amr_detail;
+// restrict_col with the blocks of pr_stencils
+template<class SEL>
+void nhflow_amr::pr_restrict(SEL sel)
+{
+    using namespace nhflow_amr_detail;
 
-            for(int l = wtop(); l >= wlo + 1; --l)
-            {
-                const int Kc = klev(l - 1);
-                block_up(l, Kc + 1, 7500 + l, [&](reefamr_patch *c, int id, int k, double *v)
-                         {
+    for(int l=wtop(); l>=wlo+1; --l)
+    {
+        const int Kc = klev(l-1);
+        block_up(l,Kc+1,7500+l,
+                 [&](reefamr_patch *c, int id, int k, double *v)
+                 {
                      const prblock &B = pr_rbk[id][k];
                      lexer *pp = c->pp;
                      const double *src = sel(id);
@@ -1053,88 +982,91 @@ void nhflow_amr::pr_rows()
                          v[K] = 0.25*(src[n0] + src[n0+sI] + src[n0+sJ] + src[n0+sI+sJ]);
                          else
                          v[K] = B.wa[0]*src[n0] + B.wa[2]*src[n0+sI] + B.wa[1]*src[n0+sJ] + B.wa[3]*src[n0+sI+sJ];
-                     } }, [&](const reefamr_block &B, int key, const double *v)
-                         {
+                     }
+                 },
+                 [&](const reefamr_block &B, int key, const double *v)
+                 {
                      double *dst = sel(B.g);
                      const int d0 = fidx(glex(B.g),B.ic,B.jc,0);
                      for(int K=0; K<=Kc; ++K)
-                     dst[d0+K] = v[K]; });
-            }
-        }
+                     dst[d0+K] = v[K];
+                 });
+    }
+}
 
-        // fill_col with the stencils of the fills from the coarser grid kept for the solve
-        template<class SEL>
-        void nhflow_amr::pr_fill(int l, int tag, SEL sel, bool d1)
-        {
-            const int knf = klev(l);
-            const int nv = knf + 1;
+// fill_col with the stencils of the fills from the coarser grid kept for the solve
+template<class SEL>
+void nhflow_amr::pr_fill(int l, int tag, SEL sel, bool d1)
+{
+    const int knf = klev(l);
+    const int nv = knf+1;
 
-            // G 7 1, the lowest level of the window above level 0: its parent columns are fixed (the
-            // parent pressure of the level solve, 0 for a correction); they keep their values in the
-            // unknowns and are 0 in the Krylov vectors
-            const bool edge = (pr_edge && l == wlo);
+    // G 7 1, the lowest level of the window above level 0: its parent columns are fixed (the
+    // parent pressure of the level solve, 0 for a correction); they keep their values in the
+    // unknowns and are 0 in the Krylov vectors
+    const bool edge = (pr_edge && l==wlo);
 
-            auto ev = [&](const reefamr_fill &f, double *v)
-            {
-                if(f.kind == 0)
-                {
-                    lexer *q = glex(f.g);
-                    const double *src = sel(f.g);
-                    for(int kk = 0; kk <= knf; ++kk)
-                        v[kk] = src[fidx(q, f.si, f.sj, kk)];
-                }
-                else if(f.kind == 1 && edge)
-                {
-                    for(int kk = 0; kk <= knf; ++kk)
-                        v[kk] = std::numeric_limits<double>::quiet_NaN();
-                }
-                else if(f.kind == 1)
-                {
-                    auto it = pr_fs.find(&f);
-                    if(it == pr_fs.end())
-                    {
-                        pstencil st;
-                        pst_make(f.g, f.si, f.sj, f.ox, f.oy, st);
-                        it = pr_fs.emplace(&f, st).first;
-                    }
-                    pst_col(it->second, sel(f.g), glex(f.g)->knoz, knf, v);
-                }
-                else
-                    for(int kk = 0; kk <= knf; ++kk)
-                        v[kk] = 0.0;
-            };
-            auto st = [&](reefamr_patch *c, int id, const reefamr_fill &f, const double *w)
-            {
-                lexer *pp = c->pp;
-                double *dst = sel(id);
-                if(edge && std::isnan(w[0]))
-                {
-                    if(pr_dir)
-                        for(int kk = 0; kk <= knf; ++kk)
-                            dst[fidx(pp, f.di, f.dj, kk)] = 0.0;
-                    return;
-                }
-                for(int kk = 0; kk <= knf; ++kk)
-                    dst[fidx(pp, f.di, f.dj, kk)] = w[kk];
-            };
-            // (d1: depth 1 on the finest level of the window; the levels below it two columns deep, as far as
-            // the stencils of the fills of the next finer level reach around their parent columns)
-            if(d1)
-                fill_run_sub(l, nv, tag, ev, st, [&](reefamr_patch *c) -> const vector<int> *
-                             { return (l == wtop()) ? &NP(c)->fill1 : &NP(c)->fill2; });
-            else
-                fill_run(l, nv, tag, ev, st);
-        }
+    auto ev = [&](const reefamr_fill &f, double *v)
+             {
+                 if(f.kind==0)
+                 {
+                     lexer *q = glex(f.g);
+                     const double *src = sel(f.g);
+                     for(int kk=0; kk<=knf; ++kk)
+                     v[kk] = src[fidx(q,f.si,f.sj,kk)];
+                 }
+                 else if(f.kind==1 && edge)
+                 {
+                     for(int kk=0; kk<=knf; ++kk)
+                     v[kk] = std::numeric_limits<double>::quiet_NaN();
+                 }
+                 else if(f.kind==1)
+                 {
+                     auto it = pr_fs.find(&f);
+                     if(it==pr_fs.end())
+                     {
+                         pstencil st;
+                         pst_make(f.g,f.si,f.sj,f.ox,f.oy,st);
+                         it = pr_fs.emplace(&f,st).first;
+                     }
+                     pst_col(it->second,sel(f.g),glex(f.g)->knoz,knf,v);
+                 }
+                 else
+                 for(int kk=0; kk<=knf; ++kk)
+                 v[kk] = 0.0;
+             };
+    auto st = [&](reefamr_patch *c, int id, const reefamr_fill &f, const double *w)
+             {
+                 lexer *pp = c->pp;
+                 double *dst = sel(id);
+                 if(edge && std::isnan(w[0]))
+                 {
+                     if(pr_dir)
+                     for(int kk=0; kk<=knf; ++kk)
+                     dst[fidx(pp,f.di,f.dj,kk)] = 0.0;
+                     return;
+                 }
+                 for(int kk=0; kk<=knf; ++kk)
+                 dst[fidx(pp,f.di,f.dj,kk)] = w[kk];
+             };
+    // (d1: depth 1 on the finest level of the window; the levels below it two columns deep, as far as
+    // the stencils of the fills of the next finer level reach around their parent columns)
+    if(d1)
+    fill_run_sub(l,nv,tag,ev,st,[&](reefamr_patch *c) -> const vector<int>* { return (l==wtop()) ? &NP(c)->fill1 : &NP(c)->fill2; });
+    else
+    fill_run(l,nv,tag,ev,st);
+}
 
-        // the coarse correction of vector k into the interior of the level-l patches: from the parent
-        // of every 2x2 block (on its rank) with the stencils of the solve
-        void nhflow_amr::pr_prolong(int l, int k)
-        {
-            const int knf = klev(l);
-            const int nc = knf + 1;
+// the coarse correction of vector k into the interior of the level-l patches: from the parent
+// of every 2x2 block (on its rank) with the stencils of the solve
+void nhflow_amr::pr_prolong(int l, int k)
+{
+    const int knf = klev(l);
+    const int nc = knf+1;
 
-            block_down(l, 4 * nc, 7520 + l, [&](const reefamr_block &B, int key, double *v)
-                       {
+    block_down(l,4*nc,7520+l,
+               [&](const reefamr_block &B, int key, double *v)
+               {
                    lexer *q = glex(B.g);
                    for(int a=0; a<2; ++a)
                    for(int d=0; d<=sy; ++d)
@@ -1146,8 +1078,10 @@ void nhflow_amr::pr_rows()
                            pr_pik_ok[l][m] = 1;
                        }
                        pst_col(pr_pik[l][m],pvec(B.g,k),q->knoz,knf,&v[(2*a+d)*nc]);
-                   } }, [&](reefamr_patch *c, int id, int kb, const double *v)
-                       {
+                   }
+               },
+               [&](reefamr_patch *c, int id, int kb, const double *v)
+               {
                    lexer *pp = c->pp;
                    const int nby = c->ny>>sy;
                    const int bi = kb/nby, bj = kb%nby;
@@ -1158,41 +1092,43 @@ void nhflow_amr::pr_rows()
                        const int d0 = fidx(pp,EXT+2*bi+a,EY+ychild(bj)+d,0);
                        for(int kk=0; kk<=knf; ++kk)
                        dst[d0+kk] = v[(2*a+d)*nc+kk];
-                   } });
-        }
+                   }
+               });
+}
 
-        // covered columns, partition halo of level 0, columns around the patches
-        void nhflow_amr::pr_sync(int k, bool d1)
-        {
-            auto sel = [&](int g) -> double *
-            { return pvec(g, k); };
+// covered columns, partition halo of level 0, columns around the patches
+void nhflow_amr::pr_sync(int k, bool d1)
+{
+    auto sel = [&](int g) -> double* { return pvec(g,k); };
 
-            pr_dir = (k >= 0);
+    pr_dir = (k>=0);
 
-            pr_restrict(sel);
+    pr_restrict(sel);
 
-            if(nblk > 0)
-                pr_fill0(sel);
-            else if(p0->mpi_size > 1 && wlo == 0)
-            {
-                double *x0 = pvec(-1, k);
-                pgc0->gcparax7(p0, x0, 7);
-                pgc0->gcparax7co(p0, x0, 7);
-            }
+    if(nblk>0)
+    pr_fill0(sel);
+    else
+    if(p0->mpi_size>1 && wlo==0)
+    {
+        double *x0 = pvec(-1,k);
+        pgc0->gcparax7(p0,x0,7);
+        pgc0->gcparax7co(p0,x0,7);
+    }
 
-            for(int l = MAX(wlo, 1); l <= wtop(); ++l)
-                pr_fill(l, 7600 + l, sel, d1);
-        }
+    for(int l=MAX(wlo,1); l<=wtop(); ++l)
+    pr_fill(l,7600+l,sel,d1);
+}
 
-        // multi-block: the columns around the blocks and the ring of level 0 from the cells they stand for,
-        // then the partition halo of the native grid
-        template<class SEL>
-        void nhflow_amr::pr_fill0(SEL sel)
-        {
-            const int K = p0->knoz;
+// multi-block: the columns around the blocks and the ring of level 0 from the cells they stand for,
+// then the partition halo of the native grid
+template<class SEL>
+void nhflow_amr::pr_fill0(SEL sel)
+{
+    const int K = p0->knoz;
 
-            fill_run0(K + 1, 7590, [&](const reefamr_fill &f, double *v)
-                      {
+    fill_run0(K+1,7590,
+              [&](const reefamr_fill &f, double *v)
+              {
                   if(f.kind!=0)
                   {
                       for(int kk=0; kk<=K; ++kk)
@@ -1202,516 +1138,518 @@ void nhflow_amr::pr_rows()
                   const double *src = sel(f.g);
                   const int n0 = fidx(glex(f.g),f.si,f.sj,0);
                   for(int kk=0; kk<=K; ++kk)
-                  v[kk] = src[n0+kk]; }, [&](reefamr_patch *c, int id, const reefamr_fill &f, const double *w)
-                      {
+                  v[kk] = src[n0+kk];
+              },
+              [&](reefamr_patch *c, int id, const reefamr_fill &f, const double *w)
+              {
                   double *dst = sel(id);
                   const int n0 = fidx(c->pp,f.di,f.dj,0);
                   for(int kk=0; kk<=K; ++kk)
-                  dst[n0+kk] = w[kk]; }, [&](const reefamr_fill &f, const double *w)
-                      {
+                  dst[n0+kk] = w[kk];
+              },
+              [&](const reefamr_fill &f, const double *w)
+              {
                   double *dst = sel(-1);
                   const int n0 = fidx(p0,f.di,f.dj,0);
                   for(int kk=0; kk<=K; ++kk)
-                  dst[n0+kk] = w[kk]; });
+                  dst[n0+kk] = w[kk];
+              });
 
-            if(p0->mpi_size > 1)
-            {
-                double *x0 = sel(-1);
-                pgc0->gcparax7(p0, x0, 7);
-                pgc0->gcparax7co(p0, x0, 7);
-            }
+    if(p0->mpi_size>1)
+    {
+        double *x0 = sel(-1);
+        pgc0->gcparax7(p0,x0,7);
+        pgc0->gcparax7co(p0,x0,7);
+    }
+}
+
+// y = A x on the leaf unknowns
+void nhflow_amr::pr_apply(int kx, int ky, bool d1)
+{
+    pr_sync(kx,d1);
+
+    for(int g=-1; g<(int)P.size(); ++g)
+    {
+        lexer *q = glex(g);
+        const matrix_diag &M = gfd(g)->M;
+        const double *x = pvec(g,kx);
+        double *y = pvec(g,ky);
+        const int sI = q->jmax*q->kmaxF;
+        const int sJ = q->kmaxF;
+        const pgrid &L = pg[g+1];
+
+        const double *Mp=M.p.data(), *Mn=M.n.data(), *Ms=M.s.data(), *Mw=M.w.data(), *Me=M.e.data(), *Mt=M.t.data(), *Mb=M.b.data();
+
+        for(size_t n=0; n<L.lq.size(); ++n)
+        {
+            const int qq = L.lq[n], r = L.lr[n];
+            y[qq] = Mp[r]*x[qq] + Mn[r]*x[qq+sI] + Ms[r]*x[qq-sI] + Mw[r]*x[qq+sJ] + Me[r]*x[qq-sJ] + Mt[r]*x[qq+1] + Mb[r]*x[qq-1];
         }
 
-        // y = A x on the leaf unknowns
-        void nhflow_amr::pr_apply(int kx, int ky, bool d1)
+        for(int qq : L.cq)
+        y[qq] = 0.0;
+    }
+}
+
+double nhflow_amr::pr_dot(int ka, int kb)
+{
+    double s=0.0;
+    for(int g=-1; g<(int)P.size(); ++g)
+    {
+        const double *a = pvec(g,ka), *b = pvec(g,kb);
+        for(int qq : pg[g+1].lq)
+        s += a[qq]*b[qq];
+    }
+    return pgc0->globalsum(s);
+}
+
+void nhflow_amr::pr_start()
+{
+    for(int g=-1; g<(int)P.size(); ++g)
+    {
+        const double *vb = pvec(g,NS);
+        double *vr = pvec(g,NR), *vrh = pvec(g,NRH), *vp = pvec(g,NPV), *vv = pvec(g,NVV);
+        for(int qq : pg[g+1].lq)
         {
-            pr_sync(kx, d1);
+            double r = vb[qq] - vv[qq];
+            vr[qq] = r; vrh[qq] = r; vp[qq] = 0.0; vv[qq] = 0.0;
+        }
+    }
+}
 
-            for(int g = -1; g < (int)P.size(); ++g)
+void nhflow_amr::pr_p(double beta, double om)
+{
+    for(int g=-1; g<(int)P.size(); ++g)
+    {
+        const double *vr = pvec(g,NR), *vv = pvec(g,NVV);
+        double *vp = pvec(g,NPV);
+        for(int qq : pg[g+1].lq)
+        vp[qq] = vr[qq] + beta*(vp[qq] - om*vv[qq]);
+    }
+}
+
+void nhflow_amr::pr_s(double alp)
+{
+    for(int g=-1; g<(int)P.size(); ++g)
+    {
+        const double *vr = pvec(g,NR), *vv = pvec(g,NVV);
+        double *vs = pvec(g,NS);
+        for(int qq : pg[g+1].lq)
+        vs[qq] = vr[qq] - alp*vv[qq];
+    }
+}
+
+void nhflow_amr::pr_x(double alp, double om)
+{
+    for(int g=-1; g<(int)P.size(); ++g)
+    {
+        const double *vph = pvec(g,NPH), *vsh = pvec(g,NSH), *vs = pvec(g,NS), *vt = pvec(g,NT);
+        double *x = pvec(g,-1), *vr = pvec(g,NR);
+        for(int qq : pg[g+1].lq)
+        {
+            x[qq] += alp*vph[qq] + om*vsh[qq];
+            vr[qq] = vs[qq] - om*vt[qq];
+        }
+    }
+}
+
+// restart of the BiCGStab recurrence from the current residual (reefamr_bicgstab)
+void nhflow_amr::pr_restart()
+{
+    for(int g=-1; g<(int)P.size(); ++g)
+    {
+        const double *vr = pvec(g,NR);
+        double *vrh = pvec(g,NRH), *vp = pvec(g,NPV), *vv = pvec(g,NVV);
+        for(int qq : pg[g+1].lq)
+        {
+            vrh[qq] = vr[qq];
+            vp[qq] = 0.0;
+            vv[qq] = 0.0;
+        }
+    }
+}
+
+// z = M^-1 r: one FAC sweep
+void nhflow_amr::pr_prec(int kr, int kz)
+{
+    const int KT = REEFAMR_NTMP;        // the residual of a level for its patch-local corrections
+    pr_restrict([&](int g) -> double* { return pvec(g,kr); });
+    pr_dir = true;
+
+    auto selz = [&](int g) -> double* { return pvec(g,kz); };
+
+    // level 0: one V-cycle on the whole rank grid
+    if(wlo==0 && nblk==0)
+    {
+        sc_level &L = mg0->fine();
+        const double *r = pvec(-1,kr);
+        double *z = pvec(-1,kz);
+
+        std::fill(L.u.begin(),L.u.end(),0.0);
+        std::fill(L.f.begin(),L.f.end(),0.0);
+        for(size_t n=0; n<pr_l0a.size(); ++n)
+        L.f[pr_l0a[n]] = r[pr_l0f[n]];
+
+        if(xz0on)
+        xz0.solve(L,L.f,L.u);
+        else
+        mg0->vcycle(0,1,1);
+
+        for(size_t n=0; n<pr_l0a.size(); ++n)
+        z[pr_l0f[n]] = L.u[pr_l0a[n]];
+        for(long qq : pr_l0z)
+        z[qq] = 0.0;
+
+        if(p0->mpi_size>1)
+        {
+            pgc0->gcparax7(p0,z,7);
+            pgc0->gcparax7co(p0,z,7);
+        }
+    }
+
+    // multi-block level 0: the coarse correction across the blocks (G 53), then a V-cycle per block
+    // (block 0 over the rank grid without the ring, the blocks 1.. patch-local) with the correction 0
+    // beyond the block faces; with G 51 > 1 passes, between them the corrections of the neighbour
+    // blocks filled in and the V-cycles run on the residual
+    if(wlo==0 && nblk>0)
+    {
+        bool havez = false;
+        if(cs_n>0 && cs!=nullptr)
+        {
+            cs_correct(kr,kz);
+            havez = true;
+        }
+
+        for(int pass=0; pass<npass0; ++pass)
+        {
+            if(havez)
+            pr_fill0(selz);
+
             {
-                lexer *q = glex(g);
-                const matrix_diag &M = gfd(g)->M;
-                const double *x = pvec(g, kx);
-                double *y = pvec(g, ky);
-                const int sI = q->jmax * q->kmaxF;
-                const int sJ = q->kmaxF;
-                const pgrid &L = pg[g + 1];
+            sc_level &L = mg0->fine();
+            const matrix_diag &M = d0->M;
+            const double *r = pvec(-1,kr);
+            double *z = pvec(-1,kz);
+            const int sI = p0->jmax*p0->kmaxF, sJ = p0->kmaxF;
 
-                const double *Mp = M.p.data(), *Mn = M.n.data(), *Ms = M.s.data(), *Mw = M.w.data(), *Me = M.e.data(), *Mt = M.t.data(), *Mb = M.b.data();
+            std::fill(L.u.begin(),L.u.end(),0.0);
+            std::fill(L.f.begin(),L.f.end(),0.0);
+            if(!havez)
+            for(size_t n=0; n<pr_l0a.size(); ++n)
+            L.f[pr_l0a[n]] = r[pr_l0f[n]];
+            else
+            for(size_t n=0; n<pr_l0a.size(); ++n)
+            {
+                const int qq = pr_l0f[n];
+                const int rw = rowmap0[qq];
+                const double az = M.p[rw]*z[qq] + M.n[rw]*z[qq+sI] + M.s[rw]*z[qq-sI] + M.w[rw]*z[qq+sJ] + M.e[rw]*z[qq-sJ]
+                                + M.t[rw]*z[qq+1] + M.b[rw]*z[qq-1];
+                L.f[pr_l0a[n]] = r[qq] - az;
+            }
 
-                for(size_t n = 0; n < L.lq.size(); ++n)
+            mg0->vcycle(0,1,1);
+
+            if(!havez)
+            {
+            for(size_t n=0; n<pr_l0a.size(); ++n)
+            z[pr_l0f[n]] = L.u[pr_l0a[n]];
+            for(long qq : pr_l0z)
+            z[qq] = 0.0;
+            }
+            else
+            for(size_t n=0; n<pr_l0a.size(); ++n)
+            z[pr_l0f[n]] += L.u[pr_l0a[n]];
+            }
+
+            for(int id : lev[0])
+            {
+                nhflow_amr_patch *c = NP(id);
+                lexer *pp = c->pp;
+                const matrix_diag &M = c->d->M;
+                const double *r = pvec(id,kr);
+                double *z = pvec(id,kz);
+                sc_level &L = c->mg->fine();
+                const int sI = pp->jmax*pp->kmaxF;
+                const int sJ = pp->kmaxF;
+
+                if(!havez)
                 {
-                    const int qq = L.lq[n], r = L.lr[n];
-                    y[qq] = Mp[r] * x[qq] + Mn[r] * x[qq + sI] + Ms[r] * x[qq - sI] + Mw[r] * x[qq + sJ] + Me[r] * x[qq - sJ] + Mt[r] * x[qq + 1] + Mb[r] * x[qq - 1];
+                const size_t n = (size_t)pp->imax*pp->jmax*(pp->kmax+2);
+                std::fill(z,z+n,0.0);
                 }
 
-                for(int qq : L.cq)
-                    y[qq] = 0.0;
-            }
-        }
-
-        double nhflow_amr::pr_dot(int ka, int kb)
-        {
-            double s = 0.0;
-            for(int g = -1; g < (int)P.size(); ++g)
-            {
-                const double *a = pvec(g, ka), *b = pvec(g, kb);
-                for(int qq : pg[g + 1].lq)
-                    s += a[qq] * b[qq];
-            }
-            return pgc0->globalsum(s);
-        }
-
-        void nhflow_amr::pr_start()
-        {
-            for(int g = -1; g < (int)P.size(); ++g)
-            {
-                const double *vb = pvec(g, NS);
-                double *vr = pvec(g, NR), *vrh = pvec(g, NRH), *vp = pvec(g, NPV), *vv = pvec(g, NVV);
-                for(int qq : pg[g + 1].lq)
+                std::fill(L.u.begin(),L.u.end(),0.0);
+                std::fill(L.f.begin(),L.f.end(),0.0);
+                for(const pact &A : pr_pa[id])
                 {
-                    double r = vb[qq] - vv[qq];
-                    vr[qq] = r;
-                    vrh[qq] = r;
-                    vp[qq] = 0.0;
-                    vv[qq] = 0.0;
-                }
-            }
-        }
-
-        void nhflow_amr::pr_p(double beta, double om)
-        {
-            for(int g = -1; g < (int)P.size(); ++g)
-            {
-                const double *vr = pvec(g, NR), *vv = pvec(g, NVV);
-                double *vp = pvec(g, NPV);
-                for(int qq : pg[g + 1].lq)
-                    vp[qq] = vr[qq] + beta * (vp[qq] - om * vv[qq]);
-            }
-        }
-
-        void nhflow_amr::pr_s(double alp)
-        {
-            for(int g = -1; g < (int)P.size(); ++g)
-            {
-                const double *vr = pvec(g, NR), *vv = pvec(g, NVV);
-                double *vs = pvec(g, NS);
-                for(int qq : pg[g + 1].lq)
-                    vs[qq] = vr[qq] - alp * vv[qq];
-            }
-        }
-
-        void nhflow_amr::pr_x(double alp, double om)
-        {
-            for(int g = -1; g < (int)P.size(); ++g)
-            {
-                const double *vph = pvec(g, NPH), *vsh = pvec(g, NSH), *vs = pvec(g, NS), *vt = pvec(g, NT);
-                double *x = pvec(g, -1), *vr = pvec(g, NR);
-                for(int qq : pg[g + 1].lq)
-                {
-                    x[qq] += alp * vph[qq] + om * vsh[qq];
-                    vr[qq] = vs[qq] - om * vt[qq];
-                }
-            }
-        }
-
-        // restart of the BiCGStab recurrence from the current residual (reefamr_bicgstab)
-        void nhflow_amr::pr_restart()
-        {
-            for(int g = -1; g < (int)P.size(); ++g)
-            {
-                const double *vr = pvec(g, NR);
-                double *vrh = pvec(g, NRH), *vp = pvec(g, NPV), *vv = pvec(g, NVV);
-                for(int qq : pg[g + 1].lq)
-                {
-                    vrh[qq] = vr[qq];
-                    vp[qq] = 0.0;
-                    vv[qq] = 0.0;
-                }
-            }
-        }
-
-        // z = M^-1 r: one FAC sweep
-        void nhflow_amr::pr_prec(int kr, int kz)
-        {
-            const int KT = REEFAMR_NTMP;  // the residual of a level for its patch-local corrections
-            pr_restrict([&](int g) -> double *
-                        { return pvec(g, kr); });
-            pr_dir = true;
-
-            auto selz = [&](int g) -> double *
-            { return pvec(g, kz); };
-
-            // level 0: one V-cycle on the whole rank grid
-            if(wlo == 0 && nblk == 0)
-            {
-                sc_level &L = mg0->fine();
-                const double *r = pvec(-1, kr);
-                double *z = pvec(-1, kz);
-
-                std::fill(L.u.begin(), L.u.end(), 0.0);
-                std::fill(L.f.begin(), L.f.end(), 0.0);
-                for(size_t n = 0; n < pr_l0a.size(); ++n)
-                    L.f[pr_l0a[n]] = r[pr_l0f[n]];
-
-                if(xz0on)
-                    xz0.solve(L, L.f, L.u);
-                else
-                    mg0->vcycle(0, 1, 1);
-
-                for(size_t n = 0; n < pr_l0a.size(); ++n)
-                    z[pr_l0f[n]] = L.u[pr_l0a[n]];
-                for(long qq : pr_l0z)
-                    z[qq] = 0.0;
-
-                if(p0->mpi_size > 1)
-                {
-                    pgc0->gcparax7(p0, z, 7);
-                    pgc0->gcparax7co(p0, z, 7);
-                }
-            }
-
-            // multi-block level 0: the coarse correction across the blocks (G 53), then a V-cycle per block
-            // (block 0 over the rank grid without the ring, the blocks 1.. patch-local) with the correction 0
-            // beyond the block faces; with G 51 > 1 passes, between them the corrections of the neighbour
-            // blocks filled in and the V-cycles run on the residual
-            if(wlo == 0 && nblk > 0)
-            {
-                bool havez = false;
-                if(cs_n > 0 && cs != nullptr)
-                {
-                    cs_correct(kr, kz);
-                    havez = true;
-                }
-
-                for(int pass = 0; pass < npass0; ++pass)
-                {
+                    const int qq = A.qq;
+                    const int rw = A.rw;
+                    double az = 0.0;
                     if(havez)
-                        pr_fill0(selz);
-
-                    {
-                        sc_level &L = mg0->fine();
-                        const matrix_diag &M = d0->M;
-                        const double *r = pvec(-1, kr);
-                        double *z = pvec(-1, kz);
-                        const int sI = p0->jmax * p0->kmaxF, sJ = p0->kmaxF;
-
-                        std::fill(L.u.begin(), L.u.end(), 0.0);
-                        std::fill(L.f.begin(), L.f.end(), 0.0);
-                        if(!havez)
-                            for(size_t n = 0; n < pr_l0a.size(); ++n)
-                                L.f[pr_l0a[n]] = r[pr_l0f[n]];
-                        else
-                            for(size_t n = 0; n < pr_l0a.size(); ++n)
-                            {
-                                const int qq = pr_l0f[n];
-                                const int rw = rowmap0[qq];
-                                const double az = M.p[rw] * z[qq] + M.n[rw] * z[qq + sI] + M.s[rw] * z[qq - sI] + M.w[rw] * z[qq + sJ] + M.e[rw] * z[qq - sJ] + M.t[rw] * z[qq + 1] + M.b[rw] * z[qq - 1];
-                                L.f[pr_l0a[n]] = r[qq] - az;
-                            }
-
-                        mg0->vcycle(0, 1, 1);
-
-                        if(!havez)
-                        {
-                            for(size_t n = 0; n < pr_l0a.size(); ++n)
-                                z[pr_l0f[n]] = L.u[pr_l0a[n]];
-                            for(long qq : pr_l0z)
-                                z[qq] = 0.0;
-                        }
-                        else
-                            for(size_t n = 0; n < pr_l0a.size(); ++n)
-                                z[pr_l0f[n]] += L.u[pr_l0a[n]];
-                    }
-
-                    for(int id : lev[0])
-                    {
-                        nhflow_amr_patch *c = NP(id);
-                        lexer *pp = c->pp;
-                        const matrix_diag &M = c->d->M;
-                        const double *r = pvec(id, kr);
-                        double *z = pvec(id, kz);
-                        sc_level &L = c->mg->fine();
-                        const int sI = pp->jmax * pp->kmaxF;
-                        const int sJ = pp->kmaxF;
-
-                        if(!havez)
-                        {
-                            const size_t n = (size_t)pp->imax * pp->jmax * (pp->kmax + 2);
-                            std::fill(z, z + n, 0.0);
-                        }
-
-                        std::fill(L.u.begin(), L.u.end(), 0.0);
-                        std::fill(L.f.begin(), L.f.end(), 0.0);
-                        for(const pact &A : pr_pa[id])
-                        {
-                            const int qq = A.qq;
-                            const int rw = A.rw;
-                            double az = 0.0;
-                            if(havez)
-                                az = M.p[rw] * z[qq] + M.n[rw] * z[qq + sI] + M.s[rw] * z[qq - sI] + M.w[rw] * z[qq + sJ] + M.e[rw] * z[qq - sJ] + M.t[rw] * z[qq + 1] + M.b[rw] * z[qq - 1];
-                            L.f[A.lq] = r[qq] - az;
-                        }
-
-                        c->mg->vcycle(0, 1, 1);
-
-                        for(const pact &A : pr_pa[id])
-                            z[A.qq] += L.u[A.lq];
-                    }
-
-                    havez = true;
+                    az = M.p[rw]*z[qq] + M.n[rw]*z[qq+sI] + M.s[rw]*z[qq-sI] + M.w[rw]*z[qq+sJ] + M.e[rw]*z[qq-sJ]
+                       + M.t[rw]*z[qq+1] + M.b[rw]*z[qq-1];
+                    L.f[A.lq] = r[qq] - az;
                 }
 
-                // the columns around the blocks and the ring for the fills of level 1
-                pr_fill0(selz);
+                c->mg->vcycle(0,1,1);
+
+                for(const pact &A : pr_pa[id])
+                z[A.qq] += L.u[A.lq];
             }
 
-            // G 7 1, the level solve of level wlo > 0 with a coarse correction: its residual restricted
-            // through the levels below down to level 0 (in the vectors of the grids below the window,
-            // which have no rows in this solve: scratch, 0 outside the covered cells), one level-0
-            // V-cycle, the correction interpolated back up into the patch interiors; then the patch-local
-            // passes below.  The patch-local V-cycles alone do not reduce the error that spans several
-            // patches or a large patch (the ring wave of 0019: 11 BiCGStab iterations against 5 of the
-            // composite solve with its level-0 cycle)
-            if(wlo > 0)
-            {
-                const int wl = wlo;
-
-                for(int g = -1; g < (int)P.size(); ++g)
-                {
-                    if(g >= 0 && P[g]->lev >= wl)
-                        continue;
-                    lexer *q = glex(g);
-                    const size_t n = (size_t)q->imax * q->jmax * (q->kmax + 2);
-                    std::fill(pvec(g, kr), pvec(g, kr) + n, 0.0);
-                    std::fill(pvec(g, kz), pvec(g, kz) + n, 0.0);
-                }
-
-                wlo = 0;
-                pr_restrict([&](int g) -> double *
-                            { return pvec(g, kr); });
-
-                sc_level &L = mg0->fine();
-                const double *r = pvec(-1, kr);
-                double *z = pvec(-1, kz);
-                std::fill(L.u.begin(), L.u.end(), 0.0);
-                std::fill(L.f.begin(), L.f.end(), 0.0);
-                for(size_t n = 0; n < pr_l0a.size(); ++n)
-                    L.f[pr_l0a[n]] = r[pr_l0f[n]];
-
-                if(xz0on)
-                    xz0.solve(L, L.f, L.u);
-                else
-                    mg0->vcycle(0, 1, 1);
-
-                for(size_t n = 0; n < pr_l0a.size(); ++n)
-                    z[pr_l0f[n]] = L.u[pr_l0a[n]];
-                for(long qq : pr_l0z)
-                    z[qq] = 0.0;
-
-                if(p0->mpi_size > 1)
-                {
-                    pgc0->gcparax7(p0, z, 7);
-                    pgc0->gcparax7co(p0, z, 7);
-                }
-
-                for(int l = 1; l <= wl; ++l)
-                {
-                    pr_prolong(l, kz);
-                    if(l < wl)
-                        pr_fill(l, 7800 + l, selz);
-                }
-
-                wlo = wl;
-            }
-
-            for(int l = MAX(wlo, 1); l <= wtop(); ++l)
-            {
-                // coarse correction interpolated into the patch interiors, then the columns around them
-                if(l > wlo)
-                    pr_prolong(l, kz);
-
-                // G 7 1, the level solve of a level with several patches: the patch-local corrections
-                // are repeated once with the siblings' corrections filled in between (with one pass every
-                // patch corrects against zero at its sibling edges: the ring wave with 3-7 patches needs
-                // 21 BiCGStab iterations with one pass, 11 with two, 7.7 with four, for the same time)
-                const int npass = (l == wlo && wlo > 0 && nlevg[l] > 1) ? 2 : 1;
-
-                for(int pass = 0; pass < npass; ++pass)
-                {
-                    // (the columns next to the patches, as the local residual reads them; the full fill below
-                    // for the next level)
-                    pr_fill(l, 7700 + l, selz, true);
-
-                    // the residual left by the coarse correction on the patches of the level (KT), with the
-                    // overlap filled into the columns of the patches next to them
-                    for(int id : lev[l])
-                    {
-                        nhflow_amr_patch *c = NP(id);
-                        lexer *pp = c->pp;
-                        const matrix_diag &M = c->d->M;
-                        const double *r = pvec(id, kr);
-                        const double *z = pvec(id, kz);
-                        double *t = pvec(id, KT);
-                        const int sI = pp->jmax * pp->kmaxF;
-                        const int sJ = pp->kmaxF;
-                        for(const pact &A : pr_pa[id])
-                        {
-                            const int qq = A.qq;
-                            const int rw = A.rw;
-                            const double az = M.p[rw] * z[qq] + M.n[rw] * z[qq + sI] + M.s[rw] * z[qq - sI] + M.w[rw] * z[qq + sJ] + M.e[rw] * z[qq - sJ] + M.t[rw] * z[qq + 1] + M.b[rw] * z[qq - 1];
-                            t[qq] = r[qq] - az;
-                        }
-                    }
-                    if(pr_ovl)
-                        pr_fill_sib(l, 1, 7680 + l, [&](int m, int g) -> double *
-                                    { return pvec(g, KT); });
-
-                    // patch-local corrections of that residual (the correction kept in the patch)
-                    for(int id : lev[l])
-                    {
-                        nhflow_amr_patch *c = NP(id);
-                        double *z = pvec(id, kz);
-                        const double *t = pvec(id, KT);
-                        sc_level &L = c->mg->fine();
-
-                        std::fill(L.u.begin(), L.u.end(), 0.0);
-                        std::fill(L.f.begin(), L.f.end(), 0.0);
-                        for(const pact &A : pr_pa[id])
-                            L.f[A.lq] = t[A.qq];
-                        for(const pact &A : pr_po[id])
-                            L.f[A.lq] = t[A.qq];
-
-                        if(sy == 0)
-                            c->xz.solve(L, L.f, L.u);
-                        else
-                            c->mg->vcycle(0, 1, 1);
-
-                        for(const pact &A : pr_pa[id])
-                            z[A.qq] += L.u[A.lq];
-                    }
-                }
-
-                if(l < wtop())
-                    pr_fill(l, 7700 + l, selz);
-            }
+            havez = true;
         }
 
-        namespace {
-        // the composite pressure equation as the vector space of reefamr_bicgstab
-        struct pr_space
+        // the columns around the blocks and the ring for the fills of level 1
+        pr_fill0(selz);
+    }
+
+    // G 7 1, the level solve of level wlo > 0 with a coarse correction: its residual restricted
+    // through the levels below down to level 0 (in the vectors of the grids below the window,
+    // which have no rows in this solve: scratch, 0 outside the covered cells), one level-0
+    // V-cycle, the correction interpolated back up into the patch interiors; then the patch-local
+    // passes below.  The patch-local V-cycles alone do not reduce the error that spans several
+    // patches or a large patch (the ring wave of 0019: 11 BiCGStab iterations against 5 of the
+    // composite solve with its level-0 cycle)
+    if(wlo>0)
+    {
+        const int wl = wlo;
+
+        for(int g=-1; g<(int)P.size(); ++g)
         {
-            static const int B = NS, R = NR, RH = NRH, PV = NPV, VV = NVV, S = NS, T = NT, PH = NPH, SH = NSH;
-            nhflow_amr *a;
-            void apply(int x, int y) { a->pr_apply(x, y, true); }
-            void prec(int r, int z) { a->pr_prec(r, z); }
-            double dot(int x, int y) { return a->pr_dot(x, y); }
-            void op_start() { a->pr_start(); }
-            void op_p(double beta, double om) { a->pr_p(beta, om); }
-            void op_s(double alp) { a->pr_s(alp); }
-            void op_x(double alp, double om) { a->pr_x(alp, om); }
-            void op_restart() { a->pr_restart(); }
-        };
-        }  // namespace
-
-        // assembled rows of all grids -> solution in the unknowns of the grids (initial guess: their
-        // values), then the covered columns, the columns around the patches and the halo
-        void nhflow_amr::pr_core(lexer * p, ghostcell * pgc)
-        {
-            pr_prepare(pgc);
-
-            // right-hand side into NS
-            for(int g = -1; g < (int)P.size(); ++g)
-            {
-                const double *R = gfd(g)->rhsvec.V.data();
-                double *b = pvec(g, NS);
-                const pgrid &L = pg[g + 1];
-                for(size_t n = 0; n < L.lq.size(); ++n)
-                    b[L.lq[n]] = R[L.lr[n]];
-                for(int qq : L.cq)
-                    b[qq] = 0.0;
-            }
-
-            pr_apply(-1, NVV);
-
-            double bn, rn;
-            pr_space sp{this};
-            int it = reefamr_bicgstab(sp, p->N44, p->N46, bn, rn, &tm[5], &tm[6], &pr_restarts, STAGTOL * p->N44, &pr_stalls);
-
-            pr_it_last = it;
-            pr_it_total += it;
-            ++pr_solves;
-            pr_res_last = bn > 0.0 ? rn / bn : 0.0;
-            p->solveriter = it;
-            p->poissoniter = it;
-            p->final_res = pr_res_last;
-
-            // the single-grid solvers warn at the iteration limit; a stalled composite solve was silent
-            if(it >= p->N46 && pr_res_last > p->N44)
-            {
-                ++pr_capped;
-                if(p->mpirank == 0)
-                    cout << "NHFLOW AMR WARNING - pressure iteration limit N 46 = " << p->N46 << " reached, res " << setprecision(3) << pr_res_last
-                         << " (N 44 = " << p->N44 << ")" << endl;
-            }
-
-            // identity rows of wet but shallow columns: P = 0 as the single-grid solvers leave them
-            // (PCORR is 0 there already); dry columns keep their pressure
-            for(int g = -1; g < (int)P.size(); ++g)
-            {
-                double *x = pvec(g, -1);
-                for(int qq : pg[g + 1].fq)
-                    x[qq] = 0.0;
-            }
-
-            pr_sync(-1);
+            if(g>=0 && P[g]->lev>=wl)
+            continue;
+            lexer *q = glex(g);
+            const size_t n = (size_t)q->imax*q->jmax*(q->kmax+2);
+            std::fill(pvec(g,kr),pvec(g,kr)+n,0.0);
+            std::fill(pvec(g,kz),pvec(g,kz)+n,0.0);
         }
 
-        // the projection of stage s on all grids: rows and right-hand sides of every grid, the composite
-        // solve, then the pressure and velocity update of every grid
-        void nhflow_amr::press_solve(lexer * p, ghostcell * pgc, int s)
+        wlo = 0;
+        pr_restrict([&](int g) -> double* { return pvec(g,kr); });
+
+        sc_level &L = mg0->fine();
+        const double *r = pvec(-1,kr);
+        double *z = pvec(-1,kz);
+        std::fill(L.u.begin(),L.u.end(),0.0);
+        std::fill(L.f.begin(),L.f.end(),0.0);
+        for(size_t n=0; n<pr_l0a.size(); ++n)
+        L.f[pr_l0a[n]] = r[pr_l0f[n]];
+
+        if(xz0on)
+        xz0.solve(L,L.f,L.u);
+        else
+        mg0->vcycle(0,1,1);
+
+        for(size_t n=0; n<pr_l0a.size(); ++n)
+        z[pr_l0f[n]] = L.u[pr_l0a[n]];
+        for(long qq : pr_l0z)
+        z[qq] = 0.0;
+
+        if(p0->mpi_size>1)
         {
-            if(p->A520 == 0)
-                return;
-
-            const double t0 = MPI_Wtime();
-            const double alpha = mom0->stage_alpha(s);
-
-            // (G 7 1 on a multi-block grid: the grids of the level window only, sub_level0_blocks)
-            {
-                comms_off guard(pgc);
-                for(auto q : P)
-                {
-                    if(q->lev < wlo || q->lev > wtop())
-                        continue;
-                    nhflow_amr_patch *c = NP(q);
-                    pscope ps(pgc, c->d, d0);
-                    c->ptgt = c->ppress->amr_prepare(c->pp, c->d, pgc, alpha);
-                }
-            }
-
-            ptgt0 = S0p->ppress->amr_prepare(p, d0, pgc, alpha);
-
-            pr_core(p, pgc);
-
-            {
-                comms_off guard(pgc);
-                for(int n = 0; n < (int)P.size(); ++n)
-                {
-                    if(P[n]->lev < wlo || P[n]->lev > wtop())
-                        continue;
-                    nhflow_amr_patch *c = NP(n);
-                    stg O = stage_out(n, s);
-                    pscope ps(pgc, c->d, d0);
-                    c->ppress->amr_finish(c->pp, c->d, pgc, *O.WL, O.UH, O.VH, O.WH, alpha);
-                }
-            }
-
-            stg O = stage_out(-1, s);
-            S0p->ppress->amr_finish(p, d0, pgc, *O.WL, O.UH, O.VH, O.WH, alpha);
-
-            tm[4] += MPI_Wtime() - t0;
-
-            if(p->mpirank == 0 && (p->count % p->P12 == 0))
-                cout << "NHFLOW AMR pressure: iterations " << pr_it_last << "  res " << setprecision(3) << pr_res_last << endl;
+            pgc0->gcparax7(p0,z,7);
+            pgc0->gcparax7co(p0,z,7);
         }
+
+        for(int l=1; l<=wl; ++l)
+        {
+            pr_prolong(l,kz);
+            if(l<wl)
+            pr_fill(l,7800+l,selz);
+        }
+
+        wlo = wl;
+    }
+
+    for(int l=MAX(wlo,1); l<=wtop(); ++l)
+    {
+        // coarse correction interpolated into the patch interiors, then the columns around them
+        if(l>wlo)
+        pr_prolong(l,kz);
+
+        // G 7 1, the level solve of a level with several patches: the patch-local corrections
+        // are repeated once with the siblings' corrections filled in between (with one pass every
+        // patch corrects against zero at its sibling edges: the ring wave with 3-7 patches needs
+        // 21 BiCGStab iterations with one pass, 11 with two, 7.7 with four, for the same time)
+        const int npass = (l==wlo && wlo>0 && nlevg[l]>1) ? 2 : 1;
+
+        for(int pass=0; pass<npass; ++pass)
+        {
+        // (the columns next to the patches, as the local residual reads them; the full fill below
+        // for the next level)
+        pr_fill(l,7700+l,selz,true);
+
+        // the residual left by the coarse correction on the patches of the level (KT), with the
+        // overlap filled into the columns of the patches next to them
+        for(int id : lev[l])
+        {
+            nhflow_amr_patch *c = NP(id);
+            lexer *pp = c->pp;
+            const matrix_diag &M = c->d->M;
+            const double *r = pvec(id,kr);
+            const double *z = pvec(id,kz);
+            double *t = pvec(id,KT);
+            const int sI = pp->jmax*pp->kmaxF;
+            const int sJ = pp->kmaxF;
+            for(const pact &A : pr_pa[id])
+            {
+                const int qq = A.qq;
+                const int rw = A.rw;
+                const double az = M.p[rw]*z[qq] + M.n[rw]*z[qq+sI] + M.s[rw]*z[qq-sI] + M.w[rw]*z[qq+sJ] + M.e[rw]*z[qq-sJ]
+                                + M.t[rw]*z[qq+1] + M.b[rw]*z[qq-1];
+                t[qq] = r[qq] - az;
+            }
+        }
+        if(pr_ovl)
+        pr_fill_sib(l,1,7680+l,[&](int m, int g) -> double* { return pvec(g,KT); });
+
+        // patch-local corrections of that residual (the correction kept in the patch)
+        for(int id : lev[l])
+        {
+            nhflow_amr_patch *c = NP(id);
+            double *z = pvec(id,kz);
+            const double *t = pvec(id,KT);
+            sc_level &L = c->mg->fine();
+
+            std::fill(L.u.begin(),L.u.end(),0.0);
+            std::fill(L.f.begin(),L.f.end(),0.0);
+            for(const pact &A : pr_pa[id])
+            L.f[A.lq] = t[A.qq];
+            for(const pact &A : pr_po[id])
+            L.f[A.lq] = t[A.qq];
+
+            if(sy==0)
+            c->xz.solve(L,L.f,L.u);
+            else
+            c->mg->vcycle(0,1,1);
+
+            for(const pact &A : pr_pa[id])
+            z[A.qq] += L.u[A.lq];
+        }
+        }
+
+        if(l<wtop())
+        pr_fill(l,7700+l,selz);
+    }
+}
+
+namespace
+{
+// the composite pressure equation as the vector space of reefamr_bicgstab
+struct pr_space
+{
+    static const int B=NS, R=NR, RH=NRH, PV=NPV, VV=NVV, S=NS, T=NT, PH=NPH, SH=NSH;
+    nhflow_amr *a;
+    void apply(int x, int y) { a->pr_apply(x,y,true); }
+    void prec(int r, int z) { a->pr_prec(r,z); }
+    double dot(int x, int y) { return a->pr_dot(x,y); }
+    void op_start() { a->pr_start(); }
+    void op_p(double beta, double om) { a->pr_p(beta,om); }
+    void op_s(double alp) { a->pr_s(alp); }
+    void op_x(double alp, double om) { a->pr_x(alp,om); }
+    void op_restart() { a->pr_restart(); }
+};
+}
+
+// assembled rows of all grids -> solution in the unknowns of the grids (initial guess: their
+// values), then the covered columns, the columns around the patches and the halo
+void nhflow_amr::pr_core(lexer *p, ghostcell *pgc)
+{
+    pr_prepare(pgc);
+
+    // right-hand side into NS
+    for(int g=-1; g<(int)P.size(); ++g)
+    {
+        const double *R = gfd(g)->rhsvec.V.data();
+        double *b = pvec(g,NS);
+        const pgrid &L = pg[g+1];
+        for(size_t n=0; n<L.lq.size(); ++n)
+        b[L.lq[n]] = R[L.lr[n]];
+        for(int qq : L.cq)
+        b[qq] = 0.0;
+    }
+
+    pr_apply(-1,NVV);
+
+    double bn, rn;
+    pr_space sp{this};
+    int it = reefamr_bicgstab(sp,p->N44,p->N46,bn,rn,&tm[5],&tm[6],&pr_restarts,STAGTOL*p->N44,&pr_stalls);
+
+    pr_it_last = it;
+    pr_it_total += it;
+    ++pr_solves;
+    pr_res_last = bn>0.0 ? rn/bn : 0.0;
+    p->solveriter = it;
+    p->poissoniter = it;
+    p->final_res = pr_res_last;
+
+    // the single-grid solvers warn at the iteration limit; a stalled composite solve was silent
+    if(it>=p->N46 && pr_res_last>p->N44)
+    {
+        ++pr_capped;
+        if(p->mpirank==0)
+        cout<<"NHFLOW AMR WARNING - pressure iteration limit N 46 = "<<p->N46<<" reached, res "<<setprecision(3)<<pr_res_last
+            <<" (N 44 = "<<p->N44<<")"<<endl;
+    }
+
+    // identity rows of wet but shallow columns: P = 0 as the single-grid solvers leave them
+    // (PCORR is 0 there already); dry columns keep their pressure
+    for(int g=-1; g<(int)P.size(); ++g)
+    {
+        double *x = pvec(g,-1);
+        for(int qq : pg[g+1].fq)
+        x[qq] = 0.0;
+    }
+
+    pr_sync(-1);
+}
+
+// the projection of stage s on all grids: rows and right-hand sides of every grid, the composite
+// solve, then the pressure and velocity update of every grid
+void nhflow_amr::press_solve(lexer *p, ghostcell *pgc, int s)
+{
+    if(p->A520==0)
+    return;
+
+    const double t0 = MPI_Wtime();
+    const double alpha = mom0->stage_alpha(s);
+
+    // (G 7 1 on a multi-block grid: the grids of the level window only, sub_level0_blocks)
+    {
+    comms_off guard(pgc);
+    for(auto q : P)
+    {
+        if(q->lev<wlo || q->lev>wtop())
+        continue;
+        nhflow_amr_patch *c = NP(q);
+        pscope ps(pgc,c->d,d0);
+        c->ptgt = c->ppress->amr_prepare(c->pp,c->d,pgc,alpha);
+    }
+    }
+
+    ptgt0 = S0p->ppress->amr_prepare(p,d0,pgc,alpha);
+
+    pr_core(p,pgc);
+
+    {
+    comms_off guard(pgc);
+    for(int n=0; n<(int)P.size(); ++n)
+    {
+        if(P[n]->lev<wlo || P[n]->lev>wtop())
+        continue;
+        nhflow_amr_patch *c = NP(n);
+        stg O = stage_out(n,s);
+        pscope ps(pgc,c->d,d0);
+        c->ppress->amr_finish(c->pp,c->d,pgc,*O.WL,O.UH,O.VH,O.WH,alpha);
+    }
+    }
+
+    stg O = stage_out(-1,s);
+    S0p->ppress->amr_finish(p,d0,pgc,*O.WL,O.UH,O.VH,O.WH,alpha);
+
+    tm[4] += MPI_Wtime()-t0;
+
+    if(p->mpirank==0 && (p->count%p->P12==0))
+    cout<<"NHFLOW AMR pressure: iterations "<<pr_it_last<<"  res "<<setprecision(3)<<pr_res_last<<endl;
+}

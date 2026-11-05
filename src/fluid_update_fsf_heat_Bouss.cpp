@@ -20,125 +20,128 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "fluid_update_fsf_heat_Bouss.h"
-#include "fdm.h"
-#include "ghostcell.h"
-#include "heat.h"
-#include "heaviside.h"
-#include "interface_width.h"
-#include "lexer.h"
+#include"interface_width.h"
+#include"fluid_update_fsf_heat_Bouss.h"
+#include"lexer.h"
+#include"fdm.h"
+#include"ghostcell.h"
+#include"heat.h"
+#include"heaviside.h"
 
-fluid_update_fsf_heat_Bouss::fluid_update_fsf_heat_Bouss(lexer *p, fdm *a, ghostcell *pgc, heat *&ppheat) : dx(p->DXM)
+fluid_update_fsf_heat_Bouss::fluid_update_fsf_heat_Bouss(lexer *p, fdm* a, ghostcell* pgc, heat *&ppheat) : dx(p->DXM)
 {
-    gcval_ro = 1;
-    gcval_visc = 1;
+    gcval_ro=1;
+	gcval_visc=1;
 
-    visc_2 = p->W4;
-    visc_1 = p->W2;
-    ro_2 = p->W3;
-    ro_1 = p->W1;
-    alpha_air = p->H2;
-    alpha_water = p->H1;
-
-    if(p->H9 == 1)
+	visc_2 = p->W4;
+	visc_1 = p->W2;
+	ro_2 = p->W3;
+	ro_1 = p->W1;
+	alpha_air = p->H2;
+	alpha_water = p->H1;
+    
+    if(p->H9==1)
     {
-        T0_1 = p->H50_1 + 273.0;
-        T0_2 = p->H50_2 + 273.0;
+    T0_1 = p->H50_1 + 273.0;
+    T0_2 = p->H50_2 + 273.0;
     }
-
-    if(p->H9 == 2)
+    
+    if(p->H9==2)
     {
-        T0_1 = p->H50_2 + 273.0;
-        T0_2 = p->H50_1 + 273.0;
+    T0_1 = p->H50_2 + 273.0;
+    T0_2 = p->H50_1 + 273.0;
     }
-
-    pheat = ppheat;
+	
+	pheat = ppheat;
+    
 }
 
 fluid_update_fsf_heat_Bouss::~fluid_update_fsf_heat_Bouss()
 {
 }
 
-void fluid_update_fsf_heat_Bouss::start(lexer *p, fdm *a, ghostcell *pgc, field &u, field &v, field &w)
+void fluid_update_fsf_heat_Bouss::start(lexer *p, fdm* a, ghostcell* pgc, field &u, field &v, field &w)
 {
+    
+	double H=0.0;
+	double temp;
+	p->volume1=0.0;
+	p->volume2=0.0;
 
-    double H = 0.0;
-    double temp;
-    p->volume1 = 0.0;
-    p->volume2 = 0.0;
+    if(p->count>iter)
+    iocheck=0;
+	iter=p->count;
+    
 
-    if(p->count > iter)
-        iocheck = 0;
-    iter = p->count;
-
-    //
-    LOOP
-    {
-        temp = pheat->val(i, j, k) + 273.0;
-
-        if(p->H4 == 0)
+   //
+	LOOP
+	{
+        temp = pheat->val(i,j,k) + 273.0;
+        
+        if(p->H4==0)
         {
-            if(p->H9 == 1)
+            if(p->H9==1)
             {
-                ro_1 = p->W1 - p->W1 * (temp - T0_1) / T0_1;
-                ro_2 = p->W3 - p->W3 * (temp - T0_2) / T0_2;
+            ro_1 = p->W1 - p->W1*(temp - T0_1)/T0_1;
+            ro_2 = p->W3 - p->W3*(temp - T0_2)/T0_2;
 
-                visc_1 = p->W2;
-                visc_2 = p->W4;
+            visc_1 = p->W2;
+            visc_2 = p->W4;
             }
-
-            if(p->H9 == 2)
+            
+            if(p->H9==2)
             {
-                ro_1 = p->W3 - p->W3 * (temp - T0_2) / T0_2;
-                ro_2 = p->W1 - p->W1 * (temp - T0_1) / T0_1;
+            ro_1 = p->W3 - p->W3*(temp - T0_2)/T0_2;
+            ro_2 = p->W1 - p->W1*(temp - T0_1)/T0_1;
 
-                visc_1 = p->W4;
-                visc_2 = p->W2;
+            visc_1 = p->W4;
+            visc_2 = p->W2;
+            }
+        }
+        
+        if(p->H4==1)
+        {
+            if(p->H9==1)
+            {
+            ro_1 = p->W1 - p->W1*p->H4_beta1*(temp - T0_1);
+            ro_2 = p->W3 - p->W3*p->H4_beta2*(temp - T0_2);
+
+            visc_1 = p->W2;
+            visc_2 = p->W4;
+            }
+            
+            if(p->H9==2)
+            {
+            ro_1 = p->W3 - p->W3*p->H4_beta2*(temp - T0_2);
+            ro_2 = p->W1 - p->W1*p->H4_beta1*(temp - T0_1);
+
+            visc_1 = p->W4;
+            visc_2 = p->W2;
             }
         }
 
-        if(p->H4 == 1)
-        {
-            if(p->H9 == 1)
-            {
-                ro_1 = p->W1 - p->W1 * p->H4_beta1 * (temp - T0_1);
-                ro_2 = p->W3 - p->W3 * p->H4_beta2 * (temp - T0_2);
+		H = heaviside(a->phi(i,j,k),interface_width(p,a->phi,i,j,k));
 
-                visc_1 = p->W2;
-                visc_2 = p->W4;
-            }
+		a->ro(i,j,k)=     ro_1*H +   ro_2*(1.0-H);
+		a->visc(i,j,k)= visc_1*H + visc_2*(1.0-H);
 
-            if(p->H9 == 2)
-            {
-                ro_1 = p->W3 - p->W3 * p->H4_beta2 * (temp - T0_2);
-                ro_2 = p->W1 - p->W1 * p->H4_beta1 * (temp - T0_1);
+		p->volume1 += p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*H*PORVAL4;
+		p->volume2 += p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*(1.0-H)*PORVAL4;
+	}
 
-                visc_1 = p->W4;
-                visc_2 = p->W2;
-            }
-        }
+	pgc->start4(p,a->ro,gcval_ro);
+	pgc->start4(p,a->visc,gcval_visc);
 
-        H = heaviside(a->phi(i, j, k), interface_width(p, a->phi, i, j, k));
+	p->volume1 = pgc->globalsum(p->volume1);
+	p->volume2 = pgc->globalsum(p->volume2);
 
-        a->ro(i, j, k) = ro_1 * H + ro_2 * (1.0 - H);
-        a->visc(i, j, k) = visc_1 * H + visc_2 * (1.0 - H);
-
-        p->volume1 += p->DXN[IP] * p->DYN[JP] * p->DZN[KP] * H * PORVAL4;
-        p->volume2 += p->DXN[IP] * p->DYN[JP] * p->DZN[KP] * (1.0 - H) * PORVAL4;
-    }
-
-    pgc->start4(p, a->ro, gcval_ro);
-    pgc->start4(p, a->visc, gcval_visc);
-
-    p->volume1 = pgc->globalsum(p->volume1);
-    p->volume2 = pgc->globalsum(p->volume2);
-
-    if(p->mpirank == 0 && iocheck == 0 && (p->count % p->P12 == 0))
+    if(p->mpirank==0 && iocheck==0 && (p->count%p->P12==0))
     {
-        cout << "Volume 1: " << p->volume1 << endl;
-        cout << "Volume 2: " << p->volume2 << endl;
+	cout<<"Volume 1: "<<p->volume1<<endl;
+	cout<<"Volume 2: "<<p->volume2<<endl;
     }
     ++iocheck;
+
 }
 
 int fluid_update_fsf_heat_Bouss::iocheck;

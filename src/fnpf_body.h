@@ -33,8 +33,8 @@ class slice;
 class fnpf_amr;
 class sixdof_obj;
 
-#include <functional>
-#include <vector>
+#include<vector>
+#include<functional>
 
 // Interface between the FNPF time stepping and resolved bodies.
 // The base class is the "no body" case: every hook is a no-op and the Laplace solver
@@ -54,47 +54,47 @@ class sixdof_obj;
 class fnpf_body
 {
 public:
-    static fnpf_body *create(lexer *, fdm_fnpf *, ghostcell *);
-
-    virtual ~fnpf_body() {}
-
+    static fnpf_body* create(lexer*, fdm_fnpf*, ghostcell*);
+    
+    virtual ~fnpf_body(){}
+    
     // once at t = 0 after the initial sigma grid, before the initial output
-    virtual void initialize(lexer *, fdm_fnpf *, ghostcell *) {}
-
-    virtual void stage(lexer *, fdm_fnpf *, ghostcell *, solver *, fnpf_fsf *, slice &, slice &, int) {}
-    virtual void surface(lexer *, fdm_fnpf *, ghostcell *, slice &, slice &, int, int) {}
-    virtual fnpf_laplace *laplace(fnpf_laplace *plap) { return plap; }
+    virtual void initialize(lexer*, fdm_fnpf*, ghostcell*){}
+    
+    virtual void stage(lexer*, fdm_fnpf*, ghostcell*, solver*, fnpf_fsf*, slice&, slice&, int){}
+    virtual void surface(lexer*, fdm_fnpf*, ghostcell*, slice&, slice&, int, int){}
+    virtual fnpf_laplace* laplace(fnpf_laplace *plap){return plap;}
     // after velcalc_sig of the end of a time step (output, time step): velocities at the
     // body nodes
-    virtual void velocity(lexer *, fdm_fnpf *, ghostcell *) {}
-
+    virtual void velocity(lexer*, fdm_fnpf*, ghostcell*){}
+    
     // mesh refinement (fnpf_amr, G 1): the body is represented on every grid of the
     // hierarchy; fnpf_amr calls these around its composite phi solve and after each patch
     // stage value; the psi solves of the loads run on all grids as well
-    virtual bool present() const { return false; }
-    virtual void amr_attach(fnpf_amr *) {}
-    virtual void amr_grids(lexer *, ghostcell *) {}
-    virtual void amr_geometry(lexer *, fdm_fnpf *, ghostcell *) {}
-    virtual void amr_post_solve(lexer *, fdm_fnpf *, ghostcell *, double *) {}
-    virtual void amr_surface(lexer *, ghostcell *, int, slice &, slice &) {}
-    virtual void amr_bodies(std::vector<sixdof_obj *> &) {}
+    virtual bool present() const {return false;}
+    virtual void amr_attach(fnpf_amr*){}
+    virtual void amr_grids(lexer*, ghostcell*){}
+    virtual void amr_geometry(lexer*, fdm_fnpf*, ghostcell*){}
+    virtual void amr_post_solve(lexer*, fdm_fnpf*, ghostcell*, double*){}
+    virtual void amr_surface(lexer*, ghostcell*, int, slice&, slice&){}
+    virtual void amr_bodies(std::vector<sixdof_obj*>&){}
 
     // checkpoints (P 48, I 45): the state of the bodies (the same on all ranks) as a blob, the arrays
     // of the body on level 0 (ckpt_fields) and on a patch of the mesh refinement (amr_ckpt_fields,
     // the patch with lexer pp; the same list with nullptr when the patch has no body grid).  On a
     // restart amr_ckpt_grids makes the body grids of the patches of the checkpoint before their
     // arrays are read; ckpt_restore sets the bodies and sets up the grids without arrays.
-    typedef std::function<void(const char *, char, double *)> ckpt_fd;
-    typedef std::function<void(const char *, char, int *)> ckpt_fi;
-    virtual void ckpt_state(lexer *, std::vector<double> &) {}
-    virtual bool ckpt_restore(lexer *, ghostcell *, const std::vector<double> &) { return true; }
+    typedef std::function<void(const char*,char,double*)> ckpt_fd;
+    typedef std::function<void(const char*,char,int*)> ckpt_fi;
+    virtual void ckpt_state(lexer*, std::vector<double>&){}
+    virtual bool ckpt_restore(lexer*, ghostcell*, const std::vector<double>&){return true;}
     // the state kept by every rank for its own columns (a rank blob); restore: the blob of this rank
     // (same decomposition) or those of all ranks of the checkpoint
-    virtual void ckpt_rank_state(std::vector<double> &) {}
-    virtual void ckpt_rank_restore(const std::vector<std::vector<double>> &) {}
-    virtual void ckpt_fields(const ckpt_fd &, const ckpt_fi &) {}
-    virtual void amr_ckpt_fields(lexer *, const ckpt_fd &, const ckpt_fi &) {}
-    virtual void amr_ckpt_grids(lexer *, ghostcell *) {}
+    virtual void ckpt_rank_state(std::vector<double>&){}
+    virtual void ckpt_rank_restore(const std::vector<std::vector<double>>&){}
+    virtual void ckpt_fields(const ckpt_fd&, const ckpt_fi&){}
+    virtual void amr_ckpt_fields(lexer*, const ckpt_fd&, const ckpt_fi&){}
+    virtual void amr_ckpt_grids(lexer*, ghostcell*){}
 };
 
 #endif

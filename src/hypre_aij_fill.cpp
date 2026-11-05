@@ -22,67 +22,68 @@ Author: Hans Bihs
 
 #ifdef REEF3D_USE_HYPRE  // hypre is opt-in: make HYPRE=1 / cmake -DREEF3D_USE_HYPRE=ON
 
-#include "fdm.h"
-#include "ghostcell.h"
 #include "hypre_aij.h"
 #include "lexer.h"
+#include "fdm.h"
+#include "ghostcell.h"
 
-void hypre_aij::fill_matrix_7p(lexer *p, fdm *a, ghostcell *pgc, field &f)
+
+void hypre_aij::fill_matrix_7p(lexer* p,fdm* a, ghostcell* pgc, field &f)
 {
     fieldint4 rownum4(p);
 
-    pgc->rownum4_update(p, rownum4);
-    pgc->facenbx(p, rownum4, p->range_row4);
+    pgc->rownum4_update(p,rownum4);
+    pgc->facenbx(p,rownum4,p->range_row4);
 
-    n = 0;
+    n=0;
     LOOP
     {
-        count = 0;
+        count=0;
 
         val[count] = a->M.p[n];
-        col[count] = rownum4(i, j, k);
-        rownum = rownum4(i, j, k);
+        col[count] = rownum4(i,j,k);
+        rownum = rownum4(i,j,k);
         ++count;
 
-        if(p->flag4[Im1JK] > 0)
+        if(p->flag4[Im1JK]>0)
         {
             val[count] = a->M.s[n];
-            col[count] = rownum4(i - 1, j, k);
+            col[count] = rownum4(i-1,j,k);
             ++count;
         }
 
-        if(p->flag4[Ip1JK] > 0)
+        if(p->flag4[Ip1JK]>0)
         {
             val[count] = a->M.n[n];
-            col[count] = rownum4(i + 1, j, k);
+            col[count] = rownum4(i+1,j,k);
             ++count;
         }
 
-        if(p->flag4[IJm1K] > 0)
+        if(p->flag4[IJm1K]>0)
         {
             val[count] = a->M.e[n];
-            col[count] = rownum4(i, j - 1, k);
+            col[count] = rownum4(i,j-1,k);
             ++count;
         }
 
-        if(p->flag4[IJp1K] > 0)
+        if(p->flag4[IJp1K]>0)
         {
             val[count] = a->M.w[n];
-            col[count] = rownum4(i, j + 1, k);
+            col[count] = rownum4(i,j+1,k);
             ++count;
         }
 
-        if(p->flag4[IJKm1] > 0)
+        if(p->flag4[IJKm1]>0)
         {
             val[count] = a->M.b[n];
-            col[count] = rownum4(i, j, k - 1);
+            col[count] = rownum4(i,j,k-1);
             ++count;
         }
 
-        if(p->flag4[IJKp1] > 0)
+        if(p->flag4[IJKp1]>0)
         {
             val[count] = a->M.t[n];
-            col[count] = rownum4(i, j, k + 1);
+            col[count] = rownum4(i,j,k+1);
             ++count;
         }
 
@@ -91,15 +92,16 @@ void hypre_aij::fill_matrix_7p(lexer *p, fdm *a, ghostcell *pgc, field &f)
         ++n;
     }
 
+
     HYPRE_IJMatrixAssemble(A);
-    HYPRE_IJMatrixGetObject(A, (void **)&parcsr_A);
+    HYPRE_IJMatrixGetObject(A, (void**) &parcsr_A);
 
     // vec
-    n = 0;
+    n=0;
     LOOP
     {
-        xvec.V[n] = f(i, j, k);
-        rows[n] = rownum4(i, j, k);
+        xvec.V[n] = f(i,j,k);
+        rows[n] = rownum4(i,j,k);
         ++n;
     }
 
@@ -107,9 +109,9 @@ void hypre_aij::fill_matrix_7p(lexer *p, fdm *a, ghostcell *pgc, field &f)
     HYPRE_IJVectorSetValues(x, p->N4_row, rows, xvec.V.data());
 
     HYPRE_IJVectorAssemble(b);
-    HYPRE_IJVectorGetObject(b, (void **)&par_b);
+    HYPRE_IJVectorGetObject(b, (void **) &par_b);
     HYPRE_IJVectorAssemble(x);
-    HYPRE_IJVectorGetObject(x, (void **)&par_x);
+    HYPRE_IJVectorGetObject(x, (void **) &par_x);
 }
 
 #endif  // REEF3D_USE_HYPRE

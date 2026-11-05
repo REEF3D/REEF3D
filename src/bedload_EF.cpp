@@ -20,16 +20,16 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "bedload_EF.h"
-#include "fdm.h"
-#include "ghostcell.h"
-#include "lexer.h"
-#include "sediment_fdm.h"
+#include"bedload_EF.h"
+#include"lexer.h"
+#include"fdm.h"
+#include"ghostcell.h"
+#include"sediment_fdm.h"
 
 bedload_EF::bedload_EF(lexer *p)
 {
-    g = 9.81;
-    d50 = p->S20;
+    g=9.81;
+    d50=p->S20;
     mu_d = p->S18;
 }
 
@@ -37,33 +37,35 @@ bedload_EF::~bedload_EF()
 {
 }
 
-void bedload_EF::start(lexer *p, ghostcell *pgc, sediment_fdm *s)
+void bedload_EF::start(lexer* p, ghostcell* pgc, sediment_fdm *s)
 {
-    double qb, qbx, qby, Ts, Tb, p_EF, Ub;
-
+	double qb,qbx,qby,Ts,Tb,p_EF,Ub;
+    
     d50 = s->dk;
-
-    SEDSLICELOOP
+	
+	SEDSLICELOOP
     {
-        qb = 0.0;  // also for a NaN shear stress, where neither branch below applies
-
-        Ts = s->shields_crit(i, j);
-        Tb = s->shields_eff(i, j);
-
-        if(s->active(i, j) == 1 && Tb > Ts)
+        qb=0.0;   // also for a NaN shear stress, where neither branch below applies
+        
+        Ts = s->shields_crit(i,j);
+        Tb = s->shields_eff(i,j);
+        
+        if(s->active(i,j)==1 && Tb>Ts)
         {
-            Ub = (1.0 - 0.7 * sqrt(Ts / Tb)) * 10.0 * s->shearvel_eff(i, j);
-
-            p_EF = pow(1.0 + pow((1.0 / 6.0) * PI * mu_d / (Tb - Ts), 4.0), -1.0 / 4.0);
-
-            qb = 1.0 / 6.0 * PI * d50 * p_EF * Ub;
+        Ub = (1.0 - 0.7*sqrt(Ts/Tb)) * 10.0*s->shearvel_eff(i,j);
+        
+        p_EF = pow(1.0 + pow((1.0/6.0)*PI*mu_d/(Tb-Ts),4.0), -1.0/4.0);
+        
+        qb = 1.0/6.0 * PI * d50 * p_EF * Ub;
         }
-
-        if(s->active(i, j) == 0 || Tb <= Ts)
-            qb = 0.0;
-
-        s->qbe(i, j) = qb;
-    }
-
-    pgc->gcsl_start4(p, s->qbe, 1);
+        
+        
+    
+        if(s->active(i,j)==0 || Tb<=Ts)
+        qb=0.0;
+	
+        s->qbe(i,j) = qb;
+	}
+    
+    pgc->gcsl_start4(p,s->qbe,1);
 }

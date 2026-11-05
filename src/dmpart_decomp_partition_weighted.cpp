@@ -48,17 +48,19 @@ Author: Hans Bihs
 //  or more.
 
 #include "dmpart_decomp.h"
+#include <vector>
+#include <string>
+#include <sstream>
 #include <algorithm>
 #include <cmath>
 #include <iomanip>
 #include <ostream>
-#include <sstream>
-#include <string>
-#include <vector>
 
-namespace dmpart {
+namespace dmpart
+{
 
-namespace {
+namespace
+{
 // least bottleneck cuts of [0,N) into m intervals for the profiles P[s][i] of ns slabs; wmin: least width
 double cuts_1d(const std::vector<std::vector<double>> &P, int N, int m, int wmin, std::vector<int> &cut)
 {
@@ -67,103 +69,103 @@ double cuts_1d(const std::vector<std::vector<double>> &P, int N, int m, int wmin
     auto greedy = [&](double B, std::vector<int> *out) -> bool
     {
         std::vector<double> acc(ns);
-        int pos = 0, nint = 0;
+        int pos=0, nint=0;
         if(out)
-            out->assign(1, 0);
-        while(pos < N)
+        out->assign(1,0);
+        while(pos<N)
         {
-            std::fill(acc.begin(), acc.end(), 0.0);
-            int len = 0;
+            std::fill(acc.begin(),acc.end(),0.0);
+            int len=0;
             // cells left for the intervals after this one
-            const int rest = (m - nint - 1) * wmin;
-            while(pos < N)
+            const int rest = (m-nint-1)*wmin;
+            while(pos<N)
             {
-                if(N - pos <= rest && len >= wmin)
+                if(N-pos<=rest && len>=wmin)
+                break;
+                bool fits=true;
+                for(int s=0; s<ns; ++s)
+                if(acc[s]+P[s][pos]>B)
+                {
+                    fits=false;
                     break;
-                bool fits = true;
-                for(int s = 0; s < ns; ++s)
-                    if(acc[s] + P[s][pos] > B)
-                    {
-                        fits = false;
-                        break;
-                    }
-                if(!fits && len >= wmin)
-                    break;
-                if(!fits && len < wmin)
-                    return false;
-                for(int s = 0; s < ns; ++s)
-                    acc[s] += P[s][pos];
+                }
+                if(!fits && len>=wmin)
+                break;
+                if(!fits && len<wmin)
+                return false;
+                for(int s=0; s<ns; ++s)
+                acc[s] += P[s][pos];
                 ++pos;
                 ++len;
             }
             ++nint;
-            if(nint > m)
-                return false;
+            if(nint>m)
+            return false;
             if(out)
-                out->push_back(pos);
+            out->push_back(pos);
         }
         return true;
     };
 
-    double lo = 0.0, hi = 0.0;
-    for(int s = 0; s < ns; ++s)
+    double lo=0.0, hi=0.0;
+    for(int s=0; s<ns; ++s)
     {
-        double sum = 0.0;
-        for(int i = 0; i < N; ++i)
+        double sum=0.0;
+        for(int i=0; i<N; ++i)
         {
             sum += P[s][i];
-            lo = std::max(lo, P[s][i]);
+            lo = std::max(lo,P[s][i]);
         }
-        hi = std::max(hi, sum);
+        hi = std::max(hi,sum);
     }
     hi *= 1.0000001;
     hi += 1.0e-12;
 
-    if(!greedy(hi, nullptr))
+    if(!greedy(hi,nullptr))
     {
         cut.clear();
         return -1.0;
     }
 
-    for(int it = 0; it < 80 && hi - lo > 1.0e-12 * hi; ++it)
+    for(int it=0; it<80 && hi-lo>1.0e-12*hi; ++it)
     {
-        const double mid = 0.5 * (lo + hi);
-        if(greedy(mid, nullptr))
-            hi = mid;
+        const double mid = 0.5*(lo+hi);
+        if(greedy(mid,nullptr))
+        hi = mid;
         else
-            lo = mid;
+        lo = mid;
     }
 
-    greedy(hi, &cut);
+    greedy(hi,&cut);
 
     // fewer intervals than m: split the widest ones (never heavier)
-    while((int)cut.size() - 1 < m)
+    while((int)cut.size()-1<m)
     {
-        int wbest = -1, kbest = -1;
-        for(int k = 0; k + 1 < (int)cut.size(); ++k)
-            if(cut[k + 1] - cut[k] > wbest)
-            {
-                wbest = cut[k + 1] - cut[k];
-                kbest = k;
-            }
-        if(wbest < 2)
-            break;
-        cut.insert(cut.begin() + kbest + 1, cut[kbest] + wbest / 2);
+        int wbest=-1, kbest=-1;
+        for(int k=0; k+1<(int)cut.size(); ++k)
+        if(cut[k+1]-cut[k]>wbest)
+        {
+            wbest = cut[k+1]-cut[k];
+            kbest = k;
+        }
+        if(wbest<2)
+        break;
+        cut.insert(cut.begin()+kbest+1,cut[kbest]+wbest/2);
     }
 
     // the bottleneck of the cuts
-    double mx = 0.0;
-    for(int k = 0; k + 1 < (int)cut.size(); ++k)
-        for(int s = 0; s < ns; ++s)
-        {
-            double sum = 0.0;
-            for(int i = cut[k]; i < cut[k + 1]; ++i)
-                sum += P[s][i];
-            mx = std::max(mx, sum);
-        }
+    double mx=0.0;
+    for(int k=0; k+1<(int)cut.size(); ++k)
+    for(int s=0; s<ns; ++s)
+    {
+        double sum=0.0;
+        for(int i=cut[k]; i<cut[k+1]; ++i)
+        sum += P[s][i];
+        mx = std::max(mx,sum);
+    }
     return mx;
 }
-}  // namespace
+}
 
 // the cuts C of the subdomains M[d] per direction for the cell weights w (i, j, k; Nd cells): the
 // equal widths of M 20 1 (h0 their heaviest subdomain), then the directions swept in turn, each
@@ -171,95 +173,84 @@ double cuts_1d(const std::vector<std::vector<double>> &P, int N, int m, int wmin
 // lighter; returns the heaviest subdomain, mean the mean
 static double optimise(const std::vector<double> &w, const int *Nd, const int *M, std::vector<int> *C, double &h0, double &mean)
 {
-    const int NX = Nd[0], NY = Nd[1], NZ = Nd[2];
-    auto W = [&](int ii, int jj, int kk) -> double
-    { return w[((size_t)ii * NY + jj) * NZ + kk]; };
+    const int NX=Nd[0], NY=Nd[1], NZ=Nd[2];
+    auto W = [&](int ii, int jj, int kk) -> double { return w[((size_t)ii*NY+jj)*NZ+kk]; };
 
-    for(int d = 0; d < 3; ++d)
+    for(int d=0; d<3; ++d)
     {
-        C[d].resize(M[d] + 1);
-        for(int n = 0; n <= M[d]; ++n)
-            C[d][n] = (int)(((long)n * Nd[d]) / M[d]);
+        C[d].resize(M[d]+1);
+        for(int n=0; n<=M[d]; ++n)
+        C[d][n] = (int)(((long)n*Nd[d])/M[d]);
     }
 
     // the heaviest subdomain and the mean
     auto heaviest = [&](double &mn)
     {
-        std::vector<double> sub((size_t)M[0] * M[1] * M[2], 0.0);
+        std::vector<double> sub((size_t)M[0]*M[1]*M[2],0.0);
         std::vector<int> ix(NX), jy(NY), kz(NZ);
-        for(int n = 0; n < M[0]; ++n)
-            for(int q = C[0][n]; q < C[0][n + 1]; ++q)
-                ix[q] = n;
-        for(int n = 0; n < M[1]; ++n)
-            for(int q = C[1][n]; q < C[1][n + 1]; ++q)
-                jy[q] = n;
-        for(int n = 0; n < M[2]; ++n)
-            for(int q = C[2][n]; q < C[2][n + 1]; ++q)
-                kz[q] = n;
-        double tot = 0.0;
-        for(int i = 0; i < NX; ++i)
-            for(int j = 0; j < NY; ++j)
-                for(int k = 0; k < NZ; ++k)
-                {
-                    sub[((size_t)ix[i] * M[1] + jy[j]) * M[2] + kz[k]] += W(i, j, k);
-                    tot += W(i, j, k);
-                }
-        mn = tot / double(sub.size());
-        return *std::max_element(sub.begin(), sub.end());
+        for(int n=0; n<M[0]; ++n) for(int q=C[0][n]; q<C[0][n+1]; ++q) ix[q]=n;
+        for(int n=0; n<M[1]; ++n) for(int q=C[1][n]; q<C[1][n+1]; ++q) jy[q]=n;
+        for(int n=0; n<M[2]; ++n) for(int q=C[2][n]; q<C[2][n+1]; ++q) kz[q]=n;
+        double tot=0.0;
+        for(int i=0; i<NX; ++i)
+        for(int j=0; j<NY; ++j)
+        for(int k=0; k<NZ; ++k)
+        {
+            sub[((size_t)ix[i]*M[1]+jy[j])*M[2]+kz[k]] += W(i,j,k);
+            tot += W(i,j,k);
+        }
+        mn = tot/double(sub.size());
+        return *std::max_element(sub.begin(),sub.end());
     };
 
     h0 = heaviest(mean);
     double hcur = h0;
 
-    for(int sweep = 0; sweep < 20; ++sweep)
+    for(int sweep=0; sweep<20; ++sweep)
     {
         const double hstart = hcur;
 
-        for(int d = 0; d < 3; ++d)
+        for(int d=0; d<3; ++d)
         {
-            if(M[d] <= 1)
-                continue;
+            if(M[d]<=1)
+            continue;
 
             // the slabs: the subdomains of the other two directions
-            const int e = (d + 1) % 3, f = (d + 2) % 3;
-            const int ns = M[e] * M[f];
-            std::vector<std::vector<double>> P(ns, std::vector<double>(Nd[d], 0.0));
+            const int e = (d+1)%3, f = (d+2)%3;
+            const int ns = M[e]*M[f];
+            std::vector<std::vector<double>> P(ns,std::vector<double>(Nd[d],0.0));
             std::vector<int> ie(Nd[e]), jf(Nd[f]);
-            for(int n = 0; n < M[e]; ++n)
-                for(int q = C[e][n]; q < C[e][n + 1]; ++q)
-                    ie[q] = n;
-            for(int n = 0; n < M[f]; ++n)
-                for(int q = C[f][n]; q < C[f][n + 1]; ++q)
-                    jf[q] = n;
+            for(int n=0; n<M[e]; ++n) for(int q=C[e][n]; q<C[e][n+1]; ++q) ie[q]=n;
+            for(int n=0; n<M[f]; ++n) for(int q=C[f][n]; q<C[f][n+1]; ++q) jf[q]=n;
 
-            for(int i = 0; i < NX; ++i)
-                for(int j = 0; j < NY; ++j)
-                    for(int k = 0; k < NZ; ++k)
-                    {
-                        const int idx[3] = {i, j, k};
-                        P[ie[idx[e]] * M[f] + jf[idx[f]]][idx[d]] += W(i, j, k);
-                    }
+            for(int i=0; i<NX; ++i)
+            for(int j=0; j<NY; ++j)
+            for(int k=0; k<NZ; ++k)
+            {
+                const int idx[3] = {i,j,k};
+                P[ie[idx[e]]*M[f]+jf[idx[f]]][idx[d]] += W(i,j,k);
+            }
 
-            const int wmin = (Nd[d] >= 3 * M[d]) ? 3 : std::max(1, Nd[d] / M[d]);
+            const int wmin = (Nd[d]>=3*M[d]) ? 3 : std::max(1,Nd[d]/M[d]);
             std::vector<int> cut;
-            const double hd = cuts_1d(P, Nd[d], M[d], wmin, cut);
+            const double hd = cuts_1d(P,Nd[d],M[d],wmin,cut);
 
             // take the new cuts when they are complete and not heavier
-            if(hd >= 0.0 && (int)cut.size() == M[d] + 1 && cut[0] == 0 && cut[M[d]] == Nd[d])
+            if(hd>=0.0 && (int)cut.size()==M[d]+1 && cut[0]==0 && cut[M[d]]==Nd[d])
             {
                 std::vector<int> old = C[d];
                 C[d] = cut;
                 double m2;
                 const double hnew = heaviest(m2);
-                if(hnew <= hcur * (1.0 + 1.0e-12))
-                    hcur = hnew;
+                if(hnew<=hcur*(1.0+1.0e-12))
+                hcur = hnew;
                 else
-                    C[d] = old;
+                C[d] = old;
             }
         }
 
-        if(hcur >= hstart * (1.0 - 1.0e-6))
-            break;
+        if(hcur>=hstart*(1.0-1.0e-6))
+        break;
     }
     return hcur;
 }
@@ -276,29 +267,27 @@ struct layout
 static std::vector<layout> layouts(const std::vector<double> &w, const int *Nd, int m, const int *allow)
 {
     std::vector<layout> out;
-    for(int a = 1; a <= m; ++a)
-        for(int b = 1; a * b <= m; ++b)
-        {
-            if(m % (a * b) != 0)
-                continue;
-            layout L;
-            L.T[0] = a;
-            L.T[1] = b;
-            L.T[2] = m / (a * b);
-            bool ok = true;
-            for(int d = 0; d < 3; ++d)
-                if(L.T[d] > 1 && (allow[d] == 0 || Nd[d] < 3 * L.T[d]))
-                    ok = false;
-            if(!ok)
-                continue;
-            std::vector<int> CC[3];
-            double h0, mn;
-            L.h = optimise(w, Nd, L.T, CC, h0, mn);
-            L.area = 0.0;
-            for(int d = 0; d < 3; ++d)
-                L.area += double(L.T[d] - 1) * double(Nd[(d + 1) % 3]) * double(Nd[(d + 2) % 3]);
-            out.push_back(L);
-        }
+    for(int a=1; a<=m; ++a)
+    for(int b=1; a*b<=m; ++b)
+    {
+        if(m%(a*b)!=0)
+        continue;
+        layout L;
+        L.T[0]=a; L.T[1]=b; L.T[2]=m/(a*b);
+        bool ok = true;
+        for(int d=0; d<3; ++d)
+        if(L.T[d]>1 && (allow[d]==0 || Nd[d]<3*L.T[d]))
+        ok = false;
+        if(!ok)
+        continue;
+        std::vector<int> CC[3];
+        double h0, mn;
+        L.h = optimise(w,Nd,L.T,CC,h0,mn);
+        L.area = 0.0;
+        for(int d=0; d<3; ++d)
+        L.area += double(L.T[d]-1)*double(Nd[(d+1)%3])*double(Nd[(d+2)%3]);
+        out.push_back(L);
+    }
     return out;
 }
 
@@ -308,14 +297,14 @@ static const layout *lightest(const std::vector<layout> &ls)
 {
     const layout *b = nullptr;
     for(const layout &L : ls)
-        if(b == nullptr || L.h < b->h)
-            b = &L;
-    if(b == nullptr)
-        return nullptr;
+    if(b==nullptr || L.h<b->h)
+    b = &L;
+    if(b==nullptr)
+    return nullptr;
     const double hb = b->h;
     for(const layout &L : ls)
-        if(L.h <= 1.01 * hb && (L.area < b->area || (L.area == b->area && L.h < b->h)))
-            b = &L;
+    if(L.h<=1.01*hb && (L.area<b->area || (L.area==b->area && L.h<b->h)))
+    b = &L;
     return b;
 }
 
@@ -329,93 +318,92 @@ static void advise(const std::vector<double> &w, const int *Nd, const int *M, co
                    const int *allow, const std::vector<layout> *same, std::ostream &ddout)
 {
     const std::streamsize pr = cout.precision();
-    const char *dn[3] = {"x", "y", "z"};
-    for(int d = 0; d < 3; ++d)
+    const char *dn[3] = {"x","y","z"};
+    for(int d=0; d<3; ++d)
     {
         int wmin = Nd[d];
-        for(int n = 0; n < M[d]; ++n)
-            wmin = std::min(wmin, C[d][n + 1] - C[d][n]);
-        if(M[d] > 1 && wmin < 3)
+        for(int n=0; n<M[d]; ++n)
+        wmin = std::min(wmin,C[d][n+1]-C[d][n]);
+        if(M[d]>1 && wmin<3)
         {
-            cout << "M 20 5: warning -- a subdomain is only " << wmin << " cells wide along " << dn[d] << " (" << Nd[d] << " cells in " << M[d]
-                 << " subdomains); 3 cells are needed by the margin of the patches and the ghost cells: fewer subdomains along " << dn[d] << " (M 30)" << endl;
-            ddout << "M 20 5: warning, subdomains narrower than 3 cells along " << dn[d] << endl;
+            cout<<"M 20 5: warning -- a subdomain is only "<<wmin<<" cells wide along "<<dn[d]<<" ("<<Nd[d]<<" cells in "<<M[d]
+                <<" subdomains); 3 cells are needed by the margin of the patches and the ghost cells: fewer subdomains along "<<dn[d]<<" (M 30)"<<endl;
+            ddout<<"M 20 5: warning, subdomains narrower than 3 cells along "<<dn[d]<<endl;
         }
     }
 
-    if(hcur <= 1.1 * mean)
-        return;
+    if(hcur<=1.1*mean)
+    return;
 
-    const int n = M[0] * M[1] * M[2];
+    const int n = M[0]*M[1]*M[2];
     // the best layout for m ranks (the layouts of n already searched: same); returns the heaviest
     // subdomain, <0 none
     auto best = [&](int m, int *L) -> double
     {
         std::vector<layout> ls;
-        if(m != n || same == nullptr)
-            ls = layouts(w, Nd, m, allow);
-        const layout *b = lightest((m == n && same != nullptr) ? *same : ls);
-        if(b == nullptr)
-            return -1.0;
-        for(int d = 0; d < 3; ++d)
-            L[d] = b->T[d];
+        if(m!=n || same==nullptr)
+        ls = layouts(w,Nd,m,allow);
+        const layout *b = lightest((m==n && same!=nullptr) ? *same : ls);
+        if(b==nullptr)
+        return -1.0;
+        for(int d=0; d<3; ++d)
+        L[d] = b->T[d];
         return b->h;
     };
 
-    cout << "M 20 5: warning -- the heaviest subdomain is " << setprecision(3) << hcur / mean << " times the mean: the load of a heavy region cannot be cut finer than its slabs" << endl;
-    ddout << "M 20 5: warning, heaviest subdomain " << hcur / mean << " times the mean" << endl;
+    cout<<"M 20 5: warning -- the heaviest subdomain is "<<setprecision(3)<<hcur/mean<<" times the mean: the load of a heavy region cannot be cut finer than its slabs"<<endl;
+    ddout<<"M 20 5: warning, heaviest subdomain "<<hcur/mean<<" times the mean"<<endl;
 
     int L[3];
-    const double hb = best(n, L);
-    if(hb > 0.0 && hb < 0.98 * hcur)
-        cout << "M 20 5:   M 30 " << L[0] << " " << L[1] << " " << L[2] << " gives " << hb / mean << " times the mean on the same " << n << " ranks" << endl;
+    const double hb = best(n,L);
+    if(hb>0.0 && hb<0.98*hcur)
+    cout<<"M 20 5:   M 30 "<<L[0]<<" "<<L[1]<<" "<<L[2]<<" gives "<<hb/mean<<" times the mean on the same "<<n<<" ranks"<<endl;
     else
-        cout << "M 20 5:   no other layout of " << n << " ranks is lighter" << endl;
+    cout<<"M 20 5:   no other layout of "<<n<<" ranks is lighter"<<endl;
 
     // the step time with other numbers of ranks, as the heaviest subdomain against the present one
-    const double h1 = (hb > 0.0 && hb < hcur) ? hb : hcur;
-    for(int m = std::max(1, n - 2); m <= n + 2; ++m)
+    const double h1 = (hb>0.0 && hb<hcur) ? hb : hcur;
+    for(int m=std::max(1,n-2); m<=n+2; ++m)
     {
-        if(m == n)
-            continue;
+        if(m==n)
+        continue;
         int Lm[3];
-        const double hm = best(m, Lm);
-        if(hm < 0.0)
-            continue;
-        cout << "M 20 5:   " << m << " ranks (M 30 " << Lm[0] << " " << Lm[1] << " " << Lm[2] << "): the heaviest subdomain " << hm / h1 << " times that of " << n << " ranks" << endl;
+        const double hm = best(m,Lm);
+        if(hm<0.0)
+        continue;
+        cout<<"M 20 5:   "<<m<<" ranks (M 30 "<<Lm[0]<<" "<<Lm[1]<<" "<<Lm[2]<<"): the heaviest subdomain "<<hm/h1<<" times that of "<<n<<" ranks"<<endl;
     }
     cout.precision(pr);
 }
 
-void decomp::partition_weighted(lexer *p, dive *a)
+void decomp::partition_weighted(lexer* p, dive* a)
 {
     // ---- subdomains per direction: M 30 as given, else that of M 20 1 to start from
-    const bool given = (p->M30_x > 0 && p->M30_y > 0 && p->M30_z > 0);
+    const bool given = (p->M30_x>0 && p->M30_y>0 && p->M30_z>0);
     if(given)
     {
-        a->mx = p->M30_x;
-        a->my = p->M30_y;
-        a->mz = p->M30_z;
+        a->mx=p->M30_x;
+        a->my=p->M30_y;
+        a->mz=p->M30_z;
     }
     else
     {
-        nodecalc(p, a);
-        costfunc(p, a);
+        nodecalc(p,a);
+        costfunc(p,a);
     }
 
-    const int NX = a->knox, NY = a->knoy, NZ = a->knoz;
-    int M[3] = {a->mx, a->my, a->mz};
-    const int Nd[3] = {NX, NY, NZ};
+    const int NX=a->knox, NY=a->knoy, NZ=a->knoz;
+    int M[3] = {a->mx,a->my,a->mz};
+    const int Nd[3] = {NX,NY,NZ};
 
     // ---- weights
-    std::vector<double> w((size_t)NX * NY * NZ);
-    auto W = [&](int ii, int jj, int kk) -> double &
-    { return w[((size_t)ii * NY + jj) * NZ + kk]; };
+    std::vector<double> w((size_t)NX*NY*NZ);
+    auto W = [&](int ii, int jj, int kk) -> double& { return w[((size_t)ii*NY+jj)*NZ+kk]; };
 
     LOOP
-        W(i, j, k) = (a->flag(i, j, k) > 0) ? 1.0 : p->M21;
+    W(i,j,k) = (a->flag(i,j,k)>0) ? 1.0 : p->M21;
 
-    if(p->M35 == 1)
+    if(p->M35==1)
     {
         const char *names[7] = {"./loadmap.dat",
                                 "./REEF3D_NHFLOW_AMR/REEF3D_NHFLOW_AMR_loadmap.dat",
@@ -426,170 +414,171 @@ void decomp::partition_weighted(lexer *p, dive *a)
                                 "./REEF3D_CFD_CPM_Particle/REEF3D_CFD_CPM_loadmap.dat"};
         ifstream in;
         std::string used;
-        for(int f = 0; f < 7 && !in.is_open(); ++f)
+        for(int f=0; f<7 && !in.is_open(); ++f)
         {
             in.open(names[f]);
             if(in.is_open())
-                used = names[f];
+            used = names[f];
         }
 
         if(!in.is_open())
         {
-            cout << "M 35 1: no load map found (loadmap.dat, REEF3D_<M>_AMR/REEF3D_<M>_AMR_loadmap.dat, REEF3D_SEASTATE_Log/REEF3D_SEASTATE_loadmap.dat or REEF3D_CFD_CPM_Particle/REEF3D_CFD_CPM_loadmap.dat) -- the active cells only" << endl;
-            ddout << "M 35 1: no load map found" << endl;
+            cout<<"M 35 1: no load map found (loadmap.dat, REEF3D_<M>_AMR/REEF3D_<M>_AMR_loadmap.dat, REEF3D_SEASTATE_Log/REEF3D_SEASTATE_loadmap.dat or REEF3D_CFD_CPM_Particle/REEF3D_CFD_CPM_loadmap.dat) -- the active cells only"<<endl;
+            ddout<<"M 35 1: no load map found"<<endl;
         }
         else
         {
             std::string line;
-            int gnx = -1, gny = -1, gnz = -1;  // gnz > 0: a map of the cells (CFD), else of the columns
+            int gnx=-1, gny=-1, gnz=-1;     // gnz > 0: a map of the cells (CFD), else of the columns
             std::vector<double> map;
-            while(std::getline(in, line))
+            while(std::getline(in,line))
             {
-                if(line.empty() || line[0] == '#')
-                    continue;
+                if(line.empty() || line[0]=='#')
+                continue;
                 std::istringstream ls(line);
-                if(gnx < 0)
+                if(gnx<0)
                 {
-                    ls >> gnx >> gny;
-                    if(!(ls >> gnz))
-                        gnz = -1;
+                    ls>>gnx>>gny;
+                    if(!(ls>>gnz))
+                    gnz=-1;
                     continue;
                 }
                 double v;
-                while(ls >> v)
-                    map.push_back(v);
+                while(ls>>v)
+                map.push_back(v);
             }
 
             // a map of the cells: the work of every cell (the inactive ones keep M 21)
-            if(gnz > 0)
+            if(gnz>0)
             {
-                if(gnx != NX || gny != NY || gnz != NZ || (long)map.size() != (long)NX * NY * NZ)
+                if(gnx!=NX || gny!=NY || gnz!=NZ || (long)map.size()!=(long)NX*NY*NZ)
                 {
-                    cout << "M 35 1: the load map " << used << " is " << gnx << " x " << gny << " x " << gnz << " cells, the grid " << NX << " x " << NY << " x " << NZ
-                         << " -- the active cells only" << endl;
-                    ddout << "M 35 1: load map does not fit the grid" << endl;
+                    cout<<"M 35 1: the load map "<<used<<" is "<<gnx<<" x "<<gny<<" x "<<gnz<<" cells, the grid "<<NX<<" x "<<NY<<" x "<<NZ
+                        <<" -- the active cells only"<<endl;
+                    ddout<<"M 35 1: load map does not fit the grid"<<endl;
                 }
                 else
                 {
-                    LOOP if(a->flag(i, j, k) > 0)
-                        W(i, j, k) = map[((size_t)i * NY + j) * NZ + k];
-                    cout << "M 35 1: load map " << used << " (" << NX << " x " << NY << " x " << NZ << " cells)" << endl;
-                    ddout << "M 35 1: load map " << used << endl;
+                    LOOP
+                    if(a->flag(i,j,k)>0)
+                    W(i,j,k) = map[((size_t)i*NY+j)*NZ+k];
+                    cout<<"M 35 1: load map "<<used<<" ("<<NX<<" x "<<NY<<" x "<<NZ<<" cells)"<<endl;
+                    ddout<<"M 35 1: load map "<<used<<endl;
                 }
             }
-            else if(gnx != NX || gny != NY || (long)map.size() != (long)NX * NY)
+            else if(gnx!=NX || gny!=NY || (long)map.size()!=(long)NX*NY)
             {
-                cout << "M 35 1: the load map " << used << " is " << gnx << " x " << gny << " columns (" << map.size() << " values), the grid " << NX << " x " << NY
-                     << " -- the active cells only" << endl;
-                ddout << "M 35 1: load map does not fit the grid" << endl;
+                cout<<"M 35 1: the load map "<<used<<" is "<<gnx<<" x "<<gny<<" columns ("<<map.size()<<" values), the grid "<<NX<<" x "<<NY
+                    <<" -- the active cells only"<<endl;
+                ddout<<"M 35 1: load map does not fit the grid"<<endl;
             }
             else
             {
-                double mean = 0.0;
+                double mean=0.0;
                 for(double v : map)
-                    mean += v;
+                mean += v;
                 mean /= double(map.size());
 
                 ILOOP
                 JLOOP
                 {
-                    int nact = 0;
+                    int nact=0;
                     KLOOP
-                    if(a->flag(i, j, k) > 0)
-                        ++nact;
-                    const double v = map[(size_t)i * NY + j];
-                    if(nact > 0)
-                        KLOOP
-                    if(a->flag(i, j, k) > 0)
-                        W(i, j, k) = v / double(nact);
+                    if(a->flag(i,j,k)>0)
+                    ++nact;
+                    const double v = map[(size_t)i*NY+j];
+                    if(nact>0)
+                    KLOOP
+                    if(a->flag(i,j,k)>0)
+                    W(i,j,k) = v/double(nact);
                 }
-                cout << "M 35 1: load map " << used << " (" << NX << " x " << NY << " columns, mean " << mean << " per column)" << endl;
-                ddout << "M 35 1: load map " << used << endl;
+                cout<<"M 35 1: load map "<<used<<" ("<<NX<<" x "<<NY<<" columns, mean "<<mean<<" per column)"<<endl;
+                ddout<<"M 35 1: load map "<<used<<endl;
             }
         }
     }
 
-    for(int b = 0; b < p->M34; ++b)
-        LOOP
-        {
-            const double xc = 0.5 * (p->XN[i + marge] + p->XN[i + 1 + marge]);
-            const double yc = 0.5 * (p->YN[j + marge] + p->YN[j + 1 + marge]);
-            const double zc = 0.5 * (p->ZN[k + marge] + p->ZN[k + 1 + marge]);
-            if(xc >= p->M34_xs[b] && xc < p->M34_xe[b] && yc >= p->M34_ys[b] && yc < p->M34_ye[b] && zc >= p->M34_zs[b] && zc < p->M34_ze[b])
-                W(i, j, k) *= p->M34_f[b];
-        }
+    for(int b=0; b<p->M34; ++b)
+    LOOP
+    {
+        const double xc = 0.5*(p->XN[i+marge]+p->XN[i+1+marge]);
+        const double yc = 0.5*(p->YN[j+marge]+p->YN[j+1+marge]);
+        const double zc = 0.5*(p->ZN[k+marge]+p->ZN[k+1+marge]);
+        if(xc>=p->M34_xs[b] && xc<p->M34_xe[b] && yc>=p->M34_ys[b] && yc<p->M34_ye[b] && zc>=p->M34_zs[b] && zc<p->M34_ze[b])
+        W(i,j,k) *= p->M34_f[b];
+    }
 
     // ---- cuts: start from the equal widths of M 20 1, then the least bottleneck
     std::vector<int> C[3];
-    double mean = 0.0, h0 = 0.0;
-    double hcur = optimise(w, Nd, M, C, h0, mean);
+    double mean=0.0, h0=0.0;
+    double hcur = optimise(w,Nd,M,C,h0,mean);
 
-    cout << "M 20 5: weighted partition " << M[0] << " x " << M[1] << " x " << M[2] << ", heaviest subdomain / mean " << h0 / mean << " (equal widths) -> " << hcur / mean << endl;
-    ddout << "M 20 5: heaviest subdomain / mean " << h0 / mean << " (equal widths) -> " << hcur / mean << endl;
+    cout<<"M 20 5: weighted partition "<<M[0]<<" x "<<M[1]<<" x "<<M[2]<<", heaviest subdomain / mean "<<h0/mean<<" (equal widths) -> "<<hcur/mean<<endl;
+    ddout<<"M 20 5: heaviest subdomain / mean "<<h0/mean<<" (equal widths) -> "<<hcur/mean<<endl;
 
     // ---- the layout by the load (M 30 not given): the lightest of all layouts of the ranks, taken
     // when its heaviest subdomain is at least 5 % lighter (the heaviest can not get below the mean:
     // within 5 % of it nothing is searched)
     // the directions that may be split: those of M 11-13 (DIVEMesh: z only with M 13 1) and those
     // the layout splits already (M 30)
-    const int allow[3] = {(p->M11 == 1 || M[0] > 1) ? 1 : 0, (p->M12 == 1 || M[1] > 1) ? 1 : 0, (p->M13 == 1 || M[2] > 1) ? 1 : 0};
+    const int allow[3] = {(p->M11==1 || M[0]>1) ? 1 : 0, (p->M12==1 || M[1]>1) ? 1 : 0, (p->M13==1 || M[2]>1) ? 1 : 0};
     std::vector<layout> same;
     bool searched = false;
-    if(!given && hcur > mean / 0.95)
+    if(!given && hcur>mean/0.95)
     {
-        same = layouts(w, Nd, M[0] * M[1] * M[2], allow);
+        same = layouts(w,Nd,M[0]*M[1]*M[2],allow);
         searched = true;
         const layout *b = lightest(same);
-        if(b != nullptr && b->h < 0.95 * hcur && (b->T[0] != M[0] || b->T[1] != M[1] || b->T[2] != M[2]))
+        if(b!=nullptr && b->h<0.95*hcur && (b->T[0]!=M[0] || b->T[1]!=M[1] || b->T[2]!=M[2]))
         {
             const double hold = hcur;
-            for(int d = 0; d < 3; ++d)
-                M[d] = b->T[d];
-            hcur = optimise(w, Nd, M, C, h0, mean);
-            a->mx = M[0];
-            a->my = M[1];
-            a->mz = M[2];
-            cout << "M 20 5: the layout by the load " << M[0] << " x " << M[1] << " x " << M[2] << ", heaviest subdomain / mean " << hold / mean << " -> " << hcur / mean
-                 << " (M 30 fixes the layout)" << endl;
-            ddout << "M 20 5: layout by the load " << M[0] << " " << M[1] << " " << M[2] << ", heaviest subdomain / mean " << hcur / mean << endl;
+            for(int d=0; d<3; ++d)
+            M[d] = b->T[d];
+            hcur = optimise(w,Nd,M,C,h0,mean);
+            a->mx=M[0];
+            a->my=M[1];
+            a->mz=M[2];
+            cout<<"M 20 5: the layout by the load "<<M[0]<<" x "<<M[1]<<" x "<<M[2]<<", heaviest subdomain / mean "<<hold/mean<<" -> "<<hcur/mean
+                <<" (M 30 fixes the layout)"<<endl;
+            ddout<<"M 20 5: layout by the load "<<M[0]<<" "<<M[1]<<" "<<M[2]<<", heaviest subdomain / mean "<<hcur/mean<<endl;
         }
     }
 
-    advise(w, Nd, M, C, hcur, mean, allow, searched ? &same : nullptr, ddout);
+    advise(w,Nd,M,C,hcur,mean,allow,searched ? &same : nullptr,ddout);
 
     // ---- nodes and origins
-    for(n = 0; n <= a->mx; ++n)
+    for(n=0; n<=a->mx; ++n)
     {
         a->xnode[n] = C[0][n];
-        a->xorig[n] = (n == 0) ? p->xmin : (n == a->mx ? p->xmax : p->XN[a->xnode[n] + marge]);
+        a->xorig[n] = (n==0) ? p->xmin : (n==a->mx ? p->xmax : p->XN[a->xnode[n]+marge]);
     }
-    for(n = 0; n <= a->my; ++n)
+    for(n=0; n<=a->my; ++n)
     {
         a->ynode[n] = C[1][n];
-        a->yorig[n] = (n == 0) ? p->ymin : (n == a->my ? p->ymax : p->YN[a->ynode[n] + marge]);
+        a->yorig[n] = (n==0) ? p->ymin : (n==a->my ? p->ymax : p->YN[a->ynode[n]+marge]);
     }
-    for(n = 0; n <= a->mz; ++n)
+    for(n=0; n<=a->mz; ++n)
     {
         a->znode[n] = C[2][n];
-        a->zorig[n] = (n == 0) ? p->zmin : (n == a->mz ? p->zmax : p->ZN[a->znode[n] + marge]);
+        a->zorig[n] = (n==0) ? p->zmin : (n==a->mz ? p->zmax : p->ZN[a->znode[n]+marge]);
     }
 
-    for(aa = 0; aa <= a->mx; ++aa)
-        ddout << "xnode: " << a->xnode[aa] << "  xorig: " << a->xorig[aa] << endl;
-    for(bb = 0; bb <= a->my; ++bb)
-        ddout << "ynode: " << a->ynode[bb] << "  yorig: " << a->yorig[bb] << endl;
+    for(aa=0;aa<=a->mx;++aa)
+    ddout<<"xnode: "<<a->xnode[aa]<<"  xorig: "<<a->xorig[aa]<<endl;
+    for(bb=0;bb<=a->my;++bb)
+    ddout<<"ynode: "<<a->ynode[bb]<<"  yorig: "<<a->yorig[bb]<<endl;
 
     MALOOP
     {
-        a->subgrid(i, j, k) = -1;
-        a->subslice(i, j) = -1;
+        a->subgrid(i,j,k)=-1;
+        a->subslice(i,j)=-1;
     }
 
     NLOOP
     SUBLOOP
     {
-        a->subgrid(i, j, k) = PARANUM;
-        a->subslice(i, j) = PARANUM;
+        a->subgrid(i,j,k)=PARANUM;
+        a->subslice(i,j)=PARANUM;
     }
 }
-}  // namespace dmpart
+}

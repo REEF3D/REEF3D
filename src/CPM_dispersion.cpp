@@ -20,10 +20,11 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "CPM.h"
-#include "fdm.h"
-#include "ghostcell.h"
-#include "lexer.h"
+
+#include"CPM.h"
+#include"lexer.h"
+#include"fdm.h"
+#include"ghostcell.h"
 
 /*--------------------------------------------------------------------
 turbulent dispersion of the parcels (Q 52 1): random displacement model
@@ -45,49 +46,49 @@ stress), so the grains of the bed and the bedload layer are not kicked by the ra
 
 void CPM::dispersion_update(lexer *p, fdm *a, ghostcell *pgc)
 {
-    if(p->Q52 != 1)
-        return;
-
-    double Sc = p->Q53 > 0.0 ? p->Q53 : 1.0;
-    double kmax = 0.0;
-
+    if(p->Q52!=1)
+    return;
+    
+    double Sc = p->Q53>0.0 ? p->Q53 : 1.0;
+    double kmax=0.0;
+    
     BASELOOP
     {
-        double damp = MAX(0.0, MIN(1.0, 1.0 - Ts(i, j, k) / MAX(0.5 * theta_bed, 1.0e-6)));
-        double water = a->phi(i, j, k) > 0.0 ? 1.0 : 0.0;
-
-        Kt(i, j, k) = water * damp * MAX(a->eddyv(i, j, k), 0.0) / Sc;
-
-        if(p->flag4[IJK] < 0)
-            Kt(i, j, k) = 0.0;
-
-        kmax = MAX(kmax, Kt(i, j, k));
+        double damp = MAX(0.0, MIN(1.0, 1.0 - Ts(i,j,k)/MAX(0.5*theta_bed,1.0e-6)));
+        double water = a->phi(i,j,k)>0.0 ? 1.0 : 0.0;
+        
+        Kt(i,j,k) = water*damp*MAX(a->eddyv(i,j,k),0.0)/Sc;
+        
+        if(p->flag4[IJK]<0)
+        Kt(i,j,k) = 0.0;
+        
+        kmax = MAX(kmax,Kt(i,j,k));
     }
-
-    pgc->start4a(p, Kt, 1);
-
-    gradient(p, pgc, Kt, dKx, dKy, dKz);
-
+    
+    pgc->start4a(p,Kt,1);
+    
+    gradient(p,pgc,Kt,dKx,dKy,dKz);
+    
     Ktmax = pgc->globalmax(kmax);
 }
 
 void CPM::dispersion(lexer *p, double xp, double yp, double zp, double &dx, double &dy, double &dz, double dt)
 {
-    dx = dy = dz = 0.0;
-
-    if(p->Q52 != 1)
-        return;
-
-    double K = MAX(0.0, cip4a(p, Kt, xp, yp, zp));
-
-    if(K <= 0.0)
-        return;
-
-    double sd = sqrt(2.0 * K * dt);
-
-    dx = cip4a(p, dKx, xp, yp, zp) * dt + sd * gauss(rng);
-    dz = cip4a(p, dKz, xp, yp, zp) * dt + sd * gauss(rng);
-
-    if(p->j_dir == 1)
-        dy = cip4a(p, dKy, xp, yp, zp) * dt + sd * gauss(rng);
+    dx=dy=dz=0.0;
+    
+    if(p->Q52!=1)
+    return;
+    
+    double K = MAX(0.0, cip4a(p,Kt,xp,yp,zp));
+    
+    if(K<=0.0)
+    return;
+    
+    double sd = sqrt(2.0*K*dt);
+    
+    dx = cip4a(p,dKx,xp,yp,zp)*dt + sd*gauss(rng);
+    dz = cip4a(p,dKz,xp,yp,zp)*dt + sd*gauss(rng);
+    
+    if(p->j_dir==1)
+    dy = cip4a(p,dKy,xp,yp,zp)*dt + sd*gauss(rng);
 }

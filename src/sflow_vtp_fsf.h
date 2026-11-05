@@ -23,9 +23,9 @@ Author: Hans Bihs
 #ifndef SFLOW_VTP_FSF_H_
 #define SFLOW_VTP_FSF_H_
 
-#include "increment.h"
-#include "vtp3D.h"
-#include <functional>
+#include"increment.h"
+#include"vtp3D.h"
+#include<functional>
 
 class lexer;
 class amr_column_lookup;
@@ -49,27 +49,27 @@ class sflow_vtp_fsf : public increment, private vtp3D
 {
 public:
     // the mesh refinement: the wave gauges (P 51) and the probes (P 63) on the finest grid
-    void amr_columns(const amr_column_lookup *);
+    void amr_columns(const amr_column_lookup*);
 
-    sflow_vtp_fsf(lexer *, fdm2D *, ghostcell *);
+    sflow_vtp_fsf(lexer*,fdm2D*,ghostcell*);
     virtual ~sflow_vtp_fsf() = default;
 
-    void start(lexer *, fdm2D *, ghostcell *, ioflow *, sflow_turbulence *, sediment *);
-    void print2D(lexer *, fdm2D *, ghostcell *, sflow_turbulence *, sediment *);
+    void start(lexer*,fdm2D*,ghostcell*,ioflow*,sflow_turbulence*,sediment*);
+    void print2D(lexer*,fdm2D*,ghostcell*,sflow_turbulence*,sediment*);
     // the end of a run (N 45, N 41, S 19): the last state, unless the last step wrote it
-    void print_end(lexer *, fdm2D *, ghostcell *, sflow_turbulence *, sediment *);
-    void flush_outputs();  // a rebalance stop (G 46)
+    void print_end(lexer*,fdm2D*,ghostcell*,sflow_turbulence*,sediment*);
+    void flush_outputs();   // a rebalance stop (G 46)
 
     // the maxima (P 112, P 115): written at the end of the run, in the checkpoints
-    void finish(lexer *, fdm2D *, ghostcell *);
-    void ckpt_fields(const std::function<void(const char *, char, double *)> &, const std::function<void(const char *, char, int *)> &);
+    void finish(lexer*,fdm2D*,ghostcell*);
+    void ckpt_fields(const std::function<void(const char*, char, double*)>&, const std::function<void(const char*, char, int*)>&);
 
 private:
-    void pvtp(lexer *, fdm2D *, ghostcell *, sflow_turbulence *, sediment *, int);
-    int last_print = -1;  // the iteration of the last output (print_end)
+    void pvtp(lexer*,fdm2D*,ghostcell*,sflow_turbulence*,sediment*,int);
+    int last_print = -1;    // the iteration of the last output (print_end)
 
     char name[200];
-    int n, iin, offset[200];
+    int n,iin,offset[200];
     float ffn;
 
     sflow_print_wsf *pwsf;

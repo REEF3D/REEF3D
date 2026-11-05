@@ -23,8 +23,8 @@ Architect: Hans Bihs
 #ifndef WAVE_LIB_STEADY_FI_H_
 #define WAVE_LIB_STEADY_FI_H_
 
-#include <functional>
-#include <vector>
+#include<vector>
+#include<functional>
 
 // Velocity potential of a steady periodic wave from its horizontal velocity, for the wave theories that give eta and
 // the velocities but no potential (cnoidal, shallow-water, Stokes 5th of Skjelbreia & Hendrickson). FNPF relaxes
@@ -46,19 +46,19 @@ public:
     // L wave length, c phase speed (waves travel in +s), h water depth, g gravity, t0 time of the functions below,
     // uh(s,z), w(s,z), eta(s): the wave at time t0 along the direction of travel (s = x of the wave frame)
     void build(double L, double c, double h, double g, double t0,
-               const std::function<double(double, double)> &uh,
-               const std::function<double(double, double)> &w,
+               const std::function<double(double,double)> &uh,
+               const std::function<double(double,double)> &w,
                const std::function<double(double)> &eta);
 
-    bool built() const { return ok; }
+    bool built() const {return ok;}
 
     double fi(double s, double z, double t) const;
 
 private:
-    bool ok = false;
-    int N = 256, nz = 33;
-    double L = 1.0, c = 0.0, t0 = 0.0, b = 0.0, zb = 0.0, zt = 0.0, dz = 1.0;
-    std::vector<double> F;  // F[kz*N + i] at s_i = i L/N, z_kz = zb + kz dz
+    bool ok=false;
+    int N=256, nz=33;
+    double L=1.0, c=0.0, t0=0.0, b=0.0, zb=0.0, zt=0.0, dz=1.0;
+    std::vector<double> F;   // F[kz*N + i] at s_i = i L/N, z_kz = zb + kz dz
 
     double row(int kz, double s) const;
 };

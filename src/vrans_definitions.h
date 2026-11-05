@@ -29,28 +29,28 @@ Author: Hans Bihs
 //   Darcy-velocity form of Jensen et al. (2014); B 266 0 gives the old constant 1/(1+gamma).
 // - Continuity: n_s deta/dt + div(Q) = 0 with n_s the porosity of the surface cell.
 
-#define PORVALNH d->POR[IJK]
+#define PORVALNH  d->POR[IJK]
 
 // storage coefficient of the continuity n_s deta/dt + div(Q) = 0 (use with k = p->knoz-1):
 // VRANS (B 200 1): the porosity at the free surface z = eta (vrans_nhflow_f::update -> d->PORS),
 // otherwise the porosity of the surface cell (porous floating bodies, DEM)
-#define PORSURFNH (p->B200 == 1 ? d->PORS(i, j) : d->POR[IJK])
+#define PORSURFNH  (p->B200==1 ? d->PORS(i,j) : d->POR[IJK])
 
-#define PORVALNH1 (0.5 * (d->POR[IJK] + d->POR[Ip1JK]))
-#define PORVALNH2 (0.5 * (d->POR[IJK] + d->POR[IJp1K]))
-#define PORVALNH3 (0.5 * (d->POR[IJK] + d->POR[IJKp1]))
+#define PORVALNH1  (0.5*(d->POR[IJK] + d->POR[Ip1JK]))
+#define PORVALNH2  (0.5*(d->POR[IJK] + d->POR[IJp1K]))
+#define PORVALNH3  (0.5*(d->POR[IJK] + d->POR[IJKp1]))
 
 // inertia (added mass) factor for porosity n, B 265 0: 1/(1 + C(1-n)/n^2) (van Gent 1995 as above);
 // B 265 1: n/(1 + c_A), c_A = C(1-n)/n (VARANS for the superficial velocity, e.g. Liu et al. 1999;
 // consistent with the free-surface storage n_s deta/dt: long waves in a porous layer without resistance
 // travel at sqrt(g h/(1+c_A)), with B 265 0 they are faster than in open water)
-#define CPORNHval(n) (p->B265 == 1 ? (n) * (n) / ((n) + p->B260 * (1.0 - (n))) : 1.0 / (1.0 + (p->B260 * (1.0 - (n)) / ((n) * (n)))))
+#define CPORNHval(n)  (p->B265==1 ? (n)*(n)/((n) + p->B260*(1.0-(n))) : 1.0/(1.0 + (p->B260*(1.0-(n))/((n)*(n)))))
 
-#define CPORNH CPORNHval(PORVALNH)
+#define CPORNH  CPORNHval(PORVALNH)
 
-#define CPORNH1 CPORNHval(PORVALNH1)
+#define CPORNH1  CPORNHval(PORVALNH1)
 
-#define CPORNH2 CPORNHval(PORVALNH2)
+#define CPORNH2  CPORNHval(PORVALNH2)
 
 /*
 #define PORVALNH  1.0

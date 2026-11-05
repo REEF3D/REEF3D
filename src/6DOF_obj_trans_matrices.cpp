@@ -20,31 +20,31 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Tobias Martin
 --------------------------------------------------------------------*/
 
-#include "6DOF_motionext.h"
-#include "6DOF_obj.h"
-#include "fdm.h"
-#include "ghostcell.h"
-#include "lexer.h"
+#include"6DOF_obj.h"
+#include"lexer.h"
+#include"fdm.h"
+#include"ghostcell.h"
+#include"6DOF_motionext.h"
 
 void sixdof_obj::get_trans(lexer *p, ghostcell *pgc)
 {
     // dp = F, dc = p/m
     rb.derivatives_trans();
-
-    // External motions
-    pmotion->motionext_trans(p, pgc, rb.dp, rb.dc);
-}
+	
+	// External motions
+	pmotion->motionext_trans(p,pgc,rb.dp,rb.dc);
+} 
 
 void sixdof_obj::get_rot(lexer *p)
 {
     // de, dh (updates the transformation matrices)
     rb.derivatives_rot();
-
-    // External motions
-    pmotion->motionext_rot(p, rb.dh, rb.h, rb.de, rb.G, rb.I);
-}
+	
+	// External motions
+    pmotion->motionext_rot(p,rb.dh,rb.h,rb.de,rb.G,rb.I);
+} 
 
 void sixdof_obj::quat_matrices(lexer *p)
-{
+{   
     rb.quat_matrices();
 }

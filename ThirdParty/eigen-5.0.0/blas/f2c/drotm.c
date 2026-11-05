@@ -12,8 +12,7 @@
 
 #include "datatypes.h"
 
-/* Subroutine */ void drotm_(integer *n, doublereal *dx, integer *incx,
-                             doublereal *dy, integer *incy,
+/* Subroutine */ void drotm_(integer *n, doublereal *dx, integer *incx, doublereal *dy, integer *incy,
                              doublereal *dparam) {
   /* Initialized data */
 

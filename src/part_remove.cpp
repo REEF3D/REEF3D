@@ -20,8 +20,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Authors: Hans Bihs, Alexander Hanke
 --------------------------------------------------------------------*/
 
-#include "lexer.h"
-#include "part.h"
+#include"part.h"
+#include"lexer.h"
 
 void part::remove(int n)
 {

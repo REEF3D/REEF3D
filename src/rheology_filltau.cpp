@@ -20,29 +20,29 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Authors: Hans Bihs, Alexander Hanke
 --------------------------------------------------------------------*/
 
-#include "fdm.h"
-#include "ghostcell.h"
-#include "lexer.h"
-#include "rheology_f.h"
+#include"rheology_f.h"
+#include"lexer.h"
+#include"fdm.h"
+#include"ghostcell.h"
 
 void rheology_f::filltau(lexer *p, fdm *a, ghostcell *pgc)
 {
     LOOP
     {
-        pressurePhi(p, a, 1, 0, 0, true);
-
+        pressurePhi(p,a,1,0,0,true);
+        
         // Yield Stress
-        tau0 = yield_stress(p, a);
-
-        if(p->W110 == 7)
-            tau0 += p->W97 * pow(gamma, p->W98);
-
-        tau_x(i, j, k) = tau0;
-        tau_y(i, j, k) = tau0;
-        tau_z(i, j, k) = tau0;
+        tau0 = yield_stress(p,a);
+         
+        if(p->W110==7)
+        tau0 += p->W97*pow(gamma,p->W98);   
+        
+        tau_x(i,j,k) = tau0;
+        tau_y(i,j,k) = tau0;
+        tau_z(i,j,k) = tau0;
     }
 
-    pgc->start4(p, tau_x, 1);
-    pgc->start4(p, tau_y, 1);
-    pgc->start4(p, tau_z, 1);
+    pgc->start4(p,tau_x,1);
+    pgc->start4(p,tau_y,1);
+    pgc->start4(p,tau_z,1);
 }

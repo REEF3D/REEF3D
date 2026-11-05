@@ -23,9 +23,9 @@ Author: Hans Bihs
 #ifndef SEDIMENT_CURV_H_
 #define SEDIMENT_CURV_H_
 
-#include "increment.h"
-#include "lexer.h"
-#include <cmath>
+#include"increment.h"
+#include"lexer.h"
+#include<cmath>
 
 class sediment_fdm;
 class ghostcell;
@@ -56,81 +56,81 @@ class sediment_curv : public increment
 {
 public:
     // unsupported options are refused
-    static void check(lexer *);
+    static void check(lexer*);
 
     static inline int q(lexer *p, int ii, int jj)
     {
-        return (ii - p->imin) * p->jmax + (jj - p->jmin);
+        return (ii-p->imin)*p->jmax + (jj-p->jmin);
     }
 
     // cell area (Cartesian: DXN*DYN)
     static inline double area(lexer *p, int ii, int jj)
     {
-        if(p->geo_curv == 1)
-            return p->AREA2D[q(p, ii, jj)];
+        if(p->geo_curv==1)
+        return p->AREA2D[q(p,ii,jj)];
 
-        return p->DXN[ii + marge] * p->DYN[jj + marge];
+        return p->DXN[ii+marge]*p->DYN[jj+marge];
     }
 
     // distance between the centres of cell (ii,jj) and (ii+di,jj+dj)
     static inline double dist(lexer *p, int ii, int jj, int di, int dj)
     {
-        const int a = q(p, ii, jj), b = q(p, ii + di, jj + dj);
-        const double dx = p->XC2D[b] - p->XC2D[a], dy = p->YC2D[b] - p->YC2D[a];
-        return sqrt(dx * dx + dy * dy);
+        const int a = q(p,ii,jj), b = q(p,ii+di,jj+dj);
+        const double dx = p->XC2D[b]-p->XC2D[a], dy = p->YC2D[b]-p->YC2D[a];
+        return sqrt(dx*dx + dy*dy);
     }
 
     // area ratio cell / neighbour (sandslide: a slid height on the receiver)
     static inline double aratio(lexer *p, int ii, int jj, int di, int dj)
     {
-        return p->AREA2D[q(p, ii, jj)] / p->AREA2D[q(p, ii + di, jj + dj)];
+        return p->AREA2D[q(p,ii,jj)]/p->AREA2D[q(p,ii+di,jj+dj)];
     }
 
     // unit normal (towards +i / +j) and length of face i+1/2 (dir 1) or j+1/2 (dir 2) of cell (ii,jj)
     static inline void normal(lexer *p, int dir, int ii, int jj, double &nx, double &ny, double &len)
     {
-        const int c = q(p, ii, jj);
-        len = (dir == 1) ? p->LEN1[c] : p->LEN2[c];
+        const int c = q(p,ii,jj);
+        len = (dir==1) ? p->LEN1[c] : p->LEN2[c];
 
-        if(len > 0.0)
+        if(len>0.0)
         {
-            nx = ((dir == 1) ? p->SX1[c] : p->SX2[c]) / len;
-            ny = ((dir == 1) ? p->SY1[c] : p->SY2[c]) / len;
+        nx = ((dir==1) ? p->SX1[c] : p->SX2[c])/len;
+        ny = ((dir==1) ? p->SY1[c] : p->SY2[c])/len;
         }
 
         else
         {
-            nx = (dir == 1) ? 1.0 : 0.0;
-            ny = (dir == 1) ? 0.0 : 1.0;
+        nx = (dir==1) ? 1.0 : 0.0;
+        ny = (dir==1) ? 0.0 : 1.0;
         }
     }
 
     // s->P, s->Q: normal velocities of the faces from the cell velocities (ub,vb), with the slice
     // boundary conditions (gcv 10, 11); wet: SFLOW (both cells wet), 0 none
-    static void face_normals(lexer *, ghostcell *, sediment_fdm *, int wetcheck);
+    static void face_normals(lexer*, ghostcell*, sediment_fdm*, int wetcheck);
 
     // face vector with the normal component of s->P / s->Q (dir 1: i-face i+1/2, dir 2: j-face j+1/2)
-    static void facevec(lexer *, sediment_fdm *, int dir, int ii, int jj, double &u, double &v);
+    static void facevec(lexer*, sediment_fdm*, int dir, int ii, int jj, double &u, double &v);
 
     // velocity of cell (ii,jj): i-part from the mean of its i-faces, j-part from its j-faces
-    static void cellvel(lexer *, sediment_fdm *, int ii, int jj, double &u, double &v);
+    static void cellvel(lexer*, sediment_fdm*, int ii, int jj, double &u, double &v);
 
     // transport direction u.n/|u| of face i+1/2 (dir 1) or j+1/2 (dir 2) of cell (ii,jj)
-    static double face_sign(lexer *, sediment_fdm *, int dir, int ii, int jj);
+    static double face_sign(lexer*, sediment_fdm*, int dir, int ii, int jj);
     // the same with the direction turned to the left by delta, tan(delta) = td (spiral-flow correction, S 95)
-    static double face_sign(lexer *, sediment_fdm *, int dir, int ii, int jj, double td);
+    static double face_sign(lexer*, sediment_fdm*, int dir, int ii, int jj, double td);
 
     // bed gradient of cell (ii,jj) (bedslope, bedload direction): central index differences,
     // one-sided next to cells without a bed (DFBED<0); zero=1: no gradient along a line closed on
     // both sides (bedload_direction_f), 0: the central difference stays
-    static void bedgrad(lexer *, slice &f, int ii, int jj, int zero, double &fx, double &fy);
+    static void bedgrad(lexer*, slice &f, int ii, int jj, int zero, double &fx, double &fy);
 
     // contravariant component s.g^dir of a vector at cell (ii,jj) (per index), cell grid vectors
     // from the centre differences over two cells
-    static double contra(lexer *, int dir, int ii, int jj, double u, double v);
+    static double contra(lexer*, int dir, int ii, int jj, double u, double v);
 
     // width of cell (ii,jj) across its i-faces (dir 1) or j-faces (dir 2): area / mean face length
-    static double width(lexer *, int dir, int ii, int jj);
+    static double width(lexer*, int dir, int ii, int jj);
 };
 
 #endif

@@ -23,8 +23,8 @@ Architect: Hans Bihs
 #ifndef SIXDOF_EXTERNAL_H_
 #define SIXDOF_EXTERNAL_H_
 
-#include <Eigen/Dense>
-#include <vector>
+#include<vector>
+#include<Eigen/Dense>
 
 class lexer;
 
@@ -77,32 +77,32 @@ class lexer;
 class sixdof_external
 {
 public:
-    typedef Eigen::Matrix<double, 6, 1> vec6;
-    typedef Eigen::Matrix<double, 6, 6> mat6;
-
+    typedef Eigen::Matrix<double,6,1> vec6;
+    typedef Eigen::Matrix<double,6,6> mat6;
+    
     virtual ~sixdof_external() {}
-
-    static sixdof_external *instance();
-    static void attach(sixdof_external *);
-
+    
+    static sixdof_external* instance();
+    static void attach(sixdof_external*);
+    
     // body n is driven by the external solver (two-way), or only its loads go there (one_way)
     virtual bool drives(int n) const = 0;
-    virtual bool one_way(int) const { return false; }
+    virtual bool one_way(int) const {return false;}
     // once, at the first step: mass, CoG, rotation (body -> inertial) and inertia (about the CoG, body
     // frame) of body n in REEF3D
     virtual void connect(int n, double mass, const Eigen::Vector3d &c, const Eigen::Matrix3d &R, const Eigen::Matrix3d &I) = 0;
     // the stage after the first enters the step (provisional loads)
     virtual bool predictor() const = 0;
-
+    
     virtual void fluid_loads(double t, const std::vector<vec6> &F, const std::vector<mat6> &A, bool provisional) = 0;
-
+    
     // distributed loads of a one-way body n: its hull forces binned along the axis a + s e, 0 <= s <= L,
     // in ns strips (false: none); the strip forces (3 per strip, this rank's part of the hull, called on
     // all ranks) at time t, before fluid_loads of the same time
-    virtual bool strips(int, Eigen::Vector3d &, Eigen::Vector3d &, double &, int &) const { return false; }
-    virtual void fluid_strips(int, double, const std::vector<double> &) {}
+    virtual bool strips(int, Eigen::Vector3d&, Eigen::Vector3d&, double&, int&) const {return false;}
+    virtual void fluid_strips(int, double, const std::vector<double>&) {}
     virtual void advance(double t0, double t1) = 0;
-
+    
     // pose and velocity of body n at time t (CoG, rotation body -> inertial, velocity, angular velocity
     // in the inertial frame): predicted from the current state (predict) or from the last step (state)
     virtual void predict(int n, double t, Eigen::Vector3d &c, Eigen::Matrix3d &R, Eigen::Vector3d &v, Eigen::Vector3d &w) = 0;
@@ -110,7 +110,7 @@ public:
 
     // P 18 (LAGOON store): the external solver's own objects (CORAL: its mooring lines) as an output of the
     // store, at the outputs of the bodies (rank 0 of the fluid solver, with the bodies' time and output number)
-    virtual void store_output(lexer *, double, long long) {}
+    virtual void store_output(lexer*, double, long long) {}
 };
 
 #endif

@@ -22,72 +22,72 @@ Author: Hans Bihs
 
 #ifdef REEF3D_USE_HYPRE  // hypre is opt-in: make HYPRE=1 / cmake -DREEF3D_USE_HYPRE=ON
 
-#include "ghostcell.h"
 #include "hypre_struct.h"
 #include "lexer.h"
+#include "ghostcell.h"
 #include "matrix_diag.h"
 
-void hypre_struct::fill_matrix7(lexer *p, ghostcell *pgc, double *f, vec &rhs, matrix_diag &M)
+void hypre_struct::fill_matrix7(lexer* p, ghostcell* pgc, double *f, vec &rhs, matrix_diag &M)
 {
-    count = 0;
+    count=0;
     FLOOP
     {
-        CVAL4[FIJK] = count;
+        CVAL4[FIJK]=count;
         ++count;
     }
 
-    nentries = 7;
+    nentries=7;
 
-    for(j = 0; j < nentries; j++)
-        stencil_indices[j] = j;
+    for (j = 0; j < nentries; j++)
+    stencil_indices[j] = j;
 
-    count = 0;
+    count=0;
     FKJILOOP
     {
-        n = CVAL4[FIJK];
+            n=CVAL4[FIJK];
 
-        values[count] = M.p[n];
-        ++count;
+            values[count]=M.p[n];
+            ++count;
 
-        values[count] = M.s[n];
-        ++count;
+            values[count]=M.s[n];
+            ++count;
 
-        values[count] = M.n[n];
-        ++count;
+            values[count]=M.n[n];
+            ++count;
 
-        values[count] = M.e[n];
-        ++count;
+            values[count]=M.e[n];
+            ++count;
 
-        values[count] = M.w[n];
-        ++count;
+            values[count]=M.w[n];
+            ++count;
 
-        values[count] = M.b[n];
-        ++count;
+            values[count]=M.b[n];
+            ++count;
 
-        values[count] = M.t[n];
-        ++count;
+            values[count]=M.t[n];
+            ++count;
     }
 
     HYPRE_StructMatrixSetBoxValues(A, ilower, iupper, nentries, stencil_indices, values);
     HYPRE_StructMatrixAssemble(A);
 
     // vec
-    count = 0;
+    count=0;
     FKJILOOP
     {
         values[count] = f[FIJK];
-
-        ++count;
+        
+    ++count;
     }
 
     HYPRE_StructVectorSetBoxValues(x, ilower, iupper, values);
     HYPRE_StructVectorAssemble(x);
 
-    count = 0;
+    count=0;
     FKJILOOP
     {
-        n = CVAL4[FIJK];
-        values[count] = rhs.V[n];
+            n=CVAL4[FIJK];
+            values[count] = rhs.V[n];
 
         ++count;
     }
@@ -100,10 +100,10 @@ void hypre_struct::fillbackvec7(lexer *p, double *f, int var)
 {
     HYPRE_StructVectorGetBoxValues(x, ilower, iupper, values);
 
-    count = 0;
+    count=0;
     FKJILOOP
     {
-        f[FIJK] = values[count];
+        f[FIJK]=values[count];
 
         ++count;
     }

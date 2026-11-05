@@ -23,9 +23,9 @@ Author: Hans Bihs
 #ifndef REINI_RK3_H_
 #define REINI_RK3_H_
 
-#include "field4.h"
-#include "increment.h"
-#include "reini.h"
+#include"reini.h"
+#include"field4.h"
+#include"increment.h"
 
 class reinidisc;
 class picard;
@@ -35,23 +35,24 @@ using namespace std;
 class reini_RK3 final : public reini, public increment
 {
 public:
-    reini_RK3(lexer *p, int);
-    virtual ~reini_RK3();
-    void start(fdm *, lexer *, field &, ghostcell *, ioflow *) override final;
+	reini_RK3(lexer* p,int);
+	virtual ~reini_RK3();
+	void start(fdm*,lexer*,field&,ghostcell*,ioflow*) override final;
 
-    int *sizeM;
-    field4 frk1, frk2, dt;
+	int *sizeM;
+	field4 frk1,frk2,dt;
 
 private:
     picard *ppicard;
-    reinidisc *prdisc;
+	reinidisc *prdisc;
 
-    void step(lexer *, fdm *);
-    void time_preproc(lexer *);
+	void step(lexer*, fdm*);
+    void time_preproc(lexer*);
 
-    double starttime, endtime;
+	
+	double starttime,endtime;
 
-    int gcval_phi, gcval_ro, gcval_iniphi, reiniter, n, gcval;
+	int gcval_phi,gcval_ro,gcval_iniphi,reiniter,n, gcval;
 };
 
 #endif

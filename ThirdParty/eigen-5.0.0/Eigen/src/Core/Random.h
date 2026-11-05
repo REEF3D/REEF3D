@@ -17,18 +17,14 @@ namespace Eigen {
 
 namespace internal {
 
-template<typename Scalar>
-struct scalar_random_op
-{
-    inline const Scalar operator()() const { return random<Scalar>(); }
+template <typename Scalar>
+struct scalar_random_op {
+  inline const Scalar operator()() const { return random<Scalar>(); }
 };
 
-template<typename Scalar>
-struct functor_traits<scalar_random_op<Scalar>>
-{
-    enum { Cost = 5 * NumTraits<Scalar>::MulCost,
-           PacketAccess = false,
-           IsRepeatable = false };
+template <typename Scalar>
+struct functor_traits<scalar_random_op<Scalar> > {
+  enum { Cost = 5 * NumTraits<Scalar>::MulCost, PacketAccess = false, IsRepeatable = false };
 };
 
 }  // end namespace internal
@@ -59,10 +55,9 @@ struct functor_traits<scalar_random_op<Scalar>>
  *
  * \sa DenseBase::setRandom(), DenseBase::Random(Index), DenseBase::Random()
  */
-template<typename Derived>
-inline const typename DenseBase<Derived>::RandomReturnType DenseBase<Derived>::Random(Index rows, Index cols)
-{
-    return NullaryExpr(rows, cols, internal::scalar_random_op<Scalar>());
+template <typename Derived>
+inline const typename DenseBase<Derived>::RandomReturnType DenseBase<Derived>::Random(Index rows, Index cols) {
+  return NullaryExpr(rows, cols, internal::scalar_random_op<Scalar>());
 }
 
 /** \returns a random vector expression
@@ -89,10 +84,9 @@ inline const typename DenseBase<Derived>::RandomReturnType DenseBase<Derived>::R
  *
  * \sa DenseBase::setRandom(), DenseBase::Random(Index,Index), DenseBase::Random()
  */
-template<typename Derived>
-inline const typename DenseBase<Derived>::RandomReturnType DenseBase<Derived>::Random(Index size)
-{
-    return NullaryExpr(size, internal::scalar_random_op<Scalar>());
+template <typename Derived>
+inline const typename DenseBase<Derived>::RandomReturnType DenseBase<Derived>::Random(Index size) {
+  return NullaryExpr(size, internal::scalar_random_op<Scalar>());
 }
 
 /** \returns a fixed-size random matrix or vector expression
@@ -114,10 +108,9 @@ inline const typename DenseBase<Derived>::RandomReturnType DenseBase<Derived>::R
  *
  * \sa DenseBase::setRandom(), DenseBase::Random(Index,Index), DenseBase::Random(Index)
  */
-template<typename Derived>
-inline const typename DenseBase<Derived>::RandomReturnType DenseBase<Derived>::Random()
-{
-    return NullaryExpr(RowsAtCompileTime, ColsAtCompileTime, internal::scalar_random_op<Scalar>());
+template <typename Derived>
+inline const typename DenseBase<Derived>::RandomReturnType DenseBase<Derived>::Random() {
+  return NullaryExpr(RowsAtCompileTime, ColsAtCompileTime, internal::scalar_random_op<Scalar>());
 }
 
 /** Sets all coefficients in this expression to random values.
@@ -132,10 +125,9 @@ inline const typename DenseBase<Derived>::RandomReturnType DenseBase<Derived>::R
  *
  * \sa class CwiseNullaryOp, setRandom(Index), setRandom(Index,Index)
  */
-template<typename Derived>
-EIGEN_DEVICE_FUNC inline Derived &DenseBase<Derived>::setRandom()
-{
-    return *this = Random(rows(), cols());
+template <typename Derived>
+EIGEN_DEVICE_FUNC inline Derived& DenseBase<Derived>::setRandom() {
+  return *this = Random(rows(), cols());
 }
 
 /** Resizes to the given \a newSize, and sets all coefficients in this expression to random values.
@@ -151,11 +143,10 @@ EIGEN_DEVICE_FUNC inline Derived &DenseBase<Derived>::setRandom()
  *
  * \sa DenseBase::setRandom(), setRandom(Index,Index), class CwiseNullaryOp, DenseBase::Random()
  */
-template<typename Derived>
-EIGEN_STRONG_INLINE Derived &PlainObjectBase<Derived>::setRandom(Index newSize)
-{
-    resize(newSize);
-    return setRandom();
+template <typename Derived>
+EIGEN_STRONG_INLINE Derived& PlainObjectBase<Derived>::setRandom(Index newSize) {
+  resize(newSize);
+  return setRandom();
 }
 
 /** Resizes to the given size, and sets all coefficients in this expression to random values.
@@ -173,11 +164,10 @@ EIGEN_STRONG_INLINE Derived &PlainObjectBase<Derived>::setRandom(Index newSize)
  *
  * \sa DenseBase::setRandom(), setRandom(Index), class CwiseNullaryOp, DenseBase::Random()
  */
-template<typename Derived>
-EIGEN_STRONG_INLINE Derived &PlainObjectBase<Derived>::setRandom(Index rows, Index cols)
-{
-    resize(rows, cols);
-    return setRandom();
+template <typename Derived>
+EIGEN_STRONG_INLINE Derived& PlainObjectBase<Derived>::setRandom(Index rows, Index cols) {
+  resize(rows, cols);
+  return setRandom();
 }
 
 /** Resizes to the given size, changing only the number of columns, and sets all
@@ -191,10 +181,9 @@ EIGEN_STRONG_INLINE Derived &PlainObjectBase<Derived>::setRandom(Index rows, Ind
  *
  * \sa DenseBase::setRandom(), setRandom(Index), setRandom(Index, NoChange_t), class CwiseNullaryOp, DenseBase::Random()
  */
-template<typename Derived>
-EIGEN_STRONG_INLINE Derived &PlainObjectBase<Derived>::setRandom(NoChange_t, Index cols)
-{
-    return setRandom(rows(), cols);
+template <typename Derived>
+EIGEN_STRONG_INLINE Derived& PlainObjectBase<Derived>::setRandom(NoChange_t, Index cols) {
+  return setRandom(rows(), cols);
 }
 
 /** Resizes to the given size, changing only the number of rows, and sets all
@@ -208,10 +197,9 @@ EIGEN_STRONG_INLINE Derived &PlainObjectBase<Derived>::setRandom(NoChange_t, Ind
  *
  * \sa DenseBase::setRandom(), setRandom(Index), setRandom(NoChange_t, Index), class CwiseNullaryOp, DenseBase::Random()
  */
-template<typename Derived>
-EIGEN_STRONG_INLINE Derived &PlainObjectBase<Derived>::setRandom(Index rows, NoChange_t)
-{
-    return setRandom(rows, cols());
+template <typename Derived>
+EIGEN_STRONG_INLINE Derived& PlainObjectBase<Derived>::setRandom(Index rows, NoChange_t) {
+  return setRandom(rows, cols());
 }
 
 }  // end namespace Eigen

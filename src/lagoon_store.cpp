@@ -20,33 +20,34 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "lagoon_store.h"
-#include "georef.h"
+#include"lagoon_store.h"
+#include"georef.h"
 
-#include <algorithm>
-#include <atomic>
-#include <cctype>
-#include <cerrno>
-#include <cmath>
-#include <cstdint>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
-#include <ctime>
-#include <dirent.h>
-#include <fstream>
-#include <iostream>
-#include <limits>
-#include <mutex>
-#include <set>
-#include <sstream>
-#include <stdexcept>
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <thread>
-#include <zlib.h>
+#include<algorithm>
+#include<atomic>
+#include<cctype>
+#include<cerrno>
+#include<cmath>
+#include<cstdint>
+#include<cstdio>
+#include<cstdlib>
+#include<cstring>
+#include<ctime>
+#include<fstream>
+#include<iostream>
+#include<limits>
+#include<mutex>
+#include<set>
+#include<sstream>
+#include<stdexcept>
+#include<dirent.h>
+#include<sys/stat.h>
+#include<sys/types.h>
+#include<thread>
+#include<zlib.h>
 
-namespace {
+namespace
+{
 const uint64_t EMPTY = std::numeric_limits<uint64_t>::max();
 const int CHUNK_VALUES = 2048;  // values an inner chunk should hold at least
 
@@ -55,15 +56,15 @@ void make_dirs(const std::string &dir)
     std::string part;
     std::stringstream ss(dir);
     std::string item;
-    if(!dir.empty() && dir[0] == '/')
+    if(!dir.empty() && dir[0]=='/')
         part = "/";
-    while(std::getline(ss, item, '/'))
+    while(std::getline(ss,item,'/'))
     {
         if(item.empty())
             continue;
         part += item;
-        if(mkdir(part.c_str(), 0777) != 0 && errno != EEXIST)
-            throw std::runtime_error("lagoon_store: cannot create " + part);
+        if(mkdir(part.c_str(),0777)!=0 && errno!=EEXIST)
+            throw std::runtime_error("lagoon_store: cannot create "+part);
         part += "/";
     }
 }
@@ -75,19 +76,19 @@ void write_file(const std::string &file, const std::string &content)
     {
         std::ofstream out(temporary.c_str(), std::ios::binary);
         if(!out)
-            throw std::runtime_error("lagoon_store: cannot write " + file);
+            throw std::runtime_error("lagoon_store: cannot write "+file);
         out.write(content.data(), content.size());
     }
-    if(std::rename(temporary.c_str(), file.c_str()) != 0)
-        throw std::runtime_error("lagoon_store: cannot rename " + temporary);
+    if(std::rename(temporary.c_str(), file.c_str())!=0)
+        throw std::runtime_error("lagoon_store: cannot rename "+temporary);
 }
 
 int tile_size(int n, int most)
 {
-    if(n <= most)
-        return std::max(n, 1);
-    const int tiles = (n + most - 1) / most;
-    return (n + tiles - 1) / tiles;
+    if(n<=most)
+        return std::max(n,1);
+    const int tiles = (n + most - 1)/most;
+    return (n + tiles - 1)/tiles;
 }
 
 uint32_t crc32c(const unsigned char *data, size_t n)
@@ -96,17 +97,17 @@ uint32_t crc32c(const unsigned char *data, size_t n)
     static bool ready = false;
     if(!ready)
     {
-        for(uint32_t i = 0; i < 256; ++i)
+        for(uint32_t i=0; i<256; ++i)
         {
             uint32_t c = i;
-            for(int k = 0; k < 8; ++k)
+            for(int k=0; k<8; ++k)
                 c = (c & 1) ? (c >> 1) ^ 0x82F63B78u : c >> 1;
             table[i] = c;
         }
         ready = true;
     }
     uint32_t crc = 0xFFFFFFFFu;
-    for(size_t i = 0; i < n; ++i)
+    for(size_t i=0; i<n; ++i)
         crc = table[(crc ^ data[i]) & 0xFF] ^ (crc >> 8);
     return crc ^ 0xFFFFFFFFu;
 }
@@ -119,14 +120,14 @@ const double NOISE_BITS = 7.6;
 double byte_entropy(const unsigned char *data, size_t n)
 {
     size_t counts[256] = {0};
-    for(size_t i = 0; i < n; ++i)
+    for(size_t i=0; i<n; ++i)
         ++counts[data[i]];
     double bits = 0.0;
-    for(int c = 0; c < 256; ++c)
+    for(int c=0; c<256; ++c)
         if(counts[c])
         {
-            const double share = double(counts[c]) / double(n);
-            bits -= share * std::log2(share);
+            const double share = double(counts[c])/double(n);
+            bits -= share*std::log2(share);
         }
     return bits;
 }
@@ -154,43 +155,43 @@ std::string gzip_shuffled(const unsigned char *shuffled, size_t count, int items
     if(!d.ready)
     {
         std::memset(&zs, 0, sizeof(zs));
-        if(deflateInit2(&zs, level, Z_DEFLATED, 15 + 16, 8, Z_DEFAULT_STRATEGY) != Z_OK)  // 15+16: gzip
+        if(deflateInit2(&zs, level, Z_DEFLATED, 15+16, 8, Z_DEFAULT_STRATEGY)!=Z_OK)  // 15+16: gzip
             throw std::runtime_error("lagoon_store: deflateInit2 failed");
         d.ready = true;
     }
-    else if(deflateReset(&zs) != Z_OK)
+    else if(deflateReset(&zs)!=Z_OK)
         throw std::runtime_error("lagoon_store: deflateReset failed");
-    const size_t bytes = count * size_t(itemsize);
-    std::string out(deflateBound(&zs, bytes) + 64 * size_t(itemsize) + 64, '\0');
+    const size_t bytes = count*size_t(itemsize);
+    std::string out(deflateBound(&zs, bytes) + 64*size_t(itemsize) + 64, '\0');
     size_t written = 0;
     int current = -1;
-    for(int b = 0; b < itemsize; ++b)
+    for(int b=0; b<itemsize; ++b)
     {
-        const unsigned char *plane = shuffled + size_t(b) * count;
+        const unsigned char *plane = shuffled + size_t(b)*count;
         if(out.size() - written < count + 1024)
-            out.resize(written + 2 * count + 1024);
-        zs.next_out = reinterpret_cast<unsigned char *>(&out[written]);
+            out.resize(written + 2*count + 1024);
+        zs.next_out = reinterpret_cast<unsigned char*>(&out[written]);
         zs.avail_out = uInt(out.size() - written);
-        const int want = level > 0 && count >= 256 && byte_entropy(plane, count) > NOISE_BITS ? 0 : level;
-        if(want != current && deflateParams(&zs, want, Z_DEFAULT_STRATEGY) == Z_OK)
+        const int want = level>0 && count>=256 && byte_entropy(plane, count)>NOISE_BITS ? 0 : level;
+        if(want!=current && deflateParams(&zs, want, Z_DEFAULT_STRATEGY)==Z_OK)
             current = want;
         written = out.size() - zs.avail_out;  // deflateParams may flush a block
-        const int flush = b == itemsize - 1 ? Z_FINISH : Z_NO_FLUSH;
-        zs.next_in = const_cast<unsigned char *>(plane);
+        const int flush = b==itemsize-1 ? Z_FINISH : Z_NO_FLUSH;
+        zs.next_in = const_cast<unsigned char*>(plane);
         zs.avail_in = uInt(count);
         int status;
         do
         {
-            if(written == out.size())
-                out.resize(2 * out.size());
-            zs.next_out = reinterpret_cast<unsigned char *>(&out[written]);
+            if(written==out.size())
+                out.resize(2*out.size());
+            zs.next_out = reinterpret_cast<unsigned char*>(&out[written]);
             zs.avail_out = uInt(out.size() - written);
             status = deflate(&zs, flush);
             written = out.size() - zs.avail_out;
-            if(status == Z_STREAM_ERROR)
+            if(status==Z_STREAM_ERROR)
                 throw std::runtime_error("lagoon_store: deflate failed");
         }
-        while(flush == Z_FINISH ? status != Z_STREAM_END : zs.avail_in > 0 || zs.avail_out == 0);
+        while(flush==Z_FINISH ? status!=Z_STREAM_END : zs.avail_in>0 || zs.avail_out==0);
     }
     out.resize(written);
     return out;
@@ -198,17 +199,18 @@ std::string gzip_shuffled(const unsigned char *shuffled, size_t count, int items
 
 void put_u64(std::string &s, uint64_t v)
 {
-    for(int b = 0; b < 8; ++b)
-        s.push_back(char((v >> (8 * b)) & 0xFF));
+    for(int b=0; b<8; ++b)
+        s.push_back(char((v >> (8*b)) & 0xFF));
 }
 
 uint64_t get_u64(const unsigned char *p)
 {
     uint64_t v = 0;
-    for(int b = 7; b >= 0; --b)
+    for(int b=7; b>=0; --b)
         v = (v << 8) | p[b];
     return v;
 }
+
 
 std::string utc_now()
 {
@@ -218,7 +220,7 @@ std::string utc_now()
     return text;
 }
 
-std::string codecs_json(int level, int itemsize = 4)
+std::string codecs_json(int level, int itemsize=4)
 {
     std::ostringstream j;
     j << "[{\"name\": \"bytes\", \"configuration\": {\"endian\": \"little\"}}, "
@@ -231,7 +233,7 @@ std::string ints_json(const std::vector<long long> &v)
 {
     std::ostringstream j;
     j << "[";
-    for(size_t i = 0; i < v.size(); ++i)
+    for(size_t i=0; i<v.size(); ++i)
         j << (i ? ", " : "") << v[i];
     j << "]";
     return j.str();
@@ -240,7 +242,7 @@ std::string ints_json(const std::vector<long long> &v)
 std::string names_json(const std::vector<std::string> &v)
 {
     std::string j = "[";
-    for(size_t i = 0; i < v.size(); ++i)
+    for(size_t i=0; i<v.size(); ++i)
         j += (i ? ", " : "") + lagoon_store::json_string(v[i]);
     return j + "]";
 }
@@ -248,13 +250,13 @@ std::string names_json(const std::vector<std::string> &v)
 // byte shuffle (all first bytes, then all second bytes, ...) and gzip: one chunk
 std::string shuffled_gzip(const void *data, size_t count, int itemsize, int level)
 {
-    const unsigned char *bytes = static_cast<const unsigned char *>(data);
-    std::vector<unsigned char> shuffled(count * itemsize);
-    for(int b = 0; b < itemsize; ++b)
+    const unsigned char *bytes = static_cast<const unsigned char*>(data);
+    std::vector<unsigned char> shuffled(count*itemsize);
+    for(int b=0; b<itemsize; ++b)
     {
-        unsigned char *plane = &shuffled[b * count];
-        for(size_t e = 0; e < count; ++e)
-            plane[e] = bytes[size_t(itemsize) * e + b];
+        unsigned char *plane = &shuffled[b*count];
+        for(size_t e=0; e<count; ++e)
+            plane[e] = bytes[size_t(itemsize)*e + b];
     }
     return gzip_shuffled(shuffled.data(), count, itemsize, level);
 }
@@ -281,18 +283,18 @@ void write_array_meta(const std::string &dir, const std::string &dtype, int item
 bool exists(const std::string &file)
 {
     struct stat info;
-    return stat(file.c_str(), &info) == 0;
+    return stat(file.c_str(), &info)==0;
 }
 
 // a directory with nothing in it (or none): no store of an earlier run
 bool empty_dir(const std::string &dir)
 {
     DIR *d = opendir(dir.c_str());
-    if(d == nullptr)
+    if(d==nullptr)
         return true;
     bool empty = true;
     while(struct dirent *entry = readdir(d))
-        if(std::strcmp(entry->d_name, ".") != 0 && std::strcmp(entry->d_name, "..") != 0)
+        if(std::strcmp(entry->d_name, ".")!=0 && std::strcmp(entry->d_name, "..")!=0)
         {
             empty = false;
             break;
@@ -310,14 +312,14 @@ void write_plain_array(const std::string &dir, const std::vector<double> &values
     const size_t n = values.size();
     j << "{\"zarr_format\": 3, \"node_type\": \"array\", \"shape\": [" << n << "], "
       << "\"data_type\": \"float64\", "
-      << "\"chunk_grid\": {\"name\": \"regular\", \"configuration\": {\"chunk_shape\": [" << std::max<size_t>(n, 1) << "]}}, "
+      << "\"chunk_grid\": {\"name\": \"regular\", \"configuration\": {\"chunk_shape\": [" << std::max<size_t>(n,1) << "]}}, "
       << "\"chunk_key_encoding\": {\"name\": \"default\", \"configuration\": {\"separator\": \"/\"}}, "
       << "\"fill_value\": \"NaN\", "
       << "\"codecs\": [{\"name\": \"bytes\", \"configuration\": {\"endian\": \"little\"}}], "
       << "\"dimension_names\": [\"" << dimension << "\"], "
       << "\"attributes\": {" << (units.empty() ? "" : "\"units\": \"" + units + "\"") << "}}";
     write_file(dir + "/zarr.json", j.str());
-    std::string bytes(reinterpret_cast<const char *>(values.data()), n * sizeof(double));
+    std::string bytes(reinterpret_cast<const char*>(values.data()), n*sizeof(double));
     write_file(dir + "/c/0", bytes);
 }
 
@@ -325,27 +327,28 @@ void write_plain_array(const std::string &dir, const std::vector<double> &values
 void write_plain_grid(const std::string &dir, const std::vector<double> &values, size_t ny, size_t nx,
                       const std::string &units)
 {
-    if(values.size() != ny * nx)
-        throw std::runtime_error(dir + ": " + std::to_string(values.size()) + " values for a grid of " + std::to_string(ny) + " x " + std::to_string(nx));
+    if(values.size()!=ny*nx)
+        throw std::runtime_error(dir + ": " + std::to_string(values.size()) + " values for a grid of "
+                                 + std::to_string(ny) + " x " + std::to_string(nx));
     make_dirs(dir + "/c/0");
     std::ostringstream j;
     j << "{\"zarr_format\": 3, \"node_type\": \"array\", \"shape\": [" << ny << ", " << nx << "], "
       << "\"data_type\": \"float64\", "
       << "\"chunk_grid\": {\"name\": \"regular\", \"configuration\": {\"chunk_shape\": ["
-      << std::max<size_t>(ny, 1) << ", " << std::max<size_t>(nx, 1) << "]}}, "
+      << std::max<size_t>(ny,1) << ", " << std::max<size_t>(nx,1) << "]}}, "
       << "\"chunk_key_encoding\": {\"name\": \"default\", \"configuration\": {\"separator\": \"/\"}}, "
       << "\"fill_value\": \"NaN\", "
       << "\"codecs\": [{\"name\": \"bytes\", \"configuration\": {\"endian\": \"little\"}}], "
       << "\"dimension_names\": [\"y\", \"x\"], "
       << "\"attributes\": {" << (units.empty() ? "" : "\"units\": \"" + units + "\"") << "}}";
     write_file(dir + "/zarr.json", j.str());
-    std::string bytes(reinterpret_cast<const char *>(values.data()), values.size() * sizeof(double));
+    std::string bytes(reinterpret_cast<const char*>(values.data()), values.size()*sizeof(double));
     write_file(dir + "/c/0/0", bytes);
 }
-}  // namespace
+}
 
 lagoon_store::lagoon_store(const std::string &path_, int shard_time_, int gzip_level_)
-    : path(path_), shard_time(std::max(shard_time_, 1)), gzip_level(gzip_level_)
+    : path(path_), shard_time(std::max(shard_time_,1)), gzip_level(gzip_level_)
 {
 }
 
@@ -354,9 +357,9 @@ std::string lagoon_store::json_string(const std::string &text)
     std::string out = "\"";
     for(char c : text)
     {
-        if(c == '"' || c == '\\')
+        if(c=='"' || c=='\\')
             out += '\\', out += c;
-        else if(c == '\n')
+        else if(c=='\n')
             out += "\\n";
         else if((unsigned char)c < 0x20)
         {
@@ -392,11 +395,11 @@ std::string lagoon_store::run_id(const std::string &json)
 {
     const size_t record = json.find("\"reef3d_run\"");
     const std::string key = "\"run\": \"";
-    const size_t at = json.find(key, record == std::string::npos ? 0 : record);
-    if(at == std::string::npos)
+    const size_t at = json.find(key, record==std::string::npos ? 0 : record);
+    if(at==std::string::npos)
         return "";
     const size_t end = json.find('"', at + key.size());
-    return end == std::string::npos ? "" : json.substr(at + key.size(), end - at - key.size());
+    return end==std::string::npos ? "" : json.substr(at + key.size(), end - at - key.size());
 }
 
 std::string lagoon_store::begin_run(const std::string &solver, const std::string &run_json)
@@ -420,24 +423,24 @@ std::string lagoon_store::begin_run(const std::string &solver, const std::string
         }
         const std::string mine = run_id(run_json);
         const std::string theirs = run_id(root);
-        if(!mine.empty() && theirs == mine && !root.empty())
+        if(!mine.empty() && theirs==mine && !root.empty())
             return "";  // already this run's store
         std::string stem = path;
         const std::string suffix = ".lagoon";
-        if(stem.size() > suffix.size() && stem.compare(stem.size() - suffix.size(), suffix.size(), suffix) == 0)
-            stem.erase(stem.size() - suffix.size());
+        if(stem.size()>suffix.size() && stem.compare(stem.size()-suffix.size(), suffix.size(), suffix)==0)
+            stem.erase(stem.size()-suffix.size());
         const std::string base = stem + "-" + (theirs.empty() ? std::string("earlier") : theirs);
         aside = base + ".lagoon-earlier";
-        for(int n = 2; exists(aside); ++n)  // a run moved aside before, by the same name
+        for(int n=2; exists(aside); ++n)  // a run moved aside before, by the same name
             aside = base + "-" + std::to_string(n) + ".lagoon-earlier";
-        if(std::rename(path.c_str(), aside.c_str()) != 0)
+        if(std::rename(path.c_str(), aside.c_str())!=0)
         {
-            std::cout << "LAGOON: could not move the store of the earlier run aside (" << std::strerror(errno)
-                      << "); the new run writes over it" << std::endl;
+            std::cout<<"LAGOON: could not move the store of the earlier run aside ("<<std::strerror(errno)
+                     <<"); the new run writes over it"<<std::endl;
             aside.clear();
         }
         else
-            std::cout << "LAGOON: the store of the earlier run is now " << aside << std::endl;
+            std::cout<<"LAGOON: the store of the earlier run is now "<<aside<<std::endl;
     }
     create_root(solver, run_json);
     return aside;
@@ -450,20 +453,20 @@ void lagoon_store::create_output(const std::string &output, const std::string &g
                                  int blocks, const std::string &source,
                                  const std::vector<double> *xc, const std::vector<double> *yc)
 {
-    const bool curvilinear = xc != nullptr && yc != nullptr;
+    const bool curvilinear = xc!=nullptr && yc!=nullptr;
     const std::string dir = path + "/" + output;
     make_dirs(dir + "/blocks");
     std::ostringstream j;
     j << "{\"zarr_format\": 3, \"node_type\": \"group\", \"attributes\": {\"lagoon\": {"
       << "\"role\": " << json_string(output) << ", \"grid\": " << json_string(grid)
       << ", \"shape\": {\"x\": " << x.size() << ", \"y\": " << y.size();
-    if(grid == "sigma" || grid == "cartesian")
+    if(grid=="sigma" || grid=="cartesian")
         j << ", \"level\": " << levels.size();
     j << "}";
     if(curvilinear)
         j << ", \"horizontal\": \"curvilinear\"";
     j << ", \"variables\": {";
-    for(size_t v = 0; v < variables.size(); ++v)
+    for(size_t v=0; v<variables.size(); ++v)
     {
         j << (v ? ", " : "") << json_string(variables[v].name) << ": {\"components\": "
           << variables[v].components;
@@ -484,9 +487,9 @@ void lagoon_store::create_output(const std::string &output, const std::string &g
         write_plain_grid(dir + "/xc", *xc, y.size(), x.size(), "m");
         write_plain_grid(dir + "/yc", *yc, y.size(), x.size(), "m");
     }
-    if(grid == "sigma")
+    if(grid=="sigma")
         write_plain_array(dir + "/sigma", levels, "level", "");
-    if(grid == "cartesian")
+    if(grid=="cartesian")
         write_plain_array(dir + "/z", levels, "level", "m");
     times[output].clear();
     steps[output].clear();
@@ -499,10 +502,10 @@ void lagoon_store::create_output(const std::string &output, const std::string &g
     std::string text = root.str();
     const std::string key = "\"outputs\": [";
     const size_t at = text.find(key);
-    if(at != std::string::npos && text.find(json_string(output), at) == std::string::npos)
+    if(at!=std::string::npos && text.find(json_string(output), at)==std::string::npos)
     {
         const size_t end = at + key.size();
-        const bool empty = text[end] == ']';
+        const bool empty = text[end]==']';
         text.insert(end, json_string(output) + (empty ? "" : ", "));
         write_file(path + "/zarr.json", text);
     }
@@ -524,35 +527,35 @@ void lagoon_store::create_block(const std::string &output, int block, int i0, in
     write_file(dir + "/zarr.json", j.str());
 
     const int cy = tile_size(ny, 64);
-    const int cx = tile_size(nx, std::max(64, 2 * CHUNK_VALUES / cy));
-    const int cz = cy * cx >= CHUNK_VALUES ? 1 : std::min(nz, (CHUNK_VALUES + cy * cx - 1) / (cy * cx));
+    const int cx = tile_size(nx, std::max(64, 2*CHUNK_VALUES/cy));
+    const int cz = cy*cx >= CHUNK_VALUES ? 1 : std::min(nz, (CHUNK_VALUES + cy*cx - 1)/(cy*cx));
     std::vector<variable> all;
     if(cartesian)
         ;  // the heights are the output's z
-    else if(nz > 1)
+    else if(nz>1)
     {
-        all.push_back({"z_bed", 1, "m"});
-        all.push_back({"z_surface", 1, "m"});
-        all.push_back({"z_offset", 1, "m"});
+        all.push_back({"z_bed",1,"m"});
+        all.push_back({"z_surface",1,"m"});
+        all.push_back({"z_offset",1,"m"});
     }
     else
-        all.push_back({"z", 1, "m"});
+        all.push_back({"z",1,"m"});
     all.insert(all.end(), variables.begin(), variables.end());
     for(const variable &v : all)
     {
         array_info a;
         a.dir = dir + "/" + v.name;
-        a.levels = (cartesian || nz > 1) && v.name != "z_bed" && v.name != "z_surface";
+        a.levels = (cartesian || nz>1) && v.name!="z_bed" && v.name!="z_surface";
         a.nz = a.levels ? nz : 1;
         a.ny = ny;
         a.nx = nx;
         a.components = v.components;
-        a.cz = a.levels ? std::max(cz, 1) : 1;
+        a.cz = a.levels ? std::max(cz,1) : 1;
         a.cy = cy;
         a.cx = cx;
-        a.fill = v.name == "z_offset" ? 0.0f : std::numeric_limits<float>::quiet_NaN();
+        a.fill = v.name=="z_offset" ? 0.0f : std::numeric_limits<float>::quiet_NaN();
         arrays[output + "/" + std::to_string(block) + "/" + v.name] = a;
-        if(v.name != "z_offset")  // made when first written (it is 0 until then)
+        if(v.name!="z_offset")  // made when first written (it is 0 until then)
             write_array_json(a, 0, v.units, v.name);
     }
 }
@@ -563,30 +566,19 @@ void lagoon_store::write_array_json(const array_info &a, int nt, const std::stri
     make_dirs(a.dir);
     std::vector<long long> shape, shard, inner;
     std::vector<std::string> dims;
-    shape.push_back(nt);
-    shard.push_back(shard_time);
-    inner.push_back(1);
-    dims.push_back("time");
+    shape.push_back(nt); shard.push_back(shard_time); inner.push_back(1); dims.push_back("time");
     if(a.levels)
     {
         shape.push_back(a.nz);
-        shard.push_back(((a.nz + a.cz - 1) / a.cz) * a.cz);
+        shard.push_back(((a.nz + a.cz - 1)/a.cz)*a.cz);
         inner.push_back(a.cz);
         dims.push_back("level");
     }
-    shape.push_back(a.ny);
-    shard.push_back(((a.ny + a.cy - 1) / a.cy) * a.cy);
-    inner.push_back(a.cy);
-    dims.push_back("y");
-    shape.push_back(a.nx);
-    shard.push_back(((a.nx + a.cx - 1) / a.cx) * a.cx);
-    inner.push_back(a.cx);
-    dims.push_back("x");
-    if(a.components > 1)
+    shape.push_back(a.ny); shard.push_back(((a.ny + a.cy - 1)/a.cy)*a.cy); inner.push_back(a.cy); dims.push_back("y");
+    shape.push_back(a.nx); shard.push_back(((a.nx + a.cx - 1)/a.cx)*a.cx); inner.push_back(a.cx); dims.push_back("x");
+    if(a.components>1)
     {
-        shape.push_back(a.components);
-        shard.push_back(a.components);
-        inner.push_back(a.components);
+        shape.push_back(a.components); shard.push_back(a.components); inner.push_back(a.components);
         dims.push_back("component");
     }
     std::ostringstream j;
@@ -594,7 +586,7 @@ void lagoon_store::write_array_json(const array_info &a, int nt, const std::stri
       << ", \"data_type\": \"float32\", "
       << "\"chunk_grid\": {\"name\": \"regular\", \"configuration\": {\"chunk_shape\": " << ints_json(shard) << "}}, "
       << "\"chunk_key_encoding\": {\"name\": \"default\", \"configuration\": {\"separator\": \"/\"}}, "
-      << "\"fill_value\": " << (name == "z_offset" ? "0.0" : "\"NaN\"") << ", "
+      << "\"fill_value\": " << (name=="z_offset" ? "0.0" : "\"NaN\"") << ", "
       << "\"codecs\": [{\"name\": \"sharding_indexed\", \"configuration\": {"
       << "\"chunk_shape\": " << ints_json(inner) << ", "
       << "\"codecs\": " << codecs_json(gzip_level) << ", "
@@ -610,40 +602,40 @@ void lagoon_store::write(const std::string &output, int block, int t, const std:
 {
     const std::string key = output + "/" + std::to_string(block) + "/" + name;
     std::map<std::string, array_info>::const_iterator it = arrays.find(key);
-    if(it == arrays.end())
+    if(it==arrays.end())
         throw std::runtime_error("lagoon_store: unknown array " + key);
     const array_info &a = it->second;
-    if(name == "z_offset")
+    if(name=="z_offset")
     {
         // all zero (the usual case): nothing to store, the fill value is 0
-        const size_t n = size_t(a.nz) * a.ny * a.nx;
+        const size_t n = size_t(a.nz)*a.ny*a.nx;
         bool any = false;
-        for(size_t i = 0; i < n && !any; ++i)
-            any = data[i] != 0.0f;
+        for(size_t i=0; i<n && !any; ++i)
+            any = data[i]!=0.0f;
         struct stat info;
-        const bool exists = stat((a.dir + "/zarr.json").c_str(), &info) == 0;
+        const bool exists = stat((a.dir + "/zarr.json").c_str(), &info)==0;
         if(!any && !exists)
             return;
     }
     write_shard(a, t, data);
-    write_array_json(a, t + 1, name.rfind("z", 0) == 0 ? "m" : "", name);
+    write_array_json(a, t+1, name.rfind("z",0)==0 ? "m" : "", name);
 }
 
 void lagoon_store::write_shard(const array_info &a, int t, const float *data) const
 {
-    const int nzc = (a.nz + a.cz - 1) / a.cz;
-    const int nyc = (a.ny + a.cy - 1) / a.cy;
-    const int nxc = (a.nx + a.cx - 1) / a.cx;
-    const size_t entries = size_t(shard_time) * nzc * nyc * nxc;  // the component dimension has one chunk
-    const size_t index_bytes = 16 * entries + 4;
-    const int shard = t / shard_time;
-    const int local = t % shard_time;
+    const int nzc = (a.nz + a.cz - 1)/a.cz;
+    const int nyc = (a.ny + a.cy - 1)/a.cy;
+    const int nxc = (a.nx + a.cx - 1)/a.cx;
+    const size_t entries = size_t(shard_time)*nzc*nyc*nxc;  // the component dimension has one chunk
+    const size_t index_bytes = 16*entries + 4;
+    const int shard = t/shard_time;
+    const int local = t%shard_time;
 
-    std::string file = a.dir + "/c/" + std::to_string(shard) + (a.levels ? "/0" : "") + "/0/0" + (a.components > 1 ? "/0" : "");
+    std::string file = a.dir + "/c/" + std::to_string(shard) + (a.levels ? "/0" : "") + "/0/0" + (a.components>1 ? "/0" : "");
     make_dirs(file.substr(0, file.rfind('/')));
 
     // the index so far (a shard that is new, or whose last index is not valid, starts empty)
-    std::vector<uint64_t> index(2 * entries, EMPTY);
+    std::vector<uint64_t> index(2*entries, EMPTY);
     long long data_end = 0;
     FILE *f = std::fopen(file.c_str(), "r+b");
     if(f)
@@ -655,14 +647,14 @@ void lagoon_store::write_shard(const array_info &a, int t, const float *data) co
         {
             std::vector<unsigned char> raw(index_bytes);
             std::fseek(f, size - (long long)index_bytes, SEEK_SET);
-            if(std::fread(raw.data(), 1, index_bytes, f) == index_bytes)
+            if(std::fread(raw.data(), 1, index_bytes, f)==index_bytes)
             {
                 uint32_t stored = 0;
-                for(int b = 3; b >= 0; --b)
-                    stored = (stored << 8) | raw[16 * entries + b];
-                if(stored == crc32c(raw.data(), 16 * entries))
-                    for(size_t e = 0; e < 2 * entries; ++e)
-                        index[e] = get_u64(&raw[8 * e]);
+                for(int b=3; b>=0; --b)
+                    stored = (stored << 8) | raw[16*entries + b];
+                if(stored==crc32c(raw.data(), 16*entries))
+                    for(size_t e=0; e<2*entries; ++e)
+                        index[e] = get_u64(&raw[8*e]);
             }
         }
     }
@@ -676,7 +668,7 @@ void lagoon_store::write_shard(const array_info &a, int t, const float *data) co
     // the inner chunks of output t, compressed by `threads` threads, then appended
     // after everything there is
     const int comps = a.components;
-    const size_t chunks = size_t(nzc) * nyc * nxc;
+    const size_t chunks = size_t(nzc)*nyc*nxc;
     std::vector<std::string> packed(chunks);
     uint32_t fill_bits;
     std::memcpy(&fill_bits, &a.fill, 4);
@@ -684,43 +676,43 @@ void lagoon_store::write_shard(const array_info &a, int t, const float *data) co
     std::atomic<size_t> next(0);
     auto encode = [&]()
     {
-        const size_t n = size_t(a.cz) * a.cy * a.cx * comps;
-        std::vector<unsigned char> shuffled(4 * n);
-        for(size_t c = next++; c < chunks; c = next++)
+        const size_t n = size_t(a.cz)*a.cy*a.cx*comps;
+        std::vector<unsigned char> shuffled(4*n);
+        for(size_t c=next++; c<chunks; c=next++)
         {
-            const int ic = int(c % nxc), jc = int((c / nxc) % nyc), kc = int(c / (size_t(nxc) * nyc));
+            const int ic = int(c%nxc), jc = int((c/nxc)%nyc), kc = int(c/(size_t(nxc)*nyc));
             // gathered straight into the byte planes (little endian)
-            unsigned char *p0 = &shuffled[0], *p1 = &shuffled[n], *p2 = &shuffled[2 * n], *p3 = &shuffled[3 * n];
+            unsigned char *p0 = &shuffled[0], *p1 = &shuffled[n], *p2 = &shuffled[2*n], *p3 = &shuffled[3*n];
             bool all_fill = true;
             size_t m = 0;
-            for(int k = kc * a.cz; k < (kc + 1) * a.cz; ++k)
-                for(int j = jc * a.cy; j < (jc + 1) * a.cy; ++j)
+            for(int k=kc*a.cz; k<(kc+1)*a.cz; ++k)
+            for(int j=jc*a.cy; j<(jc+1)*a.cy; ++j)
+            {
+                const bool row = k<a.nz && j<a.ny;
+                const float *line = row ? data + (size_t(k)*a.ny + j)*a.nx*comps : nullptr;
+                for(int i=ic*a.cx; i<(ic+1)*a.cx; ++i)
+                for(int q=0; q<comps; ++q, ++m)
                 {
-                    const bool row = k < a.nz && j < a.ny;
-                    const float *line = row ? data + (size_t(k) * a.ny + j) * a.nx * comps : nullptr;
-                    for(int i = ic * a.cx; i < (ic + 1) * a.cx; ++i)
-                        for(int q = 0; q < comps; ++q, ++m)
-                        {
-                            uint32_t v = fill_bits;
-                            if(row && i < a.nx)
-                            {
-                                std::memcpy(&v, line + size_t(i) * comps + q, 4);
-                                if(v != fill_bits && !(fill_nan && (v & 0x7fffffffu) > 0x7f800000u))
-                                    all_fill = false;
-                            }
-                            p0[m] = (unsigned char)(v);
-                            p1[m] = (unsigned char)(v >> 8);
-                            p2[m] = (unsigned char)(v >> 16);
-                            p3[m] = (unsigned char)(v >> 24);
-                        }
+                    uint32_t v = fill_bits;
+                    if(row && i<a.nx)
+                    {
+                        std::memcpy(&v, line + size_t(i)*comps + q, 4);
+                        if(v!=fill_bits && !(fill_nan && (v & 0x7fffffffu) > 0x7f800000u))
+                            all_fill = false;
+                    }
+                    p0[m] = (unsigned char)(v);
+                    p1[m] = (unsigned char)(v >> 8);
+                    p2[m] = (unsigned char)(v >> 16);
+                    p3[m] = (unsigned char)(v >> 24);
                 }
+            }
             if(!all_fill)
                 packed[c] = gzip_shuffled(shuffled.data(), n, 4, gzip_level);
         }
     };
     const int workers = int(std::min<size_t>(size_t(std::max(threads, 1)), chunks)) - 1;
     std::vector<std::thread> pool;
-    for(int w = 0; w < workers; ++w)
+    for(int w=0; w<workers; ++w)
         pool.emplace_back(encode);
     encode();
     for(std::thread &w : pool)
@@ -728,24 +720,24 @@ void lagoon_store::write_shard(const array_info &a, int t, const float *data) co
 
     std::fseek(f, data_end, SEEK_SET);
     long long offset = data_end;
-    for(size_t c = 0; c < chunks; ++c)
+    for(size_t c=0; c<chunks; ++c)
     {
         if(packed[c].empty())  // all fill: not stored
             continue;
         std::fwrite(packed[c].data(), 1, packed[c].size(), f);
-        const size_t entry = size_t(local) * chunks + c;
-        index[2 * entry] = offset;
-        index[2 * entry + 1] = packed[c].size();
+        const size_t entry = size_t(local)*chunks + c;
+        index[2*entry] = offset;
+        index[2*entry+1] = packed[c].size();
         offset += packed[c].size();
     }
     // the new index after the chunks, with its checksum
     std::string tail;
     tail.reserve(index_bytes);
-    for(size_t e = 0; e < 2 * entries; ++e)
+    for(size_t e=0; e<2*entries; ++e)
         put_u64(tail, index[e]);
-    const uint32_t crc = crc32c(reinterpret_cast<const unsigned char *>(tail.data()), tail.size());
-    for(int b = 0; b < 4; ++b)
-        tail.push_back(char((crc >> (8 * b)) & 0xFF));
+    const uint32_t crc = crc32c(reinterpret_cast<const unsigned char*>(tail.data()), tail.size());
+    for(int b=0; b<4; ++b)
+        tail.push_back(char((crc >> (8*b)) & 0xFF));
     std::fwrite(tail.data(), 1, tail.size(), f);
     std::fclose(f);
 }
@@ -754,86 +746,87 @@ void lagoon_store::commit(const std::string &output, int t, double time, long lo
 {
     std::vector<double> &tv = times[output];
     std::vector<long long> &sv = steps[output];
-    if(t >= 0)
+    if(t>=0)
     {
-        tv.resize(t + 1, std::numeric_limits<double>::quiet_NaN());
-        sv.resize(t + 1, 0);
+        tv.resize(t+1, std::numeric_limits<double>::quiet_NaN());
+        sv.resize(t+1, 0);
         tv[t] = time;
         sv[t] = step;
     }
     const int chunk = 4096;
     const std::string dir = path + "/" + output;
     const size_t nt = tv.size();
-    for(int which = 0; which < 2; ++which)
+    for(int which=0; which<2; ++which)
     {
-        const std::string adir = dir + (which == 0 ? "/step" : "/time");  // step first, time last
+        const std::string adir = dir + (which==0 ? "/step" : "/time");  // step first, time last
         make_dirs(adir + "/c");
-        if(nt > 0)
+        if(nt>0)
         {
-            const size_t first = (t >= 0 ? size_t(t) : 0) / chunk * chunk;
+            const size_t first = (t>=0 ? size_t(t) : 0)/chunk*chunk;
             std::string bytes;
-            for(size_t i = first; i < first + chunk; ++i)
+            for(size_t i=first; i<first+chunk; ++i)
             {
-                if(which == 0)
+                if(which==0)
                 {
-                    const long long v = i < nt ? sv[i] : 0;
+                    const long long v = i<nt ? sv[i] : 0;
                     put_u64(bytes, (uint64_t)v);
                 }
                 else
                 {
-                    const double v = i < nt ? tv[i] : std::numeric_limits<double>::quiet_NaN();
+                    const double v = i<nt ? tv[i] : std::numeric_limits<double>::quiet_NaN();
                     uint64_t bits;
                     std::memcpy(&bits, &v, 8);
                     put_u64(bytes, bits);
                 }
             }
-            write_file(adir + "/c/" + std::to_string(first / chunk), bytes);
+            write_file(adir + "/c/" + std::to_string(first/chunk), bytes);
         }
         std::ostringstream j;
         j << "{\"zarr_format\": 3, \"node_type\": \"array\", \"shape\": [" << nt << "], "
-          << "\"data_type\": \"" << (which == 0 ? "int64" : "float64") << "\", "
+          << "\"data_type\": \"" << (which==0 ? "int64" : "float64") << "\", "
           << "\"chunk_grid\": {\"name\": \"regular\", \"configuration\": {\"chunk_shape\": [" << chunk << "]}}, "
           << "\"chunk_key_encoding\": {\"name\": \"default\", \"configuration\": {\"separator\": \"/\"}}, "
-          << "\"fill_value\": " << (which == 0 ? "0" : "\"NaN\"") << ", "
+          << "\"fill_value\": " << (which==0 ? "0" : "\"NaN\"") << ", "
           << "\"codecs\": [{\"name\": \"bytes\", \"configuration\": {\"endian\": \"little\"}}], "
           << "\"dimension_names\": [\"time\"], "
-          << "\"attributes\": {" << (which == 1 ? "\"units\": \"s\"" : "") << "}}";
+          << "\"attributes\": {" << (which==1 ? "\"units\": \"s\"" : "") << "}}";
         write_file(adir + "/zarr.json", j.str());
     }
 }
 
 int lagoon_store::committed(const std::string &output) const
 {
-    std::map<std::string, std::vector<double>>::const_iterator it = times.find(output);
-    return it == times.end() ? 0 : int(it->second.size());
+    std::map<std::string, std::vector<double> >::const_iterator it = times.find(output);
+    return it==times.end() ? 0 : int(it->second.size());
 }
 
 void lagoon_store::level_offsets(const float *z, int nz, int n, const std::vector<double> &sigma,
                                  std::vector<float> &offsets)
 {
-    offsets.assign(size_t(nz) * n, 0.0f);
-    for(int q = 0; q < n; ++q)
+    offsets.assign(size_t(nz)*n, 0.0f);
+    for(int q=0; q<n; ++q)
     {
         const double bed = z[q];
-        const double top = z[size_t(nz - 1) * n + q];
-        for(int k = 0; k < nz; ++k)
+        const double top = z[size_t(nz-1)*n + q];
+        for(int k=0; k<nz; ++k)
         {
-            const float zk = z[size_t(k) * n + q];
-            const double offset = double(zk) - (bed + sigma[k] * (top - bed));
+            const float zk = z[size_t(k)*n + q];
+            const double offset = double(zk) - (bed + sigma[k]*(top - bed));
             const float a = std::fabs(zk);
             const double step = std::nextafter(a, std::numeric_limits<float>::infinity()) - a;
-            if(std::fabs(offset) > 2.0 * step)
-                offsets[size_t(k) * n + q] = float(offset);
+            if(std::fabs(offset) > 2.0*step)
+                offsets[size_t(k)*n + q] = float(offset);
         }
     }
 }
 
-namespace {
+namespace
+{
 std::string attribute(const std::string &tag, const std::string &name)
 {
     const std::string key = " " + name + "=\"";
     const size_t at = tag.find(key);
-    if(at == std::string::npos)
+    if(at==std::string::npos)
         return "";
     const size_t end = tag.find('"', at + key.size());
     return tag.substr(at + key.size(), end - at - key.size());
@@ -841,17 +834,13 @@ std::string attribute(const std::string &tag, const std::string &name)
 
 std::string units_of(const std::string &name)
 {
-    if(name == "velocity")
-        return "m/s";
-    if(name == "pressure")
-        return "Pa";
-    if(name == "elevation" || name == "eta" || name == "Hs")
-        return "m";
-    if(name == "Fi")
-        return "m2/s";
+    if(name=="velocity") return "m/s";
+    if(name=="pressure") return "Pa";
+    if(name=="elevation" || name=="eta" || name=="Hs") return "m";
+    if(name=="Fi") return "m2/s";
     return "";
 }
-}  // namespace
+}
 
 bool lagoon_store::parse_vtu_header(const std::string &header, std::vector<vtu_array> &fields, long long &points)
 {
@@ -860,16 +849,16 @@ bool lagoon_store::parse_vtu_header(const std::string &header, std::vector<vtu_a
     const size_t begin = header.find("<PointData>");
     const size_t end = header.find("</PointData>");
     const size_t at_points = header.find("<Points>");
-    if(begin == std::string::npos || end == std::string::npos || at_points == std::string::npos)
+    if(begin==std::string::npos || end==std::string::npos || at_points==std::string::npos)
         return false;
     size_t at = begin;
-    while((at = header.find("<DataArray", at)) != std::string::npos && at < end)
+    while((at = header.find("<DataArray", at))!=std::string::npos && at<end)
     {
         const std::string tag = header.substr(at, header.find('>', at) - at);
         const std::string name = attribute(tag, "Name");
         const std::string components = attribute(tag, "NumberOfComponents");
         const std::string offset = attribute(tag, "offset");
-        if(attribute(tag, "type") != "Float32" || name.empty() || offset.empty())
+        if(attribute(tag, "type")!="Float32" || name.empty() || offset.empty())
             return false;
         vtu_array a;
         a.var.name = name;
@@ -880,12 +869,13 @@ bool lagoon_store::parse_vtu_header(const std::string &header, std::vector<vtu_a
         at += tag.size();
     }
     const size_t tag_at = header.find("<DataArray", at_points);
-    if(tag_at == std::string::npos)
+    if(tag_at==std::string::npos)
         return false;
     const std::string tag = header.substr(tag_at, header.find('>', tag_at) - tag_at);
     points = std::atoll(attribute(tag, "offset").c_str());
     return !fields.empty();
 }
+
 
 // ======================================================================== bodies
 lagoon_bodies::lagoon_bodies(const std::string &path_, const std::string &solver_, const std::string &key_,
@@ -898,44 +888,32 @@ lagoon_bodies::lagoon_bodies(const std::string &path_, const std::string &solver
 
 void lagoon_bodies::quaternion(const double R[9], double q[4])
 {
-    const double m00 = R[0], m01 = R[1], m02 = R[2], m10 = R[3], m11 = R[4], m12 = R[5], m20 = R[6], m21 = R[7], m22 = R[8];
+    const double m00=R[0], m01=R[1], m02=R[2], m10=R[3], m11=R[4], m12=R[5], m20=R[6], m21=R[7], m22=R[8];
     const double trace = m00 + m11 + m22;
     if(trace > 0.0)
     {
-        const double s = 2.0 * std::sqrt(trace + 1.0);
-        q[0] = 0.25 * s;
-        q[1] = (m21 - m12) / s;
-        q[2] = (m02 - m20) / s;
-        q[3] = (m10 - m01) / s;
+        const double s = 2.0*std::sqrt(trace + 1.0);
+        q[0] = 0.25*s; q[1] = (m21 - m12)/s; q[2] = (m02 - m20)/s; q[3] = (m10 - m01)/s;
     }
     else if(m00 > m11 && m00 > m22)
     {
-        const double s = 2.0 * std::sqrt(1.0 + m00 - m11 - m22);
-        q[0] = (m21 - m12) / s;
-        q[1] = 0.25 * s;
-        q[2] = (m01 + m10) / s;
-        q[3] = (m02 + m20) / s;
+        const double s = 2.0*std::sqrt(1.0 + m00 - m11 - m22);
+        q[0] = (m21 - m12)/s; q[1] = 0.25*s; q[2] = (m01 + m10)/s; q[3] = (m02 + m20)/s;
     }
     else if(m11 > m22)
     {
-        const double s = 2.0 * std::sqrt(1.0 + m11 - m00 - m22);
-        q[0] = (m02 - m20) / s;
-        q[1] = (m01 + m10) / s;
-        q[2] = 0.25 * s;
-        q[3] = (m12 + m21) / s;
+        const double s = 2.0*std::sqrt(1.0 + m11 - m00 - m22);
+        q[0] = (m02 - m20)/s; q[1] = (m01 + m10)/s; q[2] = 0.25*s; q[3] = (m12 + m21)/s;
     }
     else
     {
-        const double s = 2.0 * std::sqrt(1.0 + m22 - m00 - m11);
-        q[0] = (m10 - m01) / s;
-        q[1] = (m02 + m20) / s;
-        q[2] = (m12 + m21) / s;
-        q[3] = 0.25 * s;
+        const double s = 2.0*std::sqrt(1.0 + m22 - m00 - m11);
+        q[0] = (m10 - m01)/s; q[1] = (m02 + m20)/s; q[2] = (m12 + m21)/s; q[3] = 0.25*s;
     }
-    const double norm = std::sqrt(q[0] * q[0] + q[1] * q[1] + q[2] * q[2] + q[3] * q[3]);
+    const double norm = std::sqrt(q[0]*q[0] + q[1]*q[1] + q[2]*q[2] + q[3]*q[3]);
     const double sign = q[0] < 0.0 ? -1.0 : 1.0;
-    for(int i = 0; i < 4; ++i)
-        q[i] *= sign / norm;
+    for(int i=0; i<4; ++i)
+        q[i] *= sign/norm;
 }
 
 void lagoon_bodies::start()
@@ -976,19 +954,19 @@ void lagoon_bodies::write_body_attributes(int number, const body &b) const
 
 void lagoon_bodies::write_motion(int number, const body &b, const char *name, int width) const
 {
-    const std::vector<double> &values = width == 3 ? b.translation : b.rotation;
+    const std::vector<double> &values = width==3 ? b.translation : b.rotation;
     const long long rows = b.rows;
     const long long chunk = 4096;
-    const long long first = (rows - 1) / chunk * chunk;  // the chunk of the newest row, written again
-    std::vector<double> part(size_t(chunk) * width, std::numeric_limits<double>::quiet_NaN());
-    for(long long r = first; r < rows; ++r)
-        for(int c = 0; c < width; ++c)
-            part[size_t(r - first) * width + c] = values[size_t(r) * width + c];
+    const long long first = (rows-1)/chunk*chunk;  // the chunk of the newest row, written again
+    std::vector<double> part(size_t(chunk)*width, std::numeric_limits<double>::quiet_NaN());
+    for(long long r=first; r<rows; ++r)
+        for(int c=0; c<width; ++c)
+            part[size_t(r-first)*width + c] = values[size_t(r)*width + c];
     const std::string adir = dir + "/body_" + std::to_string(number) + "/" + name;
-    make_dirs(adir + "/c/" + std::to_string(first / chunk));
-    write_file(adir + "/c/" + std::to_string(first / chunk) + "/0", shuffled_gzip(part.data(), part.size(), 8, gzip_level));
+    make_dirs(adir + "/c/" + std::to_string(first/chunk));
+    write_file(adir + "/c/" + std::to_string(first/chunk) + "/0", shuffled_gzip(part.data(), part.size(), 8, gzip_level));
     write_array_meta(adir, "float64", 8, {rows, width}, {chunk, width}, "\"NaN\"",
-                     {"time", width == 3 ? "xyz" : "wxyz"}, width == 3 ? "\"units\": \"m\"" : "", gzip_level);
+                     {"time", width==3 ? "xyz" : "wxyz"}, width==3 ? "\"units\": \"m\"" : "", gzip_level);
 }
 
 bool lagoon_bodies::output(int number, int points, const double *x0, const double *x, const double R[9],
@@ -1001,31 +979,31 @@ bool lagoon_bodies::output(int number, int points, const double *x0, const doubl
         if(!started)
             start();
         body &b = bodies[number];
-        if(b.points == 0)  // the mesh, once: vertices relative to the centre of gravity, triangles
+        if(b.points==0)  // the mesh, once: vertices relative to the centre of gravity, triangles
         {
             b.points = points;
             const std::string bdir = dir + "/body_" + std::to_string(number);
             make_dirs(bdir);
             write_body_attributes(number, b);
-            std::vector<float> vertices(size_t(points) * 3);
-            for(size_t i = 0; i < vertices.size(); ++i)
+            std::vector<float> vertices(size_t(points)*3);
+            for(size_t i=0; i<vertices.size(); ++i)
                 vertices[i] = float(x0[i]);
             make_dirs(bdir + "/vertices/c/0");
             write_file(bdir + "/vertices/c/0/0", shuffled_gzip(vertices.data(), vertices.size(), 4, gzip_level));
-            write_array_meta(bdir + "/vertices", "float32", 4, {points, 3}, {std::max(points, 1), 3}, "\"NaN\"",
+            write_array_meta(bdir + "/vertices", "float32", 4, {points, 3}, {std::max(points,1), 3}, "\"NaN\"",
                              {"vertex", "xyz"}, "\"units\": \"m\"", gzip_level);
-            const int triangles = points / 3;
-            std::vector<int32_t> corners(size_t(triangles) * 3);
-            for(size_t i = 0; i < corners.size(); ++i)
+            const int triangles = points/3;
+            std::vector<int32_t> corners(size_t(triangles)*3);
+            for(size_t i=0; i<corners.size(); ++i)
                 corners[i] = int32_t(i);
             make_dirs(bdir + "/triangles/c/0");
             write_file(bdir + "/triangles/c/0/0", shuffled_gzip(corners.data(), corners.size(), 4, gzip_level));
-            write_array_meta(bdir + "/triangles", "int32", 4, {triangles, 3}, {std::max(triangles, 1), 3}, "0",
+            write_array_meta(bdir + "/triangles", "int32", 4, {triangles, 3}, {std::max(triangles,1), 3}, "0",
                              {"triangle", "corner"}, "", gzip_level);
         }
-        if(points != b.points)
+        if(points!=b.points)
         {
-            std::cout << "LAGOON: body " << number << " has another mesh now; no more bodies in the LAGOON store" << std::endl;
+            std::cout<<"LAGOON: body "<<number<<" has another mesh now; no more bodies in the LAGOON store"<<std::endl;
             ok = false;
             return false;
         }
@@ -1033,38 +1011,38 @@ bool lagoon_bodies::output(int number, int points, const double *x0, const doubl
         // the motion as stored, and how far it puts each vertex from where it is
         double q[4];
         quaternion(R, q);
-        const double w = q[0], qx = q[1], qy = q[2], qz = q[3];
-        const double M[9] = {1 - 2 * (qy * qy + qz * qz), 2 * (qx * qy - w * qz), 2 * (qx * qz + w * qy),
-                             2 * (qx * qy + w * qz), 1 - 2 * (qx * qx + qz * qz), 2 * (qy * qz - w * qx),
-                             2 * (qx * qz - w * qy), 2 * (qy * qz + w * qx), 1 - 2 * (qx * qx + qy * qy)};
+        const double w=q[0], qx=q[1], qy=q[2], qz=q[3];
+        const double M[9] = {1-2*(qy*qy+qz*qz), 2*(qx*qy-w*qz),   2*(qx*qz+w*qy),
+                             2*(qx*qy+w*qz),   1-2*(qx*qx+qz*qz), 2*(qy*qz-w*qx),
+                             2*(qx*qz-w*qy),   2*(qy*qz+w*qx),   1-2*(qx*qx+qy*qy)};
         double largest = 1.0, error = 0.0;
-        for(int i = 0; i < points; ++i)
+        for(int i=0; i<points; ++i)
         {
-            const double v0 = float(x0[3 * i]), v1 = float(x0[3 * i + 1]), v2 = float(x0[3 * i + 2]);
-            for(int r = 0; r < 3; ++r)
+            const double v0=float(x0[3*i]), v1=float(x0[3*i+1]), v2=float(x0[3*i+2]);
+            for(int r=0; r<3; ++r)
             {
-                const float moved = float(M[3 * r] * v0 + M[3 * r + 1] * v1 + M[3 * r + 2] * v2 + c[r]);
-                const float there = float(x[3 * i + r]);
+                const float moved = float(M[3*r]*v0 + M[3*r+1]*v1 + M[3*r+2]*v2 + c[r]);
+                const float there = float(x[3*i+r]);
                 error = std::max(error, double(std::fabs(moved - there)));
                 largest = std::max(largest, double(std::fabs(there)));
             }
         }
         const float big = float(largest);
-        const double tolerance = 4.0 * double(std::nextafter(big, 2.0f * big) - big);
+        const double tolerance = 4.0*double(std::nextafter(big, 2.0f*big) - big);
         if(!(error <= tolerance))
         {
-            std::cout << "LAGOON: body " << number << " is " << error << " m off its rigid motion at output " << step
-                      << "; no more bodies in the LAGOON store (the VTP files are written)" << std::endl;
+            std::cout<<"LAGOON: body "<<number<<" is "<<error<<" m off its rigid motion at output "<<step
+                     <<"; no more bodies in the LAGOON store (the VTP files are written)"<<std::endl;
             ok = false;
             return false;
         }
 
-        b.translation.insert(b.translation.end(), c, c + 3);
-        b.rotation.insert(b.rotation.end(), q, q + 4);
+        b.translation.insert(b.translation.end(), c, c+3);
+        b.rotation.insert(b.rotation.end(), q, q+4);
         ++b.rows;
         write_motion(number, b, "translation", 3);
         write_motion(number, b, "rotation", 4);
-        if(error > b.max_error || b.rows == 1)
+        if(error > b.max_error || b.rows==1)
         {
             b.max_error = std::max(b.max_error, error);
             write_body_attributes(number, b);
@@ -1074,7 +1052,7 @@ bool lagoon_bodies::output(int number, int points, const double *x0, const doubl
             b.listed = true;
             write_set_attributes();
         }
-        pending.insert(std::make_pair(b.rows - 1, std::make_pair(time, step)));
+        pending.insert(std::make_pair(b.rows-1, std::make_pair(time, step)));
 
         // an output counts once every body has it: time last
         long long rows = b.rows;
@@ -1091,7 +1069,7 @@ bool lagoon_bodies::output(int number, int points, const double *x0, const doubl
     }
     catch(std::exception &problem)
     {
-        std::cout << "LAGOON: " << problem.what() << "; no more bodies in the LAGOON store" << std::endl;
+        std::cout<<"LAGOON: "<<problem.what()<<"; no more bodies in the LAGOON store"<<std::endl;
         ok = false;
         return false;
     }
@@ -1108,13 +1086,14 @@ lagoon_particles::lagoon_particles(const std::string &path_, const std::string &
 {
 }
 
-namespace {
+namespace
+{
 // a field's array: its name with characters other than [A-Za-z0-9_.-] as '_'
 std::string array_name(const std::string &name)
 {
     std::string out = name;
     for(char &c : out)
-        if(!(std::isalnum((unsigned char)c) || c == '_' || c == '.' || c == '-'))
+        if(!(std::isalnum((unsigned char)c) || c=='_' || c=='.' || c=='-'))
             c = '_';
     return out.empty() ? "_" : out;
 }
@@ -1124,7 +1103,7 @@ void write_group(const std::string &dir)
     make_dirs(dir);
     write_file(dir + "/zarr.json", "{\"zarr_format\": 3, \"node_type\": \"group\", \"attributes\": {}}");
 }
-}  // namespace
+}
 
 lagoon_particles::growing lagoon_particles::make(const std::string &where, const field &f) const
 {
@@ -1135,7 +1114,7 @@ std::string lagoon_particles::fields_json(const std::vector<field> &list) const
 {
     std::ostringstream j;
     j << "{";
-    for(size_t f = 0; f < list.size(); ++f)
+    for(size_t f=0; f<list.size(); ++f)
         j << (f ? ", " : "") << lagoon_store::json_string(list[f].name) << ": {\"components\": " << list[f].components
           << ", \"data_type\": \"" << (list[f].integer ? "int32" : "float32") << "\", \"array\": "
           << lagoon_store::json_string(array_name(list[f].name)) << "}";
@@ -1198,9 +1177,9 @@ lagoon_rows::array lagoon_rows::make(const std::string &dir, const std::string &
     array a;
     a.dir = dir;
     a.dtype = dtype;
-    a.fill = (dtype == "float32" || dtype == "float64") ? "\"NaN\"" : "0";
+    a.fill = (dtype=="float32" || dtype=="float64") ? "\"NaN\"" : "0";
     a.components = components;
-    a.itemsize = (dtype == "float64" || dtype == "int64") ? 8 : 4;
+    a.itemsize = (dtype=="float64" || dtype=="int64") ? 8 : 4;
     a.metre = metre;
     a.dimension = dimension;
     return a;
@@ -1209,13 +1188,11 @@ lagoon_rows::array lagoon_rows::make(const std::string &dir, const std::string &
 void lagoon_rows::write_meta(const array &a) const
 {
     std::ostringstream j;
-    std::vector<long long> shape = {a.rows}, shard = {ROWS * CHUNKS_PER_SHARD}, inner = {ROWS};
+    std::vector<long long> shape = {a.rows}, shard = {ROWS*CHUNKS_PER_SHARD}, inner = {ROWS};
     std::vector<std::string> dims = {a.dimension};
-    if(a.components > 1)
+    if(a.components>1)
     {
-        shape.push_back(a.components);
-        shard.push_back(a.components);
-        inner.push_back(a.components);
+        shape.push_back(a.components); shard.push_back(a.components); inner.push_back(a.components);
         dims.push_back("component");
     }
     j << "{\"zarr_format\": 3, \"node_type\": \"array\", \"shape\": " << ints_json(shape)
@@ -1237,46 +1214,46 @@ void lagoon_rows::write_meta(const array &a) const
 void lagoon_rows::write_shard(const array &a, long long shard, const std::vector<std::string> &chunks) const
 {
     std::string content;
-    std::vector<uint64_t> index(2 * CHUNKS_PER_SHARD, EMPTY);
+    std::vector<uint64_t> index(2*CHUNKS_PER_SHARD, EMPTY);
     uint64_t offset = 0;
-    for(size_t c = 0; c < chunks.size() && c < size_t(CHUNKS_PER_SHARD); ++c)
+    for(size_t c=0; c<chunks.size() && c<size_t(CHUNKS_PER_SHARD); ++c)
     {
         if(chunks[c].empty())
             continue;
-        index[2 * c] = offset;
-        index[2 * c + 1] = chunks[c].size();
+        index[2*c] = offset;
+        index[2*c+1] = chunks[c].size();
         content += chunks[c];
         offset += chunks[c].size();
     }
     std::string tail;
     for(uint64_t v : index)
         put_u64(tail, v);
-    const uint32_t crc = crc32c(reinterpret_cast<const unsigned char *>(tail.data()), tail.size());
-    for(int b = 0; b < 4; ++b)
-        tail.push_back(char((crc >> (8 * b)) & 0xFF));
+    const uint32_t crc = crc32c(reinterpret_cast<const unsigned char*>(tail.data()), tail.size());
+    for(int b=0; b<4; ++b)
+        tail.push_back(char((crc >> (8*b)) & 0xFF));
     content += tail;
-    const std::string folder = a.dir + "/c" + (a.components > 1 ? "/" + std::to_string(shard) : "");
+    const std::string folder = a.dir + "/c" + (a.components>1 ? "/" + std::to_string(shard) : "");
     make_dirs(folder);
-    write_file(folder + "/" + (a.components > 1 ? "0" : std::to_string(shard)), content);
+    write_file(folder + "/" + (a.components>1 ? "0" : std::to_string(shard)), content);
 }
 
 void lagoon_rows::append(array &a, const unsigned char *data, size_t rows) const
 {
-    const size_t row_bytes = size_t(a.itemsize) * a.components;
-    const size_t chunk_bytes = size_t(ROWS) * row_bytes;
-    const size_t values_per_chunk = size_t(ROWS) * a.components;
+    const size_t row_bytes = size_t(a.itemsize)*a.components;
+    const size_t chunk_bytes = size_t(ROWS)*row_bytes;
+    const size_t values_per_chunk = size_t(ROWS)*a.components;
     size_t done = 0;
     while(done < rows)
     {
-        const size_t room = (chunk_bytes - a.tail.size()) / row_bytes;
+        const size_t room = (chunk_bytes - a.tail.size())/row_bytes;
         const size_t take = std::min(room, rows - done);
-        a.tail.insert(a.tail.end(), data + done * row_bytes, data + (done + take) * row_bytes);
+        a.tail.insert(a.tail.end(), data + done*row_bytes, data + (done+take)*row_bytes);
         done += take;
-        if(a.tail.size() == chunk_bytes)  // a full inner chunk: final
+        if(a.tail.size()==chunk_bytes)  // a full inner chunk: final
         {
             a.encoded.push_back(shuffled_gzip(a.tail.data(), values_per_chunk, a.itemsize, gzip_level));
             a.tail.clear();
-            if(int(a.encoded.size()) == CHUNKS_PER_SHARD)  // a full shard: final
+            if(int(a.encoded.size())==CHUNKS_PER_SHARD)  // a full shard: final
             {
                 write_shard(a, a.shard, a.encoded);
                 a.encoded.clear();
@@ -1284,7 +1261,7 @@ void lagoon_rows::append(array &a, const unsigned char *data, size_t rows) const
             }
         }
     }
-    if(rows == 0)
+    if(rows==0)
         return;
     a.rows += (long long)rows;
     // the shard being filled, with the inner chunk being filled (padded with the fill value)
@@ -1295,16 +1272,16 @@ void lagoon_rows::append(array &a, const unsigned char *data, size_t rows) const
         {
             std::vector<unsigned char> padded(chunk_bytes, 0);
             std::memcpy(padded.data(), a.tail.data(), a.tail.size());
-            if(a.dtype == "float32")
+            if(a.dtype=="float32")
             {
                 const float nan = std::numeric_limits<float>::quiet_NaN();
-                for(size_t b = a.tail.size(); b < chunk_bytes; b += 4)
+                for(size_t b=a.tail.size(); b<chunk_bytes; b+=4)
                     std::memcpy(&padded[b], &nan, 4);
             }
-            else if(a.dtype == "float64")
+            else if(a.dtype=="float64")
             {
                 const double nan = std::numeric_limits<double>::quiet_NaN();
-                for(size_t b = a.tail.size(); b < chunk_bytes; b += 8)
+                for(size_t b=a.tail.size(); b<chunk_bytes; b+=8)
                     std::memcpy(&padded[b], &nan, 8);
             }
             chunks.push_back(shuffled_gzip(padded.data(), values_per_chunk, a.itemsize, gzip_level));
@@ -1319,13 +1296,13 @@ void lagoon_rows::write_ends(const std::string &adir, const std::vector<long lon
     const long long chunk = 4096;
     const size_t nt = rows.size();
     make_dirs(adir + "/c");
-    if(nt > 0)
+    if(nt>0)
     {
-        const size_t first = (nt - 1) / chunk * chunk;
+        const size_t first = (nt-1)/chunk*chunk;
         std::string bytes;
-        for(size_t i = first; i < first + chunk; ++i)
-            put_u64(bytes, (uint64_t)(i < nt ? rows[i] : 0));
-        write_file(adir + "/c/" + std::to_string(first / chunk), bytes);
+        for(size_t i=first; i<first+chunk; ++i)
+            put_u64(bytes, (uint64_t)(i<nt ? rows[i] : 0));
+        write_file(adir + "/c/" + std::to_string(first/chunk), bytes);
     }
     std::ostringstream j;
     j << "{\"zarr_format\": 3, \"node_type\": \"array\", \"shape\": [" << nt << "], "
@@ -1339,32 +1316,32 @@ void lagoon_rows::write_ends(const std::string &adir, const std::vector<long lon
 }
 
 bool lagoon_particles::output(double time, long long step, size_t n, const float *xyz,
-                              const std::vector<const void *> &values,
+                              const std::vector<const void*> &values,
                               const std::vector<int32_t> &connectivity, const std::vector<int32_t> &offsets,
-                              const std::vector<const void *> &cell_values)
+                              const std::vector<const void*> &cell_values)
 {
     if(!ok)
         return false;
     try
     {
-        if(values.size() != fields.size() || cell_values.size() != cell_fields.size())
+        if(values.size()!=fields.size() || cell_values.size()!=cell_fields.size())
             throw std::runtime_error("lagoon_particles: the arrays given are not those declared");
         if(cells.empty() && !offsets.empty())
             throw std::runtime_error("lagoon_particles: cells given for a set of points");
-        if(!offsets.empty() && size_t(offsets.back()) != connectivity.size())
+        if(!offsets.empty() && size_t(offsets.back())!=connectivity.size())
             throw std::runtime_error("lagoon_particles: the last offset is not the number of corners");
         if(!started)
             start();
-        append(arrays[0], reinterpret_cast<const unsigned char *>(xyz), n);
-        for(size_t f = 0; f < fields.size(); ++f)
-            append(arrays[f + 1], static_cast<const unsigned char *>(values[f]), n);
+        append(arrays[0], reinterpret_cast<const unsigned char*>(xyz), n);
+        for(size_t f=0; f<fields.size(); ++f)
+            append(arrays[f+1], static_cast<const unsigned char*>(values[f]), n);
         if(!cells.empty())
         {
-            const bool same = !cell_end.empty() && connectivity == last_connectivity && offsets == last_offsets;
+            const bool same = !cell_end.empty() && connectivity==last_connectivity && offsets==last_offsets;
             if(!same)  // a new cell set: its offsets and corners, then where they end
             {
-                append(cell_arrays[0], reinterpret_cast<const unsigned char *>(offsets.data()), offsets.size());
-                append(cell_arrays[1], reinterpret_cast<const unsigned char *>(connectivity.data()), connectivity.size());
+                append(cell_arrays[0], reinterpret_cast<const unsigned char*>(offsets.data()), offsets.size());
+                append(cell_arrays[1], reinterpret_cast<const unsigned char*>(connectivity.data()), connectivity.size());
                 cell_end.push_back((cell_end.empty() ? 0 : cell_end.back()) + (long long)offsets.size());
                 connectivity_end.push_back((connectivity_end.empty() ? 0 : connectivity_end.back()) + (long long)connectivity.size());
                 write_rows("cell_sets/cell_end", cell_end, "set");
@@ -1372,8 +1349,8 @@ bool lagoon_particles::output(double time, long long step, size_t n, const float
                 last_connectivity = connectivity;
                 last_offsets = offsets;
             }
-            for(size_t f = 0; f < cell_fields.size(); ++f)
-                append(cell_arrays[f + 2], static_cast<const unsigned char *>(cell_values[f]), offsets.size());
+            for(size_t f=0; f<cell_fields.size(); ++f)
+                append(cell_arrays[f+2], static_cast<const unsigned char*>(cell_values[f]), offsets.size());
             cell_set.push_back((long long)cell_end.size() - 1);
             write_rows("cell_set", cell_set, "time");
             if(!cell_fields.empty())
@@ -1384,12 +1361,12 @@ bool lagoon_particles::output(double time, long long step, size_t n, const float
         }
         point_end.push_back((point_end.empty() ? 0 : point_end.back()) + (long long)n);
         write_rows("point_end", point_end, "time");
-        store.commit("particles/" + key, int(point_end.size() - 1), time, step);  // step, then time
+        store.commit("particles/" + key, int(point_end.size()-1), time, step);  // step, then time
         return true;
     }
     catch(std::exception &problem)
     {
-        std::cout << "LAGOON: " << problem.what() << "; no more " << role << " in the LAGOON store" << std::endl;
+        std::cout<<"LAGOON: "<<problem.what()<<"; no more "<<role<<" in the LAGOON store"<<std::endl;
         ok = false;
         return false;
     }
@@ -1417,12 +1394,12 @@ void lagoon_amr::start()
     std::ostringstream j;
     j << "{\"zarr_format\": 3, \"node_type\": \"group\", \"attributes\": {\"lagoon\": {"
       << "\"kind\": \"amr\", \"fields\": {";
-    for(size_t f = 0; f < fields.size(); ++f)
+    for(size_t f=0; f<fields.size(); ++f)
         j << (f ? ", " : "") << lagoon_store::json_string(fields[f].name) << ": {\"components\": 1, \"data_type\": \""
           << (fields[f].integer ? "int32" : "float32") << "\", \"array\": "
           << lagoon_store::json_string(array_name(fields[f].name)) << "}";
     j << "}, \"dataset\": " << lagoon_store::json_string(key)
-      << ", \"role\": \"amr\", \"refinement\": 2" << (dims == 3 ? ", \"dims\": 3" : "")
+      << ", \"role\": \"amr\", \"refinement\": 2" << (dims==3 ? ", \"dims\": 3" : "")
       << ", \"source\": " << lagoon_store::json_string(source) << "}}}";
     write_file(dir + "/zarr.json", j.str());
 
@@ -1434,7 +1411,7 @@ void lagoon_amr::start()
              lagoon_rows::make(dir + "/grids/cell_end", "int64", 1, false, "grid")};
     nodes = {lagoon_rows::make(dir + "/x", "float64", 1, true, "node"),
              lagoon_rows::make(dir + "/y", "float64", 1, true, "node")};
-    if(dims == 3)  // a block's z, and where it ends
+    if(dims==3)  // a block's z, and where it ends
     {
         table.push_back(lagoon_rows::make(dir + "/grids/z_end", "int64", 1, false, "grid"));
         nodes.push_back(lagoon_rows::make(dir + "/z", "float64", 1, true, "node"));
@@ -1463,21 +1440,23 @@ bool lagoon_amr::output(double time, long long step, const std::vector<grid> &gr
     {
         const size_t nf = fields.size();
         if(!started && !grids.empty())
-            dims = grids.front().nz > 0 ? 3 : 2;  // the first output says what the set holds
+            dims = grids.front().nz>0 ? 3 : 2;  // the first output says what the set holds
         std::vector<int32_t> level, rank, size;
         std::vector<int64_t> xe, ye, ze, ce;
         std::vector<double> x, y, z;
-        std::vector<std::vector<unsigned char>> values(nf);
+        std::vector<std::vector<unsigned char> > values(nf);
         for(const grid &g : grids)
         {
-            const size_t n = size_t(g.nx) * size_t(g.ny) * size_t(dims == 3 ? g.nz : 1);
-            if(g.nx < 1 || g.ny < 1 || g.x.size() != size_t(g.nx + 1) || g.y.size() != size_t(g.ny + 1) || g.values.size() != nf * n || (dims == 3) != (g.nz > 0) || (dims == 3 && g.z.size() != size_t(g.nz + 1)))
+            const size_t n = size_t(g.nx)*size_t(g.ny)*size_t(dims==3 ? g.nz : 1);
+            if(g.nx<1 || g.ny<1 || g.x.size()!=size_t(g.nx+1) || g.y.size()!=size_t(g.ny+1)
+               || g.values.size()!=nf*n || (dims==3) != (g.nz>0)
+               || (dims==3 && g.z.size()!=size_t(g.nz+1)))
                 throw std::runtime_error("lagoon_amr: a grid's sizes do not fit");
             level.push_back(g.level);
             rank.push_back(g.rank);
             size.push_back(g.nx);
             size.push_back(g.ny);
-            if(dims == 3)
+            if(dims==3)
                 size.push_back(g.nz);
             x.insert(x.end(), g.x.begin(), g.x.end());
             y.insert(y.end(), g.y.begin(), g.y.end());
@@ -1487,29 +1466,29 @@ bool lagoon_amr::output(double time, long long step, const std::vector<grid> &gr
             xe.push_back(x_end);
             ye.push_back(y_end);
             ce.push_back(cell_end);
-            if(dims == 3)
+            if(dims==3)
             {
                 z.insert(z.end(), g.z.begin(), g.z.end());
                 z_end += g.nz + 1;
                 ze.push_back(z_end);
             }
-            for(size_t f = 0; f < nf; ++f)
+            for(size_t f=0; f<nf; ++f)
             {
                 std::vector<unsigned char> &out = values[f];
                 const size_t at = out.size();
-                out.resize(at + 4 * n);
-                for(size_t c = 0; c < n; ++c)
+                out.resize(at + 4*n);
+                for(size_t c=0; c<n; ++c)
                 {
-                    const double v = g.values[f * n + c];
+                    const double v = g.values[f*n + c];
                     if(fields[f].integer)
                     {
                         const int32_t i = int32_t(std::lround(v));
-                        std::memcpy(&out[at + 4 * c], &i, 4);
+                        std::memcpy(&out[at + 4*c], &i, 4);
                     }
                     else
                     {
                         const float r = float(v);
-                        std::memcpy(&out[at + 4 * c], &r, 4);
+                        std::memcpy(&out[at + 4*c], &r, 4);
                     }
                 }
             }
@@ -1518,28 +1497,28 @@ bool lagoon_amr::output(double time, long long step, const std::vector<grid> &gr
             start();
         const size_t ng = grids.size();
         // the rows first, the table, then where the output ends, time last
-        for(size_t f = 0; f < nf; ++f)
-            rw.append(cells[f], values[f].data(), values[f].size() / 4);
-        rw.append(nodes[0], reinterpret_cast<const unsigned char *>(x.data()), x.size());
-        rw.append(nodes[1], reinterpret_cast<const unsigned char *>(y.data()), y.size());
-        if(dims == 3)
-            rw.append(nodes[2], reinterpret_cast<const unsigned char *>(z.data()), z.size());
-        rw.append(table[0], reinterpret_cast<const unsigned char *>(level.data()), ng);
-        rw.append(table[1], reinterpret_cast<const unsigned char *>(rank.data()), ng);
-        rw.append(table[2], reinterpret_cast<const unsigned char *>(size.data()), ng);
-        rw.append(table[3], reinterpret_cast<const unsigned char *>(xe.data()), ng);
-        rw.append(table[4], reinterpret_cast<const unsigned char *>(ye.data()), ng);
-        rw.append(table[5], reinterpret_cast<const unsigned char *>(ce.data()), ng);
-        if(dims == 3)
-            rw.append(table[6], reinterpret_cast<const unsigned char *>(ze.data()), ng);
+        for(size_t f=0; f<nf; ++f)
+            rw.append(cells[f], values[f].data(), values[f].size()/4);
+        rw.append(nodes[0], reinterpret_cast<const unsigned char*>(x.data()), x.size());
+        rw.append(nodes[1], reinterpret_cast<const unsigned char*>(y.data()), y.size());
+        if(dims==3)
+            rw.append(nodes[2], reinterpret_cast<const unsigned char*>(z.data()), z.size());
+        rw.append(table[0], reinterpret_cast<const unsigned char*>(level.data()), ng);
+        rw.append(table[1], reinterpret_cast<const unsigned char*>(rank.data()), ng);
+        rw.append(table[2], reinterpret_cast<const unsigned char*>(size.data()), ng);
+        rw.append(table[3], reinterpret_cast<const unsigned char*>(xe.data()), ng);
+        rw.append(table[4], reinterpret_cast<const unsigned char*>(ye.data()), ng);
+        rw.append(table[5], reinterpret_cast<const unsigned char*>(ce.data()), ng);
+        if(dims==3)
+            rw.append(table[6], reinterpret_cast<const unsigned char*>(ze.data()), ng);
         grid_end.push_back((grid_end.empty() ? 0 : grid_end.back()) + (long long)ng);
         rw.write_ends(dir + "/grid_end", grid_end, "time");
-        store.commit("amr/" + key, int(grid_end.size() - 1), time, step);  // step, then time
+        store.commit("amr/" + key, int(grid_end.size()-1), time, step);  // step, then time
         return true;
     }
     catch(std::exception &problem)
     {
-        std::cout << "LAGOON: " << problem.what() << "; no more AMR output in the LAGOON store" << std::endl;
+        std::cout<<"LAGOON: "<<problem.what()<<"; no more AMR output in the LAGOON store"<<std::endl;
         ok = false;
         return false;
     }
@@ -1556,14 +1535,14 @@ void lagoon_amr::pack(const std::vector<grid> &grids, int nf, std::vector<double
         out.push_back(g.nz);
         out.insert(out.end(), g.x.begin(), g.x.end());
         out.insert(out.end(), g.y.begin(), g.y.end());
-        if(g.nz > 0)
+        if(g.nz>0)
         {
-            if(g.z.size() != size_t(g.nz + 1))
+            if(g.z.size()!=size_t(g.nz+1))
                 throw std::runtime_error("lagoon_amr: a block's z does not fit its size");
             out.insert(out.end(), g.z.begin(), g.z.end());
         }
-        const size_t n = size_t(nf) * size_t(g.nx) * size_t(g.ny) * size_t(g.nz > 0 ? g.nz : 1);
-        if(g.values.size() != n)
+        const size_t n = size_t(nf)*size_t(g.nx)*size_t(g.ny)*size_t(g.nz>0 ? g.nz : 1);
+        if(g.values.size()!=n)
             throw std::runtime_error("lagoon_amr: a grid's values do not fit its size");
         out.insert(out.end(), g.values.begin(), g.values.end());
     }
@@ -1571,31 +1550,31 @@ void lagoon_amr::pack(const std::vector<grid> &grids, int nf, std::vector<double
 
 bool lagoon_amr::unpack(const double *data, size_t n, int nf, int rank, std::vector<grid> &out)
 {
-    if(n < 1)
+    if(n<1)
         return false;
     size_t at = 0;
     const long long count = (long long)data[at++];
-    for(long long q = 0; q < count; ++q)
+    for(long long q=0; q<count; ++q)
     {
         if(at + 4 > n)
             return false;
         grid g;
         g.level = int(data[at]);
-        g.nx = int(data[at + 1]);
-        g.ny = int(data[at + 2]);
-        g.nz = int(data[at + 3]);
+        g.nx = int(data[at+1]);
+        g.ny = int(data[at+2]);
+        g.nz = int(data[at+3]);
         g.rank = rank;
         at += 4;
-        const size_t layers = size_t(g.nz > 0 ? g.nz : 1);
-        const size_t nv = size_t(nf) * size_t(g.nx) * size_t(g.ny) * layers;
-        const size_t need = size_t(g.nx + 1) + size_t(g.ny + 1) + (g.nz > 0 ? size_t(g.nz + 1) : 0) + nv;
-        if(g.nx < 1 || g.ny < 1 || g.nz < 0 || at + need > n)
+        const size_t layers = size_t(g.nz>0 ? g.nz : 1);
+        const size_t nv = size_t(nf)*size_t(g.nx)*size_t(g.ny)*layers;
+        const size_t need = size_t(g.nx+1) + size_t(g.ny+1) + (g.nz>0 ? size_t(g.nz+1) : 0) + nv;
+        if(g.nx<1 || g.ny<1 || g.nz<0 || at + need > n)
             return false;
         g.x.assign(data + at, data + at + g.nx + 1);
         at += g.nx + 1;
         g.y.assign(data + at, data + at + g.ny + 1);
         at += g.ny + 1;
-        if(g.nz > 0)
+        if(g.nz>0)
         {
             g.z.assign(data + at, data + at + g.nz + 1);
             at += g.nz + 1;
@@ -1604,5 +1583,5 @@ bool lagoon_amr::unpack(const double *data, size_t n, int nf, int rank, std::vec
         at += nv;
         out.push_back(std::move(g));
     }
-    return at == n;
+    return at==n;
 }

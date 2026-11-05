@@ -22,66 +22,66 @@ Author: Hans Bihs
 
 #ifdef REEF3D_USE_HYPRE  // hypre is opt-in: make HYPRE=1 / cmake -DREEF3D_USE_HYPRE=ON
 
-#include "fdm2D.h"
-#include "ghostcell.h"
 #include "hypre_struct2D.h"
 #include "lexer.h"
+#include "fdm2D.h"
+#include "ghostcell.h"
 #include "sliceint4.h"
 
-void hypre_struct2D::fill_matrix(lexer *p, ghostcell *pgc, matrix2D &M, slice &f, vec2D &rhsvec)
+void hypre_struct2D::fill_matrix(lexer* p, ghostcell* pgc, matrix2D &M, slice &f, vec2D &rhsvec)
 {
     sliceint4 cval4(p);
 
-    count = 0;
+    count=0;
     SLICELOOP4
     {
-        cval4(i, j) = count;
+        cval4(i,j)=count;
         ++count;
     }
 
-    nentries = 5;
+    nentries=5;
 
-    for(j = 0; j < nentries; j++)
-        stencil_indices[j] = j;
+    for (j = 0; j < nentries; j++)
+    stencil_indices[j] = j;
 
-    count = 0;
+    count=0;
     JILOOP
     {
         PSLICECHECK4
         {
-            n = cval4(i, j);
+            n=cval4(i,j);
 
-            values[count] = M.p[n];
+            values[count]=M.p[n];
             ++count;
 
-            values[count] = M.s[n];
+            values[count]=M.s[n];
             ++count;
 
-            values[count] = M.n[n];
+            values[count]=M.n[n];
             ++count;
 
-            values[count] = M.e[n];
+            values[count]=M.e[n];
             ++count;
 
-            values[count] = M.w[n];
+            values[count]=M.w[n];
             ++count;
         }
 
         SSLICECHECK4
         {
-            values[count] = 1.0;
+            values[count]=1.0;
             ++count;
 
-            values[count] = 0.0;
+            values[count]=0.0;
             ++count;
 
-            values[count] = 0.0;
+            values[count]=0.0;
             ++count;
 
-            values[count] = 0.0;
+            values[count]=0.0;
             ++count;
 
-            values[count] = 0.0;
+            values[count]=0.0;
             ++count;
         }
     }
@@ -90,15 +90,15 @@ void hypre_struct2D::fill_matrix(lexer *p, ghostcell *pgc, matrix2D &M, slice &f
     HYPRE_StructMatrixAssemble(A);
 
     // vec
-    count = 0;
+    count=0;
     JILOOP
     {
         PSLICECHECK4
         {
-            values[count] = f(i, j);
+            values[count] = f(i,j);
 
             if(values[count] != values[count])
-                p->solver_error = 1;
+            p->solver_error=1;
         }
 
         SSLICECHECK4
@@ -110,16 +110,16 @@ void hypre_struct2D::fill_matrix(lexer *p, ghostcell *pgc, matrix2D &M, slice &f
     HYPRE_StructVectorSetBoxValues(x, ilower, iupper, values);
     HYPRE_StructVectorAssemble(x);
 
-    count = 0;
+    count=0;
     JILOOP
     {
         PSLICECHECK4
         {
-            n = cval4(i, j);
+            n=cval4(i,j);
             values[count] = rhsvec.V[n];
 
             if(values[count] != values[count])
-                p->solver_error = 1;
+            p->solver_error=1;
         }
 
         SSLICECHECK4
@@ -136,11 +136,11 @@ void hypre_struct2D::fillbackvec(lexer *p, slice &f, vec2D &xvec, int var)
 {
     HYPRE_StructVectorGetBoxValues(x, ilower, iupper, values);
 
-    count = 0;
+    count=0;
     JILOOP
     {
         PSLICECHECK4
-        f(i, j) = values[count];
+        f(i,j)=values[count];
 
         ++count;
     }

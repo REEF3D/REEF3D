@@ -23,12 +23,12 @@ Author: Hans Bihs
 #ifndef SFLOW_F_H_
 #define SFLOW_F_H_
 
-#include "increment.h"
-#include "sflow.h"
-#include <fstream>
-#include <iostream>
-#include <string>
-#include <vector>
+#include"sflow.h"
+#include"increment.h"
+#include<iostream>
+#include<fstream>
+#include<vector>
+#include<string>
 
 class lexer;
 class fdm2D;
@@ -63,64 +63,64 @@ using namespace std;
 class sflow_f final : public sflow, public increment
 {
 public:
-    sflow_f(lexer *, fdm2D *, ghostcell *, patchBC_interface *);
-    virtual ~sflow_f();
-
-    void start(lexer *, fdm2D *, ghostcell *) override final;
-
+	sflow_f(lexer*, fdm2D*,ghostcell*,patchBC_interface*);
+	virtual ~sflow_f();
+	
+	void start(lexer*, fdm2D*, ghostcell*) override final;
+	
 private:
-    void logic(lexer *, fdm2D *, ghostcell *);
-    void ini(lexer *, fdm2D *, ghostcell *);
-    void loop(lexer *, fdm2D *, ghostcell *);
-
-    void ini_fsf(lexer *, fdm2D *, ghostcell *);
-    void ini_fsf_2(lexer *, fdm2D *, ghostcell *);
-    void ini_wl(lexer *, fdm2D *, ghostcell *);
-    void ini_river(lexer *, fdm2D *, ghostcell *, int);  // F 65: river free surface along i (sflow_f_ini_river.cpp)
-
-    void maxcoor(lexer *, fdm2D *, ghostcell *);
-
-    void print_debug(lexer *, fdm2D *, ghostcell *);
-
+	void logic(lexer*, fdm2D*, ghostcell*);
+	void ini(lexer*, fdm2D*, ghostcell*);
+	void loop(lexer*, fdm2D*, ghostcell*);
+    
+    void ini_fsf(lexer*, fdm2D*, ghostcell*);
+    void ini_fsf_2(lexer*, fdm2D*, ghostcell*);
+    void ini_wl(lexer*, fdm2D*, ghostcell*);
+    void ini_river(lexer*, fdm2D*, ghostcell*, int);   // F 65: river free surface along i (sflow_f_ini_river.cpp)
+	
+	void maxcoor(lexer*, fdm2D*, ghostcell*);
+	
+	void print_debug(lexer*, fdm2D*, ghostcell*);
+    
     // checkpoints (P 48, I 45) and the rebalance (G 46): the hooks of SFLOW (sflow_f_ckpt.cpp) for
     // the run part (reefrun_ckpt.h)
-    std::string ckpt_unsupported(lexer *);
-    reefrun_ckpt &ckpt(lexer *, fdm2D *, ghostcell *);
+    std::string ckpt_unsupported(lexer*);
+    reefrun_ckpt& ckpt(lexer*, fdm2D*, ghostcell*);
     reefrun_ckpt *rck = nullptr;
 
-    void log_ini(lexer *);
-    void mainlog(lexer *);
-
-    sflow_timestep *ptime;
-    sflow_momentum *pmom;
-    sflow_pressure *ppress;
+    void log_ini(lexer*);
+    void mainlog(lexer*);
+	
+	sflow_timestep *ptime;
+	sflow_momentum *pmom;
+	sflow_pressure *ppress;
     sflow_forcing *psfdf;
-    solver2D *psolv;
-    solver2D *ppoissonsolv;
-    ioflow *pflow;
-    sflow_fsf *pfsf;
-    sflow_vtp_fsf *pprint;
-    sflow_vtp_bed *pprintbed;
-    sflow_convection *pconvec;
-    sflow_HLL *phll;
+	solver2D *psolv;
+	solver2D *ppoissonsolv;
+	ioflow *pflow;
+	sflow_fsf *pfsf;
+	sflow_vtp_fsf *pprint;
+	sflow_vtp_bed *pprintbed;
+	sflow_convection *pconvec;
+	sflow_HLL *phll;
     sflow_signal_speed *pss;
     sflow_reconstruct *precon;
-    sflow_diffusion *pdiff;
+	sflow_diffusion *pdiff;
     sflow_filter *pfilter;
     sflow_turbulence *pturb;
     sediment *psed;
     sflow_potential *potflow;
-
+    
     fdm *aa;
     turbulence *pturbcfd;
-
+    
     patchBC_interface *pBC;
-
+    
     sixdof *p6dof;
     sflow_amr *pamr = nullptr;
-
-    double starttime, endtime;
-
+	
+	double starttime, endtime;
+    
     ofstream mainlogout;
 };
 

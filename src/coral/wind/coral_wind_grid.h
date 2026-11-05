@@ -40,61 +40,62 @@ Architect: Hans Bihs
 #ifndef CORAL_WIND_GRID_H_
 #define CORAL_WIND_GRID_H_
 
-#include "coral/wind/coral_wind.h"
-#include <string>
-#include <vector>
+#include"coral/wind/coral_wind.h"
+#include<string>
+#include<vector>
 
-namespace coral {
-class wind_grid : public wind_inflow
+namespace coral
 {
-public:
-    int ny = 0, nz = 0, nt = 0, ntower = 0;
-    double dy = 1.0, dz = 1.0, dt = 1.0;
-    double z_bottom = 0.0, z_hub = 0.0, u_hub = 0.0;
-    bool periodic = false;
-    bool has_mean = true;      // full velocities (TurbSim) or fluctuations only (turbulence on a wind_field)
-    std::vector<float> data;   // [it][iz][iy][3]
-    std::vector<float> tower;  // [it][k][3]
-
-    // placement in CORAL's frame: hub position (x, y), direction of propagation [rad], downwind position of the
-    // grid at t = 0
-    Vec3 origin = Vec3::Zero();
-    double direction = 0.0;
-    double xi0 = 0.0;
-
-    // u v w (wind frame) at (eta, z) and grid time tau
-    Vec3 local(double eta, double z, double tau) const;
-    // the grid time seen by the point p at t
-    double tau(const Vec3 &p, double t) const;
-    // the velocity in CORAL's frame (the full field; for fluctuations only their part)
-    Vec3 velocity(const Vec3 &p, double t) const override;
-    double hub_speed(double) const override { return u_hub; }
-    double period() const { return periodic ? nt * dt : (nt - 1) * dt; }
-    double eta0() const { return -0.5 * (ny - 1) * dy; }
-
-    bool read_bts(const std::string &file, std::string &msg);
-    // with mean: the mean wind of the field added at each grid point (fluctuation grids), at time t_mean
-    bool write_bts(const std::string &file, const std::string &description, std::string &msg,
-                   const wind_field *mean = nullptr, double t_mean = 0.0) const;
-
-    struct kaimal_settings
+    class wind_grid : public wind_inflow
     {
-        int ny = 15, nz = 15;
-        double width = 150.0, height = 150.0;  // grid size (the hub in the middle)
-        double T = 600.0, dt = 0.05;           // duration (rounded up to 2^n levels) and time step
-        unsigned seed = 1;
-        bool coherence_vw = false;
-        bool scale_hub = false;  // scale each component to sigma exactly at the point nearest the hub
-    };
-    // fluctuations of the IEC Kaimal model at the hub speed V_hub with sigma_1 (e.g. iec_turbine::sigma_ntm)
-    static wind_grid kaimal(const iec_turbine &, double V_hub, double sigma1, const kaimal_settings &);
-    // IEC Kaimal spectrum of component k (0 u, 1 v, 2 w) [m^2/s^2/Hz], and the coherence of two points r apart
-    static double kaimal_spectrum(const iec_turbine &, int k, double f, double V_hub, double sigma1);
-    static double iec_coherence(const iec_turbine &, double r, double f, double V_hub);
+    public:
+        int ny = 0, nz = 0, nt = 0, ntower = 0;
+        double dy = 1.0, dz = 1.0, dt = 1.0;
+        double z_bottom = 0.0, z_hub = 0.0, u_hub = 0.0;
+        bool periodic = false;
+        bool has_mean = true;              // full velocities (TurbSim) or fluctuations only (turbulence on a wind_field)
+        std::vector<float> data;           // [it][iz][iy][3]
+        std::vector<float> tower;          // [it][k][3]
 
-private:
-    Vec3 level(int it, double eta, double z) const;
-};
-}  // namespace coral
+        // placement in CORAL's frame: hub position (x, y), direction of propagation [rad], downwind position of the
+        // grid at t = 0
+        Vec3 origin = Vec3::Zero();
+        double direction = 0.0;
+        double xi0 = 0.0;
+
+        // u v w (wind frame) at (eta, z) and grid time tau
+        Vec3 local(double eta, double z, double tau) const;
+        // the grid time seen by the point p at t
+        double tau(const Vec3 &p, double t) const;
+        // the velocity in CORAL's frame (the full field; for fluctuations only their part)
+        Vec3 velocity(const Vec3 &p, double t) const override;
+        double hub_speed(double) const override {return u_hub;}
+        double period() const {return periodic ? nt*dt : (nt - 1)*dt;}
+        double eta0() const {return -0.5*(ny - 1)*dy;}
+
+        bool read_bts(const std::string &file, std::string &msg);
+        // with mean: the mean wind of the field added at each grid point (fluctuation grids), at time t_mean
+        bool write_bts(const std::string &file, const std::string &description, std::string &msg,
+                       const wind_field *mean=nullptr, double t_mean=0.0) const;
+
+        struct kaimal_settings
+        {
+            int ny = 15, nz = 15;
+            double width = 150.0, height = 150.0;   // grid size (the hub in the middle)
+            double T = 600.0, dt = 0.05;            // duration (rounded up to 2^n levels) and time step
+            unsigned seed = 1;
+            bool coherence_vw = false;
+            bool scale_hub = false;                 // scale each component to sigma exactly at the point nearest the hub
+        };
+        // fluctuations of the IEC Kaimal model at the hub speed V_hub with sigma_1 (e.g. iec_turbine::sigma_ntm)
+        static wind_grid kaimal(const iec_turbine&, double V_hub, double sigma1, const kaimal_settings&);
+        // IEC Kaimal spectrum of component k (0 u, 1 v, 2 w) [m^2/s^2/Hz], and the coherence of two points r apart
+        static double kaimal_spectrum(const iec_turbine&, int k, double f, double V_hub, double sigma1);
+        static double iec_coherence(const iec_turbine&, double r, double f, double V_hub);
+
+    private:
+        Vec3 level(int it, double eta, double z) const;
+    };
+}
 
 #endif

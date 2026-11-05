@@ -20,13 +20,13 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "6DOF.h"
-#include "fdm_nhf.h"
-#include "ghostcell.h"
-#include "lexer.h"
-#include "nhflow_forcing.h"
-#include "nhflow_momentum_func.h"
-#include "nhflow_pressure.h"
+#include"nhflow_forcing.h"
+#include"lexer.h"
+#include"fdm_nhf.h"
+#include"ghostcell.h"
+#include"6DOF.h"
+#include"nhflow_pressure.h"
+#include"nhflow_momentum_func.h"
 
 void nhflow_forcing::projection(lexer *p, fdm_nhf *d, ghostcell *pgc, sixdof *p6dof, nhflow_pressure *ppress, solver *psolv,
                                 ioflow *pflow, nhflow_momentum_func *pmom, int iter, double alpha,
@@ -39,20 +39,20 @@ void nhflow_forcing::projection(lexer *p, fdm_nhf *d, ghostcell *pgc, sixdof *p6
     // fluid response is a deterministic function of the membrane velocity; the membrane module adds the forcing
     // response to the change of its velocities. The pressure solver is called unchanged. phase_P2 (velocities,
     // reforcing) follows as without membranes.
-    const int n = p->imax * p->jmax * (p->kmax + 2);
-
-    if(CUH == nullptr)
+    const int n = p->imax*p->jmax*(p->kmax+2);
+    
+    if(CUH==nullptr)
     {
-        p->Darray(CUH, n);
-        p->Darray(CVH, n);
-        p->Darray(CWH, n);
-        p->Darray(CU, n);
-        p->Darray(CV, n);
-        p->Darray(CW, n);
-        p->Darray(CP, n);
+        p->Darray(CUH,n);
+        p->Darray(CVH,n);
+        p->Darray(CWH,n);
+        p->Darray(CU,n);
+        p->Darray(CV,n);
+        p->Darray(CW,n);
+        p->Darray(CP,n);
     }
-
-    for(int q = 0; q < n; ++q)
+    
+    for(int q=0; q<n; ++q)
     {
         CUH[q] = UH[q];
         CVH[q] = VH[q];
@@ -62,12 +62,12 @@ void nhflow_forcing::projection(lexer *p, fdm_nhf *d, ghostcell *pgc, sixdof *p6
         CW[q] = d->W[q];
         CP[q] = d->P[q];
     }
-
-    for(int it = 0;; ++it)
+    
+    for(int it=0; ; ++it)
     {
-        if(it > 0)
+        if(it>0)
         {
-            for(int q = 0; q < n; ++q)
+            for(int q=0; q<n; ++q)
             {
                 UH[q] = CUH[q];
                 VH[q] = CVH[q];
@@ -77,30 +77,30 @@ void nhflow_forcing::projection(lexer *p, fdm_nhf *d, ghostcell *pgc, sixdof *p6
                 d->W[q] = CW[q];
                 d->P[q] = CP[q];
             }
-
-            p6dof->membrane_reforce_nhflow(p, d, pgc, alpha, UH, VH, WH, WL);
-
-            pgc->start4V(p, d->U, gcval_u);
-            pgc->start4V(p, d->V, gcval_v);
-            pgc->start4V(p, d->W, gcval_w);
-
-            pgc->start4V(p, UH, gcval_uh);
-            pgc->start4V(p, VH, gcval_vh);
-            pgc->start4V(p, WH, gcval_wh);
-
-            pgc->gciobc_update(p, d);
+            
+            p6dof->membrane_reforce_nhflow(p,d,pgc,alpha,UH,VH,WH,WL);
+            
+            pgc->start4V(p,d->U,gcval_u);
+            pgc->start4V(p,d->V,gcval_v);
+            pgc->start4V(p,d->W,gcval_w);
+            
+            pgc->start4V(p,UH,gcval_uh);
+            pgc->start4V(p,VH,gcval_vh);
+            pgc->start4V(p,WH,gcval_wh);
+            
+            pgc->gciobc_update(p,d);
         }
-
-        ppress->start(p, d, psolv, pgc, pflow, WL, UH, VH, WH, alpha);
-
+        
+        ppress->start(p,d,psolv,pgc,pflow,WL,UH,VH,WH,alpha);
+        
         // velocities for the membrane loads
-        pmom->velcalc(p, d, pgc, UH, VH, WH, WL, alpha);
-
-        if(p6dof->membrane_couple_nhflow(p, d, pgc, iter, alpha, WL, it))
-            break;
+        pmom->velcalc(p,d,pgc,UH,VH,WH,WL,alpha);
+        
+        if(p6dof->membrane_couple_nhflow(p,d,pgc,iter,alpha,WL,it))
+        break;
     }
-
+    
     // phase_P2 computes the velocities again (DWDT from the W before the projection)
-    for(int q = 0; q < n; ++q)
-        d->W[q] = CW[q];
+    for(int q=0; q<n; ++q)
+    d->W[q] = CW[q];
 }

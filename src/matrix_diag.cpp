@@ -30,7 +30,7 @@ matrix_diag::matrix_diag(lexer *pp)
     resize(pp->veclength);
 }
 
-matrix_diag::matrix_diag(lexer *, int rows)
+matrix_diag::matrix_diag(lexer*, int rows)
 {
     resize(rows);
 }

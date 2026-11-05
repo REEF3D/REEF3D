@@ -20,17 +20,19 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "fdm_nhf.h"
-#include "ghostcell.h"
-#include "ioflow.h"
-#include "lexer.h"
-#include "nhflow_fsf_f.h"
+#include"nhflow_fsf_f.h"
+#include"lexer.h"
+#include"fdm_nhf.h"
+#include"ghostcell.h"
+#include"ioflow.h"
 
-void nhflow_fsf_f::depth_update(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow)
+void nhflow_fsf_f::depth_update(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow)
 {
     //
     SLICELOOP4
-    d->depth(i, j) = p->wd - d->bed(i, j);
+	d->depth(i,j) = p->wd - d->bed(i,j);
+    
+    
+    pgc->gcsl_start4(p,d->depth,50);
 
-    pgc->gcsl_start4(p, d->depth, 50);
 }

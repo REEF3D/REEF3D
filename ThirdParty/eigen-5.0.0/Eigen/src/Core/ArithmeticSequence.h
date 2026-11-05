@@ -18,10 +18,9 @@ namespace Eigen {
 namespace internal {
 
 // Helper to cleanup the type of the increment:
-template<typename T>
-struct cleanup_seq_incr
-{
-    typedef typename cleanup_index_type<T, DynamicIndex>::type type;
+template <typename T>
+struct cleanup_seq_incr {
+  typedef typename cleanup_index_type<T, DynamicIndex>::type type;
 };
 
 }  // namespace internal
@@ -30,10 +29,10 @@ struct cleanup_seq_incr
 // seq(first,last,incr) and seqN(first,size,incr)
 //--------------------------------------------------------------------------------
 
-template<typename FirstType = Index, typename SizeType = Index, typename IncrType = internal::FixedInt<1>>
+template <typename FirstType = Index, typename SizeType = Index, typename IncrType = internal::FixedInt<1> >
 class ArithmeticSequence;
 
-template<typename FirstType, typename SizeType, typename IncrType>
+template <typename FirstType, typename SizeType, typename IncrType>
 ArithmeticSequence<typename internal::cleanup_index_type<FirstType>::type,
                    typename internal::cleanup_index_type<SizeType>::type,
                    typename internal::cleanup_seq_incr<IncrType>::type>
@@ -59,69 +58,65 @@ seqN(FirstType first, SizeType size, IncrType incr);
  *
  * \sa Eigen::seq, Eigen::seqN, DenseBase::operator()(const RowIndices&, const ColIndices&), class IndexedView
  */
-template<typename FirstType, typename SizeType, typename IncrType>
-class ArithmeticSequence
-{
-public:
-    constexpr ArithmeticSequence() = default;
-    constexpr ArithmeticSequence(FirstType first, SizeType size) : m_first(first), m_size(size) {}
-    constexpr ArithmeticSequence(FirstType first, SizeType size, IncrType incr)
-        : m_first(first), m_size(size), m_incr(incr) {}
+template <typename FirstType, typename SizeType, typename IncrType>
+class ArithmeticSequence {
+ public:
+  constexpr ArithmeticSequence() = default;
+  constexpr ArithmeticSequence(FirstType first, SizeType size) : m_first(first), m_size(size) {}
+  constexpr ArithmeticSequence(FirstType first, SizeType size, IncrType incr)
+      : m_first(first), m_size(size), m_incr(incr) {}
 
-    enum {
-        // SizeAtCompileTime = internal::get_fixed_value<SizeType>::value,
-        IncrAtCompileTime = internal::get_fixed_value<IncrType, DynamicIndex>::value
-    };
+  enum {
+    // SizeAtCompileTime = internal::get_fixed_value<SizeType>::value,
+    IncrAtCompileTime = internal::get_fixed_value<IncrType, DynamicIndex>::value
+  };
 
-    /** \returns the size, i.e., number of elements, of the sequence */
-    constexpr Index size() const { return m_size; }
+  /** \returns the size, i.e., number of elements, of the sequence */
+  constexpr Index size() const { return m_size; }
 
-    /** \returns the first element \f$ a_0 \f$ in the sequence */
-    constexpr Index first() const { return m_first; }
+  /** \returns the first element \f$ a_0 \f$ in the sequence */
+  constexpr Index first() const { return m_first; }
 
-    /** \returns the value \f$ a_i \f$ at index \a i in the sequence. */
-    constexpr Index operator[](Index i) const { return m_first + i * m_incr; }
+  /** \returns the value \f$ a_i \f$ at index \a i in the sequence. */
+  constexpr Index operator[](Index i) const { return m_first + i * m_incr; }
 
-    constexpr const FirstType &firstObject() const { return m_first; }
-    constexpr const SizeType &sizeObject() const { return m_size; }
-    constexpr const IncrType &incrObject() const { return m_incr; }
+  constexpr const FirstType& firstObject() const { return m_first; }
+  constexpr const SizeType& sizeObject() const { return m_size; }
+  constexpr const IncrType& incrObject() const { return m_incr; }
 
-protected:
-    FirstType m_first;
-    SizeType m_size;
-    IncrType m_incr;
+ protected:
+  FirstType m_first;
+  SizeType m_size;
+  IncrType m_incr;
 
-public:
-    constexpr auto reverse() const -> decltype(Eigen::seqN(m_first + (m_size + fix<-1>()) * m_incr, m_size, -m_incr))
-    {
-        return seqN(m_first + (m_size + fix<-1>()) * m_incr, m_size, -m_incr);
-    }
+ public:
+  constexpr auto reverse() const -> decltype(Eigen::seqN(m_first + (m_size + fix<-1>()) * m_incr, m_size, -m_incr)) {
+    return seqN(m_first + (m_size + fix<-1>()) * m_incr, m_size, -m_incr);
+  }
 };
 
 /** \returns an ArithmeticSequence starting at \a first, of length \a size, and increment \a incr
  *
  * \sa seqN(FirstType,SizeType), seq(FirstType,LastType,IncrType) */
-template<typename FirstType, typename SizeType, typename IncrType>
+template <typename FirstType, typename SizeType, typename IncrType>
 ArithmeticSequence<typename internal::cleanup_index_type<FirstType>::type,
                    typename internal::cleanup_index_type<SizeType>::type,
                    typename internal::cleanup_seq_incr<IncrType>::type>
-seqN(FirstType first, SizeType size, IncrType incr)
-{
-    return ArithmeticSequence<typename internal::cleanup_index_type<FirstType>::type,
-                              typename internal::cleanup_index_type<SizeType>::type,
-                              typename internal::cleanup_seq_incr<IncrType>::type>(first, size, incr);
+seqN(FirstType first, SizeType size, IncrType incr) {
+  return ArithmeticSequence<typename internal::cleanup_index_type<FirstType>::type,
+                            typename internal::cleanup_index_type<SizeType>::type,
+                            typename internal::cleanup_seq_incr<IncrType>::type>(first, size, incr);
 }
 
 /** \returns an ArithmeticSequence starting at \a first, of length \a size, and unit increment
  *
  * \sa seqN(FirstType,SizeType,IncrType), seq(FirstType,LastType) */
-template<typename FirstType, typename SizeType>
+template <typename FirstType, typename SizeType>
 ArithmeticSequence<typename internal::cleanup_index_type<FirstType>::type,
                    typename internal::cleanup_index_type<SizeType>::type>
-seqN(FirstType first, SizeType size)
-{
-    return ArithmeticSequence<typename internal::cleanup_index_type<FirstType>::type,
-                              typename internal::cleanup_index_type<SizeType>::type>(first, size);
+seqN(FirstType first, SizeType size) {
+  return ArithmeticSequence<typename internal::cleanup_index_type<FirstType>::type,
+                            typename internal::cleanup_index_type<SizeType>::type>(first, size);
 }
 
 #ifdef EIGEN_PARSED_BY_DOXYGEN
@@ -136,7 +131,7 @@ seqN(FirstType first, SizeType size)
  *
  * \sa seqN(FirstType,SizeType,IncrType), seq(FirstType,LastType)
  */
-template<typename FirstType, typename LastType, typename IncrType>
+template <typename FirstType, typename LastType, typename IncrType>
 auto seq(FirstType f, LastType l, IncrType incr);
 
 /** \returns an ArithmeticSequence starting at \a f, up (or down) to \a l, and unit increment
@@ -148,37 +143,35 @@ auto seq(FirstType f, LastType l, IncrType incr);
  *
  * \sa seqN(FirstType,SizeType), seq(FirstType,LastType,IncrType)
  */
-template<typename FirstType, typename LastType>
+template <typename FirstType, typename LastType>
 auto seq(FirstType f, LastType l);
 
 #else  // EIGEN_PARSED_BY_DOXYGEN
 
-template<typename FirstType, typename LastType>
+template <typename FirstType, typename LastType>
 auto seq(FirstType f, LastType l)
     -> decltype(seqN(typename internal::cleanup_index_type<FirstType>::type(f),
                      (typename internal::cleanup_index_type<LastType>::type(l) -
-                      typename internal::cleanup_index_type<FirstType>::type(f) + fix<1>())))
-{
-    return seqN(typename internal::cleanup_index_type<FirstType>::type(f),
-                (typename internal::cleanup_index_type<LastType>::type(l) -
-                 typename internal::cleanup_index_type<FirstType>::type(f) + fix<1>()));
+                      typename internal::cleanup_index_type<FirstType>::type(f) + fix<1>()))) {
+  return seqN(typename internal::cleanup_index_type<FirstType>::type(f),
+              (typename internal::cleanup_index_type<LastType>::type(l) -
+               typename internal::cleanup_index_type<FirstType>::type(f) + fix<1>()));
 }
 
-template<typename FirstType, typename LastType, typename IncrType>
+template <typename FirstType, typename LastType, typename IncrType>
 auto seq(FirstType f, LastType l, IncrType incr)
     -> decltype(seqN(typename internal::cleanup_index_type<FirstType>::type(f),
                      (typename internal::cleanup_index_type<LastType>::type(l) -
                       typename internal::cleanup_index_type<FirstType>::type(f) +
                       typename internal::cleanup_seq_incr<IncrType>::type(incr)) /
                          typename internal::cleanup_seq_incr<IncrType>::type(incr),
-                     typename internal::cleanup_seq_incr<IncrType>::type(incr)))
-{
-    typedef typename internal::cleanup_seq_incr<IncrType>::type CleanedIncrType;
-    return seqN(typename internal::cleanup_index_type<FirstType>::type(f),
-                (typename internal::cleanup_index_type<LastType>::type(l) -
-                 typename internal::cleanup_index_type<FirstType>::type(f) + CleanedIncrType(incr)) /
-                    CleanedIncrType(incr),
-                CleanedIncrType(incr));
+                     typename internal::cleanup_seq_incr<IncrType>::type(incr))) {
+  typedef typename internal::cleanup_seq_incr<IncrType>::type CleanedIncrType;
+  return seqN(typename internal::cleanup_index_type<FirstType>::type(f),
+              (typename internal::cleanup_index_type<LastType>::type(l) -
+               typename internal::cleanup_index_type<FirstType>::type(f) + CleanedIncrType(incr)) /
+                  CleanedIncrType(incr),
+              CleanedIncrType(incr));
 }
 
 #endif  // EIGEN_PARSED_BY_DOXYGEN
@@ -191,11 +184,10 @@ namespace placeholders {
  * It is a shortcut for: \code seqN(last-(size-fix<1>)*incr, size, incr) \endcode
  *
  * \sa lastN(SizeType), seqN(FirstType,SizeType), seq(FirstType,LastType,IncrType) */
-template<typename SizeType, typename IncrType>
+template <typename SizeType, typename IncrType>
 auto lastN(SizeType size, IncrType incr)
-    -> decltype(seqN(Eigen::placeholders::last - (size - fix<1>()) * incr, size, incr))
-{
-    return seqN(Eigen::placeholders::last - (size - fix<1>()) * incr, size, incr);
+    -> decltype(seqN(Eigen::placeholders::last - (size - fix<1>()) * incr, size, incr)) {
+  return seqN(Eigen::placeholders::last - (size - fix<1>()) * incr, size, incr);
 }
 
 /** \cpp11
@@ -204,10 +196,9 @@ auto lastN(SizeType size, IncrType incr)
  *  It is a shortcut for: \code seq(last+fix<1>-size, last) \endcode
  *
  * \sa lastN(SizeType,IncrType, seqN(FirstType,SizeType), seq(FirstType,LastType) */
-template<typename SizeType>
-auto lastN(SizeType size) -> decltype(seqN(Eigen::placeholders::last + fix<1>() - size, size))
-{
-    return seqN(Eigen::placeholders::last + fix<1>() - size, size);
+template <typename SizeType>
+auto lastN(SizeType size) -> decltype(seqN(Eigen::placeholders::last + fix<1>() - size, size)) {
+  return seqN(Eigen::placeholders::last + fix<1>() - size, size);
 }
 
 }  // namespace placeholders

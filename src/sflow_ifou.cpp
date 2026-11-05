@@ -20,12 +20,12 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "sflow_ifou.h"
-#include "fdm2D.h"
-#include "lexer.h"
-#include "sflow_flux_face_CDS.h"
+#include"sflow_ifou.h"
+#include"lexer.h"
+#include"fdm2D.h"
+#include"sflow_flux_face_CDS.h"
 
-sflow_ifou::sflow_ifou(lexer *p)
+sflow_ifou::sflow_ifou(lexer* p)
 {
     pflux = new sflow_flux_face_CDS(p);
 }
@@ -34,57 +34,62 @@ sflow_ifou::~sflow_ifou()
 {
 }
 
-void sflow_ifou::start(lexer *p, fdm2D *b, slice &f, int ipol, slice &uvel, slice &vvel)
+void sflow_ifou::start(lexer* p, fdm2D* b, slice& f, int ipol, slice& uvel, slice& vvel)
 {
-    count = 0;
+    count=0;
+    
+    if(ipol==1)
+    SLICELOOP1
+    aij(p,b,f,1,uvel,vvel);
 
-    if(ipol == 1)
-        SLICELOOP1
-    aij(p, b, f, 1, uvel, vvel);
-
-    if(ipol == 2)
-        SLICELOOP2
-    aij(p, b, f, 2, uvel, vvel);
-
-    if(ipol == 4)
-        SLICELOOP4
-    aij(p, b, f, 4, uvel, vvel);
+    if(ipol==2)
+    SLICELOOP2
+    aij(p,b,f,2,uvel,vvel);
+    
+    if(ipol==4)
+    SLICELOOP4
+    aij(p,b,f,4,uvel,vvel);
 }
 
-void sflow_ifou::aij(lexer *p, fdm2D *b, slice &f, int ipol, slice &uvel, slice &vvel)
+void sflow_ifou::aij(lexer* p,fdm2D* b,slice& f,int ipol, slice& uvel, slice& vvel)
 {
-    udir = vdir = 0.0;
-    ul = ur = vl = vr = 0.0;
+    udir=vdir=0.0;
+    ul=ur=vl=vr=0.0;
+    
+    pflux->u_flux(ipol,uvel,ivel1,ivel2);
+    pflux->v_flux(ipol,vvel,jvel1,jvel2);
 
-    pflux->u_flux(ipol, uvel, ivel1, ivel2);
-    pflux->v_flux(ipol, vvel, jvel1, jvel2);
 
-    // X-dir
-    if(ivel1 >= 0.0)
-        ul = 1.0;
+	// X-dir
+    if(ivel1>=0.0)
+    ul=1.0;
 
-    if(ivel2 >= 0.0)
-        ur = 1.0;
-
+    if(ivel2>=0.0)
+    ur=1.0;
+    
     // Y-dir
-    if(jvel1 >= 0.0)
-        vl = 1.0;
+    if(jvel1>=0.0)
+    vl=1.0;
 
-    if(jvel2 >= 0.0)
-        vr = 1.0;
+    if(jvel2>=0.0)
+    vr=1.0;
 
+	 
     // control-volume widths (were the mean spacing DXM, wrong on stretched grids)
-    const double dx = (ipol == 1) ? p->DXP[IP] : p->DXN[IP];
-    const double dy = (ipol == 2) ? p->DYP[JP] : p->DYN[JP];
+    const double dx = (ipol==1) ? p->DXP[IP] : p->DXN[IP];
+    const double dy = (ipol==2) ? p->DYP[JP] : p->DYN[JP];
+	 
+	 b->M.p[count] = ur*ivel2/dx - (1.0-ul)*ivel1/dx
+                   + (vr*jvel2/dy - (1.0-vl)*jvel1/dy)*p->y_dir;
 
-    b->M.p[count] = ur * ivel2 / dx - (1.0 - ul) * ivel1 / dx + (vr * jvel2 / dy - (1.0 - vl) * jvel1 / dy) * p->y_dir;
-
-    b->M.s[count] = -ul * ivel1 / dx;
-    b->M.n[count] = (1.0 - ur) * ivel2 / dx;
-
-    b->M.e[count] = -vl * jvel1 / dy * p->y_dir;
-    b->M.w[count] = (1.0 - vr) * jvel2 / dy * p->y_dir;
-
-    ++count;
+	 
+	 b->M.s[count] = -ul*ivel1/dx;
+	 b->M.n[count] =  (1.0-ur)*ivel2/dx;
+	 
+	 b->M.e[count] = -vl*jvel1/dy*p->y_dir;
+	 b->M.w[count] =  (1.0-vr)*jvel2/dy*p->y_dir;
+     
+	 
+	 ++count;
 }
 

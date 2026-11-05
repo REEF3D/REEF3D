@@ -20,45 +20,46 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "concentration.h"
-#include "concentration_void.h"
-#include "fdm.h"
-#include "freesurface_header.h"
-#include "ghostcell.h"
-#include "heat.h"
-#include "heat_void.h"
-#include "lexer.h"
-#include "multiphase_f.h"
-#include "multiphase_fluid_update_f.h"
-#include "multiphase_fluid_update_rheology.h"
+#include"multiphase_f.h"
+#include"freesurface_header.h"
+#include"multiphase_fluid_update_f.h"
+#include"multiphase_fluid_update_rheology.h"
+#include"lexer.h"
+#include"heat.h"
+#include"fdm.h"
+#include"ghostcell.h"
+#include"heat_void.h"
+#include"concentration.h"
+#include"concentration_void.h"
 
 void multiphase_f::logic(lexer *p, fdm *a, ghostcell *pgc)
 {
-    pheat = new heat_void(p, a, pgc);
-    pconc = new concentration_void(p, a, pgc);
+	pheat = new heat_void(p,a,pgc);
+	pconc = new concentration_void(p,a,pgc);
+	
+	// Free Surface
+    if(p->F300==0)
+	{
+	pfsf1 = new levelset_void(p,a,pgc,pheat,pconc);
+	pfsf2 = new levelset_void(p,a,pgc,pheat,pconc);
+	}
 
-    // Free Surface
-    if(p->F300 == 0)
-    {
-        pfsf1 = new levelset_void(p, a, pgc, pheat, pconc);
-        pfsf2 = new levelset_void(p, a, pgc, pheat, pconc);
-    }
-
-    if(p->F300 == 3)
-    {
-        pfsf1 = new levelset_RK3(p, a, pgc, pheat, pconc);
-        pfsf2 = new levelset_RK3(p, a, pgc, pheat, pconc);
-    }
-
-    if(p->F310 == 0)
-        preini = new reini_void(p);
-
-    if(p->F310 == 3)
-        preini = new reini_RK3(p, 1);
-
-    if(p->W90 == 0)
-        pupdate = new multiphase_fluid_update_f(p, a, pgc);
-
-    if(p->W90 > 0)
-        pupdate = new multiphase_fluid_update_rheology(p);
+	if(p->F300==3)
+	{
+	pfsf1 = new levelset_RK3(p,a,pgc,pheat,pconc);
+	pfsf2 = new levelset_RK3(p,a,pgc,pheat,pconc);
+	}
+    
+	if(p->F310==0)
+	preini = new reini_void(p);
+	
+	if(p->F310==3)
+	preini = new reini_RK3(p,1);
+	
+	
+	if(p->W90==0)
+	pupdate = new multiphase_fluid_update_f(p,a,pgc);
+    
+    if(p->W90>0)
+    pupdate = new multiphase_fluid_update_rheology(p);
 }

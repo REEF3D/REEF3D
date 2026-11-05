@@ -20,16 +20,16 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "fnpf_fsf_update.h"
-#include "fdm_fnpf.h"
-#include "ghostcell.h"
-#include "ioflow.h"
-#include "lexer.h"
-#include "slice.h"
+#include"fnpf_fsf_update.h"
+#include"lexer.h"
+#include"fdm_fnpf.h"
+#include"ghostcell.h"
+#include"ioflow.h"
+#include"slice.h"
 
-#define WLVL (fabs(c->WL(i, j)) > 1.0e-20 ? c->WL(i, j) : 1.0e20)
+#define WLVL (fabs(c->WL(i,j))>1.0e-20?c->WL(i,j):1.0e20)
 
-fnpf_fsf_update::fnpf_fsf_update(lexer *p, fdm_fnpf *c, ghostcell *pgc)
+fnpf_fsf_update::fnpf_fsf_update(lexer *p, fdm_fnpf *c, ghostcell *pgc) 
 {
     gcval_u = 10;
     gcval_v = 11;
@@ -38,15 +38,16 @@ fnpf_fsf_update::fnpf_fsf_update(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 
 fnpf_fsf_update::~fnpf_fsf_update()
 {
+    
 }
 
 void fnpf_fsf_update::etaloc_sig(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 {
     // find k location for eta
     SLICELOOP4
-    c->etaloc(i, j) = p->knoz;
-
-    pgc->gcsl_start4int(p, c->etaloc, 50);
+    c->etaloc(i,j) = p->knoz;
+    
+    pgc->gcsl_start4int(p,c->etaloc,50);
 }
 
 void fnpf_fsf_update::fsfbc_sig(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &Fifsf, double *Fi)
@@ -54,10 +55,10 @@ void fnpf_fsf_update::fsfbc_sig(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &Fi
     // free surface boundary condition for Laplace equation
     FFILOOP4
     {
-        Fi[FIJK] = Fifsf(i, j);
-        Fi[FIJKp1] = Fifsf(i, j);
-        Fi[FIJKp2] = Fifsf(i, j);
-        Fi[FIJKp3] = Fifsf(i, j);
+        Fi[FIJK]   = Fifsf(i,j);
+        Fi[FIJKp1] = Fifsf(i,j);
+        Fi[FIJKp2] = Fifsf(i,j);  
+        Fi[FIJKp3] = Fifsf(i,j);
     }
 }
 

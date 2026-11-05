@@ -34,25 +34,25 @@ using namespace std;
 class nhflow_flux_hook
 {
 public:
-    virtual void flux_hook(lexer *, fdm_nhf *, int, int, double *, double *) = 0;
+    virtual void flux_hook(lexer*, fdm_nhf*, int, int, double*, double*)=0;
 };
 
 class nhflow_convection
 {
 public:
+
     virtual ~nhflow_convection() {}
 
-    virtual void start(lexer *&, fdm_nhf *&, int, slice &, double *) = 0;
-    virtual void precalc(lexer *, fdm_nhf *, int, slice &) = 0;
-
-    void set_hook(nhflow_flux_hook *h, int id)
-    {
-        phook = h;
-        hook_id = id;
-    }
+    virtual void start(lexer*&, fdm_nhf*&, int, slice&, double*)=0;
+    virtual void precalc(lexer*, fdm_nhf*, int, slice&)=0;
+    
+    void set_hook(nhflow_flux_hook *h, int id) { phook=h; hook_id=id; }
     nhflow_flux_hook *phook = nullptr;
     int hook_id = -1;
+
 };
 
 #endif
+
+
 

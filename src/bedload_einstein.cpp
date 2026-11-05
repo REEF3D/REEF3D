@@ -20,57 +20,57 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "bedload_einstein.h"
-#include "ghostcell.h"
-#include "lexer.h"
-#include "sediment_fdm.h"
+#include"bedload_einstein.h"
+#include"lexer.h"
+#include"ghostcell.h"
+#include"sediment_fdm.h"
 
-bedload_einstein::bedload_einstein(lexer *p)
+bedload_einstein::bedload_einstein(lexer* p)
 {
-    rhosed = p->S22;
-    g = fabs(p->W22);
-    d50 = p->S20;
+    rhosed=p->S22;
+    g=fabs(p->W22);
+    d50=p->S20;
 }
 
 bedload_einstein::~bedload_einstein()
 {
 }
 
-void bedload_einstein::start(lexer *p, ghostcell *pgc, sediment_fdm *s)
+void bedload_einstein::start(lexer* p, ghostcell* pgc, sediment_fdm *s)
 {
     // Einstein-Brown:  Phi = qb/(F sqrt(R g d^3)), F: Rubey fall-velocity factor
     //                  Phi = 2.15*exp(-0.391/theta)  for theta < 0.182
     //                  Phi = 40*theta^3              for theta >= 0.182
-    double qb, Tb, Rstar, Fr;
+    double qb,Tb,Rstar,Fr;
     const double visc = p->W2;
 
     d50 = s->dk;
 
-    SEDSLICELOOP
+	SEDSLICELOOP
     {
-        rhowat = p->W1;  // water density (s->ro is the density at the bed cell, air in dry CFD cells)
-        Rstar = (rhosed - rhowat) / rhowat;
-
+        rhowat = p->W1;      // water density (s->ro is the density at the bed cell, air in dry CFD cells)
+        Rstar = (rhosed-rhowat)/rhowat;
+        
         // Rubey (1933) fall-velocity factor: Phi = qb/(F sqrt(R g d^3))
-        Fr = sqrt(2.0 / 3.0 + 36.0 * visc * visc / (g * Rstar * d50 * d50 * d50)) - sqrt(36.0 * visc * visc / (g * Rstar * d50 * d50 * d50));
+        Fr = sqrt(2.0/3.0 + 36.0*visc*visc/(g*Rstar*d50*d50*d50)) - sqrt(36.0*visc*visc/(g*Rstar*d50*d50*d50));
 
-        Tb = s->shields_eff(i, j);
+        Tb = s->shields_eff(i,j);
 
-        qb = 0.0;
+        qb=0.0;
 
-        if(s->active(i, j) == 1 && Tb > 1.0e-10)
+        if(s->active(i,j)==1 && Tb>1.0e-10)
         {
-            if(Tb < 0.182)
-                qb = 2.15 * exp(-0.391 / Tb);
+            if(Tb<0.182)
+            qb = 2.15*exp(-0.391/Tb);
 
-            if(Tb >= 0.182)
-                qb = 40.0 * Tb * Tb * Tb;
+            if(Tb>=0.182)
+            qb = 40.0*Tb*Tb*Tb;
 
-            qb *= Fr * sqrt(Rstar * g * d50 * d50 * d50);
+        qb *= Fr*sqrt(Rstar*g*d50*d50*d50);
         }
 
-        s->qbe(i, j) = qb;
-    }
+        s->qbe(i,j) = qb;
+	}
 
-    pgc->gcsl_start4(p, s->qbe, 1);
+    pgc->gcsl_start4(p,s->qbe,1);
 }

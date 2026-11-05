@@ -12,9 +12,8 @@
 
 #include "datatypes.h"
 
-/* Subroutine */ void stbmv_(char *uplo, char *trans, char *diag, integer *n,
-                             integer *k, real *a, integer *lda, real *x,
-                             integer *incx) {
+/* Subroutine */ void stbmv_(char *uplo, char *trans, char *diag, integer *n, integer *k, real *a, integer *lda,
+                             real *x, integer *incx) {
   /* System generated locals */
   integer a_dim1, a_offset, i__1, i__2, i__3, i__4;
 
@@ -185,8 +184,7 @@
   info = 0;
   if (!lsame_(uplo, "U") && !lsame_(uplo, "L")) {
     info = 1;
-  } else if (!lsame_(trans, "N") && !lsame_(trans, "T") &&
-             !lsame_(trans, "C")) {
+  } else if (!lsame_(trans, "N") && !lsame_(trans, "T") && !lsame_(trans, "C")) {
     info = 2;
   } else if (!lsame_(diag, "U") && !lsame_(diag, "N")) {
     info = 3;

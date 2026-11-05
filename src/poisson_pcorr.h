@@ -23,9 +23,9 @@ Author: Hans Bihs
 #ifndef POISSON_PCORR_H_
 #define POISSON_PCORR_H_
 
-#include "increment.h"
-#include "poisson.h"
-#include <vector>
+#include"poisson.h"
+#include"increment.h"
+#include<vector>
 
 class heat;
 class concentration;
@@ -37,22 +37,25 @@ class poisson_pcorr final : public poisson, public increment
 {
 
 public:
-    poisson_pcorr(lexer *, heat *&, concentration *&);
-    virtual ~poisson_pcorr();
 
-    void start(lexer *, fdm *, field &) override final;
+	poisson_pcorr (lexer*, heat*&, concentration*&);
+	virtual ~poisson_pcorr();
+
+	void start(lexer *,fdm*,field&) override final;
 
 private:
-    double pval;
-    int count, n, q;
 
-    std::vector<int> noflux;  // per cell: bit (cs-1) set for a no-flux face on side cs (bc_noflux.h)
+	double pval;
+	int count,n,q;
 
-    std::vector<int> noflux;  // per cell: bit (cs-1) set for a no-flux face on side cs (bc_noflux.h)
-    std::vector<int> outlet;  // per cell: bit (cs-1) set for a patch outlet face on side cs
-
+    std::vector<int> noflux;   // per cell: bit (cs-1) set for a no-flux face on side cs (bc_noflux.h)
+    std::vector<int> outlet;   // per cell: bit (cs-1) set for a patch outlet face on side cs
+    
     density *pd;
 };
 
+
 #endif
+
+
 

@@ -20,9 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "fdm.h"
-#include "ghostcell.h"
-#include "lexer.h"
+#include"ghostcell.h"
+#include"lexer.h"
+#include"fdm.h"
 
 // The flag rebuild (solid_forcing_flag_update, gcdf_update, gcb_velflagio) depends on the geometry
 // only through these comparisons: solid, topo against 0 and against psi = -X41*dx (G5), fb against 0.
@@ -33,39 +33,41 @@ bool ghostcell::geometry_changed(lexer *p, fdm *a)
     // the patches of the mesh refinement (rank-local work, comms off) share this ghostcell: no
     // signature per grid, always rebuild
     if(!do_comms)
-        return true;
+    return true;
 
-    const int size = p->imax * p->jmax * p->kmax;
+    const int size = p->imax*p->jmax*p->kmax;
     int changed = 0;
 
-    if((int)geo_sig.size() != size)
+    if((int)geo_sig.size()!=size)
     {
-        geo_sig.assign(size, 0xffff);
-        changed = 1;
+    geo_sig.assign(size,0xffff);
+    changed=1;
     }
 
     double psi;
 
     BASELOOP
     {
-        if(p->j_dir == 0)
-            psi = -p->X41 * (1.0 / 2.0) * (p->DXN[IP] + p->DZN[KP]);
+    if(p->j_dir==0)
+    psi = -p->X41*(1.0/2.0)*(p->DXN[IP] + p->DZN[KP]);
 
-        if(p->j_dir == 1)
-            psi = -p->X41 * (1.0 / 3.0) * (p->DXN[IP] + p->DYN[JP] + p->DZN[KP]);
+    if(p->j_dir==1)
+    psi = -p->X41*(1.0/3.0)*(p->DXN[IP]+p->DYN[JP]+p->DZN[KP]);
 
-        const double s = a->solid(i, j, k);
-        const double t = a->topo(i, j, k);
-        const double f = a->fb(i, j, k);
+    const double s = a->solid(i,j,k);
+    const double t = a->topo(i,j,k);
+    const double f = a->fb(i,j,k);
 
-        const uint16_t sig = (s < 0.0) | (s > 0.0) << 1 | (s < psi) << 2 | (s >= psi) << 3 | (t < 0.0) << 4 | (t > 0.0) << 5 | (t < psi) << 6 | (t >= psi) << 7 | (f < 0.0) << 8 | (f > 0.0) << 9;
+    const uint16_t sig = (s<0.0) | (s>0.0)<<1 | (s<psi)<<2 | (s>=psi)<<3
+                       | (t<0.0)<<4 | (t>0.0)<<5 | (t<psi)<<6 | (t>=psi)<<7
+                       | (f<0.0)<<8 | (f>0.0)<<9;
 
-        if(geo_sig[IJK] != sig)
-        {
-            geo_sig[IJK] = sig;
-            changed = 1;
-        }
+    if(geo_sig[IJK]!=sig)
+    {
+    geo_sig[IJK]=sig;
+    changed=1;
+    }
     }
 
-    return globalimax(changed) > 0;
+    return globalimax(changed)>0;
 }

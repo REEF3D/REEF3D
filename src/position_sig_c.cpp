@@ -20,147 +20,149 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "lexer.h"
-#include "position.h"
+#include"position.h"
+#include"lexer.h"
 
 int position::posc_sig(int ii, int jj, double xp, double yp, double zs)
 {
-    double Z0, Z1, Z2;
+    double Z0,Z1,Z2;
 
     // curvilinear grid (G 50): the bilinear coordinates of the point in the quadrilateral of the cell centres
     // (ii,jj) (grid_locate.cpp), in place of (x-XP)/DXP
-    double cfx = 0.0, cfy = 0.0;
-    if(p->geo_curv == 1)
+    double cfx=0.0, cfy=0.0;
+    if(p->geo_curv==1)
     {
-        int qi, qj;
-        p->geo_quad(xp, yp, qi, qj, cfx, cfy);
+    int qi,qj;
+    p->geo_quad(xp,yp,qi,qj,cfx,cfy);
     }
-
+    
     i = ii;
     j = jj;
-
-    if(p->j_dir == 0)
-        j = 0;
-
+    
+    if(p->j_dir==0)
+    j=0;
+    
     k = 0;
     int FIJK_start = FIJK;
-
+    
     k = p->knoz;
     int FIJK_end = FIJK;
-
-    stop = 0;
-
+    
+    stop=0;
+    
     ks = 0;
-    ke = p->knoz + 1;
+    ke = p->knoz+1;
 
-    count = 0;
-
+    count=0;
+    
     do
     {
-        kloc = ihalf(ks, ke);
+    kloc = ihalf(ks,ke);
+    
+    if(count%3==0)
+    kloc+=1;
+    
+    k=kloc;
+    
+    // ---------
+    if(p->j_dir==0)
+    {
+    Z0 =  ((p->ZSN[FIp1JKm1] - p->ZSN[FIJKm1])/p->DXP[IP])*(xp - p->XP[IP]) 
+    
+        + p->ZSN[FIJKm1];
+    
+    Z1 =  ((p->ZSN[FIp1JK] - p->ZSN[FIJK])/p->DXP[IP])*(xp - p->XP[IP]) 
+    
+        + p->ZSN[FIJK];
+    
+    Z2 =  ((p->ZSN[FIp1JKp1] - p->ZSN[FIJKp1])/p->DXP[IP])*(xp - p->XP[IP]) 
+    
+        + p->ZSN[FIJKp1];
+    }
+    
+    
+    if(p->j_dir==1 && p->geo_curv==1)
+    {
+    Z0 = (p->ZSN[FIp1JKm1] - p->ZSN[FIJKm1])*cfx + (p->ZSN[FIJp1Km1] - p->ZSN[FIJKm1])*cfy + p->ZSN[FIJKm1];
+    Z1 = (p->ZSN[FIp1JK] - p->ZSN[FIJK])*cfx + (p->ZSN[FIJp1K] - p->ZSN[FIJK])*cfy + p->ZSN[FIJK];
+    Z2 = (p->ZSN[FIp1JKp1] - p->ZSN[FIJKp1])*cfx + (p->ZSN[FIJp1Kp1] - p->ZSN[FIJKp1])*cfy + p->ZSN[FIJKp1];
+    }
 
-        if(count % 3 == 0)
-            kloc += 1;
-
-        k = kloc;
-
-        // ---------
-        if(p->j_dir == 0)
-        {
-            Z0 = ((p->ZSN[FIp1JKm1] - p->ZSN[FIJKm1]) / p->DXP[IP]) * (xp - p->XP[IP])
-
-                 + p->ZSN[FIJKm1];
-
-            Z1 = ((p->ZSN[FIp1JK] - p->ZSN[FIJK]) / p->DXP[IP]) * (xp - p->XP[IP])
-
-                 + p->ZSN[FIJK];
-
-            Z2 = ((p->ZSN[FIp1JKp1] - p->ZSN[FIJKp1]) / p->DXP[IP]) * (xp - p->XP[IP])
-
-                 + p->ZSN[FIJKp1];
-        }
-
-        if(p->j_dir == 1 && p->geo_curv == 1)
-        {
-            Z0 = (p->ZSN[FIp1JKm1] - p->ZSN[FIJKm1]) * cfx + (p->ZSN[FIJp1Km1] - p->ZSN[FIJKm1]) * cfy + p->ZSN[FIJKm1];
-            Z1 = (p->ZSN[FIp1JK] - p->ZSN[FIJK]) * cfx + (p->ZSN[FIJp1K] - p->ZSN[FIJK]) * cfy + p->ZSN[FIJK];
-            Z2 = (p->ZSN[FIp1JKp1] - p->ZSN[FIJKp1]) * cfx + (p->ZSN[FIJp1Kp1] - p->ZSN[FIJKp1]) * cfy + p->ZSN[FIJKp1];
-        }
-
-        if(p->j_dir == 1 && p->geo_curv == 0)
-        {
-            Z0 = ((p->ZSN[FIp1JKm1] - p->ZSN[FIJKm1]) / p->DXP[IP]) * (xp - p->XP[IP])
-
-                 + ((p->ZSN[FIJp1Km1] - p->ZSN[FIJKm1]) / p->DYP[JP]) * (yp - p->YP[JP])
-
-                 + p->ZSN[FIJKm1];
-
-            Z1 = ((p->ZSN[FIp1JK] - p->ZSN[FIJK]) / p->DXP[IP]) * (xp - p->XP[IP])
-
-                 + ((p->ZSN[FIJp1K] - p->ZSN[FIJK]) / p->DYP[JP]) * (yp - p->YP[JP])
-
-                 + p->ZSN[FIJK];
-
-            Z2 = ((p->ZSN[FIp1JKp1] - p->ZSN[FIJKp1]) / p->DXP[IP]) * (xp - p->XP[IP])
-
-                 + ((p->ZSN[FIJp1Kp1] - p->ZSN[FIJKp1]) / p->DYP[JP]) * (yp - p->YP[JP])
-
-                 + p->ZSN[FIJKp1];
-        }
-
-        // cout<<" Z0 "<<Z0<<" Z1 "<<Z1<<" Z2 "<<Z2<<" xp: "<<xp<<" p->XP[IP]: "<<p->XP[IP]<<endl;
-
-        // ---------
-
+    if(p->j_dir==1 && p->geo_curv==0)
+    {
+    Z0 =  ((p->ZSN[FIp1JKm1] - p->ZSN[FIJKm1])/p->DXP[IP])*(xp - p->XP[IP]) 
+    
+        + ((p->ZSN[FIJp1Km1] - p->ZSN[FIJKm1])/p->DYP[JP])*(yp - p->YP[JP]) 
+    
+        + p->ZSN[FIJKm1];
+    
+    Z1 =  ((p->ZSN[FIp1JK] - p->ZSN[FIJK])/p->DXP[IP])*(xp - p->XP[IP]) 
+    
+        + ((p->ZSN[FIJp1K] - p->ZSN[FIJK])/p->DYP[JP])*(yp - p->YP[JP]) 
+    
+        + p->ZSN[FIJK];
+    
+    Z2 =  ((p->ZSN[FIp1JKp1] - p->ZSN[FIJKp1])/p->DXP[IP])*(xp - p->XP[IP]) 
+    
+        + ((p->ZSN[FIJp1Kp1] - p->ZSN[FIJKp1])/p->DYP[JP])*(yp - p->YP[JP]) 
+    
+        + p->ZSN[FIJKp1];
+    }
+    
+    //cout<<" Z0 "<<Z0<<" Z1 "<<Z1<<" Z2 "<<Z2<<" xp: "<<xp<<" p->XP[IP]: "<<p->XP[IP]<<endl;
+    
+    // ---------
+        
         // out of bounds
-        if(zs < p->ZSN[FIJK_start])
+        if(zs<p->ZSN[FIJK_start])
         {
             kk = -1;
-
-            stop = 1;
-            break;
+   
+         stop=1;
+         break;   
         }
-
+        
         // out of bounds
-        if(zs > p->ZSN[FIJK_end])
+        if(zs>p->ZSN[FIJK_end])
         {
-            kk = p->knoz + 1;
-
-            stop = 1;
-            break;
+            kk = p->knoz+1;
+            
+         stop=1;
+         break;   
         }
-
+        
         // matching criterion
-        if(zs < Z1 && zs >= Z0 && stop == 0)
+        if(zs<Z1 && zs>=Z0 && stop==0)
         {
-            kk = kloc - 1;
-
-            stop = 1;
-            break;
+            kk = kloc-1;
+            
+         stop=1;
+         break;   
         }
-
-        if(zs >= Z1 && zs < Z2 && stop == 0)
+        
+        if(zs>=Z1 && zs<Z2 && stop==0)
         {
             kk = kloc;
-
-            stop = 1;
-            break;
+            
+         stop=1;
+         break;   
         }
-
+        
         // further divksion
-        if(zs < Z1 && zs < Z0)
-            ke = kloc;
-
-        if(zs > Z1 && zs > Z2)
-            ks = kloc;
-
+        if(zs<Z1 && zs<Z0)
+        ke=kloc;
+        
+        if(zs>Z1 && zs>Z2)
+        ks=kloc;
+        
+        
         ++count;
-    }
-    while(stop == 0 && count < 1000);
-
-    kk = MAX(kk, -1);
-    kk = MIN(kk, p->knoz + 1);
-
+    }while(stop==0 && count<1000);
+    
+    kk=MAX(kk,-1);
+    kk=MIN(kk,p->knoz+1);
+    
+    
     return kk;
 }
 
@@ -168,91 +170,94 @@ int position::posc_sig(int ii, int jj, double zs)
 {
     i = ii;
     j = jj;
-
-    i = MAX(i, 0);
-    i = MIN(i, p->knox - 1);
-
-    j = MAX(j, 0);
-    j = MIN(j, p->knoy - 1);
-
+    
+    i = MAX(i,0);
+	i = MIN(i,p->knox-1);
+    
+	j = MAX(j,0);
+	j = MIN(j,p->knoy-1);
+    
     k = 0;
     int FIJK_start = FIJK;
-
+    
     k = p->knoz;
     int FIJK_end = FIJK;
-
-    stop = 0;
-
+    
+    stop=0;
+    
     ks = 0;
-    ke = p->knoz + 1;
+    ke = p->knoz+1;
 
-    count = 0;
-    do
-    {
-        kloc = ihalf(ks, ke);
-
-        if(count % 3 == 0)
-            kloc += 1;
-
-        k = kloc;
-
+    count=0;
+    do{
+    kloc = ihalf(ks,ke);
+    
+    if(count%3==0)
+    kloc+=1;
+    
+    k=kloc;
+    
+        
         // out of bounds
-        if(zs < p->ZSN[FIJK_start])
+        if(zs<p->ZSN[FIJK_start])
         {
             kk = -1;
-
-            // cout<<"EXIT 0m"<<endl;
-
-            stop = 1;
-            break;
+            
+            //cout<<"EXIT 0m"<<endl;
+   
+         stop=1;
+         break;   
         }
-
+        
         // out of bounds
-        if(zs > p->ZSN[FIJK_end])
+        if(zs>p->ZSN[FIJK_end])
         {
-            kk = p->knoz + 1;
-
-            // cout<<"EXIT 0p "<<" zs: "<<zs<<" p->ZSP[IJK_end]: "<<p->ZSP[IJK_end]<<" i: "<<i<<" j: "<<j<<endl;
-
-            stop = 1;
-            break;
+            kk = p->knoz+1;
+            
+            //cout<<"EXIT 0p "<<" zs: "<<zs<<" p->ZSP[IJK_end]: "<<p->ZSP[IJK_end]<<" i: "<<i<<" j: "<<j<<endl;
+   
+         stop=1;
+         break;   
         }
-
+        
         // matching criterion
-        if(zs < p->ZSN[FIJK] && zs >= p->ZSN[FIJKm1] && stop == 0)
+        if(zs<p->ZSN[FIJK] && zs>=p->ZSN[FIJKm1] && stop==0)
         {
-            kk = kloc - 1;
-
-            // cout<<"EXIT 1"<<endl;
-
-            stop = 1;
-            break;
+            kk = kloc-1;
+            
+            //cout<<"EXIT 1"<<endl;
+            
+         stop=1;
+         break;   
         }
-
-        if(zs >= p->ZSN[FIJK] && zs < p->ZSN[FIJKp1] && stop == 0)
+        
+        if(zs>=p->ZSN[FIJK] && zs<p->ZSN[FIJKp1] && stop==0)
         {
             kk = kloc;
-
-            // cout<<"EXIT 2"<<endl;
-
-            stop = 1;
-            break;
+            
+            //cout<<"EXIT 2"<<endl;
+   
+         stop=1;
+         break;   
         }
-
+        
         // further divksion
-        if(zs < p->ZSN[FIJK] && zs < p->ZSN[FIJKm1])
-            ke = kloc;
-
-        if(zs > p->ZSN[FIJK] && zs > p->ZSN[FIJKp1])
-            ks = kloc;
-
+        if(zs<p->ZSN[FIJK] && zs<p->ZSN[FIJKm1])
+        ke=kloc;
+        
+        if(zs>p->ZSN[FIJK] && zs>p->ZSN[FIJKp1])
+        ks=kloc;
+        
+        
         ++count;
-    }
-    while(stop == 0 && count < 1000);
-
-    kk = MAX(kk, -1);
-    kk = MIN(kk, p->knoz + 1);
-
+    }while(stop==0 && count<1000);
+    
+    kk=MAX(kk,-1);
+    kk=MIN(kk,p->knoz+1);
+    
+    
     return kk;
 }
+
+
 

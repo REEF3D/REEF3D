@@ -23,10 +23,10 @@ Author: Hans Bihs
 #ifndef AMR_LOAD_H_
 #define AMR_LOAD_H_
 
-#include <fstream>
-#include <functional>
-#include <string>
-#include <vector>
+#include<string>
+#include<fstream>
+#include<vector>
+#include<functional>
 
 class lexer;
 
@@ -59,15 +59,15 @@ class lexer;
 // process-wide clocks
 struct amr_clock
 {
-    static double mpi;  // blocking MPI calls (mpi_clock.cpp)
-    static long mpi_calls;
-    static double patch;       // patch kernels (reefamr_comms_off, outside the regrids)
-    static double regrid;      // regrids, their MPI time included
-    static double regrid_mpi;  // the MPI time within the regrids
-    static int depth;          // nesting of reefamr_comms_off
-    static int in_regrid;      // nesting of the regrid clock
-    static double t_patch;     // start of the outermost patch scope
-    static double m_patch;     // MPI time at its start (the MPI calls within a patch scope are MPI time)
+    static double mpi;          // blocking MPI calls (mpi_clock.cpp)
+    static long   mpi_calls;
+    static double patch;        // patch kernels (reefamr_comms_off, outside the regrids)
+    static double regrid;       // regrids, their MPI time included
+    static double regrid_mpi;   // the MPI time within the regrids
+    static int    depth;        // nesting of reefamr_comms_off
+    static int    in_regrid;    // nesting of the regrid clock
+    static double t_patch;      // start of the outermost patch scope
+    static double m_patch;      // MPI time at its start (the MPI calls within a patch scope are MPI time)
 
     static void patch_begin();
     static void patch_end();
@@ -90,12 +90,12 @@ struct amr_regrid_clock
 // counts of this rank, given by the module at every step
 struct amr_load_counts
 {
-    double n0 = 0.0;       // level-0 cells (multi-block: with its level-0 blocks)
-    double n0a = 0.0;      // level-0 cells that are not solid
-    double np = 0.0;       // cells of the patches of the rank (EXT cells and layers included)
-    int npatch = 0;        // patches of the rank
-    double wpred = 0.0;    // predicted work (the model of the placement)
-    double tpatch = -1.0;  // the module's own clock of the patch kernels (cumulative), <0: amr_clock::patch
+    double n0 = 0.0;        // level-0 cells (multi-block: with its level-0 blocks)
+    double n0a = 0.0;       // level-0 cells that are not solid
+    double np = 0.0;        // cells of the patches of the rank (EXT cells and layers included)
+    int npatch = 0;         // patches of the rank
+    double wpred = 0.0;     // predicted work (the model of the placement)
+    double tpatch = -1.0;   // the module's own clock of the patch kernels (cumulative), <0: amr_clock::patch
     // further clocks of the module (cumulative, s; the same number and names at every report): per rank
     // in the window, and max/mean over the ranks in the summary (CFD: the parts of the projection)
     std::vector<double> clk;
@@ -109,16 +109,16 @@ public:
     void configure(const std::string &name);
     bool ready() const { return !name.empty(); }
     // once per step; a report every G 43 steps, with the counts of this rank (evaluated only then)
-    void step(lexer *, const std::function<amr_load_counts()> &);
+    void step(lexer*, const std::function<amr_load_counts()>&);
 
 private:
-    void report(lexer *, const amr_load_counts &, int);
+    void report(lexer*, const amr_load_counts&, int);
 
     std::string name, dir, tag;
     bool started = false;
     int steps = 0;
     double w0 = 0.0, m0 = 0.0, p0 = 0.0, r0 = 0.0, rm0 = 0.0;
-    std::vector<double> c0;  // the clocks of the module at the start of the window
+    std::vector<double> c0;     // the clocks of the module at the start of the window
     std::ofstream sout, rout;
 };
 

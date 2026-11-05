@@ -20,76 +20,76 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Tobias Martin
 --------------------------------------------------------------------*/
 
-#include "fdm.h"
-#include "fdm_nhf.h"
-#include "ghostcell.h"
-#include "lexer.h"
-#include "net_barQuasiStatic.h"
+#include"net_barQuasiStatic.h"
+#include"lexer.h"
+#include"fdm.h"
+#include"fdm_nhf.h"
+#include"ghostcell.h"	
 
 void net_barQuasiStatic::initialize_cfd(lexer *p, fdm *a, ghostcell *pgc)
 {
     //- Initialise net model
-    if(p->X320_type[nNet] == 1)
+    if (p->X320_type[nNet]==1)
     {
-        bag_ini(p, pgc);
-
+        bag_ini(p,pgc);
+        
         buildNet_bag(p);
     }
-    else if(p->X320_type[nNet] == 2)
+    else if (p->X320_type[nNet]==2)   
     {
-        cyl_ini(p, pgc);
-
-        buildNet_cyl(p);
+        cyl_ini(p,pgc);
+        
+        buildNet_cyl(p); 
     }
-    else if(p->X320_type[nNet] == 3)
+    else if (p->X320_type[nNet]==3)   
     {
-        wall_ini(p, pgc);
-
-        buildNet_wall(p);
-    }
-
+        wall_ini(p,pgc);
+        
+        buildNet_wall(p);    
+    }  
+    
     //- Update porous zone
-    coupling_dlm_cfd(p, a, pgc);
+    coupling_dlm_cfd(p,a,pgc);
 
     // a restart (I 45): no print at the start, the outputs continue from the checkpoint
-    if(p->I45 != 1)
-        print(p);
+    if(p->I45!=1)
+    print(p);
 }
 
 void net_barQuasiStatic::initialize_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
     //- Initialise net model
-    if(p->X320_type[nNet] == 1)
+    if (p->X320_type[nNet]==1)
     {
-        bag_ini(p, pgc);
-
+        bag_ini(p,pgc);
+        
         buildNet_bag(p);
     }
-    else if(p->X320_type[nNet] == 2)
+    else if (p->X320_type[nNet]==2)   
     {
-        cyl_ini(p, pgc);
-
-        buildNet_cyl(p);
+        cyl_ini(p,pgc);
+        
+        buildNet_cyl(p); 
     }
-    else if(p->X320_type[nNet] == 3)
+    else if (p->X320_type[nNet]==3)   
     {
-        wall_ini(p, pgc);
-
-        buildNet_wall(p);
-    }
-
+        wall_ini(p,pgc);
+        
+        buildNet_wall(p);    
+    }  
+    
     //- NHFLOW: the grid z-range (originz/endz) is the sigma box, not physical z.
     //  There is no vertical decomposition, so only x/y decide the owning rank.
-    for(int qn = 0; qn < p->mpi_size; qn++)
+    for (int qn = 0; qn < p->mpi_size; qn++)
     {
         zstart[qn] = -1.0e20;
-        zend[qn] = 1.0e20;
+        zend[qn]   =  1.0e20;
     }
 
     //- Update porous zone
-    coupling_dlm_nhflow(p, d, pgc);
+    coupling_dlm_nhflow(p,d,pgc);
 
     // a restart (I 45): no print at the start, the outputs continue from the checkpoint
-    if(p->I45 != 1)
-        print(p);
+    if(p->I45!=1)
+    print(p);
 }

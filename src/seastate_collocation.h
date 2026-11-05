@@ -20,11 +20,12 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
+
 #ifndef SEASTATE_COLLOCATION_H_
 #define SEASTATE_COLLOCATION_H_
 
-#include <string>
-#include <vector>
+#include<string>
+#include<vector>
 
 /*--------------------------------------------------------------------
 Online collocation of the model with observations (A 787 1).
@@ -59,10 +60,10 @@ correlation.
 
 struct seastate_obs
 {
-    double t;     // model time [s]
-    double x, y;  // model frame [m]
-    double hs;    // observed Hs [m]
-    int src, id;  // index into seastate_collocation::sources, ids
+    double t;           // model time [s]
+    double x, y;        // model frame [m]
+    double hs;          // observed Hs [m]
+    int src, id;        // index into seastate_collocation::sources, ids
 };
 
 struct seastate_colloc_stats
@@ -70,28 +71,12 @@ struct seastate_colloc_stats
     long n = 0;
     double so = 0.0, sm = 0.0, so2 = 0.0, sm2 = 0.0, som = 0.0;
 
-    void add(double o, double m)
-    {
-        ++n;
-        so += o;
-        sm += m;
-        so2 += o * o;
-        sm2 += m * m;
-        som += o * m;
-    }
-    void merge(const seastate_colloc_stats &b)
-    {
-        n += b.n;
-        so += b.so;
-        sm += b.sm;
-        so2 += b.so2;
-        sm2 += b.sm2;
-        som += b.som;
-    }
-    double mean_obs() const { return n > 0 ? so / n : 0.0; }
-    double bias() const { return n > 0 ? (sm - so) / n : 0.0; }
+    void add(double o, double m) {++n; so += o; sm += m; so2 += o*o; sm2 += m*m; som += o*m;}
+    void merge(const seastate_colloc_stats &b) {n += b.n; so += b.so; sm += b.sm; so2 += b.so2; sm2 += b.sm2; som += b.som;}
+    double mean_obs() const {return n>0 ? so/n : 0.0;}
+    double bias() const {return n>0 ? (sm-so)/n : 0.0;}
     double rmse() const;
-    double si() const;  // standard deviation of the error over the mean observation
+    double si() const;          // standard deviation of the error over the mean observation
     double r() const;
 };
 
@@ -108,7 +93,7 @@ public:
 
     std::vector<seastate_obs> obs;
     std::vector<std::string> sources, ids;
-    bool model_time = false;  // the file gives t (model seconds)
+    bool model_time = false;    // the file gives t (model seconds)
 
     // statistics per source (index) and over all
     std::vector<seastate_colloc_stats> per_source;

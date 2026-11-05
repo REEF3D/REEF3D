@@ -20,14 +20,14 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "fixtimestep.h"
-#include "fdm.h"
-#include "ghostcell.h"
-#include "lexer.h"
-#include "turbulence.h"
-#include <iomanip>
+#include"fixtimestep.h"
+#include<iomanip>
+#include"lexer.h"
+#include"fdm.h"
+#include"ghostcell.h"
+#include"turbulence.h"
 
-fixtimestep::fixtimestep(lexer *p)
+fixtimestep::fixtimestep(lexer* p)
 {
 }
 
@@ -35,72 +35,72 @@ fixtimestep::~fixtimestep()
 {
 }
 
-void fixtimestep::start(fdm *a, lexer *p, ghostcell *pgc, turbulence *pturb)
+void fixtimestep::start(fdm* a, lexer* p,ghostcell* pgc, turbulence *pturb)
 {
-    p->dt = p->dt_old = p->N49;
+    p->dt=p->dt_old=p->N49;
 
     // maximum values of this step (as etimestep / ietimestep; they were maxima over the whole run,
     // and N 61 stopped the run on a past value): local first, then one reduction over all ranks
-    p->umax = p->vmax = p->wmax = p->viscmax = 0.0;
-    p->kinmax = p->epsmax = p->pressmax = 0.0;
-    p->pressmin = 1.0e9;
+    p->umax=p->vmax=p->wmax=p->viscmax=0.0;
+    p->kinmax=p->epsmax=p->pressmax=0.0;
+    p->pressmin=1.0e9;
 
-    ULOOP
-    p->umax = MAX(p->umax, fabs(a->u(i, j, k)));
+	ULOOP
+	p->umax=MAX(p->umax,fabs(a->u(i,j,k)));
 
-    VLOOP
-    p->vmax = MAX(p->vmax, fabs(a->v(i, j, k)));
+	VLOOP
+	p->vmax=MAX(p->vmax,fabs(a->v(i,j,k)));
 
-    WLOOP
-    p->wmax = MAX(p->wmax, fabs(a->w(i, j, k)));
+	WLOOP
+	p->wmax=MAX(p->wmax,fabs(a->w(i,j,k)));
+
+	LOOP
+	p->viscmax=MAX(p->viscmax, a->visc(i,j,k)+a->eddyv(i,j,k));
+
+	LOOP
+	p->kinmax=MAX(p->kinmax,pturb->kinval(i,j,k));
 
     LOOP
-        p->viscmax = MAX(p->viscmax, a->visc(i, j, k) + a->eddyv(i, j, k));
-
-    LOOP
-        p->kinmax = MAX(p->kinmax, pturb->kinval(i, j, k));
-
-    LOOP
-        p->epsmax = MAX(p->epsmax, pturb->epsval(i, j, k));
+	p->epsmax=MAX(p->epsmax,pturb->epsval(i,j,k));
 
     LOOP
     {
-        p->pressmax = MAX(p->pressmax, a->press(i, j, k));
-        p->pressmin = MIN(p->pressmin, a->press(i, j, k));
+	p->pressmax=MAX(p->pressmax,a->press(i,j,k));
+	p->pressmin=MIN(p->pressmin,a->press(i,j,k));
     }
 
     {
-        double gmax[8] = {p->umax, p->vmax, p->wmax, p->viscmax, p->kinmax, p->epsmax, p->pressmax, -p->pressmin};
+    double gmax[8] = {p->umax, p->vmax, p->wmax, p->viscmax, p->kinmax, p->epsmax, p->pressmax, -p->pressmin};
 
-        pgc->globalmax(gmax, 8);
+    pgc->globalmax(gmax,8);
 
-        p->umax = gmax[0];
-        p->vmax = gmax[1];
-        p->wmax = gmax[2];
-        p->viscmax = gmax[3];
-        p->kinmax = gmax[4];
-        p->epsmax = gmax[5];
-        p->pressmax = gmax[6];
-        p->pressmin = -gmax[7];
+    p->umax=gmax[0];
+    p->vmax=gmax[1];
+    p->wmax=gmax[2];
+    p->viscmax=gmax[3];
+    p->kinmax=gmax[4];
+    p->epsmax=gmax[5];
+    p->pressmax=gmax[6];
+    p->pressmin=-gmax[7];
     }
 
-    if(p->mpirank == 0 && (p->count % p->P12 == 0))
+    if(p->mpirank==0 && (p->count%p->P12==0))
     {
-        cout << "umax: " << setprecision(3) << p->umax << endl;
-        cout << "vmax: " << setprecision(3) << p->vmax << endl;
-        cout << "wmax: " << setprecision(3) << p->wmax << endl;
-        cout << "viscmax: " << p->viscmax << endl;
-        cout << "kinmax: " << p->kinmax << endl;
-        cout << "epsmax: " << p->epsmax << endl;
+	cout<<"umax: "<<setprecision(3)<<p->umax<<endl;
+	cout<<"vmax: "<<setprecision(3)<<p->vmax<<endl;
+	cout<<"wmax: "<<setprecision(3)<<p->wmax<<endl;
+	cout<<"viscmax: "<<p->viscmax<<endl;
+	cout<<"kinmax: "<<p->kinmax<<endl;
+	cout<<"epsmax: "<<p->epsmax<<endl;
     }
-
+    
     // largest momentum source terms of the step, reset as in etimestep (they grew over the run)
-    a->maxF = 0.0;
-    a->maxG = 0.0;
-    a->maxH = 0.0;
+    a->maxF=0.0;
+	a->maxG=0.0;
+	a->maxH=0.0;
 }
 
-void fixtimestep::ini(fdm *a, lexer *p, ghostcell *pgc)
+void fixtimestep::ini(fdm* a, lexer* p,ghostcell* pgc)
 {
-    p->dt = p->dt_old = p->N49;
+    p->dt=p->dt_old=p->N49;
 }

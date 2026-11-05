@@ -23,7 +23,7 @@ Author: Hans Bihs
 #ifndef WAVE_LIB_H_
 #define WAVE_LIB_H_
 
-#include <vector>
+#include<vector>
 
 class lexer;
 class fdm;
@@ -35,52 +35,54 @@ using namespace std;
 class wave_lib
 {
 public:
-    virtual double wave_u(lexer *, double, double, double) = 0;
-    virtual double wave_u_space_sin(lexer *, double, double, double, int) = 0;
-    virtual double wave_u_space_cos(lexer *, double, double, double, int) = 0;
-    virtual double wave_u_time_sin(lexer *, int) = 0;
-    virtual double wave_u_time_cos(lexer *, int) = 0;
-
-    virtual double wave_v(lexer *, double, double, double) = 0;
-    virtual double wave_v_space_sin(lexer *, double, double, double, int) = 0;
-    virtual double wave_v_space_cos(lexer *, double, double, double, int) = 0;
-    virtual double wave_v_time_sin(lexer *, int) = 0;
-    virtual double wave_v_time_cos(lexer *, int) = 0;
-
-    virtual double wave_w(lexer *, double, double, double) = 0;
-    virtual double wave_w_space_sin(lexer *, double, double, double, int) = 0;
-    virtual double wave_w_space_cos(lexer *, double, double, double, int) = 0;
-    virtual double wave_w_time_sin(lexer *, int) = 0;
-    virtual double wave_w_time_cos(lexer *, int) = 0;
-
-    virtual double wave_eta(lexer *, double, double) = 0;
-    virtual double wave_eta_space_sin(lexer *, double, double, int) = 0;
-    virtual double wave_eta_space_cos(lexer *, double, double, int) = 0;
-    virtual double wave_eta_time_sin(lexer *, int) = 0;
-    virtual double wave_eta_time_cos(lexer *, int) = 0;
-
-    virtual double wave_fi(lexer *, double, double, double) = 0;
-    virtual double wave_fi_space_sin(lexer *, double, double, double, int) = 0;
-    virtual double wave_fi_space_cos(lexer *, double, double, double, int) = 0;
-    virtual double wave_fi_time_sin(lexer *, int) = 0;
-    virtual double wave_fi_time_cos(lexer *, int) = 0;
-
+    
+    virtual double wave_u(lexer*,double,double,double)=0;
+    virtual double wave_u_space_sin(lexer*,double,double,double,int)=0;
+    virtual double wave_u_space_cos(lexer*,double,double,double,int)=0;
+    virtual double wave_u_time_sin(lexer*,int)=0;
+    virtual double wave_u_time_cos(lexer*,int)=0;
+    
+    virtual double wave_v(lexer*,double,double,double)=0;
+    virtual double wave_v_space_sin(lexer*,double,double,double,int)=0;
+    virtual double wave_v_space_cos(lexer*,double,double,double,int)=0;
+    virtual double wave_v_time_sin(lexer*,int)=0;
+    virtual double wave_v_time_cos(lexer*,int)=0;
+    
+    virtual double wave_w(lexer*,double,double,double)=0;
+    virtual double wave_w_space_sin(lexer*,double,double,double,int)=0;
+    virtual double wave_w_space_cos(lexer*,double,double,double,int)=0;
+    virtual double wave_w_time_sin(lexer*,int)=0;
+    virtual double wave_w_time_cos(lexer*,int)=0;
+    
+    virtual double wave_eta(lexer*,double,double)=0;
+    virtual double wave_eta_space_sin(lexer*,double,double,int)=0;
+    virtual double wave_eta_space_cos(lexer*,double,double,int)=0;
+    virtual double wave_eta_time_sin(lexer*,int)=0;
+    virtual double wave_eta_time_cos(lexer*,int)=0;
+    
+    virtual double wave_fi(lexer*,double,double,double)=0;
+    virtual double wave_fi_space_sin(lexer*,double,double,double,int)=0;
+    virtual double wave_fi_space_cos(lexer*,double,double,double,int)=0;
+    virtual double wave_fi_time_sin(lexer*,int)=0;
+    virtual double wave_fi_time_cos(lexer*,int)=0;
+    
+    
     // second-order moving-paddle BC terms Q = X_z*phi_z - X*phi_xx at x=0
     // for piston/flap wavemakers (z relative to still water level)
-    virtual double wave_paddle_Q(lexer *, double) { return 0.0; }
-
+    virtual double wave_paddle_Q(lexer*,double) {return 0.0;}
+    
     // active absorption at the wavemaker (FNPF B 98 4/7): linear surface elevation of the paddle signal at
     // distance x0 from the paddle (progressive and evanescent modes), the target the computed surface is
     // compared with; wave_arc(): this wave theory provides it
-    virtual double wave_eta_arc(lexer *, double) { return 0.0; }
-    virtual bool wave_arc() { return false; }
+    virtual double wave_eta_arc(lexer*,double) {return 0.0;}
+    virtual bool wave_arc() {return false;}
 
     // one-time set-up of the 2nd-order correction (B113) and moving-paddle terms (B119)
     // for piston/flap wavemakers; depth = still-water depth at the paddle
-    virtual void wavemaker_setup(lexer *, ghostcell *, double) {}
+    virtual void wavemaker_setup(lexer*,ghostcell*,double) {}
 
-    virtual void parameters(lexer *, ghostcell *) = 0;
-    virtual void wave_prestep(lexer *, ghostcell *) = 0;
+    virtual void parameters(lexer*,ghostcell*)=0;
+    virtual void wave_prestep(lexer*,ghostcell*)=0;
 
     // ---- cached-point evaluation ------------------------------------------
     // The relaxation-zone cells are fixed, so iowave registers their
@@ -90,20 +92,20 @@ public:
     // wave_lib_irregular_1st overrides them with precomputed spatial phases.
     // checkpoints (P 48, I 45): the state of the library that carries over to the next step (cached
     // evaluation), local to the rank
-    virtual void ckpt_state(std::vector<double> &) {}
-    virtual void ckpt_restore(const std::vector<double> &, size_t &) {}
+    virtual void ckpt_state(std::vector<double>&) {}
+    virtual void ckpt_restore(const std::vector<double>&, size_t&) {}
 
-    virtual void wave_cache_points(lexer *, const std::vector<double> &x, const std::vector<double> &y)
+    virtual void wave_cache_points(lexer*, const std::vector<double> &x, const std::vector<double> &y)
     {
-        cache_x = x;
-        cache_y = y;
+        cache_x=x;
+        cache_y=y;
     }
 
-    virtual double wave_eta_c(lexer *p, int q) { return wave_eta(p, cache_x[q], cache_y[q]); }
-    virtual double wave_fi_c(lexer *p, int q, double z) { return wave_fi(p, cache_x[q], cache_y[q], z); }
-    virtual double wave_u_c(lexer *p, int q, double z) { return wave_u(p, cache_x[q], cache_y[q], z); }
-    virtual double wave_v_c(lexer *p, int q, double z) { return wave_v(p, cache_x[q], cache_y[q], z); }
-    virtual double wave_w_c(lexer *p, int q, double z) { return wave_w(p, cache_x[q], cache_y[q], z); }
+    virtual double wave_eta_c(lexer *p, int q) {return wave_eta(p,cache_x[q],cache_y[q]);}
+    virtual double wave_fi_c(lexer *p, int q, double z) {return wave_fi(p,cache_x[q],cache_y[q],z);}
+    virtual double wave_u_c(lexer *p, int q, double z) {return wave_u(p,cache_x[q],cache_y[q],z);}
+    virtual double wave_v_c(lexer *p, int q, double z) {return wave_v(p,cache_x[q],cache_y[q],z);}
+    virtual double wave_w_c(lexer *p, int q, double z) {return wave_w(p,cache_x[q],cache_y[q],z);}
 
     virtual void wave_uvw_c(lexer *p, int q, double z, double &u, double &v, double &w);
 
@@ -124,13 +126,13 @@ public:
     //                     to the library's B 105 frame, amplitude factor
     //   wave_depth0/depth construction depth wdt / current h_eff
     //   wave_comp_set, wave_depth_set, then wave_comp_update once to refresh derived data
-    virtual int wave_ncomp() const { return 0; }
+    virtual int wave_ncomp() const {return 0;}
     virtual void wave_comp(int n, double &k, double &omega, double &sigma, double &beta, double &af) const {}
-    virtual double wave_depth0() const { return 0.0; }
+    virtual double wave_depth0() const {return 0.0;}
     // propagation direction (rad, in the wave frame of B 105) of the decomposed component n (B 89 /
     // I 30 2); 0 for unidirectional waves
-    virtual double wave_comp_dir(int n) const { return 0.0; }
-    virtual double wave_depth() const { return 0.0; }
+    virtual double wave_comp_dir(int n) const {return 0.0;}
+    virtual double wave_depth() const {return 0.0;}
     virtual void wave_comp_set(int n, double k, double sigma, double af) {}
     virtual void wave_depth_set(double h) {}
     virtual void wave_comp_update() {}
@@ -138,7 +140,7 @@ public:
     // lexer fields the evaluation reads (iowave redesign, step 2): 0 none (the wave parameters are
     // members, set at construction), 1 only wN and B130 (irregular theories), 2 the whole wave
     // context (default). wave_field swaps a source's context into the lexer only as far as needed.
-    virtual int wave_lexer_fields() const { return 2; }
+    virtual int wave_lexer_fields() const {return 2;}
 
     virtual ~wave_lib() = default;
 

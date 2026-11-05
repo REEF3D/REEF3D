@@ -20,77 +20,76 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "lexer.h"
-#include "position.h"
+#include"position.h"
+#include"lexer.h"
 
 int position::posc_i(double xs)
 {
     // inside the grid: the node interval, without the bisection (same result)
-    if(xs >= p->XN[0 + marge] && xs < p->XN[p->knox + marge])
-        return fast_index(ffci, p->XN, 0, p->knox, xs);
-
-    stop = 0;
-    count = 0;
+    if(xs>=p->XN[0+marge] && xs<p->XN[p->knox+marge])
+    return fast_index(ffci,p->XN,0,p->knox,xs);
+    
+    stop=0;
+    count=0;
 
     is = 0;
-    ie = p->knox + 1;
+    ie = p->knox+1;
 
-    count = 0;
-    do
-    {
-        iloc = ihalf(is, ie);
-
-        if(count % 3 == 0)
-            iloc += 1;
-
+    count=0;
+    do{
+    iloc = ihalf(is,ie);
+    
+    if(count%3==0)
+    iloc+=1;
+    
         // out of bounds
-        if(xs < p->XN[0 + marge])
+        if(xs<p->XN[0+marge])
         {
             ii = -1;
 
-            stop = 1;
-            break;
+         stop=1;
+         break;   
         }
-
+        
         // out of bounds
-        if(xs > p->XN[p->knox + marge])
+        if(xs>p->XN[p->knox+marge])
         {
-            ii = p->knox + 1;
-
-            stop = 1;
-            break;
+            ii = p->knox+1;
+            
+         stop=1;
+         break;   
         }
-
+        
         // matching criterion
-        if(xs < p->XN[iloc + marge] && xs >= p->XN[iloc - 1 + marge] && stop == 0)
+        if(xs<p->XN[iloc+marge] && xs>=p->XN[iloc-1+marge] && stop==0)
         {
-            ii = iloc - 1;
-
-            stop = 1;
-            break;
+            ii = iloc-1;
+            
+         stop=1;
+         break;   
         }
-
-        if(xs >= p->XN[iloc + marge] && xs < p->XN[iloc + 1 + marge] && stop == 0)
+        
+        if(xs>=p->XN[iloc+marge] && xs<p->XN[iloc+1+marge] && stop==0)
         {
             ii = iloc;
-
-            stop = 1;
-            break;
+            
+         stop=1;
+         break;   
         }
-
+        
         // further division
-        if(xs < p->XN[iloc + marge] && xs < p->XN[iloc - 1 + marge])
-            ie = iloc;
-
-        if(xs > p->XN[iloc + marge] && xs > p->XN[iloc + 1 + marge])
-            is = iloc;
-
+        if(xs<p->XN[iloc+marge] && xs<p->XN[iloc-1+marge])
+        ie=iloc;
+        
+        if(xs>p->XN[iloc+marge] && xs>p->XN[iloc+1+marge])
+        is=iloc;
+        
         ++count;
-    }
-    while(stop == 0 && count < 1000);
+    }while(stop==0 && count<1000);
+    
 
-    ii = MAX(ii, -1);
-    ii = MIN(ii, p->knox + 1);
+    ii=MAX(ii,-1);
+    ii=MIN(ii,p->knox+1);
 
     return ii;
 }
@@ -98,154 +97,157 @@ int position::posc_i(double xs)
 int position::posc_j(double ys)
 {
     // inside the grid: the node interval, without the bisection (same result)
-    if(ys >= p->YN[0 + marge] && ys < p->YN[p->knoy + marge])
-        return fast_index(ffcj, p->YN, 0, p->knoy, ys);
-
-    stop = 0;
-
+    if(ys>=p->YN[0+marge] && ys<p->YN[p->knoy+marge])
+    return fast_index(ffcj,p->YN,0,p->knoy,ys);
+    
+    stop=0;
+    
     js = 0;
-    je = p->knoy + 1;
+    je = p->knoy+1;
 
-    count = 0;
-    do
-    {
-        jloc = ihalf(js, je);
-
-        if(count % 3 == 0)
-            jloc += 1;
-
+    count=0;
+    do{
+    jloc = ihalf(js,je);
+    
+    if(count%3==0)
+    jloc+=1;
+        
         // out of bounds
-        if(ys < p->YN[0 + marge])
+        if(ys<p->YN[0+marge])
         {
             jj = -1;
-
-            // cout<<"EXIT 0m"<<endl;
-
-            stop = 1;
-            break;
+            
+            //cout<<"EXIT 0m"<<endl;
+   
+         stop=1;
+         break;   
         }
-
+        
         // out of bounds
-        if(ys > p->YN[p->knoy + marge])
+        if(ys>p->YN[p->knoy+marge])
         {
-            jj = p->knoy + 1;
-
-            // cout<<"EXIT 0p"<<endl;
-
-            stop = 1;
-            break;
+            jj = p->knoy+1;
+            
+            //cout<<"EXIT 0p"<<endl;
+   
+         stop=1;
+         break;   
         }
-
+        
         // matching criterion
-        if(ys < p->YN[jloc + marge] && ys >= p->YN[jloc - 1 + marge] && stop == 0)
+        if(ys<p->YN[jloc+marge] && ys>=p->YN[jloc-1+marge] && stop==0)
         {
-            jj = jloc - 1;
-
-            stop = 1;
-            break;
+            jj = jloc-1;
+            
+    
+         stop=1;
+         break;   
         }
-
-        if(ys >= p->YN[jloc + marge] && ys < p->YN[jloc + 1 + marge] && stop == 0)
+        
+        if(ys>=p->YN[jloc+marge] && ys<p->YN[jloc+1+marge] && stop==0)
         {
             jj = jloc;
-
-            // cout<<"EXIT 2"<<endl;
-
-            stop = 1;
-            break;
+            
+            //cout<<"EXIT 2"<<endl;
+   
+         stop=1;
+         break;   
         }
-
+        
+        
         // further divjsion
-        if(ys < p->YN[jloc + marge] && ys < p->YN[jloc - 1 + marge])
-            je = jloc;
-
-        if(ys > p->YN[jloc + marge] && ys > p->YN[jloc + 1 + marge])
-            js = jloc;
-
+        if(ys<p->YN[jloc+marge] && ys<p->YN[jloc-1+marge])
+        je=jloc;
+        
+        if(ys>p->YN[jloc+marge] && ys>p->YN[jloc+1+marge])
+        js=jloc;
+        
+        
         ++count;
-    }
-    while(stop == 0 && count < 1000);
-
-    jj = MAX(jj, -1);
-    jj = MIN(jj, p->knoy + 1);
-
+    }while(stop==0 && count<1000);
+    
+    jj=MAX(jj,-1);
+    jj=MIN(jj,p->knoy+1);
+    
     return jj;
 }
 
 int position::posc_k(double zs)
 {
     // inside the grid: the node interval, without the bisection (same result)
-    if(zs >= p->ZN[0 + marge] && zs < p->ZN[p->knoz + marge])
-        return fast_index(ffck, p->ZN, 0, p->knoz, zs);
-
-    stop = 0;
-
+    if(zs>=p->ZN[0+marge] && zs<p->ZN[p->knoz+marge])
+    return fast_index(ffck,p->ZN,0,p->knoz,zs);
+    
+    stop=0;
+    
     ks = 0;
-    ke = p->knoz + 1;
+    ke = p->knoz+1;
 
-    count = 0;
-    do
-    {
-        kloc = ihalf(ks, ke);
-
-        if(count % 3 == 0)
-            kloc += 1;
-
+    count=0;
+    do{
+    kloc = ihalf(ks,ke);
+    
+    
+    if(count%3==0)
+    kloc+=1;
+        
         // out of bounds
-        if(zs < p->ZN[0 + marge])
+        if(zs<p->ZN[0+marge])
         {
             kk = -1;
-
-            // cout<<"EXIT 0m"<<endl;
-
-            stop = 1;
-            break;
+            
+            //cout<<"EXIT 0m"<<endl;
+   
+         stop=1;
+         break;   
         }
-
+        
         // out of bounds
-        if(zs > p->ZN[p->knoz + marge])
+        if(zs>p->ZN[p->knoz+marge])
         {
-            kk = p->knoz + 1;
-
-            // cout<<"EXIT 0p"<<endl;
-
-            stop = 1;
-            break;
+            kk = p->knoz+1;
+            
+            //cout<<"EXIT 0p"<<endl;
+   
+         stop=1;
+         break;   
         }
-
+        
         // matching criterion
-        if(zs < p->ZN[kloc + marge] && zs >= p->ZN[kloc - 1 + marge] && stop == 0)
+        if(zs<p->ZN[kloc+marge] && zs>=p->ZN[kloc-1+marge] && stop==0)
         {
-            kk = kloc - 1;
-
-            stop = 1;
-            break;
+            kk = kloc-1;
+            
+         stop=1;
+         break;   
         }
-
-        if(zs >= p->ZN[kloc + marge] && zs < p->ZN[kloc + 1 + marge] && stop == 0)
+        
+        if(zs>=p->ZN[kloc+marge] && zs<p->ZN[kloc+1+marge] && stop==0)
         {
             kk = kloc;
-
-            // cout<<"EXIT 2"<<endl;
-
-            stop = 1;
-            break;
+            
+            //cout<<"EXIT 2"<<endl;
+   
+         stop=1;
+         break;   
         }
-
+        
         // further divksion
-        if(zs < p->ZN[kloc + marge] && zs < p->ZN[kloc - 1 + marge])
-            ke = kloc;
-
-        if(zs > p->ZN[kloc + marge] && zs > p->ZN[kloc + 1 + marge])
-            ks = kloc;
-
+        if(zs<p->ZN[kloc+marge] && zs<p->ZN[kloc-1+marge])
+        ke=kloc;
+        
+        if(zs>p->ZN[kloc+marge] && zs>p->ZN[kloc+1+marge])
+        ks=kloc;
+        
+        
         ++count;
-    }
-    while(stop == 0 && count < 1000);
-
-    kk = MAX(kk, -1);
-    kk = MIN(kk, p->knoz + 1);
-
+    }while(stop==0 && count<1000);
+    
+    kk=MAX(kk,-1);
+    kk=MIN(kk,p->knoz+1);
+   
     return kk;
 }
+
+
 

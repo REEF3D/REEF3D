@@ -23,12 +23,12 @@ Author: Hans Bihs
 #ifndef FIELDINT5_H_
 #define FIELDINT5_H_
 
-#include "fieldint.h"
+#include"fieldint.h"
 
 class fieldint5 final : public fieldint
 {
 public:
-    fieldint5(lexer *p, bool allocate = true) : fieldint(p, allocate) {}
+    fieldint5(lexer* p, bool allocate=true) : fieldint(p,allocate) {}
     virtual ~fieldint5() = default;
 };
 

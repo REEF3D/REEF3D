@@ -23,90 +23,92 @@ Author: Hans Bihs
 #ifndef WAVE_LIB_IRREGULAR_1ST_H_
 #define WAVE_LIB_IRREGULAR_1ST_H_
 
-#include "increment.h"
-#include "wave_lib.h"
-#include "wave_lib_parameters.h"
-#include "wave_lib_spectrum.h"
-#include "wave_lib_zgroup.h"
+#include"wave_lib.h"
+#include"wave_lib_parameters.h"
+#include"wave_lib_spectrum.h"
+#include"increment.h"
+#include"wave_lib_zgroup.h"
 
 using namespace std;
 
-class wave_lib_irregular_1st final : public wave_lib, public wave_lib_parameters, public wave_lib_spectrum, public increment
+class wave_lib_irregular_1st final : public wave_lib, public wave_lib_parameters, public wave_lib_spectrum,
+                               public increment
 {
 public:
     void ckpt_state(std::vector<double> &v) override { zg.state(v); }
-    void ckpt_restore(const std::vector<double> &v, size_t &k) override { zg.restore(v, k); }
-    int wave_lexer_fields() const override { return 0; }
-    wave_lib_irregular_1st(lexer *, ghostcell *);
-    virtual ~wave_lib_irregular_1st();
-
-    double wave_horzvel(lexer *, double, double, double);
-
+    void ckpt_restore(const std::vector<double> &v, size_t &k) override { zg.restore(v,k); }
+    int wave_lexer_fields() const override {return 0;}
+    wave_lib_irregular_1st(lexer*, ghostcell*);
+	virtual ~wave_lib_irregular_1st();
+    
+    double wave_horzvel(lexer*,double,double,double);
+    
     // cached-point evaluation (see wave_lib.h): spatial phases per cell and
     // component precomputed, time phases per step, cosh/sinh via one exp
-    void wave_cache_points(lexer *, const std::vector<double> &, const std::vector<double> &) override final;
-    double wave_eta_c(lexer *, int) override final;
-    double wave_fi_c(lexer *, int, double) override final;
-    double wave_u_c(lexer *, int, double) override final;
-    double wave_v_c(lexer *, int, double) override final;
-    double wave_w_c(lexer *, int, double) override final;
-    void wave_uvw_c(lexer *, int, double, double &, double &, double &) override final;
-    void wave_eta_series(lexer *, double, double, const std::vector<double> &, std::vector<double> &) override final;
+    void wave_cache_points(lexer*, const std::vector<double>&, const std::vector<double>&) override final;
+    double wave_eta_c(lexer*, int) override final;
+    double wave_fi_c(lexer*, int, double) override final;
+    double wave_u_c(lexer*, int, double) override final;
+    double wave_v_c(lexer*, int, double) override final;
+    double wave_w_c(lexer*, int, double) override final;
+    void wave_uvw_c(lexer*, int, double, double&, double&, double&) override final;
+    void wave_eta_series(lexer*, double, double, const std::vector<double>&, std::vector<double>&) override final;
 
-    double wave_u(lexer *, double, double, double) override final;
-    double wave_u_space_sin(lexer *, double, double, double, int) override final;
-    double wave_u_space_cos(lexer *, double, double, double, int) override final;
-    double wave_u_time_sin(lexer *, int) override final;
-    double wave_u_time_cos(lexer *, int) override final;
-
-    double wave_v(lexer *, double, double, double) override final;
-    double wave_v_space_sin(lexer *, double, double, double, int) override final;
-    double wave_v_space_cos(lexer *, double, double, double, int) override final;
-    double wave_v_time_sin(lexer *, int) override final;
-    double wave_v_time_cos(lexer *, int) override final;
-
-    double wave_w(lexer *, double, double, double) override final;
-    double wave_w_space_sin(lexer *, double, double, double, int) override final;
-    double wave_w_space_cos(lexer *, double, double, double, int) override final;
-    double wave_w_time_sin(lexer *, int) override final;
-    double wave_w_time_cos(lexer *, int) override final;
-
-    double wave_eta(lexer *, double, double) override final;
-    double wave_eta_space_sin(lexer *, double, double, int) override final;
-    double wave_eta_space_cos(lexer *, double, double, int) override final;
-    double wave_eta_time_sin(lexer *, int) override final;
-    double wave_eta_time_cos(lexer *, int) override final;
-
-    double wave_fi(lexer *, double, double, double) override final;
-    double wave_fi_space_sin(lexer *, double, double, double, int) override final;
-    double wave_fi_space_cos(lexer *, double, double, double, int) override final;
-    double wave_fi_time_sin(lexer *, int) override final;
-    double wave_fi_time_cos(lexer *, int) override final;
-
-    void parameters(lexer *, ghostcell *) override final;
-    void wave_prestep(lexer *, ghostcell *) override final;
-
+    double wave_u(lexer*,double,double,double) override final;
+    double wave_u_space_sin(lexer*,double,double,double,int) override final;
+    double wave_u_space_cos(lexer*,double,double,double,int) override final;
+    double wave_u_time_sin(lexer*,int) override final;
+    double wave_u_time_cos(lexer*,int) override final;
+    
+    double wave_v(lexer*,double,double,double) override final;
+    double wave_v_space_sin(lexer*,double,double,double,int) override final;
+    double wave_v_space_cos(lexer*,double,double,double,int) override final;
+    double wave_v_time_sin(lexer*,int) override final;
+    double wave_v_time_cos(lexer*,int) override final;
+    
+    double wave_w(lexer*,double,double,double) override final;
+    double wave_w_space_sin(lexer*,double,double,double,int) override final;
+    double wave_w_space_cos(lexer*,double,double,double,int) override final;
+    double wave_w_time_sin(lexer*,int) override final;
+    double wave_w_time_cos(lexer*,int) override final;
+    
+    double wave_eta(lexer*,double,double) override final;
+    double wave_eta_space_sin(lexer*,double,double,int) override final;
+    double wave_eta_space_cos(lexer*,double,double,int) override final;
+    double wave_eta_time_sin(lexer*,int) override final;
+    double wave_eta_time_cos(lexer*,int) override final;
+    
+    double wave_fi(lexer*,double,double,double) override final;
+    double wave_fi_space_sin(lexer*,double,double,double,int) override final;
+    double wave_fi_space_cos(lexer*,double,double,double,int) override final;
+    double wave_fi_time_sin(lexer*,int) override final;
+    double wave_fi_time_cos(lexer*,int) override final;
+    
+    
+    void parameters(lexer*,ghostcell*) override final;
+    void wave_prestep(lexer*,ghostcell*) override final;
+    
     // waves on a background (iowave B 530, see wave_lib.h): irregular waves from a spectrum (B 92 31)
-    int wave_ncomp() const override final { return bg_ok ? bg_n : 0; }
-    void wave_comp(int, double &, double &, double &, double &, double &) const override final;
-    double wave_depth0() const override final { return wdt; }
+    int wave_ncomp() const override final {return bg_ok ? bg_n : 0;}
+    void wave_comp(int, double&, double&, double&, double&, double&) const override final;
+    double wave_depth0() const override final {return wdt;}
     double wave_comp_dir(int n) const override final;
-    double wave_depth() const override final { return bg_h; }
+    double wave_depth() const override final {return bg_h;}
     void wave_comp_set(int, double, double, double) override final;
     void wave_depth_set(double) override final;
     void wave_comp_update() override final;
-
+    
 private:
-    double singamma, cosgamma;
-    double T, vel, eta, fi;
-
+    double singamma,cosgamma;    
+    double T,vel,eta,fi;
+    
     double *sinhkd;
 
     // cached-point data
-    void cache_time(lexer *);
-    double eta_c(int);  // eta, the potential and u, v, w of cached point q at cache_t
+    void cache_time(lexer*);
+    double eta_c(int);                          // eta, the potential and u, v, w of cached point q at cache_t
     double fi_c(int, double);
-    void uvw_c(int, double, bool, double &, double &, double &);
+    void uvw_c(int, double, bool, double&, double&, double&);
     std::vector<float> cS, sS;                  // cos/sin of the spatial phase, [q*wN+n]; float: the cache holds
                                                 // points x components (1024 components on 2e5 generation columns: 1.8 GB less)
     std::vector<double> cT, sT;                 // cos/sin of the time phase, [n]
@@ -115,28 +117,28 @@ private:
     // distinct wave numbers: components of the same frequency in a directional sea share
     // the vertical profile, so exp(k z) is evaluated once per distinct k (results bitwise equal)
     void group_k();
-    void vertical_c(double z, const double *&, const double *&);
-    std::vector<int> iu;                // component -> distinct k, [n]
-    std::vector<double> uK, uem, uinv;  // distinct k, its exp(-2 k d) and 1/(1-exp(-2 k d))
-    std::vector<double> uch, ush;       // cosh / sinh ratios at the current z, [distinct k]
-    std::vector<double> chm, shm;       // ... per component (unless u_id)
-    double uKmax = 0.0;                 // largest distinct k
-    bool u_id = false;                  // every component its own k (iu the identity)
-    double cache_t = -1.0e300;
-    std::vector<double> ph_c, ph_s;  // phases of column ph_q at time ph_t (wave_uvw_c)
-    wave_lib_zgroup zg;              // groups of points with the same phases, tables in z
-    int ph_q = -1;
-    double ph_t = -1.0e300;
-    double **fixy, *fin;
-
+    void vertical_c(double z, const double*&, const double*&);
+    std::vector<int> iu;                        // component -> distinct k, [n]
+    std::vector<double> uK, uem, uinv;          // distinct k, its exp(-2 k d) and 1/(1-exp(-2 k d))
+    std::vector<double> uch, ush;               // cosh / sinh ratios at the current z, [distinct k]
+    std::vector<double> chm, shm;               // ... per component (unless u_id)
+    double uKmax=0.0;                           // largest distinct k
+    bool u_id=false;                            // every component its own k (iu the identity)
+    double cache_t=-1.0e300;
+    std::vector<double> ph_c, ph_s;             // phases of column ph_q at time ph_t (wave_uvw_c)
+    wave_lib_zgroup zg;                         // groups of points with the same phases, tables in z
+    int ph_q=-1;
+    double ph_t=-1.0e300;
+    double **fixy,*fin;
+    
     // B 530 state: the orbital velocities use sigma through sinhkd = sinh(k h_eff) omega/sigma
     // and the cached amplitudes; Ai = Ai0 * amplitude factor
-    bool bg_ok = false, bg_dirty = false, bg_used = false;
-    int bg_n = 0;
-    double bg_h = 0.0;
+    bool bg_ok=false, bg_dirty=false, bg_used=false;
+    int bg_n=0;
+    double bg_h=0.0;
     std::vector<double> bg_Ai0, bg_si, bg_af;
-
-    int Nw = 0, B130v = 0;  // p->wN, p->B130 at construction
+    
+    int Nw=0, B130v=0;   // p->wN, p->B130 at construction
 };
 
 #endif

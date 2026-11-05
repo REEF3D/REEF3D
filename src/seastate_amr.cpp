@@ -20,51 +20,53 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "seastate_amr.h"
-#include "fdm_seastate.h"
-#include "ghostcell.h"
-#include "lexer.h"
-#include "met_provider.h"
-#include "reef3d_mpmd.h"
-#include "reefckpt.h"
-#include "seastate_bathy.h"
-#include "seastate_exchange.h"
-#include "seastate_forcing.h"
-#include "seastate_grid.h"
-#include "seastate_obstacle.h"
-#include "seastate_param.h"
-#include "seastate_source.h"
-#include "seastate_store.h"
-#include "slice4.h"
-#include "sliceint4.h"
-#include <algorithm>
-#include <atomic>
-#include <cmath>
-#include <cstdint>
-#include <iomanip>
-#include <iostream>
-#include <mpi.h>
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <thread>
-#include <unordered_set>
 
-namespace {
+#include"seastate_amr.h"
+#include"reef3d_mpmd.h"
+#include"seastate_grid.h"
+#include"seastate_store.h"
+#include"seastate_param.h"
+#include"seastate_exchange.h"
+#include"seastate_source.h"
+#include"seastate_bathy.h"
+#include"seastate_forcing.h"
+#include"met_provider.h"
+#include"seastate_obstacle.h"
+#include"fdm_seastate.h"
+#include"slice4.h"
+#include"sliceint4.h"
+#include"lexer.h"
+#include"ghostcell.h"
+#include"reefckpt.h"
+#include<algorithm>
+#include<atomic>
+#include<cmath>
+#include<cstdint>
+#include<thread>
+#include<unordered_set>
+#include<iostream>
+#include<iomanip>
+#include<mpi.h>
+#include<sys/stat.h>
+#include<sys/types.h>
+
+namespace
+{
 // floor(a/2^l) for negative a as well
-inline int fsh(int a, int l) { return (a >= 0) ? (a >> l) : -(((-a) - 1) >> l) - 1; }
+inline int fsh(int a, int l) { return (a>=0) ? (a>>l) : -(((-a)-1)>>l)-1; }
 
 inline double mmod(double a, double b)
 {
-    if(a * b <= 0.0)
-        return 0.0;
-    return (std::fabs(a) < std::fabs(b)) ? a : b;
+    if(a*b<=0.0)
+    return 0.0;
+    return (std::fabs(a)<std::fabs(b)) ? a : b;
 }
-}  // namespace
+}
 
-seastate_amr::seastate_amr(lexer *p, ghostcell *pgc) : reefamr(p, pgc), p0(p), nbin(0), nsig(0), fills(0), sweeps(0)
+seastate_amr::seastate_amr(lexer *p, ghostcell *pgc) : reefamr(p,pgc), p0(p), nbin(0), nsig(0), fills(0), sweeps(0)
 {
-    L0 = level0{nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, 0.0};
-    tm[0] = tm[1] = tm[2] = tm[3] = 0.0;
+    L0 = level0{nullptr,nullptr,nullptr,nullptr,nullptr,nullptr,nullptr,0.0};
+    tm[0]=tm[1]=tm[2]=tm[3]=0.0;
 }
 
 seastate_amr::~seastate_amr()
@@ -77,19 +79,19 @@ seastate_amr::~seastate_amr()
     delete fasC;
 }
 
-fdm_seastate *seastate_amr::gfd(int g)
+fdm_seastate* seastate_amr::gfd(int g)
 {
-    return (g < 0) ? L0.e : SP(g)->e;
+    return (g<0) ? L0.e : SP(g)->e;
 }
 
 int seastate_amr::level0_covered(int ii, int jj) const
 {
-    return (cov0 != nullptr) ? (*cov0)(ii, jj) : 0;
+    return (cov0!=nullptr) ? (*cov0)(ii,jj) : 0;
 }
 
-sliceint4 *seastate_amr::gcov(int g)
+sliceint4* seastate_amr::gcov(int g)
 {
-    return (g < 0) ? cov0 : SP(g)->cov;
+    return (g<0) ? cov0 : SP(g)->cov;
 }
 
 // --------------------------------------------------------------------- set-up
@@ -98,7 +100,7 @@ void seastate_amr::ini(lexer *p, ghostcell *pgc, const level0 &l0)
     L0 = l0;
     nbin = L0.e->grid->nbin;
     nsig = L0.e->grid->nsig;
-    zero.assign(nbin, 0.0f);
+    zero.assign(nbin,0.0f);
 
     reefamr_param q;
     q.name = "SEASTATE AMR";
@@ -111,154 +113,141 @@ void seastate_amr::ini(lexer *p, ghostcell *pgc, const level0 &l0)
     q.ext = 1;
     q.ioband = 0;
 
-    for(int n = 0; n < p->G10; ++n)
+    for(int n=0; n<p->G10; ++n)
     {
-        q.rbox.push_back(p->G10_xs[n]);
-        q.rbox.push_back(p->G10_xe[n]);
-        q.rbox.push_back(p->G10_ys[n]);
-        q.rbox.push_back(p->G10_ye[n]);
+    q.rbox.push_back(p->G10_xs[n]); q.rbox.push_back(p->G10_xe[n]);
+    q.rbox.push_back(p->G10_ys[n]); q.rbox.push_back(p->G10_ye[n]);
     }
 
-    for(int n = 0; n < p->G11; ++n)
+    for(int n=0; n<p->G11; ++n)
     {
-        q.fbox.push_back(p->G11_xs[n]);
-        q.fbox.push_back(p->G11_xe[n]);
-        q.fbox.push_back(p->G11_ys[n]);
-        q.fbox.push_back(p->G11_ye[n]);
+    q.fbox.push_back(p->G11_xs[n]); q.fbox.push_back(p->G11_xe[n]);
+    q.fbox.push_back(p->G11_ys[n]); q.fbox.push_back(p->G11_ye[n]);
     }
 
     // no refinement next to the sides with boundary spectra or zero gradient (forcing on level 0)
-    const double band = double(p->A794) * p->DXM;
+    const double band = double(p->A794)*p->DXM;
     const double xa = p->global_xmin, xb = p->global_xmax, ya = p->global_ymin, yb = p->global_ymax;
-    const double big = 1.0e-6 * (xb - xa + yb - ya);
-    const int sd[4] = {p->A712_xm, p->A712_xp, p->A712_ym, p->A712_yp};
+    const double big = 1.0e-6*(xb-xa+yb-ya);
+    const int sd[4] = {p->A712_xm,p->A712_xp,p->A712_ym,p->A712_yp};
 
-    if(band > 0.0)
-        for(int s = 0; s < 4; ++s)
-            if(sd[s] != 0)
-            {
-                double b[4] = {xa - big, xb + big, ya - big, yb + big};
-                if(s == 0)
-                    b[1] = xa + band;
-                if(s == 1)
-                    b[0] = xb - band;
-                if(s == 2)
-                    b[3] = ya + band;
-                if(s == 3)
-                    b[2] = yb - band;
-                for(int k = 0; k < 4; ++k)
-                    q.fbox.push_back(b[k]);
-            }
+    if(band>0.0)
+    for(int s=0; s<4; ++s)
+    if(sd[s]!=0)
+    {
+    double b[4] = {xa-big,xb+big,ya-big,yb+big};
+    if(s==0) b[1] = xa+band;
+    if(s==1) b[0] = xb-band;
+    if(s==2) b[3] = ya+band;
+    if(s==3) b[2] = yb-band;
+    for(int k=0; k<4; ++k)
+    q.fbox.push_back(b[k]);
+    }
 
     configure(q);
 
-    if(maxlev < 1)
-        return;
+    if(maxlev<1)
+    return;
 
-    setup(p, pgc);
+    setup(p,pgc);
 
     // level-0 bed of the whole domain (static), for the interpolated bed of the patches
     {
-        vector<double> mine;
-        SLICELOOP4
-        {
-            mine.push_back(double(i + p->origin_i));
-            mine.push_back(double(j + p->origin_j));
-            mine.push_back(L0.e->bed(i, j));
-            mine.push_back(double(L0.e->wet(i, j)));
-        }
+    vector<double> mine;
+    SLICELOOP4
+    {
+    mine.push_back(double(i+p->origin_i));
+    mine.push_back(double(j+p->origin_j));
+    mine.push_back(L0.e->bed(i,j));
+    mine.push_back(double(L0.e->wet(i,j)));
+    }
 
-        const int np = p->mpi_size;
-        int nm = int(mine.size());
-        vector<int> cnt(np), off(np);
-        MPI_Allgather(&nm, 1, MPI_INT, cnt.data(), 1, MPI_INT, reef3d_comm());
-        int tot = 0;
-        for(int r = 0; r < np; ++r)
-        {
-            off[r] = tot;
-            tot += cnt[r];
-        }
-        vector<double> all(std::max(tot, 1));
-        MPI_Allgatherv(mine.data(), nm, MPI_DOUBLE, all.data(), cnt.data(), off.data(), MPI_DOUBLE, reef3d_comm());
+    const int np = p->mpi_size;
+    int nm = int(mine.size());
+    vector<int> cnt(np), off(np);
+    MPI_Allgather(&nm,1,MPI_INT,cnt.data(),1,MPI_INT,reef3d_comm());
+    int tot=0;
+    for(int r=0; r<np; ++r) {off[r]=tot; tot+=cnt[r];}
+    vector<double> all(std::max(tot,1));
+    MPI_Allgatherv(mine.data(),nm,MPI_DOUBLE,all.data(),cnt.data(),off.data(),MPI_DOUBLE,reef3d_comm());
 
-        bed0.assign(size_t(GNX) * GNY, 0.0);
-        vector<unsigned char> wet0(size_t(GNX) * GNY, 0);
-        for(int k = 0; k + 3 < tot; k += 4)
-        {
-            bed0[size_t(all[k]) * GNY + size_t(all[k + 1])] = all[k + 2];
-            wet0[size_t(all[k]) * GNY + size_t(all[k + 1])] = all[k + 3] > 0.5 ? 1 : 0;
-        }
+    bed0.assign(size_t(GNX)*GNY,0.0);
+    vector<unsigned char> wet0(size_t(GNX)*GNY,0);
+    for(int k=0; k+3<tot; k+=4)
+    {
+    bed0[size_t(all[k])*GNY + size_t(all[k+1])] = all[k+2];
+    wet0[size_t(all[k])*GNY + size_t(all[k+1])] = all[k+3]>0.5 ? 1 : 0;
+    }
 
-        // water width (A 762): the shortest wet run through each level-0 cell along x, y and the two diagonals
-        if(p->A762 > 0)
-            water_width(wet0, p->DXM, p->DXM);
+    // water width (A 762): the shortest wet run through each level-0 cell along x, y and the two diagonals
+    if(p->A762>0)
+    water_width(wet0,p->DXM,p->DXM);
     }
 
     cov0 = new sliceint4(p);
 
-    mkdir("./REEF3D_SEASTATE_AMR", 0777);
+    mkdir("./REEF3D_SEASTATE_AMR",0777);
 
     // initial hierarchy: every pass can add one level
-    for(int it = 0; it < maxlev; ++it)
-        regrid(p, pgc, true);
+    for(int it=0; it<maxlev; ++it)
+    regrid(p,pgc,true);
 
-    if(p->mpirank == 0)
+    if(p->mpirank==0)
     {
-        cout << "SEASTATE AMR: " << maxlev << " level(s), " << patches_total << " patch(es), " << cells_total << " refined cells";
-        for(int l = 1; l <= maxlev; ++l)
-            cout << (l == 1 ? " (" : ", ") << "level " << l << ": " << nlevg[l];
-        cout << (maxlev > 0 ? ")" : "") << endl;
+    cout<<"SEASTATE AMR: "<<maxlev<<" level(s), "<<patches_total<<" patch(es), "<<cells_total<<" refined cells";
+    for(int l=1; l<=maxlev; ++l)
+    cout<<(l==1 ? " (" : ", ")<<"level "<<l<<": "<<nlevg[l];
+    cout<<(maxlev>0 ? ")" : "")<<endl;
 
-        if(reefckpt_open(logout, "./REEF3D_SEASTATE_AMR/REEF3D_SEASTATE_AMR_log.dat", p->I45))
-            logout << "# count \t simtime \t patches \t refined cells \t active leaf cells \t iterations \t time sweeps level 0 [s] \t time patches [s] \t time fills [s] \t time restriction [s]" << endl;
+    if(reefckpt_open(logout,"./REEF3D_SEASTATE_AMR/REEF3D_SEASTATE_AMR_log.dat",p->I45))
+    logout<<"# count \t simtime \t patches \t refined cells \t active leaf cells \t iterations \t time sweeps level 0 [s] \t time patches [s] \t time fills [s] \t time restriction [s]"<<endl;
     }
 
     // memory
-    double mb = 0.0, act = 0.0;
+    double mb=0.0, act=0.0;
     for(auto c : P)
     {
-        mb += double(SP(c)->e->N->bytes() + SP(c)->e->kw->bytes() + SP(c)->e->cg->bytes());
-        if(SP(c)->N0 != nullptr)
-            mb += double(SP(c)->N0->bytes());
-        for(int ii = EXT; ii < EXT + c->nx; ++ii)
-            for(int jj = EXT; jj < EXT + c->ny; ++jj)
-                if(SP(c)->e->wet(ii, jj) == 1 && (*SP(c)->cov)(ii, jj) == 0)
-                    act += 1.0;
+    mb += double(SP(c)->e->N->bytes() + SP(c)->e->kw->bytes() + SP(c)->e->cg->bytes());
+    if(SP(c)->N0!=nullptr)
+    mb += double(SP(c)->N0->bytes());
+    for(int ii=EXT; ii<EXT+c->nx; ++ii)
+    for(int jj=EXT; jj<EXT+c->ny; ++jj)
+    if(SP(c)->e->wet(ii,jj)==1 && (*SP(c)->cov)(ii,jj)==0)
+    act += 1.0;
     }
-    mb = pgc->globalsum(mb) / 1048576.0;
+    mb = pgc->globalsum(mb)/1048576.0;
     act = pgc->globalsum(act);
 
     dag_report();
 
     // Phase 16: the faces taken by cells next to a covered cell of another patch or rank
-    double nloc = 0.0, nrem = 0.0, n0 = 0.0;
-    for(size_t id = 0; id < rlinks.size(); ++id)
-        nloc += double(rlinks[id].size());
+    double nloc=0.0, nrem=0.0, n0=0.0;
+    for(size_t id=0; id<rlinks.size(); ++id)
+    nloc += double(rlinks[id].size());
     for(const ring_plan &R : rplan)
-        nrem += double(R.dst.size());
-    for(int s = 0; s < 4; ++s)
-        n0 += double(rface_recv[s].size() / 2);
+    nrem += double(R.dst.size());
+    for(int s=0; s<4; ++s)
+    n0 += double(rface_recv[s].size()/2);
     nloc = pgc->globalsum(nloc);
     nrem = pgc->globalsum(nrem);
     n0 = pgc->globalsum(n0);
-    if(p->mpirank == 0 && nloc + nrem + n0 > 0.0)
-        cout << "SEASTATE AMR: faces of covered cells next to other patches: " << long(nloc) << " on the rank, " << long(nrem)
-             << " from other ranks; next to the level-0 halo: " << long(n0) << endl;
+    if(p->mpirank==0 && nloc+nrem+n0>0.0)
+    cout<<"SEASTATE AMR: faces of covered cells next to other patches: "<<long(nloc)<<" on the rank, "<<long(nrem)
+        <<" from other ranks; next to the level-0 halo: "<<long(n0)<<endl;
 
-    if(p->mpirank == 0)
-        cout << "SEASTATE AMR: active leaf cells on the patches " << long(act) << ", memory of the patches " << fixed << setprecision(1) << mb << " MB" << endl
-             << endl;
+    if(p->mpirank==0)
+    cout<<"SEASTATE AMR: active leaf cells on the patches "<<long(act)<<", memory of the patches "<<fixed<<setprecision(1)<<mb<<" MB"<<endl<<endl;
     cout.unsetf(ios::floatfield);
-    cout << setprecision(6);
+    cout<<setprecision(6);
 }
 
-reefamr_patch *seastate_amr::patch_new()
+reefamr_patch* seastate_amr::patch_new()
 {
     return new seastate_amr_patch;
 }
 
 // the SEASTATE objects of a patch are built in regrid_static, when the hierarchy is known
-void seastate_amr::patch_objects(reefamr_patch *, ghostcell *)
+void seastate_amr::patch_objects(reefamr_patch*, ghostcell*)
 {
 }
 
@@ -289,12 +278,12 @@ void seastate_amr::patch_delete(reefamr_patch *q)
     c->dca = c->dcax = c->dcay = nullptr;
     c->dS = c->dT = c->dK = c->dC = c->dE = c->vN = nullptr;
 
-    if(c->e != nullptr)
+    if(c->e!=nullptr)
     {
-        delete c->e->N;
-        delete c->e->kw;
-        delete c->e->cg;
-        delete c->e;
+    delete c->e->N;
+    delete c->e->kw;
+    delete c->e->cg;
+    delete c->e;
     }
 
     c->e = nullptr;
@@ -308,35 +297,34 @@ void seastate_amr::patch_delete(reefamr_patch *q)
 // level-l bed: level 0 from the grid, finer levels limited linear from the parent (as SFLOW AMR)
 double seastate_amr::bed_at(int l, int I, int J)
 {
-    if(l == 0)
+    if(l==0)
     {
-        I = std::max(std::min(I, GNX - 1), 0);
-        J = std::max(std::min(J, GNY - 1), 0);
-        return bed0[size_t(I) * GNY + J];
+    I = std::max(std::min(I,GNX-1),0);
+    J = std::max(std::min(J,GNY-1),0);
+    return bed0[size_t(I)*GNY + J];
     }
 
-    const unsigned long long key = (static_cast<unsigned long long>(l) << 58) ^ (static_cast<unsigned long long>(uint32_t(I + (1 << 28))) << 29) ^ static_cast<unsigned long long>(uint32_t(J + (1 << 28)));
+    const unsigned long long key = (static_cast<unsigned long long>(l)<<58) ^ (static_cast<unsigned long long>(uint32_t(I+(1<<28)))<<29) ^ static_cast<unsigned long long>(uint32_t(J+(1<<28)));
     auto it = bedmemo.find(key);
-    if(it != bedmemo.end())
-        return it->second;
+    if(it!=bedmemo.end())
+    return it->second;
 
-    const int Ic = fsh(I, 1), Jc = fsh(J, 1);
-    const double bc = bed_at(l - 1, Ic, Jc);
-    const int lc = l - 1;
-    const int nxc = GNX << lc, nyc = GNY << lc;
+    const int Ic = fsh(I,1), Jc = fsh(J,1);
+    const double bc = bed_at(l-1,Ic,Jc);
+    const int lc = l-1;
+    const int nxc = GNX<<lc, nyc = GNY<<lc;
 
-    auto inside = [&](int a, int d)
-    { return a >= 0 && a < nxc && d >= 0 && d < nyc && flag0(fsh(a, lc), fsh(d, lc)) > 0; };
+    auto inside = [&](int a, int d) {return a>=0 && a<nxc && d>=0 && d<nyc && flag0(fsh(a,lc),fsh(d,lc))>0;};
 
-    double sx = 0.0, sy = 0.0;
-    if(inside(Ic, Jc) && inside(Ic + 1, Jc) && inside(Ic - 1, Jc))
-        sx = mmod(bed_at(lc, Ic + 1, Jc) - bc, bc - bed_at(lc, Ic - 1, Jc));
-    if(inside(Ic, Jc) && inside(Ic, Jc + 1) && inside(Ic, Jc - 1))
-        sy = mmod(bed_at(lc, Ic, Jc + 1) - bc, bc - bed_at(lc, Ic, Jc - 1));
+    double sx=0.0, sy=0.0;
+    if(inside(Ic,Jc) && inside(Ic+1,Jc) && inside(Ic-1,Jc))
+    sx = mmod(bed_at(lc,Ic+1,Jc)-bc, bc-bed_at(lc,Ic-1,Jc));
+    if(inside(Ic,Jc) && inside(Ic,Jc+1) && inside(Ic,Jc-1))
+    sy = mmod(bed_at(lc,Ic,Jc+1)-bc, bc-bed_at(lc,Ic,Jc-1));
 
-    const double ox = (I - 2 * Ic == 0) ? -0.25 : 0.25;
-    const double oy = (J - 2 * Jc == 0) ? -0.25 : 0.25;
-    const double r = bc + sx * ox + sy * oy;
+    const double ox = (I-2*Ic==0) ? -0.25 : 0.25;
+    const double oy = (J-2*Jc==0) ? -0.25 : 0.25;
+    const double r = bc + sx*ox + sy*oy;
     bedmemo[key] = r;
     return r;
 }
@@ -346,40 +334,40 @@ void seastate_amr::environment(seastate_amr_patch &c)
     lexer *pp = c.pp;
     fdm_seastate *e = c.e;
     const int l = c.lev;
-    const int gnx = GNX << l, gny = GNY << l;
+    const int gnx = GNX<<l, gny = GNY<<l;
     const int m = marge;
 
-    for(int ii = pp->imin; ii < pp->imin + pp->imax; ++ii)
-        for(int jj = pp->jmin; jj < pp->jmin + pp->jmax; ++jj)
+    for(int ii=pp->imin; ii<pp->imin+pp->imax; ++ii)
+    for(int jj=pp->jmin; jj<pp->jmin+pp->jmax; ++jj)
+    {
+    const int I = ii-EXT+c.I0, J = jj-EXT+c.J0;
+    const bool inside = I>=0 && I<gnx && J>=0 && J<gny;
+    const int fl = pp->flagslice4[(ii-pp->imin)*pp->jmax + (jj-pp->jmin)];
+
+    double bed;
+    if(L0.bathy!=nullptr)
+    bed = L0.bathy->cell(pp->XN[ii+m],pp->XN[ii+1+m],pp->YN[jj+m],pp->YN[jj+1+m],p0->wd-p0->A705);
+    else
+    bed = bed_at(l,I,J);
+
+    e->bed(ii,jj) = bed;
+    e->eta(ii,jj) = 0.0;
+    e->U(ii,jj) = 0.0;
+    e->V(ii,jj) = 0.0;
+
+        // prescribed current for stand-alone runs (as seastate_f::environment)
+        if(p0->A720==1)
         {
-            const int I = ii - EXT + c.I0, J = jj - EXT + c.J0;
-            const bool inside = I >= 0 && I < gnx && J >= 0 && J < gny;
-            const int fl = pp->flagslice4[(ii - pp->imin) * pp->jmax + (jj - pp->jmin)];
-
-            double bed;
-            if(L0.bathy != nullptr)
-                bed = L0.bathy->cell(pp->XN[ii + m], pp->XN[ii + 1 + m], pp->YN[jj + m], pp->YN[jj + 1 + m], p0->wd - p0->A705);
-            else
-                bed = bed_at(l, I, J);
-
-            e->bed(ii, jj) = bed;
-            e->eta(ii, jj) = 0.0;
-            e->U(ii, jj) = 0.0;
-            e->V(ii, jj) = 0.0;
-
-            // prescribed current for stand-alone runs (as seastate_f::environment)
-            if(p0->A720 == 1)
-            {
-                const double xs = p0->A721_xs, xe = p0->A721_xe;
-                const double x = pp->XP[ii + m];
-                const double w = (xe > xs) ? std::min(std::max((x - xs) / (xe - xs), 0.0), 1.0) : (x >= xs ? 1.0 : 0.0);
-                e->U(ii, jj) = (1.0 - w) * p0->A721_us + w * p0->A721_ue;
-            }
-
-            e->depth(ii, jj) = (inside && fl > 0) ? std::max(p0->wd - bed, 0.0) : 0.0;
-            e->wet(ii, jj) = (inside && fl > 0 && e->depth(ii, jj) >= p0->A705) ? 1 : 0;
-            e->wet0(ii, jj) = e->wet(ii, jj);
+        const double xs = p0->A721_xs, xe = p0->A721_xe;
+        const double x = pp->XP[ii+m];
+        const double w = (xe>xs) ? std::min(std::max((x-xs)/(xe-xs),0.0),1.0) : (x>=xs ? 1.0 : 0.0);
+        e->U(ii,jj) = (1.0-w)*p0->A721_us + w*p0->A721_ue;
         }
+
+    e->depth(ii,jj) = (inside && fl>0) ? std::max(p0->wd - bed,0.0) : 0.0;
+    e->wet(ii,jj) = (inside && fl>0 && e->depth(ii,jj)>=p0->A705) ? 1 : 0;
+    e->wet0(ii,jj) = e->wet(ii,jj);
+    }
 }
 
 // --------------------------------------------------------------------- refinement criteria
@@ -387,36 +375,36 @@ void seastate_amr::environment(seastate_amr_patch &c)
 // diagonals, in metres (a channel at an angle is measured across by one of the diagonals within a factor 1.08)
 void seastate_amr::water_width(const vector<unsigned char> &wet0, double dx, double dy)
 {
-    width0.assign(size_t(GNX) * GNY, 1.0e30);
-    const double dd = std::sqrt(dx * dx + dy * dy);
-    const int di[4] = {1, 0, 1, 1}, dj[4] = {0, 1, 1, -1};
-    const double len[4] = {dx, dy, dd, dd};
+    width0.assign(size_t(GNX)*GNY,1.0e30);
+    const double dd = std::sqrt(dx*dx+dy*dy);
+    const int di[4] = {1,0,1,1}, dj[4] = {0,1,1,-1};
+    const double len[4] = {dx,dy,dd,dd};
 
-    auto wet = [&](int I, int J)
-    { return I >= 0 && I < GNX && J >= 0 && J < GNY && wet0[size_t(I) * GNY + J] == 1; };
+    auto wet = [&](int I, int J) {return I>=0 && I<GNX && J>=0 && J<GNY && wet0[size_t(I)*GNY+J]==1;};
 
-    for(int k = 0; k < 4; ++k)
-        for(int I = 0; I < GNX; ++I)
-            for(int J = 0; J < GNY; ++J)
-            {
-                // start of a run: wet, and the previous cell along the line is not
-                if(!wet(I, J) || wet(I - di[k], J - dj[k]))
-                    continue;
+    for(int k=0; k<4; ++k)
+    for(int I=0; I<GNX; ++I)
+    for(int J=0; J<GNY; ++J)
+    {
+        // start of a run: wet, and the previous cell along the line is not
+        if(!wet(I,J) || wet(I-di[k],J-dj[k]))
+        continue;
 
-                int n = 0;
-                while(wet(I + n * di[k], J + n * dj[k]))
-                    ++n;
+        int n = 0;
+        while(wet(I+n*di[k],J+n*dj[k]))
+        ++n;
 
-                // runs that reach the edge of the domain continue outside: no limit from them
-                const bool open = (I - di[k] < 0 || I - di[k] >= GNX || J - dj[k] < 0 || J - dj[k] >= GNY) || (I + n * di[k] < 0 || I + n * di[k] >= GNX || J + n * dj[k] < 0 || J + n * dj[k] >= GNY);
-                const double w = open ? 1.0e30 : double(n) * len[k];
+        // runs that reach the edge of the domain continue outside: no limit from them
+        const bool open = (I-di[k]<0 || I-di[k]>=GNX || J-dj[k]<0 || J-dj[k]>=GNY)
+                       || (I+n*di[k]<0 || I+n*di[k]>=GNX || J+n*dj[k]<0 || J+n*dj[k]>=GNY);
+        const double w = open ? 1.0e30 : double(n)*len[k];
 
-                for(int m = 0; m < n; ++m)
-                {
-                    double &v = width0[size_t(I + m * di[k]) * GNY + (J + m * dj[k])];
-                    v = std::min(v, w);
-                }
-            }
+        for(int m=0; m<n; ++m)
+        {
+        double &v = width0[size_t(I+m*di[k])*GNY + (J+m*dj[k])];
+        v = std::min(v,w);
+        }
+    }
 }
 
 void seastate_amr::tag(int l, vector<unsigned char> &M)
@@ -426,239 +414,242 @@ void seastate_amr::tag(int l, vector<unsigned char> &M)
     const double rgr = p0->A793;
     const int nwd = p0->A762;
 
-    if(!(dsh > 0.0) && nco <= 0 && !(rgr > 0.0) && nwd <= 0)
-        return;
+    if(!(dsh>0.0) && nco<=0 && !(rgr>0.0) && nwd<=0)
+    return;
 
     // cell size of level l
-    const double dxl = p0->DXM / double(1 << l);
+    const double dxl = p0->DXM/double(1<<l);
 
     auto test = [&](lexer *q, fdm_seastate *e, int ii, int jj, int gi0, int gj0, int gnx, int gny)
     {
-        if(e->wet(ii, jj) != 1)
-            return false;
+        if(e->wet(ii,jj)!=1)
+        return false;
 
-        const double d = e->depth(ii, jj);
+        const double d = e->depth(ii,jj);
 
         // water width below A 762 cells of this level (the width from the level-0 wet cells)
-        if(nwd > 0 && !width0.empty())
+        if(nwd>0 && !width0.empty())
         {
-            const int I = (ii + gi0) >> l, J = (jj + gj0) >> l;
-            if(I >= 0 && I < GNX && J >= 0 && J < GNY && width0[size_t(I) * GNY + J] < double(nwd) * dxl)
-                return true;
+        const int I = (ii+gi0)>>l, J = (jj+gj0)>>l;
+        if(I>=0 && I<GNX && J>=0 && J<GNY && width0[size_t(I)*GNY+J]<double(nwd)*dxl)
+        return true;
         }
 
-        if(dsh > 0.0 && d < dsh)
-            return true;
+        if(dsh>0.0 && d<dsh)
+        return true;
 
-        if(rgr > 0.0)
+        if(rgr>0.0)
         {
-            const int di[4] = {1, -1, 0, 0}, dj[4] = {0, 0, 1, -1};
-            for(int k = 0; k < 4; ++k)
+        const int di[4]={1,-1,0,0}, dj[4]={0,0,1,-1};
+            for(int k=0; k<4; ++k)
             {
-                const int a = ii + di[k], b = jj + dj[k];
-                if(e->wet(a, b) == 1)
+            const int a = ii+di[k], b = jj+dj[k];
+                if(e->wet(a,b)==1)
                 {
-                    const double dn = e->depth(a, b);
-                    if(std::fabs(dn - d) > rgr * std::max(d, dn))
-                        return true;
+                const double dn = e->depth(a,b);
+                if(std::fabs(dn-d)>rgr*std::max(d,dn))
+                return true;
                 }
             }
         }
 
-        if(nco > 0)
+        if(nco>0)
         {
-            const int n = std::min(nco, q->margin);
-            for(int a = ii - n; a <= ii + n; ++a)
-                for(int b = jj - n; b <= jj + n; ++b)
-                {
-                    const int I = a + gi0, J = b + gj0;
-                    if(I < 0 || I >= gnx || J < 0 || J >= gny)
-                        continue;
-                    if(e->wet(a, b) != 1)
-                        return true;
-                }
+        const int n = std::min(nco,q->margin);
+            for(int a=ii-n; a<=ii+n; ++a)
+            for(int b=jj-n; b<=jj+n; ++b)
+            {
+            const int I = a+gi0, J = b+gj0;
+            if(I<0 || I>=gnx || J<0 || J>=gny)
+            continue;
+            if(e->wet(a,b)!=1)
+            return true;
+            }
         }
 
         return false;
     };
 
-    if(l == 0)
+    if(l==0)
     {
         lexer *p = p0;
         SLICELOOP4
-        if(test(p, L0.e, i, j, p->origin_i, p->origin_j, p->gknox, p->gknoy))
-            tag_cell(1, i + p->origin_i, j + p->origin_j, nbuf, M);
+        if(test(p,L0.e,i,j,p->origin_i,p->origin_j,p->gknox,p->gknoy))
+        tag_cell(1,i+p->origin_i,j+p->origin_j,nbuf,M);
         return;
     }
 
     for(int id : lev[l])
     {
-        seastate_amr_patch *c = SP(id);
-        const int gi0 = c->I0 - EXT, gj0 = c->J0 - EXT;
+    seastate_amr_patch *c = SP(id);
+    const int gi0 = c->I0-EXT, gj0 = c->J0-EXT;
 
-        for(int ii = EXT; ii < EXT + c->nx; ++ii)
-            for(int jj = EXT; jj < EXT + c->ny; ++jj)
-                if(test(c->pp, c->e, ii, jj, gi0, gj0, GNX << l, GNY << l))
-                    tag_cell(l + 1, ii + gi0, jj + gj0, nbuf, M);
+        for(int ii=EXT; ii<EXT+c->nx; ++ii)
+        for(int jj=EXT; jj<EXT+c->ny; ++jj)
+        if(test(c->pp,c->e,ii,jj,gi0,gj0,GNX<<l,GNY<<l))
+        tag_cell(l+1,ii+gi0,jj+gj0,nbuf,M);
     }
 }
 
 // --------------------------------------------------------------------- regridding
 // static data of the new patches: bed, depth, active cells, storage, k, cg, gradients, solver
-void seastate_amr::regrid_static(ghostcell *)
+void seastate_amr::regrid_static(ghostcell*)
 {
-    for(int id = 0; id < (int)P.size(); ++id)
+    for(int id=0; id<(int)P.size(); ++id)
     {
-        seastate_amr_patch *c = SP(id);
+    seastate_amr_patch *c = SP(id);
 
         if(!c->fresh)
-            continue;
+        continue;
 
-        lexer *pp = c->pp;
-        c->e = new fdm_seastate(pp);
-        c->e->grid = L0.e->grid;
+    lexer *pp = c->pp;
+    c->e = new fdm_seastate(pp);
+    c->e->grid = L0.e->grid;
 
-        environment(*c);
+    environment(*c);
 
-        // spectral storage for the active cells of the interior and the ring around it (the inflow of the
-        // sweeps); the outer rings of the patch arrays are never used by SEASTATE. Tiles of 2 x 2 cells, so
-        // that small patches do not allocate whole 16 x 16 tiles
-        vector<int> mask(c->e->wet.V, c->e->wet.V + size_t(pp->imax) * pp->jmax);
-        const int rw = ring_width();
-        for(int ii = pp->imin; ii < pp->imin + pp->imax; ++ii)
-            for(int jj = pp->jmin; jj < pp->jmin + pp->jmax; ++jj)
-                if(ii < EXT - rw || ii > EXT + c->nx - 1 + rw || jj < EXT - rw || jj > EXT + c->ny - 1 + rw)
-                    mask[size_t(ii - pp->imin) * pp->jmax + (jj - pp->jmin)] = 0;
+    // spectral storage for the active cells of the interior and the ring around it (the inflow of the
+    // sweeps); the outer rings of the patch arrays are never used by SEASTATE. Tiles of 2 x 2 cells, so
+    // that small patches do not allocate whole 16 x 16 tiles
+    vector<int> mask(c->e->wet.V,c->e->wet.V+size_t(pp->imax)*pp->jmax);
+    const int rw = ring_width();
+    for(int ii=pp->imin; ii<pp->imin+pp->imax; ++ii)
+    for(int jj=pp->jmin; jj<pp->jmin+pp->jmax; ++jj)
+    if(ii<EXT-rw || ii>EXT+c->nx-1+rw || jj<EXT-rw || jj>EXT+c->ny-1+rw)
+    mask[size_t(ii-pp->imin)*pp->jmax + (jj-pp->jmin)] = 0;
 
-        const int ptile = 2;
-        c->e->N = new seastate_store(pp->imin, pp->jmin, pp->imax, pp->jmax, nbin, ptile);
-        c->e->N->build(mask.data());
-        c->e->N->fill(0.0f);
-        c->e->kw = new seastate_store(pp->imin, pp->jmin, pp->imax, pp->jmax, nsig, ptile);
-        c->e->kw->build(mask.data());
-        c->e->cg = new seastate_store(pp->imin, pp->jmin, pp->imax, pp->jmax, nsig, ptile);
-        c->e->cg->build(mask.data());
+    const int ptile = 2;
+    c->e->N  = new seastate_store(pp->imin,pp->jmin,pp->imax,pp->jmax,nbin,ptile);
+    c->e->N->build(mask.data());
+    c->e->N->fill(0.0f);
+    c->e->kw = new seastate_store(pp->imin,pp->jmin,pp->imax,pp->jmax,nsig,ptile);
+    c->e->kw->build(mask.data());
+    c->e->cg = new seastate_store(pp->imin,pp->jmin,pp->imax,pp->jmax,nsig,ptile);
+    c->e->cg->build(mask.data());
 
-        seastate_kinematics(pp, c->e, 0.0, c->I0 - EXT, c->J0 - EXT, GNX << c->lev, GNY << c->lev);
+    seastate_kinematics(pp,c->e,0.0,c->I0-EXT,c->J0-EXT,GNX<<c->lev,GNY<<c->lev);
 
-        if(p0->A700 == 1)
+        if(p0->A700==1)
         {
-            c->N0 = new seastate_store(pp->imin, pp->jmin, pp->imax, pp->jmax, nbin, ptile);
-            c->N0->build(mask.data());
+        c->N0 = new seastate_store(pp->imin,pp->jmin,pp->imax,pp->jmax,nbin,ptile);
+        c->N0->build(mask.data());
         }
 
-        c->cov = new sliceint4(pp);
+    c->cov = new sliceint4(pp);
 
-        c->solv = new seastate_implicit(pp, c->e);
-        c->solv->sources(L0.src);
-        c->solv->sparsity(p0->A795);
-        c->solv->geographic_order(p0->A796);
-        c->solv->range(EXT, EXT + c->nx - 1, EXT, EXT + c->ny - 1);
-        c->solv->ring_width(rw);
-        // threads per rank (A 798) and source iterations (A 738) as on level 0; threads only on patches of at
-        // least 64 cells (the wavefront of a smaller patch is too short)
-        c->solv->threads(p0->A798, 64);
-        c->solv->source_iterations(p0->A738, p0->A739);
-        c->solv->source_once(p0->A767 == 1);
-        c->solv->lagging(seastate_implicit::lag_wanted(p0->A700, p0->A730, p0->A732, p0->A768, p0->A770), pp);
+    c->solv = new seastate_implicit(pp,c->e);
+    c->solv->sources(L0.src);
+    c->solv->sparsity(p0->A795);
+    c->solv->geographic_order(p0->A796);
+    c->solv->range(EXT,EXT+c->nx-1,EXT,EXT+c->ny-1);
+    c->solv->ring_width(rw);
+    // threads per rank (A 798) and source iterations (A 738) as on level 0; threads only on patches of at
+    // least 64 cells (the wavefront of a smaller patch is too short)
+    c->solv->threads(p0->A798,64);
+    c->solv->source_iterations(p0->A738,p0->A739);
+    c->solv->source_once(p0->A767==1);
+    c->solv->lagging(seastate_implicit::lag_wanted(p0->A700,p0->A730,p0->A732,p0->A768,p0->A770),pp);
 
-        if(L0.wmet != nullptr)
+        if(L0.wmet!=nullptr)
         {
-            c->wU = new slice4(pp);
-            c->wD = new slice4(pp);
-            c->solv->wind_field(c->wU, c->wD);
+        c->wU = new slice4(pp);
+        c->wD = new slice4(pp);
+        c->solv->wind_field(c->wU,c->wD);
         }
 
         // Phase 6b: obstacles and coasts on the patch (its own faces from the segments and land cells)
-        if(L0.pobs != nullptr)
+        if(L0.pobs!=nullptr)
         {
-            c->pobs = new seastate_obstacle(*L0.pobs);
-            c->pobs->build(pp, c->e, c->I0 - EXT, c->J0 - EXT, GNX << c->lev, GNY << c->lev);
-            c->solv->obstacles(c->pobs);
+        c->pobs = new seastate_obstacle(*L0.pobs);
+        c->pobs->build(pp,c->e,c->I0-EXT,c->J0-EXT,GNX<<c->lev,GNY<<c->lev);
+        c->solv->obstacles(c->pobs);
         }
 
         // Phase 6b: diffraction (A 718)
-        if(p0->A718 >= 1)
+        if(p0->A718>=1)
         {
-            c->dca = new seastate_store(pp->imin, pp->jmin, pp->imax, pp->jmax, nsig, ptile);
-            c->dcax = new seastate_store(pp->imin, pp->jmin, pp->imax, pp->jmax, nsig, ptile);
-            c->dcay = new seastate_store(pp->imin, pp->jmin, pp->imax, pp->jmax, nsig, ptile);
-            c->dca->build(mask.data());
-            c->dcax->build(mask.data());
-            c->dcay->build(mask.data());
-            c->dca->fill(1.0f);
-            c->dcax->fill(0.0f);
-            c->dcay->fill(0.0f);
-            c->dS = new slice4(pp);
-            c->dT = new slice4(pp);
-            c->dK = new slice4(pp);
-            c->dC = new slice4(pp);
-            c->dE = new slice4(pp);
-            c->solv->diffraction(c->dca, c->dcax, c->dcay);
+        c->dca  = new seastate_store(pp->imin,pp->jmin,pp->imax,pp->jmax,nsig,ptile);
+        c->dcax = new seastate_store(pp->imin,pp->jmin,pp->imax,pp->jmax,nsig,ptile);
+        c->dcay = new seastate_store(pp->imin,pp->jmin,pp->imax,pp->jmax,nsig,ptile);
+        c->dca->build(mask.data());
+        c->dcax->build(mask.data());
+        c->dcay->build(mask.data());
+        c->dca->fill(1.0f);
+        c->dcax->fill(0.0f);
+        c->dcay->fill(0.0f);
+        c->dS = new slice4(pp);
+        c->dT = new slice4(pp);
+        c->dK = new slice4(pp);
+        c->dC = new slice4(pp);
+        c->dE = new slice4(pp);
+        c->solv->diffraction(c->dca,c->dcax,c->dcay);
         }
 
         // Phase 6b: vegetation field (A 756 1), stems per m^2 of the patch cells from the raster
-        if(L0.veg != nullptr)
+        if(L0.veg!=nullptr)
         {
-            c->vN = new slice4(pp);
-            const int m = marge;
-            for(int ii = pp->imin; ii < pp->imin + pp->imax; ++ii)
-                for(int jj = pp->jmin; jj < pp->jmin + pp->jmax; ++jj)
-                    (*c->vN)(ii, jj) = L0.veg->cell(pp->XN[ii + m], pp->XN[ii + 1 + m], pp->YN[jj + m], pp->YN[jj + 1 + m]);
-            c->solv->vegetation_field(c->vN);
+        c->vN = new slice4(pp);
+        const int m = marge;
+            for(int ii=pp->imin; ii<pp->imin+pp->imax; ++ii)
+            for(int jj=pp->jmin; jj<pp->jmin+pp->jmax; ++jj)
+            (*c->vN)(ii,jj) = L0.veg->cell(pp->XN[ii+m],pp->XN[ii+1+m],pp->YN[jj+m],pp->YN[jj+1+m]);
+        c->solv->vegetation_field(c->vN);
         }
     }
 }
 
 // fill entries next to the interior, initial spectra of the new patches (from the parent)
-void seastate_amr::regrid_state(ghostcell *, vector<reefamr_patch *> &)
+void seastate_amr::regrid_state(ghostcell*, vector<reefamr_patch*>&)
 {
     for(auto q : P)
     {
-        seastate_amr_patch *c = SP(q);
-        c->ring.clear();
+    seastate_amr_patch *c = SP(q);
+    c->ring.clear();
 
-        c->ringr.clear();
-        c->ring2.clear();
-        c->ring2r.clear();
+    c->ringr.clear();
+    c->ring2.clear();
+    c->ring2r.clear();
 
-        for(int k = 0; k < (int)c->fill.size(); ++k)
+        for(int k=0; k<(int)c->fill.size(); ++k)
         {
-            const reefamr_fill &f = c->fill[k];
-            const bool inx = f.di >= EXT && f.di < EXT + c->nx;
-            const bool iny = f.dj >= EXT && f.dj < EXT + c->ny;
+        const reefamr_fill &f = c->fill[k];
+        const bool inx = f.di>=EXT && f.di<EXT+c->nx;
+        const bool iny = f.dj>=EXT && f.dj<EXT+c->ny;
 
-            if((inx && (f.dj == EXT - 1 || f.dj == EXT + c->ny)) || (iny && (f.di == EXT - 1 || f.di == EXT + c->nx)))
+            if((inx && (f.dj==EXT-1 || f.dj==EXT+c->ny)) || (iny && (f.di==EXT-1 || f.di==EXT+c->nx)))
             {
-                if(f.kind == 2)
-                    c->ringr.push_back(k);
-                else
-                    c->ring.push_back(k);
+            if(f.kind==2)
+            c->ringr.push_back(k);
+            else
+            c->ring.push_back(k);
             }
 
             // Phase 17: the second layer for the second-order fluxes (A 796 2)
-            if(ring_width() >= 2 && ((inx && (f.dj == EXT - 2 || f.dj == EXT + c->ny + 1)) || (iny && (f.di == EXT - 2 || f.di == EXT + c->nx + 1))))
+            if(ring_width()>=2 && ((inx && (f.dj==EXT-2 || f.dj==EXT+c->ny+1)) || (iny && (f.di==EXT-2 || f.di==EXT+c->nx+1))))
             {
-                if(f.kind == 2)
-                    c->ring2r.push_back(k);
-                else
-                    c->ring2.push_back(k);
+            if(f.kind==2)
+            c->ring2r.push_back(k);
+            else
+            c->ring2.push_back(k);
             }
         }
-        c->ringsel = c->ringr;
-        c->ringsel.insert(c->ringsel.end(), c->ring2r.begin(), c->ring2r.end());
+    c->ringsel = c->ringr;
+    c->ringsel.insert(c->ringsel.end(),c->ring2r.begin(),c->ring2r.end());
     }
 
-    for(int l = 1; l <= maxlev; ++l)
+    for(int l=1; l<=maxlev; ++l)
     {
-        block_down_if(l, nbin, 7300 + l, [&](reefamr_patch *q)
-                      { return q->fresh; }, [&](const reefamr_block &B, int, double *v)
-                      {
+        block_down_if(l,nbin,7300+l,
+            [&](reefamr_patch *q) {return q->fresh;},
+            [&](const reefamr_block &B, int, double *v)
+            {
                 fdm_seastate *e = gfd(B.g);
                 const float *s = (e->wet(B.ic,B.jc)==1) ? e->N->spec(B.ic,B.jc) : nullptr;
                 for(int b=0; b<nbin; ++b)
-                v[b] = (s!=nullptr) ? double(s[b]) : 0.0; }, [&](reefamr_patch *q, int, int k, const double *v)
-                      {
+                v[b] = (s!=nullptr) ? double(s[b]) : 0.0;
+            },
+            [&](reefamr_patch *q, int, int k, const double *v)
+            {
                 seastate_amr_patch *c = SP(q);
                 const int bi = k/(c->ny/2), bj = k%(c->ny/2);
                 for(int a=0; a<2; ++a)
@@ -668,7 +659,8 @@ void seastate_amr::regrid_state(ghostcell *, vector<reefamr_patch *> &)
                     if(s!=nullptr && c->e->wet(EXT+2*bi+a,EXT+2*bj+d)==1)
                     for(int b=0; b<nbin; ++b)
                     s[b] = float(v[b]);
-                } });
+                }
+            });
 
         fill_level(l);
     }
@@ -683,28 +675,29 @@ void seastate_amr::regrid_finish(ghostcell *pgc, int)
     // restriction without the block plans when every parent cell is on the rank of its patch
     int rem = 0;
     for(auto q : P)
-        for(int g : q->rgrid)
-            if(g == -3)
-                rem = 1;
-    remote_blocks = pgc->globalimax(rem) > 0;
+    for(int g : q->rgrid)
+    if(g==-3)
+    rem = 1;
+    remote_blocks = pgc->globalimax(rem)>0;
 
     // downstream order of the patches of every level for the four quadrants (q 0: +x +y, 1: -x +y,
     // 2: -x -y, 3: +x -y), by the projection of the box centre on the quadrant diagonal
-    for(int q = 0; q < 4; ++q)
+    for(int q=0; q<4; ++q)
     {
-        order[q].assign(maxlev + 1, vector<int>());
-        const double sx = (q == 1 || q == 2) ? -1.0 : 1.0;
-        const double sy = (q == 2 || q == 3) ? -1.0 : 1.0;
+    order[q].assign(maxlev+1,vector<int>());
+    const double sx = (q==1 || q==2) ? -1.0 : 1.0;
+    const double sy = (q==2 || q==3) ? -1.0 : 1.0;
 
-        for(int l = 1; l <= maxlev; ++l)
+        for(int l=1; l<=maxlev; ++l)
         {
-            vector<int> &o = order[q][l];
-            o = lev[l];
-            std::stable_sort(o.begin(), o.end(), [&](int a, int b)
-                             {
+        vector<int> &o = order[q][l];
+        o = lev[l];
+        std::stable_sort(o.begin(),o.end(),[&](int a, int b)
+            {
             const double pa = sx*double(P[a]->I0+P[a]->I1) + sy*double(P[a]->J0+P[a]->J1);
             const double pb = sx*double(P[b]->I0+P[b]->I1) + sy*double(P[b]->J0+P[b]->J1);
-            return pa<pb; });
+            return pa<pb;
+            });
         }
     }
 
@@ -714,15 +707,15 @@ void seastate_amr::regrid_finish(ghostcell *pgc, int)
     L0.solv->skip(cov0);
     L0.solv->faces(gfaces(-1));
 
-    for(int id = 0; id < (int)P.size(); ++id)
+    for(int id=0; id<(int)P.size(); ++id)
     {
-        SP(id)->solv->skip(SP(id)->cov);
-        SP(id)->solv->faces(gfaces(id));
+    SP(id)->solv->skip(SP(id)->cov);
+    SP(id)->solv->faces(gfaces(id));
     }
 
     restrict_all();
     remote_faces_plan(pgc);
-    halo0(p0, pgc);
+    halo0(p0,pgc);
 }
 
 // covered cells of every grid and the faces of the covered cells next to cells solved on their grid
@@ -731,110 +724,87 @@ void seastate_amr::covered()
     lexer *p = p0;
 
     IMALOOP
-    JMALOOP (*cov0)(i, j) = 0;
+    JMALOOP
+    (*cov0)(i,j) = 0;
 
     for(auto q : P)
     {
-        seastate_amr_patch *c = SP(q);
-        lexer *pp = c->pp;
-        for(int ii = pp->imin; ii < pp->imin + pp->imax; ++ii)
-            for(int jj = pp->jmin; jj < pp->jmin + pp->jmax; ++jj)
-                (*c->cov)(ii, jj) = 0;
+    seastate_amr_patch *c = SP(q);
+    lexer *pp = c->pp;
+    for(int ii=pp->imin; ii<pp->imin+pp->imax; ++ii)
+    for(int jj=pp->jmin; jj<pp->jmin+pp->jmax; ++jj)
+    (*c->cov)(ii,jj) = 0;
     }
 
     for(auto q : P)
     {
-        seastate_amr_patch *c = SP(q);
-        for(size_t k = 0; k < c->rgrid.size(); ++k)
-            if(c->rgrid[k] >= -1)
-                (*gcov(c->rgrid[k]))(c->ric[k], c->rjc[k]) = 1;
+    seastate_amr_patch *c = SP(q);
+    for(size_t k=0; k<c->rgrid.size(); ++k)
+    if(c->rgrid[k]>=-1)
+    (*gcov(c->rgrid[k]))(c->ric[k],c->rjc[k]) = 1;
     }
 
-    faces.assign(P.size() + 1, seastate_amr_faces());
-    flinks.assign(maxlev + 1, vector<seastate_amr_flink>());
+    faces.assign(P.size()+1,seastate_amr_faces());
+    flinks.assign(maxlev+1,vector<seastate_amr_flink>());
 
     // the cells a grid solves: level 0 its interior, a patch its box
     auto solved = [&](int g, int a, int d)
     {
-        if(g < 0)
-            return a >= 0 && a < p0->knox && d >= 0 && d < p0->knoy;
+        if(g<0)
+        return a>=0 && a<p0->knox && d>=0 && d<p0->knoy;
         reefamr_patch *c = P[g];
-        return a >= EXT && a < EXT + c->nx && d >= EXT && d < EXT + c->ny;
+        return a>=EXT && a<EXT+c->nx && d>=EXT && d<EXT+c->ny;
     };
 
     // a halo cell of level 0 held by a neighbour rank
     auto remote = [&](int a, int d)
     {
-        if(d >= 0 && d < p0->knoy)
-            return (a < 0 && p0->nb1 >= 0) || (a >= p0->knox && p0->nb4 >= 0);
-        if(a >= 0 && a < p0->knox)
-            return (d < 0 && p0->nb3 >= 0) || (d >= p0->knoy && p0->nb2 >= 0);
+        if(d>=0 && d<p0->knoy)
+        return (a<0 && p0->nb1>=0) || (a>=p0->knox && p0->nb4>=0);
+        if(a>=0 && a<p0->knox)
+        return (d<0 && p0->nb3>=0) || (d>=p0->knoy && p0->nb2>=0);
         return false;
     };
 
-    const int di[4] = {-1, 1, 0, 0}, dj[4] = {0, 0, -1, 1};
+    const int di[4]={-1,1,0,0}, dj[4]={0,0,-1,1};
 
-    for(int id = 0; id < (int)P.size(); ++id)
+    for(int id=0; id<(int)P.size(); ++id)
     {
-        seastate_amr_patch *c = SP(id);
-        const int nby = c->ny / 2;
+    seastate_amr_patch *c = SP(id);
+    const int nby = c->ny/2;
 
-        for(size_t k = 0; k < c->rgrid.size(); ++k)
+        for(size_t k=0; k<c->rgrid.size(); ++k)
         {
-            const int g = c->rgrid[k];
-            if(g < -1)
-                continue;
+        const int g = c->rgrid[k];
+        if(g<-1)
+        continue;
 
-            const int ic = c->ric[k], jc = c->rjc[k];
-            fdm_seastate *ec = gfd(g);
-            sliceint4 &cv = *gcov(g);
-            const int bi = int(k) / nby, bj = int(k) % nby;
+        const int ic = c->ric[k], jc = c->rjc[k];
+        fdm_seastate *ec = gfd(g);
+        sliceint4 &cv = *gcov(g);
+        const int bi = int(k)/nby, bj = int(k)%nby;
 
-            for(int s = 0; s < 4; ++s)
+            for(int s=0; s<4; ++s)
             {
-                const int a = ic + di[s], d = jc + dj[s];
+            const int a = ic+di[s], d = jc+dj[s];
 
-                // Phase 16: level 0 also towards the halo cells of a neighbour rank (remote_faces)
-                if(!(solved(g, a, d) || (g < 0 && remote(a, d))) || ec->wet(a, d) != 1 || cv(a, d) == 1)
-                    continue;
+            // Phase 16: level 0 also towards the halo cells of a neighbour rank (remote_faces)
+            if(!(solved(g,a,d) || (g<0 && remote(a,d))) || ec->wet(a,d)!=1 || cv(a,d)==1)
+            continue;
 
-                seastate_amr_flink L;
-                L.g = g;
-                L.key = seastate_amr_faces::key(ic, jc, s);
-                L.id = id;
+            seastate_amr_flink L;
+            L.g = g;
+            L.key = seastate_amr_faces::key(ic,jc,s);
+            L.id = id;
 
-                const int fi = EXT + 2 * bi, fj = EXT + 2 * bj;
-                if(s == 0)
-                {
-                    L.i0 = fi;
-                    L.j0 = fj;
-                    L.i1 = fi;
-                    L.j1 = fj + 1;
-                }
-                if(s == 1)
-                {
-                    L.i0 = fi + 1;
-                    L.j0 = fj;
-                    L.i1 = fi + 1;
-                    L.j1 = fj + 1;
-                }
-                if(s == 2)
-                {
-                    L.i0 = fi;
-                    L.j0 = fj;
-                    L.i1 = fi + 1;
-                    L.j1 = fj;
-                }
-                if(s == 3)
-                {
-                    L.i0 = fi;
-                    L.j0 = fj + 1;
-                    L.i1 = fi + 1;
-                    L.j1 = fj + 1;
-                }
+            const int fi = EXT+2*bi, fj = EXT+2*bj;
+            if(s==0) {L.i0=fi;   L.j0=fj;   L.i1=fi;   L.j1=fj+1;}
+            if(s==1) {L.i0=fi+1; L.j0=fj;   L.i1=fi+1; L.j1=fj+1;}
+            if(s==2) {L.i0=fi;   L.j0=fj;   L.i1=fi+1; L.j1=fj;}
+            if(s==3) {L.i0=fi;   L.j0=fj+1; L.i1=fi+1; L.j1=fj+1;}
 
-                gfaces(g)->F[L.key].assign(nbin, 0.0f);
-                flinks[c->lev].push_back(L);
+            gfaces(g)->F[L.key].assign(nbin,0.0f);
+            flinks[c->lev].push_back(L);
             }
         }
     }
@@ -845,26 +815,29 @@ void seastate_amr::covered()
 // gets an entry in the level-0 faces on the side towards the interior of the rank, which remote_faces fills
 void seastate_amr::remote_faces_plan(ghostcell *pgc)
 {
-    static const int opposite[4] = {1, 0, 3, 2};
+    static const int opposite[4] = {1,0,3,2};
     lexer *p = p0;
 
     int n = 0;
-    for(int s = 0; s < 4; ++s)
+    for(int s=0; s<4; ++s)
     {
-        rface_send[s].clear();
-        rface_recv[s].clear();
+    rface_send[s].clear();
+    rface_recv[s].clear();
     }
 
-    seastate_halo1(p, pgc, 1, 960, [&](int s, int ii, int jj, double *v)
-                   {
+    seastate_halo1(p,pgc,1,960,
+        [&](int s, int ii, int jj, double *v)
+        {
             v[0] = 0.0;
             if((*cov0)(ii,jj)==1 && L0.e->wet(ii,jj)==1 && gfaces(-1)->F.count(seastate_amr_faces::key(ii,jj,s))>0)
             {
             v[0] = 1.0;
             rface_send[s].push_back(ii);
             rface_send[s].push_back(jj);
-            } }, [&](int s, int ii, int jj, const double *v)
-                   {
+            }
+        },
+        [&](int s, int ii, int jj, const double *v)
+        {
             if(v[0]>0.5)
             {
             (*cov0)(ii,jj) = 1;
@@ -872,43 +845,48 @@ void seastate_amr::remote_faces_plan(ghostcell *pgc)
             rface_recv[s].push_back(ii);
             rface_recv[s].push_back(jj);
             ++n;
-            } });
+            }
+        });
 
-    for(int s = 0; s < 4; ++s)
-        n += int(rface_send[s].size() / 2);
+    for(int s=0; s<4; ++s)
+    n += int(rface_send[s].size()/2);
 
-    rfaces = pgc->globalimax(n) > 0;
+    rfaces = pgc->globalimax(n)>0;
 
     // Phase 17: the covered cells of the second halo layer marked as well: the second-order fluxes (A 796 2) take no cell
     // covered by a finer grid as the cell two upwind, as on one rank
-    if(p->margin >= 2 && p->knox >= 2 && p->knoy >= 2)
-        seastate_halo2(p, pgc, 1, [&](int ii, int jj, double *v)
-                       { v[0] = ((*cov0)(ii, jj) == 1) ? 1.0 : 0.0; }, [&](int ii, int jj, const double *v)
-                       {if(v[0]>0.5) (*cov0)(ii,jj) = 1; });
+    if(p->margin>=2 && p->knox>=2 && p->knoy>=2)
+    seastate_halo2(p,pgc,1,
+        [&](int ii, int jj, double *v) {v[0] = ((*cov0)(ii,jj)==1) ? 1.0 : 0.0;},
+        [&](int ii, int jj, const double *v) {if(v[0]>0.5) (*cov0)(ii,jj) = 1;});
 }
 
 // the face spectra of the covered cells next to the rank boundaries into the halo of the neighbour ranks
 void seastate_amr::remote_faces(ghostcell *pgc)
 {
-    static const int opposite[4] = {1, 0, 3, 2};
+    static const int opposite[4] = {1,0,3,2};
 
     if(!rfaces)
-        return;
+    return;
 
     seastate_amr_faces *F = gfaces(-1);
 
-    seastate_halo_list(p0, pgc, nbin, 970, rface_send, rface_recv, [&](int s, int ii, int jj, float *v)
-                       {
+    seastate_halo_list(p0,pgc,nbin,970,rface_send,rface_recv,
+        [&](int s, int ii, int jj, float *v)
+        {
             const vector<float> &f = F->F.at(seastate_amr_faces::key(ii,jj,s));
-            std::copy(f.begin(),f.end(),v); }, [&](int s, int ii, int jj, const float *v)
-                       {
+            std::copy(f.begin(),f.end(),v);
+        },
+        [&](int s, int ii, int jj, const float *v)
+        {
             vector<float> &f = F->F.at(seastate_amr_faces::key(ii,jj,opposite[s]));
-            std::copy(v,v+nbin,f.begin()); });
+            std::copy(v,v+nbin,f.begin());
+        });
 }
 
 void seastate_amr::halo0(lexer *p, ghostcell *pgc)
 {
-    L0.pex->start(p, pgc, *L0.e->N);
+    L0.pex->start(p,pgc,*L0.e->N);
     remote_faces(pgc);
 }
 
@@ -920,545 +898,487 @@ void seastate_amr::ring_faces_plan()
 {
     const int np = p0->mpi_size;
 
-    rlinks.assign(P.size(), vector<seastate_amr_flink>());
-    rlink_of.assign(P.size(), vector<int>());
-    rplan.assign(maxlev + 1, ring_plan());
+    rlinks.assign(P.size(),vector<seastate_amr_flink>());
+    rlink_of.assign(P.size(),vector<int>());
+    rplan.assign(maxlev+1,ring_plan());
 
     // the side of the source cell towards the interior neighbour of ring cell (di,dj) of patch c
     auto side_of = [&](const reefamr_patch *c, int di, int dj)
     {
-        if(di == EXT - 1)
-            return 1;
-        if(di == EXT + c->nx)
-            return 0;
-        if(dj == EXT - 1)
-            return 3;
+        if(di==EXT-1) return 1;
+        if(di==EXT+c->nx) return 0;
+        if(dj==EXT-1) return 3;
         return 2;
     };
 
     // the two fine cells of covered cell (si,sj) of grid g on side s; false: no child patch on this rank
     auto children = [&](int g, int si, int sj, int s, seastate_amr_flink &L)
     {
-        auto it = childof.find(ckey(g, si, sj));
-        if(it == childof.end())
-            return false;
+        auto it = childof.find(ckey(g,si,sj));
+        if(it==childof.end())
+        return false;
         const int id = it->second.first, k = it->second.second;
-        const int nby = P[id]->ny / 2;
-        const int fi = EXT + 2 * (k / nby), fj = EXT + 2 * (k % nby);
+        const int nby = P[id]->ny/2;
+        const int fi = EXT+2*(k/nby), fj = EXT+2*(k%nby);
         L.id = id;
-        if(s == 0)
-        {
-            L.i0 = fi;
-            L.j0 = fj;
-            L.i1 = fi;
-            L.j1 = fj + 1;
-        }
-        if(s == 1)
-        {
-            L.i0 = fi + 1;
-            L.j0 = fj;
-            L.i1 = fi + 1;
-            L.j1 = fj + 1;
-        }
-        if(s == 2)
-        {
-            L.i0 = fi;
-            L.j0 = fj;
-            L.i1 = fi + 1;
-            L.j1 = fj;
-        }
-        if(s == 3)
-        {
-            L.i0 = fi;
-            L.j0 = fj + 1;
-            L.i1 = fi + 1;
-            L.j1 = fj + 1;
-        }
+        if(s==0) {L.i0=fi;   L.j0=fj;   L.i1=fi;   L.j1=fj+1;}
+        if(s==1) {L.i0=fi+1; L.j0=fj;   L.i1=fi+1; L.j1=fj+1;}
+        if(s==2) {L.i0=fi;   L.j0=fj;   L.i1=fi+1; L.j1=fj;}
+        if(s==3) {L.i0=fi;   L.j0=fj+1; L.i1=fi+1; L.j1=fj+1;}
         return true;
     };
 
     // the interior neighbour of the ring cell is solved on the patch (wet and not covered)
     auto solved_next = [&](seastate_amr_patch *c, int di, int dj, int s)
     {
-        const int ii = di + (s == 1 ? 1 : (s == 0 ? -1 : 0));
-        const int jj = dj + (s == 3 ? 1 : (s == 2 ? -1 : 0));
-        return c->e->wet(ii, jj) == 1 && (*c->cov)(ii, jj) == 0;
+        const int ii = di + (s==1 ? 1 : (s==0 ? -1 : 0));
+        const int jj = dj + (s==3 ? 1 : (s==2 ? -1 : 0));
+        return c->e->wet(ii,jj)==1 && (*c->cov)(ii,jj)==0;
     };
 
-    for(int l = 1; l <= maxlev; ++l)
+    for(int l=1; l<=maxlev; ++l)
     {
         vector<vector<int>> req(np), srv;
-        vector<vector<pair<int, long>>> dst(np);
+        vector<vector<pair<int,long>>> dst(np);
 
         for(int id : lev[l])
         {
-            seastate_amr_patch *c = SP(id);
-            rlink_of[id].assign(c->fill.size(), -1);
+        seastate_amr_patch *c = SP(id);
+        rlink_of[id].assign(c->fill.size(),-1);
 
             // Phase 17: a cell of the second ring layer is a cell two upwind for the second-order fluxes only where it
             // is a cell of the same level not covered by a finer grid, as inside one patch (else first order there)
             for(int k : c->ring2)
             {
-                const reefamr_fill &f = c->fill[k];
-                if(f.kind != 0 || f.g < 0 || P[f.g]->lev != l || (*gcov(f.g))(f.si, f.sj) == 1)
-                    (*c->cov)(f.di, f.dj) = 1;
+            const reefamr_fill &f = c->fill[k];
+            if(f.kind!=0 || f.g<0 || P[f.g]->lev!=l || (*gcov(f.g))(f.si,f.sj)==1)
+            (*c->cov)(f.di,f.dj) = 1;
             }
             for(int k : c->ring2r)
             {
-                const reefamr_fill &f = c->fill[k];
-                const int I = f.di - EXT + c->I0, J = f.dj - EXT + c->J0;
-                if(gpatch_at(l, I, J) < 0 || (l < maxlev && reefamr::covered(l + 1, 2 * I, 2 * J)))
-                    (*c->cov)(f.di, f.dj) = 1;
+            const reefamr_fill &f = c->fill[k];
+            const int I = f.di-EXT+c->I0, J = f.dj-EXT+c->J0;
+            if(gpatch_at(l,I,J)<0 || (l<maxlev && reefamr::covered(l+1,2*I,2*J)))
+            (*c->cov)(f.di,f.dj) = 1;
             }
 
             for(int k : c->ring)
             {
-                const reefamr_fill &f = c->fill[k];
-                if(f.kind != 0 || f.g < 0 || P[f.g]->lev != l || (*gcov(f.g))(f.si, f.sj) != 1)
-                    continue;
+            const reefamr_fill &f = c->fill[k];
+            if(f.kind!=0 || f.g<0 || P[f.g]->lev!=l || (*gcov(f.g))(f.si,f.sj)!=1)
+            continue;
 
-                const int s = side_of(c, f.di, f.dj);
-                seastate_amr_flink L;
-                if(!solved_next(c, f.di, f.dj, s) || !children(f.g, f.si, f.sj, s, L))
-                    continue;
-                L.g = id;
-                L.key = seastate_amr_faces::key(f.di, f.dj, s);
-                rlink_of[id][k] = int(rlinks[id].size());
-                rlinks[id].push_back(L);
-                (*c->cov)(f.di, f.dj) = 1;
-                gfaces(id)->F[L.key].assign(nbin, 0.0f);
+            const int s = side_of(c,f.di,f.dj);
+            seastate_amr_flink L;
+            if(!solved_next(c,f.di,f.dj,s) || !children(f.g,f.si,f.sj,s,L))
+            continue;
+            L.g = id;
+            L.key = seastate_amr_faces::key(f.di,f.dj,s);
+            rlink_of[id][k] = int(rlinks[id].size());
+            rlinks[id].push_back(L);
+            (*c->cov)(f.di,f.dj) = 1;
+            gfaces(id)->F[L.key].assign(nbin,0.0f);
             }
 
             for(int k : c->ringr)
             {
-                const reefamr_fill &f = c->fill[k];
-                const int I = f.di - EXT + c->I0, J = f.dj - EXT + c->J0;
-                if(l >= maxlev || gpatch_at(l, I, J) < 0 || !reefamr::covered(l + 1, 2 * I, 2 * J))
-                    continue;
+            const reefamr_fill &f = c->fill[k];
+            const int I = f.di-EXT+c->I0, J = f.dj-EXT+c->J0;
+            if(l>=maxlev || gpatch_at(l,I,J)<0 || !reefamr::covered(l+1,2*I,2*J))
+            continue;
 
-                const int o = holder(l, I, J);
-                const int s = side_of(c, f.di, f.dj);
-                if(o < 0 || o == p0->mpirank || !solved_next(c, f.di, f.dj, s))
-                    continue;
+            const int o = holder(l,I,J);
+            const int s = side_of(c,f.di,f.dj);
+            if(o<0 || o==p0->mpirank || !solved_next(c,f.di,f.dj,s))
+            continue;
 
-                const long key = seastate_amr_faces::key(f.di, f.dj, s);
-                req[o].push_back(I);
-                req[o].push_back(J);
-                req[o].push_back(s);
-                dst[o].push_back(std::make_pair(id, key));
-                (*c->cov)(f.di, f.dj) = 1;
-                gfaces(id)->F[key].assign(nbin, 0.0f);
+            const long key = seastate_amr_faces::key(f.di,f.dj,s);
+            req[o].push_back(I);
+            req[o].push_back(J);
+            req[o].push_back(s);
+            dst[o].push_back(std::make_pair(id,key));
+            (*c->cov)(f.di,f.dj) = 1;
+            gfaces(id)->F[key].assign(nbin,0.0f);
             }
         }
 
-        xsetup(req, srv, 3);
+        xsetup(req,srv,3);
 
         ring_plan &R = rplan[l];
-        for(int r = 0; r < np && r < (int)srv.size(); ++r)
-            if(!srv[r].empty())
+        for(int r=0; r<np && r<(int)srv.size(); ++r)
+        if(!srv[r].empty())
+        {
+        R.X.speer.push_back(r);
+        vector<int> items;
+            for(size_t m=0; m+2<srv[r].size(); m+=3)
             {
-                R.X.speer.push_back(r);
-                vector<int> items;
-                for(size_t m = 0; m + 2 < srv[r].size(); m += 3)
+            seastate_amr_flink L;
+            L.g = -1;
+            L.key = 0;
+            L.id = -1;
+            L.i0 = L.j0 = L.i1 = L.j1 = 0;
+            const int q = patch_at(l,srv[r][m],srv[r][m+1]);
+                if(q>=0)
                 {
-                    seastate_amr_flink L;
-                    L.g = -1;
-                    L.key = 0;
-                    L.id = -1;
-                    L.i0 = L.j0 = L.i1 = L.j1 = 0;
-                    const int q = patch_at(l, srv[r][m], srv[r][m + 1]);
-                    if(q >= 0)
+                const int si = srv[r][m]-P[q]->I0+EXT, sj = srv[r][m+1]-P[q]->J0+EXT;
+                    if((*SP(q)->cov)(si,sj)==1 && children(q,si,sj,srv[r][m+2],L))
+                    L.g = q;
+                    else
                     {
-                        const int si = srv[r][m] - P[q]->I0 + EXT, sj = srv[r][m + 1] - P[q]->J0 + EXT;
-                        if((*SP(q)->cov)(si, sj) == 1 && children(q, si, sj, srv[r][m + 2], L))
-                            L.g = q;
-                        else
-                        {
-                            // no finer cells here: the spectrum of the cell itself (as without the face)
-                            L.g = q;
-                            L.key = -1;
-                            L.id = q;
-                            L.i0 = L.i1 = si;
-                            L.j0 = L.j1 = sj;
-                        }
+                    // no finer cells here: the spectrum of the cell itself (as without the face)
+                    L.g = q;
+                    L.key = -1;
+                    L.id = q;
+                    L.i0 = L.i1 = si;
+                    L.j0 = L.j1 = sj;
                     }
-                    items.push_back(int(R.serve.size()));
-                    R.serve.push_back(L);
                 }
-                R.X.sitem.push_back(items);
-                R.X.sbuf.push_back(vector<double>());
+            items.push_back(int(R.serve.size()));
+            R.serve.push_back(L);
             }
+        R.X.sitem.push_back(items);
+        R.X.sbuf.push_back(vector<double>());
+        }
 
-        for(int r = 0; r < np; ++r)
-            if(!req[r].empty())
-            {
-                R.X.rpeer.push_back(r);
-                R.X.rcount.push_back(int(req[r].size() / 3));
-                R.dst.insert(R.dst.end(), dst[r].begin(), dst[r].end());
-            }
+        for(int r=0; r<np; ++r)
+        if(!req[r].empty())
+        {
+        R.X.rpeer.push_back(r);
+        R.X.rcount.push_back(int(req[r].size()/3));
+        R.dst.insert(R.dst.end(),dst[r].begin(),dst[r].end());
+        }
     }
 }
 
 void seastate_amr::ring_face(const seastate_amr_flink &L, float *F)
 {
     seastate_amr_patch *cc = SP(L.id);
-    const float *a = (cc->e->wet(L.i0, L.j0) == 1) ? cc->e->N->spec(L.i0, L.j0) : nullptr;
-    const float *b = (cc->e->wet(L.i1, L.j1) == 1) ? cc->e->N->spec(L.i1, L.j1) : nullptr;
+    const float *a = (cc->e->wet(L.i0,L.j0)==1) ? cc->e->N->spec(L.i0,L.j0) : nullptr;
+    const float *b = (cc->e->wet(L.i1,L.j1)==1) ? cc->e->N->spec(L.i1,L.j1) : nullptr;
 
-    for(int n = 0; n < nbin; ++n)
-        F[n] = 0.5f * ((a != nullptr ? a[n] : 0.0f) + (b != nullptr ? b[n] : 0.0f));
+    for(int n=0; n<nbin; ++n)
+    F[n] = 0.5f*((a!=nullptr ? a[n] : 0.0f) + (b!=nullptr ? b[n] : 0.0f));
 }
 
-void seastate_amr::ring_faces_local(seastate_amr_patch *, int id)
+void seastate_amr::ring_faces_local(seastate_amr_patch*, int id)
 {
-    if(id >= (int)rlinks.size())
-        return;
+    if(id>=(int)rlinks.size())
+    return;
 
     seastate_amr_faces *F = gfaces(id);
     for(const seastate_amr_flink &L : rlinks[id])
-        ring_face(L, F->F.at(L.key).data());
+    ring_face(L,F->F.at(L.key).data());
 }
 
 void seastate_amr::ring_faces_remote(int l)
 {
-    if(l >= (int)rplan.size())
-        return;
+    if(l>=(int)rplan.size())
+    return;
 
     ring_plan &R = rplan[l];
     if(R.X.speer.empty() && R.X.rpeer.empty())
-        return;
+    return;
 
     vector<float> v(nbin);
-    for(size_t k = 0; k < R.X.speer.size(); ++k)
+    for(size_t k=0; k<R.X.speer.size(); ++k)
     {
-        vector<double> &sb = R.X.sbuf[k];
-        sb.assign(R.X.sitem[k].size() * size_t(nbin), 0.0);
-        for(size_t m = 0; m < R.X.sitem[k].size(); ++m)
+    vector<double> &sb = R.X.sbuf[k];
+    sb.assign(R.X.sitem[k].size()*size_t(nbin),0.0);
+        for(size_t m=0; m<R.X.sitem[k].size(); ++m)
         {
-            const seastate_amr_flink &L = R.serve[R.X.sitem[k][m]];
-            if(L.g < 0)
-                continue;
-            ring_face(L, v.data());
-            for(int n = 0; n < nbin; ++n)
-                sb[m * nbin + n] = double(v[n]);
+        const seastate_amr_flink &L = R.serve[R.X.sitem[k][m]];
+        if(L.g<0)
+        continue;
+        ring_face(L,v.data());
+        for(int n=0; n<nbin; ++n)
+        sb[m*nbin+n] = double(v[n]);
         }
     }
 
-    xrun(R.X, nbin, 7600 + l);
+    xrun(R.X,nbin,7600+l);
 
     size_t it = 0;
-    for(size_t k = 0; k < R.X.rpeer.size(); ++k)
-        for(int m = 0; m < R.X.rcount[k]; ++m)
-        {
-            const pair<int, long> &d = R.dst[it++];
-            float *F = gfaces(d.first)->F.at(d.second).data();
-            const double *s = &R.X.rbuf[k][size_t(m) * nbin];
-            for(int n = 0; n < nbin; ++n)
-                F[n] = float(s[n]);
-        }
+    for(size_t k=0; k<R.X.rpeer.size(); ++k)
+    for(int m=0; m<R.X.rcount[k]; ++m)
+    {
+    const pair<int,long> &d = R.dst[it++];
+    float *F = gfaces(d.first)->F.at(d.second).data();
+    const double *s = &R.X.rbuf[k][size_t(m)*nbin];
+    for(int n=0; n<nbin; ++n)
+    F[n] = float(s[n]);
+    }
 }
 
 // Phase 17: the composite sweep pipelined across the ranks. The position of a level-0 row (side 0, 1) or column (side
 // 2, 3) along the boundary in the order of quadrant q, as the tiles of seastate_implicit::sweep_threads count it
 int seastate_amr::ring_width() const
 {
-    return p0->A796 == 2 ? 2 : 1;
+    return p0->A796==2 ? 2 : 1;
 }
 
 int seastate_amr::kpos(int q, int s, int row) const
 {
-    const bool idown = (q == 1 || q == 2), jdown = (q == 2 || q == 3);
-    if(s < 2)
-        return jdown ? p0->knoy - 1 - row : row;
-    return idown ? p0->knox - 1 - row : row;
+    const bool idown = (q==1 || q==2), jdown = (q==2 || q==3);
+    if(s<2)
+    return jdown ? p0->knoy-1-row : row;
+    return idown ? p0->knox-1-row : row;
 }
 
 void seastate_amr::pipeline_setup(lexer *p, ghostcell *pgc)
 {
-    static const int opposite[4] = {1, 0, 3, 2};
-    const int nb[4] = {p->nb1, p->nb4, p->nb3, p->nb2};
+    static const int opposite[4] = {1,0,3,2};
+    const int nb[4] = {p->nb1,p->nb4,p->nb3,p->nb2};
     const int me = p->mpirank;
 
     // the faces of the covered boundary cells (remote_faces_plan) by row
-    for(int s = 0; s < 4; ++s)
+    for(int s=0; s<4; ++s)
     {
-        const int n = (s < 2) ? p->knoy : p->knox;
-        kface_send[s].assign(n, 0);
-        kface_recv[s].assign(n, 0);
-        for(size_t k = 0; k + 1 < rface_send[s].size(); k += 2)
-            kface_send[s][s < 2 ? rface_send[s][k + 1] : rface_send[s][k]] = 1;
-        for(size_t k = 0; k + 1 < rface_recv[s].size(); k += 2)
-            kface_recv[s][s < 2 ? rface_recv[s][k + 1] : rface_recv[s][k]] = 1;
-        ksend[s].clear();
-        krecv[s].clear();
+    const int n = (s<2) ? p->knoy : p->knox;
+    kface_send[s].assign(n,0);
+    kface_recv[s].assign(n,0);
+        for(size_t k=0; k+1<rface_send[s].size(); k+=2)
+        kface_send[s][s<2 ? rface_send[s][k+1] : rface_send[s][k]] = 1;
+        for(size_t k=0; k+1<rface_recv[s].size(); k+=2)
+        kface_recv[s][s<2 ? rface_recv[s][k+1] : rface_recv[s][k]] = 1;
+    ksend[s].clear();
+    krecv[s].clear();
     }
 
     auto side_of = [&](const reefamr_patch *c, int di, int dj)
     {
-        if(di == EXT - 1)
-            return 1;
-        if(di == EXT + c->nx)
-            return 0;
-        if(dj == EXT - 1)
-            return 3;
+        if(di==EXT-1) return 1;
+        if(di==EXT+c->nx) return 0;
+        if(dj==EXT-1) return 3;
         return 2;
     };
 
     // the ring cells of the patches of this rank held by a neighbour rank: by the side of the rank they lie beyond
     vector<int> req[4];
-    for(int id = 0; id < (int)P.size(); ++id)
+    for(int id=0; id<(int)P.size(); ++id)
     {
-        seastate_amr_patch *c = SP(id);
-        const int l = c->lev;
+    seastate_amr_patch *c = SP(id);
+    const int l = c->lev;
         for(int k : c->ringsel)
         {
-            const reefamr_fill &f = c->fill[k];
-            const int I = f.di - EXT + c->I0, J = f.dj - EXT + c->J0;
-            const int a = (I >> l) - p->origin_i, d = (J >> l) - p->origin_j;
-            int s = -1;
-            if(a < 0 && d >= 0 && d < p->knoy)
-                s = 0;
-            else if(a >= p->knox && d >= 0 && d < p->knoy)
-                s = 1;
-            else if(d < 0 && a >= 0 && a < p->knox)
-                s = 2;
-            else if(d >= p->knoy && a >= 0 && a < p->knox)
-                s = 3;
-            if(s < 0 || nb[s] < 0 || holder(l, I, J) != nb[s])
-                continue;
+        const reefamr_fill &f = c->fill[k];
+        const int I = f.di-EXT+c->I0, J = f.dj-EXT+c->J0;
+        const int a = (I>>l) - p->origin_i, d = (J>>l) - p->origin_j;
+        int s = -1;
+        if(a<0 && d>=0 && d<p->knoy) s = 0;
+        else if(a>=p->knox && d>=0 && d<p->knoy) s = 1;
+        else if(d<0 && a>=0 && a<p->knox) s = 2;
+        else if(d>=p->knoy && a>=0 && a<p->knox) s = 3;
+        if(s<0 || nb[s]<0 || holder(l,I,J)!=nb[s])
+        continue;
 
-            const int sf = side_of(c, f.di, f.dj);
-            kba_item it;
-            it.row = (s < 2) ? d : a;
-            it.id = id;
-            it.di = f.di;
-            it.dj = f.dj;
-            it.key = seastate_amr_faces::key(f.di, f.dj, sf);
-            const bool second_layer = f.di == EXT - 2 || f.di == EXT + c->nx + 1 || f.dj == EXT - 2 || f.dj == EXT + c->ny + 1;
-            it.face = !second_layer && (*c->cov)(f.di, f.dj) == 1 && gfaces(id)->F.count(it.key) > 0;
-            krecv[s].push_back(it);
-            req[s].insert(req[s].end(), {l, I, J, sf, it.face ? 1 : 0});
+        const int sf = side_of(c,f.di,f.dj);
+        kba_item it;
+        it.row = (s<2) ? d : a;
+        it.id = id;
+        it.di = f.di;
+        it.dj = f.dj;
+        it.key = seastate_amr_faces::key(f.di,f.dj,sf);
+        const bool second_layer = f.di==EXT-2 || f.di==EXT+c->nx+1 || f.dj==EXT-2 || f.dj==EXT+c->ny+1;
+        it.face = !second_layer && (*c->cov)(f.di,f.dj)==1 && gfaces(id)->F.count(it.key)>0;
+        krecv[s].push_back(it);
+        req[s].insert(req[s].end(),{l,I,J,sf,it.face ? 1 : 0});
         }
     }
 
     // the requests to the neighbours, theirs to this rank: the sources here
-    for(int s = 0; s < 4; ++s)
-        if(nb[s] >= 0)
+    for(int s=0; s<4; ++s)
+    if(nb[s]>=0)
+    {
+    int mine = int(req[s].size()), theirs = 0;
+    MPI_Sendrecv(&mine,1,MPI_INT,nb[s],6300+s,&theirs,1,MPI_INT,nb[s],6300+opposite[s],pgc->mpi_comm,MPI_STATUS_IGNORE);
+    vector<int> in(std::max(theirs,1));
+    MPI_Sendrecv(req[s].data(),mine,MPI_INT,nb[s],6310+s,in.data(),theirs,MPI_INT,nb[s],6310+opposite[s],pgc->mpi_comm,MPI_STATUS_IGNORE);
+
+        for(int m=0; m+4<theirs; m+=5)
         {
-            int mine = int(req[s].size()), theirs = 0;
-            MPI_Sendrecv(&mine, 1, MPI_INT, nb[s], 6300 + s, &theirs, 1, MPI_INT, nb[s], 6300 + opposite[s], pgc->mpi_comm, MPI_STATUS_IGNORE);
-            vector<int> in(std::max(theirs, 1));
-            MPI_Sendrecv(req[s].data(), mine, MPI_INT, nb[s], 6310 + s, in.data(), theirs, MPI_INT, nb[s], 6310 + opposite[s], pgc->mpi_comm, MPI_STATUS_IGNORE);
+        const int l = in[m], I = in[m+1], J = in[m+2], sf = in[m+3];
+        kba_item it;
+        it.row = (s<2) ? (J>>l) - p->origin_j : (I>>l) - p->origin_i;
+        it.face = in[m+4]==1;
+        it.L.g = -1;
+        it.L.id = -1;
+        it.L.key = 0;
+        it.L.i0 = it.L.j0 = it.L.i1 = it.L.j1 = 0;
 
-            for(int m = 0; m + 4 < theirs; m += 5)
+        // the source as the fills serve it: the cell of a patch of the level, else its parent (constant prolongation)
+        const int qa = patch_at(l,I,J);
+            if(qa>=0)
             {
-                const int l = in[m], I = in[m + 1], J = in[m + 2], sf = in[m + 3];
-                kba_item it;
-                it.row = (s < 2) ? (J >> l) - p->origin_j : (I >> l) - p->origin_i;
-                it.face = in[m + 4] == 1;
-                it.L.g = -1;
-                it.L.id = -1;
-                it.L.key = 0;
-                it.L.i0 = it.L.j0 = it.L.i1 = it.L.j1 = 0;
-
-                // the source as the fills serve it: the cell of a patch of the level, else its parent (constant prolongation)
-                const int qa = patch_at(l, I, J);
-                if(qa >= 0)
-                {
-                    it.g = qa;
-                    it.si = I - P[qa]->I0 + EXT;
-                    it.sj = J - P[qa]->J0 + EXT;
-                }
-                else
-                {
-                    const int g = patch_at(l - 1, I >> 1, J >> 1);
-                    if(g >= -1)
-                    {
-                        int oi, oj;
-                        goff(g, oi, oj);
-                        it.g = g;
-                        it.si = (I >> 1) - oi;
-                        it.sj = (J >> 1) - oj;
-                    }
-                }
-
-                // the face of a covered source cell towards the ring cell (else the cell itself, as without the face)
-                if(it.face && qa >= 0 && (*SP(qa)->cov)(it.si, it.sj) == 1)
-                {
-                    auto ch = childof.find(ckey(qa, it.si, it.sj));
-                    if(ch != childof.end())
-                    {
-                        const int cid = ch->second.first, kb = ch->second.second;
-                        const int nby = P[cid]->ny / 2;
-                        const int fi = EXT + 2 * (kb / nby), fj = EXT + 2 * (kb % nby);
-                        seastate_amr_flink &L = it.L;
-                        L.g = qa;
-                        L.id = cid;
-                        if(sf == 0)
-                        {
-                            L.i0 = fi;
-                            L.j0 = fj;
-                            L.i1 = fi;
-                            L.j1 = fj + 1;
-                        }
-                        if(sf == 1)
-                        {
-                            L.i0 = fi + 1;
-                            L.j0 = fj;
-                            L.i1 = fi + 1;
-                            L.j1 = fj + 1;
-                        }
-                        if(sf == 2)
-                        {
-                            L.i0 = fi;
-                            L.j0 = fj;
-                            L.i1 = fi + 1;
-                            L.j1 = fj;
-                        }
-                        if(sf == 3)
-                        {
-                            L.i0 = fi;
-                            L.j0 = fj + 1;
-                            L.i1 = fi + 1;
-                            L.j1 = fj + 1;
-                        }
-                    }
-                }
-                ksend[s].push_back(it);
+            it.g = qa;
+            it.si = I-P[qa]->I0+EXT;
+            it.sj = J-P[qa]->J0+EXT;
             }
+            else
+            {
+            const int g = patch_at(l-1,I>>1,J>>1);
+                if(g>=-1)
+                {
+                int oi, oj;
+                goff(g,oi,oj);
+                it.g = g;
+                it.si = (I>>1)-oi;
+                it.sj = (J>>1)-oj;
+                }
+            }
+
+            // the face of a covered source cell towards the ring cell (else the cell itself, as without the face)
+            if(it.face && qa>=0 && (*SP(qa)->cov)(it.si,it.sj)==1)
+            {
+            auto ch = childof.find(ckey(qa,it.si,it.sj));
+                if(ch!=childof.end())
+                {
+                const int cid = ch->second.first, kb = ch->second.second;
+                const int nby = P[cid]->ny/2;
+                const int fi = EXT+2*(kb/nby), fj = EXT+2*(kb%nby);
+                seastate_amr_flink &L = it.L;
+                L.g = qa;
+                L.id = cid;
+                if(sf==0) {L.i0=fi;   L.j0=fj;   L.i1=fi;   L.j1=fj+1;}
+                if(sf==1) {L.i0=fi+1; L.j0=fj;   L.i1=fi+1; L.j1=fj+1;}
+                if(sf==2) {L.i0=fi;   L.j0=fj;   L.i1=fi+1; L.j1=fj;}
+                if(sf==3) {L.i0=fi;   L.j0=fj+1; L.i1=fi+1; L.j1=fj+1;}
+                }
+            }
+        ksend[s].push_back(it);
         }
+    }
 
     kba = true;
-    L0.solv->pipeline_refined(L0.pex, this);
+    L0.solv->pipeline_refined(L0.pex,this);
 
     double ni = 0.0, nf = 0.0;
-    for(int s = 0; s < 4; ++s)
+    for(int s=0; s<4; ++s)
     {
-        ni += double(ksend[s].size());
+    ni += double(ksend[s].size());
         for(unsigned char v : kface_send[s])
-            nf += double(v);
+        nf += double(v);
     }
     ni = pgc->globalsum(ni);
     nf = pgc->globalsum(nf);
-    if(me == 0)
-        cout << "SEASTATE AMR: the composite sweep pipelined across the ranks (A 781 1, A 797 1): the boundary tiles carry "
-             << long(ni) << " ring cells of the patches and " << long(nf) << " faces of covered level-0 cells" << endl;
+    if(me==0)
+    cout<<"SEASTATE AMR: the composite sweep pipelined across the ranks (A 781 1, A 797 1): the boundary tiles carry "
+        <<long(ni)<<" ring cells of the patches and "<<long(nf)<<" faces of covered level-0 cells"<<endl;
 }
 
 size_t seastate_amr::kba_size(int q, int s, int idx, int tb, bool send)
 {
-    const int n = (s < 2) ? p0->knoy : p0->knox;
-    const int a = idx * tb, b = std::min(n, (idx + 1) * tb);
+    const int n = (s<2) ? p0->knoy : p0->knox;
+    const int a = idx*tb, b = std::min(n,(idx+1)*tb);
     size_t c = 0;
 
     const vector<unsigned char> &F = send ? kface_send[s] : kface_recv[s];
-    for(int row = 0; row < n; ++row)
+    for(int row=0; row<n; ++row)
     {
-        const int pos = kpos(q, s, row);
-        if(pos >= a && pos < b && F[row])
-            c += nbin;
+    const int pos = kpos(q,s,row);
+    if(pos>=a && pos<b && F[row])
+    c += nbin;
     }
 
     for(const kba_item &it : send ? ksend[s] : krecv[s])
     {
-        const int pos = kpos(q, s, it.row);
-        if(pos >= a && pos < b)
-            c += size_t(nbin) * (it.face ? 2 : 1);
+    const int pos = kpos(q,s,it.row);
+    if(pos>=a && pos<b)
+    c += size_t(nbin)*(it.face ? 2 : 1);
     }
     return c;
 }
 
 void seastate_amr::kba_pack(int q, int s, int idx, int tb, float *buf)
 {
-    const int n = (s < 2) ? p0->knoy : p0->knox;
-    const int a = idx * tb, b = std::min(n, (idx + 1) * tb);
+    const int n = (s<2) ? p0->knoy : p0->knox;
+    const int a = idx*tb, b = std::min(n,(idx+1)*tb);
     seastate_amr_faces *F0 = gfaces(-1);
     size_t c = 0;
 
     // the faces of the covered boundary cells towards side s, in the order of the tile
-    for(int pos = a; pos < b; ++pos)
+    for(int pos=a; pos<b; ++pos)
     {
-        const bool down = (s < 2) ? (q == 2 || q == 3) : (q == 1 || q == 2);
-        const int row = down ? n - 1 - pos : pos;
-        if(!kface_send[s][row])
-            continue;
-        const int ii = (s < 2) ? (s == 1 ? p0->knox - 1 : 0) : row;
-        const int jj = (s < 2) ? row : (s == 3 ? p0->knoy - 1 : 0);
-        const vector<float> &f = F0->F.at(seastate_amr_faces::key(ii, jj, s));
-        std::copy(f.begin(), f.end(), buf + c);
-        c += nbin;
+    const bool down = (s<2) ? (q==2 || q==3) : (q==1 || q==2);
+    const int row = down ? n-1-pos : pos;
+    if(!kface_send[s][row])
+    continue;
+    const int ii = (s<2) ? (s==1 ? p0->knox-1 : 0) : row;
+    const int jj = (s<2) ? row : (s==3 ? p0->knoy-1 : 0);
+    const vector<float> &f = F0->F.at(seastate_amr_faces::key(ii,jj,s));
+    std::copy(f.begin(),f.end(),buf+c);
+    c += nbin;
     }
 
     // the sources of the ring cells of the neighbour, in the order of its list
     for(const kba_item &it : ksend[s])
     {
-        const int pos = kpos(q, s, it.row);
-        if(pos < a || pos >= b)
-            continue;
+    const int pos = kpos(q,s,it.row);
+    if(pos<a || pos>=b)
+    continue;
 
-        const float *v = nullptr;
-        if(it.g >= -1)
+    const float *v = nullptr;
+        if(it.g>=-1)
         {
-            fdm_seastate *e = gfd(it.g);
-            if(e->wet(it.si, it.sj) == 1)
-                v = e->N->spec(it.si, it.sj);
+        fdm_seastate *e = gfd(it.g);
+        if(e->wet(it.si,it.sj)==1)
+        v = e->N->spec(it.si,it.sj);
         }
-        if(v != nullptr)
-            std::copy(v, v + nbin, buf + c);
+        if(v!=nullptr)
+        std::copy(v,v+nbin,buf+c);
         else
-            std::fill(buf + c, buf + c + nbin, 0.0f);
-        c += nbin;
+        std::fill(buf+c,buf+c+nbin,0.0f);
+    c += nbin;
 
         if(it.face)
         {
-            if(it.L.g >= 0)
-                ring_face(it.L, buf + c);
-            else if(v != nullptr)
-                std::copy(v, v + nbin, buf + c);
+            if(it.L.g>=0)
+            ring_face(it.L,buf+c);
+            else if(v!=nullptr)
+            std::copy(v,v+nbin,buf+c);
             else
-                std::fill(buf + c, buf + c + nbin, 0.0f);
-            c += nbin;
+            std::fill(buf+c,buf+c+nbin,0.0f);
+        c += nbin;
         }
     }
 }
 
 void seastate_amr::kba_unpack(int q, int s, int idx, int tb, const float *buf)
 {
-    static const int opposite[4] = {1, 0, 3, 2};
-    const int n = (s < 2) ? p0->knoy : p0->knox;
-    const int a = idx * tb, b = std::min(n, (idx + 1) * tb);
+    static const int opposite[4] = {1,0,3,2};
+    const int n = (s<2) ? p0->knoy : p0->knox;
+    const int a = idx*tb, b = std::min(n,(idx+1)*tb);
     seastate_amr_faces *F0 = gfaces(-1);
     size_t c = 0;
 
-    for(int pos = a; pos < b; ++pos)
+    for(int pos=a; pos<b; ++pos)
     {
-        const bool down = (s < 2) ? (q == 2 || q == 3) : (q == 1 || q == 2);
-        const int row = down ? n - 1 - pos : pos;
-        if(!kface_recv[s][row])
-            continue;
-        const int ii = (s < 2) ? (s == 1 ? p0->knox : -1) : row;
-        const int jj = (s < 2) ? row : (s == 3 ? p0->knoy : -1);
-        vector<float> &f = F0->F.at(seastate_amr_faces::key(ii, jj, opposite[s]));
-        std::copy(buf + c, buf + c + nbin, f.begin());
-        c += nbin;
+    const bool down = (s<2) ? (q==2 || q==3) : (q==1 || q==2);
+    const int row = down ? n-1-pos : pos;
+    if(!kface_recv[s][row])
+    continue;
+    const int ii = (s<2) ? (s==1 ? p0->knox : -1) : row;
+    const int jj = (s<2) ? row : (s==3 ? p0->knoy : -1);
+    vector<float> &f = F0->F.at(seastate_amr_faces::key(ii,jj,opposite[s]));
+    std::copy(buf+c,buf+c+nbin,f.begin());
+    c += nbin;
     }
 
     for(const kba_item &it : krecv[s])
     {
-        const int pos = kpos(q, s, it.row);
-        if(pos < a || pos >= b)
-            continue;
+    const int pos = kpos(q,s,it.row);
+    if(pos<a || pos>=b)
+    continue;
 
-        float *d = SP(it.id)->e->N->spec(it.di, it.dj);
-        if(d != nullptr)
-            std::copy(buf + c, buf + c + nbin, d);
-        c += nbin;
+    float *d = SP(it.id)->e->N->spec(it.di,it.dj);
+    if(d!=nullptr)
+    std::copy(buf+c,buf+c+nbin,d);
+    c += nbin;
 
         if(it.face)
         {
-            vector<float> &f = gfaces(it.id)->F.at(it.key);
-            std::copy(buf + c, buf + c + nbin, f.begin());
-            c += nbin;
+        vector<float> &f = gfaces(it.id)->F.at(it.key);
+        std::copy(buf+c,buf+c+nbin,f.begin());
+        c += nbin;
         }
     }
 }
@@ -1468,37 +1388,37 @@ void seastate_amr::kba_unpack(int q, int s, int idx, int tb, const float *buf)
 // prolongation (coarser level), float to float
 void seastate_amr::fill_local(seastate_amr_patch *c, int id)
 {
-    for(const vector<int> *R : {&c->ring, &c->ring2})
+    for(const vector<int> *R : {&c->ring,&c->ring2})
         for(int k : *R)
         {
-            const reefamr_fill &f = c->fill[k];
-            float *d = c->e->N->spec(f.di, f.dj);
+        const reefamr_fill &f = c->fill[k];
+        float *d = c->e->N->spec(f.di,f.dj);
 
-            if(d == nullptr)
-                continue;
+        if(d==nullptr)
+        continue;
 
-            const float *s = nullptr;
-            if(f.kind == 0 || f.kind == 1)
+        const float *s = nullptr;
+            if(f.kind==0 || f.kind==1)
             {
-                fdm_seastate *e = gfd(f.g);
-                if(e->wet(f.si, f.sj) == 1)
-                    s = e->N->spec(f.si, f.sj);
+            fdm_seastate *e = gfd(f.g);
+            if(e->wet(f.si,f.sj)==1)
+            s = e->N->spec(f.si,f.sj);
             }
 
-            if(s != nullptr)
-                std::copy(s, s + nbin, d);
-            else
-                std::fill(d, d + nbin, 0.0f);
+        if(s!=nullptr)
+        std::copy(s,s+nbin,d);
+        else
+        std::fill(d,d+nbin,0.0f);
         }
 
     // Phase 16: the faces of covered source cells of the same level
-    ring_faces_local(c, id);
+    ring_faces_local(c,id);
 }
 
 void seastate_amr::fill_level(int l)
 {
     for(int id : lev[l])
-        fill_local(SP(id), id);
+    fill_local(SP(id),id);
 
     // Phase 16: the faces of covered source cells on other ranks
     ring_faces_remote(l);
@@ -1507,12 +1427,13 @@ void seastate_amr::fill_level(int l)
     const reefamr_xplan &X = gplan[l];
     if(X.speer.empty() && X.rpeer.empty())
     {
-        ++fills;
-        return;
+    ++fills;
+    return;
     }
 
-    fill_run_sub(l, nbin, 7400 + l, [&](const reefamr_fill &f, double *v)
-                 {
+    fill_run_sub(l,nbin,7400+l,
+        [&](const reefamr_fill &f, double *v)
+        {
             const float *s = nullptr;
             if(f.kind==0 || f.kind==1)
             {
@@ -1521,13 +1442,16 @@ void seastate_amr::fill_level(int l)
                 s = e->N->spec(f.si,f.sj);
             }
             for(int b=0; b<nbin; ++b)
-            v[b] = (s!=nullptr) ? double(s[b]) : 0.0; }, [&](reefamr_patch *q, int, const reefamr_fill &f, const double *v)
-                 {
+            v[b] = (s!=nullptr) ? double(s[b]) : 0.0;
+        },
+        [&](reefamr_patch *q, int, const reefamr_fill &f, const double *v)
+        {
             float *s = SP(q)->e->N->spec(f.di,f.dj);
             if(s!=nullptr)
             for(int b=0; b<nbin; ++b)
-            s[b] = float(v[b]); }, [&](reefamr_patch *q) -> const vector<int> *
-                 { return &SP(q)->ringsel; });
+            s[b] = float(v[b]);
+        },
+        [&](reefamr_patch *q) -> const vector<int>* {return &SP(q)->ringsel;});
 
     ++fills;
 }
@@ -1536,8 +1460,8 @@ void seastate_amr::fill_level(int l)
 // cells next to solved cells the mean of the two fine cells next to the face
 void seastate_amr::restrict_all()
 {
-    for(int l = maxlev; l >= 1; --l)
-        restrict_level(l);
+    for(int l=maxlev; l>=1; --l)
+    restrict_level(l);
 }
 
 // the level-l patches into their parents
@@ -1545,8 +1469,9 @@ void seastate_amr::restrict_level(int l)
 {
     if(remote_blocks)
     {
-        block_up(l, nbin, 7500 + l, [&](reefamr_patch *q, int, int k, double *v)
-                 {
+        block_up(l,nbin,7500+l,
+            [&](reefamr_patch *q, int, int k, double *v)
+            {
                 seastate_amr_patch *c = SP(q);
                 const int bi = k/(c->ny/2), bj = k%(c->ny/2);
                 for(int b=0; b<nbin; ++b)
@@ -1559,65 +1484,68 @@ void seastate_amr::restrict_level(int l)
                     if(s!=nullptr)
                     for(int b=0; b<nbin; ++b)
                     v[b] += 0.25*double(s[b]);
-                } }, [&](const reefamr_block &B, int, const double *v)
-                 {
+                }
+            },
+            [&](const reefamr_block &B, int, const double *v)
+            {
                 fdm_seastate *e = gfd(B.g);
                 float *s = e->N->spec(B.ic,B.jc);
                 if(s!=nullptr && e->wet(B.ic,B.jc)==1)
                 for(int b=0; b<nbin; ++b)
-                s[b] = float(v[b]); });
+                s[b] = float(v[b]);
+            });
     }
     else
-        for(int id : lev[l])
+    for(int id : lev[l])
+    {
+    seastate_amr_patch *c = SP(id);
+    const int nby = c->ny/2;
+
+        for(size_t k=0; k<c->rgrid.size(); ++k)
         {
-            seastate_amr_patch *c = SP(id);
-            const int nby = c->ny / 2;
+        const int g = c->rgrid[k];
+        if(g<-1)
+        continue;
 
-            for(size_t k = 0; k < c->rgrid.size(); ++k)
+        fdm_seastate *e = gfd(g);
+        if(e->wet(c->ric[k],c->rjc[k])!=1)
+        continue;
+
+        float *s = e->N->spec(c->ric[k],c->rjc[k]);
+        if(s==nullptr)
+        continue;
+
+        const int bi = int(k)/nby, bj = int(k)%nby;
+        const float *ch[4];
+        int n=0;
+
+            for(int a=0; a<2; ++a)
+            for(int d=0; d<2; ++d)
             {
-                const int g = c->rgrid[k];
-                if(g < -1)
-                    continue;
+            const int ii = EXT+2*bi+a, jj = EXT+2*bj+d;
+            if(c->e->wet(ii,jj)==1 && c->e->N->spec(ii,jj)!=nullptr)
+            ch[n++] = c->e->N->spec(ii,jj);
+            }
 
-                fdm_seastate *e = gfd(g);
-                if(e->wet(c->ric[k], c->rjc[k]) != 1)
-                    continue;
-
-                float *s = e->N->spec(c->ric[k], c->rjc[k]);
-                if(s == nullptr)
-                    continue;
-
-                const int bi = int(k) / nby, bj = int(k) % nby;
-                const float *ch[4];
-                int n = 0;
-
-                for(int a = 0; a < 2; ++a)
-                    for(int d = 0; d < 2; ++d)
-                    {
-                        const int ii = EXT + 2 * bi + a, jj = EXT + 2 * bj + d;
-                        if(c->e->wet(ii, jj) == 1 && c->e->N->spec(ii, jj) != nullptr)
-                            ch[n++] = c->e->N->spec(ii, jj);
-                    }
-
-                for(int b = 0; b < nbin; ++b)
-                {
-                    float v = 0.0f;
-                    for(int m = 0; m < n; ++m)
-                        v += ch[m][b];
-                    s[b] = 0.25f * v;
-                }
+            for(int b=0; b<nbin; ++b)
+            {
+            float v = 0.0f;
+            for(int m=0; m<n; ++m)
+            v += ch[m][b];
+            s[b] = 0.25f*v;
             }
         }
+    }
 
     for(const seastate_amr_flink &L : flinks[l])
     {
-        seastate_amr_patch *c = SP(L.id);
-        float *F = gfaces(L.g)->F[L.key].data();
-        const float *a = (c->e->wet(L.i0, L.j0) == 1) ? c->e->N->spec(L.i0, L.j0) : nullptr;
-        const float *b = (c->e->wet(L.i1, L.j1) == 1) ? c->e->N->spec(L.i1, L.j1) : nullptr;
+    seastate_amr_patch *c = SP(L.id);
+    float *F = gfaces(L.g)->F[L.key].data();
+    const float *a = (c->e->wet(L.i0,L.j0)==1) ? c->e->N->spec(L.i0,L.j0) : nullptr;
+    const float *b = (c->e->wet(L.i1,L.j1)==1) ? c->e->N->spec(L.i1,L.j1) : nullptr;
 
-        for(int n = 0; n < nbin; ++n)
-            F[n] = 0.5f * ((a != nullptr ? a[n] : 0.0f) + (b != nullptr ? b[n] : 0.0f));
+        for(int n=0; n<nbin; ++n)
+        F[n] = 0.5f*((a!=nullptr ? a[n] : 0.0f) + (b!=nullptr ? b[n] : 0.0f));
     }
 }
 
@@ -1626,148 +1554,148 @@ void seastate_amr::composite_maps()
 {
     childof.clear();
     flinkof.clear();
-    ghostof.assign(P.size(), unordered_map<long long, int>());
+    ghostof.assign(P.size(),unordered_map<long long,int>());
 
-    for(int id = 0; id < (int)P.size(); ++id)
+    for(int id=0; id<(int)P.size(); ++id)
     {
-        seastate_amr_patch *c = SP(id);
+    seastate_amr_patch *c = SP(id);
 
-        for(size_t k = 0; k < c->rgrid.size(); ++k)
-            if(c->rgrid[k] >= -1)
-                childof[ckey(c->rgrid[k], c->ric[k], c->rjc[k])] = std::make_pair(id, int(k));
+        for(size_t k=0; k<c->rgrid.size(); ++k)
+        if(c->rgrid[k]>=-1)
+        childof[ckey(c->rgrid[k],c->ric[k],c->rjc[k])] = std::make_pair(id,int(k));
 
-        for(const vector<int> *R : {&c->ring, &c->ring2})
-            for(int k : *R)
-            {
-                const reefamr_fill &f = c->fill[k];
-                if(f.kind == 0 || f.kind == 1)
-                    ghostof[id][ckey(-1, f.di, f.dj)] = k;
-            }
+        for(const vector<int> *R : {&c->ring,&c->ring2})
+        for(int k : *R)
+        {
+        const reefamr_fill &f = c->fill[k];
+        if(f.kind==0 || f.kind==1)
+        ghostof[id][ckey(-1,f.di,f.dj)] = k;
+        }
     }
 
-    for(int l = 1; l <= maxlev; ++l)
-        for(int n = 0; n < (int)flinks[l].size(); ++n)
-        {
-            const seastate_amr_flink &L = flinks[l][n];
-            const int ic = int(((L.key >> 2) / 16777216L) - 64L), jc = int(((L.key >> 2) % 16777216L) - 64L);
-            flinkof[ckey(L.g, ic, jc)].push_back(std::make_pair(l, n));
-        }
+    for(int l=1; l<=maxlev; ++l)
+    for(int n=0; n<(int)flinks[l].size(); ++n)
+    {
+    const seastate_amr_flink &L = flinks[l][n];
+    const int ic = int(((L.key>>2)/16777216L) - 64L), jc = int(((L.key>>2)%16777216L) - 64L);
+    flinkof[ckey(L.g,ic,jc)].push_back(std::make_pair(l,n));
+    }
 }
 
 // the ring cell next to fine cell (fi,fj) of patch id, from its source on this rank (the latest value)
 void seastate_amr::ghost_fill(seastate_amr_patch *c, int id, int fi, int fj)
 {
-    const int di[4] = {-1, 1, 0, 0}, dj[4] = {0, 0, -1, 1};
+    const int di[4] = {-1,1,0,0}, dj[4] = {0,0,-1,1};
 
     const int rw = ring_width();
-    for(int s = 0; s < 4; ++s)
-        for(int dist = 1; dist <= rw; ++dist)
+    for(int s=0; s<4; ++s)
+    for(int dist=1; dist<=rw; ++dist)
+    {
+    const int a = fi+dist*di[s], b = fj+dist*dj[s];
+    if(a>=EXT && a<EXT+c->nx && b>=EXT && b<EXT+c->ny)
+    continue;
+
+    auto it = ghostof[id].find(ckey(-1,a,b));
+    if(it==ghostof[id].end())
+    continue;
+
+    const reefamr_fill &f = c->fill[it->second];
+    float *d = c->e->N->spec(f.di,f.dj);
+    if(d==nullptr)
+    continue;
+
+    fdm_seastate *e = gfd(f.g);
+    const float *src = (e->wet(f.si,f.sj)==1) ? e->N->spec(f.si,f.sj) : nullptr;
+
+    // threads (A 798): two cells of a wavefront diagonal can share a ring cell downstream of both (same value)
+    std::lock_guard<std::mutex> lock(ring_mutex);
+        if(src!=nullptr)
+        std::copy(src,src+nbin,d);
+        else
+        std::fill(d,d+nbin,0.0f);
+
+        // Phase 16: a covered source cell: its face towards the patch from the latest fine cells
+        const int rl = (dist==1) ? rlink_of[id][it->second] : -1;
+        if(rl>=0)
         {
-            const int a = fi + dist * di[s], b = fj + dist * dj[s];
-            if(a >= EXT && a < EXT + c->nx && b >= EXT && b < EXT + c->ny)
-                continue;
-
-            auto it = ghostof[id].find(ckey(-1, a, b));
-            if(it == ghostof[id].end())
-                continue;
-
-            const reefamr_fill &f = c->fill[it->second];
-            float *d = c->e->N->spec(f.di, f.dj);
-            if(d == nullptr)
-                continue;
-
-            fdm_seastate *e = gfd(f.g);
-            const float *src = (e->wet(f.si, f.sj) == 1) ? e->N->spec(f.si, f.sj) : nullptr;
-
-            // threads (A 798): two cells of a wavefront diagonal can share a ring cell downstream of both (same value)
-            std::lock_guard<std::mutex> lock(ring_mutex);
-            if(src != nullptr)
-                std::copy(src, src + nbin, d);
-            else
-                std::fill(d, d + nbin, 0.0f);
-
-            // Phase 16: a covered source cell: its face towards the patch from the latest fine cells
-            const int rl = (dist == 1) ? rlink_of[id][it->second] : -1;
-            if(rl >= 0)
-            {
-                const seastate_amr_flink &L = rlinks[id][rl];
-                ring_face(L, gfaces(id)->F.at(L.key).data());
-            }
+        const seastate_amr_flink &L = rlinks[id][rl];
+        ring_face(L,gfaces(id)->F.at(L.key).data());
         }
+    }
 }
 
 // the four children of covered cell (I,J) of grid g, in the order of quadrant q (recursively), then the
 // mean of the children into the cell and the spectra on its faces
 void seastate_amr::descend(int g, int I, int J, int q, double rdt, bool refraction, bool fshift, int t)
 {
-    static const int side0[4] = {0, 0, 0, 0};
+    static const int side0[4] = {0,0,0,0};
     static const vector<float> none;
 
-    auto it = childof.find(ckey(g, I, J));
-    if(it == childof.end())
-        return;
+    auto it = childof.find(ckey(g,I,J));
+    if(it==childof.end())
+    return;
 
     const int id = it->second.first, k = it->second.second;
     seastate_amr_patch *c = SP(id);
-    const int nby = c->ny / 2;
-    const int bi = k / nby, bj = k % nby;
-    const bool idown = (q == 1 || q == 2), jdown = (q == 2 || q == 3);
+    const int nby = c->ny/2;
+    const int bi = k/nby, bj = k%nby;
+    const bool idown = (q==1 || q==2), jdown = (q==2 || q==3);
 
-    for(int aa = 0; aa < 2; ++aa)
-        for(int dd = 0; dd < 2; ++dd)
+    for(int aa=0; aa<2; ++aa)
+    for(int dd=0; dd<2; ++dd)
+    {
+    const int a = idown ? 1-aa : aa, d = jdown ? 1-dd : dd;
+    const int fi = EXT+2*bi+a, fj = EXT+2*bj+d;
+
+        if((*c->cov)(fi,fj)==1)
+        descend(id,fi,fj,q,rdt,refraction,fshift,t);
+        else if(c->e->wet(fi,fj)==1)
         {
-            const int a = idown ? 1 - aa : aa, d = jdown ? 1 - dd : dd;
-            const int fi = EXT + 2 * bi + a, fj = EXT + 2 * bj + d;
-
-            if((*c->cov)(fi, fj) == 1)
-                descend(id, fi, fj, q, rdt, refraction, fshift, t);
-            else if(c->e->wet(fi, fj) == 1)
-            {
-                ghost_fill(c, id, fi, fj);
-                solver_of(id, t)->solve(c->pp, c->e, q, fi, fj, c->N0, rdt, none, side0, refraction, fshift);
-            }
+        ghost_fill(c,id,fi,fj);
+        solver_of(id,t)->solve(c->pp,c->e,q,fi,fj,c->N0,rdt,none,side0,refraction,fshift);
         }
+    }
 
     // restriction into the parent cell
     fdm_seastate *e = gfd(g);
-    float *s = (e->wet(I, J) == 1) ? e->N->spec(I, J) : nullptr;
+    float *s = (e->wet(I,J)==1) ? e->N->spec(I,J) : nullptr;
 
-    if(s != nullptr)
+    if(s!=nullptr)
     {
-        const float *ch[4];
-        int n = 0;
+    const float *ch[4];
+    int n=0;
 
-        for(int a = 0; a < 2; ++a)
-            for(int d = 0; d < 2; ++d)
-            {
-                const int ii = EXT + 2 * bi + a, jj = EXT + 2 * bj + d;
-                if(c->e->wet(ii, jj) == 1 && c->e->N->spec(ii, jj) != nullptr)
-                    ch[n++] = c->e->N->spec(ii, jj);
-            }
-
-        for(int b = 0; b < nbin; ++b)
+        for(int a=0; a<2; ++a)
+        for(int d=0; d<2; ++d)
         {
-            float v = 0.0f;
-            for(int m = 0; m < n; ++m)
-                v += ch[m][b];
-            s[b] = 0.25f * v;
+        const int ii = EXT+2*bi+a, jj = EXT+2*bj+d;
+        if(c->e->wet(ii,jj)==1 && c->e->N->spec(ii,jj)!=nullptr)
+        ch[n++] = c->e->N->spec(ii,jj);
+        }
+
+        for(int b=0; b<nbin; ++b)
+        {
+        float v = 0.0f;
+        for(int m=0; m<n; ++m)
+        v += ch[m][b];
+        s[b] = 0.25f*v;
         }
     }
 
     // the faces of the cell next to solved coarse cells
-    auto fl = flinkof.find(ckey(g, I, J));
-    if(fl != flinkof.end())
-        for(const auto &code : fl->second)
-        {
-            const seastate_amr_flink &L = flinks[code.first][code.second];
-            seastate_amr_patch *cc = SP(L.id);
-            float *F = gfaces(L.g)->F.at(L.key).data();
-            const float *a = (cc->e->wet(L.i0, L.j0) == 1) ? cc->e->N->spec(L.i0, L.j0) : nullptr;
-            const float *b = (cc->e->wet(L.i1, L.j1) == 1) ? cc->e->N->spec(L.i1, L.j1) : nullptr;
+    auto fl = flinkof.find(ckey(g,I,J));
+    if(fl!=flinkof.end())
+    for(const auto &code : fl->second)
+    {
+    const seastate_amr_flink &L = flinks[code.first][code.second];
+    seastate_amr_patch *cc = SP(L.id);
+    float *F = gfaces(L.g)->F.at(L.key).data();
+    const float *a = (cc->e->wet(L.i0,L.j0)==1) ? cc->e->N->spec(L.i0,L.j0) : nullptr;
+    const float *b = (cc->e->wet(L.i1,L.j1)==1) ? cc->e->N->spec(L.i1,L.j1) : nullptr;
 
-            for(int n = 0; n < nbin; ++n)
-                F[n] = 0.5f * ((a != nullptr ? a[n] : 0.0f) + (b != nullptr ? b[n] : 0.0f));
-        }
+        for(int n=0; n<nbin; ++n)
+        F[n] = 0.5f*((a!=nullptr ? a[n] : 0.0f) + (b!=nullptr ? b[n] : 0.0f));
+    }
 }
 
 void seastate_amr::composite_sweep(lexer *p, ghostcell *pgc, int q, const seastate_store *N0, double rdt, const vector<float> &Nb,
@@ -1775,43 +1703,41 @@ void seastate_amr::composite_sweep(lexer *p, ghostcell *pgc, int q, const seasta
 {
     // the ring cells of all patches: the values held by other ranks (lagged, as the level-0 halo)
     double t0 = pgc->timer();
-    for(int l = 1; l <= maxlev; ++l)
-        fill_level(l);
+    for(int l=1; l<=maxlev; ++l)
+    fill_level(l);
     double t1 = pgc->timer();
-    tm[2] += t1 - t0;
+    tm[2] += t1-t0;
 
-    std::function<void(int, int)> f0 = [&](int I, int J)
-    { descend(-1, I, J, q, rdt, refraction, fshift); };
-    std::function<void(int, int, int)> fT = [&](int t, int I, int J)
-    { descend(-1, I, J, q, rdt, refraction, fshift, t); };
+    std::function<void(int,int)> f0 = [&](int I, int J) {descend(-1,I,J,q,rdt,refraction,fshift);};
+    std::function<void(int,int,int)> fT = [&](int t, int I, int J) {descend(-1,I,J,q,rdt,refraction,fshift,t);};
 
     // threads (A 798): the copies of the patch solvers for the threads 1 .. A 798 - 1 (static grids: once), the
     // active ranges of all patch cells set before (spectral sparsity)
     const int nt = L0.solv->thread_count();
-    if(nt > 1)
+    if(nt>1)
     {
         thread_copies(nt);
 
-        for(int id = 0; id < (int)P.size(); ++id)
-            SP(id)->solv->preset_ranges(SP(id)->pp, SP(id)->e);
+        for(int id=0; id<(int)P.size(); ++id)
+        SP(id)->solv->preset_ranges(SP(id)->pp,SP(id)->e);
     }
 
     L0.solv->visit(&f0);
-    L0.solv->visit_threads((nt > 1 || kba) ? &fT : nullptr);  // Phase 17: pipelined: the tiles also with one thread
-    L0.solv->sweep(p, L0.e, q, N0, rdt, Nb, side, refraction, fshift);
+    L0.solv->visit_threads((nt>1 || kba) ? &fT : nullptr);     // Phase 17: pipelined: the tiles also with one thread
+    L0.solv->sweep(p,L0.e,q,N0,rdt,Nb,side,refraction,fshift);
     L0.solv->visit(nullptr);
     L0.solv->visit_threads(nullptr);
-    const double tfill = t1 - t0;
+    const double tfill = t1-t0;
     t0 = pgc->timer();
-    tm[0] += t0 - t1;
+    tm[0] += t0-t1;
 
-    halo0(p, pgc);
-    const double thalo = pgc->timer() - t0;
+    halo0(p,pgc);
+    const double thalo = pgc->timer()-t0;
     tm[3] += thalo;
 
     // Phase 19: the exchanges around a pipelined sweep (the fills of the patches before it, the halo after it)
     if(kba)
-        L0.solv->pipeline_exchange(tfill + thalo);
+    L0.solv->pipeline_exchange(tfill+thalo);
 
     ++sweeps;
 }
@@ -1819,31 +1745,31 @@ void seastate_amr::composite_sweep(lexer *p, ghostcell *pgc, int q, const seasta
 void seastate_amr::step_begin()
 {
     for(auto q : P)
-        if(SP(q)->N0 != nullptr)
-            SP(q)->N0->copy_from(*SP(q)->e->N);
+    if(SP(q)->N0!=nullptr)
+    SP(q)->N0->copy_from(*SP(q)->e->N);
 }
 
 // the copies of the patch solvers and of the source terms for the threads 1 .. nt-1 (static grids: once)
 void seastate_amr::thread_copies(int nt)
 {
-    if((int)tsolv.size() == nt && (nt < 2 || tsolv[1].size() == P.size()))
-        return;
+    if((int)tsolv.size()==nt && (nt<2 || tsolv[1].size()==P.size()))
+    return;
 
     tsolv.clear();
     tsolv.resize(nt);
     tsrc.clear();
     tsrc.resize(nt);
-    for(int t = 1; t < nt; ++t)
-    {
-        if(L0.src != nullptr)
-            tsrc[t].reset(new seastate_source(*L0.src));
-        for(int id = 0; id < (int)P.size(); ++id)
+        for(int t=1; t<nt; ++t)
         {
+        if(L0.src!=nullptr)
+        tsrc[t].reset(new seastate_source(*L0.src));
+            for(int id=0; id<(int)P.size(); ++id)
+            {
             tsolv[t].emplace_back(new seastate_implicit(*SP(id)->solv));
-            if(L0.src != nullptr)
-                tsolv[t].back()->sources(tsrc[t].get());
+            if(L0.src!=nullptr)
+            tsolv[t].back()->sources(tsrc[t].get());
+            }
         }
-    }
 }
 
 // Phase 12: the order of the threads over the patches of a level: positions i < j of order[q][l] depend on each other if
@@ -1851,60 +1777,60 @@ void seastate_amr::thread_copies(int nt)
 void seastate_amr::dag_build()
 {
     vector<unordered_set<int>> reads(P.size());
-    for(int id = 0; id < (int)P.size(); ++id)
+    for(int id=0; id<(int)P.size(); ++id)
     {
-        seastate_amr_patch *c = SP(id);
-        for(const vector<int> *R : {&c->ring, &c->ring2})
-            for(int k : *R)
-            {
-                const reefamr_fill &f = c->fill[k];
-                if((f.kind == 0 || f.kind == 1) && f.g >= 0 && P[f.g]->lev == c->lev)
-                    reads[id].insert(f.g);
-            }
+    seastate_amr_patch *c = SP(id);
+        for(const vector<int> *R : {&c->ring,&c->ring2})
+        for(int k : *R)
+        {
+        const reefamr_fill &f = c->fill[k];
+        if((f.kind==0 || f.kind==1) && f.g>=0 && P[f.g]->lev==c->lev)
+        reads[id].insert(f.g);
+        }
     }
 
-    for(int q = 0; q < 4; ++q)
+    for(int q=0; q<4; ++q)
     {
-        dag_npred[q].assign(maxlev + 1, vector<int>());
-        dag_succ[q].assign(maxlev + 1, vector<vector<int>>());
-        dag_gain[q].assign(maxlev + 1, 0.0);
-        for(int l = 1; l <= maxlev; ++l)
+    dag_npred[q].assign(maxlev+1,vector<int>());
+    dag_succ[q].assign(maxlev+1,vector<vector<int>>());
+    dag_gain[q].assign(maxlev+1,0.0);
+        for(int l=1; l<=maxlev; ++l)
         {
-            const vector<int> &o = order[q][l];
-            const int n = int(o.size());
-            unordered_map<int, int> pos;
-            for(int k = 0; k < n; ++k)
-                pos[o[k]] = k;
-            vector<unordered_set<int>> pred(n);
-            for(int k = 0; k < n; ++k)
-                for(int g : reads[o[k]])
-                {
-                    auto it = pos.find(g);
-                    if(it == pos.end() || it->second == k)
-                        continue;
-                    const int a = std::min(k, it->second), b = std::max(k, it->second);
-                    pred[b].insert(a);
-                }
-            dag_npred[q][l].assign(n, 0);
-            dag_succ[q][l].assign(n, vector<int>());
-            vector<double> chain(n, 0.0);
-            double total = 0.0, longest = 0.0;
-            for(int b = 0; b < n; ++b)
+        const vector<int> &o = order[q][l];
+        const int n = int(o.size());
+        unordered_map<int,int> pos;
+        for(int k=0; k<n; ++k)
+        pos[o[k]] = k;
+        vector<unordered_set<int>> pred(n);
+            for(int k=0; k<n; ++k)
+            for(int g : reads[o[k]])
             {
-                dag_npred[q][l][b] = int(pred[b].size());
-                for(int a : pred[b])
-                    dag_succ[q][l][a].push_back(b);
-
-                // the predecessors come first in the order: the longest chain of cells ending at b
-                const double w = double(P[o[b]]->nx) * double(P[o[b]]->ny);
-                double c0 = 0.0;
-                for(int a : pred[b])
-                    c0 = std::max(c0, chain[a]);
-                chain[b] = c0 + w;
-                total += w;
-                longest = std::max(longest, chain[b]);
+            auto it = pos.find(g);
+            if(it==pos.end() || it->second==k)
+            continue;
+            const int a = std::min(k,it->second), b = std::max(k,it->second);
+            pred[b].insert(a);
             }
-            dag_gain[q][l] = longest > 0.0 ? total / longest : 0.0;
+        dag_npred[q][l].assign(n,0);
+        dag_succ[q][l].assign(n,vector<int>());
+        vector<double> chain(n,0.0);
+        double total=0.0, longest=0.0;
+            for(int b=0; b<n; ++b)
+            {
+            dag_npred[q][l][b] = int(pred[b].size());
+            for(int a : pred[b])
+            dag_succ[q][l][a].push_back(b);
+
+            // the predecessors come first in the order: the longest chain of cells ending at b
+            const double w = double(P[o[b]]->nx)*double(P[o[b]]->ny);
+            double c0 = 0.0;
+            for(int a : pred[b])
+            c0 = std::max(c0,chain[a]);
+            chain[b] = c0 + w;
+            total += w;
+            longest = std::max(longest,chain[b]);
+            }
+        dag_gain[q][l] = longest>0.0 ? total/longest : 0.0;
         }
     }
 }
@@ -1912,49 +1838,49 @@ void seastate_amr::dag_build()
 void seastate_amr::dag_report()
 {
     const int nt = p0->A798;
-    if(p0->mpirank == 0 && nt >= 2 && p0->A797 != 1 && (int)dag_gain[0].size() > maxlev)
-        for(int l = 1; l <= maxlev; ++l)
+    if(p0->mpirank==0 && nt>=2 && p0->A797!=1 && (int)dag_gain[0].size()>maxlev)
+    for(int l=1; l<=maxlev; ++l)
+    {
+    const int n = int(order[0][l].size());
+    double g0 = 1.0e30, g1 = 0.0;
+    int nq = 0;
+        for(int q=0; q<4; ++q)
         {
-            const int n = int(order[0][l].size());
-            double g0 = 1.0e30, g1 = 0.0;
-            int nq = 0;
-            for(int q = 0; q < 4; ++q)
-            {
-                g0 = std::min(g0, dag_gain[q][l]);
-                g1 = std::max(g1, dag_gain[q][l]);
-                if(n >= 2 * nt && dag_gain[q][l] >= 0.75 * nt)
-                    ++nq;
-            }
-            cout << "SEASTATE AMR threads (A 798): level " << l << ", " << n << " patch(es) on rank 0, parallelism of the patches " << fixed << setprecision(2) << g0;
-            if(g1 > g0)
-                cout << "-" << g1;
-            cout << ": patches shared out to the threads in " << nq << " of 4 sweep directions, threads inside the patches in the others" << endl;
-            cout.unsetf(ios::floatfield);
-            cout << setprecision(6);
+        g0 = std::min(g0,dag_gain[q][l]);
+        g1 = std::max(g1,dag_gain[q][l]);
+        if(n>=2*nt && dag_gain[q][l]>=0.75*nt)
+        ++nq;
         }
+    cout<<"SEASTATE AMR threads (A 798): level "<<l<<", "<<n<<" patch(es) on rank 0, parallelism of the patches "<<fixed<<setprecision(2)<<g0;
+    if(g1>g0)
+    cout<<"-"<<g1;
+    cout<<": patches shared out to the threads in "<<nq<<" of 4 sweep directions, threads inside the patches in the others"<<endl;
+    cout.unsetf(ios::floatfield);
+    cout<<setprecision(6);
+    }
 }
 
 bool seastate_amr::sweep_level_threads(int l, int q, double rdt, bool refraction, bool fshift)
 {
-    static const int side0[4] = {0, 0, 0, 0};
+    static const int side0[4] = {0,0,0,0};
     static const vector<float> none;
 
     const int nt = L0.solv->thread_count();
     const vector<int> &o = order[q][l];
     const int n = int(o.size());
-    if(nt < 2 || n < 2 * nt || (int)dag_npred[q].size() <= l || dag_gain[q][l] < 0.75 * nt)
-        return false;
+    if(nt<2 || n<2*nt || (int)dag_npred[q].size()<=l || dag_gain[q][l]<0.75*nt)
+    return false;
 
     thread_copies(nt);
 
     vector<std::atomic<int>> cnt(n);
     vector<int> ready;
     ready.reserve(n);
-    for(int k = n - 1; k >= 0; --k)
+    for(int k=n-1; k>=0; --k)
     {
-        cnt[k].store(dag_npred[q][l][k], std::memory_order_relaxed);
-        if(dag_npred[q][l][k] == 0)
-            ready.push_back(k);
+    cnt[k].store(dag_npred[q][l][k],std::memory_order_relaxed);
+    if(dag_npred[q][l][k]==0)
+    ready.push_back(k);
     }
     std::mutex mx;
     std::atomic<int> done(0);
@@ -1963,116 +1889,116 @@ bool seastate_amr::sweep_level_threads(int l, int q, double rdt, bool refraction
     {
         for(;;)
         {
-            int k = -1;
+        int k = -1;
             {
-                std::lock_guard<std::mutex> lk(mx);
+            std::lock_guard<std::mutex> lk(mx);
                 if(!ready.empty())
                 {
-                    k = ready.back();
-                    ready.pop_back();
+                k = ready.back();
+                ready.pop_back();
                 }
             }
 
-            if(k < 0)
+            if(k<0)
             {
-                if(done.load(std::memory_order_acquire) >= n)
-                    return;
-                std::this_thread::yield();
-                continue;
+            if(done.load(std::memory_order_acquire)>=n)
+            return;
+            std::this_thread::yield();
+            continue;
             }
 
-            const int id = o[k];
-            seastate_amr_patch *c = SP(id);
-            seastate_implicit *s = solver_of(id, t);
-            if(t > 0)
-                s->copy_config(*c->solv);
-            s->threads(1);
+        const int id = o[k];
+        seastate_amr_patch *c = SP(id);
+        seastate_implicit *s = solver_of(id,t);
+        if(t>0)
+        s->copy_config(*c->solv);
+        s->threads(1);
 
-            fill_local(c, id);
-            s->sweep(c->pp, c->e, q, c->N0, rdt, none, side0, refraction, fshift);
+        fill_local(c,id);
+        s->sweep(c->pp,c->e,q,c->N0,rdt,none,side0,refraction,fshift);
 
             for(int j : dag_succ[q][l][k])
-                if(cnt[j].fetch_sub(1, std::memory_order_acq_rel) == 1)
-                {
-                    std::lock_guard<std::mutex> lk(mx);
-                    ready.push_back(j);
-                }
-            done.fetch_add(1, std::memory_order_acq_rel);
+            if(cnt[j].fetch_sub(1,std::memory_order_acq_rel)==1)
+            {
+            std::lock_guard<std::mutex> lk(mx);
+            ready.push_back(j);
+            }
+        done.fetch_add(1,std::memory_order_acq_rel);
         }
     };
-    seastate_implicit::run_threads(nt, job);
+    seastate_implicit::run_threads(nt,job);
 
     // the patch solvers keep their threads for the sweeps of the patches on their own
     for(int id : o)
-        SP(id)->solv->threads(nt, 64);
+    SP(id)->solv->threads(nt,64);
 
     return true;
 }
 
 void seastate_amr::sweep_level(int l, int q, double rdt, bool refraction, bool fshift)
 {
-    static const int side0[4] = {0, 0, 0, 0};
+    static const int side0[4] = {0,0,0,0};
     static const vector<float> none;
 
-    if(sweep_level_threads(l, q, rdt, refraction, fshift))
-        return;
+    if(sweep_level_threads(l,q,rdt,refraction,fshift))
+    return;
 
     for(int id : order[q][l])
     {
-        seastate_amr_patch *c = SP(id);
-        fill_local(c, id);
-        c->solv->sweep(c->pp, c->e, q, c->N0, rdt, none, side0, refraction, fshift);
+    seastate_amr_patch *c = SP(id);
+    fill_local(c,id);
+    c->solv->sweep(c->pp,c->e,q,c->N0,rdt,none,side0,refraction,fshift);
     }
 }
 
 void seastate_amr::iterate(lexer *p, ghostcell *pgc, const seastate_store *N0, double rdt, const vector<float> &Nb,
                            const int side[4], bool refraction, bool fshift)
 {
-    if(p->A797 == 1 && !remote_blocks)
+    if(p->A797==1 && !remote_blocks)
     {
-        for(int q = 0; q < 4; ++q)
-            composite_sweep(p, pgc, q, N0, rdt, Nb, side, refraction, fshift);
-        return;
+    for(int q=0; q<4; ++q)
+    composite_sweep(p,pgc,q,N0,rdt,Nb,side,refraction,fshift);
+    return;
     }
 
-    for(int q = 0; q < 4; ++q)
+    for(int q=0; q<4; ++q)
     {
         // down: level 0, then the patches level by level
         double t0 = pgc->timer();
-        L0.solv->sweep(p, L0.e, q, N0, rdt, Nb, side, refraction, fshift);
+        L0.solv->sweep(p,L0.e,q,N0,rdt,Nb,side,refraction,fshift);
         double t1 = pgc->timer();
-        tm[0] += t1 - t0;
+        tm[0] += t1-t0;
 
-        for(int l = 1; l <= maxlev; ++l)
+        for(int l=1; l<=maxlev; ++l)
         {
             t0 = pgc->timer();
             fill_level(l);
             t1 = pgc->timer();
-            tm[2] += t1 - t0;
+            tm[2] += t1-t0;
 
-            sweep_level(l, q, rdt, refraction, fshift);
-            tm[1] += pgc->timer() - t1;
+            sweep_level(l,q,rdt,refraction,fshift);
+            tm[1] += pgc->timer()-t1;
         }
 
         // up: restriction of the finest level, then the coarser levels again with the outflow of the
         // finer ones, each restricted into its parent
         t0 = pgc->timer();
         restrict_level(maxlev);
-        tm[3] += pgc->timer() - t0;
+        tm[3] += pgc->timer()-t0;
 
-        for(int l = maxlev - 1; l >= 1; --l)
+        for(int l=maxlev-1; l>=1; --l)
         {
             t0 = pgc->timer();
             fill_level(l);
             t1 = pgc->timer();
-            tm[2] += t1 - t0;
+            tm[2] += t1-t0;
 
-            sweep_level(l, q, rdt, refraction, fshift);
+            sweep_level(l,q,rdt,refraction,fshift);
             t0 = pgc->timer();
-            tm[1] += t0 - t1;
+            tm[1] += t0-t1;
 
             restrict_level(l);
-            tm[3] += pgc->timer() - t0;
+            tm[3] += pgc->timer()-t0;
         }
 
         // level 0 again, downstream of the level-1 patches of this rank only (upstream cells cannot
@@ -2080,26 +2006,26 @@ void seastate_amr::iterate(lexer *p, ghostcell *pgc, const seastate_store *N0, d
         t0 = pgc->timer();
         if(!lev[1].empty())
         {
-            int ilo = p->knox, ihi = -1, jlo = p->knoy, jhi = -1;
+        int ilo=p->knox, ihi=-1, jlo=p->knoy, jhi=-1;
             for(int id : lev[1])
             {
-                ilo = std::min(ilo, (P[id]->I0 >> 1) - O0i);
-                ihi = std::max(ihi, (P[id]->I1 >> 1) - O0i);
-                jlo = std::min(jlo, (P[id]->J0 >> 1) - O0j);
-                jhi = std::max(jhi, (P[id]->J1 >> 1) - O0j);
+            ilo = std::min(ilo,(P[id]->I0>>1)-O0i);
+            ihi = std::max(ihi,(P[id]->I1>>1)-O0i);
+            jlo = std::min(jlo,(P[id]->J0>>1)-O0j);
+            jhi = std::max(jhi,(P[id]->J1>>1)-O0j);
             }
-            const bool idown = (q == 1 || q == 2), jdown = (q == 2 || q == 3);
-            const int ia = idown ? 0 : std::max(ilo - 1, 0), ib = idown ? std::min(ihi + 1, p->knox - 1) : p->knox - 1;
-            const int ja = jdown ? 0 : std::max(jlo - 1, 0), jb = jdown ? std::min(jhi + 1, p->knoy - 1) : p->knoy - 1;
-            L0.solv->range(ia, ib, ja, jb);
-            L0.solv->sweep(p, L0.e, q, N0, rdt, Nb, side, refraction, fshift);
-            L0.solv->unrange();
+        const bool idown = (q==1 || q==2), jdown = (q==2 || q==3);
+        const int ia = idown ? 0 : std::max(ilo-1,0), ib = idown ? std::min(ihi+1,p->knox-1) : p->knox-1;
+        const int ja = jdown ? 0 : std::max(jlo-1,0), jb = jdown ? std::min(jhi+1,p->knoy-1) : p->knoy-1;
+        L0.solv->range(ia,ib,ja,jb);
+        L0.solv->sweep(p,L0.e,q,N0,rdt,Nb,side,refraction,fshift);
+        L0.solv->unrange();
         }
         t1 = pgc->timer();
-        tm[0] += t1 - t0;
+        tm[0] += t1-t0;
 
-        halo0(p, pgc);
-        tm[3] += pgc->timer() - t1;
+        halo0(p,pgc);
+        tm[3] += pgc->timer()-t1;
 
         ++sweeps;
     }
@@ -2110,92 +2036,92 @@ void seastate_amr::fas(lexer *p, ghostcell *pgc, const seastate_store *N0, doubl
                        bool fshift, int ncoarse)
 {
     static const vector<float> none;
-    static const int side0[4] = {0, 0, 0, 0};
+    static const int side0[4] = {0,0,0,0};
 
-    if(maxlev < 1 || lev[1].empty())
-        return;
+    if(maxlev<1 || lev[1].empty())
+    return;
 
     // storage: the patch residuals (per patch), tau, the restricted spectra and the residuals on level 0 (once)
-    for(int l = 1; l <= maxlev; ++l)
-        for(int id : lev[l])
-        {
-            seastate_amr_patch *c = SP(id);
-            lexer *pp = c->pp;
-            if(c->res == nullptr)
-            {
-                c->res = new seastate_store(pp->imin, pp->jmin, pp->imax, pp->jmax, nbin, 2);
-                c->res->build(c->e->wet.V);
-            }
-        }
-
-    if(fasT == nullptr)
+    for(int l=1; l<=maxlev; ++l)
+    for(int id : lev[l])
     {
-        fasT = new seastate_store(p->imin, p->jmin, p->imax, p->jmax, nbin, p->A704);
-        fasT->build(L0.e->wet.V);
-        fasN = new seastate_store(p->imin, p->jmin, p->imax, p->jmax, nbin, p->A704);
-        fasN->build(L0.e->wet.V);
-        fasR = new seastate_store(p->imin, p->jmin, p->imax, p->jmax, nbin, p->A704);
-        fasR->build(L0.e->wet.V);
-        fasC = new seastate_store(p->imin, p->jmin, p->imax, p->jmax, nbin, p->A704);
-        fasC->build(L0.e->wet.V);
+    seastate_amr_patch *c = SP(id);
+    lexer *pp = c->pp;
+        if(c->res==nullptr)
+        {
+        c->res = new seastate_store(pp->imin,pp->jmin,pp->imax,pp->jmax,nbin,2);
+        c->res->build(c->e->wet.V);
+        }
+    }
+
+    if(fasT==nullptr)
+    {
+    fasT = new seastate_store(p->imin,p->jmin,p->imax,p->jmax,nbin,p->A704);
+    fasT->build(L0.e->wet.V);
+    fasN = new seastate_store(p->imin,p->jmin,p->imax,p->jmax,nbin,p->A704);
+    fasN->build(L0.e->wet.V);
+    fasR = new seastate_store(p->imin,p->jmin,p->imax,p->jmax,nbin,p->A704);
+    fasR->build(L0.e->wet.V);
+    fasC = new seastate_store(p->imin,p->jmin,p->imax,p->jmax,nbin,p->A704);
+    fasC->build(L0.e->wet.V);
     }
 
     // 1: residuals of the uncovered patch cells of all levels at the latest spectra (ring cells filled first;
     // the covered cells are skipped and hold zero), nonstationary with the time term of the step (N0)
-    for(int l = 1; l <= maxlev; ++l)
-        for(int id : lev[l])
-        {
-            seastate_amr_patch *c = SP(id);
-            fill_local(c, id);
-            c->res->fill(0.0f);
-            c->solv->residual_out(c->res);
-            for(int q = 0; q < 4; ++q)
-                c->solv->sweep(c->pp, c->e, q, N0 != nullptr ? c->N0 : nullptr, rdt, none, side0, refraction, fshift);
-            c->solv->residual_out(nullptr);
-        }
+    for(int l=1; l<=maxlev; ++l)
+    for(int id : lev[l])
+    {
+    seastate_amr_patch *c = SP(id);
+    fill_local(c,id);
+    c->res->fill(0.0f);
+    c->solv->residual_out(c->res);
+        for(int q=0; q<4; ++q)
+        c->solv->sweep(c->pp,c->e,q,N0!=nullptr ? c->N0 : nullptr,rdt,none,side0,refraction,fshift);
+    c->solv->residual_out(nullptr);
+    }
 
     // 1b: the residual of the covered patch cells: the mean of the residuals of their children, from the
     // finest level up (the composite residual restricted level by level, as the spectra)
-    for(int l = maxlev; l >= 2; --l)
-        for(int id : lev[l])
+    for(int l=maxlev; l>=2; --l)
+    for(int id : lev[l])
+    {
+    seastate_amr_patch *c = SP(id);
+    const int nby = c->ny/2;
+
+        for(size_t k=0; k<c->rgrid.size(); ++k)
         {
-            seastate_amr_patch *c = SP(id);
-            const int nby = c->ny / 2;
+        const int g = c->rgrid[k];
+        if(g<0)
+        continue;
 
-            for(size_t k = 0; k < c->rgrid.size(); ++k)
+        seastate_amr_patch *pc = SP(g);
+        const int I = c->ric[k], J = c->rjc[k];
+        if(pc->res==nullptr || pc->e->wet(I,J)!=1)
+        continue;
+        float *R = pc->res->spec(I,J);
+        if(R==nullptr)
+        continue;
+
+        const int bi = int(k)/nby, bj = int(k)%nby;
+        std::fill(R,R+nbin,0.0f);
+            for(int a=0; a<2; ++a)
+            for(int d=0; d<2; ++d)
             {
-                const int g = c->rgrid[k];
-                if(g < 0)
-                    continue;
-
-                seastate_amr_patch *pc = SP(g);
-                const int I = c->ric[k], J = c->rjc[k];
-                if(pc->res == nullptr || pc->e->wet(I, J) != 1)
-                    continue;
-                float *R = pc->res->spec(I, J);
-                if(R == nullptr)
-                    continue;
-
-                const int bi = int(k) / nby, bj = int(k) % nby;
-                std::fill(R, R + nbin, 0.0f);
-                for(int a = 0; a < 2; ++a)
-                    for(int d = 0; d < 2; ++d)
-                    {
-                        const int ii = EXT + 2 * bi + a, jj = EXT + 2 * bj + d;
-                        const float *r = (c->e->wet(ii, jj) == 1) ? c->res->spec(ii, jj) : nullptr;
-                        if(r != nullptr)
-                            for(int b = 0; b < nbin; ++b)
-                                R[b] += 0.25f * r[b];
-                    }
+            const int ii = EXT+2*bi+a, jj = EXT+2*bj+d;
+            const float *r = (c->e->wet(ii,jj)==1) ? c->res->spec(ii,jj) : nullptr;
+            if(r!=nullptr)
+            for(int b=0; b<nbin; ++b)
+            R[b] += 0.25f*r[b];
             }
         }
+    }
 
     // 2a: residual of the uncovered level-0 cells in the composite problem (covered cells skipped, the
     // spectra leaving the patches on their faces); it tends to zero with the iteration
     fasC->fill(0.0f);
     L0.solv->residual_out(fasC);
-    for(int q = 0; q < 4; ++q)
-        L0.solv->sweep(p, L0.e, q, N0, rdt, Nb, side, refraction, fshift);
+        for(int q=0; q<4; ++q)
+        L0.solv->sweep(p,L0.e,q,N0,rdt,Nb,side,refraction,fshift);
     L0.solv->residual_out(nullptr);
 
     // 2b: level 0 as a grid of its own (covered cells solved, no fine faces); its residual at the restricted
@@ -2204,66 +2130,66 @@ void seastate_amr::fas(lexer *p, ghostcell *pgc, const seastate_store *N0, doubl
     L0.solv->skip(nullptr);
     L0.solv->faces(nullptr);
     L0.solv->residual_out(fasR);
-    for(int q = 0; q < 4; ++q)
-        L0.solv->sweep(p, L0.e, q, N0, rdt, Nb, side, refraction, fshift);
+        for(int q=0; q<4; ++q)
+        L0.solv->sweep(p,L0.e,q,N0,rdt,Nb,side,refraction,fshift);
     L0.solv->residual_out(nullptr);
 
     // 3: tau = r_c(R N) - R r on the covered cells; on the uncovered cells tau = r_c(N) - r of the composite
     // problem, which differ next to the patches, where the composite problem takes the fine faces
     fasT->fill(0.0f);
     SLICELOOP4
-    if(L0.e->wet(i, j) == 1 && (*cov0)(i, j) == 0)
+    if(L0.e->wet(i,j)==1 && (*cov0)(i,j)==0)
     {
-        float *T = fasT->spec(i, j);
-        const float *Rc = fasR->spec(i, j), *Cc = fasC->spec(i, j);
-        if(T != nullptr && Rc != nullptr && Cc != nullptr)
-            for(int b = 0; b < nbin; ++b)
-                T[b] = Rc[b] - Cc[b];
+    float *T = fasT->spec(i,j);
+    const float *Rc = fasR->spec(i,j), *Cc = fasC->spec(i,j);
+    if(T!=nullptr && Rc!=nullptr && Cc!=nullptr)
+    for(int b=0; b<nbin; ++b)
+    T[b] = Rc[b] - Cc[b];
     }
 
     for(int id : lev[1])
     {
-        seastate_amr_patch *c = SP(id);
-        const int nby = c->ny / 2;
+    seastate_amr_patch *c = SP(id);
+    const int nby = c->ny/2;
 
-        for(size_t k = 0; k < c->rgrid.size(); ++k)
+        for(size_t k=0; k<c->rgrid.size(); ++k)
         {
-            if(c->rgrid[k] != -1)
-                continue;
-            const int I = c->ric[k], J = c->rjc[k];
-            if(L0.e->wet(I, J) != 1)
-                continue;
-            float *T = fasT->spec(I, J);
-            const float *Rc = fasR->spec(I, J);
-            if(T == nullptr || Rc == nullptr)
-                continue;
+        if(c->rgrid[k]!=-1)
+        continue;
+        const int I = c->ric[k], J = c->rjc[k];
+        if(L0.e->wet(I,J)!=1)
+        continue;
+        float *T = fasT->spec(I,J);
+        const float *Rc = fasR->spec(I,J);
+        if(T==nullptr || Rc==nullptr)
+        continue;
 
-            const int bi = int(k) / nby, bj = int(k) % nby;
-            for(int b = 0; b < nbin; ++b)
+        const int bi = int(k)/nby, bj = int(k)%nby;
+            for(int b=0; b<nbin; ++b)
             {
-                double rf = 0.0;
-                for(int a = 0; a < 2; ++a)
-                    for(int d = 0; d < 2; ++d)
-                    {
-                        const int ii = EXT + 2 * bi + a, jj = EXT + 2 * bj + d;
-                        const float *r = (c->e->wet(ii, jj) == 1) ? c->res->spec(ii, jj) : nullptr;
-                        if(r != nullptr)
-                            rf += 0.25 * double(r[b]);
-                    }
-                T[b] = float(double(Rc[b]) - rf);
+            double rf = 0.0;
+                for(int a=0; a<2; ++a)
+                for(int d=0; d<2; ++d)
+                {
+                const int ii = EXT+2*bi+a, jj = EXT+2*bj+d;
+                const float *r = (c->e->wet(ii,jj)==1) ? c->res->spec(ii,jj) : nullptr;
+                if(r!=nullptr)
+                rf += 0.25*double(r[b]);
+                }
+            T[b] = float(double(Rc[b]) - rf);
             }
         }
     }
 
     // 4: the coarse problem, m iterations on the whole level 0
-    L0.solv->fas_source(fasT, fasN, p->A795 > 0.0);
-    for(int it = 0; it < ncoarse; ++it)
-        for(int q = 0; q < 4; ++q)
-        {
-            L0.solv->sweep(p, L0.e, q, N0, rdt, Nb, side, refraction, fshift);
-            L0.pex->start(p, pgc, *L0.e->N);
-        }
-    L0.solv->fas_source(nullptr, nullptr);
+    L0.solv->fas_source(fasT,fasN,p->A795>0.0);
+    for(int it=0; it<ncoarse; ++it)
+    for(int q=0; q<4; ++q)
+    {
+    L0.solv->sweep(p,L0.e,q,N0,rdt,Nb,side,refraction,fshift);
+    L0.pex->start(p,pgc,*L0.e->N);
+    }
+    L0.solv->fas_source(nullptr,nullptr);
     L0.solv->skip(cov0);
     L0.solv->faces(gfaces(-1));
 
@@ -2272,102 +2198,102 @@ void seastate_amr::fas(lexer *p, ghostcell *pgc, const seastate_store *N0, doubl
     vector<float> fac(nbin), add(nbin);
 
     // the cell (fi,fj) of patch id and, where it is covered, the cells under it (recursively)
-    std::function<void(int, int, int)> apply = [&](int id, int fi, int fj)
+    std::function<void(int,int,int)> apply = [&](int id, int fi, int fj)
     {
         seastate_amr_patch *c = SP(id);
-        if(c->e->wet(fi, fj) != 1)
-            return;
-        float *s = c->e->N->spec(fi, fj);
-        if(s == nullptr)
-            return;
+        if(c->e->wet(fi,fj)!=1)
+        return;
+        float *s = c->e->N->spec(fi,fj);
+        if(s==nullptr)
+        return;
 
-        for(int b = 0; b < nbin; ++b)
-            s[b] = s[b] * fac[b] + add[b];
+        for(int b=0; b<nbin; ++b)
+        s[b] = s[b]*fac[b] + add[b];
 
-        if((*c->cov)(fi, fj) != 1)
-            return;
+        if((*c->cov)(fi,fj)!=1)
+        return;
 
-        auto it = childof.find(ckey(id, fi, fj));
-        if(it == childof.end())
-            return;
+        auto it = childof.find(ckey(id,fi,fj));
+        if(it==childof.end())
+        return;
 
         const int cid = it->second.first, k = it->second.second;
         seastate_amr_patch *cc = SP(cid);
-        const int nby = cc->ny / 2, bi = k / nby, bj = k % nby;
-        for(int a = 0; a < 2; ++a)
-            for(int d = 0; d < 2; ++d)
-                apply(cid, EXT + 2 * bi + a, EXT + 2 * bj + d);
+        const int nby = cc->ny/2, bi = k/nby, bj = k%nby;
+        for(int a=0; a<2; ++a)
+        for(int d=0; d<2; ++d)
+        apply(cid,EXT+2*bi+a,EXT+2*bj+d);
     };
 
     double chg = 0.0;
     for(int id : lev[1])
     {
-        seastate_amr_patch *c = SP(id);
-        const int nby = c->ny / 2;
+    seastate_amr_patch *c = SP(id);
+    const int nby = c->ny/2;
 
-        for(size_t k = 0; k < c->rgrid.size(); ++k)
+        for(size_t k=0; k<c->rgrid.size(); ++k)
         {
-            if(c->rgrid[k] != -1)
-                continue;
-            const int I = c->ric[k], J = c->rjc[k];
-            if(L0.e->wet(I, J) != 1)
-                continue;
-            float *Nc = L0.e->N->spec(I, J);
-            const float *Nt = fasN->spec(I, J);
-            if(Nc == nullptr || Nt == nullptr)
-                continue;
+        if(c->rgrid[k]!=-1)
+        continue;
+        const int I = c->ric[k], J = c->rjc[k];
+        if(L0.e->wet(I,J)!=1)
+        continue;
+        float *Nc = L0.e->N->spec(I,J);
+        const float *Nt = fasN->spec(I,J);
+        if(Nc==nullptr || Nt==nullptr)
+        continue;
 
-            double et = 0.0, dc = 0.0;
-            for(int b = 0; b < nbin; ++b)
+        double et = 0.0, dc = 0.0;
+            for(int b=0; b<nbin; ++b)
             {
-                const double nt = double(Nt[b]), nc = double(Nc[b]);
-                et += nt;
-                dc += std::fabs(nc - nt);
-                fac[b] = 1.0f;
-                add[b] = 0.0f;
-                if(nt > 1.0e-30)
-                    fac[b] = float(std::min(std::max(nc / nt, 0.25), 4.0));
-                else if(nc > nt)
-                    add[b] = float(nc - nt);
+            const double nt = double(Nt[b]), nc = double(Nc[b]);
+            et += nt;
+            dc += std::fabs(nc-nt);
+            fac[b] = 1.0f;
+            add[b] = 0.0f;
+                if(nt>1.0e-30)
+                fac[b] = float(std::min(std::max(nc/nt,0.25),4.0));
+                else if(nc>nt)
+                add[b] = float(nc-nt);
             }
-            const int bi = int(k) / nby, bj = int(k) % nby;
+        const int bi = int(k)/nby, bj = int(k)%nby;
 
-            // no correction where a child is dry: the restricted spectrum holds the dry child as zero, so that the
-            // coarse cell is not the mean of the fine solution and its change is no correction of it (such cells along
-            // the coasts kept oscillating with corrections of 50 % and more)
-            bool coast = false;
-            for(int a = 0; a < 2; ++a)
-                for(int d = 0; d < 2; ++d)
-                    if(c->e->wet(EXT + 2 * bi + a, EXT + 2 * bj + d) != 1)
-                        coast = true;
+        // no correction where a child is dry: the restricted spectrum holds the dry child as zero, so that the
+        // coarse cell is not the mean of the fine solution and its change is no correction of it (such cells along
+        // the coasts kept oscillating with corrections of 50 % and more)
+        bool coast = false;
+            for(int a=0; a<2; ++a)
+            for(int d=0; d<2; ++d)
+            if(c->e->wet(EXT+2*bi+a,EXT+2*bj+d)!=1)
+            coast = true;
 
-            if(!coast && et > 0.0)
-                chg = std::max(chg, dc / et);
+        if(!coast && et>0.0)
+        chg = std::max(chg,dc/et);
 
-            const float *ch[4];
-            int n = 0;
-            for(int a = 0; a < 2; ++a)
-                for(int d = 0; d < 2; ++d)
-                {
-                    const int ii = EXT + 2 * bi + a, jj = EXT + 2 * bj + d;
-                    if(!coast)
-                        apply(id, ii, jj);
-                    if(c->e->wet(ii, jj) == 1 && c->e->N->spec(ii, jj) != nullptr)
-                        ch[n++] = c->e->N->spec(ii, jj);
-                }
-
-            for(int b = 0; b < nbin; ++b)
+        const float *ch[4];
+        int n=0;
+            for(int a=0; a<2; ++a)
+            for(int d=0; d<2; ++d)
             {
-                float v = 0.0f;
-                for(int m = 0; m < n; ++m)
-                    v += ch[m][b];
-                Nc[b] = 0.25f * v;
+            const int ii = EXT+2*bi+a, jj = EXT+2*bj+d;
+            if(!coast)
+            apply(id,ii,jj);
+            if(c->e->wet(ii,jj)==1 && c->e->N->spec(ii,jj)!=nullptr)
+            ch[n++] = c->e->N->spec(ii,jj);
+            }
+
+            for(int b=0; b<nbin; ++b)
+            {
+            float v = 0.0f;
+            for(int m=0; m<n; ++m)
+            v += ch[m][b];
+            Nc[b] = 0.25f*v;
             }
         }
     }
     fas_change = pgc->globalmax(chg);
 
-    halo0(p, pgc);
+    halo0(p,pgc);
 }
 
 // --------------------------------------------------------------------- parameters, wind, output
@@ -2378,40 +2304,40 @@ void seastate_amr::parameters(vector<double> *hs, double &hmax, double &vmin, ve
 
     for(auto q : P)
     {
-        seastate_amr_patch *c = SP(q);
-        fdm_seastate *e = c->e;
-        lexer *pp = c->pp;
+    seastate_amr_patch *c = SP(q);
+    fdm_seastate *e = c->e;
+    lexer *pp = c->pp;
 
-        for(int ii = pp->imin; ii < pp->imin + pp->imax; ++ii)
-            for(int jj = pp->jmin; jj < pp->jmin + pp->jmax; ++jj)
+        for(int ii=pp->imin; ii<pp->imin+pp->imax; ++ii)
+        for(int jj=pp->jmin; jj<pp->jmin+pp->jmax; ++jj)
+        {
+        e->Hs(ii,jj)=e->Tm01(ii,jj)=e->Tm10(ii,jj)=e->Tp(ii,jj)=e->dir(ii,jj)=e->spread(ii,jj)=0.0;
+
+        if(e->wet(ii,jj)!=1)
+        continue;
+
+        const float *s = e->N->spec(ii,jj);
+        sp.compute(g,s);
+
+        e->Hs(ii,jj)     = sp.Hs;
+        e->Tm01(ii,jj)   = sp.Tm01;
+        e->Tm10(ii,jj)   = sp.Tm10;
+        e->Tp(ii,jj)     = sp.Tp;
+        e->dir(ii,jj)    = sp.dir;
+        e->spread(ii,jj) = sp.spread;
+
+            // leaf cells: interior, not covered
+            if(ii>=EXT && ii<EXT+c->nx && jj>=EXT && jj<EXT+c->ny && (*c->cov)(ii,jj)==0)
             {
-                e->Hs(ii, jj) = e->Tm01(ii, jj) = e->Tm10(ii, jj) = e->Tp(ii, jj) = e->dir(ii, jj) = e->spread(ii, jj) = 0.0;
-
-                if(e->wet(ii, jj) != 1)
-                    continue;
-
-                const float *s = e->N->spec(ii, jj);
-                sp.compute(g, s);
-
-                e->Hs(ii, jj) = sp.Hs;
-                e->Tm01(ii, jj) = sp.Tm01;
-                e->Tm10(ii, jj) = sp.Tm10;
-                e->Tp(ii, jj) = sp.Tp;
-                e->dir(ii, jj) = sp.dir;
-                e->spread(ii, jj) = sp.spread;
-
-                // leaf cells: interior, not covered
-                if(ii >= EXT && ii < EXT + c->nx && jj >= EXT && jj < EXT + c->ny && (*c->cov)(ii, jj) == 0)
-                {
-                    if(hs != nullptr)
-                        hs->push_back(sp.Hs);
-                    if(w != nullptr)
-                        w->push_back(1.0 / double(1 << (2 * c->lev)));
-                    hmax = std::max(hmax, sp.Hs);
-                    for(int b = 0; b < nbin; ++b)
-                        vmin = std::min(vmin, double(s[b]));
-                }
+            if(hs!=nullptr)
+            hs->push_back(sp.Hs);
+            if(w!=nullptr)
+            w->push_back(1.0/double(1<<(2*c->lev)));
+            hmax = std::max(hmax,sp.Hs);
+            for(int b=0; b<nbin; ++b)
+            vmin = std::min(vmin,double(s[b]));
             }
+        }
     }
 }
 
@@ -2420,9 +2346,9 @@ void seastate_amr::obstacles()
 {
     for(auto q : P)
     {
-        seastate_amr_patch *c = SP(q);
-        if(c->pobs != nullptr && c->pobs->active())
-            c->pobs->update(c->pp, c->e);
+    seastate_amr_patch *c = SP(q);
+    if(c->pobs!=nullptr && c->pobs->active())
+    c->pobs->update(c->pp,c->e);
     }
 }
 
@@ -2432,295 +2358,283 @@ void seastate_amr::obstacles()
 // rank: the next coarser level at the centre of the coarse cell
 bool seastate_amr::coarse_value(int l, int I, int J, int what, slice4 &E0, slice4 &T0, double &v)
 {
-    const int lc = l - 1;
-    const int Ic = fsh(I, 1), Jc = fsh(J, 1);
-    const int In = Ic + ((I & 1) ? 1 : -1), Jn = Jc + ((J & 1) ? 1 : -1);
+    const int lc = l-1;
+    const int Ic = fsh(I,1), Jc = fsh(J,1);
+    const int In = Ic + ((I&1) ? 1 : -1), Jn = Jc + ((J&1) ? 1 : -1);
     bool found = false;
 
     auto at = [&](int a, int b, double &val) -> bool
     {
-        if(lc == 0)
+        if(lc==0)
         {
-            const int i = a - O0i, j = b - O0j;
-            if(i < -p0->margin || i >= p0->knox + p0->margin || j < -p0->margin || j >= p0->knoy + p0->margin)
-                return false;
-            if(L0.e->wet(i, j) != 1)
-                return false;
-            val = (what == 0) ? E0(i, j) : T0(i, j);
-            return true;
+        const int i = a-O0i, j = b-O0j;
+        if(i<-p0->margin || i>=p0->knox+p0->margin || j<-p0->margin || j>=p0->knoy+p0->margin)
+        return false;
+        if(L0.e->wet(i,j)!=1)
+        return false;
+        val = (what==0) ? E0(i,j) : T0(i,j);
+        return true;
         }
 
         for(int id : lev[lc])
         {
-            seastate_amr_patch *c = SP(id);
-            if(a >= c->I0 && a <= c->I1 && b >= c->J0 && b <= c->J1)
+        seastate_amr_patch *c = SP(id);
+            if(a>=c->I0 && a<=c->I1 && b>=c->J0 && b<=c->J1)
             {
-                const int ii = a - c->I0 + EXT, jj = b - c->J0 + EXT;
-                if(c->e->wet(ii, jj) != 1 || c->dE == nullptr)
-                    return false;
-                val = (what == 0) ? (*c->dE)(ii, jj) : (*c->dT)(ii, jj);
-                return true;
+            const int ii = a-c->I0+EXT, jj = b-c->J0+EXT;
+            if(c->e->wet(ii,jj)!=1 || c->dE==nullptr)
+            return false;
+            val = (what==0) ? (*c->dE)(ii,jj) : (*c->dT)(ii,jj);
+            return true;
             }
         }
         return false;
     };
 
-    const int ca[4] = {Ic, In, Ic, In}, cb[4] = {Jc, Jc, Jn, Jn};
-    const double w[4] = {0.5625, 0.1875, 0.1875, 0.0625};
+    const int ca[4] = {Ic,In,Ic,In}, cb[4] = {Jc,Jc,Jn,Jn};
+    const double w[4] = {0.5625,0.1875,0.1875,0.0625};
     double s = 0.0, ws = 0.0;
 
-    for(int k = 0; k < 4; ++k)
+    for(int k=0; k<4; ++k)
     {
-        double val;
-        if(at(ca[k], cb[k], val))
-        {
-            s += w[k] * val;
-            ws += w[k];
-            found = true;
-        }
+    double val;
+    if(at(ca[k],cb[k],val))
+    {
+    s += w[k]*val;
+    ws += w[k];
+    found = true;
+    }
     }
 
     if(found)
     {
-        v = s / ws;
-        return true;
+    v = s/ws;
+    return true;
     }
 
-    if(lc > 0)
-        return coarse_value(lc, Ic, Jc, what, E0, T0, v);
+    if(lc>0)
+    return coarse_value(lc,Ic,Jc,what,E0,T0,v);
 
     return false;
 }
 
-void seastate_amr::diffraction(lexer *, int mode, int l0, int l1, double smax, double L, double dmin0, slice4 &E0,
+void seastate_amr::diffraction(lexer*, int mode, int l0, int l1, double smax, double L, double dmin0, slice4 &E0,
                                slice4 &T0)
 {
     const seastate_grid &g = *L0.e->grid;
 
-    for(int lv = 1; lv <= maxlev; ++lv)
-        for(int id : lev[lv])
+    for(int lv=1; lv<=maxlev; ++lv)
+    for(int id : lev[lv])
+    {
+    seastate_amr_patch *c = SP(id);
+    if(c->dE==nullptr)
+    continue;
+
+    lexer *pp = c->pp;
+    fdm_seastate *e = c->e;
+    const seastate_obstacle *pob = c->pobs;
+    slice4 &S = *c->dS, &T = *c->dT, &KM = *c->dK, &CM = *c->dC, &Es = *c->dE;
+    const int m = marge;
+    const int ia = EXT, ib = EXT+c->nx-1, ja = EXT, jb = EXT+c->ny-1;
+
+    // smoothing steps of the patch: 0.4 (L/dx)^2 (the same length as on level 0), or A 719 n 4^level
+    const double dx = dmin0/double(1<<lv);
+    int ns = (p0->A719>0) ? p0->A719*(1<<(2*lv)) : ((L>0.0) ? int(std::ceil(0.4*(L/dx)*(L/dx))) : 1);
+    ns = std::min(std::max(ns,1),400);
+
+    auto active = [&](int ii, int jj) {return e->wet(ii,jj)==1 && e->N->spec(ii,jj)!=nullptr;};
+    auto nb = [&](int ii, int jj, int sd)
+    {
+        const int ni = ii + (sd==1) - (sd==0), nj = jj + (sd==3) - (sd==2);
+        if(!active(ni,nj))
+        return false;
+        if(pob==nullptr)
+        return true;
+        const seastate_obstacle::face *f = (sd==0) ? pob->east(ii-1,jj) : (sd==1) ? pob->east(ii,jj) : (sd==2) ? pob->north(ii,jj-1) : pob->north(ii,jj);
+        return f==nullptr;
+    };
+
+    // the ring around the interior (4-neighbours of the interior cells)
+    std::vector<std::pair<int,int>> ring;
+    for(int ii=ia; ii<=ib; ++ii)
+    {
+    ring.push_back(std::make_pair(ii,ja-1));
+    ring.push_back(std::make_pair(ii,jb+1));
+    }
+    for(int jj=ja; jj<=jb; ++jj)
+    {
+    ring.push_back(std::make_pair(ia-1,jj));
+    ring.push_back(std::make_pair(ib+1,jj));
+    }
+
+    // energy, k and cg of the interior and the ring
+    for(int ii=ia-1; ii<=ib+1; ++ii)
+    for(int jj=ja-1; jj<=jb+1; ++jj)
+    {
+    double et = 0.0, ek = 0.0, ec = 0.0;
+        if(active(ii,jj))
         {
-            seastate_amr_patch *c = SP(id);
-            if(c->dE == nullptr)
-                continue;
-
-            lexer *pp = c->pp;
-            fdm_seastate *e = c->e;
-            const seastate_obstacle *pob = c->pobs;
-            slice4 &S = *c->dS, &T = *c->dT, &KM = *c->dK, &CM = *c->dC, &Es = *c->dE;
-            const int m = marge;
-            const int ia = EXT, ib = EXT + c->nx - 1, ja = EXT, jb = EXT + c->ny - 1;
-
-            // smoothing steps of the patch: 0.4 (L/dx)^2 (the same length as on level 0), or A 719 n 4^level
-            const double dx = dmin0 / double(1 << lv);
-            int ns = (p0->A719 > 0) ? p0->A719 * (1 << (2 * lv)) : ((L > 0.0) ? int(std::ceil(0.4 * (L / dx) * (L / dx))) : 1);
-            ns = std::min(std::max(ns, 1), 400);
-
-            auto active = [&](int ii, int jj)
-            { return e->wet(ii, jj) == 1 && e->N->spec(ii, jj) != nullptr; };
-            auto nb = [&](int ii, int jj, int sd)
+        const float *N = e->N->spec(ii,jj), *kk = e->kw->spec(ii,jj), *cc = e->cg->spec(ii,jj);
+            for(int l=l0; l<=l1; ++l)
             {
-                const int ni = ii + (sd == 1) - (sd == 0), nj = jj + (sd == 3) - (sd == 2);
-                if(!active(ni, nj))
-                    return false;
-                if(pob == nullptr)
-                    return true;
-                const seastate_obstacle::face *f = (sd == 0) ? pob->east(ii - 1, jj) : (sd == 1) ? pob->east(ii, jj)
-                                                                                   : (sd == 2)   ? pob->north(ii, jj - 1)
-                                                                                                 : pob->north(ii, jj);
-                return f == nullptr;
-            };
-
-            // the ring around the interior (4-neighbours of the interior cells)
-            std::vector<std::pair<int, int>> ring;
-            for(int ii = ia; ii <= ib; ++ii)
-            {
-                ring.push_back(std::make_pair(ii, ja - 1));
-                ring.push_back(std::make_pair(ii, jb + 1));
+            double s = 0.0;
+            const float *Nl = N + g.bin(l,0);
+            for(int mm=0; mm<g.ndir; ++mm)
+            s += double(Nl[mm])*g.wth[mm];
+            const double el = (mode==1) ? s*g.sig[l]*g.dsig[l]*g.dtheta : s;
+            et += el;
+            ek += el*double(kk[l]);
+            ec += el*double(cc[l]);
             }
-            for(int jj = ja; jj <= jb; ++jj)
-            {
-                ring.push_back(std::make_pair(ia - 1, jj));
-                ring.push_back(std::make_pair(ib + 1, jj));
-            }
-
-            // energy, k and cg of the interior and the ring
-            for(int ii = ia - 1; ii <= ib + 1; ++ii)
-                for(int jj = ja - 1; jj <= jb + 1; ++jj)
-                {
-                    double et = 0.0, ek = 0.0, ec = 0.0;
-                    if(active(ii, jj))
-                    {
-                        const float *N = e->N->spec(ii, jj), *kk = e->kw->spec(ii, jj), *cc = e->cg->spec(ii, jj);
-                        for(int l = l0; l <= l1; ++l)
-                        {
-                            double s = 0.0;
-                            const float *Nl = N + g.bin(l, 0);
-                            for(int mm = 0; mm < g.ndir; ++mm)
-                                s += double(Nl[mm]) * g.wth[mm];
-                            const double el = (mode == 1) ? s * g.sig[l] * g.dsig[l] * g.dtheta : s;
-                            et += el;
-                            ek += el * double(kk[l]);
-                            ec += el * double(cc[l]);
-                        }
-                    }
-                    S(ii, jj) = et;
-                    KM(ii, jj) = (mode == 1) ? (et > 0.0 ? ek / et : 0.0) : (active(ii, jj) ? double(e->kw->spec(ii, jj)[l0]) : 0.0);
-                    CM(ii, jj) = (mode == 1) ? (et > 0.0 ? ec / et : 0.0) : (active(ii, jj) ? double(e->cg->spec(ii, jj)[l0]) : 0.0);
-                }
-
-            // the ring: the smoothed energy of the coarser grid (fixed during the smoothing)
-            for(auto &r : ring)
-            {
-                double v;
-                if(active(r.first, r.second) && coarse_value(lv, r.first - EXT + c->I0, r.second - EXT + c->J0, 0, E0, T0, v))
-                    S(r.first, r.second) = v;
-            }
-
-            // smoothing of the interior
-            for(int it = 0; it < ns; ++it)
-            {
-                for(int ii = ia; ii <= ib; ++ii)
-                    for(int jj = ja; jj <= jb; ++jj)
-                    {
-                        double t = S(ii, jj);
-                        if(active(ii, jj))
-                        {
-                            if(nb(ii, jj, 0))
-                                t -= 0.2 * (S(ii, jj) - S(ii - 1, jj));
-                            if(nb(ii, jj, 1))
-                                t -= 0.2 * (S(ii, jj) - S(ii + 1, jj));
-                            if(nb(ii, jj, 2))
-                                t -= 0.2 * (S(ii, jj) - S(ii, jj - 1));
-                            if(nb(ii, jj, 3))
-                                t -= 0.2 * (S(ii, jj) - S(ii, jj + 1));
-                        }
-                        T(ii, jj) = t;
-                    }
-
-                for(int ii = ia; ii <= ib; ++ii)
-                    for(int jj = ja; jj <= jb; ++jj)
-                        S(ii, jj) = T(ii, jj);
-            }
-
-            for(int ii = ia - 1; ii <= ib + 1; ++ii)
-                for(int jj = ja - 1; jj <= jb + 1; ++jj)
-                {
-                    Es(ii, jj) = S(ii, jj);
-                    S(ii, jj) = std::sqrt(std::max(S(ii, jj), 0.0));
-                }
-
-            auto F = [&](int ii, int jj)
-            { return KM(ii, jj) > 0.0 ? CM(ii, jj) / KM(ii, jj) : 0.0; };
-
-            // Ca of the interior; the ring from the coarser grid
-            for(int ii = ia; ii <= ib; ++ii)
-                for(int jj = ja; jj <= jb; ++jj)
-                {
-                    double ca = 1.0;
-
-                    if(active(ii, jj) && S(ii, jj) * S(ii, jj) > 1.0e-6 * smax && smax > 0.0)
-                    {
-                        const double k = KM(ii, jj), cgm = CM(ii, jj), Fp = F(ii, jj);
-                        const double rdx2 = 1.0 / (pp->DXN[ii + m] * pp->DXN[ii + m]), rdy2 = 1.0 / (pp->DYN[jj + m] * pp->DYN[jj + m]);
-                        double div = 0.0;
-
-                        if(nb(ii, jj, 0))
-                            div += 0.5 * (Fp + F(ii - 1, jj)) * (S(ii - 1, jj) - S(ii, jj)) * rdx2;
-                        if(nb(ii, jj, 1))
-                            div += 0.5 * (Fp + F(ii + 1, jj)) * (S(ii + 1, jj) - S(ii, jj)) * rdx2;
-                        if(nb(ii, jj, 2))
-                            div += 0.5 * (Fp + F(ii, jj - 1)) * (S(ii, jj - 1) - S(ii, jj)) * rdy2;
-                        if(nb(ii, jj, 3))
-                            div += 0.5 * (Fp + F(ii, jj + 1)) * (S(ii, jj + 1) - S(ii, jj)) * rdy2;
-
-                        if(k > 0.0 && cgm > 0.0)
-                        {
-                            const double delta = div / (k * cgm * S(ii, jj));
-                            if(delta > -1.0)
-                                ca = std::sqrt(1.0 + delta);
-                        }
-                    }
-
-                    T(ii, jj) = ca;
-                }
-
-            for(auto &r : ring)
-            {
-                double v = 1.0;
-                if(!(active(r.first, r.second) && coarse_value(lv, r.first - EXT + c->I0, r.second - EXT + c->J0, 1, E0, T0, v)))
-                    v = 1.0;
-                T(r.first, r.second) = v;
-            }
-
-            // Ca and its gradient into the stores of the patch
-            for(int ii = ia - 1; ii <= ib + 1; ++ii)
-                for(int jj = ja - 1; jj <= jb + 1; ++jj)
-                {
-                    float *cc = c->dca->spec(ii, jj);
-                    if(cc != nullptr)
-                        for(int l = l0; l <= l1; ++l)
-                            cc[l] = active(ii, jj) ? float(T(ii, jj)) : 1.0f;
-                }
-
-            for(int ii = ia; ii <= ib; ++ii)
-                for(int jj = ja; jj <= jb; ++jj)
-                {
-                    float *cx = c->dcax->spec(ii, jj), *cy = c->dcay->spec(ii, jj);
-                    if(cx == nullptr || cy == nullptr)
-                        continue;
-
-                    double gx = 0.0, gy = 0.0;
-
-                    if(active(ii, jj))
-                    {
-                        const bool w = nb(ii, jj, 0), ea = nb(ii, jj, 1), s = nb(ii, jj, 2), n = nb(ii, jj, 3);
-
-                        if(w && ea)
-                            gx = (T(ii + 1, jj) - T(ii - 1, jj)) / (pp->XP[ii + 1 + m] - pp->XP[ii - 1 + m]);
-                        else if(ea)
-                            gx = (T(ii + 1, jj) - T(ii, jj)) / (pp->XP[ii + 1 + m] - pp->XP[ii + m]);
-                        else if(w)
-                            gx = (T(ii, jj) - T(ii - 1, jj)) / (pp->XP[ii + m] - pp->XP[ii - 1 + m]);
-
-                        if(s && n)
-                            gy = (T(ii, jj + 1) - T(ii, jj - 1)) / (pp->YP[jj + 1 + m] - pp->YP[jj - 1 + m]);
-                        else if(n)
-                            gy = (T(ii, jj + 1) - T(ii, jj)) / (pp->YP[jj + 1 + m] - pp->YP[jj + m]);
-                        else if(s)
-                            gy = (T(ii, jj) - T(ii, jj - 1)) / (pp->YP[jj + m] - pp->YP[jj - 1 + m]);
-                    }
-
-                    for(int l = l0; l <= l1; ++l)
-                    {
-                        cx[l] = float(gx);
-                        cy[l] = float(gy);
-                    }
-                }
         }
+    S(ii,jj) = et;
+    KM(ii,jj) = (mode==1) ? (et>0.0 ? ek/et : 0.0) : (active(ii,jj) ? double(e->kw->spec(ii,jj)[l0]) : 0.0);
+    CM(ii,jj) = (mode==1) ? (et>0.0 ? ec/et : 0.0) : (active(ii,jj) ? double(e->cg->spec(ii,jj)[l0]) : 0.0);
+    }
+
+    // the ring: the smoothed energy of the coarser grid (fixed during the smoothing)
+    for(auto &r : ring)
+    {
+    double v;
+    if(active(r.first,r.second) && coarse_value(lv,r.first-EXT+c->I0,r.second-EXT+c->J0,0,E0,T0,v))
+    S(r.first,r.second) = v;
+    }
+
+    // smoothing of the interior
+    for(int it=0; it<ns; ++it)
+    {
+        for(int ii=ia; ii<=ib; ++ii)
+        for(int jj=ja; jj<=jb; ++jj)
+        {
+        double t = S(ii,jj);
+            if(active(ii,jj))
+            {
+            if(nb(ii,jj,0)) t -= 0.2*(S(ii,jj)-S(ii-1,jj));
+            if(nb(ii,jj,1)) t -= 0.2*(S(ii,jj)-S(ii+1,jj));
+            if(nb(ii,jj,2)) t -= 0.2*(S(ii,jj)-S(ii,jj-1));
+            if(nb(ii,jj,3)) t -= 0.2*(S(ii,jj)-S(ii,jj+1));
+            }
+        T(ii,jj) = t;
+        }
+
+        for(int ii=ia; ii<=ib; ++ii)
+        for(int jj=ja; jj<=jb; ++jj)
+        S(ii,jj) = T(ii,jj);
+    }
+
+    for(int ii=ia-1; ii<=ib+1; ++ii)
+    for(int jj=ja-1; jj<=jb+1; ++jj)
+    {
+    Es(ii,jj) = S(ii,jj);
+    S(ii,jj) = std::sqrt(std::max(S(ii,jj),0.0));
+    }
+
+    auto F = [&](int ii, int jj) {return KM(ii,jj)>0.0 ? CM(ii,jj)/KM(ii,jj) : 0.0;};
+
+    // Ca of the interior; the ring from the coarser grid
+    for(int ii=ia; ii<=ib; ++ii)
+    for(int jj=ja; jj<=jb; ++jj)
+    {
+    double ca = 1.0;
+
+        if(active(ii,jj) && S(ii,jj)*S(ii,jj)>1.0e-6*smax && smax>0.0)
+        {
+        const double k = KM(ii,jj), cgm = CM(ii,jj), Fp = F(ii,jj);
+        const double rdx2 = 1.0/(pp->DXN[ii+m]*pp->DXN[ii+m]), rdy2 = 1.0/(pp->DYN[jj+m]*pp->DYN[jj+m]);
+        double div = 0.0;
+
+        if(nb(ii,jj,0)) div += 0.5*(Fp+F(ii-1,jj))*(S(ii-1,jj)-S(ii,jj))*rdx2;
+        if(nb(ii,jj,1)) div += 0.5*(Fp+F(ii+1,jj))*(S(ii+1,jj)-S(ii,jj))*rdx2;
+        if(nb(ii,jj,2)) div += 0.5*(Fp+F(ii,jj-1))*(S(ii,jj-1)-S(ii,jj))*rdy2;
+        if(nb(ii,jj,3)) div += 0.5*(Fp+F(ii,jj+1))*(S(ii,jj+1)-S(ii,jj))*rdy2;
+
+            if(k>0.0 && cgm>0.0)
+            {
+            const double delta = div/(k*cgm*S(ii,jj));
+            if(delta>-1.0)
+            ca = std::sqrt(1.0+delta);
+            }
+        }
+
+    T(ii,jj) = ca;
+    }
+
+    for(auto &r : ring)
+    {
+    double v = 1.0;
+    if(!(active(r.first,r.second) && coarse_value(lv,r.first-EXT+c->I0,r.second-EXT+c->J0,1,E0,T0,v)))
+    v = 1.0;
+    T(r.first,r.second) = v;
+    }
+
+    // Ca and its gradient into the stores of the patch
+    for(int ii=ia-1; ii<=ib+1; ++ii)
+    for(int jj=ja-1; jj<=jb+1; ++jj)
+    {
+    float *cc = c->dca->spec(ii,jj);
+    if(cc!=nullptr)
+    for(int l=l0; l<=l1; ++l)
+    cc[l] = active(ii,jj) ? float(T(ii,jj)) : 1.0f;
+    }
+
+    for(int ii=ia; ii<=ib; ++ii)
+    for(int jj=ja; jj<=jb; ++jj)
+    {
+    float *cx = c->dcax->spec(ii,jj), *cy = c->dcay->spec(ii,jj);
+    if(cx==nullptr || cy==nullptr)
+    continue;
+
+    double gx = 0.0, gy = 0.0;
+
+        if(active(ii,jj))
+        {
+        const bool w = nb(ii,jj,0), ea = nb(ii,jj,1), s = nb(ii,jj,2), n = nb(ii,jj,3);
+
+        if(w && ea)
+        gx = (T(ii+1,jj)-T(ii-1,jj))/(pp->XP[ii+1+m]-pp->XP[ii-1+m]);
+        else if(ea)
+        gx = (T(ii+1,jj)-T(ii,jj))/(pp->XP[ii+1+m]-pp->XP[ii+m]);
+        else if(w)
+        gx = (T(ii,jj)-T(ii-1,jj))/(pp->XP[ii+m]-pp->XP[ii-1+m]);
+
+        if(s && n)
+        gy = (T(ii,jj+1)-T(ii,jj-1))/(pp->YP[jj+1+m]-pp->YP[jj-1+m]);
+        else if(n)
+        gy = (T(ii,jj+1)-T(ii,jj))/(pp->YP[jj+1+m]-pp->YP[jj+m]);
+        else if(s)
+        gy = (T(ii,jj)-T(ii,jj-1))/(pp->YP[jj+m]-pp->YP[jj-1+m]);
+        }
+
+        for(int l=l0; l<=l1; ++l)
+        {
+        cx[l] = float(gx);
+        cy[l] = float(gy);
+        }
+    }
+    }
 }
 
 void seastate_amr::wind(double tf)
 {
     // the met provider of the rank has been advanced to the model time tf by seastate_f::forcing_update
-    if(L0.wmet == nullptr)
-        return;
+    if(L0.wmet==nullptr)
+    return;
 
     const int m = marge;
 
     for(auto q : P)
     {
-        seastate_amr_patch *c = SP(q);
-        lexer *pp = c->pp;
+    seastate_amr_patch *c = SP(q);
+    lexer *pp = c->pp;
 
-        for(int ii = pp->imin; ii < pp->imin + pp->imax; ++ii)
-            for(int jj = pp->jmin; jj < pp->jmin + pp->jmax; ++jj)
-            {
-                double u, v, pa;
-                L0.wmet->at(pp->XP[ii + m], pp->YP[jj + m], u, v, pa);
-                (*c->wU)(ii, jj) = std::sqrt(u * u + v * v);
-                (*c->wD)(ii, jj) = std::atan2(v, u);
-            }
+        for(int ii=pp->imin; ii<pp->imin+pp->imax; ++ii)
+        for(int jj=pp->jmin; jj<pp->jmin+pp->jmax; ++jj)
+        {
+        double u, v, pa;
+        L0.wmet->at(pp->XP[ii+m],pp->YP[jj+m],u,v,pa);
+        (*c->wU)(ii,jj) = std::sqrt(u*u + v*v);
+        (*c->wD)(ii,jj) = std::atan2(v,u);
+        }
     }
 }
 
@@ -2728,24 +2642,24 @@ bool seastate_amr::locate(double x, double y, lexer *&q, fdm_seastate *&ee, int 
 {
     const int m = marge;
 
-    for(int l = maxlev; l >= 1; --l)
-        for(int id : lev[l])
-        {
-            seastate_amr_patch *c = SP(id);
-            lexer *pp = c->pp;
+    for(int l=maxlev; l>=1; --l)
+    for(int id : lev[l])
+    {
+    seastate_amr_patch *c = SP(id);
+    lexer *pp = c->pp;
 
-            for(int ii = EXT; ii < EXT + c->nx; ++ii)
-                if(pp->XN[ii + m] <= x && x < pp->XN[ii + 1 + m])
-                    for(int jj = EXT; jj < EXT + c->ny; ++jj)
-                        if(pp->YN[jj + m] <= y && y < pp->YN[jj + 1 + m])
-                        {
-                            q = pp;
-                            ee = c->e;
-                            ci = ii;
-                            cj = jj;
-                            return true;
-                        }
+        for(int ii=EXT; ii<EXT+c->nx; ++ii)
+        if(pp->XN[ii+m]<=x && x<pp->XN[ii+1+m])
+        for(int jj=EXT; jj<EXT+c->ny; ++jj)
+        if(pp->YN[jj+m]<=y && y<pp->YN[jj+1+m])
+        {
+        q = pp;
+        ee = c->e;
+        ci = ii;
+        cj = jj;
+        return true;
         }
+    }
 
     return false;
 }
@@ -2753,86 +2667,86 @@ bool seastate_amr::locate(double x, double y, lexer *&q, fdm_seastate *&ee, int 
 // stationary runs: the largest relative change of Hs and the percentage of leaf cells within A 708
 void seastate_amr::convergence(lexer *p, int iteration, double change, double percent)
 {
-    if(p->mpirank != 0)
-        return;
+    if(p->mpirank!=0)
+    return;
 
     if(!convout.is_open())
     {
-        if(reefckpt_open(convout, "./REEF3D_SEASTATE_AMR/REEF3D_SEASTATE_AMR_convergence.dat", p->I45))
-            convout << "# count \t iteration \t max. relative change of Hs \t percentage of the leaf cell area within A 708" << endl;
+    if(reefckpt_open(convout,"./REEF3D_SEASTATE_AMR/REEF3D_SEASTATE_AMR_convergence.dat",p->I45))
+    convout<<"# count \t iteration \t max. relative change of Hs \t percentage of the leaf cell area within A 708"<<endl;
     }
 
-    convout << p->count << " \t " << iteration << " \t " << setprecision(6) << change << " \t " << percent << endl;
+    convout<<p->count<<" \t "<<iteration<<" \t "<<setprecision(6)<<change<<" \t "<<percent<<endl;
 }
 
 void seastate_amr::log(lexer *p, ghostcell *pgc, int iterations)
 {
     double t[4];
-    for(int k = 0; k < 4; ++k)
-        t[k] = pgc->globalmax(tm[k]);
+    for(int k=0; k<4; ++k)
+    t[k] = pgc->globalmax(tm[k]);
 
-    double act = 0.0;
+    double act=0.0;
     for(auto q : P)
     {
-        seastate_amr_patch *c = SP(q);
-        for(int ii = EXT; ii < EXT + c->nx; ++ii)
-            for(int jj = EXT; jj < EXT + c->ny; ++jj)
-                if(c->e->wet(ii, jj) == 1 && (*c->cov)(ii, jj) == 0)
-                    act += 1.0;
+    seastate_amr_patch *c = SP(q);
+    for(int ii=EXT; ii<EXT+c->nx; ++ii)
+    for(int jj=EXT; jj<EXT+c->ny; ++jj)
+    if(c->e->wet(ii,jj)==1 && (*c->cov)(ii,jj)==0)
+    act += 1.0;
     }
     act = pgc->globalsum(act);
 
-    if(p->mpirank == 0 && logout.is_open())
-        logout << p->count << " \t " << setprecision(10) << p->simtime << " \t " << patches_total << " \t " << cells_total << " \t " << long(act) << " \t " << iterations
-               << " \t " << setprecision(5) << t[0] << " \t " << t[1] << " \t " << t[2] << " \t " << t[3] << endl;
+    if(p->mpirank==0 && logout.is_open())
+    logout<<p->count<<" \t "<<setprecision(10)<<p->simtime<<" \t "<<patches_total<<" \t "<<cells_total<<" \t "<<long(act)<<" \t "<<iterations
+          <<" \t "<<setprecision(5)<<t[0]<<" \t "<<t[1]<<" \t "<<t[2]<<" \t "<<t[3]<<endl;
 }
 
 // --------------------------------------------------------------------- Phase 18: checkpoints, measured work
 seastate_amr::gview seastate_amr::patch_view(int id)
 {
     seastate_amr_patch *c = SP(id);
-    return gview{c->lev, c->I0, c->I1, c->J0, c->J1, c->nx, c->ny, EXT, EY, c->pp, c->e, c->solv, c->cov};
+    return gview{c->lev,c->I0,c->I1,c->J0,c->J1,c->nx,c->ny,EXT,EY,c->pp,c->e,c->solv,c->cov};
 }
 
 void seastate_amr::restored(lexer *p, ghostcell *pgc, const std::function<void()> &again)
 {
     restrict_all();
     again();
-    halo0(p, pgc);
-    for(int l = 1; l <= maxlev; ++l)
-        fill_level(l);
+    halo0(p,pgc);
+    for(int l=1; l<=maxlev; ++l)
+    fill_level(l);
 }
 
 void seastate_amr::work_fields()
 {
     for(auto q : P)
     {
-        seastate_amr_patch *c = SP(q);
-        if(c->wk == nullptr)
-            c->wk = new slice4(c->pp);
-        std::fill(c->wk->V, c->wk->V + size_t(c->pp->imax) * c->pp->jmax, 0.0);
-        c->solv->work_field(c->wk);
+    seastate_amr_patch *c = SP(q);
+    if(c->wk==nullptr)
+    c->wk = new slice4(c->pp);
+    std::fill(c->wk->V,c->wk->V+size_t(c->pp->imax)*c->pp->jmax,0.0);
+    c->solv->work_field(c->wk);
     }
 }
 
 void seastate_amr::work_columns(lexer *p, vector<double> &col, bool reset)
 {
-    col.resize(size_t(p->knox) * p->knoy, 0.0);
+    col.resize(size_t(p->knox)*p->knoy,0.0);
 
     for(auto q : P)
     {
-        seastate_amr_patch *c = SP(q);
-        if(c->wk == nullptr)
-            continue;
-        for(int ii = EXT; ii < EXT + c->nx; ++ii)
-            for(int jj = EY; jj < EY + c->ny; ++jj)
-            {
-                const int i0 = fsh(ii - EXT + c->I0, c->lev) - p->origin_i, j0 = fsh(jj - EY + c->J0, c->lev) - p->origin_j;
-                if(i0 >= 0 && i0 < p->knox && j0 >= 0 && j0 < p->knoy)
-                    col[size_t(i0) * p->knoy + j0] += (*c->wk)(ii, jj);
-                if(reset)
-                    (*c->wk)(ii, jj) = 0.0;
-            }
+    seastate_amr_patch *c = SP(q);
+    if(c->wk==nullptr)
+    continue;
+        for(int ii=EXT; ii<EXT+c->nx; ++ii)
+        for(int jj=EY; jj<EY+c->ny; ++jj)
+        {
+        const int i0 = fsh(ii-EXT+c->I0,c->lev) - p->origin_i, j0 = fsh(jj-EY+c->J0,c->lev) - p->origin_j;
+        if(i0>=0 && i0<p->knox && j0>=0 && j0<p->knoy)
+        col[size_t(i0)*p->knoy+j0] += (*c->wk)(ii,jj);
+        if(reset)
+        (*c->wk)(ii,jj) = 0.0;
+        }
     }
 }
 
@@ -2842,90 +2756,87 @@ void seastate_amr::print(lexer *p, ghostcell *pgc)
     const int num = printcount_amr;
     const int m = marge;
 
-    for(int id = 0; id < (int)P.size(); ++id)
+    for(int id=0; id<(int)P.size(); ++id)
     {
-        seastate_amr_patch *c = SP(id);
-        lexer *pp = c->pp;
-        fdm_seastate *e = c->e;
+    seastate_amr_patch *c = SP(id);
+    lexer *pp = c->pp;
+    fdm_seastate *e = c->e;
 
-        char name[256];
-        snprintf(name, sizeof(name), "./REEF3D_SEASTATE_AMR/REEF3D-SEASTATE-AMR-%08i-%05i-%04i.vtr", num, p->mpirank, id);
-        ofstream out(name);
+    char name[256];
+    snprintf(name,sizeof(name),"./REEF3D_SEASTATE_AMR/REEF3D-SEASTATE-AMR-%08i-%05i-%04i.vtr",num,p->mpirank,id);
+    ofstream out(name);
 
-        out << "<?xml version=\"1.0\"?>" << endl;
-        out << "<VTKFile type=\"RectilinearGrid\" version=\"0.1\" byte_order=\"LittleEndian\">" << endl;
-        out << "<RectilinearGrid WholeExtent=\"0 " << c->nx << " 0 " << c->ny << " 0 0\">" << endl;
-        out << "<Piece Extent=\"0 " << c->nx << " 0 " << c->ny << " 0 0\">" << endl;
-        out << "<FieldData><DataArray type=\"Float64\" Name=\"TIME\" NumberOfTuples=\"1\" format=\"ascii\">" << setprecision(12) << p->simtime << "</DataArray>"
-            << "<DataArray type=\"Int32\" Name=\"level\" NumberOfTuples=\"1\" format=\"ascii\">" << c->lev << "</DataArray></FieldData>" << endl;
-        out << "<Coordinates>" << endl;
-        out << "<DataArray type=\"Float64\" Name=\"x\" format=\"ascii\">";
-        for(int ii = EXT; ii <= EXT + c->nx; ++ii)
-            out << " " << pp->XN[ii + m];
-        out << "</DataArray>" << endl;
-        out << "<DataArray type=\"Float64\" Name=\"y\" format=\"ascii\">";
-        for(int jj = EXT; jj <= EXT + c->ny; ++jj)
-            out << " " << pp->YN[jj + m];
-        out << "</DataArray>" << endl;
-        out << "<DataArray type=\"Float64\" Name=\"z\" format=\"ascii\"> 0</DataArray>" << endl;
-        out << "</Coordinates>" << endl;
-        out << "<CellData>" << endl;
+    out<<"<?xml version=\"1.0\"?>"<<endl;
+    out<<"<VTKFile type=\"RectilinearGrid\" version=\"0.1\" byte_order=\"LittleEndian\">"<<endl;
+    out<<"<RectilinearGrid WholeExtent=\"0 "<<c->nx<<" 0 "<<c->ny<<" 0 0\">"<<endl;
+    out<<"<Piece Extent=\"0 "<<c->nx<<" 0 "<<c->ny<<" 0 0\">"<<endl;
+    out<<"<FieldData><DataArray type=\"Float64\" Name=\"TIME\" NumberOfTuples=\"1\" format=\"ascii\">"<<setprecision(12)<<p->simtime<<"</DataArray>"
+       <<"<DataArray type=\"Int32\" Name=\"level\" NumberOfTuples=\"1\" format=\"ascii\">"<<c->lev<<"</DataArray></FieldData>"<<endl;
+    out<<"<Coordinates>"<<endl;
+    out<<"<DataArray type=\"Float64\" Name=\"x\" format=\"ascii\">";
+    for(int ii=EXT; ii<=EXT+c->nx; ++ii)
+    out<<" "<<pp->XN[ii+m];
+    out<<"</DataArray>"<<endl;
+    out<<"<DataArray type=\"Float64\" Name=\"y\" format=\"ascii\">";
+    for(int jj=EXT; jj<=EXT+c->ny; ++jj)
+    out<<" "<<pp->YN[jj+m];
+    out<<"</DataArray>"<<endl;
+    out<<"<DataArray type=\"Float64\" Name=\"z\" format=\"ascii\"> 0</DataArray>"<<endl;
+    out<<"</Coordinates>"<<endl;
+    out<<"<CellData>"<<endl;
 
-        out << setprecision(7);
-        slice *f[6] = {&e->Hs, &e->Tm01, &e->Tp, &e->dir, &e->spread, &e->depth};
-        const char *fn[6] = {"Hs", "Tm01", "Tp", "dir", "spread", "depth"};
+    out<<setprecision(7);
+    slice *f[6] = {&e->Hs,&e->Tm01,&e->Tp,&e->dir,&e->spread,&e->depth};
+    const char *fn[6] = {"Hs","Tm01","Tp","dir","spread","depth"};
 
-        for(int k = 0; k < 6; ++k)
+        for(int k=0; k<6; ++k)
         {
-            out << "<DataArray type=\"Float32\" Name=\"" << fn[k] << "\" format=\"ascii\">";
-            for(int jj = EXT; jj < EXT + c->ny; ++jj)
-                for(int ii = EXT; ii < EXT + c->nx; ++ii)
-                    out << " " << (*f[k])(ii, jj);
-            out << "</DataArray>" << endl;
+        out<<"<DataArray type=\"Float32\" Name=\""<<fn[k]<<"\" format=\"ascii\">";
+        for(int jj=EXT; jj<EXT+c->ny; ++jj)
+        for(int ii=EXT; ii<EXT+c->nx; ++ii)
+        out<<" "<<(*f[k])(ii,jj);
+        out<<"</DataArray>"<<endl;
         }
 
-        out << "<DataArray type=\"Int32\" Name=\"wet\" format=\"ascii\">";
-        for(int jj = EXT; jj < EXT + c->ny; ++jj)
-            for(int ii = EXT; ii < EXT + c->nx; ++ii)
-                out << " " << e->wet(ii, jj);
-        out << "</DataArray>" << endl;
+    out<<"<DataArray type=\"Int32\" Name=\"wet\" format=\"ascii\">";
+    for(int jj=EXT; jj<EXT+c->ny; ++jj)
+    for(int ii=EXT; ii<EXT+c->nx; ++ii)
+    out<<" "<<e->wet(ii,jj);
+    out<<"</DataArray>"<<endl;
 
-        out << "<DataArray type=\"Int32\" Name=\"covered\" format=\"ascii\">";
-        for(int jj = EXT; jj < EXT + c->ny; ++jj)
-            for(int ii = EXT; ii < EXT + c->nx; ++ii)
-                out << " " << (*c->cov)(ii, jj);
-        out << "</DataArray>" << endl;
+    out<<"<DataArray type=\"Int32\" Name=\"covered\" format=\"ascii\">";
+    for(int jj=EXT; jj<EXT+c->ny; ++jj)
+    for(int ii=EXT; ii<EXT+c->nx; ++ii)
+    out<<" "<<(*c->cov)(ii,jj);
+    out<<"</DataArray>"<<endl;
 
-        out << "</CellData>" << endl;
-        out << "</Piece>" << endl
-            << "</RectilinearGrid>" << endl
-            << "</VTKFile>" << endl;
+    out<<"</CellData>"<<endl;
+    out<<"</Piece>"<<endl<<"</RectilinearGrid>"<<endl<<"</VTKFile>"<<endl;
     }
 
     // multiblock of all patches
     const int np = p->mpi_size;
     int mine = int(P.size());
     vector<int> cnt(np);
-    MPI_Gather(&mine, 1, MPI_INT, cnt.data(), 1, MPI_INT, 0, reef3d_comm());
+    MPI_Gather(&mine,1,MPI_INT,cnt.data(),1,MPI_INT,0,reef3d_comm());
 
-    if(p->mpirank == 0)
+    if(p->mpirank==0)
     {
-        char name[256];
-        snprintf(name, sizeof(name), "./REEF3D_SEASTATE_AMR/REEF3D-SEASTATE-AMR-%08i.vtm", num);
-        ofstream out(name);
-        out << "<?xml version=\"1.0\"?>" << endl;
-        out << "<VTKFile type=\"vtkMultiBlockDataSet\" version=\"1.0\" byte_order=\"LittleEndian\">" << endl;
-        out << "<vtkMultiBlockDataSet>" << endl;
-        int b = 0;
-        for(int r = 0; r < np; ++r)
-            for(int id = 0; id < cnt[r]; ++id)
-            {
-                char f[128];
-                snprintf(f, sizeof(f), "REEF3D-SEASTATE-AMR-%08i-%05i-%04i.vtr", num, r, id);
-                out << "<DataSet index=\"" << b++ << "\" file=\"" << f << "\"/>" << endl;
-            }
-        out << "</vtkMultiBlockDataSet>" << endl
-            << "</VTKFile>" << endl;
+    char name[256];
+    snprintf(name,sizeof(name),"./REEF3D_SEASTATE_AMR/REEF3D-SEASTATE-AMR-%08i.vtm",num);
+    ofstream out(name);
+    out<<"<?xml version=\"1.0\"?>"<<endl;
+    out<<"<VTKFile type=\"vtkMultiBlockDataSet\" version=\"1.0\" byte_order=\"LittleEndian\">"<<endl;
+    out<<"<vtkMultiBlockDataSet>"<<endl;
+    int b=0;
+        for(int r=0; r<np; ++r)
+        for(int id=0; id<cnt[r]; ++id)
+        {
+        char f[128];
+        snprintf(f,sizeof(f),"REEF3D-SEASTATE-AMR-%08i-%05i-%04i.vtr",num,r,id);
+        out<<"<DataSet index=\""<<b++<<"\" file=\""<<f<<"\"/>"<<endl;
+        }
+    out<<"</vtkMultiBlockDataSet>"<<endl<<"</VTKFile>"<<endl;
     }
 
     ++printcount_amr;

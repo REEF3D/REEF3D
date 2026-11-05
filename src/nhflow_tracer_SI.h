@@ -23,12 +23,12 @@ Author: Hans Bihs
 #ifndef NHFLOW_TRACER_SI_H_
 #define NHFLOW_TRACER_SI_H_
 
-#include "slice1.h"
-#include "slice2.h"
-#include "slice4.h"
-#include <fstream>
-#include <functional>
-#include <vector>
+#include"slice1.h"
+#include"slice2.h"
+#include"slice4.h"
+#include<vector>
+#include<fstream>
+#include<functional>
 
 class lexer;
 class fdm_nhf;
@@ -82,22 +82,22 @@ using namespace std;
 class nhflow_tracer_SI
 {
 public:
-    nhflow_tracer_SI(lexer *, fdm_nhf *, nhflow_momentum_SI *);
+    nhflow_tracer_SI(lexer*, fdm_nhf*, nhflow_momentum_SI*);
     ~nhflow_tracer_SI();
 
     // the step: prepare (initial values, omega, boundary values, the ratio of the substeps), nsub
     // substeps (the caller fills the cells around the grid before each), finish
-    double prepare(lexer *, fdm_nhf *);
-    void flushed(lexer *, fdm_nhf *, int s, int nsub);  // pass 1 of a substep: the outflow value of flushed cells (Cx)
-    void substep(lexer *, fdm_nhf *, int s, int nsub);  // pass 2: the fluxes and the column (the caller fills Cx between)
-    static int substeps(lexer *, double rmax);
+    double prepare(lexer*, fdm_nhf*);
+    void flushed(lexer*, fdm_nhf*, int s, int nsub);   // pass 1 of a substep: the outflow value of flushed cells (Cx)
+    void substep(lexer*, fdm_nhf*, int s, int nsub);   // pass 2: the fluxes and the column (the caller fills Cx between)
+    static int substeps(lexer*, double rmax);
 
     // the values of the solid and outside cells next to fluid cells, and of the layers below the bed and
     // above the surface: the nearest fluid value (output at the nodes); after the step
-    void ghosts(lexer *, fdm_nhf *);
+    void ghosts(lexer*, fdm_nhf*);
 
     // the field of tracer m of a grid (0 salinity, 1 temperature)
-    static double *field(fdm_nhf *, int m);
+    static double* field(fdm_nhf*, int m);
 
     // the sums of the step over the cells own(i,j) and the open faces of this grid:
     // per tracer mass, boundary inflow, clipped mass, min, max; violations of the bounds
@@ -106,16 +106,16 @@ public:
         double mass[2], bin[2], clip[2], cmin[2], cmax[2];
         double nviol;
     };
-    void sums(lexer *, fdm_nhf *, const std::function<bool(int, int)> &own, stats &s);
-    static void reduce(lexer *, stats &);  // over the ranks (MPI)
-    static void stats_zero(stats &);
-    void write_log(lexer *, const stats &, int nsub, double rmax);
+    void sums(lexer*, fdm_nhf*, const std::function<bool(int,int)> &own, stats &s);
+    static void reduce(lexer*, stats&);         // over the ranks (MPI)
+    static void stats_zero(stats&);
+    void write_log(lexer*, const stats&, int nsub, double rmax);
 
     // gauges P 51: the nearest own cell centre per gauge (distance, cell); values depth mean, bottom, top
-    void gauge_find(lexer *, const std::function<bool(int, int)> &own, vector<double> &dist, vector<int> &cell);
-    void gauge_values(lexer *, fdm_nhf *, const vector<int> &cell, vector<double> &val);
-    static void gauge_combine(lexer *, vector<double> &dist, vector<double> &val);  // over the ranks: the nearest
-    static void gauge_write(lexer *, const vector<double> &val);
+    void gauge_find(lexer*, const std::function<bool(int,int)> &own, vector<double> &dist, vector<int> &cell);
+    void gauge_values(lexer*, fdm_nhf*, const vector<int> &cell, vector<double> &val);
+    static void gauge_combine(lexer*, vector<double> &dist, vector<double> &val);   // over the ranks: the nearest
+    static void gauge_write(lexer*, const vector<double> &val);
 
     // the fluid mask (1 in fluid cells; the caller exchanges / fills it with the tracers)
     double *mask;
@@ -129,28 +129,28 @@ private:
     vector<double> cmn[2], cmx[2];
 
 public:
-    void mask_own(lexer *);
+    void mask_own(lexer*);
 
     // checkpoints: the Thatcher-Harleman state, the initialisation flag
-    void ckpt_fields(const std::function<void(const char *, char, double *)> &fd);
+    void ckpt_fields(const std::function<void(const char*, char, double*)> &fd);
 
-    int nt;  // number of tracers
+    int nt;                     // number of tracers
 
 private:
     double bvalue(int m, int type, double thc, double tht) const;
-    double face_value(lexer *, int mm, int dir, int ii, int jj, int kk, double T);
+    double face_value(lexer*, int mm, int dir, int ii, int jj, int kk, double T);
     double lim(double a, double b) const;
-    int cidx(lexer *, int, int, int) const;
-    int sidx(lexer *, int, int) const;
-    bool fluid(lexer *, int, int) const;
-    void initial(lexer *, fdm_nhf *);
+    int cidx(lexer*, int, int, int) const;
+    int sidx(lexer*, int, int) const;
+    bool fluid(lexer*, int, int) const;
+    void initial(lexer*, fdm_nhf*);
 
     nhflow_momentum_SI *m;
     int K, N, scheme;
     double dt;
-    double riv[2], sea[2], tth, kh, sigt, k0;  // A 606, A 607, A 608, A 604, A 605
-    double sdt = 0.0, sfa = 0.0;               // the substep: its length, its start (fraction of the step)
-    bool cx_on = false;                        // pass 2: the face values of flushed upwind cells from Cx
+    double riv[2], sea[2], tth, kh, sigt, k0;     // A 606, A 607, A 608, A 604, A 605
+    double sdt = 0.0, sfa = 0.0;                  // the substep: its length, its start (fraction of the step)
+    bool cx_on = false;                           // pass 2: the face values of flushed upwind cells from Cx
 
     // geometry: face lengths, normal distance of the centres, cell area
     slice1 lx, dnx;
@@ -176,7 +176,7 @@ private:
     bool ini;
 
     // step sums of this grid
-    vector<double> clipc[2], binc[2], violc;  // per column: clipped mass, boundary inflow, bound violations (own cells summed)
+    vector<double> clipc[2], binc[2], violc;     // per column: clipped mass, boundary inflow, bound violations (own cells summed)
 
     ofstream tlog;
 };

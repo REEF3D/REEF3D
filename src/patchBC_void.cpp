@@ -20,13 +20,13 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "patchBC_void.h"
-#include "fdm.h"
-#include "ghostcell.h"
-#include "lexer.h"
-#include "patch_obj.h"
+#include"patchBC_void.h"
+#include"lexer.h"
+#include"fdm.h"
+#include"ghostcell.h"
+#include"patch_obj.h"
 
-patchBC_void::patchBC_void(lexer *p)
+patchBC_void::patchBC_void(lexer *p) 
 {
 }
 
@@ -36,36 +36,36 @@ patchBC_void::~patchBC_void()
 
 void patchBC_void::patchBC_ini(lexer *p, ghostcell *pgc)
 {
-}
+} 
 
 void patchBC_void::patchBC_ioflow(lexer *p, fdm *a, ghostcell *pgc, field &u, field &v, field &w)
 {
-}
+} 
 
 void patchBC_void::patchBC_rkioflow(lexer *p, fdm *a, ghostcell *pgc, field &u, field &v, field &w)
 {
-}
+} 
 
 void patchBC_void::patchBC_discharge(lexer *p, fdm *a, ghostcell *pgc)
 {
-}
+} 
 
 void patchBC_void::patchBC_pressure(lexer *p, fdm *a, ghostcell *pgc, field &press)
 {
-}
+} 
 
 void patchBC_void::patchBC_waterlevel(lexer *p, fdm *a, ghostcell *pgc, field &phi)
 {
-}
+} 
 
-void patchBC_void::patchBC_ioflow2D(lexer *p, ghostcell *, slice &, slice &, slice &, slice &)
+void patchBC_void::patchBC_ioflow2D(lexer *p, ghostcell*, slice&, slice&, slice&, slice&)
 {
 }
-void patchBC_void::patchBC_discharge2D(lexer *p, fdm2D *, ghostcell *, slice &, slice &, slice &, slice &)
+void patchBC_void::patchBC_discharge2D(lexer *p, fdm2D*, ghostcell*, slice&, slice&, slice&, slice&)
 {
 }
 
-void patchBC_void::patchBC_waterlevel2D(lexer *, fdm2D *, ghostcell *, slice &)
+void patchBC_void::patchBC_waterlevel2D(lexer*, fdm2D*, ghostcell*, slice&)
 {
 }
 

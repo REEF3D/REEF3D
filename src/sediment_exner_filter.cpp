@@ -20,23 +20,23 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "bedconc_VR.h"
-#include "ghostcell.h"
-#include "lexer.h"
-#include "sediment_curv.h"
-#include "sediment_exner.h"
-#include "sediment_exnerdisc.h"
-#include "sediment_fdm.h"
-#include "sediment_xfilter.h"
-#include "topo_relax.h"
+#include"sediment_exner.h"
+#include"sediment_curv.h"
+#include"lexer.h"
+#include"ghostcell.h"
+#include"bedconc_VR.h"
+#include"topo_relax.h"
+#include"sediment_exnerdisc.h"
+#include"sediment_fdm.h"
+#include"sediment_xfilter.h"
 
-void sediment_exner::filter(lexer *p, ghostcell *pgc, slice &f, int outer_iter, int inner_iter)
+void sediment_exner::filter(lexer *p,ghostcell *pgc, slice &f, int outer_iter, int inner_iter)
 {
     // curvilinear grid (G 50): sediment_curv.h
-    if(p->geo_curv == 1)
+    if(p->geo_curv==1)
     {
-        filter_curv(p, pgc, f, outer_iter, inner_iter);
-        return;
+    filter_curv(p,pgc,f,outer_iter,inner_iter);
+    return;
     }
 
     // Conservative, mask-aware smoothing of the bed velocity f (vz).
@@ -64,45 +64,45 @@ void sediment_exner::filter(lexer *p, ghostcell *pgc, slice &f, int outer_iter, 
     // S102 = 0 the five-point form would diverge for the 2D checkerboard (S = -1),
     // the separable form keeps S in [0,1].
 
-    slice4 h(p), dh(p), tmp(p), sdh(p), m(p);
-    slice4 wxm(p), wxp(p), wym(p), wyp(p);
+    slice4 h(p),dh(p),tmp(p),sdh(p),m(p);
+    slice4 wxm(p),wxp(p),wym(p),wyp(p);
 
-    const double beta = 0.25 * (1.0 - MAX(0.0, MIN(1.0, p->S102)));
-    const int ydir = (p->j_dir == 1 && p->gknoy > 1) ? 1 : 0;
+    const double beta = 0.25*(1.0-MAX(0.0,MIN(1.0,p->S102)));
+    const int ydir = (p->j_dir==1 && p->gknoy>1)?1:0;
     double Ai;
 
     // mask
     SLICEBASELOOP
-    m(i, j) = 0.0;
+    m(i,j)=0.0;
 
     SEDSLICELOOP
-    if(p->pos_x() > p->S77_xs && p->pos_x() < p->S77_xe)
-        m(i, j) = 1.0;
+    if(p->pos_x()>p->S77_xs && p->pos_x()<p->S77_xe)
+    m(i,j)=1.0;
 
-    pgc->gcsl_start4(p, m, 1);
+    pgc->gcsl_start4(p,m,1);
 
     // face weights
     SLICEBASELOOP
     {
-        wxm(i, j) = wxp(i, j) = wym(i, j) = wyp(i, j) = 0.0;
+    wxm(i,j)=wxp(i,j)=wym(i,j)=wyp(i,j)=0.0;
 
-        if(m(i, j) > 0.5)
+        if(m(i,j)>0.5)
         {
-            Ai = p->DXN[IP] * p->DYN[JP];
+        Ai = p->DXN[IP]*p->DYN[JP];
 
-            if(i + p->origin_i > 0 && m(i - 1, j) > 0.5 && p->flagslice4[Im1J] > 0 && p->DFBED[Im1J] > 0)
-                wxm(i, j) = beta * MIN(Ai, p->DXN[IM1] * p->DYN[JP]) / Ai;
+        if(i+p->origin_i>0 && m(i-1,j)>0.5 && p->flagslice4[Im1J]>0 && p->DFBED[Im1J]>0)
+        wxm(i,j) = beta*MIN(Ai,p->DXN[IM1]*p->DYN[JP])/Ai;
 
-            if(i + p->origin_i < p->gknox - 1 && m(i + 1, j) > 0.5 && p->flagslice4[Ip1J] > 0 && p->DFBED[Ip1J] > 0)
-                wxp(i, j) = beta * MIN(Ai, p->DXN[IP1] * p->DYN[JP]) / Ai;
+        if(i+p->origin_i<p->gknox-1 && m(i+1,j)>0.5 && p->flagslice4[Ip1J]>0 && p->DFBED[Ip1J]>0)
+        wxp(i,j) = beta*MIN(Ai,p->DXN[IP1]*p->DYN[JP])/Ai;
 
-            if(ydir == 1)
+            if(ydir==1)
             {
-                if(j + p->origin_j > 0 && m(i, j - 1) > 0.5 && p->flagslice4[IJm1] > 0 && p->DFBED[IJm1] > 0)
-                    wym(i, j) = beta * MIN(Ai, p->DXN[IP] * p->DYN[JM1]) / Ai;
+            if(j+p->origin_j>0 && m(i,j-1)>0.5 && p->flagslice4[IJm1]>0 && p->DFBED[IJm1]>0)
+            wym(i,j) = beta*MIN(Ai,p->DXN[IP]*p->DYN[JM1])/Ai;
 
-                if(j + p->origin_j < p->gknoy - 1 && m(i, j + 1) > 0.5 && p->flagslice4[IJp1] > 0 && p->DFBED[IJp1] > 0)
-                    wyp(i, j) = beta * MIN(Ai, p->DXN[IP] * p->DYN[JP1]) / Ai;
+            if(j+p->origin_j<p->gknoy-1 && m(i,j+1)>0.5 && p->flagslice4[IJp1]>0 && p->DFBED[IJp1]>0)
+            wyp(i,j) = beta*MIN(Ai,p->DXN[IP]*p->DYN[JP1])/Ai;
             }
         }
     }
@@ -113,66 +113,66 @@ void sediment_exner::filter(lexer *p, ghostcell *pgc, slice &f, int outer_iter, 
     {
         SLICEBASELOOP
         {
-            tmp(i, j) = in(i, j);
+        tmp(i,j) = in(i,j);
 
-            if(m(i, j) > 0.5)
-                tmp(i, j) = in(i, j) + wxm(i, j) * (in(i - 1, j) - in(i, j)) + wxp(i, j) * (in(i + 1, j) - in(i, j));
+        if(m(i,j)>0.5)
+        tmp(i,j) = in(i,j) + wxm(i,j)*(in(i-1,j)-in(i,j)) + wxp(i,j)*(in(i+1,j)-in(i,j));
         }
 
-        if(ydir == 1)
+        if(ydir==1)
         {
-            pgc->gcsl_start4(p, tmp, 1);
+        pgc->gcsl_start4(p,tmp,1);
 
             SLICEBASELOOP
             {
-                out(i, j) = tmp(i, j);
+            out(i,j) = tmp(i,j);
 
-                if(m(i, j) > 0.5)
-                    out(i, j) = tmp(i, j) + wym(i, j) * (tmp(i, j - 1) - tmp(i, j)) + wyp(i, j) * (tmp(i, j + 1) - tmp(i, j));
+            if(m(i,j)>0.5)
+            out(i,j) = tmp(i,j) + wym(i,j)*(tmp(i,j-1)-tmp(i,j)) + wyp(i,j)*(tmp(i,j+1)-tmp(i,j));
             }
         }
 
-        if(ydir == 0)
-            SLICEBASELOOP
-        out(i, j) = tmp(i, j);
+        if(ydir==0)
+        SLICEBASELOOP
+        out(i,j) = tmp(i,j);
     };
 
-    for(int qn = 0; qn < outer_iter; ++qn)
-    {
-        SLICEBASELOOP
-        h(i, j) = f(i, j);
+	for(int qn=0;qn<outer_iter;++qn)
+	{
+		SLICEBASELOOP
+		h(i,j) = f(i,j);
 
-        pgc->gcsl_start4(p, h, 1);
+		pgc->gcsl_start4(p,h,1);
 
         // predictor
-        smooth(h, sdh);
+        smooth(h,sdh);
 
-        SLICEBASELOOP
-        if(m(i, j) > 0.5)
-            f(i, j) = sdh(i, j);
+		SLICEBASELOOP
+        if(m(i,j)>0.5)
+		f(i,j) = sdh(i,j);
 
         // corrector
-        for(int qqn = 0; qqn < inner_iter; ++qqn)
-        {
+		for(int qqn=0;qqn<inner_iter;++qqn)
+		{
             SLICEBASELOOP
-            dh(i, j) = h(i, j) - f(i, j);
+            dh(i,j) = h(i,j) - f(i,j);
 
-            pgc->gcsl_start4(p, dh, 1);
+            pgc->gcsl_start4(p,dh,1);
 
-            smooth(dh, sdh);
+            smooth(dh,sdh);
 
             SLICEBASELOOP
-            if(m(i, j) > 0.5)
-                f(i, j) += sdh(i, j);
-        }
+            if(m(i,j)>0.5)
+            f(i,j) += sdh(i,j);
+		}
     }
 }
 
 // ---- curvilinear grid (G 50): the filter in the symmetric form of sediment_xfilter (independent of which
 // index family is i; the same transfer as filter() on a uniform grid)
 
-void sediment_exner::filter_curv(lexer *p, ghostcell *pgc, slice &f, int outer_iter, int inner_iter)
+void sediment_exner::filter_curv(lexer *p,ghostcell *pgc, slice &f, int outer_iter, int inner_iter)
 {
     sediment_xfilter xf(p);
-    xf.run(p, pgc, f, outer_iter, inner_iter);
+    xf.run(p,pgc,f,outer_iter,inner_iter);
 }

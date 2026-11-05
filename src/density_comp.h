@@ -23,11 +23,12 @@ Author: Hans Bihs
 #ifndef DENSITY_COMP_H_
 #define DENSITY_COMP_H_
 
-#include "density.h"
-#include "increment.h"
+#include"density.h"
+#include"increment.h"
 
 class fdm;
 class lexer;
+
 
 using namespace std;
 
@@ -35,14 +36,15 @@ class density_comp final : public density, virtual public increment
 {
 
 public:
-    density_comp(lexer *);
-    virtual ~density_comp();
+    density_comp(lexer*);
+	virtual ~density_comp();
 
-    double roface(lexer *, fdm *, int, int, int) override final;
+	double roface(lexer*,fdm*,int,int,int) override final;
+	
+	double H,roval,phival;
+	int ii,jj,kk;
+	double ro_air;
 
-    double H, roval, phival;
-    int ii, jj, kk;
-    double ro_air;
 };
 
 #endif

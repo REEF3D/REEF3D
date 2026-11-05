@@ -20,106 +20,106 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "bedconc.h"
-#include "bedload.h"
-#include "bedload_direction.h"
-#include "bedshear.h"
-#include "bedshear_reduction.h"
-#include "bedslope.h"
-#include "fdm2D.h"
-#include "fdm_nhf.h"
-#include "ghostcell.h"
-#include "lexer.h"
-#include "sandslide.h"
-#include "sediment_exner.h"
-#include "sediment_f.h"
-#include "sediment_fdm.h"
-#include "sediment_roughness.h"
-#include "topo_relax.h"
+#include"sediment_f.h"
+#include"sediment_fdm.h"
+#include"sediment_exner.h"
+#include"lexer.h"
+#include"fdm_nhf.h"
+#include"fdm2D.h"
+#include"ghostcell.h"
+#include"bedload.h"
+#include"bedconc.h"
+#include"bedshear.h"
+#include"sandslide.h"
+#include"topo_relax.h"
+#include"bedslope.h"
+#include"bedshear_reduction.h"
+#include"bedload_direction.h"
+#include"sediment_roughness.h"
 
 // The sediment step of one grid of the mesh refinement or of a block, in the parts that the grids run
 // before and after their shared Exner step (nhflow_amr_sed.cpp, sflow_amr_sed.cpp). The parts are those of
 // sediment_algorithm_nhflow / sediment_algorithm_sflow.
 
-sediment_exner *sediment_f::exner()
+sediment_exner* sediment_f::exner()
 {
-    return static_cast<sediment_exner *>(ptopo);
+    return static_cast<sediment_exner*>(ptopo);
 }
 
 void sediment_f::amr_physics_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
-    prep_nhflow(p, d, pgc);
+    prep_nhflow(p,d,pgc);
 
-    pslope->slope_cds(p, pgc, s);
-    preduce->start(p, pgc, s);
-    pks->start(p, pgc, s, d->WL);
+    pslope->slope_cds(p,pgc,s);
+    preduce->start(p,pgc,s);
+    pks->start(p,pgc,s,d->WL);
 
-    pbedshear->taubed(p, d, pgc, s);
-    pbedshear->taucritbed(p, d, pgc, s);
+	pbedshear->taubed(p,d,pgc,s);
+    pbedshear->taucritbed(p,d,pgc,s);
 
-    pbed->start(p, pgc, s);
-    pbeddir->start(p, pgc, s);
-    pcbed->start(p, pgc, s);
+    pbed->start(p,pgc,s);
+    pbeddir->start(p,pgc,s);
+    pcbed->start(p,pgc,s);
 
-    prelax->start(p, pgc, s);
+	prelax->start(p,pgc,s);
 
-    exner()->amr_qb(p, pgc, s);
+    exner()->amr_qb(p,pgc,s);
 }
 
 void sediment_f::amr_physics_sflow(lexer *p, fdm2D *b, ghostcell *pgc)
 {
-    prep_sflow(p, b, pgc, b->P, b->Q);
+    prep_sflow(p,b,pgc,b->P,b->Q);
 
-    pslope->slope_cds(p, pgc, s);
-    preduce->start(p, pgc, s);
-    pks->start(p, pgc, s, b->hp);
+    pslope->slope_cds(p,pgc,s);
+    preduce->start(p,pgc,s);
+    pks->start(p,pgc,s,b->hp);
 
-    pbedshear->taubed(p, b, pgc, s);
-    pbedshear->taucritbed(p, b, pgc, s);
+	pbedshear->taubed(p,b,pgc,s);
+    pbedshear->taucritbed(p,b,pgc,s);
 
-    pbed->start(p, pgc, s);
-    pbeddir->start(p, pgc, s);
+    pbed->start(p,pgc,s);
+    pbeddir->start(p,pgc,s);
 
-    prelax->start(p, pgc, s);
+	prelax->start(p,pgc,s);
 
-    exner()->amr_qb(p, pgc, s);
+    exner()->amr_qb(p,pgc,s);
 }
 
 void sediment_f::amr_finish_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow)
 {
-    prelax->start(p, pgc, s);
+	prelax->start(p,pgc,s);
 
-    update_nhflow(p, d, pgc, pflow);
+    update_nhflow(p,d,pgc,pflow);
 }
 
 void sediment_f::amr_finish_sflow(lexer *p, fdm2D *b, ghostcell *pgc, ioflow *pflow)
 {
-    prelax->start(p, pgc, s);
+	prelax->start(p,pgc,s);
 
-    update_sflow(p, b, pgc, pflow);
+    update_sflow(p,b,pgc,pflow);
 }
 
 // ---- the sand slide in steps (sandslide.h)
 
 void sandslide::amr_begin(lexer *p, sediment_fdm *s)
 {
-    int i, j;
+    int i,j;
 
     SEDSLICELOOP
-    s->slide_fh(i, j) = 0.0;
+    s->slide_fh(i,j) = 0.0;
 }
 
 void sandslide::amr_apply(lexer *p, sediment_fdm *s)
 {
-    int i, j;
+    int i,j;
     slice *f = amr_fh();
 
-    if(f == nullptr)
-        return;
+    if(f==nullptr)
+    return;
 
     SEDSLICELOOP
     {
-        s->slide_fh(i, j) += (*f)(i, j);
-        s->bedzh(i, j) += (*f)(i, j);
+    s->slide_fh(i,j) += (*f)(i,j);
+    s->bedzh(i,j) += (*f)(i,j);
     }
 }

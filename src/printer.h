@@ -23,8 +23,8 @@ Author: Hans Bihs
 #ifndef PRINTER_H_
 #define PRINTER_H_
 
-#include <cstddef>
-#include <vector>
+#include<vector>
+#include<cstddef>
 
 class lexer;
 class fdm;
@@ -46,34 +46,33 @@ class printer
 {
 public:
     // checkpoints (P 48, I 45): the counters of the outputs (file numbers, print windows)
-    virtual void ckpt_state(std::vector<double> &) {};
-    virtual void ckpt_restore(const std::vector<double> &) {};
+    virtual void ckpt_state(std::vector<double>&) {};
+    virtual void ckpt_restore(const std::vector<double>&) {};
     // the files written so far are complete (a rebalance stop, G 46)
     virtual void flush_outputs() {};
     // CFD
-    virtual void start(lexer *, fdm *, ghostcell *, turbulence *, heat *, ioflow *, expdata *, concentration *, multiphase *, sediment *) {};
-    virtual void print_stop(lexer *, fdm *, ghostcell *, turbulence *, heat *, ioflow *, expdata *, concentration *, multiphase *, sediment *) {};
+    virtual void start(lexer*,fdm*,ghostcell*,turbulence*,heat*,ioflow*,expdata*,concentration*,multiphase*,sediment*) {};
+    virtual void print_stop(lexer*,fdm*,ghostcell*,turbulence*,heat*,ioflow*,expdata*,concentration*,multiphase*,sediment*) {};
     // the end of a run (N 45, N 41, S 19): the last state, unless the last step wrote it
-    virtual void print_end(lexer *, fdm *, ghostcell *, turbulence *, heat *, ioflow *, expdata *, concentration *, multiphase *, sediment *) {};
+    virtual void print_end(lexer*,fdm*,ghostcell*,turbulence*,heat*,ioflow*,expdata*,concentration*,multiphase*,sediment*) {};
     // CFD mesh refinement: the probes and wave gauges read the finest grid at their position
-    virtual void amr_probes(const amr_grid_lookup *) {};
+    virtual void amr_probes(const amr_grid_lookup*) {};
     // the 2D-column models (NHFLOW, FNPF): the gauges and probes read the finest grid
-    virtual void amr_columns(lexer *, const amr_column_lookup *) {};
+    virtual void amr_columns(lexer*, const amr_column_lookup*) {};
     // NHFLOW
-    virtual void start(lexer *, fdm_nhf *, ghostcell *, ioflow *, nhflow_turbulence *, sediment *) {};
-    virtual void print_stop(lexer *, fdm_nhf *, ghostcell *, ioflow *, nhflow_turbulence *, sediment *) {};
-    virtual void print_end(lexer *, fdm_nhf *, ghostcell *, ioflow *, nhflow_turbulence *, sediment *) {};
+    virtual void start(lexer*,fdm_nhf*,ghostcell*,ioflow*,nhflow_turbulence*,sediment*) {};
+    virtual void print_stop(lexer*,fdm_nhf*,ghostcell*,ioflow*,nhflow_turbulence*,sediment*) {};
+    virtual void print_end(lexer*,fdm_nhf*,ghostcell*,ioflow*,nhflow_turbulence*,sediment*) {};
     // FNPF
-    virtual void start(lexer *, fdm_fnpf *, ghostcell *, ioflow *) {};
-    virtual void print_stop(lexer *, fdm_fnpf *, ghostcell *) {};
-    virtual void print_end(lexer *, fdm_fnpf *, ghostcell *) {};
-
+    virtual void start(lexer*,fdm_fnpf*,ghostcell*,ioflow*) {};
+    virtual void print_stop(lexer*,fdm_fnpf*,ghostcell*) {};
+    virtual void print_end(lexer*,fdm_fnpf*,ghostcell*) {};
 protected:
-    void writeFile(const char *, const size_t);
-
+    void writeFile(const char*, const size_t);
+    
     // the volume output is rare (P 30): its buffer (the whole 3D grid with connectivity, about
     // 150 bytes per node) is given back after each output instead of being kept for the run
-    void release_buffer() { std::vector<char>().swap(buffer); }
+    void release_buffer() {std::vector<char>().swap(buffer);}
 
     std::vector<char> buffer;
 };

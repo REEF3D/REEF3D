@@ -23,9 +23,9 @@ Author: Hans Bihs
 #ifndef PROBE_POINT_H_
 #define PROBE_POINT_H_
 
-#include "boundarycheck.h"
-#include <fstream>
-#include <iostream>
+#include"boundarycheck.h"
+#include<iostream>
+#include<fstream>
 
 class lexer;
 class fdm;
@@ -39,21 +39,25 @@ using namespace std;
 class probe_point : public boundarycheck
 {
 public:
-    probe_point(lexer *, fdm *, ghostcell *);
-    virtual ~probe_point();
+    probe_point(lexer*,fdm*,ghostcell*);
+	virtual ~probe_point();
 
-    const amr_grid_lookup *amr = nullptr;  // CFD mesh refinement: the finest grid at the probe
+	void start(lexer*, fdm*, ghostcell*,turbulence*);
+
+    const amr_grid_lookup *amr = nullptr;     // CFD mesh refinement: the finest grid at the probe
+
 
 private:
-    void ini_location(lexer *, fdm *, ghostcell *);
-    char name[100];
+    void ini_location(lexer*, fdm*, ghostcell*);
+	char name[100];
 
-    int *iloc, *jloc, *kloc, *flag;
-    int n, q;
-    const int probenum;
+    int *iloc,*jloc,*kloc,*flag;
+    int n,q;
+	const int probenum;
     ofstream *pout;
+	
+	double uval,vval,wval,pval,kval,eval,edval;
 
-    double uval, vval, wval, pval, kval, eval, edval;
 };
 
 #endif

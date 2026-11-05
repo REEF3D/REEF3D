@@ -23,11 +23,11 @@ Author: Hans Bihs
 #ifndef SFLOW_FILTER_H_
 #define SFLOW_FILTER_H_
 
-#include "increment.h"
-#include "sflow_diffusion.h"
-#include "slice1.h"
-#include "slice2.h"
-#include "slice4.h"
+#include"sflow_diffusion.h"
+#include"increment.h"
+#include"slice1.h"
+#include"slice2.h"
+#include"slice4.h"
 
 class lexer;
 class fdm2D;
@@ -41,12 +41,14 @@ using namespace std;
 class sflow_filter : public increment
 {
 public:
-    sflow_filter(lexer *);
-    virtual ~sflow_filter();
+	sflow_filter(lexer*);
+	virtual ~sflow_filter();
 
-    slice1 f1x, f1y;
-    slice2 f2x, f2y;
-    slice4 f4x, f4y;
+    
+    slice1 f1x,f1y;
+    slice2 f2x,f2y;
+    slice4 f4x,f4y;
+
 };
 
 #endif

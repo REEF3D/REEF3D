@@ -23,24 +23,26 @@ Author: Hans Bihs
 #ifndef PICARD_F_H_
 #define PICARD_F_H_
 
-#include "gradient.h"
-#include "picard.h"
+#include"gradient.h"
+#include"picard.h"
 
 using namespace std;
 
 class picard_f final : public gradient, public picard
 {
 public:
+
     picard_f(lexer *p);
     virtual ~picard_f();
 
-    void volcalc(lexer *, fdm *, ghostcell *, field &) override final;
-    void volcalc2(lexer *, fdm *, ghostcell *, field &);
-    void correct_ls(lexer *, fdm *, ghostcell *, field &) override final;
+    void volcalc(lexer*, fdm*, ghostcell*, field&) override final;
+    void volcalc2(lexer*, fdm*, ghostcell*, field&);
+    void correct_ls(lexer*, fdm*, ghostcell*, field&) override final;
 
-    double vol1, vol2, dvol2;
+    double vol1,vol2,dvol2;
 
 private:
+
 };
 
 #endif

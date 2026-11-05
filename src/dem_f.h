@@ -43,12 +43,12 @@ that owns the evaluation point and returned to the particle's owner.
 #ifndef DEM_F_H_
 #define DEM_F_H_
 
-#include "dem.h"
-#include "dem_core.h"
-#include "increment.h"
-#include <string>
-#include <unordered_map>
-#include <vector>
+#include"dem.h"
+#include"dem_core.h"
+#include"increment.h"
+#include<vector>
+#include<string>
+#include<unordered_map>
 
 class lexer;
 class fdm;
@@ -68,26 +68,10 @@ struct dem_writer
 {
     vector<double> &b;
     explicit dem_writer(vector<double> &buf) : b(buf) {}
-    void d(double v) { b.push_back(v); }
-    void v(const dem_vec &x)
-    {
-        b.push_back(x(0));
-        b.push_back(x(1));
-        b.push_back(x(2));
-    }
-    void q(const dem_quat &x)
-    {
-        b.push_back(x.w());
-        b.push_back(x.x());
-        b.push_back(x.y());
-        b.push_back(x.z());
-    }
-    void m(const dem_mat &x)
-    {
-        for(int r = 0; r < 3; ++r)
-            for(int c = 0; c < 3; ++c)
-                b.push_back(x(r, c));
-    }
+    void d(double v) {b.push_back(v);}
+    void v(const dem_vec &x) {b.push_back(x(0)); b.push_back(x(1)); b.push_back(x(2));}
+    void q(const dem_quat &x) {b.push_back(x.w()); b.push_back(x.x()); b.push_back(x.y()); b.push_back(x.z());}
+    void m(const dem_mat &x) {for(int r=0; r<3; ++r) for(int c=0; c<3; ++c) b.push_back(x(r,c));}
 };
 
 struct dem_reader
@@ -95,138 +79,121 @@ struct dem_reader
     const vector<double> &b;
     size_t pos;
     dem_reader(const vector<double> &buf, size_t start) : b(buf), pos(start) {}
-    double d() { return b[pos++]; }
-    int i() { return int(llround(b[pos++])); }
-    dem_vec v()
-    {
-        dem_vec x(b[pos], b[pos + 1], b[pos + 2]);
-        pos += 3;
-        return x;
-    }
-    dem_quat q()
-    {
-        dem_quat x(b[pos], b[pos + 1], b[pos + 2], b[pos + 3]);
-        pos += 4;
-        return x;
-    }
-    dem_mat m()
-    {
-        dem_mat x;
-        for(int r = 0; r < 3; ++r)
-            for(int c = 0; c < 3; ++c)
-                x(r, c) = b[pos++];
-        return x;
-    }
+    double d() {return b[pos++];}
+    int i() {return int(llround(b[pos++]));}
+    dem_vec v() {dem_vec x(b[pos],b[pos+1],b[pos+2]); pos+=3; return x;}
+    dem_quat q() {dem_quat x(b[pos],b[pos+1],b[pos+2],b[pos+3]); pos+=4; return x;}
+    dem_mat m() {dem_mat x; for(int r=0; r<3; ++r) for(int c=0; c<3; ++c) x(r,c)=b[pos++]; return x;}
 };
 
 class dem_f final : public dem, public increment
 {
 public:
-    dem_f(lexer *, ghostcell *);
+    dem_f(lexer*, ghostcell*);
     virtual ~dem_f();
 
-    void start_cfd(lexer *, fdm *, ghostcell *) override final;
-    void start_nhflow(lexer *, fdm_nhf *, ghostcell *) override final;
+    void start_cfd(lexer*, fdm*, ghostcell*) override final;
+    void start_nhflow(lexer*, fdm_nhf*, ghostcell*) override final;
 
-    void forcing_cfd(lexer *, fdm *, ghostcell *, int, double, field &, field &, field &, bool) override final;
-    void forcing_nhflow(lexer *, fdm_nhf *, ghostcell *, int, double, double *, double *, double *, slice &, bool, bool) override final;
+    void forcing_cfd(lexer*, fdm*, ghostcell*, int, double, field&, field&, field&, bool) override final;
+    void forcing_nhflow(lexer*, fdm_nhf*, ghostcell*, int, double, double*, double*, double*, slice&, bool, bool) override final;
 
     // checkpoints (P 48, I 45), dem_f_ckpt in dem_f.cpp
-    void ckpt_state(lexer *, std::vector<double> &, std::vector<double> &) override final;
-    bool ckpt_restore(lexer *, const std::vector<double> &, const std::vector<std::vector<double>> &, bool) override final;
-    double *ckpt_alpha() override final { return ALPHAV; }
+    void ckpt_state(lexer*, std::vector<double>&, std::vector<double>&) override final;
+    bool ckpt_restore(lexer*, const std::vector<double>&, const std::vector<std::vector<double>>&, bool) override final;
+    double* ckpt_alpha() override final {return ALPHAV;}
 
 private:
     // checkpoints: the restore waits for the set-up of the first step (ckpt_apply)
-    void ckpt_apply(lexer *, ghostcell *);
-    void ckpt_pack_full(vector<double> &, const dem_body &, const vector<int> &);
-    void ckpt_unpack_full(dem_reader &, dem_body &, vector<int> &);
+    void ckpt_apply(lexer*, ghostcell*);
+    void ckpt_pack_full(vector<double>&, const dem_body&, const vector<int>&);
+    void ckpt_unpack_full(dem_reader&, dem_body&, vector<int>&);
     bool ckpt_pending = false;
     bool ckpt_same = false;
     vector<double> ckpt_global;
     vector<vector<double>> ckpt_ranks;
 
     // setup
-    void read_input(lexer *, ghostcell *);
-    void ini(lexer *, ghostcell *);
-    void ini_cfd(lexer *, ghostcell *);
-    void ini_nhflow(lexer *, ghostcell *);
+    void read_input(lexer*, ghostcell*);
+    void ini(lexer*, ghostcell*);
+    void ini_cfd(lexer*, ghostcell*);
+    void ini_nhflow(lexer*, ghostcell*);
 
     // time step
-    void step(lexer *, ghostcell *);
-    void set_loads(lexer *, ghostcell *);
-    void sync(lexer *, ghostcell *);
-    void deactivate(lexer *);
-    int substeps(lexer *, ghostcell *);
+    void step(lexer*, ghostcell*);
+    void set_loads(lexer*, ghostcell*);
+    void sync(lexer*, ghostcell*);
+    void deactivate(lexer*);
+    int substeps(lexer*, ghostcell*);
 
     // point ownership in the domain decomposition
-    bool owns(lexer *, double, double, double);
+    bool owns(lexer*, double, double, double);
 
     // CFD coupling
-    void fluid_cfd(lexer *, fdm *, ghostcell *);
-    void feedback_cfd(lexer *, fdm *, ghostcell *);
-    void walls_cfd(lexer *, fdm *, ghostcell *, double, vector<dem_contact> &);
-    double wallphi_cfd(lexer *, fdm *, double, double, double);
+    void fluid_cfd(lexer*, fdm*, ghostcell*);
+    void feedback_cfd(lexer*, fdm*, ghostcell*);
+    void walls_cfd(lexer*, fdm*, ghostcell*, double, vector<dem_contact>&);
+    double wallphi_cfd(lexer*, fdm*, double, double, double);
 
     // NHFLOW coupling
-    void fluid_nhflow(lexer *, fdm_nhf *, ghostcell *);
-    void feedback_nhflow(lexer *, fdm_nhf *, ghostcell *);
-    void walls_nhflow(lexer *, fdm_nhf *, ghostcell *, double, vector<dem_contact> &);
-    double wallphi_nhflow(lexer *, fdm_nhf *, double, double, double);
+    void fluid_nhflow(lexer*, fdm_nhf*, ghostcell*);
+    void feedback_nhflow(lexer*, fdm_nhf*, ghostcell*);
+    void walls_nhflow(lexer*, fdm_nhf*, ghostcell*, double, vector<dem_contact>&);
+    double wallphi_nhflow(lexer*, fdm_nhf*, double, double, double);
 
     // domain decomposition
-    void decomp_ini(lexer *, ghostcell *);
-    double halo(const dem_body &);
-    bool in_box(int, const dem_vec &);
-    int find_owner(const dem_vec &);
-    double boxdist(int, const dem_vec &);
-    void p2p(ghostcell *, vector<vector<double>> &, vector<vector<double>> &);
+    void decomp_ini(lexer*, ghostcell*);
+    double halo(const dem_body&);
+    bool in_box(int, const dem_vec&);
+    int find_owner(const dem_vec&);
+    double boxdist(int, const dem_vec&);
+    void p2p(ghostcell*, vector<vector<double>>&, vector<vector<double>>&);
     void rebuild_maps();
     void erase_ghosts();
-    void ghost_exchange(lexer *, ghostcell *);
-    void pack_body(vector<double> &, const dem_body &);
-    void unpack_body(dem_reader &, dem_body &);
-    void migrate(lexer *, ghostcell *);
-    void reduce_owner(ghostcell *, vector<double> &, int, bool, bool);
-    void owner_to_ghosts(ghostcell *, vector<double> &, int);
-    double sync_solver(ghostcell *, int, double, bool);
-    void mass_split(ghostcell *);
-    void route_walls(lexer *, ghostcell *, const vector<double> &, vector<dem_contact> &);
-    void global_stats(ghostcell *, double &, double &);
-    void gather_output(ghostcell *, vector<dem_body> &);
-    void run_step(lexer *, ghostcell *, const dem_core::wallfunc &);
+    void ghost_exchange(lexer*, ghostcell*);
+    void pack_body(vector<double>&, const dem_body&);
+    void unpack_body(dem_reader&, dem_body&);
+    void migrate(lexer*, ghostcell*);
+    void reduce_owner(ghostcell*, vector<double>&, int, bool, bool);
+    void owner_to_ghosts(ghostcell*, vector<double>&, int);
+    double sync_solver(ghostcell*, int, double, bool);
+    void mass_split(ghostcell*);
+    void route_walls(lexer*, ghostcell*, const vector<double>&, vector<dem_contact>&);
+    void global_stats(ghostcell*, double&, double&);
+    void gather_output(ghostcell*, vector<dem_body>&);
+    void run_step(lexer*, ghostcell*, const dem_core::wallfunc&);
 
     int myrank = 0, nproc = 1;
     vector<double> boxes;
-    double p_gmax[3] = {1.0e30, 1.0e30, 1.0e30};
+    double p_gmax[3] = {1.0e30,1.0e30,1.0e30};
     double rmax0 = 0.0;
     vector<int> partners, partner_index;
     vector<vector<int>> ghostdest;
-    unordered_map<int, int> gid2loc;
+    unordered_map<int,int> gid2loc;
     vector<int> tier1idx;
     int nglobal = 0;
     int ncolors = 1, mycolor = 0;
 
     // common
-    void drag(lexer *, int, double, double, double);
+    void drag(lexer*, int, double, double, double);
     double heaviside(double, double);
 
     // grid point relative to a particle centre; in 2D the y offset is ignored (x-z slab)
-    dem_vec relpos(lexer *, double, double, double, const dem_vec &);
+    dem_vec relpos(lexer*, double, double, double, const dem_vec&);
     double kernel(double, double);
-    double kradius(int);  // momentum kernel radius of a particle
-    double vradius(int);  // solid fraction kernel radius
-    void cellrange(lexer *, int, double, int &, int &, int &, int &, int &, int &);
+    double kradius(int);        // momentum kernel radius of a particle
+    double vradius(int);        // solid fraction kernel radius
+    void cellrange(lexer*, int, double, int&, int&, int&, int&, int&, int&);
 
     // output
-    void print(lexer *, ghostcell *);
-    void print_vtp(lexer *, const vector<dem_body> &);
-    void print_state(lexer *, const vector<dem_body> &);
-    void print_log(lexer *, ghostcell *);
+    void print(lexer*, ghostcell*);
+    void print_vtp(lexer*, const vector<dem_body>&);
+    void print_state(lexer*, const vector<dem_body>&);
+    void print_log(lexer*, ghostcell*);
 
     dem_core core;
 
-    int solver;  // 6 CFD, 5 NHFLOW
+    int solver;                 // 6 CFD, 5 NHFLOW
     int coupling;
     bool initialized;
     int nb;
@@ -237,14 +204,15 @@ private:
     int gridwalls;
 
     // resolved: hydrodynamic force from the forcing, fluid mass inside the particle
-    void combine_stages(lexer *, ghostcell *, int, double);
+    void combine_stages(lexer*, ghostcell*, int, double);
     bool rkwarn = false;
-    double dxs = 1.0;  // horizontal grid length scale (NHFLOW: DXM mixes in the sigma spacing)
+    double dxs = 1.0;           // horizontal grid length scale (NHFLOW: DXM mixes in the sigma spacing)
 
     // resolved: fluid momentum and angular momentum inside the particles (Kempe & Froehlich 2012)
-    void internal_cfd(lexer *, fdm *, ghostcell *);
-    void internal_nhflow(lexer *, fdm_nhf *, ghostcell *);
+    void internal_cfd(lexer*, fdm*, ghostcell*);
+    void internal_nhflow(lexer*, fdm_nhf*, ghostcell*);
     double dt_old;
+
 
     // CFD source fields and solid fraction
     field1 *Sx;
@@ -253,17 +221,16 @@ private:
     field4a *ALPHA;
 
     // NHFLOW source arrays and solid fraction
-    double *SX, *SY, *SZ, *ALPHAV;
+    double *SX,*SY,*SZ,*ALPHAV;
     // NHFLOW: point-implicit drag coefficient and the velocities it was evaluated with (E 27),
     // solid fraction for the porosity (E 28)
-    double *SD, *UFB, *VFB, *WFB, *ALPHAP;
+    double *SD,*UFB,*VFB,*WFB,*ALPHAP;
     int multipoint, fimplicit, pormode, fixeddrag, porinit;
 
     // NHFLOW: 4-point Peskin kernel spreading of a point load onto the sigma grid (E 26)
     double peskin(double) const;
-    template<class F>
-    void peskin_spread(lexer *, fdm_nhf *, const dem_vec &, F &&);
-    bool fluidcoupled(const dem_body &) const;
+    template<class F> void peskin_spread(lexer*, fdm_nhf*, const dem_vec&, F&&);
+    bool fluidcoupled(const dem_body&) const;
 
     // parameters
     double hybrid_ratio, Ca, hs_factor, travel, kernel_cells, void_factor;

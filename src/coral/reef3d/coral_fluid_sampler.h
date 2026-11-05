@@ -28,7 +28,7 @@ Architect: Hans Bihs
 #ifndef CORAL_FLUID_SAMPLER_H_
 #define CORAL_FLUID_SAMPLER_H_
 
-#include <vector>
+#include<vector>
 
 class lexer;
 class fdm_fnpf;
@@ -40,7 +40,7 @@ public:
     virtual ~coral_fluid_sampler() = default;
     // xyz: 3 per point; out: 6 per point (u, v, w, surface z, sampled, bed z), filled for the own points only
     virtual void sample(const std::vector<double> &xyz, std::vector<double> &out) = 0;
-    virtual const char *name() const = 0;
+    virtual const char* name() const = 0;
 };
 
 // FNPF: velocities of the sigma grid (U, V, W of the last velcalc), free surface WL + bed
@@ -48,9 +48,8 @@ class coral_sampler_fnpf : public coral_fluid_sampler
 {
 public:
     coral_sampler_fnpf(lexer *p, fdm_fnpf *c) : p_(p), c_(c) {}
-    void sample(const std::vector<double> &, std::vector<double> &) override;
-    const char *name() const override { return "FNPF"; }
-
+    void sample(const std::vector<double>&, std::vector<double>&) override;
+    const char* name() const override {return "FNPF";}
 private:
     lexer *p_;
     fdm_fnpf *c_;
@@ -61,9 +60,8 @@ class coral_sampler_nhflow : public coral_fluid_sampler
 {
 public:
     coral_sampler_nhflow(lexer *p, fdm_nhf *d) : p_(p), d_(d) {}
-    void sample(const std::vector<double> &, std::vector<double> &) override;
-    const char *name() const override { return "NHFLOW"; }
-
+    void sample(const std::vector<double>&, std::vector<double>&) override;
+    const char* name() const override {return "NHFLOW";}
 private:
     lexer *p_;
     fdm_nhf *d_;

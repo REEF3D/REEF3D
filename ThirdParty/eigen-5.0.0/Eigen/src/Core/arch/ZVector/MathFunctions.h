@@ -102,146 +102,139 @@ static EIGEN_DECLARE_CONST_Packet2d(cephes_exp_q3, 2.00000000000000000009e0);
 static EIGEN_DECLARE_CONST_Packet2d(cephes_exp_C1, 0.693145751953125);
 static EIGEN_DECLARE_CONST_Packet2d(cephes_exp_C2, 1.42860682030941723212e-6);
 
-template<>
-EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS Packet2d pexp<Packet2d>(const Packet2d &_x)
-{
-    Packet2d x = _x;
+template <>
+EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS Packet2d pexp<Packet2d>(const Packet2d& _x) {
+  Packet2d x = _x;
 
-    Packet2d tmp, fx;
-    Packet2l emm0;
+  Packet2d tmp, fx;
+  Packet2l emm0;
 
-    // clamp x
-    x = pmax(pmin(x, p2d_exp_hi), p2d_exp_lo);
-    /* express exp(x) as exp(g + n*log(2)) */
-    fx = pmadd(p2d_cephes_LOG2EF, x, p2d_half);
+  // clamp x
+  x = pmax(pmin(x, p2d_exp_hi), p2d_exp_lo);
+  /* express exp(x) as exp(g + n*log(2)) */
+  fx = pmadd(p2d_cephes_LOG2EF, x, p2d_half);
 
-    fx = vec_floor(fx);
+  fx = vec_floor(fx);
 
-    tmp = pmul(fx, p2d_cephes_exp_C1);
-    Packet2d z = pmul(fx, p2d_cephes_exp_C2);
-    x = psub(x, tmp);
-    x = psub(x, z);
+  tmp = pmul(fx, p2d_cephes_exp_C1);
+  Packet2d z = pmul(fx, p2d_cephes_exp_C2);
+  x = psub(x, tmp);
+  x = psub(x, z);
 
-    Packet2d x2 = pmul(x, x);
+  Packet2d x2 = pmul(x, x);
 
-    Packet2d px = p2d_cephes_exp_p0;
-    px = pmadd(px, x2, p2d_cephes_exp_p1);
-    px = pmadd(px, x2, p2d_cephes_exp_p2);
-    px = pmul(px, x);
+  Packet2d px = p2d_cephes_exp_p0;
+  px = pmadd(px, x2, p2d_cephes_exp_p1);
+  px = pmadd(px, x2, p2d_cephes_exp_p2);
+  px = pmul(px, x);
 
-    Packet2d qx = p2d_cephes_exp_q0;
-    qx = pmadd(qx, x2, p2d_cephes_exp_q1);
-    qx = pmadd(qx, x2, p2d_cephes_exp_q2);
-    qx = pmadd(qx, x2, p2d_cephes_exp_q3);
+  Packet2d qx = p2d_cephes_exp_q0;
+  qx = pmadd(qx, x2, p2d_cephes_exp_q1);
+  qx = pmadd(qx, x2, p2d_cephes_exp_q2);
+  qx = pmadd(qx, x2, p2d_cephes_exp_q3);
 
-    x = pdiv(px, psub(qx, px));
-    x = pmadd(p2d_2, x, p2d_1);
+  x = pdiv(px, psub(qx, px));
+  x = pmadd(p2d_2, x, p2d_1);
 
-    // build 2^n
-    emm0 = vec_ctsl(fx, 0);
+  // build 2^n
+  emm0 = vec_ctsl(fx, 0);
 
-    static const Packet2l p2l_1023 = {1023, 1023};
-    static const Packet2ul p2ul_52 = {52, 52};
+  static const Packet2l p2l_1023 = {1023, 1023};
+  static const Packet2ul p2ul_52 = {52, 52};
 
-    emm0 = emm0 + p2l_1023;
-    emm0 = emm0 << reinterpret_cast<Packet2l>(p2ul_52);
+  emm0 = emm0 + p2l_1023;
+  emm0 = emm0 << reinterpret_cast<Packet2l>(p2ul_52);
 
-    // Altivec's max & min operators just drop silent NaNs. Check NaNs in
-    // inputs and return them unmodified.
-    Packet2ul isnumber_mask = reinterpret_cast<Packet2ul>(vec_cmpeq(_x, _x));
-    return vec_sel(_x, pmax(pmul(x, reinterpret_cast<Packet2d>(emm0)), _x), isnumber_mask);
+  // Altivec's max & min operators just drop silent NaNs. Check NaNs in
+  // inputs and return them unmodified.
+  Packet2ul isnumber_mask = reinterpret_cast<Packet2ul>(vec_cmpeq(_x, _x));
+  return vec_sel(_x, pmax(pmul(x, reinterpret_cast<Packet2d>(emm0)), _x), isnumber_mask);
 }
 
-template<>
-EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS Packet4f pexp<Packet4f>(const Packet4f &_x)
-{
+template <>
+EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS Packet4f pexp<Packet4f>(const Packet4f& _x) {
 #if !defined(__ARCH__) || (defined(__ARCH__) && __ARCH__ >= 12)
-    Packet4f x = _x;
+  Packet4f x = _x;
 
-    Packet4f tmp, fx;
-    Packet4i emm0;
+  Packet4f tmp, fx;
+  Packet4i emm0;
 
-    // clamp x
-    x = pmax(pmin(x, p4f_exp_hi), p4f_exp_lo);
+  // clamp x
+  x = pmax(pmin(x, p4f_exp_hi), p4f_exp_lo);
 
-    // express exp(x) as exp(g + n*log(2))
-    fx = pmadd(x, p4f_cephes_LOG2EF, p4f_half);
+  // express exp(x) as exp(g + n*log(2))
+  fx = pmadd(x, p4f_cephes_LOG2EF, p4f_half);
 
-    fx = pfloor(fx);
+  fx = pfloor(fx);
 
-    tmp = pmul(fx, p4f_cephes_exp_C1);
-    Packet4f z = pmul(fx, p4f_cephes_exp_C2);
-    x = psub(x, tmp);
-    x = psub(x, z);
+  tmp = pmul(fx, p4f_cephes_exp_C1);
+  Packet4f z = pmul(fx, p4f_cephes_exp_C2);
+  x = psub(x, tmp);
+  x = psub(x, z);
 
-    z = pmul(x, x);
+  z = pmul(x, x);
 
-    Packet4f y = p4f_cephes_exp_p0;
-    y = pmadd(y, x, p4f_cephes_exp_p1);
-    y = pmadd(y, x, p4f_cephes_exp_p2);
-    y = pmadd(y, x, p4f_cephes_exp_p3);
-    y = pmadd(y, x, p4f_cephes_exp_p4);
-    y = pmadd(y, x, p4f_cephes_exp_p5);
-    y = pmadd(y, z, x);
-    y = padd(y, p4f_1);
+  Packet4f y = p4f_cephes_exp_p0;
+  y = pmadd(y, x, p4f_cephes_exp_p1);
+  y = pmadd(y, x, p4f_cephes_exp_p2);
+  y = pmadd(y, x, p4f_cephes_exp_p3);
+  y = pmadd(y, x, p4f_cephes_exp_p4);
+  y = pmadd(y, x, p4f_cephes_exp_p5);
+  y = pmadd(y, z, x);
+  y = padd(y, p4f_1);
 
-    // build 2^n
-    emm0 = Packet4i{(int)fx[0], (int)fx[1], (int)fx[2], (int)fx[3]};
-    emm0 = emm0 + p4i_0x7f;
-    emm0 = emm0 << reinterpret_cast<Packet4i>(p4i_23);
+  // build 2^n
+  emm0 = Packet4i{(int)fx[0], (int)fx[1], (int)fx[2], (int)fx[3]};
+  emm0 = emm0 + p4i_0x7f;
+  emm0 = emm0 << reinterpret_cast<Packet4i>(p4i_23);
 
-    return pmax(pmul(y, reinterpret_cast<Packet4f>(emm0)), _x);
+  return pmax(pmul(y, reinterpret_cast<Packet4f>(emm0)), _x);
 #else
-    Packet4f res;
-    res.v4f[0] = pexp<Packet2d>(_x.v4f[0]);
-    res.v4f[1] = pexp<Packet2d>(_x.v4f[1]);
-    return res;
+  Packet4f res;
+  res.v4f[0] = pexp<Packet2d>(_x.v4f[0]);
+  res.v4f[1] = pexp<Packet2d>(_x.v4f[1]);
+  return res;
 #endif
 }
 
-template<>
-EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS Packet2d psqrt<Packet2d>(const Packet2d &x)
-{
-    return vec_sqrt(x);
+template <>
+EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS Packet2d psqrt<Packet2d>(const Packet2d& x) {
+  return vec_sqrt(x);
 }
 
-template<>
-EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS Packet4f psqrt<Packet4f>(const Packet4f &x)
-{
-    Packet4f res;
+template <>
+EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS Packet4f psqrt<Packet4f>(const Packet4f& x) {
+  Packet4f res;
 #if !defined(__ARCH__) || (defined(__ARCH__) && __ARCH__ >= 12)
-    res = vec_sqrt(x);
+  res = vec_sqrt(x);
 #else
-    res.v4f[0] = psqrt<Packet2d>(x.v4f[0]);
-    res.v4f[1] = psqrt<Packet2d>(x.v4f[1]);
+  res.v4f[0] = psqrt<Packet2d>(x.v4f[0]);
+  res.v4f[1] = psqrt<Packet2d>(x.v4f[1]);
 #endif
-    return res;
+  return res;
 }
 
-template<>
-EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS Packet2d prsqrt<Packet2d>(const Packet2d &x)
-{
-    return pset1<Packet2d>(1.0) / psqrt<Packet2d>(x);
+template <>
+EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS Packet2d prsqrt<Packet2d>(const Packet2d& x) {
+  return pset1<Packet2d>(1.0) / psqrt<Packet2d>(x);
 }
 
-template<>
-EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS Packet4f prsqrt<Packet4f>(const Packet4f &x)
-{
-    Packet4f res;
+template <>
+EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS Packet4f prsqrt<Packet4f>(const Packet4f& x) {
+  Packet4f res;
 #if !defined(__ARCH__) || (defined(__ARCH__) && __ARCH__ >= 12)
-    res = pset1<Packet4f>(1.0) / psqrt<Packet4f>(x);
+  res = pset1<Packet4f>(1.0) / psqrt<Packet4f>(x);
 #else
-    res.v4f[0] = prsqrt<Packet2d>(x.v4f[0]);
-    res.v4f[1] = prsqrt<Packet2d>(x.v4f[1]);
+  res.v4f[0] = prsqrt<Packet2d>(x.v4f[0]);
+  res.v4f[1] = prsqrt<Packet2d>(x.v4f[1]);
 #endif
-    return res;
+  return res;
 }
 
 // Hyperbolic Tangent function.
-template<>
-EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS Packet4f ptanh<Packet4f>(const Packet4f &x)
-{
-    return ptanh_float(x);
+template <>
+EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS Packet4f ptanh<Packet4f>(const Packet4f& x) {
+  return ptanh_float(x);
 }
 
 }  // end namespace internal

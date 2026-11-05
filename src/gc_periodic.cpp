@@ -20,109 +20,109 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "field.h"
-#include "ghostcell.h"
-#include "lexer.h"
+#include"ghostcell.h"
+#include"lexer.h"
+#include"field.h"
 
-void ghostcell::gc_periodic(lexer *p, field &f, int gcv, int cs)
+void ghostcell::gc_periodic(lexer *p, field& f, int gcv, int cs)
 {
-    double val1, val2, val3;
+    double val1,val2,val3;
 
     // every row: the check of the cell flag (PCHECK) read the cell of the index left from before the
     // loop (i in the x rows, j in the y rows, k in the z rows), not one of the row; with the mesh
     // refinement that index was often one of a patch, beyond level 0, and a level-0 row could be
     // skipped (its ghost cells kept zero: the pressure of the composite solve across the edge)
-    if(cs == 1)
-        JLOOP
+    if(cs==1)
+    JLOOP
     KLOOP
     {
         // 4 to 1 coupling
-        i = p->knox - 1;
+        i=p->knox-1;
 
-        val1 = f(i, j, k);
-        val2 = f(i - 1, j, k);
-        val3 = f(i - 2, j, k);
+        val1 = f(i,j,k);
+        val2 = f(i-1,j,k);
+        val3 = f(i-2,j,k);
 
-        i = 0;
+        i=0;
 
-        f(i - 1, j, k) = val1;
-        f(i - 2, j, k) = val2;
-        f(i - 3, j, k) = val3;
+        f(i-1,j,k) = val1;
+        f(i-2,j,k) = val2;
+        f(i-3,j,k) = val3;
 
         // 1 to 4 coupling
-        i = 0;
+        i=0;
 
-        val1 = f(i, j, k);
-        val2 = f(i + 1, j, k);
-        val3 = f(i + 2, j, k);
+        val1 = f(i,j,k);
+        val2 = f(i+1,j,k);
+        val3 = f(i+2,j,k);
 
-        i = p->knox - 1;
+        i=p->knox-1;
 
-        f(i + 1, j, k) = val1;
-        f(i + 2, j, k) = val2;
-        f(i + 3, j, k) = val3;
+        f(i+1,j,k) = val1;
+        f(i+2,j,k) = val2;
+        f(i+3,j,k) = val3;
     }
 
-    if(cs == 2)
-        ILOOP
+    if(cs==2)
+    ILOOP
     KLOOP
     {
         // 2 to 3 coupling
-        j = p->knoy - 1;
+        j=p->knoy-1;
 
-        val1 = f(i, j, k);
-        val2 = f(i, j - 1, k);
-        val3 = f(i, j - 2, k);
+        val1 = f(i,j,k);
+        val2 = f(i,j-1,k);
+        val3 = f(i,j-2,k);
 
-        j = 0;
+        j=0;
 
-        f(i, j - 1, k) = val1;
-        f(i, j - 2, k) = val2;
-        f(i, j - 3, k) = val3;
+        f(i,j-1,k) = val1;
+        f(i,j-2,k) = val2;
+        f(i,j-3,k) = val3;
 
         // 3 to 2 coupling
-        j = 0;
+        j=0;
 
-        val1 = f(i, j, k);
-        val2 = f(i, j + 1, k);
-        val3 = f(i, j + 2, k);
+        val1 = f(i,j,k);
+        val2 = f(i,j+1,k);
+        val3 = f(i,j+2,k);
 
-        j = p->knoy - 1;
+        j=p->knoy-1;
 
-        f(i, j + 1, k) = val1;
-        f(i, j + 2, k) = val2;
-        f(i, j + 3, k) = val3;
+        f(i,j+1,k) = val1;
+        f(i,j+2,k) = val2;
+        f(i,j+3,k) = val3;
     }
 
-    if(cs == 3)
-        ILOOP
+    if(cs==3)
+    ILOOP
     JLOOP
     {
         // 6 to 5 coupling
-        k = p->knoz - 1;
+        k=p->knoz-1;
 
-        val1 = f(i, j, k);
-        val2 = f(i, j, k - 1);
-        val3 = f(i, j, k - 2);
+        val1 = f(i,j,k);
+        val2 = f(i,j,k-1);
+        val3 = f(i,j,k-2);
 
-        k = 0;
+        k=0;
 
-        f(i, j, k - 1) = val1;
-        f(i, j, k - 2) = val2;
-        f(i, j, k - 3) = val3;
+        f(i,j,k-1) = val1;
+        f(i,j,k-2) = val2;
+        f(i,j,k-3) = val3;
 
         // 5 to 6 coupling
-        k = 0;
+        k=0;
 
-        val1 = f(i, j, k);
-        val2 = f(i, j, k + 1);
-        val3 = f(i, j, k + 2);
+        val1 = f(i,j,k);
+        val2 = f(i,j,k+1);
+        val3 = f(i,j,k+2);
 
-        k = p->knoz - 1;
+        k=p->knoz-1;
 
-        f(i, j, k + 1) = val1;
-        f(i, j, k + 2) = val2;
-        f(i, j, k + 3) = val3;
+        f(i,j,k+1) = val1;
+        f(i,j,k+2) = val2;
+        f(i,j,k+3) = val3;
     }
 }
 
@@ -130,48 +130,48 @@ void ghostcell::gc_periodic(lexer *p, field &f, int gcv, int cs)
 // (iterates of the ijk solvers), as gc_periodic does for fields
 void ghostcell::gc_periodic_ijk(lexer *p, double *f)
 {
-    if(p->periodic1 == 1)
-        for(j = 0; j < p->knoy; ++j)
-            for(k = 0; k < p->knoz; ++k)
-            {
-                i = -1;
-                int g = IJK;
-                i = p->knox - 1;
-                f[g] = f[IJK];
+    if(p->periodic1==1)
+    for(j=0; j<p->knoy; ++j)
+    for(k=0; k<p->knoz; ++k)
+    {
+        i=-1;
+        int g = IJK;
+        i=p->knox-1;
+        f[g] = f[IJK];
 
-                i = p->knox;
-                g = IJK;
-                i = 0;
-                f[g] = f[IJK];
-            }
+        i=p->knox;
+        g = IJK;
+        i=0;
+        f[g] = f[IJK];
+    }
 
-    if(p->periodic2 == 1)
-        for(i = 0; i < p->knox; ++i)
-            for(k = 0; k < p->knoz; ++k)
-            {
-                j = -1;
-                int g = IJK;
-                j = p->knoy - 1;
-                f[g] = f[IJK];
+    if(p->periodic2==1)
+    for(i=0; i<p->knox; ++i)
+    for(k=0; k<p->knoz; ++k)
+    {
+        j=-1;
+        int g = IJK;
+        j=p->knoy-1;
+        f[g] = f[IJK];
 
-                j = p->knoy;
-                g = IJK;
-                j = 0;
-                f[g] = f[IJK];
-            }
+        j=p->knoy;
+        g = IJK;
+        j=0;
+        f[g] = f[IJK];
+    }
 
-    if(p->periodic3 == 1)
-        for(i = 0; i < p->knox; ++i)
-            for(j = 0; j < p->knoy; ++j)
-            {
-                k = -1;
-                int g = IJK;
-                k = p->knoz - 1;
-                f[g] = f[IJK];
+    if(p->periodic3==1)
+    for(i=0; i<p->knox; ++i)
+    for(j=0; j<p->knoy; ++j)
+    {
+        k=-1;
+        int g = IJK;
+        k=p->knoz-1;
+        f[g] = f[IJK];
 
-                k = p->knoz;
-                g = IJK;
-                k = 0;
-                f[g] = f[IJK];
-            }
+        k=p->knoz;
+        g = IJK;
+        k=0;
+        f[g] = f[IJK];
+    }
 }

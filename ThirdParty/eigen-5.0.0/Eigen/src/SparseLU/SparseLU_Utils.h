@@ -19,29 +19,25 @@ namespace internal {
 /**
  * \brief Count Nonzero elements in the factors
  */
-template<typename Scalar, typename StorageIndex>
-void SparseLUImpl<Scalar, StorageIndex>::countnz(const Index n, Index &nnzL, Index &nnzU, GlobalLU_t &glu)
-{
-    nnzL = 0;
-    nnzU = (glu.xusub)(n);
-    Index nsuper = (glu.supno)(n);
-    Index jlen;
-    Index i, j, fsupc;
-    if(n <= 0)
-        return;
-    // For each supernode
-    for(i = 0; i <= nsuper; i++)
-    {
-        fsupc = glu.xsup(i);
-        jlen = glu.xlsub(fsupc + 1) - glu.xlsub(fsupc);
+template <typename Scalar, typename StorageIndex>
+void SparseLUImpl<Scalar, StorageIndex>::countnz(const Index n, Index& nnzL, Index& nnzU, GlobalLU_t& glu) {
+  nnzL = 0;
+  nnzU = (glu.xusub)(n);
+  Index nsuper = (glu.supno)(n);
+  Index jlen;
+  Index i, j, fsupc;
+  if (n <= 0) return;
+  // For each supernode
+  for (i = 0; i <= nsuper; i++) {
+    fsupc = glu.xsup(i);
+    jlen = glu.xlsub(fsupc + 1) - glu.xlsub(fsupc);
 
-        for(j = fsupc; j < glu.xsup(i + 1); j++)
-        {
-            nnzL += jlen;
-            nnzU += j - fsupc + 1;
-            jlen--;
-        }
+    for (j = fsupc; j < glu.xsup(i + 1); j++) {
+      nnzL += jlen;
+      nnzU += j - fsupc + 1;
+      jlen--;
     }
+  }
 }
 
 /**
@@ -51,30 +47,26 @@ void SparseLUImpl<Scalar, StorageIndex>::countnz(const Index n, Index &nnzL, Ind
  * and applies permutation to the remaining subscripts
  *
  */
-template<typename Scalar, typename StorageIndex>
-void SparseLUImpl<Scalar, StorageIndex>::fixupL(const Index n, const IndexVector &perm_r, GlobalLU_t &glu)
-{
-    Index fsupc, i, j, k, jstart;
+template <typename Scalar, typename StorageIndex>
+void SparseLUImpl<Scalar, StorageIndex>::fixupL(const Index n, const IndexVector& perm_r, GlobalLU_t& glu) {
+  Index fsupc, i, j, k, jstart;
 
-    StorageIndex nextl = 0;
-    Index nsuper = (glu.supno)(n);
+  StorageIndex nextl = 0;
+  Index nsuper = (glu.supno)(n);
 
-    // For each supernode
-    for(i = 0; i <= nsuper; i++)
-    {
-        fsupc = glu.xsup(i);
-        jstart = glu.xlsub(fsupc);
-        glu.xlsub(fsupc) = nextl;
-        for(j = jstart; j < glu.xlsub(fsupc + 1); j++)
-        {
-            glu.lsub(nextl) = perm_r(glu.lsub(j));  // Now indexed into P*A
-            nextl++;
-        }
-        for(k = fsupc + 1; k < glu.xsup(i + 1); k++)
-            glu.xlsub(k) = nextl;  // other columns in supernode i
+  // For each supernode
+  for (i = 0; i <= nsuper; i++) {
+    fsupc = glu.xsup(i);
+    jstart = glu.xlsub(fsupc);
+    glu.xlsub(fsupc) = nextl;
+    for (j = jstart; j < glu.xlsub(fsupc + 1); j++) {
+      glu.lsub(nextl) = perm_r(glu.lsub(j));  // Now indexed into P*A
+      nextl++;
     }
+    for (k = fsupc + 1; k < glu.xsup(i + 1); k++) glu.xlsub(k) = nextl;  // other columns in supernode i
+  }
 
-    glu.xlsub(n) = nextl;
+  glu.xlsub(n) = nextl;
 }
 
 }  // end namespace internal

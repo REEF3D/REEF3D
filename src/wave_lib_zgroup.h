@@ -23,10 +23,10 @@ Architect: Hans Bihs
 #ifndef WAVE_LIB_ZGROUP_H_
 #define WAVE_LIB_ZGROUP_H_
 
-#include <algorithm>
-#include <cmath>
-#include <map>
-#include <vector>
+#include<vector>
+#include<map>
+#include<cmath>
+#include<algorithm>
 
 /*--------------------------------------------------------------------
 Cached-point evaluation of the irregular-wave libraries for the points of
@@ -56,22 +56,22 @@ struct wave_lib_zgroup
 {
     struct grp
     {
-        double tq = -1.0e300;                   // time of the counters
-        int nreq = 0, nprev = 0, npp = 0;       // u, v, w values asked at that time and at the two times before
-        double tt = -1.0e300;                   // time of the table
-        double tn = -1.0e300;                   // time at which the group was found not worth a table
-        double zhi = -1.0e300, phi = -1.0e300;  // highest level asked at tq and at the time before
-        int mode = 0, J = 0;
-        double a = 0.0, b = 0.0;
-        std::vector<double> cu, cv, cw;            // Chebyshev coefficients
-        double te = -1.0e300, eta = 0.0;           // eta at time te
-        double tf = -1.0e300, zf = 0.0, fi = 0.0;  // potential at (tf, zf)
+        double tq=-1.0e300;             // time of the counters
+        int nreq=0, nprev=0, npp=0;     // u, v, w values asked at that time and at the two times before
+        double tt=-1.0e300;             // time of the table
+        double tn=-1.0e300;             // time at which the group was found not worth a table
+        double zhi=-1.0e300, phi=-1.0e300;  // highest level asked at tq and at the time before
+        int mode=0, J=0;
+        double a=0.0, b=0.0;
+        std::vector<double> cu, cv, cw; // Chebyshev coefficients
+        double te=-1.0e300, eta=0.0;    // eta at time te
+        double tf=-1.0e300, zf=0.0, fi=0.0;  // potential at (tf, zf)
     };
 
-    std::vector<int> gq;  // point -> group
+    std::vector<int> gq;                // point -> group
     std::vector<grp> G;
-    double kz = 0.0, h = 0.0;
-    std::vector<double> zn, fu, fv, fw;  // nodes, values at the nodes
+    double kz=0.0, h=0.0;
+    std::vector<double> zn, fu, fv, fw; // nodes, values at the nodes
 
     static constexpr double tol = 1.0e-14;
     static constexpr int Jmax = 64;
@@ -84,38 +84,38 @@ struct wave_lib_zgroup
         kz = kz_;
         h = h_;
 
-        std::vector<std::pair<double, double>> dir;
-        for(int n = 0; n < M; ++n)
+        std::vector<std::pair<double,double>> dir;
+        for(int n=0; n<M; ++n)
         {
-            bool found = false;
+            bool found=false;
             for(auto &d : dir)
-                if(d.first == cosb[n] && d.second == sinb[n])
-                {
-                    found = true;
-                    break;
-                }
+            if(d.first==cosb[n] && d.second==sinb[n])
+            {
+            found=true;
+            break;
+            }
 
             if(!found)
-                dir.push_back({cosb[n], sinb[n]});
+            dir.push_back({cosb[n],sinb[n]});
         }
 
         const int N = int(x.size());
-        std::map<std::vector<double>, int> id;
+        std::map<std::vector<double>,int> id;
         std::vector<double> key(dir.size());
-        gq.assign(N, 0);
+        gq.assign(N,0);
 
-        for(int q = 0; q < N; ++q)
+        for(int q=0; q<N; ++q)
         {
-            for(size_t d = 0; d < dir.size(); ++d)
-                key[d] = dir[d].first * x[q] + dir[d].second * y[q];
+            for(size_t d=0; d<dir.size(); ++d)
+            key[d] = dir[d].first*x[q] + dir[d].second*y[q];
 
             auto it = id.find(key);
-            if(it == id.end())
-                it = id.emplace(key, int(id.size())).first;
+            if(it==id.end())
+            it = id.emplace(key,int(id.size())).first;
             gq[q] = it->second;
         }
 
-        G.assign(id.size(), grp());
+        G.assign(id.size(),grp());
     }
 
     // the wave state changed (B 530): no value of the current time is kept
@@ -123,21 +123,21 @@ struct wave_lib_zgroup
     {
         for(grp &g : G)
         {
-            g.tt = g.te = g.tf = -1.0e300;
+        g.tt = g.te = g.tf = -1.0e300;
         }
     }
-
+    
     // nodes for the range [a, b]; 0: too many
     int nodes(double a, double b) const
     {
-        const double x = 0.25 * kz * (b - a);
+        const double x = 0.25*kz*(b - a);
         double e = 2.0;
 
-        for(int J = 1; J <= Jmax; ++J)
+        for(int J=1; J<=Jmax; ++J)
         {
-            e *= x / double(J);
-            if(e <= tol && J >= 4)
-                return J;
+            e *= x/double(J);
+            if(e<=tol && J>=4)
+            return J;
         }
         return 0;
     }
@@ -148,7 +148,7 @@ struct wave_lib_zgroup
     {
         grp &g = G[gq[q]];
 
-        if(g.te != t)
+        if(g.te!=t)
         {
             g.eta = ev();
             g.te = t;
@@ -162,7 +162,7 @@ struct wave_lib_zgroup
     {
         grp &g = G[gq[q]];
 
-        if(g.tf != t || g.zf != z)
+        if(g.tf!=t || g.zf!=z)
         {
             g.fi = ev(z);
             g.tf = t;
@@ -178,7 +178,7 @@ struct wave_lib_zgroup
     {
         grp &g = G[gq[q]];
 
-        if(g.tq != t)
+        if(g.tq!=t)
         {
             g.npp = g.nprev;
             g.nprev = g.nreq;
@@ -188,89 +188,81 @@ struct wave_lib_zgroup
             g.tq = t;
         }
         ++g.nreq;
-        g.zhi = fmax(g.zhi, z);
+        g.zhi = fmax(g.zhi,z);
 
-        if(g.tn == t)
-            return false;
+        if(g.tn==t)
+        return false;
 
-        if(g.tt != t || g.mode != mode || z < g.a || z > g.b)
+        if(g.tt!=t || g.mode!=mode || z<g.a || z>g.b)
         {
-            const double a = fmin(-h, z);
-            double b = fmax(fmax(z, g.phi), 0.0) + 0.1 * h;
+            const double a = fmin(-h,z);
+            double b = fmax(fmax(z,g.phi),0.0) + 0.1*h;
 
             // a value above the table of this time: half its range more, so that the levels of a
             // column above the still water level (CFD) extend the table a few times only
-            if(g.tt == t && g.mode == mode)
-                b = fmax(b, z + 0.5 * (g.b - g.a));
+            if(g.tt==t && g.mode==mode)
+            b = fmax(b, z + 0.5*(g.b - g.a));
 
-            const int J = nodes(a, b);
+            const int J = nodes(a,b);
 
-            if(J == 0 || 3 * std::min(g.nprev, g.npp) < 4 * J)
+            if(J==0 || 3*std::min(g.nprev,g.npp)<4*J)
             {
-                g.tn = t;
-                return false;
+            g.tn = t;
+            return false;
             }
 
-            table(g, a, b, J, mode, ev);
+            table(g,a,b,J,mode,ev);
             g.tt = t;
         }
 
         // Clenshaw
-        const double s = (2.0 * z - g.a - g.b) / (g.b - g.a), s2 = 2.0 * s;
-        double u1 = 0.0, u2 = 0.0, v1 = 0.0, v2 = 0.0, w1 = 0.0, w2 = 0.0;
+        const double s = (2.0*z - g.a - g.b)/(g.b - g.a), s2 = 2.0*s;
+        double u1=0.0, u2=0.0, v1=0.0, v2=0.0, w1=0.0, w2=0.0;
 
-        for(int j = g.J - 1; j >= 1; --j)
+        for(int j=g.J-1; j>=1; --j)
         {
-            const double un = s2 * u1 - u2 + g.cu[j];
-            const double vn = s2 * v1 - v2 + g.cv[j];
-            const double wn = s2 * w1 - w2 + g.cw[j];
-            u2 = u1;
-            u1 = un;
-            v2 = v1;
-            v1 = vn;
-            w2 = w1;
-            w1 = wn;
+            const double un = s2*u1 - u2 + g.cu[j];
+            const double vn = s2*v1 - v2 + g.cv[j];
+            const double wn = s2*w1 - w2 + g.cw[j];
+            u2 = u1; u1 = un;
+            v2 = v1; v1 = vn;
+            w2 = w1; w1 = wn;
         }
 
-        u = s * u1 - u2 + 0.5 * g.cu[0];
-        v = s * v1 - v2 + 0.5 * g.cv[0];
-        w = s * w1 - w2 + 0.5 * g.cw[0];
+        u = s*u1 - u2 + 0.5*g.cu[0];
+        v = s*v1 - v2 + 0.5*g.cv[0];
+        w = s*w1 - w2 + 0.5*g.cw[0];
         return true;
     }
 
     template<class EV>
     void table(grp &g, double a, double b, int J, int mode, EV &&ev)
     {
-        zn.resize(J);
-        fu.resize(J);
-        fv.resize(J);
-        fw.resize(J);
+        zn.resize(J); fu.resize(J); fv.resize(J); fw.resize(J);
 
-        for(int j = 0; j < J; ++j)
+        for(int j=0; j<J; ++j)
         {
-            zn[j] = 0.5 * (a + b) + 0.5 * (b - a) * cos(M_PI * (j + 0.5) / J);
-            ev(zn[j], fu[j], fv[j], fw[j]);
+            zn[j] = 0.5*(a + b) + 0.5*(b - a)*cos(M_PI*(j + 0.5)/J);
+            ev(zn[j],fu[j],fv[j],fw[j]);
         }
 
-        g.cu.assign(J, 0.0);
-        g.cv.assign(J, 0.0);
-        g.cw.assign(J, 0.0);
+        g.cu.assign(J,0.0); g.cv.assign(J,0.0); g.cw.assign(J,0.0);
 
-        for(int k = 0; k < J; ++k)
+        for(int k=0; k<J; ++k)
         {
-            double su = 0.0, sv = 0.0, sw = 0.0;
+            double su=0.0, sv=0.0, sw=0.0;
 
-            for(int j = 0; j < J; ++j)
+            for(int j=0; j<J; ++j)
             {
-                const double c = cos(M_PI * k * (j + 0.5) / J);
-                su += fu[j] * c;
-                sv += fv[j] * c;
-                sw += fw[j] * c;
+                const double c = cos(M_PI*k*(j + 0.5)/J);
+                su += fu[j]*c;
+                sv += fv[j]*c;
+                sw += fw[j]*c;
             }
 
-            g.cu[k] = 2.0 * su / J;
-            g.cv[k] = 2.0 * sv / J;
-            g.cw[k] = 2.0 * sw / J;
+            g.cu[k] = 2.0*su/J;
+            g.cv[k] = 2.0*sv/J;
+            g.cw[k] = 2.0*sw/J;
         }
 
         g.a = a;
@@ -282,81 +274,42 @@ struct wave_lib_zgroup
     // checkpoints (P 48, I 45): the state of the groups (the counters decide on the tables)
     void state(std::vector<double> &v) const
     {
-        auto vd = [&](const std::vector<double> &a)
-        { v.push_back(double(a.size())); v.insert(v.end(),a.begin(),a.end()); };
+        auto vd = [&](const std::vector<double> &a) { v.push_back(double(a.size())); v.insert(v.end(),a.begin(),a.end()); };
         v.push_back(double(G.size()));
         for(const grp &g : G)
         {
-            v.push_back(g.tq);
-            v.push_back(g.nreq);
-            v.push_back(g.nprev);
-            v.push_back(g.npp);
-            v.push_back(g.tt);
-            v.push_back(g.tn);
-            v.push_back(g.zhi);
-            v.push_back(g.phi);
-            v.push_back(g.mode);
-            v.push_back(g.J);
-            v.push_back(g.a);
-            v.push_back(g.b);
-            vd(g.cu);
-            vd(g.cv);
-            vd(g.cw);
-            v.push_back(g.te);
-            v.push_back(g.eta);
-            v.push_back(g.tf);
-            v.push_back(g.zf);
-            v.push_back(g.fi);
+            v.push_back(g.tq); v.push_back(g.nreq); v.push_back(g.nprev); v.push_back(g.npp); v.push_back(g.tt); v.push_back(g.tn);
+            v.push_back(g.zhi); v.push_back(g.phi); v.push_back(g.mode); v.push_back(g.J); v.push_back(g.a); v.push_back(g.b);
+            vd(g.cu); vd(g.cv); vd(g.cw);
+            v.push_back(g.te); v.push_back(g.eta); v.push_back(g.tf); v.push_back(g.zf); v.push_back(g.fi);
         }
     }
     bool restore(const std::vector<double> &v, size_t &k)
     {
-        auto d = [&]()
-        { return k < v.size() ? v[k++] : 0.0; };
-        auto vd = [&](std::vector<double> &a)
-        { const size_t n=size_t(d()); if(k+n>v.size()) { k=v.size()+1; return; } a.assign(v.begin()+k,v.begin()+k+n); k+=n; };
+        auto d = [&]() { return k<v.size() ? v[k++] : 0.0; };
+        auto vd = [&](std::vector<double> &a) { const size_t n=size_t(d()); if(k+n>v.size()) { k=v.size()+1; return; } a.assign(v.begin()+k,v.begin()+k+n); k+=n; };
         const size_t n = size_t(d());
-        if(n != G.size())
+        if(n!=G.size())
         {
             // not built in the same way (another decomposition): the groups start again
-            for(size_t m = 0; m < n && k <= v.size(); ++m)
+            for(size_t m=0; m<n && k<=v.size(); ++m)
             {
-                for(int q = 0; q < 12; ++q)
-                    d();
-                std::vector<double> t;
-                vd(t);
-                vd(t);
-                vd(t);
-                for(int q = 0; q < 5; ++q)
-                    d();
+                for(int q=0; q<12; ++q) d();
+                std::vector<double> t; vd(t); vd(t); vd(t);
+                for(int q=0; q<5; ++q) d();
             }
             return false;
         }
         for(grp &g : G)
         {
-            g.tq = d();
-            g.nreq = int(d());
-            g.nprev = int(d());
-            g.npp = int(d());
-            g.tt = d();
-            g.tn = d();
-            g.zhi = d();
-            g.phi = d();
-            g.mode = int(d());
-            g.J = int(d());
-            g.a = d();
-            g.b = d();
-            vd(g.cu);
-            vd(g.cv);
-            vd(g.cw);
-            g.te = d();
-            g.eta = d();
-            g.tf = d();
-            g.zf = d();
-            g.fi = d();
+            g.tq=d(); g.nreq=int(d()); g.nprev=int(d()); g.npp=int(d()); g.tt=d(); g.tn=d();
+            g.zhi=d(); g.phi=d(); g.mode=int(d()); g.J=int(d()); g.a=d(); g.b=d();
+            vd(g.cu); vd(g.cv); vd(g.cw);
+            g.te=d(); g.eta=d(); g.tf=d(); g.zf=d(); g.fi=d();
         }
-        return k <= v.size();
+        return k<=v.size();
     }
+
 };
 
 #endif

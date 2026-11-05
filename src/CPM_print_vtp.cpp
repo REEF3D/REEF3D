@@ -20,45 +20,45 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Authors: Hans Bihs, Alexander Hanke
 --------------------------------------------------------------------*/
 
-#include "CPM.h"
-#include "ghostcell.h"
-#include "lagoon_store.h"
-#include "lexer.h"
-#include "runlog.h"
-#include "sediment_fdm.h"
-#include <cstdint>
-#include <cstdio>
-#include <cstring>
-#include <fstream>
-#include <mpi.h>
-#include <sstream>
-#include <sys/types.h>
-#include <vector>
+#include"CPM.h"
+#include"lexer.h"
+#include"sediment_fdm.h"
+#include"ghostcell.h"
+#include"lagoon_store.h"
+#include"runlog.h"
+#include<mpi.h>
+#include<cstdint>
+#include<fstream>
+#include<sstream>
+#include<sys/types.h>
+#include<cstdio>
+#include<cstring>
+#include<vector>
 
-void CPM::print_particles(lexer *p, sediment_fdm *s)
+void CPM::print_particles(lexer* p, sediment_fdm *s)
 {
-    if((p->count % p->Q181 == 0 || p->count == 0) && (p->Q180 == 1 && p->Q181 > 0 && p->Q182 < 0.0))
+    if((p->count%p->Q181==0 || p->count==0) && (p->Q180==1 && p->Q181>0 && p->Q182<0.0))
     {
         P.number(p);
         // P 18: in the LAGOON store; P 18 1: instead of the VTP files, P 18 2: as well
-        if(!(print_lagoon(p, s) && p->P18 == 1))
-            print_vtp(p, s);
-        print_bed(p, s);
+        if(!(print_lagoon(p,s) && p->P18==1))
+        print_vtp(p,s);
+        print_bed(p,s);
         ++printcount;
     }
 
-    if((p->simtime > printtime || p->count == 0) && (p->Q180 == 1 && p->Q181 < 0 && p->Q182 > 0.0))
+    if((p->simtime>printtime || p->count==0) && (p->Q180==1 && p->Q181<0 && p->Q182>0.0))
     {
         P.number(p);
-        if(!(print_lagoon(p, s) && p->P18 == 1))
-            print_vtp(p, s);
-        print_bed(p, s);
-        printtime += p->Q182;
-
+        if(!(print_lagoon(p,s) && p->P18==1))
+        print_vtp(p,s);
+        print_bed(p,s);
+        printtime+=p->Q182;
+        
         // hotstart: continue from the restart time, not from zero
-        if(printtime < p->simtime)
-            printtime = p->simtime + p->Q182;
-
+        if(printtime<p->simtime)
+        printtime = p->simtime + p->Q182;
+        
         ++printcount;
     }
 }
@@ -67,65 +67,65 @@ void CPM::print_particles(lexer *p, sediment_fdm *s)
 // of the VTP files: gathered on rank 0, which writes them. True on every rank when they are in the store.
 bool CPM::print_lagoon(lexer *p, sediment_fdm *s)
 {
-    if(p->P18 <= 0)
-        return false;
+    if(p->P18<=0)
+    return false;
 
     static lagoon_particles *writer = nullptr;
-    const bool weight = p->Q78 > 0;
+    const bool weight = p->Q78>0;
 
     // the parcels of the rank: x y z, u v w, uf vf wf, radius, weight, bed change, flag, id
     const int NF = 14;
     std::vector<double> mine;
-    for(int q = 0; q < P.index; ++q)
-        if(P.Flag[q] > 0)
-        {
-            const double row[NF] = {P.X[q], P.Y[q], P.Z[q], P.U[q], P.V[q], P.W[q], P.Uf[q], P.Vf[q], P.Wf[q], 0.5 * P.d50, P.Wt[q],
-                                    p->ccslipol4(s->bedzh, P.X[q], P.Y[q]) - p->ccslipol4(s->bedzh0, P.X[q], P.Y[q]),
-                                    double(P.Hop[q] > 0.0 ? MOVING : P.Flag[q]), P.ID[q]};
-            mine.insert(mine.end(), row, row + NF);
-        }
+    for(int q=0;q<P.index;++q)
+    if(P.Flag[q]>0)
+    {
+        const double row[NF] = {P.X[q],P.Y[q],P.Z[q], P.U[q],P.V[q],P.W[q], P.Uf[q],P.Vf[q],P.Wf[q], 0.5*P.d50, P.Wt[q],
+                                p->ccslipol4(s->bedzh,P.X[q],P.Y[q])-p->ccslipol4(s->bedzh0,P.X[q],P.Y[q]),
+                                double(P.Hop[q]>0.0 ? MOVING : P.Flag[q]), P.ID[q]};
+        mine.insert(mine.end(),row,row+NF);
+    }
 
     const int num = int(mine.size());
-    std::vector<int> nums(p->mpi_size, 0), displ(p->mpi_size, 0);
-    MPI_Gather(&num, 1, MPI_INT, nums.data(), 1, MPI_INT, 0, pgc_print->mpi_comm);
+    std::vector<int> nums(p->mpi_size,0), displ(p->mpi_size,0);
+    MPI_Gather(&num,1,MPI_INT,nums.data(),1,MPI_INT,0,pgc_print->mpi_comm);
     size_t total = 0;
-    if(p->mpirank == 0)
-        for(int r = 0; r < p->mpi_size; ++r)
-        {
-            displ[r] = int(total);
-            total += size_t(nums[r]);
-        }
-    std::vector<double> all(total + 1);
-    MPI_Gatherv(mine.data(), num, MPI_DOUBLE, all.data(), nums.data(), displ.data(), MPI_DOUBLE, 0, pgc_print->mpi_comm);
+    if(p->mpirank==0)
+    for(int r=0;r<p->mpi_size;++r)
+    {
+        displ[r] = int(total);
+        total += size_t(nums[r]);
+    }
+    std::vector<double> all(total+1);
+    MPI_Gatherv(mine.data(),num,MPI_DOUBLE,all.data(),nums.data(),displ.data(),MPI_DOUBLE,0,pgc_print->mpi_comm);
 
     int stored = 0;
-    if(p->mpirank == 0)
+    if(p->mpirank==0)
     {
-        if(writer == nullptr)
+        if(writer==nullptr)
         {
             std::string run;
             if(p->plog)
                 run = "{\"type\": \"run\", \"run\": " + lagoon_store::json_string(p->plog->id()) + "}";
-            std::vector<lagoon_particles::field> fields = {{"velocity", 3, false}, {"fluid velocity", 3, false}, {"radius", 1, false}};
+            std::vector<lagoon_particles::field> fields = {{"velocity",3,false}, {"fluid velocity",3,false}, {"radius",1,false}};
             if(weight)
-                fields.push_back({"weight", 1, false});
-            fields.push_back({"bedChange", 1, false});
-            fields.push_back({"Flag", 1, false});
-            fields.push_back({"id", 1, true});
+            fields.push_back({"weight",1,false});
+            fields.push_back({"bedChange",1,false});
+            fields.push_back({"Flag",1,false});
+            fields.push_back({"id",1,true});
             writer = new lagoon_particles("./REEF3D_CFD.lagoon", "CFD", "cfd_particles", "particles",
                                           "REEF3D_CFD_CPM_Particle", run, fields);
         }
-        const size_t n = total / NF;
-        std::vector<float> xyz(3 * n), vel(3 * n), fvel(3 * n), radius(n), wt(n), bedch(n), flag(n);
+        const size_t n = total/NF;
+        std::vector<float> xyz(3*n), vel(3*n), fvel(3*n), radius(n), wt(n), bedch(n), flag(n);
         std::vector<int32_t> id(n);
-        for(size_t q = 0; q < n; ++q)
+        for(size_t q=0;q<n;++q)
         {
-            const double *a = &all[q * NF];
-            for(int c = 0; c < 3; ++c)
+            const double *a = &all[q*NF];
+            for(int c=0;c<3;++c)
             {
-                xyz[3 * q + c] = float(a[c]);
-                vel[3 * q + c] = float(a[3 + c]);
-                fvel[3 * q + c] = float(a[6 + c]);
+                xyz[3*q+c] = float(a[c]);
+                vel[3*q+c] = float(a[3+c]);
+                fvel[3*q+c] = float(a[6+c]);
             }
             radius[q] = float(a[9]);
             wt[q] = float(a[10]);
@@ -133,329 +133,329 @@ bool CPM::print_lagoon(lexer *p, sediment_fdm *s)
             flag[q] = float(a[12]);
             id[q] = int32_t(a[13]);
         }
-        std::vector<const void *> values = {vel.data(), fvel.data(), radius.data()};
+        std::vector<const void*> values = {vel.data(), fvel.data(), radius.data()};
         if(weight)
-            values.push_back(wt.data());
+        values.push_back(wt.data());
         values.push_back(bedch.data());
         values.push_back(flag.data());
         values.push_back(id.data());
         stored = writer->output(p->simtime, printcount, n, xyz.data(), values) ? 1 : 0;
     }
-    MPI_Bcast(&stored, 1, MPI_INT, 0, pgc_print->mpi_comm);
-    return stored == 1;
+    MPI_Bcast(&stored,1,MPI_INT,0,pgc_print->mpi_comm);
+    return stored==1;
 }
 
 // bed level and bed shear stress of the bedload layer per column (Q 58), with the parcel output (Q 182):
 // REEF3D_CFD_CPM_Particle/REEF3D-CFD-CPM-Bed-<print>-<rank>.dat, columns x y z_bed tau_x tau_y [Pa]
-void CPM::print_bed(lexer *p, sediment_fdm *s)
+void CPM::print_bed(lexer* p, sediment_fdm *s)
 {
-    if(p->Q58 <= 0 || p->S10 == 2)
-        return;
-
+    if(p->Q58<=0 || p->S10==2)
+    return;
+    
     char name[200];
-    snprintf(name, sizeof(name), "./REEF3D_CFD_CPM_Particle/REEF3D-CFD-CPM-Bed-%08i-%06i.dat", printcount, p->mpirank + 1);
-
+    snprintf(name,sizeof(name),"./REEF3D_CFD_CPM_Particle/REEF3D-CFD-CPM-Bed-%08i-%06i.dat",printcount,p->mpirank+1);
+    
     ofstream out(name);
-    out << "# time " << p->simtime << "\n# x y z_bed tau_x tau_y\n";
-
-    for(i = 0; i < p->knox; ++i)
-        for(j = 0; j < p->knoy; ++j)
-            out << p->XP[IP] << " " << p->YP[JP] << " " << zbl(s, i, j) << " " << blTx(i, j) << " " << blTy(i, j) << "\n";
-
+    out<<"# time "<<p->simtime<<"\n# x y z_bed tau_x tau_y\n";
+    
+    for(i=0;i<p->knox;++i)
+    for(j=0;j<p->knoy;++j)
+    out<<p->XP[IP]<<" "<<p->YP[JP]<<" "<<zbl(s,i,j)<<" "<<blTx(i,j)<<" "<<blTy(i,j)<<"\n";
+    
     out.close();
 }
 
-void CPM::print_vtp(lexer *p, sediment_fdm *s)
+void CPM::print_vtp(lexer* p, sediment_fdm *s)
 {
-    int numpt = 0;
+    int numpt=0;
 
-    for(n = 0; n < P.index; ++n)
-        if(P.Flag[n] > 0)
-            numpt++;
+    for(n=0;n<P.index;++n)
+    if(P.Flag[n]>0)
+        numpt++;
 
     int num = printcount;
 
-    if(p->mpirank == 0)
-        pvtp(p, num);
+    if(p->mpirank==0)
+        pvtp(p,num);
 
-    int n = 0;
+    int n=0;
     int offset[100];
 
-    offset[n] = 0;
+    offset[n]=0;
     ++n;
 
-    offset[n] = offset[n - 1] + numpt * sizeof(float) + sizeof(int);  // flag
+    offset[n]=offset[n-1]+numpt*sizeof(float)+sizeof(int); //flag
     ++n;
-    if(p->P23 == 1)
+    if(p->P23==1)
     {
-        offset[n] = offset[n - 1] + numpt * sizeof(float) + sizeof(int);  // Test
+        offset[n]=offset[n-1]+numpt*sizeof(float)+sizeof(int); //Test
         ++n;
     }
-    offset[n] = offset[n - 1] + 3 * numpt * sizeof(float) + sizeof(int);  // velocity
+    offset[n]=offset[n-1]+3*numpt*sizeof(float)+sizeof(int); //velocity
     ++n;
-    offset[n] = offset[n - 1] + numpt * sizeof(float) + sizeof(int);  // radius
+    offset[n]=offset[n-1]+numpt*sizeof(float)+sizeof(int); //radius
     ++n;
-    if(p->Q78 > 0)
+    if(p->Q78>0)
     {
-        offset[n] = offset[n - 1] + numpt * sizeof(float) + sizeof(int);  // weight
+        offset[n]=offset[n-1]+numpt*sizeof(float)+sizeof(int); //weight
         ++n;
     }
-    offset[n] = offset[n - 1] + 3 * numpt * sizeof(float) + sizeof(int);  // fluid velocity
+    offset[n]=offset[n-1]+3*numpt*sizeof(float)+sizeof(int); //fluid velocity
     ++n;
-    offset[n] = offset[n - 1] + numpt * sizeof(float) + sizeof(int);  // bedChange
+    offset[n]=offset[n-1]+numpt*sizeof(float)+sizeof(int); //bedChange
     ++n;
-    offset[n] = offset[n - 1] + numpt * sizeof(int) + sizeof(int);  // id
+    offset[n]=offset[n-1]+numpt*sizeof(int)+sizeof(int); //id
     ++n;
 
-    offset[n] = offset[n - 1] + 3 * numpt * sizeof(float) + sizeof(int);  // xyz
+    offset[n]=offset[n-1]+3*numpt*sizeof(float)+sizeof(int); //xyz
     ++n;
-    offset[n] = offset[n - 1] + numpt * sizeof(int) + sizeof(int);  // connectivitey
+    offset[n]=offset[n-1]+numpt*sizeof(int)+sizeof(int); //connectivitey
     ++n;
-    offset[n] = offset[n - 1] + numpt * sizeof(int) + sizeof(int);  // offset connectivity
+    offset[n]=offset[n-1]+numpt*sizeof(int)+sizeof(int); //offset connectivity
     ++n;
 
     //---------------------------------------------
 
     std::stringstream result;
-    n = 0;
-    result << "<?xml version=\"1.0\"?>\n";
-    result << "<VTKFile type=\"PolyData\" version=\"1.0\" byte_order=\"LittleEndian\">\n";
-    result << "<PolyData>\n";
-    result << "<Piece NumberOfPoints=\"" << numpt << "\" NumberOfVerts=\"" << numpt << "\" NumberOfLines=\"0\" NumberOfStrips=\"0\" NumberOfPolys=\"0\">\n";
+    n=0;
+    result<<"<?xml version=\"1.0\"?>\n";
+    result<<"<VTKFile type=\"PolyData\" version=\"1.0\" byte_order=\"LittleEndian\">\n";
+    result<<"<PolyData>\n";
+    result<<"<Piece NumberOfPoints=\""<<numpt<<"\" NumberOfVerts=\""<<numpt<<"\" NumberOfLines=\"0\" NumberOfStrips=\"0\" NumberOfPolys=\"0\">\n";
 
-    result << "<FieldData>\n";
-    if(p->P16 == 1)
+    result<<"<FieldData>\n";
+    if(p->P16==1)
     {
-        result << "<DataArray type=\"Float64\" Name=\"TimeValue\" NumberOfTuples=\"1\"> " << p->simtime << endl;
-        result << "</DataArray>\n";
+        result<<"<DataArray type=\"Float64\" Name=\"TimeValue\" NumberOfTuples=\"1\"> "<<p->simtime<<endl;
+        result<<"</DataArray>\n";
     }
-    result << "</FieldData>\n";
+    result<<"</FieldData>\n";
 
-    result << "<PointData>\n";
-    result << "<DataArray type=\"Float32\" Name=\"Flag\" format=\"appended\" offset=\"" << offset[n] << "\"/>\n";
+    result<<"<PointData>\n";
+    result<<"<DataArray type=\"Float32\" Name=\"Flag\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
     ++n;
-    if(p->P23 == 1)
+    if(p->P23==1)
     {
-        result << "<DataArray type=\"Float32\" Name=\"Test\" format=\"appended\" offset=\"" << offset[n] << "\"/>\n";
+        result<<"<DataArray type=\"Float32\" Name=\"Test\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
         ++n;
     }
-    result << "<DataArray type=\"Float32\" Name=\"velocity\" NumberOfComponents=\"3\" format=\"appended\" offset=\"" << offset[n] << "\"/>\n";
+    result<<"<DataArray type=\"Float32\" Name=\"velocity\" NumberOfComponents=\"3\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
     ++n;
-    result << "<DataArray type=\"Float32\" Name=\"radius\" format=\"appended\" offset=\"" << offset[n] << "\"/>\n";
+    result<<"<DataArray type=\"Float32\" Name=\"radius\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
     ++n;
-    if(p->Q78 > 0)
+    if(p->Q78>0)
     {
-        result << "<DataArray type=\"Float32\" Name=\"weight\" format=\"appended\" offset=\"" << offset[n] << "\"/>\n";
+        result<<"<DataArray type=\"Float32\" Name=\"weight\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
         ++n;
     }
-    result << "<DataArray type=\"Float32\" Name=\"fluid velocity\" NumberOfComponents=\"3\" format=\"appended\" offset=\"" << offset[n] << "\"/>\n";
+    result<<"<DataArray type=\"Float32\" Name=\"fluid velocity\" NumberOfComponents=\"3\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
     ++n;
-    result << "<DataArray type=\"Float32\" Name=\"bedChange\" format=\"appended\" offset=\"" << offset[n] << "\"/>\n";
+    result<<"<DataArray type=\"Float32\" Name=\"bedChange\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
     ++n;
-    result << "<DataArray type=\"Int32\" Name=\"id\" format=\"appended\" offset=\"" << offset[n] << "\"/>\n";
+    result<<"<DataArray type=\"Int32\" Name=\"id\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
     ++n;
-    result << "</PointData>\n";
+    result<<"</PointData>\n";
 
-    vtp3D::points(result, offset, n);
+    vtp3D::points(result,offset,n);
 
-    vtp3D::verts(result, offset, n);
+    vtp3D::verts(result,offset,n);
 
     vtp3D::ending(result);
 
     //----------------------------------------------------------------------------
 
-    size_t m = result.str().length();
+    size_t m=result.str().length();
 
     const size_t total_size = m + offset[n] + 27;
 
     std::vector<char> buffer(total_size);
-    std::memcpy(&buffer[0], result.str().data(), m);
+    std::memcpy(&buffer[0],result.str().data(),m);
     int iin;
     float ffn;
 
     // flag
-    iin = numpt * sizeof(float);
-    std::memcpy(&buffer[m], &iin, sizeof(int));
-    m += sizeof(int);
-    for(n = 0; n < P.index; ++n)
-        if(P.Flag[n] > 0)
+    iin=numpt*sizeof(float);
+    std::memcpy(&buffer[m],&iin,sizeof(int));
+    m+=sizeof(int);
+    for(n=0;n<P.index;++n)
+        if(P.Flag[n]>0)
         {
-            ffn = float(P.Hop[n] > 0.0 ? MOVING : P.Flag[n]);
-            std::memcpy(&buffer[m], &ffn, sizeof(float));
-            m += sizeof(float);
+            ffn=float(P.Hop[n]>0.0 ? MOVING : P.Flag[n]);
+            std::memcpy(&buffer[m],&ffn,sizeof(float));
+            m+=sizeof(float);
         }
 
     // Test
-    if(p->P23 == 1)
+    if(p->P23==1)
     {
-        iin = numpt * sizeof(float);
-        std::memcpy(&buffer[m], &iin, sizeof(int));
-        m += sizeof(int);
-        for(n = 0; n < P.index; ++n)
-            if(P.Flag[n] > 0)
+        iin=numpt*sizeof(float);
+        std::memcpy(&buffer[m],&iin,sizeof(int));
+        m+=sizeof(int);
+        for(n=0;n<P.index;++n)
+            if(P.Flag[n]>0)
             {
-                ffn = float(P.Test[n]);
-                std::memcpy(&buffer[m], &ffn, sizeof(float));
-                m += sizeof(float);
+                ffn=float(P.Test[n]);
+                std::memcpy(&buffer[m],&ffn,sizeof(float));
+                m+=sizeof(float);
             }
     }
 
     // velocities
-    iin = 3 * numpt * sizeof(float);
-    std::memcpy(&buffer[m], &iin, sizeof(int));
-    m += sizeof(int);
-    for(n = 0; n < P.index; ++n)
-        if(P.Flag[n] > 0)
+    iin=3*numpt*sizeof(float);
+    std::memcpy(&buffer[m],&iin,sizeof(int));
+    m+=sizeof(int);
+    for(n=0;n<P.index;++n)
+        if(P.Flag[n]>0)
         {
-            ffn = float(P.U[n]);
-            std::memcpy(&buffer[m], &ffn, sizeof(float));
-            m += sizeof(float);
+            ffn=float(P.U[n]);
+            std::memcpy(&buffer[m],&ffn,sizeof(float));
+            m+=sizeof(float);
 
-            ffn = float(P.V[n]);
-            std::memcpy(&buffer[m], &ffn, sizeof(float));
-            m += sizeof(float);
+            ffn=float(P.V[n]);
+            std::memcpy(&buffer[m],&ffn,sizeof(float));
+            m+=sizeof(float);
 
-            ffn = float(P.W[n]);
-            std::memcpy(&buffer[m], &ffn, sizeof(float));
-            m += sizeof(float);
+            ffn=float(P.W[n]);
+            std::memcpy(&buffer[m],&ffn,sizeof(float));
+            m+=sizeof(float);
         }
 
     // radius
-    iin = numpt * sizeof(float);
-    std::memcpy(&buffer[m], &iin, sizeof(int));
-    m += sizeof(int);
-    for(n = 0; n < P.index; ++n)
-        if(P.Flag[n] > 0)
+    iin=numpt*sizeof(float);
+    std::memcpy(&buffer[m],&iin,sizeof(int));
+    m+=sizeof(int);
+    for(n=0;n<P.index;++n)
+        if(P.Flag[n]>0)
         {
-            ffn = float(P.d50 / 2);
-            std::memcpy(&buffer[m], &ffn, sizeof(float));
-            m += sizeof(float);
+            ffn=float(P.d50/2);
+            std::memcpy(&buffer[m],&ffn,sizeof(float));
+            m+=sizeof(float);
         }
 
     // weight (merge and split, Q 78)
-    if(p->Q78 > 0)
+    if(p->Q78>0)
     {
-        iin = numpt * sizeof(float);
-        std::memcpy(&buffer[m], &iin, sizeof(int));
-        m += sizeof(int);
-        for(n = 0; n < P.index; ++n)
-            if(P.Flag[n] > 0)
+        iin=numpt*sizeof(float);
+        std::memcpy(&buffer[m],&iin,sizeof(int));
+        m+=sizeof(int);
+        for(n=0;n<P.index;++n)
+            if(P.Flag[n]>0)
             {
-                ffn = float(P.Wt[n]);
-                std::memcpy(&buffer[m], &ffn, sizeof(float));
-                m += sizeof(float);
+                ffn=float(P.Wt[n]);
+                std::memcpy(&buffer[m],&ffn,sizeof(float));
+                m+=sizeof(float);
             }
     }
 
     // fluid velocities
-    iin = 3 * numpt * sizeof(float);
-    std::memcpy(&buffer[m], &iin, sizeof(int));
-    m += sizeof(int);
-    for(n = 0; n < P.index; ++n)
-        if(P.Flag[n] > 0)
+    iin=3*numpt*sizeof(float);
+    std::memcpy(&buffer[m],&iin,sizeof(int));
+    m+=sizeof(int);
+    for(n=0;n<P.index;++n)
+        if(P.Flag[n]>0)
         {
-            ffn = float(P.Uf[n]);
-            std::memcpy(&buffer[m], &ffn, sizeof(float));
-            m += sizeof(float);
+            ffn=float(P.Uf[n]);
+            std::memcpy(&buffer[m],&ffn,sizeof(float));
+            m+=sizeof(float);
 
-            ffn = float(P.Vf[n]);
-            std::memcpy(&buffer[m], &ffn, sizeof(float));
-            m += sizeof(float);
+            ffn=float(P.Vf[n]);
+            std::memcpy(&buffer[m],&ffn,sizeof(float));
+            m+=sizeof(float);
 
-            ffn = float(P.Wf[n]);
-            std::memcpy(&buffer[m], &ffn, sizeof(float));
-            m += sizeof(float);
+            ffn=float(P.Wf[n]);
+            std::memcpy(&buffer[m],&ffn,sizeof(float));
+            m+=sizeof(float);
         }
 
     // bedChange
-    iin = numpt * sizeof(float);
-    std::memcpy(&buffer[m], &iin, sizeof(int));
-    m += sizeof(int);
-    for(n = 0; n < P.index; ++n)
-        if(P.Flag[n] > 0)
+    iin=numpt*sizeof(float);
+    std::memcpy(&buffer[m],&iin,sizeof(int));
+    m+=sizeof(int);
+    for(n=0;n<P.index;++n)
+        if(P.Flag[n]>0)
         {
-            // ffn=float(p->ccslipol4(s->bedch,P.X[n],P.Y[n]));
-            ffn = float(p->ccslipol4(s->bedzh, P.X[n], P.Y[n]) - p->ccslipol4(s->bedzh0, P.X[n], P.Y[n]));
-            std::memcpy(&buffer[m], &ffn, sizeof(float));
-            m += sizeof(float);
+            //ffn=float(p->ccslipol4(s->bedch,P.X[n],P.Y[n]));
+            ffn=float(p->ccslipol4(s->bedzh,P.X[n],P.Y[n])-p->ccslipol4(s->bedzh0,P.X[n],P.Y[n]));
+            std::memcpy(&buffer[m],&ffn,sizeof(float));
+            m+=sizeof(float);
         }
 
     // id: the parcel's number over the outputs (part::number)
-    iin = numpt * sizeof(int);
-    std::memcpy(&buffer[m], &iin, sizeof(int));
-    m += sizeof(int);
-    for(n = 0; n < P.index; ++n)
-        if(P.Flag[n] > 0)
+    iin=numpt*sizeof(int);
+    std::memcpy(&buffer[m],&iin,sizeof(int));
+    m+=sizeof(int);
+    for(n=0;n<P.index;++n)
+        if(P.Flag[n]>0)
         {
-            iin = int(P.ID[n]);
-            std::memcpy(&buffer[m], &iin, sizeof(int));
-            m += sizeof(int);
+            iin=int(P.ID[n]);
+            std::memcpy(&buffer[m],&iin,sizeof(int));
+            m+=sizeof(int);
         }
 
     //  XYZ
-    iin = 3 * numpt * sizeof(float);
-    std::memcpy(&buffer[m], &iin, sizeof(int));
-    m += sizeof(int);
-    for(n = 0; n < P.index; ++n)
-        if(P.Flag[n] > 0)
+    iin=3*numpt*sizeof(float);
+    std::memcpy(&buffer[m],&iin,sizeof(int));
+    m+=sizeof(int);
+    for(n=0;n<P.index;++n)
+        if(P.Flag[n]>0)
         {
-            ffn = float(P.X[n]);
-            std::memcpy(&buffer[m], &ffn, sizeof(float));
-            m += sizeof(float);
+            ffn=float(P.X[n]);
+            std::memcpy(&buffer[m],&ffn,sizeof(float));
+            m+=sizeof(float);
 
-            ffn = float(P.Y[n]);
-            std::memcpy(&buffer[m], &ffn, sizeof(float));
-            m += sizeof(float);
+            ffn=float(P.Y[n]);
+            std::memcpy(&buffer[m],&ffn,sizeof(float));
+            m+=sizeof(float);
 
-            ffn = float(P.Z[n]);
-            std::memcpy(&buffer[m], &ffn, sizeof(float));
-            m += sizeof(float);
+            ffn=float(P.Z[n]);
+            std::memcpy(&buffer[m],&ffn,sizeof(float));
+            m+=sizeof(float);
         }
 
     //  Connectivity
-    int count = 0;
-    iin = numpt * sizeof(int);
-    std::memcpy(&buffer[m], &iin, sizeof(int));
-    m += sizeof(int);
-    for(n = 0; n < P.index; ++n)
-        if(P.Flag[n] > 0)
+    int count=0;
+    iin=numpt*sizeof(int);
+    std::memcpy(&buffer[m],&iin,sizeof(int));
+    m+=sizeof(int);
+    for(n=0;n<P.index;++n)
+        if(P.Flag[n]>0)
         {
-            iin = int(count);
-            std::memcpy(&buffer[m], &iin, sizeof(int));
-            m += sizeof(int);
+            iin=int(count);
+            std::memcpy(&buffer[m],&iin,sizeof(int));
+            m+=sizeof(int);
             ++count;
         }
 
     //  Offset of Connectivity
-    count = 1;
-    iin = numpt * sizeof(int);
-    std::memcpy(&buffer[m], &iin, sizeof(int));
-    m += sizeof(int);
-    for(n = 0; n < P.index; ++n)
-        if(P.Flag[n] > 0)
+    count=1;
+    iin=numpt*sizeof(int);
+    std::memcpy(&buffer[m],&iin,sizeof(int));
+    m+=sizeof(int);
+    for(n=0;n<P.index;++n)
+        if(P.Flag[n]>0)
         {
-            iin = int(count);
-            std::memcpy(&buffer[m], &iin, sizeof(int));
-            m += sizeof(int);
+            iin=int(count);
+            std::memcpy(&buffer[m],&iin,sizeof(int));
+            m+=sizeof(int);
             ++count;
         }
 
     std::stringstream footer;
     vtp3D::footer(footer);
-    std::memcpy(&buffer[m], footer.str().data(), footer.str().size());
+    std::memcpy(&buffer[m],footer.str().data(),footer.str().size());
 
     char filename[200];
-    sprintf(filename, "./REEF3D_CFD_CPM_Particle/REEF3D-Particle-%08i-%06i.vtp", printcount, p->mpirank + 1);
+    sprintf(filename,"./REEF3D_CFD_CPM_Particle/REEF3D-Particle-%08i-%06i.vtp",printcount,p->mpirank+1);
 
-    const size_t SMALL_FILE_THRESHOLD = 10 * 1024 * 1024;  // 10MB
+    const size_t SMALL_FILE_THRESHOLD = 10 * 1024 * 1024;   // 10MB
 
     if(total_size < SMALL_FILE_THRESHOLD)
     {
         // Small files: Simple fwrite with modest buffer
-        FILE *file = fopen(filename, "wb");
+        FILE* file = fopen(filename, "wb");
         if(file)
         {
-            setvbuf(file, nullptr, _IOFBF, 32768);  // 32KB buffer
+            setvbuf(file, nullptr, _IOFBF, 32768); // 32KB buffer
             fwrite(buffer.data(), buffer.size(), 1, file);
             fclose(file);
         }
@@ -463,10 +463,10 @@ void CPM::print_vtp(lexer *p, sediment_fdm *s)
     else
     {
         // Medium files: Optimized C I/O with larger buffer
-        FILE *file = fopen(filename, "wb");
+        FILE* file = fopen(filename, "wb");
         if(file)
         {
-            setvbuf(file, nullptr, _IOFBF, 131072);  // 128KB buffer
+            setvbuf(file, nullptr, _IOFBF, 131072); // 128KB buffer
             fwrite(buffer.data(), buffer.size(), 1, file);
             fclose(file);
         }

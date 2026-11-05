@@ -23,8 +23,8 @@ Author: Hans Bihs
 #ifndef SFLOW_MOMENTUM_RK3_H_
 #define SFLOW_MOMENTUM_RK3_H_
 
-#include "sflow_momentum_func.h"
-#include "slice4.h"
+#include"sflow_momentum_func.h"
+#include"slice4.h"
 
 class sflow_amr;
 
@@ -33,38 +33,35 @@ using namespace std;
 class sflow_momentum_RK3 final : public sflow_momentum_func
 {
 public:
-    void ckpt_fields(const std::function<void(const char *, char, double *)> &fd, const std::function<void(const char *, char, int *)> &fi) override
-    {
-        fd("momentum_RK3_WLRK1", 'S', WLRK1.V);
-        fd("momentum_RK3_WLRK2", 'S', WLRK2.V);
-        fd("momentum_RK3_UHRK1", 'S', UHRK1.V);
-        fd("momentum_RK3_UHRK2", 'S', UHRK2.V);
-        fd("momentum_RK3_VHRK1", 'S', VHRK1.V);
-        fd("momentum_RK3_VHRK2", 'S', VHRK2.V);
-        fd("momentum_RK3_WHRK1", 'S', WHRK1.V);
-        fd("momentum_RK3_WHRK2", 'S', WHRK2.V);
-    }
-    sflow_momentum_RK3(lexer *, fdm2D *, ghostcell *, sflow_HLL *, sflow_signal_speed *, sflow_reconstruct *, sflow_diffusion *, sflow_pressure *,
-                       solver2D *, solver2D *, ioflow *, sflow_fsf *, sflow_forcing *, sixdof *);
-    virtual ~sflow_momentum_RK3();
 
-    void start(lexer *, fdm2D *, ghostcell *) override final;
+    void ckpt_fields(const std::function<void(const char*, char, double*)> &fd, const std::function<void(const char*, char, int*)> &fi) override
+    {
+        fd("momentum_RK3_WLRK1",'S',WLRK1.V); fd("momentum_RK3_WLRK2",'S',WLRK2.V);
+        fd("momentum_RK3_UHRK1",'S',UHRK1.V); fd("momentum_RK3_UHRK2",'S',UHRK2.V);
+        fd("momentum_RK3_VHRK1",'S',VHRK1.V); fd("momentum_RK3_VHRK2",'S',VHRK2.V);
+        fd("momentum_RK3_WHRK1",'S',WHRK1.V); fd("momentum_RK3_WHRK2",'S',WHRK2.V);
+    }
+	sflow_momentum_RK3(lexer*, fdm2D*, ghostcell*, sflow_HLL*, sflow_signal_speed*, sflow_reconstruct*, sflow_diffusion*, sflow_pressure*, 
+                        solver2D*, solver2D*, ioflow*, sflow_fsf*, sflow_forcing*, sixdof*);
+	virtual ~sflow_momentum_RK3();
+    
+	void start(lexer*, fdm2D*, ghostcell*) override final;
 
     // single RK3 stage s = 0,1,2 and the end-of-step work; start() is inflow + 3 stages + finish
-    void rk_stage(lexer *, fdm2D *, ghostcell *, int);
-    void rk_finish(lexer *, fdm2D *, ghostcell *);
+    void rk_stage(lexer*, fdm2D*, ghostcell*, int);
+    void rk_finish(lexer*, fdm2D*, ghostcell*);
 
     // input and output conserved variables of stage s (for the mesh refinement)
-    void stage_io(int, fdm2D *, slice *&, slice *&, slice *&, slice *&, slice *&, slice *&);
-    void stage_io_w(int, fdm2D *, slice *&, slice *&);
+    void stage_io(int, fdm2D*, slice*&, slice*&, slice*&, slice*&, slice*&, slice*&);
+    void stage_io_w(int, fdm2D*, slice*&, slice*&);
 
     sflow_amr *pamr = nullptr;
-
+    
 private:
-    slice4 WLRK1, WLRK2;
-    slice4 UHRK1, UHRK2;
-    slice4 VHRK1, VHRK2;
-    slice4 WHRK1, WHRK2;
+    slice4 WLRK1,WLRK2;
+    slice4 UHRK1,UHRK2;
+	slice4 VHRK1,VHRK2;
+	slice4 WHRK1,WHRK2;
 };
 
 #endif

@@ -20,10 +20,11 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "6DOF_obj.h"
-#include "6DOF_obj_fnpf.h"
-#include "ghostcell.h"
-#include "lexer.h"
+
+#include"6DOF_obj.h"
+#include"6DOF_obj_fnpf.h"
+#include"lexer.h"
+#include"ghostcell.h"
 
 //  Mesh refinement with subcycling (G 7 1: nhflow_amr, fnpf_amr): the finest level advances the
 //  body; the coarser levels step before it with a predicted copy of it.  amr_save keeps the
@@ -41,9 +42,9 @@ void sixdof_obj::amr_save()
 void sixdof_obj::pose_update(lexer *p, ghostcell *pgc)
 {
     rb.euler_angles();
-    geom.transform(R_, c_);
+    geom.transform(R_,c_);
     rb.update_omega();
-    update_fbvel(p, pgc);
+    update_fbvel(p,pgc);
 }
 
 void sixdof_obj::amr_restore(lexer *p, ghostcell *pgc)
@@ -53,18 +54,18 @@ void sixdof_obj::amr_restore(lexer *p, ghostcell *pgc)
     ext_v_ = ext_v_amr_;
     ext_w_ = ext_w_amr_;
     am_prev_ = am_prev_amr_;
-    geom.transform(R_, c_);
-    update_fbvel(p, pgc);
+    geom.transform(R_,c_);
+    update_fbvel(p,pgc);
 }
 
 // FNPF: the RK stage of the predicted copy with the loads and the added mass of the last solve
 void sixdof_obj_fnpf::amr_predict_fnpf(lexer *p, ghostcell *pgc, int iter)
 {
-    if(p->A310 == 3)
-        rk3(p, pgc, iter);
-
+    if(p->A310==3)
+    rk3(p,pgc,iter);
+    
     else
-        rk4(p, pgc, iter);
-
-    update_position_fnpf(p, pgc, false);
+    rk4(p,pgc,iter);
+    
+    update_position_fnpf(p,pgc,false);
 }

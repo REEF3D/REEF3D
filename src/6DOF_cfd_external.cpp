@@ -40,14 +40,14 @@ Architect: Hans Bihs
 // step (one fluid step behind). Several bodies (X 20); not with the subcycling of the mesh refinement
 // (G 7 1) yet.
 
-#include "6DOF_cfd.h"
-#include "6DOF_external.h"
-#include "ghostcell.h"
-#include "lexer.h"
+#include"6DOF_cfd.h"
+#include"6DOF_external.h"
+#include"lexer.h"
+#include"ghostcell.h"
 
 bool sixdof_cfd::ext_drives(int nb) const
 {
-    return pext != nullptr && pext->drives(nb) && !pext->one_way(nb);
+    return pext!=nullptr && pext->drives(nb) && !pext->one_way(nb);
 }
 
 void sixdof_cfd::ext_nodes(lexer *p, int iter, double &cs, double &cn, int &ns) const
@@ -55,40 +55,28 @@ void sixdof_cfd::ext_nodes(lexer *p, int iter, double &cs, double &cn, int &ns) 
     // start node of stage iter and time of the body it produces (fractions of dt), number of stages
     static const double c3[3] = {0.0, 1.0, 0.5}, n3[3] = {1.0, 0.5, 1.0};
     static const double c2[2] = {0.0, 1.0}, n2[2] = {1.0, 1.0};
-    static const double cl[3] = {0.0, 8.0 / 15.0, 2.0 / 3.0}, nl[3] = {8.0 / 15.0, 2.0 / 3.0, 1.0};
+    static const double cl[3] = {0.0, 8.0/15.0, 2.0/3.0}, nl[3] = {8.0/15.0, 2.0/3.0, 1.0};
 
     cs = 0.0;
     cn = 1.0;
     ns = 1;
 
-    if(p->N40 == 3 || p->N40 == 13 || p->N40 == 23 || p->N40 == 33)
+    if(p->N40==3 || p->N40==13 || p->N40==23 || p->N40==33)
     {
         ns = 3;
-        if(iter >= 0 && iter < 3)
-        {
-            cs = c3[iter];
-            cn = n3[iter];
-        }
+        if(iter>=0 && iter<3) {cs = c3[iter]; cn = n3[iter];}
     }
 
-    if(p->N40 == 2 || p->N40 == 12 || p->N40 == 22)
+    if(p->N40==2 || p->N40==12 || p->N40==22)
     {
         ns = 2;
-        if(iter >= 0 && iter < 2)
-        {
-            cs = c2[iter];
-            cn = n2[iter];
-        }
+        if(iter>=0 && iter<2) {cs = c2[iter]; cn = n2[iter];}
     }
 
-    if(p->N40 == 4 || p->N40 == 14 || p->N40 == 24 || p->N40 == 44)
+    if(p->N40==4 || p->N40==14 || p->N40==24 || p->N40==44)
     {
         ns = 3;
-        if(iter >= 0 && iter < 3)
-        {
-            cs = cl[iter];
-            cn = nl[iter];
-        }
+        if(iter>=0 && iter<3) {cs = cl[iter]; cn = nl[iter];}
     }
 }
 
@@ -98,32 +86,32 @@ void sixdof_cfd::ext_connect(lexer *p, ghostcell *pgc)
 
     sixdof_external *e = sixdof_external::instance();
 
-    if(e == nullptr)
-        return;
+    if(e==nullptr)
+    return;
 
     bool any = false, twoway = false;
 
-    for(int nb = 0; nb < number6DOF; ++nb)
-        if(e->drives(nb))
-        {
-            any = true;
+    for(int nb=0; nb<number6DOF; ++nb)
+    if(e->drives(nb))
+    {
+        any = true;
 
-            if(!e->one_way(nb))
-                twoway = true;
-        }
+        if(!e->one_way(nb))
+        twoway = true;
+    }
 
     if(!any)
-        return;
+    return;
 
-    if((twoway && p->X10 != 1) || (p->G1 > 0 && p->G7 == 1))
+    if((twoway && p->X10!=1) || (p->G1>0 && p->G7==1))
     {
-        if(p->mpirank == 0)
+        if(p->mpirank==0)
         {
-            if(twoway && p->X10 != 1)
-                cout << "6DOF CFD: two-way external dynamics (fluid_body without one_way) needs a floating body (X 10 1)" << endl;
+        if(twoway && p->X10!=1)
+        cout<<"6DOF CFD: two-way external dynamics (fluid_body without one_way) needs a floating body (X 10 1)"<<endl;
 
-            else
-                cout << "6DOF CFD: external dynamics (fluid_body, fluid_member) with the subcycling of the mesh refinement (G 7 1) is not supported yet" << endl;
+        else
+        cout<<"6DOF CFD: external dynamics (fluid_body, fluid_member) with the subcycling of the mesh refinement (G 7 1) is not supported yet"<<endl;
         }
 
         pgc->final();
@@ -135,53 +123,53 @@ void sixdof_cfd::ext_connect(lexer *p, ghostcell *pgc)
 
     int n1 = 0;
 
-    for(int nb = 0; nb < number6DOF; ++nb)
-        if(pext->drives(nb))
+    for(int nb=0; nb<number6DOF; ++nb)
+    if(pext->drives(nb))
+    {
+        if(pext->one_way(nb))
+        ++n1;
+
+        double m;
+        Eigen::Vector3d cg;
+        Eigen::Matrix3d R, I;
+
+        fb_obj[nb]->external_properties(m,cg,R,I);
+        pext->connect(nb,m,cg,R,I);
+
+        // distributed loads along a member of the external model
+        Eigen::Vector3d a, ax;
+        double L;
+        int ns;
+
+        if(pext->strips(nb,a,ax,L,ns))
         {
-            if(pext->one_way(nb))
-                ++n1;
+        fb_obj[nb]->external_strips_set(a,ax,L,ns);
 
-            double m;
-            Eigen::Vector3d cg;
-            Eigen::Matrix3d R, I;
-
-            fb_obj[nb]->external_properties(m, cg, R, I);
-            pext->connect(nb, m, cg, R, I);
-
-            // distributed loads along a member of the external model
-            Eigen::Vector3d a, ax;
-            double L;
-            int ns;
-
-            if(pext->strips(nb, a, ax, L, ns))
-            {
-                fb_obj[nb]->external_strips_set(a, ax, L, ns);
-
-                if(p->X60 != 1 && p->mpirank == 0)
-                    cout << "6DOF CFD: distributed loads (fluid_member) need the STL load integration (X 60 1)" << endl;
-            }
+        if(p->X60!=1 && p->mpirank==0)
+        cout<<"6DOF CFD: distributed loads (fluid_member) need the STL load integration (X 60 1)"<<endl;
         }
+    }
 
-    if(p->mpirank == 0)
+    if(p->mpirank==0)
     {
         double cs, cn;
         int ns;
-        ext_nodes(p, 0, cs, cn, ns);
+        ext_nodes(p,0,cs,cn,ns);
 
         if(ext_twoway)
         {
-            cout << "6DOF CFD: " << number6DOF - n1 << (number6DOF - n1 > 1 ? " bodies follow" : " body follows") << " the external dynamics ("
-                 << (pext->predictor() && ns > 1 ? "predictor" : "no predictor") << ")" << endl;
+        cout<<"6DOF CFD: "<<number6DOF-n1<<(number6DOF-n1>1?" bodies follow":" body follows")<<" the external dynamics ("
+        <<(pext->predictor() && ns>1 ? "predictor" : "no predictor")<<")"<<endl;
 
-            if(p->X500 > 0)
-                cout << "6DOF CFD: the PTO X 500 is not used with external dynamics (PTO in the external model)" << endl;
+        if(p->X500>0)
+        cout<<"6DOF CFD: the PTO X 500 is not used with external dynamics (PTO in the external model)"<<endl;
 
-            if(p->X310 > 0)
-                cout << "6DOF CFD: the mooring X 310 is not used with external dynamics (mooring in the external model)" << endl;
+        if(p->X310>0)
+        cout<<"6DOF CFD: the mooring X 310 is not used with external dynamics (mooring in the external model)"<<endl;
         }
 
-        if(n1 > 0)
-            cout << "6DOF CFD: the loads of " << n1 << (n1 > 1 ? " bodies go" : " body goes") << " one-way to the external solver" << endl;
+        if(n1>0)
+        cout<<"6DOF CFD: the loads of "<<n1<<(n1>1?" bodies go":" body goes")<<" one-way to the external solver"<<endl;
     }
 }
 
@@ -190,16 +178,16 @@ void sixdof_cfd::ext_loads(lexer *p, double t, bool provisional)
     std::vector<sixdof_external::vec6> F(number6DOF);
     std::vector<sixdof_external::mat6> A;
 
-    for(int nb = 0; nb < number6DOF; ++nb)
+    for(int nb=0; nb<number6DOF; ++nb)
     {
-        fb_obj[nb]->external_fluid_load(p, F[nb]);
+    fb_obj[nb]->external_fluid_load(p,F[nb]);
 
-        // the strips of the distributed loads (committed loads only)
-        if(!provisional && fb_obj[nb]->external_strips_on())
-            pext->fluid_strips(nb, t, fb_obj[nb]->external_strips());
+    // the strips of the distributed loads (committed loads only)
+    if(!provisional && fb_obj[nb]->external_strips_on())
+    pext->fluid_strips(nb,t,fb_obj[nb]->external_strips());
     }
 
-    pext->fluid_loads(t, F, A, provisional);
+    pext->fluid_loads(t,F,A,provisional);
 }
 
 void sixdof_cfd::ext_stage(lexer *p, int iter)
@@ -209,39 +197,39 @@ void sixdof_cfd::ext_stage(lexer *p, int iter)
     const double t1 = p->simtime + p->dt;
     double cs, cn;
     int ns;
-    ext_nodes(p, iter, cs, cn, ns);
-    const bool pc = pext->predictor() && ns > 1;
+    ext_nodes(p,iter,cs,cn,ns);
+    const bool pc = pext->predictor() && ns>1;
 
     // first stage: the committed loads of t^n (one-way bodies too)
-    if(iter == 0)
+    if(iter==0)
     {
-        ext_loads(p, t0, false);
+        ext_loads(p,t0,false);
 
         if(!pc && ext_twoway)
-            pext->advance(t0, t1);
+        pext->advance(t0,t1);
     }
 
     // second stage with the predictor: its loads at the predicted pose, then the external step
-    if(iter == 1 && pc && ext_twoway)
+    if(iter==1 && pc && ext_twoway)
     {
-        ext_loads(p, t0 + cs * p->dt, true);
-        pext->advance(t0, t1);
+        ext_loads(p,t0 + cs*p->dt,true);
+        pext->advance(t0,t1);
     }
 
-    const double ts = (cn == 1.0) ? t1 : t0 + cn * p->dt;
+    const double ts = (cn==1.0) ? t1 : t0 + cn*p->dt;
 
-    for(int nb = 0; nb < number6DOF; ++nb)
-        if(ext_drives(nb))
-        {
-            Eigen::Vector3d xc, v, w;
-            Eigen::Matrix3d R;
+    for(int nb=0; nb<number6DOF; ++nb)
+    if(ext_drives(nb))
+    {
+        Eigen::Vector3d xc, v, w;
+        Eigen::Matrix3d R;
 
-            if(iter == 0 && pc)
-                pext->predict(nb, ts, xc, R, v, w);
+        if(iter==0 && pc)
+        pext->predict(nb,ts,xc,R,v,w);
 
-            else
-                pext->state(nb, ts, xc, R, v, w);
+        else
+        pext->state(nb,ts,xc,R,v,w);
 
-            fb_obj[nb]->external_set_state(xc, R, v, w);
-        }
+        fb_obj[nb]->external_set_state(xc,R,v,w);
+    }
 }

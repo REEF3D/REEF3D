@@ -23,87 +23,81 @@ Author: Hans Bihs
 #include "control.h"
 #include "lexer.h"
 
-void control::parse(lexer *p)
+void control::parse(lexer* p)
 {
     // I 45 <count>: the restart from the checkpoint of that step, otherwise as I 45 1
-    if(I45 > 1)
+    if(I45>1)
     {
-        I45_count = I45;
-        I45 = 1;
+        I45_count=I45;
+        I45=1;
     }
 
     // I 30 2 (masked full initialization) is FNPF only: the other models use I 30 1
-    if(I30 == 2 && A10 != 3)
-        I30 = 1;
+    if(I30==2 && A10!=3)
+    I30=1;
 
-    if(B98 == 1)
-        B98 = 2;
+    if(B98==1)
+    B98=2;
+    
+    else if(B98==3 && A10==5)// && p->B92<20 && p->B92>29) 
+    B98=4;
+    
+    else if(B98==5 && A10==5)
+    B98=3;
 
-    else if(B98 == 3 && A10 == 5)  // && p->B92<20 && p->B92>29)
-        B98 = 4;
+    if(X10>0)
+    D22=2;
 
-    else if(B98 == 5 && A10 == 5)
-        B98 = 3;
+    if(F80>0 && F35>0)
+    F35=0;
 
-    else if(B98 == 3 && A10 == 5)  // && p->B92<20 && p->B92>29)
-        B98 = 4;
+    G501=0;
+    if(S10>0 || p->toporead>0 || p->solidread==1)
+    G501=1;
 
-    else if(B98 == 5 && A10 == 5)
-        B98 = 3;
+    if(A10==3 || A10==5)
+    G502=1;
 
-    if(X10 > 0)
-        D22 = 2;
-
-    if(F80 > 0 && F35 > 0)
-        F35 = 0;
-
-    G501 = 0;
-    if(S10 > 0 || p->toporead > 0 || p->solidread == 1)
-        G501 = 1;
-
-    if(A10 == 3 || A10 == 5)
-        G502 = 1;
-
-    if(I10 == 1)
+    if(I10==1)
     {
-        I11 = 1;
-        I12 = 2;
-        I13 = 1;
+        I11=1;
+        I12=2;
+        I13=1;
     }
-    else if(I10 == 2)
+    else if(I10==2)
     {
-        I11 = 2;
-        I12 = 2;
-        I13 = 1;
+        I11=2;
+        I12=2;
+        I13=1;
     }
 
-    if(I40 > 0)
+    if(I40>0)
     {
-        I10 = 0;
-        I11 = 0;
-        I12 = 0;
-        I13 = 0;
+        I10=0;
+        I11=0;
+        I12=0;
+        I13=0;
     }
 
-    if(T10 == 0)
-        I13 = 0;
+    if(T10==0)
+    I13=0;
 
     // floating bodies: low-storage RK3; with the CFD mesh refinement (G 1 > 0, SSP stages only)
     // the SSP-RK3 of the input (the bodies have its stage weights)
-    if((N40 == 3 || N40 == 23) && X10 > 0 && G1 == 0)
-        N40 = 4;
-    else if(N40 == 13 && X10 > 0)
-        N40 = 44;
+    if((N40==3 || N40==23 ) && X10>0 && G1==0)
+    N40=4;
+    else if(N40==13 && X10>0)
+    N40=44;
 
     // N 40 14 (low-storage RK3, before with its own time loop and momentum classes) is N 40 44
-    if(N40 == 14)
-        N40 = 44;
+    if(N40==14)
+    N40=44;
 
-    if(S10 >= 1 || p->toporead == 1)
-        P27 = 1;
-
+    if(S10>=1 || p->toporead==1)
+    P27=1;
+    
     // A 550 1, 3, 4: the breaking viscosity acts through the implicit diffusion (before A550>1, so that
     // A 550 1 without A 512 2 computed vb but never used it)
-    if(A550 == 1 || A550 >= 3 || A560 > 0)
-        A512 = 2;
+    if(A550==1 || A550>=3 || A560>0)
+    A512=2;
 }

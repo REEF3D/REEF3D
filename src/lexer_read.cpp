@@ -20,50 +20,50 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "ghostcell.h"
-#include "lexer.h"
+#include"lexer.h"
+#include"ghostcell.h"
 
 void lexer::lexer_read(ghostcell *pgc)
 {
-    ii_recv = ii_send = 0;
-    dd_recv = dd_send = 0;
+    ii_recv=ii_send=0;
+    dd_recv=dd_send=0;
 
-    if(mpirank == 0)
-        control::read_control(this);
+    if(mpirank==0)
+    control::read_control(this);
 
     // SFLOW: A 212 not given in ctrl.txt -> explicit horizontal diffusion when a turbulence model is on (A 260 > 0),
     // so that the eddy viscosity reaches the momentum equations; no diffusion otherwise (the previous default)
-    if(mpirank == 0 && A212 < 0)
-        A212 = (A260 > 0) ? 1 : 0;
+    if(mpirank==0 && A212<0)
+    A212 = (A260>0) ? 1 : 0;
 
     // NHFLOW: A 519 not given in ctrl.txt -> bed friction (log law in the bottom layer) with a turbulence model (A 560)
     // or sediment transport (S 10): without it the flow slips over the bed, the velocity profile of an open channel
     // stays a plug and the bed shear stress of the sediment is too high; no bed friction otherwise (the previous default)
-    if(mpirank == 0 && A519 < 0)
-        A519 = (A560 > 0 || S10 > 0) ? 1 : 0;
+    if(mpirank==0 && A519<0)
+    A519 = (A560>0 || S10>0) ? 1 : 0;
 
 #ifndef REEF3D_USE_HYPRE
     // built without hypre (the default; hypre is opt-in via make HYPRE=1): the hypre solvers N 10 10-39 are replaced by REEFMG (N 10 1)
-    if(mpirank == 0 && N10 >= 10)
+    if(mpirank==0 && N10>=10)
     {
-        std::cout << "N 10 " << N10 << ": this build has no hypre (hypre is opt-in: make HYPRE=1), using REEFMG (N 10 1)" << std::endl;
-        N10 = 1;
+        std::cout<<"N 10 "<<N10<<": this build has no hypre (hypre is opt-in: make HYPRE=1), using REEFMG (N 10 1)"<<std::endl;
+        N10=1;
     }
 #endif
 
-    Iarray(ictrl, ctrlsize);
-    Darray(dctrl, ctrlsize);
+    Iarray(ictrl,ctrlsize);
+    Darray(dctrl,ctrlsize);
 
-    if(mpirank == 0)
-        control::ctrlsend();
+    if(mpirank==0)
+    control::ctrlsend();
 
     pgc->globalctrl(this);
 
-    if(mpirank > 0)
-        control::ctrlrecv();
+    if(mpirank>0)
+    control::ctrlrecv();
 
-    del_Iarray(ictrl, ctrlsize);
-    del_Darray(dctrl, ctrlsize);
+    del_Iarray(ictrl,ctrlsize);
+    del_Darray(dctrl,ctrlsize);
 
     read_grid();
 

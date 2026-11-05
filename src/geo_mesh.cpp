@@ -20,11 +20,11 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "geo_mesh.h"
-#include "gridfile_v2.h"
-#include "lexer.h"
-#include <cstdlib>
-#include <iostream>
+#include"geo_mesh.h"
+#include"gridfile_v2.h"
+#include"lexer.h"
+#include<iostream>
+#include<cstdlib>
 
 geo_mesh::geo_mesh() : tri_x(nullptr), tri_y(nullptr), tri_z(nullptr), ntri(0),
                        solidread(0), toporead(0), geodat(0), dxm(0.0),
@@ -40,236 +40,232 @@ geo_mesh::~geo_mesh()
 void geo_mesh::allocate(int num)
 {
     release();
-
+    
     ntri = num;
-
-    const int n = (num > 0) ? num : 1;
-
-    tri_x = new double *[n];
-    tri_y = new double *[n];
-    tri_z = new double *[n];
-
-    double *bx = new double[3 * n]();
-    double *by = new double[3 * n]();
-    double *bz = new double[3 * n]();
-
-    for(int q = 0; q < n; ++q)
+    
+    const int n = (num>0) ? num : 1;
+    
+    tri_x = new double*[n];
+    tri_y = new double*[n];
+    tri_z = new double*[n];
+    
+    double *bx = new double[3*n]();
+    double *by = new double[3*n]();
+    double *bz = new double[3*n]();
+    
+    for(int q=0; q<n; ++q)
     {
-        tri_x[q] = bx + 3 * q;
-        tri_y[q] = by + 3 * q;
-        tri_z[q] = bz + 3 * q;
+    tri_x[q] = bx + 3*q;
+    tri_y[q] = by + 3*q;
+    tri_z[q] = bz + 3*q;
     }
 }
 
 void geo_mesh::release()
 {
-    if(tri_x != nullptr)
+    if(tri_x!=nullptr)
     {
-        delete[] tri_x[0];
-        delete[] tri_y[0];
-        delete[] tri_z[0];
-
-        delete[] tri_x;
-        delete[] tri_y;
-        delete[] tri_z;
+    delete [] tri_x[0];
+    delete [] tri_y[0];
+    delete [] tri_z[0];
+    
+    delete [] tri_x;
+    delete [] tri_y;
+    delete [] tri_z;
     }
-
+    
     tri_x = tri_y = tri_z = nullptr;
     ntri = 0;
 }
 
 int geo_mesh::count(int role) const
 {
-    int num = 0;
-
+    int num=0;
+    
     for(const geo_object &ob : obj)
-        if(ob.role == role)
-            ++num;
-
+    if(ob.role==role)
+    ++num;
+    
     return num;
 }
 
 int geo_mesh::tricount(int role) const
 {
-    int num = 0;
-
+    int num=0;
+    
     for(const geo_object &ob : obj)
-        if(ob.role == role)
-            num += ob.te - ob.ts;
-
+    if(ob.role==role)
+    num += ob.te-ob.ts;
+    
     return num;
 }
 
 void geo_mesh::read(lexer *p, const char *name)
 {
     gridv2::reader rd;
-
-    if(!rd.open(name, gridv2::magic_geom))
+    
+    if(!rd.open(name,gridv2::magic_geom))
     {
-        if(p->mpirank == 0)
+        if(p->mpirank==0)
         {
-            cout << endl;
-            cout << "!!! " << rd.error << " !!!" << endl;
-            cout << "!!! please regenerate the grid with the current DIVEMesh (grid format v2) !!!" << endl
-                 << endl;
+        cout<<endl;
+        cout<<"!!! "<<rd.error<<" !!!"<<endl;
+        cout<<"!!! please regenerate the grid with the current DIVEMesh (grid format v2) !!!"<<endl<<endl;
         }
         exit(1);
     }
-
+    
     gridv2::section sc;
-
+    
     // GHDR
-    if(rd.find("GHDR", sc))
+    if(rd.find("GHDR",sc))
     {
         vector<int> iv;
         vector<double> dv;
-        sc.get_list(iv, dv);
-
-        solidread = iv.size() > 0 ? iv[0] : 0;
-        toporead = iv.size() > 1 ? iv[1] : 0;
-        geodat = iv.size() > 2 ? iv[2] : 0;
-        dxm = dv.size() > 0 ? dv[0] : 0.0;
-
+        sc.get_list(iv,dv);
+        
+        solidread = iv.size()>0 ? iv[0] : 0;
+        toporead  = iv.size()>1 ? iv[1] : 0;
+        geodat    = iv.size()>2 ? iv[2] : 0;
+        dxm       = dv.size()>0 ? dv[0] : 0.0;
+        
         rd.check(sc);
     }
     else
-        rd.fail(p, "section GHDR missing");
-
+    rd.fail(p,"section GHDR missing");
+    
     // OBJS
     obj.clear();
-
-    if(rd.find("OBJS", sc))
+    
+    if(rd.find("OBJS",sc))
     {
         const int nobj = sc.get_int();
-
+        
         obj.resize(nobj);
-
+        
         for(geo_object &ob : obj)
         {
-            ob.role = sc.get_int();
+            ob.role    = sc.get_int();
             ob.keyword = sc.get_int();
-            ob.index = sc.get_int();
+            ob.index   = sc.get_int();
             ob.raymode = sc.get_int();
-            ob.invert = sc.get_int();
-
+            ob.invert  = sc.get_int();
+            
             const long long t0 = sc.get_i64();
             const long long nt = sc.get_i64();
-
+            
             ob.ts = int(t0);
-            ob.te = int(t0 + nt);
-
+            ob.te = int(t0+nt);
+            
             const int npar = sc.get_int();
             ob.param.resize(npar);
-
+            
             for(double &v : ob.param)
-                v = sc.get_double();
+            v = sc.get_double();
         }
-
+        
         rd.check(sc);
     }
     else
-        rd.fail(p, "section OBJS missing");
-
+    rd.fail(p,"section OBJS missing");
+    
     // VERT, TIDX: indexed triangle mesh
     vector<double> vert;
-
-    if(rd.find("VERT", sc))
+    
+    if(rd.find("VERT",sc))
     {
         const long long nv = sc.get_i64();
-
-        vert.resize(3 * size_t(nv > 0 ? nv : 0));
-
+        
+        vert.resize(3*size_t(nv>0 ? nv : 0));
+        
         for(double &v : vert)
-            v = sc.get_double();
-
+        v = sc.get_double();
+        
         rd.check(sc);
     }
     else
-        rd.fail(p, "section VERT missing");
-
-    if(rd.find("TIDX", sc))
+    rd.fail(p,"section VERT missing");
+    
+    if(rd.find("TIDX",sc))
     {
         const long long nt = sc.get_i64();
         sc.pos = 0;
-
+        
         vector<int> tidx;
-
-        if(!sc.get_table(tidx, nt, 3))
-            rd.fail(p, "section TIDX inconsistent");
-
+        
+        if(!sc.get_table(tidx,nt,3))
+        rd.fail(p,"section TIDX inconsistent");
+        
         allocate(int(nt));
-
-        const int nv = int(vert.size() / 3);
-
-        for(int q = 0; q < ntri; ++q)
-            for(int v = 0; v < 3; ++v)
-            {
-                const int id = tidx[3 * q + v];
-
-                if(id < 0 || id >= nv)
-                    rd.fail(p, "vertex index out of range");
-
-                tri_x[q][v] = vert[3 * id];
-                tri_y[q][v] = vert[3 * id + 1];
-                tri_z[q][v] = vert[3 * id + 2];
-            }
+        
+        const int nv = int(vert.size()/3);
+        
+        for(int q=0; q<ntri; ++q)
+        for(int v=0; v<3; ++v)
+        {
+            const int id = tidx[3*q+v];
+            
+            if(id<0 || id>=nv)
+            rd.fail(p,"vertex index out of range");
+            
+            tri_x[q][v] = vert[3*id];
+            tri_y[q][v] = vert[3*id+1];
+            tri_z[q][v] = vert[3*id+2];
+        }
     }
     else
-        rd.fail(p, "section TIDX missing");
-
+    rd.fail(p,"section TIDX missing");
+    
     // CURV: optional, layout version 1
     curv_ni = curv_nj = 0;
-    curv_par.clear();
-    curv_x.clear();
-    curv_y.clear();
-    curv_zb.clear();
-
-    if(rd.find("CURV", sc))
+    curv_par.clear(); curv_x.clear(); curv_y.clear(); curv_zb.clear();
+    
+    if(rd.find("CURV",sc))
     {
         const int nint = sc.get_int();
-        vector<int> iv(nint > 0 ? nint : 0);
+        vector<int> iv(nint>0 ? nint : 0);
         for(int &v : iv)
-            v = sc.get_int();
-
-        if(nint < 3 || iv[0] != 1 || iv[1] < 1 || iv[2] < 1)
-            rd.fail(p, "section CURV: unknown layout");
-
+        v = sc.get_int();
+        
+        if(nint<3 || iv[0]!=1 || iv[1]<1 || iv[2]<1)
+        rd.fail(p,"section CURV: unknown layout");
+        
         const int npar = sc.get_int();
-        curv_par.resize(npar > 0 ? npar : 0);
+        curv_par.resize(npar>0 ? npar : 0);
         for(double &v : curv_par)
-            v = sc.get_double();
-
-        const size_t nn = size_t(iv[1] + 1) * size_t(iv[2] + 1);
-
-        if(3 * nn * sizeof(double) > sc.size)
-            rd.fail(p, "section CURV truncated");
-
+        v = sc.get_double();
+        
+        const size_t nn = size_t(iv[1]+1)*size_t(iv[2]+1);
+        
+        if(3*nn*sizeof(double)>sc.size)
+        rd.fail(p,"section CURV truncated");
+        
         curv_x.resize(nn);
         curv_y.resize(nn);
         curv_zb.resize(nn);
-
-        if(!sc.get(curv_x.data(), nn * sizeof(double)) || !sc.get(curv_y.data(), nn * sizeof(double)) || !sc.get(curv_zb.data(), nn * sizeof(double)))
-            rd.fail(p, "section CURV truncated");
-
+        
+        if(!sc.get(curv_x.data(),nn*sizeof(double)) || !sc.get(curv_y.data(),nn*sizeof(double)) || !sc.get(curv_zb.data(),nn*sizeof(double)))
+        rd.fail(p,"section CURV truncated");
+        
         rd.check(sc);
-
+        
         curv_ni = iv[1];
         curv_nj = iv[2];
     }
-
+    
     // BLKS: optional, layout version 1
     blk.clear();
     blk_ring = 0;
 
-    if(rd.find("BLKS", sc))
+    if(rd.find("BLKS",sc))
     {
         const int nint = sc.get_int();
-        vector<int> iv(nint > 0 ? nint : 0);
+        vector<int> iv(nint>0 ? nint : 0);
         for(int &v : iv)
-            v = sc.get_int();
+        v = sc.get_int();
 
-        if(nint < 4 || iv[0] != 1 || iv[1] < 1 || iv[3] != 11)
-            rd.fail(p, "section BLKS: unknown layout");
+        if(nint<4 || iv[0]!=1 || iv[1]<1 || iv[3]!=11)
+        rd.fail(p,"section BLKS: unknown layout");
 
         blk.resize(iv[1]);
         blk_ring = iv[2];
@@ -278,46 +274,38 @@ void geo_mesh::read(lexer *p, const char *name)
         {
             B.ni = sc.get_int();
             B.nj = sc.get_int();
-            for(int f = 0; f < 4; ++f)
-                B.ring[f] = sc.get_int();
+            for(int f=0; f<4; ++f)
+            B.ring[f] = sc.get_int();
             const int ns = sc.get_int();
-            if(B.ni < 1 || B.nj < 1 || ns < 0)
-                rd.fail(p, "section BLKS: bad block");
+            if(B.ni<1 || B.nj<1 || ns<0)
+            rd.fail(p,"section BLKS: bad block");
             B.seg.resize(ns);
             for(blk_seg &S : B.seg)
             {
-                S.face = sc.get_int();
-                S.lo = sc.get_int();
-                S.hi = sc.get_int();
-                S.nbr = sc.get_int();
-                S.nface = sc.get_int();
-                S.perm[0] = sc.get_int();
-                S.perm[1] = sc.get_int();
-                S.sign[0] = sc.get_int();
-                S.sign[1] = sc.get_int();
-                S.off[0] = sc.get_int();
-                S.off[1] = sc.get_int();
-                if(S.nbr < 0 || S.nbr >= int(blk.size()) || S.face < 0 || S.face > 3)
-                    rd.fail(p, "section BLKS: bad segment");
+                S.face = sc.get_int(); S.lo = sc.get_int(); S.hi = sc.get_int();
+                S.nbr = sc.get_int(); S.nface = sc.get_int();
+                S.perm[0] = sc.get_int(); S.perm[1] = sc.get_int();
+                S.sign[0] = sc.get_int(); S.sign[1] = sc.get_int();
+                S.off[0] = sc.get_int(); S.off[1] = sc.get_int();
+                if(S.nbr<0 || S.nbr>=int(blk.size()) || S.face<0 || S.face>3)
+                rd.fail(p,"section BLKS: bad segment");
             }
         }
 
-        for(size_t q = 1; q < blk.size(); ++q)
+        for(size_t q=1; q<blk.size(); ++q)
         {
             blk_block &B = blk[q];
-            const size_t nn = size_t(B.ni + 1) * size_t(B.nj + 1);
-            B.x.resize(nn);
-            B.y.resize(nn);
-            B.zb.resize(nn);
-            if(!sc.get(B.x.data(), nn * sizeof(double)) || !sc.get(B.y.data(), nn * sizeof(double)) || !sc.get(B.zb.data(), nn * sizeof(double)))
-                rd.fail(p, "section BLKS truncated");
+            const size_t nn = size_t(B.ni+1)*size_t(B.nj+1);
+            B.x.resize(nn); B.y.resize(nn); B.zb.resize(nn);
+            if(!sc.get(B.x.data(),nn*sizeof(double)) || !sc.get(B.y.data(),nn*sizeof(double)) || !sc.get(B.zb.data(),nn*sizeof(double)))
+            rd.fail(p,"section BLKS truncated");
         }
 
         // the blocks of DIVEMesh (G 55 may cut them into pieces, split_blocks)
         nblk_orig = int(blk.size());
-        orig_ni.assign(blk.size(), 0);
-        orig_nj.assign(blk.size(), 0);
-        for(size_t q = 0; q < blk.size(); ++q)
+        orig_ni.assign(blk.size(),0);
+        orig_nj.assign(blk.size(),0);
+        for(size_t q=0; q<blk.size(); ++q)
         {
             blk[q].orig = int(q);
             orig_ni[q] = blk[q].ni;
@@ -328,9 +316,9 @@ void geo_mesh::read(lexer *p, const char *name)
     }
 
     if(!rd.ok())
-        rd.fail(p, "truncated geometry file");
-
+    rd.fail(p,"truncated geometry file");
+    
     for(const geo_object &ob : obj)
-        if(ob.ts < 0 || ob.te > ntri || ob.ts > ob.te)
-            rd.fail(p, "inconsistent triangle range");
+    if(ob.ts<0 || ob.te>ntri || ob.ts>ob.te)
+    rd.fail(p,"inconsistent triangle range");
 }

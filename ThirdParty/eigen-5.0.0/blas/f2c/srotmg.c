@@ -12,8 +12,7 @@
 
 #include "datatypes.h"
 
-/* Subroutine */ void srotmg_(real *sd1, real *sd2, real *sx1, real *sy1,
-                              real *sparam) {
+/* Subroutine */ void srotmg_(real *sd1, real *sd2, real *sx1, real *sy1, real *sparam) {
   /* Initialized data */
 
   static real zero = 0.f;
@@ -186,14 +185,14 @@ L80:
   sflag = -one;
 L90:
   switch (igo) {
-  case 0:
-    goto L120;
-  case 1:
-    goto L150;
-  case 2:
-    goto L180;
-  case 3:
-    goto L210;
+    case 0:
+      goto L120;
+    case 1:
+      goto L150;
+    case 2:
+      goto L180;
+    case 3:
+      goto L210;
   }
 /*     PROCEDURE..SCALE-CHECK */
 L100:

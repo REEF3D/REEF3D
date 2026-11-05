@@ -22,73 +22,74 @@ Author: Hans Bihs
 
 #ifdef REEF3D_USE_HYPRE  // hypre is opt-in: make HYPRE=1 / cmake -DREEF3D_USE_HYPRE=ON
 
-#include "fdm.h"
-#include "ghostcell.h"
 #include "hypre_aij.h"
 #include "lexer.h"
+#include "fdm.h"
+#include "ghostcell.h"
 
-void hypre_aij::fill_matrix_F_7p(lexer *p, ghostcell *pgc, matrix_diag &M, double *f, double *xvec, vec &rhsvec)
+
+void hypre_aij::fill_matrix_F_7p(lexer* p, ghostcell* pgc, matrix_diag &M, double *f, double *xvec, vec &rhsvec)
 {
-    int *rownum7;
-    p->Iarray(rownum7, p->imax * p->jmax * (p->kmax + 2));
+    int* rownum7;
+    p->Iarray(rownum7,p->imax*p->jmax*(p->kmax+2));
 
     // mark all ghost/boundary positions as invalid, so that only real unknowns
     // (local or MPI neighbour, exchanged with flagx7 on the FNPF FIJK layout) end up as column indices in the IJ matrix
-    for(int q = 0; q < p->imax * p->jmax * (p->kmax + 2); ++q)
-        rownum7[q] = -1;
+    for(int q=0; q<p->imax*p->jmax*(p->kmax+2); ++q)
+    rownum7[q]=-1;
 
-    pgc->rownum7_update(p, rownum7);
-    pgc->flagx7(p, rownum7);
+    pgc->rownum7_update(p,rownum7);
+    pgc->flagx7(p,rownum7);
 
-    n = 0;
+    n=0;
     LOOP
     {
-        count = 0;
+        count=0;
         val[count] = M.p[n];
         col[count] = rownum7[FIJK];
         rownum = rownum7[FIJK];
         ++count;
 
-        if(rownum7[FIm1JK] >= 0 && M.s[n] != 0.0)
+        if(rownum7[FIm1JK]>=0 && M.s[n]!=0.0)
         {
-            val[count] = M.s[n];
-            col[count] = rownum7[FIm1JK];
-            ++count;
+        val[count] = M.s[n];
+        col[count] = rownum7[FIm1JK];
+        ++count;
         }
 
-        if(rownum7[FIp1JK] >= 0 && M.n[n] != 0.0)
+        if(rownum7[FIp1JK]>=0 && M.n[n]!=0.0)
         {
-            val[count] = M.n[n];
-            col[count] = rownum7[FIp1JK];
-            ++count;
+        val[count] = M.n[n];
+        col[count] = rownum7[FIp1JK];
+        ++count;
         }
 
-        if(rownum7[FIJm1K] >= 0 && M.e[n] != 0.0)
+        if(rownum7[FIJm1K]>=0 && M.e[n]!=0.0)
         {
-            val[count] = M.e[n];
-            col[count] = rownum7[FIJm1K];
-            ++count;
+        val[count] = M.e[n];
+        col[count] = rownum7[FIJm1K];
+        ++count;
         }
 
-        if(rownum7[FIJp1K] >= 0 && M.w[n] != 0.0)
+        if(rownum7[FIJp1K]>=0 && M.w[n]!=0.0)
         {
-            val[count] = M.w[n];
-            col[count] = rownum7[FIJp1K];
-            ++count;
+        val[count] = M.w[n];
+        col[count] = rownum7[FIJp1K];
+        ++count;
         }
 
-        if(rownum7[FIJKm1] >= 0 && M.b[n] != 0.0)
+        if(rownum7[FIJKm1]>=0 && M.b[n]!=0.0)
         {
-            val[count] = M.b[n];
-            col[count] = rownum7[FIJKm1];
-            ++count;
+        val[count] = M.b[n];
+        col[count] = rownum7[FIJKm1];
+        ++count;
         }
 
-        if(rownum7[FIJKp1] >= 0 && M.t[n] != 0.0)
+        if(rownum7[FIJKp1]>=0 && M.t[n]!=0.0)
         {
-            val[count] = M.t[n];
-            col[count] = rownum7[FIJKp1];
-            ++count;
+        val[count] = M.t[n];
+        col[count] = rownum7[FIJKp1];
+        ++count;
         }
 
         HYPRE_IJMatrixSetValues(A, 1, &count, &rownum, col, val);
@@ -96,11 +97,12 @@ void hypre_aij::fill_matrix_F_7p(lexer *p, ghostcell *pgc, matrix_diag &M, doubl
         ++n;
     }
 
+
     HYPRE_IJMatrixAssemble(A);
-    HYPRE_IJMatrixGetObject(A, (void **)&parcsr_A);
+    HYPRE_IJMatrixGetObject(A, (void**) &parcsr_A);
 
     // vec
-    n = 0;
+    n=0;
     LOOP
     {
         xvec[n] = f[FIJK];
@@ -112,11 +114,11 @@ void hypre_aij::fill_matrix_F_7p(lexer *p, ghostcell *pgc, matrix_diag &M, doubl
     HYPRE_IJVectorSetValues(x, p->N7_row, rows, xvec);
 
     HYPRE_IJVectorAssemble(b);
-    HYPRE_IJVectorGetObject(b, (void **)&par_b);
+    HYPRE_IJVectorGetObject(b, (void **) &par_b);
     HYPRE_IJVectorAssemble(x);
-    HYPRE_IJVectorGetObject(x, (void **)&par_x);
+    HYPRE_IJVectorGetObject(x, (void **) &par_x);
 
-    p->del_Iarray(rownum7, p->imax * p->jmax * (p->kmax + 2));
+    p->del_Iarray(rownum7,p->imax*p->jmax*(p->kmax+2));
 }
 
 #endif  // REEF3D_USE_HYPRE

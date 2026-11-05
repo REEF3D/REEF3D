@@ -23,7 +23,7 @@ Author: Hans Bihs
 #ifndef FNPF_ICE_FLOE_H_
 #define FNPF_ICE_FLOE_H_
 
-#include <vector>
+#include<vector>
 
 using namespace std;
 
@@ -35,54 +35,54 @@ using namespace std;
 struct fnpf_ice_floe
 {
     int id = 0;
-    int type = 0;       // 0: floe, 1: fixed obstacle (contact only, load logged), 2: removed,
-                        // 3: spalled rubble, fixed, no contact, its lid fades out (A 402)
-    double t0 = 0.0;    // rubble: time of spalling
-    double fade = 1.0;  // rubble: lid factor 1 - (t - t0)/t_r
+    int type = 0;                   // 0: floe, 1: fixed obstacle (contact only, load logged), 2: removed,
+                                    // 3: spalled rubble, fixed, no contact, its lid fades out (A 402)
+    double t0 = 0.0;                // rubble: time of spalling
+    double fade = 1.0;              // rubble: lid factor 1 - (t - t0)/t_r
 
     // geometry, body frame
-    vector<double> bx, by;
+    vector<double> bx,by;
     double h = 1.0;
     double rho = 917.0;
     double area = 0.0;
     double mass = 0.0;
-    double Ib[3][3] = {{0.0}};  // inertia tensor about the centre of mass, body frame
-    double rbound = 0.0;        // planform bounding radius
-    double width2D = 1.0;       // 2D flume: width carried by one cell row (area / planform length)
-    double wmin = 0.0;          // minimum caliper width of the planform
-    double sigf = 0.0;          // flexural strength of this floe (Weibull scatter and size effect, A 399)
+    double Ib[3][3] = {{0.0}};      // inertia tensor about the centre of mass, body frame
+    double rbound = 0.0;            // planform bounding radius
+    double width2D = 1.0;           // 2D flume: width carried by one cell row (area / planform length)
+    double wmin = 0.0;              // minimum caliper width of the planform
+    double sigf = 0.0;              // flexural strength of this floe (Weibull scatter and size effect, A 399)
 
     // state
-    double x[3] = {0.0};                 // centre of mass
-    double q[4] = {1.0, 0.0, 0.0, 0.0};  // orientation quaternion (w,x,y,z), body -> world
-    double v[3] = {0.0};                 // velocity of the centre of mass
-    double w[3] = {0.0};                 // angular velocity, world frame
+    double x[3] = {0.0};            // centre of mass
+    double q[4] = {1.0,0.0,0.0,0.0};// orientation quaternion (w,x,y,z), body -> world
+    double v[3] = {0.0};            // velocity of the centre of mass
+    double w[3] = {0.0};            // angular velocity, world frame
 
     // lid parameters
-    double klid = 0.0;  // lid stiffness [N/m^3]
-    double clid = 0.0;  // lid damping   [Ns/m^3]
-    double pw = 0.0;    // weight per unit area rho_i*g*h [Pa]
+    double klid = 0.0;              // lid stiffness [N/m^3]
+    double clid = 0.0;              // lid damping   [Ns/m^3]
+    double pw = 0.0;                // weight per unit area rho_i*g*h [Pa]
 
     // per-step quantities, filled by the footprint and the force integration
-    double R[3][3] = {{0.0}};        // rotation matrix, body -> world
-    double nb[3] = {0.0, 0.0, 1.0};  // upward normal of the bottom face, world
-    double pb[3] = {0.0};            // centre of the bottom face, world
-    vector<double> wx, wy;           // bottom face vertices projected on the horizontal plane
-    double bbox[4] = {0.0};          // xmin xmax ymin ymax of wx,wy
-    double tap = 0.0;                // footprint edge taper half width of this floe
-    double omega = 0.0;              // highest lid-spring frequency (heave, roll/pitch) of the footprint
+    double R[3][3] = {{0.0}};       // rotation matrix, body -> world
+    double nb[3] = {0.0,0.0,1.0};   // upward normal of the bottom face, world
+    double pb[3] = {0.0};           // centre of the bottom face, world
+    vector<double> wx,wy;           // bottom face vertices projected on the horizontal plane
+    double bbox[4] = {0.0};         // xmin xmax ymin ymax of wx,wy
+    double tap = 0.0;               // footprint edge taper half width of this floe
+    double omega = 0.0;             // highest lid-spring frequency (heave, roll/pitch) of the footprint
 
-    double F[3] = {0.0};  // hydrodynamic force  (lid + drag), current RK stage
-    double M[3] = {0.0};  // hydrodynamic moment about the centre of mass, world
-    double Awet = 0.0;    // loaded footprint area
+    double F[3] = {0.0};            // hydrodynamic force  (lid + drag), current RK stage
+    double M[3] = {0.0};            // hydrodynamic moment about the centre of mass, world
+    double Awet = 0.0;              // loaded footprint area
 
-    double acc[3] = {0.0};   // acceleration of the centre of mass, last RK stage
-    double alp[3] = {0.0};   // angular acceleration, world, last RK stage
-    double acc1[3] = {0.0};  // acceleration and angular acceleration of the first RK stage (state t^n)
+    double acc[3] = {0.0};          // acceleration of the centre of mass, last RK stage
+    double alp[3] = {0.0};          // angular acceleration, world, last RK stage
+    double acc1[3] = {0.0};         // acceleration and angular acceleration of the first RK stage (state t^n)
     double alp1[3] = {0.0};
-    double sigmax = 0.0;  // largest flexural stress of the last breaking check [Pa]
+    double sigmax = 0.0;            // largest flexural stress of the last breaking check [Pa]
 
-    double Fc[2] = {0.0};  // contact force (obstacles: ice load), world, planar
+    double Fc[2] = {0.0};           // contact force (obstacles: ice load), world, planar
     int ncontact = 0;
 };
 

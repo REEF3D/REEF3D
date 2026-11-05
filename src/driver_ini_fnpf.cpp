@@ -19,206 +19,216 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
-#include "6DOF_header.h"
-#include "benchmark_header.h"
-#include "concentration_header.h"
-#include "convection_header.h"
-#include "driver.h"
-#include "fdm_fnpf.h"
-#include "fdm_header.h"
-#include "field_header.h"
-#include "fnpf_amr.h"
-#include "fnpf_ice.h"
-#include "freesurface_header.h"
-#include "ghostcell.h"
-#include "heat_header.h"
-#include "lexer.h"
-#include "momentum_header.h"
-#include "pressure_header.h"
-#include "sediment_header.h"
-#include "solver_header.h"
-#include "turbulence_header.h"
-#include "waves_header.h"
-#include <sys/stat.h>
-#include <sys/types.h>
+#include"driver.h"
+#include"ghostcell.h"
+#include"lexer.h"
+#include"fdm_fnpf.h"
+#include"fnpf_ice.h"
+#include"freesurface_header.h"
+#include"turbulence_header.h"
+#include"momentum_header.h"
+#include"pressure_header.h"
+#include"fdm_header.h"
+#include"sediment_header.h"
+#include"convection_header.h"
+#include"solver_header.h"
+#include"field_header.h"
+#include"heat_header.h"
+#include"concentration_header.h"
+#include"benchmark_header.h"
+#include"6DOF_header.h"
+#include"waves_header.h"
+#include"fnpf_amr.h"
+#include<sys/stat.h>
+#include<sys/types.h>
 
-#define WLVL (fabs(c->WL(i, j)) > 1.0e-20 ? c->WL(i, j) : 1.0e20)
+#define WLVL (fabs(c->WL(i,j))>1.0e-20?c->WL(i,j):1.0e20)
 
 void driver::driver_ini_fnpf()
 {
     // count cells
-    int count = 0;
-    p->pointnum = 0;
-    p->cellnum = 0;
-    p->tpcellnum = 0;
+    int count=0;
+	p->pointnum=0;
+	p->cellnum=0;
+	p->tpcellnum=0;
 
-    TPLOOP
-    {
-        ++count;
-        ++p->pointnum;
-        c->nodeval(i, j, k) = count;
-    }
+	TPLOOP
+	{
+	++count;
+	++p->pointnum;
+    c->nodeval(i,j,k)=count;
+	}
 
-    LOOP++ p->cellnum;
-
+	LOOP
+	++p->cellnum;
+    
     PLAINLOOP
     ++p->tpcellnum;
+    
+    p->count=0;
+    
+// --
+    p->cellnumtot=pgc->globalisum(p->cellnum);
+    p->pointnumtot=pgc->globalisum(p->pointnum);
 
-    p->count = 0;
 
-    // --
-    p->cellnumtot = pgc->globalisum(p->cellnum);
-    p->pointnumtot = pgc->globalisum(p->pointnum);
-
-    if(p->mpirank == 0)
-        cout << "number of cells: " << p->cellnumtot << endl;
-
+    if(p->mpirank==0)
+    cout<<"number of cells: "<<p->cellnumtot<<endl;
+    
+    
     // maxcoor
-    p->maxlength = -1.0e9;
-    p->xcoormax = -1.0e9;
-    p->xcoormin = 1.0e9;
-    p->ycoormax = -1.0e9;
-    p->ycoormin = 1.0e9;
-    p->zcoormax = -1.0e9;
-    p->zcoormin = 1.0e9;
+    p->maxlength=-1.0e9;
+    p->xcoormax=-1.0e9;
+    p->xcoormin=1.0e9;
+    p->ycoormax=-1.0e9;
+    p->ycoormin=1.0e9;
+    p->zcoormax=-1.0e9;
+    p->zcoormin=1.0e9;
 
     LOOP
     {
-        p->xcoormax = MAX(p->xcoormax, p->XN[IP1]);
-        p->xcoormin = MIN(p->xcoormin, p->XN[IP]);
-        p->ycoormax = MAX(p->ycoormax, p->YN[JP1]);
-        p->ycoormin = MIN(p->ycoormin, p->YN[JP]);
-        p->zcoormax = MAX(p->zcoormax, p->ZN[KP1]);
-        p->zcoormin = MIN(p->zcoormin, p->ZN[KP]);
-    }
+        p->xcoormax = MAX(p->xcoormax,p->XN[IP1]);
+        p->xcoormin = MIN(p->xcoormin,p->XN[IP]);
+        p->ycoormax = MAX(p->ycoormax,p->YN[JP1]);
+        p->ycoormin = MIN(p->ycoormin,p->YN[JP]);
+        p->zcoormax = MAX(p->zcoormax,p->ZN[KP1]);
+        p->zcoormin = MIN(p->zcoormin,p->ZN[KP]);
+     }
 
-    p->maxlength = MAX(p->maxlength, p->xcoormax - p->xcoormin);
-    p->maxlength = MAX(p->maxlength, p->ycoormax - p->ycoormin);
-    p->maxlength = MAX(p->maxlength, p->zcoormax - p->zcoormin);
+     p->maxlength=MAX(p->maxlength,p->xcoormax-p->xcoormin);
+     p->maxlength=MAX(p->maxlength,p->ycoormax-p->ycoormin);
+     p->maxlength=MAX(p->maxlength,p->zcoormax-p->zcoormin);
 
-    p->maxlength = pgc->globalmax(p->maxlength);
+     p->maxlength=pgc->globalmax(p->maxlength);
+	 
+	 p->xcoormax=pgc->globalmax(p->xcoormax);
+	 p->ycoormax=pgc->globalmax(p->ycoormax);
+	 p->zcoormax=pgc->globalmax(p->zcoormax);
+	 
+	 p->xcoormin=pgc->globalmin(p->xcoormin);
+	 p->ycoormin=pgc->globalmin(p->ycoormin);
+	 p->zcoormin=pgc->globalmin(p->zcoormin);
 
-    p->xcoormax = pgc->globalmax(p->xcoormax);
-    p->ycoormax = pgc->globalmax(p->ycoormax);
-    p->zcoormax = pgc->globalmax(p->zcoormax);
+     // F 42 sets it explicitly (as in driver::makegrid_sigma and for CFD)
+     if(p->F42>=0.0)
+     p->maxlength = p->F42;
+     
+    if(p->mpirank==0)
+    cout<<"starting driver_ini_FNPF"<<endl;
 
-    p->xcoormin = pgc->globalmin(p->xcoormin);
-    p->ycoormin = pgc->globalmin(p->ycoormin);
-    p->zcoormin = pgc->globalmin(p->zcoormin);
-
-    // F 42 sets it explicitly (as in driver::makegrid_sigma and for CFD)
-    if(p->F42 >= 0.0)
-        p->maxlength = p->F42;
-
-    if(p->mpirank == 0)
-        cout << "starting driver_ini_FNPF" << endl;
-
+	
     // bed ini
     SLICELOOP4
-    c->bed(i, j) = p->bed[IJ];
-
-    pgc->gcsl_start4(p, c->bed, 50);
-
+	c->bed(i,j) = p->bed[IJ];
+    
+    pgc->gcsl_start4(p,c->bed,50);
+    
     // bc ini
     SLICELOOP4
-    c->bc(i, j) = 0;
-
-    pgc->gcsl_start4int(p, c->bc, 50);
-
-    for(n = 0; n < p->gcslin_count; n++)
+	c->bc(i,j) = 0;
+    
+    pgc->gcsl_start4int(p,c->bc,50);
+   
+    for(n=0;n<p->gcslin_count;n++)
     {
-        i = p->gcslin[n][0];
-        j = p->gcslin[n][1];
+    i=p->gcslin[n][0];
+    j=p->gcslin[n][1];
 
-        c->bc(i - 1, j) = 1;
+    c->bc(i-1,j) = 1;
     }
-
-    for(n = 0; n < p->gcslout_count; n++)
+    
+    for(n=0;n<p->gcslout_count;n++)
     {
-        i = p->gcslout[n][0];
-        j = p->gcslout[n][1];
-
-        c->bc(i + 1, j) = 2;
+    i=p->gcslout[n][0];
+    j=p->gcslout[n][1];
+    
+    c->bc(i+1,j) = 2;
     }
-
+   
     // 2D mesh
-    count = 0;
-    p->pointnum2D = 0;
-    p->cellnum2D = 0;
-    p->polygon_sum = 0;
-
-    TPSLICELOOP
-    {
-        ++count;
-        ++p->pointnum2D;
-        c->nodeval2D(i, j) = count;
+    count=0;
+	p->pointnum2D=0;
+	p->cellnum2D=0;
+	p->polygon_sum=0;
+    
+   
+    TPSLICELOOP  
+	{
+	++count;
+	++p->pointnum2D;
+	c->nodeval2D(i,j)=count;
     }
+	
+	SLICEBASELOOP
+	++p->polygon_sum;
+	
+	p->polygon_sum *=2;
 
-    SLICEBASELOOP
-    ++p->polygon_sum;
-
-    p->polygon_sum *= 2;
-
+	SLICELOOP4
+	++p->cellnum2D;
+    
     SLICELOOP4
-    ++p->cellnum2D;
+	++p->cellnum2D;
 
-    SLICELOOP4
-    ++p->cellnum2D;
-
-    p->cellnumtot2D = pgc->globalisum(p->cellnum2D);
-
+    p->cellnumtot2D=pgc->globalisum(p->cellnum2D);
+    
     // pre-ini - non-wd
-    ppfsg->inidisc_step1(p, c, pgc, pflow, psolv);  // RK
-
+    ppfsg->inidisc_step1(p,c,pgc,pflow,psolv);  // RK
+	
+    
     // ini
-    ppfsg->ini_wetdry(p, c, pgc);  // ini wetdry and coastline
-    pflow->gcio_update(p, a, pgc);
-
+    ppfsg->ini_wetdry(p,c,pgc);    // ini wetdry and coastline
+    pflow->gcio_update(p,a,pgc);
+    
     // iowave ini - including fullini
-    pflow->ini_fnpf(p, c, pgc);
-
+    pflow->ini_fnpf(p,c,pgc);  
+    
     // ice floes: read, place at equilibrium draft, depress eta under the footprints
-    if(p->A380 > 0)
+    if(p->A380>0)
     {
-        pfice = new fnpf_ice(p, c, pgc);
-        c->ice = pfice;
-        pfice->ini(p, c, pgc);
+    pfice = new fnpf_ice(p,c,pgc);
+    c->ice = pfice;
+    pfice->ini(p,c,pgc);
     }
-
+    
+    
     // ini wetdry and coastline
-    ppfsg->inidisc_step2(p, c, pgc, pflow, psolv);  // RK
-
+    ppfsg->inidisc_step2(p,c,pgc,pflow,psolv);   // RK
+    
     // mesh refinement: initial hierarchy
-    if(pfamr != nullptr)
-        pfamr->ini(p, c, pgc);
+    if(pfamr!=nullptr)
+    pfamr->ini(p,c,pgc);
 
     // the wave gauges and probes of the printer on the finest grid
-    if(pfamr != nullptr)
-        pprint->amr_columns(p, pfamr);
-
-    pftstep->ini(c, p, pgc);
-
-    if(pfamr != nullptr)
-        pfamr->timestep(p, c, pgc);
-
-    if(pfice != nullptr)
-        pfice->timestep(p, c, pgc);
-
+    if(pfamr!=nullptr)
+    pprint->amr_columns(p,pfamr);
+    
+    pftstep->ini(c,p,pgc);
+    
+    if(pfamr!=nullptr)
+    pfamr->timestep(p,c,pgc);
+    
+    if(pfice!=nullptr)
+    pfice->timestep(p,c,pgc);
+    
     // restart from the latest checkpoint (I 45), on any decomposition; the outputs continue
-    if(p->I45 == 1)
-        ckpt_read();
-
-    if(p->I45 != 1)
+    if(p->I45==1)
+    ckpt_read();
+    
+    if(p->I45!=1)
     {
-        pprint->start(p, c, pgc, pflow);
-
-        if(pfamr != nullptr)
-            pfamr->print(p, c, pgc);
+    pprint->start(p,c,pgc,pflow);
+    
+    if(pfamr!=nullptr)
+    pfamr->print(p,c,pgc);
     }
-
-    p->gctime = 0.0;
-    p->xtime = 0.0;
-    p->wavecalctime = 0.0;
-    p->field4time = 0.0;
+    
+    p->gctime=0.0;
+    p->xtime=0.0;
+	p->wavecalctime=0.0;
+	p->field4time=0.0;
 }
+
+
+
 

@@ -23,14 +23,14 @@ Author: Hans Bihs
 #include "vec2D.h"
 #include "lexer.h"
 
-vec2D::vec2D(lexer *p)
+vec2D::vec2D(lexer* p)
 {
     // 2D solver vectors (SFLOW, sediment exner, NHFLOW) are indexed over the slice:
     // veclength is only set for the 3D grid
-    resize(p->vec2Dlength > p->veclength ? p->vec2Dlength : p->veclength);
+    resize(p->vec2Dlength>p->veclength?p->vec2Dlength:p->veclength);
 }
 
-vec2D::vec2D(lexer *, int len)
+vec2D::vec2D(lexer*, int len)
 {
     resize(len);
 }

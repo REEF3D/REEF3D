@@ -23,9 +23,9 @@ Author: Hans Bihs
 #ifndef POTENTIAL_WATER_H_
 #define POTENTIAL_WATER_H_
 
-#include "fieldint4.h"
-#include "increment.h"
-#include "potential.h"
+#include"potential.h"
+#include"increment.h"
+#include"fieldint4.h"
 
 class field;
 
@@ -35,25 +35,27 @@ class potential_water final : public potential, public increment
 {
 
 public:
-    potential_water(lexer *p);
-    virtual ~potential_water();
+	potential_water(lexer* p);
+	virtual ~potential_water();
 
-    void start(lexer *, fdm *, solver *, ghostcell *pgc) override final;
+	void start(lexer*,fdm*, solver*, ghostcell* pgc) override final;
+
 
 private:
-    void ucalc(lexer *, fdm *, field &);
-    void vcalc(lexer *, fdm *, field &);
-    void wcalc(lexer *, fdm *, field &);
-
-    void laplace(lexer *, fdm *, field &);
-    void ini_bc(lexer *, fdm *, ghostcell *);
-
-    double starttime, endtime;
-    int count;
-    int gcval_pot;
-
+	void ucalc(lexer*,fdm*,field&);
+	void vcalc(lexer*,fdm*,field&);
+	void wcalc(lexer*,fdm*,field&);
+    
+    void laplace(lexer*,fdm*,field&);
+    void ini_bc(lexer*,fdm*,ghostcell*);
+    
+    
+	double starttime,endtime;
+	int count;
+	int gcval_pot;
+    
     fieldint4 bc;
-
+    
     const double eps;
 };
 

@@ -23,8 +23,8 @@ Author: Hans Bihs
 #ifndef WENO_FLUX_NUG_H_
 #define WENO_FLUX_NUG_H_
 
-#include "convection.h"
-#include "weno_nug_func.h"
+#include"convection.h"
+#include"weno_nug_func.h"
 
 class flux;
 
@@ -33,38 +33,41 @@ using namespace std;
 class weno_flux_nug final : public convection, public weno_nug_func
 {
 public:
-    weno_flux_nug(lexer *);
-    virtual ~weno_flux_nug();
+	weno_flux_nug(lexer*);
+	virtual ~weno_flux_nug();
 
-    void start(lexer *, fdm *, field &, int, field &, field &, field &) override final;
+	void start(lexer*,fdm*,field&,int,field&,field&,field&) override final;
 
     // the face value of the cell scalar b at the face i+1/2 (d 0), j+1/2 (1), k+1/2 (2) of cell
     // (i,j,k) for the face velocity vel (as start with ipol 4: the conservative flux vel x value;
     // the mesh refinement takes the fluxes through the faces at its patch edges from it)
-    double face_value(lexer *, fdm *, field &b, field &vel, int d, int i, int j, int k, double vel_face);
+    double face_value(lexer*, fdm*, field &b, field &vel, int d, int i, int j, int k, double vel_face);
 
 private:
-    double aij(lexer *, fdm *, field &, int, field &, field &, field &, double *, double *, double *);
+    double aij(lexer*, fdm*, field&, int,field&,field&,field&,double*,double*,double*);
+    
+	double fx(lexer*, fdm*, field&, field&, int, double);
+	double fy(lexer*, fdm*, field&, field&, int, double);
+	double fz(lexer*, fdm*, field&, field&, int, double);
+	void iqmin(lexer*, field&, field&, int);
+	void jqmin(lexer*, field&, field&, int);
+	void kqmin(lexer*, field&, field&, int);
+	void iqmax(lexer*, field&, field&, int);
+	void jqmax(lexer*, field&, field&, int);
+	void kqmax(lexer*, field&, field&, int);
 
-    double fx(lexer *, fdm *, field &, field &, int, double);
-    double fy(lexer *, fdm *, field &, field &, int, double);
-    double fz(lexer *, fdm *, field &, field &, int, double);
-    void iqmin(lexer *, field &, field &, int);
-    void jqmin(lexer *, field &, field &, int);
-    void kqmin(lexer *, field &, field &, int);
-    void iqmax(lexer *, field &, field &, int);
-    void jqmax(lexer *, field &, field &, int);
-    void kqmax(lexer *, field &, field &, int);
-
-    double L, grad;
+    
+	double L,grad;
     double sig;
 
-    double gradx, grady, gradz;
-    double fu1, fv1, fw1, fu2, fv2, fw2;
+	double gradx, grady, gradz;
+	double fu1,fv1,fw1,fu2,fv2,fw2;
+    
+    double ivel1,ivel2,jvel1,jvel2,kvel1,kvel2;
 
-    double ivel1, ivel2, jvel1, jvel2, kvel1, kvel2;
-
+    
     flux *pflux;
+
 };
 
 #endif

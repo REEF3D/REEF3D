@@ -23,11 +23,11 @@ Architect: Hans Bihs
 #ifndef SHIP_H_
 #define SHIP_H_
 
-#include "6DOF_load.h"
-#include "ship_models.h"
-#include <fstream>
-#include <string>
-#include <vector>
+#include"6DOF_load.h"
+#include"ship_models.h"
+#include<vector>
+#include<fstream>
+#include<string>
 
 class lexer;
 
@@ -117,42 +117,44 @@ using namespace std;
 class ship : public sixdof_load
 {
 public:
-    ship(lexer *, int);
+    
+    ship(lexer*, int);
     virtual ~ship();
-
-    void add_load(lexer *, const sixdof_rigidbody &, const sixdof_geometry &, sixdof_fluid *, double *) override;
-    void actuator_disks(vector<sixdof_actuator_disk> &) const override;
-    bool added_mass(const sixdof_rigidbody &, Eigen::Matrix<double, 6, 6> &) const override;
-    void fluid_mask(double *) const override;
-    void print(lexer *) override;
-    void ckpt_state(std::vector<double> &) const override;
-    void ckpt_restore(const std::vector<double> &, size_t &) override;
-
+    
+    void add_load(lexer*, const sixdof_rigidbody&, const sixdof_geometry&, sixdof_fluid*, double*) override;
+    void actuator_disks(vector<sixdof_actuator_disk>&) const override;
+    bool added_mass(const sixdof_rigidbody&, Eigen::Matrix<double,6,6>&) const override;
+    void fluid_mask(double*) const override;
+    void print(lexer*) override;
+    void ckpt_state(std::vector<double>&) const override;
+    void ckpt_restore(const std::vector<double>&, size_t&) override;
+    
 private:
-    void read(lexer *);
-    void ini(lexer *, const sixdof_rigidbody &, const sixdof_geometry &);
-    double cell_size_at(lexer *, const Eigen::Vector3d &) const;
-    void steering(lexer *, double, double);
-    double propeller_inflow(const sixdof_rigidbody &, sixdof_fluid *, const Eigen::Vector3d &, const Eigen::Vector3d &);
-
+    
+    void read(lexer*);
+    void ini(lexer*, const sixdof_rigidbody&, const sixdof_geometry&);
+    double cell_size_at(lexer*, const Eigen::Vector3d&) const;
+    void steering(lexer*, double, double);
+    double propeller_inflow(const sixdof_rigidbody&, sixdof_fluid*, const Eigen::Vector3d&, const Eigen::Vector3d&);
+    
     const int id;
     bool initialized;
-    bool ck_restored = false;  // restart from a checkpoint: heading and disk thickness of the checkpoint
-
+    bool ck_restored = false;   // restart from a checkpoint: heading and disk thickness of the checkpoint
+    
     // hull
     double lpp, S, k, nu, B44, B44q, Cd, thrust, xthrust, zthrust, Ucur[2];
     int friction, nstrip;
     bool lpp_in, S_in;
     double xa, xf, zw;
     vector<double> xs, dx, T;
-
+    
     // propeller
     bool prop;
     double xp, yp, zp, Dp, hub, kt[3], kq[3], nrps, thick, wake, sample_d, tded;
     int sense, inflow_mode, psource;
     double Va, J, KT, KQ, Tp, Qp;
     sixdof_actuator_disk disk;
-
+    
     // rudder
     bool rud;
     ship_models::rudder_param rp;
@@ -164,22 +166,22 @@ private:
     int zz_sign;
     bool zz_started;
     double alphaR, UR, FN, XR, YR, NR, KR;
-
+    
     // MMG manoeuvring model
     bool mmg, mmg_am, pwake_mmg, mmg_draft_in;
     int mmg_fluid;
     double mmgc[17], mmg_mx, mmg_my, mmg_Jz, mmg_d, xm, Umin, rho_am;
-    double hyb_dm;  // hybrid_munk: A22 - A11 of the Munk moment taken out (< 0: my - mx)
-    int hyb_surge;  // hybrid_surge: the MMG surge velocity term added in mmg_fluid 2
+    double hyb_dm;   // hybrid_munk: A22 - A11 of the Munk moment taken out (< 0: my - mx)
+    int hyb_surge;   // hybrid_surge: the MMG surge velocity term added in mmg_fluid 2
     double wC1, wC2p, wC2n, wxP;
     double XH, YH, NH, NM;
     bool appr, appr_done;
     double appr_U, appr_tr, appr_tf, Xc, Yc, Nc;
-
+    
     // loads of the last evaluation, ship frame
     double ub, vb, wb, pb, qb, rb_;
     double Re, CF, XF, Ycf, Ncf, Kroll;
-
+    
     ofstream out;
 };
 

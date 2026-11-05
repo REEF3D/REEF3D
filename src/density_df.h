@@ -23,11 +23,12 @@ Author: Hans Bihs
 #ifndef DENSITY_DF_H_
 #define DENSITY_DF_H_
 
-#include "density.h"
-#include "increment.h"
+#include"density.h"
+#include"increment.h"
 
 class fdm;
 class lexer;
+
 
 using namespace std;
 
@@ -35,16 +36,20 @@ class density_df final : public density, virtual public increment
 {
 
 public:
-    density_df(lexer *);
-    virtual ~density_df();
+    density_df(lexer*);
+	virtual ~density_df();
 
-    double roface(lexer *, fdm *, int, int, int) override final;
-
-    double H, H_fb, roval, phival, fbval;
-    int ii, jj, kk;
+	double roface(lexer*,fdm*,int,int,int) override final;
+	
+	double H,H_fb,roval,phival,fbval;
+	int ii,jj,kk;
     double chi;
-    double r, s;
+    double r,s;
+
 };
 
 #endif
+
+
+
 

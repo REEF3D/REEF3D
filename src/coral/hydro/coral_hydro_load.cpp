@@ -20,14 +20,15 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "coral/hydro/coral_hydro_load.h"
-#include "coral/core/coral_model.h"
-#include "coral/core/coral_rotation.h"
-#include <cmath>
-#include <complex>
-#include <stdexcept>
+#include"coral/hydro/coral_hydro_load.h"
+#include"coral/core/coral_model.h"
+#include"coral/core/coral_rotation.h"
+#include<cmath>
+#include<complex>
+#include<stdexcept>
 
-namespace coral {
+namespace coral
+{
 
 hydro_load::hydro_load(const model &m, std::shared_ptr<const hydro_db> db, const std::vector<int> &bodies,
                        std::shared_ptr<const wave_field> waves, const hydro_settings &s, const std::string &name)
@@ -41,13 +42,13 @@ hydro_load::hydro_load(const model &m, std::shared_ptr<const hydro_db> db, const
     p0_.resize(N);
     R0_.resize(N);
     buoy_.resize(N);
-    for(int i = 0; i < N; ++i)
+    for(int i=0; i<N; ++i)
     {
         const rigid_body &b = m.body(map_[i]);
         p0_[i] = db_->body[i].ref;
         s_[i] = b.to_body(p0_[i]);
         R0_[i] = b.R;
-        buoy_[i] = db_->body[i].volume >= 0.0 ? db_->rho * db_->g * db_->body[i].volume : b.mass * std::fabs(m.gravity(2));
+        buoy_[i] = db_->body[i].volume >= 0.0 ? db_->rho*db_->g*db_->body[i].volume : b.mass*std::fabs(m.gravity(2));
     }
     // radiation
     if(set_.radiation)
@@ -58,22 +59,22 @@ hydro_load::hydro_load(const model &m, std::shared_ptr<const hydro_db> db, const
             ss_.identify(K_, set_.ss_tol, set_.ss_order);
     }
     else
-        Ainf_ = MatX::Zero(6 * N, 6 * N);
+        Ainf_ = MatX::Zero(6*N, 6*N);
     // excitation per wave component
     if(set_.excitation && waves_)
         for(const auto &c : waves_->components())
-            Xc_.push_back(c.a * std::exp(std::complex<double>(0.0, c.phase)) * db_->excitation(c.w, c.beta));
+            Xc_.push_back(c.a*std::exp(std::complex<double>(0.0, c.phase))*db_->excitation(c.w, c.beta));
 }
 
 VecX hydro_load::displacement(const model &m) const
 {
     const int N = db_->nbody();
-    VecX xi(6 * N);
-    for(int i = 0; i < N; ++i)
+    VecX xi(6*N);
+    for(int i=0; i<N; ++i)
     {
         const rigid_body &b = m.body(map_[i]);
-        xi.segment<3>(6 * i) = b.point(s_[i]) - p0_[i];
-        xi.segment<3>(6 * i + 3) = log_so3(b.R * R0_[i].transpose());
+        xi.segment<3>(6*i) = b.point(s_[i]) - p0_[i];
+        xi.segment<3>(6*i+3) = log_so3(b.R*R0_[i].transpose());
     }
     return xi;
 }
@@ -81,12 +82,12 @@ VecX hydro_load::displacement(const model &m) const
 VecX hydro_load::velocity(const model &m) const
 {
     const int N = db_->nbody();
-    VecX v(6 * N);
-    for(int i = 0; i < N; ++i)
+    VecX v(6*N);
+    for(int i=0; i<N; ++i)
     {
         const rigid_body &b = m.body(map_[i]);
-        v.segment<3>(6 * i) = b.point_velocity(s_[i]);
-        v.segment<3>(6 * i + 3) = b.omega_global();
+        v.segment<3>(6*i) = b.point_velocity(s_[i]);
+        v.segment<3>(6*i+3) = b.omega_global();
     }
     return v;
 }
@@ -94,12 +95,12 @@ VecX hydro_load::velocity(const model &m) const
 VecX hydro_load::acceleration(const model &m) const
 {
     const int N = db_->nbody();
-    VecX a(6 * N);
-    for(int i = 0; i < N; ++i)
+    VecX a(6*N);
+    for(int i=0; i<N; ++i)
     {
         const rigid_body &b = m.body(map_[i]);
-        a.segment<3>(6 * i) = b.point_acceleration(s_[i]);
-        a.segment<3>(6 * i + 3) = b.R * b.wd;
+        a.segment<3>(6*i) = b.point_acceleration(s_[i]);
+        a.segment<3>(6*i+3) = b.R*b.wd;
     }
     return a;
 }
@@ -107,12 +108,12 @@ VecX hydro_load::acceleration(const model &m) const
 VecX hydro_load::hydrostatic_force(const model &m) const
 {
     const int N = db_->nbody();
-    VecX F = VecX::Zero(6 * N);
+    VecX F = VecX::Zero(6*N);
     if(set_.hydrostatics)
-        F -= db_->C * displacement(m);
+        F -= db_->C*displacement(m);
     if(set_.buoyancy)
-        for(int i = 0; i < N; ++i)
-            F(6 * i + 2) += buoy_[i];
+        for(int i=0; i<N; ++i)
+            F(6*i+2) += buoy_[i];
     return F;
 }
 
@@ -125,10 +126,10 @@ VecX hydro_load::excitation_force(double t) const
     if(set_.excitation && waves_)
     {
         const auto &comp = waves_->components();
-        for(size_t c = 0; c < comp.size(); ++c)
+        for(size_t c=0; c<comp.size(); ++c)
         {
-            const std::complex<double> e = std::exp(std::complex<double>(0.0, comp[c].w * t));
-            F += (Xc_[c] * e).real();
+            const std::complex<double> e = std::exp(std::complex<double>(0.0, comp[c].w*t));
+            F += (Xc_[c]*e).real();
         }
         F *= waves_->ramp(t);
     }
@@ -148,7 +149,7 @@ VecX hydro_load::memory_force(const VecX &v1, double t) const
     {
         VecX F = VecX::Zero(nd);
         const double h = t - t_last_;
-        for(size_t p = 0; p < ss_.pairs.size(); ++p)
+        for(size_t p=0; p<ss_.pairs.size(); ++p)
         {
             const auto &q = ss_.pairs[p];
             Eigen::VectorXcd x = xs_[p];
@@ -165,29 +166,26 @@ VecX hydro_load::memory_force(const VecX &v1, double t) const
         VecX Fh = VecX::Zero(nd);
         const double T = K_.tmax();
         MatX Kt(nd, nd);
-        for(size_t j = n; j-- > 0;)
+        for(size_t j=n; j-- > 0;)
         {
             const double age = t - th_[j];
             if(age > T)
                 break;
-            const double left = j > 0 ? th_[j] - th_[j - 1] : 0.0;
-            const double right = (j + 1 < n ? th_[j + 1] : t) - th_[j];
+            const double left = j > 0 ? th_[j] - th_[j-1] : 0.0;
+            const double right = (j+1 < n ? th_[j+1] : t) - th_[j];
             // K(age) by linear interpolation of the samples
-            const double x = age / K_.dt();
+            const double x = age/K_.dt();
             int k = (int)x;
-            if(k >= K_.nsample() - 1)
-            {
-                k = K_.nsample() - 2;
-            }
+            if(k >= K_.nsample()-1) {k = K_.nsample()-2;}
             const double f = x - k;
-            Kt = (1.0 - f) * K_.sample(k) + f * K_.sample(k + 1);
-            Fh += 0.5 * (left + right) * (Kt * vh_[j]);
+            Kt = (1.0 - f)*K_.sample(k) + f*K_.sample(k+1);
+            Fh += 0.5*(left + right)*(Kt*vh_[j]);
         }
         cache_hist_ = Fh;
         cache_t_ = t;
         cache_n_ = n;
     }
-    return cache_hist_ + 0.5 * (t - th_.back()) * (K_.sample(0) * v1);
+    return cache_hist_ + 0.5*(t - th_.back())*(K_.sample(0)*v1);
 }
 
 VecX hydro_load::radiation_force(const model &m, double t) const
@@ -195,7 +193,7 @@ VecX hydro_load::radiation_force(const model &m, double t) const
     const int nd = db_->ndof();
     if(!set_.radiation)
         return VecX::Zero(nd);
-    return -Ainf_ * acceleration(m) - memory_force(velocity(m), t);
+    return -Ainf_*acceleration(m) - memory_force(velocity(m), t);
 }
 
 VecX hydro_load::drag_force(const model &m) const
@@ -206,9 +204,9 @@ VecX hydro_load::drag_force(const model &m) const
     {
         const VecX v = velocity(m);
         if(set_.linear_damping.size())
-            F -= set_.linear_damping * v;
+            F -= set_.linear_damping*v;
         if(set_.quadratic_drag.size())
-            F -= set_.quadratic_drag * (v.cwiseAbs().cwiseProduct(v));
+            F -= set_.quadratic_drag*(v.cwiseAbs().cwiseProduct(v));
     }
     return F;
 }
@@ -216,11 +214,11 @@ VecX hydro_load::drag_force(const model &m) const
 void hydro_load::eval(const model &m, double t, VecX &f) const
 {
     const VecX F = hydrostatic_force(m) + excitation_force(t) + radiation_force(m, t) + drag_force(m);
-    for(int i = 0; i < db_->nbody(); ++i)
+    for(int i=0; i<db_->nbody(); ++i)
     {
         const rigid_body &b = m.body(map_[i]);
-        m.add_force(f, map_[i], b.point(s_[i]), F.segment<3>(6 * i));
-        m.add_moment(f, map_[i], F.segment<3>(6 * i + 3));
+        m.add_force(f, map_[i], b.point(s_[i]), F.segment<3>(6*i));
+        m.add_moment(f, map_[i], F.segment<3>(6*i+3));
     }
 }
 
@@ -250,7 +248,7 @@ void hydro_load::commit(const model &m, double t, double)
     if(set_.state_space)
     {
         const double h = t - t_last_;
-        for(size_t p = 0; p < ss_.pairs.size(); ++p)
+        for(size_t p=0; p<ss_.pairs.size(); ++p)
             radiation_ss::advance(ss_.pairs[p], xs_[p], v_last_(ss_.pairs[p].j), v(ss_.pairs[p].j), h);
     }
     else
@@ -259,7 +257,7 @@ void hydro_load::commit(const model &m, double t, double)
         vh_.push_back(v);
         // drop history older than the memory (keep one point beyond it)
         size_t drop = 0;
-        while(drop + 1 < th_.size() && t - th_[drop + 1] > K_.tmax())
+        while(drop + 1 < th_.size() && t - th_[drop+1] > K_.tmax())
             ++drop;
         if(drop > 1000)
         {
@@ -274,11 +272,11 @@ void hydro_load::commit(const model &m, double t, double)
 void hydro_load::channel_names(std::vector<std::string> &c) const
 {
     const char *const dof[6] = {"x", "y", "z", "rx", "ry", "rz"};
-    for(int i = 0; i < db_->nbody(); ++i)
+    for(int i=0; i<db_->nbody(); ++i)
     {
-        const std::string b = name_ + "_" + (db_->body[i].name.empty() ? std::to_string(i + 1) : db_->body[i].name);
+        const std::string b = name_ + "_" + (db_->body[i].name.empty() ? std::to_string(i+1) : db_->body[i].name);
         for(const char *part : {"exc", "rad", "hs"})
-            for(int d = 0; d < 6; ++d)
+            for(int d=0; d<6; ++d)
                 c.push_back(b + "_" + part + "_" + dof[d]);
     }
 }
@@ -286,10 +284,10 @@ void hydro_load::channel_names(std::vector<std::string> &c) const
 void hydro_load::channel_values(const model &m, double t, std::vector<double> &v) const
 {
     const VecX fe = excitation_force(t), fr = radiation_force(m, t), fh = hydrostatic_force(m);
-    for(int i = 0; i < db_->nbody(); ++i)
+    for(int i=0; i<db_->nbody(); ++i)
         for(const VecX *F : {&fe, &fr, &fh})
-            for(int d = 0; d < 6; ++d)
-                v.push_back((*F)(6 * i + d));
+            for(int d=0; d<6; ++d)
+                v.push_back((*F)(6*i+d));
 }
 
 // restart from a checkpoint: the radiation memory (velocity history or the states of the state-space
@@ -298,10 +296,8 @@ void hydro_load::save_state(std::vector<double> &v) const
 {
     state_out o{v};
     o.vd(th_);
-    o.list(vh_, [&](const VecX &x)
-           { o.m(x); });
-    o.list(xs_, [&](const Eigen::VectorXcd &x)
-           { o.cx(x); });
+    o.list(vh_, [&](const VecX &x){o.m(x);});
+    o.list(xs_, [&](const Eigen::VectorXcd &x){o.cx(x);});
     o.m(v_last_);
     o.d(t_last_);
     o.b(started_);
@@ -311,10 +307,8 @@ bool hydro_load::load_state(const std::vector<double> &v, size_t &k)
 {
     state_in in{v, k};
     in.vd(th_);
-    in.list(vh_, [&](VecX &x)
-            { in.m(x); });
-    in.list(xs_, [&](Eigen::VectorXcd &x)
-            { in.cx(x); });
+    in.list(vh_, [&](VecX &x){in.m(x);});
+    in.list(xs_, [&](Eigen::VectorXcd &x){in.cx(x);});
     in.m(v_last_);
     in.d(t_last_);
     in.b(started_);
@@ -324,4 +318,4 @@ bool hydro_load::load_state(const std::vector<double> &v, size_t &k)
     return in.ok;
 }
 
-}  // namespace coral
+}

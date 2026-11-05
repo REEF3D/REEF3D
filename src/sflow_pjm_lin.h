@@ -23,8 +23,8 @@ Author: Hans Bihs
 #ifndef SFLOW_PJM_LIN_H_
 #define SFLOW_PJM_LIN_H_
 
-#include "increment.h"
-#include "sflow_pressure_nh.h"
+#include"sflow_pressure_nh.h"
+#include"increment.h"
 
 using namespace std;
 
@@ -39,40 +39,36 @@ using namespace std;
 class sflow_pjm_lin final : public sflow_pressure_nh, public increment
 {
 public:
-    sflow_pjm_lin(lexer *, fdm2D *, patchBC_interface *);
-    virtual ~sflow_pjm_lin();
+    sflow_pjm_lin(lexer*, fdm2D*,patchBC_interface*);
+	virtual ~sflow_pjm_lin();
 
-    void start(lexer *, fdm2D *, ghostcell *, solver2D *, ioflow *, slice &, slice &, slice &, slice &, slice &, slice &, double) override final;
-    void upgrad(lexer *, fdm2D *, slice &) override final;
-    void vpgrad(lexer *, fdm2D *, slice &) override final;
-    void wpgrad(lexer *, fdm2D *, slice &) override final;
-
+	void start(lexer*, fdm2D*, ghostcell*, solver2D*, ioflow*, slice&, slice&, slice&, slice&, slice&, slice&, double) override final;
+	void upgrad(lexer*, fdm2D*, slice&) override final;
+	void vpgrad(lexer*, fdm2D*, slice&) override final;
+    void wpgrad(lexer*, fdm2D*, slice&) override final;
+    
     // mesh refinement (sflow_amr): the level-0 instance hands the solve to the composite
     // solver; the patch instances assemble their rows and apply the correction
-    void assemble(lexer *, fdm2D *, ghostcell *, slice &, slice &, slice &, slice &, slice &, double) override final;
-    void correct(lexer *, fdm2D *, slice &, slice &, slice &, slice &, double) override final;
-    int is_active(lexer *, fdm2D *, int, int) override final;
-    int gcval() const override final { return gcval_press; }
-    void coef(double &cbq, double &cwq) const override final
-    {
-        cbq = cb;
-        cwq = cb;
-    }
+    void assemble(lexer*, fdm2D*, ghostcell*, slice&, slice&, slice&, slice&, slice&, double) override final;
+    void correct(lexer*, fdm2D*, slice&, slice&, slice&, slice&, double) override final;
+    int is_active(lexer*, fdm2D*, int, int) override final;
+    int gcval() const override final {return gcval_press;}
+    void coef(double &cbq, double &cwq) const override final {cbq=cb; cwq=cb;}
 
 private:
-    void rhs(lexer *, fdm2D *, slice &, double);
-    void poisson(lexer *, fdm2D *, slice &, double);
-    void ucorr(lexer *, fdm2D *, slice &, slice &, double);
-    void vcorr(lexer *, fdm2D *, slice &, slice &, double);
-    void wcorr(lexer *, fdm2D *, slice &, slice &, double);
-    int active(lexer *, fdm2D *);
-    void grad_q(lexer *, fdm2D *, slice &, double &, double &);
-
-    double starttime;
+    void rhs(lexer*, fdm2D*, slice&, double);
+    void poisson(lexer*, fdm2D*, slice&, double);
+    void ucorr(lexer*, fdm2D*, slice&, slice&, double);
+	void vcorr(lexer*, fdm2D*, slice&, slice&, double);
+	void wcorr(lexer*, fdm2D*, slice&, slice&, double);
+    int active(lexer*, fdm2D*);
+    void grad_q(lexer*, fdm2D*, slice&, double&, double&);
+    
+	double starttime;
     int gcval_press;
-    double solvtime, ptime;
+	double solvtime,ptime;
     const double cb;
-
+    
     patchBC_interface *pBC;
 };
 

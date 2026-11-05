@@ -20,60 +20,63 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Tobias Martin
 --------------------------------------------------------------------*/
 
-#include "6DOF_obj.h"
-#include "6DOF_obj_cfd.h"
-#include "ghostcell.h"
-#include "lexer.h"
-#include "momentum.h"
-#include <sys/stat.h>
-
+#include"6DOF_obj.h"
+#include"6DOF_obj_cfd.h"
+#include"lexer.h"
+#include"momentum.h"
+#include"ghostcell.h"
+#include<sys/stat.h>
+  
 void sixdof_obj::ini_fbvel(lexer *p, ghostcell *pgc)
 {
     // external velocity
-    Uext = Vext = Wext = Pext = Qext = Rext = 0.0;
+      Uext = Vext = Wext = Pext = Qext = Rext = 0.0; 
 
     // Rigid body motion ini: state, derivatives, history, angles and loads
     rb.reset();
-
-    for(int qn = 0; qn < p->X102; ++qn)
+    
+    for(int qn=0;qn<p->X102;++qn)
     {
-        p_(0) += p->X102_u[qn] * Mass_fb;
-        p_(1) += p->X102_v[qn] * Mass_fb;
-        p_(2) += p->X102_w[qn] * Mass_fb;
+            p_(0) += p->X102_u[qn]*Mass_fb;
+            p_(1) += p->X102_v[qn]*Mass_fb;
+            p_(2) += p->X102_w[qn]*Mass_fb;
     }
-
+    
     // initial angular velocity (X 103): set in iniPosition_RBM, once the inertia tensor is known
-
+    
+	
     // Velocities
-    p->ufb = p->vfb = p->wfb = 0.0;
-    p->pfb = p->qfb = p->rfb = 0.0;
-    p->ufbi = p->vfbi = p->wfbi = 0.0;
-    p->pfbi = p->qfbi = p->rfbi = 0.0;
-
-    if(p->X210 == 1)
-    {
-        p->ufbi = p->X210_u * ramp_vel(p);
-        p->vfbi = p->X210_v * ramp_vel(p);
-        p->wfbi = p->X210_w * ramp_vel(p);
-    }
-
-    if(p->X211 == 1)
-    {
+	p->ufb = p->vfb = p->wfb = 0.0;
+	p->pfb = p->qfb = p->rfb = 0.0; 
+	p->ufbi = p->vfbi = p->wfbi = 0.0;
+	p->pfbi = p->qfbi = p->rfbi = 0.0; 
+    
+	if(p->X210==1)
+	{
+        p->ufbi = p->X210_u*ramp_vel(p);
+        p->vfbi = p->X210_v*ramp_vel(p);
+        p->wfbi = p->X210_w*ramp_vel(p);
+	}
+	
+	if(p->X211==1)
+	{
         p->pfbi = p->X211_p;
         p->qfbi = p->X211_q;
         p->rfbi = p->X211_r;
-    }
+	}
 
     // Forces
     Xext = Yext = Zext = Kext = Mext = Next = 0.0;
-
+    
     // Printing
-    printtime = 0.0;
+	printtime = 0.0;
     printtimenormal = 0.0;
     p->printcount_sixdof = 0;
 }
 
 void sixdof_obj_cfd::ini_parameter_stl(lexer *p, fdm *a, ghostcell *pgc)
 {
+    
+    
 }
 

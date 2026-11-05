@@ -23,81 +23,83 @@ Author: Tobias Martin
 #ifndef MOORING_DYN_H_
 #define MOORING_DYN_H_
 
-#include "beam.h"
-#include "field1.h"
-#include "field2.h"
-#include "field3.h"
-#include "field4.h"
-#include "field5.h"
-#include "fieldint5.h"
-#include "mooring.h"
-#include "mooring_Catenary.h"
-#include "vec.h"
+#include"mooring.h"
+#include"beam.h"
+#include"mooring_Catenary.h"
+#include"field1.h"
+#include"field2.h"
+#include"field3.h"
+#include"field4.h"
+#include"field5.h"
+#include"fieldint5.h"
+#include"vec.h"
+#include<fstream>
+#include<iostream>
+#include<vector>
 #include <Eigen/Dense>
-#include <fstream>
-#include <iostream>
-#include <vector>
 
 using namespace std;
 
 class mooring_dynamic final : public mooring, public beam
 {
 public:
+	
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
 
     mooring_dynamic(int);
-    virtual ~mooring_dynamic();
-
-    void start(lexer *, ghostcell *) override final;
-    void initialize(lexer *, ghostcell *) override final;
-    void mooringForces(double &, double &, double &) override final;
+	virtual ~mooring_dynamic();
+	
+	void start(lexer*, ghostcell*) override final;
+	void initialize(lexer*, ghostcell*) override final;
+	void mooringForces(double&, double&, double&) override final;
     // checkpoints (P 48, I 45): the beam, the line at the last step, the mooring time, broken
-    void ckpt_state(std::vector<double> &) const override;
-    void ckpt_restore(const std::vector<double> &, size_t &) override;
-
-    void setConstantLoads(Matrix3Xd &, Matrix4Xd &, const Matrix3Xd &, const Matrix3Xd &, const Matrix4Xd &, const Matrix4Xd &) override final;
-    void setFieldBC(Matrix3Xd &, Matrix3Xd &, Matrix4Xd &, Matrix4Xd &, Matrix4Xd &, Matrix3Xd &, Matrix4Xd &, Matrix3Xd &, double, int) override final;
-
+    void ckpt_state(std::vector<double>&) const override;
+    void ckpt_restore(const std::vector<double>&, size_t&) override;
+    
+    void setConstantLoads(Matrix3Xd&, Matrix4Xd&, const Matrix3Xd&, const Matrix3Xd&, const Matrix4Xd&, const Matrix4Xd&) override final;
+    void setFieldBC(Matrix3Xd&, Matrix3Xd&, Matrix4Xd&, Matrix4Xd&, Matrix4Xd&, Matrix3Xd&, Matrix4Xd&, Matrix3Xd&, double, int) override final;
+    
 private:
-    // Initialisation
-    void ini_parallel(lexer *, ghostcell *);
 
-    // Runtime
-    void updateFields(lexer *, ghostcell *);
-    void updateFluidVel(lexer *, ghostcell *, int);
-    void saveMooringPoint(lexer *);
+	// Initialisation
+	void ini_parallel(lexer*, ghostcell*);
 
-    // ------
+	// Runtime
+    void updateFields(lexer*, ghostcell*);
+    void updateFluidVel(lexer*, ghostcell*, int);
+    void saveMooringPoint(lexer*);
 
-    // Parallelisation
-    int line;
-    double *xstart, *xend, *ystart, *yend, *zstart, *zend;
+	// ------ 
+	
+	// Parallelisation
+	int line;
+	double *xstart, *xend, *ystart, *yend, *zstart, *zend;
+	
+	// Material
+	double gamma, A, E, G, L, rho_c, d_c;
 
-    // Material
-    double gamma, A, E, G, L, rho_c, d_c;
-
-    // Environment
-    double rho_w, grav, z_bed;
-
-    // Mesh
+	// Environment
+	double rho_w, grav, z_bed;
+	
+	// Mesh
     int Ne;
 
     // Fields
     Matrix3Xd c_moor, c_moor_n, cdot_moor, cdot_moor_n, cdotdot_moor;
-    vector<vector<double>> fluid_vel, fluid_vel_n, fluid_acc;
+    vector<vector<double> > fluid_vel, fluid_vel_n, fluid_acc;
 
     // Forces
-    double Xme_, Yme_, Zme_;
-
+	double Xme_, Yme_, Zme_;
+	
     // Time control
-    double phi_mooring, t_mooring_n, t_mooring;
+	double phi_mooring, t_mooring_n, t_mooring;
 
     // Boundary conditions
     Eigen::Vector3d fixPoint, a_O;
 
-    // Print
-    ofstream eTout;
-
+	// Print
+	ofstream eTout;
+    
     // Breaking
     bool broken;
     double breakTension, breakTime;

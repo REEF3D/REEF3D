@@ -23,11 +23,11 @@ Architect: Hans Bihs
 #ifndef MET_SOURCE_H_
 #define MET_SOURCE_H_
 
-#include "met_file.h"
-#include "met_frame.h"
-#include "met_vortex.h"
-#include <cmath>
-#include <string>
+#include"met_file.h"
+#include"met_frame.h"
+#include"met_vortex.h"
+#include<cmath>
+#include<string>
 
 /*--------------------------------------------------------------------
 REEF3D atmospheric forcing (W 200): sources of the wind and the air
@@ -51,7 +51,7 @@ public:
     virtual ~met_source() = default;
 
     // time t is coming: read what is needed
-    virtual bool advance(double t, std::string &error) { return true; }
+    virtual bool advance(double t, std::string &error) {return true;}
 
     // values at (x,y) and the time of the last advance
     virtual void at(double t, double x, double y, double &u, double &v, double &pa) const = 0;
@@ -60,7 +60,7 @@ public:
     virtual void window(double xs, double xe, double ys, double ye) {}
 
     // first time of the source [s since 1970], -1: none (uniform in time)
-    virtual double first_time() const { return -1.0; }
+    virtual double first_time() const {return -1.0;}
 };
 
 class met_source_uniform final : public met_source
@@ -69,16 +69,16 @@ public:
     // U10 [m/s], dir [deg] counter-clockwise from the model x axis, the direction the wind blows to
     met_source_uniform(double U10, double dir, double pa_) : pa0(pa_)
     {
-        const double a = dir * 3.14159265358979323846 / 180.0;
-        u0 = U10 * std::cos(a);
-        v0 = U10 * std::sin(a);
+    const double a = dir*3.14159265358979323846/180.0;
+    u0 = U10*std::cos(a);
+    v0 = U10*std::sin(a);
     }
 
     void at(double t, double x, double y, double &u, double &v, double &pa) const override
     {
-        u = u0;
-        v = v0;
-        pa = pa0;
+    u = u0;
+    v = v0;
+    pa = pa0;
     }
 
 private:
@@ -88,18 +88,16 @@ private:
 class met_source_file final : public met_source
 {
 public:
-    bool open(const std::string &file, std::string &error) { return f.open(file, error); }
+    bool open(const std::string &file, std::string &error) {return f.open(file,error);}
 
-    bool advance(double t, std::string &error) override { return f.advance(t, error); }
+    bool advance(double t, std::string &error) override {return f.advance(t,error);}
 
     void at(double t, double x, double y, double &u, double &v, double &pa) const override
-    {
-        f.at(t, x, y, u, v, pa);
-    }
+    {f.at(t,x,y,u,v,pa);}
 
-    void window(double xs, double xe, double ys, double ye) override { f.window(xs, xe, ys, ye); }
+    void window(double xs, double xe, double ys, double ye) override {f.window(xs,xe,ys,ye);}
 
-    double first_time() const override { return f.time(0); }
+    double first_time() const override {return f.time(0);}
 
     met_file f;
 };
@@ -109,21 +107,21 @@ class met_source_vortex final : public met_source
 public:
     met_source_vortex(const met_frame &fr) : frame(fr) {}
 
-    bool open(const std::string &file, std::string &error) { return v.open(file, error); }
+    bool open(const std::string &file, std::string &error) {return v.open(file,error);}
 
     void at(double t, double x, double y, double &u, double &v_, double &pa) const override
     {
-        double lon, lat, ue, vn;
-        frame.to_geo(x, y, lon, lat);
-        v.at(t, lon, lat, ue, vn, pa);
+    double lon, lat, ue, vn;
+    frame.to_geo(x,y,lon,lat);
+    v.at(t,lon,lat,ue,vn,pa);
 
-        // true north at angle chi from the model x axis, east at chi - 90 deg
-        const double chi = frame.north_geo(lon, lat);
-        u = ue * std::sin(chi) + vn * std::cos(chi);
-        v_ = -ue * std::cos(chi) + vn * std::sin(chi);
+    // true north at angle chi from the model x axis, east at chi - 90 deg
+    const double chi = frame.north_geo(lon,lat);
+    u  = ue*std::sin(chi) + vn*std::cos(chi);
+    v_ = -ue*std::cos(chi) + vn*std::sin(chi);
     }
 
-    double first_time() const override { return v.rec.front().t; }
+    double first_time() const override {return v.rec.front().t;}
 
     met_frame frame;
     met_vortex v;

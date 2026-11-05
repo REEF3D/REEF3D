@@ -29,8 +29,9 @@ class slice;
 class fnpf_ddx
 {
 public:
-    virtual double sxx(lexer *, slice &) = 0;
-    virtual double syy(lexer *, slice &) = 0;
+
+    virtual double sxx(lexer*, slice&)=0;
+    virtual double syy(lexer*, slice&)=0;
 };
 
 #endif

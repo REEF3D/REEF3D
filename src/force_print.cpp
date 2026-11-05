@@ -20,49 +20,53 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "fdm.h"
-#include "force.h"
-#include "ghostcell.h"
-#include "lexer.h"
-#include "reefckpt.h"
-#include <sys/stat.h>
-#include <sys/types.h>
+#include"force.h"
+#include"lexer.h"
+#include"fdm.h"
+#include"ghostcell.h"
+#include<sys/stat.h>
+#include<sys/types.h>
+#include"reefckpt.h"
 
-void force::print_force(lexer *p, fdm *a, ghostcell *pgc)
+void force::print_force(lexer* p, fdm *a, ghostcell *pgc)
 {
     // write to surf file
 
-    fout << p->count << "\t";
-    fout << setprecision(9) << p->simtime << "\t";
-    fout << Fx << " \t ";
-    fout << Fy << " \t ";
-    fout << Fz;
+    fout<<p->count<<"\t";
+    fout<<setprecision(9)<<p->simtime<<"\t";
+    fout<<Fx<<" \t ";
+    fout<<Fy<<" \t ";
+	fout<<Fz;
+    
 
-    fout << endl;
+    fout<<endl;
 }
 
-void force::print_ini(lexer *p, fdm *a, ghostcell *pgc)
+void force::print_ini(lexer* p, fdm *a, ghostcell *pgc)
 {
     // Create Folder
-    if(p->mpirank == 0)
-        mkdir("./REEF3D_CFD_Force", 0777);
-
-    if(p->mpirank == 0)
+	if(p->mpirank==0)
+	mkdir("./REEF3D_CFD_Force",0777);
+	
+    if(p->mpirank==0)
     {
-        // open force surf file
-        sprintf(name, "./REEF3D_CFD_Force/REEF3D_CFD_Force-%i.dat", ID + 1);
+    // open force surf file
+	sprintf(name,"./REEF3D_CFD_Force/REEF3D_CFD_Force-%i.dat",ID+1);
+	
+	if(reefckpt_open(fout,name,p->I45))   // I 45: continued
+    {
+    fout<<"x_start xend     y_start y_end     z_start z_end"<<endl;
 
-        if(reefckpt_open(fout, name, p->I45))  // I 45: continued
-        {
-            fout << "x_start xend     y_start y_end     z_start z_end" << endl;
+    fout<<p->P81_xs[ID]<<" "<<p->P81_xe[ID]<<" . "<<p->P81_ys[ID]<<" "<<p->P81_ye[ID]<<" . "<<p->P81_zs[ID]<<" "<<p->P81_ze[ID]<<endl;
+    fout<<endl<<endl;
+    
+ 
+    fout<<"it \t time \t Fx \t Fy \t Fz ";
+    
 
-            fout << p->P81_xs[ID] << " " << p->P81_xe[ID] << " . " << p->P81_ys[ID] << " " << p->P81_ye[ID] << " . " << p->P81_zs[ID] << " " << p->P81_ze[ID] << endl;
-            fout << endl
-                 << endl;
-
-            fout << "it \t time \t Fx \t Fy \t Fz ";
-
-            fout << endl;
-        }
+    fout<<endl;
     }
+	}
+
+    
 }

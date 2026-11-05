@@ -23,11 +23,11 @@ Architect: Hans Bihs
 #ifndef SFLOW_PRINT_MAX_H_
 #define SFLOW_PRINT_MAX_H_
 
-#include "increment.h"
-#include "lexer.h"
-#include "vtp3D.h"
-#include <fstream>
-#include <functional>
+#include"increment.h"
+#include"vtp3D.h"
+#include"lexer.h"
+#include<functional>
+#include<fstream>
 
 class fdm2D;
 class ghostcell;
@@ -73,29 +73,29 @@ them on, on any decomposition.
 class sflow_print_max : public increment, private vtp3D
 {
 public:
-    sflow_print_max(lexer *, fdm2D *, ghostcell *);
+    sflow_print_max(lexer*, fdm2D*, ghostcell*);
     virtual ~sflow_print_max();
 
-    static bool active(lexer *p) { return p->P112 > 0 || p->P115 > 0; }
+    static bool active(lexer *p) {return p->P112>0 || p->P115>0;}
 
     // every time step, after it (simtime at its end)
-    void update(lexer *, fdm2D *, ghostcell *);
+    void update(lexer*, fdm2D*, ghostcell*);
 
     // the VTP files and the point table
-    void write(lexer *, fdm2D *, ghostcell *);
+    void write(lexer*, fdm2D*, ghostcell*);
 
-    void ckpt_fields(const std::function<void(const char *, char, double *)> &, const std::function<void(const char *, char, int *)> &);
+    void ckpt_fields(const std::function<void(const char*, char, double*)>&, const std::function<void(const char*, char, int*)>&);
 
 private:
-    void start_window(lexer *, fdm2D *, ghostcell *);
-    void cellvalues(lexer *, fdm2D *, int, double *);
-    void write_vtp(lexer *, fdm2D *, ghostcell *);
-    void write_pvtp(lexer *);
-    void write_points(lexer *, fdm2D *, ghostcell *);
-    bool wet(lexer *, fdm2D *);
+    void start_window(lexer*, fdm2D*, ghostcell*);
+    void cellvalues(lexer*, fdm2D*, int, double*);
+    void write_vtp(lexer*, fdm2D*, ghostcell*);
+    void write_pvtp(lexer*);
+    void write_points(lexer*, fdm2D*, ghostcell*);
+    bool wet(lexer*, fdm2D*);
 
     static const int nfield = 10;
-    int nout;  // fields written (8, + wind, + pressure)
+    int nout;                   // fields written (8, + wind, + pressure)
     const char *fname[nfield];
 
     // the state: max_eta, time_max_eta, max_depth, max_speed, time_max_speed, flood_duration,
@@ -105,7 +105,7 @@ private:
 
     bool started = false, checked = false;
     bool has_wind = false, has_pressure = false;
-    int *ploc;  // P 115: the point is in a fluid cell of this rank
+    int *ploc;                  // P 115: the point is in a fluid cell of this rank
     char name[250];
 };
 

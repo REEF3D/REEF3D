@@ -35,55 +35,52 @@ Architect: Hans Bihs
 #ifndef CORAL_DRIVETRAIN_H_
 #define CORAL_DRIVETRAIN_H_
 
-#include "coral/core/coral_load.h"
-#include <string>
+#include"coral/core/coral_load.h"
+#include<string>
 
-namespace coral {
-class joint;
-
-enum class generator_law { none,
-                           constant,
-                           slip,
-                           k_omega2,
-                           command };
-
-struct drivetrain_settings
+namespace coral
 {
-    double N = 1.0;           // gearbox ratio (high-speed / low-speed shaft)
-    double k = 0.0, c = 0.0;  // torsion of the low-speed shaft (flexible drivetrain only)
-    generator_law law = generator_law::none;
-    double T = 0.0;                        // constant torque, or the cap of k_omega2 (0: none)
-    double slope = 0.0, omega_sync = 0.0;  // slip: N m s / rad and rad/s on the high-speed shaft
-    double K = 0.0;                        // k_omega2 [N m s^2 / rad^2]
-    double eta = 1.0;                      // generator efficiency
-};
+    class joint;
 
-class drivetrain : public load
-{
-public:
-    // gen: the generator's joint (nacelle -> generator body) of a flexible drivetrain, or nullptr (rigid)
-    drivetrain(const joint &shaft, const joint *gen, const drivetrain_settings &, const std::string &name = "drivetrain");
+    enum class generator_law {none, constant, slip, k_omega2, command};
 
-    std::string name() const override { return name_; }
-    coupling_kind coupling() const override { return coupling_kind::local; }
-    void coupled_bodies(std::vector<int> &) const override;
-    void eval(const model &, double t, VecX &f) const override;
-    void channel_names(std::vector<std::string> &) const override;
-    void channel_values(const model &, double t, std::vector<double> &) const override;
+    struct drivetrain_settings
+    {
+        double N = 1.0;                  // gearbox ratio (high-speed / low-speed shaft)
+        double k = 0.0, c = 0.0;         // torsion of the low-speed shaft (flexible drivetrain only)
+        generator_law law = generator_law::none;
+        double T = 0.0;                  // constant torque, or the cap of k_omega2 (0: none)
+        double slope = 0.0, omega_sync = 0.0;   // slip: N m s / rad and rad/s on the high-speed shaft
+        double K = 0.0;                  // k_omega2 [N m s^2 / rad^2]
+        double eta = 1.0;                // generator efficiency
+    };
 
-    double omega_rotor(const model &) const;  // rad/s, hub relative to the nacelle
-    double omega_hss(const model &) const;    // rad/s, generator side times N
-    double generator_torque(const model &) const;
-    double shaft_torque(const model &) const;
-    void set_torque_command(double T) { cmd_ = T; }
+    class drivetrain : public load
+    {
+    public:
+        // gen: the generator's joint (nacelle -> generator body) of a flexible drivetrain, or nullptr (rigid)
+        drivetrain(const joint &shaft, const joint *gen, const drivetrain_settings&, const std::string &name="drivetrain");
 
-    drivetrain_settings settings;
+        std::string name() const override {return name_;}
+        coupling_kind coupling() const override {return coupling_kind::local;}
+        void coupled_bodies(std::vector<int>&) const override;
+        void eval(const model&, double t, VecX &f) const override;
+        void channel_names(std::vector<std::string>&) const override;
+        void channel_values(const model&, double t, std::vector<double>&) const override;
 
-private:
-    std::string name_;
-    const joint *shaft_, *gen_;
-    double cmd_ = 0.0;
-};
-}  // namespace coral
+        double omega_rotor(const model&) const;     // rad/s, hub relative to the nacelle
+        double omega_hss(const model&) const;       // rad/s, generator side times N
+        double generator_torque(const model&) const;
+        double shaft_torque(const model&) const;
+        void set_torque_command(double T) {cmd_ = T;}
+
+        drivetrain_settings settings;
+
+    private:
+        std::string name_;
+        const joint *shaft_, *gen_;
+        double cmd_ = 0.0;
+    };
+}
 
 #endif

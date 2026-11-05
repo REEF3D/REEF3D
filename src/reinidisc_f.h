@@ -23,34 +23,34 @@ Author: Hans Bihs
 #ifndef REINIDISC_F_H_
 #define REINIDISC_F_H_
 
-#include "ddweno_nug.h"
-#include "field.h"
-#include "reinidisc.h"
+#include"reinidisc.h"
+#include"ddweno_nug.h"
+#include"field.h"
 
 using namespace std;
 
 class reinidisc_f final : public reinidisc, public ddweno_nug
 {
 public:
-    reinidisc_f(lexer *p, bool fixed_interface = false);
-    virtual ~reinidisc_f();
-    void start(lexer *, fdm *, ghostcell *, field &, field &, int) override final;
-    // the fluid cells (flag4 > 0) of the box b = is, ie, js, je, ks, ke only; L elsewhere untouched
-    void start_box(lexer *, fdm *, ghostcell *, field &, field &, const int *);
-
+	reinidisc_f(lexer* p, bool fixed_interface=false);
+	virtual ~reinidisc_f();
+	void start(lexer*, fdm*, ghostcell*, field&, field&, int) override final;
+	// the fluid cells (flag4 > 0) of the box b = is, ie, js, je, ks, ke only; L elsewhere untouched
+	void start_box(lexer*, fdm*, ghostcell*, field&, field&, const int*);
+	
 private:
-    void disc(lexer *, fdm *, ghostcell *, field &, field &);
-
-    double xmin, xplus, ymin, yplus, zmin, zplus;
-    double dxmin, dxplus, dymin, dyplus, dzmin, dzplus;
-    double uwx, uwy, uwz, ddt;
-    double lsv, dv, lsSig;
-
-    double dx, dy, dz, dnorm, sign;
-    double sx, sy, sz, snorm, op;
-
-    double deltax, denom;
-
+	void disc(lexer*, fdm*, ghostcell*, field&, field&);
+	
+	double xmin,xplus,ymin,yplus,zmin,zplus;
+	double dxmin,dxplus,dymin,dyplus,dzmin,dzplus;
+	double uwx,uwy,uwz,ddt;
+	double lsv,dv,lsSig;
+	
+	double dx, dy, dz, dnorm, sign;
+	double sx,sy,sz,snorm,op;
+	
+	double deltax,denom;
+    
     const bool fixed_interface;
 };
 

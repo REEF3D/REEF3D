@@ -20,28 +20,30 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "fdm.h"
-#include "ghostcell.h"
-#include "iowave.h"
-#include "lexer.h"
-#include <fstream>
+#include"iowave.h"
+#include"lexer.h"
+#include"fdm.h"
+#include"ghostcell.h"
+#include<fstream>
 
-double iowave::hydrograph_ipol(lexer *p, ghostcell *pgc, double **hydro, int hydrocount)
+
+double iowave::hydrograph_ipol(lexer *p, ghostcell* pgc, double ** hydro, int hydrocount)
 {
-    // before the first time of the series: its first value (was unset after the first step)
-    double val = hydro[0][1];
-
-    for(n = 0; n < hydrocount - 1; ++n)
-        if(p->simtime >= hydro[n][0] && p->simtime < hydro[n + 1][0])
-        {
-            val = ((hydro[n + 1][1] - hydro[n][1]) / (hydro[n + 1][0] - hydro[n][0])) * (p->simtime - hydro[n][0]) + hydro[n][1];
-        }
-
-    if(p->count == 0)
-        val = hydro[0][1];
-
-    if(p->simtime >= hydro[hydrocount - 1][0])
-        val = hydro[hydrocount - 1][1];
-
-    return val;
+	// before the first time of the series: its first value (was unset after the first step)
+	double val = hydro[0][1];
+    
+    for(n=0;n<hydrocount-1;++n)
+    if(p->simtime>=hydro[n][0] && p->simtime<hydro[n+1][0])
+	{
+    val = ((hydro[n+1][1]-hydro[n][1])/(hydro[n+1][0]-hydro[n][0]))*(p->simtime-hydro[n][0]) + hydro[n][1];
+	}
+    
+    if(p->count==0 )
+    val = hydro[0][1];
+	
+	if(p->simtime>=hydro[hydrocount-1][0])
+	val=hydro[hydrocount-1][1];
+	
+	return val;
+	
 }

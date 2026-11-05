@@ -20,16 +20,16 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "fdm_fnpf.h"
-#include "ghostcell.h"
-#include "iowave.h"
-#include "lexer.h"
-
+#include"iowave.h"
+#include"lexer.h"
+#include"ghostcell.h"
+#include"fdm_fnpf.h"
+ 
 void iowave::inflow_fnpf(lexer *p, fdm_fnpf *c, ghostcell *pgc, double *Fi, double *Uin, slice &Fifsf, slice &eta)
 {
-    if(p->B98 == 3 || p->B98 == 4)
-        dirichlet_wavegen_fnpf(p, c, pgc, Fi, Uin, Fifsf, eta);
-
-    if(p->B99 == 3 || p->B99 == 4 || p->B99 == 5 || p->B99 == 7)
-        active_beach_fnpf(p, c, pgc, Fi, Uin, Fifsf, eta);
+    if(p->B98==3 || p->B98==4)
+	dirichlet_wavegen_fnpf(p,c,pgc,Fi,Uin,Fifsf,eta);
+    
+    if(p->B99==3||p->B99==4||p->B99==5||p->B99==7)
+	active_beach_fnpf(p,c,pgc,Fi,Uin,Fifsf,eta);
 }

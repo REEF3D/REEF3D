@@ -20,31 +20,32 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "coral/reef3d/coral_reef3d.h"
-#include "coral/core/coral_version.h"
-#include "coral/hydro/coral_member_morison.h"
-#include "coral/hydro/coral_morison.h"
-#include "coral/io/coral_coupling.h"
-#include "coral/io/coral_input.h"
-#include "coral/mooring/coral_mooring.h"
-#include "coral/reef3d/coral_fluid_sampler.h"
-#include "ghostcell.h"
-#include "lagoon_store.h"
-#include "lexer.h"
-#include "reefckpt.h"
-#include "runlog.h"
-#include <algorithm>
-#include <cmath>
-#include <fstream>
-#include <iostream>
-#include <limits>
-#include <mpi.h>
-#include <sstream>
-#include <stdexcept>
-#include <sys/stat.h>
+#include"coral/reef3d/coral_reef3d.h"
+#include"coral/reef3d/coral_fluid_sampler.h"
+#include"coral/io/coral_coupling.h"
+#include"coral/io/coral_input.h"
+#include"coral/core/coral_version.h"
+#include"coral/mooring/coral_mooring.h"
+#include"coral/hydro/coral_morison.h"
+#include"coral/hydro/coral_member_morison.h"
+#include"lexer.h"
+#include"reefckpt.h"
+#include"ghostcell.h"
+#include"lagoon_store.h"
+#include"runlog.h"
+#include<mpi.h>
+#include<algorithm>
+#include<cmath>
+#include<limits>
+#include<fstream>
+#include<iostream>
+#include<sstream>
+#include<stdexcept>
+#include<sys/stat.h>
 
-namespace {
-std::ostream nullout(nullptr);  // messages of the ranks other than 0
+namespace
+{
+    std::ostream nullout(nullptr);      // messages of the ranks other than 0
 }
 
 coral_reef3d::coral_reef3d(lexer *p, ghostcell *pgc) : p_(p), pgc_(pgc)
@@ -52,7 +53,7 @@ coral_reef3d::coral_reef3d(lexer *p, ghostcell *pgc) : p_(p), pgc_(pgc)
     // rank 0 reads coral.txt, all ranks build the same model
     std::string text;
     int ok = 1;
-    if(p->mpirank == 0)
+    if(p->mpirank==0)
     {
         std::ifstream in("coral.txt");
         if(!in)
@@ -82,54 +83,54 @@ coral_reef3d::coral_reef3d(lexer *p, ghostcell *pgc) : p_(p), pgc_(pgc)
     {
         fail(e.what());
     }
-    std::ostream &log = p->mpirank == 0 ? std::cout : nullout;
-    cp_ = std::make_unique<coral::coupling>(*case_, log, p->mpirank == 0);
-    log << coral::banner() << ": " << case_->m.nbody() << " bodies, " << case_->m.ncon() << " constraint equations, "
-        << case_->m.load_list.size() << " loads, max. step " << case_->run.dt << " s" << std::endl;
+    std::ostream &log = p->mpirank==0 ? std::cout : nullout;
+    cp_ = std::make_unique<coral::coupling>(*case_, log, p->mpirank==0);
+    log<<coral::banner()<<": "<<case_->m.nbody()<<" bodies, "<<case_->m.ncon()<<" constraint equations, "
+       <<case_->m.load_list.size()<<" loads, max. step "<<case_->run.dt<<" s"<<std::endl;
     // fluid bodies and members: CORAL is the external dynamics of the 6DOF bodies of the fluid solver
     if(case_->fluid || !case_->fluid_members.empty())
     {
         sixdof_external::attach(this);
         if(case_->fluid)
         {
-            log << "CORAL: " << case_->fluid_bodies.size() << " fluid bod" << (case_->fluid_bodies.size() > 1 ? "ies" : "y") << " (6DOF bodies";
+            log<<"CORAL: "<<case_->fluid_bodies.size()<<" fluid bod"<<(case_->fluid_bodies.size()>1 ? "ies" : "y")<<" (6DOF bodies";
             for(const auto &fb : case_->fluid_bodies)
-                log << " " << fb.n << " = " << case_->m.body(fb.body).name << (fb.one_way ? " one-way" : "");
-            log << "), loads of order " << case_->fluid_order << (case_->fluid_predictor ? ", predictor" : "") << std::endl;
+                log<<" "<<fb.n<<" = "<<case_->m.body(fb.body).name<<(fb.one_way ? " one-way" : "");
+            log<<"), loads of order "<<case_->fluid_order<<(case_->fluid_predictor ? ", predictor" : "")<<std::endl;
         }
         if(case_->run.static_ini)
-            log << "CORAL: static equilibrium with fluid bodies: the fluid loads are not known yet (zero)" << std::endl;
+            log<<"CORAL: static equilibrium with fluid bodies: the fluid loads are not known yet (zero)"<<std::endl;
         // the still water level: CORAL's dynamic mooring lines and Morison members take z = 0 of CORAL's frame
         // (or the waves of coral.txt) unless they sample the resolved fluid (fluid_kinematics)
-        if(p->F60_flag == 1 && !case_->fluid_kin)
+        if(p->F60_flag==1 && !case_->fluid_kin)
         {
             bool water = false;
             for(const auto &l : case_->m.load_list)
-                if(dynamic_cast<const coral::mooring_system *>(l.get()) || dynamic_cast<const coral::morison_load *>(l.get()) || dynamic_cast<const coral::member_morison *>(l.get()))
+                if(dynamic_cast<const coral::mooring_system*>(l.get()) || dynamic_cast<const coral::morison_load*>(l.get())
+                   || dynamic_cast<const coral::member_morison*>(l.get()))
                     water = true;
             const double swl = p->F60 - case_->fluid_origin(2);
-            if(water && std::fabs(swl) > 1.0e-6 * std::max(1.0, std::fabs(p->F60)))
-                log << "CORAL: WARNING the still water level of REEF3D (F 60) is at z = " << swl << " in CORAL's frame, CORAL's "
-                    << "dynamic mooring lines and Morison members take z = 0 (or the waves of coral.txt): set fluid_coupling "
-                    << "origin 0 0 " << p->F60 << " or use fluid_kinematics" << std::endl;
+            if(water && std::fabs(swl) > 1.0e-6*std::max(1.0, std::fabs(p->F60)))
+                log<<"CORAL: WARNING the still water level of REEF3D (F 60) is at z = "<<swl<<" in CORAL's frame, CORAL's "
+                   <<"dynamic mooring lines and Morison members take z = 0 (or the waves of coral.txt): set fluid_coupling "
+                   <<"origin 0 0 "<<p->F60<<" or use fluid_kinematics"<<std::endl;
         }
         const coral::Vec3 g(p->W20, p->W21, p->W22);
-        if((case_->m.gravity - g).norm() > 1.0e-6 * std::max(1.0, g.norm()))
-            log << "CORAL: WARNING gravity " << case_->m.gravity.transpose() << " in coral.txt, " << g.transpose()
-                << " in ctrl.txt (W 20-22); the fluid loads come without the weight" << std::endl;
+        if((case_->m.gravity - g).norm() > 1.0e-6*std::max(1.0, g.norm()))
+            log<<"CORAL: WARNING gravity "<<case_->m.gravity.transpose()<<" in coral.txt, "<<g.transpose()
+               <<" in ctrl.txt (W 20-22); the fluid loads come without the weight"<<std::endl;
     }
 }
 
 coral_reef3d::~coral_reef3d()
 {
-    if(sixdof_external::instance() == this)
+    if(sixdof_external::instance()==this)
         sixdof_external::attach(nullptr);
 }
 
 void coral_reef3d::fail(const std::string &msg)
 {
-    std::cerr << "\n!!! REEF3D::CORAL: " << msg << " !!!\n"
-              << std::endl;
+    std::cerr<<"\n!!! REEF3D::CORAL: "<<msg<<" !!!\n"<<std::endl;
     MPI_Abort(pgc_->mpi_comm, 1);
 }
 
@@ -144,8 +145,8 @@ void coral_reef3d::sample_kinematics(double t)
         return;
     if(!sampler_)
     {
-        if(!sampler_told_ && p_->mpirank == 0)
-            std::cout << "CORAL: WARNING fluid_kinematics needs FNPF or NHFLOW, the waves of coral.txt are used" << std::endl;
+        if(!sampler_told_ && p_->mpirank==0)
+            std::cout<<"CORAL: WARNING fluid_kinematics needs FNPF or NHFLOW, the waves of coral.txt are used"<<std::endl;
         sampler_told_ = true;
         return;
     }
@@ -154,13 +155,13 @@ void coral_reef3d::sample_kinematics(double t)
     const int n = (int)pts.size();
     if(n == 0)
         return;
-    std::vector<double> xyz(3 * n), loc, sum(6 * n, 0.0);
-    for(int q = 0; q < n; ++q)
-        for(int d = 0; d < 3; ++d)
-            xyz[3 * q + d] = pts[q](d);
+    std::vector<double> xyz(3*n), loc, sum(6*n, 0.0);
+    for(int q=0; q<n; ++q)
+        for(int d=0; d<3; ++d)
+            xyz[3*q+d] = pts[q](d);
     sampler_->sample(xyz, loc);
-    MPI_Allreduce(loc.data(), sum.data(), 6 * n, MPI_DOUBLE, MPI_SUM, pgc_->mpi_comm);
-    bcast(sum.data(), 6 * n);
+    MPI_Allreduce(loc.data(), sum.data(), 6*n, MPI_DOUBLE, MPI_SUM, pgc_->mpi_comm);
+    bcast(sum.data(), 6*n);
     std::vector<coral::Vec3> u(n, coral::Vec3::Zero());
     std::vector<double> eta(n, 0.0), bed;
     std::vector<int> in(n, 0);
@@ -168,32 +169,31 @@ void coral_reef3d::sample_kinematics(double t)
     if(cp_->wants_bed())
         bed.assign(n, std::numeric_limits<double>::quiet_NaN());
     int nin = 0;
-    for(int q = 0; q < n; ++q)
+    for(int q=0; q<n; ++q)
     {
-        const double c = sum[6 * q + 4];
+        const double c = sum[6*q+4];
         if(c > 0.5)
         {
-            u[q] = coral::Vec3(sum[6 * q], sum[6 * q + 1], sum[6 * q + 2]) / c;
-            eta[q] = sum[6 * q + 3] / c;
+            u[q] = coral::Vec3(sum[6*q], sum[6*q+1], sum[6*q+2])/c;
+            eta[q] = sum[6*q+3]/c;
             in[q] = 1;
-            if(!bed.empty())
-                bed[q] = sum[6 * q + 5] / c;
+            if(!bed.empty()) bed[q] = sum[6*q+5]/c;
             ++nin;
         }
     }
     cp_->kinematics(t, u, eta, in, bed);
-    if(!sampler_told_ && p_->mpirank == 0)
+    if(!sampler_told_ && p_->mpirank==0)
     {
-        std::cout << "CORAL: fluid kinematics from " << sampler_->name() << " at " << n << " points (" << nin << " in the fluid domain)" << std::endl;
+        std::cout<<"CORAL: fluid kinematics from "<<sampler_->name()<<" at "<<n<<" points ("<<nin<<" in the fluid domain)"<<std::endl;
         sampler_told_ = true;
     }
 }
 
-void coral_reef3d::ini(lexer *p, ghostcell *)
+void coral_reef3d::ini(lexer *p, ghostcell*)
 {
     // the outputs of CORAL (rank 0 writes them): their sizes go with every checkpoint; a restart cuts them
     // back to the checkpoint, so that the rows the stopped run wrote after it do not come twice
-    if(p->mpirank == 0)
+    if(p->mpirank==0)
     {
         mkdir("./REEF3D_CORAL", 0777);
         reefckpt_output_dir("./REEF3D_CORAL", restart_ ? 1 : 0);
@@ -218,8 +218,8 @@ void coral_reef3d::ini(lexer *p, ghostcell *)
         restart_state_.clear();
         restart_state_.shrink_to_fit();
         check_ranks("restart");
-        if(p->mpirank == 0)
-            std::cout << "CORAL: restart at t = " << cp_->time() << " after " << cp_->steps() << " steps" << std::endl;
+        if(p->mpirank==0)
+            std::cout<<"CORAL: restart at t = "<<cp_->time()<<" after "<<cp_->steps()<<" steps"<<std::endl;
         return;
     }
     try
@@ -234,15 +234,15 @@ void coral_reef3d::ini(lexer *p, ghostcell *)
     }
     // P 18: the bodies wrote their first output before CORAL was set up (the fluid's initialisation): the
     // mooring lines of that output (output number 0)
-    if(p->P18 > 0 && p->count == 0)
+    if(p->P18>0 && p->count==0)
         store_output(p, p->simtime, 0);
 }
 
-void coral_reef3d::step(lexer *p, ghostcell *)
+void coral_reef3d::step(lexer *p, ghostcell*)
 {
     const double t1 = p->simtime + p->dt;
     // the fluid bodies have already advanced CORAL within the fluid step
-    if(t1 <= cp_->time() + 1.0e-12 * std::max(1.0, std::fabs(t1)))
+    if(t1 <= cp_->time() + 1.0e-12*std::max(1.0, std::fabs(t1)))
         return;
     try
     {
@@ -261,7 +261,7 @@ void coral_reef3d::step(lexer *p, ghostcell *)
 
 void coral_reef3d::ckpt_state(std::vector<double> &v) const
 {
-    v.push_back(1.0);  // version
+    v.push_back(1.0);   // version
     v.push_back(sampler_told_ ? 1.0 : 0.0);
     v.push_back(rank_diff_told_ ? 1.0 : 0.0);
     cp_->save_state(v);
@@ -316,7 +316,7 @@ void coral_reef3d::fluid_strips(int n, double t, const std::vector<double> &F)
     MPI_Allreduce(F.data(), sum.data(), m, MPI_DOUBLE, MPI_SUM, pgc_->mpi_comm);
     bcast(sum.data(), m);
     coral::VecX Fv(m);
-    for(int i = 0; i < m; ++i)
+    for(int i=0; i<m; ++i)
         Fv(i) = sum[i];
     cp_->fluid_strips(n, t, Fv);
 }
@@ -326,20 +326,20 @@ void coral_reef3d::connect(int n, double mass, const Eigen::Vector3d &c, const E
     // mass properties of rank 0 on all ranks
     double v[22];
     v[0] = mass;
-    for(int i = 0; i < 3; ++i)
-        v[1 + i] = c(i);
-    for(int i = 0; i < 9; ++i)
+    for(int i=0; i<3; ++i)
+        v[1+i] = c(i);
+    for(int i=0; i<9; ++i)
     {
-        v[4 + i] = R(i / 3, i % 3);
-        v[13 + i] = I(i / 3, i % 3);
+        v[4+i] = R(i/3, i%3);
+        v[13+i] = I(i/3, i%3);
     }
     bcast(v, 22);
     Eigen::Vector3d cb(v[1], v[2], v[3]);
     Eigen::Matrix3d Rb, Ib;
-    for(int i = 0; i < 9; ++i)
+    for(int i=0; i<9; ++i)
     {
-        Rb(i / 3, i % 3) = v[4 + i];
-        Ib(i / 3, i % 3) = v[13 + i];
+        Rb(i/3, i%3) = v[4+i];
+        Ib(i/3, i%3) = v[13+i];
     }
     cp_->connect(n, v[0], cb, Rb, Ib);
 }
@@ -352,23 +352,23 @@ void coral_reef3d::fluid_loads(double t, const std::vector<vec6> &F, const std::
     if(p_->mpi_size > 1)
     {
         std::vector<double> v;
-        v.reserve(6 * Fb.size() + 36 * Ab.size() + 1);
+        v.reserve(6*Fb.size() + 36*Ab.size() + 1);
         v.push_back(t);
         for(const auto &f : Fb)
-            for(int i = 0; i < 6; ++i)
+            for(int i=0; i<6; ++i)
                 v.push_back(f(i));
         for(const auto &a : Ab)
-            for(int i = 0; i < 36; ++i)
-                v.push_back(a(i / 6, i % 6));
+            for(int i=0; i<36; ++i)
+                v.push_back(a(i/6, i%6));
         bcast(v.data(), (int)v.size());
         t = v[0];
         int k = 1;
         for(auto &f : Fb)
-            for(int i = 0; i < 6; ++i)
+            for(int i=0; i<6; ++i)
                 f(i) = v[k++];
         for(auto &a : Ab)
-            for(int i = 0; i < 36; ++i)
-                a(i / 6, i % 6) = v[k++];
+            for(int i=0; i<36; ++i)
+                a(i/6, i%6) = v[k++];
     }
     try
     {
@@ -410,7 +410,7 @@ void coral_reef3d::state(int n, double t, Eigen::Vector3d &c, Eigen::Matrix3d &R
 
 void coral_reef3d::store_output(lexer *p, double t, long long step)
 {
-    if(lagoon_mooring_off_ || p->mpirank != 0)
+    if(lagoon_mooring_off_ || p->mpirank!=0)
         return;
     // every line as a polyline in the frame of the fluid solver: a dynamic line its nodes (tension: that of the
     // adjacent segments, their mean inside), a quasi-static one its catenary in 20 segments
@@ -420,10 +420,10 @@ void coral_reef3d::store_output(lexer *p, double t, long long step)
     std::vector<int32_t> connectivity, offsets, line;
     auto add = [&](const std::vector<coral::Vec3> &x, const std::vector<double> &T)
     {
-        const int32_t base = int32_t(xyz.size() / 3);
-        for(size_t i = 0; i < x.size(); ++i)
+        const int32_t base = int32_t(xyz.size()/3);
+        for(size_t i=0; i<x.size(); ++i)
         {
-            for(int d = 0; d < 3; ++d)
+            for(int d=0; d<3; ++d)
                 xyz.push_back(float(x[i](d) + o(d)));
             tension.push_back(float(T[i]));
             connectivity.push_back(base + int32_t(i));
@@ -433,24 +433,24 @@ void coral_reef3d::store_output(lexer *p, double t, long long step)
     };
     for(const auto &l : m.load_list)
     {
-        if(const auto *ms = dynamic_cast<const coral::mooring_system *>(l.get()))
-            for(int k = 0; k < ms->nlines(); ++k)
+        if(const auto *ms = dynamic_cast<const coral::mooring_system*>(l.get()))
+            for(int k=0; k<ms->nlines(); ++k)
             {
                 const std::vector<coral::Vec3> x = ms->line_nodes(k);
                 const int N = ms->line_nseg(k);
                 std::vector<double> T(x.size(), 0.0);
-                for(int i = 0; i < (int)x.size() && N > 0; ++i)
+                for(int i=0; i<(int)x.size() && N>0; ++i)
                 {
-                    if(i == 0)
+                    if(i==0)
                         T[i] = ms->line_tension(k, 0);
-                    else if(i >= N)
-                        T[i] = ms->line_tension(k, N - 1);
+                    else if(i>=N)
+                        T[i] = ms->line_tension(k, N-1);
                     else
-                        T[i] = 0.5 * (ms->line_tension(k, i - 1) + ms->line_tension(k, i));
+                        T[i] = 0.5*(ms->line_tension(k, i-1) + ms->line_tension(k, i));
                 }
                 add(x, T);
             }
-        else if(const auto *qs = dynamic_cast<const coral::mooring_qs *>(l.get()))
+        else if(const auto *qs = dynamic_cast<const coral::mooring_qs*>(l.get()))
         {
             std::vector<coral::Vec3> x;
             std::vector<double> T;
@@ -465,9 +465,7 @@ void coral_reef3d::store_output(lexer *p, double t, long long step)
             lagoon_mooring_off_ = true;
             return;
         }
-        const std::string solver = p->A10 == 6 ? "CFD" : p->A10 == 3 ? "FNPF"
-                                                     : p->A10 == 2   ? "SFLOW"
-                                                                     : "NHFLOW";
+        const std::string solver = p->A10==6 ? "CFD" : p->A10==3 ? "FNPF" : p->A10==2 ? "SFLOW" : "NHFLOW";
         std::string run;
         if(p->plog)
             run = "{\"type\": \"run\", \"run\": " + lagoon_store::json_string(p->plog->id()) + "}";
@@ -475,12 +473,12 @@ void coral_reef3d::store_output(lexer *p, double t, long long step)
                                                              "REEF3D_CORAL", run,
                                                              std::vector<lagoon_particles::field>{{"tension", 1, false}}, 1, "lines",
                                                              std::vector<lagoon_particles::field>{{"line", 1, true}});
-        std::cout << "CORAL: " << line.size() << " mooring line" << (line.size() > 1 ? "s" : "") << " in the LAGOON store (particles/coral_mooring)" << std::endl;
+        std::cout<<"CORAL: "<<line.size()<<" mooring line"<<(line.size()>1 ? "s" : "")<<" in the LAGOON store (particles/coral_mooring)"<<std::endl;
     }
-    if(!lagoon_mooring_->output(t, step, xyz.size() / 3, xyz.data(), {tension.data()}, connectivity, offsets, {line.data()}))
+    if(!lagoon_mooring_->output(t, step, xyz.size()/3, xyz.data(), {tension.data()}, connectivity, offsets, {line.data()}))
     {
         lagoon_mooring_off_ = true;
-        std::cout << "CORAL: WARNING the mooring lines could not be written to the LAGOON store, no more outputs of them" << std::endl;
+        std::cout<<"CORAL: WARNING the mooring lines could not be written to the LAGOON store, no more outputs of them"<<std::endl;
     }
 }
 
@@ -500,29 +498,29 @@ void coral_reef3d::check_ranks(const char *where)
     v.push_back(cp_->time());
     for(const auto &b : m.bodies)
     {
-        for(int i = 0; i < 3; ++i)
+        for(int i=0; i<3; ++i)
             v.push_back(b.x(i));
-        for(int i = 0; i < 9; ++i)
-            v.push_back(b.R(i / 3, i % 3));
-        for(int i = 0; i < 3; ++i)
+        for(int i=0; i<9; ++i)
+            v.push_back(b.R(i/3, i%3));
+        for(int i=0; i<3; ++i)
             v.push_back(b.v(i));
-        for(int i = 0; i < 3; ++i)
+        for(int i=0; i<3; ++i)
             v.push_back(b.w(i));
     }
-    for(int i = 0; i < m.cq.size(); ++i)
+    for(int i=0; i<m.cq.size(); ++i)
         v.push_back(m.cq(i));
-    for(int i = 0; i < m.cv.size(); ++i)
+    for(int i=0; i<m.cv.size(); ++i)
         v.push_back(m.cv(i));
     const int n = (int)v.size();
     std::vector<double> lo(n), hi(n);
     MPI_Allreduce(v.data(), lo.data(), n, MPI_DOUBLE, MPI_MIN, pgc_->mpi_comm);
     MPI_Allreduce(v.data(), hi.data(), n, MPI_DOUBLE, MPI_MAX, pgc_->mpi_comm);
     double d = 0.0;
-    for(int i = 0; i < n; ++i)
+    for(int i=0; i<n; ++i)
         d = std::max(d, hi[i] - lo[i]);
-    if(d > 0.0 && !rank_diff_told_ && p_->mpirank == 0)
-        std::cout << "CORAL: WARNING the ranks differ in the state of the model after " << where << " at t = " << cp_->time()
-                  << " (largest difference " << d << ")" << std::endl;
+    if(d > 0.0 && !rank_diff_told_ && p_->mpirank==0)
+        std::cout<<"CORAL: WARNING the ranks differ in the state of the model after "<<where<<" at t = "<<cp_->time()
+                 <<" (largest difference "<<d<<")"<<std::endl;
     if(d > 0.0)
         rank_diff_told_ = true;
 }

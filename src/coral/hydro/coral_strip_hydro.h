@@ -40,79 +40,63 @@ Architect: Hans Bihs
 #ifndef CORAL_STRIP_HYDRO_H_
 #define CORAL_STRIP_HYDRO_H_
 
-#include "coral/core/coral_load.h"
-#include "coral/hydro/coral_waves.h"
-#include <memory>
-#include <string>
-#include <vector>
+#include"coral/core/coral_load.h"
+#include"coral/hydro/coral_waves.h"
+#include<memory>
+#include<string>
+#include<vector>
 
-namespace coral {
-struct strip_member
+namespace coral
 {
-    Vec3 p1 = Vec3::Zero(), p2 = Vec3::Zero();  // global, at creation
-    double D = 1.0, Cd = 1.0, Ca = 1.0, Cm = 2.0;
-    int n = 20;
-    bool end1 = false, end2 = false;  // closed end faces with pressure, added mass and drag
-    double Ca_end = 1.0, Cd_end = 1.0;
-    bool buoyancy = true;
-};
-
-class strip_hydro : public load
-{
-public:
-    strip_hydro(const model &, int body, const std::vector<strip_member> &, std::shared_ptr<const wave_kinematics>,
-                double rho, double g, const Vec3 &current, const std::string &name);
-
-    std::string name() const override { return name_; }
-    coupling_kind coupling() const override { return coupling_kind::local; }
-    void coupled_bodies(std::vector<int> &b) const override { b.push_back(b_); }
-    void eval(const model &, double t, VecX &f) const override;
-    void kinematics_points(const model &, const void *source, std::vector<Vec3> &) const override;
-    void channel_names(std::vector<std::string> &) const override;
-    void channel_values(const model &, double t, std::vector<double> &) const override;
-
-    bool exact_kinematics = false;
-
-    // total force (global) and moment about the body's CoG (global), submerged volume, of the current state
-    void total(const model &, double t, Vec3 &F, Vec3 &M, double &V) const;
-
-private:
-    struct strip
+    struct strip_member
     {
-        Vec3 s;
-        Vec3 e;
-        double L, D, Cd, Ca, Cm;
-        bool buoy;
+        Vec3 p1 = Vec3::Zero(), p2 = Vec3::Zero();    // global, at creation
+        double D = 1.0, Cd = 1.0, Ca = 1.0, Cm = 2.0;
+        int n = 20;
+        bool end1 = false, end2 = false;              // closed end faces with pressure, added mass and drag
+        double Ca_end = 1.0, Cd_end = 1.0;
+        bool buoyancy = true;
     };
-    struct end
-    {
-        Vec3 s;
-        Vec3 n;
-        double D, Ca, Cd;
-    };  // body frame: point, outward normal
-    // the forces of the current state at their points (callback per force)
-    template<class Add>
-    void forces(const model &, double t, Add &&add, double &V) const;
 
-    std::string name_;
-    int b_;
-    std::vector<strip> strips_;
-    std::vector<end> ends_;
-    std::shared_ptr<const wave_kinematics> waves_;
-    double rho_, g_;
-    Vec3 current_;
-    // the kinematics at the undisplaced points (strips, then ends), cached for one time
-    struct kin
+    class strip_hydro : public load
     {
-        double eta;
-        Vec3 u, du;
-        double p;
+    public:
+        strip_hydro(const model&, int body, const std::vector<strip_member>&, std::shared_ptr<const wave_kinematics>,
+                    double rho, double g, const Vec3 &current, const std::string &name);
+
+        std::string name() const override {return name_;}
+        coupling_kind coupling() const override {return coupling_kind::local;}
+        void coupled_bodies(std::vector<int> &b) const override {b.push_back(b_);}
+        void eval(const model&, double t, VecX &f) const override;
+        void kinematics_points(const model&, const void *source, std::vector<Vec3>&) const override;
+        void channel_names(std::vector<std::string>&) const override;
+        void channel_values(const model&, double t, std::vector<double>&) const override;
+
+        bool exact_kinematics = false;
+
+        // total force (global) and moment about the body's CoG (global), submerged volume, of the current state
+        void total(const model&, double t, Vec3 &F, Vec3 &M, double &V) const;
+
+    private:
+        struct strip {Vec3 s; Vec3 e; double L, D, Cd, Ca, Cm; bool buoy;};
+        struct end {Vec3 s; Vec3 n; double D, Ca, Cd;};     // body frame: point, outward normal
+        // the forces of the current state at their points (callback per force)
+        template<class Add> void forces(const model&, double t, Add &&add, double &V) const;
+
+        std::string name_;
+        int b_;
+        std::vector<strip> strips_;
+        std::vector<end> ends_;
+        std::shared_ptr<const wave_kinematics> waves_;
+        double rho_, g_;
+        Vec3 current_;
+        // the kinematics at the undisplaced points (strips, then ends), cached for one time
+        struct kin {double eta; Vec3 u, du; double p;};
+        std::vector<Vec3> p0_;
+        mutable std::vector<kin> cache_;
+        mutable double t_cache_ = -1.0e300;
+        void kinematics(int idx, const Vec3 &p, double t, kin &k) const;
     };
-    std::vector<Vec3> p0_;
-    mutable std::vector<kin> cache_;
-    mutable double t_cache_ = -1.0e300;
-    void kinematics(int idx, const Vec3 &p, double t, kin &k) const;
-};
-}  // namespace coral
+}
 
 #endif

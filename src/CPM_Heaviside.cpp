@@ -20,19 +20,20 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Authors: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "CPM.h"
-#include "fdm.h"
-#include "ghostcell.h"
-#include "heaviside.h"
-#include "lexer.h"
-#include "sediment_fdm.h"
+#include"CPM.h"
+#include"lexer.h"
+#include"fdm.h"
+#include"ghostcell.h"
+#include"sediment_fdm.h"
+#include"heaviside.h"
 
 double CPM::heaviside(double phival)
 {
 
-    double H;
-
-    H = ::heaviside(phival, epsi);
+double H;
+    
+    H = ::heaviside(phival,epsi);
 
     return H;
+    
 }

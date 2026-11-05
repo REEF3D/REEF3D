@@ -20,115 +20,108 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "reinitopo_RK3.h"
-#include "convection.h"
-#include "fdm.h"
-#include "ghostcell.h"
-#include "gradient.h"
-#include "ioflow.h"
-#include "lexer.h"
-#include "reinidisc_f.h"
+#include"reinitopo_RK3.h"
+#include"gradient.h"
+#include"lexer.h"
+#include"fdm.h"
+#include"ghostcell.h"
+#include"convection.h"
+#include"ioflow.h"
+#include"reinidisc_f.h"
 
 // topo and solid level set reinitialisation (name: "topo" or "solid", used in the start message)
-reinitopo_RK3::reinitopo_RK3(lexer *p, const char *name) : f(p), frk1(p), frk2(p), L(p), dt(p), name(name)
+reinitopo_RK3::reinitopo_RK3(lexer* p, const char *name) : f(p),frk1(p),frk2(p),L(p),dt(p),name(name)
 {
 
-    if(p->S50 == 1)
-        gcval_topo = 151;
+	if(p->S50==1)
+	gcval_topo=151;
 
-    if(p->S50 == 2)
-        gcval_topo = 152;
+	if(p->S50==2)
+	gcval_topo=152;
 
-    if(p->S50 == 3)
-        gcval_topo = 153;
+	if(p->S50==3)
+	gcval_topo=153;
+	
+	if(p->S50==4)
+	gcval_topo=150;
 
-    gcval_initopo = 150;
+	gcval_initopo=150;
+	
+	prdisc = new reinidisc_f(p,true);
 
-    prdisc = new reinidisc_f(p, true);
-
-    gcval_initopo = 150;
-
-    prdisc = new reinidisc_fsf_rig(p);
-
-    time_preproc(p);
+    time_preproc(p);    
 }
 
 reinitopo_RK3::~reinitopo_RK3()
 {
 }
 
-void reinitopo_RK3::start(lexer *p, fdm *a, ghostcell *pgc, field &f)
+void reinitopo_RK3::start(lexer* p, fdm* a, ghostcell* pgc, field &f)
+{ 
+    gcval=gcval_topo;
+
+	pgc->start4a(p,f,gcval);
+	
+	if(p->count==0)
+	{
+    if(p->mpirank==0)
+	cout<<"initializing "<<name<<"..."<<endl<<endl;
+	reiniter=2*int(p->maxlength/(p->F43*p->DXM));
+    gcval=gcval_initopo;
+	pgc->start4a(p,f,gcval);
+	}
+
+	if(p->count>0)
+	step(p,a);
+
+    for(int q=0;q<reiniter;++q)
+    {
+	// Step 1
+	prdisc->start(p,a,pgc,f,L,6);
+
+	LOOP
+	frk1.V[IJK] = f.V[IJK] + dt.V[IJK]*L.V[IJK];
+
+	pgc->start4a(p,frk1,gcval);
+    
+
+    // Step 2
+    prdisc->start(p,a,pgc,frk1,L,6);
+
+	LOOP
+	frk2.V[IJK]=  0.75*f.V[IJK] + 0.25*frk1.V[IJK] + 0.25*dt.V[IJK]*L.V[IJK];
+
+	pgc->start4a(p,frk2,gcval);
+
+
+    // Step 3
+    prdisc->start(p,a,pgc,frk2,L,6);
+
+	LOOP
+	f.V[IJK] = (1.0/3.0)*f.V[IJK] + (2.0/3.0)*frk2.V[IJK] + (2.0/3.0)*dt.V[IJK]*L.V[IJK];
+
+	pgc->start4a(p,f,gcval);
+	}
+}
+
+void reinitopo_RK3::step(lexer* p, fdm *a)
 {
-    gcval = gcval_topo;
 
-    pgc->start4a(p, f, gcval);
+	reiniter=p->G541;
+}
 
-    if(p->count == 0)
-    {
-        if(p->mpirank == 0)
-            cout << "initializing " << name << "..." << endl
-                 << endl;
-        reiniter = 2 * int(p->maxlength / (p->F43 * p->DXM));
-        gcval = gcval_initopo;
-        pgc->start4a(p, f, gcval);
-    }
+void reinitopo_RK3::time_preproc(lexer* p)
+{	
+    n=0;
+	LOOP
+	{
+	if(p->j_dir==0)
+    dt.V[IJK] = p->F43*MIN(p->DXP[IP],p->DZP[KP]);
+    
+    if(p->j_dir==1)
+	dt.V[IJK] = p->F43*MIN3(p->DXP[IP],p->DYP[JP],p->DZP[KP]);
+	++n;
+	}
+}
 
-    gcval = gcval_topo;
-
-    if(p->count == 0)
-    {
-        // Step 1
-        prdisc->start(p, a, pgc, f, L, 6);
-
-        if(p->count > 0)
-            step(p, a);
-
-        for(int q = 0; q < reiniter; ++q)
-        {
-            // Step 1
-            prdisc->start(p, a, pgc, f, L, 5);
-
-            // Step 2
-            prdisc->start(p, a, pgc, frk1, L, 6);
-
-            pgc->start4a(p, frk1, gcval);
-
-            // Step 2
-            prdisc->start(p, a, pgc, frk1, L, 5);
-
-            LOOP
-                frk2.V[IJK] = 0.75 * f.V[IJK] + 0.25 * frk1.V[IJK] + 0.25 * dt.V[IJK] * L.V[IJK];
-
-            // Step 3
-            prdisc->start(p, a, pgc, frk2, L, 6);
-
-            // Step 3
-            prdisc->start(p, a, pgc, frk2, L, 5);
-
-            LOOP
-                f.V[IJK] = (1.0 / 3.0) * f.V[IJK] + (2.0 / 3.0) * frk2.V[IJK] + (2.0 / 3.0) * dt.V[IJK] * L.V[IJK];
-
-            pgc->start4a(p, f, gcval);
-        }
-    }
-
-    void reinitopo_RK3::step(lexer * p, fdm * a)
-    {
-
-        reiniter = p->G541;
-    }
-
-    void reinitopo_RK3::time_preproc(lexer * p)
-    {
-        n = 0;
-        LOOP
-        {
-            if(p->j_dir == 0)
-                dt.V[IJK] = p->F43 * MIN(p->DXP[IP], p->DZP[KP]);
-
-            if(p->j_dir == 1)
-                dt.V[IJK] = p->F43 * MIN3(p->DXP[IP], p->DYP[JP], p->DZP[KP]);
-            ++n;
-        }
-    }
 

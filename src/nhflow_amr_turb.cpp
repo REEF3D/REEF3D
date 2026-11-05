@@ -20,23 +20,23 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "bicgstab_ijk.h"
-#include "definitions.h"
-#include "fdm_nhf.h"
-#include "ghostcell.h"
-#include "ioflow_amr_block.h"
-#include "lexer.h"
-#include "nhflow_amr.h"
-#include "nhflow_amr_fill.h"
-#include "nhflow_idiff.h"
-#include "nhflow_kepsilon_IM1.h"
-#include "nhflow_komega_IM1.h"
-#include "nhflow_momentum_func.h"
-#include "nhflow_scalar_ifou.h"
-#include "reefamr_krylov.h"
-#include <cmath>
-#include <functional>
-#include <mpi.h>
+#include"nhflow_amr.h"
+#include"nhflow_amr_fill.h"
+#include"nhflow_momentum_func.h"
+#include"lexer.h"
+#include"fdm_nhf.h"
+#include"ghostcell.h"
+#include"nhflow_kepsilon_IM1.h"
+#include"nhflow_komega_IM1.h"
+#include"nhflow_scalar_ifou.h"
+#include"nhflow_idiff.h"
+#include"bicgstab_ijk.h"
+#include"reefamr_krylov.h"
+#include"ioflow_amr_block.h"
+#include"definitions.h"
+#include<cmath>
+#include<mpi.h>
+#include<functional>
 
 using namespace nhflow_amr_detail;
 
@@ -69,51 +69,43 @@ using namespace nhflow_amr_detail;
 // restricted into the covered cells of level l and the cells around them filled again (sub_sync).  The time step
 // of the model of a patch is that of its level.
 
-namespace {
+namespace
+{
 typedef reefamr_comms_off comms_off;
 
 inline double tmmod(double a, double b)
 {
-    if(a * b <= 0.0)
-        return 0.0;
-    return fabs(a) < fabs(b) ? a : b;
+    if(a*b<=0.0)
+    return 0.0;
+    return fabs(a)<fabs(b) ? a : b;
 }
 
-const int NTF = 5;  // fields: k, epsilon/omega, EV, EV0, d->KIN
-}  // namespace
+const int NTF = 5;     // fields: k, epsilon/omega, EV, EV0, d->KIN
+}
 
 nhflow_amr::tfields nhflow_amr::tget(nhflow_turbulence *t)
 {
     tfields f;
-    if(nhflow_kepsilon_IM1 *a = dynamic_cast<nhflow_kepsilon_IM1 *>(t))
+    if(nhflow_kepsilon_IM1 *a = dynamic_cast<nhflow_kepsilon_IM1*>(t))
     {
-        f.k = a->KIN;
-        f.e = a->EPS;
-        f.kn = a->KN;
-        f.en = a->EN;
+        f.k = a->KIN; f.e = a->EPS; f.kn = a->KN; f.en = a->EN;
     }
-    else if(nhflow_komega_IM1 *b = dynamic_cast<nhflow_komega_IM1 *>(t))
+    else if(nhflow_komega_IM1 *b = dynamic_cast<nhflow_komega_IM1*>(t))
     {
-        f.k = b->KIN;
-        f.e = b->EPS;
-        f.kn = b->KN;
-        f.en = b->EN;
+        f.k = b->KIN; f.e = b->EPS; f.kn = b->KN; f.en = b->EN;
     }
     return f;
 }
 
-double *nhflow_amr::tfield(int g, int m)
+double* nhflow_amr::tfield(int g, int m)
 {
-    nhflow_turbulence *t = (g < 0) ? tb0 : NP(g)->pturb;
+    nhflow_turbulence *t = (g<0) ? tb0 : NP(g)->pturb;
     fdm_nhf *d = gfd(g);
-    if(m == 2)
-        return d->EV;
-    if(m == 3)
-        return d->EV0;
-    if(m == 4)
-        return d->KIN;
+    if(m==2) return d->EV;
+    if(m==3) return d->EV0;
+    if(m==4) return d->KIN;
     tfields f = tget(t);
-    return (m == 0) ? f.k : f.e;
+    return (m==0) ? f.k : f.e;
 }
 
 void nhflow_amr::turb_attach(nhflow_turbulence *t)
@@ -126,8 +118,8 @@ void nhflow_amr::turb_attach(nhflow_turbulence *t)
 bool nhflow_amr::turb_composite0(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_scalar_convection *pconvec, nhflow_diffusion *pdiff,
                                  solver *psolv, ioflow *pflow, vrans_nhflow *pvrans)
 {
-    if(!turb || nblk == 0)
-        return false;
+    if(!turb || nblk==0)
+    return false;
 
     const double t0 = MPI_Wtime();
 
@@ -145,38 +137,38 @@ bool nhflow_amr::turb_composite0(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_sc
     // the cells around the blocks and the ring from the end of the last step: the turbulence fields and the state
     // (the velocity gradients of the production at the interfaces)
     turb_fill0(pgc);
-    fill_level0(pgc, -1);
+    fill_level0(pgc,-1);
 
     // the sigma grid of every grid with the water level of the cells around it at the end of the step (the gradients
     // of the production and the strain limiter; the last stage updated the sigma grid of a grid before the cells
     // around it had the end of the step)
-    mom0->sigma_update(p, d, pgc, d->WL);
+    mom0->sigma_update(p,d,pgc,d->WL);
     {
-        comms_off guard(pgc);
-        for(int id : lev[0])
-        {
-            nhflow_amr_patch *c = NP(id);
-            pscope ps(pgc, c->d, d0);
-            c->pmom->sigma_update(c->pp, c->d, pgc, c->d->WL);
-        }
+    comms_off guard(pgc);
+    for(int id : lev[0])
+    {
+        nhflow_amr_patch *c = NP(id);
+        pscope ps(pgc,c->d,d0);
+        c->pmom->sigma_update(c->pp,c->d,pgc,c->d->WL);
+    }
     }
 
     // the system of level 0 and the blocks: every cell of their boxes (the ring of the native grid stands for cells
     // of the blocks; the cells under a patch are stepped by level 0 and then take the mean of the children)
     solver *cap = df_capsolver();
     df_l0 = true;
-    dg.assign(P.size() + 1, dgrid());
+    dg.assign(P.size()+1,dgrid());
     df_fs.clear();
 
     auto grids = [&](const std::function<void(int)> &f)
     {
         f(-1);
         for(int id : lev[0])
-            f(id);
+        f(id);
     };
 
     grids([&](int g)
-          {
+    {
         lexer *q = glex(g);
         const size_t n = (size_t)q->imax*q->jmax*(q->kmax+2);
         vector<vector<double>> &V = (g<0) ? dkv0 : NP(g)->dkv;
@@ -206,35 +198,37 @@ bool nhflow_amr::turb_composite0(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_sc
                 }
                 ++r;
             }
-        } });
+        }
+    });
 
-    for(int part = 0; part < 3; ++part)
+    for(int part=0; part<3; ++part)
     {
         {
-            comms_off guard(pgc);
-            for(int id : lev[0])
-            {
-                nhflow_amr_patch *c = NP(id);
-                pscope ps(pgc, c->d, d0);
-                dcur = id;
-                c->pturb->start_part(c->pp, c->d, pgc, c->ptconv, c->ptdiff, cap, c->pflow, c->pvrans, part);
-            }
+        comms_off guard(pgc);
+        for(int id : lev[0])
+        {
+            nhflow_amr_patch *c = NP(id);
+            pscope ps(pgc,c->d,d0);
+            dcur = id;
+            c->pturb->start_part(c->pp,c->d,pgc,c->ptconv,c->ptdiff,cap,c->pflow,c->pvrans,part);
+        }
         }
         dcur = -1;
-        tb0->start_part(p, d, pgc, pconvec, pdiff, (part < 2 ? cap : psolv), pflow, pvrans, part);
+        tb0->start_part(p,d,pgc,pconvec,pdiff,(part<2 ? cap : psolv),pflow,pvrans,part);
 
-        if(part == 2)
-            break;
+        if(part==2)
+        break;
 
         // the k (epsilon/omega) system of all grids, the result with the cells around the blocks and the ring
         df_core(p);
         df_sync(REEFAMR_NVEC);
         grids([&](int g)
-              {
+        {
             const dgrid &D = dg[g+1];
             const double *dx = dvec(g,REEFAMR_NVEC);
             for(int qq : D.aq)
-            D.x[qq] += dx[qq]; });
+            D.x[qq] += dx[qq];
+        });
     }
 
     df_l0 = false;
@@ -242,63 +236,61 @@ bool nhflow_amr::turb_composite0(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_sc
     // the cells around the blocks and the ring from the new fields
     turb_fill0(pgc);
     for(int id : lev[0])
-        turb_bc(pgc, id);
+    turb_bc(pgc,id);
 
     turb_c0count = p->count;
-    tturb += MPI_Wtime() - t0;
+    tturb += MPI_Wtime()-t0;
     return true;
 }
 
 void nhflow_amr::turb_objects(nhflow_amr_patch &c, ghostcell *pgc)
 {
     lexer *pp = c.pp;
-    if(pp->A560 == 1 || pp->A560 == 21)
-        c.pturb = new nhflow_kepsilon_IM1(pp, c.d, pgc);
+    if(pp->A560==1 || pp->A560==21)
+    c.pturb = new nhflow_kepsilon_IM1(pp,c.d,pgc);
     else
-        c.pturb = new nhflow_komega_IM1(pp, c.d, pgc);
-    c.ptconv = new nhflow_scalar_ifou(pp, 1);
+    c.pturb = new nhflow_komega_IM1(pp,c.d,pgc);
+    c.ptconv = new nhflow_scalar_ifou(pp,1);
     c.ptdiff = new nhflow_idiff(pp);
-    c.ptsolv = new bicgstab_ijk(pp, nullptr, pgc);
+    c.ptsolv = new bicgstab_ijk(pp,nullptr,pgc);
 }
 
 // the arrays of the model (the turbulence classes keep them for the whole run on level 0) and its helpers
 void nhflow_amr::turb_free(nhflow_amr_patch &c)
 {
-    if(c.ptconv == nullptr)
-        return;
+    if(c.ptconv==nullptr)
+    return;
     lexer *pp = c.pp;
-    const int n7 = pp->imax * pp->jmax * (pp->kmax + 2);
+    const int n7 = pp->imax*pp->jmax*(pp->kmax+2);
     tfields f = tget(c.pturb);
-    pp->del_Darray(f.k, n7);
-    pp->del_Darray(f.e, n7);
-    pp->del_Darray(f.kn, n7);
-    pp->del_Darray(f.en, n7);
-    if(nhflow_rans_io *r = dynamic_cast<nhflow_rans_io *>(c.pturb))
+    pp->del_Darray(f.k,n7);
+    pp->del_Darray(f.e,n7);
+    pp->del_Darray(f.kn,n7);
+    pp->del_Darray(f.en,n7);
+    if(nhflow_rans_io *r = dynamic_cast<nhflow_rans_io*>(c.pturb))
     {
-        pp->del_Iarray(r->WALLF, n7);
-        pp->del_Iarray(r->WETN, pp->imax * pp->jmax);
+        pp->del_Iarray(r->WALLF,n7);
+        pp->del_Iarray(r->WETN,pp->imax*pp->jmax);
     }
     delete c.ptconv;
     delete c.ptdiff;
-    delete static_cast<bicgstab_ijk *>(c.ptsolv);
-    c.ptconv = nullptr;
-    c.ptdiff = nullptr;
-    c.ptsolv = nullptr;
+    delete static_cast<bicgstab_ijk*>(c.ptsolv);
+    c.ptconv = nullptr; c.ptdiff = nullptr; c.ptsolv = nullptr;
 }
 
 void nhflow_amr::turb_run(ghostcell *pgc, nhflow_amr_patch &c)
 {
     comms_off guard(pgc);
-    pscope ps(pgc, c.d, d0);
-    c.pturb->start(c.pp, c.d, pgc, c.ptconv, c.ptdiff, c.ptsolv, c.pflow, c.pvrans);
+    pscope ps(pgc,c.d,d0);
+    c.pturb->start(c.pp,c.d,pgc,c.ptconv,c.ptdiff,c.ptsolv,c.pflow,c.pvrans);
 }
 
 void nhflow_amr::turb_save(ghostcell *pgc, nhflow_amr_patch &c)
 {
     comms_off guard(pgc);
-    pscope ps(pgc, c.d, d0);
-    c.pturb->ktimesave(c.pp, c.d, pgc);
-    c.pturb->etimesave(c.pp, c.d, pgc);
+    pscope ps(pgc,c.d,d0);
+    c.pturb->ktimesave(c.pp,c.d,pgc);
+    c.pturb->etimesave(c.pp,c.d,pgc);
 }
 
 // the wall and partition ghost cells of the fields of grid g (as at the end of the model's step)
@@ -306,43 +298,44 @@ void nhflow_amr::turb_bc(ghostcell *pgc, int g)
 {
     lexer *q = glex(g);
     fdm_nhf *d = gfd(g);
-    double *k = tfield(g, 0), *e = tfield(g, 1);
-    if(g < 0)
+    double *k = tfield(g,0), *e = tfield(g,1);
+    if(g<0)
     {
-        pgc->start20V(q, k, 20);
-        pgc->start30V(q, e, 30);
-        pgc->start24V(q, d->EV, 24);
-        pgc->start24V(q, d->EV0, 24);
-        pgc->start4V(q, d->KIN, 20);
+        pgc->start20V(q,k,20);
+        pgc->start30V(q,e,30);
+        pgc->start24V(q,d->EV,24);
+        pgc->start24V(q,d->EV0,24);
+        pgc->start4V(q,d->KIN,20);
         return;
     }
     comms_off guard(pgc);
-    pscope ps(pgc, d, d0);
-    pgc->start20V(q, k, 20);
-    pgc->start30V(q, e, 30);
-    pgc->start24V(q, d->EV, 24);
-    pgc->start24V(q, d->EV0, 24);
-    pgc->start4V(q, d->KIN, 20);
+    pscope ps(pgc,d,d0);
+    pgc->start20V(q,k,20);
+    pgc->start30V(q,e,30);
+    pgc->start24V(q,d->EV,24);
+    pgc->start24V(q,d->EV0,24);
+    pgc->start4V(q,d->KIN,20);
 }
 
 // level 0: the cells around the blocks and the ring of the native grid from the grid that holds them
 void nhflow_amr::turb_fill0(ghostcell *pgc)
 {
     const int K = p0->knoz;
-    const int nv = NTF * K;
+    const int nv = NTF*K;
 
     auto put = [&](int g, const reefamr_fill &f, const double *w)
     {
         lexer *q = glex(g);
-        for(int m = 0; m < NTF; ++m)
+        for(int m=0; m<NTF; ++m)
         {
-            double *a = tfield(g, m);
-            for(int k = 0; k < K; ++k)
-                a[cidx(q, f.di, f.dj, k)] = w[m * K + k];
+            double *a = tfield(g,m);
+            for(int k=0; k<K; ++k)
+            a[cidx(q,f.di,f.dj,k)] = w[m*K+k];
         }
     };
 
-    fill_run0(nv, 7095, [&](const reefamr_fill &f, double *v)
+    fill_run0(nv,7095,
+              [&](const reefamr_fill &f, double *v)
               {
                   if(f.kind!=0)
                   {
@@ -356,18 +349,19 @@ void nhflow_amr::turb_fill0(ghostcell *pgc)
                       const double *a = tfield(f.g,m);
                       for(int k=0; k<K; ++k)
                       v[m*K+k] = a[cidx(q,f.si,f.sj,k)];
-                  } }, [&](reefamr_patch *q, int id, const reefamr_fill &f, const double *w)
-              { put(id, f, w); }, [&](const reefamr_fill &f, const double *w)
-              { put(-1, f, w); });
+                  }
+              },
+              [&](reefamr_patch *q, int id, const reefamr_fill &f, const double *w) { put(id,f,w); },
+              [&](const reefamr_fill &f, const double *w) { put(-1,f,w); });
 
     // the ring cells in the partition halos of the native grid
-    if(p0->mpi_size > 1)
+    if(p0->mpi_size>1)
     {
-        for(int m = 0; m < NTF; ++m)
+        for(int m=0; m<NTF; ++m)
         {
-            double *a = tfield(-1, m);
-            pgc->gcparaxV(p0, a, 20);
-            pgc->gcparacoxV(p0, a, 20);
+            double *a = tfield(-1,m);
+            pgc->gcparaxV(p0,a,20);
+            pgc->gcparacoxV(p0,a,20);
         }
     }
 }
@@ -376,11 +370,12 @@ void nhflow_amr::turb_fill0(ghostcell *pgc)
 void nhflow_amr::turb_fill(ghostcell *pgc, int l)
 {
     const int K = klev(l);
-    const int Kc = klev(l - 1);
-    const int nv = NTF * K;
+    const int Kc = klev(l-1);
+    const int nv = NTF*K;
     vector<double> uc(Kc);
 
-    fill_run(l, nv, 7096 + l, [&](const reefamr_fill &f, double *v)
+    fill_run(l,nv,7096+l,
+             [&](const reefamr_fill &f, double *v)
              {
                  if(f.kind==0)
                  {
@@ -417,7 +412,9 @@ void nhflow_amr::turb_fill(ghostcell *pgc, int l)
                      return;
                  }
                  for(int m=0; m<nv; ++m)
-                 v[m] = 0.0; }, [&](reefamr_patch *q, int id, const reefamr_fill &f, const double *w)
+                 v[m] = 0.0;
+             },
+             [&](reefamr_patch *q, int id, const reefamr_fill &f, const double *w)
              {
                  lexer *pp = q->pp;
                  for(int m=0; m<NTF; ++m)
@@ -425,16 +422,18 @@ void nhflow_amr::turb_fill(ghostcell *pgc, int l)
                      double *a = tfield(id,m);
                      for(int k=0; k<K; ++k)
                      a[cidx(pp,f.di,f.dj,k)] = (m<2 || m==4) ? MAX(w[m*K+k],0.0) : w[m*K+k];
-                 } });
+                 }
+             });
 }
 
 // the covered cells: the mean of their children (per area on curvilinear grids; G 6: of both fine layers)
 void nhflow_amr::turb_restrict()
 {
-    for(int l = wtop(); l >= wlo + 1; --l)
+    for(int l=wtop(); l>=wlo+1; --l)
     {
-        const int K = klev(l - 1);
-        block_up(l, NTF * K, 7340 + l, [&](reefamr_patch *q, int id, int k, double *v)
+        const int K = klev(l-1);
+        block_up(l,NTF*K,7340+l,
+                 [&](reefamr_patch *q, int id, int k, double *v)
                  {
                      lexer *pp = q->pp;
                      const int nby = q->ny>>sy;
@@ -452,7 +451,9 @@ void nhflow_amr::turb_restrict()
                              r += (sy==0 ? w[0]*f[cidx(pp,i0,j0,kf)]+w[1]*f[cidx(pp,i0+1,j0,kf)] : w[0]*f[cidx(pp,i0,j0,kf)]+w[1]*f[cidx(pp,i0+1,j0,kf)]+w[2]*f[cidx(pp,i0,j0+1,kf)]+w[3]*f[cidx(pp,i0+1,j0+1,kf)]);
                              v[m*K+kk] = r/double(fz);
                          }
-                     } }, [&](const reefamr_block &B, int key, const double *v)
+                     }
+                 },
+                 [&](const reefamr_block &B, int key, const double *v)
                  {
                      lexer *q = glex(B.g);
                      for(int m=0; m<NTF; ++m)
@@ -460,7 +461,8 @@ void nhflow_amr::turb_restrict()
                          double *f = tfield(B.g,m);
                          for(int kk=0; kk<K; ++kk)
                          f[cidx(q,B.ic,B.jc,kk)] = v[m*K+kk];
-                     } });
+                     }
+                 });
     }
 }
 
@@ -468,60 +470,60 @@ void nhflow_amr::turb_restrict()
 void nhflow_amr::turb_blocks_ini(ghostcell *pgc)
 {
     if(!turb)
-        return;
+    return;
     for(int id : lev[0])
     {
         nhflow_amr_patch *c = NP(id);
         lexer *pp = c->pp;
         comms_off guard(pgc);
-        pscope ps(pgc, c->d, d0);
+        pscope ps(pgc,c->d,d0);
         // the inflow profile in all cells as on level 0 (a block without an inflow face has B 60 0), with the
         // inflow velocity of level 0 where the block has no inflow of its own
         const int b60 = pp->B60;
         const double ui = pp->Ui;
-        if(p0->B60 >= 1)
+        if(p0->B60>=1)
         {
             pp->B60 = p0->B60;
-            if(c->pio == nullptr || c->pio->in == 0)
-                pp->Ui = p0->Ui;
+            if(c->pio==nullptr || c->pio->in==0)
+            pp->Ui = p0->Ui;
         }
-        c->pturb->ini(pp, c->d, pgc);
+        c->pturb->ini(pp,c->d,pgc);
         pp->B60 = b60;
         pp->Ui = ui;
     }
     turb_fill0(pgc);
     for(int id : lev[0])
-        turb_save(pgc, *NP(id));
+    turb_save(pgc,*NP(id));
 
     // the step of level 0 makes the step of the blocks (turb_composite0)
     tb0->defer = [this](lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_scalar_convection *c, nhflow_diffusion *df, solver *s,
                         ioflow *f, vrans_nhflow *v)
     {
-        return turb_composite0(p, d, pgc, c, df, s, f, v);
+        return turb_composite0(p,d,pgc,c,df,s,f,v);
     };
 }
 
 // the fresh patches of level l after a regrid: linear from the parent, then from an old patch of the same level
-void nhflow_amr::turb_regrid(ghostcell *pgc, int l, vector<reefamr_patch *> &oldP)
+void nhflow_amr::turb_regrid(ghostcell *pgc, int l, vector<reefamr_patch*> &oldP)
 {
     if(!turb)
-        return;
+    return;
 
     const int K = klev(l);
-    const int Kc = klev(l - 1);
+    const int Kc = klev(l-1);
 
     for(int id : lev[l])
-        if(P[id]->fresh)
-        {
-            nhflow_amr_patch *c = NP(id);
-            comms_off guard(pgc);
-            pscope ps(pgc, c->d, d0);
-            c->pturb->ini(c->pp, c->d, pgc);
-        }
+    if(P[id]->fresh)
+    {
+        nhflow_amr_patch *c = NP(id);
+        comms_off guard(pgc);
+        pscope ps(pgc,c->d,d0);
+        c->pturb->ini(c->pp,c->d,pgc);
+    }
 
     // the 2x2 children of every parent of a fresh patch: per child and field the K layers
-    block_down_if(l, 4 * NTF * K, 7640 + l, [](reefamr_patch *q)
-                  { return q->fresh; }, [&](const reefamr_block &B, int key, double *v)
+    block_down_if(l,4*NTF*K,7640+l,[](reefamr_patch *q) { return q->fresh; },
+                  [&](const reefamr_block &B, int key, double *v)
                   {
                       lexer *q = glex(B.g);
                       auto ok = [&](int a, int b) { const int n = lij(q,a,b); return q->flagslice4[n]>0 && q->wet[n]==1; };
@@ -544,7 +546,9 @@ void nhflow_amr::turb_regrid(ghostcell *pgc, int l, vector<reefamr_patch *> &old
                               uc[k] = c + 0.25*(a==0?-1:1)*sx + 0.25*(b==0?-1:1)*sy;
                           }
                           vcell(q,&uc[0],Kc,K/Kc,&v[((2*a+b)*NTF+m)*K]);
-                      } }, [&](reefamr_patch *q, int id, int k, const double *v)
+                      }
+                  },
+                  [&](reefamr_patch *q, int id, int k, const double *v)
                   {
                       if(!q->fresh)
                       return;
@@ -558,10 +562,12 @@ void nhflow_amr::turb_regrid(ghostcell *pgc, int l, vector<reefamr_patch *> &old
                           double *f = tfield(id,m);
                           for(int kk=0; kk<K; ++kk)
                           f[cidx(pp,i0+a,j0+b,kk)] = v[((2*a+b)*NTF+m)*K+kk];
-                      } });
+                      }
+                  });
 
     // where an old patch of the same level was, its fields
-    old_run(l, NTF * K, 7650 + l, oldP, [&](reefamr_patch *o, int io, int jo, double *v)
+    old_run(l,NTF*K,7650+l,oldP,
+            [&](reefamr_patch *o, int io, int jo, double *v)
             {
                 nhflow_amr_patch *oc = NP(o);
                 lexer *op = o->pp;
@@ -569,7 +575,9 @@ void nhflow_amr::turb_regrid(ghostcell *pgc, int l, vector<reefamr_patch *> &old
                 const double *src[NTF] = {tf.k,tf.e,oc->d->EV,oc->d->EV0,oc->d->KIN};
                 for(int m=0; m<NTF; ++m)
                 for(int kk=0; kk<K; ++kk)
-                v[m*K+kk] = src[m][cidx(op,io,jo,kk)]; }, [&](reefamr_patch *c, int id, int ii, int jj, const double *v)
+                v[m*K+kk] = src[m][cidx(op,io,jo,kk)];
+            },
+            [&](reefamr_patch *c, int id, int ii, int jj, const double *v)
             {
                 lexer *pp = c->pp;
                 for(int m=0; m<NTF; ++m)
@@ -577,62 +585,63 @@ void nhflow_amr::turb_regrid(ghostcell *pgc, int l, vector<reefamr_patch *> &old
                     double *f = tfield(id,m);
                     for(int kk=0; kk<K; ++kk)
                     f[cidx(pp,ii,jj,kk)] = v[m*K+kk];
-                } });
+                }
+            });
 
-    turb_fill(pgc, l);
+    turb_fill(pgc,l);
 
     for(int id : lev[l])
-        if(P[id]->fresh)
-        {
-            turb_bc(pgc, id);
-            turb_save(pgc, *NP(id));
-        }
+    if(P[id]->fresh)
+    {
+        turb_bc(pgc,id);
+        turb_save(pgc,*NP(id));
+    }
 }
 
 // one turbulence step of all grids (nhflow_amr::step, before the momentum; level 0 has made its own)
 void nhflow_amr::turb_step(lexer *p, ghostcell *pgc)
 {
     if(!turb)
-        return;
+    return;
 
     const double t0 = MPI_Wtime();
 
     // the blocks (level 0 has made its step: the cells around the blocks from it and from the blocks at the end of
     // the last step), then the ring of the native grid from the blocks
-    if(nblk > 0 && turb_c0count != p->count)
+    if(nblk>0 && turb_c0count!=p->count)
     {
         turb_fill0(pgc);
         for(int id : lev[0])
-            turb_run(pgc, *NP(id));
+        turb_run(pgc,*NP(id));
         turb_fill0(pgc);
     }
 
     // the patches, coarse to fine
-    for(int l = 1; l <= maxlev; ++l)
+    for(int l=1; l<=maxlev; ++l)
     {
-        turb_fill(pgc, l);
+        turb_fill(pgc,l);
         for(int id : lev[l])
-            turb_run(pgc, *NP(id));
+        turb_run(pgc,*NP(id));
     }
 
     // the covered cells, then the cells around the grids and the ghost cells of level 0
-    if(maxlev >= 1)
+    if(maxlev>=1)
     {
         {
-            comms_off guard(pgc);
-            turb_restrict();
+        comms_off guard(pgc);
+        turb_restrict();
         }
-        turb_bc(pgc, -1);
-        if(nblk > 0)
-            turb_fill0(pgc);
-        for(int l = 1; l <= maxlev; ++l)
-            turb_fill(pgc, l);
+        turb_bc(pgc,-1);
+        if(nblk>0)
+        turb_fill0(pgc);
+        for(int l=1; l<=maxlev; ++l)
+        turb_fill(pgc,l);
     }
 
     for(auto q : P)
-        turb_save(pgc, *NP(q));
+    turb_save(pgc,*NP(q));
 
-    tturb += MPI_Wtime() - t0;
+    tturb += MPI_Wtime()-t0;
     ++tturb_n;
 }
 
@@ -641,17 +650,17 @@ void nhflow_amr::turb_step(lexer *p, ghostcell *pgc)
 void nhflow_amr::turb_level(ghostcell *pgc, int l)
 {
     if(!turb)
-        return;
+    return;
 
     const double t0 = MPI_Wtime();
 
-    turb_fill(pgc, l);
+    turb_fill(pgc,l);
     for(int id : lev[l])
-        turb_run(pgc, *NP(id));
+    turb_run(pgc,*NP(id));
     for(int id : lev[l])
-        turb_save(pgc, *NP(id));
+    turb_save(pgc,*NP(id));
 
-    tturb += MPI_Wtime() - t0;
+    tturb += MPI_Wtime()-t0;
     ++tturb_n;
 }
 
@@ -660,32 +669,32 @@ void nhflow_amr::turb_level(ghostcell *pgc, int l)
 // patches with their restricted cells (level 0: the driver after the momentum)
 void nhflow_amr::turb_sync(ghostcell *pgc, int l)
 {
-    if(!turb || l >= maxlev)
-        return;
+    if(!turb || l>=maxlev)
+    return;
 
     const double t0 = MPI_Wtime();
 
     wlo = l;
     whi = maxlev;
     {
-        comms_off guard(pgc);
-        turb_restrict();
+    comms_off guard(pgc);
+    turb_restrict();
     }
     wlo = 0;
     whi = -1;
 
-    if(l == 0)
-        turb_bc(pgc, -1);
+    if(l==0)
+    turb_bc(pgc,-1);
     else
-        for(int id : lev[l])
-            turb_bc(pgc, id);
+    for(int id : lev[l])
+    turb_bc(pgc,id);
 
-    for(int ll = MAX(l, 1); ll <= maxlev; ++ll)
-        turb_fill(pgc, ll);
+    for(int ll=MAX(l,1); ll<=maxlev; ++ll)
+    turb_fill(pgc,ll);
 
-    if(l >= 1)
-        for(int id : lev[l])
-            turb_save(pgc, *NP(id));
+    if(l>=1)
+    for(int id : lev[l])
+    turb_save(pgc,*NP(id));
 
-    tturb += MPI_Wtime() - t0;
+    tturb += MPI_Wtime()-t0;
 }

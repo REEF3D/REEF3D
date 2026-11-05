@@ -22,138 +22,139 @@ Author: Hans Bihs
 
 #include "dmpart_decomp.h"
 
-namespace dmpart {
-
-void decomp::surfcount(lexer *p, dive *a)
+namespace dmpart
 {
-    for(i = 0; i < a->para1count; i++)
+
+void decomp::surfcount(lexer* p,dive* a)
+{
+    for(i=0;i<a->para1count;i++)
     {
-        n = a->subgrid(a->para1sf[i][0], a->para1sf[i][1], a->para1sf[i][2]);
+        n=a->subgrid(a->para1sf[i][0],a->para1sf[i][1],a->para1sf[i][2]);
         a->para1[n]++;
     }
 
-    for(i = 0; i < a->para2count; i++)
+    for(i=0;i<a->para2count;i++)
     {
-        n = a->subgrid(a->para2sf[i][0], a->para2sf[i][1], a->para2sf[i][2]);
+        n=a->subgrid(a->para2sf[i][0],a->para2sf[i][1],a->para2sf[i][2]);
         a->para2[n]++;
     }
 
-    for(i = 0; i < a->para3count; i++)
+    for(i=0;i<a->para3count;i++)
     {
-        n = a->subgrid(a->para3sf[i][0], a->para3sf[i][1], a->para3sf[i][2]);
+        n=a->subgrid(a->para3sf[i][0],a->para3sf[i][1],a->para3sf[i][2]);
         a->para3[n]++;
     }
 
-    for(i = 0; i < a->para4count; i++)
+    for(i=0;i<a->para4count;i++)
     {
-        n = a->subgrid(a->para4sf[i][0], a->para4sf[i][1], a->para4sf[i][2]);
+        n=a->subgrid(a->para4sf[i][0],a->para4sf[i][1],a->para4sf[i][2]);
         a->para4[n]++;
     }
 
-    for(i = 0; i < a->para5count; i++)
+    for(i=0;i<a->para5count;i++)
     {
-        n = a->subgrid(a->para5sf[i][0], a->para5sf[i][1], a->para5sf[i][2]);
+        n=a->subgrid(a->para5sf[i][0],a->para5sf[i][1],a->para5sf[i][2]);
         a->para5[n]++;
     }
 
-    for(i = 0; i < a->para6count; i++)
+    for(i=0;i<a->para6count;i++)
     {
-        n = a->subgrid(a->para6sf[i][0], a->para6sf[i][1], a->para6sf[i][2]);
+        n=a->subgrid(a->para6sf[i][0],a->para6sf[i][1],a->para6sf[i][2]);
         a->para6[n]++;
     }
 }
 
-void decomp::slicesurfcount(lexer *p, dive *a)
+void decomp::slicesurfcount(lexer* p,dive* a)
 {
-    for(i = 0; i < a->paraslice1count; i++)
+    for(i=0;i<a->paraslice1count;i++)
     {
-        n = a->subslice(a->paraslice1sf[i][0], a->paraslice1sf[i][1]);
+        n=a->subslice(a->paraslice1sf[i][0],a->paraslice1sf[i][1]);
         a->paraslice1[n]++;
     }
 
-    for(i = 0; i < a->paraslice2count; i++)
+    for(i=0;i<a->paraslice2count;i++)
     {
-        n = a->subslice(a->paraslice2sf[i][0], a->paraslice2sf[i][1]);
+        n=a->subslice(a->paraslice2sf[i][0],a->paraslice2sf[i][1]);
         a->paraslice2[n]++;
     }
 
-    for(i = 0; i < a->paraslice3count; i++)
+    for(i=0;i<a->paraslice3count;i++)
     {
-        n = a->subslice(a->paraslice3sf[i][0], a->paraslice3sf[i][1]);
+        n=a->subslice(a->paraslice3sf[i][0],a->paraslice3sf[i][1]);
         a->paraslice3[n]++;
     }
 
-    for(i = 0; i < a->paraslice4count; i++)
+    for(i=0;i<a->paraslice4count;i++)
     {
-        n = a->subslice(a->paraslice4sf[i][0], a->paraslice4sf[i][1]);
+        n=a->subslice(a->paraslice4sf[i][0],a->paraslice4sf[i][1]);
         a->paraslice4[n]++;
     }
 }
 
-void decomp::slicecornercount(lexer *p, dive *a)
+void decomp::slicecornercount(lexer* p,dive* a)
 {
-    for(i = 0; i < a->paracoslice1count; i++)
+    for(i=0;i<a->paracoslice1count;i++)
     {
-        n = a->paracoslice1sf[i][2];
+        n=a->paracoslice1sf[i][2];
         a->paracoslice1[n]++;
     }
 
-    for(i = 0; i < a->paracoslice2count; i++)
+    for(i=0;i<a->paracoslice2count;i++)
     {
-        n = a->paracoslice2sf[i][2];
+        n=a->paracoslice2sf[i][2];
         a->paracoslice2[n]++;
     }
 
-    for(i = 0; i < a->paracoslice3count; i++)
+    for(i=0;i<a->paracoslice3count;i++)
     {
-        n = a->paracoslice3sf[i][2];
+        n=a->paracoslice3sf[i][2];
         a->paracoslice3[n]++;
     }
 
-    for(i = 0; i < a->paracoslice4count; i++)
+    for(i=0;i<a->paracoslice4count;i++)
     {
-        n = a->paracoslice4sf[i][2];
+        n=a->paracoslice4sf[i][2];
         a->paracoslice4[n]++;
     }
 }
 
-void decomp::cornercount(lexer *p, dive *a)
+void decomp::cornercount(lexer* p,dive* a)
 {
 
-    for(i = 0; i < a->paraco1count; i++)
+    for(i=0;i<a->paraco1count;i++)
     {
-        n = a->para1co[i][3];
+        n=a->para1co[i][3];
         a->paraco1[n]++;
     }
 
-    for(i = 0; i < a->paraco2count; i++)
+    for(i=0;i<a->paraco2count;i++)
     {
-        n = a->para2co[i][3];
+        n=a->para2co[i][3];
         a->paraco2[n]++;
     }
 
-    for(i = 0; i < a->paraco3count; i++)
+    for(i=0;i<a->paraco3count;i++)
     {
-        n = a->para3co[i][3];
+        n=a->para3co[i][3];
         a->paraco3[n]++;
     }
 
-    for(i = 0; i < a->paraco4count; i++)
+    for(i=0;i<a->paraco4count;i++)
     {
-        n = a->para4co[i][3];
+        n=a->para4co[i][3];
         a->paraco4[n]++;
     }
 
-    for(i = 0; i < a->paraco5count; i++)
+    for(i=0;i<a->paraco5count;i++)
     {
-        n = a->para5co[i][3];
+        n=a->para5co[i][3];
         a->paraco5[n]++;
     }
 
-    for(i = 0; i < a->paraco6count; i++)
+    for(i=0;i<a->paraco6count;i++)
     {
-        n = a->para6co[i][3];
+        n=a->para6co[i][3];
         a->paraco6[n]++;
     }
 }
-}  // namespace dmpart
+}

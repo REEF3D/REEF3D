@@ -20,10 +20,11 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "coral/core/coral_points.h"
-#include "coral/core/coral_model.h"
+#include"coral/core/coral_points.h"
+#include"coral/core/coral_model.h"
 
-namespace coral {
+namespace coral
+{
 
 int body_points::add(const model &m, int b, const Vec3 &p)
 {
@@ -56,4 +57,4 @@ void body_points::add_point_force(const model &m, int k, const Vec3 &F, VecX &f)
     m.add_force(f, b, m.body(b).point(s_[k]), F);
 }
 
-}  // namespace coral
+}

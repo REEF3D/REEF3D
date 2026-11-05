@@ -19,39 +19,34 @@ namespace internal {
 /** \internal
  * \brief Template specialization of the logistic function for Eigen::half.
  */
-template<>
-struct scalar_logistic_op<Eigen::half>
-{
-    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Eigen::half operator()(const Eigen::half &x) const
-    {
-        // Convert to float and call scalar_logistic_op<float>.
-        const scalar_logistic_op<float> float_op;
-        return Eigen::half(float_op(float(x)));
-    }
+template <>
+struct scalar_logistic_op<Eigen::half> {
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Eigen::half operator()(const Eigen::half& x) const {
+    // Convert to float and call scalar_logistic_op<float>.
+    const scalar_logistic_op<float> float_op;
+    return Eigen::half(float_op(float(x)));
+  }
 
-    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Eigen::half packetOp(const Eigen::half &x) const { return this->operator()(x); }
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Eigen::half packetOp(const Eigen::half& x) const { return this->operator()(x); }
 
-    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Packet4hf packetOp(const Packet4hf &x) const
-    {
-        const scalar_logistic_op<float> float_op;
-        return vcvt_f16_f32(float_op.packetOp(vcvt_f32_f16(x)));
-    }
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Packet4hf packetOp(const Packet4hf& x) const {
+    const scalar_logistic_op<float> float_op;
+    return vcvt_f16_f32(float_op.packetOp(vcvt_f32_f16(x)));
+  }
 
-    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Packet8hf packetOp(const Packet8hf &x) const
-    {
-        const scalar_logistic_op<float> float_op;
-        return vcombine_f16(vcvt_f16_f32(float_op.packetOp(vcvt_f32_f16(vget_low_f16(x)))),
-                            vcvt_f16_f32(float_op.packetOp(vcvt_high_f32_f16(x))));
-    }
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Packet8hf packetOp(const Packet8hf& x) const {
+    const scalar_logistic_op<float> float_op;
+    return vcombine_f16(vcvt_f16_f32(float_op.packetOp(vcvt_f32_f16(vget_low_f16(x)))),
+                        vcvt_f16_f32(float_op.packetOp(vcvt_high_f32_f16(x))));
+  }
 };
 
-template<>
-struct functor_traits<scalar_logistic_op<Eigen::half>>
-{
-    enum {
-        Cost = functor_traits<scalar_logistic_op<float>>::Cost,
-        PacketAccess = functor_traits<scalar_logistic_op<float>>::PacketAccess,
-    };
+template <>
+struct functor_traits<scalar_logistic_op<Eigen::half>> {
+  enum {
+    Cost = functor_traits<scalar_logistic_op<float>>::Cost,
+    PacketAccess = functor_traits<scalar_logistic_op<float>>::PacketAccess,
+  };
 };
 #endif  // EIGEN_HAS_ARM64_FP16_VECTOR_ARITHMETIC
 

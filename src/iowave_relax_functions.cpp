@@ -20,101 +20,101 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "fdm.h"
-#include "ghostcell.h"
-#include "iowave.h"
-#include "lexer.h"
+#include"iowave.h"
+#include"lexer.h"
+#include"fdm.h"
+#include"ghostcell.h"
 
 double iowave::rb1_ext(lexer *p, int var)
 {
-    double x0, y0;
-
-    if(var == 1)
+    double x0,y0;
+    
+    if(var==1)
     {
-        x0 = p->pos1_x();
-        y0 = p->pos1_y();
+    x0 = p->pos1_x();
+    y0 = p->pos1_y();
+    }
+    
+    if(var==2)
+    {
+    x0 = p->pos2_x();
+    y0 = p->pos2_y();
+    }
+    
+    if(var==3||var==4)
+    {
+    x0 = p->pos_x();
+    y0 = p->pos_y();
     }
 
-    if(var == 2)
-    {
-        x0 = p->pos2_x();
-        y0 = p->pos2_y();
-    }
-
-    if(var == 3 || var == 4)
-    {
-        x0 = p->pos_x();
-        y0 = p->pos_y();
-    }
-
-    return zones.relax_weight(x0, y0);
+    return zones.relax_weight(x0,y0);
 }
 
 int iowave::rb1_flag(lexer *p, int var)
 {
-    double x0, y0;
-
-    if(var == 1)
+    double x0,y0;
+    
+    if(var==1)
     {
-        x0 = p->pos1_x();
-        y0 = p->pos1_y();
+    x0 = p->pos1_x();
+    y0 = p->pos1_y();
+    }
+    
+    if(var==2)
+    {
+    x0 = p->pos2_x();
+    y0 = p->pos2_y();
+    }
+    
+    if(var==3||var==4)
+    {
+    x0 = p->pos_x();
+    y0 = p->pos_y();
     }
 
-    if(var == 2)
-    {
-        x0 = p->pos2_x();
-        y0 = p->pos2_y();
-    }
-
-    if(var == 3 || var == 4)
-    {
-        x0 = p->pos_x();
-        y0 = p->pos_y();
-    }
-
-    return zones.relax_flag(x0, y0);
+    return zones.relax_flag(x0,y0);
 }
 
 double iowave::rb3_ext(lexer *p, int var)
 {
-    double x0, y0;
-
-    if(var == 1)
+    double x0,y0;
+    
+    if(var==1)
     {
-        x0 = p->pos1_x();
-        y0 = p->pos1_y();
+    x0 = p->pos1_x();
+    y0 = p->pos1_y();
+    }
+    
+    if(var==2)
+    {
+    x0 = p->pos2_x();
+    y0 = p->pos2_y();
+    }
+    
+    if(var==3||var==4)
+    {
+    x0 = p->pos_x();
+    y0 = p->pos_y();
     }
 
-    if(var == 2)
-    {
-        x0 = p->pos2_x();
-        y0 = p->pos2_y();
-    }
-
-    if(var == 3 || var == 4)
-    {
-        x0 = p->pos_x();
-        y0 = p->pos_y();
-    }
-
-    return zones.beach_weight(x0, y0);
+    return zones.beach_weight(x0,y0);
 }
 
 double iowave::ramp(lexer *p)
 {
-    double f = 1.0;
+    double f=1.0;
 
     // B 95: at the time of the targets (the stage output)
-    const double tr = (p->B95 != 0.0) ? p->wavetime : p->simtime;
+    const double tr = (p->B95!=0.0) ? p->wavetime : p->simtime;
 
-    if(p->B101 == 1 && tr < p->B102 * p->wT)
+    if(p->B101==1 && tr<p->B102*p->wT)
     {
-        f = tr / (p->B102 * p->wT) - (1.0 / PI) * sin(PI * (tr / (p->B102 * p->wT)));
+    f = tr/(p->B102*p->wT) - (1.0/PI)*sin(PI*(tr/(p->B102*p->wT)));
     }
-
-    if(p->B101 == 2 && tr < p->B102)
+    
+    if(p->B101==2 && tr<p->B102)
     {
-        f = tr / (p->B102) - (1.0 / PI) * sin(PI * (tr / (p->B102)));
+    f = tr/(p->B102) - (1.0/PI)*sin(PI*(tr/(p->B102)));
     }
 
     return f;

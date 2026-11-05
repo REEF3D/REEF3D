@@ -23,7 +23,7 @@ Authors: Hans Bihs, Tobias Martin
 #ifndef SIXDOF_RIGIDBODY_H_
 #define SIXDOF_RIGIDBODY_H_
 
-#include <Eigen/Dense>
+#include<Eigen/Dense>
 
 //  Rigid-body core of the 6DOF module: state, kinematics and time integration of one body.
 //
@@ -50,19 +50,20 @@ Authors: Hans Bihs, Tobias Martin
 class sixdof_rigidbody
 {
 public:
+
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
 
     sixdof_rigidbody();
 
     // ---- configuration
-    int dof[6];         // DOF modes, see above
-    bool twoD;          // 2D (x-z plane): sway, roll and yaw do not exist
-    double Cdamp_t[3];  // linear damping of the translations   [N s/m]   (X 26)
-    double Cdamp_r[3];  // linear damping of the rotations      [N m s]   (X 25)
+    int dof[6];          // DOF modes, see above
+    bool twoD;           // 2D (x-z plane): sway, roll and yaw do not exist
+    double Cdamp_t[3];   // linear damping of the translations   [N s/m]   (X 26)
+    double Cdamp_r[3];   // linear damping of the rotations      [N m s]   (X 25)
 
     // ---- mass properties
     double mass;
-    Eigen::Matrix3d I;  // inertia tensor about the CoG, body-fixed frame
+    Eigen::Matrix3d I;   // inertia tensor about the CoG, body-fixed frame
 
     // ---- state, stage start (k), history (n1..n3) and derivatives
     Eigen::Vector3d p, pk, pn1, pn2, pn3, dp, dpk, dpn1, dpn2, dpn3;
@@ -72,10 +73,10 @@ public:
 
     // ---- kinematics derived from e and h
     Eigen::Matrix<double, 3, 4> E, G, Gdot;
-    Eigen::Matrix3d R, Rinv;  // rotation matrix body -> inertial and its inverse
-    Eigen::Vector3d omega_B;  // angular velocity, body-fixed frame
-    Eigen::Vector3d omega_I;  // angular velocity, inertial frame
-    double phi, theta, psi;   // Euler angles (roll, pitch, yaw) [rad]
+    Eigen::Matrix3d R, Rinv;   // rotation matrix body -> inertial and its inverse
+    Eigen::Vector3d omega_B;   // angular velocity, body-fixed frame
+    Eigen::Vector3d omega_I;   // angular velocity, inertial frame
+    double phi, theta, psi;    // Euler angles (roll, pitch, yaw) [rad]
 
     // ---- resultant load on the body
     Eigen::Vector3d F, M;
@@ -84,64 +85,55 @@ public:
     double dtn1, dtn2, dtn3;
 
     // ---- set-up
-    void reset();                  // zero state, derivatives, history and loads
-    void quaternion_from_euler();  // e from phi, theta, psi (Goldstein p. 604)
-    void init_history();           // stage and history copies = current state
-    bool fixed(int) const;         // DOF n not free (fixed or prescribed, or absent in 2D)
+    void reset();                                       // zero state, derivatives, history and loads
+    void quaternion_from_euler();                       // e from phi, theta, psi (Goldstein p. 604)
+    void init_history();                                // stage and history copies = current state
+    bool fixed(int) const;                              // DOF n not free (fixed or prescribed, or absent in 2D)
 
     // ---- kinematics
-    void quat_matrices();                                // E, G, R, Rinv from e
-    void euler_angles();                                 // phi, theta, psi from e
-    void update_omega();                                 // omega_B, omega_I from h
-    void constrain_rotation();                           // h without the fixed rotational DOFs (X 11 0)
-    void velocity(Eigen::Matrix<double, 6, 1> &) const;  // (u, v, w, p, q, r) of the CoG, inertial frame
+    void quat_matrices();                               // E, G, R, Rinv from e
+    void euler_angles();                                // phi, theta, psi from e
+    void update_omega();                                // omega_B, omega_I from h
+    void constrain_rotation();                          // h without the fixed rotational DOFs (X 11 0)
+    void velocity(Eigen::Matrix<double, 6, 1>&) const;  // (u, v, w, p, q, r) of the CoG, inertial frame
 
     // ---- loads
     // F, M from the external loads (inertial frame, about the CoG) and the linear damping;
     // fixed and prescribed DOFs get zero load
-    void assemble_loads(const double *);
+    void assemble_loads(const double*);
 
     // ---- right-hand side
-    void derivatives_trans();  // dp = F, dc = p/m
-    void derivatives_rot();    // de, dh (calls quat_matrices)
+    void derivatives_trans();                           // dp = F, dc = p/m
+    void derivatives_rot();                             // de, dh (calls quat_matrices)
 
     // ---- stage updates
-    void stage_rk2(int, double);                    // TVD RK2 (Heun), stage iter, dt
-    void stage_rk3(int, double);                    // TVD RK3 (Shu-Osher)
-    void stage_rkls3(int, double, double, double);  // low-storage RK3: stage iter, gamma, zeta, dt
-    void stage_rk4(int, double);                    // classical RK4, stages 0..3
-    void step_onestep(double);                      // single step with frozen derivatives (prescribed motion)
+    void stage_rk2(int, double);                        // TVD RK2 (Heun), stage iter, dt
+    void stage_rk3(int, double);                        // TVD RK3 (Shu-Osher)
+    void stage_rkls3(int, double, double, double);      // low-storage RK3: stage iter, gamma, zeta, dt
+    void stage_rk4(int, double);                        // classical RK4, stages 0..3
+    void step_onestep(double);                          // single step with frozen derivatives (prescribed motion)
 
-    void save_history(double);  // shift n1..n3, argument: stage time step
+    void save_history(double);                          // shift n1..n3, argument: stage time step
 
     // ---- checkpoints (P 48, I 45): the state, history, kinematics and loads (ckpt_pack.h: ckpt_put
     // writes, ckpt_get reads, in this order)
-    template<class P>
-    void ckpt(P &q)
+    template<class P> void ckpt(P &q)
     {
-        for(Eigen::Vector3d *a : {&p, &pk, &pn1, &pn2, &pn3, &dp, &dpk, &dpn1, &dpn2, &dpn3,
-                                  &c, &ck, &cn1, &cn2, &cn3, &dc, &dck, &dcn1, &dcn2, &dcn3,
-                                  &h, &hk, &hn1, &hn2, &hn3, &dh, &dhk, &dhn1, &dhn2, &dhn3,
-                                  &omega_B, &omega_I, &F, &M, &rk4_p[0], &rk4_p[1], &rk4_p[2],
-                                  &rk4_c[0], &rk4_c[1], &rk4_c[2], &rk4_h[0], &rk4_h[1], &rk4_h[2]})
-            q.m(*a);
-        for(Eigen::Vector4d *a : {&e, &ek, &en1, &en2, &en3, &de, &dek, &den1, &den2, &den3, &er, &rk4_e[0], &rk4_e[1], &rk4_e[2]})
-            q.m(*a);
-        q.m(E);
-        q.m(G);
-        q.m(Gdot);
-        q.m(R);
-        q.m(Rinv);
-        q.d(phi);
-        q.d(theta);
-        q.d(psi);
-        q.d(dtn1);
-        q.d(dtn2);
-        q.d(dtn3);
+        for(Eigen::Vector3d *a : {&p,&pk,&pn1,&pn2,&pn3,&dp,&dpk,&dpn1,&dpn2,&dpn3,
+                                  &c,&ck,&cn1,&cn2,&cn3,&dc,&dck,&dcn1,&dcn2,&dcn3,
+                                  &h,&hk,&hn1,&hn2,&hn3,&dh,&dhk,&dhn1,&dhn2,&dhn3,
+                                  &omega_B,&omega_I,&F,&M,&rk4_p[0],&rk4_p[1],&rk4_p[2],
+                                  &rk4_c[0],&rk4_c[1],&rk4_c[2],&rk4_h[0],&rk4_h[1],&rk4_h[2]})
+        q.m(*a);
+        for(Eigen::Vector4d *a : {&e,&ek,&en1,&en2,&en3,&de,&dek,&den1,&den2,&den3,&er,&rk4_e[0],&rk4_e[1],&rk4_e[2]})
+        q.m(*a);
+        q.m(E); q.m(G); q.m(Gdot); q.m(R); q.m(Rinv);
+        q.d(phi); q.d(theta); q.d(psi);
+        q.d(dtn1); q.d(dtn2); q.d(dtn3);
     }
 
 private:
-    Eigen::Vector4d er;  // unnormalised quaternion stage value (RK3, RKLS3)
+    Eigen::Vector4d er;   // unnormalised quaternion stage value (RK3, RKLS3)
     Eigen::Vector3d rk4_p[3], rk4_c[3], rk4_h[3];
     Eigen::Vector4d rk4_e[3];
 };

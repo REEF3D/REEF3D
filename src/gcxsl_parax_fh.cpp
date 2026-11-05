@@ -20,122 +20,122 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "ghostcell.h"
-#include "lexer.h"
-#include "slice.h"
+#include"ghostcell.h"
+#include"lexer.h"
+#include"slice.h"
 
-void ghostcell::gcslparax_fh(lexer *p, slice &f, int gcv)
+void ghostcell::gcslparax_fh(lexer* p, slice& f, int gcv)
 {
     // MPI exchange off (patch kernels of the mesh refinement): the patch has no neighbour ranks
     if(!do_comms)
-        return;
+    return;
 
-    paramargin = margin;
+    paramargin=margin;
 
     //  FILL SEND
-    count = 0;
-    for(q = 0; q < p->gcslpara1_count; ++q)
+    count=0;
+    for(q=0;q<p->gcslpara1_count;++q)
     {
-        i = p->gcslpara1[q][0];
-        j = p->gcslpara1[q][1];
+        i=p->gcslpara1[q][0];
+        j=p->gcslpara1[q][1];
 
-        for(n = 0; n < paramargin; ++n)
+        for(n=0;n<paramargin;++n)
         {
-            send1[count] = f(i - n - 1, j);
+            send1[count]=f(i-n-1,j);
             ++count;
         }
     }
 
-    count = 0;
-    for(q = 0; q < p->gcslpara3_count; ++q)
+    count=0;
+    for(q=0;q<p->gcslpara3_count;++q)
     {
-        i = p->gcslpara3[q][0];
-        j = p->gcslpara3[q][1];
+        i=p->gcslpara3[q][0];
+        j=p->gcslpara3[q][1];
 
-        for(n = 0; n < paramargin; ++n)
+        for(n=0;n<paramargin;++n)
         {
-            send3[count] = f(i, j - n - 1);
+            send3[count]=f(i,j-n-1);
             ++count;
         }
     }
 
-    count = 0;
-    for(q = 0; q < p->gcslpara4_count; ++q)
+    count=0;
+    for(q=0;q<p->gcslpara4_count;++q)
     {
-        i = p->gcslpara4[q][0];
-        j = p->gcslpara4[q][1];
+        i=p->gcslpara4[q][0];
+        j=p->gcslpara4[q][1];
 
-        for(n = 0; n < paramargin; ++n)
+        for(n=0;n<paramargin;++n)
         {
-            send4[count] = f(i + n + 1, j);
+            send4[count]=f(i+n+1,j);
             ++count;
         }
     }
 
-    count = 0;
-    for(q = 0; q < p->gcslpara2_count; ++q)
+    count=0;
+    for(q=0;q<p->gcslpara2_count;++q)
     {
-        i = p->gcslpara2[q][0];
-        j = p->gcslpara2[q][1];
+        i=p->gcslpara2[q][0];
+        j=p->gcslpara2[q][1];
 
-        for(n = 0; n < paramargin; ++n)
+        for(n=0;n<paramargin;++n)
         {
-            send2[count] = f(i, j + n + 1);
+            send2[count]=f(i,j+n+1);
             ++count;
         }
     }
 
-    Sendrecv_double(p->gcslpara1_count * paramargin, p->gcslpara2_count * paramargin, p->gcslpara3_count * paramargin, p->gcslpara4_count * paramargin, 0, 0);
+    Sendrecv_double(p->gcslpara1_count*paramargin,p->gcslpara2_count*paramargin,p->gcslpara3_count*paramargin,p->gcslpara4_count*paramargin,0,0);
 
     //  FILL RECEIVE
-    count = 0;
-    for(q = 0; q < p->gcslpara1_count; ++q)
+    count=0;
+    for(q=0;q<p->gcslpara1_count;++q)
     {
-        i = p->gcslpara1[q][0];
-        j = p->gcslpara1[q][1];
+        i=p->gcslpara1[q][0];
+        j=p->gcslpara1[q][1];
 
-        for(n = 0; n < paramargin; ++n)
+        for(n=0;n<paramargin;++n)
         {
-            f(i + n, j) += recv1[count];
+            f(i+n,j)+=recv1[count];
             ++count;
         }
     }
 
-    count = 0;
-    for(q = 0; q < p->gcslpara3_count; ++q)
+    count=0;
+    for(q=0;q<p->gcslpara3_count;++q)
     {
-        i = p->gcslpara3[q][0];
-        j = p->gcslpara3[q][1];
+        i=p->gcslpara3[q][0];
+        j=p->gcslpara3[q][1];
 
-        for(n = 0; n < paramargin; ++n)
+        for(n=0;n<paramargin;++n)
         {
-            f(i, j + n) += recv3[count];
+            f(i,j+n)+=recv3[count];
             ++count;
         }
     }
 
-    count = 0;
-    for(q = 0; q < p->gcslpara4_count; ++q)
+    count=0;
+    for(q=0;q<p->gcslpara4_count;++q)
     {
-        i = p->gcslpara4[q][0];
-        j = p->gcslpara4[q][1];
+        i=p->gcslpara4[q][0];
+        j=p->gcslpara4[q][1];
 
-        for(n = 0; n < paramargin; ++n)
+        for(n=0;n<paramargin;++n)
         {
-            f(i - n, j) += recv4[count];
+            f(i-n,j)+=recv4[count];
             ++count;
         }
     }
 
-    count = 0;
-    for(q = 0; q < p->gcslpara2_count; ++q)
+    count=0;
+    for(q=0;q<p->gcslpara2_count;++q)
     {
-        i = p->gcslpara2[q][0];
-        j = p->gcslpara2[q][1];
+        i=p->gcslpara2[q][0];
+        j=p->gcslpara2[q][1];
 
-        for(n = 0; n < paramargin; ++n)
+        for(n=0;n<paramargin;++n)
         {
-            f(i, j - n) += recv2[count];
+            f(i,j-n)+=recv2[count];
             ++count;
         }
     }

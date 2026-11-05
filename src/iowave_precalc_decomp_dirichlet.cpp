@@ -20,6 +20,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "ghostcell.h"
-#include "iowave.h"
-#include "lexer.h"
+#include"iowave.h"
+#include"lexer.h"
+#include"ghostcell.h"

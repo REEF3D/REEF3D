@@ -23,8 +23,8 @@ Author: Hans Bihs
 #ifndef SFLOW_BICGSTAB_H_
 #define SFLOW_BICGSTAB_H_
 
-#include "increment.h"
 #include "solver2D.h"
+#include "increment.h"
 
 #include <vector>
 
@@ -33,34 +33,34 @@ using namespace std;
 class sflow_bicgstab final : public solver2D, public increment
 {
 public:
-    sflow_bicgstab(lexer *, ghostcell *);
+    sflow_bicgstab(lexer*,ghostcell*);
     virtual ~sflow_bicgstab() = default;
-    void start(lexer *, ghostcell *, slice &, matrix2D &, vec2D &, vec2D &, int) override final;
+    void start(lexer*, ghostcell*, slice&, matrix2D&, vec2D&, vec2D&, int) override final;
 
 private:
-    void solve(lexer *, ghostcell *, matrix2D &, vec2D &, vec2D &, int, int &);
+    void solve(lexer*, ghostcell*, matrix2D&, vec2D&, vec2D&, int, int&);
 
-    void fillxvec(lexer *, slice &, vec2D &);
-    void finalize(lexer *, slice &);
+    void fillxvec(lexer*,slice&,vec2D&);
+    void finalize(lexer*,slice&);
 
-    double res_calc(lexer *, matrix2D &, ghostcell *, std::vector<double> &);
-    void matvec_axb(lexer *, matrix2D &, std::vector<double> &, std::vector<double> &);
-    void matvec_std(lexer *, matrix2D &, std::vector<double> &, std::vector<double> &);
+    double res_calc(lexer*, matrix2D&, ghostcell*, std::vector<double>&);
+    void matvec_axb(lexer*, matrix2D&, std::vector<double>&, std::vector<double>&);
+    void matvec_std(lexer*, matrix2D&, std::vector<double>&, std::vector<double>&);
 
-    void precon_setup(lexer *, matrix2D &, ghostcell *);
-    void precon_solve(lexer *, ghostcell *, std::vector<double> &, std::vector<double> &);
+    void precon_setup(lexer*, matrix2D&,ghostcell*);
+    void precon_solve(lexer*,ghostcell*,std::vector<double>&,std::vector<double>&);
 
-    std::vector<double> sj, rj, r0, vj, tj, pj, ph, sh, aii, x, rhs;
+    std::vector<double> sj,rj,r0,vj,tj,pj,ph,sh,aii,x,rhs;
 
     int *flagslice;
 
     double final_res_norm;
-    double alpha, beta, w1, w2, w, residual, norm_vj, norm_r0, norm_sj, norm_rj;
-    double r_j1, r_j, sigma;
+    double alpha,beta,w1,w2,w,residual,norm_vj,norm_r0,norm_sj,norm_rj;
+    double r_j1,r_j,sigma;
 
-    int count, q;
+    int count,q;
 
-    int ulast, vlast, wlast;
+    int ulast,vlast,wlast;
 
     static constexpr double epsi = 1.0e-19;
 };

@@ -23,7 +23,7 @@ Author: Hans Bihs
 #ifndef LINEAR_REGRESSION_CONT_H_
 #define LINEAR_REGRESSION_CONT_H_
 
-#include "increment.h"
+#include"increment.h"
 
 class lexer;
 class ghostcell;
@@ -35,15 +35,18 @@ class linear_regression_cont : public increment
 {
 
 public:
-    linear_regression_cont(lexer *);
-    virtual ~linear_regression_cont();
+
+	linear_regression_cont (lexer *);
+	virtual ~linear_regression_cont();
+
 
 private:
     double num;
-    double xm, ym;
-    double xsum, ysum;
-    double xy_sum, xx_sum;
-    double SS_xy, SS_xx;
+    double xm,ym;
+    double xsum,ysum;
+    double xy_sum,xx_sum;
+    double SS_xy,SS_xx;
+  
 };
 
 #endif

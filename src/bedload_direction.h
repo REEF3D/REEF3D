@@ -23,7 +23,7 @@ Author: Hans Bihs
 #ifndef BEDLOAD_DIRECTION_H_
 #define BEDLOAD_DIRECTION_H_
 
-#include "increment.h"
+#include"increment.h"
 
 class lexer;
 class ghostcell;
@@ -36,9 +36,13 @@ using namespace std;
 class bedload_direction : public increment
 {
 public:
-    virtual ~bedload_direction() {}
-    virtual void start(lexer *, ghostcell *, sediment_fdm *) = 0;
+
+    virtual ~bedload_direction(){}
+	virtual void start(lexer*, ghostcell*, sediment_fdm*)=0;
+
+
 };
 
 #endif
+
 

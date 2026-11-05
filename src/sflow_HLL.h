@@ -23,7 +23,7 @@ Author: Hans Bihs
 #ifndef SFLOW_HLL_H_
 #define SFLOW_HLL_H_
 
-#include "increment.h"
+#include"increment.h"
 
 class lexer;
 class fdm2D;
@@ -48,29 +48,29 @@ using namespace std;
 class sflow_HLL final : public increment
 {
 public:
-    sflow_HLL(lexer *, ghostcell *, patchBC_interface *);
-    virtual ~sflow_HLL();
+	sflow_HLL(lexer*,ghostcell*,patchBC_interface*);
+	virtual ~sflow_HLL();
 
     // mesh refinement: interface fluxes are recorded/matched between flux_bc and the divergence
     sflow_amr *amr = nullptr;
     int amr_id = 0;
 
-    void start(lexer *, fdm2D *, int);
+    void start(lexer*, fdm2D*, int);
 
     // the in- and outflow faces (gcslin, gcslout) carry the flux of the ghost state (open faces of a block, G 54)
     void open_io() { inflow = outflow = 1; }
 
 private:
-    void aij_U(lexer *, fdm2D *);
-    void aij_V(lexer *, fdm2D *);
-    void aij_W(lexer *, fdm2D *);
-    void aij_E(lexer *, fdm2D *);
+    void aij_U(lexer*, fdm2D*);
+    void aij_V(lexer*, fdm2D*);
+    void aij_W(lexer*, fdm2D*);
+    void aij_E(lexer*, fdm2D*);
 
-    void HLL(lexer *, fdm2D *, slice &, slice &, slice &, slice &, slice &, slice &);
-    void HLLC_x(lexer *, fdm2D *, slice &, slice &, slice &);
-    void HLLC_y(lexer *, fdm2D *, slice &, slice &, slice &);
-    void flux_bc(lexer *, fdm2D *, int);
-    void divergence(lexer *, fdm2D *, slice &);
+    void HLL(lexer*, fdm2D*, slice&, slice&, slice&, slice&, slice&, slice&);
+    void HLLC_x(lexer*, fdm2D*, slice&, slice&, slice&);
+    void HLLC_y(lexer*, fdm2D*, slice&, slice&, slice&);
+    void flux_bc(lexer*, fdm2D*, int);
+    void divergence(lexer*, fdm2D*, slice&);
 
     double denom;
     int inflow, outflow;

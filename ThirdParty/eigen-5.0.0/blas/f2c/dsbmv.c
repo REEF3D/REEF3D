@@ -12,10 +12,8 @@
 
 #include "datatypes.h"
 
-/* Subroutine */ void dsbmv_(char *uplo, integer *n, integer *k,
-                             doublereal *alpha, doublereal *a, integer *lda,
-                             doublereal *x, integer *incx, doublereal *beta,
-                             doublereal *y, integer *incy) {
+/* Subroutine */ void dsbmv_(char *uplo, integer *n, integer *k, doublereal *alpha, doublereal *a, integer *lda,
+                             doublereal *x, integer *incx, doublereal *beta, doublereal *y, integer *incy) {
   /* System generated locals */
   integer a_dim1, a_offset, i__1, i__2, i__3, i__4;
 

@@ -23,8 +23,8 @@ Architect: Hans Bihs
 #ifndef WAVE_LIB_ETA_SERIES_H_
 #define WAVE_LIB_ETA_SERIES_H_
 
-#include <cmath>
-#include <vector>
+#include<vector>
+#include<cmath>
 
 /*--------------------------------------------------------------------
 Time series of a sum of harmonics at one point (iowave::timeseries,
@@ -44,45 +44,45 @@ inline void wave_eta_harmonics(const std::vector<double> &W, const std::vector<d
 {
     const int B = int(W.size());
     const size_t NT = tv.size();
-    ev.assign(NT, 0.0);
+    ev.assign(NT,0.0);
 
-    if(B == 0 || NT == 0)
-        return;
+    if(B==0 || NT==0)
+    return;
 
-    std::vector<double> c(B), s(B), cd(B, 1.0), sd(B, 0.0);
-    const double d0 = NT > 1 ? tv[1] - tv[0] : 0.0;
+    std::vector<double> c(B), s(B), cd(B,1.0), sd(B,0.0);
+    const double d0 = NT>1 ? tv[1] - tv[0] : 0.0;
 
-    for(int b = 0; b < B; ++b)
+    for(int b=0; b<B; ++b)
     {
-        cd[b] = cos(W[b] * d0);
-        sd[b] = sin(W[b] * d0);
+    cd[b] = cos(W[b]*d0);
+    sd[b] = sin(W[b]*d0);
     }
 
     const double *pw = W.data(), *pr = ar.data(), *pi = ai.data(), *pcd = cd.data(), *psd = sd.data();
     double *pc = c.data(), *ps = s.data();
     int since = 32;
 
-    for(size_t q = 0; q < NT; ++q)
+    for(size_t q=0; q<NT; ++q)
     {
         const double t = tv[q];
-        const bool exact = since >= 32 || q == 0 || fabs((tv[q] - tv[q - 1]) - d0) > 1.0e-9 * fabs(d0);
+        const bool exact = since>=32 || q==0 || fabs((tv[q] - tv[q-1]) - d0) > 1.0e-9*fabs(d0);
 
         if(exact)
         {
-            for(int b = 0; b < B; ++b)
+            for(int b=0; b<B; ++b)
             {
-                pc[b] = cos(pw[b] * t);
-                ps[b] = sin(pw[b] * t);
+            pc[b] = cos(pw[b]*t);
+            ps[b] = sin(pw[b]*t);
             }
             since = 1;
         }
         else
         {
-#pragma omp simd
-            for(int b = 0; b < B; ++b)
+            #pragma omp simd
+            for(int b=0; b<B; ++b)
             {
-                const double cn = pc[b] * pcd[b] - ps[b] * psd[b];
-                ps[b] = ps[b] * pcd[b] + pc[b] * psd[b];
+                const double cn = pc[b]*pcd[b] - ps[b]*psd[b];
+                ps[b] = ps[b]*pcd[b] + pc[b]*psd[b];
                 pc[b] = cn;
             }
             ++since;
@@ -90,9 +90,9 @@ inline void wave_eta_harmonics(const std::vector<double> &W, const std::vector<d
 
         double e = 0.0;
 
-#pragma omp simd reduction(+ : e)
-        for(int b = 0; b < B; ++b)
-            e += pr[b] * pc[b] + pi[b] * ps[b];
+        #pragma omp simd reduction(+:e)
+        for(int b=0; b<B; ++b)
+        e += pr[b]*pc[b] + pi[b]*ps[b];
 
         ev[q] = e;
     }

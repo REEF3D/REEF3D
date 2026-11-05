@@ -27,15 +27,15 @@ CPM : Continuum Particle Method
 #ifndef CPM_H_
 #define CPM_H_
 
-#include "boundarycheck.h"
-#include "field4a.h"
-#include "increment.h"
-#include "part.h"
-#include "slice4.h"
-#include "vtp3D.h"
-#include <fstream>
-#include <random>
-#include <vector>
+#include"increment.h"
+#include"part.h"
+#include"slice4.h"
+#include"field4a.h"
+#include"boundarycheck.h"
+#include"vtp3D.h"
+#include<fstream>
+#include<random>
+#include<vector>
 
 class lexer;
 class fdm;
@@ -66,340 +66,323 @@ MP-PIC with unresolved parcels and Eulerian (grid based) particle stresses
 class CPM : public increment, private vtp3D
 {
 public:
-    CPM(lexer *, ghostcell *);
+    CPM(lexer*, ghostcell*);
     virtual ~CPM() = default;
 
-    void move(lexer *, fdm *, ghostcell *, sediment_fdm *, turbulence *);
+    void move(lexer*, fdm*, ghostcell*, sediment_fdm*, turbulence*);
+    
+    void mppic_RK2(lexer*, fdm*, ghostcell*, sediment_fdm*, turbulence*);
+    void mppic_EE1(lexer*, fdm*, ghostcell*, sediment_fdm*, turbulence*);
+    
+    void plain_RK2(lexer*, fdm*, ghostcell*, sediment_fdm*, turbulence*);
 
-    void update(lexer *, fdm *, ghostcell *, sediment_fdm *, field &, field &);
-    void topo_update(lexer *, fdm *, ghostcell *, sediment_fdm *);
-    void bedzh_update(lexer *, fdm *, ghostcell *, sediment_fdm *);
-    void topo_column(lexer *, fdm *, ghostcell *);
-    void topo_iso(lexer *, ghostcell *, field &);
-    double ptopo(lexer *, fdm *, double, double, double);
+    void update(lexer*, fdm*, ghostcell*, sediment_fdm*, field&, field&);
+    void topo_update(lexer*, fdm*, ghostcell*, sediment_fdm*);
+    void bedzh_update(lexer*, fdm*, ghostcell*, sediment_fdm*);
+    void topo_column(lexer*, fdm*, ghostcell*);
+    void topo_iso(lexer*, ghostcell*, field&);
+    double ptopo(lexer*, fdm*, double, double, double);
     // ptopo at a parcel position, kept per parcel with the position and the step (the bed level sets do not
     // change during the sub-steps of a step, the grains at rest ask for the same positions every sub-step)
-    double ptopo_p(lexer *, fdm *, int, double, double, double);
-    std::vector<double> tpX, tpY, tpZ, tpV;
+    double ptopo_p(lexer*, fdm*, int, double, double, double);
+    std::vector<double> tpX,tpY,tpZ,tpV;
     std::vector<int> tpS;
-    slice4 zbf, blZb, zbt;
-    int zbf_ini = 0, zbl_ok = 0;
-    double zbl(sediment_fdm *, int, int);
+    slice4 zbf,blZb,zbt;
+    int zbf_ini=0, zbl_ok=0;
+    double zbl(sediment_fdm*, int, int);
 
-    void plain_RK2(lexer *, fdm *, ghostcell *, sediment_fdm *, turbulence *);
+    void timestep(lexer*, ghostcell*);
 
-    void update(lexer *, fdm *, ghostcell *, sediment_fdm *, field &, field &);
-    void topo_update(lexer *, fdm *, ghostcell *, sediment_fdm *);
-    void bedzh_update(lexer *, fdm *, ghostcell *, sediment_fdm *);
-    void topo_column(lexer *, fdm *, ghostcell *);
-    void topo_iso(lexer *, ghostcell *, field &);
-    double ptopo(lexer *, fdm *, double, double, double);
-    slice4 zbf, blZb;
-    int zbf_ini = 0, zbl_ok = 0;
-    double zbl(sediment_fdm *, int, int);
-
-    void timestep(lexer *, ghostcell *);
-
-    void seed_particles(lexer *, fdm *, ghostcell *, sediment_fdm *);
-
+    void seed_particles(lexer*, fdm*, ghostcell*, sediment_fdm*);
+    
     // hotstart and log
-    void state_write(lexer *, int);
-    void state_read(lexer *, ghostcell *, int);
-    void sedlog(lexer *, ghostcell *);
-    void ini_fields(lexer *, fdm *, ghostcell *, sediment_fdm *);
-    void set_turbulence(turbulence *pt) { pturb_ = pt; }  // before ini_fields: the k term of the layer (Q 68 1) from the first step on
+    void state_write(lexer*, int);
+    void state_read(lexer*, ghostcell*, int);
+    void sedlog(lexer*, ghostcell*);
+    void ini_fields(lexer*, fdm*, ghostcell*, sediment_fdm*);
+    void set_turbulence(turbulence *pt){pturb_=pt;}   // before ini_fields: the k term of the layer (Q 68 1) from the first step on
 
     // checkpoints (P 48, I 45): the scalars, the random generator and the parcels of the rank (the fields and
     // slices are in the registry of the grid); another decomposition: the parcels of all pieces by position
-    void ckpt_rank_state(lexer *, std::vector<double> &);
-    bool ckpt_rank_restore(lexer *, ghostcell *, const std::vector<std::vector<double>> &, bool);
-
+    void ckpt_rank_state(lexer*, std::vector<double>&);
+    bool ckpt_rank_restore(lexer*, ghostcell*, const std::vector<std::vector<double>>&, bool);
+    
     // print
-    void print_particles(lexer *, sediment_fdm *);
-    void print_3D_CPM(lexer *, ghostcell *, std::vector<char> &, size_t &);
-    void name_ParaView_parallel_CPM(lexer *, ofstream &);
-    void name_ParaView_CPM(lexer *, ostream &, int *, int &);
-    void offset_ParaView_CPM(lexer *, int *, int &);
-
+    void print_particles(lexer*,sediment_fdm*);
+    void print_3D_CPM(lexer*, ghostcell*,  std::vector<char>&, size_t&);
+    void name_ParaView_parallel_CPM(lexer*, ofstream&);
+    void name_ParaView_CPM(lexer*, ostream&, int*, int &);
+    void offset_ParaView_CPM(lexer*, int*, int &);
+    
+    
 private:
-    void advec_plain(lexer *, fdm *, part &, sediment_fdm *, turbulence *,
-                     double *, double *, double *, double *, double *, double *,
-                     double &, double &, double &, double);
-
-    void advec_mppic(lexer *, fdm *, part &, sediment_fdm *, turbulence *,
-                     double *, double *, double *, double *, double *, double *,
-                     double &, double &, double &, double);
-
-    void nearbed_velocity(lexer *, fdm *, double, double, double, double);
-    double seed_diameter(lexer *, int);
+    void advec_plain(lexer*, fdm*, part&, sediment_fdm*, turbulence*,
+                        double*, double*, double*, double*, double*, double*,
+                        double&, double&, double&, double);
+                        
+    void advec_mppic(lexer*, fdm*, part&, sediment_fdm*, turbulence*,
+                        double*, double*, double*, double*, double*, double*,
+                        double&, double&, double&, double);
+                        
+    void nearbed_velocity(lexer*, fdm*, double, double, double, double);
+    double seed_diameter(lexer*, int);
     // two-way coupling
 public:
-    void coupling_update(lexer *, fdm *, ghostcell *, sediment_fdm *);
-    void fluid_forcing(lexer *, fdm *, ghostcell *, double, field &, field &, field &);
-
+    void coupling_update(lexer*, fdm*, ghostcell*, sediment_fdm*);
+    void fluid_forcing(lexer*, fdm*, ghostcell*, double, field&, field&, field&);
+    
     // two-way coupling: mixture continuity div(u) = -div(theta u_p), source for the pressure Poisson equation
     inline static CPM *coupled = nullptr;
-    void continuity_source(lexer *, ghostcell *);
-    void coupling_reset(lexer *, ghostcell *);
+    void continuity_source(lexer*, ghostcell*);
+    void coupling_reset(lexer*, ghostcell*);
     field4a Dsrc;
-
 private:
-    void limiter(lexer *, fdm *, ghostcell *, double *, double *, double *, double *, double *, double *, double *, double *, double *);
-    double occupancy_max(lexer *, ghostcell *);
-    void substep_euler(lexer *, fdm *, ghostcell *, sediment_fdm *, turbulence *, double);
-    void substep_rk2(lexer *, fdm *, ghostcell *, sediment_fdm *, turbulence *, double);
-    double substep_size(lexer *, ghostcell *, double, int);
-    void grid_update(lexer *, fdm *, ghostcell *, sediment_fdm *, double *, double *, double *, double *, double *, double *);
+    
+    void limiter(lexer*, fdm*, ghostcell*, double*, double*, double*, double*, double*, double*, double*, double*, double*);
+    double occupancy_max(lexer*, ghostcell*);
+    void substep_euler(lexer*, fdm*, ghostcell*, sediment_fdm*, turbulence*, double);
+    void substep_rk2(lexer*, fdm*, ghostcell*, sediment_fdm*, turbulence*, double);
+    double substep_size(lexer*, ghostcell*, double, int);
+    void grid_update(lexer*, fdm*, ghostcell*, sediment_fdm*, double*, double*, double*, double*, double*, double*);
 
     // drag
     double drag_model(lexer *, double, double, double, double);
 
-    void count_particles(lexer *, fdm *, ghostcell *, sediment_fdm *);
+    void count_particles(lexer*, fdm*, ghostcell*, sediment_fdm*);
 
     // particle stress
-    void stress_snider(lexer *, ghostcell *, sediment_fdm *);
-    void stress_packedbed(lexer *, ghostcell *, sediment_fdm *);
-    void stress_overburden(lexer *, ghostcell *, sediment_fdm *);
-    void stress_yield(lexer *, ghostcell *);
-    double yield_weight(lexer *, double, double, double);
-    void friction(lexer *, fdm *, double, double, double, double &, double &, double &, double, double);
-    void gradient(lexer *, ghostcell *, field &, field &, field &, field &);
+    void stress_snider(lexer*, ghostcell*, sediment_fdm*);
+    void stress_packedbed(lexer*, ghostcell*, sediment_fdm*);
+    void stress_overburden(lexer*, ghostcell*, sediment_fdm*);
+    void stress_yield(lexer*, ghostcell*);
+    double yield_weight(lexer*, double, double, double);
+    void friction(lexer*, fdm*, double, double, double, double&, double&, double&, double, double);
+    void gradient(lexer*, ghostcell*, field&, field&, field&, field&);
     double contact_pressure(double, double);
     double contact_pressure_deriv(double, double);
-    void dilatancy(lexer *, ghostcell *);
-    field4a T0e, Tiso;
-
-    void stress_gradient(lexer *, fdm *, ghostcell *, sediment_fdm *);
-    void pressure_gradient(lexer *, fdm *, ghostcell *, sediment_fdm *);
-
+    void dilatancy(lexer*, ghostcell*);
+    field4a T0e,Tiso;
+    
+    void stress_gradient(lexer*, fdm*, ghostcell*, sediment_fdm*);
+    void pressure_gradient(lexer*, fdm*, ghostcell*, sediment_fdm*);
+    
     // seepage flow in the bed (Q 69): piezometric pore pressure p* = p - rho_f g.x (Darcy, Laplace in the bed)
-    void seepage_update(lexer *, fdm *, ghostcell *);
-    bool seep_bed(lexer *, fdm *, int, int, int);
-    double pstar_fluid(lexer *, fdm *, int, int, int);
-    field4a Pse, Gsz, Pnos;  // p* (bed: pore pressure, fluid: fluid), vertical gradient of p* in the bed, overburden without the seepage
-    int seep_ini = 0;
-
-    turbulence *pturb_ = nullptr;  // turbulence model of the last call of move (bed shear stress of the layer, Q 68)
-
+    void seepage_update(lexer*, fdm*, ghostcell*);
+    bool seep_bed(lexer*, fdm*, int, int, int);
+    double pstar_fluid(lexer*, fdm*, int, int, int);
+    field4a Pse,Gsz,Pnos;   // p* (bed: pore pressure, fluid: fluid), vertical gradient of p* in the bed, overburden without the seepage
+    int seep_ini=0;
+    
+    turbulence *pturb_=nullptr;   // turbulence model of the last call of move (bed shear stress of the layer, Q 68)
+    
     // interpolation of the cell-centred fields with the stencils of the last two points (WP9), as ccipol4a
     struct stencil
     {
-        bool ok = false;
-        double x = 0.0, y = 0.0, z = 0.0, wa = 0.0, wb = 0.0, wc = 0.0;
-        int i = 0, j = 0, k = 0;
+        bool ok=false;
+        double x=0.0,y=0.0,z=0.0,wa=0.0,wb=0.0,wc=0.0;
+        int i=0,j=0,k=0;
     };
     stencil st[2];
-    int st_last = 0;
-    double cip4a(lexer *, field &, double, double, double);
-
+    int st_last=0;
+    double cip4a(lexer*, field&, double, double, double);
+    
     // cell indices of the parcel coordinates, posc_* and posf_*, kept per parcel together with the
     // coordinate they belong to (index_cache, once per sub-step): the parcel loops of a sub-step look
     // up the same coordinates a few dozen times. A lookup with another coordinate (a moved parcel, a
     // tentative position, another point) computes the index, so the result is always that of posc_* and posf_*.
-    std::vector<double> ixX, ixY, ixZ;
-    std::vector<int> ixCi, ixCj, ixCk, ixFi, ixFj, ixFk;
-    void index_cache(lexer *);
-    int pci(lexer *, int, double);
-    int pcj(lexer *, int, double);
-    int pck(lexer *, int, double);
-    int pfi(lexer *, int, double);
-    int pfj(lexer *, int, double);
-    int pfk(lexer *, int, double);
-
-    void volfrac_update(lexer *, ghostcell *, sediment_fdm *, double *, double *, double *, double *, double *, double *);
-    void smooth(lexer *, ghostcell *, field &, int);
-    double kvol(lexer *, int, int, int);
-    double kvol_calc(lexer *, int, int, int);
-    std::vector<double> kvc;  // kvol of the nodes -1 .. kno (the grid is fixed)
-
+    std::vector<double> ixX,ixY,ixZ;
+    std::vector<int> ixCi,ixCj,ixCk,ixFi,ixFj,ixFk;
+    void index_cache(lexer*);
+    int pci(lexer*, int, double);
+    int pcj(lexer*, int, double);
+    int pck(lexer*, int, double);
+    int pfi(lexer*, int, double);
+    int pfj(lexer*, int, double);
+    int pfk(lexer*, int, double);
+    
+    void volfrac_update(lexer*, ghostcell*, sediment_fdm*, double*, double*, double*, double*, double*, double*);
+    void smooth(lexer*, ghostcell*, field&, int);
+    double kvol(lexer*, int, int, int);
+    double kvol_calc(lexer*, int, int, int);
+    std::vector<double> kvc;   // kvol of the nodes -1 .. kno (the grid is fixed)
+    
     // parcel merge and split (Q 78), see CPM_resample.cpp
-    void parcel_resample(lexer *, fdm *, ghostcell *);
-    double wcell(lexer *, int, int, int);
-    bool jammed(lexer *, fdm *, int);
+    void parcel_resample(lexer*, fdm*, ghostcell*);
+    double wcell(lexer*, int, int, int);
+    bool jammed(lexer*, fdm*, int);
     std::vector<double> wcc;
-    double wcc_vpar = 0.0;
+    double wcc_vpar=0.0;
     std::vector<int> rs_list;
-    int rs_nmerge = 0, rs_nsplit = 0;
-
+    int rs_nmerge=0, rs_nsplit=0;
+    
     // load map (G 45, G 46), see CPM_loadmap.cpp: parcel updates per cell, awake flags of the parcels of a sub-step
-    std::vector<double> lmS, lmA;
+    std::vector<double> lmS,lmA;
     std::vector<char> lmAw;
-    double lmTstep = 0.0, lmTcpm = 0.0, lm_w0 = 0.0, lm_m0 = 0.0;
-    long lm_steps = 0;
-    int lm_open = 0;
-    static bool loadmap_on(lexer *p) { return p->G45 > 0 || p->G46 > 0.0; }  // G 45: written every G 45 steps; G 46: at a rebalance
-    void loadmap_mark(lexer *p, int q, bool awake)
-    {
-        if(loadmap_on(p))
-        {
-            if(lmAw.size() < size_t(P.index))
-                lmAw.resize(P.index, 1);
-            lmAw[q] = awake ? 1 : 0;
-        }
-    }
-    void loadmap_substep(lexer *);
-
+    double lmTstep=0.0, lmTcpm=0.0, lm_w0=0.0, lm_m0=0.0;
+    long lm_steps=0;
+    int lm_open=0;
+    static bool loadmap_on(lexer *p) { return p->G45>0 || p->G46>0.0; }   // G 45: written every G 45 steps; G 46: at a rebalance
+    void loadmap_mark(lexer *p, int q, bool awake) { if(loadmap_on(p)){ if(lmAw.size()<size_t(P.index)) lmAw.resize(P.index,1); lmAw[q]=awake?1:0; } }
+    void loadmap_substep(lexer*);
 public:
-    void loadmap_step(lexer *, fdm *, ghostcell *, double, double);
-    void loadmap_write(lexer *, fdm *, ghostcell *);
-
+    void loadmap_step(lexer*, fdm*, ghostcell*, double, double);
+    void loadmap_write(lexer*, fdm*, ghostcell*);
 private:
-    void kernel(lexer *, double, double, double, int = -1);
-    bool wallcell(lexer *, int, int, int);
-
+    void kernel(lexer*, double, double, double, int=-1);
+    bool wallcell(lexer*, int, int, int);
+    
     // periodic boundaries in x and y (DIVEMesh C 21, C 22)
     //   1 serial: CPM folds the ghost deposits and wraps the parcels
     //   2 parallel: the neighbour exchange sums the deposits, the parcels are wrapped on receipt
     int perx, pery;
-    void pfold(lexer *, field &);
-
+    void pfold(lexer*, field&);
 public:
-    void periodic_flags(lexer *);
-
+    void periodic_flags(lexer*);
 private:
-    void periodic_wrap(lexer *, double *, double *, double *, double *);
-
+    void periodic_wrap(lexer*, double*, double*, double*, double*);
+    
     // turbulent dispersion (Q 52), random displacement with the eddy diffusivity of the fluid
-    void dispersion_update(lexer *, fdm *, ghostcell *);
-    void dispersion(lexer *, double, double, double, double &, double &, double &, double);
-    field4a Kt, dKx, dKy, dKz;
+    void dispersion_update(lexer*, fdm*, ghostcell*);
+    void dispersion(lexer*, double, double, double, double&, double&, double&, double);
+    field4a Kt,dKx,dKy,dKz;
     double Ktmax;
     std::mt19937_64 rng;
     std::normal_distribution<double> gauss;
+    
+    void wallbc(lexer*, ghostcell*, sediment_fdm*);
 
-    void wallbc(lexer *, ghostcell *, sediment_fdm *);
-
-    void boundcheck(lexer *, int);
+    void boundcheck(lexer*, int);
 
     part P;
 
     slice4 bedch;
 
-    field4a Tau, Ts;
+    field4a Tau,Ts;
     field4a cellSum;
-    field4a Us, Vs, Ws;
+    field4a Us,Vs,Ws;
     field4a Pov;
-    field4a Fxy, Yr;  // column integral of the lateral load |int grad_h(Pov) dz| and the yield ratio Fxy/(mu_s Pov) (Q 67)
-    field4a Kc, KUx, KUy, KUz;
-    field4a dSx, dSy, dSz;
-    field4a Locc, Lout, Lin, Ltc, Lloc, LA, Lh0, Lh1, Lh2, Lh3;
-    std::vector<int> lm_ci, lm_cj, lm_ck, lm_si, lm_sj, lm_sk;
-    std::vector<double> lm_t, lm_ub;
+    field4a Fxy,Yr;  // column integral of the lateral load |int grad_h(Pov) dz| and the yield ratio Fxy/(mu_s Pov) (Q 67)
+    field4a Kc,KUx,KUy,KUz;
+    field4a dSx,dSy,dSz;
+    field4a Locc,Lout,Lin,Ltc,Lloc,LA,Lh0,Lh1,Lh2,Lh3;
+    std::vector<int> lm_ci,lm_cj,lm_ck,lm_si,lm_sj,lm_sk;
+    std::vector<double> lm_t,lm_ub;
     std::vector<char> lm_state;
     // the moves of the passes and the cells of a pass (CPM_limiter.cpp)
-    std::vector<int> lm_mv, lm_ti, lm_tj, lm_tk, lm_sh_i, lm_sh_j, lm_sh_k;
-    std::vector<char> lm_sh_in, lm_mark;
-    int lm_sh_ok = 0;
-    void limiter_shell(lexer *);
-    void limiter_clear(lexer *);
+    std::vector<int> lm_mv,lm_ti,lm_tj,lm_tk,lm_sh_i,lm_sh_j,lm_sh_k;
+    std::vector<char> lm_sh_in,lm_mark;
+    int lm_sh_ok=0;
+    void limiter_shell(lexer*);
+    void limiter_clear(lexer*);
 
     // relax
-    void relax_ini(lexer *);
-    void relax(lexer *, ghostcell *, sediment_fdm *);
-    double rf(lexer *, double, double);
-    double r1(lexer *, double, double);
-    double distcalc(lexer *, double, double, double, double, double);
+    void relax_ini(lexer*);
+    void relax(lexer*, ghostcell*, sediment_fdm*);
+    double rf(lexer*, double, double);
+    double r1(lexer*, double, double);
+    double distcalc(lexer*, double , double, double , double, double);
+    
+    double heaviside(double);
+    double epsi,HS;
 
-    void print_vtp(lexer *, sediment_fdm *);
-    void print_bed(lexer *, sediment_fdm *);
-    void pvtp(lexer *, int);
+    void print_vtp(lexer*,sediment_fdm*);
+    void print_bed(lexer*,sediment_fdm*);
+    void pvtp(lexer*,int);
 
     boundarycheck boundaries;
 
     int printcount;
     double printtime;
-    ghostcell *pgc_print;  // the output's communicator (P 18: the parcels gathered on rank 0 for the LAGOON store)
-    bool print_lagoon(lexer *, sediment_fdm *);
+    ghostcell *pgc_print;   // the output's communicator (P 18: the parcels gathered on rank 0 for the LAGOON store)
+    bool print_lagoon(lexer*, sediment_fdm*);
 
-    field4a dPx, dPy, dPz;
-    field4a dTx, dTy, dTz;
+    field4a dPx,dPy,dPz;
+    field4a dTx,dTy,dTz;
 
-    double *tan_betaQ73, *betaQ73, *dist_Q73;
+    double *tan_betaQ73,*betaQ73,*dist_Q73;
 
     int timestep_ini = 0;
-    int nsub, zsplit, nrej_step, nclip_step, nit_step = 0;
+    int nsub, zsplit, nrej_step, nclip_step, nit_step=0;
     int restored, logini;
     int open_side[6];
     double outvol;
     ofstream logout;
-    double dtsub, cmax;
+    double dtsub,cmax;
     double hmin;
-
+    
     // kernel
-    int ki[2], kj[2], kk[2];
+    int ki[2],kj[2],kk[2];
     double kw[2][2][2];
-
+    
     // parameters
     double theta_max, theta_bed, theta_0;
     double Fr, eta0, eta1;
     double mu_s, mu_2, I0;
     double Vp;
-
-    double Dpx, Dpy, Dpz;
-    double Hjam;  // jammed-bed weight of the current parcel (Q 58, S 10 1), set by advec_mppic
-    double dPx_val, dPy_val, dPz_val;
-    double Bx, By, Bz;
-    double uf, vf, wf;
-    double liftx, lifty, liftz;
+    
+    double Dpx,Dpy,Dpz;
+    double Hjam;    // jammed-bed weight of the current parcel (Q 58, S 10 1), set by advec_mppic
+    double dPx_val,dPy_val,dPz_val;
+    double Bx,By,Bz;
+    double uf,vf,wf;
+    double liftx,lifty,liftz;
     // near-bed closure of the last call: weight of the exposed layer, log-law factor,
     // reference point of the fluid velocity, grid solid velocity (pore water)
-    double nb_w, nb_fac, nb_xr, nb_yr, nb_zr, nb_ug, nb_vg, nb_wg;
-
+    double nb_w,nb_fac,nb_xr,nb_yr,nb_zr,nb_ug,nb_vg,nb_wg;
+    
     // Bagnold sheltering (Q 57): stress carried by the moving grains per bed column
-    void bagnold_update(lexer *, fdm *, ghostcell *, sediment_fdm *);
+    void bagnold_update(lexer*, fdm*, ghostcell*, sediment_fdm*);
     slice4 tauGf;
-    int bag_count = -1;
-    double shelter_factor(lexer *, sediment_fdm *, double, double, double, double, double, double);
-    std::vector<double> tauG, tauB;
-    double shelter = 1.0;
+    int bag_count=-1;
+    double shelter_factor(lexer*, sediment_fdm*, double, double, double, double, double, double);
+    std::vector<double> tauG,tauB;
+    double shelter=1.0;
     // exposure of the parcels of the bed (S 10 1): the top grain layer of each bed column
-    void exposure_update(lexer *, fdm *);
+    void exposure_update(lexer*, fdm*);
     std::vector<double> expo;
-    std::vector<std::vector<int>> bx_cand, bx_mov;
+    std::vector<std::vector<int>> bx_cand,bx_mov;
     std::vector<double> sl_hz;
-    std::vector<int> sl_cn, sl_list;
-    std::vector<size_t> sl_off, sl_head;
+    std::vector<int> sl_cn,sl_list;
+    std::vector<size_t> sl_off,sl_head;
     std::vector<std::vector<double>> bx_rate;
     std::vector<int> ex_col;
-    std::vector<size_t> ex_off, ex_fill;
-    std::vector<std::pair<double, int>> ex_list;
-    double expo_w = -1.0;
+    std::vector<size_t> ex_off,ex_fill;
+    std::vector<std::pair<double,int>> ex_list;
+    double expo_w=-1.0;
     // sub-grid bedload layer (Q 58, S 10 1), see CPM_bedload.cpp
-    void bedload_columns(lexer *, fdm *, ghostcell *, sediment_fdm *);
-    void bedload_exchange(lexer *, fdm *, ghostcell *, sediment_fdm *, double);
-    void bedload_move(lexer *, fdm *, sediment_fdm *, int, double);
-    bool bedload_grain(lexer *, int, int, double, double &, double &, double &);
-    void bedload_column(lexer *, double, double, int &, int &, int = -1);
-    double settling_velocity(lexer *, double);
-    void bedload_occupancy(lexer *);
-    void bedload_slide(lexer *, fdm *, sediment_fdm *);
-    bool bedload_rest(lexer *, fdm *, int);
-    bool bedload_settle(lexer *, fdm *, sediment_fdm *, int);
-    bool bedload_nodisp(lexer *, fdm *, int);
-    bool bed_asleep(lexer *, fdm *, int, double, double, double);
-    int bl_nsleep = 0, bl_nupd = 0;
-    double bedload_place(lexer *, fdm *, double, double, double, int, int, double, double, double);
-    slice4 blTx, blTy, blGx, blGy, blH, blC, blCs;
-    int bl_npick = 0, bl_ndep = 0, bl_nsus = 0, bl_nset = 0, bl_nslide = 0;
+    void bedload_columns(lexer*, fdm*, ghostcell*, sediment_fdm*);
+    void bedload_exchange(lexer*, fdm*, ghostcell*, sediment_fdm*, double);
+    void bedload_move(lexer*, fdm*, sediment_fdm*, int, double);
+    bool bedload_grain(lexer*, int, int, double, double&, double&, double&);
+    void bedload_column(lexer*, double, double, int&, int&, int=-1);
+    double settling_velocity(lexer*, double);
+    void bedload_occupancy(lexer*);
+    void bedload_slide(lexer*, fdm*, sediment_fdm*);
+    bool bedload_rest(lexer*, fdm*, int);
+    bool bedload_settle(lexer*, fdm*, sediment_fdm*, int);
+    bool bedload_nodisp(lexer*, fdm*, int);
+    bool bed_asleep(lexer*, fdm*, int, double, double, double);
+    int bl_nsleep=0, bl_nupd=0;
+    double bedload_place(lexer*, fdm*, double, double, double, int, int, double, double, double);
+    slice4 blTx,blTy,blGx,blGy,blH,blC,blCs;
+    int bl_npick=0, bl_ndep=0, bl_nsus=0, bl_nset=0, bl_nslide=0;
     // hybrid suspension (Q 58 3), see CPM_suspension.cpp: erodible parcels per column, net exchange rate
-    slice4 blNc, blSr, blMc;
-    int blMc_ok = 0;
-    int susp_cell(lexer *, fdm *, int, int);
-    double susp_column(lexer *, fdm *, int, int);
-
+    slice4 blNc,blSr,blMc;
+    int blMc_ok=0;
+    int susp_cell(lexer*, fdm*, int, int);
+    double susp_column(lexer*, fdm*, int, int);
 public:
-    void susp_cbe(lexer *, fdm *, ghostcell *, sediment_fdm *);
-    void susp_flux(lexer *, fdm *, ghostcell *, sediment_fdm *);
-    double susp_volume(lexer *, fdm *, ghostcell *);
-    fdm *afdm = nullptr;  // fluid data for the log (suspended volume)
-    double dbg_v0 = 0.0, dbg_ex = 0.0, dbg_dv = 0.0, dbg_sw = 0.0;
-
+    void susp_cbe(lexer*, fdm*, ghostcell*, sediment_fdm*);
+    void susp_flux(lexer*, fdm*, ghostcell*, sediment_fdm*);
+    double susp_volume(lexer*, fdm*, ghostcell*);
+    fdm *afdm=nullptr;   // fluid data for the log (suspended volume)
+    double dbg_v0=0.0, dbg_ex=0.0, dbg_dv=0.0, dbg_sw=0.0;
 private:
-    double Urel, Vrel, Wrel;
+    double Urel,Vrel,Wrel;
     double Tsval;
-    double dTx_val, dTy_val, dTz_val;
-    double DragCoeff, Fd;
-    double F, G, H;
+    double dTx_val,dTy_val,dTz_val;
+    double DragCoeff,Fd;
+    double F,G,H;
 };
 
 #endif

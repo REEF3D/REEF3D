@@ -20,7 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Authors: Hans Bihs, Alexander Hanke
 --------------------------------------------------------------------*/
 
-#include "ghostcell.h"
-#include "lexer.h"
-#include "part.h"
+#include"part.h"
+#include"lexer.h"
+#include"ghostcell.h"
 

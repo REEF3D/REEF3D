@@ -23,28 +23,30 @@ Author: Hans Bihs
 #ifndef PATCHBC_VOID_H_
 #define PATCHBC_VOID_H_
 
-#include "patchBC_interface.h"
+#include"patchBC_interface.h"
 
 using namespace std;
 
 class patchBC_void final : public patchBC_interface
 {
 public:
-    patchBC_void(lexer *);
-    virtual ~patchBC_void();
-
-    void patchBC_ini(lexer *, ghostcell *) override final;
-
+    patchBC_void(lexer*);
+	virtual ~patchBC_void();
+    
+    
+    void patchBC_ini(lexer*, ghostcell*) override final;
+    
     // BC update
-    void patchBC_ioflow(lexer *, fdm *, ghostcell *, field &, field &, field &) override final;
-    void patchBC_rkioflow(lexer *, fdm *, ghostcell *, field &, field &, field &) override final;
-    void patchBC_discharge(lexer *, fdm *, ghostcell *) override final;
-    void patchBC_pressure(lexer *, fdm *, ghostcell *, field &) override final;
-    void patchBC_waterlevel(lexer *, fdm *, ghostcell *, field &) override final;
-
-    void patchBC_ioflow2D(lexer *, ghostcell *, slice &, slice &, slice &, slice &) override final;
-    void patchBC_discharge2D(lexer *, fdm2D *, ghostcell *, slice &, slice &, slice &, slice &) override final;
-    void patchBC_waterlevel2D(lexer *, fdm2D *, ghostcell *, slice &) override final;
+    void patchBC_ioflow(lexer*, fdm*, ghostcell*, field&,field&,field&) override final;
+    void patchBC_rkioflow(lexer*, fdm*, ghostcell*, field&,field&,field&) override final;
+    void patchBC_discharge(lexer*, fdm*, ghostcell*) override final;
+    void patchBC_pressure(lexer*, fdm*, ghostcell*, field&) override final;
+    void patchBC_waterlevel(lexer*, fdm*, ghostcell*, field&) override final;
+    
+    void patchBC_ioflow2D(lexer*, ghostcell*, slice&, slice&, slice&, slice&) override final;
+    void patchBC_discharge2D(lexer*, fdm2D*, ghostcell*, slice&, slice&, slice&, slice&) override final;
+    void patchBC_waterlevel2D(lexer*, fdm2D*, ghostcell*, slice&) override final;
+    
 };
 
 #endif

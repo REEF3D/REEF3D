@@ -20,8 +20,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "lexer.h"
-#include "position.h"
+#include"position.h"
+#include"lexer.h"
 
 /*--------------------------------------------------------------------
 cell index lookup without the bisection (posc_*, posf_*)
@@ -38,52 +38,52 @@ int position::fast_index(fastfind &t, const double *A, int lo, int hi, double x)
 {
     const int m = marge;
 
-    if(t.A != A || t.lo != lo || t.hi != hi || t.X0 != A[lo + m] || t.X1 != A[hi + m])
+    if(t.A!=A || t.lo!=lo || t.hi!=hi || t.X0!=A[lo+m] || t.X1!=A[hi+m])
     {
         t.A = A;
         t.lo = lo;
         t.hi = hi;
-        t.X0 = A[lo + m];
-        t.X1 = A[hi + m];
+        t.X0 = A[lo+m];
+        t.X1 = A[hi+m];
 
         double dmin = t.X1 - t.X0;
 
-        for(int q = lo; q < hi; ++q)
-            dmin = MIN(dmin, A[q + 1 + m] - A[q + m]);
+        for(int q=lo; q<hi; ++q)
+        dmin = MIN(dmin, A[q+1+m] - A[q+m]);
 
-        int n = MAX(hi - lo, 1);
+        int n = MAX(hi-lo,1);
         int nb = 1;
 
-        if(dmin > 0.0)
-            nb = int(MIN((t.X1 - t.X0) / dmin + 1.0, 16.0 * double(n) + 1.0));
+        if(dmin>0.0)
+        nb = int(MIN((t.X1-t.X0)/dmin + 1.0, 16.0*double(n) + 1.0));
 
-        nb = MAX(nb, 1);
-        t.w = (t.X1 - t.X0) / double(nb);
-        t.tbl.assign(nb + 1, lo);
+        nb = MAX(nb,1);
+        t.w = (t.X1-t.X0)/double(nb);
+        t.tbl.assign(nb+1, lo);
 
         int q = lo;
 
-        for(int b = 0; b <= nb; ++b)
+        for(int b=0; b<=nb; ++b)
         {
-            double xb = t.X0 + double(b) * t.w;
+            double xb = t.X0 + double(b)*t.w;
 
-            while(q + 1 < hi && A[q + 1 + m] <= xb)
-                ++q;
+            while(q+1<hi && A[q+1+m]<=xb)
+            ++q;
 
             t.tbl[b] = q;
         }
     }
 
-    int b = t.w > 0.0 ? int((x - t.X0) / t.w) : 0;
-    b = MAX(0, MIN(int(t.tbl.size()) - 1, b));
+    int b = t.w>0.0 ? int((x-t.X0)/t.w) : 0;
+    b = MAX(0, MIN(int(t.tbl.size())-1, b));
 
     int q = t.tbl[b];
 
-    while(q + 1 < hi && A[q + 1 + m] <= x)
-        ++q;
+    while(q+1<hi && A[q+1+m]<=x)
+    ++q;
 
-    while(q > lo && A[q + m] > x)
-        --q;
+    while(q>lo && A[q+m]>x)
+    --q;
 
     return q;
 }

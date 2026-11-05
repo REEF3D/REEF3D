@@ -23,7 +23,7 @@ Author: Hans Bihs
 #ifndef ICE_CONTACT_H_
 #define ICE_CONTACT_H_
 
-#include <vector>
+#include<vector>
 
 using namespace std;
 
@@ -33,15 +33,15 @@ using namespace std;
 
 struct ice_body2D
 {
-    double x = 0.0, y = 0.0;             // centre of mass
-    double vx = 0.0, vy = 0.0, w = 0.0;  // velocity, yaw rate
-    double im = 0.0, iI = 0.0;           // inverse mass, inverse yaw inertia
-    double rb = 0.0;                     // bounding radius about (x,y)
-    vector<double> px, py;               // convex polygon, counter-clockwise, world
-    double fx = 0.0, fy = 0.0;           // out: contact force on the body (impulse/dt)
-    int ncontact = 0;                    // out
-    int id = 0;                          // persistent id, keys the warm start
-    double h = 0.0;                      // ice thickness (0 for fixed obstacles), for the crushing cap
+    double x = 0.0, y = 0.0;            // centre of mass
+    double vx = 0.0, vy = 0.0, w = 0.0; // velocity, yaw rate
+    double im = 0.0, iI = 0.0;          // inverse mass, inverse yaw inertia
+    double rb = 0.0;                    // bounding radius about (x,y)
+    vector<double> px,py;               // convex polygon, counter-clockwise, world
+    double fx = 0.0, fy = 0.0;          // out: contact force on the body (impulse/dt)
+    int ncontact = 0;                   // out
+    int id = 0;                         // persistent id, keys the warm start
+    double h = 0.0;                     // ice thickness (0 for fixed obstacles), for the crushing cap
 };
 
 // Active contact after a solve, per body pair (b = -1-wall for walls): contact point, normal from a to b,
@@ -52,17 +52,17 @@ struct ice_contact_record
     double px = 0.0, py = 0.0;
     double nx = 0.0, ny = 0.0;
     double Fn = 0.0;
-    double Fcap = 0.0;  // crushing cap of the pair (sigma_c*h*w), 0: no cap
-    double pen = 0.0;   // largest penetration depth of the pair (crushed ice for Fcap > 0)
-    double wc = 0.0;    // contact width
+    double Fcap = 0.0;                  // crushing cap of the pair (sigma_c*h*w), 0: no cap
+    double pen = 0.0;                   // largest penetration depth of the pair (crushed ice for Fcap > 0)
+    double wc = 0.0;                    // contact width
 };
 
 class ice_contact
 {
 public:
     virtual ~ice_contact() = default;
-    virtual void solve(vector<ice_body2D> &, double dt, int is2D) = 0;
-    virtual const vector<ice_contact_record> &records() const = 0;
+    virtual void solve(vector<ice_body2D>&, double dt, int is2D)=0;
+    virtual const vector<ice_contact_record>& records() const=0;
 };
 
 #endif

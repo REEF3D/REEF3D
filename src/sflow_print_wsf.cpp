@@ -20,69 +20,61 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "sflow_print_wsf.h"
-#include "fdm2D.h"
-#include "ghostcell.h"
-#include "lexer.h"
-#include "probe_core.h"
-#include "reefckpt.h"
-#include "runlog.h"
-#include <sys/stat.h>
-#include <sys/types.h>
+#include"probe_core.h"
+#include"sflow_print_wsf.h"
+#include"lexer.h"
+#include"fdm2D.h"
+#include"ghostcell.h"
+#include<sys/stat.h>
+#include<sys/types.h>
+#include"runlog.h"
+#include"reefckpt.h"
 
-sflow_print_wsf::sflow_print_wsf(lexer *p, fdm2D *b) : fileFlushMaxCount(100)
+sflow_print_wsf::sflow_print_wsf(lexer *p, fdm2D* b) : fileFlushMaxCount(100)
 {
 
-    gauge_num = p->P51;
-    x = p->P51_x;
-    y = p->P51_y;
+	gauge_num = p->P51;
+	x = p->P51_x;
+	y = p->P51_y;
 
-    // Create Folder
-    if(p->mpirank == 0)
-        mkdir("./REEF3D_SFLOW_WSF", 0777);
-
-    if(p->mpirank == 0 && p->P51 > 0)
+	
+	// Create Folder
+	if(p->mpirank==0)
+	mkdir("./REEF3D_SFLOW_WSF",0777);
+	
+    if(p->mpirank==0 && p->P51>0)
     {
-        // open file
-        const bool head = reefckpt_open(wsfout, "./REEF3D_SFLOW_WSF/REEF3D-SFLOW-WSF-HG.dat", p->I45);  // I 45: continued
-        if(p->plog)
-            p->plog->table_file(p, "wsf", "gauges", "./REEF3D_SFLOW_WSF/REEF3D-SFLOW-WSF-HG.dat");
+    // open file
+	const bool head = reefckpt_open(wsfout,"./REEF3D_SFLOW_WSF/REEF3D-SFLOW-WSF-HG.dat",p->I45);   // I 45: continued
+	if(p->plog)
+	p->plog->table_file(p,"wsf","gauges","./REEF3D_SFLOW_WSF/REEF3D-SFLOW-WSF-HG.dat");
 
-        if(head)
-        {
-            wsfout << "number of gauges:  " << gauge_num << endl
-                   << endl;
-            wsfout << "x_coord     y_coord" << endl;
-            for(n = 0; n < gauge_num; ++n)
-                wsfout << n + 1 << "\t " << x[n] << "\t " << y[n] << endl;
+    if(head)
+    {
+    wsfout<<"number of gauges:  "<<gauge_num<<endl<<endl;
+    wsfout<<"x_coord     y_coord"<<endl;
+    for(n=0;n<gauge_num;++n)
+    wsfout<<n+1<<"\t "<<x[n]<<"\t "<<y[n]<<endl;
 
-            wsfout << endl
-                   << endl;
+    wsfout<<endl<<endl;
 
-            wsfout << "time";
-            for(n = 0; n < gauge_num; ++n)
-                wsfout << "\t P" << n + 1;
+    wsfout<<"time";
+    for(n=0;n<gauge_num;++n)
+    wsfout<<"\t P"<<n+1;
 
-            wsfout << endl
-                   << endl;
-        }
+    wsfout<<endl<<endl;
     }
+    }
+	
+	//-------------------
+	
+	
+	p->Iarray(iloc,gauge_num);
+	p->Iarray(jloc,gauge_num);
+	p->Iarray(flag,gauge_num);
+	p->Darray(wsf,gauge_num);
 
-    //-------------------
-
-    p->Iarray(iloc, gauge_num);
-    p->Iarray(jloc, gauge_num);
-    p->Iarray(flag, gauge_num);
-    p->Darray(wsf, gauge_num);
-
-    //-------------------
-
-    p->Iarray(iloc, gauge_num);
-    p->Iarray(jloc, gauge_num);
-    p->Iarray(flag, gauge_num);
-    p->Darray(wsf, gauge_num);
-
-    ini_location(p, b);
+    ini_location(p,b);
 }
 
 sflow_print_wsf::~sflow_print_wsf()
@@ -92,82 +84,79 @@ sflow_print_wsf::~sflow_print_wsf()
 
 void sflow_print_wsf::height_gauge(lexer *p, fdm2D *b, ghostcell *pgc, slice &f)
 {
-    double zval = 0.0;
+    double zval=0.0;
 
-    for(n = 0; n < gauge_num; ++n)
-        wsf[n] = -1.0e20;
+    for(n=0;n<gauge_num;++n)
+    wsf[n]=-1.0e20;
 
+	
     // the mesh refinement: the finest grid at the gauge (one rank writes it, its cell there)
     amr_points ap;
-    if(amr != nullptr)
-        ap.find(amr, p, gauge_num, x, y, flag);
+    if(amr!=nullptr)
+    ap.find(amr,p,gauge_num,x,y,flag);
 
-    for(n = 0; n < gauge_num; ++n)
-        if(amr == nullptr ? flag[n] > 0 : ap.mine[n] != 0)
-        {
-            zval = 0.0;
+    for(n=0;n<gauge_num;++n)
+    if(amr==nullptr ? flag[n]>0 : ap.mine[n]!=0)
+    {
+    zval=0.0;
 
-            i = iloc[n];
-            j = jloc[n];
+    i=iloc[n];
+    j=jloc[n];
 
-            // interpolated at the gauge between the cell centres (as nhflow_print_wsf): the value of the
-            // cell that holds the gauge lay up to dx/2 away, a phase offset of k dx/2 between grids of
-            // different resolution
-            if(amr != nullptr && ap.f[n] != nullptr)
-                wsf[n] = ap.q[n]->ccslipol4(static_cast<fdm2D *>(ap.f[n])->eta, x[n], y[n]);
-            else
-                wsf[n] = p->ccslipol4(f, x[n], y[n]);
-        }
+        // interpolated at the gauge between the cell centres (as nhflow_print_wsf): the value of the
+        // cell that holds the gauge lay up to dx/2 away, a phase offset of k dx/2 between grids of
+        // different resolution
+        if(amr!=nullptr && ap.f[n]!=nullptr)
+        wsf[n] = ap.q[n]->ccslipol4(static_cast<fdm2D*>(ap.f[n])->eta, x[n], y[n]);
+        else
+        wsf[n] = p->ccslipol4(f, x[n], y[n]);
 
-    pgc->globalmax(wsf, gauge_num);  // one reduction for all gauges
+    }
+	
+    pgc->globalmax(wsf,gauge_num);   // one reduction for all gauges
 
     // write to file
-    gauge_row(p, wsfout, wsf, gauge_num, fileFlushMaxCount);
+    gauge_row(p,wsfout,wsf,gauge_num,fileFlushMaxCount);
 }
 
 void sflow_print_wsf::ini_location(lexer *p, fdm2D *b)
 {
-    for(n = 0; n < gauge_num; ++n)
+    for(n=0;n<gauge_num;++n)
     {
-        // the cell that contains the gauge: the rank that writes it (rounding (x-x0)/dx gave the next
-        // cell for a gauge in the upper half of a cell, and assumed a uniform grid)
-        iloc[n] = p->posc_i(x[n]);
+    // the cell that contains the gauge: the rank that writes it (rounding (x-x0)/dx gave the next
+    // cell for a gauge in the upper half of a cell, and assumed a uniform grid)
+    iloc[n]=p->posc_i(x[n]);
+    
+    if(p->j_dir==0)
+    jloc[n]=0;
+    
+    if(p->j_dir==1)
+    jloc[n]=p->posc_j(y[n]);
 
-        if(p->j_dir == 0)
-            jloc[n] = 0;
-
-        if(p->j_dir == 1)
-            jloc[n] = p->posc_j(y[n]);
-
-        if(p->j_dir == 0)
-            jloc[n] = 0;
-
-        if(p->j_dir == 1)
-            jloc[n] = conv((y[n] - p->originy) / p->DXM);
-
-        if(iloc[n] >= 0 && iloc[n] < p->knox)
-            if(jloc[n] >= 0 && jloc[n] < p->knoy)
-                flag[n] = 1;
+    if(iloc[n]>=0 && iloc[n]<p->knox)
+    if(jloc[n]>=0 && jloc[n]<p->knoy)
+    flag[n]=1;
     }
 }
 
 int sflow_print_wsf::conv(double a)
 {
 
-    int b, c;
-    double d, diff;
+    int b,c;
+    double d,diff;
 
-    c = int(a);
-    d = double(c);
-    diff = a - d;
+    c= int( a);
+    d=double(c);
+    diff=a-d;
 
-    b = c;
+    b=c;
 
-    if(diff > 0.5)
-        b = c + 1;
+    if(diff>0.5)
+    b=c+1;
 
-    if(diff <= -0.5)
-        b = c - 1;
+    if(diff<=-0.5)
+    b=c-1;
 
     return b;
+
 }

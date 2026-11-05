@@ -23,9 +23,9 @@ Architect: Hans Bihs
 #ifndef BEDLOAD_WAVES_H_
 #define BEDLOAD_WAVES_H_
 
-#include "bedload.h"
-#include "increment.h"
-#include "slice4.h"
+#include"bedload.h"
+#include"increment.h"
+#include"slice4.h"
 
 /*--------------------------------------------------------------------
 Wave-related transport formulas for SFLOW (A 10 2) and NHFLOW (A 10 5), S 11 6-9:
@@ -72,21 +72,21 @@ v1: single fraction (S 51 0), Cartesian grid, one grid.
 class bedload_waves : public bedload, public increment
 {
 public:
-    bedload_waves(lexer *);
+    bedload_waves(lexer*);
     virtual ~bedload_waves() = default;
-
-    void start(lexer *, ghostcell *, sediment_fdm *) override;
-
+    
+    void start(lexer*, ghostcell*, sediment_fdm*) override;
+    
     // unit direction of the transport, equilibrium suspended load per area [m] (S 11 6, 8)
-    slice4 tx, ty, Ls;
-
+    slice4 tx,ty,Ls;
+    
 private:
-    void soulsby_vanrijn(lexer *, sediment_fdm *, double &, double &);
-    void vanrijn2007(lexer *, sediment_fdm *, double &, double &);
-    void bailard(lexer *, sediment_fdm *, double &, double &);
-    void bijker(lexer *, sediment_fdm *, double &, double &);
-
-    double h, u, v, d, Delta, g, Dstar;
+    void soulsby_vanrijn(lexer*, sediment_fdm*, double&, double&);
+    void vanrijn2007(lexer*, sediment_fdm*, double&, double&);
+    void bailard(lexer*, sediment_fdm*, double&, double&);
+    void bijker(lexer*, sediment_fdm*, double&, double&);
+    
+    double h,u,v,d,Delta,g,Dstar;
 };
 
 #endif

@@ -17,10 +17,8 @@ static inline void r_cnjg(complex *r, complex *z) {
   r->i = -(z->i);
 }
 
-/* Subroutine */ void chbmv_(char *uplo, integer *n, integer *k, complex *alpha,
-                             complex *a, integer *lda, complex *x,
-                             integer *incx, complex *beta, complex *y,
-                             integer *incy) {
+/* Subroutine */ void chbmv_(char *uplo, integer *n, integer *k, complex *alpha, complex *a, integer *lda, complex *x,
+                             integer *incx, complex *beta, complex *y, integer *incy) {
   /* System generated locals */
   integer a_dim1, a_offset, i__1, i__2, i__3, i__4, i__5;
   real r__1;
@@ -205,8 +203,7 @@ static inline void r_cnjg(complex *r, complex *z) {
 
   /*     Quick return if possible. */
 
-  if (*n == 0 || (alpha->r == 0.f && alpha->i == 0.f &&
-                  (beta->r == 1.f && beta->i == 0.f))) {
+  if (*n == 0 || (alpha->r == 0.f && alpha->i == 0.f && (beta->r == 1.f && beta->i == 0.f))) {
     return;
   }
 
@@ -242,8 +239,7 @@ static inline void r_cnjg(complex *r, complex *z) {
         for (i__ = 1; i__ <= i__1; ++i__) {
           i__2 = i__;
           i__3 = i__;
-          q__1.r = beta->r * y[i__3].r - beta->i * y[i__3].i,
-          q__1.i = beta->r * y[i__3].i + beta->i * y[i__3].r;
+          q__1.r = beta->r * y[i__3].r - beta->i * y[i__3].i, q__1.i = beta->r * y[i__3].i + beta->i * y[i__3].r;
           y[i__2].r = q__1.r, y[i__2].i = q__1.i;
           /* L20: */
         }
@@ -263,8 +259,7 @@ static inline void r_cnjg(complex *r, complex *z) {
         for (i__ = 1; i__ <= i__1; ++i__) {
           i__2 = iy;
           i__3 = iy;
-          q__1.r = beta->r * y[i__3].r - beta->i * y[i__3].i,
-          q__1.i = beta->r * y[i__3].i + beta->i * y[i__3].r;
+          q__1.r = beta->r * y[i__3].r - beta->i * y[i__3].i, q__1.i = beta->r * y[i__3].i + beta->i * y[i__3].r;
           y[i__2].r = q__1.r, y[i__2].i = q__1.i;
           iy += *incy;
           /* L40: */
@@ -283,8 +278,7 @@ static inline void r_cnjg(complex *r, complex *z) {
       i__1 = *n;
       for (j = 1; j <= i__1; ++j) {
         i__2 = j;
-        q__1.r = alpha->r * x[i__2].r - alpha->i * x[i__2].i,
-        q__1.i = alpha->r * x[i__2].i + alpha->i * x[i__2].r;
+        q__1.r = alpha->r * x[i__2].r - alpha->i * x[i__2].i, q__1.i = alpha->r * x[i__2].i + alpha->i * x[i__2].r;
         temp1.r = q__1.r, temp1.i = q__1.i;
         temp2.r = 0.f, temp2.i = 0.f;
         l = kplus1 - j;
@@ -295,14 +289,12 @@ static inline void r_cnjg(complex *r, complex *z) {
           i__2 = i__;
           i__3 = i__;
           i__5 = l + i__ + j * a_dim1;
-          q__2.r = temp1.r * a[i__5].r - temp1.i * a[i__5].i,
-          q__2.i = temp1.r * a[i__5].i + temp1.i * a[i__5].r;
+          q__2.r = temp1.r * a[i__5].r - temp1.i * a[i__5].i, q__2.i = temp1.r * a[i__5].i + temp1.i * a[i__5].r;
           q__1.r = y[i__3].r + q__2.r, q__1.i = y[i__3].i + q__2.i;
           y[i__2].r = q__1.r, y[i__2].i = q__1.i;
           r_cnjg(&q__3, &a[l + i__ + j * a_dim1]);
           i__2 = i__;
-          q__2.r = q__3.r * x[i__2].r - q__3.i * x[i__2].i,
-          q__2.i = q__3.r * x[i__2].i + q__3.i * x[i__2].r;
+          q__2.r = q__3.r * x[i__2].r - q__3.i * x[i__2].i, q__2.i = q__3.r * x[i__2].i + q__3.i * x[i__2].r;
           q__1.r = temp2.r + q__2.r, q__1.i = temp2.i + q__2.i;
           temp2.r = q__1.r, temp2.i = q__1.i;
           /* L50: */
@@ -313,8 +305,7 @@ static inline void r_cnjg(complex *r, complex *z) {
         r__1 = a[i__3].r;
         q__3.r = r__1 * temp1.r, q__3.i = r__1 * temp1.i;
         q__2.r = y[i__2].r + q__3.r, q__2.i = y[i__2].i + q__3.i;
-        q__4.r = alpha->r * temp2.r - alpha->i * temp2.i,
-        q__4.i = alpha->r * temp2.i + alpha->i * temp2.r;
+        q__4.r = alpha->r * temp2.r - alpha->i * temp2.i, q__4.i = alpha->r * temp2.i + alpha->i * temp2.r;
         q__1.r = q__2.r + q__4.r, q__1.i = q__2.i + q__4.i;
         y[i__4].r = q__1.r, y[i__4].i = q__1.i;
         /* L60: */
@@ -325,8 +316,7 @@ static inline void r_cnjg(complex *r, complex *z) {
       i__1 = *n;
       for (j = 1; j <= i__1; ++j) {
         i__4 = jx;
-        q__1.r = alpha->r * x[i__4].r - alpha->i * x[i__4].i,
-        q__1.i = alpha->r * x[i__4].i + alpha->i * x[i__4].r;
+        q__1.r = alpha->r * x[i__4].r - alpha->i * x[i__4].i, q__1.i = alpha->r * x[i__4].i + alpha->i * x[i__4].r;
         temp1.r = q__1.r, temp1.i = q__1.i;
         temp2.r = 0.f, temp2.i = 0.f;
         ix = kx;
@@ -339,14 +329,12 @@ static inline void r_cnjg(complex *r, complex *z) {
           i__4 = iy;
           i__2 = iy;
           i__5 = l + i__ + j * a_dim1;
-          q__2.r = temp1.r * a[i__5].r - temp1.i * a[i__5].i,
-          q__2.i = temp1.r * a[i__5].i + temp1.i * a[i__5].r;
+          q__2.r = temp1.r * a[i__5].r - temp1.i * a[i__5].i, q__2.i = temp1.r * a[i__5].i + temp1.i * a[i__5].r;
           q__1.r = y[i__2].r + q__2.r, q__1.i = y[i__2].i + q__2.i;
           y[i__4].r = q__1.r, y[i__4].i = q__1.i;
           r_cnjg(&q__3, &a[l + i__ + j * a_dim1]);
           i__4 = ix;
-          q__2.r = q__3.r * x[i__4].r - q__3.i * x[i__4].i,
-          q__2.i = q__3.r * x[i__4].i + q__3.i * x[i__4].r;
+          q__2.r = q__3.r * x[i__4].r - q__3.i * x[i__4].i, q__2.i = q__3.r * x[i__4].i + q__3.i * x[i__4].r;
           q__1.r = temp2.r + q__2.r, q__1.i = temp2.i + q__2.i;
           temp2.r = q__1.r, temp2.i = q__1.i;
           ix += *incx;
@@ -359,8 +347,7 @@ static inline void r_cnjg(complex *r, complex *z) {
         r__1 = a[i__2].r;
         q__3.r = r__1 * temp1.r, q__3.i = r__1 * temp1.i;
         q__2.r = y[i__4].r + q__3.r, q__2.i = y[i__4].i + q__3.i;
-        q__4.r = alpha->r * temp2.r - alpha->i * temp2.i,
-        q__4.i = alpha->r * temp2.i + alpha->i * temp2.r;
+        q__4.r = alpha->r * temp2.r - alpha->i * temp2.i, q__4.i = alpha->r * temp2.i + alpha->i * temp2.r;
         q__1.r = q__2.r + q__4.r, q__1.i = q__2.i + q__4.i;
         y[i__3].r = q__1.r, y[i__3].i = q__1.i;
         jx += *incx;
@@ -379,8 +366,7 @@ static inline void r_cnjg(complex *r, complex *z) {
       i__1 = *n;
       for (j = 1; j <= i__1; ++j) {
         i__3 = j;
-        q__1.r = alpha->r * x[i__3].r - alpha->i * x[i__3].i,
-        q__1.i = alpha->r * x[i__3].i + alpha->i * x[i__3].r;
+        q__1.r = alpha->r * x[i__3].r - alpha->i * x[i__3].i, q__1.i = alpha->r * x[i__3].i + alpha->i * x[i__3].r;
         temp1.r = q__1.r, temp1.i = q__1.i;
         temp2.r = 0.f, temp2.i = 0.f;
         i__3 = j;
@@ -398,22 +384,19 @@ static inline void r_cnjg(complex *r, complex *z) {
           i__4 = i__;
           i__2 = i__;
           i__5 = l + i__ + j * a_dim1;
-          q__2.r = temp1.r * a[i__5].r - temp1.i * a[i__5].i,
-          q__2.i = temp1.r * a[i__5].i + temp1.i * a[i__5].r;
+          q__2.r = temp1.r * a[i__5].r - temp1.i * a[i__5].i, q__2.i = temp1.r * a[i__5].i + temp1.i * a[i__5].r;
           q__1.r = y[i__2].r + q__2.r, q__1.i = y[i__2].i + q__2.i;
           y[i__4].r = q__1.r, y[i__4].i = q__1.i;
           r_cnjg(&q__3, &a[l + i__ + j * a_dim1]);
           i__4 = i__;
-          q__2.r = q__3.r * x[i__4].r - q__3.i * x[i__4].i,
-          q__2.i = q__3.r * x[i__4].i + q__3.i * x[i__4].r;
+          q__2.r = q__3.r * x[i__4].r - q__3.i * x[i__4].i, q__2.i = q__3.r * x[i__4].i + q__3.i * x[i__4].r;
           q__1.r = temp2.r + q__2.r, q__1.i = temp2.i + q__2.i;
           temp2.r = q__1.r, temp2.i = q__1.i;
           /* L90: */
         }
         i__3 = j;
         i__4 = j;
-        q__2.r = alpha->r * temp2.r - alpha->i * temp2.i,
-        q__2.i = alpha->r * temp2.i + alpha->i * temp2.r;
+        q__2.r = alpha->r * temp2.r - alpha->i * temp2.i, q__2.i = alpha->r * temp2.i + alpha->i * temp2.r;
         q__1.r = y[i__4].r + q__2.r, q__1.i = y[i__4].i + q__2.i;
         y[i__3].r = q__1.r, y[i__3].i = q__1.i;
         /* L100: */
@@ -424,8 +407,7 @@ static inline void r_cnjg(complex *r, complex *z) {
       i__1 = *n;
       for (j = 1; j <= i__1; ++j) {
         i__3 = jx;
-        q__1.r = alpha->r * x[i__3].r - alpha->i * x[i__3].i,
-        q__1.i = alpha->r * x[i__3].i + alpha->i * x[i__3].r;
+        q__1.r = alpha->r * x[i__3].r - alpha->i * x[i__3].i, q__1.i = alpha->r * x[i__3].i + alpha->i * x[i__3].r;
         temp1.r = q__1.r, temp1.i = q__1.i;
         temp2.r = 0.f, temp2.i = 0.f;
         i__3 = jy;
@@ -447,22 +429,19 @@ static inline void r_cnjg(complex *r, complex *z) {
           i__4 = iy;
           i__2 = iy;
           i__5 = l + i__ + j * a_dim1;
-          q__2.r = temp1.r * a[i__5].r - temp1.i * a[i__5].i,
-          q__2.i = temp1.r * a[i__5].i + temp1.i * a[i__5].r;
+          q__2.r = temp1.r * a[i__5].r - temp1.i * a[i__5].i, q__2.i = temp1.r * a[i__5].i + temp1.i * a[i__5].r;
           q__1.r = y[i__2].r + q__2.r, q__1.i = y[i__2].i + q__2.i;
           y[i__4].r = q__1.r, y[i__4].i = q__1.i;
           r_cnjg(&q__3, &a[l + i__ + j * a_dim1]);
           i__4 = ix;
-          q__2.r = q__3.r * x[i__4].r - q__3.i * x[i__4].i,
-          q__2.i = q__3.r * x[i__4].i + q__3.i * x[i__4].r;
+          q__2.r = q__3.r * x[i__4].r - q__3.i * x[i__4].i, q__2.i = q__3.r * x[i__4].i + q__3.i * x[i__4].r;
           q__1.r = temp2.r + q__2.r, q__1.i = temp2.i + q__2.i;
           temp2.r = q__1.r, temp2.i = q__1.i;
           /* L110: */
         }
         i__3 = jy;
         i__4 = jy;
-        q__2.r = alpha->r * temp2.r - alpha->i * temp2.i,
-        q__2.i = alpha->r * temp2.i + alpha->i * temp2.r;
+        q__2.r = alpha->r * temp2.r - alpha->i * temp2.i, q__2.i = alpha->r * temp2.i + alpha->i * temp2.r;
         q__1.r = y[i__4].r + q__2.r, q__1.i = y[i__4].i + q__2.i;
         y[i__3].r = q__1.r, y[i__3].i = q__1.i;
         jx += *incx;

@@ -64,144 +64,133 @@ Architect: Hans Bihs
 #ifndef CORAL_ROTOR_AERO_H_
 #define CORAL_ROTOR_AERO_H_
 
-#include "coral/aero/coral_bem.h"
-#include "coral/aero/coral_unsteady_aero.h"
-#include "coral/core/coral_body.h"
-#include "coral/core/coral_load.h"
-#include "coral/wind/coral_wind.h"
-#include <memory>
-#include <string>
-#include <vector>
+#include"coral/core/coral_load.h"
+#include"coral/core/coral_body.h"
+#include"coral/aero/coral_bem.h"
+#include"coral/aero/coral_unsteady_aero.h"
+#include"coral/wind/coral_wind.h"
+#include<memory>
+#include<string>
+#include<vector>
 
-namespace coral {
-class joint;
-
-struct aero_station
+namespace coral
 {
-    int body = -1;
-    Vec3 s = Vec3::Zero();                        // point in the body frame
-    Vec3 c0 = Vec3::UnitY(), z0 = Vec3::UnitZ();  // chord (leading edge) and span in the body frame
-    double chord = 0.0, w = 0.0;
-    int airfoil = 0, blade = 0;
-};
+    class joint;
 
-struct rotor_aero_settings
-{
-    int B = 3;
-    double sense = 1.0;               // +1: the rotor turns positively about the shaft axis
-    double R_hub = 0.0, R_tip = 1.0;  // in the rotor plane
-    double rho = 1.225;
-    bem_options bem;
-    bool skew = true;
-    // tower potential flow (on the tower body, -1: fixed)
-    bool tower = false;
-    int tower_body = -1;
-    Vec3 tower_base = Vec3::Zero(), tower_top = Vec3::UnitZ();  // global at the set-up
-    double D_base = 0.0, D_top = 0.0;
-    // unsteady aerodynamics (coral_unsteady_aero.h)
-    dynamic_inflow_settings dyn_inflow;
-    dynamic_stall_settings dyn_stall;
-};
-
-struct station_load
-{
-    Vec3 P, F, M;
-    Vec3 n, t;  // rotor-plane directions at the station
-    double theta = 0.0;
-    bem_result bem;
-};
-
-class rotor_aero : public load
-{
-public:
-    // hub: the rotor body; H the hub centre (global, at the set-up); shaft: its joint (axis along the downwind
-    // shaft); roots: the root point of each blade (global)
-    rotor_aero(const model &, std::shared_ptr<const wind_inflow>, std::vector<airfoil>, int hub, const Vec3 &H,
-               const joint &shaft, std::vector<aero_station>, const std::vector<Vec3> &roots,
-               const rotor_aero_settings &, const std::string &name = "rotor");
-
-    std::string name() const override { return name_; }
-    coupling_kind coupling() const override { return coupling_kind::local; }
-    void coupled_bodies(std::vector<int> &) const override;
-    void initialize(const model &, double t0) override;
-    void eval(const model &, double t, VecX &f) const override;
-    void commit(const model &, double t, double dt) override;
-    bool has_tangent() const override { return true; }
-    void tangent(const model &, double t, double cK, double cC, double cM, std::vector<triplet> &) const override;
-    void channel_names(std::vector<std::string> &) const override;
-    void channel_values(const model &, double t, std::vector<double> &) const override;
-    void save_state(std::vector<double> &) const override;
-    bool load_state(const std::vector<double> &, size_t &k) override;
-
-    // pitch of each blade [rad], or a collective table in time (rad)
-    void set_pitch(int blade, double p) { pitch_[blade] = p; }
-    void set_pitch_table(std::vector<double> t, std::vector<double> p)
+    struct aero_station
     {
-        pt_ = std::move(t);
-        pv_ = std::move(p);
-    }
-    double pitch(int blade, double t) const;
-
-    // the loads of all stations at the current state
-    void station_loads(const model &, double t, std::vector<station_load> &) const;
-    struct rotor_values
-    {
-        double T, Q, P, Cp, Ct, lambda, U, yaw, omega, azimuth;
+        int body = -1;
+        Vec3 s = Vec3::Zero();                                  // point in the body frame
+        Vec3 c0 = Vec3::UnitY(), z0 = Vec3::UnitZ();            // chord (leading edge) and span in the body frame
+        double chord = 0.0, w = 0.0;
+        int airfoil = 0, blade = 0;
     };
-    rotor_values values(const model &, double t, const std::vector<station_load> &) const;
-    // the velocity the tower's potential flow adds to the wind u at P
-    Vec3 tower_influence(const model &, const Vec3 &P, const Vec3 &u) const;
 
-    Vec3 hub_centre(const model &) const;
-    const std::vector<aero_station> &stations() const { return st_; }
-    const rotor_aero_settings &settings() const { return set_; }
-    bool unsteady() const { return set_.dyn_inflow.on || set_.dyn_stall.model > 0; }
-    double tau1() const { return tau1_; }
-    // the committed unsteady states of the stations (in the order of stations())
-    const std::vector<inflow_state> &inflow_states() const { return di_; }
-    const std::vector<stall_state> &stall_states() const { return ds_; }
-
-private:
-    // the inflow state at the hub shared by all stations
-    struct hub_state
+    struct rotor_aero_settings
     {
-        Vec3 H, e;
-        double gam;
-        Vec3 cross;
+        int B = 3;
+        double sense = 1.0;                 // +1: the rotor turns positively about the shaft axis
+        double R_hub = 0.0, R_tip = 1.0;    // in the rotor plane
+        double rho = 1.225;
+        bem_options bem;
+        bool skew = true;
+        // tower potential flow (on the tower body, -1: fixed)
+        bool tower = false;
+        int tower_body = -1;
+        Vec3 tower_base = Vec3::Zero(), tower_top = Vec3::UnitZ();     // global at the set-up
+        double D_base = 0.0, D_top = 0.0;
+        // unsteady aerodynamics (coral_unsteady_aero.h)
+        dynamic_inflow_settings dyn_inflow;
+        dynamic_stall_settings dyn_stall;
     };
-    hub_state hub(const model &, double t) const;
-    // one station on the body b (its state as given); i >= 0: the station's index, for the unsteady aerodynamics
-    // (with di, ds: their states at t)
-    void station(const model &, const rigid_body &b, const aero_station &, const hub_state &, double t, station_load &,
-                 const Vec3 &dV = Vec3::Zero(), int i = -1, inflow_state *di = nullptr, stall_state *ds = nullptr) const;
-    // the unsteady aerodynamics of a station after its quasi-steady solution (el, Vx, Vy: its element and inflow;
-    // c: its chord direction, global)
-    void unsteady_station(const model &, const rigid_body &b, const aero_station &, const hub_state &, double t,
-                          station_load &, const bem_element &el, double Vx, double Vy, const Vec3 &c, int i,
-                          inflow_state *di, stall_state *ds) const;
-    // the unsteady states at t of all stations: steady (initialize) or a step from the committed ones
-    void advance(const model &, double t);
 
-    std::string name_;
-    std::shared_ptr<const wind_inflow> wind_;
-    std::vector<airfoil> af_;
-    int hub_;
-    Vec3 sH_;
-    const joint *shaft_;
-    std::vector<aero_station> st_;
-    std::vector<Vec3> roots_;  // in the hub frame
-    rotor_aero_settings set_;
-    Vec3 tb_, tt_;  // tower in its body frame
-    std::vector<double> pitch_, pt_, pv_;
-    std::vector<char> edge_;  // per station: 1 at the tip, 2 at the hub (set-up geometry), else 0
-    // unsteady aerodynamics: the committed states at tc_ (started_ after initialize; before it, and without the
-    // unsteady models, quasi-steady)
-    bool started_ = false;
-    double tc_ = 0.0, tau1_ = 0.0;
-    std::vector<inflow_state> di_;
-    std::vector<stall_state> ds_;
-    std::vector<stall_polar> sp_;  // per airfoil
-};
-}  // namespace coral
+    struct station_load
+    {
+        Vec3 P, F, M;
+        Vec3 n, t;          // rotor-plane directions at the station
+        double theta = 0.0;
+        bem_result bem;
+    };
+
+    class rotor_aero : public load
+    {
+    public:
+        // hub: the rotor body; H the hub centre (global, at the set-up); shaft: its joint (axis along the downwind
+        // shaft); roots: the root point of each blade (global)
+        rotor_aero(const model&, std::shared_ptr<const wind_inflow>, std::vector<airfoil>, int hub, const Vec3 &H,
+                   const joint &shaft, std::vector<aero_station>, const std::vector<Vec3> &roots,
+                   const rotor_aero_settings&, const std::string &name="rotor");
+
+        std::string name() const override {return name_;}
+        coupling_kind coupling() const override {return coupling_kind::local;}
+        void coupled_bodies(std::vector<int>&) const override;
+        void initialize(const model&, double t0) override;
+        void eval(const model&, double t, VecX &f) const override;
+        void commit(const model&, double t, double dt) override;
+        bool has_tangent() const override {return true;}
+        void tangent(const model&, double t, double cK, double cC, double cM, std::vector<triplet>&) const override;
+        void channel_names(std::vector<std::string>&) const override;
+        void channel_values(const model&, double t, std::vector<double>&) const override;
+        void save_state(std::vector<double>&) const override;
+        bool load_state(const std::vector<double>&, size_t &k) override;
+
+        // pitch of each blade [rad], or a collective table in time (rad)
+        void set_pitch(int blade, double p) {pitch_[blade] = p;}
+        void set_pitch_table(std::vector<double> t, std::vector<double> p) {pt_ = std::move(t); pv_ = std::move(p);}
+        double pitch(int blade, double t) const;
+
+        // the loads of all stations at the current state
+        void station_loads(const model&, double t, std::vector<station_load>&) const;
+        struct rotor_values {double T, Q, P, Cp, Ct, lambda, U, yaw, omega, azimuth;};
+        rotor_values values(const model&, double t, const std::vector<station_load>&) const;
+        // the velocity the tower's potential flow adds to the wind u at P
+        Vec3 tower_influence(const model&, const Vec3 &P, const Vec3 &u) const;
+
+        Vec3 hub_centre(const model&) const;
+        const std::vector<aero_station> &stations() const {return st_;}
+        const rotor_aero_settings &settings() const {return set_;}
+        bool unsteady() const {return set_.dyn_inflow.on || set_.dyn_stall.model > 0;}
+        double tau1() const {return tau1_;}
+        // the committed unsteady states of the stations (in the order of stations())
+        const std::vector<inflow_state> &inflow_states() const {return di_;}
+        const std::vector<stall_state> &stall_states() const {return ds_;}
+
+    private:
+        // the inflow state at the hub shared by all stations
+        struct hub_state {Vec3 H, e; double gam; Vec3 cross;};
+        hub_state hub(const model&, double t) const;
+        // one station on the body b (its state as given); i >= 0: the station's index, for the unsteady aerodynamics
+        // (with di, ds: their states at t)
+        void station(const model&, const rigid_body &b, const aero_station&, const hub_state&, double t, station_load&,
+                     const Vec3 &dV=Vec3::Zero(), int i=-1, inflow_state *di=nullptr, stall_state *ds=nullptr) const;
+        // the unsteady aerodynamics of a station after its quasi-steady solution (el, Vx, Vy: its element and inflow;
+        // c: its chord direction, global)
+        void unsteady_station(const model&, const rigid_body &b, const aero_station&, const hub_state&, double t,
+                              station_load&, const bem_element &el, double Vx, double Vy, const Vec3 &c, int i,
+                              inflow_state *di, stall_state *ds) const;
+        // the unsteady states at t of all stations: steady (initialize) or a step from the committed ones
+        void advance(const model&, double t);
+
+        std::string name_;
+        std::shared_ptr<const wind_inflow> wind_;
+        std::vector<airfoil> af_;
+        int hub_;
+        Vec3 sH_;
+        const joint *shaft_;
+        std::vector<aero_station> st_;
+        std::vector<Vec3> roots_;          // in the hub frame
+        rotor_aero_settings set_;
+        Vec3 tb_, tt_;                     // tower in its body frame
+        std::vector<double> pitch_, pt_, pv_;
+        std::vector<char> edge_;           // per station: 1 at the tip, 2 at the hub (set-up geometry), else 0
+        // unsteady aerodynamics: the committed states at tc_ (started_ after initialize; before it, and without the
+        // unsteady models, quasi-steady)
+        bool started_ = false;
+        double tc_ = 0.0, tau1_ = 0.0;
+        std::vector<inflow_state> di_;
+        std::vector<stall_state> ds_;
+        std::vector<stall_polar> sp_;     // per airfoil
+    };
+}
 
 #endif

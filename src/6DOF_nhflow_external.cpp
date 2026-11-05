@@ -44,14 +44,14 @@ Architect: Hans Bihs
 // levels, which step first, take poses predicted from the external state at the start of their step
 // (amr_predict, the predicted copy of the 6DOF kernel). Without external bodies nothing changes.
 
-#include "6DOF_external.h"
-#include "6DOF_nhflow.h"
-#include "ghostcell.h"
-#include "lexer.h"
+#include"6DOF_nhflow.h"
+#include"6DOF_external.h"
+#include"lexer.h"
+#include"ghostcell.h"
 
 bool sixdof_nhflow::ext_drives(int nb) const
 {
-    return pext != nullptr && pext->drives(nb) && !pext->one_way(nb);
+    return pext!=nullptr && pext->drives(nb) && !pext->one_way(nb);
 }
 
 double sixdof_nhflow::ext_node(lexer *p, int iter) const
@@ -59,8 +59,8 @@ double sixdof_nhflow::ext_node(lexer *p, int iter) const
     // time of the body state that stage iter produces (fraction of dt)
     static const double n3[3] = {1.0, 0.5, 1.0};
 
-    if(p->A510 == 3 && iter >= 0 && iter < 3)
-        return n3[iter];
+    if(p->A510==3 && iter>=0 && iter<3)
+    return n3[iter];
 
     return 1.0;
 }
@@ -71,27 +71,27 @@ void sixdof_nhflow::ext_connect(lexer *p, ghostcell *pgc)
 
     sixdof_external *e = sixdof_external::instance();
 
-    if(e == nullptr)
-        return;
+    if(e==nullptr)
+    return;
 
     bool any = false, twoway = false;
 
-    for(int nb = 0; nb < number6DOF; ++nb)
-        if(e->drives(nb))
-        {
-            any = true;
+    for(int nb=0; nb<number6DOF; ++nb)
+    if(e->drives(nb))
+    {
+        any = true;
 
-            if(!e->one_way(nb))
-                twoway = true;
-        }
+        if(!e->one_way(nb))
+        twoway = true;
+    }
 
     if(!any)
-        return;
+    return;
 
-    if(twoway && p->X10 != 1)
+    if(twoway && p->X10!=1)
     {
-        if(p->mpirank == 0)
-            cout << "6DOF NHFLOW: two-way external dynamics (fluid_body without one_way) needs a floating body (X 10 1)" << endl;
+        if(p->mpirank==0)
+        cout<<"6DOF NHFLOW: two-way external dynamics (fluid_body without one_way) needs a floating body (X 10 1)"<<endl;
 
         pgc->final();
         exit(1);
@@ -100,62 +100,62 @@ void sixdof_nhflow::ext_connect(lexer *p, ghostcell *pgc)
     pext = e;
     ext_twoway = twoway;
 
-    for(int nb = 0; nb < number6DOF; ++nb)
-        if(pext->drives(nb))
+    for(int nb=0; nb<number6DOF; ++nb)
+    if(pext->drives(nb))
+    {
+        double m;
+        Eigen::Vector3d cg;
+        Eigen::Matrix3d R, I;
+
+        fb_obj[nb]->external_properties(m,cg,R,I);
+        pext->connect(nb,m,cg,R,I);
+
+        // distributed loads along a member of the external model
+        Eigen::Vector3d a, ax;
+        double L;
+        int ns;
+
+        if(pext->strips(nb,a,ax,L,ns))
         {
-            double m;
-            Eigen::Vector3d cg;
-            Eigen::Matrix3d R, I;
+        fb_obj[nb]->external_strips_set(a,ax,L,ns);
 
-            fb_obj[nb]->external_properties(m, cg, R, I);
-            pext->connect(nb, m, cg, R, I);
-
-            // distributed loads along a member of the external model
-            Eigen::Vector3d a, ax;
-            double L;
-            int ns;
-
-            if(pext->strips(nb, a, ax, L, ns))
-            {
-                fb_obj[nb]->external_strips_set(a, ax, L, ns);
-
-                if(p->X60 == 2 && p->mpirank == 0)
-                    cout << "6DOF NHFLOW: distributed loads (fluid_member) need the STL load integration (X 60 1)" << endl;
-            }
+        if(p->X60==2 && p->mpirank==0)
+        cout<<"6DOF NHFLOW: distributed loads (fluid_member) need the STL load integration (X 60 1)"<<endl;
         }
+    }
 
-    if(p->mpirank == 0)
+    if(p->mpirank==0)
     {
         if(ext_twoway)
         {
-            cout << "6DOF NHFLOW: the body follows the external dynamics (" << (pext->predictor() ? "predictor" : "no predictor") << ")" << endl;
+        cout<<"6DOF NHFLOW: the body follows the external dynamics ("<<(pext->predictor() ? "predictor" : "no predictor")<<")"<<endl;
+        
+        if(!pext->predictor())
+        cout<<"6DOF NHFLOW: WARNING without the predictor the loads are extrapolated over the step; the NHFLOW loads react strongly to the body acceleration and the coupling can become unstable"<<endl;
 
-            if(!pext->predictor())
-                cout << "6DOF NHFLOW: WARNING without the predictor the loads are extrapolated over the step; the NHFLOW loads react strongly to the body acceleration and the coupling can become unstable" << endl;
+        if(p->X500>0)
+        cout<<"6DOF NHFLOW: the PTO X 500 is not used with external dynamics (PTO in the external model)"<<endl;
 
-            if(p->X500 > 0)
-                cout << "6DOF NHFLOW: the PTO X 500 is not used with external dynamics (PTO in the external model)" << endl;
-
-            if(p->X310 > 0)
-                cout << "6DOF NHFLOW: the mooring X 310 is not used with external dynamics (mooring in the external model)" << endl;
+        if(p->X310>0)
+        cout<<"6DOF NHFLOW: the mooring X 310 is not used with external dynamics (mooring in the external model)"<<endl;
         }
 
         else
-            cout << "6DOF NHFLOW: the loads of " << number6DOF << (number6DOF > 1 ? " bodies go" : " body goes") << " one-way to the external solver" << endl;
+        cout<<"6DOF NHFLOW: the loads of "<<number6DOF<<(number6DOF>1?" bodies go":" body goes")<<" one-way to the external solver"<<endl;
     }
 
     // the loads of the initialisation (floating bodies, X 10 1): the first committed sample (no strips yet);
     // not on a restart from a checkpoint (I 45 1), the external model has its samples
-    if(p->X10 != 1 || p->I45 == 1)
-        return;
-
+    if(p->X10!=1 || p->I45==1)
+    return;
+    
     std::vector<sixdof_external::vec6> F(number6DOF);
     std::vector<sixdof_external::mat6> A;
 
-    for(int nb = 0; nb < number6DOF; ++nb)
-        fb_obj[nb]->external_fluid_load(p, F[nb]);
+    for(int nb=0; nb<number6DOF; ++nb)
+    fb_obj[nb]->external_fluid_load(p,F[nb]);
 
-    pext->fluid_loads(p->simtime, F, A, false);
+    pext->fluid_loads(p->simtime,F,A,false);
 }
 
 void sixdof_nhflow::ext_stage(lexer *p, int iter)
@@ -164,26 +164,26 @@ void sixdof_nhflow::ext_stage(lexer *p, int iter)
     const double t1 = p->simtime + p->dt;
     const bool pc = pext->predictor();
 
-    if(iter == 0 && !pc)
-        pext->advance(t0, t1);
+    if(iter==0 && !pc)
+    pext->advance(t0,t1);
 
-    const double cn = ext_node(p, iter);
-    const double ts = (cn == 1.0) ? t1 : t0 + cn * p->dt;
+    const double cn = ext_node(p,iter);
+    const double ts = (cn==1.0) ? t1 : t0 + cn*p->dt;
 
-    for(int nb = 0; nb < number6DOF; ++nb)
-        if(ext_drives(nb))
-        {
-            Eigen::Vector3d xc, v, w;
-            Eigen::Matrix3d R;
+    for(int nb=0; nb<number6DOF; ++nb)
+    if(ext_drives(nb))
+    {
+        Eigen::Vector3d xc, v, w;
+        Eigen::Matrix3d R;
 
-            if(iter == 0 && pc)
-                pext->predict(nb, ts, xc, R, v, w);
+        if(iter==0 && pc)
+        pext->predict(nb,ts,xc,R,v,w);
 
-            else
-                pext->state(nb, ts, xc, R, v, w);
+        else
+        pext->state(nb,ts,xc,R,v,w);
 
-            fb_obj[nb]->external_set_state(xc, R, v, w);
-        }
+        fb_obj[nb]->external_set_state(xc,R,v,w);
+    }
 }
 
 void sixdof_nhflow::ext_loads(lexer *p, double t, bool provisional)
@@ -191,63 +191,63 @@ void sixdof_nhflow::ext_loads(lexer *p, double t, bool provisional)
     std::vector<sixdof_external::vec6> F(number6DOF);
     std::vector<sixdof_external::mat6> A;
 
-    for(int nb = 0; nb < number6DOF; ++nb)
+    for(int nb=0; nb<number6DOF; ++nb)
     {
-        fb_obj[nb]->external_fluid_load(p, F[nb]);
+    fb_obj[nb]->external_fluid_load(p,F[nb]);
 
-        // the strips of the distributed loads (committed loads only)
-        if(!provisional && fb_obj[nb]->external_strips_on())
-            pext->fluid_strips(nb, t, fb_obj[nb]->external_strips());
+    // the strips of the distributed loads (committed loads only)
+    if(!provisional && fb_obj[nb]->external_strips_on())
+    pext->fluid_strips(nb,t,fb_obj[nb]->external_strips());
     }
 
-    pext->fluid_loads(t, F, A, provisional);
+    pext->fluid_loads(t,F,A,provisional);
 }
 
 void sixdof_nhflow::ext_predict_copy(lexer *p, int iter)
 {
     // a coarser level's copy of the bodies (subcycling): the pose predicted from the external state
-    const double ts = p->simtime + ext_node(p, iter) * p->dt;
-
-    for(int nb = 0; nb < number6DOF; ++nb)
-        if(ext_drives(nb))
-        {
-            Eigen::Vector3d xc, v, w;
-            Eigen::Matrix3d R;
-
-            pext->predict(nb, ts, xc, R, v, w);
-            fb_obj[nb]->external_set_state(xc, R, v, w);
-        }
+    const double ts = p->simtime + ext_node(p,iter)*p->dt;
+    
+    for(int nb=0; nb<number6DOF; ++nb)
+    if(ext_drives(nb))
+    {
+        Eigen::Vector3d xc, v, w;
+        Eigen::Matrix3d R;
+        
+        pext->predict(nb,ts,xc,R,v,w);
+        fb_obj[nb]->external_set_state(xc,R,v,w);
+    }
 }
 
 void sixdof_nhflow::amr_body_stage(lexer *p, fdm_nhf *d, ghostcell *pgc, int s, bool predict)
 {
     if(!ext_checked)
-        ext_connect(p, pgc);
-
+    ext_connect(p,pgc);
+    
     if(ext_twoway)
     {
         if(predict)
-            ext_predict_copy(p, s);
-
+        ext_predict_copy(p,s);
+        
         else
-            ext_stage(p, s);
+        ext_stage(p,s);
     }
-
-    for(int nb = 0; nb < number6DOF; ++nb)
-        fb_obj[nb]->amr_stage(p, d, pgc, s, predict, ext_drives(nb));
+    
+    for(int nb=0; nb<number6DOF; ++nb)
+    fb_obj[nb]->amr_stage(p,d,pgc,s,predict,ext_drives(nb));
 }
 
 void sixdof_nhflow::amr_body_loads(lexer *p, ghostcell *pgc, int s, int ns)
 {
-    if(pext == nullptr)
-        return;
-
-    if(ext_twoway && s == 0 && pext->predictor())
+    if(pext==nullptr)
+    return;
+    
+    if(ext_twoway && s==0 && pext->predictor())
     {
-        ext_loads(p, p->simtime + ext_node(p, 0) * p->dt, true);
-        pext->advance(p->simtime, p->simtime + p->dt);
+        ext_loads(p,p->simtime + ext_node(p,0)*p->dt,true);
+        pext->advance(p->simtime,p->simtime + p->dt);
     }
-
-    if(s == ns - 1)
-        ext_loads(p, p->simtime + p->dt, false);
+    
+    if(s==ns-1)
+    ext_loads(p,p->simtime + p->dt,false);
 }

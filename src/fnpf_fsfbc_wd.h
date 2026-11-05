@@ -24,19 +24,19 @@ Author: Hans Bihs
 #define FNPF_FSFBC_WD_H_
 
 #include "fnpf_breaking.h"
+#include "sliceint4.h"
+#include "slice4.h"
+#include "fnpf_voiddisc.h"
 #include "fnpf_cds2_wd.h"
-#include "fnpf_cds4.h"
 #include "fnpf_cds4_wd.h"
 #include "fnpf_cds6_wd.h"
-#include "fnpf_ddx_cds2.h"
-#include "fnpf_ddx_cds4.h"
-#include "fnpf_hires.h"
-#include "fnpf_voiddisc.h"
 #include "fnpf_weno3.h"
 #include "fnpf_weno5.h"
 #include "fnpf_weno5_wd.h"
-#include "slice4.h"
-#include "sliceint4.h"
+#include "fnpf_cds4.h"
+#include "fnpf_hires.h"
+#include "fnpf_ddx_cds2.h"
+#include "fnpf_ddx_cds4.h"
 #include <optional>
 #include <variant>
 #include <vector>
@@ -52,100 +52,93 @@ using namespace std;
 class fnpf_fsfbc_wd final : public fnpf_breaking
 {
 public:
-    fnpf_fsfbc_wd(lexer *, fdm_fnpf *, ghostcell *);
+    fnpf_fsfbc_wd(lexer*, fdm_fnpf*, ghostcell*);
     virtual ~fnpf_fsfbc_wd();
 
-    void fsfdisc(lexer *, fdm_fnpf *, ghostcell *, slice &, slice &) override final;
-    void fsfdisc_ini(lexer *, fdm_fnpf *, ghostcell *, slice &, slice &) override final;
-    void kfsfbc(lexer *, fdm_fnpf *, ghostcell *) override final;
-    void dfsfbc(lexer *, fdm_fnpf *, ghostcell *, slice &) override final;
-    void fsfwvel(lexer *, fdm_fnpf *, ghostcell *, slice &, slice &) override final;
-    void wetdry(lexer *, fdm_fnpf *, ghostcell *, slice &, slice &) override final;
-    void coastline_eta(lexer *, fdm_fnpf *, ghostcell *, slice &) override final;
-    void coastline_fi(lexer *, fdm_fnpf *, ghostcell *, slice &) override final;
-    void coastline_fi_ini(lexer *, fdm_fnpf *, ghostcell *, slice &) override final;
-    void coastline_vel(lexer *, fdm_fnpf *, ghostcell *, double *) override final;
-    void coastline_vel_sl(lexer *, fdm_fnpf *, ghostcell *, slice &) override final;
-    void damping(lexer *, fdm_fnpf *, ghostcell *, slice &, int, double) override final;
+    void fsfdisc(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&) override final;
+    void fsfdisc_ini(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&) override final;
+    void kfsfbc(lexer*,fdm_fnpf*,ghostcell*) override final;
+    void dfsfbc(lexer*,fdm_fnpf*,ghostcell*,slice&) override final;
+    void fsfwvel(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&) override final;
+    void wetdry(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&) override final;
+    void coastline_eta(lexer*,fdm_fnpf*,ghostcell*,slice&) override final;
+    void coastline_fi(lexer*,fdm_fnpf*,ghostcell*,slice&) override final;
+    void coastline_fi_ini(lexer*,fdm_fnpf*,ghostcell*,slice&) override final;
+    void coastline_vel(lexer*,fdm_fnpf*,ghostcell*,double*) override final;
+    void coastline_vel_sl(lexer*,fdm_fnpf*,ghostcell*,slice&) override final;
+    void damping(lexer*,fdm_fnpf*,ghostcell*,slice&,int,double) override final;
 
-    void coastline_Fz(lexer *, fdm_fnpf *, ghostcell *, slice &);
+    void coastline_Fz(lexer*,fdm_fnpf*,ghostcell*,slice&);
 
     // dynamic wetting-drying (A343 2/3) of a grid whose wet flags were set from outside (mesh
     // refinement: a new patch from the old patches or its water level): the dry cells on the
     // criterion, the age, the front mask and the connectivity from these flags
-    void wd_reset(lexer *, fdm_fnpf *, ghostcell *, slice &, slice &);
+    void wd_reset(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&);
 
 private:
     // coastline damping: c->coastline is fixed after its initialisation, so
     // the cells inside the damping bands and their rb3/rb4/rb5 factors are
     // collected once (first call with p->count>0) instead of evaluating
     // exp(pow(x,3.5)) for every coastal cell in every call
-    struct coast_cell
-    {
-        int i, j;
-        double r;
-    };
-    std::vector<coast_cell> cz3, cz4, cz5;  // coastline>=0 and db<dist3/4/5
-    std::vector<coast_cell> czdry;          // coastline<0
-    bool cz_built = false;
-    void coast_cache(lexer *, fdm_fnpf *);
-    inline bool coast_cached(lexer *p) const { return !(p->I30 >= 1 && p->count == 0) && p->count > 0; }
-
-    double rb3(lexer *, double);
-    double rb4(lexer *, double);
-    double rb5(lexer *, double);
+    struct coast_cell { int i,j; double r; };
+    std::vector<coast_cell> cz3, cz4, cz5;      // coastline>=0 and db<dist3/4/5
+    std::vector<coast_cell> czdry;              // coastline<0
+    bool cz_built=false;
+    void coast_cache(lexer*,fdm_fnpf*);
+    inline bool coast_cached(lexer *p) const {return !(p->I30>=1 && p->count==0) && p->count>0;}
+    
+    double rb3(lexer*,double);
+    double rb4(lexer*,double);
+    double rb5(lexer*,double);
 
     sliceint4 wetcoast;
-    slice4 ef, df;
-    slice4 eqxm, eqxp, eqym, eqyp;  // A315 3: left/right-biased eta gradients for the Godunov kinematic FSBC
+    slice4 ef,df;
+    slice4 eqxm,eqxp,eqym,eqyp; // A315 3: left/right-biased eta gradients for the Godunov kinematic FSBC
 
     // dynamic wetting-drying (A343 2: runup and rundown, A343 3: rundown only)
-    void wetdry_dynamic(lexer *, fdm_fnpf *, ghostcell *, slice &, slice &);
-    double wet_nb_average(lexer *, slice &);
-    void wd_front_mask(lexer *, ghostcell *);
-    void wd_redistribute(lexer *, fdm_fnpf *, ghostcell *, slice &, bool);
+    void wetdry_dynamic(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&);
+    double wet_nb_average(lexer*,slice&);
+    void wd_front_mask(lexer*,ghostcell*);
+    void wd_redistribute(lexer*,fdm_fnpf*,ghostcell*,slice&,bool);
 
     // static coastline (A343 1): running means the coastline relaxation relaxes to (A326)
-    void coast_ref_update(lexer *, fdm_fnpf *);
-    slice4 eta_ref, fi_ref;
-    int ref_count = -1;
-    sliceint4 wetage;         // time steps since the cell was (re)wetted, capped at A330
-    sliceint4 wdfront;        // wet cell with a dry cell inside the +-3 WENO stencil
-    slice4 wd_dvol, wd_nwet;  // clamp volume per cell area and number of receiving wet neighbours
-    int wd_flagcount;         // p->count of the last wet/dry flag update
+    void coast_ref_update(lexer*,fdm_fnpf*);
+    slice4 eta_ref,fi_ref;
+    int ref_count=-1;
+    sliceint4 wetage;           // time steps since the cell was (re)wetted, capped at A330
+    sliceint4 wdfront;          // wet cell with a dry cell inside the +-3 WENO stencil
+    slice4 wd_dvol,wd_nwet;     // clamp volume per cell area and number of receiving wet neighbours
+    int wd_flagcount;           // p->count of the last wet/dry flag update
 
     // connectivity to the main water body and Fifsf gauge of wet pockets
-    void wd_connect(lexer *, fdm_fnpf *, ghostcell *, slice &, bool);
-
+    void wd_connect(lexer*,fdm_fnpf*,ghostcell*,slice&,bool);
+    
     // damping: Jacobi on the rows with viscosity, the other rows are diagonal
-    struct damp_row
-    {
-        int q, n;
-    };
+    struct damp_row {int q,n;};
     std::vector<damp_row> damp_act;
-    std::vector<double> damp_x, damp_r;
-    bool damping_local(lexer *, fdm_fnpf *, ghostcell *, slice &);
-    sliceint4 wdconn;  // 1: wet and connected to the main water body
-    sliceint4 wdref;   // rewetted in this flag update from a connected neighbour
-    slice4 wdL, wdS;   // flood fill label and Fifsf gauge shift
+    std::vector<double> damp_x,damp_r;
+    bool damping_local(lexer*,fdm_fnpf*,ghostcell*,slice&);
+    sliceint4 wdconn;           // 1: wet and connected to the main water body
+    sliceint4 wdref;            // rewetted in this flag update from a connected neighbour
+    slice4 wdL,wdS;             // flood fill label and Fifsf gauge shift
 
     std::variant<fnpf_voiddisc, fnpf_cds2_wd, fnpf_cds4_wd, fnpf_weno3, fnpf_weno5_wd, fnpf_cds6_wd> pconvec;
-    std::optional<fnpf_weno5> pconeta;  // eta discretisation next to fnpf_weno5_wd, otherwise pconvec is used
-    std::optional<slice4> dqF, dqE;     // WENO5 face divided differences of Fifsf and eta
+    std::optional<fnpf_weno5> pconeta; // eta discretisation next to fnpf_weno5_wd, otherwise pconvec is used
+    std::optional<slice4> dqF, dqE;    // WENO5 face divided differences of Fifsf and eta
     std::variant<fnpf_hires, fnpf_cds4> pdx;
     std::variant<fnpf_ddx_cds2, fnpf_ddx_cds4> pddx;
     fnpf_coastline *pcoast;
     solver2D *psolv;
     wind *pwind;
 
-    double ivel, jvel, kvel;
+    double ivel,jvel,kvel;
 
-    double dist3, dist4, dist5, expinverse, db;
+    double dist3,dist4,dist5,expinverse,db;
 
     double visc;
 
     int *temp;
-    int gcval_eta, gcval_fifsf;
+    int gcval_eta,gcval_fifsf;
 
     int count_n;
     int coastline_count;

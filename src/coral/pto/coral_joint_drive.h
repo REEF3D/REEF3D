@@ -31,42 +31,43 @@ Architect: Hans Bihs
 #ifndef CORAL_JOINT_DRIVE_H_
 #define CORAL_JOINT_DRIVE_H_
 
-#include "coral/core/coral_load.h"
-#include <string>
+#include"coral/core/coral_load.h"
+#include<string>
 
-namespace coral {
-class joint;
-
-struct drive_settings
+namespace coral
 {
-    double q0 = 0.0, amp = 0.0, period = 1.0, phase = 0.0, ramp = 0.0;
-    double k = 1.0e7, c = 1.0e4;
-};
+    class joint;
 
-class joint_drive : public load
-{
-public:
-    // the joint must live as long as the load (it is owned by the model)
-    joint_drive(const joint &, bool rotational, const drive_settings &, const std::string &name = "drive");
+    struct drive_settings
+    {
+        double q0 = 0.0, amp = 0.0, period = 1.0, phase = 0.0, ramp = 0.0;
+        double k = 1.0e7, c = 1.0e4;
+    };
 
-    std::string name() const override { return name_; }
-    coupling_kind coupling() const override { return coupling_kind::local; }
-    void coupled_bodies(std::vector<int> &) const override;
-    void eval(const model &, double t, VecX &f) const override;
-    void channel_names(std::vector<std::string> &) const override;
-    void channel_values(const model &, double t, std::vector<double> &) const override;
+    class joint_drive : public load
+    {
+    public:
+        // the joint must live as long as the load (it is owned by the model)
+        joint_drive(const joint&, bool rotational, const drive_settings&, const std::string &name="drive");
 
-    // prescribed coordinate, rate and acceleration at t
-    void prescribed(double t, double &q, double &qd, double &qdd) const;
-    double force(const model &, double t) const;
+        std::string name() const override {return name_;}
+        coupling_kind coupling() const override {return coupling_kind::local;}
+        void coupled_bodies(std::vector<int>&) const override;
+        void eval(const model&, double t, VecX &f) const override;
+        void channel_names(std::vector<std::string>&) const override;
+        void channel_values(const model&, double t, std::vector<double>&) const override;
 
-    drive_settings settings;
+        // prescribed coordinate, rate and acceleration at t
+        void prescribed(double t, double &q, double &qd, double &qdd) const;
+        double force(const model&, double t) const;
 
-private:
-    std::string name_;
-    const joint *j_;
-    bool rot_;
-};
-}  // namespace coral
+        drive_settings settings;
+
+    private:
+        std::string name_;
+        const joint *j_;
+        bool rot_;
+    };
+}
 
 #endif

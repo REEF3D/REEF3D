@@ -20,60 +20,75 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "fdm.h"
-#include "ghostcell.h"
-#include "iowave.h"
-#include "lexer.h"
+#include"iowave.h"
+#include"lexer.h"
+#include"fdm.h"
+#include"ghostcell.h"
 
-void iowave::dirichlet_wavegen(lexer *p, fdm *a, ghostcell *pgc, field &u, field &v, field &w)
+void iowave::dirichlet_wavegen(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v, field& w)
 {
-    count = 0;
-    for(n = 0; n < p->gcin_count; n++)
-    {
-        i = p->gcin[n][0];
-        j = p->gcin[n][1];
-        k = p->gcin[n][2];
+        count=0;
+		for(n=0;n<p->gcin_count;n++)
+		{
+		i=p->gcin[n][0];
+		j=p->gcin[n][1];
+		k=p->gcin[n][2];		
 
-        uvel = uval[count] * ramp(p);
-        vvel = vval[count] * ramp(p);
-        wvel = wval[count] * ramp(p);
+        uvel=uval[count]*ramp(p);
+        vvel=vval[count]*ramp(p);
+        wvel=wval[count]*ramp(p);
+        
+        phival = a->phi(i-1,j,k);
 
-        phival = a->phi(i - 1, j, k);
+        if(phival>=-psi)
+		H=1.0;
 
-        if(phival >= -psi)
-            H = 1.0;
+		if(phival<-epsi)
+		H=0.0;
 
-        if(phival < -epsi)
-            H = 0.0;
 
-        if(phival >= -epsi && phival < -psi)
-            H = 0.5 * (1.0 + phival / epsi + (1.0 / PI) * sin((PI * phival) / epsi));
+		if(phival>=-epsi && phival<-psi)
+		H=0.5*(1.0 + phival/epsi + (1.0/PI)*sin((PI*phival)/epsi));
 
-        u(i - 1, j, k) = uvel * H + p->Ui;
-        u(i - 2, j, k) = uvel * H + p->Ui;
-        u(i - 3, j, k) = uvel * H + p->Ui;
-
-        v(i - 1, j, k) = vvel * H;
-        v(i - 2, j, k) = vvel * H;
-        v(i - 3, j, k) = vvel * H;
-
-        w(i - 1, j, k) = wvel * H;
-        w(i - 2, j, k) = wvel * H;
-        w(i - 3, j, k) = wvel * H;
-
-        if(p->W50_air == 1 && phival < -epsi)
-        {
-            u(i - 1, j, k) += p->W50;
-            u(i - 2, j, k) += p->W50;
-            u(i - 3, j, k) += p->W50;
-        }
-
+            
+			u(i-1,j,k)=uvel*H + p->Ui;
+			u(i-2,j,k)=uvel*H + p->Ui;
+			u(i-3,j,k)=uvel*H + p->Ui;
+            
+             v(i-1,j,k)=vvel*H;
+			v(i-2,j,k)=vvel*H;
+			v(i-3,j,k)=vvel*H;
+			
+			w(i-1,j,k)=wvel*H;
+			w(i-2,j,k)=wvel*H;
+			w(i-3,j,k)=wvel*H;
+			
+            
+            if(p->W50_air==1 && phival<-epsi)
+            {
+            u(i-1,j,k)+=p->W50;
+            u(i-2,j,k)+=p->W50;
+            u(i-3,j,k)+=p->W50;
+            }
+            
         ++count;
-    }
+		}
+        
+        
+        if(p->B98==3||p->B98==4||p->B99==3||p->B99==4||p->B99==5)
+		{
+		for(int q=0;q<4;++q)
+		for(n=0;n<p->gcin_count;++n)
+		{
+		i=p->gcin[n][0]+q;
+		j=p->gcin[n][1];
+		k=p->gcin[n][2];
 
-    if(a->phi(i, j, k) < 0.0)
-        a->eddyv(i, j, k) = MIN(a->eddyv(i, j, k), 1.0e-4);
-}
-pgc->start4(p, a->eddyv, 24);
-}
+		if(a->phi(i,j,k)<0.0)
+		a->eddyv(i,j,k)=MIN(a->eddyv(i,j,k),1.0e-4);
+		}
+		pgc->start4(p,a->eddyv,24);
+		}
+        
+    
 }

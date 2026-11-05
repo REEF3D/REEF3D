@@ -23,10 +23,10 @@ Author: Hans Bihs
 #ifndef NHFLOW_FORCE_H_
 #define NHFLOW_FORCE_H_
 
-#include "increment.h"
-#include "vtp3D.h"
-#include <fstream>
-#include <iostream>
+#include"increment.h"
+#include"vtp3D.h"
+#include<iostream>
+#include<fstream>
 
 class lexer;
 class fdm_nhf;
@@ -35,99 +35,98 @@ class amr_column_lookup;
 
 using namespace std;
 
-class nhflow_force : public increment, private vtp3D
+class nhflow_force :  public increment, private vtp3D
 {
 
 public:
-    nhflow_force(lexer *, fdm_nhf *, ghostcell *, int, bool = true);
-    virtual ~nhflow_force();
-    void start(lexer *, fdm_nhf *, ghostcell *);
-    void ini(lexer *, fdm_nhf *, ghostcell *);
-
+	nhflow_force(lexer*,fdm_nhf*,ghostcell*,int,bool=true);
+	virtual ~nhflow_force();
+	void start(lexer*,fdm_nhf*,ghostcell*);
+    void ini(lexer*,fdm_nhf*,ghostcell*);
+    
     // mesh refinement (NHFLOW AMR): every piece of the surface is integrated on the finest grid at
     // its centre.  amr: the refinement, grid: nullptr for level 0, the patch for the force objects
     // of a patch (made without output files, out false); patch_sum adds the part of the patch in
     // the box to F (Fx, Fy, Fz, Ax, Ay, Az, area), without the sums over the ranks
-    void amr_attach(const amr_column_lookup *a, const void *grid)
-    {
-        amr = a;
-        amr_grid = grid;
-    }
-    void patch_sum(lexer *, fdm_nhf *, ghostcell *, double *);
+    void amr_attach(const amr_column_lookup *a, const void *grid) { amr=a; amr_grid=grid; }
+    void patch_sum(lexer*,fdm_nhf*,ghostcell*,double*);
 
 private:
-    void triangulation(lexer *, fdm_nhf *, ghostcell *);
-    void reconstruct(lexer *, fdm_nhf *);
-    void addpoint(lexer *, fdm_nhf *, int, int);
-    void finalize(lexer *, fdm_nhf *);
+	void triangulation(lexer*, fdm_nhf*, ghostcell*);
+	void reconstruct(lexer*, fdm_nhf*);
+	void addpoint(lexer*,fdm_nhf*,int,int);
+	void finalize(lexer*,fdm_nhf*);
+    
+    void allocate(lexer*,fdm_nhf*,ghostcell*);
+    void deallocate(lexer*,fdm_nhf*,ghostcell*);
+    
+    double triangle_area(lexer*,double,double,double,double,double,double,double,double,double);
 
-    void allocate(lexer *, fdm_nhf *, ghostcell *);
-    void deallocate(lexer *, fdm_nhf *, ghostcell *);
-
-    double triangle_area(lexer *, double, double, double, double, double, double, double, double, double);
-
-    int *vertice, *nodeflag;
+    int *vertice,*nodeflag;
     double *eta;
-
-    int **tri, **facet, *confac, *numfac, *numpt;
-    double **ccpt, **pt, *ls;
-    double dV1, dV2, C1, C2, mi;
-    int numtri, numvert, numtri_mem, numvert_mem;
-    int count, countM, n, nn, q;
-    int ccptcount, facount, check;
-    int polygon_sum, polygon_num, vertice_num;
-    const double zero, interfac;
+	
+	int **tri, **facet, *confac, *numfac,*numpt;
+	double **ccpt, **pt, *ls;
+	double   dV1,dV2,C1,C2,mi;
+	int numtri,numvert, numtri_mem, numvert_mem;
+	int count,countM,n,nn,q;
+	int ccptcount,facount,check;
+	int polygon_sum,polygon_num,vertice_num;
+	const double zero,interfac;
     double epsi;
-
-    void force_calc(lexer *, fdm_nhf *, ghostcell *);
-    void force_local(lexer *, fdm_nhf *, ghostcell *);
+	
+	
+    void force_calc(lexer*,fdm_nhf*,ghostcell*);
+    void force_local(lexer*,fdm_nhf*,ghostcell*);
     const amr_column_lookup *amr = nullptr;
     const void *amr_grid = nullptr;
-    void add_triangle(lexer *, fdm_nhf *, int, int, int);
-
-    void print_force(lexer *, fdm_nhf *, ghostcell *);
-    void print_ini(lexer *, fdm_nhf *, ghostcell *);
-    void print_vtp(lexer *, fdm_nhf *, ghostcell *);
-    void pvtp(lexer *, int);
+    void add_triangle(lexer*,fdm_nhf*,int,int,int);
+    
+    
+	void print_force(lexer*,fdm_nhf*,ghostcell*);
+    void print_ini(lexer*,fdm_nhf*,ghostcell*);
+    void print_vtp(lexer*,fdm_nhf*,ghostcell*);
+    void pvtp(lexer*,int);
 
     char name[100];
-    int iin, offset[100];
+    int iin,offset[100];
     float ffn;
     int gcval_phi;
-    double printtime, printtime2;
-    int forceprintcount;
+    double printtime,printtime2;
+	int forceprintcount;
     int gcval_press;
-
+    
     // force
-    double Fx, Fy, Fz;
-    double A_tot, A;
-
-    double x1, x2, x3, x4, y1, y2, y3, y4, z1, z2, z3, z4;
-    double xc, yc, zc;
-    double nx, ny, nz, norm;
-    double nxs, nys, nzs;
-    double uval, vval, wval, pval, viscosity, density, phival;
-    double etaval, hspval;
-    double du, dv, dw;
-    double at, bt, ct, st;
-
+    double Fx,Fy,Fz;
+    double A_tot,A;
+    
+    double x1,x2,x3,x4,y1,y2,y3,y4,z1,z2,z3,z4;
+    double xc,yc,zc;
+    double nx,ny,nz,norm;
+    double nxs,nys,nzs;
+    double uval,vval,wval,pval,viscosity,density,phival;
+    double etaval,hspval;
+    double du,dv,dw;
+    double at,bt,ct,st;
+    
     ofstream fout;
-
-    double xs, xe, ys, ye, zs, ze;
-    double xm, ym, zm;
-    int is, ie, js, je, ks, ke;
+    
+    double xs,xe,ys,ye,zs,ze;
+    double xm,ym,zm;
+	int is,ie,js,je,ks,ke;
     const int ID;
-
-    double ux, vy, wz, vel, pressure;
-    double xloc, yloc, zloc;
-    double xlocvel, ylocvel, zlocvel;
-    double sgnx, sgny, sgnz;
+	
+    double ux,vy,wz,vel,pressure;
+    double xloc,yloc,zloc;
+	double xlocvel,ylocvel,zlocvel;
+    double sgnx,sgny,sgnz;
     double Ax;
     double Ay;
     double Az;
 
-    double xp1, xp2, yp1, yp2, zp1, zp2;
+    double xp1,xp2,yp1,yp2,zp1,zp2;
 };
 
 #endif
+
 

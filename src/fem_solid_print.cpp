@@ -20,197 +20,157 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "fem_solid.h"
-#include <fstream>
-#include <iomanip>
-#include <ostream>
-#include <stdexcept>
+#include"fem_solid.h"
+#include<fstream>
+#include<ostream>
+#include<iomanip>
+#include<stdexcept>
 
-void fem_solid::write_vtu(const std::string &filename) const
+void fem_solid::write_vtu(const std::string& filename) const
 {
     // intact elements as hexahedra, debris particles as vertices
     std::vector<int> cells;
-    for(int e = 0; e < nelem(); ++e)
-        if(elems[e].alive)
-            cells.push_back(e);
+    for(int e=0; e<nelem(); ++e)
+    if(elems[e].alive)
+    cells.push_back(e);
 
     const int nh = (int)cells.size();
     const int no = (int)orphan.size();
 
     std::ofstream f(filename.c_str());
     if(!f)
-        throw std::runtime_error("FEM: cannot write " + filename);
+    throw std::runtime_error("FEM: cannot write "+filename);
 
-    f << std::setprecision(7);
-    f << "<?xml version=\"1.0\"?>\n";
-    f << "<VTKFile type=\"UnstructuredGrid\" version=\"0.1\" byte_order=\"LittleEndian\">\n";
-    f << "<UnstructuredGrid>\n";
-    f << "<FieldData><DataArray type=\"Float64\" Name=\"TimeValue\" NumberOfTuples=\"1\" format=\"ascii\">" << t << "</DataArray></FieldData>\n";
-    f << "<Piece NumberOfPoints=\"" << nnode() << "\" NumberOfCells=\"" << nh + no << "\">\n";
+    f<<std::setprecision(7);
+    f<<"<?xml version=\"1.0\"?>\n";
+    f<<"<VTKFile type=\"UnstructuredGrid\" version=\"0.1\" byte_order=\"LittleEndian\">\n";
+    f<<"<UnstructuredGrid>\n";
+    f<<"<FieldData><DataArray type=\"Float64\" Name=\"TimeValue\" NumberOfTuples=\"1\" format=\"ascii\">"<<t<<"</DataArray></FieldData>\n";
+    f<<"<Piece NumberOfPoints=\""<<nnode()<<"\" NumberOfCells=\""<<nh+no<<"\">\n";
 
-    f << "<Points>\n<DataArray type=\"Float64\" NumberOfComponents=\"3\" format=\"ascii\">\n";
-    for(int i = 0; i < nnode(); ++i)
-        f << x[i](0) << " " << x[i](1) << " " << x[i](2) << "\n";
-    f << "</DataArray>\n</Points>\n";
+    f<<"<Points>\n<DataArray type=\"Float64\" NumberOfComponents=\"3\" format=\"ascii\">\n";
+    for(int i=0; i<nnode(); ++i)
+    f<<x[i](0)<<" "<<x[i](1)<<" "<<x[i](2)<<"\n";
+    f<<"</DataArray>\n</Points>\n";
 
-    f << "<PointData Vectors=\"displacement\">\n";
-    f << "<DataArray type=\"Float64\" Name=\"displacement\" NumberOfComponents=\"3\" format=\"ascii\">\n";
-    for(int i = 0; i < nnode(); ++i)
-        f << x[i](0) - X[i](0) << " " << x[i](1) - X[i](1) << " " << x[i](2) - X[i](2) << "\n";
-    f << "</DataArray>\n";
-    f << "<DataArray type=\"Float64\" Name=\"velocity\" NumberOfComponents=\"3\" format=\"ascii\">\n";
-    for(int i = 0; i < nnode(); ++i)
-        f << v[i](0) << " " << v[i](1) << " " << v[i](2) << "\n";
-    f << "</DataArray>\n";
-    f << "<DataArray type=\"Float64\" Name=\"load\" NumberOfComponents=\"3\" format=\"ascii\">\n";
-    for(int i = 0; i < nnode(); ++i)
+    f<<"<PointData Vectors=\"displacement\">\n";
+    f<<"<DataArray type=\"Float64\" Name=\"displacement\" NumberOfComponents=\"3\" format=\"ascii\">\n";
+    for(int i=0; i<nnode(); ++i)
+    f<<x[i](0)-X[i](0)<<" "<<x[i](1)-X[i](1)<<" "<<x[i](2)-X[i](2)<<"\n";
+    f<<"</DataArray>\n";
+    f<<"<DataArray type=\"Float64\" Name=\"velocity\" NumberOfComponents=\"3\" format=\"ascii\">\n";
+    for(int i=0; i<nnode(); ++i)
+    f<<v[i](0)<<" "<<v[i](1)<<" "<<v[i](2)<<"\n";
+    f<<"</DataArray>\n";
+    f<<"<DataArray type=\"Float64\" Name=\"load\" NumberOfComponents=\"3\" format=\"ascii\">\n";
+    for(int i=0; i<nnode(); ++i)
     {
-        const Vec3 L = fext[i] + fcpl[i] - mfl[i] * grav;
-        f << L(0) << " " << L(1) << " " << L(2) << "\n";
+        const Vec3 L = fext[i] + fcpl[i] - mfl[i]*grav;
+        f<<L(0)<<" "<<L(1)<<" "<<L(2)<<"\n";
     }
-    f << "</DataArray>\n";
-    f << "<DataArray type=\"Int32\" Name=\"support\" format=\"ascii\">\n";
-    for(int i = 0; i < nnode(); ++i)
-        f << (fixed[i] ? 1 : 0) << "\n";
-    f << "</DataArray>\n";
-    f << "</PointData>\n";
+    f<<"</DataArray>\n";
+    f<<"<DataArray type=\"Int32\" Name=\"support\" format=\"ascii\">\n";
+    for(int i=0; i<nnode(); ++i) f<<(fixed[i] ? 1 : 0)<<"\n";
+    f<<"</DataArray>\n";
+    f<<"</PointData>\n";
 
-    f << "<CellData Scalars=\"vonMises\">\n";
-    f << "<DataArray type=\"Float64\" Name=\"vonMises\" format=\"ascii\">\n";
-    for(int e : cells)
-        f << elems[e].svm << "\n";
-    for(int q = 0; q < no; ++q)
-        f << "0\n";
-    f << "</DataArray>\n";
+    f<<"<CellData Scalars=\"vonMises\">\n";
+    f<<"<DataArray type=\"Float64\" Name=\"vonMises\" format=\"ascii\">\n";
+    for(int e : cells) f<<elems[e].svm<<"\n";
+    for(int q=0; q<no; ++q) f<<"0\n";
+    f<<"</DataArray>\n";
 
-    f << "<DataArray type=\"Float64\" Name=\"damage\" format=\"ascii\">\n";
+    f<<"<DataArray type=\"Float64\" Name=\"damage\" format=\"ascii\">\n";
     for(int e : cells)
     {
         double d = 0.0;
         const int ng = ngauss(e);
-        for(int g = 0; g < ng; ++g)
-            d += gps[e * ngp + g].d;
-        f << d / double(ng) << "\n";
+        for(int g=0; g<ng; ++g) d += gps[e*ngp+g].d;
+        f<<d/double(ng)<<"\n";
     }
-    for(int q = 0; q < no; ++q)
-        f << "1\n";
-    f << "</DataArray>\n";
+    for(int q=0; q<no; ++q) f<<"1\n";
+    f<<"</DataArray>\n";
 
-    f << "<DataArray type=\"Float64\" Name=\"plastic_strain\" format=\"ascii\">\n";
+    f<<"<DataArray type=\"Float64\" Name=\"plastic_strain\" format=\"ascii\">\n";
     for(int e : cells)
     {
         double p = 0.0;
         const int ng = ngauss(e);
-        for(int g = 0; g < ng; ++g)
-            p += gps[e * ngp + g].ep;
-        f << p / double(ng) << "\n";
+        for(int g=0; g<ng; ++g) p += gps[e*ngp+g].ep;
+        f<<p/double(ng)<<"\n";
     }
-    for(int q = 0; q < no; ++q)
-        f << "0\n";
-    f << "</DataArray>\n";
+    for(int q=0; q<no; ++q) f<<"0\n";
+    f<<"</DataArray>\n";
 
-    f << "<DataArray type=\"Float64\" Name=\"utilisation\" format=\"ascii\">\n";
-    for(int e : cells)
-        f << elems[e].util << "\n";
-    for(int q = 0; q < no; ++q)
-        f << "-1\n";
-    f << "</DataArray>\n";
+    f<<"<DataArray type=\"Float64\" Name=\"utilisation\" format=\"ascii\">\n";
+    for(int e : cells) f<<elems[e].util<<"\n";
+    for(int q=0; q<no; ++q) f<<"-1\n";
+    f<<"</DataArray>\n";
 
     if(any_reinforcement())
     {
-        f << "<DataArray type=\"Float64\" Name=\"steel_utilisation\" format=\"ascii\">\n";
-        for(int e : cells)
-            f << elems[e].sutil << "\n";
-        for(int q = 0; q < no; ++q)
-            f << "-1\n";
-        f << "</DataArray>\n";
+        f<<"<DataArray type=\"Float64\" Name=\"steel_utilisation\" format=\"ascii\">\n";
+        for(int e : cells) f<<elems[e].sutil<<"\n";
+        for(int q=0; q<no; ++q) f<<"-1\n";
+        f<<"</DataArray>\n";
     }
 
-    f << "<DataArray type=\"Int32\" Name=\"material\" format=\"ascii\">\n";
-    for(int e : cells)
-        f << mats[elems[e].mat].id << "\n";
-    for(int q = 0; q < no; ++q)
-        f << "-1\n";
-    f << "</DataArray>\n";
-    f << "</CellData>\n";
+    f<<"<DataArray type=\"Int32\" Name=\"material\" format=\"ascii\">\n";
+    for(int e : cells) f<<mats[elems[e].mat].id<<"\n";
+    for(int q=0; q<no; ++q) f<<"-1\n";
+    f<<"</DataArray>\n";
+    f<<"</CellData>\n";
 
-    f << "<Cells>\n<DataArray type=\"Int32\" Name=\"connectivity\" format=\"ascii\">\n";
+    f<<"<Cells>\n<DataArray type=\"Int32\" Name=\"connectivity\" format=\"ascii\">\n";
     for(int e : cells)
     {
-        for(int a = 0; a < 8; ++a)
-            f << elems[e].n[a] << " ";
-        f << "\n";
+        for(int a=0; a<8; ++a) f<<elems[e].n[a]<<" ";
+        f<<"\n";
     }
-    for(int i : orphan)
-        f << i << "\n";
-    f << "</DataArray>\n";
-    f << "<DataArray type=\"Int32\" Name=\"offsets\" format=\"ascii\">\n";
+    for(int i : orphan) f<<i<<"\n";
+    f<<"</DataArray>\n";
+    f<<"<DataArray type=\"Int32\" Name=\"offsets\" format=\"ascii\">\n";
     int o = 0;
-    for(int q = 0; q < nh; ++q)
-    {
-        o += 8;
-        f << o << "\n";
-    }
-    for(int q = 0; q < no; ++q)
-    {
-        o += 1;
-        f << o << "\n";
-    }
-    f << "</DataArray>\n";
-    f << "<DataArray type=\"UInt8\" Name=\"types\" format=\"ascii\">\n";
-    for(int q = 0; q < nh; ++q)
-        f << "12\n";
-    for(int q = 0; q < no; ++q)
-        f << "1\n";
-    f << "</DataArray>\n</Cells>\n";
+    for(int q=0; q<nh; ++q) {o += 8; f<<o<<"\n";}
+    for(int q=0; q<no; ++q) {o += 1; f<<o<<"\n";}
+    f<<"</DataArray>\n";
+    f<<"<DataArray type=\"UInt8\" Name=\"types\" format=\"ascii\">\n";
+    for(int q=0; q<nh; ++q) f<<"12\n";
+    for(int q=0; q<no; ++q) f<<"1\n";
+    f<<"</DataArray>\n</Cells>\n";
 
-    f << "</Piece>\n</UnstructuredGrid>\n</VTKFile>\n";
+    f<<"</Piece>\n</UnstructuredGrid>\n</VTKFile>\n";
 }
 
-void fem_solid::info(std::ostream &os) const
+void fem_solid::info(std::ostream& os) const
 {
-    os << "FEM: " << nelem() << " hex8 elements (" << (full_int == 1 ? "full" : full_int == 2 ? "adaptive"
-                                                                                              : "reduced")
-       << " integration), "
-       << nnode() << " nodes, lattice " << nx << "x" << ny << "x" << nz << " h = " << hx << " " << hy << " " << hz
-       << ", " << faces.size() << " surface faces, " << nbodies << " bodies, dt_crit " << dtcrit << " s"
-       << (plane_strain ? ", plane strain" : "") << "\n";
-    if(nthr > 1)
-        os << "FEM: " << nthr << " threads (OpenMP)\n";
-    if(comm && comm->size() > 1 && dist_req != 0)
-        os << "FEM: solid split over the " << comm->size() << " ranks" << (dist_req < 0 ? " if it has at least " + std::to_string(dist_min) + " deformable elements (now " + std::to_string(n_deformable()) + ")" : std::string()) << "\n";
+    os<<"FEM: "<<nelem()<<" hex8 elements ("<<(full_int==1 ? "full" : full_int==2 ? "adaptive" : "reduced")<<" integration), "
+      <<nnode()<<" nodes, lattice "<<nx<<"x"<<ny<<"x"<<nz<<" h = "<<hx<<" "<<hy<<" "<<hz
+      <<", "<<faces.size()<<" surface faces, "<<nbodies<<" bodies, dt_crit "<<dtcrit<<" s"
+      <<(plane_strain ? ", plane strain" : "")<<"\n";
+    if(nthr>1)
+    os<<"FEM: "<<nthr<<" threads (OpenMP)\n";
+    if(comm && comm->size()>1 && dist_req!=0)
+    os<<"FEM: solid split over the "<<comm->size()<<" ranks"<<(dist_req<0 ? " if it has at least "+std::to_string(dist_min)+" deformable elements (now "+std::to_string(n_deformable())+")" : std::string())<<"\n";
 
-    for(const material &mt : mats)
+    for(const material& mt : mats)
     {
-        os << "FEM: material " << mt.id << " "
-           << (mt.type == MAT_ELASTIC ? "elastic" : mt.type == MAT_J2 ? "plastic"
-                                                                      : "concrete")
-           << " rho " << mt.rho << " E " << mt.E << " nu " << mt.nu << " c_p " << mt.cp;
-        if(mt.type == MAT_J2)
-            os << " sigma_y " << mt.sigy << " H " << mt.H << " eps_fail " << mt.epsfail;
-        if(mt.type == MAT_CONCRETE)
-            os << " ft " << mt.ft << " Gf " << mt.Gf << " fc " << mt.fc << " Gc " << mt.Gc;
-        if(mt.type == MAT_CONCRETE && mt.reinforced())
+        os<<"FEM: material "<<mt.id<<" "
+          <<(mt.type==MAT_ELASTIC ? "elastic" : mt.type==MAT_J2 ? "plastic" : "concrete")
+          <<" rho "<<mt.rho<<" E "<<mt.E<<" nu "<<mt.nu<<" c_p "<<mt.cp;
+        if(mt.type==MAT_J2) os<<" sigma_y "<<mt.sigy<<" H "<<mt.H<<" eps_fail "<<mt.epsfail;
+        if(mt.type==MAT_CONCRETE) os<<" ft "<<mt.ft<<" Gf "<<mt.Gf<<" fc "<<mt.fc<<" Gc "<<mt.Gc;
+        if(mt.type==MAT_CONCRETE && mt.reinforced())
         {
-            os << ", reinforced " << (mt.sname.empty() ? "steel" : mt.sname) << " f_y " << mt.sfy << " H " << mt.sH << " eps_u " << mt.seu << ", bars";
-            const char *ax[3] = {"x", "y", "z"};
-            for(int k = 0; k < 3; ++k)
-                if(mt.rs[k] > 0.0)
-                    os << " " << ax[k] << " " << 100.0 * mt.rs[k] << " %";
-            if(mt.rskin == 0.0)
-                os << " uniform";
-            else if(mt.rskin > 0.0)
-                os << " in a skin of " << mt.rskin << " m";
-            else
-                os << " in the outer element layer";
+            os<<", reinforced "<<(mt.sname.empty() ? "steel" : mt.sname)<<" f_y "<<mt.sfy<<" H "<<mt.sH<<" eps_u "<<mt.seu<<", bars";
+            const char* ax[3] = {"x","y","z"};
+            for(int k=0; k<3; ++k) if(mt.rs[k]>0.0) os<<" "<<ax[k]<<" "<<100.0*mt.rs[k]<<" %";
+            if(mt.rskin==0.0) os<<" uniform"; else if(mt.rskin>0.0) os<<" in a skin of "<<mt.rskin<<" m"; else os<<" in the outer element layer";
         }
-        os << "\n";
+        os<<"\n";
     }
 
     int nfix = 0;
-    for(unsigned char f : fixed)
-        if(f)
-            ++nfix;
-    os << "FEM: " << nfix << " supported nodes, mass " << [&]
-    {double s=0; for(double q:m) s+=q; return s; }() << " kg\n";
+    for(unsigned char f : fixed) if(f) ++nfix;
+    os<<"FEM: "<<nfix<<" supported nodes, mass "<<[&]{double s=0; for(double q:m) s+=q; return s;}()<<" kg\n";
 }

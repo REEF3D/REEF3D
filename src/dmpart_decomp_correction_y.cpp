@@ -22,10 +22,11 @@ Author: Hans Bihs
 
 #include "dmpart_decomp.h"
 
-namespace dmpart {
-
-void decomp::partition_correct_y(lexer *p, dive *a)
+namespace dmpart
 {
-    partition_balance(p, a, 2);
+
+void decomp::partition_correct_y(lexer* p, dive* a)
+{
+    partition_balance(p,a,2);
 }
-}  // namespace dmpart
+}

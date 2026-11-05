@@ -20,17 +20,17 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "nhflow_timestep.h"
-#include "fdm_nhf.h"
-#include "ghostcell.h"
-#include "lexer.h"
-#include "nhflow_curv.h"
-#include "nhflow_flux_face.h"
-#include "sflow_curv.h"
-#include "vrans_definitions.h"
-#include <iomanip>
+#include"nhflow_timestep.h"
+#include"nhflow_flux_face.h"
+#include"vrans_definitions.h"
+#include<iomanip>
+#include"lexer.h"
+#include"nhflow_curv.h"
+#include"sflow_curv.h"
+#include"fdm_nhf.h"
+#include"ghostcell.h"
 
-nhflow_timestep::nhflow_timestep(lexer *p) : epsi(1.0e-3), maxtimestep(p->N49), c0_orig(p->N47)
+nhflow_timestep::nhflow_timestep(lexer* p):epsi(1.0e-3),maxtimestep(p->N49),c0_orig(p->N47)
 {
 }
 
@@ -40,336 +40,347 @@ nhflow_timestep::~nhflow_timestep()
 
 void nhflow_timestep::start(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
-    double depthmax = 0.0;
-    double posx, posy, posz;
-    int posi, posj, posk;
+    double depthmax=0.0;
+    double posx,posy,posz;
+    int posi,posj,posk;
 
-    p->umax = p->vmax = p->wmax = p->viscmax = irsm = jrsm = krsm = p->omegamax = 0.0;
-    p->epsmax = p->kinmax = p->pressmax = 0.0;
-    p->dt_old = p->dt;
+    p->umax=p->vmax=p->wmax=p->viscmax=irsm=jrsm=krsm=p->omegamax=0.0;
+    p->epsmax=p->kinmax=p->pressmax=0.0;
+	p->dt_old=p->dt;
 
-    p->umax = p->vmax = p->wmax = p->viscmax = 0.0;
+	p->umax=p->vmax=p->wmax=p->viscmax=0.0;
 
-    // maximum velocities
+// maximum velocities
     SLICELOOP4
-    depthmax = MAX(depthmax, d->WL(i, j));
+	depthmax=MAX(depthmax,d->WL(i,j));
+	
+    if(phook!=nullptr)
+    depthmax=MAX(depthmax,phook->dt_local_max(0));
+	depthmax=pgc->globalmax(depthmax);
 
-    if(phook != nullptr)
-        depthmax = MAX(depthmax, phook->dt_local_max(0));
-    depthmax = pgc->globalmax(depthmax);
-
-    LOOP
-        p->umax = MAX(p->umax, fabs(d->U[IJK]));
-
-    if(phook != nullptr)
-        p->umax = MAX(p->umax, phook->dt_local_max(1));
-    p->umax = pgc->globalmax(p->umax);
 
     LOOP
-        p->vmax = MAX(p->vmax, fabs(d->V[IJK]));
+	p->umax=MAX(p->umax,fabs(d->U[IJK]));
 
-    if(phook != nullptr)
-        p->vmax = MAX(p->vmax, phook->dt_local_max(2));
-    p->vmax = pgc->globalmax(p->vmax);
+    if(phook!=nullptr)
+    p->umax=MAX(p->umax,phook->dt_local_max(1));
+	p->umax=pgc->globalmax(p->umax);
 
-    LOOP
-        p->wmax = MAX(p->wmax, fabs(d->W[IJK]));
+
+	LOOP
+	p->vmax=MAX(p->vmax,fabs(d->V[IJK]));
+
+    if(phook!=nullptr)
+    p->vmax=MAX(p->vmax,phook->dt_local_max(2));
+	p->vmax=pgc->globalmax(p->vmax);
 
     // curvilinear grid (G 50): the horizontal speed in both directions (the faces have any orientation;
     // the Cartesian components made the time step depend on the orientation of the grid)
-    if(p->geo_curv == 1)
+    if(p->geo_curv==1)
     {
-        double sp = 0.0;
-        LOOP
-            sp = MAX(sp, sqrt(d->U[IJK] * d->U[IJK] + d->V[IJK] * d->V[IJK]));
-
-        // (the grids of the mesh refinement and the blocks: the largest speed of a cell, not the speed of the largest
-        // components of two cells, so that blocks and one block take the same step)
-        if(phook != nullptr)
-            sp = MAX(sp, phook->dt_local_max(5));
-
-        sp = pgc->globalmax(sp);
-        p->umax = p->vmax = sp;
+    double sp=0.0;
+    LOOP
+    sp=MAX(sp,sqrt(d->U[IJK]*d->U[IJK] + d->V[IJK]*d->V[IJK]));
+    
+    // (the grids of the mesh refinement and the blocks: the largest speed of a cell, not the speed of the largest
+    // components of two cells, so that blocks and one block take the same step)
+    if(phook!=nullptr)
+    sp=MAX(sp,phook->dt_local_max(5));
+    
+    sp=pgc->globalmax(sp);
+    p->umax=p->vmax=sp;
     }
 
+
+	LOOP
+	p->wmax=MAX(p->wmax,fabs(d->W[IJK]));
+    
+    if(phook!=nullptr)
+    p->wmax=MAX(p->wmax,phook->dt_local_max(3));
+    p->wmax=pgc->globalmax(p->wmax);
+    
     FLOOP
-    p->omegamax = MAX(p->omegamax, fabs(d->omegaF[FIJK]));
-
-    if(phook != nullptr)
-        p->omegamax = MAX(p->omegamax, phook->dt_local_max(4));
-    p->omegamax = pgc->globalmax(p->omegamax);
-
-    if(p->mpirank == 0 && (p->count % p->P12 == 0))
+	p->omegamax=MAX(p->omegamax,fabs(d->omegaF[FIJK]));
+    
+    if(phook!=nullptr)
+    p->omegamax=MAX(p->omegamax,phook->dt_local_max(4));
+	p->omegamax=pgc->globalmax(p->omegamax);
+    
+	
+    if(p->mpirank==0 && (p->count%p->P12==0))
     {
-        if(p->j_dir == 1 && p->knoy > 1)
-            dx = MIN(p->DXN[IP], p->DYN[JP]);
-
-        if(p->j_dir == 0 || p->knoy == 1)
-            dx = p->DXN[IP];
-
-        // curvilinear grid: the widths of the cell across its faces
-        if(p->geo_curv == 1)
-            dx = MIN(nhflow_curv::width1(p, i, j), nhflow_curv::width2(p, i, j));
-
-        dz = p->DZN[KP] * d->WL(i, j);
-
-        cu = MIN(cu, dx / (p->umax + sqrt(9.81 * depthmax)));
-
-        if(p->j_dir == 1)
-            cv = MIN(cv, dx / (p->vmax + sqrt(9.81 * depthmax)));
-
-        // vertical velocity
-        cw = MIN(cw, dx / (p->wmax));
-
-        if(p->A533 == 1)
-            cw = MIN(cw, dz / (p->wmax));
-
-        // VRANS (B 206 1): wave speeds of the porous equations, a +- b of nhflow_face::por_speed with the
-        // cell porosity (advective speed C u/n^2 up to 3 u in an armour layer, celerity sqrt(C g D/n))
-        if(p->B200 == 1 && p->B206 == 1 && d->POR[IJK] < 1.0 - 1.0e-10)
-        {
-            const double n = d->POR[IJK];
-            const double C = CPORNHval(n);
-            double a, b;
-
-            nhflow_face::por_speed(p, n, n, fabs(d->U[IJK]), d->WL(i, j), a, b);
-            cu = MIN(cu, dx / (a + b + 1.0e-20));
-
-            if(p->j_dir == 1)
-            {
-                nhflow_face::por_speed(p, n, n, fabs(d->V[IJK]), d->WL(i, j), a, b);
-                cv = MIN(cv, dx / (a + b + 1.0e-20));
-            }
-
-            cw = MIN(cw, dx / (C * fabs(d->W[IJK]) / (n * n) + 1.0e-20));
-
-            if(p->A533 == 1)
-                cw = MIN(cw, dz / (C * fabs(d->W[IJK]) / (n * n) + 1.0e-20));
-        }
-
-        if(p->B200 == 1 || p->A533 == 1)
-            cu = MIN(cu, 1.0 / (0.00001
-
-                                + sqrt((4.0 * fabs(MAX3(d->maxF, d->maxG, d->maxH))) / MIN(dx, dz))));
-
-        // explicit momentum diffusion (A 512 1): dt <= 0.25/(nu_eff (1/dx^2 + 1/dy^2 + sigz^2/dsigma^2)),
-        // with the factor 2 of the normal stresses (0.5 of the forward-Euler limit); cu is scaled by N 47 below
-        if(p->A512 == 1)
-        {
-            const double visc = d->VISC[IJK] + d->EV[IJK];
-            const double lam = (p->geo_curv == 1 ? sflow_curv::inv2(p, i, j) : 1.0 / (p->DXN[IP] * p->DXN[IP]) + p->y_dir / (p->DYN[JP] * p->DYN[JP])) + 1.0 / (dz * dz);
-
-            p->viscmax = MAX(p->viscmax, visc);
-            cu = MIN(cu, 0.25 / (visc * lam + 1.0e-20) / MAX(p->N47, 1.0e-20));
-        }
+	cout<<"umax: "<<setprecision(5)<<p->umax<<" \t utime: "<<p->utime<<endl;
+	cout<<"vmax: "<<setprecision(5)<<p->vmax<<" \t vtime: "<<p->vtime<<endl;
+	cout<<"wmax: "<<setprecision(5)<<p->wmax<<" \t wtime: "<<p->wtime<<endl;
+    cout<<"omegamax: "<<setprecision(5)<<p->omegamax<<endl;
+    cout<<"recontime: "<<p->recontime<<endl;
+    cout<<"forcingtime: "<<p->dftime<<endl;
+    cout<<"fsftime: "<<p->fsftime<<endl;
+    //cout<<"c_shallow: "<<sqrt(9.81*depthmax)<<" c: "<<p->wC<<endl;
+    //cout<<"depthmax: "<<setprecision(3)<<depthmax<<endl;
     }
+	
+	p->umax=MAX(p->umax,p->ufbmax);
+	p->vmax=MAX(p->vmax,p->vfbmax);
+	p->wmax=MAX(p->wmax,p->wfbmax);
 
-    p->umax = MAX(p->umax, p->ufbmax);
-    p->vmax = MAX(p->vmax, p->vfbmax);
-    p->wmax = MAX(p->wmax, p->wfbmax);
-
-    cu = cv = cw = co = 1.0e10;
-
-    LOOP WETDRY
+    cu=cv=cw=co=1.0e10;
+    
+    LOOP
+    WETDRY
     {
-        if(p->j_dir == 1 && p->knoy > 1)
-            dx = MIN(p->DXN[IP], p->DYN[JP]);
-
-        if(p->j_dir == 0 || p->knoy == 1)
-            dx = p->DXN[IP];
-
-        dz = p->DZN[KP] * d->WL(i, j);
-
-        cu = MIN(cu, dx / (p->umax + sqrt(9.81 * depthmax)));
-
-        if(p->j_dir == 1)
-            cv = MIN(cv, dx / (p->vmax + sqrt(9.81 * depthmax)));
-
-        // vertical velocity
-        cw = MIN(cw, dx / (p->wmax));
-
-        if(p->A533 == 1)
-            cw = MIN(cw, dz / (p->wmax));
-
-        if(p->B200 == 1 || p->A533 == 1)
-            cu = MIN(cu, 1.0 / (0.00001
-
-                                + sqrt((4.0 * fabs(MAX3(d->maxF, d->maxG, d->maxH))) / MIN(dx, dz))));
+    if(p->j_dir==1 && p->knoy>1)
+    dx = MIN(p->DXN[IP],p->DYN[JP]);
+    
+    if(p->j_dir==0 || p->knoy==1)
+    dx = p->DXN[IP];
+    
+    // curvilinear grid: the widths of the cell across its faces
+    if(p->geo_curv==1)
+    dx = MIN(nhflow_curv::width1(p,i,j),nhflow_curv::width2(p,i,j));
+    
+    dz = p->DZN[KP]*d->WL(i,j);
+    
+    cu = MIN(cu, dx/(p->umax + sqrt(9.81*depthmax)));
+    
+    if(p->j_dir==1 )
+    cv = MIN(cv, dx/(p->vmax + sqrt(9.81*depthmax)));
+    
+    // vertical velocity
+    cw = MIN(cw, dx/(p->wmax));
+    
+    if(p->A533==1)
+    cw = MIN(cw, dz/(p->wmax));
+    
+    // VRANS (B 206 1): wave speeds of the porous equations, a +- b of nhflow_face::por_speed with the
+    // cell porosity (advective speed C u/n^2 up to 3 u in an armour layer, celerity sqrt(C g D/n))
+    if(p->B200==1 && p->B206==1 && d->POR[IJK]<1.0-1.0e-10)
+    {
+    const double n = d->POR[IJK];
+    const double C = CPORNHval(n);
+    double a,b;
+    
+    nhflow_face::por_speed(p,n,n,fabs(d->U[IJK]),d->WL(i,j),a,b);
+    cu = MIN(cu, dx/(a + b + 1.0e-20));
+    
+    if(p->j_dir==1)
+    {
+    nhflow_face::por_speed(p,n,n,fabs(d->V[IJK]),d->WL(i,j),a,b);
+    cv = MIN(cv, dx/(a + b + 1.0e-20));
     }
-
+    
+    cw = MIN(cw, dx/(C*fabs(d->W[IJK])/(n*n) + 1.0e-20));
+    
+    if(p->A533==1)
+    cw = MIN(cw, dz/(C*fabs(d->W[IJK])/(n*n) + 1.0e-20));
+    }
+    
+    if(p->B200==1 || p->A533==1)
+    cu = MIN(cu, 1.0/(0.00001
+    
+            + sqrt((4.0*fabs(MAX3(d->maxF,d->maxG,d->maxH)))/MIN(dx,dz))));
+    
+    // explicit momentum diffusion (A 512 1): dt <= 0.25/(nu_eff (1/dx^2 + 1/dy^2 + sigz^2/dsigma^2)),
+    // with the factor 2 of the normal stresses (0.5 of the forward-Euler limit); cu is scaled by N 47 below
+    if(p->A512==1)
+    {
+    const double visc = d->VISC[IJK] + d->EV[IJK];
+    const double lam = (p->geo_curv==1 ? sflow_curv::inv2(p,i,j) : 1.0/(p->DXN[IP]*p->DXN[IP]) + p->y_dir/(p->DYN[JP]*p->DYN[JP])) + 1.0/(dz*dz);
+    
+    p->viscmax = MAX(p->viscmax, visc);
+    cu = MIN(cu, 0.25/(visc*lam + 1.0e-20)/MAX(p->N47,1.0e-20));
+    }
+    }
+    
     // refined patches: the same limits with their smallest cells
-    if(phook != nullptr)
+    if(phook!=nullptr)
     {
-        double dxp = 1.0e20, dzp = 1.0e20;
-        phook->dt_cell_size(1, dxp, dzp);
-
-        if(dxp < 1.0e19)
+    double dxp=1.0e20, dzp=1.0e20;
+    phook->dt_cell_size(1,dxp,dzp);
+    
+        if(dxp<1.0e19)
         {
-            cu = MIN(cu, dxp / (p->umax + sqrt(9.81 * depthmax)));
-
-            if(p->j_dir == 1)
-                cv = MIN(cv, dxp / (p->vmax + sqrt(9.81 * depthmax)));
-
-            cw = MIN(cw, dxp / (p->wmax));
-
-            if(p->A533 == 1)
-                cw = MIN(cw, dzp / (p->wmax));
+        cu = MIN(cu, dxp/(p->umax + sqrt(9.81*depthmax)));
+        
+        if(p->j_dir==1 )
+        cv = MIN(cv, dxp/(p->vmax + sqrt(9.81*depthmax)));
+        
+        cw = MIN(cw, dxp/(p->wmax));
+        
+        if(p->A533==1)
+        cw = MIN(cw, dzp/(p->wmax));
         }
     }
-
+    
     cu = pgc->globalmin(cu);
     cw = pgc->globalmin(cw);
-
-    if(p->j_dir == 1)
+    
+    
+    if(p->j_dir==1)
     {
-        cv = pgc->globalmin(cv);
-        cu = MIN(cu, cv);
+    cv = pgc->globalmin(cv);
+    cu = MIN(cu,cv);
     }
+    
+    
+    cu = MIN(cu,cw);
 
-    cu = MIN(cu, cw);
-
-    p->dt = p->N47 * cu;
-
-    p->dt = pgc->timesync(p->dt);
-
-    if(p->N48 == 0)
-        p->dt = p->N49;
-
+   	p->dt=p->N47*cu;
+    
+	p->dt=pgc->timesync(p->dt);
+    
+    if(p->N48==0) 
+    p->dt=p->N49;
+    
     else
-        p->dt = MIN(p->dt, maxtimestep);
-
+	p->dt=MIN(p->dt,maxtimestep);
+    
+    
+    
+    
     // reini
-    p->recontime = 0.0;
-    p->fsftime = 0.0;
-    p->dftime = 0.0;
-
-    d->maxF = 0.0;
-    d->maxG = 0.0;
-    d->maxH = 0.0;
+    p->recontime=0.0;
+    p->fsftime=0.0;
+    p->dftime=0.0;
+    
+    d->maxF=0.0;
+	d->maxG=0.0;
+	d->maxH=0.0;
 }
 
 void nhflow_timestep::ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
-    double depthmax, wdt;
-
-    p->umax = p->vmax = p->wmax = 0.0;
+    double depthmax,wdt;
+    
+	p->umax = p->vmax = p->wmax = 0.0;
     depthmax = -1e19;
-
-    cu = cv = cw = co = 1.0e10;
-
+    
+    cu=cv=cw=co=1.0e10;
+    
+    
     SLICELOOP4
-    depthmax = MAX(depthmax, p->wd - d->bed(i, j));
-
-    depthmax = pgc->globalmax(depthmax);
-
+	depthmax=MAX(depthmax,p->wd - d->bed(i,j));
+	
+	depthmax=pgc->globalmax(depthmax);
+	
     LOOP
-        p->umax = MAX(p->umax, fabs(d->U[IJK]));
+	p->umax=MAX(p->umax,fabs(d->U[IJK]));
 
-    p->umax = pgc->globalmax(p->umax);
+	p->umax=pgc->globalmax(p->umax);
 
-    LOOP
-        p->vmax = MAX(p->vmax, fabs(d->V[IJK]));
+	LOOP
+	p->vmax=MAX(p->vmax,fabs(d->V[IJK]));
 
-    p->vmax = pgc->globalmax(p->vmax);
+	p->vmax=pgc->globalmax(p->vmax);
+    
+    if(p->j_dir==0)
+    p->vmax=0.0;
 
-    if(p->geo_curv == 1)
+    if(p->geo_curv==1)
     {
-        double sp = 0.0;
-        LOOP
-            sp = MAX(sp, sqrt(d->U[IJK] * d->U[IJK] + d->V[IJK] * d->V[IJK]));
-        p->umax = p->vmax = pgc->globalmax(sp);
+    double sp=0.0;
+    LOOP
+    sp=MAX(sp,sqrt(d->U[IJK]*d->U[IJK] + d->V[IJK]*d->V[IJK]));
+    p->umax=p->vmax=pgc->globalmax(sp);
     }
 
-    LOOP
-        p->wmax = MAX(p->wmax, fabs(d->W[IJK]));
 
-    p->wmax = pgc->globalmax(p->wmax);
+	LOOP
+	p->wmax=MAX(p->wmax,fabs(d->W[IJK]));
 
-    p->umax = MAX(p->umax, 2.0 * p->ufbmax);
-    p->umax = MAX(p->umax, 2.0 * p->vfbmax);
-    p->umax = MAX(p->umax, 2.0 * p->wfbmax);
+	p->wmax=pgc->globalmax(p->wmax);
+    
+	
+	p->umax=MAX(p->umax,2.0*p->ufbmax);
+	p->umax=MAX(p->umax,2.0*p->vfbmax);
+	p->umax=MAX(p->umax,2.0*p->wfbmax);
+    
+    p->umax=MAX(p->umax,2.0*p->X210_u);
+	p->umax=MAX(p->umax,2.0*p->X210_v);
+	p->umax=MAX(p->umax,2.0*p->X210_w);
 
-    p->umax = MAX(p->umax, 2.0 * p->X210_u);
-    p->umax = MAX(p->umax, 2.0 * p->X210_v);
-    p->umax = MAX(p->umax, 2.0 * p->X210_w);
+	p->dt=p->DXM/(p->umax+epsi);
+    
 
-    p->dt = p->DXM / (p->umax + epsi);
+    p->umax+=10.0;
+    
 
-    p->umax += 10.0;
 
     LOOP
     {
-        if(p->j_dir == 1 && p->knoy > 1)
-            dx = MIN(p->DXN[IP], p->DYN[JP]);
-
-        if(p->j_dir == 0 || p->knoy == 1)
-            dx = p->DXN[IP];
-
-        if(p->geo_curv == 1)
-            dx = MIN(nhflow_curv::width1(p, i, j), nhflow_curv::width2(p, i, j));
-
-        cu = MIN(cu, 1.0 / ((fabs((p->umax + sqrt(9.81 * depthmax))) / dx)));
-        cv = MIN(cv, 1.0 / ((fabs((p->vmax + sqrt(9.81 * depthmax))) / dx)));
-        cw = MIN(cw, 1.0 / ((fabs(p->wmax) / dx)));
-        co = MIN(co, 1.0 / ((fabs(p->omegamax) / dx)));
+    if(p->j_dir==1 && p->knoy>1)
+    dx = MIN(p->DXN[IP],p->DYN[JP]);
+    
+    if(p->j_dir==0 || p->knoy==1)
+    dx = p->DXN[IP];
+    
+    if(p->geo_curv==1)
+    dx = MIN(nhflow_curv::width1(p,i,j),nhflow_curv::width2(p,i,j));
+    
+    
+    cu = MIN(cu, 1.0/((fabs((p->umax + sqrt(9.81*depthmax)))/dx)));
+    cv = MIN(cv, 1.0/((fabs((p->vmax + sqrt(9.81*depthmax)))/dx)));
+    cw = MIN(cw, 1.0/((fabs(p->wmax)/dx)));
+    co = MIN(co, 1.0/((fabs(p->omegamax)/dx)));
     }
 
     // refined patches: the same limits with their smallest cells
-    if(phook != nullptr)
+    if(phook!=nullptr)
     {
-        double dxp = 1.0e20, dzp = 1.0e20;
-        phook->dt_cell_size(0, dxp, dzp);
-
-        if(dxp < 1.0e19)
+    double dxp=1.0e20, dzp=1.0e20;
+    phook->dt_cell_size(0,dxp,dzp);
+    
+        if(dxp<1.0e19)
         {
-            cu = MIN(cu, 1.0 / ((fabs((p->umax + sqrt(9.81 * depthmax))) / dxp)));
-            cv = MIN(cv, 1.0 / ((fabs((p->vmax + sqrt(9.81 * depthmax))) / dxp)));
-            cw = MIN(cw, 1.0 / ((fabs(p->wmax) / dxp)));
-            co = MIN(co, 1.0 / ((fabs(p->omegamax) / dxp)));
+        cu = MIN(cu, 1.0/((fabs((p->umax + sqrt(9.81*depthmax)))/dxp)));
+        cv = MIN(cv, 1.0/((fabs((p->vmax + sqrt(9.81*depthmax)))/dxp)));
+        cw = MIN(cw, 1.0/((fabs(p->wmax)/dxp)));
+        co = MIN(co, 1.0/((fabs(p->omegamax)/dxp)));
         }
     }
+    
+	cu = MIN(cu,cv);
+    
+    cu = MIN(cu,cw);
+    
+    cu = MIN(cu,co);
+    
+   	p->dt=0.75*p->N47*cu;
+    
+    //if(p->B201==1)
+    //p->dt = 0.1*p->dt;
+    
+    p->dt=pgc->globalmin(p->dt);
+	p->dt=pgc->timesync(p->dt);
+	p->dt_old=p->dt;
+    
+    if(p->B94==0)
+	wdt=p->phimean;
 
-    cu = MIN(cu, cv);
+	if(p->B94==1)
+	wdt=p->B94_wdt;
 
-    cu = MIN(cu, cw);
-
-    cu = MIN(cu, co);
-
-    p->dt = 0.75 * p->N47 * cu;
-
-    // if(p->B201==1)
-    // p->dt = 0.1*p->dt;
-
-    p->dt = pgc->globalmin(p->dt);
-    p->dt = pgc->timesync(p->dt);
-    p->dt_old = p->dt;
-
-    if(p->B94 == 0)
-        wdt = p->phimean;
-
-    if(p->B94 == 1)
-        wdt = p->B94_wdt;
-
-    if(p->mpirank == 0 && (p->count % p->P12 == 0))
+    
+    if(p->mpirank==0 && (p->count%p->P12==0))
     {
-        cout << "umax: " << setprecision(5) << p->umax << endl;
-        cout << "vmax: " << setprecision(5) << p->vmax << endl;
-        cout << "wmax: " << setprecision(5) << p->wmax << endl;
-        cout << "depth_max: " << setprecision(3) << depthmax << " |  wave depth: " << wdt << endl;
+	cout<<"umax: "<<setprecision(5)<<p->umax<<endl;
+	cout<<"vmax: "<<setprecision(5)<<p->vmax<<endl;
+	cout<<"wmax: "<<setprecision(5)<<p->wmax<<endl;
+    cout<<"depth_max: "<<setprecision(3)<<depthmax<<" |  wave depth: "<<wdt<<endl;
     }
-
-    if(p->N48 == 0)
-        p->dt = p->N49;
-
+    
+    if(p->N48==0) 
+    p->dt=p->N49;
+    
     else
-        p->dt = MIN(p->dt, maxtimestep);
-
+	p->dt=MIN(p->dt,maxtimestep);
+    
     // reini
-    p->recontime = 0.0;
-    p->fsftime = 0.0;
-
-    d->maxF = 0.0;
-    d->maxG = 0.0;
-    d->maxH = 0.0;
+    p->recontime=0.0;
+    p->fsftime=0.0;
+    
+    d->maxF=0.0;
+	d->maxG=0.0;
+	d->maxH=0.0;
 }
 

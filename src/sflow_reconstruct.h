@@ -23,8 +23,8 @@ Author: Hans Bihs
 #ifndef SFLOW_RECONSTRUCT_H_
 #define SFLOW_RECONSTRUCT_H_
 
-#include "increment.h"
-#include "slice4.h"
+#include"increment.h"
+#include"slice4.h"
 
 class lexer;
 class ghostcell;
@@ -37,11 +37,13 @@ using namespace std;
 class sflow_reconstruct
 {
 public:
-    virtual ~sflow_reconstruct() = default;  // deleted through the base pointer (AMR patches)
+    virtual ~sflow_reconstruct() = default;    // deleted through the base pointer (AMR patches)
 
-    virtual void reconstruct_x(lexer *, ghostcell *, fdm2D *, slice &, slice &, slice &) = 0;
-    virtual void reconstruct_y(lexer *, ghostcell *, fdm2D *, slice &, slice &, slice &) = 0;
-    virtual void reconstruct_WL(lexer *, ghostcell *, fdm2D *) = 0;
+    virtual void reconstruct_x(lexer*,ghostcell*,fdm2D*,slice&,slice&,slice&)=0;
+    virtual void reconstruct_y(lexer*,ghostcell*,fdm2D*,slice&,slice&,slice&)=0;
+    virtual void reconstruct_WL(lexer*,ghostcell*,fdm2D*)=0;
+    
+
 };
 
 #endif

@@ -20,6 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
+
 #ifndef AMR_GRID_LOOKUP_H_
 #define AMR_GRID_LOOKUP_H_
 
@@ -56,7 +57,7 @@ public:
 // the points of an output (a load) this rank evaluates: those on its level-0 grid (flag); with the
 // placement of the CFD patches the rank of the finest grid at the point, on level 0 the ranks that
 // hold it (collective when placed)
-#include <vector>
+#include<vector>
 void amr_cfd_mine(const amr_grid_lookup *amr, int n, const double *x, const double *y, const double *z, const int *flag, std::vector<char> &mine);
 
 // The same for the 2D-column models of the refinement core reefamr (NHFLOW, FNPF, SFLOW): the
@@ -74,7 +75,7 @@ public:
     // (nullptr: level 0, else the patch of the force object) belongs to it, in its interior and not
     // under a finer patch; and the part of this rank's patches in force box ID added to F (Fx, Fy,
     // Fz, Ax, Ay, Az, area), every piece of the surface integrated on the finest grid at its centre
-    virtual bool force_leaf(const void *grid, double x, double y) const { return grid == nullptr; }
+    virtual bool force_leaf(const void *grid, double x, double y) const { return grid==nullptr; }
     virtual void solid_forces(int ID, double *F) const {}
 };
 
@@ -88,12 +89,12 @@ void amr_point_owners(const int *lev, int n, char *mine);
 // the grids of the points of an output: find (collective) sets per point the grid to read on this
 // rank (q, f; f nullptr: level 0, the printer's own fields) and whether this rank writes the point
 // (mine); flag: the point on this rank's level-0 grid
-#include <vector>
+#include<vector>
 struct amr_points
 {
     std::vector<int> lev;
-    std::vector<lexer *> q;
-    std::vector<void *> f;
+    std::vector<lexer*> q;
+    std::vector<void*> f;
     std::vector<char> mine;
     void find(const amr_column_lookup *amr, lexer *p, int n, const double *x, const double *y, const int *flag);
 };

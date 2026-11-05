@@ -23,10 +23,10 @@ Author: Hans Bihs
 #ifndef WAVES_HEADER_H_
 #define WAVES_HEADER_H_
 
-#include "fnpf_RK3.h"
-#include "fnpf_RK4.h"
-#include "fnpf_timestep.h"
-#include "printer_fnpf.h"
-#include "sflow_f.h"
+#include"sflow_f.h"
+#include"fnpf_RK3.h"
+#include"fnpf_RK4.h"
+#include"printer_fnpf.h"
+#include"fnpf_timestep.h"
 
 #endif

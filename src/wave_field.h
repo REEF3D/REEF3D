@@ -23,8 +23,8 @@ Author: Hans Bihs
 #ifndef WAVE_FIELD_H_
 #define WAVE_FIELD_H_
 
-#include "wave_source.h"
-#include <vector>
+#include"wave_source.h"
+#include<vector>
 
 class lexer;
 class ghostcell;
@@ -58,64 +58,64 @@ fall back to B 89 0, iowave).
 class wave_field
 {
 public:
-    wave_field(lexer *, ghostcell *);
+    wave_field(lexer*, ghostcell*);
     ~wave_field();
 
-    int size() const { return (int)src.size(); }
-    wave_source *source(int n) const { return src[n]; }
+    int size() const {return (int)src.size();}
+    wave_source *source(int n) const {return src[n];}
 
-    double eta(lexer *, double, double);
-    double u(lexer *, double, double, double);
-    double v(lexer *, double, double, double);
-    double w(lexer *, double, double, double);
-    double fi(lexer *, double, double, double);
+    double eta(lexer*, double, double);
+    double u(lexer*, double, double, double);
+    double v(lexer*, double, double, double);
+    double w(lexer*, double, double, double);
+    double fi(lexer*, double, double, double);
 
-    void cache_points(lexer *, const std::vector<double> &, const std::vector<double> &);
-    double eta_c(lexer *, int);
-    double fi_c(lexer *, int, double);
-    void uvw_c(lexer *, int, double, double &, double &, double &);
+    void cache_points(lexer*, const std::vector<double>&, const std::vector<double>&);
+    double eta_c(lexer*, int);
+    double fi_c(lexer*, int, double);
+    void uvw_c(lexer*, int, double, double&, double&, double&);
 
-    void prestep(lexer *, ghostcell *);
+    void prestep(lexer*, ghostcell*);
 
     // decomposed precalc (B 89 1, roadmap step 6): the components of the additional sources follow
     // those of the B 92 wave; space parts in the source's frame, time parts with its phase shift,
     // time window and ramp. kind: 0 u, 1 v, 2 w, 3 eta, 4 fi; sc: 0 sin, 1 cos
-    static int decomp_ncomp(int type, int wN);  // components of a wave type; -1: not decomposable
-    int decomp_build(lexer *);                  // maps the components, returns their number
-    double dspace(lexer *, int kind, int sc, int n, double x, double y, double z);
-    double dtime(lexer *, int kind, int sc, int n);
-    bool decomp_use(int n) const { return use(src[dsrc[n]]); }  // component n of a selected source (filter)
-    double decomp_dir(int n) const;                             // direction of component n relative to B 105 [rad] (I 30 2)
+    static int decomp_ncomp(int type, int wN);   // components of a wave type; -1: not decomposable
+    int decomp_build(lexer*);                    // maps the components, returns their number
+    double dspace(lexer*, int kind, int sc, int n, double x, double y, double z);
+    double dtime(lexer*, int kind, int sc, int n);
+    bool decomp_use(int n) const {return use(src[dsrc[n]]);}   // component n of a selected source (filter)
+    double decomp_dir(int n) const;  // direction of component n relative to B 105 [rad] (I 30 2)
 
     static bool nonlinear(int);
     bool exists(int) const;
-
+    
     // sources used by the evaluation (direct and cached); nullptr: all
     const std::vector<int> *filter = nullptr;
 
 private:
-    void read(lexer *, ghostcell *);
-    void check(lexer *);
-    void build(lexer *, ghostcell *);
-    void log(lexer *);
+    void read(lexer*, ghostcell*);
+    void check(lexer*);
+    void build(lexer*, ghostcell*);
+    void log(lexer*);
 
     // swaps a source's lexer context in for the scope of one evaluation
     struct scope
     {
-        scope(lexer *, wave_source &);
+        scope(lexer*, wave_source&);
         ~scope();
         lexer *p;
         wave_source &s;
         int mode;
         wave_lexer_context keep;
         double wavetime;
-        int wN = 0, B130 = 0;
+        int wN=0, B130=0;
     };
 
-    bool use(const wave_source *) const;
-
-    std::vector<wave_source *> src;
-    std::vector<int> dsrc, dloc;  // decomposed component -> source, its own component index
+    bool use(const wave_source*) const;
+    
+    std::vector<wave_source*> src;
+    std::vector<int> dsrc, dloc;     // decomposed component -> source, its own component index
 };
 
 #endif

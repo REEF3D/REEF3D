@@ -28,39 +28,36 @@ Architect: Hans Bihs
 #ifndef CORAL_SPRING_H_
 #define CORAL_SPRING_H_
 
-#include "coral/core/coral_load.h"
-#include "coral/core/coral_types.h"
+#include"coral/core/coral_load.h"
+#include"coral/core/coral_types.h"
 
-namespace coral {
-class spring_damper : public load
+namespace coral
 {
-public:
-    spring_damper(const model &, int a, const Vec3 &pa, int b, const Vec3 &pb,
-                  double k, double c, double L0 = -1.0, double T0 = 0.0, bool tension_only = false,
-                  const std::string &name = "spring");
-
-    std::string name() const override { return name_; }
-    coupling_kind coupling() const override { return coupling_kind::local; }
-    void coupled_bodies(std::vector<int> &b) const override
+    class spring_damper : public load
     {
-        b.push_back(a_);
-        b.push_back(b_);
-    }
-    void eval(const model &, double t, VecX &f) const override;
-    double potential(const model &) const override;
-    void channel_names(std::vector<std::string> &) const override;
-    void channel_values(const model &, double t, std::vector<double> &) const override;
+    public:
+        spring_damper(const model&, int a, const Vec3 &pa, int b, const Vec3 &pb,
+                      double k, double c, double L0=-1.0, double T0=0.0, bool tension_only=false,
+                      const std::string &name="spring");
 
-    double length(const model &) const;
-    double tension(const model &) const;
+        std::string name() const override {return name_;}
+        coupling_kind coupling() const override {return coupling_kind::local;}
+        void coupled_bodies(std::vector<int> &b) const override {b.push_back(a_); b.push_back(b_);}
+        void eval(const model&, double t, VecX &f) const override;
+        double potential(const model&) const override;
+        void channel_names(std::vector<std::string>&) const override;
+        void channel_values(const model&, double t, std::vector<double>&) const override;
 
-private:
-    std::string name_;
-    int a_, b_;
-    Vec3 sa_, sb_;
-    double k_, c_, L0_, T0_;
-    bool tension_only_;
-};
-}  // namespace coral
+        double length(const model&) const;
+        double tension(const model&) const;
+
+    private:
+        std::string name_;
+        int a_, b_;
+        Vec3 sa_, sb_;
+        double k_, c_, L0_, T0_;
+        bool tension_only_;
+    };
+}
 
 #endif

@@ -20,11 +20,11 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "cfd_state.h"
-#include "fdm.h"
-#include "ghostcell.h"
-#include "lexer.h"
-#include <fstream>
-#include <iostream>
-#include <sys/stat.h>
-#include <sys/types.h>
+#include"cfd_state.h"
+#include"lexer.h"
+#include"fdm.h"
+#include"ghostcell.h"
+#include<iostream>
+#include<fstream>
+#include<sys/stat.h>
+#include<sys/types.h>

@@ -20,28 +20,28 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "fdm_nhf.h"
-#include "ghostcell.h"
-#include "lexer.h"
-#include "matrix2D.h"
-#include "nhflow_amr.h"
-#include "nhflow_amr_fill.h"
-#include "nhflow_curv.h"
-#include "nhflow_longrun.h"
-#include "nhflow_momentum_SI.h"
-#include "nhflow_tracer_SI.h"
-#include "reef3d_mpmd.h"
-#include "reefamr_krylov.h"
-#include "reefmg2D.h"
-#include "sflow_curv.h"
-#include "si_eta2D.h"
-#include "slice4.h"
-#include "vec2D.h"
-#include <Eigen/Sparse>
-#include <Eigen/SparseLU>
-#include <iomanip>
-#include <map>
-#include <mpi.h>
+#include"nhflow_amr.h"
+#include"reef3d_mpmd.h"
+#include"nhflow_amr_fill.h"
+#include"nhflow_momentum_SI.h"
+#include"nhflow_tracer_SI.h"
+#include"nhflow_longrun.h"
+#include"si_eta2D.h"
+#include"reefmg2D.h"
+#include"vec2D.h"
+#include"matrix2D.h"
+#include"reefamr_krylov.h"
+#include"lexer.h"
+#include"fdm_nhf.h"
+#include"ghostcell.h"
+#include"slice4.h"
+#include"nhflow_curv.h"
+#include"sflow_curv.h"
+#include<mpi.h>
+#include<map>
+#include<Eigen/Sparse>
+#include<Eigen/SparseLU>
+#include<iomanip>
 
 // Hydrostatic semi-implicit free surface (A 534 1) on the multi-block grid (G 50 1, DIVEMesh R 20 1) and with mesh
 // refinement (G 1).
@@ -70,13 +70,14 @@ Author: Hans Bihs
 
 using namespace nhflow_amr_detail;
 
-namespace {
+namespace
+{
 typedef reefamr_comms_off comms_off;
 }
 
-nhflow_momentum_SI *nhflow_amr::gsi(int g)
+nhflow_momentum_SI* nhflow_amr::gsi(int g)
 {
-    return static_cast<nhflow_momentum_SI *>(gmom(g));
+    return static_cast<nhflow_momentum_SI*>(gmom(g));
 }
 
 // ---- the hooks of the eta system of all grids (reefamr_si.cpp)
@@ -102,21 +103,21 @@ void nhflow_amr::rsi_bound()
         nhflow_momentum_SI *m = gsi(g);
 
         for(const auto &f : m->bcf)
-            if(f.type == nhflow_momentum_SI::bc_level)
-                m->etaI(f.gi, f.gj) = m->etaB(f.gi, f.gj);
+        if(f.type==nhflow_momentum_SI::bc_level)
+        m->etaI(f.gi,f.gj) = m->etaB(f.gi,f.gj);
     }
 }
 
 void nhflow_amr::rsi_run(int g, const std::function<void()> &f)
 {
-    if(g < 0)
+    if(g<0)
     {
         f();
         return;
     }
 
     comms_off guard(sipgc);
-    pscope ps(sipgc, NP(g)->d, d0);
+    pscope ps(sipgc,NP(g)->d,d0);
     f();
 }
 
@@ -125,14 +126,14 @@ void nhflow_amr::rsi_run(int g, const std::function<void()> &f)
 template<class F>
 void nhflow_amr::si_each(ghostcell *pgc, F f)
 {
-    f(-1, p0, d0, gsi(-1), *S0p);
+    f(-1,p0,d0,gsi(-1),*S0p);
 
     comms_off guard(pgc);
     for(int id : lev[0])
     {
         nhflow_amr_patch *c = NP(id);
-        pscope ps(pgc, c->d, d0);
-        f(id, c->pp, c->d, gsi(id), c->S);
+        pscope ps(pgc,c->d,d0);
+        f(id,c->pp,c->d,gsi(id),c->S);
     }
 }
 
@@ -140,26 +141,26 @@ void nhflow_amr::si_each(ghostcell *pgc, F f)
 template<class F>
 void nhflow_amr::si_level(ghostcell *pgc, int l, F f)
 {
-    if(l < 1 || l >= (int)lev.size())
-        return;
+    if(l<1 || l>=(int)lev.size())
+    return;
 
     comms_off guard(pgc);
     for(int id : lev[l])
     {
         nhflow_amr_patch *c = NP(id);
-        pscope ps(pgc, c->d, d0);
-        f(id, c->pp, c->d, gsi(id), c->S);
+        pscope ps(pgc,c->d,d0);
+        f(id,c->pp,c->d,gsi(id),c->S);
     }
 }
 
 template<class F>
 void nhflow_amr::si_all(ghostcell *pgc, F f)
 {
-    si_each(pgc, f);
+    si_each(pgc,f);
 
     if(si_lv)
-        for(int l = 1; l <= maxlev; ++l)
-            si_level(pgc, l, f);
+    for(int l=1; l<=maxlev; ++l)
+    si_level(pgc,l,f);
 }
 
 // nf layer arrays A(g,m) of every grid: the cells around the blocks and the ring of the native grid from the cells
@@ -169,11 +170,12 @@ template<class A>
 void nhflow_amr::si_fill3(ghostcell *pgc, int nf, int tag, A arr)
 {
     const int K = p0->knoz;
-    const int nv = nf * K;
+    const int nv = nf*K;
 
-    if(nblk > 0)
-        fill_run0(nv, tag, [&](const reefamr_fill &f, double *v)
-                  {
+    if(nblk>0)
+    fill_run0(nv,tag,
+              [&](const reefamr_fill &f, double *v)
+              {
                   if(f.kind!=0)
                   {
                       for(int m=0; m<nv; ++m)
@@ -186,36 +188,42 @@ void nhflow_amr::si_fill3(ghostcell *pgc, int nf, int tag, A arr)
                       const double *src = arr(f.g,m);
                       for(int k=0; k<K; ++k)
                       v[m*K+k] = src[cidx(q,f.si,f.sj,k)];
-                  } }, [&](reefamr_patch *q, int id, const reefamr_fill &f, const double *w)
-                  {
+                  }
+              },
+              [&](reefamr_patch *q, int id, const reefamr_fill &f, const double *w)
+              {
                   lexer *pp = q->pp;
                   for(int m=0; m<nf; ++m)
                   {
                       double *dst = arr(id,m);
                       for(int k=0; k<K; ++k)
                       dst[cidx(pp,f.di,f.dj,k)] = w[m*K+k];
-                  } }, [&](const reefamr_fill &f, const double *w)
-                  {
+                  }
+              },
+              [&](const reefamr_fill &f, const double *w)
+              {
                   for(int m=0; m<nf; ++m)
                   {
                       double *dst = arr(-1,m);
                       for(int k=0; k<K; ++k)
                       dst[cidx(p0,f.di,f.dj,k)] = w[m*K+k];
-                  } });
+                  }
+              });
 
-    if(p0->mpi_size > 1)
-        for(int m = 0; m < nf; ++m)
-        {
-            pgc->gcparaxV(p0, arr(-1, m), 14);
-            pgc->gcparacoxV(p0, arr(-1, m), 14);
-        }
+    if(p0->mpi_size>1)
+    for(int m=0; m<nf; ++m)
+    {
+        pgc->gcparaxV(p0,arr(-1,m),14);
+        pgc->gcparacoxV(p0,arr(-1,m),14);
+    }
 
     if(!si_lv)
-        return;
+    return;
 
-    for(int l = 1; l <= maxlev; ++l)
-        fill_run(l, nv, tag + 20 + l, [&](const reefamr_fill &f, double *v)
-                 {
+    for(int l=1; l<=maxlev; ++l)
+    fill_run(l,nv,tag+20+l,
+             [&](const reefamr_fill &f, double *v)
+             {
                  if(f.kind!=0 && f.kind!=1)
                  {
                      for(int m=0; m<nv; ++m)
@@ -237,15 +245,18 @@ void nhflow_amr::si_fill3(ghostcell *pgc, int nf, int tag, A arr)
                  pweights(q,f.si,f.sj,f.ox,f.oy,w1,1);
                  for(int m=0; m<nf; ++m)
                  for(int k=0; k<K; ++k)
-                 v[m*K+k] = pq3w(arr(f.g,m),q,f.si,f.sj,k,true,w1); }, [&](reefamr_patch *q, int id, const reefamr_fill &f, const double *w)
-                 {
+                 v[m*K+k] = pq3w(arr(f.g,m),q,f.si,f.sj,k,true,w1);
+             },
+             [&](reefamr_patch *q, int id, const reefamr_fill &f, const double *w)
+             {
                  lexer *pp = q->pp;
                  for(int m=0; m<nf; ++m)
                  {
                      double *dst = arr(id,m);
                      for(int k=0; k<K; ++k)
                      dst[cidx(pp,f.di,f.dj,k)] = w[m*K+k];
-                 } });
+                 }
+             });
 }
 
 // omega (sigma velocity, K+1 levels) of all grids: the cells around the blocks and the ring of the native grid from the
@@ -254,12 +265,13 @@ void nhflow_amr::si_fill3(ghostcell *pgc, int nf, int tag, A arr)
 void nhflow_amr::si_fillF(ghostcell *pgc)
 {
     const int K = p0->knoz;
-    const int nv = K + 1;
+    const int nv = K+1;
 
-    if(nblk > 0)
+    if(nblk>0)
     {
-        fill_run0(nv, 7640, [&](const reefamr_fill &f, double *v)
-                  {
+    fill_run0(nv,7640,
+              [&](const reefamr_fill &f, double *v)
+              {
                   if(f.kind!=0)
                   {
                       for(int m=0; m<nv; ++m)
@@ -269,26 +281,32 @@ void nhflow_amr::si_fillF(ghostcell *pgc)
                   lexer *q = glex(f.g);
                   const double *src = gfd(f.g)->omegaF;
                   for(int k=0; k<=K; ++k)
-                  v[k] = src[fidx(q,f.si,f.sj,k)]; }, [&](reefamr_patch *q, int id, const reefamr_fill &f, const double *w)
-                  {
+                  v[k] = src[fidx(q,f.si,f.sj,k)];
+              },
+              [&](reefamr_patch *q, int id, const reefamr_fill &f, const double *w)
+              {
                   lexer *pp = q->pp;
                   double *dst = NP(q)->d->omegaF;
                   for(int k=0; k<=K; ++k)
-                  dst[fidx(pp,f.di,f.dj,k)] = w[k]; }, [&](const reefamr_fill &f, const double *w)
-                  {
+                  dst[fidx(pp,f.di,f.dj,k)] = w[k];
+              },
+              [&](const reefamr_fill &f, const double *w)
+              {
                   for(int k=0; k<=K; ++k)
-                  d0->omegaF[fidx(p0,f.di,f.dj,k)] = w[k]; });
+                  d0->omegaF[fidx(p0,f.di,f.dj,k)] = w[k];
+              });
 
-        if(p0->mpi_size > 1)
-            pgc->start7S(p0, d0->omegaF, 17);
+    if(p0->mpi_size>1)
+    pgc->start7S(p0,d0->omegaF,17);
     }
 
     if(!si_lv)
-        return;
+    return;
 
-    for(int l = 1; l <= maxlev; ++l)
-        fill_run(l, nv, 7660 + l, [&](const reefamr_fill &f, double *v)
-                 {
+    for(int l=1; l<=maxlev; ++l)
+    fill_run(l,nv,7660+l,
+             [&](const reefamr_fill &f, double *v)
+             {
                  if(f.kind==0)
                  {
                      lexer *q = glex(f.g);
@@ -303,18 +321,21 @@ void nhflow_amr::si_fillF(ghostcell *pgc)
                      return;
                  }
                  for(int m=0; m<nv; ++m)
-                 v[m] = 0.0; }, [&](reefamr_patch *q, int id, const reefamr_fill &f, const double *w)
-                 {
+                 v[m] = 0.0;
+             },
+             [&](reefamr_patch *q, int id, const reefamr_fill &f, const double *w)
+             {
                  lexer *pp = q->pp;
                  double *dst = NP(q)->d->omegaF;
                  for(int k=0; k<=K; ++k)
-                 dst[fidx(pp,f.di,f.dj,k)] = w[k]; });
+                 dst[fidx(pp,f.di,f.dj,k)] = w[k];
+             });
 }
 
 void nhflow_amr::si_solve(lexer *p, ghostcell *pgc)
 {
     rsi_result r;
-    rsi_solve(p, pgc, p->A537 == 1 ? 20 : 1, r);
+    rsi_solve(p,pgc,p->A537==1 ? 20 : 1,r);
 
     for(int g : rsi_grids())
     {
@@ -341,29 +362,30 @@ void nhflow_amr::si_hooks(bool on)
             continue;
         }
 
-        m->fhook = [this, g](lexer *q, int comp, double *Fx, double *Fy)
+        m->fhook = [this,g](lexer *q, int comp, double *Fx, double *Fy)
         {
             const int K = q->knoz;
 
-            rsm_take(g, [&](int dir, int fi, int fj, const double *v, int sgn)
-                     {
+            rsm_take(g,[&](int dir, int fi, int fj, const double *v, int sgn)
+            {
                 double *F = (dir==1) ? Fx : Fy;
                 for(int k=0; k<K; ++k)
-                F[cidx(q,fi,fj,k)] = sgn*v[comp*K+k]; });
+                F[cidx(q,fi,fj,k)] = sgn*v[comp*K+k];
+            });
 
-            if(g < 0 || P[g]->lev < 1)
-                return;
+            if(g<0 || P[g]->lev<1)
+            return;
 
-            for(int side = 0; side < 4; ++side)
-                for(int r = 0; r < rsm_count(g, side); ++r)
-                {
-                    int dir, fi, fj;
-                    rsm_face(g, side, r, dir, fi, fj);
-                    double *s = rsm_slot(g, side, r);
-                    const double *F = (dir == 1) ? Fx : Fy;
-                    for(int k = 0; k < K; ++k)
-                        s[comp * K + k] = F[cidx(q, fi, fj, k)];
-                }
+            for(int side=0; side<4; ++side)
+            for(int r=0; r<rsm_count(g,side); ++r)
+            {
+                int dir,fi,fj;
+                rsm_face(g,side,r,dir,fi,fj);
+                double *s = rsm_slot(g,side,r);
+                const double *F = (dir==1) ? Fx : Fy;
+                for(int k=0; k<K; ++k)
+                s[comp*K+k] = F[cidx(q,fi,fj,k)];
+            }
         };
     }
 }
@@ -376,29 +398,29 @@ void nhflow_amr::si_match_faces()
 
     for(int g : rsi_grids())
     {
-        if(g < 0 || P[g]->lev < 1)
-            continue;
+        if(g<0 || P[g]->lev<1)
+        continue;
 
         nhflow_momentum_SI *m = gsi(g);
-        for(int side = 0; side < 4; ++side)
-            for(int r = 0; r < rsm_count(g, side); ++r)
-            {
-                int dir, fi, fj;
-                rsm_face(g, side, r, dir, fi, fj);
-                double *s = rsm_slot(g, side, r);
-                s[0] = (dir == 1) ? m->qxE(fi, fj) : m->qyE(fi, fj);
-                s[1] = (dir == 1) ? m->qxn(fi, fj) : m->qyn(fi, fj);
-            }
+        for(int side=0; side<4; ++side)
+        for(int r=0; r<rsm_count(g,side); ++r)
+        {
+            int dir,fi,fj;
+            rsm_face(g,side,r,dir,fi,fj);
+            double *s = rsm_slot(g,side,r);
+            s[0] = (dir==1) ? m->qxE(fi,fj) : m->qyE(fi,fj);
+            s[1] = (dir==1) ? m->qxn(fi,fj) : m->qyn(fi,fj);
+        }
     }
 
-    for(int l = maxlev; l >= 1; --l)
-        rsm_send(l, 8700);
+    for(int l=maxlev; l>=1; --l)
+    rsm_send(l,8700);
 
     for(int g : rsi_grids())
     {
         nhflow_momentum_SI *m = gsi(g);
-        rsm_take(g, [&](int dir, int fi, int fj, const double *v, int sgn)
-                 {
+        rsm_take(g,[&](int dir, int fi, int fj, const double *v, int sgn)
+        {
             if(dir==1)
             {
             m->qxE(fi,fj) = sgn*v[0];
@@ -408,7 +430,8 @@ void nhflow_amr::si_match_faces()
             {
             m->qyE(fi,fj) = sgn*v[0];
             m->qyn(fi,fj) = sgn*v[1];
-            } });
+            }
+        });
     }
 }
 
@@ -417,41 +440,41 @@ void nhflow_amr::si_match_faces()
 void nhflow_amr::si_match_layers()
 {
     const int K = p0->knoz;
-    rsm_begin(2 * K + 1);
+    rsm_begin(2*K+1);
 
     for(int g : rsi_grids())
     {
-        if(g < 0 || P[g]->lev < 1)
-            continue;
+        if(g<0 || P[g]->lev<1)
+        continue;
 
         nhflow_momentum_SI *m = gsi(g);
         lexer *q = glex(g);
-        for(int side = 0; side < 4; ++side)
-            for(int r = 0; r < rsm_count(g, side); ++r)
+        for(int side=0; side<4; ++side)
+        for(int r=0; r<rsm_count(g,side); ++r)
+        {
+            int dir,fi,fj;
+            rsm_face(g,side,r,dir,fi,fj);
+            double *s = rsm_slot(g,side,r);
+            const double *Q = (dir==1) ? m->Qx : m->Qy;
+            const double *T = (dir==1) ? m->Tx : m->Ty;
+            for(int k=0; k<K; ++k)
             {
-                int dir, fi, fj;
-                rsm_face(g, side, r, dir, fi, fj);
-                double *s = rsm_slot(g, side, r);
-                const double *Q = (dir == 1) ? m->Qx : m->Qy;
-                const double *T = (dir == 1) ? m->Tx : m->Ty;
-                for(int k = 0; k < K; ++k)
-                {
-                    s[k] = Q[cidx(q, fi, fj, k)];
-                    s[K + k] = T[cidx(q, fi, fj, k)];
-                }
-                s[2 * K] = (dir == 1) ? m->qx(fi, fj) : m->qy(fi, fj);
+                s[k] = Q[cidx(q,fi,fj,k)];
+                s[K+k] = T[cidx(q,fi,fj,k)];
             }
+            s[2*K] = (dir==1) ? m->qx(fi,fj) : m->qy(fi,fj);
+        }
     }
 
-    for(int l = maxlev; l >= 1; --l)
-        rsm_send(l, 8720);
+    for(int l=maxlev; l>=1; --l)
+    rsm_send(l,8720);
 
     for(int g : rsi_grids())
     {
         nhflow_momentum_SI *m = gsi(g);
         lexer *q = glex(g);
-        rsm_take(g, [&](int dir, int fi, int fj, const double *v, int sgn)
-                 {
+        rsm_take(g,[&](int dir, int fi, int fj, const double *v, int sgn)
+        {
             double *Q = (dir==1) ? m->Qx : m->Qy;
             double *T = (dir==1) ? m->Tx : m->Ty;
             for(int k=0; k<K; ++k)
@@ -462,7 +485,8 @@ void nhflow_amr::si_match_layers()
             if(dir==1)
             m->qx(fi,fj) = sgn*v[2*K];
             else
-            m->qy(fi,fj) = sgn*v[2*K]; });
+            m->qy(fi,fj) = sgn*v[2*K];
+        });
     }
 }
 
@@ -475,13 +499,13 @@ void nhflow_amr::si_step(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_momentum_f
     // no blocks and no patches (the adaptive refinement before its first patches): the step of the native grid alone
     if(!active())
     {
-        gsi(-1)->step_single(p, d, pgc, S0);
-        if(maxlev >= 1)
-            regrid_step(p, pgc);
+        gsi(-1)->step_single(p,d,pgc,S0);
+        if(maxlev>=1)
+        regrid_step(p,pgc);
         return;
     }
 
-    si_lv = (maxlev >= 1 && patches_total > 0);
+    si_lv = (maxlev>=1 && patches_total>0);
 
     // the time of the blocks and the patches
     for(auto q : P)
@@ -496,97 +520,120 @@ void nhflow_amr::si_step(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_momentum_f
 
     // A 560: the turbulence of the patches and the old time level of the blocks (level 0 and the blocks have made
     // their step before the momentum, turb_composite0)
-    turb_step(p, pgc);
+    turb_step(p,pgc);
 
     // the water column of the step before, then the state of t^n around the grids
-    si_all(pgc, [&](int g, lexer *q, fdm_nhf *dd, nhflow_momentum_SI *m, nhflow_stage_obj &S)
-           { m->si_restore(q, dd, pgc); });
+    si_all(pgc,[&](int g, lexer *q, fdm_nhf *dd, nhflow_momentum_SI *m, nhflow_stage_obj &S)
+    {
+        m->si_restore(q,dd,pgc);
+    });
 
-    if(nblk > 0)
-        fill_level0(pgc, -1);
+    if(nblk>0)
+    fill_level0(pgc,-1);
     if(si_lv)
-        for(int l = 1; l <= maxlev; ++l)
-            fill_stage(pgc, l, -1);
+    for(int l=1; l<=maxlev; ++l)
+    fill_stage(pgc,l,-1);
     si_fillF(pgc);
 
-    si_all(pgc, [&](int g, lexer *q, fdm_nhf *dd, nhflow_momentum_SI *m, nhflow_stage_obj &S)
-           { m->si_begin(q, dd, pgc, S); });
+    si_all(pgc,[&](int g, lexer *q, fdm_nhf *dd, nhflow_momentum_SI *m, nhflow_stage_obj &S)
+    {
+        m->si_begin(q,dd,pgc,S);
+    });
 
     // the advection hooks (face matching with the patches)
     if(si_lv)
-        si_hooks(true);
+    si_hooks(true);
 
     // predictor: the velocities of a stage around the grids before its fluxes
     const int ns = gsi(-1)->si_stages();
 
-    for(int s = 0; s < ns; ++s)
+    for(int s=0; s<ns; ++s)
     {
-        si_all(pgc, [&](int g, lexer *q, fdm_nhf *dd, nhflow_momentum_SI *m, nhflow_stage_obj &S)
-               { m->si_stage_vel(q, dd, pgc, S, s); });
+        si_all(pgc,[&](int g, lexer *q, fdm_nhf *dd, nhflow_momentum_SI *m, nhflow_stage_obj &S)
+        {
+            m->si_stage_vel(q,dd,pgc,S,s);
+        });
 
-        si_fill3(pgc, 3, 7601 + s, [&](int g, int c) -> double *
-                 {
+        si_fill3(pgc,3,7601+s,[&](int g, int c) -> double*
+        {
             fdm_nhf *dd = gfd(g);
-            return c==0 ? dd->U : (c==1 ? dd->V : dd->W); });
+            return c==0 ? dd->U : (c==1 ? dd->V : dd->W);
+        });
 
         // the explicit terms, finest level first: the coarse faces next to the patches take the fine fluxes
         if(si_lv)
         {
-            rsm_begin(3 * p0->knoz);
-            for(int l = maxlev; l >= 1; --l)
+            rsm_begin(3*p0->knoz);
+            for(int l=maxlev; l>=1; --l)
             {
-                si_level(pgc, l, [&](int g, lexer *q, fdm_nhf *dd, nhflow_momentum_SI *m, nhflow_stage_obj &S)
-                         { m->si_stage_rhs(q, dd, pgc, S, s); });
-                rsm_send(l, 8740);
+                si_level(pgc,l,[&](int g, lexer *q, fdm_nhf *dd, nhflow_momentum_SI *m, nhflow_stage_obj &S)
+                {
+                    m->si_stage_rhs(q,dd,pgc,S,s);
+                });
+                rsm_send(l,8740);
             }
         }
 
-        si_each(pgc, [&](int g, lexer *q, fdm_nhf *dd, nhflow_momentum_SI *m, nhflow_stage_obj &S)
-                { m->si_stage_rhs(q, dd, pgc, S, s); });
+        si_each(pgc,[&](int g, lexer *q, fdm_nhf *dd, nhflow_momentum_SI *m, nhflow_stage_obj &S)
+        {
+            m->si_stage_rhs(q,dd,pgc,S,s);
+        });
     }
 
     if(si_lv)
-        si_hooks(false);
+    si_hooks(false);
 
     // the cell predictor around the grids, then the face coefficients and the eta system of every grid
-    si_all(pgc, [&](int g, lexer *q, fdm_nhf *dd, nhflow_momentum_SI *m, nhflow_stage_obj &S)
-           { m->si_predictor_end(q, dd, pgc); });
+    si_all(pgc,[&](int g, lexer *q, fdm_nhf *dd, nhflow_momentum_SI *m, nhflow_stage_obj &S)
+    {
+        m->si_predictor_end(q,dd,pgc);
+    });
 
-    si_fill3(pgc, 2, 7610, [&](int g, int c) -> double *
-             { return c == 0 ? gsi(g)->UHD : gsi(g)->VHD; });
+    si_fill3(pgc,2,7610,[&](int g, int c) -> double*
+    {
+        return c==0 ? gsi(g)->UHD : gsi(g)->VHD;
+    });
 
-    si_all(pgc, [&](int g, lexer *q, fdm_nhf *dd, nhflow_momentum_SI *m, nhflow_stage_obj &S)
-           { m->si_assemble(q, dd, pgc); });
+    si_all(pgc,[&](int g, lexer *q, fdm_nhf *dd, nhflow_momentum_SI *m, nhflow_stage_obj &S)
+    {
+        m->si_assemble(q,dd,pgc);
+    });
 
     if(si_lv)
-        si_match_faces();
+    si_match_faces();
 
-    si_all(pgc, [&](int g, lexer *q, fdm_nhf *dd, nhflow_momentum_SI *m, nhflow_stage_obj &S)
-           { m->si_rhs(q, dd, pgc); });
+    si_all(pgc,[&](int g, lexer *q, fdm_nhf *dd, nhflow_momentum_SI *m, nhflow_stage_obj &S)
+    {
+        m->si_rhs(q,dd,pgc);
+    });
 
     // one eta system over all grids
-    si_solve(p, pgc);
+    si_solve(p,pgc);
 
     // faces, water level, cells
-    si_all(pgc, [&](int g, lexer *q, fdm_nhf *dd, nhflow_momentum_SI *m, nhflow_stage_obj &S)
-           { m->si_end_faces(q, dd, pgc); });
+    si_all(pgc,[&](int g, lexer *q, fdm_nhf *dd, nhflow_momentum_SI *m, nhflow_stage_obj &S)
+    {
+        m->si_end_faces(q,dd,pgc);
+    });
 
     if(si_lv)
-        si_match_layers();
+    si_match_layers();
 
-    si_all(pgc, [&](int g, lexer *q, fdm_nhf *dd, nhflow_momentum_SI *m, nhflow_stage_obj &S)
-           { m->si_end_cells(q, dd, pgc, S); });
+    si_all(pgc,[&](int g, lexer *q, fdm_nhf *dd, nhflow_momentum_SI *m, nhflow_stage_obj &S)
+    {
+        m->si_end_cells(q,dd,pgc,S);
+    });
 
     // the covered cells: the mean of their children
     if(si_lv)
     {
         {
-            comms_off guard(pgc);
-            restrict_surface(0);
-            restrict_momentum(0, false);
+        comms_off guard(pgc);
+        restrict_surface(0);
+        restrict_momentum(0,false);
         }
-        restrict_flags(pgc, 0);
-        halo0(pgc, 0);
+        restrict_flags(pgc,0);
+        halo0(pgc,0);
 
         // the restricted water level is the start of the next step of the coarse cell
         for(int g : rsi_grids())
@@ -594,23 +641,23 @@ void nhflow_amr::si_step(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_momentum_f
             lexer *q = glex(g);
             nhflow_momentum_SI *m = gsi(g);
             fdm_nhf *dd = gfd(g);
-            for(int ii = q->imin; ii < q->imin + q->imax; ++ii)
-                for(int jj = q->jmin; jj < q->jmin + q->jmax; ++jj)
-                    m->WLk(ii, jj) = dd->WL(ii, jj);
+            for(int ii=q->imin; ii<q->imin+q->imax; ++ii)
+            for(int jj=q->jmin; jj<q->jmin+q->jmax; ++jj)
+            m->WLk(ii,jj) = dd->WL(ii,jj);
         }
     }
 
     // the state of t^{n+1} around the blocks and in the ring (output, time step)
-    if(nblk > 0)
-        fill_level0(pgc, -1);
+    if(nblk>0)
+    fill_level0(pgc,-1);
     si_fillF(pgc);
 
     // tracers (A 600) with the transport of the step
-    if(p->A600 > 0)
-        si_tracer(p, pgc);
+    if(p->A600>0)
+    si_tracer(p,pgc);
 
     // the log of all grids: volume of the leaf cells, discharges over the open boundaries
-    double loc[4] = {0.0, 0.0, 0.0, 0.0}, all[4];
+    double loc[4] = {0.0,0.0,0.0,0.0}, all[4];
 
     for(int g : rsi_grids())
     {
@@ -618,45 +665,46 @@ void nhflow_amr::si_step(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_momentum_f
         fdm_nhf *dd = gfd(g);
         nhflow_momentum_SI *m = gsi(g);
 
-        for(int ii = 0; ii < q->knox; ++ii)
-            for(int jj = 0; jj < q->knoy; ++jj)
-                if(rsi_leaf(g, ii, jj))
-                    loc[0] += dd->WL(ii, jj) * m->carea(q, ii, jj);
+        for(int ii=0; ii<q->knox; ++ii)
+        for(int jj=0; jj<q->knoy; ++jj)
+        if(rsi_leaf(g,ii,jj))
+        loc[0] += dd->WL(ii,jj)*m->carea(q,ii,jj);
 
         // the native grid has summed its discharges over the ranks already
-        if(g >= 0)
+        if(g>=0)
         {
-            loc[1] += m->Qin;
-            loc[2] += m->Qout;
-            loc[3] += m->vrelax;
+        loc[1] += m->Qin;
+        loc[2] += m->Qout;
+        loc[3] += m->vrelax;
         }
     }
 
-    MPI_Allreduce(loc, all, 4, MPI_DOUBLE, MPI_SUM, pgc->mpi_comm);
+    MPI_Allreduce(loc,all,4,MPI_DOUBLE,MPI_SUM,pgc->mpi_comm);
 
     nhflow_momentum_SI *m0 = gsi(-1);
-    m0->write_log(p, all[0], all[1] + m0->Qin, all[2] + m0->Qout, all[3] + m0->vrelax, m0->psi_iter, m0->wd_iter, m0->wd_cells);
+    m0->write_log(p,all[0],all[1]+m0->Qin,all[2]+m0->Qout,all[3]+m0->vrelax,m0->psi_iter,m0->wd_iter,m0->wd_cells);
 
-    if(p->mpirank == 0 && (p->count % p->P12 == 0))
+    if(p->mpirank==0 && (p->count%p->P12==0))
     {
-        cout << "SI eta (" << (si_lv ? "all grids" : "multi-block") << "): iter " << m0->psi_iter << "  time " << setprecision(3) << m0->psi_time;
+    cout<<"SI eta ("<<(si_lv ? "all grids" : "multi-block")<<"): iter "<<m0->psi_iter<<"  time "<<setprecision(3)<<m0->psi_time;
 
-        if(p->A537 == 1)
-            cout << "  wetdry iterations " << m0->wd_iter << "  dry cells " << m0->wd_cells;
+    if(p->A537==1)
+    cout<<"  wetdry iterations "<<m0->wd_iter<<"  dry cells "<<m0->wd_cells;
 
-        cout << endl;
+    cout<<endl;
     }
 
     // the refinement follows the flags; the cells around the patches at the end of the step (the output)
-    if(maxlev >= 1)
+    if(maxlev>=1)
     {
-        regrid_step(p, pgc);
-        if(patches_total > 0)
-            fill_out(pgc);
-        if(nblk > 0)
-            fill_level0(pgc, -1);
+        regrid_step(p,pgc);
+        if(patches_total>0)
+        fill_out(pgc);
+        if(nblk>0)
+        fill_level0(pgc,-1);
     }
 }
+
 
 // tracers (A 600) of all blocks: the substeps of every block in lockstep (the same number on all grids
 // and ranks), the cells around the blocks and the ring filled before each; the log over the own cells,
@@ -665,105 +713,108 @@ void nhflow_amr::si_tracer(lexer *p, ghostcell *pgc)
 {
     const int nt = gsi(-1)->ptrc->nt;
 
-    auto arr = [&](int g, int c) -> double *
-    { return nhflow_tracer_SI::field(gfd(g), c); };
+    auto arr = [&](int g, int c) -> double* { return nhflow_tracer_SI::field(gfd(g),c); };
 
     double r = 0.0;
 
-    si_each(pgc, [&](int g, lexer *q, fdm_nhf *dd, nhflow_momentum_SI *m, nhflow_stage_obj &S)
-            { r = max(r, m->ptrc->prepare(q, dd)); });
+    si_each(pgc,[&](int g, lexer *q, fdm_nhf *dd, nhflow_momentum_SI *m, nhflow_stage_obj &S)
+    {
+        r = max(r,m->ptrc->prepare(q,dd));
+    });
 
     double rg;
-    MPI_Allreduce(&r, &rg, 1, MPI_DOUBLE, MPI_MAX, pgc->mpi_comm);
-    const int ns = nhflow_tracer_SI::substeps(p, rg);
+    MPI_Allreduce(&r,&rg,1,MPI_DOUBLE,MPI_MAX,pgc->mpi_comm);
+    const int ns = nhflow_tracer_SI::substeps(p,rg);
 
     // the fluid mask around the blocks and in the halo (static, once): filled as a tracer
     if(!sitr_mask)
     {
-        si_fill3(pgc, 1, 7674, [&](int g, int c) -> double *
-                 { return gsi(g)->ptrc->mask; });
+        si_fill3(pgc,1,7674,[&](int g, int c) -> double* { return gsi(g)->ptrc->mask; });
         sitr_mask = true;
     }
 
-    for(int s = 0; s < ns; ++s)
+    for(int s=0; s<ns; ++s)
     {
-        si_fill3(pgc, nt, 7670, arr);
+        si_fill3(pgc,nt,7670,arr);
 
-        si_each(pgc, [&](int g, lexer *q, fdm_nhf *dd, nhflow_momentum_SI *m, nhflow_stage_obj &S)
-                { m->ptrc->flushed(q, dd, s, ns); });
+        si_each(pgc,[&](int g, lexer *q, fdm_nhf *dd, nhflow_momentum_SI *m, nhflow_stage_obj &S)
+        {
+            m->ptrc->flushed(q,dd,s,ns);
+        });
 
-        si_fill3(pgc, nt, 7676, [&](int g, int c) -> double *
-                 { return gsi(g)->ptrc->Cx[c]; });
+        si_fill3(pgc,nt,7676,[&](int g, int c) -> double* { return gsi(g)->ptrc->Cx[c]; });
 
-        si_each(pgc, [&](int g, lexer *q, fdm_nhf *dd, nhflow_momentum_SI *m, nhflow_stage_obj &S)
-                { m->ptrc->substep(q, dd, s, ns); });
+        si_each(pgc,[&](int g, lexer *q, fdm_nhf *dd, nhflow_momentum_SI *m, nhflow_stage_obj &S)
+        {
+            m->ptrc->substep(q,dd,s,ns);
+        });
     }
 
-    si_fill3(pgc, nt, 7672, arr);
+    si_fill3(pgc,nt,7672,arr);
 
-    si_each(pgc, [&](int g, lexer *q, fdm_nhf *dd, nhflow_momentum_SI *m, nhflow_stage_obj &S)
-            { m->ptrc->ghosts(q, dd); });
+    si_each(pgc,[&](int g, lexer *q, fdm_nhf *dd, nhflow_momentum_SI *m, nhflow_stage_obj &S)
+    {
+        m->ptrc->ghosts(q,dd);
+    });
 
     // the log: own cells of all grids
     nhflow_tracer_SI::stats st;
     nhflow_tracer_SI::stats_zero(st);
 
     for(int g : rsi_grids())
-        gsi(g)->ptrc->sums(glex(g), gfd(g), [&](int ii, int jj)
-                           { return rsi_leaf(g, ii, jj); }, st);
+    gsi(g)->ptrc->sums(glex(g),gfd(g),[&](int ii, int jj){ return rsi_leaf(g,ii,jj); },st);
 
-    nhflow_tracer_SI::reduce(p, st);
-    gsi(-1)->ptrc->write_log(p, st, ns, rg);
+    nhflow_tracer_SI::reduce(p,st);
+    gsi(-1)->ptrc->write_log(p,st,ns,rg);
 
     // gauges: the nearest own cell centre of the grids of this rank, then over the ranks
-    if(p->P51 > 0)
+    if(p->P51>0)
     {
         const int ng = p->P51;
 
         if(sitr_dist.empty())
         {
-            sitr_dist.assign(ng, 1.0e30);
-            sitr_cell.assign(ng, -1);
-            sitr_grid.assign(ng, -2);
+            sitr_dist.assign(ng,1.0e30);
+            sitr_cell.assign(ng,-1);
+            sitr_grid.assign(ng,-2);
 
             for(int g : rsi_grids())
             {
                 vector<double> dist;
                 vector<int> cell;
-                gsi(g)->ptrc->gauge_find(glex(g), [&](int ii, int jj)
-                                         { return rsi_leaf(g, ii, jj); }, dist, cell);
+                gsi(g)->ptrc->gauge_find(glex(g),[&](int ii, int jj){ return rsi_leaf(g,ii,jj); },dist,cell);
 
-                for(int k = 0; k < ng; ++k)
-                    if(cell[k] >= 0 && dist[k] < sitr_dist[k])
-                    {
-                        sitr_dist[k] = dist[k];
-                        sitr_cell[k] = cell[k];
-                        sitr_grid[k] = g;
-                    }
+                for(int k=0; k<ng; ++k)
+                if(cell[k]>=0 && dist[k]<sitr_dist[k])
+                {
+                sitr_dist[k] = dist[k];
+                sitr_cell[k] = cell[k];
+                sitr_grid[k] = g;
+                }
             }
         }
 
-        const size_t nv = 3 * nt;
-        vector<double> val((size_t)ng * nv, 0.0), dist = sitr_dist;
+        const size_t nv = 3*nt;
+        vector<double> val((size_t)ng*nv,0.0), dist = sitr_dist;
 
         for(int g : rsi_grids())
         {
-            vector<int> cell(ng, -1);
-            for(int k = 0; k < ng; ++k)
-                if(sitr_grid[k] == g)
-                    cell[k] = sitr_cell[k];
+            vector<int> cell(ng,-1);
+            for(int k=0; k<ng; ++k)
+            if(sitr_grid[k]==g)
+            cell[k] = sitr_cell[k];
 
             vector<double> v;
-            gsi(g)->ptrc->gauge_values(glex(g), gfd(g), cell, v);
+            gsi(g)->ptrc->gauge_values(glex(g),gfd(g),cell,v);
 
-            for(int k = 0; k < ng; ++k)
-                if(sitr_grid[k] == g)
-                    for(size_t q = 0; q < nv; ++q)
-                        val[k * nv + q] = v[k * nv + q];
+            for(int k=0; k<ng; ++k)
+            if(sitr_grid[k]==g)
+            for(size_t q=0; q<nv; ++q)
+            val[k*nv+q] = v[k*nv+q];
         }
 
-        nhflow_tracer_SI::gauge_combine(p, dist, val);
-        nhflow_tracer_SI::gauge_write(p, val);
+        nhflow_tracer_SI::gauge_combine(p,dist,val);
+        nhflow_tracer_SI::gauge_write(p,val);
     }
 }
 
@@ -776,50 +827,50 @@ void nhflow_amr::dt_si_cmin(double cfl, double &cmin, double &hmax)
         nhflow_amr_patch *c = NP(q);
         lexer *pp = c->pp;
         fdm_nhf *dd = c->d;
-        double *EVh = (pp->A561 > 0) ? dd->EVH : dd->EV;
+        double *EVh = (pp->A561>0) ? dd->EVH : dd->EV;
 
-        for(int ii = EXT; ii < EXT + c->nx; ++ii)
-            for(int jj = EY; jj < EY + c->ny; ++jj)
+        for(int ii=EXT; ii<EXT+c->nx; ++ii)
+        for(int jj=EY; jj<EY+c->ny; ++jj)
+        {
+            const int n2 = lij(pp,ii,jj);
+
+            if(pp->flagslice4[n2]<0 || pp->wet[n2]!=1 || dd->WL(ii,jj)<=pp->A544)
+            continue;
+
+            hmax = MAX(hmax,dd->WL(ii,jj));
+
+            for(int kk=0; kk<pp->knoz; ++kk)
             {
-                const int n2 = lij(pp, ii, jj);
+                const int n = cidx(pp,ii,jj,kk);
+                double sigma;
 
-                if(pp->flagslice4[n2] < 0 || pp->wet[n2] != 1 || dd->WL(ii, jj) <= pp->A544)
-                    continue;
-
-                hmax = MAX(hmax, dd->WL(ii, jj));
-
-                for(int kk = 0; kk < pp->knoz; ++kk)
+                if(pp->geo_curv==1)
                 {
-                    const int n = cidx(pp, ii, jj, kk);
-                    double sigma;
+                const double sp = sqrt(dd->U[n]*dd->U[n] + dd->V[n]*dd->V[n]);
+                sigma = sp/nhflow_curv::width1(pp,ii,jj) + sp/nhflow_curv::width2(pp,ii,jj);
+                }
 
-                    if(pp->geo_curv == 1)
-                    {
-                        const double sp = sqrt(dd->U[n] * dd->U[n] + dd->V[n] * dd->V[n]);
-                        sigma = sp / nhflow_curv::width1(pp, ii, jj) + sp / nhflow_curv::width2(pp, ii, jj);
-                    }
+                else
+                {
+                sigma = fabs(dd->U[n])/pp->DXN[ii+marge];
 
-                    else
-                    {
-                        sigma = fabs(dd->U[n]) / pp->DXN[ii + marge];
+                if(pp->j_dir==1)
+                sigma += fabs(dd->V[n])/pp->DYN[jj+marge];
+                }
 
-                        if(pp->j_dir == 1)
-                            sigma += fabs(dd->V[n]) / pp->DYN[jj + marge];
-                    }
+                if(sigma>1.0e-20)
+                cmin = MIN(cmin,1.0/sigma);
 
-                    if(sigma > 1.0e-20)
-                        cmin = MIN(cmin, 1.0 / sigma);
+                if(pp->A512>0 || pp->A560>0 || pp->A547_c>0.0 || pp->A547_nu0>0.0)
+                {
+                const double visc = dd->VISC[n] + EVh[n];
+                const double lam = pp->geo_curv==1 ? sflow_curv::inv2(pp,ii,jj)
+                                 : 1.0/(pp->DXN[ii+marge]*pp->DXN[ii+marge]) + pp->y_dir/(pp->DYN[jj+marge]*pp->DYN[jj+marge]);
 
-                    if(pp->A512 > 0 || pp->A560 > 0 || pp->A547_c > 0.0 || pp->A547_nu0 > 0.0)
-                    {
-                        const double visc = dd->VISC[n] + EVh[n];
-                        const double lam = pp->geo_curv == 1 ? sflow_curv::inv2(pp, ii, jj)
-                                                             : 1.0 / (pp->DXN[ii + marge] * pp->DXN[ii + marge]) + pp->y_dir / (pp->DYN[jj + marge] * pp->DYN[jj + marge]);
-
-                        cmin = MIN(cmin, 0.25 / (visc * lam + 1.0e-20) / (2.0 * cfl));
-                    }
+                cmin = MIN(cmin, 0.25/(visc*lam + 1.0e-20)/(2.0*cfl));
                 }
             }
+        }
     }
 }
 
@@ -830,6 +881,6 @@ void nhflow_amr::longrun_grids(nhflow_longrun *lr)
     {
         nhflow_amr_patch *c = NP(id);
         reefamr_patch *q = P[id];
-        lr->add_grid(c->pp, c->d, EXT, EXT + q->nx, EY, EY + q->ny);
+        lr->add_grid(c->pp,c->d,EXT,EXT+q->nx,EY,EY+q->ny);
     }
 }

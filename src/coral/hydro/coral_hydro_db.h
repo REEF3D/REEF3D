@@ -44,58 +44,59 @@ Architect: Hans Bihs
 #ifndef CORAL_HYDRO_DB_H_
 #define CORAL_HYDRO_DB_H_
 
-#include "coral/core/coral_types.h"
-#include <string>
-#include <vector>
+#include"coral/core/coral_types.h"
+#include<string>
+#include<vector>
 
-namespace coral {
-using VecXc = Eigen::VectorXcd;
-
-class hydro_db
+namespace coral
 {
-public:
-    struct body_info
+    using VecXc = Eigen::VectorXcd;
+
+    class hydro_db
     {
-        std::string name;
-        Vec3 ref = Vec3::Zero();  // reference point of the coefficients (global, equilibrium)
-        double volume = -1.0;     // displaced volume; < 0: unknown (buoyancy = weight)
-        Vec3 cob = Vec3::Zero();  // centre of buoyancy (global, equilibrium)
+    public:
+        struct body_info
+        {
+            std::string name;
+            Vec3 ref = Vec3::Zero();     // reference point of the coefficients (global, equilibrium)
+            double volume = -1.0;        // displaced volume; < 0: unknown (buoyancy = weight)
+            Vec3 cob = Vec3::Zero();     // centre of buoyancy (global, equilibrium)
+        };
+
+        int nbody() const {return (int)body.size();}
+        int ndof() const {return 6*nbody();}
+        int nfreq() const {return (int)w.size();}
+        int nheading() const {return (int)beta.size();}
+
+        // set up empty arrays for N bodies, n frequencies, m headings
+        void resize(int N, int n, int m);
+
+        MatX added_mass(double omega) const;
+        MatX damping(double omega) const;
+        VecXc excitation(double omega, double heading) const;   // heading [rad]
+
+        void read(const std::string &file);
+        void write(const std::string &file) const;
+
+        // WAMIT output root.1, root.3 (optional), root.hst (optional), nondimensional with the length
+        // ulen; periods in the first column (PER = -1: infinite frequency, PER = 0: zero frequency)
+        void read_wamit(const std::string &root, int N, double ulen, double rho, double g, double depth=-1.0);
+
+        // consistency of the sizes (throws)
+        void check() const;
+
+        double rho = 1025.0;
+        double g = 9.81;
+        double depth = -1.0;
+        std::vector<body_info> body;
+        MatX C;                          // hydrostatic restoring
+        std::vector<double> w;           // rad/s, ascending
+        std::vector<double> beta;        // rad
+        std::vector<MatX> A, B;          // per frequency
+        MatX Ainf;
+        bool has_ainf = false;
+        std::vector<std::vector<VecXc>> X;    // [frequency][heading]
     };
-
-    int nbody() const { return (int)body.size(); }
-    int ndof() const { return 6 * nbody(); }
-    int nfreq() const { return (int)w.size(); }
-    int nheading() const { return (int)beta.size(); }
-
-    // set up empty arrays for N bodies, n frequencies, m headings
-    void resize(int N, int n, int m);
-
-    MatX added_mass(double omega) const;
-    MatX damping(double omega) const;
-    VecXc excitation(double omega, double heading) const;  // heading [rad]
-
-    void read(const std::string &file);
-    void write(const std::string &file) const;
-
-    // WAMIT output root.1, root.3 (optional), root.hst (optional), nondimensional with the length
-    // ulen; periods in the first column (PER = -1: infinite frequency, PER = 0: zero frequency)
-    void read_wamit(const std::string &root, int N, double ulen, double rho, double g, double depth = -1.0);
-
-    // consistency of the sizes (throws)
-    void check() const;
-
-    double rho = 1025.0;
-    double g = 9.81;
-    double depth = -1.0;
-    std::vector<body_info> body;
-    MatX C;                    // hydrostatic restoring
-    std::vector<double> w;     // rad/s, ascending
-    std::vector<double> beta;  // rad
-    std::vector<MatX> A, B;    // per frequency
-    MatX Ainf;
-    bool has_ainf = false;
-    std::vector<std::vector<VecXc>> X;  // [frequency][heading]
-};
-}  // namespace coral
+}
 
 #endif

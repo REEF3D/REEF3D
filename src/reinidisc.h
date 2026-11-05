@@ -34,7 +34,7 @@ class reinidisc
 public:
     virtual ~reinidisc() = default;
 
-    virtual void start(lexer *, fdm *, ghostcell *, field &, field &, int) = 0;
+	virtual void start(lexer*, fdm*, ghostcell*, field&, field&, int)=0;
 };
 
 #endif

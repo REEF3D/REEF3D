@@ -23,7 +23,7 @@ Author: Hans Bihs
 #ifndef GRADIENT_H_
 #define GRADIENT_H_
 
-#include "increment.h"
+#include"increment.h"
 
 class fdm;
 class field;
@@ -35,91 +35,99 @@ using namespace std;
 class gradient : virtual public increment
 {
 public:
-    gradient(lexer *);
-    ~gradient();
 
-    // x
-    double xdx(fdm *, field &);
-    double xdy(fdm *, field &);
-    double xdz(fdm *, field &);
+	gradient(lexer*);
+	 ~gradient();
 
-    double xdxx(fdm *, field &);
-    double xdyy(fdm *, field &);
-    double xdzz(fdm *, field &);
 
-    double xdxy(fdm *, field &);
-    double xdxz(fdm *, field &);
-    double xdyz(fdm *, field &);
-    // y
 
-    double ydx(fdm *, field &);
-    double ydy(fdm *, field &);
-    double ydz(fdm *, field &);
+	//x
+	 double xdx(fdm*, field&);
+	 double xdy(fdm*, field&);
+	 double xdz(fdm*, field&);
 
-    double ydxx(fdm *, field &);
-    double ydyy(fdm *, field &);
-    double ydzz(fdm *, field &);
+	 double xdxx(fdm*, field&);
+	 double xdyy(fdm*, field&);
+	 double xdzz(fdm*, field&);
 
-    double ydxy(fdm *, field &);
-    double ydxz(fdm *, field &);
-    double ydyz(fdm *, field &);
+	 double xdxy(fdm*, field&);
+	 double xdxz(fdm*, field&);
+	 double xdyz(fdm*, field&);
+	//y
 
-    // z
-    double zdx(fdm *, field &);
-    double zdy(fdm *, field &);
-    double zdz(fdm *, field &);
+	 double ydx(fdm*, field&);
+	 double ydy(fdm*, field&);
+	 double ydz(fdm*, field&);
 
-    double zdxx(fdm *, field &);
-    double zdyy(fdm *, field &);
-    double zdzz(fdm *, field &);
+	 double ydxx(fdm*, field&);
+	 double ydyy(fdm*, field&);
+	 double ydzz(fdm*, field&);
 
-    double zdxy(fdm *, field &);
-    double zdxz(fdm *, field &);
-    double zdyz(fdm *, field &);
+	 double ydxy(fdm*, field&);
+	 double ydxz(fdm*, field&);
+	 double ydyz(fdm*, field&);
 
-    //--------------------------------
+	//z
+	 double zdx(fdm*, field&);
+	 double zdy(fdm*, field&);
+	 double zdz(fdm*, field&);
 
-    // p
-    double pudx(lexer *, fdm *);
-    double pudy(lexer *, fdm *);
-    double pudz(lexer *, fdm *);
+	 double zdxx(fdm*, field&);
+	 double zdyy(fdm*, field&);
+	 double zdzz(fdm*, field&);
 
-    double pvdx(lexer *, fdm *);
-    double pvdy(lexer *, fdm *);
-    double pvdz(lexer *, fdm *);
+	 double zdxy(fdm*, field&);
+	 double zdxz(fdm*, field&);
+	 double zdyz(fdm*, field&);
 
-    double pwdx(lexer *, fdm *);
-    double pwdy(lexer *, fdm *);
-    double pwdz(lexer *, fdm *);
+	//--------------------------------
 
-    //
-    double pudx(lexer *, field &);
-    double pudy(lexer *, field &);
-    double pudz(lexer *, field &);
+	//p
+	 double pudx(lexer*,fdm*);
+	 double pudy(lexer*,fdm*);
+	 double pudz(lexer*,fdm*);
 
-    double pvdx(lexer *, field &);
-    double pvdy(lexer *, field &);
-    double pvdz(lexer *, field &);
+	 double pvdx(lexer*,fdm*);
+	 double pvdy(lexer*,fdm*);
+	 double pvdz(lexer*,fdm*);
 
-    double pwdx(lexer *, field &);
-    double pwdy(lexer *, field &);
-    double pwdz(lexer *, field &);
+	 double pwdx(lexer*,fdm*);
+	 double pwdy(lexer*,fdm*);
+	 double pwdz(lexer*,fdm*);
+     
+     //
+     double pudx(lexer*,field&);
+	 double pudy(lexer*,field&);
+	 double pudz(lexer*,field&);
 
-    //--------------------------------
+	 double pvdx(lexer*,field&);
+	 double pvdy(lexer*,field&);
+	 double pvdz(lexer*,field&);
 
-    // u
+	 double pwdx(lexer*,field&);
+	 double pwdy(lexer*,field&);
+	 double pwdz(lexer*,field&);
+	 
 
-    // v
+	//--------------------------------
 
-    // w
+	//u
 
-    double grad1, grad2;
-    double grad;
-    const double dx;
 
-    double gradx, grady, gradz;
-    double f1, f2, f3, f4;
+	//v
 
+
+	//w
+
+	 
+
+	double grad1,grad2;
+	double grad;
+	const double dx;
+
+	double gradx, grady, gradz;
+	double f1,f2,f3,f4;
+	
     lexer *p;
 };
 

@@ -26,19 +26,19 @@ Author: Hans Bihs
 class fdm;
 class fdm2D;
 
-#include "looping.h"
+#include"looping.h"
 
 using namespace std;
 
 class increment
 {
-public:
-    increment();
-    virtual ~increment();
-    static int i, j, k, n, h;
-    static int innercounter;
-    static int marge;
-    static fdm *aa;
+	public:
+	increment();
+	virtual ~increment();
+	static int i,j,k,n,h;
+	static int innercounter;
+	static int marge;
+	static fdm *aa;
     static fdm2D *bb;
 };
 #endif

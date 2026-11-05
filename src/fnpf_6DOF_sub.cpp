@@ -20,18 +20,19 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "6DOF_obj_fnpf.h"
-#include "fdm_fnpf.h"
-#include "fnpf_6DOF.h"
-#include "fnpf_amr.h"
-#include "fnpf_bed_update.h"
-#include "fnpf_fsf.h"
-#include "fnpf_fsf_update.h"
-#include "ghostcell.h"
-#include "lexer.h"
-#include "reefamr.h"
-#include <functional>
-#include <mpi.h>
+
+#include"fnpf_6DOF.h"
+#include"6DOF_obj_fnpf.h"
+#include"lexer.h"
+#include"fdm_fnpf.h"
+#include"ghostcell.h"
+#include"fnpf_fsf.h"
+#include"fnpf_bed_update.h"
+#include"fnpf_fsf_update.h"
+#include"fnpf_amr.h"
+#include"reefamr.h"
+#include<functional>
+#include<mpi.h>
 
 //  Resolved bodies on a subcycled FNPF mesh refinement (fnpf_amr, G 7 1).
 //
@@ -47,31 +48,31 @@ Architect: Hans Bihs
 
 void fnpf_6DOF::amr_save()
 {
-    for(int nb = 0; nb < nbody; ++nb)
-        fb_obj[nb]->amr_save();
+    for(int nb=0; nb<nbody; ++nb)
+    fb_obj[nb]->amr_save();
 }
 
 void fnpf_6DOF::amr_restore(lexer *p, ghostcell *pgc)
 {
-    for(int nb = 0; nb < nbody; ++nb)
-        fb_obj[nb]->amr_restore(p, pgc);
+    for(int nb=0; nb<nbody; ++nb)
+    fb_obj[nb]->amr_restore(p,pgc);
 }
 
 // stage iter of the predicted copy with the step dt of its level (from t)
 void fnpf_6DOF::amr_sub_predict(lexer *p, ghostcell *pgc, int iter, double t, double dt)
 {
-    if(pext != nullptr)
+    if(pext!=nullptr)
     {
-        ext_predict_copy(p, pgc, iter, t, dt);
-        return;
+    ext_predict_copy(p,pgc,iter,t,dt);
+    return;
     }
-
+    
     const double dts = p->dt;
     p->dt = dt;
-
-    for(int nb = 0; nb < nbody; ++nb)
-        fb_obj[nb]->amr_predict_fnpf(p, pgc, iter);
-
+    
+    for(int nb=0; nb<nbody; ++nb)
+    fb_obj[nb]->amr_predict_fnpf(p,pgc,iter);
+    
     p->dt = dts;
 }
 
@@ -80,38 +81,38 @@ void fnpf_6DOF::amr_sub_predict(lexer *p, ghostcell *pgc, int iter, double t, do
 void fnpf_6DOF::amr_sub_finest(lexer *p, fdm_fnpf *c, ghostcell *pgc, int l, int iter, double t, double dt, bool loads, bool last)
 {
     if(!initialized)
-        return;
-
+    return;
+    
     const double dts = p->dt, ts = p->simtime;
     p->dt = dt;
     p->simtime = t;
-
+    
     if(loads)
-        forces_level(p, c, pgc, l, iter);
-
-    const bool finalize = (iter == ((p->A310 == 3) ? 2 : 3));
-
+    forces_level(p,c,pgc,l,iter);
+    
+    const bool finalize = (iter == ((p->A310==3) ? 2 : 3));
+    
     if(finalize && last)
-        psi_report(p, pgc);
-
+    psi_report(p,pgc);
+    
     // external dynamics: every finest step is a step of the external solver
-    if(pext != nullptr)
+    if(pext!=nullptr)
     {
-        motion_external(p, c, pgc, iter, last);
+        motion_external(p,c,pgc,iter,last);
         p->dt = dts;
         p->simtime = ts;
         return;
     }
-
-    for(int nb = 0; nb < nbody; ++nb)
+    
+    for(int nb=0; nb<nbody; ++nb)
     {
-        fb_obj[nb]->solve_eqmotion_fnpf(p, c, pgc, iter, finalize && last);
-        fb_obj[nb]->update_position_fnpf(p, pgc, finalize && last);
-
+        fb_obj[nb]->solve_eqmotion_fnpf(p,c,pgc,iter,finalize && last);
+        fb_obj[nb]->update_position_fnpf(p,pgc,finalize && last);
+        
         if(finalize && last)
-            fb_obj[nb]->print_fnpf(p, pgc, iter);
+        fb_obj[nb]->print_fnpf(p,pgc,iter);
     }
-
+    
     p->dt = dts;
     p->simtime = ts;
 }
@@ -120,29 +121,29 @@ void fnpf_6DOF::amr_sub_finest(lexer *p, fdm_fnpf *c, ghostcell *pgc, int l, int
 void fnpf_6DOF::amr_geometry_level(lexer *p, ghostcell *pgc, int l)
 {
     if(!initialized)
-        return;
-
-    amr_grids(p, pgc);
-
+    return;
+    
+    amr_grids(p,pgc);
+    
     reefamr_comms_off guard(pgc);
     for(auto &G : gp)
-        if(amr->patch_level(G.id) == l)
-            geometry(G, pgc);
+    if(amr->patch_level(G.id)==l)
+    geometry(G,pgc);
 }
 
 // after it: wall nodes and body-band extrapolation of the level-l patches
 void fnpf_6DOF::amr_post_solve_level(lexer *p, ghostcell *pgc, int l)
 {
     if(!initialized)
-        return;
-
+    return;
+    
     reefamr_comms_off guard(pgc);
     for(auto &G : gp)
-        if(amr->patch_level(G.id) == l)
-        {
-            amr->patch_walls_fi(G.id, G.c->Fi);
-            extrapolate(G, pgc, G.c->Fi);
-        }
+    if(amr->patch_level(G.id)==l)
+    {
+        amr->patch_walls_fi(G.id,G.c->Fi);
+        extrapolate(G,pgc,G.c->Fi);
+    }
 }
 
 // the loads of a stage of the finest level l: psi_0 on its patches (free-surface data from their
@@ -151,114 +152,114 @@ void fnpf_6DOF::amr_post_solve_level(lexer *p, ghostcell *pgc, int l)
 void fnpf_6DOF::forces_level(lexer *p, fdm_fnpf *c, ghostcell *pgc, int l, int iter)
 {
     const double t0 = MPI_Wtime();
-    const int slot = psi_slot(-1, iter, true);
-    const double ts = psi_time(p, slot);
+    const int slot = psi_slot(-1,iter,true);
+    const double ts = psi_time(p,slot);
 
-    amr_grids(p, pgc);
-
-    const int ng = 1 + (int)gp.size();
-    vector<double *> fs(ng, nullptr);
-    vector<slice *> Ds(ng, nullptr);
+    amr_grids(p,pgc);
+    
+    const int ng = 1+(int)gp.size();
+    vector<double*> fs(ng,nullptr);
+    vector<slice*> Ds(ng,nullptr);
     fs[0] = g0.psi0;
     Ds[0] = &psiD;
-
+    
     {
-        reefamr_comms_off guard(pgc);
-        for(size_t n = 0; n < gp.size(); ++n)
+    reefamr_comms_off guard(pgc);
+    for(size_t n=0; n<gp.size(); ++n)
+    {
+        fnpf_6DOF_grid &G = gp[n];
+        fs[n+1] = G.psi0;
+        Ds[n+1] = G.psiD;
+        if(amr->patch_level(G.id)!=l)
+        continue;
+        
+        // the velocities of the current state (the quadratic term of the pressure)
+        G.pvel->velcalc_sig(G.p,G.c,pgc,G.c->Fi);
+        body_velocities(G,pgc);
+        
+        psi_guess(G,slot,G.psi0,ts);
+        
+        lexer *p = G.p;
+        slice4 &D = *G.psiD;
+        slice &Ke = *G.Keta, &Kf = *G.Kfi;
+        
+        // psi_0: phi_t at fixed z on the free surface, phi_t|z = dFifsf/dt - Fz*deta/dt
+        SLICELOOP4
+        D(i,j) = Kf(i,j) - G.c->Fz(i,j)*Ke(i,j);
+        
+        // one body: + V.grad(phi), the body-following derivative chi (as in forces_amr)
+        if(nbody==1)
+        fb_obj[0]->chi_fsf(p,G.c,D,*G.foot);
+        
+        pgc->gcsl_start4(p,D,50);
+        
+        // X 18 on the patches of level l
+        if(nbody==1)
+        fb_obj[0]->chi_mean_patch(p,pgc,D,*G.foot,l);
+        
+        zero_face(G);
+        for(int nb=0; nb<nbody; ++nb)
+        fb_obj[nb]->face_data_fnpf(G.p,G.c,pgc,-2,G.c->FBF,G.c->FBu,G.c->FBv,G.c->FBw);
+        
+        // Dirichlet on the free surface outside the footprint
+        slice4 &foot = *G.foot;
+        double *f = G.psi0;
+        FFILOOP4
+        if(foot(i,j)<0.5)
         {
-            fnpf_6DOF_grid &G = gp[n];
-            fs[n + 1] = G.psi0;
-            Ds[n + 1] = G.psiD;
-            if(amr->patch_level(G.id) != l)
-                continue;
-
-            // the velocities of the current state (the quadratic term of the pressure)
-            G.pvel->velcalc_sig(G.p, G.c, pgc, G.c->Fi);
-            body_velocities(G, pgc);
-
-            psi_guess(G, slot, G.psi0, ts);
-
-            lexer *p = G.p;
-            slice4 &D = *G.psiD;
-            slice &Ke = *G.Keta, &Kf = *G.Kfi;
-
-            // psi_0: phi_t at fixed z on the free surface, phi_t|z = dFifsf/dt - Fz*deta/dt
-            SLICELOOP4
-            D(i, j) = Kf(i, j) - G.c->Fz(i, j) * Ke(i, j);
-
-            // one body: + V.grad(phi), the body-following derivative chi (as in forces_amr)
-            if(nbody == 1)
-                fb_obj[0]->chi_fsf(p, G.c, D, *G.foot);
-
-            pgc->gcsl_start4(p, D, 50);
-
-            // X 18 on the patches of level l
-            if(nbody == 1)
-                fb_obj[0]->chi_mean_patch(p, pgc, D, *G.foot, l);
-
-            zero_face(G);
-            for(int nb = 0; nb < nbody; ++nb)
-                fb_obj[nb]->face_data_fnpf(G.p, G.c, pgc, -2, G.c->FBF, G.c->FBu, G.c->FBv, G.c->FBw);
-
-            // Dirichlet on the free surface outside the footprint
-            slice4 &foot = *G.foot;
-            double *f = G.psi0;
-            FFILOOP4
-            if(foot(i, j) < 0.5)
-            {
-                f[FIJK] = D(i, j);
-                f[FIJKp1] = D(i, j);
-                f[FIJKp2] = D(i, j);
-                f[FIJKp3] = D(i, j);
-            }
-
-            G.pbed->bedbc_sig(p, G.c, pgc, f, G.pf);
-            amr->patch_walls_fi(G.id, f);
+            f[FIJK]   = D(i,j);
+            f[FIJKp1] = D(i,j);
+            f[FIJKp2] = D(i,j);
+            f[FIJKp3] = D(i,j);
         }
+        
+        G.pbed->bedbc_sig(p,G.c,pgc,f,G.pf);
+        amr->patch_walls_fi(G.id,f);
     }
-
+    }
+    
     // the columns around the patches: phi_t of the parent step
-    amr->sub_psi_edges(l, &fs[0]);
+    amr->sub_psi_edges(l,&fs[0]);
 
     const double t1 = MPI_Wtime();
     {
-        fnpf_psi_tol tol(p);
-        amr->lap_solve_psi_level(p, pgc, l, &fs[0], &Ds[0]);
+    fnpf_psi_tol tol(p);
+    amr->lap_solve_psi_level(p,pgc,l,&fs[0],&Ds[0]);
     }
     psi_count(p->solveriter);
 
     const double t2 = MPI_Wtime();
     {
-        reefamr_comms_off guard(pgc);
-        for(auto &G : gp)
-            if(amr->patch_level(G.id) == l)
-            {
-                amr->patch_walls_fi(G.id, G.psi0);
-                extrapolate(G, pgc, G.psi0);
-                psi_record(G, slot, G.psi0, ts);
-            }
+    reefamr_comms_off guard(pgc);
+    for(auto &G : gp)
+    if(amr->patch_level(G.id)==l)
+    {
+        amr->patch_walls_fi(G.id,G.psi0);
+        extrapolate(G,pgc,G.psi0);
+        psi_record(G,slot,G.psi0,ts);
     }
-    t_band += MPI_Wtime() - t2;
-    t_psi += MPI_Wtime() - t1;
+    }
+    t_band += MPI_Wtime()-t2;
+    t_psi += MPI_Wtime()-t1;
 
-    for(int nb = 0; nb < nbody; ++nb)
+    for(int nb=0; nb<nbody; ++nb)
     {
         sixdof_obj_fnpf::fnpf_force_sum S;
-        fb_obj[nb]->forces_fnpf_zero(p, S);
-
+        fb_obj[nb]->forces_fnpf_zero(p,S);
+        
         for(auto &G : gp)
-            if(amr->patch_level(G.id) == l)
+        if(amr->patch_level(G.id)==l)
+        {
+            const int id = G.id;
+            std::function<bool(double,double)> own = [&](double x, double y)
             {
-                const int id = G.id;
-                std::function<bool(double, double)> own = [&](double x, double y)
-                {
-                    return amr->owns_point(x, y, id);
-                };
-                fb_obj[nb]->forces_fnpf_sum(G.p, G.c, G.psi0, G.psi, false, G.del, &own, S);
-            }
-
-        fb_obj[nb]->forces_fnpf_set(p, pgc, S, false);
+                return amr->owns_point(x,y,id);
+            };
+            fb_obj[nb]->forces_fnpf_sum(G.p,G.c,G.psi0,G.psi,false,G.del,&own,S);
+        }
+        
+        fb_obj[nb]->forces_fnpf_set(p,pgc,S,false);
     }
 
-    t_loads += MPI_Wtime() - t0;
+    t_loads += MPI_Wtime()-t0;
 }

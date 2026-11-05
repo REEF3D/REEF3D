@@ -23,32 +23,31 @@ Author: Hans Bihs
 #ifndef SFLOW_MOMENTUM_RK2_H_
 #define SFLOW_MOMENTUM_RK2_H_
 
-#include "sflow_momentum_func.h"
-#include "slice4.h"
+#include"sflow_momentum_func.h"
+#include"slice4.h"
 
 using namespace std;
 
 class sflow_momentum_RK2 final : public sflow_momentum_func
 {
 public:
-    void ckpt_fields(const std::function<void(const char *, char, double *)> &fd, const std::function<void(const char *, char, int *)> &fi) override
+
+    void ckpt_fields(const std::function<void(const char*, char, double*)> &fd, const std::function<void(const char*, char, int*)> &fi) override
     {
-        fd("momentum_RK2_WLRK1", 'S', WLRK1.V);
-        fd("momentum_RK2_UHRK1", 'S', UHRK1.V);
-        fd("momentum_RK2_VHRK1", 'S', VHRK1.V);
-        fd("momentum_RK2_WHRK1", 'S', WHRK1.V);
+        fd("momentum_RK2_WLRK1",'S',WLRK1.V); fd("momentum_RK2_UHRK1",'S',UHRK1.V);
+        fd("momentum_RK2_VHRK1",'S',VHRK1.V); fd("momentum_RK2_WHRK1",'S',WHRK1.V);
     }
-    sflow_momentum_RK2(lexer *, fdm2D *, ghostcell *, sflow_HLL *, sflow_signal_speed *, sflow_reconstruct *, sflow_diffusion *, sflow_pressure *,
-                       solver2D *, solver2D *, ioflow *, sflow_fsf *, sflow_forcing *, sixdof *);
-    virtual ~sflow_momentum_RK2();
-
-    void start(lexer *, fdm2D *, ghostcell *) override final;
-
+	sflow_momentum_RK2(lexer*, fdm2D*, ghostcell*, sflow_HLL*, sflow_signal_speed*, sflow_reconstruct*, sflow_diffusion*, sflow_pressure*, 
+                        solver2D*, solver2D*, ioflow*, sflow_fsf*, sflow_forcing*, sixdof*);
+	virtual ~sflow_momentum_RK2();
+    
+	void start(lexer*, fdm2D*, ghostcell*) override final;
+    
 private:
     slice4 WLRK1;
     slice4 UHRK1;
-    slice4 VHRK1;
-    slice4 WHRK1;
+	slice4 VHRK1;
+	slice4 WHRK1;
 };
 
 #endif

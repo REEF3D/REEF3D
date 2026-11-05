@@ -22,51 +22,51 @@ Author: Hans Bihs
 
 #ifdef REEF3D_USE_HYPRE  // hypre is opt-in: make HYPRE=1 / cmake -DREEF3D_USE_HYPRE=ON
 
-#include "ghostcell.h"
 #include "hypre_struct.h"
 #include "lexer.h"
+#include "ghostcell.h"
 #include "matrix_diag.h"
 
-void hypre_struct::fill_matrix7_2Dvert(lexer *p, ghostcell *pgc, double *f, vec &rhs, matrix_diag &M)
+void hypre_struct::fill_matrix7_2Dvert(lexer* p, ghostcell* pgc, double *f, vec &rhs, matrix_diag &M)
 {
-    count = 0;
+    count=0;
     FLOOP
     {
-        CVAL4[FIJK] = count;
+        CVAL4[FIJK]=count;
         ++count;
     }
 
-    nentries = 5;
+    nentries=5;
 
-    for(j = 0; j < nentries; j++)
-        stencil_indices[j] = j;
+    for (j = 0; j < nentries; j++)
+    stencil_indices[j] = j;
 
-    count = 0;
+    count=0;
     FKJILOOP
     {
-        n = CVAL4[FIJK];
+            n=CVAL4[FIJK];
 
-        values[count] = M.p[n];
-        ++count;
+            values[count]=M.p[n];
+            ++count;
 
-        values[count] = M.s[n];
-        ++count;
+            values[count]=M.s[n];
+            ++count;
 
-        values[count] = M.n[n];
-        ++count;
+            values[count]=M.n[n];
+            ++count;
 
-        values[count] = M.b[n];
-        ++count;
+            values[count]=M.b[n];
+            ++count;
 
-        values[count] = M.t[n];
-        ++count;
+            values[count]=M.t[n];
+            ++count;
     }
 
     HYPRE_StructMatrixSetBoxValues(A, ilower, iupper, nentries, stencil_indices, values);
     HYPRE_StructMatrixAssemble(A);
 
     // vec
-    count = 0;
+    count=0;
     FKJILOOP
     {
         values[count] = f[FIJK];
@@ -77,11 +77,11 @@ void hypre_struct::fill_matrix7_2Dvert(lexer *p, ghostcell *pgc, double *f, vec 
     HYPRE_StructVectorSetBoxValues(x, ilower, iupper, values);
     HYPRE_StructVectorAssemble(x);
 
-    count = 0;
+    count=0;
     FKJILOOP
     {
-        n = CVAL4[FIJK];
-        values[count] = rhs.V[n];
+            n=CVAL4[FIJK];
+            values[count] = rhs.V[n];
 
         ++count;
     }

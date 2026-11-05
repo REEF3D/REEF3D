@@ -20,7 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "6DOF_obj.h"
-#include "ghostcell.h"
-#include "lexer.h"
-#include <fstream>
+#include<fstream>
+#include"6DOF_obj.h"
+#include"lexer.h"
+#include"ghostcell.h"

@@ -23,9 +23,9 @@ Author: Hans Bihs
 #ifndef SIXDOF_MOTIONEXT_FILE_H_
 #define SIXDOF_MOTIONEXT_FILE_H_
 
-#include "6DOF_motionext.h"
+#include"6DOF_motionext.h"
+#include<fstream>
 #include <Eigen/Dense>
-#include <fstream>
 
 class lexer;
 class fdm;
@@ -39,50 +39,40 @@ using namespace std;
 class sixdof_motionext_file final : public sixdof_motionext
 {
 public:
-    void ckpt_state(std::vector<double> &v) const override
-    {
-        for(double x : {double(timecount), double(timecount_old), Uext, Vext, Wext, Pext, Qext, Rext})
-            v.push_back(x);
-    }
+    void ckpt_state(std::vector<double> &v) const override { for(double x : {double(timecount),double(timecount_old),Uext,Vext,Wext,Pext,Qext,Rext}) v.push_back(x); }
     void ckpt_restore(const std::vector<double> &v, size_t &k) override
-    {
-        if(k + 8 > v.size())
-            return;
-        timecount = int(v[k++]);
-        timecount_old = int(v[k++]);
-        Uext = v[k++];
-        Vext = v[k++];
-        Wext = v[k++];
-        Pext = v[k++];
-        Qext = v[k++];
-        Rext = v[k++];
-    }
+    { if(k+8>v.size()) return; timecount=int(v[k++]); timecount_old=int(v[k++]); Uext=v[k++]; Vext=v[k++]; Wext=v[k++]; Pext=v[k++]; Qext=v[k++]; Rext=v[k++]; }
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
+    
+    void motionext_trans(lexer*, ghostcell*, Eigen::Vector3d&, Eigen::Vector3d&) override final;
+    void motionext_rot(lexer*, Eigen::Vector3d&, Eigen::Vector3d&, Eigen::Vector4d&, Eigen::Matrix<double, 3, 4>&,  Eigen::Matrix3d&) override final;
 
-    void ini(lexer *, ghostcell *) override final;
-
-    sixdof_motionext_file(lexer *, ghostcell *, int = 0);
-    virtual ~sixdof_motionext_file();
-
+    void ini(lexer*,ghostcell*) override final;
+    
+    
+    
+    sixdof_motionext_file(lexer*, ghostcell*, int=0);
+	virtual ~sixdof_motionext_file();
+    
 private:
-    double ramp_vel(lexer *);
-
-    void read_format_1(lexer *, ghostcell *);
-    void read_format_2(lexer *, ghostcell *);
-
+    double ramp_vel(lexer*);
+    
+    void read_format_1(lexer*,ghostcell*);
+    void read_format_2(lexer*,ghostcell*);
+    
     Eigen::Vector3d omega_;
-
+    
     ofstream file;
     char name[200];
-    int qn, count, ptnum;
-    int rowcount, colcount;
+    int qn,count,ptnum;
+    int rowcount,colcount;
     int colnum;
     double val;
     std::vector<std::vector<double>> data;
-    double ts, te;
-    int timecount, timecount_old;
-    int id;  // body number (6DOF_motion-<id>.dat)
-
+    double ts,te;
+    int timecount,timecount_old;
+    int id;     // body number (6DOF_motion-<id>.dat)
+    
     double Uext, Vext, Wext, Pext, Qext, Rext;
 };
 

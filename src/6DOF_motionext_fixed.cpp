@@ -20,14 +20,14 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Authors: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "6DOF_motionext_fixed.h"
-#include "fdm.h"
-#include "ghostcell.h"
-#include "lexer.h"
+#include"6DOF_motionext_fixed.h"
+#include"lexer.h"
+#include"fdm.h"
+#include"ghostcell.h"
 
 sixdof_motionext_fixed::sixdof_motionext_fixed(lexer *p, ghostcell *pgc)
 {
-    ini(p, pgc);
+    ini(p,pgc);
 }
 
 sixdof_motionext_fixed::~sixdof_motionext_fixed()
@@ -45,63 +45,57 @@ void sixdof_motionext_fixed::ini(lexer *p, ghostcell *pgc)
     Rext = p->X211_r;
 }
 
-void sixdof_motionext_fixed::motionext_trans(lexer *p, ghostcell *pgc, Eigen::Vector3d &dp_, Eigen::Vector3d &dc_)
+void sixdof_motionext_fixed::motionext_trans(lexer *p, ghostcell *pgc, Eigen::Vector3d& dp_, Eigen::Vector3d& dc_)
 {
-    if(dof[0] == 2)
+    if (dof[0]==2)
     {
         dp_(0) = 0.0;
-        dc_(0) = Uext * ramp_vel(p);
+        dc_(0) = Uext*ramp_vel(p);
     }
 
-    if(dof[1] == 2)
+    if (dof[1]==2)
     {
         dp_(1) = 0.0;
-        dc_(1) = Vext * ramp_vel(p);
+        dc_(1) = Vext*ramp_vel(p);
     }
 
-    if(dof[2] == 2)
+    if (dof[2]==2)
     {
         dp_(2) = 0.0;
-        dc_(2) = Wext * ramp_vel(p);
+        dc_(2) = Wext*ramp_vel(p);
     }
 }
 
-void sixdof_motionext_fixed::motionext_rot(lexer *p, Eigen::Vector3d &dh_, Eigen::Vector3d &h_, Eigen::Vector4d &de_, Eigen::Matrix<double, 3, 4> &G_, Eigen::Matrix3d &I_)
+void sixdof_motionext_fixed::motionext_rot(lexer *p, Eigen::Vector3d& dh_, Eigen::Vector3d& h_, Eigen::Vector4d& de_, Eigen::Matrix<double, 3, 4>&G_,  Eigen::Matrix3d&I_)
 {
 
-    if(dof[3] == 2)
-        dh_(0) = 0.0;
-    if(dof[4] == 2)
-        dh_(1) = 0.0;
-    if(dof[5] == 2)
-        dh_(2) = 0.0;
+    if(dof[3] == 2) dh_(0) = 0.0;
+    if(dof[4] == 2) dh_(1) = 0.0;
+    if(dof[5] == 2) dh_(2) = 0.0;
 
     omega_ = I_.inverse() * h_;
 
-    if(dof[3] == 2)
-        omega_(0) = Pext * ramp_vel(p);
-    if(dof[4] == 2)
-        omega_(1) = Qext * ramp_vel(p);
-    if(dof[5] == 2)
-        omega_(2) = Rext * ramp_vel(p);
+    if(dof[3] == 2) omega_(0) = Pext*ramp_vel(p);
+    if(dof[4] == 2) omega_(1) = Qext*ramp_vel(p);
+    if(dof[5] == 2) omega_(2) = Rext*ramp_vel(p);
 
-    h_ = I_ * omega_;
+    h_ = I_*omega_;
 
-    de_ = 0.5 * G_.transpose() * omega_;
+    de_ = 0.5*G_.transpose()*omega_;
 }
 
 double sixdof_motionext_fixed::ramp_vel(lexer *p)
 {
-    double f = 1.0;
+    double f=1.0;
 
-    if(p->X205 == 1 && p->X206 == 1 && p->simtime >= p->X206_ts && p->simtime < p->X206_te)
-        f = (p->simtime - p->X206_ts) / (p->X206_te - p->X206_ts);
+    if(p->X205==1 && p->X206==1 && p->simtime>=p->X206_ts && p->simtime<p->X206_te)
+    f = (p->simtime-p->X206_ts)/(p->X206_te-p->X206_ts);
 
-    if(p->X205 == 2 && p->X206 == 1 && p->simtime >= p->X206_ts && p->simtime < p->X206_te)
-        f = (p->simtime - p->X206_ts) / (p->X206_te - p->X206_ts) - (1.0 / PI) * sin(PI * (p->simtime - p->X206_ts) / (p->X206_te - p->X206_ts));
+    if(p->X205==2 && p->X206==1 && p->simtime>=p->X206_ts && p->simtime<p->X206_te)
+    f = (p->simtime-p->X206_ts)/(p->X206_te-p->X206_ts)-(1.0/PI)*sin(PI*(p->simtime-p->X206_ts)/(p->X206_te-p->X206_ts));
 
-    if(p->X206 == 1 && p->simtime < p->X206_ts)
-        f = 0.0;
+    if(p->X206==1 && p->simtime<p->X206_ts)
+    f=0.0;
 
     return f;
 }

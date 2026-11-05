@@ -23,10 +23,10 @@ Architect: Hans Bihs
 #ifndef MET_PROVIDER_H_
 #define MET_PROVIDER_H_
 
-#include "met_frame.h"
-#include <string>
+#include"met_frame.h"
+#include<string>
 
-#include "lexer.h"
+#include"lexer.h"
 
 class ghostcell;
 class met_source;
@@ -56,27 +56,27 @@ of the rank, Regression/unit/static_allowlist.txt).
 class met_provider
 {
 public:
-    static met_provider *get(lexer *, ghostcell *);
+    static met_provider* get(lexer*, ghostcell*);
 
     void window(double xs, double xe, double ys, double ye);
-    void update(lexer *, ghostcell *, double simtime);
+    void update(lexer*, ghostcell*, double simtime);
     void at(double x, double y, double &u, double &v, double &pa) const;
-    double ramp(lexer *, double simtime) const;
+    double ramp(lexer*, double simtime) const;
 
     // inverse barometer level -r (pa - pref)/(rho_w g) at (x,y) and the model time of the grid
     // (W 210 1; iowave: open edges B 520 3-5, relaxation and beach zones)
-    double ib(lexer *, ghostcell *, double x, double y);
-    static bool ib_on(lexer *p) { return p->W200 > 0 && p->W210 == 1 && (p->A10 == 2 || p->A10 == 5); }
+    double ib(lexer*, ghostcell*, double x, double y);
+    static bool ib_on(lexer *p) {return p->W200>0 && p->W210==1 && (p->A10==2 || p->A10==5);}
 
     // checks of the W 200 input, from the driver for every model
-    static void check(lexer *, ghostcell *);
+    static void check(lexer*, ghostcell*);
 
-    double tref = 0.0;  // absolute time of model time 0 [s since 1970]
+    double tref = 0.0;      // absolute time of model time 0 [s since 1970]
     met_frame frame;
 
 private:
-    met_provider(lexer *, ghostcell *);
-    void stop(lexer *, ghostcell *, const std::string &) const;
+    met_provider(lexer*, ghostcell*);
+    void stop(lexer*, ghostcell*, const std::string&) const;
 
     static met_provider *instance;
 

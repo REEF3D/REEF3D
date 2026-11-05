@@ -23,8 +23,8 @@ Architect: Hans Bihs
 #ifndef MET_BLEND_H_
 #define MET_BLEND_H_
 
-#include "met_source.h"
-#include <string>
+#include"met_source.h"
+#include<string>
 
 /*--------------------------------------------------------------------
 REEF3D atmospheric forcing W 200 4: composite of a background met file,
@@ -86,22 +86,22 @@ NWS 29/30).
 // the background on the ring r2 at a background record time
 struct met_blend_ring
 {
-    double p = 0.0, pv = 0.0;   // mean pressure of the background and of the vortex
-    double u = 0.0, v = 0.0;    // mean wind of the background minus the vortex (W 226 1)
-    double gx = 0.0, gy = 0.0;  // gradient of the background pressure minus the vortex pressure
+    double p = 0.0, pv = 0.0;           // mean pressure of the background and of the vortex
+    double u = 0.0, v = 0.0;            // mean wind of the background minus the vortex (W 226 1)
+    double gx = 0.0, gy = 0.0;          // gradient of the background pressure minus the vortex pressure
 };
 
 struct met_blend_par
 {
-    int nest = 0, vortex = 1;                         // W 220
-    double nest_width = 50000.0, nest_time = 3600.0;  // W 221
-    int basis = 1;                                    // W 222
+    int nest = 0, vortex = 1;                           // W 220
+    double nest_width = 50000.0, nest_time = 3600.0;    // W 221
+    int basis = 1;                                      // W 222
     double r1 = 3.0, r2 = 6.0;
-    int pressure = 1;              // W 223
-    double vortex_time = 21600.0;  // W 224
-    int shape = 1;                 // W 225
-    int env = 0;                   // W 226
-    int nest_relative = 0;         // W 227
+    int pressure = 1;                                   // W 223
+    double vortex_time = 21600.0;                       // W 224
+    int shape = 1;                                      // W 225
+    int env = 0;                                        // W 226
+    int nest_relative = 0;                              // W 227
 };
 
 class met_source_blend final : public met_source
@@ -115,7 +115,7 @@ public:
     bool advance(double t, std::string &error) override;
     void at(double t, double x, double y, double &u, double &v, double &pa) const override;
     void window(double xs, double xe, double ys, double ye) override;
-    double first_time() const override { return bg.time(0); }
+    double first_time() const override {return bg.time(0);}
 
     static double taper(double s, int shape);
     static double taper_time(double t, double t0, double t1, double T, int shape);
@@ -133,12 +133,12 @@ public:
 
     // state of the last advance
     double tnow = 0.0;
-    double wn_t = 0.0, wv_t = 0.0;  // weights in time
+    double wn_t = 0.0, wv_t = 0.0;                      // weights in time
     double nest_x0 = 0.0, nest_y0 = 0.0, nest_lx = 0.0, nest_ly = 0.0;
-    double nest_w = 0.0, nest_d[2][2] = {{0.0, 0.0}, {0.0, 0.0}}, nest_margin = 0.0;  // W 227 1: weight, shifts, window margin
+    double nest_w = 0.0, nest_d[2][2] = {{0.0,0.0},{0.0,0.0}}, nest_margin = 0.0;   // W 227 1: weight, shifts, window margin
     double lonc = 0.0, latc = 0.0, xcm = 0.0, ycm = 0.0, pc = 0.0, pn = 0.0, rmw = 0.0, r34 = 0.0, r1m = 0.0, r2m = 0.0;
-    met_blend_ring env;          // the ring at time t (p = pv = pn without W 223 1, W 226 1)
-    long long ring_samples = 0;  // background records sampled on the ring (log, unit test)
+    met_blend_ring env;                                 // the ring at time t (p = pv = pn without W 223 1, W 226 1)
+    long long ring_samples = 0;                         // background records sampled on the ring (log, unit test)
 
 private:
     int ring_n[2] = {-1, -1};

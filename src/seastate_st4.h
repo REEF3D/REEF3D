@@ -35,8 +35,8 @@ seastate_st4.cpp for the notice and the list of changes.
 #ifndef SEASTATE_ST4_H_
 #define SEASTATE_ST4_H_
 
-#include <algorithm>
-#include <vector>
+#include<vector>
+#include<algorithm>
 
 class seastate_grid;
 
@@ -115,7 +115,7 @@ struct seastate_st4_param
     bool gc = false, normagam = false;
     double dthrn_a = 0.60, dthrn_u = 33.0, rn1_rn = 0.25, delta_theta_rn = 0.75;
     double ang_gc_a = 0.35, ang_gc_b = 0.65, ang_gc_c = 3.0, surft = 0.0000717;
-    double tol = 1.0e-4;  // the fixed point: |H(tau_w) - tau_w| <= tol u*^2
+    double tol = 1.0e-4;                // the fixed point: |H(tau_w) - tau_w| <= tol u*^2
     int maxit = 40;
 
     // the parameters of ecWAM IPHYS 1 with LLGCBZ0 and LLNORMAGAM (SETWAVPHYS): the operational ecWAM, the
@@ -124,55 +124,33 @@ struct seastate_st4_param
     {
         seastate_st4_param p;
         p.gc = p.normagam = true;
-        p.betamax = 1.39;
-        p.tauwshelter = 0.0;
-        p.alpha = 0.0055;
-        p.alphamin = 0.0001;
-        p.chnkmin_u = 28.0;
-        p.alphapmax = 0.03;
-        p.z0tubmax = 0.05;
-        p.z0rat = 0.02;
-        p.swellf4 = 1.15e5;
-        p.swellf7 = 4.32e5;
-        p.dthrn_a = 0.60;
-        p.dthrn_u = 33.0;
+        p.betamax = 1.39; p.tauwshelter = 0.0;
+        p.alpha = 0.0055; p.alphamin = 0.0001; p.chnkmin_u = 28.0; p.alphapmax = 0.03;
+        p.z0tubmax = 0.05; p.z0rat = 0.02; p.swellf4 = 1.15e5; p.swellf7 = 4.32e5;
+        p.dthrn_a = 0.60; p.dthrn_u = 33.0;
         return p;
     }
-    double alphapmax = 0.031;  // upper bound of the spectrum (ecWAM ALPHAPMAX), 0 off
+    double alphapmax = 0.031;           // upper bound of the spectrum (ecWAM ALPHAPMAX), 0 off
 };
 
 class seastate_st4
 {
 public:
-    void init(const seastate_grid &, const seastate_st4_param &, double gravity);
-    const seastate_st4_param &param() const { return prm; }
+    void init(const seastate_grid&, const seastate_st4_param&, double gravity);
+    const seastate_st4_param &param() const {return prm;}
 
     // the friction velocity and roughness for the spectrum N of a cell (rows: sums of N over the directions
     // per frequency), the input growth rates of all bins, the cut-off; freeze: those of the last call kept
     void wind(const float *N, const double *row, const float *k, const float *cg, double U10, double wdir, bool freeze);
 
     // no wind (a calm cell): no input and no swell damping, the whitecapping alone in add()
-    void calm()
-    {
-        calmed = true;
-        ust = 0.0;
-        tauw = 0.0;
-        lc = nsig - 1;
-        lagged = false;
-        ltk = -1;
-    }
+    void calm() {calmed = true; ust = 0.0; tauw = 0.0; lc = nsig-1; lagged = false; ltk = -1;}
 
     // ecWAM (Phase 23, A 768 1): the next wind() starts from the wave stress tw (direction twd) and the friction velocity
     // us of the last time step of the cell instead of the fixed point; after wind(), tauw, tauwdir and ust are the state
     // for the next time step
-    void lag(double tw, double twd, double us)
-    {
-        lagged = true;
-        lagtw = tw;
-        lagtwd = twd;
-        lagus = us;
-    }
-    void unlag() { lagged = false; }
+    void lag(double tw, double twd, double us) {lagged = true; lagtw = tw; lagtwd = twd; lagus = us;}
+    void unlag() {lagged = false;}
 
     // P, D of the input, swell damping and whitecapping for the frequencies la..lb and directions ma..mb
     // (after wind() of the same cell)
@@ -181,24 +159,24 @@ public:
     // the diagnostic tail (IMPHFTAIL) after the solve of a cell: N above the cut-off of the last wind() set to the
     // saturation of the cut-off, directions ma..mb
     void project(float *N, const float *k, const float *cg, int ma, int mb) const;
-    int tail_from() const { return (ltk >= 0) ? ltk : ((!prm.tail || calmed || !(ust > 0.0)) ? nsig : lc + 1); }
+    int tail_from() const {return (ltk>=0) ? ltk : ((!prm.tail || calmed || !(ust>0.0)) ? nsig : lc+1);}
     // A 767 1 (the terms of a cell kept from the evaluation in the first sweep of the iteration): the tail of that
     // evaluation for the next project() and tail_from(), until untake() (the next compute)
-    void take_tail(int lt) { ltk = std::min(std::max(lt, 0), nsig); }
-    void untake() { ltk = -1; }
+    void take_tail(int lt) {ltk = std::min(std::max(lt,0),nsig);}
+    void untake() {ltk = -1;}
 
     // single terms of the last wind() for tests: growth rate gamma (1/s), swell damping (>= 0), whitecapping (>= 0)
-    double rate(int b) const { return gam[b]; }
+    double rate(int b) const {return gam[b];}
 
     // the upper bound of N per frequency: F(f,theta) <= alpha_p,max/pi g^2 (2 pi)^-4 f^-5 (ecWAM FLMAX), nullptr: none
-    const double *upper() const { return prm.alphapmax > 0.0 ? nmax.data() : nullptr; }
+    const double *upper() const {return prm.alphapmax>0.0 ? nmax.data() : nullptr;}
     void dissipation(const float *N, const float *k, const float *cg, int l, double *Dl);
 
     // the state of the last wind()
     double ust = 0.0, z0 = 0.0, z0b = 0.0, chrnck = 0.0, tauw = 0.0, tauwdir = 0.0, fm = 0.0, fmws = 0.0;
     int lc = 0, iters = 0;
     bool calmed = true;
-    int ltk = -1;  // the first bin of the tail taken from a kept evaluation, -1 none
+    int ltk = -1;                               // the first bin of the tail taken from a kept evaluation, -1 none
 
     static void kzeone(double x, double y, double &re0, double &im0, double &re1, double &im1);
     static void kerkei(double x, double &ker, double &kei);
@@ -219,23 +197,23 @@ private:
     seastate_st4_param prm;
     int nsig = 0, ndir = 0, nbin = 0;
     double grav = 9.81, rnum = 0.0, raorw = 0.0, constn = 0.0, bmaxokap = 0.0, gamnconst = 0.0;
-    double rnfac = 1.0, halp = 0.0;  // of the cell (wind())
-    bool lagged = false;             // lag(): the next wind() from the wave stress of the last time step
+    double rnfac = 1.0, halp = 0.0;             // of the cell (wind())
+    bool lagged = false;                        // lag(): the next wind() from the wave stress of the last time step
     double lagtw = 0.0, lagtwd = 0.0, lagus = 0.0;
-    int nwav_gc = 0;  // gravity-capillary wave numbers (INITGC)
+    int nwav_gc = 0;                            // gravity-capillary wave numbers (INITGC)
     double sqrtgosurft = 0.0, xlogkratiom1_gc = 0.0;
     std::vector<double> xk_gc, xkm_gc, omega_gc, cm_gc, omxkm3_gc, c2osqrtvg_gc, xkmsqrtvgoc2_gc, om3gmkm_gc, delkcc_gc_ns, delkcc_omxkm3_gc;
     double x0tauhf = 0.0, wtauhf[19];
-    std::vector<double> swellft;  // SWELLFT(1..200), index 0 unused
-    int nsat = 0;                 // directions on each side of the saturation integral
-    std::vector<int> satidx;      // per direction 2 nsat + 1 indices, -1: no such direction (compact sector)
+    std::vector<double> swellft;                // SWELLFT(1..200), index 0 unused
+    int nsat = 0;                               // directions on each side of the saturation integral
+    std::vector<int> satidx;                    // per direction 2 nsat + 1 indices, -1: no such direction (compact sector)
     std::vector<double> satw;
-    std::vector<double> dfim, rhowg;                        // DFIM [Hz rad] and RHOWG_DFIM of the SEASTATE grid
-    std::vector<double> gam, dst;                           // growth rate and swell damping (>= 0) per bin
-    std::vector<double> ustl, udl, sxl, syl;                // ustar and its direction per frequency (sheltering), the stress of the input per frequency
-    std::vector<double> wsl;                                // sum of F over the bins with positive input, per frequency
-    std::vector<double> nmax;                               // upper bound of N per frequency
-    std::vector<double> bth, wcl;                           // saturation and whitecapping rate of one frequency
+    std::vector<double> dfim, rhowg;            // DFIM [Hz rad] and RHOWG_DFIM of the SEASTATE grid
+    std::vector<double> gam, dst;               // growth rate and swell damping (>= 0) per bin
+    std::vector<double> ustl, udl, sxl, syl;    // ustar and its direction per frequency (sheltering), the stress of the input per frequency
+    std::vector<double> wsl;                    // sum of F over the bins with positive input, per frequency
+    std::vector<double> nmax;                   // upper bound of N per frequency
+    std::vector<double> bth, wcl;               // saturation and whitecapping rate of one frequency
     double sw_temp2 = 0.0, sw_pturb = 0.0, sw_pvisc = 0.0;  // swell damping of the cell
 };
 

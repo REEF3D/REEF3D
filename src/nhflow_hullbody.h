@@ -23,10 +23,10 @@ Architect: Hans Bihs
 #ifndef NHFLOW_HULLBODY_H_
 #define NHFLOW_HULLBODY_H_
 
-#include "increment.h"
-#include <fstream>
-#include <functional>
-#include <vector>
+#include"increment.h"
+#include<vector>
+#include<fstream>
+#include<functional>
 
 class lexer;
 class fdm_nhf;
@@ -51,48 +51,48 @@ using namespace std;
 class nhflow_hullbody : public increment
 {
 public:
-    nhflow_hullbody(lexer *, fdm_nhf *, ghostcell *, sixdof_obj_nhflow *);
+    nhflow_hullbody(lexer*, fdm_nhf*, ghostcell*, sixdof_obj_nhflow*);
     virtual ~nhflow_hullbody();
 
-    void stage(lexer *, fdm_nhf *, ghostcell *, double, double *, double *, double *, slice &);
-    void forces(lexer *, fdm_nhf *, ghostcell *, slice &, bool);
-    void print(lexer *, fdm_nhf *, ghostcell *, const double * = nullptr);
-
+    void stage(lexer*, fdm_nhf*, ghostcell*, double, double*, double*, double*, slice&);
+    void forces(lexer*, fdm_nhf*, ghostcell*, slice&, bool);
+    void print(lexer*, fdm_nhf*, ghostcell*, const double* = nullptr);
+    
     // mesh refinement (nhflow_amr): every grid holds its own hull (the patches: amr_patch, no start message); the
     // loads are summed over the leaf part of the grids (loads, keep: the finest grid at the face centre) and then
     // given to the body by the hull of level 0 (finish_loads)
-    void loads(lexer *, fdm_nhf *, slice &, const std::function<bool(double, double)> *, double *, double *);
-    void finish_loads(lexer *, fdm_nhf *, ghostcell *, const double *, bool, const double *);
+    void loads(lexer*, fdm_nhf*, slice&, const std::function<bool(double,double)>*, double*, double*);
+    void finish_loads(lexer*, fdm_nhf*, ghostcell*, const double*, bool, const double*);
     nhflow_thinbody *thinbody() const { return tb; }
     bool amr_patch = false;
     // regrid: the state of column (ii,jj) from an old patch to a new one (the sides of the last stage with their
     // hysteresis, the state of the thin body, the face corrections of the Rhie-Chow continuity flux)
-    int amr_nstate(lexer *) const;
-    void amr_get(lexer *, fdm_nhf *, int, int, double *);
-    void amr_set(lexer *, fdm_nhf *, int, int, const double *);
+    int amr_nstate(lexer*) const;
+    void amr_get(lexer*, fdm_nhf*, int, int, double*);
+    void amr_set(lexer*, fdm_nhf*, int, int, const double*);
 
 private:
-    void body_velocity(double, double, double, double &, double &, double &) const;
-    void footprint_level(lexer *, fdm_nhf *, ghostcell *, slice &, double);
-    double keel_height(lexer *, fdm_nhf *, int, int) const;
-    void enclosed_water(lexer *, fdm_nhf *, ghostcell *, double *, double *, slice &);  // horizontal velocity of the water inside the hull
-    bool hull_normal(lexer *, fdm_nhf *, int, int, double &, double &, double &) const;
+    void body_velocity(double, double, double, double&, double&, double&) const;
+    void footprint_level(lexer*, fdm_nhf*, ghostcell*, slice&, double);
+    double keel_height(lexer*, fdm_nhf*, int, int) const;
+    void enclosed_water(lexer*, fdm_nhf*, ghostcell*, double*, double*, slice&);   // horizontal velocity of the water inside the hull
+    bool hull_normal(lexer*, fdm_nhf*, int, int, double&, double&, double&) const;
 
     sixdof_obj_nhflow *obj;
     nhflow_thinbody *tb;
-    double *side0C;         // cell sides of the last stage (hysteresis)
-    double *side0N;         // node sides of the last stage
-    double hyst;            // hysteresis distance
-    double Rn;              // hydraulic resistance of the blocked links [m/s]
-    bool plain_horizontal;  // horizontal loads on the face normals, without the hull-normal weighting (ship frame)
-    bool fp_on;             // footprint level: ship frame with a current
-    double *zk0;            // keel height of a footprint column when it entered the footprint (1e20: outside)
-    double fp_tau;          // relaxation time of the footprint level [s]
-    int nbx, nby, nbz;      // blocked links on this rank (last stage)
-    int nlink;              // global
-    bool told, marked;
-    double Fp[6];  // last loads: Fx, Fy, Fz, Mx, My, Mz
-    double tstage, tsum;
+    double *side0C;             // cell sides of the last stage (hysteresis)
+    double *side0N;             // node sides of the last stage
+    double hyst;                // hysteresis distance
+    double Rn;                  // hydraulic resistance of the blocked links [m/s]
+    bool plain_horizontal;      // horizontal loads on the face normals, without the hull-normal weighting (ship frame)
+    bool fp_on;                 // footprint level: ship frame with a current
+    double *zk0;                // keel height of a footprint column when it entered the footprint (1e20: outside)
+    double fp_tau;              // relaxation time of the footprint level [s]
+    int nbx,nby,nbz;            // blocked links on this rank (last stage)
+    int nlink;                  // global
+    bool told,marked;
+    double Fp[6];               // last loads: Fx, Fy, Fz, Mx, My, Mz
+    double tstage,tsum;
 
     ofstream out;
 };

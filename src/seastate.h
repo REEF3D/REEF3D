@@ -35,7 +35,7 @@ class seastate
 public:
     virtual ~seastate() = default;
 
-    virtual void start(lexer *, ghostcell *) = 0;
+    virtual void start(lexer*, ghostcell*)=0;
 };
 
 #endif

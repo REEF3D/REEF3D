@@ -23,51 +23,52 @@ Authors: Hans Bihs, Alexander Hanke
 #ifndef RHEOLOGY_F_H_
 #define RHEOLOGY_F_H_
 
-#include "field4.h"
-#include "rheology.h"
-#include "strain.h"
+#include"rheology.h"
+#include"strain.h"
+#include"field4.h"
 
 class rheology_f : public rheology, public strain
 {
 
 public:
-    rheology_f(lexer *);
-    virtual ~rheology_f() = default;
 
-    double viscosity(lexer *, fdm *, ghostcell *, field &, field &, field &);
+    rheology_f(lexer*);
+    virtual ~rheology_f()=default;
 
-    void u_source(lexer *, fdm *);
-    void v_source(lexer *, fdm *);
-    void w_source(lexer *, fdm *);
-
-    void filltau(lexer *, fdm *, ghostcell *);
+    double viscosity(lexer*,fdm*,ghostcell*, field&, field&, field&);
+    
+    void u_source(lexer*,fdm*);
+    void v_source(lexer*,fdm*);
+    void w_source(lexer*,fdm*);
+    
+    void filltau(lexer*,fdm*,ghostcell*);
 
 private:
-    double Herschel_Bulkley(lexer *, fdm *, ghostcell *, field &, field &, field &);
-    double Mohr_Coulomb_and_Herschel_Bulkley(lexer *, fdm *, ghostcell *);
+    double Herschel_Bulkley(lexer*,fdm*,ghostcell*, field&, field&, field&);
+    double Mohr_Coulomb_and_Herschel_Bulkley(lexer*,fdm*,ghostcell*);
     double heaviside(double);
-    double yield_stress(lexer *, fdm *);
-    void yieldStressGradient(lexer *, fdm *, int, int, int);
-    void pressurePhi(lexer *, fdm *, int, int, int, bool = false);
-    void pressurePhiGradient(lexer *, fdm *, int, int, int);
+    double yield_stress(lexer*,fdm*);
+    void yieldStressGradient(lexer*,fdm*,int,int,int);
+    void pressurePhi(lexer*,fdm*,int,int,int,bool=false);
+    void pressurePhiGradient(lexer*,fdm*,int,int,int);
 
-    field4 tau_x, tau_y, tau_z;
-
+    field4 tau_x,tau_y,tau_z;
+    
     double gamma;
-    double gamma2;  // shear rate in the neighbour cell for the gradient-based source
-    double val, f, H, phival, pressureval;
-
+    double gamma2; // shear rate in the neighbour cell for the gradient-based source
+    double val,f,H,phival,pressureval;
+    
     double tau0;
-    double tau0_p, tau0_m;
+    double tau0_p,tau0_m;
     double tanphi;
 
-    double pressureval1, pressureval2;
-    double tau01, tau02;
-
+    double pressureval1,pressureval2;
+    double tau01,tau02;
+    
     double epsi;
     const double gravity;
     const double density_interstitial_fluid;
-
+    
     int count;
 };
 #endif

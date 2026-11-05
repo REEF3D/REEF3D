@@ -20,21 +20,21 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "ghostcell.h"
-#include "lexer.h"
-#include "part.h"
+#include"part.h"
+#include"lexer.h"
+#include"ghostcell.h"
 
 void part::xchange_sendid(lexer *p, ghostcell *pgc, int mode)
 {
-    for(q = 0; q < 6; ++q)
-        sendnum[q] = 0;
+    for(q=0;q<6;++q)
+        sendnum[q]=0;
 
     // target sides from xchange_count (the positions have not changed since)
-    for(n = 0; n < index; ++n)
-        if(Flag[n] == ACTIVE && xdest[n] > 0)
-        {
-            q = xdest[n] - 1;
-            sendid[q][sendnum[q]] = n;
-            ++sendnum[q];
-        }
+    for(n=0;n<index;++n)
+    if(Flag[n]==ACTIVE && xdest[n]>0)
+    {
+        q = xdest[n]-1;
+        sendid[q][sendnum[q]]=n;
+        ++sendnum[q];
+    }
 }

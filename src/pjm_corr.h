@@ -23,10 +23,10 @@ Author: Hans Bihs
 #ifndef PJM_CORR_H_
 #define PJM_CORR_H_
 
-#include "field4.h"
-#include "pressure.h"
-#include "pressure_reference.h"
-#include <vector>
+#include"pressure.h"
+#include"pressure_reference.h"
+#include"field4.h"
+#include<vector>
 
 class heat;
 class concentration;
@@ -38,42 +38,45 @@ class pjm_corr final : public pressure, public pressure_reference
 {
 
 public:
-    pjm_corr(lexer *, fdm *, ghostcell *, heat *&, concentration *&);
-    virtual ~pjm_corr();
 
-    void start(fdm *, lexer *p, poisson *, solver *, ghostcell *, ioflow *, field &, field &, field &, double) override final;
-    void ini(lexer *, fdm *, ghostcell *) override final;
-    void amr_prepare(lexer *, fdm *, poisson *, ghostcell *, field &, field &, field &, double);
-    void amr_finish(lexer *, fdm *, ghostcell *, field &, field &, field &, double);
-    void rhs(lexer *, fdm *, ghostcell *, field &, field &, field &, double);
-    void vel_setup(lexer *, fdm *, ghostcell *, field &, field &, field &, double);
-    void presscorr(lexer *p, fdm *a, field &, field &, field &, field &, double);
-    void ucorr(lexer *p, fdm *, field &, double) override final;
-    void vcorr(lexer *p, fdm *, field &, double) override final;
-    void wcorr(lexer *p, fdm *, field &, double) override final;
-    void upgrad(lexer *, fdm *, slice &, slice &) override final;
-    void vpgrad(lexer *, fdm *, slice &, slice &) override final;
-    void wpgrad(lexer *, fdm *, slice &, slice &) override final;
+	pjm_corr(lexer*, fdm*, ghostcell*, heat*&, concentration*&);
+	virtual ~pjm_corr();
+
+	void start(fdm*,lexer* p, poisson*, solver*, ghostcell*, ioflow*, field&, field&, field&,double) override final;
+    void ini(lexer*,fdm*,ghostcell*) override final;
+    void amr_prepare(lexer*,fdm*,poisson*,ghostcell*,field&,field&,field&,double);
+    void amr_finish(lexer*,fdm*,ghostcell*,field&,field&,field&,double);
+	void rhs(lexer*,fdm*,ghostcell*,field&,field&,field&,double);
+	void vel_setup(lexer*,fdm*,ghostcell*,field&,field&,field&,double);
+    void presscorr(lexer*p,fdm *a,field&,field&,field&,field&, double);
+	void ucorr(lexer*p,fdm*,field&,double) override final;
+	void vcorr(lexer*p,fdm*,field&,double) override final;
+	void wcorr(lexer*p,fdm*,field&,double) override final;
+	void upgrad(lexer*,fdm*,slice&,slice&) override final;
+	void vpgrad(lexer*,fdm*,slice&,slice&) override final;
+    void wpgrad(lexer*,fdm*,slice&,slice&) override final;
 
     field4 pcorr;
     field4 pn;
-    std::vector<double> comp_k;  // W 32: the compressibility kappa of every row of the last assembly (0: incompressible; cfd_amr, the synchronisation of G 7 1)
+    std::vector<double> comp_k;    // W 32: the compressibility kappa of every row of the last assembly (0: incompressible; cfd_amr, the synchronisation of G 7 1)
 
 private:
-    void comp_ini(lexer *);
-    void comp_terms(lexer *, fdm *, field &, field &, field &, double);
+    void comp_ini(lexer*);
+    void comp_terms(lexer*,fdm*,field&,field&,field&,double);
     double comp_weight(double);
 
-    double starttime, endtime;
-    double comp_a, comp_r, comp_W, epsi, hn;
-    double cstage, fac_t, fac_c, wt, pabs, kappa, uc, vc, wc, ugradp;
-    int count, gcval_press;
-    int gcval_u, gcval_v, gcval_w;
-
-    void debug(lexer *, fdm *);
-
+	double starttime,endtime;
+    double comp_a,comp_r,comp_W,epsi,hn;
+    double cstage,fac_t,fac_c,wt,pabs,kappa,uc,vc,wc,ugradp;
+	int count, gcval_press;
+	int gcval_u, gcval_v, gcval_w;
+	
+	void debug(lexer*,fdm*);
+    
     density *pd;
 };
+
+
 
 #endif
 

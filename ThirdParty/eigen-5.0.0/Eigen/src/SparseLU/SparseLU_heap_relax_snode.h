@@ -45,79 +45,67 @@ namespace internal {
  * \param descendants Number of descendants of each node in the etree
  * \param relax_end last column in a supernode
  */
-template<typename Scalar, typename StorageIndex>
-void SparseLUImpl<Scalar, StorageIndex>::heap_relax_snode(const Index n, IndexVector &et, const Index relax_columns,
-                                                          IndexVector &descendants, IndexVector &relax_end)
-{
-    // The etree may not be postordered, but its heap ordered
-    IndexVector post;
-    internal::treePostorder(StorageIndex(n), et, post);  // Post order etree
-    IndexVector inv_post(n + 1);
-    for(StorageIndex i = 0; i < n + 1; ++i)
-        inv_post(post(i)) = i;  // inv_post = post.inverse()???
+template <typename Scalar, typename StorageIndex>
+void SparseLUImpl<Scalar, StorageIndex>::heap_relax_snode(const Index n, IndexVector& et, const Index relax_columns,
+                                                          IndexVector& descendants, IndexVector& relax_end) {
+  // The etree may not be postordered, but its heap ordered
+  IndexVector post;
+  internal::treePostorder(StorageIndex(n), et, post);  // Post order etree
+  IndexVector inv_post(n + 1);
+  for (StorageIndex i = 0; i < n + 1; ++i) inv_post(post(i)) = i;  // inv_post = post.inverse()???
 
-    // Renumber etree in postorder
-    IndexVector iwork(n);
-    IndexVector et_save(n + 1);
-    for(Index i = 0; i < n; ++i)
-    {
-        iwork(post(i)) = post(et(i));
+  // Renumber etree in postorder
+  IndexVector iwork(n);
+  IndexVector et_save(n + 1);
+  for (Index i = 0; i < n; ++i) {
+    iwork(post(i)) = post(et(i));
+  }
+  et_save = et;  // Save the original etree
+  et = iwork;
+
+  // compute the number of descendants of each node in the etree
+  relax_end.setConstant(emptyIdxLU);
+  Index j, parent;
+  descendants.setZero();
+  for (j = 0; j < n; j++) {
+    parent = et(j);
+    if (parent != n)  // not the dummy root
+      descendants(parent) += descendants(j) + 1;
+  }
+  // Identify the relaxed supernodes by postorder traversal of the etree
+  Index snode_start;  // beginning of a snode
+  StorageIndex k;
+  StorageIndex l;
+  for (j = 0; j < n;) {
+    parent = et(j);
+    snode_start = j;
+    while (parent != n && descendants(parent) < relax_columns) {
+      j = parent;
+      parent = et(j);
     }
-    et_save = et;  // Save the original etree
-    et = iwork;
-
-    // compute the number of descendants of each node in the etree
-    relax_end.setConstant(emptyIdxLU);
-    Index j, parent;
-    descendants.setZero();
-    for(j = 0; j < n; j++)
+    // Found a supernode in postordered etree, j is the last column
+    k = StorageIndex(n);
+    for (Index i = snode_start; i <= j; ++i) k = (std::min)(k, inv_post(i));
+    l = inv_post(j);
+    if ((l - k) == (j - snode_start))  // Same number of columns in the snode
     {
-        parent = et(j);
-        if(parent != n)  // not the dummy root
-            descendants(parent) += descendants(j) + 1;
+      // This is also a supernode in the original etree
+      relax_end(k) = l;  // Record last column
+    } else {
+      for (Index i = snode_start; i <= j; ++i) {
+        l = inv_post(i);
+        if (descendants(i) == 0) {
+          relax_end(l) = l;
+        }
+      }
     }
-    // Identify the relaxed supernodes by postorder traversal of the etree
-    Index snode_start;  // beginning of a snode
-    StorageIndex k;
-    StorageIndex l;
-    for(j = 0; j < n;)
-    {
-        parent = et(j);
-        snode_start = j;
-        while(parent != n && descendants(parent) < relax_columns)
-        {
-            j = parent;
-            parent = et(j);
-        }
-        // Found a supernode in postordered etree, j is the last column
-        k = StorageIndex(n);
-        for(Index i = snode_start; i <= j; ++i)
-            k = (std::min)(k, inv_post(i));
-        l = inv_post(j);
-        if((l - k) == (j - snode_start))  // Same number of columns in the snode
-        {
-            // This is also a supernode in the original etree
-            relax_end(k) = l;  // Record last column
-        }
-        else
-        {
-            for(Index i = snode_start; i <= j; ++i)
-            {
-                l = inv_post(i);
-                if(descendants(i) == 0)
-                {
-                    relax_end(l) = l;
-                }
-            }
-        }
-        j++;
-        // Search for a new leaf
-        while(descendants(j) != 0 && j < n)
-            j++;
-    }  // End postorder traversal of the etree
+    j++;
+    // Search for a new leaf
+    while (descendants(j) != 0 && j < n) j++;
+  }  // End postorder traversal of the etree
 
-    // Recover the original etree
-    et = et_save;
+  // Recover the original etree
+  et = et_save;
 }
 
 }  // end namespace internal

@@ -20,118 +20,118 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "6DOF.h"
-#include "dem.h"
-#include "fdm_nhf.h"
-#include "ghostcell.h"
-#include "lexer.h"
-#include "nhflow_forcing.h"
-#include "nhflow_geometry.h"
-#include "nhflow_reinidisc_fsf.h"
-#include "vrans.h"
+#include"nhflow_forcing.h"
+#include"lexer.h"
+#include"fdm_nhf.h"
+#include"ghostcell.h"
+#include"nhflow_geometry.h"
+#include"6DOF.h"
+#include"nhflow_reinidisc_fsf.h"
+#include"vrans.h"
+#include"dem.h"
 
-void nhflow_forcing::reforcing(lexer *p, fdm_nhf *d, ghostcell *pgc, sixdof *p6dof,
-                               int iter, double alpha, double *UH, double *VH, double *WH, slice &WL, bool finalize)
+void nhflow_forcing::reforcing(lexer *p, fdm_nhf *d, ghostcell *pgc, sixdof *p6dof, 
+                             int iter, double alpha, double *UH, double *VH, double *WH, slice &WL, bool finalize)
 {
     // impermeable membranes (X 330): loads from the projected velocity
-    if(p->X330 > 0)
-        p6dof->membrane_reaction_nhflow(p, d, pgc, alpha, WL, finalize);
-
+    if(p->X330>0)
+    p6dof->membrane_reaction_nhflow(p,d,pgc,alpha,WL,finalize);
+    
     // DEM: re-impose the resolved particle velocity after the projection
-    if(pdem != nullptr)
-        pdem->forcing_nhflow(p, d, pgc, iter, alpha, UH, VH, WH, WL, finalize, true);
+    if(pdem!=nullptr)
+    pdem->forcing_nhflow(p,d,pgc,iter,alpha,UH,VH,WH,WL,finalize,true);
 
     // nothing to force (no solids, floating bodies, DLM or 6DOF): the remaining
     // halo updates of eta, WL, bed, U, V, W, UH, VH, WH would all be redundant
     // (bed only changes with sediment transport, hence the S10 guard)
-    if(forcing_flag == 0 && solid_flag == 0 && dlm_flag == 0 && p->X10 == 0 && p->S10 == 0)
-        return;
+    if(forcing_flag==0 && solid_flag==0 && dlm_flag==0 && p->X10==0 && p->S10==0)
+    return;
 
-    starttime = pgc->timer();
-
+    starttime=pgc->timer();
+    
     // ini forcing terms
-    reset(p, d, pgc);
-
-    if(solid_flag == 1)
+    reset(p,d,pgc);
+    
+    if(solid_flag==1)
     {
-        // solid forcing
-        solid_forcing(p, d, pgc, alpha, d->U, d->V, d->W, WL);
+    // solid forcing
+    solid_forcing(p,d,pgc,alpha,d->U,d->V,d->W,WL);
     }
-
+    
     // 6DOF forcing
-    p6dof->reforce_nhflow(p, d, pgc, iter, d->U, d->V, d->W, FX, FY, FZ, WL, fe, finalize);
+    p6dof->reforce_nhflow(p,d,pgc,iter,d->U,d->V,d->W,FX,FY,FZ,WL,fe,finalize);
 
-    if(forcing_flag == 1)
+    if(forcing_flag==1)
     {
-        // add forcing term to RHS
-        LOOP
-        {
-            UH[IJK] += alpha * p->dt * CPORNH * FX[IJK] * WL(i, j);
-
-            d->U[IJK] += alpha * p->dt * CPORNH * FX[IJK];
-
-            d->maxF = MAX(fabs(d->maxF), fabs(alpha * p->dt * CPORNH * FX[IJK]));
-        }
-
-        LOOP
-        {
-            VH[IJK] += alpha * p->dt * CPORNH * FY[IJK] * WL(i, j);
-
-            d->V[IJK] += alpha * p->dt * CPORNH * FY[IJK];
-
-            d->maxH = MAX(fabs(d->maxH), fabs(alpha * p->dt * CPORNH * FY[IJK]));
-        }
-
-        LOOP
-        {
-            WH[IJK] += alpha * p->dt * CPORNH * FZ[IJK] * WL(i, j);
-
-            d->W[IJK] += alpha * p->dt * CPORNH * FZ[IJK];
-
-            d->maxG = MAX(fabs(d->maxG), fabs(alpha * p->dt * CPORNH * FZ[IJK]));
-        }
+    // add forcing term to RHS
+    LOOP
+    {
+        UH[IJK]   += alpha*p->dt*CPORNH*FX[IJK]*WL(i,j);
+        
+        d->U[IJK] += alpha*p->dt*CPORNH*FX[IJK];
+        
+        d->maxF = MAX(fabs(d->maxF),fabs(alpha*p->dt*CPORNH*FX[IJK]));
+    }
+    
+    LOOP
+    {
+        VH[IJK]   += alpha*p->dt*CPORNH*FY[IJK]*WL(i,j);
+        
+        d->V[IJK] += alpha*p->dt*CPORNH*FY[IJK];
+        
+        d->maxH = MAX(fabs(d->maxH),fabs(alpha*p->dt*CPORNH*FY[IJK]));
+    }
+    
+    LOOP
+    {
+        WH[IJK]   += alpha*p->dt*CPORNH*FZ[IJK]*WL(i,j);
+        
+        d->W[IJK] += alpha*p->dt*CPORNH*FZ[IJK];
+        
+        d->maxG = MAX(fabs(d->maxG),fabs(alpha*p->dt*CPORNH*FZ[IJK]));
+    }
     }
 
     // DLM
-    if(dlm_flag == 1)
+    if(dlm_flag==1)
     {
-
+        
         LOOP
         {
-            UH[IJK] += alpha * p->dt * CPORNH * FX[IJK] * WL(i, j);
-
-            d->U[IJK] += alpha * p->dt * CPORNH * FX[IJK];
+            UH[IJK] += alpha*p->dt*CPORNH*FX[IJK]*WL(i,j);
+            
+            d->U[IJK] += alpha*p->dt*CPORNH*FX[IJK];
         }
-
+        
         LOOP
         {
-            VH[IJK] += alpha * p->dt * CPORNH * FY[IJK] * WL(i, j);
-
-            d->V[IJK] += alpha * p->dt * CPORNH * FY[IJK];
+            VH[IJK] += alpha*p->dt*CPORNH*FY[IJK]*WL(i,j);
+            
+            d->V[IJK] += alpha*p->dt*CPORNH*FY[IJK];
         }
-
+        
         LOOP
         {
-            WH[IJK] += alpha * p->dt * CPORNH * FZ[IJK] * WL(i, j);
-
-            d->W[IJK] += alpha * p->dt * CPORNH * FZ[IJK];
+            WH[IJK] += alpha*p->dt*CPORNH*FZ[IJK]*WL(i,j);
+            
+            d->W[IJK] += alpha*p->dt*CPORNH*FZ[IJK];
         }
     }
-
-    pgc->gcsl_start4(p, d->eta, gcval_eta);
-    pgc->gcsl_start4(p, WL, gcval_eta);
-    pgc->gcsl_start4(p, d->bed, 1);
-
-    pgc->start4V(p, d->U, gcval_u);
-    pgc->start4V(p, d->V, gcval_v);
-    pgc->start4V(p, d->W, gcval_w);
-
-    pgc->start4V(p, UH, gcval_uh);
-    pgc->start4V(p, VH, gcval_vh);
-    pgc->start4V(p, WH, gcval_wh);
-
-    pgc->gciobc_update(p, d);
-
-    p->dftime += pgc->timer() - starttime;
+    
+    pgc->gcsl_start4(p,d->eta,gcval_eta);
+    pgc->gcsl_start4(p,WL,gcval_eta);
+    pgc->gcsl_start4(p,d->bed,1);
+    
+    pgc->start4V(p,d->U,gcval_u);
+    pgc->start4V(p,d->V,gcval_v);
+    pgc->start4V(p,d->W,gcval_w);
+    
+    pgc->start4V(p,UH,gcval_uh);
+    pgc->start4V(p,VH,gcval_vh);
+    pgc->start4V(p,WH,gcval_wh);
+    
+    pgc->gciobc_update(p,d);
+    
+    p->dftime+=pgc->timer()-starttime;
 }
 

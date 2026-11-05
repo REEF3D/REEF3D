@@ -23,9 +23,9 @@ Author: Hans Bihs
 #ifndef NHFLOW_RECONSTRUCT_WENO_H_
 #define NHFLOW_RECONSTRUCT_WENO_H_
 
-#include "nhflow_reconstruct.h"
-#include "slice4.h"
-#include "weno_nug_func.h"
+#include"nhflow_reconstruct.h"
+#include"weno_nug_func.h"
+#include"slice4.h"
 
 class lexer;
 class ghostcell;
@@ -38,47 +38,47 @@ using namespace std;
 class nhflow_reconstruct_weno final : public nhflow_reconstruct, public weno_nug_func
 {
 public:
-    nhflow_reconstruct_weno(lexer *, patchBC_interface *);
-    virtual ~nhflow_reconstruct_weno();
+	nhflow_reconstruct_weno(lexer*,patchBC_interface*);
+	virtual ~nhflow_reconstruct_weno();
 
-    void reconstruct_2D_x(lexer *, ghostcell *, fdm_nhf *, slice &, slice &, slice &) override final;
-    void reconstruct_2D_y(lexer *, ghostcell *, fdm_nhf *, slice &, slice &, slice &) override final;
-    void reconstruct_2D_WL(lexer *, ghostcell *, fdm_nhf *) override final;
-
-    void reconstruct_3D_x(lexer *, ghostcell *, fdm_nhf *, double *, double *, double *) override final;
-    void reconstruct_3D_y(lexer *, ghostcell *, fdm_nhf *, double *, double *, double *) override final;
-    void reconstruct_3D_z(lexer *, ghostcell *, fdm_nhf *, double *, double *, double *) override final;
-
-    slice4 dfdx, dfdy;
+    void reconstruct_2D_x(lexer*,ghostcell*,fdm_nhf*,slice&,slice&,slice&) override final;
+    void reconstruct_2D_y(lexer*,ghostcell*,fdm_nhf*,slice&,slice&,slice&) override final;
+    void reconstruct_2D_WL(lexer*,ghostcell*,fdm_nhf*) override final;
+    
+    void reconstruct_3D_x(lexer*,ghostcell*,fdm_nhf*,double*,double*,double*) override final;
+    void reconstruct_3D_y(lexer*,ghostcell*,fdm_nhf*,double*,double*,double*) override final;
+    void reconstruct_3D_z(lexer*,ghostcell*,fdm_nhf*,double*,double*,double*) override final;
+    
+    slice4 dfdx,dfdy;
 
 private:
-    inline void iqmin(lexer *, double *);
-    inline void jqmin(lexer *, double *);
-    inline void kqmin(lexer *, double *);
-    inline void iqmax(lexer *, double *);
-    inline void jqmax(lexer *, double *);
-    inline void kqmax(lexer *, double *);
-
-    inline void iqmin_sl(lexer *, slice &);
-    inline void iqmax_sl(lexer *, slice &);
-    inline void jqmin_sl(lexer *, slice &);
-    inline void jqmax_sl(lexer *, slice &);
-
+    inline void iqmin(lexer*, double*);
+	inline void jqmin(lexer*, double*);
+	inline void kqmin(lexer*, double*);
+	inline void iqmax(lexer*, double*);
+	inline void jqmax(lexer*, double*);
+	inline void kqmax(lexer*, double*);
+    
+    inline void iqmin_sl(lexer*, slice&);
+    inline void iqmax_sl(lexer*, slice&);
+    inline void jqmin_sl(lexer*, slice&);
+    inline void jqmax_sl(lexer*, slice&);
+    
     inline double limiter(double, double);
 
     // wetting and drying: the face states of eta whose stencil holds a dry cell (nhflow_reconstruct_hires)
-    void wetdry_x(lexer *, slice &, slice &, slice &);
-    void wetdry_y(lexer *, slice &, slice &, slice &);
-    double slope_wd(lexer *, double, double, double, double, double, int, int);
+    void wetdry_x(lexer*, slice&, slice&, slice&);
+    void wetdry_y(lexer*, slice&, slice&, slice&);
+    double slope_wd(lexer*, double, double, double, double, double, int, int);
 
-    double ivel1, ivel2, jvel1, jvel2;
-    double val, denom;
+    double ivel1,ivel2,jvel1,jvel2;
+    double val,denom;
     double dfdx_min, dfdx_plus, dfdy_min, dfdy_plus, dfdz_min, dfdz_plus;
     int qq;
-    double r, phi, minphi;
-
+    double r, phi,minphi;
+    
     double *DFDX;
-
+    
     patchBC_interface *pBC;
 };
 

@@ -48,93 +48,89 @@ Architect: Hans Bihs
 // smooth viscosity of A 550 3.
 // No breaking in the relaxation zones (ioflow::relax_boxes). Crest log with P 59 1.
 
-#include "breaking_crest3d.h"
-#include "fdm_nhf.h"
-#include "ghostcell.h"
-#include "lexer.h"
-#include "nhflow_breaking.h"
-#include <sys/stat.h>
+#include"nhflow_breaking.h"
+#include"breaking_crest3d.h"
+#include"lexer.h"
+#include"fdm_nhf.h"
+#include"ghostcell.h"
+#include<sys/stat.h>
 
 void nhflow_breaking::breaking_barthelemy(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &eta_n)
 {
     // once per time step, at t^n; the RK stages keep vb
-    if(p->count <= bt_count)
-        return;
+    if(p->count<=bt_count)
+    return;
 
     bt_count = p->count;
 
     const double t = p->simtime;
 
-    if(bt == nullptr)
+    if(bt==nullptr)
     {
         bt = new breaking_crest3d(p);
         bt->Bon = p->A359;
-        bt->slope_end = tan(p->A360 * PI / 180.0);
+        bt->slope_end = tan(p->A360*PI/180.0);
         bt->deep = p->A367;
-        bt->Tdom = (p->B90 > 0) ? ((p->wTp > 0.0) ? p->wTp : p->wT) : 0.0;
+        bt->Tdom = (p->B90>0) ? ((p->wTp>0.0) ? p->wTp : p->wT) : 0.0;
     }
 
-    bt->Hmin = 2.0 * p->A544;
+    bt->Hmin = 2.0*p->A544;
 
     // horizontal velocity at the surface: the top layer extrapolated linearly from the two top layers
-    const int kt = p->knoz - 1;
+    const int kt = p->knoz-1;
 
-    auto idx = [&](int ii, int jj, int kk)
-    { return (ii - p->imin) * p->jmax * p->kmax + (jj - p->jmin) * p->kmax + kk - p->kmin; };
+    auto idx = [&](int ii, int jj, int kk) { return (ii-p->imin)*p->jmax*p->kmax + (jj-p->jmin)*p->kmax + kk-p->kmin; };
 
     SLICELOOP4
     {
-        double u1 = d->U[idx(i, j, kt)];
-        double v1 = d->V[idx(i, j, kt)];
+        double u1 = d->U[idx(i,j,kt)];
+        double v1 = d->V[idx(i,j,kt)];
 
-        if(kt > 0)
+        if(kt>0)
         {
-            const double z1 = p->ZP[kt + marge], z0 = p->ZP[kt - 1 + marge];
-            const double f = (1.0 - z1) / (z1 - z0);
+            const double z1 = p->ZP[kt+marge], z0 = p->ZP[kt-1+marge];
+            const double f = (1.0-z1)/(z1-z0);
 
-            u1 += (u1 - d->U[idx(i, j, kt - 1)]) * f;
-            v1 += (v1 - d->V[idx(i, j, kt - 1)]) * f;
+            u1 += (u1 - d->U[idx(i,j,kt-1)])*f;
+            v1 += (v1 - d->V[idx(i,j,kt-1)])*f;
         }
 
-        bt_us(i, j) = (p->wet[IJ] == 1) ? u1 : 0.0;
-        bt_vs(i, j) = (p->wet[IJ] == 1 && p->j_dir == 1) ? v1 : 0.0;
+        bt_us(i,j) = (p->wet[IJ]==1) ? u1 : 0.0;
+        bt_vs(i,j) = (p->wet[IJ]==1 && p->j_dir==1) ? v1 : 0.0;
     }
 
-    pgc->gcsl_start4(p, bt_us, 1);
-    pgc->gcsl_start4(p, bt_vs, 1);
+    pgc->gcsl_start4(p,bt_us,1);
+    pgc->gcsl_start4(p,bt_vs,1);
 
-    bt->detect(p, pgc, eta_n, bt_us, bt_vs, d->WL, brkzone_built ? brkzone.V : nullptr, t);
+    bt->detect(p,pgc,eta_n,bt_us,bt_vs,d->WL,brkzone_built ? brkzone.V : nullptr,t);
 
     // the seed: front faces and bands of the breaking crest points, with their wavenumber
     // painted behind the crest: A 502 L_k, L_k = tanh(k h)/k (h in shallow water; A 502 h reached over the trough
     // behind the crest in deep water)
-    auto sback = [&](const bc3_point &R)
-    { return p->A502 * ((R.kw > 0.0) ? tanh(R.kw * R.wl) / R.kw : R.wl); };
-    auto integrand = [&](const bc3_point &R, double x, double y)
-    { return 1.0; };
-    auto epsf = [&](const bc3_point &R)
-    { return 1.0; };
+    auto sback = [&](const bc3_point &R) { return p->A502*((R.kw>0.0) ? tanh(R.kw*R.wl)/R.kw : R.wl); };
+    auto integrand = [&](const bc3_point &R, double x, double y) { return 1.0; };
+    auto epsf = [&](const bc3_point &R) { return 1.0; };
 
     SLICELOOP4
     {
-        bt_vbs(i, j) = 0.0;
-        brkkseed(i, j) = 0.0;
-        brkseed(i, j) = 0;
+        bt_vbs(i,j) = 0.0;
+        brkkseed(i,j) = 0.0;
+        brkseed(i,j) = 0;
     }
 
-    bt->rays(p, pgc, eta_n, d->WL, t, sback, integrand, epsf, bt_vbs, brkseed.V, &brkkseed);
+    bt->rays(p,pgc,eta_n,d->WL,t,sback,integrand,epsf,bt_vbs,brkseed.V,&brkkseed);
 
-    pgc->gcsl_start4int(p, brkseed, 50);
-    pgc->gcsl_start4(p, brkkseed, 1);
+    pgc->gcsl_start4int(p,brkseed,50);
+    pgc->gcsl_start4(p,brkkseed,1);
 
-    if(p->P59 == 1)
+    if(p->P59==1)
     {
-        if(p->mpirank == 0)
-            mkdir("./REEF3D_NHFLOW_Breaking_Log", 0777);
+        if(p->mpirank==0)
+        mkdir("./REEF3D_NHFLOW_Breaking_Log",0777);
 
-        bt->log(p, t, "./REEF3D_NHFLOW_Breaking_Log/REEF3D-NHFLOW-Breaking-Crests.dat");
+        bt->log(p,t,"./REEF3D_NHFLOW_Breaking_Log/REEF3D-NHFLOW-Breaking-Crests.dat");
     }
 
-    if(p->mpirank == 0 && (p->count % p->P12 == 0))
-        cout << "breaking crest points: " << bt->nbreak << endl;
+    if(p->mpirank==0 && (p->count%p->P12==0))
+    cout<<"breaking crest points: "<<bt->nbreak<<endl;
 }

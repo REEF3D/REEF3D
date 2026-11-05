@@ -20,68 +20,71 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "fdm.h"
-#include "ghostcell.h"
-#include "ioflow_f.h"
-#include "ioflow_gcio.h"
-#include "lexer.h"
-#include "patchBC_interface.h"
-#include "vrans.h"
+#include"ioflow_gcio.h"
+#include"ioflow_f.h"
+#include"lexer.h"
+#include"fdm.h"
+#include"ghostcell.h"
+#include"vrans.h"
+#include"patchBC_interface.h"
 
 void ioflow_f::gcio_update(lexer *p, fdm *a, ghostcell *pgc)
 {
-    ioflow_gcio_lists(p, p->flagsf4, nullptr);
+    ioflow_gcio_lists(p,p->flagsf4,nullptr);
 
-    if(p->I10 == 1 && p->count == 0)
-        velini(p, a, pgc);
+    if(p->I10==1 && p->count==0)
+    velini(p,a,pgc);
 
-    ioflow_gcio_marks(p, p->flagsf4, pBC);
+    ioflow_gcio_marks(p,p->flagsf4,pBC);
 }
+
 
 void ioflow_f::gcio_update_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
-    ioflow_gcio_lists(p, p->DF, p->wet);
+    ioflow_gcio_lists(p,p->DF,p->wet);
 
-    ioflow_gcio_marks(p, p->DF, pBC);
+    ioflow_gcio_marks(p,p->DF,pBC);
 }
 
 void ioflow_f::inflow_walldist(lexer *p, fdm *a, ghostcell *pgc, convection *pconvec, reini *preini, ioflow *pflow)
 {
 
-    p->del_Darray(walldin, walldin_size);
-    p->del_Darray(walldout, walldout_size);
-
-    walldin_size = p->gcin_count;
-    walldout_size = p->gcout_count;
-
-    p->Darray(walldin, walldin_size);
+	p->del_Darray(walldin, walldin_size);
+	p->del_Darray(walldout, walldout_size);
+	
+	walldin_size=p->gcin_count;
+	walldout_size=p->gcout_count;
+	
+	p->Darray(walldin, walldin_size);
     p->Darray(walldout, walldout_size);
 
-    for(n = 0; n < p->gcin_count; ++n)
+
+    for(n=0;n<p->gcin_count;++n)
     {
-        i = p->gcin[n][0];
-        j = p->gcin[n][1];
-        k = p->gcin[n][2];
-        walldin[n] = a->walld(i, j, k);
+    i=p->gcin[n][0];
+    j=p->gcin[n][1];
+    k=p->gcin[n][2];
+    walldin[n] = a->walld(i,j,k);
     }
 
-    for(n = 0; n < p->gcout_count; ++n)
+    for(n=0;n<p->gcout_count;++n)
     {
-        i = p->gcout[n][0];
-        j = p->gcout[n][1];
-        k = p->gcout[n][2];
+    i=p->gcout[n][0];
+    j=p->gcout[n][1];
+    k=p->gcout[n][2];
 
-        walldout[n] = a->walld(i, j, k);
+    walldout[n] = a->walld(i,j,k);
     }
 }
 
 void ioflow_f::veltimesave(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
 {
-    pvrans->veltimesave(p, a, pgc);
+    pvrans->veltimesave(p,a,pgc);
 }
 
-void ioflow_f::vrans_sed_update(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
+void ioflow_f::vrans_sed_update(lexer *p,fdm *a,ghostcell *pgc, vrans *pvrans)
 {
-    pvrans->sed_update(p, a, pgc);
+    pvrans->sed_update(p,a,pgc);
 }
+
 

@@ -23,39 +23,38 @@ Author: Alexander Hanke
 #ifndef SLICE_BASE_H_
 #define SLICE_BASE_H_
 
-#include "ckpt_registry.h"
 #include "lexer.h"
+#include "ckpt_registry.h"
 #include <type_traits>
 
 template<typename T>
 class slice_base
 {
 public:
-    slice_base(lexer *p) : imin(p->imin), imax(p->imax), jmin(p->jmin), jmax(p->jmax)
+    slice_base(lexer* p) : imin(p->imin), imax(p->imax), jmin(p->jmin), jmax(p->jmax)
     {
-        V = new T[imax * jmax]{};
-        ckid = ckpt_registry::add(p, 'S', std::is_same<T, int>::value, V);
+        V = new T[imax*jmax] {};
+        ckid = ckpt_registry::add(p,'S',std::is_same<T,int>::value,V);
     }
     virtual ~slice_base()
     {
         ckpt_registry::remove(ckid);
-        delete[] V;
+        delete [] V;
         V = nullptr;
     }
 
-    slice_base(const slice_base &) = delete;
-    slice_base &operator=(const slice_base &) = delete;
-    slice_base(slice_base &&) = delete;
-    slice_base &operator=(slice_base &&) = delete;
+    slice_base(const slice_base&) = delete;
+    slice_base& operator=(const slice_base&) = delete;
+    slice_base(slice_base&&) = delete;
+    slice_base& operator=(slice_base&&) = delete;
 
-    inline T &operator()(int ii, int jj) noexcept { return V[(ii - imin) * jmax + (jj - jmin)]; };
-    inline T &operator[](int n) noexcept { return V[n]; };
+    inline T& operator()(int ii, int jj) noexcept {return V[(ii-imin)*jmax + (jj-jmin)];};
+    inline T& operator[](int n) noexcept {return V[n];};
 
     T *V;
-
 protected:
-    const int imin, imax, jmin, jmax;
-    unsigned long long ckid = 0;  // checkpoints (ckpt_registry.h)
+    const int imin,imax,jmin,jmax;
+    unsigned long long ckid = 0;    // checkpoints (ckpt_registry.h)
 };
 
 #endif

@@ -23,9 +23,9 @@ Architect: Hans Bihs
 #ifndef MET_FILE_H_
 #define MET_FILE_H_
 
-#include <fstream>
-#include <string>
-#include <vector>
+#include<fstream>
+#include<string>
+#include<vector>
 
 /*--------------------------------------------------------------------
 REEF3D atmospheric forcing (W 200 2): reader of the binary met file
@@ -93,22 +93,18 @@ public:
 
     // the two loaded records (q = 0, 1): time, origin, values at a point (bilinear, clamped), time weight
     // (storm-relative time interpolation of the blend W 227 1)
-    double rec_time(int q) const { return rec[q].t; }
-    void rec_origin(int q, double &ox, double &oy) const
-    {
-        ox = rec[q].xr0;
-        oy = rec[q].yr0;
-    }
-    void at_record(int q, double x, double y, double &u, double &v, double &pa) const { space(rec[q], x, y, u, v, pa); }
-    double time_weight(double t) const { return weight(t); }
+    double rec_time(int q) const {return rec[q].t;}
+    void rec_origin(int q, double &ox, double &oy) const {ox = rec[q].xr0;  oy = rec[q].yr0;}
+    void at_record(int q, double x, double y, double &u, double &v, double &pa) const {space(rec[q],x,y,u,v,pa);}
+    double time_weight(double t) const {return weight(t);}
 
-    double time(int n) const { return times[n]; }
+    double time(int n) const {return times[n];}
 
     int nx = 0, ny = 0, nvar = 0, moving = 0, nrec = 0, frame = 0, epsg = 0;
     double x0 = 0.0, y0 = 0.0, dx = 1.0, dy = 1.0;
     double lon0 = 0.0, lat0 = 0.0, rot = 0.0, X0 = 0.0, Y0 = 0.0, avg = 0.0;
 
-    long long values_read = 0;  // floats read so far (log, unit test)
+    long long values_read = 0;      // floats read so far (log, unit test)
 
     static const int header_bytes = 144;
     static const int record_head_bytes = 32;
@@ -116,9 +112,9 @@ public:
 private:
     struct record
     {
-        int n = -1;  // record number, -1: not loaded
+        int n = -1;                 // record number, -1: not loaded
         double t = 0.0, xr0 = 0.0, yr0 = 0.0;
-        int i0 = 0, i1 = -1, j0 = 0, j1 = -1;  // window of nodes, inclusive
+        int i0 = 0, i1 = -1, j0 = 0, j1 = -1;   // window of nodes, inclusive
         std::vector<float> u, v, pa;
     };
 

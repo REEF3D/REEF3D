@@ -35,8 +35,9 @@ class picard
 public:
     virtual ~picard() = default;
 
-    virtual void volcalc(lexer *, fdm *, ghostcell *, field &) = 0;
-    virtual void correct_ls(lexer *, fdm *, ghostcell *, field &) = 0;
+    virtual void volcalc(lexer*, fdm*, ghostcell*, field&)=0;
+    virtual void correct_ls(lexer*, fdm*, ghostcell*, field&)=0;
+
 };
 
 #endif

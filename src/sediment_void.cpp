@@ -20,22 +20,24 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "sediment_void.h"
+#include"sediment_void.h"
 
 sediment_void::sediment_void()
 {
+
 }
 
 sediment_void::~sediment_void()
 {
+
 }
 
 void sediment_void::start_cfd(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow,
-                              reinitopo *preto, solver *psolv)
+                                    reinitopo *preto, solver *psolv)
 {
 }
 
-void sediment_void::ini_cfd(lexer *p, fdm *a, ghostcell *pgc)
+void sediment_void::ini_cfd(lexer *p, fdm *a,ghostcell *pgc)
 {
 }
 
@@ -47,15 +49,15 @@ void sediment_void::ini_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
 }
 
-void sediment_void::start_sflow(lexer *p, fdm2D *b, ghostcell *pgc, ioflow *, slice &P, slice &Q)
+void sediment_void::start_sflow(lexer *p, fdm2D *b, ghostcell *pgc, ioflow*, slice &P, slice &Q)
 {
 }
 
 void sediment_void::ini_sflow(lexer *p, fdm2D *b, ghostcell *pgc)
 {
 }
-
-void sediment_void::update_cfd(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow, reinitopo *)
+    
+void sediment_void::update_cfd(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow, reinitopo*)
 {
 }
 
@@ -67,13 +69,13 @@ void sediment_void::update_sflow(lexer *p, fdm2D *b, ghostcell *pgc, ioflow *pfl
 {
 }
 
-void sediment_void::relax(lexer *p, ghostcell *pgc)
+void sediment_void::relax(lexer *p,ghostcell *pgc)
 {
 }
 
 double sediment_void::qbeval(int ii, int jj)
 {
-    double val = 0.0;
+    double val=0.0;
 
     return val;
 }
@@ -84,17 +86,17 @@ void sediment_void::qbeget(int ii, int jj, double val)
 
 double sediment_void::bedzhval(int ii, int jj)
 {
-    double val = 0.0;
+    double val=0.0;
 
     return val;
 }
 
-void sediment_void::print_2D_bedload(lexer *p, ghostcell *pgc, std::ostream &result)
-{
+void sediment_void::print_2D_bedload(lexer* p, ghostcell *pgc, std::ostream &result)
+{	
 }
 
-void sediment_void::print_3D_bedload(lexer *p, ghostcell *pgc, std::vector<char> &buffer, size_t &m)
-{
+void sediment_void::print_3D_bedload(lexer* p, ghostcell *pgc, std::vector<char> &buffer, size_t &m)
+{	
 }
 
 void sediment_void::name_ParaView_parallel_bedload(lexer *p, ofstream &result)
@@ -113,12 +115,12 @@ void sediment_void::offset_ParaView_bedload(lexer *p, int *offset, int &n)
 {
 }
 
-void sediment_void::print_2D_bedshear(lexer *p, ghostcell *pgc, std::ostream &result)
-{
+void sediment_void::print_2D_bedshear(lexer* p, ghostcell *pgc, std::ostream &result)
+{	
 }
 
-void sediment_void::print_3D_bedshear(lexer *p, ghostcell *pgc, std::vector<char> &buffer, size_t &m)
-{
+void sediment_void::print_3D_bedshear(lexer* p, ghostcell *pgc, std::vector<char> &buffer, size_t &m)
+{	
 }
 
 void sediment_void::name_ParaView_parallel_bedshear(lexer *p, ofstream &result)
@@ -137,12 +139,12 @@ void sediment_void::offset_ParaView_bedshear(lexer *p, int *offset, int &n)
 {
 }
 
-void sediment_void::print_2D_parameter1(lexer *p, ghostcell *pgc, std::ostream &result)
-{
+void sediment_void::print_2D_parameter1(lexer* p, ghostcell *pgc, std::ostream &result)
+{	
 }
 
-void sediment_void::print_3D_parameter1(lexer *p, ghostcell *pgc, std::vector<char> &buffer, size_t &m)
-{
+void sediment_void::print_3D_parameter1(lexer* p, ghostcell *pgc, std::vector<char> &buffer, size_t &m)
+{	
 }
 
 void sediment_void::name_ParaView_parallel_parameter1(lexer *p, ofstream &result)
@@ -161,12 +163,12 @@ void sediment_void::offset_ParaView_parameter1(lexer *p, int *offset, int &n)
 {
 }
 
-void sediment_void::print_2D_parameter2(lexer *p, ghostcell *pgc, std::ostream &result)
-{
+void sediment_void::print_2D_parameter2(lexer* p, ghostcell *pgc, std::ostream &result)
+{	
 }
 
-void sediment_void::print_3D_parameter2(lexer *p, ghostcell *pgc, std::vector<char> &buffer, size_t &m)
-{
+void sediment_void::print_3D_parameter2(lexer* p, ghostcell *pgc, std::vector<char> &buffer, size_t &m)
+{	
 }
 
 void sediment_void::name_ParaView_parallel_parameter2(lexer *p, ofstream &result)
@@ -187,7 +189,7 @@ void sediment_void::offset_ParaView_parameter2(lexer *p, int *offset, int &n)
 
 double sediment_void::bedshear_point(lexer *p, ghostcell *pgc)
 {
-    return 0.0;
+	return 0.0;
 }
 
 void sediment_void::start_susp(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow, solver *psolv)
@@ -198,6 +200,7 @@ void sediment_void::start_susp_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, iofl
 {
 }
 
-void sediment_void::ctimesave(lexer *p, fdm *a)
+void sediment_void::ctimesave(lexer *p, fdm* a)
 {
+
 }

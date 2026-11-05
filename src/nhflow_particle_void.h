@@ -23,7 +23,7 @@ Author: Hans Bihs
 #ifndef NHFLOW_PARTICLE_VOID_H_
 #define NHFLOW_PARTICLE_VOID_H_
 
-#include "nhflow_particle.h"
+#include"nhflow_particle.h"
 
 class nhflow_particle_void : public nhflow_particle
 {
@@ -31,9 +31,9 @@ public:
     nhflow_particle_void() = default;
     virtual ~nhflow_particle_void() = default;
 
-    void ini(lexer *, fdm_nhf *, ghostcell *) override {}
-    void step_begin(lexer *, fdm_nhf *, ghostcell *) override {}
-    void step_end(lexer *, fdm_nhf *, ghostcell *) override {}
+    void ini(lexer*, fdm_nhf*, ghostcell*) override {}
+    void step_begin(lexer*, fdm_nhf*, ghostcell*) override {}
+    void step_end(lexer*, fdm_nhf*, ghostcell*) override {}
 };
 
 #endif

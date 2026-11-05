@@ -20,19 +20,20 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "fdm2D.h"
-#include "lexer.h"
-#include "sflow_rheology_f.h"
+#include"sflow_rheology_f.h"
+#include"lexer.h"
+#include"fdm2D.h"
 
 double sflow_rheology_f::bingham(lexer *p, fdm2D *b, double vel, double u_abs, double press, double HIJ)
 {
-    if(p->W101 == 0)  // HB
-        tau0 = p->W96;
-
-    else                                              // HB-C dry sand; W101>=2 variants need a shear rate, fall back to Mohr-Coulomb
-        tau0 = MAX(0.0, tanphi * press + p->W102_c);  //*(1.0-exp(-p->W103*vel));
-
-    val = (1.5 * tau0 + 3.0 * p->W97 * (1.0 / HIJ) * u_abs) * (vel / (fabs(u_abs) > 1.0e-20 ? u_abs : 1.0e20));
-
+        if(p->W101==0)  // HB
+        tau0=p->W96;
+        
+        else  // HB-C dry sand; W101>=2 variants need a shear rate, fall back to Mohr-Coulomb
+        tau0 = MAX(0.0,tanphi*press + p->W102_c);//*(1.0-exp(-p->W103*vel));
+    
+    val = (1.5*tau0 + 3.0*p->W97*(1.0/HIJ)*u_abs)*(vel/(fabs(u_abs)>1.0e-20?u_abs:1.0e20));
+    
+    
     return val;
 }

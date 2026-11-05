@@ -20,16 +20,16 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "fdm_seastate.h"
-#include "ghostcell.h"
-#include "lexer.h"
-#include "seastate_dispersion.h"
-#include "seastate_f.h"
-#include "seastate_grid.h"
-#include "seastate_implicit.h"
-#include "seastate_store.h"
-#include <algorithm>
-#include <functional>
+#include"seastate_f.h"
+#include"fdm_seastate.h"
+#include"seastate_grid.h"
+#include"seastate_store.h"
+#include"seastate_dispersion.h"
+#include"seastate_implicit.h"
+#include"lexer.h"
+#include"ghostcell.h"
+#include<algorithm>
+#include<functional>
 
 /*--------------------------------------------------------------------
 Kinematics of the spectral grid: wave number k and group velocity cg
@@ -51,96 +51,95 @@ these quantities (plan Section 6: no per-bin velocity arrays):
 // local cell (i,j) is (i+gi0, j+gj0), the domain has gnx x gny cells
 static int status(int i, int j, sliceint &wet, int gi0, int gj0, int gnx, int gny)
 {
-    if(wet(i, j) == 1)
-        return 1;
+    if(wet(i,j)==1)
+    return 1;
 
     const int gi = i + gi0;
     const int gj = j + gj0;
 
-    if(gi < 0 || gi >= gnx || gj < 0 || gj >= gny)
-        return 0;
+    if(gi<0 || gi>=gnx || gj<0 || gj>=gny)
+    return 0;
 
     return -1;
 }
 
 void seastate_f::kinematics(lexer *p, ghostcell *pgc, double dt_depth)
 {
-    seastate_kinematics(p, e, dt_depth, p->origin_i, p->origin_j, p->gknox, p->gknoy, p->A798);
+    seastate_kinematics(p,e,dt_depth,p->origin_i,p->origin_j,p->gknox,p->gknoy,p->A798);
 }
 
 // also for the patches of the mesh refinement (seastate_amr): global index and size of their level. Every cell
 // writes only its own values: the rows are shared out to nt threads (Phase 13)
 void seastate_kinematics(lexer *p, fdm_seastate *e, double dt_depth, int gi0, int gj0, int gnx, int gny, int nt)
 {
-    auto status = [&](lexer *pp, int ii, int jj)
-    { return ::status(ii, jj, e->wet, gi0, gj0, gnx, gny); };
+    auto status = [&](lexer *pp, int ii, int jj) {return ::status(ii,jj,e->wet,gi0,gj0,gnx,gny);};
     const seastate_grid &g = *e->grid;
-    const int ni = p->knox + 2 * p->margin;
-    nt = std::max(1, std::min(nt, ni));
+    const int ni = p->knox+2*p->margin;
+    nt = std::max(1,std::min(nt,ni));
 
     const std::function<void(int)> job = [&](int t)
     {
-        for(int i = -p->margin + t; i < p->knox + p->margin; i += nt)
-            for(int j = -p->margin; j < p->knoy + p->margin; ++j)
+    for(int i=-p->margin+t; i<p->knox+p->margin; i+=nt)
+    for(int j=-p->margin; j<p->knoy+p->margin; ++j)
+    {
+        // k and cg
+        float *kk = e->kw->spec(i,j);
+        float *cc = e->cg->spec(i,j);
+
+        if(kk!=nullptr)
+        {
+            for(int l=0; l<g.nsig; ++l)
             {
-                // k and cg
-                float *kk = e->kw->spec(i, j);
-                float *cc = e->cg->spec(i, j);
-
-                if(kk != nullptr)
+                if(e->wet(i,j)==1)
                 {
-                    for(int l = 0; l < g.nsig; ++l)
-                    {
-                        if(e->wet(i, j) == 1)
-                        {
-                            const double k = seastate_wavenumber(g.sig[l], e->depth(i, j));
-                            kk[l] = float(k);
-                            cc[l] = float(seastate_cg(g.sig[l], k, e->depth(i, j)));
-                        }
-                        else
-                            kk[l] = cc[l] = 0.0f;
-                    }
+                const double k = seastate_wavenumber(g.sig[l],e->depth(i,j));
+                kk[l] = float(k);
+                cc[l] = float(seastate_cg(g.sig[l],k,e->depth(i,j)));
                 }
-
-                e->ddx(i, j) = e->ddy(i, j) = e->dUdx(i, j) = e->dUdy(i, j) = e->dVdx(i, j) = e->dVdy(i, j) = e->dddt(i, j) = 0.0;
-                e->refr(i, j) = 0;
-
-                // gradients: central differences; one-sided next to the edge of the domain; refraction and
-                // frequency shift off next to land or dry cells (as SWAN)
-                if(e->wet(i, j) == 1 && i > -p->margin && i < p->knox + p->margin - 1 && j > -p->margin && j < p->knoy + p->margin - 1)
-                {
-                    const int sw = status(p, i - 1, j), se = status(p, i + 1, j), ss = status(p, i, j - 1), sn = status(p, i, j + 1);
-
-                    if(sw >= 0 && se >= 0 && ss >= 0 && sn >= 0)
-                    {
-                        const int iw = sw == 1 ? i - 1 : i, ie = se == 1 ? i + 1 : i;
-                        const int js = ss == 1 ? j - 1 : j, jn = sn == 1 ? j + 1 : j;
-
-                        if(ie > iw)
-                        {
-                            const double rdx = 1.0 / (p->XP[ie + increment::marge] - p->XP[iw + increment::marge]);
-                            e->ddx(i, j) = (e->depth(ie, j) - e->depth(iw, j)) * rdx;
-                            e->dUdx(i, j) = (e->U(ie, j) - e->U(iw, j)) * rdx;
-                            e->dVdx(i, j) = (e->V(ie, j) - e->V(iw, j)) * rdx;
-                        }
-
-                        if(jn > js)
-                        {
-                            const double rdy = 1.0 / (p->YP[jn + increment::marge] - p->YP[js + increment::marge]);
-                            e->ddy(i, j) = (e->depth(i, jn) - e->depth(i, js)) * rdy;
-                            e->dUdy(i, j) = (e->U(i, jn) - e->U(i, js)) * rdy;
-                            e->dVdy(i, j) = (e->V(i, jn) - e->V(i, js)) * rdy;
-                        }
-
-                        if(dt_depth > 0.0)
-                            e->dddt(i, j) = (e->depth(i, j) - e->depth_n(i, j)) / dt_depth;
-
-                        e->refr(i, j) = 1;
-                    }
-                }
-
-                e->depth_n(i, j) = e->depth(i, j);
+                else
+                kk[l] = cc[l] = 0.0f;
             }
+        }
+
+    e->ddx(i,j)=e->ddy(i,j)=e->dUdx(i,j)=e->dUdy(i,j)=e->dVdx(i,j)=e->dVdy(i,j)=e->dddt(i,j)=0.0;
+    e->refr(i,j)=0;
+
+        // gradients: central differences; one-sided next to the edge of the domain; refraction and
+        // frequency shift off next to land or dry cells (as SWAN)
+        if(e->wet(i,j)==1 && i>-p->margin && i<p->knox+p->margin-1 && j>-p->margin && j<p->knoy+p->margin-1)
+        {
+        const int sw = status(p,i-1,j), se = status(p,i+1,j), ss = status(p,i,j-1), sn = status(p,i,j+1);
+
+            if(sw>=0 && se>=0 && ss>=0 && sn>=0)
+            {
+            const int iw = sw==1 ? i-1 : i, ie = se==1 ? i+1 : i;
+            const int js = ss==1 ? j-1 : j, jn = sn==1 ? j+1 : j;
+
+                if(ie>iw)
+                {
+                const double rdx = 1.0/(p->XP[ie+increment::marge]-p->XP[iw+increment::marge]);
+                e->ddx(i,j)  = (e->depth(ie,j)-e->depth(iw,j))*rdx;
+                e->dUdx(i,j) = (e->U(ie,j)-e->U(iw,j))*rdx;
+                e->dVdx(i,j) = (e->V(ie,j)-e->V(iw,j))*rdx;
+                }
+
+                if(jn>js)
+                {
+                const double rdy = 1.0/(p->YP[jn+increment::marge]-p->YP[js+increment::marge]);
+                e->ddy(i,j)  = (e->depth(i,jn)-e->depth(i,js))*rdy;
+                e->dUdy(i,j) = (e->U(i,jn)-e->U(i,js))*rdy;
+                e->dVdy(i,j) = (e->V(i,jn)-e->V(i,js))*rdy;
+                }
+
+                if(dt_depth>0.0)
+                e->dddt(i,j) = (e->depth(i,j)-e->depth_n(i,j))/dt_depth;
+
+            e->refr(i,j) = 1;
+            }
+        }
+
+    e->depth_n(i,j) = e->depth(i,j);
+    }
     };
-    seastate_implicit::run_threads(nt, job);
+    seastate_implicit::run_threads(nt,job);
 }

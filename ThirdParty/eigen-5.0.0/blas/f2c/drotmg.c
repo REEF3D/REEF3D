@@ -12,8 +12,7 @@
 
 #include "datatypes.h"
 
-/* Subroutine */ void drotmg_(doublereal *dd1, doublereal *dd2, doublereal *dx1,
-                              doublereal *dy1, doublereal *dparam) {
+/* Subroutine */ void drotmg_(doublereal *dd1, doublereal *dd2, doublereal *dx1, doublereal *dy1, doublereal *dparam) {
   /* Initialized data */
 
   static doublereal zero = 0.;
@@ -186,14 +185,14 @@ L80:
   dflag = -one;
 L90:
   switch (igo) {
-  case 0:
-    goto L120;
-  case 1:
-    goto L150;
-  case 2:
-    goto L180;
-  case 3:
-    goto L210;
+    case 0:
+      goto L120;
+    case 1:
+      goto L150;
+    case 2:
+      goto L180;
+    case 3:
+      goto L210;
   }
 /*     PROCEDURE..SCALE-CHECK */
 L100:

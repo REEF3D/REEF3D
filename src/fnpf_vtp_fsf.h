@@ -23,8 +23,8 @@ Author: Hans Bihs
 #ifndef FNPF_VTP_FSF_H_
 #define FNPF_VTP_FSF_H_
 
-#include "increment.h"
-#include "vtp3D.h"
+#include"increment.h"
+#include"vtp3D.h"
 
 class lexer;
 class fdm_fnpf;
@@ -36,18 +36,18 @@ using namespace std;
 class fnpf_vtp_fsf : public increment, private vtp3D
 {
 public:
-    int &print_counter() { return printcount; }  // checkpoints (P 48, I 45)
-    fnpf_vtp_fsf(lexer *, fdm_fnpf *, ghostcell *);
+    int& print_counter() { return printcount; }   // checkpoints (P 48, I 45)
+    fnpf_vtp_fsf(lexer*,fdm_fnpf*,ghostcell*);
     virtual ~fnpf_vtp_fsf() = default;
 
-    void start(lexer *, fdm_fnpf *, ghostcell *);
+    void start(lexer*,fdm_fnpf*,ghostcell*);
 
 private:
-    void print2D(lexer *, fdm_fnpf *, ghostcell *);
-    void pvtp(lexer *, int);
+    void print2D(lexer*,fdm_fnpf*,ghostcell*);
+    void pvtp(lexer*,int);
 
     char name[200];
-    int n, offset[200];
+    int n,offset[200];
 
     int gcval_eta, gcval_fifsf;
     int printcount;

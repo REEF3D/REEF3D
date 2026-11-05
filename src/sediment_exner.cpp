@@ -20,310 +20,333 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "sediment_exner.h"
-#include "ckpt_pack.h"
-#include "ghostcell.h"
-#include "lexer.h"
-#include "sediment_cds.h"
-#include "sediment_cds_hj.h"
-#include "sediment_fdm.h"
-#include "sediment_fou.h"
-#include "sediment_inflow.h"
-#include "sediment_mixture.h"
-#include "sediment_weno_hj.h"
-#include "sediment_wenoflux.h"
-#include "sflow_bicgstab.h"
-#include "topo_relax.h"
-#include <math.h>
+#include"sediment_exner.h"
+#include"ckpt_pack.h"
+#include"lexer.h"
+#include"ghostcell.h"
+#include"sediment_fdm.h"
+#include"topo_relax.h"
+#include"sediment_fou.h"
+#include"sediment_cds.h"
+#include"sediment_cds_hj.h"
+#include"sediment_wenoflux.h"
+#include"sediment_weno_hj.h"
+#include"sflow_bicgstab.h"
+#include"sediment_mixture.h"
+#include"sediment_inflow.h"
+#include<math.h>
 
-sediment_exner::sediment_exner(lexer *p, ghostcell *pgc) : q0(p), xvec(p), rhsvec(p), M(p), qbx(p), qby(p), qbn(p), cxn(p), cyn(p), bK(p), btd(p), bu(p), bv(p), bz(p), bg(p), lagfix(p), lagval(p), Ie(p), Isp(p), qse(p), qsn(p), qbb(p), lss(p), lsa(p)
+sediment_exner::sediment_exner(lexer* p, ghostcell* pgc) : q0(p),xvec(p),rhsvec(p),M(p),qbx(p),qby(p),qbn(p),cxn(p),cyn(p),bK(p),btd(p),bu(p),bv(p),bz(p),bg(p),lagfix(p),lagval(p),Ie(p),Isp(p),qse(p),qsn(p),qbb(p),lss(p),lsa(p)
 {
     p_S95 = p->S95;
-    noneq_ini = 0;
-
+    noneq_ini=0;
+    
     SLICEBASELOOP
     {
-        Isp(i, j) = qsn(i, j) = Ie(i, j) = qse(i, j) = qbb(i, j) = lss(i, j) = lsa(i, j) = lagfix(i, j) = lagval(i, j) = 0.0;
+    Isp(i,j) = qsn(i,j) = Ie(i,j) = qse(i,j) = qbb(i,j) = lss(i,j) = lsa(i,j) = lagfix(i,j) = lagval(i,j) = 0.0;
     }
 
-    if(p->S50 == 1)
-        gcval_topo = 151;
+	if(p->S50==1)
+	gcval_topo=151;
 
-    if(p->S50 == 2)
-        gcval_topo = 152;
+	if(p->S50==2)
+	gcval_topo=152;
 
-    if(p->S50 == 3)
-        gcval_topo = 153;
-
-    if(p->S50 == 4)
-        gcval_topo = 154;
-
-    rhosed = p->S22;
-    rhowat = p->W1;
-    g = 9.81;
-    d50 = p->S20;
-
+	if(p->S50==3)
+	gcval_topo=153;
+	
+	if(p->S50==4)
+	gcval_topo=154;
+    
+    
+    rhosed=p->S22;
+    rhowat=p->W1;
+    g=9.81;
+    d50=p->S20;
+    
     Ls = p->S20;
-
+    
     frac_k = -1;
-
+    
     prelax = new topo_relax(p);
-
-    if(p->S32 == 1)
-        pdx = new sediment_fou(p);
-
-    if(p->S32 == 2)
-        pdx = new sediment_cds(p);
-
-    if(p->S32 == 3)
-        pdx = new sediment_cds_hj(p);
-
-    if(p->S32 == 4)
-        pdx = new sediment_wenoflux(p);
-
-    if(p->S32 == 5)
-        pdx = new sediment_weno_hj(p);
-
-    psolv = new sflow_bicgstab(p, pgc);
+    
+    if(p->S32==1)
+    pdx = new sediment_fou(p);
+    
+    if(p->S32==2)
+    pdx = new sediment_cds(p);
+    
+    if(p->S32==3)
+    pdx = new sediment_cds_hj(p);
+    
+    if(p->S32==4)
+    pdx = new sediment_wenoflux(p);
+    
+    if(p->S32==5)
+    pdx = new sediment_weno_hj(p);
+    
+    psolv = new sflow_bicgstab(p,pgc);
 }
 
 sediment_exner::~sediment_exner()
 {
     delete prelax;
     delete pdx;
-    delete static_cast<sflow_bicgstab *>(psolv);
+    delete static_cast<sflow_bicgstab*>(psolv);
 }
 
-void sediment_exner::start(lexer *p, ghostcell *pgc, sediment_fdm *s)
-{
+void sediment_exner::start(lexer* p, ghostcell* pgc, sediment_fdm *s)
+{   
     // multi-fraction bed
-    if(s->pmix != nullptr)
+    if(s->pmix!=nullptr)
     {
-        start_mixture(p, pgc, s);
-        return;
+    start_mixture(p,pgc,s);
+    return;
     }
-
+    
     // eq.
-    if(p->S33 == 0)
-        SEDSLICELOOP
-    s->qb(i, j) = s->qbe(i, j);
-
+    if(p->S33==0)
+    SEDSLICELOOP
+    s->qb(i,j)=s->qbe(i,j);
+    
     // non-eq.
-    if(p->S33 > 0)
-        non_equillibrium_solve(p, pgc, s);
-
+    if(p->S33>0)
+    non_equillibrium_solve(p,pgc,s); 
+    
     // S 64: the suspended part, relaxed (sediment_exner_lag.cpp)
-    susp_split(p, pgc, s);
-
-    qb_clear(p, s);
-
-    pgc->gcsl_start4(p, s->qb, 1);
-
+    susp_split(p,pgc,s);
+    
+    qb_clear(p,s);
+    
+    pgc->gcsl_start4(p,s->qb,1);
+    
     // bed load supply at the inflow (S 129)
-    qb_inflow(p, s, -1);
-
+    qb_inflow(p,s,-1);
+    
     // suspended qs
-    if(p->S62 == 2)
-        susp_qs(p, pgc, s);
-
+    if(p->S62==2)
+    susp_qs(p,pgc,s);
+    
     // Exner
-    if(p->S31 == 1)
-        topovel1(p, pgc, s);
+    if(p->S31==1)
+    topovel1(p,pgc,s);
+    
+    if(p->S31==2)
+    topovel2(p,pgc,s);
+    
+    if(p->S31==3)
+    topovel3(p,pgc,s);
+    
+    if(p->S100>0)
+	filter(p,pgc,s->vz,p->S100,p->S101);
 
-    if(p->S31 == 2)
-        topovel2(p, pgc, s);
-
-    if(p->S31 == 3)
-        topovel3(p, pgc, s);
-
-    if(p->S100 > 0)
-        filter(p, pgc, s->vz, p->S100, p->S101);
-
+	
     // Bedch
-    timestep(p, pgc, s);
+    timestep(p,pgc,s);
+    
 
     SEDSLICELOOP
-    s->dh(i, j) = p->dtsed * s->vz(i, j);
-
+    s->dh(i,j) = p->dtsed*s->vz(i,j);
+    
     // NHFLOW: deposit the suspended sediment of columns that fell dry
-    dry_deposit(p, s);
+    dry_deposit(p,s);
 
-    SEDSLICELOOP
-    s->bedzh(i, j) += s->dh(i, j);
+	
+	SEDSLICELOOP
+    s->bedzh(i,j) += s->dh(i,j);
 
-    pgc->gcsl_start4(p, s->bedzh, 1);
+	pgc->gcsl_start4(p,s->bedzh,1);
 }
 
-void sediment_exner::start_RK(lexer *p, ghostcell *pgc, sediment_fdm *s)
-{
+
+void sediment_exner::start_RK(lexer* p, ghostcell* pgc, sediment_fdm *s)
+{   
     // eq.
-    if(p->S33 == 0)
-        SEDSLICELOOP
-    s->qb(i, j) = s->qbe(i, j);
-
+    if(p->S33==0)
+    SEDSLICELOOP
+    s->qb(i,j)=s->qbe(i,j);
+    
     // non-eq.
-    if(p->S33 > 0)
-        non_equillibrium_solve(p, pgc, s);
-
+    if(p->S33>0)
+    non_equillibrium_solve(p,pgc,s); 
+    
     // S 64: the suspended part, relaxed (sediment_exner_lag.cpp)
-    susp_split(p, pgc, s);
-
-    qb_clear(p, s);
-
-    pgc->gcsl_start4(p, s->qb, 1);
-
+    susp_split(p,pgc,s);
+    
+    qb_clear(p,s);
+    
+    pgc->gcsl_start4(p,s->qb,1);
+    
     // bed load supply at the inflow (S 129)
-    qb_inflow(p, s, -1);
-
+    qb_inflow(p,s,-1);
+    
     // suspended qs
-    if(p->S62 == 2)
-        susp_qs(p, pgc, s);
-
+    if(p->S62==2)
+    susp_qs(p,pgc,s);
+    
     // Exner
-    if(p->S31 == 1)
-        topovel1(p, pgc, s);
+    if(p->S31==1)
+    topovel1(p,pgc,s);
+    
+    if(p->S31==2)
+    topovel2(p,pgc,s);
+    
+    if(p->S31==3)
+    topovel3(p,pgc,s);
+    
+    if(p->S100>0)
+	filter(p,pgc,s->vz,p->S100,p->S101);
 
-    if(p->S31 == 2)
-        topovel2(p, pgc, s);
-
-    if(p->S31 == 3)
-        topovel3(p, pgc, s);
-
-    if(p->S100 > 0)
-        filter(p, pgc, s->vz, p->S100, p->S101);
-
+	
     // Bedch
-    timestep(p, pgc, s);
+    timestep(p,pgc,s);
 
-    // SEDSLICELOOP
-    // s->dh(i,j) = p->dtsed*s->vz(i,j);
+    //SEDSLICELOOP
+    //s->dh(i,j) = p->dtsed*s->vz(i,j);
 }
 
-void sediment_exner::start_mixture(lexer *p, ghostcell *pgc, sediment_fdm *s)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+void sediment_exner::start_mixture(lexer* p, ghostcell* pgc, sediment_fdm *s)
 {
     sediment_mixture *m = s->pmix;
-
-    m->exner_begin(p, pgc, s);
-
-    for(int q = 0; q < m->nf; ++q)
+    
+    m->exner_begin(p,pgc,s);
+    
+    for(int q=0;q<m->nf;++q)
     {
         // qbe, shields parameters and grain size of fraction q
-        m->load_fraction(p, pgc, s, q);
-
+        m->load_fraction(p,pgc,s,q);
+        
         SLICELOOP4
-        s->qbe(i, j) = (*m->qbe_k[q])(i, j) * m->fac(i, j);
-
-        pgc->gcsl_start4(p, s->qbe, 1);
-
+        s->qbe(i,j) = (*m->qbe_k[q])(i,j)*m->fac(i,j);
+        
+        pgc->gcsl_start4(p,s->qbe,1);
+        
         // eq.
-        if(p->S33 == 0)
-            SEDSLICELOOP
-        s->qb(i, j) = s->qbe(i, j);
-
+        if(p->S33==0)
+        SEDSLICELOOP
+        s->qb(i,j)=s->qbe(i,j);
+        
         // non-eq., relaxation state per fraction
-        if(p->S33 > 0)
+        if(p->S33>0)
         {
             SLICELOOP4
-            qbn(i, j) = (*m->qbn_k[q])(i, j);
-
+            qbn(i,j) = (*m->qbn_k[q])(i,j);
+            
             noneq_ini = m->noneq_ini_k[q];
-
-            non_equillibrium_solve(p, pgc, s);
-
-            SLICELOOP4 (*m->qbn_k[q])(i, j) = qbn(i, j);
-
+            
+            non_equillibrium_solve(p,pgc,s);
+            
+            SLICELOOP4
+            (*m->qbn_k[q])(i,j) = qbn(i,j);
+            
             m->noneq_ini_k[q] = noneq_ini;
         }
-
-        qb_clear(p, s);
-
-        pgc->gcsl_start4(p, s->qb, 1);
-
+        
+        qb_clear(p,s);
+        
+        pgc->gcsl_start4(p,s->qb,1);
+        
         // bed load supply at the inflow (S 129), fraction q of S 51
-        qb_inflow(p, s, q);
-
+        qb_inflow(p,s,q);
+        
         // suspended load exchange distributed with the active layer composition
         frac_k = q;
-
-        if(p->S62 == 2)
-            susp_qs(p, pgc, s);
-
+        
+        if(p->S62==2)
+        susp_qs(p,pgc,s);
+        
         SLICELOOP4
-        s->vz(i, j) = 0.0;
-
+        s->vz(i,j) = 0.0;
+        
         // Exner
-        if(p->S31 == 1)
-            topovel1(p, pgc, s);
-
-        if(p->S31 == 2)
-            topovel2(p, pgc, s);
-
-        if(p->S31 == 3)
-            topovel3(p, pgc, s);
-
-        if(p->S100 > 0)
-            filter(p, pgc, s->vz, p->S100, p->S101);
-
+        if(p->S31==1)
+        topovel1(p,pgc,s);
+        
+        if(p->S31==2)
+        topovel2(p,pgc,s);
+        
+        if(p->S31==3)
+        topovel3(p,pgc,s);
+        
+        if(p->S100>0)
+        filter(p,pgc,s->vz,p->S100,p->S101);
+        
         SLICELOOP4
         {
-            (*m->vz_k[q])(i, j) = s->vz(i, j);
-            (*m->qb_k[q])(i, j) = s->qb(i, j);
+        (*m->vz_k[q])(i,j) = s->vz(i,j);
+        (*m->qb_k[q])(i,j) = s->qb(i,j);
         }
     }
-
+    
     frac_k = -1;
-
-    m->exner_end(p, pgc, s);
-
+    
+    m->exner_end(p,pgc,s);
+    
     // total
     SLICELOOP4
     {
-        s->vz(i, j) = 0.0;
-        s->qb(i, j) = 0.0;
-
-        for(int q = 0; q < m->nf; ++q)
+    s->vz(i,j) = 0.0;
+    s->qb(i,j) = 0.0;
+    
+        for(int q=0;q<m->nf;++q)
         {
-            s->vz(i, j) += (*m->vz_k[q])(i, j);
-            s->qb(i, j) += (*m->qb_k[q])(i, j);
+        s->vz(i,j) += (*m->vz_k[q])(i,j);
+        s->qb(i,j) += (*m->qb_k[q])(i,j);
         }
     }
-
-    pgc->gcsl_start4(p, s->vz, 1);
-    pgc->gcsl_start4(p, s->qb, 1);
-
+    
+    pgc->gcsl_start4(p,s->vz,1);
+    pgc->gcsl_start4(p,s->qb,1);
+    
     // time step: in sorting zones the total vz ~ 0 while the fractions change fast
-    maxvz_k = 0.0;
+    maxvz_k=0.0;
     SEDSLICELOOP
-    for(int q = 0; q < m->nf; ++q)
-        maxvz_k = MAX(maxvz_k, fabs((*m->vz_k[q])(i, j)));
-
+    for(int q=0;q<m->nf;++q)
+    maxvz_k = MAX(maxvz_k,fabs((*m->vz_k[q])(i,j)));
+    
     maxvz_k = pgc->globalmax(maxvz_k);
-
+    
     // Bedch
-    timestep(p, pgc, s);
-
+    timestep(p,pgc,s);
+    
     SEDSLICELOOP
-    s->dh(i, j) = p->dtsed * s->vz(i, j);
-
+    s->dh(i,j) = p->dtsed*s->vz(i,j);
+    
     // sorting: active layer and substrate
-    for(int q = 0; q < m->nf; ++q)
-        SLICELOOP4 (*m->dh_k[q])(i, j) = p->dtsed * (*m->vz_k[q])(i, j);
-
+    for(int q=0;q<m->nf;++q)
+    SLICELOOP4
+    (*m->dh_k[q])(i,j) = p->dtsed*(*m->vz_k[q])(i,j);
+    
     // NHFLOW: suspended sediment of columns that fell dry, distributed with the active layer
     // composition like the suspended exchange (susp_ED)
-    if(p->A10 == 5 && p->S12 > 0)
-        SEDSLICELOOP
-    for(int q = 0; q < m->nf; ++q)
-        (*m->dh_k[q])(i, j) += (*m->F[q])(i, j) * s->dryd(i, j) / (1.0 - p->S24);
-
-    dry_deposit(p, s);
-
+    if(p->A10==5 && p->S12>0)
     SEDSLICELOOP
-    s->bedzh(i, j) += s->dh(i, j);
-
-    pgc->gcsl_start4(p, s->bedzh, 1);
-
-    m->bedchange(p, pgc, s, m->dh_k);
+    for(int q=0;q<m->nf;++q)
+    (*m->dh_k[q])(i,j) += (*m->F[q])(i,j)*s->dryd(i,j)/(1.0-p->S24);
+    
+    dry_deposit(p,s);
+    
+    SEDSLICELOOP
+    s->bedzh(i,j) += s->dh(i,j);
+    
+	pgc->gcsl_start4(p,s->bedzh,1);
+    
+    m->bedchange(p,pgc,s,m->dh_k);
 }
 
 void sediment_exner::qb_clear(lexer *p, sediment_fdm *s)
@@ -332,51 +355,51 @@ void sediment_exner::qb_clear(lexer *p, sediment_fdm *s)
     // in cells that stopped being sediment cells were read as upwind neighbours (and, with a
     // multi-fraction bed, summed nf times per step)
     SLICEBASELOOP
-    if(p->flagslice4[IJ] < 0 || p->DFBED[IJ] < 0)
-        s->qb(i, j) = 0.0;
+    if(p->flagslice4[IJ]<0 || p->DFBED[IJ]<0)
+    s->qb(i,j) = 0.0;
 }
 
 void sediment_exner::qb_inflow(lexer *p, sediment_fdm *s, int frac)
 {
     // S 129 1, 2: the bed load of the inflow ghost cells, the import of the first cells through the faces where the
     // flow enters the domain (the Exner fluxes take the upwind value); qb < 0 or S 129 0: zero gradient as before
-    if(s->pinflow == nullptr || !s->pinflow->bedload_on())
-        return;
-
+    if(s->pinflow==nullptr || !s->pinflow->bedload_on())
+    return;
+    
     double qin = s->pinflow->qb(p);
-
-    if(qin < 0.0)
-        return;
-
+    
+    if(qin<0.0)
+    return;
+    
     // graded bed: the fractions F_a,k of S 51
-    if(frac >= 0)
+    if(frac>=0)
     {
-        double sum = 0.0;
-        for(int q = 0; q < p->S51; ++q)
-            sum += MAX(p->S51_fa[q], 0.0);
-
-        qin *= (sum > 0.0) ? MAX(p->S51_fa[frac], 0.0) / sum : 0.0;
+    double sum=0.0;
+    for(int q=0; q<p->S51; ++q)
+    sum += MAX(p->S51_fa[q],0.0);
+    
+    qin *= (sum>0.0) ? MAX(p->S51_fa[frac],0.0)/sum : 0.0;
     }
-
-    if(p->origin_i == 0)
-        for(j = 0; j < p->knoy; ++j)
-            if(p->flagslice4[(0 - p->imin) * p->jmax + (j - p->jmin)] > 0 && s->P(-1, j) > 0.0)
-                s->qb(-1, j) = s->qb(-2, j) = s->qb(-3, j) = qin;
-
-    if(p->origin_i + p->knox == p->gknox)
-        for(j = 0; j < p->knoy; ++j)
-            if(p->flagslice4[(p->knox - 1 - p->imin) * p->jmax + (j - p->jmin)] > 0 && s->P(p->knox - 1, j) < 0.0)
-                s->qb(p->knox, j) = s->qb(p->knox + 1, j) = s->qb(p->knox + 2, j) = qin;
-
-    if(p->j_dir == 1 && p->origin_j == 0)
-        for(i = 0; i < p->knox; ++i)
-            if(p->flagslice4[(i - p->imin) * p->jmax + (0 - p->jmin)] > 0 && s->Q(i, -1) > 0.0)
-                s->qb(i, -1) = s->qb(i, -2) = s->qb(i, -3) = qin;
-
-    if(p->j_dir == 1 && p->origin_j + p->knoy == p->gknoy)
-        for(i = 0; i < p->knox; ++i)
-            if(p->flagslice4[(i - p->imin) * p->jmax + (p->knoy - 1 - p->jmin)] > 0 && s->Q(i, p->knoy - 1) < 0.0)
-                s->qb(i, p->knoy) = s->qb(i, p->knoy + 1) = s->qb(i, p->knoy + 2) = qin;
+    
+    if(p->origin_i==0)
+    for(j=0; j<p->knoy; ++j)
+    if(p->flagslice4[(0-p->imin)*p->jmax + (j-p->jmin)]>0 && s->P(-1,j)>0.0)
+    s->qb(-1,j) = s->qb(-2,j) = s->qb(-3,j) = qin;
+    
+    if(p->origin_i+p->knox==p->gknox)
+    for(j=0; j<p->knoy; ++j)
+    if(p->flagslice4[(p->knox-1-p->imin)*p->jmax + (j-p->jmin)]>0 && s->P(p->knox-1,j)<0.0)
+    s->qb(p->knox,j) = s->qb(p->knox+1,j) = s->qb(p->knox+2,j) = qin;
+    
+    if(p->j_dir==1 && p->origin_j==0)
+    for(i=0; i<p->knox; ++i)
+    if(p->flagslice4[(i-p->imin)*p->jmax + (0-p->jmin)]>0 && s->Q(i,-1)>0.0)
+    s->qb(i,-1) = s->qb(i,-2) = s->qb(i,-3) = qin;
+    
+    if(p->j_dir==1 && p->origin_j+p->knoy==p->gknoy)
+    for(i=0; i<p->knox; ++i)
+    if(p->flagslice4[(i-p->imin)*p->jmax + (p->knoy-1-p->jmin)]>0 && s->Q(i,p->knoy-1)<0.0)
+    s->qb(i,p->knoy) = s->qb(i,p->knoy+1) = s->qb(i,p->knoy+2) = qin;
 }
 
 void sediment_exner::dry_deposit(lexer *p, sediment_fdm *s)
@@ -385,18 +408,18 @@ void sediment_exner::dry_deposit(lexer *p, sediment_fdm *s)
     // (nhflow_suspended_IM1::drysave) is deposited as bed change dh. Columns without an
     // erodible bed (DFBED<0, solids) never exchange with the bed, their dryd is discarded
     // instead of growing without limit.
-    if(p->A10 != 5 || p->S12 == 0)
-        return;
-
+    if(p->A10!=5 || p->S12==0)
+    return;
+    
     SEDSLICELOOP
     {
-        s->dh(i, j) += s->dryd(i, j) / (1.0 - p->S24);
-        s->dryd(i, j) = 0.0;
+    s->dh(i,j) += s->dryd(i,j)/(1.0-p->S24);
+    s->dryd(i,j) = 0.0;
     }
-
+    
     SLICEBASELOOP
-    if(p->flagslice4[IJ] < 0 || p->DFBED[IJ] < 0)
-        s->dryd(i, j) = 0.0;
+    if(p->flagslice4[IJ]<0 || p->DFBED[IJ]<0)
+    s->dryd(i,j) = 0.0;
 }
 
 // checkpoints (P 48, I 45): the scalars of the bed update kept over the steps (the slices are in the
@@ -404,25 +427,19 @@ void sediment_exner::dry_deposit(lexer *p, sediment_fdm *s)
 void sediment_exner::ckpt_state(std::vector<double> &v) const
 {
     ckpt_put w{v};
-    w.i(noneq_ini);
-    w.i(spiral_ini);
-    w.i(susp_ini);
-    w.i(lag_print);
-    for(double x : {lag_d0, lag_f0, lag_d[0], lag_d[1], lag_d[2], lag_f[0], lag_f[1], lag_f[2],
-                    dtsed0, maxvz_k, simtime_last, morfac, c_U, bend_rate, amr_bendrate})
-        w.d(x);
+    w.i(noneq_ini); w.i(spiral_ini); w.i(susp_ini); w.i(lag_print);
+    for(double x : {lag_d0,lag_f0,lag_d[0],lag_d[1],lag_d[2],lag_f[0],lag_f[1],lag_f[2],
+                    dtsed0,maxvz_k,simtime_last,morfac,c_U,bend_rate,amr_bendrate})
+    w.d(x);
 }
 
 void sediment_exner::ckpt_restore(const std::vector<double> &v, size_t &k)
 {
     ckpt_get r{v};
     r.k = k;
-    r.i(noneq_ini);
-    r.i(spiral_ini);
-    r.i(susp_ini);
-    r.i(lag_print);
-    for(double *x : {&lag_d0, &lag_f0, &lag_d[0], &lag_d[1], &lag_d[2], &lag_f[0], &lag_f[1], &lag_f[2],
-                     &dtsed0, &maxvz_k, &simtime_last, &morfac, &c_U, &bend_rate, &amr_bendrate})
-        r.d(*x);
+    r.i(noneq_ini); r.i(spiral_ini); r.i(susp_ini); r.i(lag_print);
+    for(double *x : {&lag_d0,&lag_f0,&lag_d[0],&lag_d[1],&lag_d[2],&lag_f[0],&lag_f[1],&lag_f[2],
+                     &dtsed0,&maxvz_k,&simtime_last,&morfac,&c_U,&bend_rate,&amr_bendrate})
+    r.d(*x);
     k = r.k;
 }

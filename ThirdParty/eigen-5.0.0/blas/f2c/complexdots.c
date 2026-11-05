@@ -18,11 +18,9 @@
 
 #include "datatypes.h"
 
-complex cdotc_(integer *n, complex *cx, integer *incx, complex *cy,
-               integer *incy) {
+complex cdotc_(integer *n, complex *cx, integer *incx, complex *cy, integer *incy) {
   complex res;
-  extern /* Subroutine */ void cdotcw_(integer *, complex *, integer *,
-                                       complex *, integer *, complex *);
+  extern /* Subroutine */ void cdotcw_(integer *, complex *, integer *, complex *, integer *, complex *);
 
   /* Parameter adjustments */
   --cy;
@@ -33,11 +31,9 @@ complex cdotc_(integer *n, complex *cx, integer *incx, complex *cy,
   return res;
 } /* cdotc_ */
 
-complex cdotu_(integer *n, complex *cx, integer *incx, complex *cy,
-               integer *incy) {
+complex cdotu_(integer *n, complex *cx, integer *incx, complex *cy, integer *incy) {
   complex res;
-  extern /* Subroutine */ void cdotuw_(integer *, complex *, integer *,
-                                       complex *, integer *, complex *);
+  extern /* Subroutine */ void cdotuw_(integer *, complex *, integer *, complex *, integer *, complex *);
 
   /* Parameter adjustments */
   --cy;
@@ -48,11 +44,9 @@ complex cdotu_(integer *n, complex *cx, integer *incx, complex *cy,
   return res;
 } /* cdotu_ */
 
-doublecomplex zdotc_(integer *n, doublecomplex *cx, integer *incx,
-                     doublecomplex *cy, integer *incy) {
+doublecomplex zdotc_(integer *n, doublecomplex *cx, integer *incx, doublecomplex *cy, integer *incy) {
   doublecomplex res;
-  extern /* Subroutine */ void zdotcw_(integer *, doublecomplex *, integer *,
-                                       doublecomplex *, integer *,
+  extern /* Subroutine */ void zdotcw_(integer *, doublecomplex *, integer *, doublecomplex *, integer *,
                                        doublecomplex *);
 
   /* Parameter adjustments */
@@ -64,11 +58,9 @@ doublecomplex zdotc_(integer *n, doublecomplex *cx, integer *incx,
   return res;
 } /* zdotc_ */
 
-doublecomplex zdotu_(integer *n, doublecomplex *cx, integer *incx,
-                     doublecomplex *cy, integer *incy) {
+doublecomplex zdotu_(integer *n, doublecomplex *cx, integer *incx, doublecomplex *cy, integer *incy) {
   doublecomplex res;
-  extern /* Subroutine */ void zdotuw_(integer *, doublecomplex *, integer *,
-                                       doublecomplex *, integer *,
+  extern /* Subroutine */ void zdotuw_(integer *, doublecomplex *, integer *, doublecomplex *, integer *,
                                        doublecomplex *);
 
   /* Parameter adjustments */

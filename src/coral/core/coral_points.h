@@ -27,54 +27,48 @@ Architect: Hans Bihs
 #ifndef CORAL_POINTS_H_
 #define CORAL_POINTS_H_
 
-#include "coral/core/coral_types.h"
-#include <vector>
+#include"coral/core/coral_types.h"
+#include<vector>
 
-namespace coral {
-class model;
-
-class point_set
+namespace coral
 {
-public:
-    virtual ~point_set() = default;
-    virtual int npoints() const = 0;
-    // position, velocity, acceleration (global) of point k in the current state
-    virtual void point_state(const model &, int k, Vec3 &p, Vec3 &v, Vec3 &a) const = 0;
-    // the same for several points at once (implementations may share work between the points)
-    virtual void point_states(const model &m, const std::vector<int> &k, std::vector<Vec3> &p, std::vector<Vec3> &v,
-                              std::vector<Vec3> &a) const
-    {
-        p.resize(k.size());
-        v.resize(k.size());
-        a.resize(k.size());
-        for(size_t i = 0; i < k.size(); ++i)
-            point_state(m, k[i], p[i], v[i], a[i]);
-    }
-    // generalized forces of the force F (global) acting at point k
-    virtual void add_point_force(const model &, int k, const Vec3 &F, VecX &f) const = 0;
-    // bodies and generalized coordinates the points move with
-    virtual void point_coupling(std::vector<int> &bodies, std::vector<int> &coords) const = 0;
-};
+    class model;
 
-// points fixed to rigid bodies (frame nodes: the body's centre)
-class body_points : public point_set
-{
-public:
-    // point at the global position p on body b (current configuration)
-    int add(const model &, int b, const Vec3 &p);
-    int npoints() const override { return (int)body_.size(); }
-    void point_state(const model &, int k, Vec3 &p, Vec3 &v, Vec3 &a) const override;
-    void add_point_force(const model &, int k, const Vec3 &F, VecX &f) const override;
-    void point_coupling(std::vector<int> &bodies, std::vector<int> &) const override
+    class point_set
     {
-        for(int b : body_)
-            bodies.push_back(b);
-    }
+    public:
+        virtual ~point_set() = default;
+        virtual int npoints() const = 0;
+        // position, velocity, acceleration (global) of point k in the current state
+        virtual void point_state(const model&, int k, Vec3 &p, Vec3 &v, Vec3 &a) const = 0;
+        // the same for several points at once (implementations may share work between the points)
+        virtual void point_states(const model &m, const std::vector<int> &k, std::vector<Vec3> &p, std::vector<Vec3> &v,
+                                  std::vector<Vec3> &a) const
+        {
+            p.resize(k.size()); v.resize(k.size()); a.resize(k.size());
+            for(size_t i=0; i<k.size(); ++i) point_state(m, k[i], p[i], v[i], a[i]);
+        }
+        // generalized forces of the force F (global) acting at point k
+        virtual void add_point_force(const model&, int k, const Vec3 &F, VecX &f) const = 0;
+        // bodies and generalized coordinates the points move with
+        virtual void point_coupling(std::vector<int> &bodies, std::vector<int> &coords) const = 0;
+    };
 
-private:
-    std::vector<int> body_;
-    std::vector<Vec3> s_;
-};
-}  // namespace coral
+    // points fixed to rigid bodies (frame nodes: the body's centre)
+    class body_points : public point_set
+    {
+    public:
+        // point at the global position p on body b (current configuration)
+        int add(const model&, int b, const Vec3 &p);
+        int npoints() const override {return (int)body_.size();}
+        void point_state(const model&, int k, Vec3 &p, Vec3 &v, Vec3 &a) const override;
+        void add_point_force(const model&, int k, const Vec3 &F, VecX &f) const override;
+        void point_coupling(std::vector<int> &bodies, std::vector<int>&) const override {for(int b : body_) bodies.push_back(b);}
+
+    private:
+        std::vector<int> body_;
+        std::vector<Vec3> s_;
+    };
+}
 
 #endif

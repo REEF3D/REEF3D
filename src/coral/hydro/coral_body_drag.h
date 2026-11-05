@@ -29,40 +29,41 @@ Architect: Hans Bihs
 #ifndef CORAL_BODY_DRAG_H_
 #define CORAL_BODY_DRAG_H_
 
-#include "coral/core/coral_load.h"
-#include "coral/core/coral_types.h"
-#include <string>
+#include"coral/core/coral_load.h"
+#include"coral/core/coral_types.h"
+#include<string>
 
-namespace coral {
-class body_drag : public load
+namespace coral
 {
-public:
-    // Q: diagonal quadratic coefficients (N s^2/m^2 and N m s^2); P: point of the translational part
-    body_drag(const model &, int body, const Vec3 &P, const Vec6 &Q, const std::string &name = "drag");
-    // along the axis e (unit vector, global): Q_e = rho Cd A / 2
-    body_drag(const model &, int body, const Vec3 &P, const Vec3 &e, double Qe, const std::string &name = "drag");
+    class body_drag : public load
+    {
+    public:
+        // Q: diagonal quadratic coefficients (N s^2/m^2 and N m s^2); P: point of the translational part
+        body_drag(const model&, int body, const Vec3 &P, const Vec6 &Q, const std::string &name="drag");
+        // along the axis e (unit vector, global): Q_e = rho Cd A / 2
+        body_drag(const model&, int body, const Vec3 &P, const Vec3 &e, double Qe, const std::string &name="drag");
 
-    std::string name() const override { return name_; }
-    coupling_kind coupling() const override { return coupling_kind::local; }
-    void coupled_bodies(std::vector<int> &b) const override { b.push_back(b_); }
-    void eval(const model &, double t, VecX &f) const override;
+        std::string name() const override {return name_;}
+        coupling_kind coupling() const override {return coupling_kind::local;}
+        void coupled_bodies(std::vector<int> &b) const override {b.push_back(b_);}
+        void eval(const model&, double t, VecX &f) const override;
 
-    // the force (global) and moment (global) of the current state, and its power (negative)
-    Vec6 force(const model &) const;
-    double power(const model &) const;
+        // the force (global) and moment (global) of the current state, and its power (negative)
+        Vec6 force(const model&) const;
+        double power(const model&) const;
 
-    void channel_names(std::vector<std::string> &c) const override;
-    void channel_values(const model &, double t, std::vector<double> &v) const override;
+        void channel_names(std::vector<std::string> &c) const override;
+        void channel_values(const model&, double t, std::vector<double> &v) const override;
 
-private:
-    std::string name_;
-    int b_;
-    Vec3 s_;
-    Vec6 Q_ = Vec6::Zero();
-    Vec3 e_ = Vec3::Zero();
-    double Qe_ = 0.0;
-    bool axis_ = false;
-};
-}  // namespace coral
+    private:
+        std::string name_;
+        int b_;
+        Vec3 s_;
+        Vec6 Q_ = Vec6::Zero();
+        Vec3 e_ = Vec3::Zero();
+        double Qe_ = 0.0;
+        bool axis_ = false;
+    };
+}
 
 #endif

@@ -23,31 +23,31 @@ Author: Hans Bihs
 #ifndef SEDIMENT_RK2_H_
 #define SEDIMENT_RK2_H_
 
-#include "sediment_f.h"
+#include"sediment_f.h"
 
 using namespace std;
 
 class sediment_RK2 : public sediment_f, public increment
 {
 public:
-    sediment_RK2(lexer *, ghostcell *, turbulence *, patchBC_interface *);
-    virtual ~sediment_RK2();
-
+    sediment_RK2(lexer*,ghostcell*,turbulence*, patchBC_interface*);
+	virtual ~sediment_RK2();
+    
     // NHFLOW interface
-
-    void start_cfd(lexer *, fdm *, ghostcell *, ioflow *, reinitopo *, solver *) override {};
-    void start_nhflow(lexer *, fdm_nhf *, ghostcell *, ioflow *) override {};
-    void start_sflow(lexer *, fdm2D *, ghostcell *, ioflow *, slice &, slice &) override {};
-
-    void RK2_step1_nhflow(lexer *, fdm_nhf *, ghostcell *, ioflow *) override;
-    void RK2_step2_nhflow(lexer *, fdm_nhf *, ghostcell *, ioflow *) override;
+    
+    void start_cfd(lexer*, fdm*, ghostcell*, ioflow*, reinitopo*, solver*) override {};
+    void start_nhflow(lexer*, fdm_nhf*, ghostcell*, ioflow*) override {};
+    void start_sflow(lexer*, fdm2D*, ghostcell*, ioflow*, slice&, slice&) override {};
+    
+    void RK2_step1_nhflow(lexer*,fdm_nhf*,ghostcell*,ioflow*) override;
+    void RK2_step2_nhflow(lexer*,fdm_nhf*,ghostcell*,ioflow*) override;
 
 private:
     sediment_RK2 *psed;
-
-    slice4 bedzh_n;
-    int rk_on = 0;
-    double dtsed_rk = 0.0;
+   
+	slice4 bedzh_n;
+    int rk_on=0;
+    double dtsed_rk=0.0;
 };
 
 #endif

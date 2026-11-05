@@ -20,85 +20,85 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "bedconc_VR.h"
-#include "ghostcell.h"
-#include "lexer.h"
-#include "sediment_exner.h"
-#include "sediment_exnerdisc.h"
-#include "sediment_fdm.h"
-#include "sediment_mixture.h"
-#include "topo_relax.h"
+#include"sediment_exner.h"
+#include"lexer.h"
+#include"ghostcell.h"
+#include"bedconc_VR.h"
+#include"topo_relax.h"
+#include"sediment_exnerdisc.h"
+#include"sediment_fdm.h"
+#include"sediment_mixture.h"
 
-double sediment_exner::susp_ED(lexer *p, ghostcell *pgc, sediment_fdm *s)
+double sediment_exner::susp_ED(lexer* p, ghostcell *pgc, sediment_fdm *s)
 {
-    double val = 0.0;
-
+    double val=0.0;
+    
     // SFLOW depth-averaged suspended load (S 120 > 0, sediment_susp2D): the mean exchange rate E - D of the flow
     // steps since the last bed update (multi-fraction bed: distributed with the active layer composition)
-    if(p->A10 == 2 && s->edrate != nullptr)
+    if(p->A10==2 && s->edrate!=nullptr)
     {
-        val = (*s->edrate)(i, j);
-
-        if(frac_k >= 0)
-            val *= (*s->pmix->F[frac_k])(i, j);
-
-        return val;
+    val = (*s->edrate)(i,j);
+    
+    if(frac_k>=0)
+    val *= (*s->pmix->F[frac_k])(i,j);
+    
+    return val;
     }
-
-    if(p->S62 == 1 && p->count > p->S43)
-        val = (-s->ws) * (s->cb(i, j) - s->cbe(i, j));
-
+    
+    if(p->S62==1 && p->count>p->S43)
+    val = (-s->ws)*(s->cb(i,j) - s->cbe(i,j)); 
+    
     // NHFLOW (S10 1, 12): the suspended solver ran before bedconc and used the reference concentration
     // of the previous sediment step (cbn); erode the bed with the same value, otherwise every
     // wet/dry cycle of a swash cell leaves ws*dt*(cbe^n - cbe^(n-1)) unbalanced
-    if(p->S62 == 1 && p->count > p->S43 && p->A10 == 5 && (p->S10 == 1 || p->S10 == 12))
-        val = (-s->ws) * (s->cb(i, j) - s->cbn(i, j));
-
+    if(p->S62==1 && p->count>p->S43 && p->A10==5 && (p->S10==1 || p->S10==12))
+    val = (-s->ws)*(s->cb(i,j) - s->cbn(i,j)); 
+    
     // NHFLOW, several flow steps since the last bed update (S 44 > 1, S 42 2, 3): the mean exchange rate of the
     // water column over these steps (nhflow_suspended_IM1::bed_rate); the bed takes it also where the column is
     // dry now (the exchange happened while it was wet)
-    if(p->S62 == 1 && p->count > p->S43 && p->A10 == 5 && (p->S10 == 1 || p->S10 == 12) && s->edrate != nullptr)
+    if(p->S62==1 && p->count>p->S43 && p->A10==5 && (p->S10==1 || p->S10==12) && s->edrate!=nullptr)
     {
-        val = (*s->edrate)(i, j);
-
-        if(frac_k >= 0)
-            val *= (*s->pmix->F[frac_k])(i, j);
-
-        return val;
+    val = (*s->edrate)(i,j);
+    
+    if(frac_k>=0)
+    val *= (*s->pmix->F[frac_k])(i,j);
+    
+    return val;
     }
-
+    
     // NHFLOW: same exchange condition as the water column (nhflow_suspended_IM1::suspsource: k=0, wet, DF>0),
     // the bed cannot erode or deposit suspended sediment the water column never receives or loses
-    if(p->A10 == 5)
+    if(p->A10==5)
     {
-        k = 0;
-        if(p->wet[IJ] == 0 || p->DF[IJK] < 0 || p->DFBED[IJ] < 0)
-            val = 0.0;
+    k=0;
+    if(p->wet[IJ]==0 || p->DF[IJK]<0 || p->DFBED[IJ]<0)
+    val = 0.0;
     }
-
+    
     // CFD: same exchange condition as the water column (suspended_IM1::suspsource: water at the bed)
-    if(p->A10 == 6 && s->waterlevel(i, j) <= 0.0)
-        val = 0.0;
-
+    if(p->A10==6 && s->waterlevel(i,j)<=0.0)
+    val = 0.0;
+    
     // multi-fraction bed: exchange with the single suspended class weighted by F_k
-    if(frac_k >= 0)
-        val *= (*s->pmix->F[frac_k])(i, j);
-
+    if(frac_k>=0)
+    val *= (*s->pmix->F[frac_k])(i,j);
+    
     // E: cbe
     // D: conc
-
+    
     return val;
 }
 
-void sediment_exner::susp_qs(lexer *p, ghostcell *pgc, sediment_fdm *s)
+void sediment_exner::susp_qs(lexer* p, ghostcell *pgc, sediment_fdm *s)
 {
-    if(frac_k < 0)
-        SEDSLICELOOP
-    s->qb(i, j) += s->qbs(i, j);
-
-    if(frac_k >= 0)
-        SEDSLICELOOP
-    s->qb(i, j) += (*s->pmix->F[frac_k])(i, j) * s->qbs(i, j);
-
-    pgc->gcsl_start4(p, s->qb, 1);
+    if(frac_k<0)
+    SEDSLICELOOP
+    s->qb(i,j) += s->qbs(i,j);
+    
+    if(frac_k>=0)
+    SEDSLICELOOP
+    s->qb(i,j) += (*s->pmix->F[frac_k])(i,j)*s->qbs(i,j);
+    
+    pgc->gcsl_start4(p,s->qb,1);
 }

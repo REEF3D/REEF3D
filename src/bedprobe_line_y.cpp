@@ -20,42 +20,42 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "bedprobe_line_y.h"
-#include "ghostcell.h"
-#include "ioflow.h"
-#include "lexer.h"
-#include "sediment_fdm.h"
-#include "wave_interface.h"
-#include "wsfline_core.h"
-#include <iomanip>
-#include <sys/stat.h>
-#include <sys/types.h>
+#include<iomanip>
+#include"bedprobe_line_y.h"
+#include"wsfline_core.h"
+#include"lexer.h"
+#include"sediment_fdm.h"
+#include"ghostcell.h"
+#include"ioflow.h"
+#include"wave_interface.h"
+#include<sys/stat.h>
+#include<sys/types.h>
 
 bedprobe_line_y::bedprobe_line_y(lexer *p, ghostcell *pgc, sediment_fdm *s)
-{
-    p->Iarray(iloc, p->P124);
+{	
+	p->Iarray(iloc,p->P124);
 
-    pcore = new wsfline_core(p, pgc, p->P124, p->knoy);
+    pcore = new wsfline_core(p,pgc,p->P124,p->knoy);
 
-    ini_location(p, pgc, s);
-
-    // Create Folder
-    if(p->mpirank == 0 && p->A10 == 2)
+    ini_location(p,pgc,s);
+	
+	// Create Folder     
+    if(p->mpirank==0 && p->A10==2)
     {
-        mkdir("./REEF3D_SFLOW_Sediment", 0777);
-        mkdir("./REEF3D_SFLOW_Sediment/Line", 0777);
+	mkdir("./REEF3D_SFLOW_Sediment",0777);
+    mkdir("./REEF3D_SFLOW_Sediment/Line",0777);
     }
-
-    if(p->mpirank == 0 && p->A10 == 5)
+    
+    if(p->mpirank==0 && p->A10==5)
     {
-        mkdir("./REEF3D_NHFLOW_Sediment", 0777);
-        mkdir("./REEF3D_NHFLOW_Sediment/Line", 0777);
+	mkdir("./REEF3D_NHFLOW_Sediment",0777);
+    mkdir("./REEF3D_NHFLOW_Sediment/Line",0777);
     }
-
-    if(p->mpirank == 0 && p->A10 == 6)
+    
+    if(p->mpirank==0 && p->A10==6)
     {
-        mkdir("./REEF3D_CFD_Sediment", 0777);
-        mkdir("./REEF3D_CFD_Sediment/Line", 0777);
+	mkdir("./REEF3D_CFD_Sediment",0777);
+    mkdir("./REEF3D_CFD_Sediment/Line",0777);
     }
 }
 
@@ -67,91 +67,96 @@ bedprobe_line_y::~bedprobe_line_y()
 
 void bedprobe_line_y::start(lexer *p, ghostcell *pgc, sediment_fdm *s, ioflow *pflow)
 {
-
+	
     char name[250];
     int num;
-
+	
     num = p->count;
 
-    if(p->mpirank == 0)
+    if(p->mpirank==0)
     {
-        // open file
-        if(p->A10 == 2)
-            sprintf(name, "./REEF3D_SFLOW_Sediment/Line/REEF3D-SFLOW-bedprobe_line_y-%06i.dat", num);
+		// open file
+        if(p->A10==2)
+        sprintf(name,"./REEF3D_SFLOW_Sediment/Line/REEF3D-SFLOW-bedprobe_line_y-%06i.dat",num);
+        
+        if(p->A10==5)
+        sprintf(name,"./REEF3D_NHFLOW_Sediment/Line/REEF3D-NHFLOW-bedprobe_line_y-%06i.dat",num);
+        
+        if(p->A10==6)
+        sprintf(name,"./REEF3D_CFD_Sediment/Line/REEF3D-CFD-bedprobe_line_y-%06i.dat",num);
 
-        if(p->A10 == 5)
-            sprintf(name, "./REEF3D_NHFLOW_Sediment/Line/REEF3D-NHFLOW-bedprobe_line_y-%06i.dat", num);
+		
+		wsfout.open(name);
+		
+		wsfout<<"sedtime:  "<<p->sedtime<<endl;
+		wsfout<<"simtime:  "<<p->simtime<<endl;
+		wsfout<<"number of topo-y-lines:  "<<p->P124<<endl<<endl;
+		wsfout<<"line_No     x_coord"<<endl;
+		for(q=0;q<p->P124;++q)
+		wsfout<<q+1<<"\t "<<p->P124_x[q]<<endl;
 
-        if(p->A10 == 6)
-            sprintf(name, "./REEF3D_CFD_Sediment/Line/REEF3D-CFD-bedprobe_line_y-%06i.dat", num);
 
-        wsfout.open(name);
+		wsfout<<endl<<endl;
 
-        wsfout << "sedtime:  " << p->sedtime << endl;
-        wsfout << "simtime:  " << p->simtime << endl;
-        wsfout << "number of topo-y-lines:  " << p->P124 << endl
-               << endl;
-        wsfout << "line_No     x_coord" << endl;
-        for(q = 0; q < p->P124; ++q)
-            wsfout << q + 1 << "\t " << p->P124_x[q] << endl;
+		
+		for(q=0;q<p->P124;++q)
+		{
+		wsfout<<"Y "<<q+1;
+		wsfout<<"\t P "<<q+1<<" \t \t ";
+		}
 
-        wsfout << endl
-               << endl;
-
-        for(q = 0; q < p->P124; ++q)
-        {
-            wsfout << "Y " << q + 1;
-            wsfout << "\t P " << q + 1 << " \t \t ";
-        }
-
-        wsfout << endl
-               << endl;
+		wsfout<<endl<<endl;
     }
 
     //-------------------
 
     pcore->reset();
 
-    for(q = 0; q < p->P124; ++q)
+    for(q=0;q<p->P124;++q)
     {
         JLOOP
-        if(pcore->flag[q][j] > 0)
+        if(pcore->flag[q][j]>0)
         {
-            i = iloc[q];
+        i=iloc[q];
 
-            pcore->wsf[q][j] = MAX(pcore->wsf[q][j], s->bedzh(i, j));
-            pcore->loc[q][j] = p->YP[JP];
+        pcore->wsf[q][j] = MAX(pcore->wsf[q][j], s->bedzh(i,j));
+        pcore->loc[q][j]=p->YP[JP];
         }
     }
-
+	
+	
     // gather, sort and write the rows
-    pcore->write_rows(p, pgc, wsfout, 5, [&](double x)
-                      { return x; }, function<double(double)>(), " \t ");
+    pcore->write_rows(p,pgc,wsfout,5,
+                      [&](double x){return x;},
+                      function<double(double)>(),
+                      " \t ");
 
-    if(p->mpirank == 0)
+    if(p->mpirank==0)
     {
-        wsfout.close();
+    wsfout.close();
     }
 }
 
 void bedprobe_line_y::ini_location(lexer *p, ghostcell *pgc, sediment_fdm *s)
 {
-    int check, count;
+    int check,count;
 
-    for(q = 0; q < p->P124; ++q)
+    for(q=0;q<p->P124;++q)
     {
-        count = 0;
+        count=0;
         JLOOP
         {
-            iloc[q] = p->posc_i(p->P124_x[q]);
+        iloc[q]=p->posc_i(p->P124_x[q]);
 
-            check = ij_boundcheck_topo(p, iloc[q], j, 0);
+        check=ij_boundcheck_topo(p,iloc[q],j,0);
 
-            if(check == 1)
-                pcore->flag[q][count] = 1;
+        if(check==1)
+        pcore->flag[q][count]=1;
 
-            ++count;
+        ++count;
         }
     }
 }
+ 
+
 

@@ -43,109 +43,109 @@ Architect: Hans Bihs
 // Sharp thin bodies (nhflow_thinbody, X 330 'mobility sharp'): the faces at the body are walls with a wall
 // function (ks = B57), and with a turbulence model (A 560 > 0) wall friction in the momentum equations.
 
-#include "fdm_nhf.h"
-#include "increment.h"
-#include "lexer.h"
-#include "nhflow_thinbody.h"
-#include <cmath>
+#include"lexer.h"
+#include"fdm_nhf.h"
+#include"increment.h"
+#include"nhflow_thinbody.h"
+#include<cmath>
 
 inline void nhflow_wall_faces(lexer *p, int i, int j, int k, int *w)
 {
-    w[0] = (p->DF[Im1JK] < 0 || (p->flag4[Im1JK] < 0 && p->IO[Im1JK] == 0)) && i + p->origin_i != 0;
-    w[1] = (p->DF[Ip1JK] < 0 || (p->flag4[Ip1JK] < 0 && p->IO[Ip1JK] == 0)) && i + p->origin_i != p->gknox - 1;
-    w[2] = p->j_dir == 1 && (p->DF[IJm1K] < 0 || (p->flag4[IJm1K] < 0 && p->IO[IJm1K] == 0));
-    w[3] = p->j_dir == 1 && (p->DF[IJp1K] < 0 || (p->flag4[IJp1K] < 0 && p->IO[IJp1K] == 0));
-    w[4] = k == 0 || p->flag4[IJKm1] < 0 || p->DF[IJKm1] < 0;
-    w[5] = k != p->knoz - 1 && (p->flag4[IJKp1] < 0 || p->DF[IJKp1] < 0);
+    w[0] = (p->DF[Im1JK]<0 || (p->flag4[Im1JK]<0 && p->IO[Im1JK]==0)) && i+p->origin_i!=0;
+    w[1] = (p->DF[Ip1JK]<0 || (p->flag4[Ip1JK]<0 && p->IO[Ip1JK]==0)) && i+p->origin_i!=p->gknox-1;
+    w[2] = p->j_dir==1 && (p->DF[IJm1K]<0 || (p->flag4[IJm1K]<0 && p->IO[IJm1K]==0));
+    w[3] = p->j_dir==1 && (p->DF[IJp1K]<0 || (p->flag4[IJp1K]<0 && p->IO[IJp1K]==0));
+    w[4] = k==0 || p->flag4[IJKm1]<0 || p->DF[IJKm1]<0;
+    w[5] = k!=p->knoz-1 && (p->flag4[IJKp1]<0 || p->DF[IJKp1]<0);
 }
 
 // nearest wall with a turbulence wall function: distance of the cell centre, roughness and the velocity
 // magnitude tangential to that wall. Returns 0 if the cell has none.
 inline int nhflow_turb_wall(lexer *p, fdm_nhf *d, int i, int j, int k, double &dist, double &ks, double &ut)
 {
-    if(p->B11 != 1 || p->DF[IJK] < 0)
-        return 0;
+    if(p->B11!=1 || p->DF[IJK]<0)
+    return 0;
 
-    const int marge = increment::marge;  // for IP, JP, KP
+    const int marge = increment::marge;   // for IP, JP, KP
     int w[6];
-    nhflow_wall_faces(p, i, j, k, w);
+    nhflow_wall_faces(p,i,j,k,w);
 
     const double U = d->U[IJK];
     const double V = d->V[IJK];
     const double W = d->W[IJK];
-    const double dz = 0.5 * p->DZN[KP] * d->WL(i, j);
-    int found = 0;
+    const double dz = 0.5*p->DZN[KP]*d->WL(i,j);
+    int found=0;
 
     dist = 1.0e20;
 
     if(w[4])
     {
-        dist = dz;
-        ks = d->ks(i, j);
-        ut = sqrt(U * U + V * V);
-        found = 1;
+    dist = dz;
+    ks = d->ks(i,j);
+    ut = sqrt(U*U + V*V);
+    found = 1;
     }
 
-    if(p->A519 == 2)
+    if(p->A519==2)
     {
-        if((w[0] || w[1]) && 0.5 * p->DXN[IP] < dist)
+        if((w[0] || w[1]) && 0.5*p->DXN[IP]<dist)
         {
-            dist = 0.5 * p->DXN[IP];
-            ks = p->B57;
-            ut = sqrt(V * V + W * W);
-            found = 1;
+        dist = 0.5*p->DXN[IP];
+        ks = p->B57;
+        ut = sqrt(V*V + W*W);
+        found = 1;
         }
 
-        if((w[2] || w[3]) && 0.5 * p->DYN[JP] < dist)
+        if((w[2] || w[3]) && 0.5*p->DYN[JP]<dist)
         {
-            dist = 0.5 * p->DYN[JP];
-            ks = p->B57;
-            ut = sqrt(U * U + W * W);
-            found = 1;
+        dist = 0.5*p->DYN[JP];
+        ks = p->B57;
+        ut = sqrt(U*U + W*W);
+        found = 1;
         }
 
-        if(w[5] && dz < dist)
+        if(w[5] && dz<dist)
         {
-            dist = dz;
-            ks = p->B57;
-            ut = sqrt(U * U + V * V);
-            found = 1;
+        dist = dz;
+        ks = p->B57;
+        ut = sqrt(U*U + V*V);
+        found = 1;
         }
     }
 
     // sharp thin bodies (X 330 'mobility sharp'): the faces at the body are walls with a wall function
-    if(d->thinbody != nullptr)
+    if(d->thinbody!=nullptr)
     {
         int tw[6];
-        d->thinbody->wall_faces(p, i, j, k, tw);
-
-        if((tw[0] || tw[1]) && 0.5 * p->DXN[IP] < dist)
+        d->thinbody->wall_faces(p,i,j,k,tw);
+        
+        if((tw[0] || tw[1]) && 0.5*p->DXN[IP]<dist)
         {
-            dist = 0.5 * p->DXN[IP];
-            ks = p->B57;
-            ut = sqrt(V * V + W * W);
-            found = 1;
+        dist = 0.5*p->DXN[IP];
+        ks = p->B57;
+        ut = sqrt(V*V + W*W);
+        found = 1;
         }
-
-        if((tw[2] || tw[3]) && 0.5 * p->DYN[JP] < dist)
+        
+        if((tw[2] || tw[3]) && 0.5*p->DYN[JP]<dist)
         {
-            dist = 0.5 * p->DYN[JP];
-            ks = p->B57;
-            ut = sqrt(U * U + W * W);
-            found = 1;
+        dist = 0.5*p->DYN[JP];
+        ks = p->B57;
+        ut = sqrt(U*U + W*W);
+        found = 1;
         }
-
-        if((tw[4] || tw[5]) && dz < dist)
+        
+        if((tw[4] || tw[5]) && dz<dist)
         {
-            dist = dz;
-            ks = p->B57;
-            ut = sqrt(U * U + V * V);
-            found = 1;
+        dist = dz;
+        ks = p->B57;
+        ut = sqrt(U*U + V*V);
+        found = 1;
         }
     }
 
-    if(found && ks <= 0.0)
-        ks = 0.0001;  // same clamp as CFD roughness::ks_val
+    if(found && ks<=0.0)
+    ks = 0.0001;   // same clamp as CFD roughness::ks_val
 
     return found;
 }

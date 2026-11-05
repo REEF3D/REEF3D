@@ -36,33 +36,34 @@ Author: Hans Bihs
 // of the former flux build did, and the fused HLL sweep stays bitwise identical. (Measured:
 // no speed difference between inline and noinline.)
 
-#include "fdm_nhf.h"
-#include "lexer.h"
-#include "slice.h"
-#include "vrans_definitions.h"
-#include <cmath>
+#include"lexer.h"
+#include"fdm_nhf.h"
+#include"slice.h"
+#include"vrans_definitions.h"
+#include<cmath>
 
-namespace nhflow_face {
+namespace nhflow_face
+{
 // porosity at the free surface (VRANS, d->PORS), otherwise of the surface cell, averaged to the x- / y-face: storage coefficient of the
 // continuity equation n_s deta/dt + div(Q) = 0 -> the HLL/HLLC jump term is n_s*(D_R - D_L)
 inline double por_surf_x(lexer *p, fdm_nhf *d, int i, int j)
 {
-    const int k = p->knoz - 1;
-
-    if(p->B200 == 1)
-        return 0.5 * (d->PORS(i, j) + d->PORS(i + 1, j));
-
-    return 0.5 * (d->POR[IJK] + d->POR[Ip1JK]);
+    const int k = p->knoz-1;
+    
+    if(p->B200==1)
+    return 0.5*(d->PORS(i,j) + d->PORS(i+1,j));
+    
+    return 0.5*(d->POR[IJK] + d->POR[Ip1JK]);
 }
 
 inline double por_surf_y(lexer *p, fdm_nhf *d, int i, int j)
 {
-    const int k = p->knoz - 1;
-
-    if(p->B200 == 1)
-        return 0.5 * (d->PORS(i, j) + d->PORS(i, j + 1));
-
-    return 0.5 * (d->POR[IJK] + d->POR[IJp1K]);
+    const int k = p->knoz-1;
+    
+    if(p->B200==1)
+    return 0.5*(d->PORS(i,j) + d->PORS(i,j+1));
+    
+    return 0.5*(d->POR[IJK] + d->POR[IJp1K]);
 }
 
 // VRANS (B 200 1, B 206 1): HLL jump term of the momentum equations.
@@ -73,18 +74,18 @@ inline double por_surf_y(lexer *p, fdm_nhf *d, int i, int j)
 // of open water. Face value of C as in the advective flux (PORVALNH1, PORVALNH2); 1 in open water.
 inline double jinv_x(lexer *p, fdm_nhf *d, int i, int j, int k)
 {
-    if(p->B200 != 1 || p->B206 == 0)
-        return 1.0;
-
-    return 1.0 / CPORNHval(PORVALNH1);
+    if(p->B200!=1 || p->B206==0)
+    return 1.0;
+    
+    return 1.0/CPORNHval(PORVALNH1);
 }
 
 inline double jinv_y(lexer *p, fdm_nhf *d, int i, int j, int k)
 {
-    if(p->B200 != 1 || p->B206 == 0)
-        return 1.0;
-
-    return 1.0 / CPORNHval(PORVALNH2);
+    if(p->B200!=1 || p->B206==0)
+    return 1.0;
+    
+    return 1.0/CPORNHval(PORVALNH2);
 }
 
 // VRANS (B 200 1, B 206 1): wave speeds of the porous system with M = diag(n_s, 1/C)
@@ -96,9 +97,9 @@ inline double jinv_y(lexer *p, fdm_nhf *d, int i, int j, int k)
 inline void por_speed(lexer *p, double n, double ns, double u, double D, double &a, double &b)
 {
     const double C = CPORNHval(n);
-    a = C * u / (n * n);
-    const double b2 = a * a + (C / ns) * (9.81 * MAX(D, 0.0) - u * u / (n * n));
-    b = sqrt(MAX(b2, 0.0));
+    a = C*u/(n*n);
+    const double b2 = a*a + (C/ns)*(9.81*MAX(D,0.0) - u*u/(n*n));
+    b = sqrt(MAX(b2,0.0));
 }
 
 // porosity (VRANS, Darcy velocities): the advective flux UH*U/n^2 of the face i+1/2 (j+1/2) is evaluated
@@ -108,80 +109,88 @@ inline void por_speed(lexer *p, double n, double ns, double u, double D, double 
 // U momentum
 __attribute__((noinline)) inline double U_s(lexer *p, fdm_nhf *d, int i, int j, int k)
 {
-    return d->UHs[IJK] * d->Us[IJK] / (PORVALNH1 * PORVALNH1) + 0.5 * fabs(p->W22) * d->ETAs(i, j) * d->ETAs(i, j) + fabs(p->W22) * d->ETAs(i, j) * d->dfx(i, j);
+    return d->UHs[IJK]*d->Us[IJK]/(PORVALNH1*PORVALNH1)
+            + 0.5*fabs(p->W22)*d->ETAs(i,j)*d->ETAs(i,j)
+            + fabs(p->W22)*d->ETAs(i,j)*d->dfx(i,j);
 }
 
 __attribute__((noinline)) inline double U_n(lexer *p, fdm_nhf *d, int i, int j, int k)
 {
-    return d->UHn[IJK] * d->Un[IJK] / (PORVALNH1 * PORVALNH1) + 0.5 * fabs(p->W22) * d->ETAn(i, j) * d->ETAn(i, j) + fabs(p->W22) * d->ETAn(i, j) * d->dfx(i, j);
+    return d->UHn[IJK]*d->Un[IJK]/(PORVALNH1*PORVALNH1)
+            + 0.5*fabs(p->W22)*d->ETAn(i,j)*d->ETAn(i,j)
+            + fabs(p->W22)*d->ETAn(i,j)*d->dfx(i,j);
 }
 
 __attribute__((noinline)) inline double U_e(lexer *p, fdm_nhf *d, int i, int j, int k)
 {
-    return d->Ve[IJK] * d->UHe[IJK] / (PORVALNH2 * PORVALNH2);
+    return d->Ve[IJK]*d->UHe[IJK]/(PORVALNH2*PORVALNH2);
 }
 
 __attribute__((noinline)) inline double U_w(lexer *p, fdm_nhf *d, int i, int j, int k)
 {
-    return d->Vw[IJK] * d->UHw[IJK] / (PORVALNH2 * PORVALNH2);
+    return d->Vw[IJK]*d->UHw[IJK]/(PORVALNH2*PORVALNH2);
 }
 
 // V momentum
 __attribute__((noinline)) inline double V_s(lexer *p, fdm_nhf *d, int i, int j, int k)
 {
-    return d->Us[IJK] * d->VHs[IJK] / (PORVALNH1 * PORVALNH1);
+    return d->Us[IJK]*d->VHs[IJK]/(PORVALNH1*PORVALNH1);
 }
 
 __attribute__((noinline)) inline double V_n(lexer *p, fdm_nhf *d, int i, int j, int k)
 {
-    return d->Un[IJK] * d->VHn[IJK] / (PORVALNH1 * PORVALNH1);
+    return d->Un[IJK]*d->VHn[IJK]/(PORVALNH1*PORVALNH1);
 }
 
 __attribute__((noinline)) inline double V_e(lexer *p, fdm_nhf *d, int i, int j, int k)
 {
-    return d->VHe[IJK] * d->Ve[IJK] / (PORVALNH2 * PORVALNH2) + 0.5 * fabs(p->W22) * d->ETAe(i, j) * d->ETAe(i, j) + fabs(p->W22) * d->ETAe(i, j) * d->dfy(i, j);
+    return d->VHe[IJK]*d->Ve[IJK]/(PORVALNH2*PORVALNH2)
+            + 0.5*fabs(p->W22)*d->ETAe(i,j)*d->ETAe(i,j)
+            + fabs(p->W22)*d->ETAe(i,j)*d->dfy(i,j);
 }
 
 __attribute__((noinline)) inline double V_w(lexer *p, fdm_nhf *d, int i, int j, int k)
 {
-    return d->VHw[IJK] * d->Vw[IJK] / (PORVALNH2 * PORVALNH2) + 0.5 * fabs(p->W22) * d->ETAw(i, j) * d->ETAw(i, j) + fabs(p->W22) * d->ETAw(i, j) * d->dfy(i, j);
+    return d->VHw[IJK]*d->Vw[IJK]/(PORVALNH2*PORVALNH2)
+            + 0.5*fabs(p->W22)*d->ETAw(i,j)*d->ETAw(i,j)
+            + fabs(p->W22)*d->ETAw(i,j)*d->dfy(i,j);
 }
 
 // W momentum
 __attribute__((noinline)) inline double W_s(lexer *p, fdm_nhf *d, int i, int j, int k)
 {
-    return d->Us[IJK] * d->WHs[IJK] / (PORVALNH1 * PORVALNH1);
+    return d->Us[IJK]*d->WHs[IJK]/(PORVALNH1*PORVALNH1);
 }
 
 __attribute__((noinline)) inline double W_n(lexer *p, fdm_nhf *d, int i, int j, int k)
 {
-    return d->Un[IJK] * d->WHn[IJK] / (PORVALNH1 * PORVALNH1);
+    return d->Un[IJK]*d->WHn[IJK]/(PORVALNH1*PORVALNH1);
 }
 
 __attribute__((noinline)) inline double W_e(lexer *p, fdm_nhf *d, int i, int j, int k)
 {
-    return d->Ve[IJK] * d->WHe[IJK] / (PORVALNH2 * PORVALNH2);
+    return d->Ve[IJK]*d->WHe[IJK]/(PORVALNH2*PORVALNH2);
 }
 
 __attribute__((noinline)) inline double W_w(lexer *p, fdm_nhf *d, int i, int j, int k)
 {
-    return d->Vw[IJK] * d->WHw[IJK] / (PORVALNH2 * PORVALNH2);
+    return d->Vw[IJK]*d->WHw[IJK]/(PORVALNH2*PORVALNH2);
 }
 
 // vertical (sigma) flux, upwinded with omega: Fz = omega*Fb (omega>=0) or omega*Ft (omega<0)
 inline void zflux(lexer *p, fdm_nhf *d, const double *Fb, const double *Ft)
 {
-    int i, j, k;
-
+    int i,j,k;
+    
     WLOOP
     {
-        if(d->omegaF[FIJKp1] >= 0.0)
-            d->Fz[IJK] = (d->omegaF[FIJKp1] * (Fb[IJK])) / (PORVALNH3 * PORVALNH3);
-
-        if(d->omegaF[FIJKp1] < 0.0)
-            d->Fz[IJK] = (d->omegaF[FIJKp1] * (Ft[IJK])) / (PORVALNH3 * PORVALNH3);
+    if(d->omegaF[FIJKp1]>=0.0)
+    d->Fz[IJK] = (d->omegaF[FIJKp1]*(Fb[IJK]))/(PORVALNH3*PORVALNH3);
+    
+    if(d->omegaF[FIJKp1]<0.0)
+    d->Fz[IJK] = (d->omegaF[FIJKp1]*(Ft[IJK]))/(PORVALNH3*PORVALNH3);
     }
 }
-}  // namespace nhflow_face
+}
 
 #endif

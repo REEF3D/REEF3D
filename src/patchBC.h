@@ -23,7 +23,7 @@ Author: Hans Bihs
 #ifndef PATCHBC_H_
 #define PATCHBC_H_
 
-#include "patchBC_core.h"
+#include"patchBC_core.h"
 
 using namespace std;
 
@@ -31,29 +31,29 @@ using namespace std;
 class patchBC final : public patchBC_core
 {
 public:
-    patchBC(lexer *, ghostcell *);
-    virtual ~patchBC();
-
-    void patchBC_ini(lexer *, ghostcell *) override final;
-
+	patchBC(lexer*,ghostcell*);
+	virtual ~patchBC();
+    
+    void patchBC_ini(lexer*, ghostcell*) override final;
+    
     // BC update ::CFD
-    void patchBC_ioflow(lexer *, fdm *, ghostcell *, field &, field &, field &) override final;
-    void patchBC_rkioflow(lexer *, fdm *, ghostcell *, field &, field &, field &) override final;
-    void patchBC_discharge(lexer *, fdm *, ghostcell *) override final;
-    void patchBC_pressure(lexer *, fdm *, ghostcell *, field &) override final;
-    void patchBC_waterlevel(lexer *, fdm *, ghostcell *, field &) override final;
-
+    void patchBC_ioflow(lexer*, fdm*, ghostcell*, field&,field&,field&) override final;
+    void patchBC_rkioflow(lexer*, fdm*, ghostcell*, field&,field&,field&) override final;
+    void patchBC_discharge(lexer*, fdm*, ghostcell*) override final;
+    void patchBC_pressure(lexer*, fdm*, ghostcell*, field&) override final;
+    void patchBC_waterlevel(lexer*, fdm*, ghostcell*, field&) override final;
+    
     // BC update ::SFLOW
-    void patchBC_ioflow2D(lexer *, ghostcell *, slice &, slice &, slice &, slice &) override final;
-    void patchBC_discharge2D(lexer *, fdm2D *, ghostcell *, slice &, slice &, slice &, slice &) override final;
-    void patchBC_waterlevel2D(lexer *, fdm2D *, ghostcell *, slice &) override final;
-
+    void patchBC_ioflow2D(lexer*, ghostcell*, slice&, slice&, slice&, slice&) override final;
+    void patchBC_discharge2D(lexer*, fdm2D*, ghostcell*, slice&, slice&, slice&, slice&) override final;
+    void patchBC_waterlevel2D(lexer*, fdm2D*, ghostcell*, slice&) override final;
+        
 private:
     // index of component comp (0 u, 1 v, 2 w) in ghost layer q (1..3) of the face (i,j,k,cs);
     // the normal component of the faces 2, 4, 6 starts at the boundary face itself
     void ghost(int cs, int q, int comp, int &ii, int &jj, int &kk);
-
-    int fsf_domain = -1;  // free surface method active (F 30, F 80): hydrostatic outlet pressure
+    
+    int fsf_domain=-1;   // free surface method active (F 30, F 80): hydrostatic outlet pressure
 };
 
 #endif

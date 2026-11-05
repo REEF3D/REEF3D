@@ -23,9 +23,9 @@ Author: Hans Bihs
 #ifndef SFLOW_ETA_H_
 #define SFLOW_ETA_H_
 
-#include "increment.h"
-#include "sflow_fsf.h"
-#include "slice4.h"
+#include"sflow_fsf.h"
+#include"increment.h"
+#include"slice4.h" 
 
 class patchBC_interface;
 
@@ -33,32 +33,33 @@ using namespace std;
 
 class sflow_eta final : public sflow_fsf, public increment
 {
-public:
-    void ckpt_fields(const std::function<void(const char *, char, double *)> &fd, const std::function<void(const char *, char, int *)> &fi) override
-    {
-        fd("eta_K", 'S', K.V);
-    }
-    sflow_eta(lexer *, fdm2D *, ghostcell *, patchBC_interface *);
-    virtual ~sflow_eta();
+public:    
 
-    void ini(lexer *, fdm2D *, ghostcell *, ioflow *) override final;
-    void update(lexer *, fdm2D *, ghostcell *, ioflow *, slice &, slice &, slice &, double) override final;
-    void depth_update(lexer *, fdm2D *, ghostcell *, slice &) override final;
-    void wetdry(lexer *, fdm2D *, ghostcell *, slice &) override final;
-    void wetdry_fluxes(lexer *, fdm2D *, ghostcell *, slice &) override final;
-    void breaking(lexer *, fdm2D *, ghostcell *, slice &, slice &, double) override final;
-    void breaking_persist(lexer *, fdm2D *, ghostcell *, slice &, slice &, double) override final;
+    void ckpt_fields(const std::function<void(const char*, char, double*)> &fd, const std::function<void(const char*, char, int*)> &fi) override
+    {
+        fd("eta_K",'S',K.V);
+    }
+	sflow_eta(lexer*, fdm2D*, ghostcell*,patchBC_interface*);
+	virtual ~sflow_eta();
+    
+	void ini(lexer*, fdm2D*, ghostcell*, ioflow*) override final;
+    void update(lexer*, fdm2D*, ghostcell*, ioflow*, slice&, slice&, slice&, double) override final;
+	void depth_update(lexer*, fdm2D*, ghostcell*, slice&) override final;
+	void wetdry(lexer*, fdm2D*, ghostcell*, slice&) override final;
+    void wetdry_fluxes(lexer*, fdm2D*, ghostcell*, slice&) override final;
+    void breaking(lexer*, fdm2D*, ghostcell*, slice&, slice&, double) override final;
+    void breaking_persist(lexer*, fdm2D*, ghostcell*, slice&, slice&, double) override final;
 
 private:
-    void wetdrydeep(lexer *, fdm2D *, ghostcell *, slice &);
-
-    int gcval_eta;
-    double starttime;
+    void wetdrydeep(lexer*, fdm2D*, ghostcell*, slice&);
+    
+	int gcval_eta;
+	double starttime;
     double wd_criterion;
     const double eps;
-
+    
     patchBC_interface *pBC;
-    slice4 K;
+	slice4 K;
     int *temp;
 };
 

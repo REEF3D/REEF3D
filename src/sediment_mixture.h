@@ -23,9 +23,9 @@ Author: Hans Bihs
 #ifndef SEDIMENT_MIXTURE_H_
 #define SEDIMENT_MIXTURE_H_
 
-#include "increment.h"
-#include "slice4.h"
-#include <fstream>
+#include"increment.h"
+#include"slice4.h"
+#include<fstream>
 
 class lexer;
 class ghostcell;
@@ -84,39 +84,39 @@ Control
 class sediment_mixture : public increment
 {
 public:
-    sediment_mixture(lexer *);
+    sediment_mixture(lexer*);
     virtual ~sediment_mixture();
 
-    void ini(lexer *, ghostcell *, sediment_fdm *);
+    void ini(lexer*, ghostcell*, sediment_fdm*);
 
     // bedload per fraction, s->qbe returns the sum over all fractions
-    void bedload_fractions(lexer *, ghostcell *, sediment_fdm *, bedload *);
+    void bedload_fractions(lexer*, ghostcell*, sediment_fdm*, bedload*);
 
     // Exner helpers
-    void exner_begin(lexer *, ghostcell *, sediment_fdm *);
-    void load_fraction(lexer *, ghostcell *, sediment_fdm *, int);
-    void exner_end(lexer *, ghostcell *, sediment_fdm *);
-    void bedchange(lexer *, ghostcell *, sediment_fdm *, slice4 **);
-    void bedchange_curv(lexer *p, ghostcell *pgc, sediment_fdm *s, slice4 **dhk);  // curvilinear grid (G 50)
+    void exner_begin(lexer*, ghostcell*, sediment_fdm*);
+    void load_fraction(lexer*, ghostcell*, sediment_fdm*, int);
+    void exner_end(lexer*, ghostcell*, sediment_fdm*);
+    void bedchange(lexer*, ghostcell*, sediment_fdm*, slice4**);
+    void bedchange_curv(lexer *p, ghostcell *pgc, sediment_fdm *s, slice4 **dhk);     // curvilinear grid (G 50)
 
     // sandslide hooks
-    void slide_zero(lexer *, ghostcell *);
-    void slide_transfer(int, int, int, int, double);
-    void slide_pde(lexer *, sediment_fdm *, int, int, const int *, const int *, const double *, int);
-    void slide_finish(lexer *, ghostcell *, sediment_fdm *);
-    void slide_finish_curv(lexer *p, ghostcell *pgc, sediment_fdm *s);  // curvilinear grid (G 50)
+    void slide_zero(lexer*, ghostcell*);
+    void slide_transfer(int,int,int,int,double);
+    void slide_pde(lexer*, sediment_fdm*, int, int, const int*, const int*, const double*, int);
+    void slide_finish(lexer*, ghostcell*, sediment_fdm*);
+    void slide_finish_curv(lexer *p, ghostcell *pgc, sediment_fdm *s);     // curvilinear grid (G 50)
 
     // grain size statistics and roughness
-    void grain_stats(lexer *, ghostcell *);
-    double ks_diameter(lexer *, int, int);
+    void grain_stats(lexer*, ghostcell*);
+    double ks_diameter(lexer*, int, int);
 
     // output
-    void print_log(lexer *, ghostcell *);
-    void print_log_curv(lexer *p, ghostcell *pgc);  // curvilinear grid (G 50)
+    void print_log(lexer*, ghostcell*);
+    void print_log_curv(lexer *p, ghostcell *pgc);     // curvilinear grid (G 50)
     int nfields();
 
     // checkpoints (P 48, I 45): the cumulative limiter volume of the rank (log)
-    double *ckpt_clip() { return clip_k; }
+    double* ckpt_clip() {return clip_k;}
 
     int nf;
     double *d;
@@ -130,10 +130,10 @@ public:
     slice4 qbe_raw, qbe_tot, fac;
 
 private:
-    double hiding(int, int, int);
-    void save_base(lexer *, sediment_fdm *);
-    void restore_base(lexer *, sediment_fdm *);
-    void composition_eroded(int, int, double, double *);
+    double hiding(int,int,int);
+    void save_base(lexer*, sediment_fdm*);
+    void restore_base(lexer*, sediment_fdm*);
+    void composition_eroded(int,int,double,double*);
 
     slice4 shields_eff0, shields_crit0, tau_crit0, shearvel_crit0;
     slice4 **out;

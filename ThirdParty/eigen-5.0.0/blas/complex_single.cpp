@@ -13,8 +13,8 @@
 #define REAL_SCALAR_SUFFIX s
 #define ISCOMPLEX 1
 
-#include "level1_cplx_impl.h"
 #include "level1_impl.h"
-#include "level2_cplx_impl.h"
+#include "level1_cplx_impl.h"
 #include "level2_impl.h"
+#include "level2_cplx_impl.h"
 #include "level3_impl.h"

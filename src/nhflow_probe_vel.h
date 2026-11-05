@@ -23,10 +23,10 @@ Author: Hans Bihs
 #ifndef NHFLOW_PROBE_VEL_H_
 #define NHFLOW_PROBE_VEL_H_
 
-#include "amr_grid_lookup.h"
-#include "boundarycheck.h"
-#include <fstream>
-#include <iostream>
+#include"boundarycheck.h"
+#include"amr_grid_lookup.h"
+#include<iostream>
+#include<fstream>
 
 class lexer;
 class fdm_nhf;
@@ -41,23 +41,29 @@ public:
     // the mesh refinement: the points read the finest grid (amr_grid_lookup.h), nullptr: level 0
     const amr_column_lookup *amr = nullptr;
 
-    nhflow_probe_vel(lexer *, fdm_nhf *);
-    virtual ~nhflow_probe_vel();
+    nhflow_probe_vel(lexer*,fdm_nhf*);
+	virtual ~nhflow_probe_vel();
 
-    void start(lexer *, fdm_nhf *, ghostcell *);
+	void start(lexer*, fdm_nhf*, ghostcell*);
+
 
 private:
-    void ini_location(lexer *, fdm_nhf *);
+    void ini_location(lexer*, fdm_nhf*);
 
-    char name[100];
 
-    int *iloc, *jloc, *kloc, *flag;
-    int n, q;
-    const int probenum;
+	char name[100];
+
+    int *iloc,*jloc,*kloc,*flag;
+    int n,q;
+	const int probenum;
     ofstream *pout;
     double *val;
+	
+	double uval,vval,wval,pval,kval,eval,edval,etaval;
+    
+    
+    
 
-    double uval, vval, wval, pval, kval, eval, edval, etaval;
 };
 
 #endif

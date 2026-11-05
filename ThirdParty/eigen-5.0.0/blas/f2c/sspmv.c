@@ -12,8 +12,7 @@
 
 #include "datatypes.h"
 
-/* Subroutine */ void sspmv_(char *uplo, integer *n, real *alpha, real *ap,
-                             real *x, integer *incx, real *beta, real *y,
+/* Subroutine */ void sspmv_(char *uplo, integer *n, real *alpha, real *ap, real *x, integer *incx, real *beta, real *y,
                              integer *incy) {
   /* System generated locals */
   integer i__1, i__2;

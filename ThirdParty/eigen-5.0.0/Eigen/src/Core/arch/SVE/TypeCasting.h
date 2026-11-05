@@ -16,44 +16,34 @@
 namespace Eigen {
 namespace internal {
 
-template<>
-struct type_casting_traits<float, numext::int32_t>
-{
-    enum { VectorizedCast = 1,
-           SrcCoeffRatio = 1,
-           TgtCoeffRatio = 1 };
+template <>
+struct type_casting_traits<float, numext::int32_t> {
+  enum { VectorizedCast = 1, SrcCoeffRatio = 1, TgtCoeffRatio = 1 };
 };
 
-template<>
-struct type_casting_traits<numext::int32_t, float>
-{
-    enum { VectorizedCast = 1,
-           SrcCoeffRatio = 1,
-           TgtCoeffRatio = 1 };
+template <>
+struct type_casting_traits<numext::int32_t, float> {
+  enum { VectorizedCast = 1, SrcCoeffRatio = 1, TgtCoeffRatio = 1 };
 };
 
-template<>
-EIGEN_STRONG_INLINE PacketXf pcast<PacketXi, PacketXf>(const PacketXi &a)
-{
-    return svcvt_f32_s32_x(svptrue_b32(), a);
+template <>
+EIGEN_STRONG_INLINE PacketXf pcast<PacketXi, PacketXf>(const PacketXi& a) {
+  return svcvt_f32_s32_x(svptrue_b32(), a);
 }
 
-template<>
-EIGEN_STRONG_INLINE PacketXi pcast<PacketXf, PacketXi>(const PacketXf &a)
-{
-    return svcvt_s32_f32_x(svptrue_b32(), a);
+template <>
+EIGEN_STRONG_INLINE PacketXi pcast<PacketXf, PacketXi>(const PacketXf& a) {
+  return svcvt_s32_f32_x(svptrue_b32(), a);
 }
 
-template<>
-EIGEN_STRONG_INLINE PacketXf preinterpret<PacketXf, PacketXi>(const PacketXi &a)
-{
-    return svreinterpret_f32_s32(a);
+template <>
+EIGEN_STRONG_INLINE PacketXf preinterpret<PacketXf, PacketXi>(const PacketXi& a) {
+  return svreinterpret_f32_s32(a);
 }
 
-template<>
-EIGEN_STRONG_INLINE PacketXi preinterpret<PacketXi, PacketXf>(const PacketXf &a)
-{
-    return svreinterpret_s32_f32(a);
+template <>
+EIGEN_STRONG_INLINE PacketXi preinterpret<PacketXi, PacketXf>(const PacketXf& a) {
+  return svreinterpret_s32_f32(a);
 }
 
 }  // namespace internal

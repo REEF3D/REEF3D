@@ -20,13 +20,13 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "ghostcell.h"
-#include "lexer.h"
-#include "net_membrane.h"
-#include <Eigen/Sparse>
-#include <algorithm>
-#include <cmath>
-#include <map>
+#include"net_membrane.h"
+#include"lexer.h"
+#include"ghostcell.h"
+#include<map>
+#include<Eigen/Sparse>
+#include<algorithm>
+#include<cmath>
 
 // Structure of the membrane (membrane.dat: structure fixed | rigid | flexible).
 //
@@ -69,251 +69,249 @@ void net_membrane::ini_structure(lexer *p, ghostcell *pgc)
 {
     const size_t nn = x_.size();
     const double rho = p->W1;
-
+    
     x0_ = x_;
-    vs_.assign(nn, Eigen::Vector3d::Zero());
-    nn_.assign(nn, Eigen::Vector3d(0.0, 0.0, 1.0));
-
+    vs_.assign(nn,Eigen::Vector3d::Zero());
+    nn_.assign(nn,Eigen::Vector3d(0.0,0.0,1.0));
+    
     // node areas
-    an_.assign(nn, 0.0);
-    for(size_t t = 0; t < tri_.size(); ++t)
-        for(int q = 0; q < 3; ++q)
-            an_[tri_[t][q]] += ta_[t] / 3.0;
-
+    an_.assign(nn,0.0);
+    for(size_t t=0; t<tri_.size(); ++t)
+    for(int q=0; q<3; ++q)
+    an_[tri_[t][q]] += ta_[t]/3.0;
+    
     // edges, adjacent area, wall/floor adjacency
-    map<pair<int, int>, int> eid;
+    map<pair<int,int>,int> eid;
     vector<double> eA;
-    vector<array<int, 2>> etag;
-
+    vector<array<int,2> > etag;
+    
     edge_.clear();
-    tedge_.assign(tri_.size(), {-1, -1, -1});
-
-    for(size_t t = 0; t < tri_.size(); ++t)
-        for(int q = 0; q < 3; ++q)
+    tedge_.assign(tri_.size(),{-1,-1,-1});
+    
+    for(size_t t=0; t<tri_.size(); ++t)
+    for(int q=0; q<3; ++q)
+    {
+        int a = tri_[t][q], b = tri_[t][(q+1)%3];
+        if(a>b)
+        swap(a,b);
+        
+        auto it = eid.find({a,b});
+        int e;
+        
+        if(it==eid.end())
         {
-            int a = tri_[t][q], b = tri_[t][(q + 1) % 3];
-            if(a > b)
-                swap(a, b);
-
-            auto it = eid.find({a, b});
-            int e;
-
-            if(it == eid.end())
-            {
-                e = edge_.size();
-                eid[{a, b}] = e;
-                edge_.push_back({a, b});
-                eA.push_back(0.0);
-                etag.push_back({0, 0});
-            }
-            else
-                e = it->second;
-
-            eA[e] += ta_[t];
-            etag[e][ttag_[t]] += 1;
-            tedge_[t][q] = e;
+            e = edge_.size();
+            eid[{a,b}] = e;
+            edge_.push_back({a,b});
+            eA.push_back(0.0);
+            etag.push_back({0,0});
         }
-
+        else
+        e = it->second;
+        
+        eA[e] += ta_[t];
+        etag[e][ttag_[t]] += 1;
+        tedge_[t][q] = e;
+    }
+    
     // corner edges: between two triangles of clearly different orientation (floor edge, vertical box corners)
     {
-        vector<vector<int>> et(edge_.size());
-        for(size_t t = 0; t < tri_.size(); ++t)
-            for(int q = 0; q < 3; ++q)
-                et[tedge_[t][q]].push_back(t);
-
-        cornerE_.assign(edge_.size(), 0);
-        cornerN_.assign(nn, 0);
-
-        for(size_t e = 0; e < edge_.size(); ++e)
-            if(et[e].size() == 2 && fabs(tn_[et[e][0]].dot(tn_[et[e][1]])) < 0.9)
-            {
-                cornerE_[e] = 1;
-                cornerN_[edge_[e][0]] = cornerN_[edge_[e][1]] = 1;
-            }
-    }
-
-    // floor edge (edges between a floor and a wall triangle) and floor nodes
-    vector<char> onring(nn, 0), onfloor(nn, 0);
-    ws_.assign(nn, 0.0);
-
-    for(size_t e = 0; e < edge_.size(); ++e)
-        if(etag[e][0] > 0 && etag[e][1] > 0)
+        vector<vector<int> > et(edge_.size());
+        for(size_t t=0; t<tri_.size(); ++t)
+        for(int q=0; q<3; ++q)
+        et[tedge_[t][q]].push_back(t);
+        
+        cornerE_.assign(edge_.size(),0);
+        cornerN_.assign(nn,0);
+        
+        for(size_t e=0; e<edge_.size(); ++e)
+        if(et[e].size()==2 && fabs(tn_[et[e][0]].dot(tn_[et[e][1]]))<0.9)
         {
-            const int a = edge_[e][0], b = edge_[e][1];
-            const double L = (x_[b] - x_[a]).norm();
-
-            onring[a] = onring[b] = 1;
-            ws_[a] += 0.5 * prm.sinker * L;
-            ws_[b] += 0.5 * prm.sinker * L;
+            cornerE_[e] = 1;
+            cornerN_[edge_[e][0]] = cornerN_[edge_[e][1]] = 1;
         }
-
-    for(size_t t = 0; t < tri_.size(); ++t)
-        if(ttag_[t] == 1)
-            for(int q = 0; q < 3; ++q)
-                onfloor[tri_[t][q]] = 1;
-
+    }
+    
+    // floor edge (edges between a floor and a wall triangle) and floor nodes
+    vector<char> onring(nn,0), onfloor(nn,0);
+    ws_.assign(nn,0.0);
+    
+    for(size_t e=0; e<edge_.size(); ++e)
+    if(etag[e][0]>0 && etag[e][1]>0)
+    {
+        const int a = edge_[e][0], b = edge_[e][1];
+        const double L = (x_[b]-x_[a]).norm();
+        
+        onring[a] = onring[b] = 1;
+        ws_[a] += 0.5*prm.sinker*L;
+        ws_[b] += 0.5*prm.sinker*L;
+    }
+    
+    for(size_t t=0; t<tri_.size(); ++t)
+    if(ttag_[t]==1)
+    for(int q=0; q<3; ++q)
+    onfloor[tri_[t][q]] = 1;
+    
     ring_.clear();
     flo_.clear();
     ringc0_ = Eigen::Vector3d::Zero();
-
-    for(size_t q = 0; q < nn; ++q)
+    
+    for(size_t q=0; q<nn; ++q)
     {
         if(onring[q])
         {
-            ring_.push_back(q);
-            ringc0_ += x_[q];
+        ring_.push_back(q);
+        ringc0_ += x_[q];
         }
-
+        
         if(onfloor[q])
-            flo_.push_back(q);
+        flo_.push_back(q);
     }
-
+    
     if(!ring_.empty())
-        ringc0_ /= double(ring_.size());
-
+    ringc0_ /= double(ring_.size());
+    
     // attached nodes: top edge
     double lmin = 1.0e20;
-    for(size_t e = 0; e < edge_.size(); ++e)
-        lmin = MIN(lmin, (x_[edge_[e][1]] - x_[edge_[e][0]]).norm());
-
-    const double zatt = prm.zattach > -1.0e19 ? prm.zattach : prm.zt;
-
-    att_.assign(nn, 0);
-    for(size_t q = 0; q < nn; ++q)
-        if(x_[q](2) >= zatt - 1.0e-3 * lmin)
-            att_[q] = 1;
-
+    for(size_t e=0; e<edge_.size(); ++e)
+    lmin = MIN(lmin, (x_[edge_[e][1]]-x_[edge_[e][0]]).norm());
+    
+    const double zatt = prm.zattach>-1.0e19 ? prm.zattach : prm.zt;
+    
+    att_.assign(nn,0);
+    for(size_t q=0; q<nn; ++q)
+    if(x_[q](2) >= zatt - 1.0e-3*lmin)
+    att_[q] = 1;
+    
     // flexible collar: the top edge nodes are free and carry the collar (net_membrane_collar.cpp)
     ini_collar(p);
-
+    
     // groups: in 2D the two nodes across the cell row
     grp_.resize(nn);
-    for(size_t q = 0; q < nn; ++q)
-        grp_[q] = q;
-
-    if(p->j_dir == 0)
+    for(size_t q=0; q<nn; ++q)
+    grp_[q] = q;
+    
+    if(p->j_dir==0)
     {
-        map<pair<long, long>, int> key;
-
-        for(size_t q = 0; q < nn; ++q)
+        map<pair<long,long>,int> key;
+        
+        for(size_t q=0; q<nn; ++q)
         {
-            const pair<long, long> k(lround(x_[q](0) / (1.0e-3 * lmin)), lround(x_[q](2) / (1.0e-3 * lmin)));
+            const pair<long,long> k(lround(x_[q](0)/(1.0e-3*lmin)), lround(x_[q](2)/(1.0e-3*lmin)));
             auto it = key.find(k);
-
-            if(it == key.end())
-                key[k] = q;
+            
+            if(it==key.end())
+            key[k] = q;
             else
-                grp_[q] = it->second;
+            grp_[q] = it->second;
         }
     }
-
+    
     {
-        map<int, int> gi;
+        map<int,int> gi;
         gm_.clear();
-
-        for(size_t q = 0; q < nn; ++q)
+        
+        for(size_t q=0; q<nn; ++q)
         {
             if(att_[q])
-                continue;
-
+            continue;
+            
             auto it = gi.find(grp_[q]);
-
-            if(it == gi.end())
+            
+            if(it==gi.end())
             {
                 gi[grp_[q]] = gm_.size();
                 gm_.push_back({(int)q});
             }
             else
-                gm_[it->second].push_back(q);
+            gm_[it->second].push_back(q);
         }
     }
-
+    
     // masses, springs, dampers
     mn_.resize(nn);
-    for(size_t q = 0; q < nn; ++q)
-        mn_[q] = prm.mA * an_[q];
-
+    for(size_t q=0; q<nn; ++q)
+    mn_[q] = prm.mA*an_[q];
+    
     L0_.resize(edge_.size());
     ke_.resize(edge_.size());
     ce_.resize(edge_.size());
-
-    for(size_t e = 0; e < edge_.size(); ++e)
+    
+    for(size_t e=0; e<edge_.size(); ++e)
     {
         const int a = edge_[e][0], b = edge_[e][1];
-
-        L0_[e] = (x_[b] - x_[a]).norm();
-        ke_[e] = prm.EA * eA[e] / (L0_[e] * L0_[e]);
-        ce_[e] = 2.0 * prm.zeta * sqrt(ke_[e] * 0.5 * (mn_[a] + mn_[b]));
+        
+        L0_[e] = (x_[b]-x_[a]).norm();
+        ke_[e] = prm.EA*eA[e]/(L0_[e]*L0_[e]);
+        ce_[e] = 2.0*prm.zeta*sqrt(ke_[e]*0.5*(mn_[a]+mn_[b]));
     }
-
+    
     xan_ = x_;
-
+    
     // bending hinges: the two triangles of every interior edge; quadratic bending energy E = 1/2 EI 3/(A1+A2) |sum K_i x_i|^2
     // with the cotangent weights K of the rest state (zero for a flat hinge: flat rest state, rotation invariant)
-    if(prm.EI < 0.0)
-        prm.EI = prm.link == 2 ? 1.0e-3 : 0.0;
-
+    if(prm.EI<0.0)
+    prm.EI = prm.link==2 ? 1.0e-3 : 0.0;
+    
     hinge_.clear();
     hK_.clear();
     hc_.clear();
-
-    if(prm.EI > 0.0 && prm.structure == 2 && p->j_dir == 1)
+    
+    if(prm.EI>0.0 && prm.structure==2 && p->j_dir==1)
     {
-        vector<array<int, 2>> et(edge_.size(), {-1, -1});
-
-        for(size_t t = 0; t < tri_.size(); ++t)
-            for(int q = 0; q < 3; ++q)
-            {
-                const int e = tedge_[t][q];
-
-                if(et[e][0] < 0)
-                    et[e][0] = t;
-                else
-                    et[e][1] = t;
-            }
-
+        vector<array<int,2> > et(edge_.size(),{-1,-1});
+        
+        for(size_t t=0; t<tri_.size(); ++t)
+        for(int q=0; q<3; ++q)
+        {
+            const int e = tedge_[t][q];
+            
+            if(et[e][0]<0)
+            et[e][0]=t;
+            else
+            et[e][1]=t;
+        }
+        
         auto cot = [](const Eigen::Vector3d &a, const Eigen::Vector3d &b)
         {
             const double c = a.cross(b).norm();
-            return c > 1.0e-20 ? a.dot(b) / c : 0.0;
+            return c>1.0e-20 ? a.dot(b)/c : 0.0;
         };
-
-        for(size_t e = 0; e < edge_.size(); ++e)
+        
+        for(size_t e=0; e<edge_.size(); ++e)
         {
-            if(et[e][1] < 0)
-                continue;
-
+            if(et[e][1]<0)
+            continue;
+            
             const int a = edge_[e][0], b = edge_[e][1];
-            int c = -1, dd = -1;
-
-            for(int q = 0; q < 3; ++q)
+            int c=-1, dd=-1;
+            
+            for(int q=0; q<3; ++q)
             {
-                if(tri_[et[e][0]][q] != a && tri_[et[e][0]][q] != b)
-                    c = tri_[et[e][0]][q];
-                if(tri_[et[e][1]][q] != a && tri_[et[e][1]][q] != b)
-                    dd = tri_[et[e][1]][q];
+                if(tri_[et[e][0]][q]!=a && tri_[et[e][0]][q]!=b) c = tri_[et[e][0]][q];
+                if(tri_[et[e][1]][q]!=a && tri_[et[e][1]][q]!=b) dd = tri_[et[e][1]][q];
             }
-
-            if(c < 0 || dd < 0)
-                continue;
-
-            const Eigen::Vector3d e0 = x_[b] - x_[a], e1 = x_[c] - x_[a], e2 = x_[dd] - x_[a], e3 = x_[c] - x_[b], e4 = x_[dd] - x_[b];
-            const double c01 = cot(e0, e1), c02 = cot(e0, e2), c03 = cot(-e0, e3), c04 = cot(-e0, e4);
-            const double A = 0.5 * e0.cross(e1).norm() + 0.5 * e0.cross(e2).norm();
-
-            if(A < 1.0e-20)
-                continue;
-
-            hinge_.push_back({a, b, c, dd});
-            hK_.push_back({c03 + c04, c01 + c02, -c01 - c03, -c02 - c04});
-            hc_.push_back(prm.EI * 3.0 / A);
+            
+            if(c<0 || dd<0)
+            continue;
+            
+            const Eigen::Vector3d e0 = x_[b]-x_[a], e1 = x_[c]-x_[a], e2 = x_[dd]-x_[a], e3 = x_[c]-x_[b], e4 = x_[dd]-x_[b];
+            const double c01 = cot(e0,e1), c02 = cot(e0,e2), c03 = cot(-e0,e3), c04 = cot(-e0,e4);
+            const double A = 0.5*e0.cross(e1).norm() + 0.5*e0.cross(e2).norm();
+            
+            if(A<1.0e-20)
+            continue;
+            
+            hinge_.push_back({a,b,c,dd});
+            hK_.push_back({c03+c04, c01+c02, -c01-c03, -c02-c04});
+            hc_.push_back(prm.EI*3.0/A);
         }
     }
 }
 
 Eigen::Vector3d net_membrane::attached_position(int q) const
 {
-    return body_ ? Eigen::Vector3d(cb_ + Rb_ * rb_[q]) : x0_[q];
+    return body_ ? Eigen::Vector3d(cb_ + Rb_*rb_[q]) : x0_[q];
 }
 
 Eigen::Vector3d net_membrane::body_velocity(const Eigen::Vector3d &x) const
@@ -325,79 +323,79 @@ void net_membrane::attach_body(lexer *p, const Eigen::Vector3d &c, const Eigen::
 {
     // node positions in the body frame at the start
     rb_.resize(x0_.size());
-
-    for(size_t q = 0; q < x0_.size(); ++q)
-        rb_[q] = R.transpose() * (x0_[q] - c);
-
+    
+    for(size_t q=0; q<x0_.size(); ++q)
+    rb_[q] = R.transpose()*(x0_[q] - c);
+    
     body_ = true;
     cb_ = c;
     Rb_ = R;
-
+    
     // rotational counterpart of body_addedmass: 4 rho x the inertia of the bag water below the still water level
     // about the centre of gravity (solid block of water: cylinder or box, parallel-axis term to its centroid),
     // in the body frame. Twice the factor of the translations: the outer water adds relatively more inertia in pitch;
     // 3D ring collar with a rigid cylinder bag, pitch free, waves: 2 rho diverged at 4 s, 4 rho stable
     Iab_.setZero();
-
+    
     const double hw = MAX(0.0, p->wd - zbag());
     double Lx, Ly, xm, ym;
-
-    if(prm.shape >= 2)
+    
+    if(prm.shape>=2)
     {
-        Lx = Ly = 2.0 * prm.R;
+        Lx = Ly = 2.0*prm.R;
         xm = prm.xc;
         ym = prm.yc;
     }
     else
     {
-        Lx = prm.x1 - prm.x0;
-        Ly = p->j_dir == 1 ? prm.y1 - prm.y0 : p->DYN[0 + marge];
-        xm = 0.5 * (prm.x0 + prm.x1);
-        ym = p->j_dir == 1 ? 0.5 * (prm.y0 + prm.y1) : c(1);
+        Lx = prm.x1-prm.x0;
+        Ly = p->j_dir==1 ? prm.y1-prm.y0 : p->DYN[0+marge];
+        xm = 0.5*(prm.x0+prm.x1);
+        ym = p->j_dir==1 ? 0.5*(prm.y0+prm.y1) : c(1);
     }
-
-    const double A = prm.shape >= 2 ? PI * prm.R * prm.R : Lx * Ly;
-    const double M = 4.0 * p->W1 * A * hw;
-    const Eigen::Vector3d d = R.transpose() * (Eigen::Vector3d(xm, ym, zbag() + 0.5 * hw) - c);
-
+    
+    const double A = prm.shape>=2 ? PI*prm.R*prm.R : Lx*Ly;
+    const double M = 4.0*p->W1*A*hw;
+    const Eigen::Vector3d d = R.transpose()*(Eigen::Vector3d(xm, ym, zbag() + 0.5*hw) - c);
+    
     double Ixx, Iyy, Izz;
-
-    if(prm.shape >= 2)
+    
+    if(prm.shape>=2)
     {
-        Ixx = Iyy = M * (prm.R * prm.R / 4.0 + hw * hw / 12.0);
-        Izz = 0.5 * M * prm.R * prm.R;
+        Ixx = Iyy = M*(prm.R*prm.R/4.0 + hw*hw/12.0);
+        Izz = 0.5*M*prm.R*prm.R;
     }
     else
     {
-        Ixx = M * (Ly * Ly + hw * hw) / 12.0;
-        Iyy = M * (Lx * Lx + hw * hw) / 12.0;
-        Izz = M * (Lx * Lx + Ly * Ly) / 12.0;
+        Ixx = M*(Ly*Ly + hw*hw)/12.0;
+        Iyy = M*(Lx*Lx + hw*hw)/12.0;
+        Izz = M*(Lx*Lx + Ly*Ly)/12.0;
     }
-
-    Iab_(0, 0) = Ixx + M * (d(1) * d(1) + d(2) * d(2));
-    Iab_(1, 1) = Iyy + M * (d(0) * d(0) + d(2) * d(2));
-    Iab_(2, 2) = Izz + M * (d(0) * d(0) + d(1) * d(1));
-    Iab_(0, 1) = Iab_(1, 0) = -M * d(0) * d(1);
-    Iab_(0, 2) = Iab_(2, 0) = -M * d(0) * d(2);
-    Iab_(1, 2) = Iab_(2, 1) = -M * d(1) * d(2);
+    
+    Iab_(0,0) = Ixx + M*(d(1)*d(1) + d(2)*d(2));
+    Iab_(1,1) = Iyy + M*(d(0)*d(0) + d(2)*d(2));
+    Iab_(2,2) = Izz + M*(d(0)*d(0) + d(1)*d(1));
+    Iab_(0,1) = Iab_(1,0) = -M*d(0)*d(1);
+    Iab_(0,2) = Iab_(2,0) = -M*d(0)*d(2);
+    Iab_(1,2) = Iab_(2,1) = -M*d(1)*d(2);
 }
 
 Eigen::Matrix3d net_membrane::body_addedinertia(lexer *p) const
 {
     // rigid bag: added inertia of the stabilised coupling for the rotations, world frame (see body_addedmass); scaled
     // with bodyaddedmass when that is given
-    if(!moving() || !body_ || prm.structure != 1)
-        return Eigen::Matrix3d::Zero();
-
+    if(!moving() || !body_ || prm.structure!=1)
+    return Eigen::Matrix3d::Zero();
+    
     double f = 1.0;
-
-    if(prm.Mbody >= 0.0)
+    
+    if(prm.Mbody>=0.0)
     {
-        const double M0 = 2.0 * p->W1 * Abag(p) * MAX(0.0, p->wd - zbag());
-        f = M0 > 0.0 ? prm.Mbody / M0 : 0.0;
+        const double M0 = 2.0*p->W1*Abag(p)*MAX(0.0, p->wd - zbag());
+        f = M0>0.0 ? prm.Mbody/M0 : 0.0;
     }
-
-    return f * Rb_ * Iab_ * Rb_.transpose();
+    
+    return f*Rb_*Iab_*Rb_.transpose();
 }
 
 void net_membrane::set_body(const Eigen::Vector3d &c, const Eigen::Matrix3d &R, const Eigen::Vector3d &v, const Eigen::Vector3d &w)
@@ -411,44 +409,44 @@ void net_membrane::set_body(const Eigen::Vector3d &c, const Eigen::Matrix3d &R, 
 void net_membrane::internal_forces(lexer *p, const vector<Eigen::Vector3d> &x, const vector<Eigen::Vector3d> &v, vector<Eigen::Vector3d> &F) const
 {
     for(auto &f : F)
-        f.setZero();
-
-    for(size_t e = 0; e < edge_.size(); ++e)
+    f.setZero();
+    
+    for(size_t e=0; e<edge_.size(); ++e)
     {
         const int a = edge_[e][0], b = edge_[e][1];
-
-        if(grp_[a] == grp_[b])
-            continue;
-
-        const Eigen::Vector3d dx = x[b] - x[a];
+        
+        if(grp_[a]==grp_[b])
+        continue;
+        
+        const Eigen::Vector3d dx = x[b]-x[a];
         const double L = dx.norm();
-
-        if(L < 1.0e-20)
-            continue;
-
-        const Eigen::Vector3d ev = dx / L;
-
-        double T = ke_[e] * (L - L0_[e]);
-
+        
+        if(L<1.0e-20)
+        continue;
+        
+        const Eigen::Vector3d ev = dx/L;
+        
+        double T = ke_[e]*(L - L0_[e]);
+        
         // fabric: compression wrinkles the membrane
-        if(T < 0.0)
-            T *= prm.compr;
-
-        T += ce_[e] * (v[b] - v[a]).dot(ev);
-
-        F[a] += T * ev;
-        F[b] -= T * ev;
+        if(T<0.0)
+        T *= prm.compr;
+        
+        T += ce_[e]*(v[b]-v[a]).dot(ev);
+        
+        F[a] += T*ev;
+        F[b] -= T*ev;
     }
-
+    
     // bending hinges
-    for(size_t hh = 0; hh < hinge_.size(); ++hh)
+    for(size_t hh=0; hh<hinge_.size(); ++hh)
     {
         Eigen::Vector3d Kx = Eigen::Vector3d::Zero();
-        for(int r = 0; r < 4; ++r)
-            Kx += hK_[hh][r] * x[hinge_[hh][r]];
-
-        for(int r = 0; r < 4; ++r)
-            F[hinge_[hh][r]] -= hc_[hh] * hK_[hh][r] * Kx;
+        for(int r=0; r<4; ++r)
+        Kx += hK_[hh][r]*x[hinge_[hh][r]];
+        
+        for(int r=0; r<4; ++r)
+        F[hinge_[hh][r]] -= hc_[hh]*hK_[hh][r]*Kx;
     }
 }
 
@@ -457,75 +455,75 @@ void net_membrane::external_forces(lexer *p, vector<Eigen::Vector3d> &F) const
     // fluid load, weight (buoyancy below the still water level), sinker
     const double g = fabs(p->W22);
     const double rho = p->W1;
-
-    for(size_t q = 0; q < x_.size(); ++q)
+    
+    for(size_t q=0; q<x_.size(); ++q)
     {
-        const double wet = x_[q](2) < p->wd ? 1.0 - rho / prm.rhom : 1.0;
-
-        F[q] = Eigen::Vector3d(nf_[3 * q + 0], nf_[3 * q + 1], nf_[3 * q + 2]);
-        F[q](2) -= mn_[q] * g * wet + ws_[q];
+        const double wet = x_[q](2) < p->wd ? 1.0 - rho/prm.rhom : 1.0;
+        
+        F[q] = Eigen::Vector3d(nf_[3*q+0], nf_[3*q+1], nf_[3*q+2]);
+        F[q](2) -= mn_[q]*g*wet + ws_[q];
     }
 }
 
 void net_membrane::advance_structure(lexer *p, double dt)
 {
-    if(dt <= 0.0 || gm_.empty())
-        return;
-
+    if(dt<=0.0 || gm_.empty())
+    return;
+    
     const size_t nn = x_.size();
     const int ng = gm_.size();
     const double rho = p->W1;
-
+    
     // linearised backward Euler with the implicit porous-jump coupling, sub-steps of at most dtmax
     const double dtmax = 0.01;
-    nsub_ = MAX(1, (int)ceil(dt / dtmax - 1.0e-10));
-    const double h = dt / double(nsub_);
-
+    nsub_ = MAX(1, (int)ceil(dt/dtmax - 1.0e-10));
+    const double h = dt/double(nsub_);
+    
     // node normals (area weighted) and added-mass tensors
-    vector<Eigen::Matrix3d> Cq(nn, Eigen::Matrix3d::Zero());
-
+    vector<Eigen::Matrix3d> Cq(nn,Eigen::Matrix3d::Zero());
+    
     for(auto &n : nn_)
-        n.setZero();
-
+    n.setZero();
+    
     // porous-jump coupling per node, dF/dv = -C: C = rho sum_T A_T/3 (R_n n n^T + R_t (I - n n^T))
     // mobility sharp: no porous layer, the load is the pressure jump; added mass m_a per area, C = m_a A/dt (the node
     // is integrated with m + m_a A against the load of the last fluid step, stable for m_a above the added mass of
     // the water)
-    for(size_t t = 0; t < tri_.size(); ++t)
-        for(int q = 0; q < 3; ++q)
-        {
-            const Eigen::Matrix3d P = tn_[t] * tn_[t].transpose();
-
-            nn_[tri_[t][q]] += ta_[t] * tn_[t];
-
-            if(prm.link == 2)
-                Cq[tri_[t][q]] += prm.ma * ta_[t] / 3.0 / dt * Eigen::Matrix3d::Identity();
-            else
-                Cq[tri_[t][q]] += rho * ta_[t] / 3.0 * (prm.Rn * P + prm.Rt * (Eigen::Matrix3d::Identity() - P));
-        }
-
+    for(size_t t=0; t<tri_.size(); ++t)
+    for(int q=0; q<3; ++q)
+    {
+        const Eigen::Matrix3d P = tn_[t]*tn_[t].transpose();
+        
+        nn_[tri_[t][q]] += ta_[t]*tn_[t];
+        
+        if(prm.link==2)
+        Cq[tri_[t][q]] += prm.ma*ta_[t]/3.0/dt*Eigen::Matrix3d::Identity();
+        else
+        Cq[tri_[t][q]] += rho*ta_[t]/3.0*(prm.Rn*P + prm.Rt*(Eigen::Matrix3d::Identity() - P));
+    }
+    
     for(auto &n : nn_)
     {
         const double l = n.norm();
-        n = l > 1.0e-20 ? Eigen::Vector3d(n / l) : Eigen::Vector3d(0.0, 0.0, 1.0);
+        n = l>1.0e-20 ? Eigen::Vector3d(n/l) : Eigen::Vector3d(0.0,0.0,1.0);
     }
-
+    
     // attached nodes: from their positions at the start of the step to the current body position
     vector<Eigen::Vector3d> xa1(nn);
-
-    for(size_t q = 0; q < nn; ++q)
-        if(att_[q])
-            xa1[q] = attached_position(q);
-
+    
+    for(size_t q=0; q<nn; ++q)
+    if(att_[q])
+    xa1[q] = attached_position(q);
+    
     const vector<Eigen::Vector3d> xs = x_;
-
+    
     // implicit coupling: F_fluid(v) = F^n - C (v - v_seen), v_seen the velocity the fluid step used
-    structure_solve(p, dt, nsub_, Cq, xdot_, xan_, xa1);
-
+    structure_solve(p,dt,nsub_,Cq,xdot_,xan_,xa1);
+    
     // end of the step
     vmax_ = 0.0;
-
-    for(size_t q = 0; q < nn; ++q)
+    
+    for(size_t q=0; q<nn; ++q)
     {
         if(att_[q])
         {
@@ -535,21 +533,21 @@ void net_membrane::advance_structure(lexer *p, double dt)
         else
         {
             // the fluid sees the step-averaged velocity
-            xdot_[q] = (x_[q] - xs[q]) / dt;
+            xdot_[q] = (x_[q] - xs[q])/dt;
             vmax_ = MAX(vmax_, xdot_[q].norm());
         }
     }
-
+    
     // largest membrane tension, E t strain
     Tmax_ = 0.0;
-    for(size_t e = 0; e < edge_.size(); ++e)
-        if(grp_[edge_[e][0]] != grp_[edge_[e][1]])
-            Tmax_ = MAX(Tmax_, prm.EA * ((x_[edge_[e][1]] - x_[edge_[e][0]]).norm() - L0_[e]) / L0_[e]);
+    for(size_t e=0; e<edge_.size(); ++e)
+    if(grp_[edge_[e][0]]!=grp_[edge_[e][1]])
+    Tmax_ = MAX(Tmax_, prm.EA*((x_[edge_[e][1]]-x_[edge_[e][0]]).norm() - L0_[e])/L0_[e]);
 }
 
 struct structure_factor
 {
-    Eigen::SimplicialLDLT<Eigen::SparseMatrix<double>> solver;
+    Eigen::SimplicialLDLT<Eigen::SparseMatrix<double> > solver;
 };
 
 void net_membrane::free_factor()
@@ -569,215 +567,215 @@ void net_membrane::structure_solve(lexer *p, double dt, int nsub, const vector<E
     // xa0 to xa1. Result in x_, vs_ (attached nodes: xa1 and their mean velocity).
     const size_t nn = x_.size();
     const int ng = gm_.size();
-    const double h = dt / double(nsub);
-
-    vector<int> gid(nn, -1);
-    vector<Eigen::Matrix3d> Mg(ng, Eigen::Matrix3d::Zero());
-
-    for(int g = 0; g < ng; ++g)
-        for(int q : gm_[g])
-        {
-            gid[q] = g;
-            Mg[g] += mn_[q] * Eigen::Matrix3d::Identity() + h * Cq[q];
-        }
-
+    const double h = dt/double(nsub);
+    
+    vector<int> gid(nn,-1);
+    vector<Eigen::Matrix3d> Mg(ng,Eigen::Matrix3d::Zero());
+    
+    for(int g=0; g<ng; ++g)
+    for(int q : gm_[g])
+    {
+        gid[q] = g;
+        Mg[g] += mn_[q]*Eigen::Matrix3d::Identity() + h*Cq[q];
+    }
+    
     // attached nodes: from xa0 to xa1 over the step
-    vector<Eigen::Vector3d> va(nn, Eigen::Vector3d::Zero());
-
-    for(size_t q = 0; q < nn; ++q)
-        if(att_[q])
-            va[q] = (xa1[q] - xa0[q]) / dt;
-
+    vector<Eigen::Vector3d> va(nn,Eigen::Vector3d::Zero());
+    
+    for(size_t q=0; q<nn; ++q)
+    if(att_[q])
+    va[q] = (xa1[q] - xa0[q])/dt;
+    
     // forces held over the step: fluid, weight, sinker, and the added-mass force of the last step
     vector<Eigen::Vector3d> Fc(nn);
-    external_forces(p, Fc);
-
+    external_forces(p,Fc);
+    
     // linearised fluid load: F_fluid(v) = F^n - C (v - v_seen)
-    for(size_t q = 0; q < nn; ++q)
-        if(!att_[q])
-            Fc[q] += Cq[q] * vseen[q];
-
-    const bool twod = p->j_dir == 0;
-
+    for(size_t q=0; q<nn; ++q)
+    if(!att_[q])
+    Fc[q] += Cq[q]*vseen[q];
+    
+    const bool twod = p->j_dir==0;
+    
     typedef Eigen::Triplet<double> Trip;
     vector<Trip> trip;
-    Eigen::VectorXd rhs(3 * ng), sol(3 * ng);
-
+    Eigen::VectorXd rhs(3*ng), sol(3*ng);
+    
     auto addblock = [&](int ga, int gb, const Eigen::Matrix3d &B)
     {
-        for(int r = 0; r < 3; ++r)
-            for(int c = 0; c < 3; ++c)
-                if(!(twod && (r == 1 || c == 1)))
-                    trip.push_back(Trip(3 * ga + r, 3 * gb + c, B(r, c)));
+        for(int r=0; r<3; ++r)
+        for(int c=0; c<3; ++c)
+        if(!(twod && (r==1 || c==1)))
+        trip.push_back(Trip(3*ga+r,3*gb+c,B(r,c)));
     };
-
-    for(int s = 0; s < nsub; ++s)
+    
+    for(int s=0; s<nsub; ++s)
     {
-        const double r0 = double(s) / double(nsub);
-
-        for(size_t q = 0; q < nn; ++q)
-            if(att_[q])
-            {
-                x_[q] = xa0[q] + r0 * (xa1[q] - xa0[q]);
-                vs_[q] = va[q];
-            }
-
+        const double r0 = double(s)/double(nsub);
+        
+        for(size_t q=0; q<nn; ++q)
+        if(att_[q])
+        {
+            x_[q] = xa0[q] + r0*(xa1[q] - xa0[q]);
+            vs_[q] = va[q];
+        }
+        
         trip.clear();
         rhs.setZero();
-
-        for(int g = 0; g < ng; ++g)
+        
+        for(int g=0; g<ng; ++g)
         {
-            addblock(g, g, Mg[g]);
-
+            addblock(g,g,Mg[g]);
+            
             Eigen::Vector3d b = Eigen::Vector3d::Zero();
             for(int q : gm_[g])
-                b += mn_[q] * vs_[q] + h * Fc[q];
-
-            rhs.segment<3>(3 * g) += b;
-
+            b += mn_[q]*vs_[q] + h*Fc[q];
+            
+            rhs.segment<3>(3*g) += b;
+            
             if(twod)
-                trip.push_back(Trip(3 * g + 1, 3 * g + 1, 1.0));
+            trip.push_back(Trip(3*g+1,3*g+1,1.0));
         }
-
-        for(size_t e = 0; e < edge_.size(); ++e)
+        
+        for(size_t e=0; e<edge_.size(); ++e)
         {
             const int a = edge_[e][0], b = edge_[e][1];
-
-            if(grp_[a] == grp_[b])
-                continue;
-
+            
+            if(grp_[a]==grp_[b])
+            continue;
+            
             const int ga = gid[a], gb = gid[b];
-
-            if(ga < 0 && gb < 0)
-                continue;
-
-            const Eigen::Vector3d dx = x_[b] - x_[a];
+            
+            if(ga<0 && gb<0)
+            continue;
+            
+            const Eigen::Vector3d dx = x_[b]-x_[a];
             const double L = dx.norm();
-
-            if(L < 1.0e-20)
-                continue;
-
-            const Eigen::Vector3d ev = dx / L;
-            const Eigen::Matrix3d P = ev * ev.transpose();
-
+            
+            if(L<1.0e-20)
+            continue;
+            
+            const Eigen::Vector3d ev = dx/L;
+            const Eigen::Matrix3d P = ev*ev.transpose();
+            
             // spring force on a at x^n, tension only (fraction 'compression' of the stiffness in compression, default 1 %)
-            const double kef = L > L0_[e] ? ke_[e] : prm.compr * ke_[e];
-            const double geo = L > L0_[e] ? 1.0 - L0_[e] / L : 0.0;
-            const Eigen::Vector3d fa = kef * (L - L0_[e]) * ev;
-
-            const Eigen::Matrix3d B = h * h * kef * (P + geo * (Eigen::Matrix3d::Identity() - P)) + h * ce_[e] * P;
-
-            if(ga >= 0)
+            const double kef = L>L0_[e] ? ke_[e] : prm.compr*ke_[e];
+            const double geo = L>L0_[e] ? 1.0 - L0_[e]/L : 0.0;
+            const Eigen::Vector3d fa = kef*(L - L0_[e])*ev;
+            
+            const Eigen::Matrix3d B = h*h*kef*(P + geo*(Eigen::Matrix3d::Identity() - P)) + h*ce_[e]*P;
+            
+            if(ga>=0)
             {
-                addblock(ga, ga, B);
-                rhs.segment<3>(3 * ga) += h * fa;
+                addblock(ga,ga,B);
+                rhs.segment<3>(3*ga) += h*fa;
             }
-
-            if(gb >= 0)
+            
+            if(gb>=0)
             {
-                addblock(gb, gb, B);
-                rhs.segment<3>(3 * gb) -= h * fa;
+                addblock(gb,gb,B);
+                rhs.segment<3>(3*gb) -= h*fa;
             }
-
-            if(ga >= 0 && gb >= 0)
+            
+            if(ga>=0 && gb>=0)
             {
-                addblock(ga, gb, -B);
-                addblock(gb, ga, -B);
+                addblock(ga,gb,-B);
+                addblock(gb,ga,-B);
             }
-            else if(ga >= 0)
-                rhs.segment<3>(3 * ga) += B * vs_[b];
-
+            else if(ga>=0)
+            rhs.segment<3>(3*ga) += B*vs_[b];
+            
             else
-                rhs.segment<3>(3 * gb) += B * vs_[a];
+            rhs.segment<3>(3*gb) += B*vs_[a];
         }
-
+        
         // bending hinges, linear in x: F_i = -hc K_i sum_j K_j x_j, implicit (matrix h^2 hc K_i K_j)
-        for(size_t hh = 0; hh < hinge_.size(); ++hh)
+        for(size_t hh=0; hh<hinge_.size(); ++hh)
         {
             const auto &n = hinge_[hh];
             const auto &K = hK_[hh];
             const double hc = hc_[hh];
-
+            
             Eigen::Vector3d Kx = Eigen::Vector3d::Zero();
-            for(int r = 0; r < 4; ++r)
-                Kx += K[r] * x_[n[r]];
-
-            for(int r = 0; r < 4; ++r)
+            for(int r=0; r<4; ++r)
+            Kx += K[r]*x_[n[r]];
+            
+            for(int r=0; r<4; ++r)
             {
                 const int gr = gid[n[r]];
-
-                if(gr < 0)
-                    continue;
-
-                rhs.segment<3>(3 * gr) -= h * hc * K[r] * Kx;
-
-                for(int c = 0; c < 4; ++c)
+                
+                if(gr<0)
+                continue;
+                
+                rhs.segment<3>(3*gr) -= h*hc*K[r]*Kx;
+                
+                for(int c=0; c<4; ++c)
                 {
-                    const double kk = h * h * hc * K[r] * K[c];
+                    const double kk = h*h*hc*K[r]*K[c];
                     const int gc = gid[n[c]];
-
-                    if(gc >= 0)
-                        addblock(gr, gc, kk * Eigen::Matrix3d::Identity());
+                    
+                    if(gc>=0)
+                    addblock(gr,gc,kk*Eigen::Matrix3d::Identity());
                     else
-                        rhs.segment<3>(3 * gr) -= kk * vs_[n[c]];
+                    rhs.segment<3>(3*gr) -= kk*vs_[n[c]];
                 }
             }
         }
-
+        
         // flexible collar: pipe, fluid, bending and mooring terms
-        collar_assemble(p, h, gid, addblock, rhs);
-
+        collar_assemble(p,h,gid,addblock,rhs);
+        
         if(twod)
-            for(int g = 0; g < ng; ++g)
-                rhs(3 * g + 1) = 0.0;
-
-        if(reuse && nsub == 1)
+        for(int g=0; g<ng; ++g)
+        rhs(3*g+1) = 0.0;
+        
+        if(reuse && nsub==1)
         {
             if(!sfac_ok_)
             {
-                Eigen::SparseMatrix<double> A(3 * ng, 3 * ng);
-                A.setFromTriplets(trip.begin(), trip.end());
-
-                if(sfac_ == nullptr)
-                    sfac_ = new structure_factor;
-
+                Eigen::SparseMatrix<double> A(3*ng,3*ng);
+                A.setFromTriplets(trip.begin(),trip.end());
+                
+                if(sfac_==nullptr)
+                sfac_ = new structure_factor;
+                
                 sfac_->solver.compute(A);
                 sfac_ok_ = true;
             }
-
+            
             sol = sfac_->solver.solve(rhs);
         }
         else
         {
-            Eigen::SparseMatrix<double> A(3 * ng, 3 * ng);
-            A.setFromTriplets(trip.begin(), trip.end());
-
-            Eigen::SimplicialLDLT<Eigen::SparseMatrix<double>> solver;
-            solver.compute(A);
-            sol = solver.solve(rhs);
+        Eigen::SparseMatrix<double> A(3*ng,3*ng);
+        A.setFromTriplets(trip.begin(),trip.end());
+        
+        Eigen::SimplicialLDLT<Eigen::SparseMatrix<double> > solver;
+        solver.compute(A);
+        sol = solver.solve(rhs);
         }
-
-        for(int g = 0; g < ng; ++g)
+        
+        for(int g=0; g<ng; ++g)
         {
-            Eigen::Vector3d v = sol.segment<3>(3 * g);
-
+            Eigen::Vector3d v = sol.segment<3>(3*g);
+            
             if(twod)
-                v(1) = 0.0;
-
+            v(1) = 0.0;
+            
             for(int q : gm_[g])
             {
                 vs_[q] = v;
-                x_[q] += h * v;
+                x_[q] += h*v;
             }
         }
     }
-
-    for(size_t q = 0; q < nn; ++q)
-        if(att_[q])
-        {
-            x_[q] = xa1[q];
-            vs_[q] = va[q];
-        }
+    
+    for(size_t q=0; q<nn; ++q)
+    if(att_[q])
+    {
+        x_[q] = xa1[q];
+        vs_[q] = va[q];
+    }
 }
 
 void net_membrane::update_body_load(lexer *p)
@@ -786,29 +784,29 @@ void net_membrane::update_body_load(lexer *p)
     // weight), the flexible one the forces on its attached nodes (edge forces and weight here, at the membrane
     // step; the fluid load on the attached nodes in every stage, update_body_fluid_load)
     const size_t nn = x_.size();
-    vector<Eigen::Vector3d> Fe(nn), Fi(nn, Eigen::Vector3d::Zero());
-
-    external_forces(p, Fe);
-
-    if(prm.structure == 2)
+    vector<Eigen::Vector3d> Fe(nn), Fi(nn,Eigen::Vector3d::Zero());
+    
+    external_forces(p,Fe);
+    
+    if(prm.structure==2)
     {
-        internal_forces(p, x_, vs_, Fi);
-
-        for(size_t q = 0; q < nn; ++q)
-            Fe[q] -= Eigen::Vector3d(nf_[3 * q + 0], nf_[3 * q + 1], nf_[3 * q + 2]);
+        internal_forces(p,x_,vs_,Fi);
+        
+        for(size_t q=0; q<nn; ++q)
+        Fe[q] -= Eigen::Vector3d(nf_[3*q+0],nf_[3*q+1],nf_[3*q+2]);
     }
-
+    
     Fb_.setZero();
     Mb_.setZero();
-
-    for(size_t q = 0; q < nn; ++q)
-        if(prm.structure == 1 || att_[q])
-        {
-            const Eigen::Vector3d F = Fe[q] + Fi[q];
-
-            Fb_ += F;
-            Mb_ += x_[q].cross(F);
-        }
+    
+    for(size_t q=0; q<nn; ++q)
+    if(prm.structure==1 || att_[q])
+    {
+        const Eigen::Vector3d F = Fe[q] + Fi[q];
+        
+        Fb_ += F;
+        Mb_ += x_[q].cross(F);
+    }
 }
 
 void net_membrane::update_body_fluid_load(lexer *p)
@@ -819,18 +817,18 @@ void net_membrane::update_body_fluid_load(lexer *p)
     // exchange is one-sided (it drove the collar away in the tests).
     Ffl_.setZero();
     Mfl_.setZero();
-
-    if(prm.structure != 2)
-        return;
-
-    for(size_t q = 0; q < x_.size(); ++q)
-        if(att_[q])
-        {
-            const Eigen::Vector3d F(nf_[3 * q + 0], nf_[3 * q + 1], nf_[3 * q + 2]);
-
-            Ffl_ += F;
-            Mfl_ += x_[q].cross(F);
-        }
+    
+    if(prm.structure!=2)
+    return;
+    
+    for(size_t q=0; q<x_.size(); ++q)
+    if(att_[q])
+    {
+        const Eigen::Vector3d F(nf_[3*q+0],nf_[3*q+1],nf_[3*q+2]);
+        
+        Ffl_ += F;
+        Mfl_ += x_[q].cross(F);
+    }
 }
 
 void net_membrane::body_load(lexer *p, const Eigen::Vector3d &c, const Eigen::Matrix3d &R, double &X, double &Y, double &Z, double &K, double &M, double &N) const
@@ -839,25 +837,25 @@ void net_membrane::body_load(lexer *p, const Eigen::Vector3d &c, const Eigen::Ma
     // the step its load responds to the body motion q = (c - c^n, theta) through the impedance of the attached
     // edge (attach_response): F = F^n + J q. Held constant instead, the stiff top edge acts on the light collar
     // like a spring integrated with forward Euler, which grows in every step.
-    X = Y = Z = K = M = N = 0.0;
-
+    X=Y=Z=K=M=N=0.0;
+    
     if(!moving() || !body_)
-        return;
-
-    Eigen::Matrix<double, 6, 1> q;
+    return;
+    
+    Eigen::Matrix<double,6,1> q;
     q.head<3>() = c - cbn_;
-
-    const Eigen::Matrix3d dR = R * Rbn_.transpose();
-    q(3) = 0.5 * (dR(2, 1) - dR(1, 2));
-    q(4) = 0.5 * (dR(0, 2) - dR(2, 0));
-    q(5) = 0.5 * (dR(1, 0) - dR(0, 1));
-
-    const Eigen::Matrix<double, 6, 1> dF = Jb_ * q;
-
-    const Eigen::Vector3d F = Fb_ + Ffl_ + dF.head<3>();
+    
+    const Eigen::Matrix3d dR = R*Rbn_.transpose();
+    q(3) = 0.5*(dR(2,1) - dR(1,2));
+    q(4) = 0.5*(dR(0,2) - dR(2,0));
+    q(5) = 0.5*(dR(1,0) - dR(0,1));
+    
+    const Eigen::Matrix<double,6,1> dF = Jb_*q;
+    
+    const Eigen::Vector3d F  = Fb_ + Ffl_ + dF.head<3>();
     const Eigen::Vector3d Mo = Mb_ + Mfl_ + dF.tail<3>();
     const Eigen::Vector3d Mc = Mo - c.cross(F);
-
+    
     X = F(0);
     Y = F(1);
     Z = F(2);
@@ -877,185 +875,185 @@ void net_membrane::attach_response(lexer *p, double dt, const vector<Eigen::Matr
     Jb_.setZero();
     cbn_ = cb_;
     Rbn_ = Rb_;
-
-    if(prm.structure != 2 || gm_.empty() || dt <= 0.0)
-        return;
-
+    
+    if(prm.structure!=2 || gm_.empty() || dt<=0.0)
+    return;
+    
     const size_t nn = x_.size();
     const int ng = gm_.size();
     const double rho = p->W1;
     const double h = dt;
-    const bool twod = p->j_dir == 0;
-
-    vector<Eigen::Matrix3d> Cq(nn, Eigen::Matrix3d::Zero());
-
+    const bool twod = p->j_dir==0;
+    
+    vector<Eigen::Matrix3d> Cq(nn,Eigen::Matrix3d::Zero());
+    
     // fluid response of the free nodes: given (strong coupling: local response of the layer fluid),
     // otherwise the implicit porous damper of advance_structure
-    if(Cext != nullptr)
-        Cq = *Cext;
-
+    if(Cext!=nullptr)
+    Cq = *Cext;
+    
     else
-        for(size_t t = 0; t < tri_.size(); ++t)
-            for(int q = 0; q < 3; ++q)
-            {
-                const Eigen::Matrix3d P = tn_[t] * tn_[t].transpose();
-                Cq[tri_[t][q]] += rho * ta_[t] / 3.0 * (prm.Rn * P + prm.Rt * (Eigen::Matrix3d::Identity() - P));
-            }
-
-    vector<int> gid(nn, -1);
-    vector<Eigen::Matrix3d> Mg(ng, Eigen::Matrix3d::Zero());
-
-    for(int g = 0; g < ng; ++g)
-        for(int q : gm_[g])
-        {
-            gid[q] = g;
-            Mg[g] += mn_[q] * Eigen::Matrix3d::Identity() + h * Cq[q];
-        }
-
+    for(size_t t=0; t<tri_.size(); ++t)
+    for(int q=0; q<3; ++q)
+    {
+        const Eigen::Matrix3d P = tn_[t]*tn_[t].transpose();
+        Cq[tri_[t][q]] += rho*ta_[t]/3.0*(prm.Rn*P + prm.Rt*(Eigen::Matrix3d::Identity() - P));
+    }
+    
+    vector<int> gid(nn,-1);
+    vector<Eigen::Matrix3d> Mg(ng,Eigen::Matrix3d::Zero());
+    
+    for(int g=0; g<ng; ++g)
+    for(int q : gm_[g])
+    {
+        gid[q] = g;
+        Mg[g] += mn_[q]*Eigen::Matrix3d::Identity() + h*Cq[q];
+    }
+    
     typedef Eigen::Triplet<double> Trip;
     vector<Trip> trip;
-
+    
     auto addblock = [&](int ga, int gb, const Eigen::Matrix3d &B)
     {
-        for(int r = 0; r < 3; ++r)
-            for(int c = 0; c < 3; ++c)
-                if(!(twod && (r == 1 || c == 1)))
-                    trip.push_back(Trip(3 * ga + r, 3 * gb + c, B(r, c)));
+        for(int r=0; r<3; ++r)
+        for(int c=0; c<3; ++c)
+        if(!(twod && (r==1 || c==1)))
+        trip.push_back(Trip(3*ga+r,3*gb+c,B(r,c)));
     };
-
-    for(int g = 0; g < ng; ++g)
+    
+    for(int g=0; g<ng; ++g)
     {
-        addblock(g, g, Mg[g]);
-
+        addblock(g,g,Mg[g]);
+        
         if(twod)
-            trip.push_back(Trip(3 * g + 1, 3 * g + 1, 1.0));
+        trip.push_back(Trip(3*g+1,3*g+1,1.0));
     }
-
+    
     // edge matrices B = dt (dt S + D)
-    vector<Eigen::Matrix3d> Be(edge_.size(), Eigen::Matrix3d::Zero());
-
-    for(size_t e = 0; e < edge_.size(); ++e)
+    vector<Eigen::Matrix3d> Be(edge_.size(),Eigen::Matrix3d::Zero());
+    
+    for(size_t e=0; e<edge_.size(); ++e)
     {
         const int a = edge_[e][0], b = edge_[e][1];
-
-        if(grp_[a] == grp_[b])
-            continue;
-
-        const Eigen::Vector3d dx = x_[b] - x_[a];
+        
+        if(grp_[a]==grp_[b])
+        continue;
+        
+        const Eigen::Vector3d dx = x_[b]-x_[a];
         const double L = dx.norm();
-
-        if(L < 1.0e-20)
-            continue;
-
-        const Eigen::Vector3d ev = dx / L;
-        const Eigen::Matrix3d P = ev * ev.transpose();
-        const double kef = L > L0_[e] ? ke_[e] : prm.compr * ke_[e];
-        const double geo = L > L0_[e] ? 1.0 - L0_[e] / L : 0.0;
-
-        Be[e] = h * h * kef * (P + geo * (Eigen::Matrix3d::Identity() - P)) + h * ce_[e] * P;
-
+        
+        if(L<1.0e-20)
+        continue;
+        
+        const Eigen::Vector3d ev = dx/L;
+        const Eigen::Matrix3d P = ev*ev.transpose();
+        const double kef = L>L0_[e] ? ke_[e] : prm.compr*ke_[e];
+        const double geo = L>L0_[e] ? 1.0 - L0_[e]/L : 0.0;
+        
+        Be[e] = h*h*kef*(P + geo*(Eigen::Matrix3d::Identity() - P)) + h*ce_[e]*P;
+        
         const int ga = gid[a], gb = gid[b];
-
-        if(ga >= 0)
-            addblock(ga, ga, Be[e]);
-
-        if(gb >= 0)
-            addblock(gb, gb, Be[e]);
-
-        if(ga >= 0 && gb >= 0)
+        
+        if(ga>=0)
+        addblock(ga,ga,Be[e]);
+        
+        if(gb>=0)
+        addblock(gb,gb,Be[e]);
+        
+        if(ga>=0 && gb>=0)
         {
-            addblock(ga, gb, -Be[e]);
-            addblock(gb, ga, -Be[e]);
+            addblock(ga,gb,-Be[e]);
+            addblock(gb,ga,-Be[e]);
         }
     }
-
-    Eigen::SparseMatrix<double> A(3 * ng, 3 * ng);
-    A.setFromTriplets(trip.begin(), trip.end());
-
-    Eigen::SimplicialLDLT<Eigen::SparseMatrix<double>> solver;
+    
+    Eigen::SparseMatrix<double> A(3*ng,3*ng);
+    A.setFromTriplets(trip.begin(),trip.end());
+    
+    Eigen::SimplicialLDLT<Eigen::SparseMatrix<double> > solver;
     solver.compute(A);
-
-    if(solver.info() != Eigen::Success)
-        return;
-
-    for(int k = 0; k < 6; ++k)
+    
+    if(solver.info()!=Eigen::Success)
+    return;
+    
+    for(int k=0; k<6; ++k)
     {
-        if(twod && (k == 1 || k == 3 || k == 5))
-            continue;
-
+        if(twod && (k==1 || k==3 || k==5))
+        continue;
+        
         // velocity of the attached nodes for a unit generalised displacement over the step
-        vector<Eigen::Vector3d> va(nn, Eigen::Vector3d::Zero());
-
-        for(size_t q = 0; q < nn; ++q)
-            if(att_[q])
+        vector<Eigen::Vector3d> va(nn,Eigen::Vector3d::Zero());
+        
+        for(size_t q=0; q<nn; ++q)
+        if(att_[q])
+        {
+            Eigen::Vector3d d = Eigen::Vector3d::Zero();
+            
+            if(k<3)
+            d(k) = 1.0;
+            else
             {
-                Eigen::Vector3d d = Eigen::Vector3d::Zero();
-
-                if(k < 3)
-                    d(k) = 1.0;
-                else
-                {
-                    Eigen::Vector3d w = Eigen::Vector3d::Zero();
-                    w(k - 3) = 1.0;
-                    d = w.cross(x_[q] - cb_);
-                }
-
-                va[q] = d / h;
+                Eigen::Vector3d w = Eigen::Vector3d::Zero();
+                w(k-3) = 1.0;
+                d = w.cross(x_[q] - cb_);
             }
-
-        Eigen::VectorXd rhs = Eigen::VectorXd::Zero(3 * ng);
-
-        for(size_t e = 0; e < edge_.size(); ++e)
+            
+            va[q] = d/h;
+        }
+        
+        Eigen::VectorXd rhs = Eigen::VectorXd::Zero(3*ng);
+        
+        for(size_t e=0; e<edge_.size(); ++e)
         {
             const int a = edge_[e][0], b = edge_[e][1];
             const int ga = gid[a], gb = gid[b];
-
-            if(ga >= 0 && gb < 0)
-                rhs.segment<3>(3 * ga) += Be[e] * va[b];
-
-            if(gb >= 0 && ga < 0)
-                rhs.segment<3>(3 * gb) += Be[e] * va[a];
+            
+            if(ga>=0 && gb<0)
+            rhs.segment<3>(3*ga) += Be[e]*va[b];
+            
+            if(gb>=0 && ga<0)
+            rhs.segment<3>(3*gb) += Be[e]*va[a];
         }
-
+        
         if(twod)
-            for(int g = 0; g < ng; ++g)
-                rhs(3 * g + 1) = 0.0;
-
+        for(int g=0; g<ng; ++g)
+        rhs(3*g+1) = 0.0;
+        
         const Eigen::VectorXd sol = solver.solve(rhs);
-
+        
         // node velocities of the response
         vector<Eigen::Vector3d> dv(va);
-        for(int g = 0; g < ng; ++g)
-            for(int q : gm_[g])
-                dv[q] = sol.segment<3>(3 * g);
-
+        for(int g=0; g<ng; ++g)
+        for(int q : gm_[g])
+        dv[q] = sol.segment<3>(3*g);
+        
         // load change on the attached nodes
         Eigen::Vector3d dF = Eigen::Vector3d::Zero(), dM = Eigen::Vector3d::Zero();
-
-        for(size_t e = 0; e < edge_.size(); ++e)
+        
+        for(size_t e=0; e<edge_.size(); ++e)
         {
             const int a = edge_[e][0], b = edge_[e][1];
-
-            if(grp_[a] == grp_[b] || (!att_[a] && !att_[b]))
-                continue;
-
-            const Eigen::Vector3d fa = Be[e] / h * (dv[b] - dv[a]);
-
+            
+            if(grp_[a]==grp_[b] || (!att_[a] && !att_[b]))
+            continue;
+            
+            const Eigen::Vector3d fa = Be[e]/h*(dv[b] - dv[a]);
+            
             if(att_[a])
             {
                 dF += fa;
                 dM += x_[a].cross(fa);
             }
-
+            
             if(att_[b])
             {
                 dF -= fa;
                 dM -= x_[b].cross(fa);
             }
         }
-
-        Jb_.block<3, 1>(0, k) = dF;
-        Jb_.block<3, 1>(3, k) = dM;
+        
+        Jb_.block<3,1>(0,k) = dF;
+        Jb_.block<3,1>(3,k) = dM;
     }
 }
 
@@ -1065,15 +1063,16 @@ double net_membrane::body_addedmass(lexer *p) const
     // water level. It moves with a rigid bag; a flexible bag carried along by its top edge passes its inertia to the
     // collar through the pressure under the pontoons (and the attached edge), a comparable outer mass is displaced.
     if(!moving() || !body_)
-        return 0.0;
-
-    if(prm.Mbody >= 0.0)
-        return prm.Mbody;
-
+    return 0.0;
+    
+    if(prm.Mbody>=0.0)
+    return prm.Mbody;
+    
     // flexible: the inertia of the bag reaches the collar through its top edge, which is coupled implicitly
     // (attach_response); no added mass by default
-    if(prm.structure == 2)
-        return 0.0;
+    if(prm.structure==2)
+    return 0.0;
+    
 
-    return 2.0 * p->W1 * Abag(p) * MAX(0.0, p->wd - zbag());
+    return 2.0*p->W1*Abag(p)*MAX(0.0, p->wd - zbag());
 }

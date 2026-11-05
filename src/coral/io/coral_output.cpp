@@ -20,15 +20,16 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "coral/io/coral_output.h"
-#include "coral/core/coral_model.h"
-#include "coral/core/coral_rotation.h"
-#include "coral/core/coral_version.h"
-#include <cmath>
-#include <cstdio>
-#include <stdexcept>
+#include"coral/io/coral_output.h"
+#include"coral/core/coral_model.h"
+#include"coral/core/coral_rotation.h"
+#include"coral/core/coral_version.h"
+#include<cmath>
+#include<cstdio>
+#include<stdexcept>
 
-namespace coral {
+namespace coral
+{
 
 void time_series::open(const std::string &file, const model &m, bool append)
 {
@@ -53,10 +54,10 @@ void time_series::open(const std::string &file, const model &m, bool append)
         l->channel_names(cols_);
     if(append)
         return;
-    out_ << "# " << banner() << "\n#";
+    out_<<"# "<<banner()<<"\n#";
     for(const auto &c : cols_)
-        out_ << " " << c;
-    out_ << "\n";
+        out_<<" "<<c;
+    out_<<"\n";
 }
 
 void time_series::write(const model &m, double t)
@@ -65,28 +66,23 @@ void time_series::write(const model &m, double t)
     v.push_back(t);
     for(const auto &b : m.bodies)
     {
-        const Vec3 e = euler_from_matrix(b.R) * 180.0 / M_PI;
+        const Vec3 e = euler_from_matrix(b.R)*180.0/M_PI;
         const Vec3 w = b.omega_global();
-        for(int i = 0; i < 3; ++i)
-            v.push_back(b.x(i));
-        for(int i = 0; i < 3; ++i)
-            v.push_back(e(i));
-        for(int i = 0; i < 3; ++i)
-            v.push_back(b.v(i));
-        for(int i = 0; i < 3; ++i)
-            v.push_back(w(i));
+        for(int i=0; i<3; ++i) v.push_back(b.x(i));
+        for(int i=0; i<3; ++i) v.push_back(e(i));
+        for(int i=0; i<3; ++i) v.push_back(b.v(i));
+        for(int i=0; i<3; ++i) v.push_back(w(i));
     }
     for(const auto &l : m.load_list)
         l->channel_values(m, t, v);
     char buf[32];
-    for(size_t i = 0; i < v.size(); ++i)
+    for(size_t i=0; i<v.size(); ++i)
     {
         std::snprintf(buf, sizeof(buf), i ? " %.10e" : "%.10e", v[i]);
-        out_ << buf;
+        out_<<buf;
     }
     // flushed per line: the file is complete when a coupled run ends without closing it
-    out_ << "\n"
-         << std::flush;
+    out_<<"\n"<<std::flush;
 }
 
-}  // namespace coral
+}

@@ -23,18 +23,18 @@ Author: Hans Bihs
 #ifndef SIXDOF_OUTPUT_DIR_H_
 #define SIXDOF_OUTPUT_DIR_H_
 
-#include "lexer.h"
+#include"lexer.h"
 
 // Output folder of the 6DOF logs for the active hydrodynamic model:
 // "./REEF3D_<model>_6DOF", mooring line geometry goes to the same name with "_Mooring".
-inline const char *sixdof_output_dir(lexer *p)
+inline const char* sixdof_output_dir(lexer *p)
 {
-    if(p->A10 == 3)
-        return "./REEF3D_FNPF_6DOF";
-
-    if(p->A10 == 5)
-        return "./REEF3D_NHFLOW_6DOF";
-
+    if(p->A10==3)
+    return "./REEF3D_FNPF_6DOF";
+    
+    if(p->A10==5)
+    return "./REEF3D_NHFLOW_6DOF";
+    
     return "./REEF3D_CFD_6DOF";
 }
 

@@ -20,66 +20,72 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "fdm_nhf.h"
-#include "ghostcell.h"
-#include "lexer.h"
-#include "nhflow_forcing.h"
+#include"nhflow_forcing.h"
+#include"lexer.h"
+#include"fdm_nhf.h"
+#include"ghostcell.h"
 
-void nhflow_forcing::dlm_forcing(lexer *p, fdm_nhf *d, ghostcell *pgc,
-                                 double alpha, double *U, double *V, double *W, slice &WL)
+void nhflow_forcing::dlm_forcing(lexer *p, fdm_nhf *d, ghostcell *pgc, 
+                             double alpha, double *U, double *V, double *W, slice &WL)
 {
     /*
     LOOP
     eps0(i,j,k) = 0.0;
-
+    
     pgc->start4(p,eps0,30);*/
 
-    for(int n = 0; n < p->A584; ++n)
-        for(int q = 0; q < Np; ++q)
-            if(EL_f[n][q] == 1)
-            {
+    for(int n=0; n<p->A584; ++n)
+    for(int q=0; q<Np; ++q)
+    if(EL_f[n][q]==1)
+    {
 
-                ii = p->posc_i(EL_X[n][q]);
-                jj = p->posc_j(EL_Y[n][q]);
-                kk = p->posc_sig(ii, jj, EL_Z[n][q]);
+        ii = p->posc_i(EL_X[n][q]);
+        jj = p->posc_j(EL_Y[n][q]);
+        kk = p->posc_sig(ii, jj, EL_Z[n][q]);
 
-                dx = p->DXN[ii + marge];
-                dy = p->DYN[jj + marge];
-                dz = p->DZN[kk + marge] * WL(ii, jj);
+        dx = p->DXN[ii + marge];
+        dy = p->DYN[jj + marge];
+        dz = p->DZN[kk + marge]*WL(ii,jj);
 
-                for(i = ii - 2; i <= ii + 2; ++i)
-                    for(j = jj - 2; j <= jj + 2; ++j)
-                        for(k = kk - 2; k <= kk + 2; ++k)
-                        {
+        for (i = ii - 2; i <= ii + 2; ++i)
+        for (j = jj - 2; j <= jj + 2; ++j)
+        for (k = kk - 2; k <= kk + 2; ++k)
+        {
+                       
+            dist = (p->XP[IP] - EL_X[n][q])/dx;
+            D = kernel(dist);
+            dist = (p->YP[JP] - EL_Y[n][q])/dy;
+            D *= kernel(dist);
+            dist = (p->ZSP[IJK] - EL_Z[n][q])/dz;
+            D *= kernel(dist);
+                        
+            FX[IJK] += EL_FX[n][q]*D*EL_V[n][q]/(dx*dy*dz);
+      
 
-                            dist = (p->XP[IP] - EL_X[n][q]) / dx;
-                            D = kernel(dist);
-                            dist = (p->YP[JP] - EL_Y[n][q]) / dy;
-                            D *= kernel(dist);
-                            dist = (p->ZSP[IJK] - EL_Z[n][q]) / dz;
-                            D *= kernel(dist);
+            dist = (p->XP[IP] - EL_X[n][q])/dx;
+            D = kernel(dist);
+            dist = (p->YP[JP] - EL_Y[n][q])/dy;
+            D *= kernel(dist);
+            dist = (p->ZSP[IJK] - EL_Z[n][q])/dz;
+            D *= kernel(dist);
+                        
+            FY[IJK] += EL_FY[n][q]*D*EL_V[n][q]/(dx*dy*dz);
+                
 
-                            FX[IJK] += EL_FX[n][q] * D * EL_V[n][q] / (dx * dy * dz);
+            dist = (p->XP[IP] - EL_X[n][q])/dx;
+            D = kernel(dist);
+            dist = (p->YP[JP] - EL_Y[n][q])/dy;
+            D *= kernel(dist);
+            dist = (p->ZSP[IJK] - EL_Z[n][q])/dz;
+            D *= kernel(dist);
+                        
+            FZ[IJK] += EL_FZ[n][q]*D*EL_V[n][q]/(dx*dy*dz);
+                        
+                        
+            // RANS turbulence forcing
 
-                            dist = (p->XP[IP] - EL_X[n][q]) / dx;
-                            D = kernel(dist);
-                            dist = (p->YP[JP] - EL_Y[n][q]) / dy;
-                            D *= kernel(dist);
-                            dist = (p->ZSP[IJK] - EL_Z[n][q]) / dz;
-                            D *= kernel(dist);
+        }     
+    }
 
-                            FY[IJK] += EL_FY[n][q] * D * EL_V[n][q] / (dx * dy * dz);
 
-                            dist = (p->XP[IP] - EL_X[n][q]) / dx;
-                            D = kernel(dist);
-                            dist = (p->YP[JP] - EL_Y[n][q]) / dy;
-                            D *= kernel(dist);
-                            dist = (p->ZSP[IJK] - EL_Z[n][q]) / dz;
-                            D *= kernel(dist);
-
-                            FZ[IJK] += EL_FZ[n][q] * D * EL_V[n][q] / (dx * dy * dz);
-
-                            // RANS turbulence forcing
-                        }
-            }
 }

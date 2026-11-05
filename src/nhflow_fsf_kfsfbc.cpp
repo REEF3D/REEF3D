@@ -20,76 +20,78 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "fdm_nhf.h"
-#include "ghostcell.h"
-#include "lexer.h"
-#include "nhflow_curv.h"
-#include "nhflow_fsf_f.h"
-#include "nhflow_fsf_hull.h"
+#include"nhflow_fsf_f.h"
+#include"lexer.h"
+#include"nhflow_curv.h"
+#include"fdm_nhf.h"
+#include"ghostcell.h"
+#include"nhflow_fsf_hull.h"
 
 void nhflow_fsf_f::kinematic_fsf(lexer *p, fdm_nhf *d, double *U, double *V, double *W, slice &eta)
 {
-    double wval, w_n;
-    double Pval, Qval;
-
+    double wval,w_n;
+    double Pval,Qval;
+    
     GC4LOOP
-    if(p->gcb4[n][3] == 6 && p->gcb4[n][4] == 3)
+    if(p->gcb4[n][3]==6 && p->gcb4[n][4]==3)
     {
-        i = p->gcb4[n][0];
-        j = p->gcb4[n][1];
-        k = p->gcb4[n][2];
-
-        wval = 0.0;
-
-        Pval = d->Ub[IJK];
-        Qval = d->Vb[IJK];
+    i=p->gcb4[n][0];
+    j=p->gcb4[n][1];
+    k=p->gcb4[n][2];
+    
+    wval = 0.0;
+    
+    Pval = d->Ub[IJK];
+    Qval = d->Vb[IJK];
+    
 
         // curvilinear grid: the limited derivatives along the grid lines (nhflow_curv.h)
-        if(p->geo_curv == 1)
+        if(p->geo_curv==1)
         {
-            nhflow_curv::grad_lim(p, i, j, eta(i, j), eta(i + 1, j), eta(i - 1, j), eta(i, j + 1), eta(i, j - 1), detadx, detady);
+        nhflow_curv::grad_lim(p,i,j,eta(i,j),eta(i+1,j),eta(i-1,j),eta(i,j+1),eta(i,j-1),detadx,detady);
         }
-
-        if(p->geo_curv == 0)
+        
+        if(p->geo_curv==0)
         {
-            dfdx_plus = (eta(i + 1, j) - eta(i, j)) / p->DXP[IP];
-            dfdx_min = (eta(i, j) - eta(i - 1, j)) / p->DXP[IM1];
-
-            detadx = limiter(dfdx_plus, dfdx_min);
-
-            dfdy_plus = (eta(i, j + 1) - eta(i, j)) / p->DYP[JP];
-            dfdy_min = (eta(i, j) - eta(i, j - 1)) / p->DYP[JM1];
-
-            detady = limiter(dfdy_plus, dfdy_min);
-
+            dfdx_plus = (eta(i+1,j)-eta(i,j))/p->DXP[IP];
+            dfdx_min  = (eta(i,j)-eta(i-1,j))/p->DXP[IM1];
+    
+            detadx = limiter(dfdx_plus,dfdx_min);
+        
+            dfdy_plus = (eta(i,j+1)-eta(i,j))/p->DYP[JP];
+            dfdy_min  = (eta(i,j)-eta(i,j-1))/p->DYP[JM1];
+    
+            detady = limiter(dfdy_plus,dfdy_min);
+            
             // X 13 2: one-sided slopes at the edge of the hull footprint
-            if(d->hull != nullptr)
-                d->hull->edge_slope(p, d, i, j, detadx, detady);
+            if(d->hull!=nullptr)
+            d->hull->edge_slope(p,d,i,j,detadx,detady);
         }
+        
+        
+        wval = d->detadt(i,j)
+        
+             + Pval*detadx
 
-        wval = d->detadt(i, j)
-
-               + Pval * detadx
-
-               + Qval * detady;
+             + Qval*detady;
 
         d->Wb[IJK] = wval;
         d->Wb[IJKp1] = wval;
         d->Wb[IJKp2] = wval;
-
+        
         d->Wt[IJK] = wval;
         d->Wt[IJKp1] = wval;
         d->Wt[IJKp2] = wval;
     }
-}
+}   
 
 double nhflow_fsf_f::limiter(double v1, double v2)
 {
     denom = fabs(v1) + fabs(v2);
+    
+    denom = fabs(denom)>1.0e-10?denom:1.0e10;
+    
+    val =  (v1*fabs(v2) + fabs(v1)*v2)/denom;
 
-    denom = fabs(denom) > 1.0e-10 ? denom : 1.0e10;
-
-    val = (v1 * fabs(v2) + fabs(v1) * v2) / denom;
-
-    return val;
+    return val;	
 }

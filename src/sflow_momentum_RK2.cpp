@@ -20,19 +20,19 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "sflow_momentum_RK2.h"
-#include "fdm2D.h"
-#include "ghostcell.h"
-#include "ioflow.h"
-#include "lexer.h"
-#include "sflow_fsf.h"
+#include"sflow_momentum_RK2.h"
+#include"lexer.h"
+#include"fdm2D.h"
+#include"ioflow.h"
+#include"ghostcell.h"
+#include"sflow_fsf.h"
 
-sflow_momentum_RK2::sflow_momentum_RK2(lexer *p, fdm2D *b, ghostcell *pgc, sflow_HLL *pphll, sflow_signal_speed *ppss,
-                                       sflow_reconstruct *pprecon, sflow_diffusion *ppdiff, sflow_pressure *pppress,
-                                       solver2D *ppsolv, solver2D *pppoissonsolv, ioflow *ppflow, sflow_fsf *ppfsf,
+sflow_momentum_RK2::sflow_momentum_RK2(lexer *p, fdm2D *b, ghostcell *pgc, sflow_HLL *pphll, sflow_signal_speed *ppss, 
+                                       sflow_reconstruct *pprecon, sflow_diffusion *ppdiff, sflow_pressure *pppress, 
+                                       solver2D *ppsolv, solver2D *pppoissonsolv, ioflow *ppflow, sflow_fsf *ppfsf, 
                                        sflow_forcing *ppsfdf, sixdof *pp6dof)
-    : sflow_momentum_func(p, b, pgc, pphll, ppss, pprecon, ppdiff, pppress, ppsolv, pppoissonsolv, ppflow, ppfsf, ppsfdf, pp6dof),
-      WLRK1(p), UHRK1(p), VHRK1(p), WHRK1(p)
+                                      : sflow_momentum_func(p,b,pgc,pphll,ppss,pprecon,ppdiff,pppress,ppsolv,pppoissonsolv,ppflow,ppfsf,ppsfdf,pp6dof),
+                                        WLRK1(p),UHRK1(p),VHRK1(p),WHRK1(p)
 {
 }
 
@@ -40,27 +40,27 @@ sflow_momentum_RK2::~sflow_momentum_RK2()
 {
 }
 
-void sflow_momentum_RK2::start(lexer *p, fdm2D *b, ghostcell *pgc)
+void sflow_momentum_RK2::start(lexer *p, fdm2D* b, ghostcell* pgc)
 {
     // in- and outflow ghost cells
-    inflow(p, b, pgc, pflow);
-
-    // Step 1
-    //--------------------------------------------------------
-    if(p->B95 != 0.0)
-        pflow->wavegen_2D_stage(p, b, pgc, p->simtime + p->dt);
-    stage(p, b, pgc, b->WL, b->UH, b->VH, b->WH, WLRK1, UHRK1, VHRK1, WHRK1, 0.0, 0, 0);
-
-    // Step 2
-    //--------------------------------------------------------
-    if(p->B95 != 0.0)
-        pflow->wavegen_2D_stage(p, b, pgc, p->simtime + p->dt);
-    stage(p, b, pgc, WLRK1, UHRK1, VHRK1, WHRK1, b->WL, b->UH, b->VH, b->WH, 0.5, 1, 1);
-
-    pfsf->breaking_persist(p, b, pgc, b->eta, b->eta_n, 1.0);
-
+    inflow(p,b,pgc,pflow);
+    
+//Step 1
+//--------------------------------------------------------
+    if(p->B95!=0.0)
+    pflow->wavegen_2D_stage(p,b,pgc,p->simtime + p->dt);
+    stage(p,b,pgc, b->WL,b->UH,b->VH,b->WH, WLRK1,UHRK1,VHRK1,WHRK1, 0.0, 0, 0);
+    
+//Step 2
+//--------------------------------------------------------
+    if(p->B95!=0.0)
+    pflow->wavegen_2D_stage(p,b,pgc,p->simtime + p->dt);
+    stage(p,b,pgc, WLRK1,UHRK1,VHRK1,WHRK1, b->WL,b->UH,b->VH,b->WH, 0.5, 1, 1);
+    
+    pfsf->breaking_persist(p,b,pgc,b->eta,b->eta_n,1.0);
+    
     SLICELOOP4
-    b->eta_n(i, j) = b->eta(i, j);
-
-    pgc->gcsl_start4(p, b->eta_n, gcval_eta);
+    b->eta_n(i,j) = b->eta(i,j);
+    
+    pgc->gcsl_start4(p,b->eta_n,gcval_eta);
 }

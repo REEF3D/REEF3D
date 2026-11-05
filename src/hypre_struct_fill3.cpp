@@ -22,75 +22,75 @@ Author: Hans Bihs
 
 #ifdef REEF3D_USE_HYPRE  // hypre is opt-in: make HYPRE=1 / cmake -DREEF3D_USE_HYPRE=ON
 
-#include "fdm.h"
-#include "ghostcell.h"
 #include "hypre_struct.h"
 #include "lexer.h"
+#include "fdm.h"
+#include "ghostcell.h"
 
-void hypre_struct::fill_matrix3(lexer *p, fdm *a, ghostcell *pgc, field &f)
+void hypre_struct::fill_matrix3(lexer* p,fdm* a, ghostcell* pgc, field &f)
 {
-    count = 0;
+    count=0;
     WFLUIDLOOP
     {
-        CVAL4[IJK] = count;
+        CVAL4[IJK]=count;
         ++count;
     }
 
-    nentries = 7;
+    nentries=7;
 
-    for(j = 0; j < nentries; j++)
-        stencil_indices[j] = j;
+    for (j = 0; j < nentries; j++)
+    stencil_indices[j] = j;
 
-    count = 0;
+    count=0;
     KJILOOP
     {
         WCHECK
         {
-            n = CVAL4[IJK];
+            n=CVAL4[IJK];
 
-            values[count] = a->M.p[n];
+            values[count]=a->M.p[n];
             ++count;
 
-            values[count] = a->M.s[n];
+            values[count]=a->M.s[n];
             ++count;
 
-            values[count] = a->M.n[n];
+            values[count]=a->M.n[n];
             ++count;
 
-            values[count] = a->M.e[n];
+            values[count]=a->M.e[n];
             ++count;
 
-            values[count] = a->M.w[n];
+            values[count]=a->M.w[n];
             ++count;
 
-            values[count] = a->M.b[n];
+            values[count]=a->M.b[n];
             ++count;
 
-            values[count] = a->M.t[n];
+            values[count]=a->M.t[n];
             ++count;
         }
 
         WSCHECK
         {
-            values[count] = 1.0;
+            values[count]=1.0;
             ++count;
 
-            values[count] = 0.0;
+            values[count]=0.0;
             ++count;
 
-            values[count] = 0.0;
+            values[count]=0.0;
             ++count;
 
-            values[count] = 0.0;
+            values[count]=0.0;
             ++count;
 
-            values[count] = 0.0;
+            values[count]=0.0;
             ++count;
 
-            values[count] = 0.0;
+            values[count]=0.0;
             ++count;
 
-            values[count] = 0.0;
+            values[count]=0.0;
             ++count;
         }
     }
@@ -99,15 +99,15 @@ void hypre_struct::fill_matrix3(lexer *p, fdm *a, ghostcell *pgc, field &f)
     HYPRE_StructMatrixAssemble(A);
 
     // vec
-    count = 0;
+    count=0;
     KJILOOP
     {
         WCHECK
         {
-            values[count] = f(i, j, k);
+            values[count] = f(i,j,k);
 
             if(values[count] != values[count])
-                p->solver_error = 1;
+            p->solver_error=1;
         }
 
         WSCHECK
@@ -119,16 +119,16 @@ void hypre_struct::fill_matrix3(lexer *p, fdm *a, ghostcell *pgc, field &f)
     HYPRE_StructVectorSetBoxValues(x, ilower, iupper, values);
     HYPRE_StructVectorAssemble(x);
 
-    count = 0;
+    count=0;
     KJILOOP
     {
         WCHECK
         {
-            n = CVAL4[IJK];
+            n=CVAL4[IJK];
             values[count] = a->rhsvec.V[n];
 
             if(values[count] != values[count])
-                p->solver_error = 1;
+            p->solver_error=1;
         }
 
         WSCHECK
@@ -145,11 +145,11 @@ void hypre_struct::fillbackvec3(lexer *p, field &f, int var)
 {
     HYPRE_StructVectorGetBoxValues(x, ilower, iupper, values);
 
-    count = 0;
+    count=0;
     KJILOOP
     {
         WCHECK
-        f(i, j, k) = values[count];
+        f(i,j,k)=values[count];
 
         ++count;
     }

@@ -20,12 +20,12 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "sflow_filter.h"
-#include "fdm2D.h"
-#include "ghostcell.h"
-#include "lexer.h"
+#include"sflow_filter.h"
+#include"lexer.h"
+#include"fdm2D.h"
+#include"ghostcell.h"
 
-sflow_filter::sflow_filter(lexer *p) : f1x(p), f1y(p), f2x(p), f2y(p), f4x(p), f4y(p)
+sflow_filter::sflow_filter(lexer* p) : f1x(p), f1y(p), f2x(p), f2y(p), f4x(p), f4y(p) 
 {
 }
 

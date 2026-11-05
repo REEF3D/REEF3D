@@ -24,23 +24,23 @@ Architect: Hans Bihs
 //   CORAL <input file> replay <journal>      the fluid input recorded by a coupled REEF3D run
 //                                            (fluid_coupling record), output in this folder
 
-#include "coral/core/coral_static.h"
-#include "coral/core/coral_timeint.h"
-#include "coral/core/coral_version.h"
-#include "coral/io/coral_coupling.h"
-#include "coral/io/coral_input.h"
-#include "coral/io/coral_modes_out.h"
-#include "coral/io/coral_output.h"
-#include "coral/io/coral_vtp.h"
-#include "coral/linear/coral_modes.h"
-#include <chrono>
-#include <cmath>
-#include <cstdio>
-#include <exception>
-#include <fstream>
-#include <iostream>
-#include <string>
-#include <sys/stat.h>
+#include"coral/core/coral_version.h"
+#include"coral/core/coral_timeint.h"
+#include"coral/io/coral_input.h"
+#include"coral/io/coral_output.h"
+#include"coral/io/coral_vtp.h"
+#include"coral/core/coral_static.h"
+#include"coral/linear/coral_modes.h"
+#include"coral/io/coral_modes_out.h"
+#include"coral/io/coral_coupling.h"
+#include<chrono>
+#include<sys/stat.h>
+#include<cmath>
+#include<cstdio>
+#include<exception>
+#include<fstream>
+#include<iostream>
+#include<string>
 
 int main(int argc, char **argv)
 {
@@ -59,7 +59,7 @@ int main(int argc, char **argv)
             if(vdt >= 0.0)
             {
                 mkdir("coral_vtp", 0777);
-                std::ofstream("coral_vtp/times.txt") << "# file number, time [s]\n";
+                std::ofstream("coral_vtp/times.txt")<<"# file number, time [s]\n";
             }
             int nvtp = 0;
             double tnext = 0.0;
@@ -70,7 +70,7 @@ int main(int argc, char **argv)
                 char b[64];
                 std::snprintf(b, sizeof(b), "coral_vtp/structure_%05d.vtp", nvtp++);
                 write_vtp(c.m, b);
-                std::ofstream("coral_vtp/times.txt", std::ios::app) << nvtp - 1 << " " << t << "\n";
+                std::ofstream("coral_vtp/times.txt", std::ios::app)<<nvtp-1<<" "<<t<<"\n";
                 tnext = (vdt > 0.0) ? t + vdt : t;
             };
             const long nev = coupling::replay(c, argv[3], ".", std::cout, after);
@@ -99,38 +99,35 @@ int main(int argc, char **argv)
         if(r.vtp_dt >= 0.0)
             mkdir("coral_vtp", 0777);
         int nvtp = 0;
-        auto vtp = [&]()
-        {char b[64]; std::snprintf(b, sizeof(b), "coral_vtp/structure_%05d.vtp", nvtp++); write_vtp(c.m, b); };
+        auto vtp = [&]() {char b[64]; std::snprintf(b, sizeof(b), "coral_vtp/structure_%05d.vtp", nvtp++); write_vtp(c.m, b);};
         if(r.t_end <= r.t_start)
         {
-            if(r.vtp_dt >= 0.0)
-                vtp();
+            if(r.vtp_dt >= 0.0) vtp();
             return 0;
         }
         timeint ti(r.ti);
         ti.initialize(c.m, r.t_start);
-        if(r.vtp_dt >= 0.0)
-            vtp();
-        const long nvtp_every = r.vtp_dt > 0.0 ? std::max(1L, std::lround(r.vtp_dt / r.dt)) : 1L;
+        if(r.vtp_dt >= 0.0) vtp();
+        const long nvtp_every = r.vtp_dt > 0.0 ? std::max(1L, std::lround(r.vtp_dt/r.dt)) : 1L;
         time_series out;
         out.open(r.out_file, c.m);
         out.write(c.m, r.t_start);
-        const long n = std::lround((r.t_end - r.t_start) / r.dt);
-        const long nout = r.out_dt > 0.0 ? std::max(1L, std::lround(r.out_dt / r.dt)) : 1L;
-        long next_report = n / 10;
-        for(long i = 0; i < n; ++i)
+        const long n = std::lround((r.t_end - r.t_start)/r.dt);
+        const long nout = r.out_dt > 0.0 ? std::max(1L, std::lround(r.out_dt/r.dt)) : 1L;
+        long next_report = n/10;
+        for(long i=0; i<n; ++i)
         {
-            const double t = r.t_start + i * r.dt;
+            const double t = r.t_start + i*r.dt;
             if(!ti.step(c.m, t, r.dt))
             {
                 // sub-steps of the failed step
                 bool ok = false;
-                for(int level = 1; level <= 6 && !ok; ++level)
+                for(int level=1; level<=6 && !ok; ++level)
                 {
-                    const int k = 1 << level;
+                    const int k = 1<<level;
                     ok = true;
-                    for(int s = 0; s < k && ok; ++s)
-                        ok = ti.step(c.m, t + s * r.dt / k, r.dt / k);
+                    for(int s=0; s<k && ok; ++s)
+                        ok = ti.step(c.m, t + s*r.dt/k, r.dt/k);
                 }
                 if(!ok)
                 {
@@ -139,15 +136,15 @@ int main(int argc, char **argv)
                     return 2;
                 }
             }
-            if((i + 1) % nout == 0)
-                out.write(c.m, r.t_start + (i + 1) * r.dt);
-            if(r.vtp_dt >= 0.0 && (i + 1) % nvtp_every == 0)
+            if((i+1)%nout==0)
+                out.write(c.m, r.t_start + (i+1)*r.dt);
+            if(r.vtp_dt >= 0.0 && (i+1)%nvtp_every==0)
                 vtp();
-            if(n >= 10 && i + 1 >= next_report)
+            if(n >= 10 && i+1 >= next_report)
             {
-                std::printf("  t = %10.4f s  (%3.0f%%)\n", r.t_start + (i + 1) * r.dt, 100.0 * (i + 1) / n);
+                std::printf("  t = %10.4f s  (%3.0f%%)\n", r.t_start + (i+1)*r.dt, 100.0*(i+1)/n);
                 std::fflush(stdout);
-                next_report += n / 10;
+                next_report += n/10;
             }
         }
         out.close();

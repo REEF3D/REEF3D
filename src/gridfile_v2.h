@@ -55,409 +55,389 @@ Author: Hans Bihs
 //   GEOB  double[knox*knoy]              geodat bed level (if G 10 > 0)
 //   DATA  double[knox*knoy]              interpolated data (if D 10 > 0)
 
-#include <cstdint>
-#include <cstdlib>
-#include <cstring>
-#include <fstream>
-#include <iostream>
-#include <string>
-#include <vector>
+#include<vector>
+#include<string>
+#include<cstring>
+#include<cstdint>
+#include<fstream>
+#include<iostream>
+#include<cstdlib>
 
-namespace gridv2 {
-const char magic_grid[8] = {'D', 'M', 'G', 'R', 'I', 'D', '0', '2'};
-const char magic_geom[8] = {'D', 'M', 'G', 'E', 'O', 'M', '0', '2'};
-const int version = 2;
-const int endian = 0x01020304;
-
-struct section
+namespace gridv2
 {
-    const char magic_grid[8] = {'D', 'M', 'G', 'R', 'I', 'D', '0', '2'};
-    const char magic_geom[8] = {'D', 'M', 'G', 'E', 'O', 'M', '0', '2'};
-    const char magic_glob[8] = {'D', 'M', 'G', 'L', 'O', 'B', '0', '2'};  // DIVEMesh M 50 1, 2: grid-global.dat
+    const char magic_grid[8] = {'D','M','G','R','I','D','0','2'};
+    const char magic_geom[8] = {'D','M','G','E','O','M','0','2'};
+    const char magic_glob[8] = {'D','M','G','L','O','B','0','2'};   // DIVEMesh M 50 1, 2: grid-global.dat
     const int version = 2;
     const int endian = 0x01020304;
 
-    bool get(void *val, size_t bytes)
+    struct section
     {
-        if(pos + bytes > size)
+        const char *data = nullptr;
+        size_t size = 0;
+        size_t pos = 0;
+        bool good = true;
+
+        bool get(void *val, size_t bytes)
         {
-            good = false;
-            std::memset(val, 0, bytes);
-            return false;
+            if(pos+bytes>size)
+            {
+                good = false;
+                std::memset(val,0,bytes);
+                return false;
+            }
+
+            std::memcpy(val,data+pos,bytes);
+            pos += bytes;
+            return true;
         }
 
-        std::memcpy(val, data + pos, bytes);
-        pos += bytes;
-        return true;
-    }
+        int get_int()          { int v=0; get(&v,sizeof(int)); return v; }
+        long long get_i64()    { int64_t v=0; get(&v,sizeof(int64_t)); return (long long)v; }
+        double get_double()    { double v=0.0; get(&v,sizeof(double)); return v; }
 
-    int get_int()
-    {
-        int v = 0;
-        get(&v, sizeof(int));
-        return v;
-    }
-    long long get_i64()
-    {
-        int64_t v = 0;
-        get(&v, sizeof(int64_t));
-        return (long long)v;
-    }
-    double get_double()
-    {
-        double v = 0.0;
-        get(&v, sizeof(double));
-        return v;
-    }
-
-    void get_list(std::vector<int> &iv, std::vector<double> &dv)
-    {
-        const int ni = get_int();
-        iv.resize(ni > 0 ? ni : 0);
-        for(int &v : iv)
+        void get_list(std::vector<int> &iv, std::vector<double> &dv)
+        {
+            const int ni = get_int();
+            iv.resize(ni>0 ? ni : 0);
+            for(int &v : iv)
             v = get_int();
 
-        const int nd = get_int();
-        dv.resize(nd > 0 ? nd : 0);
-        for(double &v : dv)
+            const int nd = get_int();
+            dv.resize(nd>0 ? nd : 0);
+            for(double &v : dv)
             v = get_double();
-    }
+        }
 
-    uint64_t get_varint()
-    {
-        uint64_t v = 0;
-        int shift = 0;
-
-        while(pos < size && shift < 64)
+        uint64_t get_varint()
         {
-            const unsigned char b = (unsigned char)data[pos++];
-            v |= uint64_t(b & 127u) << shift;
+            uint64_t v=0;
+            int shift=0;
 
-            if((b & 128u) == 0)
+            while(pos<size && shift<64)
+            {
+                const unsigned char b = (unsigned char)data[pos++];
+                v |= uint64_t(b & 127u) << shift;
+
+                if((b & 128u)==0)
                 return v;
 
-            shift += 7;
-        }
-
-        good = false;
-        return 0;
-    }
-
-    // integer table of nrow x ncol, row-major result; false if the shape differs
-    bool get_table(std::vector<int> &out, long long nrow, int ncol)
-    {
-        const long long n = get_i64();
-        const int c = get_int();
-
-        if(n != nrow || c != ncol)
-        {
-            good = false;
-            return false;
-        }
-
-        out.assign(size_t(nrow) * size_t(ncol), 0);
-
-        for(int cc = 0; cc < ncol; ++cc)
-        {
-            long long prev = 0;
-
-            for(long long r = 0; r < nrow; ++r)
-            {
-                const uint64_t z = get_varint();
-                const long long d = (long long)(z >> 1) ^ -(long long)(z & 1u);
-                prev += d;
-                out[size_t(r) * size_t(ncol) + cc] = int(prev);
+                shift += 7;
             }
+
+            good = false;
+            return 0;
         }
 
-        return good;
-    }
-
-    // run-length coded ints, expanded to num values
-    bool get_rle(std::vector<int> &out, size_t num)
-    {
-        out.resize(num);
-
-        const long long nrun = get_i64();
-        size_t q = 0;
-
-        for(long long r = 0; r < nrun; ++r)
+        // integer table of nrow x ncol, row-major result; false if the shape differs
+        bool get_table(std::vector<int> &out, long long nrow, int ncol)
         {
-            const int val = get_int();
-            const int len = get_int();
+            const long long n = get_i64();
+            const int c = get_int();
 
-            if(len < 0 || q + size_t(len) > num)
+            if(n!=nrow || c!=ncol)
             {
                 good = false;
                 return false;
             }
 
-            for(int l = 0; l < len; ++l)
-                out[q++] = val;
+            out.assign(size_t(nrow)*size_t(ncol),0);
+
+            for(int cc=0; cc<ncol; ++cc)
+            {
+                long long prev=0;
+
+                for(long long r=0; r<nrow; ++r)
+                {
+                    const uint64_t z = get_varint();
+                    const long long d = (long long)(z >> 1) ^ -(long long)(z & 1u);
+                    prev += d;
+                    out[size_t(r)*size_t(ncol)+cc] = int(prev);
+                }
+            }
+
+            return good;
         }
 
-        if(q != num)
+        // run-length coded ints, expanded to num values
+        bool get_rle(std::vector<int> &out, size_t num)
+        {
+            out.resize(num);
+
+            const long long nrun = get_i64();
+            size_t q=0;
+
+            for(long long r=0; r<nrun; ++r)
+            {
+                const int val = get_int();
+                const int len = get_int();
+
+                if(len<0 || q+size_t(len)>num)
+                {
+                    good = false;
+                    return false;
+                }
+
+                for(int l=0; l<len; ++l)
+                out[q++] = val;
+            }
+
+            if(q!=num)
             good = false;
 
-        return good;
-    }
+            return good;
+        }
 
-    bool done() const { return pos == size; }
-};
+        bool done() const { return pos==size; }
+    };
 
-struct reader
-{
-    std::vector<char> buf;
-    std::vector<std::string> tag;
-    std::vector<size_t> off, len;
-    std::string error;
-    std::string name;
-    bool good = true;
-
-    bool open(const char *fname, const char magic[8])
+    struct reader
     {
-        name = fname;
+        std::vector<char> buf;
+        std::vector<std::string> tag;
+        std::vector<size_t> off, len;
+        std::string error;
+        std::string name;
+        bool good = true;
 
-        std::ifstream in(fname, std::ios_base::binary | std::ios_base::ate);
-
-        if(!in)
+        bool open(const char *fname, const char magic[8])
         {
-            error = "Could not open DIVEMesh grid file: " + name;
-            return false;
+            name = fname;
+
+            std::ifstream in(fname, std::ios_base::binary | std::ios_base::ate);
+
+            if(!in)
+            {
+                error = "Could not open DIVEMesh grid file: " + name;
+                return false;
+            }
+
+            const std::streamsize n = in.tellg();
+            in.seekg(0);
+
+            buf.resize(size_t(n>0 ? n : 0));
+
+            if(n>0 && !in.read(buf.data(),n))
+            {
+                error = "Could not read DIVEMesh grid file: " + name;
+                return false;
+            }
+
+            return parse(magic);
         }
 
-        const std::streamsize n = in.tellg();
-        in.seekg(0);
-
-        buf.resize(size_t(n > 0 ? n : 0));
-
-        if(n > 0 && !in.read(buf.data(), n))
+        // a grid file in memory (REEF3D M 40: built by dmpart from the global grid file)
+        bool open_buffer(std::vector<char> &&b, const char *nm, const char magic[8])
         {
-            error = "Could not read DIVEMesh grid file: " + name;
-            return false;
+            name = nm;
+            buf = std::move(b);
+            return parse(magic);
         }
 
-        if(buf.size() < 16 || std::memcmp(buf.data(), magic, 8) != 0)
+        bool parse(const char magic[8])
         {
-            error = "DIVEMesh grid file " + name + " is not in grid format v2";
-            return false;
-        }
+            tag.clear();
+            off.clear();
+            len.clear();
 
-        int ver = 0, end = 0;
-        std::memcpy(&ver, buf.data() + 8, sizeof(int));
-        std::memcpy(&end, buf.data() + 12, sizeof(int));
+            if(buf.size()<16 || std::memcmp(buf.data(),magic,8)!=0)
+            {
+                error = "DIVEMesh grid file " + name + " is not in grid format v2";
+                return false;
+            }
 
-        if(end != endian)
-        {
-            error = "DIVEMesh grid file " + name + " has a different byte order";
-            return false;
-        }
+            int ver=0, end=0;
+            std::memcpy(&ver,buf.data()+8,sizeof(int));
+            std::memcpy(&end,buf.data()+12,sizeof(int));
 
-        if(ver != version)
-        {
-            error = "DIVEMesh grid file " + name + ": unsupported grid format version " + std::to_string(ver);
-            return false;
-        }
+            if(end!=endian)
+            {
+                error = "DIVEMesh grid file " + name + " has a different byte order";
+                return false;
+            }
 
-        // section index
-        size_t pos = 16;
-        bool closed = false;
+            if(ver!=version)
+            {
+                error = "DIVEMesh grid file " + name + ": unsupported grid format version " + std::to_string(ver);
+                return false;
+            }
 
-        return parse(magic);
-    }
+            // section index
+            size_t pos = 16;
+            bool closed = false;
 
-    // a grid file in memory (REEF3D M 40: built by dmpart from the global grid file)
-    bool open_buffer(std::vector<char> &&b, const char *nm, const char magic[8])
-    {
-        name = nm;
-        buf = std::move(b);
-        return parse(magic);
-    }
+            while(pos+12<=buf.size())
+            {
+                std::string t(buf.data()+pos,4);
+                int64_t nb=0;
+                std::memcpy(&nb,buf.data()+pos+4,sizeof(int64_t));
+                pos += 12;
 
-    bool parse(const char magic[8])
-    {
-        tag.clear();
-        off.clear();
-        len.clear();
+                if(nb<0 || pos+size_t(nb)>buf.size())
+                {
+                    error = "DIVEMesh grid file " + name + " is truncated";
+                    return false;
+                }
 
-        if(buf.size() < 16 || std::memcmp(buf.data(), magic, 8) != 0)
-        {
-            error = "DIVEMesh grid file " + name + " is not in grid format v2";
-            return false;
-        }
+                if(t=="END ")
+                {
+                    closed = true;
+                    break;
+                }
 
-        if(nb < 0 || pos + size_t(nb) > buf.size())
-        {
-            error = "DIVEMesh grid file " + name + " is truncated";
-            return false;
-        }
+                tag.push_back(t);
+                off.push_back(pos);
+                len.push_back(size_t(nb));
 
-        if(t == "END ")
-        {
-            closed = true;
-            break;
-        }
+                pos += size_t(nb);
+            }
 
-        tag.push_back(t);
-        off.push_back(pos);
-        len.push_back(size_t(nb));
+            if(!closed)
+            {
+                error = "DIVEMesh grid file " + name + " is truncated";
+                return false;
+            }
 
-        pos += size_t(nb);
-    }
-
-    if(!closed)
-    {
-        error = "DIVEMesh grid file " + name + " is truncated";
-        return false;
-    }
-
-    return true;
-}
-
-bool
-find(const char *t, section &sc)
-{
-    for(size_t q = 0; q < tag.size(); ++q)
-        if(tag[q] == std::string(t, 4))
-        {
-            sc.data = buf.data() + off[q];
-            sc.size = len[q];
-            sc.pos = 0;
-            sc.good = true;
             return true;
         }
 
-    return false;
-}
-
-void check(const section &sc)
-{
-    if(!sc.good)
-        good = false;
-}
-
-bool ok() const { return good; }
-
-template<class L>
-void fail(L *p, const char *msg)
-{
-    std::cout << std::endl
-              << "!!! rank " << p->mpirank << ": " << name << ": " << msg << " !!!" << std::endl
-              << std::endl;
-    std::exit(1);
-}
-};
-
-// the writer of DIVEMesh (REEF3D M 40: dmpart builds the grid files of the ranks in memory)
-struct writer
-{
-    std::vector<char> buf;
-
-    void put(const void *val, size_t bytes)
-    {
-        const size_t m = buf.size();
-        buf.resize(m + bytes);
-        std::memcpy(&buf[m], val, bytes);
-    }
-
-    void put_int(int val) { put(&val, sizeof(int)); }
-    void put_i64(long long val)
-    {
-        int64_t v = val;
-        put(&v, sizeof(int64_t));
-    }
-    void put_double(double val) { put(&val, sizeof(double)); }
-
-    void start(const char magic[8])
-    {
-        put(magic, 8);
-        put_int(version);
-        put_int(endian);
-    }
-
-    // returns the position of the length field
-    size_t begin(const char tag[4])
-    {
-        put(tag, 4);
-        const size_t pos = buf.size();
-        put_i64(0);
-        return pos;
-    }
-
-    void end(size_t pos)
-    {
-        const int64_t n = int64_t(buf.size() - pos - sizeof(int64_t));
-        std::memcpy(&buf[pos], &n, sizeof(int64_t));
-    }
-
-    void finish()
-    {
-        end(begin("END "));
-    }
-
-    void put_varint(uint64_t v)
-    {
-        while(v >= 128u)
+        bool find(const char *t, section &sc)
         {
-            const unsigned char b = (unsigned char)(v & 127u) | 128u;
-            put(&b, 1);
-            v >>= 7;
+            for(size_t q=0; q<tag.size(); ++q)
+            if(tag[q]==std::string(t,4))
+            {
+                sc.data = buf.data()+off[q];
+                sc.size = len[q];
+                sc.pos = 0;
+                sc.good = true;
+                return true;
+            }
+
+            return false;
         }
 
-        const unsigned char b = (unsigned char)v;
-        put(&b, 1);
-    }
-
-    // integer table, column by column: zigzag varint of the difference to the previous row
-    template<class Get>
-    void put_table(long long nrow, int ncol, Get get)
-    {
-        put_i64(nrow);
-        put_int(ncol);
-
-        for(int c = 0; c < ncol; ++c)
+        void check(const section &sc)
         {
-            long long prev = 0;
+            if(!sc.good)
+            good = false;
+        }
 
-            for(long long r = 0; r < nrow; ++r)
+        bool ok() const { return good; }
+
+        template<class L>
+        void fail(L *p, const char *msg)
+        {
+            std::cout<<std::endl<<"!!! rank "<<p->mpirank<<": "<<name<<": "<<msg<<" !!!"<<std::endl<<std::endl;
+            std::exit(1);
+        }
+    };
+
+    // the writer of DIVEMesh (REEF3D M 40: dmpart builds the grid files of the ranks in memory)
+    struct writer
+    {
+        std::vector<char> buf;
+
+        void put(const void *val, size_t bytes)
+        {
+            const size_t m = buf.size();
+            buf.resize(m+bytes);
+            std::memcpy(&buf[m],val,bytes);
+        }
+
+        void put_int(int val)          { put(&val,sizeof(int)); }
+        void put_i64(long long val)    { int64_t v=val; put(&v,sizeof(int64_t)); }
+        void put_double(double val)    { put(&val,sizeof(double)); }
+
+        void start(const char magic[8])
+        {
+            put(magic,8);
+            put_int(version);
+            put_int(endian);
+        }
+
+        // returns the position of the length field
+        size_t begin(const char tag[4])
+        {
+            put(tag,4);
+            const size_t pos = buf.size();
+            put_i64(0);
+            return pos;
+        }
+
+        void end(size_t pos)
+        {
+            const int64_t n = int64_t(buf.size() - pos - sizeof(int64_t));
+            std::memcpy(&buf[pos],&n,sizeof(int64_t));
+        }
+
+        void finish()
+        {
+            end(begin("END "));
+        }
+
+        void put_varint(uint64_t v)
+        {
+            while(v>=128u)
             {
-                const long long v = get(r, c);
-                const long long d = v - prev;
-                prev = v;
+                const unsigned char b = (unsigned char)(v & 127u) | 128u;
+                put(&b,1);
+                v >>= 7;
+            }
 
-                put_varint((uint64_t(d) << 1) ^ uint64_t(d >> 63));
+            const unsigned char b = (unsigned char)v;
+            put(&b,1);
+        }
+
+        // integer table, column by column: zigzag varint of the difference to the previous row
+        template<class Get>
+        void put_table(long long nrow, int ncol, Get get)
+        {
+            put_i64(nrow);
+            put_int(ncol);
+
+            for(int c=0; c<ncol; ++c)
+            {
+                long long prev=0;
+
+                for(long long r=0; r<nrow; ++r)
+                {
+                    const long long v = get(r,c);
+                    const long long d = v - prev;
+                    prev = v;
+
+                    put_varint((uint64_t(d) << 1) ^ uint64_t(d >> 63));
+                }
             }
         }
-    }
 
-    // run-length coding of an int sequence
-    template<class Get>
-    void put_rle(size_t num, Get get)
-    {
-        const size_t pos = buf.size();
-        put_i64(0);
-
-        long long nrun = 0;
-        size_t q = 0;
-
-        while(q < num)
+        // run-length coding of an int sequence
+        template<class Get>
+        void put_rle(size_t num, Get get)
         {
-            const int val = get(q);
-            size_t len = 1;
+            const size_t pos = buf.size();
+            put_i64(0);
 
-            while(q + len < num && get(q + len) == val && len < 2147483647u)
+            long long nrun=0;
+            size_t q=0;
+
+            while(q<num)
+            {
+                const int val = get(q);
+                size_t len=1;
+
+                while(q+len<num && get(q+len)==val && len<2147483647u)
                 ++len;
 
-            put_int(val);
-            put_int(int(len));
-            ++nrun;
-            q += len;
-        }
+                put_int(val);
+                put_int(int(len));
+                ++nrun;
+                q+=len;
+            }
 
-        const int64_t n = nrun;
-        std::memcpy(&buf[pos], &n, sizeof(int64_t));
-    }
-};
+            const int64_t n = nrun;
+            std::memcpy(&buf[pos],&n,sizeof(int64_t));
+        }
+    };
 }
 
 #endif

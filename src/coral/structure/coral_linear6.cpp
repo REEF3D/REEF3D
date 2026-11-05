@@ -20,11 +20,12 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "coral/structure/coral_linear6.h"
-#include "coral/core/coral_model.h"
-#include "coral/core/coral_rotation.h"
+#include"coral/structure/coral_linear6.h"
+#include"coral/core/coral_model.h"
+#include"coral/core/coral_rotation.h"
 
-namespace coral {
+namespace coral
+{
 
 linear6::linear6(const model &m, int body, const Vec3 &P, const Mat6 &K, const Mat6 &C, const Vec6 &F0, const std::string &name)
     : name_(name), b_(body), K_(K), C_(C), F0_(F0)
@@ -40,7 +41,7 @@ Vec6 linear6::displacement(const model &m) const
     const rigid_body &b = m.body(b_);
     Vec6 xi;
     xi.head<3>() = b.point(s_) - p0_;
-    xi.tail<3>() = log_so3(b.R * R0_.transpose());
+    xi.tail<3>() = log_so3(b.R*R0_.transpose());
     return xi;
 }
 
@@ -55,7 +56,7 @@ Vec6 linear6::velocity(const model &m) const
 
 void linear6::eval(const model &m, double, VecX &f) const
 {
-    const Vec6 F = F0_ - K_ * displacement(m) - C_ * velocity(m);
+    const Vec6 F = F0_ - K_*displacement(m) - C_*velocity(m);
     const rigid_body &b = m.body(b_);
     m.add_force(f, b_, b.point(s_), F.head<3>());
     m.add_moment(f, b_, F.tail<3>());
@@ -64,7 +65,7 @@ void linear6::eval(const model &m, double, VecX &f) const
 double linear6::potential(const model &m) const
 {
     const Vec6 xi = displacement(m);
-    return 0.5 * xi.dot(0.5 * (K_ + K_.transpose()) * xi) - F0_.dot(xi);
+    return 0.5*xi.dot(0.5*(K_ + K_.transpose())*xi) - F0_.dot(xi);
 }
 
-}  // namespace coral
+}

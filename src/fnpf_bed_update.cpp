@@ -20,23 +20,23 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "fnpf_bed_update.h"
-#include "fdm_fnpf.h"
-#include "fnpf_cds2.h"
-#include "fnpf_cds4.h"
-#include "fnpf_fsf.h"
-#include "fnpf_sigma_col.h"
-#include "ghostcell.h"
-#include "ioflow.h"
-#include "lexer.h"
+#include"fnpf_bed_update.h"
+#include"fnpf_fsf.h"
+#include"lexer.h"
+#include"fdm_fnpf.h"
+#include"ghostcell.h"
+#include"ioflow.h"
+#include"fnpf_cds2.h"
+#include"fnpf_cds4.h"
+#include"fnpf_sigma_col.h"
 
-fnpf_bed_update::fnpf_bed_update(lexer *p)
-{
-    if(p->A313 == 2)
-        pconvec = new fnpf_cds2(p);
-
-    if(p->A313 == 3)
-        pconvec = new fnpf_cds4(p);
+fnpf_bed_update::fnpf_bed_update(lexer *p) 
+{    
+    if(p->A313==2)
+    pconvec = new fnpf_cds2(p);
+    
+    if(p->A313==3)
+    pconvec = new fnpf_cds4(p);
 }
 
 fnpf_bed_update::~fnpf_bed_update()
@@ -46,44 +46,47 @@ fnpf_bed_update::~fnpf_bed_update()
 void fnpf_bed_update::bedbc_sig(lexer *p, fdm_fnpf *c, ghostcell *pgc, double *Fi, fnpf_fsf *pf)
 {
     // Calculate gradients
-
-    double bcval, denom;
-    k = 0;
+    
+    double bcval,denom;
+    k=0;
     SLICELOOP4
     {
-        // tangential gradient of the potential the ghost cells are set for (the body potentials of
-        // fnpf_6DOF are passed as Fi, the gradient was taken from c->Fi)
-        bcval = (c->Bx(i, j) * (Fi[FIp1JK] - Fi[FIm1JK]) / (p->DXP[IP] + p->DXP[IM1])
-
-                 + c->By(i, j) * (Fi[FIJp1K] - Fi[FIJm1K]) / (p->DYP[JP] + p->DYP[JM1]));
-
-        // sigx, sigy at the bed node (k=0) without the 3D arrays: fnpf_sigma_col.h
-        double sgx, sgy;
-
-        if(p->sigx != nullptr)
-        {
-            sgx = p->sigx[FIJK];
-            sgy = p->sigy[FIJK];
-        }
-        else
-        {
-            fnpf_sigma_col col;
-            col.set(p, c, i, j);
-            sgx = col.sx(p->ZN[KP]);
-            sgy = col.sy(p->ZN[KP]);
-        }
-
-        denom = p->sigz[IJ] + c->Bx(i, j) * sgx + c->By(i, j) * sgy;
-
-        Fi[FIJKm1] = (bcval / denom) * (1.0 * p->DZN[KP]) + Fi[FIJK];
-        Fi[FIJKm2] = (bcval / denom) * (2.0 * p->DZN[KP]) + Fi[FIJK];
-        Fi[FIJKm3] = (bcval / denom) * (3.0 * p->DZN[KP]) + Fi[FIJK];
+    // tangential gradient of the potential the ghost cells are set for (the body potentials of
+    // fnpf_6DOF are passed as Fi, the gradient was taken from c->Fi)
+    bcval =   (c->Bx(i,j)*(Fi[FIp1JK]-Fi[FIm1JK])/(p->DXP[IP] + p->DXP[IM1])
+    
+            +  c->By(i,j)*(Fi[FIJp1K]-Fi[FIJm1K])/(p->DYP[JP] + p->DYP[JM1]));
+            
+    // sigx, sigy at the bed node (k=0) without the 3D arrays: fnpf_sigma_col.h
+    double sgx, sgy;
+    
+    if(p->sigx!=nullptr)
+    {
+    sgx = p->sigx[FIJK];
+    sgy = p->sigy[FIJK];
+    }
+    else
+    {
+    fnpf_sigma_col col;
+    col.set(p,c,i,j);
+    sgx = col.sx(p->ZN[KP]);
+    sgy = col.sy(p->ZN[KP]);
+    }
+    
+    denom =  p->sigz[IJ] + c->Bx(i,j)*sgx + c->By(i,j)*sgy;
+    
+    Fi[FIJKm1] = (bcval/denom)*(1.0*p->DZN[KP]) + Fi[FIJK];
+    Fi[FIJKm2] = (bcval/denom)*(2.0*p->DZN[KP]) + Fi[FIJK];
+    Fi[FIJKm3] = (bcval/denom)*(3.0*p->DZN[KP]) + Fi[FIJK];
     }
 }
 
 void fnpf_bed_update::waterdepth(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 {
     SLICELOOP4
-    c->depth(i, j) = p->wd - c->bed(i, j);
+	c->depth(i,j) = p->wd - c->bed(i,j);
 }
+
+
+
 

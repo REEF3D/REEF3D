@@ -20,13 +20,13 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Authors: Alexander Hanke, Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "ghostcell.h"
-#include "lexer.h"
+#include"ghostcell.h"
+#include"lexer.h"
 
 void ghostcell::Sendrecv_double(int count1, int count2, int count3, int count4, int count5, int count6)
 {
-    const void *send_ptrs[6] = {send1, send4, send3, send2, send5, send6};
-    void *recv_ptrs[6] = {recv1, recv4, recv3, recv2, recv5, recv6};
+    const void* send_ptrs[6] = {send1, send4, send3, send2, send5, send6};
+    void* recv_ptrs[6] = {recv1, recv4, recv3, recv2, recv5, recv6};
 
     int sendcounts[6] = {count1, count4, count3, count2, count5, count6};
     int recvcounts[6] = {count1, count4, count3, count2, count5, count6};
@@ -36,8 +36,8 @@ void ghostcell::Sendrecv_double(int count1, int count2, int count3, int count4, 
 
 void ghostcell::Sendrecv_int(int count1, int count2, int count3, int count4, int count5, int count6)
 {
-    const void *send_ptrs[6] = {isend1, isend4, isend3, isend2, isend5, isend6};
-    void *recv_ptrs[6] = {irecv1, irecv4, irecv3, irecv2, irecv5, irecv6};
+    const void* send_ptrs[6] = {isend1, isend4, isend3, isend2, isend5, isend6};
+    void* recv_ptrs[6] = {irecv1, irecv4, irecv3, irecv2, irecv5, irecv6};
 
     int sendcounts[6] = {count1, count4, count3, count2, count5, count6};
     int recvcounts[6] = {count1, count4, count3, count2, count5, count6};
@@ -46,14 +46,14 @@ void ghostcell::Sendrecv_int(int count1, int count2, int count3, int count4, int
 }
 
 // one neighbour collective over the 2*ndims directions of the cartesian topology (x-, x+, y-, y+, z-, z+)
-void ghostcell::Sendrecv(const void *send_ptrs[6], int sendcounts[6], void *recv_ptrs[6], int recvcounts[6], MPI_Datatype datatype)
+void ghostcell::Sendrecv(const void* send_ptrs[6], int sendcounts[6], void* recv_ptrs[6], int recvcounts[6], MPI_Datatype datatype)
 {
     MPI_Datatype sendtypes[6] = {datatype, datatype, datatype, datatype, datatype, datatype};
     MPI_Datatype recvtypes[6] = {datatype, datatype, datatype, datatype, datatype, datatype};
     MPI_Aint sdispls[6];
     MPI_Aint rdispls[6];
 
-    for(int dir = 0; dir < ndims * 2; ++dir)
+    for(int dir=0; dir<ndims*2; ++dir)
     {
         if(neighbors[dir] == MPI_PROC_NULL)
         {

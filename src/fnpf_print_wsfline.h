@@ -23,9 +23,9 @@ Author: Hans Bihs
 #ifndef FNPF_PRINT_WSFLINE_H_
 #define FNPF_PRINT_WSFLINE_H_
 
-#include "boundarycheck.h"
-#include <fstream>
-#include <iostream>
+#include"boundarycheck.h"
+#include<iostream>
+#include<fstream>
 
 class lexer;
 class wsfline_core;
@@ -40,18 +40,21 @@ using namespace std;
 class fnpf_print_wsfline : public boundarycheck
 {
 public:
-    fnpf_print_wsfline(lexer *, fdm_fnpf *, ghostcell *);
-    virtual ~fnpf_print_wsfline();
+    fnpf_print_wsfline(lexer*,fdm_fnpf*,ghostcell*);
+	virtual ~fnpf_print_wsfline();
 
-    void start(lexer *, fdm_fnpf *, ghostcell *, ioflow *, slice &f);
+	void start(lexer*, fdm_fnpf*, ghostcell*,ioflow*,slice &f);
+
 
 private:
-    void ini_location(lexer *, fdm_fnpf *, ghostcell *);
+    void ini_location(lexer*, fdm_fnpf*, ghostcell*);
     int *jloc;
-    int n, q;
+    int n,q;
     ofstream wsfout;
 
+	
     wsfline_core *pcore;
+
 };
 
 #endif

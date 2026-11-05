@@ -20,22 +20,22 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "ghostcell.h"
-#include "lexer.h"
+#include"ghostcell.h"
+#include"lexer.h"
 
-void ghostcell::gcparax7int(lexer *p, int *&f, int gcv)
+void ghostcell::gcparax7int(lexer* p, int *&f, int gcv)
 {
-    starttime = timer();
-
-    paramargin = 2;
+    starttime=timer();
+    
+    paramargin=2;
 
     //  FILL SEND
-    count = 0;
-    for(q = 0; q < p->gcx7_count[0]; ++q)
+    count=0;
+    for(q=0;q<p->gcx7_count[0];++q)
     {
-        i = p->gcx7[0][q][0];
-        j = p->gcx7[0][q][1];
-        k = p->gcx7[0][q][2];
+        i=p->gcx7[0][q][0];
+        j=p->gcx7[0][q][1];
+        k=p->gcx7[0][q][2];
 
         isend1[count] = f[FIJK];
         ++count;
@@ -43,12 +43,12 @@ void ghostcell::gcparax7int(lexer *p, int *&f, int gcv)
         ++count;
     }
 
-    count = 0;
-    for(q = 0; q < p->gcx7_count[2]; ++q)
+    count=0;
+    for(q=0;q<p->gcx7_count[2];++q)
     {
-        i = p->gcx7[2][q][0];
-        j = p->gcx7[2][q][1];
-        k = p->gcx7[2][q][2];
+        i=p->gcx7[2][q][0];
+        j=p->gcx7[2][q][1];
+        k=p->gcx7[2][q][2];
 
         isend3[count] = f[FIJK];
         ++count;
@@ -56,12 +56,12 @@ void ghostcell::gcparax7int(lexer *p, int *&f, int gcv)
         ++count;
     }
 
-    count = 0;
-    for(q = 0; q < p->gcx7_count[3]; ++q)
+    count=0;
+    for(q=0;q<p->gcx7_count[3];++q)
     {
-        i = p->gcx7[3][q][0];
-        j = p->gcx7[3][q][1];
-        k = p->gcx7[3][q][2];
+        i=p->gcx7[3][q][0];
+        j=p->gcx7[3][q][1];
+        k=p->gcx7[3][q][2];
 
         isend4[count] = f[FIJK];
         ++count;
@@ -69,12 +69,12 @@ void ghostcell::gcparax7int(lexer *p, int *&f, int gcv)
         ++count;
     }
 
-    count = 0;
-    for(q = 0; q < p->gcx7_count[1]; ++q)
+    count=0;
+    for(q=0;q<p->gcx7_count[1];++q)
     {
-        i = p->gcx7[1][q][0];
-        j = p->gcx7[1][q][1];
-        k = p->gcx7[1][q][2];
+        i=p->gcx7[1][q][0];
+        j=p->gcx7[1][q][1];
+        k=p->gcx7[1][q][2];
 
         isend2[count] = f[FIJK];
         ++count;
@@ -82,15 +82,15 @@ void ghostcell::gcparax7int(lexer *p, int *&f, int gcv)
         ++count;
     }
 
-    Sendrecv_int(p->gcx7_count[0] * paramargin, p->gcx7_count[1] * paramargin, p->gcx7_count[2] * paramargin, p->gcx7_count[3] * paramargin, 0, 0);
+    Sendrecv_int(p->gcx7_count[0]*paramargin,p->gcx7_count[1]*paramargin,p->gcx7_count[2]*paramargin,p->gcx7_count[3]*paramargin,0,0);
 
     //  FILL RECEIVE
-    count = 0;
-    for(q = 0; q < p->gcx7_count[0]; ++q)
+    count=0;
+    for(q=0;q<p->gcx7_count[0];++q)
     {
-        i = p->gcx7[0][q][0];
-        j = p->gcx7[0][q][1];
-        k = p->gcx7[0][q][2];
+        i=p->gcx7[0][q][0];
+        j=p->gcx7[0][q][1];
+        k=p->gcx7[0][q][2];
 
         f[FIm1JK] = irecv1[count];
         ++count;
@@ -98,12 +98,12 @@ void ghostcell::gcparax7int(lexer *p, int *&f, int gcv)
         ++count;
     }
 
-    count = 0;
-    for(q = 0; q < p->gcx7_count[2]; ++q)
+    count=0;
+    for(q=0;q<p->gcx7_count[2];++q)
     {
-        i = p->gcx7[2][q][0];
-        j = p->gcx7[2][q][1];
-        k = p->gcx7[2][q][2];
+        i=p->gcx7[2][q][0];
+        j=p->gcx7[2][q][1];
+        k=p->gcx7[2][q][2];
 
         f[FIJm1K] = irecv3[count];
         ++count;
@@ -111,12 +111,12 @@ void ghostcell::gcparax7int(lexer *p, int *&f, int gcv)
         ++count;
     }
 
-    count = 0;
-    for(q = 0; q < p->gcx7_count[3]; ++q)
+    count=0;
+    for(q=0;q<p->gcx7_count[3];++q)
     {
-        i = p->gcx7[3][q][0];
-        j = p->gcx7[3][q][1];
-        k = p->gcx7[3][q][2];
+        i=p->gcx7[3][q][0];
+        j=p->gcx7[3][q][1];
+        k=p->gcx7[3][q][2];
 
         f[FIp1JK] = irecv4[count];
         ++count;
@@ -124,18 +124,18 @@ void ghostcell::gcparax7int(lexer *p, int *&f, int gcv)
         ++count;
     }
 
-    count = 0;
-    for(q = 0; q < p->gcx7_count[1]; ++q)
+    count=0;
+    for(q=0;q<p->gcx7_count[1];++q)
     {
-        i = p->gcx7[1][q][0];
-        j = p->gcx7[1][q][1];
-        k = p->gcx7[1][q][2];
+        i=p->gcx7[1][q][0];
+        j=p->gcx7[1][q][1];
+        k=p->gcx7[1][q][2];
 
         f[FIJp1K] = irecv2[count];
         ++count;
         f[FIJp2K] = irecv2[count];
         ++count;
     }
-
-    p->xtime += timer() - starttime;
+    
+    p->xtime+=timer()-starttime;
 }

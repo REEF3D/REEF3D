@@ -17,26 +17,22 @@ namespace Eigen {
 
 namespace internal {
 
-template<typename Vector, typename RealVector, bool IsComplex>
-struct rcond_compute_sign
-{
-    static inline Vector run(const Vector &v)
-    {
-        const RealVector v_abs = v.cwiseAbs();
-        return (v_abs.array() == static_cast<typename Vector::RealScalar>(0))
-            .select(Vector::Ones(v.size()), v.cwiseQuotient(v_abs));
-    }
+template <typename Vector, typename RealVector, bool IsComplex>
+struct rcond_compute_sign {
+  static inline Vector run(const Vector& v) {
+    const RealVector v_abs = v.cwiseAbs();
+    return (v_abs.array() == static_cast<typename Vector::RealScalar>(0))
+        .select(Vector::Ones(v.size()), v.cwiseQuotient(v_abs));
+  }
 };
 
 // Partial specialization to avoid elementwise division for real vectors.
-template<typename Vector>
-struct rcond_compute_sign<Vector, Vector, false>
-{
-    static inline Vector run(const Vector &v)
-    {
-        return (v.array() < static_cast<typename Vector::RealScalar>(0))
-            .select(-Vector::Ones(v.size()), Vector::Ones(v.size()));
-    }
+template <typename Vector>
+struct rcond_compute_sign<Vector, Vector, false> {
+  static inline Vector run(const Vector& v) {
+    return (v.array() < static_cast<typename Vector::RealScalar>(0))
+        .select(-Vector::Ones(v.size()), Vector::Ones(v.size()));
+  }
 };
 
 /**
@@ -59,98 +55,89 @@ struct rcond_compute_sign<Vector, Vector, false>
  *
  * \sa FullPivLU, PartialPivLU, LDLT, LLT.
  */
-template<typename Decomposition>
-typename Decomposition::RealScalar rcond_invmatrix_L1_norm_estimate(const Decomposition &dec)
-{
-    typedef typename Decomposition::MatrixType MatrixType;
-    typedef typename Decomposition::Scalar Scalar;
-    typedef typename Decomposition::RealScalar RealScalar;
-    typedef typename internal::plain_col_type<MatrixType>::type Vector;
-    typedef typename internal::plain_col_type<MatrixType, RealScalar>::type RealVector;
-    const bool is_complex = (NumTraits<Scalar>::IsComplex != 0);
+template <typename Decomposition>
+typename Decomposition::RealScalar rcond_invmatrix_L1_norm_estimate(const Decomposition& dec) {
+  typedef typename Decomposition::MatrixType MatrixType;
+  typedef typename Decomposition::Scalar Scalar;
+  typedef typename Decomposition::RealScalar RealScalar;
+  typedef typename internal::plain_col_type<MatrixType>::type Vector;
+  typedef typename internal::plain_col_type<MatrixType, RealScalar>::type RealVector;
+  const bool is_complex = (NumTraits<Scalar>::IsComplex != 0);
 
-    eigen_assert(dec.rows() == dec.cols());
-    const Index n = dec.rows();
-    if(n == 0)
-        return 0;
+  eigen_assert(dec.rows() == dec.cols());
+  const Index n = dec.rows();
+  if (n == 0) return 0;
 
     // Disable Index to float conversion warning
 #ifdef __INTEL_COMPILER
 #pragma warning push
 #pragma warning(disable : 2259)
 #endif
-    Vector v = dec.solve(Vector::Ones(n) / Scalar(n));
+  Vector v = dec.solve(Vector::Ones(n) / Scalar(n));
 #ifdef __INTEL_COMPILER
 #pragma warning pop
 #endif
 
-    // lower_bound is a lower bound on
-    //   ||inv(matrix)||_1  = sup_v ||inv(matrix) v||_1 / ||v||_1
-    // and is the objective maximized by the ("super-") gradient ascent
-    // algorithm below.
-    RealScalar lower_bound = v.template lpNorm<1>();
-    if(n == 1)
-        return lower_bound;
+  // lower_bound is a lower bound on
+  //   ||inv(matrix)||_1  = sup_v ||inv(matrix) v||_1 / ||v||_1
+  // and is the objective maximized by the ("super-") gradient ascent
+  // algorithm below.
+  RealScalar lower_bound = v.template lpNorm<1>();
+  if (n == 1) return lower_bound;
 
-    // Gradient ascent algorithm follows: We know that the optimum is achieved at
-    // one of the simplices v = e_i, so in each iteration we follow a
-    // super-gradient to move towards the optimal one.
-    RealScalar old_lower_bound = lower_bound;
-    Vector sign_vector(n);
-    Vector old_sign_vector;
-    Index v_max_abs_index = -1;
-    Index old_v_max_abs_index = v_max_abs_index;
-    for(int k = 0; k < 4; ++k)
-    {
-        sign_vector = internal::rcond_compute_sign<Vector, RealVector, is_complex>::run(v);
-        if(k > 0 && !is_complex && sign_vector == old_sign_vector)
-        {
-            // Break if the solution stagnated.
-            break;
-        }
-        // v_max_abs_index = argmax |real( inv(matrix)^T * sign_vector )|
-        v = dec.adjoint().solve(sign_vector);
-        v.real().cwiseAbs().maxCoeff(&v_max_abs_index);
-        if(v_max_abs_index == old_v_max_abs_index)
-        {
-            // Break if the solution stagnated.
-            break;
-        }
-        // Move to the new simplex e_j, where j = v_max_abs_index.
-        v = dec.solve(Vector::Unit(n, v_max_abs_index));  // v = inv(matrix) * e_j.
-        lower_bound = v.template lpNorm<1>();
-        if(lower_bound <= old_lower_bound)
-        {
-            // Break if the gradient step did not increase the lower_bound.
-            break;
-        }
-        if(!is_complex)
-        {
-            old_sign_vector = sign_vector;
-        }
-        old_v_max_abs_index = v_max_abs_index;
-        old_lower_bound = lower_bound;
+  // Gradient ascent algorithm follows: We know that the optimum is achieved at
+  // one of the simplices v = e_i, so in each iteration we follow a
+  // super-gradient to move towards the optimal one.
+  RealScalar old_lower_bound = lower_bound;
+  Vector sign_vector(n);
+  Vector old_sign_vector;
+  Index v_max_abs_index = -1;
+  Index old_v_max_abs_index = v_max_abs_index;
+  for (int k = 0; k < 4; ++k) {
+    sign_vector = internal::rcond_compute_sign<Vector, RealVector, is_complex>::run(v);
+    if (k > 0 && !is_complex && sign_vector == old_sign_vector) {
+      // Break if the solution stagnated.
+      break;
     }
-    // The following calculates an independent estimate of ||matrix||_1 by
-    // multiplying matrix by a vector with entries of slowly increasing
-    // magnitude and alternating sign:
-    //   v_i = (-1)^{i} (1 + (i / (dim-1))), i = 0,...,dim-1.
-    // This improvement to Hager's algorithm above is due to Higham. It was
-    // added to make the algorithm more robust in certain corner cases where
-    // large elements in the matrix might otherwise escape detection due to
-    // exact cancellation (especially when op and op_adjoint correspond to a
-    // sequence of backsubstitutions and permutations), which could cause
-    // Hager's algorithm to vastly underestimate ||matrix||_1.
-    Scalar alternating_sign(RealScalar(1));
-    for(Index i = 0; i < n; ++i)
-    {
-        // The static_cast is needed when Scalar is a complex and RealScalar implements expression templates
-        v[i] = alternating_sign * static_cast<RealScalar>(RealScalar(1) + (RealScalar(i) / (RealScalar(n - 1))));
-        alternating_sign = -alternating_sign;
+    // v_max_abs_index = argmax |real( inv(matrix)^T * sign_vector )|
+    v = dec.adjoint().solve(sign_vector);
+    v.real().cwiseAbs().maxCoeff(&v_max_abs_index);
+    if (v_max_abs_index == old_v_max_abs_index) {
+      // Break if the solution stagnated.
+      break;
     }
-    v = dec.solve(v);
-    const RealScalar alternate_lower_bound = (2 * v.template lpNorm<1>()) / (3 * RealScalar(n));
-    return numext::maxi(lower_bound, alternate_lower_bound);
+    // Move to the new simplex e_j, where j = v_max_abs_index.
+    v = dec.solve(Vector::Unit(n, v_max_abs_index));  // v = inv(matrix) * e_j.
+    lower_bound = v.template lpNorm<1>();
+    if (lower_bound <= old_lower_bound) {
+      // Break if the gradient step did not increase the lower_bound.
+      break;
+    }
+    if (!is_complex) {
+      old_sign_vector = sign_vector;
+    }
+    old_v_max_abs_index = v_max_abs_index;
+    old_lower_bound = lower_bound;
+  }
+  // The following calculates an independent estimate of ||matrix||_1 by
+  // multiplying matrix by a vector with entries of slowly increasing
+  // magnitude and alternating sign:
+  //   v_i = (-1)^{i} (1 + (i / (dim-1))), i = 0,...,dim-1.
+  // This improvement to Hager's algorithm above is due to Higham. It was
+  // added to make the algorithm more robust in certain corner cases where
+  // large elements in the matrix might otherwise escape detection due to
+  // exact cancellation (especially when op and op_adjoint correspond to a
+  // sequence of backsubstitutions and permutations), which could cause
+  // Hager's algorithm to vastly underestimate ||matrix||_1.
+  Scalar alternating_sign(RealScalar(1));
+  for (Index i = 0; i < n; ++i) {
+    // The static_cast is needed when Scalar is a complex and RealScalar implements expression templates
+    v[i] = alternating_sign * static_cast<RealScalar>(RealScalar(1) + (RealScalar(i) / (RealScalar(n - 1))));
+    alternating_sign = -alternating_sign;
+  }
+  v = dec.solve(v);
+  const RealScalar alternate_lower_bound = (2 * v.template lpNorm<1>()) / (3 * RealScalar(n));
+  return numext::maxi(lower_bound, alternate_lower_bound);
 }
 
 /** \brief Reciprocal condition number estimator.
@@ -166,21 +153,17 @@ typename Decomposition::RealScalar rcond_invmatrix_L1_norm_estimate(const Decomp
  *
  * \sa FullPivLU, PartialPivLU, LDLT, LLT.
  */
-template<typename Decomposition>
+template <typename Decomposition>
 typename Decomposition::RealScalar rcond_estimate_helper(typename Decomposition::RealScalar matrix_norm,
-                                                         const Decomposition &dec)
-{
-    typedef typename Decomposition::RealScalar RealScalar;
-    eigen_assert(dec.rows() == dec.cols());
-    if(dec.rows() == 0)
-        return NumTraits<RealScalar>::infinity();
-    if(numext::is_exactly_zero(matrix_norm))
-        return RealScalar(0);
-    if(dec.rows() == 1)
-        return RealScalar(1);
-    const RealScalar inverse_matrix_norm = rcond_invmatrix_L1_norm_estimate(dec);
-    return (numext::is_exactly_zero(inverse_matrix_norm) ? RealScalar(0)
-                                                         : (RealScalar(1) / inverse_matrix_norm) / matrix_norm);
+                                                         const Decomposition& dec) {
+  typedef typename Decomposition::RealScalar RealScalar;
+  eigen_assert(dec.rows() == dec.cols());
+  if (dec.rows() == 0) return NumTraits<RealScalar>::infinity();
+  if (numext::is_exactly_zero(matrix_norm)) return RealScalar(0);
+  if (dec.rows() == 1) return RealScalar(1);
+  const RealScalar inverse_matrix_norm = rcond_invmatrix_L1_norm_estimate(dec);
+  return (numext::is_exactly_zero(inverse_matrix_norm) ? RealScalar(0)
+                                                       : (RealScalar(1) / inverse_matrix_norm) / matrix_norm);
 }
 
 }  // namespace internal

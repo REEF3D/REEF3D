@@ -20,51 +20,52 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Authors: Hans Bihs, Tobias Martin
 --------------------------------------------------------------------*/
 
-#include "6DOF_obj.h"
-#include "fdm.h"
-#include "ghostcell.h"
-#include "lexer.h"
+#include"6DOF_obj.h"
+#include"lexer.h"
+#include"fdm.h"
+#include"ghostcell.h"
 
-void sixdof_obj::update_fbvel(lexer *p, ghostcell *pgc)
+void sixdof_obj::update_fbvel(lexer *p, ghostcell *pgc)         
 {
     // Determine floating body velocities (free: momentum, prescribed: motionext)
     rb.velocity(u_fb);
-
+    
     // external dynamics: all six components from the external solver (its joints, not X 11)
     if(ext_on_)
     {
-        rb.omega_I = ext_w_;
-        rb.omega_B = R_.transpose() * ext_w_;
-        u_fb.head<3>() = ext_v_;
-        u_fb.tail<3>() = ext_w_;
+    rb.omega_I = ext_w_;
+    rb.omega_B = R_.transpose()*ext_w_;
+    u_fb.head<3>() = ext_v_;
+    u_fb.tail<3>() = ext_w_;
     }
-
+    
     // Velocities
-    p->ufbi = p_(0) / Mass_fb;
-    p->vfbi = p_(1) / Mass_fb;
-    p->wfbi = p_(2) / Mass_fb;
-
+	p->ufbi = p_(0)/Mass_fb;
+	p->vfbi = p_(1)/Mass_fb;
+	p->wfbi = p_(2)/Mass_fb;
+    
     p->pfbi = omega_I(0);
     p->qfbi = omega_I(1);
     p->rfbi = omega_I(2);
 
+
     // Position
-    p->xg = c_(0);
-    p->yg = c_(1);
-    p->zg = c_(2);
+	p->xg = c_(0);
+	p->yg = c_(1);
+	p->zg = c_(2);
 
-    p->phi_fb = phi;
-    p->theta_fb = theta;
-    p->psi_fb = psi;
-
-    maxvel(p, pgc);
+	p->phi_fb = phi;
+	p->theta_fb = theta;
+	p->psi_fb = psi;
+    
+    maxvel(p,pgc);
 }
 
 void sixdof_obj::saveTimeStep(lexer *p, int iter)
 {
     // alpha holds three stages; the fourth stage of FNPF RK4 (iter 3) read past the array (the stage time step is only
     // stored with the history and the checkpoint)
-    rb.save_history(((iter >= 0 && iter < 3) ? alpha[iter] : 1.0) * p->dt);
+    rb.save_history(((iter>=0 && iter<3) ? alpha[iter] : 1.0)*p->dt);
 }
 
 void sixdof_obj::maxvel(lexer *p, ghostcell *pgc)
@@ -73,25 +74,25 @@ void sixdof_obj::maxvel(lexer *p, ghostcell *pgc)
     // ranks hold). Previously evaluated over every cell of the domain, so a rotating body got a
     // lever arm up to the domain size, which inflated ufbmax and cut the time step; that value
     // was also rank-local.
-    p->ufbmax = fabs(p->ufbi);
-    p->vfbmax = fabs(p->vfbi);
+	p->ufbmax = fabs(p->ufbi);
+    p->vfbmax = fabs(p->vfbi); 
     p->wfbmax = fabs(p->wfbi);
-
-    double uvel, vvel, wvel, rx, ry, rz;
-
-    for(int n = 0; n < tricount; ++n)
-        for(int q = 0; q < 3; ++q)
-        {
-            rx = tri_x[n][q] - p->xg;
-            ry = tri_y[n][q] - p->yg;
-            rz = tri_z[n][q] - p->zg;
-
-            uvel = p->ufbi + rz * p->qfbi - ry * p->rfbi;
-            vvel = p->vfbi + rx * p->rfbi - rz * p->pfbi;
-            wvel = p->wfbi + ry * p->pfbi - rx * p->qfbi;
-
-            p->ufbmax = MAX(p->ufbmax, fabs(uvel));
-            p->vfbmax = MAX(p->vfbmax, fabs(vvel));
-            p->wfbmax = MAX(p->wfbmax, fabs(wvel));
-        }
+    
+    double uvel,vvel,wvel,rx,ry,rz;
+    
+	for(int n=0; n<tricount; ++n)
+    for(int q=0; q<3; ++q)
+	{
+        rx = tri_x[n][q] - p->xg;
+        ry = tri_y[n][q] - p->yg;
+        rz = tri_z[n][q] - p->zg;
+        
+        uvel = p->ufbi + rz*p->qfbi - ry*p->rfbi;
+        vvel = p->vfbi + rx*p->rfbi - rz*p->pfbi;
+        wvel = p->wfbi + ry*p->pfbi - rx*p->qfbi;
+        
+        p->ufbmax = MAX(p->ufbmax, fabs(uvel));
+        p->vfbmax = MAX(p->vfbmax, fabs(vvel));
+        p->wfbmax = MAX(p->wfbmax, fabs(wvel));
+	}
 }

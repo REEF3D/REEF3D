@@ -20,15 +20,16 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Fabian Knoblauch
 --------------------------------------------------------------------*/
 
-#include "field1.h"
-#include "field2.h"
-#include "field3.h"
-#include "field4.h"
-#include "freesurface.h"
-#include "gradient.h"
-#include "interpolation.h"
-#include "norm_vec.h"
-#include "reini.h"
+
+#include"freesurface.h"
+#include"gradient.h"
+#include"norm_vec.h"
+#include"reini.h"
+#include"field1.h"
+#include"field2.h"
+#include"field3.h"
+#include"field4.h"
+#include"interpolation.h"
 
 class heat;
 class fluid_update;
@@ -41,11 +42,11 @@ using namespace std;
 class VOF_void final : public freesurface, gradient, norm_vec
 {
 public:
-    VOF_void(lexer *, fdm *, ghostcell *, heat *);
+    VOF_void(lexer*, fdm*, ghostcell*,heat*);
     virtual ~VOF_void();
-    void start(fdm *, lexer *, convection *, solver *, ghostcell *, ioflow *, reini *, field &) override final;
-    void update(lexer *, fdm *, ghostcell *, field &) override final;
-
+    void start(fdm*,lexer*, convection*, solver*, ghostcell*,ioflow*, reini*, field&) override final;
+    void update(lexer*,fdm*,ghostcell*,field&) override final;
+    
 private:
     fluid_update *pupdate;
 };

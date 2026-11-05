@@ -17,17 +17,16 @@
 namespace Eigen {
 
 namespace internal {
-template<typename UnaryOp, typename XprType>
-struct traits<CwiseUnaryOp<UnaryOp, XprType>> : traits<XprType>
-{
-    typedef typename result_of<UnaryOp(const typename XprType::Scalar &)>::type Scalar;
-    typedef typename XprType::Nested XprTypeNested;
-    typedef std::remove_reference_t<XprTypeNested> XprTypeNested_;
-    enum { Flags = XprTypeNested_::Flags & RowMajorBit };
+template <typename UnaryOp, typename XprType>
+struct traits<CwiseUnaryOp<UnaryOp, XprType> > : traits<XprType> {
+  typedef typename result_of<UnaryOp(const typename XprType::Scalar&)>::type Scalar;
+  typedef typename XprType::Nested XprTypeNested;
+  typedef std::remove_reference_t<XprTypeNested> XprTypeNested_;
+  enum { Flags = XprTypeNested_::Flags & RowMajorBit };
 };
 }  // namespace internal
 
-template<typename UnaryOp, typename XprType, typename StorageKind>
+template <typename UnaryOp, typename XprType, typename StorageKind>
 class CwiseUnaryOpImpl;
 
 /** \class CwiseUnaryOp
@@ -49,45 +48,42 @@ class CwiseUnaryOpImpl;
  *
  * \sa MatrixBase::unaryExpr(const CustomUnaryOp &) const, class CwiseBinaryOp, class CwiseNullaryOp
  */
-template<typename UnaryOp, typename XprType>
+template <typename UnaryOp, typename XprType>
 class CwiseUnaryOp : public CwiseUnaryOpImpl<UnaryOp, XprType, typename internal::traits<XprType>::StorageKind>,
-                     internal::no_assignment_operator
-{
-public:
-    typedef typename CwiseUnaryOpImpl<UnaryOp, XprType, typename internal::traits<XprType>::StorageKind>::Base Base;
-    EIGEN_GENERIC_PUBLIC_INTERFACE(CwiseUnaryOp)
-    typedef typename internal::ref_selector<XprType>::type XprTypeNested;
-    typedef internal::remove_all_t<XprType> NestedExpression;
+                     internal::no_assignment_operator {
+ public:
+  typedef typename CwiseUnaryOpImpl<UnaryOp, XprType, typename internal::traits<XprType>::StorageKind>::Base Base;
+  EIGEN_GENERIC_PUBLIC_INTERFACE(CwiseUnaryOp)
+  typedef typename internal::ref_selector<XprType>::type XprTypeNested;
+  typedef internal::remove_all_t<XprType> NestedExpression;
 
-    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE explicit CwiseUnaryOp(const XprType &xpr, const UnaryOp &func = UnaryOp())
-        : m_xpr(xpr), m_functor(func) {}
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE explicit CwiseUnaryOp(const XprType& xpr, const UnaryOp& func = UnaryOp())
+      : m_xpr(xpr), m_functor(func) {}
 
-    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE constexpr Index rows() const noexcept { return m_xpr.rows(); }
-    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE constexpr Index cols() const noexcept { return m_xpr.cols(); }
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE constexpr Index rows() const noexcept { return m_xpr.rows(); }
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE constexpr Index cols() const noexcept { return m_xpr.cols(); }
 
-    /** \returns the functor representing the unary operation */
-    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const UnaryOp &functor() const { return m_functor; }
+  /** \returns the functor representing the unary operation */
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const UnaryOp& functor() const { return m_functor; }
 
-    /** \returns the nested expression */
-    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const internal::remove_all_t<XprTypeNested> &nestedExpression() const
-    {
-        return m_xpr;
-    }
+  /** \returns the nested expression */
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const internal::remove_all_t<XprTypeNested>& nestedExpression() const {
+    return m_xpr;
+  }
 
-    /** \returns the nested expression */
-    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE internal::remove_all_t<XprTypeNested> &nestedExpression() { return m_xpr; }
+  /** \returns the nested expression */
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE internal::remove_all_t<XprTypeNested>& nestedExpression() { return m_xpr; }
 
-protected:
-    XprTypeNested m_xpr;
-    const UnaryOp m_functor;
+ protected:
+  XprTypeNested m_xpr;
+  const UnaryOp m_functor;
 };
 
 // Generic API dispatcher
-template<typename UnaryOp, typename XprType, typename StorageKind>
-class CwiseUnaryOpImpl : public internal::generic_xpr_base<CwiseUnaryOp<UnaryOp, XprType>>::type
-{
-public:
-    typedef typename internal::generic_xpr_base<CwiseUnaryOp<UnaryOp, XprType>>::type Base;
+template <typename UnaryOp, typename XprType, typename StorageKind>
+class CwiseUnaryOpImpl : public internal::generic_xpr_base<CwiseUnaryOp<UnaryOp, XprType> >::type {
+ public:
+  typedef typename internal::generic_xpr_base<CwiseUnaryOp<UnaryOp, XprType> >::type Base;
 };
 
 }  // end namespace Eigen

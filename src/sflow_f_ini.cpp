@@ -20,501 +20,504 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "driver.h"
-#include "fdm2D.h"
-#include "ghostcell.h"
-#include "iowave.h"
-#include "lexer.h"
-#include "sediment.h"
-#include "sflow_f.h"
+#include"sflow_f.h"
+#include"lexer.h"
+#include"driver.h"
+#include"fdm2D.h"
+#include"ghostcell.h"
+#include"iowave.h"
+#include"sediment.h"
 #ifdef REEF3D_USE_HYPRE
-#include "hypre_struct2D.h"
+#include"hypre_struct2D.h"
 #endif
-#include "6DOF_sflow.h"
-#include "reefrun_ckpt.h"
-#include "sflow_amr.h"
-#include "sflow_eta.h"
-#include "sflow_etimestep.h"
-#include "sflow_hydrostatic.h"
-#include "sflow_momentum.h"
-#include "sflow_potential.h"
-#include "sflow_vtp_bed.h"
-#include "sflow_vtp_fsf.h"
-#include "sflow_weno_flux.h"
+#include"sflow_etimestep.h"
+#include"sflow_weno_flux.h"
+#include"sflow_eta.h"
+#include"sflow_hydrostatic.h"
+#include"sflow_potential.h"
+#include"sflow_momentum.h"
+#include"sflow_vtp_fsf.h"
+#include"sflow_vtp_bed.h"
+#include"6DOF_sflow.h"
+#include"sflow_amr.h"
+#include"reefrun_ckpt.h"
 
-void sflow_f::ini(lexer *p, fdm2D *b, ghostcell *pgc)
+void sflow_f::ini(lexer *p, fdm2D* b, ghostcell* pgc)
 {
     int gcval_eta;
+    
+    if(p->F50==1)
+	gcval_eta = 51;
+    
+    if(p->F50==2)
+	gcval_eta = 52;
+    
+    if(p->F50==3)
+	gcval_eta = 53;
+    
+    if(p->F50==4)
+	gcval_eta = 54;
+    
+    
+    p->count=0;
+	p->printcount=0;
 
-    if(p->F50 == 1)
-        gcval_eta = 51;
+    int count=0;
+	p->pointnum2D=0;
+	p->cellnum2D=0;
+	p->polygon_sum=0;
 
-    if(p->F50 == 2)
-        gcval_eta = 52;
-
-    if(p->F50 == 3)
-        gcval_eta = 53;
-
-    if(p->F50 == 4)
-        gcval_eta = 54;
-
-    p->count = 0;
-    p->printcount = 0;
-
-    int count = 0;
-    p->pointnum2D = 0;
-    p->cellnum2D = 0;
-    p->polygon_sum = 0;
 
     TPSLICELOOP
-    {
-        SLICELOOP4
-        {
-            // (one cell in y: the y neighbours are the cell itself, the value of its Neumann ghost cells)
-            const int js = (p->j_dir == 1) ? j - 1 : j, jn = (p->j_dir == 1) ? j + 1 : j;
-            b->bed(i, j) = b->bed0(i, j) = 0.5 * b->bed(i, j) + 0.125 * (b->bed(i - 1, j) + b->bed(i + 1, j) + b->bed(i, js) + b->bed(i, jn));
-        }
-
-        pgc->gcsl_start4(p, b->bed, 50);
+	{
+	++count;
+	++p->pointnum2D;
+	b->nodeval(i,j)=count;
     }
 
-    SLICEBASELOOP
-    ++p->polygon_sum;
+	SLICEBASELOOP
+	++p->polygon_sum;
 
-    p->polygon_sum *= 2;
+	p->polygon_sum*=2;
 
-    SLICELOOP4
-    ++p->cellnum2D;
+	SLICELOOP4
+	++p->cellnum2D;
 
-    p->cellnumtot2D = pgc->globalisum(p->cellnum2D);
+    p->cellnumtot2D=pgc->globalisum(p->cellnum2D);
 
-    if(p->mpirank == 0)
-        cout << "number of cells: " << p->cellnumtot2D << endl;
 
-    if(p->mpirank == 0)
-        cout << "starting driver_ini" << endl;
+    if(p->mpirank==0)
+    cout<<"number of cells: "<<p->cellnumtot2D<<endl;
 
-    ptime->ini(p, b, pgc);
 
+    if(p->mpirank==0)
+    cout<<"starting driver_ini"<<endl;
+
+    ptime->ini(p,b,pgc);
+    
+    
     // bed ini
+	ILOOP
+    JLOOP
+	b->bed(i,j) = p->bed[IJ];
+    
     ILOOP
     JLOOP
-    b->bed(i, j) = p->bed[IJ];
+	b->solidbed(i,j) = p->solidbed[IJ];
 
     ILOOP
     JLOOP
-    b->solidbed(i, j) = p->solidbed[IJ];
+	b->topobed(i,j) = p->topobed[IJ];
 
-    ILOOP
-    JLOOP
-    b->topobed(i, j) = p->topobed[IJ];
 
-    pgc->gcsl_start4(p, b->bed, 50);
-    pgc->gcsl_start4(p, b->solidbed, 50);
-    pgc->gcsl_start4(p, b->topobed, 50);
+    pgc->gcsl_start4(p,b->bed,50);
+    pgc->gcsl_start4(p,b->solidbed,50);
+    pgc->gcsl_start4(p,b->topobed,50);
 
-    for(int qn = 0; qn < p->A209; ++qn)
+    
+	for(int qn=0; qn<p->A209;++qn)
     {
-        SLICELOOP4
-        b->bed(i, j) = b->bed0(i, j) = 0.5 * b->bed(i, j) + 0.125 * (b->bed(i - 1, j) + b->bed(i + 1, j) + b->bed(i, j - 1) + b->bed(i, j + 1));
-
-        pgc->gcsl_start4(p, b->bed, 50);
+	SLICELOOP4
+    {
+    // (one cell in y: the y neighbours are the cell itself, the value of its Neumann ghost cells)
+    const int js = (p->j_dir==1) ? j-1 : j, jn = (p->j_dir==1) ? j+1 : j;
+	b->bed(i,j) = b->bed0(i,j) = 0.5*b->bed(i,j) + 0.125*(b->bed(i-1,j) +b->bed(i+1,j) +b->bed(i,js) +b->bed(i,jn) );
     }
+    
+    pgc->gcsl_start4(p,b->bed,50);
+    }
+    
 
     // FSF ini
-    ini_fsf(p, b, pgc);
+    ini_fsf(p,b,pgc);
 
     SLICELOOP4
-    p->wet[IJ] = 1;
-
+    p->wet[IJ]=1;
+    
     SLICELOOP1
     {
-        b->wet1(i, j) = 1;
-        b->deep1(i, j) = 1;
+    b->wet1(i,j)=1;
+    b->deep1(i,j)=1;
     }
-
+    
     SLICELOOP2
     {
-        b->wet2(i, j) = 1;
-        b->deep2(i, j) = 1;
+    b->wet2(i,j)=1;
+    b->deep2(i,j)=1;
     }
+    
+    pgc->gcsl_start4Vint(p,p->wet,50);
+    pgc->gcsl_start1int(p,b->wet1,50);
+    pgc->gcsl_start2int(p,b->wet2,50);
 
-    pgc->gcsl_start4Vint(p, p->wet, 50);
-    pgc->gcsl_start1int(p, b->wet1, 50);
-    pgc->gcsl_start2int(p, b->wet2, 50);
-
-    SLICELOOP4
-    b->breaking(i, j) = 0;
-
-    pgc->gcsl_start4(p, b->depth, 50);
 
     SLICELOOP4
-    b->ws(i, j) = 0.0;
+    b->breaking(i,j)=0;
 
-    pgc->gcsl_start4(p, b->eta_n, 50);
+	pgc->gcsl_start4(p,b->depth,50);
+
+	SLICELOOP4
+	b->ws(i,j) = 0.0;
+
+
+    pgc->gcsl_start4(p,b->eta_n,50);
 
     SLICELOOP4
-    b->hp(i, j) = MAX(b->eta(i, j) + p->wd - b->bed(i, j), 0.0);
-
+	b->hp(i,j) = MAX(b->eta(i,j) + p->wd - b->bed(i,j),0.0);
+    
     // water depth WL from eta
-    ini_wl(p, b, pgc);
+    ini_wl(p,b,pgc);
 
-    pflow->ini2D(p, b, pgc);
-
-    pgc->gcsl_start4(p, b->eta, gcval_eta);
-    pgc->gcsl_start4(p, b->bed, 50);
-
-    ini_wl(p, b, pgc);
-
+    pflow->ini2D(p,b,pgc);
+    
+    pgc->gcsl_start4(p,b->eta,gcval_eta);
+    pgc->gcsl_start4(p,b->bed,50);
+    
+    ini_wl(p,b,pgc);
+    
     // U,V ini in the relaxation zones
-    pflow->um_relax(p, pgc, b->U, b->UH, b->WL);
-    pflow->vm_relax(p, pgc, b->V, b->VH, b->WL);
-
+	pflow->um_relax(p,pgc,b->U,b->UH,b->WL);
+	pflow->vm_relax(p,pgc,b->V,b->VH,b->WL);
+    
     // potential flow ini: sets the cell-centred U,V directly (I 11 1)
-    potflow->start(p, b, ppoissonsolv, pgc);
-
+    potflow->start(p,b,ppoissonsolv,pgc);
+    
     // steady 1D river flow (F 65 2): velocities of the wet cells
-    ini_river(p, b, pgc, 1);
-
+    ini_river(p,b,pgc,1);
+    
     // FSF ini
-    ini_fsf_2(p, b, pgc);
-
+    ini_fsf_2(p,b,pgc);
+    
     // 6DOF ini: ship-wave draft depresses eta (X 10 3, X 207 0); must precede ini_wl so WL, wet/dry and UH,VH follow
     p6dof->initialize(p, b, pgc);
-    pgc->gcsl_start4(p, b->eta, gcval_eta);
-
-    ini_wl(p, b, pgc);
-
+    pgc->gcsl_start4(p,b->eta,gcval_eta);
+    
+    ini_wl(p,b,pgc);
+    
     // conserved variables UH,VH,WH and ghost cells
-    pmom->ini(p, b, pgc);
+    pmom->ini(p,b,pgc);
 
-    // roughness ini
+    //roughness ini
     SLICELOOP4
-    b->ks(i, j) = p->B50;
-
+    b->ks(i,j) = p->B50;
+    
     // a roughness without bed friction (A 218 0): B 50 then acts only in the turbulence models and the sediment
-    if(p->mpirank == 0 && p->A218 == 0 && p->B50 != 0.0001)
-        cout << "!!! B 50 " << p->B50 << " is set but A 218 0: no bed friction (A 218 1: Manning, n = ks^(1/6)/20)" << endl;
+    if(p->mpirank==0 && p->A218==0 && p->B50!=0.0001)
+    cout<<"!!! B 50 "<<p->B50<<" is set but A 218 0: no bed friction (A 218 1: Manning, n = ks^(1/6)/20)"<<endl;
 
-    pgc->gcsl_start4(p, b->ks, 50);
+    pgc->gcsl_start4(p,b->ks,50);
 
-    // sediment ini
-    psed->ini_sflow(p, b, pgc);
-
+    //sediment ini
+    psed->ini_sflow(p,b,pgc);
+    
     // mesh refinement: patches from the initial level-0 state
-    if(pamr != nullptr)
+    if(pamr!=nullptr)
     {
-        pamr->ini(p, b, pgc);
-        pprint->amr_columns(pamr);  // the wave gauges and probes on the finest grid
-        pamr->sed_attach(psed);
-        pamr->timestep(p, b, pgc);
-        if(p->I45 != 1)
-            pamr->print(p, b, pgc);
+    pamr->ini(p,b,pgc);
+    pprint->amr_columns(pamr);      // the wave gauges and probes on the finest grid
+    pamr->sed_attach(psed);
+    pamr->timestep(p,b,pgc);
+    if(p->I45!=1)
+    pamr->print(p,b,pgc);
     }
 
     // checkpoints (P 48): a case they do not cover says so now, not only at the first checkpoint
-    if(p->P48 > 0 || p->P48_dt > 0.0)
-        ckpt(p, b, pgc);
+    if(p->P48>0 || p->P48_dt>0.0)
+    ckpt(p,b,pgc);
 
     // restart from the latest checkpoint (I 45 1): the state at the end of its step
-    if(p->I45 == 1)
-        ckpt(p, b, pgc).read();
+    if(p->I45==1)
+    ckpt(p,b,pgc).read();
 
     // print
     log_ini(p);
-    if(p->I45 != 1)
+    if(p->I45!=1)
     {
-        print_debug(p, b, pgc);
-        pprint->start(p, b, pgc, pflow, pturb, psed);
-        pprintbed->start(p, b, pgc, psed);
+	print_debug(p,b,pgc);
+    pprint->start(p,b,pgc,pflow,pturb,psed);
+	pprintbed->start(p,b,pgc,psed);
     }
 }
 
-void sflow_f::ini_fsf(lexer *p, fdm2D *b, ghostcell *pgc)
+void sflow_f::ini_fsf(lexer *p, fdm2D* b, ghostcell* pgc)
 {
-    int istart, iend, jstart, jend;
+    int istart,iend,jstart,jend;
     p->phimean = 0.0;
-    p->phiout = 0.0;
-
+    p->phiout = 0.0; 
+    
     // depth
-    if(p->F60 > -1.0e20)
+    if(p->F60>-1.0e20)
     {
-        p->phimean = p->F60;
-        p->phiout = p->F60;
-        p->wd = p->F60;
+    p->phimean=p->F60;
+    p->phiout=p->F60;
+    p->wd=p->F60;
     }
-
+    
     // river free-surface initialisation (F 65): reference level at the outflow when F 60 is not given
-    if(p->F65 > 0 && p->F60 < -1.0e19 && p->F62 > -1.0e19)
+    if(p->F65>0 && p->F60<-1.0e19 && p->F62>-1.0e19)
     {
-        p->phimean = p->F62;
-        p->phiout = p->F62;
-        p->wd = p->F62;
+    p->phimean=p->F62;
+    p->phiout=p->F62;
+    p->wd=p->F62;
     }
 
     // eta plain
     SLICELOOP4
-    b->eta(i, j) = 0.0;
+    b->eta(i,j)=0.0;
 
     // eta slope
-    if(p->A251 == 1)
-        SLICELOOP4
-    b->eta(i, j) = -p->A251_val * (p->XP[IP] - p->global_xmin);
+    if(p->A251==1)
+    SLICELOOP4
+    b->eta(i,j)= -p->A251_val*(p->XP[IP]-p->global_xmin);
 
     // eta box area (curvilinear grid: the cells whose centroid lies in the box)
-    if(p->geo_curv == 1)
-        for(int qn = 0; qn < p->F72; ++qn)
-        {
-            SLICELOOP4
-            if(p->XC2D[IJ] >= p->F72_xs[qn] && p->XC2D[IJ] < p->F72_xe[qn] && p->YC2D[IJ] >= p->F72_ys[qn] && p->YC2D[IJ] < p->F72_ye[qn])
-                b->eta(i, j) = p->F72_h[qn] - p->wd;
-        }
+    if(p->geo_curv==1)
+    for(int qn=0;qn<p->F72;++qn)
+    {
+        SLICELOOP4
+        if(p->XC2D[IJ]>=p->F72_xs[qn] && p->XC2D[IJ]<p->F72_xe[qn] && p->YC2D[IJ]>=p->F72_ys[qn] && p->YC2D[IJ]<p->F72_ye[qn])
+        b->eta(i,j) = p->F72_h[qn]-p->wd;
+    }
+    
+    if(p->geo_curv==0)
+    for(int qn=0;qn<p->F72;++qn)
+    {
+		istart = p->posc_i(p->F72_xs[qn]);
+        iend = p->posc_i(p->F72_xe[qn]);
 
-    if(p->geo_curv == 0)
-        for(int qn = 0; qn < p->F72; ++qn)
-        {
-            istart = p->posc_i(p->F72_xs[qn]);
-            iend = p->posc_i(p->F72_xe[qn]);
+        jstart = p->posc_j(p->F72_ys[qn]);
+        jend = p->posc_j(p->F72_ye[qn]);
 
-            jstart = p->posc_j(p->F72_ys[qn]);
-            jend = p->posc_j(p->F72_ye[qn]);
-
-            SLICELOOP4
-            if(i >= istart && i < iend && j >= jstart && j < jend)
-                b->eta(i, j) = p->F72_h[qn] - p->wd;
-        }
-
+        SLICELOOP4
+        if(i>=istart && i<iend && j>=jstart && j<jend)
+        b->eta(i,j) = p->F72_h[qn]-p->wd;
+	}
+    
     // river free-surface initialisation along the i-direction (F 65)
-    ini_river(p, b, pgc, 0);
-
+    ini_river(p,b,pgc,0);
+    
+    
+    
     // ini hxy
     SLICELOOP1
-    b->hx(i, j) = MAX(0.5 * (b->eta(i + 1, j) + b->eta(i, j)) + p->wd - 0.5 * (b->bed(i + 1, j) + b->bed(i, j)), 0.0);
-
+    b->hx(i,j) = MAX(0.5*(b->eta(i+1,j)+b->eta(i,j)) + p->wd - 0.5*(b->bed(i+1,j)+b->bed(i,j)),0.0);
+    
     SLICELOOP2
-    b->hy(i, j) = MAX(0.5 * (b->eta(i, j + 1) + b->eta(i, j)) + p->wd - 0.5 * (b->bed(i, j + 1) + b->bed(i, j)), 0.0);
+    b->hy(i,j) = MAX(0.5*(b->eta(i,j+1)+b->eta(i,j)) + p->wd - 0.5*(b->bed(i,j+1)+b->bed(i,j)),0.0);
 
-    // fix inflow fsf
-    for(n = 0; n < p->gcslin_count; n++)
-    {
-        i = p->gcslin[n][0];
-        j = p->gcslin[n][1];
+        // fix inflow fsf
+        for(n=0;n<p->gcslin_count;n++)
+        {
+        i=p->gcslin[n][0];
+        j=p->gcslin[n][1];
 
-        b->eta(i - 1, j) = p->F65 > 0 ? b->eta(i, j) : 0.0;
-        b->eta(i - 2, j) = p->F65 > 0 ? b->eta(i, j) : 0.0;
-        b->eta(i - 3, j) = p->F65 > 0 ? b->eta(i, j) : 0.0;
+        b->eta(i-1,j) = p->F65>0 ? b->eta(i,j) : 0.0;
+        b->eta(i-2,j) = p->F65>0 ? b->eta(i,j) : 0.0;
+        b->eta(i-3,j) = p->F65>0 ? b->eta(i,j) : 0.0;
 
-        b->hp(i - 1, j) = MAX(b->eta(i - 1, j) + p->wd - b->bed(i, j), 0.0);
-        b->hp(i - 2, j) = MAX(b->eta(i - 2, j) + p->wd - b->bed(i, j), 0.0);
-        b->hp(i - 3, j) = MAX(b->eta(i - 3, j) + p->wd - b->bed(i, j), 0.0);
-    }
+        b->hp(i-1,j) = MAX(b->eta(i-1,j) + p->wd - b->bed(i,j),0.0);
+        b->hp(i-2,j) = MAX(b->eta(i-2,j) + p->wd - b->bed(i,j),0.0);
+        b->hp(i-3,j) = MAX(b->eta(i-3,j) + p->wd - b->bed(i,j),0.0);
+        }
+        
+        // fix outflow fsf
+        for(n=0;n<p->gcslout_count;n++)
+        {
+        i=p->gcslout[n][0];
+        j=p->gcslout[n][1];
 
-    // fix outflow fsf
-    for(n = 0; n < p->gcslout_count; n++)
-    {
-        i = p->gcslout[n][0];
-        j = p->gcslout[n][1];
+        b->eta(i+1,j) = 0.0;
+        b->eta(i+2,j) = 0.0;
+        b->eta(i+3,j) = 0.0;
 
-        b->eta(i + 1, j) = 0.0;
-        b->eta(i + 2, j) = 0.0;
-        b->eta(i + 3, j) = 0.0;
+        b->hp(i+1,j) = MAX(b->eta(i+1,j) + p->wd - b->bed(i,j),0.0);
+        b->hp(i+2,j) = MAX(b->eta(i+2,j) + p->wd - b->bed(i,j),0.0);
+        b->hp(i+3,j) = MAX(b->eta(i+3,j) + p->wd - b->bed(i,j),0.0);
+        }
+    
 
-        b->hp(i + 1, j) = MAX(b->eta(i + 1, j) + p->wd - b->bed(i, j), 0.0);
-        b->hp(i + 2, j) = MAX(b->eta(i + 2, j) + p->wd - b->bed(i, j), 0.0);
-        b->hp(i + 3, j) = MAX(b->eta(i + 3, j) + p->wd - b->bed(i, j), 0.0);
-    }
-
-    GCSL1LOOP
-    {
+        GCSL1LOOP
+        {
         i = p->gcbsl1[n][0];
         j = p->gcbsl1[n][1];
-
-        if(p->gcbsl1[n][4] == 1)
-        {
-            const double wli = p->F65 > 0 ? b->eta(i, j) + p->wd : p->wd;
-            b->hx(i - 1, j) = MAX(wli - b->bed(i, j), 0.0);
-            b->hx(i - 2, j) = MAX(wli - b->bed(i, j), 0.0);
-            b->hx(i - 3, j) = MAX(wli - b->bed(i, j), 0.0);
+                
+        
+            if(p->gcbsl1[n][4]==1)
+            {
+            const double wli = p->F65>0 ? b->eta(i,j) + p->wd : p->wd;
+            b->hx(i-1,j) = MAX(wli - b->bed(i,j),0.0);
+            b->hx(i-2,j) = MAX(wli - b->bed(i,j),0.0);
+            b->hx(i-3,j) = MAX(wli - b->bed(i,j),0.0);
+            }
+            
+            if(p->gcbsl1[n][4]==2)
+            {
+            b->hx(i+1,j) = MAX(p->wd - b->bed(i,j),0.0);
+            b->hx(i+2,j) = MAX(p->wd - b->bed(i,j),0.0);
+            b->hx(i+3,j) = MAX(p->wd - b->bed(i,j),0.0);
+            }
         }
 
-        if(p->gcbsl1[n][4] == 2)
+        GCSL2LOOP
         {
-            b->hx(i + 1, j) = MAX(p->wd - b->bed(i, j), 0.0);
-            b->hx(i + 2, j) = MAX(p->wd - b->bed(i, j), 0.0);
-            b->hx(i + 3, j) = MAX(p->wd - b->bed(i, j), 0.0);
-        }
-    }
-
-    if(p->gcbsl1[n][4] == 2)
-    {
-        b->hx(i + 1, j) = MAX(p->wd - b->bed(i, j), 0.0);
-        b->hx(i + 2, j) = MAX(p->wd - b->bed(i, j), 0.0);
-        b->hx(i + 3, j) = MAX(p->wd - b->bed(i, j), 0.0);
-    }
-}
-
-GCSL2LOOP
-{
-    i = p->gcbsl2[n][0];
-    j = p->gcbsl2[n][1];
-
-    if(p->gcbsl2[n][4] == 1)
-    {
-        const double wli = p->F65 > 0 ? b->eta(i, j) + p->wd : p->wd;
-        b->hy(i - 1, j) = MAX(wli - b->bed(i, j), 0.0);
-        b->hy(i - 2, j) = MAX(wli - b->bed(i, j), 0.0);
-        b->hy(i - 3, j) = MAX(wli - b->bed(i, j), 0.0);
-    }
-
-    if(p->gcbsl2[n][4] == 2)
-    {
-        b->hy(i + 1, j) = MAX(p->wd - b->bed(i, j), 0.0);
-        b->hy(i + 2, j) = MAX(p->wd - b->bed(i, j), 0.0);
-        b->hy(i + 3, j) = MAX(p->wd - b->bed(i, j), 0.0);
-    }
-}
-
-if(p->gcbsl2[n][4] == 2)
-{
-    b->hy(i + 1, j) = MAX(p->wd - b->bed(i, j), 0.0);
-    b->hy(i + 2, j) = MAX(p->wd - b->bed(i, j), 0.0);
-    b->hy(i + 3, j) = MAX(p->wd - b->bed(i, j), 0.0);
-}
-}
-
-if(p->F61 > -1.0e20)
-{
-    GCSL1LOOP
-    {
-        i = p->gcbsl1[n][0];
-        j = p->gcbsl1[n][1];
-
-        if(p->gcbsl1[n][4] == 1)
-        {
-            b->hx(i - 1, j) = MAX(p->F61 - b->bed(i, j), 0.0);
-            b->hx(i - 2, j) = MAX(p->F61 - b->bed(i, j), 0.0);
-            b->hx(i - 3, j) = MAX(p->F61 - b->bed(i, j), 0.0);
-        }
-    }
-
-    GCSL2LOOP
-    {
         i = p->gcbsl2[n][0];
         j = p->gcbsl2[n][1];
 
-        if(p->gcbsl2[n][4] == 1)
-        {
-            b->hy(i - 1, j) = MAX(p->F61 - b->bed(i, j), 0.0);
-            b->hy(i - 2, j) = MAX(p->F61 - b->bed(i, j), 0.0);
-            b->hy(i - 3, j) = MAX(p->F61 - b->bed(i, j), 0.0);
+            if(p->gcbsl2[n][4]==1)
+            {
+            const double wli = p->F65>0 ? b->eta(i,j) + p->wd : p->wd;
+            b->hy(i-1,j) = MAX(wli - b->bed(i,j),0.0);
+            b->hy(i-2,j) = MAX(wli - b->bed(i,j),0.0);
+            b->hy(i-3,j) = MAX(wli - b->bed(i,j),0.0);
+            }
+            
+            if(p->gcbsl2[n][4]==2)
+            {
+            b->hy(i+1,j) = MAX(p->wd - b->bed(i,j),0.0);
+            b->hy(i+2,j) = MAX(p->wd - b->bed(i,j),0.0);
+            b->hy(i+3,j) = MAX(p->wd - b->bed(i,j),0.0);
+            }
         }
-    }
-}
-
-if(p->F62 > -1.0e20 && p->F64 == 0)
-{
-    GCSL1LOOP
+        
+        
+    if(p->F61>-1.0e20)
     {
+        GCSL1LOOP
+        {
         i = p->gcbsl1[n][0];
         j = p->gcbsl1[n][1];
-
-        if(p->gcbsl1[n][4] == 2)
-        {
-            b->hx(i + 1, j) = MAX(p->F62 - b->bed(i, j), 0.0);
-            b->hx(i + 2, j) = MAX(p->F62 - b->bed(i, j), 0.0);
-            b->hx(i + 3, j) = MAX(p->F62 - b->bed(i, j), 0.0);
+                
+        
+            if(p->gcbsl1[n][4]==1)
+            {
+            b->hx(i-1,j) = MAX(p->F61 - b->bed(i,j),0.0);
+            b->hx(i-2,j) = MAX(p->F61 - b->bed(i,j),0.0);
+            b->hx(i-3,j) = MAX(p->F61 - b->bed(i,j),0.0);
+            }
         }
-    }
 
-    GCSL2LOOP
-    {
+        GCSL2LOOP
+        {
         i = p->gcbsl2[n][0];
         j = p->gcbsl2[n][1];
 
-        if(p->gcbsl2[n][4] == 2)
+            if(p->gcbsl2[n][4]==1)
+            {
+            b->hy(i-1,j) = MAX(p->F61 - b->bed(i,j),0.0);
+            b->hy(i-2,j) = MAX(p->F61 - b->bed(i,j),0.0);
+            b->hy(i-3,j) = MAX(p->F61 - b->bed(i,j),0.0);
+            }
+        }
+        
+    }
+    
+    
+    
+    if(p->F62>-1.0e20 && p->F64==0)
+    {
+        GCSL1LOOP
         {
-            b->hy(i + 1, j) = MAX(p->F62 - b->bed(i, j), 0.0);
-            b->hy(i + 2, j) = MAX(p->F62 - b->bed(i, j), 0.0);
-            b->hy(i + 3, j) = MAX(p->F62 - b->bed(i, j), 0.0);
+        i = p->gcbsl1[n][0];
+        j = p->gcbsl1[n][1];
+                
+            if(p->gcbsl1[n][4]==2)
+            {
+            b->hx(i+1,j) = MAX(p->F62 - b->bed(i,j),0.0);
+            b->hx(i+2,j) = MAX(p->F62 - b->bed(i,j),0.0);
+            b->hx(i+3,j) = MAX(p->F62 - b->bed(i,j),0.0);
+            }
+        }
+
+        GCSL2LOOP
+        {
+        i = p->gcbsl2[n][0];
+        j = p->gcbsl2[n][1];
+            
+            if(p->gcbsl2[n][4]==2)
+            {
+            b->hy(i+1,j) = MAX(p->F62 - b->bed(i,j),0.0);
+            b->hy(i+2,j) = MAX(p->F62 - b->bed(i,j),0.0);
+            b->hy(i+3,j) = MAX(p->F62 - b->bed(i,j),0.0);
+            }
+        }
+        
+        for(n=0;n<p->gcslout_count;n++)
+        {
+        i=p->gcslout[n][0];
+        j=p->gcslout[n][1];
+        
+        b->eta(i,j) = p->F62-p->wd;
+        b->eta(i+1,j) = p->F62-p->wd;
+        b->eta(i+2,j) = p->F62-p->wd;
+        b->eta(i+3,j) = p->F62-p->wd;
+
+        b->hp(i,j)   = MAX(b->eta(i+1,j) + p->wd - b->bed(i,j),0.0);
+        b->hp(i+1,j) = MAX(b->eta(i+1,j) + p->wd - b->bed(i,j),0.0);
+        b->hp(i+2,j) = MAX(b->eta(i+2,j) + p->wd - b->bed(i,j),0.0);
+        b->hp(i+3,j) = MAX(b->eta(i+3,j) + p->wd - b->bed(i,j),0.0);
         }
     }
-
-    for(n = 0; n < p->gcslout_count; n++)
-    {
-        i = p->gcslout[n][0];
-        j = p->gcslout[n][1];
-
-        b->eta(i, j) = p->F62 - p->wd;
-        b->eta(i + 1, j) = p->F62 - p->wd;
-        b->eta(i + 2, j) = p->F62 - p->wd;
-        b->eta(i + 3, j) = p->F62 - p->wd;
-
-        b->hp(i, j) = MAX(b->eta(i + 1, j) + p->wd - b->bed(i, j), 0.0);
-        b->hp(i + 1, j) = MAX(b->eta(i + 1, j) + p->wd - b->bed(i, j), 0.0);
-        b->hp(i + 2, j) = MAX(b->eta(i + 2, j) + p->wd - b->bed(i, j), 0.0);
-        b->hp(i + 3, j) = MAX(b->eta(i + 3, j) + p->wd - b->bed(i, j), 0.0);
-    }
-}
-
-ini_wl(p, b, pgc);
-
-int gcval_eta;
-
-if(p->F50 == 1)
-    gcval_eta = 51;
-
-if(p->F50 == 2)
-    gcval_eta = 52;
-
-if(p->F50 == 3)
-    gcval_eta = 53;
-
-if(p->F50 == 4)
-    gcval_eta = 54;
-
-pgc->gcsl_start1(p, b->hx, gcval_eta);
-pgc->gcsl_start2(p, b->hy, gcval_eta);
-}
-
-void sflow_f::ini_fsf_2(lexer *p, fdm2D *b, ghostcell *pgc)
-{
+      
+	ini_wl(p,b,pgc);
+    
     int gcval_eta;
+    
+    if(p->F50==1)
+	gcval_eta = 51;
+    
+    if(p->F50==2)
+	gcval_eta = 52;
+    
+    if(p->F50==3)
+	gcval_eta = 53;
+    
+    if(p->F50==4)
+	gcval_eta = 54;
+    
+    pgc->gcsl_start1(p,b->hx,gcval_eta);    
+	pgc->gcsl_start2(p,b->hy,gcval_eta);  
 
-    if(p->F50 == 1)
-        gcval_eta = 51;
+}
 
-    if(p->F50 == 2)
-        gcval_eta = 52;
-
-    if(p->F50 == 3)
-        gcval_eta = 53;
-
-    if(p->F50 == 4)
-        gcval_eta = 54;
-
+void sflow_f::ini_fsf_2(lexer *p, fdm2D* b, ghostcell* pgc)
+{   
+    int gcval_eta;
+    
+    if(p->F50==1)
+	gcval_eta = 51;
+    
+    if(p->F50==2)
+	gcval_eta = 52;
+    
+    if(p->F50==3)
+	gcval_eta = 53;
+    
+    if(p->F50==4)
+	gcval_eta = 54;
+    
     // eta ini
-    pflow->eta_relax(p, pgc, b->eta);
-    pgc->gcsl_start4(p, b->eta, gcval_eta);
+	pflow->eta_relax(p,pgc,b->eta);
+    pgc->gcsl_start4(p,b->eta,gcval_eta);
 
     // eta_n ini
     SLICELOOP4
-    b->eta_n(i, j) = b->eta(i, j);
-
-    pgc->gcsl_start4(p, b->eta_n, gcval_eta);
+    b->eta_n(i,j) = b->eta(i,j);
+    
+    pgc->gcsl_start4(p,b->eta_n,gcval_eta);
 }
 
-void sflow_f::ini_wl(lexer *p, fdm2D *b, ghostcell *pgc)
-{
+void sflow_f::ini_wl(lexer *p, fdm2D* b, ghostcell* pgc)
+{   
     // still water depth and water column from eta
     SLICELOOP4
-    b->depth(i, j) = p->wd - b->bed(i, j);
-
-    pgc->gcsl_start4(p, b->depth, 50);
-
+	b->depth(i,j) = p->wd - b->bed(i,j);
+    
+    pgc->gcsl_start4(p,b->depth,50);
+    
     SLICELOOP4
-    b->WL(i, j) = MAX(b->eta(i, j) + b->depth(i, j), 0.0);
-
-    pgc->gcsl_start4(p, b->WL, 50);
-
-    pfsf->depth_update(p, b, pgc, b->WL);
+    b->WL(i,j) = MAX(b->eta(i,j) + b->depth(i,j), 0.0);
+    
+    pgc->gcsl_start4(p,b->WL,50);
+    
+    pfsf->depth_update(p,b,pgc,b->WL);
 }

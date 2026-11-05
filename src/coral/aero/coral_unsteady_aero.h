@@ -60,83 +60,84 @@ Architect: Hans Bihs
 #ifndef CORAL_UNSTEADY_AERO_H_
 #define CORAL_UNSTEADY_AERO_H_
 
-#include "coral/aero/coral_airfoil.h"
-#include <vector>
+#include"coral/aero/coral_airfoil.h"
+#include<vector>
 
-namespace coral {
-// one step of dy/dt = (u - y)/tau with u linear from u0 to u1 over dt (exact); dt <= 0: y0
-double lag_step(double y0, double u0, double u1, double tau, double dt);
-
-struct dynamic_inflow_settings
+namespace coral
 {
-    bool on = false;
-    double k = 0.6;
-    double tau1 = 0.0;  // > 0: fixed tau1 [s], else from the mean induction and the wind speed
-};
+    // one step of dy/dt = (u - y)/tau with u linear from u0 to u1 over dt (exact); dt <= 0: y0
+    double lag_step(double y0, double u0, double u1, double tau, double dt);
 
-double oye_tau1(double a_mean, double R, double U0);
-double oye_tau2(double tau1, double r_over_R);
+    struct dynamic_inflow_settings
+    {
+        bool on = false;
+        double k = 0.6;
+        double tau1 = 0.0;          // > 0: fixed tau1 [s], else from the mean induction and the wind speed
+    };
 
-struct inflow_state
-{
-    double Wqs[2] = {0.0, 0.0};  // quasi-steady induced velocity at the committed time (normal, tangential)
-    double Wint[2] = {0.0, 0.0};
-    double W[2] = {0.0, 0.0};  // the dynamic induced velocity
-};
+    double oye_tau1(double a_mean, double R, double U0);
+    double oye_tau2(double tau1, double r_over_R);
 
-// steady: all equal to W_qs
-inflow_state inflow_steady(const double Wqs[2]);
-// the state at t0 + dt from the state at t0 and W_qs at t0 + dt
-inflow_state inflow_step(const inflow_state &, const double Wqs[2], double tau1, double tau2, double k, double dt);
+    struct inflow_state
+    {
+        double Wqs[2] = {0.0, 0.0};     // quasi-steady induced velocity at the committed time (normal, tangential)
+        double Wint[2] = {0.0, 0.0};
+        double W[2] = {0.0, 0.0};       // the dynamic induced velocity
+    };
 
-struct dynamic_stall_settings
-{
-    int model = 0;  // 0 off, 1 Øye, 2 Beddoes-Leishman (HGM)
-    // < 0: the airfoil file's value, else the default above (T_f0: 6 with Øye, 3 with HGM)
-    double A1 = -1.0, A2 = -1.0, b1 = -1.0, b2 = -1.0, T_f0 = -1.0, T_p = -1.0;
-};
+    // steady: all equal to W_qs
+    inflow_state inflow_steady(const double Wqs[2]);
+    // the state at t0 + dt from the state at t0 and W_qs at t0 + dt
+    inflow_state inflow_step(const inflow_state&, const double Wqs[2], double tau1, double tau2, double k, double dt);
 
-// the static polar prepared for dynamic stall (one airfoil, the table at the Reynolds number re)
-class stall_polar
-{
-public:
-    stall_polar() = default;
-    stall_polar(const airfoil &, double re, const dynamic_stall_settings &);
+    struct dynamic_stall_settings
+    {
+        int model = 0;                  // 0 off, 1 Øye, 2 Beddoes-Leishman (HGM)
+        // < 0: the airfoil file's value, else the default above (T_f0: 6 with Øye, 3 with HGM)
+        double A1 = -1.0, A2 = -1.0, b1 = -1.0, b2 = -1.0, T_f0 = -1.0, T_p = -1.0;
+    };
 
-    double alpha0 = 0.0, cl_alpha = 2.0 * 3.14159265358979323846;
-    double A1 = 0.165, A2 = 0.335, b1 = 0.0455, b2 = 0.3, T_f0 = 3.0, T_p = 1.7;
-    airfoil_coef stat(double alpha) const;  // the static coefficients
-    double f_st(double alpha) const;
-    double cl_fs(double alpha) const;
-    double cl_inv(double alpha) const { return cl_alpha * (alpha - alpha0); }
-    double cd0() const { return cd0_; }
+    // the static polar prepared for dynamic stall (one airfoil, the table at the Reynolds number re)
+    class stall_polar
+    {
+    public:
+        stall_polar() = default;
+        stall_polar(const airfoil&, double re, const dynamic_stall_settings&);
 
-private:
-    const airfoil *af_ = nullptr;
-    double re_ = 0.0, cd0_ = 0.0;
-    std::vector<double> a_, f_, fs_;  // f_st and Cl_fs at the table's angles (rad, increasing)
-    double interp(const std::vector<double> &, double alpha) const;
-};
+        double alpha0 = 0.0, cl_alpha = 2.0*3.14159265358979323846;
+        double A1 = 0.165, A2 = 0.335, b1 = 0.0455, b2 = 0.3, T_f0 = 3.0, T_p = 1.7;
+        airfoil_coef stat(double alpha) const;          // the static coefficients
+        double f_st(double alpha) const;
+        double cl_fs(double alpha) const;
+        double cl_inv(double alpha) const {return cl_alpha*(alpha - alpha0);}
+        double cd0() const {return cd0_;}
 
-struct stall_input
-{
-    double alpha = 0.0;  // at the aerodynamic centre [rad]
-    double U = 0.0;      // relative speed [m/s]
-    double chord = 0.0;
-    double omega = 0.0;  // nose-up angular velocity of the section [rad/s]
-};
+    private:
+        const airfoil *af_ = nullptr;
+        double re_ = 0.0, cd0_ = 0.0;
+        std::vector<double> a_, f_, fs_;                // f_st and Cl_fs at the table's angles (rad, increasing)
+        double interp(const std::vector<double>&, double alpha) const;
+    };
 
-struct stall_state
-{
-    double x[4] = {0.0, 0.0, 0.0, 1.0};                // Øye: x[3] = f
-    double a34 = 0.0, clp = 0.0, fF = 1.0, fst = 1.0;  // the inputs at the committed time
-};
+    struct stall_input
+    {
+        double alpha = 0.0;     // at the aerodynamic centre [rad]
+        double U = 0.0;         // relative speed [m/s]
+        double chord = 0.0;
+        double omega = 0.0;     // nose-up angular velocity of the section [rad/s]
+    };
 
-double stall_Tu(const stall_input &);
-// steady state at the input (the coefficients then are the static ones)
-stall_state stall_steady(const stall_polar &, int model, const stall_input &);
-// the state at t0 + dt from the state at t0 and the input at t0 + dt; the coefficients at t0 + dt
-airfoil_coef stall_step(const stall_polar &, int model, const stall_state &, const stall_input &, double dt, stall_state &out);
-}  // namespace coral
+    struct stall_state
+    {
+        double x[4] = {0.0, 0.0, 0.0, 1.0};   // Øye: x[3] = f
+        double a34 = 0.0, clp = 0.0, fF = 1.0, fst = 1.0;   // the inputs at the committed time
+    };
+
+    double stall_Tu(const stall_input&);
+    // steady state at the input (the coefficients then are the static ones)
+    stall_state stall_steady(const stall_polar&, int model, const stall_input&);
+    // the state at t0 + dt from the state at t0 and the input at t0 + dt; the coefficients at t0 + dt
+    airfoil_coef stall_step(const stall_polar&, int model, const stall_state&, const stall_input&, double dt, stall_state &out);
+}
 
 #endif

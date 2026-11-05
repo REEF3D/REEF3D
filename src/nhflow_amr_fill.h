@@ -27,75 +27,73 @@ Author: Hans Bihs
 // nodes 0..knoz of a column; with G 6 the nodes of a level are nested in those of the next), as
 // fnpf_amr_fill.h
 
-#include "fdm_nhf.h"
-#include "lexer.h"
-#include "nhflow_amr.h"
-#include "slice.h"
+#include"nhflow_amr.h"
+#include"lexer.h"
+#include"fdm_nhf.h"
+#include"slice.h"
 
-namespace nhflow_amr_detail {
-inline int lij(const lexer *q, int ii, int jj) { return (ii - q->imin) * q->jmax + (jj - q->jmin); }
+namespace nhflow_amr_detail
+{
+inline int lij(const lexer *q, int ii, int jj) { return (ii-q->imin)*q->jmax + (jj-q->jmin); }
 
 // curvilinear grid (G 50): weights of the 2x2 children (i0+a, j0+b), order (0,0) (1,0) (0,1) (1,1), in a
 // mean of cell values per area (conservative restriction): their areas over the sum; Cartesian 1/4
 inline void cw4(const lexer *q, int i0, int j0, double *w)
 {
-    if(q->j_dir == 0)  // 2D grid: the 2x1 children (a,0), w[0] and w[1]
+    if(q->j_dir==0)     // 2D grid: the 2x1 children (a,0), w[0] and w[1]
     {
-        w[0] = w[1] = 0.5;
-        w[2] = w[3] = 0.0;
-        return;
+    w[0] = w[1] = 0.5;
+    w[2] = w[3] = 0.0;
+    return;
     }
-    if(q->geo_curv != 1)
+    if(q->geo_curv!=1)
     {
-        w[0] = w[1] = w[2] = w[3] = 0.25;
-        return;
+    w[0] = w[1] = w[2] = w[3] = 0.25;
+    return;
     }
-    const double a0 = q->AREA2D[lij(q, i0, j0)], a1 = q->AREA2D[lij(q, i0 + 1, j0)];
-    const double a2 = q->AREA2D[lij(q, i0, j0 + 1)], a3 = q->AREA2D[lij(q, i0 + 1, j0 + 1)];
+    const double a0 = q->AREA2D[lij(q,i0,j0)], a1 = q->AREA2D[lij(q,i0+1,j0)];
+    const double a2 = q->AREA2D[lij(q,i0,j0+1)], a3 = q->AREA2D[lij(q,i0+1,j0+1)];
     const double s = a0 + a1 + a2 + a3;
-    w[0] = a0 / s;
-    w[1] = a1 / s;
-    w[2] = a2 / s;
-    w[3] = a3 / s;
+    w[0] = a0/s; w[1] = a1/s; w[2] = a2/s; w[3] = a3/s;
 }
 
 // cell centre of cell (a,b): the geometry layer on curvilinear grids, else XP / YP
-inline double cxc(const lexer *q, int a, int b) { return q->geo_curv == 1 ? q->XC2D[lij(q, a, b)] : q->XP[a + q->marge]; }
-inline double cyc(const lexer *q, int a, int b) { return q->geo_curv == 1 ? q->YC2D[lij(q, a, b)] : q->YP[b + q->marge]; }
+inline double cxc(const lexer *q, int a, int b) { return q->geo_curv==1 ? q->XC2D[lij(q,a,b)] : q->XP[a+q->marge]; }
+inline double cyc(const lexer *q, int a, int b) { return q->geo_curv==1 ? q->YC2D[lij(q,a,b)] : q->YP[b+q->marge]; }
 
 // restriction of point values to the coarse cell centre: cubic in x and y on the 4x4 fine cells
 // around the 2x2 children, the plain average next to solids
 inline bool rcubic(const lexer *pp, int i0, int j0)
 {
-    const int b0 = (pp->j_dir == 1) ? -1 : 0, b1 = (pp->j_dir == 1) ? 2 : 0;  // (2D grid: x only)
-    for(int a = -1; a <= 2; ++a)
-        for(int b = b0; b <= b1; ++b)
-            if(pp->flagslice4[(i0 + a - pp->imin) * pp->jmax + (j0 + b - pp->jmin)] < 0)
-                return false;
+    const int b0 = (pp->j_dir==1) ? -1 : 0, b1 = (pp->j_dir==1) ? 2 : 0;     // (2D grid: x only)
+    for(int a=-1; a<=2; ++a)
+    for(int b=b0; b<=b1; ++b)
+    if(pp->flagslice4[(i0+a-pp->imin)*pp->jmax + (j0+b-pp->jmin)]<0)
+    return false;
     return true;
 }
 
 template<class F>
-inline double rc4(F f, bool x_only = false)
+inline double rc4(F f, bool x_only=false)
 {
-    const double w[4] = {-1.0 / 16.0, 9.0 / 16.0, 9.0 / 16.0, -1.0 / 16.0};
+    const double w[4] = {-1.0/16.0, 9.0/16.0, 9.0/16.0, -1.0/16.0};
     double r = 0.0;
-    if(x_only)  // 2D grid: cubic in x
+    if(x_only)      // 2D grid: cubic in x
     {
-        for(int a = 0; a < 4; ++a)
-            r += w[a] * f(a - 1, 0);
+        for(int a=0; a<4; ++a)
+        r += w[a]*f(a-1,0);
         return r;
     }
-    for(int a = 0; a < 4; ++a)
+    for(int a=0; a<4; ++a)
     {
         double ra = 0.0;
-        for(int b = 0; b < 4; ++b)
-            ra += w[b] * f(a - 1, b - 1);
-        r += w[a] * ra;
+        for(int b=0; b<4; ++b)
+        ra += w[b]*f(a-1,b-1);
+        r += w[a]*ra;
     }
     return r;
 }
-}  // namespace nhflow_amr_detail
+}
 
 // columns around the level-l patches; sel(g) gives the F-layout array of grid g (from the coarser
 // level with G 6: the coarse nodes and the midpoints between them)
@@ -103,9 +101,10 @@ template<class SEL>
 inline void nhflow_amr::fill_col(int l, int tag, SEL sel)
 {
     const int knf = klev(l);
-    const int nv = knf + 1;
+    const int nv = knf+1;
 
-    fill_run(l, nv, tag, [&](const reefamr_fill &f, double *v)
+    fill_run(l,nv,tag,
+             [&](const reefamr_fill &f, double *v)
              {
                  if(f.kind==0)
                  {
@@ -118,12 +117,15 @@ inline void nhflow_amr::fill_col(int l, int tag, SEL sel)
                  pcol(f.g,f.si,f.sj,f.ox,f.oy,sel(f.g),knf,v,2);
                  else
                  for(int kk=0; kk<=knf; ++kk)
-                 v[kk] = 0.0; }, [&](reefamr_patch *c, int id, const reefamr_fill &f, const double *w)
+                 v[kk] = 0.0;
+             },
+             [&](reefamr_patch *c, int id, const reefamr_fill &f, const double *w)
              {
                  lexer *pp = c->pp;
                  double *dst = sel(id);
                  for(int kk=0; kk<=knf; ++kk)
-                 dst[fidx(pp,f.di,f.dj,kk)] = w[kk]; });
+                 dst[fidx(pp,f.di,f.dj,kk)] = w[kk];
+             });
 }
 
 // covered columns: restricted from the 2x2 children (cubic where possible), finest first; with
@@ -131,16 +133,21 @@ inline void nhflow_amr::fill_col(int l, int tag, SEL sel)
 template<class SEL>
 inline void nhflow_amr::restrict_col(SEL sel)
 {
-    for(int l = wtop(); l >= wlo + 1; --l)
+    for(int l=wtop(); l>=wlo+1; --l)
     {
-        const int Kc = klev(l - 1);
-        block_up(l, Kc + 1, 7400 + l, [&](reefamr_patch *c, int id, int k, double *v)
-                 { rcol_block(c, k, sel(id), Kc, v); }, [&](const reefamr_block &B, int key, const double *v)
+        const int Kc = klev(l-1);
+        block_up(l,Kc+1,7400+l,
+                 [&](reefamr_patch *c, int id, int k, double *v)
+                 {
+                     rcol_block(c,k,sel(id),Kc,v);
+                 },
+                 [&](const reefamr_block &B, int key, const double *v)
                  {
                      lexer *q = glex(B.g);
                      double *dst = sel(B.g);
                      for(int K=0; K<=Kc; ++K)
-                     dst[fidx(q,B.ic,B.jc,K)] = v[K]; });
+                     dst[fidx(q,B.ic,B.jc,K)] = v[K];
+                 });
     }
 }
 
@@ -150,9 +157,9 @@ inline void nhflow_amr::rcol_block(reefamr_patch *c, int k, const double *src, i
     using namespace nhflow_amr_detail;
 
     lexer *pp = c->pp;
-    const int nby = c->ny >> sy;
-    const int bi = k / nby, bj = k % nby;
-    const int i0 = EXT + 2 * bi, j0 = EY + ychild(bj);
+    const int nby = c->ny>>sy;
+    const int bi = k/nby, bj = k%nby;
+    const int i0 = EXT+2*bi, j0 = EY+ychild(bj);
 
     // cubic only on interior blocks: on the edge blocks the 4x4 stencil would read the
     // EXT cells of the patch, which are not unknowns of the composite solve (as fnpf_amr).
@@ -160,48 +167,47 @@ inline void nhflow_amr::rcol_block(reefamr_patch *c, int k, const double *src, i
     // and with subcycling the covered pressure enters the level-0 step and the parent pressure
     // of the fills (placed patches, G 40 2, against one rank: 2.4e-7 m with the cubic blocks,
     // 2e-13 m without; the flume the same to 4 digits)
-    bool hi = (bi > 0 && bi < c->nx / 2 - 1 && (sy == 0 || (bj > 0 && bj < nby - 1))) && rcubic(pp, i0, j0) && sub == 0;
-    const int sI = pp->jmax * pp->kmaxF, sJ = pp->kmaxF;
-    const int fz = pp->knoz / Kc;
+    bool hi = (bi>0 && bi<c->nx/2-1 && (sy==0 || (bj>0 && bj<nby-1))) && rcubic(pp,i0,j0) && sub==0;
+    const int sI = pp->jmax*pp->kmaxF, sJ = pp->kmaxF;
+    const int fz = pp->knoz/Kc;
 
     // G 30: only the children that are unknowns of the pressure (wet and deep); cubic only
     // if the whole 4x4 stencil is; none of them: the coarse column is shallow or dry, P = 0
     // (2D grid: the 2x1 children, wa[0] and wa[2])
-    const int nch = 2 << sy;
+    const int nch = 2<<sy;
     int na = nch;
-    double wa[4] = {0.25, 0.25, 0.25, 0.25};
-    if(sy == 0)
-        wa[0] = wa[2] = 0.5, wa[1] = wa[3] = 0.0;
+    double wa[4] = {0.25,0.25,0.25,0.25};
+    if(sy==0)
+    wa[0] = wa[2] = 0.5, wa[1] = wa[3] = 0.0;
     if(shore)
     {
-        for(int a = -1; a <= 2 && hi; ++a)
-            for(int b = -sy; b <= 2 * sy && hi; ++b)
-                if(!wet_at(pp, i0 + a, j0 + b, 2))
-                    hi = false;
+        for(int a=-1; a<=2 && hi; ++a)
+        for(int b=-sy; b<=2*sy && hi; ++b)
+        if(!wet_at(pp,i0+a,j0+b,2))
+        hi = false;
 
         na = 0;
-        for(int a = 0; a < 2; ++a)
-            for(int b = 0; b <= sy; ++b)
-            {
-                wa[2 * a + b] = wet_at(pp, i0 + a, j0 + b, 2) ? 1.0 : 0.0;
-                na += (int)wa[2 * a + b];
-            }
-        for(int m = 0; m < 4; ++m)
-            wa[m] = (na > 0) ? wa[m] / double(na) : 0.0;
+        for(int a=0; a<2; ++a)
+        for(int b=0; b<=sy; ++b)
+        {
+            wa[2*a+b] = wet_at(pp,i0+a,j0+b,2) ? 1.0 : 0.0;
+            na += (int)wa[2*a+b];
+        }
+        for(int m=0; m<4; ++m)
+        wa[m] = (na>0) ? wa[m]/double(na) : 0.0;
     }
 
-    for(int K = 0; K <= Kc; ++K)
+    for(int K=0; K<=Kc; ++K)
     {
-        const int n0 = fidx(pp, i0, j0, fz * K);
+        const int n0 = fidx(pp,i0,j0,fz*K);
         if(hi)
-            v[K] = rc4([&](int a, int b)
-                       { return src[n0 + a * sI + b * sJ]; }, sy == 0);
-        else if(na == 4)
-            v[K] = 0.25 * (src[n0] + src[n0 + sI] + src[n0 + sJ] + src[n0 + sI + sJ]);
-        else if(sy == 0)
-            v[K] = (na == 2) ? 0.5 * (src[n0] + src[n0 + sI]) : wa[0] * src[n0] + wa[2] * src[n0 + sI];
+        v[K] = rc4([&](int a, int b) { return src[n0+a*sI+b*sJ]; },sy==0);
+        else if(na==4)
+        v[K] = 0.25*(src[n0] + src[n0+sI] + src[n0+sJ] + src[n0+sI+sJ]);
+        else if(sy==0)
+        v[K] = (na==2) ? 0.5*(src[n0] + src[n0+sI]) : wa[0]*src[n0] + wa[2]*src[n0+sI];
         else
-            v[K] = wa[0] * src[n0] + wa[2] * src[n0 + sI] + wa[1] * src[n0 + sJ] + wa[3] * src[n0 + sI + sJ];
+        v[K] = wa[0]*src[n0] + wa[2]*src[n0+sI] + wa[1]*src[n0+sJ] + wa[3]*src[n0+sI+sJ];
     }
 }
 

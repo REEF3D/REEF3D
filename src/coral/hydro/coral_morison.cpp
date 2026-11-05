@@ -20,11 +20,12 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "coral/hydro/coral_morison.h"
-#include "coral/core/coral_model.h"
-#include <cmath>
+#include"coral/hydro/coral_morison.h"
+#include"coral/core/coral_model.h"
+#include<cmath>
 
-namespace coral {
+namespace coral
+{
 
 morison_load::morison_load(const model &m, int body, const std::vector<morison_member> &members,
                            std::shared_ptr<const wave_kinematics> waves, double rho, const Vec3 &current, const std::string &name)
@@ -37,12 +38,12 @@ morison_load::morison_load(const model &m, int body, const std::vector<morison_m
         const double L = d.norm();
         if(L <= 0.0 || mb.n < 1)
             continue;
-        for(int i = 0; i < mb.n; ++i)
+        for(int i=0; i<mb.n; ++i)
         {
             strip s;
-            s.s = b.to_body(mb.p1 + (i + 0.5) / mb.n * d);
-            s.e = b.R.transpose() * (d / L);
-            s.L = L / mb.n;
+            s.s = b.to_body(mb.p1 + (i + 0.5)/mb.n*d);
+            s.e = b.R.transpose()*(d/L);
+            s.L = L/mb.n;
             s.D = mb.D;
             s.Cd = mb.Cd;
             s.Ca = mb.Ca;
@@ -60,17 +61,16 @@ bool morison_load::strip_force(const model &m, int index, double t, Vec3 &p, Vec
     p = b.point(s.s);
     if(p(2) > (waves_ ? waves_->elevation_at(this, index, p, t) : 0.0))
         return false;
-    const Vec3 e = b.R * s.e;
+    const Vec3 e = b.R*s.e;
     Vec3 uw = Vec3::Zero(), aw = Vec3::Zero();
     double pr = 0.0;
     if(waves_)
         waves_->kinematics_at(this, index, p, t, uw, aw, pr);
     const Vec3 ub = b.point_velocity(s.s), ab = b.point_acceleration(s.s);
-    auto normal = [&](const Vec3 &v)
-    { return Vec3(v - v.dot(e) * e); };
+    auto normal = [&](const Vec3 &v) {return Vec3(v - v.dot(e)*e);};
     const Vec3 ur = normal(uw + current_ - ub);
-    const double A = 0.25 * M_PI * s.D * s.D;
-    f = s.L * (rho_ * A * s.Cm * normal(aw) - rho_ * A * s.Ca * normal(ab) + 0.5 * rho_ * s.Cd * s.D * ur.norm() * ur);
+    const double A = 0.25*M_PI*s.D*s.D;
+    f = s.L*(rho_*A*s.Cm*normal(aw) - rho_*A*s.Ca*normal(ab) + 0.5*rho_*s.Cd*s.D*ur.norm()*ur);
     return true;
 }
 
@@ -79,7 +79,7 @@ void morison_load::total(const model &m, double t, Vec3 &F, Vec3 &M) const
     F.setZero();
     M.setZero();
     Vec3 p, f;
-    for(int i = 0; i < (int)strips_.size(); ++i)
+    for(int i=0; i<(int)strips_.size(); ++i)
         if(strip_force(m, i, t, p, f))
         {
             F += f;
@@ -92,7 +92,7 @@ void morison_load::eval(const model &m, double t, VecX &fg) const
     if(b_ < 0)
         return;
     Vec3 p, f;
-    for(int i = 0; i < (int)strips_.size(); ++i)
+    for(int i=0; i<(int)strips_.size(); ++i)
         if(strip_force(m, i, t, p, f))
             m.add_force(fg, b_, p, f);
 }
@@ -115,8 +115,8 @@ void morison_load::channel_values(const model &m, double t, std::vector<double> 
 {
     Vec3 F, M;
     total(m, t, F, M);
-    for(int i = 0; i < 3; ++i)
+    for(int i=0; i<3; ++i)
         v.push_back(F(i));
 }
 
-}  // namespace coral
+}

@@ -34,8 +34,12 @@ class density
 public:
     virtual ~density() {}
 
-    virtual double roface(lexer *, fdm *, int, int, int) = 0;
+	virtual double roface(lexer*,fdm*,int,int,int)=0;
+
 };
 
 #endif
+
+
+
 

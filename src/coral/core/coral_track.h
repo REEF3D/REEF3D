@@ -29,53 +29,46 @@ Architect: Hans Bihs
 #ifndef CORAL_TRACK_H_
 #define CORAL_TRACK_H_
 
-#include "coral/core/coral_types.h"
-#include <vector>
+#include"coral/core/coral_types.h"
+#include<vector>
 
-namespace coral {
-class model;
-
-struct body_snapshot
+namespace coral
 {
-    Vec3 x, v, a;   // CoG: position, velocity, acceleration (global)
-    Mat3 R;         // body -> global
-    Vec3 w, alpha;  // angular velocity and acceleration (global)
-};
+    class model;
 
-class body_track
-{
-public:
-    // bodies: model bodies to record (index k of state() refers to this list)
-    void set_bodies(const std::vector<int> &bodies)
+    struct body_snapshot
     {
-        bodies_ = bodies;
-        clear();
-    }
-    void clear()
+        Vec3 x, v, a;           // CoG: position, velocity, acceleration (global)
+        Mat3 R;                 // body -> global
+        Vec3 w, alpha;          // angular velocity and acceleration (global)
+    };
+
+    class body_track
     {
-        t_.clear();
-        s_.clear();
-    }
+    public:
+        // bodies: model bodies to record (index k of state() refers to this list)
+        void set_bodies(const std::vector<int> &bodies) {bodies_ = bodies; clear();}
+        void clear() {t_.clear(); s_.clear();}
 
-    // the state of the model at time t (times increasing)
-    void record(const model &, double t);
+        // the state of the model at time t (times increasing)
+        void record(const model&, double t);
 
-    int size() const { return (int)t_.size(); }
-    double t_begin() const { return t_.empty() ? 0.0 : t_.front(); }
-    double t_end() const { return t_.empty() ? 0.0 : t_.back(); }
+        int size() const {return (int)t_.size();}
+        double t_begin() const {return t_.empty() ? 0.0 : t_.front();}
+        double t_end() const {return t_.empty() ? 0.0 : t_.back();}
 
-    // body k at time t (clamped to the recorded interval)
-    body_snapshot state(int k, double t) const;
+        // body k at time t (clamped to the recorded interval)
+        body_snapshot state(int k, double t) const;
 
-    // restart from a checkpoint: the recorded states of the last step
-    void save_state(std::vector<double> &) const;
-    bool load_state(const std::vector<double> &, size_t &k);
+        // restart from a checkpoint: the recorded states of the last step
+        void save_state(std::vector<double>&) const;
+        bool load_state(const std::vector<double>&, size_t &k);
 
-private:
-    std::vector<int> bodies_;
-    std::vector<double> t_;
-    std::vector<std::vector<body_snapshot>> s_;
-};
-}  // namespace coral
+    private:
+        std::vector<int> bodies_;
+        std::vector<double> t_;
+        std::vector<std::vector<body_snapshot>> s_;
+    };
+}
 
 #endif

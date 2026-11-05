@@ -21,55 +21,55 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include "fnpf_fsfbc.h"
-#include "convection.h"
-#include "fdm_fnpf.h"
-#include "field4.h"
-#include "ghostcell.h"
-#include "ioflow.h"
 #include "lexer.h"
-#include "reini.h"
+#include "fdm_fnpf.h"
+#include "ghostcell.h"
+#include "field4.h"
+#include "convection.h"
+#include "ioflow.h"
 #include "solver.h"
+#include "reini.h"
 
 #include "sflow_bicgstab.h"
 
-#include "fnpf_hj_godunov.h"
-#include "fnpf_ice.h"
 #include "wind_f.h"
+#include "fnpf_ice.h"
 #include "wind_v.h"
+#include "fnpf_hj_godunov.h"
 
 using namespace std;
 
-fnpf_fsfbc::fnpf_fsfbc(lexer *p, fdm_fnpf *c, ghostcell *pgc) : fnpf_breaking(p, c, pgc), ef(p), df(p), eqxm(p), eqxp(p), eqym(p), eqyp(p), pconvec(std::in_place_type<fnpf_voiddisc>, p),
-                                                                pddx(std::in_place_type<fnpf_ddx_cds2>)
+fnpf_fsfbc::fnpf_fsfbc(lexer *p, fdm_fnpf *c, ghostcell *pgc) : fnpf_breaking(p,c,pgc), ef(p), df(p), eqxm(p), eqxp(p), eqym(p), eqyp(p), pconvec(std::in_place_type<fnpf_voiddisc>, p),
+                                                                                                            pddx(std::in_place_type<fnpf_ddx_cds2>)
 {
-    if(p->A311 == 1)
+    if(p->A311==1)
         pconvec.emplace<fnpf_cds2>(p);
-    else if(p->A311 == 2)
+    else if(p->A311==2)
         pconvec.emplace<fnpf_cds4>(p);
-    else if(p->A311 == 3)
+    else if(p->A311==3)
         pconvec.emplace<fnpf_weno3>(p);
-    else if(p->A311 == 4 || p->A311 == 5)
+    else if(p->A311==4 || p->A311==5)
     {
         pconvec.emplace<fnpf_weno5>(p);
         dqF.emplace(p);
         dqE.emplace(p);
     }
-    else if(p->A311 == 6)
+    else if(p->A311==6)
         pconvec.emplace<fnpf_cds6>(p);
 
-    if(p->A312 == 3)
+    if(p->A312==3)
         pddx.emplace<fnpf_ddx_cds4>();
 
-    if(p->A350 > 0)
-        psolv = new sflow_bicgstab(p, pgc);
+    if(p->A350>0)
+    psolv = new sflow_bicgstab(p,pgc);
 
     // wind forcing
-    if(p->A370 > 0)
-        pwind = new wind_f(p);
-    else  // p->A370==0
-        pwind = new wind_v(p);
+    if(p->A370>0)
+    pwind = new wind_f(p);
+    else //p->A370==0
+    pwind = new wind_v(p);
 
-    c->wd_criterion = p->A344;
+    c->wd_criterion=p->A344;
 
     // 3D
     if(p->j_dir)
@@ -92,9 +92,9 @@ fnpf_fsfbc::~fnpf_fsfbc()
 void fnpf_fsfbc::fsfdisc(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, slice &Fifsf)
 {
     SLICELOOP4
-    c->WL(i, j) = MAX(0.0, eta(i, j) + p->wd - c->bed(i, j));
+    c->WL(i,j) = MAX(0.0, eta(i,j) + p->wd - c->bed(i,j));
 
-    pgc->gcsl_start4(p, c->WL, 50);
+    pgc->gcsl_start4(p,c->WL,50);
 
     // ef/df: removed. Both slices were copied, halo-exchanged 4x and passed to
     // filter(), which has no (i,j) loop and so only touched one stale cell.
@@ -110,7 +110,7 @@ void fnpf_fsfbc::fsfdisc(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, slic
     //   - Ex,Ey (sigma metrics, breaking, wind, dynamic FSBC): upwinded by sign of Fx,Fy as before (A315==1)
     //     or symmetric (A315==2).
     std::visit([&](auto &conv, auto &ddx)
-               {
+    {
         // WENO5: face divided differences once per field and direction, inlined stencils
         if constexpr(std::is_same_v<std::decay_t<decltype(conv)>, fnpf_weno5>)
         {
@@ -244,20 +244,21 @@ void fnpf_fsfbc::fsfdisc(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, slic
                     c->Eyy(i,j) = ddx.syy(p,eta);
                 }
             }
-        } }, pconvec, pddx);
+        }
+    }, pconvec, pddx);
 
-    pgc->gcsl_start4(p, c->Ex, 1);
-    pgc->gcsl_start4(p, c->Ey, 1);
+    pgc->gcsl_start4(p,c->Ex,1);
+    pgc->gcsl_start4(p,c->Ey,1);
 }
 
 void fnpf_fsfbc::fsfdisc_ini(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, slice &Fifsf)
 {
     // A317==0 legacy: Bx left-biased (sx with speed 1.0), Bxx from df, which is never filled, so Bxx=0.
     // A317==1: symmetric Bx, Bxx from the depth.
-    slice &bdd = (p->A317 == 0) ? static_cast<slice &>(df) : static_cast<slice &>(c->depth);
+    slice &bdd = (p->A317==0) ? static_cast<slice&>(df) : static_cast<slice&>(c->depth);
 
     std::visit([&](auto &conv, auto &ddx)
-               {
+    {
         auto bsx = [&](slice &f) {return p->A317==0 ? conv.sx(p,f,1.0) : 0.5*(conv.sx(p,f,1.0) + conv.sx(p,f,-1.0));};
         auto bsy = [&](slice &f) {return p->A317==0 ? conv.sy(p,f,1.0) : 0.5*(conv.sy(p,f,1.0) + conv.sy(p,f,-1.0));};
 
@@ -281,83 +282,87 @@ void fnpf_fsfbc::fsfdisc_ini(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, 
                 c->Bx(i,j) = bsx(c->depth);
                 c->Bxx(i,j) = ddx.sxx(p,bdd);
             }
-        } }, pconvec, pddx);
+        }
+    }, pconvec, pddx);
 
-    pgc->gcsl_start4(p, c->Bx, 1);
-    pgc->gcsl_start4(p, c->By, 1);
+    pgc->gcsl_start4(p,c->Bx,1);
+    pgc->gcsl_start4(p,c->By,1);
 
     SLICELOOP4
-    p->wet[IJ] = 1;
+    p->wet[IJ]=1;
 
-    pgc->gcsl_start4Vint(p, p->wet, 50);
+    pgc->gcsl_start4Vint(p,p->wet,50);
 }
 
 void fnpf_fsfbc::fsfwvel(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, slice &Fifsf)
 {
     // fi
     std::visit([&](auto &conv)
-               {
+    {
         FFILOOP4
         {
             c->Fz(i,j) = p->sigz[IJ]*conv.sz(p,c->Fi);
 
             if(p->wet[IJ]==0)
             c->Fz(i,j) = 0.0;
-        } }, pconvec);
+        }
+    }, pconvec);
 }
 
 void fnpf_fsfbc::kfsfbc(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 {
-    if(p->A314 == 1)
+    if(p->A314==1)
     {
         SLICELOOP4
-        c->K(i, j) = c->Fz(i, j);
+        c->K(i,j) =  c->Fz(i,j);
     }
-    else if(p->A314 == 2)
+    else if(p->A314==2)
     {
         // A315 3: Godunov gradient with the Fx,Fy,Fz of this stage (fnpf_hj_godunov.h)
-        if(p->A315 == 3)
-            SLICELOOP4
-            {
-                c->Exu(i, j) = fnpf_hj_godunov(eqxm(i, j), eqxp(i, j), c->Fx(i, j), c->Fz(i, j));
-                c->Eyu(i, j) = p->j_dir ? fnpf_hj_godunov(eqym(i, j), eqyp(i, j), c->Fy(i, j), c->Fz(i, j)) : 0.0;
-            }
-
+        if(p->A315==3)
+        SLICELOOP4
+        {
+        c->Exu(i,j) = fnpf_hj_godunov(eqxm(i,j),eqxp(i,j),c->Fx(i,j),c->Fz(i,j));
+        c->Eyu(i,j) = p->j_dir ? fnpf_hj_godunov(eqym(i,j),eqyp(i,j),c->Fy(i,j),c->Fz(i,j)) : 0.0;
+        }
+        
         // Exu,Eyu: upwinded eta gradient (equal to Ex,Ey for A315==0)
         SLICELOOP4
-        c->K(i, j) = -c->Fx(i, j) * c->Exu(i, j) - c->Fy(i, j) * c->Eyu(i, j) + c->Fz(i, j) * (1.0 + pow(c->Exu(i, j), 2.0) + pow(c->Eyu(i, j), 2.0));
+        c->K(i,j) =  - c->Fx(i,j)*c->Exu(i,j) - c->Fy(i,j)*c->Eyu(i,j)
+                    + c->Fz(i,j)*(1.0 + pow(c->Exu(i,j),2.0) + pow(c->Eyu(i,j),2.0));
     }
 }
 
 void fnpf_fsfbc::dfsfbc(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta)
 {
     // ice floes: c->K still holds the kinematic tendency deta/dt of this stage
-    if(c->ice != nullptr)
-        c->ice->store_etat(p, c, c->K);
-
-    if(p->A314 == 1)
+    if(c->ice!=nullptr)
+    c->ice->store_etat(p,c,c->K);
+    
+    if(p->A314==1)
     {
         SLICELOOP4
-        c->K(i, j) = -fabs(p->W22) * eta(i, j);
+        c->K(i,j) =   - fabs(p->W22)*eta(i,j);
     }
-    else if(p->A314 == 2)
+    else if(p->A314==2)
     {
         SLICELOOP4
-        c->K(i, j) = -0.5 * c->Fx(i, j) * c->Fx(i, j) - 0.5 * c->Fy(i, j) * c->Fy(i, j) + 0.5 * pow(c->Fz(i, j), 2.0) * (1.0 + pow(c->Ex(i, j), 2.0) + pow(c->Ey(i, j), 2.0)) - fabs(p->W22) * eta(i, j);
+        c->K(i,j) =  - 0.5*c->Fx(i,j)*c->Fx(i,j) - 0.5*c->Fy(i,j)*c->Fy(i,j)
+                    + 0.5*pow(c->Fz(i,j),2.0)*(1.0 + pow(c->Ex(i,j),2.0) + pow(c->Ey(i,j),2.0)) - fabs(p->W22)*eta(i,j);
     }
 
     // Wind
-    pwind->wind_forcing_fnpf(p, c, pgc, c->K, eta);
-
+    pwind->wind_forcing_fnpf(p,c,pgc,c->K,eta);
+    
     // Ice floes: compliant-lid pressure, dFi/dt = ... - p_ice/rho_w
-    if(c->ice != nullptr)
-        c->ice->lid_forcing(p, c, c->K, eta);
+    if(c->ice!=nullptr)
+    c->ice->lid_forcing(p,c,c->K,eta);
 }
 
 void fnpf_fsfbc::wetdry(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, slice &Fifsf)
 {
     SLICELOOP4
-    p->wet[IJ] = 1;
+    p->wet[IJ]=1;
 
-    pgc->gcsl_start4Vint(p, p->wet, 50);
+    pgc->gcsl_start4Vint(p,p->wet,50);
 }

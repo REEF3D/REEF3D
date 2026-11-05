@@ -23,9 +23,9 @@ Author: Hans Bihs
 #ifndef NHFLOW_PRINT_WSFLINE_H_
 #define NHFLOW_PRINT_WSFLINE_H_
 
-#include "boundarycheck.h"
-#include <fstream>
-#include <iostream>
+#include"boundarycheck.h"
+#include<iostream>
+#include<fstream>
 
 class lexer;
 class wsfline_core;
@@ -39,20 +39,21 @@ using namespace std;
 class nhflow_print_wsfline : public boundarycheck
 {
 public:
-    nhflow_print_wsfline(lexer *, fdm_nhf *, ghostcell *);
-    virtual ~nhflow_print_wsfline();
+    nhflow_print_wsfline(lexer*,fdm_nhf*,ghostcell*);
+	virtual ~nhflow_print_wsfline();
 
-    void start(lexer *, fdm_nhf *, ghostcell *, ioflow *, slice &f);
+	void start(lexer*, fdm_nhf*, ghostcell*,ioflow*,slice &f);
+
 
 private:
-    void ini_location(lexer *, fdm_nhf *, ghostcell *);
+    void ini_location(lexer*, fdm_nhf*, ghostcell*);
     int *jloc;
-    int n, q;
+    int n,q;
     ofstream wsfout;
 
+	
     wsfline_core *pcore;
 
-    int maxknox, sumknox;
 };
 
 #endif

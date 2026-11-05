@@ -23,10 +23,10 @@ Author: Hans Bihs
 #ifndef FNPF_RK4_H_
 #define FNPF_RK4_H_
 
-#include "fnpf.h"
-#include "fnpf_ini.h"
-#include "fnpf_sigma.h"
-#include "slice4.h"
+#include"fnpf.h"
+#include"fnpf_ini.h"
+#include"fnpf_sigma.h"
+#include"slice4.h"
 
 class fnpf_laplace;
 class fnpf_fsf;
@@ -38,29 +38,30 @@ using namespace std;
 class fnpf_RK4 final : public fnpf_ini, public fnpf_sigma
 {
 public:
-    fnpf_RK4(lexer *, fdm_fnpf *, ghostcell *);
-    virtual ~fnpf_RK4();
-
-    void start(lexer *, fdm_fnpf *, ghostcell *, solver *, convection *, ioflow *, reini *) override final;
-    void inidisc_step1(lexer *, fdm_fnpf *, ghostcell *, ioflow *, solver *) override final;
-    void inidisc_step2(lexer *, fdm_fnpf *, ghostcell *, ioflow *, solver *) override final;
-    void ini_wetdry(lexer *, fdm_fnpf *, ghostcell *) override final;
-    fnpf_body *body() override final { return pbody; }
-
+	fnpf_RK4(lexer*, fdm_fnpf*, ghostcell*);
+	virtual ~fnpf_RK4();
+    
+    void start(lexer*, fdm_fnpf*, ghostcell*, solver*, convection*, ioflow*, reini*) override final;
+    void inidisc_step1(lexer*, fdm_fnpf*, ghostcell*, ioflow*, solver*) override final;
+    void inidisc_step2(lexer*, fdm_fnpf*, ghostcell*, ioflow*, solver*) override final;
+    void ini_wetdry(lexer*, fdm_fnpf*, ghostcell*) override final;
+    fnpf_body* body() override final {return pbody;}
+    
 private:
-    int gcval, gcval_u, gcval_v, gcval_w;
-    int gcval_eta, gcval_fifsf;
-    int hypre_type;
-    double starttime, endtime;
 
-    slice4 erk1, erk2, erk3, erk, en;
-    slice4 frk1, frk2, frk3, frk;
+    int gcval,gcval_u,gcval_v,gcval_w;
+    int gcval_eta,gcval_fifsf;
+    int hypre_type;
+    double starttime,endtime;
+
+    slice4 erk1,erk2,erk3,erk,en;
+    slice4 frk1,frk2,frk3,frk;
 
     fnpf_laplace *plap;
     fnpf_fsf *pf;
     fnpf_body *pbody;
-
-    slice4 erk4, frk4;
+    
+    slice4 erk4,frk4;
 };
 
 #endif

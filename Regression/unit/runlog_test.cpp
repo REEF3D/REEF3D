@@ -20,21 +20,20 @@ public:
     double global_xmax = 10.0, global_ymax = 1.0, global_zmax = 1.0;
     runlog *plog = nullptr;
 };
-#include "../../src/runlog.cpp"
+#include"../../src/runlog.cpp"
 
-#include <fstream>
-#include <iostream>
-#include <string>
-#include <sys/stat.h>
-#include <unistd.h>
-#include <vector>
+#include<fstream>
+#include<iostream>
+#include<string>
+#include<sys/stat.h>
+#include<unistd.h>
+#include<vector>
 
 static int nfail = 0;
 static void check(bool ok, const std::string &what)
 {
-    std::cout << (ok ? "  PASS  " : "  FAIL  ") << what << std::endl;
-    if(!ok)
-        ++nfail;
+    std::cout<<(ok ? "  PASS  " : "  FAIL  ")<<what<<std::endl;
+    if(!ok) ++nfail;
 }
 
 static std::vector<std::string> lines(const std::string &file)
@@ -48,18 +47,18 @@ static std::vector<std::string> lines(const std::string &file)
 
 static bool has(const std::string &line, const std::string &part)
 {
-    return line.find(part) != std::string::npos;
+    return line.find(part)!=std::string::npos;
 }
 
 int main()
 {
     mkdir("runlog_test_case", 0777);
-    if(chdir("runlog_test_case") != 0)
+    if(chdir("runlog_test_case")!=0)
         return 1;
     std::remove("REEF3D_Case/REEF3D_CFD_run.jsonl");
     {
         std::ofstream ctrl("ctrl.txt");
-        ctrl << "A 10 6\nP 18 1\n";
+        ctrl<<"A 10 6\nP 18 1\n";
     }
 
     lexer p;
@@ -79,8 +78,8 @@ int main()
     log.end(&p, "finished");
 
     const std::vector<std::string> all = lines(file);
-    check(all.size() == 7, "run, stream, output, output, stream, output, end: " + std::to_string(all.size()) + " lines");
-    if(all.size() == 7)
+    check(all.size()==7, "run, stream, output, output, stream, output, end: " + std::to_string(all.size()) + " lines");
+    if(all.size()==7)
     {
         check(has(all[0], "\"type\":\"run\"") && has(all[0], "\"solver\":\"CFD\"") && has(all[0], "\"ranks\":4"),
               "the run line comes with the first stored output");
@@ -91,13 +90,14 @@ int main()
               "pieces, no first_step for step 0, no file pattern");
         check(has(all[2], "\"step\":0") && has(all[2], "\"time\":0,") && has(all[2], "\"iteration\":0,"),
               "output 0 with its own time and iteration, not the solver's current ones");
-        check(has(all[3], "\"step\":1") && has(all[3], "\"time\":0.25,") && has(all[3], "\"iteration\":40,") && has(all[3], "\"streams\":[\"lagoon_volume\"]"), "output 1");
+        check(has(all[3], "\"step\":1") && has(all[3], "\"time\":0.25,") && has(all[3], "\"iteration\":40,")
+              && has(all[3], "\"streams\":[\"lagoon_volume\"]"), "output 1");
         check(has(all[4], "\"name\":\"lagoon_bed\"") && has(all[4], "\"first_step\":3") && has(all[4], "\"group\":\"bed\""),
               "a second stream, registered once, with its first step");
         check(has(all[5], "\"step\":3") && has(all[5], "\"streams\":[\"lagoon_bed\"]"), "the bed output");
         check(has(all[6], "\"type\":\"end\"") && has(all[6], "\"status\":\"finished\""), "the end line");
     }
 
-    std::cout << (nfail == 0 ? "ALL PASSED" : std::to_string(nfail) + " FAILED") << std::endl;
-    return nfail == 0 ? 0 : 1;
+    std::cout<<(nfail==0 ? "ALL PASSED" : std::to_string(nfail) + " FAILED")<<std::endl;
+    return nfail==0 ? 0 : 1;
 }

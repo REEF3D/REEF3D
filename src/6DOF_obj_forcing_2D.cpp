@@ -20,10 +20,10 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Authors: Tobias Martin, Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "6DOF_obj_2D.h"
-#include "ghostcell.h"
-#include "heaviside.h"
-#include "lexer.h"
+#include"6DOF_obj_2D.h"
+#include"lexer.h"
+#include"ghostcell.h"
+#include"heaviside.h"
 
 void sixdof_obj_2D::updateForcing_box(lexer *p, ghostcell *pgc, slice &press)
 {
@@ -31,86 +31,87 @@ void sixdof_obj_2D::updateForcing_box(lexer *p, ghostcell *pgc, slice &press)
     double H, press0, xpos, ypos, Ls, Bs, as, cl, cb;
 
     press0 = p->X401_p0;
-    as = p->X401_a;
+    as = p->X401_a; 
     cl = p->X401_cl;
     cb = p->X401_cb;
 
+   
     Ls = p->X110_xe[0] - p->X110_xs[0];
     Bs = p->X110_ye[0] - p->X110_ys[0];
 
-    SLICELOOP4
+	SLICELOOP4
     {
         xpos = p->pos_x() - p->xg;
         ypos = p->pos_y() - p->yg;
-        H = Hsolidface_2D(p, 0, 0);
-
-        if(xpos <= Ls / 2.0 && xpos >= -Ls / 2.0 && ypos <= Bs / 2.0 && ypos >= -Bs / 2.0)
+        H = Hsolidface_2D(p,0,0);
+        
+        if (xpos <= Ls/2.0 && xpos >= -Ls/2.0 && ypos <= Bs/2.0 && ypos >= -Bs/2.0)
         {
-            press(i, j) = -H * press0 * (1.0 - cl * pow(xpos / Ls, 4.0)) * (1.0 - cb * pow(ypos / Bs, 2.0)) * exp(-as * pow(ypos / Bs, 2.0)) * ramp_draft(p);
+            press(i,j) = -H*press0*(1.0 - cl*pow(xpos/Ls,4.0))*(1.0 - cb*pow(ypos/Bs,2.0))*exp(-as*pow(ypos/Bs,2.0))*ramp_draft(p);
         }
         else
         {
-            press(i, j) = 0.0;
+            press(i,j) = 0.0;
         }
     }
-
-    pgc->gcsl_start4(p, press, 50);
+    
+    pgc->gcsl_start4(p,press,50);
 }
 
 void sixdof_obj_2D::updateForcing_stl(lexer *p, ghostcell *pgc, slice &press, slice &eta)
 {
     // Calculate pressure field for stl geometry based on draft
-    double H, etaval, fbval;
-    double dfdx, dfdy, dnorm, nx, nz, xc, yc;
+    double H,etaval,fbval;
+    double dfdx,dfdy,dnorm,nx,nz,xc,yc;
 
-    SLICELOOP4
+	SLICELOOP4
     {
-        H = Hsolidface_2D(p, 0, 0);
-
+        H = Hsolidface_2D(p,0,0);
+        
         //
-        etaval = 0.0;
-
-        if(p->X410 == 1 && p->geo_curv == 1)
+        etaval =0.0;
+        
+        if(p->X410==1 && p->geo_curv==1)
         {
-            // curvilinear grid (G 50): the physical gradient of fs and the cell width
-            double gx, gy;
-            p->geo_grad(i, j, fs(i + 1, j), fs(i - 1, j), fs(i, j + 1), fs(i, j - 1), gx, gy);
-            dnorm = sqrt(gx * gx + gy * gy);
-            nx = gx / (dnorm > 1.0e-20 ? dnorm : 1.0e20);
-            ny = gy / (dnorm > 1.0e-20 ? dnorm : 1.0e20);
-            const double w = p->geo_width(i, j);
-            const double xq = p->pos_x() + p->X41 * nx * w;
-            const double yq = p->pos_y() + p->X41 * ny * w;
+        // curvilinear grid (G 50): the physical gradient of fs and the cell width
+        double gx,gy;
+        p->geo_grad(i,j,fs(i+1,j),fs(i-1,j),fs(i,j+1),fs(i,j-1),gx,gy);
+        dnorm = sqrt(gx*gx + gy*gy);
+        nx = gx/(dnorm>1.0e-20?dnorm:1.0e20);
+        ny = gy/(dnorm>1.0e-20?dnorm:1.0e20);
+        const double w = p->geo_width(i,j);
+        const double xq = p->pos_x() + p->X41*nx*w;
+        const double yq = p->pos_y() + p->X41*ny*w;
 
-            fbval = p->ccslipol4(fs, xq, yq);
+        fbval = p->ccslipol4(fs,xq,yq);
 
-            if(fbval > -0.6 * w)
-                etaval = p->ccslipol4(eta, xq, yq);
+        if(fbval>-0.6*w)
+        etaval = p->ccslipol4(eta,xq,yq);
         }
 
-        if(p->X410 == 1 && p->geo_curv == 0)
+        if(p->X410==1 && p->geo_curv==0)
         {
-            dfdx = (fs(i + 1, j) - fs(i - 1, j)) / (p->DXP[IP] + p->DXP[IM1]);
-            dfdy = (fs(i, j + 1) - fs(i, j - 1)) / (p->DYP[JP] + p->DYP[JM1]);
-
-            dnorm = sqrt(dfdx * dfdx + dfdy * dfdy);
-
-            nx = dfdx / (dnorm > 1.0e-20 ? dnorm : 1.0e20);
-            ny = dfdy / (dnorm > 1.0e-20 ? dnorm : 1.0e20);
-
-            xc = p->XP[IP] + p->X41 * nx * p->DXN[IP];
-            yc = p->YP[JP] + p->X41 * ny * p->DYN[JP];
-
-            fbval = p->ccslipol4(fs, xc, yc);
-
-            if(fbval > -0.6 * (1.0 / 2.0) * (p->DXN[IP] + p->DYN[JP]))
-                etaval = p->ccslipol4(eta, xc, yc);
+        dfdx= (fs(i+1,j) - fs(i-1,j))/(p->DXP[IP] + p->DXP[IM1]);
+        dfdy = (fs(i,j+1) - fs(i,j-1))/(p->DYP[JP] + p->DYP[JM1]);
+        
+        dnorm=sqrt(dfdx*dfdx + dfdy*dfdy);
+        
+        nx = dfdx/(dnorm>1.0e-20?dnorm:1.0e20);
+        ny = dfdy/(dnorm>1.0e-20?dnorm:1.0e20);
+        
+        xc = p->XP[IP] + p->X41*nx*p->DXN[IP];
+        yc = p->YP[JP] + p->X41*ny*p->DYN[JP];
+        
+        fbval = p->ccslipol4(fs,xc,yc);
+        
+        if(fbval>-0.6*(1.0/2.0)*(p->DXN[IP] + p->DYN[JP]))
+        etaval = p->ccslipol4(eta,xc,yc);
         }
-
-        press(i, j) = -H * fabs(p->W22) * p->W1 * (draft(i, j) + etaval) * ramp_draft(p);
+        
+        press(i,j) = -H*fabs(p->W22)*p->W1*(draft(i,j)+etaval)*ramp_draft(p);
     }
-
-    pgc->gcsl_start4(p, press, 50);
+    
+    pgc->gcsl_start4(p,press,50);
 }
 
 void sixdof_obj_2D::updateForcing_oned(lexer *p, ghostcell *pgc, slice &press)
@@ -119,34 +120,34 @@ void sixdof_obj_2D::updateForcing_oned(lexer *p, ghostcell *pgc, slice &press)
     double press0, xpos, as;
 
     press0 = p->X401_p0;
-    as = p->X401_a;
+    as = p->X401_a; 
 
-    SLICELOOP4
+	SLICELOOP4
     {
         xpos = p->pos_x() - p->xg;
-
+   
         // same sign convention as the box and STL ship (press <= 0 for X 401 p0 > 0): the
         // velocity source adds +D/rho dpress/dx
-        press(i, j) = -press0 * exp(-pow(xpos / as, 2));
+        press(i,j) = -press0*exp(-pow(xpos/as,2));
     }
 
-    pgc->gcsl_start4(p, press, 50);
+    pgc->gcsl_start4(p,press,50);
 }
 
 double sixdof_obj_2D::Hsolidface_2D(lexer *p, int aa, int bb)
 {
     double psi, H, phival_fb;
 
-    psi = p->X41 * (1.0 / 2.0) * (p->DXN[IP] + p->DYN[JP]);
+    psi = p->X41*(1.0/2.0)*(p->DXN[IP] + p->DYN[JP]); 
 
     // curvilinear grid (G 50): the physical mean width of the cell
-    if(p->geo_curv == 1)
-        psi = p->X41 * p->geo_width(i, j);
+    if(p->geo_curv==1)
+    psi = p->X41*p->geo_width(i,j);
 
     // Construct solid heaviside function
-    phival_fb = 0.5 * (fs(i, j) + fs(i + aa, j + bb));
-
-    H = heaviside(-phival_fb, psi);
-
+    phival_fb = 0.5*(fs(i,j) + fs(i+aa,j+bb));
+    
+    H = heaviside(-phival_fb,psi);
+        
     return H;
 }

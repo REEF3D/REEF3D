@@ -20,15 +20,16 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "coral/core/coral_version.h"
+#include"coral/core/coral_version.h"
 
 #define CORAL_NAME "REEF3D::CORAL"
 #define CORAL_LONG_NAME "Coupled Offshore Rotor Analysis and Loads"
 #define CORAL_VERSION "0.1.0"
 
-namespace coral {
-const char *name() { return CORAL_NAME; }
-const char *long_name() { return CORAL_LONG_NAME; }
-const char *version() { return CORAL_VERSION; }
-const char *banner() { return CORAL_NAME " " CORAL_VERSION " (" CORAL_LONG_NAME ")"; }
-}  // namespace coral
+namespace coral
+{
+    const char *name() {return CORAL_NAME;}
+    const char *long_name() {return CORAL_LONG_NAME;}
+    const char *version() {return CORAL_VERSION;}
+    const char *banner() {return CORAL_NAME " " CORAL_VERSION " (" CORAL_LONG_NAME ")";}
+}

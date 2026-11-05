@@ -23,11 +23,11 @@ Architect: Hans Bihs
 #ifndef SEASTATE_F_H_
 #define SEASTATE_F_H_
 
-#include "increment.h"
-#include "seastate.h"
-#include <fstream>
-#include <string>
-#include <vector>
+#include"seastate.h"
+#include"increment.h"
+#include<fstream>
+#include<string>
+#include<vector>
 
 class fdm_seastate;
 class seastate_vtp;
@@ -180,74 +180,74 @@ them also on the patches of the mesh refinement.
 class seastate_f final : public seastate, public increment
 {
 public:
-    seastate_f(lexer *, ghostcell *);
+    seastate_f(lexer*, ghostcell*);
     virtual ~seastate_f();
 
-    void start(lexer *, ghostcell *) override;
+    void start(lexer*, ghostcell*) override;
 
-    void ini(lexer *, ghostcell *);
-    void step(lexer *, ghostcell *);
+    void ini(lexer*, ghostcell*);
+    void step(lexer*, ghostcell*);
 
-    void ini_coupled(lexer *, ghostcell *);
+    void ini_coupled(lexer*, ghostcell*);
 
     // remote waves (A 750 2): SEASTATE as its own model in the MPI job of the host (seastate_remote)
-    void ini_remote(lexer *, ghostcell *);
+    void ini_remote(lexer*, ghostcell*);
 
     // Phase 18: the checkpoints (P 48, I 45) and the rebalance (G 46) of a stand-alone run (seastate_f_ckpt.cpp)
-    reefrun_ckpt &ckpt(lexer *, ghostcell *);
-    void step_coupled(lexer *, ghostcell *, double dt);
+    reefrun_ckpt& ckpt(lexer*, ghostcell*);
+    void step_coupled(lexer*, ghostcell*, double dt);
 
     fdm_seastate *e;
 
-    const seastate_source *source() const { return psrc; }
-    seastate_vtp *printer() { return pprint; }
+    const seastate_source *source() const {return psrc;}
+    seastate_vtp *printer() {return pprint;}
 
     // surfbeat (A 770 1)
-    bool surfbeat() const { return sb != nullptr; }
-    const seastate_surfbeat *generator() const { return sb; }
-    seastate_roller *roller() { return proll; }
+    bool surfbeat() const {return sb!=nullptr;}
+    const seastate_surfbeat *generator() const {return sb;}
+    seastate_roller *roller() {return proll;}
 
     // wind of every cell (met forcing, A 730 2; nullptr with a uniform wind): speed [m/s], direction the wind
     // blows to [rad]
-    slice4 *wind_speed() const { return wU10; }
-    slice4 *wind_direction() const { return wdir; }
-    bool longwave(lexer *, int j, double t, double &zeta, double &qx, double &qy) const;
+    slice4 *wind_speed() const {return wU10;}
+    slice4 *wind_direction() const {return wdir;}
+    bool longwave(lexer*, int j, double t, double &zeta, double &qx, double &qy) const;
 
 private:
-    void ini_common(lexer *, ghostcell *, bool coupled);
-    void handover(lexer *, ghostcell *);
-    void spcout_ini(lexer *, ghostcell *);
-    void spcout(lexer *, ghostcell *, bool force);
-    void colloc_ini(lexer *, ghostcell *);
-    void colloc(lexer *, ghostcell *, bool fin);
-    void colloc_end(lexer *, ghostcell *);
-    bool colloc_sample(lexer *, int k, double *v);
-    void check_keys(lexer *, ghostcell *);
-    void environment(lexer *, ghostcell *);
-    void storage(lexer *, ghostcell *);
-    void initial(lexer *, ghostcell *);
-    void initial_parametric(lexer *, ghostcell *);
-    void parametric_spectrum(lexer *, ghostcell *, const seastate_grid &, std::vector<float> &, const char *);
-    void auto_sector(lexer *, ghostcell *, const seastate_grid &);
-    void boundary(lexer *, ghostcell *);
-    void boundary_spectrum(lexer *, ghostcell *, const seastate_grid &, std::vector<float> &);
-    void sources(lexer *, ghostcell *);
-    void kinematics(lexer *, ghostcell *, double);
-    void transport(lexer *, ghostcell *);
-    void parameters(lexer *, ghostcell *);
+    void ini_common(lexer*, ghostcell*, bool coupled);
+    void handover(lexer*, ghostcell*);
+    void spcout_ini(lexer*, ghostcell*);
+    void spcout(lexer*, ghostcell*, bool force);
+    void colloc_ini(lexer*, ghostcell*);
+    void colloc(lexer*, ghostcell*, bool fin);
+    void colloc_end(lexer*, ghostcell*);
+    bool colloc_sample(lexer*, int k, double *v);
+    void check_keys(lexer*, ghostcell*);
+    void environment(lexer*, ghostcell*);
+    void storage(lexer*, ghostcell*);
+    void initial(lexer*, ghostcell*);
+    void initial_parametric(lexer*, ghostcell*);
+    void parametric_spectrum(lexer*, ghostcell*, const seastate_grid&, std::vector<float>&, const char*);
+    void auto_sector(lexer*, ghostcell*, const seastate_grid&);
+    void boundary(lexer*, ghostcell*);
+    void boundary_spectrum(lexer*, ghostcell*, const seastate_grid&, std::vector<float>&);
+    void sources(lexer*, ghostcell*);
+    void kinematics(lexer*, ghostcell*, double);
+    void transport(lexer*, ghostcell*);
+    void parameters(lexer*, ghostcell*);
 
-    void forcing_ini(lexer *, ghostcell *);
-    void boundary_series(lexer *, ghostcell *);
-    void forcing_update(lexer *, ghostcell *, double t);
+    void forcing_ini(lexer*, ghostcell*);
+    void boundary_series(lexer*, ghostcell*);
+    void forcing_update(lexer*, ghostcell*, double t);
 
-    void surfbeat_input(lexer *, ghostcell *);
-    void surfbeat_ini(lexer *, ghostcell *);
-    void surfbeat_boundary(lexer *, double);
-    void surfbeat_cap(lexer *);
-    void surfbeat_step(lexer *, ghostcell *);
+    void surfbeat_input(lexer*, ghostcell*);
+    void surfbeat_ini(lexer*, ghostcell*);
+    void surfbeat_boundary(lexer*, double);
+    void surfbeat_cap(lexer*);
+    void surfbeat_step(lexer*, ghostcell*);
 
-    void log_ini(lexer *);
-    void log_step(lexer *);
+    void log_ini(lexer*);
+    void log_step(lexer*);
 
     seastate_vtp *pprint;
     regression_dump *preg;
@@ -256,18 +256,18 @@ private:
     seastate_store *N0;
     seastate_source *psrc;
 
-    std::vector<float> Nb;  // boundary spectrum
-    int side[4];            // sides with the boundary spectrum: x-, x+, y-, y+
+    std::vector<float> Nb;      // boundary spectrum
+    int side[4];                // sides with the boundary spectrum: x-, x+, y-, y+
     int iter_max, iter_done;
-    double dtw;  // wave time step (A 706 stand-alone, the coupling interval in coupled runs)
+    double dtw;                 // wave time step (A 706 stand-alone, the coupling interval in coupled runs)
     bool coupled;
-    bool remote = false;  // A 750 2: coupled, on the own grid (seastate_remote_wave)
-    int g1 = 0;           // mesh refinement of the wave model: G 1, not in-process (A 750 1: the
-                          // refinement is the host's, the waves run on its level 0)
-    bool kba = false;     // Phase 14: the sweeps pipelined across the ranks (A 781 1)
+    bool remote = false;                // A 750 2: coupled, on the own grid (seastate_remote_wave)
+    int g1 = 0;                         // mesh refinement of the wave model: G 1, not in-process (A 750 1: the
+                                        // refinement is the host's, the waves run on its level 0)
+    bool kba = false;                   // Phase 14: the sweeps pipelined across the ranks (A 781 1)
     double conv;
     std::vector<double> hs_old;
-    std::ofstream convlog;  // stationary convergence history (rank 0)
+    std::ofstream convlog;              // stationary convergence history (rank 0)
 
     ofstream integral;
     double etot, hsmax, hsmean, nmin, cells_active;
@@ -275,38 +275,34 @@ private:
 
     // surfbeat
     seastate_surfbeat *sb;
-    seastate_grid *gin;  // multi-frequency grid of the boundary spectrum
+    seastate_grid *gin;         // multi-frequency grid of the boundary spectrum
     seastate_roller *proll;
-    std::vector<float> Nin;   // boundary spectrum on gin
-    std::vector<float> Nbx;   // x- boundary rows (local j), ndir each
-    std::vector<float> Nbx0;  // the rows of the previous time level
-    double tnew;              // time of the new time level
-    double trep;              // representative period [s]
+    std::vector<float> Nin;     // boundary spectrum on gin
+    std::vector<float> Nbx;     // x- boundary rows (local j), ndir each
+    std::vector<float> Nbx0;    // the rows of the previous time level
+    double tnew;                // time of the new time level
+    double trep;                // representative period [s]
 
     // external forcing (A 711 3, A 730 2)
     seastate_spc_series *bser;
-    met_provider *wmet;  // the wind of the met forcing W 200 (A 730 2), the provider of the rank (not owned)
-    double tref;         // file time [s since 1970] of model time 0
+    met_provider *wmet;                     // the wind of the met forcing W 200 (A 730 2), the provider of the rank (not owned)
+    double tref;                            // file time [s since 1970] of model time 0
 
     // nesting output (A 785 1)
-    std::vector<double> spc_x, spc_y;  // output points [m], model coordinates
-    double spc_tnext = 0.0;            // model time of the next record
+    std::vector<double> spc_x, spc_y;       // output points [m], model coordinates
+    double spc_tnext = 0.0;                 // model time of the next record
 
     // online collocation (A 787 1, seastate_f_collocation.cpp)
     seastate_collocation *pcol = nullptr;
-    std::vector<int> col_ci, col_cj;     // the cell of every observation on this rank, -1: another rank or outside
-    std::vector<double> col_ts, col_s;   // the sample at the end of the step before the observation: time, Hs Tm01 Tp dir
-    std::vector<char> col_sw, col_done;  // the sample wet; the observation finished
-    size_t col_next = 0;                 // the first observation not finished
-    double col_tlog = 0.0;               // model time of the next summary in the log
-    std::vector<float> Nside[4];         // boundary spectra per side and boundary cell
-    struct bweight
-    {
-        int a, b;
-        float wa, wb;
-    };
+    std::vector<int> col_ci, col_cj;        // the cell of every observation on this rank, -1: another rank or outside
+    std::vector<double> col_ts, col_s;      // the sample at the end of the step before the observation: time, Hs Tm01 Tp dir
+    std::vector<char> col_sw, col_done;     // the sample wet; the observation finished
+    size_t col_next = 0;                    // the first observation not finished
+    double col_tlog = 0.0;                  // model time of the next summary in the log
+    std::vector<float> Nside[4];            // boundary spectra per side and boundary cell
+    struct bweight {int a, b; float wa, wb;};
     std::vector<bweight> bw[4];
-    slice4 *wU10, *wdir, *wUx, *wUy;  // wind of every cell: speed, direction [rad], components
+    slice4 *wU10, *wdir, *wUx, *wUy;        // wind of every cell: speed, direction [rad], components
 
     // mesh refinement (G 1), bathymetry raster (A 790 1)
     seastate_amr *pamr;
@@ -314,14 +310,14 @@ private:
 
     // Phase 12: FAS on a uniform grid (A 758 without G 1): a V-cycle over coarse grids of 2 x 2 cells
     seastate_fas2 *pfas = nullptr;
-    void transport_amr(lexer *, ghostcell *);
+    void transport_amr(lexer*, ghostcell*);
 
     // Phase 6: diffraction (A 718), obstacles (A 722)
-    void diffraction(lexer *, ghostcell *);
-    void obstacles(lexer *, ghostcell *);
-    seastate_store *dca = nullptr, *dcax = nullptr, *dcay = nullptr;  // Ca and its gradient per frequency
+    void diffraction(lexer*, ghostcell*);
+    void obstacles(lexer*, ghostcell*);
+    seastate_store *dca = nullptr, *dcax = nullptr, *dcay = nullptr;   // Ca and its gradient per frequency
     slice4 *dfS = nullptr, *dfT = nullptr, *dfK = nullptr, *dfC = nullptr;
-    int dfsmooth = -1;  // smoothing steps of the diffraction parameter (A 719)
+    int dfsmooth = -1;                      // smoothing steps of the diffraction parameter (A 719)
     seastate_obstacle *pobs = nullptr;
 
     // Phase 6b: diffraction with mesh refinement (smoothed energy of level 0 for the patches, the mean
@@ -330,23 +326,23 @@ private:
     double dfL = 0.0, dfdmin = 0.0;
     slice4 *vegN = nullptr;
     seastate_bathy *vegr = nullptr;
-    void vegetation_ini(lexer *, ghostcell *);
+    void vegetation_ini(lexer*, ghostcell*);
 
     // Phase 18: checkpoints and the rebalance (seastate_f_ckpt.cpp)
     reefrun_ckpt *rck = nullptr;
-    bool restart = false;       // I 45 1: from a checkpoint
-    int ss_resume = 0;          // stationary: the iterations done in the step of the checkpoint (continued)
-    std::vector<double> dprev;  // stationary: the last change of Hs of every leaf cell (A 799 1)
-    std::string ckpt_unsupported(lexer *) const;
-    void ckpt_write(lexer *, reefckpt &);
-    bool ckpt_read(lexer *, ghostcell *, reefckpt &, std::string &);
-    void ckpt_iteration(lexer *, int k);   // stationary, after iteration k of the step that did not stop: P 48 and G 46
-    void ckpt_step(lexer *, ghostcell *);  // after the outputs of a step: P 48 and G 46 (nonstationary), G 45
+    bool restart = false;                   // I 45 1: from a checkpoint
+    int ss_resume = 0;                      // stationary: the iterations done in the step of the checkpoint (continued)
+    std::vector<double> dprev;              // stationary: the last change of Hs of every leaf cell (A 799 1)
+    std::string ckpt_unsupported(lexer*) const;
+    void ckpt_write(lexer*, reefckpt&);
+    bool ckpt_read(lexer*, ghostcell*, reefckpt&, std::string&);
+    void ckpt_iteration(lexer*, int k);     // stationary, after iteration k of the step that did not stop: P 48 and G 46
+    void ckpt_step(lexer*, ghostcell*);     // after the outputs of a step: P 48 and G 46 (nonstationary), G 45
     // the measured work of the cells [s] (G 45, G 46): level 0 (the patches: seastate_amr), per level-0 column of the rank
     // the work of the last closed window and of the run, and the iterations in them
     slice4 *wk0 = nullptr;
     std::vector<double> wwin, wrun;
-    std::vector<double> lmap0;  // rank 0: the last load map written, all level-0 columns (I*GNY+J)
+    std::vector<double> lmap0;              // rank 0: the last load map written, all level-0 columns (I*GNY+J)
     // whether a rebalance pays: the set-up time of the run, the work of the heaviest rank and of the mean rank in the
     // last window [s], the bytes of the state in a checkpoint, the iteration of the step (stationary)
     double t_ini = 0.0, busy_max = 0.0, busy_mean = 0.0, state_bytes = 0.0;
@@ -355,13 +351,13 @@ private:
     // Phase 19: the time of the iterations (transport) and their number, the report of the pipelined sweeps
     double t_trans = 0.0;
     long n_trans = 0;
-    void pipeline_report(lexer *, ghostcell *);
-    std::vector<double> hconv, hperc;  // stationary: the largest change of Hs and the percentage within A 708 per iteration
+    void pipeline_report(lexer*, ghostcell*);
+    std::vector<double> hconv, hperc;       // stationary: the largest change of Hs and the percentage within A 708 per iteration
     double nwin = 0.0, nrun = 0.0;
-    int wit = 0;  // iterations of the open window
-    void work_columns(lexer *, std::vector<double> &, bool reset);
-    double work_imbalance(lexer *, ghostcell *);
-    void loadmap_write(lexer *, const std::vector<double> &, double iterations, const char *what);
+    int wit = 0;                            // iterations of the open window
+    void work_columns(lexer*, std::vector<double>&, bool reset);
+    double work_imbalance(lexer*, ghostcell*);
+    void loadmap_write(lexer*, const std::vector<double>&, double iterations, const char *what);
 };
 
 #endif

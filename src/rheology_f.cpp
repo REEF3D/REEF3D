@@ -20,18 +20,18 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Authors: Hans Bihs, Alexander Hanke
 --------------------------------------------------------------------*/
 
-#include "rheology_f.h"
-#include "fdm.h"
-#include "ghostcell.h"
-#include "heaviside.h"
-#include "lexer.h"
-#include <cmath>
+#include"rheology_f.h"
+#include"lexer.h"
+#include"fdm.h"
+#include"ghostcell.h"
+#include<cmath>
+#include"heaviside.h"
 
-rheology_f::rheology_f(lexer *p) : strain(p), tau_x(p), tau_y(p), tau_z(p), gravity(sqrt(p->W20 * p->W20 + p->W21 * p->W21 + p->W22 * p->W22)), density_interstitial_fluid(1000.0)
+rheology_f::rheology_f(lexer *p) : strain(p), tau_x(p), tau_y(p), tau_z(p), gravity(sqrt(p->W20*p->W20+p->W21*p->W21+p->W22*p->W22)), density_interstitial_fluid(1000.0)
 {
-    tanphi = 0.0;
-    if(p->W101 > 0)
-        tanphi = tan(fabs(p->W102_phi) * (M_PI / 180.0));
+    tanphi=0.0;
+    if(p->W101>0)
+    tanphi=tan(fabs(p->W102_phi)*(M_PI/180.0));
 }
 
 double rheology_f::viscosity(lexer *p, fdm *a, ghostcell *pgc, field &u, field &v, field &w)
@@ -39,15 +39,15 @@ double rheology_f::viscosity(lexer *p, fdm *a, ghostcell *pgc, field &u, field &
     switch(p->W90)
     {
     case 1:
-        val = Herschel_Bulkley(p, a, pgc, u, v, w);
+        val = Herschel_Bulkley(p,a,pgc,u,v,w);
         break;
-
+        
     case 2:
-        val = Mohr_Coulomb_and_Herschel_Bulkley(p, a, pgc);
+        val = Mohr_Coulomb_and_Herschel_Bulkley(p,a,pgc);
         break;
-
+        
     default:
-        val = 0.0;
+        val=0.0;
         break;
     }
 
@@ -57,8 +57,8 @@ double rheology_f::viscosity(lexer *p, fdm *a, ghostcell *pgc, field &u, field &
 double rheology_f::heaviside(double phival)
 {
     double H;
-
-    H = ::heaviside(phival, epsi);
+    
+    H = ::heaviside(phival,epsi);
 
     return H;
 }

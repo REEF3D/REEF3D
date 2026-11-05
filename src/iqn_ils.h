@@ -42,38 +42,35 @@ Author: Hans Bihs
 // product per iteration, one rank-m update per sequence). Pure numerics, no MPI: every rank calling with identical
 // data gets identical results.
 
-#include <Eigen/Dense>
-#include <deque>
-#include <vector>
+#include<Eigen/Dense>
+#include<vector>
+#include<deque>
 
 class iqn_ils
 {
 public:
-    iqn_ils(int slots = 4, double omega = 0.5, int reuse = 8, int maxcols = 100, double eps = 1.0e-2, bool imvj = false);
+    iqn_ils(int slots=4, double omega=0.5, int reuse=8, int maxcols=100, double eps=1.0e-2, bool imvj=false);
 
-    void begin(int slot);                                                       // start a new fixed-point sequence
+    void begin(int slot);                                                   // start a new fixed-point sequence
     Eigen::VectorXd next(const Eigen::VectorXd &x, const Eigen::VectorXd &xt);  // input x, output H(x): next input
-    void end();                                                                 // sequence finished: keep its columns
-    void restart();                                                             // drop the columns of earlier sequences
+    void end();                                                             // sequence finished: keep its columns
+    void restart();                                                         // drop the columns of earlier sequences
 
-    int columns() const { return ncols_; }  // columns used in the last update
+    int columns() const {return ncols_;}                                    // columns used in the last update
 
 private:
-    struct block
-    {
-        Eigen::MatrixXd V, W;
-    };
+    struct block { Eigen::MatrixXd V, W; };
 
-    Eigen::VectorXd next_imvj(const Eigen::VectorXd &, const Eigen::VectorXd &);
+    Eigen::VectorXd next_imvj(const Eigen::VectorXd&, const Eigen::VectorXd&);
     void end_imvj();
-    int qr(const std::vector<Eigen::VectorXd> &, int, Eigen::MatrixXd &, Eigen::MatrixXd &, std::vector<int> &) const;
+    int qr(const std::vector<Eigen::VectorXd>&, int, Eigen::MatrixXd&, Eigen::MatrixXd&, std::vector<int>&) const;
 
     bool imvj_;
-    std::vector<Eigen::MatrixXd> M_;  // IMVJ: inverse Jacobian per slot
+    std::vector<Eigen::MatrixXd> M_;            // IMVJ: inverse Jacobian per slot
     std::vector<char> mset_;
-    std::vector<Eigen::VectorXd> mr_;  // IMVJ: M_prev r^j of the current sequence
+    std::vector<Eigen::VectorXd> mr_;           // IMVJ: M_prev r^j of the current sequence
 
-    std::vector<std::deque<block>> hist_;
+    std::vector<std::deque<block> > hist_;
     std::vector<Eigen::VectorXd> xt_, r_;
     int slot_;
     double omega_, eps_;

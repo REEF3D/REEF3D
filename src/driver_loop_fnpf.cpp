@@ -20,232 +20,204 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "6DOF_header.h"
-#include "benchmark_header.h"
-#include "concentration_header.h"
-#include "convection_header.h"
-#include "coral/reef3d/coral_reef3d.h"
-#include "driver.h"
-#include "fdm_fnpf.h"
-#include "fdm_header.h"
-#include "field_header.h"
-#include "fnpf_amr.h"
-#include "fnpf_couple_send.h"
-#include "fnpf_ice.h"
-#include "fnpf_prof.h"
-#include "freesurface_header.h"
-#include "ghostcell.h"
-#include "heat_header.h"
-#include "lagoon_output.h"
-#include "lexer.h"
-#include "momentum_header.h"
-#include "pressure_header.h"
-#include "reefcouple.h"
-#include "reefrun_ckpt.h"
-#include "regression_dump.h"
-#include "runlog.h"
-#include "sediment_header.h"
-#include "solver_header.h"
-#include "turbulence_header.h"
-#include "waves_header.h"
+#include"driver.h"
+#include"ghostcell.h"
+#include"freesurface_header.h"
+#include"turbulence_header.h"
+#include"momentum_header.h"
+#include"pressure_header.h"
+#include"fdm_header.h"
+#include"sediment_header.h"
+#include"heat_header.h"
+#include"concentration_header.h"
+#include"benchmark_header.h"
+#include"convection_header.h"
+#include"solver_header.h"
+#include"field_header.h"
+#include"6DOF_header.h"
+#include"waves_header.h"
+#include"lexer.h"
+#include"fdm_fnpf.h"
+#include"fnpf_ice.h"
+#include"fnpf_amr.h"
+#include"regression_dump.h"
+#include"coral/reef3d/coral_reef3d.h"
+#include"runlog.h"
+#include"lagoon_output.h"
+#include"reefrun_ckpt.h"
+#include"reefcouple.h"
+#include"fnpf_couple_send.h"
+#include"fnpf_prof.h"
 
 void driver::loop_fnpf()
 {
     // runtime coupling: receivers (B 92 62) in the same MPI job get the initial state now
     if(reefcouple::source())
-        reefcouple::sender = new fnpf_couple_send(p, c, pgc);
-
-    if(p->mpirank == 0)
-        cout << "starting mainloop.FNPF" << endl;
-
-    //-----------MAINLOOP FNPF----------------------------
-
-    while(p->count < p->N45 && p->simtime < p->N41 && p->sedtime < p->S19)
-    {
+    reefcouple::sender = new fnpf_couple_send(p,c,pgc);
+    
+    if(p->mpirank==0)
+    cout<<"starting mainloop.FNPF"<<endl;
+   
+//-----------MAINLOOP FNPF----------------------------
+    
+	while(p->count<p->N45 && p->simtime<p->N41  && p->sedtime<p->S19)
+	{
         ++p->count;
-        starttime = pgc->timer();
+        starttime=pgc->timer();
 
-        if(p->mpirank == 0 && (p->count % p->P12 == 0))
+        if(p->mpirank==0 && (p->count%p->P12==0))
         {
-            cout << "------------------------------------" << endl;
-            cout << p->count << endl;
-
-            cout << "simtime: " << setprecision(6) << p->simtime << endl;
-            cout << "timestep: " << setprecision(4) << p->dt << endl;
-
-            if(p->B90 > 0 && p->B92 <= 11)
-                cout << "t/T: " << p->simtime / p->wT << endl;
-
-            if(p->B90 > 0 && p->B92 > 11)
-                cout << "t/T: " << p->simtime / p->wTp << endl;
+        cout<<"------------------------------------"<<endl;
+        cout<<p->count<<endl;
+        
+        cout<<"simtime: "<<setprecision(6)<<p->simtime<<endl;
+        cout<<"timestep: "<<setprecision(4)<<p->dt<<endl;
+        
+		if(p->B90>0 && p->B92<=11)
+		cout<<"t/T: "<<p->simtime/p->wT<<endl;
+        
+        if(p->B90>0 && p->B92>11)
+		cout<<"t/T: "<<p->simtime/p->wTp<<endl;
         }
-
+        
         // runtime coupling: the feedback of the receivers (I 243 bodies, I 244 overlap box) for this step
-        if(reefcouple::sender != nullptr)
-            reefcouple::sender->pre_step(p, c, pgc);
-
-        {
-            fnpf_prof::scope ps_(fnpf_prof::wavegen);
-            pflow->wavegen_precalc_fnpf(p, c, pgc);
-        }
-
+        if(reefcouple::sender!=nullptr)
+        reefcouple::sender->pre_step(p,c,pgc);
+        
+        {fnpf_prof::scope ps_(fnpf_prof::wavegen); pflow->wavegen_precalc_fnpf(p,c,pgc);}
+        
+        
         SLICELOOP4
-        c->breaklog(i, j) = 0;
+        c->breaklog(i,j)=0;
 
-        cout << "simtime: " << setprecision(6) << p->simtime << endl;
-        cout << "timestep: " << setprecision(4) << p->dt << endl;
 
-        if(p->B90 > 0 && p->B92 <= 11)
-            cout << "t/T: " << p->simtime / p->wT << endl;
-
-        if(p->B90 > 0 && p->B92 > 11)
-            cout << "t/T: " << p->simtime / p->wTp << endl;
-    }
-
-    pflow->wavegen_precalc_fnpf(p, c, pgc);
-
-    SLICELOOP4
-    c->breaklog(i, j) = 0;
-
-    // ice floes: footprints and lid parameters at t^n
-    if(pfice != nullptr)
-        pfice->prestep(p, c, pgc);
-
-    // FNPF
-    {
-        fnpf_prof::scope ps_(fnpf_prof::rk_total);
-        ppfsg->start(p, c, pgc, plapsolv, pfsfdisc, pflow, preini);
-    }
-
-    // ice floes: forces at t^n+1, 6DOF + contact, output
-    if(pfice != nullptr)
-        pfice->poststep(p, c, pgc);
-
-    // printer
-    {
-        fnpf_prof::scope ps_(fnpf_prof::print);
-        pprint->start(p, c, pgc, pflow);
-        lagoon_output::poll_all(p, pgc);  // outputs of the LAGOON store written by now (P 18)
-    }
-
-    if(pfamr != nullptr)
-        pfamr->print(p, c, pgc);
-
-    // REEF3D::CORAL (Z 40): structural model from simtime to simtime + dt
-    if(pcoral != nullptr)
-        pcoral->step(p, pgc);
-
-    // timestep control
-    p->simtime += p->dt;
-
-    // runtime coupling: the state at the new time to the receivers
-    if(reefcouple::sender != nullptr)
-        reefcouple::sender->send(p, c, pgc);
-
-    {
-        fnpf_prof::scope ps_(fnpf_prof::timestep);
-        pftstep->start(c, p, pgc);
-    }
-
-    if(pfamr != nullptr)
-        pfamr->timestep(p, c, pgc);
-
-    preg->fnpf_step(p, c, pgc);
-
-    if(pfice != nullptr)
-        pfice->timestep(p, c, pgc);
-
-    // checkpoint on any decomposition (P 48), rebalance on the measured load (G 46)
-    ckpt().step();
-
-    // Shell-Printout
-
-    endtime = pgc->timer();
-
-    p->itertime = endtime - starttime;
-    fnpf_prof::step_end(p->itertime);  // this rank, before the max over the ranks
-
-    p->itertime = pgc->globalmax(p->itertime);
-    p->gctime = pgc->globalmax(p->gctime);
-    p->xtime = pgc->globalmax(p->xtime);
-
-    p->totaltime += p->itertime;
-    p->gctotaltime += p->gctime;
-    p->Xtotaltime += p->xtime;
-    p->meantime = (p->totaltime / double(p->count));
-    p->gcmeantime = (p->gctotaltime / double(p->count));
-    p->Xmeantime = (p->Xtotaltime / double(p->count));
-
-    if(p->mpirank == 0)
-    {
-        if(p->count % p->P12 == 0)
+        // ice floes: footprints and lid parameters at t^n
+        if(pfice!=nullptr)
+        pfice->prestep(p,c,pgc);
+        
+        // FNPF
+		{fnpf_prof::scope ps_(fnpf_prof::rk_total); ppfsg->start(p,c,pgc,plapsolv,pfsfdisc,pflow,preini);}
+        
+        // ice floes: forces at t^n+1, 6DOF + contact, output
+        if(pfice!=nullptr)
+        pfice->poststep(p,c,pgc);
+        
+        // printer
         {
-            if(p->B90 > 0)
-                cout << "wavegentime: " << setprecision(3) << p->wavecalctime << endl;
-
-            cout << "laplacetime: " << setprecision(3) << p->laplacetime << "   laplace cost: " << 100.0 * p->laplacetime / p->itertime << " %" << endl;
-            cout << "gctime: " << setprecision(3) << p->gctime << "\t average gctime: " << setprecision(3) << p->gcmeantime << endl;
-            cout << "Xtime: " << setprecision(3) << p->xtime << "\t average Xtime: " << setprecision(3) << p->Xmeantime << endl;
-            cout << "total time: " << setprecision(6) << p->totaltime << "   average time: " << setprecision(3) << p->meantime << endl;
-            cout << "timer per step: " << setprecision(3) << p->itertime << endl;
+        fnpf_prof::scope ps_(fnpf_prof::print);
+        pprint->start(p,c,pgc,pflow);
+        lagoon_output::poll_all(p,pgc);  // outputs of the LAGOON store written by now (P 18)
         }
-    }
-}
-p->gctime = 0.0;
-p->xtime = 0.0;
-p->reinitime = 0.0;
-p->wavecalctime = 0.0;
-p->laplacetime = 0.0;
+        
+        if(pfamr!=nullptr)
+        pfamr->print(p,c,pgc);
+        
+        // REEF3D::CORAL (Z 40): structural model from simtime to simtime + dt
+        if(pcoral!=nullptr)
+        pcoral->step(p,pgc);
 
-// step profile every 100 steps (collective: every rank has the same count)
-if(p->count % 100 == 0)
-    fnpf_prof::report(p, pgc, false);
+        //timestep control
+        p->simtime+=p->dt;
+        
+        // runtime coupling: the state at the new time to the receivers
+        if(reefcouple::sender!=nullptr)
+        reefcouple::sender->send(p,c,pgc);
+        
+        {fnpf_prof::scope ps_(fnpf_prof::timestep); pftstep->start(c,p,pgc);}
+        
+        if(pfamr!=nullptr)
+        pfamr->timestep(p,c,pgc);
 
-stop(p, a, pgc);
+        preg->fnpf_step(p,c,pgc);
+        
+        if(pfice!=nullptr)
+        pfice->timestep(p,c,pgc);
 
-// runtime coupling: all receivers have ended
-if(reefcouple::sender != nullptr && reefcouple::sender->done())
+        // checkpoint on any decomposition (P 48), rebalance on the measured load (G 46)
+        ckpt().step();
+        
+
+        // Shell-Printout
+        
+        endtime=pgc->timer();
+        
+		p->itertime=endtime-starttime;
+        fnpf_prof::step_end(p->itertime);   // this rank, before the max over the ranks
+        
+        p->itertime = pgc->globalmax(p->itertime);
+        p->gctime = pgc->globalmax(p->gctime);
+        p->xtime = pgc->globalmax(p->xtime);
+        
+		p->totaltime+=p->itertime;
+		p->gctotaltime+=p->gctime;
+		p->Xtotaltime+=p->xtime;
+		p->meantime=(p->totaltime/double(p->count));
+		p->gcmeantime=(p->gctotaltime/double(p->count));
+		p->Xmeantime=(p->Xtotaltime/double(p->count));
+		
+        if(p->mpirank==0)
+        {
+        if(p->count%p->P12==0)
+        {
+        if(p->B90>0)
+		cout<<"wavegentime: "<<setprecision(3)<<p->wavecalctime<<endl;
+		
+		cout<<"laplacetime: "<<setprecision(3)<<p->laplacetime<<"   laplace cost: "<<100.0*p->laplacetime/p->itertime<<" %"<<endl;
+        cout<<"gctime: "<<setprecision(3)<<p->gctime<<"\t average gctime: "<<setprecision(3)<<p->gcmeantime<<endl;
+        cout<<"Xtime: "<<setprecision(3)<<p->xtime<<"\t average Xtime: "<<setprecision(3)<<p->Xmeantime<<endl;		
+		cout<<"total time: "<<setprecision(6)<<p->totaltime<<"   average time: "<<setprecision(3)<<p->meantime<<endl;
+        cout<<"timer per step: "<<setprecision(3)<<p->itertime<<endl;
+        }
+    
+        }
+    p->gctime=0.0;
+    p->xtime=0.0;
+	p->reinitime=0.0;
+	p->wavecalctime=0.0;
+    p->laplacetime=0.0;
+    
+    // step profile every 100 steps (collective: every rank has the same count)
+    if(p->count%100==0)
+    fnpf_prof::report(p,pgc,false);
+    
+    stop(p,a,pgc);
+    
+    // runtime coupling: all receivers have ended
+    if(reefcouple::sender!=nullptr && reefcouple::sender->done())
     break;
-}
+	}
 
-// the state at the end of the run (N 45, N 41), unless the last step wrote it: before the checkpoint,
-// which keeps the output counters
-pprint->print_end(p, c, pgc);
+	// the state at the end of the run (N 45, N 41), unless the last step wrote it: before the checkpoint,
+	// which keeps the output counters
+	pprint->print_end(p,c,pgc);
 
-// step profile of the whole run
-fnpf_prof::report(p, pgc, true);
+	// step profile of the whole run
+	fnpf_prof::report(p,pgc,true);
+	
+	// a checkpoint at the end of the run (P 48): it can be continued with a later end (I 45 1)
+	ckpt().finish();
 
-// a checkpoint at the end of the run (P 48): it can be continued with a later end (I 45 1)
-ckpt().finish();
+	// the last outputs of the LAGOON store are counted (P 18)
+	lagoon_output::finish_all(p,pgc);
 
-// the last outputs of the LAGOON store are counted (P 18)
-lagoon_output::finish_all(p, pgc);
+	if(p->mpirank==0)
+	{
+	cout<<endl<<"******************************"<<endl<<endl;
 
-if(p->mpirank == 0)
-{
-    cout << endl
-         << "******************************" << endl
-         << endl;
+	if(p->plog)
+	p->plog->end(p,"finished");
 
-    if(p->mpirank == 0)
-    {
-        cout << endl
-             << "******************************" << endl
-             << endl;
+	cout<<"modelled time: "<<p->simtime<<endl;
+    cout<<"total time: "<<setprecision(6)<<p->totaltime<<"   average time: "<<setprecision(3)<<p->meantime<<endl;
+	cout << endl;
 
-        if(p->plog)
-            p->plog->end(p, "finished");
+    mainlogout.close();
+    maxlogout.close();
+    solvlogout.close();
+	}
 
-        cout << "modelled time: " << p->simtime << endl;
-        cout << "total time: " << setprecision(6) << p->totaltime << "   average time: " << setprecision(3) << p->meantime << endl;
-        cout << endl;
-
-        mainlogout.close();
-        maxlogout.close();
-        solvlogout.close();
-    }
-
-    preg->fnpf_final(p, c, pgc);
+    preg->fnpf_final(p,c,pgc);
 
     pgc->final();
+    
 }

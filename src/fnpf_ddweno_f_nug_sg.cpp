@@ -20,34 +20,34 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "field.h"
 #include "fnpf_ddweno_f_nug.h"
 #include "lexer.h"
+#include "field.h"
 #include "slice.h"
 
-fnpf_ddweno_f_nug::fnpf_ddweno_f_nug(lexer *pp) : weno_nug_func(pp)
+fnpf_ddweno_f_nug::fnpf_ddweno_f_nug(lexer* pp) : weno_nug_func(pp)
 {
-    p = pp;
+    p=pp;
 
     // only the uniform-flux coefficient set is used
     uf = vf = wf = 0;
 
     // nonlinear weights for the free-surface gradients (A318: 0 WENO-JS, 1 WENO-Z, 2 TENO5)
-    set_weno_weights(p->A318, p->A319);
+    set_weno_weights(p->A318,p->A319);
 }
 
 fnpf_ddweno_f_nug::~fnpf_ddweno_f_nug()
 {
 }
 
-double fnpf_ddweno_f_nug::dswenox(slice &f, double uw)
+double fnpf_ddweno_f_nug::dswenox(slice& f, double uw)
 {
-    if(uw > 0.0)
+    if(uw>0.0)
     {
         isqmin(f);
         return weno_min_x();
     }
-    else if(uw < 0.0)
+    else if(uw<0.0)
     {
         isqmax(f);
         return weno_max_x();
@@ -56,14 +56,14 @@ double fnpf_ddweno_f_nug::dswenox(slice &f, double uw)
         return 0.0;
 }
 
-double fnpf_ddweno_f_nug::dswenoy(slice &f, double uw)
+double fnpf_ddweno_f_nug::dswenoy(slice& f, double uw)
 {
-    if(uw > 0.0)
+    if(uw>0.0)
     {
         jsqmin(f);
         return weno_min_y();
     }
-    else if(uw < 0.0)
+    else if(uw<0.0)
     {
         jsqmax(f);
         return weno_max_y();
@@ -72,110 +72,110 @@ double fnpf_ddweno_f_nug::dswenoy(slice &f, double uw)
         return 0.0;
 }
 
-void fnpf_ddweno_f_nug::isqmin(slice &f)
+void fnpf_ddweno_f_nug::isqmin(slice& f)
 {
-    q1 = q2 = q3 = q4 = q5 = 0.0;
+    q1=q2=q3=q4=q5=0.0;
 
-    if(p->wet[Im2J] > 0 && p->wet[Im3J] > 0)
-        if(p->wet[Im1J] > 0 && p->wet[Im2J] > 0)
-            if(p->wet[Im1J] > 0 && p->wet[IJ] > 0)
-                if(p->wet[Ip1J] > 0 && p->wet[IJ] > 0)
-                    if(p->wet[Ip2J] > 0 && p->wet[Ip1J] > 0)
-                    {
-                        if(p->wet[Im2J] > 0 && p->wet[Im3J] > 0)
-                            q1 = (f(i - 2, j) - f(i - 3, j)) / p->DXP[IM3];
+    if(p->wet[Im2J]>0 && p->wet[Im3J]>0)
+    if(p->wet[Im1J]>0 && p->wet[Im2J]>0)
+    if(p->wet[Im1J]>0 && p->wet[IJ]>0)
+    if(p->wet[Ip1J]>0 && p->wet[IJ]>0)
+    if(p->wet[Ip2J]>0 && p->wet[Ip1J]>0)
+    {
+        if(p->wet[Im2J]>0 && p->wet[Im3J]>0)
+        q1 = (f(i-2,j)-f(i-3,j))/p->DXP[IM3];
 
-                        if(p->wet[Im1J] > 0 && p->wet[Im2J] > 0)
-                            q2 = (f(i - 1, j) - f(i - 2, j)) / p->DXP[IM2];
+        if(p->wet[Im1J]>0 && p->wet[Im2J]>0)
+        q2 = (f(i-1,j)-f(i-2,j))/p->DXP[IM2];
 
-                        if(p->wet[Im1J] > 0 && p->wet[IJ] > 0)
-                            q3 = (f(i, j) - f(i - 1, j)) / p->DXP[IM1];
+        if(p->wet[Im1J]>0 && p->wet[IJ]>0)
+        q3 = (f(i,j)-f(i-1,j))/p->DXP[IM1];
 
-                        if(p->wet[Ip1J] > 0 && p->wet[IJ] > 0)
-                            q4 = (f(i + 1, j) - f(i, j)) / p->DXP[IP];
+        if(p->wet[Ip1J]>0 && p->wet[IJ]>0)
+        q4 = (f(i+1,j)-f(i,j))/p->DXP[IP];
 
-                        if(p->wet[Ip2J] > 0 && p->wet[Ip1J] > 0)
-                            q5 = (f(i + 2, j) - f(i + 1, j)) / p->DXP[IP1];
-                    }
+        if(p->wet[Ip2J]>0 && p->wet[Ip1J]>0)
+        q5 = (f(i+2,j)-f(i+1,j))/p->DXP[IP1];
+    }
 }
 
-void fnpf_ddweno_f_nug::jsqmin(slice &f)
+void fnpf_ddweno_f_nug::jsqmin(slice& f)
 {
-    q1 = q2 = q3 = q4 = q5 = 0.0;
+    q1=q2=q3=q4=q5=0.0;
 
-    if(p->wet[IJm2] > 0 && p->wet[IJm3] > 0)
-        if(p->wet[IJm1] > 0 && p->wet[IJm2] > 0)
-            if(p->wet[IJ] > 0 && p->wet[IJm1] > 0)
-                if(p->wet[IJp1] > 0 && p->wet[IJ] > 0)
-                    if(p->wet[IJp2] > 0 && p->wet[IJp1] > 0)
-                    {
-                        if(p->wet[IJm2] > 0 && p->wet[IJm3] > 0)
-                            q1 = (f(i, j - 2) - f(i, j - 3)) / p->DYP[JM3];
+    if(p->wet[IJm2]>0 && p->wet[IJm3]>0)
+    if(p->wet[IJm1]>0 && p->wet[IJm2]>0)
+    if(p->wet[IJ]>0 && p->wet[IJm1]>0)
+    if(p->wet[IJp1]>0 && p->wet[IJ]>0)
+    if(p->wet[IJp2]>0 && p->wet[IJp1]>0)
+    {
+        if(p->wet[IJm2]>0 && p->wet[IJm3]>0)
+        q1 = (f(i,j-2)-f(i,j-3))/p->DYP[JM3];
 
-                        if(p->wet[IJm1] > 0 && p->wet[IJm2] > 0)
-                            q2 = (f(i, j - 1) - f(i, j - 2)) / p->DYP[JM2];
+        if(p->wet[IJm1]>0 && p->wet[IJm2]>0)
+        q2 = (f(i,j-1)-f(i,j-2))/p->DYP[JM2];
 
-                        if(p->wet[IJ] > 0 && p->wet[IJm1] > 0)
-                            q3 = (f(i, j) - f(i, j - 1)) / p->DYP[JM1];
+        if(p->wet[IJ]>0 && p->wet[IJm1]>0)
+        q3 = (f(i,j)-f(i,j-1))/p->DYP[JM1];
 
-                        if(p->wet[IJp1] > 0 && p->wet[IJ] > 0)
-                            q4 = (f(i, j + 1) - f(i, j)) / p->DYP[JP];
+        if(p->wet[IJp1]>0 && p->wet[IJ]>0)
+        q4 = (f(i,j+1)-f(i,j))/p->DYP[JP];
 
-                        if(p->wet[IJp2] > 0 && p->wet[IJp1] > 0)
-                            q5 = (f(i, j + 2) - f(i, j + 1)) / p->DYP[JP1];
-                    }
+        if(p->wet[IJp2]>0 && p->wet[IJp1]>0)
+        q5 = (f(i,j+2)-f(i,j+1))/p->DYP[JP1];
+    }
 }
 
-void fnpf_ddweno_f_nug::isqmax(slice &f)
+void fnpf_ddweno_f_nug::isqmax(slice& f)
 {
-    q1 = q2 = q3 = q4 = q5 = 0.0;
+    q1=q2=q3=q4=q5=0.0;
 
-    if(p->wet[Im1J] > 0 && p->wet[Im2J] > 0)
-        if(p->wet[IJ] > 0 && p->wet[Im1J] > 0)
-            if(p->wet[Ip1J] > 0 && p->wet[IJ] > 0)
-                if(p->wet[Ip2J] > 0 && p->wet[Ip1J] > 0)
-                    if(p->wet[Ip3J] > 0 && p->wet[Ip2J] > 0)
-                    {
-                        if(p->wet[Im1J] > 0 && p->wet[Im2J] > 0)
-                            q1 = (f(i - 1, j) - f(i - 2, j)) / p->DXP[IM2];
+    if(p->wet[Im1J]>0 && p->wet[Im2J]>0)
+    if(p->wet[IJ]>0 && p->wet[Im1J]>0)
+    if(p->wet[Ip1J]>0 && p->wet[IJ]>0)
+    if(p->wet[Ip2J]>0 && p->wet[Ip1J]>0)
+    if(p->wet[Ip3J]>0 && p->wet[Ip2J]>0)
+    {
+        if(p->wet[Im1J]>0 && p->wet[Im2J]>0)
+        q1 = (f(i-1,j)-f(i-2,j))/p->DXP[IM2];
 
-                        if(p->wet[IJ] > 0 && p->wet[Im1J] > 0)
-                            q2 = (f(i, j) - f(i - 1, j)) / p->DXP[IM1];
+        if(p->wet[IJ]>0 && p->wet[Im1J]>0)
+        q2 = (f(i,j)-f(i-1,j))/p->DXP[IM1];
 
-                        if(p->wet[Ip1J] > 0 && p->wet[IJ] > 0)
-                            q3 = (f(i + 1, j) - f(i, j)) / p->DXP[IP];
+        if(p->wet[Ip1J]>0 && p->wet[IJ]>0)
+        q3 = (f(i+1,j)-f(i,j))/p->DXP[IP];
 
-                        if(p->wet[Ip2J] > 0 && p->wet[Ip1J] > 0)
-                            q4 = (f(i + 2, j) - f(i + 1, j)) / p->DXP[IP1];
+        if(p->wet[Ip2J]>0 && p->wet[Ip1J]>0)
+        q4 = (f(i+2,j)-f(i+1,j))/p->DXP[IP1];
 
-                        if(p->wet[Ip3J] > 0 && p->wet[Ip2J] > 0)
-                            q5 = (f(i + 3, j) - f(i + 2, j)) / p->DXP[IP2];
-                    }
+        if(p->wet[Ip3J]>0 && p->wet[Ip2J]>0)
+        q5 = (f(i+3,j)-f(i+2,j))/p->DXP[IP2];
+    }
 }
 
-void fnpf_ddweno_f_nug::jsqmax(slice &f)
+void fnpf_ddweno_f_nug::jsqmax(slice& f)
 {
-    q1 = q2 = q3 = q4 = q5 = 0.0;
+    q1=q2=q3=q4=q5=0.0;
 
-    if(p->wet[IJm1] > 0 && p->wet[IJm2] > 0)
-        if(p->wet[IJ] > 0 && p->wet[IJm1] > 0)
-            if(p->wet[IJp1] > 0 && p->wet[IJ] > 0)
-                if(p->wet[IJp2] > 0 && p->wet[IJp1] > 0)
-                    if(p->wet[IJp3] > 0 && p->wet[IJp2] > 0)
-                    {
-                        if(p->wet[IJm1] > 0 && p->wet[IJm2] > 0)
-                            q1 = (f(i, j - 1) - f(i, j - 2)) / p->DYP[JM2];
+    if(p->wet[IJm1]>0 && p->wet[IJm2]>0)
+    if(p->wet[IJ]>0 && p->wet[IJm1]>0)
+    if(p->wet[IJp1]>0 && p->wet[IJ]>0)
+    if(p->wet[IJp2]>0 && p->wet[IJp1]>0)
+    if(p->wet[IJp3]>0 && p->wet[IJp2]>0)
+    {
+        if(p->wet[IJm1]>0 && p->wet[IJm2]>0)
+        q1 = (f(i,j-1)-f(i,j-2))/p->DYP[JM2];
 
-                        if(p->wet[IJ] > 0 && p->wet[IJm1] > 0)
-                            q2 = (f(i, j) - f(i, j - 1)) / p->DYP[JM1];
+        if(p->wet[IJ]>0 && p->wet[IJm1]>0)
+        q2 = (f(i,j)-f(i,j-1))/p->DYP[JM1];
 
-                        if(p->wet[IJp1] > 0 && p->wet[IJ] > 0)
-                            q3 = (f(i, j + 1) - f(i, j)) / p->DYP[JP];
+        if(p->wet[IJp1]>0 && p->wet[IJ]>0)
+        q3 = (f(i,j+1)-f(i,j))/p->DYP[JP];
 
-                        if(p->wet[IJp2] > 0 && p->wet[IJp1] > 0)
-                            q4 = (f(i, j + 2) - f(i, j + 1)) / p->DYP[JP1];
+        if(p->wet[IJp2]>0 && p->wet[IJp1]>0)
+        q4 = (f(i,j+2)-f(i,j+1))/p->DYP[JP1];
 
-                        if(p->wet[IJp3] > 0 && p->wet[IJp2] > 0)
-                            q5 = (f(i, j + 3) - f(i, j + 2)) / p->DYP[JP2];
-                    }
+        if(p->wet[IJp3]>0 && p->wet[IJp2]>0)
+        q5 = (f(i,j+3)-f(i,j+2))/p->DYP[JP2];
+    }
 }

@@ -23,8 +23,8 @@ Architect: Hans Bihs
 #ifndef WAVE_LIB_FASTEXP_H_
 #define WAVE_LIB_FASTEXP_H_
 
-#include <cstdint>
-#include <cstring>
+#include<cstdint>
+#include<cstring>
 
 /*--------------------------------------------------------------------
 exp(x) for the vertical profiles of the irregular-wave components
@@ -43,37 +43,37 @@ With AVX2 0.8 ns against 4 ns for exp(), with SSE2 about 3 ns.
 inline double wave_exp(double x)
 {
     // n = round(x / ln2): the shift puts n into the low mantissa bits of kd
-    const double shift = 6755399441055744.0;  // 1.5 * 2^52
-    const double kd = x * 1.4426950408889634074 + shift;
+    const double shift = 6755399441055744.0;           // 1.5 * 2^52
+    const double kd = x*1.4426950408889634074 + shift;
     const double n = kd - shift;
 
     // r = x - n ln2 with ln2 in two parts (n ln2_hi exact)
-    const double r = (x - n * 6.93147180369123816490e-01) - n * 1.90821492927058770002e-10;
+    const double r = (x - n*6.93147180369123816490e-01) - n*1.90821492927058770002e-10;
 
     // exp(r), Horner
-    double s = 1.0 / 6227020800.0;  // 1/13!
-    s = s * r + 1.0 / 479001600.0;
-    s = s * r + 1.0 / 39916800.0;
-    s = s * r + 1.0 / 3628800.0;
-    s = s * r + 1.0 / 362880.0;
-    s = s * r + 1.0 / 40320.0;
-    s = s * r + 1.0 / 5040.0;
-    s = s * r + 1.0 / 720.0;
-    s = s * r + 1.0 / 120.0;
-    s = s * r + 1.0 / 24.0;
-    s = s * r + 1.0 / 6.0;
-    s = s * r + 0.5;
-    s = s * r + 1.0;
-    s = s * r + 1.0;
+    double s = 1.0/6227020800.0;                       // 1/13!
+    s = s*r + 1.0/479001600.0;
+    s = s*r + 1.0/39916800.0;
+    s = s*r + 1.0/3628800.0;
+    s = s*r + 1.0/362880.0;
+    s = s*r + 1.0/40320.0;
+    s = s*r + 1.0/5040.0;
+    s = s*r + 1.0/720.0;
+    s = s*r + 1.0/120.0;
+    s = s*r + 1.0/24.0;
+    s = s*r + 1.0/6.0;
+    s = s*r + 0.5;
+    s = s*r + 1.0;
+    s = s*r + 1.0;
 
     // 2^n: n + 1023 in the exponent field (the bits of the shift drop out of the shift by 52)
     std::uint64_t ki;
-    std::memcpy(&ki, &kd, sizeof(ki));
+    std::memcpy(&ki,&kd,sizeof(ki));
     const std::uint64_t eb = (ki + 1023u) << 52;
     double sc;
-    std::memcpy(&sc, &eb, sizeof(sc));
+    std::memcpy(&sc,&eb,sizeof(sc));
 
-    return s * sc;
+    return s*sc;
 }
 
 #endif

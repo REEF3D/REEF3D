@@ -23,10 +23,10 @@ Author: Hans Bihs
 #ifndef SCOUR_CORE_H_
 #define SCOUR_CORE_H_
 
-#include "increment.h"
-#include "slice4.h"
-#include <fstream>
-#include <vector>
+#include"increment.h"
+#include"slice4.h"
+#include<fstream>
+#include<vector>
 
 class lexer;
 class slice;
@@ -73,17 +73,17 @@ class scour_core : public increment
 public:
     // solver: "FNPF" or "NHFLOW" (output folders); depth: the still water depth;
     // computed_current: ucx, ucy are filled by the solver
-    scour_core(lexer *, ghostcell *, const char *solver, slice *depth, bool computed_current);
+    scour_core(lexer*,ghostcell*,const char *solver,slice *depth,bool computed_current);
     virtual ~scour_core();
 
     // every time step, after the solver filled ub, vb (and ucx, ucy): the statistics
-    void sample(lexer *, ghostcell *);
+    void sample(lexer*,ghostcell*);
 
     // before a bed output: the scour parameters from the statistics
-    void evaluate(lexer *, ghostcell *);
+    void evaluate(lexer*,ghostcell*);
 
     // P 198: the scour gauges, every time step or every P 199 dt
-    void gauges(lexer *, ghostcell *);  // and the scour protection gauges P 193
+    void gauges(lexer*,ghostcell*);   // and the scour protection gauges P 193
     void gauge_flush();
 
     // the output quantities: their names and fields
@@ -92,19 +92,19 @@ public:
     slice *field(int);
 
     // bed velocity (instantaneous), and the derived fields
-    slice4 ub, vb;
-    slice4 Um, ubmax, KC, Uc, Ucw, SD, S;
-    slice4 thmax, thcr, mob;
-    slice4 armSR, armdreq, armdmax;
+    slice4 ub,vb;
+    slice4 Um,ubmax,KC,Uc,Ucw,SD,S;
+    slice4 thmax,thcr,mob;
+    slice4 armSR,armdreq,armdmax;
 
     // computed current of the solver (depth-averaged velocity), instantaneous
-    slice4 ucx, ucy;
+    slice4 ucx,ucy;
 
 private:
-    void current_file(lexer *, ghostcell *);
-    double period(lexer *);
-    void cell(lexer *, int, int, double, double *);
-    void gauge_ini(lexer *);
+    void current_file(lexer*,ghostcell*);
+    double period(lexer*);
+    void cell(lexer*,int,int,double,double*);
+    void gauge_ini(lexer*);
 
     // Soulsby (1997): the maximum bed shear stress of waves and current
     double taumax(double Uc, double Um, double T, double h, double cosphi, double d) const;
@@ -112,38 +112,35 @@ private:
     double thetacr(double d, double s) const;
 
     // scour protection (REEF_Tools): the stresses for the stone size d, and the required D50
-    struct protection
-    {
-        double tw, tc, tm, tmax, tcr, sr;
-    };
+    struct protection { double tw, tc, tm, tmax, tcr, sr; };
     protection protect(double Um, double Uc, double T, double h, double d) const;
     double protect_dreq(double Um, double Uc, double T, double h, double d0) const;
-    void pgauge_ini(lexer *);
-    void pgauges(lexer *, ghostcell *);
-    void accumulate(lexer *);
+    void pgauge_ini(lexer*);
+    void pgauges(lexer*,ghostcell*);
+    void accumulate(lexer*);
 
-    slice4 Ucx, Ucy;
-    slice4 su, sv, suu, svv, suv;
-    slice4 suc, svc;
-    slice4 uhi, ulo, vhi, vlo;  // extremes of the bed velocity from t_s on (P 199 m 1)
+    slice4 Ucx,Ucy;
+    slice4 su,sv,suu,svv,suv;
+    slice4 suc,svc;
+    slice4 uhi,ulo,vhi,vlo;   // extremes of the bed velocity from t_s on (P 199 m 1)
 
     const char *solver;
     slice *depth;
     bool has_current;
 
     double wsum;
-    double g, rho, nu;
-    double p_aamp, p_kt, p_gE, p_nr, p_rhos;  // P 197 scour protection factors, stone density
+    double g,rho,nu;
+    double p_aamp,p_kt,p_gE,p_nr,p_rhos;   // P 197 scour protection factors, stone density
     bool warned_T;
 
     // P 198 gauges
     int ngauge = 0;
     int gflush = 0;
     double nextgauge = 0.0;
-    std::vector<int> gi, gj, gflag;
+    std::vector<int> gi,gj,gflag;
     std::vector<double> gval;
-    std::vector<std::ofstream *> gout;
-    std::vector<double> gmax;  // the maximum required D50 at the P 198 gauges
+    std::vector<std::ofstream*> gout;
+    std::vector<double> gmax;      // the maximum required D50 at the P 198 gauges
 
     // P 193 scour protection gauges
     static const int NP = 10;
@@ -151,9 +148,9 @@ private:
     // velocity, and with it U_m, is not converged before)
     static constexpr double NACC = 5.0;
     int npg = 0;
-    std::vector<int> pi_, pj_, pflag;
-    std::vector<double> pval, pmax;
-    std::vector<std::ofstream *> pout;
+    std::vector<int> pi_,pj_,pflag;
+    std::vector<double> pval,pmax;
+    std::vector<std::ofstream*> pout;
 };
 
 #endif

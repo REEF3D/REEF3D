@@ -20,11 +20,12 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "coral/core/coral_linsolve.h"
-#include <Eigen/SparseLU>
-#include <limits>
+#include"coral/core/coral_linsolve.h"
+#include<Eigen/SparseLU>
+#include<limits>
 
-namespace coral {
+namespace coral
+{
 
 struct linear_solver::impl
 {
@@ -53,7 +54,9 @@ bool linear_solver::compute(int N, const std::vector<Eigen::Triplet<double>> &T)
     A.setFromTriplets(T.begin(), T.end());
     A.makeCompressed();
     // the symbolic analysis is kept while the sparsity pattern does not change
-    const bool same = p_->pattern && A.nonZeros() == p_->A.nonZeros() && std::equal(A.outerIndexPtr(), A.outerIndexPtr() + N + 1, p_->A.outerIndexPtr()) && std::equal(A.innerIndexPtr(), A.innerIndexPtr() + A.nonZeros(), p_->A.innerIndexPtr());
+    const bool same = p_->pattern && A.nonZeros()==p_->A.nonZeros()
+        && std::equal(A.outerIndexPtr(), A.outerIndexPtr() + N + 1, p_->A.outerIndexPtr())
+        && std::equal(A.innerIndexPtr(), A.innerIndexPtr() + A.nonZeros(), p_->A.innerIndexPtr());
     p_->A = A;
     if(!same)
     {
@@ -61,7 +64,7 @@ bool linear_solver::compute(int N, const std::vector<Eigen::Triplet<double>> &T)
         p_->pattern = true;
     }
     p_->lu.factorize(p_->A);
-    ok_ = p_->lu.info() == Eigen::Success;
+    ok_ = p_->lu.info()==Eigen::Success;
     return ok_;
 }
 
@@ -70,8 +73,8 @@ VecX linear_solver::solve(const VecX &b) const
     if(!sparse_)
         return p_->dense.solve(b);
     if(!ok_)
-        return VecX::Constant(b.size(), std::numeric_limits<double>::quiet_NaN());  // singular: callers see a failed step
+        return VecX::Constant(b.size(), std::numeric_limits<double>::quiet_NaN());    // singular: callers see a failed step
     return p_->lu.solve(b);
 }
 
-}  // namespace coral
+}

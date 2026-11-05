@@ -20,17 +20,17 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "fdm_nhf.h"
-#include "ghostcell.h"
-#include "lagoon_output.h"
-#include "lexer.h"
-#include "nhflow_amr.h"
-#include "nhflow_amr_fill.h"
-#include "reef3d_mpmd.h"
-#include "reefckpt.h"
-#include <cstdio>
-#include <iomanip>
-#include <mpi.h>
+#include"reefckpt.h"
+#include"reef3d_mpmd.h"
+#include"nhflow_amr.h"
+#include"nhflow_amr_fill.h"
+#include"lexer.h"
+#include"fdm_nhf.h"
+#include"ghostcell.h"
+#include"lagoon_output.h"
+#include<mpi.h>
+#include<iomanip>
+#include<cstdio>
 
 //  Output of NHFLOW AMR: the free surface of level 0 and of every patch as VTK rectilinear grids
 //  (REEF3D_NHFLOW_AMR/*.vtr, indexed by a .vtm per output time; with P 180 1 at the interval of
@@ -44,38 +44,38 @@ using namespace nhflow_amr_detail;
 // water volume of the leaf cells (level-0 and patch cells not covered by a finer patch)
 double nhflow_amr::mass(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
-    double v = 0.0;
+    double v=0.0;
 
-    for(int ii = 0; ii < NX0; ++ii)
-        for(int jj = 0; jj < NY0; ++jj)
-        {
-            if(p->flagslice4[lij(p, ii, jj)] < 0 || ring0(ii, jj))
-                continue;
-            if(maxlev >= 1 && covered(1, 2 * (ii + O0i), ychild(jj + O0j)))
-                continue;
-            if(p->geo_curv == 1)
-                v += d->WL(ii, jj) * p->AREA2D[lij(p, ii, jj)];
-            else
-                v += d->WL(ii, jj) * p->DXN[ii + marge] * p->DYN[jj + marge];
-        }
+    for(int ii=0; ii<NX0; ++ii)
+    for(int jj=0; jj<NY0; ++jj)
+    {
+        if(p->flagslice4[lij(p,ii,jj)]<0 || ring0(ii,jj))
+        continue;
+        if(maxlev>=1 && covered(1,2*(ii+O0i),ychild(jj+O0j)))
+        continue;
+        if(p->geo_curv==1)
+        v += d->WL(ii,jj)*p->AREA2D[lij(p,ii,jj)];
+        else
+        v += d->WL(ii,jj)*p->DXN[ii+marge]*p->DYN[jj+marge];
+    }
 
     for(auto q : P)
     {
         lexer *pp = q->pp;
         fdm_nhf *dd = NP(q)->d;
-        for(int ii = EXT; ii < EXT + q->nx; ++ii)
-            for(int jj = EY; jj < EY + q->ny; ++jj)
-            {
-                if(pp->flagslice4[lij(pp, ii, jj)] < 0)
-                    continue;
-                const int I = ii - EXT + q->I0, J = jj - EY + q->J0;
-                if(q->lev < maxlev && covered(q->lev + 1, 2 * I, ychild(J)))
-                    continue;
-                if(pp->geo_curv == 1)
-                    v += dd->WL(ii, jj) * pp->AREA2D[lij(pp, ii, jj)];
-                else
-                    v += dd->WL(ii, jj) * pp->DXN[ii + marge] * pp->DYN[jj + marge];
-            }
+        for(int ii=EXT; ii<EXT+q->nx; ++ii)
+        for(int jj=EY; jj<EY+q->ny; ++jj)
+        {
+            if(pp->flagslice4[lij(pp,ii,jj)]<0)
+            continue;
+            const int I = ii-EXT+q->I0, J = jj-EY+q->J0;
+            if(q->lev<maxlev && covered(q->lev+1,2*I,ychild(J)))
+            continue;
+            if(pp->geo_curv==1)
+            v += dd->WL(ii,jj)*pp->AREA2D[lij(pp,ii,jj)];
+            else
+            v += dd->WL(ii,jj)*pp->DXN[ii+marge]*pp->DYN[jj+marge];
+        }
     }
 
     return pgc->globalsum(v);
@@ -83,134 +83,134 @@ double nhflow_amr::mass(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
 void nhflow_amr::print(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
-    if(maxlev < 1 && nblk == 0)
-        return;
+    if(maxlev<1 && nblk==0)
+    return;
 
     dump_grids(p);
 
     // the grids are the free surface: with P 180 1 at its interval (P 182 in time, P 181 in
     // iterations, as REEF3D_NHFLOW_VTP_FSF), else at that of the 3D output (P 30, P 20; P 10)
-    const bool fsf = p->P180 == 1;
+    const bool fsf = p->P180==1;
     const double every = fsf ? p->P182 : p->P30;
     const int every_it = fsf ? p->P181 : p->P20;
 
-    bool doprint = false;
+    bool doprint=false;
 
-    if((every_it > 0 && p->count % every_it == 0 && every < 0.0 && (fsf || p->P10 > 0)) || (p->count == 0 && every < 0.0))
-        doprint = true;
+    if((every_it>0 && p->count%every_it==0 && every<0.0 && (fsf || p->P10>0)) || (p->count==0 && every<0.0))
+    doprint=true;
 
-    if((p->simtime > printtime_amr && every > 0.0) || (p->count == 0 && every > 0.0))
+    if((p->simtime>printtime_amr && every>0.0) || (p->count==0 && every>0.0))
     {
-        doprint = true;
+        doprint=true;
         printtime_amr += every;
     }
 
-    if(p->P51 > 0)
-        gauges(p, d, pgc);
+    if(p->P51>0)
+    gauges(p,d,pgc);
 
-    const double m = mass(p, d, pgc);
+    const double m = mass(p,d,pgc);
 
-    if(p->mpirank == 0)
-        logout << p->count << " \t " << setprecision(10) << p->simtime << " \t " << p->dt << " \t " << patches_total << " \t " << cells_total << " \t "
-               << pr_it_last << " \t " << setprecision(4) << pr_res_last << " \t " << setprecision(15) << m << " \t " << setprecision(6) << (m0 > 0.0 ? (m - m0) / m0 : 0.0) << " \t " << layout_id << endl;
+    if(p->mpirank==0)
+    logout<<p->count<<" \t "<<setprecision(10)<<p->simtime<<" \t "<<p->dt<<" \t "<<patches_total<<" \t "<<cells_total<<" \t "
+          <<pr_it_last<<" \t "<<setprecision(4)<<pr_res_last<<" \t "<<setprecision(15)<<m<<" \t "<<setprecision(6)<<(m0>0.0 ? (m-m0)/m0 : 0.0)<<" \t "<<layout_id<<endl;
 
-    if(p->mpirank == 0 && (doprint || p->count % 500 == 0))
-        cout << "NHFLOW AMR: " << patches_total << " patches, " << cells_total << " columns; time fill " << setprecision(4) << tm[0]
-             << " s, patch stages " << tm[1] << " s, flux exchange " << tm[2] << " s, restriction " << tm[3] << " s, pressure " << tm[4]
-             << " s (preconditioner " << tm[5] << " s, operator " << tm[6] << " s), mean iterations "
-             << (pr_solves > 0 ? double(pr_it_total) / pr_solves : 0.0);
-    if(p->mpirank == 0 && (doprint || p->count % 500 == 0) && sub == 1)
-        cout << "; G 7 1: level solves " << sub_lv_n << " (mean iterations " << setprecision(3) << (sub_lv_n > 0 ? double(sub_lv_it) / sub_lv_n : 0.0)
-             << "), synchronisation " << sub_sy_n << " (mean iterations " << (sub_sy_n > 0 ? double(sub_sy_it) / sub_sy_n : 0.0) << ", " << setprecision(4) << tsync << " s)";
-    if(p->mpirank == 0 && (doprint || p->count % 500 == 0) && cdiff)
-        cout << ", diffusion " << setprecision(4) << tdiff << " s, mean iterations " << (df_solves > 0 ? double(df_it_total) / df_solves : 0.0);
-    if(p->mpirank == 0 && (doprint || p->count % 500 == 0) && regrid_int > 0)
-        cout << ", regrid " << setprecision(4) << tm[7] << " s, layouts " << layout_id << ", regrids skipped " << regrids_skipped;
+    if(p->mpirank==0 && (doprint || p->count%500==0))
+    cout<<"NHFLOW AMR: "<<patches_total<<" patches, "<<cells_total<<" columns; time fill "<<setprecision(4)<<tm[0]
+        <<" s, patch stages "<<tm[1]<<" s, flux exchange "<<tm[2]<<" s, restriction "<<tm[3]<<" s, pressure "<<tm[4]
+        <<" s (preconditioner "<<tm[5]<<" s, operator "<<tm[6]<<" s), mean iterations "
+        <<(pr_solves>0 ? double(pr_it_total)/pr_solves : 0.0);
+    if(p->mpirank==0 && (doprint || p->count%500==0) && sub==1)
+    cout<<"; G 7 1: level solves "<<sub_lv_n<<" (mean iterations "<<setprecision(3)<<(sub_lv_n>0 ? double(sub_lv_it)/sub_lv_n : 0.0)
+        <<"), synchronisation "<<sub_sy_n<<" (mean iterations "<<(sub_sy_n>0 ? double(sub_sy_it)/sub_sy_n : 0.0)<<", "<<setprecision(4)<<tsync<<" s)";
+    if(p->mpirank==0 && (doprint || p->count%500==0) && cdiff)
+    cout<<", diffusion "<<setprecision(4)<<tdiff<<" s, mean iterations "<<(df_solves>0 ? double(df_it_total)/df_solves : 0.0);
+    if(p->mpirank==0 && (doprint || p->count%500==0) && regrid_int>0)
+    cout<<", regrid "<<setprecision(4)<<tm[7]<<" s, layouts "<<layout_id<<", regrids skipped "<<regrids_skipped;
     // the safety net of the composite solves (reefamr_krylov.h): restarts after a stagnation, solves
     // stopped after a second one, solves at N 46
-    if(p->mpirank == 0 && (doprint || p->count % 500 == 0))
+    if(p->mpirank==0 && (doprint || p->count%500==0))
     {
-        if(pr_restarts > 0)
-            cout << ", pressure: " << pr_restarts << " BiCGStab restarts";
-        if(pr_stalls > 0)
-            cout << ", " << pr_stalls << " pressure solves stopped stagnating below 100 N 44";
-        if(pr_capped > 0)
-            cout << ", " << pr_capped << " pressure solves at N 46";
-        if(df_restarts > 0)
-            cout << ", diffusion: " << df_restarts << " BiCGStab restarts";
-        if(df_stalls > 0)
-            cout << ", " << df_stalls << " diffusion solves stopped stagnating";
-        if(df_capped > 0)
-            cout << ", " << df_capped << " diffusion solves at N 46";
+        if(pr_restarts>0)
+        cout<<", pressure: "<<pr_restarts<<" BiCGStab restarts";
+        if(pr_stalls>0)
+        cout<<", "<<pr_stalls<<" pressure solves stopped stagnating below 100 N 44";
+        if(pr_capped>0)
+        cout<<", "<<pr_capped<<" pressure solves at N 46";
+        if(df_restarts>0)
+        cout<<", diffusion: "<<df_restarts<<" BiCGStab restarts";
+        if(df_stalls>0)
+        cout<<", "<<df_stalls<<" diffusion solves stopped stagnating";
+        if(df_capped>0)
+        cout<<", "<<df_capped<<" diffusion solves at N 46";
         // a 2D grid: the x-z factorisations of the pressure kept within the step (xz_keep)
-        if(xz_kept > 0)
-            cout << ", 2D factorisations kept " << xz_kept << " of " << (xz_kept + xz_made);
+        if(xz_kept>0)
+        cout<<", 2D factorisations kept "<<xz_kept<<" of "<<(xz_kept+xz_made);
     }
     // load per rank (several ranks): the cells computed on the rank (level 0 including its covered
     // columns, the patches without their EXT cells) and the time in the patch stages, max over mean
     // of the ranks - what balancing the patches over the ranks could gain at most
-    if((doprint || p->count % 500 == 0) && p->mpi_size > 1)
+    if((doprint || p->count%500==0) && p->mpi_size>1)
     {
-        double cl = double(p0->knox) * p0->knoy * p0->knoz;
+        double cl = double(p0->knox)*p0->knoy*p0->knoz;
         for(auto q : P)
-            cl += double(q->nx) * q->ny * q->pp->knoz;
+        cl += double(q->nx)*q->ny*q->pp->knoz;
 
         double v[2] = {cl, tm[1]};
         double vmax[2] = {cl, tm[1]};
-        pgc->globalmax(vmax, 2);
-        const double cmean = pgc->globalsum(v[0]) / p->mpi_size;
-        const double tmean = pgc->globalsum(v[1]) / p->mpi_size;
+        pgc->globalmax(vmax,2);
+        const double cmean = pgc->globalsum(v[0])/p->mpi_size;
+        const double tmean = pgc->globalsum(v[1])/p->mpi_size;
 
-        if(p->mpirank == 0)
-            cout << "; load max/mean over " << p->mpi_size << " ranks: cells " << setprecision(3) << (cmean > 0.0 ? vmax[0] / cmean : 1.0)
-                 << ", patch stages " << (tmean > 0.0 ? vmax[1] / tmean : 1.0);
+        if(p->mpirank==0)
+        cout<<"; load max/mean over "<<p->mpi_size<<" ranks: cells "<<setprecision(3)<<(cmean>0.0 ? vmax[0]/cmean : 1.0)
+            <<", patch stages "<<(tmean>0.0 ? vmax[1]/tmean : 1.0);
     }
 
-    if(p->mpirank == 0 && (doprint || p->count % 500 == 0))
-        cout << "; water volume change " << setprecision(3) << (m0 > 0.0 ? (m - m0) / m0 : 0.0) << endl;
+    if(p->mpirank==0 && (doprint || p->count%500==0))
+    cout<<"; water volume change "<<setprecision(3)<<(m0>0.0 ? (m-m0)/m0 : 0.0)<<endl;
 
     if(!doprint)
-        return;
+    return;
 
     // P 18: the grids in the LAGOON store; P 18 1: instead of the .vtr and .vtm files
     bool stored = false;
-    if(p->P18 > 0)
-        stored = print_lagoon(p, d, pgc);
+    if(p->P18>0)
+    stored = print_lagoon(p,d,pgc);
 
-    if(!lagoon_amr_output::files_needed(p, stored))
+    if(!lagoon_amr_output::files_needed(p,stored))
     {
         ++printcount_amr;
         return;
     }
 
-    write_vtr0(p, d);
+    write_vtr0(p,d);
 
-    for(int n = 0; n < (int)P.size(); ++n)
-        write_vtr(p, *NP(n), n);
+    for(int n=0; n<(int)P.size(); ++n)
+    write_vtr(p,*NP(n),n);
 
     int np = (int)P.size();
-    vector<int> all(p->mpi_size, 0);
-    MPI_Allgather(&np, 1, MPI_INT, &all[0], 1, MPI_INT, reef3d_comm());
+    vector<int> all(p->mpi_size,0);
+    MPI_Allgather(&np,1,MPI_INT,&all[0],1,MPI_INT,reef3d_comm());
 
-    if(p->mpirank == 0)
+    if(p->mpirank==0)
     {
         char name[256];
-        snprintf(name, sizeof(name), "./REEF3D_NHFLOW_AMR/REEF3D-NHFLOW-AMR-%08i.vtm", printcount_amr);
+        snprintf(name,sizeof(name),"./REEF3D_NHFLOW_AMR/REEF3D-NHFLOW-AMR-%08i.vtm",printcount_amr);
         ofstream out(name);
-        out << "<?xml version=\"1.0\"?>\n<VTKFile type=\"vtkMultiBlockDataSet\" version=\"1.0\">\n<vtkMultiBlockDataSet>\n";
-        out << "<Block index=\"0\" name=\"level 0\">\n";
-        for(int r = 0; r < p->mpi_size; ++r)
-            out << "<DataSet index=\"" << r << "\" file=\"REEF3D-NHFLOW-AMR-L0-" << setw(8) << setfill('0') << printcount_amr << "-" << setw(4) << r + 1 << (p->geo_curv == 1 ? ".vts" : ".vtr") << "\"/>\n";
-        out << setfill(' ') << "</Block>\n<Block index=\"1\" name=\"patches\">\n";
-        int idx = 0;
-        for(int r = 0; r < p->mpi_size; ++r)
-            for(int q = 0; q < all[r]; ++q)
-            {
-                out << "<DataSet index=\"" << idx << "\" file=\"REEF3D-NHFLOW-AMR-" << setw(8) << setfill('0') << printcount_amr << "-" << setw(4) << r + 1 << "-" << setw(4) << q + 1 << (p->geo_curv == 1 ? ".vts" : ".vtr") << "\"/>\n";
-                out << setfill(' ');
-                ++idx;
-            }
-        out << "</Block>\n</vtkMultiBlockDataSet>\n</VTKFile>\n";
+        out<<"<?xml version=\"1.0\"?>\n<VTKFile type=\"vtkMultiBlockDataSet\" version=\"1.0\">\n<vtkMultiBlockDataSet>\n";
+        out<<"<Block index=\"0\" name=\"level 0\">\n";
+        for(int r=0; r<p->mpi_size; ++r)
+        out<<"<DataSet index=\""<<r<<"\" file=\"REEF3D-NHFLOW-AMR-L0-"<<setw(8)<<setfill('0')<<printcount_amr<<"-"<<setw(4)<<r+1<<(p->geo_curv==1?".vts":".vtr")<<"\"/>\n";
+        out<<setfill(' ')<<"</Block>\n<Block index=\"1\" name=\"patches\">\n";
+        int idx=0;
+        for(int r=0; r<p->mpi_size; ++r)
+        for(int q=0; q<all[r]; ++q)
+        {
+        out<<"<DataSet index=\""<<idx<<"\" file=\"REEF3D-NHFLOW-AMR-"<<setw(8)<<setfill('0')<<printcount_amr<<"-"<<setw(4)<<r+1<<"-"<<setw(4)<<q+1<<(p->geo_curv==1?".vts":".vtr")<<"\"/>\n";
+        out<<setfill(' ');
+        ++idx;
+        }
+        out<<"</Block>\n</vtkMultiBlockDataSet>\n</VTKFile>\n";
         out.close();
     }
 
@@ -221,178 +221,158 @@ void nhflow_amr::print(lexer *p, fdm_nhf *d, ghostcell *pgc)
 void nhflow_amr::gauges(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
     const int ng = p->P51;
-    vector<double> lv(ng, -1.0), val(ng, 0.0);
+    vector<double> lv(ng,-1.0), val(ng,0.0);
 
     // curvilinear grid (G 50): the cell whose quadrilateral holds the point, its value
     auto inquad = [&](lexer *q, int a, int b, double x, double y)
     {
-        const int o[5][2] = {{0, 0}, {1, 0}, {1, 1}, {0, 1}, {0, 0}};
-        for(int k = 0; k < 4; ++k)
+        const int o[5][2] = {{0,0},{1,0},{1,1},{0,1},{0,0}};
+        for(int k=0; k<4; ++k)
         {
-            const int n0 = q->nij(a + o[k][0], b + o[k][1]), n1 = q->nij(a + o[k + 1][0], b + o[k + 1][1]);
-            const double ex = q->XN2D[n1] - q->XN2D[n0], ey = q->YN2D[n1] - q->YN2D[n0];
-            if(ex * (y - q->YN2D[n0]) - ey * (x - q->XN2D[n0]) < 0.0)
-                return false;
+            const int n0 = q->nij(a+o[k][0],b+o[k][1]), n1 = q->nij(a+o[k+1][0],b+o[k+1][1]);
+            const double ex = q->XN2D[n1]-q->XN2D[n0], ey = q->YN2D[n1]-q->YN2D[n0];
+            if(ex*(y-q->YN2D[n0]) - ey*(x-q->XN2D[n0]) < 0.0)
+            return false;
         }
         return true;
     };
-
+    
     auto find = [&](lexer *q, int i0, int i1, int j0, int j1, double x, double y, int &ii, int &jj)
     {
-        ii = -1;
-        jj = -1;
-        if(q->geo_curv == 1 && q->XN2D != nullptr)
+        ii=-1; jj=-1;
+        if(q->geo_curv==1 && q->XN2D!=nullptr)
         {
-            for(int a = i0; a <= i1; ++a)
-                for(int b = j0; b <= j1; ++b)
-                    if(!(q == p0 && ring0(a, b)) && inquad(q, a, b, x, y))
-                    {
-                        ii = a;
-                        jj = b;
-                        return true;
-                    }
+            for(int a=i0; a<=i1; ++a)
+            for(int b=j0; b<=j1; ++b)
+            if(!(q==p0 && ring0(a,b)) && inquad(q,a,b,x,y))
+            {
+                ii=a; jj=b;
+                return true;
+            }
             return false;
         }
-        for(int a = i0; a <= i1; ++a)
-            if(x >= q->XN[a + marge] && x < q->XN[a + 1 + marge])
-            {
-                ii = a;
-                break;
-            }
-        for(int a = j0; a <= j1; ++a)
-            if(y >= q->YN[a + marge] && y < q->YN[a + 1 + marge])
-            {
-                jj = a;
-                break;
-            }
-        if(q->j_dir == 0)  // 2D grid: the strip, wherever y is
-            jj = j0;
-        return ii >= 0 && jj >= 0;
+        for(int a=i0; a<=i1; ++a)
+        if(x>=q->XN[a+marge] && x<q->XN[a+1+marge]) { ii=a; break; }
+        for(int a=j0; a<=j1; ++a)
+        if(y>=q->YN[a+marge] && y<q->YN[a+1+marge]) { jj=a; break; }
+        if(q->j_dir==0)     // 2D grid: the strip, wherever y is
+        jj = j0;
+        return ii>=0 && jj>=0;
     };
 
     auto ipol = [&](lexer *q, slice &f, int ii, int jj, double x, double y)
     {
-        if(q->geo_curv == 1)
-            return f(ii, jj);
+        if(q->geo_curv==1)
+        return f(ii,jj);
 
-        int a = (x >= q->XP[ii + marge]) ? ii : ii - 1;
-        double wx = (x - q->XP[a + marge]) / (q->XP[a + 1 + marge] - q->XP[a + marge]);
-        if(q->j_dir == 0)  // 2D grid: linear in x
+        int a = (x>=q->XP[ii+marge]) ? ii : ii-1;
+        double wx = (x-q->XP[a+marge])/(q->XP[a+1+marge]-q->XP[a+marge]);
+        if(q->j_dir==0)     // 2D grid: linear in x
         {
-            if(q->flagslice4[lij(q, a, jj)] < 0 || q->flagslice4[lij(q, a + 1, jj)] < 0)
-                return f(ii, jj);
-            return (1.0 - wx) * f(a, jj) + wx * f(a + 1, jj);
+            if(q->flagslice4[lij(q,a,jj)]<0 || q->flagslice4[lij(q,a+1,jj)]<0)
+            return f(ii,jj);
+            return (1.0-wx)*f(a,jj) + wx*f(a+1,jj);
         }
-        int b = (y >= q->YP[jj + marge]) ? jj : jj - 1;
-        double wy = (y - q->YP[b + marge]) / (q->YP[b + 1 + marge] - q->YP[b + marge]);
-        if(q->flagslice4[lij(q, a, b)] < 0 || q->flagslice4[lij(q, a + 1, b)] < 0 || q->flagslice4[lij(q, a, b + 1)] < 0 || q->flagslice4[lij(q, a + 1, b + 1)] < 0)
-            return f(ii, jj);
-        return (1.0 - wx) * (1.0 - wy) * f(a, b) + wx * (1.0 - wy) * f(a + 1, b) + (1.0 - wx) * wy * f(a, b + 1) + wx * wy * f(a + 1, b + 1);
+        int b = (y>=q->YP[jj+marge]) ? jj : jj-1;
+        double wy = (y-q->YP[b+marge])/(q->YP[b+1+marge]-q->YP[b+marge]);
+        if(q->flagslice4[lij(q,a,b)]<0 || q->flagslice4[lij(q,a+1,b)]<0 || q->flagslice4[lij(q,a,b+1)]<0 || q->flagslice4[lij(q,a+1,b+1)]<0)
+        return f(ii,jj);
+        return (1.0-wx)*(1.0-wy)*f(a,b) + wx*(1.0-wy)*f(a+1,b) + (1.0-wx)*wy*f(a,b+1) + wx*wy*f(a+1,b+1);
     };
 
-    for(int k = 0; k < ng; ++k)
+    for(int k=0; k<ng; ++k)
     {
-        int ii, jj;
+        int ii,jj;
         const double x = p->P51_x[k], y = p->P51_y[k];
-        if(find(p, 0, NX0 - 1, 0, NY0 - 1, x, y, ii, jj))
+        if(find(p,0,NX0-1,0,NY0-1,x,y,ii,jj))
         {
-            lv[k] = 0.0;
-            val[k] = ipol(p, d->eta, ii, jj, x, y);
+            lv[k]=0.0;
+            val[k]=ipol(p,d->eta,ii,jj,x,y);
         }
         for(auto q : P)
-            if(q->lev > lv[k] && find(q->pp, EXT, EXT + q->nx - 1, EY, EY + q->ny - 1, x, y, ii, jj))
-            {
-                lv[k] = q->lev;
-                val[k] = ipol(q->pp, NP(q)->d->eta, ii, jj, x, y);
-            }
+        if(q->lev>lv[k] && find(q->pp,EXT,EXT+q->nx-1,EY,EY+q->ny-1,x,y,ii,jj))
+        {
+            lv[k]=q->lev;
+            val[k]=ipol(q->pp,NP(q)->d->eta,ii,jj,x,y);
+        }
     }
 
     vector<double> lmax(ng);
-    MPI_Allreduce(&lv[0], &lmax[0], ng, MPI_DOUBLE, MPI_MAX, reef3d_comm());
-    for(int k = 0; k < ng; ++k)
-        if(lv[k] != lmax[k])
-            val[k] = 0.0;
+    MPI_Allreduce(&lv[0],&lmax[0],ng,MPI_DOUBLE,MPI_MAX,reef3d_comm());
+    for(int k=0; k<ng; ++k)
+    if(lv[k]!=lmax[k])
+    val[k]=0.0;
     vector<double> vs(ng);
-    MPI_Allreduce(&val[0], &vs[0], ng, MPI_DOUBLE, MPI_SUM, reef3d_comm());
+    MPI_Allreduce(&val[0],&vs[0],ng,MPI_DOUBLE,MPI_SUM,reef3d_comm());
 
-    if(p->mpirank == 0)
+    if(p->mpirank==0)
     {
         if(!gaugeout.is_open())
-            if(reefckpt_open(gaugeout, "./REEF3D_NHFLOW_AMR/REEF3D_NHFLOW_AMR_gauges.dat", p->I45))  // I 45: continued
-            {
-                gaugeout << "# simtime";
-                for(int k = 0; k < ng; ++k)
-                    gaugeout << " \t eta(" << p->P51_x[k] << "," << p->P51_y[k] << ")";
-                gaugeout << " \t levels" << endl;
-            }
-        gaugeout << setprecision(10) << p->simtime;
-        for(int k = 0; k < ng; ++k)
-            gaugeout << " \t " << setprecision(10) << vs[k];
-        for(int k = 0; k < ng; ++k)
-            gaugeout << " \t " << int(lmax[k]);
-        gaugeout << endl;
+        if(reefckpt_open(gaugeout,"./REEF3D_NHFLOW_AMR/REEF3D_NHFLOW_AMR_gauges.dat",p->I45))   // I 45: continued
+        {
+            gaugeout<<"# simtime";
+            for(int k=0; k<ng; ++k)
+            gaugeout<<" \t eta("<<p->P51_x[k]<<","<<p->P51_y[k]<<")";
+            gaugeout<<" \t levels"<<endl;
+        }
+        gaugeout<<setprecision(10)<<p->simtime;
+        for(int k=0; k<ng; ++k)
+        gaugeout<<" \t "<<setprecision(10)<<vs[k];
+        for(int k=0; k<ng; ++k)
+        gaugeout<<" \t "<<int(lmax[k]);
+        gaugeout<<endl;
     }
 }
 
-namespace {
+namespace
+{
 // the cell fields of a grid: eta, elevation, bed, and the velocities of the top layer;
 // field(name, value(ii,jj)) for each, in the order of the .vtr files (and the LAGOON store)
 template<class FIELD>
 void amr_fields(lexer *q, fdm_nhf *d, bool wet, FIELD field)
 {
-    const int kt = q->knoz - 1;
-    auto c3 = [&](int ii, int jj)
-    { return (ii - q->imin) * q->jmax * q->kmax + (jj - q->jmin) * q->kmax + kt - q->kmin; };
+    const int kt = q->knoz-1;
+    auto c3 = [&](int ii, int jj) { return (ii-q->imin)*q->jmax*q->kmax + (jj-q->jmin)*q->kmax + kt-q->kmin; };
 
-    field("eta", [&](int ii, int jj)
-          { return d->eta(ii, jj); });
-    field("elevation", [&](int ii, int jj)
-          { return d->eta(ii, jj) + q->wd; });
-    field("bed", [&](int ii, int jj)
-          { return d->bed(ii, jj); });
-    field("u_top", [&](int ii, int jj)
-          { return d->U[c3(ii, jj)]; });
-    field("v_top", [&](int ii, int jj)
-          { return d->V[c3(ii, jj)]; });
+    field("eta",[&](int ii, int jj) { return d->eta(ii,jj); });
+    field("elevation",[&](int ii, int jj) { return d->eta(ii,jj)+q->wd; });
+    field("bed",[&](int ii, int jj) { return d->bed(ii,jj); });
+    field("u_top",[&](int ii, int jj) { return d->U[c3(ii,jj)]; });
+    field("v_top",[&](int ii, int jj) { return d->V[c3(ii,jj)]; });
     // tracers (A 600): depth mean, bottom and top layer
-    for(int tr = 0; tr < 2; ++tr)
+    for(int tr=0; tr<2; ++tr)
     {
-        const double *C = tr == 0 ? d->SALT : d->TEMP;
+        const double *C = tr==0 ? d->SALT : d->TEMP;
 
-        if(C == nullptr)
-            continue;
+        if(C==nullptr)
+        continue;
 
-        auto ck = [&](int ii, int jj, int kk)
-        { return (ii - q->imin) * q->jmax * q->kmax + (jj - q->jmin) * q->kmax + kk - q->kmin; };
+        auto ck = [&](int ii, int jj, int kk) { return (ii-q->imin)*q->jmax*q->kmax + (jj-q->jmin)*q->kmax + kk-q->kmin; };
         auto mean = [&](int ii, int jj)
         {
-            double s = 0.0;
-            for(int kk = 0; kk < q->knoz; ++kk)
-                s += q->DZN[kk + increment::marge] * C[ck(ii, jj, kk)];
+            double s=0.0;
+            for(int kk=0; kk<q->knoz; ++kk)
+            s += q->DZN[kk+increment::marge]*C[ck(ii,jj,kk)];
             return s;
         };
 
-        field(tr == 0 ? "salinity_mean" : "temperature_mean", mean);
-        field(tr == 0 ? "salinity_bottom" : "temperature_bottom", [&](int ii, int jj)
-              { return C[ck(ii, jj, 0)]; });
-        field(tr == 0 ? "salinity_top" : "temperature_top", [&](int ii, int jj)
-              { return C[ck(ii, jj, q->knoz - 1)]; });
+        field(tr==0 ? "salinity_mean" : "temperature_mean",mean);
+        field(tr==0 ? "salinity_bottom" : "temperature_bottom",[&](int ii, int jj) { return C[ck(ii,jj,0)]; });
+        field(tr==0 ? "salinity_top" : "temperature_top",[&](int ii, int jj) { return C[ck(ii,jj,q->knoz-1)]; });
     }
     // G 30: the wet flag and the water depth
     if(wet)
     {
-        field("wet", [&](int ii, int jj)
-              { return double(q->wet[(ii - q->imin) * q->jmax + (jj - q->jmin)]); });
-        field("WL", [&](int ii, int jj)
-              { return d->WL(ii, jj); });
+    field("wet",[&](int ii, int jj) { return double(q->wet[(ii-q->imin)*q->jmax + (jj-q->jmin)]); });
+    field("WL",[&](int ii, int jj) { return d->WL(ii,jj); });
     }
 }
 
 // cell data of a 2D window [i0,i1)x[j0,j1) of a grid, as ASCII .vtr data arrays
 void vtr_fields(ofstream &out, lexer *q, fdm_nhf *d, int i0, int i1, int j0, int j1, bool wet)
 {
-    amr_fields(q, d, wet, [&](const char *nm, auto f)
-               {
+    amr_fields(q,d,wet,[&](const char *nm, auto f)
+    {
         out<<"<DataArray type=\"Float64\" Name=\""<<nm<<"\" format=\"ascii\">\n";
         for(int jj=j0; jj<j1; ++jj)
         {
@@ -400,45 +380,44 @@ void vtr_fields(ofstream &out, lexer *q, fdm_nhf *d, int i0, int i1, int j0, int
             out<<setprecision(17)<<f(ii,jj)<<" ";
             out<<"\n";
         }
-        out<<"</DataArray>\n"; });
+        out<<"</DataArray>\n";
+    });
 }
-}  // namespace
+}
 
 void nhflow_amr::write_vtr0(lexer *p, fdm_nhf *d)
 {
     char name[256];
     // curvilinear grid (G 50): structured grids (.vts) on the physical nodes
-    const bool cv = (p->geo_curv == 1);
-    snprintf(name, sizeof(name), "./REEF3D_NHFLOW_AMR/REEF3D-NHFLOW-AMR-L0-%08i-%04i.%s", printcount_amr, p->mpirank + 1, cv ? "vts" : "vtr");
+    const bool cv = (p->geo_curv==1);
+    snprintf(name,sizeof(name),"./REEF3D_NHFLOW_AMR/REEF3D-NHFLOW-AMR-L0-%08i-%04i.%s",printcount_amr,p->mpirank+1,cv?"vts":"vtr");
 
-    const int nx = p->knox, ny = p->knoy, m = marge;
+    const int nx=p->knox, ny=p->knoy, m=marge;
     ofstream out(name);
-    out << "<?xml version=\"1.0\"?>\n";
-    out << "<VTKFile type=\"" << (cv ? "StructuredGrid" : "RectilinearGrid") << "\" version=\"0.1\" byte_order=\"LittleEndian\">\n";
-    out << "<" << (cv ? "StructuredGrid" : "RectilinearGrid") << " WholeExtent=\"0 " << nx << " 0 " << ny << " 0 0\">\n";
-    out << "<FieldData><DataArray type=\"Float64\" Name=\"TimeValue\" NumberOfTuples=\"1\">" << p->simtime << "</DataArray>";
-    out << "<DataArray type=\"Int32\" Name=\"level\" NumberOfTuples=\"1\">0</DataArray></FieldData>\n";
-    out << "<Piece Extent=\"0 " << nx << " 0 " << ny << " 0 0\">\n<CellData Scalars=\"eta\">\n";
-    vtr_fields(out, p, d, 0, nx, 0, ny, shore);
+    out<<"<?xml version=\"1.0\"?>\n";
+    out<<"<VTKFile type=\""<<(cv?"StructuredGrid":"RectilinearGrid")<<"\" version=\"0.1\" byte_order=\"LittleEndian\">\n";
+    out<<"<"<<(cv?"StructuredGrid":"RectilinearGrid")<<" WholeExtent=\"0 "<<nx<<" 0 "<<ny<<" 0 0\">\n";
+    out<<"<FieldData><DataArray type=\"Float64\" Name=\"TimeValue\" NumberOfTuples=\"1\">"<<p->simtime<<"</DataArray>";
+    out<<"<DataArray type=\"Int32\" Name=\"level\" NumberOfTuples=\"1\">0</DataArray></FieldData>\n";
+    out<<"<Piece Extent=\"0 "<<nx<<" 0 "<<ny<<" 0 0\">\n<CellData Scalars=\"eta\">\n";
+    vtr_fields(out,p,d,0,nx,0,ny,shore);
     if(cv)
     {
-        out << "</CellData>\n<Points>\n<DataArray type=\"Float64\" NumberOfComponents=\"3\" format=\"ascii\">\n";
-        for(int jj = 0; jj <= ny; ++jj)
-            for(int ii = 0; ii <= nx; ++ii)
-                out << setprecision(12) << p->XN2D[p->nij(ii, jj)] << " " << p->YN2D[p->nij(ii, jj)] << " 0\n";
-        out << "</DataArray>\n</Points>\n</Piece>\n</StructuredGrid>\n</VTKFile>\n";
-        out.close();
-        return;
+    out<<"</CellData>\n<Points>\n<DataArray type=\"Float64\" NumberOfComponents=\"3\" format=\"ascii\">\n";
+    for(int jj=0; jj<=ny; ++jj)
+    for(int ii=0; ii<=nx; ++ii)
+    out<<setprecision(12)<<p->XN2D[p->nij(ii,jj)]<<" "<<p->YN2D[p->nij(ii,jj)]<<" 0\n";
+    out<<"</DataArray>\n</Points>\n</Piece>\n</StructuredGrid>\n</VTKFile>\n";
+    out.close();
+    return;
     }
-    out << "</CellData>\n<Coordinates>\n";
-    out << "<DataArray type=\"Float64\" Name=\"x\" format=\"ascii\">";
-    for(int ii = 0; ii <= nx; ++ii)
-        out << setprecision(12) << p->XN[ii + m] << " ";
-    out << "</DataArray>\n<DataArray type=\"Float64\" Name=\"y\" format=\"ascii\">";
-    for(int jj = 0; jj <= ny; ++jj)
-        out << setprecision(12) << p->YN[jj + m] << " ";
-    out << "</DataArray>\n<DataArray type=\"Float64\" Name=\"z\" format=\"ascii\">0</DataArray>\n";
-    out << "</Coordinates>\n</Piece>\n</RectilinearGrid>\n</VTKFile>\n";
+    out<<"</CellData>\n<Coordinates>\n";
+    out<<"<DataArray type=\"Float64\" Name=\"x\" format=\"ascii\">";
+    for(int ii=0; ii<=nx; ++ii) out<<setprecision(12)<<p->XN[ii+m]<<" ";
+    out<<"</DataArray>\n<DataArray type=\"Float64\" Name=\"y\" format=\"ascii\">";
+    for(int jj=0; jj<=ny; ++jj) out<<setprecision(12)<<p->YN[jj+m]<<" ";
+    out<<"</DataArray>\n<DataArray type=\"Float64\" Name=\"z\" format=\"ascii\">0</DataArray>\n";
+    out<<"</Coordinates>\n</Piece>\n</RectilinearGrid>\n</VTKFile>\n";
     out.close();
 }
 
@@ -446,38 +425,36 @@ void nhflow_amr::write_vtr(lexer *p, nhflow_amr_patch &c, int id)
 {
     lexer *pp = c.pp;
     char name[256];
-    const bool cv = (p->geo_curv == 1);
-    snprintf(name, sizeof(name), "./REEF3D_NHFLOW_AMR/REEF3D-NHFLOW-AMR-%08i-%04i-%04i.%s", printcount_amr, p->mpirank + 1, id + 1, cv ? "vts" : "vtr");
+    const bool cv = (p->geo_curv==1);
+    snprintf(name,sizeof(name),"./REEF3D_NHFLOW_AMR/REEF3D-NHFLOW-AMR-%08i-%04i-%04i.%s",printcount_amr,p->mpirank+1,id+1,cv?"vts":"vtr");
 
     ofstream out(name);
-    out << "<?xml version=\"1.0\"?>\n";
-    out << "<VTKFile type=\"" << (cv ? "StructuredGrid" : "RectilinearGrid") << "\" version=\"0.1\" byte_order=\"LittleEndian\">\n";
-    out << "<" << (cv ? "StructuredGrid" : "RectilinearGrid") << " WholeExtent=\"0 " << c.nx << " 0 " << c.ny << " 0 0\">\n";
-    out << "<FieldData><DataArray type=\"Float64\" Name=\"TimeValue\" NumberOfTuples=\"1\">" << p->simtime << "</DataArray>";
-    out << "<DataArray type=\"Int32\" Name=\"level\" NumberOfTuples=\"1\">" << c.lev << "</DataArray></FieldData>\n";
-    out << "<Piece Extent=\"0 " << c.nx << " 0 " << c.ny << " 0 0\">\n";
-    out << "<CellData Scalars=\"eta\">\n";
-    vtr_fields(out, pp, c.d, EXT, EXT + c.nx, EY, EY + c.ny, shore);
+    out<<"<?xml version=\"1.0\"?>\n";
+    out<<"<VTKFile type=\""<<(cv?"StructuredGrid":"RectilinearGrid")<<"\" version=\"0.1\" byte_order=\"LittleEndian\">\n";
+    out<<"<"<<(cv?"StructuredGrid":"RectilinearGrid")<<" WholeExtent=\"0 "<<c.nx<<" 0 "<<c.ny<<" 0 0\">\n";
+    out<<"<FieldData><DataArray type=\"Float64\" Name=\"TimeValue\" NumberOfTuples=\"1\">"<<p->simtime<<"</DataArray>";
+    out<<"<DataArray type=\"Int32\" Name=\"level\" NumberOfTuples=\"1\">"<<c.lev<<"</DataArray></FieldData>\n";
+    out<<"<Piece Extent=\"0 "<<c.nx<<" 0 "<<c.ny<<" 0 0\">\n";
+    out<<"<CellData Scalars=\"eta\">\n";
+    vtr_fields(out,pp,c.d,EXT,EXT+c.nx,EY,EY+c.ny,shore);
     if(cv)
     {
-        out << "</CellData>\n<Points>\n<DataArray type=\"Float64\" NumberOfComponents=\"3\" format=\"ascii\">\n";
-        for(int jj = EY; jj <= EY + c.ny; ++jj)
-            for(int ii = EXT; ii <= EXT + c.nx; ++ii)
-                out << setprecision(12) << pp->XN2D[pp->nij(ii, jj)] << " " << pp->YN2D[pp->nij(ii, jj)] << " 0\n";
-        out << "</DataArray>\n</Points>\n</Piece>\n</StructuredGrid>\n</VTKFile>\n";
-        out.close();
-        return;
+    out<<"</CellData>\n<Points>\n<DataArray type=\"Float64\" NumberOfComponents=\"3\" format=\"ascii\">\n";
+    for(int jj=EY; jj<=EY+c.ny; ++jj)
+    for(int ii=EXT; ii<=EXT+c.nx; ++ii)
+    out<<setprecision(12)<<pp->XN2D[pp->nij(ii,jj)]<<" "<<pp->YN2D[pp->nij(ii,jj)]<<" 0\n";
+    out<<"</DataArray>\n</Points>\n</Piece>\n</StructuredGrid>\n</VTKFile>\n";
+    out.close();
+    return;
     }
-    out << "</CellData>\n<Coordinates>\n";
+    out<<"</CellData>\n<Coordinates>\n";
     const int m = marge;
-    out << "<DataArray type=\"Float64\" Name=\"x\" format=\"ascii\">";
-    for(int ii = EXT; ii <= EXT + c.nx; ++ii)
-        out << setprecision(12) << pp->XN[ii + m] << " ";
-    out << "</DataArray>\n<DataArray type=\"Float64\" Name=\"y\" format=\"ascii\">";
-    for(int jj = EY; jj <= EY + c.ny; ++jj)
-        out << setprecision(12) << pp->YN[jj + m] << " ";
-    out << "</DataArray>\n<DataArray type=\"Float64\" Name=\"z\" format=\"ascii\">0</DataArray>\n";
-    out << "</Coordinates>\n</Piece>\n</RectilinearGrid>\n</VTKFile>\n";
+    out<<"<DataArray type=\"Float64\" Name=\"x\" format=\"ascii\">";
+    for(int ii=EXT; ii<=EXT+c.nx; ++ii) out<<setprecision(12)<<pp->XN[ii+m]<<" ";
+    out<<"</DataArray>\n<DataArray type=\"Float64\" Name=\"y\" format=\"ascii\">";
+    for(int jj=EY; jj<=EY+c.ny; ++jj) out<<setprecision(12)<<pp->YN[jj+m]<<" ";
+    out<<"</DataArray>\n<DataArray type=\"Float64\" Name=\"z\" format=\"ascii\">0</DataArray>\n";
+    out<<"</Coordinates>\n</Piece>\n</RectilinearGrid>\n</VTKFile>\n";
     out.close();
 }
 
@@ -495,24 +472,23 @@ bool nhflow_amr::print_lagoon(lexer *p, fdm_nhf *d, ghostcell *pgc)
         g.level = level;
         g.nx = nx;
         g.ny = ny;
-        for(int ii = i0; ii <= i0 + nx; ++ii)
-            g.x.push_back(q->XN[ii + m]);
-        for(int jj = j0; jj <= j0 + ny; ++jj)
-            g.y.push_back(q->YN[jj + m]);
+        for(int ii=i0; ii<=i0+nx; ++ii) g.x.push_back(q->XN[ii+m]);
+        for(int jj=j0; jj<=j0+ny; ++jj) g.y.push_back(q->YN[jj+m]);
         fields.clear();
-        amr_fields(q, dd, shore, [&](const char *nm, auto f)
-                   {
+        amr_fields(q,dd,shore,[&](const char *nm, auto f)
+        {
             fields.push_back({nm,false});
             for(int jj=j0; jj<j0+ny; ++jj)
             for(int ii=i0; ii<i0+nx; ++ii)
-            g.values.push_back(f(ii,jj)); });
+            g.values.push_back(f(ii,jj));
+        });
         grids.push_back(std::move(g));
     };
-    take(p, d, 0, 0, p->knox, p->knoy, 0);
-    for(int n = 0; n < (int)P.size(); ++n)
-        take(NP(n)->pp, NP(n)->d, EXT, EY, NP(n)->nx, NP(n)->ny, NP(n)->lev);
+    take(p,d,0,0,p->knox,p->knoy,0);
+    for(int n=0; n<(int)P.size(); ++n)
+    take(NP(n)->pp,NP(n)->d,EXT,EY,NP(n)->nx,NP(n)->ny,NP(n)->lev);
 
-    if(writer == nullptr)
-        writer = new lagoon_amr_output("NHFLOW", fields);
-    return writer->write(p, pgc, grids, printcount_amr);
+    if(writer==nullptr)
+    writer = new lagoon_amr_output("NHFLOW",fields);
+    return writer->write(p,pgc,grids,printcount_amr);
 }

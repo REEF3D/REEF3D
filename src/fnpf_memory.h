@@ -23,8 +23,8 @@ Author: Hans Bihs
 #ifndef FNPF_MEMORY_H_
 #define FNPF_MEMORY_H_
 
-#include "lexer.h"
-#include "reefcouple.h"
+#include"lexer.h"
+#include"reefcouple.h"
 
 // Which 3D fields of FNPF are stored. The core of the time step (Laplace assembly, velocities, bed
 // BC, time step, free-surface output) needs none of these as 3D arrays; they are kept for the
@@ -34,7 +34,7 @@ Author: Hans Bihs
 // ice A 380 (fnpf_sigma_col.h)
 inline bool fnpf_sigma_3D(lexer *p)
 {
-    return p->P85 > 0 || p->P88 > 0 || p->P140 > 0 || p->G1 > 0 || p->A380 > 0;
+    return p->P85>0 || p->P88>0 || p->P140>0 || p->G1>0 || p->A380>0;
 }
 
 // U, V, W: floating bodies X 10, force gauges P 85, kinematics P 88, runup P 140, state files P 40,
@@ -43,14 +43,15 @@ inline bool fnpf_sigma_3D(lexer *p)
 // (fdm_fnpf::vel3D_make)
 inline bool fnpf_vel_3D(lexer *p)
 {
-    return p->X10 > 0 || p->P85 > 0 || p->P88 > 0 || p->P140 > 0 || p->P40 > 0 || p->G1 > 0 || p->A380 > 0 || p->Z40 > 0 || p->P48 > 0 || p->P48_dt > 0.0 || p->I45 == 1 || reefcouple::source();
+    return p->X10>0 || p->P85>0 || p->P88>0 || p->P140>0 || p->P40>0 || p->G1>0 || p->A380>0
+        || p->Z40>0 || p->P48>0 || p->P48_dt>0.0 || p->I45==1 || reefcouple::source();
 }
 
 // Uin: Dirichlet wave generation B 98 3, 4, the active beaches B 99 > 2, floating bodies X 10,
 // mesh refinement G 1, checkpoints; elsewhere it stays zero (gc_fivec reads it as zero)
 inline bool fnpf_uin_3D(lexer *p)
 {
-    return p->B98 > 2 || p->B99 > 2 || p->X10 > 0 || p->G1 > 0 || p->P48 > 0 || p->P48_dt > 0.0 || p->I45 == 1;
+    return p->B98>2 || p->B99>2 || p->X10>0 || p->G1>0 || p->P48>0 || p->P48_dt>0.0 || p->I45==1;
 }
 
 #endif

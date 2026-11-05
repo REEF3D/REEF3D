@@ -20,70 +20,74 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Authors: Hans Bihs, Alexander Hanke
 --------------------------------------------------------------------*/
 
-#include "CPM.h"
-#include "fdm.h"
-#include "ghostcell.h"
-#include "lexer.h"
-#include "part.h"
-#include "sediment_fdm.h"
+#include"CPM.h"
+#include"part.h"
+#include"lexer.h"
+#include"fdm.h"
+#include"sediment_fdm.h"
+#include"ghostcell.h"
 
 void CPM::advec_plain(lexer *p, fdm *a, part &P, sediment_fdm *s, turbulence *pturb,
-                      double *PX, double *PY, double *PZ, double *PU, double *PV, double *PW,
-                      double &F, double &G, double &H, double alpha)
+                        double *PX, double *PY, double *PZ, double *PU, double *PV, double *PW,
+                        double &F, double &G, double &H, double alpha)
 {
     // velocity
-    uf = p->ccipol1c(a->u, PX[n], PY[n], PZ[n]);
-    vf = p->ccipol2c(a->v, PX[n], PY[n], PZ[n]);
-    wf = p->ccipol3c(a->w, PX[n], PY[n], PZ[n]);
-
-    uf = p->ccipol1c(a->u, PX[n], PY[n], PZ[n] + 0.01);
-    vf = p->ccipol2c(a->v, PX[n], PY[n], PZ[n] + 0.01);
-    wf = p->ccipol3c(a->w, PX[n], PY[n], PZ[n] + 0.01);
+    uf = p->ccipol1c(a->u,PX[n],PY[n],PZ[n]);
+    vf = p->ccipol2c(a->v,PX[n],PY[n],PZ[n]);
+    wf = p->ccipol3c(a->w,PX[n],PY[n],PZ[n]);
+    
+    
+    uf = p->ccipol1c(a->u,PX[n],PY[n],PZ[n]+0.01);
+    vf = p->ccipol2c(a->v,PX[n],PY[n],PZ[n]+0.01);
+    wf = p->ccipol3c(a->w,PX[n],PY[n],PZ[n]+0.01);
+    
+    
 
     // relative velocity
-    Urel = uf;  //-PU[n];
-    Vrel = vf;  //-PV[n];
-    Wrel = wf;  //-PW[n];
+    Urel = uf;//-PU[n];
+    Vrel = vf;//-PV[n];
+    Wrel = wf;//-PW[n];
 
-    double Uabs_rel = sqrt(Urel * Urel + Vrel * Vrel);
+    double Uabs_rel = sqrt(Urel*Urel + Vrel*Vrel);
 
     P.Uf[n] = uf;
     P.Vf[n] = vf;
     P.Wf[n] = wf;
-
-    Tsval = cip4a(p, Ts, PX[n], PY[n], PZ[n]);
+    
+    Tsval = cip4a(p,Ts,PX[n],PY[n],PZ[n]);
 
     DragCoeff = 0.5;
 
     // acceleration
-    Fd = p->W1 * DragCoeff * PI / 8.0 * pow(P.d50, 2) * pow(Uabs_rel, 2.0);
-
-    Dpx = drag_model(p, P.D[n], P.RO[n], Urel, Tsval);
-    Dpy = drag_model(p, P.D[n], P.RO[n], Vrel, Tsval);
-    Dpz = drag_model(p, P.D[n], P.RO[n], Wrel, Tsval);
+    Fd = p->W1 * DragCoeff * PI/8.0 * pow(P.d50,2)  * pow(Uabs_rel,2.0);
+    
+    
+    Dpx = drag_model(p,P.D[n],P.RO[n],Urel,Tsval);
+    Dpy = drag_model(p,P.D[n],P.RO[n],Vrel,Tsval);
+    Dpz = drag_model(p,P.D[n],P.RO[n],Wrel,Tsval);
 
     // relax
-    Fd *= rf(p, PX[n], PY[n]);
+    Fd *= rf(p,PX[n],PY[n]);
 
     // resistance force
-    double Fs = p->Q30 * (p->S22 - p->W1) * fabs(p->W22) * PI * pow(P.d50, 3.0) / 6.0;
+    double Fs = p->Q30*(p->S22-p->W1)*fabs(p->W22)*PI*pow(P.d50, 3.0)/6.0;
 
-    double F_tot = Fd - Fs;  //*s.reduce(i,j);
+    double F_tot = Fd-Fs;//*s.reduce(i,j);
 
-    F_tot = MAX(F_tot, 0.0);
+    F_tot = MAX(F_tot,0.0);
 
     // particle force
-    F = F_tot / (p->S22 * PI * pow(P.d50, 3.0) / 6.0) * Urel / (fabs(Uabs_rel) > 1.0e-10 ? fabs(Uabs_rel) : 1.0e20);
-    G = F_tot / (p->S22 * PI * pow(P.d50, 3.0) / 12.0) * Vrel / (fabs(Uabs_rel) > 1.0e-10 ? fabs(Uabs_rel) : 1.0e20);
+    F = F_tot /(p->S22*PI*pow(P.d50,3.0)/6.0) * Urel/(fabs(Uabs_rel)>1.0e-10?fabs(Uabs_rel):1.0e20);
+    G = F_tot /(p->S22*PI*pow(P.d50,3.0)/12.0) * Vrel/(fabs(Uabs_rel)>1.0e-10?fabs(Uabs_rel):1.0e20);
     H = 0.0;
 
     // solid forcing
-    if(p->S10 == 2)
+    if(p->S10==2)
     {
-        double fx, fy, fz;
-        fx = p->ccipol1c(a->fbh1, PX[n], PY[n], PZ[n]) * (0.0 - PU[n]) / (alpha * p->dtsed);
-        fy = p->ccipol2c(a->fbh2, PX[n], PY[n], PZ[n]) * (0.0 - PV[n]) / (alpha * p->dtsed);
-        fz = p->ccipol3c(a->fbh3, PX[n], PY[n], PZ[n]) * (0.0 - PW[n]) / (alpha * p->dtsed);
+        double fx,fy,fz;
+        fx = p->ccipol1c(a->fbh1,PX[n],PY[n],PZ[n])*(0.0-PU[n])/(alpha*p->dtsed);
+        fy = p->ccipol2c(a->fbh2,PX[n],PY[n],PZ[n])*(0.0-PV[n])/(alpha*p->dtsed);
+        fz = p->ccipol3c(a->fbh3,PX[n],PY[n],PZ[n])*(0.0-PW[n])/(alpha*p->dtsed);
 
         F += fx;
         G += fy;
@@ -91,15 +95,15 @@ void CPM::advec_plain(lexer *p, fdm *a, part &P, sediment_fdm *s, turbulence *pt
     }
 
     // relax
-    F *= rf(p, PX[n], PY[n]);
-    G *= rf(p, PX[n], PY[n]);
-    H *= rf(p, PX[n], PY[n]);
+    F *= rf(p,PX[n],PY[n]);
+    G *= rf(p,PX[n],PY[n]);
+    H *= rf(p,PX[n],PY[n]);
 
     // error call
-    if(PU[n] != PU[n] || PV[n] != PV[n] || PW[n] != PW[n])
+    if(PU[n]!=PU[n] || PV[n]!=PV[n] || PW[n]!=PW[n])
     {
-        cout << "NaN detected.\nUrel: " << Urel << " Vrel: " << Vrel << " Wrel: " << Wrel << "\nDrag: " << DragCoeff << endl;
-        cout << "F: " << F << " G: " << G << " H: " << H << endl;
+        cout<<"NaN detected.\nUrel: "<<Urel<<" Vrel: "<<Vrel<<" Wrel: "<<Wrel<<"\nDrag: "<<DragCoeff<<endl;
+        cout<<"F: "<<F<<" G: "<<G<<" H: "<<H<<endl;
         exit(1);
     }
 }

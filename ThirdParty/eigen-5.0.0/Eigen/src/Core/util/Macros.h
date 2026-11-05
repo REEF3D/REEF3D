@@ -18,8 +18,8 @@
 //------------------------------------------------------------------------------------------
 
 #define EIGEN_VERSION_AT_LEAST(x, y, z) \
-    (EIGEN_MAJOR_VERSION > x ||         \
-     (EIGEN_MAJOR_VERSION >= x && (EIGEN_MINOR_VERSION > y || (EIGEN_MINOR_VERSION >= y && EIGEN_PATCH_VERSION >= z))))
+  (EIGEN_MAJOR_VERSION > x ||           \
+   (EIGEN_MAJOR_VERSION >= x && (EIGEN_MINOR_VERSION > y || (EIGEN_MINOR_VERSION >= y && EIGEN_PATCH_VERSION >= z))))
 
 #ifdef EIGEN_DEFAULT_TO_ROW_MAJOR
 #define EIGEN_DEFAULT_MATRIX_STORAGE_ORDER_OPTION Eigen::RowMajor
@@ -270,12 +270,12 @@
 // GCC, and compilers that pretend to be it, have different version schemes, so this only makes sense to use with the
 // real GCC.
 #if EIGEN_COMP_GNUC_STRICT
-#define EIGEN_GNUC_STRICT_AT_LEAST(x, y, z)                     \
-    ((__GNUC__ > x) || (__GNUC__ == x && __GNUC_MINOR__ > y) || \
-     (__GNUC__ == x && __GNUC_MINOR__ == y && __GNUC_PATCHLEVEL__ >= z))
-#define EIGEN_GNUC_STRICT_LESS_THAN(x, y, z)                    \
-    ((__GNUC__ < x) || (__GNUC__ == x && __GNUC_MINOR__ < y) || \
-     (__GNUC__ == x && __GNUC_MINOR__ == y && __GNUC_PATCHLEVEL__ < z))
+#define EIGEN_GNUC_STRICT_AT_LEAST(x, y, z)                   \
+  ((__GNUC__ > x) || (__GNUC__ == x && __GNUC_MINOR__ > y) || \
+   (__GNUC__ == x && __GNUC_MINOR__ == y && __GNUC_PATCHLEVEL__ >= z))
+#define EIGEN_GNUC_STRICT_LESS_THAN(x, y, z)                  \
+  ((__GNUC__ < x) || (__GNUC__ == x && __GNUC_MINOR__ < y) || \
+   (__GNUC__ == x && __GNUC_MINOR__ == y && __GNUC_PATCHLEVEL__ < z))
 #else
 #define EIGEN_GNUC_STRICT_AT_LEAST(x, y, z) 0
 #define EIGEN_GNUC_STRICT_LESS_THAN(x, y, z) 0
@@ -292,12 +292,12 @@
 // Clang, and compilers forked from it, have different version schemes, so this only makes sense to use with the real
 // Clang.
 #if EIGEN_COMP_CLANG_STRICT
-#define EIGEN_CLANG_STRICT_AT_LEAST(x, y, z)                                   \
-    ((__clang_major__ > x) || (__clang_major__ == x && __clang_minor__ > y) || \
-     (__clang_major__ == x && __clang_minor__ == y && __clang_patchlevel__ >= z))
-#define EIGEN_CLANG_STRICT_LESS_THAN(x, y, z)                                  \
-    ((__clang_major__ < x) || (__clang_major__ == x && __clang_minor__ < y) || \
-     (__clang_major__ == x && __clang_minor__ == y && __clang_patchlevel__ < z))
+#define EIGEN_CLANG_STRICT_AT_LEAST(x, y, z)                                 \
+  ((__clang_major__ > x) || (__clang_major__ == x && __clang_minor__ > y) || \
+   (__clang_major__ == x && __clang_minor__ == y && __clang_patchlevel__ >= z))
+#define EIGEN_CLANG_STRICT_LESS_THAN(x, y, z)                                \
+  ((__clang_major__ < x) || (__clang_major__ == x && __clang_minor__ < y) || \
+   (__clang_major__ == x && __clang_minor__ == y && __clang_patchlevel__ < z))
 #else
 #define EIGEN_CLANG_STRICT_AT_LEAST(x, y, z) 0
 #define EIGEN_CLANG_STRICT_LESS_THAN(x, y, z) 0
@@ -977,8 +977,8 @@
 // Suppresses 'unused variable' warnings.
 namespace Eigen {
 namespace internal {
-template<typename T>
-EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE constexpr void ignore_unused_variable(const T &) {}
+template <typename T>
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE constexpr void ignore_unused_variable(const T&) {}
 }  // namespace internal
 }  // namespace Eigen
 #define EIGEN_UNUSED_VARIABLE(var) Eigen::internal::ignore_unused_variable(var);
@@ -1111,26 +1111,23 @@ EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE constexpr void ignore_unused_variable(cons
 
 #if EIGEN_COMP_CLANG  // workaround clang bug (see http://forum.kde.org/viewtopic.php?f=74&t=102653)
 #define EIGEN_INHERIT_ASSIGNMENT_EQUAL_OPERATOR(Derived)                                           \
-    using Base::operator=;                                                                         \
-    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Derived &operator=(const Derived &other)                 \
-    {                                                                                              \
-        Base::operator=(other);                                                                    \
-        return *this;                                                                              \
-    }                                                                                              \
-    template<typename OtherDerived>                                                                \
-    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Derived &operator=(const DenseBase<OtherDerived> &other) \
-    {                                                                                              \
-        Base::operator=(other.derived());                                                          \
-        return *this;                                                                              \
-    }
+  using Base::operator=;                                                                           \
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Derived& operator=(const Derived& other) {                 \
+    Base::operator=(other);                                                                        \
+    return *this;                                                                                  \
+  }                                                                                                \
+  template <typename OtherDerived>                                                                 \
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Derived& operator=(const DenseBase<OtherDerived>& other) { \
+    Base::operator=(other.derived());                                                              \
+    return *this;                                                                                  \
+  }
 #else
 #define EIGEN_INHERIT_ASSIGNMENT_EQUAL_OPERATOR(Derived)                           \
-    using Base::operator=;                                                         \
-    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Derived &operator=(const Derived &other) \
-    {                                                                              \
-        Base::operator=(other);                                                    \
-        return *this;                                                              \
-    }
+  using Base::operator=;                                                           \
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Derived& operator=(const Derived& other) { \
+    Base::operator=(other);                                                        \
+    return *this;                                                                  \
+  }
 #endif
 
 /**
@@ -1138,16 +1135,16 @@ EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE constexpr void ignore_unused_variable(cons
  * \brief Macro to explicitly define the default copy constructor.
  * This is necessary, because the implicit definition is deprecated if the copy-assignment is overridden.
  */
-#define EIGEN_DEFAULT_COPY_CONSTRUCTOR(CLASS) EIGEN_DEVICE_FUNC CLASS(const CLASS &) = default;
+#define EIGEN_DEFAULT_COPY_CONSTRUCTOR(CLASS) EIGEN_DEVICE_FUNC CLASS(const CLASS&) = default;
 
 /** \internal
  * \brief Macro to manually inherit assignment operators.
  * This is necessary, because the implicitly defined assignment operator gets deleted when a custom operator= is
  * defined. With C++11 or later this also default-implements the copy-constructor
  */
-#define EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Derived)  \
-    EIGEN_INHERIT_ASSIGNMENT_EQUAL_OPERATOR(Derived) \
-    EIGEN_DEFAULT_COPY_CONSTRUCTOR(Derived)
+#define EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Derived) \
+  EIGEN_INHERIT_ASSIGNMENT_EQUAL_OPERATOR(Derived)  \
+  EIGEN_DEFAULT_COPY_CONSTRUCTOR(Derived)
 
 /** \internal
  * \brief Macro to manually define default constructors and destructors.
@@ -1157,8 +1154,8 @@ EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE constexpr void ignore_unused_variable(cons
  * Hiding the default destructor lead to problems in C++03 mode together with boost::multiprecision
  */
 #define EIGEN_DEFAULT_EMPTY_CONSTRUCTOR_AND_DESTRUCTOR(Derived) \
-    EIGEN_DEVICE_FUNC Derived() = default;                      \
-    EIGEN_DEVICE_FUNC ~Derived() = default;
+  EIGEN_DEVICE_FUNC Derived() = default;                        \
+  EIGEN_DEVICE_FUNC ~Derived() = default;
 
 /**
  * Just a side note. Commenting within defines works only by documenting
@@ -1168,34 +1165,34 @@ EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE constexpr void ignore_unused_variable(cons
  * documentation in a single line.
  **/
 
-#define EIGEN_GENERIC_PUBLIC_INTERFACE(Derived)                                                                          \
-    typedef typename Eigen::internal::traits<Derived>::Scalar                                                            \
-        Scalar; /*!< \brief Numeric type, e.g. float, double, int or std::complex<float>. */                             \
-    typedef typename Eigen::NumTraits<Scalar>::Real                                                                      \
-        RealScalar; /*!< \brief The underlying numeric type for composed scalar types. \details In cases where Scalar is \
-                       e.g. std::complex<T>, T were corresponding to RealScalar. */                                      \
-    typedef typename Base::CoeffReturnType                                                                               \
-        CoeffReturnType; /*!< \brief The return type for coefficient access. \details Depending on whether the object    \
-                            allows direct coefficient access (e.g. for a MatrixXd), this type is either 'const Scalar&'  \
-                            or simply 'Scalar' for objects that do not allow direct coefficient access. */               \
-    typedef typename Eigen::internal::ref_selector<Derived>::type Nested;                                                \
-    typedef typename Eigen::internal::traits<Derived>::StorageKind StorageKind;                                          \
-    typedef typename Eigen::internal::traits<Derived>::StorageIndex StorageIndex;                                        \
-    enum CompileTimeTraits {                                                                                             \
-        RowsAtCompileTime = Eigen::internal::traits<Derived>::RowsAtCompileTime,                                         \
-        ColsAtCompileTime = Eigen::internal::traits<Derived>::ColsAtCompileTime,                                         \
-        Flags = Eigen::internal::traits<Derived>::Flags,                                                                 \
-        SizeAtCompileTime = Base::SizeAtCompileTime,                                                                     \
-        MaxSizeAtCompileTime = Base::MaxSizeAtCompileTime,                                                               \
-        IsVectorAtCompileTime = Base::IsVectorAtCompileTime                                                              \
-    };                                                                                                                   \
-    using Base::derived;                                                                                                 \
-    using Base::const_cast_derived;
+#define EIGEN_GENERIC_PUBLIC_INTERFACE(Derived)                                                                        \
+  typedef typename Eigen::internal::traits<Derived>::Scalar                                                            \
+      Scalar; /*!< \brief Numeric type, e.g. float, double, int or std::complex<float>. */                             \
+  typedef typename Eigen::NumTraits<Scalar>::Real                                                                      \
+      RealScalar; /*!< \brief The underlying numeric type for composed scalar types. \details In cases where Scalar is \
+                     e.g. std::complex<T>, T were corresponding to RealScalar. */                                      \
+  typedef typename Base::CoeffReturnType                                                                               \
+      CoeffReturnType; /*!< \brief The return type for coefficient access. \details Depending on whether the object    \
+                          allows direct coefficient access (e.g. for a MatrixXd), this type is either 'const Scalar&'  \
+                          or simply 'Scalar' for objects that do not allow direct coefficient access. */               \
+  typedef typename Eigen::internal::ref_selector<Derived>::type Nested;                                                \
+  typedef typename Eigen::internal::traits<Derived>::StorageKind StorageKind;                                          \
+  typedef typename Eigen::internal::traits<Derived>::StorageIndex StorageIndex;                                        \
+  enum CompileTimeTraits {                                                                                             \
+    RowsAtCompileTime = Eigen::internal::traits<Derived>::RowsAtCompileTime,                                           \
+    ColsAtCompileTime = Eigen::internal::traits<Derived>::ColsAtCompileTime,                                           \
+    Flags = Eigen::internal::traits<Derived>::Flags,                                                                   \
+    SizeAtCompileTime = Base::SizeAtCompileTime,                                                                       \
+    MaxSizeAtCompileTime = Base::MaxSizeAtCompileTime,                                                                 \
+    IsVectorAtCompileTime = Base::IsVectorAtCompileTime                                                                \
+  };                                                                                                                   \
+  using Base::derived;                                                                                                 \
+  using Base::const_cast_derived;
 
 // FIXME Maybe the EIGEN_DENSE_PUBLIC_INTERFACE could be removed as importing PacketScalar is rarely needed
 #define EIGEN_DENSE_PUBLIC_INTERFACE(Derived) \
-    EIGEN_GENERIC_PUBLIC_INTERFACE(Derived)   \
-    typedef typename Base::PacketScalar PacketScalar;
+  EIGEN_GENERIC_PUBLIC_INTERFACE(Derived)     \
+  typedef typename Base::PacketScalar PacketScalar;
 
 #if EIGEN_HAS_BUILTIN(__builtin_expect) || EIGEN_COMP_GNUC
 #define EIGEN_PREDICT_FALSE(x) (__builtin_expect(x, false))
@@ -1206,66 +1203,63 @@ EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE constexpr void ignore_unused_variable(cons
 #endif
 
 // the expression type of a standard coefficient wise binary operation
-#define EIGEN_CWISE_BINARY_RETURN_TYPE(LHS, RHS, OPNAME)                                                         \
-    CwiseBinaryOp<EIGEN_CAT(EIGEN_CAT(internal::scalar_, OPNAME), _op) < typename internal::traits<LHS>::Scalar, \
-                  typename internal::traits<RHS>::Scalar>,                                                       \
-        const LHS, const RHS >
+#define EIGEN_CWISE_BINARY_RETURN_TYPE(LHS, RHS, OPNAME)                                                       \
+  CwiseBinaryOp<EIGEN_CAT(EIGEN_CAT(internal::scalar_, OPNAME), _op) < typename internal::traits<LHS>::Scalar, \
+                typename internal::traits<RHS>::Scalar>,                                                       \
+      const LHS, const RHS >
 
 #define EIGEN_MAKE_CWISE_BINARY_OP(METHOD, OPNAME)                                                                \
-    template<typename OtherDerived>                                                                               \
-    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const EIGEN_CWISE_BINARY_RETURN_TYPE(                                   \
-        Derived, OtherDerived, OPNAME)(METHOD)(const EIGEN_CURRENT_STORAGE_BASE_CLASS<OtherDerived> &other) const \
-    {                                                                                                             \
-        return EIGEN_CWISE_BINARY_RETURN_TYPE(Derived, OtherDerived, OPNAME)(derived(), other.derived());         \
-    }
+  template <typename OtherDerived>                                                                                \
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const EIGEN_CWISE_BINARY_RETURN_TYPE(                                     \
+      Derived, OtherDerived, OPNAME)(METHOD)(const EIGEN_CURRENT_STORAGE_BASE_CLASS<OtherDerived>& other) const { \
+    return EIGEN_CWISE_BINARY_RETURN_TYPE(Derived, OtherDerived, OPNAME)(derived(), other.derived());             \
+  }
 
-#define EIGEN_SCALAR_BINARY_SUPPORTED(OPNAME, TYPEA, TYPEB)       \
-    (Eigen::internal::has_ReturnType<Eigen::ScalarBinaryOpTraits< \
-         TYPEA, TYPEB, EIGEN_CAT(EIGEN_CAT(Eigen::internal::scalar_, OPNAME), _op) < TYPEA, TYPEB>> > ::value)
+#define EIGEN_SCALAR_BINARY_SUPPORTED(OPNAME, TYPEA, TYPEB)     \
+  (Eigen::internal::has_ReturnType<Eigen::ScalarBinaryOpTraits< \
+       TYPEA, TYPEB, EIGEN_CAT(EIGEN_CAT(Eigen::internal::scalar_, OPNAME), _op) < TYPEA, TYPEB> > > ::value)
 
-#define EIGEN_EXPR_BINARYOP_SCALAR_RETURN_TYPE(EXPR, SCALAR, OPNAME)                                              \
-    CwiseBinaryOp<EIGEN_CAT(EIGEN_CAT(internal::scalar_, OPNAME), _op) < typename internal::traits<EXPR>::Scalar, \
-                  SCALAR>,                                                                                        \
-        const EXPR, const typename internal::plain_constant_type<EXPR, SCALAR>::type >
+#define EIGEN_EXPR_BINARYOP_SCALAR_RETURN_TYPE(EXPR, SCALAR, OPNAME)                                            \
+  CwiseBinaryOp<EIGEN_CAT(EIGEN_CAT(internal::scalar_, OPNAME), _op) < typename internal::traits<EXPR>::Scalar, \
+                SCALAR>,                                                                                        \
+      const EXPR, const typename internal::plain_constant_type<EXPR, SCALAR>::type >
 
-#define EIGEN_SCALAR_BINARYOP_EXPR_RETURN_TYPE(SCALAR, EXPR, OPNAME)             \
-    CwiseBinaryOp<EIGEN_CAT(EIGEN_CAT(internal::scalar_, OPNAME), _op) < SCALAR, \
-                  typename internal::traits<EXPR>::Scalar>,                      \
-        const typename internal::plain_constant_type<EXPR, SCALAR>::type, const EXPR >
+#define EIGEN_SCALAR_BINARYOP_EXPR_RETURN_TYPE(SCALAR, EXPR, OPNAME)           \
+  CwiseBinaryOp<EIGEN_CAT(EIGEN_CAT(internal::scalar_, OPNAME), _op) < SCALAR, \
+                typename internal::traits<EXPR>::Scalar>,                      \
+      const typename internal::plain_constant_type<EXPR, SCALAR>::type, const EXPR >
 
-#define EIGEN_MAKE_SCALAR_BINARY_OP_ONTHERIGHT(METHOD, OPNAME)                                                           \
-    template<typename T>                                                                                                 \
-    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const EIGEN_EXPR_BINARYOP_SCALAR_RETURN_TYPE(                                  \
-        Derived,                                                                                                         \
-        typename internal::promote_scalar_arg<Scalar EIGEN_COMMA T EIGEN_COMMA EIGEN_SCALAR_BINARY_SUPPORTED(            \
-            OPNAME, Scalar, T)>::type,                                                                                   \
-        OPNAME)(METHOD)(const T &scalar) const                                                                           \
-    {                                                                                                                    \
-        typedef typename internal::promote_scalar_arg<Scalar, T, EIGEN_SCALAR_BINARY_SUPPORTED(OPNAME, Scalar, T)>::type \
-            PromotedT;                                                                                                   \
-        return EIGEN_EXPR_BINARYOP_SCALAR_RETURN_TYPE(Derived, PromotedT, OPNAME)(                                       \
-            derived(), typename internal::plain_constant_type<Derived, PromotedT>::type(                                 \
-                           derived().rows(), derived().cols(), internal::scalar_constant_op<PromotedT>(scalar)));        \
-    }
+#define EIGEN_MAKE_SCALAR_BINARY_OP_ONTHERIGHT(METHOD, OPNAME)                                                       \
+  template <typename T>                                                                                              \
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const EIGEN_EXPR_BINARYOP_SCALAR_RETURN_TYPE(                                \
+      Derived,                                                                                                       \
+      typename internal::promote_scalar_arg<Scalar EIGEN_COMMA T EIGEN_COMMA EIGEN_SCALAR_BINARY_SUPPORTED(          \
+          OPNAME, Scalar, T)>::type,                                                                                 \
+      OPNAME)(METHOD)(const T& scalar) const {                                                                       \
+    typedef typename internal::promote_scalar_arg<Scalar, T, EIGEN_SCALAR_BINARY_SUPPORTED(OPNAME, Scalar, T)>::type \
+        PromotedT;                                                                                                   \
+    return EIGEN_EXPR_BINARYOP_SCALAR_RETURN_TYPE(Derived, PromotedT, OPNAME)(                                       \
+        derived(), typename internal::plain_constant_type<Derived, PromotedT>::type(                                 \
+                       derived().rows(), derived().cols(), internal::scalar_constant_op<PromotedT>(scalar)));        \
+  }
 
-#define EIGEN_MAKE_SCALAR_BINARY_OP_ONTHELEFT(METHOD, OPNAME)                                                            \
-    template<typename T>                                                                                                 \
-    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE friend const EIGEN_SCALAR_BINARYOP_EXPR_RETURN_TYPE(                           \
-        typename internal::promote_scalar_arg<Scalar EIGEN_COMMA T EIGEN_COMMA EIGEN_SCALAR_BINARY_SUPPORTED(            \
-            OPNAME, T, Scalar)>::type,                                                                                   \
-        Derived, OPNAME)(METHOD)(const T &scalar, const StorageBaseType &matrix)                                         \
-    {                                                                                                                    \
-        typedef typename internal::promote_scalar_arg<Scalar, T, EIGEN_SCALAR_BINARY_SUPPORTED(OPNAME, T, Scalar)>::type \
-            PromotedT;                                                                                                   \
-        return EIGEN_SCALAR_BINARYOP_EXPR_RETURN_TYPE(PromotedT, Derived, OPNAME)(                                       \
-            typename internal::plain_constant_type<Derived, PromotedT>::type(                                            \
-                matrix.derived().rows(), matrix.derived().cols(), internal::scalar_constant_op<PromotedT>(scalar)),      \
-            matrix.derived());                                                                                           \
-    }
+#define EIGEN_MAKE_SCALAR_BINARY_OP_ONTHELEFT(METHOD, OPNAME)                                                        \
+  template <typename T>                                                                                              \
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE friend const EIGEN_SCALAR_BINARYOP_EXPR_RETURN_TYPE(                         \
+      typename internal::promote_scalar_arg<Scalar EIGEN_COMMA T EIGEN_COMMA EIGEN_SCALAR_BINARY_SUPPORTED(          \
+          OPNAME, T, Scalar)>::type,                                                                                 \
+      Derived, OPNAME)(METHOD)(const T& scalar, const StorageBaseType& matrix) {                                     \
+    typedef typename internal::promote_scalar_arg<Scalar, T, EIGEN_SCALAR_BINARY_SUPPORTED(OPNAME, T, Scalar)>::type \
+        PromotedT;                                                                                                   \
+    return EIGEN_SCALAR_BINARYOP_EXPR_RETURN_TYPE(PromotedT, Derived, OPNAME)(                                       \
+        typename internal::plain_constant_type<Derived, PromotedT>::type(                                            \
+            matrix.derived().rows(), matrix.derived().cols(), internal::scalar_constant_op<PromotedT>(scalar)),      \
+        matrix.derived());                                                                                           \
+  }
 
-#define EIGEN_MAKE_SCALAR_BINARY_OP(METHOD, OPNAME)       \
-    EIGEN_MAKE_SCALAR_BINARY_OP_ONTHELEFT(METHOD, OPNAME) \
-    EIGEN_MAKE_SCALAR_BINARY_OP_ONTHERIGHT(METHOD, OPNAME)
+#define EIGEN_MAKE_SCALAR_BINARY_OP(METHOD, OPNAME)     \
+  EIGEN_MAKE_SCALAR_BINARY_OP_ONTHELEFT(METHOD, OPNAME) \
+  EIGEN_MAKE_SCALAR_BINARY_OP_ONTHERIGHT(METHOD, OPNAME)
 
 #if (defined(_CPPUNWIND) || defined(__EXCEPTIONS)) && !defined(EIGEN_CUDA_ARCH) && !defined(EIGEN_EXCEPTIONS) && \
     !defined(EIGEN_USE_SYCL) && !defined(EIGEN_HIP_DEVICE_COMPILE)
@@ -1276,7 +1270,7 @@ EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE constexpr void ignore_unused_variable(cons
 #define EIGEN_THROW_X(X) throw X
 #define EIGEN_THROW throw
 #define EIGEN_TRY try
-#define EIGEN_CATCH(X) catch(X)
+#define EIGEN_CATCH(X) catch (X)
 #else
 #if defined(EIGEN_CUDA_ARCH)
 #define EIGEN_THROW_X(X) asm("trap;")
@@ -1288,7 +1282,7 @@ EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE constexpr void ignore_unused_variable(cons
 #define EIGEN_THROW_X(X) std::abort()
 #define EIGEN_THROW std::abort()
 #endif
-#define EIGEN_TRY if(true)
+#define EIGEN_TRY if (true)
 #define EIGEN_CATCH(X) else
 #endif
 
@@ -1298,10 +1292,9 @@ namespace internal {
 
 EIGEN_DEVICE_FUNC inline bool all() { return true; }
 
-template<typename T, typename... Ts>
-EIGEN_DEVICE_FUNC bool all(T t, Ts... ts)
-{
-    return t && all(ts...);
+template <typename T, typename... Ts>
+EIGEN_DEVICE_FUNC bool all(T t, Ts... ts) {
+  return t && all(ts...);
 }
 
 }  // namespace internal
@@ -1325,9 +1318,9 @@ EIGEN_DEVICE_FUNC bool all(T t, Ts... ts)
 // Notice: Use this macro with caution. The code in the if body should still
 // compile with C++14.
 #if defined(EIGEN_HAS_CXX17_IFCONSTEXPR)
-#define EIGEN_IF_CONSTEXPR(X) if constexpr(X)
+#define EIGEN_IF_CONSTEXPR(X) if constexpr (X)
 #else
-#define EIGEN_IF_CONSTEXPR(X) if(X)
+#define EIGEN_IF_CONSTEXPR(X) if (X)
 #endif
 
 #endif  // EIGEN_MACROS_H

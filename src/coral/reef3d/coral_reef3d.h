@@ -36,38 +36,39 @@ Architect: Hans Bihs
 #ifndef CORAL_REEF3D_H_
 #define CORAL_REEF3D_H_
 
-#include "6DOF_external.h"
-#include <memory>
-#include <string>
-#include <vector>
+#include"6DOF_external.h"
+#include<memory>
+#include<string>
+#include<vector>
 
 class lexer;
 class ghostcell;
 class coral_fluid_sampler;
 class lagoon_particles;
 
-namespace coral {
-class coral_case;
-class coupling;
-}  // namespace coral
+namespace coral
+{
+    class coral_case;
+    class coupling;
+}
 
 class coral_reef3d : public sixdof_external
 {
 public:
-    coral_reef3d(lexer *, ghostcell *);
+    coral_reef3d(lexer*, ghostcell*);
     ~coral_reef3d();
 
     // set up at p->simtime (consistent accelerations, first output)
-    void ini(lexer *, ghostcell *);
+    void ini(lexer*, ghostcell*);
     // advance from p->simtime to p->simtime + p->dt (nothing to do when the fluid bodies already did)
-    void step(lexer *, ghostcell *);
+    void step(lexer*, ghostcell*);
     // sampling of the fluid for fluid_kinematics (set by the driver before ini, FNPF and NHFLOW)
-    void set_sampler(coral_fluid_sampler *);
+    void set_sampler(coral_fluid_sampler*);
 
     // checkpoints (P 48, I 45): the state of CORAL, the same on all ranks (that of rank 0 is written);
     // restart before ini: ini continues the outputs and takes the state instead of setting up
-    void ckpt_state(std::vector<double> &) const;
-    void restart(const std::vector<double> &);
+    void ckpt_state(std::vector<double>&) const;
+    void restart(const std::vector<double>&);
     // the time series and the journal on disk
     void flush();
 
@@ -84,12 +85,12 @@ public:
     void state(int n, double t, Eigen::Vector3d &c, Eigen::Matrix3d &R, Eigen::Vector3d &v, Eigen::Vector3d &w) override;
     // P 18: the mooring lines of coral.txt (dynamic and quasi-static) in the LAGOON store, particles/coral_mooring
     // (role "mooring", lines, the tension at the points, the line number per line), at the outputs of the bodies
-    void store_output(lexer *, double t, long long step) override;
+    void store_output(lexer*, double t, long long step) override;
 
 private:
-    void fail(const std::string &);
-    bool load_state(const std::vector<double> &);
-    void sample_kinematics(double t);  // the fluid at the points of the sampled kinematics at time t
+    void fail(const std::string&);
+    bool load_state(const std::vector<double>&);
+    void sample_kinematics(double t);   // the fluid at the points of the sampled kinematics at time t
     // several ranks: every rank advances the same model; its input from the fluid is broadcast from
     // rank 0 (bit for bit the same on all ranks), and after each step the state of the model is
     // compared over the ranks (a warning at the first difference)
@@ -106,7 +107,7 @@ private:
     std::vector<double> restart_state_;
     bool restart_ = false;
     std::unique_ptr<lagoon_particles> lagoon_mooring_;
-    bool lagoon_mooring_off_ = false;  // no mooring lines, or the store could not be written
+    bool lagoon_mooring_off_ = false;   // no mooring lines, or the store could not be written
 };
 
 #endif

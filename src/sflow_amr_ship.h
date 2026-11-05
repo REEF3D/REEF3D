@@ -23,9 +23,9 @@ Author: Hans Bihs
 #ifndef SFLOW_AMR_SHIP_H_
 #define SFLOW_AMR_SHIP_H_
 
-#include "6DOF.h"
-#include "increment.h"
-#include "slice4.h"
+#include"6DOF.h"
+#include"increment.h"
+#include"slice4.h"
 
 class lexer;
 class fdm2D;
@@ -42,31 +42,31 @@ using namespace std;
 class sflow_amr_ship final : public sixdof, public increment
 {
 public:
-    sflow_amr_ship(lexer *);
+    sflow_amr_ship(lexer*);
     virtual ~sflow_amr_ship();
 
-    void start_cfd(lexer *, fdm *, ghostcell *, int, field &, field &, field &, field &, field &, field &, bool) override final {};
-    void start_nhflow(lexer *, fdm_nhf *, ghostcell *, int, double *, double *, double *, double *, double *, double *, slice &, slice &, bool) override final {};
-    void start_sflow(lexer *, fdm2D *, ghostcell *, int, slice &, slice &, slice &, slice &, slice &, slice &, slice &, bool) override final;
-    void reforce_nhflow(lexer *, fdm_nhf *, ghostcell *, int, double *, double *, double *, double *, double *, double *, slice &, slice &, bool) override final {};
+    void start_cfd(lexer*,fdm*,ghostcell*,int,field&,field&,field&,field&,field&,field&,bool) override final {};
+    void start_nhflow(lexer*,fdm_nhf*,ghostcell*,int,double*,double*,double*,double*,double*,double*,slice&,slice&,bool) override final {};
+    void start_sflow(lexer*,fdm2D*,ghostcell*,int,slice&,slice&,slice&,slice&,slice&,slice&,slice&,bool) override final;
+    void reforce_nhflow(lexer*,fdm_nhf*,ghostcell*,int,double*,double*,double*,double*,double*,double*,slice&,slice&,bool) override final {};
 
-    void ini(lexer *, ghostcell *) override final {};
-    void initialize(lexer *, fdm *, ghostcell *) override final {};
-    void initialize(lexer *, fdm2D *, ghostcell *) override final {};
-    void initialize(lexer *, fdm_nhf *, ghostcell *) override final {};
+    void ini(lexer*,ghostcell*) override final {};
+    void initialize(lexer*, fdm*, ghostcell*) override final {};
+    void initialize(lexer*, fdm2D*, ghostcell*) override final {};
+    void initialize(lexer*, fdm_nhf*, ghostcell*) override final {};
 
-    void isource(lexer *, fdm *, ghostcell *) override final {};
-    void jsource(lexer *, fdm *, ghostcell *) override final {};
-    void ksource(lexer *, fdm *, ghostcell *) override final {};
-    void isource(lexer *, fdm_nhf *, ghostcell *, slice &) override final {};
-    void jsource(lexer *, fdm_nhf *, ghostcell *, slice &) override final {};
-    void ksource(lexer *, fdm_nhf *, ghostcell *, slice &) override final {};
+    void isource(lexer*,fdm*,ghostcell*) override final {};
+    void jsource(lexer*,fdm*,ghostcell*) override final {};
+    void ksource(lexer*,fdm*,ghostcell*) override final {};
+    void isource(lexer*,fdm_nhf*,ghostcell*,slice&) override final {};
+    void jsource(lexer*,fdm_nhf*,ghostcell*,slice&) override final {};
+    void ksource(lexer*,fdm_nhf*,ghostcell*,slice&) override final {};
 
-    void isource2D(lexer *, fdm2D *, ghostcell *) override final;
-    void jsource2D(lexer *, fdm2D *, ghostcell *) override final;
+    void isource2D(lexer*,fdm2D*,ghostcell*) override final;
+    void jsource2D(lexer*,fdm2D*,ghostcell*) override final;
 
-    double Hsolid(lexer *, slice &);
-    static double cellwidth(lexer *, int, int);
+    double Hsolid(lexer*, slice&);
+    static double cellwidth(lexer*, int, int);
 
     slice4 press, draft;
 

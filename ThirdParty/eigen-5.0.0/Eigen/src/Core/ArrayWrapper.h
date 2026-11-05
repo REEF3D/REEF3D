@@ -27,72 +27,67 @@ namespace Eigen {
  */
 
 namespace internal {
-template<typename ExpressionType>
-struct traits<ArrayWrapper<ExpressionType>> : public traits<remove_all_t<typename ExpressionType::Nested>>
-{
-    typedef ArrayXpr XprKind;
-    // Let's remove NestByRefBit
-    enum {
-        Flags0 = traits<remove_all_t<typename ExpressionType::Nested>>::Flags,
-        LvalueBitFlag = is_lvalue<ExpressionType>::value ? LvalueBit : 0,
-        Flags = (Flags0 & ~(NestByRefBit | LvalueBit)) | LvalueBitFlag
-    };
+template <typename ExpressionType>
+struct traits<ArrayWrapper<ExpressionType> > : public traits<remove_all_t<typename ExpressionType::Nested> > {
+  typedef ArrayXpr XprKind;
+  // Let's remove NestByRefBit
+  enum {
+    Flags0 = traits<remove_all_t<typename ExpressionType::Nested> >::Flags,
+    LvalueBitFlag = is_lvalue<ExpressionType>::value ? LvalueBit : 0,
+    Flags = (Flags0 & ~(NestByRefBit | LvalueBit)) | LvalueBitFlag
+  };
 };
 }  // namespace internal
 
-template<typename ExpressionType>
-class ArrayWrapper : public ArrayBase<ArrayWrapper<ExpressionType>>
-{
-public:
-    typedef ArrayBase<ArrayWrapper> Base;
-    EIGEN_DENSE_PUBLIC_INTERFACE(ArrayWrapper)
-    EIGEN_INHERIT_ASSIGNMENT_OPERATORS(ArrayWrapper)
-    typedef internal::remove_all_t<ExpressionType> NestedExpression;
+template <typename ExpressionType>
+class ArrayWrapper : public ArrayBase<ArrayWrapper<ExpressionType> > {
+ public:
+  typedef ArrayBase<ArrayWrapper> Base;
+  EIGEN_DENSE_PUBLIC_INTERFACE(ArrayWrapper)
+  EIGEN_INHERIT_ASSIGNMENT_OPERATORS(ArrayWrapper)
+  typedef internal::remove_all_t<ExpressionType> NestedExpression;
 
-    typedef std::conditional_t<internal::is_lvalue<ExpressionType>::value, Scalar, const Scalar>
-        ScalarWithConstIfNotLvalue;
+  typedef std::conditional_t<internal::is_lvalue<ExpressionType>::value, Scalar, const Scalar>
+      ScalarWithConstIfNotLvalue;
 
-    typedef typename internal::ref_selector<ExpressionType>::non_const_type NestedExpressionType;
+  typedef typename internal::ref_selector<ExpressionType>::non_const_type NestedExpressionType;
 
-    using Base::coeffRef;
+  using Base::coeffRef;
 
-    EIGEN_DEVICE_FUNC explicit EIGEN_STRONG_INLINE ArrayWrapper(ExpressionType &matrix) : m_expression(matrix) {}
+  EIGEN_DEVICE_FUNC explicit EIGEN_STRONG_INLINE ArrayWrapper(ExpressionType& matrix) : m_expression(matrix) {}
 
-    EIGEN_DEVICE_FUNC constexpr Index rows() const noexcept { return m_expression.rows(); }
-    EIGEN_DEVICE_FUNC constexpr Index cols() const noexcept { return m_expression.cols(); }
-    EIGEN_DEVICE_FUNC constexpr Index outerStride() const noexcept { return m_expression.outerStride(); }
-    EIGEN_DEVICE_FUNC constexpr Index innerStride() const noexcept { return m_expression.innerStride(); }
+  EIGEN_DEVICE_FUNC constexpr Index rows() const noexcept { return m_expression.rows(); }
+  EIGEN_DEVICE_FUNC constexpr Index cols() const noexcept { return m_expression.cols(); }
+  EIGEN_DEVICE_FUNC constexpr Index outerStride() const noexcept { return m_expression.outerStride(); }
+  EIGEN_DEVICE_FUNC constexpr Index innerStride() const noexcept { return m_expression.innerStride(); }
 
-    EIGEN_DEVICE_FUNC constexpr ScalarWithConstIfNotLvalue *data() { return m_expression.data(); }
-    EIGEN_DEVICE_FUNC constexpr const Scalar *data() const { return m_expression.data(); }
+  EIGEN_DEVICE_FUNC constexpr ScalarWithConstIfNotLvalue* data() { return m_expression.data(); }
+  EIGEN_DEVICE_FUNC constexpr const Scalar* data() const { return m_expression.data(); }
 
-    EIGEN_DEVICE_FUNC inline const Scalar &coeffRef(Index rowId, Index colId) const
-    {
-        return m_expression.coeffRef(rowId, colId);
-    }
+  EIGEN_DEVICE_FUNC inline const Scalar& coeffRef(Index rowId, Index colId) const {
+    return m_expression.coeffRef(rowId, colId);
+  }
 
-    EIGEN_DEVICE_FUNC inline const Scalar &coeffRef(Index index) const { return m_expression.coeffRef(index); }
+  EIGEN_DEVICE_FUNC inline const Scalar& coeffRef(Index index) const { return m_expression.coeffRef(index); }
 
-    template<typename Dest>
-    EIGEN_DEVICE_FUNC inline void evalTo(Dest &dst) const
-    {
-        dst = m_expression;
-    }
+  template <typename Dest>
+  EIGEN_DEVICE_FUNC inline void evalTo(Dest& dst) const {
+    dst = m_expression;
+  }
 
-    EIGEN_DEVICE_FUNC const internal::remove_all_t<NestedExpressionType> &nestedExpression() const
-    {
-        return m_expression;
-    }
+  EIGEN_DEVICE_FUNC const internal::remove_all_t<NestedExpressionType>& nestedExpression() const {
+    return m_expression;
+  }
 
-    /** Forwards the resizing request to the nested expression
-     * \sa DenseBase::resize(Index)  */
-    EIGEN_DEVICE_FUNC void resize(Index newSize) { m_expression.resize(newSize); }
-    /** Forwards the resizing request to the nested expression
-     * \sa DenseBase::resize(Index,Index)*/
-    EIGEN_DEVICE_FUNC void resize(Index rows, Index cols) { m_expression.resize(rows, cols); }
+  /** Forwards the resizing request to the nested expression
+   * \sa DenseBase::resize(Index)  */
+  EIGEN_DEVICE_FUNC void resize(Index newSize) { m_expression.resize(newSize); }
+  /** Forwards the resizing request to the nested expression
+   * \sa DenseBase::resize(Index,Index)*/
+  EIGEN_DEVICE_FUNC void resize(Index rows, Index cols) { m_expression.resize(rows, cols); }
 
-protected:
-    NestedExpressionType m_expression;
+ protected:
+  NestedExpressionType m_expression;
 };
 
 /** \class MatrixWrapper
@@ -107,66 +102,62 @@ protected:
  */
 
 namespace internal {
-template<typename ExpressionType>
-struct traits<MatrixWrapper<ExpressionType>> : public traits<remove_all_t<typename ExpressionType::Nested>>
-{
-    typedef MatrixXpr XprKind;
-    // Let's remove NestByRefBit
-    enum {
-        Flags0 = traits<remove_all_t<typename ExpressionType::Nested>>::Flags,
-        LvalueBitFlag = is_lvalue<ExpressionType>::value ? LvalueBit : 0,
-        Flags = (Flags0 & ~(NestByRefBit | LvalueBit)) | LvalueBitFlag
-    };
+template <typename ExpressionType>
+struct traits<MatrixWrapper<ExpressionType> > : public traits<remove_all_t<typename ExpressionType::Nested> > {
+  typedef MatrixXpr XprKind;
+  // Let's remove NestByRefBit
+  enum {
+    Flags0 = traits<remove_all_t<typename ExpressionType::Nested> >::Flags,
+    LvalueBitFlag = is_lvalue<ExpressionType>::value ? LvalueBit : 0,
+    Flags = (Flags0 & ~(NestByRefBit | LvalueBit)) | LvalueBitFlag
+  };
 };
 }  // namespace internal
 
-template<typename ExpressionType>
-class MatrixWrapper : public MatrixBase<MatrixWrapper<ExpressionType>>
-{
-public:
-    typedef MatrixBase<MatrixWrapper<ExpressionType>> Base;
-    EIGEN_DENSE_PUBLIC_INTERFACE(MatrixWrapper)
-    EIGEN_INHERIT_ASSIGNMENT_OPERATORS(MatrixWrapper)
-    typedef internal::remove_all_t<ExpressionType> NestedExpression;
+template <typename ExpressionType>
+class MatrixWrapper : public MatrixBase<MatrixWrapper<ExpressionType> > {
+ public:
+  typedef MatrixBase<MatrixWrapper<ExpressionType> > Base;
+  EIGEN_DENSE_PUBLIC_INTERFACE(MatrixWrapper)
+  EIGEN_INHERIT_ASSIGNMENT_OPERATORS(MatrixWrapper)
+  typedef internal::remove_all_t<ExpressionType> NestedExpression;
 
-    typedef std::conditional_t<internal::is_lvalue<ExpressionType>::value, Scalar, const Scalar>
-        ScalarWithConstIfNotLvalue;
+  typedef std::conditional_t<internal::is_lvalue<ExpressionType>::value, Scalar, const Scalar>
+      ScalarWithConstIfNotLvalue;
 
-    typedef typename internal::ref_selector<ExpressionType>::non_const_type NestedExpressionType;
+  typedef typename internal::ref_selector<ExpressionType>::non_const_type NestedExpressionType;
 
-    using Base::coeffRef;
+  using Base::coeffRef;
 
-    EIGEN_DEVICE_FUNC explicit inline MatrixWrapper(ExpressionType &matrix) : m_expression(matrix) {}
+  EIGEN_DEVICE_FUNC explicit inline MatrixWrapper(ExpressionType& matrix) : m_expression(matrix) {}
 
-    EIGEN_DEVICE_FUNC constexpr Index rows() const noexcept { return m_expression.rows(); }
-    EIGEN_DEVICE_FUNC constexpr Index cols() const noexcept { return m_expression.cols(); }
-    EIGEN_DEVICE_FUNC constexpr Index outerStride() const noexcept { return m_expression.outerStride(); }
-    EIGEN_DEVICE_FUNC constexpr Index innerStride() const noexcept { return m_expression.innerStride(); }
+  EIGEN_DEVICE_FUNC constexpr Index rows() const noexcept { return m_expression.rows(); }
+  EIGEN_DEVICE_FUNC constexpr Index cols() const noexcept { return m_expression.cols(); }
+  EIGEN_DEVICE_FUNC constexpr Index outerStride() const noexcept { return m_expression.outerStride(); }
+  EIGEN_DEVICE_FUNC constexpr Index innerStride() const noexcept { return m_expression.innerStride(); }
 
-    EIGEN_DEVICE_FUNC constexpr ScalarWithConstIfNotLvalue *data() { return m_expression.data(); }
-    EIGEN_DEVICE_FUNC constexpr const Scalar *data() const { return m_expression.data(); }
+  EIGEN_DEVICE_FUNC constexpr ScalarWithConstIfNotLvalue* data() { return m_expression.data(); }
+  EIGEN_DEVICE_FUNC constexpr const Scalar* data() const { return m_expression.data(); }
 
-    EIGEN_DEVICE_FUNC inline const Scalar &coeffRef(Index rowId, Index colId) const
-    {
-        return m_expression.derived().coeffRef(rowId, colId);
-    }
+  EIGEN_DEVICE_FUNC inline const Scalar& coeffRef(Index rowId, Index colId) const {
+    return m_expression.derived().coeffRef(rowId, colId);
+  }
 
-    EIGEN_DEVICE_FUNC inline const Scalar &coeffRef(Index index) const { return m_expression.coeffRef(index); }
+  EIGEN_DEVICE_FUNC inline const Scalar& coeffRef(Index index) const { return m_expression.coeffRef(index); }
 
-    EIGEN_DEVICE_FUNC const internal::remove_all_t<NestedExpressionType> &nestedExpression() const
-    {
-        return m_expression;
-    }
+  EIGEN_DEVICE_FUNC const internal::remove_all_t<NestedExpressionType>& nestedExpression() const {
+    return m_expression;
+  }
 
-    /** Forwards the resizing request to the nested expression
-     * \sa DenseBase::resize(Index)  */
-    EIGEN_DEVICE_FUNC void resize(Index newSize) { m_expression.resize(newSize); }
-    /** Forwards the resizing request to the nested expression
-     * \sa DenseBase::resize(Index,Index)*/
-    EIGEN_DEVICE_FUNC void resize(Index rows, Index cols) { m_expression.resize(rows, cols); }
+  /** Forwards the resizing request to the nested expression
+   * \sa DenseBase::resize(Index)  */
+  EIGEN_DEVICE_FUNC void resize(Index newSize) { m_expression.resize(newSize); }
+  /** Forwards the resizing request to the nested expression
+   * \sa DenseBase::resize(Index,Index)*/
+  EIGEN_DEVICE_FUNC void resize(Index rows, Index cols) { m_expression.resize(rows, cols); }
 
-protected:
-    NestedExpressionType m_expression;
+ protected:
+  NestedExpressionType m_expression;
 };
 
 }  // end namespace Eigen

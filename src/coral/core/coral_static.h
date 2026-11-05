@@ -32,27 +32,28 @@ Architect: Hans Bihs
 #ifndef CORAL_STATIC_H_
 #define CORAL_STATIC_H_
 
-#include "coral/core/coral_types.h"
+#include"coral/core/coral_types.h"
 
-namespace coral {
-class model;
-
-struct static_settings
+namespace coral
 {
-    int max_iter = 60;
-    double tol = 1.0e-9;  // increments of positions and rotations <= tol (1 + max |x|)
-    double fd_eps = 1.0e-7;
-    int dense_max = 400;  // dense LU up to this many unknowns, sparse LU above
-};
+    class model;
 
-struct static_result
-{
-    bool converged = false;
-    int iterations = 0;
-    double residual = 0.0;  // max |r| of the force rows at the end
-};
+    struct static_settings
+    {
+        int max_iter = 60;
+        double tol = 1.0e-9;        // increments of positions and rotations <= tol (1 + max |x|)
+        double fd_eps = 1.0e-7;
+        int dense_max = 400;        // dense LU up to this many unknowns, sparse LU above
+    };
 
-static_result static_solve(model &, double t, const static_settings & = static_settings());
-}  // namespace coral
+    struct static_result
+    {
+        bool converged = false;
+        int iterations = 0;
+        double residual = 0.0;      // max |r| of the force rows at the end
+    };
+
+    static_result static_solve(model&, double t, const static_settings& = static_settings());
+}
 
 #endif

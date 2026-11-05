@@ -23,11 +23,12 @@ Architect: Hans Bihs
 #ifndef CORAL_PTO_CONTROLLER_H_
 #define CORAL_PTO_CONTROLLER_H_
 
-#include "coral/pto/coral_pto_element.h"
-#include <string>
-#include <vector>
+#include"coral/pto/coral_pto_element.h"
+#include<string>
+#include<vector>
 
-namespace coral {
+namespace coral
+{
 
 // PTO controllers: called once per time step with the accepted state at t^n (before the
 // PTO force of that step), they act on the composite through set_param() and its gain.
@@ -41,19 +42,19 @@ namespace coral {
 
 struct pto_ctrl_in
 {
-    double t = 0.0, q = 0.0, qd = 0.0;
+    double t=0.0, q=0.0, qd=0.0;
 };
 
 class pto_controller
 {
 public:
     virtual ~pto_controller() = default;
-    virtual void update(const pto_ctrl_in &, pto_composite &) = 0;
-    virtual const char *name() const = 0;
-    virtual double state() const { return 0.0; }
+    virtual void update(const pto_ctrl_in&, pto_composite&) = 0;
+    virtual const char* name() const = 0;
+    virtual double state() const {return 0.0;}
     // restart from a checkpoint
-    virtual void save_state(std::vector<double> &) const {}
-    virtual void load_state(const std::vector<double> &, size_t &) {}
+    virtual void save_state(std::vector<double>&) const {}
+    virtual void load_state(const std::vector<double>&, size_t&) {}
 };
 
 // sign change of qd between successive calls (zeros of qd are skipped, not counted); the time
@@ -63,59 +64,31 @@ class pto_zero_crossing
 {
 public:
     bool detect(double t, double qd);
-    void reset() { sref = 0; }
-    double t_cross = 0.0;
-    void save_state(std::vector<double> &v) const
-    {
-        for(double x : {double(sref), t_last, qd_last, t_cross})
-            v.push_back(x);
-    }
+    void reset() {sref=0;}
+    double t_cross=0.0;
+    void save_state(std::vector<double> &v) const {for(double x : {double(sref), t_last, qd_last, t_cross}) v.push_back(x);}
     void load_state(const std::vector<double> &v, size_t &k)
-    {
-        if(k + 4 > v.size())
-        {
-            k = v.size();
-            return;
-        }
-        sref = int(v[k++]);
-        t_last = v[k++];
-        qd_last = v[k++];
-        t_cross = v[k++];
-    }
+    {if(k+4>v.size()) {k = v.size(); return;} sref = int(v[k++]); t_last = v[k++]; qd_last = v[k++]; t_cross = v[k++];}
 
 private:
-    int sref = 0;
-    double t_last = 0.0, qd_last = 0.0;
+    int sref=0;
+    double t_last=0.0, qd_last=0.0;
 };
 
 class pto_ctrl_latching : public pto_controller
 {
 public:
     pto_ctrl_latching(double);
-    void update(const pto_ctrl_in &, pto_composite &) override;
-    const char *name() const override { return "latching"; }
-    double state() const override { return latched ? 1.0 : 0.0; }
-    void save_state(std::vector<double> &v) const override
-    {
-        v.push_back(t_release);
-        v.push_back(latched ? 1.0 : 0.0);
-        zc.save_state(v);
-    }
+    void update(const pto_ctrl_in&, pto_composite&) override;
+    const char* name() const override {return "latching";}
+    double state() const override {return latched ? 1.0 : 0.0;}
+    void save_state(std::vector<double> &v) const override {v.push_back(t_release); v.push_back(latched ? 1.0 : 0.0); zc.save_state(v);}
     void load_state(const std::vector<double> &v, size_t &k) override
-    {
-        if(k + 2 > v.size())
-        {
-            k = v.size();
-            return;
-        }
-        t_release = v[k++];
-        latched = v[k++] > 0.5;
-        zc.load_state(v, k);
-    }
+    {if(k+2>v.size()) {k = v.size(); return;} t_release = v[k++]; latched = v[k++]>0.5; zc.load_state(v,k);}
 
 private:
-    double t_hold, t_release = 0.0;
-    bool latched = false;
+    double t_hold, t_release=0.0;
+    bool latched=false;
     pto_zero_crossing zc;
 };
 
@@ -123,30 +96,16 @@ class pto_ctrl_declutching : public pto_controller
 {
 public:
     pto_ctrl_declutching(double);
-    void update(const pto_ctrl_in &, pto_composite &) override;
-    const char *name() const override { return "declutching"; }
-    double state() const override { return off ? 1.0 : 0.0; }
-    void save_state(std::vector<double> &v) const override
-    {
-        v.push_back(t_on);
-        v.push_back(off ? 1.0 : 0.0);
-        zc.save_state(v);
-    }
+    void update(const pto_ctrl_in&, pto_composite&) override;
+    const char* name() const override {return "declutching";}
+    double state() const override {return off ? 1.0 : 0.0;}
+    void save_state(std::vector<double> &v) const override {v.push_back(t_on); v.push_back(off ? 1.0 : 0.0); zc.save_state(v);}
     void load_state(const std::vector<double> &v, size_t &k) override
-    {
-        if(k + 2 > v.size())
-        {
-            k = v.size();
-            return;
-        }
-        t_on = v[k++];
-        off = v[k++] > 0.5;
-        zc.load_state(v, k);
-    }
+    {if(k+2>v.size()) {k = v.size(); return;} t_on = v[k++]; off = v[k++]>0.5; zc.load_state(v,k);}
 
 private:
-    double t_off, t_on = 0.0;
-    bool off = false;
+    double t_off, t_on=0.0;
+    bool off=false;
     pto_zero_crossing zc;
 };
 
@@ -155,22 +114,22 @@ private:
 class pto_hydro_table
 {
 public:
-    bool read(const std::string &);
+    bool read(const std::string&);
     double A(double) const;
     double B(double) const;
-    double wmin() const { return w_.empty() ? 0.0 : w_.front(); }
-    double wmax() const { return w_.empty() ? 0.0 : w_.back(); }
-    int size() const { return int(w_.size()); }
+    double wmin() const {return w_.empty() ? 0.0 : w_.front();}
+    double wmax() const {return w_.empty() ? 0.0 : w_.back();}
+    int size() const {return int(w_.size());}
 
 private:
-    double interp(const std::vector<double> &, double) const;
+    double interp(const std::vector<double>&, double) const;
     std::vector<double> w_, A_, B_;
 };
 
 // optimal passive damping of a single-DOF absorber at the frequency w; with a linear drive-train
 // loss Bloss in parallel the generator power B |v|^2 is largest at sqrt((Brad + Bloss)^2 + X^2)
-double pto_bopt(double w, double m, double A, double Brad, double C, double Bloss = 0.0);
+double pto_bopt(double w, double m, double A, double Brad, double C, double Bloss=0.0);
 
-}  // namespace coral
+}
 
 #endif

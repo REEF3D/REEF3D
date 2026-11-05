@@ -20,37 +20,37 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "sflow_state.h"
-#include "fdm2D.h"
-#include "ghostcell.h"
-#include "lexer.h"
-#include <fstream>
-#include <iostream>
-#include <sys/stat.h>
-#include <sys/types.h>
+#include"sflow_state.h"
+#include"lexer.h"
+#include"fdm2D.h"
+#include"ghostcell.h"
+#include<iostream>
+#include<fstream>
+#include<sys/stat.h>
+#include<sys/types.h>
 
 sflow_state::sflow_state(lexer *p, fdm2D *b, ghostcell *pgc, int state_restart)
-{
-    restart = state_restart;
-
-    // Create Folder
-    if(p->mpirank == 0 && restart == 0)
-        mkdir("./REEF3D_SFLOW_STATE", 0777);
-
-    if(p->mpirank == 0 && restart == 1)
-        mkdir("./REEF3D_SFLOW_STATE_RESTART", 0777);
-
-    printcount = 0;
-
-    file_version = 2;
-
-    file_type = p->P44;
-
-    file_conti = p->P45;
-
-    ini_token = 0;
-
-    boundary(p, b, pgc, restart);
+{	
+    restart=state_restart;
+    
+	// Create Folder
+	if(p->mpirank==0 && restart==0)
+	mkdir("./REEF3D_SFLOW_STATE",0777);
+    
+    if(p->mpirank==0 && restart==1)
+	mkdir("./REEF3D_SFLOW_STATE_RESTART",0777);
+	
+	printcount=0;
+    
+    file_version=2;
+    
+    file_type=p->P44;
+    
+    file_conti=p->P45;
+    
+    ini_token=0;
+    
+    boundary(p,b,pgc,restart);
 }
 
 sflow_state::~sflow_state()
@@ -61,21 +61,22 @@ sflow_state::~sflow_state()
 void sflow_state::write(lexer *p, fdm2D *c, ghostcell *pgc)
 {
     // header file
-    if(ini_token == 0)
+    if(ini_token==0)
     {
-        if(p->mpirank == 0)
-            ini_mainheader(p, c, pgc);
-
-        if(flag == 1)
-            write_header(p, c, pgc);
-
-        ini_token = 1;
+    if(p->mpirank==0)
+    ini_mainheader(p,c,pgc);
+    
+    if(flag==1) 
+    write_header(p,c,pgc);
+    
+    ini_token=1;
     }
-
-    if(p->mpirank == 0)
-        write_mainheader(p, c, pgc);
-
+    
+    if(p->mpirank==0)
+    write_mainheader(p,c,pgc);
+    
+    
     // result file
-    if(flag == 1)
-        write_result(p, c, pgc);
+    if(flag==1)
+    write_result(p,c,pgc);
 }

@@ -20,12 +20,13 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
+
 #ifndef SEASTATE_ROLLER_H_
 #define SEASTATE_ROLLER_H_
 
-#include "increment.h"
-#include "slice4.h"
-#include <vector>
+#include"increment.h"
+#include"slice4.h"
+#include<vector>
 
 class lexer;
 class ghostcell;
@@ -70,23 +71,23 @@ in the dissipation force.
 class seastate_roller : public increment
 {
 public:
-    seastate_roller(lexer *, fdm_seastate *, double beta);
+    seastate_roller(lexer*, fdm_seastate*, double beta);
     virtual ~seastate_roller();
 
     // one step of length dt after the wave step; src: the wave model's source terms (breaking)
-    void step(lexer *, ghostcell *, fdm_seastate *, seastate_source *src, double dt, int iterations);
+    void step(lexer*, ghostcell*, fdm_seastate*, seastate_source *src, double dt, int iterations);
 
     // roller energy per direction of cell (i,j) [m^2/rad], nullptr: no storage
     const float *spec(int i, int j) const;
 
     // phase speed of cell (i,j)
-    static double celerity(fdm_seastate *, int i, int j);
+    static double celerity(fdm_seastate*, int i, int j);
 
     slice4 R, Dr, Dw;
     const double beta;
 
 private:
-    void sweep(lexer *, fdm_seastate *, int q, double rdt);
+    void sweep(lexer*, fdm_seastate*, int q, double rdt);
 
     seastate_store *Rt, *R0, *Sw;
     seastate_exchange *pex;

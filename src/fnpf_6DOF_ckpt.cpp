@@ -30,42 +30,42 @@ Author: Hans Bihs
 //  their arrays are read; a patch without arrays (made by the regrid at the end of the step that
 //  wrote the checkpoint) is set up after the bodies, as the next stage would have done.
 
-#include "6DOF_obj_fnpf.h"
-#include "fdm_fnpf.h"
-#include "fnpf_6DOF.h"
-#include "fnpf_amr.h"
-#include "ghostcell.h"
-#include "lexer.h"
-#include "reefamr.h"
-#include <cmath>
-#include <limits>
-#include <string>
+#include"fnpf_6DOF.h"
+#include"6DOF_obj_fnpf.h"
+#include"lexer.h"
+#include"fdm_fnpf.h"
+#include"ghostcell.h"
+#include"fnpf_amr.h"
+#include"reefamr.h"
+#include<cmath>
+#include<limits>
+#include<string>
 
 void fnpf_6DOF::grid_fields(fnpf_6DOF_grid *G, const ckpt_fd &fd, const ckpt_fi &fi)
 {
-    static const char *pn[6] = {"fb_psi_0", "fb_psi_1", "fb_psi_2", "fb_psi_3", "fb_psi_4", "fb_psi_5"};
-
-    fd("fb_psi0", 'F', G != nullptr ? G->psi0 : nullptr);
-    for(int m = 0; m < 6; ++m)
-        fd(pn[m], 'F', G != nullptr ? G->psi[m] : nullptr);
+    static const char *pn[6] = {"fb_psi_0","fb_psi_1","fb_psi_2","fb_psi_3","fb_psi_4","fb_psi_5"};
+    
+    fd("fb_psi0",'F',G!=nullptr ? G->psi0 : nullptr);
+    for(int m=0; m<6; ++m)
+    fd(pn[m],'F',G!=nullptr ? G->psi[m] : nullptr);
     // several bodies: the unit modes of the bodies 1, 2, ... (fb_psi_<body>_<mode>)
-    for(int nb = 1; nb < nbody; ++nb)
-        for(int m = 0; m < 6; ++m)
-        {
-            const size_t e = 6 * (nb - 1) + m;
-            const std::string name = "fb_psi_" + std::to_string(nb) + "_" + std::to_string(m);
-            fd(name.c_str(), 'F', (G != nullptr && G->psib.size() > e) ? G->psib[e] : nullptr);
-        }
-    fi("fb_mark", 'F', G != nullptr ? G->mark : nullptr);
-    fd("fb_foot", 'S', G != nullptr ? G->foot->V : nullptr);
-    fd("fb_psiD", 'S', G != nullptr ? G->psiD->V : nullptr);
-    fd("fb_eta_ext", 'S', G != nullptr ? G->eta_ext->V : nullptr);
-    fd("fb_fi_ext", 'S', G != nullptr ? G->fi_ext->V : nullptr);
+    for(int nb=1; nb<nbody; ++nb)
+    for(int m=0; m<6; ++m)
+    {
+        const size_t e = 6*(nb-1)+m;
+        const std::string name = "fb_psi_"+std::to_string(nb)+"_"+std::to_string(m);
+        fd(name.c_str(),'F',(G!=nullptr && G->psib.size()>e) ? G->psib[e] : nullptr);
+    }
+    fi("fb_mark",'F',G!=nullptr ? G->mark : nullptr);
+    fd("fb_foot",'S',G!=nullptr ? G->foot->V : nullptr);
+    fd("fb_psiD",'S',G!=nullptr ? G->psiD->V : nullptr);
+    fd("fb_eta_ext",'S',G!=nullptr ? G->eta_ext->V : nullptr);
+    fd("fb_fi_ext",'S',G!=nullptr ? G->fi_ext->V : nullptr);
 }
 
 void fnpf_6DOF::ckpt_fields(const ckpt_fd &fd, const ckpt_fi &fi)
 {
-    grid_fields(&g0, fd, fi);
+    grid_fields(&g0,fd,fi);
 }
 
 void fnpf_6DOF::amr_ckpt_fields(lexer *pp, const ckpt_fd &fd, const ckpt_fi &fi)
@@ -73,18 +73,18 @@ void fnpf_6DOF::amr_ckpt_fields(lexer *pp, const ckpt_fd &fd, const ckpt_fi &fi)
     // the grid of the patch by its serial number (the grids may still be those of the layout before
     // the last regrid); on a restart the grids made for the patches of the checkpoint
     fnpf_6DOF_grid *G = nullptr;
-
-    if(amr != nullptr)
-        for(int n = 0; n < amr->patches(); ++n)
-            if(amr->patch_lexer(n) == pp)
-            {
-                const int serial = amr->patch_serial(n);
-                for(auto &g : gp)
-                    if(g.serial == serial && (ckpt_grids || !g.fresh))
-                        G = &g;
-            }
-
-    grid_fields(G, fd, fi);
+    
+    if(amr!=nullptr)
+    for(int n=0; n<amr->patches(); ++n)
+    if(amr->patch_lexer(n)==pp)
+    {
+        const int serial = amr->patch_serial(n);
+        for(auto &g : gp)
+        if(g.serial==serial && (ckpt_grids || !g.fresh))
+        G = &g;
+    }
+    
+    grid_fields(G,fd,fi);
 }
 
 void fnpf_6DOF::amr_ckpt_grids(lexer *p, ghostcell *pgc)
@@ -93,83 +93,83 @@ void fnpf_6DOF::amr_ckpt_grids(lexer *p, ghostcell *pgc)
     // marks the grids whose arrays do not come
     ckpt_grids = true;
     amr_layout = -1;
-    amr_grids(p, pgc);
+    amr_grids(p,pgc);
 
     // X 36: the unit modes of the bodies 1, 2, ... live on the patches of their windows only (allocated
     // at their first solve); their arrays for the checkpoint's values on the patches that reach into
     // the zone of the body grown by its margin once more (a superset of the windows of the run; the
     // others stay unallocated)
-    if(p->X36 >= 1 && p->G12 > 0 && p->G7 != 1 && nbody > 1 && amr != nullptr)
-        for(auto &G : gp)
+    if(p->X36>=1 && p->G12>0 && p->G7!=1 && nbody>1 && amr!=nullptr)
+    for(auto &G : gp)
+    {
+        double x0,x1,y0,y1;
+        amr->patch_box(G.id,x0,x1,y0,y1);
+        for(int nb=1; nb<nbody; ++nb)
         {
-            double x0, x1, y0, y1;
-            amr->patch_box(G.id, x0, x1, y0, y1);
-            for(int nb = 1; nb < nbody; ++nb)
-            {
-                double a0, a1, b0, b1;
-                if(!amr->zone_box(nb, a0, a1, b0, b1))
-                    continue;
-                const double g = p->G12_r;
-                if(x0 < a1 + g && x1 > a0 - g && (p->j_dir == 0 || (y0 < b1 + g && y1 > b0 - g)))
-                    for(int m = 0; m < 6; ++m)
-                        if(psi[m] != nullptr && !fb_obj[nb]->dof_fixed_fnpf(p, m))
-                            mode_array(G, nb, m);
-            }
+            double a0,a1,b0,b1;
+            if(!amr->zone_box(nb,a0,a1,b0,b1))
+            continue;
+            const double g = p->G12_r;
+            if(x0<a1+g && x1>a0-g && (p->j_dir==0 || (y0<b1+g && y1>b0-g)))
+            for(int m=0; m<6; ++m)
+            if(psi[m]!=nullptr && !fb_obj[nb]->dof_fixed_fnpf(p,m))
+            mode_array(G,nb,m);
         }
-
+    }
+    
     for(auto &G : gp)
     {
         lexer *pp = G.p;
         const double nan = std::numeric_limits<double>::quiet_NaN();
-        const int n = pp->imax * pp->jmax;
-        for(int q = 0; q < n; ++q)
-            G.eta_ext->V[q] = nan;
+        const int n = pp->imax*pp->jmax;
+        for(int q=0; q<n; ++q)
+        G.eta_ext->V[q] = nan;
     }
 }
 
 void fnpf_6DOF::ckpt_state(lexer *p, std::vector<double> &v)
 {
-    v.push_back(3.0);  // version (2: with the added mass of X 28; 3: with the calibration of X 36 1)
+    v.push_back(3.0);   // version (2: with the added mass of X 28; 3: with the calibration of X 36 1)
     v.push_back(double(nbody));
-
-    for(int nb = 0; nb < nbody; ++nb)
+    
+    for(int nb=0; nb<nbody; ++nb)
     {
         std::vector<double> s;
-        fb_obj[nb]->ckpt_state(p, s);
+        fb_obj[nb]->ckpt_state(p,s);
         v.push_back(double(s.size()));
-        v.insert(v.end(), s.begin(), s.end());
-
+        v.insert(v.end(),s.begin(),s.end());
+        
         s.clear();
         fb_obj[nb]->ckpt_fnpf_state(s);
         v.push_back(double(s.size()));
-        v.insert(v.end(), s.begin(), s.end());
+        v.insert(v.end(),s.begin(),s.end());
     }
-
+    
     v.push_back(double(g0.footcount));
     v.push_back(g0.ext_ini ? 1.0 : 0.0);
 
     // version 2, X 28: the step and the poses of the last added mass, the added mass of every body and
     // the cross terms (a restart continues with them until the next one is due, as the run would)
-    const bool am = (am_count >= 0 && (int)am_c.size() == nbody);
+    const bool am = (am_count>=0 && (int)am_c.size()==nbody);
     v.push_back(am ? double(am_count) : -1.0);
     if(am)
     {
-        for(int nb = 0; nb < nbody; ++nb)
+        for(int nb=0; nb<nbody; ++nb)
         {
-            for(int d = 0; d < 3; ++d)
-                v.push_back(am_c[nb](d));
-            for(int d = 0; d < 3; ++d)
-                v.push_back(am_ang[nb](d));
-            const Eigen::Matrix<double, 6, 6> &A = fb_obj[nb]->external_added_mass();
+            for(int d=0; d<3; ++d)
+            v.push_back(am_c[nb](d));
+            for(int d=0; d<3; ++d)
+            v.push_back(am_ang[nb](d));
+            const Eigen::Matrix<double,6,6> &A = fb_obj[nb]->external_added_mass();
             v.push_back(fb_obj[nb]->external_added_mass_on() ? 1.0 : 0.0);
-            for(int a = 0; a < 6; ++a)
-                for(int b = 0; b < 6; ++b)
-                    v.push_back(A(a, b));
+            for(int a=0; a<6; ++a)
+            for(int b=0; b<6; ++b)
+            v.push_back(A(a,b));
         }
         for(const auto &A : Across)
-            for(int a = 0; a < 6; ++a)
-                for(int b = 0; b < 6; ++b)
-                    v.push_back(A(a, b));
+        for(int a=0; a<6; ++a)
+        for(int b=0; b<6; ++b)
+        v.push_back(A(a,b));
     }
 
     // version 3, X 36 1: the calibration of the windows (the differences to the solves on all grids, when
@@ -181,78 +181,77 @@ void fnpf_6DOF::ckpt_state(lexer *p, std::vector<double> &v)
     if(cal_have)
     {
         for(const auto &A : cal_dA)
-            for(int a = 0; a < 6; ++a)
-                for(int b = 0; b < 6; ++b)
-                    v.push_back(A(a, b));
+        for(int a=0; a<6; ++a)
+        for(int b=0; b<6; ++b)
+        v.push_back(A(a,b));
         for(const auto &A : cal_dC)
-            for(int a = 0; a < 6; ++a)
-                for(int b = 0; b < 6; ++b)
-                    v.push_back(A(a, b));
+        for(int a=0; a<6; ++a)
+        for(int b=0; b<6; ++b)
+        v.push_back(A(a,b));
     }
 }
 
 bool fnpf_6DOF::ckpt_restore(lexer *p, ghostcell *pgc, const std::vector<double> &v)
 {
-    size_t k = 0;
-    auto next = [&]()
-    { return k < v.size() ? v[k++] : -1.0; };
-
+    size_t k=0;
+    auto next = [&](){ return k<v.size() ? v[k++] : -1.0; };
+    
     const int version = int(next());
-    if(version < 1 || version > 3 || int(next()) != nbody)
-        return false;
-
-    for(int nb = 0; nb < nbody; ++nb)
+    if(version<1 || version>3 || int(next())!=nbody)
+    return false;
+    
+    for(int nb=0; nb<nbody; ++nb)
     {
         size_t n = size_t(next());
-        if(k + n > v.size() || !fb_obj[nb]->ckpt_restore(p, pgc, std::vector<double>(v.begin() + k, v.begin() + k + n)))
-            return false;
+        if(k+n>v.size() || !fb_obj[nb]->ckpt_restore(p,pgc,std::vector<double>(v.begin()+k,v.begin()+k+n)))
+        return false;
         k += n;
-
+        
         n = size_t(next());
-        if(k + n > v.size() || !fb_obj[nb]->ckpt_fnpf_restore(std::vector<double>(v.begin() + k, v.begin() + k + n)))
-            return false;
+        if(k+n>v.size() || !fb_obj[nb]->ckpt_fnpf_restore(std::vector<double>(v.begin()+k,v.begin()+k+n)))
+        return false;
         k += n;
     }
-
-    if(k + 2 > v.size())
-        return false;
+    
+    if(k+2>v.size())
+    return false;
     g0.footcount = int(next());
-    g0.ext_ini = next() > 0.5;
+    g0.ext_ini = next()>0.5;
 
     // version 2: the added mass of X 28 (version 1: computed at the first step)
     am_count = -1;
     am_c.clear();
     am_ang.clear();
-    if(version >= 2)
+    if(version>=2)
     {
-        if(k + 1 > v.size())
-            return false;
+        if(k+1>v.size())
+        return false;
         const int cnt = int(next());
-        if(cnt >= 0)
+        if(cnt>=0)
         {
-            const size_t need = size_t(nbody) * (6 + 1 + 36) + Across.size() * 36;
-            if(k + need > v.size())
-                return false;
-            am_c.assign(nbody, Eigen::Vector3d::Zero());
-            am_ang.assign(nbody, Eigen::Vector3d::Zero());
-            for(int nb = 0; nb < nbody; ++nb)
+            const size_t need = size_t(nbody)*(6+1+36) + Across.size()*36;
+            if(k+need>v.size())
+            return false;
+            am_c.assign(nbody,Eigen::Vector3d::Zero());
+            am_ang.assign(nbody,Eigen::Vector3d::Zero());
+            for(int nb=0; nb<nbody; ++nb)
             {
-                for(int d = 0; d < 3; ++d)
-                    am_c[nb](d) = next();
-                for(int d = 0; d < 3; ++d)
-                    am_ang[nb](d) = next();
-                const bool on = next() > 0.5;
-                Eigen::Matrix<double, 6, 6> A;
-                for(int a = 0; a < 6; ++a)
-                    for(int b = 0; b < 6; ++b)
-                        A(a, b) = next();
+                for(int d=0; d<3; ++d)
+                am_c[nb](d) = next();
+                for(int d=0; d<3; ++d)
+                am_ang[nb](d) = next();
+                const bool on = next()>0.5;
+                Eigen::Matrix<double,6,6> A;
+                for(int a=0; a<6; ++a)
+                for(int b=0; b<6; ++b)
+                A(a,b) = next();
                 if(on)
-                    fb_obj[nb]->fnpf_added_mass_restore(A);
+                fb_obj[nb]->fnpf_added_mass_restore(A);
             }
             for(auto &A : Across)
-                for(int a = 0; a < 6; ++a)
-                    for(int b = 0; b < 6; ++b)
-                        A(a, b) = next();
+            for(int a=0; a<6; ++a)
+            for(int b=0; b<6; ++b)
+            A(a,b) = next();
             am_count = cnt;
         }
     }
@@ -263,34 +262,34 @@ bool fnpf_6DOF::ckpt_restore(lexer *p, ghostcell *pgc, const std::vector<double>
     cal_refresh = -1;
     cal_dA.clear();
     cal_dC.clear();
-    if(version >= 3)
+    if(version>=3)
     {
-        if(k + 4 > v.size())
-            return false;
-        cal_have = next() > 0.5;
-        cal_stale = next() > 0.5;
+        if(k+4>v.size())
+        return false;
+        cal_have = next()>0.5;
+        cal_stale = next()>0.5;
         am_refreshes = int(next());
         cal_refresh = int(next());
         if(cal_have)
         {
-            const size_t need = 36 * (size_t(nbody) + size_t(nbody) * nbody);
-            if(k + need > v.size())
-                return false;
-            cal_dA.assign(nbody, Eigen::Matrix<double, 6, 6>::Zero());
-            cal_dC.assign(nbody * nbody, Eigen::Matrix<double, 6, 6>::Zero());
+            const size_t need = 36*(size_t(nbody) + size_t(nbody)*nbody);
+            if(k+need>v.size())
+            return false;
+            cal_dA.assign(nbody,Eigen::Matrix<double,6,6>::Zero());
+            cal_dC.assign(nbody*nbody,Eigen::Matrix<double,6,6>::Zero());
             for(auto &A : cal_dA)
-                for(int a = 0; a < 6; ++a)
-                    for(int b = 0; b < 6; ++b)
-                        A(a, b) = next();
+            for(int a=0; a<6; ++a)
+            for(int b=0; b<6; ++b)
+            A(a,b) = next();
             for(auto &A : cal_dC)
-                for(int a = 0; a < 6; ++a)
-                    for(int b = 0; b < 6; ++b)
-                        A(a, b) = next();
+            for(int a=0; a<6; ++a)
+            for(int b=0; b<6; ++b)
+            A(a,b) = next();
         }
     }
 
     initialized = true;
-
+    
     // the body grids of the patches: those with the arrays of the checkpoint as they were, the
     // others set up at the restored pose
     if(ckpt_grids)
@@ -302,33 +301,33 @@ bool fnpf_6DOF::ckpt_restore(lexer *p, ghostcell *pgc, const std::vector<double>
             slice4 &eta_ext = *G.eta_ext;
             bool got = false;
             int count = 0;
-
+            
             SLICELOOP4
             {
-                if(!std::isnan(eta_ext(i, j)))
-                    got = true;
-
-                if(foot(i, j) > 0.5)
-                    ++count;
+            if(!std::isnan(eta_ext(i,j)))
+            got = true;
+            
+            if(foot(i,j)>0.5)
+            ++count;
             }
-
+            
             if(got)
             {
                 G.fresh = false;
                 G.ext_ini = true;
                 G.footcount = count;
             }
-
-            const int n = p->imax * p->jmax;
-            for(int q = 0; q < n; ++q)
-                if(std::isnan(eta_ext.V[q]))
-                    eta_ext.V[q] = 0.0;
+            
+            const int n = p->imax*p->jmax;
+            for(int q=0; q<n; ++q)
+            if(std::isnan(eta_ext.V[q]))
+            eta_ext.V[q] = 0.0;
         }
-
+        
         ckpt_grids = false;
         amr_fresh(pgc);
     }
-
+    
     return true;
 }
 
@@ -336,32 +335,32 @@ bool fnpf_6DOF::ckpt_restore(lexer *p, ghostcell *pgc, const std::vector<double>
 void fnpf_6DOF::ckpt_rank_state(std::vector<double> &v)
 {
     v.push_back(double(nbody));
-    for(int nb = 0; nb < nbody; ++nb)
+    for(int nb=0; nb<nbody; ++nb)
     {
         std::vector<double> s;
         fb_obj[nb]->ckpt_fnpf_rank_state(s);
         v.push_back(double(s.size()));
-        v.insert(v.end(), s.begin(), s.end());
+        v.insert(v.end(),s.begin(),s.end());
     }
 }
 
 void fnpf_6DOF::ckpt_rank_restore(const std::vector<std::vector<double>> &all)
 {
-    for(int nb = 0; nb < nbody; ++nb)
+    for(int nb=0; nb<nbody; ++nb)
     {
         std::vector<std::vector<double>> parts;
         for(const std::vector<double> &v : all)
         {
-            size_t k = 0;
-            if(v.empty() || int(v[k++]) != nbody)
-                continue;
-            for(int q = 0; q <= nb && k < v.size(); ++q)
+            size_t k=0;
+            if(v.empty() || int(v[k++])!=nbody)
+            continue;
+            for(int q=0; q<=nb && k<v.size(); ++q)
             {
                 const size_t n = size_t(v[k++]);
-                if(k + n > v.size())
-                    break;
-                if(q == nb)
-                    parts.push_back(std::vector<double>(v.begin() + k, v.begin() + k + n));
+                if(k+n>v.size())
+                break;
+                if(q==nb)
+                parts.push_back(std::vector<double>(v.begin()+k,v.begin()+k+n));
                 k += n;
             }
         }

@@ -23,7 +23,7 @@ Architect: Hans Bihs
 #ifndef SEDIMENT_INFLOW_H_
 #define SEDIMENT_INFLOW_H_
 
-#include <vector>
+#include<vector>
 
 class lexer;
 
@@ -51,19 +51,19 @@ a graded bed (S 51) it is split with the fractions F_a,k of S 51.
 class sediment_inflow
 {
 public:
-    sediment_inflow(lexer *);
-
+    sediment_inflow(lexer*);
+    
     // the supply at the time p->simtime; < 0: equilibrium (zero gradient)
-    double qb(lexer *) const;
-    double conc(lexer *) const;
-
-    bool bedload_on() const { return mode > 0; }
-
+    double qb(lexer*) const;
+    double conc(lexer*) const;
+    
+    bool bedload_on() const {return mode>0;}
+    
 private:
-    double ipol(lexer *, int col) const;
-
+    double ipol(lexer*, int col) const;
+    
     int mode;
-    std::vector<double> t, q, c;
+    std::vector<double> t,q,c;
 };
 
 #endif

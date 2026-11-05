@@ -11,22 +11,20 @@
 #include "../../test/sparse_solver.h"
 #include <Eigen/IterativeSolvers>
 
-template<typename T>
-void test_bicgstabl_T()
-{
-    BiCGSTABL<SparseMatrix<T>, DiagonalPreconditioner<T>> bicgstabl_colmajor_diag;
-    BiCGSTABL<SparseMatrix<T>, IncompleteLUT<T>> bicgstabl_colmajor_ilut;
+template <typename T>
+void test_bicgstabl_T() {
+  BiCGSTABL<SparseMatrix<T>, DiagonalPreconditioner<T> > bicgstabl_colmajor_diag;
+  BiCGSTABL<SparseMatrix<T>, IncompleteLUT<T> > bicgstabl_colmajor_ilut;
 
-    // This does not change the tolerance of the test, only the tolerance of the solver.
-    bicgstabl_colmajor_diag.setTolerance(NumTraits<T>::epsilon() * 20);
-    bicgstabl_colmajor_ilut.setTolerance(NumTraits<T>::epsilon() * 20);
+  // This does not change the tolerance of the test, only the tolerance of the solver.
+  bicgstabl_colmajor_diag.setTolerance(NumTraits<T>::epsilon() * 20);
+  bicgstabl_colmajor_ilut.setTolerance(NumTraits<T>::epsilon() * 20);
 
-    CALL_SUBTEST(check_sparse_square_solving(bicgstabl_colmajor_diag));
-    CALL_SUBTEST(check_sparse_square_solving(bicgstabl_colmajor_ilut));
+  CALL_SUBTEST(check_sparse_square_solving(bicgstabl_colmajor_diag));
+  CALL_SUBTEST(check_sparse_square_solving(bicgstabl_colmajor_ilut));
 }
 
-EIGEN_DECLARE_TEST(bicgstabl)
-{
-    CALL_SUBTEST_1(test_bicgstabl_T<double>());
-    CALL_SUBTEST_2(test_bicgstabl_T<std::complex<double>>());
+EIGEN_DECLARE_TEST(bicgstabl) {
+  CALL_SUBTEST_1(test_bicgstabl_T<double>());
+  CALL_SUBTEST_2(test_bicgstabl_T<std::complex<double> >());
 }

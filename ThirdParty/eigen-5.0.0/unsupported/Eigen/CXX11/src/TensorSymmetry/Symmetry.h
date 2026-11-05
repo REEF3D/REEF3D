@@ -15,64 +15,57 @@
 
 namespace Eigen {
 
-enum { NegationFlag = 0x01,
-       ConjugationFlag = 0x02 };
+enum { NegationFlag = 0x01, ConjugationFlag = 0x02 };
 
-enum { GlobalRealFlag = 0x01,
-       GlobalImagFlag = 0x02,
-       GlobalZeroFlag = 0x03 };
+enum { GlobalRealFlag = 0x01, GlobalImagFlag = 0x02, GlobalZeroFlag = 0x03 };
 
 namespace internal {
 
-template<std::size_t NumIndices, typename... Sym>
+template <std::size_t NumIndices, typename... Sym>
 struct tensor_symmetry_pre_analysis;
-template<std::size_t NumIndices, typename... Sym>
+template <std::size_t NumIndices, typename... Sym>
 struct tensor_static_symgroup;
-template<bool instantiate, std::size_t NumIndices, typename... Sym>
+template <bool instantiate, std::size_t NumIndices, typename... Sym>
 struct tensor_static_symgroup_if;
-template<typename Tensor_>
+template <typename Tensor_>
 struct tensor_symmetry_calculate_flags;
-template<typename Tensor_>
+template <typename Tensor_>
 struct tensor_symmetry_assign_value;
-template<typename... Sym>
+template <typename... Sym>
 struct tensor_symmetry_num_indices;
 
 }  // end namespace internal
 
-template<int One_, int Two_>
-struct Symmetry
-{
-    static_assert(One_ != Two_, "Symmetries must cover distinct indices.");
-    constexpr static int One = One_;
-    constexpr static int Two = Two_;
-    constexpr static int Flags = 0;
+template <int One_, int Two_>
+struct Symmetry {
+  static_assert(One_ != Two_, "Symmetries must cover distinct indices.");
+  constexpr static int One = One_;
+  constexpr static int Two = Two_;
+  constexpr static int Flags = 0;
 };
 
-template<int One_, int Two_>
-struct AntiSymmetry
-{
-    static_assert(One_ != Two_, "Symmetries must cover distinct indices.");
-    constexpr static int One = One_;
-    constexpr static int Two = Two_;
-    constexpr static int Flags = NegationFlag;
+template <int One_, int Two_>
+struct AntiSymmetry {
+  static_assert(One_ != Two_, "Symmetries must cover distinct indices.");
+  constexpr static int One = One_;
+  constexpr static int Two = Two_;
+  constexpr static int Flags = NegationFlag;
 };
 
-template<int One_, int Two_>
-struct Hermiticity
-{
-    static_assert(One_ != Two_, "Symmetries must cover distinct indices.");
-    constexpr static int One = One_;
-    constexpr static int Two = Two_;
-    constexpr static int Flags = ConjugationFlag;
+template <int One_, int Two_>
+struct Hermiticity {
+  static_assert(One_ != Two_, "Symmetries must cover distinct indices.");
+  constexpr static int One = One_;
+  constexpr static int Two = Two_;
+  constexpr static int Flags = ConjugationFlag;
 };
 
-template<int One_, int Two_>
-struct AntiHermiticity
-{
-    static_assert(One_ != Two_, "Symmetries must cover distinct indices.");
-    constexpr static int One = One_;
-    constexpr static int Two = Two_;
-    constexpr static int Flags = ConjugationFlag | NegationFlag;
+template <int One_, int Two_>
+struct AntiHermiticity {
+  static_assert(One_ != Two_, "Symmetries must cover distinct indices.");
+  constexpr static int One = One_;
+  constexpr static int Two = Two_;
+  constexpr static int Flags = ConjugationFlag | NegationFlag;
 };
 
 /** \class DynamicSGroup
@@ -100,7 +93,7 @@ class DynamicSGroup;
  * This class is a child class of DynamicSGroup. It uses the template arguments
  * specified to initialize itself.
  */
-template<typename... Gen>
+template <typename... Gen>
 class DynamicSGroupFromTemplateArgs;
 
 /** \class StaticSGroup
@@ -122,7 +115,7 @@ class DynamicSGroupFromTemplateArgs;
  * group becomes too large. (In that case, unrolling may not even be
  * beneficial.)
  */
-template<typename... Gen>
+template <typename... Gen>
 class StaticSGroup;
 
 /** \class SGroup
@@ -137,67 +130,59 @@ class StaticSGroup;
  * \sa StaticSGroup
  * \sa DynamicSGroup
  */
-template<typename... Gen>
+template <typename... Gen>
 class SGroup : public internal::tensor_symmetry_pre_analysis<internal::tensor_symmetry_num_indices<Gen...>::value,
-                                                             Gen...>::root_type
-{
-public:
-    constexpr static std::size_t NumIndices = internal::tensor_symmetry_num_indices<Gen...>::value;
-    typedef typename internal::tensor_symmetry_pre_analysis<NumIndices, Gen...>::root_type Base;
+                                                             Gen...>::root_type {
+ public:
+  constexpr static std::size_t NumIndices = internal::tensor_symmetry_num_indices<Gen...>::value;
+  typedef typename internal::tensor_symmetry_pre_analysis<NumIndices, Gen...>::root_type Base;
 
-    // make standard constructors + assignment operators public
-    inline SGroup() : Base() {}
-    inline SGroup(const SGroup<Gen...> &other) : Base(other) {}
-    inline SGroup(SGroup<Gen...> &&other) : Base(other) {}
-    inline SGroup<Gen...> &operator=(const SGroup<Gen...> &other)
-    {
-        Base::operator=(other);
-        return *this;
-    }
-    inline SGroup<Gen...> &operator=(SGroup<Gen...> &&other)
-    {
-        Base::operator=(other);
-        return *this;
-    }
+  // make standard constructors + assignment operators public
+  inline SGroup() : Base() {}
+  inline SGroup(const SGroup<Gen...>& other) : Base(other) {}
+  inline SGroup(SGroup<Gen...>&& other) : Base(other) {}
+  inline SGroup<Gen...>& operator=(const SGroup<Gen...>& other) {
+    Base::operator=(other);
+    return *this;
+  }
+  inline SGroup<Gen...>& operator=(SGroup<Gen...>&& other) {
+    Base::operator=(other);
+    return *this;
+  }
 
-    // all else is defined in the base class
+  // all else is defined in the base class
 };
 
 namespace internal {
 
-template<typename... Sym>
-struct tensor_symmetry_num_indices
-{
-    constexpr static std::size_t value = 1;
+template <typename... Sym>
+struct tensor_symmetry_num_indices {
+  constexpr static std::size_t value = 1;
 };
 
-template<int One_, int Two_, typename... Sym>
-struct tensor_symmetry_num_indices<Symmetry<One_, Two_>, Sym...>
-{
-private:
-    constexpr static std::size_t One = static_cast<std::size_t>(One_);
-    constexpr static std::size_t Two = static_cast<std::size_t>(Two_);
-    constexpr static std::size_t Three = tensor_symmetry_num_indices<Sym...>::value;
+template <int One_, int Two_, typename... Sym>
+struct tensor_symmetry_num_indices<Symmetry<One_, Two_>, Sym...> {
+ private:
+  constexpr static std::size_t One = static_cast<std::size_t>(One_);
+  constexpr static std::size_t Two = static_cast<std::size_t>(Two_);
+  constexpr static std::size_t Three = tensor_symmetry_num_indices<Sym...>::value;
 
-    // don't use std::max, since it's not constexpr until C++14...
-    constexpr static std::size_t maxOneTwoPlusOne = ((One > Two) ? One : Two) + 1;
+  // don't use std::max, since it's not constexpr until C++14...
+  constexpr static std::size_t maxOneTwoPlusOne = ((One > Two) ? One : Two) + 1;
 
-public:
-    constexpr static std::size_t value = (maxOneTwoPlusOne > Three) ? maxOneTwoPlusOne : Three;
+ public:
+  constexpr static std::size_t value = (maxOneTwoPlusOne > Three) ? maxOneTwoPlusOne : Three;
 };
 
-template<int One_, int Two_, typename... Sym>
+template <int One_, int Two_, typename... Sym>
 struct tensor_symmetry_num_indices<AntiSymmetry<One_, Two_>, Sym...>
-    : public tensor_symmetry_num_indices<Symmetry<One_, Two_>, Sym...>
-{};
-template<int One_, int Two_, typename... Sym>
+    : public tensor_symmetry_num_indices<Symmetry<One_, Two_>, Sym...> {};
+template <int One_, int Two_, typename... Sym>
 struct tensor_symmetry_num_indices<Hermiticity<One_, Two_>, Sym...>
-    : public tensor_symmetry_num_indices<Symmetry<One_, Two_>, Sym...>
-{};
-template<int One_, int Two_, typename... Sym>
+    : public tensor_symmetry_num_indices<Symmetry<One_, Two_>, Sym...> {};
+template <int One_, int Two_, typename... Sym>
 struct tensor_symmetry_num_indices<AntiHermiticity<One_, Two_>, Sym...>
-    : public tensor_symmetry_num_indices<Symmetry<One_, Two_>, Sym...>
-{};
+    : public tensor_symmetry_num_indices<Symmetry<One_, Two_>, Sym...> {};
 
 /** \internal
  *
@@ -246,113 +231,97 @@ struct tensor_symmetry_num_indices<AntiHermiticity<One_, Two_>, Sym...>
  * lower, otherwise this will be forced to be done during runtime, where the
  * algorithm is reasonably fast.
  */
-template<std::size_t NumIndices>
-struct tensor_symmetry_pre_analysis<NumIndices>
-{
-    typedef StaticSGroup<> root_type;
+template <std::size_t NumIndices>
+struct tensor_symmetry_pre_analysis<NumIndices> {
+  typedef StaticSGroup<> root_type;
 };
 
-template<std::size_t NumIndices, typename Gen_, typename... Gens_>
-struct tensor_symmetry_pre_analysis<NumIndices, Gen_, Gens_...>
-{
-    constexpr static std::size_t max_static_generators = 4;
-    constexpr static std::size_t max_static_elements = 16;
-    typedef tensor_static_symgroup_if<(sizeof...(Gens_) + 1 <= max_static_generators), NumIndices, Gen_, Gens_...> helper;
-    constexpr static std::size_t possible_size = helper::size;
+template <std::size_t NumIndices, typename Gen_, typename... Gens_>
+struct tensor_symmetry_pre_analysis<NumIndices, Gen_, Gens_...> {
+  constexpr static std::size_t max_static_generators = 4;
+  constexpr static std::size_t max_static_elements = 16;
+  typedef tensor_static_symgroup_if<(sizeof...(Gens_) + 1 <= max_static_generators), NumIndices, Gen_, Gens_...> helper;
+  constexpr static std::size_t possible_size = helper::size;
 
-    typedef std::conditional_t<possible_size == 0 || possible_size >= max_static_elements,
-                               DynamicSGroupFromTemplateArgs<Gen_, Gens_...>, typename helper::type>
-        root_type;
+  typedef std::conditional_t<possible_size == 0 || possible_size >= max_static_elements,
+                             DynamicSGroupFromTemplateArgs<Gen_, Gens_...>, typename helper::type>
+      root_type;
 };
 
-template<bool instantiate, std::size_t NumIndices, typename... Gens>
-struct tensor_static_symgroup_if
-{
-    constexpr static std::size_t size = 0;
-    typedef void type;
+template <bool instantiate, std::size_t NumIndices, typename... Gens>
+struct tensor_static_symgroup_if {
+  constexpr static std::size_t size = 0;
+  typedef void type;
 };
 
-template<std::size_t NumIndices, typename... Gens>
-struct tensor_static_symgroup_if<true, NumIndices, Gens...> : tensor_static_symgroup<NumIndices, Gens...>
-{};
+template <std::size_t NumIndices, typename... Gens>
+struct tensor_static_symgroup_if<true, NumIndices, Gens...> : tensor_static_symgroup<NumIndices, Gens...> {};
 
-template<typename Tensor_>
-struct tensor_symmetry_assign_value
-{
-    typedef typename Tensor_::Index Index;
-    typedef typename Tensor_::Scalar Scalar;
-    constexpr static std::size_t NumIndices = Tensor_::NumIndices;
+template <typename Tensor_>
+struct tensor_symmetry_assign_value {
+  typedef typename Tensor_::Index Index;
+  typedef typename Tensor_::Scalar Scalar;
+  constexpr static std::size_t NumIndices = Tensor_::NumIndices;
 
-    static inline int run(const std::array<Index, NumIndices> &transformed_indices, int transformation_flags, int dummy,
-                          Tensor_ &tensor, const Scalar &value_)
-    {
-        Scalar value(value_);
-        if(transformation_flags & ConjugationFlag)
-            value = numext::conj(value);
-        if(transformation_flags & NegationFlag)
-            value = -value;
-        tensor.coeffRef(transformed_indices) = value;
-        return dummy;
+  static inline int run(const std::array<Index, NumIndices>& transformed_indices, int transformation_flags, int dummy,
+                        Tensor_& tensor, const Scalar& value_) {
+    Scalar value(value_);
+    if (transformation_flags & ConjugationFlag) value = numext::conj(value);
+    if (transformation_flags & NegationFlag) value = -value;
+    tensor.coeffRef(transformed_indices) = value;
+    return dummy;
+  }
+};
+
+template <typename Tensor_>
+struct tensor_symmetry_calculate_flags {
+  typedef typename Tensor_::Index Index;
+  constexpr static std::size_t NumIndices = Tensor_::NumIndices;
+
+  static inline int run(const std::array<Index, NumIndices>& transformed_indices, int transform_flags,
+                        int current_flags, const std::array<Index, NumIndices>& orig_indices) {
+    if (transformed_indices == orig_indices) {
+      if (transform_flags & (ConjugationFlag | NegationFlag))
+        return current_flags | GlobalImagFlag;  // anti-hermitian diagonal
+      else if (transform_flags & ConjugationFlag)
+        return current_flags | GlobalRealFlag;  // hermitian diagonal
+      else if (transform_flags & NegationFlag)
+        return current_flags | GlobalZeroFlag;  // anti-symmetric diagonal
     }
+    return current_flags;
+  }
 };
 
-template<typename Tensor_>
-struct tensor_symmetry_calculate_flags
-{
-    typedef typename Tensor_::Index Index;
-    constexpr static std::size_t NumIndices = Tensor_::NumIndices;
+template <typename Tensor_, typename Symmetry_, int Flags = 0>
+class tensor_symmetry_value_setter {
+ public:
+  typedef typename Tensor_::Index Index;
+  typedef typename Tensor_::Scalar Scalar;
+  constexpr static std::size_t NumIndices = Tensor_::NumIndices;
 
-    static inline int run(const std::array<Index, NumIndices> &transformed_indices, int transform_flags,
-                          int current_flags, const std::array<Index, NumIndices> &orig_indices)
-    {
-        if(transformed_indices == orig_indices)
-        {
-            if(transform_flags & (ConjugationFlag | NegationFlag))
-                return current_flags | GlobalImagFlag;  // anti-hermitian diagonal
-            else if(transform_flags & ConjugationFlag)
-                return current_flags | GlobalRealFlag;  // hermitian diagonal
-            else if(transform_flags & NegationFlag)
-                return current_flags | GlobalZeroFlag;  // anti-symmetric diagonal
-        }
-        return current_flags;
-    }
-};
+  inline tensor_symmetry_value_setter(Tensor_& tensor, Symmetry_ const& symmetry,
+                                      std::array<Index, NumIndices> const& indices)
+      : m_tensor(tensor), m_symmetry(symmetry), m_indices(indices) {}
 
-template<typename Tensor_, typename Symmetry_, int Flags = 0>
-class tensor_symmetry_value_setter
-{
-public:
-    typedef typename Tensor_::Index Index;
-    typedef typename Tensor_::Scalar Scalar;
-    constexpr static std::size_t NumIndices = Tensor_::NumIndices;
+  inline tensor_symmetry_value_setter<Tensor_, Symmetry_, Flags>& operator=(Scalar const& value) {
+    doAssign(value);
+    return *this;
+  }
 
-    inline tensor_symmetry_value_setter(Tensor_ &tensor, Symmetry_ const &symmetry,
-                                        std::array<Index, NumIndices> const &indices)
-        : m_tensor(tensor), m_symmetry(symmetry), m_indices(indices) {}
+ private:
+  Tensor_& m_tensor;
+  Symmetry_ m_symmetry;
+  std::array<Index, NumIndices> m_indices;
 
-    inline tensor_symmetry_value_setter<Tensor_, Symmetry_, Flags> &operator=(Scalar const &value)
-    {
-        doAssign(value);
-        return *this;
-    }
-
-private:
-    Tensor_ &m_tensor;
-    Symmetry_ m_symmetry;
-    std::array<Index, NumIndices> m_indices;
-
-    inline void doAssign(Scalar const &value)
-    {
+  inline void doAssign(Scalar const& value) {
 #ifdef EIGEN_TENSOR_SYMMETRY_CHECK_VALUES
-        int value_flags = m_symmetry.template apply<internal::tensor_symmetry_calculate_flags<Tensor_>, int>(
-            m_indices, m_symmetry.globalFlags(), m_indices);
-        if(value_flags & GlobalRealFlag)
-            eigen_assert(numext::imag(value) == 0);
-        if(value_flags & GlobalImagFlag)
-            eigen_assert(numext::real(value) == 0);
+    int value_flags = m_symmetry.template apply<internal::tensor_symmetry_calculate_flags<Tensor_>, int>(
+        m_indices, m_symmetry.globalFlags(), m_indices);
+    if (value_flags & GlobalRealFlag) eigen_assert(numext::imag(value) == 0);
+    if (value_flags & GlobalImagFlag) eigen_assert(numext::real(value) == 0);
 #endif
-        m_symmetry.template apply<internal::tensor_symmetry_assign_value<Tensor_>, int>(m_indices, 0, m_tensor, value);
-    }
+    m_symmetry.template apply<internal::tensor_symmetry_assign_value<Tensor_>, int>(m_indices, 0, m_tensor, value);
+  }
 };
 
 }  // end namespace internal

@@ -26,86 +26,80 @@ namespace internal {
  * \param iters On input the max number of iteration, on output the number of performed iterations.
  * \param tol_error On input the tolerance error, on output an estimation of the relative error.
  */
-template<typename MatrixType, typename Rhs, typename Dest, typename Preconditioner>
-EIGEN_DONT_INLINE void least_square_conjugate_gradient(const MatrixType &mat, const Rhs &rhs, Dest &x,
-                                                       const Preconditioner &precond, Index &iters,
-                                                       typename Dest::RealScalar &tol_error)
-{
-    using std::abs;
-    using std::sqrt;
-    typedef typename Dest::RealScalar RealScalar;
-    typedef typename Dest::Scalar Scalar;
-    typedef Matrix<Scalar, Dynamic, 1> VectorType;
+template <typename MatrixType, typename Rhs, typename Dest, typename Preconditioner>
+EIGEN_DONT_INLINE void least_square_conjugate_gradient(const MatrixType& mat, const Rhs& rhs, Dest& x,
+                                                       const Preconditioner& precond, Index& iters,
+                                                       typename Dest::RealScalar& tol_error) {
+  using std::abs;
+  using std::sqrt;
+  typedef typename Dest::RealScalar RealScalar;
+  typedef typename Dest::Scalar Scalar;
+  typedef Matrix<Scalar, Dynamic, 1> VectorType;
 
-    RealScalar tol = tol_error;
-    Index maxIters = iters;
+  RealScalar tol = tol_error;
+  Index maxIters = iters;
 
-    Index m = mat.rows(), n = mat.cols();
+  Index m = mat.rows(), n = mat.cols();
 
-    VectorType residual = rhs - mat * x;
-    VectorType normal_residual = mat.adjoint() * residual;
+  VectorType residual = rhs - mat * x;
+  VectorType normal_residual = mat.adjoint() * residual;
 
-    RealScalar rhsNorm2 = (mat.adjoint() * rhs).squaredNorm();
-    if(rhsNorm2 == 0)
-    {
-        x.setZero();
-        iters = 0;
-        tol_error = 0;
-        return;
-    }
-    RealScalar threshold = tol * tol * rhsNorm2;
-    RealScalar residualNorm2 = normal_residual.squaredNorm();
-    if(residualNorm2 < threshold)
-    {
-        iters = 0;
-        tol_error = sqrt(residualNorm2 / rhsNorm2);
-        return;
-    }
-
-    VectorType p(n);
-    p = precond.solve(normal_residual);  // initial search direction
-
-    VectorType z(n), tmp(m);
-    RealScalar absNew = numext::real(normal_residual.dot(p));  // the square of the absolute value of r scaled by invM
-    Index i = 0;
-    while(i < maxIters)
-    {
-        tmp.noalias() = mat * p;
-
-        Scalar alpha = absNew / tmp.squaredNorm();             // the amount we travel on dir
-        x += alpha * p;                                        // update solution
-        residual -= alpha * tmp;                               // update residual
-        normal_residual.noalias() = mat.adjoint() * residual;  // update residual of the normal equation
-
-        residualNorm2 = normal_residual.squaredNorm();
-        if(residualNorm2 < threshold)
-            break;
-
-        z = precond.solve(normal_residual);  // approximately solve for "A'A z = normal_residual"
-
-        RealScalar absOld = absNew;
-        absNew = numext::real(normal_residual.dot(z));  // update the absolute value of r
-        RealScalar beta = absNew / absOld;              // calculate the Gram-Schmidt value used to create the new search direction
-        p = z + beta * p;                               // update search direction
-        i++;
-    }
+  RealScalar rhsNorm2 = (mat.adjoint() * rhs).squaredNorm();
+  if (rhsNorm2 == 0) {
+    x.setZero();
+    iters = 0;
+    tol_error = 0;
+    return;
+  }
+  RealScalar threshold = tol * tol * rhsNorm2;
+  RealScalar residualNorm2 = normal_residual.squaredNorm();
+  if (residualNorm2 < threshold) {
+    iters = 0;
     tol_error = sqrt(residualNorm2 / rhsNorm2);
-    iters = i;
+    return;
+  }
+
+  VectorType p(n);
+  p = precond.solve(normal_residual);  // initial search direction
+
+  VectorType z(n), tmp(m);
+  RealScalar absNew = numext::real(normal_residual.dot(p));  // the square of the absolute value of r scaled by invM
+  Index i = 0;
+  while (i < maxIters) {
+    tmp.noalias() = mat * p;
+
+    Scalar alpha = absNew / tmp.squaredNorm();             // the amount we travel on dir
+    x += alpha * p;                                        // update solution
+    residual -= alpha * tmp;                               // update residual
+    normal_residual.noalias() = mat.adjoint() * residual;  // update residual of the normal equation
+
+    residualNorm2 = normal_residual.squaredNorm();
+    if (residualNorm2 < threshold) break;
+
+    z = precond.solve(normal_residual);  // approximately solve for "A'A z = normal_residual"
+
+    RealScalar absOld = absNew;
+    absNew = numext::real(normal_residual.dot(z));  // update the absolute value of r
+    RealScalar beta = absNew / absOld;  // calculate the Gram-Schmidt value used to create the new search direction
+    p = z + beta * p;                   // update search direction
+    i++;
+  }
+  tol_error = sqrt(residualNorm2 / rhsNorm2);
+  iters = i;
 }
 
 }  // namespace internal
 
-template<typename MatrixType_,
-         typename Preconditioner_ = LeastSquareDiagonalPreconditioner<typename MatrixType_::Scalar>>
+template <typename MatrixType_,
+          typename Preconditioner_ = LeastSquareDiagonalPreconditioner<typename MatrixType_::Scalar> >
 class LeastSquaresConjugateGradient;
 
 namespace internal {
 
-template<typename MatrixType_, typename Preconditioner_>
-struct traits<LeastSquaresConjugateGradient<MatrixType_, Preconditioner_>>
-{
-    typedef MatrixType_ MatrixType;
-    typedef Preconditioner_ Preconditioner;
+template <typename MatrixType_, typename Preconditioner_>
+struct traits<LeastSquaresConjugateGradient<MatrixType_, Preconditioner_> > {
+  typedef MatrixType_ MatrixType;
+  typedef Preconditioner_ Preconditioner;
 };
 
 }  // namespace internal
@@ -148,52 +142,50 @@ struct traits<LeastSquaresConjugateGradient<MatrixType_, Preconditioner_>>
   *
   * \sa class ConjugateGradient, SparseLU, SparseQR
   */
-template<typename MatrixType_, typename Preconditioner_>
+template <typename MatrixType_, typename Preconditioner_>
 class LeastSquaresConjugateGradient
-    : public IterativeSolverBase<LeastSquaresConjugateGradient<MatrixType_, Preconditioner_>>
-{
-    typedef IterativeSolverBase<LeastSquaresConjugateGradient> Base;
-    using Base::m_error;
-    using Base::m_info;
-    using Base::m_isInitialized;
-    using Base::m_iterations;
-    using Base::matrix;
+    : public IterativeSolverBase<LeastSquaresConjugateGradient<MatrixType_, Preconditioner_> > {
+  typedef IterativeSolverBase<LeastSquaresConjugateGradient> Base;
+  using Base::m_error;
+  using Base::m_info;
+  using Base::m_isInitialized;
+  using Base::m_iterations;
+  using Base::matrix;
 
-public:
-    typedef MatrixType_ MatrixType;
-    typedef typename MatrixType::Scalar Scalar;
-    typedef typename MatrixType::RealScalar RealScalar;
-    typedef Preconditioner_ Preconditioner;
+ public:
+  typedef MatrixType_ MatrixType;
+  typedef typename MatrixType::Scalar Scalar;
+  typedef typename MatrixType::RealScalar RealScalar;
+  typedef Preconditioner_ Preconditioner;
 
-public:
-    /** Default constructor. */
-    LeastSquaresConjugateGradient() : Base() {}
+ public:
+  /** Default constructor. */
+  LeastSquaresConjugateGradient() : Base() {}
 
-    /** Initialize the solver with matrix \a A for further \c Ax=b solving.
-     *
-     * This constructor is a shortcut for the default constructor followed
-     * by a call to compute().
-     *
-     * \warning this class stores a reference to the matrix A as well as some
-     * precomputed values that depend on it. Therefore, if \a A is changed
-     * this class becomes invalid. Call compute() to update it with the new
-     * matrix A, or modify a copy of A.
-     */
-    template<typename MatrixDerived>
-    explicit LeastSquaresConjugateGradient(const EigenBase<MatrixDerived> &A) : Base(A.derived()) {}
+  /** Initialize the solver with matrix \a A for further \c Ax=b solving.
+   *
+   * This constructor is a shortcut for the default constructor followed
+   * by a call to compute().
+   *
+   * \warning this class stores a reference to the matrix A as well as some
+   * precomputed values that depend on it. Therefore, if \a A is changed
+   * this class becomes invalid. Call compute() to update it with the new
+   * matrix A, or modify a copy of A.
+   */
+  template <typename MatrixDerived>
+  explicit LeastSquaresConjugateGradient(const EigenBase<MatrixDerived>& A) : Base(A.derived()) {}
 
-    ~LeastSquaresConjugateGradient() {}
+  ~LeastSquaresConjugateGradient() {}
 
-    /** \internal */
-    template<typename Rhs, typename Dest>
-    void _solve_vector_with_guess_impl(const Rhs &b, Dest &x) const
-    {
-        m_iterations = Base::maxIterations();
-        m_error = Base::m_tolerance;
+  /** \internal */
+  template <typename Rhs, typename Dest>
+  void _solve_vector_with_guess_impl(const Rhs& b, Dest& x) const {
+    m_iterations = Base::maxIterations();
+    m_error = Base::m_tolerance;
 
-        internal::least_square_conjugate_gradient(matrix(), b, x, Base::m_preconditioner, m_iterations, m_error);
-        m_info = m_error <= Base::m_tolerance ? Success : NoConvergence;
-    }
+    internal::least_square_conjugate_gradient(matrix(), b, x, Base::m_preconditioner, m_iterations, m_error);
+    m_info = m_error <= Base::m_tolerance ? Success : NoConvergence;
+  }
 };
 
 }  // end namespace Eigen

@@ -20,11 +20,12 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
+
 #ifndef SEASTATE_BATHY_H_
 #define SEASTATE_BATHY_H_
 
-#include <string>
-#include <vector>
+#include<string>
+#include<vector>
 
 /*--------------------------------------------------------------------
 REEF3D::SEASTATE bathymetry raster (A 790 1, file seastate-bathy.dat)
@@ -65,14 +66,14 @@ public:
     bool read(const std::string &file, std::string &err);
 
     double at(double x, double y) const;
-    double cell(double x0, double x1, double y0, double y1, double zdry = 1.0e30) const;
+    double cell(double x0, double x1, double y0, double y1, double zdry=1.0e30) const;
 
     int nx = 0, ny = 0;
     double x0 = 0.0, y0 = 0.0, dx = 1.0, dy = 1.0;
-    std::vector<double> z;  // z[j*nx + i]
+    std::vector<double> z;      // z[j*nx + i]
 
 private:
-    double node(int i, int j) const { return z[size_t(j) * nx + i]; }
+    double node(int i, int j) const {return z[size_t(j)*nx + i];}
 };
 
 #endif

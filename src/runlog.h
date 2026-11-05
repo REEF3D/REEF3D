@@ -45,17 +45,17 @@ class lexer;
 class runlog
 {
 public:
-    runlog(lexer *, const char *version);
+    runlog(lexer*, const char *version);
     ~runlog();
 
     // a writer finished the file of output number step: path is the file it wrote
     // (the .pvtu/.pvtp for parallel output). Folder, name pattern and format are
     // taken from the path, the stream is registered on first use.
-    void written(lexer *, int step, const char *stream, const char *role,
-                 const char *path, int pieces = 0);
+    void written(lexer*, int step, const char *stream, const char *role,
+                 const char *path, int pieces=0);
 
     // the same with folder, pattern ({step:08d}) and format given explicitly
-    void output(lexer *, int step, const char *stream, const char *role,
+    void output(lexer*, int step, const char *stream, const char *role,
                 const char *folder, const char *files, const char *format, int pieces);
 
     // an output that went into a LAGOON store (P 18) rather than to files: store is
@@ -63,30 +63,30 @@ public:
     // "free_surface", "bed", "<solver>_amr"). Time and iteration are given, since the
     // store counts an output only once every rank has written it, which can be at
     // the next output.
-    void stored(lexer *, int step, double time, long long iteration, const char *stream,
-                const char *role, const char *store, const char *group, int pieces = 0);
+    void stored(lexer*, int step, double time, long long iteration, const char *stream,
+                const char *role, const char *store, const char *group, int pieces=0);
 
     // a table that grows over the run (gauges, forces, motions), or a static file
-    void table(lexer *, const char *stream, const char *role, const char *folder,
-               const char *file, const char *format = "dat");
+    void table(lexer*, const char *stream, const char *role, const char *folder,
+               const char *file, const char *format="dat");
 
     // the same, from the path of the file
-    void table_file(lexer *, const char *stream, const char *role, const char *path);
+    void table_file(lexer*, const char *stream, const char *role, const char *path);
 
     // the run ends: "finished", "stopped" or "error"
-    void end(lexer *, const char *status);
+    void end(lexer*, const char *status);
 
-    const std::string &id() const { return run_id; }
+    const std::string& id() const {return run_id;}
 
-    static std::string solver_name(lexer *);
+    static std::string solver_name(lexer*);
     static std::string sha256_file(const std::string &path);
 
 private:
-    void start(lexer *);
+    void start(lexer*);
     void write(const std::string &line);
     void stream(const char *stream, const std::string &json);
     void output_line(int step, double time, long long iteration, const char *stream);
-    static std::string quote(const std::string &);
+    static std::string quote(const std::string&);
     static std::string number(double);
     static std::string utc(const char *format);
     static std::string format_of(const std::string &file);

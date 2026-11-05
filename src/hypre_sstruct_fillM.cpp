@@ -22,17 +22,17 @@ Author: Hans Bihs
 
 #ifdef REEF3D_USE_HYPRE  // hypre is opt-in: make HYPRE=1 / cmake -DREEF3D_USE_HYPRE=ON
 
-#include "fdm.h"
-#include "ghostcell.h"
 #include "hypre_sstruct.h"
 #include "lexer.h"
+#include "fdm.h"
+#include "ghostcell.h"
 
-void hypre_sstruct::fill_matrixM(lexer *p, ghostcell *pgc, double *f, double *rhs, double *M)
+void hypre_sstruct::fill_matrixM(lexer* p, ghostcell* pgc, double *f, double *rhs, double *M)
 {
-    nentries = 15;
+    nentries=15;
 
-    for(j = 0; j < nentries; j++)
-        stencil_indices[j] = j;
+    for (j=0; j< nentries; j++)
+    stencil_indices[j] = j;
 
     // M
     HYPRE_SStructMatrixSetBoxValues(A, part, ilower, iupper, variable, nentries, stencil_indices, M);
@@ -47,12 +47,12 @@ void hypre_sstruct::fill_matrixM(lexer *p, ghostcell *pgc, double *f, double *rh
     HYPRE_SStructVectorAssemble(b);
 }
 
-void hypre_sstruct::fill_matrixM_2Dvert(lexer *p, ghostcell *pgc, double *f, double *rhs, double *M)
+void hypre_sstruct::fill_matrixM_2Dvert(lexer* p, ghostcell* pgc, double *f, double *rhs, double *M)
 {
-    nentries = 9;
+    nentries=9;
 
-    for(j = 0; j < nentries; j++)
-        stencil_indices[j] = j;
+    for (j=0; j< nentries; j++)
+    stencil_indices[j] = j;
 
     // M
     HYPRE_SStructMatrixSetBoxValues(A, part, ilower, iupper, variable, nentries, stencil_indices, M);

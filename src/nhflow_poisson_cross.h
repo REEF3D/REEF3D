@@ -40,28 +40,29 @@ Author: Hans Bihs
 // A 530 0 (default): no cross terms in porous cells (POR < 1: VRANS structures, porous bodies, DEM).
 // A 530 1:           cross terms also in porous cells.
 
-#include "fdm_nhf.h"
-#include "increment.h"
-#include "lexer.h"
-#include <algorithm>
+#include"lexer.h"
+#include"fdm_nhf.h"
+#include"increment.h"
+#include<algorithm>
 
-namespace nhflow_poisson_cross {
+namespace nhflow_poisson_cross
+{
 
 // A 529 1 usable for this assembly
 inline bool implicit(lexer *p, fdm_nhf *d)
 {
-    return p->A529 == 1 && p->N10 == 1 && p->geo_curv == 0 && p->G1 == 0 && p->geo_mb == 0 && d->MBETA == nullptr;
+    return p->A529==1 && p->N10==1 && p->geo_curv==0 && p->G1==0 && p->geo_mb==0 && d->MBETA==nullptr;
 }
 
 // A 530: cross terms in this row (pressure node between the cells k-1 and k)
 inline bool active(lexer *p, fdm_nhf *d, int i, int j, int k)
 {
     const int marge = increment::marge;
+    
+    if(p->A530==1)
+    return true;
 
-    if(p->A530 == 1)
-        return true;
-
-    return !(d->POR[IJK] < 1.0 || d->POR[IJKm1] < 1.0);
+    return !(d->POR[IJK]<1.0 || d->POR[IJKm1]<1.0);
 }
 
 // size and zero the cross couplings for the implicit assembly
@@ -73,90 +74,58 @@ inline void ini(lexer *p, fdm_nhf *d, bool impl)
         // product then equals the 7-point one
         if(!d->M.nt.empty())
         {
-            std::fill(d->M.nt.begin(), d->M.nt.end(), 0.0);
-            std::fill(d->M.nb.begin(), d->M.nb.end(), 0.0);
-            std::fill(d->M.st.begin(), d->M.st.end(), 0.0);
-            std::fill(d->M.sb.begin(), d->M.sb.end(), 0.0);
-            std::fill(d->M.wt.begin(), d->M.wt.end(), 0.0);
-            std::fill(d->M.wb.begin(), d->M.wb.end(), 0.0);
-            std::fill(d->M.et.begin(), d->M.et.end(), 0.0);
-            std::fill(d->M.eb.begin(), d->M.eb.end(), 0.0);
+        std::fill(d->M.nt.begin(),d->M.nt.end(),0.0); std::fill(d->M.nb.begin(),d->M.nb.end(),0.0);
+        std::fill(d->M.st.begin(),d->M.st.end(),0.0); std::fill(d->M.sb.begin(),d->M.sb.end(),0.0);
+        std::fill(d->M.wt.begin(),d->M.wt.end(),0.0); std::fill(d->M.wb.begin(),d->M.wb.end(),0.0);
+        std::fill(d->M.et.begin(),d->M.et.end(),0.0); std::fill(d->M.eb.begin(),d->M.eb.end(),0.0);
         }
-        return;
+    return;
     }
 
     const size_t nr = d->M.p.size();
 
-    d->M.nt.assign(nr, 0.0);
-    d->M.nb.assign(nr, 0.0);
-    d->M.st.assign(nr, 0.0);
-    d->M.sb.assign(nr, 0.0);
-    d->M.wt.assign(nr, 0.0);
-    d->M.wb.assign(nr, 0.0);
-    d->M.et.assign(nr, 0.0);
-    d->M.eb.assign(nr, 0.0);
+    d->M.nt.assign(nr,0.0); d->M.nb.assign(nr,0.0);
+    d->M.st.assign(nr,0.0); d->M.sb.assign(nr,0.0);
+    d->M.wt.assign(nr,0.0); d->M.wb.assign(nr,0.0);
+    d->M.et.assign(nr,0.0); d->M.eb.assign(nr,0.0);
 }
 
 // pressure node (a,b,kk) is an unknown of the solve: wet, deep, fluid and below the free surface
 inline bool unknown(lexer *p, int a, int b, int kk)
 {
-    if(kk < 0 || kk > p->knoz - 1)
-        return false;
+    if(kk<0 || kk>p->knoz-1)
+    return false;
 
-    const int fq = (a - p->imin) * p->jmax * p->kmaxF + (b - p->jmin) * p->kmaxF + kk - p->kmin;
-    const int q = (a - p->imin) * p->jmax + (b - p->jmin);
+    const int fq = (a-p->imin)*p->jmax*p->kmaxF + (b-p->jmin)*p->kmaxF + kk-p->kmin;
+    const int q  = (a-p->imin)*p->jmax + (b-p->jmin);
 
-    return p->flag7[fq] > 0 && p->wet[q] == 1 && p->deep[q] == 1;
+    return p->flag7[fq]>0 && p->wet[q]==1 && p->deep[q]==1;
 }
 
 // implicit: cross couplings of row n with coefficient cX, non-unknown neighbours into the rhs
 inline void assemble(lexer *p, fdm_nhf *d, double *P, int i, int j, int k, int n, double cX)
 {
     const int marge = increment::marge;
-
-    const double ax = cX * 2.0 * p->sigx[FIJK] / (p->W1 * (p->DXP[IP] + p->DXP[IM1]) * (p->DZN[KP] + p->DZN[KM1]));
+    
+    const double ax = cX*2.0*p->sigx[FIJK]/(p->W1*(p->DXP[IP]+p->DXP[IM1])*(p->DZN[KP]+p->DZN[KM1]));
 
     // rhs form: + ax*(P(i+1,k+1) - P(i-1,k+1) - P(i+1,k-1) + P(i-1,k-1)), matrix = - rhs coefficient
-    if(unknown(p, i + 1, j, k + 1))
-        d->M.nt[n] = -ax;
-    else
-        d->rhsvec.V[n] += ax * P[FIp1JKp1];
-    if(unknown(p, i - 1, j, k + 1))
-        d->M.st[n] = ax;
-    else
-        d->rhsvec.V[n] -= ax * P[FIm1JKp1];
-    if(unknown(p, i + 1, j, k - 1))
-        d->M.nb[n] = ax;
-    else
-        d->rhsvec.V[n] -= ax * P[FIp1JKm1];
-    if(unknown(p, i - 1, j, k - 1))
-        d->M.sb[n] = -ax;
-    else
-        d->rhsvec.V[n] += ax * P[FIm1JKm1];
+    if(unknown(p,i+1,j,k+1)) d->M.nt[n] = -ax;  else d->rhsvec.V[n] += ax*P[FIp1JKp1];
+    if(unknown(p,i-1,j,k+1)) d->M.st[n] =  ax;  else d->rhsvec.V[n] -= ax*P[FIm1JKp1];
+    if(unknown(p,i+1,j,k-1)) d->M.nb[n] =  ax;  else d->rhsvec.V[n] -= ax*P[FIp1JKm1];
+    if(unknown(p,i-1,j,k-1)) d->M.sb[n] = -ax;  else d->rhsvec.V[n] += ax*P[FIm1JKm1];
 
-    if(p->j_dir == 1)
+    if(p->j_dir==1)
     {
-        const double ay = cX * 2.0 * p->sigy[FIJK] / (p->W1 * (p->DYP[JP] + p->DYP[JM1]) * (p->DZN[KP] + p->DZN[KM1]));
+    const double ay = cX*2.0*p->sigy[FIJK]/(p->W1*(p->DYP[JP]+p->DYP[JM1])*(p->DZN[KP]+p->DZN[KM1]));
 
-        if(unknown(p, i, j + 1, k + 1))
-            d->M.wt[n] = -ay;
-        else
-            d->rhsvec.V[n] += ay * P[FIJp1Kp1];
-        if(unknown(p, i, j - 1, k + 1))
-            d->M.et[n] = ay;
-        else
-            d->rhsvec.V[n] -= ay * P[FIJm1Kp1];
-        if(unknown(p, i, j + 1, k - 1))
-            d->M.wb[n] = ay;
-        else
-            d->rhsvec.V[n] -= ay * P[FIJp1Km1];
-        if(unknown(p, i, j - 1, k - 1))
-            d->M.eb[n] = -ay;
-        else
-            d->rhsvec.V[n] += ay * P[FIJm1Km1];
+    if(unknown(p,i,j+1,k+1)) d->M.wt[n] = -ay;  else d->rhsvec.V[n] += ay*P[FIJp1Kp1];
+    if(unknown(p,i,j-1,k+1)) d->M.et[n] =  ay;  else d->rhsvec.V[n] -= ay*P[FIJm1Kp1];
+    if(unknown(p,i,j+1,k-1)) d->M.wb[n] =  ay;  else d->rhsvec.V[n] -= ay*P[FIJp1Km1];
+    if(unknown(p,i,j-1,k-1)) d->M.eb[n] = -ay;  else d->rhsvec.V[n] += ay*P[FIJm1Km1];
     }
 }
 
-}  // namespace nhflow_poisson_cross
+}
 
 #endif

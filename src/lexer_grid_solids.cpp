@@ -20,12 +20,12 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "geo_grid_solids.h"
-#include "geo_mesh.h"
-#include "geo_raycast.h"
-#include "ghostcell.h"
-#include "lexer.h"
-#include <vector>
+#include"lexer.h"
+#include"ghostcell.h"
+#include"geo_mesh.h"
+#include"geo_raycast.h"
+#include"geo_grid_solids.h"
+#include<vector>
 
 // Solids (S) and topography (T) of the grid file, built by the geometry core for all
 // hydrodynamic modules (grid format v2). Before v2 DIVEMesh wrote the signed distance
@@ -41,379 +41,350 @@ Author: Hans Bihs
 // NHFLOW with A 580 1 treats the solids as immersed solids (direct forcing); the bed
 // level then only follows the topography.
 
-namespace {
-// signed distance field of one role
-bool build_field(lexer *p, geo_mesh &G, geo_raycast &ray, const geo_cart &gx, int role,
-                 double *bedrole, vector<double> &phi)
+namespace
 {
     // inside/outside of the entities of one role on the cells of g: IO -1 inside, 1 outside;
     // outside: the cells outside the global domain (solid: counted as solid for the crossing check);
     // g leaves with the ray mode of the last entity (the distances of build_field use it)
-    void role_io(lexer * p, geo_mesh & G, geo_raycast & ray, int role, geo_cart &g,
+    void role_io(lexer *p, geo_mesh &G, geo_raycast &ray, int role, geo_cart &g,
                  vector<int> &IO, vector<int> &CL, vector<int> &CR, vector<char> &outside)
     {
-        int i, j, k, n;
+        int i,j,k,n;
         const int marge = increment::marge;
-
-        const int nf = p->imax * p->jmax * p->kmax;
-
-        IO.assign(nf, 1);
-        CL.assign(nf, 0);
-        CR.assign(nf, 0);
-
+        
+        const int nf = p->imax*p->jmax*p->kmax;
+        
+        IO.assign(nf,1);
+        CL.assign(nf,0);
+        CR.assign(nf,0);
+        
         // solid: ghost cells outside the global domain count as solid for the crossing check,
         // entity faces on the domain boundary are no fluid-solid interface; topo: they count
         // as fluid, the faces on the domain boundary are interfaces (both as in DIVEMesh)
-        outside.assign(nf, 0);
-
-        if(role == geo_mesh::role_solid)
-            for(i = g.is; i < g.ie; ++i)
-                for(j = g.js; j < g.je; ++j)
-                    for(k = g.ks; k < g.ke; ++k)
-                        if(i + p->origin_i < 0 || i + p->origin_i >= p->gknox || j + p->origin_j < 0 || j + p->origin_j >= p->gknoy || k + p->origin_k < 0 || k + p->origin_k >= p->gknoz)
-                        {
-                            outside[IJK] = 1;
-                            IO[IJK] = -1;
-                        }
-
+        outside.assign(nf,0);
+        
+        if(role==geo_mesh::role_solid)
+        for(i=g.is; i<g.ie; ++i)
+        for(j=g.js; j<g.je; ++j)
+        for(k=g.ks; k<g.ke; ++k)
+        if(i+p->origin_i<0 || i+p->origin_i>=p->gknox
+        || j+p->origin_j<0 || j+p->origin_j>=p->gknoy
+        || k+p->origin_k<0 || k+p->origin_k>=p->gknoz)
+        {
+        outside[IJK] = 1;
+        IO[IJK] = -1;
+        }
+        
         // inside/outside, entity by entity
         for(const geo_object &ob : G.obj)
-            if(ob.role == role && ob.te > ob.ts)
-            {
-                g.raymode = ob.raymode;
-
-                for(int dir = 0; dir < 3; ++dir)
-                    ray.cart_io(p, dir, G.tri_x, G.tri_y, G.tri_z, ob.ts, ob.te, g, IO.data(), CL.data(), CR.data());
-
-                if(ob.invert == 1)
-                    for(n = 0; n < nf; ++n)
-                        if(outside[n] == 0)
-                            IO[n] = -IO[n];
-            }
+        if(ob.role==role && ob.te>ob.ts)
+        {
+            g.raymode = ob.raymode;
+            
+            for(int dir=0; dir<3; ++dir)
+            ray.cart_io(p,dir,G.tri_x,G.tri_y,G.tri_z,ob.ts,ob.te,g,IO.data(),CL.data(),CR.data());
+            
+            if(ob.invert==1)
+            for(n=0; n<nf; ++n)
+            if(outside[n]==0)
+            IO[n] = -IO[n];
+        }
     }
-
+    
     // signed distance field of one role
-    bool build_field(lexer * p, geo_mesh & G, geo_raycast & ray, const geo_cart &gx, int role,
+    bool build_field(lexer *p, geo_mesh &G, geo_raycast &ray, const geo_cart &gx, int role,
                      double *bedrole, vector<double> &phi)
     {
-        int i, j, k, n;
+        int i,j,k,n;
         const int marge = increment::marge;
-
-        const int nf = p->imax * p->jmax * p->kmax;
-        const double dxm = (G.dxm > 0.0) ? G.dxm : p->DXM;
-
-        bool objects = false;
-
+        
+        const int nf = p->imax*p->jmax*p->kmax;
+        const double dxm = (G.dxm>0.0) ? G.dxm : p->DXM;
+        
+        bool objects=false;
+        
         for(const geo_object &ob : G.obj)
-            if(ob.role == role && ob.te > ob.ts)
-                objects = true;
-
-        const bool geodat = (G.geodat == role);
-
+        if(ob.role==role && ob.te>ob.ts)
+        objects=true;
+        
+        const bool geodat = (G.geodat==role);
+        
         if(!objects && !geodat)
-            return false;
-
-        phi.assign(nf, 0.0);
-
+        return false;
+        
+        phi.assign(nf,0.0);
+        
         if(objects)
         {
             vector<int> IO, CL, CR;
             vector<char> outside;
-
-            for(n = 0; n < nf; ++n)
-                phi[n] = 1.0e9;
-
+            
+            for(n=0; n<nf; ++n)
+            phi[n] = 1.0e9;
+            
             geo_cart g = gx;
-
-            role_io(p, G, ray, role, g, IO, CL, CR, outside);
-
+            
+            role_io(p,G,ray,role,g,IO,CL,CR,outside);
+            
             // distance to the crossings along the grid lines, bed level of the columns
             for(const geo_object &ob : G.obj)
-                if(ob.role == role && ob.te > ob.ts)
-                    for(int dir = 0; dir < 3; ++dir)
-                        ray.cart_dist(p, dir, G.tri_x, G.tri_y, G.tri_z, ob.ts, ob.te, g, IO.data(), phi.data(), (dir == 2) ? bedrole : nullptr);
-
-            for(n = 0; n < nf; ++n)
+            if(ob.role==role && ob.te>ob.ts)
+            for(int dir=0; dir<3; ++dir)
+            ray.cart_dist(p,dir,G.tri_x,G.tri_y,G.tri_z,ob.ts,ob.te,g,IO.data(),phi.data(),(dir==2)?bedrole:nullptr);
+            
+            for(n=0; n<nf; ++n)
             {
                 // outside the global domain: fluid for the ghost cell estimates (as in DIVEMesh)
-                if(outside[n] == 1)
-                    IO[n] = 1;
-
-                if(IO[n] == -1)
-                    phi[n] = -fabs(phi[n]);
-
-                else if(IO[n] == 1)
-                    phi[n] = fabs(phi[n]);
-
-                if(phi[n] > 10.0 * dxm)
-                    phi[n] = 10.0 * dxm;
-
-                else if(phi[n] < -10.0 * dxm)
-                    phi[n] = -10.0 * dxm;
+                if(outside[n]==1)
+                IO[n] = 1;
+                
+                if(IO[n]==-1)
+                phi[n] = -fabs(phi[n]);
+                
+                else if(IO[n]==1)
+                phi[n] = fabs(phi[n]);
+                
+                if(phi[n]>10.0*dxm)
+                phi[n] = 10.0*dxm;
+                
+                else if(phi[n]<-10.0*dxm)
+                phi[n] = -10.0*dxm;
             }
         }
-
+        
         // geodat bed level: vertical distance, united with the entities
         if(geodat)
-            for(i = gx.is; i < gx.ie; ++i)
-                for(j = gx.js; j < gx.je; ++j)
-                {
-                    const int ic = MAX(0, MIN(i, p->knox - 1));
-                    const int jc = MAX(0, MIN(j, p->knoy - 1));
-
-                    const double zb = p->geobed[(ic - p->imin) * p->jmax + (jc - p->jmin)];
-
-                    for(k = gx.ks; k < gx.ke; ++k)
-                    {
-                        const double dg = p->ZP[KP] - zb;
-
-                        phi[IJK] = objects ? MIN(phi[IJK], dg) : dg;
-                    }
-                }
-
+        for(i=gx.is; i<gx.ie; ++i)
+        for(j=gx.js; j<gx.je; ++j)
+        {
+            const int ic = MAX(0,MIN(i,p->knox-1));
+            const int jc = MAX(0,MIN(j,p->knoy-1));
+            
+            const double zb = p->geobed[(ic-p->imin)*p->jmax + (jc-p->jmin)];
+            
+            for(k=gx.ks; k<gx.ke; ++k)
+            {
+                const double dg = p->ZP[KP] - zb;
+                
+                phi[IJK] = objects ? MIN(phi[IJK],dg) : dg;
+            }
+        }
+        
         return true;
     }
-
+    
     // ghost cell estimates (formerly DIVEMesh solid/topo/surface::gcb_estimate)
-    void estimate(lexer * p, const geo_cart &gx, const vector<double> &A, const vector<double> &B,
+    void estimate(lexer *p, const geo_cart &gx, const vector<double> &A, const vector<double> &B,
                   bool useB, int &gcb, int &gcbextra)
     {
-        int i, j, k;
-
-        const int nf = p->imax * p->jmax * p->kmax;
-
+        int i,j,k;
+        
+        const int nf = p->imax*p->jmax*p->kmax;
+        
         auto fluid = [&](int q, bool strict)
         {
             if(useB)
-                return A[q] > 0.0 && B[q] > 0.0;
-
-            return strict ? A[q] > 0.0 : A[q] >= 0.0;
+            return A[q]>0.0 && B[q]>0.0;
+            
+            return strict ? A[q]>0.0 : A[q]>=0.0;
         };
-
+        
         auto solidc = [&](int q)
         {
             if(useB)
-                return A[q] < 0.0 || B[q] < 0.0;
-
-            return A[q] < 0.0;
+            return A[q]<0.0 || B[q]<0.0;
+            
+            return A[q]<0.0;
         };
-
+        
         // surface cells
-        gcb = 0;
-
+        gcb=0;
+        
         if(!useB)
-            for(i = 0; i < p->knox; ++i)
-                for(j = 0; j < p->knoy; ++j)
-                    for(k = 0; k < p->knoz; ++k)
-                        if(fluid(IJK, false))
-                            if(solidc(Im1JK) || solidc(Ip1JK) || solidc(IJm1K) || solidc(IJp1K) || solidc(IJKm1) || solidc(IJKp1))
-                                ++gcb;
-
+        for(i=0; i<p->knox; ++i)
+        for(j=0; j<p->knoy; ++j)
+        for(k=0; k<p->knoz; ++k)
+        if(fluid(IJK,false))
+        if(solidc(Im1JK) || solidc(Ip1JK) || solidc(IJm1K) || solidc(IJp1K) || solidc(IJKm1) || solidc(IJKp1))
+        ++gcb;
+        
         // cells reached by up to three ghost cells
-        vector<int> fgc(nf, 0);
-
-        for(i = gx.is; i < gx.ie; ++i)
-            for(j = gx.js; j < gx.je; ++j)
-                for(k = gx.ks; k < gx.ke; ++k)
-                    if(useB ? fluid(IJK, true) : fluid(IJK, false))
-                        ++fgc[IJK];
-
+        vector<int> fgc(nf,0);
+        
+        for(i=gx.is; i<gx.ie; ++i)
+        for(j=gx.js; j<gx.je; ++j)
+        for(k=gx.ks; k<gx.ke; ++k)
+        if(useB ? fluid(IJK,true) : fluid(IJK,false))
+        ++fgc[IJK];
+        
         auto add = [&](int ii, int jj, int kk)
         {
-            if(ii >= gx.is && ii < gx.ie && jj >= gx.js && jj < gx.je && kk >= gx.ks && kk < gx.ke)
-                ++fgc[(ii - p->imin) * p->jmax * p->kmax + (jj - p->jmin) * p->kmax + kk - p->kmin];
+            if(ii>=gx.is && ii<gx.ie && jj>=gx.js && jj<gx.je && kk>=gx.ks && kk<gx.ke)
+            ++fgc[(ii-p->imin)*p->jmax*p->kmax + (jj-p->jmin)*p->kmax + kk-p->kmin];
         };
-
+        
         // sources: fluid cells of the global domain next to a solid cell; a source up to three
         // cells outside the subdomain reaches its cells
-        for(i = gx.is; i < gx.ie; ++i)
-            for(j = gx.js; j < gx.je; ++j)
-                for(k = gx.ks; k < gx.ke; ++k)
-                    if(i + p->origin_i >= 0 && i + p->origin_i < p->gknox && j + p->origin_j >= 0 && j + p->origin_j < p->gknoy && k + p->origin_k >= 0 && k + p->origin_k < p->gknoz)
-                        if(fluid(IJK, true))
-                        {
-                            if(i > gx.is && solidc(Im1JK))
-                            {
-                                add(i - 1, j, k);
-                                add(i - 2, j, k);
-                                add(i - 3, j, k);
-                            }
-                            if(i < gx.ie - 1 && solidc(Ip1JK))
-                            {
-                                add(i + 1, j, k);
-                                add(i + 2, j, k);
-                                add(i + 3, j, k);
-                            }
-                            if(j > gx.js && solidc(IJm1K))
-                            {
-                                add(i, j - 1, k);
-                                add(i, j - 2, k);
-                                add(i, j - 3, k);
-                            }
-                            if(j < gx.je - 1 && solidc(IJp1K))
-                            {
-                                add(i, j + 1, k);
-                                add(i, j + 2, k);
-                                add(i, j + 3, k);
-                            }
-                            if(k > gx.ks && solidc(IJKm1))
-                            {
-                                add(i, j, k - 1);
-                                add(i, j, k - 2);
-                                add(i, j, k - 3);
-                            }
-                            if(k < gx.ke - 1 && solidc(IJKp1))
-                            {
-                                add(i, j, k + 1);
-                                add(i, j, k + 2);
-                                add(i, j, k + 3);
-                            }
-                        }
-
-        gcbextra = 0;
-
-        for(i = 0; i < p->knox; ++i)
-            for(j = 0; j < p->knoy; ++j)
-                for(k = 0; k < p->knoz; ++k)
-                    if(fgc[IJK] >= 2)
-                        ++gcbextra;
+        for(i=gx.is; i<gx.ie; ++i)
+        for(j=gx.js; j<gx.je; ++j)
+        for(k=gx.ks; k<gx.ke; ++k)
+        if(i+p->origin_i>=0 && i+p->origin_i<p->gknox
+        && j+p->origin_j>=0 && j+p->origin_j<p->gknoy
+        && k+p->origin_k>=0 && k+p->origin_k<p->gknoz)
+        if(fluid(IJK,true))
+        {
+            if(i>gx.is   && solidc(Im1JK)) {add(i-1,j,k); add(i-2,j,k); add(i-3,j,k);}
+            if(i<gx.ie-1 && solidc(Ip1JK)) {add(i+1,j,k); add(i+2,j,k); add(i+3,j,k);}
+            if(j>gx.js   && solidc(IJm1K)) {add(i,j-1,k); add(i,j-2,k); add(i,j-3,k);}
+            if(j<gx.je-1 && solidc(IJp1K)) {add(i,j+1,k); add(i,j+2,k); add(i,j+3,k);}
+            if(k>gx.ks   && solidc(IJKm1)) {add(i,j,k-1); add(i,j,k-2); add(i,j,k-3);}
+            if(k<gx.ke-1 && solidc(IJKp1)) {add(i,j,k+1); add(i,j,k+2); add(i,j,k+3);}
+        }
+        
+        gcbextra=0;
+        
+        for(i=0; i<p->knox; ++i)
+        for(j=0; j<p->knoy; ++j)
+        for(k=0; k<p->knoz; ++k)
+        if(fgc[IJK]>=2)
+        ++gcbextra;
     }
-}  // namespace
+}
 
 void lexer::grid_solids(ghostcell *pgc)
 {
-    int i, j, n;
+    int i,j,n;
     lexer *p = this;
-
-    if(gridgeo == nullptr)
-        return;
-
+    
+    if(gridgeo==nullptr)
+    return;
+    
     geo_mesh &G = *gridgeo;
     geo_raycast ray(this);
-
-    const double dxm = (G.dxm > 0.0) ? G.dxm : DXM;
-    const geo_cart gx = geo_raycast::extended(this, dxm);
-
+    
+    const double dxm = (G.dxm>0.0) ? G.dxm : DXM;
+    const geo_cart gx = geo_raycast::extended(this,dxm);
+    
     // bed levels as initialised by DIVEMesh, geodat bed of its role
-    for(n = 0; n < imax * jmax; ++n)
+    for(n=0; n<imax*jmax; ++n)
     {
-        solidbed[n] = -1.0e10;
-        topobed[n] = global_zmin;
+    solidbed[n] = -1.0e10;
+    topobed[n] = global_zmin;
     }
-
-    for(i = 0; i < knox; ++i)
-        for(j = 0; j < knoy; ++j)
-        {
-            if(G.geodat == geo_mesh::role_solid)
-                solidbed[IJ] = geobed[IJ];
-
-            if(G.geodat == geo_mesh::role_topo)
-                topobed[IJ] = geobed[IJ];
-        }
-
+    
+    for(i=0; i<knox; ++i)
+    for(j=0; j<knoy; ++j)
+    {
+        if(G.geodat==geo_mesh::role_solid)
+        solidbed[IJ] = geobed[IJ];
+        
+        if(G.geodat==geo_mesh::role_topo)
+        topobed[IJ] = geobed[IJ];
+    }
+    
     vector<double> phis, phit;
-
-    const bool solid = build_field(this, G, ray, gx, geo_mesh::role_solid, solidbed, phis);
-    const bool topo = build_field(this, G, ray, gx, geo_mesh::role_topo, topobed, phit);
-
+    
+    const bool solid = build_field(this,G,ray,gx,geo_mesh::role_solid,solidbed,phis);
+    const bool topo  = build_field(this,G,ray,gx,geo_mesh::role_topo,topobed,phit);
+    
     // signed distance fields of the CFD solver
-    if(A10 == 4 || A10 == 6)
+    if(A10==4 || A10==6)
     {
-        for(i = 0; i < knox; ++i)
-            for(j = 0; j < knoy; ++j)
-                for(int k = 0; k < knoz; ++k)
-                {
-                    if(solid)
-                        flag_solid[IJK] = phis[IJK];
-
-                    if(topo)
-                        flag_topo[IJK] = phit[IJK];
-                }
+        for(i=0; i<knox; ++i)
+        for(j=0; j<knoy; ++j)
+        for(int k=0; k<knoz; ++k)
+        {
+            if(solid)
+            flag_solid[IJK] = phis[IJK];
+            
+            if(topo)
+            flag_topo[IJK] = phit[IJK];
+        }
     }
-
+    
     // the signed distance fields are only used by CFD and PTF
-    if(A10 != 4 && A10 != 6)
+    if(A10!=4 && A10!=6)
     {
-        del_Darray(flag_solid, imax * jmax * kmax);
-        del_Darray(flag_topo, imax * jmax * kmax);
-        flag_solid = flag_topo = nullptr;
+    del_Darray(flag_solid,imax*jmax*kmax);
+    del_Darray(flag_topo,imax*jmax*kmax);
+    flag_solid = flag_topo = nullptr;
     }
-
+    
     // combined bed level
     // NHFLOW with immersed solids (A 580 1): the solids are not part of the bed
-    for(i = 0; i < knox; ++i)
-        for(j = 0; j < knoy; ++j)
-        {
-            if(A10 == 5 && A580 == 1)
-                bed[IJ] = MAX(global_zmin, topobed[IJ]);
-
-            else
-                bed[IJ] = MAX(global_zmin, MAX(solidbed[IJ], topobed[IJ]));
-        }
-
+    for(i=0; i<knox; ++i)
+    for(j=0; j<knoy; ++j)
+    {
+        if(A10==5 && A580==1)
+        bed[IJ] = MAX(global_zmin,topobed[IJ]);
+        
+        else
+        bed[IJ] = MAX(global_zmin,MAX(solidbed[IJ],topobed[IJ]));
+    }
+    
     // ghost cell estimates; absent fields are zero as in DIVEMesh
-    const int nf = imax * jmax * kmax;
-
+    const int nf = imax*jmax*kmax;
+    
     if(!solid)
-        phis.assign(nf, 0.0);
-
+    phis.assign(nf,0.0);
+    
     if(!topo)
-        phit.assign(nf, 0.0);
-
-    int gcb_dummy = 0;
-
+    phit.assign(nf,0.0);
+    
+    int gcb_dummy=0;
+    
     if(solid)
-        estimate(this, gx, phis, phis, false, solid_gcb_est, solid_gcbextra_est);
-
+    estimate(this,gx,phis,phis,false,solid_gcb_est,solid_gcbextra_est);
+    
     if(topo)
     {
-        estimate(this, gx, phit, phit, false, topo_gcb_est, topo_gcbextra_est);
-        topo_gcb_est *= 4;
+    estimate(this,gx,phit,phit,false,topo_gcb_est,topo_gcbextra_est);
+    topo_gcb_est *= 4;
     }
-
-    estimate(this, gx, phis, phit, true, gcb_dummy, tot_gcbextra_est);
-
+    
+    estimate(this,gx,phis,phit,true,gcb_dummy,tot_gcbextra_est);
+    
     // summary
     const int nsolid = pgc->globalimax(G.count(geo_mesh::role_solid));
     const int ntopo = pgc->globalimax(G.count(geo_mesh::role_topo));
-
-    if(mpirank == 0 && (nsolid > 0 || ntopo > 0 || G.geodat > 0))
+    
+    if(mpirank==0 && (nsolid>0 || ntopo>0 || G.geodat>0))
     {
-        cout << "grid geometry: " << nsolid << " solid and " << ntopo << " topo entities, " << G.ntri << " triangles";
-
-        if(G.geodat > 0)
-            cout << ", geodat bed level (" << (G.geodat == geo_mesh::role_topo ? "topo" : "solid") << ")";
-
-        cout << endl;
+    cout<<"grid geometry: "<<nsolid<<" solid and "<<ntopo<<" topo entities, "<<G.ntri<<" triangles";
+    
+    if(G.geodat>0)
+    cout<<", geodat bed level ("<<(G.geodat==geo_mesh::role_topo?"topo":"solid")<<")";
+    
+    cout<<endl;
     }
 }
 
 bool geo_grid_solids_io(lexer *p, int role, const geo_cart &g, vector<int> &IO)
 {
-    if(p->gridgeo == nullptr)
-        return false;
-
+    if(p->gridgeo==nullptr)
+    return false;
+    
     geo_mesh &G = *p->gridgeo;
-
-    bool objects = false;
+    
+    bool objects=false;
     for(const geo_object &ob : G.obj)
-        if(ob.role == role && ob.te > ob.ts)
-            objects = true;
-
+    if(ob.role==role && ob.te>ob.ts)
+    objects=true;
+    
     if(!objects)
-        return false;
-
+    return false;
+    
     geo_raycast ray(p);
     geo_cart gg = g;
     vector<int> CL, CR;
     vector<char> outside;
-
-    role_io(p, G, ray, role, gg, IO, CL, CR, outside);
-
+    
+    role_io(p,G,ray,role,gg,IO,CL,CR,outside);
+    
     // outside the global domain: fluid (as grid_solids)
-    for(size_t n = 0; n < IO.size(); ++n)
-        if(outside[n] == 1)
-            IO[n] = 1;
-
+    for(size_t n=0; n<IO.size(); ++n)
+    if(outside[n]==1)
+    IO[n] = 1;
+    
     return true;
 }

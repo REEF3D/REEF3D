@@ -23,8 +23,8 @@ Author: Hans Bihs
 #ifndef SEDIMENT_XFILTER_H_
 #define SEDIMENT_XFILTER_H_
 
-#include "increment.h"
-#include "slice4.h"
+#include"slice4.h"
+#include"increment.h"
 
 class lexer;
 class ghostcell;
@@ -47,16 +47,16 @@ class ghostcell;
 class sediment_xfilter : public increment
 {
 public:
-    sediment_xfilter(lexer *);
+    sediment_xfilter(lexer*);
 
-    void mask(lexer *, slice *);
-    void weights(lexer *);
-    void copy(lexer *, slice &, int);
-    void sweep1(lexer *, int);
-    void sweep2(lexer *, slice &, int);
+    void mask(lexer*, slice*);
+    void weights(lexer*);
+    void copy(lexer*, slice&, int);
+    void sweep1(lexer*, int);
+    void sweep2(lexer*, slice&, int);
 
     // the whole filter on one grid with the ghost cells of pgc (gcsl_start4)
-    void run(lexer *, ghostcell *, slice &, int, int);
+    void run(lexer*, ghostcell*, slice&, int, int);
 
     slice4 own, m, h, dh, a, b;
 

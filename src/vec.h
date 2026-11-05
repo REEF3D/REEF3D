@@ -30,15 +30,15 @@ class lexer;
 class vec
 {
 public:
-    vec(lexer *);
+    vec(lexer*);
 
     /// Explicit length; see matrix_diag's sized constructor.
-    vec(lexer *, int len);
+    vec(lexer*, int len);
     virtual ~vec() = default;
 
     void resize(int);
 
-    void reset() { std::fill(V.begin(), V.end(), 0.0); };
+    void reset() {std::fill(V.begin(), V.end(), 0.0);};
 
     std::vector<double> V;
 };

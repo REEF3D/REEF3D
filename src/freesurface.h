@@ -37,8 +37,10 @@ using namespace std;
 class freesurface
 {
 public:
-    virtual void start(fdm *, lexer *, convection *, solver *, ghostcell *, ioflow *, reini *, field &) = 0;
-    virtual void update(lexer *, fdm *, ghostcell *, field &) = 0;
+
+	virtual void start(fdm*,lexer*, convection*, solver*, ghostcell*,ioflow*, reini*,field&)=0;
+    virtual void update(lexer*,fdm*,ghostcell*,field&)=0;
+
 };
 
 #endif

@@ -20,14 +20,14 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "nhflow_bcmom.h"
-#include "fdm_nhf.h"
-#include "ghostcell.h"
-#include "lexer.h"
-#include "nhflow_wall.h"
-#include "turbulence.h"
+#include"nhflow_bcmom.h"
+#include"nhflow_wall.h"
+#include"lexer.h"
+#include"fdm_nhf.h"
+#include"ghostcell.h"
+#include"turbulence.h"
 
-nhflow_bcmom::nhflow_bcmom(lexer *p) : roughness(p), kappa(0.4)
+nhflow_bcmom::nhflow_bcmom(lexer* p):roughness(p),kappa(0.4)
 {
 }
 
@@ -39,18 +39,18 @@ nhflow_bcmom::~nhflow_bcmom()
 // momentum equation: |u_t| u / (u+^2 dn) WL, with the log law at the cell centre (z0 = dn/2 >= ks/30)
 static inline double nhflow_wall_drag(double vel, double ut, double dn, double ks, double WLval)
 {
-    const double kappa = 0.4;
-    double z0 = 0.5 * dn;
-
-    if(ks <= 0.0)
-        ks = 0.0001;
-
-    if(30.0 * z0 < ks)
-        z0 = ks / 30.0;
-
-    const double uplus = (1.0 / kappa) * MAX(1.0, log(30.0 * (z0 / ks)));
-
-    return ut * vel * WLval / (uplus * uplus * dn);
+    const double kappa=0.4;
+    double z0 = 0.5*dn;
+    
+    if(ks<=0.0)
+    ks=0.0001;
+    
+    if(30.0*z0<ks)
+    z0=ks/30.0;
+    
+    const double uplus = (1.0/kappa)*MAX(1.0,log(30.0*(z0/ks)));
+    
+    return ut*vel*WLval/(uplus*uplus*dn);
 }
 
 // the bed shear stress point-implicit in time: the explicit drag c |u| u WL with c = 1 / (u+^2 dn) divided by
@@ -60,19 +60,19 @@ static inline double nhflow_wall_drag(double vel, double ut, double dn, double k
 // deep water dt c |u| is small and the drag is the explicit one to that order.
 static inline double nhflow_bed_drag(double vel, double ut, double dn, double ks, double WLval, double dt)
 {
-    const double kappa = 0.4;
-    double z0 = 0.5 * dn;
-
-    if(ks <= 0.0)
-        ks = 0.0001;
-
-    if(30.0 * z0 < ks)
-        z0 = ks / 30.0;
-
-    const double uplus = (1.0 / kappa) * MAX(1.0, log(30.0 * (z0 / ks)));
-    const double c = 1.0 / (uplus * uplus * dn);
-
-    return c * ut * vel * WLval / (1.0 + MAX(dt, 0.0) * c * ut);
+    const double kappa=0.4;
+    double z0 = 0.5*dn;
+    
+    if(ks<=0.0)
+    ks=0.0001;
+    
+    if(30.0*z0<ks)
+    z0=ks/30.0;
+    
+    const double uplus = (1.0/kappa)*MAX(1.0,log(30.0*(z0/ks)));
+    const double c = 1.0/(uplus*uplus*dn);
+    
+    return c*ut*vel*WLval/(1.0 + MAX(dt,0.0)*c*ut);
 }
 
 // comp 0: U into F, 1: V into G, 2: W into H
@@ -82,89 +82,91 @@ static inline double nhflow_bed_drag(double vel, double ut, double dn, double ks
 //         roughness d->ks at the bed. Faces add up (corner cells feel both walls).
 void nhflow_bcmom::wall_friction(lexer *p, fdm_nhf *d, int comp, double *VEL, double *F, slice &WL)
 {
-    double U, V, W, dz;
-    int w[6], n;
-
-    if(p->A519 == 1 && comp < 2)
+    double U,V,W,dz;
+    int w[6],n;
+    
+    if(p->A519==1 && comp<2)
     {
-        k = 0;
-
-        SLICELOOP4
-        if(p->DF[IJK] > 0)
-        {
-            U = d->U[IJK];
-            V = d->V[IJK];
-
-            F[IJK] -= nhflow_bed_drag(VEL[IJK], sqrt(U * U + V * V), p->DZN[KP] * WL(i, j), d->ks(i, j), WL(i, j), p->dt);
-        }
+    k=0;
+    
+    SLICELOOP4
+    if(p->DF[IJK]>0)
+    {
+    U=d->U[IJK];
+    V=d->V[IJK];
+    
+    F[IJK] -= nhflow_bed_drag(VEL[IJK], sqrt(U*U + V*V), p->DZN[KP]*WL(i,j), d->ks(i,j), WL(i,j), p->dt);
     }
-
-    if(p->A519 == 2)
-        LOOP if(p->DF[IJK] > 0)
-        {
-            nhflow_wall_faces(p, i, j, k, w);
-
-            U = d->U[IJK];
-            V = d->V[IJK];
-            W = d->W[IJK];
-            dz = p->DZN[KP] * WL(i, j);
-
-            // x walls: v, w
-            n = w[0] + w[1];
-            if(n > 0 && comp != 0)
-                F[IJK] -= n * nhflow_wall_drag(VEL[IJK], sqrt(V * V + W * W), p->DXN[IP], p->B57, WL(i, j));
-
-            // y walls: u, w
-            n = w[2] + w[3];
-            if(n > 0 && comp != 1)
-                F[IJK] -= n * nhflow_wall_drag(VEL[IJK], sqrt(U * U + W * W), p->DYN[JP], p->B57, WL(i, j));
-
-            // bed: u, v
-            if(w[4] && comp != 2)
-                F[IJK] -= nhflow_bed_drag(VEL[IJK], sqrt(U * U + V * V), dz, d->ks(i, j), WL(i, j), p->dt);
-
-            // solid above: u, v
-            if(w[5] && comp != 2)
-                F[IJK] -= nhflow_wall_drag(VEL[IJK], sqrt(U * U + V * V), dz, p->B57, WL(i, j));
-        }
-
+    }
+    
+    if(p->A519==2)
+    LOOP
+    if(p->DF[IJK]>0)
+    {
+    nhflow_wall_faces(p,i,j,k,w);
+    
+    U=d->U[IJK];
+    V=d->V[IJK];
+    W=d->W[IJK];
+    dz = p->DZN[KP]*WL(i,j);
+    
+        // x walls: v, w
+        n = w[0]+w[1];
+        if(n>0 && comp!=0)
+        F[IJK] -= n*nhflow_wall_drag(VEL[IJK], sqrt(V*V + W*W), p->DXN[IP], p->B57, WL(i,j));
+        
+        // y walls: u, w
+        n = w[2]+w[3];
+        if(n>0 && comp!=1)
+        F[IJK] -= n*nhflow_wall_drag(VEL[IJK], sqrt(U*U + W*W), p->DYN[JP], p->B57, WL(i,j));
+        
+        // bed: u, v
+        if(w[4] && comp!=2)
+        F[IJK] -= nhflow_bed_drag(VEL[IJK], sqrt(U*U + V*V), dz, d->ks(i,j), WL(i,j), p->dt);
+        
+        // solid above: u, v
+        if(w[5] && comp!=2)
+        F[IJK] -= nhflow_wall_drag(VEL[IJK], sqrt(U*U + V*V), dz, p->B57, WL(i,j));
+    }
+    
     // sharp thin bodies (X 330 'mobility sharp') with a turbulence model: wall friction at the faces at the body
     // (the turbulence model sees them as walls with a wall function, nhflow_wall.h)
-    if(d->thinbody != nullptr && p->A560 > 0)
-        LOOP if(p->DF[IJK] > 0 && p->wet[IJ] == 1)
-        {
-            d->thinbody->wall_faces(p, i, j, k, w);
-
-            U = d->U[IJK];
-            V = d->V[IJK];
-            W = d->W[IJK];
-            dz = p->DZN[KP] * WL(i, j);
-
-            n = w[0] + w[1];
-            if(n > 0 && comp != 0)
-                F[IJK] -= n * nhflow_wall_drag(VEL[IJK], sqrt(V * V + W * W), p->DXN[IP], p->B57, WL(i, j));
-
-            n = w[2] + w[3];
-            if(n > 0 && comp != 1)
-                F[IJK] -= n * nhflow_wall_drag(VEL[IJK], sqrt(U * U + W * W), p->DYN[JP], p->B57, WL(i, j));
-
-            n = w[4] + w[5];
-            if(n > 0 && comp != 2)
-                F[IJK] -= n * nhflow_wall_drag(VEL[IJK], sqrt(U * U + V * V), dz, p->B57, WL(i, j));
-        }
+    if(d->thinbody!=nullptr && p->A560>0)
+    LOOP
+    if(p->DF[IJK]>0 && p->wet[IJ]==1)
+    {
+    d->thinbody->wall_faces(p,i,j,k,w);
+    
+    U=d->U[IJK];
+    V=d->V[IJK];
+    W=d->W[IJK];
+    dz = p->DZN[KP]*WL(i,j);
+    
+        n = w[0]+w[1];
+        if(n>0 && comp!=0)
+        F[IJK] -= n*nhflow_wall_drag(VEL[IJK], sqrt(V*V + W*W), p->DXN[IP], p->B57, WL(i,j));
+        
+        n = w[2]+w[3];
+        if(n>0 && comp!=1)
+        F[IJK] -= n*nhflow_wall_drag(VEL[IJK], sqrt(U*U + W*W), p->DYN[JP], p->B57, WL(i,j));
+        
+        n = w[4]+w[5];
+        if(n>0 && comp!=2)
+        F[IJK] -= n*nhflow_wall_drag(VEL[IJK], sqrt(U*U + V*V), dz, p->B57, WL(i,j));
+    }
 }
 
-void nhflow_bcmom::roughness_u(lexer *p, fdm_nhf *d, double *U, double *F, slice &WL)
+void nhflow_bcmom::roughness_u(lexer* p, fdm_nhf *d, double *U, double *F, slice &WL)
 {
-    wall_friction(p, d, 0, U, F, WL);
+    wall_friction(p,d,0,U,F,WL);
 }
 
-void nhflow_bcmom::roughness_v(lexer *p, fdm_nhf *d, double *V, double *G, slice &WL)
+void nhflow_bcmom::roughness_v(lexer* p, fdm_nhf *d, double *V, double *G, slice &WL)
 {
-    wall_friction(p, d, 1, V, G, WL);
+    wall_friction(p,d,1,V,G,WL);
 }
 
-void nhflow_bcmom::roughness_w(lexer *p, fdm_nhf *d, double *W, double *H, slice &WL)
+void nhflow_bcmom::roughness_w(lexer* p, fdm_nhf *d, double *W, double *H, slice &WL)
 {
-    wall_friction(p, d, 2, W, H, WL);
+    wall_friction(p,d,2,W,H,WL);
 }

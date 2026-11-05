@@ -23,8 +23,9 @@ Author: Hans Bihs
 #include "dmpart_decomp.h"
 
 // the output files of the DIVEMesh decomposition (DIVEMesh_Decomp) are not written in REEF3D
-namespace dmpart {
-void decomp::print_partition(lexer *, dive *) {}
-void decomp::partition_planes(lexer *, dive *) {}
-void decomp::decomp_vtp(lexer *, dive *) {}
-}  // namespace dmpart
+namespace dmpart
+{
+void decomp::print_partition(lexer*, dive*) {}
+void decomp::partition_planes(lexer*, dive*) {}
+void decomp::decomp_vtp(lexer*, dive*) {}
+}

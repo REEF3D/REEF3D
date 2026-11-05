@@ -20,60 +20,58 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "bedshear_probe.h"
-#include "ghostcell.h"
-#include "lexer.h"
-#include "reefckpt.h"
-#include "sediment.h"
-#include <stdio.h>
-#include <sys/stat.h>
-#include <sys/types.h>
+#include"reefckpt.h"
+#include"bedshear_probe.h"
+#include"lexer.h"
+#include"ghostcell.h"
+#include"sediment.h"
+#include<sys/stat.h>
+#include<sys/types.h>
+#include<stdio.h>
 
 bedshear_probe::bedshear_probe(lexer *p, ghostcell *pgc)
 {
-    p->Iarray(iloc, p->P125);
-    p->Iarray(jloc, p->P125);
-    p->Iarray(flag, p->P125);
-    p->Darray(bsg, p->P125);
-
-    // Create Folder
-    // Create Folder
-    if(p->mpirank == 0 && p->A10 == 2)
-        mkdir("./REEF3D_SFLOW_Sediment", 0777);
-
-    if(p->mpirank == 0 && p->A10 == 5)
-        mkdir("./REEF3D_NHFLOW_Sediment", 0777);
-
-    if(p->mpirank == 0 && p->A10 == 6)
-        mkdir("./REEF3D_CFD_Sediment", 0777);
-
-    if(p->mpirank == 0 && p->P125 > 0)
+    p->Iarray(iloc,p->P125);
+	p->Iarray(jloc,p->P125);
+	p->Iarray(flag,p->P125);
+	p->Darray(bsg,p->P125);
+	
+	// Create Folder
+	// Create Folder
+	if(p->mpirank==0 && p->A10==2)
+	mkdir("./REEF3D_SFLOW_Sediment",0777);
+    
+    if(p->mpirank==0 && p->A10==5)
+	mkdir("./REEF3D_NHFLOW_Sediment",0777);
+    
+    if(p->mpirank==0 && p->A10==6)
+	mkdir("./REEF3D_CFD_Sediment",0777);
+	
+    if(p->mpirank==0 && p->P125>0)
     {
-        // open file
-        // a restart (I 45): continued from the checkpoint
-        const char *name = p->A10 == 2 ? "./REEF3D_SFLOW_Sediment/REEF3D-SFLOW-Sediment-Bedshear.dat"
-                                       : (p->A10 == 5 ? "./REEF3D_NHFLOW_Sediment/REEF3D-NHFLOW-Sediment-Bedshear.dat" : "./REEF3D_CFD_Sediment/REEF3D-CFD-Sediment-Bedshear.dat");
-        if(reefckpt_open(bsgout, name, p->I45))
-        {
-            bsgout << "number of gauges:  " << p->P125 << endl
-                   << endl;
-            bsgout << "x_coord     y_coord" << endl;
-            for(n = 0; n < p->P125; ++n)
-                bsgout << n + 1 << "\t " << p->P125_x[n] << "\t " << p->P125_y[n] << endl;
+    // open file
+    // a restart (I 45): continued from the checkpoint
+    const char *name = p->A10==2 ? "./REEF3D_SFLOW_Sediment/REEF3D-SFLOW-Sediment-Bedshear.dat"
+                     : (p->A10==5 ? "./REEF3D_NHFLOW_Sediment/REEF3D-NHFLOW-Sediment-Bedshear.dat" : "./REEF3D_CFD_Sediment/REEF3D-CFD-Sediment-Bedshear.dat");
+    if(reefckpt_open(bsgout,name,p->I45))
+    {
+    bsgout<<"number of gauges:  "<<p->P125<<endl<<endl;
+    bsgout<<"x_coord     y_coord"<<endl;
+    for(n=0;n<p->P125;++n)
+            bsgout<<n+1<<"\t "<<p->P125_x[n]<<"\t "<<p->P125_y[n]<<endl;
 
-            bsgout << endl
-                   << endl;
+    bsgout<<endl<<endl;
 
-            bsgout << "time";
-            for(n = 0; n < p->P125; ++n)
-                bsgout << "\t P" << n + 1;
+    bsgout<<"time";
+    for(n=0;n<p->P125;++n)
+    bsgout<<"\t P"<<n+1;
 
-            bsgout << endl
-                   << endl;
-        }
+    bsgout<<endl<<endl;
     }
+    }
+	
 
-    ini_location(p, pgc);
+    ini_location(p,pgc);
 }
 
 bedshear_probe::~bedshear_probe()
@@ -83,28 +81,29 @@ bedshear_probe::~bedshear_probe()
 
 void bedshear_probe::bedshear_gauge(lexer *p, ghostcell *pgc, sediment *psed)
 {
-    for(n = 0; n < p->P125; ++n)
-        bsg[n] = -1.0e20;
+    for(n=0;n<p->P125;++n)
+        bsg[n]=-1.0e20;
 
-    for(n = 0; n < p->P125; ++n)
-        if(flag[n] > 0)
+	
+    for(n=0;n<p->P125;++n)
+        if(flag[n]>0)
         {
 
-            i = iloc[n];
-            j = jloc[n];
-            bsg[n] = psed->bedshear_point(p, pgc);
+            i=iloc[n];
+            j=jloc[n];
+            bsg[n] = psed->bedshear_point(p,pgc);
         }
-
-    for(n = 0; n < p->P125; ++n)
-        bsg[n] = pgc->globalmax(bsg[n]);
+	
+	for(n=0;n<p->P125;++n)
+        bsg[n]=pgc->globalmax(bsg[n]);
 
     // write to file
-    if(p->mpirank == 0)
+    if(p->mpirank==0)
     {
-        bsgout << p->sedtime << "\t ";
-        for(n = 0; n < p->P125; ++n)
-            bsgout << bsg[n] << "  \t  ";
-        bsgout << endl;
+        bsgout<<p->sedtime<<"\t ";
+        for(n=0;n<p->P125;++n)
+            bsgout<<bsg[n]<<"  \t  ";
+        bsgout<<endl;
     }
 }
 
@@ -112,19 +111,20 @@ void bedshear_probe::ini_location(lexer *p, ghostcell *pgc)
 {
     int check;
 
-    for(n = 0; n < p->P125; ++n)
+    for(n=0;n<p->P125;++n)
     {
-        iloc[n] = p->posc_i(p->P125_x[n]);
+    iloc[n] = p->posc_i(p->P125_x[n]); 
+    
+    if(p->j_dir==0)
+    jloc[n]=0;
+    
+    if(p->j_dir==1)
+    jloc[n] = p->posc_j(p->P125_y[n]); 
 
-        if(p->j_dir == 0)
-            jloc[n] = 0;
+    check=ij_boundcheck(p,iloc[n],jloc[n],0);
 
-        if(p->j_dir == 1)
-            jloc[n] = p->posc_j(p->P125_y[n]);
-
-        check = ij_boundcheck(p, iloc[n], jloc[n], 0);
-
-        if(check == 1)
-            flag[n] = 1;
+	
+    if(check==1)
+    flag[n]=1;
     }
 }

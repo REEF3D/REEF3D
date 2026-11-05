@@ -30,10 +30,10 @@ class lexer;
 class matrix2D
 {
 public:
-    matrix2D(lexer *);
+    matrix2D(lexer*);
 
     /// Explicit row count; see matrix_diag's sized constructor.
-    matrix2D(lexer *, int rows);
+    matrix2D(lexer*, int rows);
 
     void resize(int);
 

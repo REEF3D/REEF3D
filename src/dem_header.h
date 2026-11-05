@@ -20,6 +20,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "dem.h"
-#include "dem_f.h"
-#include "dem_void.h"
+#include"dem.h"
+#include"dem_void.h"
+#include"dem_f.h"

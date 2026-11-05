@@ -20,39 +20,40 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "fdm.h"
-#include "ghostcell.h"
-#include "lexer.h"
-#include "reefckpt.h"
-#include "sediment_f.h"
-#include "sediment_fdm.h"
+#include"reefckpt.h"
+#include"sediment_f.h"
+#include"lexer.h"
+#include"fdm.h"
+#include"ghostcell.h"
+#include"sediment_fdm.h"
 
 void sediment_f::log_ini(lexer *p)
 {
-    if(p->mpirank == 0)
+    if(p->mpirank==0)
     {
-        // a restart (I 45): continued from the checkpoint
-        if(reefckpt_open(sedlogout, "./REEF3D_Log/REEF3D_sedimentlog.dat", p->I45))
-        {
-            sedlogout << "number of cells:  " << p->cellnumtot << endl
-                      << endl;
-            sedlogout << "#iteration \t #simtime  \t #dtsed \t| #sedtime \t #sediter \t #slidecells \t| #bedmin \t #bedmax \t|" << endl;
-        }
+    // a restart (I 45): continued from the checkpoint
+    if(reefckpt_open(sedlogout,"./REEF3D_Log/REEF3D_sedimentlog.dat",p->I45))
+    {
+    sedlogout<<"number of cells:  "<<p->cellnumtot<<endl<<endl;
+    sedlogout<<"#iteration \t #simtime  \t #dtsed \t| #sedtime \t #sediter \t #slidecells \t| #bedmin \t #bedmax \t|"<<endl;
     }
+    }
+    
 }
 
 void sediment_f::sedimentlog(lexer *p)
 {
-    if(p->mpirank == 0)
+    if(p->mpirank==0)
     {
-        sedlogout << p->count << "\t \t \t";
-        sedlogout << setprecision(5) << p->simtime << " \t ";
-        sedlogout << setprecision(4) << p->dtsed << " \t ";
-        sedlogout << setprecision(4) << p->sedtime << " \t ";
-        sedlogout << setprecision(4) << p->sediter << " \t ";
-        sedlogout << setprecision(4) << p->slidecells << " \t ";
+    sedlogout<<p->count<<"\t \t \t";
+    sedlogout<<setprecision(5)<<p->simtime<<" \t ";
+    sedlogout<<setprecision(4)<<p->dtsed<<" \t ";
+    sedlogout<<setprecision(4)<<p->sedtime<<" \t ";
+    sedlogout<<setprecision(4)<<p->sediter<<" \t ";
+    sedlogout<<setprecision(4)<<p->slidecells<<" \t ";
 
-        sedlogout << setprecision(4) << p->bedmin << " \t ";
-        sedlogout << setprecision(4) << p->bedmax << " \t " << endl;
+    sedlogout<<setprecision(4)<<p->bedmin<<" \t ";
+    sedlogout<<setprecision(4)<<p->bedmax<<" \t "<<endl;
     }
+    
 }

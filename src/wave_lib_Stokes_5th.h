@@ -23,98 +23,100 @@ Author: Hans Bihs
 #ifndef WAVE_LIB_STOKES_5TH_H_
 #define WAVE_LIB_STOKES_5TH_H_
 
-#include "increment.h"
-#include "wave_lib.h"
+#include"wave_lib.h"
+#include"increment.h"
 
 using namespace std;
 
 class wave_lib_Stokes_5th final : public wave_lib, public increment
 {
 public:
-    int wave_lexer_fields() const override { return 0; }
-    wave_lib_Stokes_5th(lexer *, ghostcell *);
-    virtual ~wave_lib_Stokes_5th();
-
-    double wave_horzvel(lexer *, double, double, double);
-    double wave_horzvel_space_sin(lexer *, double, double, double, int);
-    double wave_horzvel_space_cos(lexer *, double, double, double, int);
-    double wave_horzvel_time_sin(lexer *, int);
-    double wave_horzvel_time_cos(lexer *, int);
-
-    double wave_u(lexer *, double, double, double) override final;
-    double wave_u_space_sin(lexer *, double, double, double, int) override final;
-    double wave_u_space_cos(lexer *, double, double, double, int) override final;
-    double wave_u_time_sin(lexer *, int) override final;
-    double wave_u_time_cos(lexer *, int) override final;
-
-    double wave_v(lexer *, double, double, double) override final;
-    double wave_v_space_sin(lexer *, double, double, double, int) override final;
-    double wave_v_space_cos(lexer *, double, double, double, int) override final;
-    double wave_v_time_sin(lexer *, int) override final;
-    double wave_v_time_cos(lexer *, int) override final;
-
-    double wave_w(lexer *, double, double, double) override final;
-    double wave_w_space_sin(lexer *, double, double, double, int) override final;
-    double wave_w_space_cos(lexer *, double, double, double, int) override final;
-    double wave_w_time_sin(lexer *, int) override final;
-    double wave_w_time_cos(lexer *, int) override final;
-
-    double wave_eta(lexer *, double, double) override final;
-    double wave_eta_space_sin(lexer *, double, double, int) override final;
-    double wave_eta_space_cos(lexer *, double, double, int) override final;
-    double wave_eta_time_sin(lexer *, int) override final;
-    double wave_eta_time_cos(lexer *, int) override final;
-
-    double wave_fi(lexer *, double, double, double) override final;
-    double wave_fi_space_sin(lexer *, double, double, double, int) override final;
-    double wave_fi_space_cos(lexer *, double, double, double, int) override final;
-    double wave_fi_time_sin(lexer *, int) override final;
-    double wave_fi_time_cos(lexer *, int) override final;
-
+    int wave_lexer_fields() const override {return 0;}
+    wave_lib_Stokes_5th(lexer*, ghostcell*);
+	virtual ~wave_lib_Stokes_5th();
+    
+    double wave_horzvel(lexer*,double,double,double);
+    double wave_horzvel_space_sin(lexer*,double,double,double,int);
+    double wave_horzvel_space_cos(lexer*,double,double,double,int);
+    double wave_horzvel_time_sin(lexer*,int);
+    double wave_horzvel_time_cos(lexer*,int);
+    
+    double wave_u(lexer*,double,double,double) override final;
+    double wave_u_space_sin(lexer*,double,double,double,int) override final;
+    double wave_u_space_cos(lexer*,double,double,double,int) override final;
+    double wave_u_time_sin(lexer*,int) override final;
+    double wave_u_time_cos(lexer*,int) override final;
+    
+    double wave_v(lexer*,double,double,double) override final;
+    double wave_v_space_sin(lexer*,double,double,double,int) override final;
+    double wave_v_space_cos(lexer*,double,double,double,int) override final;
+    double wave_v_time_sin(lexer*,int) override final;
+    double wave_v_time_cos(lexer*,int) override final;
+    
+    double wave_w(lexer*,double,double,double) override final;
+    double wave_w_space_sin(lexer*,double,double,double,int) override final;
+    double wave_w_space_cos(lexer*,double,double,double,int) override final;
+    double wave_w_time_sin(lexer*,int) override final;
+    double wave_w_time_cos(lexer*,int) override final;
+    
+    double wave_eta(lexer*,double,double) override final;
+    double wave_eta_space_sin(lexer*,double,double,int) override final;
+    double wave_eta_space_cos(lexer*,double,double,int) override final;
+    double wave_eta_time_sin(lexer*,int) override final;
+    double wave_eta_time_cos(lexer*,int) override final;
+    
+    double wave_fi(lexer*,double,double,double) override final;
+    double wave_fi_space_sin(lexer*,double,double,double,int) override final;
+    double wave_fi_space_cos(lexer*,double,double,double,int) override final;
+    double wave_fi_time_sin(lexer*,int) override final;
+    double wave_fi_time_cos(lexer*,int) override final;
+    
     // cached-point evaluation: u, v share the horizontal velocity
-    void wave_uvw_c(lexer *, int, double, double &, double &, double &) override final;
-
-    void wave_parameters(lexer *, ghostcell *);
-    void parameters(lexer *, ghostcell *) override final;
-    void wave_prestep(lexer *, ghostcell *) override final;
-
+    void wave_uvw_c(lexer*, int, double, double&, double&, double&) override final;
+    
+    
+    void wave_parameters(lexer*,ghostcell*);
+    void parameters(lexer*,ghostcell*) override final;
+    void wave_prestep(lexer*,ghostcell*) override final;
+    
     // waves on a background (iowave B 530): k on h_eff and with Doppler
-    int wave_ncomp() const override final { return 1; }
-    void wave_comp(int, double &, double &, double &, double &, double &) const override final;
-    double wave_depth0() const override final { return wdt; }
-    double wave_depth() const override final { return wdk; }
+    int wave_ncomp() const override final {return 1;}
+    void wave_comp(int, double&, double&, double&, double&, double&) const override final;
+    double wave_depth0() const override final {return wdt;}
+    double wave_depth() const override final {return wdk;}
     void wave_comp_set(int, double, double, double) override final;
-    void wave_depth_set(double h) override final { wdk = h; }
+    void wave_depth_set(double h) override final {wdk = h;}
     void wave_comp_update() override final;
-
+    
 private:
-    double celerity5(double, double, double) const;
+    double celerity5(double,double,double) const;
+    
+    double wdk;             // depth of the coefficients (wdt unless iowave B 530 changes it)
+    double wsig;            // intrinsic frequency omega - k U_n
+    double wH0,waf;         // wave height as constructed and the B 530 amplitude factor
+    double wkin,wsin;       // k and sigma handed over by iowave (B 530)
 
-    double wdk;         // depth of the coefficients (wdt unless iowave B 530 changes it)
-    double wsig;        // intrinsic frequency omega - k U_n
-    double wH0, waf;    // wave height as constructed and the B 530 amplitude factor
-    double wkin, wsin;  // k and sigma handed over by iowave (B 530)
-
-    double a11, a22, a31, a33, a42, a44, a51, a53, a55;
-    double b22, b31, b42, b44, b53, b55;
-    double e2, e4;
-    double singamma, cosgamma;
-    double vel, eta, fi, T;
-
+    double a11,a22,a31,a33,a42,a44,a51,a53,a55;
+    double b22,b31,b42,b44,b53,b55;
+    double e2,e4;
+    double singamma,cosgamma;
+    double vel,eta,fi,T;
+    
     int wtype;
     double diff;
     double teta;
-    double wk, ww, wdt, wa, wH, wL, wf, wT, wL0, k0, S0;
-    double wk_temp, ww_temp, wL_temp, wT_temp, wT_test, wf_temp;
-
-    double eps, c0, c2, c4;
-    double U0, F0, A1, A2, A3, A4, A5, E1, E2, E3, E4, E5;  // harmonic coefficients (parameters)
-    double S, C;
-    double wC, ubar;
+    double wk,ww,wdt,wa,wH,wL,wf,wT,wL0,k0,S0;
+    double wk_temp,ww_temp,wL_temp,wT_temp,wT_test,wf_temp;
+    
+    
+    double eps,c0,c2,c4; 
+    double U0,F0,A1,A2,A3,A4,A5,E1,E2,E3,E4,E5;   // harmonic coefficients (parameters)
+    double S,C;
+    double wC,ubar;
     double wS;
-
+    
     double X0;
-
+	
     const double pshift;
 };
 

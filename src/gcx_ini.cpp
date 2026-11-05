@@ -20,107 +20,109 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Authors: Hans Bihs, Alexander Hanke
 --------------------------------------------------------------------*/
 
-#include "fdm.h"
-#include "fdm_fnpf.h"
-#include "fdm_nhf.h"
-#include "ghostcell.h"
-#include "lexer.h"
-#include "reef3d_mpmd.h"
-#include "reefcouple.h"
-#include "seastate_remote.h"
-#include <sstream>
+#include"ghostcell.h"
+#include"reef3d_mpmd.h"
+#include"reefcouple.h"
+#include"seastate_remote.h"
+#include"lexer.h"
+#include"fdm.h"
+#include"fdm_fnpf.h"
+#include"fdm_nhf.h"
+#include<sstream>
 
-void ghostcell::mpi_check(lexer *p)
+void ghostcell::mpi_check(lexer* p)
 {
-    int check = 1;
+    int check=1;
 
-    check = globalisum(check);
+    check=globalisum(check);
 
-    if(p->mpirank == 0 && check != p->mpi_size)
-        cout << "mpi - checksum: " << check << " vs " << p->mpi_size << " ... mismatch" << endl;
+    if(p->mpirank==0 && check!=p->mpi_size)
+        cout<<"mpi - checksum: "<<check<<" vs "<<p->mpi_size<<" ... mismatch"<<endl;
 }
 
-void ghostcell::gcx_ini(lexer *p)
+void ghostcell::gcx_ini(lexer* p)
 {
-    int nperiodic = (p->gcpara1_count - p->periodicX1) + (p->gcpara2_count - p->periodicX2) + (p->gcpara3_count - p->periodicX3) + (p->gcpara4_count - p->periodicX4) + (p->gcpara5_count - p->periodicX5) + (p->gcpara6_count - p->periodicX6);
+    int nperiodic = (p->gcpara1_count-p->periodicX1) + (p->gcpara2_count-p->periodicX2) + (p->gcpara3_count-p->periodicX3)
+                  + (p->gcpara4_count-p->periodicX4) + (p->gcpara5_count-p->periodicX5) + (p->gcpara6_count-p->periodicX6);
 
-    periodic_comms = globalisum(nperiodic) > 0;
+    periodic_comms = globalisum(nperiodic)>0;
 
+    
     int gcx_count[6];
-    gcx_count[0] = (p->gcpara1_count + p->flast) * paramargin + p->gcparaco1_count * paramargin;
-    gcx_count[1] = (p->gcpara2_count + p->flast) * paramargin + p->gcparaco2_count * paramargin;
-    gcx_count[2] = (p->gcpara3_count + p->flast) * paramargin + p->gcparaco3_count * paramargin;
-    gcx_count[3] = (p->gcpara4_count + p->flast) * paramargin + p->gcparaco4_count * paramargin;
-    gcx_count[4] = p->gcpara5_count * paramargin + p->gcparaco5_count * paramargin;
-    gcx_count[5] = p->gcpara6_count * paramargin + p->gcparaco6_count * paramargin;
+    gcx_count[0] = (p->gcpara1_count+p->flast)*paramargin + p->gcparaco1_count*paramargin;
+    gcx_count[1] = (p->gcpara2_count+p->flast)*paramargin + p->gcparaco2_count*paramargin;
+    gcx_count[2] = (p->gcpara3_count+p->flast)*paramargin + p->gcparaco3_count*paramargin;
+    gcx_count[3] = (p->gcpara4_count+p->flast)*paramargin + p->gcparaco4_count*paramargin;
+    gcx_count[4] = p->gcpara5_count*paramargin + p->gcparaco5_count*paramargin;
+    gcx_count[5] = p->gcpara6_count*paramargin + p->gcparaco6_count*paramargin;
 
-    p->Darray(send1, gcx_count[0]);
-    p->Darray(send2, gcx_count[1]);
-    p->Darray(send3, gcx_count[2]);
-    p->Darray(send4, gcx_count[3]);
-    p->Darray(send5, gcx_count[4]);
-    p->Darray(send6, gcx_count[5]);
+    p->Darray(send1,gcx_count[0]);
+    p->Darray(send2,gcx_count[1]);
+    p->Darray(send3,gcx_count[2]);
+    p->Darray(send4,gcx_count[3]);
+    p->Darray(send5,gcx_count[4]);
+    p->Darray(send6,gcx_count[5]);
 
-    p->Darray(recv1, gcx_count[0]);
-    p->Darray(recv2, gcx_count[1]);
-    p->Darray(recv3, gcx_count[2]);
-    p->Darray(recv4, gcx_count[3]);
-    p->Darray(recv5, gcx_count[4]);
-    p->Darray(recv6, gcx_count[5]);
+    p->Darray(recv1,gcx_count[0]);
+    p->Darray(recv2,gcx_count[1]);
+    p->Darray(recv3,gcx_count[2]);
+    p->Darray(recv4,gcx_count[3]);
+    p->Darray(recv5,gcx_count[4]);
+    p->Darray(recv6,gcx_count[5]);
 
-    p->Iarray(isend1, gcx_count[0]);
-    p->Iarray(isend2, gcx_count[1]);
-    p->Iarray(isend3, gcx_count[2]);
-    p->Iarray(isend4, gcx_count[3]);
-    p->Iarray(isend5, gcx_count[4]);
-    p->Iarray(isend6, gcx_count[5]);
+    p->Iarray(isend1,gcx_count[0]);
+    p->Iarray(isend2,gcx_count[1]);
+    p->Iarray(isend3,gcx_count[2]);
+    p->Iarray(isend4,gcx_count[3]);
+    p->Iarray(isend5,gcx_count[4]);
+    p->Iarray(isend6,gcx_count[5]);
 
-    p->Iarray(irecv1, gcx_count[0]);
-    p->Iarray(irecv2, gcx_count[1]);
-    p->Iarray(irecv3, gcx_count[2]);
-    p->Iarray(irecv4, gcx_count[3]);
-    p->Iarray(irecv5, gcx_count[4]);
-    p->Iarray(irecv6, gcx_count[5]);
+    p->Iarray(irecv1,gcx_count[0]);
+    p->Iarray(irecv2,gcx_count[1]);
+    p->Iarray(irecv3,gcx_count[2]);
+    p->Iarray(irecv4,gcx_count[3]);
+    p->Iarray(irecv5,gcx_count[4]);
+    p->Iarray(irecv6,gcx_count[5]);
 
     // MPI_CART_TOPOLOGY
     gcx_cart_topology(p);
-
+    
     // nb
     // no neighbour: MPI_PROC_NULL (-2 in OpenMPI, -1 in MPICH)
-    nb0[0] = p->nb1 >= 0 ? p->nb1 : MPI_PROC_NULL;
-    nb0[1] = p->nb2 >= 0 ? p->nb2 : MPI_PROC_NULL;
-    nb0[2] = p->nb3 >= 0 ? p->nb3 : MPI_PROC_NULL;
-    nb0[3] = p->nb4 >= 0 ? p->nb4 : MPI_PROC_NULL;
-    nb0[4] = p->nb5 >= 0 ? p->nb5 : MPI_PROC_NULL;
-    nb0[5] = p->nb6 >= 0 ? p->nb6 : MPI_PROC_NULL;
-
+    nb0[0] = p->nb1>=0 ? p->nb1 : MPI_PROC_NULL;
+	nb0[1] = p->nb2>=0 ? p->nb2 : MPI_PROC_NULL;
+	nb0[2] = p->nb3>=0 ? p->nb3 : MPI_PROC_NULL;
+	nb0[3] = p->nb4>=0 ? p->nb4 : MPI_PROC_NULL;
+	nb0[4] = p->nb5>=0 ? p->nb5 : MPI_PROC_NULL;
+	nb0[5] = p->nb6>=0 ? p->nb6 : MPI_PROC_NULL;
+    
     stag[0] = 1;
-    stag[1] = 2;
-    stag[2] = 3;
-    stag[3] = 4;
-    stag[4] = 5;
-    stag[5] = 6;
-
-    rtag[0] = 4;
-    rtag[1] = 3;
-    rtag[2] = 2;
-    rtag[3] = 1;
-    rtag[4] = 6;
-    rtag[5] = 5;
+	stag[1] = 2;
+	stag[2] = 3;
+	stag[3] = 4;
+	stag[4] = 5;
+	stag[5] = 6;
+	
+	rtag[0] = 4;
+	rtag[1] = 3;
+	rtag[2] = 2;
+	rtag[3] = 1;
+	rtag[4] = 6;
+	rtag[5] = 5;
 }
 
 void ghostcell::final(bool error)
 {
     // coupled run (MPMD): an error ends all models, a normal end closes the coupling first
-    if(error && reef3d_mpmd::napps > 1)
-        MPI_Abort(MPI_COMM_WORLD, 1);
-
+    if(error && reef3d_mpmd::napps>1)
+    MPI_Abort(MPI_COMM_WORLD,1);
+    
     if(!error)
     {
-        reefcouple::finish();
-        seastate_remote::finish();
+    reefcouple::finish();
+    seastate_remote::finish();
     }
-
+    
     if(cart_comm != MPI_COMM_NULL)
         MPI_Comm_free(&cart_comm);
     if(mpi_comm != MPI_COMM_NULL)

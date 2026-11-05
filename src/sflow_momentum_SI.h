@@ -23,13 +23,13 @@ Author: Hans Bihs
 #ifndef SFLOW_MOMENTUM_SI_H_
 #define SFLOW_MOMENTUM_SI_H_
 
-#include "sflow_momentum_func.h"
-#include "slice1.h"
-#include "slice2.h"
-#include "slice4.h"
-#include <fstream>
-#include <functional>
-#include <vector>
+#include"sflow_momentum_func.h"
+#include"slice1.h"
+#include"slice2.h"
+#include"slice4.h"
+#include<vector>
+#include<fstream>
+#include<functional>
 
 class si_eta2D;
 class sflow_amr;
@@ -91,77 +91,50 @@ using namespace std;
 class sflow_momentum_SI final : public sflow_momentum_func
 {
 public:
-    void ckpt_restored() override { qini = true; }  // the face discharges of the checkpoint
-    void ckpt_fields(const std::function<void(const char *, char, double *)> &fd, const std::function<void(const char *, char, int *)> &fi) override
+
+    void ckpt_restored() override { qini = true; }   // the face discharges of the checkpoint
+    void ckpt_fields(const std::function<void(const char*, char, double*)> &fd, const std::function<void(const char*, char, int*)> &fi) override
     {
-        fd("momentum_SI_qx", 'S', qx.V);
-        fd("momentum_SI_qxn", 'S', qxn.V);
-        fd("momentum_SI_qxE", 'S', qxE.V);
-        fd("momentum_SI_Hx", 'S', Hx.V);
-        fd("momentum_SI_alx", 'S', alx.V);
-        fd("momentum_SI_ax", 'S', ax.V);
-        fd("momentum_SI_kx", 'S', kx.V);
-        fd("momentum_SI_gx0", 'S', gx0.V);
-        fd("momentum_SI_qy", 'S', qy.V);
-        fd("momentum_SI_qyn", 'S', qyn.V);
-        fd("momentum_SI_qyE", 'S', qyE.V);
-        fd("momentum_SI_Hy", 'S', Hy.V);
-        fd("momentum_SI_aly", 'S', aly.V);
-        fd("momentum_SI_ay", 'S', ay.V);
-        fd("momentum_SI_ky", 'S', ky.V);
-        fd("momentum_SI_gy0", 'S', gy0.V);
-        fd("momentum_SI_fxU", 'S', fxU.V);
-        fd("momentum_SI_fxV", 'S', fxV.V);
-        fd("momentum_SI_fyU", 'S', fyU.V);
-        fd("momentum_SI_fyV", 'S', fyV.V);
-        fd("momentum_SI_eta0", 'S', eta0.V);
-        fd("momentum_SI_WL0", 'S', WL0.V);
-        fd("momentum_SI_UH0", 'S', UH0.V);
-        fd("momentum_SI_VH0", 'S', VH0.V);
-        fd("momentum_SI_UHa", 'S', UHa.V);
-        fd("momentum_SI_VHa", 'S', VHa.V);
-        fd("momentum_SI_UHb", 'S', UHb.V);
-        fd("momentum_SI_VHb", 'S', VHb.V);
-        fd("momentum_SI_UHp", 'S', UHp.V);
-        fd("momentum_SI_VHp", 'S', VHp.V);
-        fd("momentum_SI_WHz", 'S', WHz.V);
-        fd("momentum_SI_dUH", 'S', dUH.V);
-        fd("momentum_SI_dVH", 'S', dVH.V);
-        fd("momentum_SI_etaI", 'S', etaI.V);
-        fd("momentum_SI_alc", 'S', alc.V);
-        fd("momentum_SI_rhs", 'S', rhs.V);
-        fd("momentum_SI_rhsW", 'S', rhsW.V);
-        fd("momentum_SI_bdiag", 'S', bdiag.V);
-        fd("momentum_SI_tU", 'S', tU.V);
-        fd("momentum_SI_tV", 'S', tV.V);
-        fd("momentum_SI_tUH", 'S', tUH.V);
-        fd("momentum_SI_tVH", 'S', tVH.V);
-        fd("momentum_SI_WLk", 'S', WLk.V);
-        fd("momentum_SI_etaB", 'S', etaB.V);
+        fd("momentum_SI_qx",'S',qx.V); fd("momentum_SI_qxn",'S',qxn.V); fd("momentum_SI_qxE",'S',qxE.V);
+        fd("momentum_SI_Hx",'S',Hx.V); fd("momentum_SI_alx",'S',alx.V); fd("momentum_SI_ax",'S',ax.V);
+        fd("momentum_SI_kx",'S',kx.V); fd("momentum_SI_gx0",'S',gx0.V); fd("momentum_SI_qy",'S',qy.V);
+        fd("momentum_SI_qyn",'S',qyn.V); fd("momentum_SI_qyE",'S',qyE.V); fd("momentum_SI_Hy",'S',Hy.V);
+        fd("momentum_SI_aly",'S',aly.V); fd("momentum_SI_ay",'S',ay.V); fd("momentum_SI_ky",'S',ky.V);
+        fd("momentum_SI_gy0",'S',gy0.V); fd("momentum_SI_fxU",'S',fxU.V); fd("momentum_SI_fxV",'S',fxV.V);
+        fd("momentum_SI_fyU",'S',fyU.V); fd("momentum_SI_fyV",'S',fyV.V); fd("momentum_SI_eta0",'S',eta0.V);
+        fd("momentum_SI_WL0",'S',WL0.V); fd("momentum_SI_UH0",'S',UH0.V); fd("momentum_SI_VH0",'S',VH0.V);
+        fd("momentum_SI_UHa",'S',UHa.V); fd("momentum_SI_VHa",'S',VHa.V); fd("momentum_SI_UHb",'S',UHb.V);
+        fd("momentum_SI_VHb",'S',VHb.V); fd("momentum_SI_UHp",'S',UHp.V); fd("momentum_SI_VHp",'S',VHp.V);
+        fd("momentum_SI_WHz",'S',WHz.V); fd("momentum_SI_dUH",'S',dUH.V); fd("momentum_SI_dVH",'S',dVH.V);
+        fd("momentum_SI_etaI",'S',etaI.V); fd("momentum_SI_alc",'S',alc.V); fd("momentum_SI_rhs",'S',rhs.V);
+        fd("momentum_SI_rhsW",'S',rhsW.V);
+        fd("momentum_SI_bdiag",'S',bdiag.V); fd("momentum_SI_tU",'S',tU.V);
+        fd("momentum_SI_tV",'S',tV.V); fd("momentum_SI_tUH",'S',tUH.V); fd("momentum_SI_tVH",'S',tVH.V);
+        fd("momentum_SI_WLk",'S',WLk.V); fd("momentum_SI_etaB",'S',etaB.V);
     }
-    sflow_momentum_SI(lexer *, fdm2D *, ghostcell *, sflow_HLL *, sflow_signal_speed *, sflow_reconstruct *, sflow_diffusion *, sflow_pressure *,
-                      solver2D *, solver2D *, ioflow *, sflow_fsf *, sflow_forcing *, sixdof *, bool block = false);
-    virtual ~sflow_momentum_SI();
+	sflow_momentum_SI(lexer*, fdm2D*, ghostcell*, sflow_HLL*, sflow_signal_speed*, sflow_reconstruct*, sflow_diffusion*, sflow_pressure*,
+                        solver2D*, solver2D*, ioflow*, sflow_fsf*, sflow_forcing*, sixdof*, bool block=false);
+	virtual ~sflow_momentum_SI();
 
-    void start(lexer *, fdm2D *, ghostcell *) override final;
+	void start(lexer*, fdm2D*, ghostcell*) override final;
 
-    static void check(lexer *);
+    static void check(lexer*);
 
     // the parts of one step (step_single runs them in this order on one grid; on a multi-block grid and with mesh
     // refinement the stage runner, sflow_amr::si_step, fills the cells around the grids between them and solves
     // the eta system of all grids together)
-    void step_single(lexer *, fdm2D *, ghostcell *);
-    void si_restore(lexer *, fdm2D *, ghostcell *);         // the water column of the step before
-    void si_begin(lexer *, fdm2D *, ghostcell *);           // t^n, faces, friction, open boundaries
-    void si_stage_vel(lexer *, fdm2D *, ghostcell *, int);  // velocities of predictor stage s
-    void si_stage_rhs(lexer *, fdm2D *, ghostcell *, int);  // explicit terms of stage s
-    void si_predictor_end(lexer *, fdm2D *, ghostcell *);   // the cell predictor to the faces
-    void si_assemble(lexer *, fdm2D *, ghostcell *);        // face predictor and eta-system coefficients
-    void si_rhs(lexer *, fdm2D *, ghostcell *);             // right-hand side of the eta system
-    void si_end_faces(lexer *, fdm2D *, ghostcell *);       // face discharges
-    void si_end_cells(lexer *, fdm2D *, ghostcell *);       // WL, cells, relaxation zones
+    void step_single(lexer*, fdm2D*, ghostcell*);
+    void si_restore(lexer*, fdm2D*, ghostcell*);            // the water column of the step before
+    void si_begin(lexer*, fdm2D*, ghostcell*);              // t^n, faces, friction, open boundaries
+    void si_stage_vel(lexer*, fdm2D*, ghostcell*, int);     // velocities of predictor stage s
+    void si_stage_rhs(lexer*, fdm2D*, ghostcell*, int);     // explicit terms of stage s
+    void si_predictor_end(lexer*, fdm2D*, ghostcell*);      // the cell predictor to the faces
+    void si_assemble(lexer*, fdm2D*, ghostcell*);           // face predictor and eta-system coefficients
+    void si_rhs(lexer*, fdm2D*, ghostcell*);                // right-hand side of the eta system
+    void si_end_faces(lexer*, fdm2D*, ghostcell*);          // face discharges
+    void si_end_cells(lexer*, fdm2D*, ghostcell*);          // WL, cells, relaxation zones
     int si_stages() const { return rk; }
-    void stage_io_si(int, slice *&, slice *&, slice *&, slice *&);  // input and output UH, VH of stage s
+    void stage_io_si(int, slice*&, slice*&, slice*&, slice*&);     // input and output UH, VH of stage s
 
     sflow_amr *prun = nullptr;  // level 0 of a multi-block grid or of the mesh refinement: the stage runner
     bool patch = false;         // a block 1.. or a refined patch (no log file)
@@ -169,58 +142,55 @@ public:
 
     // mesh refinement: called by the advection with the face fluxes of UH, VH before the divergence (the coarse
     // faces next to a finer patch take the fine fluxes, a patch records its box faces)
-    std::function<void(lexer *, slice &, slice &, slice &, slice &)> fhook;
+    std::function<void(lexer*, slice&, slice&, slice&, slice&)> fhook;
 
     friend class sflow_amr;
 
     // geometry of the horizontal grid (Cartesian or curvilinear): face i+1/2 (dir 1) or j+1/2 (dir 2) of cell (i,j):
     // length, normal distance of the centres, unit normal towards +i / +j; the cell area
-    double flen(lexer *, int, int, int);
-    double fdn(lexer *, int, int, int);
-    void fnorm(lexer *, int, int, int, double &, double &);
-    double carea(lexer *, int, int);
+    double flen(lexer*, int, int, int);
+    double fdn(lexer*, int, int, int);
+    void fnorm(lexer*, int, int, int, double&, double&);
+    double carea(lexer*, int, int);
 
 private:
     // open boundary face of a domain edge
-    enum bc_type { bc_flux = 1,
-                   bc_level = 2,
-                   bc_riemann = 3,
-                   bc_flather = 4 };
+    enum bc_type {bc_flux=1, bc_level=2, bc_riemann=3, bc_flather=4};
 
     struct bc_face
     {
-        int i, j;       // interior cell
+        int i,j;        // interior cell
         int cs;         // side: 1 x-, 2 y+, 3 y-, 4 x+
         int type;       // bc_type
-        int fi, fj;     // face index (x-face for cs 1/4, y-face for cs 2/3)
-        int gi, gj;     // first ghost cell
+        int fi,fj;      // face index (x-face for cs 1/4, y-face for cs 2/3)
+        int gi,gj;      // first ghost cell
         double s;       // inward normal in the face direction (+1 / -1)
         double dxp;     // distance cell centre - ghost centre
         double dxn;     // cell width normal to the face
         double ds;      // face length
-        double nx, ny;  // unit normal of the face towards +i / +j
+        double nx,ny;   // unit normal of the face towards +i / +j
         double qin;     // flux type: inward discharge per width at t^{n+1}
-        double A, B;    // radiating: q_in = A - B eta^{n+1}
+        double A,B;     // radiating: q_in = A - B eta^{n+1}
     };
 
-    void face_depth(lexer *, fdm2D *, ghostcell *);
-    void friction(lexer *, fdm2D *);
-    void bc_setup(lexer *, fdm2D *, ghostcell *);
-    void bc_method(lexer *);
-    void stage_vel(lexer *, fdm2D *, ghostcell *, slice &, slice &);
-    void stage_rhs(lexer *, fdm2D *, ghostcell *, slice &, slice &, slice &, slice &, double);
-    void advection(lexer *, fdm2D *, ghostcell *);
-    void face_update(lexer *, fdm2D *, ghostcell *);
-    void eta_update(lexer *, fdm2D *, ghostcell *);
-    void cell_update(lexer *, fdm2D *, ghostcell *);
-    void relax(lexer *, fdm2D *, ghostcell *);
-    void log(lexer *, fdm2D *, ghostcell *);
+    void face_depth(lexer*, fdm2D*, ghostcell*);
+    void friction(lexer*, fdm2D*);
+    void bc_setup(lexer*, fdm2D*, ghostcell*);
+    void bc_method(lexer*);
+    void stage_vel(lexer*, fdm2D*, ghostcell*, slice&, slice&);
+    void stage_rhs(lexer*, fdm2D*, ghostcell*, slice&, slice&, slice&, slice&, double);
+    void advection(lexer*, fdm2D*, ghostcell*);
+    void face_update(lexer*, fdm2D*, ghostcell*);
+    void eta_update(lexer*, fdm2D*, ghostcell*);
+    void cell_update(lexer*, fdm2D*, ghostcell*);
+    void relax(lexer*, fdm2D*, ghostcell*);
+    void log(lexer*, fdm2D*, ghostcell*);
 
-    void exchange1(lexer *, ghostcell *, slice &);
-    void exchange2(lexer *, ghostcell *, slice &);
-    void exchange4(lexer *, ghostcell *, slice &);
-    double div(lexer *, slice &, slice &);
-    double dissipation(lexer *, double, double, double);
+    void exchange1(lexer*, ghostcell*, slice&);
+    void exchange2(lexer*, ghostcell*, slice&);
+    void exchange4(lexer*, ghostcell*, slice&);
+    double div(lexer*, slice&, slice&);
+    double dissipation(lexer*, double, double, double);
 
     si_eta2D *psi;
 
@@ -240,7 +210,7 @@ private:
 
     // implicit diagonal of the open boundaries
     slice4 bdiag;
-    slice4 wsrc;  // SEASTATE vortex force (A 751 2): the Stokes mass source -div(M) of the step [m/s]
+    slice4 wsrc;        // SEASTATE vortex force (A 751 2): the Stokes mass source -div(M) of the step [m/s]
     bool mass_source = false;
 
     // interior copies kept through the ghost cell update (thin solids, see rk_stage)
@@ -251,14 +221,14 @@ private:
     slice4 WLk, etaB;
 
     vector<bc_face> bcf;
-    int method[5];  // iowave open edge method per side cs (B 520 3-6), 0 none
+    int method[5];          // iowave open edge method per side cs (B 520 3-6), 0 none
 
     double theta, g;
     int rk, wd_iter, wd_cells;
     bool qini;
 
-    double Qin, Qout;  // discharge over the open boundaries of the step (theta weighted)
-    double vrelax;     // volume change of the relaxation zones of the step
+    double Qin, Qout;       // discharge over the open boundaries of the step (theta weighted)
+    double vrelax;          // volume change of the relaxation zones of the step
     ofstream silog;
 };
 

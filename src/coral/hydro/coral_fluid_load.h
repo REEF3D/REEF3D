@@ -55,63 +55,64 @@ Architect: Hans Bihs
 #ifndef CORAL_FLUID_LOAD_H_
 #define CORAL_FLUID_LOAD_H_
 
-#include "coral/core/coral_load.h"
-#include "coral/core/coral_state.h"
-#include <string>
-#include <vector>
+#include"coral/core/coral_load.h"
+#include"coral/core/coral_state.h"
+#include<string>
+#include<vector>
 
-namespace coral {
-class fluid_load : public load
+namespace coral
 {
-public:
-    fluid_load(const model &, const std::vector<int> &bodies, const std::string &name = "fluid");
+    class fluid_load : public load
+    {
+    public:
+        fluid_load(const model&, const std::vector<int> &bodies, const std::string &name="fluid");
 
-    std::string name() const override { return name_; }
-    coupling_kind coupling() const override { return coupling_kind::local; }
-    void coupled_bodies(std::vector<int> &b) const override { b.insert(b.end(), map_.begin(), map_.end()); }
-    void eval(const model &, double t, VecX &f) const override;
-    void channel_names(std::vector<std::string> &) const override;
-    void channel_values(const model &, double t, std::vector<double> &) const override;
+        std::string name() const override {return name_;}
+        coupling_kind coupling() const override {return coupling_kind::local;}
+        void coupled_bodies(std::vector<int> &b) const override {b.insert(b.end(), map_.begin(), map_.end());}
+        void eval(const model&, double t, VecX &f) const override;
+        void channel_names(std::vector<std::string>&) const override;
+        void channel_values(const model&, double t, std::vector<double>&) const override;
 
-    int nbody() const { return (int)map_.size(); }
-    const std::vector<int> &bodies() const { return map_; }
+        int nbody() const {return (int)map_.size();}
+        const std::vector<int> &bodies() const {return map_;}
 
-    // fluid loads at the fluid time t (6N) and the added mass (6N x 6N; empty: keep the last);
-    // provisional: a stage of the current fluid step (see above)
-    void set_sample(double t, const VecX &F, const MatX &A = MatX(), bool provisional = false, const VecX &a = VecX());
-    // artificial added mass of fluid body k (6x6, global, about the CoG; see above)
-    void set_artificial_added_mass(int k, const Mat6 &As);
-    bool has_artificial_added_mass() const { return As_.any(); }
-    bool has_sample() const { return !ts_.empty(); }
-    double sample_time() const { return ts_.empty() ? 0.0 : ts_.back(); }
-    bool has_provisional() const { return prov_; }
+        // fluid loads at the fluid time t (6N) and the added mass (6N x 6N; empty: keep the last);
+        // provisional: a stage of the current fluid step (see above)
+        void set_sample(double t, const VecX &F, const MatX &A=MatX(), bool provisional=false, const VecX &a=VecX());
+        // artificial added mass of fluid body k (6x6, global, about the CoG; see above)
+        void set_artificial_added_mass(int k, const Mat6 &As);
+        bool has_artificial_added_mass() const {return As_.any();}
+        bool has_sample() const {return !ts_.empty();}
+        double sample_time() const {return ts_.empty() ? 0.0 : ts_.back();}
+        bool has_provisional() const {return prov_;}
 
-    // the extrapolated fluid load without the added-mass part, and the added-mass part of the state
-    VecX force(double t) const;
-    VecX added_mass_force(const model &) const;
-    VecX acceleration(const model &) const;
-    VecX velocity(const model &) const;
-    const MatX &added_mass() const { return A_; }
-    // point of application of the load of fluid body k (global, now; default its CoG): the loads are
-    // about that point (one-way loads of a fluid body on a CORAL body that is not the fluid body itself)
-    void set_attachment(const model &, int k, const Vec3 &p);
-    // restart from a checkpoint (coral_state.h)
-    void save_state(std::vector<double> &) const override;
-    bool load_state(const std::vector<double> &, size_t &k) override;
+        // the extrapolated fluid load without the added-mass part, and the added-mass part of the state
+        VecX force(double t) const;
+        VecX added_mass_force(const model&) const;
+        VecX acceleration(const model&) const;
+        VecX velocity(const model&) const;
+        const MatX &added_mass() const {return A_;}
+        // point of application of the load of fluid body k (global, now; default its CoG): the loads are
+        // about that point (one-way loads of a fluid body on a CORAL body that is not the fluid body itself)
+        void set_attachment(const model&, int k, const Vec3 &p);
+        // restart from a checkpoint (coral_state.h)
+        void save_state(std::vector<double>&) const override;
+        bool load_state(const std::vector<double>&, size_t &k) override;
 
-    int order = 1;  // polynomial order in time through the samples (0, 1, 2)
+        int order = 1;      // polynomial order in time through the samples (0, 1, 2)
 
-private:
-    std::string name_;
-    std::vector<int> map_;
-    std::vector<std::string> bname_;
-    std::vector<Vec3> s_;     // points of application, body frame
-    std::vector<double> ts_;  // sample times (the committed ones, then the provisional one)
-    std::vector<VecX> Fs_;
-    bool prov_ = false;
-    MatX A_;
-    MatX As_;  // artificial added mass (block diagonal)
-};
-}  // namespace coral
+    private:
+        std::string name_;
+        std::vector<int> map_;
+        std::vector<std::string> bname_;
+        std::vector<Vec3> s_;           // points of application, body frame
+        std::vector<double> ts_;        // sample times (the committed ones, then the provisional one)
+        std::vector<VecX> Fs_;
+        bool prov_ = false;
+        MatX A_;
+        MatX As_;                       // artificial added mass (block diagonal)
+    };
+}
 
 #endif

@@ -20,12 +20,13 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
+
 #ifndef SEASTATE_COUPLING_H_
 #define SEASTATE_COUPLING_H_
 
-#include "increment.h"
-#include "slice4.h"
-#include <vector>
+#include"increment.h"
+#include"slice4.h"
+#include<vector>
 
 class lexer;
 class ghostcell;
@@ -121,16 +122,16 @@ enters, everything else leaves through the side.
 class seastate_coupling : public increment
 {
 public:
-    seastate_coupling(lexer *);
+    seastate_coupling(lexer*);
     virtual ~seastate_coupling();
 
-    seastate_f *wave() { return pwave; }
+    seastate_f *wave() {return pwave;}
 
     // surfbeat runs (not with remote waves)
     bool surfbeat() const;
 
     // remote waves (A 750 2), host side: the stop message at the end of the run (rank 0, not collective)
-    void remote_stop(lexer *);
+    void remote_stop(lexer*);
 
     // sea state on the host grid (Hs [m], Tp [s]): in-process copies or the remote fields (the wave-dependent
     // drag W 207 7)
@@ -144,84 +145,84 @@ public:
     //   ex,ey unit vector of the mean direction of propagation of Eu (the orbital motion at the bed)
     //   Dr    roller dissipation g Dr [m^3/s^3] (energy per area and density), -1: no roller (A 748 0)
     // dry or inactive cells: all zero (Dr -1). Cells of the host loop SLICELOOP4, no ghost cells.
-    void bed_waves(lexer *, slice &Hs, slice &Tm10, slice &Tp, slice &Urms, slice &Tbot, slice &ex, slice &ey, slice &Dr);
+    void bed_waves(lexer*, slice &Hs, slice &Tm10, slice &Tp, slice &Urms, slice &Tbot, slice &ex, slice &ey, slice &Dr);
 
     // the number of wave steps so far: the bed parameters change only with a wave step
-    int wave_steps() const { return nstep; }
+    int wave_steps() const {return nstep;}
 
     // the wave forcing for the patches of the mesh refinement (sflow_amr_wave.cpp): the fields and the number of
     // times they changed (a wave step in-process, a receive from the remote waves)
-    slice4 &force_x() { return Fw; }
-    slice4 &force_y() { return Gw; }
-    slice4 &div_m() { return divM; }
-    int updates() const { return nupd; }
+    slice4& force_x() {return Fw;}
+    slice4& force_y() {return Gw;}
+    slice4& div_m() {return divM;}
+    int updates() const {return nupd;}
 
     // Stokes (wave and roller) transport M [m^2/s] of the cells and the wave-active flag, for the transport of
     // suspended sediment with the vortex force (A 751 2): the host velocity is then the Eulerian one and the
     // continuity carries -div(M) in flux form between wave-active cells
-    slice4 &stokes_x() { return Mx; }
-    slice4 &stokes_y() { return My; }
+    slice4& stokes_x() {return Mx;}
+    slice4& stokes_y() {return My;}
     int wave_active(int ii, int jj) const;
-    double stokes_ramp(lexer *p) const { return ramp(p); }
+    double stokes_ramp(lexer *p) const {return ramp(p);}
 
 protected:
     // wave model set-up; the host then calls forces
-    void ini_wave(lexer *, ghostcell *, const char *host);
+    void ini_wave(lexer*, ghostcell*, const char *host);
 
     // remote waves (A 750 2), host side: exchange of the grids and the first fields; then every A 706 s
-    void remote_ini(lexer *, ghostcell *, slice &eta, slice &WL, slice &U, slice &V);
-    void remote_step(lexer *, ghostcell *, slice &eta, slice &WL, slice &U, slice &V, bool force);
+    void remote_ini(lexer*, ghostcell*, slice &eta, slice &WL, slice &U, slice &V);
+    void remote_step(lexer*, ghostcell*, slice &eta, slice &WL, slice &U, slice &V, bool force);
 
     // remote waves: global cell centres of this model, the fields of this model gathered on its rank 0
-    void centres(lexer *, ghostcell *, std::vector<double> &xs, std::vector<double> &ys);
-    void gather(lexer *, ghostcell *, const std::vector<slice *> &f, std::vector<double> &out, double flag);
-    void exchange(lexer *, ghostcell *, std::vector<double> &out, std::vector<double> &in, int tag_out, int tag_in);
+    void centres(lexer*, ghostcell*, std::vector<double> &xs, std::vector<double> &ys);
+    void gather(lexer*, ghostcell*, const std::vector<slice*> &f, std::vector<double> &out, double flag);
+    void exchange(lexer*, ghostcell*, std::vector<double> &out, std::vector<double> &in, int tag_out, int tag_in);
     void bilinear(const std::vector<double> &xs, const std::vector<double> &ys, double x, double y,
                   int &a, int &b, double &wx, double &wy) const;
     bool covers(const std::vector<double> &xs, const std::vector<double> &ys, double x, double y) const;
 
     // a wave step is due at the host's simtime; dt: length of the wave step
-    bool due(lexer *, double &dt) const;
+    bool due(lexer*, double &dt) const;
 
     // environment from the host fields (2D, depth-averaged velocities)
-    void environment(lexer *, slice &eta, slice &WL, slice &U, slice &V);
+    void environment(lexer*, slice &eta, slice &WL, slice &U, slice &V);
 
     // wave step of length dt, then the host computes the forces
-    void wave_step(lexer *, ghostcell *, double dt);
+    void wave_step(lexer*, ghostcell*, double dt);
 
     // wave force, div(M) and the integrals; U, V: host velocity (vortex force)
-    void forces(lexer *, ghostcell *, slice &U, slice &V);
+    void forces(lexer*, ghostcell*, slice &U, slice &V);
 
     // VTP output after a wave step
-    void print(lexer *, ghostcell *);
+    void print(lexer*, ghostcell*);
 
     // long-wave ghost cell values of row j at the x- side; false: no long-wave boundary
-    bool longwave_bc(lexer *, int j, double h, double eta1, double v1, double &etag, double &ug, double &vg);
+    bool longwave_bc(lexer*, int j, double h, double eta1, double v1, double &etag, double &ug, double &vg);
 
-    double ramp(lexer *) const;
-    double ddx(lexer *, slice &, int, int);
-    double ddy(lexer *, slice &, int, int);
+    double ramp(lexer*) const;
+    double ddx(lexer*, slice&, int, int);
+    double ddy(lexer*, slice&, int, int);
 
     seastate_f *pwave;
-    seastate_source *pnet;  // net source terms of the dissipation force (A 751 2)
+    seastate_source *pnet;      // net source terms of the dissipation force (A 751 2)
 
-    slice4 Fw, Gw, divM;    // wave force [m^2/s^2] and div(M) [m/s]
-    slice4 Sxx, Sxy, Syy;   // radiation stress / (rho) [m^3/s^2]
-    slice4 Mx, My;          // wave (and roller) mass flux [m^2/s]
-    slice4 Fdx, Fdy, Q, B;  // vortex force: dissipation force, wave pressure, bottom-slope coefficient
+    slice4 Fw,Gw,divM;          // wave force [m^2/s^2] and div(M) [m/s]
+    slice4 Sxx,Sxy,Syy;         // radiation stress / (rho) [m^3/s^2]
+    slice4 Mx,My;               // wave (and roller) mass flux [m^2/s]
+    slice4 Fdx,Fdy,Q,B;         // vortex force: dissipation force, wave pressure, bottom-slope coefficient
 
     double tlast, tnext, tprint;
     int nstep;
 
     // remote waves (A 750 2)
-    bool remote;                     // this object talks to the other app
-    bool host_wind;                  // the host gets a wind stress (the wind input of the dissipation force)
-    std::vector<double> rx, ry;      // global cell centres of the other model
-    std::vector<double> sbuf, rbuf;  // send / receive buffers (header: flag, simtime)
-    double t_wait;                   // rank 0: time spent waiting for the other app [s]
+    bool remote;                            // this object talks to the other app
+    bool host_wind;                         // the host gets a wind stress (the wind input of the dissipation force)
+    std::vector<double> rx, ry;             // global cell centres of the other model
+    std::vector<double> sbuf, rbuf;         // send / receive buffers (header: flag, simtime)
+    double t_wait;                          // rank 0: time spent waiting for the other app [s]
 
-    met_forcing *pmetw = nullptr;  // wave-dependent drag W 207 7: told after every change of Hsw, Tpw
-    int nupd = 0;                  // changes of Fw, Gw, divM, Hsw, Tpw (updates)
+    met_forcing *pmetw = nullptr;           // wave-dependent drag W 207 7: told after every change of Hsw, Tpw
+    int nupd = 0;                           // changes of Fw, Gw, divM, Hsw, Tpw (updates)
 };
 
 #endif

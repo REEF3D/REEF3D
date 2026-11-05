@@ -20,14 +20,15 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "coral/pto/coral_pto.h"
-#include "coral/core/coral_constraint.h"
-#include "coral/core/coral_model.h"
-#include "coral/pto/coral_pto_elements.h"
-#include <algorithm>
-#include <cmath>
+#include"coral/pto/coral_pto.h"
+#include"coral/pto/coral_pto_elements.h"
+#include"coral/core/coral_model.h"
+#include"coral/core/coral_constraint.h"
+#include<algorithm>
+#include<cmath>
 
-namespace coral {
+namespace coral
+{
 
 pto_load::pto_load(const joint &j, bool rotational, const pto_settings &s, const std::string &name)
     : settings(s), name_(name), j_(&j), rot_(rotational)
@@ -129,11 +130,9 @@ double pto_load::potential(const model &m) const
 {
     const pto_settings &s = settings;
     const double q = coordinate(m);
-    double e = 0.5 * s.k * (q - s.q0) * (q - s.q0) - s.F0 * q;
-    if(q > s.q_max)
-        e += 0.5 * s.k_stop * (q - s.q_max) * (q - s.q_max);
-    if(q < s.q_min)
-        e += 0.5 * s.k_stop * (q - s.q_min) * (q - s.q_min);
+    double e = 0.5*s.k*(q - s.q0)*(q - s.q0) - s.F0*q;
+    if(q > s.q_max) e += 0.5*s.k_stop*(q - s.q_max)*(q - s.q_max);
+    if(q < s.q_min) e += 0.5*s.k_stop*(q - s.q_min)*(q - s.q_min);
     return e;
 }
 
@@ -161,9 +160,9 @@ void pto_load::commit(const model &m, double t, double dt)
     // state before the update)
     t_ = t;
     const double P = power(m);
-    energy_ += 0.5 * dt * (P + P_last_);
+    energy_ += 0.5*dt*(P + P_last_);
     const double Pl = loss_power(m);
-    energy_loss_ += 0.5 * dt * (Pl + Ploss_last_);
+    energy_loss_ += 0.5*dt*(Pl + Ploss_last_);
     pto_state st;
     st.q = coordinate(m);
     st.qd = rate(m);
@@ -224,24 +223,20 @@ bool pto_load::load_state(const std::vector<double> &v, size_t &k)
 {
     if(k + 4 > v.size())
         return false;
-    t_ = v[k++];
-    P_last_ = v[k++];
-    energy_ = v[k++];
-    t0_ = v[k++];
+    t_ = v[k++]; P_last_ = v[k++]; energy_ = v[k++]; t0_ = v[k++];
     pto_.load_state(v, k);
     if(k >= v.size())
         return false;
     const size_t n = size_t(v[k++]);
-    for(size_t q = 0; q < n && q < ctrl_.size(); ++q)
+    for(size_t q=0; q<n && q<ctrl_.size(); ++q)
         ctrl_[q]->load_state(v, k);
     if(has_loss())
     {
         if(k + 2 > v.size())
             return false;
-        Ploss_last_ = v[k++];
-        energy_loss_ = v[k++];
+        Ploss_last_ = v[k++]; energy_loss_ = v[k++];
     }
     return k <= v.size();
 }
 
-}  // namespace coral
+}

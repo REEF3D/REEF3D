@@ -29,40 +29,38 @@ Architect: Hans Bihs
 #ifndef CORAL_AIRFOIL_H_
 #define CORAL_AIRFOIL_H_
 
-#include <map>
-#include <string>
-#include <vector>
+#include<map>
+#include<string>
+#include<vector>
 
-namespace coral {
-struct polar_table
+namespace coral
 {
-    double re = 0.0;                        // Reynolds number [-] (AeroDyn files: in millions, converted)
-    std::vector<double> alpha, cl, cd, cm;  // alpha in rad, increasing
-    std::map<std::string, double> params;   // the unsteady aerodynamics parameters of the file (alpha0, Cn1, ...)
-};
+    struct polar_table
+    {
+        double re = 0.0;                         // Reynolds number [-] (AeroDyn files: in millions, converted)
+        std::vector<double> alpha, cl, cd, cm;   // alpha in rad, increasing
+        std::map<std::string, double> params;    // the unsteady aerodynamics parameters of the file (alpha0, Cn1, ...)
+    };
 
-struct airfoil_coef
-{
-    double cl = 0.0, cd = 0.0, cm = 0.0;
-};
+    struct airfoil_coef {double cl = 0.0, cd = 0.0, cm = 0.0;};
 
-class airfoil
-{
-public:
-    std::string name;
-    std::vector<polar_table> tables;  // increasing Re
+    class airfoil
+    {
+    public:
+        std::string name;
+        std::vector<polar_table> tables;         // increasing Re
 
-    // coefficients at alpha [rad] and the Reynolds number (ignored with one table)
-    airfoil_coef coefficients(double alpha, double re = 0.0) const;
-    airfoil_coef table_coefficients(int i, double alpha) const;
+        // coefficients at alpha [rad] and the Reynolds number (ignored with one table)
+        airfoil_coef coefficients(double alpha, double re=0.0) const;
+        airfoil_coef table_coefficients(int i, double alpha) const;
 
-    // AeroDyn airfoil file or plain table; false with a message
-    static bool read(const std::string &file, airfoil &, std::string &msg);
-    static bool read_string(const std::string &text, airfoil &, std::string &msg);
-};
+        // AeroDyn airfoil file or plain table; false with a message
+        static bool read(const std::string &file, airfoil&, std::string &msg);
+        static bool read_string(const std::string &text, airfoil&, std::string &msg);
+    };
 
-// a in (-pi, pi]
-double wrap_angle(double a);
-}  // namespace coral
+    // a in (-pi, pi]
+    double wrap_angle(double a);
+}
 
 #endif

@@ -23,10 +23,10 @@ Author: Hans Bihs
 #ifndef SIXDOF_NHFLOW_H_
 #define SIXDOF_NHFLOW_H_
 
-#include "6DOF.h"
-#include "6DOF_obj_nhflow.h"
-#include "increment.h"
-#include <vector>
+#include"6DOF.h"
+#include<vector>
+#include"increment.h"
+#include"6DOF_obj_nhflow.h"
 
 class lexer;
 class fdm2D;
@@ -41,105 +41,111 @@ class sixdof_nhflow final : public sixdof, public increment
 {
 public:
     // runtime coupling (reefcouple, I 243): state of the bodies
-    int body_count() const override { return int(fb_obj.size()); }
-    void body_state(int, double *) const override;
-
-    sixdof_nhflow(lexer *, ghostcell *);
+    int body_count() const override {return int(fb_obj.size());}
+    void body_state(int, double*) const override;
+    
+	
+    sixdof_nhflow(lexer*, ghostcell*);
     virtual ~sixdof_nhflow();
-
-    void start_cfd(lexer *, fdm *, ghostcell *, int, field &, field &, field &, field &, field &, field &, bool) override final;
-    void start_nhflow(lexer *, fdm_nhf *, ghostcell *, int, double *, double *, double *, double *, double *, double *, slice &, slice &, bool) override final;
-    void start_sflow(lexer *, fdm2D *, ghostcell *, int, slice &, slice &, slice &, slice &, slice &, slice &, slice &, bool) override final;
-
-    void reforce_nhflow(lexer *, fdm_nhf *, ghostcell *, int, double *, double *, double *, double *, double *, double *, slice &, slice &, bool) override final;
-
+    
+    void start_cfd(lexer*,fdm*,ghostcell*,int,field&,field&,field&,field&,field&,field&,bool) override final;
+    void start_nhflow(lexer*,fdm_nhf*,ghostcell*,int,double*,double*,double*,double*,double*,double*,slice&,slice&,bool) override final;
+    void start_sflow(lexer*,fdm2D*,ghostcell*,int,slice&,slice&,slice&,slice&,slice&,slice&,slice&,bool) override final;
+    
+    void reforce_nhflow(lexer*,fdm_nhf*,ghostcell*,int,double*,double*,double*,double*,double*,double*,slice&,slice&,bool) override final;
+    
     // impermeable membranes (X 330) attached to the floating body
-    void membrane_forcing_nhflow(lexer *, fdm_nhf *, ghostcell *, double, double *, double *, double *, slice &) override final;
-    void membrane_reaction_nhflow(lexer *, fdm_nhf *, ghostcell *, double, slice &, bool) override final;
+    void membrane_forcing_nhflow(lexer*,fdm_nhf*,ghostcell*,double,double*,double*,double*,slice&) override final;
+    void membrane_reaction_nhflow(lexer*,fdm_nhf*,ghostcell*,double,slice&,bool) override final;
     bool membrane_iterated() override final;
-    void membrane_reforce_nhflow(lexer *, fdm_nhf *, ghostcell *, double, double *, double *, double *, slice &) override final;
-    bool membrane_couple_nhflow(lexer *, fdm_nhf *, ghostcell *, int, double, slice &, int) override final;
-
-    void start_twoway(lexer *, fdm_nhf *, ghostcell *, int, double *, double *, double *, slice &, slice &, bool);
-    void start_oneway(lexer *, fdm_nhf *, ghostcell *, int, double *, double *, double *, slice &, slice &, bool);
-    void start_wavemaker(lexer *, fdm_nhf *, ghostcell *, int, double *, double *, double *, slice &, slice &, bool);
-    void start_shipwave(lexer *, fdm_nhf *, ghostcell *, int, bool);
-
-    void ckpt_state(lexer *, std::vector<double> &) override final;
-    bool ckpt_restore(lexer *, ghostcell *, const std::vector<double> &) override final;
-    double *ckpt_slice() override final { return press.V; }
-    void ini(lexer *, ghostcell *) override final;
-    void initialize(lexer *, fdm *, ghostcell *) override final;
-    void initialize(lexer *, fdm2D *, ghostcell *) override final;
-    void initialize(lexer *, fdm_nhf *, ghostcell *) override final;
-
-    void isource(lexer *, fdm *, ghostcell *) override final;
-    void jsource(lexer *, fdm *, ghostcell *) override final;
-    void ksource(lexer *, fdm *, ghostcell *) override final;
-
-    void isource(lexer *, fdm_nhf *, ghostcell *, slice &) override final;
-    void jsource(lexer *, fdm_nhf *, ghostcell *, slice &) override final;
-    void ksource(lexer *, fdm_nhf *, ghostcell *, slice &) override final;
-
-    void isource2D(lexer *, fdm2D *, ghostcell *) override final;
-    void jsource2D(lexer *, fdm2D *, ghostcell *) override final;
-
+    void membrane_reforce_nhflow(lexer*,fdm_nhf*,ghostcell*,double,double*,double*,double*,slice&) override final;
+    bool membrane_couple_nhflow(lexer*,fdm_nhf*,ghostcell*,int,double,slice&,int) override final;
+    
+    void start_twoway(lexer*,fdm_nhf*,ghostcell*,int,double*,double*,double*,slice&,slice&,bool);
+    void start_oneway(lexer*,fdm_nhf*,ghostcell*,int,double*,double*,double*,slice&,slice&,bool);
+    void start_wavemaker(lexer*,fdm_nhf*,ghostcell*,int,double*,double*,double*,slice&,slice&,bool);
+    void start_shipwave(lexer*,fdm_nhf*,ghostcell*,int,bool);
+       
+    void ckpt_state(lexer*, std::vector<double>&) override final;
+    bool ckpt_restore(lexer*, ghostcell*, const std::vector<double>&) override final;
+    double* ckpt_slice() override final {return press.V;}
+	void ini(lexer*,ghostcell*) override final;
+    void initialize(lexer*, fdm*, ghostcell*) override final;
+    void initialize(lexer*, fdm2D*, ghostcell*) override final;
+    void initialize(lexer*, fdm_nhf*, ghostcell*) override final;
+	
+    
+    void isource(lexer*,fdm*,ghostcell*) override final;
+    void jsource(lexer*,fdm*,ghostcell*) override final;
+    void ksource(lexer*,fdm*,ghostcell*) override final;
+    
+    void isource(lexer*,fdm_nhf*,ghostcell*,slice&) override final;
+    void jsource(lexer*,fdm_nhf*,ghostcell*,slice&) override final;
+    void ksource(lexer*,fdm_nhf*,ghostcell*,slice&) override final;
+    
+    void isource2D(lexer*,fdm2D*,ghostcell*) override final;
+    void jsource2D(lexer*,fdm2D*,ghostcell*) override final;
+    
     // the bodies, for the NHFLOW mesh refinement (nhflow_amr)
-    int objects() const { return number6DOF; }
-    sixdof_obj_nhflow *object(int nb) { return fb_obj[nb]; }
-
+    int objects() const {return number6DOF;}
+    sixdof_obj_nhflow* object(int nb) {return fb_obj[nb];}
+    
     // subcycling (G 7 1): level 0 steps with a predicted copy of the bodies (X 10 1/2): the RK
     // stages with the loads frozen, the trimesh, ray cast and forcing; no loads, no output
     bool amr_predict = false;
-
+    
     // X 13: the top-cell distance of the pierced-column level at the pose of the stage. The body
     // is then advanced at the start of the stage (advance_stage, from the loads of the last
     // stage, as before), not in phase_P1, so the footprint and the loads see the same hull.
-    bool top_phi_nhflow(lexer *, fdm_nhf *, ghostcell *, int, slice &, slice &) override final;
-
+    bool top_phi_nhflow(lexer*,fdm_nhf*,ghostcell*,int,slice&,slice&) override final;
+    
     // X 13 2: the keel of the hull at the pose of the stage (advance_stage as for X 13 1)
-    bool keel_nhflow(lexer *, fdm_nhf *, ghostcell *, int, slice &, slice &, slice &, slice &, slice &, slice &) override final;
-
+    bool keel_nhflow(lexer*,fdm_nhf*,ghostcell*,int,slice&,slice&,slice&,slice&,slice&,slice&) override final;
+    
 private:
+	
     // hires gradient
     double limiter(double v1, double v2);
     double starttime;
+    
+    double denom,val,r,phival;
+    double dfdx_plus,dfdx_min,dfdy_plus,dfdy_min,dfdx,dfdy;
 
-    double denom, val, r, phival;
-    double dfdx_plus, dfdx_min, dfdy_plus, dfdy_min, dfdx, dfdy;
 
     int number6DOF;
-    vector<sixdof_obj_nhflow *> fb_obj;
-
+    vector<sixdof_obj_nhflow*> fb_obj;
+    
     // body advanced ahead of phase_P1 for stage adv_iter of step adv_count at adv_time (X 13)
-    void advance_stage(lexer *, fdm_nhf *, ghostcell *, int);
-    bool advanced(lexer *, int) const;
-    bool advance_early_ok(lexer *) const;
+    void advance_stage(lexer*,fdm_nhf*,ghostcell*,int);
+    bool advanced(lexer*,int) const;
+    bool advance_early_ok(lexer*) const;
     int adv_count = -1, adv_iter = -1;
     double adv_time = -1.0e20;
     bool adv_told = false;
 
     slice4 press;
-
+    
     // external solver of the bodies (6DOF_external.h, REEF3D::CORAL fluid_body; 6DOF_nhflow_external.cpp)
-    void ext_connect(lexer *, ghostcell *);
-
+    void ext_connect(lexer*, ghostcell*);
+    
 public:
     // mesh refinement with subcycling (nhflow_amr_sub.cpp): stage s of the bodies with the step of a level
     // (p->simtime, p->dt: that step), predict: a coarser level's copy; the loads after stage s of the
     // finest level (to the external solver)
-    void amr_body_stage(lexer *, fdm_nhf *, ghostcell *, int s, bool predict);
-    void amr_body_loads(lexer *, ghostcell *, int s, int ns);
-
+    void amr_body_stage(lexer*, fdm_nhf*, ghostcell*, int s, bool predict);
+    void amr_body_loads(lexer*, ghostcell*, int s, int ns);
+    
 private:
-    void ext_stage(lexer *, int);
-    void ext_predict_copy(lexer *, int);
-    void ext_loads(lexer *, double, bool);
-    double ext_node(lexer *, int) const;
+    void ext_stage(lexer*, int);
+    void ext_predict_copy(lexer*, int);
+    void ext_loads(lexer*, double, bool);
+    double ext_node(lexer*, int) const;
     bool ext_drives(int) const;
     class sixdof_external *pext = nullptr;
     bool ext_checked = false;
     bool ext_twoway = false;
+
+
 };
 
 #endif

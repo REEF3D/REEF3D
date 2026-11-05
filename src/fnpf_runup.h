@@ -23,10 +23,10 @@ Authors: Hans Bihs, Edgar Chavez
 #ifndef FNPF_RUNUP_H_
 #define FNPF_RUNUP_H_
 
-#include "field5.h"
-#include "fieldint5.h"
-#include <fstream>
-#include <iostream>
+#include"fieldint5.h"
+#include"field5.h"
+#include<iostream>
+#include<fstream>
 
 class lexer;
 class fdm_fnpf;
@@ -34,43 +34,45 @@ class ghostcell;
 
 using namespace std;
 
-class fnpf_runup : public increment
+class fnpf_runup :  public increment
 {
 
 public:
-    fnpf_runup(lexer *, fdm_fnpf *, ghostcell *, int);
-    virtual ~fnpf_runup();
-    void start(lexer *, fdm_fnpf *, ghostcell *);
-    void ini(lexer *, fdm_fnpf *, ghostcell *);
+	fnpf_runup(lexer*,fdm_fnpf*,ghostcell*,int);
+	virtual ~fnpf_runup();
+	void start(lexer*,fdm_fnpf*,ghostcell*);
+    void ini(lexer*,fdm_fnpf*,ghostcell*);
 
-private:
-    void fnpf_runup_calc(lexer *, fdm_fnpf *, ghostcell *);
-    void print_fnpf_runup(lexer *, fdm_fnpf *, ghostcell *);
-    void print_ini(lexer *, fdm_fnpf *, ghostcell *);
-    double acceleration(lexer *, fdm_fnpf *, ghostcell *);
-    double dndt(lexer *, fdm_fnpf *, ghostcell *);
-    double dudsig(lexer *, fdm_fnpf *, ghostcell *);
-    double dvdsig(lexer *, fdm_fnpf *, ghostcell *);
-    double dudxi(lexer *, fdm_fnpf *, ghostcell *);
-    double dvdxi(lexer *, fdm_fnpf *, ghostcell *);
-
+private:	
+	
+    void fnpf_runup_calc(lexer*,fdm_fnpf*,ghostcell*);
+	void print_fnpf_runup(lexer*,fdm_fnpf*,ghostcell*);
+    void print_ini(lexer*,fdm_fnpf*,ghostcell*);
+    double acceleration(lexer*, fdm_fnpf*, ghostcell*);
+	double dndt(lexer*, fdm_fnpf*, ghostcell*);
+	double dudsig(lexer*, fdm_fnpf*, ghostcell*);
+	double dvdsig(lexer*, fdm_fnpf*, ghostcell*);
+	double dudxi(lexer*, fdm_fnpf*, ghostcell*);
+	double dvdxi(lexer*, fdm_fnpf*, ghostcell*);
+	
     // run-up variabes
-    double un, vn, xc, yc, rc, etan;
+    double un,vn,xc,yc,rc,etan;
     int k;
     const int ID;
-
-    double R1, R2, R3, R4, R5, R6;  // Run-up calculations
-
+    
+    double R1,R2,R3,R4,R5,R6; //Run-up calculations
+    
     // printing
-    char name[100], pname[100], epsvar[100];
-    int iin, offset[100];
+    char name[100],pname[100],epsvar[100];
+    int iin,offset[100];
     float ffn;
     int fnpf_runupprintcount;
     ofstream fout;
 
     // parallelisation
-    double xstart, ystart, xend, yend;
+    double xstart,ystart,xend,yend;
 };
 
 #endif
+
 

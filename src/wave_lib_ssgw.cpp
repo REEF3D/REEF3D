@@ -20,17 +20,17 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Csaba Pakozdi
 --------------------------------------------------------------------*/
 
-#include "wave_lib_ssgw.h"
-#include "fdm.h"
-#include "ghostcell.h"
-#include "lexer.h"
+#include"wave_lib_ssgw.h"
+#include"lexer.h"
+#include"fdm.h"
+#include"ghostcell.h"
 
-wave_lib_ssgw::wave_lib_ssgw(lexer *p, ghostcell *pgc) : wave_lib_parameters(p, pgc)
+wave_lib_ssgw::wave_lib_ssgw(lexer *p, ghostcell *pgc) : wave_lib_parameters(p,pgc) 
 {
-    N = p->B170;  // default = 1024
+    N   = p->B170;  // default = 1024
     tol = 1e-14;
-
-    if(p->B91 == 1)
+    
+    if (p->B91==1)
     {
         // Wave length known
         allocated = false;
@@ -38,32 +38,32 @@ wave_lib_ssgw::wave_lib_ssgw(lexer *p, ghostcell *pgc) : wave_lib_parameters(p, 
         setWave(wk, wdt, wH);
         getPhysicsParameters();
         surfaceCalculated = computeSurfaceVariables();
-    }
-    else if(p->B93 == 1)
+    } 
+    else if (p->B93==1)
     {
         // Wave period known
-        wk = 2.0 * PI / (wT * sqrt(9.81 * wdt));
+        wk = 2.0*PI/(wT*sqrt(9.81*wdt));
         double delta_omega = 100000;
         int count = 0;
-
+            
         allocated = false;
         allocated = resizing();
         setWave(wk, wdt, wH);
         getPhysicsParameters();
         surfaceCalculated = computeSurfaceVariables();
-
-        while(fabs(delta_omega / ww) > 1e-7 && count < 30)
+        
+        while (fabs(delta_omega/ww) > 1e-7 && count < 30)
         {
-            delta_omega = ww - ParameterValue.phaseVelocity * wk;
-            wk += delta_omega / ParameterValue.groupVelocity;
-
-            if(wk <= 0)
+            delta_omega = ww - ParameterValue.phaseVelocity*wk;
+            wk += delta_omega/ParameterValue.groupVelocity;
+         
+            if (wk <= 0)
             {
-                if(p->mpirank == 0)
+                if (p->mpirank==0)
                 {
-                    cout << "SSGW has to use shallow water assumption to calculate wavenumber!" << endl;
+                    cout<<"SSGW has to use shallow water assumption to calculate wavenumber!"<<endl;
                 }
-                wk = ww / sqrt(9.81 * wdt);
+                wk = ww/sqrt(9.81*wdt);
                 break;
             }
             else
@@ -76,24 +76,25 @@ wave_lib_ssgw::wave_lib_ssgw(lexer *p, ghostcell *pgc) : wave_lib_parameters(p, 
             count++;
         }
 
-        wL = 2.0 * PI / wk;
+        wL = 2.0*PI/wk;
         p->wL = wL;
         p->wk = wk;
     }
 
-    if(p->mpirank == 0)
+
+    if(p->mpirank==0)
     {
-        cout << "Wave_Lib: steady surface gravity waves; ";
-        cout << "wk: " << wk << " ww: " << ww << " wf: " << wf << " wT: " << wT << " wL: " << wL << " wdt: " << wdt << " kd: " << wdt * wk << endl;
+        cout<<"Wave_Lib: steady surface gravity waves; ";
+        cout<<"wk: "<<wk<<" ww: "<<ww<<" wf: "<<wf<<" wT: "<<wT<<" wL: "<<wL<<" wdt: "<<wdt<<" kd: "<<wdt*wk<<endl;
         writeResult(".");
     }
-
-    singamma = sin((p->B105_1) * (PI / 180.0));
-    cosgamma = cos((p->B105_1) * (PI / 180.0));
-
+    
+    singamma = sin((p->B105_1)*(PI/180.0));
+    cosgamma = cos((p->B105_1)*(PI/180.0));
+    
     // velocity table for NHFLOW / CFD (FNPF only needs eta and Fifsf)
-    if(p->A10 != 3)
-        buildVelocityTable();
+    if(p->A10!=3)
+    buildVelocityTable();
 }
 
 wave_lib_ssgw::~wave_lib_ssgw()
@@ -102,53 +103,53 @@ wave_lib_ssgw::~wave_lib_ssgw()
 
 double wave_lib_ssgw::wave_eta(lexer *p, double x, double y)
 {
-    xcurr = waveFrameX(x, p->wavetime);
-
-    return surfaceInterp(ys, xcurr);
+    xcurr = waveFrameX(x,p->wavetime);
+    
+    return surfaceInterp(ys,xcurr);
 }
 
 double wave_lib_ssgw::wave_fi(lexer *p, double x, double y, double z)
 {
     // surface potential (FNPF Fifsf); independent of z
-    xcurr = waveFrameX(x, p->wavetime);
-
-    return surfaceInterp(phis, xcurr);
+    xcurr = waveFrameX(x,p->wavetime);
+    
+    return surfaceInterp(phis,xcurr);
 }
 
 double wave_lib_ssgw::wave_u(lexer *p, double x, double y, double z)
 {
-    double vel = wave_horzvel(p, x, y, z);
+    double vel = wave_horzvel(p,x,y,z);
 
-    return cosgamma * vel;
+    return cosgamma*vel;
 }
 
 double wave_lib_ssgw::wave_v(lexer *p, double x, double y, double z)
 {
-    double vel = wave_horzvel(p, x, y, z);
+    double vel = wave_horzvel(p,x,y,z);
 
-    return singamma * vel;
+    return singamma*vel;
 }
 
 double wave_lib_ssgw::wave_horzvel(lexer *p, double x, double y, double z)
 {
     if(!kinematicsReady)
-        buildVelocityTable();
+    buildVelocityTable();
+    
+    xcurr = waveFrameX(x,p->wavetime);
 
-    xcurr = waveFrameX(x, p->wavetime);
-
-    return tableInterp(Ut, xcurr, z);
+    return tableInterp(Ut,xcurr,z);
 }
 
 double wave_lib_ssgw::wave_w(lexer *p, double x, double y, double z)
 {
     if(!kinematicsReady)
-        buildVelocityTable();
+    buildVelocityTable();
+    
+    xcurr = waveFrameX(x,p->wavetime);
 
-    xcurr = waveFrameX(x, p->wavetime);
-
-    return tableInterp(Wt, xcurr, z);
+    return tableInterp(Wt,xcurr,z);
 }
 
-void wave_lib_ssgw::parameters(lexer *p, ghostcell *pgc) {}
+void wave_lib_ssgw::parameters(lexer *p, ghostcell *pgc){}
 
-void wave_lib_ssgw::wave_prestep(lexer *p, ghostcell *pgc) {}
+void wave_lib_ssgw::wave_prestep(lexer *p, ghostcell *pgc){}

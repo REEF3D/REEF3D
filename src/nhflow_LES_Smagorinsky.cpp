@@ -20,66 +20,66 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "nhflow_LES_Smagorinsky.h"
-#include "fdm_nhf.h"
-#include "ghostcell.h"
-#include "ioflow.h"
-#include "lexer.h"
-#include "nhflow_diffusion.h"
-#include "nhflow_scalar_convection.h"
-#include "nhflow_strain.h"
-#include "solver.h"
+#include"nhflow_LES_Smagorinsky.h"
+#include"lexer.h"
+#include"fdm_nhf.h"
+#include"ghostcell.h"
+#include"nhflow_strain.h"
+#include"solver.h"
+#include"nhflow_diffusion.h"
+#include"ioflow.h"
+#include"nhflow_scalar_convection.h"
 
-nhflow_LES_Smagorinsky::nhflow_LES_Smagorinsky(lexer *p, fdm_nhf *d, ghostcell *pgc) : nhflow_les_io(p, d)
+nhflow_LES_Smagorinsky::nhflow_LES_Smagorinsky(lexer* p, fdm_nhf* d, ghostcell *pgc) : nhflow_les_io(p,d)
 {
-    c_sgs = 0.2;
+    c_sgs=0.2;
 }
 
 nhflow_LES_Smagorinsky::~nhflow_LES_Smagorinsky()
 {
 }
 
-void nhflow_LES_Smagorinsky::start(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_scalar_convection *pconvec, nhflow_diffusion *pdiff, solver *psolv, ioflow *pflow, vrans_nhflow *pvrans)
+void nhflow_LES_Smagorinsky::start(lexer* p, fdm_nhf* d, ghostcell* pgc, nhflow_scalar_convection* pconvec, nhflow_diffusion* pdiff,solver* psolv, ioflow* pflow, vrans_nhflow *pvrans)
 {
     double delta2;
-
-    LOOP
+    
+	LOOP
     {
-        // filter width squared: (dx dy dz)^(2/3) in 3D, dx dz in 2D (the 2D slab width DYN is arbitrary)
-        if(p->j_dir == 1)
-            delta2 = pow((p->geo_curv == 1 ? p->AREA2D[IJ] : p->DXN[IP] * p->DYN[JP]) * p->DZN[KP] * d->WL(i, j), 2.0 / 3.0);
-
-        if(p->j_dir == 0)
-            delta2 = p->DXN[IP] * p->DZN[KP] * d->WL(i, j);
-
-        d->EV[IJK] = pow(c_sgs, 2.0) * delta2 * strainterm(p, d);
-
-        if(p->wet[IJ] == 0 || p->DF[IJK] < 0)
-            d->EV[IJK] = 0.0;
-
-        d->EV0[IJK] = d->EV[IJK];
+    // filter width squared: (dx dy dz)^(2/3) in 3D, dx dz in 2D (the 2D slab width DYN is arbitrary)
+    if(p->j_dir==1)
+    delta2 = pow((p->geo_curv==1 ? p->AREA2D[IJ] : p->DXN[IP]*p->DYN[JP])*p->DZN[KP]*d->WL(i,j),2.0/3.0);
+    
+    if(p->j_dir==0)
+    delta2 = p->DXN[IP]*p->DZN[KP]*d->WL(i,j);
+    
+    d->EV[IJK] = pow(c_sgs,2.0) * delta2 * strainterm(p,d);
+    
+    if(p->wet[IJ]==0 || p->DF[IJK]<0)
+    d->EV[IJK] = 0.0;
+    
+    d->EV0[IJK] = d->EV[IJK];
     }
 
-    pgc->start24V(p, d->EV, 24);
-    pgc->start24V(p, d->EV0, 24);
+    pgc->start24V(p,d->EV,24);
+    pgc->start24V(p,d->EV0,24);
 }
 
-void nhflow_LES_Smagorinsky::ktimesave(lexer *p, fdm_nhf *d, ghostcell *pgc)
+void nhflow_LES_Smagorinsky::ktimesave(lexer *p, fdm_nhf* d, ghostcell *pgc)
 {
 }
 
-void nhflow_LES_Smagorinsky::etimesave(lexer *p, fdm_nhf *d, ghostcell *pgc)
+void nhflow_LES_Smagorinsky::etimesave(lexer *p, fdm_nhf* d, ghostcell *pgc)
 {
 }
 
-void nhflow_LES_Smagorinsky::kinupdate(lexer *p, fdm_nhf *d, ghostcell *pgc)
+void nhflow_LES_Smagorinsky::kinupdate(lexer *p, fdm_nhf* d, ghostcell *pgc)
 {
 }
 
-void nhflow_LES_Smagorinsky::timesource(lexer *p, fdm_nhf *d, double *FN)
+void nhflow_LES_Smagorinsky::timesource(lexer* p, fdm_nhf* d, double *FN)
 {
 }
 
-void nhflow_LES_Smagorinsky::clearrhs(lexer *p, fdm_nhf *d)
+void nhflow_LES_Smagorinsky::clearrhs(lexer* p, fdm_nhf *d)
 {
 }

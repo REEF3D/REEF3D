@@ -37,9 +37,11 @@ using namespace std;
 class suspended
 {
 public:
-    virtual ~suspended() {}  // deleted through the base pointer
-    virtual void start(fdm *, lexer *, convection *, diffusion *, solver *, ghostcell *, ioflow *, sediment_fdm *) = 0;
-    virtual void ctimesave(lexer *, fdm *) = 0;
+
+    virtual ~suspended() {}    // deleted through the base pointer
+	virtual void start(fdm*, lexer*, convection*, diffusion*, solver*, ghostcell*, ioflow*, sediment_fdm*)=0;
+	virtual void ctimesave(lexer*, fdm*)=0;
+
 };
 
 #endif

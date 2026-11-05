@@ -27,27 +27,28 @@ Architect: Hans Bihs
 #ifndef CORAL_ROTATION_H_
 #define CORAL_ROTATION_H_
 
-#include "coral/core/coral_types.h"
+#include"coral/core/coral_types.h"
 
-namespace coral {
-// skew-symmetric matrix: skew(a) b = a x b
-Mat3 skew(const Vec3 &a);
+namespace coral
+{
+    // skew-symmetric matrix: skew(a) b = a x b
+    Mat3 skew(const Vec3 &a);
 
-// exponential map: rotation vector -> rotation matrix (Rodrigues)
-Mat3 exp_so3(const Vec3 &psi);
+    // exponential map: rotation vector -> rotation matrix (Rodrigues)
+    Mat3 exp_so3(const Vec3 &psi);
 
-// logarithm: rotation matrix -> rotation vector, |psi| in [0, pi]
-Vec3 log_so3(const Mat3 &R);
+    // logarithm: rotation matrix -> rotation vector, |psi| in [0, pi]
+    Vec3 log_so3(const Mat3 &R);
 
-// tangent operator T(psi): for R = exp(psi), dR = R (T(psi) dpsi)~
-Mat3 tangent_so3(const Vec3 &psi);
+    // tangent operator T(psi): for R = exp(psi), dR = R (T(psi) dpsi)~
+    Mat3 tangent_so3(const Vec3 &psi);
 
-// Euler angles (roll phi, pitch theta, yaw psi; R = Rz(psi) Ry(theta) Rx(phi)), for output and input
-Vec3 euler_from_matrix(const Mat3 &R);
-Mat3 matrix_from_euler(const Vec3 &rpy);
+    // Euler angles (roll phi, pitch theta, yaw psi; R = Rz(psi) Ry(theta) Rx(phi)), for output and input
+    Vec3 euler_from_matrix(const Mat3 &R);
+    Mat3 matrix_from_euler(const Vec3 &rpy);
 
-// nearest rotation matrix (polar decomposition), against round-off drift
-Mat3 orthonormalize(const Mat3 &R);
-}  // namespace coral
+    // nearest rotation matrix (polar decomposition), against round-off drift
+    Mat3 orthonormalize(const Mat3 &R);
+}
 
 #endif

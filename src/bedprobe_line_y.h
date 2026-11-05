@@ -23,9 +23,9 @@ Author: Hans Bihs
 #ifndef BEDPROBE_LINE_Y_H_
 #define BEDPROBE_LINE_Y_H_
 
-#include "boundarycheck.h"
-#include <fstream>
-#include <iostream>
+#include"boundarycheck.h"
+#include<iostream>
+#include<fstream>
 
 class lexer;
 class wsfline_core;
@@ -40,21 +40,23 @@ using namespace std;
 class bedprobe_line_y : public boundarycheck
 {
 public:
-    bedprobe_line_y(lexer *, ghostcell *, sediment_fdm *);
-    virtual ~bedprobe_line_y();
+    bedprobe_line_y(lexer*,ghostcell*,sediment_fdm*);
+	virtual ~bedprobe_line_y();
 
-    void start(lexer *, ghostcell *, sediment_fdm *, ioflow *);
+	void start(lexer*, ghostcell*,sediment_fdm*, ioflow*);
+
 
 private:
-    void ini_location(lexer *, ghostcell *, sediment_fdm *);
+    void ini_location(lexer*, ghostcell*,sediment_fdm*);
     int *iloc;
-    int n, q;
+    int n,q;
     ofstream wsfout;
 
     double xcoor;
-
-    wave_theory *pwave;
+	
+	wave_theory *pwave;
     wsfline_core *pcore;
+
 };
 
 #endif

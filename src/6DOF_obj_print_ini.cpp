@@ -20,194 +20,204 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "6DOF_obj.h"
-#include "fdm.h"
-#include "ghostcell.h"
-#include "lexer.h"
-#include "reefckpt.h"
-#include "runlog.h"
-#include <fstream>
-#include <iostream>
-#include <sys/stat.h>
+#include<sys/stat.h>
+#include<iostream>
+#include<fstream>
+#include"6DOF_obj.h"
+#include"lexer.h"
+#include"fdm.h"
+#include"ghostcell.h"
+#include"runlog.h"
+#include"reefckpt.h"
 
 void sixdof_obj::print_ini_vtp(lexer *p, ghostcell *pgc)
 {
-    if(p->mpirank == 0)
+	if(p->mpirank==0)
     {
-        if(p->A10 == 2)
+        if(p->A10==2)
         {
-            mkdir("./REEF3D_SFLOW_6DOF_VTP", 0777);
-            mkdir("./REEF3D_SFLOW_6DOF", 0777);
+        mkdir("./REEF3D_SFLOW_6DOF_VTP", 0777);
+        mkdir("./REEF3D_SFLOW_6DOF", 0777);
         }
-
-        if((p->A10 == 5 || p->A10 == 3))
+        
+        if((p->A10==5||p->A10==3))
         {
-            mkdir((p->A10 == 3 ? "./REEF3D_FNPF_6DOF_VTP" : "./REEF3D_NHFLOW_6DOF_VTP"), 0777);
-            mkdir((p->A10 == 3 ? "./REEF3D_FNPF_6DOF" : "./REEF3D_NHFLOW_6DOF"), 0777);
-            mkdir((p->A10 == 3 ? "./REEF3D_FNPF_6DOF_Normals_VTP" : "./REEF3D_NHFLOW_6DOF_Normals_VTP"), 0777);
+        mkdir((p->A10==3?"./REEF3D_FNPF_6DOF_VTP":"./REEF3D_NHFLOW_6DOF_VTP"), 0777);
+        mkdir((p->A10==3?"./REEF3D_FNPF_6DOF":"./REEF3D_NHFLOW_6DOF"), 0777);
+        mkdir((p->A10==3?"./REEF3D_FNPF_6DOF_Normals_VTP":"./REEF3D_NHFLOW_6DOF_Normals_VTP"), 0777);
         }
-
-        if(p->A10 == 6)
+        
+        if(p->A10==6)
         {
-            mkdir("./REEF3D_CFD_6DOF_VTP", 0777);
-            mkdir("./REEF3D_CFD_6DOF_Normals_VTP", 0777);
-            mkdir("./REEF3D_CFD_6DOF", 0777);
+        mkdir("./REEF3D_CFD_6DOF_VTP", 0777);
+        mkdir("./REEF3D_CFD_6DOF_Normals_VTP", 0777);
+        mkdir("./REEF3D_CFD_6DOF", 0777);
         }
     }
-
+	
     ofstream print;
     char str[1000];
 
     // position
-    if(p->A10 == 2)
-        sprintf(str, "./REEF3D_SFLOW_6DOF/REEF3D_6DOF_position_%i.dat", n6DOF);
-
-    if((p->A10 == 5 || p->A10 == 3))
-        sprintf(str, (p->A10 == 3 ? "./REEF3D_FNPF_6DOF/REEF3D_6DOF_position_%i.dat" : "./REEF3D_NHFLOW_6DOF/REEF3D_6DOF_position_%i.dat"), n6DOF);
-
-    if(p->A10 == 6)
-        sprintf(str, "./REEF3D_CFD_6DOF/REEF3D_6DOF_position_%i.dat", n6DOF);
-
-    const bool printpos_new = reefckpt_open(printpos, str, p->I45);
+    if(p->A10==2)
+    sprintf(str,"./REEF3D_SFLOW_6DOF/REEF3D_6DOF_position_%i.dat",n6DOF);
+    
+    if((p->A10==5||p->A10==3))
+    sprintf(str,(p->A10==3?"./REEF3D_FNPF_6DOF/REEF3D_6DOF_position_%i.dat":"./REEF3D_NHFLOW_6DOF/REEF3D_6DOF_position_%i.dat"),n6DOF);
+    
+    if(p->A10==6)
+    sprintf(str,"./REEF3D_CFD_6DOF/REEF3D_6DOF_position_%i.dat",n6DOF);
+	
+    const bool printpos_new = reefckpt_open(printpos,str,p->I45);
     {
-        char sname[32];
-        snprintf(sname, sizeof(sname), "motion%i", n6DOF);
-        if(p->plog)
-            p->plog->table_file(p, sname, "motion", str);
+    char sname[32];
+    snprintf(sname,sizeof(sname),"motion%i",n6DOF);
+    if(p->plog)
+    p->plog->table_file(p,sname,"motion",str);
     }
-    if(printpos_new)
-        printpos << "time \t XG \t YG \t ZG \t Phi \t Theta \t Psi" << endl;
+	if(printpos_new)
+	printpos<<"time \t XG \t YG \t ZG \t Phi \t Theta \t Psi"<<endl;
 
+    
     // velocity
-    if(p->A10 == 2)
-        sprintf(str, "./REEF3D_SFLOW_6DOF/REEF3D_6DOF_velocity_%i.dat", n6DOF);
-
-    if((p->A10 == 5 || p->A10 == 3))
-        sprintf(str, (p->A10 == 3 ? "./REEF3D_FNPF_6DOF/REEF3D_6DOF_velocity_%i.dat" : "./REEF3D_NHFLOW_6DOF/REEF3D_6DOF_velocity_%i.dat"), n6DOF);
-
-    if(p->A10 == 6)
-        sprintf(str, "./REEF3D_CFD_6DOF/REEF3D_6DOF_velocity_%i.dat", n6DOF);
-
-    const bool printvel_new = reefckpt_open(printvel, str, p->I45);
+    if(p->A10==2)
+    sprintf(str,"./REEF3D_SFLOW_6DOF/REEF3D_6DOF_velocity_%i.dat",n6DOF);
+    
+    if((p->A10==5||p->A10==3))
+    sprintf(str,(p->A10==3?"./REEF3D_FNPF_6DOF/REEF3D_6DOF_velocity_%i.dat":"./REEF3D_NHFLOW_6DOF/REEF3D_6DOF_velocity_%i.dat"),n6DOF);
+    
+    if(p->A10==6)
+    sprintf(str,"./REEF3D_CFD_6DOF/REEF3D_6DOF_velocity_%i.dat",n6DOF);
+	
+    const bool printvel_new = reefckpt_open(printvel,str,p->I45);
     {
-        char sname[32];
-        snprintf(sname, sizeof(sname), "velocity%i", n6DOF);
-        if(p->plog)
-            p->plog->table_file(p, sname, "body_velocity", str);
+    char sname[32];
+    snprintf(sname,sizeof(sname),"velocity%i",n6DOF);
+    if(p->plog)
+    p->plog->table_file(p,sname,"body_velocity",str);
     }
-    if(printvel_new)
-        printvel << "time \t Ue [m/s] \t Ve [m/s] \t We [m/s] \t Pe [rad/s] \t Qe [rad/s] \t Re [rad/s]" << endl;
+	if(printvel_new)
+	printvel<<"time \t Ue [m/s] \t Ve [m/s] \t We [m/s] \t Pe [rad/s] \t Qe [rad/s] \t Re [rad/s]"<<endl;
 
     // force
-    if(p->A10 == 2)
-        sprintf(str, "./REEF3D_SFLOW_6DOF/REEF3D_6DOF_forces_%i.dat", n6DOF);
-
-    if((p->A10 == 5 || p->A10 == 3))
-        sprintf(str, (p->A10 == 3 ? "./REEF3D_FNPF_6DOF/REEF3D_6DOF_forces_%i.dat" : "./REEF3D_NHFLOW_6DOF/REEF3D_6DOF_forces_%i.dat"), n6DOF);
-
-    if(p->A10 == 6)
-        sprintf(str, "./REEF3D_CFD_6DOF/REEF3D_6DOF_forces_%i.dat", n6DOF);
-
-    const bool printforce_new = reefckpt_open(printforce, str, p->I45);
+    if(p->A10==2)
+    sprintf(str,"./REEF3D_SFLOW_6DOF/REEF3D_6DOF_forces_%i.dat",n6DOF);
+    
+    if((p->A10==5||p->A10==3))
+    sprintf(str,(p->A10==3?"./REEF3D_FNPF_6DOF/REEF3D_6DOF_forces_%i.dat":"./REEF3D_NHFLOW_6DOF/REEF3D_6DOF_forces_%i.dat"),n6DOF);
+    
+    if(p->A10==6)
+    sprintf(str,"./REEF3D_CFD_6DOF/REEF3D_6DOF_forces_%i.dat",n6DOF);
+	
+    const bool printforce_new = reefckpt_open(printforce,str,p->I45);
     {
-        char sname[32];
-        snprintf(sname, sizeof(sname), "forces%i", n6DOF);
-        if(p->plog)
-            p->plog->table_file(p, sname, "forces", str);
+    char sname[32];
+    snprintf(sname,sizeof(sname),"forces%i",n6DOF);
+    if(p->plog)
+    p->plog->table_file(p,sname,"forces",str);
     }
-    if(printforce_new)
-        printforce << "time \t Fx \t Fy \t Fz \t Mx \t My \t Mz \t Fx_p \t Fy_p \t Fz_p \t Fx_v \t Fy_v \t Fz_v" << endl;
+	if(printforce_new)
+	printforce<<"time \t Fx \t Fy \t Fz \t Mx \t My \t Mz \t Fx_p \t Fy_p \t Fz_p \t Fx_v \t Fy_v \t Fz_v"<<endl;
+    
 
     curr_time = 0.0;
+    
+    p->Darray(printtime_wT,p->P35);
 
-    for(int qn = 0; qn < p->P35; ++qn)
-        printtime_wT[qn] = p->P35_ts[qn];
-
+    for(int qn=0; qn<p->P35; ++qn)
+	printtime_wT[qn]=p->P35_ts[qn];
+    
     // the P 185 windows (SFLOW, NHFLOW) have their own times: indexed with the P 35 array, a run with more P 185
     // than P 35 windows wrote past its end (segmentation fault in print_vtp at the start of a run with P 185 only)
-    if(printtime_wF == nullptr)
-        p->Darray(printtime_wF, p->P185);
+    if(printtime_wF==nullptr)
+    p->Darray(printtime_wF,p->P185);
 
-    for(int qn = 0; qn < p->P185; ++qn)
-        printtime_wF[qn] = p->P185_ts[qn];
+    for(int qn=0; qn<p->P185; ++qn)
+	printtime_wF[qn]=p->P185_ts[qn];
 }
 
 void sixdof_obj::print_ini_stl(lexer *p, ghostcell *pgc)
 {
-    if(p->mpirank == 0)
+	if(p->mpirank==0)
     {
-        if(p->A10 == 2)
+        if(p->A10==2)
         {
-            mkdir("./REEF3D_SFLOW_6DOF_VTP", 0777);
-            mkdir("./REEF3D_SFLOW_6DOF", 0777);
+        mkdir("./REEF3D_SFLOW_6DOF_VTP", 0777);
+        mkdir("./REEF3D_SFLOW_6DOF", 0777);
         }
-
-        if((p->A10 == 5 || p->A10 == 3))
+        
+        if((p->A10==5||p->A10==3))
         {
-            mkdir((p->A10 == 3 ? "./REEF3D_FNPF_6DOF_VTP" : "./REEF3D_NHFLOW_6DOF_VTP"), 0777);
-            mkdir((p->A10 == 3 ? "./REEF3D_FNPF_6DOF" : "./REEF3D_NHFLOW_6DOF"), 0777);
+        mkdir((p->A10==3?"./REEF3D_FNPF_6DOF_VTP":"./REEF3D_NHFLOW_6DOF_VTP"), 0777);
+        mkdir((p->A10==3?"./REEF3D_FNPF_6DOF":"./REEF3D_NHFLOW_6DOF"), 0777);
         }
-
-        if(p->A10 == 6)
+        
+        if(p->A10==6)
         {
-            mkdir("./REEF3D_CFD_6DOF_VTP", 0777);
-            mkdir("./REEF3D_CFD_6DOF_Normals_VTP", 0777);
-            mkdir("./REEF3D_CFD_6DOF", 0777);
+        mkdir("./REEF3D_CFD_6DOF_VTP", 0777);
+        mkdir("./REEF3D_CFD_6DOF_Normals_VTP", 0777);
+        mkdir("./REEF3D_CFD_6DOF", 0777);
         }
     }
-
+	
     ofstream print;
     char str[1000];
+    
+    if(p->A10==2)
+    sprintf(str,"./REEF3D_SFLOW_6DOF/REEF3D_6DOF_position_%i.dat",n6DOF);
+    
+    if((p->A10==5||p->A10==3))
+    sprintf(str,(p->A10==3?"./REEF3D_FNPF_6DOF/REEF3D_6DOF_position_%i.dat":"./REEF3D_NHFLOW_6DOF/REEF3D_6DOF_position_%i.dat"),n6DOF);
+    
+    if(p->A10==6)
+    sprintf(str,"./REEF3D_CFD_6DOF/REEF3D_6DOF_position_%i.dat",n6DOF);
+	
+    if(reefckpt_open(print,str,p->I45))
+	print<<"time \t XG \t YG \t ZG \t Phi \t Theta \t Psi"<<endl;
+	print.close();
 
-    if(p->A10 == 2)
-        sprintf(str, "./REEF3D_SFLOW_6DOF/REEF3D_6DOF_position_%i.dat", n6DOF);
 
-    if((p->A10 == 5 || p->A10 == 3))
-        sprintf(str, (p->A10 == 3 ? "./REEF3D_FNPF_6DOF/REEF3D_6DOF_position_%i.dat" : "./REEF3D_NHFLOW_6DOF/REEF3D_6DOF_position_%i.dat"), n6DOF);
 
-    if(p->A10 == 6)
-        sprintf(str, "./REEF3D_CFD_6DOF/REEF3D_6DOF_position_%i.dat", n6DOF);
-
-    if(reefckpt_open(print, str, p->I45))
-        print << "time \t XG \t YG \t ZG \t Phi \t Theta \t Psi" << endl;
+    if(p->A10==2)
+    sprintf(str,"./REEF3D_SFLOW_6DOF/REEF3D_6DOF_velocity_%i.dat",n6DOF);
+    
+    if((p->A10==5||p->A10==3))
+    sprintf(str,(p->A10==3?"./REEF3D_FNPF_6DOF/REEF3D_6DOF_velocity_%i.dat":"./REEF3D_NHFLOW_6DOF/REEF3D_6DOF_velocity_%i.dat"),n6DOF);
+    
+    if(p->A10==6)
+    sprintf(str,"./REEF3D_CFD_6DOF/REEF3D_6DOF_velocity_%i.dat",n6DOF);
+	
+    if(reefckpt_open(print,str,p->I45))
+	print<<"time \t Ue [m/s] \t Ve [m/s] \t We [m/s] \t Pe [rad/s] \t Qe [rad/s] \t Re [rad/s]"<<endl;
     print.close();
+    
 
-    if(p->A10 == 2)
-        sprintf(str, "./REEF3D_SFLOW_6DOF/REEF3D_6DOF_velocity_%i.dat", n6DOF);
-
-    if((p->A10 == 5 || p->A10 == 3))
-        sprintf(str, (p->A10 == 3 ? "./REEF3D_FNPF_6DOF/REEF3D_6DOF_velocity_%i.dat" : "./REEF3D_NHFLOW_6DOF/REEF3D_6DOF_velocity_%i.dat"), n6DOF);
-
-    if(p->A10 == 6)
-        sprintf(str, "./REEF3D_CFD_6DOF/REEF3D_6DOF_velocity_%i.dat", n6DOF);
-
-    if(reefckpt_open(print, str, p->I45))
-        print << "time \t Ue [m/s] \t Ve [m/s] \t We [m/s] \t Pe [rad/s] \t Qe [rad/s] \t Re [rad/s]" << endl;
-    print.close();
-
-    if(p->A10 == 2)
-        sprintf(str, "./REEF3D_SFLOW_6DOF/REEF3D_6DOF_forces_%i.dat", n6DOF);
-
-    if((p->A10 == 5 || p->A10 == 3))
-        sprintf(str, (p->A10 == 3 ? "./REEF3D_FNPF_6DOF/REEF3D_6DOF_forces_%i.dat" : "./REEF3D_NHFLOW_6DOF/REEF3D_6DOF_forces_%i.dat"), n6DOF);
-
-    if(p->A10 == 6)
-        sprintf(str, "./REEF3D_CFD_6DOF/REEF3D_6DOF_forces_%i.dat", n6DOF);
-
-    if(reefckpt_open(print, str, p->I45))
-        print << "time \t Fx \t Fy \t Fz \t Mx \t My \t Mz \t Fx_p \t Fy_p \t Fz_p \t Fx_v \t Fy_v \t Fz_v" << endl;
-    print.close();
+    
+    if(p->A10==2)
+    sprintf(str,"./REEF3D_SFLOW_6DOF/REEF3D_6DOF_forces_%i.dat",n6DOF);
+    
+    if((p->A10==5||p->A10==3))
+    sprintf(str,(p->A10==3?"./REEF3D_FNPF_6DOF/REEF3D_6DOF_forces_%i.dat":"./REEF3D_NHFLOW_6DOF/REEF3D_6DOF_forces_%i.dat"),n6DOF);
+    
+    if(p->A10==6)
+    sprintf(str,"./REEF3D_CFD_6DOF/REEF3D_6DOF_forces_%i.dat",n6DOF);
+	
+    if(reefckpt_open(print,str,p->I45))
+	print<<"time \t Fx \t Fy \t Fz \t Mx \t My \t Mz \t Fx_p \t Fy_p \t Fz_p \t Fx_v \t Fy_v \t Fz_v"<<endl;
+    print.close();    
 
     curr_time = 0.0;
+    
+    p->Darray(printtime_wT,p->P35);
 
-    for(int qn = 0; qn < p->P35; ++qn)
-        printtime_wT[qn] = p->P35_ts[qn];
-
+    for(int qn=0; qn<p->P35; ++qn)
+	printtime_wT[qn]=p->P35_ts[qn];
+    
     // the P 185 windows (SFLOW, NHFLOW) have their own times: indexed with the P 35 array, a run with more P 185
     // than P 35 windows wrote past its end (segmentation fault in print_vtp at the start of a run with P 185 only)
-    if(printtime_wF == nullptr)
-        p->Darray(printtime_wF, p->P185);
+    if(printtime_wF==nullptr)
+    p->Darray(printtime_wF,p->P185);
 
-    for(int qn = 0; qn < p->P185; ++qn)
-        printtime_wF[qn] = p->P185_ts[qn];
+    for(int qn=0; qn<p->P185; ++qn)
+	printtime_wF[qn]=p->P185_ts[qn];
 }

@@ -347,8 +347,8 @@ extern "C" {
 #if EIGEN_COMP_ICC >= 1110 || EIGEN_COMP_EMSCRIPTEN
 #include <immintrin.h>
 #else
-#include <emmintrin.h>
 #include <mmintrin.h>
+#include <emmintrin.h>
 #include <xmmintrin.h>
 #ifdef EIGEN_VECTORIZE_SSE3
 #include <pmmintrin.h>
@@ -485,8 +485,8 @@ extern "C" {
 #endif
 
 #if defined(EIGEN_HAS_CUDA_FP16)
-#include <cuda_fp16.h>
 #include <cuda_runtime_api.h>
+#include <cuda_fp16.h>
 #endif
 
 #if defined(EIGEN_HIPCC)
@@ -504,38 +504,37 @@ extern "C" {
 
 namespace Eigen {
 
-inline static const char *SimdInstructionSetsInUse(void)
-{
+inline static const char *SimdInstructionSetsInUse(void) {
 #if defined(EIGEN_VECTORIZE_AVX512)
-    return "AVX512, FMA, AVX2, AVX, SSE, SSE2, SSE3, SSSE3, SSE4.1, SSE4.2";
+  return "AVX512, FMA, AVX2, AVX, SSE, SSE2, SSE3, SSSE3, SSE4.1, SSE4.2";
 #elif defined(EIGEN_VECTORIZE_AVX)
-    return "AVX SSE, SSE2, SSE3, SSSE3, SSE4.1, SSE4.2";
+  return "AVX SSE, SSE2, SSE3, SSSE3, SSE4.1, SSE4.2";
 #elif defined(EIGEN_VECTORIZE_SSE4_2)
-    return "SSE, SSE2, SSE3, SSSE3, SSE4.1, SSE4.2";
+  return "SSE, SSE2, SSE3, SSSE3, SSE4.1, SSE4.2";
 #elif defined(EIGEN_VECTORIZE_SSE4_1)
-    return "SSE, SSE2, SSE3, SSSE3, SSE4.1";
+  return "SSE, SSE2, SSE3, SSSE3, SSE4.1";
 #elif defined(EIGEN_VECTORIZE_SSSE3)
-    return "SSE, SSE2, SSE3, SSSE3";
+  return "SSE, SSE2, SSE3, SSSE3";
 #elif defined(EIGEN_VECTORIZE_SSE3)
-    return "SSE, SSE2, SSE3";
+  return "SSE, SSE2, SSE3";
 #elif defined(EIGEN_VECTORIZE_SSE2)
-    return "SSE, SSE2";
+  return "SSE, SSE2";
 #elif defined(EIGEN_VECTORIZE_ALTIVEC)
-    return "AltiVec";
+  return "AltiVec";
 #elif defined(EIGEN_VECTORIZE_VSX)
-    return "VSX";
+  return "VSX";
 #elif defined(EIGEN_VECTORIZE_NEON)
-    return "ARM NEON";
+  return "ARM NEON";
 #elif defined(EIGEN_VECTORIZE_SVE)
-    return "ARM SVE";
+  return "ARM SVE";
 #elif defined(EIGEN_VECTORIZE_ZVECTOR)
-    return "S390X ZVECTOR";
+  return "S390X ZVECTOR";
 #elif defined(EIGEN_VECTORIZE_MSA)
-    return "MIPS MSA";
+  return "MIPS MSA";
 #elif defined(EIGEN_VECTORIZE_LSX)
-    return "LOONGARCH64 LSX";
+  return "LOONGARCH64 LSX";
 #else
-    return "None";
+  return "None";
 #endif
 }
 

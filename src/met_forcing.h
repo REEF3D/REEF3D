@@ -23,11 +23,11 @@ Architect: Hans Bihs
 #ifndef MET_FORCING_H_
 #define MET_FORCING_H_
 
-#include "increment.h"
-#include "lexer.h"
-#include "slice4.h"
-#include <fstream>
-#include <vector>
+#include"increment.h"
+#include"slice4.h"
+#include<vector>
+#include"lexer.h"
+#include<fstream>
 
 class ghostcell;
 class slice;
@@ -81,30 +81,30 @@ wind_stress (vector, tau [N/m^2]).
 class met_forcing : public increment
 {
 public:
-    met_forcing(lexer *, ghostcell *);
+    met_forcing(lexer*, ghostcell*);
     virtual ~met_forcing() = default;
 
     // fields at the model time of the grid (once per time step)
-    void update(lexer *, ghostcell *);
+    void update(lexer*, ghostcell*);
 
     // momentum sources, dir 0: x, 1: y; WL, UH, VH of the stage
-    void source_sflow(lexer *, ghostcell *, slice &F, int dir, slice &WL, slice &UH, slice &VH);
-    void source_nhflow(lexer *, ghostcell *, double *F, int dir, slice &WL, double *UH, double *VH);
+    void source_sflow(lexer*, ghostcell*, slice &F, int dir, slice &WL, slice &UH, slice &VH);
+    void source_nhflow(lexer*, ghostcell*, double *F, int dir, slice &WL, double *UH, double *VH);
 
     // free surface VTP output (W 200 > 0)
-    void offset_vtp(lexer *, int *, int &);
-    void name_vtp(std::ostream &, int *, int &);
-    void name_pvtp(ofstream &);
-    void print_vtp(lexer *, std::ostream &);
+    void offset_vtp(lexer*, int*, int&);
+    void name_vtp(std::ostream &, int*, int&);
+    void name_pvtp(ofstream&);
+    void print_vtp(lexer*, std::ostream&);
 
-    static bool active(lexer *p) { return p->W200 > 0 || p->W211 > 0; }
+    static bool active(lexer *p) {return p->W200>0 || p->W211>0;}
 
     // wave-dependent drag (W 207 7): the sea state on this grid (Hs [m], Tp [s]) and the water depth, set by the
     // SEASTATE coupling (seastate_sflow, seastate_nhflow); without it law 7 is law 5
-    void waves(lexer *, slice *Hs, slice *Tp, slice *WL);
+    void waves(lexer*, slice *Hs, slice *Tp, slice *WL);
 
     // after every change of the sea state: the roughness of the waves per cell (Taylor and Yelland)
-    void waves_update(lexer *);
+    void waves_update(lexer*);
 
     slice4 U10, V10, Pa, Tx, Ty, Gx, Gy, Fc;
 
@@ -113,8 +113,8 @@ public:
 private:
     met_provider *pm = nullptr;
     slice *wHs = nullptr, *wTp = nullptr, *wWL = nullptr;
-    slice4 *z0w = nullptr;    // W 207 7: roughness of the waves [m], -1 without waves
-    std::vector<double> z0c;  // W 207 7: Charnock roughness, table over the wind speed (step dz0c)
+    slice4 *z0w = nullptr;                  // W 207 7: roughness of the waves [m], -1 without waves
+    std::vector<double> z0c;                // W 207 7: Charnock roughness, table over the wind speed (step dz0c)
     static constexpr double dz0c = 0.05;
     double charnock(double U) const;
     bool has_t = false;

@@ -23,8 +23,8 @@ Architect: Hans Bihs
 #ifndef SEDIMENT_WAVES_H_
 #define SEDIMENT_WAVES_H_
 
-#include "increment.h"
-#include "slice4.h"
+#include"increment.h"
+#include"slice4.h"
 
 class lexer;
 class fdm2D;
@@ -102,52 +102,52 @@ blocks).
 class sediment_waves : public increment
 {
 public:
-    sediment_waves(lexer *);
+    sediment_waves(lexer*);
     virtual ~sediment_waves() = default;
-
+    
     // wave parameters of the cells (every call; SEASTATE spectra only after a new wave step)
-    void start(lexer *, seastate_coupling *, ghostcell *, sediment_fdm *);
-
+    void start(lexer*, seastate_coupling*, ghostcell*, sediment_fdm*);
+    
     // S 119 0 with SEASTATE and the radiation stress (A 751 1, host velocity = Lagrangian): the Eulerian current
     // of the sediment transport, s->P and s->Q minus the Stokes drift M/h of the faces (ramped as the host)
-    void eulerian(lexer *, fdm2D *, ghostcell *, sediment_fdm *);
-
+    void eulerian(lexer*, fdm2D*, ghostcell*, sediment_fdm*);
+    
     // NHFLOW, S 119 0 with SEASTATE and the radiation stress: the Eulerian bottom velocity s->P, s->Q (minus M/h)
     // and the correction dtc of tau_c for the Eulerian current (bedshear)
-    void eulerian_nhflow(lexer *, fdm_nhf *, ghostcell *, sediment_fdm *);
-
+    void eulerian_nhflow(lexer*, fdm_nhf*, ghostcell*, sediment_fdm*);
+    
     // NHFLOW, S 11 6-9: s->P, s->Q from the bottom layer to the depth-averaged current of the log profile
-    static void depth_mean_nhflow(lexer *, ghostcell *, sediment_fdm *);
-
+    static void depth_mean_nhflow(lexer*, ghostcell*, sediment_fdm*);
+    
     // wave and current bed shear stress, after bedshear::taubed (tau_c in s->tau_eff)
-    void bedshear(lexer *, ghostcell *, sediment_fdm *);
-
+    void bedshear(lexer*, ghostcell*, sediment_fdm*);
+    
     // near-bed orbital velocity of the wave cycle of cell (ii,jj) at nph phases, along (ex,ey); zero mean, rms Urms_eff
-    void cycle(lexer *, int ii, int jj, int nph, double *uw);
-
+    void cycle(lexer*, int ii, int jj, int nph, double *uw);
+    
     // unit-rms shape of the Abreu et al. (2010) velocity for B, psi (radians) at nph phases
     static void abreu(double B, double psi, int nph, double *u);
-
+    
     // Ruessink et al. (2012): B and psi (radians) of the Ursell number
     static void ruessink(double Ur, double &B, double &psi);
-
+    
     // wave cycle phases (S 11 7, 8)
     static const int nphase = 36;
-
+    
     // SEASTATE / prescribed
-    slice4 Hs, Tm10, Tp, Urms, Tbot, ex, ey, Dr;
+    slice4 Hs,Tm10,Tp,Urms,Tbot,ex,ey,Dr;
     // derived
-    slice4 Tw, Dbr, kb, Ure, Uw, Sk, As, ua;
+    slice4 Tw,Dbr,kb,Ure,Uw,Sk,As,ua;
     // bed shear stresses [N/m^2] and wave friction factor
-    slice4 tauc, tauw, taum, taumax, fw;
+    slice4 tauc,tauw,taum,taumax,fw;
     // NHFLOW: correction of the current bed shear stress for the Eulerian current [N/m^2] (0 without)
     slice4 dtc;
-
+    
 private:
-    void seastate(lexer *, seastate_coupling *);
-    void prescribed(lexer *, sediment_fdm *);
-    void derived(lexer *, ghostcell *, sediment_fdm *);
-
+    void seastate(lexer*, seastate_coupling*);
+    void prescribed(lexer*, sediment_fdm*);
+    void derived(lexer*, ghostcell*, sediment_fdm*);
+    
     int stamp;
 };
 

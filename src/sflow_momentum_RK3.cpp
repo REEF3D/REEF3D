@@ -20,20 +20,20 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "sflow_momentum_RK3.h"
-#include "fdm2D.h"
-#include "ghostcell.h"
-#include "ioflow.h"
-#include "lexer.h"
-#include "sflow_amr.h"
-#include "sflow_fsf.h"
+#include"sflow_momentum_RK3.h"
+#include"lexer.h"
+#include"fdm2D.h"
+#include"ioflow.h"
+#include"ghostcell.h"
+#include"sflow_fsf.h"
+#include"sflow_amr.h"
 
-sflow_momentum_RK3::sflow_momentum_RK3(lexer *p, fdm2D *b, ghostcell *pgc, sflow_HLL *pphll, sflow_signal_speed *ppss,
-                                       sflow_reconstruct *pprecon, sflow_diffusion *ppdiff, sflow_pressure *pppress,
-                                       solver2D *ppsolv, solver2D *pppoissonsolv, ioflow *ppflow, sflow_fsf *ppfsf,
+sflow_momentum_RK3::sflow_momentum_RK3(lexer *p, fdm2D *b, ghostcell *pgc, sflow_HLL *pphll, sflow_signal_speed *ppss, 
+                                       sflow_reconstruct *pprecon, sflow_diffusion *ppdiff, sflow_pressure *pppress, 
+                                       solver2D *ppsolv, solver2D *pppoissonsolv, ioflow *ppflow, sflow_fsf *ppfsf, 
                                        sflow_forcing *ppsfdf, sixdof *pp6dof)
-    : sflow_momentum_func(p, b, pgc, pphll, ppss, pprecon, ppdiff, pppress, ppsolv, pppoissonsolv, ppflow, ppfsf, ppsfdf, pp6dof),
-      WLRK1(p), WLRK2(p), UHRK1(p), UHRK2(p), VHRK1(p), VHRK2(p), WHRK1(p), WHRK2(p)
+                                      : sflow_momentum_func(p,b,pgc,pphll,ppss,pprecon,ppdiff,pppress,ppsolv,pppoissonsolv,ppflow,ppfsf,ppsfdf,pp6dof),
+                                        WLRK1(p),WLRK2(p),UHRK1(p),UHRK2(p),VHRK1(p),VHRK2(p),WHRK1(p),WHRK2(p)
 {
 }
 
@@ -41,111 +41,75 @@ sflow_momentum_RK3::~sflow_momentum_RK3()
 {
 }
 
-void sflow_momentum_RK3::start(lexer *p, fdm2D *b, ghostcell *pgc)
+void sflow_momentum_RK3::start(lexer *p, fdm2D* b, ghostcell* pgc)
 {
     // in- and outflow ghost cells
-    inflow(p, b, pgc, pflow);
-
-    if(pamr != nullptr)
-        pamr->step_begin(p, b, pgc);
-
+    inflow(p,b,pgc,pflow);
+    
+    if(pamr!=nullptr)
+    pamr->step_begin(p,b,pgc);
+    
     // mesh refinement: the patches run each stage first (finest first), level 0 takes
     // their interface fluxes and is then overwritten by their averages under the patches
-    for(int s = 0; s < 3; ++s)
+    for(int s=0; s<3; ++s)
     {
-        if(pamr != nullptr)
-            pamr->stage_begin(p, b, pgc, s);
-
-        rk_stage(p, b, pgc, s);
-
-        if(pamr != nullptr)
-            pamr->stage_end(p, b, pgc, s);
+        if(pamr!=nullptr)
+        pamr->stage_begin(p,b,pgc,s);
+        
+        rk_stage(p,b,pgc,s);
+        
+        if(pamr!=nullptr)
+        pamr->stage_end(p,b,pgc,s);
     }
-
-    rk_finish(p, b, pgc);
-
-    if(pamr != nullptr)
-        pamr->step_end(p, b, pgc);
+    
+    rk_finish(p,b,pgc);
+    
+    if(pamr!=nullptr)
+    pamr->step_end(p,b,pgc);
 }
 
-void sflow_momentum_RK3::rk_stage(lexer *p, fdm2D *b, ghostcell *pgc, int s)
+void sflow_momentum_RK3::rk_stage(lexer *p, fdm2D* b, ghostcell* pgc, int s)
 {
     // B 95: relaxation targets at the time of the stage output
-    if(p->B95 != 0.0)
-        pflow->wavegen_2D_stage(p, b, pgc, p->simtime + (s == 1 ? 0.5 : 1.0) * p->dt);
+    if(p->B95!=0.0)
+    pflow->wavegen_2D_stage(p,b,pgc,p->simtime + (s==1 ? 0.5 : 1.0)*p->dt);
 
-    // Step 1
-    //--------------------------------------------------------
-    if(s == 0)
-        stage(p, b, pgc, b->WL, b->UH, b->VH, b->WH, WLRK1, UHRK1, VHRK1, WHRK1, 0.0, 0, 0);
-
-    // Step 2
-    //--------------------------------------------------------
-    if(s == 1)
-        stage(p, b, pgc, WLRK1, UHRK1, VHRK1, WHRK1, WLRK2, UHRK2, VHRK2, WHRK2, 0.75, 1, 0);
-
-    // Step 3
-    //--------------------------------------------------------
-    if(s == 2)
-        stage(p, b, pgc, WLRK2, UHRK2, VHRK2, WHRK2, b->WL, b->UH, b->VH, b->WH, 1.0 / 3.0, 2, 1);
+//Step 1
+//--------------------------------------------------------
+    if(s==0)
+    stage(p,b,pgc, b->WL,b->UH,b->VH,b->WH, WLRK1,UHRK1,VHRK1,WHRK1, 0.0, 0, 0);
+    
+//Step 2
+//--------------------------------------------------------
+    if(s==1)
+    stage(p,b,pgc, WLRK1,UHRK1,VHRK1,WHRK1, WLRK2,UHRK2,VHRK2,WHRK2, 0.75, 1, 0);
+    
+//Step 3
+//--------------------------------------------------------
+    if(s==2)
+    stage(p,b,pgc, WLRK2,UHRK2,VHRK2,WHRK2, b->WL,b->UH,b->VH,b->WH, 1.0/3.0, 2, 1);
 }
 
-void sflow_momentum_RK3::rk_finish(lexer *p, fdm2D *b, ghostcell *pgc)
+void sflow_momentum_RK3::rk_finish(lexer *p, fdm2D* b, ghostcell* pgc)
 {
-    pfsf->breaking_persist(p, b, pgc, b->eta, b->eta_n, 1.0);
-
+    pfsf->breaking_persist(p,b,pgc,b->eta,b->eta_n,1.0);
+    
     SLICELOOP4
-    b->eta_n(i, j) = b->eta(i, j);
-
-    pgc->gcsl_start4(p, b->eta_n, gcval_eta);
+    b->eta_n(i,j) = b->eta(i,j);
+    
+    pgc->gcsl_start4(p,b->eta_n,gcval_eta);
 }
 
 void sflow_momentum_RK3::stage_io(int s, fdm2D *b, slice *&WLi, slice *&UHi, slice *&VHi, slice *&WLo, slice *&UHo, slice *&VHo)
 {
-    if(s == 0)
-    {
-        WLi = &b->WL;
-        UHi = &b->UH;
-        VHi = &b->VH;
-        WLo = &WLRK1;
-        UHo = &UHRK1;
-        VHo = &VHRK1;
-    }
-    if(s == 1)
-    {
-        WLi = &WLRK1;
-        UHi = &UHRK1;
-        VHi = &VHRK1;
-        WLo = &WLRK2;
-        UHo = &UHRK2;
-        VHo = &VHRK2;
-    }
-    if(s == 2)
-    {
-        WLi = &WLRK2;
-        UHi = &UHRK2;
-        VHi = &VHRK2;
-        WLo = &b->WL;
-        UHo = &b->UH;
-        VHo = &b->VH;
-    }
+    if(s==0) {WLi=&b->WL; UHi=&b->UH; VHi=&b->VH; WLo=&WLRK1; UHo=&UHRK1; VHo=&VHRK1;}
+    if(s==1) {WLi=&WLRK1; UHi=&UHRK1; VHi=&VHRK1; WLo=&WLRK2; UHo=&UHRK2; VHo=&VHRK2;}
+    if(s==2) {WLi=&WLRK2; UHi=&UHRK2; VHi=&VHRK2; WLo=&b->WL; UHo=&b->UH; VHo=&b->VH;}
 }
 
 void sflow_momentum_RK3::stage_io_w(int s, fdm2D *b, slice *&WHi, slice *&WHo)
 {
-    if(s == 0)
-    {
-        WHi = &b->WH;
-        WHo = &WHRK1;
-    }
-    if(s == 1)
-    {
-        WHi = &WHRK1;
-        WHo = &WHRK2;
-    }
-    if(s == 2)
-    {
-        WHi = &WHRK2;
-        WHo = &b->WH;
-    }
+    if(s==0) {WHi=&b->WH; WHo=&WHRK1;}
+    if(s==1) {WHi=&WHRK1; WHo=&WHRK2;}
+    if(s==2) {WHi=&WHRK2; WHo=&b->WH;}
 }

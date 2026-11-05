@@ -23,8 +23,8 @@ Architect: Hans Bihs
 #ifndef MET_DRAG_H_
 #define MET_DRAG_H_
 
-#include <algorithm>
-#include <cmath>
+#include<algorithm>
+#include<cmath>
 
 /*--------------------------------------------------------------------
 REEF3D atmospheric forcing (W 200): drag coefficient of the 10 m wind,
@@ -57,57 +57,57 @@ wind speed.
 --------------------------------------------------------------------*/
 
 // the law of W 207 (0: auto)
-inline int met_drag_law(int W207, int W200) { return W207 > 0 ? W207 : (W200 >= 3 ? 5 : 1); }
+inline int met_drag_law(int W207, int W200) {return W207>0 ? W207 : (W200>=3 ? 5 : 1);}
 
-inline double met_drag(int law, double U, double cap = 2.5e-3, double floor = 1.5e-3)
+inline double met_drag(int law, double U, double cap=2.5e-3, double floor=1.5e-3)
 {
     double Cd = 0.0;
 
-    if(law == 1)
-        Cd = (U < 41.0) ? 0.001 * (0.75 + 0.067 * U) : 0.001 * 3.5;
+    if(law==1)
+    Cd = (U<41.0) ? 0.001*(0.75 + 0.067*U) : 0.001*3.5;
 
-    if(law == 2)
-        Cd = (U < 7.5) ? 1.2875e-3 : 0.001 * (0.8 + 0.065 * U);
+    if(law==2)
+    Cd = (U<7.5) ? 1.2875e-3 : 0.001*(0.8 + 0.065*U);
 
-    if(law == 3)
-        Cd = 0.001 * (0.63 + 0.066 * U);
+    if(law==3)
+    Cd = 0.001*(0.63 + 0.066*U);
 
-    if(law == 4)
+    if(law==4)
     {
-        const double x = U / 31.5;
-        Cd = 0.001 * (0.55 + 2.97 * x - 1.49 * x * x);
-        Cd = Cd > 0.0 ? Cd : 0.0;
+    const double x = U/31.5;
+    Cd = 0.001*(0.55 + 2.97*x - 1.49*x*x);
+    Cd = Cd>0.0 ? Cd : 0.0;
     }
 
     // law 7 without a sea state: law 5
-    if(law == 5 || law == 7)
+    if(law==5 || law==7)
     {
-        Cd = 0.001 * (0.75 + 0.067 * U);
-        Cd = Cd < cap ? Cd : cap;
+    Cd = 0.001*(0.75 + 0.067*U);
+    Cd = Cd<cap ? Cd : cap;
     }
 
-    if(law == 6)
+    if(law==6)
     {
-        const double x = U / 31.5;
-        Cd = 0.001 * (0.55 + 2.97 * x - 1.49 * x * x);
+    const double x = U/31.5;
+    Cd = 0.001*(0.55 + 2.97*x - 1.49*x*x);
 
-        if(x > 2.97 / 2.98)
-            Cd = Cd > floor ? Cd : floor;
+        if(x>2.97/2.98)
+        Cd = Cd>floor ? Cd : floor;
     }
 
     return Cd;
 }
 
 // wave number [1/m] of the angular frequency w [1/s] at the depth d [m]: Guo (2002), explicit, within 0.75 %
-inline double met_wavenumber(double w, double d, double g = 9.81)
+inline double met_wavenumber(double w, double d, double g=9.81)
 {
-    if(!(d > 0.0))
-        return w * w / g;
+    if(!(d>0.0))
+    return w*w/g;
 
-    const double x = w * std::sqrt(d / g);
-    const double kh = x * x * std::pow(1.0 - std::exp(-std::pow(x, 2.5)), -0.4);
+    const double x = w*std::sqrt(d/g);
+    const double kh = x*x*std::pow(1.0 - std::exp(-std::pow(x,2.5)),-0.4);
 
-    return kh / d;
+    return kh/d;
 }
 
 // law 7, the parts: the roughness length [m] of Taylor and Yelland (2001) of the sea state Hs [m], Tp [s] at the
@@ -117,12 +117,12 @@ inline double met_z0_waves(double Hs, double Tp, double d)
 {
     const double pi = 3.14159265358979323846;
 
-    if(!(Hs >= 0.1) || !(Tp > 0.5))
-        return -1.0;
+    if(!(Hs>=0.1) || !(Tp>0.5))
+    return -1.0;
 
-    const double Lp = 2.0 * pi / met_wavenumber(2.0 * pi / Tp, d);
+    const double Lp = 2.0*pi/met_wavenumber(2.0*pi/Tp,d);
 
-    return 1200.0 * Hs * std::pow(Hs / Lp, 4.5);
+    return 1200.0*Hs*std::pow(Hs/Lp,4.5);
 }
 
 inline double met_z0_charnock(double U)
@@ -130,39 +130,39 @@ inline double met_z0_charnock(double U)
     const double g = 9.81, kappa = 0.4;
     double Cd = 1.2e-3;
 
-    if(!(U > 0.0))
-        return 0.0;
+    if(!(U>0.0))
+    return 0.0;
 
-    for(int n = 0; n < 30; ++n)
+    for(int n=0; n<30; ++n)
     {
-        const double c = std::pow(kappa / std::log(10.0 * g / (0.011 * Cd * U * U)), 2.0);
-        const bool conv = std::fabs(c - Cd) < 1.0e-12;
-        Cd = c;
+    const double c = std::pow(kappa/std::log(10.0*g/(0.011*Cd*U*U)),2.0);
+    const bool conv = std::fabs(c-Cd)<1.0e-12;
+    Cd = c;
 
         if(conv)
-            break;
+        break;
     }
 
-    return 0.011 * Cd * U * U / g;
+    return 0.011*Cd*U*U/g;
 }
 
 inline double met_drag_z0(double z0, double cap)
 {
-    z0 = std::min(std::max(z0, 1.0e-7), 1.0);
-    const double Cd = std::pow(0.4 / std::log(10.0 / z0), 2.0);
+    z0 = std::min(std::max(z0,1.0e-7),1.0);
+    const double Cd = std::pow(0.4/std::log(10.0/z0),2.0);
 
-    return Cd < cap ? Cd : cap;
+    return Cd<cap ? Cd : cap;
 }
 
 // law 7: drag of the 10 m wind U [m/s] over the sea state Hs [m], Tp [s] at the water depth d [m]; floor: Charnock
-inline double met_drag_wave(double U, double Hs, double Tp, double d, double cap = 3.5e-3, double cap5 = 2.5e-3, bool floor = true)
+inline double met_drag_wave(double U, double Hs, double Tp, double d, double cap=3.5e-3, double cap5=2.5e-3, bool floor=true)
 {
-    const double z0 = met_z0_waves(Hs, Tp, d);
+    const double z0 = met_z0_waves(Hs,Tp,d);
 
-    if(z0 < 0.0 || !(U > 0.0))
-        return met_drag(5, U, cap5);
+    if(z0<0.0 || !(U>0.0))
+    return met_drag(5,U,cap5);
 
-    return met_drag_z0(floor ? std::max(z0, met_z0_charnock(U)) : z0, cap);
+    return met_drag_z0(floor ? std::max(z0,met_z0_charnock(U)) : z0,cap);
 }
 
 #endif

@@ -45,34 +45,33 @@ Author: Hans Bihs
 
 inline double fnpf_hj_godunov(double qm, double qp, double F, double Fz)
 {
-    auto G = [&](double q)
-    { return F * q - Fz * q * q; };
-
+    auto G = [&](double q) {return F*q - Fz*q*q;};
+    
     double lo, hi;
-    const bool minimize = (qm <= qp);
-
+    const bool minimize = (qm<=qp);
+    
     if(minimize)
     {
-        lo = qm;
-        hi = qp;
+    lo = qm;
+    hi = qp;
     }
     else
     {
-        lo = qp;
-        hi = qm;
+    lo = qp;
+    hi = qm;
     }
-
-    double qs = (G(lo) <= G(hi)) == minimize ? lo : hi;
-
+    
+    double qs = (G(lo)<=G(hi)) == minimize ? lo : hi;
+    
     // vertex of the parabola: minimum for Fz<0, maximum for Fz>0
-    if((minimize && Fz < 0.0) || (!minimize && Fz > 0.0))
+    if((minimize && Fz<0.0) || (!minimize && Fz>0.0))
     {
-        const double qv = F / (2.0 * Fz);
-
-        if(qv > lo && qv < hi)
-            qs = qv;
+        const double qv = F/(2.0*Fz);
+        
+        if(qv>lo && qv<hi)
+        qs = qv;
     }
-
+    
     return qs;
 }
 

@@ -23,8 +23,8 @@ Author: Hans Bihs
 #ifndef SIXDOF_H_
 #define SIXDOF_H_
 
-#include <functional>
-#include <vector>
+#include<vector>
+#include<functional>
 
 class lexer;
 class fdm;
@@ -41,57 +41,57 @@ class sixdof
 public:
     virtual ~sixdof() {}
 
-    virtual void start_cfd(lexer *, fdm *, ghostcell *, int, field &, field &, field &, field &, field &, field &, bool) = 0;
-    virtual void start_nhflow(lexer *, fdm_nhf *, ghostcell *, int, double *, double *, double *, double *, double *, double *, slice &, slice &, bool) = 0;
-    virtual void start_sflow(lexer *, fdm2D *, ghostcell *, int, slice &, slice &, slice &, slice &, slice &, slice &, slice &, bool) = 0;
-
-    virtual void reforce_nhflow(lexer *, fdm_nhf *, ghostcell *, int, double *, double *, double *, double *, double *, double *, slice &, slice &, bool) = 0;
-
+    virtual void start_cfd(lexer*,fdm*,ghostcell*,int,field&,field&,field&,field&,field&,field&,bool)=0;
+    virtual void start_nhflow(lexer*,fdm_nhf*,ghostcell*,int,double*,double*,double*,double*,double*,double*,slice&,slice&,bool)=0;
+    virtual void start_sflow(lexer*,fdm2D*,ghostcell*,int,slice&,slice&,slice&,slice&,slice&,slice&,slice&,bool)=0;
+    
+    virtual void reforce_nhflow(lexer*,fdm_nhf*,ghostcell*,int,double*,double*,double*,double*,double*,double*,slice&,slice&,bool)=0;
+    
     // impermeable membranes (X 330): implicit forcing before the projection, loads after it
-    virtual void membrane_forcing_nhflow(lexer *, fdm_nhf *, ghostcell *, double, double *, double *, double *, slice &) {};
-    virtual void membrane_reaction_nhflow(lexer *, fdm_nhf *, ghostcell *, double, slice &, bool) {};
+    virtual void membrane_forcing_nhflow(lexer*,fdm_nhf*,ghostcell*,double,double*,double*,double*,slice&) {};
+    virtual void membrane_reaction_nhflow(lexer*,fdm_nhf*,ghostcell*,double,slice&,bool) {};
     // strong coupling (membrane.dat 'coupling iterated'): repeated projection, see nhflow_forcing::projection
-    virtual bool membrane_iterated() { return false; };
-    virtual void membrane_reforce_nhflow(lexer *, fdm_nhf *, ghostcell *, double, double *, double *, double *, slice &) {};
-    virtual bool membrane_couple_nhflow(lexer *, fdm_nhf *, ghostcell *, int, double, slice &, int) { return true; };
-
+    virtual bool membrane_iterated() {return false;};
+    virtual void membrane_reforce_nhflow(lexer*,fdm_nhf*,ghostcell*,double,double*,double*,double*,slice&) {};
+    virtual bool membrane_couple_nhflow(lexer*,fdm_nhf*,ghostcell*,int,double,slice&,int) {return true;};
+    
     // pierced-column water level (X 13, nhflow_fsf_body): signed distance of the top cell centre of
     // every column to the hull at the pose of stage iter (negative inside); false: not available,
     // the caller falls back to d->FB of the last ray cast
-    virtual bool top_phi_nhflow(lexer *, fdm_nhf *, ghostcell *, int, slice &, slice &) { return false; };
-
+    virtual bool top_phi_nhflow(lexer*,fdm_nhf*,ghostcell*,int,slice&,slice&) {return false;};
+    
     // hull as the top of the water columns (X 13 2, nhflow_fsf_hull): keel height S, cover and the
     // body velocity (us, vs, ws) at the keel point of every column at the pose of stage iter;
     // false: not available
-    virtual bool keel_nhflow(lexer *, fdm_nhf *, ghostcell *, int, slice &, slice &, slice &, slice &, slice &, slice &) { return false; };
-
-    virtual void ini(lexer *, ghostcell *) = 0;
+    virtual bool keel_nhflow(lexer*,fdm_nhf*,ghostcell*,int,slice&,slice&,slice&,slice&,slice&,slice&) {return false;};
+    
+    virtual void ini(lexer*,ghostcell*)=0;
     // runtime coupling (reefcouple, I 243): number of bodies and the state of body n: CoG (3), velocity
     // (3), angular velocity (3, inertial frame), rotation body -> inertial (9, row-major)
-    virtual int body_count() const { return 0; }
-    virtual void body_state(int, double *) const {}
+    virtual int body_count() const {return 0;}
+    virtual void body_state(int, double*) const {}
 
     // checkpoints (P 48, I 45): the state of the bodies (the same on all ranks); restore false: the
     // checkpoint does not fit the bodies of this run
-    virtual void ckpt_state(lexer *, std::vector<double> &) {}
-    virtual bool ckpt_restore(lexer *, ghostcell *, const std::vector<double> &) { return true; }
-    virtual double *ckpt_slice() { return nullptr; }  // a slice of the grid kept over the steps (NHFLOW ship-wave pressure patch)
+    virtual void ckpt_state(lexer*, std::vector<double>&) {}
+    virtual bool ckpt_restore(lexer*, ghostcell*, const std::vector<double>&) {return true;}
+    virtual double* ckpt_slice() {return nullptr;}     // a slice of the grid kept over the steps (NHFLOW ship-wave pressure patch)
     // the slices of the bodies on a horizontal grid (SFLOW): name, kind S, pointer
-    virtual void ckpt_fields(const std::function<void(const char *, char, double *)> &, const std::function<void(const char *, char, int *)> &) {}
-    virtual void initialize(lexer *, fdm *, ghostcell *) = 0;
-    virtual void initialize(lexer *, fdm2D *, ghostcell *) = 0;
-    virtual void initialize(lexer *, fdm_nhf *, ghostcell *) = 0;
-
-    virtual void isource(lexer *, fdm *, ghostcell *) = 0;
-    virtual void jsource(lexer *, fdm *, ghostcell *) = 0;
-    virtual void ksource(lexer *, fdm *, ghostcell *) = 0;
-
-    virtual void isource(lexer *, fdm_nhf *, ghostcell *, slice &) = 0;
-    virtual void jsource(lexer *, fdm_nhf *, ghostcell *, slice &) = 0;
-    virtual void ksource(lexer *, fdm_nhf *, ghostcell *, slice &) = 0;
-
-    virtual void isource2D(lexer *, fdm2D *, ghostcell *) = 0;
-    virtual void jsource2D(lexer *, fdm2D *, ghostcell *) = 0;
+    virtual void ckpt_fields(const std::function<void(const char*,char,double*)>&, const std::function<void(const char*,char,int*)>&) {}
+    virtual void initialize(lexer*, fdm*, ghostcell*)=0;
+    virtual void initialize(lexer*, fdm2D*, ghostcell*)=0;
+    virtual void initialize(lexer*, fdm_nhf*, ghostcell*)=0;
+	
+    virtual void isource(lexer*,fdm*,ghostcell*)=0;
+    virtual void jsource(lexer*,fdm*,ghostcell*)=0;
+    virtual void ksource(lexer*,fdm*,ghostcell*)=0;
+    
+    virtual void isource(lexer*,fdm_nhf*,ghostcell*,slice&)=0;
+    virtual void jsource(lexer*,fdm_nhf*,ghostcell*,slice&)=0;
+    virtual void ksource(lexer*,fdm_nhf*,ghostcell*,slice&)=0;
+    
+    virtual void isource2D(lexer*,fdm2D*,ghostcell*)=0;
+    virtual void jsource2D(lexer*,fdm2D*,ghostcell*)=0;
 };
 
 #endif

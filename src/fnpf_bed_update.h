@@ -23,8 +23,8 @@ Author: Hans Bihs
 #ifndef FNPF_BED_UPDATE_H_
 #define FNPF_BED_UPDATE_H_
 
-#include "increment.h"
-#include "slice4.h"
+#include"increment.h"
+#include"slice4.h"
 
 class lexer;
 class ghostcell;
@@ -40,13 +40,14 @@ using namespace std;
 class fnpf_bed_update : public increment
 {
 public:
-    fnpf_bed_update(lexer *);
-    virtual ~fnpf_bed_update();
+    fnpf_bed_update(lexer*);
+	virtual ~fnpf_bed_update();
+    
+    void bedbc_sig(lexer*, fdm_fnpf*, ghostcell*,double*,fnpf_fsf*);
+    void waterdepth(lexer*, fdm_fnpf*, ghostcell*);
 
-    void bedbc_sig(lexer *, fdm_fnpf *, ghostcell *, double *, fnpf_fsf *);
-    void waterdepth(lexer *, fdm_fnpf *, ghostcell *);
-
-private:
+private: 
+    
     fnpf_convection *pconvec;
     fnpf_ddx *pddx;
 };

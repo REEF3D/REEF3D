@@ -23,9 +23,9 @@ Author: Hans Bihs
 #ifndef NHFLOW_LONGRUN_H_
 #define NHFLOW_LONGRUN_H_
 
-#include <functional>
-#include <string>
-#include <vector>
+#include<vector>
+#include<string>
+#include<functional>
 
 class lexer;
 class fdm_nhf;
@@ -68,36 +68,36 @@ using namespace std;
 class nhflow_longrun
 {
 public:
-    nhflow_longrun(lexer *);
+    nhflow_longrun(lexer*);
     ~nhflow_longrun();
 
     // after the momentum step (simtime advanced, dt the step just done)
-    void step(lexer *, fdm_nhf *, ghostcell *, nhflow_amr *);
+    void step(lexer*, fdm_nhf*, ghostcell*, nhflow_amr*);
 
     // a grid: its cells [i0,i1) x [j0,j1) are written
-    void add_grid(lexer *, fdm_nhf *, int i0, int i1, int j0, int j1);
+    void add_grid(lexer*, fdm_nhf*, int i0, int i1, int j0, int j1);
 
     static const int NC = 13;
 
     // checkpoints (P 48, I 45): the record and the sums of every grid; read after the patches of nhflow_amr
-    void ckpt_write(lexer *, reefckpt &, nhflow_amr *);
-    bool ckpt_read(lexer *, fdm_nhf *, reefckpt &, nhflow_amr *, string &);
+    void ckpt_write(lexer*, reefckpt&, nhflow_amr*);
+    bool ckpt_read(lexer*, fdm_nhf*, reefckpt&, nhflow_amr*, string&);
 
     // the sums of the grid of q component by component, as slices of q (the visitor of the checkpoint);
     // between pack_all and unpack_all
-    void ckpt_fields(lexer *q, const std::function<void(const char *, char, double *)> &);
+    void ckpt_fields(lexer *q, const std::function<void(const char*, char, double*)>&);
 
 private:
     struct grid
     {
         lexer *q;
         fdm_nhf *d;
-        int i0, i1, j0, j1;
-        vector<double> s;  // per column (slice index): NV sums
+        int i0,i1,j0,j1;
+        vector<double> s;           // per column (slice index): NV sums
     };
 
-    void accumulate(grid &, const double *phi, double w);
-    void write(lexer *, ghostcell *);
+    void accumulate(grid&, const double *phi, double w);
+    void write(lexer*, ghostcell*);
     int select(double T, vector<int> &sel) const;
     void pack_all(bool copy);
     void unpack_all();
@@ -105,17 +105,17 @@ private:
     vector<grid> G;
     bool ini = false;
     double t0, dtout, tnext;
-    double Twin = 0.0;  // record length (s)
+    double Twin = 0.0;              // record length (s)
     int count = 0;
-    int NB;                // basis size 2 NC + 1
-    int NV;                // sums per column
-    int NT;                // tracers (A 600): 5 sums each
-    vector<double> M;      // NB x NB, integral phi phi^T dt
-    vector<double> omega;  // rad/s
+    int NB;                         // basis size 2 NC + 1
+    int NV;                         // sums per column
+    int NT;                         // tracers (A 600): 5 sums each
+    vector<double> M;               // NB x NB, integral phi phi^T dt
+    vector<double> omega;           // rad/s
     vector<string> name;
     double rayleigh;
-    vector<vector<double>> pack;  // per grid the sums component-major (checkpoints)
-    vector<string> fname;         // their names, lr_00 ..
+    vector<vector<double>> pack;    // per grid the sums component-major (checkpoints)
+    vector<string> fname;           // their names, lr_00 ..
 };
 
 #endif

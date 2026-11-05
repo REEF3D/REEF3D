@@ -23,9 +23,9 @@ Author: Hans Bihs
 #ifndef SFLOW_RHEOLOGY_V_H_
 #define SFLOW_RHEOLOGY_V_H_
 
-#include "increment.h"
-#include "sflow_rheology.h"
-#include "slice4.h"
+#include"sflow_rheology.h"
+#include"increment.h"
+#include"slice4.h"
 
 using namespace std;
 
@@ -33,13 +33,15 @@ class sflow_rheology_v final : public sflow_rheology, public increment
 {
 
 public:
-    sflow_rheology_v(lexer *);
-    virtual ~sflow_rheology_v();
-
-    void u_source(lexer *, fdm2D *, slice &, slice &, slice &) override final;
-    void v_source(lexer *, fdm2D *, slice &, slice &, slice &) override final;
+    sflow_rheology_v(lexer*);
+	virtual ~sflow_rheology_v();
+    
+	void u_source(lexer*, fdm2D*, slice&, slice&, slice&) override final;
+    void v_source(lexer*, fdm2D*, slice&, slice&, slice&) override final;
 
 private:
+    
+
 };
 
 #endif

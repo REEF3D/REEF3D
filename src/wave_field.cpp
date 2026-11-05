@@ -20,36 +20,36 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "wave_field.h"
-#include "ghostcell.h"
-#include "lexer.h"
-#include "wave_lib.h"
-#include <cmath>
-#include <cstdlib>
-#include <iostream>
-#include <string>
+#include"wave_field.h"
+#include"wave_lib.h"
+#include"lexer.h"
+#include"ghostcell.h"
+#include<cmath>
+#include<cstdlib>
+#include<iostream>
+#include<string>
 
-wave_lib *wave_lib_create(lexer *, ghostcell *, int);
+wave_lib* wave_lib_create(lexer*, ghostcell*, int);
 
 // The evaluation of a source sees its own wave context (wT, wN, B 92, ...) and its phase shift.
 // Libraries that keep their parameters as members (wave_lexer_fields 0) only need the shifted
 // time; the irregular theories (1) read wN and B130; all others (2) get the whole context.
-wave_field::scope::scope(lexer *pp, wave_source &ss) : p(pp), s(ss), mode(ss.lib != nullptr ? ss.lib->wave_lexer_fields() : 2)
+wave_field::scope::scope(lexer *pp, wave_source &ss) : p(pp), s(ss), mode(ss.lib!=nullptr ? ss.lib->wave_lexer_fields() : 2)
 {
-    if(mode == 2)
+    if(mode==2)
     {
-        keep.save(p);
-        s.ctx.load(p);
+    keep.save(p);
+    s.ctx.load(p);
     }
-
-    if(mode == 1)
+    
+    if(mode==1)
     {
-        wN = p->wN;
-        B130 = p->B130;
-        p->wN = s.ctx.wN;
-        p->B130 = s.ctx.B130;
+    wN = p->wN;
+    B130 = p->B130;
+    p->wN = s.ctx.wN;
+    p->B130 = s.ctx.B130;
     }
-
+    
     wavetime = p->wavetime;
     p->wavetime = wavetime - s.tshift;
 }
@@ -57,62 +57,62 @@ wave_field::scope::scope(lexer *pp, wave_source &ss) : p(pp), s(ss), mode(ss.lib
 wave_field::scope::~scope()
 {
     p->wavetime = wavetime;
-
-    if(mode == 2)
+    
+    if(mode==2)
     {
-        s.ctx.save(p);
-        keep.load(p);
+    s.ctx.save(p);
+    keep.load(p);
     }
-
-    if(mode == 1)
+    
+    if(mode==1)
     {
-        p->wN = wN;
-        p->B130 = B130;
+    p->wN = wN;
+    p->B130 = B130;
     }
 }
 
 wave_field::wave_field(lexer *p, ghostcell *pgc)
 {
-    read(p, pgc);
+    read(p,pgc);
 
     if(src.empty())
-        return;
+    return;
 
     check(p);
-    build(p, pgc);
+    build(p,pgc);
     log(p);
 }
 
 wave_field::~wave_field()
 {
     for(wave_source *s : src)
-        delete s;
+    delete s;
 }
 
 bool wave_field::nonlinear(int t)
 {
     // linear theories: shallow, linear, deep, 1st-order irregular
-    return !(t == 1 || t == 2 || t == 3 || t == 31 || t == 41 || t == 51);
+    return !(t==1 || t==2 || t==3 || t==31 || t==41 || t==51);
 }
 
 bool wave_field::exists(int k) const
 {
     for(const wave_source *s : src)
-        if(s->id == k)
-            return true;
-
+    if(s->id==k)
+    return true;
+    
     return false;
 }
 
 bool wave_field::use(const wave_source *s) const
 {
-    if(filter == nullptr)
-        return true;
-
+    if(filter==nullptr)
+    return true;
+    
     for(int k : *filter)
-        if(k == s->id)
-            return true;
-
+    if(k==s->id)
+    return true;
+    
     return false;
 }
 
@@ -125,104 +125,102 @@ void wave_field::read(lexer *p, ghostcell *pgc)
     // B 500-504 (control.h, read by read_control and sent to all ranks)
     auto fail = [&](const std::string &msg)
     {
-        if(p->mpirank == 0)
-            std::cout << std::endl
-                      << "!!! wave_field: " << msg << " !!!" << std::endl
-                      << std::endl;
+        if(p->mpirank==0)
+        std::cout<<std::endl<<"!!! wave_field: "<<msg<<" !!!"<<std::endl<<std::endl;
         std::exit(1);
     };
-
-    auto find = [&](int k) -> wave_source *
+    
+    auto find = [&](int k)->wave_source*
     {
         for(wave_source *s : src)
-            if(s->id == k)
-                return s;
+        if(s->id==k)
+        return s;
         return nullptr;
     };
-
-    for(int n = 0; n < p->B500; ++n)
+    
+    for(int n=0; n<p->B500; ++n)
     {
         const int k = p->B500_id[n];
-
-        if(k < 2)
-            fail("source ids start at 2 (id 1 is the B 92 wave)");
-        if(find(k) != nullptr)
-            fail("source id " + std::to_string(k) + " defined twice in B 500");
-
-        wave_source *s = new wave_source(k, p->B500_type[n]);
+        
+        if(k<2)
+        fail("source ids start at 2 (id 1 is the B 92 wave)");
+        if(find(k)!=nullptr)
+        fail("source id "+std::to_string(k)+" defined twice in B 500");
+        
+        wave_source *s = new wave_source(k,p->B500_type[n]);
         s->H = p->B500_H[n];
         s->T = p->B500_T[n];
         src.push_back(s);
     }
-
-    for(int n = 0; n < p->B501; ++n)
+    
+    for(int n=0; n<p->B501; ++n)
     {
         wave_source *s = find(p->B501_id[n]);
-        if(s == nullptr)
-            fail("B 501 refers to source " + std::to_string(p->B501_id[n]) + ", which has no B 500");
-
-        s->rot = p->B501_dir[n];
-        s->phase = p->B501_phase[n];
-        s->ts = p->B501_ts[n];
-        s->te = p->B501_te[n];
+        if(s==nullptr)
+        fail("B 501 refers to source "+std::to_string(p->B501_id[n])+", which has no B 500");
+        
+        s->rot    = p->B501_dir[n];
+        s->phase  = p->B501_phase[n];
+        s->ts     = p->B501_ts[n];
+        s->te     = p->B501_te[n];
         s->t_ramp = p->B501_tramp[n];
     }
-
-    for(int n = 0; n < p->B502; ++n)
+    
+    for(int n=0; n<p->B502; ++n)
     {
         wave_source *s = find(p->B502_id[n]);
-        if(s == nullptr)
-            fail("B 502 refers to source " + std::to_string(p->B502_id[n]) + ", which has no B 500");
-
+        if(s==nullptr)
+        fail("B 502 refers to source "+std::to_string(p->B502_id[n])+", which has no B 500");
+        
         s->x0 = p->B502_x[n];
         s->y0 = p->B502_y[n];
     }
-
-    for(int n = 0; n < p->B504; ++n)
+    
+    for(int n=0; n<p->B504; ++n)
     {
         wave_source *s = find(p->B504_id[n]);
-        if(s == nullptr)
-            fail("B 504 refers to source " + std::to_string(p->B504_id[n]) + ", which has no B 500");
-
+        if(s==nullptr)
+        fail("B 504 refers to source "+std::to_string(p->B504_id[n])+", which has no B 500");
+        
         s->seed = p->B504_seed[n];
     }
-
-    for(int n = 0; n < p->B505; ++n)
+    
+    for(int n=0; n<p->B505; ++n)
     {
         wave_source *s = find(p->B505_id[n]);
-        if(s == nullptr)
-            fail("B 505 refers to source " + std::to_string(p->B505_id[n]) + ", which has no B 500");
-        if(p->B505_frame[n] != 0 && p->B505_frame[n] != 1)
-            fail("B 505 frame is 0 (B 92 generation frame) or 1 (global frame)");
-
-        s->global = p->B505_frame[n] == 1;
+        if(s==nullptr)
+        fail("B 505 refers to source "+std::to_string(p->B505_id[n])+", which has no B 500");
+        if(p->B505_frame[n]!=0 && p->B505_frame[n]!=1)
+        fail("B 505 frame is 0 (B 92 generation frame) or 1 (global frame)");
+        
+        s->global = p->B505_frame[n]==1;
     }
-
+    
     // global frame (B 505 id 1): direction and origin given in domain coordinates; turned into
     // the generation frame of the B 92 wave (B 105 angle, origin), in which the sources are
     // evaluated, so the evaluation stays the same for both frames
     for(wave_source *s : src)
-        if(s->global)
-        {
-            const double g = p->B105_1 * (3.14159265358979323846 / 180.0);
-            const double dx = s->x0 - p->B105_2;
-            const double dy = s->y0 - p->B105_3;
-
-            s->dir_in = s->rot;
-            s->x0_in = s->x0;
-            s->y0_in = s->y0;
-
-            s->rot = s->rot - p->B105_1;
-            s->x0 = dx * cos(g) + dy * sin(g);
-            s->y0 = -dx * sin(g) + dy * cos(g);
-        }
-
+    if(s->global)
+    {
+        const double g  = p->B105_1*(3.14159265358979323846/180.0);
+        const double dx = s->x0 - p->B105_2;
+        const double dy = s->y0 - p->B105_3;
+        
+        s->dir_in = s->rot;
+        s->x0_in = s->x0;
+        s->y0_in = s->y0;
+        
+        s->rot = s->rot - p->B105_1;
+        s->x0 =  dx*cos(g) + dy*sin(g);
+        s->y0 = -dx*sin(g) + dy*cos(g);
+    }
+    
     for(wave_source *s : src)
     {
-        const double r = s->rot * (3.14159265358979323846 / 180.0);
+        const double r = s->rot*(3.14159265358979323846/180.0);
         s->cr = cos(r);
         s->sr = sin(r);
-        s->tshift = s->phase / 360.0 * s->T;
+        s->tshift = s->phase/360.0*s->T;
     }
 }
 
@@ -235,34 +233,35 @@ void wave_field::check(lexer *p)
     {
         const int t = s->type;
 
-        if(t == 61 || t == 62)
-            err = "source " + std::to_string(s->id) + ": HDC/FNPF coupling (61, 62) is only available as the B 92 wave";
+        if(t==61 || t==62)
+        err = "source "+std::to_string(s->id)+": HDC/FNPF coupling (61, 62) is only available as the B 92 wave";
 
-        else if(t >= 20 && t < 30)
-            err = "source " + std::to_string(s->id) + ": wavemaker theories (20-24) are only available as the B 92 wave";
+        else
+        if(t>=20 && t<30)
+        err = "source "+std::to_string(s->id)+": wavemaker theories (20-24) are only available as the B 92 wave";
 
-        else if(t == 0)
-            err = "source " + std::to_string(s->id) + ": type 0 is no wave";
+        else
+        if(t==0)
+        err = "source "+std::to_string(s->id)+": type 0 is no wave";
 
         if(nonlinear(t))
-            ++nnonlin;
+        ++nnonlin;
 
-        if(s->T <= 0.0 || s->H < 0.0)
-            err = "source " + std::to_string(s->id) + ": needs H >= 0 and T > 0";
+        if(s->T<=0.0 || s->H<0.0)
+        err = "source "+std::to_string(s->id)+": needs H >= 0 and T > 0";
 
-        if(s->te <= s->ts)
-            err = "source " + std::to_string(s->id) + ": te must be larger than ts";
+        if(s->te<=s->ts)
+        err = "source "+std::to_string(s->id)+": te must be larger than ts";
     }
 
-    if(nnonlin > 1)
-        err = "at most one nonlinear wave theory may be superposed with linear ones (" + std::to_string(nnonlin) + " given)";
+    if(nnonlin>1)
+    err = "at most one nonlinear wave theory may be superposed with linear ones ("+std::to_string(nnonlin)+" given)";
+
 
     if(!err.empty())
     {
-        if(p->mpirank == 0)
-            std::cout << std::endl
-                      << "!!! wave_field: " << err << " !!!" << std::endl
-                      << std::endl;
+        if(p->mpirank==0)
+        std::cout<<std::endl<<"!!! wave_field: "<<err<<" !!!"<<std::endl<<std::endl;
         std::exit(1);
     }
 }
@@ -281,28 +280,28 @@ void wave_field::build(lexer *p, ghostcell *pgc)
     {
         legacy.load(p);
 
-        p->B92 = s->type;
-        p->B91 = 0;
-        p->B93 = 1;
+        p->B92   = s->type;
+        p->B91   = 0;
+        p->B93   = 1;
         p->B93_1 = s->H;
         p->B93_2 = s->T;
         p->B105_1 = legacy.B105_1 + s->rot;
 
-        if(s->seed > 0)
+        if(s->seed>0)
         {
-            p->B139 = s->seed;
-            p->B138 = 1;
+            p->B139   = s->seed;
+            p->B138   = 1;
             p->B138_1 = s->seed;
-            p->B138_2 = s->seed + 7;
+            p->B138_2 = s->seed+7;
         }
 
         p->wts = 0.0;
         p->wte = 1.0e20;
 
-        if(p->mpirank == 0)
-            std::cout << "wave_field: source " << s->id << std::endl;
+        if(p->mpirank==0)
+        std::cout<<"wave_field: source "<<s->id<<std::endl;
 
-        s->lib = wave_lib_create(p, pgc, s->type);
+        s->lib = wave_lib_create(p,pgc,s->type);
         s->ctx.save(p);
     }
 
@@ -311,26 +310,27 @@ void wave_field::build(lexer *p, ghostcell *pgc)
 
 void wave_field::log(lexer *p)
 {
-    if(p->mpirank != 0)
-        return;
+    if(p->mpirank!=0)
+    return;
 
-    std::cout << "wave_field: " << src.size() + 1 << " sources, equivalent input:" << std::endl;
+    std::cout<<"wave_field: "<<src.size()+1<<" sources, equivalent input:"<<std::endl;
 
-    const bool irr = p->B92 > 30 && p->B92 != 70;
-    std::cout << "  B 500 1 " << p->B92 << " " << (irr ? p->wHs : p->wH) << " " << (irr ? p->wTp : p->wT)
-              << "      (B 92 wave)" << std::endl;
+    const bool irr = p->B92>30 && p->B92!=70;
+    std::cout<<"  B 500 1 "<<p->B92<<" "<<(irr?p->wHs:p->wH)<<" "<<(irr?p->wTp:p->wT)
+             <<"      (B 92 wave)"<<std::endl;
 
     for(wave_source *s : src)
     {
-        std::cout << "  B 500 " << s->id << " " << s->type << " " << s->H << " " << s->T << std::endl;
-        std::cout << "  B 501 " << s->id << " " << (s->global ? s->dir_in : s->rot) << " " << s->phase << " " << s->ts << " " << s->te << " " << s->t_ramp << std::endl;
+        std::cout<<"  B 500 "<<s->id<<" "<<s->type<<" "<<s->H<<" "<<s->T<<std::endl;
+        std::cout<<"  B 501 "<<s->id<<" "<<(s->global?s->dir_in:s->rot)<<" "<<s->phase<<" "<<s->ts<<" "<<s->te<<" "<<s->t_ramp<<std::endl;
         if(s->global)
-            std::cout << "  B 502 " << s->id << " " << s->x0_in << " " << s->y0_in << std::endl
-                      << "  B 505 " << s->id << " 1      (global frame; in the B 92 frame: direction " << s->rot << ", origin " << s->x0 << " " << s->y0 << ")" << std::endl;
-        else if(s->x0 != 0.0 || s->y0 != 0.0)
-            std::cout << "  B 502 " << s->id << " " << s->x0 << " " << s->y0 << std::endl;
-        if(s->seed > 0)
-            std::cout << "  B 504 " << s->id << " " << s->seed << std::endl;
+        std::cout<<"  B 502 "<<s->id<<" "<<s->x0_in<<" "<<s->y0_in<<std::endl
+                 <<"  B 505 "<<s->id<<" 1      (global frame; in the B 92 frame: direction "<<s->rot<<", origin "<<s->x0<<" "<<s->y0<<")"<<std::endl;
+        else
+        if(s->x0!=0.0 || s->y0!=0.0)
+        std::cout<<"  B 502 "<<s->id<<" "<<s->x0<<" "<<s->y0<<std::endl;
+        if(s->seed>0)
+        std::cout<<"  B 504 "<<s->id<<" "<<s->seed<<std::endl;
     }
 }
 
@@ -340,75 +340,75 @@ void wave_field::log(lexer *p)
 
 double wave_field::eta(lexer *p, double x, double y)
 {
-    double val = 0.0, xs, ys;
+    double val=0.0, xs, ys;
 
     for(wave_source *s : src)
-        if(use(s) && s->active(p))
-        {
-            s->local(x, y, xs, ys);
-            scope sc(p, *s);
-            val += s->ramp(p) * s->lib->wave_eta(p, xs, ys);
-        }
+    if(use(s) && s->active(p))
+    {
+        s->local(x,y,xs,ys);
+        scope sc(p,*s);
+        val += s->ramp(p)*s->lib->wave_eta(p,xs,ys);
+    }
 
     return val;
 }
 
 double wave_field::u(lexer *p, double x, double y, double z)
 {
-    double val = 0.0, xs, ys;
+    double val=0.0, xs, ys;
 
     for(wave_source *s : src)
-        if(use(s) && s->active(p))
-        {
-            s->local(x, y, xs, ys);
-            scope sc(p, *s);
-            val += s->ramp(p) * s->lib->wave_u(p, xs, ys, z);
-        }
+    if(use(s) && s->active(p))
+    {
+        s->local(x,y,xs,ys);
+        scope sc(p,*s);
+        val += s->ramp(p)*s->lib->wave_u(p,xs,ys,z);
+    }
 
     return val;
 }
 
 double wave_field::v(lexer *p, double x, double y, double z)
 {
-    double val = 0.0, xs, ys;
+    double val=0.0, xs, ys;
 
     for(wave_source *s : src)
-        if(use(s) && s->active(p))
-        {
-            s->local(x, y, xs, ys);
-            scope sc(p, *s);
-            val += s->ramp(p) * s->lib->wave_v(p, xs, ys, z);
-        }
+    if(use(s) && s->active(p))
+    {
+        s->local(x,y,xs,ys);
+        scope sc(p,*s);
+        val += s->ramp(p)*s->lib->wave_v(p,xs,ys,z);
+    }
 
     return val;
 }
 
 double wave_field::w(lexer *p, double x, double y, double z)
 {
-    double val = 0.0, xs, ys;
+    double val=0.0, xs, ys;
 
     for(wave_source *s : src)
-        if(use(s) && s->active(p))
-        {
-            s->local(x, y, xs, ys);
-            scope sc(p, *s);
-            val += s->ramp(p) * s->lib->wave_w(p, xs, ys, z);
-        }
+    if(use(s) && s->active(p))
+    {
+        s->local(x,y,xs,ys);
+        scope sc(p,*s);
+        val += s->ramp(p)*s->lib->wave_w(p,xs,ys,z);
+    }
 
     return val;
 }
 
 double wave_field::fi(lexer *p, double x, double y, double z)
 {
-    double val = 0.0, xs, ys;
+    double val=0.0, xs, ys;
 
     for(wave_source *s : src)
-        if(use(s) && s->active(p))
-        {
-            s->local(x, y, xs, ys);
-            scope sc(p, *s);
-            val += s->ramp(p) * s->lib->wave_fi(p, xs, ys, z);
-        }
+    if(use(s) && s->active(p))
+    {
+        s->local(x,y,xs,ys);
+        scope sc(p,*s);
+        val += s->ramp(p)*s->lib->wave_fi(p,xs,ys,z);
+    }
 
     return val;
 }
@@ -419,65 +419,65 @@ void wave_field::cache_points(lexer *p, const std::vector<double> &x, const std:
 
     for(wave_source *s : src)
     {
-        for(size_t q = 0; q < x.size(); ++q)
-            s->local(x[q], y[q], xs[q], ys[q]);
+        for(size_t q=0; q<x.size(); ++q)
+        s->local(x[q],y[q],xs[q],ys[q]);
 
-        scope sc(p, *s);
-        s->lib->wave_cache_points(p, xs, ys);
+        scope sc(p,*s);
+        s->lib->wave_cache_points(p,xs,ys);
     }
 }
 
 double wave_field::eta_c(lexer *p, int q)
 {
-    double val = 0.0;
+    double val=0.0;
 
     for(wave_source *s : src)
-        if(use(s) && s->active(p))
-        {
-            scope sc(p, *s);
-            val += s->ramp(p) * s->lib->wave_eta_c(p, q);
-        }
+    if(use(s) && s->active(p))
+    {
+        scope sc(p,*s);
+        val += s->ramp(p)*s->lib->wave_eta_c(p,q);
+    }
 
     return val;
 }
 
 double wave_field::fi_c(lexer *p, int q, double z)
 {
-    double val = 0.0;
+    double val=0.0;
 
     for(wave_source *s : src)
-        if(use(s) && s->active(p))
-        {
-            scope sc(p, *s);
-            val += s->ramp(p) * s->lib->wave_fi_c(p, q, z);
-        }
+    if(use(s) && s->active(p))
+    {
+        scope sc(p,*s);
+        val += s->ramp(p)*s->lib->wave_fi_c(p,q,z);
+    }
 
     return val;
 }
 
 void wave_field::uvw_c(lexer *p, int q, double z, double &u, double &v, double &w)
 {
-    double us, vs, ws;
+    double us,vs,ws;
 
     for(wave_source *s : src)
-        if(use(s) && s->active(p))
-        {
-            scope sc(p, *s);
-            const double r = s->ramp(p);
-            us = vs = ws = 0.0;
-            s->lib->wave_uvw_c(p, q, z, us, vs, ws);
-            u += r * us;
-            v += r * vs;
-            w += r * ws;
-        }
+    if(use(s) && s->active(p))
+    {
+        scope sc(p,*s);
+        const double r = s->ramp(p);
+        us=vs=ws=0.0;
+        s->lib->wave_uvw_c(p,q,z,us,vs,ws);
+        u += r*us;
+        v += r*vs;
+        w += r*ws;
+    }
 }
 
 void wave_field::prestep(lexer *p, ghostcell *pgc)
 {
     for(wave_source *s : src)
     {
-        scope sc(p, *s);
-        s->lib->wave_prestep(p, pgc);
+        scope sc(p,*s);
+        s->lib->wave_prestep(p,pgc);
     }
 }
 
@@ -487,41 +487,41 @@ void wave_field::prestep(lexer *p, ghostcell *pgc)
 
 int wave_field::decomp_ncomp(int type, int wN)
 {
-    if(type == 5)
-        return 5;
-
-    if(type == 31 || type == 41 || type == 51)
-        return wN;
-
+    if(type==5)
+    return 5;
+    
+    if(type==31 || type==41 || type==51)
+    return wN;
+    
     return -1;
 }
 
 double wave_field::decomp_dir(int n) const
 {
-    if(n < 0 || n >= (int)dsrc.size())
-        return 0.0;
-
+    if(n<0 || n>=(int)dsrc.size())
+    return 0.0;
+    
     const wave_source *s = src[dsrc[n]];
-
-    return s->rot * (PI / 180.0) + (s->lib != nullptr ? s->lib->wave_comp_dir(dloc[n]) : 0.0);
+    
+    return s->rot*(PI/180.0) + (s->lib!=nullptr ? s->lib->wave_comp_dir(dloc[n]) : 0.0);
 }
 
 int wave_field::decomp_build(lexer *p)
 {
     dsrc.clear();
     dloc.clear();
-
-    for(int q = 0; q < (int)src.size(); ++q)
+    
+    for(int q=0; q<(int)src.size(); ++q)
     {
-        const int nc = decomp_ncomp(src[q]->type, src[q]->ctx.wN);
-
-        for(int m = 0; m < nc; ++m)
+        const int nc = decomp_ncomp(src[q]->type,src[q]->ctx.wN);
+        
+        for(int m=0; m<nc; ++m)
         {
-            dsrc.push_back(q);
-            dloc.push_back(m);
+        dsrc.push_back(q);
+        dloc.push_back(m);
         }
     }
-
+    
     return (int)dsrc.size();
 }
 
@@ -530,40 +530,32 @@ double wave_field::dspace(lexer *p, int kind, int sc, int n, double x, double y,
     wave_source *s = src[dsrc[n]];
     const int m = dloc[n];
     double xs, ys;
-    s->local(x, y, xs, ys);
-    scope ss(p, *s);
+    s->local(x,y,xs,ys);
+    scope ss(p,*s);
     wave_lib *L = s->lib;
-
-    if(kind == 0)
-        return sc == 0 ? L->wave_u_space_sin(p, xs, ys, z, m) : L->wave_u_space_cos(p, xs, ys, z, m);
-    if(kind == 1)
-        return sc == 0 ? L->wave_v_space_sin(p, xs, ys, z, m) : L->wave_v_space_cos(p, xs, ys, z, m);
-    if(kind == 2)
-        return sc == 0 ? L->wave_w_space_sin(p, xs, ys, z, m) : L->wave_w_space_cos(p, xs, ys, z, m);
-    if(kind == 3)
-        return sc == 0 ? L->wave_eta_space_sin(p, xs, ys, m) : L->wave_eta_space_cos(p, xs, ys, m);
-    return sc == 0 ? L->wave_fi_space_sin(p, xs, ys, z, m) : L->wave_fi_space_cos(p, xs, ys, z, m);
+    
+    if(kind==0) return sc==0 ? L->wave_u_space_sin(p,xs,ys,z,m) : L->wave_u_space_cos(p,xs,ys,z,m);
+    if(kind==1) return sc==0 ? L->wave_v_space_sin(p,xs,ys,z,m) : L->wave_v_space_cos(p,xs,ys,z,m);
+    if(kind==2) return sc==0 ? L->wave_w_space_sin(p,xs,ys,z,m) : L->wave_w_space_cos(p,xs,ys,z,m);
+    if(kind==3) return sc==0 ? L->wave_eta_space_sin(p,xs,ys,m) : L->wave_eta_space_cos(p,xs,ys,m);
+    return sc==0 ? L->wave_fi_space_sin(p,xs,ys,z,m) : L->wave_fi_space_cos(p,xs,ys,z,m);
 }
 
 double wave_field::dtime(lexer *p, int kind, int sc, int n)
 {
     wave_source *s = src[dsrc[n]];
-
+    
     if(!s->active(p))
-        return 0.0;
-
+    return 0.0;
+    
     const int m = dloc[n];
     const double r = s->ramp(p);
-    scope ss(p, *s);
+    scope ss(p,*s);
     wave_lib *L = s->lib;
-
-    if(kind == 0)
-        return r * (sc == 0 ? L->wave_u_time_sin(p, m) : L->wave_u_time_cos(p, m));
-    if(kind == 1)
-        return r * (sc == 0 ? L->wave_v_time_sin(p, m) : L->wave_v_time_cos(p, m));
-    if(kind == 2)
-        return r * (sc == 0 ? L->wave_w_time_sin(p, m) : L->wave_w_time_cos(p, m));
-    if(kind == 3)
-        return r * (sc == 0 ? L->wave_eta_time_sin(p, m) : L->wave_eta_time_cos(p, m));
-    return r * (sc == 0 ? L->wave_fi_time_sin(p, m) : L->wave_fi_time_cos(p, m));
+    
+    if(kind==0) return r*(sc==0 ? L->wave_u_time_sin(p,m) : L->wave_u_time_cos(p,m));
+    if(kind==1) return r*(sc==0 ? L->wave_v_time_sin(p,m) : L->wave_v_time_cos(p,m));
+    if(kind==2) return r*(sc==0 ? L->wave_w_time_sin(p,m) : L->wave_w_time_cos(p,m));
+    if(kind==3) return r*(sc==0 ? L->wave_eta_time_sin(p,m) : L->wave_eta_time_cos(p,m));
+    return r*(sc==0 ? L->wave_fi_time_sin(p,m) : L->wave_fi_time_cos(p,m));
 }

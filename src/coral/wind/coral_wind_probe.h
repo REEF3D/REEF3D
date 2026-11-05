@@ -25,30 +25,31 @@ Architect: Hans Bihs
 #ifndef CORAL_WIND_PROBE_H_
 #define CORAL_WIND_PROBE_H_
 
-#include "coral/core/coral_load.h"
-#include "coral/wind/coral_wind.h"
-#include <memory>
-#include <string>
+#include"coral/core/coral_load.h"
+#include"coral/wind/coral_wind.h"
+#include<memory>
+#include<string>
 
-namespace coral {
-class wind_probe : public load
+namespace coral
 {
-public:
-    // p: global point (on body b at the current configuration, or fixed for b = -1)
-    wind_probe(const model &, std::shared_ptr<const wind_inflow>, int b, const Vec3 &p, const std::string &name);
+    class wind_probe : public load
+    {
+    public:
+        // p: global point (on body b at the current configuration, or fixed for b = -1)
+        wind_probe(const model&, std::shared_ptr<const wind_inflow>, int b, const Vec3 &p, const std::string &name);
 
-    std::string name() const override { return name_; }
-    coupling_kind coupling() const override { return coupling_kind::local; }
-    void eval(const model &, double, VecX &) const override {}
-    void channel_names(std::vector<std::string> &) const override;
-    void channel_values(const model &, double t, std::vector<double> &) const override;
+        std::string name() const override {return name_;}
+        coupling_kind coupling() const override {return coupling_kind::local;}
+        void eval(const model&, double, VecX&) const override {}
+        void channel_names(std::vector<std::string>&) const override;
+        void channel_values(const model&, double t, std::vector<double>&) const override;
 
-private:
-    std::shared_ptr<const wind_inflow> wind_;
-    int b_;
-    Vec3 s_;
-    std::string name_;
-};
-}  // namespace coral
+    private:
+        std::shared_ptr<const wind_inflow> wind_;
+        int b_;
+        Vec3 s_;
+        std::string name_;
+    };
+}
 
 #endif

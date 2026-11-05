@@ -20,31 +20,31 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Authors: Tobias Martin, Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "fdm.h"
-#include "ghostcell.h"
-#include "lexer.h"
-#include "net.h"
-#include "net_interface.h"
+#include"net_interface.h"
+#include"lexer.h"
+#include"fdm.h"
+#include"ghostcell.h"
+#include"net.h"
+#include<sys/stat.h>
 #include <Eigen/Dense>
-#include <sys/stat.h>
 
 void net_interface::dlm_cfd(lexer *p, fdm *a, ghostcell *pgc, int nNet)
-{
+{ 
     // Distribute net forces on surrounding cells
     int ii, jj, kk;
     double dist, D, dx, dy, dz;
     double test = 0.0;
 
-    const EigenMat &lagrangePoints = pnet[nNet]->getLagrangePoints();
-    const EigenMat &lagrangeForces = pnet[nNet]->getLagrangeForces();
+    const EigenMat& lagrangePoints = pnet[nNet]->getLagrangePoints();
+    const EigenMat& lagrangeForces = pnet[nNet]->getLagrangeForces();
 
-    for(int pI = 0; pI < lagrangePoints.size(); pI++)
+    for (int pI = 0; pI < lagrangePoints.size(); pI++)
     {
-        const Eigen::Vector3d &forcesI = lagrangeForces[pI];
-
-        if(forcesI.norm() != 0.0)
+        const Eigen::Vector3d& forcesI = lagrangeForces[pI];
+        
+        if (forcesI.norm()!=0.0)
         {
-            const Eigen::Vector3d &coordI = lagrangePoints[pI];
+            const Eigen::Vector3d& coordI = lagrangePoints[pI];
 
             ii = p->posc_i(coordI(0));
             jj = p->posc_j(coordI(1));
@@ -54,45 +54,48 @@ void net_interface::dlm_cfd(lexer *p, fdm *a, ghostcell *pgc, int nNet)
             dy = p->DYN[jj + marge];
             dz = p->DZN[kk + marge];
 
-            for(int i_it = ii - 2; i_it <= ii + 2; i_it++)
+            for (int i_it = ii - 2; i_it <= ii + 2; i_it++)
             {
-                for(int j_it = jj - 2; j_it <= jj + 2; j_it++)
+                for (int j_it = jj - 2; j_it <= jj + 2; j_it++)
                 {
-                    for(int k_it = kk - 2; k_it <= kk + 2; k_it++)
+                    for (int k_it = kk - 2; k_it <= kk + 2; k_it++)
                     {
-                        dist = sqrt(pow(p->XN[i_it + 1 + marge] - coordI(0), 2.0)) / dx;
+                        dist = sqrt(pow(p->XN[i_it + 1 + marge] - coordI(0), 2.0))/dx;
                         D = kernel_peskin(dist);
-                        dist = sqrt(pow(p->YP[j_it + marge] - coordI(1), 2.0)) / dy;
+                        dist = sqrt(pow(p->YP[j_it + marge] - coordI(1), 2.0))/dy;
                         D *= kernel_peskin(dist);
-                        dist = sqrt(pow(p->ZP[k_it + marge] - coordI(2), 2.0)) / dz;
+                        dist = sqrt(pow(p->ZP[k_it + marge] - coordI(2), 2.0))/dz;
                         D *= kernel_peskin(dist);
-
-                        a->Fext(i_it, j_it, k_it) -= forcesI(0) * D / (dx * dy * dz);
-
-                        dist = sqrt(pow(p->XP[i_it + marge] - coordI(0), 2.0)) / dx;
+                        
+                        a->Fext(i_it,j_it,k_it) -= forcesI(0)*D/(dx*dy*dz);
+                        
+                        
+                        dist = sqrt(pow(p->XP[i_it + marge] - coordI(0), 2.0))/dx;
                         D = kernel_peskin(dist);
-                        dist = sqrt(pow(p->YN[j_it + 1 + marge] - coordI(1), 2.0)) / dy;
+                        dist = sqrt(pow(p->YN[j_it + 1 + marge] - coordI(1), 2.0))/dy;
                         D *= kernel_peskin(dist);
-                        dist = sqrt(pow(p->ZP[k_it + marge] - coordI(2), 2.0)) / dz;
+                        dist = sqrt(pow(p->ZP[k_it + marge] - coordI(2), 2.0))/dz;
                         D *= kernel_peskin(dist);
-
-                        a->Gext(i_it, j_it, k_it) -= forcesI(1) * D / (dx * dy * dz);
-
-                        dist = sqrt(pow(p->XP[i_it + marge] - coordI(0), 2.0)) / dx;
+                            
+                        a->Gext(i_it,j_it,k_it) -= forcesI(1)*D/(dx*dy*dz);
+                        
+                        
+                        dist = sqrt(pow(p->XP[i_it + marge] - coordI(0), 2.0))/dx;
                         D = kernel_peskin(dist);
-                        dist = sqrt(pow(p->YP[j_it + marge] - coordI(1), 2.0)) / dy;
+                        dist = sqrt(pow(p->YP[j_it + marge] - coordI(1), 2.0))/dy;
                         D *= kernel_peskin(dist);
-                        dist = sqrt(pow(p->ZN[k_it + 1 + marge] - coordI(2), 2.0)) / dz;
+                        dist = sqrt(pow(p->ZN[k_it + 1 + marge] - coordI(2), 2.0))/dz;
                         D *= kernel_peskin(dist);
-
-                        a->Hext(i_it, j_it, k_it) -= forcesI(2) * D / (dx * dy * dz);
+                         
+                        a->Hext(i_it,j_it,k_it) -= forcesI(2)*D/(dx*dy*dz);
+                        
                     }
                 }
             }
         }
-    }
-
-    pgc->start1(p, a->Fext, 10);
-    pgc->start2(p, a->Gext, 11);
-    pgc->start3(p, a->Hext, 12);
+    } 
+    
+    pgc->start1(p,a->Fext,10); 
+    pgc->start2(p,a->Gext,11); 
+    pgc->start3(p,a->Hext,12); 
 }

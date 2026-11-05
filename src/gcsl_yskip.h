@@ -23,8 +23,8 @@ Architect: Hans Bihs
 #ifndef GCSL_YSKIP_H_
 #define GCSL_YSKIP_H_
 
-#include "lexer.h"
-#include "slice.h"
+#include"lexer.h"
+#include"slice.h"
 
 //  SFLOW on a grid with one cell in y (j_dir 0): every cell has two y-side boundary entries, and their
 //  ghost cells took half the time of a run.  They are not written: the y sides of the slice ghost
@@ -34,18 +34,18 @@ Architect: Hans Bihs
 //  rows copied from row 0 first (gcsl_yrows), which is what their Neumann ghost cells held.  Found
 //  with a run that filled the skipped ghost cells with signalling NaN and trapped the first read;
 //  all SFLOW and SEASTATE SFLOW cases bit for bit.
-inline bool gcsl_yskip(const lexer *p) { return p->j_dir == 0 && p->A10 == 2; }
+inline bool gcsl_yskip(const lexer *p) { return p->j_dir==0 && p->A10==2; }
 
 // gcsl_yskip: the y ghost rows of f copied from the cell row, as the Neumann ghost cells, for a reader
 // of them
 inline void gcsl_yrows(const lexer *p, slice &f)
 {
     if(!gcsl_yskip(p))
-        return;
-    for(int ii = p->imin; ii < p->imin + p->imax; ++ii)
-        for(int jj = p->jmin; jj < p->jmin + p->jmax; ++jj)
-            if(jj < 0 || jj >= p->knoy)
-                f(ii, jj) = f(ii, (jj < 0) ? 0 : p->knoy - 1);
+    return;
+    for(int ii=p->imin; ii<p->imin+p->imax; ++ii)
+    for(int jj=p->jmin; jj<p->jmin+p->jmax; ++jj)
+    if(jj<0 || jj>=p->knoy)
+    f(ii,jj) = f(ii,(jj<0) ? 0 : p->knoy-1);
 }
 
 #endif

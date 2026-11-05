@@ -20,156 +20,150 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "fdm.h"
-#include "ghostcell.h"
-#include "heaviside.h"
-#include "interface_width.h"
-#include "iowave.h"
-#include "lexer.h"
+#include"interface_width.h"
+#include"iowave.h"
+#include"lexer.h"
+#include"fdm.h"
+#include"ghostcell.h"
+#include"heaviside.h"
 
-void iowave::active_wavegen(lexer *p, fdm *a, ghostcell *pgc, field &u, field &v, field &w)
+void iowave::active_wavegen(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v, field& w)
 {
     int ii;
-    double fac, fac1, H;
-    double eta_R, Uc, Un, Vc, Wc, eta_T, eta_M, wsf;
+    double fac,fac1,H;
+    double eta_R,Uc,Un,Vc,Wc,eta_T,eta_M,wsf;
+    
+    
+        // get the fsf elevation
+        LOOP
+		wsfmax[i][j]=-1.0e20;
 
-    // get the fsf elevation
-    LOOP
-        wsfmax[i][j] = -1.0e20;
+		LOOP
+		if(a->phi(i,j,k)>=0.0 && a->phi(i,j,k+1)<0.0)
+		wsfmax[i][j]=MAX(wsfmax[i][j],-(a->phi(i,j,k)*p->DZP[KP])/(a->phi(i,j,k+1)-a->phi(i,j,k)) + p->pos_z());
 
-    // get the fsf elevation
-    LOOP
-        wsfmax[i][j] = -1.0e20;
+        for(int qn=0; qn<p->mz;++qn)
+		pgc->verticalmax(p,a,wsfmax);
+        
+        // wavegen
+        count=0;
+		for(n=0;n<p->gcin_count;n++)
+		{
+		i=p->gcin[n][0];
+		j=p->gcin[n][1];
+		k=p->gcin[n][2];		
 
-    LOOP if(a->phi(i, j, k) >= 0.0 && a->phi(i, j, k + 1) < 0.0)
-        wsfmax[i][j] = MAX(wsfmax[i][j], -(a->phi(i, j, k) * p->DZP[KP]) / (a->phi(i, j, k + 1) - a->phi(i, j, k)) + p->pos_z());
+        uvel=uval[count]*ramp(p);
+        vvel=vval[count]*ramp(p);
+        wvel=wval[count]*ramp(p);
+        
+        phival = a->phi(i-1,j,k);
 
-    for(int qn = 0; qn < p->mz; ++qn)
-        pgc->verticalmax(p, a, wsfmax);
+        if(phival>=-psi)
+		H=1.0;
 
-    // wavegen
-    count = 0;
-    for(n = 0; n < p->gcin_count; n++)
-    {
-        i = p->gcin[n][0];
-        j = p->gcin[n][1];
-        k = p->gcin[n][2];
+		if(phival<-epsi)
+		H=0.0;
 
-        uvel = uval[count] * ramp(p);
-        vvel = vval[count] * ramp(p);
-        wvel = wval[count] * ramp(p);
 
-        phival = a->phi(i - 1, j, k);
+		if(phival>=-epsi && phival<-psi)
+		H=0.5*(1.0 + phival/epsi + (1.0/PI)*sin((PI*phival)/epsi));
 
-        if(phival >= -psi)
-            H = 1.0;
 
-        if(phival < -epsi)
-            H = 0.0;
+			u(i-1,j,k)=uvel*H + p->Ui;
+			u(i-2,j,k)=uvel*H + p->Ui;
+			u(i-3,j,k)=uvel*H + p->Ui;
+            
+             v(i-1,j,k)=vvel*H;
+			v(i-2,j,k)=vvel*H;
+			v(i-3,j,k)=vvel*H;
+			
+			w(i-1,j,k)=wvel*H;
+			w(i-2,j,k)=wvel*H;
+			w(i-3,j,k)=wvel*H;
+			
+            
+            if(p->W50_air==1 && phival<-epsi)
+            {
+            u(i-1,j,k)+=p->W50;
+            u(i-2,j,k)+=p->W50;
+            u(i-3,j,k)+=p->W50;
+            }
+            
+                
+                // fsf deviation
+                
+                wsf=wsfmax[i][j];
+                
+                eta_T = wave_eta(p,pgc,x,0.0);
+                eta_M = wsf-p->wd; 
+                eta_R = eta_T-eta_M;
+                
+                
+                if(eta_R>=0.0)
+                fac1=1.0;
+                
+                if(eta_R<0.0)
+                fac1=0.0;
+        
+        
+                if(p->pos_z()<=p->phimean)
+				z=-(fabs(p->phimean-p->pos_z()));
+				
+				if(p->pos_z()>p->phimean)
+				z=(fabs(p->phimean-p->pos_z()));
+				
+				if(p->B98==4)
+				Uc=eta_R*sqrt(9.81/p->wd);
 
-        if(phival >= -epsi && phival < -psi)
-            H = 0.5 * (1.0 + phival / epsi + (1.0 / PI) * sin((PI * phival) / epsi));
 
-        u(i - 1, j, k) = uvel * H + p->Ui;
-        u(i - 2, j, k) = uvel * H + p->Ui;
-        u(i - 3, j, k) = uvel * H + p->Ui;
+                // inteface H
+                // the interface width of the cell (before, this local epsi also hid the member iowave::epsi used
+                // for the generation above, where it was read before being set)
+                const double epsi_if = interface_width(p,a->phi,i,j,k);
+        
+                H = heaviside(a->phi(i,j,k),epsi_if);
+                
+                
+                if(z<=eta_M)
+				{
+				u(i-1,j,k)+=Uc;
+				u(i-2,j,k)+=Uc;
+				u(i-3,j,k)+=Uc;
+				}
 
-        // inteface H
-        // the interface width of the cell (before, this local epsi also hid the member iowave::epsi used
-        // for the generation above, where it was read before being set)
-        const double epsi_if = interface_width(p, a->phi, i, j, k);
+				if(z>=eta_M && z<eta_M+epsi_if)
+				{
+				u(i-1,j,k)+=Uc*H*fac1;
+				u(i-2,j,k)+=Uc*H*fac1;
+				u(i-3,j,k)+=Uc*H*fac1;
+				}
 
-        H = heaviside(a->phi(i, j, k), epsi_if);
+				if(z>=eta_M+epsi_if)
+				{
+				u(i-1,j,k)+=0.0;
+				u(i-2,j,k)+=0.0;
+				u(i-3,j,k)+=0.0;
+				}
 
-        if(z <= eta_M)
-        {
-            u(i - 1, j, k) += Uc;
-            u(i - 2, j, k) += Uc;
-            u(i - 3, j, k) += Uc;
-        }
-
-        if(z >= eta_M && z < eta_M + epsi_if)
-        {
-            u(i - 1, j, k) += Uc * H * fac1;
-            u(i - 2, j, k) += Uc * H * fac1;
-            u(i - 3, j, k) += Uc * H * fac1;
-        }
-
-        if(z >= eta_M + epsi_if)
-        {
-            u(i - 1, j, k) += 0.0;
-            u(i - 2, j, k) += 0.0;
-            u(i - 3, j, k) += 0.0;
-        }
-
-        eta_T = wave_eta(p, pgc, x, 0.0);
-        eta_M = wsf - p->wd;
-        eta_R = eta_T - eta_M;
-
-        if(eta_R >= 0.0)
-            fac1 = 1.0;
-
-        if(eta_R < 0.0)
-            fac1 = 0.0;
-
-        if(p->pos_z() <= p->phimean)
-            z = -(fabs(p->phimean - p->pos_z()));
-
-        if(p->pos_z() > p->phimean)
-            z = (fabs(p->phimean - p->pos_z()));
-
-        if(p->B98 == 4)
-            Uc = eta_R * sqrt(9.81 / p->wd);
-
-        // inteface H
-        epsi = p->F45 * (1.0 / 3.0) * (p->DXN[IP] + p->DYN[JP] + p->DZN[KP]);
-
-        if(a->phi(i, j, k) > epsi)
-            H = 1.0;
-
-        if(a->phi(i, j, k) < -epsi)
-            H = 0.0;
-
-        if(fabs(a->phi(i, j, k)) <= epsi)
-            H = 0.5 * (1.0 + a->phi(i, j, k) / epsi + (1.0 / PI) * sin((PI * a->phi(i, j, k)) / epsi));
-
-        if(z <= eta_M)
-        {
-            u(i - 1, j, k) += Uc;
-            u(i - 2, j, k) += Uc;
-            u(i - 3, j, k) += Uc;
-        }
-
-        if(z >= eta_M && z < eta_M + epsi)
-        {
-            u(i - 1, j, k) += Uc * H * fac1;
-            u(i - 2, j, k) += Uc * H * fac1;
-            u(i - 3, j, k) += Uc * H * fac1;
-        }
-
-        if(z >= eta_M + epsi)
-        {
-            u(i - 1, j, k) += 0.0;
-            u(i - 2, j, k) += 0.0;
-            u(i - 3, j, k) += 0.0;
-        }
 
         ++count;
-    }
+		}
+        
+        
+        if(p->B98==3||p->B98==4||p->B99==3||p->B99==4||p->B99==5)
+		{
+		for(int q=0;q<4;++q)
+		for(n=0;n<p->gcin_count;++n)
+		{
+		i=p->gcin[n][0]+q;
+		j=p->gcin[n][1];
+		k=p->gcin[n][2];
 
-    if(p->B98 == 3 || p->B98 == 4 || p->B99 == 3 || p->B99 == 4 || p->B99 == 5)
-    {
-        for(int q = 0; q < 4; ++q)
-            for(n = 0; n < p->gcin_count; ++n)
-            {
-                i = p->gcin[n][0] + q;
-                j = p->gcin[n][1];
-                k = p->gcin[n][2];
-
-                if(a->phi(i, j, k) < 0.0)
-                    a->eddyv(i, j, k) = MIN(a->eddyv(i, j, k), 1.0e-4);
-            }
-        pgc->start4(p, a->eddyv, 24);
-    }
+		if(a->phi(i,j,k)<0.0)
+		a->eddyv(i,j,k)=MIN(a->eddyv(i,j,k),1.0e-4);
+		}
+		pgc->start4(p,a->eddyv,24);
+		}
 }
 

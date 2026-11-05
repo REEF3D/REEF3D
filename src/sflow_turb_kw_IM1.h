@@ -23,9 +23,9 @@ Author: Hans Bihs
 #ifndef SFLOW_TURB_KW_IM1_H_
 #define SFLOW_TURB_KW_IM1_H_
 
-#include "sflow_turb_io.h"
-#include "slice4.h"
-#include "sliceint4.h"
+#include"sflow_turb_io.h"
+#include"slice4.h"
+#include"sliceint4.h"
 
 class sflow_convection;
 class sflow_diffusion;
@@ -36,46 +36,43 @@ class sflow_turb_kw_IM1 final : public sflow_turb_io
 {
 
 public:
-    void ckpt_fields(const std::function<void(const char *, char, double *)> &fd, const std::function<void(const char *, char, int *)> &fi) override
+
+    void ckpt_fields(const std::function<void(const char*, char, double*)> &fd, const std::function<void(const char*, char, int*)> &fi) override
     {
-        sflow_turb_io::ckpt_fields(fd, fi);
-        fd("turb_kw_IM1_kn", 'S', kn.V);
-        fd("turb_kw_IM1_wn", 'S', wn.V);
-        fd("turb_kw_IM1_Pk", 'S', Pk.V);
-        fd("turb_kw_IM1_S", 'S', S.V);
-        fd("turb_kw_IM1_Vw", 'S', Vw.V);
-        fd("turb_kw_IM1_Qw", 'S', Qw.V);
-        fd("turb_kw_IM1_ustar", 'S', ustar.V);
-        fd("turb_kw_IM1_cf", 'S', cf.V);
+        sflow_turb_io::ckpt_fields(fd,fi);
+        fd("turb_kw_IM1_kn",'S',kn.V); fd("turb_kw_IM1_wn",'S',wn.V); fd("turb_kw_IM1_Pk",'S',Pk.V);
+        fd("turb_kw_IM1_S",'S',S.V); fd("turb_kw_IM1_Vw",'S',Vw.V); fd("turb_kw_IM1_Qw",'S',Qw.V);
+        fd("turb_kw_IM1_ustar",'S',ustar.V); fd("turb_kw_IM1_cf",'S',cf.V);
     }
-    sflow_turb_kw_IM1(lexer *);
-    virtual ~sflow_turb_kw_IM1();
-
-    void start(lexer *, fdm2D *, ghostcell *, sflow_convection *, sflow_diffusion *, solver2D *, ioflow *) override final;
-    void ktimesave(lexer *, fdm2D *, ghostcell *) override final;
-    void etimesave(lexer *, fdm2D *, ghostcell *) override final;
-
+    sflow_turb_kw_IM1(lexer*);
+	virtual ~sflow_turb_kw_IM1();
+    
+	void start(lexer*, fdm2D*, ghostcell*, sflow_convection*, sflow_diffusion*, solver2D*, ioflow*) override final;
+	void ktimesave(lexer*, fdm2D*, ghostcell*) override final;
+	void etimesave(lexer*, fdm2D*, ghostcell*) override final;
+    
 private:
-    void Pk_update(lexer *, fdm2D *, ghostcell *);
-    void ustar_update(lexer *, fdm2D *, ghostcell *);
-    void kin_source(lexer *, fdm2D *);
-    void omega_source(lexer *, fdm2D *);
-    void timesource(lexer *, fdm2D *, slice &);
-    void eddyvisc(lexer *, fdm2D *, ghostcell *);
-    void clearrhs(lexer *, fdm2D *);
-    void wall_law_kin(lexer *, fdm2D *);
-    void wall_law_omega(lexer *, fdm2D *);
-
+    void Pk_update(lexer*, fdm2D*, ghostcell*);
+    void ustar_update(lexer*, fdm2D*, ghostcell*);
+	void kin_source(lexer*, fdm2D*);
+	void omega_source(lexer*, fdm2D*);
+    void timesource(lexer*, fdm2D*, slice&);
+    void eddyvisc(lexer*, fdm2D*, ghostcell*);
+    void clearrhs(lexer*, fdm2D*);
+    void wall_law_kin(lexer*, fdm2D*);
+    void wall_law_omega(lexer*, fdm2D*);
+    
     slice4 kn, wn, Pk, S, Vw, Qw, ustar, cf;
-
-    double const kw_alpha, kw_beta, kw_sigma_k, kw_sigma_w;
-
+    
+    double const kw_alpha, kw_beta,kw_sigma_k,kw_sigma_w;
+    
     int gcval_kin, gcval_omega;
     int count;
     double starttime;
-
-    sflow_convection *pconvec;
-    sflow_diffusion *pdiff;
+    
+    sflow_convection *pconvec;   
+    sflow_diffusion *pdiff; 
+    
 };
 
 #endif

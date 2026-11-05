@@ -20,26 +20,28 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "density_heat.h"
-#include "fdm.h"
-#include "heat.h"
-#include "heaviside.h"
-#include "interface_width.h"
-#include "lexer.h"
+#include"interface_width.h"
+#include"density_heat.h"
+#include"lexer.h"
+#include"fdm.h"
+#include"heat.h"
+#include"heaviside.h"
 
-density_heat::density_heat(lexer *p, heat *&ppheat)
+density_heat::density_heat(lexer* p, heat *& ppheat)
 {
     visc_2 = p->W4;
-    visc_1 = p->W2;
-    ro_2 = p->W3;
-    ro_1 = p->W1;
-    alpha_air = p->H2;
-    alpha_water = p->H1;
-    H = 0.0;
+	visc_1 = p->W2;
+	ro_2 = p->W3;
+	ro_1 = p->W1;
+	alpha_air = p->H2;
+	alpha_water = p->H1;
+    H=0.0;
 
-    material(p);
-
+	material(p);
+    
     pheat = ppheat;
+    
+    
 }
 
 density_heat::~density_heat()
@@ -49,62 +51,63 @@ density_heat::~density_heat()
 double density_heat::roface(lexer *p, fdm *a, int aa, int bb, int cc)
 {
     double temp;
+	
+        phival = 0.5*(a->phi(i,j,k) + a->phi(i+aa,j+bb,k+cc));
+        
+        temp = 0.5*(pheat->val(i,j,k) + pheat->val(i+aa,j+bb,k+cc));
+        
+        if(p->H9==1)
+        {
+	    ro_1 = material_ipol(water_density,water_density_num, temp);
+	    ro_2 = material_ipol(air_density,air_density_num, temp);
 
-    phival = 0.5 * (a->phi(i, j, k) + a->phi(i + aa, j + bb, k + cc));
+	    visc_2 = material_ipol(water_viscosity,water_viscosity_num, temp);
+	    visc_2 = material_ipol(air_viscosity,air_viscosity_num, temp);
+        }
+        
+        if(p->H9==2)
+        {
+	    ro_1 = material_ipol(air_density,air_density_num, temp);
+        ro_2 = material_ipol(water_density,water_density_num, temp);
 
-    temp = 0.5 * (pheat->val(i, j, k) + pheat->val(i + aa, j + bb, k + cc));
+	    visc_1 = material_ipol(air_viscosity,air_viscosity_num, temp);
+        visc_2 = material_ipol(water_viscosity,water_viscosity_num, temp);
+        }
+        
+    
+        H = heaviside_face(p,a->phi,phival,i,j,k,aa,bb,cc);
+        
+        roval = ro_1*H + ro_2*(1.0-H);
 
-    if(p->H9 == 1)
-    {
-        ro_1 = material_ipol(water_density, water_density_num, temp);
-        ro_2 = material_ipol(air_density, air_density_num, temp);
-
-        visc_2 = material_ipol(water_viscosity, water_viscosity_num, temp);
-        visc_2 = material_ipol(air_viscosity, air_viscosity_num, temp);
-    }
-
-    if(p->H9 == 2)
-    {
-        ro_1 = material_ipol(air_density, air_density_num, temp);
-        ro_2 = material_ipol(water_density, water_density_num, temp);
-
-        visc_1 = material_ipol(air_viscosity, air_viscosity_num, temp);
-        visc_2 = material_ipol(water_viscosity, water_viscosity_num, temp);
-    }
-
-    H = heaviside_face(p, a->phi, phival, i, j, k, aa, bb, cc);
-
-    roval = ro_1 * H + ro_2 * (1.0 - H);
-
-    return roval;
+	return roval;		
 }
 
 double density_heat::material_ipol(double **pm, int num, double temp)
 {
-    double val = 0.0;
+    double val=0.0;
     int n;
 
-    for(n = 0; n < num - 1; ++n)
+    for(n=0; n<num-1; ++n)
     {
-        if(temp > pm[n][0] && temp <= pm[n + 1][0])
-            val = ((pm[n + 1][1] - pm[n][1]) / (pm[n + 1][0] - pm[n][0])) * (temp - pm[n][0]) + pm[n][1];
+        if(temp>pm[n][0] && temp<= pm[n+1][0])
+        val = ((pm[n+1][1]-pm[n][1])/ (pm[n+1][0]-pm[n][0]))*(temp-pm[n][0]) + pm[n][1];
     }
 
-    if(temp <= pm[0][0])
-        val = pm[0][1];
+    if(temp<=pm[0][0])
+    val=pm[0][1];
 
-    if(temp > pm[num - 1][0])
-        val = pm[num - 1][1];
+    if(temp>pm[num-1][0])
+    val=pm[num-1][1];
 
     return val;
 }
 
 void density_heat::material(lexer *p)
 {
-    p->Darray(water_density, 20, 2);
-    p->Darray(air_density, 20, 2);
-    p->Darray(water_viscosity, 20, 2);
-    p->Darray(air_viscosity, 20, 2);
+	p->Darray(water_density,20,2);
+	p->Darray(air_density,20,2);
+	p->Darray(water_viscosity,20,2);
+	p->Darray(air_viscosity,20,2);
 
     water_density[0][0] = -30.0;
     water_density[0][1] = 983.854;
@@ -308,7 +311,11 @@ void density_heat::material(lexer *p)
     air_viscosity[17][1] = 62.53e-6;
 
     air_viscosity_num = 18;
+
 }
+
+
+
 
 int density_heat::iocheck;
 int density_heat::iter;

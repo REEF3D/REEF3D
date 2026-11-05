@@ -26,13 +26,14 @@ Architect: Hans Bihs
 #ifndef CORAL_VTP_H_
 #define CORAL_VTP_H_
 
-#include <string>
+#include<string>
 
-namespace coral {
-class model;
+namespace coral
+{
+    class model;
 
-// false if the file cannot be written
-bool write_vtp(const model &, const std::string &file);
-}  // namespace coral
+    // false if the file cannot be written
+    bool write_vtp(const model&, const std::string &file);
+}
 
 #endif

@@ -20,28 +20,31 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "fdm_nhf.h"
-#include "ghostcell.h"
-#include "lexer.h"
-#include "nhflow_sigma.h"
+#include"nhflow_sigma.h"
+#include"lexer.h"
+#include"fdm_nhf.h"
+#include"ghostcell.h"
 
 void nhflow_sigma::bed_acceleration(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL, double *U, double *V, double *W)
-{
-
-    double du, dv;
-    k = 0;
-
+{ 
+    
+    double du,dv;
+    k=0;
+    
+    
     SLICELOOP4
     {
-        du = (U[IJK] - d->un(i, j)) / p->dt;
-        dv = (V[IJK] - d->vn(i, j)) / p->dt;
-
-        d->dudt(i, j) = sqrt(du * du + dv * dv);
+    du = (U[IJK] - d->un(i,j))/p->dt;
+    dv = (V[IJK] - d->vn(i,j))/p->dt;
+    
+    d->dudt(i,j) = sqrt(du*du + dv*dv);
     }
-
+        
     SLICELOOP4
     {
-        d->un(i, j) = U[IJK];
-        d->vn(i, j) = V[IJK];
+    d->un(i,j) = U[IJK];
+    d->vn(i,j) = V[IJK];
     }
+    
+    
 }

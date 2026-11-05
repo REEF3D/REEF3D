@@ -32,13 +32,13 @@ Architect: Hans Bihs
 // output also has xc and yc, where every grid point lies (lexer::curv_node); so have
 // the free surface and bed (lagoon_surface).
 
-#include "increment.h"
-#include "lagoon_store.h"
-#include <atomic>
-#include <string>
-#include <thread>
-#include <utility>
-#include <vector>
+#include"lagoon_store.h"
+#include"increment.h"
+#include<atomic>
+#include<string>
+#include<thread>
+#include<utility>
+#include<vector>
 
 class lexer;
 class ghostcell;
@@ -54,16 +54,16 @@ struct lagoon_timing
 
     // the threads that compress a rank's chunks: the cores of its node that its
     // ranks leave free, shared among them (at least 1, at most 8)
-    static int compress_threads(ghostcell *);
+    static int compress_threads(ghostcell*);
 
     // rank 0 prints the slowest rank's times (all ranks call it)
-    void report(lexer *, ghostcell *, const std::string &what);
+    void report(lexer*, ghostcell*, const std::string &what);
 };
 
 class lagoon_output : public increment
 {
 public:
-    lagoon_output(lexer *, ghostcell *, const char *solver);
+    lagoon_output(lexer*, ghostcell*, const char *solver);
 
     // one output of this rank's VTU piece: buffer holds the whole piece, its XML
     // header (point arrays, their offsets) before data_start, the appended data after
@@ -71,23 +71,23 @@ public:
     // while the solver goes on; an output is counted (its time committed) as soon
     // as every rank has written it (poll_all, every iteration), at the latest at the
     // next output or at finish().
-    void vtu_piece(lexer *, ghostcell *, const std::vector<char> &buffer, size_t data_start, int num);
+    void vtu_piece(lexer*, ghostcell*, const std::vector<char> &buffer, size_t data_start, int num);
 
     // the end of the run: wait for the last output and count it
-    void finish(lexer *, ghostcell *);
+    void finish(lexer*, ghostcell*);
 
     // the end of the run (all ranks; the drivers at the end of their loop, the
     // printers' print_stop): finish every volume, free surface and bed of the store
-    static void finish_all(lexer *, ghostcell *);
+    static void finish_all(lexer*, ghostcell*);
 
     // every rank, every iteration (the drivers, after the printers): the outputs
     // every rank has finished writing are counted, volume and surfaces, so the store
     // has an output (the first, iteration 0, too) a few iterations after it was
     // made, not only at the next output. One reduction while an output is pending.
-    static void poll_all(lexer *, ghostcell *);
+    static void poll_all(lexer*, ghostcell*);
 
     // P 18 1: the VTU files are left out (P 18 2: written as well)
-    static bool vtu_files(lexer *);
+    static bool vtu_files(lexer*);
 
     // set when any LAGOON output of this run gave up (on every rank alike): from then
     // on the VTU/VTP files are written again, also with P 18 1
@@ -104,7 +104,7 @@ private:
     int rank;
     std::vector<double> sigma;
 
-    bool start(lexer *, ghostcell *, const std::vector<lagoon_store::variable> &fields);
+    bool start(lexer*, ghostcell*, const std::vector<lagoon_store::variable> &fields);
 
     // the output being written in the background
     struct job
@@ -114,7 +114,7 @@ private:
         double time = 0.0;
         long long iteration = 0;
         std::vector<float> z;  // σ-grids: heights of the points, levels outermost
-        std::vector<std::pair<std::string, std::vector<float>>> fields;
+        std::vector<std::pair<std::string, std::vector<float> > > fields;
         bool ok = true;
     };
     job pending;
@@ -124,9 +124,9 @@ private:
     bool finished = false;
 
     void write_job(job *j);
-    bool settle(lexer *, ghostcell *);  // wait for the pending output, count it if all ranks wrote it
-    bool waiting() const;               // an output is pending (the same on every rank)
-    static std::vector<lagoon_output *> &all();
+    bool settle(lexer*, ghostcell*);  // wait for the pending output, count it if all ranks wrote it
+    bool waiting() const;  // an output is pending (the same on every rank)
+    static std::vector<lagoon_output*> &all();
 };
 
 // LAGOON store output of a solver's free surface or bed VTP (P 18; FNPF, NHFLOW, SFLOW,
@@ -139,36 +139,36 @@ private:
 class lagoon_surface
 {
 public:
-    lagoon_surface(lexer *, ghostcell *, const char *solver, const char *output, const char *source);
+    lagoon_surface(lexer*, ghostcell*, const char *solver, const char *output, const char *source);
 
     // after a rank's VTP piece of an output was written to file (all ranks call it):
     // into the store with P 18; with P 18 1 the file is removed again once every
     // rank has the output in the store
-    static void piece_written(lexer *, ghostcell *, lagoon_surface *&writer, const char *solver,
+    static void piece_written(lexer*, ghostcell*, lagoon_surface *&writer, const char *solver,
                               const char *output, const char *source, const char *file, int num);
 
     // a rank's VTP piece of an output made in memory (all ranks call it): written to the file
     // where files are wanted (P 18 0 and 2, or once the store has failed), into the store with
     // P 18 - with P 18 1 straight from memory, no file is written and read back
-    static void piece(lexer *, ghostcell *, lagoon_surface *&writer, const char *solver,
+    static void piece(lexer*, ghostcell*, lagoon_surface *&writer, const char *solver,
                       const char *output, const char *source, const char *file, int num, std::string &buffer);
 
     // the piece goes into the background writer (moved from buffer) or, if the store cannot
     // take it, stays in buffer
-    void vtp_piece(lexer *, ghostcell *, std::string &buffer, int num, const std::string &file);
+    void vtp_piece(lexer*, ghostcell*, std::string &buffer, int num, const std::string &file);
 
     // every rank, at each LAGOON output (volume or surface): the surfaces' outputs
     // written so far are counted, so a surface written once (the bed) is counted
     // soon after the start, not only at the end of the run
-    static void settle_all(lexer *, ghostcell *);
+    static void settle_all(lexer*, ghostcell*);
 
     // the end of the run (all ranks, from lagoon_output::finish_all): wait for the
     // last output of every surface and count it
-    static void finish_all(lexer *, ghostcell *);
+    static void finish_all(lexer*, ghostcell*);
 
     // every rank (from lagoon_output::poll_all): the surfaces' outputs that every
     // rank has written are counted
-    static void poll_all(lexer *, ghostcell *);
+    static void poll_all(lexer*, ghostcell*);
 
 private:
     std::string solver, output, source;
@@ -176,7 +176,7 @@ private:
     bool ready, usable;
     int t, nx, ny, rank;
 
-    bool start(lexer *, ghostcell *, const std::vector<lagoon_store::variable> &fields);
+    bool start(lexer*, ghostcell*, const std::vector<lagoon_store::variable> &fields);
 
     // the output being written in the background: the piece as read from file
     struct job
@@ -185,7 +185,7 @@ private:
         int num = 0;
         double time = 0.0;
         long long iteration = 0;
-        std::string file;  // the VTP piece, removed once the output is counted (P 18 1)
+        std::string file;    // the VTP piece, removed once the output is counted (P 18 1)
         std::string buffer;
         size_t data = 0;  // where the appended data start, after the '_'
         long long points = -1;
@@ -199,9 +199,9 @@ private:
     bool finished = false;
 
     void write_job(job *j);
-    bool settle(lexer *, ghostcell *);
+    bool settle(lexer*, ghostcell*);
     bool waiting() const;
-    static std::vector<lagoon_surface *> &all();
+    static std::vector<lagoon_surface*> &all();
 };
 
 // LAGOON store output of an AMR solver's free surface (P 18; FNPF, NHFLOW, SFLOW with
@@ -218,10 +218,10 @@ public:
     // every rank, at every AMR output, with its grids. True on every rank when the output
     // is in the store; false (on every rank) when the .vtr and .vtm files are needed
     // instead: from then on nothing more goes to the store.
-    bool write(lexer *, ghostcell *, const std::vector<lagoon_amr::grid> &grids, int printcount);
+    bool write(lexer*, ghostcell*, const std::vector<lagoon_amr::grid> &grids, int printcount);
 
     // with P 18 1, an output in the store has no .vtr and .vtm files
-    static bool files_needed(lexer *, bool stored);
+    static bool files_needed(lexer*, bool stored);
 
 private:
     std::string solver;

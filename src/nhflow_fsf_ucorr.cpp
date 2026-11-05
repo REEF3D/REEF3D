@@ -20,17 +20,17 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "fdm_nhf.h"
-#include "ghostcell.h"
-#include "ioflow.h"
-#include "lexer.h"
-#include "nhflow_fsf_f.h"
-#include "patchBC_interface.h"
+#include"nhflow_fsf_f.h"
+#include"lexer.h"
+#include"fdm_nhf.h"
+#include"ghostcell.h"
+#include"ioflow.h"
+#include"patchBC_interface.h"
 
-void nhflow_fsf_f::ucorr(lexer *p, fdm_nhf *d, double *UH, slice &WL, double alpha)
+void nhflow_fsf_f::ucorr(lexer* p, fdm_nhf* d, double *UH, slice &WL, double alpha)
 {
 }
 
-void nhflow_fsf_f::vcorr(lexer *p, fdm_nhf *d, double *VH, slice &WL, double alpha)
+void nhflow_fsf_f::vcorr(lexer* p, fdm_nhf* d, double *VH, slice &WL, double alpha)
 {
 }

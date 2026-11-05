@@ -23,10 +23,10 @@ Architect: Hans Bihs
 #ifndef NHFLOW_FSF_HULL_H_
 #define NHFLOW_FSF_HULL_H_
 
-#include "increment.h"
-#include "slice4.h"
-#include <fstream>
-#include <vector>
+#include"increment.h"
+#include"slice4.h"
+#include<vector>
+#include<fstream>
 
 class lexer;
 class fdm_nhf;
@@ -59,43 +59,43 @@ using namespace std;
 class nhflow_fsf_hull : public increment
 {
 public:
-    nhflow_fsf_hull(lexer *);
+    nhflow_fsf_hull(lexer*);
     virtual ~nhflow_fsf_hull();
 
-    void level(lexer *, fdm_nhf *, ghostcell *, sixdof *, ioflow *, int, slice &, double);
-    void momentum(lexer *, double *, double *, double *);
-    void upgrad(lexer *, fdm_nhf *, slice &);
-    void correct(lexer *, fdm_nhf *, ghostcell *, int, double, double *, double *, double *, slice &);
-    void slope(lexer *, fdm_nhf *);
-    bool edge_slope(lexer *, fdm_nhf *, int, int, double &, double &);
-    void forces(lexer *, fdm_nhf *, ghostcell *, slice &, sixdof_obj_nhflow *, bool);
-    void print(lexer *, fdm_nhf *, ghostcell *, slice &);
+    void level(lexer*, fdm_nhf*, ghostcell*, sixdof*, ioflow*, int, slice&, double);
+    void momentum(lexer*, double*, double*, double*);
+    void upgrad(lexer*, fdm_nhf*, slice&);
+    void correct(lexer*, fdm_nhf*, ghostcell*, int, double, double*, double*, double*, slice&);
+    void slope(lexer*, fdm_nhf*);
+    bool edge_slope(lexer*, fdm_nhf*, int, int, double&, double&);
+    void forces(lexer*, fdm_nhf*, ghostcell*, slice&, sixdof_obj_nhflow*, bool);
+    void print(lexer*, fdm_nhf*, ghostcell*, slice&);
 
-    bool active() const { return mode == 1; }
-    slice4 &zeta_slice() { return zeta; }
+    bool active() const {return mode==1;}
+    slice4& zeta_slice() {return zeta;}
 
 private:
-    void footprint(lexer *, fdm_nhf *, ghostcell *, slice &);
-    void solve(lexer *, fdm_nhf *, ghostcell *, double, slice &);
-    double gsum(ghostcell *, double);
-    int gsum_i(ghostcell *, int);
-    bool wall_x(lexer *, int) const;
-    bool wall_y(lexer *, int) const;
+    void footprint(lexer*, fdm_nhf*, ghostcell*, slice&);
+    void solve(lexer*, fdm_nhf*, ghostcell*, double, slice&);
+    double gsum(ghostcell*, double);
+    int gsum_i(ghostcell*, int);
+    bool wall_x(lexer*, int) const;
+    bool wall_y(lexer*, int) const;
 
-    slice4 cover, S, St, zeta, dzeta, R, ratio, usk, vsk, wsk;
-    vector<int> fi, fj;  // footprint columns on this rank
-    vector<int> ei, ej;  // free columns next to the footprint
-    vector<char> was;    // cover of the last stage
+    slice4 cover,S,St,zeta,dzeta,R,ratio,usk,vsk,wsk;
+    vector<int> fi,fj;              // footprint columns on this rank
+    vector<int> ei,ej;              // free columns next to the footprint
+    vector<char> was;               // cover of the last stage
 
-    int mode, gcval_eta;
-    bool told, pending, fresh;
-    int nfoot, nedge;      // global number of footprint columns, edge columns
-    int itstep;            // SOR sweeps since the last log line
-    double omega;          // SOR factor
-    double rmax0, rmax1;   // continuity residual before and after the correction (max over the step)
-    double dVstep, dVsum;  // volume replaced by the prescribed level: since the last line, over the run
-    double Fz_p, Fx_p;     // last hull loads (pressure on the bottom, on the sides)
-    double starttime, tstep, ttot;
+    int mode,gcval_eta;
+    bool told,pending,fresh;
+    int nfoot,nedge;                // global number of footprint columns, edge columns
+    int itstep;                     // SOR sweeps since the last log line
+    double omega;                   // SOR factor
+    double rmax0,rmax1;             // continuity residual before and after the correction (max over the step)
+    double dVstep,dVsum;            // volume replaced by the prescribed level: since the last line, over the run
+    double Fz_p,Fx_p;               // last hull loads (pressure on the bottom, on the sides)
+    double starttime,tstep,ttot;
 
     ofstream out;
 };

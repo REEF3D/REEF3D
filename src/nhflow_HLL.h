@@ -23,10 +23,10 @@ Author: Hans Bihs
 #ifndef NHFLOW_HLL_H_
 #define NHFLOW_HLL_H_
 
-#include "increment.h"
-#include "nhflow_convection.h"
-#include "slice1.h"
-#include "slice2.h"
+#include"nhflow_convection.h"
+#include"slice1.h"
+#include"slice2.h"
+#include"increment.h"
 
 class patchBC_interface;
 class ghostcell;
@@ -37,26 +37,28 @@ class nhflow_HLL final : public nhflow_convection, public increment
 {
 
 public:
-    nhflow_HLL(lexer *, ghostcell *, patchBC_interface *);
-    virtual ~nhflow_HLL();
 
-    void start(lexer *&, fdm_nhf *&, int, slice &, double *) override final;
-    void precalc(lexer *, fdm_nhf *, int, slice &) override final;
+	nhflow_HLL (lexer*,ghostcell*,patchBC_interface*);
+	virtual ~nhflow_HLL();
+
+    void start(lexer*&, fdm_nhf*&, int, slice&, double*) override final;
+    void precalc(lexer*, fdm_nhf*, int, slice&) override final;
 
 private:
-    void aij_U(lexer *&, fdm_nhf *&, int);
-    void aij_V(lexer *&, fdm_nhf *&, int);
-    void aij_W(lexer *&, fdm_nhf *&, int);
-    void aij_E(lexer *&, fdm_nhf *&, int);
 
-    double dx, dy, dz;
-    double udir, vdir, wdir;
-    double L;
+    void aij_U(lexer*&, fdm_nhf*&, int);
+    void aij_V(lexer*&, fdm_nhf*&, int);
+    void aij_W(lexer*&, fdm_nhf*&, int);
+    void aij_E(lexer*&, fdm_nhf*&, int);
+    
+	double dx,dy,dz;
+	double udir,vdir,wdir;
+	double L;
     double denom;
 
-    double ivel1, ivel2, jvel1, jvel2, kvel1, kvel2;
-
-    int hllc;  // A 511 2: contact-resolving (HLLC) flux for the tangential momentum components
+    double ivel1,ivel2,jvel1,jvel2,kvel1,kvel2;
+    
+    int hllc;   // A 511 2: contact-resolving (HLLC) flux for the tangential momentum components
 
     ghostcell *pgc;
     patchBC_interface *pBC;

@@ -22,29 +22,29 @@ Author: Hans Bihs
 
 #ifdef REEF3D_USE_HYPRE  // hypre is opt-in: make HYPRE=1 / cmake -DREEF3D_USE_HYPRE=ON
 
-#include "fdm.h"
-#include "field.h"
-#include "ghostcell.h"
 #include "hypre_aij.h"
 #include "lexer.h"
+#include "fdm.h"
+#include "ghostcell.h"
+#include "field.h"
 #include "vec.h"
 
-void hypre_aij::startF(lexer *p, ghostcell *pgc, double *f, vec &rhsvec, matrix_diag &M, int var)
+void hypre_aij::startF(lexer* p, ghostcell* pgc, double *f, vec& rhsvec, matrix_diag &M, int var)
 {
     double *xvec;
 
-    p->Darray(xvec, p->knox * p->knoy * (p->knoz + 1));
+    p->Darray(xvec,p->knox*p->knoy*(p->knoz+1));
 
-    if(var == 7 || var == 9 || var == 11)
-        make_grid_F(p, pgc);
-    else if(var == 8 || var == 10 || var == 12)
-        make_grid_F(p, pgc);
+    if(var==7||var==9||var==11)
+    make_grid_F(p,pgc);
+    else if(var==8||var==10||var==12)
+    make_grid_F(p,pgc);
 
-    create_solvers(p, pgc);
+    create_solvers(p,pgc);
 
-    fill_matrix_F_7p(p, pgc, M, f, xvec, rhsvec);
+    fill_matrix_F_7p(p,pgc,M,f,xvec,rhsvec);
 
-    if(p->N10 == 21)
+    if(p->N10==21)
     {
         HYPRE_ParCSRPCGSetup(solver, parcsr_A, par_b, par_x);
         HYPRE_ParCSRPCGSolve(solver, parcsr_A, par_b, par_x);
@@ -52,7 +52,7 @@ void hypre_aij::startF(lexer *p, ghostcell *pgc, double *f, vec &rhsvec, matrix_
         HYPRE_PCGGetNumIterations(solver, &num_iterations);
         HYPRE_PCGGetFinalRelativeResidualNorm(solver, &final_res_norm);
     }
-    else if(p->N10 == 22)
+    else if(p->N10==22)
     {
         HYPRE_ParCSRGMRESSetup(solver, parcsr_A, par_b, par_x);
         HYPRE_ParCSRGMRESSolve(solver, parcsr_A, par_b, par_x);
@@ -60,7 +60,7 @@ void hypre_aij::startF(lexer *p, ghostcell *pgc, double *f, vec &rhsvec, matrix_
         HYPRE_GMRESGetNumIterations(solver, &num_iterations);
         HYPRE_GMRESGetFinalRelativeResidualNorm(solver, &final_res_norm);
     }
-    else if(p->N10 == 23)
+    else if(p->N10==23)
     {
         HYPRE_ParCSRLGMRESSetup(solver, parcsr_A, par_b, par_x);
         HYPRE_ParCSRLGMRESSolve(solver, parcsr_A, par_b, par_x);
@@ -68,7 +68,7 @@ void hypre_aij::startF(lexer *p, ghostcell *pgc, double *f, vec &rhsvec, matrix_
         HYPRE_LGMRESGetNumIterations(solver, &num_iterations);
         HYPRE_LGMRESGetFinalRelativeResidualNorm(solver, &final_res_norm);
     }
-    else if(p->N10 == 24)
+    else if(p->N10==24)
     {
         HYPRE_ParCSRBiCGSTABSetup(solver, parcsr_A, par_b, par_x);
         HYPRE_ParCSRBiCGSTABSolve(solver, parcsr_A, par_b, par_x);
@@ -76,7 +76,7 @@ void hypre_aij::startF(lexer *p, ghostcell *pgc, double *f, vec &rhsvec, matrix_
         HYPRE_BiCGSTABGetNumIterations(solver, &num_iterations);
         HYPRE_BiCGSTABGetFinalRelativeResidualNorm(solver, &final_res_norm);
     }
-    else if(p->N10 == 25)
+    else if(p->N10==25)
     {
         HYPRE_BoomerAMGSetup(solver, parcsr_A, par_b, par_x);
         HYPRE_BoomerAMGSolve(solver, parcsr_A, par_b, par_x);
@@ -85,28 +85,29 @@ void hypre_aij::startF(lexer *p, ghostcell *pgc, double *f, vec &rhsvec, matrix_
         HYPRE_BoomerAMGGetFinalRelativeResidualNorm(solver, &final_res_norm);
     }
 
-    p->solveriter = num_iterations;
+    p->solveriter=num_iterations;
     p->final_res = final_res_norm;
 
-    if(var == 7 || var == 9 || var == 11)
-        fillbackvec_F(p, f, xvec, var);
-    else if(var == 8 || var == 10 || var == 12)
-        fillbackvec_F_v2(p, f, xvec, var);
+    if(var==7||var==9||var==11)
+    fillbackvec_F(p,f,xvec,var);
+    else if(var==8||var==10||var==12)
+    fillbackvec_F_v2(p,f,xvec,var);
 
-    delete_solvers(p, pgc);
-    delete_grid(p, pgc);
+    delete_solvers(p,pgc);
+    delete_grid(p,pgc);
 
-    p->del_Darray(xvec, p->knox * p->knoy * (p->knoz + 1));
+    p->del_Darray(xvec,p->knox*p->knoy*(p->knoz+1));
 }
+
 
 void hypre_aij::fillbackvec_F(lexer *p, double *f, double *xvec, int var)
 {
     HYPRE_IJVectorGetValues(x, p->N7_row, rows, xvec);
 
-    n = 0;
+    n=0;
     LOOP
     {
-        f[FIJK] = xvec[n];
+        f[FIJK]=xvec[n];
         ++n;
     }
 }
@@ -115,10 +116,10 @@ void hypre_aij::fillbackvec_F_v2(lexer *p, double *f, double *xvec, int var)
 {
     HYPRE_IJVectorGetValues(x, p->N7_row, rows, xvec);
 
-    n = 0;
+    n=0;
     LOOP
     {
-        f[FIJK] = xvec[n];
+        f[FIJK]=xvec[n];
         ++n;
     }
 }

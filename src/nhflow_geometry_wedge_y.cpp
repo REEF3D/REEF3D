@@ -20,26 +20,26 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "fdm_nhf.h"
-#include "geo_primitive.h"
-#include "ghostcell.h"
-#include "lexer.h"
-#include "nhflow_geometry.h"
+#include"nhflow_geometry.h"
+#include"lexer.h"
+#include"fdm_nhf.h"
+#include"ghostcell.h"
+#include"geo_primitive.h"
 
 void nhflow_geometry::wedge_y(lexer *p, ghostcell *pgc, int id)
 {
     xs = wedgey_xs[id];
     xe = wedgey_xe[id];
-
+	
     ys = wedgey_ys[id];
     ye = wedgey_ye[id];
 
     zs = wedgey_zs[id];
     ze = wedgey_ze[id];
-
-    tstart[entity_count] = tricount;
-
-    geo_primitive::wedge_y(tri_x, tri_y, tri_z, tricount, xs, xe, ys, ye, zs, ze);
-
-    tend[entity_count] = tricount;
+	
+	tstart[entity_count]=tricount;
+    
+    geo_primitive::wedge_y(tri_x,tri_y,tri_z,tricount,xs,xe,ys,ye,zs,ze);
+	
+	tend[entity_count]=tricount;
 }

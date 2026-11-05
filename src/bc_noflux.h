@@ -23,7 +23,7 @@ Author: Hans Bihs
 #ifndef BC_NOFLUX_H_
 #define BC_NOFLUX_H_
 
-#include <vector>
+#include<vector>
 
 class lexer;
 
@@ -44,11 +44,12 @@ mask[IJK] has bit (cs-1) set for the face on side cs (1 x-, 2 y+, 3 y-,
   BC_PATCH_OUTLET    only the patch outlets (Dirichlet pressure), for the pressure correction
 --------------------------------------------------------------------*/
 
-enum {
-    BC_NOFLUX_WALLS = 1,
+enum
+{
+    BC_NOFLUX_WALLS  = 1,
     BC_NOFLUX_INFLOW = 2,
     BC_NOFLUX_SCALAR = 4,
-    BC_PATCH_OUTLET = 8
+    BC_PATCH_OUTLET  = 8
 };
 
 void bc_noflux_mask(lexer *p, std::vector<int> &mask, int what);

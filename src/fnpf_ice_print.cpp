@@ -20,160 +20,160 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "fdm_fnpf.h"
-#include "fnpf_ice.h"
-#include "ghostcell.h"
-#include "lagoon_store.h"
-#include "lexer.h"
-#include "runlog.h"
-#include <cstdio>
-#include <iomanip>
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <vector>
+#include"fnpf_ice.h"
+#include"lexer.h"
+#include"fdm_fnpf.h"
+#include"ghostcell.h"
+#include<sys/stat.h>
+#include<sys/types.h>
+#include<cstdio>
+#include<iomanip>
+#include"runlog.h"
+#include"lagoon_store.h"
+#include<vector>
 
 void fnpf_ice::print_ini(lexer *p)
 {
     printtime = 0.0;
     printcount = 0;
 
-    if(p->mpirank != 0)
-        return;
+    if(p->mpirank!=0)
+    return;
 
-    mkdir("./REEF3D_FNPF_ICE", 0777);
+    mkdir("./REEF3D_FNPF_ICE",0777);
 
     logout.open("./REEF3D_FNPF_ICE/REEF3D-FNPF-ICE-floes.dat");
-    logout << "# FNPF ice floes: time, id, centre of mass, Euler angles ZYX [deg], velocity, hydrodynamic force, contact force (planar), loaded area, flexural strength, largest flexural stress of the last breaking check" << endl;
-    logout << "# t id x y z roll pitch yaw u v w Fx_hyd Fy_hyd Fz_hyd Fx_c Fy_c A_wet sigma_f sigma_max" << endl;
+    logout<<"# FNPF ice floes: time, id, centre of mass, Euler angles ZYX [deg], velocity, hydrodynamic force, contact force (planar), loaded area, flexural strength, largest flexural stress of the last breaking check"<<endl;
+    logout<<"# t id x y z roll pitch yaw u v w Fx_hyd Fy_hyd Fz_hyd Fx_c Fy_c A_wet sigma_f sigma_max"<<endl;
 
-    if(breakflag > 0)
+    if(breakflag>0)
     {
-        breakout.open("./REEF3D_FNPF_ICE/REEF3D-FNPF-ICE-breaking.dat");
-        breakout << "# ice breaking events: mech 1 flexural (value, limit: stress, strength [Pa]), 2 contact splitting (force, splitting load [N])," << endl;
-        breakout << "# 3 spalling (crushed depth, spall length [m]); new_id -2: chip cleared as rubble" << endl;
-        breakout << "# t parent_id new_id mech value limit area_parent_piece area_new_piece" << endl;
+    breakout.open("./REEF3D_FNPF_ICE/REEF3D-FNPF-ICE-breaking.dat");
+    breakout<<"# ice breaking events: mech 1 flexural (value, limit: stress, strength [Pa]), 2 contact splitting (force, splitting load [N]),"<<endl;
+    breakout<<"# 3 spalling (crushed depth, spall length [m]); new_id -2: chip cleared as rubble"<<endl;
+    breakout<<"# t parent_id new_id mech value limit area_parent_piece area_new_piece"<<endl;
+    }
+    
+    if(p->A398>0.0)
+    {
+    crushout.open("./REEF3D_FNPF_ICE/REEF3D-FNPF-ICE-crushing.dat");
+    crushout<<"# ice crushing contacts, every time step with a capped or penetrating pair (A 398 sigma_c = "<<p->A398<<" Pa)"<<endl;
+    crushout<<"# id_b < 0: domain wall. depth: crushed depth (overlap), volume = h*width*depth"<<endl;
+    crushout<<"# t id_a id_b Fn Fcap depth width volume"<<endl;
     }
 
-    if(p->A398 > 0.0)
+    if(nobst>0)
     {
-        crushout.open("./REEF3D_FNPF_ICE/REEF3D-FNPF-ICE-crushing.dat");
-        crushout << "# ice crushing contacts, every time step with a capped or penetrating pair (A 398 sigma_c = " << p->A398 << " Pa)" << endl;
-        crushout << "# id_b < 0: domain wall. depth: crushed depth (overlap), volume = h*width*depth" << endl;
-        crushout << "# t id_a id_b Fn Fcap depth width volume" << endl;
-    }
-
-    if(nobst > 0)
-    {
-        obstout.open("./REEF3D_FNPF_ICE/REEF3D-FNPF-ICE-obstacle-loads.dat");
-        obstout << "# ice loads on the obstacles (contact force, planar), every time step" << endl;
-        obstout << "# t";
-        for(auto &fl : floe)
-            if(fl.type == 1)
-                obstout << "  Fx_" << fl.id << " Fy_" << fl.id;
-        obstout << endl;
+    obstout.open("./REEF3D_FNPF_ICE/REEF3D-FNPF-ICE-obstacle-loads.dat");
+    obstout<<"# ice loads on the obstacles (contact force, planar), every time step"<<endl;
+    obstout<<"# t";
+    for(auto &fl : floe)
+    if(fl.type==1)
+    obstout<<"  Fx_"<<fl.id<<" Fy_"<<fl.id;
+    obstout<<endl;
     }
 }
 
 void fnpf_ice::print(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 {
-    if(p->mpirank != 0)
-        return;
+    if(p->mpirank!=0)
+    return;
 
-    const double t = (p->count == 0) ? p->simtime : p->simtime + p->dt;
+    const double t = (p->count==0) ? p->simtime : p->simtime + p->dt;
 
     // obstacle loads every step
-    if(obstout.is_open() && p->count > 0)
+    if(obstout.is_open() && p->count>0)
     {
-        obstout << setprecision(9) << t;
-        for(auto &fl : floe)
-            if(fl.type == 1)
-                obstout << " " << fl.Fc[0] << " " << fl.Fc[1];
-        obstout << endl;
+    obstout<<setprecision(9)<<t;
+    for(auto &fl : floe)
+    if(fl.type==1)
+    obstout<<" "<<fl.Fc[0]<<" "<<fl.Fc[1];
+    obstout<<endl;
     }
 
     // print interval: A 387 in s, otherwise the fsf vtp settings (P 180, P 181, P 182)
-    int doprint = 0;
+    int doprint=0;
 
-    if(p->count == 0)
-        doprint = 1;
+    if(p->count==0)
+    doprint=1;
 
-    else if(p->A387 > 0.0)
-        doprint = (t >= printtime);
+    else if(p->A387>0.0)
+    doprint = (t>=printtime);
 
-    else if(p->P182 > 0.0)
-        doprint = (t >= printtime);
+    else if(p->P182>0.0)
+    doprint = (t>=printtime);
 
-    else if(p->P181 > 0)
-        doprint = (p->count % p->P181 == 0);
+    else if(p->P181>0)
+    doprint = (p->count%p->P181==0);
 
     else
-        doprint = (p->count % 100 == 0);
+    doprint = (p->count%100==0);
 
-    if(doprint == 0)
-        return;
+    if(doprint==0)
+    return;
 
-    const double interval = (p->A387 > 0.0) ? p->A387 : p->P182;
-    if(interval > 0.0)
-        while(printtime <= t)
-            printtime += interval;
+    const double interval = (p->A387>0.0) ? p->A387 : p->P182;
+    if(interval>0.0)
+    while(printtime<=t)
+    printtime += interval;
 
-    print_vtp(p, printcount);
+    print_vtp(p,printcount);
     print_log(p);
     ++printcount;
 }
 
 void fnpf_ice::print_log(lexer *p)
 {
-    const double t = (p->count == 0) ? p->simtime : p->simtime + p->dt;
-    const double deg = 180.0 / PI;
+    const double t = (p->count==0) ? p->simtime : p->simtime + p->dt;
+    const double deg = 180.0/PI;
 
     for(auto &fl : floe)
     {
-        if(fl.type != 0)
-            continue;
+        if(fl.type!=0)
+        continue;
 
-        double roll, pitch, yaw;
-        quat_to_euler(fl.q, roll, pitch, yaw);
+        double roll,pitch,yaw;
+        quat_to_euler(fl.q,roll,pitch,yaw);
 
-        logout << setprecision(9) << t << " " << fl.id << " "
-               << fl.x[0] << " " << fl.x[1] << " " << fl.x[2] << " "
-               << roll * deg << " " << pitch * deg << " " << yaw * deg << " "
-               << fl.v[0] << " " << fl.v[1] << " " << fl.v[2] << " "
-               << fl.F[0] << " " << fl.F[1] << " " << fl.F[2] << " "
-               << fl.Fc[0] << " " << fl.Fc[1] << " " << fl.Awet << " " << fl.sigf << " " << fl.sigmax << endl;
+        logout<<setprecision(9)<<t<<" "<<fl.id<<" "
+              <<fl.x[0]<<" "<<fl.x[1]<<" "<<fl.x[2]<<" "
+              <<roll*deg<<" "<<pitch*deg<<" "<<yaw*deg<<" "
+              <<fl.v[0]<<" "<<fl.v[1]<<" "<<fl.v[2]<<" "
+              <<fl.F[0]<<" "<<fl.F[1]<<" "<<fl.F[2]<<" "
+              <<fl.Fc[0]<<" "<<fl.Fc[1]<<" "<<fl.Awet<<" "<<fl.sigf<<" "<<fl.sigmax<<endl;
     }
 }
 
 void fnpf_ice::print_vtp(lexer *p, int num)
 {
     char name[256];
-    snprintf(name, sizeof(name), "./REEF3D_FNPF_ICE/REEF3D-FNPF-ICE-%08i.vtp", num);
+    snprintf(name,sizeof(name),"./REEF3D_FNPF_ICE/REEF3D-FNPF-ICE-%08i.vtp",num);
 
     // removed floes are not drawn, rubble (type 3) as floes
     vector<fnpf_ice_floe> vis;
-    for(size_t n = 0; n < floe.size(); ++n)
-        if(floe[n].type != 2)
-            vis.push_back(floe[n]);
+    for(size_t n=0; n<floe.size(); ++n)
+    if(floe[n].type!=2)
+    vis.push_back(floe[n]);
 
     // prisms: bottom and top polygons plus side quads; obstacles drawn as columns through the surface
-    double hob = 0.0;
+    double hob=0.0;
     for(auto &fl : vis)
-        if(fl.type == 0)
-            hob = MAX(hob, fl.h);
-    if(hob <= 0.0)
-        hob = 1.0;
+    if(fl.type==0)
+    hob = MAX(hob,fl.h);
+    if(hob<=0.0)
+    hob=1.0;
 
     // P 18: the floes in the LAGOON store as well (fnpf_ice: the prisms' points and
     // polygons, id, type, speed and contact force per polygon, as in the VTP file);
     // P 18 1: instead of it
-    if(p->P18 > 0)
+    if(p->P18>0)
     {
         static lagoon_particles *writer = nullptr;
-        if(writer == nullptr)
+        if(writer==nullptr)
         {
             std::string run;
             if(p->plog)
-                run = "{\"type\": \"run\", \"run\": " + lagoon_store::json_string(p->plog->id()) + "}";
+            run = "{\"type\": \"run\", \"run\": " + lagoon_store::json_string(p->plog->id()) + "}";
             writer = new lagoon_particles("./REEF3D_FNPF.lagoon", "FNPF", "fnpf_ice", "ice", "REEF3D_FNPF_ICE", run,
                                           {}, 1, "polys",
                                           {{"id", 1, true}, {"type", 1, true}, {"speed", 1, false}, {"contact_force", 1, false}});
@@ -184,171 +184,161 @@ void fnpf_ice::print_vtp(lexer *p, int num)
         for(auto &fl : vis)
         {
             double R[3][3];
-            quat_to_matrix(fl.q, R);
+            quat_to_matrix(fl.q,R);
             const int nv = int(fl.bx.size());
-            for(int side = 0; side < 2; ++side)
-                for(int q = 0; q < nv; ++q)
-                {
-                    if(fl.type == 0 || fl.type == 3)
-                    {
-                        const double zb = side == 0 ? -0.5 * fl.h : 0.5 * fl.h;
-                        for(int c = 0; c < 3; ++c)
-                            xyz.push_back(float(fl.x[c] + R[c][0] * fl.bx[q] + R[c][1] * fl.by[q] + R[c][2] * zb));
-                    }
-                    else
-                    {
-                        xyz.push_back(float(fl.x[0] + fl.bx[q]));
-                        xyz.push_back(float(fl.x[1] + fl.by[q]));
-                        xyz.push_back(float(wd + (side == 0 ? -2.0 * hob : 2.0 * hob)));
-                    }
-                }
-            // bottom (reversed, facing down), top, side quads
-            for(int q = nv - 1; q >= 0; --q)
-                connectivity.push_back(base + q);
-            offsets.push_back(int32_t(connectivity.size()));
-            for(int q = 0; q < nv; ++q)
-                connectivity.push_back(base + nv + q);
-            offsets.push_back(int32_t(connectivity.size()));
-            for(int q = 0; q < nv; ++q)
+            for(int side=0; side<2; ++side)
+            for(int q=0; q<nv; ++q)
             {
-                const int q2 = (q + 1) % nv;
-                connectivity.push_back(base + q);
-                connectivity.push_back(base + q2);
-                connectivity.push_back(base + nv + q2);
-                connectivity.push_back(base + nv + q);
+                if(fl.type==0 || fl.type==3)
+                {
+                const double zb = side==0 ? -0.5*fl.h : 0.5*fl.h;
+                for(int c=0; c<3; ++c)
+                xyz.push_back(float(fl.x[c] + R[c][0]*fl.bx[q] + R[c][1]*fl.by[q] + R[c][2]*zb));
+                }
+                else
+                {
+                xyz.push_back(float(fl.x[0]+fl.bx[q]));
+                xyz.push_back(float(fl.x[1]+fl.by[q]));
+                xyz.push_back(float(wd + (side==0 ? -2.0*hob : 2.0*hob)));
+                }
+            }
+            // bottom (reversed, facing down), top, side quads
+            for(int q=nv-1; q>=0; --q) connectivity.push_back(base+q);
+            offsets.push_back(int32_t(connectivity.size()));
+            for(int q=0; q<nv; ++q) connectivity.push_back(base+nv+q);
+            offsets.push_back(int32_t(connectivity.size()));
+            for(int q=0; q<nv; ++q)
+            {
+                const int q2=(q+1)%nv;
+                connectivity.push_back(base+q); connectivity.push_back(base+q2);
+                connectivity.push_back(base+nv+q2); connectivity.push_back(base+nv+q);
                 offsets.push_back(int32_t(connectivity.size()));
             }
-            for(int k = 0; k < nv + 2; ++k)
+            for(int k=0; k<nv+2; ++k)
             {
                 id.push_back(int32_t(fl.id));
                 type.push_back(int32_t(fl.type));
-                speed.push_back(float(sqrt(fl.v[0] * fl.v[0] + fl.v[1] * fl.v[1] + fl.v[2] * fl.v[2])));
-                force.push_back(float(sqrt(fl.Fc[0] * fl.Fc[0] + fl.Fc[1] * fl.Fc[1])));
+                speed.push_back(float(sqrt(fl.v[0]*fl.v[0]+fl.v[1]*fl.v[1]+fl.v[2]*fl.v[2])));
+                force.push_back(float(sqrt(fl.Fc[0]*fl.Fc[0]+fl.Fc[1]*fl.Fc[1])));
             }
-            base += 2 * nv;
+            base += 2*nv;
         }
-        const double when = (p->count == 0) ? p->simtime : p->simtime + p->dt;
-        const bool stored = writer->output(when, num, xyz.size() / 3, xyz.data(), {}, connectivity, offsets,
+        const double when = (p->count==0) ? p->simtime : p->simtime + p->dt;
+        const bool stored = writer->output(when, num, xyz.size()/3, xyz.data(), {}, connectivity, offsets,
                                            {id.data(), type.data(), speed.data(), force.data()});
-        if(stored && p->P18 == 1)
-            return;
+        if(stored && p->P18==1)
+        return;
     }
 
     ofstream out(name);
 
-    int npts = 0, npoly = 0, nconn = 0;
+    int npts=0, npoly=0, nconn=0;
     for(auto &fl : vis)
     {
-        const int nv = int(fl.bx.size());
-        npts += 2 * nv;
-        npoly += 2 + nv;
-        nconn += 2 * nv + 4 * nv;
+    const int nv = int(fl.bx.size());
+    npts  += 2*nv;
+    npoly += 2 + nv;
+    nconn += 2*nv + 4*nv;
     }
 
-    out << "<?xml version=\"1.0\"?>" << endl;
-    out << "<VTKFile type=\"PolyData\" version=\"0.1\" byte_order=\"LittleEndian\">" << endl;
-    out << "<PolyData>" << endl;
+    out<<"<?xml version=\"1.0\"?>"<<endl;
+    out<<"<VTKFile type=\"PolyData\" version=\"0.1\" byte_order=\"LittleEndian\">"<<endl;
+    out<<"<PolyData>"<<endl;
     // simulation time of this output (ice output has its own interval)
-    const double tv = (p->count == 0) ? p->simtime : p->simtime + p->dt;
-    out << "<FieldData>" << endl
-        << "<DataArray type=\"Float64\" Name=\"TimeValue\" NumberOfTuples=\"1\" format=\"ascii\">" << setprecision(12) << tv << "</DataArray>" << endl
-        << "</FieldData>" << endl;
-    out << "<Piece NumberOfPoints=\"" << npts << "\" NumberOfPolys=\"" << npoly << "\">" << endl;
+    const double tv = (p->count==0) ? p->simtime : p->simtime + p->dt;
+    out<<"<FieldData>"<<endl<<"<DataArray type=\"Float64\" Name=\"TimeValue\" NumberOfTuples=\"1\" format=\"ascii\">"<<setprecision(12)<<tv<<"</DataArray>"<<endl<<"</FieldData>"<<endl;
+    out<<"<Piece NumberOfPoints=\""<<npts<<"\" NumberOfPolys=\""<<npoly<<"\">"<<endl;
 
-    out << "<Points>" << endl;
-    out << "<DataArray type=\"Float32\" NumberOfComponents=\"3\" format=\"ascii\">" << endl;
+    out<<"<Points>"<<endl;
+    out<<"<DataArray type=\"Float32\" NumberOfComponents=\"3\" format=\"ascii\">"<<endl;
     for(auto &fl : vis)
     {
         double R[3][3];
-        quat_to_matrix(fl.q, R);
+        quat_to_matrix(fl.q,R);
         const int nv = int(fl.bx.size());
 
-        for(int side = 0; side < 2; ++side)
-            for(int q = 0; q < nv; ++q)
+        for(int side=0; side<2; ++side)
+        for(int q=0; q<nv; ++q)
+        {
+            if(fl.type==0 || fl.type==3)
             {
-                if(fl.type == 0 || fl.type == 3)
-                {
-                    const double zb = side == 0 ? -0.5 * fl.h : 0.5 * fl.h;
-                    out << fl.x[0] + R[0][0] * fl.bx[q] + R[0][1] * fl.by[q] + R[0][2] * zb << " "
-                        << fl.x[1] + R[1][0] * fl.bx[q] + R[1][1] * fl.by[q] + R[1][2] * zb << " "
-                        << fl.x[2] + R[2][0] * fl.bx[q] + R[2][1] * fl.by[q] + R[2][2] * zb << endl;
-                }
-                else
-                    out << fl.x[0] + fl.bx[q] << " " << fl.x[1] + fl.by[q] << " " << wd + (side == 0 ? -2.0 * hob : 2.0 * hob) << endl;
+            const double zb = side==0 ? -0.5*fl.h : 0.5*fl.h;
+            out<<fl.x[0] + R[0][0]*fl.bx[q] + R[0][1]*fl.by[q] + R[0][2]*zb<<" "
+               <<fl.x[1] + R[1][0]*fl.bx[q] + R[1][1]*fl.by[q] + R[1][2]*zb<<" "
+               <<fl.x[2] + R[2][0]*fl.bx[q] + R[2][1]*fl.by[q] + R[2][2]*zb<<endl;
             }
+            else
+            out<<fl.x[0]+fl.bx[q]<<" "<<fl.x[1]+fl.by[q]<<" "<<wd + (side==0 ? -2.0*hob : 2.0*hob)<<endl;
+        }
     }
-    out << "</DataArray>" << endl;
-    out << "</Points>" << endl;
+    out<<"</DataArray>"<<endl;
+    out<<"</Points>"<<endl;
 
-    out << "<CellData Scalars=\"id\">" << endl;
-    out << "<DataArray type=\"Int32\" Name=\"id\" format=\"ascii\">" << endl;
+    out<<"<CellData Scalars=\"id\">"<<endl;
+    out<<"<DataArray type=\"Int32\" Name=\"id\" format=\"ascii\">"<<endl;
     for(auto &fl : vis)
-        for(size_t q = 0; q < fl.bx.size() + 2; ++q)
-            out << fl.id << endl;
-    out << "</DataArray>" << endl;
-    out << "<DataArray type=\"Int32\" Name=\"type\" format=\"ascii\">" << endl;
+    for(size_t q=0; q<fl.bx.size()+2; ++q)
+    out<<fl.id<<endl;
+    out<<"</DataArray>"<<endl;
+    out<<"<DataArray type=\"Int32\" Name=\"type\" format=\"ascii\">"<<endl;
     for(auto &fl : vis)
-        for(size_t q = 0; q < fl.bx.size() + 2; ++q)
-            out << fl.type << endl;
-    out << "</DataArray>" << endl;
-    out << "<DataArray type=\"Float32\" Name=\"speed\" format=\"ascii\">" << endl;
+    for(size_t q=0; q<fl.bx.size()+2; ++q)
+    out<<fl.type<<endl;
+    out<<"</DataArray>"<<endl;
+    out<<"<DataArray type=\"Float32\" Name=\"speed\" format=\"ascii\">"<<endl;
     for(auto &fl : vis)
-        for(size_t q = 0; q < fl.bx.size() + 2; ++q)
-            out << sqrt(fl.v[0] * fl.v[0] + fl.v[1] * fl.v[1] + fl.v[2] * fl.v[2]) << endl;
-    out << "</DataArray>" << endl;
-    out << "<DataArray type=\"Float32\" Name=\"contact_force\" format=\"ascii\">" << endl;
+    for(size_t q=0; q<fl.bx.size()+2; ++q)
+    out<<sqrt(fl.v[0]*fl.v[0]+fl.v[1]*fl.v[1]+fl.v[2]*fl.v[2])<<endl;
+    out<<"</DataArray>"<<endl;
+    out<<"<DataArray type=\"Float32\" Name=\"contact_force\" format=\"ascii\">"<<endl;
     for(auto &fl : vis)
-        for(size_t q = 0; q < fl.bx.size() + 2; ++q)
-            out << sqrt(fl.Fc[0] * fl.Fc[0] + fl.Fc[1] * fl.Fc[1]) << endl;
-    out << "</DataArray>" << endl;
-    out << "</CellData>" << endl;
+    for(size_t q=0; q<fl.bx.size()+2; ++q)
+    out<<sqrt(fl.Fc[0]*fl.Fc[0]+fl.Fc[1]*fl.Fc[1])<<endl;
+    out<<"</DataArray>"<<endl;
+    out<<"</CellData>"<<endl;
 
-    out << "<Polys>" << endl;
-    out << "<DataArray type=\"Int32\" Name=\"connectivity\" format=\"ascii\">" << endl;
-    int base = 0;
+    out<<"<Polys>"<<endl;
+    out<<"<DataArray type=\"Int32\" Name=\"connectivity\" format=\"ascii\">"<<endl;
+    int base=0;
     for(auto &fl : vis)
     {
         const int nv = int(fl.bx.size());
         // bottom (reversed, facing down), top
-        for(int q = nv - 1; q >= 0; --q)
-            out << base + q << " ";
-        out << endl;
-        for(int q = 0; q < nv; ++q)
-            out << base + nv + q << " ";
-        out << endl;
-        for(int q = 0; q < nv; ++q)
+        for(int q=nv-1; q>=0; --q) out<<base+q<<" ";
+        out<<endl;
+        for(int q=0; q<nv; ++q) out<<base+nv+q<<" ";
+        out<<endl;
+        for(int q=0; q<nv; ++q)
         {
-            const int q2 = (q + 1) % nv;
-            out << base + q << " " << base + q2 << " " << base + nv + q2 << " " << base + nv + q << endl;
+        const int q2=(q+1)%nv;
+        out<<base+q<<" "<<base+q2<<" "<<base+nv+q2<<" "<<base+nv+q<<endl;
         }
-        base += 2 * nv;
+        base += 2*nv;
     }
-    out << "</DataArray>" << endl;
-    out << "<DataArray type=\"Int32\" Name=\"offsets\" format=\"ascii\">" << endl;
-    int off = 0;
+    out<<"</DataArray>"<<endl;
+    out<<"<DataArray type=\"Int32\" Name=\"offsets\" format=\"ascii\">"<<endl;
+    int off=0;
     for(auto &fl : vis)
     {
         const int nv = int(fl.bx.size());
-        off += nv;
-        out << off << endl;
-        off += nv;
-        out << off << endl;
-        for(int q = 0; q < nv; ++q)
+        off+=nv; out<<off<<endl;
+        off+=nv; out<<off<<endl;
+        for(int q=0; q<nv; ++q)
         {
-            off += 4;
-            out << off << endl;
+        off+=4;
+        out<<off<<endl;
         }
     }
-    out << "</DataArray>" << endl;
-    out << "</Polys>" << endl;
+    out<<"</DataArray>"<<endl;
+    out<<"</Polys>"<<endl;
 
-    out << "</Piece>" << endl;
-    out << "</PolyData>" << endl;
-    out << "</VTKFile>" << endl;
+    out<<"</Piece>"<<endl;
+    out<<"</PolyData>"<<endl;
+    out<<"</VTKFile>"<<endl;
 
     out.close();
 
     (void)nconn;
     if(p->plog)
-        p->plog->written(p, num, "ice", "ice", name, 0);
+    p->plog->written(p,num,"ice","ice",name,0);
 }

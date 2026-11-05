@@ -9,13 +9,11 @@ typedef int integer;
 typedef unsigned int uinteger;
 typedef float real;
 typedef double doublereal;
-typedef struct
-{
-    real r, i;
+typedef struct {
+  real r, i;
 } complex;
-typedef struct
-{
-    doublereal r, i;
+typedef struct {
+  doublereal r, i;
 } doublecomplex;
 typedef int logical;
 

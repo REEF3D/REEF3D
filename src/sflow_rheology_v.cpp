@@ -20,11 +20,11 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "sflow_rheology_v.h"
-#include "fdm2D.h"
-#include "lexer.h"
+#include"sflow_rheology_v.h"
+#include"lexer.h"
+#include"fdm2D.h"
 
-sflow_rheology_v::sflow_rheology_v(lexer *p)
+sflow_rheology_v::sflow_rheology_v(lexer* p)
 {
 }
 
@@ -37,6 +37,6 @@ void sflow_rheology_v::u_source(lexer *p, fdm2D *b, slice &U, slice &V, slice &W
 }
 
 void sflow_rheology_v::v_source(lexer *p, fdm2D *b, slice &U, slice &V, slice &WL)
-{
+{  
 }
 

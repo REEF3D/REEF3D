@@ -23,7 +23,7 @@ Author: Hans Bihs
 #ifndef DRIVER_H_
 #define DRIVER_H_
 
-#include "increment.h"
+#include"increment.h"
 
 class field;
 class printer;
@@ -88,11 +88,11 @@ class nhflow_particle;
 class particle_base;
 class coral_reef3d;
 
-#include <fstream>
-#include <iomanip>
-#include <iostream>
-#include <string>
-#include <vector>
+#include<iostream>
+#include<fstream>
+#include<iomanip>
+#include<vector>
+#include<string>
 
 using namespace std;
 
@@ -101,30 +101,31 @@ class regression_dump;
 class driver : public increment
 {
 public:
-    driver(int &, char **);
-    virtual ~driver();
 
+	driver(int&,char**);
+	virtual ~driver();
+    
     void start();
-
+    
     void cfd_driver();
     void nhflow_driver();
     void fnpf_driver();
     void sflow_driver();
     void coral_ini();
     void seastate_driver();
-
-    void loop_cfd(fdm *);
+    
+	void loop_cfd(fdm*);
     void loop_nhflow();
     void loop_fnpf();
-
-    void logic_cfd();
+    
+	void logic_cfd();
     void logic_fnpf();
     void logic_nhflow();
     void logic_sflow();
-
+    
     void patchBC_logic();
-
-    void driver_ini_cfd();
+    
+	void driver_ini_cfd();
     void driver_ini_nhflow();
     void driver_ini_fnpf();
     // checkpoints of FNPF and NHFLOW on any decomposition (P 48, I 45) and the rebalance (G 46):
@@ -133,71 +134,71 @@ public:
     void ckpt_read();
     std::string ckpt_unsupported();
     void rebalance_check();
-    reefrun_ckpt &ckpt();
+    reefrun_ckpt& ckpt();
     reefrun_ckpt *rck = nullptr;
+    
+	void log_ini();
+	void mainlog(lexer*);
+	void maxlog(lexer*);
+    void volumelog(lexer*);
+	void solverlog(lexer*);
+    
+	void makegrid(lexer*,ghostcell*);
+	void makegrid_cds();
+    void makegrid2D(lexer*,ghostcell*);
+    void makegrid2D_basic(lexer*,ghostcell*);
+    void makegrid2D_cds(lexer*,ghostcell*,fdm2D*);
+    void makegrid_sigma(lexer*,ghostcell*);
+    void makegrid_sigma_cds(lexer*,ghostcell*);  
+    
+    void stop(lexer*,fdm*,ghostcell*);
 
-    void log_ini();
-    void mainlog(lexer *);
-    void maxlog(lexer *);
-    void volumelog(lexer *);
-    void solverlog(lexer *);
-
-    void makegrid(lexer *, ghostcell *);
-    void makegrid_cds();
-    void makegrid2D(lexer *, ghostcell *);
-    void makegrid2D_basic(lexer *, ghostcell *);
-    void makegrid2D_cds(lexer *, ghostcell *, fdm2D *);
-    void makegrid_sigma(lexer *, ghostcell *);
-    void makegrid_sigma_cds(lexer *, ghostcell *);
-
-    void stop(lexer *, fdm *, ghostcell *);
-
-    printer *pprint;
-    regression_dump *preg;
-    initialize *pini;
-    cfd_amr *pcfdamr = nullptr;  // CFD mesh refinement (G 1 > 0, G 15)
-    diffusion *pdiff;
-    diffusion *pturbdiff;
-    diffusion *pconcdiff;
-    diffusion *psuspdiff;
-    fdm *a;
-    fdm2D *b;
+	printer* pprint;
+    regression_dump* preg;
+	initialize* pini;
+    cfd_amr* pcfdamr = nullptr;     // CFD mesh refinement (G 1 > 0, G 15)
+	diffusion* pdiff;
+	diffusion* pturbdiff;
+	diffusion* pconcdiff;
+	diffusion* psuspdiff;
+	fdm* a;
+    fdm2D* b;
     fdm_fnpf *c;
     fdm_nhf *d;
-    lexer *p;
-    momentum *pmom;
-    ioflow *pflow;
-    pressure *ppress;
-    poisson *ppois;
-    convection *pconvec;
-    convection *pturbdisc;
-    convection *pfsfdisc;
-    convection *pmpconvec;
-    convection *pconcdisc;
-    convection *pheatdisc;
-    turbulence *pturb;
-    solver *psolv;
-    solver *ppoissonsolv;
-    solver *plapsolv;
-    ghostcell *pgc;
-    timestep *ptstep;
-    freesurface *pfsf;
-    reini *preini;
-    sediment *psed;
-    reinitopo *preto;
-    reinitopo *preso;
-    heat *pheat;
-    potential *potflow;
-    benchmark *pbench;
-    fsi *pfsi;
-    vrans *pvrans;
-    expdata *pdata;
-    concentration *pconc;
+	lexer* p;
+	momentum* pmom;
+	ioflow* pflow;
+	pressure* ppress;
+	poisson* ppois;
+	convection* pconvec;
+	convection* pturbdisc;
+	convection* pfsfdisc;
+    convection* pmpconvec;
+	convection* pconcdisc;
+    convection* pheatdisc;
+	turbulence* pturb;
+	solver* psolv;
+	solver* ppoissonsolv;
+    solver* plapsolv;
+	ghostcell* pgc;
+	timestep* ptstep;
+	freesurface* pfsf;
+	reini* preini;
+	sediment* psed;
+	reinitopo* preto;
+    reinitopo* preso;
+	heat* pheat;
+	potential* potflow;
+	benchmark* pbench;
+	fsi* pfsi;
+	vrans* pvrans;
+	expdata *pdata;
+	concentration *pconc;
     fnpf *ppfsg;
     fnpf_ice *pfice = nullptr;
     fnpf_amr *pfamr = nullptr;
-    coral_reef3d *pcoral = nullptr;  // REEF3D::CORAL structural solver (Z 40)
-    std::vector<double> coral_ckpt;  // its state from the checkpoint (I 45 1), until coral_ini
+    coral_reef3d *pcoral = nullptr;   // REEF3D::CORAL structural solver (Z 40)
+    std::vector<double> coral_ckpt;   // its state from the checkpoint (I 45 1), until coral_ini
     nhflow_amr *pnhfamr = nullptr;
     nhflow_longrun *plongrun = nullptr;
     nhflow_fsf *pnhfsf;
@@ -212,7 +213,7 @@ public:
     nhflow_reconstruct *precon;
     nhflow_pressure *pnhpress;
     nhflow_turbulence *pnhfturb;
-    nhflow_diffusion *pnhfdiff, *pnhfturbdiff;
+    nhflow_diffusion *pnhfdiff,*pnhfturbdiff; 
     nhflow_potential *pnhfpot;
     multiphase *pmp;
     nhflow_timestep *pnhfstep;
@@ -231,8 +232,8 @@ private:
     ofstream maxlogout;
     ofstream vollogout;
     ofstream solvlogout;
-
-    double nom, val;
+	
+	double nom,val;
     char version[100];
 };
 

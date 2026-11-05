@@ -20,25 +20,26 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "bedshear.h"
-#include "fdm.h"
-#include "fdm2D.h"
-#include "ghostcell.h"
-#include "lexer.h"
-#include "sediment_fdm.h"
-#include "sliceint.h"
-#include "turbulence.h"
+#include"bedshear.h"
+#include"lexer.h"
+#include"fdm.h"
+#include"fdm2D.h"
+#include"ghostcell.h"
+#include"sediment_fdm.h"
+#include"turbulence.h"
+#include"sliceint.h"
+
 
 bedshear::bedshear(lexer *p, turbulence *ppturb) : norm_vec(p), kappa(0.4), uw_mean(p), vw_mean(p), uw_old(p), vw_old(p), uw_hat(p),
-                                                   uw_dt(p), vw_dt(p)
+                                                    uw_dt(p), vw_dt(p)
 {
-    tau = 0.0;
-    tauc = 0.0;
-    pturb = ppturb;
-    tw_old = 0.0;
-    tw_dt = 0.0;
-    tw_count = 0;
-    tw_fw = 0.0;
+    tau=0.0;
+    tauc=0.0;
+    pturb=ppturb;
+    tw_old=0.0;
+    tw_dt=0.0;
+    tw_count=0;
+    tw_fw=0.0;
 }
 
 // S 16 9 ------------------------------------------------------------------------------------------
@@ -71,125 +72,125 @@ void bedshear::tau_wave_step(lexer *p)
 {
     // time since the previous call: the derivative of the sample needs a new time level
     tw_dt = p->simtime - tw_old;
-
-    if(tw_dt > 1.0e-12)
+    
+    if(tw_dt>1.0e-12)
     {
-        tw_old = p->simtime;
-        ++tw_count;
+    tw_old = p->simtime;
+    ++tw_count;
     }
 }
 
 double bedshear::tau_wave(lexer *p, double uvel, double vvel, double ks, double density)
 {
-    double T = p->S58 > 0.0 ? p->S58 : p->wT;
-
-    if(T <= 1.0e-10)
-        return 0.0;
-
-    double omega = 2.0 * PI / T;
-
+    double T = p->S58>0.0 ? p->S58 : p->wT;
+    
+    if(T<=1.0e-10)
+    return 0.0;
+    
+    double omega = 2.0*PI/T;
+    
     // current: running mean over one wave period; oscillatory part and its amplitude
     // (kept when called twice at the same time level)
-    if(tw_dt > 1.0e-12)
+    if(tw_dt>1.0e-12)
     {
-        if(tw_count > 1)
+        if(tw_count>1)
         {
-            double r = MIN(tw_dt / T, 1.0);
-            uw_mean(i, j) += r * (uvel - uw_mean(i, j));
-            vw_mean(i, j) += r * (vvel - vw_mean(i, j));
+        double r = MIN(tw_dt/T, 1.0);
+        uw_mean(i,j) += r*(uvel - uw_mean(i,j));
+        vw_mean(i,j) += r*(vvel - vw_mean(i,j));
         }
-
-        double uw = uvel - uw_mean(i, j);
-        double vw = vvel - vw_mean(i, j);
-
-        double uhat2 = uw * uw + vw * vw;
-
-        if(tw_count > 1)
+        
+        double uw = uvel - uw_mean(i,j);
+        double vw = vvel - vw_mean(i,j);
+        
+        double uhat2 = uw*uw + vw*vw;
+        
+        if(tw_count>1)
         {
-            double dudt = (uw - uw_old(i, j)) / tw_dt;
-            double dvdt = (vw - vw_old(i, j)) / tw_dt;
-
-            uhat2 += (dudt * dudt + dvdt * dvdt) / (omega * omega);
-
-            uw_dt(i, j) = dudt;
-            vw_dt(i, j) = dvdt;
+        double dudt = (uw - uw_old(i,j))/tw_dt;
+        double dvdt = (vw - vw_old(i,j))/tw_dt;
+        
+        uhat2 += (dudt*dudt + dvdt*dvdt)/(omega*omega);
+        
+        uw_dt(i,j) = dudt;
+        vw_dt(i,j) = dvdt;
         }
-
-        uw_hat(i, j) = sqrt(uhat2);
-        uw_old(i, j) = uw;
-        vw_old(i, j) = vw;
+        
+    uw_hat(i,j) = sqrt(uhat2);
+    uw_old(i,j) = uw;
+    vw_old(i,j) = vw;
     }
-
-    double A = uw_hat(i, j) / omega;
-    double z0 = MAX(ks, 1.0e-12) / 30.0;
-
-    double fw = A > 1.0e-12 ? MIN(1.39 * pow(A / z0, -0.52), 0.3) : 0.3;
-
+    
+    double A = uw_hat(i,j)/omega;
+    double z0 = MAX(ks,1.0e-12)/30.0;
+    
+    double fw = A>1.0e-12 ? MIN(1.39*pow(A/z0,-0.52), 0.3) : 0.3;
+    
     tw_fw = fw;
-
+    
     // S 59: phase lead of the wave stress
-    if(p->S59_phi != 0.0)
+    if(p->S59_phi!=0.0)
     {
-        const double ph = p->S59_phi * (PI / 180.0);
-        const double ul = uw_old(i, j) * cos(ph) + uw_dt(i, j) * sin(ph) / omega;
-        const double vl = vw_old(i, j) * cos(ph) + vw_dt(i, j) * sin(ph) / omega;
-
-        return 0.5 * density * fw * (ul * ul + vl * vl);
+    const double ph = p->S59_phi*(PI/180.0);
+    const double ul = uw_old(i,j)*cos(ph) + uw_dt(i,j)*sin(ph)/omega;
+    const double vl = vw_old(i,j)*cos(ph) + vw_dt(i,j)*sin(ph)/omega;
+    
+    return 0.5*density*fw*(ul*ul + vl*vl);
     }
-
-    return 0.5 * density * fw * (uw_old(i, j) * uw_old(i, j) + vw_old(i, j) * vw_old(i, j));
+    
+    return 0.5*density*fw*(uw_old(i,j)*uw_old(i,j) + vw_old(i,j)*vw_old(i,j));
 }
 
 double bedshear::tau_wave_current(lexer *p, double uvel, double vvel, double ks, double density, double zs)
 {
     // updates the running mean, the oscillatory part and fw (once per bed column and step)
-    double tw = tau_wave(p, uvel, vvel, ks, density);
-
-    double T = p->S58 > 0.0 ? p->S58 : p->wT;
-
+    double tw = tau_wave(p,uvel,vvel,ks,density);
+    
+    double T = p->S58>0.0 ? p->S58 : p->wT;
+    
     // no wave period: log law of the horizontal sample velocity
-    if(T <= 1.0e-10)
+    if(T<=1.0e-10)
     {
-        const double up = uplus(zs, ks);
-        return density * (uvel * uvel + vvel * vvel) / (up * up);
+    const double up = uplus(zs,ks);
+    return density*(uvel*uvel + vvel*vvel)/(up*up);
     }
-
-    const double omega = 2.0 * PI / T;
-
+    
+    const double omega = 2.0*PI/T;
+    
     // current: log law with the running mean
-    const double ub = uw_mean(i, j);
-    const double vb = vw_mean(i, j);
-    const double uc = sqrt(ub * ub + vb * vb);
-    const double up = uplus(zs, ks);
-    const double tau_c = density * uc * uc / (up * up);
-
+    const double ub = uw_mean(i,j);
+    const double vb = vw_mean(i,j);
+    const double uc = sqrt(ub*ub + vb*vb);
+    const double up = uplus(zs,ks);
+    const double tau_c = density*uc*uc/(up*up);
+    
     // waves: amplitude of the wave stress, and the instantaneous wave stress vector (with the phase lead)
-    const double tau_wa = 0.5 * density * tw_fw * uw_hat(i, j) * uw_hat(i, j);
-
-    double ul = uw_old(i, j);
-    double vl = vw_old(i, j);
-
-    if(p->S59_phi != 0.0)
+    const double tau_wa = 0.5*density*tw_fw*uw_hat(i,j)*uw_hat(i,j);
+    
+    double ul = uw_old(i,j);
+    double vl = vw_old(i,j);
+    
+    if(p->S59_phi!=0.0)
     {
-        const double ph = p->S59_phi * (PI / 180.0);
-        ul = uw_old(i, j) * cos(ph) + uw_dt(i, j) * sin(ph) / omega;
-        vl = vw_old(i, j) * cos(ph) + vw_dt(i, j) * sin(ph) / omega;
+    const double ph = p->S59_phi*(PI/180.0);
+    ul = uw_old(i,j)*cos(ph) + uw_dt(i,j)*sin(ph)/omega;
+    vl = vw_old(i,j)*cos(ph) + vw_dt(i,j)*sin(ph)/omega;
     }
-
-    const double ua = sqrt(ul * ul + vl * vl);
-    const double twx = 0.5 * density * tw_fw * ua * ul;
-    const double twy = 0.5 * density * tw_fw * ua * vl;
-
+    
+    const double ua = sqrt(ul*ul + vl*vl);
+    const double twx = 0.5*density*tw_fw*ua*ul;
+    const double twy = 0.5*density*tw_fw*ua*vl;
+    
     // DATA13 mean stress in the direction of the current
     double tau_m = 0.0;
-
-    if(tau_c > 0.0)
-        tau_m = tau_c * (1.0 + 1.2 * pow(tau_wa / (tau_c + tau_wa), 3.2));
-
-    const double tx = (uc > 1.0e-12 ? tau_m * ub / uc : 0.0) + twx;
-    const double ty = (uc > 1.0e-12 ? tau_m * vb / uc : 0.0) + twy;
-
-    return sqrt(tx * tx + ty * ty);
+    
+    if(tau_c>0.0)
+    tau_m = tau_c*(1.0 + 1.2*pow(tau_wa/(tau_c + tau_wa), 3.2));
+    
+    const double tx = (uc>1.0e-12 ? tau_m*ub/uc : 0.0) + twx;
+    const double ty = (uc>1.0e-12 ? tau_m*vb/uc : 0.0) + twy;
+    
+    return sqrt(tx*tx + ty*ty);
 }
 
 bedshear::~bedshear()
@@ -197,423 +198,283 @@ bedshear::~bedshear()
 }
 
 // CFD
-void bedshear::taubed(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
+void bedshear::taubed(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
 {
-    int count;
-    double zval, fac, topoval, taukin, tauvel, density;
-    double tau_eff, tau_i;
-
-    if(p->S16 == 9)
-        tau_wave_step(p);
-
+	int count;
+	double zval,fac,topoval,taukin,tauvel,density;
+    double tau_eff,tau_i;
+    
+    if(p->S16==9)
+    tau_wave_step(p);
+    
     SEDSLICELOOP
     {
-        k = s->bedk(i, j);
+    k = s->bedk(i,j);
+    
+    xip= p->XP[IP];
+	yip= p->YP[JP];
+    dist = p->DZN[KP];
+    tau_eff = 0.0;
+		
+    density = s->ro(i,j);
+    
+	
+    if(p->S16==1 || p->S16==9)
+    {
+    dist = p->DZN[KP];
+    
+    zval = s->bedzh(i,j) + 1.6*dist;
+    
 
-        xip = p->XP[IP];
-        yip = p->YP[JP];
-        dist = p->DZN[KP];
+    uvel=p->ccipol1(a->u,xip,yip,zval);
+    vvel=p->ccipol2(a->v,xip,yip,zval);
+    wvel=p->ccipol3(a->w,xip,yip,zval);
+
+    u_abs = sqrt(uvel*uvel + vvel*vvel  + wvel*wvel);
+
+    // log law at the height of the velocity sample
+    u_plus = uplus(1.6*dist,s->ks_eff(i,j));
+
+    tau_eff = density*(u_abs*u_abs)/(u_plus*u_plus);
+    
+    // tau_wave updates the running mean: called once (MAX is a macro)
+    if(p->S16==9 && p->S59<1)
+    {
+    double tau_w = tau_wave(p,uvel,vvel,s->ks_eff(i,j),density);
+    tau_eff = MAX(tau_eff, tau_w);
+    }
+    
+    // S 59 1: max(tau_log, Soulsby DATA13), S 59 2: Soulsby DATA13
+    if(p->S16==9 && p->S59>=1)
+    {
+    double tau_wc = tau_wave_current(p,uvel,vvel,s->ks_eff(i,j),density,1.6*dist);
+    tau_eff = p->S59==1 ? MAX(tau_eff, tau_wc) : tau_wc;
+    }
+    }
+    
+    
+    if(p->S16==2)
+    {
+    dist = 1.1*p->DZN[KP];
+    
+    zval = s->bedzh(i,j) + dist;
+    
+        uvel=p->ccipol1(a->u,xip,yip,zval);
+        vvel=p->ccipol2(a->v,xip,yip,zval);
+        wvel=p->ccipol3(a->w,xip,yip,zval);
+        
+    u_abs = sqrt(uvel*uvel + vvel*vvel  + wvel*wvel);
+
+    u_plus = uplus(dist,s->ks_eff(i,j));
+    
+    
+    zval = s->bedzh(i,j) + 0.5*p->DZN[KP];
+
+    tau_eff = MAX(density*(u_abs*u_abs)/(u_plus*u_plus), density*pturb->ccipol_a_kinval(p,pgc,xip,yip,zval)*0.3);
+    }
+    
+    if(p->S16==3)
+    {
+	double v_t,v_d;
+		
+	xip = p->XP[IP];
+	yip = p->YP[JP];
+
+    zval = s->bedzh(i,j) + 0.6*p->DZN[KP];
+	
+
+    uvel=p->ccipol1(a->u,xip,yip,zval);
+    vvel=p->ccipol2(a->v,xip,yip,zval);
+    wvel=p->ccipol3(a->w,xip,yip,zval);
+        
+    v_d=p->ccipol4(a->visc,xip,yip,zval);
+    v_t=p->ccipol4(a->eddyv,xip,yip,zval);
+
+    u_abs = sqrt(uvel*uvel + vvel*vvel);
+    
+    // velocity gradient between the bed and the sample at 0.6 DZN
+    tau_eff = density*(v_d + v_t)*(u_abs/(0.6*p->DZN[KP]));
+    }
+    
+	if(p->S16==4)
+    {
+    zval = s->bedzh(i,j) + 0.5*p->DZN[KP];
+    
+    tau_eff = density*pturb->ccipol_a_kinval(p,pgc,xip,yip,zval)*0.3;
+    }
+	
+	if(p->S16==5)
+    {
+    zval = s->bedzh(i,j) + 0.5*p->DZN[KP];
+    
+        uvel=p->ccipol1(a->u,xip,yip,zval);
+        vvel=p->ccipol2(a->v,xip,yip,zval);
+        wvel=p->ccipol3(a->w,xip,yip,zval);
+
+        u_abs = sqrt(uvel*uvel + vvel*vvel);
+			   
+    u_plus = uplus(0.5*p->DZN[KP],s->ks(i,j));
+
+
+    tauvel=density*(u_abs*u_abs)/(u_plus*u_plus);
+	
+	taukin=density*pturb->ccipol_a_kinval(p,pgc,xip,yip,zval)*0.3;
+	
+	tau_eff = sqrt(fabs(tauvel))*sqrt(fabs(taukin));
+    }
+    
+    if(p->S16==6)
+    {
+        double Cval,wh;
+        double bedlevel,waterlevel;
+        count=0;
+        uvel=vvel=wh=0.0;
+        KLOOP
+        PCHECK
+        {
+            if(a->phi(i,j,k)>=0.0)
+            {
+            uvel+=0.5*(a->u(i,j,k)+a->u(i-1,j,k));
+            vvel+=0.5*(a->v(i,j,k)+a->v(i,j-1,k));
+            ++count;
+            wh+=p->DZN[KP];
+            }
+        }
+
+        // dry column: no shear
         tau_eff = 0.0;
-
-        density = s->ro(i, j);
-
-        if(p->S16 == 1 || p->S16 == 9)
+        
+        if(count>0)
         {
-            dist = p->DZN[KP];
+        uvel=uvel/double(count);
+        vvel=vvel/double(count);
 
-            zval = s->bedzh(i, j) + 1.6 * dist;
+        Cval=18.0*log10(MAX((12.0*wh)/s->ks(i,j),10.0));
 
-            xip = p->XP[IP];
-            yip = p->YP[JP];
-            dist = p->DZN[KP];
-
-            density = s->ro(i, j);
-
-            // log law at the height of the velocity sample
-            u_plus = uplus(1.6 * dist, s->ks_eff(i, j));
-
-            tau_eff = density * (u_abs * u_abs) / (u_plus * u_plus);
-
-            // tau_wave updates the running mean: called once (MAX is a macro)
-            if(p->S16 == 9 && p->S59 < 1)
-            {
-                double tau_w = tau_wave(p, uvel, vvel, s->ks_eff(i, j), density);
-                tau_eff = MAX(tau_eff, tau_w);
-            }
-
-            // S 59 1: max(tau_log, Soulsby DATA13), S 59 2: Soulsby DATA13
-            if(p->S16 == 9 && p->S59 >= 1)
-            {
-                double tau_wc = tau_wave_current(p, uvel, vvel, s->ks_eff(i, j), density, 1.6 * dist);
-                tau_eff = p->S59 == 1 ? MAX(tau_eff, tau_wc) : tau_wc;
-            }
+        u_abs = sqrt(uvel*uvel + vvel*vvel);
+	
+        tau_eff = density*pow(sqrt(9.81)*(u_abs/Cval),2.0);
         }
+        
+        k = s->bedk(i,j);
+    }
+    
+    if(p->S16==7)
+    {
+    // horizontal velocity at half the first cell height (zval was not set in this branch)
+    zval = s->bedzh(i,j) + 0.5*p->DZN[KP];
 
-        if(p->S16 == 2)
+    uvel=p->ccipol1(a->u,xip,yip,zval);
+    vvel=p->ccipol2(a->v,xip,yip,zval);
+
+
+    u_abs = sqrt(uvel*uvel + vvel*vvel);
+
+    u_plus = uplus(0.5*p->DZN[KP],s->ks(i,j));
+
+    tau_eff = density*(u_abs*u_abs)/(u_plus*u_plus);
+    }
+    
+    
+    if(p->S16==8)
+    {
+    double E,B,dB,ustar,y_plus,visc,ks_plus,tau0;
+    double v_d,v_t;
+    
+    visc=p->W2;
+    
+    zval = s->bedzh(i,j) + 1.6*p->DZN[KP];
+    
+        uvel=p->ccipol1(a->u,xip,yip,zval);
+        vvel=p->ccipol2(a->v,xip,yip,zval);
+        wvel=p->ccipol3(a->w,xip,yip,zval);
+        
+        v_d=p->ccipol4(a->visc,xip,yip,zval);
+        v_t=p->ccipol4(a->eddyv,xip,yip,zval);
+
+        
+    // predictor    
+    dist = 1.6*p->DZN[KP];
+    u_abs = sqrt(uvel*uvel + vvel*vvel);
+    u_plus = uplus(dist,s->ks(i,j));
+    tau0=tau=density*(u_abs*u_abs)/(u_plus*u_plus);
+    ustar=sqrt(tau/density);
+    
+    visc = v_d;
+    
+    
+        // corrector
+        for(int qn=0; qn<5;++qn)
         {
-            dist = 1.1 * p->DZN[KP];
+        y_plus = ustar*dist;
+        
+        ks_plus = visc + 0.246*ustar*s->ks(i,j);
+        
+        u_plus = (1.0/kappa)*log(MAX(y_plus/ks_plus,1.0)) + 5.0;
 
-            zval = s->bedzh(i, j) + dist;
+        
+        tau_eff = MIN(density*(u_abs*u_abs)/pow((u_plus>1.0e-4?u_plus:1.0e20),2.0), tau0*3.5);
 
-            uvel = p->ccipol1(a->u, xip, yip, zval);
-            vvel = p->ccipol2(a->v, xip, yip, zval);
-            wvel = p->ccipol3(a->w, xip, yip, zval);
-
-            u_abs = sqrt(uvel * uvel + vvel * vvel + wvel * wvel);
-
-            u_plus = uplus(dist, s->ks_eff(i, j));
-
-            zval = s->bedzh(i, j) + 0.5 * p->DZN[KP];
-
-            tau_eff = MAX(density * (u_abs * u_abs) / (u_plus * u_plus), density * pturb->ccipol_a_kinval(p, pgc, xip, yip, zval) * 0.3);
+        ustar=sqrt(tau_eff/density);
         }
-
-        if(p->S16 == 3)
-        {
-            double v_t, v_d;
-
-            xip = p->XP[IP];
-            yip = p->YP[JP];
-
-            zval = s->bedzh(i, j) + 0.6 * p->DZN[KP];
-
-            uvel = p->ccipol1(a->u, xip, yip, zval);
-            vvel = p->ccipol2(a->v, xip, yip, zval);
-            wvel = p->ccipol3(a->w, xip, yip, zval);
-
-            v_d = p->ccipol4(a->visc, xip, yip, zval);
-            v_t = p->ccipol4(a->eddyv, xip, yip, zval);
-
-            u_abs = sqrt(uvel * uvel + vvel * vvel);
-
-            // velocity gradient between the bed and the sample at 0.6 DZN
-            tau_eff = density * (v_d + v_t) * (u_abs / (0.6 * p->DZN[KP]));
-        }
-
-        if(p->S16 == 4)
-        {
-            zval = s->bedzh(i, j) + 0.5 * p->DZN[KP];
-
-            tau_eff = density * pturb->ccipol_a_kinval(p, pgc, xip, yip, zval) * 0.3;
-        }
-
-        if(p->S16 == 5)
-        {
-            zval = s->bedzh(i, j) + 0.5 * p->DZN[KP];
-
-            uvel = p->ccipol1(a->u, xip, yip, zval);
-            vvel = p->ccipol2(a->v, xip, yip, zval);
-            wvel = p->ccipol3(a->w, xip, yip, zval);
-
-            u_abs = sqrt(uvel * uvel + vvel * vvel);
-
-            u_plus = uplus(0.5 * p->DZN[KP], s->ks(i, j));
-
-            tauvel = density * (u_abs * u_abs) / (u_plus * u_plus);
-
-            taukin = density * pturb->ccipol_a_kinval(p, pgc, xip, yip, zval) * 0.3;
-
-            tau_eff = sqrt(fabs(tauvel)) * sqrt(fabs(taukin));
-        }
-
-        if(p->S16 == 6)
-        {
-            double Cval, wh;
-            double bedlevel, waterlevel;
-            count = 0;
-            uvel = vvel = wh = 0.0;
-            KLOOP
-            PCHECK
-            {
-                dist = p->DZN[KP];
-
-                zval = s->bedzh(i, j) + 1.6 * dist;
-
-                uvel = p->ccipol1(a->u, xip, yip, zval);
-                vvel = p->ccipol2(a->v, xip, yip, zval);
-                wvel = p->ccipol3(a->w, xip, yip, zval);
-
-                u_abs = sqrt(uvel * uvel + vvel * vvel + wvel * wvel);
-
-                u_plus = (1.0 / kappa) * log(30.0 * (dist / s->ks_eff(i, j)));
-
-                tau_eff = density * (u_abs * u_abs) / pow((u_plus > 0.0 ? u_plus : 1.0e20), 2.0);
-            }
-
-            if(p->S16 == 2)
-            {
-                dist = 1.1 * p->DZN[KP];
-
-                zval = s->bedzh(i, j) + dist;
-
-                uvel = p->ccipol1(a->u, xip, yip, zval);
-                vvel = p->ccipol2(a->v, xip, yip, zval);
-                wvel = p->ccipol3(a->w, xip, yip, zval);
-
-                u_abs = sqrt(uvel * uvel + vvel * vvel + wvel * wvel);
-
-                u_plus = (1.0 / kappa) * log(30.0 * (dist / s->ks_eff(i, j)));
-
-                zval = s->bedzh(i, j) + 0.5 * p->DZN[KP];
-
-                tau_eff = MAX(density * (u_abs * u_abs) / pow((u_plus > 0.0 ? u_plus : 1.0e20), 2.0), density * pturb->ccipol_a_kinval(p, pgc, xip, yip, zval) * 0.3);
-            }
-
-            if(p->S16 == 3)
-            {
-                double v_t, v_d;
-
-                xip = p->XP[IP];
-                yip = p->YP[JP];
-
-                zval = s->bedzh(i, j) + 0.6 * p->DZN[KP];
-
-                uvel = p->ccipol1(a->u, xip, yip, zval);
-                vvel = p->ccipol2(a->v, xip, yip, zval);
-                wvel = p->ccipol3(a->w, xip, yip, zval);
-
-                v_d = p->ccipol4(a->visc, xip, yip, zval);
-                v_t = p->ccipol4(a->eddyv, xip, yip, zval);
-
-                u_abs = sqrt(uvel * uvel + vvel * vvel);
-
-                tau_eff = density * (v_d + v_t) * (u_abs / dist);
-            }
-
-            if(p->S16 == 4)
-            {
-                zval = s->bedzh(i, j) + 0.5 * p->DZN[KP];
-
-                tau_eff = density * pturb->ccipol_a_kinval(p, pgc, xip, yip, zval) * 0.3;
-            }
-
-            if(p->S16 == 5)
-            {
-                zval = s->bedzh(i, j) + 0.5 * p->DZN[KP];
-
-                uvel = p->ccipol1(a->u, xip, yip, zval);
-                vvel = p->ccipol2(a->v, xip, yip, zval);
-                wvel = p->ccipol3(a->w, xip, yip, zval);
-
-                u_abs = sqrt(uvel * uvel + vvel * vvel);
-
-                u_plus = (1.0 / kappa) * log(30.0 * (dist / s->ks(i, j)));
-
-                tauvel = density * (u_abs * u_abs) / pow((u_plus) > (0.0) ? (u_plus) : (1.0e20), 2.0);
-
-                taukin = density * pturb->ccipol_a_kinval(p, pgc, xip, yip, zval) * 0.3;
-
-                tau_eff = sqrt(fabs(tauvel)) * sqrt(fabs(taukin));
-            }
-
-            if(p->S16 == 6)
-            {
-                double Cval, wh;
-                double bedlevel, waterlevel;
-                count = 0;
-                uvel = vvel = wh = 0.0;
-                KLOOP
-                PCHECK
-                {
-                    if(a->phi(i, j, k) >= 0.0)
-                    {
-                        uvel += 0.5 * (a->u(i, j, k) + a->u(i - 1, j, k));
-                        vvel += 0.5 * (a->v(i, j, k) + a->v(i, j - 1, k));
-                        ++count;
-                        wh += p->DZN[KP];
-                    }
-                }
-
-                uvel = uvel / double(count);
-                vvel = vvel / double(count);
-
-                Cval = 18.0 * log10((12.0 * wh) / s->ks(i, j));
-
-                u_abs = sqrt(uvel * uvel + vvel * vvel);
-
-                tau_eff = density * pow(sqrt(9.81) * (u_abs / Cval), 2.0);
-            }
-
-            if(p->S16 == 7)
-            {
-
-                uvel = p->ccipol1(a->u, xip, yip, zval);
-                vvel = p->ccipol2(a->v, xip, yip, zval);
-
-                u_abs = sqrt(uvel * uvel + vvel * vvel);
-
-                u_plus = (1.0 / kappa) * log(30.0 * (dist / s->ks(i, j)));
-
-                tau_eff = density * (u_abs * u_abs) / pow((u_plus > 0.0 ? u_plus : 1.0e20), 2.0);
-            }
-
-            if(p->S16 == 8)
-            {
-                double E, B, dB, ustar, y_plus, visc, ks_plus, tau0;
-                double v_d, v_t;
-
-                visc = p->W2;
-
-                zval = s->bedzh(i, j) + 1.6 * p->DZN[KP];
-
-                uvel = p->ccipol1(a->u, xip, yip, zval);
-                vvel = p->ccipol2(a->v, xip, yip, zval);
-                wvel = p->ccipol3(a->w, xip, yip, zval);
-
-                v_d = p->ccipol4(a->visc, xip, yip, zval);
-                v_t = p->ccipol4(a->eddyv, xip, yip, zval);
-
-                // predictor
-                u_abs = sqrt(uvel * uvel + vvel * vvel);
-                u_plus = (1.0 / kappa) * log(30.0 * (dist / s->ks(i, j)));
-                tau0 = tau = density * (u_abs * u_abs) / pow((u_plus > 0.0 ? u_plus : 1.0e20), 2.0);
-                ustar = sqrt(tau / density);
-
-                visc = v_d;
-
-                // corrector
-                for(int qn = 0; qn < 5; ++qn)
-                {
-                    y_plus = ustar * dist;
-
-                    ks_plus = visc + 0.246 * ustar * s->ks(i, j);
-
-                    u_plus = (1.0 / kappa) * (log(MAX(y_plus / ks_plus, 1.0)) + 5.0);
-
-                    tau_eff = MIN(density * (u_abs * u_abs) / pow((u_plus > 1.0e-4 ? u_plus : 1.0e20), 2.0), tau0 * 3.5);
-
-                    ustar = sqrt(tau_eff / density);
-                }
-            }
-
-            // dry column: no shear
-            tau_eff = 0.0;
-
-            if(count > 0)
-            {
-                uvel = uvel / double(count);
-                vvel = vvel / double(count);
-
-                Cval = 18.0 * log10(MAX((12.0 * wh) / s->ks(i, j), 10.0));
-
-                u_abs = sqrt(uvel * uvel + vvel * vvel);
-
-                tau_eff = density * pow(sqrt(9.81) * (u_abs / Cval), 2.0);
-            }
-
-            k = s->bedk(i, j);
-        }
-
-        if(p->S16 == 7)
-        {
-            // horizontal velocity at half the first cell height (zval was not set in this branch)
-            zval = s->bedzh(i, j) + 0.5 * p->DZN[KP];
-
-            uvel = p->ccipol1(a->u, xip, yip, zval);
-            vvel = p->ccipol2(a->v, xip, yip, zval);
-
-            u_abs = sqrt(uvel * uvel + vvel * vvel);
-
-            u_plus = uplus(0.5 * p->DZN[KP], s->ks(i, j));
-
-            tau_eff = density * (u_abs * u_abs) / (u_plus * u_plus);
-        }
-
-        if(p->S16 == 8)
-        {
-            double E, B, dB, ustar, y_plus, visc, ks_plus, tau0;
-            double v_d, v_t;
-
-            visc = p->W2;
-
-            zval = s->bedzh(i, j) + 1.6 * p->DZN[KP];
-
-            uvel = p->ccipol1(a->u, xip, yip, zval);
-            vvel = p->ccipol2(a->v, xip, yip, zval);
-            wvel = p->ccipol3(a->w, xip, yip, zval);
-
-            v_d = p->ccipol4(a->visc, xip, yip, zval);
-            v_t = p->ccipol4(a->eddyv, xip, yip, zval);
-
-            // predictor
-            dist = 1.6 * p->DZN[KP];
-            u_abs = sqrt(uvel * uvel + vvel * vvel);
-            u_plus = uplus(dist, s->ks(i, j));
-            tau0 = tau = density * (u_abs * u_abs) / (u_plus * u_plus);
-            ustar = sqrt(tau / density);
-
-            visc = v_d;
-
-            // corrector
-            for(int qn = 0; qn < 5; ++qn)
-            {
-                y_plus = ustar * dist;
-
-                ks_plus = visc + 0.246 * ustar * s->ks(i, j);
-
-                u_plus = (1.0 / kappa) * log(MAX(y_plus / ks_plus, 1.0)) + 5.0;
-
-                tau_eff = MIN(density * (u_abs * u_abs) / pow((u_plus > 1.0e-4 ? u_plus : 1.0e20), 2.0), tau0 * 3.5);
-
-                ustar = sqrt(tau_eff / density);
-            }
-        }
-
-        // S 16 10: the bed shear stress of the CPM bedload layer (bedshear::column_tau): log law at the first cell
-        // centre at least half a cell above the bed level, or S 63 cells above it, and max(log law, 0.3 rho k) with
-        // k of the first fluid cell (validation 16: in separated flow the log law gives a fraction of the skin friction);
-        // S 16 11: the same with two velocity scales, sqrt(log law * 0.3 rho k), zero where the flow reattaches
-        if(p->S16 == 10 || p->S16 == 11)
-        {
-            double tx = 0.0, ty = 0.0, hc = 0.0;
-            bool rest = false;
-
-            bedshear::column_tau(p, a, pturb, i, j, s->bedzh(i, j), s->ks_eff(i, j), p->S63, p->S16 == 11 ? 2 : 1, density, tx, ty, hc, rest);
-
-            tau_eff = sqrt(tx * tx + ty * ty);
-        }
-
-        // tau_i for Ti: grain roughness, log law at the height of the velocity sample
-        dist = 1.6 * p->DZN[KP];
-
-        zval = s->bedzh(i, j) + dist;
-
-        uvel = p->ccipol1(a->u, xip, yip, zval);
-        vvel = p->ccipol2(a->v, xip, yip, zval);
-        wvel = p->ccipol3(a->w, xip, yip, zval);
-
-        u_abs = sqrt(uvel * uvel + vvel * vvel + wvel * wvel);
-
-        u_plus = uplus(dist, s->ks(i, j));
-
-        tau_i = density * (u_abs * u_abs) / (u_plus * u_plus);
-
-        s->tau_eff(i, j) = tau_eff;
-        s->tau_i(i, j) = tau_i;
-        s->shearvel_eff(i, j) = sqrt(tau_eff / density);
-        s->shields_eff(i, j) = tau_eff / ((p->S22 - density) * fabs(p->W22) * p->S20);
+    }
+    
+    // S 16 10: the bed shear stress of the CPM bedload layer (bedshear::column_tau): log law at the first cell
+    // centre at least half a cell above the bed level, or S 63 cells above it, and max(log law, 0.3 rho k) with
+    // k of the first fluid cell (validation 16: in separated flow the log law gives a fraction of the skin friction);
+    // S 16 11: the same with two velocity scales, sqrt(log law * 0.3 rho k), zero where the flow reattaches
+    if(p->S16==10 || p->S16==11)
+    {
+        double tx=0.0, ty=0.0, hc=0.0;
+        bool rest=false;
+        
+        bedshear::column_tau(p,a,pturb,i,j,s->bedzh(i,j),s->ks_eff(i,j),p->S63,p->S16==11?2:1,density,tx,ty,hc,rest);
+        
+        tau_eff = sqrt(tx*tx + ty*ty);
+    }
+    
+    // tau_i for Ti: grain roughness, log law at the height of the velocity sample
+        dist = 1.6*p->DZN[KP];
+        
+        zval = s->bedzh(i,j) + dist;
+        
+        uvel=p->ccipol1(a->u,xip,yip,zval);
+        vvel=p->ccipol2(a->v,xip,yip,zval);
+        wvel=p->ccipol3(a->w,xip,yip,zval);
+        
+        u_abs = sqrt(uvel*uvel + vvel*vvel  + wvel*wvel);
+        
+        u_plus = uplus(dist,s->ks(i,j));
+
+        tau_i = density*(u_abs*u_abs)/(u_plus*u_plus);
+    
+    s->tau_eff(i,j) = tau_eff;
+    s->tau_i(i,j) = tau_i;
+    s->shearvel_eff(i,j) = sqrt(tau_eff/density);
+    s->shields_eff(i,j) = tau_eff/((p->S22-density)*fabs(p->W22)*p->S20);
     }
 }
 
-void bedshear::taucritbed(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
+void bedshear::taucritbed(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
 {
-    double density = p->W1;
-
+	double density = p->W1;
+    
     SEDSLICELOOP
     {
-        // water density (a->ro(i,j,0) was the density of the lowest grid layer, not of the bed cell)
-        density = p->W1;
-
-        tauc = s->reduce(i, j) * (p->S30 * fabs(p->W22) * (p->S22 - density)) * p->S20;
-
-        s->tau_crit(i, j) = tauc;
-        s->shearvel_crit(i, j) = sqrt(tauc / density);
-        s->shields_crit(i, j) = p->S30 * s->reduce(i, j);
+    // water density (a->ro(i,j,0) was the density of the lowest grid layer, not of the bed cell)
+    density = p->W1;
+    
+    tauc = s->reduce(i,j) * (p->S30*fabs(p->W22)*(p->S22-density))*p->S20;
+  
+    s->tau_crit(i,j) = tauc;
+    s->shearvel_crit(i,j) = sqrt(tauc/density);
+    s->shields_crit(i,j) = p->S30*s->reduce(i,j);
     }
-
+    
     SEDSLICELOOP
-    s->MOB(i, j) = s->shields_eff(i, j) / (fabs(s->shields_crit(i, j)) > 1.0e-10 ? s->shields_crit(i, j) : 1.0e10);
+    s->MOB(i,j) = s->shields_eff(i,j)/(fabs(s->shields_crit(i,j))>1.0e-10?s->shields_crit(i,j):1.0e10);
 }
+
 
 /*--------------------------------------------------------------------
 bed shear stress of a bed column from the flow above the bed level set (S 16 10 and the CPM bedload layer)
@@ -644,44 +505,44 @@ bed shear stress of a bed column from the flow above the bed level set (S 16 10 
 bool bedshear::column_tau(lexer *p, fdm *a, turbulence *pt, int i, int j, double zbed, double ks, double href, int kmode,
                           double rho, double &tx, double &ty, double &hcell, bool &rest, int wall)
 {
-    int kb = MAX(0, MIN(p->knoz - 1, p->posc_k(zbed)));
-    double ur = 0.0, vr = 0.0, zr = 0.0;
-    bool found = false;
+    int kb = MAX(0,MIN(p->knoz-1, p->posc_k(zbed)));
+    double ur=0.0, vr=0.0, zr=0.0;
+    bool found=false;
     int k;
-
-    rest = false;
+    
+    rest=false;
     ks = MAX(ks, 1.0e-6);
-
+    
     // wall 1: the wall of the fluid at the bed is the face under its first fluid cell (topo >= 0 at the centre)
     int kf = kb;
+    
+    while(kf>0 && a->topo(i,j,kf-1)>=0.0)
+    --kf;
+    
+    while(kf+1<p->knoz && a->topo(i,j,kf)<0.0)
+    ++kf;
+    
+    const double zwall = p->ZN[kf+marge];
 
-    while(kf > 0 && a->topo(i, j, kf - 1) >= 0.0)
-        --kf;
-
-    while(kf + 1 < p->knoz && a->topo(i, j, kf) < 0.0)
-        ++kf;
-
-    const double zwall = p->ZN[kf + marge];
-
-    for(k = kb; k < p->knoz; ++k)
+    for(k=kb;k<p->knoz;++k)
     {
-        double h = p->DZN[k + marge];
+        double h = p->DZN[k+marge];
 
         // the first cell centre at least half a cell above the bed level set
-        if(a->topo(i, j, k) >= 0.5 * h * (1.0 - 1.0e-6))
+        if(a->topo(i,j,k) >= 0.5*h*(1.0-1.0e-6))
         {
-            bool body = p->solidread > 0 && a->solid(i, j, k) < 0.0;
-
-            if(body && k > kb && a->topo(i, j, k - 1) > 0.0 && a->solid(i, j, k - 1) > 0.0)
+            bool body = p->solidread>0 && a->solid(i,j,k)<0.0;
+            
+            if(body && k>kb && a->topo(i,j,k-1)>0.0 && a->solid(i,j,k-1)>0.0)
             {
                 --k;
                 body = false;
             }
-
+            
             rest = body;
-            ur = body ? 0.0 : 0.5 * (a->u(i - 1, j, k) + a->u(i, j, k));
-            vr = (body || p->j_dir == 0) ? 0.0 : 0.5 * (a->v(i, j - 1, k) + a->v(i, j, k));
-            zr = wall == 1 ? MAX(p->ZP[k + marge] - zwall, 0.5 * p->DZN[k + marge]) : a->topo(i, j, k);
+            ur = body ? 0.0 : 0.5*(a->u(i-1,j,k) + a->u(i,j,k));
+            vr = (body || p->j_dir==0) ? 0.0 : 0.5*(a->v(i,j-1,k) + a->v(i,j,k));
+            zr = wall==1 ? MAX(p->ZP[k+marge] - zwall, 0.5*p->DZN[k+marge]) : a->topo(i,j,k);
             hcell = h;
             found = true;
             break;
@@ -692,90 +553,90 @@ bool bedshear::column_tau(lexer *p, fdm *a, turbulence *pt, int i, int j, double
     if(!found)
     {
         tx = ty = 0.0;
-        hcell = p->DZN[kb + marge];
+        hcell = p->DZN[kb+marge];
         return false;
     }
 
-    if(href > 0.0 && !rest)
+    if(href>0.0 && !rest)
     {
         int k0 = k;
         double h = hcell;
-        double zb = wall == 1 ? zwall : p->ZP[k0 + marge] - a->topo(i, j, k0);
-        double zref = zb + href * h;
-
+        double zb = wall==1 ? zwall : p->ZP[k0+marge] - a->topo(i,j,k0);
+        double zref = zb + href*h;
+        
         // top of the fluid column above the bed: solid body or free surface
-        for(int kk = k0 + 1; kk < p->knoz; ++kk)
+        for(int kk=k0+1; kk<p->knoz; ++kk)
         {
             double dtop = 1.0e20;
-
-            if(p->solidread > 0 && a->solid(i, j, kk) < 0.0)
-                dtop = p->ZP[kk + marge] + a->solid(i, j, kk) - zb;
-
-            if(a->phi(i, j, kk) < 0.0)
-                dtop = MIN(dtop, p->ZP[kk + marge] + a->phi(i, j, kk) - zb);
-
-            if(dtop < 1.0e19)
+            
+            if(p->solidread>0 && a->solid(i,j,kk)<0.0)
+            dtop = p->ZP[kk+marge] + a->solid(i,j,kk) - zb;
+            
+            if(a->phi(i,j,kk)<0.0)
+            dtop = MIN(dtop, p->ZP[kk+marge] + a->phi(i,j,kk) - zb);
+            
+            if(dtop<1.0e19)
             {
-                zref = MIN(zref, zb + 0.5 * dtop);
+                zref = MIN(zref, zb + 0.5*dtop);
                 break;
             }
         }
-
+        
         zref = MAX(zref, zb + zr);
-
+        
         // linear between the cell centres around zref
         int kr = k0;
-        while(kr + 1 < p->knoz && p->ZP[kr + 1 + marge] <= zref)
-            ++kr;
-
-        if(kr > k0 && kr + 1 < p->knoz && !(p->solidread > 0 && a->solid(i, j, kr + 1) < 0.0))
+        while(kr+1<p->knoz && p->ZP[kr+1+marge]<=zref)
+        ++kr;
+        
+        if(kr>k0 && kr+1<p->knoz && !(p->solidread>0 && a->solid(i,j,kr+1)<0.0))
         {
-            double f = (zref - p->ZP[kr + marge]) / (p->ZP[kr + 1 + marge] - p->ZP[kr + marge]);
-            double u0 = 0.5 * (a->u(i - 1, j, kr) + a->u(i, j, kr)), u1 = 0.5 * (a->u(i - 1, j, kr + 1) + a->u(i, j, kr + 1));
-            ur = (1.0 - f) * u0 + f * u1;
-
-            if(p->j_dir == 1)
+            double f = (zref - p->ZP[kr+marge])/(p->ZP[kr+1+marge] - p->ZP[kr+marge]);
+            double u0 = 0.5*(a->u(i-1,j,kr) + a->u(i,j,kr)), u1 = 0.5*(a->u(i-1,j,kr+1) + a->u(i,j,kr+1));
+            ur = (1.0-f)*u0 + f*u1;
+            
+            if(p->j_dir==1)
             {
-                double v0 = 0.5 * (a->v(i, j - 1, kr) + a->v(i, j, kr)), v1 = 0.5 * (a->v(i, j - 1, kr + 1) + a->v(i, j, kr + 1));
-                vr = (1.0 - f) * v0 + f * v1;
+                double v0 = 0.5*(a->v(i,j-1,kr) + a->v(i,j,kr)), v1 = 0.5*(a->v(i,j-1,kr+1) + a->v(i,j,kr+1));
+                vr = (1.0-f)*v0 + f*v1;
             }
-
+            
             zr = zref - zb;
         }
-        else if(kr > k0)
+        else if(kr>k0)
         {
-            ur = 0.5 * (a->u(i - 1, j, kr) + a->u(i, j, kr));
-            vr = p->j_dir == 1 ? 0.5 * (a->v(i, j - 1, kr) + a->v(i, j, kr)) : 0.0;
-            zr = p->ZP[kr + marge] - zb;
+            ur = 0.5*(a->u(i-1,j,kr) + a->u(i,j,kr));
+            vr = p->j_dir==1 ? 0.5*(a->v(i,j-1,kr) + a->v(i,j,kr)) : 0.0;
+            zr = p->ZP[kr+marge] - zb;
         }
     }
 
-    double um = sqrt(ur * ur + vr * vr);
+    double um = sqrt(ur*ur + vr*vr);
+    
+    int km = (pt!=nullptr && !rest) ? kmode : 0;
+    double tau = tau_logk(um, zr, ks, km>0 ? pt->kinval(i,j,k) : 0.0, km, rho);
 
-    int km = (pt != nullptr && !rest) ? kmode : 0;
-    double tau = tau_logk(um, zr, ks, km > 0 ? pt->kinval(i, j, k) : 0.0, km, rho);
-
-    tx = um > 1.0e-12 ? tau * ur / um : 0.0;
-    ty = um > 1.0e-12 ? tau * vr / um : 0.0;
-
+    tx = um>1.0e-12 ? tau*ur/um : 0.0;
+    ty = um>1.0e-12 ? tau*vr/um : 0.0;
+    
     return true;
 }
 
 // the closure of column_tau, shared by the CFD and the NHFLOW column (S 16 10) and the CPM bedload layer
 double bedshear::tau_logk(double um, double zr, double ks, double kin, int kmode, double rho)
 {
-    double up = log(MAX(30.0 * zr / ks, 1.0 + 1.0e-6)) / 0.4;
-    double us = um / up;
-    double tau = rho * us * us;
-
-    if(kmode == 1)
-        tau = MAX(tau, 0.3 * rho * MAX(kin, 0.0));
-
+    double up = log(MAX(30.0*zr/ks, 1.0+1.0e-6))/0.4;
+    double us = um/up;
+    double tau = rho*us*us;
+    
+    if(kmode==1)
+    tau = MAX(tau, 0.3*rho*MAX(kin,0.0));
+    
     // two velocity scales: u* = sqrt(u*_log * C_mu^1/4 k^1/2) with C_mu^1/2 = 0.3, the same as the log law in
     // equilibrium (0.3 k = u*^2), zero where the mean velocity at the reference point vanishes (separation,
     // reattachment), with the size of the k term in the recirculation; without k (no turbulence model) the log law
-    if(kmode == 2 && kin > 0.0)
-        tau = sqrt(tau * 0.3 * rho * kin);
-
+    if(kmode==2 && kin>0.0)
+    tau = sqrt(tau*0.3*rho*kin);
+    
     return tau;
 }

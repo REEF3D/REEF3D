@@ -23,8 +23,8 @@ Architect: Hans Bihs
 #ifndef SEASTATE_GRID_H_
 #define SEASTATE_GRID_H_
 
-#include <string>
-#include <vector>
+#include<string>
+#include<vector>
 
 /*--------------------------------------------------------------------
 REEF3D::SEASTATE - spectral (frequency-direction) grid
@@ -71,7 +71,7 @@ class seastate_grid
 {
 public:
     seastate_grid(int nsig, double fmin, double fmax, int ndir);
-    seastate_grid(double frep, int ndir);  // single frequency (surfbeat)
+    seastate_grid(double frep, int ndir);            // single frequency (surfbeat)
 
     // fine direction sector (A 715): th1, th2 [rad], k bins per direction of the sector
     void sector(double th1, double th2, int k);
@@ -97,29 +97,29 @@ public:
     int merge_axis_quadrants();
 
     // neighbour directions (-1: none, the end of a compact sector)
-    int prev(int m) const { return m > 0 ? m - 1 : (periodic ? ndir - 1 : -1); }
-    int next(int m) const { return m < ndir - 1 ? m + 1 : (periodic ? 0 : -1); }
+    int prev(int m) const {return m>0 ? m-1 : (periodic ? ndir-1 : -1);}
+    int next(int m) const {return m<ndir-1 ? m+1 : (periodic ? 0 : -1);}
 
-    bool valid() const { return error.empty(); }
-    const std::string &message() const { return error; }
+    bool valid() const {return error.empty();}
+    const std::string &message() const {return error;}
 
-    int bin(int l, int m) const { return l * ndir + m; }
+    int bin(int l, int m) const {return l*ndir + m;}
 
     int nsig, ndir, nbin;
     double fmin, fmax, ratio, dtheta;
 
-    std::vector<double> f, sig, dsig;         // size nsig
-    std::vector<double> theta, costh, sinth;  // size ndir
-    std::vector<double> costhf, sinthf;       // faces theta_m + dtheta/2, size ndir
-    std::vector<int> quad;                    // quadrant 0..3 of direction m: theta in [q pi/2, (q+1) pi/2) (Phase 15: axis
-                                              // directions of a compact sector may join the neighbouring quadrant)
-    std::vector<double> dth, wth;             // bin widths, dth/dtheta (1 on the uniform grid)
-    std::vector<char> act;                    // 1: direction m is computed (A 717), size ndir
-    std::vector<double> costhl, sinthl;       // lower faces theta_m - dth/2 (the upper face of the previous direction)
+    std::vector<double> f, sig, dsig;           // size nsig
+    std::vector<double> theta, costh, sinth;    // size ndir
+    std::vector<double> costhf, sinthf;         // faces theta_m + dtheta/2, size ndir
+    std::vector<int> quad;                      // quadrant 0..3 of direction m: theta in [q pi/2, (q+1) pi/2) (Phase 15: axis
+                                                // directions of a compact sector may join the neighbouring quadrant)
+    std::vector<double> dth, wth;               // bin widths, dth/dtheta (1 on the uniform grid)
+    std::vector<char> act;                      // 1: direction m is computed (A 717), size ndir
+    std::vector<double> costhl, sinthl;         // lower faces theta_m - dth/2 (the upper face of the previous direction)
     bool uniform = true;
-    bool periodic = true;  // false: compact computational sector (A 717), the ends absorb
+    bool periodic = true;                       // false: compact computational sector (A 717), the ends absorb
     bool compact = false;
-    double theta0 = 0.0;  // direction of bin 0 (compact sector), else 0
+    double theta0 = 0.0;                        // direction of bin 0 (compact sector), else 0
 
 private:
     void directions();

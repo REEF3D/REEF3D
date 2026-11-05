@@ -23,10 +23,10 @@ Authors: Hans Bihs, Tobias Martin
 #ifndef SIXDOF_SFLOW_H_
 #define SIXDOF_SFLOW_H_
 
-#include "6DOF.h"
-#include "6DOF_obj_2D.h"
-#include "increment.h"
-#include <vector>
+#include"6DOF.h"
+#include<vector>
+#include"increment.h"
+#include"6DOF_obj_2D.h"
 
 class lexer;
 class fdm2D;
@@ -40,56 +40,63 @@ using namespace std;
 class sixdof_sflow final : public sixdof, public increment
 {
 public:
-    sixdof_sflow(lexer *, ghostcell *);
+	
+    sixdof_sflow(lexer*, ghostcell*);
     virtual ~sixdof_sflow();
+    
+    void start_cfd(lexer*,fdm*,ghostcell*,int,field&,field&,field&,field&,field&,field&,bool) override final;
+    void start_nhflow(lexer*,fdm_nhf*,ghostcell*,int,double*,double*,double*,double*,double*,double*,slice&,slice&,bool) override final;
+    void start_sflow(lexer*,fdm2D*,ghostcell*,int,slice&,slice&,slice&,slice&,slice&,slice&,slice&,bool) override final;
+    
+    void reforce_nhflow(lexer*,fdm_nhf*,ghostcell*,int,double*,double*,double*,double*,double*,double*,slice&,slice&,bool) override final {};
+    
+    void start_oneway(lexer*,ghostcell*,int,slice&,slice&,slice&,slice&,slice&,slice&,slice&,bool);
+    void start_shipwave(lexer*,ghostcell*,int,slice&,slice&,slice&,slice&,slice&,slice&,bool);
 
-    void start_cfd(lexer *, fdm *, ghostcell *, int, field &, field &, field &, field &, field &, field &, bool) override final;
-    void start_nhflow(lexer *, fdm_nhf *, ghostcell *, int, double *, double *, double *, double *, double *, double *, slice &, slice &, bool) override final;
-    void start_sflow(lexer *, fdm2D *, ghostcell *, int, slice &, slice &, slice &, slice &, slice &, slice &, slice &, bool) override final;
-
-    void reforce_nhflow(lexer *, fdm_nhf *, ghostcell *, int, double *, double *, double *, double *, double *, double *, slice &, slice &, bool) override final {};
-
-    void start_oneway(lexer *, ghostcell *, int, slice &, slice &, slice &, slice &, slice &, slice &, slice &, bool);
-    void start_shipwave(lexer *, ghostcell *, int, slice &, slice &, slice &, slice &, slice &, slice &, bool);
-
-    void ini(lexer *, ghostcell *) override final;
-    void initialize(lexer *, fdm *, ghostcell *) override final;
-    void initialize(lexer *, fdm2D *, ghostcell *) override final;
-    void initialize(lexer *, fdm_nhf *, ghostcell *) override final;
-
-    void isource(lexer *, fdm *, ghostcell *) override final;
-    void jsource(lexer *, fdm *, ghostcell *) override final;
-    void ksource(lexer *, fdm *, ghostcell *) override final;
-
-    void isource(lexer *, fdm_nhf *, ghostcell *, slice &) override final;
-    void jsource(lexer *, fdm_nhf *, ghostcell *, slice &) override final;
-    void ksource(lexer *, fdm_nhf *, ghostcell *, slice &) override final;
-
-    void isource2D(lexer *, fdm2D *, ghostcell *) override final;
-    void jsource2D(lexer *, fdm2D *, ghostcell *) override final;
+    
+	void ini(lexer*,ghostcell*) override final;
+    void initialize(lexer*, fdm*, ghostcell*) override final;
+    void initialize(lexer*, fdm2D*, ghostcell*) override final;
+    void initialize(lexer*, fdm_nhf*, ghostcell*) override final;
+	
+    
+    void isource(lexer*,fdm*,ghostcell*) override final;
+    void jsource(lexer*,fdm*,ghostcell*) override final;
+    void ksource(lexer*,fdm*,ghostcell*) override final;
+    
+    void isource(lexer*,fdm_nhf*,ghostcell*,slice&) override final;
+    void jsource(lexer*,fdm_nhf*,ghostcell*,slice&) override final;
+    void ksource(lexer*,fdm_nhf*,ghostcell*,slice&) override final;
+    
+    void isource2D(lexer*,fdm2D*,ghostcell*) override final;
+    void jsource2D(lexer*,fdm2D*,ghostcell*) override final;
 
     // checkpoints (P 48, I 45): the bodies one after the other, each with its length; the pressure
     // patch of the ship waves as a slice
-    void ckpt_state(lexer *, std::vector<double> &) override final;
-    bool ckpt_restore(lexer *, ghostcell *, const std::vector<double> &) override final;
-    double *ckpt_slice() override final { return press.V; }
-    void ckpt_fields(const std::function<void(const char *, char, double *)> &, const std::function<void(const char *, char, int *)> &) override final;
+    void ckpt_state(lexer*, std::vector<double>&) override final;
+    bool ckpt_restore(lexer*, ghostcell*, const std::vector<double>&) override final;
+    double* ckpt_slice() override final {return press.V;}
+    void ckpt_fields(const std::function<void(const char*,char,double*)>&, const std::function<void(const char*,char,int*)>&) override final;
 
     // bodies, for the SFLOW mesh refinement
-    int objects() const { return number6DOF; }
-    sixdof_obj_2D *object(int n) { return fb_obj[n]; }
+    int objects() const {return number6DOF;}
+    sixdof_obj_2D* object(int n) {return fb_obj[n];}
 
 private:
+	
     // hires gradient
     double starttime;
+    
+    double denom,val,r,phival;
+    double dfdx_plus,dfdx_min,dfdy_plus,dfdy_min,dfdx,dfdy;
 
-    double denom, val, r, phival;
-    double dfdx_plus, dfdx_min, dfdy_plus, dfdy_min, dfdx, dfdy;
 
     int number6DOF;
-    vector<sixdof_obj_2D *> fb_obj;
+    vector<sixdof_obj_2D*> fb_obj;
 
     slice4 press;
+
+
 };
 
 #endif

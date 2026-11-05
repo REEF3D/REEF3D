@@ -20,18 +20,19 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
+
 #ifndef SEASTATE_AMR_H_
 #define SEASTATE_AMR_H_
 
-#include "reefamr.h"
-#include "seastate_implicit.h"
-#include <fstream>
-#include <functional>
-#include <memory>
-#include <mutex>
-#include <string>
-#include <unordered_map>
-#include <vector>
+#include"reefamr.h"
+#include"seastate_implicit.h"
+#include<fstream>
+#include<functional>
+#include<memory>
+#include<mutex>
+#include<string>
+#include<unordered_map>
+#include<vector>
 
 class lexer;
 class ghostcell;
@@ -181,14 +182,14 @@ struct seastate_amr_patch : public reefamr_patch
 {
     fdm_seastate *e = nullptr;
     seastate_implicit *solv = nullptr;
-    seastate_store *N0 = nullptr;         // spectra at the start of the step (nonstationary)
-    seastate_store *res = nullptr;        // FAS (A 758): residual of the cell equations
-    sliceint4 *cov = nullptr;             // 1: covered by a patch of the next finer level
-    slice4 *wU = nullptr, *wD = nullptr;  // wind field (A 730 2)
-    vector<int> ring;                     // fill entries next to the interior (inflow of the sweeps), local sources
-    vector<int> ringr;                    // the same, held by other ranks
-    vector<int> ring2, ring2r;            // Phase 17, second-order fluxes (A 796 2): the second layer, local / other ranks
-    vector<int> ringsel;                  // ringr and ring2r: the entries the fills of the level store
+    seastate_store *N0 = nullptr;           // spectra at the start of the step (nonstationary)
+    seastate_store *res = nullptr;          // FAS (A 758): residual of the cell equations
+    sliceint4 *cov = nullptr;               // 1: covered by a patch of the next finer level
+    slice4 *wU = nullptr, *wD = nullptr;    // wind field (A 730 2)
+    vector<int> ring;                       // fill entries next to the interior (inflow of the sweeps), local sources
+    vector<int> ringr;                      // the same, held by other ranks
+    vector<int> ring2, ring2r;              // Phase 17, second-order fluxes (A 796 2): the second layer, local / other ranks
+    vector<int> ringsel;                    // ringr and ring2r: the entries the fills of the level store
 
     // Phase 6b: obstacles and coasts, diffraction (Ca, its gradient; smoothed energy, work slices), vegetation
     seastate_obstacle *pobs = nullptr;
@@ -203,29 +204,29 @@ struct seastate_amr_patch : public reefamr_patch
 // spectra on the faces of the covered cells of one grid
 struct seastate_amr_faces : public seastate_faces
 {
-    unordered_map<long, vector<float>> F;  // key(i,j,s) of the covered cell
+    unordered_map<long,vector<float>> F;    // key(i,j,s) of the covered cell
 
-    static long key(int i, int j, int s) { return ((long(i) + 64L) * 16777216L + (long(j) + 64L)) * 4L + long(s); }
+    static long key(int i, int j, int s) {return ((long(i)+64L)*16777216L + (long(j)+64L))*4L + long(s);}
     const float *face(int i, int j, int s) const override
     {
-        auto it = F.find(key(i, j, s));
-        return it == F.end() ? nullptr : it->second.data();
+        auto it = F.find(key(i,j,s));
+        return it==F.end() ? nullptr : it->second.data();
     }
 };
 
 // a face spectrum and the two fine cells next to the face
 struct seastate_amr_flink
 {
-    int g;     // coarse grid id
-    long key;  // face key in the faces of g
-    int id;    // fine patch
-    int i0, j0, i1, j1;
+    int g;          // coarse grid id
+    long key;       // face key in the faces of g
+    int id;         // fine patch
+    int i0,j0,i1,j1;
 };
 
 class seastate_amr : public reefamr, public seastate_kba_extra
 {
 public:
-    seastate_amr(lexer *, ghostcell *);
+    seastate_amr(lexer*, ghostcell*);
     virtual ~seastate_amr();
 
     // level-0 objects of seastate_f
@@ -237,32 +238,32 @@ public:
         seastate_source *src;
         seastate_store *N0;
         const seastate_bathy *bathy;
-        met_provider *wmet;  // the wind of the met forcing (A 730 2)
+        met_provider *wmet;                 // the wind of the met forcing (A 730 2)
         double tref;
-        seastate_obstacle *pobs = nullptr;    // obstacles and coasts of level 0 (A 722 - A 726)
-        const seastate_bathy *veg = nullptr;  // vegetation raster (A 756 1)
+        seastate_obstacle *pobs = nullptr;      // obstacles and coasts of level 0 (A 722 - A 726)
+        const seastate_bathy *veg = nullptr;    // vegetation raster (A 756 1)
     };
 
-    void ini(lexer *, ghostcell *, const level0 &);
-    bool active() const { return maxlev > 0 && patches_total > 0; }
+    void ini(lexer*, ghostcell*, const level0&);
+    bool active() const {return maxlev>0 && patches_total>0;}
     int level0_covered(int i, int j) const;
 
     // nonstationary step start: N0 of the patches
     void step_begin();
 
     // one composite iteration (four quadrant sweeps on all grids)
-    void iterate(lexer *, ghostcell *, const seastate_store *N0, double rdt, const vector<float> &Nb,
+    void iterate(lexer*, ghostcell*, const seastate_store *N0, double rdt, const vector<float> &Nb,
                  const int side[4], bool refraction, bool fshift);
 
     // FAS coarse-grid correction (A 758): level 0 is the coarse grid of the patches of all levels; N0 the spectra
     // of the start of the step (nonstationary) or nullptr
-    void fas(lexer *, ghostcell *, const seastate_store *N0, double rdt, const vector<float> &Nb, const int side[4], bool refraction, bool fshift, int ncoarse);
-    double fas_last() const { return fas_change; }
+    void fas(lexer*, ghostcell*, const seastate_store *N0, double rdt, const vector<float> &Nb, const int side[4], bool refraction, bool fshift, int ncoarse);
+    double fas_last() const {return fas_change;}
 
     // integrated parameters of the patches; Hs of the patch interiors (leaf cells) for the
     // stationary convergence (appended to hs, the cell area relative to a level-0 cell to w),
     // the largest Hs and the smallest N of the leaf cells
-    void parameters(vector<double> *hs, double &hmax, double &vmin, vector<double> *w = nullptr);
+    void parameters(vector<double> *hs, double &hmax, double &vmin, vector<double> *w=nullptr);
 
     // wind field on the patches (A 730 2), time t of the model
     void wind(double t);
@@ -274,14 +275,14 @@ public:
     // together, 2: one frequency), after level 0: the energy of every patch is smoothed with the values of
     // the next coarser grid in the ring around the interior (the smoothed energy and Ca, bilinear), the
     // number of steps 0.4 (L/dx)^2 of the patch (A 719 n: n 4^level), at most 400
-    void diffraction(lexer *, int mode, int l0, int l1, double smax, double L, double dmin0, slice4 &E0,
+    void diffraction(lexer*, int mode, int l0, int l1, double smax, double L, double dmin0, slice4 &E0,
                      slice4 &T0);
 
     // Phase 17: the composite sweep (A 797 1) pipelined across the ranks (A 781 1): the boundary tiles of level 0 also
     // carry the faces of the covered boundary cells and the ring cells (and their faces) of the patches of the rank
     // downstream whose sources lie in the tile. Collective; after ini, with the level-0 solver already pipelined
-    void pipeline_setup(lexer *, ghostcell *);
-    bool pipelined() const { return kba; }
+    void pipeline_setup(lexer*, ghostcell*);
+    bool pipelined() const {return kba;}
     size_t kba_size(int q, int s, int idx, int tb, bool send) override;
     void kba_pack(int q, int s, int idx, int tb, float *buf) override;
     void kba_unpack(int q, int s, int idx, int tb, const float *buf) override;
@@ -289,67 +290,56 @@ public:
     // finest grid on this rank that holds the point: lexer, field data, cell
     bool locate(double x, double y, lexer *&q, fdm_seastate *&ee, int &ci, int &cj);
 
-    void print(lexer *, ghostcell *);
-    void convergence(lexer *, int iteration, double change, double percent);
-    void log(lexer *, ghostcell *, int iterations);
+    void print(lexer*, ghostcell*);
+    void convergence(lexer*, int iteration, double change, double percent);
+    void log(lexer*, ghostcell*, int iterations);
 
     // Phase 18: checkpoints (P 48, I 45; seastate_f_ckpt.cpp) and the measured work of the cells (G 45, G 46).
     // A patch: its level and box (global indices of the level), the offsets of the box in its arrays (local = global - I0 + ox),
     // its interior nx x ny, its lexer, field data, solver and covered marks
-    struct gview
-    {
-        int lev, I0, I1, J0, J1, nx, ny, ox, oy;
-        lexer *pp;
-        fdm_seastate *e;
-        seastate_implicit *solv;
-        sliceint4 *cov;
-    };
-    int npatch() const { return (int)P.size(); }
+    struct gview {int lev, I0, I1, J0, J1, nx, ny, ox, oy; lexer *pp; fdm_seastate *e; seastate_implicit *solv; sliceint4 *cov;};
+    int npatch() const {return (int)P.size();}
     gview patch_view(int id);
     // after a restart has set the spectra of the interiors of all grids: the restriction (the faces of the covered cells),
     // then again (the spectra of the checkpoint once more: its covered cells as they were, bitwise), the level-0 halo with
     // its faces and the fills of all levels (collective)
-    void restored(lexer *, ghostcell *, const std::function<void()> &again);
+    void restored(lexer*, ghostcell*, const std::function<void()> &again);
     // the work fields of the patch solvers (before the first sweep, so that the copies for the threads take them)
     void work_fields();
     // the work of the patch cells added into the level-0 columns of this rank (col: i*knoy+j of level 0); reset: zero
-    void work_columns(lexer *, vector<double> &col, bool reset);
-    int print_count() const { return printcount_amr; }
-    void print_count(int n) { printcount_amr = n; }
-    void flush_logs()
-    {
-        logout.flush();
-        convout.flush();
-    }
+    void work_columns(lexer*, vector<double> &col, bool reset);
+    int print_count() const {return printcount_amr;}
+    void print_count(int n) {printcount_amr = n;}
+    void flush_logs() {logout.flush(); convout.flush();}
 
 protected:
-    reefamr_patch *patch_new() override;
-    void patch_objects(reefamr_patch *, ghostcell *) override;
-    void patch_delete(reefamr_patch *) override;
-    void tag(int, vector<unsigned char> &) override;
-    void regrid_prepare(ghostcell *) override {}
-    void regrid_static(ghostcell *) override;
-    void regrid_state(ghostcell *, vector<reefamr_patch *> &) override;
-    void regrid_finish(ghostcell *, int) override;
+    reefamr_patch* patch_new() override;
+    void patch_objects(reefamr_patch*, ghostcell*) override;
+    void patch_delete(reefamr_patch*) override;
+    void tag(int, vector<unsigned char>&) override;
+    void regrid_prepare(ghostcell*) override {}
+    void regrid_static(ghostcell*) override;
+    void regrid_state(ghostcell*, vector<reefamr_patch*>&) override;
+    void regrid_finish(ghostcell*, int) override;
 
 private:
-    static seastate_amr_patch *SP(reefamr_patch *c) { return static_cast<seastate_amr_patch *>(c); }
-    seastate_amr_patch *SP(int n) { return static_cast<seastate_amr_patch *>(P[n]); }
+    static seastate_amr_patch* SP(reefamr_patch *c) {return static_cast<seastate_amr_patch*>(c);}
+    seastate_amr_patch* SP(int n) {return static_cast<seastate_amr_patch*>(P[n]);}
 
     // grid id -1: level 0
-    fdm_seastate *gfd(int g);
-    sliceint4 *gcov(int g);
-    seastate_amr_faces *gfaces(int g) { return &faces[g + 1]; }
+    fdm_seastate* gfd(int g);
+    sliceint4* gcov(int g);
+    seastate_amr_faces* gfaces(int g) {return &faces[g+1];}
 
-    void environment(seastate_amr_patch &);
+    void environment(seastate_amr_patch&);
     bool coarse_value(int l, int I, int J, int what, slice4 &E0, slice4 &T0, double &v);
     double bed_at(int l, int I, int J);
     void covered();
     void restrict_all();
     void restrict_level(int l);
     void fill_level(int l);
-    void fill_local(seastate_amr_patch *, int id);
-    vector<vector<int>> order[4];  // [q][l]: patches of level l in the downstream order of quadrant q
+    void fill_local(seastate_amr_patch*, int id);
+    vector<vector<int>> order[4];           // [q][l]: patches of level l in the downstream order of quadrant q
     void sweep_level(int l, int q, double rdt, bool refraction, bool fshift);
 
     // Phase 12: threads over the patches of a level (level by level, A 798, at least 2 A 798 patches on the level):
@@ -357,43 +347,43 @@ private:
     // that every patch sees the values of the serial order (bitwise the result of one thread); each patch is swept
     // by one thread. Only where the graph allows it: the cells of the level over the cells of its longest chain of
     // dependent patches at least 0.75 times the threads; otherwise the patches are threaded inside, one after the other
-    vector<vector<int>> dag_npred[4];         // [q][l][k]: number of predecessors of position k
-    vector<double> dag_gain[4];               // [q][l]: cells of the level / cells of the longest chain
-    vector<vector<vector<int>>> dag_succ[4];  // [q][l][k]: successors of position k
+    vector<vector<int>> dag_npred[4];                   // [q][l][k]: number of predecessors of position k
+    vector<double> dag_gain[4];                         // [q][l]: cells of the level / cells of the longest chain
+    vector<vector<vector<int>>> dag_succ[4];            // [q][l][k]: successors of position k
     void dag_build();
-    void dag_report();  // the choice per level in the log (rank 0)
+    void dag_report();                                  // the choice per level in the log (rank 0)
     bool sweep_level_threads(int l, int q, double rdt, bool refraction, bool fshift);
     void thread_copies(int nt);
 
     // composite sweep (A 797 1): the cells of a patch are solved where the sweep of the coarser grid
     // reaches their parent cell, so that one sweep carries the waves through all levels
-    static long long ckey(int g, int i, int j) { return ((long long)(g + 1) << 42) | ((long long)(i + 1048576) << 21) | (long long)(j + 1048576); }
-    unordered_map<long long, pair<int, int>> childof;          // ckey(g,I,J) of a covered cell -> patch id, block
-    vector<unordered_map<long long, int>> ghostof;             // [id]: ckey(-1,i,j) of a ring cell -> fill entry (this rank)
-    unordered_map<long long, vector<pair<int, int>>> flinkof;  // ckey(g,I,J) -> faces of the cell: level, index in flinks[l]
+    static long long ckey(int g, int i, int j) {return ((long long)(g+1)<<42) | ((long long)(i+1048576)<<21) | (long long)(j+1048576);}
+    unordered_map<long long,pair<int,int>> childof; // ckey(g,I,J) of a covered cell -> patch id, block
+    vector<unordered_map<long long,int>> ghostof;   // [id]: ckey(-1,i,j) of a ring cell -> fill entry (this rank)
+    unordered_map<long long,vector<pair<int,int>>> flinkof;   // ckey(g,I,J) -> faces of the cell: level, index in flinks[l]
     void composite_maps();
-    void composite_sweep(lexer *, ghostcell *, int q, const seastate_store *N0, double rdt, const vector<float> &Nb,
+    void composite_sweep(lexer*, ghostcell*, int q, const seastate_store *N0, double rdt, const vector<float> &Nb,
                          const int side[4], bool refraction, bool fshift);
     void descend(int g, int I, int J, int q, double rdt, bool refraction, bool fshift, int t = 0);
-    void ghost_fill(seastate_amr_patch *, int id, int fi, int fj);
+    void ghost_fill(seastate_amr_patch*, int id, int fi, int fj);
     // threads in the composite sweep (A 798): per thread (1 .. A 798 - 1) a copy of every patch solver and of the
     // source terms; thread 0 uses the patch solvers themselves
     vector<vector<std::unique_ptr<seastate_implicit>>> tsolv;
     vector<std::unique_ptr<seastate_source>> tsrc;
-    std::mutex ring_mutex;  // writes into the ring cells of the patches (ghost_fill)
-    seastate_implicit *solver_of(int id, int t) { return t == 0 ? SP(id)->solv : tsolv[t][id].get(); }
-    bool remote_blocks = false;  // a parent cell on another rank (restriction through the block plans)
+    std::mutex ring_mutex;                  // writes into the ring cells of the patches (ghost_fill)
+    seastate_implicit* solver_of(int id, int t) {return t==0 ? SP(id)->solv : tsolv[t][id].get();}
+    bool remote_blocks = false;             // a parent cell on another rank (restriction through the block plans)
 
     // Phase 16: the faces of the covered level-0 cells at the rank boundaries. A covered cell next to a rank
     // boundary has a face spectrum towards the halo cell (the mean of the two fine cells next to the face, as the
     // faces inside the rank); the neighbour rank marks its halo cell as covered and takes the face spectrum for
     // its cell next to it, so that the cells next to a patch of another rank see the outflow of the fine grid as
     // on one rank. Sent after every level-0 halo exchange.
-    vector<int> rface_send[4], rface_recv[4];  // [side]: interior cells (i,j,...) with a face, halo cells taking one
-    bool rfaces = false;                       // any rank boundary with faces
-    void remote_faces_plan(ghostcell *);
-    void remote_faces(ghostcell *);
-    void halo0(lexer *, ghostcell *);  // level-0 halo exchange, then the faces
+    vector<int> rface_send[4], rface_recv[4];   // [side]: interior cells (i,j,...) with a face, halo cells taking one
+    bool rfaces = false;                        // any rank boundary with faces
+    void remote_faces_plan(ghostcell*);
+    void remote_faces(ghostcell*);
+    void halo0(lexer*, ghostcell*);             // level-0 halo exchange, then the faces
 
     // Phase 17: the pipeline (pipeline_setup). Per side of the rank: the ring cells of the patches of this rank whose
     // source lies on the neighbour rank there (recv), and the sources here for the ring cells of the neighbour (send),
@@ -402,15 +392,15 @@ private:
     {
         int row;
         bool face;
-        int g = -2, si = 0, sj = 0;   // send: the source cell (grid, local index), g -2: none (zeros)
-        seastate_amr_flink L;         // send: the two fine cells of the face (L.g -1: the source cell itself)
-        int id = -1, di = 0, dj = 0;  // recv: the ring cell (patch, local index)
-        long key = 0;                 // recv: its face in the faces of patch id
+        int g = -2, si = 0, sj = 0;             // send: the source cell (grid, local index), g -2: none (zeros)
+        seastate_amr_flink L;                   // send: the two fine cells of the face (L.g -1: the source cell itself)
+        int id = -1, di = 0, dj = 0;            // recv: the ring cell (patch, local index)
+        long key = 0;                           // recv: its face in the faces of patch id
     };
     vector<kba_item> ksend[4], krecv[4];
-    vector<unsigned char> kface_send[4], kface_recv[4];  // [side][row]: the boundary (halo) cell of the row has a face
+    vector<unsigned char> kface_send[4], kface_recv[4];   // [side][row]: the boundary (halo) cell of the row has a face
     bool kba = false;
-    int kpos(int q, int s, int row) const;  // the position along side s in the order of quadrant q
+    int kpos(int q, int s, int row) const;      // the position along side s in the order of quadrant q
     // Phase 17: the ring layers around the patch interiors that the sweeps read: 2 with the second-order fluxes (A 796 2)
     int ring_width() const;
 
@@ -423,28 +413,28 @@ private:
     vector<vector<int>> rlink_of;               // [id][fill index]: index into rlinks[id], -1: none
     struct ring_plan
     {
-        reefamr_xplan X;                   // the face spectra of covered source cells on other ranks
-        vector<seastate_amr_flink> serve;  // served faces: the fine cells (L.id, i0..j1), L.g -1: none
-        vector<pair<int, long>> dst;       // received faces: patch id, key in its faces
+        reefamr_xplan X;                        // the face spectra of covered source cells on other ranks
+        vector<seastate_amr_flink> serve;       // served faces: the fine cells (L.id, i0..j1), L.g -1: none
+        vector<pair<int,long>> dst;             // received faces: patch id, key in its faces
     };
-    vector<ring_plan> rplan;  // [l]
+    vector<ring_plan> rplan;                    // [l]
     void ring_faces_plan();
-    void ring_face(const seastate_amr_flink &, float *);  // the mean of the two fine cells, nbin values
-    void ring_faces_local(seastate_amr_patch *, int id);
+    void ring_face(const seastate_amr_flink&, float*);  // the mean of the two fine cells, nbin values
+    void ring_faces_local(seastate_amr_patch*, int id);
     void ring_faces_remote(int l);
 
     lexer *p0;
     level0 L0;
     int nbin, nsig;
     int fills, sweeps;
-    vector<double> bed0;                                                                // level-0 bed of the whole domain (global index I*GNY+J)
-    vector<double> width0;                                                              // water width of the level-0 cells [m] (A 762)
-    seastate_store *fasT = nullptr, *fasN = nullptr, *fasR = nullptr, *fasC = nullptr;  // FAS: tau, restricted spectra, coarse and composite residual (level 0)
-    double fas_change = 0.0;                                                            // FAS: largest relative change of the coarse correction (log)
+    vector<double> bed0;                    // level-0 bed of the whole domain (global index I*GNY+J)
+    vector<double> width0;                  // water width of the level-0 cells [m] (A 762)
+    seastate_store *fasT = nullptr, *fasN = nullptr, *fasR = nullptr, *fasC = nullptr;   // FAS: tau, restricted spectra, coarse and composite residual (level 0)
+    double fas_change = 0.0;                // FAS: largest relative change of the coarse correction (log)
     void water_width(const vector<unsigned char> &wet0, double dx, double dy);
-    unordered_map<unsigned long long, double> bedmemo;
+    unordered_map<unsigned long long,double> bedmemo;
     sliceint4 *cov0 = nullptr;
-    vector<seastate_amr_faces> faces;           // [g+1]
+    vector<seastate_amr_faces> faces;       // [g+1]
     vector<vector<seastate_amr_flink>> flinks;  // [l]: the face spectra filled from level l
     vector<float> zero;
     double tm[4];

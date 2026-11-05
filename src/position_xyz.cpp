@@ -20,16 +20,16 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "lexer.h"
-#include "position.h"
+#include"position.h"
+#include"lexer.h"
 
 double position::pos_x()
 {
     // curvilinear grid (G 50): physical coordinates of the geometry layer
-    if(p->geo_curv == 1)
-        pos = p->XC2D[(i - p->imin) * p->jmax + (j - p->jmin)];
+    if(p->geo_curv==1)
+    pos = p->XC2D[(i-p->imin)*p->jmax + (j-p->jmin)];
     else
-        pos = p->XP[IP];
+    pos = p->XP[IP];
 
     return pos;
 }
@@ -37,21 +37,21 @@ double position::pos_x()
 double position::pos_y()
 {
     // curvilinear grid (G 50): physical coordinates of the geometry layer
-    if(p->geo_curv == 1)
-        pos = p->YC2D[(i - p->imin) * p->jmax + (j - p->jmin)];
+    if(p->geo_curv==1)
+    pos = p->YC2D[(i-p->imin)*p->jmax + (j-p->jmin)];
     else
-        pos = p->YP[JP];
+    pos = p->YP[JP];
 
     return pos;
 }
 
 double position::pos_z()
 {
-    if(p->G502 == 0)
-        pos = p->ZP[KP];
-
-    if(p->G502 == 1)
-        pos = p->ZSP[IJK];
+    if(p->G502==0)
+    pos = p->ZP[KP];
+    
+    if(p->G502==1)
+    pos = p->ZSP[IJK];
 
     return pos;
 }
@@ -59,10 +59,10 @@ double position::pos_z()
 double position::pos1_x()
 {
     // curvilinear grid (G 50): physical coordinates of the geometry layer
-    if(p->geo_curv == 1)
-        pos = 0.5 * (p->XN2D[p->nij(i + 1, j)] + p->XN2D[p->nij(i + 1, j + 1)]);
+    if(p->geo_curv==1)
+    pos = 0.5*(p->XN2D[p->nij(i+1,j)] + p->XN2D[p->nij(i+1,j+1)]);
     else
-        pos = p->XN[IP1];
+    pos = p->XN[IP1];
 
     return pos;
 }
@@ -70,21 +70,21 @@ double position::pos1_x()
 double position::pos1_y()
 {
     // curvilinear grid (G 50): physical coordinates of the geometry layer
-    if(p->geo_curv == 1)
-        pos = 0.5 * (p->YN2D[p->nij(i + 1, j)] + p->YN2D[p->nij(i + 1, j + 1)]);
+    if(p->geo_curv==1)
+    pos = 0.5*(p->YN2D[p->nij(i+1,j)] + p->YN2D[p->nij(i+1,j+1)]);
     else
-        pos = p->YP[JP];
+    pos = p->YP[JP];
 
     return pos;
 }
 
 double position::pos1_z()
 {
-    if(p->G502 == 0)
-        pos = p->ZP[KP];
-
-    if(p->G502 == 1)
-        pos = p->ZSP[IJK];
+    if(p->G502==0)
+    pos = p->ZP[KP];
+    
+    if(p->G502==1)
+    pos = p->ZSP[IJK];
 
     return pos;
 }
@@ -92,10 +92,10 @@ double position::pos1_z()
 double position::pos2_x()
 {
     // curvilinear grid (G 50): physical coordinates of the geometry layer
-    if(p->geo_curv == 1)
-        pos = 0.5 * (p->XN2D[p->nij(i, j + 1)] + p->XN2D[p->nij(i + 1, j + 1)]);
+    if(p->geo_curv==1)
+    pos = 0.5*(p->XN2D[p->nij(i,j+1)] + p->XN2D[p->nij(i+1,j+1)]);
     else
-        pos = p->XP[IP];
+    pos = p->XP[IP];
 
     return pos;
 }
@@ -103,32 +103,32 @@ double position::pos2_x()
 double position::pos2_y()
 {
     // curvilinear grid (G 50): physical coordinates of the geometry layer
-    if(p->geo_curv == 1)
-        pos = 0.5 * (p->YN2D[p->nij(i, j + 1)] + p->YN2D[p->nij(i + 1, j + 1)]);
+    if(p->geo_curv==1)
+    pos = 0.5*(p->YN2D[p->nij(i,j+1)] + p->YN2D[p->nij(i+1,j+1)]);
     else
-        pos = p->YN[JP1];
+    pos = p->YN[JP1];
 
     return pos;
 }
 
 double position::pos2_z()
 {
-    if(p->G502 == 0)
-        pos = p->ZP[KP];
-
-    if(p->G502 == 1)
-        pos = p->ZSP[IJK];
-
+    if(p->G502==0)
+    pos = p->ZP[KP];
+    
+    if(p->G502==1)
+    pos = p->ZSP[IJK];
+    
     return pos;
 }
 
 double position::pos3_x()
 {
     // curvilinear grid (G 50): physical coordinates of the geometry layer
-    if(p->geo_curv == 1)
-        pos = p->XC2D[(i - p->imin) * p->jmax + (j - p->jmin)];
+    if(p->geo_curv==1)
+    pos = p->XC2D[(i-p->imin)*p->jmax + (j-p->jmin)];
     else
-        pos = p->XP[IP];
+    pos = p->XP[IP];
 
     return pos;
 }
@@ -136,32 +136,33 @@ double position::pos3_x()
 double position::pos3_y()
 {
     // curvilinear grid (G 50): physical coordinates of the geometry layer
-    if(p->geo_curv == 1)
-        pos = p->YC2D[(i - p->imin) * p->jmax + (j - p->jmin)];
+    if(p->geo_curv==1)
+    pos = p->YC2D[(i-p->imin)*p->jmax + (j-p->jmin)];
     else
-        pos = p->YP[JP];
+    pos = p->YP[JP];
 
     return pos;
 }
 
 double position::pos3_z()
 {
-    if(p->G502 == 0)
-        pos = p->ZN[KP1];
-
-    if(p->G502 == 1)
-        pos = p->ZSN[FIJKp1];
-
+    if(p->G502==0)
+    pos = p->ZN[KP1];
+    
+    if(p->G502==1)
+    pos = p->ZSN[FIJKp1];
+    
     return pos;
 }
+
 
 double position::posnode_x()
 {
     // curvilinear grid (G 50): physical coordinates of the geometry layer
-    if(p->geo_curv == 1)
-        pos = p->XN2D[p->nij(i + 1, j + 1)];
+    if(p->geo_curv==1)
+    pos = p->XN2D[p->nij(i+1,j+1)];
     else
-        pos = p->XN[IP1];
+    pos = p->XN[IP1];
 
     return pos;
 }
@@ -169,21 +170,21 @@ double position::posnode_x()
 double position::posnode_y()
 {
     // curvilinear grid (G 50): physical coordinates of the geometry layer
-    if(p->geo_curv == 1)
-        pos = p->YN2D[p->nij(i + 1, j + 1)];
+    if(p->geo_curv==1)
+    pos = p->YN2D[p->nij(i+1,j+1)];
     else
-        pos = p->YN[JP1];
+    pos = p->YN[JP1];
 
     return pos;
 }
 
 double position::posnode_z()
 {
-    if(p->G502 == 0)
-        pos = p->ZN[KP1];
-
-    if(p->G502 == 1)
-        pos = p->ZSN[FIJKp1];
+    if(p->G502==0)
+    pos = p->ZN[KP1];
+    
+    if(p->G502==1)
+    pos = p->ZSN[FIJKp1];
 
     return pos;
 }

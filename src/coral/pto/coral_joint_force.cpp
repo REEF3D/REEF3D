@@ -20,15 +20,16 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "coral/pto/coral_joint_force.h"
-#include "coral/core/coral_constraint.h"
-#include "coral/core/coral_model.h"
-#include <algorithm>
-#include <cmath>
-#include <fstream>
-#include <sstream>
+#include"coral/pto/coral_joint_force.h"
+#include"coral/core/coral_constraint.h"
+#include"coral/core/coral_model.h"
+#include<algorithm>
+#include<cmath>
+#include<fstream>
+#include<sstream>
 
-namespace coral {
+namespace coral
+{
 
 joint_force::joint_force(const joint &j, bool rotational, const jforce_settings &s, const std::string &name)
     : settings(s), name_(name), j_(&j), rot_(rotational)
@@ -52,8 +53,7 @@ double joint_force::force(double t) const
     {
         const double P = T.back() - T.front();
         tt = T.front() + std::fmod(t - T.front(), P);
-        if(tt < T.front())
-            tt += P;
+        if(tt < T.front()) tt += P;
     }
     double v = 0.0;
     if(tt >= T.front() && tt <= T.back())
@@ -61,12 +61,12 @@ double joint_force::force(double t) const
         const std::size_t i = std::min<std::size_t>(std::upper_bound(T.begin(), T.end(), tt) - T.begin(), T.size() - 1);
         const std::size_t i0 = i == 0 ? 0 : i - 1;
         const double dt = T[i] - T[i0];
-        v = dt > 0.0 ? F[i0] + (F[i] - F[i0]) * (tt - T[i0]) / dt : F[i];
+        v = dt > 0.0 ? F[i0] + (F[i] - F[i0])*(tt - T[i0])/dt : F[i];
     }
     double r = 1.0;
     if(s.ramp > 0.0 && t < s.ramp)
-        r = 0.5 * (1.0 - std::cos(M_PI * t / s.ramp));
-    return s.scale * r * v;
+        r = 0.5*(1.0 - std::cos(M_PI*t/s.ramp));
+    return s.scale*r*v;
 }
 
 void joint_force::eval(const model &m, double t, VecX &f) const
@@ -99,21 +99,19 @@ bool joint_force::read_table(const std::string &file, std::vector<double> &t, st
         msg = "cannot open '" + file + "'";
         return false;
     }
-    t.clear();
-    F.clear();
+    t.clear(); F.clear();
     std::string line;
     int n = 0;
     while(std::getline(in, line))
     {
         ++n;
         const std::size_t h = line.find('#');
-        if(h != std::string::npos)
-            line.erase(h);
+        if(h != std::string::npos) line.erase(h);
         std::istringstream ls(line);
         double a, b;
-        if(!(ls >> a))
+        if(!(ls>>a))
             continue;
-        if(!(ls >> b))
+        if(!(ls>>b))
         {
             msg = file + " line " + std::to_string(n) + ": two numbers (t F) expected";
             return false;
@@ -134,4 +132,4 @@ bool joint_force::read_table(const std::string &file, std::vector<double> &t, st
     return true;
 }
 
-}  // namespace coral
+}

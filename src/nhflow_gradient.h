@@ -23,7 +23,7 @@ Author: Hans Bihs
 #ifndef NHFLOW_GRADIENT_H_
 #define NHFLOW_GRADIENT_H_
 
-#include "increment.h"
+#include"increment.h"
 
 class fdm_nhf;
 class lexer;
@@ -34,71 +34,63 @@ using namespace std;
 class nhflow_gradient : virtual public increment
 {
 public:
-    nhflow_gradient(lexer *);
-    ~nhflow_gradient();
 
-    double sx(slice &);
-    double sy(slice &);
+	nhflow_gradient(lexer*);
+	 ~nhflow_gradient();
+
+    double sx(slice&);
+    double sy(slice&);
     double limiter(double, double);
-
-    double sxx(slice &);
-    double syy(slice &);
-
+    
+    double sxx(slice&);
+    double syy(slice&);
+    
+    
+	//--------------------------------
+    
+    
     //--------------------------------
 
-    //--------------------------------
+	//u
+	 double dudx(double*);
+	 double dudy(double*);
+	 double dudz(double*);
 
-    double dwenox(double *, double);
-    double dwenoy(double *, double);
+	//v
+	 double dvdx(double*);
+	 double dvdy(double*);
+	 double dvdz(double*);
 
-    void iqmin(double *, double);
-    void jqmin(double *, double);
-    void iqmax(double *, double);
-    void jqmax(double *, double);
-    //--------------------------------
+	//w
+	 double dwdx(double*);
+	 double dwdy(double*);
+	 double dwdz(double*);
+	 
 
-    // u
-    double dudx(double *);
-    double dudy(double *);
-    double dudz(double *);
-
-    // v
-    double dvdx(double *);
-    double dvdy(double *);
-    double dvdz(double *);
-
-    // w
-    double dwdx(double *);
-    double dwdy(double *);
-    double dwdz(double *);
-
-    double grad1, grad2;
-    double grad;
-
+	double grad1,grad2;
+	double grad;
+	
+    
     lexer *p;
-
+    
 private:
     double dfdx_min, dfdx_plus, dfdy_min, dfdy_plus, dfdz_min, dfdz_plus;
-    double denom, val;
+    double denom,val;
+    
+    const double tttw,fourth,third,sevsix,elvsix,sixth,fivsix,tenth;
+	const double sixten,treten;
+	const double epsilon,dx;
+	double is1,is2,is3;
+	double alpha1,alpha2,alpha3;
+	double w1,w2,w3;
+	double q1,q2,q3,q4,q5;
+	double gradx, grady, gradz;
 
-    const double tttw, fourth, third, sevsix, elvsix, sixth, fivsix, tenth;
-    const double sixten, treten;
-    const double epsilon, dx;
-    double is1, is2, is3;
-    double alpha1, alpha2, alpha3;
-    double w1, w2, w3;
-    double q1, q2, q3, q4, q5;
-    double gradx, grady, gradz;
-
-    double f1, f2, f3, f4;
-
-    double X1, X2, X3, X4, X0;
-    double Y1, Y2, Y3, Y4, Y0;
-
-    double f1, f2, f3, f4;
-
-    double X1, X2, X3, X4, X0;
-    double Y1, Y2, Y3, Y4, Y0;
+	double f1,f2,f3,f4;
+    
+    double X1,X2,X3,X4,X0;
+    double Y1,Y2,Y3,Y4,Y0;
+    
 };
 
 #endif

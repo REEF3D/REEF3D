@@ -20,14 +20,14 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "fdm_nhf.h"
-#include "ghostcell.h"
-#include "iowave.h"
-#include "lexer.h"
-#include "met_provider.h"
-#include "wave_lib.h"
-#include <algorithm>
-#include <iomanip>
+#include"iowave.h"
+#include"met_provider.h"
+#include"lexer.h"
+#include"fdm_nhf.h"
+#include"ghostcell.h"
+#include"wave_lib.h"
+#include<algorithm>
+#include<iomanip>
 
 /*--------------------------------------------------------------------
 Tidal / current background in NHFLOW (iowave redesign, step 4):
@@ -53,24 +53,24 @@ ghost cells; ghostcell treats the edge as open (lexer open_xm / open_xp).
 
 void iowave::bg_build(lexer *p)
 {
-    col_gen_bg.assign(size_t(p->imax) * size_t(p->jmax), -1);
-    col_beach_bg.assign(size_t(p->imax) * size_t(p->jmax), -1);
-
+    col_gen_bg.assign(size_t(p->imax)*size_t(p->jmax),-1);
+    col_beach_bg.assign(size_t(p->imax)*size_t(p->jmax),-1);
+    
     ILOOP
     JLOOP
     {
         const double x = p->XP[IP];
         const double y = p->YP[JP];
-
-        const bc_zone *zg = zones.relax_zone_at(x, y);
-        if(zg != nullptr && zg->bg > 0)
-            col_gen_bg[IJ] = bgs.index(zg->bg);
-
-        const bc_zone *zb = zones.beach_zone_at(x, y);
-        if(zb != nullptr && zb->bg > 0)
-            col_beach_bg[IJ] = bgs.index(zb->bg);
+        
+        const bc_zone *zg = zones.relax_zone_at(x,y);
+        if(zg!=nullptr && zg->bg>0)
+        col_gen_bg[IJ] = bgs.index(zg->bg);
+        
+        const bc_zone *zb = zones.beach_zone_at(x,y);
+        if(zb!=nullptr && zb->bg>0)
+        col_beach_bg[IJ] = bgs.index(zb->bg);
     }
-
+    
     bg_built = true;
 }
 
@@ -87,26 +87,26 @@ int iowave::beach_bg(lexer *p)
 void iowave::nhflow_bg_update(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
     if(!bg_on)
-        return;
-
+    return;
+    
     if(!bg_built)
-        bg_build(p);
-
-    bgs.update(p, p->simtime);
-
+    bg_build(p);
+    
+    bgs.update(p,p->simtime);
+    
     // still water depth per column
-    col_h0.assign(size_t(p->imax) * size_t(p->jmax), 0.0);
-
+    col_h0.assign(size_t(p->imax)*size_t(p->jmax),0.0);
+    
     SLICELOOP4
-    col_h0[IJ] = d->depth(i, j);
-
+    col_h0[IJ] = d->depth(i,j);
+    
     // waves on the background (B 530): k on h_eff, Doppler
-    if(p->B530 > 0)
-        nhflow_wave_background(p, pgc);
-
+    if(p->B530>0)
+    nhflow_wave_background(p,pgc);
+    
     // edge mass balance (B 529)
-    if(p->B529 > 0)
-        nhflow_mass_balance(p, d, pgc);
+    if(p->B529>0)
+    nhflow_mass_balance(p,d,pgc);
 }
 
 double iowave::nhflow_col_ubar(lexer *p, fdm_nhf *d, double *F)
@@ -114,10 +114,10 @@ double iowave::nhflow_col_ubar(lexer *p, fdm_nhf *d, double *F)
     // depth average of a layer field in the column (i,j); sigma spacing DZN sums to 1
     const int kk = k;
     double s = 0.0;
-
-    for(k = 0; k < p->knoz; ++k)
-        s += F[IJK] * p->DZN[KP];
-
+    
+    for(k=0; k<p->knoz; ++k)
+    s += F[IJK]*p->DZN[KP];
+    
     k = kk;
     return s;
 }
@@ -125,14 +125,10 @@ double iowave::nhflow_col_ubar(lexer *p, fdm_nhf *d, double *F)
 // side code of the ghostcell lists (1: x-, 2: y+, 3: y-, 4: x+) and ghost offset of an edge (1: x-, 2: x+, 3: y-, 4: y+)
 static void edge_geometry(int e, int &sc, int &di, int &dj, double &nx, double &ny)
 {
-    sc = e == 1 ? 1 : e == 2 ? 4
-                  : e == 3   ? 3
-                             : 2;
-    di = e == 1 ? -1 : e == 2 ? 1
-                              : 0;
-    dj = e == 3 ? -1 : e == 4 ? 1
-                              : 0;
-    nx = -double(di);  // inward normal
+    sc = e==1 ? 1 : e==2 ? 4 : e==3 ? 3 : 2;
+    di = e==1 ? -1 : e==2 ? 1 : 0;
+    dj = e==3 ? -1 : e==4 ? 1 : 0;
+    nx = -double(di);    // inward normal
     ny = -double(dj);
 }
 
@@ -140,481 +136,478 @@ static void edge_geometry(int e, int &sc, int &di, int &dj, double &nx, double &
 // its inward unit normal, its length and the physical centre
 static int curv_face(const lexer *p, int e, int i, int j, int &dir, int &fi, int &fj)
 {
-    dir = e <= 2 ? 1 : 2;
-    fi = e == 1 ? i - 1 : i;
-    fj = e == 3 ? j - 1 : j;
-    return (fi - p->imin) * p->jmax + (fj - p->jmin);
+    dir = e<=2 ? 1 : 2;
+    fi = e==1 ? i-1 : i;
+    fj = e==3 ? j-1 : j;
+    return (fi-p->imin)*p->jmax + (fj-p->jmin);
 }
 
 void iowave::curv_edge_normal(lexer *p, int e, int i, int j, double &nx, double &ny)
 {
-    int dir, fi, fj;
-    const int q = curv_face(p, e, i, j, dir, fi, fj);
-    const double len = dir == 1 ? p->LEN1[q] : p->LEN2[q];
-    const double sx = dir == 1 ? p->SX1[q] : p->SX2[q];
-    const double sy = dir == 1 ? p->SY1[q] : p->SY2[q];
-    const double sg = (e == 1 || e == 3) ? 1.0 : -1.0;
-
-    nx = len > 0.0 ? sg * sx / len : (dir == 1 ? sg : 0.0);
-    ny = len > 0.0 ? sg * sy / len : (dir == 1 ? 0.0 : sg);
+    int dir,fi,fj;
+    const int q = curv_face(p,e,i,j,dir,fi,fj);
+    const double len = dir==1 ? p->LEN1[q] : p->LEN2[q];
+    const double sx = dir==1 ? p->SX1[q] : p->SX2[q];
+    const double sy = dir==1 ? p->SY1[q] : p->SY2[q];
+    const double sg = (e==1 || e==3) ? 1.0 : -1.0;
+    
+    nx = len>0.0 ? sg*sx/len : (dir==1 ? sg : 0.0);
+    ny = len>0.0 ? sg*sy/len : (dir==1 ? 0.0 : sg);
 }
 
 double iowave::curv_edge_len(lexer *p, int e, int i, int j)
 {
-    int dir, fi, fj;
-    const int q = curv_face(p, e, i, j, dir, fi, fj);
-    return dir == 1 ? p->LEN1[q] : p->LEN2[q];
+    int dir,fi,fj;
+    const int q = curv_face(p,e,i,j,dir,fi,fj);
+    return dir==1 ? p->LEN1[q] : p->LEN2[q];
 }
 
 void iowave::curv_edge_centre(lexer *p, int e, int i, int j, double &x, double &y)
 {
-    int dir, fi, fj;
-    curv_face(p, e, i, j, dir, fi, fj);
+    int dir,fi,fj;
+    curv_face(p,e,i,j,dir,fi,fj);
     // nodes of face i+1/2: (i+1,j), (i+1,j+1); of face j+1/2: (i,j+1), (i+1,j+1)
-    const int a = dir == 1 ? p->nij(fi + 1, fj) : p->nij(fi, fj + 1);
-    const int c = p->nij(fi + 1, fj + 1);
-    x = 0.5 * (p->XN2D[a] + p->XN2D[c]);
-    y = 0.5 * (p->YN2D[a] + p->YN2D[c]);
+    const int a = dir==1 ? p->nij(fi+1,fj) : p->nij(fi,fj+1);
+    const int c = p->nij(fi+1,fj+1);
+    x = 0.5*(p->XN2D[a] + p->XN2D[c]);
+    y = 0.5*(p->YN2D[a] + p->YN2D[c]);
 }
 
 // edge e is a Riemann / Flather edge with its ghost cells set here (lexer flags, set in iowave::ini)
 static int edge_open(const lexer *p, int e)
 {
-    return e == 1 ? p->open_xm : e == 2 ? p->open_xp
-                             : e == 3   ? p->open_ym
-                                        : p->open_yp;
+    return e==1 ? p->open_xm : e==2 ? p->open_xp : e==3 ? p->open_ym : p->open_yp;
 }
 
 void iowave::nhflow_open_edges(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V, double *W, double *UH, double *VH, double *WH, slice &WL)
 {
-    if(p->open_xm == 0 && p->open_xp == 0 && p->open_ym == 0 && p->open_yp == 0)
-        return;
-
+    if(p->open_xm==0 && p->open_xp==0 && p->open_ym==0 && p->open_yp==0)
+    return;
+    
     // the ghost depth of each edge apart (side 1..4): the cell in the corner of two open edges has two
-    if(edge_h.size() != 4 * size_t(p->imax) * size_t(p->jmax))
-        edge_h.assign(4 * size_t(p->imax) * size_t(p->jmax), 0.0);
-
+    if(edge_h.size()!=4*size_t(p->imax)*size_t(p->jmax))
+    edge_h.assign(4*size_t(p->imax)*size_t(p->jmax),0.0);
+    
     const double g = fabs(p->W22);
-
+    
     // B 98 8 / B 99 8: gauges and filters once per step on all ranks (global sums)
     if(sirw_in.on)
-        sirw_in.update(p, pgc, d->eta, p->simtime);
-
+    sirw_in.update(p,pgc,d->eta,p->simtime);
+    
     if(sirw_out.on)
-        sirw_out.update(p, pgc, d->eta, p->simtime);
-
-    for(int side : {1, 2, 3, 4})
+    sirw_out.update(p,pgc,d->eta,p->simtime);
+    
+    for(int side : {1,2,3,4})
     {
         const bc_zone *z = zones.open_edge(side);
-        if(z == nullptr || edge_open(p, side) == 0)
-            continue;
-
+        if(z==nullptr || edge_open(p,side)==0)
+        continue;
+        
         int sc, di, dj;
         double nx, ny;
-        edge_geometry(side, sc, di, dj, nx, ny);
-        const bool xedge = side <= 2;
-
-        const int b = z->bg > 0 ? bgs.index(z->bg) : -1;
-
+        edge_geometry(side,sc,di,dj,nx,ny);
+        const bool xedge = side<=2;
+        
+        const int b = z->bg>0 ? bgs.index(z->bg) : -1;
+        
         // clamped discharge edge with B 525: normal velocity Q / (sum of h ds along the edge), ramped
         double uq = 0.0;
-
-        if(z->method == bc_method::clamp_q && z->has_Q)
+        
+        if(z->method==bc_method::clamp_q && z->has_Q)
         {
             double area = 0.0;
-
-            for(int list = 0; list < 2; ++list)
+            
+            for(int list=0; list<2; ++list)
             {
-                const int cs = list == 0 ? p->gcslin_count : p->gcslout_count;
-                int **gs = list == 0 ? p->gcslin : p->gcslout;
-
-                for(n = 0; n < cs; ++n)
-                    if(gs[n][3] == sc)
-                    {
-                        i = gs[n][0];
-                        j = gs[n][1];
-
-                        if(p->wet[IJ] == 1)
-                            area += d->WL(i, j) * (p->geo_curv == 1 ? curv_edge_len(p, side, i, j) : (xedge ? p->DYN[JP] : p->DXN[IP]));
-                    }
+            const int cs = list==0 ? p->gcslin_count : p->gcslout_count;
+            int **gs = list==0 ? p->gcslin : p->gcslout;
+            
+            for(n=0;n<cs;++n)
+            if(gs[n][3]==sc)
+            {
+                i=gs[n][0];
+                j=gs[n][1];
+                
+                if(p->wet[IJ]==1)
+                area += d->WL(i,j)*(p->geo_curv==1 ? curv_edge_len(p,side,i,j) : (xedge ? p->DYN[JP] : p->DXN[IP]));
             }
-
+            }
+            
             area = pgc->globalsum(area);
-
+            
             const double pi = 3.14159265358979323846;
-            const double r = (z->Q_tramp > 0.0 && p->simtime < z->Q_tramp) ? 0.5 * (1.0 - cos(pi * fmax(p->simtime, 0.0) / z->Q_tramp)) : 1.0;
-
-            uq = area > 1.0e-12 ? r * z->Q / area : 0.0;
+            const double r = (z->Q_tramp>0.0 && p->simtime<z->Q_tramp) ? 0.5*(1.0-cos(pi*fmax(p->simtime,0.0)/z->Q_tramp)) : 1.0;
+            
+            uq = area>1.0e-12 ? r*z->Q/area : 0.0;
         }
-
+        
         // waves of the edge's sources (B 524, Riemann only): eta and depth averaged u, v per column
-        const bool waves = z->method == bc_method::riemann && !z->sources.empty();
-
+        const bool waves = z->method==bc_method::riemann && !z->sources.empty();
+        
         if(waves)
         {
             select_sources(&z->sources);
-
+            
             if(edge_etaw.empty())
             {
-                edge_etaw.assign(size_t(p->imax) * size_t(p->jmax), 0.0);
-                edge_uw.assign(size_t(p->imax) * size_t(p->jmax), 0.0);
-                edge_vw.assign(size_t(p->imax) * size_t(p->jmax), 0.0);
+            edge_etaw.assign(size_t(p->imax)*size_t(p->jmax),0.0);
+            edge_uw.assign(size_t(p->imax)*size_t(p->jmax),0.0);
+            edge_vw.assign(size_t(p->imax)*size_t(p->jmax),0.0);
             }
-
-            for(int list = 0; list < 2; ++list)
+            
+            for(int list=0; list<2; ++list)
             {
-                const int cs = list == 0 ? p->gcslin_count : p->gcslout_count;
-                int **gs = list == 0 ? p->gcslin : p->gcslout;
-
-                for(n = 0; n < cs; ++n)
+            const int cs = list==0 ? p->gcslin_count : p->gcslout_count;
+            int **gs = list==0 ? p->gcslin : p->gcslout;
+            
+            for(n=0;n<cs;++n)
+            {
+            i=gs[n][0];
+            j=gs[n][1];
+            
+            if(gs[n][3]!=sc)
+            continue;
+            
+                xg = xgen(p);
+                yg = ygen(p);
+                
+                edge_etaw[IJ] = wave_eta(p,pgc,xg,yg);
+                
+                double su = 0.0, sv = 0.0;
+                for(k=0; k<p->knoz; ++k)
                 {
-                    i = gs[n][0];
-                    j = gs[n][1];
-
-                    if(gs[n][3] != sc)
-                        continue;
-
-                    xg = xgen(p);
-                    yg = ygen(p);
-
-                    edge_etaw[IJ] = wave_eta(p, pgc, xg, yg);
-
-                    double su = 0.0, sv = 0.0;
-                    for(k = 0; k < p->knoz; ++k)
-                    {
-                        su += wave_u(p, pgc, xg, yg, p->ZSP[IJK] - p->phimean) * p->DZN[KP];
-
-                        if(!xedge || p->geo_curv == 1)
-                            sv += wave_v(p, pgc, xg, yg, p->ZSP[IJK] - p->phimean) * p->DZN[KP];
-                    }
-
-                    edge_uw[IJ] = su;
-                    edge_vw[IJ] = sv;
-
-                    // x- edge: non-hydrostatic pressure of the incoming waves at the pressure nodes of
-                    // the column, p_nh(z) = rho int_z^eta dw/dt dz (linear), the Dirichlet value of the
-                    // Poisson equation at the edge (nhflow_poisson); with p = 0 the edge generated
-                    // waves up to 11 % too high for kh 2-3
-                    if(side == 1)
-                        nhflow_edge_pressure(p, d, pgc, xg, yg);
+                su += wave_u(p,pgc,xg,yg,p->ZSP[IJK]-p->phimean)*p->DZN[KP];
+                
+                if(!xedge || p->geo_curv==1)
+                sv += wave_v(p,pgc,xg,yg,p->ZSP[IJK]-p->phimean)*p->DZN[KP];
                 }
+                
+                edge_uw[IJ] = su;
+                edge_vw[IJ] = sv;
+                
+                // x- edge: non-hydrostatic pressure of the incoming waves at the pressure nodes of
+                // the column, p_nh(z) = rho int_z^eta dw/dt dz (linear), the Dirichlet value of the
+                // Poisson equation at the edge (nhflow_poisson); with p = 0 the edge generated
+                // waves up to 11 % too high for kh 2-3
+                if(side==1)
+                nhflow_edge_pressure(p,d,pgc,xg,yg);
+            }
             }
         }
-
+        
         // B 99 8 / B 98 8: the wave towards the edge predicted by the SIRW filters (arc_sirw) is part of the outside
         // state of the absorbing edge (x+: instead of still water, x-: added to the generated waves), so the edge
         // is transparent for it and the characteristics absorb only the rest; its non-hydrostatic pressure is the
         // Dirichlet value of the Poisson equation at the edge (with p = 0 at x+ the edge reflected 16 % at kh 1.2)
-        const arc_sirw *sw = (side == 2 && z->id == -99 && sirw_out.on) ? &sirw_out : (side == 1 && z->id == -98 && sirw_in.on) ? &sirw_in
-                                                                                                                                : nullptr;
-
-        if(sw != nullptr)
+        const arc_sirw *sw = (side==2 && z->id==-99 && sirw_out.on) ? &sirw_out : (side==1 && z->id==-98 && sirw_in.on) ? &sirw_in : nullptr;
+        
+        if(sw!=nullptr)
         {
-            if(d->Pbc == nullptr)
-                p->Darray(d->Pbc, p->imax * p->jmax * (p->kmax + 2));
-
-            for(int list = 0; list < 2; ++list)
+            if(d->Pbc==nullptr)
+            p->Darray(d->Pbc,p->imax*p->jmax*(p->kmax+2));
+            
+            for(int list=0; list<2; ++list)
             {
-                const int cs = list == 0 ? p->gcslin_count : p->gcslout_count;
-                int **gs = list == 0 ? p->gcslin : p->gcslout;
-
-                for(n = 0; n < cs; ++n)
+            const int cs = list==0 ? p->gcslin_count : p->gcslout_count;
+            int **gs = list==0 ? p->gcslin : p->gcslout;
+            
+            for(n=0;n<cs;++n)
+            {
+            i=gs[n][0];
+            j=gs[n][1];
+            
+            if(gs[n][3]!=sc)
+            continue;
+            
+                for(k=0; k<=p->knoz; ++k)
                 {
-                    i = gs[n][0];
-                    j = gs[n][1];
-
-                    if(gs[n][3] != sc)
-                        continue;
-
-                    for(k = 0; k <= p->knoz; ++k)
-                    {
-                        const double pz = p->W1 * sw->pressure(p->simtime, p->ZN[KP] * d->WL(i, j) + d->bed(i, j) - p->phimean);
-
-                        if(side == 2)
-                            d->Pbc[FIp1JK] = k < p->knoz ? pz : 0.0;
-                        else
-                            d->Pbc[FIm1JK] += k < p->knoz ? pz : 0.0;
-                    }
+                    const double pz = p->W1*sw->pressure(p->simtime,p->ZN[KP]*d->WL(i,j) + d->bed(i,j) - p->phimean);
+                    
+                    if(side==2)
+                    d->Pbc[FIp1JK] = k<p->knoz ? pz : 0.0;
+                    else
+                    d->Pbc[FIm1JK] += k<p->knoz ? pz : 0.0;
                 }
             }
+            }
         }
-
-        for(int list = 0; list < 2; ++list)
+        
+        for(int list=0; list<2; ++list)
         {
-            const int count = list == 0 ? p->gcin_count : p->gcout_count;
-            int **gc = list == 0 ? p->gcin : p->gcout;
-
-            for(n = 0; n < count; ++n)
+        const int count = list==0 ? p->gcin_count : p->gcout_count;
+        int **gc = list==0 ? p->gcin : p->gcout;
+        
+        for(n=0;n<count;++n)
+        {
+        i=gc[n][0];
+        j=gc[n][1];
+        k=gc[n][2];
+        
+        if(gc[n][3]!=sc)
+        continue;
+        
+            const double h0 = d->depth(i,j);
+            const double hi = d->WL(i,j);
+            
+            if(p->wet[IJ]==0 || hi<=1.0e-6 || h0<=1.0e-6)
+            continue;
+            
+            // background at the boundary face
+            double xf = side==1 ? p->XN[IP] : side==2 ? p->XN[IP1] : p->XP[IP];
+            double yf = side==3 ? p->YN[JP] : side==4 ? p->YN[JP1] : p->YP[JP];
+            
+            // curvilinear grid (G 50): the physical centre of the edge face
+            if(p->geo_curv==1)
+            curv_edge_centre(p,side,i,j,xf,yf);
+            double eb = b>=0 ? bgs.eta(b,xf,yf) : 0.0;
+            if(met_provider::ib_on(p))
+            eb += eta_ib(p,pgc,xf,yf);
+            double ub=0.0, vb=0.0;
+            if(b>=0)
+            bgs.vel(b,h0,xf,yf,ub,vb);
+            
+            // normal (inward) and tangential velocities: x edges U / V, y edges V / U
+            const double nn = xedge ? nx : ny;
+            double ui = xedge ? nhflow_col_ubar(p,d,d->U) : nhflow_col_ubar(p,d,d->V);
+            
+            // curvilinear grid (G 50): along the inward normal of the edge face (cx, cy), the
+            // tangential direction (-cy, cx); ui is the inward normal velocity times nn
+            double cx = nx, cy = ny;
+            if(p->geo_curv==1)
             {
-                i = gc[n][0];
-                j = gc[n][1];
-                k = gc[n][2];
-
-                if(gc[n][3] != sc)
-                    continue;
-
-                const double h0 = d->depth(i, j);
-                const double hi = d->WL(i, j);
-
-                if(p->wet[IJ] == 0 || hi <= 1.0e-6 || h0 <= 1.0e-6)
-                    continue;
-
-                // background at the boundary face
-                double xf = side == 1 ? p->XN[IP] : side == 2 ? p->XN[IP1]
-                                                              : p->XP[IP];
-                double yf = side == 3 ? p->YN[JP] : side == 4 ? p->YN[JP1]
-                                                              : p->YP[JP];
-
-                // curvilinear grid (G 50): the physical centre of the edge face
-                if(p->geo_curv == 1)
-                    curv_edge_centre(p, side, i, j, xf, yf);
-                double eb = b >= 0 ? bgs.eta(b, xf, yf) : 0.0;
-                if(met_provider::ib_on(p))
-                    eb += eta_ib(p, pgc, xf, yf);
-                double ub = 0.0, vb = 0.0;
-                if(b >= 0)
-                    bgs.vel(b, h0, xf, yf, ub, vb);
-
-                // normal (inward) and tangential velocities: x edges U / V, y edges V / U
-                const double nn = xedge ? nx : ny;
-                double ui = xedge ? nhflow_col_ubar(p, d, d->U) : nhflow_col_ubar(p, d, d->V);
-
-                // curvilinear grid (G 50): along the inward normal of the edge face (cx, cy), the
-                // tangential direction (-cy, cx); ui is the inward normal velocity times nn
-                double cx = nx, cy = ny;
-                if(p->geo_curv == 1)
-                {
-                    curv_edge_normal(p, side, i, j, cx, cy);
-                    ui = nn * (nhflow_col_ubar(p, d, d->U) * cx + nhflow_col_ubar(p, d, d->V) * cy);
-                }
-
-                // waves of the layer and of the column (ramped), added to the background
-                double uwk = 0.0, vwk = 0.0, wwk = 0.0, ewc = 0.0, uwc = 0.0, vwc = 0.0;
-
-                if(waves)
-                {
-                    xg = xgen(p);
-                    yg = ygen(p);
-                    const double zk = p->ZSP[IJK] - p->phimean;
-                    const double rw = ramp(p);
-
-                    uwk = rw * wave_u(p, pgc, xg, yg, zk);
-                    vwk = rw * wave_v(p, pgc, xg, yg, zk);
-                    wwk = rw * wave_w(p, pgc, xg, yg, zk);
-                    ewc = rw * edge_etaw[IJ];
-                    uwc = rw * edge_uw[IJ];
-                    vwc = rw * edge_vw[IJ];
-                }
-
-                // B 99 8 / B 98 8: surface, level and column mean of the velocity of the predicted wave (above)
-                if(sw != nullptr)
-                {
-                    const double t = p->simtime;
-                    ewc += sw->eta(t);
-                    uwk += sw->velocity(t, p->ZSP[IJK] - p->phimean);
-
-                    const int kk = k;
-                    double su = 0.0;
-                    for(k = 0; k < p->knoz; ++k)
-                        su += sw->velocity(t, p->ZSP[IJK] - p->phimean) * p->DZN[KP];
-                    k = kk;
-                    uwc += su;
-                }
-
-                double unb = xedge ? nn * (ub + uwc) : nn * (vb + vwc);  // target, normal
-                const double uni = nn * ui;                              // interior, normal
-
-                if(p->geo_curv == 1)
-                    unb = (ub + uwc) * cx + (vb + vwc) * cy;
-                double ung, hg;
-
-                if(z->method == bc_method::riemann)
-                {
-                    const double hb = fmax(h0 + eb + ewc, 1.0e-6);
-                    const double Rin = unb + 2.0 * sqrt(g * hb);
-                    const double Rout = uni - 2.0 * sqrt(g * hi);
-
-                    hg = pow(Rin - Rout, 2.0) / (16.0 * g);
-                    ung = 0.5 * (Rin + Rout);
-                }
-                else if(z->method == bc_method::flather)
-                {
-                    // q_n(outward) = q_n,b + sqrt(g h) (eta - eta_b)
-                    hg = hi;
-                    ung = (p->geo_curv == 1 ? ub * cx + vb * cy : (xedge ? nn * ub : nn * vb)) - sqrt(g / hi) * ((hi - h0) - eb);
-                }
-                else if(z->method == bc_method::clamp_level)
-                {
-                    // level of the background, normal velocity of the interior
-                    hg = fmax(h0 + eb, 1.0e-6);
-                    ung = uni;
-                }
-                else
-                {
-                    // clamped discharge: normal velocity of the background or B 525, depth of the interior
-                    hg = hi;
-                    ung = z->has_Q ? uq : (p->geo_curv == 1 ? ub * cx + vb * cy : (xedge ? nn * ub : nn * vb));
-                }
-
-                edge_h[size_t(side - 1) * size_t(p->imax * p->jmax) + IJ] = hg;
-
-                // inflow: tangential velocity of the background (+ waves), outflow: of the interior
-                const bool in = ung > 0.0;
-
-                // depth average from the characteristics, vertical profile of the waves
-                double ug, vg;
-
+            curv_edge_normal(p,side,i,j,cx,cy);
+            ui = nn*(nhflow_col_ubar(p,d,d->U)*cx + nhflow_col_ubar(p,d,d->V)*cy);
+            }
+            
+            // waves of the layer and of the column (ramped), added to the background
+            double uwk=0.0, vwk=0.0, wwk=0.0, ewc=0.0, uwc=0.0, vwc=0.0;
+            
+            if(waves)
+            {
+                xg = xgen(p);
+                yg = ygen(p);
+                const double zk = p->ZSP[IJK]-p->phimean;
+                const double rw = ramp(p);
+                
+                uwk = rw*wave_u(p,pgc,xg,yg,zk);
+                vwk = rw*wave_v(p,pgc,xg,yg,zk);
+                wwk = rw*wave_w(p,pgc,xg,yg,zk);
+                ewc = rw*edge_etaw[IJ];
+                uwc = rw*edge_uw[IJ];
+                vwc = rw*edge_vw[IJ];
+            }
+            
+            // B 99 8 / B 98 8: surface, level and column mean of the velocity of the predicted wave (above)
+            if(sw!=nullptr)
+            {
+                const double t = p->simtime;
+                ewc += sw->eta(t);
+                uwk += sw->velocity(t,p->ZSP[IJK]-p->phimean);
+                
+                const int kk = k;
+                double su = 0.0;
+                for(k=0; k<p->knoz; ++k)
+                su += sw->velocity(t,p->ZSP[IJK]-p->phimean)*p->DZN[KP];
+                k = kk;
+                uwc += su;
+            }
+            
+            double unb = xedge ? nn*(ub + uwc) : nn*(vb + vwc);   // target, normal
+            const double uni = nn*ui;                                  // interior, normal
+            
+            if(p->geo_curv==1)
+            unb = (ub + uwc)*cx + (vb + vwc)*cy;
+            double ung, hg;
+            
+            if(z->method==bc_method::riemann)
+            {
+                const double hb = fmax(h0+eb+ewc,1.0e-6);
+                const double Rin  = unb + 2.0*sqrt(g*hb);
+                const double Rout = uni - 2.0*sqrt(g*hi);
+                
+                hg  = pow(Rin-Rout,2.0)/(16.0*g);
+                ung = 0.5*(Rin+Rout);
+            }
+            else
+            if(z->method==bc_method::flather)
+            {
+                // q_n(outward) = q_n,b + sqrt(g h) (eta - eta_b)
+                hg = hi;
+                ung = (p->geo_curv==1 ? ub*cx + vb*cy : (xedge ? nn*ub : nn*vb)) - sqrt(g/hi)*((hi-h0) - eb);
+            }
+            else
+            if(z->method==bc_method::clamp_level)
+            {
+                // level of the background, normal velocity of the interior
+                hg = fmax(h0+eb,1.0e-6);
+                ung = uni;
+            }
+            else
+            {
+                // clamped discharge: normal velocity of the background or B 525, depth of the interior
+                hg = hi;
+                ung = z->has_Q ? uq : (p->geo_curv==1 ? ub*cx + vb*cy : (xedge ? nn*ub : nn*vb));
+            }
+            
+            edge_h[size_t(side-1)*size_t(p->imax*p->jmax) + IJ] = hg;
+            
+            // inflow: tangential velocity of the background (+ waves), outflow: of the interior
+            const bool in = ung>0.0;
+            
+            // depth average from the characteristics, vertical profile of the waves
+            double ug, vg;
+            
+            if(xedge)
+            {
+            ug = nn*ung + (uwk - uwc);
+            vg = in ? vb + vwk : V[IJK];
+            }
+            else
+            {
+            vg = nn*ung + (vwk - vwc);
+            ug = in ? ub + uwk : U[IJK];
+            }
+            
+            // inflow with a vertical profile of the background current (B 513)
+            if(in && bgs.profiled(b))
+            {
+                const double fp = bg_prof(p,b,fmax(h0+eb,1.0e-6));
+                
                 if(xedge)
                 {
-                    ug = nn * ung + (uwk - uwc);
-                    vg = in ? vb + vwk : V[IJK];
+                ug = nn*ung*fp + (uwk - uwc);
+                vg = vb*fp + vwk;
                 }
                 else
                 {
-                    vg = nn * ung + (vwk - vwc);
-                    ug = in ? ub + uwk : U[IJK];
+                vg = nn*ung*fp + (vwk - vwc);
+                ug = ub*fp + uwk;
                 }
-
-                // inflow with a vertical profile of the background current (B 513)
-                if(in && bgs.profiled(b))
-                {
-                    const double fp = bg_prof(p, b, fmax(h0 + eb, 1.0e-6));
-
-                    if(xedge)
-                    {
-                        ug = nn * ung * fp + (uwk - uwc);
-                        vg = vb * fp + vwk;
-                    }
-                    else
-                    {
-                        vg = nn * ung * fp + (vwk - vwc);
-                        ug = ub * fp + uwk;
-                    }
-                }
-
-                // curvilinear grid (G 50): normal part from the characteristics and the waves' deviation
-                // from their column mean, tangential part of the background (+ waves) or of the interior
-                if(p->geo_curv == 1)
-                {
-                    const double tx = -cy, ty = cx;
-                    const double fp = (in && bgs.profiled(b)) ? bg_prof(p, b, fmax(h0 + eb, 1.0e-6)) : 1.0;
-                    const double dn = (uwk - uwc) * cx + (vwk - vwc) * cy;
-                    const double ut = in ? (ub * fp + uwk) * tx + (vb * fp + vwk) * ty : U[IJK] * tx + V[IJK] * ty;
-
-                    ug = (ung * fp + dn) * cx + ut * tx;
-                    vg = (ung * fp + dn) * cy + ut * ty;
-                }
-
-                const double wg = in ? wwk : W[IJK];
-
-                const int ii = i, jj = j;
-                for(int q = 1; q <= 3; ++q)
-                {
-                    i = ii + q * di;
-                    j = jj + q * dj;
-
-                    U[IJK] = ug;
-                    V[IJK] = vg;
-                    W[IJK] = wg;
-                    UH[IJK] = hg * ug;
-                    VH[IJK] = hg * vg;
-                    WH[IJK] = hg * wg;
-                }
-                i = ii;
-                j = jj;
             }
+            
+            // curvilinear grid (G 50): normal part from the characteristics and the waves' deviation
+            // from their column mean, tangential part of the background (+ waves) or of the interior
+            if(p->geo_curv==1)
+            {
+                const double tx = -cy, ty = cx;
+                const double fp = (in && bgs.profiled(b)) ? bg_prof(p,b,fmax(h0+eb,1.0e-6)) : 1.0;
+                const double dn = (uwk - uwc)*cx + (vwk - vwc)*cy;
+                const double ut = in ? (ub*fp + uwk)*tx + (vb*fp + vwk)*ty : U[IJK]*tx + V[IJK]*ty;
+                
+                ug = (ung*fp + dn)*cx + ut*tx;
+                vg = (ung*fp + dn)*cy + ut*ty;
+            }
+            
+            const double wg = in ? wwk : W[IJK];
+            
+            const int ii=i, jj=j;
+            for(int q=1; q<=3; ++q)
+            {
+                i = ii + q*di;
+                j = jj + q*dj;
+                
+                U[IJK] = ug;
+                V[IJK] = vg;
+                W[IJK] = wg;
+                UH[IJK] = hg*ug;
+                VH[IJK] = hg*vg;
+                WH[IJK] = hg*wg;
+            }
+            i = ii;
+            j = jj;
         }
-
+        }
+        
         if(waves)
-            select_sources(nullptr);
+        select_sources(nullptr);
     }
 }
 
 void iowave::nhflow_open_edges_rk(lexer *p, fdm_nhf *d, double *U, double *V, double *W, double *UH, double *VH, double *WH)
 {
     // ghost cells of the RK arrays from the step's ghost cells
-    for(int side : {1, 2, 3, 4})
+    for(int side : {1,2,3,4})
     {
-        if(edge_open(p, side) == 0)
-            continue;
-
+        if(edge_open(p,side)==0)
+        continue;
+        
         int sc, di, dj;
         double nx, ny;
-        edge_geometry(side, sc, di, dj, nx, ny);
-
-        for(int list = 0; list < 2; ++list)
+        edge_geometry(side,sc,di,dj,nx,ny);
+        
+        for(int list=0; list<2; ++list)
         {
-            const int count = list == 0 ? p->gcin_count : p->gcout_count;
-            int **gc = list == 0 ? p->gcin : p->gcout;
-
-            for(n = 0; n < count; ++n)
+        const int count = list==0 ? p->gcin_count : p->gcout_count;
+        int **gc = list==0 ? p->gcin : p->gcout;
+        
+        for(n=0;n<count;++n)
+        {
+        i=gc[n][0];
+        j=gc[n][1];
+        k=gc[n][2];
+        
+        if(gc[n][3]!=sc)
+        continue;
+        
+            const int ii=i, jj=j;
+            for(int q=1; q<=3; ++q)
             {
-                i = gc[n][0];
-                j = gc[n][1];
-                k = gc[n][2];
-
-                if(gc[n][3] != sc)
-                    continue;
-
-                const int ii = i, jj = j;
-                for(int q = 1; q <= 3; ++q)
-                {
-                    i = ii + q * di;
-                    j = jj + q * dj;
-
-                    U[IJK] = d->U[IJK];
-                    V[IJK] = d->V[IJK];
-                    W[IJK] = d->W[IJK];
-                    UH[IJK] = d->UH[IJK];
-                    VH[IJK] = d->VH[IJK];
-                    WH[IJK] = d->WH[IJK];
-                }
-                i = ii;
-                j = jj;
+                i = ii + q*di;
+                j = jj + q*dj;
+                
+                U[IJK]=d->U[IJK];
+                V[IJK]=d->V[IJK];
+                W[IJK]=d->W[IJK];
+                UH[IJK]=d->UH[IJK];
+                VH[IJK]=d->VH[IJK];
+                WH[IJK]=d->WH[IJK];
             }
+            i = ii;
+            j = jj;
+        }
         }
     }
 }
 
 void iowave::nhflow_open_edges_wl(lexer *p, fdm_nhf *d, slice &WL)
 {
-    if(p->open_xm == 0 && p->open_xp == 0 && p->open_ym == 0 && p->open_yp == 0)
-        return;
-
-    for(int side : {1, 2, 3, 4})
+    if(p->open_xm==0 && p->open_xp==0 && p->open_ym==0 && p->open_yp==0)
+    return;
+    
+    for(int side : {1,2,3,4})
     {
         const bc_zone *z = zones.open_edge(side);
-        if(z == nullptr || edge_open(p, side) == 0)
-            continue;
-
+        if(z==nullptr || edge_open(p,side)==0)
+        continue;
+        
         int sc, di, dj;
         double nx, ny;
-        edge_geometry(side, sc, di, dj, nx, ny);
-
-        for(int list = 0; list < 2; ++list)
+        edge_geometry(side,sc,di,dj,nx,ny);
+        
+        for(int list=0; list<2; ++list)
         {
-            const int count = list == 0 ? p->gcslin_count : p->gcslout_count;
-            int **gc = list == 0 ? p->gcslin : p->gcslout;
-
-            for(n = 0; n < count; ++n)
+        const int count = list==0 ? p->gcslin_count : p->gcslout_count;
+        int **gc = list==0 ? p->gcslin : p->gcslout;
+        
+        for(n=0;n<count;++n)
+        {
+        i=gc[n][0];
+        j=gc[n][1];
+        
+        if(gc[n][3]!=sc)
+        continue;
+        
+            // Riemann, clamped level: h_g of this step; Flather, clamped discharge: zero gradient
+            const bool own_h = z->method==bc_method::riemann || z->method==bc_method::clamp_level;
+            const size_t e = size_t(side-1)*size_t(p->imax*p->jmax) + IJ;
+            const double hg = (own_h && e<edge_h.size() && edge_h[e]>0.0) ? edge_h[e] : WL(i,j);
+            
+            for(int q=1; q<=3; ++q)
             {
-                i = gc[n][0];
-                j = gc[n][1];
-
-                if(gc[n][3] != sc)
-                    continue;
-
-                // Riemann, clamped level: h_g of this step; Flather, clamped discharge: zero gradient
-                const bool own_h = z->method == bc_method::riemann || z->method == bc_method::clamp_level;
-                const size_t e = size_t(side - 1) * size_t(p->imax * p->jmax) + IJ;
-                const double hg = (own_h && e < edge_h.size() && edge_h[e] > 0.0) ? edge_h[e] : WL(i, j);
-
-                for(int q = 1; q <= 3; ++q)
-                {
-                    WL(i + q * di, j + q * dj) = hg;
-                    d->eta(i + q * di, j + q * dj) = hg - d->depth(i, j);
-                }
+            WL(i+q*di,j+q*dj) = hg;
+            d->eta(i+q*di,j+q*dj) = hg - d->depth(i,j);
             }
+        }
         }
     }
 }
@@ -643,93 +636,90 @@ sigma = omega - k U_n and sinh(k h_eff).
 // false if an opposing current blocks the waves (no root)
 static bool doppler_k(double omega, double h, double un, double g, double &k)
 {
-    auto F = [&](double kk)
-    { return sqrt(g * kk * tanh(kk * h)) + kk * un - omega; };
-
+    auto F = [&](double kk) {return sqrt(g*kk*tanh(kk*h)) + kk*un - omega;};
+    
     double klo = 0.0;
-    double khi = omega * omega / g;
-
+    double khi = omega*omega/g;
+    
     int it = 0;
-    while(F(khi) < 0.0)
+    while(F(khi)<0.0)
     {
-        const double kn = 1.2 * khi;
-
-        if(F(kn) <= F(khi) || ++it > 400)
-            return false;
-
+        const double kn = 1.2*khi;
+        
+        if(F(kn)<=F(khi) || ++it>400)
+        return false;
+        
         klo = khi;
         khi = kn;
     }
-
-    for(int q = 0; q < 200; ++q)
+    
+    for(int q=0; q<200; ++q)
     {
-        const double km = 0.5 * (klo + khi);
-
-        if(F(km) < 0.0)
-            klo = km;
+        const double km = 0.5*(klo+khi);
+        
+        if(F(km)<0.0)
+        klo = km;
         else
-            khi = km;
-
-        if(khi - klo <= 1.0e-15 * khi)
-            break;
+        khi = km;
+        
+        if(khi-klo<=1.0e-15*khi)
+        break;
     }
-
-    k = 0.5 * (klo + khi);
-
+    
+    k = 0.5*(klo+khi);
+    
     return true;
 }
 
 void iowave::nhflow_wave_background(lexer *p, ghostcell *pgc)
 {
     // once per step
-    if(p->count == wbg_count)
-        return;
-
+    if(p->count==wbg_count)
+    return;
+    
     wbg_count = p->count;
-
+    
     const int ns = wave_nsources();
-
-    if((int)wbg.size() != ns)
-        wbg.assign(ns, wave_bg_state());
-
-    if(!gen_built && p->B98 == 2)
-        genzone4_build(p, pgc);
-
-    const int N = p->B530_N > 1 ? p->B530_N : 1;
+    
+    if((int)wbg.size()!=ns)
+    wbg.assign(ns,wave_bg_state());
+    
+    if(!gen_built && p->B98==2)
+    genzone4_build(p,pgc);
+    
+    const int N = p->B530_N>1 ? p->B530_N : 1;
     const double g = fabs(p->W22);
-    const bool update = p->count % N == 0;
-
+    const bool update = p->count%N==0;
+    
     int msg_n = -1;
-
-    for(int n = 0; n < ns; ++n)
+    
+    for(int n=0; n<ns; ++n)
     {
         int id, type;
         double rot;
-        wave_lib *lib = wave_source_lib(n, id, type, rot);
-
-        const int nc_ = lib != nullptr ? lib->wave_ncomp() : 0;
-
-        if(nc_ == 0)
-            continue;
-
+        wave_lib *lib = wave_source_lib(n,id,type,rot);
+        
+        const int nc_ = lib!=nullptr ? lib->wave_ncomp() : 0;
+        
+        if(nc_==0)
+        continue;
+        
         wave_bg_state &s = wbg[n];
-
+        
         // first call: start from the state of the library
         if(!s.on)
         {
-            s.k0.resize(nc_);
-            s.u0.resize(nc_);
-            s.a0.resize(nc_);
-
-            for(int m = 0; m < nc_; ++m)
+            s.k0.resize(nc_); s.u0.resize(nc_); s.a0.resize(nc_);
+            
+            for(int m=0; m<nc_; ++m)
             {
                 double k, om, sg, b, af;
-                lib->wave_comp(m, k, om, sg, b, af);
+                lib->wave_comp(m,k,om,sg,b,af);
                 s.k0[m] = k;
-                s.u0[m] = k > 0.0 ? (om - sg) / k : 0.0;
+                s.u0[m] = k>0.0 ? (om-sg)/k : 0.0;
                 s.a0[m] = af;
             }
-
+            
             s.k1 = s.k0;
             s.u1 = s.u0;
             s.a1 = s.a0;
@@ -737,135 +727,134 @@ void iowave::nhflow_wave_background(lexer *p, ghostcell *pgc)
             s.c0 = p->count;
             s.on = true;
         }
-
+        
         // current state of the blend
-        const double f = std::min(1.0, double(p->count - s.c0) / double(N));
-
+        const double f = std::min(1.0, double(p->count-s.c0)/double(N));
+        
         if(update)
         {
             // background over the columns where this source generates waves
-            double se = 0.0, su = 0.0, sv = 0.0;
-            int nc = 0;
-            int bprof = -1;  // a background with a vertical profile (B 513)
-
+            double se=0.0, su=0.0, sv=0.0;
+            int nc=0;
+            int bprof=-1;   // a background with a vertical profile (B 513)
+            
             auto add = [&](int b)
             {
                 if(bgs.profiled(b))
-                    bprof = b;
-
+                bprof = b;
+                
                 double u, v;
-                se += bgs.eta(b, p->XP[IP], p->YP[JP]);
-                bgs.vel(b, col_h0[IJ], p->XP[IP], p->YP[JP], u, v);
+                se += bgs.eta(b,p->XP[IP],p->YP[JP]);
+                bgs.vel(b,col_h0[IJ],p->XP[IP],p->YP[JP],u,v);
                 su += u;
                 sv += v;
                 ++nc;
             };
-
-            auto has = [&](const std::vector<int> &ids)
-            { return std::find(ids.begin(), ids.end(), id) != ids.end(); };
-
-            if(p->B98 == 2)
-                for(size_t q = 0; q < gen_i.size(); ++q)
-                {
-                    i = gen_i[q];
-                    j = gen_j[q];
-
-                    const int b = col_gen_bg[IJ];
-
-                    if(b < 0 || (gen_src[q] != nullptr && !has(*gen_src[q])))
-                        continue;
-
-                    add(b);
-                }
-
-            for(int side : {1, 2, 3, 4})
+            
+            auto has = [&](const std::vector<int> &ids) {return std::find(ids.begin(),ids.end(),id)!=ids.end();};
+            
+            if(p->B98==2)
+            for(size_t q=0; q<gen_i.size(); ++q)
+            {
+                i = gen_i[q];
+                j = gen_j[q];
+                
+                const int b = col_gen_bg[IJ];
+                
+                if(b<0 || (gen_src[q]!=nullptr && !has(*gen_src[q])))
+                continue;
+                
+                add(b);
+            }
+            
+            for(int side : {1,2,3,4})
             {
                 const bc_zone *z = zones.open_edge(side);
-
-                if(z == nullptr || edge_open(p, side) == 0 || z->method != bc_method::riemann || !has(z->sources))
-                    continue;
-
+                
+                if(z==nullptr || edge_open(p,side)==0 || z->method!=bc_method::riemann || !has(z->sources))
+                continue;
+                
                 const int b = bgs.index(z->bg);
-
+                
                 int sc_, di, dj;
                 double nx, ny;
-                edge_geometry(side, sc_, di, dj, nx, ny);
-
-                for(int list = 0; list < 2; ++list)
+                edge_geometry(side,sc_,di,dj,nx,ny);
+                
+                for(int list=0; list<2; ++list)
                 {
-                    const int cnt = list == 0 ? p->gcslin_count : p->gcslout_count;
-                    int **gs = list == 0 ? p->gcslin : p->gcslout;
-
-                    for(int q = 0; q < cnt; ++q)
-                        if(gs[q][3] == sc_)
-                        {
-                            i = gs[q][0];
-                            j = gs[q][1];
-                            add(b);
-                        }
+                const int cnt = list==0 ? p->gcslin_count : p->gcslout_count;
+                int **gs = list==0 ? p->gcslin : p->gcslout;
+                
+                for(int q=0; q<cnt; ++q)
+                if(gs[q][3]==sc_)
+                {
+                    i = gs[q][0];
+                    j = gs[q][1];
+                    add(b);
+                }
                 }
             }
-
+            
             se = pgc->globalsum(se);
             su = pgc->globalsum(su);
             sv = pgc->globalsum(sv);
             nc = pgc->globalisum(nc);
-
+            
             // restart the blend from the current state towards the new target
-            for(int m = 0; m < nc_; ++m)
+            for(int m=0; m<nc_; ++m)
             {
-                s.k0[m] = s.k0[m] + (s.k1[m] - s.k0[m]) * f;
-                s.u0[m] = s.u0[m] + (s.u1[m] - s.u0[m]) * f;
-                s.a0[m] = s.a0[m] + (s.a1[m] - s.a0[m]) * f;
+                s.k0[m] = s.k0[m] + (s.k1[m]-s.k0[m])*f;
+                s.u0[m] = s.u0[m] + (s.u1[m]-s.u0[m])*f;
+                s.a0[m] = s.a0[m] + (s.a1[m]-s.a0[m])*f;
             }
-            s.h0 = s.h0 + (s.h1 - s.h0) * f;
+            s.h0 = s.h0 + (s.h1-s.h0)*f;
             s.c0 = p->count;
-
-            if(nc > 0)
+            
+            if(nc>0)
             {
-                const double h = lib->wave_depth0() + se / double(nc);
-                const double ub = su / double(nc);  // for the message
-                const double vb = sv / double(nc);
+                const double h = lib->wave_depth0() + se/double(nc);
+                const double ub = su/double(nc);    // for the message
+                const double vb = sv/double(nc);
                 int nblock = 0;
-
-                if(h > 0.0)
+                
+                if(h>0.0)
                 {
                     s.h1 = h;
-
-                    for(int m = 0; m < nc_; ++m)
+                    
+                    for(int m=0; m<nc_; ++m)
                     {
                         double kc, om, sg, b, af;
-                        lib->wave_comp(m, kc, om, sg, b, af);
-
-                        const double dir = (p->B105_1 + rot) * (PI / 180.0) + b;
-                        const double un = p->B530 == 2 ? (su * cos(dir) + sv * sin(dir)) / double(nc) : 0.0;
+                        lib->wave_comp(m,kc,om,sg,b,af);
+                        
+                        const double dir = (p->B105_1 + rot)*(PI/180.0) + b;
+                        const double un = p->B530==2 ? (su*cos(dir) + sv*sin(dir))/double(nc) : 0.0;
                         double k;
                         double ueff = un;
-                        bool ok = doppler_k(om, h, un, g, k);
-
+                        bool ok = doppler_k(om,h,un,g,k);
+                        
                         // current with a vertical profile (B 513): the wave sees the current weighted
                         // with its own kinematics, U_eff = U_n (2k / sinh(2kh)) int_0^h f(z) cosh(2kz) dz
                         // (Stewart & Joy 1974), solved together with k
-                        if(ok && bprof >= 0 && un != 0.0)
-                            for(int it = 0; it < 20; ++it)
+                        if(ok && bprof>=0 && un!=0.0)
+                        for(int it=0; it<20; ++it)
+                        {
+                            const double ue = un*bg_kweight(bprof,k,h);
+                            double kn;
+                            
+                            if(!doppler_k(om,h,ue,g,kn))
                             {
-                                const double ue = un * bg_kweight(bprof, k, h);
-                                double kn;
-
-                                if(!doppler_k(om, h, ue, g, kn))
-                                {
-                                    ok = false;
-                                    break;
-                                }
-
-                                const bool conv = fabs(kn - k) <= 1.0e-12 * kn;
-                                k = kn;
-                                ueff = ue;
-
-                                if(conv)
-                                    break;
+                            ok = false;
+                            break;
                             }
-
+                            
+                            const bool conv = fabs(kn-k)<=1.0e-12*kn;
+                            k = kn;
+                            ueff = ue;
+                            
+                            if(conv)
+                            break;
+                        }
+                        
                         if(ok)
                         {
                             s.k1[m] = k;
@@ -880,50 +869,50 @@ void iowave::nhflow_wave_background(lexer *p, ghostcell *pgc)
                         }
                     }
                 }
-
-                if(p->mpirank == 0 && nblock != s.nblock)
-                    cout << "iowave B 530: source " << id << ": " << nblock << " of " << nc_ << " components blocked by the opposing current (U " << ub << " " << vb << " m/s), faded out" << endl;
-
+                
+                if(p->mpirank==0 && nblock!=s.nblock)
+                cout<<"iowave B 530: source "<<id<<": "<<nblock<<" of "<<nc_<<" components blocked by the opposing current (U "<<ub<<" "<<vb<<" m/s), faded out"<<endl;
+                
                 s.nblock = nblock;
             }
-
-            if(p->mpirank == 0 && (p->count == 0 || p->count % (100 * N) == 0))
+            
+            if(p->mpirank==0 && (p->count==0 || p->count%(100*N)==0))
             {
-                if(nc_ == 1)
-                    msg_n = n;
+                if(nc_==1)
+                msg_n = n;
                 else
-                    cout << "iowave B 530: source " << id << "  " << nc_ << " components  h_eff " << s.h1 << "  blocked " << s.nblock << endl;
+                cout<<"iowave B 530: source "<<id<<"  "<<nc_<<" components  h_eff "<<s.h1<<"  blocked "<<s.nblock<<endl;
             }
         }
-
+        
         // state of this step
-        const double fs = std::min(1.0, double(p->count - s.c0) / double(N));
-
-        for(int m = 0; m < nc_; ++m)
+        const double fs = std::min(1.0, double(p->count-s.c0)/double(N));
+        
+        for(int m=0; m<nc_; ++m)
         {
             double kc, om, sg, b, af;
-            lib->wave_comp(m, kc, om, sg, b, af);
-
-            const double k = s.k0[m] + (s.k1[m] - s.k0[m]) * fs;
-            const double u = s.u0[m] + (s.u1[m] - s.u0[m]) * fs;
-            const double a = s.a0[m] + (s.a1[m] - s.a0[m]) * fs;
-
-            lib->wave_comp_set(m, k, om - k * u, a);
+            lib->wave_comp(m,kc,om,sg,b,af);
+            
+            const double k = s.k0[m] + (s.k1[m]-s.k0[m])*fs;
+            const double u = s.u0[m] + (s.u1[m]-s.u0[m])*fs;
+            const double a = s.a0[m] + (s.a1[m]-s.a0[m])*fs;
+            
+            lib->wave_comp_set(m,k,om-k*u,a);
         }
-
-        lib->wave_depth_set(s.h0 + (s.h1 - s.h0) * fs);
+        
+        lib->wave_depth_set(s.h0 + (s.h1-s.h0)*fs);
         lib->wave_comp_update();
-
+        
         // one component: the target of the blend and the k the library uses now (5th-order Stokes
         // waves refine k with their own dispersion relation)
-        if(msg_n == n)
+        if(msg_n==n)
         {
             double kc, om, sg, b, af;
-            lib->wave_comp(0, kc, om, sg, b, af);
-
-            cout << "iowave B 530: source " << id << "  k " << s.k1[0] << "  L " << 2.0 * PI / s.k1[0] << "  h_eff " << s.h1 << "  U_n " << s.u1[0]
-                 << "  (now: k " << kc << "  L " << 2.0 * PI / kc << "  T_r " << 2.0 * PI / sg << ")" << endl;
-
+            lib->wave_comp(0,kc,om,sg,b,af);
+            
+            cout<<"iowave B 530: source "<<id<<"  k "<<s.k1[0]<<"  L "<<2.0*PI/s.k1[0]<<"  h_eff "<<s.h1<<"  U_n "<<s.u1[0]
+                <<"  (now: k "<<kc<<"  L "<<2.0*PI/kc<<"  T_r "<<2.0*PI/sg<<")"<<endl;
+            
             msg_n = -1;
         }
     }
@@ -945,108 +934,104 @@ the time discretisation of the sampled flux.
 void iowave::nhflow_mass_balance(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
     const double t = p->simtime;
-
-    if(t == mb_t)
-        return;
-
+    
+    if(t==mb_t)
+    return;
+    
     // flux into the domain through each open edge [m3/s]
-    double q[5] = {0.0, 0.0, 0.0, 0.0, 0.0};
-
-    for(int side : {1, 2, 3, 4})
+    double q[5]={0.0,0.0,0.0,0.0,0.0};
+    
+    for(int side : {1,2,3,4})
     {
         const bc_zone *z = zones.open_edge(side);
-        if(z == nullptr || edge_open(p, side) == 0)
-            continue;
-
+        if(z==nullptr || edge_open(p,side)==0)
+        continue;
+        
         int sc, di, dj;
         double nx, ny;
-        edge_geometry(side, sc, di, dj, nx, ny);
-
-        for(int list = 0; list < 2; ++list)
+        edge_geometry(side,sc,di,dj,nx,ny);
+        
+        for(int list=0; list<2; ++list)
         {
-            const int cs = list == 0 ? p->gcslin_count : p->gcslout_count;
-            int **gs = list == 0 ? p->gcslin : p->gcslout;
-
-            for(int m = 0; m < cs; ++m)
-                if(gs[m][3] == sc)
-                {
-                    i = gs[m][0];
-                    j = gs[m][1];
-
-                    double f = 0.0;
-                    for(k = 0; k < p->knoz; ++k)
-                    {
-                        if(side == 1)
-                            f += p->DZN[KP] * d->FEx[Im1JK];
-                        if(side == 2)
-                            f -= p->DZN[KP] * d->FEx[IJK];
-                        if(side == 3)
-                            f += p->DZN[KP] * d->FEy[IJm1K];
-                        if(side == 4)
-                            f -= p->DZN[KP] * d->FEy[IJK];
-                    }
-
-                    q[side] += f * (p->geo_curv == 1 ? curv_edge_len(p, side, i, j) : (side <= 2 ? p->DYN[JP] : p->DXN[IP]));
-                }
+        const int cs = list==0 ? p->gcslin_count : p->gcslout_count;
+        int **gs = list==0 ? p->gcslin : p->gcslout;
+        
+        for(int m=0; m<cs; ++m)
+        if(gs[m][3]==sc)
+        {
+            i = gs[m][0];
+            j = gs[m][1];
+            
+            double f = 0.0;
+            for(k=0; k<p->knoz; ++k)
+            {
+                if(side==1) f += p->DZN[KP]*d->FEx[Im1JK];
+                if(side==2) f -= p->DZN[KP]*d->FEx[IJK];
+                if(side==3) f += p->DZN[KP]*d->FEy[IJm1K];
+                if(side==4) f -= p->DZN[KP]*d->FEy[IJK];
+            }
+            
+            q[side] += f*(p->geo_curv==1 ? curv_edge_len(p,side,i,j) : (side<=2 ? p->DYN[JP] : p->DXN[IP]));
         }
-
+        }
+        
         q[side] = pgc->globalsum(q[side]);
     }
-
+    
     double V = 0.0;
     SLICELOOP4
-    V += d->WL(i, j) * p->DXN[IP] * p->DYN[JP];
+    V += d->WL(i,j)*p->DXN[IP]*p->DYN[JP];
     V = pgc->globalsum(V);
-
+    
     // first call: header and start of the first interval
-    if(mb_t < 0.0)
+    if(mb_t<0.0)
     {
-        if(p->mpirank == 0)
+        if(p->mpirank==0)
         {
             mb_out.open("./REEF3D_Log/REEF3D-NHFLOW-iowave-mass-balance.dat");
-            mb_out << "# iowave edge mass balance (B 529 " << p->B529 << "): flux into the domain [m3/s], mean over the interval" << std::endl;
-            mb_out << "# residual = dV/dt - sum of the edges: relaxation / beach zones and time discretisation" << std::endl;
-            mb_out << "# t  V  dV/dt";
-            for(int side : {1, 2, 3, 4})
-                if(zones.open_edge(side) != nullptr && edge_open(p, side) == 1)
-                    mb_out << "  Q_edge" << side << "(zone " << zones.open_edge(side)->id << ")";
-            mb_out << "  sum  residual" << std::endl;
+            mb_out<<"# iowave edge mass balance (B 529 "<<p->B529<<"): flux into the domain [m3/s], mean over the interval"<<std::endl;
+            mb_out<<"# residual = dV/dt - sum of the edges: relaxation / beach zones and time discretisation"<<std::endl;
+            mb_out<<"# t  V  dV/dt";
+            for(int side : {1,2,3,4})
+            if(zones.open_edge(side)!=nullptr && edge_open(p,side)==1)
+            mb_out<<"  Q_edge"<<side<<"(zone "<<zones.open_edge(side)->id<<")";
+            mb_out<<"  sum  residual"<<std::endl;
         }
-
+        
         mb_t = mb_t0 = t;
         mb_V0 = V;
         mb_n = 0;
         return;
     }
-
+    
     const double dt = t - mb_t;
-    for(int side : {1, 2, 3, 4})
-        mb_int[side] += q[side] * dt;
-
+    for(int side : {1,2,3,4})
+    mb_int[side] += q[side]*dt;
+    
     mb_t = t;
     ++mb_n;
-
-    if(mb_n < p->B529)
-        return;
-
+    
+    if(mb_n<p->B529)
+    return;
+    
     const double T = t - mb_t0;
-
-    if(p->mpirank == 0 && T > 0.0)
+    
+    if(p->mpirank==0 && T>0.0)
     {
         double sum = 0.0;
-        mb_out << std::setprecision(10) << t << "  " << V << "  " << (V - mb_V0) / T;
-        for(int side : {1, 2, 3, 4})
-            if(zones.open_edge(side) != nullptr && edge_open(p, side) == 1)
-            {
-                mb_out << "  " << mb_int[side] / T;
-                sum += mb_int[side] / T;
-            }
-        mb_out << "  " << sum << "  " << (V - mb_V0) / T - sum << std::endl;
+        mb_out<<std::setprecision(10)<<t<<"  "<<V<<"  "<<(V-mb_V0)/T;
+        for(int side : {1,2,3,4})
+        if(zones.open_edge(side)!=nullptr && edge_open(p,side)==1)
+        {
+            mb_out<<"  "<<mb_int[side]/T;
+            sum += mb_int[side]/T;
+        }
+        mb_out<<"  "<<sum<<"  "<<(V-mb_V0)/T - sum<<std::endl;
     }
-
-    for(int side : {1, 2, 3, 4})
-        mb_int[side] = 0.0;
-
+    
+    for(int side : {1,2,3,4})
+    mb_int[side] = 0.0;
+    
     mb_t0 = t;
     mb_V0 = V;
     mb_n = 0;
@@ -1057,21 +1042,21 @@ void iowave::nhflow_mass_balance(lexer *p, fdm_nhf *d, ghostcell *pgc)
 double iowave::bg_prof(lexer *p, int b, double h)
 {
     const int kk = k;
-    double zc = 0.0, s = 0.0, fk = 1.0;
-
-    for(int m = 0; m < p->knoz; ++m)
+    double zc=0.0, s=0.0, fk=1.0;
+    
+    for(int m=0; m<p->knoz; ++m)
     {
-        const double dz = p->DZN[m + marge];
-        const double f = bgs.shape(b, zc + 0.5 * dz, h);
-        s += dz * f;
-
-        if(m == kk)
-            fk = f;
-
+        const double dz = p->DZN[m+marge];
+        const double f = bgs.shape(b,zc+0.5*dz,h);
+        s += dz*f;
+        
+        if(m==kk)
+        fk = f;
+        
         zc += dz;
     }
-
-    return s > 0.0 ? fk / s : 1.0;
+    
+    return s>0.0 ? fk/s : 1.0;
 }
 
 // weight of a profiled current for a wave of wavenumber k on the depth h (B 513 with B 530):
@@ -1079,24 +1064,24 @@ double iowave::bg_prof(lexer *p, int b, double h)
 double iowave::bg_kweight(int b, double k, double h)
 {
     const int M = 400;
-    const double kh2 = 2.0 * k * h;
-
-    if(kh2 < 1.0e-8)
-        return 1.0;
-
+    const double kh2 = 2.0*k*h;
+    
+    if(kh2<1.0e-8)
+    return 1.0;
+    
     double s = 0.0;
-
-    for(int q = 0; q <= M; ++q)
+    
+    for(int q=0; q<=M; ++q)
     {
-        const double zeta = double(q) / double(M);
-        const double w = (q == 0 || q == M) ? 1.0 : (q % 2 == 1 ? 4.0 : 2.0);
+        const double zeta = double(q)/double(M);
+        const double w = (q==0 || q==M) ? 1.0 : (q%2==1 ? 4.0 : 2.0);
         // cosh(2k z) / sinh(2k h), z = zeta h, without overflow
-        const double c = (exp(kh2 * (zeta - 1.0)) + exp(-kh2 * (zeta + 1.0))) / (1.0 - exp(-2.0 * kh2));
-        s += w * bgs.shape(b, zeta, h) * c;
+        const double c = (exp(kh2*(zeta-1.0)) + exp(-kh2*(zeta+1.0)))/(1.0 - exp(-2.0*kh2));
+        s += w*bgs.shape(b,zeta,h)*c;
     }
-
+    
     // int_0^h dz = h int_0^1 dzeta (Simpson), times 2k
-    return 2.0 * k * h * s / (3.0 * double(M));
+    return 2.0*k*h*s/(3.0*double(M));
 }
 
 // non-hydrostatic pressure of the incoming waves in the ghost column (i-1,j) at an x- edge,
@@ -1105,31 +1090,31 @@ double iowave::bg_kweight(int b, double k, double h)
 // (B 98 3, 4). With p = 0 these generated waves up to 11-15 % too high for kh 2-3.
 void iowave::nhflow_edge_pressure(lexer *p, fdm_nhf *d, ghostcell *pgc, double xs, double ys)
 {
-    if(d->Pbc == nullptr)
-        p->Darray(d->Pbc, p->imax * p->jmax * (p->kmax + 2));
-
+    if(d->Pbc==nullptr)
+    p->Darray(d->Pbc,p->imax*p->jmax*(p->kmax+2));
+    
     const double rw = ramp(p);
-    const double dt = p->dt > 0.0 ? p->dt : 1.0e-3;
+    const double dt = p->dt>0.0 ? p->dt : 1.0e-3;
     const double wt = p->wavetime;
-    std::vector<double> a(p->knoz + 1), zz(p->knoz + 1);
-
-    for(k = 0; k <= p->knoz; ++k)
+    std::vector<double> a(p->knoz+1), zz(p->knoz+1);
+    
+    for(k=0; k<=p->knoz; ++k)
     {
-        zz[k] = p->ZN[KP] * d->WL(i, j) + d->bed(i, j);
-        a[k] = wave_w(p, pgc, xs, ys, zz[k] - p->phimean);
+        zz[k] = p->ZN[KP]*d->WL(i,j) + d->bed(i,j);
+        a[k] = wave_w(p,pgc,xs,ys,zz[k]-p->phimean);
     }
-
+    
     p->wavetime = wt - dt;
-    for(k = 0; k <= p->knoz; ++k)
-        a[k] = rw * (a[k] - wave_w(p, pgc, xs, ys, zz[k] - p->phimean)) / dt;
+    for(k=0; k<=p->knoz; ++k)
+    a[k] = rw*(a[k] - wave_w(p,pgc,xs,ys,zz[k]-p->phimean))/dt;
     p->wavetime = wt;
-
+    
     double pn = 0.0;
     k = p->knoz;
     d->Pbc[FIm1JK] = 0.0;
-    for(k = p->knoz - 1; k >= 0; --k)
+    for(k=p->knoz-1; k>=0; --k)
     {
-        pn += p->W1 * 0.5 * (a[k] + a[k + 1]) * (zz[k + 1] - zz[k]);
+        pn += p->W1*0.5*(a[k]+a[k+1])*(zz[k+1]-zz[k]);
         d->Pbc[FIm1JK] = pn;
     }
 }

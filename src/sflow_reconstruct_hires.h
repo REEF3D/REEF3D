@@ -23,9 +23,9 @@ Author: Hans Bihs
 #ifndef SFLOW_RECONSTRUCT_HIRES_H_
 #define SFLOW_RECONSTRUCT_HIRES_H_
 
-#include "increment.h"
-#include "sflow_reconstruct.h"
-#include "slice4.h"
+#include"sflow_reconstruct.h"
+#include"increment.h"
+#include"slice4.h"
 
 class lexer;
 class ghostcell;
@@ -41,21 +41,21 @@ using namespace std;
 class sflow_reconstruct_hires final : public sflow_reconstruct, public increment
 {
 public:
-    sflow_reconstruct_hires(lexer *, patchBC_interface *);
-    virtual ~sflow_reconstruct_hires();
+	sflow_reconstruct_hires(lexer*,patchBC_interface*);
+	virtual ~sflow_reconstruct_hires();
 
-    void reconstruct_x(lexer *, ghostcell *, fdm2D *, slice &, slice &, slice &) override final;
-    void reconstruct_y(lexer *, ghostcell *, fdm2D *, slice &, slice &, slice &) override final;
-    void reconstruct_WL(lexer *, ghostcell *, fdm2D *) override final;
+    void reconstruct_x(lexer*,ghostcell*,fdm2D*,slice&,slice&,slice&) override final;
+    void reconstruct_y(lexer*,ghostcell*,fdm2D*,slice&,slice&,slice&) override final;
+    void reconstruct_WL(lexer*,ghostcell*,fdm2D*) override final;
 
 private:
-    double limiter(lexer *, double, double);
-
-    slice4 dfdx, dfdy;
-
-    double dfdx_plus, dfdx_min, dfdy_plus, dfdy_min;
-    double val, denom, r, phi;
-
+    double limiter(lexer*, double, double);
+    
+    slice4 dfdx,dfdy;
+    
+    double dfdx_plus,dfdx_min,dfdy_plus,dfdy_min;
+    double val,denom,r,phi;
+    
     patchBC_interface *pBC;
 };
 

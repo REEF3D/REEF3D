@@ -18,66 +18,58 @@
  */
 EIGEN_BLAS_FUNC(hemv)
 (const char *uplo, const int *n, const RealScalar *palpha, const RealScalar *pa, const int *lda, const RealScalar *px,
- const int *incx, const RealScalar *pbeta, RealScalar *py, const int *incy)
-{
-    typedef void (*functype)(int, const Scalar *, int, const Scalar *, Scalar *, Scalar);
-    static const functype func[2] = {
-        // array index: UP
-        (Eigen::internal::selfadjoint_matrix_vector_product<Scalar, int, Eigen::ColMajor, Eigen::Upper, false,
-                                                            false>::run),
-        // array index: LO
-        (Eigen::internal::selfadjoint_matrix_vector_product<Scalar, int, Eigen::ColMajor, Eigen::Lower, false,
-                                                            false>::run),
-    };
+ const int *incx, const RealScalar *pbeta, RealScalar *py, const int *incy) {
+  typedef void (*functype)(int, const Scalar *, int, const Scalar *, Scalar *, Scalar);
+  static const functype func[2] = {
+      // array index: UP
+      (Eigen::internal::selfadjoint_matrix_vector_product<Scalar, int, Eigen::ColMajor, Eigen::Upper, false,
+                                                          false>::run),
+      // array index: LO
+      (Eigen::internal::selfadjoint_matrix_vector_product<Scalar, int, Eigen::ColMajor, Eigen::Lower, false,
+                                                          false>::run),
+  };
 
-    const Scalar *a = reinterpret_cast<const Scalar *>(pa);
-    const Scalar *x = reinterpret_cast<const Scalar *>(px);
-    Scalar *y = reinterpret_cast<Scalar *>(py);
-    Scalar alpha = *reinterpret_cast<const Scalar *>(palpha);
-    Scalar beta = *reinterpret_cast<const Scalar *>(pbeta);
+  const Scalar *a = reinterpret_cast<const Scalar *>(pa);
+  const Scalar *x = reinterpret_cast<const Scalar *>(px);
+  Scalar *y = reinterpret_cast<Scalar *>(py);
+  Scalar alpha = *reinterpret_cast<const Scalar *>(palpha);
+  Scalar beta = *reinterpret_cast<const Scalar *>(pbeta);
 
-    // check arguments
-    int info = 0;
-    if(UPLO(*uplo) == INVALID)
-        info = 1;
-    else if(*n < 0)
-        info = 2;
-    else if(*lda < std::max(1, *n))
-        info = 5;
-    else if(*incx == 0)
-        info = 7;
-    else if(*incy == 0)
-        info = 10;
-    if(info)
-        return xerbla_(SCALAR_SUFFIX_UP "HEMV ", &info);
+  // check arguments
+  int info = 0;
+  if (UPLO(*uplo) == INVALID)
+    info = 1;
+  else if (*n < 0)
+    info = 2;
+  else if (*lda < std::max(1, *n))
+    info = 5;
+  else if (*incx == 0)
+    info = 7;
+  else if (*incy == 0)
+    info = 10;
+  if (info) return xerbla_(SCALAR_SUFFIX_UP "HEMV ", &info);
 
-    if(*n == 0)
-        return;
+  if (*n == 0) return;
 
-    const Scalar *actual_x = get_compact_vector(x, *n, *incx);
-    Scalar *actual_y = get_compact_vector(y, *n, *incy);
+  const Scalar *actual_x = get_compact_vector(x, *n, *incx);
+  Scalar *actual_y = get_compact_vector(y, *n, *incy);
 
-    if(beta != Scalar(1))
-    {
-        if(beta == Scalar(0))
-            make_vector(actual_y, *n).setZero();
-        else
-            make_vector(actual_y, *n) *= beta;
-    }
+  if (beta != Scalar(1)) {
+    if (beta == Scalar(0))
+      make_vector(actual_y, *n).setZero();
+    else
+      make_vector(actual_y, *n) *= beta;
+  }
 
-    if(alpha != Scalar(0))
-    {
-        int code = UPLO(*uplo);
-        if(code >= 2 || func[code] == 0)
-            return;
+  if (alpha != Scalar(0)) {
+    int code = UPLO(*uplo);
+    if (code >= 2 || func[code] == 0) return;
 
-        func[code](*n, a, *lda, actual_x, actual_y, alpha);
-    }
+    func[code](*n, a, *lda, actual_x, actual_y, alpha);
+  }
 
-    if(actual_x != x)
-        delete[] actual_x;
-    if(actual_y != y)
-        delete[] copy_back(actual_y, y, *n, *incy);
+  if (actual_x != x) delete[] actual_x;
+  if (actual_y != y) delete[] copy_back(actual_y, y, *n, *incy);
 }
 
 /**  ZHBMV  performs the matrix-vector  operation
@@ -113,43 +105,38 @@ EIGEN_BLAS_FUNC(hemv)
  *  where alpha is a real scalar, x is an n element vector and A is an
  *  n by n hermitian matrix, supplied in packed form.
  */
-EIGEN_BLAS_FUNC(hpr)(char *uplo, int *n, RealScalar *palpha, RealScalar *px, int *incx, RealScalar *pap)
-{
-    typedef void (*functype)(int, Scalar *, const Scalar *, RealScalar);
-    static const functype func[2] = {
-        // array index: UP
-        (Eigen::internal::selfadjoint_packed_rank1_update<Scalar, int, Eigen::ColMajor, Eigen::Upper, false, Conj>::run),
-        // array index: LO
-        (Eigen::internal::selfadjoint_packed_rank1_update<Scalar, int, Eigen::ColMajor, Eigen::Lower, false, Conj>::run),
-    };
+EIGEN_BLAS_FUNC(hpr)(char *uplo, int *n, RealScalar *palpha, RealScalar *px, int *incx, RealScalar *pap) {
+  typedef void (*functype)(int, Scalar *, const Scalar *, RealScalar);
+  static const functype func[2] = {
+      // array index: UP
+      (Eigen::internal::selfadjoint_packed_rank1_update<Scalar, int, Eigen::ColMajor, Eigen::Upper, false, Conj>::run),
+      // array index: LO
+      (Eigen::internal::selfadjoint_packed_rank1_update<Scalar, int, Eigen::ColMajor, Eigen::Lower, false, Conj>::run),
+  };
 
-    Scalar *x = reinterpret_cast<Scalar *>(px);
-    Scalar *ap = reinterpret_cast<Scalar *>(pap);
-    RealScalar alpha = *palpha;
+  Scalar *x = reinterpret_cast<Scalar *>(px);
+  Scalar *ap = reinterpret_cast<Scalar *>(pap);
+  RealScalar alpha = *palpha;
 
-    int info = 0;
-    if(UPLO(*uplo) == INVALID)
-        info = 1;
-    else if(*n < 0)
-        info = 2;
-    else if(*incx == 0)
-        info = 5;
-    if(info)
-        return xerbla_(SCALAR_SUFFIX_UP "HPR  ", &info);
+  int info = 0;
+  if (UPLO(*uplo) == INVALID)
+    info = 1;
+  else if (*n < 0)
+    info = 2;
+  else if (*incx == 0)
+    info = 5;
+  if (info) return xerbla_(SCALAR_SUFFIX_UP "HPR  ", &info);
 
-    if(alpha == Scalar(0))
-        return;
+  if (alpha == Scalar(0)) return;
 
-    Scalar *x_cpy = get_compact_vector(x, *n, *incx);
+  Scalar *x_cpy = get_compact_vector(x, *n, *incx);
 
-    int code = UPLO(*uplo);
-    if(code >= 2 || func[code] == 0)
-        return;
+  int code = UPLO(*uplo);
+  if (code >= 2 || func[code] == 0) return;
 
-    func[code](*n, ap, x_cpy, alpha);
+  func[code](*n, ap, x_cpy, alpha);
 
-    if(x_cpy != x)
-        delete[] x_cpy;
+  if (x_cpy != x) delete[] x_cpy;
 }
 
 /**  ZHPR2  performs the hermitian rank 2 operation
@@ -160,49 +147,43 @@ EIGEN_BLAS_FUNC(hpr)(char *uplo, int *n, RealScalar *palpha, RealScalar *px, int
  *  n by n hermitian matrix, supplied in packed form.
  */
 EIGEN_BLAS_FUNC(hpr2)
-(char *uplo, int *n, RealScalar *palpha, RealScalar *px, int *incx, RealScalar *py, int *incy, RealScalar *pap)
-{
-    typedef void (*functype)(int, Scalar *, const Scalar *, const Scalar *, Scalar);
-    static const functype func[2] = {
-        // array index: UP
-        (Eigen::internal::packed_rank2_update_selector<Scalar, int, Eigen::Upper>::run),
-        // array index: LO
-        (Eigen::internal::packed_rank2_update_selector<Scalar, int, Eigen::Lower>::run),
-    };
+(char *uplo, int *n, RealScalar *palpha, RealScalar *px, int *incx, RealScalar *py, int *incy, RealScalar *pap) {
+  typedef void (*functype)(int, Scalar *, const Scalar *, const Scalar *, Scalar);
+  static const functype func[2] = {
+      // array index: UP
+      (Eigen::internal::packed_rank2_update_selector<Scalar, int, Eigen::Upper>::run),
+      // array index: LO
+      (Eigen::internal::packed_rank2_update_selector<Scalar, int, Eigen::Lower>::run),
+  };
 
-    Scalar *x = reinterpret_cast<Scalar *>(px);
-    Scalar *y = reinterpret_cast<Scalar *>(py);
-    Scalar *ap = reinterpret_cast<Scalar *>(pap);
-    Scalar alpha = *reinterpret_cast<Scalar *>(palpha);
+  Scalar *x = reinterpret_cast<Scalar *>(px);
+  Scalar *y = reinterpret_cast<Scalar *>(py);
+  Scalar *ap = reinterpret_cast<Scalar *>(pap);
+  Scalar alpha = *reinterpret_cast<Scalar *>(palpha);
 
-    int info = 0;
-    if(UPLO(*uplo) == INVALID)
-        info = 1;
-    else if(*n < 0)
-        info = 2;
-    else if(*incx == 0)
-        info = 5;
-    else if(*incy == 0)
-        info = 7;
-    if(info)
-        return xerbla_(SCALAR_SUFFIX_UP "HPR2 ", &info);
+  int info = 0;
+  if (UPLO(*uplo) == INVALID)
+    info = 1;
+  else if (*n < 0)
+    info = 2;
+  else if (*incx == 0)
+    info = 5;
+  else if (*incy == 0)
+    info = 7;
+  if (info) return xerbla_(SCALAR_SUFFIX_UP "HPR2 ", &info);
 
-    if(alpha == Scalar(0))
-        return;
+  if (alpha == Scalar(0)) return;
 
-    Scalar *x_cpy = get_compact_vector(x, *n, *incx);
-    Scalar *y_cpy = get_compact_vector(y, *n, *incy);
+  Scalar *x_cpy = get_compact_vector(x, *n, *incx);
+  Scalar *y_cpy = get_compact_vector(y, *n, *incy);
 
-    int code = UPLO(*uplo);
-    if(code >= 2 || func[code] == 0)
-        return;
+  int code = UPLO(*uplo);
+  if (code >= 2 || func[code] == 0) return;
 
-    func[code](*n, ap, x_cpy, y_cpy, alpha);
+  func[code](*n, ap, x_cpy, y_cpy, alpha);
 
-    if(x_cpy != x)
-        delete[] x_cpy;
-    if(y_cpy != y)
-        delete[] y_cpy;
+  if (x_cpy != x) delete[] x_cpy;
+  if (y_cpy != y) delete[] y_cpy;
 }
 
 /**  ZHER   performs the hermitian rank 1 operation
@@ -212,47 +193,42 @@ EIGEN_BLAS_FUNC(hpr2)
  *  where alpha is a real scalar, x is an n element vector and A is an
  *  n by n hermitian matrix.
  */
-EIGEN_BLAS_FUNC(her)(char *uplo, int *n, RealScalar *palpha, RealScalar *px, int *incx, RealScalar *pa, int *lda)
-{
-    typedef void (*functype)(int, Scalar *, int, const Scalar *, const Scalar *, const Scalar &);
-    static const functype func[2] = {
-        // array index: UP
-        (Eigen::selfadjoint_rank1_update<Scalar, int, Eigen::ColMajor, Eigen::Upper, false, Conj>::run),
-        // array index: LO
-        (Eigen::selfadjoint_rank1_update<Scalar, int, Eigen::ColMajor, Eigen::Lower, false, Conj>::run),
-    };
+EIGEN_BLAS_FUNC(her)(char *uplo, int *n, RealScalar *palpha, RealScalar *px, int *incx, RealScalar *pa, int *lda) {
+  typedef void (*functype)(int, Scalar *, int, const Scalar *, const Scalar *, const Scalar &);
+  static const functype func[2] = {
+      // array index: UP
+      (Eigen::selfadjoint_rank1_update<Scalar, int, Eigen::ColMajor, Eigen::Upper, false, Conj>::run),
+      // array index: LO
+      (Eigen::selfadjoint_rank1_update<Scalar, int, Eigen::ColMajor, Eigen::Lower, false, Conj>::run),
+  };
 
-    Scalar *x = reinterpret_cast<Scalar *>(px);
-    Scalar *a = reinterpret_cast<Scalar *>(pa);
-    RealScalar alpha = *reinterpret_cast<RealScalar *>(palpha);
+  Scalar *x = reinterpret_cast<Scalar *>(px);
+  Scalar *a = reinterpret_cast<Scalar *>(pa);
+  RealScalar alpha = *reinterpret_cast<RealScalar *>(palpha);
 
-    int info = 0;
-    if(UPLO(*uplo) == INVALID)
-        info = 1;
-    else if(*n < 0)
-        info = 2;
-    else if(*incx == 0)
-        info = 5;
-    else if(*lda < std::max(1, *n))
-        info = 7;
-    if(info)
-        return xerbla_(SCALAR_SUFFIX_UP "HER  ", &info);
+  int info = 0;
+  if (UPLO(*uplo) == INVALID)
+    info = 1;
+  else if (*n < 0)
+    info = 2;
+  else if (*incx == 0)
+    info = 5;
+  else if (*lda < std::max(1, *n))
+    info = 7;
+  if (info) return xerbla_(SCALAR_SUFFIX_UP "HER  ", &info);
 
-    if(alpha == RealScalar(0))
-        return;
+  if (alpha == RealScalar(0)) return;
 
-    Scalar *x_cpy = get_compact_vector(x, *n, *incx);
+  Scalar *x_cpy = get_compact_vector(x, *n, *incx);
 
-    int code = UPLO(*uplo);
-    if(code >= 2 || func[code] == 0)
-        return;
+  int code = UPLO(*uplo);
+  if (code >= 2 || func[code] == 0) return;
 
-    func[code](*n, a, *lda, x_cpy, x_cpy, alpha);
+  func[code](*n, a, *lda, x_cpy, x_cpy, alpha);
 
-    matrix(a, *n, *n, *lda).diagonal().imag().setZero();
+  matrix(a, *n, *n, *lda).diagonal().imag().setZero();
 
-    if(x_cpy != x)
-        delete[] x_cpy;
+  if (x_cpy != x) delete[] x_cpy;
 }
 
 /**  ZHER2  performs the hermitian rank 2 operation
@@ -264,53 +240,47 @@ EIGEN_BLAS_FUNC(her)(char *uplo, int *n, RealScalar *palpha, RealScalar *px, int
  */
 EIGEN_BLAS_FUNC(her2)
 (char *uplo, int *n, RealScalar *palpha, RealScalar *px, int *incx, RealScalar *py, int *incy, RealScalar *pa,
- int *lda)
-{
-    typedef void (*functype)(int, Scalar *, int, const Scalar *, const Scalar *, Scalar);
-    static const functype func[2] = {
-        // array index: UP
-        (Eigen::internal::rank2_update_selector<Scalar, int, Eigen::Upper>::run),
-        // array index: LO
-        (Eigen::internal::rank2_update_selector<Scalar, int, Eigen::Lower>::run),
-    };
+ int *lda) {
+  typedef void (*functype)(int, Scalar *, int, const Scalar *, const Scalar *, Scalar);
+  static const functype func[2] = {
+      // array index: UP
+      (Eigen::internal::rank2_update_selector<Scalar, int, Eigen::Upper>::run),
+      // array index: LO
+      (Eigen::internal::rank2_update_selector<Scalar, int, Eigen::Lower>::run),
+  };
 
-    Scalar *x = reinterpret_cast<Scalar *>(px);
-    Scalar *y = reinterpret_cast<Scalar *>(py);
-    Scalar *a = reinterpret_cast<Scalar *>(pa);
-    Scalar alpha = *reinterpret_cast<Scalar *>(palpha);
+  Scalar *x = reinterpret_cast<Scalar *>(px);
+  Scalar *y = reinterpret_cast<Scalar *>(py);
+  Scalar *a = reinterpret_cast<Scalar *>(pa);
+  Scalar alpha = *reinterpret_cast<Scalar *>(palpha);
 
-    int info = 0;
-    if(UPLO(*uplo) == INVALID)
-        info = 1;
-    else if(*n < 0)
-        info = 2;
-    else if(*incx == 0)
-        info = 5;
-    else if(*incy == 0)
-        info = 7;
-    else if(*lda < std::max(1, *n))
-        info = 9;
-    if(info)
-        return xerbla_(SCALAR_SUFFIX_UP "HER2 ", &info);
+  int info = 0;
+  if (UPLO(*uplo) == INVALID)
+    info = 1;
+  else if (*n < 0)
+    info = 2;
+  else if (*incx == 0)
+    info = 5;
+  else if (*incy == 0)
+    info = 7;
+  else if (*lda < std::max(1, *n))
+    info = 9;
+  if (info) return xerbla_(SCALAR_SUFFIX_UP "HER2 ", &info);
 
-    if(alpha == Scalar(0))
-        return;
+  if (alpha == Scalar(0)) return;
 
-    Scalar *x_cpy = get_compact_vector(x, *n, *incx);
-    Scalar *y_cpy = get_compact_vector(y, *n, *incy);
+  Scalar *x_cpy = get_compact_vector(x, *n, *incx);
+  Scalar *y_cpy = get_compact_vector(y, *n, *incy);
 
-    int code = UPLO(*uplo);
-    if(code >= 2 || func[code] == 0)
-        return;
+  int code = UPLO(*uplo);
+  if (code >= 2 || func[code] == 0) return;
 
-    func[code](*n, a, *lda, x_cpy, y_cpy, alpha);
+  func[code](*n, a, *lda, x_cpy, y_cpy, alpha);
 
-    matrix(a, *n, *n, *lda).diagonal().imag().setZero();
+  matrix(a, *n, *n, *lda).diagonal().imag().setZero();
 
-    if(x_cpy != x)
-        delete[] x_cpy;
-    if(y_cpy != y)
-        delete[] y_cpy;
+  if (x_cpy != x) delete[] x_cpy;
+  if (y_cpy != y) delete[] y_cpy;
 }
 
 /**  ZGERU  performs the rank 1 operation
@@ -321,40 +291,35 @@ EIGEN_BLAS_FUNC(her2)
  *  vector and A is an m by n matrix.
  */
 EIGEN_BLAS_FUNC(geru)
-(int *m, int *n, RealScalar *palpha, RealScalar *px, int *incx, RealScalar *py, int *incy, RealScalar *pa, int *lda)
-{
-    Scalar *x = reinterpret_cast<Scalar *>(px);
-    Scalar *y = reinterpret_cast<Scalar *>(py);
-    Scalar *a = reinterpret_cast<Scalar *>(pa);
-    Scalar alpha = *reinterpret_cast<Scalar *>(palpha);
+(int *m, int *n, RealScalar *palpha, RealScalar *px, int *incx, RealScalar *py, int *incy, RealScalar *pa, int *lda) {
+  Scalar *x = reinterpret_cast<Scalar *>(px);
+  Scalar *y = reinterpret_cast<Scalar *>(py);
+  Scalar *a = reinterpret_cast<Scalar *>(pa);
+  Scalar alpha = *reinterpret_cast<Scalar *>(palpha);
 
-    int info = 0;
-    if(*m < 0)
-        info = 1;
-    else if(*n < 0)
-        info = 2;
-    else if(*incx == 0)
-        info = 5;
-    else if(*incy == 0)
-        info = 7;
-    else if(*lda < std::max(1, *m))
-        info = 9;
-    if(info)
-        return xerbla_(SCALAR_SUFFIX_UP "GERU ", &info);
+  int info = 0;
+  if (*m < 0)
+    info = 1;
+  else if (*n < 0)
+    info = 2;
+  else if (*incx == 0)
+    info = 5;
+  else if (*incy == 0)
+    info = 7;
+  else if (*lda < std::max(1, *m))
+    info = 9;
+  if (info) return xerbla_(SCALAR_SUFFIX_UP "GERU ", &info);
 
-    if(alpha == Scalar(0))
-        return;
+  if (alpha == Scalar(0)) return;
 
-    Scalar *x_cpy = get_compact_vector(x, *m, *incx);
-    Scalar *y_cpy = get_compact_vector(y, *n, *incy);
+  Scalar *x_cpy = get_compact_vector(x, *m, *incx);
+  Scalar *y_cpy = get_compact_vector(y, *n, *incy);
 
-    Eigen::internal::general_rank1_update<Scalar, int, Eigen::ColMajor, false, false>::run(*m, *n, a, *lda, x_cpy, y_cpy,
-                                                                                           alpha);
+  Eigen::internal::general_rank1_update<Scalar, int, Eigen::ColMajor, false, false>::run(*m, *n, a, *lda, x_cpy, y_cpy,
+                                                                                         alpha);
 
-    if(x_cpy != x)
-        delete[] x_cpy;
-    if(y_cpy != y)
-        delete[] y_cpy;
+  if (x_cpy != x) delete[] x_cpy;
+  if (y_cpy != y) delete[] y_cpy;
 }
 
 /**  ZGERC  performs the rank 1 operation
@@ -365,38 +330,33 @@ EIGEN_BLAS_FUNC(geru)
  *  vector and A is an m by n matrix.
  */
 EIGEN_BLAS_FUNC(gerc)
-(int *m, int *n, RealScalar *palpha, RealScalar *px, int *incx, RealScalar *py, int *incy, RealScalar *pa, int *lda)
-{
-    Scalar *x = reinterpret_cast<Scalar *>(px);
-    Scalar *y = reinterpret_cast<Scalar *>(py);
-    Scalar *a = reinterpret_cast<Scalar *>(pa);
-    Scalar alpha = *reinterpret_cast<Scalar *>(palpha);
+(int *m, int *n, RealScalar *palpha, RealScalar *px, int *incx, RealScalar *py, int *incy, RealScalar *pa, int *lda) {
+  Scalar *x = reinterpret_cast<Scalar *>(px);
+  Scalar *y = reinterpret_cast<Scalar *>(py);
+  Scalar *a = reinterpret_cast<Scalar *>(pa);
+  Scalar alpha = *reinterpret_cast<Scalar *>(palpha);
 
-    int info = 0;
-    if(*m < 0)
-        info = 1;
-    else if(*n < 0)
-        info = 2;
-    else if(*incx == 0)
-        info = 5;
-    else if(*incy == 0)
-        info = 7;
-    else if(*lda < std::max(1, *m))
-        info = 9;
-    if(info)
-        return xerbla_(SCALAR_SUFFIX_UP "GERC ", &info);
+  int info = 0;
+  if (*m < 0)
+    info = 1;
+  else if (*n < 0)
+    info = 2;
+  else if (*incx == 0)
+    info = 5;
+  else if (*incy == 0)
+    info = 7;
+  else if (*lda < std::max(1, *m))
+    info = 9;
+  if (info) return xerbla_(SCALAR_SUFFIX_UP "GERC ", &info);
 
-    if(alpha == Scalar(0))
-        return;
+  if (alpha == Scalar(0)) return;
 
-    Scalar *x_cpy = get_compact_vector(x, *m, *incx);
-    Scalar *y_cpy = get_compact_vector(y, *n, *incy);
+  Scalar *x_cpy = get_compact_vector(x, *m, *incx);
+  Scalar *y_cpy = get_compact_vector(y, *n, *incy);
 
-    Eigen::internal::general_rank1_update<Scalar, int, Eigen::ColMajor, false, Conj>::run(*m, *n, a, *lda, x_cpy, y_cpy,
-                                                                                          alpha);
+  Eigen::internal::general_rank1_update<Scalar, int, Eigen::ColMajor, false, Conj>::run(*m, *n, a, *lda, x_cpy, y_cpy,
+                                                                                        alpha);
 
-    if(x_cpy != x)
-        delete[] x_cpy;
-    if(y_cpy != y)
-        delete[] y_cpy;
+  if (x_cpy != x) delete[] x_cpy;
+  if (y_cpy != y) delete[] y_cpy;
 }

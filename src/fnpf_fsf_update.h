@@ -23,7 +23,7 @@ Author: Hans Bihs
 #ifndef FNPF_FSF_UPDATE_H_
 #define FNPF_FSF_UPDATE_H_
 
-#include "increment.h"
+#include"increment.h"
 
 class lexer;
 class fdm_fnpf;
@@ -38,16 +38,18 @@ using namespace std;
 class fnpf_fsf_update : public increment
 {
 public:
-    fnpf_fsf_update(lexer *, fdm_fnpf *, ghostcell *);
-    virtual ~fnpf_fsf_update();
+    fnpf_fsf_update(lexer*, fdm_fnpf*, ghostcell*);
+	virtual ~fnpf_fsf_update();
+    
+    void etaloc_sig(lexer*, fdm_fnpf*, ghostcell*);
+    void fsfbc_sig(lexer*, fdm_fnpf*, ghostcell*,slice&,double*);
+    
+    void velcalc_sig(lexer*, fdm_fnpf*, ghostcell *pgc, double*);
+    
+private: 
+    int gcval,gcval_u,gcval_v,gcval_w;
 
-    void etaloc_sig(lexer *, fdm_fnpf *, ghostcell *);
-    void fsfbc_sig(lexer *, fdm_fnpf *, ghostcell *, slice &, double *);
 
-    void velcalc_sig(lexer *, fdm_fnpf *, ghostcell *pgc, double *);
-
-private:
-    int gcval, gcval_u, gcval_v, gcval_w;
 };
 
 #endif

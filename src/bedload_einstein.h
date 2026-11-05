@@ -23,8 +23,8 @@ Author: Hans Bihs
 #ifndef BEDLOAD_EINSTEIN_H_
 #define BEDLOAD_EINSTEIN_H_
 
-#include "bedload.h"
-#include "increment.h"
+#include"bedload.h"
+#include"increment.h"
 
 class turbulence;
 
@@ -33,14 +33,16 @@ using namespace std;
 class bedload_einstein final : public bedload, public increment
 {
 public:
-    bedload_einstein(lexer *);
-    virtual ~bedload_einstein();
-    void start(lexer *, ghostcell *, sediment_fdm *) override final;
+
+    bedload_einstein(lexer*);
+	virtual ~bedload_einstein();
+	void start(lexer*, ghostcell*, sediment_fdm*) override final;
 
 private:
-    double rhosed, rhowat;
-    double g, d50, sval;
+    double rhosed,rhowat;
+    double g,d50,sval;
     double tau_eff;
+
 };
 
 #endif

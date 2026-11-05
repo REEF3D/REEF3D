@@ -20,7 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "fdm.h"
-#include "ghostcell.h"
-#include "lexer.h"
-#include "sediment_f.h"
+#include"sediment_f.h"
+#include"lexer.h"
+#include"fdm.h"
+#include"ghostcell.h"

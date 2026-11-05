@@ -23,9 +23,9 @@ Author: Hans Bihs
 #ifndef SFLOW_PJM_QUAD_H_
 #define SFLOW_PJM_QUAD_H_
 
-#include "increment.h"
-#include "sflow_pressure_nh.h"
-#include "slice4.h"
+#include"sflow_pressure_nh.h"
+#include"increment.h"
+#include"slice4.h"
 
 using namespace std;
 
@@ -52,48 +52,46 @@ using namespace std;
 class sflow_pjm_quad final : public sflow_pressure_nh, public increment
 {
 public:
-    void ckpt_fields(const std::function<void(const char *, char, double *)> &fd, const std::function<void(const char *, char, int *)> &fi) override
-    {
-        fd("pjm_quad_phi", 'S', phi.V);
-        fd("pjm_quad_Uest", 'S', Uest.V);
-        fd("pjm_quad_Vest", 'S', Vest.V);
-        fd("pjm_quad_Ld", 'S', Ld.V);
-        fd("pjm_quad_Gx", 'S', Gx.V);
-        fd("pjm_quad_Gy", 'S', Gy.V);
-    }
-    sflow_pjm_quad(lexer *, fdm2D *, ghostcell *, patchBC_interface *);
-    virtual ~sflow_pjm_quad();
 
-    // mesh refinement (sflow_amr), as sflow_pjm_lin
-    void assemble(lexer *, fdm2D *, ghostcell *, slice &, slice &, slice &, slice &, slice &, double) override final;
-    void correct(lexer *, fdm2D *, slice &, slice &, slice &, slice &, double) override final;
-    int is_active(lexer *, fdm2D *, int, int) override final;
-    int gcval() const override final { return gcval_press; }
-    void coef(double &cbq, double &cwq) const override final
+    void ckpt_fields(const std::function<void(const char*, char, double*)> &fd, const std::function<void(const char*, char, int*)> &fi) override
     {
-        cbq = cb;
-        cwq = cw;
+        fd("pjm_quad_phi",'S',phi.V); fd("pjm_quad_Uest",'S',Uest.V); fd("pjm_quad_Vest",'S',Vest.V);
+        fd("pjm_quad_Ld",'S',Ld.V); fd("pjm_quad_Gx",'S',Gx.V); fd("pjm_quad_Gy",'S',Gy.V);
     }
+    sflow_pjm_quad(lexer*, fdm2D*, ghostcell*, patchBC_interface*);
+	virtual ~sflow_pjm_quad();
+
+	void start(lexer*, fdm2D*, ghostcell*, solver2D*, ioflow*, slice&, slice&, slice&, slice&, slice&, slice&, double) override final;
+	void upgrad(lexer*, fdm2D*, slice&) override final;
+	void vpgrad(lexer*, fdm2D*, slice&) override final;
+    void wpgrad(lexer*, fdm2D*, slice&) override final;
+    
+    // mesh refinement (sflow_amr), as sflow_pjm_lin
+    void assemble(lexer*, fdm2D*, ghostcell*, slice&, slice&, slice&, slice&, slice&, double) override final;
+    void correct(lexer*, fdm2D*, slice&, slice&, slice&, slice&, double) override final;
+    int is_active(lexer*, fdm2D*, int, int) override final;
+    int gcval() const override final {return gcval_press;}
+    void coef(double &cbq, double &cwq) const override final {cbq=cb; cwq=cw;}
 
 private:
-    void quad_calc(lexer *, fdm2D *, ghostcell *, slice &, slice &, slice &, slice &, slice &, double);
-    void rhs(lexer *, fdm2D *, slice &, double);
-    void poisson(lexer *, fdm2D *, slice &, double);
-    void ucorr(lexer *, fdm2D *, slice &, slice &, double);
-    void vcorr(lexer *, fdm2D *, slice &, slice &, double);
-    void wcorr(lexer *, fdm2D *, slice &, slice &, double);
-    int active(lexer *, fdm2D *);
-    void grad_q(lexer *, fdm2D *, slice &, double &, double &);
-    void quad_calc_curv(lexer *, fdm2D *, ghostcell *, slice &, slice &, slice &, slice &, slice &, double);
-
-    double starttime;
-    int gcval_press, q;
-    double solvtime, ptime;
+    void quad_calc(lexer*, fdm2D*, ghostcell*, slice&, slice&, slice&, slice&, slice&, double);
+    void rhs(lexer*, fdm2D*, slice&, double);
+    void poisson(lexer*, fdm2D*, slice&, double);
+    void ucorr(lexer*, fdm2D*, slice&, slice&, double);
+	void vcorr(lexer*, fdm2D*, slice&, slice&, double);
+	void wcorr(lexer*, fdm2D*, slice&, slice&, double);
+    int active(lexer*, fdm2D*);
+    void grad_q(lexer*, fdm2D*, slice&, double&, double&);
+    void quad_calc_curv(lexer*, fdm2D*, ghostcell*, slice&, slice&, slice&, slice&, slice&, double);
+    
+	double starttime;
+    int gcval_press,q;
+	double solvtime,ptime;
     const double cb;
-    double adisp, cw, Bdisp;
-
-    slice4 phi, Uest, Vest, Ld, Gx, Gy;
-
+    double adisp,cw,Bdisp;
+    
+    slice4 phi,Uest,Vest,Ld,Gx,Gy;
+    
     patchBC_interface *pBC;
     ghostcell *pgc;
 };

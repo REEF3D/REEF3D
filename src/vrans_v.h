@@ -23,35 +23,35 @@ Author: Hans Bihs
 #ifndef VRANS_V_H_
 #define VRANS_V_H_
 
-#include "increment.h"
-#include "vrans.h"
+#include"vrans.h"
+#include"increment.h"
 
 using namespace std;
 
 class vrans_v final : public vrans, public increment
 {
 public:
-    vrans_v(lexer *, ghostcell *);
-    virtual ~vrans_v();
+	vrans_v(lexer*, ghostcell*);
+	virtual ~vrans_v();
 
-    void initialize_cfd(lexer *, fdm *, ghostcell *) override final;
-    void start(lexer *, fdm *, ghostcell *, int) override final {};
-    void sed_update(lexer *, fdm *, ghostcell *) override final;
-    void sedpart_update(lexer *, fdm *, ghostcell *, field &, field &) override final {};
-
-    void u_source(lexer *, fdm *) override final;
-    void v_source(lexer *, fdm *) override final;
-    void w_source(lexer *, fdm *) override final;
-    void implicit_drag(lexer *, fdm *, int, double, field &, field &, field &, field &) override final {};
-
-    void ke_source(lexer *, fdm *, field &) override final;
-    void kw_source(lexer *, fdm *, field &) override final;
-    void eps_source(lexer *, fdm *, field &, field &) override final;
-    void omega_source(lexer *, fdm *, field &, field &) override final;
-
-    void eddyv_func(lexer *, fdm *) override final;
-
-    void veltimesave(lexer *, fdm *, ghostcell *) override final;
+	void initialize_cfd(lexer*, fdm*, ghostcell*) override final;	
+	void start(lexer*, fdm*, ghostcell*, int) override final {};
+    void sed_update(lexer*, fdm*, ghostcell*) override final;
+    void sedpart_update(lexer*, fdm*, ghostcell*, field&, field&) override final {};
+	
+	void u_source(lexer*, fdm*) override final;
+	void v_source(lexer*, fdm*) override final;
+	void w_source(lexer*, fdm*) override final;
+    void implicit_drag(lexer*, fdm*, int, double, field&, field&, field&, field&) override final {};
+    
+    void ke_source(lexer*, fdm*, field&) override final;
+    void kw_source(lexer*, fdm*, field&) override final;
+    void eps_source(lexer*, fdm*, field&, field&) override final;
+    void omega_source(lexer*, fdm*, field&, field&) override final;
+    
+    void eddyv_func(lexer*, fdm*) override final;
+    
+    void veltimesave(lexer*,fdm*,ghostcell*) override final;
 };
 
 #endif

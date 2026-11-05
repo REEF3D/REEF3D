@@ -23,8 +23,8 @@ Architect: Hans Bihs
 #ifndef SIXDOF_LOAD_H_
 #define SIXDOF_LOAD_H_
 
-#include <Eigen/Dense>
-#include <vector>
+#include<vector>
+#include<Eigen/Dense>
 
 class lexer;
 class sixdof_rigidbody;
@@ -37,8 +37,8 @@ class sixdof_fluid
 {
 public:
     virtual ~sixdof_fluid() {}
-
-    virtual void velocity(int n, const double *xyz, double *uvw) = 0;
+    
+    virtual void velocity(int n, const double *xyz, double *uvw)=0;
 };
 
 //  Actuator disk (body-force propeller) as a momentum source of the fluid, inertial frame.
@@ -49,18 +49,18 @@ public:
 //  normalised on its own grid so that the discrete totals are exactly T and Q.
 struct sixdof_actuator_disk
 {
-    Eigen::Vector3d centre;  // disk centre
-    Eigen::Vector3d axis;    // unit vector, direction of the thrust on the body
-    double R, Rh;            // tip and hub radius
-    double thickness;        // axial extent of the source region
-    double T, Q;             // thrust [N] and torque [Nm] of the propeller
-    int sense;               // +1: blades turn right-handed about the axis, -1: left-handed
-
+    Eigen::Vector3d centre;     // disk centre
+    Eigen::Vector3d axis;       // unit vector, direction of the thrust on the body
+    double R, Rh;               // tip and hub radius
+    double thickness;           // axial extent of the source region
+    double T, Q;                // thrust [N] and torque [Nm] of the propeller
+    int sense;                  // +1: blades turn right-handed about the axis, -1: left-handed
+    
     // Hough-Ordway weights at point x: axial weight wa >= 0 (thrust density ~ wa along the axis),
     // tangential weight wt >= 0 (swirl density ~ wt along et) and et, the unit vector of the blade
     // motion, with the distance r from the axis; false outside the disk
     bool weights(const Eigen::Vector3d &x, double &wa, double &wt, Eigen::Vector3d &et, double &r) const;
-
+    
     // discrete distribution on the grid of the coupling, per force component c (the source points
     // of component c, e.g. the staggered velocity points of CFD or the cell centres of NHFLOW):
     //  accumulate: sums over the points x with volume V and fluid fraction fl (0..1) of the cell;
@@ -73,12 +73,12 @@ struct sixdof_actuator_disk
     // components sit on different grids) exactly the torque Q about the axis.
     struct sums
     {
-        double SA0 = 0.0, SA = 0.0, SW = 0.0, SE = 0.0, G1 = 0.0, G0 = 0.0, GA = 0.0;
+        double SA0=0.0, SA=0.0, SW=0.0, SE=0.0, G1=0.0, G0=0.0, GA=0.0;
     };
-
-    void accumulate(const Eigen::Vector3d &x, double V, double fl, int c, sums &) const;
-    double swirl_factor(const sums *) const;
-    double force(const Eigen::Vector3d &x, double fl, int c, const sums &, double kappa) const;
+    
+    void accumulate(const Eigen::Vector3d &x, double V, double fl, int c, sums&) const;
+    double swirl_factor(const sums*) const;
+    double force(const Eigen::Vector3d &x, double fl, int c, const sums&, double kappa) const;
 };
 
 //  External load model acting on a 6DOF body (solver independent), e.g. the ship module:
@@ -98,15 +98,15 @@ class sixdof_load
 {
 public:
     virtual ~sixdof_load() {}
-
-    virtual void add_load(lexer *, const sixdof_rigidbody &, const sixdof_geometry &, sixdof_fluid *, double *) = 0;
-    virtual void actuator_disks(std::vector<sixdof_actuator_disk> &) const {}
-    virtual bool added_mass(const sixdof_rigidbody &, Eigen::Matrix<double, 6, 6> &) const { return false; }
-    virtual void fluid_mask(double *) const {}
-    virtual void print(lexer *) {}
+    
+    virtual void add_load(lexer*, const sixdof_rigidbody&, const sixdof_geometry&, sixdof_fluid*, double*)=0;
+    virtual void actuator_disks(std::vector<sixdof_actuator_disk>&) const {}
+    virtual bool added_mass(const sixdof_rigidbody&, Eigen::Matrix<double,6,6>&) const {return false;}
+    virtual void fluid_mask(double*) const {}
+    virtual void print(lexer*) {}
     // checkpoints (P 48, I 45): the state the model carries from step to step (rudder, autopilot)
-    virtual void ckpt_state(std::vector<double> &) const {}
-    virtual void ckpt_restore(const std::vector<double> &, size_t &) {}
+    virtual void ckpt_state(std::vector<double>&) const {}
+    virtual void ckpt_restore(const std::vector<double>&, size_t&) {}
 };
 
 #endif

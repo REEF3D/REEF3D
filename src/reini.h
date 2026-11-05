@@ -1,7 +1,7 @@
 /*--------------------------------------------------------------------
 REEF3D
 Copyright 2008-2026 Hans Bihs
- *
+ * 
 This file is part of REEF3D.
 
 REEF3D is free software; you can redistribute it and/or modify it
@@ -37,7 +37,8 @@ class reini
 public:
     virtual ~reini() = default;
 
-    virtual void start(fdm *, lexer *, field &, ghostcell *, ioflow *) = 0;
+
+	virtual void start(fdm*,lexer*,field&,ghostcell*,ioflow*)=0;
 };
 
 #endif

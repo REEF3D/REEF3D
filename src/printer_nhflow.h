@@ -23,10 +23,10 @@ Author: Hans Bihs
 #ifndef PRINTER_NHFLOW_H_
 #define PRINTER_NHFLOW_H_
 
-#include "increment.h"
-#include "printer.h"
+#include"printer.h"
+#include"increment.h"
 
-#include "vtks.h"
+#include"vtks.h"
 
 class fdm_nhf;
 class ioflow;
@@ -66,41 +66,41 @@ class printer_nhflow final : public printer, public increment
 {
 
 public:
-    void amr_columns(lexer *, const amr_column_lookup *) override;
+    void amr_columns(lexer*, const amr_column_lookup*) override;
 
-    printer_nhflow(lexer *, fdm_nhf *, ghostcell *);
+    printer_nhflow(lexer*,fdm_nhf*,ghostcell*);
     virtual ~printer_nhflow() = default;
-    void start(lexer *, fdm_nhf *, ghostcell *, ioflow *, nhflow_turbulence *, sediment *) override final;
-    void print_stop(lexer *, fdm_nhf *, ghostcell *, ioflow *, nhflow_turbulence *, sediment *) override final;
-    void print_end(lexer *, fdm_nhf *, ghostcell *, ioflow *, nhflow_turbulence *, sediment *) override final;
-    void ckpt_state(std::vector<double> &) override;
-    void ckpt_restore(const std::vector<double> &) override;
+    void start(lexer*,fdm_nhf*,ghostcell*,ioflow*,nhflow_turbulence*,sediment*) override final;
+    void print_stop(lexer*,fdm_nhf*,ghostcell*,ioflow*,nhflow_turbulence*,sediment*) override final;
+    void print_end(lexer*,fdm_nhf*,ghostcell*,ioflow*,nhflow_turbulence*,sediment*) override final;
+    void ckpt_state(std::vector<double>&) override;
+    void ckpt_restore(const std::vector<double>&) override;
     void flush_outputs() override;
 
 private:
-    bool bed_printed = false;  // the fixed bed of this run (also after a restart, I 45: a new LAGOON store)
-    void print(lexer *, fdm_nhf *, ghostcell *, nhflow_turbulence *, sediment *);
-    void print_fsf(lexer *, fdm_nhf *, ghostcell *, sediment *, nhflow_turbulence *);
-    void print_bed(lexer *, fdm_nhf *, ghostcell *, sediment *);  // the bed with the free surface (S 10 > 0 or P 187)
-    int last_print = -1;                                          // the iteration of the last volume output (print_end)
-    int last_fsf = -1;                                            // and of the last free surface output (with the bed, S 10)
-    void parallel(lexer *, fdm_nhf *, ghostcell *, nhflow_turbulence *, sediment *, int);
+    bool bed_printed = false;   // the fixed bed of this run (also after a restart, I 45: a new LAGOON store)
+    void print(lexer*,fdm_nhf*,ghostcell*,nhflow_turbulence*,sediment*);
+    void print_fsf(lexer*,fdm_nhf*,ghostcell*,sediment*,nhflow_turbulence*);
+    void print_bed(lexer*,fdm_nhf*,ghostcell*,sediment*);   // the bed with the free surface (S 10 > 0 or P 187)
+    int last_print = -1;    // the iteration of the last volume output (print_end)
+    int last_fsf = -1;      // and of the last free surface output (with the bed, S 10)
+    void parallel(lexer*,fdm_nhf*,ghostcell*,nhflow_turbulence*,sediment*,int);
 
     vtk3D *outputFormat;
     bool initial_print = true;
     size_t file_offset = 0;
 
     char name[200];
-    int n, iin, offset[200];
+    int n,iin,offset[200];
     float ffn;
     int jj;
-    int gcval_phi, gcval_phiext;
+    int gcval_phi,gcval_phiext;
     double *printtime_wT;
     double *printfsftime_wT;
     int *printfsfiter_wI;
 
     int printcount;
-    int nP35 = 0, nP185 = 0;  // sizes of printtime_wT, printfsftime_wT
+    int nP35 = 0, nP185 = 0;        // sizes of printtime_wT, printfsftime_wT
 
     nhflow_print_wsf *pwsf = nullptr;
     nhflow_print_wsf_theory *pwsf_theory;
@@ -127,6 +127,7 @@ private:
     nhflow_force **pforce;
     nhflow_force_ale **pforce_ale;
     lagoon_output *plagoon = nullptr;  // P 18: LAGOON store of the volume
+
 };
 
 #endif

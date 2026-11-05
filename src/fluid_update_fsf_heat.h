@@ -23,8 +23,8 @@ Author: Hans Bihs
 #ifndef FLUID_UPDATE_FSF_HEAT_H_
 #define FLUID_UPDATE_FSF_HEAT_H_
 
-#include "fluid_update.h"
-#include "increment.h"
+#include"fluid_update.h"
+#include"increment.h"
 
 class fdm;
 class lexer;
@@ -36,36 +36,38 @@ using namespace std;
 class fluid_update_fsf_heat final : public fluid_update, increment
 {
 public:
-    fluid_update_fsf_heat(lexer *, fdm *, ghostcell *, heat *&);
-    virtual ~fluid_update_fsf_heat();
+    fluid_update_fsf_heat(lexer*, fdm*, ghostcell*, heat*&);
+	virtual ~fluid_update_fsf_heat();
 
-    void start(lexer *, fdm *, ghostcell *, field &, field &, field &) override final;
+	void start(lexer*, fdm*, ghostcell*, field&, field&, field&) override final;
 
     // the densities and viscosities of the two phases at the temperature temp (as start; the mesh
     // refinement evaluates them at the cells around its patches and at its patch edges)
-    void props(lexer *, double temp, double &ro1, double &ro2, double &v1, double &v2);
+    void props(lexer*, double temp, double &ro1, double &ro2, double &v1, double &v2);
 
 private:
-    void material(lexer *, fdm *, ghostcell *);
-    double material_ipol(double **, int, double);
+    void material(lexer*, fdm*, ghostcell*);
+    double material_ipol(double**,int,double);
 
-    static int iocheck, iter;
-    int gcval_ro, gcval_visc;
-    const double dx;
+    static int iocheck,iter;
+    int gcval_ro,gcval_visc;
+	const double dx;
     double epsi;
-    double visc_1, visc_2, ro_1, ro_2, alpha_air, alpha_water;
-    double **water_density;
-    double **water_viscosity;
-    double **air_density;
-    double **air_viscosity;
+	double visc_1,visc_2,ro_1,ro_2,alpha_air,alpha_water;
+	double **water_density;
+	double **water_viscosity;
+	double **air_density;
+	double **air_viscosity;
 
-    int water_density_num;
-    int water_viscosity_num;
-    int air_density_num;
-    int air_viscosity_num;
+	int water_density_num;
+	int water_viscosity_num;
+	int air_density_num;
+	int air_viscosity_num;
 
-    heat *pheat;
+	heat *pheat;
+
 };
 
 #endif
+
 

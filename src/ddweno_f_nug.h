@@ -33,36 +33,36 @@ class slice;
 class ddweno_f_nug : public weno_nug_func
 {
 public:
-    ddweno_f_nug(lexer *);
+    ddweno_f_nug(lexer*);
     ~ddweno_f_nug();
 
-    double ddwenox(field &, double);
-    double ddwenoy(field &, double);
-    double ddwenoz(field &, double);
+    double ddwenox(field&, double);
+    double ddwenoy(field&, double);
+    double ddwenoz(field&, double);
 
-    double dswenox(slice &, double);
-    double dswenoy(slice &, double);
+    double dswenox(slice&, double);
+    double dswenoy(slice&, double);
 
     // Upwinded WENO5 gradient at (i,j) from weno_nug_func::dsdiffx/dsdiffy output, bit-identical to dswenox/dswenoy.
     // Zero velocity returns 0, like fnpf_weno5::sx/sy.
     inline double dswenox_dq(slice &dq, double uvel)
     {
-        if(uvel > 0.0)
+        if(uvel>0.0)
         {
-            q1 = dq(i - 3, j);
-            q2 = dq(i - 2, j);
-            q3 = dq(i - 1, j);
-            q4 = dq(i, j);
-            q5 = dq(i + 1, j);
+            q1 = dq(i-3,j);
+            q2 = dq(i-2,j);
+            q3 = dq(i-1,j);
+            q4 = dq(i,j);
+            q5 = dq(i+1,j);
             return weno_min_x();
         }
-        else if(uvel < 0.0)
+        else if(uvel<0.0)
         {
-            q1 = dq(i - 2, j);
-            q2 = dq(i - 1, j);
-            q3 = dq(i, j);
-            q4 = dq(i + 1, j);
-            q5 = dq(i + 2, j);
+            q1 = dq(i-2,j);
+            q2 = dq(i-1,j);
+            q3 = dq(i,j);
+            q4 = dq(i+1,j);
+            q5 = dq(i+2,j);
             return weno_max_x();
         }
         else
@@ -71,22 +71,22 @@ public:
 
     inline double dswenoy_dq(slice &dq, double vvel)
     {
-        if(vvel > 0.0)
+        if(vvel>0.0)
         {
-            q1 = dq(i, j - 3);
-            q2 = dq(i, j - 2);
-            q3 = dq(i, j - 1);
-            q4 = dq(i, j);
-            q5 = dq(i, j + 1);
+            q1 = dq(i,j-3);
+            q2 = dq(i,j-2);
+            q3 = dq(i,j-1);
+            q4 = dq(i,j);
+            q5 = dq(i,j+1);
             return weno_min_y();
         }
-        else if(vvel < 0.0)
+        else if(vvel<0.0)
         {
-            q1 = dq(i, j - 2);
-            q2 = dq(i, j - 1);
-            q3 = dq(i, j);
-            q4 = dq(i, j + 1);
-            q5 = dq(i, j + 2);
+            q1 = dq(i,j-2);
+            q2 = dq(i,j-1);
+            q3 = dq(i,j);
+            q4 = dq(i,j+1);
+            q5 = dq(i,j+2);
             return weno_max_y();
         }
         else
@@ -98,27 +98,27 @@ public:
     // Used for eta_x/eta_y where they act as geometry (sigma metrics, breaking, wind).
     inline double dswenox_dq_sym(slice &dq)
     {
-        return 0.5 * (dswenox_dq(dq, 1.0) + dswenox_dq(dq, -1.0));
+        return 0.5*(dswenox_dq(dq,1.0) + dswenox_dq(dq,-1.0));
     }
 
     inline double dswenoy_dq_sym(slice &dq)
     {
-        return 0.5 * (dswenoy_dq(dq, 1.0) + dswenoy_dq(dq, -1.0));
+        return 0.5*(dswenoy_dq(dq,1.0) + dswenoy_dq(dq,-1.0));
     }
 
     // Upwinded for nonzero speed, symmetric for zero speed (dswenox_dq returns 0 there).
     inline double dswenox_dq_upsym(slice &dq, double uvel)
     {
-        if(uvel != 0.0)
-            return dswenox_dq(dq, uvel);
+        if(uvel!=0.0)
+            return dswenox_dq(dq,uvel);
         else
             return dswenox_dq_sym(dq);
     }
 
     inline double dswenoy_dq_upsym(slice &dq, double vvel)
     {
-        if(vvel != 0.0)
-            return dswenoy_dq(dq, vvel);
+        if(vvel!=0.0)
+            return dswenoy_dq(dq,vvel);
         else
             return dswenoy_dq_sym(dq);
     }

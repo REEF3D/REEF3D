@@ -20,102 +20,105 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Authors: Hans Bihs, Tobias Martin, Ahmet Soydan
 --------------------------------------------------------------------*/
 
-#include "fdm.h"
-#include "ghostcell.h"
-#include "heaviside.h"
-#include "lexer.h"
+#include"ghostcell.h"
+#include"lexer.h"
+#include"fdm.h"
+#include"heaviside.h"
 
 double ghostcell::Hsolidface(lexer *p, fdm *a, int aa, int bb, int cc)
 {
-    double psi, H, phival_sf, dirac;
-
-    // cout<<"p->topoforcing: "<<p->topoforcing<<" p->toporead: "<<p->toporead<<endl;
-
-    if(p->j_dir == 0)
-        psi = p->X41 * (1.0 / 2.0) * (p->DXN[IP] + p->DZN[KP]);
-
-    if(p->j_dir == 1)
-        psi = p->X41 * (1.0 / 3.0) * (p->DXN[IP] + p->DYN[JP] + p->DZN[KP]);
+    double psi, H, phival_sf,dirac;
+    
+    //cout<<"p->topoforcing: "<<p->topoforcing<<" p->toporead: "<<p->toporead<<endl;
+    
+    if (p->j_dir==0)
+    psi = p->X41*(1.0/2.0)*(p->DXN[IP] + p->DZN[KP]);
+	
+    if (p->j_dir==1)
+    psi = p->X41*(1.0/3.0)*(p->DXN[IP]+p->DYN[JP]+p->DZN[KP]);
 
     // Construct solid heaviside function
 
-    if(p->topoforcing > 0 && p->solidread > 0)
-        phival_sf = MIN(0.5 * (a->solid(i, j, k) + a->solid(i + aa, j + bb, k + cc)), 0.5 * (a->topo(i, j, k) + a->topo(i + aa, j + bb, k + cc)));
-
-    if(p->topoforcing > 0 && p->solidread == 0)
-        phival_sf = 0.5 * (a->topo(i, j, k) + a->topo(i + aa, j + bb, k + cc));
-
-    if(p->topoforcing == 0 && p->solidread > 0)
-        phival_sf = 0.5 * (a->solid(i, j, k) + a->solid(i + aa, j + bb, k + cc));
-
-    H = heaviside(-phival_sf, psi);
+    if(p->topoforcing>0 && p->solidread>0)
+    phival_sf = MIN(0.5*(a->solid(i,j,k) + a->solid(i+aa,j+bb,k+cc)), 0.5*(a->topo(i,j,k) + a->topo(i+aa,j+bb,k+cc))); 
+    
+    if(p->topoforcing>0 && p->solidread==0)
+    phival_sf = 0.5*(a->topo(i,j,k) + a->topo(i+aa,j+bb,k+cc)); 
+    
+    if(p->topoforcing==0 && p->solidread>0)
+    phival_sf = 0.5*(a->solid(i,j,k) + a->solid(i+aa,j+bb,k+cc));
+    
+	
+    H = heaviside(-phival_sf,psi);
 
     // particle bed (CPM, S 10 1): the bed level is the iso-surface of the solid fraction of the parcels and
     // moves freely inside the top cell of the bed; the forcing must not reach into the fluid above it
     // (it would damp the first fluid cell whenever the bed level comes within psi of its centre):
     // one-sided transition over the depth psi inside the bed; solid bodies keep the symmetric transition
-    if(p->S10 == 1 && p->Q10 > 0 && p->topoforcing > 0)
+    if(p->S10==1 && p->Q10>0 && p->topoforcing>0)
     {
-        double xs = -0.5 * (a->topo(i, j, k) + a->topo(i + aa, j + bb, k + cc));
+        double xs = -0.5*(a->topo(i,j,k) + a->topo(i+aa,j+bb,k+cc));
 
-        if(xs <= 0.0)
-            H = 0.0;
+        if(xs<=0.0)
+        H = 0.0;
 
-        else if(xs >= psi)
-            H = 1.0;
+        else if(xs>=psi)
+        H = 1.0;
 
         else
         {
-            double sx = 2.0 * xs / psi - 1.0;
-            H = 0.5 * (1.0 + sx + (1.0 / PI) * sin(PI * sx));
+            double sx = 2.0*xs/psi - 1.0;
+            H = 0.5*(1.0 + sx + (1.0/PI)*sin(PI*sx));
         }
-
-        if(p->solidread > 0)
+        
+        if(p->solidread>0)
         {
-            double ps = -0.5 * (a->solid(i, j, k) + a->solid(i + aa, j + bb, k + cc));
+            double ps = -0.5*(a->solid(i,j,k) + a->solid(i+aa,j+bb,k+cc));
             double Hs;
-
-            Hs = heaviside(ps, psi);
-
-            H = MAX(H, Hs);
+            
+            Hs = heaviside(ps,psi);
+            
+            H = MAX(H,Hs);
         }
     }
-
-    if(p->topoforcing == 0 && p->solidread == 0)
-        H = 0.0;
-
+    
+    if(p->topoforcing==0 && p->solidread==0)
+    H = 0.0;
+    
     return H;
 }
 
 double ghostcell::Hsolidface_t(lexer *p, fdm *a, int aa, int bb, int cc)
 {
-    double psi, H, phival_sf, dirac;
+    double psi, H, phival_sf,dirac;
+	
+    psi = 0.5*(1.0/3.0)*(p->DXN[IP]+p->DYN[JP]+p->DZN[KP]);
 
-    psi = 0.5 * (1.0 / 3.0) * (p->DXN[IP] + p->DYN[JP] + p->DZN[KP]);
-
-    if(p->knoy == 1)
+    if (p->knoy==1)
     {
-        psi = 0.5 * (1.0 / 2.0) * (p->DXN[IP] + p->DZN[KP]);
+        psi = 0.5*(1.0/2.0)*(p->DXN[IP] + p->DZN[KP]); 
     }
 
     // Construct solid heaviside function
-    phival_sf = MIN(0.5 * (a->solid(i, j, k) + a->solid(i + aa, j + bb, k + cc)), 0.5 * (a->topo(i, j, k) + a->topo(i + aa, j + bb, k + cc)));
-
-    if(-phival_sf > psi)
+    phival_sf = MIN(0.5*(a->solid(i,j,k) + a->solid(i+aa,j+bb,k+cc)), 0.5*(a->topo(i,j,k) + a->topo(i+aa,j+bb,k+cc))); 
+	
+    if (-phival_sf > psi)
     {
         H = 1.0;
     }
-
-    else if(-phival_sf < -psi)
+    
+    else if (-phival_sf < -psi)
     {
         H = 0.0;
     }
-
+    
     else
     {
-        H = 0.5 * (1.0 + -phival_sf / psi + (1.0 / PI) * sin((PI * -phival_sf) / psi));
+        H = 0.5*(1.0 + -phival_sf/psi + (1.0/PI)*sin((PI*-phival_sf)/psi));
     }
-
+	
     return H;
 }
+
+
 

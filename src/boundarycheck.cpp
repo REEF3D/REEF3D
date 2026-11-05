@@ -20,9 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "boundarycheck.h"
-#include "fdm.h"
-#include "lexer.h"
+#include"boundarycheck.h"
+#include"lexer.h"
+#include"fdm.h"
 
 boundarycheck::boundarycheck()
 {
@@ -32,63 +32,63 @@ boundarycheck::~boundarycheck()
 {
 }
 
-int boundarycheck::boundcheck(lexer *p, int ii, int jj, int kk, int margin)
+int boundarycheck::boundcheck(lexer *p,  int ii, int jj, int kk, int margin)
 {
-    check = 0;
+    check=0;
 
-    if(ii >= -margin && ii < p->knox + margin)
-        if(jj >= -margin && jj < p->knoy + margin)
-            if(kk >= -margin && kk < p->knoz + margin)
-                check = 1;
+    if(ii>=-margin && ii<p->knox+margin)
+    if(jj>=-margin && jj<p->knoy+margin)
+    if(kk>=-margin && kk<p->knoz+margin)
+    check=1;
 
-    if(check == 1)
-        if(p->flag4[(ii - p->imin - margin) * p->jmax * p->kmax + (jj - p->jmin) * p->kmax + kk - p->kmin] < 0)
-            if(p->flag4[(ii - p->imin + margin) * p->jmax * p->kmax + (jj - p->jmin) * p->kmax + kk - p->kmin] < 0)
-                if(p->flag4[(ii - p->imin) * p->jmax * p->kmax + (jj - p->jmin - margin) * p->kmax + kk - p->kmin] < 0)
-                    if(p->flag4[(ii - p->imin) * p->jmax * p->kmax + (jj - p->jmin + margin) * p->kmax + kk - p->kmin] < 0)
-                        if(p->flag4[(ii - p->imin) * p->jmax * p->kmax + (jj - p->jmin) * p->kmax + kk - p->kmin - margin] < 0)
-                            if(p->flag4[(ii - p->imin) * p->jmax * p->kmax + (jj - p->jmin) * p->kmax + kk - p->kmin + margin] < 0)
-                                if(p->flag4[(ii - p->imin) * p->jmax * p->kmax + (jj - p->jmin) * p->kmax + kk - p->kmin] < 0)
-                                    check = 0;
+    if(check==1)
+    if(p->flag4[(ii-p->imin-margin)*p->jmax*p->kmax + (jj-p->jmin)*p->kmax + kk-p->kmin]<0)
+    if(p->flag4[(ii-p->imin+margin)*p->jmax*p->kmax + (jj-p->jmin)*p->kmax + kk-p->kmin]<0)
+    if(p->flag4[(ii-p->imin)*p->jmax*p->kmax + (jj-p->jmin-margin)*p->kmax + kk-p->kmin]<0)
+    if(p->flag4[(ii-p->imin)*p->jmax*p->kmax + (jj-p->jmin+margin)*p->kmax + kk-p->kmin]<0)
+    if(p->flag4[(ii-p->imin)*p->jmax*p->kmax + (jj-p->jmin)*p->kmax + kk-p->kmin-margin]<0)
+    if(p->flag4[(ii-p->imin)*p->jmax*p->kmax + (jj-p->jmin)*p->kmax + kk-p->kmin+margin]<0)
+    if(p->flag4[(ii-p->imin)*p->jmax*p->kmax + (jj-p->jmin)*p->kmax + kk-p->kmin]<0)
+    check=0;
 
     return check;
 }
 
 int boundarycheck::boundcheck_ik(lexer *p, int ii, int jj, int kk, int margin)
 {
-    check = 0;
+    check=0;
 
-    if(ii >= -margin && ii < p->knox + margin)
-        if(kk >= -margin && kk < p->knoz + margin)
-            check = 1;
+    if(ii>=-margin && ii<p->knox+margin)
+    if(kk>=-margin && kk<p->knoz+margin)
+    check=1;
 
-    if(check == 1)
-        if(p->flag4[(ii - p->imin - margin) * p->jmax * p->kmax + (jj - p->jmin) * p->kmax + kk - p->kmin] < 0)
-            if(p->flag4[(ii - p->imin + margin) * p->jmax * p->kmax + (jj - p->jmin) * p->kmax + kk - p->kmin] < 0)
-                if(p->flag4[(ii - p->imin) * p->jmax * p->kmax + (jj - p->jmin) * p->kmax + kk - p->kmin - margin] < 0)
-                    if(p->flag4[(ii - p->imin) * p->jmax * p->kmax + (jj - p->jmin) * p->kmax + kk - p->kmin + margin] < 0)
-                        if(p->flag4[(ii - p->imin) * p->jmax * p->kmax + (jj - p->jmin) * p->kmax + kk - p->kmin] < 0)
-                            check = 0;
+    if(check==1)
+    if(p->flag4[(ii-p->imin-margin)*p->jmax*p->kmax + (jj-p->jmin)*p->kmax + kk-p->kmin]<0)
+    if(p->flag4[(ii-p->imin+margin)*p->jmax*p->kmax + (jj-p->jmin)*p->kmax + kk-p->kmin]<0)
+    if(p->flag4[(ii-p->imin)*p->jmax*p->kmax + (jj-p->jmin)*p->kmax + kk-p->kmin-margin]<0)
+    if(p->flag4[(ii-p->imin)*p->jmax*p->kmax + (jj-p->jmin)*p->kmax + kk-p->kmin+margin]<0)
+    if(p->flag4[(ii-p->imin)*p->jmax*p->kmax + (jj-p->jmin)*p->kmax + kk-p->kmin]<0)
+    check=0;
 
     return check;
 }
 
 int boundarycheck::ij_boundcheck(lexer *p, int ii, int jj, int margin)
 {
-    check = 0;
+    check=0;
     int c;
 
-    if(ii >= 0 && ii < p->knox)
-        if(jj >= 0 && jj < p->knoy)
-            check = 1;
+    if(ii>=0 && ii<p->knox)
+    if(jj>=0 && jj<p->knoy)
+    check=1;
 
-    if(check == 1)
+    if(check==1)
     {
-        check = 0;
-
-        for(c = 0; c < p->knoz; ++c)
-            if(p->flag4[(ii - p->imin) * p->jmax * p->kmax + (jj - p->jmin) * p->kmax + c - p->kmin] > 0 || p->flag5[IJK] < 0)
-                check = 1;
+    check=0;
+	
+    for(c=0; c<p->knoz; ++c)
+    if(p->flag4[(ii-p->imin)*p->jmax*p->kmax + (jj-p->jmin)*p->kmax + c-p->kmin]>0 || p->flag5[IJK]<0)
+    check=1;
     }
 
     return check;
@@ -96,20 +96,20 @@ int boundarycheck::ij_boundcheck(lexer *p, int ii, int jj, int margin)
 
 int boundarycheck::ij_boundcheck_topo(lexer *p, int ii, int jj, int margin)
 {
-    check = 0;
+    check=0;
     int c;
 
-    if(ii >= 0 && ii < p->knox)
-        if(jj >= 0 && jj < p->knoy)
-            check = 1;
+    if(ii>=0 && ii<p->knox)
+    if(jj>=0 && jj<p->knoy)
+    check=1;
 
-    if(check == 1)
+    if(check==1)
     {
-        check = 0;
-
-        for(c = 0; c < p->knoz; ++c)
-            if(p->flag4[(ii - p->imin) * p->jmax * p->kmax + (jj - p->jmin) * p->kmax + c - p->kmin] > SOLID_FLAG || p->flag5[IJK] < 0)
-                check = 1;
+    check=0;
+	
+    for(c=0; c<p->knoz; ++c)
+    if(p->flag4[(ii-p->imin)*p->jmax*p->kmax + (jj-p->jmin)*p->kmax + c-p->kmin]>SOLID_FLAG || p->flag5[IJK]<0)
+    check=1;
     }
 
     return check;

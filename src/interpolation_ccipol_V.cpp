@@ -20,231 +20,231 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "field.h"
-#include "interpolation.h"
-#include "lexer.h"
-#include "slice.h"
+#include"interpolation.h"
+#include"field.h"
+#include"slice.h"
+#include"lexer.h"
 
 double interpolation::ccipol4V(double *f, slice &WL, slice &bed, double xp, double yp, double zp)
 {
-    double Z1, Z2;
-
-    ii = i;
-    jj = j;
-    kk = k;
+    double Z1,Z2;
+    
+    ii=i;
+    jj=j;
+    kk=k;
 
     // curvilinear grid (G 50): the quadrilateral of the cell centres that holds the point, the sigma levels
     // along its bilinear coordinates (the Cartesian form with (x-XP)/DXP = fx)
-    if(p->geo_curv == 1)
+    if(p->geo_curv==1)
     {
-        double fx, fy;
-        p->geo_quad(xp, yp, i, j, fx, fy);
-        k = p->posf_sig(i, j, zp);
+    double fx,fy;
+    p->geo_quad(xp,yp,i,j,fx,fy);
+    k = p->posf_sig(i,j,zp);
 
-        Z1 = (p->ZSP[Ip1JK] - p->ZSP[IJK]) * fx + (p->ZSP[IJp1K] - p->ZSP[IJK]) * fy + p->ZSP[IJK];
-        Z2 = (p->ZSP[Ip1JKp1] - p->ZSP[IJKp1]) * fx + (p->ZSP[IJp1Kp1] - p->ZSP[IJKp1]) * fy + p->ZSP[IJKp1];
+    Z1 = (p->ZSP[Ip1JK] - p->ZSP[IJK])*fx + (p->ZSP[IJp1K] - p->ZSP[IJK])*fy + p->ZSP[IJK];
+    Z2 = (p->ZSP[Ip1JKp1] - p->ZSP[IJKp1])*fx + (p->ZSP[IJp1Kp1] - p->ZSP[IJKp1])*fy + p->ZSP[IJKp1];
 
-        wc = (Z2 - zp) / (Z2 - Z1);
-        wc = MAX(wc, 0);
-        wc = MIN(wc, 1.0);
+    wc = (Z2-zp)/(Z2-Z1);
+    wc = MAX(wc,0);
+    wc = MIN(wc,1.0);
 
-        value = lint4V(f, i, j, k, 1.0 - fx, 1.0 - fy, wc);
+    value = lint4V(f,i,j,k,1.0-fx,1.0-fy,wc);
 
-        i = ii;
-        j = jj;
-        k = kk;
-        return value;
+    i=ii;
+    j=jj;
+    k=kk;
+    return value;
     }
-
+    
     i = p->posf_i(xp);
     j = p->posf_j(yp);
-    k = p->posf_sig(i, j, zp);
-
+    k = p->posf_sig(i,j,zp);
+    
     // wa
-    wa = (p->XP[IP1] - xp) / p->DXP[IP];
-
+    wa = (p->XP[IP1]-xp)/p->DXP[IP];
+    
     // wb
-    wb = (p->YP[JP1] - yp) / p->DYP[JP];
+    wb = (p->YP[JP1]-yp)/p->DYP[JP];
 
-    if(p->j_dir == 0)
-        j = 0;
-
-    // wc
-    if(p->j_dir == 0)
+    if(p->j_dir==0)
+    j=0;
+    
+    //wc
+    if(p->j_dir==0)
     {
-        Z1 = ((p->ZSP[Ip1JK] - p->ZSP[IJK]) / p->DXP[IP]) * (xp - p->XP[IP])
-
-             + p->ZSP[IJK];
-
-        Z2 = ((p->ZSP[Ip1JKp1] - p->ZSP[IJKp1]) / p->DXP[IP]) * (xp - p->XP[IP])
-
-             + p->ZSP[IJKp1];
+    Z1 =  ((p->ZSP[Ip1JK] - p->ZSP[IJK])/p->DXP[IP])*(xp - p->XP[IP]) 
+    
+        + p->ZSP[IJK];
+    
+    Z2 =  ((p->ZSP[Ip1JKp1] - p->ZSP[IJKp1])/p->DXP[IP])*(xp - p->XP[IP]) 
+    
+        + p->ZSP[IJKp1];
     }
-
-    if(p->j_dir == 1)
+    
+    if(p->j_dir==1)
     {
-        Z1 = ((p->ZSP[Ip1JK] - p->ZSP[IJK]) / p->DXP[IP]) * (xp - p->XP[IP])
-
-             + ((p->ZSP[IJp1K] - p->ZSP[IJK]) / p->DYP[JP]) * (yp - p->YP[JP])
-
-             + p->ZSP[IJK];
-
-        Z2 = ((p->ZSP[Ip1JKp1] - p->ZSP[IJKp1]) / p->DXP[IP]) * (xp - p->XP[IP])
-
-             + ((p->ZSP[IJp1Kp1] - p->ZSP[IJKp1]) / p->DYP[JP]) * (yp - p->YP[JP])
-
-             + p->ZSP[IJKp1];
+    Z1 =  ((p->ZSP[Ip1JK] - p->ZSP[IJK])/p->DXP[IP])*(xp - p->XP[IP]) 
+    
+        + ((p->ZSP[IJp1K] - p->ZSP[IJK])/p->DYP[JP])*(yp - p->YP[JP]) 
+    
+        + p->ZSP[IJK];
+    
+    Z2 =  ((p->ZSP[Ip1JKp1] - p->ZSP[IJKp1])/p->DXP[IP])*(xp - p->XP[IP]) 
+    
+        + ((p->ZSP[IJp1Kp1] - p->ZSP[IJKp1])/p->DYP[JP])*(yp - p->YP[JP]) 
+    
+        + p->ZSP[IJKp1];
     }
+        
+    wc = (Z2-zp)/(Z2-Z1);
+        
+    
+    wc = MAX(wc,0);
+    wc = MIN(wc,1.0);
 
-    wc = (Z2 - zp) / (Z2 - Z1);
+    if(p->j_dir==0)
+    value = lint4V_2D(f,i,j,k,wa,wb,wc);
+    
+    if(p->j_dir==1)
+    value = lint4V(f,i,j,k,wa,wb,wc);
+    
+    //if(value != value)
+    //cout<<i<<" 4V "<<j<<" "<<k<<"   SIG: "<<value<<" "<<wc<<" "<<(p->ZSP[IJKp1]-zp)<<" | "<<(p->ZSN[FIJKp1]-p->ZSN[FIJK])<<" | "<<(p->ZSN[FIJK]-p->ZSN[FIJKm1])<<endl;
 
-    wc = MAX(wc, 0);
-    wc = MIN(wc, 1.0);
-
-    wc = MAX(wc, 0);
-    wc = MIN(wc, 1.0);
-
-    if(p->j_dir == 0)
-        value = lint4V_2D(f, i, j, k, wa, wb, wc);
-
-    if(p->j_dir == 1)
-        value = lint4V(f, i, j, k, wa, wb, wc);
-
-    // if(value != value)
-    // cout<<i<<" 4V "<<j<<" "<<k<<"   SIG: "<<value<<" "<<wc<<" "<<(p->ZSP[IJKp1]-zp)<<" | "<<(p->ZSN[FIJKp1]-p->ZSN[FIJK])<<" | "<<(p->ZSN[FIJK]-p->ZSN[FIJKm1])<<endl;
-
-    i = ii;
-    j = jj;
-    k = kk;
-
+    i=ii;
+    j=jj;
+    k=kk;
+    
     return value;
 }
 
+
 double interpolation::ccipol7V(double *f, slice &WL, slice &bed, double xp, double yp, double zp)
 {
-    double ZSN_FIp1JK, ZSN_FIJK, ZSN_FIJKp1, ZSN_FIp1JKp1;
-    double ZSN_FIp1Jp1K, ZSN_FIJp1K, ZSN_FIJp1Kp1, ZSN_FIp1Jp1Kp1;
-    double WLval, bedval;
-    double Z1, Z2;
-
-    ii = i;
-    jj = j;
-    kk = k;
+    double ZSN_FIp1JK,ZSN_FIJK,ZSN_FIJKp1,ZSN_FIp1JKp1;
+    double ZSN_FIp1Jp1K,ZSN_FIJp1K,ZSN_FIJp1Kp1,ZSN_FIp1Jp1Kp1;
+    double WLval,bedval;
+    double Z1,Z2;
+    
+    ii=i;
+    jj=j;
+    kk=k;
 
     // curvilinear grid (G 50): as ccipol4V
-    if(p->geo_curv == 1)
+    if(p->geo_curv==1)
     {
-        double fx, fy;
-        p->geo_quad(xp, yp, i, j, fx, fy);
-        const int ic = i, jc = j;
-        k = p->posc_sig(i, j, xp, yp, zp);
+    double fx,fy;
+    p->geo_quad(xp,yp,i,j,fx,fy);
+    const int ic=i, jc=j;
+    k = p->posc_sig(i,j,xp,yp,zp);
 
-        WLval = p->ccslipol4(WL, xp, yp);
-        bedval = p->ccslipol4(bed, xp, yp);
+    WLval = p->ccslipol4(WL,xp,yp);
+    bedval = p->ccslipol4(bed,xp,yp);
 
-        i = ic;
-        j = jc;
+    i=ic;
+    j=jc;
 
-        if((zp >= WLval + bedval) || k > p->knoz)
-        {
-            i = ii;
-            j = jj;
-            k = kk;
-            return 0.0;
-        }
-
-        Z1 = (p->ZSN[FIp1JK] - p->ZSN[FIJK]) * fx + (p->ZSN[FIJp1K] - p->ZSN[FIJK]) * fy + p->ZSN[FIJK];
-        Z2 = (p->ZSN[FIp1JKp1] - p->ZSN[FIJKp1]) * fx + (p->ZSN[FIJp1Kp1] - p->ZSN[FIJKp1]) * fy + p->ZSN[FIJKp1];
-
-        wc = (Z2 - zp) / (Z2 - Z1);
-        wc = MAX(wc, 0.0);
-        wc = MIN(wc, 1.0);
-
-        value = lint7V(f, i, j, k, 1.0 - fx, 1.0 - fy, wc);
-
-        i = ii;
-        j = jj;
-        k = kk;
-        return value;
+    if((zp >= WLval + bedval) || k>p->knoz)
+    {
+    i=ii;
+    j=jj;
+    k=kk;
+    return 0.0;
     }
 
+    Z1 = (p->ZSN[FIp1JK] - p->ZSN[FIJK])*fx + (p->ZSN[FIJp1K] - p->ZSN[FIJK])*fy + p->ZSN[FIJK];
+    Z2 = (p->ZSN[FIp1JKp1] - p->ZSN[FIJKp1])*fx + (p->ZSN[FIJp1Kp1] - p->ZSN[FIJKp1])*fy + p->ZSN[FIJKp1];
+
+    wc = (Z2-zp)/(Z2-Z1);
+    wc = MAX(wc,0.0);
+    wc = MIN(wc,1.0);
+
+    value = lint7V(f,i,j,k,1.0-fx,1.0-fy,wc);
+
+    i=ii;
+    j=jj;
+    k=kk;
+    return value;
+    }
+    
     // find ijk position for interpolation cell
     i = p->posf_i(xp);
     j = p->posf_j(yp);
-    k = p->posc_sig(i, j, xp, yp, zp);
+    k = p->posc_sig(i,j,xp,yp,zp);
 
     // -------------------------------------
     // above FSF
-    WLval = p->ccslipol4(WL, xp, yp);
-    bedval = p->ccslipol4(bed, xp, yp);
-
-    if((zp >= WLval + bedval) || k > p->knoz)
+    WLval = p->ccslipol4(WL,xp,yp); 
+    bedval = p->ccslipol4(bed,xp,yp); 
+    
+    if((zp >= WLval + bedval) || k>p->knoz)
     {
-        value = 0.0;
-
-        return value;
+    value=0.0;
+    
+    return value;
     }
     // -------------------------------------
-
+    
     // wa
-    wa = (p->XP[IP1] - xp) / p->DXP[IP];
-
+    wa = (p->XP[IP1]-xp)/p->DXP[IP];
+        
     // wb
-    wb = (p->YP[JP1] - yp) / p->DYP[JP];
+    wb = (p->YP[JP1]-yp)/p->DYP[JP];
 
-    if(p->j_dir == 0)
-        j = 0;
-
-    // ----------------------------------------------------------
-    if(p->j_dir == 0)
-    {
-        Z1 = ((p->ZSN[FIp1JK] - p->ZSN[FIJK]) / p->DXP[IP]) * (xp - p->XP[IP])
-
-             + p->ZSN[FIJK];
-
-        Z2 = ((p->ZSN[FIp1JKp1] - p->ZSN[FIJKp1]) / p->DXP[IP]) * (xp - p->XP[IP])
-
-             + p->ZSN[FIJKp1];
-    }
-
-    if(p->j_dir == 1)
-    {
-        Z1 = ((p->ZSN[FIp1JK] - p->ZSN[FIJK]) / p->DXP[IP]) * (xp - p->XP[IP])
-
-             + ((p->ZSN[FIJp1K] - p->ZSN[FIJK]) / p->DYP[JP]) * (yp - p->YP[JP])
-
-             + p->ZSN[FIJK];
-
-        Z2 = ((p->ZSN[FIp1JKp1] - p->ZSN[FIJKp1]) / p->DXP[IP]) * (xp - p->XP[IP])
-
-             + ((p->ZSN[FIJp1Kp1] - p->ZSN[FIJKp1]) / p->DYP[JP]) * (yp - p->YP[JP])
-
-             + p->ZSN[FIJKp1];
-    }
-
-    wc = (Z2 - zp) / (Z2 - Z1);
+    if(p->j_dir==0)
+    j=0;
 
     // ----------------------------------------------------------
+    if(p->j_dir==0)
+    {
+    Z1 =  ((p->ZSN[FIp1JK] - p->ZSN[FIJK])/p->DXP[IP])*(xp - p->XP[IP]) 
+    
+        + p->ZSN[FIJK];
+    
+    Z2 =  ((p->ZSN[FIp1JKp1] - p->ZSN[FIJKp1])/p->DXP[IP])*(xp - p->XP[IP]) 
+    
+        + p->ZSN[FIJKp1];
+    }
+    
+    if(p->j_dir==1)
+    {
+    Z1 =  ((p->ZSN[FIp1JK] - p->ZSN[FIJK])/p->DXP[IP])*(xp - p->XP[IP]) 
+    
+        + ((p->ZSN[FIJp1K] - p->ZSN[FIJK])/p->DYP[JP])*(yp - p->YP[JP]) 
+    
+        + p->ZSN[FIJK];
+    
+    Z2 =  ((p->ZSN[FIp1JKp1] - p->ZSN[FIJKp1])/p->DXP[IP])*(xp - p->XP[IP]) 
+    
+        + ((p->ZSN[FIJp1Kp1] - p->ZSN[FIJKp1])/p->DYP[JP])*(yp - p->YP[JP]) 
+    
+        + p->ZSN[FIJKp1];
+    }
+        
+    wc = (Z2-zp)/(Z2-Z1);
+    
+    // ----------------------------------------------------------
+    
+    wa = MAX(wa,0.0);
+    wa = MIN(wa,1.0);
+    
+    wb = MAX(wb,0.0);
+    wb = MIN(wb,1.0);
+    
+    wc = MAX(wc,0.0);
+    wc = MIN(wc,1.0);
 
-    wa = MAX(wa, 0.0);
-    wa = MIN(wa, 1.0);
+    if(p->j_dir==0)
+    value = lint7V_2D(f,i,j,k,wa,wb,wc);
+    
+    if(p->j_dir==1)
+    value = lint7V(f,i,j,k,wa,wb,wc);
+    
 
-    wb = MAX(wb, 0.0);
-    wb = MIN(wb, 1.0);
-
-    wc = MAX(wc, 0.0);
-    wc = MIN(wc, 1.0);
-
-    if(p->j_dir == 0)
-        value = lint7V_2D(f, i, j, k, wa, wb, wc);
-
-    if(p->j_dir == 1)
-        value = lint7V(f, i, j, k, wa, wb, wc);
-
-    i = ii;
-    j = jj;
-    k = kk;
-
+    i=ii;
+    j=jj;
+    k=kk;
+    
     return value;
 }
 

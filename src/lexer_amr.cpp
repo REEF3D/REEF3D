@@ -20,11 +20,11 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "lexer.h"
-#include <cstdlib>
-#include <cstring>
-#include <iostream>
-#include <mpi.h>
+#include"lexer.h"
+#include<cstdlib>
+#include<cstring>
+#include<iostream>
+#include<mpi.h>
 
 //  The grids of a mesh refinement (CFD, NHFLOW, FNPF, SFLOW, SEASTATE patches; the FAS grids of
 //  SEASTATE) are lexers built from the base grid (level 0) with lexer(const lexer&, int).  Besides
@@ -58,9 +58,9 @@ Architect: Hans Bihs
 
 #define LEXER_AMR_IO_D(X) X(Ui) X(Ua) X(Uo) X(Qi) X(Qo) X(Hi) X(Ho) \
     X(fsfin) X(fsfout) X(fsfinval) X(fsfoutval)
-#define LEXER_AMR_RUN_D(X) X(phiin) X(phiout) X(pressgage)            \
+#define LEXER_AMR_RUN_D(X) X(phiin) X(phiout) X(pressgage) \
     X(wavetime) X(wts) X(wte) X(sedtime) X(sedsimtime) X(sedwavetime) \
-        X(wT) X(wV) X(wH) X(wA) X(wL) X(wd) X(ww) X(wk) X(wC) X(wHs) X(wAs) X(wwp) X(ww_s) X(ww_e) X(wTp) X(wLp)
+    X(wT) X(wV) X(wH) X(wA) X(wL) X(wd) X(ww) X(wk) X(wC) X(wHs) X(wAs) X(wwp) X(ww_s) X(ww_e) X(wTp) X(wLp)
 // count_statestart: the restart from a checkpoint (I 45) sets it after the grids are built
 #define LEXER_AMR_RUN_I(X) X(wN) X(count_statestart)
 
@@ -74,62 +74,61 @@ Architect: Hans Bihs
 #define LEXER_AMR_TIME_D(X) X(simtime) X(dt) X(dt_old)
 #define LEXER_AMR_TIME_I(X) X(count)
 
-namespace {
+namespace
+{
 // the contract check: 1 stop, 0 print once
 int amr_check_mode()
 {
-    static const int mode = (getenv("REEF3D_AMR_CHECK") != nullptr && atoi(getenv("REEF3D_AMR_CHECK")) > 0) ? 1 : 0;
+    static const int mode = (getenv("REEF3D_AMR_CHECK")!=nullptr && atoi(getenv("REEF3D_AMR_CHECK"))>0) ? 1 : 0;
     return mode;
 }
 
 // equal as stored (NaN equal to NaN: not a change)
-template<class T>
-bool same(T a, T b)
+template<class T> bool same(T a, T b)
 {
-    return std::memcmp(&a, &b, sizeof(T)) == 0;
+    return std::memcmp(&a,&b,sizeof(T))==0;
 }
-}  // namespace
+}
 
 // the runtime state of a grid built from b (lexer(const lexer&, int))
 void lexer::amr_inherit(const lexer &b)
 {
 #define C(m) m = b.m;
-    LEXER_AMR_IO_D(C)
-    LEXER_AMR_RUN_D(C) LEXER_AMR_RUN_I(C)
-        LEXER_AMR_ONCE_D(C) LEXER_AMR_ONCE_I(C)
-            LEXER_AMR_BUILD_D(C) LEXER_AMR_BUILD_I(C)
-                LEXER_AMR_TIME_D(C) LEXER_AMR_TIME_I(C)
+    LEXER_AMR_IO_D(C) LEXER_AMR_RUN_D(C) LEXER_AMR_RUN_I(C)
+    LEXER_AMR_ONCE_D(C) LEXER_AMR_ONCE_I(C)
+    LEXER_AMR_BUILD_D(C) LEXER_AMR_BUILD_I(C)
+    LEXER_AMR_TIME_D(C) LEXER_AMR_TIME_I(C)
 #undef C
 
-        // OWN: the defaults of lexer_ini and control_calc
-        umax = vmax = wmax = 0.0;
-    viscmax = kinmax = epsmax = pressmax = omegamax = 0.0;
-    pressmin = 1.0e9;
-    ufbmax = vfbmax = wfbmax = 0.0;
-    ufb = vfb = wfb = pfb = qfb = rfb = 0.0;
-    ufbi = vfbi = wfbi = pfbi = qfbi = rfbi = 0.0;
-    xg = yg = zg = xgn = ygn = zgn = 0.0;
-    phi_fb = theta_fb = psi_fb = 0.0;
-    fbdt = fbmax = sfdt = sfmax = 0.0;
-    volume1 = volume2 = volume3 = 0.0;
-    tank_vol = 0.0;  // the water volume of the NHFLOW log (driver_log, level 0)
-    slidecells = 0.0;
-    maxtopovel = 0.0;
-    final_res = 0.0;
-    pcnorm = ucnorm = vcnorm = wcnorm = 0.0;
-    alpha = 0.0;
-    solver_status = solver_error = 0;
-    solveriter = preconiter = inneriter = sediter = 0;
-    uiter = viter = witer = kiniter = epsiter = poissoniter = laplaceiter = lsmiter = suspiter = topoiter = heatiter = concentrationiter = 0;
-    FSI_count = 0;
-    presstime = veltime = reinitime = turbtime = plstime = itertime = 0.0;
-    wavecalctime = meantime = totaltime = gcmeantime = gctotaltime = Xmeantime = Xtotaltime = 0.0;
-    susptime = gctime = xtime = field4time = 0.0;
-    utime = vtime = wtime = recontime = fsftime = dftime = kintime = epstime = 0.0;
-    poissontime = laplacetime = matrixtime = ptime = sftime = fbtime = fsitime = 0.0;
-    lsmtime = heattime = concentrationtime = printouttime = 0.0;
-    printtime = sedprinttime = fsfprinttime = fsfsedprinttime = probeprinttime = stateprinttime = exportprinttime = 0.0;
-    printcount = printcount_sixdof = 0;
+    // OWN: the defaults of lexer_ini and control_calc
+    umax=vmax=wmax=0.0;
+    viscmax=kinmax=epsmax=pressmax=omegamax=0.0;
+    pressmin=1.0e9;
+    ufbmax=vfbmax=wfbmax=0.0;
+    ufb=vfb=wfb=pfb=qfb=rfb=0.0;
+    ufbi=vfbi=wfbi=pfbi=qfbi=rfbi=0.0;
+    xg=yg=zg=xgn=ygn=zgn=0.0;
+    phi_fb=theta_fb=psi_fb=0.0;
+    fbdt=fbmax=sfdt=sfmax=0.0;
+    volume1=volume2=volume3=0.0;
+    tank_vol=0.0;           // the water volume of the NHFLOW log (driver_log, level 0)
+    slidecells=0.0;
+    maxtopovel=0.0;
+    final_res=0.0;
+    pcnorm=ucnorm=vcnorm=wcnorm=0.0;
+    alpha=0.0;
+    solver_status=solver_error=0;
+    solveriter=preconiter=inneriter=sediter=0;
+    uiter=viter=witer=kiniter=epsiter=poissoniter=laplaceiter=lsmiter=suspiter=topoiter=heatiter=concentrationiter=0;
+    FSI_count=0;
+    presstime=veltime=reinitime=turbtime=plstime=itertime=0.0;
+    wavecalctime=meantime=totaltime=gcmeantime=gctotaltime=Xmeantime=Xtotaltime=0.0;
+    susptime=gctime=xtime=field4time=0.0;
+    utime=vtime=wtime=recontime=fsftime=dftime=kintime=epstime=0.0;
+    poissontime=laplacetime=matrixtime=ptime=sftime=fbtime=fsitime=0.0;
+    lsmtime=heattime=concentrationtime=printouttime=0.0;
+    printtime=sedprinttime=fsfprinttime=fsfsedprinttime=probeprinttime=stateprinttime=exportprinttime=0.0;
+    printcount=printcount_sixdof=0;
 
     amr_last.clear();
 }
@@ -142,48 +141,30 @@ void lexer::amr_follow(const lexer &b)
     int n = 0;
     auto report = [&](const char *name, const char *what)
     {
-        if(mode == 0 && n < 64 && told[n])
-            return;
-        if(n < 64)
-            told[n] = true;
-        std::cerr << "REEF3D AMR contract: " << name << " " << what << " (lexer_amr.cpp)" << std::endl;
-        if(mode == 1)
-            MPI_Abort(MPI_COMM_WORLD, 3);
+        if(mode==0 && n<64 && told[n])
+        return;
+        if(n<64)
+        told[n] = true;
+        std::cerr<<"REEF3D AMR contract: "<<name<<" "<<what<<" (lexer_amr.cpp)"<<std::endl;
+        if(mode==1)
+        MPI_Abort(MPI_COMM_WORLD,3);
     };
 
     // RUN: written by the grid's own objects since the last amr_follow?
     const bool have = !amr_last.empty();
     if(!have)
-        amr_last.resize(64);
+    amr_last.resize(64);
     n = 0;
-#define R(m)                                                                       \
-    {                                                                              \
-        if(have && !same<double>((double)m, amr_last[n]))                          \
-            report(#m, "was changed by the objects of a grid (not a RUN member)"); \
-        m = b.m;                                                                   \
-        amr_last[n] = (double)m;                                                   \
-        ++n;                                                                       \
-    }
+#define R(m) { if(have && !same<double>((double)m,amr_last[n])) report(#m,"was changed by the objects of a grid (not a RUN member)"); \
+               m = b.m; amr_last[n] = (double)m; ++n; }
     // IO: the block's own with open faces (amr_own_io), else RUN
-#define IO(m)               \
-    {                       \
-        if(amr_own_io == 1) \
-            ++n;            \
-        else                \
-            R(m)            \
-    }
-    LEXER_AMR_IO_D(IO)
-    LEXER_AMR_RUN_D(R) LEXER_AMR_RUN_I(R)
+#define IO(m) { if(amr_own_io==1) ++n; else R(m) }
+    LEXER_AMR_IO_D(IO) LEXER_AMR_RUN_D(R) LEXER_AMR_RUN_I(R)
 #undef IO
 #undef R
 
     // ONCE: changed on level 0 after the grid was built?
-#define O(m)                                                                                      \
-    {                                                                                             \
-        if(!same(m, b.m))                                                                         \
-            report(#m, "differs from level 0 (level 0 changed it during the run: a RUN member)"); \
-        ++n;                                                                                      \
-    }
-        LEXER_AMR_ONCE_D(O) LEXER_AMR_ONCE_I(O)
+#define O(m) { if(!same(m,b.m)) report(#m,"differs from level 0 (level 0 changed it during the run: a RUN member)"); ++n; }
+    LEXER_AMR_ONCE_D(O) LEXER_AMR_ONCE_I(O)
 #undef O
 }

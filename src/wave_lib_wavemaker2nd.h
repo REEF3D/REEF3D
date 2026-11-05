@@ -23,8 +23,8 @@ Author: Hans Bihs
 #ifndef WAVE_LIB_WAVEMAKER2ND_H_
 #define WAVE_LIB_WAVEMAKER2ND_H_
 
-#include <complex>
-#include <vector>
+#include<vector>
+#include<complex>
 
 class lexer;
 class ghostcell;
@@ -61,26 +61,26 @@ public:
         double al, be, sa;
     };
     static shape_t shape_piston();
-    static shape_t shape_flap(double zs, double ze);  // hinge zs, unit displacement at ze (from bed)
+    static shape_t shape_flap(double zs, double ze);   // hinge zs, unit displacement at ze (from bed)
 
     wave_lib_wavemaker2nd();
     ~wave_lib_wavemaker2nd();
 
     // REEF3D interface: modifies kin[q][1] (displacement at the reference
     // elevation of the paddle) in place. shape: 1 piston, 2 flap
-    void correct(lexer *, ghostcell *, double **kin, int ptnum, double h, int shape, double zs, double ze);
+    void correct(lexer*, ghostcell*, double **kin, int ptnum, double h, int shape, double zs, double ze);
 
     // double flap: lower flap hinged at zs (kin[q][1] = displacement at z2),
     // upper flap hinged at z2 (kin[q][2] = displacement at ze relative to the lower flap)
-    void correct_double(lexer *, ghostcell *, double **kin, int ptnum, double h, double zs, double z2, double ze);
+    void correct_double(lexer*, ghostcell*, double **kin, int ptnum, double h, double zs, double z2, double ze);
 
     // REEF3D interface for the moving-paddle BC (B119): tabulates the
     // progressive-mode projection of Q(z,t) = X_z*phi_z - X*phi_xx at x=0,
     // computed from the linear paddle solution (progressive + J evanescent
     // modes) of the first-order signal.
     // Must be called with the uncorrected first-order signal.
-    void make_Qtable(lexer *, ghostcell *, double **kin, int ptnum, double h, int shape, double zs, double ze);
-    void make_Qtable_double(lexer *, ghostcell *, double **kin, int ptnum, double h, double zs, double z2, double ze);
+    void make_Qtable(lexer*, ghostcell*, double **kin, int ptnum, double h, int shape, double zs, double ze);
+    void make_Qtable_double(lexer*, ghostcell*, double **kin, int ptnum, double h, double zs, double z2, double ze);
 
     // Q at time t and elevation z (relative to still water level)
     double paddle_Q(double t, double z) const;
@@ -88,13 +88,13 @@ public:
     // active absorption at the wavemaker (FNPF B 98 4/7): tabulates the linear surface elevation of the paddle
     // signal (kin[q][1], as used, i.e. after a B113 correction) at distance x0 from the paddle, progressive and
     // J evanescent modes, all components in the band fmin..fmax (fmax<=0: automatic)
-    void make_etatable(lexer *, ghostcell *, double **kin, int ptnum, double h, int shape, double zs, double ze, double x0);
+    void make_etatable(lexer*, ghostcell*, double **kin, int ptnum, double h, int shape, double zs, double ze, double x0);
     double eta_target(double t) const;
-    double eta_target_x0() const { return Ex0; }
-    bool eta_target_ready() const { return Ent > 1; }
+    double eta_target_x0() const {return Ex0;}
+    bool eta_target_ready() const {return Ent>1;}
 
     static void compute_eta_x_multi(double g, double h, const std::vector<shape_t> &shp, int J, double fmin, double fmax,
-                                    const std::vector<std::vector<double>> &x, double dt, double x0, std::vector<double> &eta);
+                       const std::vector<std::vector<double> > &x, double dt, double x0, std::vector<double> &eta);
 
     // ---- core, general paddle (P segments) ----
 
@@ -102,9 +102,9 @@ public:
     // X[p][n]: amplitude of segment p, X_p(t) = sum_n Re(X[p][n] exp(i omega_n t)).
     // Returns X2[p][b], second-order amplitudes on bins b = 0..2*max(bin).
     static void compute_components_multi(double g, double h, const std::vector<shape_t> &shp,
-                                         int mode, int J, int addQ, double dw, double w2min,
-                                         const std::vector<int> &bin, const std::vector<std::vector<cplx>> &X,
-                                         std::vector<std::vector<cplx>> &X2, std::vector<cplx> *RQ = nullptr);
+                       int mode, int J, int addQ, double dw, double w2min,
+                       const std::vector<int> &bin, const std::vector<std::vector<cplx> > &X,
+                       std::vector<std::vector<cplx> > &X2, std::vector<cplx> *RQ=nullptr);
 
     // uniformly sampled first-order displacements x[p] (dt), returns x2[p]
     // mode: 1 sub+super, 2 subharmonics only, 3 superharmonics only
@@ -112,15 +112,15 @@ public:
     // f2min [Hz]: lowest corrected second-order frequency (<=0: 0.1 x peak frequency)
     // returns number of first-order components used
     static int compute_multi(double g, double h, const std::vector<shape_t> &shp,
-                             int mode, int J, int addQ, double fmin, double fmax, double f2min, int nmax,
-                             const std::vector<std::vector<double>> &x, double dt, std::vector<std::vector<double>> &x2);
+                       int mode, int J, int addQ, double fmin, double fmax, double f2min, int nmax,
+                       const std::vector<std::vector<double> > &x, double dt, std::vector<std::vector<double> > &x2);
 
     // progressive-mode projection of Q on nlev equidistant levels s=z+h in [0,h], Q[l*npts+q]
     // f2min [Hz]: lowest second-order frequency included (<0: none, 0: 0.1 x peak frequency)
     static void compute_paddle_Q_multi(double g, double h, const std::vector<shape_t> &shp,
-                                       int J, double fmin, double fmax, int nmax,
-                                       const std::vector<std::vector<double>> &x, double dt, int nlev, std::vector<float> &Q,
-                                       double f2min = -1.0);
+                       int J, double fmin, double fmax, int nmax,
+                       const std::vector<std::vector<double> > &x, double dt, int nlev, std::vector<float> &Q,
+                       double f2min=-1.0);
 
     // ---- core, single segment (shape: 1 piston, 2 flap; zs,ze from the bed) ----
     static int compute(double g, double h, int shape, double zs, double ze,
@@ -128,28 +128,28 @@ public:
                        const std::vector<double> &x, double dt, std::vector<double> &x2);
 
     static void compute_components(double g, double h, int shape, double zs, double ze,
-                                   int mode, int J, int addQ, double dw, double w2min,
-                                   const std::vector<int> &bin, const std::vector<double> &Xre, const std::vector<double> &Xim,
-                                   std::vector<double> &X2re, std::vector<double> &X2im);
+                       int mode, int J, int addQ, double dw, double w2min,
+                       const std::vector<int> &bin, const std::vector<double> &Xre, const std::vector<double> &Xim,
+                       std::vector<double> &X2re, std::vector<double> &X2im);
 
     static void compute_paddle_Q(double g, double h, int shape, double zs, double ze,
-                                 int J, double fmin, double fmax, int nmax,
-                                 const std::vector<double> &x, double dt, int nlev, std::vector<float> &Q);
+                       int J, double fmin, double fmax, int nmax,
+                       const std::vector<double> &x, double dt, int nlev, std::vector<float> &Q);
 
 private:
     static int resample(double **kin, int ptnum, int col, double &t0, double &dt, std::vector<double> &xu);
 
-    void correct_impl(lexer *, ghostcell *, double **kin, int ptnum, double h,
+    void correct_impl(lexer*, ghostcell*, double **kin, int ptnum, double h,
                       const std::vector<shape_t> &shp, const std::vector<int> &col);
-    void make_Qtable_impl(lexer *, ghostcell *, double **kin, int ptnum, double h,
-                          const std::vector<shape_t> &shp, const std::vector<int> &col);
+    void make_Qtable_impl(lexer*, ghostcell*, double **kin, int ptnum, double h,
+                      const std::vector<shape_t> &shp, const std::vector<int> &col);
 
     std::vector<float> Qtab;
     std::vector<double> Etab;
-    int Ent = 0;
-    double Et0 = 0.0, Edt = 1.0, Ex0 = -1.0;
-    int Qnlev = 0, Qnt = 0;
-    double Qt0 = 0.0, Qdt = 1.0, Qh = 1.0;
+    int Ent=0;
+    double Et0=0.0, Edt=1.0, Ex0=-1.0;
+    int Qnlev=0, Qnt=0;
+    double Qt0=0.0, Qdt=1.0, Qh=1.0;
 };
 
 #endif

@@ -20,14 +20,15 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+
 #ifndef SEDIMENT_FDM_H_
 #define SEDIMENT_FDM_H_
 
-#include "field4a.h"
-#include "slice1.h"
-#include "slice2.h"
-#include "slice4.h"
-#include "sliceint4.h"
+#include"sliceint4.h"
+#include"slice1.h"
+#include"slice2.h"
+#include"slice4.h"
+#include"field4a.h"
 
 using namespace std;
 
@@ -38,54 +39,56 @@ class sediment_inflow;
 class sediment_fdm
 {
 public:
-    sediment_fdm(lexer *);
-    virtual ~sediment_fdm();
-
+    sediment_fdm(lexer*);
+	virtual ~sediment_fdm();
+    
     slice1 P;
     slice2 Q;
-
-    slice4 bedzh, bedzh0, bedch, bedsole;
-    slice4 vz, dh, reduce;
-    slice4 ks, ks_eff;
+    
+    slice4 bedzh,bedzh0,bedch,bedsole;
+    slice4 vz,dh,reduce;
+    slice4 ks,ks_eff;
     slice4 ro;
-
-    slice4 tau_eff, tau_crit;
-    slice4 shearvel_eff, shearvel_crit;
+    
+    slice4 tau_eff,tau_crit;
+    slice4 shearvel_eff,shearvel_crit;
     slice4 shields_eff, shields_crit;
-
-    slice4 alpha, teta, gamma, beta, phi;
+    
+    slice4 alpha,teta,gamma,beta,phi;
     sliceint4 active;
-
+    
+    
     sliceint4 bedk;
     slice4 slide_fh;
-
-    slice4 qb, qbe, qbs;
-    slice4 cbe, cb, cbn, conc;
-    slice4 ub, vb;  // curvilinear grid (G 50): near-bed velocity of the cells (Cartesian components, sediment_curv)
+    
+    slice4 qb,qbe,qbs;
+    slice4 cbe,cb,cbn,conc;
+    slice4 ub,vb;   // curvilinear grid (G 50): near-bed velocity of the cells (Cartesian components, sediment_curv)
     slice4 dryd;    // NHFLOW: suspended sediment volume per area of columns that fell dry, deposited at the next bed update
-
+    
     slice4 waterlevel;
     slice4 guard;
-    slice4 MOB, tau_i;
-
+    slice4 MOB,tau_i;
+    
     double ws;
-
+    
     // grain diameter used by the bedload formulas; S20 for single-fraction runs,
     // set to d_k by sediment_mixture while the bedload of fraction k is evaluated
     double dk;
-
+    
     // multi-fraction bed model (S51>0), nullptr otherwise
     sediment_mixture *pmix;
-
+    
     // SFLOW, NHFLOW: waves in the sediment transport (S 110 > 0), nullptr otherwise
     sediment_waves *pwave = nullptr;
-
+    
     // sediment supply at the inflow (S 129, S 124, sediment_inflow.h)
     sediment_inflow *pinflow = nullptr;
-
+    
     // SFLOW: mean exchange rate E - D of the depth-averaged suspended load since the last bed update
     // (S 120 > 0, sediment_susp2D), nullptr otherwise
     slice4 *edrate = nullptr;
+
 };
 
 #endif

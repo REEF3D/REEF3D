@@ -23,26 +23,27 @@ Author: Hans Bihs
 #ifndef PICARD_LSM_H_
 #define PICARD_LSM_H_
 
-#include "gradient.h"
-#include "picard.h"
+#include"gradient.h"
+#include"picard.h"
 
 using namespace std;
 
 class picard_lsm final : public gradient, public picard
 {
 public:
+
     picard_lsm(lexer *p);
     virtual ~picard_lsm();
 
-    void volcalc(lexer *, fdm *, ghostcell *, field &) override final;
-    void volcalc2(lexer *, fdm *, ghostcell *, field &);
-    void correct_ls(lexer *, fdm *, ghostcell *, field &) override final;
+    void volcalc(lexer*, fdm*, ghostcell*, field&) override final;
+    void volcalc2(lexer*, fdm*, ghostcell*, field&);
+    void correct_ls(lexer*, fdm*, ghostcell*, field&) override final;
 
 private:
-    double vol1, vol2, dvol2;
+    double vol1,vol2,dvol2;
     // the reference and the net volume, the reference taken (1, first volcalc): one array for the
     // checkpoints (ckpt_registry)
-    double vs[3] = {0.0, 0.0, 0.0};
+    double vs[3] = {0.0,0.0,0.0};
     double &inivol = vs[0], &netvol = vs[1], &vol_ini = vs[2];
     unsigned long long ckid;
 };

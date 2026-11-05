@@ -23,8 +23,8 @@ Author: Hans Bihs
 #ifndef WSFLINE_CORE_H_
 #define WSFLINE_CORE_H_
 
-#include <fstream>
-#include <functional>
+#include<fstream>
+#include<functional>
 
 class lexer;
 class ghostcell;
@@ -39,7 +39,7 @@ class wsfline_core
 {
 public:
     // nline lines with nloc local points each (knox for lines along x, knoy for lines along y)
-    wsfline_core(lexer *, ghostcell *, int nline, int nloc);
+    wsfline_core(lexer*, ghostcell*, int nline, int nloc);
     ~wsfline_core();
 
     // loc = 1e20, wsf = -1e20 for all local points
@@ -49,7 +49,7 @@ public:
     // coordinate and value with setprecision(prec), coord(loc) is the coordinate written,
     // theory(loc) (if given) the wave-theory column; fill is written twice for a line without
     // a point in that row
-    void write_rows(lexer *, ghostcell *, ofstream &, int prec, const function<double(double)> &coord,
+    void write_rows(lexer*, ghostcell*, ofstream&, int prec, const function<double(double)> &coord,
                     const function<double(double)> &theory, const char *fill);
 
     double **loc, **wsf;
@@ -58,8 +58,8 @@ public:
     int maxn, sumn;
 
 private:
-    void sort(double *, double *, int *, int, int);
-    void remove_multientry(lexer *, double *, double *, int *, int &);
+    void sort(double*, double*, int*, int, int);
+    void remove_multientry(lexer*, double*, double*, int*, int&);
 
     double **loc_all, **wsf_all;
     int **flag_all, *rowflag, *wsfpoints;

@@ -20,40 +20,40 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Thomas Becker
 --------------------------------------------------------------------*/
 
-#include "nhflow_timeavg_vel_profile.h"
-#include "fdm_nhf.h"
-#include "ghostcell.h"
-#include "lexer.h"
-#include <cmath>
-#include <iomanip>
-#include <sys/stat.h>
-#include <sys/types.h>
+#include"nhflow_timeavg_vel_profile.h"
+#include"lexer.h"
+#include"fdm_nhf.h"
+#include"ghostcell.h"
+#include<iomanip>
+#include<cmath>
+#include<sys/stat.h>
+#include<sys/types.h>
 
 nhflow_timeavg_vel_profile::nhflow_timeavg_vel_profile(lexer *p, fdm_nhf *d) : probenum(p->P148)
 {
-    p->Iarray(iloc, probenum);
-    p->Iarray(jloc, probenum);
-    p->Iarray(flag, probenum);
-    p->Darray(time_accum, probenum);
-    p->Darray(start_time, probenum);
+    p->Iarray(iloc,probenum);
+    p->Iarray(jloc,probenum);
+    p->Iarray(flag,probenum);
+    p->Darray(time_accum,probenum);
+    p->Darray(start_time,probenum);
     started = new bool[probenum];
     printed = new bool[probenum];
 
-    max_points = MAX(1, p->knoz);
+    max_points = MAX(1,p->knoz);
 
-    p->Darray(z_timeint, probenum, max_points);
-    p->Darray(u_timeint, probenum, max_points);
-    p->Darray(v_timeint, probenum, max_points);
-    p->Darray(vel_timeint, probenum, max_points);
+    p->Darray(z_timeint,probenum,max_points);
+    p->Darray(u_timeint,probenum,max_points);
+    p->Darray(v_timeint,probenum,max_points);
+    p->Darray(vel_timeint,probenum,max_points);
 
-    for(n = 0; n < probenum; ++n)
+    for(n=0;n<probenum;++n)
     {
         time_accum[n] = 0.0;
         start_time[n] = 0.0;
         started[n] = false;
         printed[n] = false;
 
-        for(q = 0; q < max_points; ++q)
+        for(q=0;q<max_points;++q)
         {
             z_timeint[n][q] = 0.0;
             u_timeint[n][q] = 0.0;
@@ -64,28 +64,28 @@ nhflow_timeavg_vel_profile::nhflow_timeavg_vel_profile(lexer *p, fdm_nhf *d) : p
 
     pout = new ofstream[probenum];
 
-    if(p->mpirank == 0)
-        mkdir("./REEF3D_NHFLOW_TIME_AVG_VEL_PROFILE", 0777);
+    if(p->mpirank==0)
+        mkdir("./REEF3D_NHFLOW_TIME_AVG_VEL_PROFILE",0777);
 
-    ini_location(p, d);
+    ini_location(p,d);
 }
 
 nhflow_timeavg_vel_profile::~nhflow_timeavg_vel_profile()
 {
-    for(n = 0; n < probenum; ++n)
+    for(n=0;n<probenum;++n)
         pout[n].close();
 
-    delete[] pout;
+    delete [] pout;
 }
 
 void nhflow_timeavg_vel_profile::start(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
-    if(probenum <= 0)
+    if(probenum<=0)
         return;
 
-    for(n = 0; n < probenum; ++n)
+    for(n=0;n<probenum;++n)
     {
-        if(flag[n] != 1 || printed[n] == true)
+        if(flag[n]!=1 || printed[n]==true)
             continue;
 
         const double tbegin = p->P148_tbegin[n];
@@ -93,28 +93,28 @@ void nhflow_timeavg_vel_profile::start(lexer *p, fdm_nhf *d, ghostcell *pgc)
         const double t0 = p->simtime - p->dt_old;
         const double t1 = p->simtime;
 
-        if(tend <= tbegin)
+        if(tend<=tbegin)
         {
             printed[n] = true;
             continue;
         }
 
-        if(t1 <= tbegin)
+        if(t1<=tbegin)
             continue;
 
-        const double effective_t0 = MAX(t0, tbegin);
-        const double effective_t1 = MIN(t1, tend);
+        const double effective_t0 = MAX(t0,tbegin);
+        const double effective_t1 = MIN(t1,tend);
         const double effective_dt = effective_t1 - effective_t0;
 
-        if(effective_dt <= 0.0)
+        if(effective_dt<=0.0)
         {
-            if(t1 >= tend - 1.0e-12)
+            if(t1>=tend-1.0e-12)
                 printed[n] = true;
 
             continue;
         }
 
-        if(started[n] == false)
+        if(started[n]==false)
         {
             started[n] = true;
             start_time[n] = effective_t0;
@@ -128,40 +128,40 @@ void nhflow_timeavg_vel_profile::start(lexer *p, fdm_nhf *d, ghostcell *pgc)
             double zval = p->ZSP[IJK];
             double uval = p->ccipol4V(d->U, d->WL, d->bed, p->P148_x[n], p->P148_y[n], zval);
             double vval = p->ccipol4V(d->V, d->WL, d->bed, p->P148_x[n], p->P148_y[n], zval);
-            double velval = sqrt(uval * uval + vval * vval);
+            double velval = sqrt(uval*uval + vval*vval);
 
-            z_timeint[n][k] += effective_dt * zval;
-            u_timeint[n][k] += effective_dt * uval;
-            v_timeint[n][k] += effective_dt * vval;
-            vel_timeint[n][k] += effective_dt * velval;
+            z_timeint[n][k] += effective_dt*zval;
+            u_timeint[n][k] += effective_dt*uval;
+            v_timeint[n][k] += effective_dt*vval;
+            vel_timeint[n][k] += effective_dt*velval;
         }
 
         time_accum[n] += effective_dt;
 
-        if(t1 < tend - 1.0e-12)
+        if(t1<tend-1.0e-12)
             continue;
 
-        if(time_accum[n] <= 0.0)
+        if(time_accum[n]<=0.0)
             continue;
 
-        sprintf(name, "./REEF3D_NHFLOW_TIME_AVG_VEL_PROFILE/REEF3D-NHFLOW-TimeAvgVelProfile-%i-%i.dat", n + 1, p->count);
+        sprintf(name,"./REEF3D_NHFLOW_TIME_AVG_VEL_PROFILE/REEF3D-NHFLOW-TimeAvgVelProfile-%i-%i.dat",n+1,p->count);
         pout[n].open(name);
 
-        pout[n] << "TIME-AVG-VEL-Profile ID:  " << n + 1 << "\n\n"
-                << "x_coord     y_coord" << endl
-                << n + 1 << "\t " << p->Xout(p->P148_x[n], p->P148_y[n]) << "\t " << p->Yout(p->P148_x[n], p->P148_y[n]) << "\n\n"
-                << "simtime:  " << p->simtime << "\n"
-                << "starttime:  " << start_time[n] << "\n"
-                << "averaging_time:  " << time_accum[n] << "\n\n"
-                << "z\t U_avg\t V_avg\t VEL_avg" << endl;
+        pout[n]<<"TIME-AVG-VEL-Profile ID:  "<<n+1<<"\n\n"
+               <<"x_coord     y_coord"<<endl
+               <<n+1<<"\t "<<p->Xout(p->P148_x[n],p->P148_y[n])<<"\t "<<p->Yout(p->P148_x[n],p->P148_y[n])<<"\n\n"
+               <<"simtime:  "<<p->simtime<<"\n"
+               <<"starttime:  "<<start_time[n]<<"\n"
+               <<"averaging_time:  "<<time_accum[n]<<"\n\n"
+               <<"z\t U_avg\t V_avg\t VEL_avg"<<endl;
 
-        for(q = 0; q < max_points; ++q)
+        for(q=0;q<max_points;++q)
         {
-            pout[n] << setprecision(12)
-                    << z_timeint[n][q] / time_accum[n] << "\t "
-                    << u_timeint[n][q] / time_accum[n] << "\t "
-                    << v_timeint[n][q] / time_accum[n] << "\t "
-                    << vel_timeint[n][q] / time_accum[n] << endl;
+            pout[n]<<setprecision(12)
+                   <<z_timeint[n][q]/time_accum[n]<<"\t "
+                   <<u_timeint[n][q]/time_accum[n]<<"\t "
+                   <<v_timeint[n][q]/time_accum[n]<<"\t "
+                   <<vel_timeint[n][q]/time_accum[n]<<endl;
         }
 
         pout[n].close();
@@ -171,24 +171,24 @@ void nhflow_timeavg_vel_profile::start(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
 void nhflow_timeavg_vel_profile::ini_location(lexer *p, fdm_nhf *d)
 {
-    int ii, jj;
+    int ii,jj;
 
-    for(n = 0; n < probenum; ++n)
+    for(n=0;n<probenum;++n)
     {
-        iloc[n] = p->posc_i(p->P148_x[n]);
+        iloc[n]=p->posc_i(p->P148_x[n]);
 
-        if(p->j_dir == 0)
+        if(p->j_dir==0)
         {
-            jloc[n] = 0;
-            p->P148_y[n] = 0.5 * p->YP[JP];
+            jloc[n]=0;
+            p->P148_y[n] = 0.5*p->YP[JP];
         }
-        else if(p->j_dir == 1)
-            jloc[n] = p->posc_j(p->P148_y[n]);
+        else if(p->j_dir==1)
+            jloc[n]=p->posc_j(p->P148_y[n]);
 
-        ii = iloc[n];
-        jj = jloc[n];
+        ii=iloc[n];
+        jj=jloc[n];
 
-        if(ii >= 0 && ii < p->knox && jj >= 0 && jj < p->knoy)
-            flag[n] = 1;
+        if(ii>=0 && ii<p->knox && jj>=0 && jj<p->knoy)
+            flag[n]=1;
     }
 }

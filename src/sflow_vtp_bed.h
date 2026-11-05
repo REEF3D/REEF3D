@@ -23,52 +23,40 @@ Author: Hans Bihs
 #ifndef SFLOW_VTP_BED_H_
 #define SFLOW_VTP_BED_H_
 
-#include "increment.h"
-#include "vtp3D.h"
+#include"increment.h"
+#include"vtp3D.h"
 
 class lexer;
 class fdm2D;
 class ghostcell;
 class sediment;
 
-#include <vector>
+#include<vector>
 
 using namespace std;
 
 class sflow_vtp_bed : public increment, public vtp3D
 {
 public:
-    sflow_vtp_bed(lexer *);
+    sflow_vtp_bed(lexer*);
     virtual ~sflow_vtp_bed() = default;
-    void start(lexer *, fdm2D *, ghostcell *, sediment *);
+    void start(lexer*,fdm2D*,ghostcell*,sediment*);
     // the end of a run (N 45, N 41, S 19): the last bed, unless the last step wrote it
-    void print_end(lexer *, fdm2D *, ghostcell *, sediment *);
+    void print_end(lexer*,fdm2D*,ghostcell*,sediment*);
 
     // checkpoints (P 48, I 45): the counter and the time of the next output
-    void ckpt_state(vector<double> &v) const
-    {
-        v.push_back(printbedcount);
-        v.push_back(printbedtime);
-    }
-    void ckpt_restore(const vector<double> &v, size_t &k)
-    {
-        if(k + 2 <= v.size())
-        {
-            printbedcount = int(v[k]);
-            printbedtime = v[k + 1];
-        }
-        k += 2;
-    }
+    void ckpt_state(vector<double> &v) const { v.push_back(printbedcount); v.push_back(printbedtime); }
+    void ckpt_restore(const vector<double> &v, size_t &k) { if(k+2<=v.size()) { printbedcount = int(v[k]); printbedtime = v[k+1]; } k+=2; }
 
 private:
-    void print2D(lexer *, fdm2D *, ghostcell *, sediment *);
-    void pvtp(lexer *, sediment *, int);
+    void print2D(lexer*,fdm2D*,ghostcell*,sediment*);
+    void pvtp(lexer*,sediment*,int);
 
     char name[200];
-    int n, iin, offset[200];
+    int n,iin,offset[200];
     float ffn;
     int printbedcount;
     double printbedtime;
-    int last_print = -1;  // the iteration of the last output (print_end)
+    int last_print = -1;    // the iteration of the last output (print_end)
 };
 #endif

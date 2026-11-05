@@ -20,39 +20,39 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Authors: Tobias Martin, Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "6DOF_obj_2D.h"
-#include "fdm.h"
-#include "ghostcell.h"
-#include "lexer.h"
+#include"6DOF_obj_2D.h"
+#include"lexer.h"
+#include"fdm.h"
+#include"ghostcell.h"
 
 void sixdof_obj_2D::update_position_2D(lexer *p, ghostcell *pgc, slice &fsglobal)
 {
     // Calculate new position
     rb.euler_angles();
-
+    
     // Update STL mesh
-    update_trimesh_2D(p, pgc);
+    update_trimesh_2D(p,pgc);
 
-    // Update angular velocities
+    // Update angular velocities 
     rb.update_omega();
-
+    
     SLICELOOP4
-    fsglobal(i, j) = fs(i, j);
-
-    pgc->gcsl_start4(p, fsglobal, 50);
-
+    fsglobal(i,j) = fs(i,j);
+    
+    pgc->gcsl_start4(p,fsglobal,50);
+    
     // the pose and velocity: in the 6DOF log files (REEF3D_*_6DOF), no longer on the terminal
 }
 
 void sixdof_obj_2D::update_trimesh_2D(lexer *p, ghostcell *pgc)
 {
-    // Update position of triangles
-    geom.transform(R_, c_);
+	// Update position of triangles 
+    geom.transform(R_,c_);
 
     // Update floating level set function
-    ray_cast_2D(p, pgc);
-    reini_2D(p, pgc, fs);
+	ray_cast_2D(p,pgc);
+	reini_2D(p,pgc,fs);
 
-    pgc->gcsl_start4(p, fs, 50);
+    pgc->gcsl_start4(p,fs,50);  
 }
 

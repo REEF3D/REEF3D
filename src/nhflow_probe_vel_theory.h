@@ -23,9 +23,9 @@ Author: Hans Bihs
 #ifndef NHFLOW_PROBE_THEORY_VEL_H_
 #define NHFLOW_PROBE_THEORY_VEL_H_
 
-#include "boundarycheck.h"
-#include <fstream>
-#include <iostream>
+#include"boundarycheck.h"
+#include<iostream>
+#include<fstream>
 
 class lexer;
 class fdm_nhf;
@@ -38,23 +38,29 @@ using namespace std;
 class nhflow_probe_vel_theory : public boundarycheck
 {
 public:
-    nhflow_probe_vel_theory(lexer *, fdm_nhf *);
-    virtual ~nhflow_probe_vel_theory();
+    nhflow_probe_vel_theory(lexer*,fdm_nhf*);
+	virtual ~nhflow_probe_vel_theory();
 
-    void start(lexer *, fdm_nhf *, ghostcell *, ioflow *);
+	void start(lexer*, fdm_nhf*, ghostcell*,ioflow*);
+
 
 private:
-    void ini_location(lexer *, fdm_nhf *);
+    void ini_location(lexer*, fdm_nhf*);
 
-    char name[100];
 
-    int *iloc, *jloc, *kloc, *flag;
-    int n, q;
-    const int probenum;
+	char name[100];
+
+    int *iloc,*jloc,*kloc,*flag;
+    int n,q;
+	const int probenum;
     ofstream *pout;
     double *val;
+	
+	double uval,vval,wval,pval,kval,eval,edval,etaval;
+    
+    
+    
 
-    double uval, vval, wval, pval, kval, eval, edval, etaval;
 };
 
 #endif

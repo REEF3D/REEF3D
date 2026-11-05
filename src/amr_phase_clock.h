@@ -23,8 +23,8 @@ Architect: Hans Bihs
 #ifndef AMR_PHASE_CLOCK_H_
 #define AMR_PHASE_CLOCK_H_
 
-#include "amr_load.h"
-#include <mpi.h>
+#include"amr_load.h"
+#include<mpi.h>
 
 //  Exclusive clocks of the parts of a solve (the composite projection of CFD AMR): every part is a
 //  scope; a scope inside another one takes its time out of the outer one, so the parts add up to
@@ -36,24 +36,24 @@ Architect: Hans Bihs
 template<int N>
 struct amr_phase_clock
 {
-    double t[N] = {};  // wall-clock time per part [s], cumulative
-    double m[N] = {};  // of which in blocking MPI calls
+    double t[N] = {};       // wall-clock time per part [s], cumulative
+    double m[N] = {};       // of which in blocking MPI calls
 
     void enter(int k)
     {
         charge();
-        if(depth < MAXD)
-            stack[depth] = k;
+        if(depth<MAXD)
+        stack[depth] = k;
         ++depth;
     }
 
-    bool active() const { return depth > 0; }
+    bool active() const { return depth>0; }
 
     void leave()
     {
         charge();
-        if(depth > 0)
-            --depth;
+        if(depth>0)
+        --depth;
     }
 
 private:
@@ -65,11 +65,11 @@ private:
     void charge()
     {
         const double now = MPI_Wtime(), mm = amr_clock::mpi;
-        if(depth > 0 && depth <= MAXD)
+        if(depth>0 && depth<=MAXD)
         {
-            const int k = stack[depth - 1];
-            t[k] += now - tlast;
-            m[k] += mm - mlast;
+            const int k = stack[depth-1];
+            t[k] += now-tlast;
+            m[k] += mm-mlast;
         }
         tlast = now;
         mlast = mm;
@@ -81,18 +81,10 @@ struct amr_phase
 {
     amr_phase_clock<N> &c;
     bool on;
-    amr_phase(amr_phase_clock<N> &cc, int k, bool root = false) : c(cc), on(root || cc.active())
-    {
-        if(on)
-            c.enter(k);
-    }
-    ~amr_phase()
-    {
-        if(on)
-            c.leave();
-    }
-    amr_phase(const amr_phase &) = delete;
-    amr_phase &operator=(const amr_phase &) = delete;
+    amr_phase(amr_phase_clock<N> &cc, int k, bool root=false) : c(cc), on(root || cc.active()) { if(on) c.enter(k); }
+    ~amr_phase() { if(on) c.leave(); }
+    amr_phase(const amr_phase&) = delete;
+    amr_phase& operator=(const amr_phase&) = delete;
 };
 
 #endif

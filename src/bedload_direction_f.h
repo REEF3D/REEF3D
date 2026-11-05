@@ -23,23 +23,25 @@ Author: Hans Bihs
 #ifndef BEDLOAD_DIRECTION_F_H_
 #define BEDLOAD_DIRECTION_F_H_
 
-#include "bedload_direction.h"
-#include "increment.h"
+#include"increment.h"
+#include"bedload_direction.h"
 
 using namespace std;
 
 class bedload_direction_f : public bedload_direction, public increment
 {
 public:
-    bedload_direction_f(lexer *);
+
+    bedload_direction_f(lexer*);
     virtual ~bedload_direction_f();
 
-    void start(lexer *, ghostcell *, sediment_fdm *);
-    void start_curv(lexer *p, ghostcell *pgc, sediment_fdm *s);  // curvilinear grid (G 50)
+	void start(lexer*, ghostcell*, sediment_fdm*);
+    void start_curv(lexer* p, ghostcell* pgc, sediment_fdm *s);     // curvilinear grid (G 50)
 
 private:
     double beta;
 };
 
 #endif
+
 

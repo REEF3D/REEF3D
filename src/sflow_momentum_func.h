@@ -23,9 +23,9 @@ Author: Hans Bihs
 #ifndef SFLOW_MOMENTUM_FUNC_H_
 #define SFLOW_MOMENTUM_FUNC_H_
 
-#include "increment.h"
-#include "sflow_momentum.h"
-#include "slice4.h"
+#include"sflow_momentum.h"
+#include"increment.h"
+#include"slice4.h"
 
 class slice;
 class ioflow;
@@ -55,87 +55,87 @@ using namespace std;
 class sflow_momentum_func : public sflow_momentum, public increment
 {
 public:
-    sflow_momentum_func(lexer *, fdm2D *, ghostcell *, sflow_HLL *, sflow_signal_speed *, sflow_reconstruct *,
-                        sflow_diffusion *, sflow_pressure *, solver2D *, solver2D *, ioflow *, sflow_fsf *, sflow_forcing *, sixdof *);
-    virtual ~sflow_momentum_func();
-
-    void ini(lexer *, fdm2D *, ghostcell *) override final;
-    void stage(lexer *, fdm2D *, ghostcell *, slice &, slice &, slice &, slice &, slice &, slice &, slice &, slice &, double, int, bool);
-
+	sflow_momentum_func(lexer*, fdm2D*, ghostcell*, sflow_HLL*, sflow_signal_speed*, sflow_reconstruct*, 
+                        sflow_diffusion*, sflow_pressure*, solver2D*, solver2D*, ioflow*, sflow_fsf*, sflow_forcing*, sixdof*);
+	virtual ~sflow_momentum_func();
+    
+    void ini(lexer*, fdm2D*, ghostcell*) override final;
+    void stage(lexer*, fdm2D*, ghostcell*, slice&, slice&, slice&, slice&, slice&, slice&, slice&, slice&, double, int, bool);
+    
     // second part of a stage, after the non-hydrostatic pressure: velocities, relaxation zones
-    void stage_finish(lexer *, fdm2D *, ghostcell *, slice &, slice &, slice &, slice &);
-    void stage_rest(lexer *, fdm2D *, ghostcell *, slice &, slice &, slice &, slice &, double, int, bool);
-    void bous_prepare(lexer *, fdm2D *, ghostcell *, slice &, slice &, slice &);
-
+    void stage_finish(lexer*, fdm2D*, ghostcell*, slice&, slice&, slice&, slice&);
+    void stage_rest(lexer*, fdm2D*, ghostcell*, slice&, slice&, slice&, slice&, double, int, bool);
+    void bous_prepare(lexer*, fdm2D*, ghostcell*, slice&, slice&, slice&);
+    
     // mesh refinement: the stage of a patch stops before the non-hydrostatic pressure, which
     // is solved on all grids together; the arguments of that call are kept here
     bool nh_defer = false;
-    slice *nhUH = nullptr, *nhVH = nullptr, *nhWH = nullptr, *nhWL = nullptr, *nhUn = nullptr, *nhVn = nullptr;
+    slice *nhUH=nullptr, *nhVH=nullptr, *nhWH=nullptr, *nhWL=nullptr, *nhUn=nullptr, *nhVn=nullptr;
     double nh_alpha = 0.0;
-
+    
     // Boussinesq (A 220 4) on a refined patch: the stage stops after the rows of the u_a line
     // systems (bous_prepare); sflow_amr::bous_solve solves u_a on the leaf cells of all levels
     // when the level-0 stage has its rows, and continues the patch stages with bous_resume.
     // The pointers above hold the stage output.
     bool bous_defer = false;
-    sflow_amr *bous_amr = nullptr;  // level 0 with mesh refinement: the composite u_a solve
-    void bous_resume(lexer *, fdm2D *, ghostcell *);
-    sflow_boussinesq *boussinesq() { return pbous; }
-
-    void reconstruct(lexer *, fdm2D *, ghostcell *, slice &, slice &, slice &, slice &);
-    void velcalc(lexer *, fdm2D *, ghostcell *, slice &, slice &, slice &, slice &, int);
-    void ghostcells(lexer *, fdm2D *, ghostcell *, slice &, slice &, slice &, slice &);
-    void face_velocities(lexer *, fdm2D *, ghostcell *, slice &);
-    void inflow(lexer *, fdm2D *, ghostcell *, ioflow *);
-
-    void irhs(lexer *, fdm2D *);
-    void jrhs(lexer *, fdm2D *);
-    void krhs(lexer *, fdm2D *);
-    void clearrhs(lexer *, fdm2D *);
-
-    int gcval_u, gcval_v, gcval_w;
+    sflow_amr *bous_amr = nullptr;      // level 0 with mesh refinement: the composite u_a solve
+    void bous_resume(lexer*, fdm2D*, ghostcell*);
+    sflow_boussinesq *boussinesq() {return pbous;}
+    
+    void reconstruct(lexer*, fdm2D*, ghostcell*, slice&, slice&, slice&, slice&);
+    void velcalc(lexer*, fdm2D*, ghostcell*, slice&, slice&, slice&, slice&, int);
+    void ghostcells(lexer*, fdm2D*, ghostcell*, slice&, slice&, slice&, slice&);
+    void face_velocities(lexer*, fdm2D*, ghostcell*, slice&);
+    void inflow(lexer*, fdm2D*, ghostcell*, ioflow*);
+    
+	void irhs(lexer*, fdm2D*);
+	void jrhs(lexer*, fdm2D*);
+	void krhs(lexer*, fdm2D*);
+    void clearrhs(lexer*, fdm2D*);
+    
+	int gcval_u, gcval_v, gcval_w;
     int gcval_uh, gcval_vh, gcval_wh;
     int gcval_eta;
     int inflow_flag, outflow_flag;
-    int nhp;   // non-hydrostatic pressure (A 220 1-3)
-    int bous;  // Boussinesq equations (A 220 4)
+    int nhp;     // non-hydrostatic pressure (A 220 1-3)
+    int bous;    // Boussinesq equations (A 220 4)
     double starttime;
-
+    
 protected:
     sflow_HLL *phll;
     sflow_signal_speed *pss;
     sflow_reconstruct *precon;
-    sflow_diffusion *pdiff;
-    sflow_pressure *ppress;
-    solver2D *psolv;
+	sflow_diffusion *pdiff;
+	sflow_pressure *ppress;
+	solver2D *psolv;
     solver2D *ppoissonsolv;
-    ioflow *pflow;
-    sflow_fsf *pfsf;
+	ioflow *pflow;
+	sflow_fsf *pfsf;
     sflow_forcing *psfdf;
     sixdof *p6dof;
     sflow_roughness *prough;
     sflow_rheology *prheo;
     sflow_boussinesq *pbous;
-    met_forcing *pmet = nullptr;  // atmospheric forcing (W 200)
-
-    slice4 UHDIFF, VHDIFF, WHDIFF;
-    slice4 Un, Vn, etaS;
-
+    met_forcing *pmet = nullptr;     // atmospheric forcing (W 200)
+    
+    slice4 UHDIFF,VHDIFF,WHDIFF;
+    slice4 Un,Vn,etaS;
+    
 private:
     int q;
-    int gd = 3;  // ghost depth of the current boundary entry: the solid depth, column [2] of gcbsl4 (gcb_seed)
-    int ghost_depth(lexer *, int);
+    int gd = 3;     // ghost depth of the current boundary entry: the solid depth, column [2] of gcbsl4 (gcb_seed)
+    int ghost_depth(lexer*, int);
     int df_iter = 0;
     bool df_finalize = false;
     bool bous_solved = false;
-
-    void mpi4(lexer *, ghostcell *, slice &);
-    void vel_bc(lexer *, fdm2D *, ghostcell *, slice &, slice &, slice &);
-
-    void mirror(lexer *, slice &, int, double);
-    void wall_bc(lexer *, slice &, slice &, slice &, int);  // free-slip wall of boundary cell (i,j), side cs
-    void neumann(lexer *, slice &, int);
-    void outflow_clip(lexer *, slice &, slice &);  // outflow ghost cells of boundary cell (i,j): no backflow
+    
+    void mpi4(lexer*, ghostcell*, slice&);
+    void vel_bc(lexer*, fdm2D*, ghostcell*, slice&, slice&, slice&);
+    
+    void mirror(lexer*, slice&, int, double);
+    void wall_bc(lexer*, slice&, slice&, slice&, int);   // free-slip wall of boundary cell (i,j), side cs
+    void neumann(lexer*, slice&, int);
+    void outflow_clip(lexer*, slice&, slice&);         // outflow ghost cells of boundary cell (i,j): no backflow
 };
 
 #endif

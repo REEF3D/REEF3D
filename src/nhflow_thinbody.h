@@ -20,14 +20,15 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
+
 #ifndef NHFLOW_THINBODY_H_
 #define NHFLOW_THINBODY_H_
 
-#include "increment.h"
-#include "lexer.h"
-#include "nhflow_convection.h"
-#include "slice4.h"
-#include <functional>
+#include"nhflow_convection.h"
+#include"increment.h"
+#include"slice4.h"
+#include"lexer.h"
+#include<functional>
 
 class lexer;
 class fdm_nhf;
@@ -108,127 +109,127 @@ using namespace std;
 class nhflow_thinbody : public nhflow_flux_hook, public increment
 {
 public:
-    nhflow_thinbody(lexer *, fdm_nhf *, ghostcell *);
+    nhflow_thinbody(lexer*, fdm_nhf*, ghostcell*);
     virtual ~nhflow_thinbody();
-
+    
     // clients, every stage: begin() before marking, finish() after
-    void begin(lexer *);
-    void finish(lexer *, fdm_nhf *, ghostcell *);
-
-    double *sideC;         // side of the cell centre, written by the clients
-    double *sideN;         // side of the nodes (FIJK), written by the clients
-    double *bx, *by, *bz;  // 1: blocked link
-    double *ux, *uy, *uz;  // wall velocity along the blocked link
-
+    void begin(lexer*);
+    void finish(lexer*, fdm_nhf*, ghostcell*);
+    
+    double *sideC;              // side of the cell centre, written by the clients
+    double *sideN;              // side of the nodes (FIJK), written by the clients
+    double *bx,*by,*bz;         // 1: blocked link
+    double *ux,*uy,*uz;         // wall velocity along the blocked link
+    
     // 1. fluxes
-    void flux_hook(lexer *, fdm_nhf *, int, int, double *, double *) override;
-
+    void flux_hook(lexer*, fdm_nhf*, int, int, double*, double*) override;
+    
     // 2. projection right-hand side (nhflow_pjm::rhs)
-    void projection_rhs(lexer *, fdm_nhf *, double *, double *, double *, double);
-
+    void projection_rhs(lexer*, fdm_nhf*, double*, double*, double*, double);
+    
     // 3. cut cells
-    void cut_forcing(lexer *, fdm_nhf *, double *, double *, double *, slice &);
-
+    void cut_forcing(lexer*, fdm_nhf*, double*, double*, double*, slice&);
+    
     // cells that changed side since the last stage (the sigma grid moves with the free surface, a cell centre next
     // to a floor can cross it): velocity of the neighbours on the new side, so that no momentum is carried through
-    void side_change(lexer *, fdm_nhf *, double *, double *, double *, slice &);
-
+    void side_change(lexer*, fdm_nhf*, double*, double*, double*, slice&);
+    
     // walls for diffusion and turbulence (nhflow_wall.h): faces of cell (i,j,k) at the body, 0 x-, 1 x+, 2 y-,
     // 3 y+, 4 below, 5 above (blocked links; vertically the faces between cell centres on opposite sides)
-    void wall_faces(lexer *, int, int, int, int *) const;
-
+    void wall_faces(lexer*, int, int, int, int*) const;
+    
     // zero gradient across the blocked faces in d->M / d->rhsvec of an implicit step of F (momentum diffusion,
     // k, epsilon/omega): no diffusive or eddy-viscous exchange through the body
-    void matrix_walls(lexer *, fdm_nhf *, const double *);
-
+    void matrix_walls(lexer*, fdm_nhf*, const double*);
+    
     // pressure of a cell for the horizontal velocity correction: the mean of its two nodes, next to a floor only the
     // node on the cell's own side (a cut layer would otherwise mix the pressure of both sides of the body)
     inline double pcell(lexer *p, const double *P, int ii, int jj, int kk) const
     {
-        const int q = (ii - p->imin) * p->jmax * p->kmax + (jj - p->jmin) * p->kmax + kk - p->kmin;
-        const int f = (ii - p->imin) * p->jmax * p->kmaxF + (jj - p->jmin) * p->kmaxF + kk - p->kmin;
-        return pw[q] * P[f] + (1.0 - pw[q]) * P[f + 1];
+        const int q = (ii-p->imin)*p->jmax*p->kmax + (jj-p->jmin)*p->kmax + kk-p->kmin;
+        const int f = (ii-p->imin)*p->jmax*p->kmaxF + (jj-p->jmin)*p->kmaxF + kk-p->kmin;
+        return pw[q]*P[f] + (1.0-pw[q])*P[f+1];
     }
-
+    
     // nodes (i,j,k) and its +x / +y neighbour on opposite sides of the body (horizontal node link of the Poisson
     // equation crossing it)
     inline bool node_cut_x(lexer *p, int ii, int jj, int kk) const
     {
-        const int f = (ii - p->imin) * p->jmax * p->kmaxF + (jj - p->jmin) * p->kmaxF + kk - p->kmin;
-        return sideN[f] * sideN[f + p->jmax * p->kmaxF] < 0.0;
+        const int f = (ii-p->imin)*p->jmax*p->kmaxF + (jj-p->jmin)*p->kmaxF + kk-p->kmin;
+        return sideN[f]*sideN[f+p->jmax*p->kmaxF]<0.0;
     }
-
+    
     inline bool node_cut_y(lexer *p, int ii, int jj, int kk) const
     {
-        const int f = (ii - p->imin) * p->jmax * p->kmaxF + (jj - p->jmin) * p->kmaxF + kk - p->kmin;
-        return sideN[f] * sideN[f + p->kmaxF] < 0.0;
+        const int f = (ii-p->imin)*p->jmax*p->kmaxF + (jj-p->jmin)*p->kmaxF + kk-p->kmin;
+        return sideN[f]*sideN[f+p->kmaxF]<0.0;
     }
-
+    
     // node control volumes straddling a floor: the half face of layer l of the node row belongs to the other side when
     // both cells of that layer lie on the other side of the body than the node (side sN)
     inline double nside(lexer *p, int ii, int jj, int kk) const
     {
-        return sideN[(ii - p->imin) * p->jmax * p->kmaxF + (jj - p->jmin) * p->kmaxF + kk - p->kmin];
+        return sideN[(ii-p->imin)*p->jmax*p->kmaxF + (jj-p->jmin)*p->kmaxF + kk-p->kmin];
     }
-
+    
     inline bool other_side(int qa, int qb, double sN) const
     {
-        return sN != 0.0 && sideC[qa] * sN < 0.0 && sideC[qb] * sN < 0.0;
+        return sN!=0.0 && sideC[qa]*sN<0.0 && sideC[qb]*sN<0.0;
     }
-
+    
     // loads: force on the body [N] of the blocked link dir (0 x, 1 y, 2 vertical) of cell (i,j,k), in +dir
-    double link_force(lexer *, fdm_nhf *, int, int, int, int);
-
+    double link_force(lexer*, fdm_nhf*, int, int, int, int);
+    
     // hydrostatic head of a cell: eta, below a closed floor eta_L
-    double head(lexer *, fdm_nhf *, int, int, int);
-
-    int nlower(lexer *, ghostcell *);
-
+    double head(lexer*, fdm_nhf*, int, int, int);
+    
+    int nlower(lexer*, ghostcell*);
+    
     // hull clients (nhflow_hullbody): the head below the floor (the outer level carried across the footprint) and the
     // region of the column's free surface (inside the body), both of the last stage
-    double etaL_at(int ii, int jj) { return etaL(ii, jj); }
-    bool top_inside(int ii, int jj) { return rt(ii, jj) > 0.5; }
-
+    double etaL_at(int ii, int jj) {return etaL(ii,jj);}
+    bool top_inside(int ii, int jj) {return rt(ii,jj)>0.5;}
+    
     // mesh refinement (nhflow_amr): the thin body of a patch (on one rank, no exchange of the node sides)
     bool amr_patch = false;
     // the state of column (ii,jj) a regrid hands from an old patch to a new one: the cell sides of the last stage
     // (knoz values), the head below closed floors and the lid potential (2)
-    int amr_nstate(lexer *p) const { return p->knoz + 2; }
-    void amr_get(lexer *, int, int, double *);
-    void amr_set(lexer *, int, int, const double *);
-
+    int amr_nstate(lexer *p) const { return p->knoz+2; }
+    void amr_get(lexer*, int, int, double*);
+    void amr_set(lexer*, int, int, const double*);
+    
     // mesh refinement (nhflow_amr): lower cells and inner water volume of the cells whose centre passes keep(x,y)
     // (the leaf part of a grid), this rank only: no collective
-    int nlower_local(lexer *, const std::function<bool(double, double)> &);
-    double inner_volume_local(lexer *, fdm_nhf *, const std::function<bool(double, double)> &);
-
+    int nlower_local(lexer*, const std::function<bool(double,double)>&);
+    double inner_volume_local(lexer*, fdm_nhf*, const std::function<bool(double,double)>&);
+    
     // water volume on the inner side of the body (region of the free surface of the column and lower cells), all ranks
-    double inner_volume(lexer *, fdm_nhf *);
-
+    double inner_volume(lexer*, fdm_nhf*);
+    
 private:
-    void update_etaL(lexer *, fdm_nhf *, int);
-    void top_region(lexer *, fdm_nhf *);
-    void lid_correction(lexer *, fdm_nhf *, double *, double *);
-
+    void update_etaL(lexer*, fdm_nhf*, int);
+    void top_region(lexer*, fdm_nhf*);
+    void lid_correction(lexer*, fdm_nhf*, double*, double*);
+    
     ghostcell *pgc;
     int ncell;
-
-    double *low;             // 1: lower cell (below a closed floor)
-    double *pw;              // weight of node k in the cell pressure (pcell), 0.5 away from the body
-    double *side0;           // sideC of the previous stage
-    double *tu, *tv;         // scratch: limited velocities of the cells next to blocked faces
-    double *fz;              // 1: vertical momentum face between cells k and k+1 blocked (cell centres)
-    slice4 etaL;             // hydrostatic head below closed floors
-    slice4 fp;               // 1: column with lower cells (footprint of a closed floor)
-    slice4 cbx, cby;         // 1: column with a blocked link to its +x / +y neighbour
-    slice4 phi, rL, Hx, Hy;  // rigid lid below closed floors: potential, lower outflow, open lower layer depth
-    slice4 cr, cd, cq;       // conjugate gradients of the lid potential: residual, direction, operator x direction
-    slice4 rt;               // region of the column's free surface: 1 inside the body, 0 outside (top_region)
-    slice4 wf;               // vertical wall velocity of the floor above the lower cells of a footprint column
+    
+    double *low;                // 1: lower cell (below a closed floor)
+    double *pw;                 // weight of node k in the cell pressure (pcell), 0.5 away from the body
+    double *side0;              // sideC of the previous stage
+    double *tu,*tv;             // scratch: limited velocities of the cells next to blocked faces
+    double *fz;                 // 1: vertical momentum face between cells k and k+1 blocked (cell centres)
+    slice4 etaL;                // hydrostatic head below closed floors
+    slice4 fp;                  // 1: column with lower cells (footprint of a closed floor)
+    slice4 cbx,cby;             // 1: column with a blocked link to its +x / +y neighbour
+    slice4 phi,rL,Hx,Hy;        // rigid lid below closed floors: potential, lower outflow, open lower layer depth
+    slice4 cr,cd,cq;            // conjugate gradients of the lid potential: residual, direction, operator x direction
+    slice4 rt;                  // region of the column's free surface: 1 inside the body, 0 outside (top_region)
+    slice4 wf;                  // vertical wall velocity of the floor above the lower cells of a footprint column
     bool first;
     int nlow, nlowg;
-
-    int i, j, k;
+    
+    int i,j,k;
 };
 
 #endif

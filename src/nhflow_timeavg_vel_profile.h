@@ -23,9 +23,9 @@ Author: Thomas Becker
 #ifndef NHFLOW_TIMEAVG_VEL_PROFILE_H_
 #define NHFLOW_TIMEAVG_VEL_PROFILE_H_
 
-#include "increment.h"
-#include <fstream>
-#include <iostream>
+#include"increment.h"
+#include<iostream>
+#include<fstream>
 
 class lexer;
 class fdm_nhf;
@@ -36,22 +36,22 @@ using namespace std;
 class nhflow_timeavg_vel_profile : public increment
 {
 public:
-    nhflow_timeavg_vel_profile(lexer *, fdm_nhf *);
+    nhflow_timeavg_vel_profile(lexer*,fdm_nhf*);
     virtual ~nhflow_timeavg_vel_profile();
 
-    void start(lexer *, fdm_nhf *, ghostcell *);
+    void start(lexer*, fdm_nhf*, ghostcell*);
 
 private:
-    void ini_location(lexer *, fdm_nhf *);
+    void ini_location(lexer*, fdm_nhf*);
 
     char name[100];
-    int *iloc, *jloc, *flag;
-    int n, q;
+    int *iloc,*jloc,*flag;
+    int n,q;
     const int probenum;
     ofstream *pout;
 
-    double *time_accum, *start_time;
-    bool *started, *printed;
+    double *time_accum,*start_time;
+    bool *started,*printed;
     int max_points;
 
     double **z_timeint;

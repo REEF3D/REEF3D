@@ -23,12 +23,12 @@ Architect: Hans Bihs
 #ifndef FNPF_AMR_H_
 #define FNPF_AMR_H_
 
-#include "amr_grid_lookup.h"
-#include "fnpf_laplace.h"
-#include "reefamr.h"
-#include "reefamr_xzlu.h"
-#include <fstream>
-#include <vector>
+#include"reefamr.h"
+#include"amr_grid_lookup.h"
+#include"fnpf_laplace.h"
+#include"reefamr_xzlu.h"
+#include<vector>
+#include<fstream>
 
 class lexer;
 class fdm_fnpf;
@@ -113,7 +113,7 @@ using namespace std;
 struct fnpf_amr_patch : public reefamr_patch
 {
     fdm_fnpf *c = nullptr;
-    fnpf_fsf *pf = nullptr;  // fnpf_fsfbc, or fnpf_fsfbc_wd with the coastline in the patches (wd)
+    fnpf_fsf *pf = nullptr;         // fnpf_fsfbc, or fnpf_fsfbc_wd with the coastline in the patches (wd)
     fnpf_sigma *psig = nullptr;
     fnpf_fsf_update *pfu = nullptr;
     fnpf_bed_update *pbu = nullptr;
@@ -122,24 +122,24 @@ struct fnpf_amr_patch : public reefamr_patch
     // RK stage values and tendencies, as fnpf_RK3
     slice4 *erk1 = nullptr, *erk2 = nullptr, *frk1 = nullptr, *frk2 = nullptr;
     slice4 *ek = nullptr, *fk = nullptr;
-    slice4 *en = nullptr;  // eta at the start of the step (breaking detection, A 350 1)
-    vector<int> wfix;      // A 343 2, 3 with G 30 1: the fixed wet flags (lexer::wetfix)
+    slice4 *en = nullptr;           // eta at the start of the step (breaking detection, A 350 1)
+    vector<int> wfix;               // A 343 2, 3 with G 30 1: the fixed wet flags (lexer::wetfix)
 
     // columns with a solid neighbour (lexer index pairs): wall ghost nodes of Fi
     vector<int> wall;
 
     // composite Laplace
-    vector<double *> kv;           // Krylov vectors, Fi layout
-    vector<double *> kvw;          // X 36: those of the window solves (the solves on all grids read
-                                   // entries of their vectors that they do not write: the window
-                                   // solves keep theirs apart)
-    vector<int> row;               // FIJK -> matrix row of the patch assembly, -1 none
-    int serial = -1;               // unique number of the patch (body grids follow it)
-    reefmg_core *mg = nullptr;     // patch-local multigrid of the preconditioner
-    reefamr_xzlu xz;               // a 2D grid: the exact patch-local solve instead of the V-cycle
-    long xzkey[3] = {-1, -1, -1};  // its factorisation: layout, window, step
-    vector<int> fill1;             // the entries of fill next to the patch (the reach of the Laplace rows)
-    vector<int> fill2;             // the entries of fill within two columns of the patch (the stencils of the prolongation into the next finer level)
+    vector<double*> kv;             // Krylov vectors, Fi layout
+    vector<double*> kvw;            // X 36: those of the window solves (the solves on all grids read
+                                    // entries of their vectors that they do not write: the window
+                                    // solves keep theirs apart)
+    vector<int> row;                // FIJK -> matrix row of the patch assembly, -1 none
+    int serial = -1;                // unique number of the patch (body grids follow it)
+    reefmg_core *mg = nullptr;      // patch-local multigrid of the preconditioner
+    reefamr_xzlu xz;                // a 2D grid: the exact patch-local solve instead of the V-cycle
+    long xzkey[3] = {-1,-1,-1};     // its factorisation: layout, window, step
+    vector<int> fill1;              // the entries of fill next to the patch (the reach of the Laplace rows)
+    vector<int> fill2;              // the entries of fill within two columns of the patch (the stencils of the prolongation into the next finer level)
 };
 
 class reefckpt;
@@ -149,76 +149,72 @@ class fnpf_amr : public reefamr, public amr_column_lookup
 public:
     // checkpoints (P 48, I 45; fnpf_amr_ckpt.cpp): the fields of the patches of this rank; the restart
     // fills the patches of the hierarchy built by ini (any decomposition) from the patches of the checkpoint
-    void ckpt_write(reefckpt &);
-    bool ckpt_read(reefckpt &, std::string &);
-    void patch_fields(reefamr_patch *, const ckpt_visit &);
-    void flush_outputs()
-    {
-        gaugeout.flush();
-        logout.flush();
-    }  // a rebalance stop (G 46)
+    void ckpt_write(reefckpt&);
+    bool ckpt_read(reefckpt&, std::string&);
+    void patch_fields(reefamr_patch*, const ckpt_visit&);
+    void flush_outputs() { gaugeout.flush(); logout.flush(); }   // a rebalance stop (G 46)
     // the output on the finest grid (amr_grid_lookup.h): the finest patch of this rank at (x,y)
     int finest_column(double x, double y, lexer *&q, void *&f) const override
     {
         int id;
-        const int L = finest_point(x, y, id);
-        if(L > 0)
+        const int L = finest_point(x,y,id);
+        if(L>0)
         {
             q = P[id]->pp;
-            f = static_cast<fnpf_amr_patch *>(P[id])->c;
+            f = static_cast<fnpf_amr_patch*>(P[id])->c;
         }
         return L;
     }
 
-    fnpf_amr(lexer *, fdm_fnpf *, ghostcell *);
+    fnpf_amr(lexer*, fdm_fnpf*, ghostcell*);
     virtual ~fnpf_amr();
 
-    void ini(lexer *, fdm_fnpf *, ghostcell *);
-    void timestep(lexer *, fdm_fnpf *, ghostcell *);
-    void print(lexer *, fdm_fnpf *, ghostcell *);
+    void ini(lexer*, fdm_fnpf*, ghostcell*);
+    void timestep(lexer*, fdm_fnpf*, ghostcell*);
+    void print(lexer*, fdm_fnpf*, ghostcell*);
 
     // fnpf_RK3: stage s (0,1,2), the level-0 tendencies are formed: those of the patches
-    void stage_tendency(lexer *, fdm_fnpf *, ghostcell *, int);
+    void stage_tendency(lexer*, fdm_fnpf*, ghostcell*, int);
     // fnpf_RK3: stage s (0,1,2) values eta, Fifsf of level 0 are formed
-    void stage_surface(lexer *, fdm_fnpf *, ghostcell *, slice &, slice &, int);
+    void stage_surface(lexer*, fdm_fnpf*, ghostcell*, slice&, slice&, int);
     // fnpf_RK3: end of the time step
-    void step_end(lexer *, fdm_fnpf *, ghostcell *);
+    void step_end(lexer*, fdm_fnpf*, ghostcell*);
 
     // the Laplace solver for fnpf_RK3: level 0 assembled by plap0, then all grids together
-    fnpf_laplace *laplace(fnpf_laplace *outer, fnpf_laplace_cds2 *plap0);
-    bool active() const { return maxlev > 0 && patches_total > 0; }
-    void lap_solve(lexer *, fdm_fnpf *, ghostcell *, solver *, fnpf_fsf *, double *, slice &);
+    fnpf_laplace* laplace(fnpf_laplace *outer, fnpf_laplace_cds2 *plap0);
+    bool active() const { return maxlev>0 && patches_total>0; }
+    void lap_solve(lexer*, fdm_fnpf*, ghostcell*, solver*, fnpf_fsf*, double*, slice&);
     // a psi solve of the body loads on all grids: targets f[g+1] with free-surface data D[g+1];
     // boundary data are set by the caller
-    void lap_solve_psi(lexer *, fdm_fnpf *, ghostcell *, solver *, fnpf_fsf *, double **, slice **);
+    void lap_solve_psi(lexer*, fdm_fnpf*, ghostcell*, solver*, fnpf_fsf*, double**, slice**);
     // X 36: a unit-mode psi solve of one body on the patches of its window only (out[id] 1: patch id is
     // outside the window): level 0 and the patches outside hold 0 (their targets f[g+1] are read only),
     // the columns at the edge of the window are 0.  key: the window (the body), with the layout it keys
     // the rows and the preconditioner kept between the solves of the same window
-    void lap_solve_psi_window(lexer *, ghostcell *, double **, slice **, const vector<char> &out, const vector<char> &wgp, int key);
+    void lap_solve_psi_window(lexer*, ghostcell*, double**, slice**, const vector<char> &out, const vector<char> &wgp, int key);
     // X 36: the window flags of the patches of all ranks (index into the global patch table: the
     // columns of a window patch covered by a finer patch outside the window are leaf columns of the
     // window); win[first[r]+id]: patch id of rank r in the window
     void window_gp(const vector<char> &win, const vector<int> &first, vector<char> &wgp);
     // the interior of patch n (x0, x1, y0, y1)
-    void patch_box(int n, double &, double &, double &, double &);
+    void patch_box(int n, double&, double&, double&, double&);
     // the refinement zone of body nb (the box of its wetted hull grown by G 12 on every side): false
     // without one
-    bool zone_box(int nb, double &, double &, double &, double &);
+    bool zone_box(int nb, double&, double&, double&, double&);
 
     // resolved bodies (fnpf_6DOF) on the hierarchy; sizes their hull triangles for the finest level
-    void attach_body(fnpf_body *);
+    void attach_body(fnpf_body*);
     // the run settings with which ini keeps the refinement on (A 310 3, ...)
-    static bool keys_ok(lexer *);
+    static bool keys_ok(lexer*);
     int patches() const { return (int)P.size(); }
-    lexer *patch_lexer(int n) { return P[n]->pp; }
-    fdm_fnpf *patch_fdm(int n) { return FP(n)->c; }
-    fnpf_fsf *patch_fsf(int n);
-    slice &patch_tendency(int n, int m);
+    lexer* patch_lexer(int n) { return P[n]->pp; }
+    fdm_fnpf* patch_fdm(int n) { return FP(n)->c; }
+    fnpf_fsf* patch_fsf(int n);
+    slice& patch_tendency(int n, int m);
     int patch_level(int n) { return P[n]->lev; }
     int patch_serial(int n) { return FP(n)->serial; }
-    void patch_walls_fi(int n, double *f) { walls_fi(*FP(n), f); }
-    int finest_at(double, double);  // local grid id whose interior holds (x,y), -1: level 0
+    void patch_walls_fi(int n, double *f) { walls_fi(*FP(n),f); }
+    int finest_at(double, double);      // local grid id whose interior holds (x,y), -1: level 0
     // the hull triangle with centroid (x,y) belongs to local grid id: the finest grid that holds
     // the point is grid id of this rank (with placed patches the patch may be on another rank)
     bool owns_point(double, double, int);
@@ -226,10 +222,10 @@ public:
     // (initial guess of the fresh body grids); f[g+1] is the array of grid g.  Collective: all
     // ranks call it (the parent may be on another rank)
     void prolong_cols(double **f, const vector<char> &need);
-    int layout() const { return layout_id; }  // changes when the patch set changes
+    int layout() const { return layout_id; }    // changes when the patch set changes
 
     // vector space of the composite Laplace (fnpf_amr_lap.cpp, reefamr_bicgstab)
-    void lap_apply(int, int, bool d1 = false);
+    void lap_apply(int, int, bool d1=false);
     void lap_prec(int, int);
     void lap_local(int, int, int);
     double lap_dot(int, int);
@@ -240,119 +236,111 @@ public:
     void lap_x(double, double);
 
     // subcycling (G 7 1, fnpf_amr_sub.cpp): level l takes 2^l steps per level-0 step
-    bool sub_on() const { return sub == 1 && active(); }
+    bool sub_on() const { return sub==1 && active(); }
     // the level-0 objects of fnpf_RK3 (free surface, sigma grid, boundary conditions)
-    void attach_level0(fnpf_fsf *, fnpf_sigma *, fnpf_fsf_update *, fnpf_bed_update *);
+    void attach_level0(fnpf_fsf*, fnpf_sigma*, fnpf_fsf_update*, fnpf_bed_update*);
     // a psi solve of the body loads on the level-l patches (their parent columns fixed): edge
     // values of f from the parent phi_t, set by sub_psi_edges
-    void lap_solve_psi_level(lexer *, ghostcell *, int, double **, slice **);
-    void sub_psi_edges(int, double **);
+    void lap_solve_psi_level(lexer*, ghostcell*, int, double**, slice**);
+    void sub_psi_edges(int, double**);
     int sub_level_now() const { return slev; }
-    bool sub_last_finest() const { return bfin == (1 << maxlev) - 1; }
+    bool sub_last_finest() const { return bfin==(1<<maxlev)-1; }
     double sub_time() const { return tsub; }
 
 protected:
     // REEFAMR hooks
-    reefamr_patch *patch_new() override;
-    void patch_objects(reefamr_patch *, ghostcell *) override;
-    void patch_delete(reefamr_patch *) override;
-    void tag(int, vector<unsigned char> &) override;
-    void regrid_prepare(ghostcell *) override;
-    void regrid_static(ghostcell *) override;
-    void regrid_state(ghostcell *, vector<reefamr_patch *> &) override;
-    void regrid_finish(ghostcell *, int) override;
-    void zone_bodies(vector<sixdof_obj *> &) override;
+    reefamr_patch* patch_new() override;
+    void patch_objects(reefamr_patch*, ghostcell*) override;
+    void patch_delete(reefamr_patch*) override;
+    void tag(int, vector<unsigned char>&) override;
+    void regrid_prepare(ghostcell*) override;
+    void regrid_static(ghostcell*) override;
+    void regrid_state(ghostcell*, vector<reefamr_patch*>&) override;
+    void regrid_finish(ghostcell*, int) override;
+    void zone_bodies(vector<sixdof_obj*>&) override;
     bool cell_unfit(int, int) override;
 
 private:
-    fnpf_amr_patch *FP(int n) { return static_cast<fnpf_amr_patch *>(P[n]); }
-    static fnpf_amr_patch *FP(reefamr_patch *c) { return static_cast<fnpf_amr_patch *>(c); }
+    fnpf_amr_patch* FP(int n) { return static_cast<fnpf_amr_patch*>(P[n]); }
+    static fnpf_amr_patch* FP(reefamr_patch *c) { return static_cast<fnpf_amr_patch*>(c); }
 
-    lexer *glx(int g) { return glex(g); }
-    fdm_fnpf *gfd(int g) { return (g < 0) ? c0 : FP(g)->c; }
-    inline int fidx(lexer *, int, int, int) const;  // FIJK of lexer q (inline: fnpf_amr_fill.h)
-    int gknoz(int g);                               // sigma layers of grid g
+    lexer* glx(int g) { return glex(g); }
+    fdm_fnpf* gfd(int g) { return (g<0) ? c0 : FP(g)->c; }
+    inline int fidx(lexer*, int, int, int) const;   // FIJK of lexer q (inline: fnpf_amr_fill.h)
+    int gknoz(int g);                                // sigma layers of grid g
 
     // patch lexer: sigma grid, 3D flags, bed array
-    void build_lexer3D(fnpf_amr_patch &);
-    void free_lexer3D(fnpf_amr_patch &);
-    void build_walls(fnpf_amr_patch &);
-    void walls_fi(fnpf_amr_patch &, double *);
+    void build_lexer3D(fnpf_amr_patch&);
+    void free_lexer3D(fnpf_amr_patch&);
+    void build_walls(fnpf_amr_patch&);
+    void walls_fi(fnpf_amr_patch&, double*);
 
     // stage values of a grid: s 0,1: erk/frk of stage s, 2: eta/Fifsf; m 0 eta, 1 Fifsf
-    slice &sval(int g, int s, int m);
-    slice *Se0, *Sf0;  // level-0 stage values of the current stage
+    slice& sval(int g, int s, int m);
+    slice *Se0, *Sf0;               // level-0 stage values of the current stage
     int stg;
 
     // interpolation from the coarser grid g: cell (ic,jc), quadrant (ox,oy)
-    double pq(slice &, lexer *, int, int, int, int);
-    void pcol(int, int, int, int, int, const double *, int, double *);
-    void pweights(lexer *, int, int, int, int, double *);
+    double pq(slice&, lexer*, int, int, int, int);
+    void pcol(int, int, int, int, int, const double*, int, double*);
+    void pweights(lexer*, int, int, int, int, double*);
 
     // the weights of pcol per grid, coarse cell, quadrant and order (pord), kept until the next regrid: the
     // nonzero weights as (source offset in the column arrays, weight).  Not with wfill (the wet
     // cells change) and not with a body (its cells change the flags)
     struct pwcache
     {
-        int stamp = -1;            // regrids, and the lexer of the grid (during a regrid the
-        const lexer *q = nullptr;  // index g already names the new patches)
-        vector<int> slot;          // (cell, quadrant) -> its pair in num, -1 not yet
-        vector<int> num;           // pairs: first entry in off/wt, number of weights
+        int stamp = -1;             // regrids, and the lexer of the grid (during a regrid the
+        const lexer *q = nullptr;   // index g already names the new patches)
+        vector<int> slot;           // (cell, quadrant) -> its pair in num, -1 not yet
+        vector<int> num;            // pairs: first entry in off/wt, number of weights
         vector<int> off;
         vector<double> wt;
     };
-    vector<pwcache> pwc;  // [g+1]
+    vector<pwcache> pwc;            // [g+1]
     int pw_get(int g, lexer *q, int ic, int jc, int ox, int oy, const int *&offs, const double *&ws);
 
     // fill and restriction of slices and Fi-layout arrays
-    template<class SEL>
-    void fill_sl(int, int, int, SEL);
-    template<class SEL>
-    void fill_col(int, int, SEL, bool d1 = false);
-    template<class SEL>
-    void restrict_sl(int, SEL);
-    bool rcubic(lexer *, int, int);
-    template<class F>
-    double rc4(F);
-    int rorder = 4;  // restriction: 2 average of the children, 4 cubic
-    int pord = 4;    // prolongation: 3 biquadratic, 4 bicubic (the increment of the preconditioner: 3)
-    template<class SEL>
-    void restrict_col(SEL);
-    template<class ND, class SEL>
-    void prolong_interior_sl(int, ND, int, SEL);
-    template<class ND, class SRC, class DST>
-    void prolong_interior_col(int, ND, SRC, DST);
-    int klev(int l) const;  // sigma layers of level l
-    void walls_sl(fnpf_amr_patch &, slice &, int);
+    template<class SEL> void fill_sl(int, int, int, SEL);
+    template<class SEL> void fill_col(int, int, SEL, bool d1=false);
+    template<class SEL> void restrict_sl(int, SEL);
+    bool rcubic(lexer*, int, int);
+    template<class F> double rc4(F);
+    int rorder = 4;                 // restriction: 2 average of the children, 4 cubic
+    int pord = 4;                   // prolongation: 3 biquadratic, 4 bicubic (the increment of the preconditioner: 3)
+    template<class SEL> void restrict_col(SEL);
+    template<class ND, class SEL> void prolong_interior_sl(int, ND, int, SEL);
+    template<class ND, class SRC, class DST> void prolong_interior_col(int, ND, SRC, DST);
+    int klev(int l) const;          // sigma layers of level l
+    void walls_sl(fnpf_amr_patch&, slice&, int);
 
     int layout_id = 0;
     int serial_next = 0;
 
     // composite Laplace (fnpf_amr_lap.cpp)
-    double *lvec(int, int);  // grid, vector (-1: the target of the solve, ltgt)
-    vector<double *> ltgt;   // [g+1]: unknowns of the current solve (Fi or psi)
-    void lap_core(lexer *, ghostcell *);
-    template<class ASM>
-    void lap_picard(lexer *, fdm_fnpf *, ghostcell *, fnpf_fsf *, ASM);  // A 324: Picard on the cross-derivatives
-    vector<vector<double>> pold;                                         // A 324: the iterate before the solve, per grid
-    bool lap_mix = false;                                                // A 328 1 (N 10 1): the cross-derivatives in the rows (lap_apply)
-    void lap_prepare(ghostcell *);
-    void lap_sync(int, bool d1 = false);  // d1: the columns next to the patches only (the operator)
+    double* lvec(int, int);         // grid, vector (-1: the target of the solve, ltgt)
+    vector<double*> ltgt;           // [g+1]: unknowns of the current solve (Fi or psi)
+    void lap_core(lexer*, ghostcell*);
+    template<class ASM> void lap_picard(lexer*, fdm_fnpf*, ghostcell*, fnpf_fsf*, ASM);   // A 324: Picard on the cross-derivatives
+    vector<vector<double>> pold;    // A 324: the iterate before the solve, per grid
+    bool lap_mix = false;           // A 328 1 (N 10 1): the cross-derivatives in the rows (lap_apply)
+    void lap_prepare(ghostcell*);
+    void lap_sync(int, bool d1=false);  // d1: the columns next to the patches only (the operator)
     void lap_rows();
     int lap_layout = -1;
-    int lap_wkey = 0;  // level window of the row lists (G 7 1)
+    int lap_wkey = 0;               // level window of the row lists (G 7 1)
     struct lgrid
     {
-        vector<int> lq, lr;  // leaf unknowns: Fi index, matrix row
-        vector<int> cq;      // covered unknowns: Fi index
-        vector<int> aq, ar;  // all leaf rows (lq, lr: without the fixed rows)
+        vector<int> lq, lr;         // leaf unknowns: Fi index, matrix row
+        vector<int> cq;             // covered unknowns: Fi index
+        vector<int> aq, ar;         // all leaf rows (lq, lr: without the fixed rows)
     };
-    vector<lgrid> lg;            // [g+1]
-    vector<double *> kv0;        // level-0 Krylov vectors
-    reefmg_core *mg0 = nullptr;  // level-0 multigrid of the preconditioner
-    reefamr_xzlu xz0;            // a 2D grid: the exact level-0 solve instead of the V-cycle
+    vector<lgrid> lg;               // [g+1]
+    vector<double*> kv0;            // level-0 Krylov vectors
+    reefmg_core *mg0 = nullptr;     // level-0 multigrid of the preconditioner
+    reefamr_xzlu xz0;               // a 2D grid: the exact level-0 solve instead of the V-cycle
     bool xz0on = false;
-    long xz0key[3] = {-1, -1, -1};
+    long xz0key[3] = {-1,-1,-1};
     // the factorisations kept for xz_every steps (layout, window and the fixed rows unchanged)
     bool xz_keep(long *key, bool on, int wkey);
     // the solves of a stage share the rows (phi, the psi solves of the body loads, the Picard
@@ -361,91 +349,86 @@ private:
     struct lmrows
     {
         int layout = -1, wkey = -1;
-        vector<double> m;  // the 7 coefficients of every row, coefficient by coefficient
+        vector<double> m;           // the 7 coefficients of every row, coefficient by coefficient
     };
-    vector<lmrows> lmr;  // [g+1]
-    bool lap_same(ghostcell *, int);
-    long lap_kept = 0;  // preparations skipped
+    vector<lmrows> lmr;             // [g+1]
+    bool lap_same(ghostcell*, int);
+    long lap_kept = 0;              // preparations skipped
     void lap_l0solve();
-    vector<int> rowmap0;      // level 0: FIJK -> matrix row
-    int rowmap0_layout = -1;  // the layout rowmap0 was numbered for
+    vector<int> rowmap0;            // level 0: FIJK -> matrix row
+    int rowmap0_layout = -1;        // the layout rowmap0 was numbered for
     long lap_it_total, lap_solves;
     int lap_it_last;
     double lap_res_last;
-    int lap_kind = 0;                                                 // solve of lap_core: 0 phi, 1 psi (body loads)
-    int lap_it_phi_max = 0, lap_it_psi_max = 0, lap_solves_step = 0;  // this step (log)
+    int lap_kind = 0;               // solve of lap_core: 0 phi, 1 psi (body loads)
+    int lap_it_phi_max = 0, lap_it_psi_max = 0, lap_solves_step = 0;   // this step (log)
     long lap_it_step = 0;
-    long lap_it_psi = 0, lap_solves_psi = 0;  // the psi solves of the body loads (of lap_it_total, lap_solves)
+    long lap_it_psi = 0, lap_solves_psi = 0;    // the psi solves of the body loads (of lap_it_total, lap_solves)
     // the time of the rows and the preconditioner of a solve (assembly, lap_prepare): tm[7], psi tm[8]
-    void lap_tsetup(double t)
-    {
-        tm[7] += t;
-        if(lap_kind == 1)
-            tm[8] += t;
-    }
-    int lap_capped = 0;    // solves that reached N 46
-    int lap_restarts = 0;  // BiCGStab restarts after stagnation
-    int lap_stalls = 0;    // solves stopped after a second stagnation (STAGTOL)
+    void lap_tsetup(double t) { tm[7] += t; if(lap_kind==1) tm[8] += t; }
+    int lap_capped = 0;             // solves that reached N 46
+    int lap_restarts = 0;           // BiCGStab restarts after stagnation
+    int lap_stalls = 0;             // solves stopped after a second stagnation (STAGTOL)
 
     // output
-    void write_vtr(lexer *, fnpf_amr_patch &, int);
-    void write_vtr0(lexer *, fdm_fnpf *);
-    bool print_lagoon(lexer *, fdm_fnpf *, ghostcell *);
-    void gauges(lexer *, fdm_fnpf *, ghostcell *);
+    void write_vtr(lexer*, fnpf_amr_patch&, int);
+    void write_vtr0(lexer*, fdm_fnpf*);
+    bool print_lagoon(lexer*, fdm_fnpf*, ghostcell*);
+    void gauges(lexer*, fdm_fnpf*, ghostcell*);
     ofstream gaugeout, logout;
 
     // subcycling (G 7 1, fnpf_amr_sub.cpp)
     int sub = 0;
-    double zr_user = 0.0;   // G 12 as given (G 7 1 with a body widens the margin)
-    int wlo = 0, whi = -1;  // level window of the Laplace solve, restriction and fills (whi<0: maxlev)
-    int wtop() const { return whi < 0 ? maxlev : whi; }
-    bool lap_edge = false;  // window above level 0: the parent columns of its lowest level are fixed
-    bool lap_dir = false;   // fill_col of a Krylov vector (the fixed parent columns are 0)
+    double zr_user = 0.0;           // G 12 as given (G 7 1 with a body widens the margin)
+    int wlo = 0, whi = -1;          // level window of the Laplace solve, restriction and fills (whi<0: maxlev)
+    int wtop() const { return whi<0 ? maxlev : whi; }
+    bool lap_edge = false;          // window above level 0: the parent columns of its lowest level are fixed
+    bool lap_dir = false;           // fill_col of a Krylov vector (the fixed parent columns are 0)
     // X 36: the window of a unit-mode solve (lap_solve_psi_window): the patches outside it (reefamr::skip),
     // no level-0 rows and no level-0 cycle in the preconditioner, the key of the window in wkey
     vector<char> lap_skip;
     const vector<char> *lap_wgp = nullptr;
     bool lap_nol0 = false;
     int lap_wextra = 0;
-    int slev = 0;          // level of the current subcycled step
-    int bfin = 0;          // finest steps done in the level-0 step
-    double tsub = 0.0;     // start time of the current step of slev
-    vector<double> dtlev;  // step of each level in the current level-0 step
+    int slev = 0;                   // level of the current subcycled step
+    int bfin = 0;                   // finest steps done in the level-0 step
+    double tsub = 0.0;              // start time of the current step of slev
+    vector<double> dtlev;           // step of each level in the current level-0 step
     struct tcol
     {
         int layout = -1;
-        vector<int> ci, cj;        // the columns of the grid the fills of the next level read
-        vector<double> old, live;  // their eta, Fifsf, Fi at the start of the step / current
-        double *pt = nullptr;      // phi_t of the step at these columns (psi edges of the body)
+        vector<int> ci, cj;         // the columns of the grid the fills of the next level read
+        vector<double> old, live;   // their eta, Fifsf, Fi at the start of the step / current
+        double *pt = nullptr;       // phi_t of the step at these columns (psi edges of the body)
         int ptn = 0;
     };
-    vector<tcol> tc;  // [g+1]
+    vector<tcol> tc;                // [g+1]
     fnpf_fsf *pf0 = nullptr;
     fnpf_sigma *psig0 = nullptr;
     fnpf_fsf_update *pfu0 = nullptr;
     fnpf_bed_update *pbu0 = nullptr;
     int tc_nv(int g);
     void tc_build(int);
-    void tc_pack(int, int, double *);
-    void tc_unpack(int, int, const double *);
+    void tc_pack(int, int, double*);
+    void tc_unpack(int, int, const double*);
     void sub_snapshot(int);
     void sub_swap_in(int, double);
     void sub_swap_out(int);
-    void sub_step(lexer *, fdm_fnpf *, ghostcell *);
-    void sub_level(lexer *, ghostcell *, int, int, double, double);
-    void sub_stage(lexer *, ghostcell *, int, int, int, double);
-    void sub_sync(lexer *, ghostcell *, int, double);
-    void sub_derived(lexer *, ghostcell *, int, double);
+    void sub_step(lexer*, fdm_fnpf*, ghostcell*);
+    void sub_level(lexer*, ghostcell*, int, int, double, double);
+    void sub_stage(lexer*, ghostcell*, int, int, int, double);
+    void sub_sync(lexer*, ghostcell*, int, double);
+    void sub_derived(lexer*, ghostcell*, int, double);
     void lap_prec_win(int, int);
-    double rko(int s) const { return (s == 1) ? 0.5 : 1.0; }
+    double rko(int s) const { return (s==1) ? 0.5 : 1.0; }
 
     // wave breaking on the patches (A 350 1): the implicit damping of the stage values with the
     // breaking viscosity, one system over the patches of a level (the cells around them from the
     // coarser grid held), detection on the patch, the viscosity of the cells around the patches
     // from the source grid
     bool brk = false;
-    void level_damping(int, ghostcell *, int, int, int, double);
-    void patch_breaking(int, ghostcell *, int, double);
+    void level_damping(int, ghostcell*, int, int, int, double);
+    void patch_breaking(int, ghostcell*, int, double);
 
     // solution-adaptive refinement (tag): surface jump G 20, second difference G 21, shoreline
     // G 22 (with G 30 1), breaking G 23 (with A 350 1)
@@ -463,8 +446,8 @@ private:
     // on level 0); the interpolation from a coarser grid and the restriction use wet cells only (wfill)
     bool wd = false;
     bool wfill = false;
-    void patch_coast(fnpf_amr_patch &, ghostcell *, slice &, slice &);
-    void patch_wd_ini(fnpf_amr_patch &, ghostcell *);
+    void patch_coast(fnpf_amr_patch&, ghostcell*, slice&, slice&);
+    void patch_wd_ini(fnpf_amr_patch&, ghostcell*);
 
     // A 343 2, 3 with G 30 1 (dyn): the moving coastline in the patches.  The cells around a patch
     // take the wet flag of their source cell (fill_wet), dry ones the dry water level (ring_dry);
@@ -473,14 +456,14 @@ private:
     bool dyn = false;
     vector<int> wfix0;
     void fill_wet(int);
-    void ring_dry(fnpf_amr_patch &, slice &);
-    void restrict_flags(ghostcell *);
-    void patch_coast_dist(fnpf_amr_patch &, const vector<double> &);
+    void ring_dry(fnpf_amr_patch&, slice&);
+    void restrict_flags(ghostcell*);
+    void patch_coast_dist(fnpf_amr_patch&, const vector<double>&);
 
     // the damping and the coastline of the stage values read the cells around a patch: these are
     // filled with the stage values of the coarser grid first (not the lagged ones of the last fill)
     bool stage_ring() const { return brk || wd; }
-    void stage_damp_coast(int, ghostcell *, int);
+    void stage_damp_coast(int, ghostcell*, int);
 
     fdm_fnpf *c0;
     fnpf_laplace_cds2 *plap0 = nullptr;

@@ -20,20 +20,22 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "nhflow_sigma.h"
-#include "fdm_nhf.h"
-#include "fnpf_cds2.h"
-#include "fnpf_cds4.h"
-#include "ghostcell.h"
-#include "lexer.h"
+#include"nhflow_sigma.h"
+#include"lexer.h"
+#include"fdm_nhf.h"
+#include"ghostcell.h"
+#include"fnpf_cds2.h"
+#include"fnpf_cds4.h"
 
-#define WLVL (fabs(d->WL(i, j)) > 1.0e-20 ? d->WL(i, j) : 1.0 - 20)
+#define WLVL (fabs(d->WL(i,j))>1.0e-20?d->WL(i,j):1.0-20)
 
-nhflow_sigma::nhflow_sigma(lexer *p) : nhflow_gradient(p), nhflow_filter(p), ef(p), df(p)
+nhflow_sigma::nhflow_sigma(lexer *p) : nhflow_gradient(p),nhflow_filter(p),ef(p),df(p)
 {
 }
 
 nhflow_sigma::~nhflow_sigma()
 {
 }
+
+
 

@@ -30,64 +30,54 @@ class fdm2D;
 class ghostcell;
 class field;
 #include <Eigen/Dense>
+#include <vector>
+#include <string>
 #include <fstream>
 #include <sstream>
 #include <stdexcept>
-#include <string>
-#include <vector>
 
 using namespace std;
 
 class sixdof_motionext
 {
 public:
-    virtual void motionext_trans(lexer *, ghostcell *, Eigen::Vector3d &, Eigen::Vector3d &) = 0;
-    virtual void motionext_rot(lexer *, Eigen::Vector3d &, Eigen::Vector3d &, Eigen::Vector4d &, Eigen::Matrix<double, 3, 4> &, Eigen::Matrix3d &) = 0;
+    virtual void motionext_trans(lexer*, ghostcell*, Eigen::Vector3d&, Eigen::Vector3d&)=0;
+    virtual void motionext_rot(lexer*, Eigen::Vector3d&, Eigen::Vector3d&, Eigen::Vector4d&, Eigen::Matrix<double, 3, 4>&,  Eigen::Matrix3d&)=0;
 
-    virtual void ini(lexer *, ghostcell *) = 0;
+    virtual void ini(lexer*,ghostcell*)=0;
     // checkpoints (P 48, I 45): the time index in the motion file and the prescribed velocities
-    virtual void ckpt_state(std::vector<double> &) const {}
-    virtual void ckpt_restore(const std::vector<double> &, size_t &) {}
+    virtual void ckpt_state(std::vector<double>&) const {}
+    virtual void ckpt_restore(const std::vector<double>&, size_t&) {}
 
     // DOF modes of the body (X 11, X 111 for single bodies): 2 is prescribed by this motion
-    void set_dof(const int *d)
-    {
-        for(int n = 0; n < 6; ++n)
-            dof[n] = d[n];
-    }
+    void set_dof(const int *d) { for(int n=0; n<6; ++n) dof[n]=d[n]; }
 
 protected:
-    int dof[6] = {1, 1, 1, 1, 1, 1};
+    int dof[6] = {1,1,1,1,1,1};
 
-    inline std::vector<std::vector<double>> readTable(const std::string &path, size_t M)
-    {
+    inline std::vector<std::vector<double>> readTable(const std::string& path, size_t M) {
         std::ifstream file(path);
-        if(!file)
-        {
+        if (!file) {
             throw std::runtime_error("Could not open file: " + path);
         }
 
         std::vector<std::vector<double>> table_data;
         std::string line;
 
-        while(std::getline(file, line))
-        {
-            if(line.empty())
-                continue;  // skip blank lines
+        while (std::getline(file, line)) {
+            if (line.empty()) continue; // skip blank lines
 
             std::istringstream iss(line);
             std::vector<double> row;
             row.reserve(M);
             double value;
-            while(iss >> value)
-            {
+            while (iss >> value) {
                 row.push_back(value);
             }
 
-            if(row.size() != M)
-            {
+            if (row.size() != M) {
                 throw std::runtime_error("Row has " + std::to_string(row.size()) +
-                                         " columns, expected " + std::to_string(M));
+                                          " columns, expected " + std::to_string(M));
             }
             table_data.push_back(std::move(row));
         }

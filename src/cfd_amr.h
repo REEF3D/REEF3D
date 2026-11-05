@@ -23,14 +23,14 @@ Architect: Hans Bihs
 #ifndef CFD_AMR_H_
 #define CFD_AMR_H_
 
-#include "amr_grid_lookup.h"
-#include "amr_load.h"
-#include "amr_phase_clock.h"
-#include "reefamr3d.h"
-#include <functional>
-#include <map>
-#include <tuple>
-#include <vector>
+#include"reefamr3d.h"
+#include"amr_grid_lookup.h"
+#include"amr_load.h"
+#include"amr_phase_clock.h"
+#include<vector>
+#include<functional>
+#include<map>
+#include<tuple>
 
 class lexer;
 class reefckpt;
@@ -77,44 +77,45 @@ using namespace std;
 // end of its step)
 struct cfd_amr_tlev
 {
-    cfd_amr_tlev(lexer *, const vector<int> &types);  // per field: CELL (-1) or the face direction
+    cfd_amr_tlev(lexer*, const vector<int> &types);     // per field: CELL (-1) or the face direction
     ~cfd_amr_tlev();
     int n;
-    vector<field *> o;  // start of the step
-    vector<field *> t;  // at the time of the finer stage
+    vector<field*> o;   // start of the step
+    vector<field*> t;   // at the time of the finer stage
 };
 
 // The registry of the patch state (cfd_amr_fields.cpp): every field of a grid that the refinement
 // moves between the grids, once, with what it takes part in.  The fills (cells around the patches),
 // the restriction, the time levels of the subcycling, the transfer at a regrid and the boundary
 // values of the grids are built from it; new physics (heat, concentration) adds its fields there.
-enum : unsigned {
-    AF_STATE = 1u << 0,     // the state of new patches (ini, regrid: from the parent or an old patch) and its fill
-    AF_TIME = 1u << 1,      // the time levels of the subcycling (G 7 1): kept at the start of a step, in time for the finer level
-    AF_TMID = 1u << 2,      //   its value belongs to the middle of the step (the pressure; held at the free surface from a patch)
-    AF_STAGEIN = 1u << 3,   // filled around the patches at the start of a stage
-    AF_TURBIN = 1u << 4,    // filled around the patches before the turbulence step (G 7 0)
-    AF_RSTEP = 1u << 5,     // restricted at the end of a step of the finer level (G 7 1)
-    AF_RSTAGE = 1u << 6,    // restricted at the end of a stage (G 7 0)
-    AF_BCSTATE = 1u << 7,   // boundary values of a patch before it is a parent (bc_state)
-    AF_BCINI = 1u << 8,     // boundary values of the initial patches
-    AF_BCSTEP = 1u << 9,    // boundary values of level 0 after the restriction of a step (G 7 1)
-    AF_BCSTAGE = 1u << 10,  // boundary values of level 0 after the restriction of a stage (G 7 0)
-    AF_CONS = 1u << 11      // conserved quantity: its fluxes at the patch edges matched (flux registers, cfd_amr_scalar.cpp)
+enum : unsigned
+{
+    AF_STATE   = 1u<<0,     // the state of new patches (ini, regrid: from the parent or an old patch) and its fill
+    AF_TIME    = 1u<<1,     // the time levels of the subcycling (G 7 1): kept at the start of a step, in time for the finer level
+    AF_TMID    = 1u<<2,     //   its value belongs to the middle of the step (the pressure; held at the free surface from a patch)
+    AF_STAGEIN = 1u<<3,     // filled around the patches at the start of a stage
+    AF_TURBIN  = 1u<<4,     // filled around the patches before the turbulence step (G 7 0)
+    AF_RSTEP   = 1u<<5,     // restricted at the end of a step of the finer level (G 7 1)
+    AF_RSTAGE  = 1u<<6,     // restricted at the end of a stage (G 7 0)
+    AF_BCSTATE = 1u<<7,     // boundary values of a patch before it is a parent (bc_state)
+    AF_BCINI   = 1u<<8,     // boundary values of the initial patches
+    AF_BCSTEP  = 1u<<9,     // boundary values of level 0 after the restriction of a step (G 7 1)
+    AF_BCSTAGE = 1u<<10,    // boundary values of level 0 after the restriction of a stage (G 7 0)
+    AF_CONS    = 1u<<11     // conserved quantity: its fluxes at the patch edges matched (flux registers, cfd_amr_scalar.cpp)
 };
 struct cfd_amr_patch;
 struct cfd_amr_field
 {
     const char *name;
-    int type;                                         // CELL (-1) or the face direction 0, 1, 2
-    int prolong;                                      // 0 linear, 1 linear with the MC limiter, 2 injection
-    unsigned roles;                                   // AF_*
-    int gc, gcval;                                    // its boundary values: ghostcell start1-4 (1-4), start4a (5), none (0); the code
-    std::function<field &(fdm *, turbulence *)> get;  // the field of a grid (its fdm and turbulence model)
-    int tl = -1;                                      // AF_TIME: its index in the time levels
+    int type;           // CELL (-1) or the face direction 0, 1, 2
+    int prolong;        // 0 linear, 1 linear with the MC limiter, 2 injection
+    unsigned roles;     // AF_*
+    int gc, gcval;      // its boundary values: ghostcell start1-4 (1-4), start4a (5), none (0); the code
+    std::function<field&(fdm*,turbulence*)> get;      // the field of a grid (its fdm and turbulence model)
+    int tl = -1;        // AF_TIME: its index in the time levels
     // a field of an object of the grid (heat T, concentration C): of a patch, of level 0
-    std::function<field &(cfd_amr_patch *)> pget;
-    std::function<field &()> get0;
+    std::function<field&(cfd_amr_patch*)> pget;
+    std::function<field&()> get0;
 };
 
 //  REEF3D::CFD with mesh refinement (A 10 6, G 1 > 0, static boxes G 15).
@@ -216,23 +217,23 @@ struct cfd_amr_patch : public r3patch
     momentum_rk *pmom = nullptr;
     cfd_amr_6dof *p6dof = nullptr;  // the floating bodies on the patch (X 10 1)
     cfd_amr_scgrid *sc = nullptr;   // heat, concentration: the work fields
-    vector<force *> forces;         // the forces on the solids (P 81) of the patch: per force box it reaches into
+    vector<force*> forces;          // the forces on the solids (P 81) of the patch: per force box it reaches into
     vector<char> forces_tri;        // (triangulated)
 
-    vector<signed char> mkind;  // per cell of the array: -1 interior, else the fill kind of the cell
-    vector<double> edge[3];     // per face of u, v, w: the Dirichlet value of the implicit diffusion at the high patch edges (NaN: none)
-    vector<int> row;            // per cell: row of the Poisson matrix (LOOP order), -1
+    vector<signed char> mkind;      // per cell of the array: -1 interior, else the fill kind of the cell
+    vector<double> edge[3];         // per face of u, v, w: the Dirichlet value of the implicit diffusion at the high patch edges (NaN: none)
+    vector<int> row;                // per cell: row of the Poisson matrix (LOOP order), -1
 
     // composite pressure
-    vector<field4 *> kv;
+    vector<field4*> kv;
     reefmg_core *mg = nullptr;
     // G 40: the overlap of the patch multigrid into the patches of the level next to it (cells below
     // and above per direction; a restricted additive Schwarz across the cuts between the units), the
     // overlap its multigrid was made with, the matrix rows of the patch (filled into the overlap of
     // the others)
-    int olo[3] = {0, 0, 0}, ohi[3] = {0, 0, 0};
-    int mlo[3] = {0, 0, 0}, mhi[3] = {0, 0, 0};
-    vector<field4 *> kc7;
+    int olo[3] = {0,0,0}, ohi[3] = {0,0,0};
+    int mlo[3] = {0,0,0}, mhi[3] = {0,0,0};
+    vector<field4*> kc7;
 
     // subcycling (G 7 1)
     cfd_amr_tlev *ts = nullptr;
@@ -243,32 +244,32 @@ struct cfd_amr_patch : public r3patch
 // a face between a patch cell and a cell of the coarser level
 struct cfd_amr_cf
 {
-    int pid;                  // patch
-    int d, dir;               // direction 0,1,2 and side (+1: the coarse cell at +d)
-    int qf, nf;               // fine cell: index in the patch arrays, row
-    int qm;                   // the cell around the patch across the face
-    int gc, qc, nc;           // coarse cell (leaf): grid, index, row
-    int gp, qp;               // covered parent of the fine cell: grid, index
-    int gface;                // grid of the coarse face value (the grid that computes it)
-    int cf[3];                // coarse face: cell index (local on gface) that holds it in field d
-    int ff[3];                // fine face: cell index in the patch (fi or fi - e_d)
-    int o[3];                 // offset of the fine cell in its parent
-    int fi[3], ci[3], pi[3];  // fine cell, coarse cell, parent (local indices)
-    double dist;              // distance of the cell centres along d
-    double area;              // fine face area / coarse face area
-    double dxnf, dxnc;        // cell widths along d
-    double ustar;             // predictor of the stage
-    double kf, kc;            // flux coefficients of the fine and the coarse row
-    double rof;               // face density of the stage (pr_weights)
-    int ns;                   // the coarse value at the position of the fine cell: sum of sw x[sg][sq]
-    int sg[5], sq[5];         // (the coarse cell and its leaf neighbours in the transverse directions,
-    double sw[5];             // weights of the stage: pr_weights)
-    int sc[5][3];             // (their local cell indices)
-    double ufin;              // G 7 1 level projection: the corrected face velocity
-    double hf, hs;            // hydrostatic pressure of the fine cell and at its position on the coarse side
-    bool hok;                 // (computed)
-    int tq[3][2];             // transverse neighbours of the coarse cell (index, -1: not a leaf cell)
-    double tdel[3];           // offset of the fine cell from the coarse centre (coarse cells), 0: none
+    int pid;            // patch
+    int d, dir;         // direction 0,1,2 and side (+1: the coarse cell at +d)
+    int qf, nf;         // fine cell: index in the patch arrays, row
+    int qm;             // the cell around the patch across the face
+    int gc, qc, nc;     // coarse cell (leaf): grid, index, row
+    int gp, qp;         // covered parent of the fine cell: grid, index
+    int gface;          // grid of the coarse face value (the grid that computes it)
+    int cf[3];          // coarse face: cell index (local on gface) that holds it in field d
+    int ff[3];          // fine face: cell index in the patch (fi or fi - e_d)
+    int o[3];           // offset of the fine cell in its parent
+    int fi[3], ci[3], pi[3];   // fine cell, coarse cell, parent (local indices)
+    double dist;        // distance of the cell centres along d
+    double area;        // fine face area / coarse face area
+    double dxnf, dxnc;  // cell widths along d
+    double ustar;       // predictor of the stage
+    double kf, kc;      // flux coefficients of the fine and the coarse row
+    double rof;         // face density of the stage (pr_weights)
+    int ns;             // the coarse value at the position of the fine cell: sum of sw x[sg][sq]
+    int sg[5], sq[5];   // (the coarse cell and its leaf neighbours in the transverse directions,
+    double sw[5];       // weights of the stage: pr_weights)
+    int sc[5][3];       // (their local cell indices)
+    double ufin;        // G 7 1 level projection: the corrected face velocity
+    double hf, hs;      // hydrostatic pressure of the fine cell and at its position on the coarse side
+    bool hok;           // (computed)
+    int tq[3][2];       // transverse neighbours of the coarse cell (index, -1: not a leaf cell)
+    double tdel[3];     // offset of the fine cell from the coarse centre (coarse cells), 0: none
 };
 
 // the time of a scope added to a timer
@@ -277,38 +278,38 @@ struct cfd_amr_wclock
     double &a;
     double t;
     explicit cfd_amr_wclock(double &x) : a(x), t(MPI_Wtime()) {}
-    ~cfd_amr_wclock() { a += MPI_Wtime() - t; }
+    ~cfd_amr_wclock() { a += MPI_Wtime()-t; }
 };
 
 class cfd_amr : public reefamr3d, public amr_grid_lookup
 {
 public:
-    cfd_amr(lexer *, fdm *, ghostcell *, momentum *, pressure *, poisson *, ioflow *, vrans *, fsi *, initialize *, turbulence *, sixdof *);
+    cfd_amr(lexer*, fdm*, ghostcell*, momentum*, pressure*, poisson*, ioflow*, vrans*, fsi*, initialize*, turbulence*, sixdof*);
     virtual ~cfd_amr();
 
     // false: the run is outside the scope of the refinement (a message has been printed)
-    static bool scope(lexer *, ghostcell *);
+    static bool scope(lexer*, ghostcell*);
 
-    void ini(lexer *, fdm *, ghostcell *);
+    void ini(lexer*, fdm*, ghostcell*);
 
     // the finest patch whose interior holds the point two cells inside its edges (the loads of
     // the floating bodies, X 60 1)
-    bool finest_grid(double, double, double, lexer *&, fdm *&) const override;
-    bool finest_grid(double, double, double, lexer *&, fdm *&, turbulence *&) const override;
-    bool placed() const override { return place > 0; }
+    bool finest_grid(double, double, double, lexer*&, fdm*&) const override;
+    bool finest_grid(double, double, double, lexer*&, fdm*&, turbulence*&) const override;
+    bool placed() const override { return place>0; }
     int finest_level(double, double, double) const override;
     // the forces on the solids (P 81, cfd_amr_force.cpp): the level of the finest grid at a point (the
     // tile maps of all levels), the pieces of the surface on the patches of this rank
     int leaf_level(double, double, double) const override;
-    void solid_forces(int, double *) const override;
+    void solid_forces(int, double*) const override;
     int finest_id(double, double, double) const;
-    void step(lexer *, fdm *, ghostcell *, vrans *, sixdof *);
-    void timestep(lexer *, fdm *, ghostcell *);
-    void print(lexer *, ghostcell *, bool after = false);
-    bool print_lagoon(lexer *, ghostcell *, int num);  // P 18: the blocks into the LAGOON store
+    void step(lexer*, fdm*, ghostcell*, vrans*, sixdof*);
+    void timestep(lexer*, fdm*, ghostcell*);
+    void print(lexer*, ghostcell*, bool after=false);
+    bool print_lagoon(lexer*, ghostcell*, int num);    // P 18: the blocks into the LAGOON store
 
     // the composite projection (cfd_amr_press.cpp), public for the vector space of the solver
-    void pr_apply(int kx, int ky, int lmin = 0);  // the rows of the levels >= lmin (pr_residual)
+    void pr_apply(int kx, int ky, int lmin=0);    // the rows of the levels >= lmin (pr_residual)
     void pr_prec(int kr, int kz);
     void pr_patch_solve(int id, int kt, int kz, int kc);
     void pr_residual(int kr, int kz, int kt, int lmin);
@@ -319,72 +320,59 @@ public:
     void pr_x(double alp, double om);
 
     // subcycling (cfd_amr_sub.cpp)
-    void step_sub(lexer *, fdm *, ghostcell *, vrans *, sixdof *);
+    void step_sub(lexer*, fdm*, ghostcell*, vrans*, sixdof*);
 
     // CPM on the refinement (cfd_amr_cpm.cpp): the sediment step on the grid of CPM, before the fluid step;
     // cpm_why: what the run needs for it (nullptr: covered)
-    void cpm_step(lexer *, fdm *, ghostcell *);
-    static const char *cpm_why(lexer *);
-    bool cpm_on() const { return cpm != nullptr; }
+    void cpm_step(lexer*, fdm*, ghostcell*);
+    static const char* cpm_why(lexer*);
+    bool cpm_on() const { return cpm!=nullptr; }
 
     // heat (H 10) or concentration (C 10) on all grids (cfd_amr_scalar.cpp): the driver's objects
     // of level 0 (before ini); true: the refinement transports the scalar on all grids (the driver
     // leaves its step out)
-    void scalar_objects(heat *, concentration *);
-    bool scalars() const { return scal > 0; }
+    void scalar_objects(heat*, concentration*);
+    bool scalars() const { return scal>0; }
 
-    double tm[8] = {0, 0, 0, 0, 0, 0, 0, 0};
-    double tp[4] = {0, 0, 0, 0};
-    double t0l[3] = {0, 0, 0};  // G 7 0: the level-0 parts of tm[0], tm[1], tm[3]
-    double wtp = 0.0;           // the loops over the patches of this rank (their work without the fills)
+    double tm[8] = {0,0,0,0,0,0,0,0};
+    double tp[4] = {0,0,0,0};
+    double t0l[3] = {0,0,0};        // G 7 0: the level-0 parts of tm[0], tm[1], tm[3]
+    double wtp = 0.0;               // the loops over the patches of this rank (their work without the fills)
 
     // the parts of the composite projections (pr_project, pr_level, pr_sync_project), exclusive
     // clocks with their MPI time (amr_phase_clock.h); reported every P 12 steps as max/mean over the
     // ranks (pr_report) and per rank with G 43.  PR_WAIT: with G 43 a timed barrier before the halo
     // exchanges, the dot products and the level-0 V-cycle, so that the ranks that arrive early wait
     // there and not inside the exchanges (the results do not change)
-    enum { PR_ASSEMBLY,
-           PR_OPERATOR,
-           PR_HALO,
-           PR_SHADOW,
-           PR_RESTRICT,
-           PR_PROLONG,
-           PR_CFILL,
-           PR_OVFILL,
-           PR_LCYCLE,
-           PR_L0CYCLE,
-           PR_PREC,
-           PR_KRYLOV,
-           PR_WAIT,
-           PR_FINISH,
-           PR_NPART };
-    static const char *pr_part_name(int k);
+    enum { PR_ASSEMBLY, PR_OPERATOR, PR_HALO, PR_SHADOW, PR_RESTRICT, PR_PROLONG, PR_CFILL, PR_OVFILL,
+           PR_LCYCLE, PR_L0CYCLE, PR_PREC, PR_KRYLOV, PR_WAIT, PR_FINISH, PR_NPART };
+    static const char* pr_part_name(int k);
     amr_phase_clock<PR_NPART> prc;
-    void pr_report(lexer *);  // collective, every P 12 steps
-    void pr_wait();           // G 43: the timed barrier (PR_WAIT)
+    void pr_report(lexer*);         // collective, every P 12 steps
+    void pr_wait();                 // G 43: the timed barrier (PR_WAIT)
 
 protected:
-    r3patch *patch_new() override;
-    void patch_objects(r3patch *) override;
+    r3patch* patch_new() override;
+    void patch_objects(r3patch*) override;
 
 private:
-    cfd_amr_patch *CP(int id) { return static_cast<cfd_amr_patch *>(P[id]); }
-    fdm *gfd(int g) { return g < 0 ? a0 : CP(g)->a; }
-    momentum_rk *gmom(int g) { return g < 0 ? mom0 : CP(g)->pmom; }
+    cfd_amr_patch* CP(int id) { return static_cast<cfd_amr_patch*>(P[id]); }
+    fdm* gfd(int g) { return g<0 ? a0 : CP(g)->a; }
+    momentum_rk* gmom(int g) { return g<0 ? mom0 : CP(g)->pmom; }
 
     // fills: a field of every grid, its kind (cell centred, or the faces of a direction) and the
     // prolongation (0: linear, 1: linear with the MC limiter, 2: injection)
-    enum { CELL = -1 };
+    enum { CELL=-1 };
     struct fspec
     {
-        int type;  // CELL or direction 0, 1, 2
+        int type;       // CELL or direction 0, 1, 2
         int mode;
-        std::function<field &(int)> f;   // source (and destination)
-        std::function<field &(int)> fd;  // destination, if not f
+        std::function<field&(int)> f;      // source (and destination)
+        std::function<field&(int)> fd;     // destination, if not f
     };
-    void fill(int l, vector<fspec> &fs, bool siblings_only = false, int maxdepth = 1 << 20);  // siblings_only: copies from the patches of the same level (kind 0, 2) alone;
-                                                                                              // maxdepth: the cells around the patch up to that distance
-    void fill_all(vector<fspec> &fs, int maxdepth = 1 << 20);
+    void fill(int l, vector<fspec> &fs, bool siblings_only=false, int maxdepth=1<<20);   // siblings_only: copies from the patches of the same level (kind 0, 2) alone;
+                                                                                        // maxdepth: the cells around the patch up to that distance
+    void fill_all(vector<fspec> &fs, int maxdepth=1<<20);
     // the fills of the vectors of the solver (cells, injection: fill with CELL, mode 2), as fill with
     // plans kept from the fill lists of the patches (cfd_amr.cpp): the copies as index pairs, the
     // remote items only those of the cells up to maxdepth; ptr(m, g) the array of field m of grid g
@@ -392,22 +380,22 @@ private:
     {
         int l = 0, maxdepth = 0;
         bool sib = false;
-        vector<int> grids;                   // the grids the plan touches (the pointer table)
-        vector<int> dg, dq, sg, sq;          // local: destination grid (in grids) and index, source
-        vector<unsigned char> pz;            // a prolongation of a child off the low corner (+ 0.0, as prolong_f)
-        vector<int> rg, rq, rs;              // remote: destination grid, index, item of the receive buffer
-        vector<int> vg, vq;                  // served: grid, index
-        vector<int> scnt, sdsp, rcnt, rdsp;  // per rank, in items
+        vector<int> grids;                  // the grids the plan touches (the pointer table)
+        vector<int> dg, dq, sg, sq;         // local: destination grid (in grids) and index, source
+        vector<unsigned char> pz;           // a prolongation of a child off the low corner (+ 0.0, as prolong_f)
+        vector<int> rg, rq, rs;             // remote: destination grid, index, item of the receive buffer
+        vector<int> vg, vq;                 // served: grid, index
+        vector<int> scnt, sdsp, rcnt, rdsp; // per rank, in items
         int nsend = 0, nrecv = 0;
         vector<double> sbuf, rbuf;
     };
     vector<cfill_plan> cfp;
     int cfp_gen = -1;
-    vector<double *> cfp_tab;
-    cfill_plan &cfp_get(int l, bool siblings_only, int maxdepth);  // collective when it is new
+    vector<double*> cfp_tab;
+    cfill_plan& cfp_get(int l, bool siblings_only, int maxdepth);     // collective when it is new
     // (G 40, level 1: the shadows from level 0 first, all their cells (sh_down), or with sh1 only the
     // cells the operator and the fills up to depth 1 read (sh_down1: the vectors inside the solver))
-    void fill_cells(int l, int nv, const std::function<double *(int, int)> &ptr, bool siblings_only = false, int maxdepth = 1 << 20, bool sh1 = false);
+    void fill_cells(int l, int nv, const std::function<double*(int,int)> &ptr, bool siblings_only=false, int maxdepth=1<<20, bool sh1=false);
     double prolong(const fspec &F, int g, const int *s, const int *o);
     double prolong_f(field &f, int type, int mode, int g, const int *s, const int *o);
     double cell_slope(field &f, int g, const int *s, int d, int mode);
@@ -416,7 +404,7 @@ private:
     void bc_state(int id);
 
     // restriction onto the cells and faces under the patches of level l (from level l)
-    void restrict_level(int l, const vector<std::function<field &(int)>> &cells, const vector<std::function<field &(int)>> &faces);
+    void restrict_level(int l, const vector<std::function<field&(int)>> &cells, const vector<std::function<field&(int)>> &faces);
     void restrict_vel(int s);
     void restrict_scalars(int s);
 
@@ -435,7 +423,7 @@ private:
     // adaptive refinement (cfd_amr_regrid.cpp): flags G 24-26, regrid every G 2 steps
     int adapt = 0;
     long nregrid = 0;
-    vector<vector<int>> tage;  // [l][tile] regrids since the last flag (hysteresis G 5)
+    vector<vector<int>> tage;       // [l][tile] regrids since the last flag (hysteresis G 5)
     void flags(vector<vector<unsigned char>> &seed, bool init);
     // the refinement zone of the floating bodies (G 12 r, G 13 L a; cfd_amr_zone.cpp): the tiles of the
     // finest level in the zone of every body; bz_x0, bz_y0: the centres of the bodies at the start (the
@@ -444,18 +432,17 @@ private:
     vector<double> bz_x0, bz_y0;
     void zone_seed(vector<vector<unsigned char>> &seed);
     bool flagged(int g, int i, int j, int k, int lt, bool init);
-    void regrid(lexer *, ghostcell *, bool replace = false);  // replace: the units placed anew (G 41 0, static refinement)
-    vector<vector<unsigned char>> ck_seed;                    // restart (I 45): the tile maps of the checkpoint for the regrid
+    void regrid(lexer*, ghostcell*, bool replace=false);    // replace: the units placed anew (G 41 0, static refinement)
+    vector<vector<unsigned char>> ck_seed;      // restart (I 45): the tile maps of the checkpoint for the regrid
 
 public:
     // checkpoints (P 48, I 45; cfd_amr_ckpt.cpp): the hierarchy and every array of the patches
-    void ckpt_write(reefckpt &);
-    bool ckpt_read(reefckpt &, std::string &);
-    void write_loadmap(lexer *);
+    void ckpt_write(reefckpt&);
+    bool ckpt_read(reefckpt&, std::string&);
+    void write_loadmap(lexer*);
     void flush_outputs();
-
 private:
-    void replace_static(lexer *, ghostcell *);  // G 40 1, G 41 0, static refinement: the weight measured, the units placed anew once
+    void replace_static(lexer*, ghostcell*);              // G 40 1, G 41 0, static refinement: the weight measured, the units placed anew once
     // G 41 0 (several ranks): the work of the ranks measured since the last regrid, the weight of a
     // patch cell for the placement (wpatch), the report; lbar: a barrier before a level-0 part (the
     // waits for the patches of other ranks not in the level-0 timers)
@@ -463,52 +450,52 @@ private:
     void lbar();
     void measure_load();
     // load statistics of the ranks (G 43, amr_load.h), once per step
-    void load_step(lexer *);
+    void load_step(lexer*);
     amr_load lstat;
     // the load map (G 45, G 46): the patch cells per level-0 cell (load_w without wpatch) summed over
     // the steps of the window of G 46 (G 47 steps), and this rank's level-0 and patch cells in it, for
     // the weight of a patch cell measured from the busy times of the ranks (cfd_amr_ckpt.cpp)
-    void lmap_step(lexer *);
+    void lmap_step(lexer*);
     vector<double> lm_cur, lm_acc;
     long lm_nregrid = -1, lm_steps = 0;
     int lm_win = -1;
     double lm_n0 = 0.0, lm_np = 0.0;
     double ml_t0 = 0.0, ml_tp = 0.0;
     int ml_n = 0;
-    void regrid_old(const vector<int> &fresh, vector<vector<char>> &got);  // G 40: from the old patches of all ranks
+    void regrid_old(const vector<int> &fresh, vector<vector<char>> &got);   // G 40: from the old patches of all ranks
     void patch_fields_ini(int id);
-    void free_patch(cfd_amr_patch *);
+    void free_patch(cfd_amr_patch*);
 
     // CPM on the grid of the finest level over the boxes G 15 (cfd_amr_cpm.cpp)
     cfd_amr_cpm *cpm = nullptr;
-    void cpm_setup(lexer *, fdm *, ghostcell *);
+    void cpm_setup(lexer*, fdm*, ghostcell*);
     void cpm_plans();
     void cpm_pull(bool ini);
     void cpm_push();
-    void cpm_bed(lexer *, fdm *);
+    void cpm_bed(lexer*, fdm*);
 
     // the registry of the patch state (cfd_amr_fields.cpp)
     vector<cfd_amr_field> reg;
     void register_fields();
-    turbulence *gturb(int g) { return g < 0 ? pturb0 : CP(g)->pturb; }
-    field &rf(const cfd_amr_field &e, int g)
+    turbulence* gturb(int g) { return g<0 ? pturb0 : CP(g)->pturb; }
+    field& rf(const cfd_amr_field &e, int g)
     {
         if(e.pget)
-            return g < 0 ? e.get0() : e.pget(CP(g));
-        return e.get(gfd(g), gturb(g));
+        return g<0 ? e.get0() : e.pget(CP(g));
+        return e.get(gfd(g),gturb(g));
     }
-    field &rfp(const cfd_amr_field &e, cfd_amr_patch *c) { return e.pget ? e.pget(c) : e.get(c->a, c->pturb); }
+    field& rfp(const cfd_amr_field &e, cfd_amr_patch *c) { return e.pget ? e.pget(c) : e.get(c->a,c->pturb); }
     vector<fspec> specs(unsigned role);                         // fills
-    vector<std::function<field &(int)>> rcells(unsigned role);  // restriction: cell fields
-    vector<std::function<field &(int)>> rfaces(unsigned role);  // restriction: u, v, w (by direction)
+    vector<std::function<field&(int)>> rcells(unsigned role);    // restriction: cell fields
+    vector<std::function<field&(int)>> rfaces(unsigned role);    // restriction: u, v, w (by direction)
     void bc_grid(int g, unsigned role);                         // boundary values of grid g (level 0: -1)
     vector<int> tl_types();
-    int tl_phi = -1, tl_press = -1;  // the time levels of the level set and the pressure
+    int tl_phi = -1, tl_press = -1;     // the time levels of the level set and the pressure
 
     // subcycling (cfd_amr_sub.cpp)
-    cfd_amr_tlev *gts(int g) { return g < 0 ? ts0 : CP(g)->ts; }
-    field &tsf(int g, int m) { return *gts(g)->t[m]; }
-    field &stf(int g, int m);
+    cfd_amr_tlev* gts(int g) { return g<0 ? ts0 : CP(g)->ts; }
+    field& tsf(int g, int m) { return *gts(g)->t[m]; }
+    field& stf(int g, int m);
     int nts() const { return tl_n; }
     int tl_n = 0;
     void advance(int l, double dtc, double tc);
@@ -517,12 +504,12 @@ private:
     void interp(int l, double th);
     void fill_level(int l, double th);
     void restrict_sub(int l);
-    double tin[3], tout[3];  // stage input and output times in units of the step
-    vector<double> th_end;   // per level: end of its last step in the step of the coarser level
+    double tin[3], tout[3];         // stage input and output times in units of the step
+    vector<double> th_end;          // per level: end of its last step in the step of the coarser level
 
     // composite volume of the level set (F 46 2/3): leaf cells of all grids
     void volume(double &V, double &dV);
-    void volume_correct(lexer *, ghostcell *);
+    void volume_correct(lexer*, ghostcell*);
     void rovisc_all();
     double vol_step = 0.0, vol_net = 0.0;
     bool vol_ini = false;
@@ -531,17 +518,17 @@ private:
     void pr_setup();
     void pr_stencils();
     void pr_weights();
-    void pr_hydro(int lsub = -1);  // lsub >= 0 (G 7 1, the projection of level lsub): the coarser grids at the time of the stage
-    double pr_xs(const cfd_amr_cf &, int k);
-    double pr_ps(const cfd_amr_cf &);
+    void pr_hydro(int lsub=-1);         // lsub >= 0 (G 7 1, the projection of level lsub): the coarser grids at the time of the stage
+    double pr_xs(const cfd_amr_cf&, int k);
+    double pr_ps(const cfd_amr_cf&);
     void pr_matrix(int s);
     void pr_predict(int s);
     void pr_correct(int s);
-    void pr_project(lexer *, ghostcell *, int s);
-    void pr_sync(int k, int lmin = 0, bool sh1 = false);  // sh1: the shadows only where the operator reads them (pr_apply)
-    void pr_covered_coef();                               // the coarse couplings under the finer patches from the fine faces
-    void pr_halo0(field &f);                              // the halo of a level-0 vector (ranks, periodic edges)
-    bool pr_wrap(int id, int d) const;                    // patch id over the whole length of periodic direction d
+    void pr_project(lexer*, ghostcell*, int s);
+    void pr_sync(int k, int lmin=0, bool sh1=false);     // sh1: the shadows only where the operator reads them (pr_apply)
+    void pr_covered_coef();                              // the coarse couplings under the finer patches from the fine faces
+    void pr_halo0(field &f);                             // the halo of a level-0 vector (ranks, periodic edges)
+    bool pr_wrap(int id, int d) const;                   // patch id over the whole length of periodic direction d
     // the overlap of the patch multigrids at the sides where a patch of the level is next to it that
     // is not in its joint multigrid (a restricted additive Schwarz; the patches of one rank next to
     // each other in a joint multigrid, with overlap cells for the sides to other ranks): every run.
@@ -549,23 +536,23 @@ private:
     // iterations, 12 with it), and so were the sides between the patches of one rank in no joint
     // multigrid (four adaptive levels with G 7 1: the level projections 13.6 iterations, 6.8 with it)
     bool pr_ras() const { return true; }
-    bool pr_ovl = false;  // some patch multigrid of some rank has overlap cells (the fills of their rows, right-hand sides)
-    void pr_level(lexer *, ghostcell *, int l, int s);
-    void pr_sync_project(lexer *, ghostcell *);  // G 7 1: the synchronisation projection at the end of the level-0 step
+    bool pr_ovl = false;            // some patch multigrid of some rank has overlap cells (the fills of their rows, right-hand sides)
+    void pr_level(lexer*, ghostcell*, int l, int s);
+    void pr_sync_project(lexer*, ghostcell*);   // G 7 1: the synchronisation projection at the end of the level-0 step
     // W 32 with G 7 1: the volume registers of the faces at the patch edges (per entry of cf, the face
     // velocity at the end of every step of the level times its step and the area weight F.area, on
     // the fine side and on the coarse side), and the right-hand side of the synchronisation in the
     // compressible cells from them (cfd_amr_sub.cpp)
     vector<double> vr_f, vr_c;
     void vr_reset();
-    void vr_record(int l, double dt);  // the end of a step of level l: the fine side of its edges, the coarse side of the edges of level l+1
-    void vr_sync_rhs();                // the right-hand side NS of the compressible rows of the synchronisation
-    double psi_band(int g);            // the half width of the interface band of grid g
+    void vr_record(int l, double dt);           // the end of a step of level l: the fine side of its edges, the coarse side of the edges of level l+1
+    void vr_sync_rhs();                         // the right-hand side NS of the compressible rows of the synchronisation
+    double psi_band(int g);                     // the half width of the interface band of grid g
     void pr_components();
-    const vector<int> &UQ(int g) { return prl < 0 ? lq[g + 1] : aq[g + 1]; }
-    const vector<int> &UR(int g) { return prl < 0 ? lr[g + 1] : ar[g + 1]; }
-    double *pvec(int g, int k);
-    field &pfield(int g, int k);
+    const vector<int>& UQ(int g) { return prl<0 ? lq[g+1] : aq[g+1]; }
+    const vector<int>& UR(int g) { return prl<0 ? lr[g+1] : ar[g+1]; }
+    double* pvec(int g, int k);
+    field& pfield(int g, int k);
 
     lexer *p0;
     fdm *a0;
@@ -578,22 +565,22 @@ private:
     initialize *pini0;
 
     int gcval_phi;
-    int sub = 0;  // G 7 1
+    int sub = 0;                        // G 7 1
     turbulence *pturb0 = nullptr;
-    int turb = 0;    // RANS on the patches (T 10 1, 2)
-    int solids = 0;  // solids or topography (direct forcing) on the patches
+    int turb = 0;                       // RANS on the patches (T 10 1, 2)
+    int solids = 0;                     // solids or topography (direct forcing) on the patches
     // the solids and the topography of the grid file cast on the patches at their resolution
     // (cfd_amr_geom.cpp): geo_role[0] solids, [1] topography; geo_bed: the role has the geodat bed
     // of the grid file, gbed0 its level of all level-0 columns (I*gknoy + J)
-    int geo_role[2] = {0, 0};
-    int geo_bed[2] = {0, 0};
+    int geo_role[2] = {0,0};
+    int geo_bed[2] = {0,0};
     vector<double> gbed0;
-    void geom_setup(lexer *);
+    void geom_setup(lexer*);
     void patch_geometry(int id);
-    void patch_bed(cfd_amr_patch *, double band, vector<double> &phi);
-    void patch_forces(int ID, double *F);  // the forces on the solids: the part of the patches of this rank
-    void force_objects(cfd_amr_patch *);   // the force objects of a new patch
-    sixdof_cfd *b6 = nullptr;              // the floating bodies (X 10 1): moved on level 0 (G 7 0), by the finest level (G 7 1)
+    void patch_bed(cfd_amr_patch*, double band, vector<double> &phi);
+    void patch_forces(int ID, double *F);   // the forces on the solids: the part of the patches of this rank
+    void force_objects(cfd_amr_patch*);     // the force objects of a new patch
+    sixdof_cfd *b6 = nullptr;           // the floating bodies (X 10 1): moved on level 0 (G 7 0), by the finest level (G 7 1)
     int bodies = 0;
     // G 7 1: the finest level advances the bodies (amr_stage_cfd, the loads after each of its
     // stages on the finest grid); the coarser levels step with a predicted copy (amr_save,
@@ -602,22 +589,22 @@ private:
     void body_loads(int s, double t, bool fin);
     void body_end();
     int patch_forcing() const { return bodies ? 1 : (solids ? 2 : 0); }
-    field &kfield(int g, int m);  // kin (m 0), eps (m 1) of the turbulence model of grid g
-    void turb_step(int l);        // the turbulence model on the patches of level l (cells around filled)
+    field& kfield(int g, int m);        // kin (m 0), eps (m 1) of the turbulence model of grid g
+    void turb_step(int l);              // the turbulence model on the patches of level l (cells around filled)
     cfd_amr_tlev *ts0 = nullptr;
 
     // composite pressure
     vector<cfd_amr_cf> cf;
-    vector<int> row0;                // level-0 rows
-    vector<char> cover0;             // G 7 1 with bodies: the level-0 cells under the patches (sixdof_obj_cfd::amr_cover)
-    vector<vector<int>> lq, lr, cq;  // [g+1] leaf cells: index, row; covered cells
-    vector<vector<int>> aq, ar;      // [g+1] all cells with a row: index, row (level projection)
-    int prl = -1;                    // the projection: -1 composite, l level l alone (G 7 1)
-    vector<int> prg;                 // its grids
-    int ncomp = 0;                   // connected components of the patches of a level
-    vector<field4 *> kv0;
+    vector<int> row0;                   // level-0 rows
+    vector<char> cover0;                // G 7 1 with bodies: the level-0 cells under the patches (sixdof_obj_cfd::amr_cover)
+    vector<vector<int>> lq, lr, cq;     // [g+1] leaf cells: index, row; covered cells
+    vector<vector<int>> aq, ar;         // [g+1] all cells with a row: index, row (level projection)
+    int prl = -1;                       // the projection: -1 composite, l level l alone (G 7 1)
+    vector<int> prg;                    // its grids
+    int ncomp = 0;                      // connected components of the patches of a level
+    vector<field4*> kv0;
     reefmg_core *mg0 = nullptr;
-    vector<long> l0a, l0f;  // level-0 V-cycle: active rows of the multigrid, cells
+    vector<long> l0a, l0f;              // level-0 V-cycle: active rows of the multigrid, cells
     // the joint multigrid of the patches of a level on this rank that touch each other (their
     // bounding box, the cells outside the patches identity rows): the V-cycle of a level in the
     // preconditioners (the level projection of G 7 1, the FAC sweep of the composite projection
@@ -625,27 +612,27 @@ private:
     struct cfd_amr_lmg
     {
         reefmg_core *mg = nullptr;
-        vector<int> ids;                          // its patches
-        int lo[3] = {0, 0, 0}, n[3] = {0, 0, 0};  // box: first cell (index of the level), extent
-        vector<int> own;                          // per cell of the box: the patch, -1
-        std::map<int, vector<int>> off;           // per patch: the box position of its cell 0 (3); a patch
-                                                  // joined across a periodic edge lies past the end of the box
-        bool wrap[3] = {false, false, false};     // the box over the whole length of a periodic direction:
-                                                  // the multigrid periodic there
+        vector<int> ids;                        // its patches
+        int lo[3] = {0,0,0}, n[3] = {0,0,0};    // box: first cell (index of the level), extent
+        vector<int> own;                        // per cell of the box: the patch, -1
+        std::map<int,vector<int>> off;          // per patch: the box position of its cell 0 (3); a patch
+                                                // joined across a periodic edge lies past the end of the box
+        bool wrap[3] = {false,false,false};     // the box over the whole length of a periodic direction:
+                                                // the multigrid periodic there
         int o(int id, int d) const { return off.at(id)[d]; }
         // the overlap (pr_ras): across the sides where a member meets a patch of another rank (OV
         // cells of its margin, own -2): the rows and the right-hand side of that patch, from the margin
         // of the member ovm at index ovq; the correction kept in the members
         vector<int> ovm, ovq;
     };
-    vector<cfd_amr_lmg> lmg;  // the joint multigrids (all levels)
-    vector<int> lmg_of;       // per patch: its joint multigrid, -1 (its own)
+    vector<cfd_amr_lmg> lmg;            // the joint multigrids (all levels)
+    vector<int> lmg_of;                 // per patch: its joint multigrid, -1 (its own)
     void pr_level_mg_setup();
     void pr_level_mg_fill(int m);
     void pr_level_mg_fill_comp(int m);
-    void pr_level_mg_ovrows(int m, double dshift);  // the rows of the overlap cells of a joint multigrid
-    void pr_level_vcycle(int m, int kr, int kz, int kc = -1);
-    void pr_level_solve(int l, int kr, int kz, int kc = -1);  // the V-cycles of level l: joint or patch-local (the correction added to z, and to kc)
+    void pr_level_mg_ovrows(int m, double dshift);   // the rows of the overlap cells of a joint multigrid
+    void pr_level_vcycle(int m, int kr, int kz, int kc=-1);
+    void pr_level_solve(int l, int kr, int kz, int kc=-1);     // the V-cycles of level l: joint or patch-local (the correction added to z, and to kc)
     // the fine level of the multigrid of patch id from its rows (diagonal times dshift), the couplings
     // to the cells around it dropped, G 40: over its box with the overlap (pr_overlap, pr_coef_fill)
     void pr_patch_mg(int id, double dshift);
@@ -658,69 +645,69 @@ private:
     wave_interface *pwave0 = nullptr;
     bc_zone_set *zones0 = nullptr;
     int zgen = 0, zbeach = 0;
-    void relax_setup(lexer *, ghostcell *);
+    void relax_setup(lexer*, ghostcell*);
     bool patch_in_zone(int id);
     void patch_relax_vel(int id, field &u, field &v, field &w);
     void patch_relax_phi(int id, field &f);
-    bool patch_relax_turb(int id);  // the eddy viscosity in the generation zone (as iowave::turb_relax)
+    bool patch_relax_turb(int id);      // the eddy viscosity in the generation zone (as iowave::turb_relax)
 
     // the pressure reference (B 30 1, 2, 4) over all grids, once at the end of the step
     // (cfd_amr_relax.cpp): the patches have none of their own, level 0 none during the step
     int b30 = 0;
-    void reference(lexer *, ghostcell *);
-    void step_comp(lexer *, fdm *, ghostcell *, vrans *, sixdof *);
+    void reference(lexer*, ghostcell*);
+    void step_comp(lexer*, fdm*, ghostcell*, vrans*, sixdof*);
     int pr_it_last = 0;
-    int pr_it_sync = 0;             // G 7 1: iterations of the synchronisation projection
-    vector<vector<double>> sync_x;  // G 7 1: the correction of the last synchronisation (leaf cells per grid), its start
-    bool sync_x_ok = false;         // (false after a regrid)
-    double t_sync = 0.0;            // G 7 1: time of the synchronisation projections
-    double sync_bref = 0.0;         // G 7 1: the largest right-hand side norm of the level projections of the level-0 step
-    bool press_step = false;        // G 7 1: false until the end of the first level-0 step (the initial pressure is not that of a step)
+    int pr_it_sync = 0;                 // G 7 1: iterations of the synchronisation projection
+    vector<vector<double>> sync_x;      // G 7 1: the correction of the last synchronisation (leaf cells per grid), its start
+    bool sync_x_ok = false;             // (false after a regrid)
+    double t_sync = 0.0;                // G 7 1: time of the synchronisation projections
+    double sync_bref = 0.0;             // G 7 1: the largest right-hand side norm of the level projections of the level-0 step
+    bool press_step = false;            // G 7 1: false until the end of the first level-0 step (the initial pressure is not that of a step)
     double pr_res_last = 0.0;
     long pr_it_total = 0, pr_solves = 0;
     bool pr_ready = false;
 
     // G 40, the placement of the units (cfd_amr_place.cpp): the copy plans between level 0 and the
     // shadows of the level-1 patches (reefamr3d: sh_down, all cells of the shadow arrays)
-    r3cplan pu_cell;                                               // up: the restriction onto the cells under the level-1 patches (set)
-    r3cplan pu_face[3];                                            //     the faces under them (set; the - face at the low edge too)
-    r3cplan pu_cf[3];                                              //     the coarse faces at the edges of the level-1 patches (set)
-    r3cplan pu_cc;                                                 //     the coarse cells at those edges (added: pr_apply, refluxing)
-    r3cplan sh_down1;                                              // (not up: down, the cells of the shadows the solver reads, fill_cells)
-    r3cplan pu_key;                                                //     the coarse cell and side of the faces: the folds of the level-0
-                                                                   //     rows (pjm_corr), the couplings of the level-0 multigrid (pr_matrix)
-    vector<vector<double>> kval;                                   // per shadow: the sum of kc of its keys (pu_key order)
-    std::map<std::tuple<int, int, int, int, int, int>, int> kidx;  // (shadow, coarse cell, d, dir) -> its key
+    r3cplan pu_cell;                    // up: the restriction onto the cells under the level-1 patches (set)
+    r3cplan pu_face[3];                 //     the faces under them (set; the - face at the low edge too)
+    r3cplan pu_cf[3];                   //     the coarse faces at the edges of the level-1 patches (set)
+    r3cplan pu_cc;                      //     the coarse cells at those edges (added: pr_apply, refluxing)
+    r3cplan sh_down1;                   // (not up: down, the cells of the shadows the solver reads, fill_cells)
+    r3cplan pu_key;                     //     the coarse cell and side of the faces: the folds of the level-0
+                                        //     rows (pjm_corr), the couplings of the level-0 multigrid (pr_matrix)
+    vector<vector<double>> kval;        // per shadow: the sum of kc of its keys (pu_key order)
+    std::map<std::tuple<int,int,int,int,int,int>,int> kidx;    // (shadow, coarse cell, d, dir) -> its key
     void sh_plans();
-    void sh_run(r3cplan &X, const vector<std::function<field &(int)>> &f, bool add);
-    void sh_fill_down(const vector<fspec> &fs);  // the sources of a fill of level 1 into the shadows
-    void sh_down_f(const vector<std::function<field &(int)>> &f) { sh_run(sh_down, f, false); }
-    void sh_zero(r3cplan &X, const std::function<field &(int)> &f);  // the sent items of X in f (the shadows)
+    void sh_run(r3cplan &X, const vector<std::function<field&(int)>> &f, bool add);
+    void sh_fill_down(const vector<fspec> &fs);    // the sources of a fill of level 1 into the shadows
+    void sh_down_f(const vector<std::function<field&(int)>> &f) { sh_run(sh_down,f,false); }
+    void sh_zero(r3cplan &X, const std::function<field&(int)> &f);  // the sent items of X in f (the shadows)
     void sh_folds();
     void sh_ks();
-    bool is_shadow(int g) const { return g >= npat; }
+    bool is_shadow(int g) const { return g>=npat; }
 
     // heat or concentration (cfd_amr_scalar.cpp): a conservative transport of the scalar on all
     // grids (SSP-RK3 in flux form; the diffusion explicit in the stages, D 20 1, or implicit after
     // them, D 20 2), the fluxes through the faces at the patch edges matched with flux registers
-    int scal = 0;         // 0 none, 1 heat T (H 10), 2 concentration C (C 10)
-    int sc_conv = 0;      // convection H 15 / C 15: 0 none, 1 first-order upwind, 4 WENO (weno_flux_nug)
-    int sc_diff = 0;      // D 20: 0 none, 1 explicit, 2 implicit
-    double sc_sig = 1.0;  // the turbulent Prandtl (Schmidt) number of the eddy viscosity
+    int scal = 0;                       // 0 none, 1 heat T (H 10), 2 concentration C (C 10)
+    int sc_conv = 0;                    // convection H 15 / C 15: 0 none, 1 first-order upwind, 4 WENO (weno_flux_nug)
+    int sc_diff = 0;                    // D 20: 0 none, 1 explicit, 2 implicit
+    double sc_sig = 1.0;                // the turbulent Prandtl (Schmidt) number of the eddy viscosity
     heat *pheat0 = nullptr;
     concentration *pconc0 = nullptr;
-    fluid_update_fsf_heat *smat = nullptr;  // heat: the material tables of the density and viscosity
-    cfd_amr_scgrid sc0;                     // level 0 (the patches: cfd_amr_patch::sc)
-    cfd_amr_scgrid &SG(int g) { return g < 0 ? sc0 : *CP(g)->sc; }
+    fluid_update_fsf_heat *smat = nullptr;      // heat: the material tables of the density and viscosity
+    cfd_amr_scgrid sc0;                 // level 0 (the patches: cfd_amr_patch::sc)
+    cfd_amr_scgrid& SG(int g) { return g<0 ? sc0 : *CP(g)->sc; }
     void sc_make(int g);
-    void sc_release(cfd_amr_scgrid &);
-    vector<double> fr_c, fr_f;  // flux registers per face of cf: the coarse and the fine flux (time integral x fine face area)
-    int tl_s = -1;              // the time level of the scalar
-    field &sfield(int g);       // the scalar of grid g
+    void sc_release(cfd_amr_scgrid&);
+    vector<double> fr_c, fr_f;          // flux registers per face of cf: the coarse and the fine flux (time integral x fine face area)
+    int tl_s = -1;                      // the time level of the scalar
+    field& sfield(int g);               // the scalar of grid g
     double sval(int g, int i, int j, int k);
     double sval(int g, int q);
-    double rmix(const lexer *, double H, double s);  // density of the mixture (as fluid_update_fsf_heat / _concentration)
-    double vmix(const lexer *, double H, double s);  // viscosity
+    double rmix(const lexer*, double H, double s);   // density of the mixture (as fluid_update_fsf_heat / _concentration)
+    double vmix(const lexer*, double H, double s);   // viscosity
     void sc_alloc();
     void sc_free();
     void sc_kappa(int g);
@@ -731,12 +718,12 @@ private:
     void sc_update(int g, int s, double dt);
     void sc_bc(int g);
     void sc_diffuse(int g);
-    void sc_fill(int l, int mode);                     // the cells around the patches of level l: 0 the current scalar, 1 the time level of the coarser grid
-    void sc_step_comp();                               // G 7 0: all grids
+    void sc_fill(int l, int mode);      // the cells around the patches of level l: 0 the current scalar, 1 the time level of the coarser grid
+    void sc_step_comp();                // G 7 0: all grids
     void sc_step_level(int l, double dt, double th0);  // G 7 1: the grids of level l
-    void sc_reflux(int l);                             // the flux registers of the patch edges of level l onto level l-1
+    void sc_reflux(int l);              // the flux registers of the patch edges of level l onto level l-1
     void sc_reset(int lfine);
-    void sc_record_shadows(double w, bool diff);  // G 40: the coarse fluxes of level 0 at the level-1 edges
+    void sc_record_shadows(double w, bool diff);    // G 40: the coarse fluxes of level 0 at the level-1 edges
     double sc_total(double &smin, double &smax);
 
     // the output of the patches in the time windows P 35 (cfd_amr_print.cpp): the next output time of

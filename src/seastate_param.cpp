@@ -20,9 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "seastate_param.h"
-#include "seastate_grid.h"
-#include <cmath>
+#include"seastate_param.h"
+#include"seastate_grid.h"
+#include<cmath>
 
 void seastate_param::compute(const seastate_grid &g, const float *N)
 {
@@ -30,58 +30,58 @@ void seastate_param::compute(const seastate_grid &g, const float *N)
 
     *this = seastate_param();
 
-    if(N == nullptr || g.nbin == 0)
-        return;
+    if(N==nullptr || g.nbin==0)
+    return;
 
-    double a = 0.0, b = 0.0, epeak = 0.0;
+    double a=0.0, b=0.0, epeak=0.0;
 
-    for(int l = 0; l < g.nsig; ++l)
+    for(int l=0; l<g.nsig; ++l)
     {
-        const double sig = g.sig[l];
-        double e1 = 0.0;  // E(sig_l) integrated over direction
-        double ec = 0.0;
-        double es = 0.0;
+    const double sig = g.sig[l];
+    double e1 = 0.0;   // E(sig_l) integrated over direction
+    double ec = 0.0;
+    double es = 0.0;
 
-        for(int m = 0; m < g.ndir; ++m)
+        for(int m=0; m<g.ndir; ++m)
         {
-            const double E = sig * double(N[g.bin(l, m)]) * g.wth[m];
-            e1 += E;
-            ec += E * g.costh[m];
-            es += E * g.sinth[m];
+        const double E = sig*double(N[g.bin(l,m)])*g.wth[m];
+        e1 += E;
+        ec += E*g.costh[m];
+        es += E*g.sinth[m];
         }
 
-        e1 *= g.dtheta;
-        ec *= g.dtheta;
-        es *= g.dtheta;
+    e1 *= g.dtheta;
+    ec *= g.dtheta;
+    es *= g.dtheta;
 
-        m0 += e1 * g.dsig[l];
-        m1 += e1 * sig * g.dsig[l];
-        mm1 += e1 / sig * g.dsig[l];
-        a += ec * g.dsig[l];
-        b += es * g.dsig[l];
+    m0  += e1*g.dsig[l];
+    m1  += e1*sig*g.dsig[l];
+    mm1 += e1/sig*g.dsig[l];
+    a   += ec*g.dsig[l];
+    b   += es*g.dsig[l];
 
-        if(e1 > epeak)
+        if(e1>epeak)
         {
-            epeak = e1;
-            lpeak = l;
+        epeak = e1;
+        lpeak = l;
         }
     }
 
-    if(!(m0 > 0.0))
+    if(!(m0>0.0))
     {
-        *this = seastate_param();
-        return;
+    *this = seastate_param();
+    return;
     }
 
-    Hs = 4.0 * std::sqrt(m0);
-    Tm01 = 2.0 * pi * m0 / m1;
-    Tm10 = 2.0 * pi * mm1 / m0;
-    Tp = lpeak >= 0 ? 2.0 * pi / g.sig[lpeak] : 0.0;
+    Hs   = 4.0*std::sqrt(m0);
+    Tm01 = 2.0*pi*m0/m1;
+    Tm10 = 2.0*pi*mm1/m0;
+    Tp   = lpeak>=0 ? 2.0*pi/g.sig[lpeak] : 0.0;
 
-    dir = std::atan2(b, a) * 180.0 / pi;
-    if(dir < 0.0)
-        dir += 360.0;
+    dir = std::atan2(b,a)*180.0/pi;
+    if(dir<0.0)
+    dir += 360.0;
 
-    const double r = std::sqrt(a * a + b * b) / m0;
-    spread = std::sqrt(std::fmax(2.0 * (1.0 - r), 0.0)) * 180.0 / pi;
+    const double r = std::sqrt(a*a + b*b)/m0;
+    spread = std::sqrt(std::fmax(2.0*(1.0 - r),0.0))*180.0/pi;
 }

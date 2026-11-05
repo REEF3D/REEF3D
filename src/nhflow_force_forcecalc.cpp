@@ -20,22 +20,22 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "amr_grid_lookup.h"
-#include "fdm_nhf.h"
-#include "ghostcell.h"
-#include "lexer.h"
-#include "nhflow_force.h"
+#include"nhflow_force.h"
+#include"lexer.h"
+#include"fdm_nhf.h"
+#include"ghostcell.h"
+#include"amr_grid_lookup.h"
 #include <math.h>
 
-void nhflow_force::force_calc(lexer *p, fdm_nhf *d, ghostcell *pgc)
-{
-    force_local(p, d, pgc);
-
+void nhflow_force::force_calc(lexer* p, fdm_nhf *d, ghostcell *pgc)
+{  
+    force_local(p,d,pgc);
+    
     // mesh refinement: the pieces on the patches of this rank
-    if(amr != nullptr)
+    if(amr!=nullptr)
     {
-        double F[7] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
-        amr->solid_forces(ID, F);
+        double F[7] = {0.0,0.0,0.0,0.0,0.0,0.0,0.0};
+        amr->solid_forces(ID,F);
         Fx += F[0];
         Fy += F[1];
         Fz += F[2];
@@ -44,11 +44,11 @@ void nhflow_force::force_calc(lexer *p, fdm_nhf *d, ghostcell *pgc)
         Az += F[5];
         A_tot += F[6];
     }
-
+    
     Fx = pgc->globalsum(Fx);
     Fy = pgc->globalsum(Fy);
     Fz = pgc->globalsum(Fz);
-
+    
     Ax = pgc->globalsum(Ax);
     Ay = pgc->globalsum(Ay);
     Az = pgc->globalsum(Az);
@@ -56,149 +56,152 @@ void nhflow_force::force_calc(lexer *p, fdm_nhf *d, ghostcell *pgc)
 }
 
 // the sums over the pieces of this grid on this rank
-void nhflow_force::force_local(lexer *p, fdm_nhf *d, ghostcell *pgc)
-{
-    Ax = 0.0;
-    Ay = 0.0;
-    Az = 0.0;
-
-    Fx = Fy = Fz = 0.0;
-    A_tot = 0.0;
-
-    for(n = 0; n < polygon_num; ++n)
-    {
-        // triangle
-        if(numpt[n] == 3)
-            add_triangle(p, d, facet[n][0], facet[n][1], facet[n][2]);
-
-        // quadrilateral: vertex cycle 0-1-3-2 (marching tetrahedra), split along the diagonal 0-3
-        // pressure at each sub-triangle centroid, the vertex average is not the area centroid of the quad
-        if(numpt[n] == 4)
-        {
-            add_triangle(p, d, facet[n][0], facet[n][1], facet[n][3]);
-            add_triangle(p, d, facet[n][0], facet[n][3], facet[n][2]);
-        }
+void nhflow_force::force_local(lexer* p, fdm_nhf *d, ghostcell *pgc)
+{  
+    Ax=0.0;
+    Ay=0.0;
+    Az=0.0;
+    
+    Fx=Fy=Fz=0.0;
+    A_tot=0.0;
+    
+    for(n=0;n<polygon_num;++n)
+    { 
+            // triangle
+            if(numpt[n]==3)
+            add_triangle(p,d,facet[n][0],facet[n][1],facet[n][2]);
+            
+            // quadrilateral: vertex cycle 0-1-3-2 (marching tetrahedra), split along the diagonal 0-3
+            // pressure at each sub-triangle centroid, the vertex average is not the area centroid of the quad
+            if(numpt[n]==4)
+            {
+            add_triangle(p,d,facet[n][0],facet[n][1],facet[n][3]);
+            add_triangle(p,d,facet[n][0],facet[n][3],facet[n][2]);
+            }
     }
 }
 
-void nhflow_force::add_triangle(lexer *p, fdm_nhf *d, int q1, int q2, int q3)
+void nhflow_force::add_triangle(lexer* p, fdm_nhf *d, int q1, int q2, int q3)
 {
-    x1 = ccpt[q1][0];
-    y1 = ccpt[q1][1];
-    z1 = ccpt[q1][2];
+            x1 = ccpt[q1][0];
+            y1 = ccpt[q1][1];
+            z1 = ccpt[q1][2];
+            
+            x2 = ccpt[q2][0];
+            y2 = ccpt[q2][1];
+            z2 = ccpt[q2][2];
+            
+            x3 = ccpt[q3][0];
+            y3 = ccpt[q3][1];
+            z3 = ccpt[q3][2];
+            
+            xc = (1.0/3.0)*(x1 + x2 + x3);
+            yc = (1.0/3.0)*(y1 + y2 + y3);
+            zc = (1.0/3.0)*(z1 + z2 + z3);
+            
+            // mesh refinement: the piece belongs to the finest grid at its centre
+            if(amr!=nullptr && !amr->force_leaf(amr_grid,xc,yc))
+            return;
+            
+            A = triangle_area(p,x1,y1,z1,x2,y2,z2,x3,y3,z3);
+            
+            xp1 = x2-x1;
+            yp1 = y2-y1;
+            zp1 = z2-z1;
+            
+            xp2 = x3-x1;
+            yp2 = y3-y1;
+            zp2 = z3-z1;
+            
+            nx=fabs(yp1*zp2 - zp1*yp2);
+            ny=fabs(zp1*xp2 - xp1*zp2);
+            nz=fabs(xp1*yp2 - yp1*xp2);
+            
+            norm = sqrt(nx*nx + ny*ny + nz*nz);
+            
+            nx/=norm>1.0e-20?norm:1.0e20;
+            ny/=norm>1.0e-20?norm:1.0e20;
+            nz/=norm>1.0e-20?norm:1.0e20;
+            
+            //----
+            
+            i = p->posc_i(xc);
+            j = p->posc_j(yc);
+            k = p->posc_sig(i,j,zc);
+            
+            sgnx = (d->SOLID[Ip1JK] - d->SOLID[Im1JK])/(p->DXP[IM1] + p->DXP[IP]);
+            sgny = (d->SOLID[IJp1K] - d->SOLID[IJm1K])/(p->DYP[JM1] + p->DYP[JP]);
+            sgnz = (d->SOLID[IJKp1] - d->SOLID[IJKm1])/(p->DZP[KM1] + p->DZP[KP])*p->sigz[IJ];
+            
 
-    x2 = ccpt[q2][0];
-    y2 = ccpt[q2][1];
-    z2 = ccpt[q2][2];
-
-    x3 = ccpt[q3][0];
-    y3 = ccpt[q3][1];
-    z3 = ccpt[q3][2];
-
-    xc = (1.0 / 3.0) * (x1 + x2 + x3);
-    yc = (1.0 / 3.0) * (y1 + y2 + y3);
-    zc = (1.0 / 3.0) * (z1 + z2 + z3);
-
-    // mesh refinement: the piece belongs to the finest grid at its centre
-    if(amr != nullptr && !amr->force_leaf(amr_grid, xc, yc))
-        return;
-
-    A = triangle_area(p, x1, y1, z1, x2, y2, z2, x3, y3, z3);
-
-    xp1 = x2 - x1;
-    yp1 = y2 - y1;
-    zp1 = z2 - z1;
-
-    xp2 = x3 - x1;
-    yp2 = y3 - y1;
-    zp2 = z3 - z1;
-
-    nx = fabs(yp1 * zp2 - zp1 * yp2);
-    ny = fabs(zp1 * xp2 - xp1 * zp2);
-    nz = fabs(xp1 * yp2 - yp1 * xp2);
-
-    norm = sqrt(nx * nx + ny * ny + nz * nz);
-
-    nx /= norm > 1.0e-20 ? norm : 1.0e20;
-    ny /= norm > 1.0e-20 ? norm : 1.0e20;
-    nz /= norm > 1.0e-20 ? norm : 1.0e20;
-
-    //----
-
-    i = p->posc_i(xc);
-    j = p->posc_j(yc);
-    k = p->posc_sig(i, j, zc);
-
-    sgnx = (d->SOLID[Ip1JK] - d->SOLID[Im1JK]) / (p->DXP[IM1] + p->DXP[IP]);
-    sgny = (d->SOLID[IJp1K] - d->SOLID[IJm1K]) / (p->DYP[JM1] + p->DYP[JP]);
-    sgnz = (d->SOLID[IJKp1] - d->SOLID[IJKm1]) / (p->DZP[KM1] + p->DZP[KP]) * p->sigz[IJ];
-
-    nx = nx * sgnx / fabs(fabs(sgnx) > 1.0e-20 ? sgnx : 1.0e20);
-    ny = ny * sgny / fabs(fabs(sgny) > 1.0e-20 ? sgny : 1.0e20);
-    nz = nz * sgnz / fabs(fabs(sgnz) > 1.0e-20 ? sgnz : 1.0e20);
-
-    xloc = xc + nx * p->DXP[IP] * p->P91;
-    yloc = yc + ny * p->DYP[JP] * p->P91;
-    zloc = zc + nz * p->DZP[KP] * d->WL(i, j) * p->P91;
-
-    xlocvel = xc + nx * p->DXP[IP];
-    ylocvel = yc + ny * p->DYP[JP];
-    zlocvel = zc + nz * p->DZP[KP] * d->WL(i, j);
-
-    density = p->ccipol4V(d->RO, d->WL, d->bed, xloc, yloc, zloc);
-    viscosity = p->ccipol4V(d->VISC, d->WL, d->bed, xloc, yloc, zloc);
-    if(p->P82 == 1)
-        viscosity += p->ccipol4V(d->EV, d->WL, d->bed, xloc, yloc, zloc);
-
-    // pressure
-    pval = p->ccipol7V(d->P, d->WL, d->bed, xc, yc, zc);
-    etaval = p->ccslipol4(d->eta, xc, yc);
-    hspval = (p->wd + etaval - zc) * p->W1 * fabs(p->W22);
-
-    // if(zc>p->wd + etaval)
-    // pval = hspval = 0.0;
-
-    /*double Fval = -(pval + hspval)*A*nx;
-
-    if(Fval != Fval)
-    cout<<"NAN FORCE: "<<pval<<" "<<hspval<<" "<<A<<" "<<nx<<endl;*/
-
-    // Force
-    Fx += -(pval + hspval) * A * nx;
-    //+ 0.0*density*viscosity*A*(du*ny+du*nz);
-
-    Fy += -(pval + hspval) * A * ny;
-    // + 0.0*density*viscosity*A*(dv*nx+dv*nz);
-
-    Fz += -(pval + hspval) * A * nz;
-    // + 0.0*density*viscosity*A*(dw*nx+dw*ny);
-
-    Ax += fabs(A * nx);
-    Ay += A * ny;
-    Az += A * nz;
-
-    A_tot += A;
+            nx = nx*sgnx/fabs(fabs(sgnx)>1.0e-20?sgnx:1.0e20);
+            ny = ny*sgny/fabs(fabs(sgny)>1.0e-20?sgny:1.0e20);
+            nz = nz*sgnz/fabs(fabs(sgnz)>1.0e-20?sgnz:1.0e20);
+            
+            
+            xloc = xc + nx*p->DXP[IP]*p->P91;
+            yloc = yc + ny*p->DYP[JP]*p->P91;
+            zloc = zc + nz*p->DZP[KP]*d->WL(i,j)*p->P91;
+            
+            xlocvel = xc + nx*p->DXP[IP];
+            ylocvel = yc + ny*p->DYP[JP];
+            zlocvel = zc + nz*p->DZP[KP]*d->WL(i,j);
+            
+            density =   p->ccipol4V(d->RO, d->WL, d->bed,xloc,yloc,zloc);
+            viscosity = p->ccipol4V(d->VISC, d->WL, d->bed,xloc,yloc,zloc);
+            if(p->P82==1)
+            viscosity += p->ccipol4V(d->EV, d->WL, d->bed,xloc,yloc,zloc);
+            
+            // pressure
+            pval   = p->ccipol7V(d->P, d->WL, d->bed, xc, yc, zc);
+            etaval = p->ccslipol4(d->eta,xc,yc);  
+            hspval = (p->wd + etaval - zc)*p->W1*fabs(p->W22);
+            
+            //if(zc>p->wd + etaval)
+            //pval = hspval = 0.0;
+            
+            /*double Fval = -(pval + hspval)*A*nx;
+            
+            if(Fval != Fval)
+            cout<<"NAN FORCE: "<<pval<<" "<<hspval<<" "<<A<<" "<<nx<<endl;*/
+            
+            // Force
+            Fx += -(pval + hspval)*A*nx;
+                       //+ 0.0*density*viscosity*A*(du*ny+du*nz);
+                       
+            Fy += -(pval + hspval)*A*ny;
+                      // + 0.0*density*viscosity*A*(dv*nx+dv*nz);
+                    
+            Fz += -(pval + hspval)*A*nz;
+                      // + 0.0*density*viscosity*A*(dw*nx+dw*ny); 
+                      
+    Ax+=fabs(A*nx);    
+    Ay+=A*ny;
+    Az+=A*nz;
+    
+    A_tot+=A;
 }
 
 double nhflow_force::triangle_area(lexer *p, double x0, double y0, double z0, double x1, double y1, double z1, double x2, double y2, double z2)
 {
-    double ax, ay, az;
-    double bx, by, bz;
-    double cx, cy, cz;
-
-    ax = x1 - x0;
-    ay = y1 - y0;
-    az = z1 - z0;
-
-    bx = x2 - x0;
-    by = y2 - y0;
-    bz = z2 - z0;
-
+    double ax,ay,az;
+    double bx,by,bz;
+    double cx,cy,cz;
+    
+    ax = x1-x0;
+    ay = y1-y0;
+    az = z1-z0;
+    
+    bx = x2-x0;
+    by = y2-y0;
+    bz = z2-z0;
+    
     // twice the area is the norm of the cross product
-    cx = ay * bz - az * by;
-    cy = az * bx - ax * bz;
-    cz = ax * by - ay * bx;
-
-    return 0.5 * sqrt(cx * cx + cy * cy + cz * cz);
+    cx = ay*bz - az*by;
+    cy = az*bx - ax*bz;
+    cz = ax*by - ay*bx;
+    
+    return 0.5*sqrt(cx*cx + cy*cy + cz*cz);
 }
+
 

@@ -20,10 +20,11 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "coral/wind/coral_wind_probe.h"
-#include "coral/core/coral_model.h"
+#include"coral/wind/coral_wind_probe.h"
+#include"coral/core/coral_model.h"
 
-namespace coral {
+namespace coral
+{
 
 wind_probe::wind_probe(const model &m, std::shared_ptr<const wind_inflow> w, int b, const Vec3 &p, const std::string &name)
     : wind_(std::move(w)), b_(b), s_(m.body(b).to_body(p)), name_(name) {}
@@ -37,10 +38,7 @@ void wind_probe::channel_names(std::vector<std::string> &c) const
 void wind_probe::channel_values(const model &m, double t, std::vector<double> &v) const
 {
     const Vec3 u = wind_->velocity(m.body(b_).point(s_), t);
-    v.push_back(u(0));
-    v.push_back(u(1));
-    v.push_back(u(2));
-    v.push_back(u.norm());
+    v.push_back(u(0)); v.push_back(u(1)); v.push_back(u(2)); v.push_back(u.norm());
 }
 
-}  // namespace coral
+}

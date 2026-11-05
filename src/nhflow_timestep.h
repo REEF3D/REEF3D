@@ -23,8 +23,8 @@ Author: Hans Bihs
 #ifndef NHFLOW_TIMESTEP_H_
 #define NHFLOW_TIMESTEP_H_
 
-#include "increment.h"
-#include "timestep.h"
+#include"timestep.h"
+#include"increment.h"
 
 class fdm_nhf;
 class lexer;
@@ -37,9 +37,9 @@ class nhflow_timestep_hook
 {
 public:
     // maximum over the patch cells on this rank: 0 WL, 1 |U|, 2 |V|, 3 |W|, 4 |omega|
-    virtual double dt_local_max(int) = 0;
+    virtual double dt_local_max(int)=0;
     // smallest horizontal cell size (and dz*WL) of the patch cells on this rank (1: wet cells only)
-    virtual void dt_cell_size(int, double &, double &) = 0;
+    virtual void dt_cell_size(int, double&, double&)=0;
     // A 534 1: the smallest cell time scale of the semi-implicit step (advection, horizontal diffusion;
     // nhflow_timestep_SI) and the largest water depth over the patch cells on this rank
     virtual void dt_si_cmin(double cfl, double &cmin, double &hmax) {}
@@ -48,21 +48,23 @@ public:
 class nhflow_timestep : public increment
 {
 public:
-    nhflow_timestep(lexer *);
-    virtual ~nhflow_timestep();
-    virtual void start(lexer *, fdm_nhf *, ghostcell *);
-    virtual void ini(lexer *, fdm_nhf *, ghostcell *);
-
+	nhflow_timestep(lexer*);
+	virtual ~nhflow_timestep();
+	virtual void start(lexer*,fdm_nhf*,ghostcell*);
+	virtual void ini(lexer*,fdm_nhf*,ghostcell*);
+    
     nhflow_timestep_hook *phook = nullptr;
 
+
 private:
-    double wallu, wallv, wallw;
-    double cu, cv, cw, co;
-    const double epsi;
-    double isor, jsor, ksor;
-    double irsm, jrsm, krsm;
+	double wallu,wallv,wallw;
+	double cu,cv,cw,co;
+	const double epsi;
+	double isor,jsor,ksor;
+	double irsm,jrsm,krsm;
     const double maxtimestep, c0_orig;
-    double dx, dz;
+    double dx,dz;
+
 };
 
 #endif

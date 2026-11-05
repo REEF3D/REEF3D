@@ -23,10 +23,10 @@ Architect: Hans Bihs
 #ifndef BREAKING_CREST3D_H_
 #define BREAKING_CREST3D_H_
 
-#include "increment.h"
-#include <fstream>
-#include <functional>
-#include <vector>
+#include"increment.h"
+#include<vector>
+#include<functional>
+#include<fstream>
 
 class lexer;
 class ghostcell;
@@ -68,20 +68,20 @@ using namespace std;
 
 struct bc3_point
 {
-    double x = 0.0, y = 0.0, nx = 1.0, ny = 0.0;    // crest position, unit ridge normal (direction of travel)
-    double eta = 0.0, us = 0.0, wl = 0.0, d = 0.0;  // crest elevation, u_s.n, total water depth at the crest, step along n
-    double C = 0.0, B = 0.0, b = 0.0, ton = -1.0e20;
-    double eps = 0.0, nu = 0.0, dpn = 0.0, H = 0.0, ht = 0.0, L = 0.0, sa = 0.0, sb = 0.0, sback = 0.0, kw = 0.0;
-    long long id = 0;
-    int state = 0, hasC = 0, nh = 0, nbh = 0, i = 0, j = 0, rank = 0;
-    double th[8], xh[8], yh[8];  // position samples (t, x, y), oldest first
-    double tb[8], bh[8];         // B samples (t, B)
+    double x=0.0, y=0.0, nx=1.0, ny=0.0;   // crest position, unit ridge normal (direction of travel)
+    double eta=0.0, us=0.0, wl=0.0, d=0.0; // crest elevation, u_s.n, total water depth at the crest, step along n
+    double C=0.0, B=0.0, b=0.0, ton=-1.0e20;
+    double eps=0.0, nu=0.0, dpn=0.0, H=0.0, ht=0.0, L=0.0, sa=0.0, sb=0.0, sback=0.0, kw=0.0;
+    long long id=0;
+    int state=0, hasC=0, nh=0, nbh=0, i=0, j=0, rank=0;
+    double th[8], xh[8], yh[8];            // position samples (t, x, y), oldest first
+    double tb[8], bh[8];                   // B samples (t, B)
 };
 
 class breaking_crest3d : public increment
 {
 public:
-    breaking_crest3d(lexer *);
+    breaking_crest3d(lexer*);
     virtual ~breaking_crest3d();
 
     // parameters
@@ -98,17 +98,17 @@ public:
     // zone (int per slice cell, 1: no crests, may be nullptr). With the velocity potential at the surface (phi,
     // FNPF) u_s.n is the derivative of the parabola of phi along n at the crest, otherwise the parabola of
     // (us, vs).n through -d, 0, +d at the crest.
-    void detect(lexer *, ghostcell *, slice &eta, slice &us, slice &vs, slice &WL, int *zone, double t, slice *phi = nullptr);
+    void detect(lexer*, ghostcell*, slice &eta, slice &us, slice &vs, slice &WL, int *zone, double t, slice *phi=nullptr);
 
     // rays of the candidates, state, strength and painting.
     //   sback(point)              length of the interval behind the crest that is painted (0: crest to trough)
     //   integrand(point, x, y)    dissipation per unit viscosity, crest length and ray length at (x, y)
     //   epsf(point)               strength per unit crest length
     // vb: viscosity (max), brk: flags 1, kw: wavenumber 2 pi / L of the ray of the largest viscosity (may be nullptr)
-    void rays(lexer *, ghostcell *, slice &eta, slice &WL, double t,
-              const std::function<double(const bc3_point &)> &sback,
-              const std::function<double(const bc3_point &, double, double)> &integrand,
-              const std::function<double(const bc3_point &)> &epsf,
+    void rays(lexer*, ghostcell*, slice &eta, slice &WL, double t,
+              const std::function<double(const bc3_point&)> &sback,
+              const std::function<double(const bc3_point&, double, double)> &integrand,
+              const std::function<double(const bc3_point&)> &epsf,
               slice &vb, int *brk, slice *kw);
 
     // the rays of the last call (all ranks have them) and the number of breaking crest points
@@ -119,31 +119,31 @@ public:
     double deepest_onset = -1.0e20;
 
     // crest log (P 59 1): rank 0 writes the candidates
-    void log(lexer *, double t, const char *file);
+    void log(lexer*, double t, const char *file);
 
     // bilinear value of a slice at (x, y); valid within one cell outside the own subdomain
-    double ip(lexer *, slice &, double x, double y);
+    double ip(lexer*, slice&, double x, double y);
     // cell containing (x, y) (own cells and ghosts), -1e9 when outside
-    int cell_i(lexer *, double x);
-    int cell_j(lexer *, double y);
-    bool own(lexer *, double x, double y);
+    int cell_i(lexer*, double x);
+    int cell_j(lexer*, double y);
+    bool own(lexer*, double x, double y);
 
 private:
-    std::vector<bc3_point> pts, prev, halo;  // crest points of this step, of the last step, neighbours' of the last step
+    std::vector<bc3_point> pts, prev, halo;   // crest points of this step, of the last step, neighbours' of the last step
     long long nextid = 0;
-    double tprev = -1.0e20;  // time of the last detect
+    double tprev = -1.0e20;   // time of the last detect
     int nproc = 1, rank = 0;
     std::ofstream logf;
 
-    bool wetcell(lexer *, int, int);
-
+    bool wetcell(lexer*, int, int);
+    
     // the sides of the domain that are walls (1: x-, 2: x+, 3: y-, 4: y+; no inflow / outflow cells on any rank),
     // set at the first rays(): a ray that reaches a wall slides along it instead of ending there
-    int wallside[5] = {-1, 0, 0, 0, 0};
-    void walls(lexer *, ghostcell *);
-    bool clampxy(lexer *, double &x, double &y);
-    double celld(lexer *, int, int, double, double);
-    void exchange_halo(lexer *);
+    int wallside[5] = {-1,0,0,0,0};
+    void walls(lexer*, ghostcell*);
+    bool clampxy(lexer*, double &x, double &y);
+    double celld(lexer*, int, int, double, double);
+    void exchange_halo(lexer*);
 };
 
 #endif

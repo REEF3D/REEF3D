@@ -20,94 +20,95 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Tobias Martin
 --------------------------------------------------------------------*/
 
-#include "6DOF_obj.h"
-#include "6DOF_obj_cfd.h"
-#include "fdm.h"
-#include "ghostcell.h"
-#include "lexer.h"
-#include "mooring.h"
+#include"6DOF_obj.h"
+#include"6DOF_obj_cfd.h"
+#include"lexer.h"
+#include"fdm.h"
+#include"ghostcell.h"
+#include"mooring.h"
 
-void sixdof_obj_cfd::hydrodynamic_forces_cfd(lexer *p, fdm *a, ghostcell *pgc, field &uvel, field &vvel, field &wvel, int iter, bool finalize)
+void sixdof_obj_cfd::hydrodynamic_forces_cfd(lexer* p, fdm *a, ghostcell *pgc,field& uvel, field& vvel, field& wvel, int iter, bool finalize)
 {
-    if(p->X60 == 1)
-        forces_stl(p, a, pgc, uvel, vvel, wvel, iter, finalize);
-
-    if(p->X60 == 2)
-        forces_lsm(p, a, pgc, uvel, vvel, wvel, iter, finalize);
+    if(p->X60==1)
+    forces_stl(p,a,pgc,uvel,vvel,wvel,iter,finalize);
+    
+    if(p->X60==2)
+    forces_lsm(p,a,pgc,uvel,vvel,wvel,iter,finalize);
 }
 
 void sixdof_obj::update_forces(lexer *p)
 {
     // Forces in inertial system: external loads, linear damping, DOF modes
     double Fext[6] = {Xext + Xe, Yext + Ye, Zext + Ze, Kext + Ke, Mext + Me, Next + Ne};
-
+    
     // load models (ship module): evaluated with the state of the stage
     bool am_load = false;
-    Eigen::Matrix<double, 6, 6> A_load;
-
+    Eigen::Matrix<double,6,6> A_load;
+    
     if(!pload.empty())
     {
-        double Fl[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
-
-        for(size_t ql = 0; ql < pload.size(); ++ql)
-            pload[ql]->add_load(p, rb, geom, pfluid, Fl);
-
+        double Fl[6] = {0.0,0.0,0.0,0.0,0.0,0.0};
+        
+        for(size_t ql=0; ql<pload.size(); ++ql)
+        pload[ql]->add_load(p,rb,geom,pfluid,Fl);
+        
         // hydrodynamic loads of the coupling that a model replaces (e.g. MMG manoeuvring)
-        double w[6] = {1.0, 1.0, 1.0, 1.0, 1.0, 1.0};
-
-        for(size_t ql = 0; ql < pload.size(); ++ql)
-            pload[ql]->fluid_mask(w);
-
+        double w[6] = {1.0,1.0,1.0,1.0,1.0,1.0};
+        
+        for(size_t ql=0; ql<pload.size(); ++ql)
+        pload[ql]->fluid_mask(w);
+        
         const double Fh[6] = {Xe, Ye, Ze, Ke, Me, Ne};
-
-        for(int qn = 0; qn < 6; ++qn)
+        
+        for(int qn=0; qn<6; ++qn)
         {
-            if(w[qn] != 1.0)
-                Fext[qn] -= (1.0 - w[qn]) * Fh[qn];
-
+            if(w[qn]!=1.0)
+            Fext[qn] -= (1.0 - w[qn])*Fh[qn];
+            
             Fext[qn] += Fl[qn];
         }
-
+        
         // added mass of the models (body frame) -> inertial frame
-        Eigen::Matrix<double, 6, 6> Ab = Eigen::Matrix<double, 6, 6>::Zero();
-
-        for(size_t ql = 0; ql < pload.size(); ++ql)
-            am_load = pload[ql]->added_mass(rb, Ab) || am_load;
-
+        Eigen::Matrix<double,6,6> Ab = Eigen::Matrix<double,6,6>::Zero();
+        
+        for(size_t ql=0; ql<pload.size(); ++ql)
+        am_load = pload[ql]->added_mass(rb,Ab) || am_load;
+        
         if(am_load)
         {
-            Eigen::Matrix<double, 6, 6> T = Eigen::Matrix<double, 6, 6>::Zero();
-            T.block<3, 3>(0, 0) = rb.R;
-            T.block<3, 3>(3, 3) = rb.R;
-            A_load = T * Ab * T.transpose();
+            Eigen::Matrix<double,6,6> T = Eigen::Matrix<double,6,6>::Zero();
+            T.block<3,3>(0,0) = rb.R;
+            T.block<3,3>(3,3) = rb.R;
+            A_load = T*Ab*T.transpose();
         }
     }
-
+    
     rb.assemble_loads(Fext);
-
-    if(Ffb_(0) != Ffb_(0))
-        cout << "Ffb_(0)....###" << endl;
-
-    if(Ffb_(1) != Ffb_(1))
-        cout << "Ffb_(1)....###" << endl;
-
-    if(Ffb_(2) != Ffb_(2))
-        cout << "Ffb_(2)....###" << endl;
-
-    if(Mfb_(0) != Mfb_(0))
-        cout << "Mfb_(0)....###" << endl;
-
-    if(Mfb_(1) != Mfb_(1))
-        cout << "Mfb_(1)....###" << endl;
-
-    if(Mfb_(2) != Mfb_(2))
-        cout << "Mfb_(2)....###" << endl;
-
+    
+    if(Ffb_(0)!=Ffb_(0))
+    cout<<"Ffb_(0)....###"<<endl;
+    
+    if(Ffb_(1)!=Ffb_(1))
+    cout<<"Ffb_(1)....###"<<endl;
+    
+    if(Ffb_(2)!=Ffb_(2))
+    cout<<"Ffb_(2)....###"<<endl;
+    
+    
+    if(Mfb_(0)!=Mfb_(0))
+    cout<<"Mfb_(0)....###"<<endl;
+    
+    if(Mfb_(1)!=Mfb_(1))
+    cout<<"Mfb_(1)....###"<<endl;
+    
+    if(Mfb_(2)!=Mfb_(2))
+    cout<<"Mfb_(2)....###"<<endl;
+    
     // FNPF: instantaneous added mass (and implicit PTO terms, X 500 2) on the left-hand side
     if(am_on_ || am_load || (pto_on_ && pto_implicit_))
-        apply_added_mass(p, am_load ? &A_load : nullptr);
-    else if(am_cfd_ > 0.0)
-        cfd_added_mass(p);
+    apply_added_mass(p, am_load ? &A_load : nullptr);
+    else if(am_cfd_>0.0)
+    cfd_added_mass(p);
 }
 
 // CFD: the loads of the fluid contain the reaction of the fluid to the acceleration of the body of
@@ -119,44 +120,44 @@ void sixdof_obj::update_forces(lexer *p)
 // inertia of the body with the density of the fluid in rotation
 void sixdof_obj::cfd_added_mass(lexer *p)
 {
-    const Eigen::Matrix3d II = R_ * I_ * R_.transpose();
+    const Eigen::Matrix3d II = R_*I_*R_.transpose();
     const Eigen::Vector3d w = omega_I;
-    const Eigen::Vector3d gyro = w.cross(II * w);
+    const Eigen::Vector3d gyro = w.cross(II*w);
     const double rf = p->W1;
-    const double rb = (Vfb > 0.0) ? Mass_fb / Vfb : rf;
+    const double rb = (Vfb>0.0) ? Mass_fb/Vfb : rf;
 
-    Eigen::Matrix<double, 6, 6> A = Eigen::Matrix<double, 6, 6>::Zero();
-    A.block<3, 3>(0, 0) = am_cfd_ * rf * Vfb * Eigen::Matrix3d::Identity();
-    A.block<3, 3>(3, 3) = am_cfd_ * (rf / rb) * II;
+    Eigen::Matrix<double,6,6> A = Eigen::Matrix<double,6,6>::Zero();
+    A.block<3,3>(0,0) = am_cfd_*rf*Vfb*Eigen::Matrix3d::Identity();
+    A.block<3,3>(3,3) = am_cfd_*(rf/rb)*II;
 
-    Eigen::Matrix<double, 6, 6> L = A;
-    L.block<3, 3>(0, 0) += Mass_fb * Eigen::Matrix3d::Identity();
-    L.block<3, 3>(3, 3) += II;
+    Eigen::Matrix<double,6,6> L = A;
+    L.block<3,3>(0,0) += Mass_fb*Eigen::Matrix3d::Identity();
+    L.block<3,3>(3,3) += II;
 
-    Eigen::Matrix<double, 6, 1> r;
+    Eigen::Matrix<double,6,1> r;
     r.head<3>() = Ffb_;
     r.tail<3>() = Mfb_ - gyro;
-    r += A * am_prev_;
+    r += A*am_prev_;
 
     bool fixed[6];
-    for(int n = 0; n < 6; ++n)
+    for(int n=0; n<6; ++n)
     {
-        fixed[n] = p_fixed_dof(p, n);
+        fixed[n] = p_fixed_dof(p,n);
         if(fixed[n])
         {
             L.row(n).setZero();
             L.col(n).setZero();
-            L(n, n) = 1.0;
+            L(n,n) = 1.0;
             r(n) = 0.0;
         }
     }
 
-    const Eigen::Matrix<double, 6, 1> acc = L.partialPivLu().solve(r);
+    const Eigen::Matrix<double,6,1> acc = L.partialPivLu().solve(r);
     am_prev_ = acc;
-    finish_added_mass(acc, II, gyro, fixed);
+    finish_added_mass(acc,II,gyro,fixed);
 }
 
-void sixdof_obj::apply_added_mass(lexer *p, const Eigen::Matrix<double, 6, 6> *A_extra)
+void sixdof_obj::apply_added_mass(lexer *p, const Eigen::Matrix<double,6,6> *A_extra)
 {
     // Rigid body with the instantaneous added mass A (inertial frame, moments about the CoG):
     //   [M I + A_tt   A_tr    ] [a    ]   [ F                ]
@@ -166,82 +167,81 @@ void sixdof_obj::apply_added_mass(lexer *p, const Eigen::Matrix<double, 6, 6> *A
     // dp/dt = F and dh_B/dt = 2 Gdot G^T h + R^T Mo, so handing it
     //   F* = M a,   Mo* = I_I alpha + w x (I_I w)
     // gives dh_B/dt = I_B alpha_B and leaves get_trans/get_rot untouched.
-
-    const Eigen::Matrix3d II = R_ * I_ * R_.transpose();
+    
+    const Eigen::Matrix3d II = R_*I_*R_.transpose();
     const Eigen::Vector3d w = omega_I;
-    const Eigen::Vector3d gyro = w.cross(II * w);
-
+    const Eigen::Vector3d gyro = w.cross(II*w);
+    
     // FNPF added mass (am_on_) and that of the load models (A_extra, e.g. MMG)
-    Eigen::Matrix<double, 6, 6> L = Aadd_;
-
-    if(A_extra != nullptr)
+    Eigen::Matrix<double,6,6> L = Aadd_;
+    
+    if(A_extra!=nullptr)
     {
         if(!am_on_)
-            L = *A_extra;
+        L = *A_extra;
         else
-            L += *A_extra;
+        L += *A_extra;
     }
-
-    L.block<3, 3>(0, 0) += Mass_fb * Eigen::Matrix3d::Identity();
-    L.block<3, 3>(3, 3) += II;
-
-    Eigen::Matrix<double, 6, 1> r;
+    
+    L.block<3,3>(0,0) += Mass_fb*Eigen::Matrix3d::Identity();
+    L.block<3,3>(3,3) += II;
+    
+    Eigen::Matrix<double,6,1> r;
     r.head<3>() = Ffb_;
     r.tail<3>() = Mfb_ - gyro;
-
+    
     // PTO Jacobians (X 500 2)
-    pto_implicit(p, L, r);
+    pto_implicit(p,L,r);
 
     bool fixed[6];
-
-    for(int n = 0; n < 6; ++n)
+    
+    for(int n=0; n<6; ++n)
     {
-        fixed[n] = p_fixed_dof(p, n);
-
-        if(fixed[n])
-        {
-            L.row(n).setZero();
-            L.col(n).setZero();
-            L(n, n) = 1.0;
-            r(n) = 0.0;
-        }
+    fixed[n] = p_fixed_dof(p,n);
+    
+    if(fixed[n])
+    {
+    L.row(n).setZero();
+    L.col(n).setZero();
+    L(n,n) = 1.0;
+    r(n) = 0.0;
     }
-}
+    }
+    
+    // several FNPF bodies: hand the block to the coupled solve (fnpf_6DOF::motion)
+    if(am_coupled_)
+    {
+        Lc_ = L;
+        rc_ = r;
+        IIc_ = II;
+        gyroc_ = gyro;
 
-// several FNPF bodies: hand the block to the coupled solve (fnpf_6DOF::motion)
-if(am_coupled_)
-{
-    Lc_ = L;
-    rc_ = r;
-    IIc_ = II;
-    gyroc_ = gyro;
-
-    for(int n = 0; n < 6; ++n)
+        for(int n=0; n<6; ++n)
         fixedc_[n] = fixed[n];
 
-    am_assembled_ = true;
-    return;
+        am_assembled_ = true;
+        return;
+    }
+
+    const Eigen::Matrix<double,6,1> acc = L.partialPivLu().solve(r);
+    
+    finish_added_mass(acc,II,gyro,fixed);
 }
 
-const Eigen::Matrix<double, 6, 1> acc = L.partialPivLu().solve(r);
-
-finish_added_mass(acc, II, gyro, fixed);
-}
-
-void sixdof_obj::finish_added_mass(const Eigen::Matrix<double, 6, 1> &acc, const Eigen::Matrix3d &II,
+void sixdof_obj::finish_added_mass(const Eigen::Matrix<double,6,1> &acc, const Eigen::Matrix3d &II,
                                    const Eigen::Vector3d &gyro, const bool *fixed)
 {
-    Ffb_ = Mass_fb * acc.head<3>();
-    Mfb_ = II * acc.tail<3>() + gyro;
-
+    Ffb_ = Mass_fb*acc.head<3>();
+    Mfb_ = II*acc.tail<3>() + gyro;
+    
     // fixed DOFs keep the kernel's convention of zero load
-    for(int n = 0; n < 3; ++n)
+    for(int n=0; n<3; ++n)
     {
-        if(fixed[n])
-            Ffb_(n) = 0.0;
-
-        if(fixed[n + 3])
-            Mfb_(n) = 0.0;
+    if(fixed[n])
+    Ffb_(n) = 0.0;
+    
+    if(fixed[n+3])
+    Mfb_(n) = 0.0;
     }
 }
 

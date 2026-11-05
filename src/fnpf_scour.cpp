@@ -20,21 +20,21 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "fnpf_scour.h"
-#include "fdm_fnpf.h"
-#include "fnpf_sigma_col.h"
-#include "ghostcell.h"
-#include "lexer.h"
-#include <cmath>
+#include"fnpf_scour.h"
+#include"lexer.h"
+#include"fdm_fnpf.h"
+#include"ghostcell.h"
+#include"fnpf_sigma_col.h"
+#include<cmath>
 
-fnpf_scour::fnpf_scour(lexer *p, fdm_fnpf *c, ghostcell *pgc) : scour_core(p, pgc, "FNPF", &c->depth, false)
+fnpf_scour::fnpf_scour(lexer *p, fdm_fnpf *c, ghostcell *pgc) : scour_core(p,pgc,"FNPF",&c->depth,false)
 {
 }
 
 void fnpf_scour::sample(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 {
-    bedvel(p, c);
-    scour_core::sample(p, pgc);
+    bedvel(p,c);
+    scour_core::sample(p,pgc);
 }
 
 void fnpf_scour::bedvel(lexer *p, fdm_fnpf *c)
@@ -44,42 +44,42 @@ void fnpf_scour::bedvel(lexer *p, fdm_fnpf *c)
     const double *const Fi = c->Fi;
     const double ydir = p->y_dir;
 
-    k = 0;
+    k=0;
     SLICELOOP4
     {
-        if(p->wet[IJ] == 0 || p->flag7[FIJK] <= 0)
+        if(p->wet[IJ]==0 || p->flag7[FIJK]<=0)
         {
-            ub(i, j) = vb(i, j) = 0.0;
-            continue;
+        ub(i,j)=vb(i,j)=0.0;
+        continue;
         }
 
-        const double Fx = (Fi[FIp1JK] - Fi[FIm1JK]) / (p->DXP[IP] + p->DXP[IM1]);
-        const double Fy = ydir * (Fi[FIJp1K] - Fi[FIJm1K]) / (p->DYP[JP] + p->DYP[JM1]);
+        const double Fx = (Fi[FIp1JK]-Fi[FIm1JK])/(p->DXP[IP] + p->DXP[IM1]);
+        const double Fy = ydir*(Fi[FIJp1K]-Fi[FIJm1K])/(p->DYP[JP] + p->DYP[JM1]);
 
         double sgx, sgy;
 
-        if(p->sigx != nullptr)
+        if(p->sigx!=nullptr)
         {
-            sgx = p->sigx[FIJK];
-            sgy = p->sigy[FIJK];
+        sgx = p->sigx[FIJK];
+        sgy = p->sigy[FIJK];
         }
         else
         {
-            fnpf_sigma_col col;
-            col.set(p, c, i, j);
-            sgx = col.sx(p->ZN[KP]);
-            sgy = col.sy(p->ZN[KP]);
+        fnpf_sigma_col col;
+        col.set(p,c,i,j);
+        sgx = col.sx(p->ZN[KP]);
+        sgy = col.sy(p->ZN[KP]);
         }
 
-        const double bcval = c->Bx(i, j) * Fx + c->By(i, j) * Fy;
-        double denom = p->sigz[IJ] + c->Bx(i, j) * sgx + c->By(i, j) * sgy;
+        const double bcval = c->Bx(i,j)*Fx + c->By(i,j)*Fy;
+        double denom = p->sigz[IJ] + c->Bx(i,j)*sgx + c->By(i,j)*sgy;
 
-        if(fabs(denom) < 1.0e-20)
-            denom = 1.0e-20;
+        if(fabs(denom)<1.0e-20)
+        denom = 1.0e-20;
 
-        const double Fs = -bcval / denom;
+        const double Fs = -bcval/denom;
 
-        ub(i, j) = Fx + sgx * Fs;
-        vb(i, j) = ydir * (Fy + sgy * Fs);
+        ub(i,j) = Fx + sgx*Fs;
+        vb(i,j) = ydir*(Fy + sgy*Fs);
     }
 }

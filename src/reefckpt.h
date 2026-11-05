@@ -41,10 +41,10 @@ Author: Hans Bihs
 //  piece that set them, the parallel ghost cells from the neighbour's interior.  A decomposition that
 //  cuts the vertical direction (CFD) maps the cells (I,J,K) alike; slices take the column of any piece.
 
-#include <fstream>
-#include <map>
-#include <string>
-#include <vector>
+#include<string>
+#include<vector>
+#include<map>
+#include<fstream>
 
 class lexer;
 class ghostcell;
@@ -65,43 +65,37 @@ class reefckpt
 public:
     // ---- writing (all ranks)
     // the folder REEF3D_Checkpoint/<count>, with sub > 0 <count>_<sub> (SEASTATE stationary: the iteration in the step)
-    void write_open(lexer *, int count, int sub = 0);
-    void scalar(const std::string &, double);                          // rank 0's value
-    void blob(const std::string &, const std::vector<double> &);       // rank 0's data
-    void rank_blob(const std::string &, const std::vector<double> &);  // every rank its own (in its piece)
-    void put_S(const std::string &, const double *);
-    void put_Si(const std::string &, const int *);
-    void put_F(const std::string &, const double *);
-    void put_Fi(const std::string &, const int *);
-    void put_C(const std::string &, const double *);
-    void put_Ci(const std::string &, const int *);
-    void write_close(lexer *);
+    void write_open(lexer*, int count, int sub=0);
+    void scalar(const std::string&, double);                     // rank 0's value
+    void blob(const std::string&, const std::vector<double>&);   // rank 0's data
+    void rank_blob(const std::string&, const std::vector<double>&);   // every rank its own (in its piece)
+    void put_S(const std::string&, const double*);
+    void put_Si(const std::string&, const int*);
+    void put_F(const std::string&, const double*);
+    void put_Fi(const std::string&, const int*);
+    void put_C(const std::string&, const double*);
+    void put_Ci(const std::string&, const int*);
+    void write_close(lexer*);
 
     // ---- reading (all ranks); dir empty: the latest checkpoint
-    bool read_open(lexer *, const std::string &dir, std::string &msg);
-    bool has(const std::string &) const;
-    double get_scalar(const std::string &, double def = 0.0) const;
-    std::vector<double> get_blob(const std::string &) const;
+    bool read_open(lexer*, const std::string &dir, std::string &msg);
+    bool has(const std::string&) const;
+    double get_scalar(const std::string&, double def=0.0) const;
+    std::vector<double> get_blob(const std::string&) const;
     // the rank blobs of all pieces (in rank order of the checkpoint)
-    std::vector<std::vector<double>> get_rank_blobs(const std::string &);
+    std::vector<std::vector<double>> get_rank_blobs(const std::string&);
     // the rank blob of piece r (empty: none)
-    std::vector<double> get_rank_blob(const std::string &, int);
-    bool get_S(const std::string &, double *);
-    bool get_Si(const std::string &, int *);
-    bool get_F(const std::string &, double *);
-    bool get_Fi(const std::string &, int *);
-    bool get_C(const std::string &, double *);
-    bool get_Ci(const std::string &, int *);
+    std::vector<double> get_rank_blob(const std::string&, int);
+    bool get_S(const std::string&, double*);
+    bool get_Si(const std::string&, int*);
+    bool get_F(const std::string&, double*);
+    bool get_Fi(const std::string&, int*);
+    bool get_C(const std::string&, double*);
+    bool get_Ci(const std::string&, int*);
     bool same_decomposition() const { return same; }
     int pieces() const { return (int)box.size(); }
     // the box of piece r: origin and cells in x and y
-    void piece_box(int r, int &oi, int &oj, int &ni, int &nj) const
-    {
-        oi = box[r].oi;
-        oj = box[r].oj;
-        ni = box[r].ni;
-        nj = box[r].nj;
-    }
+    void piece_box(int r, int &oi, int &oj, int &ni, int &nj) const { oi = box[r].oi; oj = box[r].oj; ni = box[r].ni; nj = box[r].nj; }
     // removes the checkpoint folder dir written by np ranks, with every other file in it (rank 0)
     static void remove_folder(const std::string &dir, int np);
     // the folder of the checkpoint a restart (I 45) reads: REEF3D_Checkpoint/<count> for I 45 <count>,
@@ -111,54 +105,40 @@ public:
     static void restart_from(int count);
     // a folder as written: a bare count (00001200, 1200, 1200_5) or a name without the path of the folders
     // gives ./REEF3D_Checkpoint/<count>
-    static std::string folder_name(const std::string &);
+    static std::string folder_name(const std::string&);
     // rank 0, after write_close: dir appended to REEF3D_Checkpoint/history; of the folders there only the
     // newest keep remain, the older ones are removed (never the latest); keep 0: all remain
     static void prune(const std::string &dir, int keep);
     std::string folder() const { return dirname; }
 
 private:
-    enum { TS = 0,
-           TSI = 1,
-           TF = 2,
-           TFI = 3,
-           TC = 4,
-           TCI = 5,
-           TB = 6 };
-    struct rec
-    {
-        std::string name;
-        int type;
-        long long n;
-    };
+    enum { TS=0, TSI=1, TF=2, TFI=3, TC=4, TCI=5, TB=6 };
+    struct rec { std::string name; int type; long long n; };
 
-    void put(const std::string &, int, const void *, long long, size_t);
+    void put(const std::string&, int, const void*, long long, size_t);
     void outputs_write();
     long long count_of(int) const;
-    bool get(const std::string &, int, void *, size_t);
-    bool get3d(const std::string &, void *, size_t, long long);
+    bool get(const std::string&, int, void*, size_t);
+    bool get3d(const std::string&, void*, size_t, long long);
 
     lexer *p = nullptr;
     std::string dirname;
     std::ofstream out;
-    std::vector<std::pair<std::string, double>> sc;
-    std::vector<std::pair<std::string, std::vector<double>>> bl;
+    std::vector<std::pair<std::string,double>> sc;
+    std::vector<std::pair<std::string,std::vector<double>>> bl;
 
     // reading
-    struct pbox
-    {
-        int oi, oj, ok, ni, nj, nk;
-    };
+    struct pbox { int oi, oj, ok, ni, nj, nk; };
     std::vector<pbox> box;
-    std::map<std::string, double> rsc;
-    std::map<std::string, std::vector<double>> rbl;
-    std::vector<std::map<std::string, std::pair<long long, long long>>> pidx;  // per piece: name -> offset, n
+    std::map<std::string,double> rsc;
+    std::map<std::string,std::vector<double>> rbl;
+    std::vector<std::map<std::string,std::pair<long long,long long>>> pidx;   // per piece: name -> offset, n
     std::vector<int> ptype;
-    std::map<std::string, int> rtype;
+    std::map<std::string,int> rtype;
     bool same = false;
-    bool zcut = false;  // a decomposition (of the checkpoint or of this run) cuts the vertical direction
-    int mine = -1;      // the piece of this rank on the same decomposition
-    int GNX = 0, GNY = 0, GNZ = 0;
+    bool zcut = false;      // a decomposition (of the checkpoint or of this run) cuts the vertical direction
+    int mine = -1;          // the piece of this rank on the same decomposition
+    int GNX=0, GNY=0, GNZ=0;
 };
 
 #endif

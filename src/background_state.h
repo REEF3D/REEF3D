@@ -23,8 +23,8 @@ Architect: Hans Bihs
 #ifndef BACKGROUND_STATE_H_
 #define BACKGROUND_STATE_H_
 
-#include <string>
-#include <vector>
+#include<vector>
+#include<string>
 
 class lexer;
 
@@ -71,46 +71,43 @@ k = 2 pi/(T c), h the local still water depth and r(t) the spin-up ramp.
 class background_state
 {
 public:
-    void read(lexer *);
-    void update(lexer *, double);  // evaluates the time functions at time t
-
-    bool empty() const { return bg.empty(); }
-    int index(int) const;  // of a background id; -1: none
-
+    void read(lexer*);
+    void update(lexer*, double);            // evaluates the time functions at time t
+    
+    bool empty() const {return bg.empty();}
+    int index(int) const;                   // of a background id; -1: none
+    
     double eta(int b, double x, double y) const;
-    bool carries_current(int b) const;  // tide, time series or constant U, V != 0
-    bool profiled(int b) const { return b >= 0 && bg[b].prof > 0; }
-    double shape(int b, double zeta, double h) const;                           // profile at zeta = height above bed / h, depth mean 1 (continuous)
-    bool carries_level(int b) const;                                            // tide, time series or constant eta0 != 0
-    void vel(int b, double h, double x, double y, double &u, double &v) const;  // depth averaged
-
+    bool carries_current(int b) const;      // tide, time series or constant U, V != 0
+    bool profiled(int b) const {return b>=0 && bg[b].prof>0;}
+    double shape(int b, double zeta, double h) const;   // profile at zeta = height above bed / h, depth mean 1 (continuous)
+    bool carries_level(int b) const;        // tide, time series or constant eta0 != 0
+    void vel(int b, double h, double x, double y, double &u, double &v) const;   // depth averaged
+    
 private:
-    struct constituent
-    {
-        double a, T, phase, k, C = 1.0, S = 0.0;
-    };
+    struct constituent {double a, T, phase, k, C=1.0, S=0.0;};
     struct item
     {
-        int id = 0, mode = 0;
-        double dir = 0.0, tramp = 0.0;
-        double eta0 = 0.0, U = 0.0, V = 0.0;
+        int id=0, mode=0;
+        double dir=0.0, tramp=0.0;
+        double eta0=0.0, U=0.0, V=0.0;
         std::vector<constituent> c;
-        bool prog = false, file_uv = false;
-        double x0 = 0.0, y0 = 0.0, href = 0.0, cel = 0.0;
-        std::vector<double> ft, feta, fu, fv;  // time series (mode 2; mode 4: row n, point q at n*np + q)
-        std::vector<double> px, py;            // mode 4: the points of the polyline
-        double r = 1.0;                        // at the time of the last update
-        int prof = 0;                          // B 513: 0 uniform, 1 log-law, 2 power law
-        double ppar = 0.0;                     // z0 [m] (log-law) or n (power law 1/n)
+        bool prog=false, file_uv=false;
+        double x0=0.0, y0=0.0, href=0.0, cel=0.0;
+        std::vector<double> ft, feta, fu, fv;   // time series (mode 2; mode 4: row n, point q at n*np + q)
+        std::vector<double> px, py;              // mode 4: the points of the polyline
+        double r=1.0;                            // at the time of the last update
+        int prof=0;                              // B 513: 0 uniform, 1 log-law, 2 power law
+        double ppar=0.0;                         // z0 [m] (log-law) or n (power law 1/n)
     };
     std::vector<item> bg;
-    double g = 9.81, time = 0.0;
-
-    double tide(const item &, double, double, double &, double &) const;  // eta_t, file U, V
-    static double interp(const std::vector<double> &, const std::vector<double> &, double);
-    static void locate(const std::vector<double> &, double, size_t &, double &);  // time row n and weight
-    static void project(const item &, double, double, size_t &, double &);        // mode 4: point q and weight
-    void read_points(item &, const std::string &) const;                          // mode 4 file
+    double g=9.81, time=0.0;
+    
+    double tide(const item&, double, double, double&, double&) const;   // eta_t, file U, V
+    static double interp(const std::vector<double>&, const std::vector<double>&, double);
+    static void locate(const std::vector<double>&, double, size_t&, double&);   // time row n and weight
+    static void project(const item&, double, double, size_t&, double&);         // mode 4: point q and weight
+    void read_points(item&, const std::string&) const;                          // mode 4 file
 };
 
 #endif

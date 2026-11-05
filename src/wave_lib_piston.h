@@ -23,12 +23,12 @@ Author: Hans Bihs
 #ifndef WAVE_LIB_PISTON_H_
 #define WAVE_LIB_PISTON_H_
 
-#include "increment.h"
-#include "wave_lib_parameters.h"
-#include "wave_lib_precalc.h"
-#include "wave_lib_wavemaker2nd.h"
+#include"wave_lib_precalc.h"
+#include"wave_lib_parameters.h"
+#include"increment.h"
+#include"wave_lib_wavemaker2nd.h"
 
-#include <vector>
+#include<vector>
 
 using namespace std;
 
@@ -36,49 +36,41 @@ class wave_lib_piston final : public wave_lib_precalc, public wave_lib_parameter
 {
 public:
     // checkpoints (P 48, I 45): the position in the time series of the wavemaker
-    void ckpt_state(std::vector<double> &v) override
-    {
-        v.push_back(double(timecount));
-        v.push_back(double(timecount_old));
-        v.push_back(double(wtime_old));
-    }
-    void ckpt_restore(const std::vector<double> &v, size_t &k) override
-    {
-        if(k + 3 > v.size())
-            return;
-        timecount = decltype(timecount)(v[k++]);
-        timecount_old = decltype(timecount_old)(v[k++]);
-        wtime_old = decltype(wtime_old)(v[k++]);
-    }
-    wave_lib_piston(lexer *, ghostcell *);
-    virtual ~wave_lib_piston();
+    void ckpt_state(std::vector<double> &v) override { v.push_back(double(timecount)); v.push_back(double(timecount_old)); v.push_back(double(wtime_old)); }
+    void ckpt_restore(const std::vector<double> &v, size_t &k) override { if(k+3>v.size()) return; timecount = decltype(timecount)(v[k++]); timecount_old = decltype(timecount_old)(v[k++]); wtime_old = decltype(wtime_old)(v[k++]); }
+    wave_lib_piston(lexer*, ghostcell*);
+	virtual ~wave_lib_piston();
+    
+    double wave_horzvel(lexer*,double,double,double);
+    
+    double wave_u(lexer*,double,double,double) override final;
+    double wave_v(lexer*,double,double,double) override final;
+    double wave_w(lexer*,double,double,double) override final;
+    double wave_eta(lexer*,double,double) override final;
+    double wave_fi(lexer*,double,double,double) override final;
+    
+    
+    double wave_paddle_Q(lexer*,double) override final;
+    double wave_eta_arc(lexer*,double) override final;
+    bool wave_arc() override final {return true;}
+    void wavemaker_setup(lexer*,ghostcell*,double) override final;
 
-    double wave_horzvel(lexer *, double, double, double);
-
-    double wave_u(lexer *, double, double, double) override final;
-    double wave_v(lexer *, double, double, double) override final;
-    double wave_w(lexer *, double, double, double) override final;
-    double wave_eta(lexer *, double, double) override final;
-    double wave_fi(lexer *, double, double, double) override final;
-
-    double wave_paddle_Q(lexer *, double) override final;
-    double wave_eta_arc(lexer *, double) override final;
-    bool wave_arc() override final { return true; }
-    void wavemaker_setup(lexer *, ghostcell *, double) override final;
-
+    void parameters(lexer*,ghostcell*) override final;
+    void wave_prestep(lexer*,ghostcell*) override final;
+    
 private:
-    void read(lexer *, ghostcell *);
+	void read(lexer*, ghostcell*);
     wave_lib_wavemaker2nd wm2;
     int setup_done;
-
-    int ptnum;
-
-    double **kinematics;
-
-    double ts, te, val;
-    int timecount, timecount_old;
+	
+	int ptnum;
+	
+	double **kinematics;
+	
+	double ts,te,val;
+	int timecount,timecount_old;
     double wtime_old;
-    double singamma, cosgamma;
+    double singamma,cosgamma;
 };
 
 #endif

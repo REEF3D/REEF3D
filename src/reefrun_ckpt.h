@@ -42,9 +42,9 @@ Author: Hans Bihs
 //    everything else        not checked: the state comes from the checkpoint; a new setting may act from the
 //                           restart on (read every step) or be ignored (used only at the set-up), or not fit
 
-#include <functional>
-#include <string>
-#include <vector>
+#include<functional>
+#include<string>
+#include<vector>
 
 class lexer;
 class ghostcell;
@@ -55,19 +55,19 @@ class reefrun_ckpt
 public:
     struct hooks
     {
-        std::function<std::string()> unsupported;                  // what the checkpoints do not cover, empty: all
-        std::function<void(reefckpt &)> write;                     // the arrays (level 0 and the patches)
-        std::function<bool(reefckpt &, std::string &)> read;       // the same, false with a message: no restart
-        std::function<void(std::vector<double> &)> printer_state;  // the counters of the outputs
-        std::function<void(const std::vector<double> &)> printer_restore;
-        std::function<void()> flush;           // the outputs before the stop of a rebalance
-        std::function<void(lexer *)> loadmap;  // the load map of the mesh refinement (G 45)
+        std::function<std::string()> unsupported;                        // what the checkpoints do not cover, empty: all
+        std::function<void(reefckpt&)> write;                            // the arrays (level 0 and the patches)
+        std::function<bool(reefckpt&, std::string&)> read;               // the same, false with a message: no restart
+        std::function<void(std::vector<double>&)> printer_state;         // the counters of the outputs
+        std::function<void(const std::vector<double>&)> printer_restore;
+        std::function<void()> flush;                                     // the outputs before the stop of a rebalance
+        std::function<void(lexer*)> loadmap;                             // the load map of the mesh refinement (G 45)
         // the load max/mean of the ranks since the last call (collective), 0 at the first; empty: amr_window_imbalance
         // (busy time, the MPI waits taken out). SEASTATE: its measured cell work (its pipeline waits outside MPI)
         std::function<double()> imbalance;
         // rank 0, after loadmap: the load max/mean the weighted partition (boxes: origin i, j, k, cells i, j, k per rank) would
         // give by the load map; the run stops only if it is at least 10 % below the present one (empty: always)
-        std::function<double(const std::vector<int> &)> predict;
+        std::function<double(const std::vector<int>&)> predict;
         // rank 0, after predict: whether the restart pays, the gain of the lower load over the rest of the run against the
         // cost of the stop, the checkpoint and the new start; why: the numbers for the log (empty: always)
         std::function<bool(double L, double Lnew, std::string &why)> pays;
@@ -75,12 +75,12 @@ public:
         bool keep_last = false;
     };
 
-    reefrun_ckpt(lexer *, ghostcell *, hooks);
+    reefrun_ckpt(lexer*, ghostcell*, hooks);
 
     void write();
-    void read();    // I 45 1, exits on a failure
-    void step();    // after the outputs of a step: P 48, a stop signal and G 46
-    void finish();  // the end of the run: a checkpoint, unless the last step wrote one
+    void read();                // I 45 1, exits on a failure
+    void step();                // after the outputs of a step: P 48, a stop signal and G 46
+    void finish();              // the end of the run: a checkpoint, unless the last step wrote one
     // SIGTERM or SIGUSR1 to a rank (collective): a checkpoint at this step boundary, then the run stops;
     // false: no signal
     bool signal_stop();
@@ -88,11 +88,11 @@ public:
     // the same within a step of k_max iterations (SEASTATE stationary): every G 47 iterations, at iteration k
     void rebalance_check_iter(int k, int kmax);
 
-    double rebal_L = 0.0;    // the load max/mean that stopped the run before (restart), 0 none
-    int rebal_n = 0;         // rebalance restarts so far
-    bool rebal_off = false;  // no further rebalance (the last one did not help)
-    double write_s = 0.0;    // the time of the last checkpoint written [s], 0 none yet
-    int sub = 0;             // SEASTATE stationary: the iteration within the step (folder <count>_<sub>), 0 at the end of a step
+    double rebal_L = 0.0;       // the load max/mean that stopped the run before (restart), 0 none
+    int rebal_n = 0;            // rebalance restarts so far
+    bool rebal_off = false;     // no further rebalance (the last one did not help)
+    double write_s = 0.0;       // the time of the last checkpoint written [s], 0 none yet
+    int sub = 0;                // SEASTATE stationary: the iteration within the step (folder <count>_<sub>), 0 at the end of a step
 
     // the checkpoints kept (P 49; the default of the model), 0: all
     int keep() const;
@@ -102,14 +102,14 @@ public:
 private:
     void rebalance(bool due, bool last);
     // a decomposition lowers the load max/mean enough: the excess over 1 at least 10 % less
-    static bool lowers(double Lold, double Lnew) { return Lnew - 1.0 <= 0.9 * (Lold - 1.0); }
+    static bool lowers(double Lold, double Lnew) { return Lnew-1.0 <= 0.9*(Lold-1.0); }
     lexer *p;
     ghostcell *pgc;
     hooks h;
-    bool told = false;    // a case not covered: said at the first checkpoint
-    double next_t = 0.0;  // P 48 N dt: the time of the next checkpoint (0: from the simulated time)
+    bool told = false;          // a case not covered: said at the first checkpoint
+    double next_t = 0.0;        // P 48 N dt: the time of the next checkpoint (0: from the simulated time)
     double next_time() const;
-    int last_count = -1;  // the step (and sub) of the last checkpoint written or read
+    int last_count = -1;        // the step (and sub) of the last checkpoint written or read
     int last_sub = -1;
 };
 

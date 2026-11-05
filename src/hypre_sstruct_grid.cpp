@@ -22,15 +22,15 @@ Author: Hans Bihs
 
 #ifdef REEF3D_USE_HYPRE  // hypre is opt-in: make HYPRE=1 / cmake -DREEF3D_USE_HYPRE=ON
 
-#include "fdm.h"
-#include "ghostcell.h"
 #include "hypre_sstruct.h"
 #include "lexer.h"
+#include "fdm.h"
+#include "ghostcell.h"
 
-void hypre_sstruct::make_grid_7p(lexer *p, fdm *a, ghostcell *pgc)
+void hypre_sstruct::make_grid_7p(lexer* p, fdm* a, ghostcell* pgc)
 {
-    numparts = 1;
-    part = 0;
+    numparts=1;
+    part=0;
     dimensions = 3;
     variable = 0;
     numvar = 1;
@@ -41,9 +41,9 @@ void hypre_sstruct::make_grid_7p(lexer *p, fdm *a, ghostcell *pgc)
     ilower[1] = p->origin_j;
     ilower[2] = p->origin_k;
 
-    iupper[0] = p->knox + p->origin_i - 1;
-    iupper[1] = p->knoy + p->origin_j - 1;
-    iupper[2] = p->knoz + p->origin_k - 1;
+    iupper[0] = p->knox+p->origin_i-1;
+    iupper[1] = p->knoy+p->origin_j-1;
+    iupper[2] = p->knoz+p->origin_k-1;
 
     vartypes[0] = HYPRE_SSTRUCT_VARIABLE_CELL;
 
@@ -55,10 +55,10 @@ void hypre_sstruct::make_grid_7p(lexer *p, fdm *a, ghostcell *pgc)
     // stencil
     HYPRE_SStructStencilCreate(3, 7, &stencil);
 
-    int offsets[7][3] = {{0, 0, 0}, {-1, 0, 0}, {1, 0, 0}, {0, -1, 0}, {0, 1, 0}, {0, 0, -1}, {0, 0, 1}};
+    int offsets[7][3] = {{0,0,0}, {-1,0,0}, {1,0,0}, {0,-1,0}, {0,1,0}, {0,0,-1}, {0,0,1}};
 
-    for(int entry = 0; entry < 7; ++entry)
-        HYPRE_SStructStencilSetEntry(stencil, entry, offsets[entry], variable);
+    for (int entry=0; entry<7; ++entry)
+    HYPRE_SStructStencilSetEntry(stencil, entry, offsets[entry], variable);
 
     // graph
     HYPRE_SStructGraphCreate(pgc->mpi_comm, grid, &graph);
@@ -81,10 +81,10 @@ void hypre_sstruct::make_grid_7p(lexer *p, fdm *a, ghostcell *pgc)
     HYPRE_SStructVectorInitialize(x);
 }
 
-void hypre_sstruct::make_grid_13p(lexer *p, fdm *a, ghostcell *pgc)
+void hypre_sstruct::make_grid_13p(lexer* p, fdm* a, ghostcell* pgc)
 {
-    numparts = 1;
-    part = 0;
+    numparts=1;
+    part=0;
     dimensions = 3;
     variable = 0;
     numvar = 1;
@@ -95,9 +95,9 @@ void hypre_sstruct::make_grid_13p(lexer *p, fdm *a, ghostcell *pgc)
     ilower[1] = p->origin_j;
     ilower[2] = p->origin_k;
 
-    iupper[0] = p->knox + p->origin_i - 1;
-    iupper[1] = p->knoy + p->origin_j - 1;
-    iupper[2] = p->knoz + p->origin_k - 1;
+    iupper[0] = p->knox+p->origin_i-1;
+    iupper[1] = p->knoy+p->origin_j-1;
+    iupper[2] = p->knoz+p->origin_k-1;
 
     vartypes[0] = HYPRE_SSTRUCT_VARIABLE_CELL;
 
@@ -109,10 +109,11 @@ void hypre_sstruct::make_grid_13p(lexer *p, fdm *a, ghostcell *pgc)
     // stencil
     HYPRE_SStructStencilCreate(3, 13, &stencil);
 
-    int offsets[13][3] = {{0, 0, 0}, {-1, 0, 0}, {1, 0, 0}, {0, -1, 0}, {0, 1, 0}, {0, 0, -1}, {0, 0, 1}, {-2, 0, 0}, {2, 0, 0}, {0, -2, 0}, {0, 2, 0}, {0, 0, -2}, {0, 0, 2}};
+    int offsets[13][3] = {{0,0,0}, {-1,0,0}, {1,0,0}, {0,-1,0}, {0,1,0}, {0,0,-1}, {0,0,1},
+                                 {-2,0,0}, {2,0,0}, {0,-2,0}, {0,2,0}, {0,0,-2}, {0,0,2}};
 
-    for(int entry = 0; entry < 13; ++entry)
-        HYPRE_SStructStencilSetEntry(stencil, entry, offsets[entry], variable);
+    for (int entry=0; entry<13; ++entry)
+    HYPRE_SStructStencilSetEntry(stencil, entry, offsets[entry], variable);
 
     // graph
     HYPRE_SStructGraphCreate(pgc->mpi_comm, grid, &graph);
@@ -135,10 +136,10 @@ void hypre_sstruct::make_grid_13p(lexer *p, fdm *a, ghostcell *pgc)
     HYPRE_SStructVectorInitialize(x);
 }
 
-void hypre_sstruct::make_grid_15p(lexer *p, fdm *a, ghostcell *pgc)
+void hypre_sstruct::make_grid_15p(lexer* p, fdm* a, ghostcell* pgc)
 {
-    numparts = 1;
-    part = 0;
+    numparts=1;
+    part=0;
     dimensions = 3;
     variable = 0;
     numvar = 1;
@@ -149,9 +150,9 @@ void hypre_sstruct::make_grid_15p(lexer *p, fdm *a, ghostcell *pgc)
     ilower[1] = p->origin_j;
     ilower[2] = p->origin_k;
 
-    iupper[0] = p->knox + p->origin_i - 1;
-    iupper[1] = p->knoy + p->origin_j - 1;
-    iupper[2] = p->knoz + p->origin_k - 1;
+    iupper[0] = p->knox+p->origin_i-1;
+    iupper[1] = p->knoy+p->origin_j-1;
+    iupper[2] = p->knoz+p->origin_k-1;
 
     vartypes[0] = HYPRE_SSTRUCT_VARIABLE_CELL;
 
@@ -163,10 +164,11 @@ void hypre_sstruct::make_grid_15p(lexer *p, fdm *a, ghostcell *pgc)
     // stencil
     HYPRE_SStructStencilCreate(3, 15, &stencil);
 
-    int offsets[15][3] = {{0, 0, 0}, {-1, 0, 0}, {1, 0, 0}, {0, -1, 0}, {0, 1, 0}, {0, 0, -1}, {0, 0, 1}, {-1, 0, -1}, {-1, 0, 1}, {1, 0, -1}, {1, 0, 1}, {0, -1, -1}, {0, -1, 1}, {0, 1, -1}, {0, 1, 1}};
+    int offsets[15][3] = {{0,0,0}, {-1,0,0}, {1,0,0}, {0,-1,0}, {0,1,0}, {0,0,-1}, {0,0,1},
+                          {-1,0,-1},{-1,0,1},{1,0,-1},{1,0,1},{0,-1,-1},{0,-1,1},{0,1,-1},{0,1,1}};
 
-    for(int entry = 0; entry < 15; ++entry)
-        HYPRE_SStructStencilSetEntry(stencil, entry, offsets[entry], variable);
+    for (int entry=0; entry<15; ++entry)
+    HYPRE_SStructStencilSetEntry(stencil, entry, offsets[entry], variable);
 
     // graph
     HYPRE_SStructGraphCreate(pgc->mpi_comm, grid, &graph);
@@ -189,10 +191,10 @@ void hypre_sstruct::make_grid_15p(lexer *p, fdm *a, ghostcell *pgc)
     HYPRE_SStructVectorInitialize(x);
 }
 
-void hypre_sstruct::make_grid_2Dvert_9p(lexer *p, fdm *a, ghostcell *pgc)
+void hypre_sstruct::make_grid_2Dvert_9p(lexer* p, fdm* a, ghostcell* pgc)
 {
-    numparts = 1;
-    part = 0;
+    numparts=1;
+    part=0;
     dimensions = 2;
     variable = 0;
     numvar = 1;
@@ -202,8 +204,8 @@ void hypre_sstruct::make_grid_2Dvert_9p(lexer *p, fdm *a, ghostcell *pgc)
     ilower[0] = p->origin_i;
     ilower[1] = p->origin_k;
 
-    iupper[0] = p->knox + p->origin_i - 1;
-    iupper[1] = p->knoz + p->origin_k - 1;
+    iupper[0] = p->knox+p->origin_i-1;
+    iupper[1] = p->knoz+p->origin_k-1;
 
     vartypes[0] = HYPRE_SSTRUCT_VARIABLE_CELL;
 
@@ -215,10 +217,10 @@ void hypre_sstruct::make_grid_2Dvert_9p(lexer *p, fdm *a, ghostcell *pgc)
     // stencil
     HYPRE_SStructStencilCreate(2, 9, &stencil);
 
-    int offsets[9][2] = {{0, 0}, {-1, 0}, {1, 0}, {0, -1}, {0, 1}, {-1, -1}, {-1, 1}, {1, -1}, {1, 1}};
+    int offsets[9][2] = {{0,0}, {-1,0},{1,0}, {0,-1},{0,1}, {-1,-1},{-1,1},{1,-1},{1,1}};
 
-    for(int entry = 0; entry < 9; ++entry)
-        HYPRE_SStructStencilSetEntry(stencil, entry, offsets[entry], variable);
+    for (int entry=0; entry<9; ++entry)
+    HYPRE_SStructStencilSetEntry(stencil, entry, offsets[entry], variable);
 
     // graph
     HYPRE_SStructGraphCreate(pgc->mpi_comm, grid, &graph);

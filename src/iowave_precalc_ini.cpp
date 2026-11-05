@@ -20,32 +20,33 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "iowave.h"
-#include "lexer.h"
-#include "looping.h"
+#include"iowave.h"
+#include"lexer.h"
+#include"looping.h"
 
 void iowave::wavegen_precalc_ini(lexer *p, ghostcell *pgc)
 {
     // prestep
-    wave_prestep(p, pgc);
-
-    if(p->A10 != 3)
+    wave_prestep(p,pgc);
+    
+    if(p->A10!=3)
     {
-        if(p->B98 == 2)
-            wavegen_precalc_relax_ini(p, pgc);
-
-        if(p->B98 == 3 || p->B98 == 4)
-            wavegen_precalc_dirichlet_ini(p, pgc);
+        if(p->B98==2)
+        wavegen_precalc_relax_ini(p,pgc);
+        
+        if(p->B98==3 || p->B98==4)
+        wavegen_precalc_dirichlet_ini(p,pgc);
     }
-
-    if(p->A10 == 3)  // FNPF
+    
+    if(p->A10==3) // FNPF
     {
         // B 98 6: the relaxation zone; the edge has its own arrays (fnpf_precalc_edge)
         if(relax_gen)
-            fnpf_precalc_relax_ini(p, pgc);
-
-        else if(p->B98 == 3 || p->B98 == 4)
-            fnpf_precalc_dirichlet_ini(p, pgc);
+        fnpf_precalc_relax_ini(p,pgc);
+        
+        else
+        if(p->B98==3 || p->B98==4)
+        fnpf_precalc_dirichlet_ini(p,pgc);
     }
 }
 
@@ -53,163 +54,168 @@ void iowave::wavegen_precalc_relax_ini(lexer *p, ghostcell *pgc)
 {
     // count number of relax points
     // allocate double* array
-
-    upt_count = vpt_count = wpt_count = ppt_count = ept_count = 0;
-
+    
+    upt_count=vpt_count=wpt_count=ppt_count=ept_count=0;
+    
     // B 92 wave (5, 31, 41, 51) and the additional sources (wave_field)
-    if(p->B89 == 1)
-        wave_comp = decomp_ncomp(p);
+    if(p->B89==1)
+    wave_comp = decomp_ncomp(p);
+    
 
     // U ------------------------------------------------
     BASELOOP
     {
         dg = distgen(p);
-
+        
         // Wave Generation
-        if(p->B98 == 2)
+		if(p->B98==2)
         {
             // Zone 1
-            if(dg < 1.0e20)
-                ++upt_count;
-        }
-    }
-
+            if(dg<1.0e20)
+            ++upt_count;
+		}
+    }    
+    
     // V ------------------------------------------------
     BASELOOP
     {
-        dg = distgen(p);
+		dg = distgen(p);
 
-        // Wave Generation
-        if(p->B98 == 2)
+        
+		// Wave Generation
+		if(p->B98==2)
         {
             // Zone 1
-            if(dg < 1.0e20)
-                ++vpt_count;
-        }
+            if(dg<1.0e20)
+            ++vpt_count;
+		}
     }
-
+    
     // W ------------------------------------------------
     BASELOOP
     {
-        dg = distgen(p);
+		dg = distgen(p); 
 
-        // Wave Generation
-        if(p->B98 == 2)
+		// Wave Generation
+		if(p->B98==2)
         {
             // Zone 1
-            if(dg < 1.0e20)
-                ++wpt_count;
-        }
+            if(dg<1.0e20)
+            ++wpt_count;
+
+		}
     }
 
     // FI ------------------------------------------------
     FBASELOOP
     {
-        dg = distgen(p);
+		dg = distgen(p); 
 
-        // Wave Generation
-        if(p->B98 == 2)
+		// Wave Generation
+		if(p->B98==2)
         {
             // Zone 1
-            if(dg < 1.0e20)
-                ++ppt_count;
-        }
-    }
+            if(dg<1.0e20)
+            ++ppt_count;
 
-    // ETA ------------------------------------------------
+		}
+    }	
+
+// ETA ------------------------------------------------
     SLICEBASELOOP
     {
-        dg = distgen(p);
+		dg = distgen(p); 
 
-        // Wave Generation
-        if(p->B98 == 2)
+		// Wave Generation
+		if(p->B98==2)
         {
             // Zone 1
-            if(dg < 1.0e20)
-                ++ept_count;
-        }
-    }
+            if(dg<1.0e20)
+            ++ept_count;
 
+		}
+    }	
+    
     // precalc array alloc
-    p->Darray(uval, upt_count);
-    p->Darray(vval, vpt_count);
-    p->Darray(wval, wpt_count);
-    p->Darray(lsval, ppt_count);
-    p->Darray(vofval, ppt_count);
-    p->Darray(Fival, ppt_count);
-    p->Darray(Fifsfval, ept_count);
-
-    if(p->B89 == 1)
+    p->Darray(uval,upt_count);
+    p->Darray(vval,vpt_count);
+    p->Darray(wval,wpt_count);
+    p->Darray(lsval,ppt_count);
+    p->Darray(vofval,ppt_count);
+    p->Darray(Fival,ppt_count);
+    p->Darray(Fifsfval,ept_count);
+    
+    if(p->B89==1) 
     {
-        p->Farray(uval_S_sin, upt_count, wave_comp);
-        p->Farray(vval_S_sin, vpt_count, wave_comp);
-        p->Farray(wval_S_sin, wpt_count, wave_comp);
-        p->Darray(etaval_S_sin, ept_count, wave_comp);
-        p->Farray(Fival_S_sin, ppt_count, wave_comp);
-
-        p->Farray(uval_S_cos, upt_count, wave_comp);
-        p->Farray(vval_S_cos, vpt_count, wave_comp);
-        p->Farray(wval_S_cos, wpt_count, wave_comp);
-        p->Darray(etaval_S_cos, ept_count, wave_comp);
-        p->Farray(Fival_S_cos, ppt_count, wave_comp);
-
-        p->Darray(uval_T_sin, wave_comp);
-        p->Darray(vval_T_sin, wave_comp);
-        p->Darray(wval_T_sin, wave_comp);
-        p->Darray(etaval_T_sin, wave_comp);
-        p->Darray(Fival_T_sin, wave_comp);
-
-        p->Darray(uval_T_cos, wave_comp);
-        p->Darray(vval_T_cos, wave_comp);
-        p->Darray(wval_T_cos, wave_comp);
-        p->Darray(etaval_T_cos, wave_comp);
-        p->Darray(Fival_T_cos, wave_comp);
+    p->Farray(uval_S_sin,upt_count,wave_comp);
+    p->Farray(vval_S_sin,vpt_count,wave_comp);
+    p->Farray(wval_S_sin,wpt_count,wave_comp);
+    p->Darray(etaval_S_sin,ept_count,wave_comp);
+    p->Farray(Fival_S_sin,ppt_count,wave_comp);
+    
+    p->Farray(uval_S_cos,upt_count,wave_comp);
+    p->Farray(vval_S_cos,vpt_count,wave_comp);
+    p->Farray(wval_S_cos,wpt_count,wave_comp);
+    p->Darray(etaval_S_cos,ept_count,wave_comp);
+    p->Farray(Fival_S_cos,ppt_count,wave_comp);
+    
+    p->Darray(uval_T_sin,wave_comp);
+    p->Darray(vval_T_sin,wave_comp);
+    p->Darray(wval_T_sin,wave_comp);
+    p->Darray(etaval_T_sin,wave_comp);
+    p->Darray(Fival_T_sin,wave_comp);
+    
+    p->Darray(uval_T_cos,wave_comp);
+    p->Darray(vval_T_cos,wave_comp);
+    p->Darray(wval_T_cos,wave_comp);
+    p->Darray(etaval_T_cos,wave_comp);
+    p->Darray(Fival_T_cos,wave_comp);
     }
 }
 void iowave::wavegen_precalc_dirichlet_ini(lexer *p, ghostcell *pgc)
 {
     // count number of relax points
     // allocate double* array
-
-    upt_count = vpt_count = wpt_count = ppt_count = ept_count = p->gcin_count;
-
+    
+    upt_count=vpt_count=wpt_count=ppt_count=ept_count = p->gcin_count;
+    
     // B 92 wave (5, 31, 41, 51) and the additional sources (wave_field)
-    if(p->B89 == 1)
-        wave_comp = decomp_ncomp(p);
-
+    if(p->B89==1)
+    wave_comp = decomp_ncomp(p);
+  
     // precalc array alloc
-    p->Darray(uval, upt_count);
-    p->Darray(vval, vpt_count);
-    p->Darray(wval, wpt_count);
-    p->Darray(lsval, ppt_count);
-    p->Darray(vofval, ppt_count);
-    p->Darray(Fival, ppt_count);
-    p->Darray(Fifsfval, ept_count);
-
-    if(p->B89 == 1)
+    p->Darray(uval,upt_count);
+    p->Darray(vval,vpt_count);
+    p->Darray(wval,wpt_count);
+    p->Darray(lsval,ppt_count);
+    p->Darray(vofval,ppt_count);
+    p->Darray(Fival,ppt_count);
+    p->Darray(Fifsfval,ept_count);
+    
+    if(p->B89==1) 
     {
-        p->Farray(uval_S_sin, upt_count, wave_comp);
-        p->Farray(vval_S_sin, vpt_count, wave_comp);
-        p->Farray(wval_S_sin, wpt_count, wave_comp);
-        p->Darray(etaval_S_sin, ept_count, wave_comp);
-        p->Farray(Fival_S_sin, ppt_count, wave_comp);
-
-        p->Farray(uval_S_cos, upt_count, wave_comp);
-        p->Farray(vval_S_cos, vpt_count, wave_comp);
-        p->Farray(wval_S_cos, wpt_count, wave_comp);
-        p->Darray(etaval_S_cos, ept_count, wave_comp);
-        p->Farray(Fival_S_cos, ppt_count, wave_comp);
-
-        p->Darray(uval_T_sin, wave_comp);
-        p->Darray(vval_T_sin, wave_comp);
-        p->Darray(wval_T_sin, wave_comp);
-        p->Darray(etaval_T_sin, wave_comp);
-        p->Darray(Fival_T_sin, wave_comp);
-
-        p->Darray(uval_T_cos, wave_comp);
-        p->Darray(vval_T_cos, wave_comp);
-        p->Darray(wval_T_cos, wave_comp);
-        p->Darray(etaval_T_cos, wave_comp);
-        p->Darray(Fival_T_cos, wave_comp);
+    p->Farray(uval_S_sin,upt_count,wave_comp);
+    p->Farray(vval_S_sin,vpt_count,wave_comp);
+    p->Farray(wval_S_sin,wpt_count,wave_comp);
+    p->Darray(etaval_S_sin,ept_count,wave_comp);
+    p->Farray(Fival_S_sin,ppt_count,wave_comp);
+    
+    p->Farray(uval_S_cos,upt_count,wave_comp);
+    p->Farray(vval_S_cos,vpt_count,wave_comp);
+    p->Farray(wval_S_cos,wpt_count,wave_comp);
+    p->Darray(etaval_S_cos,ept_count,wave_comp);
+    p->Farray(Fival_S_cos,ppt_count,wave_comp);
+    
+    p->Darray(uval_T_sin,wave_comp);
+    p->Darray(vval_T_sin,wave_comp);
+    p->Darray(wval_T_sin,wave_comp);
+    p->Darray(etaval_T_sin,wave_comp);
+    p->Darray(Fival_T_sin,wave_comp);
+    
+    p->Darray(uval_T_cos,wave_comp);
+    p->Darray(vval_T_cos,wave_comp);
+    p->Darray(wval_T_cos,wave_comp);
+    p->Darray(etaval_T_cos,wave_comp);
+    p->Darray(Fival_T_cos,wave_comp);
     }
 }

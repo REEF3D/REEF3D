@@ -20,16 +20,16 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "sflow_hydrostatic.h"
-#include "fdm2D.h"
-#include "ghostcell.h"
-#include "ioflow.h"
-#include "lexer.h"
-#include "patchBC_interface.h"
-#include "sflow_curv.h"
-#include "solver2D.h"
+#include"sflow_hydrostatic.h"
+#include"lexer.h"
+#include"fdm2D.h" 
+#include"ghostcell.h"
+#include"solver2D.h"
+#include"ioflow.h"
+#include"patchBC_interface.h"
+#include"sflow_curv.h"
 
-sflow_hydrostatic::sflow_hydrostatic(lexer *p, fdm2D *b, patchBC_interface *ppBC)
+sflow_hydrostatic::sflow_hydrostatic(lexer* p, fdm2D *b, patchBC_interface *ppBC)
 {
     pBC = ppBC;
 }
@@ -38,37 +38,37 @@ sflow_hydrostatic::~sflow_hydrostatic()
 {
 }
 
-void sflow_hydrostatic::start(lexer *p, fdm2D *b, ghostcell *pgc, solver2D *psolv, ioflow *pflow,
+void sflow_hydrostatic::start(lexer *p, fdm2D *b, ghostcell *pgc, solver2D *psolv, ioflow *pflow, 
                               slice &UH, slice &VH, slice &WH, slice &WL, slice &Un, slice &Vn, double alpha)
 {
 }
 
-void sflow_hydrostatic::upgrad(lexer *p, fdm2D *b, slice &eta)
+void sflow_hydrostatic::upgrad(lexer*p, fdm2D* b, slice &eta)
 {
-    if(p->geo_curv == 1)
+    if(p->geo_curv==1)
     {
-        sflow_curv::pgrad(p, b, eta, b->F, 1);
-        return;
+    sflow_curv::pgrad(p,b,eta,b->F,1);
+    return;
     }
-
+    
     SLICELOOP4
     WETDRY
-    b->F(i, j) += fabs(p->W22) * eta(i, j) * (b->dfx(i, j) - b->dfx(i - 1, j)) / p->DXN[IP];
+    b->F(i,j) += fabs(p->W22)*eta(i,j)*(b->dfx(i,j) - b->dfx(i-1,j))/p->DXN[IP];
 }
 
-void sflow_hydrostatic::vpgrad(lexer *p, fdm2D *b, slice &eta)
+void sflow_hydrostatic::vpgrad(lexer*p, fdm2D* b, slice &eta)
 {
-    if(p->geo_curv == 1)
+    if(p->geo_curv==1)
     {
-        sflow_curv::pgrad(p, b, eta, b->G, 2);
-        return;
+    sflow_curv::pgrad(p,b,eta,b->G,2);
+    return;
     }
-
+    
     SLICELOOP4
     WETDRY
-    b->G(i, j) += fabs(p->W22) * eta(i, j) * (b->dfy(i, j) - b->dfy(i, j - 1)) / p->DYN[JP];
+    b->G(i,j) += fabs(p->W22)*eta(i,j)*(b->dfy(i,j) - b->dfy(i,j-1))/p->DYN[JP];
 }
 
-void sflow_hydrostatic::wpgrad(lexer *p, fdm2D *b, slice &eta)
+void sflow_hydrostatic::wpgrad(lexer*p, fdm2D* b, slice &eta)
 {
 }

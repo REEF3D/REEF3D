@@ -23,8 +23,8 @@ Authors: Hans Bihs, Tobias Martin
 #ifndef SIXDOF_OBJ_CFD_H_
 #define SIXDOF_OBJ_CFD_H_
 
-#include "6DOF_obj.h"
-#include "amr_grid_lookup.h"
+#include"6DOF_obj.h"
+#include"amr_grid_lookup.h"
 
 class reinidisc_f;
 
@@ -34,8 +34,7 @@ class sixdof_fluid_cfd : public sixdof_fluid
 {
 public:
     sixdof_fluid_cfd(lexer *pp, fdm *aa, ghostcell *gc) : p(pp), a(aa), pgc(gc) {}
-    void velocity(int, const double *, double *) override;
-
+    void velocity(int, const double*, double*) override;
 private:
     lexer *p;
     fdm *a;
@@ -48,26 +47,27 @@ private:
 class sixdof_obj_cfd : public sixdof_obj
 {
 public:
-    sixdof_obj_cfd(lexer *, ghostcell *, int);
-    virtual ~sixdof_obj_cfd();
-
-    void solve_eqmotion_cfd(lexer *, fdm *, ghostcell *, int, bool);
-    void initialize_cfd(lexer *, fdm *, ghostcell *);
-    void update_forcing(lexer *, fdm *, ghostcell *, field &, field &, field &, field &, field &, field &, int);
-    void hydrodynamic_forces_cfd(lexer *, fdm *, ghostcell *, field &, field &, field &, int, bool);
-    void update_position_3D(lexer *, fdm *, ghostcell *, bool);
-
+    
+    sixdof_obj_cfd(lexer*, ghostcell*, int);
+	virtual ~sixdof_obj_cfd();
+    
+    void solve_eqmotion_cfd(lexer*,fdm*,ghostcell*,int,bool);
+    void initialize_cfd(lexer*,fdm*,ghostcell*);
+    void update_forcing(lexer*, fdm*, ghostcell*,field&,field&,field&,field&,field&,field&,int);
+    void hydrodynamic_forces_cfd(lexer*, fdm*, ghostcell*,field&,field&,field&,int,bool);
+    void update_position_3D(lexer*, fdm*, ghostcell*, bool);
+    
     // actuator disks of the load models (body-force propellers): acceleration of the fluid,
     // added to the forcing terms fx, fy, fz of the stage (water part of the cells outside the body)
-    void actuator_forcing(lexer *, fdm *, ghostcell *, field &, field &, field &);
-
+    void actuator_forcing(lexer*, fdm*, ghostcell*, field&, field&, field&);
+    
     using sixdof_obj::print_vtp;
 
     // mesh refinement (cfd_amr, 6DOF_obj_cfd_amr.cpp): the level set of the body on the grid of a
     // patch, the cells around the patch included, with the workspace of that grid; both work in
     // the box of the body on the grid (box: is, ie, js, je, ks, ke, set by ray_cast_amr)
-    void ray_cast_amr(lexer *, fdm *, ghostcell *, fieldint5 &, fieldint5 &, fieldint5 &, int *);
-    void reini_amr(lexer *, fdm *, ghostcell *, field &, reinidisc_f *, field4a &, field4a &, field4a &, const int *);
+    void ray_cast_amr(lexer*, fdm*, ghostcell*, fieldint5&, fieldint5&, fieldint5&, int*);
+    void reini_amr(lexer*, fdm*, ghostcell*, field&, reinidisc_f*, field4a&, field4a&, field4a&, const int*);
     // ... the loads (X 60 1) from the finest grid at each hull triangle (set by cfd_amr, G 7 1)
     const amr_grid_lookup *amr_loads = nullptr;
     // ... G 7 1: the level-0 cells under the patches (1, per cell of the level-0 arrays): the
@@ -75,36 +75,37 @@ public:
     const char *amr_cover = nullptr;
     // ... G 7 1: stage iter of the body with the step of a level (p->dt): the loads of its last
     // stage, the pose and the body velocities (the hull is cast on the patches, not on level 0)
-    void amr_stage_cfd(lexer *, fdm *, ghostcell *, int);
+    void amr_stage_cfd(lexer*, fdm*, ghostcell*, int);
 
 private:
-    void ini_parameter_stl(lexer *, fdm *, ghostcell *);
-    void externalForces_cfd(lexer *, fdm *, ghostcell *, double, bool);
-    void netForces_cfd(lexer *, fdm *, ghostcell *, double, bool);
-    double Hsolidface(lexer *, fdm *, int, int, int);
-    double Hsolidface_t(lexer *, fdm *, int, int, int);
-    void geometry_parameters(lexer *, fdm *, ghostcell *);
-    void geometry_ls(lexer *, fdm *, ghostcell *);
-    void forces_stl(lexer *, fdm *, ghostcell *, field &, field &, field &, int, bool);
-    void forces_lsm(lexer *, fdm *, ghostcell *, field &, field &, field &, int, bool);
-    void triangulation(lexer *, fdm *, ghostcell *, field &);
-    void reconstruct(lexer *, fdm *, field &);
-    void addpoint(lexer *, fdm *, int, int);
-    void forces_lsm_calc(lexer *p, fdm *a, ghostcell *pgc, int, bool);
-    void print_force(lexer *, fdm *, ghostcell *);
-    void print_ini(lexer *, fdm *, ghostcell *);
-    void update_trimesh_3D(lexer *, fdm *, ghostcell *, bool);
-    void ray_cast(lexer *, fdm *, ghostcell *);
-    void reini_RK2(lexer *, fdm *, ghostcell *, field &);
-
-    fieldint5 cutl, cutr, fbio;
+    
+    void ini_parameter_stl(lexer*, fdm*, ghostcell*);
+    void externalForces_cfd(lexer*, fdm*, ghostcell*, double, bool);
+    void netForces_cfd(lexer*, fdm*, ghostcell*, double, bool);
+    double Hsolidface(lexer*, fdm*, int,int,int);
+    double Hsolidface_t(lexer*, fdm*, int,int,int);
+    void geometry_parameters(lexer*, fdm*, ghostcell*);
+    void geometry_ls(lexer*, fdm*, ghostcell*);
+    void forces_stl(lexer*, fdm*, ghostcell*,field&,field&,field&,int,bool);
+    void forces_lsm(lexer*, fdm*, ghostcell*,field&,field&,field&,int,bool);
+    void triangulation(lexer*, fdm*, ghostcell*, field&);
+    void reconstruct(lexer*, fdm*, field&);
+    void addpoint(lexer*,fdm*,int,int);
+    void forces_lsm_calc(lexer* p, fdm *a, ghostcell *pgc,int,bool);
+    void print_force(lexer*,fdm*,ghostcell*);
+    void print_ini(lexer*,fdm*,ghostcell*);
+    void update_trimesh_3D(lexer*, fdm*, ghostcell*, bool);
+    void ray_cast(lexer*, fdm*, ghostcell*);
+    void reini_RK2(lexer*, fdm*, ghostcell*, field&);
+    
+    fieldint5 cutl,cutr,fbio;
     reinidisc *prdisc;
     field4a f, frk1, L, dt;
     fieldint5 vertice, nodeflag;
     field5 eta;
-
-    void actuator_point(lexer *, int, Eigen::Vector3d &, double &);
-    double actuator_fluid_fraction(lexer *, fdm *, int);
+    
+    void actuator_point(lexer*, int, Eigen::Vector3d&, double&);
+    double actuator_fluid_fraction(lexer*, fdm*, int);
     bool actuator_warned = false;
 };
 

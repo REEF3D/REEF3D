@@ -20,18 +20,18 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "fdm_seastate.h"
-#include "ghostcell.h"
-#include "lexer.h"
-#include "seastate_amr.h"
-#include "seastate_f.h"
-#include "seastate_grid.h"
-#include "seastate_obstacle.h"
-#include "seastate_store.h"
-#include "slice4.h"
-#include <algorithm>
-#include <cmath>
-#include <iostream>
+#include"seastate_f.h"
+#include"fdm_seastate.h"
+#include"seastate_grid.h"
+#include"seastate_store.h"
+#include"slice4.h"
+#include"seastate_obstacle.h"
+#include"seastate_amr.h"
+#include"lexer.h"
+#include"ghostcell.h"
+#include<algorithm>
+#include<cmath>
+#include<iostream>
 
 /*--------------------------------------------------------------------
 Phase-decoupled diffraction (A 718), Holthuijsen, Herman and Booij
@@ -65,72 +65,69 @@ or step (nonstationary).
 
 void seastate_f::diffraction(lexer *p, ghostcell *pgc)
 {
-    if(p->A718 != 1 && p->A718 != 2)
-        return;
+    if(p->A718!=1 && p->A718!=2)
+    return;
 
     const seastate_grid &g = *e->grid;
     slice4 &S = *dfS, &T = *dfT, &KM = *dfK, &CM = *dfC;
-    int i, j;
+    int i,j;
 
     // number of smoothing steps: A 719, or from the mean wavelength and the smallest cell (the first call
     // with energy in the domain; before, one step)
-    int nsmooth = std::max(dfsmooth, 1);
+    int nsmooth = std::max(dfsmooth,1);
 
-    if(dfsmooth < 0)
+    if(dfsmooth<0)
     {
-        if(p->A719 > 0)
-            dfsmooth = p->A719;
+        if(p->A719>0)
+        dfsmooth = p->A719;
         else
         {
-            double ek = 0.0, et = 0.0, dmin = 1.0e30;
+        double ek = 0.0, et = 0.0, dmin = 1.0e30;
             SLICELOOP4
-            if(e->wet(i, j) == 1 && e->N->spec(i, j) != nullptr)
+            if(e->wet(i,j)==1 && e->N->spec(i,j)!=nullptr)
             {
-                const float *N = e->N->spec(i, j), *kk = e->kw->spec(i, j);
-                for(int l = 0; l < g.nsig; ++l)
+            const float *N = e->N->spec(i,j), *kk = e->kw->spec(i,j);
+                for(int l=0; l<g.nsig; ++l)
                 {
-                    double s = 0.0;
-                    for(int m = 0; m < g.ndir; ++m)
-                        s += double(N[g.bin(l, m)]) * g.wth[m];
-                    s *= g.sig[l] * g.dsig[l];
-                    et += s;
-                    ek += s * double(kk[l]);
+                double s = 0.0;
+                for(int m=0; m<g.ndir; ++m)
+                s += double(N[g.bin(l,m)])*g.wth[m];
+                s *= g.sig[l]*g.dsig[l];
+                et += s;
+                ek += s*double(kk[l]);
                 }
-                dmin = std::min(dmin, std::min(p->DXN[IP], p->DYN[JP]));
+            dmin = std::min(dmin,std::min(p->DXN[IP],p->DYN[JP]));
             }
-            et = pgc->globalsum(et);
-            ek = pgc->globalsum(ek);
-            dmin = pgc->globalmin(dmin);
-            const double L = (ek > 0.0 && et > 0.0) ? 2.0 * 3.14159265358979323846 * et / ek : 0.0;
-            if(L > 0.0)
-            {
-                dfsmooth = std::min(std::max(int(std::ceil(0.4 * (L / dmin) * (L / dmin))), 1), 400);
-                dfL = L;
-                dfdmin = dmin;
-            }
+        et = pgc->globalsum(et);
+        ek = pgc->globalsum(ek);
+        dmin = pgc->globalmin(dmin);
+        const double L = (ek>0.0 && et>0.0) ? 2.0*3.14159265358979323846*et/ek : 0.0;
+        if(L>0.0)
+        {
+        dfsmooth = std::min(std::max(int(std::ceil(0.4*(L/dmin)*(L/dmin))),1),400);
+        dfL = L;
+        dfdmin = dmin;
+        }
         }
 
-        if(dfsmooth > 0 && p->mpirank == 0)
-            cout << "SEASTATE diffraction: " << dfsmooth << " smoothing steps per iteration" << (p->A719 > 0 ? " (A 719)" : " (from the mean wavelength and the cell size, A 719 0)") << endl;
+        if(dfsmooth>0 && p->mpirank==0)
+        cout<<"SEASTATE diffraction: "<<dfsmooth<<" smoothing steps per iteration"<<(p->A719>0 ? " (A 719)" : " (from the mean wavelength and the cell size, A 719 0)")<<endl;
 
-        nsmooth = std::max(dfsmooth, 1);
+        nsmooth = std::max(dfsmooth,1);
     }
 
-    auto active = [&](int ii, int jj)
-    { return e->wet(ii, jj) == 1 && e->N->spec(ii, jj) != nullptr; };
+    auto active = [&](int ii, int jj) {return e->wet(ii,jj)==1 && e->N->spec(ii,jj)!=nullptr;};
 
     // the neighbour across side s (0 x-, 1 x+, 2 y-, 3 y+) is active and the face not blocked by an obstacle
     auto nb = [&](int ii, int jj, int sd)
     {
-        const int ni = ii + (sd == 1) - (sd == 0), nj = jj + (sd == 3) - (sd == 2);
-        if(!active(ni, nj))
-            return false;
-        if(pobs == nullptr)
-            return true;
-        const seastate_obstacle::face *f = (sd == 0) ? pobs->east(ii - 1, jj) : (sd == 1) ? pobs->east(ii, jj)
-                                                                            : (sd == 2)   ? pobs->north(ii, jj - 1)
-                                                                                          : pobs->north(ii, jj);
-        return f == nullptr;
+        const int ni = ii + (sd==1) - (sd==0), nj = jj + (sd==3) - (sd==2);
+        if(!active(ni,nj))
+        return false;
+        if(pobs==nullptr)
+        return true;
+        const seastate_obstacle::face *f = (sd==0) ? pobs->east(ii-1,jj) : (sd==1) ? pobs->east(ii,jj) : (sd==2) ? pobs->north(ii,jj-1) : pobs->north(ii,jj);
+        return f==nullptr;
     };
 
     // Ca into T from the energy in S and the wave number and group velocity in KM, CM; the smoothed
@@ -138,84 +135,76 @@ void seastate_f::diffraction(lexer *p, ghostcell *pgc)
     double smax = 0.0;
     auto ca_field = [&]()
     {
-        pgc->gcsl_start4(p, S, 50);
-        pgc->gcsl_start4(p, KM, 50);
-        pgc->gcsl_start4(p, CM, 50);
+        pgc->gcsl_start4(p,S,50);
+        pgc->gcsl_start4(p,KM,50);
+        pgc->gcsl_start4(p,CM,50);
 
-        for(int it = 0; it < nsmooth; ++it)
+        for(int it=0; it<nsmooth; ++it)
         {
             SLICELOOP4
             {
-                double t = S(i, j);
-                if(active(i, j))
+            double t = S(i,j);
+                if(active(i,j))
                 {
-                    if(nb(i, j, 0))
-                        t -= 0.2 * (S(i, j) - S(i - 1, j));
-                    if(nb(i, j, 1))
-                        t -= 0.2 * (S(i, j) - S(i + 1, j));
-                    if(nb(i, j, 2))
-                        t -= 0.2 * (S(i, j) - S(i, j - 1));
-                    if(nb(i, j, 3))
-                        t -= 0.2 * (S(i, j) - S(i, j + 1));
+                if(nb(i,j,0)) t -= 0.2*(S(i,j)-S(i-1,j));
+                if(nb(i,j,1)) t -= 0.2*(S(i,j)-S(i+1,j));
+                if(nb(i,j,2)) t -= 0.2*(S(i,j)-S(i,j-1));
+                if(nb(i,j,3)) t -= 0.2*(S(i,j)-S(i,j+1));
                 }
-                T(i, j) = t;
+            T(i,j) = t;
             }
 
             SLICELOOP4
-            S(i, j) = T(i, j);
+            S(i,j) = T(i,j);
 
-            pgc->gcsl_start4(p, S, 50);
+            pgc->gcsl_start4(p,S,50);
         }
 
-        if(dfE != nullptr)
+        if(dfE!=nullptr)
         {
-            IMALOOP
-            JMALOOP (*dfE)(i, j) = S(i, j);
+        IMALOOP
+        JMALOOP
+        (*dfE)(i,j) = S(i,j);
         }
 
         smax = 0.0;
         SLICELOOP4
-        smax = std::max(smax, S(i, j));
+        smax = std::max(smax,S(i,j));
         smax = pgc->globalmax(smax);
 
         SLICELOOP4
-        S(i, j) = std::sqrt(std::max(S(i, j), 0.0));
-        pgc->gcsl_start4(p, S, 50);
+        S(i,j) = std::sqrt(std::max(S(i,j),0.0));
+        pgc->gcsl_start4(p,S,50);
 
-        auto F = [&](int ii, int jj)
-        { return KM(ii, jj) > 0.0 ? CM(ii, jj) / KM(ii, jj) : 0.0; };
+        auto F = [&](int ii, int jj) {return KM(ii,jj)>0.0 ? CM(ii,jj)/KM(ii,jj) : 0.0;};
 
         SLICELOOP4
         {
-            double ca = 1.0;
+        double ca = 1.0;
 
-            if(active(i, j) && S(i, j) * S(i, j) > 1.0e-6 * smax && smax > 0.0)
+            if(active(i,j) && S(i,j)*S(i,j)>1.0e-6*smax && smax>0.0)
             {
-                const double k = KM(i, j), cgm = CM(i, j), Fp = F(i, j);
-                const double rdx2 = 1.0 / (p->DXN[IP] * p->DXN[IP]), rdy2 = 1.0 / (p->DYN[JP] * p->DYN[JP]);
-                double div = 0.0;
+            const double k = KM(i,j), cgm = CM(i,j), Fp = F(i,j);
+            const double rdx2 = 1.0/(p->DXN[IP]*p->DXN[IP]), rdy2 = 1.0/(p->DYN[JP]*p->DYN[JP]);
+            double div = 0.0;
 
-                if(nb(i, j, 0))
-                    div += 0.5 * (Fp + F(i - 1, j)) * (S(i - 1, j) - S(i, j)) * rdx2;
-                if(nb(i, j, 1))
-                    div += 0.5 * (Fp + F(i + 1, j)) * (S(i + 1, j) - S(i, j)) * rdx2;
-                if(nb(i, j, 2))
-                    div += 0.5 * (Fp + F(i, j - 1)) * (S(i, j - 1) - S(i, j)) * rdy2;
-                if(nb(i, j, 3))
-                    div += 0.5 * (Fp + F(i, j + 1)) * (S(i, j + 1) - S(i, j)) * rdy2;
+            if(nb(i,j,0)) div += 0.5*(Fp+F(i-1,j))*(S(i-1,j)-S(i,j))*rdx2;
+            if(nb(i,j,1)) div += 0.5*(Fp+F(i+1,j))*(S(i+1,j)-S(i,j))*rdx2;
+            if(nb(i,j,2)) div += 0.5*(Fp+F(i,j-1))*(S(i,j-1)-S(i,j))*rdy2;
+            if(nb(i,j,3)) div += 0.5*(Fp+F(i,j+1))*(S(i,j+1)-S(i,j))*rdy2;
 
-                if(k > 0.0 && cgm > 0.0)
+                if(k>0.0 && cgm>0.0)
                 {
-                    const double delta = div / (k * cgm * S(i, j));
-                    if(delta > -1.0)
-                        ca = std::sqrt(1.0 + delta);
+                const double delta = div/(k*cgm*S(i,j));
+                if(delta>-1.0)
+                ca = std::sqrt(1.0+delta);
                 }
             }
 
-            T(i, j) = ca;
+        T(i,j) = ca;
         }
 
-        pgc->gcsl_start4(p, T, 50);
+        pgc->gcsl_start4(p,T,50);
     };
 
     // Ca and its gradient into the stores (frequencies l0..l1)
@@ -224,114 +213,114 @@ void seastate_f::diffraction(lexer *p, ghostcell *pgc)
         IMALOOP
         JMALOOP
         {
-            float *c = dca->spec(i, j);
-            if(c != nullptr)
-                for(int l = l0; l <= l1; ++l)
-                    c[l] = active(i, j) ? float(T(i, j)) : 1.0f;
+        float *c = dca->spec(i,j);
+            if(c!=nullptr)
+            for(int l=l0; l<=l1; ++l)
+            c[l] = active(i,j) ? float(T(i,j)) : 1.0f;
         }
 
         SLICELOOP4
         {
-            float *cx = dcax->spec(i, j), *cy = dcay->spec(i, j);
+        float *cx = dcax->spec(i,j), *cy = dcay->spec(i,j);
 
-            if(cx == nullptr || cy == nullptr)
-                continue;
+            if(cx==nullptr || cy==nullptr)
+            continue;
 
-            double gx = 0.0, gy = 0.0;
+        double gx = 0.0, gy = 0.0;
 
-            if(active(i, j))
+            if(active(i,j))
             {
-                const bool w = nb(i, j, 0), ea = nb(i, j, 1), s = nb(i, j, 2), n = nb(i, j, 3);
+            const bool w = nb(i,j,0), ea = nb(i,j,1), s = nb(i,j,2), n = nb(i,j,3);
 
-                if(w && ea)
-                    gx = (T(i + 1, j) - T(i - 1, j)) / (p->XP[IP1] - p->XP[IM1]);
-                else if(ea)
-                    gx = (T(i + 1, j) - T(i, j)) / (p->XP[IP1] - p->XP[IP]);
-                else if(w)
-                    gx = (T(i, j) - T(i - 1, j)) / (p->XP[IP] - p->XP[IM1]);
+            if(w && ea)
+            gx = (T(i+1,j)-T(i-1,j))/(p->XP[IP1]-p->XP[IM1]);
+            else if(ea)
+            gx = (T(i+1,j)-T(i,j))/(p->XP[IP1]-p->XP[IP]);
+            else if(w)
+            gx = (T(i,j)-T(i-1,j))/(p->XP[IP]-p->XP[IM1]);
 
-                if(s && n)
-                    gy = (T(i, j + 1) - T(i, j - 1)) / (p->YP[JP1] - p->YP[JM1]);
-                else if(n)
-                    gy = (T(i, j + 1) - T(i, j)) / (p->YP[JP1] - p->YP[JP]);
-                else if(s)
-                    gy = (T(i, j) - T(i, j - 1)) / (p->YP[JP] - p->YP[JM1]);
+            if(s && n)
+            gy = (T(i,j+1)-T(i,j-1))/(p->YP[JP1]-p->YP[JM1]);
+            else if(n)
+            gy = (T(i,j+1)-T(i,j))/(p->YP[JP1]-p->YP[JP]);
+            else if(s)
+            gy = (T(i,j)-T(i,j-1))/(p->YP[JP]-p->YP[JM1]);
             }
 
-            for(int l = l0; l <= l1; ++l)
+            for(int l=l0; l<=l1; ++l)
             {
-                cx[l] = float(gx);
-                cy[l] = float(gy);
+            cx[l] = float(gx);
+            cy[l] = float(gy);
             }
         }
     };
 
-    if(p->A718 == 1)
+    if(p->A718==1)
     {
         // total energy, energy-weighted k and cg
         SLICELOOP4
         {
-            double et = 0.0, ek = 0.0, ec = 0.0;
-            if(active(i, j))
+        double et = 0.0, ek = 0.0, ec = 0.0;
+            if(active(i,j))
             {
-                const float *N = e->N->spec(i, j), *kk = e->kw->spec(i, j), *cc = e->cg->spec(i, j);
-                for(int l = 0; l < g.nsig; ++l)
+            const float *N = e->N->spec(i,j), *kk = e->kw->spec(i,j), *cc = e->cg->spec(i,j);
+                for(int l=0; l<g.nsig; ++l)
                 {
-                    double s = 0.0;
-                    const float *Nl = N + g.bin(l, 0);
-                    for(int m = 0; m < g.ndir; ++m)
-                        s += double(Nl[m]) * g.wth[m];
-                    const double el = s * g.sig[l] * g.dsig[l] * g.dtheta;
-                    et += el;
-                    ek += el * double(kk[l]);
-                    ec += el * double(cc[l]);
+                double s = 0.0;
+                const float *Nl = N + g.bin(l,0);
+                for(int m=0; m<g.ndir; ++m)
+                s += double(Nl[m])*g.wth[m];
+                const double el = s*g.sig[l]*g.dsig[l]*g.dtheta;
+                et += el;
+                ek += el*double(kk[l]);
+                ec += el*double(cc[l]);
                 }
             }
-            S(i, j) = et;
-            KM(i, j) = et > 0.0 ? ek / et : 0.0;
-            CM(i, j) = et > 0.0 ? ec / et : 0.0;
+        S(i,j) = et;
+        KM(i,j) = et>0.0 ? ek/et : 0.0;
+        CM(i,j) = et>0.0 ? ec/et : 0.0;
         }
 
         ca_field();
-        store(0, g.nsig - 1);
+        store(0,g.nsig-1);
 
-        if(pamr != nullptr && pamr->active())
-            pamr->diffraction(p, 1, 0, g.nsig - 1, smax, dfL, dfdmin, *dfE, T);
+        if(pamr!=nullptr && pamr->active())
+        pamr->diffraction(p,1,0,g.nsig-1,smax,dfL,dfdmin,*dfE,T);
         return;
     }
 
-    for(int l = 0; l < g.nsig; ++l)
+    for(int l=0; l<g.nsig; ++l)
     {
         SLICELOOP4
         {
-            double s = 0.0;
-            if(active(i, j))
+        double s = 0.0;
+            if(active(i,j))
             {
-                const float *N = e->N->spec(i, j) + g.bin(l, 0);
-                for(int m = 0; m < g.ndir; ++m)
-                    s += double(N[m]) * g.wth[m];
+            const float *N = e->N->spec(i,j) + g.bin(l,0);
+            for(int m=0; m<g.ndir; ++m)
+            s += double(N[m])*g.wth[m];
             }
-            S(i, j) = s;
-            KM(i, j) = active(i, j) ? double(e->kw->spec(i, j)[l]) : 0.0;
-            CM(i, j) = active(i, j) ? double(e->cg->spec(i, j)[l]) : 0.0;
+        S(i,j) = s;
+        KM(i,j) = active(i,j) ? double(e->kw->spec(i,j)[l]) : 0.0;
+        CM(i,j) = active(i,j) ? double(e->cg->spec(i,j)[l]) : 0.0;
         }
 
         ca_field();
-        store(l, l);
+        store(l,l);
 
-        if(pamr != nullptr && pamr->active())
-            pamr->diffraction(p, 2, l, l, smax, dfL, dfdmin, *dfE, T);
+        if(pamr!=nullptr && pamr->active())
+        pamr->diffraction(p,2,l,l,smax,dfL,dfdmin,*dfE,T);
     }
 }
 
 // obstacles, structures and coasts (A 722 - A 726): transmission after Goda, d'Angremond and of the porous
 // structures from the present spectra, coasts after wetting and drying, before every iteration; also on the
 // patches of the mesh refinement
-void seastate_f::obstacles(lexer *p, ghostcell *)
+void seastate_f::obstacles(lexer *p, ghostcell*)
 {
-    if(pobs != nullptr && pobs->active())
-        pobs->update(p, e);
+    if(pobs!=nullptr && pobs->active())
+    pobs->update(p,e);
 
-    if(pobs != nullptr && pamr != nullptr && pamr->active())
-        pamr->obstacles();
+    if(pobs!=nullptr && pamr!=nullptr && pamr->active())
+    pamr->obstacles();
 }

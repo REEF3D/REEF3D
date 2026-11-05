@@ -30,27 +30,28 @@ Architect: Hans Bihs
 #ifndef CORAL_CATENARY_H_
 #define CORAL_CATENARY_H_
 
-namespace coral {
-struct catenary_line
+namespace coral
 {
-    double L = 0.0, w = 0.0, EA = 0.0, CB = 0.0;
-};
+    struct catenary_line
+    {
+        double L = 0.0, w = 0.0, EA = 0.0, CB = 0.0;
+    };
 
-// fairlead position (xF, zF) for the fairlead forces (HF > 0, VF)
-void catenary_ends(const catenary_line &, double HF, double VF, double &xF, double &zF);
+    // fairlead position (xF, zF) for the fairlead forces (HF > 0, VF)
+    void catenary_ends(const catenary_line&, double HF, double VF, double &xF, double &zF);
 
-// fairlead forces for the fairlead position; HF, VF are the start values on entry (<= 0: own
-// start values); false if Newton does not converge
-bool catenary_solve(const catenary_line &, double xF, double zF, double &HF, double &VF);
+    // fairlead forces for the fairlead position; HF, VF are the start values on entry (<= 0: own
+    // start values); false if Newton does not converge
+    bool catenary_solve(const catenary_line&, double xF, double zF, double &HF, double &VF);
 
-// length on the seabed for the fairlead forces (0: line hanging free)
-double catenary_seabed_length(const catenary_line &, double HF, double VF);
+    // length on the seabed for the fairlead forces (0: line hanging free)
+    double catenary_seabed_length(const catenary_line&, double HF, double VF);
 
-// point (x, z) at the unstretched arc length s from the anchor
-void catenary_profile(const catenary_line &, double HF, double VF, double s, double &x, double &z);
+    // point (x, z) at the unstretched arc length s from the anchor
+    void catenary_profile(const catenary_line&, double HF, double VF, double s, double &x, double &z);
 
-// anchor forces
-void catenary_anchor(const catenary_line &, double HF, double VF, double &HA, double &VA);
-}  // namespace coral
+    // anchor forces
+    void catenary_anchor(const catenary_line&, double HF, double VF, double &HA, double &VA);
+}
 
 #endif

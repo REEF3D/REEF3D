@@ -20,16 +20,16 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "benchmark_vortex.h"
-#include "convection.h"
-#include "fdm.h"
-#include "ghostcell.h"
-#include "lexer.h"
+#include"benchmark_vortex.h"
+#include"lexer.h"
+#include"fdm.h"
+#include"ghostcell.h"
+#include"convection.h"
 
 benchmark_vortex::benchmark_vortex(lexer *p, fdm *a)
 {
-    double xc, yc, radius;
-    double dist, sign;
+    double xc,yc,radius;
+	double dist,sign;
     double H;
 
     xc = 0.5;
@@ -38,59 +38,71 @@ benchmark_vortex::benchmark_vortex(lexer *p, fdm *a)
 
     LOOP
     {
-        a->phi(i, j, k) = -0.5;
-        a->vof(i, j, k) = 0.0;
+        a->phi(i,j,k)=-0.5;
+        a->vof(i,j,k)=0.0;
     }
+    
+	LOOP
+	{
+		
+	dist = sqrt( pow(p->pos_x()-xc,2.0) + pow(p->pos_y()-yc,2.0));
+	
+	if(dist<=radius)
+	sign=1.0;
+	
+	if(dist>radius)
+	sign=-1.0;
+	
+	a->phi(i,j,k)=sign*dist;	
+	}
+	
 
     LOOP
-    {
+	{
+		a->vof(i,j,k) = 0.0;
+		
+		double r = sqrt(pow(p->pos_x() - xc, 2.0) + pow(p->pos_z() - yc, 2.0));
+		if (r <= radius)
+		{
+			a->vof(i,j,k) = 1.0;
+		}
+	}
 
-        dist = sqrt(pow(p->pos_x() - xc, 2.0) + pow(p->pos_y() - yc, 2.0));
+    
+}
 
-        if(dist <= radius)
-            sign = 1.0;
+benchmark_vortex::~benchmark_vortex()
+{
+}
 
-        if(dist > radius)
-            sign = -1.0;
-
-        a->phi(i, j, k) = sign * dist;
-    }
-
+void benchmark_vortex::start(lexer* p, fdm *a, ghostcell *pgc, convection *pconvec )
+{
+    
+    
     LOOP
     {
-        a->vof(i, j, k) = 0.0;
-    }
-
-    benchmark_vortex::~benchmark_vortex()
-    {
-    }
-
-    void benchmark_vortex::start(lexer * p, fdm * a, ghostcell * pgc, convection * pconvec)
-    {
-
-        LOOP
+        if (p->simtime < 3.0)
         {
-            if(p->simtime < 3.0)
-            {
-                a->u(i, j, k) = -2.0 * cos(PI * p->pos_z()) * pow(sin(PI * p->pos_x()), 2) * sin(PI * p->pos_z());
-                a->v(i, j, k) = 0.0;
-                a->w(i, j, k) = 2.0 * cos(PI * p->pos_x()) * pow(sin(PI * p->pos_z()), 2) * sin(PI * p->pos_x());
-            }
-            else if(p->simtime < 6.0)
-            {
-                a->u(i, j, k) = 2.0 * cos(PI * p->pos_z()) * pow(sin(PI * p->pos_x()), 2) * sin(PI * p->pos_z());
-                a->v(i, j, k) = 0.0;
-                a->w(i, j, k) = -2.0 * cos(PI * p->pos_x()) * pow(sin(PI * p->pos_z()), 2) * sin(PI * p->pos_x());
-            }
-            else
-            {
-                a->u(i, j, k) = 0.0;
-                a->v(i, j, k) = 0.0;
-                a->w(i, j, k) = 0.0;
-            }
+            a->u(i,j,k) = -2.0*cos(PI*p->pos_z())*pow(sin(PI*p->pos_x()),2)*sin(PI*p->pos_z());
+            a->v(i,j,k) = 0.0;
+            a->w(i,j,k) = 2.0*cos(PI*p->pos_x())*pow(sin(PI*p->pos_z()),2)*sin(PI*p->pos_x());
         }
-
-        pgc->start1(p, a->u, 10);
-        pgc->start2(p, a->v, 11);
-        pgc->start3(p, a->w, 12);
+        else if(p->simtime < 6.0)
+        {
+            a->u(i,j,k) = 2.0*cos(PI*p->pos_z())*pow(sin(PI*p->pos_x()),2)*sin(PI*p->pos_z());
+            a->v(i,j,k) = 0.0;
+            a->w(i,j,k) = -2.0*cos(PI*p->pos_x())*pow(sin(PI*p->pos_z()),2)*sin(PI*p->pos_x());
+        }
+        else
+        {
+            a->u(i,j,k) = 0.0;
+            a->v(i,j,k) = 0.0;
+            a->w(i,j,k) = 0.0;
+        }
     }
+
+    pgc->start1(p,a->u,10);
+    pgc->start2(p,a->v,11);
+	pgc->start3(p,a->w,12);
+
+}

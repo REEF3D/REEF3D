@@ -23,9 +23,9 @@ Author: Hans Bihs
 #ifndef REINITOPO_RK3_H_
 #define REINITOPO_RK3_H_
 
-#include "field4a.h"
-#include "increment.h"
-#include "reinitopo.h"
+#include"reinitopo.h"
+#include"field4a.h"
+#include"increment.h"
 
 class reinidisc;
 
@@ -34,22 +34,22 @@ using namespace std;
 class reinitopo_RK3 final : public reinitopo, public increment
 {
 public:
-    reinitopo_RK3(lexer *p, const char *name = "topo");
-    virtual ~reinitopo_RK3();
-    void start(lexer *, fdm *, ghostcell *, field &) override final;
+	reinitopo_RK3(lexer* p, const char *name="topo");
+	virtual ~reinitopo_RK3();
+	void start(lexer*,fdm*,ghostcell*,field&) override final;
 
-    field4a f, frk1, frk2, L, dt;
+	field4a f,frk1,frk2,L,dt;
 
 private:
-    reinidisc *prdisc;
+	reinidisc *prdisc;
 
-    void step(lexer *, fdm *);
-    void time_preproc(lexer *);
+	void step(lexer*, fdm*);
+    void time_preproc(lexer*);
+	
+	double starttime,endtime;
 
-    double starttime, endtime;
-
-    int gcval, gcval_topo, gcval_initopo, reiniter, n;
-    const char *name;
+	int gcval,gcval_topo,gcval_initopo,reiniter,n;
+	const char *name;
 };
 
 #endif

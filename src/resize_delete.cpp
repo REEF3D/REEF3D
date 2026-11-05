@@ -20,18 +20,19 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "resize.h"
+#include"resize.h"
 
-void resize_class::del_Darray(double *&field, int numi)
+void resize_class::del_Darray(double*& field, int numi)
 {
     if(numi > 0)
     {
-        delete[] field;
+        delete [] field;
         field = nullptr;
     }
 }
 
-void resize_class::del_Darray(double **&field, int numi, int numj)
+
+void resize_class::del_Darray(double**& field, int numi, int numj)
 {
     if(numi > 0)
     {
@@ -39,15 +40,15 @@ void resize_class::del_Darray(double **&field, int numi, int numj)
         {
             for(int i = 0; i < numi; ++i)
             {
-                delete[] field[i];
+                delete [] field[i];
             }
         }
-        delete[] field;
+        delete [] field;
         field = nullptr;
     }
 }
 
-void resize_class::del_Darray(double ***&field, int numi, int numj, int numk)
+void resize_class::del_Darray(double***& field, int numi, int numj, int numk)
 {
     if(numi > 0)
     {
@@ -59,17 +60,17 @@ void resize_class::del_Darray(double ***&field, int numi, int numj, int numk)
                 {
                     for(int j = 0; j < numj; ++j)
                     {
-                        delete[] field[i][j];
+                        delete [] field[i][j];
                     }
                 }
-                delete[] field[i];
+                delete [] field[i];
             }
         }
-        delete[] field;
+        delete [] field;
     }
 }
 
-void resize_class::del_Darray(double ****&field, int numi, int numj, int numk, int numl)
+void resize_class::del_Darray(double****& field, int numi, int numj, int numk, int numl)
 {
     if(numi > 0)
     {
@@ -85,29 +86,48 @@ void resize_class::del_Darray(double ****&field, int numi, int numj, int numk, i
                         {
                             for(int k = 0; k < numk; ++k)
                             {
-                                delete[] field[i][j][k];
+                                delete [] field[i][j][k];
                             }
                         }
-                        delete[] field[i][j];
+                        delete [] field[i][j];
                     }
                 }
-                delete[] field[i];
+                delete [] field[i];
             }
         }
-        delete[] field;
+        delete [] field;
     }
 }
 
-void resize_class::del_Iarray(int *&field, int numi)
-{
+
+void resize_class::del_Iarray(int*& field, int numi)
+{    
     if(numi > 0)
     {
-        delete[] field;
+        delete [] field;
         field = nullptr;
     }
 }
 
-void resize_class::del_Iarray(int **&field, int numi, int numj)
+
+void resize_class::del_Iarray(int**& field, int numi, int numj)
+{
+    if(numi>0)
+    {
+        if(numj>0)
+        {
+            for(int i=0;i<numi;++i)
+            {
+                delete [] field[i];
+            }
+        }
+        delete [] field;
+        field = nullptr;
+    }
+}
+
+
+void resize_class::del_Iarray(int***& field, int numi, int numj, int numk)
 {
     if(numi > 0)
     {
@@ -115,30 +135,14 @@ void resize_class::del_Iarray(int **&field, int numi, int numj)
         {
             for(int i = 0; i < numi; ++i)
             {
-                delete[] field[i];
+                delete [] field[i];
             }
         }
-        delete[] field;
-        field = nullptr;
+        delete [] field;
     }
 }
 
-void resize_class::del_Iarray(int ***&field, int numi, int numj, int numk)
-{
-    if(numi > 0)
-    {
-        if(numj > 0)
-        {
-            for(int i = 0; i < numi; ++i)
-            {
-                delete[] field[i];
-            }
-        }
-        delete[] field;
-    }
-}
-
-void resize_class::del_Iarray(int ***&field, int numi, int *numj, int numk)
+void resize_class::del_Iarray(int***& field, int numi, int* numj, int numk)
 {
     if(numi > 0)
     {
@@ -148,16 +152,16 @@ void resize_class::del_Iarray(int ***&field, int numi, int *numj, int numk)
             {
                 for(int j = 0; j < numj[i]; ++j)
                 {
-                    delete[] field[i][j];
+                    delete [] field[i][j];
                 }
-                delete[] field[i];
+                delete [] field[i];
             }
         }
-        delete[] field;
+        delete [] field;
     }
 }
 
-void resize_class::del_Iarray(int ****&field, int numi, int numj, int numk, int numl)
+void resize_class::del_Iarray(int****& field, int numi, int numj, int numk, int numl)
 {
     if(numi > 0)
     {
@@ -169,17 +173,17 @@ void resize_class::del_Iarray(int ****&field, int numi, int numj, int numk, int 
                 {
                     for(int j = 0; j < numj; ++j)
                     {
-                        delete[] field[i][j];
+                        delete [] field[i][j];
                     }
                 }
-                delete[] field[i];
+                delete [] field[i];
             }
         }
-        delete[] field;
+        delete [] field;
     }
 }
 
-void resize_class::del_Iarray(int *****&field, int numi, int numj, int numk, int numl, int numh)
+void resize_class::del_Iarray(int*****& field,int numi, int numj, int numk, int numl, int numh)
 {
     if(numi > 0)
     {

@@ -20,14 +20,14 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "wave_lib_precalc.h"
-#include "fdm.h"
-#include "ghostcell.h"
-#include "lexer.h"
+#include"wave_lib_precalc.h"
+#include"lexer.h"
+#include"fdm.h"
+#include"ghostcell.h"
 
-wave_lib_precalc::wave_lib_precalc()
-{
-    vel = eta = fi = T = 0.0;
+wave_lib_precalc::wave_lib_precalc() 
+{ 
+    vel=eta=fi=T=0.0;
 }
 
 wave_lib_precalc::~wave_lib_precalc()
@@ -55,6 +55,7 @@ double wave_lib_precalc::wave_u_time_cos(lexer *p, int n)
     return T;
 }
 
+
 // V -------------------------------------------------------------
 double wave_lib_precalc::wave_v_space_sin(lexer *p, double x, double y, double z, int n)
 {
@@ -62,12 +63,12 @@ double wave_lib_precalc::wave_v_space_sin(lexer *p, double x, double y, double z
 }
 
 double wave_lib_precalc::wave_v_space_cos(lexer *p, double x, double y, double z, int n)
-{
+{ 
     return vel;
 }
 
 double wave_lib_precalc::wave_v_time_sin(lexer *p, int n)
-{
+{ 
     return T;
 }
 
@@ -75,6 +76,7 @@ double wave_lib_precalc::wave_v_time_cos(lexer *p, int n)
 {
     return T;
 }
+
 
 // W -------------------------------------------------------------
 double wave_lib_precalc::wave_w_space_sin(lexer *p, double x, double y, double z, int n)
@@ -119,22 +121,22 @@ double wave_lib_precalc::wave_eta_time_cos(lexer *p, int n)
 }
 
 // FI -------------------------------------------------------------
-
+    
 double wave_lib_precalc::wave_fi_space_sin(lexer *p, double x, double y, double z, int n)
 {
-
+    
     return fi;
 }
 
 double wave_lib_precalc::wave_fi_space_cos(lexer *p, double x, double y, double z, int n)
 {
-
+    
     return fi;
 }
 
 double wave_lib_precalc::wave_fi_time_sin(lexer *p, int n)
 {
-
+    
     return fi;
 }
 

@@ -20,50 +20,50 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "nhflow_scour.h"
-#include "fdm_nhf.h"
-#include "ghostcell.h"
-#include "lexer.h"
+#include"nhflow_scour.h"
+#include"lexer.h"
+#include"fdm_nhf.h"
+#include"ghostcell.h"
 
-nhflow_scour::nhflow_scour(lexer *p, fdm_nhf *d, ghostcell *pgc) : scour_core(p, pgc, "NHFLOW", &d->depth, true)
+nhflow_scour::nhflow_scour(lexer *p, fdm_nhf *d, ghostcell *pgc) : scour_core(p,pgc,"NHFLOW",&d->depth,true)
 {
-    if(p->geo_curv == 1 && (p->P196 == 1 || p->P198 > 0) && p->mpirank == 0)
-        cout << "NHFLOW scour: the current file P 196 and the gauges P 198 locate points on the Cartesian grid, "
-             << "not on a curvilinear grid" << endl;
+    if(p->geo_curv==1 && (p->P196==1 || p->P198>0) && p->mpirank==0)
+    cout<<"NHFLOW scour: the current file P 196 and the gauges P 198 locate points on the Cartesian grid, "
+        <<"not on a curvilinear grid"<<endl;
 }
 
 void nhflow_scour::sample(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
     SLICELOOP4
     {
-        ub(i, j) = vb(i, j) = ucx(i, j) = ucy(i, j) = 0.0;
+        ub(i,j)=vb(i,j)=ucx(i,j)=ucy(i,j)=0.0;
 
-        if(p->wet[IJ] == 0)
-            continue;
+        if(p->wet[IJ]==0)
+        continue;
 
         // near bed: the lowest layer
-        k = 0;
-        ub(i, j) = d->U[IJK];
-        vb(i, j) = d->V[IJK];
+        k=0;
+        ub(i,j) = d->U[IJK];
+        vb(i,j) = d->V[IJK];
 
         // depth average
-        double us = 0.0, vs = 0.0, ws = 0.0;
+        double us=0.0, vs=0.0, ws=0.0;
 
-        for(k = 0; k < p->knoz; ++k)
+        for(k=0; k<p->knoz; ++k)
         {
-            const double w = p->DZN[KP];
+        const double w = p->DZN[KP];
 
-            us += w * d->U[IJK];
-            vs += w * d->V[IJK];
-            ws += w;
+        us += w*d->U[IJK];
+        vs += w*d->V[IJK];
+        ws += w;
         }
 
-        if(ws > 1.0e-12)
+        if(ws>1.0e-12)
         {
-            ucx(i, j) = us / ws;
-            ucy(i, j) = vs / ws;
+        ucx(i,j) = us/ws;
+        ucy(i,j) = vs/ws;
         }
     }
 
-    scour_core::sample(p, pgc);
+    scour_core::sample(p,pgc);
 }

@@ -23,7 +23,7 @@ Author: Hans Bihs
 #ifndef PATCHBC_2D_H_
 #define PATCHBC_2D_H_
 
-#include "patchBC_core.h"
+#include"patchBC_core.h"
 
 using namespace std;
 
@@ -31,27 +31,27 @@ using namespace std;
 class patchBC_2D final : public patchBC_core
 {
 public:
-    patchBC_2D(lexer *, ghostcell *);
-    virtual ~patchBC_2D();
-
-    void patchBC_ini(lexer *, ghostcell *) override final;
-
+	patchBC_2D(lexer*,ghostcell*);
+	virtual ~patchBC_2D();
+    
+    void patchBC_ini(lexer*, ghostcell*) override final;
+    
     // BC update ::CFD
-    void patchBC_ioflow(lexer *, fdm *, ghostcell *, field &, field &, field &) override final;
-    void patchBC_rkioflow(lexer *, fdm *, ghostcell *, field &, field &, field &) override final;
-    void patchBC_discharge(lexer *, fdm *, ghostcell *) override final;
-    void patchBC_pressure(lexer *, fdm *, ghostcell *, field &) override final;
-    void patchBC_waterlevel(lexer *, fdm *, ghostcell *, field &) override final;
-
+    void patchBC_ioflow(lexer*, fdm*, ghostcell*, field&,field&,field&) override final;
+    void patchBC_rkioflow(lexer*, fdm*, ghostcell*, field&,field&,field&) override final;
+    void patchBC_discharge(lexer*, fdm*, ghostcell*) override final;
+    void patchBC_pressure(lexer*, fdm*, ghostcell*, field&) override final;
+    void patchBC_waterlevel(lexer*, fdm*, ghostcell*, field&) override final;
+    
     // BC update ::SFLOW
-    void patchBC_ioflow2D(lexer *, ghostcell *, slice &, slice &, slice &, slice &) override final;
-    void patchBC_discharge2D(lexer *, fdm2D *, ghostcell *, slice &, slice &, slice &, slice &) override final;
-    void patchBC_waterlevel2D(lexer *, fdm2D *, ghostcell *, slice &) override final;
-
+    void patchBC_ioflow2D(lexer*, ghostcell*, slice&, slice&, slice&, slice&) override final;
+    void patchBC_discharge2D(lexer*, fdm2D*, ghostcell*, slice&, slice&, slice&, slice&) override final;
+    void patchBC_waterlevel2D(lexer*, fdm2D*, ghostcell*, slice&) override final;
+    
 private:
     // ghost cell q (1..3) of the face (i,j,cs)
     void ghost(int cs, int q, int &ii, int &jj);
-
+    
     // code of the patch face matching a staggered slice entry (same side, same tangential index,
     // normal index within one cell), 0 if none
     int staggered_flag(int ii, int jj, int cs);

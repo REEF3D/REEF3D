@@ -20,38 +20,38 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "sflow_HLL.h"
-#include "fdm2D.h"
-#include "ghostcell.h"
-#include "lexer.h"
-#include "patchBC_codes.h"
-#include "patchBC_interface.h"
-#include "seastate_sflow.h"
-#include "sflow_amr.h"
-#include "sflow_curv.h"
-#include "sflow_flux_build_f.h"
-#include "slice.h"
+#include"patchBC_codes.h"
+#include"sflow_HLL.h"
+#include"lexer.h"
+#include"ghostcell.h"
+#include"fdm2D.h"
+#include"slice.h"
+#include"patchBC_interface.h"
+#include"sflow_flux_build_f.h"
+#include"sflow_amr.h"
+#include"seastate_sflow.h"
+#include"sflow_curv.h"
 
-sflow_HLL::sflow_HLL(lexer *p, ghostcell *ppgc, patchBC_interface *ppBC)
+sflow_HLL::sflow_HLL(lexer *p, ghostcell *ppgc, patchBC_interface *ppBC) 
 {
     pgc = ppgc;
     pBC = ppBC;
-
-    pflux = new sflow_flux_build_f(p, pgc, pBC);
-
+    
+    pflux = new sflow_flux_build_f(p,pgc,pBC);
+    
     // physical in- and outflow faces carry the flux of the ghost state,
     // all other boundary faces are walls
-    inflow = 0;
-    outflow = 0;
-
-    if(p->B98 >= 3 || p->B60 >= 1)
-        inflow = 1;
-
-    if(p->B99 >= 3 || p->B60 >= 1)
-        outflow = 1;
-
+    inflow=0;
+    outflow=0;
+    
+    if(p->B98>=3 || p->B60>=1)
+    inflow=1;
+    
+    if(p->B99>=3 || p->B60>=1)
+    outflow=1;
+    
     // A 225 2: HLLC for the tangential momentum components (HLLC_x/HLLC_y), not on the curvilinear grid
-    hllc = (p->A225 == 2 && p->geo_curv != 1) ? 1 : 0;
+    hllc = (p->A225==2 && p->geo_curv!=1) ? 1 : 0;
 }
 
 sflow_HLL::~sflow_HLL()
@@ -61,165 +61,168 @@ sflow_HLL::~sflow_HLL()
 
 void sflow_HLL::start(lexer *p, fdm2D *b, int ipol)
 {
-    if(ipol == 1)
-        aij_U(p, b);
+    if(ipol==1)
+    aij_U(p,b);
 
-    if(ipol == 2 && p->j_dir == 1)
-        aij_V(p, b);
+    if(ipol==2 && p->j_dir==1)
+    aij_V(p,b);
 
-    if(ipol == 3)
-        aij_W(p, b);
-
-    if(ipol == 4)
-        aij_E(p, b);
+    if(ipol==3)
+    aij_W(p,b);
+    
+    if(ipol==4)
+    aij_E(p,b);
 }
 
 void sflow_HLL::aij_U(lexer *p, fdm2D *b)
 {
-    pflux->start_U(p, b, pgc);
-
+    pflux->start_U(p,b,pgc);
+    
     // Boussinesq: fluxes from the volume flux M, dissipation from the conserved V
-    if(p->A220 == 4)
-        HLL(p, b, b->QUs, b->QUn, b->QUe, b->QUw, b->Fx, b->Fy);
-
+    if(p->A220==4)
+    HLL(p,b,b->QUs,b->QUn,b->QUe,b->QUw,b->Fx,b->Fy);
+    
     else
-        HLL(p, b, b->UHs, b->UHn, b->UHe, b->UHw, b->Fx, b->Fy);
-
+    HLL(p,b,b->UHs,b->UHn,b->UHe,b->UHw,b->Fx,b->Fy);
+    
     // HLLC: U is tangential to the y-faces
-    if(hllc == 1 && p->j_dir == 1)
-        HLLC_y(p, b, b->Fy, b->Ue, b->Uw);
-
-    flux_bc(p, b, 1);
-
-    if(amr != nullptr)
-        amr->hll_hook(p, b, 1, amr_id);
-
-    divergence(p, b, b->F);
+    if(hllc==1 && p->j_dir==1)
+    HLLC_y(p,b,b->Fy,b->Ue,b->Uw);
+    
+    flux_bc(p,b,1);
+    
+    if(amr!=nullptr)
+    amr->hll_hook(p,b,1,amr_id);
+    
+    divergence(p,b,b->F);
 }
 
 void sflow_HLL::aij_V(lexer *p, fdm2D *b)
 {
-    pflux->start_V(p, b, pgc);
-
-    if(p->A220 == 4)
-        HLL(p, b, b->QVs, b->QVn, b->QVe, b->QVw, b->Fx, b->Fy);
-
+    pflux->start_V(p,b,pgc);
+    
+    if(p->A220==4)
+    HLL(p,b,b->QVs,b->QVn,b->QVe,b->QVw,b->Fx,b->Fy);
+    
     else
-        HLL(p, b, b->VHs, b->VHn, b->VHe, b->VHw, b->Fx, b->Fy);
-
+    HLL(p,b,b->VHs,b->VHn,b->VHe,b->VHw,b->Fx,b->Fy);
+    
     // HLLC: V is tangential to the x-faces
-    if(hllc == 1)
-        HLLC_x(p, b, b->Fx, b->Vs, b->Vn);
-
-    flux_bc(p, b, 2);
-
-    if(amr != nullptr)
-        amr->hll_hook(p, b, 2, amr_id);
-
-    divergence(p, b, b->G);
+    if(hllc==1)
+    HLLC_x(p,b,b->Fx,b->Vs,b->Vn);
+    
+    flux_bc(p,b,2);
+    
+    if(amr!=nullptr)
+    amr->hll_hook(p,b,2,amr_id);
+    
+    divergence(p,b,b->G);
 }
 
 void sflow_HLL::aij_W(lexer *p, fdm2D *b)
 {
-    pflux->start_W(p, b, pgc);
-    HLL(p, b, b->WHs, b->WHn, b->WHe, b->WHw, b->Fx, b->Fy);
-
+    pflux->start_W(p,b,pgc);
+    HLL(p,b,b->WHs,b->WHn,b->WHe,b->WHw,b->Fx,b->Fy);
+    
     // HLLC: W is tangential to both face directions
-    if(hllc == 1)
+    if(hllc==1)
     {
-        HLLC_x(p, b, b->Fx, b->Ws, b->Wn);
-
-        if(p->j_dir == 1)
-            HLLC_y(p, b, b->Fy, b->We, b->Ww);
+    HLLC_x(p,b,b->Fx,b->Ws,b->Wn);
+    
+    if(p->j_dir==1)
+    HLLC_y(p,b,b->Fy,b->We,b->Ww);
     }
-
-    flux_bc(p, b, 3);
-
-    if(amr != nullptr)
-        amr->hll_hook(p, b, 3, amr_id);
-
-    divergence(p, b, b->H);
+    
+    flux_bc(p,b,3);
+    
+    if(amr!=nullptr)
+    amr->hll_hook(p,b,3,amr_id);
+    
+    divergence(p,b,b->H);
 }
 
 void sflow_HLL::aij_E(lexer *p, fdm2D *b)
 {
-    pflux->start_E(p, b, pgc);
-    HLL(p, b, b->Ds, b->Dn, b->De, b->Dw, b->FEx, b->FEy);
-
+    pflux->start_E(p,b,pgc);
+    HLL(p,b,b->Ds,b->Dn,b->De,b->Dw,b->FEx,b->FEy);
+    
     // no mass flux into or out of dry cells
     SLICELOOP4
     WETDRY
     {
-        if(p->wet[Ip1J] == 0)
-            b->FEx(i, j) = 0.0;
-
-        if(p->wet[Im1J] == 0)
-            b->FEx(i - 1, j) = 0.0;
-
-        if(p->wet[IJp1] == 0)
-            b->FEy(i, j) = 0.0;
-
-        if(p->wet[IJm1] == 0)
-            b->FEy(i, j - 1) = 0.0;
+    if(p->wet[Ip1J]==0)
+    b->FEx(i,j) = 0.0;
+    
+    if(p->wet[Im1J]==0)
+    b->FEx(i-1,j) = 0.0;
+    
+    if(p->wet[IJp1]==0)
+    b->FEy(i,j) = 0.0;
+    
+    if(p->wet[IJm1]==0)
+    b->FEy(i,j-1) = 0.0;
     }
-
-    flux_bc(p, b, 4);
-
-    if(amr != nullptr)
-        amr->hll_hook(p, b, 4, amr_id);
+    
+    flux_bc(p,b,4);
+    
+    if(amr!=nullptr)
+    amr->hll_hook(p,b,4,amr_id);
 }
 
 void sflow_HLL::divergence(lexer *p, fdm2D *b, slice &f)
 {
-    if(p->geo_curv == 1)
+    if(p->geo_curv==1)
     {
-        sflow_curv::divergence(p, b, f, b->Fx, b->Fy);
-        return;
+    sflow_curv::divergence(p,b,f,b->Fx,b->Fy);
+    return;
     }
-
+    
     SLICELOOP4
     WETDRY
-    f(i, j) -= (b->Fx(i, j) - b->Fx(i - 1, j)) / p->DXN[IP] + (b->Fy(i, j) - b->Fy(i, j - 1)) / p->DYN[JP] * p->y_dir;
+    f(i,j) -= (b->Fx(i,j) - b->Fx(i-1,j))/p->DXN[IP] 
+            + (b->Fy(i,j) - b->Fy(i,j-1))/p->DYN[JP]*p->y_dir;
 }
 
 void sflow_HLL::HLL(lexer *p, fdm2D *b, slice &Qs, slice &Qn, slice &Qe, slice &Qw, slice &Fx, slice &Fy)
-{
+{    
     // HLL flux x-dir
     SLICELOOP1
     {
-        if(b->Ss(i, j) >= 0.0)
-            Fx(i, j) = b->Fs(i, j);
-
-        else if(b->Sn(i, j) <= 0.0)
-            Fx(i, j) = b->Fn(i, j);
-
+        if(b->Ss(i,j)>=0.0)
+        Fx(i,j) = b->Fs(i,j);
+        
+        else
+        if(b->Sn(i,j)<=0.0)
+        Fx(i,j) = b->Fn(i,j);
+        
         else
         {
-            denom = b->Sn(i, j) - b->Ss(i, j);
-            denom = fabs(denom) > 1.0e-10 ? denom : 1.0e10;
-
-            Fx(i, j) = (b->Sn(i, j) * b->Fs(i, j) - b->Ss(i, j) * b->Fn(i, j) + b->Sn(i, j) * b->Ss(i, j) * (Qn(i, j) - Qs(i, j))) / denom;
+        denom = b->Sn(i,j)-b->Ss(i,j);
+        denom = fabs(denom)>1.0e-10?denom:1.0e10;
+        
+        Fx(i,j) = (b->Sn(i,j)*b->Fs(i,j) - b->Ss(i,j)*b->Fn(i,j) + b->Sn(i,j)*b->Ss(i,j)*(Qn(i,j) - Qs(i,j)))/denom;
         }
     }
-
+    
     // HLL flux y-dir
-    if(p->j_dir == 1)
-        SLICELOOP2
+    if(p->j_dir==1)
+    SLICELOOP2
+    {
+        if(b->Se(i,j)>=0.0)
+        Fy(i,j) = b->Fe(i,j);
+        
+        else
+        if(b->Sw(i,j)<=0.0)
+        Fy(i,j) = b->Fw(i,j);
+        
+        else
         {
-            if(b->Se(i, j) >= 0.0)
-                Fy(i, j) = b->Fe(i, j);
-
-            else if(b->Sw(i, j) <= 0.0)
-                Fy(i, j) = b->Fw(i, j);
-
-            else
-            {
-                denom = b->Sw(i, j) - b->Se(i, j);
-                denom = fabs(denom) > 1.0e-10 ? denom : 1.0e10;
-
-                Fy(i, j) = (b->Sw(i, j) * b->Fe(i, j) - b->Se(i, j) * b->Fw(i, j) + b->Sw(i, j) * b->Se(i, j) * (Qw(i, j) - Qe(i, j))) / denom;
-            }
+        denom = b->Sw(i,j)-b->Se(i,j);
+        denom = fabs(denom)>1.0e-10?denom:1.0e10;
+        
+        Fy(i,j) = (b->Sw(i,j)*b->Fe(i,j) - b->Se(i,j)*b->Fw(i,j) + b->Sw(i,j)*b->Se(i,j)*(Qw(i,j) - Qe(i,j)))/denom;
         }
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -239,21 +242,22 @@ void sflow_HLL::HLLC_x(lexer *p, fdm2D *b, slice &Fx, slice &phis, slice &phin)
 {
     SLICELOOP1
     {
-        if(b->Ss(i, j) >= 0.0)
-            Fx(i, j) = b->Fs(i, j);
-
-        else if(b->Sn(i, j) <= 0.0)
-            Fx(i, j) = b->Fn(i, j);
-
+        if(b->Ss(i,j)>=0.0)
+        Fx(i,j) = b->Fs(i,j);
+        
+        else
+        if(b->Sn(i,j)<=0.0)
+        Fx(i,j) = b->Fn(i,j);
+        
         else
         {
-            denom = b->Sn(i, j) - b->Ss(i, j);
-            denom = fabs(denom) > 1.0e-10 ? denom : 1.0e10;
-
-            // HLL mass flux of the face
-            const double FD = (b->Sn(i, j) * b->UHs(i, j) - b->Ss(i, j) * b->UHn(i, j) + b->Sn(i, j) * b->Ss(i, j) * (b->Dn(i, j) - b->Ds(i, j))) / denom;
-
-            Fx(i, j) = FD >= 0.0 ? FD * phis(i, j) : FD * phin(i, j);
+        denom = b->Sn(i,j)-b->Ss(i,j);
+        denom = fabs(denom)>1.0e-10?denom:1.0e10;
+        
+        // HLL mass flux of the face
+        const double FD = (b->Sn(i,j)*b->UHs(i,j) - b->Ss(i,j)*b->UHn(i,j) + b->Sn(i,j)*b->Ss(i,j)*(b->Dn(i,j) - b->Ds(i,j)))/denom;
+        
+        Fx(i,j) = FD>=0.0 ? FD*phis(i,j) : FD*phin(i,j);
         }
     }
 }
@@ -262,21 +266,22 @@ void sflow_HLL::HLLC_y(lexer *p, fdm2D *b, slice &Fy, slice &phie, slice &phiw)
 {
     SLICELOOP2
     {
-        if(b->Se(i, j) >= 0.0)
-            Fy(i, j) = b->Fe(i, j);
-
-        else if(b->Sw(i, j) <= 0.0)
-            Fy(i, j) = b->Fw(i, j);
-
+        if(b->Se(i,j)>=0.0)
+        Fy(i,j) = b->Fe(i,j);
+        
+        else
+        if(b->Sw(i,j)<=0.0)
+        Fy(i,j) = b->Fw(i,j);
+        
         else
         {
-            denom = b->Sw(i, j) - b->Se(i, j);
-            denom = fabs(denom) > 1.0e-10 ? denom : 1.0e10;
-
-            // HLL mass flux of the face
-            const double FD = (b->Sw(i, j) * b->VHe(i, j) - b->Se(i, j) * b->VHw(i, j) + b->Sw(i, j) * b->Se(i, j) * (b->Dw(i, j) - b->De(i, j))) / denom;
-
-            Fy(i, j) = FD >= 0.0 ? FD * phie(i, j) : FD * phiw(i, j);
+        denom = b->Sw(i,j)-b->Se(i,j);
+        denom = fabs(denom)>1.0e-10?denom:1.0e10;
+        
+        // HLL mass flux of the face
+        const double FD = (b->Sw(i,j)*b->VHe(i,j) - b->Se(i,j)*b->VHw(i,j) + b->Sw(i,j)*b->Se(i,j)*(b->Dw(i,j) - b->De(i,j)))/denom;
+        
+        Fy(i,j) = FD>=0.0 ? FD*phie(i,j) : FD*phiw(i,j);
         }
     }
 }
@@ -285,266 +290,268 @@ void sflow_HLL::flux_bc(lexer *p, fdm2D *b, int ipol)
 {
     // MPI: the first face of each partition is computed by the neighbour
     // (exchange only, the physical boundary faces are set below)
-    slice &Fxp = (ipol == 4) ? b->FEx : b->Fx;
-    slice &Fyp = (ipol == 4) ? b->FEy : b->Fy;
-
-    if(p->mpi_size > 1)
+    slice &Fxp = (ipol==4)?b->FEx:b->Fx;
+    slice &Fyp = (ipol==4)?b->FEy:b->Fy;
+    
+    if(p->mpi_size>1)
     {
-        pgc->gcslparax(p, Fxp, 1);
-        pgc->gcslparacox(p, Fxp, 14);
-
-        if(p->j_dir == 1)
+    pgc->gcslparax(p,Fxp,1);
+    pgc->gcslparacox(p,Fxp,14);
+    
+        if(p->j_dir==1)
         {
-            pgc->gcslparax(p, Fyp, 2);
-            pgc->gcslparacox(p, Fyp, 14);
+        pgc->gcslparax(p,Fyp,2);
+        pgc->gcslparacox(p,Fyp,14);
         }
     }
-
+    
     // boundary faces
     //  walls: no mass flux, momentum flux from the mirrored ghost state (see below)
     //  inflow (gcslin) / outflow (gcslout): physical flux of the ghost state
-    slice &Fx = (ipol == 4) ? b->FEx : b->Fx;
-    slice &Fy = (ipol == 4) ? b->FEy : b->Fy;
-
+    slice &Fx = (ipol==4)?b->FEx:b->Fx;
+    slice &Fy = (ipol==4)?b->FEy:b->Fy;
+    
     // curvilinear grid: walls, in- and outflow with the face normals
-    if(p->geo_curv == 1)
+    if(p->geo_curv==1)
     {
-        sflow_curv::flux_bc(p, b, ipol, Fx, Fy, inflow, outflow);
-        return;
+    sflow_curv::flux_bc(p,b,ipol,Fx,Fy,inflow,outflow);
+    return;
     }
-
+    
     const double g = fabs(p->W22);
-    double wc, sw;
-
+    double wc,sw;
+    
     //  walls: HLL flux with the mirrored ghost state, F = F_i -/+ s q_i
     //  (s = |u| + sqrt(gH)); the normal momentum of the wall cell is coupled to the wall
     SLICELOOP4
     {
-        wc = MAX(b->eta(i, j) + b->depth(i, j), 0.0);
-
+    wc = MAX(b->eta(i,j) + b->depth(i,j), 0.0);
+    
         // x-dir
-        if(p->flagslice4[Im1J] < 0)
+        if(p->flagslice4[Im1J]<0)
         {
-            sw = fabs(b->U(i, j)) + sqrt(g * wc);
-
-            if(ipol == 1)
-                Fx(i - 1, j) = 0.5 * g * b->eta(i, j) * b->eta(i, j) + g * b->eta(i, j) * b->dfx(i - 1, j) + wc * b->U(i, j) * b->U(i, j) - sw * wc * b->U(i, j);
-
-            else
-                Fx(i - 1, j) = 0.0;
+        sw = fabs(b->U(i,j)) + sqrt(g*wc);
+        
+        if(ipol==1)
+        Fx(i-1,j) = 0.5*g*b->eta(i,j)*b->eta(i,j) + g*b->eta(i,j)*b->dfx(i-1,j)
+                  + wc*b->U(i,j)*b->U(i,j) - sw*wc*b->U(i,j);
+        
+        else
+        Fx(i-1,j) = 0.0;
         }
-
-        if(p->flagslice4[Ip1J] < 0)
+        
+        if(p->flagslice4[Ip1J]<0)
         {
-            sw = fabs(b->U(i, j)) + sqrt(g * wc);
-
-            if(ipol == 1)
-                Fx(i, j) = 0.5 * g * b->eta(i, j) * b->eta(i, j) + g * b->eta(i, j) * b->dfx(i, j) + wc * b->U(i, j) * b->U(i, j) + sw * wc * b->U(i, j);
-
-            else
-                Fx(i, j) = 0.0;
+        sw = fabs(b->U(i,j)) + sqrt(g*wc);
+        
+        if(ipol==1)
+        Fx(i,j) = 0.5*g*b->eta(i,j)*b->eta(i,j) + g*b->eta(i,j)*b->dfx(i,j)
+                + wc*b->U(i,j)*b->U(i,j) + sw*wc*b->U(i,j);
+        
+        else
+        Fx(i,j) = 0.0;
         }
-
+        
         // y-dir
-        if(p->j_dir == 1)
+        if(p->j_dir==1)
         {
-            if(p->flagslice4[IJm1] < 0)
+            if(p->flagslice4[IJm1]<0)
             {
-                sw = fabs(b->V(i, j)) + sqrt(g * wc);
-
-                if(ipol == 2)
-                    Fy(i, j - 1) = 0.5 * g * b->eta(i, j) * b->eta(i, j) + g * b->eta(i, j) * b->dfy(i, j - 1) + wc * b->V(i, j) * b->V(i, j) - sw * wc * b->V(i, j);
-
-                else
-                    Fy(i, j - 1) = 0.0;
+            sw = fabs(b->V(i,j)) + sqrt(g*wc);
+            
+            if(ipol==2)
+            Fy(i,j-1) = 0.5*g*b->eta(i,j)*b->eta(i,j) + g*b->eta(i,j)*b->dfy(i,j-1)
+                      + wc*b->V(i,j)*b->V(i,j) - sw*wc*b->V(i,j);
+            
+            else
+            Fy(i,j-1) = 0.0;
             }
-
-            if(p->flagslice4[IJp1] < 0)
+            
+            if(p->flagslice4[IJp1]<0)
             {
-                sw = fabs(b->V(i, j)) + sqrt(g * wc);
-
-                if(ipol == 2)
-                    Fy(i, j) = 0.5 * g * b->eta(i, j) * b->eta(i, j) + g * b->eta(i, j) * b->dfy(i, j) + wc * b->V(i, j) * b->V(i, j) + sw * wc * b->V(i, j);
-
-                else
-                    Fy(i, j) = 0.0;
+            sw = fabs(b->V(i,j)) + sqrt(g*wc);
+            
+            if(ipol==2)
+            Fy(i,j) = 0.5*g*b->eta(i,j)*b->eta(i,j) + g*b->eta(i,j)*b->dfy(i,j)
+                    + wc*b->V(i,j)*b->V(i,j) + sw*wc*b->V(i,j);
+            
+            else
+            Fy(i,j) = 0.0;
             }
         }
     }
-
+    
     // inflow: ghost state from the ghost velocity and water level
     double wl;
-
-    if(inflow == 1)
-        for(n = 0; n < p->gcslin_count; n++)
-        {
-            i = p->gcslin[n][0] - 1;
-            j = p->gcslin[n][1];
-
-            wl = MAX(b->eta(i, j) + b->depth(i, j), 0.0);
-
-            if(ipol == 1)
-                Fx(i, j) = wl * b->U(i, j) * b->U(i, j) + 0.5 * g * b->eta(i, j) * b->eta(i, j) + g * b->eta(i, j) * b->dfx(i, j);
-
-            if(ipol == 2)
-                Fx(i, j) = wl * b->V(i, j) * b->U(i, j);
-
-            if(ipol == 3)
-                Fx(i, j) = wl * b->W(i, j) * b->U(i, j);
-
-            if(ipol == 4)
-                Fx(i, j) = wl * b->U(i, j);
-        }
-
+    
+    if(inflow==1)
+    for(n=0;n<p->gcslin_count;n++)
+    {
+    i=p->gcslin[n][0]-1;
+    j=p->gcslin[n][1];
+    
+    wl = MAX(b->eta(i,j) + b->depth(i,j), 0.0);
+    
+        if(ipol==1)
+        Fx(i,j) = wl*b->U(i,j)*b->U(i,j) + 0.5*g*b->eta(i,j)*b->eta(i,j) + g*b->eta(i,j)*b->dfx(i,j);
+        
+        if(ipol==2)
+        Fx(i,j) = wl*b->V(i,j)*b->U(i,j);
+        
+        if(ipol==3)
+        Fx(i,j) = wl*b->W(i,j)*b->U(i,j);
+        
+        if(ipol==4)
+        Fx(i,j) = wl*b->U(i,j);
+    }
+    
     // patch boundaries: physical flux of the ghost state
     int cs;
-    double eg, ug, vg, wg;
-
+    double eg,ug,vg,wg;
+    
     GCSL4LOOP
     if(patch_bc(p->gcbsl4[n][4]))
     {
-        i = p->gcbsl4[n][0];
-        j = p->gcbsl4[n][1];
-        cs = p->gcbsl4[n][3];
-
-        int ii = 0, jj = 0;
-
-        if(cs == 1)
-            ii = -1;
-
-        if(cs == 4)
-            ii = 1;
-
-        if(cs == 2)
-            jj = 1;
-
-        if(cs == 3)
-            jj = -1;
-
-        eg = b->eta(i + ii, j + jj);
-        wl = MAX(eg + b->depth(i + ii, j + jj), 0.0);
-        ug = b->U(i + ii, j + jj);
-        vg = b->V(i + ii, j + jj);
-        wg = b->W(i + ii, j + jj);
-
+    i  = p->gcbsl4[n][0];
+    j  = p->gcbsl4[n][1];
+    cs = p->gcbsl4[n][3];
+    
+    int ii=0,jj=0;
+    
+    if(cs==1)
+    ii=-1;
+    
+    if(cs==4)
+    ii=1;
+    
+    if(cs==2)
+    jj=1;
+    
+    if(cs==3)
+    jj=-1;
+    
+    eg = b->eta(i+ii,j+jj);
+    wl = MAX(eg + b->depth(i+ii,j+jj), 0.0);
+    ug = b->U(i+ii,j+jj);
+    vg = b->V(i+ii,j+jj);
+    wg = b->W(i+ii,j+jj);
+    
         // x-face
-        if(cs == 1 || cs == 4)
+        if(cs==1 || cs==4)
         {
-            int fi = (cs == 1) ? i - 1 : i;
-
-            if(ipol == 1)
-                Fx(fi, j) = wl * ug * ug + 0.5 * g * eg * eg + g * eg * b->dfx(fi, j);
-
-            if(ipol == 2)
-                Fx(fi, j) = wl * vg * ug;
-
-            if(ipol == 3)
-                Fx(fi, j) = wl * wg * ug;
-
-            if(ipol == 4)
-                Fx(fi, j) = wl * ug;
+        int fi = (cs==1)?i-1:i;
+        
+        if(ipol==1)
+        Fx(fi,j) = wl*ug*ug + 0.5*g*eg*eg + g*eg*b->dfx(fi,j);
+        
+        if(ipol==2)
+        Fx(fi,j) = wl*vg*ug;
+        
+        if(ipol==3)
+        Fx(fi,j) = wl*wg*ug;
+        
+        if(ipol==4)
+        Fx(fi,j) = wl*ug;
         }
-
+        
         // y-face
-        if((cs == 2 || cs == 3) && p->j_dir == 1)
+        if((cs==2 || cs==3) && p->j_dir==1)
         {
-            int fj = (cs == 3) ? j - 1 : j;
-
-            if(ipol == 1)
-                Fy(i, fj) = wl * ug * vg;
-
-            if(ipol == 2)
-                Fy(i, fj) = wl * vg * vg + 0.5 * g * eg * eg + g * eg * b->dfy(i, fj);
-
-            if(ipol == 3)
-                Fy(i, fj) = wl * wg * vg;
-
-            if(ipol == 4)
-                Fy(i, fj) = wl * vg;
+        int fj = (cs==3)?j-1:j;
+        
+        if(ipol==1)
+        Fy(i,fj) = wl*ug*vg;
+        
+        if(ipol==2)
+        Fy(i,fj) = wl*vg*vg + 0.5*g*eg*eg + g*eg*b->dfy(i,fj);
+        
+        if(ipol==3)
+        Fy(i,fj) = wl*wg*vg;
+        
+        if(ipol==4)
+        Fy(i,fj) = wl*vg;
         }
     }
-
+    
     // outflow
-    if(outflow == 1)
-        for(n = 0; n < p->gcslout_count; n++)
-        {
-            i = p->gcslout[n][0];
-            j = p->gcslout[n][1];
-
-            wl = MAX(b->eta(i + 1, j) + b->depth(i + 1, j), 0.0);
-
-            if(ipol == 1)
-                Fx(i, j) = wl * b->U(i + 1, j) * b->U(i + 1, j) + 0.5 * g * b->eta(i + 1, j) * b->eta(i + 1, j) + g * b->eta(i + 1, j) * b->dfx(i, j);
-
-            if(ipol == 2)
-                Fx(i, j) = wl * b->V(i + 1, j) * b->U(i + 1, j);
-
-            if(ipol == 3)
-                Fx(i, j) = wl * b->W(i + 1, j) * b->U(i + 1, j);
-
-            if(ipol == 4)
-                Fx(i, j) = wl * b->U(i + 1, j);
-        }
-
+    if(outflow==1)
+    for(n=0;n<p->gcslout_count;n++)
+    {
+    i=p->gcslout[n][0];
+    j=p->gcslout[n][1];
+    
+    wl = MAX(b->eta(i+1,j) + b->depth(i+1,j), 0.0);
+    
+        if(ipol==1)
+        Fx(i,j) = wl*b->U(i+1,j)*b->U(i+1,j) + 0.5*g*b->eta(i+1,j)*b->eta(i+1,j) + g*b->eta(i+1,j)*b->dfx(i,j);
+        
+        if(ipol==2)
+        Fx(i,j) = wl*b->V(i+1,j)*b->U(i+1,j);
+        
+        if(ipol==3)
+        Fx(i,j) = wl*b->W(i+1,j)*b->U(i+1,j);
+        
+        if(ipol==4)
+        Fx(i,j) = wl*b->U(i+1,j);
+    }
+    
     // REEF3D::SEASTATE surfbeat: long-wave boundary at x-, physical flux of the ghost state (A 770 1)
-    if(b->wave != nullptr)
-        b->wave->flux_bc(p, b, ipol, Fx);
-
+    if(b->wave!=nullptr)
+    b->wave->flux_bc(p,b,ipol,Fx);
+    
     // iowave Riemann / Flather / clamped edges (B 520 methods 3-6): the ghost cells hold the
     // boundary state, physical flux of the ghost state
-    if(p->open_xm == 1 || p->open_xp == 1 || p->open_ym == 1 || p->open_yp == 1)
-        GCSL4LOOP
+    if(p->open_xm==1 || p->open_xp==1 || p->open_ym==1 || p->open_yp==1)
+    GCSL4LOOP
+    {
+    i  = p->gcbsl4[n][0];
+    j  = p->gcbsl4[n][1];
+    cs = p->gcbsl4[n][3];
+    
+    if(!((cs==1 && p->open_xm==1) || (cs==4 && p->open_xp==1) || (cs==3 && p->open_ym==1) || (cs==2 && p->open_yp==1)))
+    continue;
+    
+    const int ii = cs==1 ? -1 : cs==4 ? 1 : 0;
+    const int jj = cs==3 ? -1 : cs==2 ? 1 : 0;
+    
+    eg = b->eta(i+ii,j+jj);
+    wl = MAX(eg + b->depth(i+ii,j+jj), 0.0);
+    ug = b->U(i+ii,j+jj);
+    vg = b->V(i+ii,j+jj);
+    wg = b->W(i+ii,j+jj);
+    
+        if(cs==1 || cs==4)
         {
-            i = p->gcbsl4[n][0];
-            j = p->gcbsl4[n][1];
-            cs = p->gcbsl4[n][3];
-
-            if(!((cs == 1 && p->open_xm == 1) || (cs == 4 && p->open_xp == 1) || (cs == 3 && p->open_ym == 1) || (cs == 2 && p->open_yp == 1)))
-                continue;
-
-            const int ii = cs == 1 ? -1 : cs == 4 ? 1
-                                                  : 0;
-            const int jj = cs == 3 ? -1 : cs == 2 ? 1
-                                                  : 0;
-
-            eg = b->eta(i + ii, j + jj);
-            wl = MAX(eg + b->depth(i + ii, j + jj), 0.0);
-            ug = b->U(i + ii, j + jj);
-            vg = b->V(i + ii, j + jj);
-            wg = b->W(i + ii, j + jj);
-
-            if(cs == 1 || cs == 4)
-            {
-                const int fi = (cs == 1) ? i - 1 : i;
-
-                if(ipol == 1)
-                    Fx(fi, j) = wl * ug * ug + 0.5 * g * eg * eg + g * eg * b->dfx(fi, j);
-
-                if(ipol == 2)
-                    Fx(fi, j) = wl * vg * ug;
-
-                if(ipol == 3)
-                    Fx(fi, j) = wl * wg * ug;
-
-                if(ipol == 4)
-                    Fx(fi, j) = wl * ug;
-            }
-
-            if((cs == 2 || cs == 3) && p->j_dir == 1)
-            {
-                const int fj = (cs == 3) ? j - 1 : j;
-
-                if(ipol == 1)
-                    Fy(i, fj) = wl * ug * vg;
-
-                if(ipol == 2)
-                    Fy(i, fj) = wl * vg * vg + 0.5 * g * eg * eg + g * eg * b->dfy(i, fj);
-
-                if(ipol == 3)
-                    Fy(i, fj) = wl * wg * vg;
-
-                if(ipol == 4)
-                    Fy(i, fj) = wl * vg;
-            }
+        const int fi = (cs==1)?i-1:i;
+        
+        if(ipol==1)
+        Fx(fi,j) = wl*ug*ug + 0.5*g*eg*eg + g*eg*b->dfx(fi,j);
+        
+        if(ipol==2)
+        Fx(fi,j) = wl*vg*ug;
+        
+        if(ipol==3)
+        Fx(fi,j) = wl*wg*ug;
+        
+        if(ipol==4)
+        Fx(fi,j) = wl*ug;
         }
+        
+        if((cs==2 || cs==3) && p->j_dir==1)
+        {
+        const int fj = (cs==3)?j-1:j;
+        
+        if(ipol==1)
+        Fy(i,fj) = wl*ug*vg;
+        
+        if(ipol==2)
+        Fy(i,fj) = wl*vg*vg + 0.5*g*eg*eg + g*eg*b->dfy(i,fj);
+        
+        if(ipol==3)
+        Fy(i,fj) = wl*wg*vg;
+        
+        if(ipol==4)
+        Fy(i,fj) = wl*vg;
+        }
+    }
 }

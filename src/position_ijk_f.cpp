@@ -20,305 +20,303 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "lexer.h"
-#include "position.h"
+#include"position.h"
+#include"lexer.h"
 
 int position::posf_i(double xs)
 {
     // inside the grid: the interval of the cell centres, without the bisection (same result)
-    if(xs >= p->XP[0 + marge] && xs < p->XP[p->knox - p->ulast + marge])
-        return fast_index(fffi, p->XP, 0, p->knox - p->ulast, xs);
-
-    stop = 0;
+    if(xs>=p->XP[0+marge] && xs<p->XP[p->knox-p->ulast+marge])
+    return fast_index(fffi,p->XP,0,p->knox-p->ulast,xs);
+    
+    stop=0;
 
     is = 0;
     ie = p->knox;
-
-    count = 0;
-    do
-    {
-        iloc = ihalf(is, ie);
-
-        if(count % 3 == 0)
-            iloc += 1;
-
+    
+    
+    count=0;
+    do{
+    iloc = ihalf(is,ie);
+    
+    if(count%3==0)
+    iloc+=1;
+    
         // matching criterion
-        if(xs < p->XP[iloc + marge] && xs >= p->XP[iloc - 1 + marge])
+        if(xs<p->XP[iloc+marge] && xs>=p->XP[iloc-1+marge])
         {
-            ii = iloc - 1;
-
-            stop = 1;
-            break;
+            ii = iloc-1;
+            
+         stop=1;
+         break;   
         }
-
-        if(xs >= p->XP[iloc + marge] && xs < p->XP[iloc + 1 + marge])
+        
+        if(xs>=p->XP[iloc+marge] && xs<p->XP[iloc+1+marge])
         {
             ii = iloc;
-
-            stop = 1;
-            break;
+   
+         stop=1;
+         break;   
         }
-
+        
         // out of bounds
-        if(xs < p->XP[0 + marge])
+        if(xs<p->XP[0+marge])
         {
             ii = -1;
 
-            stop = 1;
-            break;
+         stop=1;
+         break;   
         }
-
+        
         // beyond the last cell centre at a wall (ulast 1): the stencil is the last cell and its ghost, as
         // -1 and 0 at the lower end; knox would give two ghost cells, and the slice interpolation (lintsl4)
         // no valid value at all inside the last half cell
-        if(xs > p->XP[p->knox - p->ulast + marge])
+        if(xs>p->XP[p->knox-p->ulast+marge])
         {
-            ii = p->ulast == 1 ? p->knox - 1 : p->knox;
-
-            stop = 1;
-            break;
+            ii = p->ulast==1 ? p->knox-1 : p->knox;
+            
+         stop=1;
+         break;   
         }
-
+        
         // further division
-        if(xs < p->XP[iloc + marge] && xs < p->XP[iloc - 1 + marge])
-            ie = iloc;
-
-        if(xs > p->XP[iloc + marge] && xs > p->XP[iloc + 1 + marge])
-            is = iloc;
-
+        if(xs<p->XP[iloc+marge] && xs<p->XP[iloc-1+marge])
+        ie=iloc;
+        
+        if(xs>p->XP[iloc+marge] && xs>p->XP[iloc+1+marge])
+        is=iloc;
+        
         ++count;
-    }
-    while(stop == 0 && count < 1000);
-
-    ii = MAX(ii, -1);
-    ii = MIN(ii, p->knox);
-
+    }while(stop==0 && count<1000);
+    
+    ii=MAX(ii,-1);
+    ii=MIN(ii,p->knox);
+    
     return ii;
 }
 
 int position::posf_j(double ys)
 {
-    stop = 0;
-
+    stop=0;
+    
     js = 0;
     je = p->knoy;
-
-    if(p->j_dir == 0)
+    
+    if(p->j_dir==0)
     {
-        jj = 0;
-        return jj;
+    jj=0;
+    return jj;
     }
-
+    
     // inside the grid: the interval of the cell centres, without the bisection (same result)
-    if(ys >= p->YP[0 + marge] && ys < p->YP[p->knoy - p->vlast + marge])
-        return fast_index(fffj, p->YP, 0, p->knoy - p->vlast, ys);
-
-    count = 0;
-    do
-    {
-        jloc = ihalf(js, je);
-
-        if(count % 3 == 0)
-            jloc += 1;
-
+    if(ys>=p->YP[0+marge] && ys<p->YP[p->knoy-p->vlast+marge])
+    return fast_index(fffj,p->YP,0,p->knoy-p->vlast,ys);
+    
+    count=0;
+    do{
+    jloc = ihalf(js,je);
+    
+    if(count%3==0)
+    jloc+=1;
+    
         // out of bounds
-        if(ys < p->YP[0 + marge])
+        if(ys<p->YP[0+marge])
         {
             jj = -1;
-
-            // cout<<"EXIT 0m"<<endl;
-
-            stop = 1;
-            break;
+            
+            //cout<<"EXIT 0m"<<endl;
+   
+         stop=1;
+         break;   
         }
-
+        
         // beyond the last cell centre at a wall (vlast 1): the stencil is the last cell and its ghost, as
         // -1 and 0 at the lower end; knoy would give two ghost cells, and the slice interpolation (lintsl4)
         // no valid value at all inside the last half cell
-        if(ys > p->YP[p->knoy - p->vlast + marge])
+        if(ys>p->YP[p->knoy-p->vlast+marge])
         {
-            jj = p->vlast == 1 ? p->knoy - 1 : p->knoy;
-
-            // cout<<"EXIT 0p  "<<p->YP[p->knoy-1]<<endl;
-
-            stop = 1;
-            break;
+            jj = p->vlast==1 ? p->knoy-1 : p->knoy;
+            
+            //cout<<"EXIT 0p  "<<p->YP[p->knoy-1]<<endl;
+   
+         stop=1;
+         break;   
         }
-
+    
         // matching criterion
-        if(ys < p->YP[jloc + marge] && ys >= p->YP[jloc - 1 + marge])
+        if(ys<p->YP[jloc+marge] && ys>=p->YP[jloc-1+marge])
         {
-            jj = jloc - 1;
-
-            // cout<<"EXIT 1"<<endl;
-
-            stop = 1;
-            break;
+            jj = jloc-1;
+            
+            //cout<<"EXIT 1"<<endl;
+            
+         stop=1;
+         break;   
         }
-
-        if(ys >= p->YP[jloc + marge] && ys < p->YP[jloc + 1 + marge])
+        
+        if(ys>=p->YP[jloc+marge] && ys<p->YP[jloc+1+marge])
         {
             jj = jloc;
-
-            // cout<<"EXIT 2"<<endl;
-
-            stop = 1;
-            break;
+            
+            //cout<<"EXIT 2"<<endl;
+   
+         stop=1;
+         break;   
         }
-
+        
         // further divjsion
-        if(ys < p->YP[jloc + marge] && ys < p->YP[jloc - 1 + marge])
-            je = jloc;
-
-        if(ys > p->YP[jloc + marge] && ys > p->YP[jloc + 1 + marge])
-            js = jloc;
-
+        if(ys<p->YP[jloc+marge] && ys<p->YP[jloc-1+marge])
+        je=jloc;
+        
+        if(ys>p->YP[jloc+marge] && ys>p->YP[jloc+1+marge])
+        js=jloc;
+        
+        
         ++count;
-    }
-    while(stop == 0 && count < 1000);
-
-    jj = MAX(jj, -1);
-    jj = MIN(jj, p->knoy);
-
+    }while(stop==0 && count<1000);
+    
+    jj=MAX(jj,-1);
+    jj=MIN(jj,p->knoy);
+    
     return jj;
 }
 
 int position::posf_k(double zs)
 {
-    if(p->G502 == 0)
+    if(p->G502==0)
     {
-        // inside the grid: the interval of the cell centres, without the bisection (same result)
-        if(zs >= p->ZP[0 + marge] && zs < p->ZP[p->knoz - 1 + marge])
-            return fast_index(fffk, p->ZP, 0, p->knoz - 1, zs);
+    // inside the grid: the interval of the cell centres, without the bisection (same result)
+    if(zs>=p->ZP[0+marge] && zs<p->ZP[p->knoz-1+marge])
+    return fast_index(fffk,p->ZP,0,p->knoz-1,zs);
+    
+    stop=0;
 
-        stop = 0;
-
-        ks = 0;
-        ke = p->knoz;
-
-        count = 0;
-        do
+    ks = 0;
+    ke = p->knoz;
+    
+    count=0;
+    do{
+    kloc = ihalf(ks,ke);
+    
+    if(count%3==0)
+    kloc+=1;
+    
+        // out of bounds
+        if(zs<p->ZP[0+marge])
         {
-            kloc = ihalf(ks, ke);
-
-            if(count % 3 == 0)
-                kloc += 1;
-
-            // out of bounds
-            if(zs < p->ZP[0 + marge])
-            {
-                kk = -1;
-
-                stop = 1;
-                break;
-            }
-
-            // out of bounds
-            if(zs > p->ZP[p->knoz - 1 + marge])
-            {
-                kk = p->knoz;
-
-                stop = 1;
-                break;
-            }
-
-            // matching criterion
-            if(zs < p->ZP[kloc + marge] && zs >= p->ZP[kloc - 1 + marge])
-            {
-                kk = kloc - 1;
-
-                stop = 1;
-                break;
-            }
-
-            if(zs >= p->ZP[kloc + marge] && zs < p->ZP[kloc + 1 + marge])
-            {
-                kk = kloc;
-
-                stop = 1;
-                break;
-            }
-
-            // further divksion
-            if(zs < p->ZP[kloc + marge] && zs < p->ZP[kloc - 1 + marge])
-                ke = kloc;
-
-            if(zs > p->ZP[kloc + marge] && zs > p->ZP[kloc + 1 + marge])
-                ks = kloc;
-
-            ++count;
+            kk = -1;
+   
+         stop=1;
+         break;   
         }
-        while(stop == 0 && count < 1000);
+        
+        // out of bounds
+        if(zs>p->ZP[p->knoz-1+marge])
+        {
+            kk = p->knoz;
 
-        kk = MAX(kk, 0);
-        kk = MIN(kk, p->knoz);
+         stop=1;
+         break;   
+        }
+    
+        // matching criterion
+        if(zs<p->ZP[kloc+marge] && zs>=p->ZP[kloc-1+marge])
+        {
+            kk = kloc-1;
+            
+         stop=1;
+         break;   
+        }
+        
+        if(zs>=p->ZP[kloc+marge] && zs<p->ZP[kloc+1+marge])
+        {
+            kk = kloc;
+
+         stop=1;
+         break;   
+        }
+        
+        // further divksion
+        if(zs<p->ZP[kloc+marge] && zs<p->ZP[kloc-1+marge])
+        ke=kloc;
+        
+        if(zs>p->ZP[kloc+marge] && zs>p->ZP[kloc+1+marge])
+        ks=kloc;
+        
+        
+        ++count;
+    }while(stop==0 && count<1000);
+    
+    kk=MAX(kk,0);
+    kk=MIN(kk,p->knoz);
     }
-
-    if(p->G502 == 1)
+    
+    if(p->G502==1)
     {
-        stop = 0;
+    stop=0;
 
-        ks = 0;
-        ke = p->knoz;
-
-        count = 0;
-        do
+    ks = 0;
+    ke = p->knoz;
+    
+    count=0;
+    do{
+    kloc = ihalf(ks,ke);
+    
+    if(count%3==0)
+    kloc+=1;
+    
+        // out of bounds
+        if(zs<p->ZSP[0+marge])
         {
-            kloc = ihalf(ks, ke);
-
-            if(count % 3 == 0)
-                kloc += 1;
-
-            // out of bounds
-            if(zs < p->ZSP[0 + marge])
-            {
-                kk = -1;
-
-                stop = 1;
-                break;
-            }
-
-            // out of bounds
-            if(zs > p->ZSP[p->knoz - p->wlast + marge])
-            {
-                kk = p->knoz;
-
-                stop = 1;
-                break;
-            }
-
-            // matching criterion
-            if(zs < p->ZSP[kloc + marge] && zs >= p->ZSP[kloc - 1 + marge])
-            {
-                kk = kloc - 1;
-
-                stop = 1;
-                break;
-            }
-
-            if(zs >= p->ZSP[kloc + marge] && zs < p->ZSP[kloc + 1 + marge])
-            {
-                kk = kloc;
-
-                stop = 1;
-                break;
-            }
-
-            // further divksion
-            if(zs < p->ZSP[kloc + marge] && zs < p->ZSP[kloc - 1 + marge])
-                ke = kloc;
-
-            if(zs > p->ZSP[kloc + marge] && zs > p->ZSP[kloc + 1 + marge])
-                ks = kloc;
-
-            ++count;
+            kk = -1;
+   
+         stop=1;
+         break;   
         }
-        while(stop == 0 && count < 1000);
+        
+        // out of bounds
+        if(zs>p->ZSP[p->knoz-p->wlast+marge])
+        {
+            kk = p->knoz;
 
-        kk = MAX(kk, -1);
-        kk = MIN(kk, p->knoz);
+         stop=1;
+         break;   
+        }
+    
+        // matching criterion
+        if(zs<p->ZSP[kloc+marge] && zs>=p->ZSP[kloc-1+marge])
+        {
+            kk = kloc-1;
+            
+         stop=1;
+         break;   
+        }
+        
+        if(zs>=p->ZSP[kloc+marge] && zs<p->ZSP[kloc+1+marge])
+        {
+            kk = kloc;
+
+         stop=1;
+         break;   
+        }
+        
+        // further divksion
+        if(zs<p->ZSP[kloc+marge] && zs<p->ZSP[kloc-1+marge])
+        ke=kloc;
+        
+        if(zs>p->ZSP[kloc+marge] && zs>p->ZSP[kloc+1+marge])
+        ks=kloc;
+        
+        
+        ++count;
+    }while(stop==0 && count<1000);
+    
+    kk=MAX(kk,-1);
+    kk=MIN(kk,p->knoz);
+        
     }
-
+    
     return kk;
 }
+
 

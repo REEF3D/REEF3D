@@ -20,10 +20,11 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
+
 #ifndef SEASTATE_SFLOW_H_
 #define SEASTATE_SFLOW_H_
 
-#include "seastate_coupling.h"
+#include"seastate_coupling.h"
 
 class fdm2D;
 
@@ -50,24 +51,24 @@ The SFLOW host of seastate_coupling (formulations there):
 class seastate_sflow : public seastate_coupling
 {
 public:
-    seastate_sflow(lexer *, fdm2D *, ghostcell *);
+    seastate_sflow(lexer*, fdm2D*, ghostcell*);
     virtual ~seastate_sflow() = default;
 
-    void ini(lexer *, fdm2D *, ghostcell *);
+    void ini(lexer*, fdm2D*, ghostcell*);
 
     // every SFLOW step, before the momentum step: wave step when due
-    void start(lexer *, fdm2D *, ghostcell *);
+    void start(lexer*, fdm2D*, ghostcell*);
 
     // SFLOW momentum right-hand side (every RK stage) and continuity source (A 751 2)
-    void u_source(lexer *, fdm2D *);
-    void v_source(lexer *, fdm2D *);
-    void mass_source(lexer *, fdm2D *, slice &);
+    void u_source(lexer*, fdm2D*);
+    void v_source(lexer*, fdm2D*);
+    void mass_source(lexer*, fdm2D*, slice&);
 
     // long-wave boundary (surfbeat): ghost cells of the x- side, and the x- face fluxes
     // (physical flux of the ghost state, as at SFLOW inflow boundaries; SFLOW takes the
     // other boundary faces as walls)
-    void ghostcells(lexer *, fdm2D *);
-    void flux_bc(lexer *, fdm2D *, int ipol, slice &Fx);
+    void ghostcells(lexer*, fdm2D*);
+    void flux_bc(lexer*, fdm2D*, int ipol, slice &Fx);
 };
 
 #endif

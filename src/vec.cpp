@@ -23,12 +23,12 @@ Author: Hans Bihs
 #include "vec.h"
 #include "lexer.h"
 
-vec::vec(lexer *p)
+vec::vec(lexer* p)
 {
     resize(p->veclength);
 }
 
-vec::vec(lexer *, int len)
+vec::vec(lexer*, int len)
 {
     resize(len);
 }

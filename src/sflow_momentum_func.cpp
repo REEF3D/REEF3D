@@ -20,39 +20,39 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "sflow_momentum_func.h"
-#include "6DOF.h"
-#include "fdm2D.h"
-#include "gcsl_yskip.h"
-#include "ghostcell.h"
-#include "ioflow.h"
-#include "lexer.h"
-#include "met_forcing.h"
-#include "patchBC_codes.h"
-#include "seastate_sflow.h"
-#include "sflow_HLL.h"
-#include "sflow_amr.h"
-#include "sflow_boussinesq.h"
-#include "sflow_curv.h"
-#include "sflow_diffusion.h"
-#include "sflow_forcing.h"
-#include "sflow_fsf.h"
-#include "sflow_pressure.h"
-#include "sflow_reconstruct.h"
-#include "sflow_rheology_f.h"
-#include "sflow_rheology_v.h"
-#include "sflow_rough_manning.h"
-#include "sflow_rough_void.h"
-#include "sflow_signal_speed.h"
-#include "solver2D.h"
+#include"sflow_curv.h"
+#include"patchBC_codes.h"
+#include"sflow_momentum_func.h"
+#include"gcsl_yskip.h"
+#include"sflow_amr.h"
+#include"lexer.h"
+#include"fdm2D.h"
+#include"ghostcell.h"
+#include"seastate_sflow.h"
+#include"met_forcing.h"
+#include"ioflow.h"
+#include"sflow_fsf.h"
+#include"sflow_signal_speed.h"
+#include"sflow_reconstruct.h"
+#include"sflow_HLL.h"
+#include"sflow_diffusion.h"
+#include"sflow_pressure.h"
+#include"sflow_forcing.h"
+#include"sflow_rough_manning.h"
+#include"sflow_rough_void.h"
+#include"sflow_rheology_f.h"
+#include"sflow_rheology_v.h"
+#include"solver2D.h"
+#include"6DOF.h"
+#include"sflow_boussinesq.h"
 
-#define WLVL (fabs(WL(i, j)) > p->A244 ? WL(i, j) : 1.0e20)
+#define WLVL (fabs(WL(i,j))>p->A244?WL(i,j):1.0e20)
 
-sflow_momentum_func::sflow_momentum_func(lexer *p, fdm2D *b, ghostcell *pgc, sflow_HLL *pphll, sflow_signal_speed *ppss,
-                                         sflow_reconstruct *pprecon, sflow_diffusion *ppdiff, sflow_pressure *pppress,
-                                         solver2D *ppsolv, solver2D *pppoissonsolv, ioflow *ppflow, sflow_fsf *ppfsf,
+sflow_momentum_func::sflow_momentum_func(lexer *p, fdm2D *b, ghostcell *pgc, sflow_HLL *pphll, sflow_signal_speed *ppss, 
+                                         sflow_reconstruct *pprecon, sflow_diffusion *ppdiff, sflow_pressure *pppress, 
+                                         solver2D *ppsolv, solver2D *pppoissonsolv, ioflow *ppflow, sflow_fsf *ppfsf, 
                                          sflow_forcing *ppsfdf, sixdof *pp6dof)
-    : UHDIFF(p), VHDIFF(p), WHDIFF(p), Un(p), Vn(p), etaS(p)
+                                        : UHDIFF(p),VHDIFF(p),WHDIFF(p),Un(p),Vn(p),etaS(p)
 {
     phll = pphll;
     pss = ppss;
@@ -65,93 +65,75 @@ sflow_momentum_func::sflow_momentum_func(lexer *p, fdm2D *b, ghostcell *pgc, sfl
     pfsf = ppfsf;
     psfdf = ppsfdf;
     p6dof = pp6dof;
-
+    
     prough = nullptr;
     prheo = nullptr;
-
-    if(p->A218 == 0)
-        prough = new sflow_rough_void(p);
-
-    if(p->A218 == 1)
-        prough = new sflow_rough_manning(p);
-
-    if(p->W90 == 1)
-        prheo = new sflow_rheology_f(p);
-
+    
+    if(p->A218==0)
+    prough = new sflow_rough_void(p);
+    
+    if(p->A218==1)
+    prough = new sflow_rough_manning(p);
+    
+    if(p->W90==1)
+    prheo = new sflow_rheology_f(p);
+    
     else
     {
-        prheo = new sflow_rheology_v(p);
-
-        if(p->W90 > 1 && p->mpirank == 0)
-            cout << "SFLOW: W 90 " << p->W90 << " not supported, rheology switched off" << endl;
+    prheo = new sflow_rheology_v(p);
+    
+    if(p->W90>1 && p->mpirank==0)
+    cout<<"SFLOW: W 90 "<<p->W90<<" not supported, rheology switched off"<<endl;
     }
-
-    nhp = (p->A220 >= 1 && p->A220 <= 3) ? 1 : 0;
-    bous = (p->A220 == 4) ? 1 : 0;
-
-    if(bous == 1)
+    
+    nhp  = (p->A220>=1 && p->A220<=3)?1:0;
+    bous = (p->A220==4)?1:0;
+    
+    if(bous==1)
     {
-        pbous = new sflow_boussinesq(p, b, pgc);
-        pbous->velbc = [this](lexer *q, fdm2D *bb, ghostcell *gc)
-        { vel_bc(q, bb, gc, bb->UA, bb->VA, bb->W); };
+    pbous = new sflow_boussinesq(p,b,pgc);
+    pbous->velbc = [this](lexer *q, fdm2D *bb, ghostcell *gc) { vel_bc(q,bb,gc,bb->UA,bb->VA,bb->W); };
     }
+    
 
-    if(p->A218 == 0)
-        prough = new sflow_rough_void(p);
-
-    if(p->A218 == 1)
-        prough = new sflow_rough_manning(p);
-
-    if(p->W90 == 0)
-        prheo = new sflow_rheology_v(p);
-
-    if(p->W90 == 1)
-        prheo = new sflow_rheology_f(p);
-
-    nhp = (p->A220 >= 1 && p->A220 <= 3) ? 1 : 0;
-    bous = (p->A220 == 4) ? 1 : 0;
-
-    if(bous == 1)
-        pbous = new sflow_boussinesq(p, b, pgc);
-
-    gcval_u = 10;
-    gcval_v = 11;
-    gcval_w = 12;
-
+	gcval_u=10;
+	gcval_v=11;
+	gcval_w=12;
+    
     // conserved variables: MPI exchange only, physical ghost cells are set in ghostcells()
-    gcval_uh = 10;
-    gcval_vh = 10;
-    gcval_wh = 10;
-
-    if(p->F50 == 1)
-        gcval_eta = 51;
-
-    if(p->F50 == 2)
-        gcval_eta = 52;
-
-    if(p->F50 == 3)
-        gcval_eta = 53;
-
-    if(p->F50 == 4)
-        gcval_eta = 54;
-
-    inflow_flag = 0;
-    outflow_flag = 0;
-
-    if(p->B98 >= 3 || p->B60 >= 1)
-        inflow_flag = 1;
-
-    if(p->B99 >= 3)
-        outflow_flag = 1;
-
-    if(p->B60 >= 1)
-        outflow_flag = 2;
+    gcval_uh=10;
+	gcval_vh=10;
+	gcval_wh=10;
+    
+    if(p->F50==1)
+	gcval_eta = 51;
+    
+    if(p->F50==2)
+	gcval_eta = 52;
+    
+    if(p->F50==3)
+	gcval_eta = 53;
+    
+    if(p->F50==4)
+	gcval_eta = 54;
+    
+    inflow_flag=0;
+    outflow_flag=0;
+    
+    if(p->B98>=3 || p->B60>=1)
+    inflow_flag=1;
+    
+    if(p->B99>=3)
+    outflow_flag=1;
+    
+    if(p->B60>=1)
+    outflow_flag=2;
 
     // atmospheric forcing (W 200) and Coriolis force (W 211)
     if(met_forcing::active(p))
     {
-        pmet = new met_forcing(p, pgc);
-        b->met = pmet;
+    pmet = new met_forcing(p,pgc);
+    b->met = pmet;
     }
 }
 
@@ -167,657 +149,658 @@ void sflow_momentum_func::ini(lexer *p, fdm2D *b, ghostcell *pgc)
     // conserved variables from the initial velocities and water depth
     SLICELOOP4
     {
-        if(p->wet[IJ] == 1)
-        {
-            b->UH(i, j) = b->U(i, j) * b->WL(i, j);
-            b->VH(i, j) = b->V(i, j) * b->WL(i, j) * p->y_dir;
-            b->WH(i, j) = b->W(i, j) * b->WL(i, j);
-        }
-
-        if(p->wet[IJ] == 0)
-        {
-            b->UH(i, j) = 0.0;
-            b->VH(i, j) = 0.0;
-            b->WH(i, j) = 0.0;
-        }
-    }
-
-    inflow(p, b, pgc, pflow);
-
-    // Boussinesq: initial velocities taken as u_a, V from u_a
-    if(bous == 1)
+    if(p->wet[IJ]==1)
     {
-        SLICELOOP4
-        {
-            b->UA(i, j) = b->U(i, j);
-            b->VA(i, j) = b->V(i, j);
-        }
-
-        vel_bc(p, b, pgc, b->UA, b->VA, b->W);
-        pbous->mask_update(p, b, pgc, b->WL);
-        pbous->forward(p, b, pgc, b->UH, b->VH, b->WL, 1);
+    b->UH(i,j) = b->U(i,j)*b->WL(i,j);
+    b->VH(i,j) = b->V(i,j)*b->WL(i,j)*p->y_dir;
+    b->WH(i,j) = b->W(i,j)*b->WL(i,j);
     }
-
-    velcalc(p, b, pgc, b->UH, b->VH, b->WH, b->WL, 2);
+    
+    if(p->wet[IJ]==0)
+    {
+    b->UH(i,j) = 0.0;
+    b->VH(i,j) = 0.0;
+    b->WH(i,j) = 0.0;
+    }
+    }
+    
+    inflow(p,b,pgc,pflow);
+    
+    // Boussinesq: initial velocities taken as u_a, V from u_a
+    if(bous==1)
+    {
+    SLICELOOP4
+    {
+    b->UA(i,j) = b->U(i,j);
+    b->VA(i,j) = b->V(i,j);
+    }
+    
+    vel_bc(p,b,pgc,b->UA,b->VA,b->W);
+    pbous->mask_update(p,b,pgc,b->WL);
+    pbous->forward(p,b,pgc,b->UH,b->VH,b->WL,1);
+    }
+    
+    velcalc(p,b,pgc,b->UH,b->VH,b->WH,b->WL,2);
 }
 
 void sflow_momentum_func::inflow(lexer *p, fdm2D *b, ghostcell *pgc, ioflow *pflow)
 {
     // ghost cell velocities at in- and outflow boundaries (cell centred)
-    pflow->discharge2D(p, b, pgc);
-    pflow->inflow2D(p, b, pgc, b->U, b->V, b->bed, b->eta);
-
+    pflow->discharge2D(p,b,pgc);
+    pflow->inflow2D(p,b,pgc,b->U,b->V,b->bed,b->eta);
+    
     // Dirichlet wave generation also provides w
-    if(p->B98 >= 3)
-        for(n = 0; n < p->gcslin_count; n++)
-        {
-            i = p->gcslin[n][0];
-            j = p->gcslin[n][1];
-
-            for(q = 1; q <= 3; ++q)
-                b->W(i - q, j) = b->ws(i - q, j);
-        }
-
-    if(p->B60 >= 1 && p->B98 < 3)
-        for(n = 0; n < p->gcslin_count; n++)
-        {
-            i = p->gcslin[n][0];
-            j = p->gcslin[n][1];
-
-            for(q = 1; q <= 3; ++q)
-                b->W(i - q, j) = 0.0;
-        }
-
+    if(p->B98>=3)
+    for(n=0;n<p->gcslin_count;n++)
+    {
+    i=p->gcslin[n][0];
+    j=p->gcslin[n][1];
+    
+        for(q=1;q<=3;++q)
+        b->W(i-q,j) = b->ws(i-q,j);
+    }
+    
+    if(p->B60>=1 && p->B98<3)
+    for(n=0;n<p->gcslin_count;n++)
+    {
+    i=p->gcslin[n][0];
+    j=p->gcslin[n][1];
+    
+        for(q=1;q<=3;++q)
+        b->W(i-q,j) = 0.0;
+    }
+    
     // Boussinesq: reference level velocity at the inflow
-    if(bous == 1 && inflow_flag == 1)
-        for(n = 0; n < p->gcslin_count; n++)
+    if(bous==1 && inflow_flag==1)
+    for(n=0;n<p->gcslin_count;n++)
+    {
+    i=p->gcslin[n][0];
+    j=p->gcslin[n][1];
+    
+        for(q=1;q<=3;++q)
         {
-            i = p->gcslin[n][0];
-            j = p->gcslin[n][1];
-
-            for(q = 1; q <= 3; ++q)
-            {
-                b->UA(i - q, j) = b->U(i - q, j);
-                b->VA(i - q, j) = b->V(i - q, j);
-            }
+        b->UA(i-q,j) = b->U(i-q,j);
+        b->VA(i-q,j) = b->V(i-q,j);
         }
-
+    }
+    
     // Boussinesq: active wave absorption, ghost cells from ioflow
-    if(bous == 1 && outflow_flag == 1)
-        for(n = 0; n < p->gcslout_count; n++)
+    if(bous==1 && outflow_flag==1)
+    for(n=0;n<p->gcslout_count;n++)
+    {
+    i=p->gcslout[n][0];
+    j=p->gcslout[n][1];
+    
+        for(q=1;q<=3;++q)
         {
-            i = p->gcslout[n][0];
-            j = p->gcslout[n][1];
-
-            for(q = 1; q <= 3; ++q)
-            {
-                b->UA(i + q, j) = b->U(i + q, j);
-                b->VA(i + q, j) = b->V(i + q, j);
-            }
+        b->UA(i+q,j) = b->U(i+q,j);
+        b->VA(i+q,j) = b->V(i+q,j);
         }
-
-    ghostcells(p, b, pgc, b->UH, b->VH, b->WH, b->WL);
-
+    }
+    
+    ghostcells(p,b,pgc,b->UH,b->VH,b->WH,b->WL);
+    
     // Boussinesq: dispersion switch for this time step
-    if(bous == 1 && p->count > 0)
-        pbous->mask_update(p, b, pgc, b->WL);
+    if(bous==1 && p->count>0)
+    pbous->mask_update(p,b,pgc,b->WL);
 }
 
-void sflow_momentum_func::stage(lexer *p, fdm2D *b, ghostcell *pgc,
-                                slice &WLs, slice &UHs, slice &VHs, slice &WHs,
+void sflow_momentum_func::stage(lexer *p, fdm2D *b, ghostcell *pgc, 
+                                slice &WLs, slice &UHs, slice &VHs, slice &WHs, 
                                 slice &WLo, slice &UHo, slice &VHo, slice &WHo, double a, int iter, bool finalize)
 {
-    const double alpha = 1.0 - a;
-
+    const double alpha = 1.0-a;
+    
     // stage state; Un,Vn: velocity the RK update starts from, a*u_n + (1-a)*u_s
     // (used for Du/Dt in the quadratic pressure)
     double wln;
-
+    
     SLICELOOP4
     {
-        wln = b->WL(i, j) > p->A244 ? b->WL(i, j) : 1.0e20;
-
-        Un(i, j) = a * b->UH(i, j) / wln + alpha * b->U(i, j);
-        Vn(i, j) = a * b->VH(i, j) / wln + alpha * b->V(i, j);
-        etaS(i, j) = b->eta(i, j);
+    wln = b->WL(i,j)>p->A244?b->WL(i,j):1.0e20;
+    
+    Un(i,j) = a*b->UH(i,j)/wln + alpha*b->U(i,j);
+    Vn(i,j) = a*b->VH(i,j)/wln + alpha*b->V(i,j);
+    etaS(i,j) = b->eta(i,j);
     }
-
-    reconstruct(p, b, pgc, WLs, UHs, VHs, WHs);
-
+    
+    reconstruct(p,b,pgc,WLs,UHs,VHs,WHs);
+    
     // FSF flux
-    starttime = pgc->timer();
-    phll->start(p, b, 4);
-    p->fsftime += pgc->timer() - starttime;
-
-    clearrhs(p, b);
-
+    starttime=pgc->timer();
+    phll->start(p,b,4);
+    p->fsftime+=pgc->timer()-starttime;
+    
+    clearrhs(p,b);
+    
     // U
-    starttime = pgc->timer();
-    phll->start(p, b, 1);
-    ppress->upgrad(p, b, b->eta);
-    prough->u_source(p, b, b->U, b->V, WLs);
-    prheo->u_source(p, b, b->U, b->V, WLs);
-    p6dof->isource2D(p, b, pgc);
-    if(b->wave != nullptr)
-        b->wave->u_source(p, b);
-    if(pmet != nullptr)
-        pmet->source_sflow(p, pgc, b->F, 0, WLs, UHs, VHs);
-    irhs(p, b);
-    pdiff->diff_u(p, b, pgc, psolv, UHDIFF, UHs, b->U, b->V, WLs, alpha);
-    p->utime += pgc->timer() - starttime;
-
-    // V
-    starttime = pgc->timer();
-    if(p->j_dir == 1)
+	starttime=pgc->timer();
+    phll->start(p,b,1);
+	ppress->upgrad(p,b,b->eta);
+    prough->u_source(p,b,b->U,b->V,WLs);
+    prheo->u_source(p,b,b->U,b->V,WLs);
+    p6dof->isource2D(p,b,pgc);
+    if(b->wave!=nullptr)
+    b->wave->u_source(p,b);
+    if(pmet!=nullptr)
+    pmet->source_sflow(p,pgc,b->F,0,WLs,UHs,VHs);
+	irhs(p,b);
+	pdiff->diff_u(p,b,pgc,psolv,UHDIFF,UHs,b->U,b->V,WLs,alpha);
+    p->utime+=pgc->timer()-starttime;
+    
+	// V
+	starttime=pgc->timer();
+    if(p->j_dir==1)
     {
-        phll->start(p, b, 2);
-        ppress->vpgrad(p, b, b->eta);
-        prough->v_source(p, b, b->U, b->V, WLs);
-        prheo->v_source(p, b, b->U, b->V, WLs);
-        p6dof->jsource2D(p, b, pgc);
-        if(b->wave != nullptr)
-            b->wave->v_source(p, b);
-        if(pmet != nullptr)
-            pmet->source_sflow(p, pgc, b->G, 1, WLs, UHs, VHs);
-        jrhs(p, b);
+    phll->start(p,b,2);
+	ppress->vpgrad(p,b,b->eta);
+    prough->v_source(p,b,b->U,b->V,WLs);
+    prheo->v_source(p,b,b->U,b->V,WLs);
+    p6dof->jsource2D(p,b,pgc);
+    if(b->wave!=nullptr)
+    b->wave->v_source(p,b);
+    if(pmet!=nullptr)
+    pmet->source_sflow(p,pgc,b->G,1,WLs,UHs,VHs);
+	jrhs(p,b);
     }
-    pdiff->diff_v(p, b, pgc, psolv, VHDIFF, VHs, b->U, b->V, WLs, alpha);
-    p->vtime += pgc->timer() - starttime;
-
+	pdiff->diff_v(p,b,pgc,psolv,VHDIFF,VHs,b->U,b->V,WLs,alpha);
+    p->vtime+=pgc->timer()-starttime;
+    
     // Boussinesq dispersive terms
-    if(bous == 1)
-        pbous->source(p, b, pgc, WLs);
-
+    if(bous==1)
+    pbous->source(p,b,pgc,WLs);
+    
     // W
-    if(nhp == 1)
+    if(nhp==1)
     {
-        if(p->A214 == 1)
-            phll->start(p, b, 3);
-        ppress->wpgrad(p, b, b->eta);
-        krhs(p, b);
-        pdiff->diff_w(p, b, pgc, psolv, WHDIFF, WHs, b->U, b->V, b->W, WLs, alpha);
+    if(p->A214==1)
+    phll->start(p,b,3);
+    ppress->wpgrad(p,b,b->eta);
+    krhs(p,b);
+    pdiff->diff_w(p,b,pgc,psolv,WHDIFF,WHs,b->U,b->V,b->W,WLs,alpha);
     }
-
+    
     // update FSF: WL, eta, wetdry
-    pfsf->update(p, b, pgc, pflow, WLo, b->WL, WLs, a);
-    pfsf->breaking(p, b, pgc, b->eta, etaS, alpha);
-
+    pfsf->update(p,b,pgc,pflow,WLo,b->WL,WLs,a);
+    pfsf->breaking(p,b,pgc,b->eta,etaS,alpha);
+    
     // update momentum
     SLICELOOP4
     {
-        UHo(i, j) = a * b->UH(i, j) + alpha * (UHDIFF(i, j) + p->dt * b->F(i, j));
-        VHo(i, j) = (a * b->VH(i, j) + alpha * (VHDIFF(i, j) + p->dt * b->G(i, j))) * p->y_dir;
+	UHo(i,j) = a*b->UH(i,j) + alpha*(UHDIFF(i,j) + p->dt*b->F(i,j));
+    VHo(i,j) = (a*b->VH(i,j) + alpha*(VHDIFF(i,j) + p->dt*b->G(i,j)))*p->y_dir;
     }
-
-    if(nhp == 1)
-        SLICELOOP4
-    WHo(i, j) = a * b->WH(i, j) + alpha * (WHDIFF(i, j) + p->dt * b->H(i, j));
-
-    if(nhp == 0)
-        SLICELOOP4
-    WHo(i, j) = 0.0;
-
+    
+    if(nhp==1)
+    SLICELOOP4
+    WHo(i,j) = a*b->WH(i,j) + alpha*(WHDIFF(i,j) + p->dt*b->H(i,j));
+    
+    if(nhp==0)
+    SLICELOOP4
+    WHo(i,j) = 0.0;
+    
     // Boussinesq on a refined patch: u_a is solved by sflow_amr on all levels together
     // (sflow_amr::bous_solve), the stage continues in bous_resume
-    if(bous_defer && bous == 1)
+    if(bous_defer && bous==1)
     {
-        nhUH = &UHo;
-        nhVH = &VHo;
-        nhWH = &WHo;
-        nhWL = &WLo;
-        nh_alpha = alpha;
-        df_iter = iter;
-        df_finalize = finalize;
-        bous_prepare(p, b, pgc, UHo, VHo, WLo);
-        return;
+    nhUH = &UHo;
+    nhVH = &VHo;
+    nhWH = &WHo;
+    nhWL = &WLo;
+    nh_alpha = alpha;
+    df_iter = iter;
+    df_finalize = finalize;
+    bous_prepare(p,b,pgc,UHo,VHo,WLo);
+    return;
     }
-
+    
     // level 0 with refined patches: u_a on the leaf cells of all levels together; the patch
     // stages, stopped in bous_prepare, continue in sflow_amr::bous_solve
-    if(bous == 1 && bous_amr != nullptr && bous_amr->bous_patches())
+    if(bous==1 && bous_amr!=nullptr && bous_amr->bous_patches())
     {
-        bous_prepare(p, b, pgc, UHo, VHo, WLo);
-        bous_amr->bous_solve(pgc);
-
-        bous_solved = true;
-        velcalc(p, b, pgc, UHo, VHo, WHo, WLo, 1);
-        bous_solved = false;
+    bous_prepare(p,b,pgc,UHo,VHo,WLo);
+    bous_amr->bous_solve(pgc);
+    
+    bous_solved = true;
+    velcalc(p,b,pgc,UHo,VHo,WHo,WLo,1);
+    bous_solved = false;
     }
     else
-        velcalc(p, b, pgc, UHo, VHo, WHo, WLo, 1);
-
-    stage_rest(p, b, pgc, UHo, VHo, WHo, WLo, alpha, iter, finalize);
+    velcalc(p,b,pgc,UHo,VHo,WHo,WLo,1);
+    
+    stage_rest(p,b,pgc,UHo,VHo,WHo,WLo,alpha,iter,finalize);
 }
 
 void sflow_momentum_func::stage_rest(lexer *p, fdm2D *b, ghostcell *pgc, slice &UHo, slice &VHo, slice &WHo, slice &WLo, double alpha, int iter, bool finalize)
 {
     // direct forcing
-    psfdf->forcing(p, b, pgc, p6dof, iter, alpha, UHo, VHo, WHo, WLo, finalize);
-
+    psfdf->forcing(p,b,pgc,p6dof,iter,alpha,UHo,VHo,WHo,WLo,finalize);
+    
     // non-hydrostatic pressure (mesh refinement: solved later on all grids together)
-    if(nh_defer && nhp == 1)
+    if(nh_defer && nhp==1)
     {
-        nhUH = &UHo;
-        nhVH = &VHo;
-        nhWH = &WHo;
-        nhWL = &WLo;
-        nhUn = &Un;
-        nhVn = &Vn;
-        nh_alpha = alpha;
-        return;
+    nhUH = &UHo;
+    nhVH = &VHo;
+    nhWH = &WHo;
+    nhWL = &WLo;
+    nhUn = &Un;
+    nhVn = &Vn;
+    nh_alpha = alpha;
+    return;
     }
-
-    ppress->start(p, b, pgc, ppoissonsolv, pflow, UHo, VHo, WHo, WLo, Un, Vn, alpha);
-
-    stage_finish(p, b, pgc, UHo, VHo, WHo, WLo);
+    
+    ppress->start(p,b,pgc,ppoissonsolv,pflow,UHo,VHo,WHo,WLo,Un,Vn,alpha);
+    
+    stage_finish(p,b,pgc,UHo,VHo,WHo,WLo);
 }
 
 // Boussinesq: V of dry cells cleared, rows of the u_a line systems
 void sflow_momentum_func::bous_prepare(lexer *p, fdm2D *b, ghostcell *pgc, slice &UH, slice &VH, slice &WL)
 {
     SLICELOOP4
-    if(p->wet[IJ] == 0)
+    if(p->wet[IJ]==0)
     {
-        UH(i, j) = 0.0;
-        VH(i, j) = 0.0;
+    UH(i,j) = 0.0;
+    VH(i,j) = 0.0;
     }
-
-    pbous->invert_prepare(p, b, pgc, UH, VH, WL);
+    
+    pbous->invert_prepare(p,b,pgc,UH,VH,WL);
 }
 
 void sflow_momentum_func::bous_resume(lexer *p, fdm2D *b, ghostcell *pgc)
 {
     bous_solved = true;
-    velcalc(p, b, pgc, *nhUH, *nhVH, *nhWH, *nhWL, 1);
+    velcalc(p,b,pgc,*nhUH,*nhVH,*nhWH,*nhWL,1);
     bous_solved = false;
-
-    stage_rest(p, b, pgc, *nhUH, *nhVH, *nhWH, *nhWL, nh_alpha, df_iter, df_finalize);
+    
+    stage_rest(p,b,pgc,*nhUH,*nhVH,*nhWH,*nhWL,nh_alpha,df_iter,df_finalize);
 }
 
 void sflow_momentum_func::stage_finish(lexer *p, fdm2D *b, ghostcell *pgc, slice &UHo, slice &VHo, slice &WHo, slice &WLo)
 {
-    velcalc(p, b, pgc, UHo, VHo, WHo, WLo, 0);
-
+    velcalc(p,b,pgc,UHo,VHo,WHo,WLo,0);
+    
     // relaxation zones
-    if(bous == 0)
+    if(bous==0)
     {
-        pflow->um_relax(p, pgc, b->U, UHo, WLo);
-        pflow->vm_relax(p, pgc, b->V, VHo, WLo);
-        pflow->wm_relax(p, pgc, b->W, WHo, WLo);
-        pflow->pm_relax(p, pgc, b->press);
+    pflow->um_relax(p,pgc,b->U,UHo,WLo);
+    pflow->vm_relax(p,pgc,b->V,VHo,WLo);
+    pflow->wm_relax(p,pgc,b->W,WHo,WLo);
+    pflow->pm_relax(p,pgc,b->press);
     }
-
+    
     // Boussinesq: relax u_a (targets at z_a), then V from u_a where it changed
-    if(bous == 1)
+    if(bous==1)
     {
-        pbous->save(p, b);
-        pflow->um_relax(p, pgc, b->UA, UHo, WLo);
-        pflow->vm_relax(p, pgc, b->VA, VHo, WLo);
-        vel_bc(p, b, pgc, b->UA, b->VA, b->W);
-        pbous->forward(p, b, pgc, UHo, VHo, WLo, 0);
+    pbous->save(p,b);
+    pflow->um_relax(p,pgc,b->UA,UHo,WLo);
+    pflow->vm_relax(p,pgc,b->VA,VHo,WLo);
+    vel_bc(p,b,pgc,b->UA,b->VA,b->W);
+    pbous->forward(p,b,pgc,UHo,VHo,WLo,0);
     }
-
-    velcalc(p, b, pgc, UHo, VHo, WHo, WLo, 2);
+    
+    velcalc(p,b,pgc,UHo,VHo,WHo,WLo,2);
 }
 
 void sflow_momentum_func::reconstruct(lexer *p, fdm2D *b, ghostcell *pgc, slice &WL, slice &UH, slice &VH, slice &WH)
 {
-    starttime = pgc->timer();
-
+    starttime=pgc->timer();
+    
     // eta and face water depth
     precon->reconstruct_x(p, pgc, b, b->eta, b->ETAs, b->ETAn);
     precon->reconstruct_y(p, pgc, b, b->eta, b->ETAe, b->ETAw);
     precon->reconstruct_WL(p, pgc, b);
-
+    
     // velocities: only the normal components enter the signal speeds and fluxes
     precon->reconstruct_x(p, pgc, b, b->U, b->Us, b->Un);
     precon->reconstruct_y(p, pgc, b, b->V, b->Ve, b->Vw);
-
+    
     // curvilinear grid: both components on both faces, then the normal velocity of the faces
-    if(p->geo_curv == 1)
+    if(p->geo_curv==1)
     {
+    precon->reconstruct_x(p, pgc, b, b->V, b->Vs, b->Vn);
+    precon->reconstruct_y(p, pgc, b, b->U, b->Ue, b->Uw);
+    sflow_curv::normal_velocities(p,b);
+    }
+    
+    // HLLC (A 225 2): the tangential velocities of the faces (sflow_HLL::HLLC_x/HLLC_y)
+    if(p->A225==2 && p->geo_curv!=1)
+    {
+        if(p->j_dir==1)
+        {
         precon->reconstruct_x(p, pgc, b, b->V, b->Vs, b->Vn);
         precon->reconstruct_y(p, pgc, b, b->U, b->Ue, b->Uw);
-        sflow_curv::normal_velocities(p, b);
-    }
-
-    // HLLC (A 225 2): the tangential velocities of the faces (sflow_HLL::HLLC_x/HLLC_y)
-    if(p->A225 == 2 && p->geo_curv != 1)
-    {
-        if(p->j_dir == 1)
-        {
-            precon->reconstruct_x(p, pgc, b, b->V, b->Vs, b->Vn);
-            precon->reconstruct_y(p, pgc, b, b->U, b->Ue, b->Uw);
         }
-
-        if(nhp == 1 && p->A214 == 1)
+        
+        if(nhp==1 && p->A214==1)
         {
-            precon->reconstruct_x(p, pgc, b, b->W, b->Ws, b->Wn);
-
-            if(p->j_dir == 1)
-                precon->reconstruct_y(p, pgc, b, b->W, b->We, b->Ww);
+        precon->reconstruct_x(p, pgc, b, b->W, b->Ws, b->Wn);
+        
+        if(p->j_dir==1)
+        precon->reconstruct_y(p, pgc, b, b->W, b->We, b->Ww);
         }
     }
 
     // conserved variables (Boussinesq: volume flux M instead of V)
-    slice &UHf = (bous == 1) ? b->MX : UH;
-    slice &VHf = (bous == 1) ? b->MY : VH;
-
+    slice &UHf = (bous==1)?b->MX:UH;
+    slice &VHf = (bous==1)?b->MY:VH;
+    
     precon->reconstruct_x(p, pgc, b, UHf, b->UHs, b->UHn);
     precon->reconstruct_y(p, pgc, b, UHf, b->UHe, b->UHw);
 
-    if(p->j_dir == 1)
+    if(p->j_dir==1)
     {
-        precon->reconstruct_x(p, pgc, b, VHf, b->VHs, b->VHn);
-        precon->reconstruct_y(p, pgc, b, VHf, b->VHe, b->VHw);
+    precon->reconstruct_x(p, pgc, b, VHf, b->VHs, b->VHn);
+    precon->reconstruct_y(p, pgc, b, VHf, b->VHe, b->VHw);
     }
-
+    
     // Boussinesq: the conserved variable V for the HLL dissipation term (FUNWAVE-TVD)
-    if(bous == 1)
+    if(bous==1)
     {
-        precon->reconstruct_x(p, pgc, b, UH, b->QUs, b->QUn);
-        precon->reconstruct_y(p, pgc, b, UH, b->QUe, b->QUw);
-
-        if(p->j_dir == 1)
+    precon->reconstruct_x(p, pgc, b, UH, b->QUs, b->QUn);
+    precon->reconstruct_y(p, pgc, b, UH, b->QUe, b->QUw);
+    
+        if(p->j_dir==1)
         {
-            precon->reconstruct_x(p, pgc, b, VH, b->QVs, b->QVn);
-            precon->reconstruct_y(p, pgc, b, VH, b->QVe, b->QVw);
+        precon->reconstruct_x(p, pgc, b, VH, b->QVs, b->QVn);
+        precon->reconstruct_y(p, pgc, b, VH, b->QVe, b->QVw);
         }
     }
 
-    if(nhp == 1 && p->A214 == 1)
+    if(nhp==1 && p->A214==1)
     {
-        precon->reconstruct_x(p, pgc, b, WH, b->WHs, b->WHn);
-        precon->reconstruct_y(p, pgc, b, WH, b->WHe, b->WHw);
+    precon->reconstruct_x(p, pgc, b, WH, b->WHs, b->WHn);
+    precon->reconstruct_y(p, pgc, b, WH, b->WHe, b->WHw);
     }
-
+    
     // wetdry
-    pfsf->wetdry_fluxes(p, b, pgc, WL);
-
+    pfsf->wetdry_fluxes(p,b,pgc,WL);
+    
     // signal speeds
     pss->signal_speed_update(p, pgc, b, b->Us, b->Un, b->Ve, b->Vw, b->Ds, b->Dn, b->De, b->Dw);
-
-    p->recontime += pgc->timer() - starttime;
+    
+    p->recontime+=pgc->timer()-starttime;
 }
 
 void sflow_momentum_func::velcalc(lexer *p, fdm2D *b, ghostcell *pgc, slice &UH, slice &VH, slice &WH, slice &WL, int mode)
 {
     // mode 0: interior cells, 1: + ghost cells, 2: + ghost cells + staggered diagnostics
     const double g = fabs(p->W22);
-    double lim, fac;
-
+    double lim,fac;
+    
     // Boussinesq: UH,VH hold V; u_a from V (after the momentum update), then M and U=M/H
-    if(bous == 1)
+    if(bous==1)
     {
-        if(mode == 1 || (mode == 0 && p->X10 > 0))
+        if(mode==1 || (mode==0 && p->X10>0))
         {
             if(!bous_solved)
             {
-                bous_prepare(p, b, pgc, UH, VH, WL);
-                pbous->invert_solve(p, b, psolv, pgc);
+            bous_prepare(p,b,pgc,UH,VH,WL);
+            pbous->invert_solve(p,b,psolv,pgc);
             }
-
-            vel_bc(p, b, pgc, b->UA, b->VA, b->W);
+        
+        vel_bc(p,b,pgc,b->UA,b->VA,b->W);
         }
-
-        pbous->flux(p, b, pgc, WL);
-
+        
+    pbous->flux(p,b,pgc,WL);
+    
         SLICELOOP4
         {
-            if(p->wet[IJ] == 1)
+            if(p->wet[IJ]==1)
             {
-                lim = p->A531 * WL(i, j) * sqrt(g * WL(i, j));
-
-                if(p->B60 >= 1)
-                    if(p->wet[Ip1J] == 0 || p->wet[Im1J] == 0 || p->wet[IJp1] == 0 || p->wet[IJm1] == 0)
-                        lim *= 0.1;
-
-                // limit M and scale V and u_a consistently (V is the prognostic variable)
-                if(fabs(b->MX(i, j)) > lim)
-                {
-                    fac = lim / fabs(b->MX(i, j));
-                    b->MX(i, j) *= fac;
-                    b->UA(i, j) *= fac;
-                    UH(i, j) *= fac;
-                }
-
-                if(fabs(b->MY(i, j)) > lim)
-                {
-                    fac = lim / fabs(b->MY(i, j));
-                    b->MY(i, j) *= fac;
-                    b->VA(i, j) *= fac;
-                    VH(i, j) *= fac;
-                }
-
-                b->U(i, j) = b->MX(i, j) / WLVL;
-                b->V(i, j) = b->MY(i, j) / WLVL * p->y_dir;
-                b->W(i, j) = 0.0;
-                WH(i, j) = 0.0;
+            lim = p->A531*WL(i,j)*sqrt(g*WL(i,j));
+            
+            if(p->B60>=1)
+            if(p->wet[Ip1J]==0 || p->wet[Im1J]==0 || p->wet[IJp1]==0 || p->wet[IJm1]==0)
+            lim *= 0.1;
+            
+            // limit M and scale V and u_a consistently (V is the prognostic variable)
+            if(fabs(b->MX(i,j))>lim)
+            {
+            fac = lim/fabs(b->MX(i,j));
+            b->MX(i,j) *= fac;
+            b->UA(i,j) *= fac;
+            UH(i,j) *= fac;
             }
-
-            if(p->wet[IJ] == 0)
+            
+            if(fabs(b->MY(i,j))>lim)
             {
-                UH(i, j) = 0.0;
-                VH(i, j) = 0.0;
-                WH(i, j) = 0.0;
-                b->MX(i, j) = 0.0;
-                b->MY(i, j) = 0.0;
-                b->UA(i, j) = 0.0;
-                b->VA(i, j) = 0.0;
-                b->U(i, j) = 0.0;
-                b->V(i, j) = 0.0;
-                b->W(i, j) = 0.0;
+            fac = lim/fabs(b->MY(i,j));
+            b->MY(i,j) *= fac;
+            b->VA(i,j) *= fac;
+            VH(i,j) *= fac;
+            }
+            
+            b->U(i,j) = b->MX(i,j)/WLVL;
+            b->V(i,j) = b->MY(i,j)/WLVL*p->y_dir;
+            b->W(i,j) = 0.0;
+            WH(i,j) = 0.0;
+            }
+            
+            if(p->wet[IJ]==0)
+            {
+            UH(i,j) = 0.0;
+            VH(i,j) = 0.0;
+            WH(i,j) = 0.0;
+            b->MX(i,j) = 0.0;
+            b->MY(i,j) = 0.0;
+            b->UA(i,j) = 0.0;
+            b->VA(i,j) = 0.0;
+            b->U(i,j) = 0.0;
+            b->V(i,j) = 0.0;
+            b->W(i,j) = 0.0;
             }
         }
-
-        if(mode >= 1)
-            ghostcells(p, b, pgc, UH, VH, WH, WL);
-
-        if(mode >= 2)
-            face_velocities(p, b, pgc, WL);
-
-        return;
+    
+    if(mode>=1)
+    ghostcells(p,b,pgc,UH,VH,WH,WL);
+    
+    if(mode>=2)
+    face_velocities(p,b,pgc,WL);
+    
+    return;
     }
-
+    
     SLICELOOP4
     {
         // Froude number limiter
         // curvilinear grid: on the magnitude of the horizontal discharge (independent of the
         // orientation of the grid), Cartesian grid: per component
-        if(p->geo_curv == 1)
+        if(p->geo_curv==1)
         {
-            if(p->wet[IJ] == 1)
+            if(p->wet[IJ]==1)
             {
-                lim = p->A531 * WL(i, j) * sqrt(g * WL(i, j));
-
-                if(p->B60 >= 1)
-                    if(p->wet[Ip1J] == 0 || p->wet[Im1J] == 0 || p->wet[IJp1] == 0 || p->wet[IJm1] == 0)
-                        lim *= 0.1;
-
-                fac = sqrt(UH(i, j) * UH(i, j) + VH(i, j) * VH(i, j));
-
-                if(fac > lim)
-                {
-                    fac = lim / fac;
-                    UH(i, j) *= fac;
-                    VH(i, j) *= fac;
-                }
-
-                WH(i, j) = MAX(MIN(WH(i, j), lim), -lim);
+            lim = p->A531*WL(i,j)*sqrt(g*WL(i,j));
+            
+            if(p->B60>=1)
+            if(p->wet[Ip1J]==0 || p->wet[Im1J]==0 || p->wet[IJp1]==0 || p->wet[IJm1]==0)
+            lim *= 0.1;
+            
+            fac = sqrt(UH(i,j)*UH(i,j) + VH(i,j)*VH(i,j));
+            
+            if(fac>lim)
+            {
+            fac = lim/fac;
+            UH(i,j) *= fac;
+            VH(i,j) *= fac;
+            }
+            
+            WH(i,j) = MAX(MIN(WH(i,j), lim), -lim);
             }
         }
-
+        
         else
         {
-            if(p->wet[IJ] == 1)
-            {
-                lim = p->A531 * WL(i, j) * sqrt(g * WL(i, j));
-
-                UH(i, j) = MAX(MIN(UH(i, j), lim), -lim);
-                VH(i, j) = MAX(MIN(VH(i, j), lim), -lim);
-                WH(i, j) = MAX(MIN(WH(i, j), lim), -lim);
-            }
-
-            if(p->B60 >= 1)
-                if(p->wet[Ip1J] == 0 || p->wet[Im1J] == 0 || p->wet[IJp1] == 0 || p->wet[IJm1] == 0)
-                {
-                    lim = 0.1 * p->A531 * WL(i, j) * sqrt(g * WL(i, j));
-
-                    UH(i, j) = MAX(MIN(UH(i, j), lim), -lim);
-                    VH(i, j) = MAX(MIN(VH(i, j), lim), -lim);
-                    WH(i, j) = MAX(MIN(WH(i, j), lim), -lim);
-                }
+        if(p->wet[IJ]==1)
+        {
+        lim = p->A531*WL(i,j)*sqrt(g*WL(i,j));
+        
+        UH(i,j) = MAX(MIN(UH(i,j), lim), -lim);
+        VH(i,j) = MAX(MIN(VH(i,j), lim), -lim);
+        WH(i,j) = MAX(MIN(WH(i,j), lim), -lim);
         }
-
+        
+        if(p->B60>=1)
+        if(p->wet[Ip1J]==0 || p->wet[Im1J]==0 || p->wet[IJp1]==0 || p->wet[IJm1]==0)
+        {
+        lim = 0.1*p->A531*WL(i,j)*sqrt(g*WL(i,j));
+        
+        UH(i,j) = MAX(MIN(UH(i,j), lim), -lim);
+        VH(i,j) = MAX(MIN(VH(i,j), lim), -lim);
+        WH(i,j) = MAX(MIN(WH(i,j), lim), -lim);
+        }
+        }
+        
         // velocities
-        if(p->wet[IJ] == 1)
+        if(p->wet[IJ]==1)
         {
-            b->U(i, j) = UH(i, j) / WLVL;
-            b->V(i, j) = VH(i, j) / WLVL * p->y_dir;
-            b->W(i, j) = WH(i, j) / WLVL;
+        b->U(i,j) = UH(i,j)/WLVL;
+        b->V(i,j) = VH(i,j)/WLVL*p->y_dir;
+        b->W(i,j) = WH(i,j)/WLVL;
         }
-
-        if(p->wet[IJ] == 0)
+        
+        if(p->wet[IJ]==0)
         {
-            UH(i, j) = 0.0;
-            VH(i, j) = 0.0;
-            WH(i, j) = 0.0;
-
-            b->U(i, j) = 0.0;
-            b->V(i, j) = 0.0;
-            b->W(i, j) = 0.0;
+        UH(i,j) = 0.0;
+        VH(i,j) = 0.0;
+        WH(i,j) = 0.0;
+        
+        b->U(i,j) = 0.0;
+        b->V(i,j) = 0.0;
+        b->W(i,j) = 0.0;
         }
     }
-
-    if(mode >= 1)
-        ghostcells(p, b, pgc, UH, VH, WH, WL);
-
-    if(mode >= 2)
-        face_velocities(p, b, pgc, WL);
+    
+    if(mode>=1)
+    ghostcells(p,b,pgc,UH,VH,WH,WL);
+    
+    if(mode>=2)
+    face_velocities(p,b,pgc,WL);
 }
 
 void sflow_momentum_func::mpi4(lexer *p, ghostcell *pgc, slice &f)
 {
     // MPI exchange only, physical ghost cells are set in ghostcells()
-    if(p->mpi_size > 1)
+    if(p->mpi_size>1)
     {
-        pgc->gcslparax(p, f, 4);
-        pgc->gcslparacox(p, f, gcval_u);
+    pgc->gcslparax(p,f,4);
+    pgc->gcslparacox(p,f,gcval_u);
     }
 }
 
 void sflow_momentum_func::vel_bc(lexer *p, fdm2D *b, ghostcell *pgc, slice &u, slice &v, slice &w)
 {
-    int cs, bc;
-
+    int cs,bc;
+    
     // MPI
-    mpi4(p, pgc, u);
-
-    if(p->j_dir == 1)
-        mpi4(p, pgc, v);
-
-    if(nhp == 1)
-        mpi4(p, pgc, w);
-
+    mpi4(p,pgc,u);
+    
+    if(p->j_dir==1)
+    mpi4(p,pgc,v);
+    
+    if(nhp==1)
+    mpi4(p,pgc,w);
+    
     // physical boundaries: velocities
-    const bool ysk = gcsl_yskip(p);  // (one cell in y: the y sides skipped, gcsl_yskip.h)
+    const bool ysk = gcsl_yskip(p);     // (one cell in y: the y sides skipped, gcsl_yskip.h)
     GCSL4LOOP
     {
-        i = p->gcbsl4[n][0];
-        j = p->gcbsl4[n][1];
-        cs = p->gcbsl4[n][3];
-        bc = p->gcbsl4[n][4];
-        gd = ghost_depth(p, n);
-        if(ysk && (cs == 2 || cs == 3))
-            continue;
-
+    i  = p->gcbsl4[n][0];
+    j  = p->gcbsl4[n][1];
+    cs = p->gcbsl4[n][3];
+    bc = p->gcbsl4[n][4];
+    gd = ghost_depth(p,n);
+    if(ysk && (cs==2 || cs==3))
+    continue;
+    
         // iowave Riemann / Flather / clamped edges (B 520 methods 3-6): ghost cells set by ioflow
-        if((cs == 1 && p->open_xm == 1) || (cs == 4 && p->open_xp == 1) || (cs == 3 && p->open_ym == 1) || (cs == 2 && p->open_yp == 1))
-            continue;
-
+        if((cs==1 && p->open_xm==1) || (cs==4 && p->open_xp==1) || (cs==3 && p->open_ym==1) || (cs==2 && p->open_yp==1))
+        continue;
+        
         // patch inlets: velocities set by patchBC (w zero gradient), patch outlets: zero gradient
         if(patch_inlet(bc))
         {
-            neumann(p, w, cs);
-            continue;
+        neumann(p,w,cs);
+        continue;
         }
-
+        
         if(patch_outlet(bc))
         {
-            neumann(p, u, cs);
-            neumann(p, v, cs);
-            neumann(p, w, cs);
-            continue;
+        neumann(p,u,cs);
+        neumann(p,v,cs);
+        neumann(p,w,cs);
+        continue;
         }
-
+        
         // inflow side
-        if(cs == 1 && (bc == 1 || bc == 6))
+        if(cs==1 && (bc==1 || bc==6))
         {
-            if(inflow_flag == 0)
+            if(inflow_flag==0)
             {
                 // relaxation zone: zero gradient, otherwise closed
-                if(p->B98 == 2)
+                if(p->B98==2)
                 {
-                    neumann(p, u, cs);
-                    neumann(p, v, cs);
-                    neumann(p, w, cs);
+                neumann(p,u,cs);
+                neumann(p,v,cs);
+                neumann(p,w,cs);
                 }
-
+                
                 else
                 {
-                    wall_bc(p, u, v, w, cs);
+                wall_bc(p,u,v,w,cs);
                 }
             }
-            continue;
+        continue;
         }
-
+        
         // outflow side
-        if(cs == 4 && (bc == 2 || bc == 7 || bc == 8))
+        if(cs==4 && (bc==2 || bc==7 || bc==8))
         {
             // active wave absorption (outflow_flag==1): ghost cells are set by ioflow
-
-            if(outflow_flag == 2)
+            
+            if(outflow_flag==2)
             {
-                neumann(p, u, cs);
-                neumann(p, v, cs);
-                neumann(p, w, cs);
-                outflow_clip(p, u, v);
+            neumann(p,u,cs);
+            neumann(p,v,cs);
+            neumann(p,w,cs);
+            outflow_clip(p,u,v);
             }
-
-            if(outflow_flag == 0)
+            
+            if(outflow_flag==0)
             {
-                wall_bc(p, u, v, w, cs);
+            wall_bc(p,u,v,w,cs);
             }
-            continue;
+        continue;
         }
-
+        
         // walls, free slip
-        wall_bc(p, u, v, w, cs);
+        wall_bc(p,u,v,w,cs);
     }
+    
 }
 
 void sflow_momentum_func::wall_bc(lexer *p, slice &u, slice &v, slice &w, int cs)
 {
     // free slip: the normal velocity is reversed (curvilinear grid: normal of the wall face)
-    if(p->geo_curv == 1)
+    if(p->geo_curv==1)
     {
-        sflow_curv::wall_mirror(p, u, v, i, j, cs, gd);
-        mirror(p, w, cs, 1.0);
-        return;
+    sflow_curv::wall_mirror(p,u,v,i,j,cs,gd);
+    mirror(p,w,cs,1.0);
+    return;
     }
-
-    if(cs == 1 || cs == 4)
+    
+    if(cs==1 || cs==4)
     {
-        mirror(p, u, cs, -1.0);
-        mirror(p, v, cs, 1.0);
-        mirror(p, w, cs, 1.0);
+    mirror(p,u,cs,-1.0);
+    mirror(p,v,cs,1.0);
+    mirror(p,w,cs,1.0);
     }
-
-    if(cs == 2 || cs == 3)
+    
+    if(cs==2 || cs==3)
     {
-        mirror(p, u, cs, 1.0);
-        mirror(p, v, cs, -1.0);
-        mirror(p, w, cs, 1.0);
+    mirror(p,u,cs,1.0);
+    mirror(p,v,cs,-1.0);
+    mirror(p,w,cs,1.0);
     }
 }
 
@@ -825,70 +808,68 @@ void sflow_momentum_func::ghostcells(lexer *p, fdm2D *b, ghostcell *pgc, slice &
 {
     int cs;
     double wlg;
-
+    
     // MPI
-    mpi4(p, pgc, UH);
-
-    if(p->j_dir == 1)
-        mpi4(p, pgc, VH);
-
-    if(nhp == 1)
-        mpi4(p, pgc, WH);
-
+    mpi4(p,pgc,UH);
+    
+    if(p->j_dir==1)
+    mpi4(p,pgc,VH);
+    
+    if(nhp==1)
+    mpi4(p,pgc,WH);
+    
     // velocities
-    vel_bc(p, b, pgc, b->U, b->V, b->W);
-
+    vel_bc(p,b,pgc,b->U,b->V,b->W);
+    
     // REEF3D::SEASTATE surfbeat: long-wave boundary (A 770 1)
-    if(b->wave != nullptr)
-        b->wave->ghostcells(p, b);
-
+    if(b->wave!=nullptr)
+    b->wave->ghostcells(p,b);
+    
     // Boussinesq: reference level velocity and volume flux
-    if(bous == 1)
+    if(bous==1)
     {
-        vel_bc(p, b, pgc, b->UA, b->VA, b->W);
-
-        mpi4(p, pgc, b->MX);
-
-        if(p->j_dir == 1)
-            mpi4(p, pgc, b->MY);
+    vel_bc(p,b,pgc,b->UA,b->VA,b->W);
+    
+    mpi4(p,pgc,b->MX);
+    
+    if(p->j_dir==1)
+    mpi4(p,pgc,b->MY);
     }
-
+    
     // physical boundaries: conserved variables from the ghost velocities and water depth
     // (flat indices: the cells of all slices of the grid share one layout)
     const int sx = p->jmax;
     double *eta = b->eta.V, *dep = b->depth.V, *U = b->U.V, *V = b->V.V, *W = b->W.V;
     double *wl = WL.V, *uh = UH.V, *vh = VH.V, *wh = WH.V;
     double *mx = b->MX.V, *my = b->MY.V;
-    const bool ysk = gcsl_yskip(p);  // (one cell in y: the y sides skipped, gcsl_yskip.h)
+    const bool ysk = gcsl_yskip(p);     // (one cell in y: the y sides skipped, gcsl_yskip.h)
     GCSL4LOOP
     {
-        i = p->gcbsl4[n][0];
-        j = p->gcbsl4[n][1];
-        cs = p->gcbsl4[n][3];
-        gd = ghost_depth(p, n);
-        if(ysk && (cs == 2 || cs == 3))
-            continue;
-
-        const int d = (cs == 1) ? -sx : (cs == 4) ? sx
-                                    : (cs == 2)   ? 1
-                                                  : -1;
-        const long c0 = (long)(i - p->imin) * sx + (j - p->jmin);
-
-        for(q = 1; q <= gd; ++q)
+    i  = p->gcbsl4[n][0];
+    j  = p->gcbsl4[n][1];
+    cs = p->gcbsl4[n][3];
+    gd = ghost_depth(p,n);
+    if(ysk && (cs==2 || cs==3))
+    continue;
+    
+    const int d = (cs==1) ? -sx : (cs==4) ? sx : (cs==2) ? 1 : -1;
+    const long c0 = (long)(i-p->imin)*sx + (j-p->jmin);
+    
+        for(q=1;q<=gd;++q)
         {
-            const long c = c0 + (long)q * d;
-
-            wlg = MAX(eta[c] + dep[c], 0.0);
-
-            wl[c] = wlg;
-            uh[c] = U[c] * wlg;
-            vh[c] = V[c] * wlg;
-            wh[c] = W[c] * wlg;
-
-            if(bous == 1)
+        const long c = c0 + (long)q*d;
+        
+        wlg = MAX(eta[c] + dep[c], 0.0);
+        
+        wl[c] = wlg;
+        uh[c] = U[c]*wlg;
+        vh[c] = V[c]*wlg;
+        wh[c] = W[c]*wlg;
+        
+            if(bous==1)
             {
-                mx[c] = U[c] * wlg;
-                my[c] = V[c] * wlg;
+            mx[c] = U[c]*wlg;
+            my[c] = V[c]*wlg;
             }
         }
     }
@@ -899,20 +880,18 @@ void sflow_momentum_func::ghostcells(lexer *p, fdm2D *b, ghostcell *pgc, slice &
 int sflow_momentum_func::ghost_depth(lexer *p, int n)
 {
     const int d = p->gcbsl4[n][2];
-
-    return (d > 0 && d < 3) ? d : 3;
+    
+    return (d>0 && d<3) ? d : 3;
 }
 
 void sflow_momentum_func::mirror(lexer *p, slice &f, int cs, double sgn)
 {
     // symmetric (sgn=1) or antisymmetric (sgn=-1) extension across the boundary face
     // (ghost q+1 from the cell q inside; d: the step outwards)
-    const int d = (cs == 1) ? -p->jmax : (cs == 4) ? p->jmax
-                                     : (cs == 2)   ? 1
-                                                   : -1;
-    double *c = &f(i, j);
-    for(q = 0; q < gd; ++q)
-        c[(q + 1) * d] = sgn * c[-q * d];
+    const int d = (cs==1) ? -p->jmax : (cs==4) ? p->jmax : (cs==2) ? 1 : -1;
+    double *c = &f(i,j);
+	for(q=0;q<gd;++q)
+	c[(q+1)*d] = sgn*c[-q*d];
 }
 
 // outflow with a water level (B 60 1, F 62; the open face G 54 b 2 of a block): the ghost velocities are zero-gradient
@@ -920,29 +899,27 @@ void sflow_momentum_func::mirror(lexer *p, slice &f, int cs, double sgn)
 // separation that reaches the outlet otherwise draws water and momentum in through it without bound
 void sflow_momentum_func::outflow_clip(lexer *p, slice &u, slice &v)
 {
-    double nx = 1.0, ny = 0.0, len;
-    if(p->geo_curv == 1)
-        sflow_curv::normal(p, 1, i, j, nx, ny, len);
+    double nx=1.0, ny=0.0, len;
+    if(p->geo_curv==1)
+    sflow_curv::normal(p,1,i,j,nx,ny,len);
 
-    for(q = 1; q <= gd; ++q)
+    for(q=1;q<=gd;++q)
     {
-        const double un = u(i + q, j) * nx + v(i + q, j) * ny;
-        if(un < 0.0)
+        const double un = u(i+q,j)*nx + v(i+q,j)*ny;
+        if(un<0.0)
         {
-            u(i + q, j) -= un * nx;
-            v(i + q, j) -= un * ny;
+        u(i+q,j) -= un*nx;
+        v(i+q,j) -= un*ny;
         }
     }
 }
 
 void sflow_momentum_func::neumann(lexer *p, slice &f, int cs)
 {
-    const int d = (cs == 1) ? -p->jmax : (cs == 4) ? p->jmax
-                                     : (cs == 2)   ? 1
-                                                   : -1;
-    double *c = &f(i, j);
-    for(q = 0; q < gd; ++q)
-        c[(q + 1) * d] = c[0];
+    const int d = (cs==1) ? -p->jmax : (cs==4) ? p->jmax : (cs==2) ? 1 : -1;
+    double *c = &f(i,j);
+	for(q=0;q<gd;++q)
+	c[(q+1)*d] = c[0];
 }
 
 void sflow_momentum_func::face_velocities(lexer *p, fdm2D *b, ghostcell *pgc, slice &WL)
@@ -950,65 +927,65 @@ void sflow_momentum_func::face_velocities(lexer *p, fdm2D *b, ghostcell *pgc, sl
     // staggered diagnostics for the sediment, turbulence, printing and ioflow modules
     SLICELOOP1
     {
-        if(p->wet[IJ] == 1 && p->wet[Ip1J] == 1)
-            b->P(i, j) = 0.5 * (b->U(i, j) + b->U(i + 1, j));
-
-        else
-            b->P(i, j) = 0.0;
-
-        b->hx(i, j) = MAX(0.5 * (WL(i, j) + WL(i + 1, j)), 0.0);
+    if(p->wet[IJ]==1 && p->wet[Ip1J]==1)
+    b->P(i,j) = 0.5*(b->U(i,j) + b->U(i+1,j));
+    
+    else
+    b->P(i,j) = 0.0;
+    
+    b->hx(i,j) = MAX(0.5*(WL(i,j) + WL(i+1,j)), 0.0);
     }
-
+    
     SLICELOOP2
     {
-        if(p->wet[IJ] == 1 && p->wet[IJp1] == 1)
-            b->Q(i, j) = 0.5 * (b->V(i, j) + b->V(i, j + 1));
-
-        else
-            b->Q(i, j) = 0.0;
-
-        b->hy(i, j) = MAX(0.5 * (WL(i, j) + WL(i, j + 1)), 0.0);
+    if(p->wet[IJ]==1 && p->wet[IJp1]==1)
+    b->Q(i,j) = 0.5*(b->V(i,j) + b->V(i,j+1));
+    
+    else
+    b->Q(i,j) = 0.0;
+    
+    b->hy(i,j) = MAX(0.5*(WL(i,j) + WL(i,j+1)), 0.0);
     }
-
+    
     SLICELOOP4
-    b->ws(i, j) = b->W(i, j);
-
-    pgc->gcsl_start1(p, b->P, gcval_u);
-
+    b->ws(i,j) = b->W(i,j);
+    
+    pgc->gcsl_start1(p,b->P,gcval_u);
+    
     // in- and outflow faces (discharge diagnostics Qin2D, Qout2D)
     // (the j faces of a block of a multi-block grid: the y edges, side 3 -j, 2 +j)
-    for(n = 0; n < p->gcslin_count; n++)
+    for(n=0;n<p->gcslin_count;n++)
     {
-        i = p->gcslin[n][0];
-        j = p->gcslin[n][1];
-
-        if(p->gcslin[n][3] == 3 || p->gcslin[n][3] == 2)
-            continue;
-
-        b->P(i - 1, j) = b->U(i - 1, j);
+    i=p->gcslin[n][0];
+    j=p->gcslin[n][1];
+    
+    if(p->gcslin[n][3]==3 || p->gcslin[n][3]==2)
+    continue;
+    
+    b->P(i-1,j) = b->U(i-1,j);
+    }
+    
+    for(n=0;n<p->gcslout_count;n++)
+    {
+    i=p->gcslout[n][0];
+    j=p->gcslout[n][1];
+    
+    if(p->gcslout[n][3]==3)
+    {
+    b->Q(i,j-1) = (p->wet[IJ]==1)?0.5*(b->V(i,j) + b->V(i,j-1)):0.0;
+    continue;
+    }
+    
+    if(p->gcslout[n][3]==2)
+    {
+    b->Q(i,j) = (p->wet[IJ]==1)?0.5*(b->V(i,j) + b->V(i,j+1)):0.0;
+    continue;
+    }
+    
+    b->P(i,j) = (p->wet[IJ]==1)?0.5*(b->U(i,j) + b->U(i+1,j)):0.0;
     }
 
-    for(n = 0; n < p->gcslout_count; n++)
-    {
-        i = p->gcslout[n][0];
-        j = p->gcslout[n][1];
-
-        if(p->gcslout[n][3] == 3)
-        {
-            b->Q(i, j - 1) = (p->wet[IJ] == 1) ? 0.5 * (b->V(i, j) + b->V(i, j - 1)) : 0.0;
-            continue;
-        }
-
-        if(p->gcslout[n][3] == 2)
-        {
-            b->Q(i, j) = (p->wet[IJ] == 1) ? 0.5 * (b->V(i, j) + b->V(i, j + 1)) : 0.0;
-            continue;
-        }
-
-        b->P(i, j) = (p->wet[IJ] == 1) ? 0.5 * (b->U(i, j) + b->U(i + 1, j)) : 0.0;
-    }
-
-    pgc->gcsl_start2(p, b->Q, gcval_v);
+	pgc->gcsl_start2(p,b->Q,gcval_v);
 
     // patch in- and outlets (B 440): the normal velocity of the boundary face from the cell and its ghost cell
     // (the ghost cells of the inlets set by patchBC, of the outlets zero gradient); the wall treatment of
@@ -1017,61 +994,61 @@ void sflow_momentum_func::face_velocities(lexer *p, fdm2D *b, ghostcell *pgc, sl
     GCSL4LOOP
     if(patch_bc(p->gcbsl4[n][4]))
     {
-        i = p->gcbsl4[n][0];
-        j = p->gcbsl4[n][1];
-        int cs = p->gcbsl4[n][3];
+    i  = p->gcbsl4[n][0];
+    j  = p->gcbsl4[n][1];
+    int cs = p->gcbsl4[n][3];
 
-        if(cs == 1)
-            b->P(i - 1, j) = (p->wet[IJ] == 1) ? 0.5 * (b->U(i, j) + b->U(i - 1, j)) : 0.0;
+        if(cs==1)
+        b->P(i-1,j) = (p->wet[IJ]==1)?0.5*(b->U(i,j) + b->U(i-1,j)):0.0;
 
-        if(cs == 4)
-            b->P(i, j) = (p->wet[IJ] == 1) ? 0.5 * (b->U(i, j) + b->U(i + 1, j)) : 0.0;
+        if(cs==4)
+        b->P(i,j) = (p->wet[IJ]==1)?0.5*(b->U(i,j) + b->U(i+1,j)):0.0;
 
-        if(cs == 3)
-            b->Q(i, j - 1) = (p->wet[IJ] == 1) ? 0.5 * (b->V(i, j) + b->V(i, j - 1)) : 0.0;
+        if(cs==3)
+        b->Q(i,j-1) = (p->wet[IJ]==1)?0.5*(b->V(i,j) + b->V(i,j-1)):0.0;
 
-        if(cs == 2)
-            b->Q(i, j) = (p->wet[IJ] == 1) ? 0.5 * (b->V(i, j) + b->V(i, j + 1)) : 0.0;
+        if(cs==2)
+        b->Q(i,j) = (p->wet[IJ]==1)?0.5*(b->V(i,j) + b->V(i,j+1)):0.0;
     }
 
-    pgc->gcsl_start4(p, b->ws, gcval_w);
-    pgc->gcsl_start1(p, b->hx, gcval_eta);
-    pgc->gcsl_start2(p, b->hy, gcval_eta);
+    pgc->gcsl_start4(p,b->ws,gcval_w);
+    pgc->gcsl_start1(p,b->hx,gcval_eta);
+	pgc->gcsl_start2(p,b->hy,gcval_eta);
 }
 
 void sflow_momentum_func::irhs(lexer *p, fdm2D *b)
 {
-    SLICELOOP4
-    {
-        b->F(i, j) += b->Fext(i, j);
-        b->Fext(i, j) = 0.0;
-    }
+	SLICELOOP4
+	{
+	b->F(i,j) += b->Fext(i,j);
+	b->Fext(i,j)=0.0;
+	}
 }
 
 void sflow_momentum_func::jrhs(lexer *p, fdm2D *b)
 {
     SLICELOOP4
-    {
-        b->G(i, j) += b->Gext(i, j);
-        b->Gext(i, j) = 0.0;
-    }
+	{
+	b->G(i,j) += b->Gext(i,j);
+	b->Gext(i,j)=0.0;
+	}
 }
 
 void sflow_momentum_func::krhs(lexer *p, fdm2D *b)
 {
     SLICELOOP4
-    {
-        b->H(i, j) += b->Hext(i, j);
-        b->Hext(i, j) = 0.0;
-    }
+	{
+	b->H(i,j) += b->Hext(i,j);
+	b->Hext(i,j)=0.0;
+	}
 }
 
 void sflow_momentum_func::clearrhs(lexer *p, fdm2D *b)
 {
-    SLICELOOP4
-    {
-        b->F(i, j) = 0.0;
-        b->G(i, j) = 0.0;
-        b->H(i, j) = 0.0;
-    }
+	SLICELOOP4
+	{
+	b->F(i,j)=0.0;
+    b->G(i,j)=0.0;
+    b->H(i,j)=0.0;
+	}
 }

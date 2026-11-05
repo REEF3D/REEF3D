@@ -23,8 +23,8 @@ Author: Hans Bihs
 #ifndef TOPO_VTP_H_
 #define TOPO_VTP_H_
 
-#include "increment.h"
-#include "vtp3D.h"
+#include"increment.h"
+#include"vtp3D.h"
 
 class lexer;
 class fdm;
@@ -36,17 +36,16 @@ using namespace std;
 class topo_vtp : public increment, private vtp3D
 {
 public:
-    int &print_counter() { return topoprintcount; }  // checkpoints (P 48, I 45)
-    topo_vtp(lexer *);
+    int& print_counter() { return topoprintcount; }   // checkpoints (P 48, I 45)
+    topo_vtp(lexer*);
     virtual ~topo_vtp() = default;
-    void start(lexer *, fdm *, ghostcell *, sediment *);
-
+    void start(lexer*,fdm*,ghostcell*,sediment*);
 private:
-    void print(lexer *, fdm *, ghostcell *, sediment *);
-    void pvtp(lexer *, sediment *, int);
+    void print(lexer*,fdm*,ghostcell*,sediment*);
+    void pvtp(lexer*,sediment*,int);
 
     char name[100];
-    int iin, offset[100];
+    int iin,offset[100];
     float ffn;
     int topoprintcount;
     int polygon_sum;

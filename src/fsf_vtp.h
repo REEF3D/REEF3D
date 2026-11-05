@@ -23,10 +23,10 @@ Author: Hans Bihs
 #ifndef FSF_VTP_H_
 #define FSF_VTP_H_
 
-#include "field5.h"
-#include "fieldint5.h"
-#include "increment.h"
-#include "vtp3D.h"
+#include"increment.h"
+#include"fieldint5.h"
+#include"field5.h"
+#include"vtp3D.h"
 
 class lexer;
 class fdm;
@@ -38,32 +38,32 @@ class fsf_vtp : public increment, private vtp3D
 {
 
 public:
-    int &print_counter() { return fsfprintcount; }  // checkpoints (P 48, I 45)
-    fsf_vtp(lexer *, fdm *, ghostcell *);
+    int& print_counter() { return fsfprintcount; }   // checkpoints (P 48, I 45)
+    fsf_vtp(lexer*,fdm*,ghostcell*);
     virtual ~fsf_vtp();
-    void start(lexer *, fdm *, ghostcell *);
+    void start(lexer*,fdm*,ghostcell*);
 
 private:
-    void triangulation(lexer *, fdm *, ghostcell *, field &);
-    void reconstruct(lexer *, fdm *, field &);
-    void addpoint(lexer *, fdm *, int, int);
-    void finalize(lexer *, fdm *);
+    void triangulation(lexer*, fdm*, ghostcell*, field&);
+    void reconstruct(lexer*, fdm*, field&);
+    void addpoint(lexer*,fdm*,int,int);
+    void finalize(lexer*,fdm*);
 
-    int **tri, **facet, *confac, *numfac, *numpt;
+    int **tri, **facet, *confac, *numfac,*numpt;
     double **ccpt, **pt, *ls;
-    double dV1, dV2, C1, C2, mi;
-    int numtri, numvert, numtri_mem, numvert_mem;
-    int count, countM, n, nn, q;
-    int ccptcount, facount, check;
-    int polygon_sum, polygon_num, vertice_num;
-    const double zero, interfac;
+    double   dV1,dV2,C1,C2,mi;
+    int numtri,numvert, numtri_mem, numvert_mem;
+    int count,countM,n,nn,q;
+    int ccptcount,facount,check;
+    int polygon_sum,polygon_num,vertice_num;
+    const double zero,interfac;
     double epsi;
 
     fieldint5 vertice, nodeflag;
     field5 eta;
 
-    void print(lexer *, fdm *);
-    void pvtp(lexer *, int);
+    void print(lexer*,fdm*);
+    void pvtp(lexer*,int);
 
     char name[100];
     int offset[100];

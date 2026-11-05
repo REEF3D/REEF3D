@@ -17,9 +17,9 @@ namespace Eigen {
 
 namespace internal {
 
-template<int N>
+template <int N>
 class FixedInt;
-template<int N>
+template <int N>
 class VariableAndFixedInt;
 
 /** \internal
@@ -51,72 +51,63 @@ class VariableAndFixedInt;
  *
  * \sa fix<N>, class VariableAndFixedInt
  */
-template<int N>
-class FixedInt
-{
-public:
-    static constexpr int value = N;
-    constexpr operator int() const { return N; }
+template <int N>
+class FixedInt {
+ public:
+  static constexpr int value = N;
+  constexpr operator int() const { return N; }
 
-    constexpr FixedInt() = default;
-    constexpr FixedInt(std::integral_constant<int, N>) {}
+  constexpr FixedInt() = default;
+  constexpr FixedInt(std::integral_constant<int, N>) {}
 
-    constexpr FixedInt(VariableAndFixedInt<N> other)
-    {
+  constexpr FixedInt(VariableAndFixedInt<N> other) {
 #ifndef EIGEN_INTERNAL_DEBUGGING
-        EIGEN_UNUSED_VARIABLE(other);
+    EIGEN_UNUSED_VARIABLE(other);
 #endif
-        eigen_internal_assert(int(other) == N);
-    }
+    eigen_internal_assert(int(other) == N);
+  }
 
-    constexpr FixedInt<-N> operator-() const { return FixedInt<-N>(); }
+  constexpr FixedInt<-N> operator-() const { return FixedInt<-N>(); }
 
-    template<int M>
-    constexpr FixedInt<N + M> operator+(FixedInt<M>) const
-    {
-        return FixedInt<N + M>();
-    }
+  template <int M>
+  constexpr FixedInt<N + M> operator+(FixedInt<M>) const {
+    return FixedInt<N + M>();
+  }
 
-    template<int M>
-    constexpr FixedInt<N - M> operator-(FixedInt<M>) const
-    {
-        return FixedInt<N - M>();
-    }
+  template <int M>
+  constexpr FixedInt<N - M> operator-(FixedInt<M>) const {
+    return FixedInt<N - M>();
+  }
 
-    template<int M>
-    constexpr FixedInt<N * M> operator*(FixedInt<M>) const
-    {
-        return FixedInt<N * M>();
-    }
+  template <int M>
+  constexpr FixedInt<N * M> operator*(FixedInt<M>) const {
+    return FixedInt<N * M>();
+  }
 
-    template<int M>
-    constexpr FixedInt<N / M> operator/(FixedInt<M>) const
-    {
-        return FixedInt<N / M>();
-    }
+  template <int M>
+  constexpr FixedInt<N / M> operator/(FixedInt<M>) const {
+    return FixedInt<N / M>();
+  }
 
-    template<int M>
-    constexpr FixedInt<N % M> operator%(FixedInt<M>) const
-    {
-        return FixedInt<N % M>();
-    }
+  template <int M>
+  constexpr FixedInt<N % M> operator%(FixedInt<M>) const {
+    return FixedInt<N % M>();
+  }
 
-    template<int M>
-    constexpr FixedInt<N | M> operator|(FixedInt<M>) const
-    {
-        return FixedInt<N | M>();
-    }
+  template <int M>
+  constexpr FixedInt<N | M> operator|(FixedInt<M>) const {
+    return FixedInt<N | M>();
+  }
 
-    template<int M>
-    constexpr FixedInt<N & M> operator&(FixedInt<M>) const
-    {
-        return FixedInt<N & M>();
-    }
+  template <int M>
+  constexpr FixedInt<N & M> operator&(FixedInt<M>) const {
+    return FixedInt<N & M>();
+  }
 
-    // Needed in C++14 to allow fix<N>():
-    constexpr FixedInt operator()() const { return *this; }
+  // Needed in C++14 to allow fix<N>():
+  constexpr FixedInt operator()() const { return *this; }
 
-    constexpr VariableAndFixedInt<N> operator()(int val) const { return VariableAndFixedInt<N>(val); }
+  constexpr VariableAndFixedInt<N> operator()(int val) const { return VariableAndFixedInt<N>(val); }
 };
 
 /** \internal
@@ -149,88 +140,77 @@ public:
  *
  * \sa fix<N>(int), class FixedInt
  */
-template<int N>
-class VariableAndFixedInt
-{
-public:
-    static const int value = N;
-    operator int() const { return m_value; }
-    VariableAndFixedInt(int val) { m_value = val; }
+template <int N>
+class VariableAndFixedInt {
+ public:
+  static const int value = N;
+  operator int() const { return m_value; }
+  VariableAndFixedInt(int val) { m_value = val; }
 
-protected:
-    int m_value;
+ protected:
+  int m_value;
 };
 
-template<typename T, int Default = Dynamic>
-struct get_fixed_value
-{
-    static const int value = Default;
+template <typename T, int Default = Dynamic>
+struct get_fixed_value {
+  static const int value = Default;
 };
 
-template<int N, int Default>
-struct get_fixed_value<FixedInt<N>, Default>
-{
-    static const int value = N;
+template <int N, int Default>
+struct get_fixed_value<FixedInt<N>, Default> {
+  static const int value = N;
 };
 
-template<int N, int Default>
-struct get_fixed_value<VariableAndFixedInt<N>, Default>
-{
-    static const int value = N;
+template <int N, int Default>
+struct get_fixed_value<VariableAndFixedInt<N>, Default> {
+  static const int value = N;
 };
 
-template<typename T, int N, int Default>
-struct get_fixed_value<variable_if_dynamic<T, N>, Default>
-{
-    static const int value = N;
+template <typename T, int N, int Default>
+struct get_fixed_value<variable_if_dynamic<T, N>, Default> {
+  static const int value = N;
 };
 
-template<typename T>
-EIGEN_DEVICE_FUNC Index get_runtime_value(const T &x)
-{
-    return x;
+template <typename T>
+EIGEN_DEVICE_FUNC Index get_runtime_value(const T &x) {
+  return x;
 }
 
 // Cleanup integer/FixedInt/VariableAndFixedInt/etc types:
 
 // By default, no cleanup:
-template<typename T, int DynamicKey = Dynamic, typename EnableIf = void>
-struct cleanup_index_type
-{
-    typedef T type;
+template <typename T, int DynamicKey = Dynamic, typename EnableIf = void>
+struct cleanup_index_type {
+  typedef T type;
 };
 
 // Convert any integral type (e.g., short, int, unsigned int, etc.) to Eigen::Index
-template<typename T, int DynamicKey>
-struct cleanup_index_type<T, DynamicKey, std::enable_if_t<internal::is_integral<T>::value>>
-{
-    typedef Index type;
+template <typename T, int DynamicKey>
+struct cleanup_index_type<T, DynamicKey, std::enable_if_t<internal::is_integral<T>::value>> {
+  typedef Index type;
 };
 
 // If VariableAndFixedInt does not match DynamicKey, then we turn it to a pure compile-time value:
-template<int N, int DynamicKey>
-struct cleanup_index_type<VariableAndFixedInt<N>, DynamicKey>
-{
-    typedef FixedInt<N> type;
+template <int N, int DynamicKey>
+struct cleanup_index_type<VariableAndFixedInt<N>, DynamicKey> {
+  typedef FixedInt<N> type;
 };
 // If VariableAndFixedInt matches DynamicKey, then we turn it to a pure runtime-value (aka Index):
-template<int DynamicKey>
-struct cleanup_index_type<VariableAndFixedInt<DynamicKey>, DynamicKey>
-{
-    typedef Index type;
+template <int DynamicKey>
+struct cleanup_index_type<VariableAndFixedInt<DynamicKey>, DynamicKey> {
+  typedef Index type;
 };
 
-template<int N, int DynamicKey>
-struct cleanup_index_type<std::integral_constant<int, N>, DynamicKey>
-{
-    typedef FixedInt<N> type;
+template <int N, int DynamicKey>
+struct cleanup_index_type<std::integral_constant<int, N>, DynamicKey> {
+  typedef FixedInt<N> type;
 };
 
 }  // end namespace internal
 
 #ifndef EIGEN_PARSED_BY_DOXYGEN
 
-template<int N>
+template <int N>
 constexpr internal::FixedInt<N> fix{};
 
 #else  // EIGEN_PARSED_BY_DOXYGEN
@@ -257,7 +237,7 @@ constexpr internal::FixedInt<N> fix{};
  *
  * \sa fix<N>(int), seq, seqN
  */
-template<int N>
+template <int N>
 static const auto fix();
 
 /** \fn fix<N>(int)
@@ -289,7 +269,7 @@ static const auto fix();
  *
  * \sa fix, seqN, class ArithmeticSequence
  */
-template<int N>
+template <int N>
 static const auto fix(int val);
 
 #endif  // EIGEN_PARSED_BY_DOXYGEN

@@ -31,30 +31,31 @@ Architect: Hans Bihs
 #ifndef CORAL_MODES_H_
 #define CORAL_MODES_H_
 
-#include "coral/core/coral_types.h"
+#include"coral/core/coral_types.h"
 
-namespace coral {
-class model;
-
-struct linear_model
+namespace coral
 {
-    MatX M, C, K;     // full, 6 per body
-    MatX N;           // basis of the constraint null space (columns)
-    MatX Mr, Cr, Kr;  // reduced: N^T X N
-};
+    class model;
 
-struct mode_result
-{
-    VecX frequency;  // [Hz], ascending
-    VecX damping;    // damping ratio (damped modes), 0 for undamped
-    MatX shape;      // columns: modes in the full coordinates (6 per body), largest entry 1
-    bool ok = false;
-};
+    struct linear_model
+    {
+        MatX M, C, K;      // full, 6 per body
+        MatX N;            // basis of the constraint null space (columns)
+        MatX Mr, Cr, Kr;   // reduced: N^T X N
+    };
 
-linear_model linearize(model &, double t);
+    struct mode_result
+    {
+        VecX frequency;    // [Hz], ascending
+        VecX damping;      // damping ratio (damped modes), 0 for undamped
+        MatX shape;        // columns: modes in the full coordinates (6 per body), largest entry 1
+        bool ok = false;
+    };
 
-// the first n modes (n <= number of free coordinates); damped: eigenvalues of the first-order form
-mode_result modes(model &, double t, int n, bool damped = false);
-}  // namespace coral
+    linear_model linearize(model&, double t);
+
+    // the first n modes (n <= number of free coordinates); damped: eigenvalues of the first-order form
+    mode_result modes(model&, double t, int n, bool damped=false);
+}
 
 #endif

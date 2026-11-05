@@ -23,8 +23,8 @@ Author: Hans Bihs
 #ifndef REEF3D_MPMD_H_
 #define REEF3D_MPMD_H_
 
-#include <mpi.h>
-#include <vector>
+#include<mpi.h>
+#include<vector>
 
 /*--------------------------------------------------------------------
 Several REEF3D models in one MPI job (MPMD), for the runtime coupling
@@ -45,17 +45,17 @@ e.g. srun --multi-prog):
 
 struct reef3d_mpmd
 {
-    static MPI_Comm model;  // communicator of this model
-    static int app;         // app number of this process
-    static int napps;       // number of apps in the job
+    static MPI_Comm model;          // communicator of this model
+    static int app;                 // app number of this process
+    static int napps;               // number of apps in the job
     static int world_rank, world_size;
-    static std::vector<int> leader;  // world rank of rank 0 of each app
+    static std::vector<int> leader; // world rank of rank 0 of each app
 
     // after MPI_Init: -dir/-app, split of MPI_COMM_WORLD by app
     static void split(int &argc, char **argv);
 };
 
 // the communicator of this model: use it instead of MPI_COMM_WORLD
-inline MPI_Comm reef3d_comm() { return reef3d_mpmd::model; }
+inline MPI_Comm reef3d_comm() {return reef3d_mpmd::model;}
 
 #endif

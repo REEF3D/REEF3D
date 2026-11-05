@@ -23,21 +23,21 @@ Author: Hans Bihs
 #ifndef SFLOW_HYDROSTATIC_H_
 #define SFLOW_HYDROSTATIC_H_
 
-#include "increment.h"
-#include "sflow_pressure.h"
+#include"sflow_pressure.h"
+#include"increment.h"
 
 using namespace std;
 
 class sflow_hydrostatic final : public sflow_pressure, public increment
 {
 public:
-    sflow_hydrostatic(lexer *, fdm2D *, patchBC_interface *);
-    virtual ~sflow_hydrostatic();
+    sflow_hydrostatic(lexer*, fdm2D*,patchBC_interface*);
+	virtual ~sflow_hydrostatic();
 
-    void start(lexer *, fdm2D *, ghostcell *, solver2D *, ioflow *, slice &, slice &, slice &, slice &, slice &, slice &, double) override final;
-    void upgrad(lexer *, fdm2D *, slice &) override final;
-    void vpgrad(lexer *, fdm2D *, slice &) override final;
-    void wpgrad(lexer *, fdm2D *, slice &) override final;
+	void start(lexer*, fdm2D*, ghostcell*, solver2D*, ioflow*, slice&, slice&, slice&, slice&, slice&, slice&, double) override final;
+	void upgrad(lexer*, fdm2D*, slice&) override final;
+	void vpgrad(lexer*, fdm2D*, slice&) override final;
+    void wpgrad(lexer*, fdm2D*, slice&) override final;
 
 private:
     patchBC_interface *pBC;

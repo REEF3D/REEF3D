@@ -20,10 +20,11 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
+
 #ifndef SEASTATE_NHFLOW_H_
 #define SEASTATE_NHFLOW_H_
 
-#include "seastate_coupling.h"
+#include"seastate_coupling.h"
 
 class fdm_nhf;
 
@@ -59,27 +60,27 @@ keeps the long-wave values. Not with mesh refinement (G 1).
 class seastate_nhflow : public seastate_coupling
 {
 public:
-    seastate_nhflow(lexer *, fdm_nhf *, ghostcell *);
+    seastate_nhflow(lexer*, fdm_nhf*, ghostcell*);
     virtual ~seastate_nhflow() = default;
 
-    void ini(lexer *, fdm_nhf *, ghostcell *);
+    void ini(lexer*, fdm_nhf*, ghostcell*);
 
     // every NHFLOW step, before the momentum step: wave step when due
-    void start(lexer *, fdm_nhf *, ghostcell *);
+    void start(lexer*, fdm_nhf*, ghostcell*);
 
     // momentum right-hand side (every RK stage, every layer) and continuity source (A 751 2)
-    void u_source(lexer *, fdm_nhf *);
-    void v_source(lexer *, fdm_nhf *);
-    void mass_source(lexer *, fdm_nhf *, slice &);
+    void u_source(lexer*, fdm_nhf*);
+    void v_source(lexer*, fdm_nhf*);
+    void mass_source(lexer*, fdm_nhf*, slice&);
 
     // long-wave boundary (surfbeat): ghost cells of the x- side
-    void ghostcells(lexer *, fdm_nhf *, double *UH, double *VH, double *WH);
-    void wl_ghostcells(lexer *, fdm_nhf *, slice &WL);
+    void ghostcells(lexer*, fdm_nhf*, double *UH, double *VH, double *WH);
+    void wl_ghostcells(lexer*, fdm_nhf*, slice &WL);
 
 private:
-    void average(lexer *, fdm_nhf *);
+    void average(lexer*, fdm_nhf*);
 
-    slice4 Ub, Vb;
+    slice4 Ub,Vb;
 };
 
 #endif

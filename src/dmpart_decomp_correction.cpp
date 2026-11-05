@@ -22,122 +22,126 @@ Author: Hans Bihs
 
 #include "dmpart_decomp.h"
 #include <algorithm>
-#include <cmath>
 #include <vector>
+#include <cmath>
 
-namespace dmpart {
-
-void decomp::partition_correction(lexer *p, dive *a)
+namespace dmpart
 {
-    cout << "maindir: " << maindir << endl;
 
-    if(maindir == 1)
-        partition_correct_x(p, a);
-    else if(maindir == 2)
-        partition_correct_y(p, a);
-    else if(maindir == 3)
-        partition_correct_z(p, a);
+void decomp::partition_correction(lexer* p, dive* a)
+{
+    cout<<"maindir: "<<maindir<<endl;
+
+    if(maindir==1)
+    partition_correct_x(p,a);
+    else if(maindir==2)
+    partition_correct_y(p,a);
+    else if(maindir==3)
+    partition_correct_z(p,a);
 }
 
-namespace {
-// Split planes 0..N-1 with weights w into m contiguous, non-empty parts
-// (node[0]=0 < node[1] < ... < node[m]=N) such that the largest part is
-// as small as possible:
-// 1) binary search for the smallest cap B that m parts can meet
-// 2) greedy packing up to B, leaving at least one plane per remaining part
-// 3) move each boundary to where it best balances its two neighbours;
-//    a move only happens if it lowers the larger of the two, so the
-//    largest part never grows
-void balance_1d(const std::vector<long long> &w, int m, int *node)
+namespace
 {
-    const int N = int(w.size());
-
-    std::vector<long long> P(N + 1, 0);
-    for(int i = 0; i < N; ++i)
-        P[i + 1] = P[i] + w[i];
-
-    // last split b in [lo,hi] with P[b] <= limit (at least lo)
-    auto last_below = [&](int lo, int hi, long long limit)
+    // Split planes 0..N-1 with weights w into m contiguous, non-empty parts
+    // (node[0]=0 < node[1] < ... < node[m]=N) such that the largest part is
+    // as small as possible:
+    // 1) binary search for the smallest cap B that m parts can meet
+    // 2) greedy packing up to B, leaving at least one plane per remaining part
+    // 3) move each boundary to where it best balances its two neighbours;
+    //    a move only happens if it lowers the larger of the two, so the
+    //    largest part never grows
+    void balance_1d(const std::vector<long long> &w, int m, int *node)
     {
-        int b = int(std::upper_bound(P.begin() + lo, P.begin() + hi + 1, limit) - P.begin()) - 1;
-        return std::max(b, lo);
-    };
+        const int N = int(w.size());
 
-    auto pack = [&](long long cap, int *nd)
-    {
-        nd[0] = 0;
-        for(int a = 1; a < m; ++a)
-            nd[a] = last_below(nd[a - 1] + 1, N - (m - a), P[nd[a - 1]] + cap);
-        nd[m] = N;
+        std::vector<long long> P(N+1,0);
+        for(int i=0;i<N;++i)
+        P[i+1] = P[i] + w[i];
 
-        return P[N] - P[nd[m - 1]] <= cap;
-    };
-
-    long long lo = *std::max_element(w.begin(), w.end());
-    long long hi = P[N];
-    std::vector<int> tmp(m + 1);
-
-    while(lo < hi)
-    {
-        const long long mid = lo + (hi - lo) / 2;
-
-        if(pack(mid, tmp.data()))
-            hi = mid;
-        else
-            lo = mid + 1;
-    }
-
-    pack(lo, node);
-
-    for(int sweep = 0; sweep < 100 * m; ++sweep)
-    {
-        bool moved = false;
-
-        for(int a = 1; a < m; ++a)
+        // last split b in [lo,hi] with P[b] <= limit (at least lo)
+        auto last_below = [&](int lo, int hi, long long limit)
         {
-            const int l = node[a - 1], h = node[a + 1];
-            const long long half = (P[l] + P[h]) / 2;
+            int b = int(std::upper_bound(P.begin()+lo, P.begin()+hi+1, limit) - P.begin()) - 1;
+            return std::max(b,lo);
+        };
 
-            int b = last_below(l + 1, h - 1, half);
-            if(b + 1 <= h - 1 && std::max(P[b + 1] - P[l], P[h] - P[b + 1]) < std::max(P[b] - P[l], P[h] - P[b]))
-                ++b;
+        auto pack = [&](long long cap, int *nd)
+        {
+            nd[0]=0;
+            for(int a=1;a<m;++a)
+            nd[a] = last_below(nd[a-1]+1, N-(m-a), P[nd[a-1]]+cap);
+            nd[m]=N;
 
-            const long long now = std::max(P[node[a]] - P[l], P[h] - P[node[a]]);
-            const long long then = std::max(P[b] - P[l], P[h] - P[b]);
+            return P[N]-P[nd[m-1]] <= cap;
+        };
 
-            if(then < now)
-            {
-                node[a] = b;
-                moved = true;
-            }
+        long long lo = *std::max_element(w.begin(),w.end());
+        long long hi = P[N];
+        std::vector<int> tmp(m+1);
+
+        while(lo<hi)
+        {
+            const long long mid = lo + (hi-lo)/2;
+
+            if(pack(mid,tmp.data()))
+            hi = mid;
+            else
+            lo = mid+1;
         }
 
-        if(!moved)
+        pack(lo,node);
+
+        for(int sweep=0; sweep<100*m; ++sweep)
+        {
+            bool moved = false;
+
+            for(int a=1;a<m;++a)
+            {
+                const int l = node[a-1], h = node[a+1];
+                const long long half = (P[l]+P[h])/2;
+
+                int b = last_below(l+1, h-1, half);
+                if(b+1<=h-1 && std::max(P[b+1]-P[l],P[h]-P[b+1]) < std::max(P[b]-P[l],P[h]-P[b]))
+                ++b;
+
+                const long long now  = std::max(P[node[a]]-P[l], P[h]-P[node[a]]);
+                const long long then = std::max(P[b]-P[l], P[h]-P[b]);
+
+                if(then<now)
+                {
+                    node[a] = b;
+                    moved = true;
+                }
+            }
+
+            if(!moved)
             break;
+        }
     }
 }
-}  // namespace
 
-void decomp::partition_balance(lexer *p, dive *a, int dir)
+void decomp::partition_balance(lexer* p, dive* a, int dir)
 {
-    const char name = dir == 1 ? 'x' : (dir == 2 ? 'y' : 'z');
-    const int N = dir == 1 ? a->knox : (dir == 2 ? a->knoy : a->knoz);
-    const int m = dir == 1 ? a->mx : (dir == 2 ? a->my : a->mz);
-    int *node = dir == 1 ? a->xnode : (dir == 2 ? a->ynode : a->znode);
-    double *orig = dir == 1 ? a->xorig : (dir == 2 ? a->yorig : a->zorig);
-    double *coord = dir == 1 ? p->XN : (dir == 2 ? p->YN : p->ZN);
-    int *cnt = dir == 1 ? xcount : (dir == 2 ? ycount : zcount);
-    int *cross = dir == 1 ? xcross : (dir == 2 ? ycross : zcross);
+    const char name = dir==1 ? 'x' : (dir==2 ? 'y' : 'z');
+    const int N = dir==1 ? a->knox : (dir==2 ? a->knoy : a->knoz);
+    const int m = dir==1 ? a->mx : (dir==2 ? a->my : a->mz);
+    int *node = dir==1 ? a->xnode : (dir==2 ? a->ynode : a->znode);
+    double *orig = dir==1 ? a->xorig : (dir==2 ? a->yorig : a->zorig);
+    double *coord = dir==1 ? p->XN : (dir==2 ? p->YN : p->ZN);
+    int *cnt = dir==1 ? xcount : (dir==2 ? ycount : zcount);
+    int *cross = dir==1 ? xcross : (dir==2 ? ycross : zcross);
 
-    cout << "starting " << name << "-dir partition correction" << endl;
+    cout<<"starting "<<name<<"-dir partition correction"<<endl;
 
     // active cells per plane normal to the correction direction
-    std::vector<long long> w(N, 0);
+    std::vector<long long> w(N,0);
 
-    LOOP if(a->flag(i, j, k) > 0 && a->solid(i, j, k) > 0)++ w[dir == 1 ? i : (dir == 2 ? j : k)];
+    LOOP
+    if(a->flag(i,j,k)>0 && a->solid(i,j,k)>0)
+    ++w[dir==1 ? i : (dir==2 ? j : k)];
 
-    long long total = 0;
-    for(int n = 0; n < N; ++n)
+    long long total=0;
+    for(int n=0;n<N;++n)
     {
         cross[n] = int(w[n]);
         total += w[n];
@@ -145,81 +149,81 @@ void decomp::partition_balance(lexer *p, dive *a, int dir)
 
     auto slab_counts = [&]()
     {
-        cnt[0] = 0;
-        for(int s = 1; s <= m; ++s)
+        cnt[0]=0;
+        for(int s=1;s<=m;++s)
         {
-            long long c = 0;
-            for(int n = node[s - 1]; n < node[s]; ++n)
-                c += w[n];
-            cnt[s] = int(c);
+            long long c=0;
+            for(int n=node[s-1];n<node[s];++n)
+            c+=w[n];
+            cnt[s]=int(c);
         }
     };
 
     slab_counts();
-    for(int s = 0; s <= m; ++s)
-        ddout << "old " << name << "count" << s << " : " << cnt[s] << "  " << name << "node: " << node[s] << "  " << name << "orig: " << orig[s] << endl;
-    ddout << name << "average: " << double(total) / double(m) << endl;
+    for(int s=0;s<=m;++s)
+    ddout<<"old "<<name<<"count"<<s<<" : "<<cnt[s]<<"  "<<name<<"node: "<<node[s]<<"  "<<name<<"orig: "<<orig[s]<<endl;
+    ddout<<name<<"average: "<<double(total)/double(m)<<endl;
 
-    std::vector<int> node_in(node, node + m + 1);
+    std::vector<int> node_in(node,node+m+1);
 
-    balance_1d(w, m, node);
+    balance_1d(w,m,node);
 
     auto largest = [&](const int *nd)
     {
-        long long mx = 0, c;
-        for(int s = 1; s <= m; ++s)
+        long long mx=0, c;
+        for(int s=1;s<=m;++s)
         {
-            c = 0;
-            for(int n = nd[s - 1]; n < nd[s]; ++n)
-                c += w[n];
-            mx = std::max(mx, c);
+            c=0;
+            for(int n=nd[s-1];n<nd[s];++n)
+            c+=w[n];
+            mx=std::max(mx,c);
         }
         return mx;
     };
 
-    if(largest(node) > largest(node_in.data()))
-        std::copy(node_in.begin(), node_in.end(), node);
+    if(largest(node)>largest(node_in.data()))
+    std::copy(node_in.begin(),node_in.end(),node);
 
     slab_counts();
-    for(int s = 0; s <= m; ++s)
-        orig[s] = coord[node[s] + marge];
+    for(int s=0;s<=m;++s)
+    orig[s] = coord[node[s]+marge];
 
-    for(int s = 0; s <= m; ++s)
-        ddout << "new " << name << "count" << s << " : " << cnt[s] << "  " << name << "node: " << node[s] << "  " << name << "orig: " << orig[s] << endl;
+    for(int s=0;s<=m;++s)
+    ddout<<"new "<<name<<"count"<<s<<" : "<<cnt[s]<<"  "<<name<<"node: "<<node[s]<<"  "<<name<<"orig: "<<orig[s]<<endl;
 
     // subdomain ids
     MALOOP
-    a->subgrid(i, j, k) = -1;
+    a->subgrid(i,j,k)=-1;
 
     NLOOP
     SUBLOOP
     {
-        a->subgrid(i, j, k) = PARANUM;
-        a->subslice(i, j) = PARANUM;
+        a->subgrid(i,j,k)=PARANUM;
+        a->subslice(i,j)=PARANUM;
     }
 
     // report
-    for(int q = 0; q < p->M10; ++q)
-        subcell[q] = 0;
+    for(int q=0;q<p->M10;++q)
+    subcell[q]=0;
 
-    int q = 0;
+    int q=0;
     NLOOP
     {
         SUBLOOP
-        if(a->flag(i, j, k) > 0 && a->solid(i, j, k) > 0)
-            ++subcell[q];
+        if(a->flag(i,j,k)>0 && a->solid(i,j,k)>0)
+        ++subcell[q];
 
         ++q;
     }
 
-    int maxcell = 0;
-    for(q = 0; q < p->M10; ++q)
+    int maxcell=0;
+    for(q=0;q<p->M10;++q)
     {
-        maxcell = std::max(maxcell, subcell[q]);
-        ddout << q << " new subcell_count: " << subcell[q] << endl;
+        maxcell = std::max(maxcell,subcell[q]);
+        ddout<<q<<" new subcell_count: "<<subcell[q]<<endl;
     }
 
-    cout << name << "-dir correction: largest subdomain " << maxcell << " active cells, average "
-         << double(total) / double(p->M10) << " (ratio " << double(maxcell) * double(p->M10) / std::max(1.0, double(total)) << ")" << endl;
+    cout<<name<<"-dir correction: largest subdomain "<<maxcell<<" active cells, average "
+        <<double(total)/double(p->M10)<<" (ratio "<<double(maxcell)*double(p->M10)/std::max(1.0,double(total))<<")"<<endl;
 }
-}  // namespace dmpart
+}

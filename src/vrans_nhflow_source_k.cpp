@@ -20,10 +20,10 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "fdm_nhf.h"
-#include "ghostcell.h"
-#include "lexer.h"
-#include "vrans_nhflow_f.h"
+#include"vrans_nhflow_f.h"
+#include"lexer.h"
+#include"fdm_nhf.h"
+#include"ghostcell.h"
 
 // Porous-media turbulence closure (Nakayama & Kuwahara 1999), B 295 1:
 //   k_inf = 3.7 (1-n) n^1.5 |u|^2,   eps_inf = 39 (1-n)^2.5 n^2 |u|^3 / d50
@@ -32,56 +32,56 @@ Author: Hans Bihs
 void vrans_nhflow_f::turb_inf(lexer *p, fdm_nhf *d, double &kinf, double &einf)
 {
     double uu;
-
-    uu = d->U[IJK] * d->U[IJK] + d->V[IJK] * d->V[IJK] * p->y_dir + d->W[IJK] * d->W[IJK];
-
-    kinf = 3.7 * (1.0 - porval) * pow(porval, 1.5) * uu;
-    einf = 39.0 * pow(1.0 - porval, 2.5) * pow(porval, 2.0) * pow(uu, 1.5) / partval;
-
-    kinf = MAX(kinf, 0.0);
-    einf = MAX(einf, 0.0);
+    
+    uu = d->U[IJK]*d->U[IJK] + d->V[IJK]*d->V[IJK]*p->y_dir + d->W[IJK]*d->W[IJK];
+    
+    kinf = 3.7*(1.0-porval)*pow(porval,1.5)*uu;
+    einf = 39.0*pow(1.0-porval,2.5)*pow(porval,2.0)*pow(uu,1.5)/partval;
+    
+    kinf = MAX(kinf,0.0);
+    einf = MAX(einf,0.0);
 }
 
 // k-epsilon, k-equation: + n eps_inf
 void vrans_nhflow_f::ke_source(lexer *p, fdm_nhf *d, double *KIN, double *EPS)
 {
-    double kinf, einf;
-
-    count = 0;
-    if(p->B295 == 1)
-        LOOP
+    double kinf,einf;
+    
+    count=0;
+    if(p->B295==1)
+    LOOP
+    {
+        porous_coeff(p,d);
+        
+        if(H>1.0e-12)
         {
-            porous_coeff(p, d);
-
-            if(H > 1.0e-12)
-            {
-                turb_inf(p, d, kinf, einf);
-
-                d->rhsvec.V[count] += porval * einf;
-            }
-
-            ++count;
+        turb_inf(p,d,kinf,einf);
+        
+        d->rhsvec.V[count] += porval*einf;
         }
+        
+    ++count;
+    }
 }
 
 // k-omega, k-equation: + n beta* k_inf omega_inf = + n eps_inf   (omega_inf = eps_inf/(cmu k_inf))
 void vrans_nhflow_f::kw_source(lexer *p, fdm_nhf *d, double *KIN, double *EPS)
 {
-    double kinf, einf;
-
-    count = 0;
-    if(p->B295 == 1)
-        LOOP
+    double kinf,einf;
+    
+    count=0;
+    if(p->B295==1)
+    LOOP
+    {
+        porous_coeff(p,d);
+        
+        if(H>1.0e-12)
         {
-            porous_coeff(p, d);
-
-            if(H > 1.0e-12)
-            {
-                turb_inf(p, d, kinf, einf);
-
-                d->rhsvec.V[count] += porval * einf;
-            }
-
-            ++count;
+        turb_inf(p,d,kinf,einf);
+        
+        d->rhsvec.V[count] += porval*einf;
         }
+        
+    ++count;
+    }
 }

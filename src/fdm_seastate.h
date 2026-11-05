@@ -23,10 +23,10 @@ Architect: Hans Bihs
 #ifndef FDM_SEASTATE_H_
 #define FDM_SEASTATE_H_
 
-#include "increment.h"
-#include "slice4.h"
-#include "sliceint4.h"
-#include "sliceint5.h"
+#include"increment.h"
+#include"slice4.h"
+#include"sliceint4.h"
+#include"sliceint5.h"
 
 class lexer;
 class seastate_grid;
@@ -57,19 +57,19 @@ REEF3D::SEASTATE - field data on the 2D horizontal grid
 class fdm_seastate : public increment
 {
 public:
-    fdm_seastate(lexer *);
+    fdm_seastate(lexer*);
     virtual ~fdm_seastate() = default;
 
     // environment
-    slice4 bed, depth, eta, U, V;
+    slice4 bed,depth,eta,U,V;
 
     // integrated wave parameters
-    slice4 Hs, Tm01, Tm10, Tp, dir, spread;
+    slice4 Hs,Tm01,Tm10,Tp,dir,spread;
 
     // kinematics
-    slice4 ddx, ddy, dUdx, dUdy, dVdx, dVdy, dddt, depth_n;
+    slice4 ddx,ddy,dUdx,dUdy,dVdx,dVdy,dddt,depth_n;
 
-    sliceint4 wet, wet0, refr;
+    sliceint4 wet,wet0,refr;
     sliceint5 nodeval;
 
     seastate_grid *grid = nullptr;
@@ -80,6 +80,6 @@ public:
 
 // k, cg, depth and current gradients, refraction flags (seastate_f_kinematics.cpp); (i+gi0, j+gj0)
 // is the global index of local cell (i,j), the domain has gnx x gny cells of the grid's level
-void seastate_kinematics(lexer *, fdm_seastate *, double dt_depth, int gi0, int gj0, int gnx, int gny, int nt = 1);
+void seastate_kinematics(lexer*, fdm_seastate*, double dt_depth, int gi0, int gj0, int gnx, int gny, int nt=1);
 
 #endif

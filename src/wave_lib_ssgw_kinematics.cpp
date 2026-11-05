@@ -31,17 +31,17 @@ Frame: c_e (zero Eulerian mean current below the trough), consistent
 with wave_eta/wave_fi, which propagate with c_e as well.
 --------------------------------------------------------------------*/
 
-#include "wave_lib_ssgw.h"
-#include <algorithm>
+#include"wave_lib_ssgw.h"
+#include<algorithm>
 
 double wave_lib_ssgw::waveFrameX(double x, double t)
 {
     // periodic position in the wave frame, xi in [-L/2, L/2)
     double Lw = ParameterValue.waveLength;
-    double xi = modulo(x - ParameterValue.phaseVelocity * t, Lw);
+    double xi = modulo(x - ParameterValue.phaseVelocity*t, Lw);
 
-    if(xi >= 0.5 * Lw)
-        xi -= Lw;
+    if(xi>=0.5*Lw)
+    xi -= Lw;
 
     return xi;
 }
@@ -52,35 +52,29 @@ double wave_lib_ssgw::surfaceInterp(const std::vector<double> &f, double xi)
     const int n = xs.size();
     const double Lw = ParameterValue.waveLength;
 
-    auto it = std::upper_bound(xs.begin(), xs.end(), xi);
-    int ir = std::distance(xs.begin(), it);
-    int il = ir - 1;
+    auto it = std::upper_bound(xs.begin(),xs.end(),xi);
+    int ir = std::distance(xs.begin(),it);
+    int il = ir-1;
 
-    double x0, x1, f0, f1;
+    double x0,x1,f0,f1;
 
-    if(il < 0)
+    if(il<0)
     {
-        x0 = xs[n - 1] - Lw;
-        f0 = f[n - 1];
-        x1 = xs[0];
-        f1 = f[0];
+        x0 = xs[n-1]-Lw;  f0 = f[n-1];
+        x1 = xs[0];       f1 = f[0];
     }
-    else if(ir >= n)
+    else if(ir>=n)
     {
-        x0 = xs[n - 1];
-        f0 = f[n - 1];
-        x1 = xs[0] + Lw;
-        f1 = f[0];
+        x0 = xs[n-1];     f0 = f[n-1];
+        x1 = xs[0]+Lw;    f1 = f[0];
     }
     else
     {
-        x0 = xs[il];
-        f0 = f[il];
-        x1 = xs[ir];
-        f1 = f[ir];
+        x0 = xs[il];      f0 = f[il];
+        x1 = xs[ir];      f1 = f[ir];
     }
 
-    return f0 + (xi - x0) / (x1 - x0) * (f1 - f0);
+    return f0 + (xi-x0)/(x1-x0)*(f1-f0);
 }
 
 void wave_lib_ssgw::buildVelocityTable()
@@ -90,48 +84,48 @@ void wave_lib_ssgw::buildVelocityTable()
 
     Nxt = 512;
     Nst = 41;
-    dxt = Lw / double(Nxt);
+    dxt = Lw/double(Nxt);
 
     etat.resize(Nxt);
-    Ut.resize(Nxt * Nst);
-    Wt.resize(Nxt * Nst);
+    Ut.resize(Nxt*Nst);
+    Wt.resize(Nxt*Nst);
 
     std::vector<double> xq, zq, uq, wq;
-    xq.reserve(Nxt * (Nst - 1));
-    zq.reserve(Nxt * (Nst - 1));
+    xq.reserve(Nxt*(Nst-1));
+    zq.reserve(Nxt*(Nst-1));
 
-    for(int i = 0; i < Nxt; ++i)
+    for(int i=0; i<Nxt; ++i)
     {
-        double xi = -0.5 * Lw + i * dxt;
-        etat[i] = surfaceInterp(ys, xi);
+        double xi = -0.5*Lw + i*dxt;
+        etat[i] = surfaceInterp(ys,xi);
 
-        for(int k = 0; k < Nst - 1; ++k)
+        for(int k=0; k<Nst-1; ++k)
         {
-            double s = double(k) / double(Nst - 1);
+            double s = double(k)/double(Nst-1);
             xq.push_back(xi);
-            zq.push_back(-dw + s * (etat[i] + dw));
+            zq.push_back(-dw + s*(etat[i]+dw));
         }
     }
 
     uq.resize(xq.size());
     wq.resize(xq.size());
-    computeVelocityField(xq, zq, uq, wq);
+    computeVelocityField(xq,zq,uq,wq);
 
-    int q = 0;
-    for(int i = 0; i < Nxt; ++i)
+    int q=0;
+    for(int i=0; i<Nxt; ++i)
     {
-        double xi = -0.5 * Lw + i * dxt;
+        double xi = -0.5*Lw + i*dxt;
 
-        for(int k = 0; k < Nst - 1; ++k)
+        for(int k=0; k<Nst-1; ++k)
         {
-            Ut[i * Nst + k] = uq[q];
-            Wt[i * Nst + k] = wq[q];
+            Ut[i*Nst+k] = uq[q];
+            Wt[i*Nst+k] = wq[q];
             ++q;
         }
 
         // free surface: exact conformal-map velocities (fixed frame)
-        Ut[i * Nst + Nst - 1] = surfaceInterp(us, xi);
-        Wt[i * Nst + Nst - 1] = surfaceInterp(vs, xi);
+        Ut[i*Nst+Nst-1] = surfaceInterp(us,xi);
+        Wt[i*Nst+Nst-1] = surfaceInterp(vs,xi);
     }
 
     kinematicsReady = true;
@@ -142,25 +136,25 @@ double wave_lib_ssgw::tableInterp(const std::vector<double> &tab, double xi, dou
     const double Lw = ParameterValue.waveLength;
     const double dw = ParameterValue.waterDepth;
 
-    double fx = (xi + 0.5 * Lw) / dxt;
+    double fx = (xi + 0.5*Lw)/dxt;
     int i0 = int(std::floor(fx));
     double wx = fx - i0;
-    i0 = ((i0 % Nxt) + Nxt) % Nxt;
-    int i1 = (i0 + 1) % Nxt;
+    i0 = ((i0%Nxt)+Nxt)%Nxt;
+    int i1 = (i0+1)%Nxt;
 
     auto column = [&](int i)
     {
         // sigma coordinate of this column; points above the SSGW surface
         // (possible in the relaxation zone) take the surface value
-        double s = (z + dw) / (etat[i] + dw);
-        s = std::max(0.0, std::min(1.0, s));
+        double s = (z+dw)/(etat[i]+dw);
+        s = std::max(0.0,std::min(1.0,s));
 
-        double fk = s * (Nst - 1);
-        int k0 = std::min(int(fk), Nst - 2);
+        double fk = s*(Nst-1);
+        int k0 = std::min(int(fk),Nst-2);
         double wk_ = fk - k0;
 
-        return (1.0 - wk_) * tab[i * Nst + k0] + wk_ * tab[i * Nst + k0 + 1];
+        return (1.0-wk_)*tab[i*Nst+k0] + wk_*tab[i*Nst+k0+1];
     };
 
-    return (1.0 - wx) * column(i0) + wx * column(i1);
+    return (1.0-wx)*column(i0) + wx*column(i1);
 }

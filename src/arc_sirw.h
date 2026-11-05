@@ -23,8 +23,8 @@ Author: Hans Bihs
 #ifndef ARC_SIRW_H_
 #define ARC_SIRW_H_
 
-#include "increment.h"
-#include <vector>
+#include"increment.h"
+#include<vector>
 
 class lexer;
 class ghostcell;
@@ -53,44 +53,44 @@ class arc_sirw : public increment
 public:
     // side -1: x- (wavemaker, reflected wave), +1: x+ (beach, incident wave); xb boundary position, h depth,
     // d distance of the first gauge from the boundary, dx gauge spacing, flow/fhigh band [Hz]
-    void ini(lexer *, int side, double xb, double h, double d, double dx, double flow, double fhigh);
-
+    void ini(lexer*, int side, double xb, double h, double d, double dx, double flow, double fhigh);
+    
     // once per time step with the current free surface: sample, filter
-    void update(lexer *, ghostcell *, slice &eta, double t);
-
+    void update(lexer*, ghostcell*, slice &eta, double t);
+    
     // boundary velocity correction [m/s] at time t and elevation z above still water (linear extrapolation over
     // at most one filter step, linear interpolation between the levels)
     double velocity(double t, double z) const;
-
+    
     // non-hydrostatic pressure / density [m2/s2] of that wave at elevation z (NHFLOW: Dirichlet value of the
     // Poisson equation at the boundary)
     double pressure(double t, double z) const;
-
+    
     // surface elevation [m] of the wave towards the boundary at the boundary (same filters without the velocity
     // profile), for the shallow-water feedback on the remaining deviation
     double eta(double t) const;
-
+    
     // checkpoints (P 48, I 45): the samples and the filter outputs (the filters come again from ini)
-    void ckpt_state(std::vector<double> &) const;
-    void ckpt_restore(const std::vector<double> &, size_t &);
-
-    bool on = false;
-    double x1 = 0.0, x2 = 0.0, flow = 0.0, fhigh = 0.0, dtf = 0.0;
-    int M = 0;
-
+    void ckpt_state(std::vector<double>&) const;
+    void ckpt_restore(const std::vector<double>&, size_t&);
+    
+    bool on=false;
+    double x1=0.0,x2=0.0,flow=0.0,fhigh=0.0,dtf=0.0;
+    int M=0;
+    
 private:
-    double gauge(lexer *, ghostcell *, slice &, double);
-
-    int side = 0;
-    int count_last = -1;
-    int nlev = 11, nch = 23;
-    double hd = 1.0;
-    std::vector<std::vector<double>> h1, h2;  // [channel][tap]: velocity per level, surface elevation, pressure per level
-    std::vector<double> b1, b2;
-    int head = 0, nsample = 0;
-    double tnext = 0.0, tprev = -1.0, e1prev = 0.0, e2prev = 0.0;
+    double gauge(lexer*, ghostcell*, slice&, double);
+    
+    int side=0;
+    int count_last=-1;
+    int nlev=11, nch=23;
+    double hd=1.0;
+    std::vector<std::vector<double> > h1,h2;      // [channel][tap]: velocity per level, surface elevation, pressure per level
+    std::vector<double> b1,b2;
+    int head=0, nsample=0;
+    double tnext=0.0, tprev=-1.0, e1prev=0.0, e2prev=0.0;
     std::vector<double> ycur, yprev;
-    double tcur = -1.0;
+    double tcur=-1.0;
 };
 
 #endif

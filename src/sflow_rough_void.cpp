@@ -20,11 +20,11 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "sflow_rough_void.h"
-#include "fdm2D.h"
-#include "lexer.h"
+#include"sflow_rough_void.h"
+#include"lexer.h"
+#include"fdm2D.h"
 
-sflow_rough_void::sflow_rough_void(lexer *p)
+sflow_rough_void::sflow_rough_void(lexer* p)
 {
 }
 
@@ -37,6 +37,6 @@ void sflow_rough_void::u_source(lexer *p, fdm2D *b, slice &U, slice &V, slice &W
 }
 
 void sflow_rough_void::v_source(lexer *p, fdm2D *b, slice &U, slice &V, slice &WL)
-{
+{  
 }
 

@@ -20,17 +20,17 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "fdm_nhf.h"
-#include "ghostcell.h"
-#include "lexer.h"
-#include "nhflow_amr.h"
-#include "nhflow_amr_fill.h"
-#include "reefamr_sed.h"
-#include "sediment_exner.h"
-#include "sediment_f.h"
-#include "sediment_fdm.h"
-#include "slice4.h"
-#include <memory>
+#include"nhflow_amr.h"
+#include"nhflow_amr_fill.h"
+#include"sediment_f.h"
+#include"sediment_fdm.h"
+#include"sediment_exner.h"
+#include"lexer.h"
+#include"fdm_nhf.h"
+#include"ghostcell.h"
+#include"slice4.h"
+#include"reefamr_sed.h"
+#include<memory>
 
 using namespace nhflow_amr_detail;
 
@@ -61,7 +61,8 @@ using namespace nhflow_amr_detail;
 // the sediment code tests the global domain edges with origin_i/j and gknox/y (filter, sand slide); a patch
 // has no global position (origin -1e8): during its sediment calls the edges are those of its cells, the
 // cells around it are open or closed by the mask (filter) and by DFBED (sand slide) the driver sets
-namespace {
+namespace
+{
 struct sedscope
 {
     lexer *q;
@@ -69,48 +70,46 @@ struct sedscope
     sedscope(lexer *pp) : q(pp), oi(pp->origin_i), oj(pp->origin_j), gx(pp->gknox), gy(pp->gknoy)
     {
         q->origin_i = q->origin_j = 0;
-        q->gknox = q->gknoy = 1 << 29;
+        q->gknox = q->gknoy = 1<<29;
     }
     ~sedscope()
     {
-        q->origin_i = oi;
-        q->origin_j = oj;
-        q->gknox = gx;
-        q->gknoy = gy;
+        q->origin_i = oi; q->origin_j = oj;
+        q->gknox = gx; q->gknoy = gy;
     }
 };
-}  // namespace
+}
 
 void nhflow_amr::sed_attach(sediment *ps)
 {
-    if(p0->S10 == 0)
-        return;
+    if(p0->S10==0)
+    return;
 
-    sed0 = dynamic_cast<sediment_f *>(ps);
+    sed0 = dynamic_cast<sediment_f*>(ps);
 
-    if(sed0 != nullptr && (maxlev > 0 || nblk > 0))
-        sed0->grids = this;
+    if(sed0!=nullptr && (maxlev>0 || nblk>0))
+    sed0->grids = this;
 }
 
 void nhflow_amr::sed_patch_ini(ghostcell *pgc, nhflow_amr_patch &c)
 {
-    if(c.sed == nullptr)
-        return;
+    if(c.sed==nullptr)
+    return;
 
     lexer *pp = c.pp;
     fdm_nhf *d = c.d;
-    pscope ps(pgc, d, d0);
+    pscope ps(pgc,d,d0);
     sedscope ss(pp);
 
-    c.sed->ini_nhflow(pp, d, pgc);
+    c.sed->ini_nhflow(pp,d,pgc);
 
     // the bed of the sediment in all cells of the patch, the cells around it included
-    for(int ii = pp->imin; ii < pp->imin + pp->imax; ++ii)
-        for(int jj = pp->jmin; jj < pp->jmin + pp->jmax; ++jj)
-        {
-            c.sed->s->bedzh(ii, jj) = d->bed(ii, jj);
-            c.sed->s->bedzh0(ii, jj) = d->bed(ii, jj);
-        }
+    for(int ii=pp->imin; ii<pp->imin+pp->imax; ++ii)
+    for(int jj=pp->jmin; jj<pp->jmin+pp->jmax; ++jj)
+    {
+    c.sed->s->bedzh(ii,jj) = d->bed(ii,jj);
+    c.sed->s->bedzh0(ii,jj) = d->bed(ii,jj);
+    }
 }
 
 // bed of the cells around the patches (coarse to fine) and the depth of the patches
@@ -118,7 +117,7 @@ void nhflow_amr::sed_patch_ini(ghostcell *pgc, nhflow_amr_patch &c)
 void nhflow_amr::sed_bed_ghosts(ghostcell *pgc)
 {
     // multi-block grid: the cells around the blocks and the ring of the native grid
-    if(nblk > 0)
+    if(nblk>0)
     {
         fill_bed0(pgc);
 
@@ -129,25 +128,25 @@ void nhflow_amr::sed_bed_ghosts(ghostcell *pgc)
             fdm_nhf *d = c->d;
 
             for(auto &f : c->fill)
-                c->sed->s->bedzh(f.di, f.dj) = d->bed(f.di, f.dj);
+            c->sed->s->bedzh(f.di,f.dj) = d->bed(f.di,f.dj);
 
-            for(int ii = pp->imin; ii < pp->imin + pp->imax; ++ii)
-                for(int jj = pp->jmin; jj < pp->jmin + pp->jmax; ++jj)
-                {
-                    d->depth(ii, jj) = pp->wd - d->bed(ii, jj);
-                    pp->bed[lij(pp, ii, jj)] = d->bed(ii, jj);
-                }
+            for(int ii=pp->imin; ii<pp->imin+pp->imax; ++ii)
+            for(int jj=pp->jmin; jj<pp->jmin+pp->jmax; ++jj)
+            {
+                d->depth(ii,jj) = pp->wd - d->bed(ii,jj);
+                pp->bed[lij(pp,ii,jj)] = d->bed(ii,jj);
+            }
         }
 
-        for(int ii = p0->imin; ii < p0->imin + p0->imax; ++ii)
-            for(int jj = p0->jmin; jj < p0->jmin + p0->jmax; ++jj)
-                if(nring[lij(p0, ii, jj)] == 1)
-                    sed0->s->bedzh(ii, jj) = d0->bed(ii, jj);
+        for(int ii=p0->imin; ii<p0->imin+p0->imax; ++ii)
+        for(int jj=p0->jmin; jj<p0->jmin+p0->jmax; ++jj)
+        if(nring[lij(p0,ii,jj)]==1)
+        sed0->s->bedzh(ii,jj) = d0->bed(ii,jj);
     }
 
-    for(int l = 1; l <= maxlev; ++l)
+    for(int l=1; l<=maxlev; ++l)
     {
-        fill_bed(pgc, l);
+        fill_bed(pgc,l);
 
         for(int id : lev[l])
         {
@@ -156,14 +155,14 @@ void nhflow_amr::sed_bed_ghosts(ghostcell *pgc)
             fdm_nhf *d = c->d;
 
             for(auto &f : c->fill)
-                c->sed->s->bedzh(f.di, f.dj) = d->bed(f.di, f.dj);
+            c->sed->s->bedzh(f.di,f.dj) = d->bed(f.di,f.dj);
 
-            for(int ii = pp->imin; ii < pp->imin + pp->imax; ++ii)
-                for(int jj = pp->jmin; jj < pp->jmin + pp->jmax; ++jj)
-                {
-                    d->depth(ii, jj) = pp->wd - d->bed(ii, jj);
-                    pp->bed[lij(pp, ii, jj)] = d->bed(ii, jj);
-                }
+            for(int ii=pp->imin; ii<pp->imin+pp->imax; ++ii)
+            for(int jj=pp->jmin; jj<pp->jmin+pp->jmax; ++jj)
+            {
+                d->depth(ii,jj) = pp->wd - d->bed(ii,jj);
+                pp->bed[lij(pp,ii,jj)] = d->bed(ii,jj);
+            }
         }
     }
 }
@@ -174,28 +173,29 @@ void nhflow_amr::sediment_step_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, iofl
 
     // 0. the cells around the patches with the current state (they hold the input of the last stage): two
     //    patches of a level that meet compute the same flux on their common face
-    if(nblk > 0)
-        fill_level0(pgc, -1);
+    if(nblk>0)
+    fill_level0(pgc,-1);
 
-    for(int l = 1; l <= maxlev; ++l)
-        fill_stage(pgc, l, -1);
+    for(int l=1; l<=maxlev; ++l)
+    fill_stage(pgc,l,-1);
 
     // 1. physics of every grid
-    s0->amr_physics_nhflow(p, d, pgc);
+    s0->amr_physics_nhflow(p,d,pgc);
 
-    for(int id = 0; id < ng; ++id)
+    for(int id=0; id<ng; ++id)
     {
         nhflow_amr_patch *c = NP(id);
-        pscope ps(pgc, c->d, d0);
+        pscope ps(pgc,c->d,d0);
         sedscope ss(c->pp);
-        c->sed->amr_physics_nhflow(c->pp, c->d, pgc);
+        c->sed->amr_physics_nhflow(c->pp,c->d,pgc);
     }
 
     // the covered cells: qb of their children (mean per area): the cells around a patch take qb linear from
     // the coarser level, with the slopes of its neighbours, covered ones among them
-    for(int l = maxlev; l >= 1; --l)
-        block_up(l, sediment_exner::amr_nfield, 7880 + l, [&](reefamr_patch *q, int id, int k, double *v)
-                 {
+    for(int l=maxlev; l>=1; --l)
+    block_up(l,sediment_exner::amr_nfield,7880+l,
+             [&](reefamr_patch *q, int id, int k, double *v)
+             {
                  sediment_f *sf = NP(q)->sed;
                  const int nby = q->ny>>sy;
                  const int i0 = EXT+2*(k/nby), j0 = EY+ychild(k%nby);
@@ -205,27 +205,37 @@ void nhflow_amr::sediment_step_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, iofl
                  {
                  auto f = [&](int a, int b) { return sf->exner()->amr_field(sf->s,n,a,b); };
                  v[n] = (sy==0 ? w[0]*f(i0,j0)+w[1]*f(i0+1,j0) : w[0]*f(i0,j0) + w[1]*f(i0+1,j0) + w[2]*f(i0,j0+1) + w[3]*f(i0+1,j0+1));
-                 } }, [&](const reefamr_block &B, int key, const double *v)
-                 {
+                 }
+             },
+             [&](const reefamr_block &B, int key, const double *v)
+             {
                  for(int n=0; n<sediment_exner::amr_nfield; ++n)
-                 gsed(B.g)->exner()->amr_field(gsed(B.g)->s,n,B.ic,B.jc) = v[n]; });
+                 gsed(B.g)->exner()->amr_field(gsed(B.g)->s,n,B.ic,B.jc) = v[n];
+             });
 
     // 2. qb around the blocks and in the ring of the native grid (multi-block grid), around the patches
-    if(nblk > 0)
-        fill_run0(sediment_exner::amr_nfield, 7898, [&](const reefamr_fill &f, double *v)
-                  {
+    if(nblk>0)
+    fill_run0(sediment_exner::amr_nfield,7898,
+              [&](const reefamr_fill &f, double *v)
+              {
                   for(int n=0; n<sediment_exner::amr_nfield; ++n)
-                  v[n] = (f.kind==0) ? gsed(f.g)->exner()->amr_field(gsed(f.g)->s,n,f.si,f.sj) : 0.0; }, [&](reefamr_patch *q, int id, const reefamr_fill &f, const double *w)
-                  {
+                  v[n] = (f.kind==0) ? gsed(f.g)->exner()->amr_field(gsed(f.g)->s,n,f.si,f.sj) : 0.0;
+              },
+              [&](reefamr_patch *q, int id, const reefamr_fill &f, const double *w)
+              {
                   for(int n=0; n<sediment_exner::amr_nfield; ++n)
-                  NP(q)->sed->exner()->amr_field(NP(q)->sed->s,n,f.di,f.dj) = w[n]; }, [&](const reefamr_fill &f, const double *w)
-                  {
+                  NP(q)->sed->exner()->amr_field(NP(q)->sed->s,n,f.di,f.dj) = w[n];
+              },
+              [&](const reefamr_fill &f, const double *w)
+              {
                   for(int n=0; n<sediment_exner::amr_nfield; ++n)
-                  s0->exner()->amr_field(s0->s,n,f.di,f.dj) = w[n]; });
+                  s0->exner()->amr_field(s0->s,n,f.di,f.dj) = w[n];
+              });
 
-    for(int l = 1; l <= maxlev; ++l)
-        fill_run(l, sediment_exner::amr_nfield, 7900 + l, [&](const reefamr_fill &f, double *v)
-                 {
+    for(int l=1; l<=maxlev; ++l)
+    fill_run(l,sediment_exner::amr_nfield,7900+l,
+             [&](const reefamr_fill &f, double *v)
+             {
                  sediment_f *sf = gsed(f.g);
                  for(int n=0; n<sediment_exner::amr_nfield; ++n)
                  if(f.kind==0)
@@ -233,221 +243,240 @@ void nhflow_amr::sediment_step_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, iofl
                  else if(f.kind==1)
                  v[n] = plin((n==0 ? sf->s->qb : sf->exner()->bend_slice(n)),glex(f.g),f.si,f.sj,f.ox,f.oy);
                  else
-                 v[n] = 0.0; }, [&](reefamr_patch *q, int id, const reefamr_fill &f, const double *w)
-                 {
+                 v[n] = 0.0;
+             },
+             [&](reefamr_patch *q, int id, const reefamr_fill &f, const double *w)
+             {
                  for(int n=0; n<sediment_exner::amr_nfield; ++n)
-                 NP(q)->sed->exner()->amr_field(NP(q)->sed->s,n,f.di,f.dj) = w[n]; });
+                 NP(q)->sed->exner()->amr_field(NP(q)->sed->s,n,f.di,f.dj) = w[n];
+             });
 
     // 3. face fluxes, the box faces of the patches, the matched coarse faces
-    vector<std::unique_ptr<slice4>> Fx(ng + 1), Fy(ng + 1), mask(ng + 1);
+    vector<std::unique_ptr<slice4>> Fx(ng+1), Fy(ng+1), mask(ng+1);
 
-    for(int g = -1; g < ng; ++g)
+    for(int g=-1; g<ng; ++g)
     {
         lexer *q = glex(g);
-        Fx[g + 1].reset(new slice4(q));
-        Fy[g + 1].reset(new slice4(q));
-        mask[g + 1].reset(new slice4(q));
+        Fx[g+1].reset(new slice4(q));
+        Fy[g+1].reset(new slice4(q));
+        mask[g+1].reset(new slice4(q));
 
-        for(int ii = q->imin; ii < q->imin + q->imax; ++ii)
-            for(int jj = q->jmin; jj < q->jmin + q->jmax; ++jj)
-                (*mask[g + 1])(ii, jj) = 1.0;
+        for(int ii=q->imin; ii<q->imin+q->imax; ++ii)
+        for(int jj=q->jmin; jj<q->jmin+q->jmax; ++jj)
+        (*mask[g+1])(ii,jj) = 1.0;
 
         // the cells around a patch take no part in the filter and the sand slide (they are refilled)
-        if(g >= 0)
-            for(auto &f : NP(g)->fill)
-                (*mask[g + 1])(f.di, f.dj) = 0.0;
+        if(g>=0)
+        for(auto &f : NP(g)->fill)
+        (*mask[g+1])(f.di,f.dj) = 0.0;
 
         // multi-block grid: the ring of the native grid (copies of the blocks)
-        if(g < 0 && nblk > 0)
-            for(int ii = q->imin; ii < q->imin + q->imax; ++ii)
-                for(int jj = q->jmin; jj < q->jmin + q->jmax; ++jj)
-                    if(nring[lij(q, ii, jj)] == 1)
-                        (*mask[0])(ii, jj) = 0.0;
+        if(g<0 && nblk>0)
+        for(int ii=q->imin; ii<q->imin+q->imax; ++ii)
+        for(int jj=q->jmin; jj<q->jmin+q->jmax; ++jj)
+        if(nring[lij(q,ii,jj)]==1)
+        (*mask[0])(ii,jj) = 0.0;
 
-        if(g < 0)
-            s0->exner()->amr_flux(p, pgc, s0->s, *Fx[0], *Fy[0]);
+        if(g<0)
+        s0->exner()->amr_flux(p,pgc,s0->s,*Fx[0],*Fy[0]);
         else
         {
-            nhflow_amr_patch *c = NP(g);
-            pscope ps(pgc, c->d, d0);
-            sedscope ss(c->pp);
-            c->sed->exner()->amr_flux(c->pp, pgc, c->sed->s, *Fx[g + 1], *Fy[g + 1]);
+        nhflow_amr_patch *c = NP(g);
+        pscope ps(pgc,c->d,d0);
+        sedscope ss(c->pp);
+        c->sed->exner()->amr_flux(c->pp,pgc,c->sed->s,*Fx[g+1],*Fy[g+1]);
         }
     }
 
-    for(int id = 0; id < ng; ++id)
+    for(int id=0; id<ng; ++id)
     {
         nhflow_amr_patch &c = *NP(id);
-        const int il = EXT - 1, ih = EXT + c.nx - 1;
-        const int jl = EY - 1, jh = EY + c.ny - 1;
-        slice4 &fx = *Fx[id + 1], &fy = *Fy[id + 1];
+        const int il = EXT-1, ih = EXT+c.nx-1;
+        const int jl = EY-1, jh = EY+c.ny-1;
+        slice4 &fx = *Fx[id+1], &fy = *Fy[id+1];
 
         c.sedrec[0].resize(c.ny);
         c.sedrec[1].resize(c.ny);
         c.sedrec[2].resize(c.nx);
         c.sedrec[3].resize(c.nx);
 
-        for(int r = 0; r < c.ny; ++r)
+        for(int r=0; r<c.ny; ++r)
         {
-            c.sedrec[0][r] = fx(il, EY + r);
-            c.sedrec[1][r] = fx(ih, EY + r);
+        c.sedrec[0][r] = fx(il,EY+r);
+        c.sedrec[1][r] = fx(ih,EY+r);
         }
-        for(int r = 0; r < c.nx; ++r)
+        for(int r=0; r<c.nx; ++r)
         {
-            c.sedrec[2][r] = fy(EXT + r, jl);
-            c.sedrec[3][r] = fy(EXT + r, jh);
+        c.sedrec[2][r] = fy(EXT+r,jl);
+        c.sedrec[3][r] = fy(EXT+r,jh);
         }
     }
 
     sedr.resize(rmatch.size());
-    for(size_t g = 0; g < rmatch.size(); ++g)
-        sedr[g].assign(rmatch[g].size(), 0.0);
+    for(size_t g=0; g<rmatch.size(); ++g)
+    sedr[g].assign(rmatch[g].size(),0.0);
 
-    for(int l = 1; l <= maxlev; ++l)
-        face_run_at(l, 1, 7920 + l, [&](reefamr_patch *q, int side, int r, double *sb)
-                    {
+    for(int l=1; l<=maxlev; ++l)
+    face_run_at(l,1,7920+l,
+                [&](reefamr_patch *q, int side, int r, double *sb)
+                {
                     nhflow_amr_patch *c = NP(q);
-                    sb[0] = 0.5*(c->sedrec[side][r] + c->sedrec[side][r+fr1(side)]); }, [&](int tgt, int idx, const double *v)
-                    { sedr[tgt][idx] = v[0]; });
+                    sb[0] = 0.5*(c->sedrec[side][r] + c->sedrec[side][r+fr1(side)]);
+                },
+                [&](int tgt, int idx, const double *v)
+                {
+                    sedr[tgt][idx] = v[0];
+                });
 
-    for(int g = -1; g < ng; ++g)
+    for(int g=-1; g<ng; ++g)
     {
-        const int t = g + 1;
+        const int t = g+1;
 
-        if(t < (int)match.size())
-            for(auto &m : match[t])
-            {
-                nhflow_amr_patch &c = *NP(m.child);
-                double val = 0.5 * (c.sedrec[m.side][m.r] + c.sedrec[m.side][m.r + fr1(m.side)]);
-                if(m.sgn < 0)
-                    val = -val;
-                if(m.dir == 0)
-                    (*Fx[t])(m.fi, m.fj) = val;
-                else
-                    (*Fy[t])(m.fi, m.fj) = val;
-            }
+        if(t<(int)match.size())
+        for(auto &m : match[t])
+        {
+            nhflow_amr_patch &c = *NP(m.child);
+            double val = 0.5*(c.sedrec[m.side][m.r] + c.sedrec[m.side][m.r+fr1(m.side)]);
+            if(m.sgn<0)
+            val = -val;
+            if(m.dir==0)
+            (*Fx[t])(m.fi,m.fj) = val;
+            else
+            (*Fy[t])(m.fi,m.fj) = val;
+        }
 
-        if(t < (int)rmatch.size())
-            for(size_t n = 0; n < rmatch[t].size(); ++n)
-            {
-                const reefamr_match &m = rmatch[t][n];
-                const double val = (m.sgn < 0) ? -sedr[t][n] : sedr[t][n];
-                if(m.dir == 0)
-                    (*Fx[t])(m.fi, m.fj) = val;
-                else
-                    (*Fy[t])(m.fi, m.fj) = val;
-            }
+        if(t<(int)rmatch.size())
+        for(size_t n=0; n<rmatch[t].size(); ++n)
+        {
+            const reefamr_match &m = rmatch[t][n];
+            const double val = (m.sgn<0) ? -sedr[t][n] : sedr[t][n];
+            if(m.dir==0)
+            (*Fx[t])(m.fi,m.fj) = val;
+            else
+            (*Fy[t])(m.fi,m.fj) = val;
+        }
     }
 
     // 4. the covered cells, vz of every grid
-    for(int l = maxlev; l >= 1; --l)
-        block_up(l, 1, 7940 + l, [&](reefamr_patch *q, int id, int k, double *v)
-                 { v[0] = 0.0; }, [&](const reefamr_block &B, int key, const double *v)
-                 { (*mask[B.g + 1])(B.ic, B.jc) = 0.0; });
+    for(int l=maxlev; l>=1; --l)
+    block_up(l,1,7940+l,
+             [&](reefamr_patch *q, int id, int k, double *v)
+             {
+                 v[0] = 0.0;
+             },
+             [&](const reefamr_block &B, int key, const double *v)
+             {
+                 (*mask[B.g+1])(B.ic,B.jc) = 0.0;
+             });
 
-    s0->exner()->amr_vz(p, pgc, s0->s, *Fx[0], *Fy[0], mask[0].get());
+    s0->exner()->amr_vz(p,pgc,s0->s,*Fx[0],*Fy[0],mask[0].get());
 
-    for(int id = 0; id < ng; ++id)
+    for(int id=0; id<ng; ++id)
     {
         nhflow_amr_patch *c = NP(id);
-        pscope ps(pgc, c->d, d0);
+        pscope ps(pgc,c->d,d0);
         sedscope ss(c->pp);
-        c->sed->exner()->amr_vz(c->pp, pgc, c->sed->s, *Fx[id + 1], *Fy[id + 1], mask[id + 1].get());
+        c->sed->exner()->amr_vz(c->pp,pgc,c->sed->s,*Fx[id+1],*Fy[id+1],mask[id+1].get());
     }
 
     // the filter (S 100) over all grids, the interfaces of the grids of a level open (reefamr_sed.h)
     reefamr_sedgrids G;
     G.scope = [&](int g, const std::function<void()> &fn)
     {
-        if(g < 0)
+        if(g<0)
         {
-            fn();
-            return;
+        fn();
+        return;
         }
         nhflow_amr_patch *c = NP(g);
-        pscope ps(pgc, c->d, d0);
+        pscope ps(pgc,c->d,d0);
         sedscope ss(c->pp);
         fn();
     };
-    for(int g = -1; g < ng; ++g)
+    for(int g=-1; g<ng; ++g)
     {
-        G.L.push_back(glex(g));
-        G.S.push_back(gsed(g));
-        G.mask.push_back(mask[g + 1].get());
+    G.L.push_back(glex(g));
+    G.S.push_back(gsed(g));
+    G.mask.push_back(mask[g+1].get());
     }
 
-    if(p->S100 > 0)
-        reefamr_sed_filter(*this, G, 8100);
+    if(p->S100>0)
+    reefamr_sed_filter(*this,G,8100);
 
-    double vzmax = s0->exner()->amr_vzmax(p, s0->s, mask[0].get());
+    double vzmax = s0->exner()->amr_vzmax(p,s0->s,mask[0].get());
     double dxmin = 1.0e20;
     double brate = s0->exner()->bend_rate;
 
-    for(int id = 0; id < ng; ++id)
+    for(int id=0; id<ng; ++id)
     {
         nhflow_amr_patch *c = NP(id);
-        pscope ps(pgc, c->d, d0);
+        pscope ps(pgc,c->d,d0);
         sedscope ss(c->pp);
-        vzmax = MAX(vzmax, c->sed->exner()->amr_vzmax(c->pp, c->sed->s, mask[id + 1].get()));
-        dxmin = MIN(dxmin, c->sed->exner()->amr_dx(c->pp));
-        brate = MAX(brate, c->sed->exner()->bend_rate);
+        vzmax = MAX(vzmax,c->sed->exner()->amr_vzmax(c->pp,c->sed->s,mask[id+1].get()));
+        dxmin = MIN(dxmin,c->sed->exner()->amr_dx(c->pp));
+        brate = MAX(brate,c->sed->exner()->bend_rate);
     }
 
     // level 0: no bed change in the covered cells (their bed is the restriction)
     SLICEBASELOOP
-    if((*mask[0])(i, j) < 0.5)
-        s0->s->vz(i, j) = 0.0;
+    if((*mask[0])(i,j)<0.5)
+    s0->s->vz(i,j) = 0.0;
 
     // 5. one dtsed for all grids
     vzmax = pgc->globalmax(vzmax);
     dxmin = pgc->globalmin(dxmin);
 
     s0->exner()->amr_maxvz = vzmax;
-    s0->exner()->amr_mindx = (dxmin < 1.0e19) ? dxmin : 0.0;
+    s0->exner()->amr_mindx = (dxmin<1.0e19) ? dxmin : 0.0;
     s0->exner()->amr_bendrate = brate;
-    s0->exner()->timestep(p, pgc, s0->s);
+    s0->exner()->timestep(p,pgc,s0->s);
     s0->exner()->amr_maxvz = 0.0;
     s0->exner()->amr_mindx = 0.0;
     s0->exner()->amr_bendrate = 0.0;
 
-    for(int id = 0; id < ng; ++id)
-        NP(id)->pp->dtsed = p->dtsed;
+    for(int id=0; id<ng; ++id)
+    NP(id)->pp->dtsed = p->dtsed;
 
     // 6. bed: Exner, sand slide (reefamr_sed.h), restriction, the flow
-    s0->exner()->amr_bed(p, pgc, s0->s);
+    s0->exner()->amr_bed(p,pgc,s0->s);
 
-    for(int id = 0; id < ng; ++id)
+    for(int id=0; id<ng; ++id)
     {
         nhflow_amr_patch *c = NP(id);
-        pscope ps(pgc, c->d, d0);
+        pscope ps(pgc,c->d,d0);
         sedscope ss(c->pp);
-        c->sed->exner()->amr_bed(c->pp, pgc, c->sed->s);
+        c->sed->exner()->amr_bed(c->pp,pgc,c->sed->s);
     }
 
     // the sand slide over all grids (reefamr_sed.h)
-    if(p->S90 > 0 && p->sediter % p->S94 == 0)
-        reefamr_sed_slide(*this, pgc, G, 8200);
+    if(p->S90>0 && p->sediter%p->S94==0)
+    reefamr_sed_slide(*this,pgc,G,8200);
 
-    for(int l = maxlev; l >= 1; --l)
-        block_up(l, 1, 7960 + l, [&](reefamr_patch *q, int id, int k, double *v)
-                 {
+    for(int l=maxlev; l>=1; --l)
+    block_up(l,1,7960+l,
+             [&](reefamr_patch *q, int id, int k, double *v)
+             {
                  slice4 &b = NP(q)->sed->s->bedzh;
                  const int nby = q->ny>>sy;
                  const int i0 = EXT+2*(k/nby), j0 = EY+ychild(k%nby);
                  double w[4];
                  cw4(q->pp,i0,j0,w);
-                 v[0] = (sy==0 ? w[0]*b(i0,j0)+w[1]*b(i0+1,j0) : w[0]*b(i0,j0) + w[1]*b(i0+1,j0) + w[2]*b(i0,j0+1) + w[3]*b(i0+1,j0+1)); }, [&](const reefamr_block &B, int key, const double *v)
-                 { gsed(B.g)->s->bedzh(B.ic, B.jc) = v[0]; });
+                 v[0] = (sy==0 ? w[0]*b(i0,j0)+w[1]*b(i0+1,j0) : w[0]*b(i0,j0) + w[1]*b(i0+1,j0) + w[2]*b(i0,j0+1) + w[3]*b(i0+1,j0+1));
+             },
+             [&](const reefamr_block &B, int key, const double *v)
+             {
+                 gsed(B.g)->s->bedzh(B.ic,B.jc) = v[0];
+             });
 
-    pgc->gcsl_start4(p, s0->s->bedzh, 1);
-    s0->amr_finish_nhflow(p, d, pgc, pflow);
+    pgc->gcsl_start4(p,s0->s->bedzh,1);
+    s0->amr_finish_nhflow(p,d,pgc,pflow);
 
-    for(int id = 0; id < ng; ++id)
+    for(int id=0; id<ng; ++id)
     {
         nhflow_amr_patch *c = NP(id);
-        pscope ps(pgc, c->d, d0);
+        pscope ps(pgc,c->d,d0);
         sedscope ss(c->pp);
-        c->sed->amr_finish_nhflow(c->pp, c->d, pgc, c->pflow);
+        c->sed->amr_finish_nhflow(c->pp,c->d,pgc,c->pflow);
     }
 
     sed_bed_ghosts(pgc);

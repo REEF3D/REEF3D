@@ -20,21 +20,20 @@ double dsecnd_();
 }
 
 // Elapsed CPU Time in seconds.
-double dsecnd_()
-{
+double dsecnd_() {
 #ifdef _WIN32
-    // For MSVC, use `GetProcessTimes` for proper CPU time - MSVC uses
-    // a non-standard `std::clock` implementation (see
-    // https://learn.microsoft.com/en-us/cpp/c-runtime-library/reference/clock?view=msvc-170).
-    // GetProcessTimes() uses 100-nanosecond time units.
-    FILETIME creation_time, exit_time, kernel_time, user_time;
-    GetProcessTimes(GetCurrentProcess(), &creation_time, &exit_time, &kernel_time, &user_time);
-    ULARGE_INTEGER user;
-    user.HighPart = user_time.dwHighDateTime;
-    user.LowPart = user_time.dwLowDateTime;
-    uint64_t time_100ns = user.QuadPart;
-    return static_cast<double>(time_100ns) / 10000000.0;
+  // For MSVC, use `GetProcessTimes` for proper CPU time - MSVC uses
+  // a non-standard `std::clock` implementation (see
+  // https://learn.microsoft.com/en-us/cpp/c-runtime-library/reference/clock?view=msvc-170).
+  // GetProcessTimes() uses 100-nanosecond time units.
+  FILETIME creation_time, exit_time, kernel_time, user_time;
+  GetProcessTimes(GetCurrentProcess(), &creation_time, &exit_time, &kernel_time, &user_time);
+  ULARGE_INTEGER user;
+  user.HighPart = user_time.dwHighDateTime;
+  user.LowPart = user_time.dwLowDateTime;
+  uint64_t time_100ns = user.QuadPart;
+  return static_cast<double>(time_100ns) / 10000000.0;
 #else
-    return static_cast<double>(std::clock()) / static_cast<double>(CLOCKS_PER_SEC);
+  return static_cast<double>(std::clock()) / static_cast<double>(CLOCKS_PER_SEC);
 #endif
 }

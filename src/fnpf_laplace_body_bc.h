@@ -37,20 +37,20 @@ struct fnpf_body_bc
     const double *const FBv;
     const double *const FBw;
     const int *const flag7;
-
+    
     fnpf_body_bc(bool on_, const double *F, const double *U, const double *V, const double *W, const int *fl)
         : on(on_), FBF(F), FBu(U), FBv(V), FBw(W), flag7(fl) {}
-
+    
     inline bool body(int q) const
     {
-        return on && FBF[q] > 0.5;
+        return on && FBF[q]>0.5;
     }
-
+    
     inline bool face(int r) const
     {
-        return FBF[r] > 0.5 && flag7[r] > 0;
+        return FBF[r]>0.5 && flag7[r]>0;
     }
-
+    
     // dxs/dxn/dye/dyw: node distances to the i-1/i+1/j-1/j+1 neighbours,
     // dzt/dzb: sigma distances to k+1/k-1, sz: sigz of the column
     inline void faces(int q, int sI, int sJ,
@@ -59,48 +59,48 @@ struct fnpf_body_bc
                       double &rv) const
     {
         if(!on)
-            return;
-
-        if(face(q - sI))
+        return;
+        
+        if(face(q-sI))
         {
-            rv += ms * FBu[q - sI] * dxs;
-            mp += ms;
-            ms = 0.0;
+        rv += ms*FBu[q-sI]*dxs;
+        mp += ms;
+        ms = 0.0;
         }
-
-        if(face(q + sI))
+        
+        if(face(q+sI))
         {
-            rv -= mn * FBu[q + sI] * dxn;
-            mp += mn;
-            mn = 0.0;
+        rv -= mn*FBu[q+sI]*dxn;
+        mp += mn;
+        mn = 0.0;
         }
-
-        if(face(q - sJ))
+        
+        if(face(q-sJ))
         {
-            rv += me * FBv[q - sJ] * dye;
-            mp += me;
-            me = 0.0;
+        rv += me*FBv[q-sJ]*dye;
+        mp += me;
+        me = 0.0;
         }
-
-        if(face(q + sJ))
+        
+        if(face(q+sJ))
         {
-            rv -= mw * FBv[q + sJ] * dyw;
-            mp += mw;
-            mw = 0.0;
+        rv -= mw*FBv[q+sJ]*dyw;
+        mp += mw;
+        mw = 0.0;
         }
-
-        if(face(q + 1))
+        
+        if(face(q+1))
         {
-            rv -= mt * FBw[q + 1] * dzt / sz;
-            mp += mt;
-            mt = 0.0;
+        rv -= mt*FBw[q+1]*dzt/sz;
+        mp += mt;
+        mt = 0.0;
         }
-
-        if(face(q - 1))
+        
+        if(face(q-1))
         {
-            rv += mb * FBw[q - 1] * dzb / sz;
-            mp += mb;
-            mb = 0.0;
+        rv += mb*FBw[q-1]*dzb/sz;
+        mp += mb;
+        mb = 0.0;
         }
     }
 };

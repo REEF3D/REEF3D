@@ -22,16 +22,16 @@ Author: Hans Bihs
 
 #ifdef REEF3D_USE_HYPRE  // hypre is opt-in: make HYPRE=1 / cmake -DREEF3D_USE_HYPRE=ON
 
-#include "fdm.h"
-#include "field.h"
-#include "ghostcell.h"
 #include "hypre_sstruct.h"
 #include "lexer.h"
+#include "fdm.h"
+#include "ghostcell.h"
+#include "field.h"
 #include "vec.h"
 
-void hypre_sstruct::solve1234(lexer *p)
+void hypre_sstruct::solve1234(lexer* p)
 {
-    p->solveriter = 0;
+    p->solveriter=0;
 
     HYPRE_SStructBiCGSTABSetup(solver, A, b, x);
     HYPRE_SStructBiCGSTABSolve(solver, A, b, x);
@@ -39,15 +39,15 @@ void hypre_sstruct::solve1234(lexer *p)
     HYPRE_SStructBiCGSTABGetNumIterations(solver, &num_iterations);
     HYPRE_SStructBiCGSTABGetFinalRelativeResidualNorm(solver, &final_res_norm);
 
-    p->solveriter = num_iterations;
+    p->solveriter=num_iterations;
     p->final_res = final_res_norm;
 }
 
-void hypre_sstruct::solve(lexer *p)
+void hypre_sstruct::solve(lexer* p)
 {
-    p->solveriter = 0;
+    p->solveriter=0;
 
-    if(p->N10 == 31)
+    if(p->N10==31)
     {
         HYPRE_SStructPCGSetup(solver, A, b, x);
         HYPRE_SStructPCGSolve(solver, A, b, x);
@@ -55,7 +55,7 @@ void hypre_sstruct::solve(lexer *p)
         HYPRE_SStructPCGGetNumIterations(solver, &num_iterations);
         HYPRE_SStructPCGGetFinalRelativeResidualNorm(solver, &final_res_norm);
     }
-    else if(p->N10 == 32)
+    else if(p->N10==32)
     {
         HYPRE_SStructGMRESSetup(solver, A, b, x);
         HYPRE_SStructGMRESSolve(solver, A, b, x);
@@ -63,7 +63,7 @@ void hypre_sstruct::solve(lexer *p)
         HYPRE_SStructGMRESGetNumIterations(solver, &num_iterations);
         HYPRE_SStructGMRESGetFinalRelativeResidualNorm(solver, &final_res_norm);
     }
-    else if(p->N10 == 33)
+    else if(p->N10==33)
     {
         HYPRE_SStructLGMRESSetup(solver, A, b, x);
         HYPRE_SStructLGMRESSolve(solver, A, b, x);
@@ -71,7 +71,7 @@ void hypre_sstruct::solve(lexer *p)
         HYPRE_SStructLGMRESGetNumIterations(solver, &num_iterations);
         HYPRE_SStructLGMRESGetFinalRelativeResidualNorm(solver, &final_res_norm);
     }
-    else if(p->N10 == 34)
+    else if(p->N10==34)
     {
         HYPRE_SStructBiCGSTABSetup(solver, A, b, x);
         HYPRE_SStructBiCGSTABSolve(solver, A, b, x);
@@ -79,7 +79,7 @@ void hypre_sstruct::solve(lexer *p)
         HYPRE_SStructBiCGSTABGetNumIterations(solver, &num_iterations);
         HYPRE_SStructBiCGSTABGetFinalRelativeResidualNorm(solver, &final_res_norm);
     }
-    else if(p->N10 == 38)
+    else if(p->N10==38)
     {
         HYPRE_SStructSysPFMGSetup(solver, A, b, x);
         HYPRE_SStructSysPFMGSolve(solver, A, b, x);
@@ -88,7 +88,7 @@ void hypre_sstruct::solve(lexer *p)
         HYPRE_SStructSysPFMGGetFinalRelativeResidualNorm(solver, &final_res_norm);
     }
 
-    p->solveriter = num_iterations;
+    p->solveriter=num_iterations;
     p->final_res = final_res_norm;
 }
 

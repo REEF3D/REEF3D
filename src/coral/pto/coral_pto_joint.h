@@ -42,14 +42,14 @@ namespace coral
 class pto_joint_prismatic
 {
 public:
-    void initialize(const Eigen::Vector3d &, const Eigen::Vector3d &, const Eigen::Vector3d &, const Eigen::Matrix3d &);
+    void initialize(const Eigen::Vector3d&, const Eigen::Vector3d&, const Eigen::Vector3d&, const Eigen::Matrix3d&);
 
-    pto_state state(const Eigen::Vector3d &, const Eigen::Matrix3d &, const Eigen::Vector3d &, const Eigen::Vector3d &, double);
+    pto_state state(const Eigen::Vector3d&, const Eigen::Matrix3d&, const Eigen::Vector3d&, const Eigen::Vector3d&, double);
 
     // generalised direction of the last state() call
-    Eigen::Matrix<double, 6, 1> J = Eigen::Matrix<double, 6, 1>::Zero();
+    Eigen::Matrix<double,6,1> J = Eigen::Matrix<double,6,1>::Zero();
 
-    Eigen::Vector3d a = Eigen::Vector3d(0.0, 0.0, 1.0);
+    Eigen::Vector3d a  = Eigen::Vector3d(0.0,0.0,1.0);
     Eigen::Vector3d rb = Eigen::Vector3d::Zero();
     Eigen::Vector3d x0 = Eigen::Vector3d::Zero();
 };

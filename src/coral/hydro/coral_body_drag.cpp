@@ -20,11 +20,12 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "coral/hydro/coral_body_drag.h"
-#include "coral/core/coral_model.h"
-#include <cmath>
+#include"coral/hydro/coral_body_drag.h"
+#include"coral/core/coral_model.h"
+#include<cmath>
 
-namespace coral {
+namespace coral
+{
 
 body_drag::body_drag(const model &m, int body, const Vec3 &P, const Vec6 &Q, const std::string &name)
     : name_(name), b_(body), Q_(Q)
@@ -45,14 +46,14 @@ Vec6 body_drag::force(const model &m) const
     if(axis_)
     {
         const double u = b.point_velocity(s_).dot(e_);
-        F.head<3>() = -Qe_ * std::fabs(u) * u * e_;
+        F.head<3>() = -Qe_*std::fabs(u)*u*e_;
         return F;
     }
     Vec6 u;
     u.head<3>() = b.point_velocity(s_);
     u.tail<3>() = b.omega_global();
-    for(int i = 0; i < 6; ++i)
-        F(i) = -Q_(i) * std::fabs(u(i)) * u(i);
+    for(int i=0; i<6; ++i)
+        F(i) = -Q_(i)*std::fabs(u(i))*u(i);
     return F;
 }
 
@@ -80,9 +81,9 @@ void body_drag::channel_names(std::vector<std::string> &c) const
 void body_drag::channel_values(const model &m, double, std::vector<double> &v) const
 {
     const Vec6 F = force(m);
-    for(int i = 0; i < 6; ++i)
+    for(int i=0; i<6; ++i)
         v.push_back(F(i));
     v.push_back(power(m));
 }
 
-}  // namespace coral
+}

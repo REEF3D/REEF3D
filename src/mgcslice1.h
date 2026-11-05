@@ -23,31 +23,38 @@ Author: Hans Bihs
 #ifndef MGCSLICE1_H_
 #define MGCSLICE1_H_
 
-#include "increment.h"
+#include"increment.h"
 
 class lexer;
 class ghostcell;
 
 using namespace std;
 
-class mgcslice1 : public increment
+class mgcslice1 :  public increment
 {
 public:
-    mgcslice1(lexer *);
-    virtual ~mgcslice1();
 
-    // mgcslice1
-    void makemgc(lexer *);
+	mgcslice1 (lexer *);
+	virtual ~mgcslice1();
 
-    void gcb_seed(lexer *);
-
-    int imin, imax, jmax, jmin, kmin, kmax;
-
+    //mgcslice1
+	void makemgc(lexer*);
+    
+    void gcb_seed(lexer*);
+	
+	int imin,imax,jmax,jmin,kmin,kmax;
+	
 private:
-    int di, dj;
-    int qn;
+	int di,dj;
+	int qn;
     int count;
+	
 };
 
 #endif
+
+
+
+
+
 

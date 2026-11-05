@@ -23,29 +23,29 @@ Author: Hans Bihs
 #ifdef REEF3D_USE_HYPRE  // hypre is opt-in: make HYPRE=1 / cmake -DREEF3D_USE_HYPRE=ON
 
 #include "hypre_aij.h"
-#include "fdm.h"
-#include "field.h"
-#include "ghostcell.h"
 #include "lexer.h"
+#include "fdm.h"
+#include "ghostcell.h"
+#include "field.h"
 
-hypre_aij::hypre_aij(lexer *p, fdm *a, ghostcell *pgc) : xvec(p)
+hypre_aij::hypre_aij(lexer* p,fdm* a,ghostcell *pgc) : xvec(p)
 {
-    int vecsize = p->knox * p->knoy * p->knoz;
+    int vecsize=p->knox*p->knoy*p->knoz;
 
-    if(p->A10 == 3)
-        vecsize = p->knox * p->knoy * (p->knoz + 1);
+    if(p->A10==3)
+    vecsize=p->knox*p->knoy*(p->knoz+1);
 
-    p->Iarray(rows, vecsize);
+    p->Iarray(rows,vecsize);
 }
 
-void hypre_aij::start(lexer *p, fdm *a, ghostcell *pgc, field &f, vec &rhsvec, int var)
+void hypre_aij::start(lexer* p,fdm* a, ghostcell* pgc, field &f, vec& rhsvec, int var)
 {
-    make_grid(p, pgc);
-    create_solvers(p, pgc);
+    make_grid(p,pgc);
+    create_solvers(p,pgc);
 
-    fill_matrix_7p(p, a, pgc, f);
+    fill_matrix_7p(p,a,pgc,f);
 
-    if(p->N10 == 21)
+    if(p->N10==21)
     {
         HYPRE_ParCSRPCGSetup(solver, parcsr_A, par_b, par_x);
         HYPRE_ParCSRPCGSolve(solver, parcsr_A, par_b, par_x);
@@ -53,7 +53,7 @@ void hypre_aij::start(lexer *p, fdm *a, ghostcell *pgc, field &f, vec &rhsvec, i
         HYPRE_PCGGetNumIterations(solver, &num_iterations);
         HYPRE_PCGGetFinalRelativeResidualNorm(solver, &final_res_norm);
     }
-    else if(p->N10 == 22)
+    else if(p->N10==22)
     {
         HYPRE_ParCSRGMRESSetup(solver, parcsr_A, par_b, par_x);
         HYPRE_ParCSRGMRESSolve(solver, parcsr_A, par_b, par_x);
@@ -61,7 +61,7 @@ void hypre_aij::start(lexer *p, fdm *a, ghostcell *pgc, field &f, vec &rhsvec, i
         HYPRE_GMRESGetNumIterations(solver, &num_iterations);
         HYPRE_GMRESGetFinalRelativeResidualNorm(solver, &final_res_norm);
     }
-    else if(p->N10 == 23)
+    else if(p->N10==23)
     {
         HYPRE_ParCSRLGMRESSetup(solver, parcsr_A, par_b, par_x);
         HYPRE_ParCSRLGMRESSolve(solver, parcsr_A, par_b, par_x);
@@ -69,7 +69,7 @@ void hypre_aij::start(lexer *p, fdm *a, ghostcell *pgc, field &f, vec &rhsvec, i
         HYPRE_LGMRESGetNumIterations(solver, &num_iterations);
         HYPRE_LGMRESGetFinalRelativeResidualNorm(solver, &final_res_norm);
     }
-    else if(p->N10 == 24)
+    else if(p->N10==24)
     {
         HYPRE_ParCSRBiCGSTABSetup(solver, parcsr_A, par_b, par_x);
         HYPRE_ParCSRBiCGSTABSolve(solver, parcsr_A, par_b, par_x);
@@ -77,7 +77,7 @@ void hypre_aij::start(lexer *p, fdm *a, ghostcell *pgc, field &f, vec &rhsvec, i
         HYPRE_BiCGSTABGetNumIterations(solver, &num_iterations);
         HYPRE_BiCGSTABGetFinalRelativeResidualNorm(solver, &final_res_norm);
     }
-    else if(p->N10 == 25)
+    else if(p->N10==25)
     {
         HYPRE_BoomerAMGSetup(solver, parcsr_A, par_b, par_x);
         HYPRE_BoomerAMGSolve(solver, parcsr_A, par_b, par_x);
@@ -86,28 +86,28 @@ void hypre_aij::start(lexer *p, fdm *a, ghostcell *pgc, field &f, vec &rhsvec, i
         HYPRE_BoomerAMGGetFinalRelativeResidualNorm(solver, &final_res_norm);
     }
 
-    p->solveriter = num_iterations;
+    p->solveriter=num_iterations;
     p->final_res = final_res_norm;
 
-    fillbackvec(p, a, f, xvec, var);
+    fillbackvec(p,a,f,xvec,var);
 
-    delete_solvers(p, pgc);
-    delete_grid(p, pgc);
+    delete_solvers(p,pgc);
+    delete_grid(p,pgc);
 }
 
-void hypre_aij::solve(lexer *p, fdm *a, ghostcell *pgc, vec &xvec, vec &rhsvec, int var, int gcv, int &solveriter)
+void hypre_aij::solve(lexer* p,fdm* a, ghostcell* pgc, vec& xvec, vec& rhsvec, int var, int gcv, int &solveriter)
 {
-    p->solveriter = 0;
+    p->solveriter=0;
 }
 
 void hypre_aij::fillbackvec(lexer *p, fdm *a, field &f, vec &xvec, int var)
 {
     HYPRE_IJVectorGetValues(x, p->N4_row, rows, xvec.V.data());
 
-    n = 0;
+    n=0;
     LOOP
     {
-        f(i, j, k) = xvec.V[n];
+        f(i,j,k)=xvec.V[n];
         ++n;
     }
 }

@@ -20,11 +20,11 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "CPM.h"
-#include "fdm.h"
-#include "ghostcell.h"
-#include "lexer.h"
-#include "sediment_fdm.h"
+#include"CPM.h"
+#include"lexer.h"
+#include"fdm.h"
+#include"ghostcell.h"
+#include"sediment_fdm.h"
 
 // parcels in the first cell column at the in- and outflow boundaries are fixed (BEDBC),
 // they retain the bed at the open boundaries; Q 76 / Q 77: also the bed upstream of x = Q76 and downstream of
@@ -32,26 +32,23 @@ Author: Hans Bihs
 // was 1.2-2 times the threshold, the bed there eroded and the sand built up upstream of the pipe)
 void CPM::wallbc(lexer *p, ghostcell *pgc, sediment_fdm *s)
 {
-    for(size_t n = 0; n < P.index; n++)
-        if(P.Flag[n] == ACTIVE)
+    for(size_t n=0;n<P.index;n++)
+    if(P.Flag[n]==ACTIVE)
+    {
+        i=pci(p,n,P.X[n]);
+        
+        if((i<=0 && p->nb1<0 && open_side[0]==1) || (i>=p->knox-1 && p->nb4<0 && open_side[3]==1)
+        || P.X[n]<p->Q76 || P.X[n]>p->Q77)
         {
-            i = pci(p, n, P.X[n]);
-
-            if((i <= 0 && p->nb1 < 0 && open_side[0] == 1) || (i >= p->knox - 1 && p->nb4 < 0 && open_side[3] == 1) || P.X[n] < p->Q76 || P.X[n] > p->Q77)
-            {
-                i = p->posc_i(P.X[n]);
-
-                if((i <= 0 && p->nb1 < 0 && open_side[0] == 1) || (i >= p->knox - 1 && p->nb4 < 0 && open_side[3] == 1))
-                {
-                    P.Flag[n] = BEDBC;
-
-                    P.U[n] = P.V[n] = P.W[n] = 0.0;
-
-                    P.XRK1[n] = P.X[n];
-                    P.YRK1[n] = P.Y[n];
-                    P.ZRK1[n] = P.Z[n];
-
-                    P.URK1[n] = P.VRK1[n] = P.WRK1[n] = 0.0;
-                }
-            }
+        P.Flag[n]=BEDBC;
+        
+        P.U[n] = P.V[n] = P.W[n] = 0.0;
+        
+        P.XRK1[n] = P.X[n];
+        P.YRK1[n] = P.Y[n];
+        P.ZRK1[n] = P.Z[n];
+        
+        P.URK1[n] = P.VRK1[n] = P.WRK1[n] = 0.0;
         }
+    }
+}

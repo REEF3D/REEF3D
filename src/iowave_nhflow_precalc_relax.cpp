@@ -20,82 +20,81 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "fdm_nhf.h"
-#include "ghostcell.h"
-#include "iowave.h"
-#include "lexer.h"
+#include"iowave.h"
+#include"lexer.h"
+#include"fdm_nhf.h"
+#include"ghostcell.h"
 
 void iowave::nhflow_precalc_relax(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
     p->wavetime = p->simtime;
-
-    if(!gen_built)
-        genzone4_build(p, pgc);
-
+    
+    if(!gen_built) genzone4_build(p,pgc);
+    
     const bool zsel = zones.has_sources();
-
-    // ETA (SLICELOOP4 order)
-    if(p->B98 == 2)
-        for(size_t q = 0; q < gen_i.size(); ++q)
-        {
-            i = gen_i[q];
-            j = gen_j[q];
-
-            if(zsel)
-                select_sources(gen_src[q]);
-
-            PSLICECHECK4
-            eta(i, j) = wave_eta_c(p, pgc, int(q));
-        }
-
+    
+// ETA (SLICELOOP4 order)
+    if(p->B98==2)
+    for(size_t q=0; q<gen_i.size(); ++q)
+    {
+        i = gen_i[q];
+        j = gen_j[q];
+        
+        if(zsel)
+        select_sources(gen_src[q]);
+        
+        PSLICECHECK4
+        eta(i,j) = wave_eta_c(p,pgc,int(q));
+    }
+    
     if(zsel)
-        select_sources(nullptr);
-    pgc->gcsl_start4(p, eta, 50);
-
-    // U, V, W in one pass over the generation-zone cells (LOOP order), with the
-    // three velocities of a cell from one evaluation of the phase and depth
-    // functions. uval/vval/wval share the count sequence of the former three loops.
-    count = 0;
-
-    if(p->B98 == 2)
-        for(size_t q = 0; q < gen_i.size(); ++q)
+    select_sources(nullptr);
+    pgc->gcsl_start4(p,eta,50);
+    
+// U, V, W in one pass over the generation-zone cells (LOOP order), with the
+// three velocities of a cell from one evaluation of the phase and depth
+// functions. uval/vval/wval share the count sequence of the former three loops.
+    count=0;
+    
+    if(p->B98==2)
+    for(size_t q=0; q<gen_i.size(); ++q)
+    {
+        i = gen_i[q];
+        j = gen_j[q];
+        
+        const double hval = eta(i,j) + d->depth(i,j);
+        
+        if(zsel)
+        select_sources(gen_src[q]);
+        
+        KLOOP
+        PCHECK
         {
-            i = gen_i[q];
-            j = gen_j[q];
-
-            const double hval = eta(i, j) + d->depth(i, j);
-
-            if(zsel)
-                select_sources(gen_src[q]);
-
-            KLOOP
-            PCHECK
+            z=p->ZSP[IJK]-p->phimean;
+            
+            double uw,vw,ww;
+            wave_uvw_c(p,pgc,int(q),z,uw,vw,ww);
+            
+            uval[count] = uw + p->Ui;
+            UHval[count] = hval*uval[count];
+            
+            if(p->j_dir==1 && v_switch==1)
             {
-                z = p->ZSP[IJK] - p->phimean;
-
-                double uw, vw, ww;
-                wave_uvw_c(p, pgc, int(q), z, uw, vw, ww);
-
-                uval[count] = uw + p->Ui;
-                UHval[count] = hval * uval[count];
-
-                if(p->j_dir == 1 && v_switch == 1)
-                {
-                    vval[count] = vw;
-                    VHval[count] = hval * vval[count];
-                }
-
-                if(w_switch == 1)
-                {
-                    wval[count] = ww;
-                    WHval[count] = hval * wval[count];
-                }
-
-                ++count;
+            vval[count] = vw;
+            VHval[count] = hval*vval[count];
             }
+            
+            if(w_switch==1)
+            {
+            wval[count] = ww;
+            WHval[count] = hval*wval[count];
+            }
+            
+            ++count;
         }
-
+    }
+    
     if(zsel)
-        select_sources(nullptr);
+    select_sources(nullptr);
 }
-
+    

@@ -23,9 +23,9 @@ Author: Hans Bihs
 #ifndef SFLOW_IDIFF_H_
 #define SFLOW_IDIFF_H_
 
-#include "increment.h"
-#include "sflow_diffusion.h"
-#include "slice4.h"
+#include"sflow_diffusion.h"
+#include"increment.h"
+#include"slice4.h"
 
 class lexer;
 class fdm2D;
@@ -39,24 +39,31 @@ using namespace std;
 class sflow_idiff final : public sflow_diffusion, public increment
 {
 public:
-    void ckpt_fields(const std::function<void(const char *, char, double *)> &fd, const std::function<void(const char *, char, int *)> &fi) override
+
+    void ckpt_fields(const std::function<void(const char*, char, double*)> &fd, const std::function<void(const char*, char, int*)> &fi) override
     {
-        fd("idiff_f", 'S', f.V);
+        fd("idiff_f",'S',f.V);
     }
-    sflow_idiff(lexer *);
-    virtual ~sflow_idiff();
+	sflow_idiff(lexer*);
+	virtual ~sflow_idiff();
 
+	void diff_u(lexer*, fdm2D*, ghostcell*, solver2D*, slice&, slice&, slice&, slice&, slice&, double) override final;
+	void diff_v(lexer*, fdm2D*, ghostcell*, solver2D*, slice&, slice&, slice&, slice&, slice&, double) override final;
+    void diff_w(lexer*, fdm2D*, ghostcell*, solver2D*, slice&, slice&, slice&, slice&, slice&, slice&, double) override final;
+    void diff_scalar(lexer*, fdm2D*, ghostcell*, solver2D*, slice&, double, double) override final;
+    
 private:
-    double viscosity(lexer *, fdm2D *);
-    void bc(lexer *, fdm2D *, slice &);
-
+    double viscosity(lexer*, fdm2D*);
+    void bc(lexer*, fdm2D*, slice&);
+    
     slice4 f;
     int count;
-    int gcval_u, gcval_v;
+    int gcval_u,gcval_v;
     double visc;
-    double starttime, time;
+    double starttime,time;
+    
+    double ev_ij, visc_ij,sqd;
 
-    double ev_ij, visc_ij, sqd;
 };
 
 #endif

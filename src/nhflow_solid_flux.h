@@ -32,36 +32,35 @@ Architect: Hans Bihs
 // into and through a solid column. Applied after the fluxes are built, before
 // their halo exchange.
 
-#include "fdm_nhf.h"
-#include "increment.h"
-#include "lexer.h"
+#include"lexer.h"
+#include"fdm_nhf.h"
+#include"increment.h"
 
 inline void nhflow_solid_flux(lexer *p, fdm_nhf *d)
 {
-    int i, j, k;
-
+    int i,j,k;
+    
     // 1: every cell with DF < 0 (FEM structures, Z 30)
     // 2: fixed direct forcing solids only (DF == -1: A 590 STL, A 581-589 primitives, A 580 grid solids),
     //    floating bodies (DF == -2) keep their continuity fluxes
     const int mode = d->solid_flux;
-    auto sol = [p, mode](int q)
-    { return mode == 2 ? p->DF[q] == -1 : p->DF[q] < 0; };
+    auto sol = [p,mode](int q){return mode==2 ? p->DF[q]==-1 : p->DF[q]<0;};
 
     LOOP
     {
         if(sol(IJK) || sol(Ip1JK))
-            d->FEx[IJK] = 0.0;
+        d->FEx[IJK] = 0.0;
 
         if(sol(IJK) || sol(Im1JK))
-            d->FEx[Im1JK] = 0.0;
+        d->FEx[Im1JK] = 0.0;
 
-        if(p->j_dir == 1)
+        if(p->j_dir==1)
         {
             if(sol(IJK) || sol(IJp1K))
-                d->FEy[IJK] = 0.0;
+            d->FEy[IJK] = 0.0;
 
             if(sol(IJK) || sol(IJm1K))
-                d->FEy[IJm1K] = 0.0;
+            d->FEy[IJm1K] = 0.0;
         }
     }
 }

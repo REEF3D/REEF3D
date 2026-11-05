@@ -20,16 +20,16 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "density_comp.h"
-#include "fdm.h"
-#include "heaviside.h"
-#include "interface_width.h"
-#include "lexer.h"
+#include"interface_width.h"
+#include"density_comp.h"
+#include"lexer.h"
+#include"fdm.h"
+#include"heaviside.h"
 
-density_comp::density_comp(lexer *p)
+density_comp::density_comp(lexer* p) 
 {
-
-    H = 0.0;
+        
+        H=0.0;
 }
 
 density_comp::~density_comp()
@@ -37,15 +37,20 @@ density_comp::~density_comp()
 }
 
 double density_comp::roface(lexer *p, fdm *a, int aa, int bb, int cc)
-{
-    phival = 0.5 * (a->phi(i, j, k) + a->phi(i + aa, j + bb, k + cc));
+{       
+        phival = 0.5*(a->phi(i,j,k) + a->phi(i+aa,j+bb,k+cc));
+        
+        ro_air = (0.0035*(101325.0 + 0.5*(a->press(i,j,k) + a->press(i+aa,j+bb,k+cc))))  / (273.15 + p->W31);
 
-    ro_air = (0.0035 * (101325.0 + 0.5 * (a->press(i, j, k) + a->press(i + aa, j + bb, k + cc)))) / (273.15 + p->W31);
 
-    H = heaviside_face(p, a->phi, phival, i, j, k, aa, bb, cc);
+        H = heaviside_face(p,a->phi,phival,i,j,k,aa,bb,cc);
+        
+            
+        roval = p->W1*H + ro_air*(1.0-H);
 
-    roval = p->W1 * H + ro_air * (1.0 - H);
-
-    return roval;
+	return roval;		
 }
+
+
+
 

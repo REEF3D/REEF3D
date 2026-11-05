@@ -35,21 +35,22 @@ SINTGRL (maximum energy with Battjes-Janssen breaking) and SVEG
   (at your option) any later version.
 --------------------------------------------------------------------*/
 
-#include "seastate_source.h"
-#include "met_drag.h"
-#include "seastate_dispersion.h"
-#include "seastate_grid.h"
-#include <algorithm>
-#include <cmath>
+#include"seastate_source.h"
+#include"met_drag.h"
+#include"seastate_grid.h"
+#include"seastate_dispersion.h"
+#include<algorithm>
+#include<cmath>
 
-namespace {
-const double pi = 3.14159265358979323846;
-const double tail_p = 4.0;               // spectral tail E ~ sig^-4 (SWAN PWTAIL(1))
-const double rho_ratio = 1.28 / 1025.0;  // rho_air/rho_water (SWAN PWIND(9))
-const double dia_lambda = 0.25, dia_C = 3.0e7;
-const double dia_cs1 = 5.5, dia_cs2 = 0.833, dia_cs3 = -1.25;
-const double wc_cds = 2.36e-5, wc_stpm = 3.02e-3;
-}  // namespace
+namespace
+{
+    const double pi = 3.14159265358979323846;
+    const double tail_p = 4.0;              // spectral tail E ~ sig^-4 (SWAN PWTAIL(1))
+    const double rho_ratio = 1.28/1025.0;   // rho_air/rho_water (SWAN PWIND(9))
+    const double dia_lambda = 0.25, dia_C = 3.0e7;
+    const double dia_cs1 = 5.5, dia_cs2 = 0.833, dia_cs3 = -1.25;
+    const double wc_cds = 2.36e-5, wc_stpm = 3.02e-3;
+}
 
 seastate_source::seastate_source(const seastate_grid &grid, const seastate_source_param &p) : g(grid), prm(p)
 {
@@ -58,270 +59,270 @@ seastate_source::seastate_source(const seastate_grid &grid, const seastate_sourc
     nbin = g.nbin;
     lnr = std::log(g.ratio);
 
-    S.assign(nbin, 0.0);
-    L.assign(nbin, 0.0);
-    dNmax.assign(nsig, 0.0);
-    EL.assign(nsig, 0.0);
-    VE.assign(nsig, 0.0);
-    VS.assign(nsig, 0.0);
-    VQ.assign(nsig, 0.0);
-    TQ.assign(nsig, 0.0);
-    row.assign(nsig, 0.0);
+    S.assign(nbin,0.0);
+    L.assign(nbin,0.0);
+    dNmax.assign(nsig,0.0);
+    EL.assign(nsig,0.0);
+    VE.assign(nsig,0.0);
+    VS.assign(nsig,0.0);
+    VQ.assign(nsig,0.0);
+    TQ.assign(nsig,0.0);
+    row.assign(nsig,0.0);
 
     if(prm.st4)
-        st4s.init(g, prm.st4p, seastate_gravity);
+    st4s.init(g,prm.st4p,seastate_gravity);
 
     // powers of the spectral tail (moments, cap, DIA), once
     {
-        const double smax = g.sig[nsig - 1];
-        const double se = smax * std::sqrt(g.ratio);
-        pw_smax = std::pow(smax, tail_p);
-        pw_se0 = std::pow(se, -tail_p);
-        pw_se1 = std::pow(se, 1.0 - tail_p);
-        pw_se2 = std::pow(se, 2.0 - tail_p);
-        pw_fachfr = std::pow(g.ratio, -tail_p);
+    const double smax = g.sig[nsig-1];
+    const double se = smax*std::sqrt(g.ratio);
+    pw_smax = std::pow(smax,tail_p);
+    pw_se0 = std::pow(se,-tail_p);
+    pw_se1 = std::pow(se,1.0-tail_p);
+    pw_se2 = std::pow(se,2.0-tail_p);
+    pw_fachfr = std::pow(g.ratio,-tail_p);
     }
 
     // single-frequency grid (surfbeat): no DIA and no triads, so no frequency interpolation
-    if(nsig < 2)
-        return;
+    if(nsig<2)
+    return;
 
     // DIA interpolation (SWAN FAC4WW)
-    const double lamm2 = (1.0 - dia_lambda) * (1.0 - dia_lambda);
-    const double lamp2 = (1.0 + dia_lambda) * (1.0 + dia_lambda);
-    const double delth3 = std::acos((lamm2 * lamm2 + 4.0 - lamp2 * lamp2) / (4.0 * lamm2));
-    const double delth4 = std::asin(-std::sin(delth3) * lamm2 / lamp2);
+    const double lamm2 = (1.0-dia_lambda)*(1.0-dia_lambda);
+    const double lamp2 = (1.0+dia_lambda)*(1.0+dia_lambda);
+    const double delth3 = std::acos((lamm2*lamm2 + 4.0 - lamp2*lamp2)/(4.0*lamm2));
+    const double delth4 = std::asin(-std::sin(delth3)*lamm2/lamp2);
 
-    dal1 = 1.0 / std::pow(1.0 + dia_lambda, 4.0);
-    dal2 = 1.0 / std::pow(1.0 - dia_lambda, 4.0);
-    dal3 = 2.0 * dal1 * dal2;
+    dal1 = 1.0/std::pow(1.0+dia_lambda,4.0);
+    dal2 = 1.0/std::pow(1.0-dia_lambda,4.0);
+    dal3 = 2.0*dal1*dal2;
 
-    const double cidp = std::fabs(delth4 / g.dtheta);
-    idp = int(cidp);
-    idp1 = idp + 1;
-    const double widp = cidp - double(idp), widp1 = 1.0 - widp;
+    const double cidp = std::fabs(delth4/g.dtheta);
+    idp  = int(cidp);
+    idp1 = idp+1;
+    const double widp = cidp - double(idp), widp1 = 1.0-widp;
 
-    const double cidm = std::fabs(delth3 / g.dtheta);
-    idm = int(cidm);
-    idm1 = idm + 1;
-    const double widm = cidm - double(idm), widm1 = 1.0 - widm;
+    const double cidm = std::fabs(delth3/g.dtheta);
+    idm  = int(cidm);
+    idm1 = idm+1;
+    const double widm = cidm - double(idm), widm1 = 1.0-widm;
 
     const double xis = g.ratio;
 
-    isp = int(std::log(1.0 + dia_lambda) / lnr);
-    isp1 = isp + 1;
-    const double wisp = (1.0 + dia_lambda - std::pow(xis, isp)) / (std::pow(xis, isp1) - std::pow(xis, isp)), wisp1 = 1.0 - wisp;
+    isp  = int(std::log(1.0+dia_lambda)/lnr);
+    isp1 = isp+1;
+    const double wisp = (1.0+dia_lambda - std::pow(xis,isp))/(std::pow(xis,isp1) - std::pow(xis,isp)), wisp1 = 1.0-wisp;
 
-    ism = int(std::log(1.0 - dia_lambda) / lnr);
-    ism1 = ism - 1;
-    const double wism = (std::pow(xis, ism) - (1.0 - dia_lambda)) / (std::pow(xis, ism) - std::pow(xis, ism1)), wism1 = 1.0 - wism;
+    ism  = int(std::log(1.0-dia_lambda)/lnr);
+    ism1 = ism-1;
+    const double wism = (std::pow(xis,ism) - (1.0-dia_lambda))/(std::pow(xis,ism) - std::pow(xis,ism1)), wism1 = 1.0-wism;
 
-    awg[0] = widp * wisp;
-    awg[1] = widp1 * wisp;
-    awg[2] = widp * wisp1;
-    awg[3] = widp1 * wisp1;
-    awg[4] = widm * wism;
-    awg[5] = widm1 * wism;
-    awg[6] = widm * wism1;
-    awg[7] = widm1 * wism1;
+    awg[0] = widp *wisp;
+    awg[1] = widp1*wisp;
+    awg[2] = widp *wisp1;
+    awg[3] = widp1*wisp1;
+    awg[4] = widm *wism;
+    awg[5] = widm1*wism;
+    awg[6] = widm *wism1;
+    awg[7] = widm1*wism1;
 
     // E(f,theta) for l = ism1 .. nsig-1-ism1+isp1 (zero below the grid, sig^-4 tail above)
     // (directions continued periodically: UE by 2 dpad, SA1/SA2 by dpad on both sides)
-    dpad = std::max(idp1, idm1);
-    uw = ndir + 4 * dpad;
-    sw = ndir + 2 * dpad;
+    dpad = std::max(idp1,idm1);
+    uw = ndir + 4*dpad;
+    sw = ndir + 2*dpad;
     uoff = -ism1;
     ulen = nsig - 1 - ism1 + isp1 + uoff + 1;
-    UE.assign(size_t(ulen) * uw, 0.0);
+    UE.assign(size_t(ulen)*uw,0.0);
 
     // SA1, SA2 for l = -isp1 .. nsig-1-ism1 (zero for l < 0)
     soff = isp1;
     slen = nsig - 1 - ism1 + soff + 1;
-    SA1.assign(size_t(slen) * sw, 0.0);
-    SA2.assign(size_t(slen) * sw, 0.0);
+    SA1.assign(size_t(slen)*sw,0.0);
+    SA2.assign(size_t(slen)*sw,0.0);
     DA1C = DA1P = DA1M = DA2C = DA2P = DA2M = SA1;
 
-    af11.assign(nsig - ism1, 0.0);
-    for(int l = 0; l < nsig - ism1; ++l)
-        af11[l] = std::pow(g.fmin * std::pow(xis, double(l)), 11.0);
+    af11.assign(nsig-ism1,0.0);
+    for(int l=0; l<nsig-ism1; ++l)
+    af11[l] = std::pow(g.fmin*std::pow(xis,double(l)),11.0);
 
     // LTA interpolation at sig/2 (tsm, tsm1) and 2 sig (tsp, tsp1) (SWAN FAC3WW)
-    tsm = int(std::log(0.5) / lnr);
-    tsm1 = tsm - 1;
-    twm = (std::pow(xis, tsm) - 0.5) / (std::pow(xis, tsm) - std::pow(xis, tsm1));
-    twm1 = 1.0 - twm;
+    tsm  = int(std::log(0.5)/lnr);
+    tsm1 = tsm-1;
+    twm  = (std::pow(xis,tsm) - 0.5)/(std::pow(xis,tsm) - std::pow(xis,tsm1));
+    twm1 = 1.0-twm;
 
-    tsp = int(std::log(2.0) / lnr);
-    tsp1 = tsp + 1;
-    twp = (2.0 - std::pow(xis, tsp)) / (std::pow(xis, tsp1) - std::pow(xis, tsp));
-    twp1 = 1.0 - twp;
+    tsp  = int(std::log(2.0)/lnr);
+    tsp1 = tsp+1;
+    twp  = (2.0 - std::pow(xis,tsp))/(std::pow(xis,tsp1) - std::pow(xis,tsp));
+    twp1 = 1.0-twp;
 
-    SAL.assign(nsig + tsp1 + 1, 0.0);
+    SAL.assign(nsig+tsp1+1,0.0);
 }
 
 double seastate_source::ustar_wu(double U10)
 {
-    const double cd = (U10 > 7.5) ? (0.8 + 0.065 * U10) * 1.0e-3 : 1.2875e-3;
-    return std::sqrt(cd) * U10;
+    const double cd = (U10>7.5) ? (0.8 + 0.065*U10)*1.0e-3 : 1.2875e-3;
+    return std::sqrt(cd)*U10;
 }
 
 double seastate_source::ustar_of(double U10) const
 {
-    if(prm.drag == 0)
-        return ustar_wu(U10);
+    if(prm.drag==0)
+    return ustar_wu(U10);
 
-    return std::sqrt(met_drag(prm.drag, U10, prm.drag_cap, prm.drag_floor)) * U10;
+    return std::sqrt(met_drag(prm.drag,U10,prm.drag_cap,prm.drag_floor))*U10;
 }
 
 double seastate_source::Qb_bj(double Hrms, double Hm)
 {
-    const double b = (Hm > 0.0 && Hrms >= 0.0) ? Hrms / Hm : 0.0;
+    const double b = (Hm>0.0 && Hrms>=0.0) ? Hrms/Hm : 0.0;
 
-    if(b <= 0.2)
-        return 0.0;
+    if(b<=0.2)
+    return 0.0;
 
-    if(b >= 1.0)
-        return 1.0;
+    if(b>=1.0)
+    return 1.0;
 
-    const double q0 = (b <= 0.5) ? 0.0 : (2.0 * b - 1.0) * (2.0 * b - 1.0);
-    const double b2 = b * b;
-    const double z = std::exp((q0 - 1.0) / b2);
+    const double q0 = (b<=0.5) ? 0.0 : (2.0*b-1.0)*(2.0*b-1.0);
+    const double b2 = b*b;
+    const double z  = std::exp((q0-1.0)/b2);
 
-    return q0 - b2 * (q0 - z) / (b2 - z);
+    return q0 - b2*(q0-z)/(b2-z);
 }
 
 void seastate_source::moments(const float *N, double depth, const float *k)
 {
-    double etot = 0.0, actot = 0.0, etot1 = 0.0, edrk = 0.0, emax = 0.0;
+    double etot=0.0, actot=0.0, etot1=0.0, edrk=0.0, emax=0.0;
 
     // row sums: from cap() on the same spectrum, else here
     if(!rows_ready)
-        rows(N);
+    rows(N);
     rows_ready = false;
 
-    for(int l = 0; l < nsig; ++l)
+    for(int l=0; l<nsig; ++l)
     {
-        double el = row[l];
+    double el = row[l];
 
-        el *= g.sig[l] * g.dtheta;  // E(sig) [m^2 s/rad]
+    el *= g.sig[l]*g.dtheta;        // E(sig) [m^2 s/rad]
 
-        const double ds = g.dsig[l];
-        etot += el * ds;
-        actot += el / g.sig[l] * ds;
-        etot1 += el * g.sig[l] * ds;
-        edrk += el / std::sqrt(std::max(double(k[l]), 1.0e-12)) * ds;
+    const double ds = g.dsig[l];
+    etot  += el*ds;
+    actot += el/g.sig[l]*ds;
+    etot1 += el*g.sig[l]*ds;
+    edrk  += el/std::sqrt(std::max(double(k[l]),1.0e-12))*ds;
 
-        if(l == nsig - 1)
-            emax = el;
+        if(l==nsig-1)
+        emax = el;
     }
 
     // tail E = emax (sig/sigmax)^-4 above the upper edge of the last bin (not for a single-frequency grid)
-    if(nsig > 1)
+    if(nsig>1)
     {
-        const double smax = g.sig[nsig - 1];
-        const double se = smax * std::sqrt(g.ratio);
-        const double a = emax * pw_smax;
-        const double kmax = std::max(double(k[nsig - 1]), 1.0e-12);
+    const double smax = g.sig[nsig-1];
+    const double se = smax*std::sqrt(g.ratio);
+    const double a = emax*pw_smax;
+    const double kmax = std::max(double(k[nsig-1]),1.0e-12);
 
-        etot += a * pw_se1 / (tail_p - 1.0);
-        actot += a * pw_se0 / tail_p;
-        etot1 += a * pw_se2 / (tail_p - 2.0);
-        edrk += a * smax / std::sqrt(kmax) * pw_se0 / tail_p;
+    etot  += a*pw_se1/(tail_p-1.0);
+    actot += a*pw_se0/tail_p;
+    etot1 += a*pw_se2/(tail_p-2.0);
+    edrk  += a*smax/std::sqrt(kmax)*pw_se0/tail_p;
     }
 
     Etot = etot;
     Hs = 0.0;
     sigm01 = sigm_10 = km_wam = ursell = Qb = 0.0;
 
-    if(etot <= 0.0)
-        return;
+    if(etot<=0.0)
+    return;
 
-    Hs = 4.0 * std::sqrt(etot);
-    sigm01 = etot1 / etot;
-    sigm_10 = etot / actot;
-    km_wam = (etot / edrk) * (etot / edrk);
+    Hs = 4.0*std::sqrt(etot);
+    sigm01 = etot1/etot;
+    sigm_10 = etot/actot;
+    km_wam = (etot/edrk)*(etot/edrk);
 
-    if(depth > 0.0)
-        ursell = seastate_gravity * Hs / (2.0 * std::sqrt(2.0) * sigm01 * sigm01 * depth * depth);
+    if(depth>0.0)
+    ursell = seastate_gravity*Hs/(2.0*std::sqrt(2.0)*sigm01*sigm01*depth*depth);
 }
 
 // sum of n values, eight partial sums (vectorised)
 static inline double rowsum(const float *v, int n)
 {
-    double s[8] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
-    int m = 0;
+    double s[8] = {0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0};
+    int m=0;
 
-    for(; m + 8 <= n; m += 8)
-        for(int k = 0; k < 8; ++k)
-            s[k] += double(v[m + k]);
+    for(; m+8<=n; m+=8)
+    for(int k=0; k<8; ++k)
+    s[k] += double(v[m+k]);
 
-    for(; m < n; ++m)
-        s[0] += double(v[m]);
+    for(; m<n; ++m)
+    s[0] += double(v[m]);
 
-    return ((s[0] + s[1]) + (s[2] + s[3])) + ((s[4] + s[5]) + (s[6] + s[7]));
+    return ((s[0]+s[1])+(s[2]+s[3]))+((s[4]+s[5])+(s[6]+s[7]));
 }
 
 // sums over the directions per frequency of N (rows), kept for the next moments() of the same spectrum
 void seastate_source::rows(const float *N) const
 {
     if(g.uniform)
-        for(int l = 0; l < nsig; ++l)
-            row[l] = rowsum(N + g.bin(l, 0), ndir);
+    for(int l=0; l<nsig; ++l)
+    row[l] = rowsum(N+g.bin(l,0),ndir);
     else
-        for(int l = 0; l < nsig; ++l)
-        {
-            // fine direction sector (A 715): N dth/dtheta
-            const float *Nl = N + g.bin(l, 0);
-            double s = 0.0;
-            for(int m = 0; m < ndir; ++m)
-                s += double(Nl[m]) * g.wth[m];
-            row[l] = s;
-        }
+    for(int l=0; l<nsig; ++l)
+    {
+    // fine direction sector (A 715): N dth/dtheta
+    const float *Nl = N+g.bin(l,0);
+    double s = 0.0;
+    for(int m=0; m<ndir; ++m)
+    s += double(Nl[m])*g.wth[m];
+    row[l] = s;
+    }
     rows_ready = true;
 }
 
 bool seastate_source::cap(float *N, double depth) const
 {
-    if(!prm.emax || !prm.breaking || prm.breaking_model != 1 || !(depth > 0.0))
-        return false;
+    if(!prm.emax || !prm.breaking || prm.breaking_model!=1 || !(depth>0.0))
+    return false;
 
     // total energy with the sig^-4 tail, as moments
-    double etot = 0.0, elast = 0.0;
+    double etot=0.0, elast=0.0;
 
     if(!rows_ready)
-        rows(N);
+    rows(N);
 
-    for(int l = 0; l < nsig; ++l)
+    for(int l=0; l<nsig; ++l)
     {
-        double el = row[l];
+    double el = row[l];
 
-        el *= g.sig[l] * g.dtheta;
-        etot += el * g.dsig[l];
+    el *= g.sig[l]*g.dtheta;
+    etot += el*g.dsig[l];
 
-        if(l == nsig - 1)
-            elast = el;
+        if(l==nsig-1)
+        elast = el;
     }
 
-    if(nsig > 1)
+    if(nsig>1)
     {
-        const double smax = g.sig[nsig - 1];
-        const double se = smax * std::sqrt(g.ratio);
-        etot += elast * pw_smax * pw_se1 / (tail_p - 1.0);
+    const double smax = g.sig[nsig-1];
+    const double se = smax*std::sqrt(g.ratio);
+    etot += elast*pw_smax*pw_se1/(tail_p-1.0);
     }
 
-    const double hm = prm.gamma * depth;
-    const double emax = 0.25 * hm * hm;
+    const double hm = prm.gamma*depth;
+    const double emax = 0.25*hm*hm;
 
-    if(!(etot > emax))
-        return false;
+    if(!(etot>emax))
+    return false;
 
-    const float f = float(emax / etot);
+    const float f = float(emax/etot);
 
-    for(int b = 0; b < nbin; ++b)
-        N[b] *= f;
+    for(int b=0; b<nbin; ++b)
+    N[b] *= f;
 
-    for(int l = 0; l < nsig; ++l)
-        row[l] *= double(f);
+    for(int l=0; l<nsig; ++l)
+    row[l] *= double(f);
 
     return true;
 }
@@ -329,134 +330,134 @@ bool seastate_source::cap(float *N, double depth) const
 void seastate_source::limits(const float *k, const float *cg)
 {
     // as in compute: gamma alpha_PM/(2 sig k^3 c_g)
-    if(prm.komen && prm.limiter > 0.0)
-        for(int l = 0; l < nsig; ++l)
-        {
-            const double kl = std::max(double(k[l]), 1.0e-12);
-            dNmax[l] = prm.limiter * 0.0081 / (2.0 * g.sig[l] * kl * kl * kl * std::max(double(cg[l]), 1.0e-12));
-        }
+    if(prm.komen && prm.limiter>0.0)
+    for(int l=0; l<nsig; ++l)
+    {
+    const double kl = std::max(double(k[l]),1.0e-12);
+    dNmax[l] = prm.limiter*0.0081/(2.0*g.sig[l]*kl*kl*kl*std::max(double(cg[l]),1.0e-12));
+    }
 }
 
 void seastate_source::compute(const float *N, double depth, const float *k, const float *cg, double *P, double *D, int ma, int mb, int la, int lb)
 {
     if(prm.st4)
-        st4s.untake();
+    st4s.untake();
 
-    moments(N, depth, k);
+    moments(N,depth,k);
 
     wa = ma;
-    wb = (mb < 0) ? ndir - 1 : mb;
+    wb = (mb<0) ? ndir-1 : mb;
     fa = la;
-    fb = (lb < 0) ? nsig - 1 : lb;
+    fb = (lb<0) ? nsig-1 : lb;
 
-    for(int l = fa; l <= fb; ++l)
-        for(int m = wa; m <= wb; ++m)
-        {
-            const int b = g.bin(l, m);
-            P[b] = D[b] = S[b] = L[b] = 0.0;
-        }
+    for(int l=fa; l<=fb; ++l)
+    for(int m=wa; m<=wb; ++m)
+    {
+    const int b = g.bin(l,m);
+    P[b] = D[b] = S[b] = L[b] = 0.0;
+    }
 
     const double grav = seastate_gravity;
 
     // action density limiter: gamma alpha_PM/(2 sig k^3 c_g)
-    if(prm.komen && prm.limiter > 0.0)
-        for(int l = fa; l <= fb; ++l)
-        {
-            const double kl = std::max(double(k[l]), 1.0e-12);
-            dNmax[l] = prm.limiter * 0.0081 / (2.0 * g.sig[l] * kl * kl * kl * std::max(double(cg[l]), 1.0e-12));
-        }
+    if(prm.komen && prm.limiter>0.0)
+    for(int l=fa; l<=fb; ++l)
+    {
+    const double kl = std::max(double(k[l]),1.0e-12);
+    dNmax[l] = prm.limiter*0.0081/(2.0*g.sig[l]*kl*kl*kl*std::max(double(cg[l]),1.0e-12));
+    }
 
     // wind input
     ustar = 0.0;
 
-    if(prm.wind && prm.U10 > 0.0)
+    if(prm.wind && prm.U10>0.0)
     {
-        // ST4: u* from the stress balance with the wave stress of the spectrum (the fixed point), else the drag law of the wind (ustar_of)
-        if(prm.st4)
+    // ST4: u* from the stress balance with the wave stress of the spectrum (the fixed point), else the drag law of the wind (ustar_of)
+    if(prm.st4)
+    {
+    st4s.wind(N,row.data(),k,cg,prm.U10,prm.wdir,frozen);
+    ustar = st4s.ust;
+    st4s.add(N,k,cg,fa,fb,wa,wb,P,D);
+    }
+    else
+    ustar = ustar_of(prm.U10);
+
+    const double cw = std::cos(prm.wdir), sw = std::sin(prm.wdir);
+    const double spm = grav/(28.0*ustar);
+    const double ta = prm.Alin/(grav*grav*2.0*pi);
+
+        for(int l=fa; l<=fb; ++l)
         {
-            st4s.wind(N, row.data(), k, cg, prm.U10, prm.wdir, frozen);
-            ustar = st4s.ust;
-            st4s.add(N, k, cg, fa, fb, wa, wb, P, D);
-        }
-        else
-            ustar = ustar_of(prm.U10);
+        const double sig = g.sig[l];
+        const double argu = std::min(2.0,spm/sig);
+        const double filter = std::exp(-argu*argu*argu*argu);
+        const double freq = sig/(2.0*pi);
+        const double reduc = (freq>1.0) ? 1.0/(freq*freq*freq) : 1.0;
+        const double cinv = double(k[l])/sig;
 
-        const double cw = std::cos(prm.wdir), sw = std::sin(prm.wdir);
-        const double spm = grav / (28.0 * ustar);
-        const double ta = prm.Alin / (grav * grav * 2.0 * pi);
-
-        for(int l = fa; l <= fb; ++l)
-        {
-            const double sig = g.sig[l];
-            const double argu = std::min(2.0, spm / sig);
-            const double filter = std::exp(-argu * argu * argu * argu);
-            const double freq = sig / (2.0 * pi);
-            const double reduc = (freq > 1.0) ? 1.0 / (freq * freq * freq) : 1.0;
-            const double cinv = double(k[l]) / sig;
-
-            for(int m = wa; m <= wb; ++m)
+            for(int m=wa; m<=wb; ++m)
             {
-                const int b = g.bin(l, m);
-                const double cosdif = g.costh[m] * cw + g.sinth[m] * sw;
+            const int b = g.bin(l,m);
+            const double cosdif = g.costh[m]*cw + g.sinth[m]*sw;
 
                 // linear growth
-                if(prm.Alin > 0.0 && cosdif > 0.0 && sig >= 0.7 * spm)
+                if(prm.Alin>0.0 && cosdif>0.0 && sig>=0.7*spm)
                 {
-                    const double t = ustar * cosdif;
-                    P[b] += reduc * ta / sig * t * t * t * t * filter;
+                const double t = ustar*cosdif;
+                P[b] += reduc*ta/sig*t*t*t*t*filter;
                 }
 
                 // exponential growth: Snyder et al. (1981) as Komen et al. (1984), or Yan (1987) as adapted by
                 // van der Westhuysen et al. (2007) (SWAN SWIND5 with IWCAP 7)
                 if(prm.komen && !prm.westh && !prm.st4)
-                    P[b] += std::max(0.0, 0.25 * rho_ratio * (28.0 * ustar * cinv * cosdif - 1.0)) * sig * double(N[b]);
+                P[b] += std::max(0.0,0.25*rho_ratio*(28.0*ustar*cinv*cosdif - 1.0))*sig*double(N[b]);
                 if(prm.westh)
                 {
-                    const double us = ustar * cinv;
-                    const double yan = (0.04 * us * us + 0.00552 * us + 0.000052) * cosdif - 0.000302;
-                    P[b] += std::max(0.0, yan * sig) * double(N[b]);
+                const double us = ustar*cinv;
+                const double yan = (0.04*us*us + 0.00552*us + 0.000052)*cosdif - 0.000302;
+                P[b] += std::max(0.0,yan*sig)*double(N[b]);
                 }
             }
         }
     }
 
-    if(Etot > 0.0)
+    if(Etot>0.0)
     {
         // whitecapping (van der Westhuysen et al. 2007, SWAN SWCAP with IWCAP 7): saturation-based breaking
         // dissipation weighted with f_br, the rest non-breaking (Komen type, Cds 3.0e-5, delta 0)
-        if(prm.westh && km_wam > 0.0)
+        if(prm.westh && km_wam>0.0)
         {
-            const double stp = km_wam * std::sqrt(Etot) / std::sqrt(3.02e-3);
-            const double ck = 3.0e-5 * stp * stp * stp * stp;
+        const double stp = km_wam*std::sqrt(Etot)/std::sqrt(3.02e-3);
+        const double ck = 3.0e-5*stp*stp*stp*stp;
 
-            for(int l = fa; l <= fb; ++l)
+            for(int l=fa; l<=fb; ++l)
             {
-                const double sig = g.sig[l], kl = double(k[l]);
-                const double El = row[l] * sig * g.dtheta;           // E(sig) [m^2 s/rad]
-                const double B = double(cg[l]) * kl * kl * kl * El;  // saturation spectrum
-                const double fbr = 0.5 * (1.0 + std::tanh(10.0 * (std::sqrt(B / prm.br) - 1.0)));
-                const double pp = 3.0 + std::tanh(25.76 * (ustar * kl / sig - 0.1));
-                const double fac1 = std::pow(B / prm.br, 0.5 * pp), fac2 = std::sqrt(seastate_gravity * kl);
-                const double w = fbr * prm.cds2 * fac1 * std::pow(fac2 / sig, 0.5 * pp - 1.0) * fac2 + (1.0 - fbr) * ck * sigm_10 * (kl / km_wam);
+            const double sig = g.sig[l], kl = double(k[l]);
+            const double El = row[l]*sig*g.dtheta;                       // E(sig) [m^2 s/rad]
+            const double B = double(cg[l])*kl*kl*kl*El;                  // saturation spectrum
+            const double fbr = 0.5*(1.0 + std::tanh(10.0*(std::sqrt(B/prm.br) - 1.0)));
+            const double pp = 3.0 + std::tanh(25.76*(ustar*kl/sig - 0.1));
+            const double fac1 = std::pow(B/prm.br,0.5*pp), fac2 = std::sqrt(seastate_gravity*kl);
+            const double w = fbr*prm.cds2*fac1*std::pow(fac2/sig,0.5*pp-1.0)*fac2 + (1.0-fbr)*ck*sigm_10*(kl/km_wam);
 
-                for(int m = wa; m <= wb; ++m)
-                    D[g.bin(l, m)] += w;
+            for(int m=wa; m<=wb; ++m)
+            D[g.bin(l,m)] += w;
             }
         }
 
         // whitecapping (Komen)
-        if(prm.komen && !prm.westh && !prm.st4 && km_wam > 0.0)
+        if(prm.komen && !prm.westh && !prm.st4 && km_wam>0.0)
         {
-            const double stp = km_wam * std::sqrt(Etot) / std::sqrt(wc_stpm);
-            const double ck = wc_cds * stp * stp * stp * stp;
+        const double stp = km_wam*std::sqrt(Etot)/std::sqrt(wc_stpm);
+        const double ck = wc_cds*stp*stp*stp*stp;
 
-            for(int l = fa; l <= fb; ++l)
+            for(int l=fa; l<=fb; ++l)
             {
-                const double r = double(k[l]) / km_wam;
-                const double w = ck * r * sigm_10 * r;
+            const double r = double(k[l])/km_wam;
+            const double w = ck*r*sigm_10*r;
 
-                for(int m = wa; m <= wb; ++m)
-                    D[g.bin(l, m)] += w;
+            for(int m=wa; m<=wb; ++m)
+            D[g.bin(l,m)] += w;
             }
         }
 
@@ -464,213 +465,213 @@ void seastate_source::compute(const float *N, double depth, const float *k, cons
         // Qb = 1 - exp(-(H/(gamma h))^n), D/E = 2 alpha f_rep Qb H/h, H = sqrt(8 E) of the instantaneous group
         brk_rate = 0.0;
 
-        if(prm.breaking && prm.breaking_model == 2 && depth > 0.0)
+        if(prm.breaking && prm.breaking_model==2 && depth>0.0)
         {
-            const double H = std::sqrt(8.0 * Etot);
-            const double arg = std::pow(H / (prm.gamma * depth), prm.nroel);
+        const double H = std::sqrt(8.0*Etot);
+        const double arg = std::pow(H/(prm.gamma*depth),prm.nroel);
 
-            Qb = std::min(1.0, 1.0 - std::exp(-std::min(arg, 100.0)));
-            brk_rate = 2.0 * prm.alpha * g.f[0] * Qb * H / depth;
+        Qb = std::min(1.0,1.0-std::exp(-std::min(arg,100.0)));
+        brk_rate = 2.0*prm.alpha*g.f[0]*Qb*H/depth;
 
-            for(int l = fa; l <= fb; ++l)
-                for(int m = wa; m <= wb; ++m)
-                    D[g.bin(l, m)] += brk_rate;
+            for(int l=fa; l<=fb; ++l)
+            for(int m=wa; m<=wb; ++m)
+            D[g.bin(l,m)] += brk_rate;
         }
 
         // depth-induced breaking (Battjes-Janssen)
-        if(prm.breaking && prm.breaking_model == 1 && depth > 0.0)
+        if(prm.breaking && prm.breaking_model==1 && depth>0.0)
         {
-            const double Hm = prm.gamma * depth;
-            const double bb = 8.0 * Etot / (Hm * Hm);
+        const double Hm = prm.gamma*depth;
+        const double bb = 8.0*Etot/(Hm*Hm);
 
-            Qb = Qb_bj(std::sqrt(8.0 * Etot), Hm);
+        Qb = Qb_bj(std::sqrt(8.0*Etot),Hm);
 
-            const double ws = (bb < 1.0) ? prm.alpha / pi * Qb * sigm01 / bb : prm.alpha / pi * sigm01;
+        const double ws = (bb<1.0) ? prm.alpha/pi*Qb*sigm01/bb : prm.alpha/pi*sigm01;
 
-            // Newton linearisation of -ws(E) N around the latest spectrum (SWAN SSURF, SbrD):
-            // P += sbrd N, D += ws + sbrd with sbrd = ws (1 - Qb)/(bb - Qb) >= 0
-            const double sbrd = (bb < 1.0 && bb - Qb > 1.0e-12) ? ws * (1.0 - Qb) / (bb - Qb) : 0.0;
+        // Newton linearisation of -ws(E) N around the latest spectrum (SWAN SSURF, SbrD):
+        // P += sbrd N, D += ws + sbrd with sbrd = ws (1 - Qb)/(bb - Qb) >= 0
+        const double sbrd = (bb<1.0 && bb-Qb>1.0e-12) ? ws*(1.0-Qb)/(bb-Qb) : 0.0;
 
-            for(int l = fa; l <= fb; ++l)
-                for(int m = wa; m <= wb; ++m)
-                {
-                    const int b = g.bin(l, m);
-                    D[b] += ws + sbrd;
-                    P[b] += sbrd * double(N[b]);
-                }
+            for(int l=fa; l<=fb; ++l)
+            for(int m=wa; m<=wb; ++m)
+            {
+            const int b = g.bin(l,m);
+            D[b] += ws + sbrd;
+            P[b] += sbrd*double(N[b]);
+            }
         }
 
         if(prm.dia)
-            dia(N, depth);
+        dia(N,depth);
 
         if(prm.triads)
-            lta(N, depth, k, cg);
+        lta(N,depth,k,cg);
     }
 
     // bottom friction (JONSWAP)
-    if(prm.friction && depth > 0.0)
-        for(int l = fa; l <= fb; ++l)
-        {
-            const double kd = std::min(30.0, double(k[l]) * depth);
-            const double s = g.sig[l] / std::sinh(kd);
-            const double w = prm.Cb / (grav * grav) * s * s;
+    if(prm.friction && depth>0.0)
+    for(int l=fa; l<=fb; ++l)
+    {
+    const double kd = std::min(30.0,double(k[l])*depth);
+    const double s = g.sig[l]/std::sinh(kd);
+    const double w = prm.Cb/(grav*grav)*s*s;
 
-            for(int m = wa; m <= wb; ++m)
-                D[g.bin(l, m)] += w;
-        }
+        for(int m=wa; m<=wb; ++m)
+        D[g.bin(l,m)] += w;
+    }
 
     // vegetation (SWAN SVEG, one layer)
-    if(prm.vegetation > 0 && depth > 0.0 && prm.vn > 0.0 && prm.vh > 0.0 && Etot > 0.0)
-        vegetation(N, depth, k, D);
+    if(prm.vegetation>0 && depth>0.0 && prm.vn>0.0 && prm.vh>0.0 && Etot>0.0)
+    vegetation(N,depth,k,D);
 
-    split(N, P, D);
+    split(N,P,D);
 
     // ST4 without wind (or calm): the whitecapping alone
-    if(prm.st4 && !(prm.wind && prm.U10 > 0.0) && Etot > 0.0)
+    if(prm.st4 && !(prm.wind && prm.U10>0.0) && Etot>0.0)
     {
-        st4s.calm();
-        st4s.add(N, k, cg, fa, fb, wa, wb, P, D);
+    st4s.calm();
+    st4s.add(N,k,cg,fa,fb,wa,wb,P,D);
     }
 
     if(prm.st4)
-        st4s.unlag();
+    st4s.unlag();
 }
 
 void seastate_source::project(float *N, const float *k, const float *cg, int ma, int mb) const
 {
-    if(prm.st4 && prm.wind && prm.U10 > 0.0)
-        st4s.project(N, k, cg, ma, mb);
+    if(prm.st4 && prm.wind && prm.U10>0.0)
+    st4s.project(N,k,cg,ma,mb);
 }
 
 void seastate_source::vegetation(const float *N, double depth, const float *k, double *D)
 {
     const double grav = seastate_gravity;
-    const double cdn = prm.vcd * prm.vd * prm.vn;
+    const double cdn = prm.vcd*prm.vd*prm.vn;
 
     // Dalrymple et al. (1984), Suzuki et al. (2011): IVEG 1
-    if(prm.vegetation == 1)
+    if(prm.vegetation==1)
     {
-        if(!(km_wam > 0.0) || !(sigm01 > 0.0))
-            return;
+    if(!(km_wam>0.0) || !(sigm01>0.0))
+    return;
 
-        const double kd = km_wam * depth;
-        if(kd > 10.0)
-            return;
+    const double kd = km_wam*depth;
+    if(kd>10.0)
+    return;
 
-        const double ch = std::cosh(kd);
-        const double c = 3.0 * km_wam * ch * ch * ch;
-        const double kos = km_wam / sigm01;
-        const double sv1 = std::sqrt(2.0 / pi) * grav * grav * kos * kos * kos * std::sqrt(Etot) / c;
-        const double sh = std::sinh(km_wam * std::min(prm.vh, depth));
-        const double sv = sv1 * cdn * (sh * sh * sh + 3.0 * sh);
+    const double ch = std::cosh(kd);
+    const double c = 3.0*km_wam*ch*ch*ch;
+    const double kos = km_wam/sigm01;
+    const double sv1 = std::sqrt(2.0/pi)*grav*grav*kos*kos*kos*std::sqrt(Etot)/c;
+    const double sh = std::sinh(km_wam*std::min(prm.vh,depth));
+    const double sv = sv1*cdn*(sh*sh*sh + 3.0*sh);
 
-        for(int l = fa; l <= fb; ++l)
-            for(int m = wa; m <= wb; ++m)
-                D[g.bin(l, m)] += sv;
+        for(int l=fa; l<=fb; ++l)
+        for(int m=wa; m<=wb; ++m)
+        D[g.bin(l,m)] += sv;
 
-        return;
+    return;
     }
 
     // Jacobsen et al. (2019): IVEG 2, Simpson over the height of the canopy (20 intervals)
     const int nip = 20;
-    const double sv1 = std::sqrt(2.0 / pi) / grav * cdn;
-    const double dz = std::min(prm.vh, depth) / double(nip);
+    const double sv1 = std::sqrt(2.0/pi)/grav*cdn;
+    const double dz = std::min(prm.vh,depth)/double(nip);
 
     // energy per frequency E(sig) dsig
-    for(int l = 0; l < nsig; ++l)
+    for(int l=0; l<nsig; ++l)
     {
-        double s = 0.0;
-        const float *Nl = N + g.bin(l, 0);
-        for(int m = 0; m < ndir; ++m)
-            s += double(Nl[m]) * g.wth[m];
-        VE[l] = s * g.sig[l] * g.dsig[l] * g.dtheta;
+    double s = 0.0;
+    const float *Nl = N + g.bin(l,0);
+    for(int m=0; m<ndir; ++m)
+    s += double(Nl[m])*g.wth[m];
+    VE[l] = s*g.sig[l]*g.dsig[l]*g.dtheta;
     }
 
     std::vector<double> &sv = VS;
-    std::fill(sv.begin(), sv.end(), 0.0);
+    std::fill(sv.begin(),sv.end(),0.0);
 
-    for(int ik = 0; ik <= nip; ++ik)
+    for(int ik=0; ik<=nip; ++ik)
     {
-        const double zh = dz * double(ik);
-        double mu = 0.0;
+    const double zh = dz*double(ik);
+    double mu = 0.0;
 
-        for(int l = 0; l < nsig; ++l)
+        for(int l=0; l<nsig; ++l)
         {
-            const double kl = double(k[l]), kd = kl * depth;
-            const double fdd = (kd < 20.0) ? g.sig[l] * std::cosh(kl * zh) / std::sinh(kd) : g.sig[l] * std::exp(kl * (zh - depth));
-            VQ[l] = fdd * fdd;
-            mu += VQ[l] * VE[l];
+        const double kl = double(k[l]), kd = kl*depth;
+        const double fdd = (kd<20.0) ? g.sig[l]*std::cosh(kl*zh)/std::sinh(kd) : g.sig[l]*std::exp(kl*(zh-depth));
+        VQ[l] = fdd*fdd;
+        mu += VQ[l]*VE[l];
         }
 
-        const double w = (ik == 0 || ik == nip) ? 1.0 / 3.0 : ((ik % 2 == 0) ? 2.0 / 3.0 : 4.0 / 3.0);
-        const double smu = std::sqrt(mu);
+    const double w = (ik==0 || ik==nip) ? 1.0/3.0 : ((ik%2==0) ? 2.0/3.0 : 4.0/3.0);
+    const double smu = std::sqrt(mu);
 
-        for(int l = 0; l < nsig; ++l)
-            sv[l] += w * VQ[l] * smu;
+    for(int l=0; l<nsig; ++l)
+    sv[l] += w*VQ[l]*smu;
     }
 
-    for(int l = fa; l <= fb; ++l)
+    for(int l=fa; l<=fb; ++l)
     {
-        const double v = sv1 * sv[l] * dz;
-        for(int m = wa; m <= wb; ++m)
-            D[g.bin(l, m)] += v;
+    const double v = sv1*sv[l]*dz;
+    for(int m=wa; m<=wb; ++m)
+    D[g.bin(l,m)] += v;
     }
 }
 
 void seastate_source::split(const float *N, double *P, double *D)
 {
-    for(int l = fa; l <= fb; ++l)
+    for(int l=fa; l<=fb; ++l)
     {
-        const int b0 = g.bin(l, wa), nw = wb - wa + 1;
-        const float *Nl = N + b0;
-        const double *Sl = S.data() + b0, *Ll = L.data() + b0;
-        double *Pl = P + b0, *Dl = D + b0;
+    const int b0 = g.bin(l,wa), nw = wb-wa+1;
+    const float *Nl = N+b0;
+    const double *Sl = S.data()+b0, *Ll = L.data()+b0;
+    double *Pl = P+b0, *Dl = D+b0;
 
-#pragma GCC ivdep
-        for(int n = 0; n < nw; ++n)
+        #pragma GCC ivdep
+        for(int n=0; n<nw; ++n)
         {
-            const double s = Sl[n], lv = Ll[n], v = double(Nl[n]);
-            const double neg = (s < 0.0 && v > 0.0) ? -s / (v > 0.0 ? v : 1.0) : 0.0;
-            const double ln = lv < 0.0 ? lv : 0.0;
+        const double s = Sl[n], lv = Ll[n], v = double(Nl[n]);
+        const double neg = (s<0.0 && v>0.0) ? -s/(v>0.0 ? v : 1.0) : 0.0;
+        const double ln = lv<0.0 ? lv : 0.0;
 
-            Pl[n] += (s > 0.0 ? s : 0.0) - ln * v;
-            Dl[n] += neg - ln;
+        Pl[n] += (s>0.0 ? s : 0.0) - ln*v;
+        Dl[n] += neg - ln;
         }
     }
 }
 
 void seastate_source::quadruplets(const float *N, double depth, const float *k, double *Sout, double *dSdN)
 {
-    moments(N, depth, k);
+    moments(N,depth,k);
     wa = 0;
-    wb = ndir - 1;
+    wb = ndir-1;
     fa = 0;
-    fb = nsig - 1;
-    std::fill(S.begin(), S.end(), 0.0);
-    std::fill(L.begin(), L.end(), 0.0);
+    fb = nsig-1;
+    std::fill(S.begin(),S.end(),0.0);
+    std::fill(L.begin(),L.end(),0.0);
 
-    if(Etot > 0.0)
-        dia(N, depth);
+    if(Etot>0.0)
+    dia(N,depth);
 
-    std::copy(S.begin(), S.end(), Sout);
+    std::copy(S.begin(),S.end(),Sout);
 
-    if(dSdN != nullptr)
-        std::copy(L.begin(), L.end(), dSdN);
+    if(dSdN!=nullptr)
+    std::copy(L.begin(),L.end(),dSdN);
 }
 
 void seastate_source::triads(const float *N, double depth, const float *k, const float *cg, double *Sout)
 {
-    moments(N, depth, k);
+    moments(N,depth,k);
     wa = 0;
-    wb = ndir - 1;
+    wb = ndir-1;
     fa = 0;
-    fb = nsig - 1;
-    std::fill(S.begin(), S.end(), 0.0);
+    fb = nsig-1;
+    std::fill(S.begin(),S.end(),0.0);
 
-    if(Etot > 0.0)
-        lta(N, depth, k, cg);
+    if(Etot>0.0)
+    lta(N,depth,k,cg);
 
-    std::copy(S.begin(), S.end(), Sout);
+    std::copy(S.begin(),S.end(),Sout);
 }
 
 // DIA (SWAN SWSNL1): S(f,theta) for E(f,theta) = 2 pi sig N, converted to dN/dt
@@ -684,131 +685,151 @@ void seastate_source::dia(const float *N, double depth)
 {
     const double grav = seastate_gravity;
     const double fachfr = pw_fachfr;
-    const int lhi = nsig - 1 - ism1 + isp1;  // last row of UE
-    const int shi = nsig - 1 - ism1;         // last row of SA
+    const int lhi = nsig - 1 - ism1 + isp1;     // last row of UE
+    const int shi = nsig - 1 - ism1;            // last row of SA
 
     // rows and directions of SA needed by the transfers of the window
-    const int l0 = std::max(0, fa - isp1), l1 = std::min(shi, fb - ism1);
-    const int m0 = wa - dpad, m1 = wb + dpad;
+    const int l0 = std::max(0,fa-isp1), l1 = std::min(shi,fb-ism1);
+    const int m0 = wa-dpad, m1 = wb+dpad;
 
     // E for the rows and directions that these SA read (Phase 15: before, every row and direction of the spectrum in
     // every call; the same values): rows l0+ism1 .. l1+isp1, directions m0-dpad .. m1+dpad, continued periodically or
     // (compact sector, A 717) zero beyond the ends; above the grid the sig^-4 tail of the row below
-    const int ua = std::max(ism1, l0 + ism1), ub = std::min(lhi, l1 + isp1);
+    const int ua = std::max(ism1,l0+ism1), ub = std::min(lhi,l1+isp1);
     const bool per = g.periodic;
     // Phase 21b: on a compact sector (A 717, not periodic) E and SA beyond the ends of the sector are zero: they keep the
     // zeros of the allocation and are neither filled nor computed (the same values)
-    const int ma = per ? std::max(m0 - dpad, -2 * dpad) : std::max(m0 - dpad, 0);
-    const int mb = per ? std::min(m1 + dpad, ndir + 2 * dpad - 1) : std::min(m1 + dpad, ndir - 1);
-    const int s0 = per ? m0 : std::max(m0, 0), s1 = per ? m1 : std::min(m1, ndir - 1), ns = s1 - s0 + 1;
+    const int ma = per ? std::max(m0-dpad,-2*dpad) : std::max(m0-dpad,0);
+    const int mb = per ? std::min(m1+dpad,ndir+2*dpad-1) : std::min(m1+dpad,ndir-1);
+    const int s0 = per ? m0 : std::max(m0,0), s1 = per ? m1 : std::min(m1,ndir-1), ns = s1-s0+1;
 
-    for(int l = ua; l <= ub; ++l)
+    for(int l=ua; l<=ub; ++l)
     {
-        double *u = &ue(l, 0);
+    double *u = &ue(l,0);
 
-        if(l < 0)
+        if(l<0)
         {
-            for(int m = ma; m <= mb; ++m)
-                u[m] = 0.0;
+        for(int m=ma; m<=mb; ++m)
+        u[m] = 0.0;
         }
-        else if(l < nsig)
+        else if(l<nsig)
         {
-            const double tps = 2.0 * pi * g.sig[l];
-            const float *Nl = N + g.bin(l, 0);
-            for(int m = ma; m <= mb; ++m)
+        const double tps = 2.0*pi*g.sig[l];
+        const float *Nl = N + g.bin(l,0);
+            for(int m=ma; m<=mb; ++m)
             {
-                const int mm = per ? dw(m) : m;
-                u[m] = (mm >= 0 && mm < ndir) ? tps * double(Nl[mm]) : 0.0;
+            const int mm = per ? dw(m) : m;
+            u[m] = (mm>=0 && mm<ndir) ? tps*double(Nl[mm]) : 0.0;
             }
         }
         else
         {
-            const double *ul = &ue(l - 1, 0);
-            for(int m = ma; m <= mb; ++m)
-                u[m] = ul[m] * fachfr;
+        const double *ul = &ue(l-1,0);
+        for(int m=ma; m<=mb; ++m)
+        u[m] = ul[m]*fachfr;
         }
     }
 
-    const double x = std::max(0.75 * depth * km_wam, 0.5);
-    const double cons = 1.0 / (grav * grav * grav * grav) * (1.0 + dia_cs1 / x * (1.0 - dia_cs2 * x) * std::exp(std::max(-1.0e15, dia_cs3 * x)));
+    const double x = std::max(0.75*depth*km_wam,0.5);
+    const double cons = 1.0/(grav*grav*grav*grav)*(1.0 + dia_cs1/x*(1.0-dia_cs2*x)*std::exp(std::max(-1.0e15,dia_cs3*x)));
     const double C = dia_C;
 
-    for(int l = l0; l <= l1; ++l)
+    for(int l=l0; l<=l1; ++l)
     {
-        const double ca = cons * af11[l];
-        const double *__restrict u00 = &ue(l, s0);
-        const double *__restrict up1 = &ue(l + isp1, s0), *__restrict up0 = &ue(l + isp, s0);
-        const double *__restrict um1 = &ue(l + ism1, s0), *__restrict um0 = &ue(l + ism, s0);
-        double *__restrict s1 = &sa1(l, s0), *__restrict s2 = &sa2(l, s0);
-        const size_t x0 = sx(l, s0);
-        double *__restrict d1c = &DA1C[x0], *__restrict d1p = &DA1P[x0], *__restrict d1m = &DA1M[x0];
-        double *__restrict d2c = &DA2C[x0], *__restrict d2p = &DA2P[x0], *__restrict d2m = &DA2M[x0];
+    const double ca = cons*af11[l];
+    const double *__restrict u00 = &ue(l,s0);
+    const double *__restrict up1 = &ue(l+isp1,s0), *__restrict up0 = &ue(l+isp,s0);
+    const double *__restrict um1 = &ue(l+ism1,s0), *__restrict um0 = &ue(l+ism,s0);
+    double *__restrict s1 = &sa1(l,s0), *__restrict s2 = &sa2(l,s0);
+    const size_t x0 = sx(l,s0);
+    double *__restrict d1c = &DA1C[x0], *__restrict d1p = &DA1P[x0], *__restrict d1m = &DA1M[x0];
+    double *__restrict d2c = &DA2C[x0], *__restrict d2p = &DA2P[x0], *__restrict d2m = &DA2M[x0];
 
-#pragma GCC ivdep
-        for(int n = 0; n < ns; ++n)
+        #pragma GCC ivdep
+        for(int n=0; n<ns; ++n)
         {
-            const double e00 = u00[n];
+        const double e00 = u00[n];
 
-            const double ep1 = awg[0] * up1[n + idp1] + awg[1] * up1[n + idp] + awg[2] * up0[n + idp1] + awg[3] * up0[n + idp];
-            const double em1 = awg[4] * um1[n - idm1] + awg[5] * um1[n - idm] + awg[6] * um0[n - idm1] + awg[7] * um0[n - idm];
-            const double ep2 = awg[0] * up1[n - idp1] + awg[1] * up1[n - idp] + awg[2] * up0[n - idp1] + awg[3] * up0[n - idp];
-            const double em2 = awg[4] * um1[n + idm1] + awg[5] * um1[n + idm] + awg[6] * um0[n + idm1] + awg[7] * um0[n + idm];
+        const double ep1 = awg[0]*up1[n+idp1] + awg[1]*up1[n+idp]
+                         + awg[2]*up0[n+idp1] + awg[3]*up0[n+idp];
+        const double em1 = awg[4]*um1[n-idm1] + awg[5]*um1[n-idm]
+                         + awg[6]*um0[n-idm1] + awg[7]*um0[n-idm];
+        const double ep2 = awg[0]*up1[n-idp1] + awg[1]*up1[n-idp]
+                         + awg[2]*up0[n-idp1] + awg[3]*up0[n-idp];
+        const double em2 = awg[4]*um1[n+idm1] + awg[5]*um1[n+idm]
+                         + awg[6]*um0[n+idm1] + awg[7]*um0[n+idm];
 
-            const double factor = ca * e00;
-            const double sa1a = e00 * (ep1 * dal1 + em1 * dal2) * C;
-            const double sa1b = sa1a - ep1 * em1 * dal3 * C;
-            const double sa2a = e00 * (ep2 * dal1 + em2 * dal2) * C;
-            const double sa2b = sa2a - ep2 * em2 * dal3 * C;
+        const double factor = ca*e00;
+        const double sa1a = e00*(ep1*dal1 + em1*dal2)*C;
+        const double sa1b = sa1a - ep1*em1*dal3*C;
+        const double sa2a = e00*(ep2*dal1 + em2*dal2)*C;
+        const double sa2b = sa2a - ep2*em2*dal3*C;
 
-            // derivatives with respect to E00, E+ and E- (SWAN DA1C, DA1P, DA1M, ...); zero where E00 = 0
-            const bool on = e00 > 0.0;
-            s1[n] = on ? factor * sa1b : 0.0;
-            s2[n] = on ? factor * sa2b : 0.0;
-            d1c[n] = on ? ca * (sa1a + sa1b) : 0.0;
-            d1p[n] = on ? factor * (dal1 * e00 - dal3 * em1) * C : 0.0;
-            d1m[n] = on ? factor * (dal2 * e00 - dal3 * ep1) * C : 0.0;
-            d2c[n] = on ? ca * (sa2a + sa2b) : 0.0;
-            d2p[n] = on ? factor * (dal1 * e00 - dal3 * em2) * C : 0.0;
-            d2m[n] = on ? factor * (dal2 * e00 - dal3 * ep2) * C : 0.0;
+        // derivatives with respect to E00, E+ and E- (SWAN DA1C, DA1P, DA1M, ...); zero where E00 = 0
+        const bool on = e00>0.0;
+        s1[n]  = on ? factor*sa1b : 0.0;
+        s2[n]  = on ? factor*sa2b : 0.0;
+        d1c[n] = on ? ca*(sa1a + sa1b) : 0.0;
+        d1p[n] = on ? factor*(dal1*e00 - dal3*em1)*C : 0.0;
+        d1m[n] = on ? factor*(dal2*e00 - dal3*ep1)*C : 0.0;
+        d2c[n] = on ? ca*(sa2a + sa2b) : 0.0;
+        d2p[n] = on ? factor*(dal1*e00 - dal3*em2)*C : 0.0;
+        d2m[n] = on ? factor*(dal2*e00 - dal3*ep2)*C : 0.0;
         }
     }
 
     double swg[8];
-    for(int n = 0; n < 8; ++n)
-        swg[n] = awg[n] * awg[n];
+    for(int n=0; n<8; ++n)
+    swg[n] = awg[n]*awg[n];
 
     // the transfers into the bins of the window of this compute (the quadrant of the sweep)
-    const int nw = wb - wa + 1;
+    const int nw = wb-wa+1;
 
-    for(int l = fa; l <= fb; ++l)
+    for(int l=fa; l<=fb; ++l)
     {
-        const double rsigpi = 1.0 / (2.0 * pi * g.sig[l]);
+    const double rsigpi = 1.0/(2.0*pi*g.sig[l]);
 
-        const double *__restrict a1 = &sa1(l, wa), *__restrict a2 = &sa2(l, wa);
-        const double *__restrict a1p1 = &sa1(l - isp1, wa), *__restrict a2p1 = &sa2(l - isp1, wa);
-        const double *__restrict a1p0 = &sa1(l - isp, wa), *__restrict a2p0 = &sa2(l - isp, wa);
-        const double *__restrict a1m1 = &sa1(l - ism1, wa), *__restrict a2m1 = &sa2(l - ism1, wa);
-        const double *__restrict a1m0 = &sa1(l - ism, wa), *__restrict a2m0 = &sa2(l - ism, wa);
+    const double *__restrict a1  = &sa1(l,wa),      *__restrict a2  = &sa2(l,wa);
+    const double *__restrict a1p1 = &sa1(l-isp1,wa), *__restrict a2p1 = &sa2(l-isp1,wa);
+    const double *__restrict a1p0 = &sa1(l-isp,wa),  *__restrict a2p0 = &sa2(l-isp,wa);
+    const double *__restrict a1m1 = &sa1(l-ism1,wa), *__restrict a2m1 = &sa2(l-ism1,wa);
+    const double *__restrict a1m0 = &sa1(l-ism,wa),  *__restrict a2m0 = &sa2(l-ism,wa);
 
-        const double *__restrict c1 = &DA1C[sx(l, wa)], *__restrict c2 = &DA2C[sx(l, wa)];
-        const double *__restrict p1p1 = &DA1P[sx(l - isp1, wa)], *__restrict p2p1 = &DA2P[sx(l - isp1, wa)];
-        const double *__restrict p1p0 = &DA1P[sx(l - isp, wa)], *__restrict p2p0 = &DA2P[sx(l - isp, wa)];
-        const double *__restrict m1m1 = &DA1M[sx(l - ism1, wa)], *__restrict m2m1 = &DA2M[sx(l - ism1, wa)];
-        const double *__restrict m1m0 = &DA1M[sx(l - ism, wa)], *__restrict m2m0 = &DA2M[sx(l - ism, wa)];
+    const double *__restrict c1 = &DA1C[sx(l,wa)], *__restrict c2 = &DA2C[sx(l,wa)];
+    const double *__restrict p1p1 = &DA1P[sx(l-isp1,wa)], *__restrict p2p1 = &DA2P[sx(l-isp1,wa)];
+    const double *__restrict p1p0 = &DA1P[sx(l-isp,wa)],  *__restrict p2p0 = &DA2P[sx(l-isp,wa)];
+    const double *__restrict m1m1 = &DA1M[sx(l-ism1,wa)], *__restrict m2m1 = &DA2M[sx(l-ism1,wa)];
+    const double *__restrict m1m0 = &DA1M[sx(l-ism,wa)],  *__restrict m2m0 = &DA2M[sx(l-ism,wa)];
 
-        double *__restrict Sl = &S[g.bin(l, wa)], *__restrict Ll = &L[g.bin(l, wa)];
+    double *__restrict Sl = &S[g.bin(l,wa)], *__restrict Ll = &L[g.bin(l,wa)];
 
-#pragma GCC ivdep
-        for(int n = 0; n < nw; ++n)
+        #pragma GCC ivdep
+        for(int n=0; n<nw; ++n)
         {
-            const double sfnl = -2.0 * (a1[n] + a2[n]) + awg[0] * (a1p1[n - idp1] + a2p1[n + idp1]) + awg[1] * (a1p1[n - idp] + a2p1[n + idp]) + awg[2] * (a1p0[n - idp1] + a2p0[n + idp1]) + awg[3] * (a1p0[n - idp] + a2p0[n + idp]) + awg[4] * (a1m1[n + idm1] + a2m1[n - idm1]) + awg[5] * (a1m1[n + idm] + a2m1[n - idm]) + awg[6] * (a1m0[n + idm1] + a2m0[n - idm1]) + awg[7] * (a1m0[n + idm] + a2m0[n - idm]);
+        const double sfnl = -2.0*(a1[n] + a2[n])
+            + awg[0]*(a1p1[n-idp1] + a2p1[n+idp1])
+            + awg[1]*(a1p1[n-idp ] + a2p1[n+idp ])
+            + awg[2]*(a1p0[n-idp1] + a2p0[n+idp1])
+            + awg[3]*(a1p0[n-idp ] + a2p0[n+idp ])
+            + awg[4]*(a1m1[n+idm1] + a2m1[n-idm1])
+            + awg[5]*(a1m1[n+idm ] + a2m1[n-idm ])
+            + awg[6]*(a1m0[n+idm1] + a2m0[n-idm1])
+            + awg[7]*(a1m0[n+idm ] + a2m0[n-idm ]);
 
-            Sl[n] += sfnl * rsigpi;
+        Sl[n] += sfnl*rsigpi;
 
-            // diagonal derivative dS/dN = d sfnl/dE(f,theta) (SWAN DSNL)
-            const double dsnl = -2.0 * (c1[n] + c2[n]) + swg[0] * (p1p1[n - idp1] + p2p1[n + idp1]) + swg[1] * (p1p1[n - idp] + p2p1[n + idp]) + swg[2] * (p1p0[n - idp1] + p2p0[n + idp1]) + swg[3] * (p1p0[n - idp] + p2p0[n + idp]) + swg[4] * (m1m1[n + idm1] + m2m1[n - idm1]) + swg[5] * (m1m1[n + idm] + m2m1[n - idm]) + swg[6] * (m1m0[n + idm1] + m2m0[n - idm1]) + swg[7] * (m1m0[n + idm] + m2m0[n - idm]);
+        // diagonal derivative dS/dN = d sfnl/dE(f,theta) (SWAN DSNL)
+        const double dsnl = -2.0*(c1[n] + c2[n])
+            + swg[0]*(p1p1[n-idp1] + p2p1[n+idp1])
+            + swg[1]*(p1p1[n-idp ] + p2p1[n+idp ])
+            + swg[2]*(p1p0[n-idp1] + p2p0[n+idp1])
+            + swg[3]*(p1p0[n-idp ] + p2p0[n+idp ])
+            + swg[4]*(m1m1[n+idm1] + m2m1[n-idm1])
+            + swg[5]*(m1m1[n+idm ] + m2m1[n-idm ])
+            + swg[6]*(m1m0[n+idm1] + m2m0[n-idm1])
+            + swg[7]*(m1m0[n+idm ] + m2m0[n-idm ]);
 
-            Ll[n] += dsnl;
+        Ll[n] += dsnl;
         }
     }
 }
@@ -816,71 +837,71 @@ void seastate_source::dia(const float *N, double depth)
 // LTA (original SWAN LTA, SWLTA with ITRIAD 11): self-self sum interactions
 void seastate_source::lta(const float *N, double depth, const float *k, const float *cg)
 {
-    if(!(ursell >= prm.urslim) || depth <= 0.0 || sigm01 <= 0.0)
-        return;
+    if(!(ursell>=prm.urslim) || depth<=0.0 || sigm01<=0.0)
+    return;
 
     const double grav = seastate_gravity;
-    const double biph = 0.5 * pi * (std::tanh(prm.urcrit / ursell) - 1.0);
+    const double biph = 0.5*pi*(std::tanh(prm.urcrit/ursell) - 1.0);
     const double sinbph = std::sin(-biph);
 
     // last sum frequency below cutfr sig_01
     int ismax = -1;
-    for(int l = 0; l < nsig; ++l)
-        if(g.sig[l] < prm.cutfr * sigm01)
-            ismax = l;
+    for(int l=0; l<nsig; ++l)
+    if(g.sig[l]<prm.cutfr*sigm01)
+    ismax = l;
 
-    if(ismax < 0)
-        return;
+    if(ismax<0)
+    return;
 
     // interaction coefficient alpha c cg J^2 (Madsen and Sorensen 1993)
     std::vector<double> &q = TQ;
-    std::fill(q.begin(), q.end(), 0.0);
+    std::fill(q.begin(),q.end(),0.0);
 
-    const double d2 = depth * depth, d3 = d2 * depth;
+    const double d2 = depth*depth, d3 = d2*depth;
 
-    for(int l = 0; l <= ismax; ++l)
-        if(l + tsm1 >= 0)
+    for(int l=0; l<=ismax; ++l)
+    if(l+tsm1>=0)
+    {
+    const double w0  = g.sig[l];
+    const double wn0 = double(k[l]);
+    const double c0  = w0/wn0;
+    const double wm  = twm*g.sig[l+tsm1] + twm1*g.sig[l+tsm];
+    const double wnm = twm*double(k[l+tsm1]) + twm1*double(k[l+tsm]);
+
+        if(wnm<=0.0 || wn0<=0.0)
+        continue;
+
+    const double R  = (0.5 + wm*wm/(grav*depth*wnm*wnm))*(2.0*wnm)*(2.0*wnm);
+    const double Sd = (-2.0/grav)*(grav*depth*wn0 + 2.0/15.0*grav*d3*wn0*wn0*wn0 - 2.0/5.0*d2*wn0*w0*w0);
+
+        if(Sd==0.0)
+        continue;
+
+    const double J = R/Sd;
+    q[l] = prm.alphaEB*double(cg[l])*c0*J*J*sinbph;
+    }
+
+    for(int m=wa; m<=wb; ++m)
+    {
+        for(int l=0; l<nsig; ++l)
+        EL[l] = 2.0*pi*g.sig[l]*double(N[g.bin(l,m)]);
+
+        std::fill(SAL.begin(),SAL.end(),0.0);
+
+        for(int l=0; l<=ismax; ++l)
+        if(l+tsm1>=0)
         {
-            const double w0 = g.sig[l];
-            const double wn0 = double(k[l]);
-            const double c0 = w0 / wn0;
-            const double wm = twm * g.sig[l + tsm1] + twm1 * g.sig[l + tsm];
-            const double wnm = twm * double(k[l + tsm1]) + twm1 * double(k[l + tsm]);
+        const double e0 = EL[l];
+        const double em = twm*EL[l+tsm1] + twm1*EL[l+tsm];
 
-            if(wnm <= 0.0 || wn0 <= 0.0)
-                continue;
-
-            const double R = (0.5 + wm * wm / (grav * depth * wnm * wnm)) * (2.0 * wnm) * (2.0 * wnm);
-            const double Sd = (-2.0 / grav) * (grav * depth * wn0 + 2.0 / 15.0 * grav * d3 * wn0 * wn0 * wn0 - 2.0 / 5.0 * d2 * wn0 * w0 * w0);
-
-            if(Sd == 0.0)
-                continue;
-
-            const double J = R / Sd;
-            q[l] = prm.alphaEB * double(cg[l]) * c0 * J * J * sinbph;
+        SAL[l] = std::max(0.0,q[l]*(em*(em-e0) - e0*em));
         }
 
-    for(int m = wa; m <= wb; ++m)
-    {
-        for(int l = 0; l < nsig; ++l)
-            EL[l] = 2.0 * pi * g.sig[l] * double(N[g.bin(l, m)]);
-
-        std::fill(SAL.begin(), SAL.end(), 0.0);
-
-        for(int l = 0; l <= ismax; ++l)
-            if(l + tsm1 >= 0)
-            {
-                const double e0 = EL[l];
-                const double em = twm * EL[l + tsm1] + twm1 * EL[l + tsm];
-
-                SAL[l] = std::max(0.0, q[l] * (em * (em - e0) - e0 * em));
-            }
-
-        for(int l = fa; l <= fb; ++l)
+        for(int l=fa; l<=fb; ++l)
         {
-            const double stri = SAL[l] - 2.0 * (twp * SAL[l + tsp1] + twp1 * SAL[l + tsp]);
+        const double stri = SAL[l] - 2.0*(twp*SAL[l+tsp1] + twp1*SAL[l+tsp]);
 
-            S[g.bin(l, m)] += stri / (2.0 * pi * g.sig[l]);
+        S[g.bin(l,m)] += stri/(2.0*pi*g.sig[l]);
         }
     }
 }

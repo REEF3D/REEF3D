@@ -17,11 +17,10 @@
 namespace Eigen {
 
 namespace internal {
-template<typename VectorType, int Size>
-struct traits<VectorBlock<VectorType, Size>>
+template <typename VectorType, int Size>
+struct traits<VectorBlock<VectorType, Size> >
     : public traits<Block<VectorType, traits<VectorType>::Flags & RowMajorBit ? 1 : Size,
-                          traits<VectorType>::Flags & RowMajorBit ? Size : 1>>
-{};
+                          traits<VectorType>::Flags & RowMajorBit ? Size : 1> > {};
 }  // namespace internal
 
 /** \class VectorBlock
@@ -54,31 +53,29 @@ struct traits<VectorBlock<VectorType, Size>>
  *
  * \sa class Block, DenseBase::segment(Index,Index,Index,Index), DenseBase::segment(Index,Index)
  */
-template<typename VectorType, int Size>
+template <typename VectorType, int Size>
 class VectorBlock : public Block<VectorType, internal::traits<VectorType>::Flags & RowMajorBit ? 1 : Size,
-                                 internal::traits<VectorType>::Flags & RowMajorBit ? Size : 1>
-{
-    typedef Block<VectorType, internal::traits<VectorType>::Flags & RowMajorBit ? 1 : Size,
-                  internal::traits<VectorType>::Flags & RowMajorBit ? Size : 1>
-        Base;
-    enum { IsColVector = !(internal::traits<VectorType>::Flags & RowMajorBit) };
+                                 internal::traits<VectorType>::Flags & RowMajorBit ? Size : 1> {
+  typedef Block<VectorType, internal::traits<VectorType>::Flags & RowMajorBit ? 1 : Size,
+                internal::traits<VectorType>::Flags & RowMajorBit ? Size : 1>
+      Base;
+  enum { IsColVector = !(internal::traits<VectorType>::Flags & RowMajorBit) };
 
-public:
-    EIGEN_DENSE_PUBLIC_INTERFACE(VectorBlock)
-    EIGEN_STATIC_ASSERT_VECTOR_ONLY(VectorBlock)
-    EIGEN_INHERIT_ASSIGNMENT_OPERATORS(VectorBlock)
+ public:
+  EIGEN_DENSE_PUBLIC_INTERFACE(VectorBlock)
+  EIGEN_STATIC_ASSERT_VECTOR_ONLY(VectorBlock)
+  EIGEN_INHERIT_ASSIGNMENT_OPERATORS(VectorBlock)
 
-    /** Dynamic-size constructor
-     */
-    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE VectorBlock(VectorType &vector, Index start, Index size)
-        : Base(vector, IsColVector ? start : 0, IsColVector ? 0 : start, IsColVector ? size : 1, IsColVector ? 1 : size)
-    {
-    }
+  /** Dynamic-size constructor
+   */
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE VectorBlock(VectorType& vector, Index start, Index size)
+      : Base(vector, IsColVector ? start : 0, IsColVector ? 0 : start, IsColVector ? size : 1, IsColVector ? 1 : size) {
+  }
 
-    /** Fixed-size constructor
-     */
-    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE VectorBlock(VectorType &vector, Index start)
-        : Base(vector, IsColVector ? start : 0, IsColVector ? 0 : start) {}
+  /** Fixed-size constructor
+   */
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE VectorBlock(VectorType& vector, Index start)
+      : Base(vector, IsColVector ? start : 0, IsColVector ? 0 : start) {}
 };
 
 }  // end namespace Eigen

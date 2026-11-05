@@ -23,8 +23,8 @@ Author: Hans Bihs
 #ifndef REEFAMR_KRYLOV_H_
 #define REEFAMR_KRYLOV_H_
 
-#include <cmath>
-#include <mpi.h>
+#include<cmath>
+#include<mpi.h>
 
 //  BiCGStab, right preconditioned, for a composite elliptic problem on the leaf cells of
 //  a REEFAMR hierarchy.  The module supplies the vector space S: the vectors live on all
@@ -68,158 +68,109 @@ Author: Hans Bihs
 //  solves are bitwise unchanged.
 
 // default vector indices (a module may use its own)
-enum { REEFAMR_NR = 0,
-       REEFAMR_NRH,
-       REEFAMR_NPV,
-       REEFAMR_NVV,
-       REEFAMR_NS,
-       REEFAMR_NT,
-       REEFAMR_NPH,
-       REEFAMR_NSH,
-       REEFAMR_NTMP,
-       REEFAMR_NVEC };
+enum { REEFAMR_NR=0, REEFAMR_NRH, REEFAMR_NPV, REEFAMR_NVV, REEFAMR_NS, REEFAMR_NT, REEFAMR_NPH, REEFAMR_NSH, REEFAMR_NTMP, REEFAMR_NVEC };
 
 template<class S>
-int reefamr_bicgstab(S &sp, double tol, int maxiter, double &bn, double &rn, double *tprec = nullptr, double *tapply = nullptr,
-                     int *restarts = nullptr, double stagtol = 0.0, int *stalls = nullptr, bool halfexit = false)
+int reefamr_bicgstab(S &sp, double tol, int maxiter, double &bn, double &rn, double *tprec=nullptr, double *tapply=nullptr,
+                     int *restarts=nullptr, double stagtol=0.0, int *stalls=nullptr, bool halfexit=false)
 {
     const int RESTART_WIN = 8;
 
     sp.op_start();
 
-    bn = sqrt(sp.dot(S::B, S::B));
-    rn = sqrt(sp.dot(S::R, S::R));
-    double rho = 1.0, alp = 1.0, om = 1.0;
-    int it = 0;
-    double rbest = rn;
-    int ibest = 0, nostep = 0;
+    bn = sqrt(sp.dot(S::B,S::B));
+    rn = sqrt(sp.dot(S::R,S::R));
+    double rho=1.0, alp=1.0, om=1.0;
+    int it=0;
+    double rbest=rn;
+    int ibest=0, nostep=0;
 
-    if(bn > 0.0)
-        while(rn / bn > tol && it < maxiter)
+    if(bn>0.0)
+    while(rn/bn>tol && it<maxiter)
+    {
+        double rhon = sp.dot(S::RH,S::R);
+
+        if constexpr (requires { sp.op_restart(); })
+        if(it>0 && fabs(rhon)<=1.0e-12*rn*sqrt(sp.dot(S::RH,S::RH)))
         {
-            double rhon = sp.dot(S::RH, S::R);
+            sp.op_restart();
+            rho = alp = om = 1.0;
+            rhon = rn*rn;
+            if(restarts)
+            ++(*restarts);
+        }
 
-            if constexpr(requires { sp.op_restart(); })
-                if(it > 0 && fabs(rhon) <= 1.0e-12 * rn * sqrt(sp.dot(S::RH, S::RH)))
-                {
-                    sp.op_restart();
-                    rho = alp = om = 1.0;
-                    rhon = rn * rn;
-                    if(restarts)
-                        ++(*restarts);
-                }
+        double beta = (rhon/rho)*(alp/om);
+        rho = rhon;
 
-            double beta = (rhon / rho) * (alp / om);
-            rho = rhon;
+        sp.op_p(beta,om);
 
-            sp.op_p(beta, om);
+        double ta = MPI_Wtime();
+        sp.prec(S::PV,S::PH);
+        double tb = MPI_Wtime();
+        sp.apply(S::PH,S::VV);
+        if(tprec)  *tprec += tb-ta;
+        if(tapply) *tapply += MPI_Wtime()-tb;
+        alp = rho/sp.dot(S::RH,S::VV);
 
-            double ta = MPI_Wtime();
-            sp.prec(S::PV, S::PH);
-            double tb = MPI_Wtime();
-            sp.apply(S::PH, S::VV);
-            if(tprec)
-                *tprec += tb - ta;
-            if(tapply)
-                *tapply += MPI_Wtime() - tb;
-            alp = rho / sp.dot(S::RH, S::VV);
+        sp.op_s(alp);
 
-            sp.op_s(alp);
-
-            if(halfexit)
+        if(halfexit)
+        {
+            const double sn = sqrt(sp.dot(S::S,S::S));
+            if(sn/bn<=tol)
             {
-                const double sn = sqrt(sp.dot(S::S, S::S));
-                if(sn / bn <= tol)
+                sp.op_x(alp,0.0);
+                rn = sn;
+                ++it;
+                break;
+            }
+        }
+
+        ta = MPI_Wtime();
+        sp.prec(S::S,S::SH);
+        tb = MPI_Wtime();
+        sp.apply(S::SH,S::T);
+        if(tprec)  *tprec += tb-ta;
+        if(tapply) *tapply += MPI_Wtime()-tb;
+        double tt = sp.dot(S::T,S::T);
+        om = tt>0.0 ? sp.dot(S::T,S::S)/tt : 0.0;
+
+        sp.op_x(alp,om);
+
+        rn = sqrt(sp.dot(S::R,S::R));
+        ++it;
+
+        if constexpr (requires { sp.op_restart(); })
+        {
+            if(rn<0.95*rbest)
+            {
+                rbest = rn;
+                ibest = it;
+                nostep = 0;
+            }
+            else if(it-ibest>=RESTART_WIN && rn/bn>tol)
+            {
+                // stagnated again after a restart, close enough: stop
+                if(nostep>0 && rn/bn<=stagtol)
                 {
-                    sp.op_x(alp, 0.0);
-                    rn = sn;
-                    ++it;
+                    if(stalls)
+                    ++(*stalls);
                     break;
                 }
+
+                ++nostep;
+                sp.op_restart();
+                rho = alp = om = 1.0;
+                rbest = rn;
+                ibest = it;
+                if(restarts)
+                ++(*restarts);
             }
-
-            ta = MPI_Wtime();
-            sp.prec(S::S, S::SH);
-            tb = MPI_Wtime();
-            sp.apply(S::SH, S::T);
-            if(tprec)
-                *tprec += tb - ta;
-            if(tapply)
-                *tapply += MPI_Wtime() - tb;
-            double tt = sp.dot(S::T, S::T);
-            om = tt > 0.0 ? sp.dot(S::T, S::S) / tt : 0.0;
-
-            sp.op_x(alp, om);
-
-            rn = sqrt(sp.dot(S::R, S::R));
-            ++it;
-
-            if constexpr(requires { sp.op_restart(); })
-            {
-                double rhon = sp.dot(S::RH, S::R);
-                double beta = (rhon / rho) * (alp / om);
-                rho = rhon;
-
-                sp.op_p(beta, om);
-
-                double ta = MPI_Wtime();
-                sp.prec(S::PV, S::PH);
-                double tb = MPI_Wtime();
-                sp.apply(S::PH, S::VV);
-                if(tprec)
-                    *tprec += tb - ta;
-                if(tapply)
-                    *tapply += MPI_Wtime() - tb;
-                alp = rho / sp.dot(S::RH, S::VV);
-
-                sp.op_s(alp);
-
-                ta = MPI_Wtime();
-                sp.prec(S::S, S::SH);
-                tb = MPI_Wtime();
-                sp.apply(S::SH, S::T);
-                if(tprec)
-                    *tprec += tb - ta;
-                if(tapply)
-                    *tapply += MPI_Wtime() - tb;
-                double tt = sp.dot(S::T, S::T);
-                om = tt > 0.0 ? sp.dot(S::T, S::S) / tt : 0.0;
-
-                sp.op_x(alp, om);
-
-                rn = sqrt(sp.dot(S::R, S::R));
-                ++it;
-
-                if constexpr(requires { sp.op_restart(); })
-                {
-                    if(rn < 0.95 * rbest)
-                    {
-                        rbest = rn;
-                        ibest = it;
-                        nostep = 0;
-                    }
-                    else if(it - ibest >= RESTART_WIN && rn / bn > tol)
-                    {
-                        // stagnated again after a restart, close enough: stop
-                        if(nostep > 0 && rn / bn <= stagtol)
-                        {
-                            if(stalls)
-                                ++(*stalls);
-                            break;
-                        }
-
-                        ++nostep;
-                        sp.op_restart();
-                        rho = alp = om = 1.0;
-                        rbest = rn;
-                        ibest = it;
-                        if(restarts)
-                            ++(*restarts);
-                    }
-                }
-            }
-
-            return it;
         }
+    }
+
+    return it;
+}
 
 #endif

@@ -23,10 +23,10 @@ Architect: Hans Bihs
 #ifndef SEASTATE_VTP_H_
 #define SEASTATE_VTP_H_
 
-#include "increment.h"
-#include "vtp3D.h"
-#include <string>
-#include <vector>
+#include"increment.h"
+#include"vtp3D.h"
+#include<string>
+#include<vector>
 
 class lexer;
 class fdm_seastate;
@@ -50,32 +50,28 @@ REEF3D::SEASTATE - VTP output of the integrated wave parameters on the
 class seastate_vtp : public increment, private vtp3D
 {
 public:
-    seastate_vtp(lexer *, fdm_seastate *, ghostcell *, bool coupled = false);
+    seastate_vtp(lexer*,fdm_seastate*,ghostcell*,bool coupled=false);
     virtual ~seastate_vtp() = default;
 
-    void start(lexer *, fdm_seastate *, ghostcell *);
-    void print2D(lexer *, fdm_seastate *, ghostcell *);
+    void start(lexer*,fdm_seastate*,ghostcell*);
+    void print2D(lexer*,fdm_seastate*,ghostcell*);
 
     // additional cell-centred field, printed after the standard ones (nodal: mean of the active cells)
-    void add_field(const char *fname, slice *f)
-    {
-        xname.push_back(fname);
-        xfield.push_back(f);
-    }
+    void add_field(const char *fname, slice *f) {xname.push_back(fname); xfield.push_back(f);}
 
 private:
-    void pvtp(lexer *, int);
-    float node_wet(lexer *, fdm_seastate *, slice &);
-    void write_scalar(lexer *, fdm_seastate *, slice &, ofstream &);
+    void pvtp(lexer*,int);
+    float node_wet(lexer*,fdm_seastate*,slice&);
+    void write_scalar(lexer*,fdm_seastate*,slice&,ofstream&);
 
     char name[200];
 
-    bool own;  // coupled run: own print counter, the host's print time and counter untouched
+    bool own;           // coupled run: own print counter, the host's print time and counter untouched
     int ownprint;
 
     std::vector<std::string> xname;
-    std::vector<slice *> xfield;
-    int n, iin, offset[200];
+    std::vector<slice*> xfield;
+    int n,iin,offset[200];
     float ffn;
 
     static const int nscalar = 8;

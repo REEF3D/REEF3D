@@ -55,7 +55,7 @@ public:
     };
 
     // path: the store directory, e.g. "./REEF3D_FNPF.lagoon"
-    lagoon_store(const std::string &path, int shard_time = 16, int gzip_level = 1);
+    lagoon_store(const std::string &path, int shard_time=16, int gzip_level=1);
 
     // rank 0, once: the root group (run_json: the run log's run record, or "")
     void create_root(const std::string &solver, const std::string &run_json);
@@ -81,7 +81,7 @@ public:
                        const std::vector<double> &levels,
                        const std::vector<variable> &variables,
                        int blocks, const std::string &source,
-                       const std::vector<double> *xc = nullptr, const std::vector<double> *yc = nullptr);
+                       const std::vector<double> *xc=nullptr, const std::vector<double> *yc=nullptr);
 
     // every rank, once per output stream: its block (i0, j0: index of its first
     // point in x and y; nx, ny: its number of points; nz: levels, 1 for surfaces).
@@ -89,7 +89,7 @@ public:
     // levels k0 ... k0+nz-1 only (CFD splits its grid in z too).
     void create_block(const std::string &output, int block, int i0, int j0,
                       int nx, int ny, int nz, const std::vector<variable> &variables, int rank,
-                      bool cartesian = false, int k0 = 0);
+                      bool cartesian=false, int k0=0);
 
     // every rank, every output t (0, 1, 2, ...): one array of its block.
     // data: nz*ny*nx*components floats, x fastest, then y, then the level, with
@@ -113,7 +113,7 @@ public:
     static std::string json_string(const std::string &text);
 
     // threads that compress the chunks of an array (1: only the calling thread)
-    void set_threads(int n) { threads = n < 1 ? 1 : n; }
+    void set_threads(int n) { threads = n<1 ? 1 : n; }
 
     // the Float32 point arrays and the points of a VTK XML header (appended data):
     // name, components and offset (from the '_' that starts the appended data)
@@ -128,9 +128,9 @@ private:
     struct array_info
     {
         std::string dir;
-        int nz, ny, nx, components;  // shape after the time dimension
-        int cz, cy, cx;              // inner chunk
-        bool levels;                 // has the level dimension
+        int nz, ny, nx, components;   // shape after the time dimension
+        int cz, cy, cx;               // inner chunk
+        bool levels;                  // has the level dimension
         float fill;
     };
 
@@ -138,10 +138,10 @@ private:
     int shard_time;
     int gzip_level;
     int threads = 1;
-    std::map<std::string, array_info> arrays;  // "output/block/name"
-    std::map<std::string, std::vector<double>> times;
-    std::map<std::string, std::vector<long long>> steps;
-    std::map<std::string, std::vector<variable>> block_variables;  // "output/block"
+    std::map<std::string, array_info> arrays;   // "output/block/name"
+    std::map<std::string, std::vector<double> > times;
+    std::map<std::string, std::vector<long long> > steps;
+    std::map<std::string, std::vector<variable> > block_variables;  // "output/block"
 
     void write_array_json(const array_info &a, int nt, const std::string &units,
                           const std::string &name) const;
@@ -158,7 +158,7 @@ class lagoon_bodies
 {
 public:
     lagoon_bodies(const std::string &path, const std::string &solver, const std::string &key,
-                  const std::string &source, const std::string &run_json, int gzip_level = 1);
+                  const std::string &source, const std::string &run_json, int gzip_level=1);
 
     // one output of one body: points vertices (3 per triangle, as REEF3D keeps them),
     // x0 and x as xyz of each point, R (row major) and c as REEF3D moved them.
@@ -186,7 +186,7 @@ private:
     int gzip_level;
     bool ok, started;
     std::map<int, body> bodies;
-    std::map<long long, std::pair<double, long long>> pending;  // row: time, step
+    std::map<long long, std::pair<double, long long> > pending;  // row: time, step
     long long committed;
     lagoon_store store;
 
@@ -210,16 +210,16 @@ public:
         int components = 1, itemsize = 4;
         bool metre = false;
         long long rows = 0;
-        long long shard = 0;               // the shard being filled
-        std::vector<std::string> encoded;  // its full inner chunks
-        std::vector<unsigned char> tail;   // rows of the inner chunk being filled
+        long long shard = 0;                  // the shard being filled
+        std::vector<std::string> encoded;     // its full inner chunks
+        std::vector<unsigned char> tail;      // rows of the inner chunk being filled
     };
 
-    explicit lagoon_rows(int gzip_level = 1) : gzip_level(gzip_level) {}
+    explicit lagoon_rows(int gzip_level=1) : gzip_level(gzip_level) {}
 
     // an empty array in dir; dtype "float32", "float64", "int32" or "int64"
-    static array make(const std::string &dir, const std::string &dtype, int components = 1,
-                      bool metre = false, const std::string &dimension = "row");
+    static array make(const std::string &dir, const std::string &dtype, int components=1,
+                      bool metre=false, const std::string &dimension="row");
 
     // rows (components values each, of the array's type) after its last row; the
     // shard and the array's zarr.json are written
@@ -258,8 +258,8 @@ public:
     // ("particles", "dem", "ice"); cells: "" (points only), "polys" or "lines"
     lagoon_particles(const std::string &path, const std::string &solver, const std::string &key,
                      const std::string &role, const std::string &source, const std::string &run_json,
-                     const std::vector<field> &fields, int gzip_level = 1,
-                     const std::string &cells = "", const std::vector<field> &cell_fields = {});
+                     const std::vector<field> &fields, int gzip_level=1,
+                     const std::string &cells="", const std::vector<field> &cell_fields={});
 
     // one output: n points (xyz), and for each field n*components values, float or
     // int32 as declared, in the order of the fields. Objects: their cells with the
@@ -267,9 +267,9 @@ public:
     // a value per cell. False when it could not be written (no more output to the
     // store then: the VTP files are needed).
     bool output(double time, long long step, size_t n, const float *xyz,
-                const std::vector<const void *> &values,
-                const std::vector<int32_t> &connectivity = {}, const std::vector<int32_t> &offsets = {},
-                const std::vector<const void *> &cell_values = {});
+                const std::vector<const void*> &values,
+                const std::vector<int32_t> &connectivity={}, const std::vector<int32_t> &offsets={},
+                const std::vector<const void*> &cell_values={});
 
     bool usable() const { return ok; }
 
@@ -294,9 +294,7 @@ private:
     void append(growing &a, const unsigned char *data, size_t rows) { rw.append(a, data, rows); }
     void write_meta(const growing &a) const { rw.write_meta(a); }
     void write_rows(const std::string &name, const std::vector<long long> &rows, const char *dimension) const
-    {
-        rw.write_ends(dir + "/" + name, rows, dimension);
-    }
+    { rw.write_ends(dir + "/" + name, rows, dimension); }
     std::string fields_json(const std::vector<field> &list) const;
 };
 
@@ -313,24 +311,24 @@ public:
     struct field
     {
         std::string name;
-        bool integer;  // int32, else float32
+        bool integer;    // int32, else float32
     };
 
     struct grid
     {
         int level = 0;
-        int rank = -1;               // the MPI rank that has it
-        int nx = 0, ny = 0;          // cells
-        int nz = 0;                  // cells in z: 0 for a 2D grid (a surface's), > 0 for a block of a volume (CFD)
-        std::vector<double> x, y;    // nx+1 and ny+1 node coordinates, rising
-        std::vector<double> z;       // nz+1 node coordinates of a block, rising
-        std::vector<double> values;  // nx*ny(*nz) per field (x fastest, then y, then z), the fields one after another
+        int rank = -1;              // the MPI rank that has it
+        int nx = 0, ny = 0;         // cells
+        int nz = 0;                 // cells in z: 0 for a 2D grid (a surface's), > 0 for a block of a volume (CFD)
+        std::vector<double> x, y;   // nx+1 and ny+1 node coordinates, rising
+        std::vector<double> z;      // nz+1 node coordinates of a block, rising
+        std::vector<double> values; // nx*ny(*nz) per field (x fastest, then y, then z), the fields one after another
     };
 
     // key: the AMR set, e.g. "nhflow_amr"; source: "REEF3D_NHFLOW_AMR"
     lagoon_amr(const std::string &path, const std::string &solver, const std::string &key,
                const std::string &source, const std::string &run_json,
-               const std::vector<field> &fields, int gzip_level = 1);
+               const std::vector<field> &fields, int gzip_level=1);
 
     // one output: its grids, level 0 first. False when it could not be written (no more
     // output to the store then: the .vtr and .vtm files are needed). The set is of 2D grids

@@ -35,17 +35,14 @@
 #endif
 
 // Define a macro for catching SYCL exceptions if exceptions are enabled
-#define EIGEN_SYCL_TRY_CATCH(X)                                                                                              \
-    do                                                                                                                       \
-    {                                                                                                                        \
-        EIGEN_TRY { X; }                                                                                                     \
-        EIGEN_CATCH(const cl::sycl::exception &e)                                                                            \
-        {                                                                                                                    \
-            EIGEN_THROW_X(std::runtime_error("SYCL exception at " + std::string(__FILE__) + ":" + std::to_string(__LINE__) + \
-                                             "\n" + e.what()));                                                              \
-        }                                                                                                                    \
-    }                                                                                                                        \
-    while(false)
+#define EIGEN_SYCL_TRY_CATCH(X)                                                                                        \
+  do {                                                                                                                 \
+    EIGEN_TRY { X; }                                                                                                   \
+    EIGEN_CATCH(const cl::sycl::exception& e) {                                                                        \
+      EIGEN_THROW_X(std::runtime_error("SYCL exception at " + std::string(__FILE__) + ":" + std::to_string(__LINE__) + \
+                                       "\n" + e.what()));                                                              \
+    }                                                                                                                  \
+  } while (false)
 
 // Define a macro if local memory flags are unset or one of them is set
 // Setting both flags is the same as unsetting them
@@ -61,18 +58,16 @@
 
 #if EIGEN_COMP_CLANG  // workaround clang bug (see http://forum.kde.org/viewtopic.php?f=74&t=102653)
 #define EIGEN_TENSOR_INHERIT_ASSIGNMENT_EQUAL_OPERATOR(Derived)                         \
-    using Base::operator=;                                                              \
-    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Derived &operator=(const Derived &other)      \
-    {                                                                                   \
-        Base::operator=(other);                                                         \
-        return *this;                                                                   \
-    }                                                                                   \
-    template<typename OtherDerived>                                                     \
-    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Derived &operator=(const OtherDerived &other) \
-    {                                                                                   \
-        Base::operator=(other);                                                         \
-        return *this;                                                                   \
-    }
+  using Base::operator=;                                                                \
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Derived& operator=(const Derived& other) {      \
+    Base::operator=(other);                                                             \
+    return *this;                                                                       \
+  }                                                                                     \
+  template <typename OtherDerived>                                                      \
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Derived& operator=(const OtherDerived& other) { \
+    Base::operator=(other);                                                             \
+    return *this;                                                                       \
+  }
 #else
 #define EIGEN_TENSOR_INHERIT_ASSIGNMENT_EQUAL_OPERATOR(Derived) EIGEN_INHERIT_ASSIGNMENT_EQUAL_OPERATOR(Derived)
 #endif
@@ -83,8 +78,8 @@
  * defined. This also inherits template<OtherDerived> operator=(const OtherDerived&) assignments. With C++11 or later
  * this also default-implements the copy-constructor
  */
-#define EIGEN_TENSOR_INHERIT_ASSIGNMENT_OPERATORS(Derived)  \
-    EIGEN_TENSOR_INHERIT_ASSIGNMENT_EQUAL_OPERATOR(Derived) \
-    EIGEN_DEFAULT_COPY_CONSTRUCTOR(Derived)
+#define EIGEN_TENSOR_INHERIT_ASSIGNMENT_OPERATORS(Derived) \
+  EIGEN_TENSOR_INHERIT_ASSIGNMENT_EQUAL_OPERATOR(Derived)  \
+  EIGEN_DEFAULT_COPY_CONSTRUCTOR(Derived)
 
 #endif

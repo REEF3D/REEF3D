@@ -23,7 +23,7 @@ Author: Hans Bihs
 #ifndef BOUNDARYCHECK_H_
 #define BOUNDARYCHECK_H_
 
-#include "increment.h"
+#include"increment.h"
 
 class lexer;
 class fdm;
@@ -34,16 +34,17 @@ class boundarycheck : public increment
 {
 public:
     boundarycheck();
-    virtual ~boundarycheck();
+	virtual ~boundarycheck();
 
-    int boundcheck(lexer *, int, int, int, int);
-    int boundcheck_ik(lexer *, int, int, int, int);
+	int boundcheck(lexer*,int,int,int,int);
+    int boundcheck_ik(lexer*,int,int,int,int);
 
-    int ij_boundcheck(lexer *, int, int, int);
-    int ij_boundcheck_topo(lexer *, int, int, int);
+
+	int ij_boundcheck(lexer*,int,int,int);
+	int ij_boundcheck_topo(lexer*,int,int,int);
 
 private:
-    int ilow, ilim, jlow, jlim, klow, klim;
+    int ilow,ilim,jlow,jlim,klow,klim;
     int check;
 };
 

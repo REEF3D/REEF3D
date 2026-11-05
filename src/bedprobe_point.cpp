@@ -20,58 +20,55 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "bedprobe_point.h"
-#include "ghostcell.h"
-#include "lexer.h"
-#include "reefckpt.h"
-#include "sediment_fdm.h"
-#include <sys/stat.h>
-#include <sys/types.h>
+#include"reefckpt.h"
+#include"bedprobe_point.h"
+#include"lexer.h"
+#include"sediment_fdm.h"
+#include"ghostcell.h"
+#include<sys/stat.h>
+#include<sys/types.h>
 
 bedprobe_point::bedprobe_point(lexer *p, ghostcell *pgc, sediment_fdm *s)
 {
-    p->Iarray(iloc, p->P121);
-    p->Iarray(jloc, p->P121);
-    p->Iarray(flag, p->P121);
-    p->Darray(wsf, p->P121);
-
-    // Create Folder
-    if(p->mpirank == 0 && p->A10 == 2)
-        mkdir("./REEF3D_SFLOW_Sediment", 0777);
-
-    if(p->mpirank == 0 && p->A10 == 5)
-        mkdir("./REEF3D_NHFLOW_Sediment", 0777);
-
-    if(p->mpirank == 0 && p->A10 == 6)
-        mkdir("./REEF3D_CFD_Sediment", 0777);
-
-    if(p->mpirank == 0 && p->P121 > 0)
+    p->Iarray(iloc,p->P121);
+	p->Iarray(jloc,p->P121);
+	p->Iarray(flag,p->P121);
+	p->Darray(wsf,p->P121);
+	
+	// Create Folder
+	if(p->mpirank==0 && p->A10==2)
+	mkdir("./REEF3D_SFLOW_Sediment",0777);
+    
+    if(p->mpirank==0 && p->A10==5)
+	mkdir("./REEF3D_NHFLOW_Sediment",0777);
+    
+    if(p->mpirank==0 && p->A10==6)
+	mkdir("./REEF3D_CFD_Sediment",0777);
+	
+    if(p->mpirank==0 && p->P121>0)
     {
-        // open file
-        // a restart (I 45): continued from the checkpoint
-        const char *name = p->A10 == 2 ? "./REEF3D_SFLOW_Sediment/REEF3D-SFLOW-Sediment-Point.dat"
-                                       : (p->A10 == 5 ? "./REEF3D_NHFLOW_Sediment/REEF3D-NHFLOW-Sediment-Point.dat" : "./REEF3D_CFD_Sediment/REEF3D-CFD-Sediment-Point.dat");
-        if(reefckpt_open(wsfout, name, p->I45))
-        {
-            wsfout << "number of gauges:  " << p->P121 << endl
-                   << endl;
-            wsfout << "x_coord     y_coord" << endl;
-            for(n = 0; n < p->P121; ++n)
-                wsfout << n + 1 << "\t " << p->P121_x[n] << "\t " << p->P121_y[n] << endl;
+    // open file
+    // a restart (I 45): continued from the checkpoint
+    const char *name = p->A10==2 ? "./REEF3D_SFLOW_Sediment/REEF3D-SFLOW-Sediment-Point.dat"
+                     : (p->A10==5 ? "./REEF3D_NHFLOW_Sediment/REEF3D-NHFLOW-Sediment-Point.dat" : "./REEF3D_CFD_Sediment/REEF3D-CFD-Sediment-Point.dat");
+    if(reefckpt_open(wsfout,name,p->I45))
+    {
+    wsfout<<"number of gauges:  "<<p->P121<<endl<<endl;
+    wsfout<<"x_coord     y_coord"<<endl;
+    for(n=0;n<p->P121;++n)
+    wsfout<<n+1<<"\t "<<p->P121_x[n]<<"\t "<<p->P121_y[n]<<endl;
 
-            wsfout << endl
-                   << endl;
+    wsfout<<endl<<endl;
 
-            wsfout << "time";
-            for(n = 0; n < p->P121; ++n)
-                wsfout << "\t P" << n + 1;
+    wsfout<<"time";
+    for(n=0;n<p->P121;++n)
+    wsfout<<"\t P"<<n+1;
 
-            wsfout << endl
-                   << endl;
-        }
+    wsfout<<endl<<endl;
+    }
     }
 
-    ini_location(p, pgc, s);
+    ini_location(p,pgc,s);
 }
 
 bedprobe_point::~bedprobe_point()
@@ -81,32 +78,33 @@ bedprobe_point::~bedprobe_point()
 
 void bedprobe_point::bed_gauge(lexer *p, ghostcell *pgc, sediment_fdm *s)
 {
-    double zval = 0.0;
+    double zval=0.0;
 
-    for(n = 0; n < p->P121; ++n)
-        wsf[n] = -1.0e20;
+    for(n=0;n<p->P121;++n)
+    wsf[n]=-1.0e20;
 
-    for(n = 0; n < p->P121; ++n)
-        if(flag[n] > 0)
-        {
-            zval = 0.0;
+	
+    for(n=0;n<p->P121;++n)
+    if(flag[n]>0)
+    {
+    zval=0.0;
 
-            i = iloc[n];
-            j = jloc[n];
-
-            wsf[n] = MAX(wsf[n], s->bedzh(i, j));
-        }
-
-    for(n = 0; n < p->P121; ++n)
-        wsf[n] = pgc->globalmax(wsf[n]);
+    i=iloc[n];
+    j=jloc[n];
+	
+    wsf[n] = MAX(wsf[n],s->bedzh(i,j));
+    }
+	
+    for(n=0;n<p->P121;++n)
+    wsf[n]=pgc->globalmax(wsf[n]);
 
     // write to file
-    if(p->mpirank == 0)
+    if(p->mpirank==0)
     {
-        wsfout << p->sedtime << "\t ";
-        for(n = 0; n < p->P121; ++n)
-            wsfout << wsf[n] << "  \t  ";
-        wsfout << endl;
+    wsfout<<p->sedtime<<"\t ";
+    for(n=0;n<p->P121;++n)
+    wsfout<<wsf[n]<<"  \t  ";
+    wsfout<<endl;
     }
 }
 
@@ -114,16 +112,16 @@ void bedprobe_point::ini_location(lexer *p, ghostcell *pgc, sediment_fdm *s)
 {
     int check;
 
-    for(n = 0; n < p->P121; ++n)
+    for(n=0;n<p->P121;++n)
     {
-        iloc[n] = p->posc_i(p->P121_x[n]);
-        jloc[n] = p->posc_j(p->P121_y[n]);
+    iloc[n] = p->posc_i(p->P121_x[n]);
+    jloc[n] = p->posc_j(p->P121_y[n]);
 
-        check = ij_boundcheck(p, iloc[n], jloc[n], 0);
+    check=ij_boundcheck(p,iloc[n],jloc[n],0);
 
-        if(check == 1)
-            flag[n] = 1;
-
-        // cout<<p->mpirank<<" n: "<<n<<" x: "<<p->P121_x[n]<<" y: "<<p->P121_y[n]<<" iloc: "<<iloc[n]<<" jloc: "<<jloc[n]<<" n: "<<n<<" flag: "<<flag[n]<<endl;
+    if(check==1)
+    flag[n]=1;
+	
+	//cout<<p->mpirank<<" n: "<<n<<" x: "<<p->P121_x[n]<<" y: "<<p->P121_y[n]<<" iloc: "<<iloc[n]<<" jloc: "<<jloc[n]<<" n: "<<n<<" flag: "<<flag[n]<<endl;
     }
 }

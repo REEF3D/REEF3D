@@ -25,33 +25,34 @@ Architect: Hans Bihs
 #ifndef CORAL_FORCE_H_
 #define CORAL_FORCE_H_
 
-#include "coral/core/coral_load.h"
-#include "coral/core/coral_types.h"
-#include <string>
+#include"coral/core/coral_load.h"
+#include"coral/core/coral_types.h"
+#include<string>
 
-namespace coral {
-class model;
-
-class point_force : public load
+namespace coral
 {
-public:
-    // p: global point on body b at creation
-    point_force(const model &, int b, const Vec3 &p, const Vec3 &F, const Vec3 &M, double ramp = 0.0, const std::string &name = "force");
+    class model;
 
-    std::string name() const override { return name_; }
-    coupling_kind coupling() const override { return coupling_kind::local; }
-    void coupled_bodies(std::vector<int> &b) const override { b.push_back(b_); }
-    void eval(const model &, double t, VecX &f) const override;
+    class point_force : public load
+    {
+    public:
+        // p: global point on body b at creation
+        point_force(const model&, int b, const Vec3 &p, const Vec3 &F, const Vec3 &M, double ramp=0.0, const std::string &name="force");
 
-    Vec3 F, M;
-    double until = 1.0e300;  // released (zero) from this time on: free decay from the loaded equilibrium
+        std::string name() const override {return name_;}
+        coupling_kind coupling() const override {return coupling_kind::local;}
+        void coupled_bodies(std::vector<int> &b) const override {b.push_back(b_);}
+        void eval(const model&, double t, VecX &f) const override;
 
-private:
-    std::string name_;
-    int b_;
-    Vec3 s_;
-    double ramp_;
-};
-}  // namespace coral
+        Vec3 F, M;
+        double until = 1.0e300;     // released (zero) from this time on: free decay from the loaded equilibrium
+
+    private:
+        std::string name_;
+        int b_;
+        Vec3 s_;
+        double ramp_;
+    };
+}
 
 #endif

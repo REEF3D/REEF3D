@@ -20,31 +20,31 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "fdm_nhf.h"
-#include "ghostcell.h"
-#include "lexer.h"
-#include "vrans_nhflow_f.h"
+#include"vrans_nhflow_f.h"
+#include"lexer.h"
+#include"fdm_nhf.h"
+#include"ghostcell.h"
 
 // k-epsilon, epsilon-equation: + n c2e eps_inf^2 / k_inf
 void vrans_nhflow_f::eps_source(lexer *p, fdm_nhf *d, double *KIN, double *EPS)
 {
-    const double ke_c_2e = 1.92;
-    double kinf, einf;
-
-    count = 0;
-    if(p->B295 == 1)
-        LOOP
+    const double ke_c_2e=1.92;
+    double kinf,einf;
+    
+    count=0;
+    if(p->B295==1)
+    LOOP
+    {
+        porous_coeff(p,d);
+        
+        if(H>1.0e-12)
         {
-            porous_coeff(p, d);
-
-            if(H > 1.0e-12)
-            {
-                turb_inf(p, d, kinf, einf);
-
-                if(kinf > 1.0e-20)
-                    d->rhsvec.V[count] += porval * ke_c_2e * einf * einf / kinf;
-            }
-
-            ++count;
+        turb_inf(p,d,kinf,einf);
+        
+        if(kinf>1.0e-20)
+        d->rhsvec.V[count] += porval*ke_c_2e*einf*einf/kinf;
         }
+        
+    ++count;
+    }
 }

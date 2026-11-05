@@ -20,10 +20,10 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Authors: Tobias Martin, Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "6DOF_obj_cfd.h"
-#include "fdm.h"
-#include "ghostcell.h"
-#include "lexer.h"
+#include"6DOF_obj_cfd.h"
+#include"lexer.h"
+#include"fdm.h"
+#include"ghostcell.h"
 
 void sixdof_obj_cfd::update_position_3D(lexer *p, fdm *a, ghostcell *pgc, bool finalize)
 {
@@ -31,32 +31,24 @@ void sixdof_obj_cfd::update_position_3D(lexer *p, fdm *a, ghostcell *pgc, bool f
     rb.euler_angles();
 
     // Update STL mesh
-    update_trimesh_3D(p, a, pgc, finalize);
-
-    // Update angular velocities
+    update_trimesh_3D(p,a,pgc,finalize);
+    
+    // Update angular velocities 
     rb.update_omega();
-
+    
     // the pose and velocity: in the 6DOF log files (REEF3D_*_6DOF), no longer on the terminal
 
-    // Update angular velocities
-    rb.update_omega();
-
-    if(p->mpirank == 0 && finalize == true)
-    {
-        cout << "XG: " << c_(0) << " YG: " << c_(1) << " ZG: " << c_(2) << " phi: " << phi * (180.0 / PI) << " theta: " << theta * (180.0 / PI) << " psi: " << psi * (180.0 / PI) << endl;
-        cout << "Ue: " << u_fb(0) << " Ve: " << u_fb(1) << " We: " << u_fb(2) << " Pe: " << omega_I(0) << " Qe: " << omega_I(1) << " Re: " << omega_I(2) << endl;
-    }
 }
 
 void sixdof_obj_cfd::update_trimesh_3D(lexer *p, fdm *a, ghostcell *pgc, bool finalize)
 {
-    // Update position of triangles
-    geom.transform(R_, c_);
+	// Update position of triangles 
+    geom.transform(R_,c_);
 
     // Update floating level set function
-    ray_cast(p, a, pgc);
-    reini_RK2(p, a, pgc, a->fb);
-
-    pgc->start4a(p, a->fb, 50);
+	ray_cast(p,a,pgc);
+	reini_RK2(p,a,pgc,a->fb);
+    
+    pgc->start4a(p,a->fb,50);   
 }
 

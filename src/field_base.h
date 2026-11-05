@@ -23,8 +23,8 @@ Author: Hans Bihs, Alexander Hanke
 #ifndef FIELD_BASE_H_
 #define FIELD_BASE_H_
 
-#include "ckpt_registry.h"
 #include "lexer.h"
+#include "ckpt_registry.h"
 #include <type_traits>
 
 template<typename T>
@@ -32,32 +32,32 @@ class field_base
 {
 public:
     // allocate=false: the field is not used in this run (V stays nullptr, any access fails at once)
-    field_base(lexer *p, bool allocate = true) : imin(p->imin), imax(p->imax), jmin(p->jmin), jkmax(p->jmax * p->kmax), kmin(p->kmin), kmax(p->kmax)
+    field_base(lexer* p, bool allocate=true) : imin(p->imin), imax(p->imax), jmin(p->jmin), jkmax(p->jmax*p->kmax), kmin(p->kmin), kmax(p->kmax)
     {
-        V = allocate ? new T[imax * jkmax]{} : nullptr;
-        if(V != nullptr)
-            ckid = ckpt_registry::add(p, 'C', std::is_same<T, int>::value, V);
+        V = allocate ? new T[imax*jkmax] {} : nullptr;
+        if(V!=nullptr)
+        ckid = ckpt_registry::add(p,'C',std::is_same<T,int>::value,V);
     }
     virtual ~field_base()
     {
         ckpt_registry::remove(ckid);
-        delete[] V;
+        delete [] V;
         V = nullptr;
     }
 
-    field_base(const field_base &) = delete;
-    field_base &operator=(const field_base &) = delete;
-    field_base(field_base &&) = delete;
-    field_base &operator=(field_base &&) = delete;
+    field_base(const field_base&) = delete;
+    field_base& operator=(const field_base&) = delete;
+    field_base(field_base&&) = delete;
+    field_base& operator=(field_base&&) = delete;
 
-    inline T &operator()(int ii, int jj, int kk) noexcept { return V[(ii - imin) * jkmax + (jj - jmin) * kmax + kk - kmin]; };
-    inline T &operator[](int n) noexcept { return V[n]; };
+    inline T& operator()(int ii, int jj, int kk) noexcept {return V[(ii-imin)*jkmax + (jj-jmin)*kmax + kk-kmin];};
+    inline T& operator[](int n) noexcept {return V[n];};
 
-    T *V;
+	T *V;
 
 private:
-    const int imin, imax, jkmax, jmin, kmin, kmax;
-    unsigned long long ckid = 0;  // checkpoints (ckpt_registry.h)
+    const int imin,imax,jkmax,jmin,kmin,kmax;
+    unsigned long long ckid = 0;    // checkpoints (ckpt_registry.h)
 };
 
 #endif

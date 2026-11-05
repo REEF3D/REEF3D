@@ -20,47 +20,48 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "field.h"
-#include "ghostcell.h"
-#include "lexer.h"
-#include "sliceint.h"
+#include"lexer.h"
+#include"ghostcell.h"
+#include"field.h"
+#include"sliceint.h"
 
 void ghostcell::gcsl_neumann_int(sliceint &f, int gcv, int bc, int cs)
 {
-    if(cs == 1)
-        for(q = 0; q < margin; ++q)
-            f(i - q - 1, j) = f(i, j);
+	if(cs==1)
+	for(q=0;q<margin;++q)
+	f(i-q-1,j)=f(i,j);
 
-    if(cs == 2)
-        for(q = 0; q < margin; ++q)
-            f(i, j + q + 1) = f(i, j);
+	if(cs==2)
+	for(q=0;q<margin;++q)
+	f(i,j+q+1)=f(i,j);
 
-    if(cs == 3)
-        for(q = 0; q < margin; ++q)
-            f(i, j - q - 1) = f(i, j);
+	if(cs==3)
+	for(q=0;q<margin;++q)
+	f(i,j-q-1)=f(i,j);
 
-    if(cs == 4)
-        for(q = 0; q < margin; ++q)
-            f(i + q + 1, j) = f(i, j);
+	if(cs==4)
+	for(q=0;q<margin;++q)
+	f(i+q+1,j)=f(i,j);
+
 }
 
-void ghostcell::gcsl_neumann_V_int(lexer *p, int *f, int gcv, int bc, int cs)
+void ghostcell::gcsl_neumann_V_int(lexer *p,int *f, int gcv, int bc, int cs)
 {
     // margin cells deep (limited to the solid depth in gcsl_start4Vint)
-    if(cs == 1)
-        for(q = 0; q < margin; ++q)
-            f[(i - q - 1 - p->imin) * p->jmax + (j - p->jmin)] = f[IJ];
+	if(cs==1)
+	for(q=0;q<margin;++q)
+	f[(i-q-1-p->imin)*p->jmax + (j-p->jmin)]=f[IJ];
 
-    if(cs == 2)
-        for(q = 0; q < margin; ++q)
-            f[(i - p->imin) * p->jmax + (j + q + 1 - p->jmin)] = f[IJ];
+	if(cs==2)
+	for(q=0;q<margin;++q)
+	f[(i-p->imin)*p->jmax + (j+q+1-p->jmin)]=f[IJ];
 
-    if(cs == 3)
-        for(q = 0; q < margin; ++q)
-            f[(i - p->imin) * p->jmax + (j - q - 1 - p->jmin)] = f[IJ];
+	if(cs==3)
+	for(q=0;q<margin;++q)
+	f[(i-p->imin)*p->jmax + (j-q-1-p->jmin)]=f[IJ];
 
-    if(cs == 4)
-        for(q = 0; q < margin; ++q)
-            f[(i + q + 1 - p->imin) * p->jmax + (j - p->jmin)] = f[IJ];
+	if(cs==4)
+	for(q=0;q<margin;++q)
+	f[(i+q+1-p->imin)*p->jmax + (j-p->jmin)]=f[IJ];
 }
 

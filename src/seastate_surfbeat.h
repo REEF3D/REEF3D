@@ -23,7 +23,7 @@ Architect: Hans Bihs
 #ifndef SEASTATE_SURFBEAT_H_
 #define SEASTATE_SURFBEAT_H_
 
-#include <vector>
+#include<vector>
 
 class seastate_grid;
 
@@ -77,10 +77,10 @@ public:
     // values of row r at time t (periodic, linear in time)
     void at(int r, double t, double &E, double &zeta, double &qx, double &qy) const;
 
-    int K = 0;  // number of components
+    int K = 0;                                      // number of components
     double df = 0.0, trep = 0.0, frep = 0.0, m0 = 0.0, dtbc = 0.0, trec = 0.0;
-    std::vector<double> fk, ak, thk, phk;  // components
-    std::vector<double> Dbar;              // mean directional distribution on the directions of gin
+    std::vector<double> fk, ak, thk, phk;           // components
+    std::vector<double> Dbar;                       // mean directional distribution on the directions of gin
 
 private:
     const seastate_grid &g;

@@ -20,17 +20,17 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "net_interface.h"
-#include "fdm.h"
-#include "ghostcell.h"
-#include "lexer.h"
-#include <sys/stat.h>
+#include"net_interface.h"
+#include"lexer.h"
+#include"fdm.h"
+#include"ghostcell.h"
+#include<sys/stat.h>
 
-#include "net.h"
-#include "net_barDyn.h"
-#include "net_barQuasiStatic.h"
-#include "net_sheet.h"
-#include "net_void.h"
+#include"net.h"
+#include"net_void.h"
+#include"net_barDyn.h"
+#include"net_barQuasiStatic.h"
+#include"net_sheet.h"
 
 net_interface::net_interface(lexer *p, ghostcell *pgc)
 {
@@ -43,6 +43,7 @@ net_interface::~net_interface()
 {
 }
 
+
 void net_interface::ckpt_state(std::vector<double> &v) const
 {
     v.push_back(double(pnet.size()));
@@ -51,28 +52,28 @@ void net_interface::ckpt_state(std::vector<double> &v) const
         std::vector<double> s;
         n->ckpt_state(s);
         v.push_back(double(s.size()));
-        v.insert(v.end(), s.begin(), s.end());
+        v.insert(v.end(),s.begin(),s.end());
     }
 }
 
 bool net_interface::ckpt_restore(const std::vector<double> &v)
 {
-    if(v.empty() || size_t(v[0]) != pnet.size())
-        return false;
+    if(v.empty() || size_t(v[0])!=pnet.size())
+    return false;
     size_t k = 1;
     for(net *n : pnet)
     {
-        if(k >= v.size())
-            return false;
+        if(k>=v.size())
+        return false;
         const size_t len = size_t(v[k++]);
-        if(k + len > v.size())
-            return false;
-        const std::vector<double> s(v.begin() + k, v.begin() + k + len);
+        if(k+len>v.size())
+        return false;
+        const std::vector<double> s(v.begin()+k,v.begin()+k+len);
         size_t j = 0;
-        n->ckpt_restore(s, j);
-        if(j != len)
-            return false;
+        n->ckpt_restore(s,j);
+        if(j!=len)
+        return false;
         k += len;
     }
-    return k == v.size();
+    return k==v.size();
 }

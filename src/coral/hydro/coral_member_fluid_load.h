@@ -31,61 +31,62 @@ Architect: Hans Bihs
 #ifndef CORAL_MEMBER_FLUID_LOAD_H_
 #define CORAL_MEMBER_FLUID_LOAD_H_
 
-#include "coral/core/coral_load.h"
-#include "coral/core/coral_points.h"
-#include "coral/core/coral_state.h"
-#include <memory>
-#include <string>
-#include <vector>
+#include"coral/core/coral_load.h"
+#include"coral/core/coral_state.h"
+#include"coral/core/coral_points.h"
+#include<memory>
+#include<string>
+#include<vector>
 
-namespace coral {
-class member_fluid_load : public load
+namespace coral
 {
-public:
-    // elements: pairs of point indices of pts along the member from p1 to p2 (positions now)
-    member_fluid_load(const model &, std::shared_ptr<const point_set> pts, const std::vector<std::pair<int, int>> &elements,
-                      const Vec3 &p1, const Vec3 &p2, int nstrips, const std::string &name = "fluid_member");
+    class member_fluid_load : public load
+    {
+    public:
+        // elements: pairs of point indices of pts along the member from p1 to p2 (positions now)
+        member_fluid_load(const model&, std::shared_ptr<const point_set> pts, const std::vector<std::pair<int,int>> &elements,
+                          const Vec3 &p1, const Vec3 &p2, int nstrips, const std::string &name="fluid_member");
 
-    std::string name() const override { return name_; }
-    coupling_kind coupling() const override { return coupling_kind::local; }
-    void coupled_bodies(std::vector<int> &b) const override { b.insert(b.end(), bodies_.begin(), bodies_.end()); }
-    void coupled_coordinates(std::vector<int> &c) const override { c.insert(c.end(), coords_.begin(), coords_.end()); }
-    void eval(const model &, double t, VecX &f) const override;
-    void channel_names(std::vector<std::string> &) const override;
-    void channel_values(const model &, double t, std::vector<double> &) const override;
+        std::string name() const override {return name_;}
+        coupling_kind coupling() const override {return coupling_kind::local;}
+        void coupled_bodies(std::vector<int> &b) const override {b.insert(b.end(), bodies_.begin(), bodies_.end());}
+        void coupled_coordinates(std::vector<int> &c) const override {c.insert(c.end(), coords_.begin(), coords_.end());}
+        void eval(const model&, double t, VecX &f) const override;
+        void channel_names(std::vector<std::string>&) const override;
+        void channel_values(const model&, double t, std::vector<double>&) const override;
 
-    // the strips: axis from p1 (unit e, length L), their number
-    const Vec3 &p1() const { return a_; }
-    const Vec3 &axis() const { return e_; }
-    double length() const { return L_; }
-    int nstrips() const { return ns_; }
+        // the strips: axis from p1 (unit e, length L), their number
+        const Vec3 &p1() const {return a_;}
+        const Vec3 &axis() const {return e_;}
+        double length() const {return L_;}
+        int nstrips() const {return ns_;}
 
-    // strip forces (3 per strip, global) at the fluid time t
-    void set_sample(double t, const VecX &F);
-    // restart from a checkpoint (coral_state.h)
-    void save_state(std::vector<double> &) const override;
-    bool load_state(const std::vector<double> &, size_t &k) override;
-    bool has_sample() const { return !ts_.empty(); }
-    VecX forces(double t) const;
-    // total force and moment about the origin (global) at time t
-    void total(const model &, double t, Vec3 &F, Vec3 &M) const;
+        // strip forces (3 per strip, global) at the fluid time t
+        void set_sample(double t, const VecX &F);
+        // restart from a checkpoint (coral_state.h)
+        void save_state(std::vector<double>&) const override;
+        bool load_state(const std::vector<double>&, size_t &k) override;
+        bool has_sample() const {return !ts_.empty();}
+        VecX forces(double t) const;
+        // total force and moment about the origin (global) at time t
+        void total(const model&, double t, Vec3 &F, Vec3 &M) const;
 
-    int order = 2;
-    bool excitation = false;
+        int order = 2;
+        bool excitation = false;
 
-private:
-    std::string name_;
-    std::shared_ptr<const point_set> pts_;
-    Vec3 a_, e_;
-    double L_;
-    int ns_;
-    std::vector<int> pa_, pb_;  // per strip: the two points of its element
-    std::vector<double> w_;     // weight of pb
-    std::vector<int> bodies_, coords_;
-    std::vector<double> ts_;
-    std::vector<VecX> Fs_;
-    VecX F0_;
-};
-}  // namespace coral
+    private:
+        std::string name_;
+        std::shared_ptr<const point_set> pts_;
+        Vec3 a_, e_;
+        double L_;
+        int ns_;
+        std::vector<int> pa_, pb_;      // per strip: the two points of its element
+        std::vector<double> w_;         // weight of pb
+        std::vector<int> bodies_, coords_;
+        std::vector<double> ts_;
+        std::vector<VecX> Fs_;
+        VecX F0_;
+    };
+}
 
 #endif

@@ -26,34 +26,35 @@ Architect: Hans Bihs
 #ifndef CORAL_LINSOLVE_H_
 #define CORAL_LINSOLVE_H_
 
-#include "coral/core/coral_types.h"
-#include <Eigen/Sparse>
-#include <memory>
-#include <vector>
+#include"coral/core/coral_types.h"
+#include<Eigen/Sparse>
+#include<memory>
+#include<vector>
 
-namespace coral {
-class linear_solver
+namespace coral
 {
-public:
-    linear_solver();
-    ~linear_solver();
-    linear_solver(const linear_solver &) = delete;
-    linear_solver &operator=(const linear_solver &) = delete;
+    class linear_solver
+    {
+    public:
+        linear_solver();
+        ~linear_solver();
+        linear_solver(const linear_solver&) = delete;
+        linear_solver &operator=(const linear_solver&) = delete;
 
-    // factorize the N x N matrix of the triplets (duplicates are summed); false if singular
-    bool compute(int N, const std::vector<Eigen::Triplet<double>> &T);
-    // solution; NaN if the sparse factorization found the matrix singular
-    VecX solve(const VecX &b) const;
-    bool sparse() const { return sparse_; }
+        // factorize the N x N matrix of the triplets (duplicates are summed); false if singular
+        bool compute(int N, const std::vector<Eigen::Triplet<double>> &T);
+        // solution; NaN if the sparse factorization found the matrix singular
+        VecX solve(const VecX &b) const;
+        bool sparse() const {return sparse_;}
 
-    int dense_max = 400;
+        int dense_max = 400;
 
-private:
-    struct impl;
-    std::unique_ptr<impl> p_;
-    bool sparse_ = false;
-    bool ok_ = false;
-};
-}  // namespace coral
+    private:
+        struct impl;
+        std::unique_ptr<impl> p_;
+        bool sparse_ = false;
+        bool ok_ = false;
+    };
+}
 
 #endif

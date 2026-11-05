@@ -20,48 +20,49 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "driver.h"
-#include "fdm2D.h"
-#include "ghostcell.h"
-#include "lexer.h"
-#include "mgcslice1.h"
-#include "mgcslice2.h"
-#include "mgcslice4.h"
+#include"driver.h"
+#include"lexer.h"
+#include"fdm2D.h"
+#include"ghostcell.h"
+#include"mgcslice1.h"
+#include"mgcslice2.h"
+#include"mgcslice4.h"
 
 void driver::makegrid2D(lexer *p, ghostcell *pgc)
-{
-    pgc->gcslflagx(p, p->flagslice4);
-
+{   
+    pgc->gcslflagx(p,p->flagslice4);
+    
     mgcslice1 m1(p);
-    mgcslice2 m2(p);
-    mgcslice4 m4(p);
-
-    m1.makemgc(p);
-    pgc->gcslflagx(p, p->flagslice1);
+	mgcslice2 m2(p);
+	mgcslice4 m4(p);
+	
+	m1.makemgc(p);
+    pgc->gcslflagx(p,p->flagslice1);
     m1.gcb_seed(p);
 
     m2.makemgc(p);
-    pgc->gcslflagx(p, p->flagslice2);
+    pgc->gcslflagx(p,p->flagslice2);
     m2.gcb_seed(p);
 
     m4.makemgc(p);
     m4.gcb_seed(p);
-
+	
+    
     pgc->gcsl_setbc1(p);
     pgc->gcsl_setbc2(p);
     pgc->gcsl_setbc4(p);
-
+    
     pgc->gcsl_setbcio(p);
-
+    
     pgc->dgcslini1(p);
-    pgc->dgcslini2(p);
-    pgc->dgcslini4(p);
+	pgc->dgcslini2(p);
+	pgc->dgcslini4(p);
 }
-
+ 
 void driver::makegrid2D_cds(lexer *p, ghostcell *pgc, fdm2D *b)
-{
+{      
     p->flagini2D();
-    p->gridini2D();
+    p->gridini2D();	
 
     pgc->sizeS_update(p);
 }

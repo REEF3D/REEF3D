@@ -23,26 +23,28 @@ Author: Hans Bihs
 #ifndef BEDLOAD_VR_H_
 #define BEDLOAD_VR_H_
 
-#include "bedload.h"
-#include "increment.h"
+#include"bedload.h"
+#include"increment.h"
 
 using namespace std;
 
 class bedload_VR final : public bedload, public increment
 {
 public:
-    bedload_VR(lexer *);
+
+    bedload_VR(lexer*);
     virtual ~bedload_VR();
 
-    void start(lexer *, ghostcell *, sediment_fdm *) override final;
+	void start(lexer*, ghostcell*, sediment_fdm*) override final;
 
 private:
-    double rhosed, rhowat, Rstar, Ds;
-    double g, d50;
+    double rhosed,rhowat,Rstar,Ds;
+    double g,d50;
     double visc;
     double shields_eff;
     double shields_crit;
 };
 
 #endif
+
 

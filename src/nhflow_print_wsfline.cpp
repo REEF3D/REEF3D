@@ -20,30 +20,30 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "nhflow_print_wsfline.h"
-#include "fdm_nhf.h"
-#include "ghostcell.h"
-#include "ioflow.h"
-#include "lexer.h"
-#include "runlog.h"
-#include "wave_interface.h"
-#include "wsfline_core.h"
-#include "wsfline_ipol.h"
-#include <iomanip>
-#include <sys/stat.h>
-#include <sys/types.h>
+#include<iomanip>
+#include"nhflow_print_wsfline.h"
+#include"wsfline_core.h"
+#include"lexer.h"
+#include"fdm_nhf.h"
+#include"ghostcell.h"
+#include"ioflow.h"
+#include"wave_interface.h"
+#include<sys/stat.h>
+#include<sys/types.h>
+#include"runlog.h"
+#include"wsfline_ipol.h"
 
 nhflow_print_wsfline::nhflow_print_wsfline(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
-    p->Iarray(jloc, p->P52);
+	p->Iarray(jloc,p->P52);
 
-    pcore = new wsfline_core(p, pgc, p->P52, p->knox);
+    pcore = new wsfline_core(p,pgc,p->P52,p->knox);
 
-    ini_location(p, d, pgc);
+    ini_location(p,d,pgc);
 
-    // Create Folder
-    if(p->mpirank == 0)
-        mkdir("./REEF3D_NHFLOW_WSFLINE", 0777);
+	// Create Folder
+	if(p->mpirank==0)
+	mkdir("./REEF3D_NHFLOW_WSFLINE",0777);
 }
 
 nhflow_print_wsfline::~nhflow_print_wsfline()
@@ -59,93 +59,93 @@ void nhflow_print_wsfline::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *p
 
     num = p->count;
 
-    if(p->mpirank == 0)
+    if(p->mpirank==0)
     {
-        // open file
-        sprintf(name, "./REEF3D_NHFLOW_WSFLINE/REEF3D-NHFLOW-wsfline-%08i.dat", num);
+		// open file
+		sprintf(name,"./REEF3D_NHFLOW_WSFLINE/REEF3D-NHFLOW-wsfline-%08i.dat",num);
 
-        wsfout.open(name);
+		
+		wsfout.open(name);
 
-        wsfout << "simtime:  " << p->simtime << endl;
-        wsfout << "number of wsf-lines:  " << p->P52 << endl
-               << endl;
-        wsfout << "line_No     y_coord" << endl;
-        for(q = 0; q < p->P52; ++q)
-            wsfout << q + 1 << "\t " << p->Yout(0.0, p->P52_y[q]) << endl;
+		wsfout<<"simtime:  "<<p->simtime<<endl;
+		wsfout<<"number of wsf-lines:  "<<p->P52<<endl<<endl;
+		wsfout<<"line_No     y_coord"<<endl;
+		for(q=0;q<p->P52;++q)
+		wsfout<<q+1<<"\t "<<p->Yout(0.0,p->P52_y[q])<<endl;
 
-        if(p->P53 == 1)
-            wsfout << q + 1 << "\t " << " Wave Theory " << endl;
+		if(p->P53==1)
+		wsfout<<q+1<<"\t "<<" Wave Theory "<<endl;
 
-        wsfout << endl
-               << endl;
+		wsfout<<endl<<endl;
 
-        for(q = 0; q < p->P52; ++q)
-        {
-            wsfout << "X " << q + 1;
-            wsfout << "\t P " << q + 1 << " \t \t ";
-            if(p->P53 == 1)
-                wsfout << "\t \t W " << q + 1;
-        }
+		
+		for(q=0;q<p->P52;++q)
+		{
+		wsfout<<"X "<<q+1;
+		wsfout<<"\t P "<<q+1<<" \t \t ";
+		if(p->P53==1)
+		wsfout<<"\t \t W "<<q+1;
+		}
 
-        wsfout << endl;
+		wsfout<<endl;
     }
 
     //-------------------
 
     pcore->reset();
 
-    for(q = 0; q < p->P52; ++q)
+    for(q=0;q<p->P52;++q)
     {
         ILOOP
-        if(pcore->flag[q][i] > 0)
+        if(pcore->flag[q][i]>0)
         {
-            j = jloc[q];
+        j=jloc[q];
 
-            wsf[q][i] = f(i, j) + p->phimean;
-            xloc[q][i] = p->pos_x();
 
-            pcore->wsf[q][i] = wsfline_at_y(p, f, i, j, p->P52_y[q]) + p->phimean;
-            pcore->loc[q][i] = p->pos_x();
-
-            // cout<<p->mpirank<<" pcore->wsf[q][i]: "<<pcore->wsf[q][i]<<" "<<f(i,j)<<" "<<p->phimean<<" "<<p->wd<<endl;
+            pcore->wsf[q][i]=wsfline_at_y(p,f,i,j,p->P52_y[q])+p->phimean;
+            pcore->loc[q][i]=p->pos_x();
+            
+            //cout<<p->mpirank<<" pcore->wsf[q][i]: "<<pcore->wsf[q][i]<<" "<<f(i,j)<<" "<<p->phimean<<" "<<p->wd<<endl;
         }
     }
-
+	
+	
     // gather, sort and write the rows
-    pcore->write_rows(p, pgc, wsfout, 12, [&](double x)
-                      { return p->Xout(x, 0.0); }, p->P53 == 1 ? function<double(double)>([&](double x)
-                                                                                          { return pflow->wave_fsf(p, pgc, x); })
-                                                               : function<double(double)>(),
+    pcore->write_rows(p,pgc,wsfout,12,
+                      [&](double x){return p->Xout(x,0.0);},
+                      p->P53==1 ? function<double(double)>([&](double x){return pflow->wave_fsf(p,pgc,x);}) : function<double(double)>(),
                       " \t ");
 
-    if(p->mpirank == 0)
+    if(p->mpirank==0)
     {
-        wsfout.close();
-        if(p->plog)
-            p->plog->written(p, num, "wsfline", "profiles", name, 0);
+    wsfout.close();
+    if(p->plog)
+    p->plog->written(p,num,"wsfline","profiles",name,0);
     }
 }
 
 void nhflow_print_wsfline::ini_location(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
-    int check, count;
-
-    for(q = 0; q < p->P52; ++q)
+    int check,count;
+    
+    
+    for(q=0;q<p->P52;++q)
     {
-        count = 0;
+        count=0;
         ILOOP
         {
+        
+        if(p->j_dir==0)
+        jloc[q]=0;
+        
+        if(p->j_dir==1)
+        jloc[q]=p->posc_j(p->P52_y[q]);
 
-            if(p->j_dir == 0)
-                jloc[q] = 0;
 
-            if(jloc[q] >= 0 && jloc[q] < p->knoy)
-                pcore->flag[q][count] = 1;
+        if(jloc[q]>=0 && jloc[q]<p->knoy)
+        pcore->flag[q][count]=1;
 
-            if(jloc[q] >= 0 && jloc[q] < p->knoy)
-                flag[q][count] = 1;
-
-            ++count;
+        ++count;
         }
     }
 }
