@@ -1,0 +1,19 @@
+{
+ "base": "fnpf_2d_theta_robin_standing",
+ "ctrl_set": {
+  "A 305": "1"
+ },
+ "description": "as fnpf_2d_theta_robin_standing with REEFMG (A 305 1): the Robin rows eliminated into the top Laplace rows, the further couplings of the 5-point sz stencil (A 311 4) in REEFMG's Krylov operator (matrix_diag::xcol), inexact warm-started solves (A 306 1e-2).",
+ "tags": [
+  "quick",
+  "2d",
+  "fnpf",
+  "waves"
+ ],
+ "covers": [
+  "fnpf_theta::robin_build_mg",
+  "fnpf_theta::robin_solve_mg",
+  "reefmg::fine_apply xcol",
+  "reefmg_core::solve tol < 0"
+ ]
+}

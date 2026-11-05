@@ -17,7 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Hans Bihs
+Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include "reefmg.h"
@@ -577,7 +577,9 @@ void reefmg::fill_matrix8(lexer *p, double *f, vec &rhs, matrix_diag &M)
     //  A 328 1 (FNPF) / A 529 1 (NHFLOW): the Laplace / Poisson assembly has sized
     //  the cross-couplings nt..eb. BiCGStab then multiplies through fine_apply(),
     //  which needs rowmap and colrow0 also in fp64 mode.
-    mixed = ((p->A328==1 || p->A529==1) && !M.nt.empty() && M.nt.size()==M.p.size());
+    cross = ((p->A328==1 || p->A529==1) && !M.nt.empty() && M.nt.size()==M.p.size());
+    colx = !M.xcol.empty();
+    mixed = cross || colx;
     const bool rmap = fp32 || mixed;
 
     //  First call: zero everything once (this also leaves the halo of the
@@ -638,15 +640,21 @@ void reefmg::fill_matrix8(lexer *p, double *f, vec &rhs, matrix_diag &M)
 
     fill_topo=topo;
 
-    if(topo)
-    {
-        wetsig.assign(p->wet,p->wet+nsl);
+    //  rowmap and colrow0 are also built when the Krylov operator is needed
+    //  for the first time after solves without it (A 310 5: the theta-Robin
+    //  solves with xcol between plain Dirichlet solves)
+    if(topo && !rmap)
+    rmap_ok=false;
 
-        if(rmap)
-        {
-            if((long)rowmap.size()!=L.size()) rowmap.resize(L.size());
-            std::fill(rowmap.begin(),rowmap.end(),-1);
-        }
+    const bool rtopo = rmap && (topo || !rmap_ok);
+
+    if(topo)
+    wetsig.assign(p->wet,p->wet+nsl);
+
+    if(rtopo)
+    {
+        if((long)rowmap.size()!=L.size()) rowmap.resize(L.size());
+        std::fill(rowmap.begin(),rowmap.end(),-1);
     }
 
     //  One pass per column. Every interior entry is written each call, so the
@@ -683,7 +691,7 @@ void reefmg::fill_matrix8(lexer *p, double *f, vec &rhs, matrix_diag &M)
                     L.ef[q]=(float)Me[r];   // j-1
                     L.tf[q]=(float)Mt[r];   // k+1
                     L.bf[q]=(float)Mb[r];   // k-1
-                    if(topo) rowmap[q]=r;
+                    if(rtopo) rowmap[q]=r;
                 }
                 else
                 {
@@ -694,7 +702,7 @@ void reefmg::fill_matrix8(lexer *p, double *f, vec &rhs, matrix_diag &M)
                     L.e[q]=Me[r];   // j-1
                     L.t[q]=Mt[r];   // k+1
                     L.b[q]=Mb[r];   // k-1
-                    if(topo && mixed) rowmap[q]=r;
+                    if(rtopo) rowmap[q]=r;
                 }
 
                 const double fv=R[r], uv=f[fc+kk];
@@ -735,8 +743,11 @@ void reefmg::fill_matrix8(lexer *p, double *f, vec &rhs, matrix_diag &M)
     //  First row of every column whose cells are all active and numbered
     //  consecutively - every fully wet column, given CVAL4's LOOP order -
     //  so that fine_apply() can run it as a plain stencil.
-    if(rmap && topo)
-    build_colrow0(L);
+    if(rtopo)
+    {
+        build_colrow0(L);
+        rmap_ok=true;
+    }
 }
 
 void reefmg::build_colrow0(const sc_level &L)
@@ -794,7 +805,7 @@ void reefmg::fine_apply(const sc_level &L,const double *x,double *y)
             for(int kk=1;kk<nzl;  ++kk) yc[kk]+=B[kk]*xc[kk-1];
 
             //  A 328 1: sigma cross-couplings (i+-1,k+-1), (j+-1,k+-1)
-            if(mixed)
+            if(cross)
             {
                 const double *NT=M.nt.data()+r0, *NB=M.nb.data()+r0, *ST=M.st.data()+r0, *SB=M.sb.data()+r0;
                 const double *WT=M.wt.data()+r0, *WB=M.wb.data()+r0, *ET=M.et.data()+r0, *EB=M.eb.data()+r0;
@@ -818,7 +829,7 @@ void reefmg::fine_apply(const sc_level &L,const double *x,double *y)
             if(kk<L.nz-1) v+=M.t[r]*x[q+1];
             if(kk>0)      v+=M.b[r]*x[q-1];
 
-            if(mixed)
+            if(cross)
             {
                 if(kk<L.nz-1) v+=M.nt[r]*x[q+sx+1]+M.st[r]*x[q-sx+1]+M.wt[r]*x[q+sy+1]+M.et[r]*x[q-sy+1];
                 if(kk>0)      v+=M.nb[r]*x[q+sx-1]+M.sb[r]*x[q-sx-1]+M.wb[r]*x[q+sy-1]+M.eb[r]*x[q-sy-1];
@@ -826,6 +837,11 @@ void reefmg::fine_apply(const sc_level &L,const double *x,double *y)
             y[q]=v;
         }
     }
+
+    //  A 310 5: couplings of single rows within their column
+    if(colx)
+    for(const matrix_diag::colcoupling &X : M.xcol)
+    y[L.idx(X.i,X.j,X.k)]+=X.v*x[L.idx(X.i,X.j,X.kc)];
 }
 
 void reefmg::fillbackvec8(lexer *p, double *f)
@@ -963,6 +979,7 @@ void reefmg::fill_matrix5(lexer *p, field &f, vec &rhs, matrix_diag &M)
         if((long)rowmap.size()!=L.size()) rowmap.resize(L.size());
         std::fill(rowmap.begin(),rowmap.end(),-1);
     }
+    rmap_ok=false;      // rowmap is not that of fill_matrix8 any more
 
     int err=0;
 
