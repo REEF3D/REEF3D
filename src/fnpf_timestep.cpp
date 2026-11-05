@@ -17,7 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Hans Bihs
+Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"fnpf_timestep.h"
@@ -392,6 +392,7 @@ void fnpf_timestep::start(fdm_fnpf *c, lexer *p,ghostcell *pgc)
     }
 
    	p->dt=p->N47*cu;
+    p->dt_crit=cu;
     
     if(p->mpirank==0 && (p->count%p->P12==0))
 	cout<<"dt: "<<p->dt<<endl;
@@ -504,6 +505,7 @@ void fnpf_timestep::ini(fdm_fnpf* c, lexer* p,ghostcell* pgc)
     
 	//p->dt=pgc->timesync(p->dt);
     p->dt=pgc->globalmin(p->dt);
+    p->dt_crit=pgc->globalmin(cu);
     
     if(p->N48==1)
     accuracy_cap(p);

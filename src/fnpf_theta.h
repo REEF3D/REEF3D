@@ -81,11 +81,15 @@ using namespace std;
 //
 //   One pass removes the growth of the even harmonics of step 2. At steps of 2-4 times the RK3 step one
 //   defect-correction step does not converge: the unconverged corrector loses wave energy (JONSWAP Hm0 -16 %
-//   at 2x with one pass, -2.5 % converged; step 3, 5 November 2026), hence the passes to convergence.
+//   at 2x with one pass, -2.5 % converged, A 303 0; step 3, 5 November 2026), hence the passes to convergence.
+//
+//   Zones once per theta step relax less per time than in the three RK3 stages (weaker beach, 6-8 % higher
+//   Stokes waves from reflection); A 303 < 0 (default) relaxes per time as RK3 at N 47 0.75 (dt_crit of
+//   fnpf_timestep).
 //
 // A 300 theta (default 0.5: 0.55 damps 9 % per period at 21 steps), A 302 corrector passes (default 4),
-// A 303 reference step of the relaxation zones (factors r^(dt/A 303), default 0: r per step), A 304 tolerance
-// of the corrector (default 1e-3).
+// A 303 relaxation zones: > 0 factors r^(dt/A 303), 0 r per step, < 0 (default) per time as the three RK3 stages
+// of an RK3 run at N 47 0.75; A 304 tolerance of the corrector (default 1e-3).
 // ---------------------------------------------------------------------------
 
 class fnpf_theta final : public fnpf_ini, public fnpf_sigma

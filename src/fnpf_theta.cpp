@@ -597,19 +597,35 @@ void fnpf_theta::relax_affine(lexer *p, ghostcell *pgc, ioflow *pflow, int which
     pflow->fifsf_relax(p,pgc,R);
     }
     
-    const double fac = (p->A303>0.0) ? p->dt/p->A303 : 1.0;
+    // A 303 > 0: factors r^(dt/A 303)
+    // A 303 < 0 (default): the zones act per time as in an RK3 run at N 47 0.75: an RK3 step relaxes the
+    // deviation from the target in its three stages by F(r) = r (1/3 + 2/3 r (3/4 + r/4)); the theta step,
+    // s = dt/(0.75 dt_crit) of those steps long, by F(r)^s (dt_crit: the step of the time-step criterion at N 47 1)
+    double fac = 1.0;
+    int rk3eq = 0;
+    if(p->A303>0.0)
+    fac = p->dt/p->A303;
+    if(p->A303<0.0 && p->dt_crit>0.0)
+    {
+    rk3eq = 1;
+    fac = p->dt/(0.75*p->dt_crit);
+    }
     
     SLICELOOP4
     {
     double r = R(i,j) - T(i,j);
     double t = T(i,j);
     
-    if(fac!=1.0 && r>0.0 && r<1.0)
+    if((fac!=1.0 || rk3eq==1) && r>0.0 && r<1.0)
     {
     const double target = t/(1.0-r);
-    r = pow(r,fac);
+    const double F = (rk3eq==1) ? r*(1.0/3.0 + (2.0/3.0)*r*(0.75 + 0.25*r)) : r;
+    r = pow(F,fac);
     t = (1.0-r)*target;
     }
+    else
+    if(rk3eq==1 && r<=0.0)
+    r = 0.0;
     
     R(i,j) = r;
     T(i,j) = t;

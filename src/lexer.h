@@ -17,7 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Hans Bihs
+Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
 #ifndef LEXER_H_
@@ -265,6 +265,7 @@ public:
     int sediter;
     double final_res;
 	double dt,dt_old,simtime,viscmax,RK_alpha;
+    double dt_crit;     // FNPF: the step of the time-step criterion at N 47 1 (fnpf_timestep), scales the theta-Robin relaxation zones
 	double mindt,maxdt;
 	double umax,vmax,wmax,epsmax,kinmax,pressmin,pressmax,omegamax;
 	double presstime,veltime,reinitime,turbtime,plstime,itertime;
