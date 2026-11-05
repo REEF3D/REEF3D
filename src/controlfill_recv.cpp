@@ -204,6 +204,10 @@ void control::ctrlrecv()
     dd++;
     A302 = ictrl[ii];
     ii++;
+    A303 = dctrl[dd];
+    dd++;
+    A304 = dctrl[dd];
+    dd++;
     A309 = ictrl[ii];
     ii++;
     A310 = ictrl[ii];

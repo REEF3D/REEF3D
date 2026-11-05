@@ -64,14 +64,28 @@ using namespace std;
 //     Euler in the first step);
 //   - pass 0: N at t^n+1/2 extrapolated with Adams-Bashforth 2 from t^n and t^n-1, the sigma cross-derivative
 //     terms of the Laplace rows with Fi^n (lagged by one step);
-//   - A 302 corrector passes (default 1): the sigma grid of eta^n+1 of the last solution, N at t^n+1/2 as the
+//   - A 302 corrector passes (at most, default 4; A 304: stop when the change of the solution is below A 304
+//     times its size, default 1e-3): the sigma grid of eta^n+1 of the last solution, N at t^n+1/2 as the
 //     mean of N^n and N^n+1 of the last solution (trapezoidal), and the cross-derivative terms with the last
 //     solution. A pass assembles the system on that grid and makes one defect-correction step with the
 //     factorisation of pass 0 (no new factorisation).
+//
+// Relaxation zones (B 98 2, B 99 1/2), targets at t^n+1 (wavegen_precalc_fnpf again in start()): the relaxation of Fifsf, f -> r f + T, is part of the Robin rows,
+//   Fifsf^n+1 + r g theta^2 dt^2 w^n+1 = r R + T,
+// so the solution Fi is that of the relaxed surface potential (r = 0: Dirichlet, the target). Relaxing Fifsf
+// after the solve (as the RK3 stages do before their solve) leaves Fi of the unrelaxed potential below the
+// relaxed surface: w is wrong in the zones and the step is unstable (wave flume, 4 November 2026).
+//
 //   Without the corrector the lagged cross terms and the predicted grid feed the even harmonics (cos 2kx) of a
 //   standing wave, which grow in time (first order in dt, proportional to the wave slope); one pass removes it.
 //
-// A 300 theta (default 0.5: 0.55 damps 9 % per period at 21 steps), A 302 corrector passes (default 1).
+//   One pass removes the growth of the even harmonics of step 2. At steps of 2-4 times the RK3 step one
+//   defect-correction step does not converge: the unconverged corrector loses wave energy (JONSWAP Hm0 -16 %
+//   at 2x with one pass, -2.5 % converged; step 3, 5 November 2026), hence the passes to convergence.
+//
+// A 300 theta (default 0.5: 0.55 damps 9 % per period at 21 steps), A 302 corrector passes (default 4),
+// A 303 reference step of the relaxation zones (factors r^(dt/A 303), default 0: r per step), A 304 tolerance
+// of the corrector (default 1e-3).
 // ---------------------------------------------------------------------------
 
 class fnpf_theta final : public fnpf_ini, public fnpf_sigma
@@ -92,11 +106,13 @@ private:
     // pass 0: build, factorise, solve
     void robin_solve(lexer*, fdm_fnpf*, ghostcell*, solver*, slice&, slice&, slice&);
     // corrector pass: build on the current grid, one defect-correction step with the factorisation of pass 0
-    void robin_correct(lexer*, fdm_fnpf*, ghostcell*, solver*, slice&, slice&);
+    double robin_correct(lexer*, fdm_fnpf*, ghostcell*, solver*, slice&, slice&);
     // the solution back to Fi (interior), fout (Fifsf^n+1) and wnew (w^n+1)
     void robin_unpack(lexer*, fdm_fnpf*, ghostcell*, slice&);
     // eta^n+1 of the current solution, N^n+1/2 = (N^n + N^n+1)/2, R, and the sigma grid of eta^n+1
-    void corrector_state(lexer*, fdm_fnpf*, ghostcell*);
+    void corrector_state(lexer*, fdm_fnpf*, ghostcell*, ioflow*);
+    // the relaxation of the zones as f -> R f + T (from f = 0 and f = 1), with the factors r^(dt/A 303)
+    void relax_affine(lexer*, ghostcell*, ioflow*, int, slice&, slice&);
     
     int gcval,gcval_u,gcval_v,gcval_w;
     int gcval_eta,gcval_fifsf;
@@ -109,11 +125,15 @@ private:
     slice4 erk1,frk1;      // predicted eta and Fifsf (sigma grid of the solve, cross terms of pass 0)
     slice4 erk2;           // eta^n+1 of the current solution (corrector)
     slice4 R0,Rs;          // right-hand side of the Robin row without and with the nonlinear terms
+    slice4 relR,relT;      // relaxation of Fifsf in the zones, f -> relR f + relT (relR 1, relT 0 outside)
+    slice4 relRe,relTe;    // relaxation of eta in the zones
     slice4 fnew,wnew;      // Fifsf^n+1, w^n+1 of the solve
     slice4 en;
     
     double theta;
     int npass;
+    double passtol;
+    long passsum, stepsum;
     int nstep;
     double dt_prev;
     
