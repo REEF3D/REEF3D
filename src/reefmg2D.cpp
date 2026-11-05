@@ -284,7 +284,16 @@ void reefmg2D::vcycle(lexer *p, ghostcell *pgc, slice &z, matrix2D &M, vec2D &r,
     z(i,j)=0.0;
 
     bool singular=false;
-    const double ldx=fill(p,pgc,mg,z,M,r,singular);
+    double ldx=0.0;
+
+    if(rebuild || !keep_matrix || !filled || Mcur!=&M)
+    {
+    ldx=fill(p,pgc,mg,z,M,r,singular);
+    filled=true;
+    }
+
+    else
+    fill_rhs(p,pgc,mg,z,M,r);
 
     if(rebuild)
     {
@@ -417,6 +426,7 @@ double reefmg2D::fill(lexer *p, ghostcell *pgc, reefmg_core &core, slice &f, mat
 
     //  pass 2: copy the active rows
     double ldx=0.0, excmax=0.0;
+    arow.clear(); drow.clear(); dq.clear(); dn.clear(); dc.clear();
 
     ILOOP
     JLOOP
@@ -462,6 +472,7 @@ double reefmg2D::fill(lexer *p, ghostcell *pgc, reefmg_core &core, slice &f, mat
             else
             {
                 fv-=c[d]*dhalo[nq[d]];
+                dq.push_back(q); dn.push_back(nq[d]); dc.push_back(c[d]);
                 c[d]=0.0;
             }
         }
@@ -493,6 +504,7 @@ double reefmg2D::fill(lexer *p, ghostcell *pgc, reefmg_core &core, slice &f, mat
         L.u[q]=uv;
         L.act[q]=1;
         nbm[q]=m;
+        arow.push_back(q);
 
         if(uv!=uv || fv!=fv)
         err=1;
@@ -510,6 +522,57 @@ double reefmg2D::fill(lexer *p, ghostcell *pgc, reefmg_core &core, slice &f, mat
     singular=(excmax<1.0e-10);
 
     return ldx;
+}
+
+//  the right-hand side of the matrix of the last fill(): the same values as fill() for an unchanged matrix
+void reefmg2D::fill_rhs(lexer *p, ghostcell *pgc, reefmg_core &core, slice &f, matrix2D &M, vec2D &rhs)
+{
+    sc_level &L=core.fine();
+
+    std::fill(L.u.begin(),L.u.end(),0.0); std::fill(L.f.begin(),L.f.end(),0.0);
+
+    int err=0;
+
+    if(drow.empty())
+    {
+    ILOOP
+    JLOOP
+    if(dflag[L.idx(i,j,0)])
+    drow.push_back((long)i*p->knoy + j);
+    drow.push_back(-1);     // the list is built
+    }
+
+    for(long ij : drow)
+    {
+        if(ij<0)
+        break;
+
+        i=(int)(ij/p->knoy); j=(int)(ij%p->knoy);
+        const long q=L.idx(i,j,0);
+        const int r=cval[IJ];
+        const double v=rhs.V[r]/M.p[r];
+        dval[q]=dhalo[q]=v;
+
+        if(v!=v)
+        err=1;
+    }
+
+    core.halo_vec(L,dhalo);
+
+    for(long q : arow)
+    {
+        const double fv=rhs.V[rowmap[q]];
+        L.f[q]=fv;
+
+        if(fv!=fv)
+        err=1;
+    }
+
+    for(size_t k=0; k<dq.size(); ++k)
+    L.f[dq[k]]-=dc[k]*dhalo[dn[k]];
+
+    if(err)
+    p->solver_error=1;
 }
 
 void reefmg2D::fillback(lexer *p, reefmg_core &core, slice &f)

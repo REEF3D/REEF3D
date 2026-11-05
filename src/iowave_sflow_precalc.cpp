@@ -48,6 +48,25 @@ void iowave::wavegen_2D_precalc(lexer *p, fdm2D *b, ghostcell *pgc)
     // domain and kept only in the zone). Zone sources (B 524) per column.
     if(!gen_built) genzone4_build(p,pgc);
     
+    // the same time on the same grid and bed as the last evaluation: the values are still those
+    {
+    bool same = (pc2D_p==p && pc2D_time==p->simtime && pc2D_bed.size()==gen_i.size());
+    
+        if(same)
+        for(size_t q=0; q<gen_i.size(); ++q)
+        if(pc2D_bed[q]!=b->bed(gen_i[q],gen_j[q]))
+        {
+        same=false;
+        break;
+        }
+        
+        if(same)
+        {
+        p->wavecalctime+=pgc->timer()-starttime;
+        return;
+        }
+    }
+    
     const bool zsel = zones.has_sources();
     
     if(p->B98==2 && h_switch==1)
@@ -137,6 +156,12 @@ void iowave::wavegen_2D_precalc(lexer *p, fdm2D *b, ghostcell *pgc)
     
     if(zsel)
     select_sources(nullptr);
+    
+    pc2D_p = p;
+    pc2D_time = p->simtime;
+    pc2D_bed.resize(gen_i.size());
+    for(size_t q=0; q<gen_i.size(); ++q)
+    pc2D_bed[q] = b->bed(gen_i[q],gen_j[q]);
     
     p->wavecalctime+=pgc->timer()-starttime;
 }

@@ -183,6 +183,11 @@ void sflow_momentum_SI::nh_amr_prec_setup(lexer *p, ghostcell *pgc, const std::f
     auto ac = [&](int a, int c) { return in(a,c) && nA(a,c)>0.5; };
     auto &S = *nhlu;
 
+    // the own cells of the solve, for nh_amr_prec
+    nh_own.assign((size_t)p->imax*p->jmax,0);
+    SLICELOOP4
+    nh_own[IJ] = own(i,j) ? 1 : 0;
+
     SLICELOOP4
     {
         if(nA(i,j)>0.5)
@@ -204,6 +209,7 @@ void sflow_momentum_SI::nh_amr_prec_setup(lexer *p, ghostcell *pgc, const std::f
     if(!S.mg1)
     {
     S.mg1.reset(patch ? new reefmg2D(p,pgc,true) : new reefmg2D(p,pgc));
+    S.mg1->set_keep_matrix(true);
     S.M1.reset(new matrix2D(p));
     S.r1.reset(new vec2D(p));
 
@@ -214,6 +220,8 @@ void sflow_momentum_SI::nh_amr_prec_setup(lexer *p, ghostcell *pgc, const std::f
     if(Bdisp>0.0 && !S.mg2)
     {
     S.mg2.reset(patch ? new reefmg2D(p,pgc,true) : new reefmg2D(p,pgc));
+    S.mg2->set_keep_matrix(true);
+    S.mg2->set_coarse_sweeps(2);
     S.M2.reset(new matrix2D(p));
     S.r2.reset(new vec2D(p));
 
@@ -289,6 +297,16 @@ void sflow_momentum_SI::nh_amr_prec_setup(lexer *p, ghostcell *pgc, const std::f
     {
         matrix2D &M2 = *S.M2;
 
+        // h^3 of the cells, computed once per cell
+        S.h3c.assign((size_t)p->imax*p->jmax,-1.0);
+        auto h3of = [&](int a, int c)
+        {
+            double &v = S.h3c[id(a,c)];
+            if(v<0.0)
+            v = pow(WLh(a,c),3.0);
+            return v;
+        };
+
         auto rho = [&](int dir, int a, int c, int a1, int c1)
         {
             const double Hf = dir==1 ? Hx(a,c) : Hy(a,c);
@@ -300,7 +318,7 @@ void sflow_momentum_SI::nh_amr_prec_setup(lexer *p, ghostcell *pgc, const std::f
             const double cB = dir==1 ? nxB(a,c) : nyB(a,c);
             const double cc = 0.5*(dir==1 ? nxR(a,c) + nxL(a,c) : nyR(a,c) + nyL(a,c));
             const double aE = 0.5*(nAE(a,c) + nAE(a1,c1));
-            const double h3 = 0.5*(pow(WLh(a,c),3.0) + pow(WLh(a1,c1),3.0));
+            const double h3 = 0.5*(h3of(a,c) + h3of(a1,c1));
             const double K = af*aE + tdt*cc;
 
             return K>0.0 ? tdt*cB*h3*aE/K : 0.0;
@@ -341,6 +359,7 @@ void sflow_momentum_SI::nh_amr_prec(lexer *p, ghostcell *pgc, const std::functio
     const double tdt = theta*p->dt;
     const bool yd = (p->j_dir==1);
     auto &S = *nhlu;
+    const char *ow = nh_own.data();   // the own cells of nh_amr_prec_setup (the same as own)
 
     SLICELOOP4
     {
@@ -348,7 +367,7 @@ void sflow_momentum_SI::nh_amr_prec(lexer *p, ghostcell *pgc, const std::functio
     nBE(i,j) = 0.0;
     nBP(i,j) = 0.0;
 
-        if(own(i,j))
+        if(ow[IJ])
         {
             if(nA(i,j)>0.5)
             nBE(i,j) = rm - tdt*rc;
@@ -371,7 +390,7 @@ void sflow_momentum_SI::nh_amr_prec(lexer *p, ghostcell *pgc, const std::functio
     {
     double r = 0.0;
 
-        if(own(i,j))
+        if(ow[IJ])
         {
         double dv = (qx(i,j) - qx(i-1,j))/p->DXN[IP];
         if(yd) dv += (qy(i,j) - qy(i,j-1))/p->DYN[JP];
@@ -392,7 +411,7 @@ void sflow_momentum_SI::nh_amr_prec(lexer *p, ghostcell *pgc, const std::functio
     {
     int n=0;
     SLICELOOP4
-    S.r2->V[n++] = own(i,j) ? nZ(i,j) : 0.0;
+    S.r2->V[n++] = ow[IJ] ? nZ(i,j) : 0.0;
 
     S.mg2->vcycle(p,pgc,nZ,*S.M2,*S.r2,nh_rb2);
     nh_rb2 = false;
@@ -400,7 +419,7 @@ void sflow_momentum_SI::nh_amr_prec(lexer *p, ghostcell *pgc, const std::functio
 
     SLICELOOP4
     {
-    const bool o = own(i,j);
+    const bool o = ow[IJ];
     nZE(i,j) = o ? nBE(i,j) + nAE(i,j)*nZ(i,j) : 0.0;
     nZP(i,j) = o ? nBP(i,j) + nAP(i,j)*nZ(i,j) : 0.0;
     }

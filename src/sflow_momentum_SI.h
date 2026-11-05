@@ -286,6 +286,7 @@ private:
     slice1 nF1x, nF2x;
     slice2 nF1y, nF2y;
     slice4 nH3, nW2, nCs, nRm, nRc, nZE, nZP;
+    std::vector<char> nh_own;              // the own cells of the solve (nh_amr_prec_setup)
     bool nh_rb1 = true, nh_rb2 = true;     // the V-cycle hierarchies of the preconditioner: rebuilt after nh_amr_prec_setup
     void nh_amr_cells(lexer*, fdm2D*);
     void nh_amr_guess(lexer*, fdm2D*);
