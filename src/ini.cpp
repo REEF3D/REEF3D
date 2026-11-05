@@ -335,6 +335,7 @@ void control::ini_default()
     A720=0;           // int prescribed current (stand-alone runs): 0 none, 1 U linear in x (A 721)
     A721_us=A721_ue=0.0; // double U at xs and at xe [m/s]
     A721_xs=A721_xe=0.0; // double xs, xe [m]
+    A727_x0=A727_y0=0.0; A727_x1=A727_y1=-1.0; // double x0 x1 y0 y1 [m]: the initial spectrum of A 710 1 only in the cells with the centre inside the box (Phase 25), off with x1 < x0
     A728=4;           // int drag law of the wind input with A 729 2, numbered as W 207: 1 Garratt, 2 Wu, 3 Smith-Banke, 4 Zijlema et al. (2012), 5 Garratt capped at W 213, 6 Zijlema with the floor W 214
     A729=0;           // int drag of the wind input: 0 Wu (1982), 1 the met drag law W 207 (W 213, W 214), 2 its own law A 728
     A730=0;           // int wind: 0 none, 1 uniform (A 731), 2 the met forcing W 200 (uniform, met-forcing.r3m, vortex, blend)
@@ -411,6 +412,9 @@ void control::ini_default()
     A781=1;           // int MPI: 1 the sweeps pipelined across the ranks (the result of one rank; grids without refinement or with the composite sweep A 797 1), 0 each rank from the halo of the last exchange
     A767=0;           // int 1 the source terms of a cell evaluated once per iteration, in the sweep of the first quadrant, and kept for the others (wind sea; Phase 21b)
     A769=0;           // int the source-term limiter (A 735 > 0): 0 SWAN (Ris 1997), 1 Hersbach and Janssen (1999), as ecWAM (nonstationary; Phase 25), 2 none with A 732 1, 2: the DIA conservative in action (modified Patankar, two passes per solve), the whitecapping linearised with its degree in N, with A 732 2 the upper bound of ecWAM (FLMAX, 0.031)
+    A776=0;           // int GSE closure (Phase 25): 0 off, 1 the flux inside a bin as a diffusion D = t_a Sigma over each step (nonstationary) with the age t_a = A 777, 2 with t_a the model time (a field released at t = 0, the test of the closure)
+    A777=0.0;         // double the age t_a [s] of A 776 1
+    A778=2;           // int GSE closure: Gauss-Seidel iterations of the diffusion per step
     A799=0;           // int stationary convergence test: 0 change of Hs per iteration (A 708), 1 estimated distance of Hs to the solution
     A757_cds2=5.0e-5; // double A 732 2 (van der Westhuysen): coefficient Cds2 of the saturation-based whitecapping (SWAN cds2)
     A757_br=1.75e-3;  // double ... saturation threshold B_r (SWAN br)

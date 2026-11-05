@@ -165,6 +165,10 @@ void seastate_f::transport(lexer *p, ghostcell *pgc)
         if(N0!=nullptr)
         N0->copy_from(*e->N);
 
+        // A 776 3 (Phase 26): the old time level of the age, M + dt N
+        if(p->A776==3)
+        age_start(p);
+
         for(int it=0; it<iter_max; ++it)
         {
         diffraction(p,pgc);
@@ -177,6 +181,14 @@ void seastate_f::transport(lexer *p, ghostcell *pgc)
         if(pfas!=nullptr && iter_done%p->A758_n==0 && it<iter_max-1)
         pfas->correct(p,pgc,N0,rdt,Nb,side,refraction,fshift,p->A758_m);
         }
+
+        // A 776 3 (Phase 26): the age transported with the spectra
+        if(p->A776==3)
+        age_step(p,pgc);
+
+        // A 776 (Phase 25): the GSE closure over the step
+        if(p->A776>0)
+        gse_step(p,pgc);
 
         return;
     }
