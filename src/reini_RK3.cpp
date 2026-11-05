@@ -29,6 +29,7 @@ Author: Hans Bihs
 #include"picard_lsm.h"
 #include"picard_void.h"
 #include"reinidisc_f.h"
+#include"reini_fsm.h"
 
 reini_RK3::reini_RK3(lexer* p, int type) : frk1(p),frk2(p),dt(p)
 {
@@ -103,8 +104,20 @@ void reini_RK3::start(fdm *a, lexer *p, field &f, ghostcell *pgc, ioflow* pflow)
 	{
         if(p->mpirank==0)
         cout<<"initializing level set..."<<endl<<endl;
-        reiniter=2*int(p->maxlength/(p->F43*p->DXM));
+
         pgc->start4(p,f,gcval_iniphi);
+
+        // the signed distance by fast sweeping (reini_fsm.cpp), then a few iterations of the PDE to
+        // smooth it (a pseudo time of about 5 cells); on a patch of the mesh refinement (no exchange,
+        // the level set filled from the coarser level) the PDE alone as before
+        if(p->amr_patch==0)
+        {
+            reini_fsm(p,a,pgc,f);
+            pgc->start4(p,f,gcval_iniphi);
+            reiniter=MAX(10,int(ceil(5.0/p->F43)));
+        }
+        else
+        reiniter=2*int(p->maxlength/(p->F43*p->DXM));
 	}
     
 	if(p->count>0)

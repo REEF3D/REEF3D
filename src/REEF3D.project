@@ -292,6 +292,7 @@
             <File Name="reini_walld.h"/>
             <File Name="reini_void.h"/>
             <File Name="reini_RK3.h"/>
+            <File Name="reini_fsm.h"/>
             <File Name="reini.h"/>
             <VirtualDirectory Name="Reinidisc">
               <File Name="reinidisc_f.h"/>
@@ -2014,6 +2015,7 @@
             <File Name="reini_walld.cpp"/>
             <File Name="reini_void.cpp"/>
             <File Name="reini_RK3.cpp"/>
+            <File Name="reini_fsm.cpp"/>
             <VirtualDirectory Name="Reinidisc">
               <File Name="reinidisc_f.cpp"/>
             </VirtualDirectory>
