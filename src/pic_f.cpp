@@ -37,6 +37,7 @@ Architect: Hans Bihs
 #include<sys/stat.h>
 #include<sys/types.h>
 #include<iostream>
+#include<string>
 
 pic_f::pic_f(lexer *p, fdm *a, ghostcell *pgc, reini *ppreini, ioflow *ppflow, heat *pheat, concentration *pconc)
 {
@@ -71,6 +72,7 @@ pic_f::pic_f(lexer *p, fdm *a, ghostcell *pgc, reini *ppreini, ioflow *ppflow, h
     // the density and viscosity follow it (the fluid update of the level set)
     surface = (p->F81==1 || p->F81==2);
     flipmode = (p->F81==2);
+    apic = flipmode && (p->F77==1 || p->F77==2);
     relaxzones = surface && p->B90>0 && (p->B98==2 || p->B99==1 || p->B99==2);
     inflowsrc = surface && p->B60>0;
     preini = ppreini;
@@ -135,7 +137,8 @@ pic_f::pic_f(lexer *p, fdm *a, ghostcell *pgc, reini *ppreini, ioflow *ppflow, h
     logout<<"t \t particles \t left_domain \t sent_between_ranks \t added \t removed \t phi_time"<<endl;
 
     if(flipmode)
-    cout<<"PIC (F 81 "<<p->F81<<"): the free surface and the momentum of the water from the particles (FLIP "<<p->F82<<"), "<<npc<<" per cell"<<endl;
+    cout<<"PIC (F 81 "<<p->F81<<"): the free surface and the momentum of the water from the particles ("
+        <<(p->F77==1 ? std::string("APIC") : (p->F77==2 ? "FLIP "+std::to_string(p->F82)+" with the affine velocities" : "FLIP "+std::to_string(p->F82)))<<"), "<<npc<<" per cell"<<endl;
     else if(surface)
     cout<<"PIC (F 81 "<<p->F81<<"): the free surface from the particles, "<<npc<<" per cell"<<endl;
     else
@@ -166,7 +169,11 @@ void pic_f::ini(lexer *p, fdm *a, ghostcell *pgc)
     }
 
     for(auto &q : P)
+    {
     velocity(p,a,q.x,q.y,q.z,q.u,q.v,q.w);
+    if(apic)
+    affine(p,q);
+    }
 
     // the first output (on a restart, I 45 1, too: the particles are seeded again)
     print(p,pgc);
@@ -197,11 +204,9 @@ void pic_f::start(lexer *p, fdm *a, ghostcell *pgc)
     if(relaxzones)
     zone_stretch(p,a);
 
-    // the particles in the water (F 86) and, at every step, in the relaxation zones
-    const bool interior = p->F86>0 && p->count%p->F86==0;
-
-    if(interior || relaxzones)
-    reseed(p,a,pgc,interior);
+    // the particles in the water (F 86)
+    if(p->F86>0 && p->count%p->F86==0)
+    reseed(p,a,pgc,true);
 
     if(inflowsrc)
     inflow_seed(p,a,pgc);

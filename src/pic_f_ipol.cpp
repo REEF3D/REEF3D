@@ -123,3 +123,68 @@ double pic_f::ipol(lexer *p, field &f, int type, double xp, double yp, double zp
 
     return val;
 }
+
+// the trilinear weights as pic_f::stencil and their gradient (gw: 3 per node); for the affine
+// velocities of APIC (pic_f_flip.cpp)
+int pic_f::stencil_grad(lexer *p, int type, double xp, double yp, double zp, int *ii, int *jj, int *kk, double *ww, double *gw) const
+{
+    const int n = stencil(p,type,xp,yp,zp,ii,jj,kk,ww);
+
+    // the spacings of the bracket (the node coordinates of the stencil)
+    double X0[3], X1[3];
+    node(p,type,ii[0],jj[0],kk[0],X0);
+    node(p,type,ii[n-1],jj[n-1],kk[n-1],X1);
+
+    const double hx = X1[0]-X0[0];
+    const double hy = p->j_dir==1 ? X1[1]-X0[1] : 1.0;
+    const double hz = X1[2]-X0[2];
+    const double tx = std::max(0.0,std::min(1.0,(xp-X0[0])/hx));
+    const double ty = p->j_dir==1 ? std::max(0.0,std::min(1.0,(yp-X0[1])/hy)) : 0.0;
+    const double tz = std::max(0.0,std::min(1.0,(zp-X0[2])/hz));
+    const double wx[2] = {1.0-tx, tx}, dx[2] = {-1.0/hx, 1.0/hx};
+    const double wy[2] = {1.0-ty, ty}, dy[2] = {-1.0/hy, 1.0/hy};
+    const double wz[2] = {1.0-tz, tz}, dz[2] = {-1.0/hz, 1.0/hz};
+    const int ny = p->j_dir==1 ? 2 : 1;
+
+    int m=0;
+    for(int a=0; a<2; ++a)
+    for(int b=0; b<ny; ++b)
+    for(int c=0; c<2; ++c)
+    {
+        const double wyb = p->j_dir==1 ? wy[b] : 1.0;
+        gw[3*m]   = dx[a]*wyb*wz[c];
+        gw[3*m+1] = p->j_dir==1 ? wx[a]*dy[b]*wz[c] : 0.0;
+        gw[3*m+2] = wx[a]*wyb*dz[c];
+        ++m;
+    }
+
+    return n;
+}
+
+// the position of a node of the stencil: faces for its own component, centres else
+void pic_f::node(lexer *p, int type, int i, int j, int k, double *X) const
+{
+    X[0] = type==1 ? p->XN[i+1+marge] : p->XP[i+marge];
+    X[1] = type==2 ? p->YN[j+1+marge] : p->YP[j+marge];
+    X[2] = type==3 ? p->ZN[k+1+marge] : p->ZP[k+marge];
+}
+
+// the interpolated value and its gradient
+void pic_f::ipol_grad(lexer *p, field &f, int type, double xp, double yp, double zp, double &val, double *g) const
+{
+    int ii[8], jj[8], kk[8];
+    double ww[8], gw[24];
+    const int n = stencil_grad(p,type,xp,yp,zp,ii,jj,kk,ww,gw);
+
+    val = 0.0;
+    g[0] = g[1] = g[2] = 0.0;
+
+    for(int m=0; m<n; ++m)
+    {
+        const double fv = f(ii[m],jj[m],kk[m]);
+        val += ww[m]*fv;
+        g[0] += gw[3*m]*fv;
+        g[1] += gw[3*m+1]*fv;
+        g[2] += gw[3*m+2]*fv;
+    }
+}

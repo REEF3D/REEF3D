@@ -161,7 +161,10 @@ bool pic_f::domain(lexer *p, double &xp, double &yp, double &zp)
                 return true;
             }
 
-            if(f==INFLOW_FLAG || f==OUTFLOW_FLAG)
+            // the relaxation zone of the wave generation (B 98 2) has a wall at its boundary: the
+            // particles are reflected there (removed, the zone lost its water to the waves of a
+            // steep wave: 70 % of the tank in 24 s for the cnoidal waves of the spilling breaker)
+            if((f==INFLOW_FLAG && !relaxzones) || f==OUTFLOW_FLAG)
             return false;
         }
     }

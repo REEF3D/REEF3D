@@ -38,9 +38,10 @@ Architect: Hans Bihs
 // depends only on the particles in the cell, so it is the same for any decomposition; the new
 // particles sit at the centres of their sub-cells and take the velocity of the water and ids
 // after those of the seeding.
-// In the relaxation zones of the wave generation and the numerical beach (B 98 2, B 99 1, 2; every
-// step) the particles above the relaxed surface go (the columns of the particles follow it,
-// pic_f::zone_stretch).
+// In the relaxation zones of the waves the columns of the particles follow the relaxed surface
+// (pic_f::zone_stretch); no particles are removed there: removing those above the relaxed surface
+// (patch 0005) and only stretching the columns where it is higher drained the zone of the wave
+// generation once the waves reflected from the beach of the spilling breaker came back into it.
 // interior: the particles in the water (F 86).
 
 // in a relaxation zone: the cell column of the position (in the subdomain)
@@ -114,15 +115,6 @@ void pic_f::reseed(lexer *p, fdm *a, ghostcell *pgc, bool interior)
     std::vector<char> drop(P.size(),0);
     long long mine_removed = 0;
 
-    // the relaxation zones: the particles above the relaxed surface
-    if(relaxzones)
-    for(size_t q=0; q<P.size(); ++q)
-    if(inzone(p,P[q].x,P[q].y) && ipol(p,a->phi,4,P[q].x,P[q].y,P[q].z)<0.0)
-    {
-    drop[q] = 1;
-    ++mine_removed;
-    }
-
     if(interior)
     {
         std::vector<std::vector<size_t> > members(n);
@@ -193,6 +185,8 @@ void pic_f::reseed(lexer *p, fdm *a, ghostcell *pgc, bool interior)
             continue;
 
             velocity(p,a,q.x,q.y,q.z,q.u,q.v,q.w);
+            if(apic)
+            affine(p,q);
             fresh.push_back(q);
             ++have;
         }

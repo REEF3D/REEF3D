@@ -381,10 +381,14 @@ void pic_f::phi_build(lexer *p, fdm *a, ghostcell *pgc)
     // as for the level set; the columns of the particles there follow it (pic_f::zone_stretch)
     if(relaxzones)
     {
-    zone_surface(p,a,pgc,etap);
+    // the surface of the particles near the relaxed one of the step before, the relaxed one near it
+    if(etar.empty())
+    etar.assign(size_t(p->gknox)*p->gknoy, p->phimean);
+
+    zone_surface(p,a,pgc,etap,etar);
     pflow->phi_relax(p,pgc,a->phi);
     pgc->start4(p,a->phi,gcval_phi);
-    zone_surface(p,a,pgc,etar);
+    zone_surface(p,a,pgc,etar,etap);
     }
 
     // inside the solids of the direct forcing (and the 6DOF bodies with X 48 3) the level set is

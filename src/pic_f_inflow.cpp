@@ -110,6 +110,8 @@ void pic_f::inflow_seed(lexer *p, fdm *a, ghostcell *pgc)
                     q.z = z;
                     q.id = -1.0 - ((double(p->count)*gin + gidx)*double(4*nl*npd) + double(m));
                     velocity(p,a,q.x,q.y,q.z,q.u,q.v,q.w);
+                    if(apic)
+                    affine(p,q);
                     P.push_back(q);
                     ++mine;
                 }
