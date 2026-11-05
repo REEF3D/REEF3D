@@ -146,7 +146,7 @@ public:
     void gcparax4a(lexer*, field&, int);
     void gcparax4a_sum(lexer*, field&, int);
     void gcparaxV(lexer*, double*, int);
-    void gcparaxintV(lexer*, int*, int);
+    void gcparaxintV(lexer*, int*);
     void gcparaxV1(lexer*, double*, int);
 	void gcparacox(lexer*, field&, int);
     void gcparacoxV(lexer*, double*, int);
@@ -308,7 +308,11 @@ private:
     void Sendrecv_double(int,int,int,int,int,int);
     void Sendrecv_int(int,int,int,int,int,int);
     void Sendrecv(const void*[6],int[6],void*[6],int[6],MPI_Datatype);
-    
+
+    void set_DF(lexer *p, fdm *a);
+
+    template<typename FlagT>
+    void gcdf_update_impl(lexer *p, FlagT &flagsf, int **&gcdf, int &gcdf_count);
 
     MPI_Comm cart_comm = MPI_COMM_NULL;
     int neighbors[6] = {MPI_PROC_NULL, MPI_PROC_NULL, MPI_PROC_NULL,

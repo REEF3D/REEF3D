@@ -40,22 +40,26 @@ void ghostcell::flagfield(lexer *p)
     flagx(p,p->flag4);
     
 	if(p->Y60==1)
-    LOOP
-    {   
-        if(p->i_dir==1)
-        if(p->flag4[Im1JK]<0
-        && p->flag4[Ip1JK]<0)
-        p->flag4[IJK]=OBJ_FLAG;
-        
-        if(p->j_dir==1)
-        if(p->flag4[IJm1K]<0
-        && p->flag4[IJp1K]<0)
-        p->flag4[IJK]=OBJ_FLAG;
-        
-        if(p->k_dir==1)
-        if(p->flag4[IJKm1]<0
-        && p->flag4[IJKp1]<0)
-        p->flag4[IJK]=OBJ_FLAG;
+    {
+        LOOP
+        {
+            if(p->i_dir==1)
+            if(p->flag4[Im1JK]<0
+            && p->flag4[Ip1JK]<0)
+            p->flag4[IJK]=OBJ_FLAG;
+
+            if(p->j_dir==1)
+            if(p->flag4[IJm1K]<0
+            && p->flag4[IJp1K]<0)
+            p->flag4[IJK]=OBJ_FLAG;
+
+            if(p->k_dir==1)
+            if(p->flag4[IJKm1]<0
+            && p->flag4[IJKp1]<0)
+            p->flag4[IJK]=OBJ_FLAG;
+        }
+
+        flagx(p,p->flag4);
     }
     
     for(i=0;i<p->imax*p->jmax*p->kmax; ++i)
@@ -93,5 +97,9 @@ void ghostcell::flagfield(lexer *p)
 
         if(p->gcb4[n][3]==6 && (p->periodic3!=1 || k+p->origin_k<p->gknoz-1))
         p->flag3[IJK]=OBJ_FLAG;
-    }	
+    }
+
+    flagx(p,p->flag1);
+    flagx(p,p->flag2);
+    flagx(p,p->flag3);
 }

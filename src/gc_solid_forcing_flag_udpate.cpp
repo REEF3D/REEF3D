@@ -27,27 +27,8 @@ Authors: Hans Bihs
 void ghostcell::solid_forcing_flag_update(lexer *p, fdm *a)
 {   
     // Update DF
-    LOOP
-    p->DF[IJK]=1;
+    set_DF(p, a);
     
-    if(p->solidread>0)
-    LOOP
-    if(a->solid(i,j,k)<0.0)
-    p->DF[IJK]=-1;
-    
-    
-    if(p->toporead>0)
-    LOOP
-    if(a->topo(i,j,k)<0.0)
-    p->DF[IJK]=-1;
-    
-    if(p->X10>0)
-    LOOP
-    if(a->fb(i,j,k)<0.0)
-    p->DF[IJK]=-1;
-    
-    startintV(p,p->DF,1);
-
     // a patch of the mesh refinement (no partition neighbours): the cells around it in the domain take the
     // flag from their own fields (filled from the next patch or the coarser level), as the direct forcing
     // flags in gcdf_update; they kept the 1 of the patch setup, so the implicit diffusion (D 22 1) coupled
@@ -76,7 +57,6 @@ void ghostcell::solid_forcing_flag_update(lexer *p, fdm *a)
         p->DF[IJK] = ((p->solidread>0 && a->solid(i,j,k)<0.0) || (p->toporead>0 && a->topo(i,j,k)<0.0)
                   || (p->X10>0 && a->fb(i,j,k)<0.0)) ? -1 : 1;
     });
-    
     
     // 1
     ULOOP
@@ -118,9 +98,9 @@ void ghostcell::solid_forcing_flag_update(lexer *p, fdm *a)
     // MPI exchange (not for the patches of the mesh refinement, whose work is rank local)
     if(do_comms)
     {
-    gcparaxintV(p, p->DF1, 1);
-    gcparaxintV(p, p->DF2, 1);
-    gcparaxintV(p, p->DF3, 1);
+    gcparaxintV(p, p->DF1);
+    gcparaxintV(p, p->DF2);
+    gcparaxintV(p, p->DF3);
     }
 
 }
