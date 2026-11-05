@@ -79,6 +79,7 @@ public:
     Eigen::Matrix<double,6,6> mf_N_ = Eigen::Matrix<double,6,6>::Zero();
     Eigen::Matrix<double,6,1> mf_b_ = Eigen::Matrix<double,6,1>::Zero();
     double mf_c1_ = 0.0, mf_c2_ = 1.0, mf_tn_ = 0.0;
+    bool mf_start_ = false, mf_first_ = true;
     void momentum_loads(lexer*, int);
     
     // actuator disks of the load models (body-force propellers): acceleration of the fluid,

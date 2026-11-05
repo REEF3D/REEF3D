@@ -175,6 +175,11 @@ void sixdof_obj_cfd::momentum_fit_begin(lexer *p, int iter)
     mf_tn_ = p->simtime;
     mf_N_.setZero();
     mf_b_.setZero();
+    
+    // the first fit of a run from an initial velocity of the body (X 102, X 103): the fluid in the
+    // hull has not been forced yet, the body keeps its velocity
+    mf_start_ = (mf_first_ && (p->X102>0 || p->X103==1));
+    mf_first_ = false;
 }
 
 void sixdof_obj_cfd::momentum_fit_add(lexer *p, fdm *a, field &uvel, field &vvel, field &wvel)
@@ -245,6 +250,12 @@ void sixdof_obj_cfd::momentum_fit_end(lexer *p, ghostcell *pgc)
     bool ok;
     mom_fit_ = momentum_solve(p,pgc,mf_N_,mf_b_,ok);
     mom_ok_ = ok;
+    
+    if(mf_start_)
+    {
+    mom_fit_ = u_fb;
+    mom_ok_ = true;
+    }
 }
 
 void sixdof_obj_cfd::momentum_deform(lexer *p, fdm *a, ghostcell *pgc)
@@ -341,7 +352,18 @@ void sixdof_obj_cfd::momentum_loads(lexer *p, int iter)
 
     // translation: the body at the fitted velocity (neutrally buoyant), gravity of the body instead
     // of that of the fluid in the hull
-    const Eigen::Vector3d F = ratio*(Mass_fb*U - p0)/(c2*dt) + (Mass_fb - rf*Vfb)*g;
+    const Eigen::Vector3d Fg = (Mass_fb - rf*Vfb)*g;
+    Eigen::Vector3d F = ratio*(Mass_fb*U - p0)/(c2*dt) + Fg;
+    
+    // low-storage RK3: the fluid of the hull region carries the momentum of the last stage and its own
+    // zeta part; the body takes the momentum the fluid gained (ratio of the masses) and its own load Fg
+    // with gamma + zeta (before: p0 held zeta dt of the last load of the body, the momentum of the fit
+    // of the last stage included, and Fg with gamma alone, 1.68 times Fg over the step)
+    if(ls && (ratio!=1.0 || Fg.squaredNorm()>0.0))
+    {
+    const Eigen::Vector3d ps = rb.p + ratio*(Mass_fb*U - rb.p) + (gamma[iter] + zeta[iter])*dt*Fg;
+    F = (ps - p0)/(c2*dt);
+    }
 
     // rotation: the angular momentum of the body frame at the fitted rate; the gyroscopic part of dh
     // from the kinematics with zero moment
@@ -352,7 +374,10 @@ void sixdof_obj_cfd::momentum_loads(lexer *p, int iter)
     rb.M = M0;
 
     const Eigen::Vector3d htarget = rb.I*(R_.transpose()*W);
-    const Eigen::Vector3d dhM = ratio*(htarget - h0)/(c2*dt) - dh0;
+    Eigen::Vector3d dhM = ratio*(htarget - h0)/(c2*dt) - dh0;
+    
+    if(ls && ratio!=1.0)
+    dhM = (rb.h + ratio*(htarget - rb.h) - h0)/(c2*dt) - dh0;
     const Eigen::Vector3d M = R_*dhM;
 
     Xe = F(0);

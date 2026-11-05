@@ -49,6 +49,12 @@ sixdof_cfd::sixdof_cfd(lexer *p, fdm *a, ghostcell *pgc)
         p->X198 = 0;
     }
     
+    // X 198 with the SSP Runge-Kutta stages (N 40 3 with the CFD mesh refinement, G 1 > 0; without it
+    // the bodies take the low-storage RK3): the 2D swimmer is 9 % slow at N 47 0.25, as fast as with
+    // the low-storage RK3 at 0.1 (Fish Swimming validation 06)
+    if(p->X198>0 && (p->N40==2 || p->N40==3 || p->N40==22 || p->N40==23 || p->N40==33) && p->N47>0.1 && p->mpirank==0)
+    cout<<"!!! X 198 (fluid-momentum coupling) with the SSP Runge-Kutta stages: use N 47 0.1 or below (at 0.25 a self-propelled swimmer is about 9 % slow)"<<endl;
+    
     for (int nb = 0; nb < number6DOF; nb++)
     fb_obj.push_back(new sixdof_obj_cfd(p,pgc,nb));
     
