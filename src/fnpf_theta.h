@@ -100,6 +100,19 @@ using namespace std;
 //
 // A 306 linear solver (1 REEFMG, default; 2 SparseLU), A 307 residual reduction of the REEFMG solves (default
 // 1e-2; 0: N 44).
+//
+// A 308 c > 0 (theta 0.5, N 51 2): 4th-order phase. The step above is the Newmark scheme (gamma = theta) with
+// beta = theta^2 = 1/4 in the Fifsf update,
+//   Fifsf^n+1 + g beta dt^2 w^n+1 = Fifsf^n - g dt eta^n - g (theta - beta) dt^2 w^n - g theta dt^2 N_eta + dt N_Fi,
+// whose relative frequency error is (beta - 1/12) (omega dt)^2/2: (omega dt)^2/12 for Crank-Nicolson, of 4th
+// order for beta = 1/12 (Fox-Goodwin). Below 1/4 the scheme is stable for omega dt < 1/sqrt(1/4 - beta);
+// beta = max(1/12, 1/4 - 1/(c omega_max dt)^2) per step, omega_max dt = sqrt(3) dt/dt_crit the grid cut-off
+// mode of N 51 2 (Doppler shift included). The eta update and the cost are unchanged.
+//   Near the limit the discrete frequencies of the shortest resolved waves approach pi/dt (Crank-Nicolson
+//   compresses them below the exact ones), so the gain is in the waves well below the cut-off: at twice the RK3
+//   step Beji & Battjes 0.233 instead of 0.351 (rel. rms), Stokes 0.03 instead of 1.26 (A 308 1); JONSWAP Hm0
+//   -5.5 % instead of -4.6 %; at four times the RK3 step no gain. Unstable at 4x with c = 0.6, stable with
+//   c = 0.8: the cut-off estimate of N 51 2 is conservative by about 1.3-1.6 (6 November 2026).
 // A 305 theta (default 0.5: 0.55 damps 9 % per period at 21 steps), A 302 corrector passes (default 4),
 // A 303 relaxation zones: > 0 factors r^(dt/A 303), 0 r per step, < 0 (default -0.75) per time as the three RK3
 // stages of an RK3 run at N 47 -A 303; A 304 tolerance of the corrector (default 1e-3).
@@ -156,6 +169,7 @@ private:
     slice4 fsold;          // REEFMG: Fifsf^n+1 of the last pass
     
     double theta;
+    double beta,betasum;   // Newmark beta of the Fifsf update (theta^2; A 308: 1/12 .. 1/4)
     int lsolv;             // A 306: 1 REEFMG, 2 SparseLU
     double ctol;           // A 307: residual reduction of the inexact solves (REEFMG, 0: N 44)
     long cycsum0, cycsumc; // REEFMG cycles of pass 0 and of the corrector passes

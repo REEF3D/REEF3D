@@ -1,0 +1,6 @@
+{
+ "description": "Level set of the start in 3D on 2 ranks: a pool (F 56) with a drop (F 58 sphere), a column (F 59 cylinder) standing in it, an air box cut out of the pool at the wall (F 71) and a wedge on top (F 112), none of the faces on the cell faces. The exact signed distance of every region combined as sets (iniphi), the fast sweeping with closest-point propagation across the partition edge and the 10 iterations of the PDE (reini_fsm, reini_RK3 at count 0). The state of the start (count 0) is the main check; 5 steps. Distance accuracy and the comparison with the PDE start before: Dropbox/Claude/CFD Level Set/validation.",
+ "np": 2, "steps": 5,
+ "tags": ["quick", "3d", "levelset", "mpi"],
+ "covers": ["iniphi exact signed distances F 50-59, F 71, F 112", "reini_fsm 3D, 26 neighbours, MPI exchange of the foot points", "reini_RK3 count 0"]
+}

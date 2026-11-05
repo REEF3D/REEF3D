@@ -81,6 +81,8 @@ fnpf_theta::fnpf_theta(lexer *p, fdm_fnpf *c, ghostcell *pgc) : fnpf_ini(p,c,pgc
     
     theta = p->A305;
     lsolv = (p->A306==2) ? 2 : 1;
+    beta = theta*theta;
+    betasum = 0.0;
     ctol = p->A307;
     cycsum0 = cycsumc = 0;
     npt = 0;
@@ -105,6 +107,8 @@ fnpf_theta::fnpf_theta(lexer *p, fdm_fnpf *c, ghostcell *pgc) : fnpf_ini(p,c,pgc
     if(p->A328==1)                  {bad=1; if(p->mpirank==0) cout<<"A 310 5: sigma cross terms explicit only (A 328 0)"<<endl;}
     if(p->B98>2 || p->B99>2)        {bad=1; if(p->mpirank==0) cout<<"A 310 5: relaxation zones only (B 98 0-2, B 99 0-2)"<<endl;}
     if(theta<0.5)                   {bad=1; if(p->mpirank==0) cout<<"A 310 5: theta (A 305) >= 0.5"<<endl;}
+    if(p->A308>0.0 && theta!=0.5)   {bad=1; if(p->mpirank==0) cout<<"A 310 5: the 4th-order phase (A 308) needs theta 0.5 (A 305)"<<endl;}
+    if(p->A308>0.0 && p->N51!=2)    {bad=1; if(p->mpirank==0) cout<<"A 310 5: the 4th-order phase (A 308) needs the time step N 51 2"<<endl;}
     
     if(bad==1)
     pgc->final(true);
@@ -165,6 +169,18 @@ void fnpf_theta::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, con
     Nf(i,j) = fk(i,j) + g*c->eta(i,j);
     }
     
+    // A 308 > 0: Newmark beta of the Fifsf update below 1/4 for a phase error of 4th order (beta 1/12) or
+    // smaller than that of Crank-Nicolson, within the stability limit omega dt < 1/sqrt(1/4 - beta) of the
+    // grid cut-off mode, omega_max dt = sqrt(3) dt/dt_crit (N 51 2: dt_crit = sqrt(3)/omega_max, with the
+    // Doppler shift), with the safety factor c = A 308
+    beta = theta*theta;
+    if(p->A308>0.0 && p->dt_crit>0.0)
+    {
+    const double om = sqrt(3.0)*dt/p->dt_crit;
+    beta = MIN(0.25, MAX(1.0/12.0, 0.25 - 1.0/(p->A308*p->A308*om*om)));
+    }
+    betasum += beta;
+    
     // Adams-Bashforth 2 with variable step (Euler in the first step)
     double ab0=1.0, ab1=0.0;
     if(nstep>0 && dt_prev>0.0)
@@ -180,7 +196,7 @@ void fnpf_theta::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, con
     nEm(i,j) = ab0*Ne(i,j) + ab1*Neo(i,j);
     nFm(i,j) = ab0*Nf(i,j) + ab1*Nfo(i,j);
     
-    R0(i,j) = c->Fifsf(i,j) - g*dt*c->eta(i,j) - g*theta*(1.0-theta)*dt*dt*wn(i,j);
+    R0(i,j) = c->Fifsf(i,j) - g*dt*c->eta(i,j) - g*(theta-beta)*dt*dt*wn(i,j);
     Rs(i,j) = R0(i,j) - g*theta*dt*dt*nEm(i,j) + dt*nFm(i,j);
     
     // predictor of eta^n+1 and Fifsf^n+1, Adams-Bashforth 2 of the full tendencies: the sigma grid of
@@ -328,6 +344,8 @@ void fnpf_theta::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, con
     if(p->mpirank==0 && (p->count%p->P12==0))
     {
     cout<<"theta-Robin solve: "<<setprecision(3)<<solvetime<<" s total, corrector passes per step "<<double(passsum)/double(MAX(stepsum,1L))<<", consistency solves "<<editsum;
+    if(p->A308>0.0)
+    cout<<", beta "<<beta<<" (mean "<<betasum/double(MAX(stepsum,1L))<<")";
     if(lsolv==1)
     cout<<", REEFMG cycles per step: pass 0 "<<double(cycsum0)/double(MAX(stepsum,1L))<<", corrector "<<double(cycsumc)/double(MAX(stepsum,1L));
     cout<<endl;
@@ -495,7 +513,7 @@ void fnpf_theta::robin_build(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psol
     ILOOP
     {
         const int s = n+i;
-        const double alpha = relR(i,j)*g*theta*theta*p->dt*p->dt*p->sigz[IJ];
+        const double alpha = relR(i,j)*g*beta*p->dt*p->dt*p->sigz[IJ];
         
         T.emplace_back(s,s,1.0 + alpha*wsz[0]);
         
@@ -692,7 +710,7 @@ void fnpf_theta::robin_build_mg(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *p
             continue;
             
             const double mt = mts[r];
-            const double A = relR(i,j)*g*theta*theta*p->dt*p->dt*p->sigz[IJ];
+            const double A = relR(i,j)*g*beta*p->dt*p->dt*p->sigz[IJ];
             const double D = 1.0 + A*wsz[0];
             const double B = relR(i,j)*R(i,j) + relT(i,j);
             

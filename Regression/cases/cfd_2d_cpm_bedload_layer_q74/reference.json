@@ -31,10 +31,10 @@
   },
   "phi": {
    "n": 200,
-   "sum": 475.09871831881367,
-   "l1": 475.09871831881367,
-   "l2": 33.59455254562705,
-   "linf": 2.3754935915940685
+   "sum": 440.9987195667906,
+   "l1": 440.9987195667906,
+   "l2": 31.183318510026222,
+   "linf": 2.204993597833953
   },
   "eddyv": {
    "n": 200,
@@ -316,7 +316,7 @@
   0.001259451995923213,
   0.0012554688143501572
  ],
- "blessed_from": "/home/claude/regbin/r37_REEF3D",
- "date": "2026-10-24",
- "note": "hans_dev 11590751e + patches 0034-0039 (regression build)"
+ "blessed_from": "/home/claude/w/build/new2/REEF3D",
+ "date": "2026-11-05",
+ "note": "CFD Level Set patches 0001-0002 (level set of the start: exact signed distances of the regions, fast sweeping + 10 PDE iterations), hans_dev b2130448c + 0001-0002"
 }
