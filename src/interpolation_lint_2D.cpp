@@ -32,13 +32,13 @@ double interpolation::lint1_2D(field& b, int& i,int& j, int& k, double wa, doubl
     const int jsave=j;   // local: jj is the member in which the ccipol callers keep their own j
     j=0;
 
-    if(p->flag1[IJK]>TOPO_FLAG)
+    if(p->flag1(i,j,k)>TOPO_FLAG)
     v1=b(i,j,k);
-    if(p->flag1[IJKp1]>TOPO_FLAG)
+    if(p->flag1(i,j,k+1)>TOPO_FLAG)
     v2=b(i,j,k+1);
-    if(p->flag1[Ip1JK]>TOPO_FLAG)
+    if(p->flag1(i+1,j,k)>TOPO_FLAG)
     v3=b(i+1,j,k);
-    if(p->flag1[Ip1JKp1]>TOPO_FLAG)
+    if(p->flag1(i+1,j,k+1)>TOPO_FLAG)
     v4=b(i+1,j,k+1);
     j=jsave;
 
@@ -57,13 +57,13 @@ double interpolation::lint2_2D(field& b, int& i,int& j, int& k, double wa, doubl
     const int jsave=j;   // local: jj is the member in which the ccipol callers keep their own j
     j=0;
 
-    if(p->flag2[IJK]>TOPO_FLAG)
+    if(p->flag2(i,j,k)>TOPO_FLAG)
     v1=b(i,j,k);
-    if(p->flag2[IJKp1]>TOPO_FLAG)
+    if(p->flag2(i,j,k+1)>TOPO_FLAG)
     v2=b(i,j,k+1);
-    if(p->flag2[Ip1JK]>TOPO_FLAG)
+    if(p->flag2(i+1,j,k)>TOPO_FLAG)
     v3=b(i+1,j,k);
-    if(p->flag2[Ip1JKp1]>TOPO_FLAG)
+    if(p->flag2(i+1,j,k+1)>TOPO_FLAG)
     v4=b(i+1,j,k+1);
     j=jsave;
 
@@ -82,13 +82,13 @@ double interpolation::lint3_2D(field& b, int& i,int& j, int& k, double wa, doubl
     const int jsave=j;   // local: jj is the member in which the ccipol callers keep their own j
     j=0;
 
-    if(p->flag3[IJK]>TOPO_FLAG)
+    if(p->flag3(i,j,k)>TOPO_FLAG)
     v1=b(i,j,k);
-    if(p->flag3[IJKp1]>TOPO_FLAG)
+    if(p->flag3(i,j,k+1)>TOPO_FLAG)
     v2=b(i,j,k+1);
-    if(p->flag3[Ip1JK]>TOPO_FLAG)
+    if(p->flag3(i+1,j,k)>TOPO_FLAG)
     v3=b(i+1,j,k);
-    if(p->flag3[Ip1JKp1]>TOPO_FLAG)
+    if(p->flag3(i+1,j,k+1)>TOPO_FLAG)
     v4=b(i+1,j,k+1);
     j=jsave;
 

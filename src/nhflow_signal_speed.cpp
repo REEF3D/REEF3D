@@ -56,7 +56,7 @@ void nhflow_signal_speed::signal_speed_update(lexer* p, ghostcell *pgc, fdm_nhf 
     const int wN = p->wet[Ip1J];
     
         for(k=0; k<p->knoz; ++k)
-        if(p->flag1[IJK]>0)
+        if(p->flag1(i,j,k)>0)
         {
         const double us = Us[IJK];
         const double un = Un[IJK];
@@ -139,7 +139,7 @@ void nhflow_signal_speed::signal_speed_update(lexer* p, ghostcell *pgc, fdm_nhf 
     const int wN = p->wet[IJp1];
     
         for(k=0; k<p->knoz; ++k)
-        if(p->flag2[IJK]>0)
+        if(p->flag2(i,j,k)>0)
         {
         const double ve = Ve[IJK];
         const double vw = Vw[IJK];

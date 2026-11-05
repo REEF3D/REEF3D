@@ -75,18 +75,18 @@ void ghostcell::gcdf_update(lexer *p, fdm *a)
     
     BASELOOP
     {
-    p->flag1[IJK]=p->flag4(i,j,k);
-    p->flag2[IJK]=p->flag4(i,j,k);
-    p->flag3[IJK]=p->flag4(i,j,k);
+    p->flag1(i,j,k)=p->flag4(i,j,k);
+    p->flag2(i,j,k)=p->flag4(i,j,k);
+    p->flag3(i,j,k)=p->flag4(i,j,k);
     
     if(p->flag4(i,j,k)>0 && p->flag4(i+1,j,k)<0)
-    p->flag1[IJK]=-10;
+    p->flag1(i,j,k)=-10;
     
     if(p->flag4(i,j,k)>0 && p->flag4(i,j+1,k)<0)
-    p->flag2[IJK]=-10;
+    p->flag2(i,j,k)=-10;
     
     if(p->flag4(i,j,k)>0 && p->flag4(i,j,k+1)<0)
-    p->flag3[IJK]=-10;
+    p->flag3(i,j,k)=-10;
     }
     
     flagx(p,p->flag1.data());

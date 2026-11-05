@@ -105,7 +105,7 @@ void nhflow_fsf_f::wetdry_fluxes(lexer* p, fdm_nhf* d, ghostcell* pgc, slice &WL
     for(j=0; j<p->knoy; ++j)
     if(!(p->wet[IJ]==1 && p->wet[Ip1J]==1))
     for(k=0; k<p->knoz; ++k)
-    if(p->flag1[IJK]>0)
+    if(p->flag1(i,j,k)>0)
     {
         if(p->wet[IJ]==1 && p->wet[Ip1J]==0)
         {
@@ -171,7 +171,7 @@ void nhflow_fsf_f::wetdry_fluxes(lexer* p, fdm_nhf* d, ghostcell* pgc, slice &WL
     for(j=0; j<p->knoy-p->vlast; ++j)
     if(!(p->wet[IJ]==1 && p->wet[IJp1]==1))
     for(k=0; k<p->knoz; ++k)
-    if(p->flag2[IJK]>0)
+    if(p->flag2(i,j,k)>0)
     {
 
         if(p->wet[IJ]==1 && p->wet[IJp1]==0)
