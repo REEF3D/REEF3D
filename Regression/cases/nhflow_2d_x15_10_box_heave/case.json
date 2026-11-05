@@ -1,4 +1,4 @@
 {"solver": "nhflow", "np": 1, "steps": 300, "files": ["6DOF_motion.dat"],
- "description": "2D box B 1 m, T 0.4 m in forced heave (0.01 m at 3.5 rad/s from 6DOF_motion.dat, X 240 1) as a solid with cut faces (X 15 10), dx 0.1 m: the set-up of Ship Hydrodynamics validation 21 (Frank A/m 0.975, B 64 per 0.1 m span; X 15 10 0.90, 69 over 4-8 s with the momentum of the cut cells per their water, validation 35; 0.91, 66 with the whole cells, validation 33; 0.94, 66 from the last stage, validation 31).",
+ "description": "2D box B 1 m, T 0.4 m in forced heave (0.01 m at 3.5 rad/s from 6DOF_motion.dat, X 240 1) as a solid with cut faces (X 15 10), dx 0.1 m: the set-up of Ship Hydrodynamics validation 21 (Frank A/m 0.975, B 64 per 0.1 m span; X 15 10 0.96, 70 over 4-8 s with the vertical pressure force of the cut cells as finite volumes, validation 39; 0.90, 69 with the momentum of the cut cells per their water, validation 35; 0.91, 66 with the whole cells, validation 33; 0.94, 66 from the last stage, validation 31).",
  "tags": ["2d", "nhflow", "6dof", "motionfile"],
  "covers": ["X 15 10 with a prescribed motion", "the keel moving through the sigma layers"]}

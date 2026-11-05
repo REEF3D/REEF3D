@@ -72,7 +72,7 @@ void control::ini_default()
     A301_1=0.0;  // double FNPF initial standing wave: amplitude [m], 0 off
     A301_2=1.0;  // double FNPF initial standing wave: wave length [m]
     A304=1.0e-3; // double FNPF theta-Robin (A 310 5): corrector stops when the change is below A304 times the solution (0: always A302 passes)
-    A303=0.0;    // double FNPF theta-Robin (A 310 5): reference step of the relaxation zones, factors r^(dt/A303); 0: r per step
+    A303=-1.0;   // double FNPF theta-Robin (A 310 5): reference step of the relaxation zones, factors r^(dt/A303); 0: r per step; <0: per time as the three RK3 stages at N 47 0.75
     A302=4;      // int FNPF theta-Robin (A 310 5): max corrector passes (sigma grid of eta^n+1, N at t^n+1/2 trapezoidal, cross terms of the last solution)
     A309=1;      // int interpolation sweeps for bed
     A310=3;		  // int time scheme for FNPF velocities

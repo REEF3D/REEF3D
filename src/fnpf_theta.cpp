@@ -81,7 +81,7 @@ fnpf_theta::fnpf_theta(lexer *p, fdm_fnpf *c, ghostcell *pgc) : fnpf_ini(p,c,pgc
     theta = p->A300;
     npass = MAX(p->A302,0);
     passtol = p->A304;
-    passsum = stepsum = 0;
+    passsum = stepsum = editsum = 0;
     nstep = 0;
     dt_prev = 0.0;
     solvetime = 0.0;
@@ -234,12 +234,23 @@ void fnpf_theta::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, con
     dt_prev = dt;
     ++nstep;
     
-    // damping, wave generation and absorption, as the last RK3 stage
+    // wave generation and absorption of eta (Fifsf: in the Robin rows)
+    SLICELOOP4
+    c->eta(i,j) = relRe(i,j)*c->eta(i,j) + relTe(i,j);
+    
+    // the surface of the solve: the edits below (breaking damping and filters, coastline) change it after the
+    // solve, and Fi below would no longer be that of the edited surface (as with the relaxation zones before
+    // patch 0006); then a Dirichlet solve on the final grid follows (as the last RK3 stage)
+    SLICELOOP4
+    {
+    erk1(i,j) = c->eta(i,j);
+    frk1(i,j) = c->Fifsf(i,j);
+    }
+    
+    // damping, as the last RK3 stage
     pf->damping(p,c,pgc,c->eta,gcval_eta,1.0);
     pf->damping(p,c,pgc,c->Fifsf,gcval_fifsf,1.0);
     
-    SLICELOOP4
-    c->eta(i,j) = relRe(i,j)*c->eta(i,j) + relTe(i,j);
     pf->wetdry(p,c,pgc,c->eta,c->Fifsf);
     pgc->gcsl_start4(p,c->eta,gcval_eta);
     pf->coastline_eta(p,c,pgc,c->eta);
@@ -263,7 +274,26 @@ void fnpf_theta::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, con
     bedbc_sig(p,c,pgc,c->Fi,pf);
     pgc->start7V(p,c->Fi,c->bc,gcval);
     
-    // w^n+1 for the next step (the relaxation zones changed Fifsf after the solve)
+    // consistency solve after edits of the surface
+    {
+    double emax=0.0, escale=0.0;
+    SLICELOOP4
+    {
+    emax = MAX(emax, MAX(fabs(c->eta(i,j)-erk1(i,j)), fabs(c->Fifsf(i,j)-frk1(i,j))));
+    escale = MAX(escale, MAX(fabs(erk1(i,j)), fabs(frk1(i,j))));
+    }
+    emax = pgc->globalmax(emax);
+    escale = pgc->globalmax(escale);
+    
+    if(emax>1.0e-12*MAX(escale,1.0e-20))
+    {
+    plap0->start(p,c,pgc,psolv,pf,c->Fi,c->Fifsf);
+    pgc->start7V(p,c->Fi,c->bc,gcval);
+    ++editsum;
+    }
+    }
+    
+    // w^n+1 for the next step
     pf->fsfwvel(p,c,pgc,c->eta,c->Fifsf);
     
     bedbc_sig(p,c,pgc,c->Fi,pf);
@@ -285,7 +315,7 @@ void fnpf_theta::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, con
     c->vel_state = 2;
     
     if(p->mpirank==0 && (p->count%p->P12==0))
-    cout<<"theta-Robin solve: "<<setprecision(3)<<solvetime<<" s total, corrector passes per step "<<double(passsum)/double(MAX(stepsum,1L))<<endl;
+    cout<<"theta-Robin solve: "<<setprecision(3)<<solvetime<<" s total, corrector passes per step "<<double(passsum)/double(MAX(stepsum,1L))<<", consistency solves "<<editsum<<endl;
 }
 
 // Corrector: eta^n+1 of the current solution (eta update with Fifsf^n+1 = fnew, w^n+1 = wnew), N^n+1 on it,
@@ -597,19 +627,35 @@ void fnpf_theta::relax_affine(lexer *p, ghostcell *pgc, ioflow *pflow, int which
     pflow->fifsf_relax(p,pgc,R);
     }
     
-    const double fac = (p->A303>0.0) ? p->dt/p->A303 : 1.0;
+    // A 303 > 0: factors r^(dt/A 303)
+    // A 303 < 0 (default): the zones act per time as in an RK3 run at N 47 0.75: an RK3 step relaxes the
+    // deviation from the target in its three stages by F(r) = r (1/3 + 2/3 r (3/4 + r/4)); the theta step,
+    // s = dt/(0.75 dt_crit) of those steps long, by F(r)^s (dt_crit: the step of the time-step criterion at N 47 1)
+    double fac = 1.0;
+    int rk3eq = 0;
+    if(p->A303>0.0)
+    fac = p->dt/p->A303;
+    if(p->A303<0.0 && p->dt_crit>0.0)
+    {
+    rk3eq = 1;
+    fac = p->dt/(0.75*p->dt_crit);
+    }
     
     SLICELOOP4
     {
     double r = R(i,j) - T(i,j);
     double t = T(i,j);
     
-    if(fac!=1.0 && r>0.0 && r<1.0)
+    if((fac!=1.0 || rk3eq==1) && r>0.0 && r<1.0)
     {
     const double target = t/(1.0-r);
-    r = pow(r,fac);
+    const double F = (rk3eq==1) ? r*(1.0/3.0 + (2.0/3.0)*r*(0.75 + 0.25*r)) : r;
+    r = pow(F,fac);
     t = (1.0-r)*target;
     }
+    else
+    if(rk3eq==1 && r<=0.0)
+    r = 0.0;
     
     R(i,j) = r;
     T(i,j) = t;

@@ -409,6 +409,14 @@ void breaking_crest3d::detect(lexer *p, ghostcell *pgc, slice &eta, slice &us, s
         const bc3_point *best=nullptr;
         double bd = rm*rm;
 
+        // large steps (theta-Robin A 310 5, several cells of crest travel per step): a crest point without a
+        // speed yet may have moved up to sqrt(g h) dt, one with a speed by the error of the prediction (a quarter
+        // of C dt); with two cells only, the crests were never continued and never got a speed (no onset at 4x
+        // the RK3 step, Tian TP1)
+        const bool bigstep = (p->A310==5);
+        if(bigstep)
+        bd = 1.0e300;
+
         for(int list=0; list<2; ++list)
         for(const bc3_point &Q : (list==0 ? prev : halo))
         {
@@ -418,7 +426,14 @@ void breaking_crest3d::detect(lexer *p, ghostcell *pgc, slice &eta, slice &us, s
             const double dy = Q.y+mv*Q.ny-P.y;
             const double dd = dx*dx+dy*dy;
 
-            if(dd<=bd && fabs(Q.nx*nx+Q.ny*ny)>0.7)
+            double lim = bd;
+            if(bigstep)
+            {
+            const double ra = rm + ((Q.hasC==1) ? 0.25*fabs(Q.C)*dtp : sqrt(g*MAX(Q.wl,1.0e-3))*dtp);
+            lim = MIN(bd, ra*ra);
+            }
+
+            if(dd<=lim && fabs(Q.nx*nx+Q.ny*ny)>0.7)
             {
                 bd = dd;
                 best = &Q;
@@ -465,13 +480,14 @@ void breaking_crest3d::detect(lexer *p, ghostcell *pgc, slice &eta, slice &us, s
         {
             const bc3_point *bq=nullptr;
             double bs = 1.0e20;
-            const double wl = 1.5*MAX(p->DXN[IP], (p->j_dir==1) ? p->DYN[JP] : 0.0);
+            const double wl0 = 1.5*MAX(p->DXN[IP], (p->j_dir==1) ? p->DYN[JP] : 0.0);
 
             for(int list=0; list<2; ++list)
             for(const bc3_point &Q : (list==0 ? prev : halo))
             if(Q.state==1 && Q.sa>0.0 && fabs(Q.nx*nx+Q.ny*ny)>0.7)
             {
                 const double mv = (Q.hasC==1) ? Q.C*dtp : 0.0;
+                const double wl = wl0 + ((p->A310==5) ? 0.25*fabs(mv) : 0.0);
                 const double dx = P.x-(Q.x+mv*Q.nx);
                 const double dy = P.y-(Q.y+mv*Q.ny);
                 const double s = dx*Q.nx + dy*Q.ny;
