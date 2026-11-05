@@ -55,7 +55,8 @@ sflow_momentum_SI::sflow_momentum_SI(lexer *p, fdm2D *b, ghostcell *pgc, sflow_H
                                       qxN(p),Hxo(p),qxo(p),qxa(p),nxR(p),nxL(p),nxB(p),nx0(p),kxEL(p),kxER(p),kxPL(p),kxPR(p),kx1(p),kx2(p),
                                       qyN(p),Hyo(p),qyo(p),qya(p),nyR(p),nyL(p),nyB(p),ny0(p),kyEL(p),kyER(p),kyPL(p),kyPR(p),ky1(p),ky2(p),
                                       phiN(p),WHp(p),Lc0(p),Unm1(p),Vnm1(p),WLh(p),WLo(p),AWo(p),WLq(p),
-                                      nPW(p),nEb(p),nEo(p),nPo(p),nU(p),nV(p),nUs(p),nVs(p),nA(p),nsx(p),nsy(p),nE(p),nP(p),nL(p),nZ(p),nAE(p),nAP(p),nBE(p),nBP(p)
+                                      nPW(p),nEb(p),nEo(p),nPo(p),nU(p),nV(p),nUs(p),nVs(p),nA(p),nsx(p),nsy(p),nE(p),nP(p),nL(p),nZ(p),nAE(p),nAP(p),nBE(p),nBP(p),
+                                      nF1x(p),nF2x(p),nF1y(p),nF2y(p),nH3(p),nW2(p),nCs(p),nRm(p),nRc(p),nZE(p),nZP(p)
 {
     check(p);
 
@@ -125,8 +126,8 @@ void sflow_momentum_SI::check(lexer *p)
 
     if(p->A220==2 || p->A220==3)
     {
-        if(p->geo_curv==1 || p->G1>0 || p->G50>0)
-        msg("the non-hydrostatic pressure (A 220 2/3) on curvilinear, multi-block and refined grids is; set A 220 0,");
+        if(p->geo_curv==1 || p->G50>0)
+        msg("the non-hydrostatic pressure (A 220 2/3) on curvilinear and multi-block grids is; set A 220 0,");
     }
 
     // mesh refinement (G 1) and multi-block grids (G 50 1): one eta system over the leaf cells of all grids
@@ -1433,8 +1434,13 @@ void sflow_momentum_SI::eta_update(lexer *p, fdm2D *b, ghostcell *pgc)
         b->hydro->Bq(f.i,f.j) -= q*p->dt;
     }
 
+    // a block or a patch of the mesh refinement: its own sum (sflow_amr::si_log sums the grids over the ranks; a global
+    // sum per patch hung the run where the ranks held different numbers of patches)
+    if(!patch)
+    {
     Qin = pgc->globalsum(Qin);
     Qout = pgc->globalsum(Qout);
+    }
 
     // ghost cells; the interior values are kept: gcsl_start4 extends a cell next to a solid
     // three cells deep (gcsl_neumann), into the fluid behind a solid one or two cells thick
@@ -1713,6 +1719,7 @@ void sflow_momentum_SI::relax(lexer *p, fdm2D *b, ghostcell *pgc)
     exchange1(p,pgc,qx);
     exchange2(p,pgc,qy);
 
+    if(!patch)
     vrelax = pgc->globalsum(vrelax);
 }
 

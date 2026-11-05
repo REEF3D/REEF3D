@@ -377,6 +377,15 @@ void sflow_amr::si_step(lexer *p, fdm2D *b, ghostcell *pgc)
 
     si_all(pgc,[&](int g, lexer *q, fdm2D *bb, sflow_momentum_SI *m) { m->si_begin(q,bb,pgc); });
 
+    // A 220 2/3: the time levels of the nonlinear terms (the depths of t^{n+1/2} and t^{n+1} around the grids)
+    const bool nhs = psim0->nh;
+
+    if(nhs)
+    {
+        si_all(pgc,[&](int g, lexer *q, fdm2D *bb, sflow_momentum_SI *m) { m->nh_levels(q,bb,pgc); });
+        si_fillS(pgc,2,8700,[&](int g, int k) -> slice& { return k==0 ? gsi(g)->WLh : gsi(g)->WLq; });
+    }
+
     // predictor: the velocities and the input of a stage around the grids before its fluxes
     if(si_lv)
     si_hooks(true);
@@ -425,8 +434,22 @@ void sflow_amr::si_step(lexer *p, fdm2D *b, ghostcell *pgc)
 
     si_all(pgc,[&](int g, lexer *q, fdm2D *bb, sflow_momentum_SI *m) { m->si_rhs(q,bb,pgc); });
 
-    // one eta system over the leaf cells of all grids
+    // one eta system over the leaf cells of all grids; A 220 2/3: the coupled eta-P system (sflow_amr_sinh.cpp), with
+    // the bed acceleration and the A 220 3 term of t^n of every grid around the grids
     rsi_result r;
+
+    if(nhs)
+    {
+        // A 220 3: h^3 lap(eta^n) next to the patch edges with eta of the cells around the patches to second order
+        if(psim0->Bdisp>0.0)
+        si_nh_quad([&](int g) -> slice& { return g<0 ? b0->eta : SP(g)->b->eta; },true);
+
+        si_all(pgc,[&](int g, lexer *q, fdm2D *bb, sflow_momentum_SI *m) { m->nh_predictor(q,bb,pgc); });
+        si_fillS(pgc,2,8720,[&](int g, int k) -> slice& { return k==0 ? gsi(g)->Lc0 : gsi(g)->phiN; });
+        si_nh_solve(p,pgc,r);
+    }
+
+    else
     rsi_solve(p,pgc,p->A229==1 ? 20 : 1,r);
 
     for(int g : rsi_grids())
@@ -450,6 +473,11 @@ void sflow_amr::si_step(lexer *p, fdm2D *b, ghostcell *pgc)
     if(si_lv)
     {
         restrict_levels(p,2);
+
+        // A 220 2/3: the face discharges of the covered faces from the fine faces (sflow_amr_sinh.cpp)
+        if(nhs)
+        si_nh_qrestrict();
+
         exchange_level0(p,b,pgc,2);
 
         for(int g : rsi_grids())
@@ -586,6 +614,10 @@ void sflow_amr::si_timestep(lexer *p, ghostcell *pgc)
             if(p->j_dir==1)
             sigma += fabs(pb->V(ii,jj))/pp->DYN[jj+marge];
             }
+
+            // A 220 2/3: WH advected with AB2 (sflow_timestep_SI)
+            if(p->A220>=2)
+            sigma *= 2.0;
 
             if(sigma>1.0e-20)
             cmin = MIN(cmin,1.0/sigma);
