@@ -34,7 +34,7 @@ Architect: Hans Bihs
 #include<mpi.h>
 #include<iomanip>
 
-//  Semi-implicit free surface (A 226 1) on a multi-block grid (G 50 1) and with mesh refinement (G 1).
+//  Semi-implicit free surface (A 210 12/13) on a multi-block grid (G 50 1) and with mesh refinement (G 1).
 //
 //  Every grid (the native grid -1, the blocks 1.. of lev[0], the patches of the levels) has its own
 //  sflow_momentum_SI; the level-0 object hands its step over (sflow_momentum_SI::start -> si_step).  The parts of

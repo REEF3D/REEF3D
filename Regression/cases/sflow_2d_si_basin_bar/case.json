@@ -1,5 +1,5 @@
 {
- "description": "SFLOW semi-implicit free surface (A 226 1, theta 0.55): 2D closed basin 200 x 100 m, h = 2 m, submerged bar (crest 1.2 m below still water), tilted initial surface (A 251), implicit Manning friction (A 218 1), dt = 2.5 s (gravity wave Courant number about 5.5). The volume is conserved to round-off.",
+ "description": "SFLOW semi-implicit free surface (A 210 13, theta 0.55): 2D closed basin 200 x 100 m, h = 2 m, submerged bar (crest 1.2 m below still water), tilted initial surface (A 251), implicit Manning friction (A 218 1), dt = 2.5 s (gravity wave Courant number about 5.5). The volume is conserved to round-off.",
  "solver": "sflow",
  "np": 1,
  "steps": 240,

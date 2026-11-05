@@ -36,6 +36,21 @@ void lexer::lexer_read(ghostcell *pgc)
     if(mpirank==0 && A212<0)
     A212 = (A260>0) ? 1 : ((A246==4) ? 2 : 0);   // A 246 4: the breaking viscosity acts through the implicit diffusion (explicit: the viscosity grows within the step beyond the limit of the step)
 
+    // SFLOW: A 210 12 / 13 the semi-implicit theta step (sflow_momentum_SI, A 227, A 228, wetting and drying A 243) with an SSP-RK2 / RK3
+    // predictor of the explicit terms; inside REEF3D A226 = 1 marks the semi-implicit step and A210 = 2 / 3 is the order
+    // of its predictor (A 226 itself is no longer a ctrl.txt key)
+    if(mpirank==0 && (A210==12 || A210==13))
+    {
+    A226 = 1;
+    A210 -= 10;
+    }
+
+    // SFLOW: wetting and drying is A 243 for both schemes; the semi-implicit step (A 210 12/13) runs its Newton
+    // iteration on the wet pattern (Casulli 2009) for A 243 > 0 (inside REEF3D: A229 = 1; A 229 itself is no longer a
+    // ctrl.txt key)
+    if(mpirank==0)
+    A229 = (A243>0) ? 1 : 0;
+
     // NHFLOW: A 519 not given in ctrl.txt -> bed friction (log law in the bottom layer) with a turbulence model (A 560)
     // or sediment transport (S 10): without it the flow slips over the bed, the velocity profile of an open channel
     // stays a plug and the bed shear stress of the sediment is too high; no bed friction otherwise (the previous default)

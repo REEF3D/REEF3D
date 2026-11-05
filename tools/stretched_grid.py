@@ -10,7 +10,7 @@ Fine cells in bands, a geometric growth away from them: the spacing at x is
 
 so that neighbouring cells differ by about the factor r; the nodes are marched with the spacing at the middle of each
 cell and the last cells are stretched to end exactly at the domain length. Useful for the semi-implicit SFLOW
-(A 226 1), which has no mesh refinement (G 1): fine cells over a coast, coarse ones offshore.
+(A 210 12/13), which has no mesh refinement (G 1): fine cells over a coast, coarse ones offshore.
 
   python3 stretched_grid.py --lx 460000 --ly 316000 --xband 180000 300000 250 --xband 300000 460000 500 \\
                             --yband 205000 292000 250 --yband 292000 316000 500 [--ratio 1.08] [--dmax 2000] [-o .]

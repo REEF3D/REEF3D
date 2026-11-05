@@ -106,7 +106,7 @@ sflow_amr::sflow_amr(lexer *p, fdm2D *b, ghostcell *pgc, patchBC_interface *ppBC
     q.nest = 3;
     q.keep = MIN(MAX(p->G5,0),250);
 
-    // A 226 1 with A 220 2/3: a new patch starts from the coarse solution where it did not overlap an old one; the
+    // A 210 12/13 with A 220 2/3: a new patch starts from the coarse solution where it did not overlap an old one; the
     // fine grid answers that state with short waves that the semi-implicit step does not damp (the explicit step does,
     // HLL), and with tiles that come and go every few regrids (G 5 4, G 2 4, G 20 0.002) the Beji & Battjes bar blew
     // up after 30 s. Tiles kept for at least 20 regrids: stable there (G 5 10 was not); with more cells flagged
@@ -115,7 +115,7 @@ sflow_amr::sflow_amr(lexer *p, fdm2D *b, ghostcell *pgc, patchBC_interface *ppBC
     {
     q.keep = 20;
     if(p->mpirank==0)
-    cout<<"SFLOW AMR with A 226 1 and A 220 "<<p->A220<<": refined tiles kept for 20 regrids after their last flag (G 5 "<<p->G5<<" raised)"<<endl;
+    cout<<"SFLOW AMR with A 210 12/13 and A 220 "<<p->A220<<": refined tiles kept for 20 regrids after their last flag (G 5 "<<p->G5<<" raised)"<<endl;
     }
     // the coarse faces next to a finer patch also on the grids that compute them around their box: the
     // wet-dry update of a stage reads the new state of the cells around the box, which otherwise depended
@@ -262,7 +262,7 @@ void sflow_amr::ini(lexer *p, fdm2D *b, ghostcell *pgc)
     int ok=1;
     if(p->A220<0 || p->A220>4) ok=0;
     if(p->A210==2 && si==0) ok=0;
-    // semi-implicit free surface (A 226 1): hydrostatic, one global time step, no moving bodies (sflow_amr_si.cpp)
+    // semi-implicit free surface (A 210 12/13): hydrostatic, one global time step, no moving bodies (sflow_amr_si.cpp)
     // A 220 2/3: the coupled eta-P system over the leaf cells (sflow_amr_sinh.cpp), Cartesian, without multi-block
     if(si==1 && ((p->A220!=0 && !((p->A220==2 || p->A220==3) && p->geo_mb==0 && p->geo_curv==0)) || p->G7==1 || p->X10!=0)) ok=0;
     // the algebraic eddy viscosity of every grid (sflow_ediff); k-epsilon / k-omega with a model on every patch
@@ -285,7 +285,7 @@ void sflow_amr::ini(lexer *p, fdm2D *b, ghostcell *pgc)
         if(ok==0)
         {
             if(p->mpirank==0)
-            cout<<"!!! SFLOW multi-block grid: only for A 246 0-2, A 220 0, A 210 3 (A 226 1: A 210 2/3), A 260 0/3/4, S 10 0/1 (S 51 0, S 31 1/2, S 32 1/2), X 10 0/2/3 (A 226 1: X 10 0), W 90 0, without G 7 1 !!!"<<endl;
+            cout<<"!!! SFLOW multi-block grid: only for A 246 0-2, A 220 0, A 210 3 or 12/13, A 260 0/3/4, S 10 0/1 (S 51 0, S 31 1/2, S 32 1/2), X 10 0/2/3 (A 210 12/13: X 10 0), W 90 0, without G 7 1 !!!"<<endl;
             exit(1);
         }
     }
@@ -293,7 +293,7 @@ void sflow_amr::ini(lexer *p, fdm2D *b, ghostcell *pgc)
     if(ok==0)
     {
         if(p->mpirank==0)
-        cout<<"SFLOW AMR (G 1): only for A 246 0-2, A 220 0-4, A 210 3 (A 226 1: A 210 2/3, A 220 0 or 2/3 Cartesian without multi-block, X 10 0, without G 7 1), A 260 0-4 (1/2 Cartesian), S 10 0/1 (S 51 0, S 31 1/2, S 32 1/2), X 10 0-3, W 90 0, and with one cell in y Cartesian -- refinement switched off"<<endl;
+        cout<<"SFLOW AMR (G 1): only for A 246 0-2, A 220 0-4, A 210 3 or 12/13 (A 210 12/13: A 220 0 or 2/3 Cartesian without multi-block, X 10 0, without G 7 1), A 260 0-4 (1/2 Cartesian), S 10 0/1 (S 51 0, S 31 1/2, S 32 1/2), X 10 0-3, W 90 0, and with one cell in y Cartesian -- refinement switched off"<<endl;
         maxlev=0;
         return;
     }
@@ -491,7 +491,7 @@ void sflow_amr::patch_objects(reefamr_patch *q, ghostcell *pgc)
     c->pmom->nh_defer = (nh==1);
     c->pmom->bous_defer = (bous==1);
 
-    // semi-implicit free surface (A 226 1): the step of the grid (sflow_amr_si.cpp); the RK3 object of the patch serves
+    // semi-implicit free surface (A 210 12/13): the step of the grid (sflow_amr_si.cpp); the RK3 object of the patch serves
     // the fills and the restriction (its stage arrays of stage 0 in and stage 2 out are the fields of the grid). A
     // refined patch has no open boundaries (no refinement next to them)
     if(si==1)

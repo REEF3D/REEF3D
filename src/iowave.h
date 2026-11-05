@@ -308,7 +308,7 @@ private:
     std::vector<int> gen_idx;
     bool gen_built=false;
     // wavegen_2D_precalc: the values of the last evaluation (time, grid, bed of the zone columns); the SI step
-    // (A 226 1, B 95) evaluates t^{n+1} in its relaxation, the main loop of the next step the same time again
+    // (A 210 12/13, B 95) evaluates t^{n+1} in its relaxation, the main loop of the next step the same time again
     double pc2D_time=0.0;
     const lexer *pc2D_p=nullptr;
     std::vector<double> pc2D_bed;

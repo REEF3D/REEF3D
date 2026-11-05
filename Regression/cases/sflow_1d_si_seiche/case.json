@@ -1,5 +1,5 @@
 {
- "description": "SFLOW semi-implicit free surface (A 226 1, theta 0.55): 1D closed basin 1000 m, h = 10 m, mode-1 seiche eta = 0.05 cos(pi x/L) set cell by cell (F 72), frictionless, dt = 5 s (gravity wave Courant number 5). The gauge at x = 5 m follows the theta-scheme amplification |G| = sqrt((1+(1-theta)^2 l^2)/(1+theta^2 l^2)), l = omega dt.",
+ "description": "SFLOW semi-implicit free surface (A 210 13, theta 0.55): 1D closed basin 1000 m, h = 10 m, mode-1 seiche eta = 0.05 cos(pi x/L) set cell by cell (F 72), frictionless, dt = 5 s (gravity wave Courant number 5). The gauge at x = 5 m follows the theta-scheme amplification |G| = sqrt((1+(1-theta)^2 l^2)/(1+theta^2 l^2)), l = omega dt.",
  "solver": "sflow",
  "np": 1,
  "steps": 202,

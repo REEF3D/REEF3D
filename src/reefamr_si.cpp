@@ -186,7 +186,7 @@ void reefamr::rsi_setup()
 
     // patches in the system on any rank (nlevg: all ranks): a rank without patches takes the composite operator as
     // well (with its own patch count the ranks ran different fills and reductions, and the solve hung with patches on
-    // one rank only: SFLOW A 226 1, adaptive refinement on two ranks)
+    // one rank only: SFLOW A 210 12/13, adaptive refinement on two ranks)
     rsi_lev = false;
     for(int l=1; l<=maxlev && l<(int)lev.size(); ++l)
     {

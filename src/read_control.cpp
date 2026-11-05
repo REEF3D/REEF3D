@@ -130,6 +130,15 @@ void control::read_control(lexer* p)
                          clear(c,numint);
                          break;
                 case 226: control>>A226;
+                         // retired: the semi-implicit SFLOW is A 210 12 / 13
+                         if(A226==1)
+                         {
+                         cout<<"!!! ctrl.txt: A 226 1 is no longer used: the semi-implicit SFLOW is A 210 12 (SSP-RK2 predictor) "
+                             <<"or A 210 13 (SSP-RK3 predictor) !!!"<<endl;
+                         exit(1);
+                         }
+                         cout<<"ctrl.txt: A 226 0 is no longer used and is ignored (explicit SFLOW: A 210 2 / 3)"<<endl;
+                         A226=0;
                          clear(c,numint);
                          break;
                 case 227: control>>A227;
@@ -139,6 +148,14 @@ void control::read_control(lexer* p)
                          clear(c,numint);
                          break;
                 case 229: control>>A229;
+                         // retired: the wetting and drying of the semi-implicit SFLOW follows A 243
+                         if(A229==0)
+                         {
+                         cout<<"!!! ctrl.txt: A 229 0 is no longer used: the wetting and drying of the semi-implicit SFLOW follows "
+                             <<"A 243 (A 243 0: off) !!!"<<endl;
+                         exit(1);
+                         }
+                         cout<<"ctrl.txt: A 229 1 is no longer used and is ignored (the semi-implicit SFLOW wets and dries with A 243 > 0)"<<endl;
                          clear(c,numint);
                          break;
                 case 232: control>>A232;

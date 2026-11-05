@@ -1,8 +1,8 @@
 {
  "base": "sflow_2d_si_met_file",
- "description": "sflow_2d_si_met_file with the explicit HLL scheme (A 226 0, SSP-RK3): the met forcing in sflow_momentum_func::stage.",
+ "description": "sflow_2d_si_met_file with the explicit HLL scheme (A 210 3, SSP-RK3): the met forcing in sflow_momentum_func::stage.",
  "ctrl_set": {
-  "A 226": "0",
+  "A 210": "3",
   "A 227": null,
   "A 228": null
  },

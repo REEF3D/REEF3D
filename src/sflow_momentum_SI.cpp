@@ -84,7 +84,7 @@ sflow_momentum_SI::sflow_momentum_SI(lexer *p, fdm2D *b, ghostcell *pgc, sflow_H
 
     if(p->mpirank==0 && !patch)
     {
-    cout<<"SFLOW semi-implicit free surface (A 226 1): theta "<<theta<<", SSP-RK"<<rk<<" predictor";
+    cout<<"SFLOW semi-implicit free surface (A 210 "<<10+rk<<"): theta "<<theta<<", SSP-RK"<<rk<<" predictor";
 
     if(p->A229==1)
     cout<<", wetting and drying iteration";
@@ -102,7 +102,7 @@ sflow_momentum_SI::sflow_momentum_SI(lexer *p, fdm2D *b, ghostcell *pgc, sflow_H
     mkdir("./REEF3D_SFLOW_Log",0777);
     if(reefckpt_open(silog,"./REEF3D_SFLOW_Log/REEF3D_SFLOW_SI.dat",p->I45))   // I 45: continued
     {
-        silog<<"# semi-implicit SFLOW (A 226 1): volume and open boundary discharges"<<endl;
+        silog<<"# semi-implicit SFLOW (A 210 12/13): volume and open boundary discharges"<<endl;
         silog<<"# count  simtime  dt  volume  Qin  Qout  relax_volume  eta_iterations  wetdry_iterations  dry_cells"<<endl;
     }
     }
@@ -121,7 +121,7 @@ void sflow_momentum_SI::check(lexer *p)
     auto msg = [&](const char *s)
     {
         if(p->mpirank==0)
-        cout<<"!!! SFLOW A 226 1 (semi-implicit): "<<s<<" not available yet !!!"<<endl;
+        cout<<"!!! SFLOW A 210 12/13 (semi-implicit): "<<s<<" not available yet !!!"<<endl;
         stop=1;
     };
 
@@ -190,7 +190,7 @@ void sflow_momentum_SI::bc_method(lexer *p)
         if(method[cs]!=0 && method[cs]!=p->B520_method[qn])
         {
             if(p->mpirank==0)
-            cout<<"!!! SFLOW A 226 1 (semi-implicit): different B 520 methods on one edge (B 521 edge "<<e<<") are not available yet !!!"<<endl;
+            cout<<"!!! SFLOW A 210 12/13 (semi-implicit): different B 520 methods on one edge (B 521 edge "<<e<<") are not available yet !!!"<<endl;
             exit(1);
         }
 

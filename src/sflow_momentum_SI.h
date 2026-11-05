@@ -39,7 +39,7 @@ struct sflow_si_nh_lu;
 using namespace std;
 
 // ---------------------------------------------------------------------------
-// SFLOW semi-implicit free surface (A 226 1), theta method (A 227), hydrostatic.
+// SFLOW semi-implicit free surface (A 210 12/13), theta method (A 227), hydrostatic.
 //
 // For long simulations (river, tide): the gravity wave speed sqrt(gh) no longer limits
 // the time step, only advection does (sflow_timestep_SI, cap A 228).
@@ -67,7 +67,7 @@ using namespace std;
 //  6. r(WL(eta^{n+1})) - div( a_f grad_f eta^{n+1} ) = WL^n - dt div( theta q^E + (1-theta) q^n )
 //     a_f = theta dt (g theta dt alpha_f H_f + K_f)/dxp_f,  K_f: optional mass flux
 //     dissipation (A 231) at faces with Froude number > 0.5
-//     wetting and drying (A 229 1): WL(eta) = max(eta + d, 0), Newton iteration on the
+//     wetting and drying (A 243 > 0): WL(eta) = max(eta + d, 0), Newton iteration on the
 //     wet/dry pattern (Casulli 2009): non-negative water depth, exact volume
 //  7. q^{n+1} = q^E - (alpha_f dt g H_f theta + K_f) grad_f eta^{n+1}
 //  8. WL^{n+1} from the conservative divergence of the face fluxes (exact volume)
@@ -89,7 +89,7 @@ using namespace std;
 // Non-hydrostatic quadratic pressure (A 220 2/3) (sflow_momentum_SI_nh.cpp): the pressure P^{n+1} fully implicit
 // and eta^{n+1} (theta) from one coupled system of the continuity equation and the incompressibility constraint, so
 // that neither the gravity nor the dispersive wave speed limits the time step; 1D and 2D, MPI, one Cartesian grid,
-// without wetting and drying iteration (A 229 0).
+// without wetting and drying iteration (A 243 0).
 //
 // Not yet (stops in check()): Boussinesq (A 220 4); the non-hydrostatic pressure on curvilinear, multi-block and
 // refined grids and with the wetting and drying iteration,

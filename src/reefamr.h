@@ -879,7 +879,7 @@ public:
         }
     }
 
-    // ---- semi-implicit free surface (SFLOW A 226 1, NHFLOW A 534 1; reefamr_si.cpp)
+    // ---- semi-implicit free surface (SFLOW A 210 12/13, NHFLOW A 534 1; reefamr_si.cpp)
     //  One eta system over the leaf cells of all grids: the level-0 grids (the native grid without its
     //  ring, the blocks 1.. of a multi-block grid) and the refined patches.  Every grid assembles its own
     //  rows (si_eta2D, the module's semi-implicit object); a row of the composite system is the row of the

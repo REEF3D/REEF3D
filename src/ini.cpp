@@ -30,7 +30,7 @@ void control::ini_default()
     
     // SFLOW
     A209=1;      // int interpolation sweeps for bed
-    A210=3;		  // int time scheme for SFLOW velocities
+    A210=3;		  // int time scheme for SFLOW velocities: 2 / 3 explicit SSP-RK2 / RK3, 12 / 13 semi-implicit with an SSP-RK2 / RK3 predictor
     A211=4;		  // int convection scheme for SLOW velocities
     A212=-1;	  // int diffusion treatment for SFLOW velocities (-1: not set, becomes 1 with a turbulence model A 260 > 0, else 0)
     A213=1;      // int SFLOW WENO5 nonlinear weights (A 211 4): 0 WENO-JS, 1 WENO-Z (default), 2 TENO5
@@ -46,17 +46,17 @@ void control::ini_default()
     A224=1.159;  // double dispersion parameter alpha for A 220 3 (1: quadratic, 1.159: optimised)
     A240=1;      // int FSF algorithm SFLOW
     A242=0;          // int non-hydostatic pressure for shallow areas
-    A243=2;      // int turn on wetting-drying
+    A243=2;      // int turn on wetting-drying (SFLOW explicit and semi-implicit; 0 off)
     A244=0.001; // double absolute wetting criterion value
     A246=1;      // int turn on breaking
     A247=0.6;    // double breaking parameter alpha
     A248=0;      // int turn on breaking persistence
     A249=0.3;    // double breaking persistence parameter beta
     A250=1.86;   // double viscosity breaking wave
-    A226=0;      // int SFLOW free surface: 0 explicit (HLL), 1 semi-implicit theta method
+    A226=0;      // int SFLOW free surface: 0 explicit (HLL), 1 semi-implicit theta method (set from A 210 12 / 13, lexer_read)
     A227=0.55;   // double SFLOW semi-implicit: implicitness theta of the free surface
     A228=0.0;    // double SFLOW semi-implicit: maximum time step (s), 0 no cap
-    A229=1;      // int SFLOW semi-implicit: wetting and drying iteration (Casulli 2009), 0 off
+    A229=1;      // int SFLOW semi-implicit: wetting and drying iteration (Casulli 2009), 0 off (set from A 243, lexer_read)
     A232=0.05;   // double SFLOW semi-implicit: depth below which the cell velocities of the momentum predictor are desingularised
     A231=0.0;    // double SFLOW semi-implicit: mass flux dissipation for transcritical flow, 0 off
     A251=0;    // double fsf-slope in x-dir

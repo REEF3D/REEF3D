@@ -1,7 +1,7 @@
 {
  "base": "sflow_2d_mb_quadrants",
  "ctrl_add": [
-  "A 226 1",
+  "A 210 13",
   "A 227 0.55",
   "A 228 0.2"
  ],

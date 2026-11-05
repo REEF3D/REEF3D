@@ -97,7 +97,7 @@ private:
     vector<sixdof_obj_2D*> fb_obj;
 
     slice4 press;
-    slice4 press_n;     // A 226 1 (sflow_midpoint): the pressure of the start of the step
+    slice4 press_n;     // A 210 12/13 (sflow_midpoint): the pressure of the start of the step
     bool mid = false;
 
 

@@ -162,7 +162,7 @@ void sflow_timestep_SI::ini(lexer *p, fdm2D* b, ghostcell* pgc)
     p->dt = p->A228;
 
     if(p->A228<=0.0 && p->mpirank==0)
-    cout<<"SFLOW A 226 1: no A 228 (maximum time step) given, the time step stays at the explicit gravity wave limit"<<endl;
+    cout<<"SFLOW A 210 12/13: no A 228 (maximum time step) given, the time step stays at the explicit gravity wave limit"<<endl;
 
 	p->dt=pgc->timesync(p->dt);
 	p->dt_old=p->dt;

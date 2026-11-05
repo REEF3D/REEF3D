@@ -21,7 +21,7 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 // ---------------------------------------------------------------------------
-// SFLOW semi-implicit step with the coupled non-hydrostatic pressure (A 226 1, A 220 2/3) on the grids of the mesh
+// SFLOW semi-implicit step with the coupled non-hydrostatic pressure (A 210 12/13, A 220 2/3) on the grids of the mesh
 // refinement (G 1): the parts of the coupled system of one grid. sflow_amr::si_nh_solve (sflow_amr_si.cpp) runs the
 // composite solve over the leaf cells of all grids with them:
 //  nh_amr_cells    the cell terms of the constraint (2 dt cw/H, the affine part), h^3 of the A 220 3 term, wet pattern
@@ -35,7 +35,7 @@ Author: Hans Bihs
 //  nh_amr_prec_*   the preconditioner of nh_solve on the own cells of the grid (eta eliminated locally, one V-cycle
 //                  for psi, A 220 3 a second one), the cells around the grid 0 (Dirichlet)
 //  nh_amr_finish   eta^{n+1}, P^{n+1} and the non-hydrostatic face discharges qxN, qyN of the solution
-//  nh_amr_wetdry   the wet pattern of the mass rows (A 229 1) on the leaf cells
+//  nh_amr_wetdry   the wet pattern of the mass rows (A 243 > 0) on the leaf cells
 // The arithmetic of a row is that of nh_solve (one grid).
 // ---------------------------------------------------------------------------
 

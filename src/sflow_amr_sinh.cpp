@@ -29,7 +29,7 @@ Architect: Hans Bihs
 #include<cmath>
 #include<mpi.h>
 
-//  The coupled eta-P system of the semi-implicit step with the quadratic non-hydrostatic pressure (A 226 1, A 220 2/3)
+//  The coupled eta-P system of the semi-implicit step with the quadratic non-hydrostatic pressure (A 210 12/13, A 220 2/3)
 //  over the leaf cells of all grids of the mesh refinement (sflow_amr::si_step; the rows of one grid:
 //  sflow_momentum_SI_nh_amr.cpp).
 //
@@ -41,7 +41,7 @@ Architect: Hans Bihs
 //  reefamr_si.cpp); then the rows of the leaf cells. FGMRES(30), relative tolerance 1e-6, right preconditioned: the
 //  preconditioner of nh_solve on every grid (eta eliminated locally, one REEFMG2D V-cycle for psi, a second one for the
 //  A 220 3 term), level 0 over its own cells with the mean residual of the children in the covered cells, every patch
-//  over its own cells with 0 around it (additive). The wetting and drying iteration (A 229 1) runs over all grids.
+//  over its own cells with 0 around it (additive). The wetting and drying iteration (A 243 > 0) runs over all grids.
 
 namespace
 {

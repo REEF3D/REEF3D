@@ -28,7 +28,7 @@ Author: Hans Bihs
 
 using namespace std;
 
-// Time step of the semi-implicit SFLOW (A 226 1, N 48 1): the advective Courant number
+// Time step of the semi-implicit SFLOW (A 210 12/13, N 48 1): the advective Courant number
 //   dt = N47 * 2 / max( |u|/dx + |v|/dy )            (same convention as sflow_etimestep)
 // plus the explicit diffusion limit (A 212 1), capped by A 228 (maximum time step, s).
 // Without A 228 the cap is the explicit gravity wave limit (no gain, but safe).

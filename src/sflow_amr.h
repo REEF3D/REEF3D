@@ -147,7 +147,7 @@ struct sflow_amr_patch : public reefamr_patch
     sflow_fsf *pfsf;
     sflow_forcing *psfdf;
     sflow_momentum_RK3 *pmom;
-    sflow_momentum_SI *psim = nullptr;     // semi-implicit free surface (A 226 1): the step of the grid (sflow_amr_si.cpp)
+    sflow_momentum_SI *psim = nullptr;     // semi-implicit free surface (A 210 12/13): the step of the grid (sflow_amr_si.cpp)
 
     // boundary face values recorded by hll_hook: rec[ipol][side][fine index]
     // side 0: low x, 1: high x, 2: low y, 3: high y; ipol 0 holds dfx/dfy
@@ -218,7 +218,7 @@ public:
     // the cells around the patches that a patch of the same level fills hold its end-of-step state when the
     // outputs read them (step_end, sub_level: fill_level before the wet-dry update; the face velocities at the
     // end of step_end), so the outputs on the finest grid may interpolate across them (reefamr::finest_point),
-    // as NHFLOW (fill_out).  Not on multi-block grids, and not with the semi-implicit free surface (A 226 1:
+    // as NHFLOW (fill_out).  Not on multi-block grids, and not with the semi-implicit free surface (A 210 12/13:
     // si_step fills the cells around the patches at the start of the step)
     bool fills_current() const override { return nblk==0 && si==0; }
 
@@ -247,7 +247,7 @@ public:
     // called by sflow_HLL between flux_bc and the divergence (ipol 1-4)
     void hll_hook(lexer*, fdm2D*, int, int);
 
-    // semi-implicit free surface (A 226 1, sflow_amr_si.cpp): the level-0 object, the step of all grids with one eta
+    // semi-implicit free surface (A 210 12/13, sflow_amr_si.cpp): the level-0 object, the step of all grids with one eta
     // system over their leaf cells (reefamr_si.cpp)
     void si_attach(sflow_momentum_SI*);
     void si_step(lexer*, fdm2D*, ghostcell*);
@@ -350,7 +350,7 @@ private:
     seastate_sflow* wv(int g);
 
     // semi-implicit free surface (sflow_amr_si.cpp)
-    int si = 0;                         // A 226 1
+    int si = 0;                         // A 210 12/13
     bool si_lv = false;                 // patches in the step
     sflow_momentum_SI *psim0 = nullptr; // level 0
     ghostcell *sipgc = nullptr;

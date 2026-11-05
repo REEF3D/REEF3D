@@ -21,7 +21,7 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 // ---------------------------------------------------------------------------
-// SFLOW semi-implicit step (A 226 1) with the quadratic non-hydrostatic pressure (A 220 2/3).
+// SFLOW semi-implicit step (A 210 12/13) with the quadratic non-hydrostatic pressure (A 220 2/3).
 //
 // The pressure of sflow_pjm_quad (Jeschke et al. 2017; A 220 3 with the improved dispersion, alpha A 224) is not
 // projected after the step, but solved together with eta^{n+1} in one linear system, so that neither sqrt(g h)
@@ -57,7 +57,7 @@ Author: Hans Bihs
 //    reduced operator fourth order, approximated as M5 (I - rho lap): a second V-cycle with I - div(rho grad).
 //    4-10 iterations per step (1D bar, 2D shoal).
 //
-// Wetting and drying (A 229 1): Newton iteration on the wet pattern of the mass rows (Casulli 2009, as si_eta2D).
+// Wetting and drying (A 243 > 0): Newton iteration on the wet pattern of the mass rows (Casulli 2009, as si_eta2D).
 // Breaking (A 246, A 242): sflow_eta::breaking before the predictor with (eta^n - eta^{n-1})/dt; the pressure stays
 // on in breaking cells, the dissipation is the eddy viscosity (A 246 4: crest tracking and Kennedy et al. 2000 as
 // NHFLOW A 550 4, sflow_breaking_kb; A 246 2: A 250) through the implicit diffusion of the predictor.
@@ -593,7 +593,7 @@ void sflow_momentum_SI::nh_solve(lexer *p, fdm2D *b, ghostcell *pgc)
     const double *Ac = nA.V;
     double *PW = nPW.V;
 
-    // wet pattern of the mass rows (A 229 1: Newton iteration on WL = max(eta + d, 0), Casulli 2009), all wet first
+    // wet pattern of the mass rows (A 243 > 0: Newton iteration on WL = max(eta + d, 0), Casulli 2009), all wet first
     SLICELOOP4
     nPW(i,j) = 1.0;
 
@@ -810,7 +810,7 @@ void sflow_momentum_SI::nh_solve(lexer *p, fdm2D *b, ghostcell *pgc)
         if(!S.factor())
         {
         if(p->mpirank==0)
-        cout<<"!!! SFLOW A 226 1 with A 220 "<<p->A220<<": the coupled eta-P system is singular !!!"<<endl;
+        cout<<"!!! SFLOW A 210 12/13 with A 220 "<<p->A220<<": the coupled eta-P system is singular !!!"<<endl;
         exit(1);
         }
 
