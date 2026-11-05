@@ -43,6 +43,7 @@ Author: Hans Bihs
 #include"sflow_diffusion.h"
 #include"sflow_turbulence.h"
 #include"sediment_f.h"
+#include"sediment_fdm.h"
 #include"ckpt_registry.h"
 #include"lexer.h"
 #include<set>
@@ -66,12 +67,12 @@ void sed_registry(lexer *pp, const std::set<const void*> &listed, F &&f)
     });
 }
 
-// the run scalars of a patch lexer
+// the run scalars of a patch lexer (the morphological times and the bed range: sediment_f::ckpt_state)
 template<class F>
 void lexer_scalars(lexer *q, F &&f)
 {
-    f(q->simtime); f(q->dt); f(q->dt_old); f(q->sedtime); f(q->dtsed); f(q->sedsimtime); f(q->sedwavetime);
-    f(q->wavetime); f(q->bedmin); f(q->bedmax); f(q->slidecells);
+    f(q->simtime); f(q->dt); f(q->dt_old); f(q->sedtime); f(q->dtsed);
+    f(q->wavetime); f(q->slidecells);
     double c = q->count;
     f(c);
     q->count = int(c);
@@ -109,8 +110,8 @@ void patch_fields(sflow_amr_patch *c, const reefamr::ckpt_visit &v)
     // S 10: the sediment cell flags and the arrays of the sediment objects of the patch
     if(c->sed!=nullptr)
     {
-        if(c->pp->DFBED!=nullptr)
-        fi("amr_DFBED",'S',c->pp->DFBED);
+        if(c->sed->s->DFBED!=nullptr)
+        fi("amr_DFBED",'S',c->sed->s->DFBED);
         sed_registry(c->pp,listed,[&](const ckpt_registry::entry &e)
         {
             if(e.isint) v("amr_sedreg",e.kind,nullptr,(int*)e.V);

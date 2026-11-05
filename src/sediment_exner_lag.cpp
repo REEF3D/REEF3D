@@ -79,7 +79,7 @@ int sediment_exner::relax_along(lexer *p, ghostcell *pgc, sediment_fdm *s, slice
 
         // the upwind neighbour: a sediment cell of the grid (or of the next rank, or a cell around the grid); not
         // the ghost cells beyond walls and open boundaries (the cell then takes its own value there)
-        auto up = [&](int a, int b) { const int q = (a-p->imin)*p->jmax + (b-p->jmin); return p->DFBED[q]>0 && p->flagslice4[q]>0; };
+        auto up = [&](int a, int b) { const int q = (a-p->imin)*p->jmax + (b-p->jmin); return s->DFBED[q]>0 && p->flagslice4[q]>0; };
 
         if(p->geo_curv==1)
         {
@@ -138,7 +138,7 @@ int sediment_exner::relax_along(lexer *p, ghostcell *pgc, sediment_fdm *s, slice
             i = xrev?(p->knox-1-ii):ii;
             j = yrev?(p->knoy-1-jj):jj;
 
-            if(p->flagslice4[IJ]>0 && p->DFBED[IJ]>0 && lagfix(i,j)<=0.0)
+            if(p->flagslice4[IJ]>0 && s->DFBED[IJ]>0 && lagfix(i,j)<=0.0)
             {
             cx = cxn(i,j);
             cy = cyn(i,j);

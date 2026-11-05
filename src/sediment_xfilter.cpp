@@ -22,6 +22,7 @@ Author: Hans Bihs
 
 #include"sediment_xfilter.h"
 #include"sediment_curv.h"
+#include"sediment_fdm.h"
 #include"lexer.h"
 #include"ghostcell.h"
 
@@ -31,7 +32,7 @@ sediment_xfilter::sediment_xfilter(lexer *p) : own(p), m(p), h(p), dh(p), a(p), 
     ydir = (p->j_dir==1 && p->gknoy>1)?1:0;
 }
 
-void sediment_xfilter::mask(lexer *p, slice *amr)
+void sediment_xfilter::mask(lexer *p, sediment_fdm *s, slice *amr)
 {
     SLICEBASELOOP
     own(i,j) = 0.0;
@@ -126,9 +127,9 @@ void sediment_xfilter::sweep2(lexer *p, slice &f, int set)
     }
 }
 
-void sediment_xfilter::run(lexer *p, ghostcell *pgc, slice &f, int outer_iter, int inner_iter)
+void sediment_xfilter::run(lexer *p, ghostcell *pgc, sediment_fdm *s, slice &f, int outer_iter, int inner_iter)
 {
-    mask(p,nullptr);
+    mask(p,s,nullptr);
     pgc->gcsl_start4(p,m,1);
     weights(p);
 

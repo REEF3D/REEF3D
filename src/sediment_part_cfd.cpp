@@ -54,7 +54,7 @@ void sediment_part::sediment_algorithm_cfd(lexer* p, fdm* a, ghostcell* pgc, iof
     if(p->Q44!=1)
     update_cfd(p,a,pgc,pflow,preto);
 
-    p->sedsimtime=pgc->timer()-starttime;
+    sedsimtime=pgc->timer()-starttime;
     
     // load map (G 45): the busy time of the sediment step
     pst->loadmap_step(p,a,pgc,MPI_Wtime()-lm_t0,amr_clock::mpi-lm_m0);

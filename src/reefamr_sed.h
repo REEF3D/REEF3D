@@ -127,7 +127,7 @@ void reefamr_sed_filter(R &amr, reefamr_sedgrids &G, int tag)
         }
     };
 
-    each([&](int t) { X[t]->mask(G.L[t],G.mask[t]); });
+    each([&](int t) { X[t]->mask(G.L[t],G.S[t]->s,G.mask[t]); });
     amr.xslice(1,tag,[&](int g, int k) -> slice* { return &X[g+1]->m; });
     each([&](int t) { X[t]->weights(G.L[t]); });
 
@@ -178,7 +178,7 @@ void reefamr_sed_slide(R &amr, ghostcell *pgc, reefamr_sedgrids &G, int tag)
         D[t].reset(new slice4(q));
         for(int ii=q->imin; ii<q->imin+q->imax; ++ii)
         for(int jj=q->jmin; jj<q->jmin+q->jmax; ++jj)
-        (*D[t])(ii,jj) = ((*G.mask[t])(ii,jj)>0.5) ? double(q->DFBED[cell(q,ii,jj)]) : -1.0;
+        (*D[t])(ii,jj) = ((*G.mask[t])(ii,jj)>0.5) ? double(G.S[t]->s->DFBED[cell(q,ii,jj)]) : -1.0;
     }
 
     amr.xslice(1,tag,[&](int g, int k) -> slice* { return D[g+1].get(); });
@@ -191,11 +191,11 @@ void reefamr_sed_slide(R &amr, ghostcell *pgc, reefamr_sedgrids &G, int tag)
         {
             const int c = cell(q,ii,jj);
             const int v = int((*D[t])(ii,jj));
-            if(q->DFBED[c]!=v)
+            if(G.S[t]->s->DFBED[c]!=v)
             {
             keep[t].push_back(c);
-            keep[t].push_back(q->DFBED[c]);
-            q->DFBED[c] = v;
+            keep[t].push_back(G.S[t]->s->DFBED[c]);
+            G.S[t]->s->DFBED[c] = v;
             }
         }
     }
@@ -234,7 +234,7 @@ void reefamr_sed_slide(R &amr, ghostcell *pgc, reefamr_sedgrids &G, int tag)
 
     for(int t=0; t<n; ++t)
     for(size_t k=0; k<keep[t].size(); k+=2)
-    G.L[t]->DFBED[keep[t][k]] = keep[t][k+1];
+    G.S[t]->s->DFBED[keep[t][k]] = keep[t][k+1];
 }
 
 #endif

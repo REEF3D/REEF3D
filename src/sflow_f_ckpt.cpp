@@ -121,8 +121,8 @@ reefrun_ckpt& sflow_f::ckpt(lexer *p, fdm2D *b, ghostcell *pgc)
             ck.blob("sediment",sv);
             psed->ckpt_rank_state(p,sr);
             ck.rank_blob("sediment_rank",sr);
-            if(p->DFBED!=nullptr)
-            ck.put_Si("DFBED",p->DFBED);
+            if(psed->ckpt_dfbed()!=nullptr)
+            ck.put_Si("DFBED",psed->ckpt_dfbed());
         }
 
         // REEF3D::HYDRO: the volume budget (the same on all ranks)
@@ -197,8 +197,8 @@ reefrun_ckpt& sflow_f::ckpt(lexer *p, fdm2D *b, ghostcell *pgc)
             const vector<vector<double>> sr = ck.same_decomposition() ? vector<vector<double>>{ck.get_rank_blob("sediment_rank",p->mpirank)}
                                                                       : ck.get_rank_blobs("sediment_rank");
             psed->ckpt_rank_restore(p,pgc,sr,ck.same_decomposition());
-            if(p->DFBED!=nullptr && ck.has("DFBED"))
-            ok = ck.get_Si("DFBED",p->DFBED) && ok;
+            if(psed->ckpt_dfbed()!=nullptr && ck.has("DFBED"))
+            ok = ck.get_Si("DFBED",psed->ckpt_dfbed()) && ok;
         }
 
         // REEF3D::HYDRO: the volume budget

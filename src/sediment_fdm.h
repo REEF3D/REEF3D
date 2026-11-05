@@ -71,6 +71,7 @@ public:
     slice4 MOB,tau_i;
     
     double ws;
+    double bedmax, bedmin;
     
     // grain diameter used by the bedload formulas; S20 for single-fraction runs,
     // set to d_k by sediment_mixture while the bedload of fraction k is evaluated
@@ -88,6 +89,8 @@ public:
     // SFLOW: mean exchange rate E - D of the depth-averaged suspended load since the last bed update
     // (S 120 > 0, sediment_susp2D), nullptr otherwise
     slice4 *edrate = nullptr;
+
+    int *DFBED;
 
 };
 

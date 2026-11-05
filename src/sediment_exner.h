@@ -78,7 +78,7 @@ public:
     double amr_vz(lexer*, ghostcell*, sediment_fdm*, slice&, slice&, slice*);
     double amr_vzmax(lexer*, sediment_fdm*, slice*);
     void amr_bed(lexer*, ghostcell*, sediment_fdm*);
-    double amr_dx(lexer*);
+    double amr_dx(lexer*,sediment_fdm*);
     double amr_maxvz = 0.0, amr_mindx = 0.0;
     // the bed celerity of a grid for S 103 / S 104 (rank-local maxima of c, c/dx and the flow speed; mask: the cells with
     // mask > 0.5 only); amr_cmax, amr_cdx, amr_umax: those of the other grids, part of timestep() as amr_maxvz
@@ -92,7 +92,7 @@ private:
     void topovel2(lexer*,ghostcell*,sediment_fdm*);
     void topovel3(lexer*,ghostcell*,sediment_fdm*);
     void topovel_curv(lexer*,ghostcell*,sediment_fdm*,int);   // curvilinear grid (G 50): S 31 1, 2 (sediment_exner_curv.cpp)
-    void face_closure(lexer*,double&,double&,double&,double&);
+    void face_closure(lexer*,sediment_fdm*,double&,double&,double&,double&);
     void qb_clear(lexer*,sediment_fdm*);
     void qb_inflow(lexer*,sediment_fdm*,int);
     void dry_deposit(lexer*,sediment_fdm*);
@@ -109,8 +109,8 @@ private:
     void bend_prep(lexer*,ghostcell*,sediment_fdm*);
     double bend_flux(lexer*,sediment_fdm*,int,int,int);
     double bend_div(lexer*,sediment_fdm*,int,int);
-    bool bend_open(lexer*,int,int);
-    double bend_td(lexer*,int,int,int);
+    bool bend_open(lexer*,sediment_fdm*,int,int);
+    double bend_td(lexer*,sediment_fdm*,int,int,int);
     static double bend_turn(double un, double ut, double mag, double td);
     slice4 bK,btd,bu,bv,bz,bg;
     // lags of the bend morphology (sediment_exner_lag.cpp): the steady relaxation f + L s.grad(f) = f_e along the
@@ -142,8 +142,8 @@ public:
 private:
     int p_S95=0;
 
-    void filter(lexer*,ghostcell*,slice&,int,int);
-    void filter_curv(lexer*,ghostcell*,slice&,int,int);     // curvilinear grid (G 50)   
+    void filter(lexer*,ghostcell*,sediment_fdm*,slice&,int,int);
+    void filter_curv(lexer*,ghostcell*,sediment_fdm*,slice&,int,int);     // curvilinear grid (G 50)
     topo_relax *prelax;
     sediment_exnerdisc *pdx;
     solver2D *psolv;

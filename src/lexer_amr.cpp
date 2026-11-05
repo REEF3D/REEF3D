@@ -59,7 +59,7 @@ Architect: Hans Bihs
 #define LEXER_AMR_IO_D(X) X(Ui) X(Ua) X(Uo) X(Qi) X(Qo) X(Hi) X(Ho) \
     X(fsfin) X(fsfout) X(fsfinval) X(fsfoutval)
 #define LEXER_AMR_RUN_D(X) X(phiin) X(phiout) X(pressgage) \
-    X(wavetime) X(wts) X(wte) X(sedtime) X(sedsimtime) X(sedwavetime) \
+    X(wavetime) X(wts) X(wte) X(sedtime) \
     X(wT) X(wV) X(wH) X(wA) X(wL) X(wd) X(ww) X(wk) X(wC) X(wHs) X(wAs) X(wwp) X(ww_s) X(ww_e) X(wTp) X(wLp)
 // count_statestart: the restart from a checkpoint (I 45) sets it after the grids are built
 #define LEXER_AMR_RUN_I(X) X(wN) X(count_statestart)
@@ -68,7 +68,7 @@ Architect: Hans Bihs
     X(RK_alpha) X(mindt) X(maxdt) X(deltax)
 #define LEXER_AMR_ONCE_I(X) X(velcorr)
 
-#define LEXER_AMR_BUILD_D(X) X(phimean) X(psi) X(psi0) X(dtsed) X(bedmax) X(bedmin) X(maxbed) X(minbed)
+#define LEXER_AMR_BUILD_D(X) X(phimean) X(psi) X(psi0) X(dtsed) X(maxbed) X(minbed)
 #define LEXER_AMR_BUILD_I(X) X(reini_iter)
 
 #define LEXER_AMR_TIME_D(X) X(simtime) X(dt) X(dt_old)
@@ -111,7 +111,6 @@ void lexer::amr_inherit(const lexer &b)
     phi_fb=theta_fb=psi_fb=0.0;
     fbdt=fbmax=sfdt=sfmax=0.0;
     volume1=volume2=volume3=0.0;
-    tank_vol=0.0;           // the water volume of the NHFLOW log (driver_log, level 0)
     slidecells=0.0;
     maxtopovel=0.0;
     final_res=0.0;
@@ -123,11 +122,11 @@ void lexer::amr_inherit(const lexer &b)
     FSI_count=0;
     presstime=veltime=reinitime=turbtime=plstime=itertime=0.0;
     wavecalctime=meantime=totaltime=gcmeantime=gctotaltime=Xmeantime=Xtotaltime=0.0;
-    susptime=gctime=xtime=field4time=0.0;
+    susptime=gctime=xtime=0.0;
     utime=vtime=wtime=recontime=fsftime=dftime=kintime=epstime=0.0;
-    poissontime=laplacetime=matrixtime=ptime=sftime=fbtime=fsitime=0.0;
-    lsmtime=heattime=concentrationtime=printouttime=0.0;
-    printtime=sedprinttime=fsfprinttime=fsfsedprinttime=probeprinttime=stateprinttime=exportprinttime=0.0;
+    poissontime=laplacetime=matrixtime=ptime=sftime=fbtime=0.0;
+    lsmtime=concentrationtime=printouttime=0.0;
+    printtime=sedprinttime=fsfprinttime=fsfsedprinttime=probeprinttime=stateprinttime=0.0;
     printcount=printcount_sixdof=0;
 
     amr_last.clear();

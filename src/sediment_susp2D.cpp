@@ -231,7 +231,7 @@ void sediment_susp2D::equilibrium(lexer *p, fdm2D *b, ghostcell *pgc, sediment_f
         Ceq(i,j) = MIN(pbw->Ls(i,j)/h,p->S126);
     
     // exchange with the bed only on erodible bed cells inside the erosion window (S 71, S 72) and outside held cells (S 78)
-    const bool bed = p->DFBED[IJ]>0 && s->guard(i,j)>0.0 && p->XP[IP]>=p->S71 && p->XP[IP]<=p->S72;
+    const bool bed = s->DFBED[IJ]>0 && s->guard(i,j)>0.0 && p->XP[IP]>=p->S71 && p->XP[IP]<=p->S72;
     
         // no exchange (C_eq is kept for the inflow concentration, S 124 < 0)
         if(!bed)
@@ -471,7 +471,7 @@ void sediment_susp2D::exchange(lexer *p, fdm2D *b, ghostcell *pgc, sediment_fdm 
         // cells S 78, outside S 71 - S 72) keep it until they are wet again
         if(h1<p->S128 || p->wet[IJ]==0)
         {
-        const bool bed = p->DFBED[IJ]>0 && s->guard(i,j)>0.0 && p->XP[IP]>=p->S71 && p->XP[IP]<=p->S72;
+        const bool bed = s->DFBED[IJ]>0 && s->guard(i,j)>0.0 && p->XP[IP]>=p->S71 && p->XP[IP]<=p->S72;
         
             if(bed)
             {

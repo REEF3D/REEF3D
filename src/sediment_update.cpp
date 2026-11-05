@@ -104,7 +104,7 @@ void sediment_f::update_sflow(lexer *p, fdm2D *b, ghostcell *pgc, ioflow *pflow)
     if(p->S98>0.0 && p->S95>0)
     {
         SLICEBASELOOP
-        b->spiral(i,j) = (p->DFBED[IJ]>0) ? exner()->spiral_I(p,i,j) : 0.0;
+        b->spiral(i,j) = (s->DFBED[IJ]>0) ? exner()->spiral_I(p,i,j) : 0.0;
 
         pgc->gcsl_start4(p,b->spiral,1);
     }
