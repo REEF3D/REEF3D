@@ -26,7 +26,6 @@ Author: Alexander Hanke
 #include "field3.h"
 #include "field4.h"
 #include "field4a.h"
-#include "field5.h"
 #include "field7.h"
 
 // Out-of-line destructors: each is its class's key function, so the vtable
@@ -39,5 +38,4 @@ field2::~field2() = default;
 field3::~field3() = default;
 field4::~field4() = default;
 field4a::~field4a() = default;
-field5::~field5() = default;
 field7::~field7() = default;

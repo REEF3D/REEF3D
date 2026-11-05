@@ -23,13 +23,12 @@ Author: Hans Bihs
 #ifndef FDM_FNPF_H_
 #define FDM_FNPF_H_
 
-#include"field5.h"
-#include"fieldint5.h"
+#include"field4.h"
+#include"fieldint4.h"
 #include"slice1.h"
 #include"slice2.h"
 #include"slice4.h"
 #include"sliceint4.h"
-#include"sliceint5.h"
 #include"increment.h"
 #include"vec.h"
 #include"vec2D.h"
@@ -49,8 +48,8 @@ public:
 
     fdm_fnpf(lexer*);
    
-    field5 test;    // allocated with P 23 1 only (printed)
-    fieldint5 nodeval;
+    field4 test;    // allocated with P 23 1 only (printed)
+    fieldint4 nodeval;
     
     slice4 eta,eta_n,WL;
     slice4 bed,depth;
@@ -69,7 +68,7 @@ public:
     slice4 test2D;
     slice4 Hs;
     
-    sliceint5 nodeval2D;
+    sliceint4 nodeval2D;
     slice4 breaking_print;
     
     // U, V, W of the surface node when the 3D velocities are not stored (fnpf_memory.h): the time

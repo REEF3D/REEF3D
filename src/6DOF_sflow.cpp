@@ -178,7 +178,7 @@ void sixdof_obj_2D::ckpt_2D_fields(const char *pre, const std::function<void(con
         const std::string n = std::string(pre) + e.n;
         fd(n.c_str(),'S',e.s->data());
     }
-    struct { const char *n; sliceint5 *s; } si[] = {{"cl",&cl},{"cr",&cr},{"fsio",&fsio}};
+    struct { const char *n; sliceint4 *s; } si[] = {{"cl",&cl},{"cr",&cr},{"fsio",&fsio}};
     for(auto &e : si)
     {
         const std::string n = std::string(pre) + e.n;

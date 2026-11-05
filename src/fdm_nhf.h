@@ -27,7 +27,6 @@ Author: Hans Bihs
 #include"slice2.h"
 #include"slice4.h"
 #include"sliceint4.h"
-#include"sliceint5.h"
 #include"increment.h"
 #include"vec.h"
 #include"vec2D.h"
