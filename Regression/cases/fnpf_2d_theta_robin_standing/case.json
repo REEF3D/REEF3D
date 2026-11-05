@@ -1,0 +1,16 @@
+{
+ "description": "FNPF theta-Robin time integration A 310 5 (theta A 300 0.5, Robin row at the free surface, Eigen SparseLU, prototype 2D serial), standing wave of fnpf_2d_standing_a301 at 10 steps per period (beyond the RK3 limit of the grid cut-off mode, omega_max dt 2.3), nonlinear FSBC A 314 2 with the Adams-Bashforth 2 terms.",
+ "solver": "fnpf",
+ "np": 1,
+ "steps": 30,
+ "tags": [
+  "quick",
+  "2d",
+  "fnpf",
+  "waves"
+ ],
+ "covers": [
+  "fnpf_theta",
+  "fnpf_theta::robin_solve"
+ ]
+}

@@ -108,6 +108,10 @@ void driver::logic_fnpf()
     if(p->A310==4)
     ppfsg = new fnpf_RK4(p,c,pgc);
     
+    // theta-Robin, prototype (2D, serial)
+    if(p->A310==5)
+    ppfsg = new fnpf_theta(p,c,pgc);
+    
 //  Mesh refinement
     if(p->G1>0)
     {

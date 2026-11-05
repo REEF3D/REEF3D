@@ -1,0 +1,15 @@
+{
+ "description": "FNPF closed tank (walls at both ends), kh 1: linear standing wave initial condition A 301 (eta = a cos(2 pi x/L) at rest, Fi = 0), RK3 at 20 steps per period.",
+ "solver": "fnpf",
+ "np": 1,
+ "steps": 40,
+ "tags": [
+  "quick",
+  "2d",
+  "fnpf",
+  "waves"
+ ],
+ "covers": [
+  "driver_ini_fnpf A 301"
+ ]
+}

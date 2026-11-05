@@ -196,6 +196,8 @@ void control::ctrlrecv()
     G7 = ictrl[ii];
     ii++;
 
+    A300 = dctrl[dd];
+    dd++;
     A309 = ictrl[ii];
     ii++;
     A310 = ictrl[ii];

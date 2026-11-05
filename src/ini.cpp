@@ -68,6 +68,7 @@ void control::ini_default()
 
 
     // FNPF
+    A300=0.5;    // double FNPF theta of the theta-Robin time integration (A 310 5)
     A309=1;      // int interpolation sweeps for bed
     A310=3;		  // int time scheme for FNPF velocities
     A311=5;		  // int convection scheme for FNPF velocities
