@@ -1,0 +1,11 @@
+{
+ "base": "cfd_2d_6dof_fish_x198",
+ "np": 1,
+ "steps": 40,
+ "ctrl_add": [
+  "X 196 2"
+ ],
+ "description": "cfd_2d_6dof_fish_x198 with the discrete recoil correction of the grid (X 196 2): a planar rigid-body motion of the deformation in the body frame (axial, lateral, rotation), integrated with the RK stages of the body, its rates minus the rigid-body fit of the deformation velocity in the hull region of the grid at each forcing; the fit of u* takes the deformation at t^n with the correction of t^n.",
+ "tags": ["quick", "2d", "6dof", "floating", "deform", "singlephase"],
+ "covers": ["sixdof_obj_cfd::momentum_deform", "sixdof_deform::correction, displacement/velocity/velocity_at with the correction", "sixdof_obj::deform_stage of the correction (TVD RK3), deform_step_end"]
+}

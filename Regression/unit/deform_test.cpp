@@ -9,7 +9,8 @@
 // displacement (with and without the ramp); recoil: no net lateral momentum and no angular momentum
 // of the deformation (displacement and velocity) about the CoG, and without recoil the raw wave;
 // inextensible midline (types 11-13): length of the midline, recoil (axial and lateral momentum,
-// angular momentum), velocity = dd/dt, the velocity at the deformed point from the inverse map.
+// angular momentum), velocity = dd/dt, the velocity at the deformed point from the inverse map; the
+// discrete recoil correction (X 196 2 with X 198, types 1 and 11): velocity = dd/dt and the inverse map with it.
 // Architect: Hans Bihs
 
 // 6DOF_deform.cpp needs only the body-frame triangles of sixdof_geometry
@@ -356,6 +357,53 @@ int main()
         }
         check(std::fabs(hmax-0.125)<2.0e-3, "type 11 tail amplitude: "+std::to_string(hmax));
         check(cmin>0.0 && cmax<0.1, "type 11 axial contraction at the tail in (0, 0.1): "+std::to_string(cmin)+" "+std::to_string(cmax));
+    }
+    
+    // ---- discrete recoil correction (X 198): a rigid motion in the plane after the recoil
+    {
+        std::vector<double> xs;
+        hull hf = fish2D(400,0.25,xs);
+        for(int type : {1, 11})
+        {
+            sixdof_geometry g(0);
+            hf.to(g,0.45,false);
+            sixdof_deform d(type, 0.125, 1.0, 1.0, 1.0, 2, true);
+            d.setup(g);
+            
+            // the correction moves linearly in time: tx = 0.01 + 0.02 t, tl = -0.005 + 0.03 t, psi = 0.02 - 0.05 t
+            auto corr = [&](double t)
+            {
+                sixdof_deform::correction c;
+                c.tx = 0.01 + 0.02*t;  c.vx = 0.02;
+                c.tl = -0.005 + 0.03*t; c.vl = 0.03;
+                c.psi = 0.02 - 0.05*t;  c.psit = -0.05;
+                return c;
+            };
+            
+            for(double t : {0.6, 1.7})
+            {
+                double emax = 0.0, eimax = 0.0, vmax = 0.0;
+                const double dt = 1.0e-6;
+                for(int k=0; k<=40; ++k)
+                for(double l : {-0.02, 0.0, 0.015})
+                {
+                    const double x = d.xtail() + 0.003 + k*(d.length()-0.006)/40.0;
+                    if(std::fabs(l) > fish_w(1.0-(x+0.45))) continue;
+                    double dxp, dlp, dxm, dlm, vx, vl, ux, ul, dx, dl;
+                    d.set_time(t+dt); d.set_corr(corr(t+dt)); d.displacement(x,l,dxp,dlp);
+                    d.set_time(t-dt); d.set_corr(corr(t-dt)); d.displacement(x,l,dxm,dlm);
+                    d.set_time(t); d.set_corr(corr(t));
+                    d.velocity(x,l,vx,vl);
+                    d.displacement(x,l,dx,dl);
+                    d.velocity_at(x+dx,l+dl,ux,ul);
+                    emax = std::max(emax, std::hypot((dxp-dxm)/(2.0*dt) - vx, (dlp-dlm)/(2.0*dt) - vl));
+                    eimax = std::max(eimax, std::hypot(ux - vx, ul - vl));
+                    vmax = std::max(vmax, std::hypot(vx,vl));
+                }
+                check(emax<1.0e-5*vmax, "type "+std::to_string(type)+" corrected velocity = dd/dt at t = "+std::to_string(t)+": "+std::to_string(emax/vmax));
+                check(eimax<1.0e-6*vmax, "type "+std::to_string(type)+" corrected velocity at the deformed point at t = "+std::to_string(t)+": "+std::to_string(eimax/vmax));
+            }
+        }
     }
     
     // ---- envelopes: tail amplitude (r = 1) of the three types

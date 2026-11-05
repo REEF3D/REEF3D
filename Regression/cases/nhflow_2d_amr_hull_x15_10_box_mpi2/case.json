@@ -1,0 +1,19 @@
+{
+ "base": "nhflow_2d_amr_hull_x15_10_box",
+ "np": 2,
+ "ctrl_add": [
+  "G 40 1"
+ ],
+ "description": "nhflow_2d_amr_hull_x15_10_box on two ranks with the placed patches (G 40 1): the zone around the hull on one rank, the loads and the STL facets of the leaf grids of both ranks.",
+ "tags": [
+  "2d",
+  "nhflow",
+  "6dof",
+  "floating",
+  "amr",
+  "mpi"
+ ],
+ "covers": [
+  "X 15 10 on the mesh refinement on several ranks"
+ ]
+}
