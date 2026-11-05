@@ -38,13 +38,13 @@ double gradient::pudy(lexer *p, field &u)
 {
     f1 = f2 = 0.5;
     
-    if(p->flag1[IJK]<0 && p->flag1[IJm1K]<0 && p->flag1[IJp1K]<0)
+    if(p->flag1(i,j,k)<0 && p->flag1(i,j-1,k)<0 && p->flag1(i,j+1,k)<0)
     {
     f2 = 0.0;
     f1 = 1.0;
     }
     
-    if(p->flag1[Im1JK]<0 && p->flag1[Im1Jm1K]<0 && p->flag1[Im1Jp1K]<0)
+    if(p->flag1(i-1,j,k)<0 && p->flag1(i-1,j-1,k)<0 && p->flag1(i-1,j+1,k)<0)
     {
     f2 = 1.0;
     f1 = 0.0;
@@ -59,13 +59,13 @@ double gradient::pudz(lexer *p, field &u)
 {
     f1 = f2 = 0.5;
     
-    if(p->flag1[IJK]<0 && p->flag1[IJKm1]<0 && p->flag1[IJKp1]<0)
+    if(p->flag1(i,j,k)<0 && p->flag1(i,j,k-1)<0 && p->flag1(i,j,k+1)<0)
     {
     f2 = 0.0;
     f1 = 1.0;
     }
     
-    if(p->flag1[Im1JK]<0 && p->flag1[Im1JKm1]<0 && p->flag1[Im1JKp1]<0)
+    if(p->flag1(i-1,j,k)<0 && p->flag1(i-1,j,k-1)<0 && p->flag1(i-1,j,k+1)<0)
     {
     f2 = 1.0;
     f1 = 0.0;
@@ -84,13 +84,13 @@ double gradient::pvdx(lexer *p, field &v)
 {
     f1 = f2 = 0.5;
     
-    if(p->flag2[IJK]<0 && p->flag2[Im1JK]<0 && p->flag2[Ip1JK]<0)
+    if(p->flag2(i,j,k)<0 && p->flag2(i-1,j,k)<0 && p->flag2(i+1,j,k)<0)
     {
     f2 = 0.0;
     f1 = 1.0;
     }
     
-    if(p->flag2[IJm1K]<0 && p->flag2[Im1Jm1K]<0 && p->flag2[Ip1Jm1K]<0)
+    if(p->flag2(i,j-1,k)<0 && p->flag2(i-1,j-1,k)<0 && p->flag2(i+1,j-1,k)<0)
     {
     f2 = 1.0;
     f1 = 0.0;
@@ -112,13 +112,13 @@ double gradient::pvdz(lexer *p, field &v)
 {
     f1 = f2 = 0.5;
     
-    if(p->flag2[IJK]<0 && p->flag2[IJKm1]<0 && p->flag2[IJKp1]<0)
+    if(p->flag2(i,j,k)<0 && p->flag2(i,j,k-1)<0 && p->flag2(i,j,k+1)<0)
     {
     f2 = 0.0;
     f1 = 1.0;
     }
     
-    if(p->flag2[IJm1K]<0 && p->flag2[IJm1Km1]<0 && p->flag2[IJm1Kp1]<0)
+    if(p->flag2(i,j-1,k)<0 && p->flag2(i,j-1,k-1)<0 && p->flag2(i,j-1,k+1)<0)
     {
     f2 = 1.0;
     f1 = 0.0;
@@ -137,13 +137,13 @@ double gradient::pwdx(lexer *p, field &w)
 {
     f1 = f2 = 0.5;
     
-    if(p->flag3[IJK]<0 && p->flag3[Im1JK]<0 && p->flag3[Ip1JK]<0)
+    if(p->flag3(i,j,k)<0 && p->flag3(i-1,j,k)<0 && p->flag3(i+1,j,k)<0)
     {
     f2 = 0.0;
     f1 = 1.0;
     }
     
-    if(p->flag3[IJKm1]<0 && p->flag3[Im1JKm1]<0 && p->flag3[Ip1JKm1]<0)
+    if(p->flag3(i,j,k-1)<0 && p->flag3(i-1,j,k-1)<0 && p->flag3(i+1,j,k-1)<0)
     {
     f2 = 1.0;
     f1 = 0.0;
@@ -158,13 +158,13 @@ double gradient::pwdy(lexer *p, field &w)
 {
     f1 = f2 = 0.5;
     
-    if(p->flag3[IJK]<0 && p->flag3[IJm1K]<0 && p->flag3[IJp1K]<0)
+    if(p->flag3(i,j,k)<0 && p->flag3(i,j-1,k)<0 && p->flag3(i,j+1,k)<0)
     {
     f2 = 0.0;
     f1 = 1.0;
     }
     
-    if(p->flag3[IJKm1]<0 && p->flag3[IJm1Km1]<0 && p->flag3[IJp1Km1]<0)
+    if(p->flag3(i,j,k-1)<0 && p->flag3(i,j-1,k-1)<0 && p->flag3(i,j+1,k-1)<0)
     {
     f2 = 1.0;
     f1 = 0.0;

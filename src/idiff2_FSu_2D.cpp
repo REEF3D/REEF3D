@@ -129,25 +129,25 @@ void idiff2_FS_2D::assemble_u(lexer* p, fdm* a, ghostcell *pgc, field &u_in, fie
         if(p->DF1[IJK]>0)
         {
             
-		if((p->flag1[Im1JK]<0 && (i+p->origin_i>0 || p->periodic1==0)) || p->DF1[Im1JK]<0)
+		if((p->flag1(i-1,j,k)<0 && (i+p->origin_i>0 || p->periodic1==0)) || p->DF1[Im1JK]<0)
 		{
 		a->M.p[n] += a->M.s[n];
 		a->M.s[n] = 0.0;
 		}
 		
-		if((p->flag1[Ip1JK]<0 && (i+p->origin_i<p->gknox-1 || p->periodic1==0)) || p->DF1[Ip1JK]<0)
+		if((p->flag1(i+1,j,k)<0 && (i+p->origin_i<p->gknox-1 || p->periodic1==0)) || p->DF1[Ip1JK]<0)
 		{
 		a->M.p[n] += a->M.n[n];
 		a->M.n[n] = 0.0;
 		}
 		
-		if((p->flag1[IJKm1]<0 && (k+p->origin_k>0 || p->periodic3==0)) || p->DF1[IJKm1]<0)
+		if((p->flag1(i,j,k-1)<0 && (k+p->origin_k>0 || p->periodic3==0)) || p->DF1[IJKm1]<0)
 		{
 		a->M.p[n] += a->M.b[n];
 		a->M.b[n] = 0.0;
 		}
 		
-		if((p->flag1[IJKp1]<0 && (k+p->origin_k<p->gknoz-1 || p->periodic3==0)) || p->DF1[IJKp1]<0)
+		if((p->flag1(i,j,k+1)<0 && (k+p->origin_k<p->gknoz-1 || p->periodic3==0)) || p->DF1[IJKp1]<0)
 		{
 		a->M.p[n] += a->M.t[n];
 		a->M.t[n] = 0.0;
@@ -169,9 +169,9 @@ void idiff2_FS_2D::assemble_u(lexer* p, fdm* a, ghostcell *pgc, field &u_in, fie
     n=0;
 	ULOOP
 	{
-		if(p->flag1[Im1JK]<0 && (i+p->origin_i>0 || p->periodic1==0))
+		if(p->flag1(i-1,j,k)<0 && (i+p->origin_i>0 || p->periodic1==0))
 		{
-		if(pwall->coef(p,i,j,k,1,c1,c2) && (c2==0.0 || p->flag1[Ip1JK]>0))
+		if(pwall->coef(p,i,j,k,1,c1,c2) && (c2==0.0 || p->flag1(i+1,j,k)>0))
 		{
 		a->M.p[n] += a->M.s[n]*c1;
 		a->M.n[n] += a->M.s[n]*c2;
@@ -181,9 +181,9 @@ void idiff2_FS_2D::assemble_u(lexer* p, fdm* a, ghostcell *pgc, field &u_in, fie
 		a->M.s[n] = 0.0;
 		}
 		
-		if(p->flag1[Ip1JK]<0 && (i+p->origin_i<p->gknox-1 || p->periodic1==0))
+		if(p->flag1(i+1,j,k)<0 && (i+p->origin_i<p->gknox-1 || p->periodic1==0))
 		{
-		if(pwall->coef(p,i,j,k,4,c1,c2) && (c2==0.0 || p->flag1[Im1JK]>0))
+		if(pwall->coef(p,i,j,k,4,c1,c2) && (c2==0.0 || p->flag1(i-1,j,k)>0))
 		{
 		a->M.p[n] += a->M.n[n]*c1;
 		a->M.s[n] += a->M.n[n]*c2;
@@ -193,9 +193,9 @@ void idiff2_FS_2D::assemble_u(lexer* p, fdm* a, ghostcell *pgc, field &u_in, fie
 		a->M.n[n] = 0.0;
 		}
 		
-		if(p->flag1[IJKm1]<0 && (k+p->origin_k>0 || p->periodic3==0))
+		if(p->flag1(i,j,k-1)<0 && (k+p->origin_k>0 || p->periodic3==0))
 		{
-		if(pwall->coef(p,i,j,k,5,c1,c2) && (c2==0.0 || p->flag1[IJKp1]>0))
+		if(pwall->coef(p,i,j,k,5,c1,c2) && (c2==0.0 || p->flag1(i,j,k+1)>0))
 		{
 		a->M.p[n] += a->M.b[n]*c1;
 		a->M.t[n] += a->M.b[n]*c2;
@@ -205,9 +205,9 @@ void idiff2_FS_2D::assemble_u(lexer* p, fdm* a, ghostcell *pgc, field &u_in, fie
 		a->M.b[n] = 0.0;
 		}
 		
-		if(p->flag1[IJKp1]<0 && (k+p->origin_k<p->gknoz-1 || p->periodic3==0))
+		if(p->flag1(i,j,k+1)<0 && (k+p->origin_k<p->gknoz-1 || p->periodic3==0))
 		{
-		if(pwall->coef(p,i,j,k,6,c1,c2) && (c2==0.0 || p->flag1[IJKm1]>0))
+		if(pwall->coef(p,i,j,k,6,c1,c2) && (c2==0.0 || p->flag1(i,j,k-1)>0))
 		{
 		a->M.p[n] += a->M.t[n]*c1;
 		a->M.b[n] += a->M.t[n]*c2;
