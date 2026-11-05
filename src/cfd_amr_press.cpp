@@ -450,7 +450,7 @@ void cfd_amr::pr_setup()
     mg0->set_fine_operator(&pr_fineop_none);
     // N 16: the level-0 V-cycle on a device (the Apple GPU), as the uniform solver (reefmg.cpp);
     // the patch and level multigrids stay on the CPU
-    mg0->set_device(p0->N16);
+    mg0->set_device(reefmg_core::vcycle_device(p0->N16));   // N 16 2, 4: the V-cycle device
     mg0->set_device_cycle(p0->N17,p0->N19);
     mg0->set_device_precision(p0->N21);
     if(!mg0->setup(pgc0->cart(),p0->knox,p0->knoy,p0->knoz,p0->gknox,p0->gknoy,p0->N13,p0->DXN+marge-1,p0->DYN+marge-1,

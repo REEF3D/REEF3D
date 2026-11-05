@@ -19,6 +19,8 @@
 //   - the converged solution = the CPU fp64 solution on one rank to 1e-8
 //   - the number of BiCGStab iterations does not depend on the decomposition
 //   - two vcycle(0) called by the host (REEFAMR level 0) on np ranks = on one rank, bitwise
+// The same with the Krylov solve on the device (N 16 4, Metal N 16 2): GCR on the ranks, one
+// iteration on np ranks = on one rank to round-off (its scalars are sums over the ranks).
 
 #include "reefmg_test_problem.h"
 #include "reefmg_device.h"
@@ -156,12 +158,13 @@ namespace
 
 int main()
 {
-    std::vector<int> devices={2};
+    //  N 16: 3 the reference device, 4 the same with the Krylov solve on the device; Metal 1 and 2
+    std::vector<int> devices={3,4};
 #if REEF3D_METAL
     {
         std::string err;
         reefmg_device *d=reefmg_device_create(1,err);
-        if(d){devices.push_back(1); std::printf("Metal: %s\n",d->name().c_str());}
+        if(d){devices.push_back(1); devices.push_back(2); std::printf("Metal: %s\n",d->name().c_str());}
         else std::printf("Metal not available: %s\n",err.c_str());
         delete d;
     }
@@ -179,7 +182,10 @@ int main()
 
         for(int device: devices)
         {
-            const block_result one =solve(g,1,1,device,0,1,0.0);       // one V-cycle, one rank
+            //  N 16 2, 4: one solve iteration is one GCR iteration (a device solve), whose
+            //  scalars are summed over the ranks: equal to the one-rank result to round-off
+            const bool kry=(device==2 || device==4);
+            const block_result one =solve(g,1,1,device,0,1,0.0);       // one V-cycle (GCR iteration), one rank
             const block_result host1=solve(g,1,1,device,0,-2,0.0);     // two host-driven vcycle(0)
             const block_result one_bicg=solve(g,1,1,device,1,200,1.0e-10);
 
@@ -187,11 +193,15 @@ int main()
             {
                 if(per && d.npx==1) continue;
                 char nm[64];
-                std::snprintf(nm,sizeof(nm),"%s %d x %d",device==1? "Metal" : "reference",d.npx,d.npy);
+                std::snprintf(nm,sizeof(nm),"%s%s %d x %d",(device==1 || device==2)? "Metal" : "reference",
+                              kry? " Krylov" : "",d.npx,d.npy);
 
                 const block_result v=solve(g,d.npx,d.npy,device,0,1,0.0);
                 check(v.on_device,std::string(nm)+": device on every rank ("+v.status+")");
                 const double ev=maxrel(g,one.u,v.u);
+                if(kry)
+                check(ev<1.0e-12,sfmt("%s: one GCR iteration = the one-rank one to %.1e",nm,ev));
+                else
                 check(ev==0.0,sfmt("%s: one V-cycle = the one-rank V-cycle, largest difference %.1e",nm,ev));
 
                 const block_result h=solve(g,d.npx,d.npy,device,0,-2,0.0);
@@ -201,7 +211,8 @@ int main()
                 const block_result s=solve(g,d.npx,d.npy,device,1,200,1.0e-10);
                 const double es=maxrel(g,ref.u,s.u);
                 check(s.relres<=1.0e-10 && es<1.0e-8,
-                      sfmt("%s: BiCGStab %d iterations, relres %.1e, = CPU solution to %.1e",nm,s.it,s.relres,es));
+                      sfmt("%s: %s %d iterations, relres %.1e, = CPU solution to %.1e",nm,kry? "GCR" : "BiCGStab",
+                           s.it,s.relres,es));
                 check(std::abs(s.it-one_bicg.it)<=1,sfmt("%s: iterations %d, on one rank %d",nm,s.it,one_bicg.it));
             }
         }

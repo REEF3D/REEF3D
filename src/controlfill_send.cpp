@@ -208,6 +208,10 @@ void control::ctrlsend()
     dd++;
     ictrl[ii] = A302;
     ii++;
+    dctrl[dd] = A303;
+    dd++;
+    dctrl[dd] = A304;
+    dd++;
     ictrl[ii] = A309;
     ii++;
     ictrl[ii] = A310;
@@ -3296,6 +3300,10 @@ void control::ctrlsend()
     ictrl[ii] = X196;
     ii++;
     dctrl[dd] = X197;
+    dd++;
+    ictrl[ii] = X198;
+    ii++;
+    dctrl[dd] = X198_c;
     dd++;
     ictrl[ii] = X205;
     ii++;

@@ -800,6 +800,7 @@
           <File Name="fnpf_fsf.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="FNPF">
+          <File Name="fnpf_theta.h"/>
           <File Name="fnpf_RK3.h"/>
           <File Name="fnpf_RK4.h"/>
           <File Name="fnpf.h"/>
@@ -2520,6 +2521,7 @@
           <File Name="fnpf_fsfbc.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="FNPF">
+          <File Name="fnpf_theta.cpp"/>
           <File Name="fnpf_RK4.cpp"/>
           <File Name="fnpf_RK3.cpp"/>
         </VirtualDirectory>
@@ -3021,6 +3023,7 @@
             <File Name="6DOF_obj_remesh.cpp"/>
             <File Name="6DOF_deform.cpp"/>
             <File Name="6DOF_obj_deform.cpp"/>
+            <File Name="6DOF_obj_cfd_momentum.cpp"/>
           </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="Membrane">

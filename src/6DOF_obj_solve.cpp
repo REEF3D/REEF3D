@@ -33,6 +33,10 @@ void sixdof_obj_cfd::solve_eqmotion_cfd(lexer *p, fdm *a, ghostcell *pgc, int it
 {
     externalForces_cfd(p, a, pgc, alpha[iter], finalize);
     
+    // X 198: the fluid loads of the stage from the fitted velocity of the hull region
+    if(p->X198>0)
+    momentum_loads(p,iter);
+    
     // load models (ship module) sample the CFD velocity
     sixdof_fluid_cfd fluid(p,a,pgc);
     pfluid = &fluid;

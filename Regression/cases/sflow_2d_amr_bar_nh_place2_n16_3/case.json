@@ -2,11 +2,11 @@
  "base": "sflow_2d_amr_bar_nh_place2",
  "np": 2,
  "ctrl_add": [
-  "N 16 2"
+  "N 16 3"
  ],
  "same_as": "sflow_2d_amr_bar_nh_place2",
  "same_as_rtol": 1e-05,
- "description": "sflow_2d_amr_bar_nh_place2 with the level-0 V-cycle of the SFLOW AMR non-hydrostatic pressure (reefmg2D) on the reference device (N 16 2); within 1e-5 of the CPU run",
+ "description": "sflow_2d_amr_bar_nh_place2 with the level-0 V-cycle of the SFLOW AMR non-hydrostatic pressure (reefmg2D) on the reference device (N 16 3); within 1e-5 of the CPU run",
  "tags": [
   "2d",
   "sflow",

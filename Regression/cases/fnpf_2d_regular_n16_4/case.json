@@ -1,0 +1,20 @@
+{
+ "base": "fnpf_2d_regular",
+ "np": 1,
+ "ctrl_add": [
+  "N 16 4"
+ ],
+ "same_as": "fnpf_2d_regular",
+ "same_as_rtol": 1e-05,
+ "description": "fnpf_2d_regular with the Krylov solve on the reference device (N 16 4): every preconditioner application of GCR in double is a single-precision BiCGStab, V-cycle preconditioned, on the device (reefmg_device::krylov), the GPU kernels of reefmg_device_kernels.h in loops on the CPU; one rank; within 1e-5 of the CPU run",
+ "tags": [
+  "quick",
+  "2d",
+  "fnpf",
+  "solver"
+ ],
+ "covers": [
+  "REEFMG Krylov solve on the device (N 16 4): reefmg_device::krylov, reefmg_core::solve_gcr",
+  "device kernels rmg_apply, rmg_axpy3, rmg_dot2, reference device"
+ ]
+}

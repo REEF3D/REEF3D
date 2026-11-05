@@ -59,7 +59,7 @@ namespace
 
 fnpf_theta::fnpf_theta(lexer *p, fdm_fnpf *c, ghostcell *pgc) : fnpf_ini(p,c,pgc),fnpf_sigma(p,c,pgc),
                                                       ek(p),fk(p),Ne(p),Nf(p),Neo(p),Nfo(p),wn(p),erk1(p),frk1(p),
-                                                      nEm(p),nFm(p),eko(p),fko(p),erk2(p),R0(p),Rs(p),fnew(p),wnew(p),en(p)
+                                                      nEm(p),nFm(p),eko(p),fko(p),erk2(p),R0(p),Rs(p),relR(p),relT(p),relRe(p),relTe(p),fnew(p),wnew(p),en(p)
 {
     gcval=250;
     if(p->j_dir==0)
@@ -80,6 +80,8 @@ fnpf_theta::fnpf_theta(lexer *p, fdm_fnpf *c, ghostcell *pgc) : fnpf_ini(p,c,pgc
     
     theta = p->A300;
     npass = MAX(p->A302,0);
+    passtol = p->A304;
+    passsum = stepsum = 0;
     nstep = 0;
     dt_prev = 0.0;
     solvetime = 0.0;
@@ -93,6 +95,7 @@ fnpf_theta::fnpf_theta(lexer *p, fdm_fnpf *c, ghostcell *pgc) : fnpf_ini(p,c,pgc
     if(p->G1>0)                     {bad=1; if(p->mpirank==0) cout<<"A 310 5: no mesh refinement (G 1)"<<endl;}
     if(p->A311==3 || p->A327!=1)    {bad=1; if(p->mpirank==0) cout<<"A 310 5: needs the Fornberg sz stencil (A 327 1) and A 311 1, 2, 4, 5 or 6"<<endl;}
     if(p->A328==1)                  {bad=1; if(p->mpirank==0) cout<<"A 310 5: sigma cross terms explicit only (A 328 0)"<<endl;}
+    if(p->B98>2 || p->B99>2)        {bad=1; if(p->mpirank==0) cout<<"A 310 5: relaxation zones only (B 98 0-2, B 99 0-2)"<<endl;}
     if(theta<0.5)                   {bad=1; if(p->mpirank==0) cout<<"A 310 5: theta (A 300) >= 0.5"<<endl;}
     
     if(bad==1)
@@ -127,6 +130,15 @@ void fnpf_theta::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, con
     
     SLICELOOP4
     en(i,j) = c->eta(i,j);
+    
+    // wave generation targets at t^n+1, the time of the state they relax (the driver computed them at t^n,
+    // as for the RK3 stages; a target at t^n shifts the generated wave by dt, lesson 2 of the hand-over)
+    {
+    const double st = p->simtime;
+    p->simtime = st + dt;
+    pflow->wavegen_precalc_fnpf(p,c,pgc);
+    p->simtime = st;
+    }
     
     // tendencies of the full free-surface conditions at t^n (Fx, Fz, Ex of the end of the last step)
     pf->kfsfbc(p,c,pgc);
@@ -172,7 +184,10 @@ void fnpf_theta::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, con
     fko(i,j) = fk(i,j);
     }
     
-    pflow->eta_relax(p,pgc,erk1);
+    relax_affine(p,pgc,pflow,0,relRe,relTe);
+    
+    SLICELOOP4
+    erk1(i,j) = relRe(i,j)*erk1(i,j) + relTe(i,j);
     pgc->gcsl_start4(p,erk1,gcval_eta);
     pflow->fifsf_relax(p,pgc,frk1);
     pgc->gcsl_start4(p,frk1,gcval_fifsf);
@@ -186,6 +201,10 @@ void fnpf_theta::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, con
     bedbc_sig(p,c,pgc,c->Fi,pf);
     pgc->start7V(p,c->Fi,c->bc,gcval);
     
+    // relaxation of Fifsf in the zones as f -> relR f + relT (affine in f: from f = 0 and f = 1), part of the
+    // Robin rows; Fifsf is not relaxed again after the solve
+    relax_affine(p,pgc,pflow,1,relR,relT);
+    
     // pass 0: one Laplace problem with the Robin condition: Fi, Fifsf^n+1 (fnew) and w^n+1 (wnew)
     robin_solve(p,c,pgc,psolv,frk1,Rs,fnew);
     
@@ -193,9 +212,15 @@ void fnpf_theta::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, con
     // solution and the cross terms with the last solution; defect correction with the factorisation of pass 0
     for(int q=0; q<npass; ++q)
     {
-    corrector_state(p,c,pgc);
-    robin_correct(p,c,pgc,psolv,Rs,fnew);
+    corrector_state(p,c,pgc,pflow);
+    const double chg = robin_correct(p,c,pgc,psolv,Rs,fnew);
+    ++passsum;
+    
+    // A 304: stop when the change of the solution is below A 304 times its size
+    if(passtol>0.0 && chg<=passtol)
+    break;
     }
+    ++stepsum;
     
     SLICELOOP4
     {
@@ -213,12 +238,13 @@ void fnpf_theta::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, con
     pf->damping(p,c,pgc,c->eta,gcval_eta,1.0);
     pf->damping(p,c,pgc,c->Fifsf,gcval_fifsf,1.0);
     
-    pflow->eta_relax(p,pgc,c->eta);
+    SLICELOOP4
+    c->eta(i,j) = relRe(i,j)*c->eta(i,j) + relTe(i,j);
     pf->wetdry(p,c,pgc,c->eta,c->Fifsf);
     pgc->gcsl_start4(p,c->eta,gcval_eta);
     pf->coastline_eta(p,c,pgc,c->eta);
     pf->coastline_fi(p,c,pgc,c->Fifsf);
-    pflow->fifsf_relax(p,pgc,c->Fifsf);
+    // (Fifsf: relaxation in the Robin rows)
     pgc->gcsl_start4(p,c->Fifsf,gcval_fifsf);
     
     pf->breaking_zones(p,pflow);
@@ -259,13 +285,13 @@ void fnpf_theta::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, con
     c->vel_state = 2;
     
     if(p->mpirank==0 && (p->count%p->P12==0))
-    cout<<"theta-Robin solve: "<<setprecision(3)<<solvetime<<" s total"<<endl;
+    cout<<"theta-Robin solve: "<<setprecision(3)<<solvetime<<" s total, corrector passes per step "<<double(passsum)/double(MAX(stepsum,1L))<<endl;
 }
 
 // Corrector: eta^n+1 of the current solution (eta update with Fifsf^n+1 = fnew, w^n+1 = wnew), N^n+1 on it,
 // N^n+1/2 = (N^n + N^n+1)/2, the right-hand side R of the Robin rows, and the sigma grid of eta^n+1 with the
 // current solution as boundary values for the next assembly
-void fnpf_theta::corrector_state(lexer *p, fdm_fnpf *c, ghostcell *pgc)
+void fnpf_theta::corrector_state(lexer *p, fdm_fnpf *c, ghostcell *pgc, ioflow *pflow)
 {
     const double g  = fabs(p->W22);
     const double dt = p->dt;
@@ -276,6 +302,8 @@ void fnpf_theta::corrector_state(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     c->Fz(i,j) = wnew(i,j);
     }
     
+    SLICELOOP4
+    erk2(i,j) = relRe(i,j)*erk2(i,j) + relTe(i,j);
     pgc->gcsl_start4(p,erk2,gcval_eta);
     
     // Fx, Ex, Exu of eta^n+1, Fifsf^n+1 (the upwinding of A315 uses the Fz just set)
@@ -421,7 +449,7 @@ void fnpf_theta::robin_build(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psol
     ILOOP
     {
         const int s = n+i;
-        const double alpha = g*theta*theta*p->dt*p->dt*p->sigz[IJ];
+        const double alpha = relR(i,j)*g*theta*theta*p->dt*p->dt*p->sigz[IJ];
         
         T.emplace_back(s,s,1.0 + alpha*wsz[0]);
         
@@ -432,7 +460,7 @@ void fnpf_theta::robin_build(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psol
         T.emplace_back(s,rk,alpha*wsz[m]);
         }
         
-        L.b(s) = R(i,j);
+        L.b(s) = relR(i,j)*R(i,j) + relT(i,j);
     }
     
     L.A.resize(ntot,ntot);
@@ -482,7 +510,7 @@ void fnpf_theta::robin_solve(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psol
 // Corrector pass: the system on the current sigma grid (eta^n+1 of the last solution) with the cross terms of
 // the last solution and R; one defect-correction step x += A0^-1 (b - A x) with the factorisation A0 of pass 0.
 // A - A0 is of the size of the change of the sigma grid, so the step converges fast.
-void fnpf_theta::robin_correct(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, slice &R, slice &fout)
+double fnpf_theta::robin_correct(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, slice &R, slice &fout)
 {
     const double t0 = pgc->timer();
     theta_lu &L = *tlu;
@@ -498,13 +526,18 @@ void fnpf_theta::robin_correct(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *ps
     }
     
     const Eigen::VectorXd res = L.b - L.A*xold;
-    L.x = xold + L.lu.solve(res);
+    const Eigen::VectorXd dx = L.lu.solve(res);
+    L.x = xold + dx;
+    
+    const double change = dx.cwiseAbs().maxCoeff()/MAX(L.x.cwiseAbs().maxCoeff(),1.0e-20);
     
     robin_unpack(p,c,pgc,fout);
     
     p->poissoniter += 1;
     solvetime += pgc->timer() - t0;
     p->poissontime += pgc->timer() - t0;
+    
+    return change;
 }
 
 void fnpf_theta::robin_unpack(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &fout)
@@ -539,6 +572,48 @@ void fnpf_theta::robin_unpack(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &fout
     
     pgc->gcsl_start4(p,fout,gcval_fifsf);
     pgc->gcsl_start4(p,wnew,gcval_fifsf);
+}
+
+// The relaxation zones act as f -> r f + (1-r) f_target. iowave applies them to a field; here the affine map
+// is read off by applying them to f = 0 and f = 1 (which = 0: eta, 1: Fifsf), and with A 303 > 0 the factors
+// become r^(dt/A 303), so that over a fixed time the zones relax by the same amount whatever the step
+// (as B 95 for SFLOW and NHFLOW). Not for zones with a state (B 98 6, B 99 6: refused).
+void fnpf_theta::relax_affine(lexer *p, ghostcell *pgc, ioflow *pflow, int which, slice &R, slice &T)
+{
+    SLICELOOP4
+    {
+    T(i,j) = 0.0;
+    R(i,j) = 1.0;
+    }
+    
+    if(which==0)
+    {
+    pflow->eta_relax(p,pgc,T);
+    pflow->eta_relax(p,pgc,R);
+    }
+    else
+    {
+    pflow->fifsf_relax(p,pgc,T);
+    pflow->fifsf_relax(p,pgc,R);
+    }
+    
+    const double fac = (p->A303>0.0) ? p->dt/p->A303 : 1.0;
+    
+    SLICELOOP4
+    {
+    double r = R(i,j) - T(i,j);
+    double t = T(i,j);
+    
+    if(fac!=1.0 && r>0.0 && r<1.0)
+    {
+    const double target = t/(1.0-r);
+    r = pow(r,fac);
+    t = (1.0-r)*target;
+    }
+    
+    R(i,j) = r;
+    T(i,j) = t;
+    }
 }
 
 void fnpf_theta::inidisc_step1(lexer *p, fdm_fnpf *c, ghostcell *pgc, ioflow *pflow, solver *psolv)

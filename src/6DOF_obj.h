@@ -169,6 +169,7 @@ public:
     void deform_stage(lexer*, int);
     bool deform_on() const {return fish_!=nullptr;}
 
+
     // read-only access for the SFLOW mesh refinement (sflow_amr)
     int amr_tricount() const {return tricount;}
     double **amr_tri(int d) {return d==0?tri_x:(d==1?tri_y:tri_z);}
@@ -409,6 +410,12 @@ protected:
     // fluid alone: a slender body (a fish) has a lateral added mass of many times its mass
     Eigen::Matrix<double,6,6> am_ell_ = Eigen::Matrix<double,6,6>::Zero();
     bool am_ell_on_ = false;
+    
+    // X 198: fluid-momentum coupling: the rigid-body velocity (U, omega) fitted to the predicted
+    // velocity of the stage in the hull region (weights rho (2H - 1) dV, deformation velocity removed)
+    Eigen::Matrix<double,6,1> mom_fit_ = Eigen::Matrix<double,6,1>::Zero();
+    bool mom_ok_ = false;
+
     void added_mass_ellipsoid(lexer*);
 
     // FNPF with several bodies (X 20 > 1): apply_added_mass only assembles the body's block

@@ -24,6 +24,7 @@ Architect: Hans Bihs
 #include "reefmg_device_kernels.h"
 
 #include <algorithm>
+#include <cmath>
 #include <cstdlib>
 #include <cstring>
 
@@ -43,7 +44,7 @@ long reefmg_device::plan_levels(const std::vector<rmg_level_desc> &lv,int px,int
     long o=0;
     for(size_t l=0;l<lv.size();++l)
     {
-        lay.push_back(rmg_layout(lv[l].nx,lv[l].ny,lv[l].nz,h16));
+        lay.push_back(rmg_layout(lv[l].nx,lv[l].ny,lv[l].nz,h16,l==0 && lv[l].kry!=0));
         if(l>0)
         {
             lbase[l]=o;
@@ -133,7 +134,7 @@ void reefmg_device::smooth(int l,int sweeps,int dir,bool from_zero)
     for(int h=0;h<2;++h)
     {
         const bool z=(from_zero && sw==0 && h==0);
-        if(per && !z) k_wrap(l);
+        if(per && !z) k_wrap(l,RMG_U);
         k_smooth(l,(dir==1)? 1-h : h,z? 1 : 0);
     }
 }
@@ -168,7 +169,7 @@ void reefmg_device::cycle(int l,int nuse,int pre,int post,int sweepstyle,int coa
 
     if(from_zero && pre==0) k_zero(l,RMG_U);
     smooth(l,pre,dpre,from_zero && pre>0);
-    if(perx || pery) k_wrap(l);
+    if(perx || pery) k_wrap(l,RMG_U);
     k_restrict(l);
     cycle(l+1,nuse,pre,post,sweepstyle,coarse_sweeps);
     k_prolong(l);
@@ -183,6 +184,126 @@ void reefmg_device::vcycle(int nuse,int pre,int post,int sweepstyle,int coarse_s
     for(int c=0;c<std::max(ncycle,1);++c)
     cycle(0,nuse,pre,post,sweepstyle,coarse_sweeps,c==0);
     tail0=-1;
+    nvc+=std::max(ncycle,1);
+}
+
+//  ------------------------------------------- Krylov solve, every device
+
+void reefmg_device::kprecond(int x,int y,int nuse,int pre,int post,int sweepstyle,int coarse_sweeps,int ncycle)
+{
+    fa=x; ua=y;
+    vcycle(nuse,pre,post,sweepstyle,coarse_sweeps,ncycle);
+    fa=RMG_F; ua=RMG_U;
+    //  the operator reads the halo of y
+    if(perx || pery) k_wrap(0,y);
+}
+
+bool reefmg_device::kdots(double &d1,double &d2)
+{
+    std::string err;
+    d1=d2=0.0;
+    if(!sync(err))
+    return false;
+    const float *p=(const float*)arr(0,RMG_KD);
+    for(int t=0;t<RMG_DOTG;++t)
+    {
+        d1+=p[t];
+        d2+=p[RMG_DOTG+t];
+    }
+    return true;
+}
+
+//  BiCGStab of reefmg_core::solve in single precision on the device's fine
+//  operator, right-preconditioned by the V-cycle: x in RMG_U, s in RMG_KR.
+//  The shadow residual is f itself (r0 = f, x0 = 0, and f is not changed),
+//  r is first formed as s = f - alpha v and x first set at its first update,
+//  and the dot products of the new s and r come with their updates
+//  (k_axpy3_dot).  A failed device stops the iteration; the caller's sync
+//  reports it.
+int reefmg_device::krylov(int nuse,int pre,int post,int sweepstyle,int coarse_sweeps,int ncycle,
+                          double tol,int maxit,double &relres)
+{
+    const int R=RMG_KR, H=RMG_F, P=RMG_KP, V=RMG_KV, Y=RMG_KY, Z=RMG_KZ, T=RMG_KT;
+    relres=1.0;
+    bool xset=false;    // x (RMG_U) written
+
+    k_dot2(0,RMG_F,RMG_F,RMG_F,RMG_F);
+    double bb,dum;
+    if(!kdots(bb,dum)) return 0;
+    if(!(bb>0.0))
+    {
+        k_axpy3(0,RMG_U,0.0f,RMG_F,0.0f,RMG_F,0.0f);
+        relres=0.0;
+        return 0;
+    }
+    const double bn=std::sqrt(bb);
+
+    double rho=1.0,alpha=1.0,omega=1.0,rho1=bb,rn=bn;
+    int it=0;
+
+    while(rn/bn>tol && it<maxit)
+    {
+        if(std::fabs(rho1)<1.0e-300) break;
+
+        //  p = r, or r + beta (p - omega v); r = f at the start
+        if(it==0)
+        k_axpy3(0,P,0.0f,RMG_F,1.0f,RMG_F,0.0f);
+        else
+        {
+            const double beta=(rho1/rho)*(alpha/omega);
+            k_axpy3(0,P,(float)beta,R,1.0f,V,(float)(-beta*omega));
+        }
+        rho=rho1;
+
+        kprecond(P,Y,nuse,pre,post,sweepstyle,coarse_sweeps,ncycle);
+        k_apply(0,-1,Y,V);
+        k_dot2(0,H,V,H,V);
+        double den;
+        if(!kdots(den,dum)) break;
+        if(std::fabs(den)<1.0e-300) break;
+        alpha=rho/den;
+
+        //  s = r - alpha v, |s|^2
+        if(it==0)
+        k_axpy3_dot(0,R,0.0f,RMG_F,1.0f,V,(float)(-alpha),R);
+        else
+        k_axpy3_dot(0,R,1.0f,V,(float)(-alpha),V,0.0f,R);
+        double ss;
+        if(!kdots(ss,dum)) break;
+        const double sn=std::sqrt(std::max(ss,0.0));
+        if(sn/bn<=tol)
+        {
+            k_axpy3(0,RMG_U,xset? 1.0f : 0.0f,Y,(float)alpha,Y,0.0f);
+            xset=true;
+            rn=sn;
+            ++it;
+            break;
+        }
+
+        kprecond(R,Z,nuse,pre,post,sweepstyle,coarse_sweeps,ncycle);
+        k_apply(0,-1,Z,T);
+        k_dot2(0,T,T,T,R);
+        double tt,ts;
+        if(!kdots(tt,ts)) break;
+        omega=(tt>0.0)? ts/tt : 0.0;
+
+        //  x += alpha y + omega z;  r = s - omega t, |r|^2 and (rhat,r)
+        k_axpy3(0,RMG_U,xset? 1.0f : 0.0f,Y,(float)alpha,Z,(float)omega);
+        xset=true;
+        k_axpy3_dot(0,R,1.0f,T,(float)(-omega),T,0.0f,H);
+        double rr;
+        if(!kdots(rr,rho1)) break;
+        rn=std::sqrt(std::max(rr,0.0));
+        ++it;
+
+        if(std::fabs(omega)<1.0e-300) break;
+    }
+
+    if(!xset)
+    k_axpy3(0,RMG_U,0.0f,RMG_F,0.0f,RMG_F,0.0f);
+
+    relres=rn/bn;
+    return it;
 }
 
 //  ------------------------------------------------------ reference device
@@ -244,7 +365,8 @@ namespace
         }
 
     protected:
-        float* F(int l,int a){return (float*)arr(l,a);}
+        //  the arrays of the kernels: f and u of level 0 through amap()
+        float* F(int l,int a){return (float*)arr(l,amap(l,a));}
         rmg_kern::rmg_h* H(int l,int a){return (rmg_kern::rmg_h*)arr(l,a);}
         unsigned char* A(int l){return (unsigned char*)arr(l,RMG_ACT);}
 
@@ -316,12 +438,52 @@ namespace
             rmg_kern::rmg_factor(P,m,r,F(l,RMG_P),F(l,RMG_T),F(l,RMG_B),F(l,RMG_TC),F(l,RMG_TI),A(l));
         }
 
-        void k_wrap(int l) override
+        void k_wrap(int l,int a) override
         {
             const rmg_kern::rmg_lp P=lp(l);
             const int n=rmg_kern::rmg_nwrap(P);
             for(int t=0;t<n;++t)
-            rmg_kern::rmg_wrap(P,(unsigned)t,F(l,RMG_U));
+            rmg_kern::rmg_wrap(P,(unsigned)t,F(l,a));
+        }
+
+        void k_apply(int l,int f,int u,int y) override
+        {
+            const rmg_kern::rmg_lp P=lp(l);
+            const int mode=(f>=0)? 1 : 0;
+            float *ff=F(l,(f>=0)? f : u);
+            for(int k=0;k<P.nz;++k)
+            for(int r=0;r<2*P.nx;++r)
+            for(int m=0;m<P.hh;++m)
+            rmg_kern::rmg_apply(P,m,r,k,mode,ff,F(l,u),F(l,y),F(l,RMG_P),F(l,RMG_N),F(l,RMG_S),
+                                F(l,RMG_W),F(l,RMG_E),F(l,RMG_T),F(l,RMG_B));
+        }
+
+        void k_axpy3(int l,int w,float c0,int a,float c1,int b,float c2) override
+        {
+            rmg_kern::rmg_vp V;
+            V.c0=c0; V.c1=c1; V.c2=c2; V.n=(int)(lay[l].sk*desc[l].nz); V.g=RMG_DOTG;
+            float *pw=F(l,w);
+            const float *pa=F(l,a), *pb=F(l,b);
+            for(int t=0;t<V.n;++t)
+            rmg_kern::rmg_axpy3(V,(unsigned)t,pw,pa,pb);
+        }
+
+        void k_dot2(int l,int a,int b,int c,int d) override
+        {
+            rmg_kern::rmg_vp V;
+            V.c0=V.c1=V.c2=0.0f; V.n=(int)(lay[l].sk*desc[l].nz); V.g=RMG_DOTG;
+            float *part=F(l,RMG_KD);
+            for(int t=0;t<V.g;++t)
+            rmg_kern::rmg_dot2(V,(unsigned)t,F(l,a),F(l,b),F(l,c),F(l,d),part);
+        }
+
+        void k_axpy3_dot(int l,int w,float c0,int a,float c1,int b,float c2,int h) override
+        {
+            rmg_kern::rmg_vp V;
+            V.c0=c0; V.c1=c1; V.c2=c2; V.n=(int)(lay[l].sk*desc[l].nz); V.g=RMG_DOTG;
+            float *part=F(l,RMG_KD), *pw=F(l,w);
+            for(int t=0;t<V.g;++t)
+            rmg_kern::rmg_axpy3_dot(V,(unsigned)t,pw,F(l,a),F(l,b),F(l,h),part);
         }
 
         void k_zero(int l,int a) override

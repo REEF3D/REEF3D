@@ -34,6 +34,11 @@ void sixdof_obj_cfd::hydrodynamic_forces_cfd(lexer* p, fdm *a, ghostcell *pgc,fi
     
     if(p->X60==2)
     forces_lsm(p,a,pgc,uvel,vvel,wvel,iter,finalize);
+    
+    // X 198: the fluid-momentum coupling fits the rigid-body motion to the predicted velocity in
+    // the hull region (the loads above for the output)
+    if(p->X198>0)
+    momentum_fit(p,a,pgc,uvel,vvel,wvel,iter);
 }
 
 void sixdof_obj::update_forces(lexer *p)

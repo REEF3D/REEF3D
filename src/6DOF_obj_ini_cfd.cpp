@@ -66,6 +66,10 @@ void sixdof_obj_cfd::initialize_cfd(lexer *p, fdm *a, ghostcell *pgc)
     if(p->X197>0.0)
     set_cfd_added_mass(p->X197);
     
+    // ... not with the fluid-momentum coupling (X 198), which needs no added-mass stabilisation
+    if(p->X198>0)
+    set_cfd_added_mass(0.0);
+    
     // Initialise processor boundaries
     ini_parallel(p,pgc);
     

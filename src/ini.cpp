@@ -71,7 +71,9 @@ void control::ini_default()
     A300=0.5;    // double FNPF theta of the theta-Robin time integration (A 310 5)
     A301_1=0.0;  // double FNPF initial standing wave: amplitude [m], 0 off
     A301_2=1.0;  // double FNPF initial standing wave: wave length [m]
-    A302=1;      // int FNPF theta-Robin (A 310 5): corrector passes (N at t^n+1/2 trapezoidal, sigma cross terms of the last solution)
+    A304=1.0e-3; // double FNPF theta-Robin (A 310 5): corrector stops when the change is below A304 times the solution (0: always A302 passes)
+    A303=0.0;    // double FNPF theta-Robin (A 310 5): reference step of the relaxation zones, factors r^(dt/A303); 0: r per step
+    A302=4;      // int FNPF theta-Robin (A 310 5): max corrector passes (sigma grid of eta^n+1, N at t^n+1/2 trapezoidal, cross terms of the last solution)
     A309=1;      // int interpolation sweeps for bed
     A310=3;		  // int time scheme for FNPF velocities
     A311=5;		  // int convection scheme for FNPF velocities
@@ -939,8 +941,8 @@ void control::ini_default()
     N20=20;        //  int precondioner switch iter
     N22=0;         //  int precondioner switch SFLOW
     N15=0;         //  int REEFMG coarse-grid agglomeration: 1 on
-    N16=0;         //  int REEFMG V-cycle device: 0 CPU, 1 Metal GPU (macOS), 2 reference device
-    N17=0;         //  int REEFMG device: V-cycles per preconditioner application, 0: 2
+    N16=0;         //  int REEFMG device: 0 CPU, 1 Metal GPU (macOS), 2 Metal with the Krylov solve on the GPU, 3 reference device, 4 reference with the Krylov solve
+    N17=0;         //  int REEFMG device: V-cycles per preconditioner application, 0: 2 (N 16 2, 4: in the device solve, 0: 1)
     N19=0;         //  int REEFMG device: pre- and post-smoothing sweeps, 0: 2
     N21=0;         //  int REEFMG device: precision of the smoother coefficients, 16 (0: 16) or 32
     N23=0;         //  int precondioner switch FNPF
@@ -1596,6 +1598,8 @@ void control::ini_default()
     X188=1;     // int ray cast algorithm
     X195=0;     // int deforming bodies (X 195 id type a lambda f t_ramp): undulatory swimming, number of entries; type 1 linear, 2 carangiform, 3 anguilliform envelope (lateral shear of the hull), 11-13 the same on an inextensible midline
     X196=1;     // int deforming bodies (X 195): recoil correction (no net momentum and angular momentum of the deformation), 0 off
+    X198=0;     // int CFD: fluid-momentum coupling of the bodies (X 198 1 c): the rigid-body motion fitted to the predicted velocity in the hull region gives the loads, no added-mass stabilisation (X 197) needed; neutrally buoyant or heavier bodies; c relaxation of the fluid momentum (default 1)
+    X198_c=1.0; // double CFD: X 198 relaxation factor
     X197=0.0;   // double CFD: stabilised body coupling (M + A) a = F + A a_prev, A = X197 times (the added mass of the equivalent ellipsoid of the hull, 2D elliptic cylinder, + the fluid inside the hull); 0: off (mesh refinement G 7: 0.5 times the displaced fluid); neutrally buoyant slender bodies (X 195 fish): about 8-32, larger on finer grids (too small: the loads oscillate and grow)
     X205=1;     // type of ramp up function
     X206=0;     // int ramp up velocity
