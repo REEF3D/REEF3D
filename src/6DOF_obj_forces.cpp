@@ -127,8 +127,25 @@ void sixdof_obj::cfd_added_mass(lexer *p)
     const double rb = (Vfb>0.0) ? Mass_fb/Vfb : rf;
 
     Eigen::Matrix<double,6,6> A = Eigen::Matrix<double,6,6>::Zero();
+    
+    if(am_ell_on_)
+    {
+    // the added mass of the ellipsoid and the fluid inside the hull, which the direct forcing
+    // accelerates with the body (its reaction is in the loads as well)
+    Eigen::Matrix<double,6,6> T = Eigen::Matrix<double,6,6>::Zero();
+    T.block<3,3>(0,0) = R_;
+    T.block<3,3>(3,3) = R_;
+    A = T*am_ell_*T.transpose();
+    A.block<3,3>(0,0) += rf*Vfb*Eigen::Matrix3d::Identity();
+    A.block<3,3>(3,3) += (rf/rb)*II;
+    A *= am_cfd_;
+    }
+    
+    else
+    {
     A.block<3,3>(0,0) = am_cfd_*rf*Vfb*Eigen::Matrix3d::Identity();
     A.block<3,3>(3,3) = am_cfd_*(rf/rb)*II;
+    }
 
     Eigen::Matrix<double,6,6> L = A;
     L.block<3,3>(0,0) += Mass_fb*Eigen::Matrix3d::Identity();
@@ -155,6 +172,113 @@ void sixdof_obj::cfd_added_mass(lexer *p)
     const Eigen::Matrix<double,6,1> acc = L.partialPivLu().solve(r);
     am_prev_ = acc;
     finish_added_mass(acc,II,gyro,fixed);
+}
+
+void sixdof_obj::added_mass_ellipsoid(lexer *p)
+{
+    // half extents of the hull in the body frame (relative to the CoG): the semi-axes a, b, c of
+    // the equivalent ellipsoid along x, y, z
+    double lo[3] = {1.0e20,1.0e20,1.0e20}, hi[3] = {-1.0e20,-1.0e20,-1.0e20};
+    
+    for(int n=0; n<tricount; ++n)
+    for(int q=0; q<3; ++q)
+    {
+        const double v[3] = {tri_x0[n][q], tri_y0[n][q], tri_z0[n][q]};
+        
+        for(int d=0; d<3; ++d)
+        {
+        lo[d] = MIN(lo[d],v[d]);
+        hi[d] = MAX(hi[d],v[d]);
+        }
+    }
+    
+    const double a = 0.5*(hi[0]-lo[0]), b = 0.5*(hi[1]-lo[1]), c = 0.5*(hi[2]-lo[2]);
+    const double rf = p->W1;
+    
+    // added mass of the ellipsoid about its centre (diagonal in the body frame)
+    Eigen::Matrix<double,6,1> m = Eigen::Matrix<double,6,1>::Zero();
+    
+    if(p->j_dir==0)
+    {
+        // 2D (x-z plane): elliptic cylinder of the span B = 2b (Lamb): surge rho pi c^2 B, heave
+        // rho pi a^2 B, pitch rho pi (a^2 - c^2)^2 B/8
+        const double B = 2.0*b;
+        m(0) = rf*PI*c*c*B;
+        m(2) = rf*PI*a*a*B;
+        m(4) = rf*PI*pow(a*a - c*c,2.0)*B/8.0;
+    }
+    
+    else
+    {
+        // ellipsoid (Lamb 1932, 373): alpha0 = abc int_0^inf dl/((a^2+l) D), D = sqrt((a^2+l)(b^2+l)(c^2+l)),
+        // beta0, gamma0 likewise; l = m^2 e^s, trapezoidal rule in s
+        const double mx = MAX(a,MAX(b,c));
+        double al = 0.0, be = 0.0, ga = 0.0;
+        const int N = 8000;
+        const double s0 = -40.0, s1 = 40.0, ds = (s1 - s0)/double(N);
+        
+        for(int q=0; q<=N; ++q)
+        {
+            const double l = mx*mx*exp(s0 + q*ds);
+            const double D = sqrt((a*a + l)*(b*b + l)*(c*c + l));
+            const double w = ((q==0 || q==N) ? 0.5 : 1.0)*ds*l/D;
+            al += w/(a*a + l);
+            be += w/(b*b + l);
+            ga += w/(c*c + l);
+        }
+        
+        al *= a*b*c;
+        be *= a*b*c;
+        ga *= a*b*c;
+        
+        const double V = (4.0/3.0)*PI*a*b*c;
+        
+        m(0) = rf*V*al/(2.0 - al);
+        m(1) = rf*V*be/(2.0 - be);
+        m(2) = rf*V*ga/(2.0 - ga);
+        
+        // rotations: (rho V/5) (b^2 - c^2)^2 (gamma0 - beta0)/(2 (b^2 - c^2) + (b^2 + c^2)(beta0 - gamma0)), cyclic
+        auto rot = [&](double b2, double c2, double bb, double gg)
+        {
+            const double den = 2.0*(b2 - c2) + (b2 + c2)*(bb - gg);
+            return (fabs(b2 - c2)>1.0e-12*(b2 + c2) && fabs(den)>1.0e-300) ? (rf*V/5.0)*pow(b2 - c2,2.0)*(gg - bb)/den : 0.0;
+        };
+        
+        m(3) = rot(b*b,c*c,be,ga);
+        m(4) = rot(c*c,a*a,ga,al);
+        m(5) = rot(a*a,b*b,al,be);
+    }
+    
+    // about the CoG: the velocity of the centre r of the ellipsoid is v + w x r = v - [r]x w, so
+    // A = J^T Mt J + diag(0, Ic) with J = [1, -[r]x]
+    const Eigen::Vector3d r(0.5*(hi[0]+lo[0]), 0.5*(hi[1]+lo[1]), 0.5*(hi[2]+lo[2]));
+    Eigen::Matrix3d S;
+    S <<  0.0, -r(2),  r(1),
+         r(2),   0.0, -r(0),
+        -r(1),  r(0),   0.0;
+    
+    Eigen::Matrix<double,3,6> J;
+    J.block<3,3>(0,0) = Eigen::Matrix3d::Identity();
+    J.block<3,3>(0,3) = -S;
+    
+    const Eigen::Matrix3d Mt = m.head<3>().asDiagonal();
+    am_ell_ = J.transpose()*Mt*J;
+    am_ell_.block<3,3>(3,3) += Eigen::Matrix3d(m.tail<3>().asDiagonal());
+    
+    // 2D: sway, roll and yaw do not exist
+    if(p->j_dir==0)
+    for(int q=0; q<6; ++q)
+    if(q==1 || q==3 || q==5)
+    {
+    am_ell_.row(q).setZero();
+    am_ell_.col(q).setZero();
+    }
+    
+    am_ell_on_ = true;
+    
+    if(p->mpirank==0)
+    cout<<"6DOF body "<<n6DOF<<": stabilised coupling X 197 "<<p->X197<<", added mass of the equivalent "<<(p->j_dir==0 ? "elliptic cylinder" : "ellipsoid")
+        <<" (semi-axes "<<a<<", "<<b<<", "<<c<<", centre "<<r.transpose()<<" from the CoG): "<<m(0)<<" "<<m(1)<<" "<<m(2)<<" kg, "<<m(3)<<" "<<m(4)<<" "<<m(5)<<" kg m^2 (mass "<<Mass_fb<<" kg)"<<endl;
 }
 
 void sixdof_obj::apply_added_mass(lexer *p, const Eigen::Matrix<double,6,6> *A_extra)

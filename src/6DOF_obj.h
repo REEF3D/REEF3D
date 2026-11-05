@@ -396,6 +396,14 @@ protected:
     double am_cfd_ = 0.0;
     Eigen::Matrix<double,6,1> am_prev_ = Eigen::Matrix<double,6,1>::Zero();
     void cfd_added_mass(lexer*);
+    
+    // X 197: A from the added mass of the equivalent ellipsoid of the hull (2D: elliptic cylinder),
+    // body frame, about the CoG (am_ell_: the ellipsoid in the box of the hull, its centre off the
+    // CoG couples translations and rotations), plus the fluid inside the hull, instead of the displaced
+    // fluid alone: a slender body (a fish) has a lateral added mass of many times its mass
+    Eigen::Matrix<double,6,6> am_ell_ = Eigen::Matrix<double,6,6>::Zero();
+    bool am_ell_on_ = false;
+    void added_mass_ellipsoid(lexer*);
 
     // FNPF with several bodies (X 20 > 1): apply_added_mass only assembles the body's block
     // (Lc_, rc_), fnpf_6DOF solves the system of all bodies with the cross added mass and

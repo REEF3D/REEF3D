@@ -7,7 +7,9 @@
 // width profile, also with the hull oriented inwards); head, tail and length; the envelopes
 // (tail amplitudes of types 1-3); the deformation velocity is the time derivative of the
 // displacement (with and without the ramp); recoil: no net lateral momentum and no angular momentum
-// of the deformation (displacement and velocity) about the CoG, and without recoil the raw wave.
+// of the deformation (displacement and velocity) about the CoG, and without recoil the raw wave;
+// inextensible midline (types 11-13): length of the midline, recoil (axial and lateral momentum,
+// angular momentum), velocity = dd/dt, the velocity at the deformed point from the inverse map.
 // Architect: Hans Bihs
 
 // 6DOF_deform.cpp needs only the body-frame triangles of sixdof_geometry
@@ -242,6 +244,120 @@ int main()
         check(std::fabs(d.disp(d.xhead()))<1.0e-15, "head at s = 0, t = 0");
     }
 
+    // ---- inextensible midline (types 11-13): midline length, recoil, velocity = dd/dt, inverse map
+    {
+        std::vector<double> xs;
+        const double b = 0.25;
+        hull hf = fish2D(400,b,xs);
+        double A = 0.0, Ax = 0.0;
+        for(size_t i=0; i+1<xs.size(); ++i)
+        {
+            const double wa = fish_w(1.0-xs[i]), wb = fish_w(1.0-xs[i+1]);
+            const double dx = xs[i+1]-xs[i];
+            A  += dx*(wa + wb);
+            Ax += dx*(wa + wb)*0.5*(xs[i]+xs[i+1]);
+        }
+        const double xc = Ax/A;
+        
+        for(int type : {11, 12, 13})
+        {
+            sixdof_geometry g(0);
+            hf.to(g,xc,false);
+            sixdof_deform d(type, type==11 ? 0.125 : 0.1, 1.0, 1.0, 1.0, 2, true);
+            d.setup(g);
+            check(d.inextensible(), "type "+std::to_string(type)+" inextensible");
+            
+            for(double t : {0.4, 1.3, 2.71})
+            {
+                d.set_time(t);
+                
+                // length of the deformed midline (l = 0)
+                double len = 0.0, px = 0.0, pl = 0.0;
+                const int K = 4000;
+                for(int k=0; k<=K; ++k)
+                {
+                    const double x = d.xtail() + k*d.length()/K;
+                    double dx, dl;
+                    d.displacement(x,0.0,dx,dl);
+                    if(k>0) len += std::hypot(x + dx - px, dl - pl);
+                    px = x + dx; pl = dl;
+                }
+                check(std::fabs(len - 1.0)<2.0e-4, "type "+std::to_string(type)+" midline length "+std::to_string(len)+" at t = "+std::to_string(t));
+                
+                // momentum of the displacement and of the velocity, angular momentum of the velocity
+                // about the CoG (the exact width; the recoil rotation is integrated in time)
+                double Dx = 0.0, Dl = 0.0, Lz = 0.0, Vx = 0.0, Vl = 0.0, Lt = 0.0, href = 0.0, vref = 0.0;
+                const int M = 4000, Q = 16;
+                for(int k=0; k<M; ++k)
+                {
+                    const double xx = (k+0.5)/double(M);
+                    const double w = fish_w(1.0-xx);
+                    for(int q=0; q<Q; ++q)
+                    {
+                        const double l = -w + (q+0.5)*2.0*w/Q;
+                        const double m = (2.0*w/Q)*b/M;
+                        const double x = xx - xc;
+                        double dx, dl, vx, vl;
+                        d.displacement(x,l,dx,dl);
+                        d.velocity(x,l,vx,vl);
+                        // the angular momentum about the CoG with the deformed position
+                        Dx += m*dx; Dl += m*dl; Lz += 0.0;
+                        Vx += m*vx; Vl += m*vl; Lt += m*((x + dx)*vl - (l + dl)*vx);
+                        href += m*std::hypot(dx,dl);
+                        vref += m*std::hypot(vx,vl);
+                    }
+                }
+                check(std::fabs(Dx)<3.0e-3*href && std::fabs(Dl)<3.0e-3*href && std::fabs(Lz)<3.0e-3*href,
+                      "type "+std::to_string(type)+" recoil, displacement, t = "+std::to_string(t)+": "+std::to_string(Dx/href)+" "+std::to_string(Dl/href)+" "+std::to_string(Lz/href));
+                check(std::fabs(Vx)<3.0e-3*vref && std::fabs(Vl)<3.0e-3*vref && std::fabs(Lt)<3.0e-3*vref,
+                      "type "+std::to_string(type)+" recoil, velocity, t = "+std::to_string(t)+": "+std::to_string(Vx/vref)+" "+std::to_string(Vl/vref)+" "+std::to_string(Lt/vref));
+            }
+            
+            // velocity = dd/dt of the material points, and the velocity at the deformed position
+            for(double t : {0.3, 0.7, 1.6, 3.2})
+            {
+                double emax = 0.0, eimax = 0.0, vmax = 0.0;
+                const double dt = 1.0e-6;
+                for(int k=0; k<=40; ++k)
+                for(double l : {-0.03, 0.0, 0.02})
+                {
+                    const double x = d.xtail() + 0.002 + k*(d.length()-0.004)/40.0;
+                    if(std::fabs(l) > fish_w(1.0-(x+xc)) ) continue;
+                    double dxp, dlp, dxm, dlm, vx, vl, ux, ul, dx, dl;
+                    d.set_time(t+dt); d.displacement(x,l,dxp,dlp);
+                    d.set_time(t-dt); d.displacement(x,l,dxm,dlm);
+                    d.set_time(t);
+                    d.velocity(x,l,vx,vl);
+                    d.displacement(x,l,dx,dl);
+                    d.velocity_at(x+dx,l+dl,ux,ul);
+                    emax = std::max(emax, std::hypot((dxp-dxm)/(2.0*dt) - vx, (dlp-dlm)/(2.0*dt) - vl));
+                    eimax = std::max(eimax, std::hypot(ux - vx, ul - vl));
+                    vmax = std::max(vmax, std::hypot(vx,vl));
+                }
+                check(emax<1.0e-5*vmax, "type "+std::to_string(type)+" velocity = dd/dt at t = "+std::to_string(t)+": "+std::to_string(emax/vmax));
+                check(eimax<1.0e-6*vmax, "type "+std::to_string(type)+" velocity at the deformed point at t = "+std::to_string(t)+": "+std::to_string(eimax/vmax));
+            }
+        }
+        
+        // without recoil: the lateral tail amplitude a L, the axial contraction of the tail
+        sixdof_geometry g(0);
+        hf.to(g,xc,false);
+        sixdof_deform d(11, 0.125, 1.0, 1.0, 0.0, 2, false);
+        d.setup(g);
+        double hmax = 0.0, cmin = 1.0, cmax = 0.0;
+        for(int k=0; k<1000; ++k)
+        {
+            d.set_time(k/1000.0);
+            double dx, dl;
+            d.displacement(d.xtail(),0.0,dx,dl);
+            hmax = std::max(hmax, std::fabs(dl));
+            cmin = std::min(cmin, dx);
+            cmax = std::max(cmax, dx);
+        }
+        check(std::fabs(hmax-0.125)<2.0e-3, "type 11 tail amplitude: "+std::to_string(hmax));
+        check(cmin>0.0 && cmax<0.1, "type 11 axial contraction at the tail in (0, 0.1): "+std::to_string(cmin)+" "+std::to_string(cmax));
+    }
+    
     // ---- envelopes: tail amplitude (r = 1) of the three types
     {
         hull hb = box(0.0,2.0, -0.1,0.1, -0.1,0.1);

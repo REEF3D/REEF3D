@@ -333,7 +333,7 @@ cfd_amr::cfd_amr(lexer *p, fdm *a, ghostcell *pgc, momentum *pmom, pressure *ppr
     for(int nb=0; nb<b6->objects(); ++nb)
     {
         b6->object(nb)->amr_loads = this;
-        b6->object(nb)->set_cfd_added_mass(0.5);
+        b6->object(nb)->set_cfd_added_mass(p0->X197>0.0 ? p0->X197 : 0.5);
     }
     th_end.assign(maxlev+1,0.0);
     if(mom0->amr_stages()==3)

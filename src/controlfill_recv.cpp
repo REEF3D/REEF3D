@@ -3280,6 +3280,8 @@ void control::ctrlrecv()
     ii++;
     X190 = ictrl[ii];
     ii++;
+    X197 = dctrl[dd];
+    dd++;
     X205 = ictrl[ii];
     ii++;
     X206 = ictrl[ii];
