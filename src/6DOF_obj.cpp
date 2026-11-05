@@ -33,6 +33,7 @@ Authors: Tobias Martin, Hans Bihs
 #include"6DOF_motionext_void.h"
 #include"net_interface.h"
 #include"ship.h"
+#include"6DOF_deform.h"
 
 sixdof_obj::sixdof_obj(lexer *p, ghostcell *pgc, int number) : ddweno_f_nug(p),
                                                                                 georay(p),n6DOF(number),
@@ -68,6 +69,16 @@ sixdof_obj::sixdof_obj(lexer *p, ghostcell *pgc, int number) : ddweno_f_nug(p),
     rb.dof[3] = p->X111_p[n];
     rb.dof[4] = p->X111_q[n];
     rb.dof[5] = p->X111_r[n];
+    }
+    
+    // prescribed deformation (X 195 id type a lambda f t_ramp): undulatory swimming, lateral axis
+    // y of the body frame in 3D, z in 2D (x-z plane)
+    for(int n=0; n<p->X195; ++n)
+    if(p->X195_id[n]==number)
+    {
+    delete fish_;
+    fish_ = new sixdof_deform(p->X195_type[n], p->X195_a[n], p->X195_lambda[n], p->X195_f[n], p->X195_tramp[n],
+                              (p->j_dir==0) ? 2 : 1, p->X196==1);
     }
     
     rb.twoD = (p->j_dir==0);
@@ -193,6 +204,9 @@ sixdof_obj::sixdof_obj(lexer *p, ghostcell *pgc, int number) : ddweno_f_nug(p),
 
 sixdof_obj::~sixdof_obj()
 {
+    geom.deform = nullptr;
+    delete fish_;
+    
     for(size_t ql=0; ql<pload.size(); ++ql)
     delete pload[ql];
 }

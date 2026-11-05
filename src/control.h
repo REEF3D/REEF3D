@@ -708,6 +708,9 @@ public:
     double X182_dx,X182_dy,X182_dz;
     double X183_x,X183_y,X183_z,X183_phi,X183_theta,X183_psi;
     int X184,X185,X188,X189,X190;
+    int X195,X196;
+    int *X195_id,*X195_type;
+    double *X195_a,*X195_lambda,*X195_f,*X195_tramp;
     double X197;
     double X186,X187;
     int X205;

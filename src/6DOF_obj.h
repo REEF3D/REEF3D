@@ -58,6 +58,7 @@ class nhflow_reinidisc_fsf;
 class mooring;
 class net_interface;
 class sixdof_motionext;
+class sixdof_deform;
  
 using namespace std;
 
@@ -162,6 +163,11 @@ public:
     void external_strips_tri(const double a[3], const double b[3], const double c[3], const double pm[3],
                              double nx, double ny, double nz);
     const std::vector<double> &external_strips() const {return strip_F_;}
+
+    // prescribed deformation (X 195, undulatory swimming, 6DOF_obj_deform.cpp): the time of the
+    // deformation for stage iter of the body (t^n + c_iter dt of its RK scheme), before its pose update
+    void deform_stage(lexer*, int);
+    bool deform_on() const {return fish_!=nullptr;}
 
     // read-only access for the SFLOW mesh refinement (sflow_amr)
     int amr_tricount() const {return tricount;}
@@ -435,6 +441,17 @@ protected:
     int pto_rk_ = 3;   // RK scheme of the body: 2 (NHFLOW A 510 2), 3 (TVD RK3), 4 (FNPF A 310 4)
     void pto_rk(int, double&, double&) const;
     ofstream printpto;
+    
+    // prescribed deformation (X 195): kinematics, velocity of the deformation at a point (inertial
+    // frame), the power of the body on the fluid by the deformation (load integration), log
+    sixdof_deform *fish_ = nullptr;
+    double fish_t_amr_ = 0.0;
+    double fish_power_ = 0.0;
+    void deform_setup(lexer*, ghostcell*);
+    void deform_time(double);
+    Eigen::Vector3d deform_vel(double, double, double) const;
+    void print_fish(lexer*, double);
+    ofstream printfish;
 };
 
 #endif

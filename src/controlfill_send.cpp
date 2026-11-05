@@ -3289,6 +3289,10 @@ void control::ctrlsend()
     ii++;
     ictrl[ii] = X190;
     ii++;
+    ictrl[ii] = X195;
+    ii++;
+    ictrl[ii] = X196;
+    ii++;
     dctrl[dd] = X197;
     dd++;
     ictrl[ii] = X205;
@@ -5293,6 +5297,22 @@ void control::ctrlsend()
         dctrl[dd] = X102_v[n];
         dd++;
         dctrl[dd] = X102_w[n];
+        dd++;
+    }
+
+    for(n=0;n<X195;++n)
+    {
+        ictrl[ii] = X195_id[n];
+        ii++;
+        ictrl[ii] = X195_type[n];
+        ii++;
+        dctrl[dd] = X195_a[n];
+        dd++;
+        dctrl[dd] = X195_lambda[n];
+        dd++;
+        dctrl[dd] = X195_f[n];
+        dd++;
+        dctrl[dd] = X195_tramp[n];
         dd++;
     }
 

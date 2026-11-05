@@ -21,6 +21,7 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"6DOF_geometry.h"
+#include"6DOF_deform.h"
 #include"lexer.h"
 #include"ghostcell.h"
 #include"geo_primitive.h"
@@ -261,6 +262,10 @@ void sixdof_geometry::transform(const Eigen::Matrix3d &R, const Eigen::Vector3d 
         for(int q=0; q<3; q++)
         {
             Eigen::Vector3d point(tri_x0[n][q], tri_y0[n][q], tri_z0[n][q]);
+            
+            // lateral displacement of the deformation in the body frame
+            if(deform!=nullptr)
+            point(deform->lateral()) += deform->disp(tri_x0[n][q]);
 					
             point = R*point;
         

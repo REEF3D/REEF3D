@@ -58,6 +58,10 @@ void sixdof_obj_cfd::update_forcing(lexer *p, fdm *a, ghostcell *pgc,field& uvel
 
         uf = u_fb(0) + u_fb(4)*(p->pos1_z() - c_(2)) - u_fb(5)*(p->pos1_y() - c_(1));
         
+        // deforming body (X 195): velocity of the deformation
+        if(fish_!=nullptr)
+        uf += deform_vel(p->pos1_x(),p->pos1_y(),p->pos1_z())(0);
+        
         if(uf!=uf)
         {
         cout<<"UF "<<uf<<" "<<u_fb(0)<<" "<<u_fb(4)<<" "<<(p->pos1_z() - c_(2))<<" "<<u_fb(5)<<" "<<(p->pos1_y() - c_(1))<<endl;
@@ -79,6 +83,10 @@ void sixdof_obj_cfd::update_forcing(lexer *p, fdm *a, ghostcell *pgc,field& uvel
 
         vf = u_fb(1) + u_fb(5)*(p->pos2_x() - c_(0)) - u_fb(3)*(p->pos2_z() - c_(2));
         
+        // deforming body (X 195): velocity of the deformation
+        if(fish_!=nullptr)
+        vf += deform_vel(p->pos2_x(),p->pos2_y(),p->pos2_z())(1);
+        
         if(vf!=vf)
         cout<<"VF "<<vf<<endl;
         
@@ -97,6 +105,10 @@ void sixdof_obj_cfd::update_forcing(lexer *p, fdm *a, ghostcell *pgc,field& uvel
         continue;
 
         wf = u_fb(2) + u_fb(3)*(p->pos3_y() - c_(1)) - u_fb(4)*(p->pos3_x() - c_(0));
+        
+        // deforming body (X 195): velocity of the deformation
+        if(fish_!=nullptr)
+        wf += deform_vel(p->pos3_x(),p->pos3_y(),p->pos3_z())(2);
         
         if(wf!=wf)
         cout<<"WF "<<wf<<endl;
@@ -153,6 +165,10 @@ void sixdof_obj_cfd::update_forcing(lexer *p, fdm *a, ghostcell *pgc,field& uvel
 
         uf = u_fb(0) + u_fb(4)*(p->pos1_z() - c_(2)) - u_fb(5)*(p->pos1_y() - c_(1));
         
+        // deforming body (X 195): velocity of the deformation
+        if(fish_!=nullptr)
+        uf += deform_vel(p->pos1_x(),p->pos1_y(),p->pos1_z())(0);
+        
         if(uf!=uf)
         cout<<"UF "<<uf<<endl;
         
@@ -195,6 +211,10 @@ void sixdof_obj_cfd::update_forcing(lexer *p, fdm *a, ghostcell *pgc,field& uvel
 
         vf = u_fb(1) + u_fb(5)*(p->pos2_x() - c_(0)) - u_fb(3)*(p->pos2_z() - c_(2));
         
+        // deforming body (X 195): velocity of the deformation
+        if(fish_!=nullptr)
+        vf += deform_vel(p->pos2_x(),p->pos2_y(),p->pos2_z())(1);
+        
         if(vf!=vf)
         cout<<"VF "<<vf<<endl;
     
@@ -235,6 +255,10 @@ void sixdof_obj_cfd::update_forcing(lexer *p, fdm *a, ghostcell *pgc,field& uvel
         continue;
 
         wf = u_fb(2) + u_fb(3)*(p->pos3_y() - c_(1)) - u_fb(4)*(p->pos3_x() - c_(0));
+        
+        // deforming body (X 195): velocity of the deformation
+        if(fish_!=nullptr)
+        wf += deform_vel(p->pos3_x(),p->pos3_y(),p->pos3_z())(2);
         
         if(wf!=wf)
         cout<<"WF "<<wf<<endl;

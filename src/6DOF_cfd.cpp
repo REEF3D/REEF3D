@@ -91,6 +91,9 @@ void sixdof_cfd::start_cfd(lexer* p, fdm* a, ghostcell* pgc, int iter, field &uv
         // Update transformation matrices
         fb_obj[nb]->quat_matrices(p);
         
+        // deforming body (X 195): the deformation at the time of the stage
+        fb_obj[nb]->deform_stage(p,iter);
+        
         // Update position and trimesh
         fb_obj[nb]->update_position_3D(p,a,pgc,finalize);  //----> main time consumer
 

@@ -23,6 +23,7 @@ Architect: Hans Bihs
 
 #include"6DOF_obj.h"
 #include"6DOF_obj_fnpf.h"
+#include"6DOF_deform.h"
 #include"lexer.h"
 #include"ghostcell.h"
 
@@ -37,6 +38,9 @@ void sixdof_obj::amr_save()
     ext_v_amr_ = ext_v_;
     ext_w_amr_ = ext_w_;
     am_prev_amr_ = am_prev_;
+    
+    if(fish_!=nullptr)
+    fish_t_amr_ = fish_->time();
 }
 
 void sixdof_obj::pose_update(lexer *p, ghostcell *pgc)
@@ -54,6 +58,10 @@ void sixdof_obj::amr_restore(lexer *p, ghostcell *pgc)
     ext_v_ = ext_v_amr_;
     ext_w_ = ext_w_amr_;
     am_prev_ = am_prev_amr_;
+    
+    if(fish_!=nullptr)
+    deform_time(fish_t_amr_);
+    
     geom.transform(R_,c_);
     update_fbvel(p,pgc);
 }
