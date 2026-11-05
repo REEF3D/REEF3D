@@ -31,7 +31,7 @@ template<typename T>
 class slice_base
 {
 public:
-    slice_base(lexer *p) : imin(p->imin), jmin(p->jmin), jmax(p->jmax)
+    explicit slice_base(lexer *p) : imin(p->imin), jmin(p->jmin), jmax(p->jmax)
     {
         V = new T[p->imax*jmax] {};
 

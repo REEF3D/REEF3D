@@ -28,7 +28,7 @@ Author: Hans Bihs
 class fieldint4 final : public fieldint
 {
 public:
-    fieldint4(lexer *p) : fieldint(p) {}
+    explicit fieldint4(lexer *p) : fieldint(p) {}
     virtual ~fieldint4() = default;
 };
 

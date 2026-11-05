@@ -33,7 +33,7 @@ class field_base
 {
 public:
     // allocate=false: the field is not used in this run (V stays nullptr, any access fails at once)
-    field_base(lexer *p, bool allocate=true) : imin(p->imin), imax(p->imax), jmin(p->jmin), jkmax(p->jmax*p->kmax), kmin(p->kmin), kmax(p->kmax)
+    explicit field_base(lexer *p, bool allocate=true) : imin(p->imin), imax(p->imax), jmin(p->jmin), jkmax(p->jmax*p->kmax), kmin(p->kmin), kmax(p->kmax)
     {
         V = allocate ? new T[imax*jkmax] {} : nullptr;
         if(V!=nullptr)
