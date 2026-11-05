@@ -39,7 +39,7 @@ sixdof_obj_cfd::sixdof_obj_cfd(lexer *p, ghostcell *pgc, int number) : sixdof_ob
                                                                        cutl(p),cutr(p),fbio(p),f(p),frk1(p),L(p),dt(p),
                                                                        vertice(p),nodeflag(p),eta(p)
 {
-    prdisc = new reinidisc_f(p,true);
+    prdisc = new reinidisc_f(p,true,p->X14==2 ? 1.0e-6 : 0.0);
 }
 
 sixdof_obj_cfd::~sixdof_obj_cfd()

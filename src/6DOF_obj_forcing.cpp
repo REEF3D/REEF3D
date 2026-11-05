@@ -38,6 +38,18 @@ static inline double Hlimit(double H, double hb, double hs)
     return H;
 }
 
+// X 14 2: the normal of the hull at face d (0 u, 1 v, 2 w) of cell (i,j,k), the gradient of fb as the mean
+// of the central differences of the two cells of the face (X 14 1 takes that of cell (i,j,k) alone, half a
+// cell off the face: a body symmetric about a plane through faces of the grid is forced asymmetrically)
+void sixdof_obj_cfd::face_normal(lexer *p, fdm *a, int d, double &nx, double &ny, double &nz)
+{
+    const int ii = i + (d==0), jj = j + (d==1), kk = k + (d==2);
+    
+    nx = -0.5*((a->fb(i+1,j,k) - a->fb(i-1,j,k))/(2.0*p->DXN[IP]) + (a->fb(ii+1,jj,kk) - a->fb(ii-1,jj,kk))/(2.0*p->DXN[ii+marge]));
+    ny = -0.5*((a->fb(i,j+1,k) - a->fb(i,j-1,k))/(2.0*p->DYN[JP]) + (a->fb(ii,jj+1,kk) - a->fb(ii,jj-1,kk))/(2.0*p->DYN[jj+marge]));
+    nz = -0.5*((a->fb(i,j,k+1) - a->fb(i,j,k-1))/(2.0*p->DZN[KP]) + (a->fb(ii,jj,kk+1) - a->fb(ii,jj,kk-1))/(2.0*p->DZN[kk+marge]));
+}
+
 void sixdof_obj_cfd::update_forcing(lexer *p, fdm *a, ghostcell *pgc,field& uvel, field& vvel, field& wvel, field &fx, field &fy, field &fz,int iter)
 {
     // X 198: the rates of the discrete recoil correction of a deforming body at the new pose
@@ -172,10 +184,12 @@ void sixdof_obj_cfd::update_forcing(lexer *p, fdm *a, ghostcell *pgc,field& uvel
         if(uf!=uf)
         cout<<"UF "<<uf<<endl;
         
-		// Normal vectors calculation 
+		// Normal vectors calculation (X 14 2: at the face, the mean of the cells on both sides)
 		nx = -(a->fb(i+1,j,k) - a->fb(i-1,j,k))/(2.0*p->DXN[IP]);
 		ny = -(a->fb(i,j+1,k) - a->fb(i,j-1,k))/(2.0*p->DYN[JP]);
 		nz = -(a->fb(i,j,k+1) - a->fb(i,j,k-1))/(2.0*p->DZN[KP]);
+        if(p->X14==2)
+        face_normal(p,a,0,nx,ny,nz);
 
 		norm = sqrt(nx*nx + ny*ny + nz*nz);
                 
@@ -218,10 +232,12 @@ void sixdof_obj_cfd::update_forcing(lexer *p, fdm *a, ghostcell *pgc,field& uvel
         if(vf!=vf)
         cout<<"VF "<<vf<<endl;
     
-		// Normal vectors calculation 
+		// Normal vectors calculation (X 14 2: at the face, the mean of the cells on both sides)
 		nx = -(a->fb(i+1,j,k) - a->fb(i-1,j,k))/(2.0*p->DXN[IP]);
 		ny = -(a->fb(i,j+1,k) - a->fb(i,j-1,k))/(2.0*p->DYN[JP]);
 		nz = -(a->fb(i,j,k+1) - a->fb(i,j,k-1))/(2.0*p->DZN[KP]);
+        if(p->X14==2)
+        face_normal(p,a,1,nx,ny,nz);
 
 		norm = sqrt(nx*nx + ny*ny + nz*nz);
                 
@@ -263,10 +279,12 @@ void sixdof_obj_cfd::update_forcing(lexer *p, fdm *a, ghostcell *pgc,field& uvel
         if(wf!=wf)
         cout<<"WF "<<wf<<endl;
         
-		// Normal vectors calculation 
+		// Normal vectors calculation (X 14 2: at the face, the mean of the cells on both sides)
 		nx = -(a->fb(i+1,j,k) - a->fb(i-1,j,k))/(2.0*p->DXN[IP]);
 		ny = -(a->fb(i,j+1,k) - a->fb(i,j-1,k))/(2.0*p->DYN[JP]);
 		nz = -(a->fb(i,j,k+1) - a->fb(i,j,k-1))/(2.0*p->DZN[KP]);
+        if(p->X14==2)
+        face_normal(p,a,2,nx,ny,nz);
 
 		norm = sqrt(nx*nx + ny*ny + nz*nz);
                 

@@ -26,7 +26,7 @@ Author: Hans Bihs
 #include"reinidisc_f.h"
 
 // fixed_interface: cells with a sign change to a neighbour keep L=0 (6DOF / topo / solid level sets)
-reinidisc_f::reinidisc_f(lexer *p, bool fixed_interface) :  ddweno_nug(p), fixed_interface(fixed_interface)
+reinidisc_f::reinidisc_f(lexer *p, bool fixed_interface, double tie) :  ddweno_nug(p), fixed_interface(fixed_interface), tie(tie)
 {
 }
 
@@ -81,6 +81,11 @@ void reinidisc_f::disc(lexer *p, fdm *a, ghostcell *pgc, field &f, field &L)
 // x	
 	xmin=(lsv-f.V[Im1JK])/p->DXP[IM1];
 	xplus=(f.V[Ip1JK]-lsv)/p->DXP[IP];
+    
+    if(fabs(xmin)<tie)
+    xmin=0.0;
+    if(fabs(xplus)<tie)
+    xplus=0.0;
 	
 	if(xmin*lsSig>0.0 && xplus*lsSig>-xmin*lsSig)
 	dx=ddwenox(a,f,1.0);
@@ -96,6 +101,11 @@ void reinidisc_f::disc(lexer *p, fdm *a, ghostcell *pgc, field &f, field &L)
     {
 	ymin=(lsv-f.V[IJm1K])/p->DYP[JM1];
 	yplus=(f.V[IJp1K]-lsv)/p->DYP[JP];
+    
+    if(fabs(ymin)<tie)
+    ymin=0.0;
+    if(fabs(yplus)<tie)
+    yplus=0.0;
 	
 	if(ymin*lsSig>0.0 && yplus*lsSig>-ymin*lsSig)
 	dy=ddwenoy(a,f,1.0);
@@ -110,6 +120,11 @@ void reinidisc_f::disc(lexer *p, fdm *a, ghostcell *pgc, field &f, field &L)
 // z
 	zmin=(lsv-f.V[IJKm1])/p->DZP[KM1];
 	zplus=(f.V[IJKp1]-lsv)/p->DZP[KP];
+    
+    if(fabs(zmin)<tie)
+    zmin=0.0;
+    if(fabs(zplus)<tie)
+    zplus=0.0;
 	
 	if(zmin*lsSig>0.0 && zplus*lsSig>-zmin*lsSig)
 	dz=ddwenoz(a,f,1.0);

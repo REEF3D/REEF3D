@@ -34,7 +34,7 @@ Architect: Hans Bihs
 
 cfd_amr_6dof::cfd_amr_6dof(lexer *p, sixdof_cfd *bb) : b(bb), cutl(p), cutr(p), fbio(p), frk1(p), L(p), dt(p)
 {
-    prdisc = new reinidisc_f(p,true);
+    prdisc = new reinidisc_f(p,true,p->X14==2 ? 1.0e-6 : 0.0);
     
     if(b->objects()>1)
     {

@@ -107,6 +107,7 @@ private:
     void externalForces_cfd(lexer*, fdm*, ghostcell*, double, bool);
     void netForces_cfd(lexer*, fdm*, ghostcell*, double, bool);
     double Hsolidface(lexer*, fdm*, int,int,int);
+    void face_normal(lexer*, fdm*, int, double&, double&, double&);
     double Hsolidface_t(lexer*, fdm*, int,int,int);
     void geometry_parameters(lexer*, fdm*, ghostcell*);
     void geometry_ls(lexer*, fdm*, ghostcell*);
