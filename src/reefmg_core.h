@@ -17,7 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Hans Bihs
+Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
 #ifndef REEFMG_CORE_H_
@@ -147,6 +147,8 @@ public:
     //  mode 0: V-cycles only, 1: BiCGStab only, 2: V-cycles with automatic
     //  fallback to BiCGStab if the cycle stalls.  Mode 2 is the default: the
     //  cycle alone is cheaper, the wrapper is there for the awkward matrices.
+    //  tol > 0: relative to |b|; tol < 0: the residual is reduced by -tol
+    //  relative to the initial one (warm-started inexact solves).
     int solve_auto(double tol,int maxiter,double &relres,int pre,int post,int mode);
 
     int fallbacks() const {return nfallback;}

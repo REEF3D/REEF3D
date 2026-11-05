@@ -17,7 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Hans Bihs
+Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include "reefmg_core.h"
@@ -1236,6 +1236,7 @@ int reefmg_core::solve_vcycle(double tol,int maxiter,double &relres,int pre,int 
     int it=0;
     residual(F);
     double rn=sqrt(dot(F,F.r,F.r));
+    if(tol<0.0) tol=-tol*rn/bn;
 
     while(rn/bn>tol && it<maxiter)
     {
@@ -1282,6 +1283,10 @@ int reefmg_core::solve(double tol,int maxiter,double &relres,int pre,int post)
     const double rn2=dot(F,kr,kr);
     double rn=sqrt(rn2), rho1=rn2;
     int it=0;
+
+    //  tol < 0: the residual is reduced by -tol relative to the initial one
+    //  (the warm-started corrector solves of the FNPF theta-Robin step)
+    if(tol<0.0) tol=-tol*rn/bn;
 
     while(rn/bn>tol && it<maxiter)
     {
@@ -1422,6 +1427,7 @@ int reefmg_core::solve_auto(double tol,int maxiter,double &relres,
     residual(F);
     double rn=sqrt(dot(F,F.r,F.r)), prev=rn;
     int it=0, bad=0;
+    if(tol<0.0) tol=-tol*rn/bn;
 
     while(rn/bn>tol && it<maxiter)
     {
@@ -1472,6 +1478,7 @@ int reefmg_core::solve_gcr(double tol,int maxiter,double &relres)
     residual(F);
     kr=F.r;
     double rn=sqrt(dot(F,kr,kr));
+    if(tol<0.0) tol=-tol*rn/bn;
 
     const int M=3;
     std::vector<double> *Z[M]={&kp,&ky,&kz}, *C[M]={&kt,&kv,&krhat};
