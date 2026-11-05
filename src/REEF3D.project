@@ -316,6 +316,7 @@
           <VirtualDirectory Name="Time">
             <File Name="timestep.h"/>
             <File Name="ietimestep.h"/>
+            <File Name="cfd_gravitywave_dt.h"/>
             <File Name="fixtimestep.h"/>
             <File Name="etimestep.h"/>
           </VirtualDirectory>
@@ -414,6 +415,7 @@
             <File Name="hires.h"/>
             <File Name="hcds6.h"/>
             <File Name="fou.h"/>
+            <File Name="godunov.h"/>
             <File Name="convection_void.h"/>
             <File Name="convection.h"/>
             <File Name="cds4.h"/>
@@ -1887,6 +1889,7 @@
             <File Name="hires.cpp"/>
             <File Name="hcds6.cpp"/>
             <File Name="fou.cpp"/>
+            <File Name="godunov.cpp"/>
             <File Name="discrete_void.cpp"/>
             <File Name="cds4.cpp"/>
             <File Name="cds2.cpp"/>
