@@ -55,19 +55,19 @@
   "REEF3D_FNPF_WSF/REEF3D-FNPF-WSF-HG.dat": {
    "rows": 304,
    "last": [
-    6.73766382,
+    6.76024,
     -0.00068384513,
     0.000528814566,
     -2.07781324e-05
    ],
    "colsum": [
-    1014.76999525363,
+    1021.53023525363,
     60.00964453643826,
     0.0178972082116515,
     -0.011240489922241612
    ],
    "colabs": [
-    1014.76999525363,
+    1021.53023525363,
     60.05198958245015,
     0.042491572368698445,
     0.011240490172081162
@@ -377,7 +377,7 @@
   0.02257618204928526,
   0.02257618204928526
  ],
- "blessed_from": "/root/reg/REEF3D_e7",
- "date": "2026-10-20",
- "note": "reefamr 85: FNPF/SFLOW gauges interpolated at the gauge (ccslipol4)"
+ "blessed_from": "/home/claude/bin/REEF3D_fin7",
+ "date": "2026-11-06",
+ "note": "re-blessed on hans_dev 8f1c9f17a + fnpf_theta_robin 0016-0021: FNPF outputs carry the time of their state (0017); theta-Robin 0016/0019/0020"
 }

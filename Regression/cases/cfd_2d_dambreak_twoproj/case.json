@@ -1,0 +1,19 @@
+{
+ "base": "cfd_2d_dambreak",
+ "np": 1,
+ "steps": 80,
+ "ctrl_set": {
+  "N 40": "6"
+ },
+ "description": "cfd_2d_dambreak (closed tank) with the one-step scheme with two projections (N 40 6): the projected half-step forces at a violent free surface and the walls (validation 75).",
+ "tags": [
+  "quick",
+  "2d",
+  "dambreak",
+  "levelset",
+  "closed"
+ ],
+ "covers": [
+  "momentum_rk::step_twoproj in a closed tank"
+ ]
+}

@@ -6,7 +6,7 @@
   "N 48": "1",
   "N 51": "2"
  },
- "description": "FNPF 2D regular waves of fnpf_2d_regular (relaxation generation and beach) with the theta-Robin time integration (A 310 5, REEFMG A 306 1, A 302 4, A 304 1e-3, A 307 1e-2) at twice the RK3 step of N 47 0.75 (N 51 2, N 47 1.5): relaxation zones in the Robin rows per time as RK3 (A 303 -0.75).",
+ "description": "FNPF 2D regular waves of fnpf_2d_regular (relaxation generation and beach) with the theta-Robin time integration (A 310 5, REEFMG A 306 1, A 302 4, A 304 1e-3, A 307 1e-2) at twice the RK3 step of N 47 0.75 (N 51 2, N 47 1.5): relaxation zones in the Robin rows per time as RK3 (A 303, default -0.1).",
  "tags": [
   "quick",
   "2d",

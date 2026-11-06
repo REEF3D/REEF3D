@@ -55,19 +55,19 @@
   "REEF3D_FNPF_WSF/REEF3D-FNPF-WSF-HG.dat": {
    "rows": 304,
    "last": [
-    6.73763555,
+    6.76021173,
     0.00346322569,
     -0.000429503533,
     0.00111748504
    ],
    "colsum": [
-    1014.76154301518,
+    1021.52175474518,
     60.07338681016622,
     0.09445668278669074,
     0.15935892883973987
    ],
    "colabs": [
-    1014.76154301518,
+    1021.52175474518,
     60.197728036969515,
     0.11001919181183904,
     0.15935892883973987
@@ -377,7 +377,7 @@
   0.02257618204928526,
   0.02257618204928526
  ],
- "blessed_from": "/home/claude/reg/ref/REEF3D",
- "date": "2026-10-25",
- "note": "P0 storm surge: references of the wind forcing A 570-578 / A 370-378 on 396549bdb"
+ "blessed_from": "/home/claude/bin/REEF3D_fin7",
+ "date": "2026-11-06",
+ "note": "re-blessed on hans_dev 8f1c9f17a + fnpf_theta_robin 0016-0021: FNPF outputs carry the time of their state (0017); theta-Robin 0016/0019/0020"
 }

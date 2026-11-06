@@ -55,17 +55,17 @@
   "REEF3D_FNPF_WSF/REEF3D-FNPF-WSF-HG.dat": {
    "rows": 43,
    "last": [
-    4.48550289,
+    4.60051578,
     9.79668811e-05,
     -9.79666144e-05
    ],
    "colsum": [
-    92.71005772400001,
+    97.310573504,
     3.33804475917741,
     0.19624956283764303
    ],
    "colabs": [
-    92.71005772400001,
+    97.310573504,
     3.340538484942826,
     0.19894327015714902
    ]
@@ -114,7 +114,7 @@
   0.11501289451949,
   0.11501289451949
  ],
- "blessed_from": "/home/claude/bin/REEF3D_step2",
- "date": "2026-11-05",
- "note": ""
+ "blessed_from": "/home/claude/bin/REEF3D_fin7",
+ "date": "2026-11-06",
+ "note": "re-blessed on hans_dev 8f1c9f17a + fnpf_theta_robin 0016-0021: FNPF outputs carry the time of their state (0017); theta-Robin 0016/0019/0020"
 }
