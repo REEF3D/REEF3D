@@ -846,7 +846,7 @@ void fnpf_theta::relax_affine(lexer *p, ghostcell *pgc, ioflow *pflow, int which
     }
     
     // A 303 > 0: factors r^(dt/A 303)
-    // A 303 < 0 (default -0.75): the zones act per time as in an RK3 run at N 47 = -A 303, and per step at least
+    // A 303 < 0 (default -0.1): the zones act per time as in an RK3 run at N 47 = -A 303, and per step at least
     // as in an RK3 step: an RK3 step relaxes the deviation from the target in its three stages by
     // F(r) = r (1/3 + 2/3 r (3/4 + r/4)); the theta step, s = dt/(-A 303 dt_crit) of those steps long, by
     // F(r)^max(s,1) (dt_crit: the step of the time-step criterion at N 47 1). Below the step of N 47 = -A 303 the
