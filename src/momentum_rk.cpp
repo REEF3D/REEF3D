@@ -1084,9 +1084,20 @@ void momentum_rk::imex_step_setup(lexer *p)
     imex_w[s]=0.0;
     }
 
-    // one step: the implicit diffusion backward in time
+    // one step: Crank-Nicolson, u(n+1) = u* + dt/2 D(u(n)) + dt/2 D(u(n+1)); D(u(n)) from the end of
+    // the step before (imex_w[0]); the first step, and the first step of a new patch, backward Euler
     if(scheme==SSP && stages==1)
-    imex_g[0]=1.0;
+    {
+        if(imex_valid)
+        {
+        imex_g[0]=0.5;      imex_use[0]=true;
+        }
+
+        if(!imex_valid)
+        imex_g[0]=1.0;
+
+    imex_w[0]=0.5;      // D(u(n+1)) for the next step
+    }
 
     if(scheme==SSP && stages==3)
     {
@@ -1132,7 +1143,7 @@ void momentum_rk::imex_step_setup(lexer *p)
         }
     }
 
-    imex_valid = (scheme==LOWSTORAGE || stages==2) ? 1.0 : 0.0;
+    imex_valid = (scheme==LOWSTORAGE || stages==2 || stages==1) ? 1.0 : 0.0;
 }
 
 // before the implicit solve of stage s: add the accumulated explicit diffusion of earlier stages

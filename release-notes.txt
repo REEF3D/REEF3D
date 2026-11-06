@@ -1,3 +1,4 @@
+x changed N 40 1 (CFD): the implicit diffusion of the one stage Crank-Nicolson (D 23 2, the default), backward Euler with D 23 1
 x fixed N 40 1 on the CFD mesh refinement: the patches took the convection of D 10 and F 35 (WENO in the one forward Euler stage) instead of the Godunov convection
 x added N 40 1 on the CFD mesh refinement (G 7 0): one fill pass, one composite projection and one reinitialisation per step
 x added N 40 1 (CFD): the one-step scheme, an unsplit second-order Godunov convection (Bell, Colella and Glaz) of the momentum and the level set with one projection per step, the level set moved after the projection; about 3 times less wall time than N 40 3 at the same time step on waves, with the level set or single phase flow
