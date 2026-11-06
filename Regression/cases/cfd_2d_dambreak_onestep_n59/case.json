@@ -1,0 +1,22 @@
+{
+ "base": "cfd_2d_dambreak",
+ "np": 1,
+ "steps": 80,
+ "ctrl_set": {
+  "N 40": "5"
+ },
+ "description": "cfd_2d_dambreak_onestep with the momentum carried with the mass flux (N 59 1): the density of the projection reconstructed and moved with the same face fluxes as rho u in godunov, u = rho u / rho (validation 77).",
+ "tags": [
+  "quick",
+  "2d",
+  "dambreak",
+  "levelset",
+  "closed"
+ ],
+ "covers": [
+  "godunov::start with N 59: rho_cv, the density states, the update (rho u - dt div(m u))/(rho - dt div(m))"
+ ],
+ "ctrl_add": [
+  "N 59 1"
+ ]
+}

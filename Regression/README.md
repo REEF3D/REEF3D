@@ -123,6 +123,9 @@ VTU/state print keys (`P 20/30/40/41/42`), so runs are short and output stays sm
 | `cfd_2d_nwt_twoproj` | 1 | the one-step scheme with two projections (N 40 6): the half step projected with dt/2, the level set with u(n+1/2), the full step with u(n+1/2), p(n+1/2) and the mid-step density, Crank-Nicolson diffusion; N 56 2 of 0161 (needs patches REEFAMR/0159-0163) |
 | `cfd_2d_dambreak_twoproj` | 1 | N 40 6 in the closed tank (needs 0159-0163) |
 | `cfd_2d_dambreak_twoproj_n57` | 1 | N 40 6 with the time step of the band around the free surface (N 57 3, N 58 0.9) (needs 0159-0164) |
+| `cfd_2d_dambreak_onestep_n59` | 1 | N 40 5 with the momentum carried with the mass flux (N 59 1): the density of the projection reconstructed and moved with the same face fluxes as rho u (godunov), u = rho u / rho (needs patch REEFAMR/0166) |
+| `cfd_2d_dambreak_twoproj_n59` | 1 | N 40 6 with N 59 1 at N 47 0.45: the half step over dt/2, the full step from the density of phi(n) (needs 0166) |
+| `cfd_2d_nwt_onestep_n59` | 1 | N 40 5 with N 59 1 in the wave tank with relaxation zones (needs 0166) |
 | `cfd_2d_nwt_wenoz` | 1 | WENO-Z weights for momentum (D 12 1) and level set + reini (F 37 1) |
 | `cfd_2d_nwt_komega` / `_kepsilon` | 1 | RANS models with free surface |
 | `cfd_2d_nwt_porous_komega` | 1 | VRANS porous box + k-ω porous sources (B295) |
