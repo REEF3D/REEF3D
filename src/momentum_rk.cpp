@@ -116,14 +116,14 @@ momentum_rk::momentum_rk(lexer *p, fdm *a, ghostcell *pgc, convection *pconvecti
     stages = 2;
 
     // the one-step scheme (P9 of the CFD AMR performance plan): one stage, the Godunov convection
-    // (godunov) of the momentum and the level set, one projection
-    if(p->N40==1)
+    // (godunov) of the momentum and the level set, one projection (N 40 5)
+    if(p->N40==5)
     stages = 1;
 
     if(p->N40==4 || p->N40==24 || p->N40==44)
     scheme = LOWSTORAGE;
 
-    if(p->N40==1 || p->N40==2 || p->N40==22 || p->N40==3 || p->N40==23 || p->N40==4 || p->N40==24 || p->N40==33)
+    if(p->N40==5 || p->N40==2 || p->N40==22 || p->N40==3 || p->N40==23 || p->N40==4 || p->N40==24 || p->N40==33)
     levelset = true;
 
     // PIC (F 81 1, 2): the free surface comes from the particles (pic_f), not from the level set

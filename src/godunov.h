@@ -33,7 +33,7 @@ class field;
 
 using namespace std;
 
-// The convection of the one-step scheme (N 40 1, P9 of the CFD AMR performance plan): an unsplit
+// The convection of the one-step scheme (N 40 5, P9 of the CFD AMR performance plan): an unsplit
 // second-order Godunov method (corner transport upwind, the predictor of Bell, Colella and Glaz).
 // The value on every face of a control volume is extrapolated from the upwind side to the half time
 // step: f + (dx/2 - dt/2 u) f_x - dt/2 (v f_y + w f_z), with the slopes f_x of the monotonised

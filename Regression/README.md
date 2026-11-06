@@ -115,8 +115,8 @@ VTU/state print keys (`P 20/30/40/41/42`), so runs are short and output stays sm
 |---|---|---|
 | `cfd_2d_nwt` | 1 | default N40=3 (FC3), relaxation waves, level set, implicit diffusion, gauges/probes |
 | `cfd_2d_nwt_n54` | 1 | gravity out of the acceleration term of the time step, the gravity-wave limit (N 54 1) |
-| `cfd_2d_nwt_onestep` (+ `_n54`) | 1 | the one-step scheme (N 40 1): Godunov convection of the momentum and the level set, one projection, the level set after the projection; with N 54 1 |
-| `cfd_2d_dambreak_onestep` | 1 | the one-step scheme (N 40 1) in the closed tank |
+| `cfd_2d_nwt_onestep` (+ `_n54`) | 1 | the one-step scheme (N 40 5): Godunov convection of the momentum and the level set, one projection, the level set after the projection; with N 54 1 |
+| `cfd_2d_dambreak_onestep` | 1 | the one-step scheme (N 40 5) in the closed tank |
 | `cfd_2d_relax_ramp_ls` | 1 | `cfd_2d_nwt` with level set RK3 (N40=13) and the start-up ramp B 101 1: the ramp acts on the wave elevation only (phi_relax, fixed in fe03b66a) |
 | `cfd_2d_relax_ramp_plic` | 1 | `cfd_2d_nwt` with PLIC VOF (F80=4) and the start-up ramp B 101 1: the ramp acts on the wave elevation only, not on the still water level of zone and beach (vof_relax, fe03b66a) |
 | `cfd_2d_nwt_rk3` / `_rk2` / `_fc2` / `_rkls3` | 1 | N40=13 / 12 / 2 / 44 momentum + level-set variants |
@@ -394,7 +394,7 @@ VTU/state print keys (`P 20/30/40/41/42`), so runs are short and output stays sm
 | `cfd_2d_dambreak_amr_adapt_sub` | 1 | the same with subcycling (G 7 1): the regrid after the level-0 step |
 | `cfd_2d_dambreak_amr3_adapt` | 1 | two levels adaptive (G 1 2, G 24 3): new level-1 patches as the parents of new level-2 patches |
 | `cfd_2d_dambreak_amr3_adapt_sub` | 1 | two levels adaptive with subcycling (G 7 1): touching patches of a level share one multigrid in the level projections and the synchronisation; the pressure of level 1 held at its end value for level 2 |
-| `cfd_2d_dambreak_amr3_adapt_onestep` | 1 | the one-step scheme (N 40 1) on two adaptive levels: the momentum of all levels and the composite projection first, then the level set of all levels; the Godunov convection on the patches (0159), Crank-Nicolson (0160), first-order momentum in the air (N 56 2, 0161) |
+| `cfd_2d_dambreak_amr3_adapt_onestep` | 1 | the one-step scheme (N 40 5) on two adaptive levels: the momentum of all levels and the composite projection first, then the level set of all levels; the Godunov convection on the patches (0159), Crank-Nicolson (0160), first-order momentum in the air (N 56 2, 0161) |
 | `cfd_2d_dambreak_amr_adapt_mpi2` | 2 | adaptive on 2 ranks: patches moving across the partition edge |
 | `cfd_2d_dambreak_amr_flags` | 1 | the criteria together: interface band G 24 1, vorticity G 26 20, a static box G 15 |
 | `cfd_3d_dambreak_amr_adapt` | 2 | CFD AMR 3D adaptive (G 24 1, tiles G 4 2, no buffer G 3 0) on 2 ranks |

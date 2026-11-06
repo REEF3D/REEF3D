@@ -1,3 +1,4 @@
+x renamed the one-step scheme of the CFD from N 40 1 to N 40 5 (N 40 1 stops with a message); N 40 5 was the removed momentum_RK3CN
 x added N 56 (CFD, N 40 1): the momentum first-order upwind in the air further than N 56 cells from the free surface (default 2, 0: second order everywhere); keeps the spurious air velocities down
 x changed N 40 1 (CFD): the implicit diffusion of the one stage Crank-Nicolson (D 23 2, the default), backward Euler with D 23 1
 x fixed N 40 1 on the CFD mesh refinement: the patches took the convection of D 10 and F 35 (WENO in the one forward Euler stage) instead of the Godunov convection

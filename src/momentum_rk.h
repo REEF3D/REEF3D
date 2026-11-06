@@ -61,6 +61,8 @@ momentum_rk: Runge-Kutta time stepping of the CFD momentum equations
   3     SSP-RK3                                  inside every stage (default)
   4     low-storage RK3                          inside every stage
   33    SSP-RK3, conservative form (rho u)       inside every stage
+  5     one step, Godunov convection (godunov),  after the projection, with u(n+1)
+        one projection
 
 SSP stage s:   u(s+1) = a_s u(n) + b_s [ u(s) + dt (F + D) ]
 low storage:   u(s+1) = u(s) + 2 alpha_s dt (S + D) + gamma_s dt C(s) + zeta_s dt C(s-1)

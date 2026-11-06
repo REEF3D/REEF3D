@@ -952,7 +952,7 @@ void control::ini_default()
     N25=0;         //  int precondioner switch NHFLOW
     N26=1;         //  int precondioner switch CFD
 	N40=3;			// int time scheme
-    N56=2.0;        // double N 40 1: the momentum first-order upwind in the air further than N56 cells from the free surface (0: second order everywhere)
+    N56=2.0;        // double N 40 5: the momentum first-order upwind in the air further than N56 cells from the free surface (0: second order everywhere)
 	N41=1.0e+19; 	// double total time
 	N43=1.0e-5;     // double stopping criteria convection-diffusion
 	N44=1.0e-8;     // double stopping criteria pressure
