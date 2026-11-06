@@ -28,6 +28,7 @@ Architect: Hans Bihs
 #include"fnpf_ini.h"
 #include"fnpf_sigma.h"
 #include"slice4.h"
+#include<memory>
 #include<vector>
 
 class fnpf_laplace;
@@ -35,6 +36,9 @@ class fnpf_fsf;
 class fnpf_body;
 class fnpf_amr;
 class fnpf_laplace_cds2;
+class solver2D;
+class matrix2D;
+class vec2D;
 
 using namespace std;
 
@@ -46,9 +50,13 @@ using namespace std;
 // (A 341/A 342/A 347) and Fifsf = 0 on land are part of the affine maps of the zones (relax_affine), i.e. of the
 // Robin rows and the eta update; the dry columns are not in the solve (A 343 1: Fifsf of the land map, A 343 2:
 // held, set by wetdry_dynamic after the step); the clamps and the dynamic front after the step are surface edits
-// (consistency solve). With a coastline N 51 3 uses at most the RK3 step of N 51 2 at N 47 0.75: from about
-// 1.5 x that step the corrector passes do not converge at the swash (surface Courant number |Fx| dt/dx above
-// about 1.5 in films of a few mm) and at steep breaking fronts (Ting & Kirby, Mase & Kirby; validation 08).
+// (consistency solve). With a coastline N 51 3 uses at most the RK3 step of N 51 2 at N 47 0.75. The corrector
+// passes precondition the change of the nonlinear terms with the advection (precond_adv) where the surface Courant
+// number |Fx| dt/dx exceeds 0.5; without that they diverged at the swash at 2 x the RK3 step. With it,
+// a static coastline runs at 2-3 x the RK3 step with N 51 2 and N 47 1.5-2.25 (Ting & Kirby: the breaking point as at
+// the RK3 step); but in Mase & Kirby the Hm0 of the shallowest gauges grows with the step (no numerical damping),
+// and the moving coastline (A 343 2) is unstable at 2 x at the wetted front, so N 51 3 keeps the RK3 step there
+// (validation 09).
 //
 // The linear part of the free-surface conditions, eta_t = w and Fifsf_t = -g eta, is integrated with the
 // theta method, the nonlinear rest N (Zakharov terms, wind) at t^n+1/2:
@@ -179,6 +187,11 @@ private:
     slice4 en;
     slice4 colD,colA,colB; // REEFMG: Robin row per column, D Fs + A sum_m>=1 w_m Fi(knoz-m) = B
     slice4 fsold;          // REEFMG: Fifsf^n+1 of the last pass
+    slice4 nEo,nFo,pxe,pxf;    // corrector: N of the last pass and the preconditioned changes of N
+    std::unique_ptr<solver2D> psolv2d;    // the 2D solve of precond_adv
+    std::unique_ptr<matrix2D> Nadv;
+    std::unique_ptr<vec2D> xadv,radv;
+    void precond_adv(lexer*, fdm_fnpf*, ghostcell*, slice&);
     
     double theta;
     double beta,betasum;   // Newmark beta of the Fifsf update (theta^2; A 308: 1/12 .. 1/4)
@@ -191,7 +204,8 @@ private:
     std::vector<double> fiold; // REEFMG: Fi of the last pass
     int npass;
     double passtol;
-    long passsum, stepsum, editsum;
+    long passsum, stepsum, editsum, padvsum;   // padvsum: passes with the advection preconditioner
+    double csmaxsum;                          // largest surface Courant number of the run
     int nstep;
     double dt_prev;
     

@@ -131,11 +131,11 @@ double fnpf_timestep::theta_error(lexer *p, double dt, double cu, double T)
 
 double fnpf_timestep::theta_step(lexer *p, double cu)
 {
-    // at most 4 x the RK3 step; with a coastline (A 343 >= 1) at most the RK3 step at N 47 0.75: in the surf zone
-    // the corrector passes stop converging at the swash (surface Courant number |Fx| dt/dx above about 1.5 in
-    // films of a few mm) and at steep breaking fronts, from about 1.5 x that step (Ting & Kirby, Mase & Kirby;
-    // 1.2 x before the damping moved to the start of the step, patch 0022); where larger steps stay stable,
-    // the passes and REEFMG cycles grow so that the step costs as much as the RK3 steps it replaces
+    // at most 4 x the RK3 step; with a coastline (A 343 >= 1) at most the RK3 step at N 47 0.75: with the advection
+    // preconditioner of the corrector (patch 0025) a static coastline is stable at 2-3 x that step (Ting & Kirby),
+    // but the Hm0 of the shallowest gauges of Mase & Kirby grows with the step (beyond the tolerance from 1.5 x),
+    // and the moving coastline (A 343 2) fails at 2 x at the wetted front. Larger steps with a static coastline:
+    // N 51 2 with N 47 1.5-2.25 (validation 09)
     const double dtmax = (p->A343>=1) ? 0.75*cu : 3.0*cu;
     const double T = theta_tref(p);
     

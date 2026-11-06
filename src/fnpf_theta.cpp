@@ -35,6 +35,9 @@ Architect: Hans Bihs
 #include"reefmg.h"
 #include"fnpf_body.h"
 #include"fnpf_sz_weights.h"
+#include"sflow_bicgstab.h"
+#include"matrix2D.h"
+#include"vec2D.h"
 #include<Eigen/Sparse>
 #include<Eigen/SparseLU>
 #include<memory>
@@ -63,7 +66,7 @@ namespace
 fnpf_theta::fnpf_theta(lexer *p, fdm_fnpf *c, ghostcell *pgc) : fnpf_ini(p,c,pgc),fnpf_sigma(p,c,pgc),
                                                       ek(p),fk(p),Ne(p),Nf(p),Neo(p),Nfo(p),wn(p),erk1(p),frk1(p),
                                                       nEm(p),nFm(p),eko(p),fko(p),erk2(p),R0(p),Rs(p),relR(p),relT(p),relRe(p),relTe(p),fnew(p),wnew(p),en(p),
-                                                      colD(p),colA(p),colB(p),fsold(p)
+                                                      colD(p),colA(p),colB(p),fsold(p),nEo(p),nFo(p),pxe(p),pxf(p)
 {
     gcval=250;
     if(p->j_dir==0)
@@ -93,6 +96,8 @@ fnpf_theta::fnpf_theta(lexer *p, fdm_fnpf *c, ghostcell *pgc) : fnpf_ini(p,c,pgc
     npass = MAX(p->A302,0);
     passtol = p->A304;
     passsum = stepsum = editsum = 0;
+    padvsum = 0;
+    csmaxsum = 0.0;
     nstep = 0;
     dt_prev = 0.0;
     solvetime = 0.0;
@@ -374,7 +379,7 @@ void fnpf_theta::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, con
     
     if(p->mpirank==0 && (p->count%p->P12==0))
     {
-    cout<<"theta-Robin solve: "<<setprecision(3)<<solvetime<<" s total, corrector passes per step "<<double(passsum)/double(MAX(stepsum,1L))<<", consistency solves "<<editsum;
+    cout<<"theta-Robin solve: "<<setprecision(3)<<solvetime<<" s total, corrector passes per step "<<double(passsum)/double(MAX(stepsum,1L))<<", consistency solves "<<editsum<<", advection-preconditioned passes "<<padvsum<<" (max surface Courant "<<csmaxsum<<")";
     if(p->A308>0.0)
     cout<<", beta "<<beta<<" (mean "<<betasum/double(MAX(stepsum,1L))<<")";
     if(lsolv==1)
@@ -405,15 +410,51 @@ void fnpf_theta::corrector_state(lexer *p, fdm_fnpf *c, ghostcell *pgc, ioflow *
     {fnpf_prof::scope ps_(fnpf_prof::fsfdisc); pf->fsfdisc(p,c,pgc,erk2,fnew);}
     
     {fnpf_prof::scope ps_(fnpf_prof::fsfbc); pf->kfsfbc(p,c,pgc);}
+    // the surface Courant number of the wet columns, |Fx| dt/dx + |Fy| dt/dy, of this pass: above 0.5 the change of
+    // N is preconditioned with the advection (below)
+    double cs=0.0;
+    SLICELOOP4
+    if(p->wet[IJ]==1)
+    cs = MAX(cs, fabs(c->Fx(i,j))*dt/p->DXN[IP] + (p->j_dir==1 ? fabs(c->Fy(i,j))*dt/p->DYN[JP] : 0.0));
+    cs = pgc->globalmax(cs);
+    const bool padv = cs>0.5;
+    csmaxsum = MAX(csmaxsum,cs);
+    if(padv) ++padvsum;
+    SLICELOOP4
+    {
+    nEo(i,j) = nEm(i,j);
+    nFo(i,j) = nFm(i,j);
+    }
+    
     SLICELOOP4
     nEm(i,j) = 0.5*(Ne(i,j) + c->K(i,j) - wnew(i,j));
     
     {fnpf_prof::scope ps_(fnpf_prof::fsfbc); pf->dfsfbc(p,c,pgc,erk2);}
     SLICELOOP4
-    {
     nFm(i,j) = 0.5*(Nf(i,j) + c->K(i,j) + g*erk2(i,j));
-    Rs(i,j) = R0(i,j) - g*theta*dt*dt*nEm(i,j) + dt*nFm(i,j);
+    
+    // the change of N of this pass through (I + dt/2 (Fx Dx + Fy Dy))^-1, Dx, Dy upwind: Newton for the advection
+    // of the free-surface conditions (eta_t + Fx Ex, Fifsf_t + Fx^2/2: both advect with Fx), so that the passes
+    // converge also where |Fx| dt/dx > 1. Without it they diverge at |Fx| dt/dx of about 2 (the swash of Ting &
+    // Kirby at 2 x the RK3 step); with it Ting & Kirby runs at 3 x (validation 09).
+    if(padv)
+    {
+    SLICELOOP4
+    {
+    pxe(i,j) = nEm(i,j) - nEo(i,j);
+    pxf(i,j) = nFm(i,j) - nFo(i,j);
     }
+    precond_adv(p,c,pgc,pxe);
+    precond_adv(p,c,pgc,pxf);
+    SLICELOOP4
+    {
+    nEm(i,j) = nEo(i,j) + pxe(i,j);
+    nFm(i,j) = nFo(i,j) + pxf(i,j);
+    }
+    }
+    
+    SLICELOOP4
+    Rs(i,j) = R0(i,j) - g*theta*dt*dt*nEm(i,j) + dt*nFm(i,j);
     
     {fnpf_prof::scope ps_(fnpf_prof::gc2d); pgc->gcsl_start4(p,Rs,gcval_fifsf);}
     
@@ -988,3 +1029,46 @@ void fnpf_theta::ini_wetdry(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 {	
     {fnpf_prof::scope ps_(fnpf_prof::wetdry); pf->wetdry(p,c,pgc,c->eta,c->Fifsf);}
 }
+
+// x <- (I + dt/2 (Fx Dx + Fy Dy))^-1 x, first-order upwind differences with the sign of Fx, Fy; no coupling across
+// dry or boundary cells (the correction is zero there)
+void fnpf_theta::precond_adv(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &x)
+{
+    if(!psolv2d)
+    {
+    psolv2d = std::make_unique<sflow_bicgstab>(p,pgc);
+    int nr=0;
+    SLICELOOP4
+    ++nr;
+    Nadv = std::make_unique<matrix2D>(p,nr);
+    xadv = std::make_unique<vec2D>(p,nr);
+    radv = std::make_unique<vec2D>(p,nr);
+    }
+    matrix2D &NA = *Nadv;
+    
+    const double h = 0.5*p->dt;
+    int n=0;
+    SLICELOOP4
+    {
+    const double ux = c->Fx(i,j), uy = (p->j_dir==1) ? c->Fy(i,j) : 0.0;
+    const double ax = h*fabs(ux)/p->DXN[IP];
+    const double ay = (p->j_dir==1) ? h*fabs(uy)/p->DYN[JP] : 0.0;
+    const int wet = p->wet[IJ];
+    
+    NA.p[n] = 1.0 + (wet ? ax + ay : 0.0);
+    NA.s[n] = (wet && ux>0.0 && p->flagslice4[Im1J]>0 && p->wet[Im1J]) ? -ax : 0.0;
+    NA.n[n] = (wet && ux<0.0 && p->flagslice4[Ip1J]>0 && p->wet[Ip1J]) ? -ax : 0.0;
+    NA.e[n] = (wet && uy>0.0 && p->flagslice4[IJm1]>0 && p->wet[IJm1]) ? -ay : 0.0;
+    NA.w[n] = (wet && uy<0.0 && p->flagslice4[IJp1]>0 && p->wet[IJp1]) ? -ay : 0.0;
+    radv->V[n] = x(i,j);
+    ++n;
+    }
+    
+    pgc->gcsl_start4(p,x,gcval_fifsf);
+    const double tol0 = p->N44;
+    p->N44 = 1.0e-10;
+    psolv2d->start(p,pgc,x,NA,*xadv,*radv,4);
+    p->N44 = tol0;
+    pgc->gcsl_start4(p,x,gcval_fifsf);
+}
+
