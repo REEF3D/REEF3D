@@ -17,7 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Hans Bihs
+Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
 #ifndef FNPF_TIMESTEP_H_
@@ -52,6 +52,9 @@ public:
     
     // N 52, N 53: accuracy cap dt <= N52/N53
     static void accuracy_cap(lexer*);
+    static double theta_tref(lexer*);                       // N 51 3: period of the reference wave
+    static double theta_error(lexer*, double, double, double); // N 51 3: phase-speed error of theta-Robin
+    static double theta_step(lexer*, double);               // N 51 3: the step of the accuracy target N 55
 
 
 private:

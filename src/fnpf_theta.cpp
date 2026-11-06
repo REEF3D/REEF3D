@@ -108,7 +108,7 @@ fnpf_theta::fnpf_theta(lexer *p, fdm_fnpf *c, ghostcell *pgc) : fnpf_ini(p,c,pgc
     if(p->B98>2 || p->B99>2)        {bad=1; if(p->mpirank==0) cout<<"A 310 5: relaxation zones only (B 98 0-2, B 99 0-2)"<<endl;}
     if(theta<0.5)                   {bad=1; if(p->mpirank==0) cout<<"A 310 5: theta (A 305) >= 0.5"<<endl;}
     if(p->A308>0.0 && theta!=0.5)   {bad=1; if(p->mpirank==0) cout<<"A 310 5: the 4th-order phase (A 308) needs theta 0.5 (A 305)"<<endl;}
-    if(p->A308>0.0 && p->N51!=2)    {bad=1; if(p->mpirank==0) cout<<"A 310 5: the 4th-order phase (A 308) needs the time step N 51 2"<<endl;}
+    if(p->A308>0.0 && p->N51<2)     {bad=1; if(p->mpirank==0) cout<<"A 310 5: the 4th-order phase (A 308) needs the time step N 51 2 or 3"<<endl;}
     
     if(bad==1)
     pgc->final(true);

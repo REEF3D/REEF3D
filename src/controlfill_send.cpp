@@ -1931,6 +1931,8 @@ void control::ctrlsend()
     dd++;
     dctrl[dd] = N54;
     dd++;
+    dctrl[dd] = N55;
+    dd++;
     dctrl[dd] = N57;
     dd++;
     dctrl[dd] = N58;

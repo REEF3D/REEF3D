@@ -45,6 +45,9 @@ fnpf_timestep::~fnpf_timestep()
 //                 free-surface sz stencil of A311/A327), C_RK = sqrt(3) (RK3), 2 sqrt(2) (RK4): N47 is the
 //                 fraction of the linear stability limit of the RK scheme (N47 < 1), for any depth, 2D and 3D
 //
+//  3  theta-Robin (A 310 5): the step of an accuracy target, the phase-speed error N 55 [%] of the reference
+//                 wave (period N 52, or of the wave input), at most 4 x the step of N 51 2 at N 47 0.75 (theta_step)
+//
 // N 52 T_min > 0, N 53 n: accuracy cap dt <= T_min/n (any N 51). Once the stability limit is no longer the
 // constraint, the RK damping of the short waves sets the accuracy (RK3: about (pi/12)(omega dt)^3 per period).
 //
@@ -90,9 +93,71 @@ double fnpf_timestep::omega_discrete(lexer *p, double kh2, double h)
     return sqrt(g*gq/h);
 }
 
-void fnpf_timestep::accuracy_cap(lexer *p)
+// N 51 3 (theta-Robin A 310 5): theta-Robin is stable for every gravity wave, so the step is set by accuracy.
+// The relative phase-speed error of a wave of period T with omega dt = W is, for theta 1/2 and the Newmark beta
+// of A 308 (beta 1/4 without: Crank-Nicolson), 1 - phi/W with 4 sin^2(phi/2) = W^2/(1 + beta W^2) (exact for
+// the linear oscillator; CN: phi = 2 atan(W/2), about W^2/12). dt is the largest step whose error at the
+// reference wave is at most N 55 per cent, at most 4 x the RK3 step of N 51 2 at N 47 0.75 (3 dt_crit, the
+// largest step tested; the corrector, breaking and the relaxation zones). The reference period T: N 52 if set,
+// otherwise that of the wave input (regular waves: T, irregular: Tp). Without one: 2 x the RK3 step.
+double fnpf_timestep::theta_tref(lexer *p)
 {
     if(p->N52>0.0)
+    return p->N52;
+    
+    if(p->B90>0)
+    return (p->B92>11) ? p->wTp : p->wT;
+    
+    return 0.0;
+}
+
+double fnpf_timestep::theta_error(lexer *p, double dt, double cu, double T)
+{
+    const double W = 2.0*PI*dt/T;
+    double beta = 0.25;
+    
+    if(p->A308>0.0 && cu>0.0)
+    {
+    const double om = rk_limit(p)*dt/cu;
+    beta = MIN(0.25, MAX(1.0/12.0, 0.25 - 1.0/(p->A308*p->A308*om*om)));
+    }
+    
+    const double s = MIN(1.0, W/(2.0*sqrt(1.0 + beta*W*W)));
+    const double phi = 2.0*asin(s);
+    
+    return fabs(1.0 - phi/W);
+}
+
+double fnpf_timestep::theta_step(lexer *p, double cu)
+{
+    const double dtmax = 3.0*cu;
+    const double T = theta_tref(p);
+    
+    if(T<=0.0 || cu<=0.0)
+    return 1.5*cu;
+    
+    const double eps = 0.01*MAX(p->N55,1.0e-6);
+    
+    if(theta_error(p,dtmax,cu,T)<=eps)
+    return dtmax;
+    
+    double a=0.0, b=dtmax;
+    for(int q=0;q<60;++q)
+    {
+    const double m = 0.5*(a+b);
+    if(theta_error(p,m,cu,T)<=eps)
+    a = m;
+    else
+    b = m;
+    }
+    
+    return a;
+}
+
+void fnpf_timestep::accuracy_cap(lexer *p)
+{
+    // N 51 3: N 52 is the reference period of the accuracy target (theta_step), not a cap with N 53
+    if(p->N52>0.0 && p->N51!=3)
     p->dt = MIN(p->dt, p->N52/MAX(p->N53,1.0));
 }
 
@@ -340,7 +405,7 @@ void fnpf_timestep::start(fdm_fnpf *c, lexer *p,ghostcell *pgc)
     if(p->j_dir==0 || p->knoy==1)
     dx = p->DXN[IP];
     
-    if(p->N51==2)
+    if(p->N51==2 || p->N51==3)
     {
     // discrete: the cut-off mode of the local grid in the local water depth, Doppler shift by the surface velocity
     if(p->wet[IJ]==0)
@@ -393,6 +458,22 @@ void fnpf_timestep::start(fdm_fnpf *c, lexer *p,ghostcell *pgc)
 
    	p->dt=p->N47*cu;
     p->dt_crit=cu;
+    
+    // N 51 3 (theta-Robin): the step of the accuracy target instead of N 47 times the stability step
+    if(p->N51==3)
+    {
+        p->dt=theta_step(p,cu);
+        
+        static bool said=false;
+        if(!said && p->mpirank==0)
+        {
+        const double T = theta_tref(p);
+        cout<<"FNPF time step N 51 3 (theta-Robin): phase-speed error N 55 "<<p->N55<<" % of the reference wave T = "<<T<<" s ("
+            <<(p->N52>0.0 ? "N 52" : (T>0.0 ? "wave input" : "none: 2 x the RK3 step"))<<"), dt = "<<p->dt<<" s = "<<p->dt/(0.75*cu)
+            <<" x the RK3 step of N 51 2, N 47 0.75"<<(p->dt>=3.0*cu*(1.0-1.0e-9) ? " (the bound of 4 x)" : "")<<endl;
+        }
+        said=true;
+    }
     
     if(p->mpirank==0 && (p->count%p->P12==0))
 	cout<<"dt: "<<p->dt<<endl;
@@ -483,7 +564,7 @@ void fnpf_timestep::ini(fdm_fnpf* c, lexer* p,ghostcell* pgc)
     continue;
     }
     
-    if(p->N51==2)
+    if(p->N51==2 || p->N51==3)
     {
     const int ydir = (p->j_dir==1 && p->knoy>1) ? 1 : 0;
     const double kx2 = (2.0/p->DXP[IP] + 2.0/p->DXP[IM1])/p->DXN[IP];
@@ -507,6 +588,19 @@ void fnpf_timestep::ini(fdm_fnpf* c, lexer* p,ghostcell* pgc)
     p->dt=pgc->globalmin(p->dt);
     p->dt_crit=pgc->globalmin(cu);
     
+    // N 51 3 (theta-Robin): the step of the accuracy target instead of N 47 times the stability step
+    if(p->N51==3)
+    {
+        if(p->A310!=5)
+        {
+            if(p->mpirank==0)
+            cout<<"N 51 3 (time step of an accuracy target) needs the theta-Robin time integration A 310 5"<<endl;
+            pgc->final(true);
+        }
+        
+        p->dt=theta_step(p,p->dt_crit);
+    }
+    
     if(p->N48==1)
     accuracy_cap(p);
     
@@ -521,6 +615,9 @@ void fnpf_timestep::ini(fdm_fnpf* c, lexer* p,ghostcell* pgc)
         if(p->N51==1)
         cout<<"FNPF time step N 51 1: c = |u| + sqrt(g dx tanh(h/dx)), N47 "<<p->N47<<" (deep-water RK3 limit N47 < 0.98 in 2D, 0.8 in 3D)"<<endl;
         
+        if(p->N51==3)
+        cout<<"FNPF time step N 51 3 (theta-Robin): the step of the phase-speed error N 55 = "<<p->N55<<" % of the reference wave"<<endl;
+        
         if(p->N51==2)
         {
         cout<<"FNPF time step N 51 2: dt omega_max = N47 C_RK, C_RK = "<<setprecision(4)<<rk_limit(p)<<", N47 "<<p->N47<<endl;
@@ -530,7 +627,7 @@ void fnpf_timestep::ini(fdm_fnpf* c, lexer* p,ghostcell* pgc)
         }
     }
     
-    if(p->mpirank==0 && p->N52>0.0)
+    if(p->mpirank==0 && p->N52>0.0 && p->N51!=3)
     cout<<"FNPF time step accuracy cap: dt <= N52/N53 = "<<p->N52<<"/"<<p->N53<<" = "<<p->N52/MAX(p->N53,1.0)<<" s"<<endl;
     
     if(p->B94==0)

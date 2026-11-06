@@ -448,7 +448,7 @@ public:
     // Numerical Options
     int N10,N11,N12,N13,N14,N15,N16,N17,N18,N19,N40,N45,N46,N48,N51;
     int N20,N21,N22,N23,N25,N26;
-    double N41,N43,N44,N47,N49,N50,N52,N53,N54,N57,N58,N61;
+    double N41,N43,N44,N47,N49,N50,N52,N53,N54,N55,N57,N58,N61;
 
     // MPI Options
     int M10,M40,M41;
