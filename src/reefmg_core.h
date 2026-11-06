@@ -136,6 +136,10 @@ public:
     //  level coefficients have been filled, i.e. once per solve.
     void coarsen();
 
+    //  only the line factorisations of the finest level, for refilled fine
+    //  coefficients; the coarse levels stay those of the last coarsen()
+    void refactor_fine();
+
     //  BiCGStab preconditioned by one V-cycle.  Returns the iteration count;
     //  relres receives the achieved relative residual.
     int solve(double tol,int maxiter,double &relres,int pre,int post);
@@ -303,7 +307,7 @@ private:
     template<class C> void line_zebra_t(sc_level &L,int sweeps,int dir);
     template<class C> void residual_t(sc_level &L);
     template<class T> void coarsen_t();
-    template<class T> void factor_lines_t();
+    template<class T> void factor_lines_t(int l0=0, int l1=-1);
     void build_widths(const double *dxn,const double *dyn);
     void exchange_widths(sc_level &L);
     void restrict_xy(sc_level &F,sc_level &C);

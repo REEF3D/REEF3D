@@ -59,6 +59,14 @@ public:
     void startV(lexer*, ghostcell*, double*, vec&, matrix_diag&, int) override final;
     void startM(lexer*, ghostcell*, double*, double*, double*, int) override final;
 
+    //  The next var-8 solve keeps the coarse levels of the last one and only
+    //  refactors the lines of the fine level (FNPF theta-Robin corrector
+    //  passes, A 310 5: the rows change little from pass to pass). The fine
+    //  level and the Krylov operator are those of the new rows, so the solve
+    //  converges to them; only the preconditioner is that of the last
+    //  coarsening. Reset by every solve; ignored when the wet/dry pattern changed.
+    static bool keep_coarse;
+
     //  exact fine operator for the Krylov iteration in fp32 mode (sc_operator)
     void fine_apply(const sc_level &L,const double *x,double *y) override;
 
@@ -100,6 +108,7 @@ private:
     std::vector<int> wetsig;    // p->wet at the last rowmap/colrow0 build
     bool fill_topo=true;        // the wet/dry pattern changed in the last fill_matrix8
     bool rmap_ok=false;         // rowmap and colrow0 are those of the current wet/dry pattern
+    bool coarsened=false;       // a var-8 hierarchy has been built (keep_coarse)
     unsigned long long mkey=0;  // var 8: hash of the rows of the last coarsen()
     bool mkey_ok=false;         // (cleared by the other paths that coarsen mg)
     int count;
