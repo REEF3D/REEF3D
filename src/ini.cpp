@@ -966,6 +966,8 @@ void control::ini_default()
     N52=0.0;        // double FNPF time step accuracy cap: shortest relevant wave period T_min [s], 0 off
     N53=40.0;       // double FNPF time step accuracy cap: time steps per T_min, dt <= N52/N53
     N54=0.0;        // double CFD time step: 0 the acceleration term with gravity; > 0 gravity out of the acceleration term (the projection balances it) and the gravity-wave limit omega_max dt <= N54
+    N57=0.0;        // double CFD time step with the level set: 0 off; > 0 the criterion N 47 over the water and a band of N57 cells into the air, the air beyond the band with the stability limit N 58
+    N58=0.9;        // double CFD time step, N 57 > 0: Courant number of the air beyond the band, dt <= N58/max(|u|/dx + |v|/dy + |w|/dz)
 	N61=500.0;      // double stopping criteria velocities
 
     // MPI

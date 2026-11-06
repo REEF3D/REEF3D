@@ -725,6 +725,11 @@ void driver::logic_cfd()
     mom_rk=true;
     }
 
+    // N 57 (the time step with the band around the free surface) is in ietimestep and etimestep (level 0)
+    if(p->N57>0.0 && p->mpirank==0 && (p->F30<=0 || p->G1>0 || p->N48==0))
+    cout<<"N 57 needs the level set (F 30), the adaptive time step (N 48 1) and works on level 0 only: "
+        <<((p->F30<=0 || p->N48==0) ? "not used" : "the patches of the mesh refinement (G 1) keep their criterion")<<endl;
+
     // N 54 (gravity out of the acceleration term of the time step) is in the Runge-Kutta momentum
     if(p->N54>0.0 && !mom_rk)
     {
