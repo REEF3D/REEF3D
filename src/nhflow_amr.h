@@ -150,8 +150,8 @@ using namespace std;
 //  nhflow_amr_block.cpp): the blocks 1.. are level-0 patches of the hierarchy, with or without
 //  refinement (G 7 1: level 0 is the native grid with the blocks, sub_level0_blocks, without bodies),
 //  not with X 10 > 2, or bodies with G 40 (nhflow_amr::blocks_check); the
-//  hydrostatic semi-implicit free surface (A 534 1, nhflow_amr_si.cpp) on the multi-block grid
-//  without refinement (A 534 1 with G 1 is refused by nhflow_momentum_SI::check).  Checkpoints
+//  hydrostatic semi-implicit free surface (A 510 12/13, nhflow_amr_si.cpp) on the multi-block grid
+//  without refinement (A 510 12/13 with G 1 is refused by nhflow_momentum_SI::check).  Checkpoints
 //  (P 48, I 45): nhflow_amr_ckpt.cpp.  Patches stay out of the relaxation zones (B 96), the in- and
 //  outflow band and, without G 30 1 and checked at every regrid, 4 level-0 cells away from dry or
 //  shallow cells (they are fully wet; level 0 keeps its wetting and drying).
@@ -282,7 +282,7 @@ public:
     // the time step of all grids (nhflow_momentum_RK2/RK3::start)
     void step(lexer*, fdm_nhf*, ghostcell*, nhflow_momentum_func*, nhflow_stage_obj&) override;
 
-    // hydrostatic semi-implicit free surface on the multi-block grid (A 534 1, nhflow_amr_si.cpp): the
+    // hydrostatic semi-implicit free surface on the multi-block grid (A 510 12/13, nhflow_amr_si.cpp): the
     // parts of the step of every block (nhflow_momentum_SI), the cells around the blocks filled in
     // between, one eta system over the cells of all blocks (BiCGStab, one REEFMG2D V-cycle per grid as preconditioner)
     void si_step(lexer*, fdm_nhf*, ghostcell*, nhflow_momentum_func*, nhflow_stage_obj&);
@@ -681,7 +681,7 @@ private:
     nhflow_momentum_func *mom0;
     nhflow_stage_obj *S0p = nullptr;
 
-    // A 534 1 (nhflow_amr_si.cpp): the semi-implicit step of all grids (the native grid, the blocks 1.., the patches
+    // A 510 12/13 (nhflow_amr_si.cpp): the semi-implicit step of all grids (the native grid, the blocks 1.., the patches
     // of the levels), the eta system of all of them (reefamr_si.cpp)
     nhflow_momentum_SI* gsi(int);
     template<class F> void si_each(ghostcell*, F);          // the level-0 grids (native grid, blocks)

@@ -59,7 +59,11 @@ void sixdof_sflow::start_oneway(lexer *p, ghostcell *pgc, int iter, slice &fsglo
 {
     for (int nb=0; nb<number6DOF;++nb)
     {
-        // Advance body in time
+        // Advance body in time; the semi-implicit step (sflow_midpoint): once per step, after the step
+        if(mid)
+        fb_obj[nb]->solve_eqmotion_oneway_onestep(p,pgc,finalize);
+
+        else
         fb_obj[nb]->solve_eqmotion_oneway_sflow(p,pgc,iter,finalize);
         
         // Update transformation matrices

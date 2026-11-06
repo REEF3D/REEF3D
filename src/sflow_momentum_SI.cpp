@@ -57,7 +57,7 @@ sflow_momentum_SI::sflow_momentum_SI(lexer *p, fdm2D *b, ghostcell *pgc, sflow_H
                                       qxN(p),Hxo(p),qxo(p),qxa(p),nxR(p),nxL(p),nxB(p),nx0(p),kxEL(p),kxER(p),kxPL(p),kxPR(p),kx1(p),kx2(p),
                                       qyN(p),Hyo(p),qyo(p),qya(p),nyR(p),nyL(p),nyB(p),ny0(p),kyEL(p),kyER(p),kyPL(p),kyPR(p),ky1(p),ky2(p),
                                       phiN(p),WHp(p),Lc0(p),Unm1(p),Vnm1(p),WLh(p),WLo(p),AWo(p),WLq(p),
-                                      nPW(p),nEb(p),nEo(p),nPo(p),nU(p),nV(p),nUs(p),nVs(p),nA(p),nsx(p),nsy(p),nE(p),nP(p),nL(p),nZ(p),nAE(p),nAP(p),nBE(p),nBP(p),
+                                      nPW(p),nEb(p),nEo(p),nPo(p),nU(p),nV(p),nUs(p),nVs(p),nA(p),nsx(p),nsy(p),nE(p),nP(p),nL(p),nZ(p),nAE(p),nAP(p),nBE(p),nBP(p),nGx(p),nGy(p),
                                       nF1x(p),nF2x(p),nF1y(p),nF2y(p),nH3(p),nW2(p),nCs(p),nRm(p),nRc(p),nZE(p),nZP(p),sps(p)
 {
     check(p);
@@ -78,8 +78,9 @@ sflow_momentum_SI::sflow_momentum_SI(lexer *p, fdm2D *b, ghostcell *pgc, sflow_H
 
     patch = block;
 
-    // X 10 3: the ship pressure of the step is the mean of its start and its end (ship_level)
-    if(p->X10==3 && !patch)
+    // X 10 3: the ship pressure of the step is the mean of its start and its end (ship_level; a refined patch: its
+    // sflow_amr_ship); X 10 2: the body moves once per step (sixdof_sflow::start_oneway)
+    if(p->X10==2 || p->X10==3)
     p6dof->sflow_midpoint(true);
 
     if(p->mpirank==0 && !patch)
@@ -130,10 +131,19 @@ void sflow_momentum_SI::check(lexer *p)
     if(p->A220!=0 && p->A220!=2 && p->A220!=3)
     msg("Boussinesq and the linear non-hydrostatic pressure (A 220 1, 4) are; set A 220 0, 2 or 3,");
 
+    // curvilinear grid (G 50): one block without mesh refinement (the composite coupled system of sflow_amr_sinh.cpp
+    // is Cartesian)
     if(p->A220==2 || p->A220==3)
     {
-        if(p->geo_curv==1 || p->G50>0)
-        msg("the non-hydrostatic pressure (A 220 2/3) on curvilinear and multi-block grids is; set A 220 0,");
+        if(p->geo_mb>0)
+        msg("the non-hydrostatic pressure (A 220 2/3) on multi-block grids is; set A 220 0,");
+
+        else
+        if(p->geo_curv==1 && p->G1>0)
+        msg("the non-hydrostatic pressure (A 220 2/3) on curvilinear grids with mesh refinement (G 1) is; set A 220 0,");
+
+        if(p->geo_curv==1 && p->j_dir==0)
+        msg("the non-hydrostatic pressure (A 220 2/3) on a curvilinear grid with one cell in y is");
     }
 
     // mesh refinement (G 1) and multi-block grids (G 50 1): one eta system over the leaf cells of all grids
@@ -144,12 +154,17 @@ void sflow_momentum_SI::check(lexer *p)
     if(p->B411>0 || p->B412>0 || p->B413>0 || p->B414>0 || p->B415>0 || p->B416>0 || p->B417>0 || p->B418>0 || p->B421>0 || p->B422>0)
     msg("patch boundary conditions (B 411-422) are");
 
-    // X 10 3: ship waves from the pressure of the moving body (sixdof_sflow, X 400), with the gravity term
-    if(p->X10>0 && p->X10!=3)
-    msg("6DOF and direct forcing (X 10 1/2; the ship pressure X 10 3 is supported) are");
+    // X 10 3: ship waves from the pressure of the moving body (sixdof_sflow, X 400), with the gravity term; X 10 2: the
+    // direct forcing of the moving body on the cells after the step (cell_update), one grid, Cartesian
+    if(p->X10>0 && p->X10!=2 && p->X10!=3)
+    msg("6DOF floating bodies (X 10 1; SFLOW has the moving body X 10 2 and the ship pressure X 10 3) are");
 
-    if(p->X10==3 && (p->G1>0 || p->G50>0 || p->geo_curv==1))
-    msg("the ship pressure (X 10 3) with mesh refinement, curvilinear and multi-block grids is");
+    if(p->X10==2 && (p->G1>0 || p->G50>0 || p->geo_curv==1))
+    msg("the direct forcing of a moving body (X 10 2) with mesh refinement, curvilinear and multi-block grids is");
+
+    // X 10 3 with mesh refinement (G 1, Cartesian): the pressure of the step on the patches (sflow_amr::si_step)
+    if(p->X10==3 && (p->G50>0 || p->geo_curv==1))
+    msg("the ship pressure (X 10 3) on curvilinear and multi-block grids is");
 
     // SEASTATE coupling (A 750 1): the wave force in the predictor, the Stokes mass source (A 751 2) in the eta
     // system; surfbeat (A 770 1) needs the host's step for the wave groups and the long-wave boundary
@@ -217,10 +232,7 @@ void sflow_momentum_SI::step_single(lexer *p, fdm2D* b, ghostcell* pgc)
     // X 10 3: the body moves to the end of the step, its pressure of the start is kept (sixdof_sflow::sflow_midpoint);
     // the mean of the two goes with the gravity term (ship_level, si_assemble, cell_update)
     if(p->X10==3)
-    {
-    psfdf->forcing(p,b,pgc,p6dof,p->count,1.0,b->UH,b->VH,b->WH,b->WL,true);
-    ship_level(p,b,pgc);
-    }
+    ship_begin(p,b,pgc,true);
 
     si_begin(p,b,pgc);
 
@@ -253,6 +265,16 @@ void sflow_momentum_SI::step_single(lexer *p, fdm2D* b, ghostcell* pgc)
 
     si_end_faces(p,b,pgc);
     si_end_cells(p,b,pgc);
+}
+
+void sflow_momentum_SI::ship_begin(lexer *p, fdm2D* b, ghostcell* pgc, bool move)
+{
+    // X 10 3: the body of level 0 moves to the end of the step (move), the pressure of the step on this grid (a refined
+    // patch: from the body at the start and the end of the step, sflow_amr::si_step and sflow_amr_ship)
+    if(move)
+    psfdf->forcing(p,b,pgc,p6dof,p->count,1.0,b->UH,b->VH,b->WH,b->WL,true);
+
+    ship_level(p,b,pgc);
 }
 
 void sflow_momentum_SI::si_restore(lexer *p, fdm2D* b, ghostcell* pgc)
@@ -1626,8 +1648,8 @@ void sflow_momentum_SI::cell_update(lexer *p, fdm2D *b, ghostcell *pgc)
             gy = bg*by_;
             }
 
-            b->UH(i,j) = alc(i,j)*(UHp(i,j) - dt*g*WL0(i,j)*gx);
-            b->VH(i,j) = alc(i,j)*(VHp(i,j) - dt*g*WL0(i,j)*gy);
+            b->UH(i,j) = alc(i,j)*(UHp(i,j) - dt*g*Hg(i,j)*gx);
+            b->VH(i,j) = alc(i,j)*(VHp(i,j) - dt*g*Hg(i,j)*gy);
             }
         }
 
@@ -1643,6 +1665,29 @@ void sflow_momentum_SI::cell_update(lexer *p, fdm2D *b, ghostcell *pgc)
     // non-hydrostatic pressure (A 220 2/3): UH with the mean of the face terms, WH
     if(nh)
     nh_cell(p,b,pgc);
+
+    // X 10 2: the body moves over the step, the direct forcing sets the momentum of its cells to the body velocity
+    // (sflow_forcing with the velocities of the new momentum, as the stages of the explicit step); the face discharges
+    // of the next step follow from the cells (si_assemble)
+    if(p->X10==2)
+    {
+        SLICELOOP4
+        {
+        tU(i,j) = b->U(i,j);
+        tV(i,j) = b->V(i,j);
+        const bool w = (p->wet[IJ]==1 && b->WL(i,j)>p->A244);
+        b->U(i,j) = w ? b->UH(i,j)/b->WL(i,j) : 0.0;
+        b->V(i,j) = (w && p->j_dir==1) ? b->VH(i,j)/b->WL(i,j) : 0.0;
+        }
+
+    psfdf->forcing(p,b,pgc,p6dof,0,1.0,b->UH,b->VH,b->WH,b->WL,true);
+
+        SLICELOOP4
+        {
+        b->U(i,j) = tU(i,j);
+        b->V(i,j) = tV(i,j);
+        }
+    }
 
     // velocities of the interior (Froude limiter A 531)
     velcalc(p,b,pgc,b->UH,b->VH,b->WH,b->WL,0);

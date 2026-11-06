@@ -1,0 +1,24 @@
+{
+ "base": "sflow_2d_si_nh_shoal",
+ "ctrl_set": {
+  "A 228": "0.04"
+ },
+ "ctrl_add": [
+  "G 1 1",
+  "G 2 0",
+  "G 10 3 11.2 1 7"
+ ],
+ "description": "sflow_2d_si_nh_shoal with a static refined box (G 1 1, G 10) around the mound, dx 5 cm on the patch, dt 0.04 s: the composite coupled system with the two-level preconditioner of the level-1 patch.",
+ "tags": [
+  "2d",
+  "sflow",
+  "semi_implicit",
+  "nonhydrostatic",
+  "amr"
+ ],
+ "covers": [
+  "sflow_amr::si_nh_solve 2D",
+  "nh_amr_prec, nh_amr_lap, nh_amr_faces, two-level stencils"
+ ],
+ "architect": "Hans Bihs"
+}

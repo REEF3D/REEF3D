@@ -51,6 +51,15 @@ void lexer::lexer_read(ghostcell *pgc)
     if(mpirank==0)
     A229 = (A243>0) ? 1 : 0;
 
+    // NHFLOW: A 510 12 / 13 the semi-implicit theta step (nhflow_momentum_SI, A 535, A 536) with an SSP-RK2 / RK3
+    // predictor of the explicit terms; inside REEF3D A534 = 1 marks the semi-implicit step and A510 = 2 / 3 is the order
+    // of its predictor (A 534 itself is no longer a ctrl.txt key)
+    if(mpirank==0 && (A510==12 || A510==13))
+    {
+    A534 = 1;
+    A510 -= 10;
+    }
+
     // NHFLOW: A 519 not given in ctrl.txt -> bed friction (log law in the bottom layer) with a turbulence model (A 560)
     // or sediment transport (S 10): without it the flow slips over the bed, the velocity profile of an open channel
     // stays a plug and the bed shear stress of the sediment is too high; no bed friction otherwise (the previous default)

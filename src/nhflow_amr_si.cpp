@@ -43,7 +43,7 @@ Author: Hans Bihs
 #include<Eigen/SparseLU>
 #include<iomanip>
 
-// Hydrostatic semi-implicit free surface (A 534 1) on the multi-block grid (G 50 1, DIVEMesh R 20 1) and with mesh
+// Hydrostatic semi-implicit free surface (A 510 12/13) on the multi-block grid (G 50 1, DIVEMesh R 20 1) and with mesh
 // refinement (G 1).
 //
 // Every grid (the native grid -1, the blocks 1.. of lev[0], the patches of the levels) has its own

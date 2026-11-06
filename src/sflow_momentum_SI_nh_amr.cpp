@@ -318,7 +318,10 @@ void sflow_momentum_SI::nh_amr_prec_setup(lexer *p, ghostcell *pgc, const std::f
         const double cL = dir==1 ? nxL(a,c) : nyL(a,c);
         const int si = self_left ? a : a1, sj = self_left ? c : c1;
         const int oi = self_left ? a1 : a, oj = self_left ? c1 : c;
-        const double cs = self_left ? cL : cR, co = self_left ? cR : cL;
+        // the mean of the two pressure coefficients of the face (cL - cR: the depth and bed differences across it): the
+        // V-cycle of a refined patch diverged on the non-symmetric matrix (two levels, a moving refinement zone; the
+        // patch rows end at the ring); the operator of the Krylov solver keeps them
+        const double cs = 0.5*(cL + cR), co = cs;
 
         diag = (af/dn)*nAE(si,sj) + tdt*cs/dn*nAP(si,sj);
         off  = -(af/dn)*nAE(oi,oj) - tdt*co/dn*nAP(oi,oj);

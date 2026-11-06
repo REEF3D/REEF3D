@@ -25,7 +25,7 @@ Author: Hans Bihs
 #include"fdm2D.h"
 #include"ghostcell.h"
 
-sflow_amr_ship::sflow_amr_ship(lexer *p) : press(p), draft(p)
+sflow_amr_ship::sflow_amr_ship(lexer *p) : press(p), draft(p), press_n(p)
 {
     for(int n=0; n<6; ++n)
     u[n]=0.0;
@@ -89,6 +89,18 @@ void sflow_amr_ship::start_sflow(lexer *p, fdm2D *b, ghostcell *pgc, int iter, s
         fx(i,j) += H*(uf - P(i,j))/(alpha[iter]*p->dt);
         fy(i,j) += H*(vf - Q(i,j))/(alpha[iter]*p->dt);
     }
+}
+
+bool sflow_amr_ship::sflow_press_step(lexer *p, slice &ps)
+{
+    if(p->X10!=3)
+    return false;
+
+    for(int ii=p->imin; ii<p->imin+p->imax; ++ii)
+    for(int jj=p->jmin; jj<p->jmin+p->jmax; ++jj)
+    ps(ii,jj) = mid ? 0.5*(press(ii,jj) + press_n(ii,jj)) : press(ii,jj);
+
+    return true;
 }
 
 // X 10 3: pressure of the moving body, as sixdof_sflow::isource2D/jsource2D

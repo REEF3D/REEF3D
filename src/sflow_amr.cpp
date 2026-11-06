@@ -262,9 +262,11 @@ void sflow_amr::ini(lexer *p, fdm2D *b, ghostcell *pgc)
     int ok=1;
     if(p->A220<0 || p->A220>4) ok=0;
     if(p->A210==2 && si==0) ok=0;
-    // semi-implicit free surface (A 210 12/13): hydrostatic, one global time step, no moving bodies (sflow_amr_si.cpp)
+    // semi-implicit free surface (A 210 12/13): one global time step (sflow_amr_si.cpp); the ship pressure X 10 3 on
+    // Cartesian grids, the pressure of the step on the patches (sflow_amr::si_step)
     // A 220 2/3: the coupled eta-P system over the leaf cells (sflow_amr_sinh.cpp), Cartesian, without multi-block
-    if(si==1 && ((p->A220!=0 && !((p->A220==2 || p->A220==3) && p->geo_mb==0 && p->geo_curv==0)) || p->G7==1 || p->X10!=0)) ok=0;
+    if(si==1 && ((p->A220!=0 && !((p->A220==2 || p->A220==3) && p->geo_mb==0 && p->geo_curv==0)) || p->G7==1 || (p->X10!=0 && p->X10!=3))) ok=0;
+    if(si==1 && p->X10==3 && (p->geo_mb>0 || p->geo_curv==1)) ok=0;
     // the algebraic eddy viscosity of every grid (sflow_ediff); k-epsilon / k-omega with a model on every patch
     // (sflow_amr_turb.cpp), Cartesian without multi-block
     if(p->A260!=0 && p->A260!=3 && p->A260!=4 && turb==0) ok=0;
@@ -293,7 +295,7 @@ void sflow_amr::ini(lexer *p, fdm2D *b, ghostcell *pgc)
     if(ok==0)
     {
         if(p->mpirank==0)
-        cout<<"SFLOW AMR (G 1): only for A 246 0-2, A 220 0-4, A 210 3 or 12/13 (A 210 12/13: A 220 0 or 2/3 Cartesian without multi-block, X 10 0, without G 7 1), A 260 0-4 (1/2 Cartesian), S 10 0/1 (S 51 0, S 31 1/2, S 32 1/2), X 10 0-3, W 90 0, and with one cell in y Cartesian -- refinement switched off"<<endl;
+        cout<<"SFLOW AMR (G 1): only for A 246 0-2, A 220 0-4, A 210 3 or 12/13 (A 210 12/13: A 220 0 or 2/3 Cartesian without multi-block, X 10 0 or 3 (Cartesian), without G 7 1), A 260 0-4 (1/2 Cartesian), S 10 0/1 (S 51 0, S 31 1/2, S 32 1/2), X 10 0-3, W 90 0, and with one cell in y Cartesian -- refinement switched off"<<endl;
         maxlev=0;
         return;
     }

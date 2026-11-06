@@ -27,7 +27,7 @@ Author: Hans Bihs
 
 using namespace std;
 
-// time step of the hydrostatic semi-implicit NHFLOW (A 534 1): the advective Courant number
+// time step of the hydrostatic semi-implicit NHFLOW (A 510 12/13): the advective Courant number
 //   dt = 2 N47 / max( |u|/dx + |v|/dy + |omega|/(dsig WL) ),
 // the limit of the explicit horizontal diffusion, capped by A 536 (s); without A 536 the time step stays
 // at the explicit gravity wave limit

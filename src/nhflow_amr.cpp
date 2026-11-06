@@ -2744,7 +2744,7 @@ void nhflow_amr::exchange_fluxes(int l)
 // --------------------------------------------------------------------- time stepping
 void nhflow_amr::step(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_momentum_func *mom, nhflow_stage_obj &S0)
 {
-    // A 534 1: hydrostatic semi-implicit free surface, one eta system over the blocks (nhflow_amr_si.cpp)
+    // A 510 12/13: hydrostatic semi-implicit free surface, one eta system over the blocks (nhflow_amr_si.cpp)
     if(p->A534==1)
     {
         si_step(p,d,pgc,mom,S0);

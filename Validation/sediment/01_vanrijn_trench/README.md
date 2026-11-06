@@ -40,7 +40,7 @@ Three trenches were tested, with side slopes 1:3 (test 1, depth 0.175 m), 1:7 (t
 
 | | NHFLOW | SFLOW |
 |---|---|---|
-| hydrodynamics | hydrostatic, semi-implicit (A 534 1, θ = 1), 20 σ-layers, k-ε (A 560 1, A 567 1), bed friction A 519 1 with the hydraulic roughness B 50 = 0.025 m (S 28 2, new) | hydrostatic (A 220 0), semi-implicit (A 210 13, Δt ≤ 0.1 s), Manning from B 50 = 0.025 m |
+| hydrodynamics | hydrostatic, semi-implicit (A 510 12, θ = 1), 20 σ-layers, k-ε (A 560 1, A 567 1), bed friction A 519 1 with the hydraulic roughness B 50 = 0.025 m (S 28 2, new) | hydrostatic (A 220 0), semi-implicit (A 210 13, Δt ≤ 0.1 s), Manning from B 50 = 0.025 m |
 | bed load | van Rijn (S 11 1) | van Rijn (S 11 1) |
 | suspended load | S 12 1, van Rijn reference concentration | S 120 1, van Rijn (2007) c_a + Rouse |
 | settling velocity | S 23 0.013 (S 25 0) | S 23 0.013 |

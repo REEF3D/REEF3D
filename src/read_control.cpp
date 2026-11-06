@@ -603,6 +603,15 @@ void control::read_control(lexer* p)
                          clear(c,numint);
                          break;
                 case 534: control>>A534;
+                         // retired: the semi-implicit NHFLOW is A 510 12 / 13
+                         if(A534==1)
+                         {
+                         cout<<"!!! ctrl.txt: A 534 1 is no longer used: the semi-implicit NHFLOW is A 510 12 (SSP-RK2 predictor) "
+                             <<"or A 510 13 (SSP-RK3 predictor) !!!"<<endl;
+                         exit(1);
+                         }
+                         cout<<"ctrl.txt: A 534 0 is no longer used and is ignored (explicit NHFLOW: A 510 2 / 3)"<<endl;
+                         A534=0;
                          clear(c,numint);
                          break;
                 case 535: control>>A535;

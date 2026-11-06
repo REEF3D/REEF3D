@@ -1,0 +1,20 @@
+{
+ "description": "SFLOW semi-implicit step with the coupled non-hydrostatic pressure (A 210 12, A 220 3) and a moving surface pressure (X 10 3, X 400 3: 4 m long, depth-Froude number 1.0, h = 1 m), dx = 0.1 m, dt = 0.025 s (the pressure moves 0.8 cells per step). Upstream solitons form ahead of the pressure.",
+ "solver": "sflow",
+ "np": 1,
+ "steps": 600,
+ "tags": [
+  "quick",
+  "1d",
+  "sflow",
+  "semi_implicit",
+  "nonhydrostatic",
+  "ship",
+  "6dof"
+ ],
+ "covers": [
+  "sixdof_sflow pressure with the semi-implicit step (sflow_press_step: mean of the start and end of the step)",
+  "ship_level in the face discharge and the cell update"
+ ],
+ "architect": "Hans Bihs"
+}
