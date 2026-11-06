@@ -394,7 +394,7 @@ VTU/state print keys (`P 20/30/40/41/42`), so runs are short and output stays sm
 | `cfd_2d_dambreak_amr_adapt_sub` | 1 | the same with subcycling (G 7 1): the regrid after the level-0 step |
 | `cfd_2d_dambreak_amr3_adapt` | 1 | two levels adaptive (G 1 2, G 24 3): new level-1 patches as the parents of new level-2 patches |
 | `cfd_2d_dambreak_amr3_adapt_sub` | 1 | two levels adaptive with subcycling (G 7 1): touching patches of a level share one multigrid in the level projections and the synchronisation; the pressure of level 1 held at its end value for level 2 |
-| `cfd_2d_dambreak_amr3_adapt_onestep` | 1 | the one-step scheme (N 40 1) on two adaptive levels: the momentum of all levels and the composite projection first, then the level set of all levels |
+| `cfd_2d_dambreak_amr3_adapt_onestep` | 1 | the one-step scheme (N 40 1) on two adaptive levels: the momentum of all levels and the composite projection first, then the level set of all levels; the Godunov convection on the patches (0159), Crank-Nicolson (0160), first-order momentum in the air (N 56 2, 0161) |
 | `cfd_2d_dambreak_amr_adapt_mpi2` | 2 | adaptive on 2 ranks: patches moving across the partition edge |
 | `cfd_2d_dambreak_amr_flags` | 1 | the criteria together: interface band G 24 1, vorticity G 26 20, a static box G 15 |
 | `cfd_3d_dambreak_amr_adapt` | 2 | CFD AMR 3D adaptive (G 24 1, tiles G 4 2, no buffer G 3 0) on 2 ranks |

@@ -442,6 +442,9 @@ public:
     double I244_xs,I244_xe,I244_ys,I244_ye,I245;
     int I246;
 
+    // Numerical Options of the one-step scheme (N 40 1)
+    double N56;
+
     // Numerical Options
     int N10,N11,N12,N13,N14,N15,N16,N17,N18,N19,N40,N45,N46,N48,N51;
     int N20,N21,N22,N23,N25,N26;
