@@ -148,6 +148,28 @@ void fnpf_theta::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, con
     const double g  = fabs(p->W22);
     const double dt = p->dt;
     
+    // damping of eta and Fifsf with the viscosity vb of breaking and of the coastline (implicit over the step, as
+    // in each RK3 stage): at the start of the step, i.e. as a source of the step, not after the solve; the
+    // solve then gives Fi of the damped surface, without a further Laplace solve (until patch 0022 a consistency
+    // solve followed the damping after the solve, in the surf zone in almost every step). w^n is that of the
+    // surface before the damping, as the tendencies of the step.
+    if(p->A350>0)
+    {
+    double vbm=0.0;
+    SLICELOOP4
+    vbm = MAX(vbm,fabs(c->vb(i,j)));
+    vbm = pgc->globalmax(vbm);
+    
+    if(vbm>0.0)
+    {
+    {fnpf_prof::scope ps_(fnpf_prof::damping); pf->damping(p,c,pgc,c->eta,gcval_eta,1.0);}
+    {fnpf_prof::scope ps_(fnpf_prof::damping); pf->damping(p,c,pgc,c->Fifsf,gcval_fifsf,1.0);}
+    {fnpf_prof::scope ps_(fnpf_prof::gc2d); pgc->gcsl_start4(p,c->eta,gcval_eta);}
+    {fnpf_prof::scope ps_(fnpf_prof::gc2d); pgc->gcsl_start4(p,c->Fifsf,gcval_fifsf);}
+    {fnpf_prof::scope ps_(fnpf_prof::fsfdisc); pf->fsfdisc(p,c,pgc,c->eta,c->Fifsf);}
+    }
+    }
+    
     SLICELOOP4
     en(i,j) = c->eta(i,j);
     
@@ -273,7 +295,7 @@ void fnpf_theta::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, con
     SLICELOOP4
     c->eta(i,j) = relRe(i,j)*c->eta(i,j) + relTe(i,j);
     
-    // the surface of the solve: the edits below (breaking damping and filters, coastline) change it after the
+    // the surface of the solve: the edits below (breaking filters, wetting-drying, coastline) change it after the
     // solve, and Fi below would no longer be that of the edited surface (as with the relaxation zones before
     // patch 0006); then a Dirichlet solve on the final grid follows (as the last RK3 stage)
     SLICELOOP4
@@ -281,10 +303,6 @@ void fnpf_theta::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, con
     erk1(i,j) = c->eta(i,j);
     frk1(i,j) = c->Fifsf(i,j);
     }
-    
-    // damping, as the last RK3 stage
-    {fnpf_prof::scope ps_(fnpf_prof::damping); pf->damping(p,c,pgc,c->eta,gcval_eta,1.0);}
-    {fnpf_prof::scope ps_(fnpf_prof::damping); pf->damping(p,c,pgc,c->Fifsf,gcval_fifsf,1.0);}
     
     {fnpf_prof::scope ps_(fnpf_prof::wetdry); pf->wetdry(p,c,pgc,c->eta,c->Fifsf);}
     {fnpf_prof::scope ps_(fnpf_prof::gc2d); pgc->gcsl_start4(p,c->eta,gcval_eta);}

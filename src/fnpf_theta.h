@@ -46,9 +46,9 @@ using namespace std;
 // (A 341/A 342/A 347) and Fifsf = 0 on land are part of the affine maps of the zones (relax_affine), i.e. of the
 // Robin rows and the eta update; the dry columns are not in the solve (A 343 1: Fifsf of the land map, A 343 2:
 // held, set by wetdry_dynamic after the step); the clamps and the dynamic front after the step are surface edits
-// (consistency solve). In the surf zone (breaking every step) every step needs that extra solve and steps
-// beyond about 1.2 x the RK3 step are unstable (Ting & Kirby, Mase & Kirby; also without wetting-drying and
-// without breaking): with a coastline N 51 3 uses at most the RK3 step of N 51 2 at N 47 0.75.
+// (consistency solve). With a coastline N 51 3 uses at most the RK3 step of N 51 2 at N 47 0.75: from about
+// 1.5 x that step the corrector passes do not converge at the swash (surface Courant number |Fx| dt/dx above
+// about 1.5 in films of a few mm) and at steep breaking fronts (Ting & Kirby, Mase & Kirby; validation 08).
 //
 // The linear part of the free-surface conditions, eta_t = w and Fifsf_t = -g eta, is integrated with the
 // theta method, the nonlinear rest N (Zakharov terms, wind) at t^n+1/2:
@@ -104,9 +104,11 @@ using namespace std;
 //   zone change by up to 16 % in Hm0 between zones per time as RK3 at N 47 0.75 and at N 47 0.04; Stokes
 //   heights 1.035-1.044 with -0.75, 0.986-0.992 with -0.1 (the default since 6 November 2026).
 //
-// Edits of the surface after the solve (breaking damping and filters A 350/A 352, coastline): Fi below would be
-// that of the unedited surface (as with the relaxation zones before patch 0006); when an edit changed eta or
-// Fifsf, a Dirichlet Laplace solve on the final grid follows (as the last RK3 stage). Breaking events only.
+// Damping with the viscosity vb of breaking and of the coastline (A 350, A 357): at the start of the step, as a
+// source of the step (patch 0022), so the solve gives Fi of the damped surface.
+// Edits of the surface after the solve (the breaking filters A 352, the wetting-drying clamps, the coastline of
+// A 343 0): Fi below would be that of the unedited surface (as with the relaxation zones before patch 0006); when
+// an edit changed eta or Fifsf, a Dirichlet Laplace solve on the final grid follows (as the last RK3 stage).
 //
 // A 306 linear solver (1 REEFMG, default; 2 SparseLU), A 307 residual reduction of the REEFMG solves (default
 // 1e-2; 0: N 44).
