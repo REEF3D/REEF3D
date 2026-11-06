@@ -47,8 +47,8 @@ using namespace std;
 // Robin rows and the eta update; the dry columns are not in the solve (A 343 1: Fifsf of the land map, A 343 2:
 // held, set by wetdry_dynamic after the step); the clamps and the dynamic front after the step are surface edits
 // (consistency solve). In the surf zone (breaking every step) every step needs that extra solve and steps
-// beyond about 1.2 x the RK3 step are unstable (Ting & Kirby, also without wetting-drying and without breaking):
-// N 51 3 bounds |u| dt/dx by 0.35, which keeps the step there near that of RK3.
+// beyond about 1.2 x the RK3 step are unstable (Ting & Kirby, Mase & Kirby; also without wetting-drying and
+// without breaking): with a coastline N 51 3 uses at most the RK3 step of N 51 2 at N 47 0.75.
 //
 // The linear part of the free-surface conditions, eta_t = w and Fifsf_t = -g eta, is integrated with the
 // theta method, the nonlinear rest N (Zakharov terms, wind) at t^n+1/2:

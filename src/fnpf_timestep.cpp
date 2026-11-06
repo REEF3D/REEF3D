@@ -46,7 +46,8 @@ fnpf_timestep::~fnpf_timestep()
 //                 fraction of the linear stability limit of the RK scheme (N47 < 1), for any depth, 2D and 3D
 //
 //  3  theta-Robin (A 310 5): the step of an accuracy target, the phase-speed error N 55 [%] of the reference
-//                 wave (period N 52, or of the wave input), at most 4 x the step of N 51 2 at N 47 0.75 (theta_step)
+//                 wave (period N 52, or of the wave input), at most 4 x the step of N 51 2 at N 47 0.75, with a
+//                 coastline (A 343 >= 1) at most that step (theta_step)
 //
 // N 52 T_min > 0, N 53 n: accuracy cap dt <= T_min/n (any N 51). Once the stability limit is no longer the
 // constraint, the RK damping of the short waves sets the accuracy (RK3: about (pi/12)(omega dt)^3 per period).
@@ -130,11 +131,14 @@ double fnpf_timestep::theta_error(lexer *p, double dt, double cu, double T)
 
 double fnpf_timestep::theta_step(lexer *p, double cu)
 {
-    const double dtmax = 3.0*cu;
+    // at most 4 x the RK3 step; with a coastline (A 343 >= 1) at most the RK3 step at N 47 0.75: in the shallow
+    // water of the surf zone the theta-Robin step became unstable from about 1.2 x that step (Ting & Kirby,
+    // Mase & Kirby; also with |u| dt/dx <= 0.35, 10 corrector passes, without breaking or wetting-drying)
+    const double dtmax = (p->A343>=1) ? 0.75*cu : 3.0*cu;
     const double T = theta_tref(p);
     
     if(T<=0.0 || cu<=0.0)
-    return 1.5*cu;
+    return MIN(1.5*cu, dtmax);
     
     const double eps = 0.01*MAX(p->N55,1.0e-6);
     
@@ -470,7 +474,7 @@ void fnpf_timestep::start(fdm_fnpf *c, lexer *p,ghostcell *pgc)
         const double T = theta_tref(p);
         cout<<"FNPF time step N 51 3 (theta-Robin): phase-speed error N 55 "<<p->N55<<" % of the reference wave T = "<<T<<" s ("
             <<(p->N52>0.0 ? "N 52" : (T>0.0 ? "wave input" : "none: 2 x the RK3 step"))<<"), dt = "<<p->dt<<" s = "<<p->dt/(0.75*cu)
-            <<" x the RK3 step of N 51 2, N 47 0.75"<<(p->dt>=3.0*cu*(1.0-1.0e-9) ? " (the bound of 4 x)" : "")<<endl;
+            <<" x the RK3 step of N 51 2, N 47 0.75"<<(p->A343>=1 ? " (at most 1 x with a coastline, A 343 >= 1)" : (p->dt>=3.0*cu*(1.0-1.0e-9) ? " (the bound of 4 x)" : ""))<<endl;
         }
         said=true;
     }
