@@ -110,20 +110,29 @@ momentum_rk::momentum_rk(lexer *p, fdm *a, ghostcell *pgc, convection *pconvecti
     // time integration
     scheme = SSP;
     stages = 3;
+    twoproj = false;
     levelset = false;
 
     if(p->N40==2 || p->N40==22 || p->N40==12)
     stages = 2;
 
     // the one-step scheme (P9 of the CFD AMR performance plan): one stage, the Godunov convection
-    // (godunov) of the momentum and the level set, one projection
-    if(p->N40==1)
+    // (godunov) of the momentum and the level set, one projection (N 40 5)
+    if(p->N40==5)
     stages = 1;
+
+    // the one-step scheme with two projections (N 40 6): the half step u(n+1/2), p(n+1/2) is
+    // projected, the level set moves with it, then the full step (step_twoproj)
+    if(p->N40==6)
+    {
+    stages = 1;
+    twoproj = true;
+    }
 
     if(p->N40==4 || p->N40==24 || p->N40==44)
     scheme = LOWSTORAGE;
 
-    if(p->N40==1 || p->N40==2 || p->N40==22 || p->N40==3 || p->N40==23 || p->N40==4 || p->N40==24 || p->N40==33)
+    if(p->N40==5 || p->N40==6 || p->N40==2 || p->N40==22 || p->N40==3 || p->N40==23 || p->N40==4 || p->N40==24 || p->N40==33)
     levelset = true;
 
     // PIC (F 81 1, 2): the free surface comes from the particles (pic_f), not from the level set
@@ -285,7 +294,10 @@ void momentum_rk::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof 
     p6dof = pp6dof;
 
     // (the SSP step sets the weights of the implicit diffusion in amr_step_begin)
-    if(scheme==SSP)
+    if(scheme==SSP && twoproj)
+    step_twoproj(p,a,pgc,pvrans,p6dof);
+
+    if(scheme==SSP && !twoproj)
     step_ssp(p,a,pgc,pvrans,p6dof);
 
     if(scheme==LOWSTORAGE)
@@ -340,6 +352,125 @@ void momentum_rk::step_ssp(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixd
 }
 
 // ---------------------------------------------------------------------------------------------
+// the one-step scheme with two projections (N 40 6), see momentum_rk.h
+// urk1/vrk1/wrk1: u(n) (amr_step_begin); urk2/vrk2/wrk2: u(n+1/2); a->u: u(n+1)
+// ---------------------------------------------------------------------------------------------
+
+void momentum_rk::step_twoproj(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof *p6dof)
+{
+    amr_step_begin(p,a,pgc);
+
+    // 1. the half step: u(n) -> u*, the forces of time n (the pressure gradient of p(n) with the
+    // face density of phi(n), gravity, the sources) and the Godunov convection of u(n) with u(n);
+    // projected with dt/2: u(n+1/2), divergence free, and p(n+1/2)
+    for(int c=0; c<3; ++c)
+    component_onestep(p,a,pgc,pvrans,c,comp(a,urk1,vrk1,wrk1,c),urk1,vrk1,wrk1,comp(a,urk2,vrk2,wrk2,c),0.5,false);
+
+    momentum_forcing_start(a, p, pgc, p6dof, pfsi, urk2, vrk2, wrk2, fx, fy, fz, 0, 0.5, false);
+
+    projection(p,a,pgc,urk2,vrk2,wrk2,0.5);
+
+    // 2. the level set from n to n+1 with u(n+1/2), reinitialised, the volume correction (F 46);
+    // the density and viscosity of the mid-step level set (phi(n) + phi(n+1))/2 for the full step
+    if(levelset)
+    {
+        levelset_twoproj(p,a,pgc,urk2,vrk2,wrk2);
+        levelset_finish(p,a,pgc,0,true,-1);
+
+        LOOP
+        a->phi(i,j,k) = 0.5*(a->phi(i,j,k) + (*ls)(i,j,k));
+
+        pgc->start4(p,a->phi,gcval_phi);
+        pupdate->start(p,a,pgc,urk2,vrk2,wrk2);
+    }
+
+    // 3. the full step: u(n) -> u*, the Godunov convection of u(n) with the advecting velocity
+    // u(n+1/2), the pressure gradient of p(n+1/2) with the face density of phi(n+1/2), the
+    // diffusion Crank-Nicolson (D(u(n)) explicit, half implicit) where the operator is available;
+    // projected with dt: u(n+1), p(n+1)
+    const bool cn = imex;
+
+    if(cn)
+    {
+        pdiff->apply_u(p,a,pgc,DC(0),urk1,vrk1,wrk1);
+
+        if(p->j_dir==1)
+        pdiff->apply_v(p,a,pgc,DC(1),urk1,vrk1,wrk1);
+
+        pdiff->apply_w(p,a,pgc,DC(2),urk1,vrk1,wrk1);
+    }
+
+    for(int c=0; c<3; ++c)
+    component_onestep(p,a,pgc,pvrans,c,comp(a,urk1,vrk1,wrk1,c),urk2,vrk2,wrk2,comp(a,a->u,a->v,a->w,c),1.0,cn);
+
+    momentum_forcing_start(a, p, pgc, p6dof, pfsi, a->u, a->v, a->w, fx, fy, fz, 0, 1.0, true);
+
+    projection(p,a,pgc,a->u,a->v,a->w,1.0);
+
+    // 4. the level set, density and viscosity of n+1
+    amr_stage_end(p,a,pgc,0);
+}
+
+// one component of a step of the one-step schemes with the weight w of dt:
+// out = uin + w dt [C(uin; U, V, W) + S + forces] + w dt D(out)                      (cn false)
+// out = uin + w dt [C + S + forces] + w dt/2 [D(uin) + D(out)], D(uin) in DC(c)       (cn true)
+void momentum_rk::component_onestep(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, int c, field &uin,
+                                    field &U, field &V, field &W, field &out, double w, bool cn)
+{
+	starttime=pgc->timer();
+
+    field &F = FGH(a,c);
+
+	sources(p,a,pgc,pvrans,c,uin);
+	rhs(p,a,c);
+    convection_start(p,a,c,uin,U,V,W);
+
+    MOMRK_LOOP(c, out(i,j,k) = uin(i,j,k) + w*p->dt*cpor*F(i,j,k); )
+
+    if(cn)
+    {
+    field &D = DC(c);
+    MOMRK_LOOP(c, out(i,j,k) += 0.5*w*p->dt*D(i,j,k); )
+    }
+
+    // VRANS resistance, point-implicit with the weight of the step (B 268 1)
+    pvrans->implicit_drag(p,a,c,w,out,U,V,W);
+
+    MOMRK_LOOP(c, F(i,j,k) = 0.0; )
+
+    diffusion_start(p,a,pgc,c,out,U,V,W,cn ? 0.5*w : w);
+
+	// explicit diffusion (D 20 1) adds to F; zero for the implicit schemes
+    MOMRK_LOOP(c, out(i,j,k) += w*p->dt*cpor*F(i,j,k); )
+
+    MOMRK_LOOP(c, F(i,j,k) = 0.0; )
+
+    double &t = (c==0) ? p->utime : ((c==1) ? p->vtime : p->wtime);
+
+    if(w<1.0)
+    t = pgc->timer()-starttime;
+    else
+    t += pgc->timer()-starttime;
+}
+
+// the level set of N 40 6: phi(n+1) = phi(n) + dt L(phi(n); u(n+1/2)) into ls (a->phi stays phi(n))
+void momentum_rk::levelset_twoproj(lexer *p, fdm *a, ghostcell *pgc, field &U, field &V, field &W)
+{
+    LOOP
+    {
+    a->L(i,j,k)=0.0;
+    (*ls)(i,j,k)=a->phi(i,j,k);
+    }
+
+    pgc->start4(p,*ls,gcval_phi);
+
+    pfsfdisc->start(p,a,*ls,4,U,V,W);
+
+    LOOP
+    (*ls)(i,j,k) += p->dt*a->L(i,j,k);
+}
+
+// ---------------------------------------------------------------------------------------------
 // the parts of an SSP step (step_ssp; the mesh refinement cfd_amr calls them grid by grid, with the
 // fills of the patches and the composite projection in between)
 // ---------------------------------------------------------------------------------------------
@@ -363,7 +494,7 @@ void momentum_rk::amr_step_begin(lexer *p, fdm *a, ghostcell *pgc)
     std::copy(a->w.V, a->w.V + nn, wrk1.V);
     }
 
-    if(stages==3)
+    if(stages==3 || twoproj)
 	pflow->rkinflow(p,a,pgc,urk2,vrk2,wrk2);
 
     // reference volume of the level set at the start of the step (F 46)
@@ -1084,9 +1215,21 @@ void momentum_rk::imex_step_setup(lexer *p)
     imex_w[s]=0.0;
     }
 
-    // one step: the implicit diffusion backward in time
-    if(scheme==SSP && stages==1)
-    imex_g[0]=1.0;
+    // one step: Crank-Nicolson, u(n+1) = u* + dt/2 D(u(n)) + dt/2 D(u(n+1)); D(u(n)) from the end of
+    // the step before (imex_w[0]); the first step, and the first step of a new patch, backward Euler.
+    // N 40 6 takes D(u(n)) of the step itself (step_twoproj), so nothing is kept for it
+    if(scheme==SSP && stages==1 && !twoproj)
+    {
+        if(imex_valid)
+        {
+        imex_g[0]=0.5;      imex_use[0]=true;
+        }
+
+        if(!imex_valid)
+        imex_g[0]=1.0;
+
+    imex_w[0]=0.5;      // D(u(n+1)) for the next step
+    }
 
     if(scheme==SSP && stages==3)
     {
@@ -1132,7 +1275,7 @@ void momentum_rk::imex_step_setup(lexer *p)
         }
     }
 
-    imex_valid = (scheme==LOWSTORAGE || stages==2) ? 1.0 : 0.0;
+    imex_valid = (scheme==LOWSTORAGE || stages==2 || stages==1) ? 1.0 : 0.0;
 }
 
 // before the implicit solve of stage s: add the accumulated explicit diffusion of earlier stages

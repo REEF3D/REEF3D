@@ -1,0 +1,23 @@
+{
+ "base": "cfd_2d_dambreak",
+ "np": 1,
+ "steps": 80,
+ "ctrl_set": {
+  "N 40": "6"
+ },
+ "ctrl_add": [
+  "N 57 3.0",
+  "N 58 0.9"
+ ],
+ "description": "cfd_2d_dambreak_twoproj with the time step of the band (N 57 3): the criterion N 47 over the water and 3 cells into the air, the air beyond the band with the stability limit N 58 0.9 (validation 75).",
+ "tags": [
+  "quick",
+  "2d",
+  "dambreak",
+  "levelset",
+  "closed"
+ ],
+ "covers": [
+  "cfd_airband_dt.h in ietimestep (N 57, N 58)"
+ ]
+}

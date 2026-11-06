@@ -596,10 +596,24 @@ void reefmg_core::factor_lines()
     else           factor_lines_t<double>();
 }
 
-template<class T>
-void reefmg_core::factor_lines_t()
+void reefmg_core::refactor_fine()
 {
-    for(int l=0;l<nuse;++l)
+    if(devmode)
+    {
+        coarsen();
+        return;
+    }
+
+    if(pcbits==32) factor_lines_t<float >(0,1);
+    else           factor_lines_t<double>(0,1);
+}
+
+template<class T>
+void reefmg_core::factor_lines_t(int l0, int l1)
+{
+    if(l1<0) l1=nuse;
+
+    for(int l=l0;l<l1;++l)
     {
         sc_level &L=lev[l];
         const int nz=L.nz;

@@ -3,9 +3,9 @@
  "np": 1,
  "steps": 80,
  "ctrl_set": {
-  "N 40": "1"
+  "N 40": "5"
  },
- "description": "cfd_2d_dambreak (closed tank) with the one-step scheme (N 40 1): the Godunov convection at a violent free surface and the walls.",
+ "description": "cfd_2d_dambreak (closed tank) with the one-step scheme (N 40 5): the Godunov convection at a violent free surface and the walls.",
  "tags": [
   "quick",
   "2d",

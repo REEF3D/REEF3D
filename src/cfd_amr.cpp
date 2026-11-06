@@ -35,6 +35,7 @@ Architect: Hans Bihs
 #include"poisson_pcorr.h"
 #include"convection.h"
 #include"fou.h"
+#include"godunov.h"
 #include"weno_flux_nug.h"
 #include"weno_hj_nug.h"
 #include"weno_hj_df_nug.h"
@@ -207,12 +208,12 @@ bool cfd_amr::scope(lexer *p, ghostcell *pgc)
 
     const char *why = nullptr;
 
-    if(!(p->N40==1 || p->N40==2 || p->N40==3))
-    why = "N 40 1, 2 or 3 (one step or SSP Runge-Kutta, level set in the stages)";
-    else if(p->N40==1 && p->G7!=0)
-    why = "the one-step scheme N 40 1 with G 7 0 (subcycling with N 40 1 is not built yet)";
-    else if(p->N40==1 && (p->H10!=0 || p->C10!=0))
-    why = "the one-step scheme N 40 1 without heat or concentration (H 10, C 10)";
+    if(!(p->N40==2 || p->N40==3 || p->N40==5))
+    why = "N 40 2, 3 or 5 (SSP Runge-Kutta with the level set in the stages, or one step; N 40 6 not yet)";
+    else if(p->N40==5 && p->G7!=0)
+    why = "the one-step scheme N 40 5 with G 7 0 (subcycling with N 40 5 is not built yet)";
+    else if(p->N40==5 && (p->H10!=0 || p->C10!=0))
+    why = "the one-step scheme N 40 5 without heat or concentration (H 10, C 10)";
     else if(p->F80!=0 || p->F300!=0)
     why = "the level set (F 30) or single phase flow, no VOF (F 80) or multiphase (F 300)";
     else if(!(p->T10==0 || p->T10==1 || p->T10==2 || p->T10==21 || p->T10==22))
@@ -767,6 +768,17 @@ void cfd_amr::patch_objects(r3patch *rp)
     c->pfsfdisc = new hires(pp,pp->F35);
     if(c->pfsfdisc==nullptr)
     c->pfsfdisc = new fou(pp);
+
+    // the one-step scheme (N 40 5): the Godunov convection of the momentum and the level set on the
+    // patches as on level 0 (driver::logic_cfd); with the schemes of D 10 and F 35 the one stage would
+    // be a forward Euler step of WENO
+    if(pp->N40==5)
+    {
+        delete c->pconvec;
+        c->pconvec = new godunov(pp);
+        delete c->pfsfdisc;
+        c->pfsfdisc = new godunov(pp);
+    }
 
     // diffusion
     if(pp->D20==0)
@@ -2112,7 +2124,7 @@ void cfd_amr::step_comp(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof 
         tm[3] += MPI_Wtime()-td;
     };
 
-    // the one-step scheme (N 40 1): the momentum with u(n) and the projection first, then the level
+    // the one-step scheme (N 40 5): the momentum with u(n) and the projection first, then the level
     // set with the projected u(n+1) (momentum_rk::step_ssp); the stage input (u(n), the level set)
     // around the patches before the momentum
     if(stages==1)

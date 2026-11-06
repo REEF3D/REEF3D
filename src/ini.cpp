@@ -72,7 +72,7 @@ void control::ini_default()
     A301_1=0.0;  // double FNPF initial standing wave: amplitude [m], 0 off
     A301_2=1.0;  // double FNPF initial standing wave: wave length [m]
     A304=1.0e-3; // double FNPF theta-Robin (A 310 5): corrector stops when the change is below A304 times the solution (0: always A302 passes)
-    A303=-0.75;  // double FNPF theta-Robin (A 310 5): relaxation zones, >0: factors r^(dt/A303); 0: r per step; <0: per time as the three RK3 stages at N 47 -A303, per step at least as one RK3 step
+    A303=-0.1;   // double FNPF theta-Robin (A 310 5): relaxation zones, >0: factors r^(dt/A303); 0: r per step; <0: per time as the three RK3 stages at N 47 -A303, per step at least as one RK3 step
     A306=1;      // int FNPF theta-Robin (A 310 5): linear solver, 1 REEFMG (N 10 1, 2D/3D, MPI), 2 Eigen SparseLU (2D, serial)
     A308=0.0;    // double FNPF theta-Robin (A 310 5, A 305 0.5, N 51 2): safety factor c of the 4th-order phase (Newmark beta = max(1/12, 1/4 - 1/(c omega_max dt)^2)); 0: Crank-Nicolson (beta 1/4)
     A307=1.0e-2; // double FNPF theta-Robin (A 310 5), REEFMG with corrector passes: each solve reduces its residual by A307 from the warm start (0: N 44)
@@ -952,6 +952,7 @@ void control::ini_default()
     N25=0;         //  int precondioner switch NHFLOW
     N26=1;         //  int precondioner switch CFD
 	N40=3;			// int time scheme
+    N56=2.0;        // double N 40 5: the momentum first-order upwind in the air further than N56 cells from the free surface (0: second order everywhere)
 	N41=1.0e+19; 	// double total time
 	N43=1.0e-5;     // double stopping criteria convection-diffusion
 	N44=1.0e-8;     // double stopping criteria pressure
@@ -965,6 +966,9 @@ void control::ini_default()
     N52=0.0;        // double FNPF time step accuracy cap: shortest relevant wave period T_min [s], 0 off
     N53=40.0;       // double FNPF time step accuracy cap: time steps per T_min, dt <= N52/N53
     N54=0.0;        // double CFD time step: 0 the acceleration term with gravity; > 0 gravity out of the acceleration term (the projection balances it) and the gravity-wave limit omega_max dt <= N54
+    N55=1.5;        // double FNPF time step N 51 3 (theta-Robin A 310 5): phase-speed error [%] of the reference wave (N 52, or the period of the wave input)
+    N57=0.0;        // double CFD time step with the level set: 0 off; > 0 the criterion N 47 over the water and a band of N57 cells into the air, the air beyond the band with the stability limit N 58
+    N58=0.9;        // double CFD time step, N 57 > 0: Courant number of the air beyond the band, dt <= N58/max(|u|/dx + |v|/dy + |w|/dz)
 	N61=500.0;      // double stopping criteria velocities
 
     // MPI

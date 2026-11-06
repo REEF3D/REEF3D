@@ -30,6 +30,9 @@ Architect: Hans Bihs
 #include"reini.h"
 #include"fnpf_laplace_cds2.h"
 #include"fnpf_fsfbc.h"
+#include"fnpf_fsfbc_wd.h"
+#include"fnpf_prof.h"
+#include"reefmg.h"
 #include"fnpf_body.h"
 #include"fnpf_sz_weights.h"
 #include<Eigen/Sparse>
@@ -100,15 +103,15 @@ fnpf_theta::fnpf_theta(lexer *p, fdm_fnpf *c, ghostcell *pgc) : fnpf_ini(p,c,pgc
     if(lsolv==2 && p->M10>1)        {bad=1; if(p->mpirank==0) cout<<"A 310 5: SparseLU (A 306 2) serial only (M 10 1)"<<endl;}
     if(lsolv==1 && p->N10!=1)       {bad=1; if(p->mpirank==0) cout<<"A 310 5: needs REEFMG (N 10 1) or SparseLU (A 306 2)"<<endl;}
     if(p->A324>0)                   {bad=1; if(p->mpirank==0) cout<<"A 310 5: no Picard passes of the Laplace solve (A 324 0; the corrector passes iterate)"<<endl;}
-    if(p->A343!=0)                  {bad=1; if(p->mpirank==0) cout<<"A 310 5: no wetting-drying (A 343 0)"<<endl;}
+    if(p->A343==3)                  {bad=1; if(p->mpirank==0) cout<<"A 310 5: wetting-drying A 343 0, 1 or 2 (A 343 3 not tested: unstable in Ting & Kirby)"<<endl;}
     if(p->X10>0)                    {bad=1; if(p->mpirank==0) cout<<"A 310 5: no resolved bodies (X 10)"<<endl;}
     if(p->G1>0)                     {bad=1; if(p->mpirank==0) cout<<"A 310 5: no mesh refinement (G 1)"<<endl;}
     if(p->A311==3 || p->A327!=1)    {bad=1; if(p->mpirank==0) cout<<"A 310 5: needs the Fornberg sz stencil (A 327 1) and A 311 1, 2, 4, 5 or 6"<<endl;}
-    if(p->A328==1)                  {bad=1; if(p->mpirank==0) cout<<"A 310 5: sigma cross terms explicit only (A 328 0)"<<endl;}
+    if(p->A328==1 && lsolv==2)      {bad=1; if(p->mpirank==0) cout<<"A 310 5: implicit sigma cross terms (A 328 1) with REEFMG only (A 306 1)"<<endl;}
     if(p->B98>2 || p->B99>2)        {bad=1; if(p->mpirank==0) cout<<"A 310 5: relaxation zones only (B 98 0-2, B 99 0-2)"<<endl;}
     if(theta<0.5)                   {bad=1; if(p->mpirank==0) cout<<"A 310 5: theta (A 305) >= 0.5"<<endl;}
     if(p->A308>0.0 && theta!=0.5)   {bad=1; if(p->mpirank==0) cout<<"A 310 5: the 4th-order phase (A 308) needs theta 0.5 (A 305)"<<endl;}
-    if(p->A308>0.0 && p->N51!=2)    {bad=1; if(p->mpirank==0) cout<<"A 310 5: the 4th-order phase (A 308) needs the time step N 51 2"<<endl;}
+    if(p->A308>0.0 && p->N51<2)     {bad=1; if(p->mpirank==0) cout<<"A 310 5: the 4th-order phase (A 308) needs the time step N 51 2 or 3"<<endl;}
     
     if(bad==1)
     pgc->final(true);
@@ -116,14 +119,19 @@ fnpf_theta::fnpf_theta(lexer *p, fdm_fnpf *c, ghostcell *pgc) : fnpf_ini(p,c,pgc
     plap0 = new fnpf_laplace_cds2(p);
     plap = plap0;
     
+    // A 343 1: the free-surface conditions with wetting-drying, as RK3
+    if(p->A343==0)
     pf = new fnpf_fsfbc(p,c,pgc);
+    
+    if(p->A343>=1)
+    pf = new fnpf_fsfbc_wd(p,c,pgc);
     
     pbody = fnpf_body::create(p,c,pgc);
     
     c->vel3D_fill = [this,c](lexer *p, ghostcell *pgc)
     {
         const int state = c->vel_state;
-        velcalc_sig(p,c,pgc,c->Fi);
+        {fnpf_prof::scope ps_(fnpf_prof::velcalc); velcalc_sig(p,c,pgc,c->Fi);}
         c->vel_state = state;
     };
     
@@ -153,11 +161,11 @@ void fnpf_theta::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, con
     }
     
     // tendencies of the full free-surface conditions at t^n (Fx, Fz, Ex of the end of the last step)
-    pf->kfsfbc(p,c,pgc);
+    {fnpf_prof::scope ps_(fnpf_prof::fsfbc); pf->kfsfbc(p,c,pgc);}
     SLICELOOP4
     ek(i,j) = c->K(i,j);
     
-    pf->dfsfbc(p,c,pgc,c->eta);
+    {fnpf_prof::scope ps_(fnpf_prof::fsfbc); pf->dfsfbc(p,c,pgc,c->eta);}
     SLICELOOP4
     fk(i,j) = c->K(i,j);
     
@@ -208,26 +216,26 @@ void fnpf_theta::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, con
     fko(i,j) = fk(i,j);
     }
     
-    relax_affine(p,pgc,pflow,0,relRe,relTe);
+    {fnpf_prof::scope ps_(fnpf_prof::relax); relax_affine(p,c,pgc,pflow,0,relRe,relTe);}
     
     SLICELOOP4
     erk1(i,j) = relRe(i,j)*erk1(i,j) + relTe(i,j);
-    pgc->gcsl_start4(p,erk1,gcval_eta);
-    pflow->fifsf_relax(p,pgc,frk1);
-    pgc->gcsl_start4(p,frk1,gcval_fifsf);
-    pgc->gcsl_start4(p,Rs,gcval_fifsf);
+    {fnpf_prof::scope ps_(fnpf_prof::gc2d); pgc->gcsl_start4(p,erk1,gcval_eta);}
+    {fnpf_prof::scope ps_(fnpf_prof::relax); pflow->fifsf_relax(p,pgc,frk1);}
+    {fnpf_prof::scope ps_(fnpf_prof::gc2d); pgc->gcsl_start4(p,frk1,gcval_fifsf);}
+    {fnpf_prof::scope ps_(fnpf_prof::gc2d); pgc->gcsl_start4(p,Rs,gcval_fifsf);}
     
-    pflow->inflow_fnpf(p,c,pgc,c->Fi,c->Uin,frk1,erk1);
-    pf->fsfdisc(p,c,pgc,erk1,frk1);
-    sigma_update(p,c,pgc,pf,erk1);
+    {fnpf_prof::scope ps_(fnpf_prof::inflow); pflow->inflow_fnpf(p,c,pgc,c->Fi,c->Uin,frk1,erk1);}
+    {fnpf_prof::scope ps_(fnpf_prof::fsfdisc); pf->fsfdisc(p,c,pgc,erk1,frk1);}
+    {fnpf_prof::scope ps_(fnpf_prof::sigma); sigma_update(p,c,pgc,pf,erk1);}
     
-    fsfbc_sig(p,c,pgc,frk1,c->Fi);
-    bedbc_sig(p,c,pgc,c->Fi,pf);
-    pgc->start7V(p,c->Fi,c->bc,gcval);
+    {fnpf_prof::scope ps_(fnpf_prof::bc3d); fsfbc_sig(p,c,pgc,frk1,c->Fi);}
+    {fnpf_prof::scope ps_(fnpf_prof::bc3d); bedbc_sig(p,c,pgc,c->Fi,pf);}
+    {fnpf_prof::scope ps_(fnpf_prof::gc3d); pgc->start7V(p,c->Fi,c->bc,gcval);}
     
     // relaxation of Fifsf in the zones as f -> relR f + relT (affine in f: from f = 0 and f = 1), part of the
     // Robin rows; Fifsf is not relaxed again after the solve
-    relax_affine(p,pgc,pflow,1,relR,relT);
+    {fnpf_prof::scope ps_(fnpf_prof::relax); relax_affine(p,c,pgc,pflow,1,relR,relT);}
     
     // pass 0: one Laplace problem with the Robin condition: Fi, Fifsf^n+1 (fnew) and w^n+1 (wnew)
     if(lsolv==2)
@@ -275,31 +283,36 @@ void fnpf_theta::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, con
     }
     
     // damping, as the last RK3 stage
-    pf->damping(p,c,pgc,c->eta,gcval_eta,1.0);
-    pf->damping(p,c,pgc,c->Fifsf,gcval_fifsf,1.0);
+    {fnpf_prof::scope ps_(fnpf_prof::damping); pf->damping(p,c,pgc,c->eta,gcval_eta,1.0);}
+    {fnpf_prof::scope ps_(fnpf_prof::damping); pf->damping(p,c,pgc,c->Fifsf,gcval_fifsf,1.0);}
     
-    pf->wetdry(p,c,pgc,c->eta,c->Fifsf);
-    pgc->gcsl_start4(p,c->eta,gcval_eta);
-    pf->coastline_eta(p,c,pgc,c->eta);
-    pf->coastline_fi(p,c,pgc,c->Fifsf);
+    {fnpf_prof::scope ps_(fnpf_prof::wetdry); pf->wetdry(p,c,pgc,c->eta,c->Fifsf);}
+    {fnpf_prof::scope ps_(fnpf_prof::gc2d); pgc->gcsl_start4(p,c->eta,gcval_eta);}
+    // A 343 >= 1: the coastline relaxation is part of the affine maps of the zones (relax_affine), i.e. of the
+    // Robin rows (Fifsf) and of the eta update; here it would act twice
+    if(p->A343==0)
+    {
+    {fnpf_prof::scope ps_(fnpf_prof::coastline); pf->coastline_eta(p,c,pgc,c->eta);}
+    {fnpf_prof::scope ps_(fnpf_prof::coastline); pf->coastline_fi(p,c,pgc,c->Fifsf);}
+    }
     // (Fifsf: relaxation in the Robin rows)
-    pgc->gcsl_start4(p,c->Fifsf,gcval_fifsf);
+    {fnpf_prof::scope ps_(fnpf_prof::gc2d); pgc->gcsl_start4(p,c->Fifsf,gcval_fifsf);}
     
-    pf->breaking_zones(p,pflow);
-    pf->breaking(p,c,pgc,c->eta,en,c->Fifsf,1.0);
+    {fnpf_prof::scope ps_(fnpf_prof::breaking); pf->breaking_zones(p,pflow);}
+    {fnpf_prof::scope ps_(fnpf_prof::breaking); pf->breaking(p,c,pgc,c->eta,en,c->Fifsf,1.0);}
     if((p->A350==1 || p->A350==4) && p->A352>0)
     {
-    pgc->gcsl_start4(p,c->eta,gcval_eta);
-    pgc->gcsl_start4(p,c->Fifsf,gcval_fifsf);
+    {fnpf_prof::scope ps_(fnpf_prof::gc2d); pgc->gcsl_start4(p,c->eta,gcval_eta);}
+    {fnpf_prof::scope ps_(fnpf_prof::gc2d); pgc->gcsl_start4(p,c->Fifsf,gcval_fifsf);}
     }
     
-    pflow->inflow_fnpf(p,c,pgc,c->Fi,c->Uin,c->Fifsf,c->eta);
-    pf->fsfdisc(p,c,pgc,c->eta,c->Fifsf);
-    sigma_update(p,c,pgc,pf,c->eta);
+    {fnpf_prof::scope ps_(fnpf_prof::inflow); pflow->inflow_fnpf(p,c,pgc,c->Fi,c->Uin,c->Fifsf,c->eta);}
+    {fnpf_prof::scope ps_(fnpf_prof::fsfdisc); pf->fsfdisc(p,c,pgc,c->eta,c->Fifsf);}
+    {fnpf_prof::scope ps_(fnpf_prof::sigma); sigma_update(p,c,pgc,pf,c->eta);}
     
-    fsfbc_sig(p,c,pgc,c->Fifsf,c->Fi);
-    bedbc_sig(p,c,pgc,c->Fi,pf);
-    pgc->start7V(p,c->Fi,c->bc,gcval);
+    {fnpf_prof::scope ps_(fnpf_prof::bc3d); fsfbc_sig(p,c,pgc,c->Fifsf,c->Fi);}
+    {fnpf_prof::scope ps_(fnpf_prof::bc3d); bedbc_sig(p,c,pgc,c->Fi,pf);}
+    {fnpf_prof::scope ps_(fnpf_prof::gc3d); pgc->start7V(p,c->Fi,c->bc,gcval);}
     
     // consistency solve after edits of the surface
     {
@@ -314,29 +327,29 @@ void fnpf_theta::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, con
     
     if(emax>1.0e-12*MAX(escale,1.0e-20))
     {
-    plap0->start(p,c,pgc,psolv,pf,c->Fi,c->Fifsf);
-    pgc->start7V(p,c->Fi,c->bc,gcval);
+    {fnpf_prof::scope ps_(fnpf_prof::laplace); plap0->start(p,c,pgc,psolv,pf,c->Fi,c->Fifsf);}
+    {fnpf_prof::scope ps_(fnpf_prof::gc3d); pgc->start7V(p,c->Fi,c->bc,gcval);}
     ++editsum;
     }
     }
     
     // w^n+1 for the next step
-    pf->fsfwvel(p,c,pgc,c->eta,c->Fifsf);
+    {fnpf_prof::scope ps_(fnpf_prof::fsfwvel); pf->fsfwvel(p,c,pgc,c->eta,c->Fifsf);}
     
-    bedbc_sig(p,c,pgc,c->Fi,pf);
-    velcalc_sig(p,c,pgc,c->Fi);
+    {fnpf_prof::scope ps_(fnpf_prof::bc3d); bedbc_sig(p,c,pgc,c->Fi,pf);}
+    {fnpf_prof::scope ps_(fnpf_prof::velcalc); velcalc_sig(p,c,pgc,c->Fi);}
     
     if(c->U!=nullptr)
     {
-    pf->coastline_vel(p,c,pgc,c->U);
-    pf->coastline_vel(p,c,pgc,c->V);
-    pf->coastline_vel(p,c,pgc,c->W);
+    {fnpf_prof::scope ps_(fnpf_prof::coastline); pf->coastline_vel(p,c,pgc,c->U);}
+    {fnpf_prof::scope ps_(fnpf_prof::coastline); pf->coastline_vel(p,c,pgc,c->V);}
+    {fnpf_prof::scope ps_(fnpf_prof::coastline); pf->coastline_vel(p,c,pgc,c->W);}
     }
     else
     {
-    pf->coastline_vel_sl(p,c,pgc,c->Us);
-    pf->coastline_vel_sl(p,c,pgc,c->Vs);
-    pf->coastline_vel_sl(p,c,pgc,c->Ws);
+    {fnpf_prof::scope ps_(fnpf_prof::coastline); pf->coastline_vel_sl(p,c,pgc,c->Us);}
+    {fnpf_prof::scope ps_(fnpf_prof::coastline); pf->coastline_vel_sl(p,c,pgc,c->Vs);}
+    {fnpf_prof::scope ps_(fnpf_prof::coastline); pf->coastline_vel_sl(p,c,pgc,c->Ws);}
     }
     
     c->vel_state = 2;
@@ -368,30 +381,30 @@ void fnpf_theta::corrector_state(lexer *p, fdm_fnpf *c, ghostcell *pgc, ioflow *
     
     SLICELOOP4
     erk2(i,j) = relRe(i,j)*erk2(i,j) + relTe(i,j);
-    pgc->gcsl_start4(p,erk2,gcval_eta);
+    {fnpf_prof::scope ps_(fnpf_prof::gc2d); pgc->gcsl_start4(p,erk2,gcval_eta);}
     
     // Fx, Ex, Exu of eta^n+1, Fifsf^n+1 (the upwinding of A315 uses the Fz just set)
-    pf->fsfdisc(p,c,pgc,erk2,fnew);
+    {fnpf_prof::scope ps_(fnpf_prof::fsfdisc); pf->fsfdisc(p,c,pgc,erk2,fnew);}
     
-    pf->kfsfbc(p,c,pgc);
+    {fnpf_prof::scope ps_(fnpf_prof::fsfbc); pf->kfsfbc(p,c,pgc);}
     SLICELOOP4
     nEm(i,j) = 0.5*(Ne(i,j) + c->K(i,j) - wnew(i,j));
     
-    pf->dfsfbc(p,c,pgc,erk2);
+    {fnpf_prof::scope ps_(fnpf_prof::fsfbc); pf->dfsfbc(p,c,pgc,erk2);}
     SLICELOOP4
     {
     nFm(i,j) = 0.5*(Nf(i,j) + c->K(i,j) + g*erk2(i,j));
     Rs(i,j) = R0(i,j) - g*theta*dt*dt*nEm(i,j) + dt*nFm(i,j);
     }
     
-    pgc->gcsl_start4(p,Rs,gcval_fifsf);
+    {fnpf_prof::scope ps_(fnpf_prof::gc2d); pgc->gcsl_start4(p,Rs,gcval_fifsf);}
     
     // the sigma grid of eta^n+1
-    sigma_update(p,c,pgc,pf,erk2);
+    {fnpf_prof::scope ps_(fnpf_prof::sigma); sigma_update(p,c,pgc,pf,erk2);}
     
-    fsfbc_sig(p,c,pgc,fnew,c->Fi);
-    bedbc_sig(p,c,pgc,c->Fi,pf);
-    pgc->start7V(p,c->Fi,c->bc,gcval);
+    {fnpf_prof::scope ps_(fnpf_prof::bc3d); fsfbc_sig(p,c,pgc,fnew,c->Fi);}
+    {fnpf_prof::scope ps_(fnpf_prof::bc3d); bedbc_sig(p,c,pgc,c->Fi,pf);}
+    {fnpf_prof::scope ps_(fnpf_prof::gc3d); pgc->start7V(p,c->Fi,c->bc,gcval);}
 }
 
 // The rows of fnpf_laplace_cds2 for the interior nodes k = 0..knoz-1 (assembled only) plus one Robin row per column
@@ -410,17 +423,17 @@ void fnpf_theta::robin_build(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psol
 
     // --- assembly with Fifsf = fs: rhs
     plap0->assemble_only = true;
-    plap0->start(p,c,pgc,psolv,pf,c->Fi,fs);
+    {fnpf_prof::scope ps_(fnpf_prof::laplace); plap0->start(p,c,pgc,psolv,pf,c->Fi,fs);}
     rhsA = c->rhsvec.V;
 
     // --- assembly with Fifsf = fs + 1: M, and the coupling mt0 = rhs(fs) - rhs(fs+1) of the top rows
     SLICELOOP4
     ftmp(i,j) = fs(i,j) + 1.0;
 
-    pgc->gcsl_start4(p,ftmp,gcval_fifsf);
-    fsfbc_sig(p,c,pgc,ftmp,c->Fi);
-    pgc->start7V(p,c->Fi,c->bc,gcval);
-    plap0->start(p,c,pgc,psolv,pf,c->Fi,ftmp);
+    {fnpf_prof::scope ps_(fnpf_prof::gc2d); pgc->gcsl_start4(p,ftmp,gcval_fifsf);}
+    {fnpf_prof::scope ps_(fnpf_prof::bc3d); fsfbc_sig(p,c,pgc,ftmp,c->Fi);}
+    {fnpf_prof::scope ps_(fnpf_prof::gc3d); pgc->start7V(p,c->Fi,c->bc,gcval);}
+    {fnpf_prof::scope ps_(fnpf_prof::laplace); plap0->start(p,c,pgc,psolv,pf,c->Fi,ftmp);}
     plap0->assemble_only = false;
 
     const int nrow = int(rhsA.size()) < int(c->rhsvec.V.size()) ? int(rhsA.size()) : int(c->rhsvec.V.size());
@@ -430,8 +443,8 @@ void fnpf_theta::robin_build(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psol
     mt0[r] = rhsA[r] - c->rhsvec.V[r];
 
     // the surface values of fs back into Fi
-    fsfbc_sig(p,c,pgc,fs,c->Fi);
-    pgc->start7V(p,c->Fi,c->bc,gcval);
+    {fnpf_prof::scope ps_(fnpf_prof::bc3d); fsfbc_sig(p,c,pgc,fs,c->Fi);}
+    {fnpf_prof::scope ps_(fnpf_prof::gc3d); pgc->start7V(p,c->Fi,c->bc,gcval);}
     
     if(!tlu)
     tlu = std::make_unique<theta_lu>();
@@ -634,8 +647,8 @@ void fnpf_theta::robin_unpack(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &fout
         wnew(i,j) = p->sigz[IJ]*sz;
     }
     
-    pgc->gcsl_start4(p,fout,gcval_fifsf);
-    pgc->gcsl_start4(p,wnew,gcval_fifsf);
+    {fnpf_prof::scope ps_(fnpf_prof::gc2d); pgc->gcsl_start4(p,fout,gcval_fifsf);}
+    {fnpf_prof::scope ps_(fnpf_prof::gc2d); pgc->gcsl_start4(p,wnew,gcval_fifsf);}
 }
 
 // The points and weights of the sz stencil (fnpf_sz_weights, as A 311): w = sigz sum_m w_m Fi(knoz-m), Fi(knoz) = Fs
@@ -684,7 +697,7 @@ void fnpf_theta::robin_build_mg(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *p
     
     plap0->assemble_only = true;
     plap0->mtsurf = mts.data();
-    plap0->start(p,c,pgc,psolv,pf,c->Fi,fs);
+    {fnpf_prof::scope ps_(fnpf_prof::laplace); plap0->start(p,c,pgc,psolv,pf,c->Fi,fs);}
     plap0->mtsurf = nullptr;
     plap0->assemble_only = false;
     
@@ -764,7 +777,13 @@ double fnpf_theta::robin_solve_mg(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver 
     if(ctol>0.0 && npass>0)
     p->N44 = -ctol;
     
-    psolv->startF(p,pgc,c->Fi,c->rhsvec,c->M,8);
+    // corrector passes: REEFMG keeps the coarse levels of pass 0 (the rows change little), the fine level and the
+    // Krylov operator are those of the pass
+    if(pass>0)
+    reefmg::keep_coarse = true;
+    
+    {fnpf_prof::scope ps_(fnpf_prof::laplace); psolv->startF(p,pgc,c->Fi,c->rhsvec,c->M,8);}
+    reefmg::keep_coarse = false;
     
     p->N44 = tol0;
     c->M.xcol.clear();
@@ -796,6 +815,13 @@ double fnpf_theta::robin_solve_mg(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver 
         dmax = MAX(dmax,fabs(Fs-fsold(i,j)));
         xmax = MAX(xmax,fabs(Fs));
         }
+        else
+        {
+        // dry column (A 343 >= 1, not in the solve), no vertical velocity: A 343 1 Fifsf of the map of the land
+        // cells (0); A 343 2/3 Fifsf held (wetdry_dynamic sets the dry cells after the step, as for RK3)
+        fout(i,j) = (p->A343>=2) ? c->Fifsf(i,j) : relR(i,j)*R(i,j) + relT(i,j);
+        wnew(i,j) = 0.0;
+        }
         
         KLOOP
         if(p->flag4[IJK]>0)
@@ -808,8 +834,8 @@ double fnpf_theta::robin_solve_mg(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver 
     dmax = pgc->globalmax(dmax);
     xmax = pgc->globalmax(xmax);
     
-    pgc->gcsl_start4(p,fout,gcval_fifsf);
-    pgc->gcsl_start4(p,wnew,gcval_fifsf);
+    {fnpf_prof::scope ps_(fnpf_prof::gc2d); pgc->gcsl_start4(p,fout,gcval_fifsf);}
+    {fnpf_prof::scope ps_(fnpf_prof::gc2d); pgc->gcsl_start4(p,wnew,gcval_fifsf);}
     
     if(pass==0)
     p->poissoniter = p->solveriter;
@@ -826,12 +852,28 @@ double fnpf_theta::robin_solve_mg(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver 
 // is read off by applying them to f = 0 and f = 1 (which = 0: eta, 1: Fifsf), and with A 303 > 0 the factors
 // become r^(dt/A 303), so that over a fixed time the zones relax by the same amount whatever the step
 // (as B 95 for SFLOW and NHFLOW). Not for zones with a state (B 98 6, B 99 6: refused).
-void fnpf_theta::relax_affine(lexer *p, ghostcell *pgc, ioflow *pflow, int which, slice &R, slice &T)
+void fnpf_theta::relax_affine(lexer *p, fdm_fnpf *c, ghostcell *pgc, ioflow *pflow, int which, slice &R, slice &T)
 {
     SLICELOOP4
     {
     T(i,j) = 0.0;
     R(i,j) = 1.0;
+    }
+    
+    // A 343 >= 1: the coastline relaxation (A 341/A 342/A 347, to 0 or to the running mean A 326) and Fifsf = 0 on
+    // land, before the zones as in the RK3 stages; affine in f as the zones
+    if(p->A343>=1)
+    {
+    if(which==0)
+    {
+    pf->coastline_eta(p,c,pgc,T);
+    pf->coastline_eta(p,c,pgc,R);
+    }
+    else
+    {
+    pf->coastline_fi(p,c,pgc,T);
+    pf->coastline_fi(p,c,pgc,R);
+    }
     }
     
     if(which==0)
@@ -846,7 +888,7 @@ void fnpf_theta::relax_affine(lexer *p, ghostcell *pgc, ioflow *pflow, int which
     }
     
     // A 303 > 0: factors r^(dt/A 303)
-    // A 303 < 0 (default -0.75): the zones act per time as in an RK3 run at N 47 = -A 303, and per step at least
+    // A 303 < 0 (default -0.1): the zones act per time as in an RK3 run at N 47 = -A 303, and per step at least
     // as in an RK3 step: an RK3 step relaxes the deviation from the target in its three stages by
     // F(r) = r (1/3 + 2/3 r (3/4 + r/4)); the theta step, s = dt/(-A 303 dt_crit) of those steps long, by
     // F(r)^max(s,1) (dt_crit: the step of the time-step criterion at N 47 1). Below the step of N 47 = -A 303 the
@@ -888,7 +930,7 @@ void fnpf_theta::inidisc_step1(lexer *p, fdm_fnpf *c, ghostcell *pgc, ioflow *pf
     SLICELOOP4
 	c->eta(i,j) = 0.0;
     
-    pgc->gcsl_start4(p,c->eta,50);
+    {fnpf_prof::scope ps_(fnpf_prof::gc2d); pgc->gcsl_start4(p,c->eta,50);}
     
     etaloc_sig(p,c,pgc);
     sigma_ini(p,c,pgc,pf,c->eta);
@@ -898,33 +940,33 @@ void fnpf_theta::inidisc_step2(lexer *p, fdm_fnpf *c, ghostcell *pgc, ioflow *pf
 {	
     for(int qn=0;qn<20;++qn)
     {
-    pf->coastline_eta(p,c,pgc,c->eta);
-    pf->coastline_fi(p,c,pgc,c->Fifsf);
-    pf->coastline_fi_ini(p,c,pgc,c->Fifsf);
+    {fnpf_prof::scope ps_(fnpf_prof::coastline); pf->coastline_eta(p,c,pgc,c->eta);}
+    {fnpf_prof::scope ps_(fnpf_prof::coastline); pf->coastline_fi(p,c,pgc,c->Fifsf);}
+    {fnpf_prof::scope ps_(fnpf_prof::coastline); pf->coastline_fi_ini(p,c,pgc,c->Fifsf);}
     }
     
-    pgc->gcsl_start4(p,c->eta,gcval_eta);
-    pgc->gcsl_start4(p,c->Fifsf,gcval_fifsf);
+    {fnpf_prof::scope ps_(fnpf_prof::gc2d); pgc->gcsl_start4(p,c->eta,gcval_eta);}
+    {fnpf_prof::scope ps_(fnpf_prof::gc2d); pgc->gcsl_start4(p,c->Fifsf,gcval_fifsf);}
     
     pf->fsfdisc_ini(p,c,pgc,c->eta,c->Fifsf);
-    pf->wetdry(p,c,pgc,c->eta,c->Fifsf);   
-    pf->fsfdisc(p,c,pgc,c->eta,c->Fifsf);
-    sigma_update(p,c,pgc,pf,c->eta);
+    {fnpf_prof::scope ps_(fnpf_prof::wetdry); pf->wetdry(p,c,pgc,c->eta,c->Fifsf);}
+    {fnpf_prof::scope ps_(fnpf_prof::fsfdisc); pf->fsfdisc(p,c,pgc,c->eta,c->Fifsf);}
+    {fnpf_prof::scope ps_(fnpf_prof::sigma); sigma_update(p,c,pgc,pf,c->eta);}
     pbody->initialize(p,c,pgc);
     
-    fsfbc_sig(p,c,pgc,c->Fifsf,c->Fi);
-    bedbc_sig(p,c,pgc,c->Fi,pf);
+    {fnpf_prof::scope ps_(fnpf_prof::bc3d); fsfbc_sig(p,c,pgc,c->Fifsf,c->Fi);}
+    {fnpf_prof::scope ps_(fnpf_prof::bc3d); bedbc_sig(p,c,pgc,c->Fi,pf);}
     
-    pgc->start7V(p,c->Fi,c->bc,gcval);
+    {fnpf_prof::scope ps_(fnpf_prof::gc3d); pgc->start7V(p,c->Fi,c->bc,gcval);}
     
     if(p->I30>=1)
     {
-    pf->fsfwvel(p,c,pgc,c->eta,c->Fifsf);
-    velcalc_sig(p,c,pgc,c->Fi);
+    {fnpf_prof::scope ps_(fnpf_prof::fsfwvel); pf->fsfwvel(p,c,pgc,c->eta,c->Fifsf);}
+    {fnpf_prof::scope ps_(fnpf_prof::velcalc); velcalc_sig(p,c,pgc,c->Fi);}
     }
 }
 
 void fnpf_theta::ini_wetdry(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 {	
-    pf->wetdry(p,c,pgc,c->eta,c->Fifsf);
+    {fnpf_prof::scope ps_(fnpf_prof::wetdry); pf->wetdry(p,c,pgc,c->eta,c->Fifsf);}
 }

@@ -206,6 +206,23 @@ void godunov::start(lexer *p, fdm *a, field &f, int ipol, field &U, field &V, fi
         sz[q] = mc(zl,zr);
         tz[q] = wc[q]*((wc[q]>0.0) ? zl : zr);
 
+        // N 56: the momentum first-order upwind in the air further than N56 cells from the free
+        // surface (the slopes zero, the transverse terms kept)
+        if(ipol<=3 && p->N56>0.0 && p->F30>0)
+        {
+            double ph = a->phi(ii,jj,kk);
+            if(ipol==1) ph = 0.5*(ph+a->phi(ii+1,jj,kk));
+            if(ipol==2) ph = 0.5*(ph+a->phi(ii,jj+1,kk));
+            if(ipol==3) ph = 0.5*(ph+a->phi(ii,jj,kk+1));
+
+            double h = std::min(width(p,ipol,0,ii),width(p,ipol,2,kk));
+            if(ydir)
+            h = std::min(h,width(p,ipol,1,jj));
+
+            if(ph < -p->N56*h)
+            sx[q]=sy[q]=sz[q]=0.0;
+        }
+
         sf[q] = fc;
     }
 

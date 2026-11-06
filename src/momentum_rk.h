@@ -61,6 +61,29 @@ momentum_rk: Runge-Kutta time stepping of the CFD momentum equations
   3     SSP-RK3                                  inside every stage (default)
   4     low-storage RK3                          inside every stage
   33    SSP-RK3, conservative form (rho u)       inside every stage
+  5     one step, Godunov convection (godunov),  after the projection, with u(n+1)
+        one projection
+  6     one step with two projections: the      with u(n+1/2), between the
+        half step u(n+1/2), p(n+1/2) projected,  two projections
+        then the full step with them
+
+N40 6 (step_twoproj), the predictor-corrector of Bell, Colella and Glaz on the staggered grid:
+  1. u* = u(n) + dt/2 [C(u(n); u(n)) + S - grad p(n)/rho(n) + g] + dt/2 D(u*)   (D: implicit)
+     projected with dt/2 and the face density of phi(n): u(n+1/2), p(n+1/2)
+  2. phi(n+1) = phi(n) + dt L(phi(n); u(n+1/2)), reinitialised; density and viscosity of
+     phi(n+1/2) = (phi(n) + phi(n+1))/2
+  3. u* = u(n) + dt [C(u(n); u(n+1/2)) + S - grad p(n+1/2)/rho(n+1/2) + g]
+         + dt/2 [D(u(n)) + D(u*)]                                    (Crank-Nicolson)
+     projected with dt and the face density of phi(n+1/2): u(n+1), p(n+1)
+  4. density and viscosity of phi(n+1)
+C(f; U): the Godunov convection of f (face states at n+1/2) with the advecting velocity U. The
+forces of the half step are projected, so that the pressure gradient over the face density
+is balanced at the interface (the half-step forces in the Godunov face states of N 40 5,
+without a projection, made air jets in the dam break).
+A prototype (validation 75): second order in time on smooth interface flows, but in violent flows
+(the 2D dam break) stable up to N 47 0.3, not at 0.45 (N 56 2 delays the growth, it does not stop
+it): the half-step velocity carries the air accelerations of the half step and convects the air
+momentum with them. N 40 5 is the robust one-step scheme.
 
 SSP stage s:   u(s+1) = a_s u(n) + b_s [ u(s) + dt (F + D) ]
 low storage:   u(s+1) = u(s) + 2 alpha_s dt (S + D) + gamma_s dt C(s) + zeta_s dt C(s-1)
@@ -133,6 +156,9 @@ private:
     enum {SSP=0, LOWSTORAGE=1};
 
     void step_ssp(lexer*, fdm*, ghostcell*, vrans*, sixdof*);
+    void step_twoproj(lexer*, fdm*, ghostcell*, vrans*, sixdof*);
+    void component_onestep(lexer*, fdm*, ghostcell*, vrans*, int, field&, field&, field&, field&, field&, double, bool);
+    void levelset_twoproj(lexer*, fdm*, ghostcell*, field&, field&, field&);
     void step_lowstorage(lexer*, fdm*, ghostcell*, vrans*, sixdof*);
 
     void levelset_transport(lexer*, fdm*, ghostcell*, int);
@@ -172,6 +198,7 @@ private:
 
     int scheme;
     int stages;
+    bool twoproj;       // N 40 6: one step with two projections (step_twoproj)
     bool levelset;
     bool conservative;
     std::vector<double> csave;   // the right-hand side before the convection (PIC, F 81 2)

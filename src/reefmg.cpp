@@ -44,6 +44,8 @@ Architect: Hans Bihs
 #include <iomanip>
 #include <vector>
 
+bool reefmg::keep_coarse=false;
+
 reefmg::reefmg(lexer *p, ghostcell *pgc, int solve_input, int precon_input)
 {
     //  solver_mode : 0 V-cycles only, 1 BiCGStab preconditioned by the V-cycle
@@ -527,15 +529,23 @@ void reefmg::start_solver8(lexer *p, ghostcell *pgc, double *f, vec &rhs,
         if(pgc->globalisum(changed)>0)
         {
             mg.coarsen();
+            coarsened=true;
             mkey=h;
             mkey_ok=true;
         }
     }
     else
     {
+        //  FNPF theta-Robin corrector passes: the coarse levels of the last solve
+        int keep=(keep_coarse && coarsened && !fill_topo) ? 1 : 0;
+        if(pgc->globalimin(keep)==1)
+        mg.refactor_fine();
+        else
         mg.coarsen();
+        coarsened=true;
         mkey_ok=false;
     }
+    keep_coarse=false;
     const double coarsentime=pgc->timer()-starttime;
 
     starttime=pgc->timer();
@@ -891,6 +901,7 @@ void reefmg::start_solver5(lexer *p, ghostcell *pgc, field &f, vec &rhs, matrix_
 
     starttime=pgc->timer();
     mg.coarsen();
+    coarsened=false;    //  not the var-8 hierarchy (keep_coarse)
     mkey_ok=false;
     const double coarsentime=pgc->timer()-starttime;
 

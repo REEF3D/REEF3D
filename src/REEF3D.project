@@ -316,6 +316,7 @@
           <VirtualDirectory Name="Time">
             <File Name="timestep.h"/>
             <File Name="ietimestep.h"/>
+            <File Name="cfd_airband_dt.h"/>
             <File Name="cfd_gravitywave_dt.h"/>
             <File Name="fixtimestep.h"/>
             <File Name="etimestep.h"/>

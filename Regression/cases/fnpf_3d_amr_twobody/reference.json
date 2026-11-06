@@ -56,7 +56,7 @@
    "rows": 21,
    "last": [
     20.0,
-    0.19,
+    0.2,
     0.01,
     1.0,
     512.0,
@@ -71,7 +71,7 @@
    ],
    "colsum": [
     210.0,
-    1.9000000000000001,
+    2.1,
     0.21,
     21.0,
     10752.0,
@@ -86,7 +86,7 @@
    ],
    "colabs": [
     210.0,
-    1.9000000000000001,
+    2.1,
     0.21,
     21.0,
     10752.0,
@@ -340,7 +340,7 @@
   0.01,
   0.01
  ],
- "blessed_from": "/home/claude/bin/REEF3D_step2",
- "date": "2026-11-05",
- "note": ""
+ "blessed_from": "/home/claude/bin/REEF3D_fin7",
+ "date": "2026-11-06",
+ "note": "re-blessed on hans_dev 8f1c9f17a + fnpf_theta_robin 0016-0021: FNPF outputs carry the time of their state (0017); theta-Robin 0016/0019/0020"
 }

@@ -3,12 +3,12 @@
  "np": 1,
  "steps": 60,
  "ctrl_set": {
-  "N 40": "1"
+  "N 40": "5"
  },
  "ctrl_add": [
   "N 54 1.0"
  ],
- "description": "cfd_2d_nwt with the one-step scheme (N 40 1) and gravity out of the time step (N 54 1): the time step of the gravity-wave limit, 2.5 times that of cfd_2d_nwt; over 20 s the gauges within 1.1 % of RK3 at 7 times less wall time (validation 73).",
+ "description": "cfd_2d_nwt with the one-step scheme (N 40 5) and gravity out of the time step (N 54 1): the time step of the gravity-wave limit, 2.5 times that of cfd_2d_nwt; over 20 s the gauges within 1.1 % of RK3 at 7 times less wall time (validation 73).",
  "tags": [
   "quick",
   "2d",
@@ -16,6 +16,6 @@
   "levelset"
  ],
  "covers": [
-  "N 40 1 at omega dt = 1"
+  "N 40 5 at omega dt = 1"
  ]
 }

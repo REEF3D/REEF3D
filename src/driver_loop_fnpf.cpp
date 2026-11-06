@@ -17,7 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Hans Bihs
+Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"driver.h"
@@ -102,7 +102,16 @@ void driver::loop_fnpf()
         if(pfice!=nullptr)
         pfice->poststep(p,c,pgc);
         
-        // printer
+        // REEF3D::CORAL (Z 40): structural model from simtime to simtime + dt
+        if(pcoral!=nullptr)
+        pcoral->step(p,pgc);
+
+        //timestep control
+        p->simtime+=p->dt;
+        
+        // printer: after the time update, so the outputs carry the time of the state they hold (t^n+1), as in
+        // CFD, NHFLOW and SFLOW; the theory gauges (P 50) are evaluated at that time too. Before 6 November 2026
+        // the outputs were written with the label t^n, one step before their state.
         {
         fnpf_prof::scope ps_(fnpf_prof::print);
         pprint->start(p,c,pgc,pflow);
@@ -111,13 +120,6 @@ void driver::loop_fnpf()
         
         if(pfamr!=nullptr)
         pfamr->print(p,c,pgc);
-        
-        // REEF3D::CORAL (Z 40): structural model from simtime to simtime + dt
-        if(pcoral!=nullptr)
-        pcoral->step(p,pgc);
-
-        //timestep control
-        p->simtime+=p->dt;
         
         // runtime coupling: the state at the new time to the receivers
         if(reefcouple::sender!=nullptr)

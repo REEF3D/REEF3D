@@ -3,9 +3,9 @@
  "np": 1,
  "steps": 60,
  "ctrl_set": {
-  "N 40": "1"
+  "N 40": "5"
  },
- "description": "cfd_2d_dambreak_amr3_adapt with the one-step scheme (N 40 1): cfd_amr::step with one stage, the momentum of all levels and the composite projection first, then the level set of all levels with the projected velocities.",
+ "description": "cfd_2d_dambreak_amr3_adapt with the one-step scheme (N 40 5): cfd_amr::step with one stage, the momentum of all levels and the composite projection first, then the level set of all levels with the projected velocities.",
  "tags": [
   "quick",
   "2d",

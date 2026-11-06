@@ -33,7 +33,7 @@ class field;
 
 using namespace std;
 
-// The convection of the one-step scheme (N 40 1, P9 of the CFD AMR performance plan): an unsplit
+// The convection of the one-step scheme (N 40 5, P9 of the CFD AMR performance plan): an unsplit
 // second-order Godunov method (corner transport upwind, the predictor of Bell, Colella and Glaz).
 // The value on every face of a control volume is extrapolated from the upwind side to the half time
 // step: f + (dx/2 - dt/2 u) f_x - dt/2 (v f_y + w f_z), with the slopes f_x of the monotonised
@@ -44,6 +44,10 @@ using namespace std;
 // Glaz): in the air next to the interface the pressure gradient divided by the air density gives
 // accelerations of hundreds of m/s^2, which made spurious air jets in the dam break (validation 73);
 // on the waves the gauges are the same with and without.
+// N 56 (default 2): the momentum first-order upwind in the air further than N56 cells from the free
+// surface. The air away from the interface is driven by it and its convection need not be second
+// order; the dissipation keeps the spurious air velocities down (validation 74: the dam break with
+// refinement after the first impact).
 class godunov final : public convection, public increment
 {
 public:

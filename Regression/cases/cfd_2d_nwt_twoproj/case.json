@@ -1,0 +1,20 @@
+{
+ "base": "cfd_2d_nwt",
+ "np": 1,
+ "steps": 100,
+ "ctrl_set": {
+  "N 40": "6"
+ },
+ "description": "cfd_2d_nwt with the one-step scheme with two projections (N 40 6): the half step u(n+1/2), p(n+1/2) projected with dt/2, the level set moved with u(n+1/2), the full step with u(n+1/2) as the advecting velocity, p(n+1/2) and the density of the mid-step level set, Crank-Nicolson diffusion (validation 75).",
+ "tags": [
+  "quick",
+  "2d",
+  "waves",
+  "levelset"
+ ],
+ "covers": [
+  "momentum_rk::step_twoproj, component_onestep, levelset_twoproj",
+  "the projection with the weight 1/2 (pjm_corr), godunov with a separate advecting velocity",
+  "Crank-Nicolson diffusion with idiff2_FS::apply_u/w"
+ ]
+}

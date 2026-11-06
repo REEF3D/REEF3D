@@ -39,7 +39,16 @@ class fnpf_laplace_cds2;
 using namespace std;
 
 // ---------------------------------------------------------------------------
-// FNPF theta-Robin time integration (A 310 5): 2D and 3D, MPI (REEFMG); no wetting-drying, no bodies, no AMR.
+// FNPF theta-Robin time integration (A 310 5): 2D and 3D, MPI (REEFMG), wetting-drying A 343 1 and 2; no bodies,
+// no AMR.
+//
+// Wetting-drying (A 343 >= 1): the free-surface conditions of fnpf_fsfbc_wd as RK3. The coastline relaxation
+// (A 341/A 342/A 347) and Fifsf = 0 on land are part of the affine maps of the zones (relax_affine), i.e. of the
+// Robin rows and the eta update; the dry columns are not in the solve (A 343 1: Fifsf of the land map, A 343 2:
+// held, set by wetdry_dynamic after the step); the clamps and the dynamic front after the step are surface edits
+// (consistency solve). In the surf zone (breaking every step) every step needs that extra solve and steps
+// beyond about 1.2 x the RK3 step are unstable (Ting & Kirby, Mase & Kirby; also without wetting-drying and
+// without breaking): with a coastline N 51 3 uses at most the RK3 step of N 51 2 at N 47 0.75.
 //
 // The linear part of the free-surface conditions, eta_t = w and Fifsf_t = -g eta, is integrated with the
 // theta method, the nonlinear rest N (Zakharov terms, wind) at t^n+1/2:
@@ -89,10 +98,11 @@ using namespace std;
 //   at 2x with one pass, -2.5 % converged, A 303 0; step 3, 5 November 2026), hence the passes to convergence.
 //
 //   Zones once per theta step relax less per time than in the three RK3 stages (weaker beach, 6-8 % higher
-//   Stokes waves from reflection); A 303 < 0 (default -0.75) relaxes per time as RK3 at N 47 -A 303 (dt_crit of
+//   Stokes waves from reflection); A 303 < 0 (default -0.1) relaxes per time as RK3 at N 47 -A 303 (dt_crit of
 //   fnpf_timestep), and per step at least as one RK3 step: at smaller steps as an RK3 run with the same step.
 //   The zone strength per time matters: in the 3D short-crested sea (step 5) the gauges after the generation
-//   zone change by up to 7 % in Hm0 between zones per time as RK3 at N 47 0.75 and at N 47 0.25.
+//   zone change by up to 16 % in Hm0 between zones per time as RK3 at N 47 0.75 and at N 47 0.04; Stokes
+//   heights 1.035-1.044 with -0.75, 0.986-0.992 with -0.1 (the default since 6 November 2026).
 //
 // Edits of the surface after the solve (breaking damping and filters A 350/A 352, coastline): Fi below would be
 // that of the unedited surface (as with the relaxation zones before patch 0006); when an edit changed eta or
@@ -114,7 +124,7 @@ using namespace std;
 //   -5.5 % instead of -4.6 %; at four times the RK3 step no gain. Unstable at 4x with c = 0.6, stable with
 //   c = 0.8: the cut-off estimate of N 51 2 is conservative by about 1.3-1.6 (6 November 2026).
 // A 305 theta (default 0.5: 0.55 damps 9 % per period at 21 steps), A 302 corrector passes (default 4),
-// A 303 relaxation zones: > 0 factors r^(dt/A 303), 0 r per step, < 0 (default -0.75) per time as the three RK3
+// A 303 relaxation zones: > 0 factors r^(dt/A 303), 0 r per step, < 0 (default -0.1) per time as the three RK3
 // stages of an RK3 run at N 47 -A 303; A 304 tolerance of the corrector (default 1e-3).
 // ---------------------------------------------------------------------------
 
@@ -142,7 +152,7 @@ private:
     // eta^n+1 of the current solution, N^n+1/2 = (N^n + N^n+1)/2, R, and the sigma grid of eta^n+1
     void corrector_state(lexer*, fdm_fnpf*, ghostcell*, ioflow*);
     // the relaxation of the zones as f -> R f + T (from f = 0 and f = 1), with the factors r^(dt/A 303)
-    void relax_affine(lexer*, ghostcell*, ioflow*, int, slice&, slice&);
+    void relax_affine(lexer*, fdm_fnpf*, ghostcell*, ioflow*, int, slice&, slice&);
     
     // A 306 1 (REEFMG): the Robin rows eliminated into the top Laplace rows, one solve per pass (N 44, or
     // inexact with A 307); returns the change of the solution

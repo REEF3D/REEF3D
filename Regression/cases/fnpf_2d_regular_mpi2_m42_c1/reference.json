@@ -55,19 +55,19 @@
   "REEF3D_FNPF_WSF/REEF3D-FNPF-WSF-HG.dat": {
    "rows": 304,
    "last": [
-    6.73763555,
+    6.76021173,
     0.00269607257,
     -0.00134872244,
     0.000155289299
    ],
    "colsum": [
-    1014.76154301518,
+    1021.52175474518,
     60.034640109160904,
     0.012984750752006792,
     0.035438864190486113
    ],
    "colabs": [
-    1014.76154301518,
+    1021.52175474518,
     60.187057070979535,
     0.09516416803778753,
     0.03543886604939522
@@ -377,7 +377,7 @@
   0.02257618204928526,
   0.02257618204928526
  ],
- "blessed_from": "/home/claude/build/B/REEF3D",
- "date": "2026-11-01",
- "note": "hans_dev eb85f31f0 + Load Balancing/0001-0003; DIVEMesh 21fb332 + Load Balancing/DIVEMesh-0001 (Linux, gcc 13, Open MPI)"
+ "blessed_from": "/home/claude/bin/REEF3D_fin7",
+ "date": "2026-11-06",
+ "note": "re-blessed on hans_dev 8f1c9f17a + fnpf_theta_robin 0016-0021: FNPF outputs carry the time of their state (0017); theta-Robin 0016/0019/0020"
 }

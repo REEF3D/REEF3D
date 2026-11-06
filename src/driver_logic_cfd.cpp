@@ -69,7 +69,7 @@ void driver::logic_cfd()
     cout<<"creating objects"<<endl;
 
     // removed options
-    removed_option(p,pgc,p->N40==5,"N 40 5: momentum_RK3CN has been removed, use N 40 3 or N 40 13.");
+    removed_option(p,pgc,p->N40==1,"N 40 1: the one-step scheme is N 40 5 now (N 40 6: with two projections).");
     removed_option(p,pgc,p->T10==12,"T 10 12: EARSM has been removed, use T 10 2 (k-omega; the EARSM stresses were not coupled to the momentum equations).");
     removed_option(p,pgc,p->F80==1 || p->F80==3,"F 80 1/3: VOF_AB and VOF_RK3 have been removed, use F 80 4 (PLIC) or the level set (F 30).");
     removed_option(p,pgc,p->F85>=51 && p->F85<=53,"F 85 51/52/53: HRIC, HRIC_mod and CICSAM have been removed.");
@@ -144,8 +144,8 @@ void driver::logic_cfd()
 	if(p->D10>=10 && p->D10<30)
 	pconvec=new hires(p,p->D10);
 
-    // the one-step scheme (N 40 1): the Godunov convection, time-centred, whatever D 10 is
-    if(p->N40==1)
+    // the one-step schemes (N 40 5, 6): the Godunov convection, time-centred, whatever D 10 is
+    if(p->N40==5 || p->N40==6)
     {
     delete pconvec;
     pconvec=new godunov(p);
@@ -209,8 +209,8 @@ void driver::logic_cfd()
 	if(p->F35>=40 && p->F35<50)
 	pfsfdisc=new hires(p,p->F35);
 
-    // the one-step scheme (N 40 1): the level set with the Godunov convection as well
-    if(p->N40==1 && p->F30>0)
+    // the one-step schemes (N 40 5, 6): the level set with the Godunov convection as well
+    if((p->N40==5 || p->N40==6) && p->F30>0)
     {
     delete pfsfdisc;
     pfsfdisc=new godunov(p);
@@ -430,7 +430,7 @@ void driver::logic_cfd()
 
    
 // Free Surface
-    if(((p->F30==0) || (p->N40==1||p->N40==2||p->N40==3||p->N40==4||p->N40==22||p->N40==23||p->N40==24||p->N40==33)) && p->F80==0)
+    if(((p->F30==0) || (p->N40==2||p->N40==3||p->N40==4||p->N40==5||p->N40==6||p->N40==22||p->N40==23||p->N40==24||p->N40==33)) && p->F80==0)
 	pfsf = new levelset_void(p,a,pgc,pheat,pconc);
     
 	if(p->F30==2 && (p->N40==44||p->N40==12||p->N40==13||p->N40==14))
@@ -695,11 +695,11 @@ void driver::logic_cfd()
 	if(p->N40==0)
 	pmom = new momentum_void();
 
-    // the one-step scheme (N 40 1, a prototype): the level set or single phase flow, no bodies, VOF or particles yet
-    if(p->N40==1 && (p->X10>0 || p->F80>0 || p->F81>0 || p->F300>0 || p->Z10>0 || p->E10>0))
+    // the one-step schemes (N 40 5, 6, prototypes): the level set or single phase flow, no bodies, VOF or particles yet
+    if((p->N40==5 || p->N40==6) && (p->X10>0 || p->F80>0 || p->F81>0 || p->F300>0 || p->Z10>0 || p->E10>0))
     {
         if(p->mpirank==0)
-        cout<<"N 40 1 (the one-step scheme) works with the level set or single phase flow, without floating bodies (X 10), VOF (F 80), PIC (F 81), multiphase (F 300), FSI (Z 10) or DEM (E 10)"<<endl;
+        cout<<"N 40 "<<p->N40<<" (the one-step scheme) works with the level set or single phase flow, without floating bodies (X 10), VOF (F 80), PIC (F 81), multiphase (F 300), FSI (Z 10) or DEM (E 10)"<<endl;
 
         exit(1);
     }
@@ -708,12 +708,27 @@ void driver::logic_cfd()
     // (2, 3, 4), conservative form (33)
     bool mom_rk=false;
 
-    if(p->N40==1 || p->N40==2 || p->N40==22 || p->N40==12 || p->N40==44
+    // N 40 6, the one-step scheme with two projections: not yet with the compressible air (W 32: the
+    // reference pressure of the step and the weights of its terms) or the mesh refinement (G 1)
+    if(p->N40==6 && (p->W32>0 || p->G1>0))
+    {
+        if(p->mpirank==0)
+        cout<<"N 40 6 (the one-step scheme with two projections) is not built for the compressible air (W 32) or the mesh refinement (G 1) yet: use N 40 5"<<endl;
+
+        exit(1);
+    }
+
+    if(p->N40==5 || p->N40==6 || p->N40==2 || p->N40==22 || p->N40==12 || p->N40==44
     || ((p->N40==3 || p->N40==23 || p->N40==4 || p->N40==24 || p->N40==13 || p->N40==33) && p->F80!=4))
     {
 	pmom = new momentum_rk(p,a,pgc,pconvec,pfsfdisc,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow,pheat,pconc,preini,pfsi);
     mom_rk=true;
     }
+
+    // N 57 (the time step with the band around the free surface) is in ietimestep and etimestep (level 0)
+    if(p->N57>0.0 && p->mpirank==0 && (p->F30<=0 || p->G1>0 || p->N48==0))
+    cout<<"N 57 needs the level set (F 30), the adaptive time step (N 48 1) and works on level 0 only: "
+        <<((p->F30<=0 || p->N48==0) ? "not used" : "the patches of the mesh refinement (G 1) keep their criterion")<<endl;
 
     // N 54 (gravity out of the acceleration term of the time step) is in the Runge-Kutta momentum
     if(p->N54>0.0 && !mom_rk)
