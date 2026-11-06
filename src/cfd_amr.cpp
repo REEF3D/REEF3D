@@ -209,7 +209,7 @@ bool cfd_amr::scope(lexer *p, ghostcell *pgc)
     const char *why = nullptr;
 
     if(!(p->N40==2 || p->N40==3 || p->N40==5))
-    why = "N 40 2, 3 or 5 (SSP Runge-Kutta with the level set in the stages, or one step)";
+    why = "N 40 2, 3 or 5 (SSP Runge-Kutta with the level set in the stages, or one step; N 40 6 not yet)";
     else if(p->N40==5 && p->G7!=0)
     why = "the one-step scheme N 40 5 with G 7 0 (subcycling with N 40 5 is not built yet)";
     else if(p->N40==5 && (p->H10!=0 || p->C10!=0))
