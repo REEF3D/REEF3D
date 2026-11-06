@@ -750,6 +750,19 @@ void reefmg::fill_matrix8(lexer *p, double *f, vec &rhs, matrix_diag &M)
     if(err)
     p->solver_error=1;
 
+    //  A 310 5: the in-column couplings xcol (row k to k-3, k-4, ... of the higher-order free-surface stencils)
+    //  lumped into the k-1 coupling of the V-cycle operator: the line solve stays tridiagonal, and the row sums
+    //  - the constant mode of a column, which carries the Neumann-like top rows of shallow columns at large steps -
+    //  are those of the exact operator, which the Krylov iteration applies (fine_apply)
+    if(colx)
+    for(const matrix_diag::colcoupling &X : M.xcol)
+    {
+        const long q=L.idx(X.i,X.j,X.k);
+        if(!L.act[q]) continue;
+        if(fp32) L.bf[q]+=(float)X.v;
+        else     L.b[q]+=X.v;
+    }
+
     //  First row of every column whose cells are all active and numbered
     //  consecutively - every fully wet column, given CVAL4's LOOP order -
     //  so that fine_apply() can run it as a plain stencil.
