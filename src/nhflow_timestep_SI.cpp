@@ -147,7 +147,7 @@ void nhflow_timestep_SI::ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
     nhflow_timestep::ini(p,d,pgc);
 
     if(p->A536<=0.0 && p->mpirank==0)
-    cout<<"NHFLOW A 534 1: no A 536 (maximum time step) given, the time step stays at the explicit gravity wave limit"<<endl;
+    cout<<"NHFLOW A 510 12/13: no A 536 (maximum time step) given, the time step stays at the explicit gravity wave limit"<<endl;
 
 	p->dt=pgc->timesync(p->dt);
 	p->dt_old=p->dt;

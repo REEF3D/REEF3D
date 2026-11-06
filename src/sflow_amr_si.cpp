@@ -22,8 +22,10 @@ Architect: Hans Bihs
 
 #include"sflow_amr.h"
 #include"sflow_momentum_SI.h"
+#include"sflow_timestep_SI.h"
 #include"sflow_momentum_RK3.h"
 #include"sflow_curv.h"
+#include"sflow_amr_ship.h"
 #include"sflow_fsf.h"
 #include"si_eta2D.h"
 #include"lexer.h"
@@ -368,6 +370,34 @@ void sflow_amr::si_step(lexer *p, fdm2D *b, ghostcell *pgc)
     // the water column of the step before, then the state of t^n around the grids
     si_all(pgc,[&](int g, lexer *q, fdm2D *bb, sflow_momentum_SI *m) { m->si_restore(q,bb,pgc); });
 
+    // X 10 3: the ship pressure of the step, the mean of its start and end (step_single); the patches evaluate the
+    // body of level 0 before and after it moves (ship_patches, sflow_amr_ship.cpp)
+    if(shipmode==3)
+    {
+        if(si_lv)
+        {
+            ship_patches(true);
+            for(auto q : P)
+            if(q->lev>=1)
+            {
+            sflow_amr_ship *s = SP(q)->pship;
+            lexer *pp = SP(q)->pp;
+            for(int ii=pp->imin; ii<pp->imin+pp->imax; ++ii)
+            for(int jj=pp->jmin; jj<pp->jmin+pp->jmax; ++jj)
+            s->press_n(ii,jj) = s->press(ii,jj);
+            }
+        }
+
+        psim0->ship_begin(p,b,pgc,true);
+
+        if(si_lv)
+        {
+            ship_patches(true);
+            for(int l=1; l<=maxlev; ++l)
+            si_level(pgc,l,[&](int g, lexer *q, fdm2D *bb, sflow_momentum_SI *m) { m->ship_begin(q,bb,pgc,false); });
+        }
+    }
+
     cache_stage(0);
     if(nblk>0)
     fill_level0(pgc,0);
@@ -591,7 +621,7 @@ void sflow_amr::si_log(lexer *p, ghostcell *pgc)
 void sflow_amr::si_timestep(lexer *p, ghostcell *pgc)
 {
     const double cfl = p->N47;
-    double cmin = 1.0e20;
+    double cmin = 1.0e20, capw = 1.0e20;
 
     for(auto q : P)
     {
@@ -622,6 +652,20 @@ void sflow_amr::si_timestep(lexer *p, ghostcell *pgc)
             if(sigma>1.0e-20)
             cmin = MIN(cmin,1.0/sigma);
 
+            // the wave limit without A 228 > 0 with the cells of the patch (sflow_timestep_SI::wave_cap)
+            if(p->A228<=0.0)
+            {
+            double dxc;
+
+            if(pp->geo_curv==1)
+            dxc = sqrt(2.0/MAX(sflow_curv::inv2(pp,ii,jj),1.0e-20));
+
+            else
+            dxc = (p->j_dir==1) ? MIN(pp->DXN[ii+marge],pp->DYN[jj+marge]) : pp->DXN[ii+marge];
+
+            capw = MIN(capw,sflow_timestep_SI::wave_cap(p,dxc,pb->WL(ii,jj)));
+            }
+
             if(p->A212==1)
             {
             double visc = p->W2 + pb->eddyv(ii,jj);
@@ -640,7 +684,18 @@ void sflow_amr::si_timestep(lexer *p, ghostcell *pgc)
         }
     }
 
-    const double dtp = pgc->globalmin(cfl*2.0*cmin);
+    // X 10 3: the moving pressure travels at most about one cell of the patch per step (as sflow_timestep_SI)
+    if(p->X10==3)
+    for(auto q : P)
+    {
+        lexer *pp = SP(q)->pp;
+        const double us = fabs(p->ufbi)/pp->DXM + p->y_dir*fabs(p->vfbi)/pp->DXM;
+
+        if(us>1.0e-20)
+        cmin = MIN(cmin,1.0/us);
+    }
+
+    const double dtp = pgc->globalmin(MIN(cfl*2.0*cmin,capw));
 
     if(p->N48==1)
     p->dt = MIN(p->dt,dtp);

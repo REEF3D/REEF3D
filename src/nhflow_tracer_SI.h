@@ -38,7 +38,7 @@ class nhflow_momentum_SI;
 using namespace std;
 
 // ---------------------------------------------------------------------------
-// Tracers of the hydrostatic semi-implicit NHFLOW (A 534 1, A 600): salinity (A 600 1), and
+// Tracers of the hydrostatic semi-implicit NHFLOW (A 510 12/13, A 600): salinity (A 600 1), and
 // temperature (A 600 2); passive, or with A 620 the density and its pressure gradient
 // (nhflow_momentum_SI_density.cpp; the predictor of the density: prepare phase 1, save, restore).
 //

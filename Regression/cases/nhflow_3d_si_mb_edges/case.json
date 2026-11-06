@@ -2,7 +2,7 @@
  "base": "nhflow_3d_mb_open_faces_mpi2",
  "np": 1,
  "steps": 100,
- "description": "Hydrostatic semi-implicit NHFLOW (A 534 1) on the three blocks of nhflow_3d_mb_open_faces_mpi2 with clamped edges on the blocks (B 522): a clamped discharge edge on the -i face of block 1 (zone 1, B 525 0.03 m3/s with a 0.2 s ramp) and a clamped level edge on the +i face of block 2 with a water level time series (zone 2, background 2 from background-2.dat, B 510 mode 2). The same solution as one block with the zones on its x edges, see Dropbox validation 01_block_edges.",
+ "description": "Hydrostatic semi-implicit NHFLOW (A 510 12) on the three blocks of nhflow_3d_mb_open_faces_mpi2 with clamped edges on the blocks (B 522): a clamped discharge edge on the -i face of block 1 (zone 1, B 525 0.03 m3/s with a 0.2 s ramp) and a clamped level edge on the +i face of block 2 with a water level time series (zone 2, background 2 from background-2.dat, B 510 mode 2). The same solution as one block with the zones on its x edges, see Dropbox validation 01_block_edges.",
  "tags": [
   "3d",
   "nhflow",
@@ -18,7 +18,7 @@
  "ctrl_set": {
   "W 10": null,
   "A 520": "0",
-  "A 534": "1",
+  "A 510": "12",
   "A 535": "0.55",
   "G 54": null,
   "B 60": null,

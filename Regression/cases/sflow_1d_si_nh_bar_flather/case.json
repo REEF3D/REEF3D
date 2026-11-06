@@ -1,0 +1,18 @@
+{
+ "base": "sflow_1d_si_nh_bar",
+ "ctrl_set": {
+  "B 98": "4"
+ },
+ "description": "sflow_1d_si_nh_bar with the waves entering through the Flather boundary (B 98 4) instead of the relaxation zone, absorption zone at the outlet.",
+ "tags": [
+  "1d",
+  "sflow",
+  "semi_implicit",
+  "nonhydrostatic",
+  "waves"
+ ],
+ "covers": [
+  "bc_flather open face in the coupled system (no pressure term on open faces)"
+ ],
+ "architect": "Hans Bihs"
+}

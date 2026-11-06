@@ -66,7 +66,12 @@ Author: Hans Bihs
 // Mesh refinement (G 1, static or adaptive, not with subcycling G 7 1): the composite coupled system over the leaf
 // cells of all grids, sflow_amr::si_nh_solve (sflow_amr_sinh.cpp) with the parts of sflow_momentum_SI_nh_amr.cpp.
 //
-// Limits (check()): Cartesian, no multi-block grid. Non-hydrostatic cells: wet,
+// Curvilinear grid (G 50, one block, no mesh refinement): the face differences along the face normal over the distance of
+// the two cell centres, the divergence with the face lengths over the cell area, the Laplacian of the A 220 3 term
+// with the orthogonal parts of the faces (sflow_curv::lapcoef), the cell gradients of the slope term and of the bed
+// acceleration by the chain rule (sflow_curv::grad5), the cell discharges from the mean normal terms of the two index
+// directions (as the gravity term of cell_update).
+// Limits (check()): no multi-block grid, no curvilinear grid with mesh refinement. Non-hydrostatic cells: wet,
 // deeper than 10 A 244, not next to the shoreline (p->deep), wet neighbours; P = 0 elsewhere. Open boundary faces carry no pressure term.
 // ---------------------------------------------------------------------------
 
@@ -86,6 +91,7 @@ Author: Hans Bihs
 #include<algorithm>
 
 #include"sflow_momentum_SI_nh.h"
+#include"sflow_curv.h"
 
 void sflow_momentum_SI::nh_ini(lexer *p)
 {
@@ -222,6 +228,7 @@ void sflow_momentum_SI::nh_predictor(lexer *p, fdm2D *b, ghostcell *pgc)
     // h^3 lap(eta^n) (A 220 3), WH predictor, bed acceleration phi
     const double dt = p->dt;
     const bool yd = (p->j_dir==1);
+    const bool cv = (p->geo_curv==1);
     auto id = [&](int a, int c) { return (a-p->imin)*p->jmax + (c-p->jmin); };
     auto in = [&](int a, int c) { return p->flagslice4[id(a,c)]>0; };
 
@@ -233,12 +240,26 @@ void sflow_momentum_SI::nh_predictor(lexer *p, fdm2D *b, ghostcell *pgc)
         if(Bdisp>0.0 && nh_active(p,b,i,j)==1)
         {
         const double h = WLh(i,j);
-        double lap = ((in(i+1,j) ? (b->eta(i+1,j) - b->eta(i,j))/p->DXP[IP] : 0.0)
-                    - (in(i-1,j) ? (b->eta(i,j) - b->eta(i-1,j))/p->DXP[IM1] : 0.0))/p->DXN[IP];
+        double lap;
 
-        if(yd)
-        lap += ((in(i,j+1) ? (b->eta(i,j+1) - b->eta(i,j))/p->DYP[JP] : 0.0)
-              - (in(i,j-1) ? (b->eta(i,j) - b->eta(i,j-1))/p->DYP[JM1] : 0.0))/p->DYN[JP];
+            if(cv)
+            {
+            // curvilinear grid: the compact Laplacian of the orthogonal parts of the faces, L/(A dn)
+            double cE,cW,cN,cS;
+            sflow_curv::lapcoef(p,i,j,cE,cW,cN,cS);
+            lap = (in(i+1,j) ? cE*(b->eta(i+1,j) - b->eta(i,j)) : 0.0) - (in(i-1,j) ? cW*(b->eta(i,j) - b->eta(i-1,j)) : 0.0)
+                + (in(i,j+1) ? cN*(b->eta(i,j+1) - b->eta(i,j)) : 0.0) - (in(i,j-1) ? cS*(b->eta(i,j) - b->eta(i,j-1)) : 0.0);
+            }
+
+            else
+            {
+            lap = ((in(i+1,j) ? (b->eta(i+1,j) - b->eta(i,j))/p->DXP[IP] : 0.0)
+                 - (in(i-1,j) ? (b->eta(i,j) - b->eta(i-1,j))/p->DXP[IM1] : 0.0))/p->DXN[IP];
+
+            if(yd)
+            lap += ((in(i,j+1) ? (b->eta(i,j+1) - b->eta(i,j))/p->DYP[JP] : 0.0)
+                  - (in(i,j-1) ? (b->eta(i,j) - b->eta(i,j-1))/p->DYP[JM1] : 0.0))/p->DYN[JP];
+            }
 
         Lc0(i,j) = h*h*h*lap;
         }
@@ -259,6 +280,10 @@ void sflow_momentum_SI::nh_predictor(lexer *p, fdm2D *b, ghostcell *pgc)
     {
     double A = 0.0;
 
+        if(p->wet[IJ]==1 && cv)
+        A = (fWx(i,j)*flen(p,1,i,j) - fWx(i-1,j)*flen(p,1,i-1,j) + fWy(i,j)*flen(p,2,i,j) - fWy(i,j-1)*flen(p,2,i,j-1))/carea(p,i,j);
+
+        else
         if(p->wet[IJ]==1)
         {
         A = (fWx(i,j) - fWx(i-1,j))/p->DXN[IP];
@@ -303,6 +328,45 @@ void sflow_momentum_SI::nh_predictor(lexer *p, fdm2D *b, ghostcell *pgc)
     auto Ve = [&](int a, int c) { return in(a,c) ? nV(a,c) : b->V(a,c)*p->y_dir; };
     auto dep = [&](int a, int c, int a0, int c0) { return in(a,c) ? b->depth(a,c) : b->depth(a0,c0); };
 
+    // curvilinear grid: central gradients by the chain rule (sflow_curv::grad5, as sflow_pjm_quad::quad_calc_curv),
+    // the second derivatives of the bed as the gradients of its gradient; values outside the domain mirrored
+    if(cv)
+    {
+        SLICELOOP4
+        sflow_curv::grad5(p,i,j,dep(i+1,j,i,j),dep(i-1,j,i,j),dep(i,j+1,i,j),dep(i,j-1,i,j),nGx(i,j),nGy(i,j));
+
+        exchange4(p,pgc,nGx);
+        exchange4(p,pgc,nGy);
+
+        auto gm = [&](slice &f, int a, int c) { return in(a,c) ? f(a,c) : f(i,j); };
+
+        SLICELOOP4
+        {
+        phiN(i,j) = 0.0;
+
+            if(nh_active(p,b,i,j)==1)
+            {
+            double dddxx, dddyy, a1, a2, ux, uy, vx, vy;
+            sflow_curv::grad5(p,i,j,gm(nGx,i+1,j),gm(nGx,i-1,j),gm(nGx,i,j+1),gm(nGx,i,j-1),dddxx,a1);
+            sflow_curv::grad5(p,i,j,gm(nGy,i+1,j),gm(nGy,i-1,j),gm(nGy,i,j+1),gm(nGy,i,j-1),a2,dddyy);
+
+            double dddxy = 0.0;
+            if(in(i+1,j+1) && in(i+1,j-1) && in(i-1,j+1) && in(i-1,j-1))
+            dddxy = 0.5*(a1 + a2);
+
+            sflow_curv::grad5(p,i,j,Ue(i+1,j),Ue(i-1,j),Ue(i,j+1),Ue(i,j-1),ux,uy);
+            sflow_curv::grad5(p,i,j,Ve(i+1,j),Ve(i-1,j),Ve(i,j+1),Ve(i,j-1),vx,vy);
+
+            const double u = nU(i,j), v = nV(i,j);
+            const double dudt = (u - Unm1(i,j))/p->dt_old + u*ux + v*uy;
+            const double dvdt = (v - Vnm1(i,j))/p->dt_old + u*vx + v*vy;
+
+            phiN(i,j) = -dudt*nGx(i,j) - dvdt*nGy(i,j) - u*u*dddxx - v*v*dddyy - 2.0*u*v*dddxy;
+            }
+        }
+    }
+
+    else
     SLICELOOP4
     {
     phiN(i,j) = 0.0;
@@ -397,6 +461,7 @@ void sflow_momentum_SI::nh_assemble(lexer *p, fdm2D *b, ghostcell *pgc)
 
     exchange4(p,pgc,nA);
     auto ac = [&](int a, int c) { return in(a,c) && nA(a,c)>0.5; };
+    const bool cv = (p->geo_curv==1);
 
     // ---- face coefficients: q_NH = -R P_R + L P_L + B (L_R - L_L) + c0
     auto fcoef = [&](int a, int c, int a1, int c1, double dxp, double alf, double Hf,
@@ -425,17 +490,30 @@ void sflow_momentum_SI::nh_assemble(lexer *p, fdm2D *b, ghostcell *pgc)
         }
     };
 
+    // curvilinear grid: the face differences along the face normal over the distance of the two cell centres (fdn)
     SLICELOOP1
-    fcoef(i,j,i+1,j,p->DXP[IP],alx(i,j),Hx(i,j),nxR(i,j),nxL(i,j),nxB(i,j),nx0(i,j));
+    fcoef(i,j,i+1,j,cv ? fdn(p,1,i,j) : p->DXP[IP],alx(i,j),Hx(i,j),nxR(i,j),nxL(i,j),nxB(i,j),nx0(i,j));
 
     if(yd)
     SLICELOOP2
-    fcoef(i,j,i,j+1,p->DYP[JP],aly(i,j),Hy(i,j),nyR(i,j),nyL(i,j),nyB(i,j),ny0(i,j));
+    fcoef(i,j,i,j+1,cv ? fdn(p,2,i,j) : p->DYP[JP],aly(i,j),Hy(i,j),nyR(i,j),nyL(i,j),nyB(i,j),ny0(i,j));
 
     exchange1(p,pgc,nxR); exchange1(p,pgc,nxL); exchange1(p,pgc,nxB); exchange1(p,pgc,nx0);
     exchange2(p,pgc,nyR); exchange2(p,pgc,nyL); exchange2(p,pgc,nyB); exchange2(p,pgc,ny0);
 
     // ---- cell coefficients: slope of the constraint, U (2 d_x - H_x) + V (2 d_y - H_y)
+    // (braces: SLICELOOP4 ends with an if)
+    if(cv)
+    {
+        SLICELOOP4
+        {
+        const double H = WLq(i,j);
+        auto sl = [&](int a, int c) { return in(a,c) ? 2.0*b->depth(a,c) - WLq(a,c) : 2.0*b->depth(i,j) - H; };
+        sflow_curv::grad5(p,i,j,sl(i+1,j),sl(i-1,j),sl(i,j+1),sl(i,j-1),nsx(i,j),nsy(i,j));
+        }
+    }
+
+    else
     SLICELOOP4
     {
     const double H = WLq(i,j);
@@ -557,8 +635,15 @@ void sflow_momentum_SI::nh_solve(lexer *p, fdm2D *b, ghostcell *pgc)
     // flat indices: cell n at slice index cq[n]; x neighbours +-J, y neighbours +-1; the east face of a cell has
     // its index, the west face q-J, the north face q, the south face q-1
     const int J = p->jmax;
+    const bool cv = (p->geo_curv==1);
     std::vector<int> cq(N);
     std::vector<double> idx(N), idy(N), lxe(N), lxw(N), lyn(N), lys(N), h3(N), w2(N), cst(N);
+    // curvilinear grid: the divergence weights L/A of the east, west, north and south face of the cells
+    std::vector<double> dxe, dxw, dyn_, dys;
+    if(cv)
+    {
+    dxe.resize(N); dxw.resize(N); dyn_.resize(N); dys.resize(N);
+    }
 
     {
     int n=0;
@@ -575,6 +660,22 @@ void sflow_momentum_SI::nh_solve(lexer *p, fdm2D *b, ghostcell *pgc)
     lxw[n] = (a && in(i-1,j)) ? 1.0/(p->DXP[IM1]*p->DXN[IP]) : 0.0;
     lyn[n] = (a && yd && in(i,j+1)) ? 1.0/(p->DYP[JP]*p->DYN[JP]) : 0.0;
     lys[n] = (a && yd && in(i,j-1)) ? 1.0/(p->DYP[JM1]*p->DYN[JP]) : 0.0;
+
+        if(cv)
+        {
+        const double A = carea(p,i,j);
+        dxe[n] = flen(p,1,i,j)/A;
+        dxw[n] = flen(p,1,i-1,j)/A;
+        dyn_[n] = flen(p,2,i,j)/A;
+        dys[n] = flen(p,2,i,j-1)/A;
+
+        double cE,cW,cN,cS;
+        sflow_curv::lapcoef(p,i,j,cE,cW,cN,cS);
+        lxe[n] = (a && in(i+1,j)) ? cE : 0.0;
+        lxw[n] = (a && in(i-1,j)) ? cW : 0.0;
+        lyn[n] = (a && in(i,j+1)) ? cN : 0.0;
+        lys[n] = (a && in(i,j-1)) ? cS : 0.0;
+        }
     h3[n] = a ? WLh(i,j)*WLh(i,j)*WLh(i,j) : 0.0;
 
     // constraint: 2 dt cw/H P, and the affine terms (W predictor, phi, slope term with U^{n+1} extrapolated:
@@ -683,8 +784,14 @@ void sflow_momentum_SI::nh_solve(lexer *p, fdm2D *b, ghostcell *pgc)
         const int q = cq[n];
 
         // mass row
-        double dv = (FX1[q] - FX1[q-J])*idx[n];
+        double dv;
+        if(cv)
+        dv = FX1[q]*dxe[n] - FX1[q-J]*dxw[n] + FY1[q]*dyn_[n] - FY1[q-1]*dys[n];
+        else
+        {
+        dv = (FX1[q] - FX1[q-J])*idx[n];
         if(yd) dv += (FY1[q] - FY1[q-1])*idy[n];
+        }
 
         y[2*n] = PW[q]*E[q] + tdt*dv;
 
@@ -694,8 +801,14 @@ void sflow_momentum_SI::nh_solve(lexer *p, fdm2D *b, ghostcell *pgc)
 
             else
             {
-            double cc = (FX2[q] - FX2[q-J])*idx[n];
+            double cc;
+            if(cv)
+            cc = FX2[q]*dxe[n] - FX2[q-J]*dxw[n] + FY2[q]*dyn_[n] - FY2[q-1]*dys[n];
+            else
+            {
+            cc = (FX2[q] - FX2[q-J])*idx[n];
             if(yd) cc += (FY2[q] - FY2[q-1])*idy[n];
+            }
 
             cc += w2[n]*Pp[q];
 
@@ -914,13 +1027,15 @@ void sflow_momentum_SI::nh_solve(lexer *p, fdm2D *b, ghostcell *pgc)
         M.p[n] = nPW(i,j)*nAE(i,j);
         M.n[n] = M.s[n] = M.w[n] = M.e[n] = 0.0;
 
-        face_pre(1,i,j,i+1,j,true,p->DXN[IP],d,o);    M.p[n] += d; M.n[n] = o;
-        face_pre(1,i-1,j,i,j,false,p->DXN[IP],d,o);   M.p[n] += d; M.s[n] = o;
+        // the width of the cell of the divergence, curvilinear grid: A/L of the face
+        const double A = cv ? carea(p,i,j) : 0.0;
+        face_pre(1,i,j,i+1,j,true,cv ? A/flen(p,1,i,j) : p->DXN[IP],d,o);    M.p[n] += d; M.n[n] = o;
+        face_pre(1,i-1,j,i,j,false,cv ? A/flen(p,1,i-1,j) : p->DXN[IP],d,o); M.p[n] += d; M.s[n] = o;
 
             if(yd)
             {
-            face_pre(2,i,j,i,j+1,true,p->DYN[JP],d,o);  M.p[n] += d; M.w[n] = o;
-            face_pre(2,i,j-1,i,j,false,p->DYN[JP],d,o); M.p[n] += d; M.e[n] = o;
+            face_pre(2,i,j,i,j+1,true,cv ? A/flen(p,2,i,j) : p->DYN[JP],d,o);    M.p[n] += d; M.w[n] = o;
+            face_pre(2,i,j-1,i,j,false,cv ? A/flen(p,2,i,j-1) : p->DYN[JP],d,o); M.p[n] += d; M.e[n] = o;
             }
         ++n;
         }
@@ -963,11 +1078,25 @@ void sflow_momentum_SI::nh_solve(lexer *p, fdm2D *b, ghostcell *pgc)
             int n=0;
             SLICELOOP4
             {
-            const double re = rho(1,i,j,i+1,j)/(p->DXP[IP]*p->DXN[IP]);
-            const double rw = rho(1,i-1,j,i,j)/(p->DXP[IM1]*p->DXN[IP]);
-            double rn = 0.0, rs = 0.0;
+            double re, rw, rn = 0.0, rs = 0.0;
 
-                if(yd)
+                if(cv)
+                {
+                double cE,cW,cN,cS;
+                sflow_curv::lapcoef(p,i,j,cE,cW,cN,cS);
+                re = rho(1,i,j,i+1,j)*cE;
+                rw = rho(1,i-1,j,i,j)*cW;
+                rn = rho(2,i,j,i,j+1)*cN;
+                rs = rho(2,i,j-1,i,j)*cS;
+                }
+
+                else
+                {
+                re = rho(1,i,j,i+1,j)/(p->DXP[IP]*p->DXN[IP]);
+                rw = rho(1,i-1,j,i,j)/(p->DXP[IM1]*p->DXN[IP]);
+                }
+
+                if(yd && !cv)
                 {
                 rn = rho(2,i,j,i,j+1)/(p->DYP[JP]*p->DYN[JP]);
                 rs = rho(2,i,j-1,i,j)/(p->DYP[JM1]*p->DYN[JP]);
@@ -1007,8 +1136,14 @@ void sflow_momentum_SI::nh_solve(lexer *p, fdm2D *b, ghostcell *pgc)
             for(int n=0; n<N; ++n)
             {
             const int q = cq[n];
-            double dv = (FX1[q] - FX1[q-J])*idx[n];
+            double dv;
+            if(cv)
+            dv = FX1[q]*dxe[n] - FX1[q-J]*dxw[n] + FY1[q]*dyn_[n] - FY1[q-1]*dys[n];
+            else
+            {
+            dv = (FX1[q] - FX1[q-J])*idx[n];
             if(yd) dv += (FY1[q] - FY1[q-1])*idy[n];
+            }
 
             S.r1->V[n] = v[2*n] - (E[q] + tdt*dv);
             nZ.V[q] = 0.0;
@@ -1235,9 +1370,57 @@ void sflow_momentum_SI::nh_cell(lexer *p, fdm2D *b, ghostcell *pgc)
         const double we = (Hx(i,j)>0.0 && in(i+1,j) && wn(i+1,j)) ? 1.0 : 0.0;
         const double ww = (Hx(i-1,j)>0.0 && in(i-1,j) && wn(i-1,j)) ? 1.0 : 0.0;
 
+        if(p->geo_curv==1)
+        {
+            // curvilinear grid: per index direction the mean normal and the mean normal discharge of the open faces,
+            // the cell vector from the two (as the gravity term, cell_update)
+            const double wn_ = (Hy(i,j)>0.0 && in(i,j+1) && wn(i,j+1)) ? 1.0 : 0.0;
+            const double ws_ = (Hy(i,j-1)>0.0 && in(i,j-1) && wn(i,j-1)) ? 1.0 : 0.0;
+            double nx, ny, ax_=0.0, ay_=0.0, bx_=0.0, by_=0.0;
+
+            if(we>0.0) { fnorm(p,1,i,j,nx,ny);   ax_ += nx; ay_ += ny; }
+            if(ww>0.0) { fnorm(p,1,i-1,j,nx,ny); ax_ += nx; ay_ += ny; }
+            if(wn_>0.0) { fnorm(p,2,i,j,nx,ny);   bx_ += nx; by_ += ny; }
+            if(ws_>0.0) { fnorm(p,2,i,j-1,nx,ny); bx_ += nx; by_ += ny; }
+
+            const double ag = (ww*qxN(i-1,j) + we*qxN(i,j))/MAX(we+ww,1.0);
+            const double bg = (ws_*qyN(i,j-1) + wn_*qyN(i,j))/MAX(wn_+ws_,1.0);
+            const double la = sqrt(ax_*ax_ + ay_*ay_), lb = sqrt(bx_*bx_ + by_*by_);
+
+            if(la>0.0) { ax_/=la; ay_/=la; }
+            if(lb>0.0) { bx_/=lb; by_/=lb; }
+
+            const double det = ax_*by_ - ay_*bx_;
+            double gx=0.0, gy=0.0;
+
+            if(la>0.0 && lb>0.0 && fabs(det)>1.0e-3)
+            {
+            gx = (ag*by_ - ay_*bg)/det;
+            gy = (ax_*bg - ag*bx_)/det;
+            }
+
+            else
+            if(la>0.0)
+            {
+            gx = ag*ax_;
+            gy = ag*ay_;
+            }
+
+            else
+            if(lb>0.0)
+            {
+            gx = bg*bx_;
+            gy = bg*by_;
+            }
+
+            b->UH(i,j) += gx;
+            b->VH(i,j) += gy;
+        }
+
+        else
         b->UH(i,j) += (ww*qxN(i-1,j) + we*qxN(i,j))/MAX(we+ww,1.0);
 
-            if(p->j_dir==1)
+            if(p->j_dir==1 && p->geo_curv==0)
             {
             const double wn_ = (Hy(i,j)>0.0 && in(i,j+1) && wn(i,j+1)) ? 1.0 : 0.0;
             const double ws_ = (Hy(i,j-1)>0.0 && in(i,j-1) && wn(i,j-1)) ? 1.0 : 0.0;

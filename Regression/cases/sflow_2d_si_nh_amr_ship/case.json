@@ -1,0 +1,30 @@
+{
+ "base": "sflow_2d_amr_ship",
+ "ctrl_set": {
+  "A 210": "12",
+  "A 227": "0.5",
+  "A 243": "0",
+  "A 220": "3",
+  "A 228": "0.05"
+ },
+ "ctrl_add": [
+  "P 18 1"
+ ],
+ "description": "sflow_2d_amr_ship with the semi-implicit step and the coupled non-hydrostatic pressure (A 210 12, A 220 3, dt 0.05 s): the ship pressure of the step on the patches that follow the body (G 12, G 13, regrid every 4 steps), the mean of the body at the start and the end of the step.",
+ "tags": [
+  "2d",
+  "sflow",
+  "semi_implicit",
+  "nonhydrostatic",
+  "amr",
+  "adaptive",
+  "ship",
+  "6dof"
+ ],
+ "covers": [
+  "sflow_amr::si_step with X 10 3 (ship_patches before and after the body moves)",
+  "sflow_amr_ship::sflow_press_step",
+  "si_timestep ship limit on the patches"
+ ],
+ "architect": "Hans Bihs"
+}

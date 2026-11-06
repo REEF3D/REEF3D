@@ -30,8 +30,11 @@ Author: Hans Bihs
 #include<vector>
 #include<fstream>
 #include<functional>
+#include<memory>
 
 class si_eta2D;
+struct sflow_si_nh_lu;
+class nhflow_si_nhmg;
 class nhflow_tracer_SI;
 class solver2D;
 class wind;
@@ -40,7 +43,7 @@ class met_forcing;
 using namespace std;
 
 // ---------------------------------------------------------------------------
-// NHFLOW hydrostatic semi-implicit free surface (A 534 1), theta method (A 535).
+// NHFLOW hydrostatic semi-implicit free surface (A 510 12/13), theta method (A 535).
 //
 // For long simulations (tide, river, coastal ocean): the gravity wave speed sqrt(gh) no longer
 // limits the time step, only advection does (nhflow_timestep_SI, cap A 536).
@@ -279,6 +282,29 @@ private:
     void exchange4(lexer*, ghostcell*, slice&);
     void exchangeF(lexer*, ghostcell*, double*);
     void exchangeC(lexer*, ghostcell*, double*);
+
+    // non-hydrostatic pressure (A 520 > 0) coupled with eta^{n+1}, after Basilisk's multilayer solver
+    // (nhflow_momentum_SI_nh.cpp): phi = p/rho on the layer interfaces (PHI, k: the lower interface of layer k), the
+    // layer face discharges of phi (NQx, NQy, per unit sigma), w* of the cells (WHS), the interface slopes of the
+    // cells (NSX, NSY, nodes 0 .. K), the layer thicknesses at t^{n+1/2} (nWLh), the non-hydrostatic cells (nAct)
+    bool nh = false;
+    double *NQx = nullptr, *NQy = nullptr, *WHS = nullptr, *PHI = nullptr, *PHIo = nullptr, *NSX = nullptr, *NSY = nullptr;
+    std::vector<double> nWLh, nWLo, nTxP, nTyP, nHxo, nHyo;
+    std::vector<char> nAct;
+    std::shared_ptr<sflow_si_nh_lu> nhlu;
+    std::shared_ptr<nhflow_si_nhmg> nhmg;
+    int nh_iter = 0;
+    double nh_time = 0.0, nh_res = 0.0, nh_brk = 0.0;
+    void nh_ini(lexer*);
+    void nh_free();
+    void nh_levels(lexer*, fdm_nhf*);
+    void nh_begin(lexer*, fdm_nhf*, ghostcell*);
+    void nh_prepare(lexer*, fdm_nhf*, ghostcell*);
+    void nh_faces(lexer*, fdm_nhf*);
+    void nh_residual(lexer*, fdm_nhf*, ghostcell*, const std::vector<double>&, std::vector<double>&);
+    void nh_solve(lexer*, fdm_nhf*, ghostcell*);
+    void nh_solve_mg(lexer*, fdm_nhf*, ghostcell*, const std::vector<double>&, std::vector<double>&);
+    void nh_cell(lexer*, fdm_nhf*, ghostcell*);
 
     si_eta2D *psi;
     solver2D *psolv2D;

@@ -143,6 +143,9 @@ nhflow_momentum_SI::nhflow_momentum_SI(lexer *p, fdm_nhf *d, ghostcell *pgc, six
     // vertical diffusion in the column operator: as nhflow_idiff (A 512 2, or A 560 > 0)
     visc = !(p->A512==0 && p->A560==0) || (p->A547_c>0.0 && p->A560==0) || (p->A547_nu0>0.0 && p->A560==0);
 
+    // non-hydrostatic pressure (A 520 > 0): the coupled eta-phi system (nhflow_momentum_SI_nh.cpp)
+    nh_ini(p);
+
     wcu.assign(p->knoz,0.0);
     wcd.assign(p->knoz,0.0);
     wcl.assign(p->knoz,0.0);
@@ -156,7 +159,7 @@ nhflow_momentum_SI::nhflow_momentum_SI(lexer *p, fdm_nhf *d, ghostcell *pgc, six
 
     if(p->mpirank==0 && !patch)
     {
-    cout<<"NHFLOW hydrostatic semi-implicit free surface (A 534 1): theta "<<theta<<", SSP-RK"<<rk<<" predictor";
+    cout<<"NHFLOW hydrostatic semi-implicit free surface (A 510 "<<10+rk<<"): theta "<<theta<<", SSP-RK"<<rk<<" predictor";
 
     if(p->A537==1)
     cout<<", wetting and drying iteration";
@@ -171,7 +174,7 @@ nhflow_momentum_SI::nhflow_momentum_SI(lexer *p, fdm_nhf *d, ghostcell *pgc, six
     mkdir("./REEF3D_NHFLOW_Log",0777);
     if(reefckpt_open(silog,"./REEF3D_NHFLOW_Log/REEF3D_NHFLOW_SI.dat",p->I45))   // I 45: continued
     {
-        silog<<"# semi-implicit NHFLOW (A 534 1): volume and open boundary discharges"<<endl;
+        silog<<"# semi-implicit NHFLOW (A 510 12/13): volume and open boundary discharges"<<endl;
         silog<<"# count  simtime  dt  volume  Qin  Qout  relax_volume  eta_iterations  wetdry_iterations  dry_cells"<<endl;
     }
     }
@@ -189,6 +192,8 @@ nhflow_momentum_SI::~nhflow_momentum_SI()
     for(double *a : {Bx,By,BFx,BFy,KV,N2,ELU,ELV,ELW})
     delete [] a;
 
+    nh_free();
+
     if(psolv2D!=nullptr)
     delete psolv2D;
     delete pwind;
@@ -203,12 +208,26 @@ void nhflow_momentum_SI::check(lexer *p)
     auto msg = [&](const char *s)
     {
         if(p->mpirank==0)
-        cout<<"!!! NHFLOW A 534 1 (semi-implicit): "<<s<<" not available yet !!!"<<endl;
+        cout<<"!!! NHFLOW A 510 12/13 (semi-implicit): "<<s<<" not available yet !!!"<<endl;
         stop=1;
     };
 
+    // the non-hydrostatic pressure (A 520 > 0): the coupled eta-phi system after Basilisk (nhflow_momentum_SI_nh.cpp),
+    // Cartesian, one grid
     if(p->A520!=0)
-    msg("the non-hydrostatic pressure (A 520 > 0) is; set A 520 0,");
+    {
+        if(p->geo_curv==1 || p->geo_mb>0 || p->G1>0)
+        msg("the non-hydrostatic pressure (A 520 > 0) on curvilinear, multi-block or refined grids is");
+
+        if(p->A537==1)
+        msg("the non-hydrostatic pressure (A 520 > 0) with the wetting and drying iteration (A 537 1) is; set A 537 0,");
+
+        if(elm_mode(p)>0)
+        msg("the non-hydrostatic pressure (A 520 > 0) with the semi-Lagrangian advection (A 549 1) is");
+
+        if(p->A620>0)
+        msg("the non-hydrostatic pressure (A 520 > 0) with the density (A 620) is");
+    }
 
     if(p->A510!=2 && p->A510!=3)
     msg("a predictor other than SSP-RK2/3 (A 510 2/3) is");
@@ -258,7 +277,7 @@ void nhflow_momentum_SI::check(lexer *p)
     cout<<"NHFLOW A 535 "<<p->A535<<": theta < 0.5 is unstable for large time steps"<<endl;
 
     if(p->A512==1 && p->mpirank==0)
-    cout<<"NHFLOW A 534 1: explicit diffusion (A 512 1) limits the time step, use A 512 2 (implicit)"<<endl;
+    cout<<"NHFLOW A 510 12/13: explicit diffusion (A 512 1) limits the time step, use A 512 2 (implicit)"<<endl;
 }
 
 void nhflow_momentum_SI::bc_method(lexer *p)
@@ -288,7 +307,7 @@ void nhflow_momentum_SI::bc_method(lexer *p)
         if(method[cs]!=0 && method[cs]!=p->B520_method[qn])
         {
             if(p->mpirank==0)
-            cout<<"!!! NHFLOW A 534 1 (semi-implicit): different B 520 methods on one edge (B 521 edge "<<e<<") are not available yet !!!"<<endl;
+            cout<<"!!! NHFLOW A 510 12/13 (semi-implicit): different B 520 methods on one edge (B 521 edge "<<e<<") are not available yet !!!"<<endl;
             exit(1);
         }
 
@@ -336,6 +355,10 @@ void nhflow_momentum_SI::step_single(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflo
     si_restore(p,d,pgc);
     si_begin(p,d,pgc,S);
 
+    // the non-hydrostatic pressure (A 520 > 0): time levels of the nonlinear terms
+    if(nh)
+    nh_begin(p,d,pgc);
+
     for(int s=0; s<rk; ++s)
     {
     si_stage_vel(p,d,pgc,S,s);
@@ -358,6 +381,18 @@ void nhflow_momentum_SI::step_single(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflo
     si_assemble(p,d,pgc);
     si_rhs(p,d,pgc);
 
+    // the non-hydrostatic pressure (A 520 > 0): eta^{n+1} and phi^{n+1} from the coupled system
+    if(nh)
+    {
+    nh_solve(p,d,pgc);
+    psi_iter = nh_iter;
+    psi_time = nh_time;
+    wd_iter = 1;
+    wd_cells = 0;
+    }
+
+    else
+    {
     // initial guess eta^n; Newton iteration on WL = max(eta + d, 0) (Casulli 2009)
     if(psolv2D==nullptr)
     psolv2D = new_solver2D(p,pgc);
@@ -365,6 +400,7 @@ void nhflow_momentum_SI::step_single(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflo
     wd_iter = psi->solve_wetdry(p,pgc,psolv2D,ax,ay,rhsW,d->depth,bdiag,etaI,p->A537==1 ? 20 : 1,wd_cells);
     psi_iter = psi->iter;
     psi_time = psi->time;
+    }
 
     si_end(p,d,pgc,S);
 
@@ -1976,6 +2012,11 @@ void nhflow_momentum_SI::face_update(lexer *p, fdm_nhf *d, ghostcell *pgc)
             for(k=0;k<p->knoz;++k)
             {
             Qx[IJK] = QAx[IJK] - G*Rx[IJK] - kx(i,j)*G1;
+
+            // the non-hydrostatic pressure of the face (A 520 > 0, nh_faces)
+            if(nh)
+            Qx[IJK] += NQx[IJK];
+
             qx(i,j) += p->DZN[KP]*Qx[IJK];
             }
         }
@@ -1998,6 +2039,10 @@ void nhflow_momentum_SI::face_update(lexer *p, fdm_nhf *d, ghostcell *pgc)
             for(k=0;k<p->knoz;++k)
             {
             Qy[IJK] = QAy[IJK] - G*Ry[IJK] - ky(i,j)*G1;
+
+            if(nh)
+            Qy[IJK] += NQy[IJK];
+
             qy(i,j) += p->DZN[KP]*Qy[IJK];
             }
         }
@@ -2396,6 +2441,10 @@ void nhflow_momentum_SI::cell_update(lexer *p, fdm_nhf *d, ghostcell *pgc)
         d->WH[IJK] = 0.0;
         }
     }
+
+    // the non-hydrostatic pressure (A 520 > 0): its face terms in the cells, the vertical momentum
+    if(nh)
+    nh_cell(p,d,pgc);
 }
 
 void nhflow_momentum_SI::relax(lexer *p, fdm_nhf *d, ghostcell *pgc)

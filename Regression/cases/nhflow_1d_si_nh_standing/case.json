@@ -1,0 +1,9 @@
+{
+ "description": "NHFLOW semi-implicit step with the non-hydrostatic pressure (A 510 12, A 520 2): the coupled eta-phi system after Basilisk's multilayer solver (Keller box, phi on the layer interfaces). First sloshing mode in a closed 1 m tank, kh = 2, 32 cells, 4 sigma layers, dt = T/40; period error 1.4e-3 against linear theory (Basilisk: 1.8e-3).",
+ "solver": "nhflow",
+ "np": 1,
+ "steps": 100,
+ "tags": ["quick", "1d", "nhflow", "semi_implicit", "nonhydrostatic"],
+ "covers": ["nhflow_momentum_SI_nh: nh_residual, nh_faces (Basilisk hpg), Keller box constraint, band LU", "face_update with the non-hydrostatic layer discharges", "nh_cell"],
+ "architect": "Hans Bihs"
+}

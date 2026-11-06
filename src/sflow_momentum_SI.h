@@ -144,6 +144,7 @@ public:
     void si_rhs(lexer*, fdm2D*, ghostcell*);                // right-hand side of the eta system
     void si_end_faces(lexer*, fdm2D*, ghostcell*);          // face discharges
     void si_end_cells(lexer*, fdm2D*, ghostcell*);          // WL, cells, relaxation zones
+    void ship_begin(lexer*, fdm2D*, ghostcell*, bool);      // X 10 3: the body to the end of the step (true), the pressure of the step
     int si_stages() const { return rk; }
     void stage_io_si(int, slice*&, slice*&, slice*&, slice*&);     // input and output UH, VH of stage s
 
@@ -261,6 +262,7 @@ private:
     slice2 qyN, Hyo, qyo, qya, nyR, nyL, nyB, ny0, kyEL, kyER, kyPL, kyPR, ky1, ky2;
     slice4 phiN, WHp, Lc0, Unm1, Vnm1, WLh, WLo, AWo, WLq;
     slice4 nPW, nEb, nEo, nPo, nU, nV, nUs, nVs, nA, nsx, nsy, nE, nP, nL, nZ, nAE, nAP, nBE, nBP;   // scratch of the solve
+    slice4 nGx, nGy;    // curvilinear grid: the depth gradient of the cells (bed acceleration phi)
     bool nh_first = true, nh_krylov = false, nh_x0 = false;
     int nh_cells_active = 0, nh_iter = 0, nh_wd_iter = 0, nh_wd_dry = 0;
     double nh_time = 0.0;

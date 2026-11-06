@@ -57,9 +57,10 @@ void sflow_amr::si_nh_solve(lexer *p, ghostcell *pgc, rsi_result &res)
     const int ng = (int)G.size();
 
     // the grids of the system, their leaf cells and the own cells (leaf and covered)
-    // tl: the cells of a level-1 patch with a parent on this rank (two-level preconditioner), its parent and the
-    // offsets of the interpolation
-    struct gl { int g; lexer *q; fdm2D *b; sflow_momentum_SI *m; vector<int> leaf; int off; vector<int> tl; };
+    // tl: the cells of a patch with a parent on this rank (two-level preconditioner): the cell, the parent grid, the
+    // parent cell and the offsets of the interpolation (level 1: the native grid, finer levels: a patch of the level
+    // below on this rank)
+    struct gl { int g; lexer *q; fdm2D *b; sflow_momentum_SI *m; vector<int> leaf; int off; vector<int> tl; vector<double> r0; };
     vector<gl> L(ng);
     int nc = 0;
 
@@ -84,6 +85,40 @@ void sflow_amr::si_nh_solve(lexer *p, ghostcell *pgc, rsi_result &res)
         nc += (int)L[k].leaf.size()/2;
 
         // the cells of a level-1 patch and their parents (the two-level preconditioner)
+        if(g>=0 && P[g]->lev>=2 && nblk==0)
+        {
+            // finer levels: the parent in a patch of the level below on this rank (none: no correction there)
+            reefamr_patch *P0 = P[g];
+            const int lp = P0->lev-1;
+
+            for(int ii=q->imin; ii<q->imin+q->imax; ++ii)
+            for(int jj=q->jmin; jj<q->jmin+q->jmax; ++jj)
+            {
+                if(q->flagslice4[lij(q,ii,jj)]<=0)
+                continue;
+
+                const int I = ii-EXT+P0->I0, J = jj-EY+P0->J0;
+                const int Ip = (I>=0) ? (I>>1) : -(((-I)-1)>>1)-1, Jp = yparent(J);
+
+                for(int gp : lev[lp])
+                {
+                    reefamr_patch *Pp = P[gp];
+                    if(Ip<Pp->I0 || Ip>Pp->I1 || Jp<Pp->J0 || Jp>Pp->J1)
+                    continue;
+
+                    lexer *qp = SP(gp)->pp;
+                    const int ic = Ip-Pp->I0+EXT, jc = Jp-Pp->J0+EY;
+
+                    if(qp->flagslice4[lij(qp,ic,jc)]>0)
+                    {
+                    const int ox = (I&1) ? 1 : -1, oy = (sy==1) ? ((J&1) ? 1 : -1) : 0;
+                    L[k].tl.insert(L[k].tl.end(),{(ii-q->imin)*q->jmax + (jj-q->jmin),gp,ic,jc,ox,oy});
+                    }
+                    break;
+                }
+            }
+        }
+
         if(g>=0 && P[g]->lev==1 && nblk==0)
         {
             reefamr_patch *P0 = P[g];
@@ -99,7 +134,7 @@ void sflow_amr::si_nh_solve(lexer *p, ghostcell *pgc, rsi_result &res)
                 if(q->flagslice4[lij(q,ii,jj)]>0 && inq0(ic,jc) && q0->flagslice4[lij(q0,ic,jc)]>0)
                 {
                 const int ox = (I&1) ? 1 : -1, oy = (sy==1) ? ((J&1) ? 1 : -1) : 0;
-                L[k].tl.insert(L[k].tl.end(),{(ii-q->imin)*q->jmax + (jj-q->jmin),ic,jc,ox,oy});
+                L[k].tl.insert(L[k].tl.end(),{(ii-q->imin)*q->jmax + (jj-q->jmin),-1,ic,jc,ox,oy});
                 }
             }
         }
@@ -256,34 +291,106 @@ void sflow_amr::si_nh_solve(lexer *p, ghostcell *pgc, rsi_result &res)
         if(c.g<0)
         c.m->nh_amr_prec(c.q,pgc,ownf(c.g));
 
-        // the patches of level 1 (parent: the native grid on this rank): the level-0 correction interpolated into
-        // the patch and its ring, the residual it leaves on the patch, the patch preconditioner on that (two-level,
-        // multiplicative); finer levels: their preconditioner on the residual alone (additive)
-        sflow_momentum_SI *m0 = psim0;
-        lexer *q0 = p0;
+        // the patches level by level (parent: the native grid or a patch of the level below on this rank): the
+        // correction of the level below interpolated into the patch and its ring, the residual it leaves on the patch,
+        // the patch preconditioner on that (multiplicative over the levels, as the FAC sweep of reefamr::rsi_prec); the
+        // own cells of a patch (covered cells included) carry the sum to the next level
+        // levels with several patches (on any rank): passes with the rings of the sum of the corrections from the
+        // neighbouring patches between them (multiplicative Schwarz over the patches of the level, as RSPASS of
+        // reefamr::rsi_prec): with the patches of a moving refinement zone (G 12, G 13; strips of 8 cells side by side)
+        // one additive pass left the coupled system at 300 iterations
+        auto ring = [&](int l, int tag, const std::function<slice&(int)> &F, const std::function<slice&(int)> &T)
+        {
+            fill_run(l,1,tag,
+                     [&](const reefamr_fill &f, double *v)
+                     {
+                         if(f.kind==0)
+                         v[0] = F(f.g)(f.si,f.sj);
+                         else if(f.kind==1)
+                         v[0] = rsi_interp(glex(f.g),F(f.g),f.si,f.sj,f.ox,f.oy);
+                         else
+                         v[0] = 0.0;
+                     },
+                     [&](reefamr_patch *cc, int id, const reefamr_fill &f, const double *w) { T(id)(f.di,f.dj) = w[0]; });
+        };
+
+        for(int l=1; l<=maxlev; ++l)
+        {
+        // level 2 and finer: the correction of the level below around its patches (their rings: the parent stencils;
+        // as rsi_fill without the restriction, the covered cells keep the correction of their level)
+        if(l>=2 && nblk==0)
+        {
+            ring(l-1,9600+10*l,[&](int g) -> slice& { return gsi(g)->nZE; },[&](int g) -> slice& { return gsi(g)->nZE; });
+            ring(l-1,9605+10*l,[&](int g) -> slice& { return gsi(g)->nZP; },[&](int g) -> slice& { return gsi(g)->nZP; });
+        }
+
+        const int npass = (nblk==0 && l<(int)nlevg.size() && nlevg[l]>1) ? 2 : 1;
+
+        for(int pass=0; pass<npass; ++pass)
+        {
+        // pass 2: the sum of the corrections of the first pass around the patches (siblings, the level below)
+        if(pass>0)
+        {
+            ring(l,9680+10*l,[&](int g) -> slice& { return gsi(g)->nZE; },[&](int g) -> slice& { return gsi(g)->nE; });
+            ring(l,9685+10*l,[&](int g) -> slice& { return gsi(g)->nZP; },[&](int g) -> slice& { return gsi(g)->nP; });
+        }
 
         for(auto &c : L)
         {
-            if(c.g<0)
+            if(c.g<0 || P[c.g]->lev!=l)
             continue;
 
             comms_off guard(pgc);
             sflow_momentum_SI *m = c.m;
             lexer *q = c.q;
-            reefamr_patch *P0 = P[c.g];
-            const bool two = (P0->lev==1 && nblk==0);
+            const bool two = (nblk==0);
+            const size_t na = (size_t)q->imax*q->jmax;
+
+            // the residual of the level (restored for the second pass)
+            if(npass>1)
+            {
+                if(pass==0)
+                {
+                c.r0.assign(m->nRm.V,m->nRm.V+na);
+                c.r0.insert(c.r0.end(),m->nRc.V,m->nRc.V+na);
+                }
+
+                else
+                {
+                std::copy(c.r0.begin(),c.r0.begin()+na,m->nRm.V);
+                std::copy(c.r0.begin()+na,c.r0.end(),m->nRc.V);
+                }
+            }
 
             if(two)
             {
-                // the interpolated level-0 correction on all cells of the patch (0 where the patch cell has no parent)
-                std::fill(m->nE.V,m->nE.V+(size_t)q->imax*q->jmax,0.0);
-                std::fill(m->nP.V,m->nP.V+(size_t)q->imax*q->jmax,0.0);
-
-                for(size_t k=0; k<c.tl.size(); k+=5)
+                if(pass==0)
                 {
-                    const int qq = c.tl[k], ic = c.tl[k+1], jc = c.tl[k+2], ox = c.tl[k+3], oy = c.tl[k+4];
-                    m->nE.V[qq] = rsi_interp(q0,m0->nZE,ic,jc,ox,oy);
-                    m->nP.V[qq] = rsi_interp(q0,m0->nZP,ic,jc,ox,oy);
+                // the interpolated correction of the level below on all cells of the patch (0 where the patch cell has
+                // no parent on this rank)
+                std::fill(m->nE.V,m->nE.V+na,0.0);
+                std::fill(m->nP.V,m->nP.V+na,0.0);
+
+                for(size_t k=0; k<c.tl.size(); k+=6)
+                {
+                    const int qq = c.tl[k], gp = c.tl[k+1], ic = c.tl[k+2], jc = c.tl[k+3], ox = c.tl[k+4], oy = c.tl[k+5];
+                    sflow_momentum_SI *mp = gsi(gp);
+                    lexer *qp = glex(gp);
+                    m->nE.V[qq] = rsi_interp(qp,mp->nZE,ic,jc,ox,oy);
+                    m->nP.V[qq] = rsi_interp(qp,mp->nZP,ic,jc,ox,oy);
+                }
+                }
+
+                else
+                {
+                // the sum of the first pass on the own cells (the ring: filled above)
+                for(int ii=q->imin; ii<q->imin+q->imax; ++ii)
+                for(int jj=q->jmin; jj<q->jmin+q->jmax; ++jj)
+                if(rsi_own(c.g,ii,jj))
+                {
+                    m->nE(ii,jj) = m->nZE(ii,jj);
+                    m->nP(ii,jj) = m->nZP(ii,jj);
+                }
                 }
 
                 m->nh_amr_lap(q,pgc);
@@ -303,12 +410,26 @@ void sflow_amr::si_nh_solve(lexer *p, ghostcell *pgc, rsi_result &res)
             m->nh_amr_prec(q,pgc,ownf(c.g));
 
             if(two)
-            for(size_t k=0; k<c.leaf.size(); k+=2)
             {
-                const int ii=c.leaf[k], jj=c.leaf[k+1];
-                m->nZE(ii,jj) += m->nE(ii,jj);
-                m->nZP(ii,jj) += m->nP(ii,jj);
+                for(size_t k=0; k<c.leaf.size(); k+=2)
+                {
+                    const int ii=c.leaf[k], jj=c.leaf[k+1];
+                    m->nZE(ii,jj) += m->nE(ii,jj);
+                    m->nZP(ii,jj) += m->nP(ii,jj);
+                }
+
+                // the covered cells (the parents of the next level)
+                if(l<maxlev)
+                for(int ii=q->imin; ii<q->imin+q->imax; ++ii)
+                for(int jj=q->jmin; jj<q->jmin+q->jmax; ++jj)
+                if(q->flagslice4[lij(q,ii,jj)]>0 && rsi_own(c.g,ii,jj) && !rsi_leaf(c.g,ii,jj))
+                {
+                    m->nZE(ii,jj) += m->nE(ii,jj);
+                    m->nZP(ii,jj) += m->nP(ii,jj);
+                }
             }
+        }
+        }
         }
 
         gather(z,false);
