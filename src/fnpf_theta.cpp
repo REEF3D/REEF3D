@@ -30,6 +30,7 @@ Architect: Hans Bihs
 #include"reini.h"
 #include"fnpf_laplace_cds2.h"
 #include"fnpf_fsfbc.h"
+#include"fnpf_fsfbc_wd.h"
 #include"fnpf_prof.h"
 #include"reefmg.h"
 #include"fnpf_body.h"
@@ -102,7 +103,7 @@ fnpf_theta::fnpf_theta(lexer *p, fdm_fnpf *c, ghostcell *pgc) : fnpf_ini(p,c,pgc
     if(lsolv==2 && p->M10>1)        {bad=1; if(p->mpirank==0) cout<<"A 310 5: SparseLU (A 306 2) serial only (M 10 1)"<<endl;}
     if(lsolv==1 && p->N10!=1)       {bad=1; if(p->mpirank==0) cout<<"A 310 5: needs REEFMG (N 10 1) or SparseLU (A 306 2)"<<endl;}
     if(p->A324>0)                   {bad=1; if(p->mpirank==0) cout<<"A 310 5: no Picard passes of the Laplace solve (A 324 0; the corrector passes iterate)"<<endl;}
-    if(p->A343!=0)                  {bad=1; if(p->mpirank==0) cout<<"A 310 5: no wetting-drying (A 343 0)"<<endl;}
+    if(p->A343==3)                  {bad=1; if(p->mpirank==0) cout<<"A 310 5: wetting-drying A 343 0, 1 or 2 (A 343 3 not tested: unstable in Ting & Kirby)"<<endl;}
     if(p->X10>0)                    {bad=1; if(p->mpirank==0) cout<<"A 310 5: no resolved bodies (X 10)"<<endl;}
     if(p->G1>0)                     {bad=1; if(p->mpirank==0) cout<<"A 310 5: no mesh refinement (G 1)"<<endl;}
     if(p->A311==3 || p->A327!=1)    {bad=1; if(p->mpirank==0) cout<<"A 310 5: needs the Fornberg sz stencil (A 327 1) and A 311 1, 2, 4, 5 or 6"<<endl;}
@@ -118,7 +119,12 @@ fnpf_theta::fnpf_theta(lexer *p, fdm_fnpf *c, ghostcell *pgc) : fnpf_ini(p,c,pgc
     plap0 = new fnpf_laplace_cds2(p);
     plap = plap0;
     
+    // A 343 1: the free-surface conditions with wetting-drying, as RK3
+    if(p->A343==0)
     pf = new fnpf_fsfbc(p,c,pgc);
+    
+    if(p->A343>=1)
+    pf = new fnpf_fsfbc_wd(p,c,pgc);
     
     pbody = fnpf_body::create(p,c,pgc);
     
@@ -210,7 +216,7 @@ void fnpf_theta::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, con
     fko(i,j) = fk(i,j);
     }
     
-    {fnpf_prof::scope ps_(fnpf_prof::relax); relax_affine(p,pgc,pflow,0,relRe,relTe);}
+    {fnpf_prof::scope ps_(fnpf_prof::relax); relax_affine(p,c,pgc,pflow,0,relRe,relTe);}
     
     SLICELOOP4
     erk1(i,j) = relRe(i,j)*erk1(i,j) + relTe(i,j);
@@ -229,7 +235,7 @@ void fnpf_theta::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, con
     
     // relaxation of Fifsf in the zones as f -> relR f + relT (affine in f: from f = 0 and f = 1), part of the
     // Robin rows; Fifsf is not relaxed again after the solve
-    {fnpf_prof::scope ps_(fnpf_prof::relax); relax_affine(p,pgc,pflow,1,relR,relT);}
+    {fnpf_prof::scope ps_(fnpf_prof::relax); relax_affine(p,c,pgc,pflow,1,relR,relT);}
     
     // pass 0: one Laplace problem with the Robin condition: Fi, Fifsf^n+1 (fnew) and w^n+1 (wnew)
     if(lsolv==2)
@@ -282,8 +288,13 @@ void fnpf_theta::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, con
     
     {fnpf_prof::scope ps_(fnpf_prof::wetdry); pf->wetdry(p,c,pgc,c->eta,c->Fifsf);}
     {fnpf_prof::scope ps_(fnpf_prof::gc2d); pgc->gcsl_start4(p,c->eta,gcval_eta);}
+    // A 343 >= 1: the coastline relaxation is part of the affine maps of the zones (relax_affine), i.e. of the
+    // Robin rows (Fifsf) and of the eta update; here it would act twice
+    if(p->A343==0)
+    {
     {fnpf_prof::scope ps_(fnpf_prof::coastline); pf->coastline_eta(p,c,pgc,c->eta);}
     {fnpf_prof::scope ps_(fnpf_prof::coastline); pf->coastline_fi(p,c,pgc,c->Fifsf);}
+    }
     // (Fifsf: relaxation in the Robin rows)
     {fnpf_prof::scope ps_(fnpf_prof::gc2d); pgc->gcsl_start4(p,c->Fifsf,gcval_fifsf);}
     
@@ -804,6 +815,13 @@ double fnpf_theta::robin_solve_mg(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver 
         dmax = MAX(dmax,fabs(Fs-fsold(i,j)));
         xmax = MAX(xmax,fabs(Fs));
         }
+        else
+        {
+        // dry column (A 343 >= 1, not in the solve), no vertical velocity: A 343 1 Fifsf of the map of the land
+        // cells (0); A 343 2/3 Fifsf held (wetdry_dynamic sets the dry cells after the step, as for RK3)
+        fout(i,j) = (p->A343>=2) ? c->Fifsf(i,j) : relR(i,j)*R(i,j) + relT(i,j);
+        wnew(i,j) = 0.0;
+        }
         
         KLOOP
         if(p->flag4[IJK]>0)
@@ -834,12 +852,28 @@ double fnpf_theta::robin_solve_mg(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver 
 // is read off by applying them to f = 0 and f = 1 (which = 0: eta, 1: Fifsf), and with A 303 > 0 the factors
 // become r^(dt/A 303), so that over a fixed time the zones relax by the same amount whatever the step
 // (as B 95 for SFLOW and NHFLOW). Not for zones with a state (B 98 6, B 99 6: refused).
-void fnpf_theta::relax_affine(lexer *p, ghostcell *pgc, ioflow *pflow, int which, slice &R, slice &T)
+void fnpf_theta::relax_affine(lexer *p, fdm_fnpf *c, ghostcell *pgc, ioflow *pflow, int which, slice &R, slice &T)
 {
     SLICELOOP4
     {
     T(i,j) = 0.0;
     R(i,j) = 1.0;
+    }
+    
+    // A 343 >= 1: the coastline relaxation (A 341/A 342/A 347, to 0 or to the running mean A 326) and Fifsf = 0 on
+    // land, before the zones as in the RK3 stages; affine in f as the zones
+    if(p->A343>=1)
+    {
+    if(which==0)
+    {
+    pf->coastline_eta(p,c,pgc,T);
+    pf->coastline_eta(p,c,pgc,R);
+    }
+    else
+    {
+    pf->coastline_fi(p,c,pgc,T);
+    pf->coastline_fi(p,c,pgc,R);
+    }
     }
     
     if(which==0)

@@ -39,7 +39,16 @@ class fnpf_laplace_cds2;
 using namespace std;
 
 // ---------------------------------------------------------------------------
-// FNPF theta-Robin time integration (A 310 5): 2D and 3D, MPI (REEFMG); no wetting-drying, no bodies, no AMR.
+// FNPF theta-Robin time integration (A 310 5): 2D and 3D, MPI (REEFMG), wetting-drying A 343 1 and 2; no bodies,
+// no AMR.
+//
+// Wetting-drying (A 343 >= 1): the free-surface conditions of fnpf_fsfbc_wd as RK3. The coastline relaxation
+// (A 341/A 342/A 347) and Fifsf = 0 on land are part of the affine maps of the zones (relax_affine), i.e. of the
+// Robin rows and the eta update; the dry columns are not in the solve (A 343 1: Fifsf of the land map, A 343 2:
+// held, set by wetdry_dynamic after the step); the clamps and the dynamic front after the step are surface edits
+// (consistency solve). In the surf zone (breaking every step) every step needs that extra solve and steps
+// beyond about 1.2 x the RK3 step are unstable (Ting & Kirby, also without wetting-drying and without breaking):
+// N 51 3 bounds |u| dt/dx by 0.35, which keeps the step there near that of RK3.
 //
 // The linear part of the free-surface conditions, eta_t = w and Fifsf_t = -g eta, is integrated with the
 // theta method, the nonlinear rest N (Zakharov terms, wind) at t^n+1/2:
@@ -143,7 +152,7 @@ private:
     // eta^n+1 of the current solution, N^n+1/2 = (N^n + N^n+1)/2, R, and the sigma grid of eta^n+1
     void corrector_state(lexer*, fdm_fnpf*, ghostcell*, ioflow*);
     // the relaxation of the zones as f -> R f + T (from f = 0 and f = 1), with the factors r^(dt/A 303)
-    void relax_affine(lexer*, ghostcell*, ioflow*, int, slice&, slice&);
+    void relax_affine(lexer*, fdm_fnpf*, ghostcell*, ioflow*, int, slice&, slice&);
     
     // A 306 1 (REEFMG): the Robin rows eliminated into the top Laplace rows, one solve per pass (N 44, or
     // inexact with A 307); returns the change of the solution
