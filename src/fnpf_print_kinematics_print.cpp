@@ -30,7 +30,7 @@ Author: Hans Bihs
 void fnpf_print_kinematics::print_ini(lexer* p, fdm_fnpf *c, ghostcell *pgc)
 {
     // open force_ale file
-    sprintf(name,"./REEF3D_FNPF_Kinematics/REEF3D_FNPF-Kinematics-%i.dat",ID+1);
+    snprintf(name,sizeof(name),"./REEF3D_FNPF_Kinematics/REEF3D_FNPF-Kinematics-%i.dat",ID+1);
         
     fout.open(name);
     

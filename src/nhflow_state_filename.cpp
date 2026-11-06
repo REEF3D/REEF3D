@@ -25,17 +25,17 @@ Author: Hans Bihs
 
 void nhflow_state::filename_single(lexer *p, fdm_nhf *c, ghostcell *pgc, int num)
 {
-    sprintf(name,"./REEF3D_NHFLOW_STATE/REEF3D_NHFLOW-State-%08i-%06i.r3d",num,p->mpirank+1);
+    snprintf(name,sizeof(name),"./REEF3D_NHFLOW_STATE/REEF3D_NHFLOW-State-%08i-%06i.r3d",num,p->mpirank+1);
 }
 
 void nhflow_state::filename_continuous(lexer *p, fdm_nhf *c, ghostcell *pgc)
 {
-    sprintf(name,"./REEF3D_NHFLOW_STATE/REEF3D_NHFLOW-State-%06i.r3d",p->mpirank+1);
+    snprintf(name,sizeof(name),"./REEF3D_NHFLOW_STATE/REEF3D_NHFLOW-State-%06i.r3d",p->mpirank+1);
 }
 
 void nhflow_state::filename_header(lexer *p, fdm_nhf *c, ghostcell *pgc)
 {
-	sprintf(name,"./REEF3D_NHFLOW_STATE/REEF3D-NHFLOW-State-Header-%06i.r3d",p->mpirank+1);
+	snprintf(name,sizeof(name),"./REEF3D_NHFLOW_STATE/REEF3D-NHFLOW-State-Header-%06i.r3d",p->mpirank+1);
 }
 
 

@@ -66,7 +66,7 @@ void mooring_barQuasiStatic::print(lexer *p, ghostcell *pgc)
 	{
 		printtime+=p->P30;
 		
-        sprintf(name,"%s_Mooring/REEF3D-Mooring-%08i-%06i.vtk",sixdof_output_dir(p),line,num);
+        snprintf(name,sizeof(name),"%s_Mooring/REEF3D-Mooring-%08i-%06i.vtk",sixdof_output_dir(p),line,num);
 
 
 		ofstream result;

@@ -33,10 +33,10 @@ void sixdof_motionext_file::read_format_1(lexer *p, ghostcell *pgc)
 	int count;
 	
 	// the file of the body (several bodies), otherwise the common one
-	sprintf(name,"6DOF_motion-%i.dat",id);
+	snprintf(name,sizeof(name),"6DOF_motion-%i.dat",id);
 
 	if(!std::ifstream(name))
-	sprintf(name,"6DOF_motion.dat");
+	snprintf(name,sizeof(name),"6DOF_motion.dat");
 
     try {
         auto table = readTable(name, colnum);

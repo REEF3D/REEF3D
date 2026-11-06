@@ -39,9 +39,6 @@ using namespace std;
 class fsi_strip : public beam, public increment
 {
 public:
-	
-    EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
-    
     typedef Eigen::Matrix<double,3,Eigen::Dynamic> Matrix3Xd;
 	
     fsi_strip(lexer*,int);

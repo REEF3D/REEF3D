@@ -54,7 +54,7 @@ probe_pressure::probe_pressure(lexer *p, fdm* a, ghostcell *pgc) : probenum(p->P
 		// open file
 		for(n=0;n<probenum;++n)
 		{     
-		sprintf(name,"./REEF3D_CFD_PressureProbe/REEF3D-CFD-Probe-Pressure-%i.dat",n+1);
+		snprintf(name,sizeof(name),"./REEF3D_CFD_PressureProbe/REEF3D-CFD-Probe-Pressure-%i.dat",n+1);
         
         
 		head[n] = reefckpt_open(pout[n],name,p->I45);   // I 45: continued
