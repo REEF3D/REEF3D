@@ -27,6 +27,7 @@ Author: Hans Bihs
 #include"ghostcell.h"
 #include"bcmom.h"
 #include"convection.h"
+#include"godunov.h"
 #include"diffusion.h"
 #include"pressure.h"
 #include"poisson.h"
@@ -363,8 +364,25 @@ void momentum_rk::step_twoproj(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, 
     // 1. the half step: u(n) -> u*, the forces of time n (the pressure gradient of p(n) with the
     // face density of phi(n), gravity, the sources) and the Godunov convection of u(n) with u(n);
     // projected with dt/2: u(n+1/2), divergence free, and p(n+1/2)
+    // N 59: the momentum carried with the mass flux, the update of the half step over dt/2; phi(n)
+    // kept in frk1 for the density at the start of the full step
+    godunov *pgod = (p->N59>0 && levelset) ? dynamic_cast<godunov*>(pconvec) : nullptr;
+
+    if(pgod!=nullptr)
+    {
+        LOOP
+        (*frk1)(i,j,k) = a->phi(i,j,k);
+
+        pgc->start4(p,*frk1,gcval_phi);
+
+        pgod->consistent_set(nullptr,0.5*p->dt);
+    }
+
     for(int c=0; c<3; ++c)
     component_onestep(p,a,pgc,pvrans,c,comp(a,urk1,vrk1,wrk1,c),urk1,vrk1,wrk1,comp(a,urk2,vrk2,wrk2,c),0.5,false);
+
+    if(pgod!=nullptr)
+    pgod->consistent_set(nullptr,0.0);
 
     momentum_forcing_start(a, p, pgc, p6dof, pfsi, urk2, vrk2, wrk2, fx, fy, fz, 0, 0.5, false);
 
@@ -400,8 +418,15 @@ void momentum_rk::step_twoproj(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, 
         pdiff->apply_w(p,a,pgc,DC(2),urk1,vrk1,wrk1);
     }
 
+    // N 59: the full step from the density of phi(n)
+    if(pgod!=nullptr)
+    pgod->consistent_set(frk1,p->dt);
+
     for(int c=0; c<3; ++c)
     component_onestep(p,a,pgc,pvrans,c,comp(a,urk1,vrk1,wrk1,c),urk2,vrk2,wrk2,comp(a,a->u,a->v,a->w,c),1.0,cn);
+
+    if(pgod!=nullptr)
+    pgod->consistent_set(nullptr,0.0);
 
     momentum_forcing_start(a, p, pgc, p6dof, pfsi, a->u, a->v, a->w, fx, fy, fz, 0, 1.0, true);
 

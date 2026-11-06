@@ -718,6 +718,17 @@ void driver::logic_cfd()
         exit(1);
     }
 
+    // N 59 (the momentum carried with the mass flux): the one-step schemes with the level set on
+    // uniform grids, the density of the level set (density_f) and no single-phase PIC
+    if(p->N59>0 && (!(p->N40==5 || p->N40==6) || p->F30<=0 || p->G1>0 || p->X10>0
+       || p->H10>0 || p->C10>0 || p->W30>0 || p->W90>0 || p->F81>0))
+    {
+        if(p->mpirank==0)
+        cout<<"N 59 works with N 40 5 or 6 and the level set (F 30) on uniform grids (no G 1), without floating bodies (X 10), heat (H 10), concentration (C 10), compressible air (W 30), rheology (W 90) or PIC (F 81) yet"<<endl;
+
+        exit(1);
+    }
+
     if(p->N40==5 || p->N40==6 || p->N40==2 || p->N40==22 || p->N40==12 || p->N40==44
     || ((p->N40==3 || p->N40==23 || p->N40==4 || p->N40==24 || p->N40==13 || p->N40==33) && p->F80!=4))
     {

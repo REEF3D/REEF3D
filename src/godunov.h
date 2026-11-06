@@ -48,6 +48,16 @@ using namespace std;
 // surface. The air away from the interface is driven by it and its convection need not be second
 // order; the dissipation keeps the spurious air velocities down (validation 74: the dam break with
 // refinement after the first impact).
+// N 59 1 (with the level set, the momentum of N 40 5, 6): the momentum per volume rho u carried with
+// the mass flux. The density of the control volume of the velocity is that of the projection (the
+// face density of the level set, density_f), its face states come from the same Godunov
+// reconstruction as those of the velocity, and on every face of the control volume
+//   m = U rho_face (the mass flux),   the momentum flux m u_face,
+//   rho* = rho - dt div(m),   (rho u)* = rho u - dt div(m u),   u* = (rho u)*/rho*,
+// so that mass and momentum move with the same fluxes (Rudman 1998, Raessi and Pitsch 2012, Nangia
+// et al. 2019). rho* is only used for u*: the next step starts again from the density of the level
+// set. Where rho* would fall below half the smaller density the control volume keeps the
+// advective form.
 class godunov final : public convection, public increment
 {
 public:
@@ -55,6 +65,10 @@ public:
 	virtual ~godunov();
 
 	void start(lexer*,fdm*,field&,int,field&,field&,field&) override final;
+
+    // N 59: the level set of the density at the start of the update (nullptr: a->phi) and the time
+    // of the update (<= 0: dt); set by momentum_rk for the steps of N 40 6
+    void consistent_set(field *phi, double dtu) {cphi=phi; cdt=dtu;}
 
 private:
     // the velocities on the two faces of the control volume (i,j,k) of the variable ipol in x, y, z
@@ -68,8 +82,16 @@ private:
 
     static double mc(double,double);
 
+    // N 59: the density of the control volume (ii,jj,kk) of the variable ipol from the level set
+    double rho_cv(lexer*,field&,int,int,int,int) const;
+
     // the stored values of the control volumes of the extended range
     std::vector<double> sf, sx, sy, sz, uc, vc, wc, tx, ty, tz;
+
+    // N 59: the density of the control volumes, its slopes and transverse terms
+    std::vector<double> rf, rx, ry, rz, rtx, rty, rtz;
+    field *cphi = nullptr;
+    double cdt = 0.0;
     int i0, j0, k0, ni, nj, nk;
     inline int id(int ii, int jj, int kk) const {return ((ii-i0)*nj + (jj-j0))*nk + (kk-k0);}
 };
