@@ -1540,6 +1540,7 @@
         <File Name="fnpf_amr_sub.cpp"/>
         <File Name="fnpf_amr_print.cpp"/>
         <File Name="fnpf_amr_lap.cpp"/>
+        <File Name="fnpf_amr_theta.cpp"/>
         <File Name="fnpf_amr.cpp"/>
         <File Name="fnpf_amr_ckpt.cpp"/>
       </VirtualDirectory>

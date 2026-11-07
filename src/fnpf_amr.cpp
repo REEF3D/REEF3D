@@ -259,7 +259,7 @@ fnpf_laplace* fnpf_amr::laplace(fnpf_laplace *outer, fnpf_laplace_cds2 *plap0)
 bool fnpf_amr::keys_ok(lexer *p)
 {
     int ok=1;
-    if(p->A310!=3) ok=0;
+    if(p->A310!=3 && p->A310!=5) ok=0;     // A 310 5: theta-Robin (fnpf_amr_theta.cpp; its limits in fnpf_theta)
     if(p->A350<0 || p->A350>3) ok=0;
     if(p->X10!=0 && p->X10!=1) ok=0;
     if(p->A380!=0) ok=0;
@@ -383,7 +383,7 @@ void fnpf_amr::ini(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     if(!keys_ok(p))
     {
         if(p->mpirank==0)
-        cout<<"FNPF AMR (G 1): only for A 310 3, A 311 other than 3, A 350 0-3, X 10 0/1, A 380 0 and on a 2D grid Cartesian -- refinement switched off"<<endl;
+        cout<<"FNPF AMR (G 1): only for A 310 3 or 5, A 311 other than 3, A 350 0-3, X 10 0/1, A 380 0 and on a 2D grid Cartesian -- refinement switched off"<<endl;
         maxlev=0;
         return;
     }
@@ -627,6 +627,7 @@ void fnpf_amr::patch_delete(reefamr_patch *q)
     delete c->mg;
 
     delete c->erk1; delete c->erk2; delete c->frk1; delete c->frk2; delete c->ek; delete c->fk; delete c->en;
+    theta_delete(*c);
     delete c->plap;
     delete c->pbu;
     delete c->pfu;
@@ -1570,9 +1571,10 @@ void fnpf_amr::timestep(lexer *p, fdm_fnpf *c, ghostcell *pgc)
             continue;
             }
             
-            if(p->N51==2)
+            if(p->N51==2 || p->N51==3)
             {
-            // discrete (N 51 2): the cut-off mode of the patch cells in the deepest column
+            // discrete (N 51 2): the cut-off mode of the patch cells in the deepest column; N 51 3 (theta-Robin):
+            // its stability step (below)
             const double dxp = sc(q)*pp->DXN[ii+marge];
             const double dyp = sc(q)*pp->DYN[jj+marge];
             const int ydir = (pp->j_dir==1 && pp->knoy>1) ? 1 : 0;
@@ -1586,6 +1588,21 @@ void fnpf_amr::timestep(lexer *p, fdm_fnpf *c, ghostcell *pgc)
             cu = MIN(cu, 1.0/((fabs(MAX(p->umax, sqrt(9.81*depthmax)))/dx)));
             cu = MIN(cu, 1.0/((fabs(MAX(p->vmax, sqrt(9.81*depthmax)))/dx)));
         }
+    }
+
+    // N 51 3 (theta-Robin): the step of the accuracy target bounded by the stability step of the patch cells
+    // (fnpf_timestep::theta_step: at most 4 x the RK3 step of the finest grid); dt_crit of the finest grid
+    // (the Newmark beta of A 308)
+    if(p->N51==3)
+    {
+        cu = pgc->globalmin(cu);
+        if(cu<1.0e10)
+        {
+            p->dt = MIN(p->dt,fnpf_timestep::theta_step(p,cu));
+            p->dt_crit = MIN(p->dt_crit,cu);
+        }
+        fnpf_timestep::accuracy_cap(p);
+        return;
     }
 
     double dtp = pgc->globalmin(p->N47*cu);

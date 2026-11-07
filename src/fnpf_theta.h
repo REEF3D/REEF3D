@@ -44,7 +44,7 @@ using namespace std;
 
 // ---------------------------------------------------------------------------
 // FNPF theta-Robin time integration (A 310 5): 2D and 3D, MPI (REEFMG), wetting-drying A 343 1 and 2, resolved
-// floating bodies (X 10 1, fnpf_6DOF); no AMR.
+// floating bodies (X 10 1, fnpf_6DOF), mesh refinement (G 1, fnpf_amr_theta.cpp).
 //
 // Wetting-drying (A 343 >= 1): the free-surface conditions of fnpf_fsfbc_wd as RK3. The coastline relaxation
 // (A 341/A 342/A 347) and Fifsf = 0 on land are part of the affine maps of the zones (relax_affine), i.e. of the
@@ -65,6 +65,12 @@ using namespace std;
 // (solve_pre), the body band of Fi after the solve (solve_post); the psi solves of the loads with the plain Laplace
 // solver. N 51 3 stays at the RK3 step: the natural periods of the body limit it. Not with externally driven bodies,
 // SparseLU or without corrector passes (A 302 >= 1).
+//
+// Mesh refinement (G 1, fnpf_amr_theta.cpp): the patches take the same step (tendencies, predictor, corrector passes)
+// and the Robin rows of all grids are solved together in the composite solve of fnpf_amr, with the couplings of the sz
+// stencil beyond k-1 in its operator and lumped into k-1 in its V-cycles; after each update the state of all grids is
+// made consistent (restriction, the cells around the patches). N 51 3 with the stability step of the finest cells. The
+// patches without breaking, bodies, wetting-drying (G 30 0) or subcycling (refused).
 //
 // The linear part of the free-surface conditions, eta_t = w and Fifsf_t = -g eta, is integrated with the
 // theta method, the nonlinear rest N (Zakharov terms, wind) at t^n+1/2:
@@ -157,6 +163,7 @@ public:
     void inidisc_step2(lexer*, fdm_fnpf*, ghostcell*, ioflow*, solver*) override final;
     void ini_wetdry(lexer*, fdm_fnpf*, ghostcell*) override final;
     fnpf_body* body() override final {return pbody;}
+    void attach_amr(fnpf_amr*) override final;
     
 private:
     // the system on the current sigma grid: Laplace rows (cross terms of the current Fi and fs) and Robin rows (R)
@@ -227,6 +234,7 @@ private:
     solver *psolv_step=nullptr;   // the Laplace solver of the step (the body loads of the corrector)
     int passq=-1;                 // the corrector pass under way (-1: pass 0)
     slice4 kE1,kF1;               // tendencies of eta and Fifsf of the first corrector state (the body loads at t^n+1)
+    fnpf_amr *pamr=nullptr;       // mesh refinement (G 1): the patches (fnpf_amr_theta.cpp)
     
     double solvetime;
 };
