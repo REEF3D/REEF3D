@@ -376,6 +376,24 @@ void cfd_amr::patch_step(int l, double dt, double th0, double t)
 
         // the projection of the level with the coarse flux at the patch edges
         pr_level(p0,pgc,l,s);
+        
+        // X 198 2: the bodies refitted to the projected velocity of the patches, the patches forced
+        // again, a second projection of the level
+        if(fit && p0->X198==2)
+        {
+            body_refit(l,s);
+            
+            {
+            cfd_amr_wclock wc(wtp);
+            for(int id : lev[l])
+            {
+                pscope3 ps(pgc,CP(id)->a,a0);
+                CP(id)->pmom->amr_forcing(CP(id)->pp,CP(id)->a,pgc,(sixdof*)CP(id)->p6dof,s);
+            }
+            }
+            
+            pr_level(p0,pgc,l,s);
+        }
 
         {
         cfd_amr_wclock wc(wtp);
@@ -632,6 +650,29 @@ void cfd_amr::body_fit(int l, int s, double t)
     }
     
     p0->simtime = ts;
+}
+
+// X 198 2: the bodies at the rigid-body motion of the projected velocity of stage s on the patches of level l
+void cfd_amr::body_refit(int l, int s)
+{
+    for(int nb=0; nb<b6->objects(); ++nb)
+    {
+        sixdof_obj_cfd *o = b6->object(nb);
+        
+        const char *cover = o->amr_cover;
+        o->amr_cover = nullptr;
+        
+        o->momentum_fit_begin(p0,-1);
+        for(int id : lev[l])
+        {
+            pscope3 ps(pgc0,CP(id)->a,a0);
+            o->momentum_fit_add(CP(id)->pp,CP(id)->a,gmom(id)->amr_velout(CP(id)->a,0,s),gmom(id)->amr_velout(CP(id)->a,1,s),gmom(id)->amr_velout(CP(id)->a,2,s));
+        }
+        o->momentum_fit_end(p0,pgc0);
+        o->momentum_refit_set(p0,pgc0);
+        
+        o->amr_cover = cover;
+    }
 }
 
 // the loads after stage s of the finest level (hull triangles on the finest grid there, else on

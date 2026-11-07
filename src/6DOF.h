@@ -42,6 +42,9 @@ public:
     virtual ~sixdof() {}
 
     virtual void start_cfd(lexer*,fdm*,ghostcell*,int,field&,field&,field&,field&,field&,field&,bool)=0;
+    // X 198 2: the bodies fitted again to the projected velocity of the stage and the fluid of their hulls forced
+    // again (u += alpha dt f); the caller projects once more
+    virtual void refit_cfd(lexer*,fdm*,ghostcell*,int,field&,field&,field&,field&,field&,field&,double) {}
     virtual void start_nhflow(lexer*,fdm_nhf*,ghostcell*,int,double*,double*,double*,double*,double*,double*,slice&,slice&,bool)=0;
     virtual void start_sflow(lexer*,fdm2D*,ghostcell*,int,slice&,slice&,slice&,slice&,slice&,slice&,slice&,bool)=0;
     

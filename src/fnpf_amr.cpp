@@ -177,8 +177,10 @@ fnpf_amr::fnpf_amr(lexer *p, fdm_fnpf *c, ghostcell *pgc) : reefamr(p,pgc)
     // wave breaking (A 350 1 Baquet, 2 Kennedy, 3 Romero): on every grid (detection and the implicit
     // damping with the breaking viscosity), the cells around a patch take the viscosity of their source
     // grid.  The detection runs on every grid with its own state (Kennedy: onset time and flag,
-    // Romero: local wavenumber and onset time), a new patch starts without breaking
-    brk = (p->A350>=1 && p->A350<=3);
+    // Romero: local wavenumber and onset time), a new patch starts without breaking.  A 350 4 (Barthelemy,
+    // crest tracking): the crests are tracked on level 0 only, whose covered columns hold the state of the
+    // patches (restriction), and the patches take its viscosity (patch_breaking)
+    brk = (p->A350>=1 && p->A350<=4);
 
     // solution-adaptive refinement (as nhflow_amr, tag): a wet cell of level l flags level l+1
     // where the surface jumps by more than G 20 to a neighbour or its second difference along x or
@@ -260,7 +262,8 @@ bool fnpf_amr::keys_ok(lexer *p)
 {
     int ok=1;
     if(p->A310!=3 && p->A310!=5) ok=0;     // A 310 5: theta-Robin (fnpf_amr_theta.cpp; its limits in fnpf_theta)
-    if(p->A350<0 || p->A350>3) ok=0;
+    if(p->A350<0 || p->A350>4) ok=0;
+    if(p->A350==4 && p->A352>0) ok=0;     // A 350 4: no breaking filter on the patches (the tracker's zones are level 0's)
     if(p->X10!=0 && p->X10!=1) ok=0;
     if(p->A380!=0) ok=0;
     if(p->A311==3) ok=0;
@@ -383,7 +386,7 @@ void fnpf_amr::ini(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     if(!keys_ok(p))
     {
         if(p->mpirank==0)
-        cout<<"FNPF AMR (G 1): only for A 310 3 or 5, A 311 other than 3, A 350 0-3, X 10 0/1, A 380 0 and on a 2D grid Cartesian -- refinement switched off"<<endl;
+        cout<<"FNPF AMR (G 1): only for A 310 3 or 5, A 350 4 with A 352 0, A 311 other than 3, A 350 0-3, X 10 0/1, A 380 0 and on a 2D grid Cartesian -- refinement switched off"<<endl;
         maxlev=0;
         return;
     }
@@ -1975,6 +1978,35 @@ void fnpf_amr::patch_breaking(int l, ghostcell *pgc, int s, double alpha)
 {
     const int la = (l<0) ? 1 : l, lb = (l<0) ? maxlev : l;
 
+    // A 350 4 (Barthelemy): the crests are tracked on level 0 (breaking_crest3d: crest points followed from step to
+    // step over the whole domain, rays along the front faces through the subdomains, the viscosity from the
+    // dissipation of the bore), on its covered columns from the restricted state of the patches; a tracker per patch
+    // would lose the crests at every patch edge and regrid.  The patches take the viscosity of their parent,
+    // prolonged level by level (non-negative), and flag their breaking cells from it (G 23); the cells around them
+    // then that of their source grid, as below
+    if(p0->A350==4)
+    {
+        auto svb = [&](int g, int m) -> slice& { return gfd(g)->vb; };
+
+        for(int L=la; L<=lb; ++L)
+        {
+            prolong_interior_sl(L,[](reefamr_patch*) { return true; },1,svb);
+
+            for(int id : lev[L])
+            {
+                fnpf_amr_patch *pc = FP(id);
+                for(int ii=EXT; ii<EXT+pc->nx; ++ii)
+                for(int jj=EY; jj<EY+pc->ny; ++jj)
+                {
+                    pc->c->vb(ii,jj) = MAX(pc->c->vb(ii,jj),0.0);
+                    pc->c->breaking(ii,jj) = (pc->c->vb(ii,jj)>0.0) ? 1 : 0;
+                }
+            }
+        }
+    }
+    else
+    {
+
     // the surface slopes of the cells around the patches from their source grid: the detection
     // spreads a breaking flag by two cells, so it reads the cells around a patch, whose own slopes
     // there reach beyond the cells the patch computes
@@ -1998,6 +2030,7 @@ void fnpf_amr::patch_breaking(int l, ghostcell *pgc, int s, double alpha)
         pp->P12 = 1<<30;
         pc->pf->breaking(pp,pc->c,pgc,sval(id,s,0),*pc->en,sval(id,s,1),alpha);
         pp->P12 = p12;
+    }
     }
     }
 

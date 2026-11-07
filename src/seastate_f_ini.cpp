@@ -144,6 +144,9 @@ void seastate_f::ini_common(lexer *p, ghostcell *pgc, bool coupled_)
     // sweep are corrected (energy conservation across rank borders); surfbeat: always 2 (the
     // second-order correction is lagged, results independent of the decomposition)
     iter_max = p->A707>0 ? p->A707 : (p->A700==2 ? 50 : ((p->M10>1 || p->A770==1) ? 2 : 1));
+    // Phase 27: nonstationary with A 779, the iterations of a step until Hs settles, at most A 707 (default 10)
+    if(p->A700==1 && p->A779>0.0)
+    iter_max = p->A707>0 ? p->A707 : 10;
 
     // surfbeat with second-order advection (A 775 2): 2 halo layers
     const bool second = (p->A770==1 && p->A775==2);
@@ -251,7 +254,7 @@ void seastate_f::ini_common(lexer *p, ghostcell *pgc, bool coupled_)
     if(p->A781==1 && p->M10>1 && g1<1 && !second)
     {
     kba = psolv->pipeline(p,pgc);
-    if(kba && p->A700==1 && p->A707<=0 && p->A758_n<=0 && p->A770!=1)
+    if(kba && p->A700==1 && p->A707<=0 && p->A779<=0.0 && p->A758_n<=0 && p->A770!=1)
     {
     iter_max = 1;
     delete N0;
@@ -385,6 +388,8 @@ void seastate_f::check_keys(lexer *p, ghostcell *pgc)
     msg = "A 776: the GSE closure must be 0, 1 (with the age A 777 > 0), 2 or 3 (the transported age, A 777 >= 0 the age of the initial and boundary spectra), with A 778 >= 1 iterations";
     else if(p->A776==3 && (restart || p->A770==1 || p->A795>0.0))
     msg = "A 776 3: the transported age is not in the checkpoints (no restart I 45 1), not with the surfbeat model (A 770 1) or the spectral sparsity (A 795)";
+    else if(p->A779<0.0 || (p->A779>0.0 && (p->A700!=1 || g1>0 || p->A770==1 || p->A707==1)))
+    msg = "A 779: the convergence within a nonstationary step must be >= 0; it is for nonstationary runs (A 700 1) without refinement or the surfbeat model, with A 707 >= 2 (the most iterations) or 0 (10)";
     else if(p->A776>0 && (p->A700!=1 || g1>0 || coupled))
     msg = "A 776: the GSE closure is for nonstationary stand-alone runs on uniform grids (no refinement)";
     else if(p->A711<0 || p->A711>3)
@@ -826,6 +831,8 @@ void seastate_f::storage(lexer *p, ghostcell *pgc)
     cout<<"SEASTATE mode: surfbeat, nonstationary, time step "<<(coupled ? "of the host" : "A 706")<<", refraction "<<p->A713<<", no frequency shift"<<endl;
     else
     cout<<"SEASTATE mode: "<<(p->A700==2 ? "stationary" : "nonstationary")<<", time step "<<p->A706<<" s, refraction "<<p->A713<<", frequency shift "<<p->A714<<endl;
+    if(p->A700==1 && p->A779>0.0)
+    cout<<"SEASTATE iterations of a step (A 779): until the largest relative change of Hs is below "<<fmt(p->A779)<<", at most "<<(p->A707>0 ? p->A707 : 10)<<" (A 707)"<<endl;
     if(p->A776>0)
     cout<<"SEASTATE GSE closure (A 776 "<<p->A776<<"): the flux inside a bin as a diffusion D = t_a Sigma over each step, t_a "
         <<(p->A776==2 ? std::string("the model time") : p->A776==3 ? std::string("transported per bin, reset in the wind sea (1.7 U10 cos > c), initial and boundary age ")+std::to_string(p->A777)+" s" : std::to_string(p->A777)+" s")<<", "<<p->A778<<" Gauss-Seidel iterations (A 778)"<<endl;

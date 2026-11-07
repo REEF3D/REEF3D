@@ -206,6 +206,8 @@ void control::ctrlrecv()
     ii++;
     A303 = dctrl[dd];
     dd++;
+    A333 = dctrl[dd];
+    dd++;
     A304 = dctrl[dd];
     dd++;
     A306 = ictrl[ii];
@@ -765,6 +767,8 @@ void control::ctrlrecv()
     A727_y1 = dctrl[dd];
     dd++;
     A777 = dctrl[dd];
+    dd++;
+    A779 = dctrl[dd];
     dd++;
     A730 = ictrl[ii];
     ii++;
@@ -2424,6 +2428,8 @@ void control::ctrlrecv()
     dd++;
     Q85_ze = dctrl[dd];
     dd++;
+    Q86 = ictrl[ii];
+    ii++;
     Q50 = ictrl[ii];
     ii++;
     Q72 = ictrl[ii];

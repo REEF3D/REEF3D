@@ -69,7 +69,10 @@ double sflow_timestep_SI::advective(lexer *p, fdm2D* b, ghostcell* pgc, double &
     // the non-hydrostatic pressure (A 220 2/3): the vertical momentum WH is advected with AB2 (upwind fluxes,
     // stable up to the Courant number 0.5), so the advective limit is halved; in waves |u| is small and the
     // cap A 228 decides, the limit acts in fast thin flows (run-down, bores)
-    const double nhfac = (p->A220>=2) ? 2.0 : 1.0;
+    // A 210 11 (inside A210 = 1): 2.5, the flow Courant number at most 0.8 N 47 (0.4 with N 47 0.5): the one-step
+    // BCG predictor misses bores from about 0.5 on (Stoker dam break, theta 1/2: max. rel. L1 0.15 % at u dt/dx 0.4,
+    // 12 % at 0.5, 6 - 11 % at 1.0)
+    const double nhfac = (p->A226==1 && p->A210==1) ? 2.5 : ((p->A220>=2) ? 2.0 : 1.0);
 
     hmax = 0.0;
 

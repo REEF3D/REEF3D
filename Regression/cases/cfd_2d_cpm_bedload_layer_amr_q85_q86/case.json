@@ -1,0 +1,17 @@
+{
+ "base": "cfd_2d_cpm_bedload_layer_amr_q85",
+ "ctrl_set": {
+  "Q 86": "1"
+ },
+ "description": "cfd_2d_cpm_bedload_layer_amr_q85 (the bed across the patch edges) with Q 86 1: the columns sample the velocity of the bed shear stress of the layer at the centre of the second cell of level 0 (1.5 of its cells, 3 cells of CPM) instead of the first, and k of their first fluid cell (cfd_amr::cpm_href, CPM::bedload_columns; validation 34)",
+ "covers": [
+  "Q 86 1: the common reference height of the bed shear stress at the second cell of the coarser grid, k of the first fluid cell"
+ ],
+ "np": 1,
+ "steps": 150,
+ "tags": [
+  "2d",
+  "cpm",
+  "amr"
+ ]
+}

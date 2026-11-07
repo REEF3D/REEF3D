@@ -17,7 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Hans Bihs
+Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
 // FNPF interface of the 6DOF kernel: initialisation, RK3 (kernel rk3) or classical RK4
@@ -312,7 +312,9 @@ void sixdof_obj_fnpf::print_fnpf(lexer *p, ghostcell *pgc, int iter)
     if(p->X50==2)
     print_stl(p,pgc);
     
-    print_parameter(p,pgc);
+    // the state at the end of the step, before the driver advances simtime: labelled t^n+1, as the fluid output (patch
+    // 0017) and NHFLOW; with t^n the motion led the waves and the loads by one step (validation 10)
+    print_parameter(p,pgc,p->simtime+p->dt);
 }
 
 void sixdof_obj_fnpf::print_force_fnpf(lexer *p)

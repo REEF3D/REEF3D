@@ -387,3 +387,42 @@ void sixdof_obj_cfd::momentum_loads(lexer *p, int iter)
     Me = M(1);
     Ne = M(2);
 }
+
+// X 198 2: the body at the rigid-body motion of the projected fluid of its hull region after the stage (the loads of
+// the stage already applied: the momentum the projection gave the fluid of the hull, with the ratio of the masses)
+void sixdof_obj_cfd::momentum_refit(lexer *p, fdm *a, ghostcell *pgc, field &uvel, field &vvel, field &wvel)
+{
+    momentum_fit_begin(p,-1);
+    momentum_fit_add(p,a,uvel,vvel,wvel);
+    momentum_fit_end(p,pgc);
+    momentum_refit_set(p,pgc);
+}
+
+// ... with the fit already made (momentum_fit_begin(p,-1), _add on each grid, _end: the patches of the mesh
+// refinement)
+void sixdof_obj_cfd::momentum_refit_set(lexer *p, ghostcell *pgc)
+{
+    if(!mom_ok_)
+    return;
+    
+    const double rf = p->W1;
+    const double rbd = (Vfb>0.0) ? Mass_fb/Vfb : rf;
+    const double ratio = p->X198_c*rf/rbd;
+    
+    const Eigen::Vector3d pt = rb.p + ratio*(Mass_fb*mom_fit_.head<3>() - rb.p);
+    const Eigen::Vector3d ht = rb.h + ratio*(rb.I*(R_.transpose()*mom_fit_.tail<3>()) - rb.h);
+    
+    for(int q=0; q<3; ++q)
+    {
+        if(!rb.fixed(q))
+        rb.p(q) = pt(q);
+        
+        if(!rb.fixed(3+q))
+        rb.h(q) = ht(q);
+    }
+    rb.constrain_rotation();
+    rb.update_omega();
+    
+    update_fbvel(p,pgc);
+}
+

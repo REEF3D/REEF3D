@@ -103,6 +103,43 @@ void pic_f::velocity(lexer *p, fdm *a, double xp, double yp, double zp, double &
     wp = ipol(p,fw,3,xp,yp,zp);
 }
 
+// the distance to the nearest solid surface (a->solid, a->topo) and its normal out of the solid;
+// false without a solid within a cell
+bool pic_f::solid_distance(lexer *p, fdm *a, double xp, double yp, double zp, double &f, double *n)
+{
+    auto level = [&](double x, double y, double z)
+    {
+        double v = 1.0e20;
+        if(p->toporead>0)
+        v = ipol(p,a->topo,4,x,y,z);
+        if(p->solidread>0)
+        v = std::min(v, ipol(p,a->solid,4,x,y,z));
+        return v;
+    };
+
+    const int ci = std::min(std::max(cell(p->XN,p->knox,xp),0),p->knox-1);
+    const double h = p->DXN[ci+marge];
+
+    f = level(xp,yp,zp);
+
+    if(f>h)
+    return false;
+
+    const double d = 0.5*h;
+    n[0] = (level(xp+d,yp,zp) - level(xp-d,yp,zp))/(2.0*d);
+    n[1] = p->j_dir==1 ? (level(xp,yp+d,zp) - level(xp,yp-d,zp))/(2.0*d) : 0.0;
+    n[2] = (level(xp,yp,zp+d) - level(xp,yp,zp-d))/(2.0*d);
+    const double g = std::sqrt(n[0]*n[0] + n[1]*n[1] + n[2]*n[2]);
+
+    if(g<1.0e-12)
+    return false;
+
+    n[0]/=g;
+    n[1]/=g;
+    n[2]/=g;
+    return true;
+}
+
 // a solid at the position: a blocked cell (flag4 < 0: topography, solid, object of the grid;
 // the ghost cells of the neighbour subdomains have their flags) or the immersed solid,
 // topography or floating body (X 10 1) (level sets < 0). The static loop indices are left

@@ -132,11 +132,12 @@ void sflow_momentum_SI::nh_ini(lexer *p)
 
 void sflow_momentum_SI::nh_levels(lexer *p, fdm2D *b, ghostcell *pgc)
 {
-    // time levels of the nonlinear terms, extrapolated from t^n and t^{n-1}: with the depth of t^n the waves on the
-    // Beji & Battjes bar lagged in proportion to dt (0.05 s at dt 0.02 s after the bar crest) and the released
-    // harmonics grew by 5 %:
+    // time levels of the nonlinear terms (the non-hydrostatic pressure and A 210 11), extrapolated from t^n and
+    // t^{n-1}: with the depth of t^n the waves on the Beji & Battjes bar lagged in proportion to dt (0.05 s at dt
+    // 0.02 s after the bar crest) and the released harmonics grew by 5 %:
     //  - face and cell depth of the gravity and A 220 3 terms at t^{n+1/2} (theta 1/2)
-    //  - depth of the pressure terms and of the constraint at t^{n+1} (P^{n+1} and the velocities of t^{n+1})
+    //  - depth of the pressure terms and of the constraint at t^{n+1} (P^{n+1} and the velocities of t^{n+1}); A 210 11:
+    //    the pressure terms at t^{n+1/2}, as the gravity term (nh_assemble)
     //  - discharge of the advection (predictor) at t^{n+1/2}
     // the continuity equation keeps WL^n and q^n: the volume stays exact
     const double r = p->dt/MAX(p->dt_old,1.0e-20);
@@ -181,14 +182,23 @@ void sflow_momentum_SI::nh_levels(lexer *p, fdm2D *b, ghostcell *pgc)
     // the non-hydrostatic pressure stays on in breaking cells (nh_active), the dissipation is the eddy viscosity of
     // A 246 4 (crest tracking and Kennedy et al. 2000, as NHFLOW A 550 4) or A 246 2 (A 250); the A 246 1/2 flags are
     // reset after the step (sflow_f, A 248 0) as for the explicit stages
-    if(nh_first)
-    SLICELOOP4
-    nEb(i,j) = b->eta(i,j);
+    // (the non-hydrostatic pressure only: A 210 11 without it runs the time levels alone)
+    if(nh)
+    {
+        if(nh_first)
+        SLICELOOP4
+        nEb(i,j) = b->eta(i,j);
 
     pfsf->breaking(p,b,pgc,b->eta,nEb,p->dt_old/MAX(p->dt,1.0e-20));
 
-    SLICELOOP4
-    nEb(i,j) = b->eta(i,j);
+        SLICELOOP4
+        nEb(i,j) = b->eta(i,j);
+    }
+
+    // A 210 11 without the non-hydrostatic pressure: the levels of t^{n-1} are there from the second step on (with it,
+    // nh_predictor clears the flag)
+    if(!nh)
+    nh_first = false;
 
     exchange1(p,pgc,Hx);
     exchange1(p,pgc,qxa);
@@ -473,7 +483,9 @@ void sflow_momentum_SI::nh_assemble(lexer *p, fdm2D *b, ghostcell *pgc)
         return;
 
         const double dd = b->depth(a1,c1) - b->depth(a,c);
-        const double HL = WLq(a,c), HR = WLq(a1,c1);
+        // the depth of the pressure terms: t^{n+1}; A 210 11: t^{n+1/2}, as the gravity term (the pressure acts over the
+        // step; with t^{n+1} the nonlinear standing wave lost second order below T/320, the constraint stays at t^{n+1})
+        const double HL = onestep ? WLh(a,c) : WLq(a,c), HR = onestep ? WLh(a1,c1) : WLq(a1,c1);
         const double s = dt*alf/dxp;
 
         cR = s*(HR - 0.5*cb*dd);
@@ -1378,13 +1390,17 @@ void sflow_momentum_SI::nh_cell(lexer *p, fdm2D *b, ghostcell *pgc)
             const double ws_ = (Hy(i,j-1)>0.0 && in(i,j-1) && wn(i,j-1)) ? 1.0 : 0.0;
             double nx, ny, ax_=0.0, ay_=0.0, bx_=0.0, by_=0.0;
 
-            if(we>0.0) { fnorm(p,1,i,j,nx,ny);   ax_ += nx; ay_ += ny; }
-            if(ww>0.0) { fnorm(p,1,i-1,j,nx,ny); ax_ += nx; ay_ += ny; }
-            if(wn_>0.0) { fnorm(p,2,i,j,nx,ny);   bx_ += nx; by_ += ny; }
-            if(ws_>0.0) { fnorm(p,2,i,j-1,nx,ny); bx_ += nx; by_ += ny; }
+            // A 210 11: a wall face with its normal and zero (as cell_update)
+            const double w1 = onestep ? wall(p,i,j,1) : 0.0, w2 = onestep ? wall(p,i,j,2) : 0.0;
+            const double w3 = onestep ? wall(p,i,j,3) : 0.0, w4 = onestep ? wall(p,i,j,4) : 0.0;
 
-            const double ag = (ww*qxN(i-1,j) + we*qxN(i,j))/MAX(we+ww,1.0);
-            const double bg = (ws_*qyN(i,j-1) + wn_*qyN(i,j))/MAX(wn_+ws_,1.0);
+            if(we+w2>0.0) { fnorm(p,1,i,j,nx,ny);   ax_ += nx; ay_ += ny; }
+            if(ww+w1>0.0) { fnorm(p,1,i-1,j,nx,ny); ax_ += nx; ay_ += ny; }
+            if(wn_+w4>0.0) { fnorm(p,2,i,j,nx,ny);   bx_ += nx; by_ += ny; }
+            if(ws_+w3>0.0) { fnorm(p,2,i,j-1,nx,ny); bx_ += nx; by_ += ny; }
+
+            const double ag = (ww*qxN(i-1,j) + we*qxN(i,j))/MAX(we+ww+w1+w2,1.0);
+            const double bg = (ws_*qyN(i,j-1) + wn_*qyN(i,j))/MAX(wn_+ws_+w3+w4,1.0);
             const double la = sqrt(ax_*ax_ + ay_*ay_), lb = sqrt(bx_*bx_ + by_*by_);
 
             if(la>0.0) { ax_/=la; ay_/=la; }
@@ -1415,17 +1431,24 @@ void sflow_momentum_SI::nh_cell(lexer *p, fdm2D *b, ghostcell *pgc)
 
             b->UH(i,j) += gx;
             b->VH(i,j) += gy;
+            dNx(i,j) = gx;
+            dNy(i,j) = gy;
         }
 
         else
-        b->UH(i,j) += (ww*qxN(i-1,j) + we*qxN(i,j))/MAX(we+ww,1.0);
+        {
+        dNx(i,j) = (ww*qxN(i-1,j) + we*qxN(i,j))/MAX(we + ww + (onestep ? wall(p,i,j,1) + wall(p,i,j,2) : 0.0),1.0);
+        dNy(i,j) = 0.0;
+        b->UH(i,j) += dNx(i,j);
+        }
 
             if(p->j_dir==1 && p->geo_curv==0)
             {
             const double wn_ = (Hy(i,j)>0.0 && in(i,j+1) && wn(i,j+1)) ? 1.0 : 0.0;
             const double ws_ = (Hy(i,j-1)>0.0 && in(i,j-1) && wn(i,j-1)) ? 1.0 : 0.0;
 
-            b->VH(i,j) += (ws_*qyN(i,j-1) + wn_*qyN(i,j))/MAX(wn_+ws_,1.0);
+            dNy(i,j) = (ws_*qyN(i,j-1) + wn_*qyN(i,j))/MAX(wn_ + ws_ + (onestep ? wall(p,i,j,3) + wall(p,i,j,4) : 0.0),1.0);
+            b->VH(i,j) += dNy(i,j);
             }
 
         b->WH(i,j) = WHp(i,j);
@@ -1435,6 +1458,10 @@ void sflow_momentum_SI::nh_cell(lexer *p, fdm2D *b, ghostcell *pgc)
         }
 
         else
+        {
         b->WH(i,j) = 0.0;
+        dNx(i,j) = 0.0;
+        dNy(i,j) = 0.0;
+        }
     }
 }

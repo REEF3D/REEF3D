@@ -1098,7 +1098,8 @@ void fnpf_amr::lap_solve(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, f
     // breaking (A 350 1): detection on the patch stage values, the viscosity of the cells around
     // the patches from their source grid (level 0 has detected in fnpf_RK3 before this solve,
     // after the stage values: alpha 1, 1/2, 1)
-    if(brk)
+    // (theta-Robin: at the end of the step, theta_breaking)
+    if(brk && !theta_mode)
     patch_breaking(-1,pgc,stg,(stg==1) ? 0.5 : 1.0);
 
     // the patches: free-surface derivatives, sigma grid, boundary conditions

@@ -81,6 +81,8 @@ public:
     double mf_c1_ = 0.0, mf_c2_ = 1.0, mf_tn_ = 0.0;
     bool mf_start_ = false, mf_first_ = true;
     void momentum_loads(lexer*, int);
+    void momentum_refit(lexer*, fdm*, ghostcell*, field&, field&, field&);
+    void momentum_refit_set(lexer*, ghostcell*);
     
     // actuator disks of the load models (body-force propellers): acceleration of the fluid,
     // added to the forcing terms fx, fy, fz of the stage (water part of the cells outside the body)

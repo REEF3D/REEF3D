@@ -17,7 +17,8 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Authors: Hans Bihs, Tobias Martin
+Architect: Hans Bihs
+Author: Tobias Martin
 --------------------------------------------------------------------*/
 
 #ifndef SIXDOF_OBJ_H_
@@ -453,7 +454,7 @@ protected:
     bool pto_on_ = false, pto_implicit_ = false, pto_warned_ = false;
     double pto_E_ = 0.0, pto_Estep_ = 0.0;
     double pto_Eloss_ = 0.0, pto_Elossstep_ = 0.0;     // dissipated in the drive-train losses (X 510)
-    int pto_rk_ = 3;   // RK scheme of the body: 2 (NHFLOW A 510 2), 3 (TVD RK3), 4 (FNPF A 310 4)
+    int pto_rk_ = 3;   // RK scheme of the body: 2 (NHFLOW A 510 2, FNPF A 310 5), 3 (TVD RK3), 4 (FNPF A 310 4)
     void pto_rk(int, double&, double&) const;
     ofstream printpto;
     

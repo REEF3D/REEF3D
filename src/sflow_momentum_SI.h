@@ -101,7 +101,9 @@ class sflow_momentum_SI final : public sflow_momentum_func
 {
 public:
 
-    void ckpt_restored() override { qini = true; }   // the face discharges of the checkpoint
+    // the face discharges of the checkpoint; the time levels (nh_levels), the W tendency, U^{n-1} and the initial guess
+    // of the coupled solve hold the step before (a checkpoint written after the first step)
+    void ckpt_restored() override { qini = true;  nh_first = false;  nh_x0 = nh; }
     void water_column(lexer*, fdm2D*) override;      // REEF3D::HYDRO losses: WLk = WL
     bool boundary_flow(double &qin, double &qout) override { qin = Qin;  qout = -Qout;  return true; }
     void ckpt_fields(const std::function<void(const char*, char, double*)> &fd, const std::function<void(const char*, char, int*)> &fi) override
@@ -122,6 +124,14 @@ public:
         fd("momentum_SI_bdiag",'S',bdiag.V); fd("momentum_SI_tU",'S',tU.V);
         fd("momentum_SI_tV",'S',tV.V); fd("momentum_SI_tUH",'S',tUH.V); fd("momentum_SI_tVH",'S',tVH.V);
         fd("momentum_SI_WLk",'S',WLk.V); fd("momentum_SI_etaB",'S',etaB.V);
+
+        // the state of the step before of the time levels (A 220 2/3, A 210 11: nh_levels) and of the coupled eta-P
+        // system (A 220 2/3): without them a restart was not the continuation of the run
+        fd("momentum_SI_qxN",'S',qxN.V); fd("momentum_SI_qyN",'S',qyN.V); fd("momentum_SI_Hxo",'S',Hxo.V);
+        fd("momentum_SI_Hyo",'S',Hyo.V); fd("momentum_SI_qxo",'S',qxo.V); fd("momentum_SI_qyo",'S',qyo.V);
+        fd("momentum_SI_WLo",'S',WLo.V); fd("momentum_SI_Unm1",'S',Unm1.V); fd("momentum_SI_Vnm1",'S',Vnm1.V);
+        fd("momentum_SI_AWo",'S',AWo.V); fd("momentum_SI_nEb",'S',nEb.V); fd("momentum_SI_nEo",'S',nEo.V);
+        fd("momentum_SI_nPo",'S',nPo.V); fd("momentum_SI_dNx",'S',dNx.V); fd("momentum_SI_dNy",'S',dNy.V);
     }
 	sflow_momentum_SI(lexer*, fdm2D*, ghostcell*, sflow_HLL*, sflow_signal_speed*, sflow_reconstruct*, sflow_diffusion*, sflow_pressure*,
                         solver2D*, solver2D*, ioflow*, sflow_fsf*, sflow_forcing*, sixdof*, bool block=false);
@@ -193,6 +203,7 @@ private:
     void stage_vel(lexer*, fdm2D*, ghostcell*, slice&, slice&);
     void stage_rhs(lexer*, fdm2D*, ghostcell*, slice&, slice&, slice&, slice&, double);
     void advection(lexer*, fdm2D*, ghostcell*);
+    void advection_bcg(lexer*, fdm2D*, ghostcell*, slice&, slice&);
     void face_update(lexer*, fdm2D*, ghostcell*);
     void eta_update(lexer*, fdm2D*, ghostcell*);
     void cell_update(lexer*, fdm2D*, ghostcell*);
@@ -241,6 +252,20 @@ private:
     double theta, g;
     int rk, wd_iter, wd_cells;
     bool qini;
+
+    // A 210 11 (inside A210 = 1): one predictor stage, the advection by the BCG scheme with its source term (as NHFLOW
+    // A 510 11), the time levels of nh_levels also without the non-hydrostatic pressure (tlev); bcA: the cells the BCG
+    // slopes may use
+    bool onestep = false, tlev = false;
+    slice4 bcA;
+    // A 210 11: a wall face (solid, outside the domain, no open boundary) counts in the cell momentum with its zero
+    // gradient and zero non-hydrostatic face term (cell_update, nh_cell, the BCG source term); bcS: the open sides
+    slice4 bcS;
+    // A 210 11 with A 220 2/3: the non-hydrostatic increment of the cell momentum of the step before (nh_cell), the
+    // NH part of the BCG source term
+    slice4 dNx, dNy;
+    void wall_sides(lexer*);
+    double wall(lexer*, int, int, int);
 
     double Qin, Qout;       // discharge over the open boundaries of the step (theta weighted)
     double vrelax;          // volume change of the relaxation zones of the step

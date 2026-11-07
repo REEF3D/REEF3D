@@ -407,14 +407,19 @@ void sflow_amr::si_step(lexer *p, fdm2D *b, ghostcell *pgc)
 
     si_all(pgc,[&](int g, lexer *q, fdm2D *bb, sflow_momentum_SI *m) { m->si_begin(q,bb,pgc); });
 
-    // A 220 2/3: the time levels of the nonlinear terms (the depths of t^{n+1/2} and t^{n+1} around the grids)
+    // A 220 2/3 and A 210 11: the time levels of the nonlinear terms (the depths of t^{n+1/2} and t^{n+1} around the
+    // grids)
     const bool nhs = psim0->nh;
 
-    if(nhs)
+    if(psim0->tlev)
     {
         si_all(pgc,[&](int g, lexer *q, fdm2D *bb, sflow_momentum_SI *m) { m->nh_levels(q,bb,pgc); });
         si_fillS(pgc,2,8700,[&](int g, int k) -> slice& { return k==0 ? gsi(g)->WLh : gsi(g)->WLq; });
     }
+
+    // A 210 11 with A 220 2/3: the non-hydrostatic increment of the step before around the grids (the BCG source term)
+    if(psim0->onestep && nhs)
+    si_fillS(pgc,2,8710,[&](int g, int k) -> slice& { return k==0 ? gsi(g)->dNx : gsi(g)->dNy; });
 
     // predictor: the velocities and the input of a stage around the grids before its fluxes
     if(si_lv)
@@ -645,7 +650,11 @@ void sflow_amr::si_timestep(lexer *p, ghostcell *pgc)
             sigma += fabs(pb->V(ii,jj))/pp->DYN[jj+marge];
             }
 
-            // A 220 2/3: WH advected with AB2 (sflow_timestep_SI)
+            // A 220 2/3: WH advected with AB2; A 210 11: 2.5 (sflow_timestep_SI)
+            if(p->A226==1 && p->A210==1)
+            sigma *= 2.5;
+
+            else
             if(p->A220>=2)
             sigma *= 2.0;
 

@@ -30,7 +30,7 @@ void control::ini_default()
     
     // SFLOW
     A209=1;      // int interpolation sweeps for bed
-    A210=3;		  // int time scheme for SFLOW velocities: 2 / 3 explicit SSP-RK2 / RK3, 12 / 13 semi-implicit with an SSP-RK2 / RK3 predictor
+    A210=3;		  // int time scheme for SFLOW velocities: 2 / 3 explicit SSP-RK2 / RK3, 11 / 12 / 13 semi-implicit with a one-step (BCG) / SSP-RK2 / RK3 predictor
     A211=4;		  // int convection scheme for SLOW velocities
     A212=-1;	  // int diffusion treatment for SFLOW velocities (-1: not set, becomes 1 with a turbulence model A 260 > 0, else 0)
     A213=1;      // int SFLOW WENO5 nonlinear weights (A 211 4): 0 WENO-JS, 1 WENO-Z (default), 2 TENO5
@@ -72,7 +72,8 @@ void control::ini_default()
     A301_1=0.0;  // double FNPF initial standing wave: amplitude [m], 0 off
     A301_2=1.0;  // double FNPF initial standing wave: wave length [m]
     A304=1.0e-3; // double FNPF theta-Robin (A 310 5): corrector stops when the change is below A304 times the solution (0: always A302 passes)
-    A303=-0.1;   // double FNPF theta-Robin (A 310 5): relaxation zones, >0: factors r^(dt/A303); 0: r per step; <0: per time as the three RK3 stages at N 47 -A303, per step at least as one RK3 step
+    A333=0.0;    // double FNPF theta-Robin (A 310 5), A 343 >= 1: > 0 the coastline relaxation per time as RK3 at N 47 A333 (0: as the zones, A 303)
+    A303=-200.0; // double FNPF theta-Robin (A 310 5): relaxation zones, >0: factors r^(dt/A303); 0: r per step; -1<A303<0: per time as the three RK3 stages at N 47 -A303; <=-1: as an RK3 run with -A303 steps per period of the wave input (patch 0032); per step at least as one RK3 step
     A306=1;      // int FNPF theta-Robin (A 310 5): linear solver, 1 REEFMG (N 10 1, 2D/3D, MPI), 2 Eigen SparseLU (2D, serial)
     A308=0.0;    // double FNPF theta-Robin (A 310 5, A 305 0.5, N 51 2): safety factor c of the 4th-order phase (Newmark beta = max(1/12, 1/4 - 1/(c omega_max dt)^2)); 0: Crank-Nicolson (beta 1/4)
     A307=1.0e-2; // double FNPF theta-Robin (A 310 5), REEFMG with corrector passes: each solve reduces its residual by A307 from the warm start (0: N 44)
@@ -424,6 +425,7 @@ void control::ini_default()
     A769=0;           // int the source-term limiter (A 735 > 0): 0 SWAN (Ris 1997), 1 Hersbach and Janssen (1999), as ecWAM (nonstationary; Phase 25), 2 none with A 732 1, 2: the DIA conservative in action (modified Patankar, two passes per solve), the whitecapping linearised with its degree in N, with A 732 2 the upper bound of ecWAM (FLMAX, 0.031)
     A776=0;           // int GSE closure (Phase 25): 0 off, 1 the flux inside a bin as a diffusion D = t_a Sigma over each step (nonstationary) with the age t_a = A 777, 2 with t_a the model time (a field released at t = 0, the test of the closure)
     A777=0.0;         // double the age t_a [s] of A 776 1
+    A779=0.0;         // double nonstationary: iterations of a step until the largest relative change of Hs is below A 779 (0 off)
     A778=2;           // int GSE closure: Gauss-Seidel iterations of the diffusion per step
     A799=0;           // int stationary convergence test: 0 change of Hs per iteration (A 708), 1 estimated distance of Hs to the solution
     A757_cds2=5.0e-5; // double A 732 2 (van der Westhuysen): coefficient Cds2 of the saturation-based whitecapping (SWAN cds2)
@@ -1222,6 +1224,7 @@ void control::ini_default()
     Q69=0;              // int bedload layer: seepage flow in the bed (Darcy), pore pressure and its force on the contact network, 0 off, 1 on
     Q85=0;              // int CFD mesh refinement: the region of the grid of CPM, Q 85 xs xe ys ye zs ze (the mobile bed; default the bounding box of the boxes G 15)
     Q85_xs=Q85_xe=Q85_ys=Q85_ye=Q85_zs=Q85_ze=0.0;
+    Q86=0;              // int CFD mesh refinement, CPM bedload layer: the common reference height of the bed shear stress where a column takes the fluid of a coarser grid, 0 the centre of the first cell of that grid, 1 the centre of its second cell (velocity; k of the first fluid cell)
     Q70=0.0;            // double seepage (Q 69): excess pore pressure [Pa] at the bottom of the domain (upflow tests), 0: closed bottom
     Q72=2;              // int bedload layer: passes of a 1-2-1 filter over the columns of the bed level seen by the fluid, 0: off
     Q74=0;              // int bedload layer: 1 grains of the bed not released into the suspension see no resolved flow and no dispersion
@@ -1608,7 +1611,7 @@ void control::ini_default()
     X188=1;     // int ray cast algorithm
     X195=0;     // int deforming bodies (X 195 id type a lambda f t_ramp): undulatory swimming, number of entries; type 1 linear, 2 carangiform, 3 anguilliform envelope (lateral shear of the hull), 11-13 the same on an inextensible midline
     X196=1;     // int deforming bodies (X 195): recoil correction (no net momentum and angular momentum of the deformation), 0 off, 2 with X 198 also the discrete correction of the grid (the deformation without the rigid-body part of its velocity in the hull region of the grid, each stage)
-    X198=0;     // int CFD: fluid-momentum coupling of the bodies (X 198 1 c): the rigid-body motion fitted to the predicted velocity in the hull region gives the loads, no added-mass stabilisation (X 197) needed; neutrally buoyant or heavier bodies; c relaxation of the fluid momentum (default 1)
+    X198=0;     // int CFD: fluid-momentum coupling of the bodies (X 198 1 c): the rigid-body motion fitted to the predicted velocity in the hull region gives the loads, no added-mass stabilisation (X 197) needed; neutrally buoyant or heavier bodies; c relaxation of the fluid momentum (default 1); X 198 2 c: with the SSP Runge-Kutta stages (CFD mesh refinement) the bodies are fitted again to the projected velocity after each projection, the hulls forced and projected again (one more pressure solve per stage)
     X198_c=1.0; // double CFD: X 198 relaxation factor
     X197=0.0;   // double CFD: stabilised body coupling (M + A) a = F + A a_prev, A = X197 times (the added mass of the equivalent ellipsoid of the hull, 2D elliptic cylinder, + the fluid inside the hull); 0: off (mesh refinement G 7: 0.5 times the displaced fluid); neutrally buoyant slender bodies (X 195 fish): about 8-32, larger on finer grids (too small: the loads oscillate and grow)
     X205=1;     // type of ramp up function

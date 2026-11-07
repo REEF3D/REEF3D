@@ -41,7 +41,7 @@ void sixdof_sflow::ksource(lexer *p, fdm *a, ghostcell *pgc)
 
 void sixdof_sflow::isource2D(lexer *p, fdm2D *b, ghostcell *pgc)
 {
-    // the pressure of the step (A 210 12/13: the mean of its start and end)
+    // the pressure of the step (A 210 11/12/13: the mean of its start and end)
     auto pv = [&](int a, int c) { return mid ? 0.5*(press(a,c) + press_n(a,c)) : press(a,c); };
 
     // pressure of the moving body, cell centred source of the conserved momentum

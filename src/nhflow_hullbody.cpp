@@ -140,8 +140,10 @@ Architect: Hans Bihs
 // current of 1 m/s loses less than half the momentum of X 15 8 (12 N against 28-32 N per 0.1 m at dx 0.1 m, 6 N at
 // dx 0.05 m, where X 15 8 is unstable); the KVLCC2-like hull at Fr 0.142, dx 0.3 m, heave and pitch free, runs clean
 // over 15 s, the flow around it loses 190 N (control volume; X 15 8 about 300 N, tests 49 N with friction): at that
-// grid the excess is in the flow, not in the staircase. Not covered yet: mesh refinement (stopped with a
-// message), turbulence walls at the cut faces (the faces keep the diffusion), porous bodies, more than one body.
+// grid the excess is in the flow, not in the staircase. On the mesh refinement (validation 40) every grid cuts its
+// faces with the body and the loads come from the finest grid at each cell and each STL facet (keep): the semicircle
+// in forced heave on dx 0.1 m with one level of 0.05 m around it gives the A/m and B of the uniform dx 0.05 m grid.
+// Not covered yet: turbulence walls at the cut faces (the faces keep the diffusion), porous bodies, more than one body.
 
 nhflow_hullbody::nhflow_hullbody(lexer *p, fdm_nhf *d, ghostcell *pgc, sixdof_obj_nhflow *pobj)
 {
@@ -1352,7 +1354,8 @@ void nhflow_hullbody::loads_cut(lexer *p, fdm_nhf *d, slice &WL, const std::func
     
     // still-water pressure rho g (wd - z) on the STL below the still water level, exact for planar facets (edge-midpoint
     // rule on the clipped facets): the buoyancy and the zero horizontal force of a body at rest come out exactly, not
-    // with the discretisation error of the cut faces; triangles owned by the rank of their centroid
+    // with the discretisation error of the cut faces; triangles owned by the rank of their centroid, on the mesh
+    // refinement by the finest grid there
     if(marked)
     {
     const double rg = p->W1*fabs(p->W22);
@@ -1373,11 +1376,22 @@ void nhflow_hullbody::loads_cut(lexer *p, fdm_nhf *d, slice &WL, const std::func
     {
         const double cxx = (tx[n][0]+tx[n][1]+tx[n][2])/3.0, cyy = (ty[n][0]+ty[n][1]+ty[n][2])/3.0;
         
-        if(!(cxx>=p->originx && cxx<p->endx))
-        continue;
-        
-        if(p->j_dir==1 && !(cyy>=p->originy && cyy<p->endy))
-        continue;
+        // mesh refinement: the facet on the finest grid at its centroid (and on the rank of that grid) only; the
+        // subdomain of the rank otherwise
+        if(keep!=nullptr)
+        {
+            if(!(*keep)(cxx,p->j_dir==1 ? cyy : 0.5*(p->originy+p->endy)))
+            continue;
+        }
+        else
+        {
+            if(!(cxx>=p->originx && cxx<p->endx))
+            continue;
+            
+            if(p->j_dir==1 && !(cyy>=p->originy && cyy<p->endy))
+            continue;
+        }
+
         
         double nx = (ty[n][1]-ty[n][0])*(tz[n][2]-tz[n][0]) - (ty[n][2]-ty[n][0])*(tz[n][1]-tz[n][0]);
         double ny = (tx[n][2]-tx[n][0])*(tz[n][1]-tz[n][0]) - (tx[n][1]-tx[n][0])*(tz[n][2]-tz[n][0]);

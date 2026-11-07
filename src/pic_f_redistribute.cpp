@@ -41,7 +41,8 @@ Architect: Hans Bihs
 // depend on the decomposition; the walls of the domain repel with the mirror images of the
 // particles. Fixed are the particles within one cell of the surface (phi < h, as in Kelly et al.,
 // so the surface stays where the particles put it) and moves into a solid or a floating body are
-// not done. With F 81 1, 2 a particle keeps its velocity plus the change of the water velocity
+// not done; the solids (a->solid, a->topo) repel with the mirror image of the particle across
+// their surface. With F 81 1, 2 a particle keeps its velocity plus the change of the water velocity
 // between the two positions (no PIC smoothing of the velocity).
 
 void pic_f::redistribute(lexer *p, fdm *a, ghostcell *pgc)
@@ -195,6 +196,23 @@ void pic_f::redistribute(lexer *p, fdm *a, ghostcell *pgc)
                 f[0] += w*rx;
                 f[1] += w*ry;
                 f[2] += w*rz;
+            }
+
+            // the solids (a->solid, a->topo) repel as the walls do: the mirror image of the particle
+            // across the surface. Without it the particles near the 1:35 slope of the breaker were
+            // pushed into the gap the seeding leaves above it and lined the slope, with an empty
+            // band of half a cell above.
+            {
+                double fs, gn[3];
+                if(solid_distance(p,a,q.x,q.y,q.z,fs,gn) && fs>0.0 && 2.0*fs<re)
+                {
+                const double r2 = 4.0*fs*fs;
+                const double w = kernel(r2,re2)/(2.0*fs);
+
+                f[0] -= w*2.0*fs*gn[0];
+                f[1] -= w*2.0*fs*gn[1];
+                f[2] -= w*2.0*fs*gn[2];
+                }
             }
 
             double d[3] = {-beta*s*f[0], -beta*s*f[1], -beta*s*f[2]};
