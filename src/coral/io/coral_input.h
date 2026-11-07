@@ -46,12 +46,62 @@ Architect: Hans Bihs
 //        [memory <T> <dt>] [no_radiation] [no_excitation] [no_hydrostatics] [no_buoyancy]
 //        [damping <mode> <value>] [drag <mode> <value>] [volume <i> <V>] [ref <i> <x y z>]
 //        (modes 1..6N of the database; damping linear, drag quadratic, diagonal entries)
-//   pto <name> joint <joint> [rotational] [k <k>] [c <c>] [q0 <q>] [F0 <F>] [coulomb <Fc>]
-//        [v_eps <v>] [F_max <F>] [P_max <P>] [stops <qmin> <qmax> <k_stop> [<c_stop>]]
-//        [latching <t_hold> <c_latch> [<k_latch>]] [declutching <t_hold>]
-//        (elements and controllers of the PTO library, coral/pto/coral_pto_element.h)
-//   drive <name> joint <joint> sine <amplitude> <period> [phase <deg>] [ramp <t>] [q0 <q>] [rotational]
-//        [k <k>] [c <c>]          (prescribed joint motion by a stiff spring-damper, default k 1e7, c 1e4;
+//   pto <name> (joint <joint> [rotational] | a <body> <x y z> b <body> <x y z>) [k <k>] [c <c>] [q0 <q>] [F0 <F>]
+//        [coulomb <Fc>] [v_eps <v>] [c_loss <c>] [coulomb_loss <Fc>] [F_max <F>] [P_max <P>]
+//        [stops <qmin> <qmax> <k_stop> [<c_stop>]] [latching <t_hold> <c_latch> [<k_latch>]] [declutching <t_hold>]
+//        [hydraulic ...] [generator ...] [tune ...] [schedule <file> | user <library> ... | mpc ...]
+//        (elements and controllers of the PTO library, coral/pto/coral_pto_element.h; in a joint, or between a
+//        point on body a and one on body b (link: q the change of their distance, the force along the line,
+//        positive pushing them apart; an actuator or cylinder between a flap and the ground, a rod, a tether: the
+//        motion conversion of the geometry is exact), coral/pto/coral_pto.h)
+//        hydraulic A_a <A> [A_b <A>] V_a0 <V> [V_b0 <V>] A_v <A> V_hp <V> p_hp_pre <p> [p_hp0 <p>] V_lp <V> p_lp_pre <p>
+//            [p_lp0 <p>] D <D> J <J> b_gen <b> [beta <B>] [rho_oil <rho>] [Cd <c>] [dp_crack <p>] [dp_open <p>]
+//            [kappa <k>] [C_leak <c>] [eta_m <e>] [c_w <c>] [w0 <w>] [T_max <T>] [p_relief <p> K_r <K>] [dt_sub <dt>]
+//            (PTO-Sim type hydraulic PTO, coral/pto/coral_pto_hydraulic.h: double-acting cylinder (areas cap and rod
+//            side, chamber volumes at the start with the hoses, A_b and V_b0 default to A_a and V_a0), four check
+//            valves (open area, discharge coefficient 0.61, cracking pressure 0, opening range 1e5 Pa), HP and LP gas
+//            accumulators (volume, precharge, initial pressure: default the precharge; polytropic kappa 1.4), motor
+//            (displacement [m^3/rad], leakage [m^3/(s Pa)], torque efficiency), shaft (inertia, friction), generator
+//            torque b_gen w (|T| <= T_max), relief valve HP -> LP; bulk modulus 1.5e9 Pa, oil 850 kg/m^3; pressures
+//            relative to the ambient (a single-rod cylinder pushes with p (A_a - A_b) at rest); sub-step 1e-3 s of the
+//            implicit integration; channels <name>_pa, _pb, _php, _plp, _w, _Qm, _Pgen (generator shaft power) and with
+//            a generator _Pe, _Ee)
+//        generator (ideal [eta <e>] | map <file> | pmsg kt <kt> [R <R>] [k_fe <k>]) [ratio <n>] [eta_gear <e>]
+//            [eta_conv <e>]
+//            (electrical side, coral/pto/coral_generator.h: of the direct drive, or on the shaft of the hydraulic motor;
+//            ideal efficiency, an efficiency map (first line 0 T_1 .. T_m, then w eta_1 .. eta_m; speed and torque
+//            absolute, bilinear), or a permanent-magnet machine with field-oriented control (torque or force constant
+//            kt = 3/2 p lambda or 3/2 pi/tau lambda, phase resistance R, iron losses k_fe w^2); a gear, rack and
+//            pinion or ball screw turns the PTO rate into the shaft speed ratio qd and the force into F/ratio with the
+//            efficiency eta_gear; power electronics eta_conv; motoring (reactive control) pays the losses; channels
+//            <name>_Pe (delivered power), _Ee, with pmsg _I)
+//        tune (passive | reactive) T <T> (table <file> | hydro <hydro> mode <i>) [mass <m>] [C <C>]
+//            (gains of a single-DOF absorber at the period T: passive c = B_opt, reactive k = w^2 (m + A) - C,
+//            c = B (with c_loss the loss in parallel); A(w), B(w) from a table 'w A B' (the pto_hydro.dat of X 506,
+//            C needed) or mode i of a hydro database (C from it); mass: default the mass of body b of a translational
+//            joint, needed for a link or rotation)
+//        schedule <file>
+//            (K, B, F0 of the generator from a table 't k c [F0]', linear in time: gains per sea state in long runs)
+//        user <library> [params <n> <p1> .. <pn>] [period <T>]
+//            (a controller of one's own in a shared library, C interface in coral/pto/coral_pto_wec_control.h: from
+//            t, q, qd, F, P and the parameters it sets K, B, F0 of the generator, every step or every period T;
+//            optional functions to save and load its state for restarts; example
+//            Regression/unit/coral_pto_user_example.c)
+//        mpc Tc <T> [N <n>] [r <r>] [q_max <q>] [w_q <w>] (hydro <hydro> mode <i> | [A_inf <A>] [C <C>]) [B <B>]
+//            [mass <m>] [excitation <t Fe table>] [no_radiation]
+//            (model predictive control of a single-DOF absorber, coral/pto/coral_pto_wec_control.h: every period Tc the
+//            force sequence over N periods (default 40) that maximises the absorbed energy minus r/2 F^2 (a regularisation
+//            0.01 Tc/(m + A_inf) is always added to r), |F| <= F_max of
+//            the PTO, a soft stroke limit q_max (quadratic penalty w_q, default automatic); the model: mass, A_inf, C and
+//            the radiation memory (state space of the database mode) of the hydro database or given, linear damping B
+//            (plus c_loss); the excitation predicted from the linear excitation of the hydro database (CORAL's waves)
+//            or from a table t Fe (e.g. with a resolved fluid); a horizon of about two wave periods; channel _Fmpc)
+//        (schedule, user and mpc set the force once per step or period: they replace latching and declutching; the
+//        generator, the limits, the stops and the losses stay)
+//   drive <name> joint <joint> (sine <amplitude> <period> [phase <deg>] | file <t q table> [scale <s>] [periodic])
+//        [ramp <t>] [q0 <q>] [rotational] [k <k>] [c <c>]
+//        (prescribed joint motion by a stiff spring-damper, default k 1e7, c 1e4; a sine, or any motion from a
+//        table through a C1 cubic Hermite curve, held at the end values outside the table unless periodic;
 //        forced oscillation in a resolved fluid, coral/pto/coral_joint_drive.h)
 //   jforce <name> joint <joint> file <t F table> [scale <s>] [ramp <t>] [periodic] [rotational]
 //        (prescribed force along the joint axis, or torque about it, interpolated in the table, 0 outside

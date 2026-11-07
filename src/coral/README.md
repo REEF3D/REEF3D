@@ -23,7 +23,7 @@ Architect: Hans Bihs
 | `hydro/` | engineering hydrodynamics: hydrostatics, Cummins equation and radiation state-space models, wave excitation, drift forces, Morison, MacCamy–Fuchs, slamming, nonlinear Froude–Krylov loads, the hydrodynamic database |
 | `panel/` | linear radiation/diffraction panel solver that writes the hydrodynamic database (alternative to computing it with REEF3D's wave solvers) |
 | `mooring/` | quasi-static and dynamic lines, seabed contact and friction, buoys, clump weights, anchors, winches |
-| `pto/` | power take-offs: linear, Coulomb, hydraulic, electrical generator, end stops |
+| `pto/` | power take-offs in joints or between two points: linear, Coulomb, end stops, losses, hydraulic (cylinder, valves, accumulators, motor), electrical generator (gear, efficiency map, permanent-magnet machine), wave energy controllers (latching, declutching, tuned, gain schedule, user library, MPC), prescribed joint motion and force |
 | `soil/` | foundations: p-y, t-z and Q-z springs, apparent fixity, 6x6 foundation matrices |
 | `ice/` | ice loads on structures |
 | `io/` | CORAL input file, model description, readers of the data formats CORAL uses, time-series and VTP output |
