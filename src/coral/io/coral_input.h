@@ -33,6 +33,9 @@ Architect: Hans Bihs
 //        [velocity <vx vy vz>] [omega <wx wy wz>] [offset <dx dy dz>]
 //        (inertia about the CoG, body axes; the joints and loads are set up in the configuration given by
 //        cog and rpy, the equilibrium; offset displaces the body afterwards, e.g. for a decay test)
+//   initial_pose [offset <dx dy dz>] [rpy <r p y>] [about <x y z>]
+//        (after the set-up, every body is turned by rpy about the point and moved by offset: a floater with all
+//        on it starts displaced, as OpenFAST's initial platform DOFs; the lines start from there)
 //   joint <name> <fixed|spherical|revolute|prismatic|cylindrical|planar> <body a> <body b>
 //        point <x y z> [axis <ax ay az>]
 //   waves regular H <H> T <T> [direction <deg>] [phase <deg>]

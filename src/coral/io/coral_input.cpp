@@ -190,6 +190,9 @@ void coral_case::parse(const std::vector<std::pair<int, std::vector<std::string>
 
     // pass 1: settings, waves, bodies
     std::vector<std::pair<int, Vec3>> offsets;    // initial displacement of bodies, applied after the set-up
+    bool pose_on = false;                         // initial_pose: all bodies moved rigidly after the set-up
+    Vec3 pose_d = Vec3::Zero(), pose_p = Vec3::Zero();
+    Mat3 pose_R = Mat3::Identity();
     std::vector<std::pair<mooring_system*, double>> settles;
     std::map<std::string, beam_section> sections;
     bool gravity_on = true;
@@ -211,6 +214,13 @@ void coral_case::parse(const std::vector<std::pair<int, std::vector<std::string>
             else m.gravity = it.vec(1);
         }
         else if(k=="rho") rho = it.num(1);
+        else if(k=="initial_pose")
+        {
+            pose_on = true;
+            pose_d = it.vec("offset", Vec3::Zero());
+            pose_R = matrix_from_euler(it.vec("rpy", Vec3::Zero())*deg);
+            pose_p = it.vec("about", Vec3::Zero());
+        }
         else if(k=="time")
         {
             run.dt = it.need("dt");
@@ -1618,7 +1628,7 @@ void coral_case::parse(const std::vector<std::pair<int, std::vector<std::string>
         else if(k!="gravity" && k!="rho" && k!="time" && k!="output" && k!="waves" && k!="body" && k!="joint"
                 && k!="section" && k!="member" && k!="point_mass" && k!="static" && k!="modes"
                 && k!="superelement" && k!="soil" && k!="soil_layer" && k!="pile" && k!="force" && k!="fluid_kinematics"
-                && k!="point" && k!="line_type" && k!="bathymetry" && k!="wind" && k!="rho_air")
+                && k!="point" && k!="line_type" && k!="bathymetry" && k!="wind" && k!="rho_air" && k!="initial_pose")
             it.fail("unknown keyword");
     }
     if(!fluid_bodies.empty())
@@ -1637,6 +1647,16 @@ void coral_case::parse(const std::vector<std::pair<int, std::vector<std::string>
     // belong to the configuration above), then the dynamic lines settle in the displaced configuration
     for(const auto &o : offsets)
         m.bodies[o.first].x += o.second;
+    // initial_pose: the whole model turned about a point and moved (a floater with all on it, as OpenFAST's initial
+    // platform displacements); the body-frame rates stay, the global velocities turn with it
+    if(pose_on)
+        for(rigid_body &b : m.bodies)
+        {
+            b.x = pose_p + pose_d + pose_R*(b.x - pose_p);
+            b.R = pose_R*b.R;
+            b.v = pose_R*b.v;
+            b.vd = pose_R*b.vd;
+        }
     for(const auto &st : settles)
         st.first->settle(m, st.second);
 }
