@@ -1128,6 +1128,9 @@ void control::read_control(lexer* p)
                 case 778: control>>A778;
                          clear(c,numint);
                          break;
+                case 779: control>>A779;
+                         clear(c,numint);
+                         break;
                 case 758: control>>A758_n>>A758_m;
                          clear(c,numint);
                          break;
