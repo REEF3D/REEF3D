@@ -136,16 +136,8 @@ nhflow_amr::nhflow_amr(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_momentum *pm
     // the hull as a sharp thin body (X 15 8) without G 12 (refinement by boxes G 10 or by the flags): the hull
     // still gets its zone, margin 4 level-0 cells (below), so that the hull and its band lie inside the finest
     // level wherever the boxes or flags are; hull_cover checks it at every step
-    // the solid with cut faces (X 15 10) is not on the patches yet
-    if(b6!=nullptr && p->X15==10)
-    {
-        if(p->mpirank==0)
-        cout<<"!!! X 15 10 (cut faces) is not available with the mesh refinement yet: use X 15 8 there !!!"<<endl;
-        
-        exit(1);
-    }
-    
-    if(b6!=nullptr && p->X15==8 && p->G12<=0)
+    // the same for the solid with cut faces (X 15 10)
+    if(b6!=nullptr && (p->X15==8 || p->X15==10) && p->G12<=0)
     {
     q.zones = true;
     q.zr = 0.0;
@@ -232,7 +224,9 @@ nhflow_amr::nhflow_amr(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_momentum *pm
     // the hull is on every level's steps as the direct forcing is; the coarse levels step with their own picture
     // of the hull, and the finest level takes their pressure at the edge of the zone: the near field of the
     // hull should lie inside the zone (the margin is widened for it in ini)
-    hb = (b6!=nullptr && p->X15==8);
+    // the solid with cut faces (X 15 10) the same way: every grid cuts its faces with the body, the loads of every
+    // cell with water from the finest grid at it, the still-water part on the STL from the grid at the facet
+    hb = (b6!=nullptr && (p->X15==8 || p->X15==10));
     if(hb)
     q.place_whole_zones = true;
 
@@ -373,9 +367,9 @@ int nhflow_amr::keys_ok(lexer *p)
     if(p->E10>0 || p->L10>0 || p->Z20>0 || p->Z30>0) ok=0;
     if(p->j_dir!=1 && (p->geo_mb>0 || p->geo_curv==1)) ok=0;     // 2D grid (one cell in y): Cartesian
 
-    // X 15 8 (hb): one body, the full projection (A 520 1), Cartesian grids (no multi-block or curvilinear grid), on
-    // several ranks the placed patches (G 40 1, the zone around the hull whole on one rank); the zone is there with
-    // or without G 12
+    // X 15 8 / X 15 10 (hb): one body, the full projection (A 520 1), Cartesian grids (no multi-block or curvilinear
+    // grid), on several ranks the placed patches (G 40 1, the zone around the hull whole on one rank); the zone is there
+    // with or without G 12
     if(ok==1 && hb && (b6->objects()!=1 || p->A520!=1 || p->geo_mb>0 || p->geo_curv==1 || (p->mpi_size>1 && p->G40<1)))
     ok=-1;
 
@@ -580,7 +574,7 @@ void nhflow_amr::ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
             return false;
         };
 
-        // X 15 8: the hull loads summed over the leaf part of every grid of this rank
+        // X 15 8 / X 15 10: the hull loads summed over the leaf part of every grid of this rank
         if(hb)
         b6->object(0)->amr_grids_nhflow = [this](const std::function<void(const sixdof_obj_nhflow::nhflow_grid&)> &f)
         {
@@ -629,7 +623,8 @@ void nhflow_amr::ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
     cout<<"NHFLOW AMR: G 7 1 (subcycling) with floating bodies needs the zone around the hull (G 12) -- one time step for all levels"<<endl;
     if(hb)
     {
-    cout<<"NHFLOW AMR: the sharp hull (X 15 8) on every grid, the loads from the finest grid at every blocked face";
+    cout<<(p->X15==10 ? "NHFLOW AMR: the solid with cut faces (X 15 10) on every grid, the loads from the finest grid at every cut cell"
+                      : "NHFLOW AMR: the sharp hull (X 15 8) on every grid, the loads from the finest grid at every blocked face");
     if(sub==0 && par.zr>zr_user && p->G12>0)
     cout<<"; zone margin "<<par.zr<<" m (4 cells of level 0) instead of G 12 "<<zr_user;
     if(p->G12<=0)
@@ -1036,8 +1031,9 @@ void nhflow_amr::patch_objects(reefamr_patch *q, ghostcell *pgc)
     if(c->pmom!=nullptr && c->pmom->pfsfbody!=nullptr)
     c->pmom->pfsfbody->set_patch();
 
-    // the hull as a sharp thin body (X 15 8): the patch holds it too, with its thin-body service (stage() from the
-    // forcing of the patch, the flux hook through this class, the projection terms through the patch's rows)
+    // the hull as a sharp thin body (X 15 8) or a solid with cut faces (X 15 10): the patch holds it too, with its
+    // thin-body service (stage() from the forcing of the patch, the flux hook through this class, the projection terms
+    // through the patch's rows)
     if(hb)
     {
     d->hullbody = new nhflow_hullbody(pp,d,pgc,b6->object(0));
