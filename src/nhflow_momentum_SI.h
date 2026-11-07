@@ -193,6 +193,11 @@ public:
         fd("si_VHb",'C',VHb); fd("si_WHb",'C',WHb); fd("si_UHp",'C',UHp); fd("si_VHp",'C',VHp);
         fd("si_WHp",'C',WHp); fd("si_UHD",'C',UHD); fd("si_VHD",'C',VHD); fd("si_WHD",'C',WHD);
         fd("si_dUH",'C',dUH); fd("si_dVH",'C',dVH);
+        // the time levels of the step before (second order in time, tl2; nh_begin, nh_levels)
+        fd("si_accU",'C',accU); fd("si_accV",'C',accV); fd("si_accW",'C',accW);
+        fd("si_Bx",'C',Bx); fd("si_By",'C',By); fd("si_BFx",'C',BFx); fd("si_BFy",'C',BFy);
+        fd("si_nOmP",'F',nOmP.data()); fd("si_nHxo",'S',nHxo.data()); fd("si_nHyo",'S',nHyo.data());
+        if(!nWLo.empty()) fd("si_nWLo",'S',nWLo.data());
         tracer_ckpt_fields(fd);
     }
     void ckpt_restored() override { qini = true; }   // the face discharges of the checkpoint
@@ -244,6 +249,7 @@ private:
     void stage_arrays(int, double*&, double*&, double*&, double*&, double*&, double*&, double&);
     solver2D* new_solver2D(lexer*, ghostcell*);
     void advection(lexer*, fdm_nhf*, ghostcell*, nhflow_reconstruct*);
+    void si_corrector(lexer*, fdm_nhf*, ghostcell*);
     void advection_bcg(lexer*, fdm_nhf*, ghostcell*, double*, double*, double*);
     void hdiffusion(lexer*, fdm_nhf*);
     void face_update(lexer*, fdm_nhf*, ghostcell*);
@@ -290,8 +296,9 @@ private:
     // cells (NSX, NSY, nodes 0 .. K), the layer thicknesses at t^{n+1/2} (nWLh), the non-hydrostatic cells (nAct)
     bool nh = false;
     double *NQx = nullptr, *NQy = nullptr, *WHS = nullptr, *PHI = nullptr, *PHIo = nullptr, *NSX = nullptr, *NSY = nullptr;
-    std::vector<double> nWLh, nWLo, nTxP, nTyP, nHxo, nHyo;
-    std::vector<double> nOmP;                  // A 510 11: omega of the step before (extrapolation)
+    std::vector<double> nWLh, nWLo, nHxo, nHyo;
+    std::vector<double> nUZx, nUZy;            // tl2: UH^{n+1}, VH^{n+1} estimated for [u . grad z] (nh_prepare)
+    std::vector<double> nOmP;                  // omega of the step before (extrapolation to t^{n+1/2}), NaN: none yet
     std::vector<char> nAct;
     std::shared_ptr<sflow_si_nh_lu> nhlu;
     std::shared_ptr<nhflow_si_nhmg> nhmg;
@@ -308,6 +315,13 @@ private:
     void nh_solve(lexer*, fdm_nhf*, ghostcell*);
     void nh_solve_mg(lexer*, fdm_nhf*, ghostcell*, const std::vector<double>&, std::vector<double>&);
     void nh_cell(lexer*, fdm_nhf*, ghostcell*);
+
+    // A 505 1: a cell side towards a wall (a solid or the outside of the domain, no open boundary face) counts in the
+    // cell momentum with its zero face term (cell_update, nh_cell); wSide: the sides of the cells with an open boundary
+    // face (bits 1 x-, 2 x+, 4 y-, 8 y+), from bcf (wall_sides)
+    std::vector<unsigned char> wSide;
+    void wall_sides(lexer*);
+    double wall(lexer*, int, int, int);
 
     si_eta2D *psi;
     solver2D *psolv2D;
@@ -353,6 +367,9 @@ private:
     double theta, g;
     int rk, wd_iter, wd_cells, gcval_eta;
     bool onestep = false;
+    bool tl2 = false;          // second-order time levels of the nonlinear terms (one Cartesian grid, no A 549 1)
+    double *accU = nullptr, *accV = nullptr, *accW = nullptr;    // tl2: the implicit acceleration of the step before
+    double *FSx = nullptr, *FSy = nullptr;    // tl2: the sources of the last predictor stage (wind, Coriolis, ...; the wall sides)
     double thv = 1.0;                          // time level of the vertical advection in the column operator (1: implicit Euler)
     std::vector<double> vau, val, vad;         // its coefficients (unscaled), for the explicit part
     void col_adv_rhs(lexer*, const double*, double*);      // A 510 11: one stage, BCG advection (Basilisk), the nonlinear terms at t^{n+1/2}
