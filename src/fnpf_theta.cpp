@@ -115,7 +115,7 @@ fnpf_theta::fnpf_theta(lexer *p, fdm_fnpf *c, ghostcell *pgc) : fnpf_ini(p,c,pgc
     // mesh refinement (fnpf_amr_theta.cpp): the patches without coastline or bodies
     if(p->G1>0 && lsolv==2)         {bad=1; if(p->mpirank==0) cout<<"A 310 5: mesh refinement (G 1) with REEFMG only (A 306 1)"<<endl;}
     if(p->G1>0 && p->X10>0)         {bad=1; if(p->mpirank==0) cout<<"A 310 5: mesh refinement (G 1) without resolved bodies (X 10 0)"<<endl;}
-    if(p->G1>0 && p->A350>3)        {bad=1; if(p->mpirank==0) cout<<"A 310 5: mesh refinement (G 1) with breaking A 350 0-3 (as RK3)"<<endl;}
+    if(p->G1>0 && p->A350>4)        {bad=1; if(p->mpirank==0) cout<<"A 310 5: mesh refinement (G 1) with breaking A 350 0-4 (as RK3)"<<endl;}
     if(p->G1>0 && p->G30==1)        {bad=1; if(p->mpirank==0) cout<<"A 310 5: mesh refinement (G 1) with the patches off the coastline (G 30 0)"<<endl;}
     if(p->G1>0 && p->G7==1)         {bad=1; if(p->mpirank==0) cout<<"A 310 5: mesh refinement (G 1) without subcycling (G 7 0)"<<endl;}
     if(p->G1>0 && p->A328==1)       {bad=1; if(p->mpirank==0) cout<<"A 310 5: mesh refinement (G 1) with explicit sigma cross terms (A 328 0)"<<endl;}

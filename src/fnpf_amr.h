@@ -108,7 +108,7 @@ using namespace std;
 //  Scope of this version: refinement G 1 levels, G 10 boxes, G 11 boxes without
 //  refinement, G 4 tile width, G 12 zone around the body, G 20-23 adaptive flags; RK3 (A 310 3) or theta-Robin (A 310 5, fnpf_amr_theta.cpp: no bodies, G 30 1
 //  or G 7 1), wetting-drying
-//  A 343 0-3 (patches off the coast; A 343 1 with G 30 1 also over it), breaking A 350 0-3, X 10 0 or 1, no ice (A 380 0),
+//  A 343 0-3 (patches off the coast; A 343 1 with G 30 1 also over it), breaking A 350 0-4 (4: crests tracked on level 0, A 352 0), X 10 0 or 1, no ice (A 380 0),
 //  A 324 (Picard on the cross-derivatives) and A 328 1 (in the rows), 3D and 2D grids (Cartesian).
 //  No refinement in the relaxation zones (B 96) and next to in- and outflow boundaries.
 
