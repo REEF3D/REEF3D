@@ -131,9 +131,12 @@ using namespace std;
 //   JONSWAP and Stokes benchmarks, 450 in Beji & Battjes, 740 in Ting & Kirby, and 710 and 1420 in a 2D flume at
 //   dx 0.1 and 0.05 m; with a fixed step a refined patch did not change it (that flume with a patch at dx/2 was
 //   4.6-4.9 % from the fine grid, 1.6-1.7 % with zones per period). A 303 <= -1 (default -200, patch 0032): per
-//   time as an RK3 run with -A 303 steps per period of the wave input (wT, wTp for spectra), independent of the
+//   time as an RK3 run with -A 303 steps per period of the wave input (wT, wTp for spectra, the peak of the
+//   components for reconstructed waves B 92 51-53 since patch 0033, fnpf_wave_period.h), independent of the
 //   grid; the 3D sea stays as before (Hm0 bias -2.6 %), the 2D benchmarks are the same or better (validation 13).
-//   Without a wave period (e.g. B 92 51) as RK3 at N 47 0.1, as before.
+//   Without a wave period as RK3 at N 47 0.1, as before. Mase & Kirby (B 92 51, Tp 0.988 s) and Tian tp1 (0.937 s)
+//   with zones per period: checker errors 0.281 and 0.0222 (before 0.276 and 0.0129); Mase & Kirby within its
+//   run-to-run spread (0.28-0.30), Tian with an energy loss of 0.111 for 0.120 (reference 0.133; validation 14).
 //
 // Damping with the viscosity vb of breaking and of the coastline (A 350, A 357): at the start of the step, as a
 // source of the step (patch 0022), so the solve gives Fi of the damped surface.

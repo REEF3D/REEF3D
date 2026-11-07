@@ -100,7 +100,9 @@ double fnpf_timestep::omega_discrete(lexer *p, double kh2, double h)
 // the linear oscillator; CN: phi = 2 atan(W/2), about W^2/12). dt is the largest step whose error at the
 // reference wave is at most N 55 per cent, at most 4 x the RK3 step of N 51 2 at N 47 0.75 (3 dt_crit, the
 // largest step tested; the corrector, breaking and the relaxation zones). The reference period T: N 52 if set,
-// otherwise that of the wave input (regular waves: T, irregular: Tp). Without one: 2 x the RK3 step.
+// otherwise that of the wave input (regular waves: T, irregular: Tp). Without one: 2 x the RK3 step. Reconstructed
+// waves (B 92 51-53) have none here: their peak period (fnpf_wave_period.h, the zones since patch 0033) would let the
+// step grow past the frequencies of a focused packet (Tian tp1: 1.6 x the step, energy loss error 0.017 for 0.013).
 double fnpf_timestep::theta_tref(lexer *p)
 {
     if(p->N52>0.0)

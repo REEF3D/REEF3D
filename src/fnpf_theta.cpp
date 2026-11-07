@@ -36,6 +36,7 @@ Architect: Hans Bihs
 #include"fnpf_body.h"
 #include"fnpf_amr.h"
 #include"fnpf_sz_weights.h"
+#include"fnpf_wave_period.h"
 #include"sflow_bicgstab.h"
 #include"matrix2D.h"
 #include"vec2D.h"
@@ -1080,7 +1081,8 @@ void fnpf_theta::relax_affine(lexer *p, fdm_fnpf *c, ghostcell *pgc, ioflow *pfl
 // F(r)^max(s,1) (dt_crit: the step of the time-step criterion at N 47 1). Below the step of N 47 = -a the
 // relaxation is that of an RK3 run with the same step, which gets stronger per time with smaller steps; above it
 // it does not weaken with the step. a <= -1 with period (the zones, A 303 default -200): the RK3 run has -a steps per
-// period of the wave input, s = dt (-a)/T, independent of the grid (patch 0032; without a wave period N 47 0.1).
+// period of the wave input, s = dt (-a)/T, independent of the grid (patch 0032; the period: fnpf_wave_period.h,
+// reconstructed waves since 0033; without a wave period N 47 0.1).
 void fnpf_theta::relax_scale(lexer *p, double a, slice &R, slice &T, bool period)
 {
     double fac = 1.0;
@@ -1092,7 +1094,7 @@ void fnpf_theta::relax_scale(lexer *p, double a, slice &R, slice &T, bool period
     // grid; without a wave period as RK3 at N 47 0.1 of this grid
     if(period && a<=-1.0)
     {
-    const double Tw = (p->B90>0) ? ((p->B92>11) ? p->wTp : p->wT) : 0.0;
+    const double Tw = fnpf_wave_period(p);
     rk3eq = 1;
     if(Tw>0.0)
     fac = MAX(p->dt*(-a)/Tw, 1.0);
@@ -1117,7 +1119,7 @@ void fnpf_theta::relax_scale(lexer *p, double a, slice &R, slice &T, bool period
     static bool said=false;
     if(!said && p->mpirank==0 && period && p->count>=2)
     {
-    const double Tw = (p->B90>0) ? ((p->B92>11) ? p->wTp : p->wT) : 0.0;
+    const double Tw = fnpf_wave_period(p);
     cout<<"A 310 5: relaxation zones per time as RK3 at N 47 "<<-a<<", here "<<(Tw>0.0 ? Tw/(-a*p->dt_crit) : 0.0)<<" steps per period T = "<<Tw<<" s"<<endl;
     }
     if(period && p->count>=2) said=true;
