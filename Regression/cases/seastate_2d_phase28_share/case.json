@@ -1,0 +1,23 @@
+{
+ "base": "seastate_2d_surf",
+ "ctrl_set": {
+  "A 700": "1",
+  "A 707": "10",
+  "A 708": "0.001"
+ },
+ "ctrl_add": [
+  "A 706 120.0",
+  "A 779 0.01",
+  "A 709 99"
+ ],
+ "steps": 10,
+ "description": "seastate_2d_surf (JONSWAP Hs 2 m on a plane slope with breaking, friction and triads) nonstationary from rest, 10 steps of 120 s, with A 779 0.01 at most 10 iterations (A 707) and the share criterion (A 709 99, Phase 28, as SWAN npnts): the first step ends after 9 iterations with 99.2 % of the wet cells within A 779 while the largest change is 0.04; the percentage per step in REEF3D_SEASTATE_Log/REEF3D_SEASTATE_convergence.dat. Validation in Dropbox SEASTATE/validation/84_vartdalsfjord.",
+ "tags": [
+  "quick",
+  "2d",
+  "seastate"
+ ],
+ "covers": [
+  "seastate_f::transport: the share of the wet cells within A 779 (A 709)"
+ ]
+}

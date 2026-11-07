@@ -273,15 +273,35 @@ double CPM::bedload_place(lexer *p, fdm *a, double x, double y, double z, int ic
     const int kc0 = kc;
     const double zl0 = zl;
 
+    // a level inside a solid body (half a grain below the bed level on a fixed floor, a column of a pier) goes up to the
+    // first cell above the solid; the parcel stayed in the solid cell without a capacity check (37 parcels and growing in
+    // a cell at the top of a fixed floor behind the sand). A column that is solid up to the top keeps the old rule.
+    if(p->solidread>0)
+    {
+        int ks0 = kc;
+
+        while(kc<p->knoz-1 && a->solid(ic,jc,kc)<0.0)
+        ++kc;
+
+        if(a->solid(ic,jc,kc)<0.0)
+        kc = ks0;
+
+        else if(kc>ks0)
+        zl = MAX(zl, p->ZN[kc+marge] + 0.5*MIN(d, p->DZN[kc+marge]));
+    }
+
+    const int kc1 = kc;
+    const double zl1 = zl;
+
     while(kc<p->knoz-1)
     {
         int ii=ic, jj=jc, kk=kc;
-        
+
         // never into a solid body: the parcel stays at the bed level (cell over-filled)
         if(p->solidread>0 && a->solid(ii,jj,kk)<0.0)
         {
-            kc = kc0;
-            zl = zl0;
+            kc = kc1;
+            zl = zl1;
             break;
         }
         
