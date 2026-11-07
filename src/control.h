@@ -575,6 +575,7 @@ public:
     double Q25,Q30,Q45,Q53,Q54,Q55,Q56,Q59,Q60,Q62,Q63,Q64,Q65,Q66,Q70,Q75,Q76,Q77;
     int Q72,Q74,Q78,Q79;
     int Q85;
+    int Q86;
     double Q85_xs,Q85_xe,Q85_ys,Q85_ye,Q85_zs,Q85_ze;
     double Q41;
     int Q61,*Q61_i;

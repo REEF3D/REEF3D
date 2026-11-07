@@ -81,7 +81,8 @@ the fluid goes over them onto the grid of CPM: u, v, w, the pressure, the level 
 viscosity, the eddy viscosity and k, its dissipation (RANS); at the start also the solids and the bed.
 Where the first fluid cell of a column takes the fluid of a coarser grid, the bedload layer samples its
 bed shear stress (velocity and k) at the centre of the first cell of that grid (CPM::amr_href, the least
-reference height Q 66 of the columns), and so do all other columns (cfd_amr::cpm_href).
+reference height Q 66 of the columns), and so do all other columns (cfd_amr::cpm_href); with Q 86 1 the
+velocity at the centre of the second cell of that grid and k of the first fluid cell of each column.
 
 The bed. Every cell of a grid in the region gets the mean of the cells of CPM under it: the bed (topo)
 of the interior cells no finer patch covers, the coarser cells under the patches by the restriction
@@ -1300,7 +1301,10 @@ void cfd_amr::cpm_step(lexer *p, fdm *a, ghostcell *pgc)
 // half its height (Q 66 in cells of CPM), and the same in all columns: the columns of the finer grids sample
 // their flow at that height too, so that the bed shear stress does not jump at the patch edges (a fixed bed
 // across a patch edge: 6 % more in the refined part with the first cell of every grid, 1 % with the common
-// height, validation 30)
+// height, validation 30). Q 86 1: the centre of the second cell of that grid, 1.5 of its cells. Next to a patch
+// the first coarse cell carries the mean of the fine cells over its height, lower than the log law at its centre:
+// over a fixed bed the stress was 6 % below the uniform grids with the first cell, 1-2 % above them with the
+// second, without a jump at the edges; over a mobile bed with bedforms it is 9-10 % above them (validation 34)
 void cfd_amr::cpm_href()
 {
     cfd_amr_cpm *C = cpm;
@@ -1322,7 +1326,7 @@ void cfd_amr::cpm_href()
     }
     MPI_Allreduce(MPI_IN_PLACE,&rmax,1,MPI_INT,MPI_MAX,reef3d_comm());
     if(rmax>1)
-    M->amr_href.assign((size_t)q->knox*q->knoy,0.5*double(rmax));
+    M->amr_href.assign((size_t)q->knox*q->knoy,(p0->Q86==1 ? 1.5 : 0.5)*double(rmax));
     else
     M->amr_href.clear();
 }

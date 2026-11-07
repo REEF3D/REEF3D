@@ -2434,6 +2434,8 @@ void control::ctrlsend()
     dd++;
     dctrl[dd] = Q85_ze;
     dd++;
+    ictrl[ii] = Q86;
+    ii++;
     ictrl[ii] = Q50;
     ii++;
     ictrl[ii] = Q72;

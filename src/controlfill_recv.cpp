@@ -2426,6 +2426,8 @@ void control::ctrlrecv()
     dd++;
     Q85_ze = dctrl[dd];
     dd++;
+    Q86 = ictrl[ii];
+    ii++;
     Q50 = ictrl[ii];
     ii++;
     Q72 = ictrl[ii];
