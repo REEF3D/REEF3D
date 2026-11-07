@@ -24,7 +24,9 @@ Architect: Hans Bihs
 #include"lexer.h"
 #include"fdm.h"
 #include"field.h"
+#include"interface_width.h"
 #include<cmath>
+#include<algorithm>
 
 godunov::godunov(lexer *p)
 {
@@ -67,6 +69,20 @@ double godunov::width(lexer *p, int ipol, int d, int idx) const
     return (ipol==2) ? p->YP[idx+1+marge]-p->YP[idx+marge] : p->YN[idx+1+marge]-p->YN[idx+marge];
 
     return (ipol==3) ? p->ZP[idx+1+marge]-p->ZP[idx+marge] : p->ZN[idx+1+marge]-p->ZN[idx+marge];
+}
+
+// N 59: the density of the control volume of the variable ipol, that of the projection on the face
+// of the cells (density_f::roface: the Heaviside of the mean of the level set of the two cells)
+double godunov::rho_cv(lexer *p, field &phi, int ipol, int ii, int jj, int kk) const
+{
+    const int aa = (ipol==1) ? 1 : 0;
+    const int bb = (ipol==2) ? 1 : 0;
+    const int cc = (ipol==3) ? 1 : 0;
+
+    const double phival = 0.5*(phi(ii,jj,kk) + phi(ii+aa,jj+bb,kk+cc));
+    const double H = heaviside_face(p,phi,phival,ii,jj,kk,aa,bb,cc);
+
+    return p->W1*H + p->W3*(1.0-H);
 }
 
 // the advecting velocities on the faces of the control volume (as flux_face_CDS2)
@@ -226,6 +242,50 @@ void godunov::start(lexer *p, fdm *a, field &f, int ipol, field &U, field &V, fi
         sf[q] = fc;
     }
 
+    // N 59: the density of the control volumes and its reconstruction, as that of f (the densities
+    // of the outermost layer are those of the layer inside it: the level set of its interface
+    // width would be read beyond the ghost cells)
+    const bool cons = (ipol<=3 && p->N59>0 && p->F30>0);
+
+    if(cons)
+    {
+        field &ph = (cphi!=nullptr) ? *cphi : a->phi;
+
+        for(std::vector<double> *v : {&rf,&rx,&ry,&rz,&rtx,&rty,&rtz})
+        v->assign(n,0.0);
+
+        for(int ii=i0; ii<i0+ni; ++ii)
+        for(int jj=j0; jj<j0+nj; ++jj)
+        for(int kk=k0; kk<k0+nk; ++kk)
+        rf[id(ii,jj,kk)] = rho_cv(p,ph,ipol,std::min(ii,p->knox),ydir ? std::min(jj,p->knoy) : jj,std::min(kk,p->knoz));
+
+        for(int ii=i0+1; ii<i0+ni-1; ++ii)
+        for(int jj=(ydir ? j0+1 : j0); jj<(ydir ? j0+nj-1 : j0+nj); ++jj)
+        for(int kk=k0+1; kk<k0+nk-1; ++kk)
+        {
+            const int q = id(ii,jj,kk);
+            const double rc = rf[q];
+
+            const double xl = (rc-rf[id(ii-1,jj,kk)])/(pos(p,ipol,0,ii)-pos(p,ipol,0,ii-1));
+            const double xr = (rf[id(ii+1,jj,kk)]-rc)/(pos(p,ipol,0,ii+1)-pos(p,ipol,0,ii));
+            rx[q] = mc(xl,xr);
+            rtx[q] = uc[q]*((uc[q]>0.0) ? xl : xr);
+
+            if(ydir)
+            {
+            const double yl = (rc-rf[id(ii,jj-1,kk)])/(pos(p,ipol,1,jj)-pos(p,ipol,1,jj-1));
+            const double yr = (rf[id(ii,jj+1,kk)]-rc)/(pos(p,ipol,1,jj+1)-pos(p,ipol,1,jj));
+            ry[q] = mc(yl,yr);
+            rty[q] = vc[q]*((vc[q]>0.0) ? yl : yr);
+            }
+
+            const double zl = (rc-rf[id(ii,jj,kk-1)])/(pos(p,ipol,2,kk)-pos(p,ipol,2,kk-1));
+            const double zr = (rf[id(ii,jj,kk+1)]-rc)/(pos(p,ipol,2,kk+1)-pos(p,ipol,2,kk));
+            rz[q] = mc(zl,zr);
+            rtz[q] = wc[q]*((wc[q]>0.0) ? zl : zr);
+        }
+    }
+
     // the state on the face between the control volumes qa (upwind side for a positive velocity)
     // and qb, in direction d, with the face velocity un
     auto state = [&](int d, int qa, int qb, double wa, double wb, double un) -> double
@@ -292,6 +352,165 @@ void godunov::start(lexer *p, fdm *a, field &f, int ipol, field &U, field &V, fi
 
         return L;
     };
+
+    // N 59: the face state of the density, as state() for f
+    auto rstate = [&](int d, int qa, int qb, double wa, double wb, double un) -> double
+    {
+        double fa, fb;
+
+        if(d==0)
+        {
+        fa = rf[qa] + (0.5*wa - hdt*uc[qa])*rx[qa] - hdt*(rty[qa]+rtz[qa]);
+        fb = rf[qb] - (0.5*wb + hdt*uc[qb])*rx[qb] - hdt*(rty[qb]+rtz[qb]);
+        }
+        else if(d==1)
+        {
+        fa = rf[qa] + (0.5*wa - hdt*vc[qa])*ry[qa] - hdt*(rtx[qa]+rtz[qa]);
+        fb = rf[qb] - (0.5*wb + hdt*vc[qb])*ry[qb] - hdt*(rtx[qb]+rtz[qb]);
+        }
+        else
+        {
+        fa = rf[qa] + (0.5*wa - hdt*wc[qa])*rz[qa] - hdt*(rtx[qa]+rty[qa]);
+        fb = rf[qb] - (0.5*wb + hdt*wc[qb])*rz[qb] - hdt*(rtx[qb]+rty[qb]);
+        }
+
+        if(un>0.0)
+        return fa;
+
+        if(un<0.0)
+        return fb;
+
+        return 0.5*(fa+fb);
+    };
+
+    // N 59: the convection term (u* - u)/dt of the update u* = (rho u - dt div(m u))/(rho - dt div(m))
+    const double dtu = (cdt>0.0) ? cdt : p->dt;
+    const double rmin = 0.5*std::min(p->W1,p->W3);
+
+    auto term_cons = [&](int ii, int jj, int kk) -> double
+    {
+        const int q = id(ii,jj,kk);
+        double v1, v2, Dm = 0.0, Du = 0.0, Dv = 0.0;
+        double umin = sf[q], umax = sf[q];
+
+        // x
+        {
+        vx(ipol,ii,jj,kk,U,v1,v2);
+        const int qe = id(ii+1,jj,kk), qw = id(ii-1,jj,kk);
+        const double w = width(p,ipol,0,ii), wl = width(p,ipol,0,ii-1), wr = width(p,ipol,0,ii+1);
+        const double m2 = v2*rstate(0,q,qe,w,wr,v2), m1 = v1*rstate(0,qw,q,wl,w,v1);
+        Dm += (m2-m1)/w;
+        const double u2 = state(0,q,qe,w,wr,v2), u1 = state(0,qw,q,wl,w,v1);
+        umin = std::min(umin,std::min(u1,u2));  umax = std::max(umax,std::max(u1,u2));
+        Du += (m2*u2 - m1*u1)/w;
+        Dv += (v2-v1)/w;
+        }
+
+        // y
+        if(ydir)
+        {
+        vy(ipol,ii,jj,kk,V,v1,v2);
+        const int qn = id(ii,jj+1,kk), qs = id(ii,jj-1,kk);
+        const double w = width(p,ipol,1,jj), wl = width(p,ipol,1,jj-1), wr = width(p,ipol,1,jj+1);
+        const double m2 = v2*rstate(1,q,qn,w,wr,v2), m1 = v1*rstate(1,qs,q,wl,w,v1);
+        Dm += (m2-m1)/w;
+        const double u2 = state(1,q,qn,w,wr,v2), u1 = state(1,qs,q,wl,w,v1);
+        umin = std::min(umin,std::min(u1,u2));  umax = std::max(umax,std::max(u1,u2));
+        Du += (m2*u2 - m1*u1)/w;
+        Dv += (v2-v1)/w;
+        }
+
+        // z
+        {
+        vz(ipol,ii,jj,kk,W,v1,v2);
+        const int qt = id(ii,jj,kk+1), qb = id(ii,jj,kk-1);
+        const double w = width(p,ipol,2,kk), wl = width(p,ipol,2,kk-1), wr = width(p,ipol,2,kk+1);
+        const double m2 = v2*rstate(2,q,qt,w,wr,v2), m1 = v1*rstate(2,qb,q,wl,w,v1);
+        Dm += (m2-m1)/w;
+        const double u2 = state(2,q,qt,w,wr,v2), u1 = state(2,qb,q,wl,w,v1);
+        umin = std::min(umin,std::min(u1,u2));  umax = std::max(umax,std::max(u1,u2));
+        Du += (m2*u2 - m1*u1)/w;
+        Dv += (v2-v1)/w;
+        }
+
+        // the advecting velocities of the control volume (means of the face velocities of the cells)
+        // are not exactly divergence free; their divergence Dv is taken out of the mass and the
+        // momentum fluxes alike, so that a constant density stays constant and a light control volume
+        // next to diverging velocities keeps its mass
+        const double rnew = rf[q] - dtu*(Dm - rf[q]*Dv);
+
+        // the second-order update where it keeps the mass of the control volume and the velocity
+        // within the range of the velocity of the control volume and its face states; a large
+        // relative loss of mass with outflow states other than the velocity of the control volume
+        // would extrapolate the velocity, u* = (rho u - m u_out)/(rho - m), and let it grow
+        if(rnew >= rmin && rnew >= 0.5*rf[q])
+        {
+            const double un = (rf[q]*sf[q] - dtu*(Du - rf[q]*sf[q]*Dv))/rnew;
+
+            if(un >= umin && un <= umax)
+            return (un - sf[q])/dtu;
+        }
+
+        // otherwise (a light control volume next to a heavy one, whose reconstructed outflow density
+        // can exceed its own, or a velocity out of range) the same update with the first-order
+        // upwind states of the density and the velocity: u* = u + dt sum m_in (u_in - u)/rho*, a
+        // convex combination of the velocities of the control volume and its inflow neighbours;
+        // where even that fails, the advective form
+        {
+            double Dm1 = 0.0, Du1 = 0.0;
+
+            auto up = [&](int qa, int qb, double un, double &r, double &u)
+            {
+                const int qu = (un>=0.0) ? qa : qb;
+                r = rf[qu];
+                u = sf[qu];
+            };
+
+            double r2, u2, r1, u1;
+
+            vx(ipol,ii,jj,kk,U,v1,v2);
+            up(q,id(ii+1,jj,kk),v2,r2,u2);   up(id(ii-1,jj,kk),q,v1,r1,u1);
+            Dm1 += (v2*r2 - v1*r1)/width(p,ipol,0,ii);
+            Du1 += (v2*r2*u2 - v1*r1*u1)/width(p,ipol,0,ii);
+
+            if(ydir)
+            {
+            vy(ipol,ii,jj,kk,V,v1,v2);
+            up(q,id(ii,jj+1,kk),v2,r2,u2);   up(id(ii,jj-1,kk),q,v1,r1,u1);
+            Dm1 += (v2*r2 - v1*r1)/width(p,ipol,1,jj);
+            Du1 += (v2*r2*u2 - v1*r1*u1)/width(p,ipol,1,jj);
+            }
+
+            vz(ipol,ii,jj,kk,W,v1,v2);
+            up(q,id(ii,jj,kk+1),v2,r2,u2);   up(id(ii,jj,kk-1),q,v1,r1,u1);
+            Dm1 += (v2*r2 - v1*r1)/width(p,ipol,2,kk);
+            Du1 += (v2*r2*u2 - v1*r1*u1)/width(p,ipol,2,kk);
+
+            const double rnew1 = rf[q] - dtu*(Dm1 - rf[q]*Dv);
+
+            if(rnew1 >= rmin)
+            return ((rf[q]*sf[q] - dtu*(Du1 - rf[q]*sf[q]*Dv))/rnew1 - sf[q])/dtu;
+        }
+
+        return term(ii,jj,kk);
+    };
+
+    if(cons)
+    {
+        if(ipol==1)
+        ULOOP
+        a->F(i,j,k) += term_cons(i,j,k);
+
+        if(ipol==2)
+        VLOOP
+        a->G(i,j,k) += term_cons(i,j,k);
+
+        if(ipol==3)
+        WLOOP
+        a->H(i,j,k) += term_cons(i,j,k);
+
+        return;
+    }
 
     if(ipol==1)
     ULOOP

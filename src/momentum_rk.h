@@ -85,6 +85,13 @@ A prototype (validation 75): second order in time on smooth interface flows, but
 it): the half-step velocity carries the air accelerations of the half step and convects the air
 momentum with them. N 40 5 is the robust one-step scheme.
 
+N 59 1 (N 40 5, 6 with the level set; N 40 5 also on the mesh refinement, whose patches take the
+same Godunov convection): the convection of the momentum as rho u, moved with the mass flux of the
+Godunov convection (godunov::start, see godunov.h); the density of the step starts from the level
+set of the step (phi(n) also in the full step of N 40 6, kept in frk1). Validation 77:
+the impact pressures of the 3D dam break as RK3 without the oscillations of the one-step schemes,
+N 40 6 stable at N 47 0.45 in the 2D dam break.
+
 SSP stage s:   u(s+1) = a_s u(n) + b_s [ u(s) + dt (F + D) ]
 low storage:   u(s+1) = u(s) + 2 alpha_s dt (S + D) + gamma_s dt C(s) + zeta_s dt C(s-1)
 with F the explicit terms (sources, pressure gradient, convection C), D the
@@ -159,6 +166,7 @@ private:
     void step_twoproj(lexer*, fdm*, ghostcell*, vrans*, sixdof*);
     void component_onestep(lexer*, fdm*, ghostcell*, vrans*, int, field&, field&, field&, field&, field&, double, bool);
     void levelset_twoproj(lexer*, fdm*, ghostcell*, field&, field&, field&);
+
     void step_lowstorage(lexer*, fdm*, ghostcell*, vrans*, sixdof*);
 
     void levelset_transport(lexer*, fdm*, ghostcell*, int);

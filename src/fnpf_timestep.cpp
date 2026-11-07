@@ -47,7 +47,7 @@ fnpf_timestep::~fnpf_timestep()
 //
 //  3  theta-Robin (A 310 5): the step of an accuracy target, the phase-speed error N 55 [%] of the reference
 //                 wave (period N 52, or of the wave input), at most 4 x the step of N 51 2 at N 47 0.75, with a
-//                 coastline (A 343 >= 1) at most that step (theta_step)
+//                 coastline (A 343 >= 1) or a floating body (X 10) at most that step (theta_step)
 //
 // N 52 T_min > 0, N 53 n: accuracy cap dt <= T_min/n (any N 51). Once the stability limit is no longer the
 // constraint, the RK damping of the short waves sets the accuracy (RK3: about (pi/12)(omega dt)^3 per period).
@@ -131,12 +131,14 @@ double fnpf_timestep::theta_error(lexer *p, double dt, double cu, double T)
 
 double fnpf_timestep::theta_step(lexer *p, double cu)
 {
-    // at most 4 x the RK3 step; with a coastline (A 343 >= 1) at most the RK3 step at N 47 0.75: in the surf zone
-    // the corrector passes stop converging at the swash (surface Courant number |Fx| dt/dx above about 1.5 in
-    // films of a few mm) and at steep breaking fronts, from about 1.5 x that step (Ting & Kirby, Mase & Kirby;
-    // 1.2 x before the damping moved to the start of the step, patch 0022); where larger steps stay stable,
-    // the passes and REEFMG cycles grow so that the step costs as much as the RK3 steps it replaces
-    const double dtmax = (p->A343>=1) ? 0.75*cu : 3.0*cu;
+    // at most 4 x the RK3 step; with a coastline (A 343 >= 1) at most the RK3 step at N 47 0.75: with the advection
+    // preconditioner of the corrector (patch 0025) a static coastline is stable at 2-3 x that step (Ting & Kirby),
+    // but the Hm0 of the shallowest gauges of Mase & Kirby grows with the step (beyond the tolerance from 1.5 x),
+    // and the moving coastline (A 343 2) fails at 2 x at the wetted front. Larger steps with a static coastline:
+    // N 51 2 with N 47 1.5-2.25 (validation 09). With resolved floating bodies (X 10 1) also at most the RK3 step:
+    // the natural periods of the body set the step there (validation 10: at 1.5 x the heave decay of a box is
+    // under-damped and the motions in waves are worse than at 1 x)
+    const double dtmax = (p->A343>=1 || p->X10>0) ? 0.75*cu : 3.0*cu;
     const double T = theta_tref(p);
     
     if(T<=0.0 || cu<=0.0)
@@ -476,7 +478,7 @@ void fnpf_timestep::start(fdm_fnpf *c, lexer *p,ghostcell *pgc)
         const double T = theta_tref(p);
         cout<<"FNPF time step N 51 3 (theta-Robin): phase-speed error N 55 "<<p->N55<<" % of the reference wave T = "<<T<<" s ("
             <<(p->N52>0.0 ? "N 52" : (T>0.0 ? "wave input" : "none: 2 x the RK3 step"))<<"), dt = "<<p->dt<<" s = "<<p->dt/(0.75*cu)
-            <<" x the RK3 step of N 51 2, N 47 0.75"<<(p->A343>=1 ? " (at most 1 x with a coastline, A 343 >= 1)" : (p->dt>=3.0*cu*(1.0-1.0e-9) ? " (the bound of 4 x)" : ""))<<endl;
+            <<" x the RK3 step of N 51 2, N 47 0.75"<<(p->A343>=1 || p->X10>0 ? " (at most 1 x with a coastline, A 343 >= 1, or a floating body, X 10)" : (p->dt>=3.0*cu*(1.0-1.0e-9) ? " (the bound of 4 x)" : ""))<<endl;
         }
         said=true;
     }

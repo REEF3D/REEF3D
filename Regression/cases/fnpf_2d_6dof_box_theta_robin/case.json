@@ -1,0 +1,19 @@
+{
+ "base": "fnpf_2d_6dof_box",
+ "ctrl_set": {
+  "A 310": "5",
+  "N 51": "2",
+  "N 47": "0.75"
+ },
+ "description": "fnpf_2d_6dof_box (floating box in regular waves, surge, heave and pitch free) with the theta-Robin time integration (A 310 5, REEFMG) at the RK3 step of N 47 0.75: the body integrated with Heun (rk2), the loads at t^n and of the first corrector state, the footprint columns Dirichlet in the Robin system.",
+ "tags": [
+  "2d",
+  "fnpf",
+  "6dof",
+  "floating"
+ ],
+ "covers": [
+  "fnpf_theta with fnpf_6DOF: stage 0 and 1, solve_pre/solve_post, footprint_mask",
+  "sixdof_obj rk2 (FNPF, A 310 5)"
+ ]
+}

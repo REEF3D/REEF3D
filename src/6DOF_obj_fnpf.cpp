@@ -214,9 +214,14 @@ void sixdof_obj_fnpf::solve_eqmotion_fnpf(lexer *p, fdm_fnpf *c, ghostcell *pgc,
     
     pfluid = nullptr;
     
-    // stage-synchronous with fnpf_RK3 (TVD Shu-Osher, as the kernel's rk3) or fnpf_RK4
+    // stage-synchronous with fnpf_RK3 (TVD Shu-Osher, as the kernel's rk3), fnpf_RK4 or fnpf_theta (Heun: the
+    // predictor with the loads at t^n, the corrector with those of the predicted state at t^n+1)
     if(p->A310==3)
     rk3(p,pgc,iter);
+    
+    else
+    if(p->A310==5)
+    rk2(p,pgc,iter);
     
     else
     rk4(p,pgc,iter);
@@ -262,6 +267,10 @@ void sixdof_obj_fnpf::eqmotion_advance_fnpf(lexer *p, ghostcell *pgc, int iter, 
 
     if(p->A310==3)
     rk3(p,pgc,iter);
+
+    else
+    if(p->A310==5)
+    rk2(p,pgc,iter);
 
     else
     rk4(p,pgc,iter);

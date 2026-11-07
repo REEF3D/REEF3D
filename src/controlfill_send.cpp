@@ -1923,6 +1923,8 @@ void control::ctrlsend()
     ii++;
     ictrl[ii] = N51;
     ii++;
+    ictrl[ii] = N59;
+    ii++;
     dctrl[dd] = N56;
     dd++;
     dctrl[dd] = N52;

@@ -93,6 +93,9 @@ double fnpf_6DOF::psi_time(lexer *p, int slot) const
         if(p->A310==3)
         c = (s==1) ? 1.0 : (s==2 ? 0.5 : 0.0);
         else
+        if(p->A310==5)
+        c = (s==1) ? 1.0 : 0.0;
+        else
         c = (s==3) ? 1.0 : (s>=1 ? 0.5 : 0.0);
     }
     return p->simtime + c*p->dt;
@@ -398,7 +401,7 @@ void fnpf_6DOF::stage(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, fnpf
     
     motion(p,c,pgc,iter);
     
-    if(iter == ((p->A310==3) ? 2 : 3))
+    if(iter == last_stage(p))
     psi_report(p,pgc);
 }
 
@@ -421,6 +424,11 @@ void fnpf_6DOF::psi_report(lexer *p, ghostcell *pgc)
     psi_solves = 0;
     psi_iter = 0;
     psi_itmax = 0;
+}
+
+slice* fnpf_6DOF::footprint_mask()
+{
+    return (initialized && g0.foot!=nullptr) ? g0.foot : nullptr;
 }
 
 void fnpf_6DOF::pre_solve(lexer *p, fdm_fnpf *c, ghostcell *pgc)
@@ -725,8 +733,8 @@ void fnpf_6DOF::motion(lexer *p, fdm_fnpf *c, ghostcell *pgc, int iter)
     return;
     }
     
-    // last stage: 2 for RK3 (A 310 3), 3 for RK4 (A 310 4)
-    const bool finalize = (iter == ((p->A310==3) ? 2 : 3));
+    // last stage: 2 for RK3 (A 310 3), 3 for RK4 (A 310 4), 1 for theta-Robin (A 310 5, Heun)
+    const bool finalize = (iter == last_stage(p));
     
     if(nbody>1)
     motion_coupled(p,c,pgc,iter,finalize);

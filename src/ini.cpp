@@ -963,6 +963,7 @@ void control::ini_default()
 	N49=1.0;		// double max timestep or fixed timesteps
     N50=1;          // int adaptive timestepping method
     N51=0;          // int FNPF time step: 0 sqrt(g h_max), 1 dispersive sqrt(g dx tanh(h/dx)) + |u|, 2 discrete sigma-grid DtN (dt omega_max = N47 RK limit)
+    N59=0;          // int CFD N 40 5, 6 with the level set: 1 the momentum per volume rho u carried with the mass flux (godunov), 0 the velocity
     N52=0.0;        // double FNPF time step accuracy cap: shortest relevant wave period T_min [s], 0 off
     N53=40.0;       // double FNPF time step accuracy cap: time steps per T_min, dt <= N52/N53
     N54=0.0;        // double CFD time step: 0 the acceleration term with gravity; > 0 gravity out of the acceleration term (the projection balances it) and the gravity-wave limit omega_max dt <= N54

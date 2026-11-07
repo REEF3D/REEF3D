@@ -1,0 +1,22 @@
+{
+ "base": "cfd_2d_dambreak_amr3_adapt",
+ "np": 1,
+ "steps": 60,
+ "ctrl_set": {
+  "N 40": "5"
+ },
+ "description": "cfd_2d_dambreak_amr3_adapt_onestep with the momentum carried with the mass flux (N 59 1) on two adaptive levels: the Godunov convection of every patch with the density of its level set (validation 78).",
+ "tags": [
+  "quick",
+  "2d",
+  "dambreak",
+  "levelset",
+  "amr"
+ ],
+ "covers": [
+  "godunov with N 59 on the patches of the mesh refinement"
+ ],
+ "ctrl_add": [
+  "N 59 1"
+ ]
+}

@@ -34,7 +34,11 @@ Architect: Hans Bihs
 #include"fnpf_prof.h"
 #include"reefmg.h"
 #include"fnpf_body.h"
+#include"fnpf_amr.h"
 #include"fnpf_sz_weights.h"
+#include"sflow_bicgstab.h"
+#include"matrix2D.h"
+#include"vec2D.h"
 #include<Eigen/Sparse>
 #include<Eigen/SparseLU>
 #include<memory>
@@ -63,7 +67,7 @@ namespace
 fnpf_theta::fnpf_theta(lexer *p, fdm_fnpf *c, ghostcell *pgc) : fnpf_ini(p,c,pgc),fnpf_sigma(p,c,pgc),
                                                       ek(p),fk(p),Ne(p),Nf(p),Neo(p),Nfo(p),wn(p),erk1(p),frk1(p),
                                                       nEm(p),nFm(p),eko(p),fko(p),erk2(p),R0(p),Rs(p),relR(p),relT(p),relRe(p),relTe(p),fnew(p),wnew(p),en(p),
-                                                      colD(p),colA(p),colB(p),fsold(p)
+                                                      colD(p),colA(p),colB(p),fsold(p),nEo(p),nFo(p),pxe(p),pxf(p),kE1(p),kF1(p)
 {
     gcval=250;
     if(p->j_dir==0)
@@ -93,6 +97,8 @@ fnpf_theta::fnpf_theta(lexer *p, fdm_fnpf *c, ghostcell *pgc) : fnpf_ini(p,c,pgc
     npass = MAX(p->A302,0);
     passtol = p->A304;
     passsum = stepsum = editsum = 0;
+    padvsum = 0;
+    csmaxsum = 0.0;
     nstep = 0;
     dt_prev = 0.0;
     solvetime = 0.0;
@@ -104,8 +110,15 @@ fnpf_theta::fnpf_theta(lexer *p, fdm_fnpf *c, ghostcell *pgc) : fnpf_ini(p,c,pgc
     if(lsolv==1 && p->N10!=1)       {bad=1; if(p->mpirank==0) cout<<"A 310 5: needs REEFMG (N 10 1) or SparseLU (A 306 2)"<<endl;}
     if(p->A324>0)                   {bad=1; if(p->mpirank==0) cout<<"A 310 5: no Picard passes of the Laplace solve (A 324 0; the corrector passes iterate)"<<endl;}
     if(p->A343==3)                  {bad=1; if(p->mpirank==0) cout<<"A 310 5: wetting-drying A 343 0, 1 or 2 (A 343 3 not tested: unstable in Ting & Kirby)"<<endl;}
-    if(p->X10>0)                    {bad=1; if(p->mpirank==0) cout<<"A 310 5: no resolved bodies (X 10)"<<endl;}
-    if(p->G1>0)                     {bad=1; if(p->mpirank==0) cout<<"A 310 5: no mesh refinement (G 1)"<<endl;}
+    if(p->X10>0 && lsolv==2)        {bad=1; if(p->mpirank==0) cout<<"A 310 5: resolved bodies (X 10) with REEFMG only (A 306 1)"<<endl;}
+    if(p->X10>0 && p->A302<1)       {bad=1; if(p->mpirank==0) cout<<"A 310 5: resolved bodies (X 10) need corrector passes (A 302 >= 1)"<<endl;}
+    // mesh refinement (fnpf_amr_theta.cpp): the patches without breaking, coastline or bodies
+    if(p->G1>0 && lsolv==2)         {bad=1; if(p->mpirank==0) cout<<"A 310 5: mesh refinement (G 1) with REEFMG only (A 306 1)"<<endl;}
+    if(p->G1>0 && p->X10>0)         {bad=1; if(p->mpirank==0) cout<<"A 310 5: mesh refinement (G 1) without resolved bodies (X 10 0)"<<endl;}
+    if(p->G1>0 && p->A350>0)        {bad=1; if(p->mpirank==0) cout<<"A 310 5: mesh refinement (G 1) without breaking (A 350 0)"<<endl;}
+    if(p->G1>0 && p->G30==1)        {bad=1; if(p->mpirank==0) cout<<"A 310 5: mesh refinement (G 1) with the patches off the coastline (G 30 0)"<<endl;}
+    if(p->G1>0 && p->G7==1)         {bad=1; if(p->mpirank==0) cout<<"A 310 5: mesh refinement (G 1) without subcycling (G 7 0)"<<endl;}
+    if(p->G1>0 && p->A328==1)       {bad=1; if(p->mpirank==0) cout<<"A 310 5: mesh refinement (G 1) with explicit sigma cross terms (A 328 0)"<<endl;}
     if(p->A311==3 || p->A327!=1)    {bad=1; if(p->mpirank==0) cout<<"A 310 5: needs the Fornberg sz stencil (A 327 1) and A 311 1, 2, 4, 5 or 6"<<endl;}
     if(p->A328==1 && lsolv==2)      {bad=1; if(p->mpirank==0) cout<<"A 310 5: implicit sigma cross terms (A 328 1) with REEFMG only (A 306 1)"<<endl;}
     if(p->B98>2 || p->B99>2)        {bad=1; if(p->mpirank==0) cout<<"A 310 5: relaxation zones only (B 98 0-2, B 99 0-2)"<<endl;}
@@ -127,6 +140,9 @@ fnpf_theta::fnpf_theta(lexer *p, fdm_fnpf *c, ghostcell *pgc) : fnpf_ini(p,c,pgc
     pf = new fnpf_fsfbc_wd(p,c,pgc);
     
     pbody = fnpf_body::create(p,c,pgc);
+    // the body keeps the plain solver for its psi solves; the decorated one (geometry before, body band
+    // after the solve) for the Dirichlet solves of the step
+    plap = pbody->laplace(plap0);
     
     c->vel3D_fill = [this,c](lexer *p, ghostcell *pgc)
     {
@@ -191,6 +207,11 @@ void fnpf_theta::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, con
     SLICELOOP4
     fk(i,j) = c->K(i,j);
     
+    // resolved bodies (X 10): the loads of the state at t^n and the predictor of the body (Heun, stage 0) to
+    // t^n+1; the corrector stage with the loads of the first corrector state (corrector_state)
+    psolv_step = psolv;
+    {fnpf_prof::scope ps_(fnpf_prof::body); pbody->stage(p,c,pgc,psolv,pf,ek,fk,0);}
+    
     // nonlinear parts: everything but eta_t = w and Fifsf_t = -g eta
     SLICELOOP4
     {
@@ -198,6 +219,7 @@ void fnpf_theta::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, con
     Ne(i,j) = ek(i,j) - c->Fz(i,j);
     Nf(i,j) = fk(i,j) + g*c->eta(i,j);
     }
+
     
     // A 308 > 0: Newmark beta of the Fifsf update below 1/4 for a phase error of 4th order (beta 1/12) or
     // smaller than that of Crank-Nicolson, within the stability limit omega dt < 1/sqrt(1/4 - beta) of the
@@ -238,6 +260,10 @@ void fnpf_theta::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, con
     fko(i,j) = fk(i,j);
     }
     
+    // mesh refinement: the same on the patches
+    if(pamr!=nullptr)
+    pamr->theta_predict(p,pgc,theta,beta);
+    
     {fnpf_prof::scope ps_(fnpf_prof::relax); relax_affine(p,c,pgc,pflow,0,relRe,relTe);}
     
     SLICELOOP4
@@ -246,6 +272,11 @@ void fnpf_theta::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, con
     {fnpf_prof::scope ps_(fnpf_prof::relax); pflow->fifsf_relax(p,pgc,frk1);}
     {fnpf_prof::scope ps_(fnpf_prof::gc2d); pgc->gcsl_start4(p,frk1,gcval_fifsf);}
     {fnpf_prof::scope ps_(fnpf_prof::gc2d); pgc->gcsl_start4(p,Rs,gcval_fifsf);}
+    {fnpf_prof::scope ps_(fnpf_prof::body); pbody->surface(p,c,pgc,erk1,frk1,gcval_eta,gcval_fifsf);}
+    
+    // mesh refinement: the predicted state of all grids consistent (covered columns, the cells around the patches)
+    if(pamr!=nullptr)
+    pamr->theta_surface(p,pgc,erk1,frk1,0);
     
     {fnpf_prof::scope ps_(fnpf_prof::inflow); pflow->inflow_fnpf(p,c,pgc,c->Fi,c->Uin,frk1,erk1);}
     {fnpf_prof::scope ps_(fnpf_prof::fsfdisc); pf->fsfdisc(p,c,pgc,erk1,frk1);}
@@ -269,6 +300,7 @@ void fnpf_theta::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, con
     // solution and the cross terms with the last solution; defect correction with the factorisation of pass 0
     for(int q=0; q<npass; ++q)
     {
+    passq = q;
     corrector_state(p,c,pgc,pflow);
     const double chg = (lsolv==2) ? robin_correct(p,c,pgc,psolv,Rs,fnew) : robin_solve_mg(p,c,pgc,psolv,fnew,Rs,fnew,1);
     ++passsum;
@@ -294,6 +326,18 @@ void fnpf_theta::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, con
     // wave generation and absorption of eta (Fifsf: in the Robin rows)
     SLICELOOP4
     c->eta(i,j) = relRe(i,j)*c->eta(i,j) + relTe(i,j);
+    
+    // bodies: eta and Fifsf over the footprint (no physics there, the free-surface node lies in the body)
+    {fnpf_prof::scope ps_(fnpf_prof::gc2d); pgc->gcsl_start4(p,c->eta,gcval_eta);}
+    {fnpf_prof::scope ps_(fnpf_prof::gc2d); pgc->gcsl_start4(p,c->Fifsf,gcval_fifsf);}
+    {fnpf_prof::scope ps_(fnpf_prof::body); pbody->surface(p,c,pgc,c->eta,c->Fifsf,gcval_eta,gcval_fifsf);}
+    
+    // mesh refinement: eta^n+1, Fifsf^n+1 of the patches, all grids consistent
+    if(pamr!=nullptr)
+    {
+    pamr->theta_final(p,pgc,theta);
+    pamr->theta_surface(p,pgc,c->eta,c->Fifsf,2);
+    }
     
     // the surface of the solve: the edits below (breaking filters, wetting-drying, coastline) change it after the
     // solve, and Fi below would no longer be that of the edited surface (as with the relaxation zones before
@@ -345,7 +389,7 @@ void fnpf_theta::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, con
     
     if(emax>1.0e-12*MAX(escale,1.0e-20))
     {
-    {fnpf_prof::scope ps_(fnpf_prof::laplace); plap0->start(p,c,pgc,psolv,pf,c->Fi,c->Fifsf);}
+    {fnpf_prof::scope ps_(fnpf_prof::laplace); plap->start(p,c,pgc,psolv,pf,c->Fi,c->Fifsf);}
     {fnpf_prof::scope ps_(fnpf_prof::gc3d); pgc->start7V(p,c->Fi,c->bc,gcval);}
     ++editsum;
     }
@@ -353,9 +397,12 @@ void fnpf_theta::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, con
     
     // w^n+1 for the next step
     {fnpf_prof::scope ps_(fnpf_prof::fsfwvel); pf->fsfwvel(p,c,pgc,c->eta,c->Fifsf);}
+    if(pamr!=nullptr)
+    pamr->theta_end(p,pgc);
     
     {fnpf_prof::scope ps_(fnpf_prof::bc3d); bedbc_sig(p,c,pgc,c->Fi,pf);}
     {fnpf_prof::scope ps_(fnpf_prof::velcalc); velcalc_sig(p,c,pgc,c->Fi);}
+    {fnpf_prof::scope ps_(fnpf_prof::body); pbody->velocity(p,c,pgc);}
     
     if(c->U!=nullptr)
     {
@@ -372,9 +419,13 @@ void fnpf_theta::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, con
     
     c->vel_state = 2;
     
+    // mesh refinement: velocities of the patches, regrid
+    if(pamr!=nullptr)
+    pamr->step_end(p,c,pgc);
+    
     if(p->mpirank==0 && (p->count%p->P12==0))
     {
-    cout<<"theta-Robin solve: "<<setprecision(3)<<solvetime<<" s total, corrector passes per step "<<double(passsum)/double(MAX(stepsum,1L))<<", consistency solves "<<editsum;
+    cout<<"theta-Robin solve: "<<setprecision(3)<<solvetime<<" s total, corrector passes per step "<<double(passsum)/double(MAX(stepsum,1L))<<", consistency solves "<<editsum<<", advection-preconditioned passes "<<padvsum<<" (max surface Courant "<<csmaxsum<<")";
     if(p->A308>0.0)
     cout<<", beta "<<beta<<" (mean "<<betasum/double(MAX(stepsum,1L))<<")";
     if(lsolv==1)
@@ -400,20 +451,67 @@ void fnpf_theta::corrector_state(lexer *p, fdm_fnpf *c, ghostcell *pgc, ioflow *
     SLICELOOP4
     erk2(i,j) = relRe(i,j)*erk2(i,j) + relTe(i,j);
     {fnpf_prof::scope ps_(fnpf_prof::gc2d); pgc->gcsl_start4(p,erk2,gcval_eta);}
+    {fnpf_prof::scope ps_(fnpf_prof::body); pbody->surface(p,c,pgc,erk2,fnew,gcval_eta,gcval_fifsf);}
+    
+    // mesh refinement: the corrector state of the patches (eta^n+1, N^n+1/2, R), all grids consistent
+    if(pamr!=nullptr)
+    pamr->theta_corrector(p,pgc,erk2,fnew,theta,beta);
     
     // Fx, Ex, Exu of eta^n+1, Fifsf^n+1 (the upwinding of A315 uses the Fz just set)
     {fnpf_prof::scope ps_(fnpf_prof::fsfdisc); pf->fsfdisc(p,c,pgc,erk2,fnew);}
     
     {fnpf_prof::scope ps_(fnpf_prof::fsfbc); pf->kfsfbc(p,c,pgc);}
+    // the surface Courant number of the wet columns, |Fx| dt/dx + |Fy| dt/dy, of this pass: above 0.5 the change of
+    // N is preconditioned with the advection (below)
+    double cs=0.0;
     SLICELOOP4
+    if(p->wet[IJ]==1)
+    cs = MAX(cs, fabs(c->Fx(i,j))*dt/p->DXN[IP] + (p->j_dir==1 ? fabs(c->Fy(i,j))*dt/p->DYN[JP] : 0.0));
+    cs = pgc->globalmax(cs);
+    const bool padv = cs>0.5;
+    csmaxsum = MAX(csmaxsum,cs);
+    if(padv) ++padvsum;
+    SLICELOOP4
+    {
+    nEo(i,j) = nEm(i,j);
+    nFo(i,j) = nFm(i,j);
+    }
+    
+    SLICELOOP4
+    {
     nEm(i,j) = 0.5*(Ne(i,j) + c->K(i,j) - wnew(i,j));
+    kE1(i,j) = c->K(i,j);
+    }
     
     {fnpf_prof::scope ps_(fnpf_prof::fsfbc); pf->dfsfbc(p,c,pgc,erk2);}
     SLICELOOP4
     {
     nFm(i,j) = 0.5*(Nf(i,j) + c->K(i,j) + g*erk2(i,j));
-    Rs(i,j) = R0(i,j) - g*theta*dt*dt*nEm(i,j) + dt*nFm(i,j);
+    kF1(i,j) = c->K(i,j);
     }
+    
+    // the change of N of this pass through (I + dt/2 (Fx Dx + Fy Dy))^-1, Dx, Dy upwind: Newton for the advection
+    // of the free-surface conditions (eta_t + Fx Ex, Fifsf_t + Fx^2/2: both advect with Fx), so that the passes
+    // converge also where |Fx| dt/dx > 1. Without it they diverge at |Fx| dt/dx of about 2 (the swash of Ting &
+    // Kirby at 2 x the RK3 step); with it Ting & Kirby runs at 3 x (validation 09).
+    if(padv)
+    {
+    SLICELOOP4
+    {
+    pxe(i,j) = nEm(i,j) - nEo(i,j);
+    pxf(i,j) = nFm(i,j) - nFo(i,j);
+    }
+    precond_adv(p,c,pgc,pxe);
+    precond_adv(p,c,pgc,pxf);
+    SLICELOOP4
+    {
+    nEm(i,j) = nEo(i,j) + pxe(i,j);
+    nFm(i,j) = nFo(i,j) + pxf(i,j);
+    }
+    }
+    
+    SLICELOOP4
+    Rs(i,j) = R0(i,j) - g*theta*dt*dt*nEm(i,j) + dt*nFm(i,j);
     
     {fnpf_prof::scope ps_(fnpf_prof::gc2d); pgc->gcsl_start4(p,Rs,gcval_fifsf);}
     
@@ -423,6 +521,12 @@ void fnpf_theta::corrector_state(lexer *p, fdm_fnpf *c, ghostcell *pgc, ioflow *
     {fnpf_prof::scope ps_(fnpf_prof::bc3d); fsfbc_sig(p,c,pgc,fnew,c->Fi);}
     {fnpf_prof::scope ps_(fnpf_prof::bc3d); bedbc_sig(p,c,pgc,c->Fi,pf);}
     {fnpf_prof::scope ps_(fnpf_prof::gc3d); pgc->start7V(p,c->Fi,c->bc,gcval);}
+    
+    // resolved bodies: the corrector stage of the body (Heun) with the loads of the first corrector state at
+    // t^n+1 (its tendencies kE1, kF1, Fi and the sigma grid of eta^n+1); the next passes solve with the body
+    // at t^n+1 (the geometry before their assembly)
+    if(passq==0)
+    {fnpf_prof::scope ps_(fnpf_prof::body); pbody->stage(p,c,pgc,psolv_step,pf,kE1,kF1,1);}
 }
 
 // The rows of fnpf_laplace_cds2 for the interior nodes k = 0..knoz-1 (assembled only) plus one Robin row per column
@@ -709,6 +813,10 @@ void fnpf_theta::robin_build_mg(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *p
     
     sz_stencil(p,pgc);
     
+    // resolved bodies: the geometry on the current sigma grid (hull faces, footprint) before the assembly
+    {fnpf_prof::scope ps_(fnpf_prof::body); pbody->solve_pre(p,c,pgc);}
+    slice *foot = pbody->footprint_mask();
+    
     // one assembly with Fifsf = fs, the coupling mt of the top rows to the surface node stored in mts
     if(int(mts.size())!=int(c->M.p.size()))
     mts.assign(c->M.p.size(),0.0);
@@ -738,6 +846,10 @@ void fnpf_theta::robin_build_mg(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *p
             ++n;
             
             if(k!=N-1 || p->wet[IJ]==0 || p->flag7[FIJK]<=0)
+            continue;
+            
+            // body footprint: the surface node is a Dirichlet node with the extended Fifsf (fs)
+            if(foot!=nullptr && (*foot)(i,j)>0.5)
             continue;
             
             const double mt = mts[r];
@@ -800,8 +912,17 @@ double fnpf_theta::robin_solve_mg(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver 
     if(pass>0)
     reefmg::keep_coarse = true;
     
+    // mesh refinement: the rows of the patches and the composite solve of all grids (A 307 as above)
+    double dpat=0.0, xpat=0.0;
+    if(pamr!=nullptr && pamr->active())
+    {fnpf_prof::scope ps_(fnpf_prof::laplace); pamr->theta_solve(p,c,pgc,c->Fi,pass>0 ? 1 : 0,beta,dpat,xpat);}
+    else
     {fnpf_prof::scope ps_(fnpf_prof::laplace); psolv->startF(p,pgc,c->Fi,c->rhsvec,c->M,8);}
     reefmg::keep_coarse = false;
+    
+    // resolved bodies: the body band of Fi
+    {fnpf_prof::scope ps_(fnpf_prof::body); pbody->solve_post(p,c,pgc,c->Fi);}
+    slice *foot = pbody->footprint_mask();
     
     p->N44 = tol0;
     c->M.xcol.clear();
@@ -834,6 +955,13 @@ double fnpf_theta::robin_solve_mg(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver 
         xmax = MAX(xmax,fabs(Fs));
         }
         else
+        if(foot!=nullptr && (*foot)(i,j)>0.5)
+        {
+        // body footprint: the Dirichlet value of the solve (the extended Fifsf), no vertical velocity
+        fout(i,j) = fs(i,j);
+        wnew(i,j) = 0.0;
+        }
+        else
         {
         // dry column (A 343 >= 1, not in the solve), no vertical velocity: A 343 1 Fifsf of the map of the land
         // cells (0); A 343 2/3 Fifsf held (wetdry_dynamic sets the dry cells after the step, as for RK3)
@@ -849,8 +977,8 @@ double fnpf_theta::robin_solve_mg(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver 
         }
     }
     
-    dmax = pgc->globalmax(dmax);
-    xmax = pgc->globalmax(xmax);
+    dmax = pgc->globalmax(MAX(dmax,dpat));
+    xmax = pgc->globalmax(MAX(xmax,xpat));
     
     {fnpf_prof::scope ps_(fnpf_prof::gc2d); pgc->gcsl_start4(p,fout,gcval_fifsf);}
     {fnpf_prof::scope ps_(fnpf_prof::gc2d); pgc->gcsl_start4(p,wnew,gcval_fifsf);}
@@ -984,7 +1112,61 @@ void fnpf_theta::inidisc_step2(lexer *p, fdm_fnpf *c, ghostcell *pgc, ioflow *pf
     }
 }
 
+// mesh refinement (G 1): the patches take the theta step (fnpf_amr_theta.cpp); the Dirichlet solves (consistency
+// solve, initial state) on all grids through the decorated Laplace solver, as fnpf_RK3
+void fnpf_theta::attach_amr(fnpf_amr *a)
+{
+    pamr = a;
+    a->attach_level0(pf,this,this,this);
+    a->attach_body(pbody);
+    pbody->amr_attach(a);
+    plap = a->laplace(plap,plap0);
+}
+
 void fnpf_theta::ini_wetdry(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 {	
     {fnpf_prof::scope ps_(fnpf_prof::wetdry); pf->wetdry(p,c,pgc,c->eta,c->Fifsf);}
 }
+
+// x <- (I + dt/2 (Fx Dx + Fy Dy))^-1 x, first-order upwind differences with the sign of Fx, Fy; no coupling across
+// dry or boundary cells (the correction is zero there)
+void fnpf_theta::precond_adv(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &x)
+{
+    if(!psolv2d)
+    {
+    psolv2d = std::make_unique<sflow_bicgstab>(p,pgc);
+    int nr=0;
+    SLICELOOP4
+    ++nr;
+    Nadv = std::make_unique<matrix2D>(p,nr);
+    xadv = std::make_unique<vec2D>(p,nr);
+    radv = std::make_unique<vec2D>(p,nr);
+    }
+    matrix2D &NA = *Nadv;
+    
+    const double h = 0.5*p->dt;
+    int n=0;
+    SLICELOOP4
+    {
+    const double ux = c->Fx(i,j), uy = (p->j_dir==1) ? c->Fy(i,j) : 0.0;
+    const double ax = h*fabs(ux)/p->DXN[IP];
+    const double ay = (p->j_dir==1) ? h*fabs(uy)/p->DYN[JP] : 0.0;
+    const int wet = p->wet[IJ];
+    
+    NA.p[n] = 1.0 + (wet ? ax + ay : 0.0);
+    NA.s[n] = (wet && ux>0.0 && p->flagslice4[Im1J]>0 && p->wet[Im1J]) ? -ax : 0.0;
+    NA.n[n] = (wet && ux<0.0 && p->flagslice4[Ip1J]>0 && p->wet[Ip1J]) ? -ax : 0.0;
+    NA.e[n] = (wet && uy>0.0 && p->flagslice4[IJm1]>0 && p->wet[IJm1]) ? -ay : 0.0;
+    NA.w[n] = (wet && uy<0.0 && p->flagslice4[IJp1]>0 && p->wet[IJp1]) ? -ay : 0.0;
+    radv->V[n] = x(i,j);
+    ++n;
+    }
+    
+    pgc->gcsl_start4(p,x,gcval_fifsf);
+    const double tol0 = p->N44;
+    p->N44 = 1.0e-10;
+    psolv2d->start(p,pgc,x,NA,*xadv,*radv,4);
+    p->N44 = tol0;
+    pgc->gcsl_start4(p,x,gcval_fifsf);
+}
+

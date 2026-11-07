@@ -387,6 +387,15 @@ def window(ts, ys, t0, t1):
     return [y for t, y in zip(ts, ys) if t0 <= t <= t1]
 
 
+def uniform(ts, ys, t0, t1, dt):
+    """y(t) on the uniform grid t0, t0 + dt, ... <= t1 (linear interpolation; nan outside the record). Statistics
+    and spectra of the series as written would weight the samples by the time step of the run: with an adaptive
+    step (smaller where the velocities are large) the moments are biased and the frequencies of an FFT with the
+    mean step are shifted."""
+    n = int(math.floor((t1 - t0) / dt + 1.0e-9)) + 1
+    return [interp(ts, ys, t0 + k * dt) for k in range(n)]
+
+
 def zero_up_crossings(ts, ys, mean=None):
     if mean is None:
         mean = sum(ys) / len(ys)
@@ -1088,11 +1097,11 @@ def check_wave_stats(c, rundir):
     txt = ["| gauge | Hm0 sim [cm] | Hm0 exp [cm] | ratio | skew sim | skew exp | "
            "Hm0 f<%g Hz sim / exp [cm] | Hm0 f>%g Hz sim / exp [cm] |" % (fs, fs),
            "|---|---|---|---|---|---|---|---|"]
-    ts = [t for t in g[2] if t0 <= t <= t1]
-    dts = (ts[-1] - ts[0]) / (len(ts) - 1) if len(ts) > 1 else 0.05
+    # the simulated series on the uniform grid of the measured records (the step of the run may vary)
+    dts = ck.get("data_dt", 0.05)
     for gs in ck["gauges"]:
         i = gauge_index(g, gs)
-        sim = window(g[2], g[3][i], t0, t1)
+        sim = [v for v in uniform(g[2], g[3][i], t0, t1, dts) if v == v]
         rows = read_refdata(gs["data"])
         dt = ck.get("data_dt", 0.05)
         exp = [r[0] * ck.get("data_y_factor", 0.01) for k, r in enumerate(rows) if t0 <= k * dt <= t1]
@@ -1543,7 +1552,7 @@ def plot_case(c, rundir, out_png):
         hs_s, hs_e, sk_s, sk_e, xs = [], [], [], [], []
         for gs in ck["gauges"]:
             i = gauge_index(g, gs)
-            sim = window(g[2], g[3][i], ck["t_start"], ck["t_end"])
+            sim = [v for v in uniform(g[2], g[3][i], ck["t_start"], ck["t_end"], ck.get("data_dt", 0.05)) if v == v]
             rows = read_refdata(gs["data"])
             exp = [r[0] * ck.get("data_y_factor", 0.01) for k, r in enumerate(rows)
                    if ck["t_start"] <= k * ck.get("data_dt", 0.05) <= ck["t_end"]]

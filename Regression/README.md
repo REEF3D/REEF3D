@@ -123,6 +123,10 @@ VTU/state print keys (`P 20/30/40/41/42`), so runs are short and output stays sm
 | `cfd_2d_nwt_twoproj` | 1 | the one-step scheme with two projections (N 40 6): the half step projected with dt/2, the level set with u(n+1/2), the full step with u(n+1/2), p(n+1/2) and the mid-step density, Crank-Nicolson diffusion; N 56 2 of 0161 (needs patches REEFAMR/0159-0163) |
 | `cfd_2d_dambreak_twoproj` | 1 | N 40 6 in the closed tank (needs 0159-0163) |
 | `cfd_2d_dambreak_twoproj_n57` | 1 | N 40 6 with the time step of the band around the free surface (N 57 3, N 58 0.9) (needs 0159-0164) |
+| `cfd_2d_dambreak_onestep_n59` | 1 | N 40 5 with the momentum carried with the mass flux (N 59 1): the density of the projection reconstructed and moved with the same face fluxes as rho u (godunov), u = rho u / rho (needs patch REEFAMR/0166) |
+| `cfd_2d_dambreak_twoproj_n59` | 1 | N 40 6 with N 59 1 at N 47 0.45: the half step over dt/2, the full step from the density of phi(n) (needs 0166) |
+| `cfd_2d_nwt_onestep_n59` | 1 | N 40 5 with N 59 1 in the wave tank with relaxation zones (needs 0166) |
+| `cfd_2d_dambreak_amr3_adapt_onestep_n59` | 1 | N 40 5 with N 59 1 on two adaptive levels: the Godunov convection of every patch with the density of its own level set (needs patch REEFAMR/0167) |
 | `cfd_2d_nwt_wenoz` | 1 | WENO-Z weights for momentum (D 12 1) and level set + reini (F 37 1) |
 | `cfd_2d_nwt_komega` / `_kepsilon` | 1 | RANS models with free surface |
 | `cfd_2d_nwt_porous_komega` | 1 | VRANS porous box + k-ω porous sources (B295) |
@@ -279,6 +283,9 @@ VTU/state print keys (`P 20/30/40/41/42`), so runs are short and output stays sm
 | `fnpf_2d_theta_robin_flume_n513` | 1 | as `fnpf_2d_theta_robin_flume` with the time step of an accuracy target (N 51 3): the largest step whose phase-speed error at the period of the wave input (1.6 s) is at most N 55 (1.5 %), here 1.27 x the RK3 step (needs patches fnpf_theta_robin/0016–0021) |
 | `fnpf_2d_theta_robin_coast` | 1 | the surf zone of `fnpf_2d_break_barthelemy` (A 350 4, static coastline A 343 1) with θ-Robin, generation by a 4 m relaxation zone: coastline relaxation in the affine maps of the zones, dry columns out of the REEFMG solve, the damping of breaking and of the coastline at the start of the step; N 51 3 at the RK3 step with a coastline (needs 0016–0021; re-blessed with `_dyn` for patch fnpf_theta_robin/0022) |
 | `fnpf_2d_theta_robin_coast_dyn` | 1 | as `fnpf_2d_theta_robin_coast` with the moving coastline (A 343 2) (needs 0016–0021) |
+| `fnpf_2d_6dof_box_theta_robin` | 1 | `fnpf_2d_6dof_box` (floating box, surge/heave/pitch free) with θ-Robin (A 310 5, REEFMG) at the RK3 step: the body with Heun (rk2), the loads at t^n and of the first corrector state, the footprint columns Dirichlet in the Robin system (needs patch fnpf_theta_robin/0026) |
+| `fnpf_2d_amr_theta_robin` | 1 | `fnpf_2d_amr_regular` (static patch, 2D grid) with θ-Robin and N 51 3: the patches take the θ step, the Robin rows of all grids in the composite solve with the in-column couplings xcol (needs 0026–0027) |
+| `fnpf_3d_amr_basin_theta_robin_mpi2` | 2 | `fnpf_3d_amr_basin` on 2 ranks (box cut at the rank boxes) with θ-Robin and N 51 3 (needs 0026–0027) |
 | `fnpf_2d_regular_n16_3` | 1 | `fnpf_2d_regular` with the REEFMG V-cycle on the reference device (N 16 3): one rank, the whole V-cycle queued on the device; `same_as` the CPU run within 1e-5 (needs patches REEFMG/0002-0003) |
 | `fnpf_2d_regular_n16_4` | 1 | `fnpf_2d_regular` with the Krylov solve on the reference device (N 16 4): GCR in double around a single-precision BiCGStab on the device; `same_as` the CPU run within 1e-5 (patch REEFMG/0011) |
 | `fnpf_2d_regular_mpi2_m40` | 2 | `fnpf_2d_regular_mpi2` decomposed by REEF3D from the global grid (DIVEMesh M 50 1, M 40 1); `ranks`: bitwise `fnpf_2d_regular_mpi2`; the base of the capacity cases |
