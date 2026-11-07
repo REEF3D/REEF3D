@@ -58,8 +58,9 @@ Author: Hans Bihs
 // carry no pressure term.
 //
 // Solution (nh_solve): the operator is the residual F(x) of the full step with x = (eta, phi_0 .. phi_{K-1}) per
-// column; A x = F(x) - F(0), its columns probed with three colours (one cell in y) or five ((i + 2 j) mod 5, the global
-// indices: the colours agree across ranks). One cell in y on one rank: band LU of the interleaved unknowns (bandwidth
+// column; A x = F(x) - F(0), A assembled directly from the derivatives of the face discharges (nh_dfaces, nh_assemble;
+// probing F with three or five colours, as before, took about half of the time of an NH step and gives the same
+// entries to round-off, environment NHCHECK). One cell in y on one rank: band LU of the interleaved unknowns (bandwidth
 // 2 (K+1)). Otherwise (2D, MPI): FGMRES(30) preconditioned with the multigrid of nhflow_si_nhmg, whose relaxation
 // solves the K+1 unknowns of a column at once, as Basilisk's relax() of layered/nh.h; the coarse levels by aggregation,
 // K-cycle (grid-independent iteration counts: 10 - 13 for 16^2 .. 64^2 columns at |r| <= 1e-6 |b|).
@@ -508,12 +509,240 @@ void nhflow_momentum_SI::nh_residual(lexer *p, fdm_nhf *d, ghostcell *pgc, const
     }
 }
 
+void nhflow_momentum_SI::nh_dfaces(lexer *p, fdm_nhf *d, ghostcell *pgc)
+{
+    // the derivatives of the layer discharges of the faces of the step (face_update with nh_faces) with respect to the
+    // unknowns: Q_k = QA_k - dt g H_f (theta G^{n+1} + (1-theta) G^n) R_k - K_f G^{n+1} + NQ_k, G^{n+1} = (eta_R - eta_L)/dn
+    // + c, NQ_k = dt c_f/dsig_k ((h_L dsig_k - s_l) phi_L,k - (h_R dsig_k + s_l) phi_R,k + (h_L dsig_k + s_u) phi_L,k+1
+    // - (h_R dsig_k - s_u) phi_R,k+1); open boundary faces as face_update (riemann/flather: inflow or outflow as at
+    // eta = 0, as F(0))
+    const double dt = p->dt;
+    const int K = p->knoz;
+    const int N = p->imax*p->jmax*(p->kmax+2);
+
+    for(std::vector<double> *v : {&dQxL,&dQxR,&dQyL,&dQyR,&pQxL0,&pQxR0,&pQxL1,&pQxR1,&pQyL0,&pQyR0,&pQyL1,&pQyR1})
+    v->assign(N,0.0);
+
+    auto in = [&](int a, int c) { return p->flagslice4[(a-p->imin)*p->jmax + (c-p->jmin)]>0; };
+    auto hh = [&](int a, int c) { return nWLh[(a-p->imin)*p->jmax + (c-p->jmin)]; };
+    auto zif = [&](int a, int c, int m) { return d->bed(a,c) + p->ZN[m+marge]*hh(a,c); };
+
+    // nAct with the columns of the neighbouring ranks
+    for(int ii=p->imin; ii<p->imin+p->imax; ++ii)
+    for(int jj=p->jmin; jj<p->jmin+p->jmax; ++jj)
+    tS(ii,jj) = 0.0;
+
+    SLICELOOP4
+    tS(i,j) = nAct[IJ] ? 1.0 : 0.0;
+
+    exchange4(p,pgc,tS);
+
+    nActG.assign((size_t)p->imax*p->jmax,0.0);
+    for(int ii=p->imin; ii<p->imin+p->imax; ++ii)
+    for(int jj=p->jmin; jj<p->jmin+p->jmax; ++jj)
+    nActG[(ii-p->imin)*p->jmax + (jj-p->jmin)] = tS(ii,jj);
+
+    auto act = [&](int a, int c) { return nActG[(a-p->imin)*p->jmax + (c-p->jmin)]>0.5; };
+
+    // face of the cells (iL,jL) - (iR,jR) with the face index (iL,jL)
+    auto face = [&](int iL, int jL, int iR, int jR, double dn, double dxp, double Hf, double Kf, const double *R,
+                    double *dL, double *dR, double *pL0, double *pR0, double *pL1, double *pR1)
+    {
+        const int il=i, jl=j;
+        i=iL; j=jL;
+
+        for(k=0;k<K;++k)
+        {
+        const double a = (dt*g*Hf*theta*R[IJK] + Kf)/dn;
+        dL[IJK] = a;
+        dR[IJK] = -a;
+        }
+
+        if(nh && in(iL,jL) && in(iR,jR))
+        {
+        const double hL = hh(iL,jL), hR = hh(iR,jR);
+        const double c = (hL+hR)>1.0e-20 ? Hf/(dxp*(hL + hR)) : 0.0;
+
+            for(k=0;k<K;++k)
+            {
+            const double sg = p->DZN[KP];
+            const double sl = nh_lim(zif(iR,jR,k) - zif(iL,jL,k),dxp);
+            const double su = nh_lim(zif(iR,jR,k+1) - zif(iL,jL,k+1),dxp);
+            const double f = dt*c/sg;
+
+            pL0[IJK] = act(iL,jL) ? f*(sg*hL - sl) : 0.0;
+            pR0[IJK] = act(iR,jR) ? -f*(sg*hR + sl) : 0.0;
+            pL1[IJK] = (k<K-1 && act(iL,jL)) ? f*(sg*hL + su) : 0.0;
+            pR1[IJK] = (k<K-1 && act(iR,jR)) ? -f*(sg*hR - su) : 0.0;
+            }
+        }
+
+        i=il; j=jl;
+    };
+
+    SLICELOOP1
+    if(Hx(i,j)>0.0)
+    face(i,j,i+1,j,fdn(p,1,i,j),p->DXP[IP],Hx(i,j),kx(i,j),Rx,dQxL.data(),dQxR.data(),pQxL0.data(),pQxR0.data(),pQxL1.data(),pQxR1.data());
+
+    if(p->j_dir==1)
+    SLICELOOP2
+    if(Hy(i,j)>0.0)
+    face(i,j,i,j+1,fdn(p,2,i,j),p->DYP[JP],Hy(i,j),ky(i,j),Ry,dQyL.data(),dQyR.data(),pQyL0.data(),pQyR0.data(),pQyL1.data(),pQyR1.data());
+
+    // open boundary faces: no pressure term, the discharge as face_update
+    for(const bc_face &f : bcf)
+    {
+        const bool xf = (f.cs==1 || f.cs==4);
+        // the interior cell is the right one of the face for x- and y- (cs 1, 3), the left one for x+ and y+ (cs 4, 2)
+        const bool intR = (f.cs==1 || f.cs==3);
+        double *dL = xf ? dQxL.data() : dQyL.data();
+        double *dR = xf ? dQxR.data() : dQyR.data();
+        double *P4[4] = {xf ? pQxL0.data() : pQyL0.data(), xf ? pQxR0.data() : pQyR0.data(),
+                         xf ? pQxL1.data() : pQyL1.data(), xf ? pQxR1.data() : pQyR1.data()};
+        const double *R = xf ? Rx : Ry;
+        const double Hf = xf ? Hx(f.fi,f.fj) : Hy(f.fi,f.fj);
+
+        i=f.fi;
+        j=f.fj;
+
+        for(k=0;k<K;++k)
+        {
+        double a = 0.0;
+
+            if(f.type==bc_level && Hf>0.0)
+            a = -dt*g*Hf*theta*f.s/f.dxp*R[IJK];
+
+            if(f.type==bc_riemann || f.type==bc_flather)
+            {
+            const bool inflow = f.A - f.B*eta0(f.i,f.j)>0.0;
+            a = -f.s*f.B*(inflow ? f.Qg[k] : f.wo[k]);
+            }
+
+        dL[IJK] = intR ? 0.0 : a;
+        dR[IJK] = intR ? a : 0.0;
+
+            for(int q=0;q<4;++q)
+            P4[q][IJK] = 0.0;
+        }
+    }
+
+    for(std::vector<double> *v : {&dQxL,&dQxR,&dQyL,&dQyR,&pQxL0,&pQxR0,&pQxL1,&pQxR1,&pQyL0,&pQyR0,&pQyL1,&pQyR1})
+    exchangeF(p,pgc,v->data());
+}
+
+void nhflow_momentum_SI::nh_assemble(lexer *p, const std::function<void(int,int,int,int,int,double)> &sink)
+{
+    // the rows of the coupled system of every column (as nh_residual, linear in x = (eta, phi_0 .. phi_{K-1})), as
+    // blocks of the five columns: 0 the column, 1 +x, 2 -x, 3 +y, 4 -y; sink(i, j, block, row, unknown, value)
+    const double dt = p->dt;
+    const int K = p->knoz, B = K+1;
+    const bool yd = (p->j_dir==1);
+    std::vector<double> A((size_t)5*B*B);
+    std::vector<double> wc(K), wl(K), dc(K);
+
+    auto at = [&](int dd, int tr, int t) -> double& { return A[((size_t)dd*B + tr)*B + t]; };
+
+    SLICELOOP4
+    {
+    std::fill(A.begin(),A.end(),0.0);
+
+    // the derivatives of the layer discharge k of a face (face index fi,fj) into row tr with factor w: the left cell
+    // of the face is block bL, the right one block bR
+    auto addf = [&](int tr, double w, int fi, int fj, int bL, int bR, int kk, const std::vector<double> &dL,
+                    const std::vector<double> &dR, const std::vector<double> &pL0, const std::vector<double> &pR0,
+                    const std::vector<double> &pL1, const std::vector<double> &pR1)
+    {
+        const int il=i, jl=j, kl=k;
+        i=fi; j=fj; k=kk;
+        at(bL,tr,0) += w*dL[IJK];
+        at(bR,tr,0) += w*dR[IJK];
+        at(bL,tr,1+kk) += w*pL0[IJK];
+        at(bR,tr,1+kk) += w*pR0[IJK];
+            if(kk<K-1)
+            {
+            at(bL,tr,2+kk) += w*pL1[IJK];
+            at(bR,tr,2+kk) += w*pR1[IJK];
+            }
+        i=il; j=jl; k=kl;
+    };
+
+    // a row with the divergence of the layer discharges k: east and west, north and south faces
+    auto adddiv = [&](int tr, double w, int kk)
+    {
+        const double ax = w/p->DXN[IP];
+        addf(tr, ax,i,  j,0,1,kk,dQxL,dQxR,pQxL0,pQxR0,pQxL1,pQxR1);
+        addf(tr,-ax,i-1,j,2,0,kk,dQxL,dQxR,pQxL0,pQxR0,pQxL1,pQxR1);
+
+            if(yd)
+            {
+            const double ay = w/p->DYN[JP];
+            addf(tr, ay,i,j,  0,3,kk,dQyL,dQyR,pQyL0,pQyR0,pQyL1,pQyR1);
+            addf(tr,-ay,i,j-1,4,0,kk,dQyL,dQyR,pQyL0,pQyR0,pQyL1,pQyR1);
+            }
+    };
+
+    // mass row: eta + d - WL^n + dt sum_k dsig_k div(theta Q_k)
+    at(0,0,0) += 1.0;
+    for(int kk=0;kk<K;++kk)
+    adddiv(0,dt*theta*p->DZN[kk+marge],kk);
+
+        if(!nAct[IJ])
+        {
+        for(int kk=0;kk<K;++kk)
+        at(0,1+kk,1+kk) = 1.0;
+        }
+
+        else
+        {
+        const double H1 = nh_wl1(p,i,j);
+        std::fill(wl.begin(),wl.end(),0.0);
+
+        // w-coefficients of the Keller box: w_k = WH*/H - dt (phi_{k+1} - phi_k)/h_k, D_k += 2 w_k - 2 w_lo,
+        // w_lo' = 2 w_k - w_lo
+            for(int kk=0;kk<K;++kk)
+            {
+            const double ds = p->DZN[kk+marge];
+            const double h = H1*ds;
+            const double sc = 2.0*h/dt;
+
+            adddiv(1+kk,sc*ds,kk);
+
+            std::fill(wc.begin(),wc.end(),0.0);
+            wc[kk] += dt/h;
+            if(kk<K-1)
+            wc[kk+1] -= dt/h;
+
+                for(int m=0;m<K;++m)
+                {
+                at(0,1+kk,1+m) += sc*(2.0*wc[m] - 2.0*wl[m]);
+                wl[m] = 2.0*wc[m] - wl[m];
+                }
+            }
+        }
+
+        for(int dd=0;dd<5;++dd)
+        {
+        if(!yd && dd>2)
+        continue;
+
+            for(int tr=0;tr<B;++tr)
+            for(int t=0;t<B;++t)
+            {
+            const double v = at(dd,tr,t);
+            if(v!=0.0)
+            sink(i,j,dd,tr,t,v);
+            }
+        }
+    }
+}
+
 void nhflow_momentum_SI::nh_solve(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
     const double starttime_nh = pgc->timer();
     const int K = p->knoz, B = K+1;
 
     nh_prepare(p,d,pgc);
+    nh_fixed = true;
 
     int N=0;
     SLICELOOP4
@@ -553,7 +782,32 @@ void nhflow_momentum_SI::nh_solve(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
     S.kl = S.ku = 2*B-1;
     S.resize(n2);
+    const bool probe = getenv("NHCHECK")!=nullptr;
 
+    // direct assembly (nh_dfaces, nh_assemble); environment NHCHECK: also by probing nh_residual (3 B evaluations)
+    // and the largest difference
+    auto direct = [&](const std::function<void(int,int,double)> &put)
+    {
+        nh_dfaces(p,d,pgc);
+        nh_assemble(p,[&](int ii, int jj, int dd, int tr, int t, double v)
+        {
+            const int n = cell[ii-p->imin];
+            const int ij = ii + (dd==1 ? 1 : (dd==2 ? -1 : 0));
+            if(n<0 || ij<p->imin || ij>=p->imin+p->imax)
+            return;
+            const int m = cell[ij-p->imin];
+            if(m<0)
+            return;
+            const int rr = B*n+tr, cc = B*m+t;
+            if(cc-rr>=-S.kl && cc-rr<=S.ku)
+            put(rr,cc,v);
+        });
+    };
+
+    if(!probe)
+    direct([&](int rr, int cc, double v){ S.at(rr,cc) = v; });
+
+    if(probe)
     for(int col=0; col<3; ++col)
     for(int t=0; t<B; ++t)
     {
@@ -594,6 +848,23 @@ void nhflow_momentum_SI::nh_solve(lexer *p, fdm_nhf *d, ghostcell *pgc)
         }
     }
 
+    if(getenv("NHCHECK"))
+    {
+    double mx=0.0, dm=0.0;
+    sflow_si_nh_lu D;
+    D.kl = D.ku = S.kl;
+    D.resize(n2);
+    direct([&](int rr, int cc, double v){ D.at(rr,cc) = v; });
+        for(int rr=0; rr<n2; ++rr)
+        for(int cc=MAX(0,rr-S.kl); cc<=MIN(n2-1,rr+S.ku); ++cc)
+        {
+        mx = MAX(mx,fabs(S.at(rr,cc)));
+        dm = MAX(dm,fabs(S.at(rr,cc) - D.at(rr,cc)));
+        }
+        if(p->mpirank==0)
+        cout<<"NHCHECK band LU: max |probe - direct| "<<dm<<" of max |entry| "<<mx<<endl;
+    }
+
     if(!S.factor())
     {
     if(p->mpirank==0)
@@ -623,6 +894,7 @@ void nhflow_momentum_SI::nh_solve(lexer *p, fdm_nhf *d, ghostcell *pgc)
     for(k=0;k<K;++k)
     d->P[FIJK] = p->W1*PHI[IJK];
 
+    nh_fixed = false;
     nh_time = pgc->timer() - starttime_nh;
 }
 
@@ -715,10 +987,20 @@ void nhflow_momentum_SI::nh_solve_mg(lexer *p, fdm_nhf *d, ghostcell *pgc, const
     const int dix[5] = {0, 1,-1, 0, 0};
     const int diy[5] = {0, 0, 0, 1,-1};
 
-    // ---- assembly
+    // ---- assembly: directly from the face derivatives (nh_dfaces, nh_assemble); before: by probing nh_residual (B nc
+    // evaluations of the full residual per step). Environment NHCHECK: both, and the largest difference of the entries
+    // (round-off: 1e-13 of the largest entry)
     M.zero();
     std::vector<double> e((size_t)N*B), y((size_t)N*B);
+    const bool probe = getenv("NHCHECK")!=nullptr;
 
+    if(!probe)
+    {
+    nh_dfaces(p,d,pgc);
+    nh_assemble(p,[&](int ii, int jj, int dd, int tr, int t, double v){ M.block(ii,jj,dd)[tr*B+t] = v; });
+    }
+
+    if(probe)
     for(int col=0; col<nc; ++col)
     for(int t=0; t<B; ++t)
     {
@@ -743,6 +1025,28 @@ void nhflow_momentum_SI::nh_solve_mg(lexer *p, fdm_nhf *d, ghostcell *pgc, const
             for(int tr=0; tr<B; ++tr)
             a[tr*B+t] = y[(size_t)B*n+tr] - F0[(size_t)B*n+tr];
         }
+    }
+
+    if(getenv("NHCHECK"))
+    {
+    nh_dfaces(p,d,pgc);
+    double mx=0.0, dm=0.0;
+    std::vector<double> Dg((size_t)nx*ny*5*B*B,0.0);
+    nh_assemble(p,[&](int ii, int jj, int dd, int tr, int t, double v){ Dg[(((size_t)ii*ny + jj)*5 + dd)*B*B + tr*B + t] = v; });
+        for(int ii=0; ii<nx; ++ii)
+        for(int jj=0; jj<ny; ++jj)
+        if(cell[(size_t)ii*ny+jj]>=0)
+        for(int dd=0; dd<5; ++dd)
+        for(int q=0; q<B*B; ++q)
+        {
+        const double a = M.block(ii,jj,dd)[q], b = Dg[(((size_t)ii*ny + jj)*5 + dd)*B*B + q];
+        mx = MAX(mx,fabs(a));
+        dm = MAX(dm,fabs(a-b));
+        }
+    mx = pgc->globalmax(mx);
+    dm = pgc->globalmax(dm);
+        if(p->mpirank==0)
+        cout<<"NHCHECK multigrid blocks: max |probe - direct| "<<dm<<" of max |entry| "<<mx<<endl;
     }
 
     // solid columns of the box: identity

@@ -2399,7 +2399,9 @@ void nhflow_momentum_SI::face_update(lexer *p, fdm_nhf *d, ghostcell *pgc)
         if(f.type==bc_riemann || f.type==bc_flather)
         {
         const double q = f.s*(f.A - f.B*etaI(f.i,f.j));
-        const bool in = f.s*q>0.0;
+        // inflow or outflow: from this q; in the coupled non-hydrostatic solve (nh_fixed) from that of eta^n, so that
+        // the system is linear in eta and the direct assembly (nh_dfaces) is its exact matrix
+        const bool in = nh_fixed ? f.A - f.B*eta0(f.i,f.j)>0.0 : f.s*q>0.0;
 
         for(k=0;k<K;++k)
         lay[k] = q*(in ? f.Qg[k] : f.wo[k]);

@@ -311,6 +311,14 @@ private:
     void nh_begin(lexer*, fdm_nhf*, ghostcell*);
     void nh_prepare(lexer*, fdm_nhf*, ghostcell*);
     void nh_faces(lexer*, fdm_nhf*);
+    // the coupled system assembled directly (instead of probing nh_residual): the derivatives of the layer discharges
+    // of the faces, d Q_k / d eta (the cells left and right) and d Q_k / d phi (phi_k and phi_{k+1} left and right)
+    void nh_dfaces(lexer*, fdm_nhf*, ghostcell*);
+    void nh_assemble(lexer*, const std::function<void(int,int,int,int,int,double)>&);
+    std::vector<double> dQxL, dQxR, dQyL, dQyR;                              // d Q / d eta (per layer)
+    std::vector<double> pQxL0, pQxR0, pQxL1, pQxR1, pQyL0, pQyR0, pQyL1, pQyR1;  // d Q / d phi_k, phi_{k+1}
+    std::vector<double> nActG;                                               // nAct with the columns of the neighbouring ranks
+    bool nh_fixed = false;                     // in nh_solve: the inflow/outflow of the riemann/flather faces from eta^n
     void nh_residual(lexer*, fdm_nhf*, ghostcell*, const std::vector<double>&, std::vector<double>&);
     void nh_solve(lexer*, fdm_nhf*, ghostcell*);
     void nh_solve_mg(lexer*, fdm_nhf*, ghostcell*, const std::vector<double>&, std::vector<double>&);
