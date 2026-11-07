@@ -125,7 +125,15 @@ using namespace std;
 //   fnpf_timestep), and per step at least as one RK3 step: at smaller steps as an RK3 run with the same step.
 //   The zone strength per time matters: in the 3D short-crested sea (step 5) the gauges after the generation
 //   zone change by up to 16 % in Hm0 between zones per time as RK3 at N 47 0.75 and at N 47 0.04; Stokes
-//   heights 1.035-1.044 with -0.75, 0.986-0.992 with -0.1 (the default since 6 November 2026).
+//   heights 1.035-1.044 with -0.75, 0.986-0.992 with -0.1 (the default from 6 to 7 November 2026).
+//   With N 47 -A 303 the zones depended on the grid through dt_crit (cell size, depth, the velocity margin of the
+//   criterion): -0.1 was an RK3 run with 160-180 steps per period in the 3D production sea (step 5) and in the
+//   JONSWAP and Stokes benchmarks, 450 in Beji & Battjes, 740 in Ting & Kirby, and 710 and 1420 in a 2D flume at
+//   dx 0.1 and 0.05 m; with a fixed step a refined patch did not change it (that flume with a patch at dx/2 was
+//   4.6-4.9 % from the fine grid, 1.6-1.7 % with zones per period). A 303 <= -1 (default -200, patch 0032): per
+//   time as an RK3 run with -A 303 steps per period of the wave input (wT, wTp for spectra), independent of the
+//   grid; the 3D sea stays as before (Hm0 bias -2.6 %), the 2D benchmarks are the same or better (validation 13).
+//   Without a wave period (e.g. B 92 51) as RK3 at N 47 0.1, as before.
 //
 // Damping with the viscosity vb of breaking and of the coastline (A 350, A 357): at the start of the step, as a
 // source of the step (patch 0022), so the solve gives Fi of the damped surface.
@@ -149,8 +157,10 @@ using namespace std;
 //   -5.5 % instead of -4.6 %; at four times the RK3 step no gain. Unstable at 4x with c = 0.6, stable with
 //   c = 0.8: the cut-off estimate of N 51 2 is conservative by about 1.3-1.6 (6 November 2026).
 // A 305 theta (default 0.5: 0.55 damps 9 % per period at 21 steps), A 302 corrector passes (default 4),
-// A 303 relaxation zones: > 0 factors r^(dt/A 303), 0 r per step, < 0 (default -0.1) per time as the three RK3
-// stages of an RK3 run at N 47 -A 303; A 304 tolerance of the corrector (default 1e-3).
+// A 303 relaxation zones: > 0 factors r^(dt/A 303), 0 r per step, -1 < A 303 < 0 per time as the three RK3 stages
+// of an RK3 run at N 47 -A 303, <= -1 (default -200) as an RK3 run with -A 303 steps per period of the wave input;
+// A 333 the coastline relaxation (A 343 >= 1: > 0 as RK3 at N 47 A 333, 0 as the zones); A 304 tolerance of the
+// corrector (default 1e-3).
 // ---------------------------------------------------------------------------
 
 class fnpf_theta final : public fnpf_ini, public fnpf_sigma
@@ -179,7 +189,7 @@ private:
     void corrector_state(lexer*, fdm_fnpf*, ghostcell*, ioflow*);
     // the relaxation of the zones as f -> R f + T (from f = 0 and f = 1), with the factors r^(dt/A 303)
     void relax_affine(lexer*, fdm_fnpf*, ghostcell*, ioflow*, int, slice&, slice&);
-    void relax_scale(lexer*, double, slice&, slice&);   // the strength per time of a relaxation (A 303, A 333)
+    void relax_scale(lexer*, double, slice&, slice&, bool);   // the strength per time of a relaxation (A 303, A 333)
     
     // A 306 1 (REEFMG): the Robin rows eliminated into the top Laplace rows, one solve per pass (N 44, or
     // inexact with A 307); returns the change of the solution

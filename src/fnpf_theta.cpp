@@ -1031,15 +1031,16 @@ void fnpf_theta::relax_affine(lexer *p, fdm_fnpf *c, ghostcell *pgc, ioflow *pfl
     pflow->fifsf_relax(p,pgc,R);
     }
     
-    relax_scale(p,p->A303,R,T);
+    relax_scale(p,p->A303,R,T,true);
     
     // A 343 >= 1: the coastline relaxation (A 341/A 342/A 347, to 0 or to the running mean A 326) and Fifsf = 0 on
     // land, before the zones as in the RK3 stages (f -> zones(coast(f))); A 333 0 (default): per time as the zones
     // (A 303), A 333 > 0: as RK3 at N 47 A 333. The band is a numerical sponge at the shoreline whose strength per
     // time in RK3 is that of its three stages per step (RK3 itself changes the swash with its step: the standard
     // deviation of eta at the still-water shoreline of fnpf_3d_amr_break at N 47 0.75 is 1.31 times that at 0.25).
-    // At A 303 -0.1 it acts as in an RK3 run at N 47 0.1 and damps the swash there to 10 % of RK3's at N 47 0.25;
-    // A 333 0.75 gives 110 %, but the Mase & Kirby checker error goes from 0.276 to 0.302 (validation 12)
+    // At A 303 -0.1 it acted as in an RK3 run at N 47 0.1 and damped the swash there to 10 % of RK3's at N 47 0.25;
+    // A 333 0.75 gives 110 %, but the Mase & Kirby checker error goes from 0.276 to 0.302 (validation 12). With the
+    // zones per period (A 303 -200, patch 0032) the band follows them: 62 % there (330 steps per period at -0.1)
     if(p->A343>=1)
     {
     SLICELOOP4
@@ -1059,7 +1060,10 @@ void fnpf_theta::relax_affine(lexer *p, fdm_fnpf *c, ghostcell *pgc, ioflow *pfl
     pf->coastline_fi(p,c,pgc,cR);
     }
     
-    relax_scale(p,(p->A333>0.0) ? -p->A333 : p->A303,cR,cT);
+    if(p->A333>0.0)
+    relax_scale(p,-p->A333,cR,cT,false);
+    else
+    relax_scale(p,p->A303,cR,cT,true);
     
     SLICELOOP4
     {
@@ -1075,17 +1079,48 @@ void fnpf_theta::relax_affine(lexer *p, fdm_fnpf *c, ghostcell *pgc, ioflow *pfl
 // three stages by F(r) = r (1/3 + 2/3 r (3/4 + r/4)); the theta step, s = dt/(-a dt_crit) of those steps long, by
 // F(r)^max(s,1) (dt_crit: the step of the time-step criterion at N 47 1). Below the step of N 47 = -a the
 // relaxation is that of an RK3 run with the same step, which gets stronger per time with smaller steps; above it
-// it does not weaken with the step.
-void fnpf_theta::relax_scale(lexer *p, double a, slice &R, slice &T)
+// it does not weaken with the step. a <= -1 with period (the zones, A 303 default -200): the RK3 run has -a steps per
+// period of the wave input, s = dt (-a)/T, independent of the grid (patch 0032; without a wave period N 47 0.1).
+void fnpf_theta::relax_scale(lexer *p, double a, slice &R, slice &T, bool period)
 {
     double fac = 1.0;
     int rk3eq = 0;
     if(a>0.0)
     fac = p->dt/a;
+    
+    // a <= -1 (zones only): per time as an RK3 run with -a steps per period of the wave input, independent of the
+    // grid; without a wave period as RK3 at N 47 0.1 of this grid
+    if(period && a<=-1.0)
+    {
+    const double Tw = (p->B90>0) ? ((p->B92>11) ? p->wTp : p->wT) : 0.0;
+    rk3eq = 1;
+    if(Tw>0.0)
+    fac = MAX(p->dt*(-a)/Tw, 1.0);
+    else
+    if(p->dt_crit>0.0)
+    fac = MAX(p->dt/(0.1*p->dt_crit), 1.0);
+    else
+    rk3eq = 0;
+    
+    static bool said=false;
+    if(!said && p->mpirank==0 && p->dt_crit>0.0 && p->count>=2)
+    cout<<"A 310 5: relaxation zones per time as RK3 with "<<-a<<" steps per period T = "<<Tw<<" s"<<(Tw>0.0 ? "" : " (none: as RK3 at N 47 0.1)")
+        <<", here N 47 "<<(Tw>0.0 ? Tw/(-a*p->dt_crit) : 0.1)<<endl;
+    if(p->count>=2) said=true;
+    }
+    else
     if(a<0.0 && p->dt_crit>0.0)
     {
     rk3eq = 1;
     fac = MAX(p->dt/(-a*p->dt_crit), 1.0);
+    
+    static bool said=false;
+    if(!said && p->mpirank==0 && period && p->count>=2)
+    {
+    const double Tw = (p->B90>0) ? ((p->B92>11) ? p->wTp : p->wT) : 0.0;
+    cout<<"A 310 5: relaxation zones per time as RK3 at N 47 "<<-a<<", here "<<(Tw>0.0 ? Tw/(-a*p->dt_crit) : 0.0)<<" steps per period T = "<<Tw<<" s"<<endl;
+    }
+    if(period && p->count>=2) said=true;
     }
     
     SLICELOOP4
