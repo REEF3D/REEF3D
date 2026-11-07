@@ -67,7 +67,7 @@ namespace
 fnpf_theta::fnpf_theta(lexer *p, fdm_fnpf *c, ghostcell *pgc) : fnpf_ini(p,c,pgc),fnpf_sigma(p,c,pgc),
                                                       ek(p),fk(p),Ne(p),Nf(p),Neo(p),Nfo(p),wn(p),erk1(p),frk1(p),
                                                       nEm(p),nFm(p),eko(p),fko(p),erk2(p),R0(p),Rs(p),relR(p),relT(p),relRe(p),relTe(p),fnew(p),wnew(p),en(p),
-                                                      colD(p),colA(p),colB(p),fsold(p),nEo(p),nFo(p),pxe(p),pxf(p),kE1(p),kF1(p)
+                                                      colD(p),colA(p),colB(p),fsold(p),nEo(p),nFo(p),pxe(p),pxf(p),kE1(p),kF1(p),cR(p),cT(p)
 {
     gcval=250;
     if(p->j_dir==0)
@@ -1013,26 +1013,11 @@ double fnpf_theta::robin_solve_mg(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver 
 // (as B 95 for SFLOW and NHFLOW). Not for zones with a state (B 98 6, B 99 6: refused).
 void fnpf_theta::relax_affine(lexer *p, fdm_fnpf *c, ghostcell *pgc, ioflow *pflow, int which, slice &R, slice &T)
 {
+    // the zones: f -> R f + T from f = 0 and f = 1
     SLICELOOP4
     {
     T(i,j) = 0.0;
     R(i,j) = 1.0;
-    }
-    
-    // A 343 >= 1: the coastline relaxation (A 341/A 342/A 347, to 0 or to the running mean A 326) and Fifsf = 0 on
-    // land, before the zones as in the RK3 stages; affine in f as the zones
-    if(p->A343>=1)
-    {
-    if(which==0)
-    {
-    pf->coastline_eta(p,c,pgc,T);
-    pf->coastline_eta(p,c,pgc,R);
-    }
-    else
-    {
-    pf->coastline_fi(p,c,pgc,T);
-    pf->coastline_fi(p,c,pgc,R);
-    }
     }
     
     if(which==0)
@@ -1046,21 +1031,61 @@ void fnpf_theta::relax_affine(lexer *p, fdm_fnpf *c, ghostcell *pgc, ioflow *pfl
     pflow->fifsf_relax(p,pgc,R);
     }
     
-    // A 303 > 0: factors r^(dt/A 303)
-    // A 303 < 0 (default -0.1): the zones act per time as in an RK3 run at N 47 = -A 303, and per step at least
-    // as in an RK3 step: an RK3 step relaxes the deviation from the target in its three stages by
-    // F(r) = r (1/3 + 2/3 r (3/4 + r/4)); the theta step, s = dt/(-A 303 dt_crit) of those steps long, by
-    // F(r)^max(s,1) (dt_crit: the step of the time-step criterion at N 47 1). Below the step of N 47 = -A 303 the
-    // zones are those of an RK3 run with the same step, which gets stronger zones per time with smaller steps;
-    // above it they do not weaken with the step.
+    relax_scale(p,p->A303,R,T);
+    
+    // A 343 >= 1: the coastline relaxation (A 341/A 342/A 347, to 0 or to the running mean A 326) and Fifsf = 0 on
+    // land, before the zones as in the RK3 stages (f -> zones(coast(f))); A 333 0 (default): per time as the zones
+    // (A 303), A 333 > 0: as RK3 at N 47 A 333. The band is a numerical sponge at the shoreline whose strength per
+    // time in RK3 is that of its three stages per step (RK3 itself changes the swash with its step: the standard
+    // deviation of eta at the still-water shoreline of fnpf_3d_amr_break at N 47 0.75 is 1.31 times that at 0.25).
+    // At A 303 -0.1 it acts as in an RK3 run at N 47 0.1 and damps the swash there to 10 % of RK3's at N 47 0.25;
+    // A 333 0.75 gives 110 %, but the Mase & Kirby checker error goes from 0.276 to 0.302 (validation 12)
+    if(p->A343>=1)
+    {
+    SLICELOOP4
+    {
+    cT(i,j) = 0.0;
+    cR(i,j) = 1.0;
+    }
+    
+    if(which==0)
+    {
+    pf->coastline_eta(p,c,pgc,cT);
+    pf->coastline_eta(p,c,pgc,cR);
+    }
+    else
+    {
+    pf->coastline_fi(p,c,pgc,cT);
+    pf->coastline_fi(p,c,pgc,cR);
+    }
+    
+    relax_scale(p,(p->A333>0.0) ? -p->A333 : p->A303,cR,cT);
+    
+    SLICELOOP4
+    {
+    T(i,j) = R(i,j)*cT(i,j) + T(i,j);
+    R(i,j) = R(i,j)*cR(i,j);
+    }
+    }
+}
+
+// the affine map f -> R f + T of a relaxation (on entry: the values for f = 0 and f = 1; on exit: factor and source)
+// with the strength per time of a: > 0 factors r^(dt/a); 0 r per step; < 0 per time as the three RK3 stages of an
+// RK3 run at N 47 -a, and per step at least as one RK3 step: an RK3 step relaxes the deviation from the target in its
+// three stages by F(r) = r (1/3 + 2/3 r (3/4 + r/4)); the theta step, s = dt/(-a dt_crit) of those steps long, by
+// F(r)^max(s,1) (dt_crit: the step of the time-step criterion at N 47 1). Below the step of N 47 = -a the
+// relaxation is that of an RK3 run with the same step, which gets stronger per time with smaller steps; above it
+// it does not weaken with the step.
+void fnpf_theta::relax_scale(lexer *p, double a, slice &R, slice &T)
+{
     double fac = 1.0;
     int rk3eq = 0;
-    if(p->A303>0.0)
-    fac = p->dt/p->A303;
-    if(p->A303<0.0 && p->dt_crit>0.0)
+    if(a>0.0)
+    fac = p->dt/a;
+    if(a<0.0 && p->dt_crit>0.0)
     {
     rk3eq = 1;
-    fac = MAX(p->dt/(-p->A303*p->dt_crit), 1.0);
+    fac = MAX(p->dt/(-a*p->dt_crit), 1.0);
     }
     
     SLICELOOP4

@@ -179,6 +179,7 @@ private:
     void corrector_state(lexer*, fdm_fnpf*, ghostcell*, ioflow*);
     // the relaxation of the zones as f -> R f + T (from f = 0 and f = 1), with the factors r^(dt/A 303)
     void relax_affine(lexer*, fdm_fnpf*, ghostcell*, ioflow*, int, slice&, slice&);
+    void relax_scale(lexer*, double, slice&, slice&);   // the strength per time of a relaxation (A 303, A 333)
     
     // A 306 1 (REEFMG): the Robin rows eliminated into the top Laplace rows, one solve per pass (N 44, or
     // inexact with A 307); returns the change of the solution
@@ -235,6 +236,7 @@ private:
     solver *psolv_step=nullptr;   // the Laplace solver of the step (the body loads of the corrector)
     int passq=-1;                 // the corrector pass under way (-1: pass 0)
     slice4 kE1,kF1;               // tendencies of eta and Fifsf of the first corrector state (the body loads at t^n+1)
+    slice4 cR,cT;                 // the coastline relaxation as f -> cR f + cT (relax_affine)
     fnpf_amr *pamr=nullptr;       // mesh refinement (G 1): the patches (fnpf_amr_theta.cpp)
     
     double solvetime;
