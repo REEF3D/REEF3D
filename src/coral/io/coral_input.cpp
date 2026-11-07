@@ -1557,6 +1557,8 @@ void coral_case::parse(const std::vector<std::pair<int, std::vector<std::string>
             cs.slip = it.get("slip", cs.slip);
             cs.T_max = it.get("T_max", cs.T_max);
             cs.T_rate = it.get("T_rate", cs.T_rate);
+            cs.T_rgn3 = it.get("T_rgn3", cs.T_rgn3);
+            if(cs.T_rgn3 < 0.0) it.fail("T_rgn3 must be >= 0 (0: constant power in region 3)");
             cs.pitch_rgn3 = it.get("pitch_rgn3", cs.pitch_rgn3/deg)*deg;
             cs.w_ref = it.get("rpm_ref", cs.w_ref/rpm)*rpm;
             cs.KP = it.get("KP", cs.KP);
