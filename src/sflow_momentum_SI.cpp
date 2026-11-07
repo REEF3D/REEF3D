@@ -58,7 +58,7 @@ sflow_momentum_SI::sflow_momentum_SI(lexer *p, fdm2D *b, ghostcell *pgc, sflow_H
                                       qyN(p),Hyo(p),qyo(p),qya(p),nyR(p),nyL(p),nyB(p),ny0(p),kyEL(p),kyER(p),kyPL(p),kyPR(p),ky1(p),ky2(p),
                                       phiN(p),WHp(p),Lc0(p),Unm1(p),Vnm1(p),WLh(p),WLo(p),AWo(p),WLq(p),
                                       nPW(p),nEb(p),nEo(p),nPo(p),nU(p),nV(p),nUs(p),nVs(p),nA(p),nsx(p),nsy(p),nE(p),nP(p),nL(p),nZ(p),nAE(p),nAP(p),nBE(p),nBP(p),nGx(p),nGy(p),
-                                      nF1x(p),nF2x(p),nF1y(p),nF2y(p),nH3(p),nW2(p),nCs(p),nRm(p),nRc(p),nZE(p),nZP(p),sps(p),bcA(p),bcS(p)
+                                      nF1x(p),nF2x(p),nF1y(p),nF2y(p),nH3(p),nW2(p),nCs(p),nRm(p),nRc(p),nZE(p),nZP(p),sps(p),bcA(p),bcS(p),dNx(p),dNy(p)
 {
     check(p);
 
@@ -167,9 +167,6 @@ void sflow_momentum_SI::check(lexer *p)
     if(p->G1>0 && p->G7==1)
     msg("subcycling of the mesh refinement (G 7 1) is");
 
-    // A 210 11: the BCG advection on one Cartesian grid
-    if(p->A210==1 && (p->geo_curv==1 || p->geo_mb>0 || p->G1>0 || p->G50>0))
-    msg("the one-step predictor (A 210 11) on curvilinear, multi-block or refined grids is; A 210 12 works,");
 
     if(p->B411>0 || p->B412>0 || p->B413>0 || p->B414>0 || p->B415>0 || p->B416>0 || p->B417>0 || p->B418>0 || p->B421>0 || p->B422>0)
     msg("patch boundary conditions (B 411-422) are");
@@ -1189,13 +1186,16 @@ void sflow_momentum_SI::advection_bcg(lexer *p, fdm2D *b, ghostcell *pgc, slice 
     //   u_f = u_up + a (1 - c) g dx/2 - dt/2 v_up g_t + dt/2 S_up,    c = |u_f| dt/dx, a = sign(q_f),
     // q_f the discharge of the step at t^{n+1/2} (nh_levels), g the slope of the upwind cell normal to the face, g_t the
     // one along it (2D), both the generalised minmod of Basilisk (theta 1.3), v_up the velocity along the face in the
-    // upwind cell (from its two faces). S = -g grad(eta^n) (with the ship pressure level of the step, X 10 3) plus the
-    // non-hydrostatic pressure of the step before (the mean of its face terms qxN, as nh_cell; a wall side with zero and
-    // its level mirrored): without S the advected velocity misses the acceleration of the step and the nonlinear terms
-    // are first order in time (standing wave a/h 0.094, A 210 12: order 1.2 at T/1280). Slopes next to solids, dry
-    // cells and open boundaries: 0
+    // upwind cell (from its two faces). S = -g grad(eta^n) (with the ship pressure level of the step, X 10 3; a wall
+    // side with the level mirrored) plus the non-hydrostatic increment of the cell momentum of the step before (dNx,
+    // dNy of nh_cell) over H dt: without S the advected velocity misses the acceleration of the step and the nonlinear
+    // terms are first order in time (standing wave a/h 0.094, A 210 12: order 1.2 at T/1280). Slopes next to solids,
+    // dry cells and open boundaries: 0. Curvilinear grid (G 50): the cell velocities U, V are Cartesian, q_f the
+    // normal discharge; the slopes along the index directions (per index), dx the index step 1, c with the centre
+    // distance and the normal velocity of the face, g_t over the centre distance along the face, S by the chain rule
     const double dt = p->dt;
     const bool yd = (p->j_dir==1);
+    const bool cv = (p->geo_curv==1);
 
     // the cells the slopes may use: wet fluid cells (MPI: from the neighbouring ranks, flagslice4 marks only the first
     // ghost column of a rank boundary)
@@ -1211,36 +1211,63 @@ void sflow_momentum_SI::advection_bcg(lexer *p, fdm2D *b, ghostcell *pgc, slice 
     // the open sides of the cells (wall)
     wall_sides(p);
 
-    // eta^n of the source term in the cells of the neighbouring ranks (si_begin copies the interior)
+    // eta^n of the source term and the non-hydrostatic increment of the step before in the cells of the neighbouring
+    // ranks (si_begin copies the interior)
     exchange4(p,pgc,eta0);
+
+    if(nh)
+    {
+    exchange4(p,pgc,dNx);
+    exchange4(p,pgc,dNy);
+    }
 
     auto ok = [&](int a, int c) { return bcA(a,c)>0.5; };
     auto lev = [&](int a, int c) { return eta0(a,c) + (ship ? sps(a,c) : 0.0); };
 
+    // the non-hydrostatic part of the source term of the cell for U (dir 1) or V (dir 2)
+    auto snh = [&](int dir, int a, int c) -> double
+    {
+        if(!nh || WL0(a,c)<=p->A244)
+        return 0.0;
+
+        return (dir==1 ? dNx(a,c) : dNy(a,c))/(WL0(a,c)*MAX(p->dt_old,1.0e-20));
+    };
+
+    // the level of the neighbour of cell (a,c) on side sd (1 x-, 2 x+, 3 y-, 4 y+) for the gradient: its own if the
+    // slopes may use it, mirrored at a wall, extrapolated through the cell from the other side towards a dry cell
+    // (one-sided), the level of the cell if neither side is open
+    auto nlev = [&](int a, int c, int sd) -> double
+    {
+        const int an = sd==1 ? a-1 : (sd==2 ? a+1 : a), cn = sd==3 ? c-1 : (sd==4 ? c+1 : c);
+        const int ao = sd==1 ? a+1 : (sd==2 ? a-1 : a), co = sd==3 ? c+1 : (sd==4 ? c-1 : c);
+        const int so = sd==1 ? 2 : (sd==2 ? 1 : (sd==3 ? 4 : 3));
+
+        if(ok(an,cn))
+        return lev(an,cn);
+
+        if(wall(p,a,c,sd)>0.5)
+        return lev(a,c);
+
+        if(ok(ao,co) || wall(p,a,c,so)>0.5)
+        return 2.0*lev(a,c) - (ok(ao,co) ? lev(ao,co) : lev(a,c));
+
+        return lev(a,c);
+    };
+
     // the source term of the cell for U (dir 1) or V (dir 2)
     auto src = [&](int dir, int a, int c) -> double
     {
-        double s = 0.0;
+        const double s = snh(dir,a,c);
 
-        // a wall side counts with its zero face term and the mirrored level (as cell_update and nh_cell)
-        const double w1 = wall(p,a,c,dir==1 ? 1 : 3), w2 = wall(p,a,c,dir==1 ? 2 : 4);
-
-        if(nh && WL0(a,c)>p->A244)
+        if(cv)
         {
-        const double den = WL0(a,c)*MAX(p->dt_old,1.0e-20);
-
-            if(dir==1)
-            {
-            const double we = Hx(a,c)>0.0 ? 1.0 : 0.0, ww = Hx(a-1,c)>0.0 ? 1.0 : 0.0;
-            s += (ww*qxN(a-1,c) + we*qxN(a,c))/(MAX(we+ww+w1+w2,1.0)*den);
-            }
-
-            else
-            {
-            const double wn = Hy(a,c)>0.0 ? 1.0 : 0.0, ws = Hy(a,c-1)>0.0 ? 1.0 : 0.0;
-            s += (ws*qyN(a,c-1) + wn*qyN(a,c))/(MAX(wn+ws+w1+w2,1.0)*den);
-            }
+        double gx,gy;
+        sflow_curv::grad5(p,a,c,nlev(a,c,2),nlev(a,c,1),nlev(a,c,4),nlev(a,c,3),gx,gy);
+        return s - g*(dir==1 ? gx : gy);
         }
+
+        // a wall side counts with the mirrored level (as cell_update)
+        const double w1 = wall(p,a,c,dir==1 ? 1 : 3), w2 = wall(p,a,c,dir==1 ? 2 : 4);
 
         if(dir==1)
         {
@@ -1261,13 +1288,24 @@ void sflow_momentum_SI::advection_bcg(lexer *p, fdm2D *b, ghostcell *pgc, slice 
     };
 
     // the normal velocity of the face for its Courant number: the depth-weighted mean of the cell velocities (as
-    // Basilisk's face velocity)
+    // Basilisk's face velocity; curvilinear: their component along the face normal)
     auto uface = [&](int dir, int a, int c)
     {
         const int a2 = dir==1 ? a+1 : a, c2 = dir==2 ? c+1 : c;
-        slice &u = dir==1 ? (slice&)b->U : (slice&)b->V;
         const double hl = ok(a,c) ? WL0(a,c) : 0.0, hr = ok(a2,c2) ? WL0(a2,c2) : 0.0;
-        return (hl+hr)>0.0 ? (hl*u(a,c) + hr*u(a2,c2))/(hl + hr) : 0.0;
+
+        if((hl+hr)<=0.0)
+        return 0.0;
+
+        if(cv)
+        {
+        double nx,ny;
+        fnorm(p,dir,a,c,nx,ny);
+        return (hl*(b->U(a,c)*nx + b->V(a,c)*ny) + hr*(b->U(a2,c2)*nx + b->V(a2,c2)*ny))/(hl + hr);
+        }
+
+        slice &u = dir==1 ? (slice&)b->U : (slice&)b->V;
+        return (hl*u(a,c) + hr*u(a2,c2))/(hl + hr);
     };
 
     // the limited slope of a cell from the values and centre distances on its two sides (one-sided: 0)
@@ -1297,32 +1335,34 @@ void sflow_momentum_SI::advection_bcg(lexer *p, fdm2D *b, ghostcell *pgc, slice 
         const double t = qa(i,j);
         const int iu = t>=0.0 ? i : i+1;
         double fu = b->U(iu,j);
-        double fv = yd ? b->V(iu,j) : 0.0;
+        double fv = (yd || cv) ? b->V(iu,j) : 0.0;
 
             if(ok(iu,j))
             {
             const double a = t>=0.0 ? 1.0 : -1.0;
-            const double dx = p->DXN[iu+marge];
-            const double c = MIN(fabs(uface(1,i,j))*dt/dx,1.0);
-            const double dm = p->DXP[iu-1+marge], dp = p->DXP[iu+marge];
+            const double dx = cv ? 1.0 : p->DXN[iu+marge];
+            const double c = MIN(fabs(uface(1,i,j))*dt/(cv ? fdn(p,1,i,j) : dx),1.0);
+            const double dm = cv ? 1.0 : p->DXP[iu-1+marge], dp = cv ? 1.0 : p->DXP[iu+marge];
             const bool om = ok(iu-1,j), op = ok(iu+1,j);
 
             fu += a*(1.0 - c)*slope(b->U(iu-1,j),b->U(iu,j),b->U(iu+1,j),dm,dp,om,op)*0.5*dx + 0.5*dt*src(1,iu,j);
 
-                if(yd)
-                {
+                if(yd || cv)
                 fv += a*(1.0 - c)*slope(b->V(iu-1,j),b->V(iu,j),b->V(iu+1,j),dm,dp,om,op)*0.5*dx + 0.5*dt*src(2,iu,j);
 
                 // transverse term: the velocity along the face in the upwind cell from its two y-faces
+                if(yd)
+                {
                 const double hs = Hy(iu,j-1) + Hy(iu,j);
 
                     if(hs>p->A244)
                     {
                     const double v = (qb(iu,j-1) + qb(iu,j))/hs;
-                    const double em = p->DYP[j-1+marge], ep = p->DYP[j+marge];
+                    const double em = cv ? 1.0 : p->DYP[j-1+marge], ep = cv ? 1.0 : p->DYP[j+marge];
+                    const double ds = cv ? 0.5*(fdn(p,2,iu,j-1) + fdn(p,2,iu,j)) : 1.0;
                     const bool on = ok(iu,j+1), os = ok(iu,j-1);
-                    fu -= 0.5*dt*v*slope(b->U(iu,j-1),b->U(iu,j),b->U(iu,j+1),em,ep,os,on);
-                    fv -= 0.5*dt*v*slope(b->V(iu,j-1),b->V(iu,j),b->V(iu,j+1),em,ep,os,on);
+                    fu -= 0.5*dt*v*slope(b->U(iu,j-1),b->U(iu,j),b->U(iu,j+1),em,ep,os,on)/ds;
+                    fv -= 0.5*dt*v*slope(b->V(iu,j-1),b->V(iu,j),b->V(iu,j+1),em,ep,os,on)/ds;
                     }
                 }
             }
@@ -1349,9 +1389,9 @@ void sflow_momentum_SI::advection_bcg(lexer *p, fdm2D *b, ghostcell *pgc, slice 
             if(ok(i,ju))
             {
             const double a = t>=0.0 ? 1.0 : -1.0;
-            const double dy = p->DYN[ju+marge];
-            const double c = MIN(fabs(uface(2,i,j))*dt/dy,1.0);
-            const double dm = p->DYP[ju-1+marge], dp = p->DYP[ju+marge];
+            const double dy = cv ? 1.0 : p->DYN[ju+marge];
+            const double c = MIN(fabs(uface(2,i,j))*dt/(cv ? fdn(p,2,i,j) : dy),1.0);
+            const double dm = cv ? 1.0 : p->DYP[ju-1+marge], dp = cv ? 1.0 : p->DYP[ju+marge];
             const bool om = ok(i,ju-1), op = ok(i,ju+1);
 
             fu += a*(1.0 - c)*slope(b->U(i,ju-1),b->U(i,ju),b->U(i,ju+1),dm,dp,om,op)*0.5*dy + 0.5*dt*src(1,i,ju);
@@ -1363,10 +1403,11 @@ void sflow_momentum_SI::advection_bcg(lexer *p, fdm2D *b, ghostcell *pgc, slice 
                 if(hs>p->A244)
                 {
                 const double u = (qa(i-1,ju) + qa(i,ju))/hs;
-                const double em = p->DXP[i-1+marge], ep = p->DXP[i+marge];
+                const double em = cv ? 1.0 : p->DXP[i-1+marge], ep = cv ? 1.0 : p->DXP[i+marge];
+                const double ds = cv ? 0.5*(fdn(p,1,i-1,ju) + fdn(p,1,i,ju)) : 1.0;
                 const bool oe = ok(i+1,ju), ow = ok(i-1,ju);
-                fu -= 0.5*dt*u*slope(b->U(i-1,ju),b->U(i,ju),b->U(i+1,ju),em,ep,ow,oe);
-                fv -= 0.5*dt*u*slope(b->V(i-1,ju),b->V(i,ju),b->V(i+1,ju),em,ep,ow,oe);
+                fu -= 0.5*dt*u*slope(b->U(i-1,ju),b->U(i,ju),b->U(i+1,ju),em,ep,ow,oe)/ds;
+                fv -= 0.5*dt*u*slope(b->V(i-1,ju),b->V(i,ju),b->V(i+1,ju),em,ep,ow,oe)/ds;
                 }
             }
 
@@ -1858,11 +1899,15 @@ void sflow_momentum_SI::cell_update(lexer *p, fdm2D *b, ghostcell *pgc)
 
             auto face = [&](int dir, int fi, int fj, int oi, int oj, double H, double G0, double G1)
             {
-                if(H<=0.0 || !wn(oi,oj))
+                // A 210 11: a wall face counts with its normal and the zero gradient (the mirrored level)
+                const int sd = dir==1 ? (fi==i ? 2 : 1) : (fj==j ? 4 : 3);
+                const bool wf = onestep && (H<=0.0 || !wn(oi,oj)) && wall(p,i,j,sd)>0.5;
+
+                if((H<=0.0 || !wn(oi,oj)) && !wf)
                 return;
 
                 fnorm(p,dir,fi,fj,nx,ny);
-                const double G = theta*G1 + (1.0-theta)*G0;
+                const double G = wf ? 0.0 : theta*G1 + (1.0-theta)*G0;
 
                 if(dir==1)
                 {

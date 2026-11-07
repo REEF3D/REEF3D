@@ -1,0 +1,19 @@
+{
+ "base": "sflow_2d_si_curv_dambreak_rot90",
+ "ctrl_set": {
+  "A 210": "11"
+ },
+ "description": "sflow_2d_si_curv_dambreak_rot90 with the one-step predictor (A 210 11): the BCG advection on the curvilinear grid (slopes per index, normal velocity of the face, chain-rule source term, the wall faces of the basin); eta and WL per cell index equal those of the Cartesian A 210 11 run (F 72 12 18 12 18 2.0, no G 50) to round-off (checked by hand: 4.4e-16 after 30 steps).",
+ "tags": [
+  "quick",
+  "2d",
+  "curvilinear",
+  "sflow",
+  "semi_implicit"
+ ],
+ "covers": [
+  "sflow_momentum_SI::advection_bcg on a curvilinear grid",
+  "cell_update: the wall faces on a curvilinear grid"
+ ],
+ "architect": "Hans Bihs"
+}

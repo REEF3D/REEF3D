@@ -1390,13 +1390,17 @@ void sflow_momentum_SI::nh_cell(lexer *p, fdm2D *b, ghostcell *pgc)
             const double ws_ = (Hy(i,j-1)>0.0 && in(i,j-1) && wn(i,j-1)) ? 1.0 : 0.0;
             double nx, ny, ax_=0.0, ay_=0.0, bx_=0.0, by_=0.0;
 
-            if(we>0.0) { fnorm(p,1,i,j,nx,ny);   ax_ += nx; ay_ += ny; }
-            if(ww>0.0) { fnorm(p,1,i-1,j,nx,ny); ax_ += nx; ay_ += ny; }
-            if(wn_>0.0) { fnorm(p,2,i,j,nx,ny);   bx_ += nx; by_ += ny; }
-            if(ws_>0.0) { fnorm(p,2,i,j-1,nx,ny); bx_ += nx; by_ += ny; }
+            // A 210 11: a wall face with its normal and zero (as cell_update)
+            const double w1 = onestep ? wall(p,i,j,1) : 0.0, w2 = onestep ? wall(p,i,j,2) : 0.0;
+            const double w3 = onestep ? wall(p,i,j,3) : 0.0, w4 = onestep ? wall(p,i,j,4) : 0.0;
 
-            const double ag = (ww*qxN(i-1,j) + we*qxN(i,j))/MAX(we+ww,1.0);
-            const double bg = (ws_*qyN(i,j-1) + wn_*qyN(i,j))/MAX(wn_+ws_,1.0);
+            if(we+w2>0.0) { fnorm(p,1,i,j,nx,ny);   ax_ += nx; ay_ += ny; }
+            if(ww+w1>0.0) { fnorm(p,1,i-1,j,nx,ny); ax_ += nx; ay_ += ny; }
+            if(wn_+w4>0.0) { fnorm(p,2,i,j,nx,ny);   bx_ += nx; by_ += ny; }
+            if(ws_+w3>0.0) { fnorm(p,2,i,j-1,nx,ny); bx_ += nx; by_ += ny; }
+
+            const double ag = (ww*qxN(i-1,j) + we*qxN(i,j))/MAX(we+ww+w1+w2,1.0);
+            const double bg = (ws_*qyN(i,j-1) + wn_*qyN(i,j))/MAX(wn_+ws_+w3+w4,1.0);
             const double la = sqrt(ax_*ax_ + ay_*ay_), lb = sqrt(bx_*bx_ + by_*by_);
 
             if(la>0.0) { ax_/=la; ay_/=la; }
@@ -1427,17 +1431,24 @@ void sflow_momentum_SI::nh_cell(lexer *p, fdm2D *b, ghostcell *pgc)
 
             b->UH(i,j) += gx;
             b->VH(i,j) += gy;
+            dNx(i,j) = gx;
+            dNy(i,j) = gy;
         }
 
         else
-        b->UH(i,j) += (ww*qxN(i-1,j) + we*qxN(i,j))/MAX(we + ww + (onestep ? wall(p,i,j,1) + wall(p,i,j,2) : 0.0),1.0);
+        {
+        dNx(i,j) = (ww*qxN(i-1,j) + we*qxN(i,j))/MAX(we + ww + (onestep ? wall(p,i,j,1) + wall(p,i,j,2) : 0.0),1.0);
+        dNy(i,j) = 0.0;
+        b->UH(i,j) += dNx(i,j);
+        }
 
             if(p->j_dir==1 && p->geo_curv==0)
             {
             const double wn_ = (Hy(i,j)>0.0 && in(i,j+1) && wn(i,j+1)) ? 1.0 : 0.0;
             const double ws_ = (Hy(i,j-1)>0.0 && in(i,j-1) && wn(i,j-1)) ? 1.0 : 0.0;
 
-            b->VH(i,j) += (ws_*qyN(i,j-1) + wn_*qyN(i,j))/MAX(wn_ + ws_ + (onestep ? wall(p,i,j,3) + wall(p,i,j,4) : 0.0),1.0);
+            dNy(i,j) = (ws_*qyN(i,j-1) + wn_*qyN(i,j))/MAX(wn_ + ws_ + (onestep ? wall(p,i,j,3) + wall(p,i,j,4) : 0.0),1.0);
+            b->VH(i,j) += dNy(i,j);
             }
 
         b->WH(i,j) = WHp(i,j);
@@ -1447,6 +1458,10 @@ void sflow_momentum_SI::nh_cell(lexer *p, fdm2D *b, ghostcell *pgc)
         }
 
         else
+        {
         b->WH(i,j) = 0.0;
+        dNx(i,j) = 0.0;
+        dNy(i,j) = 0.0;
+        }
     }
 }

@@ -1,0 +1,19 @@
+{
+ "base": "sflow_2d_si_nh_curv_wavy",
+ "ctrl_set": {
+  "A 210": "11"
+ },
+ "description": "sflow_2d_si_nh_curv_wavy with A 210 11: the BCG advection with the non-hydrostatic increment of the step before (dNx, dNy) on the wavy, skewed curvilinear grid.",
+ "tags": [
+  "2d",
+  "curvilinear",
+  "nonhydrostatic",
+  "sflow",
+  "semi_implicit"
+ ],
+ "covers": [
+  "advection_bcg curvilinear with A 220 3",
+  "nh_cell: the wall faces on a curvilinear grid"
+ ],
+ "architect": "Hans Bihs"
+}

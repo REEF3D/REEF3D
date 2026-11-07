@@ -1,0 +1,17 @@
+{
+ "base": "sflow_2d_si_amr_basin_bar",
+ "ctrl_set": {
+  "A 210": "11"
+ },
+ "description": "sflow_2d_si_amr_basin_bar with A 210 11, hydrostatic: the time levels of the nonlinear terms on both levels, the BCG fluxes of the patch box faces into the coarse faces.",
+ "tags": [
+  "2d",
+  "amr",
+  "sflow",
+  "semi_implicit"
+ ],
+ "covers": [
+  "A 210 11 hydrostatic with mesh refinement"
+ ],
+ "architect": "Hans Bihs"
+}

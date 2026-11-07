@@ -1,0 +1,22 @@
+{
+ "base": "sflow_2d_si_nh_shoal_amr",
+ "steps": 60,
+ "ctrl_set": {
+  "A 210": "11",
+  "P 48": "10",
+  "P 49": "0"
+ },
+ "description": "sflow_2d_si_nh_shoal_amr with A 210 11 and a checkpoint every 10 steps (P 48 10, P 49 0): the uninterrupted run of sflow_2d_si_nh_shoal_amr_onestep_restart.",
+ "tags": [
+  "2d",
+  "nonhydrostatic",
+  "amr",
+  "checkpoint",
+  "sflow",
+  "semi_implicit"
+ ],
+ "covers": [
+  "sflow_amr_ckpt: the A 210 11 state of the patches (dNx, the t^{n-1} levels)"
+ ],
+ "architect": "Hans Bihs"
+}
