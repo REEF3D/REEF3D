@@ -1,0 +1,18 @@
+{
+ "base": "nhflow_3d_si_basin_mpi2",
+ "ctrl_set": {
+  "A 510": "11"
+ },
+ "description": "nhflow_3d_si_basin_mpi2 with the one-step predictor (A 510 11), hydrostatic, theta 0.55, on 2 ranks: the BCG fluxes in x and y with the transverse terms, the slope flags of the second ghost column across the rank boundary; np 1 and np 2 agree to the tolerance of the eta solver (as A 510 12).",
+ "tags": [
+  "3d",
+  "nhflow",
+  "semi_implicit",
+  "mpi",
+  "onestep"
+ ],
+ "covers": [
+  "nhflow_momentum_SI::advection_bcg in 2D (transverse terms)",
+  "tA exchange"
+ ]
+}

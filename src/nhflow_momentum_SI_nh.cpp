@@ -21,7 +21,7 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 // ---------------------------------------------------------------------------
-// NHFLOW semi-implicit step (A 510 12/13) with the non-hydrostatic pressure (A 520 > 0), after the multilayer solver
+// NHFLOW semi-implicit step (A 510 11/12/13) with the non-hydrostatic pressure (A 520 > 0), after the multilayer solver
 // of Basilisk (Popinet 2020, layered/nh.h with the implicit free surface layered/implicit.h): the non-hydrostatic
 // pressure phi = p/rho and the free surface eta^{n+1} come out of one coupled linear system per step.
 //
@@ -46,7 +46,9 @@ Author: Hans Bihs
 // (1-theta) Q_k^n (eta_update). The hydrostatic part is the semi-implicit step of nhflow_momentum_SI
 // (face_update: Q_k^{n+1} = Q~_k - dt g H_f (theta G^{n+1} + (1-theta) G^n) r_k), so eta^{n+1} and phi^{n+1} are
 // coupled through the face discharges: the mass row of a column (eta_update) and the K constraint rows.
-// Layer thicknesses of the non-hydrostatic terms: WL extrapolated to t^{n+1/2} (nh_levels).
+// Layer thicknesses of the face terms of the pressure: WL extrapolated to t^{n+1/2} (nh_levels); the geometry of the
+// constraint (interface slopes, the depth that turns WH into w and the Keller box layer thickness) at t^{n+1}, WL
+// extrapolated (nh_wl1), as the constraint holds for the velocities of t^{n+1}.
 //
 // After the solve: Q_k += dt pg_k/dsig_k on the faces (face_update), UH_k += the mean of that of the open faces of a
 // cell (as the gravity term), WH_k -= dt [phi]_k/dsig_k (cell_update).
@@ -117,10 +119,11 @@ void nhflow_momentum_SI::nh_free()
 
 void nhflow_momentum_SI::nh_begin(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
-    // time levels of the nonlinear terms of the step (as the semi-implicit SFLOW, nh_levels there): with t^n the waves on
-    // the Beji & Battjes bar steepened too much behind the bar, the more the larger dt
+    // time levels of the nonlinear terms of the step (as the semi-implicit SFLOW, nh_levels there), with the
+    // non-hydrostatic pressure (A 520 > 0) and with the one-step predictor (A 510 11): with t^n the waves on the Beji &
+    // Battjes bar steepened too much behind the bar, the more the larger dt
     //  - the face depths of the gravity term (H_f, face_depth) at t^{n+1/2}, extrapolated from t^n and t^{n-1}
-    //  - the transport of the advection of the predictor (T of the step before, t^{n-1/2}) at t^{n+1/2}
+    //  - the transport of the advection of the predictor (T of the step before, t^{n-1+theta}) at t^{n+1/2}
     const double r = p->dt/MAX(p->dt_old,1.0e-20);
     const int N = p->imax*p->jmax*(p->kmax+2);
     const size_t ns = (size_t)p->imax*p->jmax;
@@ -177,7 +180,9 @@ void nhflow_momentum_SI::nh_begin(lexer *p, fdm_nhf *d, ghostcell *pgc)
         }
     }
 
-    const double e = 0.5*(1.0+r);
+    // T of the previous step is the transport of t^{n-1+theta} (theta Q^n + (1-theta) Q^{n-1}): to t^{n+1/2} it is
+    // (1 - theta) dt_old + dt/2 ahead, e = (1 - theta) + r/2 (written so that theta 1/2 gives 0.5 (1 + r) exactly)
+    const double e = 0.5*(1.0+r) + (0.5-theta);
 
     for(int q=0; q<N; ++q)
     {
@@ -186,6 +191,23 @@ void nhflow_momentum_SI::nh_begin(lexer *p, fdm_nhf *d, ghostcell *pgc)
     Ty[q] = ty + e*(ty - nTyP[q]);
     nTxP[q] = tx;
     nTyP[q] = ty;
+    }
+
+    // A 510 11: omega (the sigma velocity of the transport of the step before) to t^{n+1/2} as well, for the
+    // Crank-Nicolson vertical advection of the column operator (finish() computes it new at the end of the step)
+    if(onestep)
+    {
+        const int NF = p->imax*p->jmax*p->kmaxF;
+
+        if(nOmP.size()!=(size_t)NF)
+        nOmP.assign(d->omegaF,d->omegaF+NF);
+
+        for(int q=0; q<NF; ++q)
+        {
+        const double o = d->omegaF[q];
+        d->omegaF[q] = o + e*(o - nOmP[q]);
+        nOmP[q] = o;
+        }
     }
 
     SLICELOOP1
@@ -221,6 +243,13 @@ void nhflow_momentum_SI::nh_levels(lexer *p, fdm_nhf *d)
     nWLh[IJ] = ok ? MAX(WL0(i,j) + 0.5*r*(WL0(i,j) - wo), p->A544) : WL0(i,j);
     nWLo[IJ] = WL0(i,j);
     }
+}
+
+double nhflow_momentum_SI::nh_wl1(lexer *p, int a, int c)
+{
+    // the depth of t^{n+1} for the constraint: WL^n + r (WL^n - WL^{n-1}) = 2 WLh - WL^n (ghost columns: as WLh)
+    const int q = (a-p->imin)*p->jmax + (c-p->jmin);
+    return MAX(2.0*nWLh[q] - WL0(a,c),p->A544);
 }
 
 void nhflow_momentum_SI::nh_prepare(lexer *p, fdm_nhf *d, ghostcell *pgc)
@@ -273,6 +302,14 @@ void nhflow_momentum_SI::nh_prepare(lexer *p, fdm_nhf *d, ghostcell *pgc)
         }
 
         col_coef(p,d,WL0(i,j),i,j,i,j,wnu.data(),wcu.data(),wcl.data(),wcd.data());
+
+        if(thv<1.0)
+        {
+        for(k=0;k<K;++k)
+        wx[k] = WH0[IJK];
+        col_adv_rhs(p,wx.data(),wb.data());
+        }
+
         col_solve(p,wcu.data(),wcl.data(),wcd.data(),0.0,wb.data(),wx.data());
 
         for(k=0;k<K;++k)
@@ -284,8 +321,10 @@ void nhflow_momentum_SI::nh_prepare(lexer *p, fdm_nhf *d, ghostcell *pgc)
         WHS[IJK] = 0.0;
     }
 
-    // interface heights z_m = z_b + sig_m WLh, m = 0 .. K; centred slopes of the cells (one-sided next to solids)
-    auto zif = [&](int a, int c, int m) { return d->bed(a,c) + p->ZN[m+marge]*nWLh[(a-p->imin)*p->jmax + (c-p->jmin)]; };
+    // interface heights z_m = z_b + sig_m WL1, m = 0 .. K; centred slopes of the cells (one-sided next to solids). The
+    // constraint holds at t^{n+1}, so its geometry is that of t^{n+1}: WL1 = WL^n + r (WL^n - WL^{n-1}) = 2 WLh - WL^n
+    // (with t^{n+1/2} the Stokes-5 wave ran 0.15 % slower)
+    auto zif = [&](int a, int c, int m) { return d->bed(a,c) + p->ZN[m+marge]*nh_wl1(p,a,c); };
 
     SLICELOOP4
     for(int m=0; m<=K; ++m)
@@ -416,12 +455,14 @@ void nhflow_momentum_SI::nh_residual(lexer *p, fdm_nhf *d, ghostcell *pgc, const
 
         else
         {
-        const double H0 = WL0(i,j), Hh = nWLh[IJ];
+        // the depth of t^{n+1} (extrapolated): w^{n+1} = (WH* - dt [phi]/dsig)/WL^{n+1} as nh_cell and velcalc form it
+        const double H0 = nh_wl1(p,i,j), Hh = H0;
         const double iH0 = 1.0/H0;
 
         // the bed: w_b = u_0 . grad(z_b)
         k=0;
-        double wlo = UHD[IJK]*iH0*NSX[IJK] + (yd ? VHD[IJK]*iH0*NSY[IJK] : 0.0);
+        double *UU = UHD, *VV = VHD;
+        double wlo = UU[IJK]*iH0*NSX[IJK] + (yd ? VV[IJK]*iH0*NSY[IJK] : 0.0);
 
         for(k=0;k<K;++k)
         {
@@ -433,12 +474,12 @@ void nhflow_momentum_SI::nh_residual(lexer *p, fdm_nhf *d, ghostcell *pgc, const
         double D = ds*layer_div(p,Qx,Qy);
 
         // [u . grad z]_k: u_k on the upper interface (k+1), u_{k-1} on the lower one, u_0 on the bed
-        const double uk = UHD[IJK]*iH0, vk = yd ? VHD[IJK]*iH0 : 0.0;
+        const double uk = UU[IJK]*iH0, vk = yd ? VV[IJK]*iH0 : 0.0;
         double uz = uk*NSX[IJKp1] + vk*NSY[IJKp1];
 
             if(k>0)
             {
-            const double um = UHD[IJKm1]*iH0, vm = yd ? VHD[IJKm1]*iH0 : 0.0;
+            const double um = UU[IJKm1]*iH0, vm = yd ? VV[IJKm1]*iH0 : 0.0;
             uz -= um*NSX[IJK] + vm*NSY[IJK];
             }
 
@@ -550,7 +591,7 @@ void nhflow_momentum_SI::nh_solve(lexer *p, fdm_nhf *d, ghostcell *pgc)
     if(!S.factor())
     {
     if(p->mpirank==0)
-    cout<<"!!! NHFLOW A 510 12/13 with A 520 "<<p->A520<<": the coupled eta-phi system is singular !!!"<<endl;
+    cout<<"!!! NHFLOW A 510 11/12/13 with A 520 "<<p->A520<<": the coupled eta-phi system is singular !!!"<<endl;
     exit(1);
     }
 

@@ -43,7 +43,7 @@ class met_forcing;
 using namespace std;
 
 // ---------------------------------------------------------------------------
-// NHFLOW hydrostatic semi-implicit free surface (A 510 12/13), theta method (A 535).
+// NHFLOW hydrostatic semi-implicit free surface (A 510 11/12/13), theta method (A 535).
 //
 // For long simulations (tide, river, coastal ocean): the gravity wave speed sqrt(gh) no longer
 // limits the time step, only advection does (nhflow_timestep_SI, cap A 536).
@@ -244,6 +244,7 @@ private:
     void stage_arrays(int, double*&, double*&, double*&, double*&, double*&, double*&, double&);
     solver2D* new_solver2D(lexer*, ghostcell*);
     void advection(lexer*, fdm_nhf*, ghostcell*, nhflow_reconstruct*);
+    void advection_bcg(lexer*, fdm_nhf*, ghostcell*, double*, double*, double*);
     void hdiffusion(lexer*, fdm_nhf*);
     void face_update(lexer*, fdm_nhf*, ghostcell*);
     void eta_update(lexer*, fdm_nhf*, ghostcell*, nhflow_fsf*);
@@ -290,6 +291,7 @@ private:
     bool nh = false;
     double *NQx = nullptr, *NQy = nullptr, *WHS = nullptr, *PHI = nullptr, *PHIo = nullptr, *NSX = nullptr, *NSY = nullptr;
     std::vector<double> nWLh, nWLo, nTxP, nTyP, nHxo, nHyo;
+    std::vector<double> nOmP;                  // A 510 11: omega of the step before (extrapolation)
     std::vector<char> nAct;
     std::shared_ptr<sflow_si_nh_lu> nhlu;
     std::shared_ptr<nhflow_si_nhmg> nhmg;
@@ -298,6 +300,7 @@ private:
     void nh_ini(lexer*);
     void nh_free();
     void nh_levels(lexer*, fdm_nhf*);
+    double nh_wl1(lexer*, int, int);      // the depth of t^{n+1}, extrapolated (the constraint)
     void nh_begin(lexer*, fdm_nhf*, ghostcell*);
     void nh_prepare(lexer*, fdm_nhf*, ghostcell*);
     void nh_faces(lexer*, fdm_nhf*);
@@ -326,7 +329,7 @@ private:
     slice2 qy, qyn, qyE, Hy, aly, gmy, ay, ky, gy0, cy0;
 
     // cell state of the step: t^n, implicit eta, bed friction rate, right-hand side, scratch
-    slice4 eta0, WL0, etaI, gmc, rhsW, bdiag, tS, tE;
+    slice4 eta0, WL0, etaI, gmc, rhsW, bdiag, tS, tE, tA;
 
     // water depth at the end of the step, the start of the next (see start); boundary copies
     slice4 WLk, etaB, WLb;
@@ -349,6 +352,10 @@ private:
 
     double theta, g;
     int rk, wd_iter, wd_cells, gcval_eta;
+    bool onestep = false;
+    double thv = 1.0;                          // time level of the vertical advection in the column operator (1: implicit Euler)
+    std::vector<double> vau, val, vad;         // its coefficients (unscaled), for the explicit part
+    void col_adv_rhs(lexer*, const double*, double*);      // A 510 11: one stage, BCG advection (Basilisk), the nonlinear terms at t^{n+1/2}
     bool qini;
 
     double Qin, Qout;       // discharge over the open boundaries of the step (theta weighted)

@@ -57,7 +57,7 @@ nhflow_momentum_SI::nhflow_momentum_SI(lexer *p, fdm_nhf *d, ghostcell *pgc, six
                                     : nhflow_momentum_func(p,d,pgc),
                                       qx(p),qxn(p),qxE(p),Hx(p),alx(p),gmx(p),ax(p),kx(p),gx0(p),cx0(p),
                                       qy(p),qyn(p),qyE(p),Hy(p),aly(p),gmy(p),ay(p),ky(p),gy0(p),cy0(p),
-                                      eta0(p),WL0(p),etaI(p),gmc(p),rhsW(p),bdiag(p),tS(p),tE(p),
+                                      eta0(p),WL0(p),etaI(p),gmc(p),rhsW(p),bdiag(p),tS(p),tE(p),tA(p),
                                       WLk(p),etaB(p),WLb(p),wsrc(p)
 {
     check(p);
@@ -126,6 +126,14 @@ nhflow_momentum_SI::nhflow_momentum_SI(lexer *p, fdm_nhf *d, ghostcell *pgc, six
     g = fabs(p->W22);
     rk = (p->A510==2)?2:3;
 
+    // A 510 11 (inside A510 = 1): one stage, the advection by the BCG scheme with its source term (second order in
+    // space and time), the transport and omega at t^{n+1/2}, Crank-Nicolson vertical advection (thv below)
+    if(p->A510==1)
+    {
+    rk = 1;
+    onestep = true;
+    }
+
     // A 549 1: semi-Lagrangian advection, one stage (the other explicit terms of t^n)
     if(elm_mode(p)==1)
     {
@@ -154,12 +162,27 @@ nhflow_momentum_SI::nhflow_momentum_SI(lexer *p, fdm_nhf *d, ghostcell *pgc, six
     wb.assign(p->knoz,0.0);
     wr.assign(p->knoz,0.0);
     wx.assign(p->knoz,0.0);
+    vau.assign(p->knoz,0.0);
+    val.assign(p->knoz,0.0);
+    vad.assign(p->knoz,0.0);
+    // A 510 11: the vertical advection of the column operator Crank-Nicolson (with omega at t^{n+1/2}, nh_begin)
+    if(onestep && elm_mode(p)==0)
+    thv = 0.5;
 
     bc_method(p);
 
     if(p->mpirank==0 && !patch)
     {
-    cout<<"NHFLOW hydrostatic semi-implicit free surface (A 510 "<<10+rk<<"): theta "<<theta<<", SSP-RK"<<rk<<" predictor";
+    cout<<"NHFLOW semi-implicit free surface (A 510 "<<10+p->A510<<"): theta "<<theta;
+
+    if(elm_mode(p)==1)
+    cout<<", one stage with the semi-Lagrangian advection (A 549 1)";
+
+    else if(onestep)
+    cout<<", one-step predictor (BCG advection)";
+
+    else
+    cout<<", SSP-RK"<<rk<<" predictor";
 
     if(p->A537==1)
     cout<<", wetting and drying iteration";
@@ -174,7 +197,7 @@ nhflow_momentum_SI::nhflow_momentum_SI(lexer *p, fdm_nhf *d, ghostcell *pgc, six
     mkdir("./REEF3D_NHFLOW_Log",0777);
     if(reefckpt_open(silog,"./REEF3D_NHFLOW_Log/REEF3D_NHFLOW_SI.dat",p->I45))   // I 45: continued
     {
-        silog<<"# semi-implicit NHFLOW (A 510 12/13): volume and open boundary discharges"<<endl;
+        silog<<"# semi-implicit NHFLOW (A 510 11/12/13): volume and open boundary discharges"<<endl;
         silog<<"# count  simtime  dt  volume  Qin  Qout  relax_volume  eta_iterations  wetdry_iterations  dry_cells"<<endl;
     }
     }
@@ -208,7 +231,7 @@ void nhflow_momentum_SI::check(lexer *p)
     auto msg = [&](const char *s)
     {
         if(p->mpirank==0)
-        cout<<"!!! NHFLOW A 510 12/13 (semi-implicit): "<<s<<" not available yet !!!"<<endl;
+        cout<<"!!! NHFLOW A 510 11/12/13 (semi-implicit): "<<s<<" not available yet !!!"<<endl;
         stop=1;
     };
 
@@ -229,8 +252,12 @@ void nhflow_momentum_SI::check(lexer *p)
         msg("the non-hydrostatic pressure (A 520 > 0) with the density (A 620) is");
     }
 
-    if(p->A510!=2 && p->A510!=3)
-    msg("a predictor other than SSP-RK2/3 (A 510 2/3) is");
+    if(p->A510!=1 && p->A510!=2 && p->A510!=3)
+    msg("a predictor other than one step, SSP-RK2 or SSP-RK3 (A 510 11, 12, 13) is");
+
+    // A 510 11: the BCG advection on one Cartesian grid
+    if(p->A510==1 && (p->geo_curv==1 || p->geo_mb>0 || p->G1>0))
+    msg("the one-step predictor (A 510 11) on curvilinear, multi-block or refined grids is; A 510 12 works,");
 
     // mesh refinement (G 1): one eta system over the leaf cells of all grids (reefamr_si.cpp), one global time step
     // with the same sigma layers on every level
@@ -277,7 +304,7 @@ void nhflow_momentum_SI::check(lexer *p)
     cout<<"NHFLOW A 535 "<<p->A535<<": theta < 0.5 is unstable for large time steps"<<endl;
 
     if(p->A512==1 && p->mpirank==0)
-    cout<<"NHFLOW A 510 12/13: explicit diffusion (A 512 1) limits the time step, use A 512 2 (implicit)"<<endl;
+    cout<<"NHFLOW A 510 11/12/13: explicit diffusion (A 512 1) limits the time step, use A 512 2 (implicit)"<<endl;
 }
 
 void nhflow_momentum_SI::bc_method(lexer *p)
@@ -307,7 +334,7 @@ void nhflow_momentum_SI::bc_method(lexer *p)
         if(method[cs]!=0 && method[cs]!=p->B520_method[qn])
         {
             if(p->mpirank==0)
-            cout<<"!!! NHFLOW A 510 12/13 (semi-implicit): different B 520 methods on one edge (B 521 edge "<<e<<") are not available yet !!!"<<endl;
+            cout<<"!!! NHFLOW A 510 11/12/13 (semi-implicit): different B 520 methods on one edge (B 521 edge "<<e<<") are not available yet !!!"<<endl;
             exit(1);
         }
 
@@ -355,8 +382,9 @@ void nhflow_momentum_SI::step_single(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflo
     si_restore(p,d,pgc);
     si_begin(p,d,pgc,S);
 
-    // the non-hydrostatic pressure (A 520 > 0): time levels of the nonlinear terms
-    if(nh)
+    // the non-hydrostatic pressure (A 520 > 0) and the one-step predictor (A 510 11): time levels of the nonlinear
+    // terms (face depths, the advecting transport at t^{n+1/2})
+    if(nh || onestep)
     nh_begin(p,d,pgc);
 
     for(int s=0; s<rk; ++s)
@@ -667,6 +695,7 @@ void nhflow_momentum_SI::si_end_cells(lexer *p, fdm_nhf *d, ghostcell *pgc, nhfl
 
     // 9.-10. cell momentum, relaxation zones, velocities, omega
     cell_update(p,d,pgc);
+
     relax(p,d,pgc);
     finish(p,d,pgc);
 
@@ -1018,7 +1047,9 @@ void nhflow_momentum_SI::col_coef(lexer *p, fdm_nhf *d, double h, int i1, int j1
     // vertical advection (sigma velocity omega of the step before, the mean of the two columns at a
     // face), upwind and implicit: the flux omega u at k+1/2 over dsig_k h, zero at the bed and the
     // surface; conservative (the columns of the matrix weighted with dsig sum to one), so omega does
-    // not limit the time step
+    // not limit the time step. A 510 11: Crank-Nicolson (thv 1/2, the explicit half on the column of t^n,
+    // col_adv_rhs) with omega at t^{n+1/2} (nh_begin); implicit Euler with the omega of the step before was
+    // first order in time (Stokes-5: about 0.4 % of the wave speed at T/40)
     const int ii=i, jj=j, kk=k;
     const double hh = MAX(h,p->A544);
     const double s2 = 1.0/(hh*hh);
@@ -1047,13 +1078,35 @@ void nhflow_momentum_SI::col_coef(lexer *p, fdm_nhf *d, double h, int i1, int j1
     const double ot = om(q+1);
     const double ob = om(q);
 
-    cu[q] += a*MAX(-ot,0.0);
-    cl[q] += a*MAX(ob,0.0);
+    vau[q] = a*MAX(-ot,0.0);
+    val[q] = a*MAX(ob,0.0);
     // A 549 1 (velocity form): the advective part omega du/dsigma alone, the continuity part is in h^{n+1}
-    cd[q] = elm_mode(p)==1 ? 0.0 : a*(ot - ob);
+    vad[q] = elm_mode(p)==1 ? 0.0 : a*(ot - ob);
+
+    cu[q] += thv*vau[q];
+    cl[q] += thv*val[q];
+    cd[q] = thv*vad[q];
     }
 
     i=ii; j=jj; k=kk;
+}
+
+void nhflow_momentum_SI::col_adv_rhs(lexer *p, const double *x0, double *b)
+{
+    // the explicit part of the vertical advection (thv < 1): b -= (1 - thv) dt V x0, with the coefficients of the last
+    // col_coef
+    if(thv>=1.0)
+    return;
+
+    const int K = p->knoz;
+
+    for(int q=0;q<K;++q)
+    {
+    double v = (vau[q] + val[q] + vad[q])*x0[q];
+    if(q<K-1) v -= vau[q]*x0[q+1];
+    if(q>0) v -= val[q]*x0[q-1];
+    b[q] -= (1.0-thv)*v;
+    }
 }
 
 void nhflow_momentum_SI::col_solve(lexer *p, const double *cu, const double *cl, const double *cd, double dtgam, const double *b, double *x)
@@ -1523,10 +1576,27 @@ void nhflow_momentum_SI::advection(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_
     // advection (omega) is implicit in the column operator
     const int N = p->imax*p->jmax*(p->kmax+2);
 
+    // A 510 11: the cells the BCG slopes may use (wet fluid cells; MPI: from the neighbouring ranks, flagslice4 marks
+    // only the first ghost column of a rank boundary)
+    if(onestep)
+    {
+        for(int ii=p->imin; ii<p->imin+p->imax; ++ii)
+        for(int jj=p->jmin; jj<p->jmin+p->jmax; ++jj)
+        {
+        const int q = (ii-p->imin)*p->jmax + (jj-p->jmin);
+        tA(ii,jj) = (p->flagslice4[q]>0 && p->wet[q]==1) ? 1.0 : 0.0;
+        }
+
+        exchange4(p,pgc,tA);
+    }
+
+    if(!onestep)
+    {
     precon->reconstruct_3D_x(p, pgc, d, d->U, d->Us, d->Un);
     precon->reconstruct_3D_x(p, pgc, d, d->W, d->Ws, d->Wn);
+    }
 
-    if(p->j_dir==1)
+    if(p->j_dir==1 && !onestep)
     {
     precon->reconstruct_3D_y(p, pgc, d, d->U, d->Ue, d->Uw);
     precon->reconstruct_3D_x(p, pgc, d, d->V, d->Vs, d->Vn);
@@ -1544,6 +1614,11 @@ void nhflow_momentum_SI::advection(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_
         d->Fz[q] = 0.0;
         }
 
+        if(onestep)
+        advection_bcg(p,d,pgc,comp==0 ? d->U : (comp==1 ? d->V : d->W),d->Fx,d->Fy);
+
+        else
+        {
         SLICELOOP1
         if(Hx(i,j)>0.0)
         for(k=0;k<p->knoz;++k)
@@ -1554,6 +1629,7 @@ void nhflow_momentum_SI::advection(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_
         if(Hy(i,j)>0.0)
         for(k=0;k<p->knoz;++k)
         d->Fy[IJK] = Ty[IJK]>=0.0 ? Ty[IJK]*Le[IJK] : Ty[IJK]*Lw[IJK];
+        }
 
         exchangeF(p,pgc,d->Fx);
         exchangeF(p,pgc,d->Fy);
@@ -1599,6 +1675,169 @@ void nhflow_momentum_SI::advection(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_
     component(1,d->G,d->Vs,d->Vn,d->Ve,d->Vw);
 
     component(2,d->H,d->Ws,d->Wn,d->We,d->Ww);
+}
+
+void nhflow_momentum_SI::advection_bcg(lexer *p, fdm_nhf *d, ghostcell *pgc, double *f, double *Fx, double *Fy)
+{
+    // the source term of the face value, dt/2 S of the upwind cell (the BCG scheme with its source, Bell, Colella &
+    // Glaz 1989): S = -g grad(eta^n) for u and v, plus the non-hydrostatic pressure gradient of the step before.
+    // Without it the advected velocity misses the acceleration of the step and the nonlinear terms are first order in
+    // time (standing wave, hydrostatic: self-convergence order 1.3 -> 1.94; Stokes-5 propagation: the wave 1.2 %
+    // slow at T/40 -> 0.6 % with the time levels of the column operator and of the constraint)
+    const int comp = f==d->U ? 0 : (f==d->V ? 1 : 2);
+    auto src = [&](int a, int b, int c) -> double
+    {
+        // the non-hydrostatic pressure of the step before: the mean of the face terms of the cell (NQ = dt_old
+        // pg/dsig, per unit sigma as UH), -[phi]/(dsig h) for w
+        double snh = 0.0;
+
+        if(nh && WL0(a,b)>p->A544)
+        {
+        const double h = WL0(a,b), dto = MAX(p->dt_old,1.0e-20);
+        const int ii=i, jj=j, kk=k;
+        i=a; j=b; k=c;
+
+            if(comp==0)
+            snh = 0.5*(NQx[Im1JK] + NQx[IJK])/(h*dto);
+
+            else if(comp==1)
+            snh = 0.5*(NQy[IJm1K] + NQy[IJK])/(h*dto);
+
+            else
+            snh = -((c<p->knoz-1 ? PHI[IJKp1] : 0.0) - PHI[IJK])/(p->DZN[KP]*h);
+
+        i=ii; j=jj; k=kk;
+        }
+
+        if(comp==2)
+        return snh;
+
+        if(comp==0)
+        {
+        const bool oe = tA(a+1,b)>0.5, ow = tA(a-1,b)>0.5;
+        if(oe && ow) return snh - g*(eta0(a+1,b) - eta0(a-1,b))/(p->DXP[a-1+marge] + p->DXP[a+marge]);
+        if(oe) return snh - g*(eta0(a+1,b) - eta0(a,b))/p->DXP[a+marge];
+        if(ow) return snh - g*(eta0(a,b) - eta0(a-1,b))/p->DXP[a-1+marge];
+        return snh;
+        }
+
+        const bool on = tA(a,b+1)>0.5, os = tA(a,b-1)>0.5;
+        if(on && os) return snh - g*(eta0(a,b+1) - eta0(a,b-1))/(p->DYP[b-1+marge] + p->DYP[b+marge]);
+        if(on) return snh - g*(eta0(a,b+1) - eta0(a,b))/p->DYP[b+marge];
+        if(os) return snh - g*(eta0(a,b) - eta0(a,b-1))/p->DYP[b-1+marge];
+        return snh;
+    };
+
+    // A 510 11: the fluxes T_k f_f of the field f (U, V or W) per layer with the face values of the BCG scheme, as
+    // Basilisk's advect() (layered/hydro.h): the upwind cell extrapolated to the face and to t^{n+1/2},
+    //   f_f = f_up + a (1 - c) g dx/2 - dt/2 v_up g_t,    c = |u_f| dt/dx, a = sign(u_f), u_f = T/H_f,
+    // g the slope of the upwind cell normal to the face, g_t the one along it, both the generalised minmod of
+    // Basilisk (theta 1.3); v_up the velocity along the face in the upwind cell (from its two faces). Slopes next to
+    // solids, dry cells and open boundaries: 0
+    const double dt = p->dt;
+    const int K = p->knoz;
+    const bool yd = (p->j_dir==1);
+
+    auto ix = [&](int a, int b, int c) { return (a-p->imin)*p->jmax*p->kmax + (b-p->jmin)*p->kmax + c-p->kmin; };
+    auto ok = [&](int a, int b) { return tA(a,b)>0.5; };
+
+    // the normal velocity of the face for its Courant number: the depth-weighted mean of the cell velocities (as
+    // Basilisk's face velocity; T/H_f with the extrapolated transport and the face depth of the step can be far off
+    // at a bore front)
+    auto uface = [&](int dir, int a, int b, int c)
+    {
+        const int a2 = dir==1 ? a+1 : a, b2 = dir==2 ? b+1 : b;
+        const double *u = dir==1 ? d->U : d->V;
+        const double hl = ok(a,b) ? WL0(a,b) : 0.0, hr = ok(a2,b2) ? WL0(a2,b2) : 0.0;
+        return (hl+hr)>0.0 ? (hl*u[ix(a,b,c)] + hr*u[ix(a2,b2,c)])/(hl + hr) : 0.0;
+    };
+
+    // the limited slope of the cell from the values and centre distances on its two sides (one-sided: 0)
+    auto slope = [&](double fm, double f0, double fp, double dm, double dp, bool om, bool op)
+    {
+        if(!om || !op)
+        return 0.0;
+
+        const double sl = (f0 - fm)/dm, sr = (fp - f0)/dp, sc = (fp - fm)/(dm + dp);
+
+
+        if(sl*sr<=0.0)
+        return 0.0;
+
+        const double th = 1.3;
+        const double m = MIN(MIN(th*fabs(sl),th*fabs(sr)),fabs(sc));
+        return sl>0.0 ? m : -m;
+    };
+
+    // x-faces (i+1/2)
+    SLICELOOP1
+    if(Hx(i,j)>0.0)
+    for(k=0;k<K;++k)
+    {
+        const double t = Tx[IJK];
+        const double a = t>=0.0 ? 1.0 : -1.0;
+        const int iu = t>=0.0 ? i : i+1;
+
+        if(!ok(iu,j))
+        {
+        Fx[IJK] = t*f[ix(iu,j,k)];
+        continue;
+        }
+
+        const double dx = p->DXN[iu+marge];
+        const double c = MIN(fabs(uface(1,i,j,k))*dt/dx,1.0);
+        const double g = slope(f[ix(iu-1,j,k)],f[ix(iu,j,k)],f[ix(iu+1,j,k)],p->DXP[iu-1+marge],p->DXP[iu+marge],ok(iu-1,j),ok(iu+1,j));
+
+        double ff = f[ix(iu,j,k)] + a*(1.0 - c)*g*0.5*dx + 0.5*dt*src(iu,j,k);
+
+        if(yd)
+        {
+            const double hs = Hy(iu,j-1) + Hy(iu,j);
+
+            if(hs>p->A544)
+            {
+            const double v = (Ty[ix(iu,j-1,k)] + Ty[ix(iu,j,k)])/hs;
+            const double gt = slope(f[ix(iu,j-1,k)],f[ix(iu,j,k)],f[ix(iu,j+1,k)],p->DYP[j-1+marge],p->DYP[j+marge],ok(iu,j-1),ok(iu,j+1));
+            ff -= 0.5*dt*v*gt;
+            }
+        }
+
+        Fx[IJK] = t*ff;
+    }
+
+    // y-faces (j+1/2)
+    if(yd)
+    SLICELOOP2
+    if(Hy(i,j)>0.0)
+    for(k=0;k<K;++k)
+    {
+        const double t = Ty[IJK];
+        const double a = t>=0.0 ? 1.0 : -1.0;
+        const int ju = t>=0.0 ? j : j+1;
+
+        if(!ok(i,ju))
+        {
+        Fy[IJK] = t*f[ix(i,ju,k)];
+        continue;
+        }
+
+        const double dy = p->DYN[ju+marge];
+        const double c = MIN(fabs(uface(2,i,j,k))*dt/dy,1.0);
+        const double g = slope(f[ix(i,ju-1,k)],f[ix(i,ju,k)],f[ix(i,ju+1,k)],p->DYP[ju-1+marge],p->DYP[ju+marge],ok(i,ju-1),ok(i,ju+1));
+
+        double ff = f[ix(i,ju,k)] + a*(1.0 - c)*g*0.5*dy + 0.5*dt*src(i,ju,k);
+
+        const double hs = Hx(i-1,ju) + Hx(i,ju);
+
+        if(hs>p->A544)
+        {
+        const double u = (Tx[ix(i-1,ju,k)] + Tx[ix(i,ju,k)])/hs;
+        const double gt = slope(f[ix(i-1,ju,k)],f[ix(i,ju,k)],f[ix(i+1,ju,k)],p->DXP[i-1+marge],p->DXP[i+marge],ok(i-1,ju),ok(i+1,ju));
+        ff -= 0.5*dt*u*gt;
+        }
+
+        Fy[IJK] = t*ff;
+    }
 }
 
 void nhflow_momentum_SI::hdiffusion(lexer *p, fdm_nhf *d)
@@ -1729,6 +1968,13 @@ void nhflow_momentum_SI::si_assemble(lexer *p, fdm_nhf *d, ghostcell *pgc)
         for(k=0;k<p->knoz;++k)
         wb[k] = 0.5*(UHD[IJK] + UHD[Ip1JK])*nx + 0.5*(VHD[IJK] + VHD[Ip1JK])*ny;
 
+        if(thv<1.0)
+        {
+        for(k=0;k<p->knoz;++k)
+        wx[k] = 0.5*(UH0[IJK] + UH0[Ip1JK])*nx + 0.5*(VH0[IJK] + VH0[Ip1JK])*ny;
+        col_adv_rhs(p,wx.data(),wb.data());
+        }
+
         // the baroclinic pressure gradient on the face (A 620; explicit, nhflow_momentum_SI_density.cpp)
         if(BFx!=nullptr)
         for(k=0;k<p->knoz;++k)
@@ -1786,6 +2032,13 @@ void nhflow_momentum_SI::si_assemble(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
         for(k=0;k<p->knoz;++k)
         wb[k] = 0.5*(UHD[IJK] + UHD[IJp1K])*nx + 0.5*(VHD[IJK] + VHD[IJp1K])*ny;
+
+        if(thv<1.0)
+        {
+        for(k=0;k<p->knoz;++k)
+        wx[k] = 0.5*(UH0[IJK] + UH0[IJp1K])*nx + 0.5*(VH0[IJK] + VH0[IJp1K])*ny;
+        col_adv_rhs(p,wx.data(),wb.data());
+        }
 
         if(BFy!=nullptr)
         for(k=0;k<p->knoz;++k)
@@ -1867,6 +2120,13 @@ void nhflow_momentum_SI::si_assemble(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
         for(k=0;k<p->knoz;++k)
         wb[k] = UHD[IJK]*f.nx + VHD[IJK]*f.ny;
+
+        if(thv<1.0)
+        {
+        for(k=0;k<p->knoz;++k)
+        wx[k] = UH0[IJK]*f.nx + VH0[IJK]*f.ny;
+        col_adv_rhs(p,wx.data(),wb.data());
+        }
 
         col_solve(p,wcu.data(),wcl.data(),wcd.data(),dt*gmf(f.fi,f.fj),wb.data(),wr.data());
 
@@ -2387,6 +2647,13 @@ void nhflow_momentum_SI::cell_update(lexer *p, fdm_nhf *d, ghostcell *pgc)
         for(k=0;k<p->knoz;++k)
         wb[k] = UHD[IJK] - (Bx!=nullptr ? dt*WL0(i,j)*Bx[IJK] : 0.0);
 
+        if(thv<1.0)
+        {
+        for(k=0;k<p->knoz;++k)
+        wx[k] = UH0[IJK];
+        col_adv_rhs(p,wx.data(),wb.data());
+        }
+
         col_solve(p,wcu.data(),wcl.data(),wcd.data(),dt*gmc(i,j),wb.data(),wx.data());
 
             for(k=0;k<p->knoz;++k)
@@ -2399,6 +2666,13 @@ void nhflow_momentum_SI::cell_update(lexer *p, fdm_nhf *d, ghostcell *pgc)
             {
             for(k=0;k<p->knoz;++k)
             wb[k] = VHD[IJK] - (By!=nullptr ? dt*WL0(i,j)*By[IJK] : 0.0);
+
+            if(thv<1.0)
+            {
+            for(k=0;k<p->knoz;++k)
+            wx[k] = VH0[IJK];
+            col_adv_rhs(p,wx.data(),wb.data());
+            }
 
             col_solve(p,wcu.data(),wcl.data(),wcd.data(),dt*gmc(i,j),wb.data(),wx.data());
 
@@ -2414,6 +2688,14 @@ void nhflow_momentum_SI::cell_update(lexer *p, fdm_nhf *d, ghostcell *pgc)
         }
 
         col_coef(p,d,WL0(i,j),i,j,i,j,wnu.data(),wcu.data(),wcl.data(),wcd.data());
+
+        if(thv<1.0)
+        {
+        for(k=0;k<p->knoz;++k)
+        wx[k] = WH0[IJK];
+        col_adv_rhs(p,wx.data(),wb.data());
+        }
+
         col_solve(p,wcu.data(),wcl.data(),wcd.data(),0.0,wb.data(),wx.data());
 
         for(k=0;k<p->knoz;++k)

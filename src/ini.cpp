@@ -186,7 +186,7 @@ void control::ini_default()
     
     // NHFLOW
     A509=1;      // int interpolation sweeps for bed
-    A510=2;      // int NFHLOW time scheme: 2 / 3 explicit SSP-RK2 / RK3, 12 / 13 semi-implicit theta step with an SSP-RK2 / RK3 predictor
+    A510=2;      // int NFHLOW time scheme: 2 / 3 explicit SSP-RK2 / RK3; 11 / 12 / 13 semi-implicit theta step with a one-step (BCG advection, Basilisk) / SSP-RK2 / SSP-RK3 predictor
     A511=1;		// int NHFLOW HLL scheme
     A512=0;		// int NHFLOW diffusion
     A513=1;		// int NHFLOW wall diffusion
@@ -208,7 +208,7 @@ void control::ini_default()
     A531=3.0;    // double Froude number limiter
     A532=1;      // int  Froude number limiter area
     A533=0;      // int  add veritcal velocity to CFL 
-    A534=0;      // int NHFLOW semi-implicit free surface (theta method), set from A 510 12/13 (lexer_read; no longer a ctrl.txt key)
+    A534=0;      // int NHFLOW semi-implicit free surface (theta method), set from A 510 11/12/13 (lexer_read; no longer a ctrl.txt key)
     A535=0.55;   // double NHFLOW semi-implicit: theta
     A536=0.0;    // double NHFLOW semi-implicit: maximum time step (s), 0: explicit gravity wave limit
     A537=1;      // int NHFLOW semi-implicit: wetting and drying iteration (Casulli 2009), 0 off
@@ -219,7 +219,7 @@ void control::ini_default()
     A545=10.0;   // double deep criterion
     A547_c=0.0;  // double NHFLOW semi-implicit (A 547 c nu0): algebraic eddy viscosity, nu_t = c kappa u* z (1 - z/h) + nu0 with u* from the log law of the bed layer (A 519 1); vertical in the column operator, horizontal in the predictor; 0 off (A 560 > 0: the turbulence model instead)
     A547_nu0=0.0;// double NHFLOW semi-implicit: A 547 c nu0, background eddy viscosity (m2/s)
-    A600=0;      // int NHFLOW semi-implicit (A 510 12/13): tracers, 0 off, 1 salinity, 2 salinity and temperature (nhflow_tracer_SI)
+    A600=0;      // int NHFLOW semi-implicit (A 510 11/12/13): tracers, 0 off, 1 salinity, 2 salinity and temperature (nhflow_tracer_SI)
     A601_s=0.0;  // double NHFLOW tracers: A 601 S T, initial salinity (psu) and temperature (deg C), uniform
     A601_t=15.0; // double NHFLOW tracers: A 601 S T, initial temperature
     A602=0;      // int NHFLOW tracers: A 602 x1 y1 S1 x2 y2 S2 given, initial salinity linear between two points (constant beyond them)
@@ -245,7 +245,7 @@ void control::ini_default()
     A625_ph=-1.5;  // double
     A626_kmin=1.0e-7;  // double NHFLOW density, k-epsilon with A 623: A 626 k_min c_lim, the floor of k (m2/s2)
     A626_clim=0.53;    // double the length limit l <= c_lim sqrt(2k)/N (Galperin et al. 1988)
-    A549=0;      // int NHFLOW semi-implicit (A 510 12/13): A 549 m C, momentum advection, 0 flux form in the SSP-RK predictor, 1 semi-Lagrangian (one stage)
+    A549=0;      // int NHFLOW semi-implicit (A 510 11/12/13): A 549 m C, momentum advection, 0 flux form in the SSP-RK predictor, 1 semi-Lagrangian (one stage)
     A549_c=2.0;  // double the Courant number of the time step with A 549 1 (0 < C <= 2.5; at most 1 with a turbulence model)
     A627_c=0.0;  // double NHFLOW semi-implicit, turbulence model (A 560 > 0): A 627 c h, eddy viscosity >= c times the parabolic profile of A 547 (thin water), 0 off
     A627_h=0.0;  // double in the columns with depth <= h, tapered to 0 at 2h; h <= 0: all columns

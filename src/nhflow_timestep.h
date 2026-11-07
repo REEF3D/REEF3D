@@ -40,7 +40,7 @@ public:
     virtual double dt_local_max(int)=0;
     // smallest horizontal cell size (and dz*WL) of the patch cells on this rank (1: wet cells only)
     virtual void dt_cell_size(int, double&, double&)=0;
-    // A 510 12/13: the smallest cell time scale of the semi-implicit step (advection, horizontal diffusion;
+    // A 510 11/12/13: the smallest cell time scale of the semi-implicit step (advection, horizontal diffusion;
     // nhflow_timestep_SI) and the largest water depth over the patch cells on this rank
     virtual void dt_si_cmin(double cfl, double &cmin, double &hmax) {}
 };

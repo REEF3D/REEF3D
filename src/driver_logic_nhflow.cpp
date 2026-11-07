@@ -101,7 +101,7 @@ void driver::logic_nhflow()
     pnhfsf = new nhflow_fsf_f(p,d,pgc,pflow,pBC);
     
 // time stepping
-    // time stepping; hydrostatic semi-implicit free surface (A 510 12/13): the advective time step
+    // time stepping; hydrostatic semi-implicit free surface (A 510 11/12/13): the advective time step
     if(p->A534==1)
     {
     nhflow_momentum_SI::check(p);
@@ -138,7 +138,7 @@ void driver::logic_nhflow()
     if(p->A549!=0 && (p->A549!=1 || p->A534!=1 || p->A549_c<=0.0 || p->A549_c>2.5))
     {
         if(p->mpirank==0)
-        cout<<"!!! NHFLOW A 549 m C: m 0 or 1 (semi-Lagrangian momentum advection, with A 510 12/13 only), 0 < C <= 2.5 !!!"<<endl;
+        cout<<"!!! NHFLOW A 549 m C: m 0 or 1 (semi-Lagrangian momentum advection, with A 510 11/12/13 only), 0 < C <= 2.5 !!!"<<endl;
         exit(1);
     }
 
@@ -146,7 +146,7 @@ void driver::logic_nhflow()
     if(p->A627_c>0.0 && (p->A534!=1 || p->A560==0))
     {
         if(p->mpirank==0)
-        cout<<"!!! NHFLOW eddy viscosity floor (A 627): with the hydrostatic semi-implicit free surface (A 510 12/13) and a turbulence model (A 560 > 0) only !!!"<<endl;
+        cout<<"!!! NHFLOW eddy viscosity floor (A 627): with the hydrostatic semi-implicit free surface (A 510 11/12/13) and a turbulence model (A 560 > 0) only !!!"<<endl;
         exit(1);
     }
 
@@ -154,7 +154,7 @@ void driver::logic_nhflow()
     if(p->A600>0 && p->A534!=1)
     {
         if(p->mpirank==0)
-        cout<<"!!! NHFLOW tracers (A 600) need the hydrostatic semi-implicit free surface (A 510 12/13) !!!"<<endl;
+        cout<<"!!! NHFLOW tracers (A 600) need the hydrostatic semi-implicit free surface (A 510 11/12/13) !!!"<<endl;
         exit(1);
     }
 
@@ -290,7 +290,7 @@ void driver::logic_nhflow()
         cout<<"!!! A 518 2 with a RANS model (A 560 "<<p->A560<<"): wall-resolving grids only (bed cell z+ < 5), A 518 1 otherwise"<<endl;
         
         if(p->A534==1)
-        cout<<"!!! A 518 2 with the semi-implicit free surface (A 510 12/13): its column operator keeps the log-law bed friction (A 519 1)"<<endl;
+        cout<<"!!! A 518 2 with the semi-implicit free surface (A 510 11/12/13): its column operator keeps the log-law bed friction (A 519 1)"<<endl;
     }
     
     // HLES split (A 561) and QCR (A 563) work with the RANS models (k-epsilon, k-omega) only
@@ -477,12 +477,12 @@ void driver::logic_nhflow()
     if(p->A510==3 && p->A534!=1)
 	pnhfmom = new nhflow_momentum_RK3(p,d,pgc,p6dof,pnhfvrans,pnhfdf);    
     
-    // hydrostatic semi-implicit free surface (A 510 12/13, theta method)
+    // hydrostatic semi-implicit free surface (A 510 11/12/13, theta method)
     if(p->A534==1)
 	pnhfmom = new nhflow_momentum_SI(p,d,pgc,p6dof,pnhfvrans,pnhfdf);
     
     if(p->A534==1 && p->A550>0 && p->mpirank==0)
-    cout<<"A 550: wave breaking is not available with the semi-implicit free surface (A 510 12/13), no breaking"<<endl;
+    cout<<"A 550: wave breaking is not available with the semi-implicit free surface (A 510 11/12/13), no breaking"<<endl;
 
 // mesh refinement (G 1): patches on the NHFLOW grid
     // multi-block grid (G 50 1, DIVEMesh R 20 1): the blocks 1.. are level-0 patches of the hierarchy

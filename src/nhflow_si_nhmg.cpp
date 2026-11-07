@@ -63,7 +63,7 @@ void nhflow_si_nhmg::setup(MPI_Comm cm, int b, int nx, int ny, const int n[4])
     {
     int rank; MPI_Comm_rank(comm,&rank);
     if(rank==0)
-    std::cout<<"!!! NHFLOW A 510 12/13 with A 520 > 0: the multigrid of the coupled system needs a Cartesian partition (the same columns across rank faces) !!!"<<std::endl;
+    std::cout<<"!!! NHFLOW A 510 11/12/13 with A 520 > 0: the multigrid of the coupled system needs a Cartesian partition (the same columns across rank faces) !!!"<<std::endl;
     exit(1);
     }
     }
