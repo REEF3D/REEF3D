@@ -10,7 +10,9 @@
 // of the deformation (displacement and velocity) about the CoG, and without recoil the raw wave;
 // inextensible midline (types 11-13): length of the midline, recoil (axial and lateral momentum,
 // angular momentum), velocity = dd/dt, the velocity at the deformed point from the inverse map; the
-// discrete recoil correction (X 196 2 with X 198, types 1 and 11): velocity = dd/dt and the inverse map with it.
+// discrete recoil correction (X 196 2 with X 198, types 1 and 11): velocity = dd/dt and the inverse map with it;
+// gait control (X 199): the state follows its targets, constant targets give X 195, the curvature
+// bias, and with changing targets midline length, recoil, velocity = dd/dt and the inverse map.
 // Architect: Hans Bihs
 
 // 6DOF_deform.cpp needs only the body-frame triangles of sixdof_geometry
@@ -403,6 +405,245 @@ int main()
                 check(emax<1.0e-5*vmax, "type "+std::to_string(type)+" corrected velocity = dd/dt at t = "+std::to_string(t)+": "+std::to_string(emax/vmax));
                 check(eimax<1.0e-6*vmax, "type "+std::to_string(type)+" corrected velocity at the deformed point at t = "+std::to_string(t)+": "+std::to_string(eimax/vmax));
             }
+        }
+    }
+    
+    // ---- gait control (X 199): the state follows its targets (95 % in t_s, continuous), the phase
+    // is 2 pi int f; constant targets reproduce X 195; the curvature bias; and for the inextensible
+    // midline with targets changing: midline length, recoil, velocity = dd/dt, the inverse map
+    {
+        std::vector<double> xs;
+        const double b = 0.25;
+        hull hf = fish2D(400,b,xs);
+        double A = 0.0, Ax = 0.0;
+        for(size_t i=0; i+1<xs.size(); ++i)
+        {
+            const double wa = fish_w(1.0-xs[i]), wb = fish_w(1.0-xs[i+1]);
+            const double dx = xs[i+1]-xs[i];
+            A  += dx*(wa + wb);
+            Ax += dx*(wa + wb)*0.5*(xs[i]+xs[i+1]);
+        }
+        const double xc = Ax/A;
+        
+        const std::vector<sixdof_deform::gait_target> tg = {{0.5, 1.5, 0.8, 0.3, 0.2}, {1.0, 0.8, 1.2, -0.5, 0.0}};
+        
+        // the state: 95 % of the step from rest in t_s, continuity at the target times
+        {
+            sixdof_geometry g(0);
+            hf.to(g,xc,false);
+            sixdof_deform d(11, 0.125, 1.0, 1.0, 1.0, 2, true);
+            d.setup(g);
+            d.set_gait({{0.5, 1.5, 0.8, 0.3, 0.2}});
+            d.set_time(0.7);
+            check(std::fabs((d.frequency() - 1.5)/(1.0 - 1.5) - 0.05)<1.0e-3, "gait: f 95 % in t_s: "+std::to_string(d.frequency()));
+            check(std::fabs((d.amp_factor() - 0.8)/(1.0 - 0.8) - 0.05)<1.0e-3, "gait: a 95 % in t_s: "+std::to_string(d.amp_factor()));
+            check(std::fabs((d.bias() - 0.3)/(0.0 - 0.3) - 0.05)<1.0e-3, "gait: b 95 % in t_s: "+std::to_string(d.bias()));
+            d.set_time(0.3);
+            check(d.frequency()==1.0 && d.amp_factor()==1.0 && d.bias()==0.0, "gait: start values before the first target");
+            
+            d.set_gait(tg);
+            double fm, fp, bm, bp;
+            d.set_time(1.0 - 1.0e-9); fm = d.frequency(); bm = d.bias();
+            d.set_time(1.0 + 1.0e-9); fp = d.frequency(); bp = d.bias();
+            check(std::fabs(fp - fm)<1.0e-7 && std::fabs(bp - bm)<1.0e-7, "gait: continuous at a target time");
+            d.set_time(6.0);
+            check(std::fabs(d.frequency() - 0.8)<1.0e-9 && std::fabs(d.amp_factor() - 1.2)<1.0e-9 && std::fabs(d.bias() + 0.5)<1.0e-9, "gait: settled on the last targets");
+        }
+        
+        // constant targets equal to the X 195 values: the same body (types 1 and 11)
+        for(int type : {1, 11})
+        {
+            sixdof_geometry g(0), g2(0);
+            hf.to(g,xc,false);
+            hf.to(g2,xc,false);
+            sixdof_deform d(type, 0.125, 1.0, 1.0, 1.0, 2, true), e(type, 0.125, 1.0, 1.0, 1.0, 2, true);
+            d.setup(g);
+            e.setup(g2);
+            e.set_gait({{2.0, 1.0, 1.0, 0.0, 0.0}});
+            double emax = 0.0;
+            for(double t : {0.4, 1.3, 2.5})
+            {
+                d.set_time(t); e.set_time(t);
+                for(int k=0; k<=40; ++k)
+                {
+                    const double x = d.xtail() + k*d.length()/40.0;
+                    double dx, dl, ex, el;
+                    d.displacement(x,0.01,dx,dl);
+                    e.displacement(x,0.01,ex,el);
+                    emax = std::max(emax, std::hypot(dx-ex, dl-el));
+                }
+            }
+            check(emax<1.0e-12, "type "+std::to_string(type)+" gait with the X 195 values = X 195: "+std::to_string(emax));
+        }
+        
+        // the curvature bias alone (a = 0, no recoil, type 1): h = b L s^2/2, curvature b/L
+        {
+            sixdof_geometry g(0);
+            hf.to(g,xc,false);
+            sixdof_deform d(1, 0.125, 1.0, 1.0, 0.0, 2, false);
+            d.setup(g);
+            d.set_gait({{0.0, 1.0, 0.0, 0.4, 0.0}});
+            d.set_time(0.37);
+            double emax = 0.0;
+            for(double s : {0.2, 0.5, 0.9})
+            emax = std::max(emax, std::fabs(d.disp(d.xhead() - s) - 0.4*s*s/2.0));
+            check(emax<1.0e-14, "curvature bias b L s^2/2: "+std::to_string(emax));
+        }
+        
+        // inextensible midline with changing targets
+        for(int type : {1, 11})
+        {
+            sixdof_geometry g(0);
+            hf.to(g,xc,false);
+            sixdof_deform d(type, 0.125, 1.0, 1.0, 0.5, 2, true);
+            d.setup(g);
+            d.set_gait(tg);
+            const std::string ty = "type "+std::to_string(type)+" gait";
+            
+            for(double t : {0.6, 0.9, 1.1, 1.4, 2.2})
+            {
+                d.set_time(t);
+                
+                if(type==11)
+                {
+                    double len = 0.0, px = 0.0, pl = 0.0;
+                    const int K = 4000;
+                    for(int k=0; k<=K; ++k)
+                    {
+                        const double x = d.xtail() + k*d.length()/K;
+                        double dx, dl;
+                        d.displacement(x,0.0,dx,dl);
+                        if(k>0) len += std::hypot(x + dx - px, dl - pl);
+                        px = x + dx; pl = dl;
+                    }
+                    check(std::fabs(len - 1.0)<2.0e-4, ty+" midline length "+std::to_string(len)+" at t = "+std::to_string(t));
+                    
+                    double Dx = 0.0, Dl = 0.0, Vx = 0.0, Vl = 0.0, Lt = 0.0, href = 0.0, vref = 0.0;
+                    const int M = 4000, Q = 16;
+                    for(int k=0; k<M; ++k)
+                    {
+                        const double xx = (k+0.5)/double(M);
+                        const double w = fish_w(1.0-xx);
+                        for(int q=0; q<Q; ++q)
+                        {
+                            const double l = -w + (q+0.5)*2.0*w/Q;
+                            const double m = (2.0*w/Q)*b/M;
+                            const double x = xx - xc;
+                            double dx, dl, vx, vl;
+                            d.displacement(x,l,dx,dl);
+                            d.velocity(x,l,vx,vl);
+                            Dx += m*dx; Dl += m*dl;
+                            Vx += m*vx; Vl += m*vl; Lt += m*((x + dx)*vl - (l + dl)*vx);
+                            href += m*std::hypot(dx,dl);
+                            vref += m*std::hypot(vx,vl);
+                        }
+                    }
+                    check(std::fabs(Dx)<3.0e-3*href && std::fabs(Dl)<3.0e-3*href, ty+" recoil, displacement, t = "+std::to_string(t)+": "+std::to_string(Dx/href)+" "+std::to_string(Dl/href));
+                    check(std::fabs(Vx)<3.0e-3*vref && std::fabs(Vl)<3.0e-3*vref && std::fabs(Lt)<3.0e-3*vref,
+                          ty+" recoil, velocity, t = "+std::to_string(t)+": "+std::to_string(Vx/vref)+" "+std::to_string(Vl/vref)+" "+std::to_string(Lt/vref));
+                }
+                
+                // velocity = dd/dt and the velocity at the deformed point
+                double emax = 0.0, eimax = 0.0, vmax = 0.0;
+                const double dt = 1.0e-6;
+                for(int k=0; k<=40; ++k)
+                for(double l : {-0.03, 0.0, 0.02})
+                {
+                    const double x = d.xtail() + 0.002 + k*(d.length()-0.004)/40.0;
+                    if(std::fabs(l) > fish_w(1.0-(x+xc)) ) continue;
+                    double dxp, dlp, dxm, dlm, vx, vl, ux, ul, dx, dl;
+                    d.set_time(t+dt); d.displacement(x,l,dxp,dlp);
+                    d.set_time(t-dt); d.displacement(x,l,dxm,dlm);
+                    d.set_time(t);
+                    d.velocity(x,l,vx,vl);
+                    d.displacement(x,l,dx,dl);
+                    d.velocity_at(x+dx,l+dl,ux,ul);
+                    emax = std::max(emax, std::hypot((dxp-dxm)/(2.0*dt) - vx, (dlp-dlm)/(2.0*dt) - vl));
+                    eimax = std::max(eimax, std::hypot(ux - vx, ul - vl));
+                    vmax = std::max(vmax, std::hypot(vx,vl));
+                }
+                check(emax<1.0e-5*vmax, ty+" velocity = dd/dt at t = "+std::to_string(t)+": "+std::to_string(emax/vmax));
+                check(eimax<1.0e-6*vmax, ty+" velocity at the deformed point at t = "+std::to_string(t)+": "+std::to_string(eimax/vmax));
+            }
+        }
+    }
+    
+    // ---- gait control: a C-start (bias 3, the tail at 172 deg to the head) on the inextensible
+    // midline: length, recoil, velocity = dd/dt and the inverse map
+    {
+        std::vector<double> xs;
+        const double b = 0.25;
+        hull hf = fish2D(400,b,xs);
+        double A = 0.0, Ax = 0.0;
+        for(size_t i=0; i+1<xs.size(); ++i)
+        {
+            const double wa = fish_w(1.0-xs[i]), wb = fish_w(1.0-xs[i+1]);
+            const double dx = xs[i+1]-xs[i];
+            A  += dx*(wa + wb);
+            Ax += dx*(wa + wb)*0.5*(xs[i]+xs[i+1]);
+        }
+        const double xc = Ax/A;
+        sixdof_geometry g(0);
+        hf.to(g,xc,false);
+        sixdof_deform d(11, 0.125, 1.0, 1.0, 0.0, 2, true);
+        d.setup(g);
+        d.set_gait({{0.2, 1.0, 0.3, 3.0, 0.1}});
+        
+        for(double t : {0.25, 0.32, 0.6})
+        {
+            d.set_time(t);
+            double len = 0.0, px = 0.0, pl = 0.0;
+            const int K = 4000;
+            for(int k=0; k<=K; ++k)
+            {
+                const double x = d.xtail() + k*d.length()/K;
+                double dx, dl;
+                d.displacement(x,0.0,dx,dl);
+                if(k>0) len += std::hypot(x + dx - px, dl - pl);
+                px = x + dx; pl = dl;
+            }
+            check(std::fabs(len - 1.0)<2.0e-4, "C-start midline length "+std::to_string(len)+" at t = "+std::to_string(t));
+            
+            double Vx = 0.0, Vl = 0.0, Lt = 0.0, vref = 0.0, emax = 0.0, eimax = 0.0, vmax = 0.0;
+            const int M = 2000, Q = 8;
+            for(int k=0; k<M; ++k)
+            {
+                const double xx = (k+0.5)/double(M);
+                const double w = fish_w(1.0-xx);
+                for(int q=0; q<Q; ++q)
+                {
+                    const double l = -w + (q+0.5)*2.0*w/Q;
+                    const double m = (2.0*w/Q)*b/M;
+                    const double x = xx - xc;
+                    double dx, dl, vx, vl;
+                    d.displacement(x,l,dx,dl);
+                    d.velocity(x,l,vx,vl);
+                    Vx += m*vx; Vl += m*vl; Lt += m*((x + dx)*vl - (l + dl)*vx);
+                    vref += m*std::hypot(vx,vl);
+                }
+            }
+            check(std::fabs(Vx)<3.0e-3*vref && std::fabs(Vl)<3.0e-3*vref && std::fabs(Lt)<3.0e-3*vref,
+                  "C-start recoil, velocity, t = "+std::to_string(t)+": "+std::to_string(Vx/vref)+" "+std::to_string(Vl/vref)+" "+std::to_string(Lt/vref));
+            
+            const double dt = 1.0e-6;
+            for(int k=0; k<=40; ++k)
+            for(double l : {-0.03, 0.0, 0.02})
+            {
+                const double x = d.xtail() + 0.002 + k*(d.length()-0.004)/40.0;
+                if(std::fabs(l) > fish_w(1.0-(x+xc)) ) continue;
+                double dxp, dlp, dxm, dlm, vx, vl, ux, ul, dx, dl;
+                d.set_time(t+dt); d.displacement(x,l,dxp,dlp);
+                d.set_time(t-dt); d.displacement(x,l,dxm,dlm);
+                d.set_time(t);
+                d.velocity(x,l,vx,vl);
+                d.displacement(x,l,dx,dl);
+                d.velocity_at(x+dx,l+dl,ux,ul);
+                emax = std::max(emax, std::hypot((dxp-dxm)/(2.0*dt) - vx, (dlp-dlm)/(2.0*dt) - vl));
+                eimax = std::max(eimax, std::hypot(ux - vx, ul - vl));
+                vmax = std::max(vmax, std::hypot(vx,vl));
+            }
+            check(emax<1.0e-5*vmax, "C-start velocity = dd/dt at t = "+std::to_string(t)+": "+std::to_string(emax/vmax));
+            check(eimax<1.0e-6*vmax, "C-start velocity at the deformed point at t = "+std::to_string(t)+": "+std::to_string(eimax/vmax));
         }
     }
     

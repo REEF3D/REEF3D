@@ -1504,7 +1504,8 @@ void cfd_amr::ini(lexer *p, fdm *a, ghostcell *pgc)
 
 // --------------------------------------------------------------------- time step
 // the step size of the finest level (all levels step together): the criterion of ietimestep on
-// every patch, the minimum with level 0
+// every patch, the minimum with level 0 (N 57: the band criterion of every patch and the stability
+// limit of its air beyond the band, as on level 0)
 void cfd_amr::timestep(lexer *p, fdm *a, ghostcell *pgc)
 {
     double cu = 1.0e10;
@@ -1521,6 +1522,12 @@ void cfd_amr::timestep(lexer *p, fdm *a, ghostcell *pgc)
     double cvel = 1.0e10;
     // N 54: the gravity-wave limit of the patches (the acceleration term is without gravity)
     double dtg = 1.0e10;
+    // N 57 (with the level set), as cfd_airband_dt.h on level 0: the criterion of every patch with the
+    // velocities of its water and of a band of N 57 of its cells into the air; its air beyond the band
+    // with the stability limit N 58 / max(|u|/dx + |v|/dy + |w|/dz). dta: the step that air allows on
+    // all patches; ab: the largest air speed beyond the band, the largest speed in the water and band
+    const bool airband = (p->N57>0.0 && p->F30>0);
+    double dta = 1.0e10, ab[2] = {0.0,0.0};
 
     for(int id=0; id<npat; ++id)
     {
@@ -1542,9 +1549,23 @@ void cfd_amr::timestep(lexer *p, fdm *a, ghostcell *pgc)
             const double au = (pp->flag1[q]>0) ? fabs(fa->u(i,j,k)) : 0.0;
             const double av = (pp->flag2[q]>0) ? fabs(fa->v(i,j,k)) : 0.0;
             const double aw = (pp->flag3[q]>0) ? fabs(fa->w(i,j,k)) : 0.0;
+            if(!airband)
+            {
             umax = MAX(umax,au);
             vmax = MAX(vmax,av);
             wmax = MAX(wmax,aw);
+            }
+            else
+            {
+                // N 57: a face counts when its level set (the mean of its two cells) is above -N 57 dx
+                const double ph = fa->phi(i,j,k);
+                if(0.5*(ph+fa->phi(i+1,j,k)) > -p->N57*pp->DXP[i+marge])
+                umax = MAX(umax,au);
+                if(pp->j_dir==1 && 0.5*(ph+fa->phi(i,j+1,k)) > -p->N57*pp->DYP[j+marge])
+                vmax = MAX(vmax,av);
+                if(0.5*(ph+fa->phi(i,j,k+1)) > -p->N57*pp->DZP[k+marge])
+                wmax = MAX(wmax,aw);
+            }
             if(in && MAX3(au,av,aw)>vpat[0])
             {
                 vpat[0] = MAX3(au,av,aw);
@@ -1564,7 +1585,7 @@ void cfd_amr::timestep(lexer *p, fdm *a, ghostcell *pgc)
         if(p->count==0)
         vel = MAX(vel,sqrt(2.0*sqrt(p->W20*p->W20+p->W21*p->W21+p->W22*p->W22)*(p->zcoormax-p->zcoormin)));
 
-        double dxm = 1.0e10, dxg = 1.0e10;
+        double dxm = 1.0e10, dxg = 1.0e10, rate = 0.0;
         for(int i=0; i<pp->knox; ++i)
         for(int j=0; j<pp->knoy; ++j)
         for(int k=0; k<pp->knoz; ++k)
@@ -1573,6 +1594,20 @@ void cfd_amr::timestep(lexer *p, fdm *a, ghostcell *pgc)
             continue;
             const double dx = MIN3(pp->DXN[i+marge],pp->DYN[j+marge],pp->DZN[k+marge]);
             dxm = MIN(dxm,dx);
+
+            // N 57: a cell of the air beyond the band, with the velocities of its faces
+            if(airband)
+            {
+                const double dl = MIN3(pp->DXN[i+marge],(pp->j_dir==1) ? pp->DYN[j+marge] : 1.0e10,pp->DZN[k+marge]);
+                if(fa->phi(i,j,k) <= -p->N57*dl)
+                {
+                    const double uc = MAX(fabs(fa->u(i,j,k)),fabs(fa->u(i-1,j,k)));
+                    const double vc = (pp->j_dir==1) ? MAX(fabs(fa->v(i,j,k)),fabs(fa->v(i,j-1,k))) : 0.0;
+                    const double wc = MAX(fabs(fa->w(i,j,k)),fabs(fa->w(i,j,k-1)));
+                    rate = MAX(rate,uc/pp->DXN[i+marge] + ((pp->j_dir==1) ? vc/pp->DYN[j+marge] : 0.0) + wc/pp->DZN[k+marge]);
+                    ab[0] = MAX(ab[0],MAX3(uc,vc,wc));
+                }
+            }
             dxg = MIN(dxg,(pp->j_dir==1) ? dx : MIN(pp->DXN[i+marge],pp->DZN[k+marge]));
             if(p->N50==2)
             {
@@ -1589,6 +1624,13 @@ void cfd_amr::timestep(lexer *p, fdm *a, ghostcell *pgc)
         if(sub)
         cp *= double(1<<c->lev);
         cu = MIN(cu,cp);
+
+        if(airband)
+        {
+        ab[1] = MAX(ab[1],MAX3(umax,vmax,wmax));
+        if(rate>1.0e-20)
+        dta = MIN(dta,p->N58/rate*(sub ? double(1<<c->lev) : 1.0));
+        }
 
         if(p->N54>0.0)
         dtg = MIN(dtg,cfd_gravitywave_dt(p->N54,p->W20,p->W21,p->W22,dxg)*(sub ? double(1<<c->lev) : 1.0));
@@ -1618,6 +1660,11 @@ void cfd_amr::timestep(lexer *p, fdm *a, ghostcell *pgc)
     cu = -g;
     if(p->N54>0.0)
     MPI_Allreduce(MPI_IN_PLACE,&dtg,1,MPI_DOUBLE,MPI_MIN,reef3d_comm());
+    if(airband)
+    {
+    MPI_Allreduce(MPI_IN_PLACE,&dta,1,MPI_DOUBLE,MPI_MIN,reef3d_comm());
+    MPI_Allreduce(MPI_IN_PLACE,ab,2,MPI_DOUBLE,MPI_MAX,reef3d_comm());
+    }
 
     // (P 8) the limiting patch of all ranks, and what limits the step: level 0, or the velocity or
     // the acceleration term of a patch (|F|: the explicit acceleration of the momentum step, gravity
@@ -1632,31 +1679,38 @@ void cfd_amr::timestep(lexer *p, fdm *a, ghostcell *pgc)
         if(p->count>0 && lim[0]<1.0e9)
         {
             ++dtl_n;
-            if(dtg<MIN(dt0,dtp))
+            if(dta<MIN3(dt0,dtp,dtg))
+            ++dtl_air;
+            else if(dtg<MIN(dt0,dtp))
             ++dtl_gw;
             else if(dt0<=dtp)
             ++dtl_l0;
             else if(lim[3]>lim[2])
             ++dtl_acc;
-            dtl_dt += MIN3(dt0,dtp,dtg);
+            dtl_dt += MIN(MIN3(dt0,dtp,dtg),dta);
             dtl_dtv += dtv;
         }
         if(myrank==0 && p->count%p->P12==0 && lim[0]<1.0e9)
         {
             const double gg = sqrt(p->W20*p->W20+p->W21*p->W21+p->W22*p->W22);
-            cout<<"CFD AMR: time step "<<setprecision(3)<<MIN3(dt0,dtp,dtg)<<" s: level 0 allows "<<dt0<<", the patches "<<dtp
+            cout<<"CFD AMR: time step "<<setprecision(3)<<MIN(MIN3(dt0,dtp,dtg),dta)<<" s: level 0 allows "<<dt0<<", the patches "<<dtp
                 <<"; the limiting patch level "<<int(lim[1])<<" at ("<<lim[7]<<", "<<lim[8]<<", "<<lim[9]<<"), dx "<<lim[6]
                 <<": |u|/dx "<<lim[2]<<" 1/s (|u| "<<lim[4]<<"), sqrt(4|F|/dx) "<<lim[3]<<" 1/s (|F| "<<lim[5]<<", g "<<gg<<")"
                 <<"; the velocity term alone would allow "<<dtv;
             if(p->N54>0.0)
             cout<<"; N 54: |F| without gravity, the gravity-wave limit of the patches allows "<<dtg;
+            if(airband)
+            cout<<"; N 57: the patches with their water and band, their air beyond the band allows "<<dta
+                <<" (largest air speed "<<ab[0]<<", in the water and the band "<<ab[1]<<")";
             cout<<endl;
             if(dtl_n>0)
             {
             cout<<"CFD AMR: time step over "<<dtl_n<<" steps: set by level 0 in "<<dtl_l0<<", by the acceleration term of a patch in "<<dtl_acc
-                <<", by the velocity term in "<<dtl_n-dtl_l0-dtl_acc-dtl_gw;
+                <<", by the velocity term in "<<dtl_n-dtl_l0-dtl_acc-dtl_gw-dtl_air;
             if(p->N54>0.0)
             cout<<", by the gravity-wave limit of a patch in "<<dtl_gw;
+            if(airband)
+            cout<<", by the air beyond the band of a patch (N 57) in "<<dtl_air;
             cout<<"; the velocity term alone would allow "<<dtl_dtv/dtl_dt<<" times the steps' sum"<<endl;
             }
         }
@@ -1730,6 +1784,7 @@ void cfd_amr::timestep(lexer *p, fdm *a, ghostcell *pgc)
 
     p->dt = MIN(p->dt,p->N47*cu);
     p->dt = MIN(p->dt,dtg);
+    p->dt = MIN(p->dt,dta);
 
     for(auto q : P)
     {

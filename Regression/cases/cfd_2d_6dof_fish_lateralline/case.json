@@ -1,0 +1,11 @@
+{
+ "base": "cfd_2d_6dof_fish_x198_sym",
+ "np": 2,
+ "steps": 40,
+ "ctrl_add": [
+  "X 194 0 6 0.0"
+ ],
+ "description": "cfd_2d_6dof_fish_x198_sym on 2 ranks with the lateral line (X 194): 12 probes one cell outside the hull on both sides of 6 stations along the body, material points of the body frame that follow the deforming flank; pressure and the fluid velocity relative to the hull (rigid-body motion and deformation) in the body frame, interpolated by the rank that owns the probe and summed, in REEF3D_6DOF_lateralline_0.dat.",
+ "tags": ["quick", "2d", "6dof", "floating", "deform", "singlephase", "mpi"],
+ "covers": ["sixdof_obj::lateral_line_setup, lateral_line_point", "sixdof_obj_cfd::lateral_line"]
+}
