@@ -41,8 +41,10 @@ Architect: Hans Bihs
 //  at t^n, the nonlinear parts N = (kinematic - w, dynamic + g eta), the Adams-Bashforth 2 predictor of the sigma
 //  grid (Euler in the first step of a patch), the Robin rows of the free surface eliminated into the top Laplace
 //  rows, and the corrector passes with N at t^n+1/2 trapezoidal.  The patches have no relaxation zones (B 96),
-//  coastline (fnpf_amr: the patches stay off it), breaking or bodies (refused by fnpf_theta with G 1), so their
-//  Robin rows are those of level 0 with r = 1, T = 0.  The rows of all grids are solved together (lap_core): the
+//  coastline (fnpf_amr: the patches stay off it) or bodies (refused by fnpf_theta with G 1), so their Robin rows are
+//  those of level 0 with r = 1, T = 0.  Breaking (A 350 1-3) as on level 0 (patch 0022): the damping with the
+//  breaking viscosity at the start of the step, level by level (theta_damping), the detection and the filters at its
+//  end (theta_breaking; an edit there: the consistency solve of fnpf_theta).  The rows of all grids are solved together (lap_core): the
 //  in-column couplings of the sz stencils of 5 and 7 points (xcol) are in the operator (lap_apply) and lumped into
 //  the k-1 coupling in the V-cycles of the preconditioner (lap_prepare), as in REEFMG.  The state of a step is
 //  made consistent between the grids after each update (theta_surface: restriction into the covered columns, the
@@ -106,6 +108,7 @@ void fnpf_amr::theta_predict(lexer *p0p, ghostcell *pgc, double theta, double be
 
         if(pc->th==nullptr)
         pc->th = new fnpf_amr_theta(pp);
+        theta_mode = true;
         fnpf_amr_theta &T = *pc->th;
 
         if(T.wsz==nullptr)
@@ -119,8 +122,17 @@ void fnpf_amr::theta_predict(lexer *p0p, ghostcell *pgc, double theta, double be
         const double dt = p->dt;
         slice4 &ek = *pc->ek, &fk = *pc->fk, &erk1 = *pc->erk1, &frk1 = *pc->frk1;
 
-        // w^n (a new patch has no Fz of its own yet: from Fi as at the end of a step)
+        // w^n (a new patch has no Fz of its own yet: from Fi as at the end of a step; Fi is that of the surface
+        // before the damping, as w^n of level 0)
         pc->pf->fsfwvel(p,c,pgc,c->eta,c->Fifsf);
+
+        // eta at the start of the step (breaking detection, after the damping)
+        if(brk)
+        {
+            slice4 &en = *pc->en;
+            SLICELOOP4
+            en(i,j) = c->eta(i,j);
+        }
 
         pc->pf->kfsfbc(p,c,pgc);
         SLICELOOP4
@@ -309,6 +321,7 @@ void fnpf_amr::theta_solve(lexer *p, fdm_fnpf *c, ghostcell *pgc, double *f, int
     lap_kind = 0;
     lap_core(p,pgc);
 
+
     // the patches: Fs and w^n+1 of the Robin rows
     {
     comms_off guard(pgc);
@@ -491,4 +504,106 @@ void fnpf_amr::theta_end(lexer *p0p, ghostcell *pgc)
     }
 
     tm[0] += MPI_Wtime()-t0;
+}
+
+// A 350 1-3: the damping of eta and Fifsf with the breaking viscosity at the start of the step, as fnpf_theta on level 0
+// (patch 0022: a source of the step, no solve after it), level by level: the cells around the patches of a level hold
+// the damped values of the coarser grid (level_damping), then all grids consistent and the derivatives of the patches
+bool fnpf_amr::theta_damping(lexer *p, ghostcell *pgc)
+{
+    if(!active() || !brk)
+    return false;
+
+    double vbm = 0.0;
+    for(auto q : P)
+    {
+        fnpf_amr_patch *pc = FP(q);
+        for(int ii=EXT; ii<EXT+q->nx; ++ii)
+        for(int jj=EY; jj<EY+q->ny; ++jj)
+        vbm = MAX(vbm,fabs(pc->c->vb(ii,jj)));
+    }
+    vbm = pgc->globalmax(vbm);
+
+    if(vbm<=0.0)
+    return false;
+
+    const double t0 = MPI_Wtime();
+
+    auto sel = [&](int g, int m) -> slice& { return sval(g,2,m); };
+    Se0 = &c0->eta;
+    Sf0 = &c0->Fifsf;
+    stg = 2;
+
+    for(int l=1; l<=maxlev; ++l)
+    {
+        fill_sl(l,2,7640+l,sel);
+
+        for(int id : lev[l])
+        {
+            walls_sl(*FP(id),sel(id,0),gcval_eta);
+            walls_sl(*FP(id),sel(id,1),gcval_fifsf);
+        }
+
+        level_damping(l,pgc,2,0,gcval_eta,1.0);
+        level_damping(l,pgc,2,1,gcval_fifsf,1.0);
+    }
+
+    tm[0] += MPI_Wtime()-t0;
+
+    theta_surface(p,pgc,c0->eta,c0->Fifsf,2);
+
+    comms_off guard(pgc);
+    for(auto q : P)
+    {
+        fnpf_amr_patch *pc = FP(q);
+        pc->pf->fsfdisc(pc->pp,pc->c,pgc,pc->c->eta,pc->c->Fifsf);
+    }
+
+    return true;
+}
+
+// A 350 1-3: the breaking detection and the filters (A 352) on the patches at the end of the step, as fnpf_theta on
+// level 0 (the cells around the patches then take the viscosity of their source grid); true if eta or Fifsf of a patch
+// changed: all grids consistent again, and fnpf_theta makes its consistency solve
+bool fnpf_amr::theta_breaking(lexer *p, ghostcell *pgc)
+{
+    if(!active() || !brk)
+    return false;
+
+    {
+    comms_off guard(pgc);
+    for(auto q : P)
+    {
+        fnpf_amr_patch *pc = FP(q);
+        lexer *p = pc->pp;
+        fdm_fnpf *c = pc->c;
+        slice4 &e1 = *pc->erk1, &f1 = *pc->frk1;
+        SLICELOOP4
+        {
+            e1(i,j) = c->eta(i,j);
+            f1(i,j) = c->Fifsf(i,j);
+        }
+    }
+    }
+
+    patch_breaking(-1,pgc,2,1.0);
+
+    double emax = 0.0;
+    for(auto q : P)
+    {
+        fnpf_amr_patch *pc = FP(q);
+        fdm_fnpf *c = pc->c;
+        slice4 &e1 = *pc->erk1, &f1 = *pc->frk1;
+        for(int ii=EXT; ii<EXT+q->nx; ++ii)
+        for(int jj=EY; jj<EY+q->ny; ++jj)
+        emax = MAX(emax, MAX(fabs(c->eta(ii,jj)-e1(ii,jj)), fabs(c->Fifsf(ii,jj)-f1(ii,jj))));
+    }
+    emax = pgc->globalmax(emax);
+
+    if(emax<=0.0)
+    return false;
+
+    theta_surface(p,pgc,c0->eta,c0->Fifsf,2);
+
+    return true;
 }

@@ -70,7 +70,8 @@ using namespace std;
 // and the Robin rows of all grids are solved together in the composite solve of fnpf_amr, with the couplings of the sz
 // stencil beyond k-1 in its operator and lumped into k-1 in its V-cycles; after each update the state of all grids is
 // made consistent (restriction, the cells around the patches). N 51 3 with the stability step of the finest cells. The
-// patches without breaking, bodies, wetting-drying (G 30 0) or subcycling (refused).
+// patches with breaking A 350 1-3 (damping at the start of the step, detection and filters at its end, as level 0),
+// without bodies, wetting-drying (G 30 0) or subcycling (refused).
 //
 // The linear part of the free-surface conditions, eta_t = w and Fifsf_t = -g eta, is integrated with the
 // theta method, the nonlinear rest N (Zakharov terms, wind) at t^n+1/2:

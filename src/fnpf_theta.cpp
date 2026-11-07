@@ -112,10 +112,10 @@ fnpf_theta::fnpf_theta(lexer *p, fdm_fnpf *c, ghostcell *pgc) : fnpf_ini(p,c,pgc
     if(p->A343==3)                  {bad=1; if(p->mpirank==0) cout<<"A 310 5: wetting-drying A 343 0, 1 or 2 (A 343 3 not tested: unstable in Ting & Kirby)"<<endl;}
     if(p->X10>0 && lsolv==2)        {bad=1; if(p->mpirank==0) cout<<"A 310 5: resolved bodies (X 10) with REEFMG only (A 306 1)"<<endl;}
     if(p->X10>0 && p->A302<1)       {bad=1; if(p->mpirank==0) cout<<"A 310 5: resolved bodies (X 10) need corrector passes (A 302 >= 1)"<<endl;}
-    // mesh refinement (fnpf_amr_theta.cpp): the patches without breaking, coastline or bodies
+    // mesh refinement (fnpf_amr_theta.cpp): the patches without coastline or bodies
     if(p->G1>0 && lsolv==2)         {bad=1; if(p->mpirank==0) cout<<"A 310 5: mesh refinement (G 1) with REEFMG only (A 306 1)"<<endl;}
     if(p->G1>0 && p->X10>0)         {bad=1; if(p->mpirank==0) cout<<"A 310 5: mesh refinement (G 1) without resolved bodies (X 10 0)"<<endl;}
-    if(p->G1>0 && p->A350>0)        {bad=1; if(p->mpirank==0) cout<<"A 310 5: mesh refinement (G 1) without breaking (A 350 0)"<<endl;}
+    if(p->G1>0 && p->A350>3)        {bad=1; if(p->mpirank==0) cout<<"A 310 5: mesh refinement (G 1) with breaking A 350 0-3 (as RK3)"<<endl;}
     if(p->G1>0 && p->G30==1)        {bad=1; if(p->mpirank==0) cout<<"A 310 5: mesh refinement (G 1) with the patches off the coastline (G 30 0)"<<endl;}
     if(p->G1>0 && p->G7==1)         {bad=1; if(p->mpirank==0) cout<<"A 310 5: mesh refinement (G 1) without subcycling (G 7 0)"<<endl;}
     if(p->G1>0 && p->A328==1)       {bad=1; if(p->mpirank==0) cout<<"A 310 5: mesh refinement (G 1) with explicit sigma cross terms (A 328 0)"<<endl;}
@@ -182,8 +182,16 @@ void fnpf_theta::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, con
     {fnpf_prof::scope ps_(fnpf_prof::damping); pf->damping(p,c,pgc,c->Fifsf,gcval_fifsf,1.0);}
     {fnpf_prof::scope ps_(fnpf_prof::gc2d); pgc->gcsl_start4(p,c->eta,gcval_eta);}
     {fnpf_prof::scope ps_(fnpf_prof::gc2d); pgc->gcsl_start4(p,c->Fifsf,gcval_fifsf);}
-    {fnpf_prof::scope ps_(fnpf_prof::fsfdisc); pf->fsfdisc(p,c,pgc,c->eta,c->Fifsf);}
     }
+    
+    // mesh refinement: the patches level by level with the damped values of the coarser grid around them, then the
+    // covered columns of level 0 from the patches
+    bool damped_amr = false;
+    if(pamr!=nullptr)
+    {fnpf_prof::scope ps_(fnpf_prof::damping); damped_amr = pamr->theta_damping(p,pgc);}
+    
+    if(vbm>0.0 || damped_amr)
+    {fnpf_prof::scope ps_(fnpf_prof::fsfdisc); pf->fsfdisc(p,c,pgc,c->eta,c->Fifsf);}
     }
     
     SLICELOOP4
@@ -368,6 +376,11 @@ void fnpf_theta::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, con
     {fnpf_prof::scope ps_(fnpf_prof::gc2d); pgc->gcsl_start4(p,c->Fifsf,gcval_fifsf);}
     }
     
+    // mesh refinement: the detection and the filters on the patches (an edit there: the consistency solve below)
+    bool edit_amr = false;
+    if(pamr!=nullptr)
+    {fnpf_prof::scope ps_(fnpf_prof::breaking); edit_amr = pamr->theta_breaking(p,pgc);}
+    
     {fnpf_prof::scope ps_(fnpf_prof::inflow); pflow->inflow_fnpf(p,c,pgc,c->Fi,c->Uin,c->Fifsf,c->eta);}
     {fnpf_prof::scope ps_(fnpf_prof::fsfdisc); pf->fsfdisc(p,c,pgc,c->eta,c->Fifsf);}
     {fnpf_prof::scope ps_(fnpf_prof::sigma); sigma_update(p,c,pgc,pf,c->eta);}
@@ -387,7 +400,7 @@ void fnpf_theta::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, con
     emax = pgc->globalmax(emax);
     escale = pgc->globalmax(escale);
     
-    if(emax>1.0e-12*MAX(escale,1.0e-20))
+    if(emax>1.0e-12*MAX(escale,1.0e-20) || edit_amr)
     {
     {fnpf_prof::scope ps_(fnpf_prof::laplace); plap->start(p,c,pgc,psolv,pf,c->Fi,c->Fifsf);}
     {fnpf_prof::scope ps_(fnpf_prof::gc3d); pgc->start7V(p,c->Fi,c->bc,gcval);}

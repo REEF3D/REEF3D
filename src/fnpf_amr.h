@@ -106,7 +106,7 @@ using namespace std;
 //  coastline may lie outside it.
 //
 //  Scope of this version: refinement G 1 levels, G 10 boxes, G 11 boxes without
-//  refinement, G 4 tile width, G 12 zone around the body, G 20-23 adaptive flags; RK3 (A 310 3) or theta-Robin (A 310 5, fnpf_amr_theta.cpp: no breaking, bodies, G 30 1
+//  refinement, G 4 tile width, G 12 zone around the body, G 20-23 adaptive flags; RK3 (A 310 3) or theta-Robin (A 310 5, fnpf_amr_theta.cpp: no bodies, G 30 1
 //  or G 7 1), wetting-drying
 //  A 343 0-3 (patches off the coast; A 343 1 with G 30 1 also over it), breaking A 350 0-3, X 10 0 or 1, no ice (A 380 0),
 //  A 324 (Picard on the cross-derivatives) and A 328 1 (in the rows), 3D and 2D grids (Cartesian).
@@ -185,7 +185,7 @@ public:
     void step_end(lexer*, fdm_fnpf*, ghostcell*);
 
     // theta-Robin (A 310 5, fnpf_theta; fnpf_amr_theta.cpp).  The patches take the step of level 0 with the
-    // same formulas (no relaxation zones, coastline, breaking or bodies on the patches), the Robin rows of
+    // same formulas (no relaxation zones, coastline or bodies on the patches; breaking A 350 1-3), the Robin rows of
     // all grids are solved together (lap_core, with the in-column couplings xcol of the sz stencil):
     //   theta_predict    the tendencies at t^n, the nonlinear parts N, the predictor (s 0) and R of pass 0
     //   theta_surface    the state s (0 predictor, 1 corrector, 2 end of the step) of all grids consistent:
@@ -200,6 +200,11 @@ public:
     void theta_corrector(lexer*, ghostcell*, slice&, slice&, double theta, double beta);
     void theta_final(lexer*, ghostcell*, double theta);
     void theta_end(lexer*, ghostcell*);
+    // A 350 1-3: the damping of eta and Fifsf of the patches with their breaking viscosity at the start of the step,
+    // level by level after level 0 (returns true if a patch damped); the detection and the filters on the patches
+    // at the end of the step (true if they changed eta or Fifsf of a patch: consistency solve)
+    bool theta_damping(lexer*, ghostcell*);
+    bool theta_breaking(lexer*, ghostcell*);
 
     // the Laplace solver for fnpf_RK3: level 0 assembled by plap0, then all grids together
     fnpf_laplace* laplace(fnpf_laplace *outer, fnpf_laplace_cds2 *plap0);
@@ -449,6 +454,7 @@ private:
     // coarser grid held), detection on the patch, the viscosity of the cells around the patches
     // from the source grid
     bool brk = false;
+    bool theta_mode = false;        // A 310 5: the detection is at the end of the step (theta_breaking), not in lap_solve
     void level_damping(int, ghostcell*, int, int, int, double);
     void patch_breaking(int, ghostcell*, int, double);
 
