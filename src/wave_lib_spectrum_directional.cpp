@@ -25,6 +25,10 @@ Author: Widar W. Wang
 #include"ghostcell.h"
 #include <ctime>        // std::time
 #include <cstdlib>      // std::rand, std::srand
+#include <random>
+#include <algorithm>
+#include <numeric>
+#include <vector>
 
 void wave_lib_spectrum::directional_spreading(lexer* p) // modified
 {
@@ -155,9 +159,22 @@ void wave_lib_spectrum::directional_spreading(lexer* p) // modified
         // End of B85==11 special handling
         // Below: Standard directional spreading (analytical methods)
         // =================================================================
-        else if(p->B84==1)
+        else if(p->B136==4 && p->B84!=2)
+        {
+            if(p->mpirank==0)
+            cout<<"!!! B 136 4 (equal energy directions) needs B 84 2 (equal energy frequencies) !!!"<<endl;
+            exit(1);
+        }
+
+        // B 136 1, 2, 3: B 133 directions of equal width per frequency, also for B 84 2 (it gave unidirectional
+        // waves at 0 deg). The sector B 132 is relative to B 131 here
+        else if(p->B136!=4)
         {
             dbeta = (p->B132_e - p->B132_s) / double(p->B133 - 1);
+
+            if(p->mpirank==0)
+            cout<<"directional spreading: B 136 "<<p->B136<<", sector "<<(p->B131+p->B132_s)*180.0/PI<<" to "<<(p->B131+p->B132_e)*180.0/PI
+                <<" deg (B 132 relative to B 131 "<<p->B131*180.0/PI<<" deg)"<<endl;
 
             // calc beta[i]
             count = 0;
@@ -291,6 +308,9 @@ void wave_lib_spectrum::directional_spreading(lexer* p) // modified
                   sumD += Di[count+q]*dbeta;
                 }
 
+                if(n==0 && p->mpirank==0 && sumD < 0.9)
+                cout<<"!!! the sector B 132 holds "<<100.0*sumD<<" % of the spreading function at the first frequency !!!"<<endl;
+
                 for(q = 0; q < p->B133; ++q)
                 {
                   if(sumD>0.0)
@@ -314,254 +334,133 @@ void wave_lib_spectrum::directional_spreading(lexer* p) // modified
 
         else if(p->B84==2 && p->B136==4)
         {
-            double DD, ddb, w, ddw, sum, Dcdf_s, Dcdf_e;
-            double cdf_s, cdf_e, d_s, d_e, d_low, d_high, cdf_low, cdf_high;
-            int m, NR, ND;
+            // equal energy directions: every component has the energy of its frequency (equal energy, B 84 2) and
+            // takes the direction at the middle of one of B 133 intervals of equal probability of D(beta|w), the
+            // distribution of its own frequency, so a spreading that changes with frequency (B 135) is kept.
+            // Each block of B 133 neighbouring frequencies holds every interval once, in a random order. The
+            // sector B 132 is absolute here (in the frame of the model), as before.
+            // Before: the directions of the levels 0.5 % ... 99.5 % of the cdf, the end levels included (spreading
+            // about 6 % too wide), one D(beta) for all frequencies with the frequency running along the
+            // directions (B 135 gave the wrong spreading and mean), and a shuffle over all frequencies.
+            const int Nd = p->B133, N = p->wN;
 
-            ddb=0.01;
-            ND= (int) ((p->B132_e - p->B132_s) / ddb)+1;
-
-            // integration of the spectrum
-            p->Darray(Dn,ND);
-            p->Darray(Dcdf,ND);
-            p->Darray(betat,ND);
-            p->Darray(Ddee,p->B133);
-
-            w=ws;
-            ddw=(we-ws)/double(ND-1);
-            for(q = 0; q < ND; ++q)
-            {
-                betat[q]=p->B132_s+double (q)*ddb;
-                DD=spreading_function(p,betat[q],w);
-                Dn[q]=DD;
-                w+=ddw;
-            }
-
-            sum=0.0;
-            for(n=0;n<ND;++n)
-            {
-                sum+=ddb*Dn[n];
-                Dcdf[n]=sum;
-            }
-
-            // Create 0.5% - 99.5% caps of the energy
-            Dcdf_s = 0.005*Dcdf[ND-1];
-            Dcdf_e = 0.995*Dcdf[ND-1];
-
-            for(m=0;m<ND;++m)
-            {
-                if(Dcdf[m]<=Dcdf_s)
-                {
-                    cdf_low=Dcdf[m];
-                    d_low=betat[m];
-                }
-            }
-
-            for(m=(ND-1);m>=0;--m)
-            {
-                if(Dcdf[m]>=Dcdf_s)
-                {
-                    cdf_high=Dcdf[m];
-                    d_high=betat[m];
-                }
-            }
-
-            if(d_low==d_high)
-            {
-                d_s=d_low;
-            }
-
-            if(d_low!=d_high)
-            {
-                d_s=(Dcdf_s-cdf_low)*(d_high-d_low)/(cdf_high-cdf_low)+d_low;
-            }
-
-            for(m=0;m<ND;++m)
-            {
-                if(Dcdf[m]<=Dcdf_e)
-                {
-                    cdf_low=Dcdf[m];
-                    d_low=betat[m];
-                }
-            }
-
-            for(m=(ND-1);m>=0;--m)
-            {
-                if(Dcdf[m]>=Dcdf_e)
-                {
-                    cdf_high=Dcdf[m];
-                    d_high=betat[m];
-                }
-            }
-
-            if(d_low==d_high)
-            {
-                d_e=d_high;
-            }
-
-            if(d_low!=d_high)
-            {
-                d_e=(Dcdf_e-cdf_low)*(d_high-d_low)/(cdf_high-cdf_low)+d_low;
-            }
-
-            // Create equal energy bins cdf_s:(cdf_e-cdf_s)/double (p->B133-1):cdf_e
-            for(n=0;n<p->B133;++n)
-            {
-                Ddee[n] = Dcdf_s+double (n)*(Dcdf_e-Dcdf_s)/double (p->B133-1);
-            }
-
-            // Interpolate the corresponding angles at each equal energy bin
-            for(n=0;n<p->B133;++n)
-            {
-                for(m=0;m<ND;++m)
-                {
-                    if(Dcdf[m]<=Ddee[n])
-                    {
-                        cdf_low=Dcdf[m];
-                        d_low=betat[m];
-                    }
-                }
-
-                for(m=(ND-1);m>=0;--m)
-                {
-                    if(Dcdf[m]>=Ddee[n])
-                    {
-                        cdf_high=Dcdf[m];
-                        d_high=betat[m];
-                    }
-                }
-
-                if(d_low==d_high)
-                {
-                    beta[n]=d_low;
-                }
-
-                if(d_low!=d_high)
-                {
-                    beta[n]=(Ddee[n]-cdf_low)*(d_high-d_low)/(cdf_high-cdf_low)+d_low;
-                }
-
-                beta_n[n]=beta[n];
-                Di_n[n]=spreading_function(p, beta[n], wi[n]);
-
-            }
-
-            // p->B133 divided by p->wN must be an interger (NR was unset otherwise: out-of-bounds writes or no angles)
-            if(p->B133<1 || p->B133>p->wN || p->wN % p->B133!=0)
+            if(Nd<1 || Nd>N || N % Nd!=0)
             {
                 if(p->mpirank==0)
-                cout<<"!!! B 133 (number of directions "<<p->B133<<") must divide the number of components "<<p->wN<<" !!!"<<endl;
+                cout<<"!!! B 133 (number of directions "<<Nd<<") must divide the number of components "<<N<<": the next ones are "
+                    <<(N/std::max(Nd,1))*Nd<<" and "<<(N/std::max(Nd,1)+1)*Nd<<" for B 86 !!!"<<endl;
                 exit(1);
             }
-            
-            NR=int(p->wN/p->B133);
 
-            // create an angular array of the same length as the frequency array
-            count=0;
-            for(n = 0; n <NR; ++n)
+            const double ddb = 0.002;
+            const int ND = std::max(int((p->B132_e - p->B132_s) / ddb) + 1, 2);
+            const double hb = (p->B132_e - p->B132_s)/double(ND-1);
+            const bool perfreq = (p->B130==2 && p->B134<=0.0);
+
+            std::vector<double> bt(ND), cdfb(ND,0.0);
+
+            for(int m=0; m<ND; ++m)
+            bt[m] = p->B132_s + double(m)*hb;
+
+            auto build = [&](const double w)
             {
-                for(q = 0; q < p->B133; ++q)
+                double prev = spreading_function(p,bt[0],w);
+                cdfb[0] = 0.0;
+
+                for(int m=1; m<ND; ++m)
                 {
-                    beta[count] = beta[q];
-                    sinbeta[count] = sin(beta[count]);
-                    cosbeta[count] = cos(beta[count]);
-                    ++count;
+                    const double v = spreading_function(p,bt[m],w);
+                    cdfb[m] = cdfb[m-1] + 0.5*(prev+v)*hb;
+                    prev = v;
                 }
-            }
+            };
 
-            // randomly re-shuffle the angular array
-
-            if(p->B138>0)
-            srand(p->B138_2);
-
-            if(p->B138==0)
-            srand((unsigned)time(0));
-            
-            for(n = 0; n < p->wN; ++n)
+            auto invert = [&](const double u)
             {
-                // introduce random index
-                int index=rand() % p->wN;
-                // keep swaping with the random array to avoid repeating
-                double temp=beta[n];
-                beta[n] = beta[index];
-                beta[index]=temp;
-            }
+                const double v = u*cdfb[ND-1];
+                int m = int(std::lower_bound(cdfb.begin(),cdfb.end(),v) - cdfb.begin());
+                m = std::min(std::max(m,1),ND-1);
+                const double h = cdfb[m]-cdfb[m-1];
 
-            count=0;
-            for(n = 0; n < p->wN; ++n)
+                return h>0.0 ? bt[m-1] + (bt[m]-bt[m-1])*(v-cdfb[m-1])/h : bt[m];
+            };
+
+            // the levels at the peak frequency, for the log and REEF3D_spreading-function.dat
+            build(p->wwp);
+
+            if(p->mpirank==0)
             {
-                beta[count] = beta[n];
-                sinbeta[count] = sin(beta[count]);
-                cosbeta[count] = cos(beta[count]);
-                ++count;
+                cout<<"directional spreading: B 136 4, "<<Nd<<" equal energy directions, sector "<<p->B132_s*180.0/PI<<" to "<<p->B132_e*180.0/PI
+                    <<" deg (B 132 absolute), mean B 131 "<<p->B131*180.0/PI<<" deg"<<endl;
+
+                if(cdfb[ND-1] < 0.9)
+                cout<<"!!! the sector B 132 holds "<<100.0*cdfb[ND-1]<<" % of the spreading function: with B 136 4, B 132 is in the frame of the model, not relative to B 131 !!!"<<endl;
             }
 
-            count=0;
-            for(n = 0; n < p->wN; ++n)
+            for(int q=0; q<Nd; ++q)
             {
-                wi[count] = wi[n];
-                dw[count] = dw[n];
-                ki[count] = ki[n];
-                ++count;
+                beta_n[q] = invert((double(q)+0.5)/double(Nd));
+                Di_n[q] = spreading_function(p,beta_n[q],p->wwp);
             }
 
-            double* Si_temp;
-            p->Darray(Si_temp, p->wN);
+            std::mt19937_64 gen(p->B138>0 ? (unsigned long long)p->B138_2 : (unsigned long long)time(0));
+            std::vector<int> lvl(Nd);
+            std::iota(lvl.begin(),lvl.end(),0);
 
-            for(n = 0; n < p->wN; ++n)
-            Si_temp[n] = Si[n];
+            if(!perfreq)
+            build(p->wwp);
 
-            // multiply S with D
-            count = 0;
-            for(n = 0; n < p->wN; ++n)
+            for(n = 0; n < N; ++n)
             {
-                Di[count]=spreading_function(p, beta[count], wi[count]);
-                Si[count] = Si_temp[n] * Di[count];
-                ++count;
-            }
+                if(n % Nd==0)
+                std::shuffle(lvl.begin(),lvl.end(),gen);
 
-            p->del_Darray(Si_temp, p->wN);
+                if(perfreq)
+                build(wi[n]);
+
+                beta[n] = invert((double(lvl[n % Nd])+0.5)/double(Nd));
+                sinbeta[n] = sin(beta[n]);
+                cosbeta[n] = cos(beta[n]);
+
+                // Si for the component file; the amplitudes use Sn (equal energy)
+                Di[n] = spreading_function(p,beta[n],wi[n]);
+                Si[n] = Sn[n]*Di[n];
+            }
         }
     }
 }
 
 double wave_lib_spectrum::spreading_function(lexer* p, double beta, double w)
 {
+    // D(beta) normalised to 1 over the circle, the difference to the mean direction B 131 taken in (-pi, pi],
+    // so that a sector given past -180 or 180 deg still finds the peak
     double D = 0.0;
+    const double d = atan2(sin(beta - p->B131), cos(beta - p->B131));
 
-    // PNJ
+    // B 130 1: cos^s(beta - B 131) within 90 deg of B 131, the form of SWAN (DSPR POWER, m = B 134);
+    // any s > 0. The factor (2/pi) was the normalisation of s = 2 only
     if(p->B130==1)
     {
-        s_f = p->B134; // CAN BE ANY POSITIVE INTEGER
+        s_f = p->B134;
 
-        if((beta - p->B131) <= PI / 2.0 && (beta - p->B131) >= -PI / 2.0)
-            D = (2.0 / PI) * pow(cos(beta - p->B131), s_f);
-
-        if((beta - p->B131) >= PI / 2.0 || (beta - p->B131) <= -PI / 2.0)
-            D = 0.0;
+        if(fabs(d) < 0.5*PI && s_f > 0.0)
+        D = exp(lgamma(0.5*s_f + 1.0) - lgamma(0.5*s_f + 0.5))/sqrt(PI) * pow(cos(d), s_f);
     }
 
-    // Mitsuyasu
+    // B 130 2: cos^2s((beta - B 131)/2) over the circle (Mitsuyasu, Longuet-Higgins). B 134 > 0 gives s, otherwise
+    // s of the frequency from the peak value B 135 (Goda: (w/wp)^5 below the peak, (w/wp)^-2.5 above it).
+    // G0 from log-gamma: Gamma(2s+1) overflowed above s = 85, which gave no waves (NaN)
     if(p->B130==2)
     {
+        if(p->B134 > 0.0)
+        s_f = p->B134;
 
-        if(p->B134 <= 0.0)  // DON NOT USE THIS OPTION B 135, IT IS WRONG
-        {
-            if(w <= p->wwp)
-                s_f = p->B135 * pow(w / p->wwp, 5.0);
+        else
+        s_f = (w <= p->wwp) ? p->B135 * pow(w / p->wwp, 5.0) : p->B135 * pow(w / p->wwp, -2.5);
 
-            if(w > p->wwp)
-                s_f = p->B135 * pow(w / p->wwp, -2.5);
-        }
+        G_0 = exp((2.0*s_f - 1.0)*log(2.0) - log(PI) + 2.0*lgamma(s_f + 1.0) - lgamma(2.0*s_f + 1.0));
 
-        if(p->B134 > 0.0)  // USE THIS OPTION B 134, IN THIS CASE, <=85
-        {
-            s_f = p->B134;
-        }
-
-        G_0 = pow(2.0, 2.0 * s_f - 1) / PI * pow(tgamma(s_f + 1.0), 2.0) / tgamma(2.0 * s_f + 1.0);
-
-        D = G_0 * pow(cos((beta - p->B131) / 2.0), 2.0 * s_f);
+        D = G_0 * pow(fabs(cos(0.5*d)), 2.0 * s_f);
     }
 
     return D;
