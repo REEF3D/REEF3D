@@ -53,7 +53,7 @@ sflow_momentum_func::sflow_momentum_func(lexer *p, fdm2D *b, ghostcell *pgc, sfl
                                          sflow_reconstruct *pprecon, sflow_diffusion *ppdiff, sflow_pressure *pppress, 
                                          solver2D *ppsolv, solver2D *pppoissonsolv, ioflow *ppflow, sflow_fsf *ppfsf, 
                                          sflow_forcing *ppsfdf, sixdof *pp6dof)
-                                        : UHDIFF(p),VHDIFF(p),WHDIFF(p),Un(p),Vn(p),etaS(p)
+                                        : UHDIFF(p),VHDIFF(p),WHDIFF(p),Un(p),Vn(p),etaS(p),zeta(p)
 {
     phll = pphll;
     pss = ppss;
@@ -101,6 +101,9 @@ sflow_momentum_func::sflow_momentum_func(lexer *p, fdm2D *b, ghostcell *pgc, sfl
     
     nhp  = (p->A220>=1 && p->A220<=3)?1:0;
     bous = (p->A220==4)?1:0;
+    
+    // well-balanced pressure patch (X 10 3, X 402 1)
+    wbpatch = (p->X10==3 && p->X402==1)?1:0;
     
     if(bous==1)
     {
@@ -469,8 +472,43 @@ void sflow_momentum_func::reconstruct(lexer *p, fdm2D *b, ghostcell *pgc, slice 
     starttime=pgc->timer();
     
     // eta and face water depth
+    if(wbpatch==0)
+    {
     precon->reconstruct_x(p, pgc, b, b->eta, b->ETAs, b->ETAn);
     precon->reconstruct_y(p, pgc, b, b->eta, b->ETAe, b->ETAw);
+    }
+    
+    // X 402 1: reconstruct the pressure-head surface zeta = eta - pbh, which is flat under a
+    // hull at rest, and recover eta at the faces with the face pressure head (arithmetic mean,
+    // the same as in sflow_flux_build_f and the hydrostatic source); then the HLL dissipation
+    // (Dn - Ds = zeta_n - zeta_s) and the hydrostatic flux vanish for the equilibrium depression
+    if(wbpatch==1)
+    {
+    for(i=p->imin; i<p->imin+p->imax; ++i)
+    for(j=p->jmin; j<p->jmin+p->jmax; ++j)
+    zeta(i,j) = b->eta(i,j) - b->pbh(i,j);
+    
+    precon->reconstruct_x(p, pgc, b, zeta, b->ETAs, b->ETAn);
+    precon->reconstruct_y(p, pgc, b, zeta, b->ETAe, b->ETAw);
+    
+    double ps;
+    
+    SLICELOOP1
+    {
+    ps = 0.5*(b->pbh(i,j) + b->pbh(i+1,j));
+    b->ETAs(i,j) += ps;
+    b->ETAn(i,j) += ps;
+    }
+    
+    if(p->j_dir==1)
+    SLICELOOP2
+    {
+    ps = 0.5*(b->pbh(i,j) + b->pbh(i,j+1));
+    b->ETAe(i,j) += ps;
+    b->ETAw(i,j) += ps;
+    }
+    }
+    
     precon->reconstruct_WL(p, pgc, b);
     
     // velocities: only the normal components enter the signal speeds and fluxes

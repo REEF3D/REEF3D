@@ -108,7 +108,7 @@ void sflow_amr_ship::isource2D(lexer *p, fdm2D *b, ghostcell *pgc)
 {
     double dfdx;
 
-    if(p->X10==3)
+    if(p->X10==3 && p->X402==0)
     SLICELOOP4
     {
     dfdx = (press(i+1,j)-press(i-1,j))/(p->DXP[IP]+p->DXP[IM1]);
@@ -132,7 +132,7 @@ void sflow_amr_ship::jsource2D(lexer *p, fdm2D *b, ghostcell *pgc)
 {
     double dfdy;
 
-    if(p->X10==3)
+    if(p->X10==3 && p->X402==0)
     SLICELOOP4
     {
     dfdy = (press(i,j+1)-press(i,j-1))/(p->DYP[JP]+p->DYP[JM1]);
@@ -209,6 +209,11 @@ void sflow_amr::ship_fields(sflow_amr_patch &c, bool withpress)
     if(p0->geo_curv==1)
     {
         ship_fields_curv(c,withpress);
+        
+        // X 402 1: pressure head of the patch, as below
+        if(withpress)
+        ship_pbh(c);
+        
         return;
     }
 
@@ -389,7 +394,7 @@ void sflow_amr::ship_fields(sflow_amr_patch &c, bool withpress)
         }
 
         if(p0->X400==3)
-        pr = p0->X401_p0*exp(-pow(xpos/p0->X401_a,2));
+        pr = -p0->X401_p0*exp(-pow(xpos/p0->X401_a,2));     // press <= 0, as sixdof_obj_2D::updateForcing_oned
 
         if(p0->X400==10)
         {
@@ -412,6 +417,25 @@ void sflow_amr::ship_fields(sflow_amr_patch &c, bool withpress)
 
         s->press(ii,jj) = pr;
     }
+
+    ship_pbh(c);
+}
+
+// X 402 1: pressure head for the well-balanced HLL flux (sixdof_sflow::pressure_head),
+// on all patch cells including the ghost layers (imin..imin+imax spans the whole array)
+void sflow_amr::ship_pbh(sflow_amr_patch &c)
+{
+    lexer *pp = c.pp;
+    fdm2D *bp = c.b;
+    sflow_amr_ship *s = c.pship;
+    
+    const int i0 = pp->imin, i1 = pp->imin+pp->imax;
+    const int j0 = pp->jmin, j1 = pp->jmin+pp->jmax;
+    const double rg = p0->W1*fabs(p0->W22);
+
+    for(int ii=i0; ii<i1; ++ii)
+    for(int jj=j0; jj<j1; ++jj)
+    bp->pbh(ii,jj) = (p0->X402==1) ? s->press(ii,jj)/rg : 0.0;
 }
 
 // curvilinear grid (G 50): ship_fields with the physical cell centres of the patch (XC2D, YC2D): the draft from
@@ -621,7 +645,7 @@ void sflow_amr::ship_fields_curv(sflow_amr_patch &c, bool withpress)
         }
 
         if(p0->X400==3)
-        pr = p0->X401_p0*exp(-pow(xpos/p0->X401_a,2));
+        pr = -p0->X401_p0*exp(-pow(xpos/p0->X401_a,2));     // press <= 0, as sixdof_obj_2D::updateForcing_oned
 
         if(p0->X400==10)
         {
@@ -644,8 +668,8 @@ void sflow_amr::ship_fields_curv(sflow_amr_patch &c, bool withpress)
         }
 
         // level 0 computes its first ship pressure at the end of the first step (sixdof_sflow::start_shipwave):
-        // none in the first step here either
-        s->press(ii,jj) = (p0->count<=1) ? 0.0 : pr;
+        // none in the first step here either (X 402 1: level 0 has it from the initialisation)
+        s->press(ii,jj) = (p0->count<=1 && p0->X402==0) ? 0.0 : pr;
     }
 }
 

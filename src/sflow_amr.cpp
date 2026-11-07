@@ -1496,16 +1496,17 @@ void sflow_amr::blocks_ini(lexer *p, ghostcell *pgc)
 
         // X 10 3 (X 207 0): the draft of the ship depresses the water level at t = 0, as on level 0
         // (sixdof_obj_2D::ini_shipwave)
+        // (X 402 1: the equilibrium depression of the applied pressure, eta = pbh, as level 0)
         if(shipmode==3 && p->X207==0)
         {
             zone_setup(p0);
-            ship_fields(*c,false);
+            ship_fields(*c,p->X402==1);
             for(int ii=pp->imin; ii<pp->imin+pp->imax; ++ii)
             for(int jj=pp->jmin; jj<pp->jmin+pp->jmax; ++jj)
             {
                 i=ii; j=jj;
                 const double H = c->pship->Hsolid(pp,pb->fs);
-                pb->eta(ii,jj) = -H*c->pship->draft(ii,jj);
+                pb->eta(ii,jj) = (p->X402==1) ? pb->pbh(ii,jj) : -H*c->pship->draft(ii,jj);
                 pb->WL(ii,jj) = MAX(pb->eta(ii,jj) + pb->depth(ii,jj),0.0);
             }
         }

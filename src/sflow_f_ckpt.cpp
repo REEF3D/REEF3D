@@ -184,6 +184,16 @@ reefrun_ckpt& sflow_f::ckpt(lexer *p, fdm2D *b, ghostcell *pgc)
             }
             if(p6dof->ckpt_slice()!=nullptr && ck.has("sixdof_slice"))
             ok = ck.get_S("sixdof_slice",p6dof->ckpt_slice()) && ok;
+            
+            // X 402 1: the pressure head of the restored hull pressure (sixdof_sflow::pressure_head)
+            if(p->X10==3 && p->X402==1 && p6dof->ckpt_slice()!=nullptr)
+            {
+            const double rg = p->W1*fabs(p->W22);
+            const double *pr = p6dof->ckpt_slice();
+            
+            for(int n=0; n<p->imax*p->jmax; ++n)
+            b->pbh.V[n] = pr[n]/rg;
+            }
         }
 
         // sediment (S 10)

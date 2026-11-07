@@ -4,7 +4,8 @@
 // element); spin-up of the free rotor against J domega/dt = Q(omega) of the steady rotor; the k omega^2 generator
 // settles where Q(omega) = K omega^2; constant torque and the slip generator; torsion of the flexible drivetrain at
 // its natural frequency; yawed inflow with the skewed wake (yaw angle, larger induction downwind); tower potential
-// flow; mass and inertia of hub and blades; ElastoDyn's blade file (with and without PitchAxis); the keyword with its
+// flow; mass and inertia of hub and blades (flexible: the table's integral, also with stations inside the
+// elements); ElastoDyn's blade file (with and without PitchAxis); the keyword with its
 // channels.
 // Architect: Hans Bihs
 #include"coral/aero/coral_rotor.h"
@@ -371,6 +372,25 @@ static void test_flexible()
     const auto va = ha.aero->values(ma, 0.0, La), vb = hb.aero->values(mb, 0.0, Lb);
     check(hb.blade_nodes.size()==3 && hb.blade_nodes[0].size()==13 && std::fabs(vb.T/va.T - 1.0) < 1e-10 && std::fabs(vb.Q/va.Q - 1.0) < 1e-10,
           fmt("12 beam elements per blade: the undeformed rotor's thrust %.1f kN and torque %.1f kN m = the rigid one's", vb.T/1e3, vb.Q/1e3));
+
+    // the blade mass: the table's integral, also with stations inside the elements, on 1 kg pitch bearings
+    {
+        rotor_spec p = design();
+        p.structure.frac = {0.0, 0.13, 1.0};
+        p.structure.mass = {400.0, 900.0, 100.0};
+        p.structure.EI_flap = p.structure.EI_edge = {1e10, 1e9, 1e8};
+        p.structure.pitch_axis = p.structure.twist = {0, 0, 0};
+        p.blade_elements = 12;
+        p.pitch_joints = true;
+        model mp;
+        build_rotor(mp, w, p);
+        double mbl = 0.0;
+        for(const rigid_body &q : mp.bodies)
+            if(q.name.find("_b") != std::string::npos || q.name.find("_pitch") != std::string::npos) mbl += q.mass;
+        for(const auto &q : mp.point_masses) mbl += q.mass;
+        const double Lb = R - p.R_hub, mt = Lb*(0.5*(400.0 + 900.0)*0.13 + 0.5*(900.0 + 100.0)*0.87);
+        check(std::fabs(mbl - 3.0*(mt + 1.0)) < 1e-6*mt, fmt("flexible blades: %.3f kg = 3 x (the table's integral %.3f kg + a 1 kg bearing)", mbl, 3.0*(mt + 1.0)));
+    }
 
     // the uniform cantilever blade at rest: first flap and edge frequencies 3.516/(2 pi) sqrt(EI/(m L^4))
     rotor_spec u = design(10);

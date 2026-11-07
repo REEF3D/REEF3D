@@ -45,7 +45,8 @@ void sixdof_sflow::isource2D(lexer *p, fdm2D *b, ghostcell *pgc)
     auto pv = [&](int a, int c) { return mid ? 0.5*(press(a,c) + press_n(a,c)) : press(a,c); };
 
     // pressure of the moving body, cell centred source of the conserved momentum
-    if(p->X10==3)
+    // (X 402 1: the pressure head is part of the HLL hydrostatic flux, see sixdof_sflow::pressure_head)
+    if(p->X10==3 && p->X402==0)
 	SLICELOOP4
     {
     dfdx = (pv(i+1,j)-pv(i-1,j))/(p->DXP[IP]+p->DXP[IM1]);
@@ -69,7 +70,7 @@ void sixdof_sflow::jsource2D(lexer *p, fdm2D *b, ghostcell *pgc)
 {
     auto pv = [&](int a, int c) { return mid ? 0.5*(press(a,c) + press_n(a,c)) : press(a,c); };
 
-    if(p->X10==3)
+    if(p->X10==3 && p->X402==0)
 	SLICELOOP4
     {
     dfdy = (pv(i,j+1)-pv(i,j-1))/(p->DYP[JP]+p->DYP[JM1]);

@@ -409,6 +409,7 @@ private:
     sixdof_sflow *ship6;
     void ship_fields(sflow_amr_patch&, bool);
     void ship_fields_curv(sflow_amr_patch&, bool);
+    void ship_pbh(sflow_amr_patch&);
     void ship_patches(bool);
     double fs0_at(sflow_amr_patch&, int, int);
     // G 40 with the body: a placed patch may lie on another rank than the level-0 cells below it.  The

@@ -110,6 +110,7 @@ public:
 	slice2 hy;
 	slice4 hp,dpx,dpy;
     slice4 test;
+    slice4 pbh;     // body pressure head press/(rho g) [m] of the X 10 3 pressure patch (<= 0)
     slice4 Hs,fs;
     slice1 fx;
     slice2 fy;

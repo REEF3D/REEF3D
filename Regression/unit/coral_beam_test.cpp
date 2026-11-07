@@ -3,7 +3,7 @@
 // Build:  see coral_tests.sh (links all CORAL objects)
 // Run:    ./coral_beam_test
 //
-// Tests: cantilever under a tip load (Timoshenko and Euler-Bernoulli; the section loads of beam_sensor), axial and torsion; roll-up of a
+// Tests: cantilever under a tip load (Timoshenko and Euler-Bernoulli; the section loads of beam_sensor, also under the beam's weight), axial and torsion; roll-up of a
 // cantilever into a circle under the tip moment 2 pi EI/L (large rotations, load steps); Bathe's 45°
 // bend under an out-of-plane tip load against the published tip position; first bending frequency of
 // a cantilever with lumped mass; free beam in rigid motion (no strain, energy kept); a beam end on a
@@ -17,6 +17,7 @@
 #include"coral/core/coral_rotation.h"
 #include"coral/core/coral_constraint.h"
 #include"coral/structure/coral_beam.h"
+#include"coral/core/coral_gravity.h"
 #include"coral/structure/coral_frame.h"
 #include<chrono>
 #include<cstdlib>
@@ -114,6 +115,23 @@ static void test_cantilever()
                   && std::fabs(v9[2] + P) < 1e-3*P && std::fabs(v9[4] - 0.1*P*L) < 1e-3*P*L,
                   fmt("beam_sensor: root force %.3f N, moment %.3f N m (P %.0f N, P L %.0f N m)", v0[2], v0[4], -P, P*L)
                   + fmt("; at 0.9 L moment %.3f N m (P L/10 %.0f)", v9[4], 0.1*P*L));
+        }
+        // under its own weight the root section carries the whole beam: W and W L/2 (the half element lumped on the
+        // ground node included)
+        if(timo)
+        {
+            model mg;
+            mg.gravity = Vec3(0, 0, -9.81);
+            cantilever(mg, L, 10, ss);
+            mg.add_load(std::make_unique<gravity_load>());
+            const static_result rg = static_solve(mg, 0.0);
+            const beam_element *e0 = nullptr;
+            for(const auto &l : mg.load_list) if(l->name()=="c.e0") e0 = dynamic_cast<const beam_element*>(l.get());
+            std::vector<double> v0;
+            if(e0) beam_sensor(*e0, "root").channel_values(mg, 0.0, v0);
+            const double W = ss.m*L*9.81;
+            check(rg.converged && e0 && std::fabs(v0[2] + W) < 1e-6*W && std::fabs(v0[4] - 0.5*W*L) < 1e-3*W*L,
+                  fmt("beam_sensor under the beam's weight: root force %.2f N (W %.2f N), moment %.1f N m (W L/2 %.1f)", -v0[2], W, v0[4], 0.5*W*L));
         }
         // tip rotation PL^2/(2EI)
         const double th = log_so3(m.bodies[tip].R)(1);
