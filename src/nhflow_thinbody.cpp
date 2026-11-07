@@ -1441,7 +1441,14 @@ void nhflow_thinbody::finish_cut(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
 // the x and y faces with their apertures: a F(fluid) + (1-a) F(wall). F(fluid) near the body is the local flux of
 // flux_hook (states from the own side: van Leer slopes weighted with the aperture of the next face, so that a slope
-// does not reach through the body, HLL dissipation); the wall part as the blocked faces
+// does not reach through the body, HLL dissipation); the wall part as the blocked faces.
+// The free-surface dissipation of the mass flux (the gravity wave speed times the jump of the head) is weighted with
+// the open fraction of the column tops on the two sides, min(atop): where the body covers a column there is no free
+// surface, only the head eta_L carried across, and the jump of eta_L along the hull drove a flux below it. With the
+// full weight a 2D box fixed in waves (T 1.4 s, B 2 m, T 0.4 m, dx 0.1 m) reflected 0.65 and passed 0.15 below it
+// (theory 0.998 and 0.057; X 15 8 with the same projection 0.80 and 0.05), a box of 1 m draft passed 0.10 (X 15 8
+// 0.004). The momentum keeps its dissipation: without it the box in a current lost its heave damping (Ship
+// Hydrodynamics validation 42)
 void nhflow_thinbody::cut_faces(lexer *p, fdm_nhf *d, int ipol, double *Fx, double *Fy, double *R, const double *Q)
 {
     const double g = fabs(p->W22);
@@ -1475,7 +1482,10 @@ void nhflow_thinbody::cut_faces(lexer *p, fdm_nhf *d, int ipol, double *Fx, doub
             const double A = AX(IJK);
             const bool L = false;   // below a covering body: the head eta_L (head())
             
-            if(A>=1.0 && !L && !near)
+            // weight of the free-surface dissipation of the mass flux: the open fraction of the column tops
+            const double wfs = MIN(atop(i,j),atop(i+1,j));
+            
+            if(A>=1.0 && !L && !near && wfs>=1.0)
             continue;
             
             const double Da = Dc(i,j), Db = Dc(i+1,j);
@@ -1510,7 +1520,7 @@ void nhflow_thinbody::cut_faces(lexer *p, fdm_nhf *d, int ipol, double *Fx, doub
                     states(d->U,UL,UR);
                     const double c = sqrt(g*MAX(Da,Db)) + MAX(fabs(UL),fabs(UR));
                     
-                    Ff = 0.5*(Da*UL + Db*UR) - 0.5*c*(eb - ea);
+                    Ff = 0.5*(Da*UL + Db*UR) - 0.5*wfs*c*(eb - ea);
                 }
                 
                 Fx[IJK] = A*Ff + (1.0-A)*0.5*(Da+Db)*ux[IJK];
@@ -1570,8 +1580,9 @@ void nhflow_thinbody::cut_faces(lexer *p, fdm_nhf *d, int ipol, double *Fx, doub
             
             const double A = AY(IJK);
             const bool L = false;
+            const double wfs = MIN(atop(i,j),atop(i,j+1));
             
-            if(A>=1.0 && !L && !near)
+            if(A>=1.0 && !L && !near && wfs>=1.0)
             continue;
             
             const double Da = Dc(i,j), Db = Dc(i,j+1);
@@ -1606,7 +1617,7 @@ void nhflow_thinbody::cut_faces(lexer *p, fdm_nhf *d, int ipol, double *Fx, doub
                     states(d->V,VL,VR);
                     const double c = sqrt(g*MAX(Da,Db)) + MAX(fabs(VL),fabs(VR));
                     
-                    Ff = 0.5*(Da*VL + Db*VR) - 0.5*c*(eb - ea);
+                    Ff = 0.5*(Da*VL + Db*VR) - 0.5*wfs*c*(eb - ea);
                 }
                 
                 Fy[IJK] = A*Ff + (1.0-A)*0.5*(Da+Db)*uy[IJK];

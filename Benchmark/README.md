@@ -100,6 +100,7 @@ Return code 0 if all cases pass (or fail as expected, see XFAIL).
 | `sflow_mase_kirby_irregular` | SFLOW | Mase & Kirby (1992) | Hm0 and skewness at 12 gauges on a 1:20 slope | dx 0.04, 150 s | dx 0.02, 420 s |
 | `nhflow_mase_kirby_irregular` | NHFLOW | Mase & Kirby (1992) | Hm0 and skewness at 12 gauges | 362 x 5, 200 s | 725 x 8, 420 s |
 | `fnpf_mase_kirby_irregular` | FNPF | Mase & Kirby (1992) | Hm0 and skewness at 12 gauges | 362 x 8, 200 s | 725 x 10, 420 s |
+| `fnpf_mase_kirby_irregular_awa` | FNPF (RK3) | Mase & Kirby (1992) | as `fnpf_mase_kirby_irregular`, with absorbing second-order generation (B 98 4, B 92 52, components above 0.3 Hz) | 362 x 8, 200 s | 725 x 10, 420 s |
 | `nhflow_rapp_melville_rn`, `_rs1`, `_rp1`, `_rp2` | NHFLOW A 550 4 | Rapp & Melville (1990), LES of Derakhti & Kirby (2016) | energy loss of the focused packet (RN: none) | 1500 x 16, 40 s | 1500 x 16, 40 s, np 2 |
 | `fnpf_rapp_melville_rn`, `_rs1`, `_rp1`, `_rp2` | FNPF A 350 4 | Rapp & Melville (1990), LES of Derakhti & Kirby (2016) | energy loss of the focused packet (RN: none) | 625 x 10 (L_c/40), 40 s | 1500 x 16, 40 s, np 2 |
 | `nhflow_tian_tp2` | NHFLOW A 550 4 | Tian et al. (2010), LES of Derakhti & Kirby (2016) | energy loss, deep water k d = 7 | 800 x 10, 36 s | 1600 x 20, 36 s |
@@ -300,6 +301,15 @@ MPICH 4.2.3, REEFMG, `make all`). The fixes are delivered as patches in
    excess is infragravity energy (f < 0.3 Hz): 1.6x measured at the toe, 1.9x at h = 2.5 cm. The
    linear (first-order) wave generation radiates free long waves that the static coastline
    reflects. Second-order (subharmonic) generation or an absorbing shoreline would address it.
+   **The long waves are trapped at the generating end** (fnpf_theta_robin validation 15, RK3): the
+   2.5 m relaxation zone cannot absorb waves of 40 m length (0.05 Hz), so the long waves reflected
+   at the coastline come back; a longer domain and zone (7.5 m) makes it worse (0.235 -> 0.265).
+   Dirichlet generation with active absorption (`B 98 4`) brings the nightly error at N 47 0.75 from
+   0.235 to 0.152; with second-order reconstruction (`B 92 52`) of the components above 0.3 Hz to
+   0.120, with Hm0 below 0.1 Hz at the measured level up to h = 5 cm. As the case runs (N 47 1):
+   nightly 0.226 -> 0.107, release 0.384 -> 0.226 (pass). New case
+   `fnpf_mase_kirby_irregular_awa` (RK3; theta-Robin refuses B 98 3/4). Still about 1.7 x measured
+   in 0.1-0.3 Hz at h = 2.5 cm.
 14. **NHFLOW numerical damping at coarse resolution (Berkhoff shoal)**: the nightly Berkhoff case
    (dx = 0.1 m) gave about 60 % of the measured wave heights. **Not a 3D effect**: a 2D flume with
    the same wave (T = 1 s, h = 0.45 m, flat bed) loses 16 % of the height over 14 m at dx = 0.1 m
@@ -350,6 +360,7 @@ run was possible they are provisional (marked).
 | `fnpf_ting_kirby_plunging` | XFAIL, max. H 1.7 m before x_b | - | xfail entry; dx = 0.025 m stopped at t = 91 s, release now at dx = 0.05 m (not run) |
 | `fnpf_berkhoff_shoal` | PASS, rms 0.07-0.27, 0.31 on section 7 | - | PASS, rms 0.09-0.18; 0.21 on section 7 (focus 7 % high) |
 | `fnpf_mase_kirby_irregular` | PASS, Hm0 ratio 0.98-1.09, 1.26 at h = 2.5 cm | - | XFAIL, 1.18 / 1.39 at h = 5 / 2.5 cm (infragravity, finding 13) |
+| `fnpf_mase_kirby_irregular_awa` | PASS, error 0.107 (base case 0.226 in the same run) | new: absorbing second-order generation | PASS, error 0.226 (base case 0.384, XFAIL) |
 | `fnpf_jonswap_spectrum` | PASS, Hm0 -3..-4 %, Tp 1.44 vs 1.50 s, shape rms 0.09 | - | PASS, Hm0 -0.2..-0.8 %, shape rms 0.06 |
 | `cfd_dambreak_2d_martin_moyce` | PASS, mean 8 %, max 18 % | - | PASS, mean 7 %, max 20 % |
 | `cfd_dambreak_3d_kleefsman` | PASS (with `F 46 3`): volume -0.9 %, P1 peak -4 % / 0.05 s late, rms P1-P4 0.38-0.58, P5-P8 0.62-0.69, heights 0.03-0.53; 33 min | F 46 fix (0004): was FAIL, -18 % volume, N 61 stop at 1.77 s | not run |

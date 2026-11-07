@@ -394,10 +394,10 @@ static void test_mooring_sections()
     {
         c.read_string("time dt 0.05 end 1\n"
                       "line_type chain d 0.15 mass 140 EA 1.5e9 BA 1e6 Cdn 2.4 Cdt 0.4 mu 1.0 mu_axial 0.7 mu_static 1.4 ks 1e6 cs 2e5\n"
-                      "line_type poly d 0.16 mass 22 EA 2e8 BA 1e6 BA_slack\n"
+                      "line_type poly d 0.16 mass 22 EA 2e8 BA 1e6 BA_slack Cl 0.8 cF 0.17\n"
                       "body fpso mass 1e7 inertia 1e9 1e9 1e9 cog 0 0 0\n"
                       "mooring leg dynamic a ground -640 0 -200 b fpso -20 0 -10 section chain 150 15 section poly 450 30 section chain 60 6\n"
-                      "mooring opp dynamic a ground 640 0 -200 b fpso 20 0 -10 type chain L 660 nseg 40 BA 2e6 BA_slack\n", ".");
+                      "mooring opp dynamic a ground 640 0 -200 b fpso 20 0 -10 type chain L 660 nseg 40 BA 2e6 BA_slack Cl 0.6 dF 0.05 viv_tau 2\n", ".");
     }
     catch(const std::exception &e)
     {
@@ -437,6 +437,23 @@ static void test_mooring_sections()
           && leg->line_props(1).mu==0.0, "stick-slip friction from the line type (mu, mu_axial, mu_static, ks, cs)");
     check(!leg->line_props(0).BA_slack && leg->line_props(1).BA_slack && !leg->line_props(2).BA_slack && opp->line_props(0).BA_slack,
           "BA_slack from the line type (the polyester section) and from the line");
+    const mooring_props &pp = leg->line_props(1), &po = opp->line_props(0);
+    check(leg->line_props(0).Cl==0.0 && pp.Cl==0.8 && pp.cF==0.17 && pp.dF==0.08 && pp.viv_tau < 0.0
+          && po.Cl==0.6 && po.cF==0.18 && po.dF==0.05 && po.viv_tau==2.0,
+          "VIV from the line type (Cl, cF; dF, viv_tau default) and from the line (Cl, dF, viv_tau)");
+    bool bad = false;
+    try
+    {
+        coral_case c2;
+        c2.read_string("time dt 0.05 end 1\n"
+                       "body fpso mass 1e7 inertia 1e9 1e9 1e9 cog 0 0 0\n"
+                       "mooring opp dynamic a ground 640 0 -200 b fpso 20 0 -10 L 660 d 0.15 mass 140 EA 1.5e9 Cl 0.7 viv_tau 0\n", ".");
+    }
+    catch(const std::exception &e)
+    {
+        bad = std::string(e.what()).find("viv_tau") != std::string::npos;
+    }
+    check(bad, "VIV: viv_tau 0 refused");
 }
 
 // bathymetry: a grid file under a dynamic line

@@ -1,0 +1,19 @@
+{
+ "base": "cfd_2d_nwt_amr_zone_sub",
+ "np": 1,
+ "steps": 100,
+ "ctrl_set": {
+  "N 40": "5"
+ },
+ "description": "cfd_2d_nwt_amr_zone_sub (the band over the wave generation zone, subcycling G 7 1) with the one-step scheme (N 40 5): the relaxation of the patch at the time of its step (validation 80).",
+ "tags": [
+  "quick",
+  "2d",
+  "waves",
+  "levelset",
+  "amr"
+ ],
+ "covers": [
+  "subcycling with N 40 5 and the relaxation zones on the patches"
+ ]
+}

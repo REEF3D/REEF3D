@@ -48,7 +48,8 @@ Architect: Hans Bihs
 // The crests are tracked in the horizontal plane without a preferred direction (breaking_crest3d): crest points
 // are the maxima of eta along the ridge normal, every crest point continues the nearest one of the last step, and
 // the front faces are rays along n through the subdomains. Tracking and viscosity once per time step at t^n (first
-// call of the step); the RK stages reuse vb. No breaking in the relaxation zones (ioflow::relax_boxes).
+// call of the step); the RK stages reuse vb. No breaking in the relaxation zones (ioflow::relax_boxes), with A 405 < 1
+// only in their outer fraction A 405.
 //
 // Surf zone settings: A352 0 and a coastline band A341 ~10 (A343 1). The A352 filter (A354 0.6) flattens
 // the fronts before B reaches the threshold, and the breaking point is that of A350 1 again; without the
@@ -81,6 +82,50 @@ void fnpf_breaking::breaking_zones(lexer *p, ioflow *pflow)
         b.insert(b.end(),{p->global_xmax-p->B96_2, big, -big, big});
     }
 
+    // A 405 < 1: only the outer fraction A 405 of each zone (from its end at the domain boundary) stays free of crest
+    // points. The target weight 1 - (exp(x^3.5) - 1)/(e - 1) of the relaxation is below 5 % over the inner half of
+    // a zone (x < 0.5), and a steep sea develops there as in the free domain: in a 2D JONSWAP sea (Hs 15.6 m, Tp 15 s,
+    // 900 m generation zone) crests grew to 20 m with front slopes of 3 in the last 80 m of the zone, where A 350 4
+    // did not act, and blew up at its end (patch 0035)
+    if(p->A405<1.0)
+    {
+        const double fr = MAX(p->A405,0.0);
+        const double tol = 1.0e-6*(p->global_xmax-p->global_xmin);
+        
+        for(size_t q=0; q+3<b.size(); q+=4)
+        {
+            const bool atxs = b[q]<=p->global_xmin+tol, atxe = b[q+1]>=p->global_xmax-tol;
+            const double lx = b[q+1]-b[q];
+            
+            // a zone along x (at x-min or x-max): shrink it from its inner side
+            if(atxs && !atxe)
+            b[q+1] = b[q] + fr*lx;
+            else
+            if(atxe && !atxs)
+            b[q] = b[q+1] - fr*lx;
+            
+            if(p->j_dir==1)
+            {
+            const double toly = 1.0e-6*MAX(p->global_ymax-p->global_ymin,1.0e-12);
+            const bool atys = b[q+2]<=p->global_ymin+toly, atye = b[q+3]>=p->global_ymax-toly;
+            const double ly = b[q+3]-b[q+2];
+            
+            // a zone along y spanning x
+            if(atxs && atxe)
+            {
+            if(atys && !atye)
+            b[q+3] = b[q+2] + fr*ly;
+            else
+            if(atye && !atys)
+            b[q+2] = b[q+3] - fr*ly;
+            }
+            }
+        }
+        
+        if(p->mpirank==0)
+        cout<<"A 350 4: crest points also in the inner "<<100.0*(1.0-fr)<<" % of the relaxation zones (A 405)"<<endl;
+    }
+    
     SLICELOOP4
     {
     bt_zone(i,j) = 0;
