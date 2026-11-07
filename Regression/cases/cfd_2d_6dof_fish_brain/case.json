@@ -1,0 +1,29 @@
+{
+ "base": "cfd_2d_6dof_fish_x198_sym",
+ "np": 2,
+ "steps": 320,
+ "ctrl_set": {
+  "X 195": "0 11 0.125 1.0 4.0 0.05"
+ },
+ "ctrl_add": [
+  "X 194 0 6 0.0",
+  "X 193 0 0.3 1.0 0.5 0.0",
+  "X 192 0 0.0 2.2 0.0 1.3"
+ ],
+ "description": "cfd_2d_6dof_fish_x198_sym at 4 Hz on 2 ranks with a brain (X 193 0 0.3 1 0.5 0): from 0.3 s (the ramp and one tail beat) once per half tail beat the bearing of the target (X 192, ahead to the left) and the closing speed on it (towards 0.3 m/s) set the gait targets (X 199) of bias and frequency; vision: 7 rays from the head to the walls of the domain up to 0.5 L; the lateral line (X 194, 3 x 3 points per probe, two cells out) sampled each step; the decisions in REEF3D_6DOF_brain_0.dat.",
+ "tags": [
+  "2d",
+  "6dof",
+  "floating",
+  "deform",
+  "singlephase",
+  "mpi"
+ ],
+ "covers": [
+  "sixdof_brain::sense, decide",
+  "sixdof_obj::brain_setup, brain_update",
+  "sixdof_obj_cfd::vision",
+  "sixdof_deform::push_gait, set_fcap",
+  "sixdof_obj_cfd::lateral_line each step"
+ ]
+}
