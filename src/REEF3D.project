@@ -994,6 +994,7 @@
         <File Name="pic.h"/>
         <File Name="pic_void.h"/>
         <File Name="pic_f.h"/>
+        <File Name="pic_gfm.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="CPM">
         <File Name="CPM.h"/>
