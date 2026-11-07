@@ -103,6 +103,7 @@ private:
     void water_velocity(lexer*, fdm*, ghostcell*);
     void extend(lexer*, fdm*, ghostcell*, field&, field&, int, int, bool);
     bool ballistic(lexer*, fdm*, const pic_data&) const;
+    bool solid_distance(lexer*, fdm*, double, double, double, double&, double*);
 
     // the FLIP / PIC update of the particle velocities (pic_f_flip.cpp; F 81 1, 2)
     void g2p(lexer*, fdm*);
