@@ -43,8 +43,8 @@ class vec2D;
 using namespace std;
 
 // ---------------------------------------------------------------------------
-// FNPF theta-Robin time integration (A 310 5): 2D and 3D, MPI (REEFMG), wetting-drying A 343 1 and 2; no bodies,
-// no AMR.
+// FNPF theta-Robin time integration (A 310 5): 2D and 3D, MPI (REEFMG), wetting-drying A 343 1 and 2, resolved
+// floating bodies (X 10 1, fnpf_6DOF); no AMR.
 //
 // Wetting-drying (A 343 >= 1): the free-surface conditions of fnpf_fsfbc_wd as RK3. The coastline relaxation
 // (A 341/A 342/A 347) and Fifsf = 0 on land are part of the affine maps of the zones (relax_affine), i.e. of the
@@ -57,6 +57,14 @@ using namespace std;
 // the RK3 step); but in Mase & Kirby the Hm0 of the shallowest gauges grows with the step (no numerical damping),
 // and the moving coastline (A 343 2) is unstable at 2 x at the wetted front, so N 51 3 keeps the RK3 step there
 // (validation 09).
+//
+// Resolved floating bodies (X 10 1, fnpf_6DOF): the body moves with Heun (sixdof_obj::rk2): stage 0 with the loads of
+// the state at t^n at the start of the step, stage 1 with the loads of the first corrector state (t^n+1, its tendencies
+// kE1, kF1) in corrector pass 0; the later passes solve with the body at t^n+1. The footprint columns are Dirichlet
+// nodes with the extended Fifsf, not Robin rows; the body geometry on the sigma grid of a pass before its assembly
+// (solve_pre), the body band of Fi after the solve (solve_post); the psi solves of the loads with the plain Laplace
+// solver. N 51 3 stays at the RK3 step: the natural periods of the body limit it. Not with externally driven bodies,
+// SparseLU or without corrector passes (A 302 >= 1).
 //
 // The linear part of the free-surface conditions, eta_t = w and Fifsf_t = -g eta, is integrated with the
 // theta method, the nonlinear rest N (Zakharov terms, wind) at t^n+1/2:
@@ -216,6 +224,9 @@ private:
     fnpf_laplace_cds2 *plap0;
     fnpf_fsf *pf;
     fnpf_body *pbody;
+    solver *psolv_step=nullptr;   // the Laplace solver of the step (the body loads of the corrector)
+    int passq=-1;                 // the corrector pass under way (-1: pass 0)
+    slice4 kE1,kF1;               // tendencies of eta and Fifsf of the first corrector state (the body loads at t^n+1)
     
     double solvetime;
 };

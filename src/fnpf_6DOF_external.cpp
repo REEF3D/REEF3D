@@ -69,6 +69,15 @@ void fnpf_6DOF::ext_connect(lexer *p, ghostcell *pgc)
     if(ndriven==0)
     return;
     
+    if(p->A310==5)
+    {
+        if(p->mpirank==0)
+        cout<<"6DOF FNPF: externally driven bodies (fluid_body) not with theta-Robin (A 310 5)"<<endl;
+        
+        pgc->final();
+        exit(1);
+    }
+    
     if(ndriven<nbody)
     {
         if(p->mpirank==0)

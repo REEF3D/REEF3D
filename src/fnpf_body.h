@@ -64,6 +64,15 @@ public:
     virtual void stage(lexer*, fdm_fnpf*, ghostcell*, solver*, fnpf_fsf*, slice&, slice&, int){}
     virtual void surface(lexer*, fdm_fnpf*, ghostcell*, slice&, slice&, int, int){}
     virtual fnpf_laplace* laplace(fnpf_laplace *plap){return plap;}
+    // theta-Robin (A 310 5, fnpf_theta), which assembles and solves its Robin system itself instead of
+    // calling the Laplace solver: the body geometry on the current sigma grid before the assembly, the
+    // body-band extrapolation of Fi after the solve, and the footprint columns (foot > 0.5: the free-surface
+    // node inside the body), whose surface node is a Dirichlet node with the extended Fifsf, not a Robin row
+    virtual void solve_pre(lexer*, fdm_fnpf*, ghostcell*){}
+    virtual void solve_post(lexer*, fdm_fnpf*, ghostcell*, double*){}
+    virtual slice* footprint_mask() {return nullptr;}
+    // the last stage of the body integration in a time step: RK3 2, RK4 3, theta-Robin (Heun) 1
+    static int last_stage(lexer*);
     // after velcalc_sig of the end of a time step (output, time step): velocities at the
     // body nodes
     virtual void velocity(lexer*, fdm_fnpf*, ghostcell*){}
