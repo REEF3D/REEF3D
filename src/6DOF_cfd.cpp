@@ -49,11 +49,11 @@ sixdof_cfd::sixdof_cfd(lexer *p, fdm *a, ghostcell *pgc)
         p->X198 = 0;
     }
     
-    // X 198 with the SSP Runge-Kutta stages (N 40 3 with the CFD mesh refinement, G 1 > 0; without it
+    // X 198 1 with the SSP Runge-Kutta stages (N 40 3 with the CFD mesh refinement, G 1 > 0; without it
     // the bodies take the low-storage RK3): the 2D swimmer is 9 % slow at N 47 0.25, as fast as with
-    // the low-storage RK3 at 0.1 (Fish Swimming validation 06)
-    if(p->X198>0 && (p->N40==2 || p->N40==3 || p->N40==22 || p->N40==23 || p->N40==33) && p->N47>0.1 && p->mpirank==0)
-    cout<<"!!! X 198 (fluid-momentum coupling) with the SSP Runge-Kutta stages: use N 47 0.1 or below (at 0.25 a self-propelled swimmer is about 9 % slow)"<<endl;
+    // the low-storage RK3 at 0.1 or with X 198 2 (refit after the projection; Fish Swimming validation 06)
+    if(p->X198==1 && (p->N40==2 || p->N40==3 || p->N40==22 || p->N40==23 || p->N40==33) && p->N47>0.1 && p->mpirank==0)
+    cout<<"!!! X 198 1 (fluid-momentum coupling) with the SSP Runge-Kutta stages: X 198 2 (the bodies refitted after each projection) or N 47 0.1 (at 0.25 a self-propelled swimmer is about 9 % slow)"<<endl;
     
     for (int nb = 0; nb < number6DOF; nb++)
     fb_obj.push_back(new sixdof_obj_cfd(p,pgc,nb));
@@ -244,3 +244,52 @@ void sixdof_cfd::fb_finish(lexer *p, fdm *a, ghostcell *pgc)
     
     pgc->start4a(p,a->fb,50);
 }
+
+// X 198 2: after the projection of stage iter, each body takes the rigid-body motion of the projected fluid in its
+// hull region (the response of the added mass to this stage's forcing, which the fit of the next stage would see
+// one stage later), and the fluid of the hull is forced again to it; the caller projects once more
+void sixdof_cfd::refit_cfd(lexer *p, fdm *a, ghostcell *pgc, int iter, field &uvel, field &vvel, field &wvel,
+                           field &fx, field &fy, field &fz, double alpha)
+{
+    for(int nb=0; nb<number6DOF; ++nb)
+    fb_obj[nb]->momentum_refit(p,a,pgc,uvel,vvel,wvel);
+    
+    std::fill(fx.V, fx.V + p->imax*p->jmax*p->kmax, 0.0);
+    std::fill(fy.V, fy.V + p->imax*p->jmax*p->kmax, 0.0);
+    std::fill(fz.V, fz.V + p->imax*p->jmax*p->kmax, 0.0);
+    
+    // the weights of the hull of this stage again from those of the solids alone
+    const int n = p->imax*p->jmax*p->kmax;
+    if(sf[0]!=nullptr)
+    {
+    std::copy(sf[0]->V, sf[0]->V+n, a->fbh1.V);
+    std::copy(sf[1]->V, sf[1]->V+n, a->fbh2.V);
+    std::copy(sf[2]->V, sf[2]->V+n, a->fbh3.V);
+    }
+    else
+    {
+    std::fill(a->fbh1.V, a->fbh1.V+n, 0.0);
+    std::fill(a->fbh2.V, a->fbh2.V+n, 0.0);
+    std::fill(a->fbh3.V, a->fbh3.V+n, 0.0);
+    }
+    std::fill(a->fbh4.V, a->fbh4.V+n, 0.0);
+    
+    for(int nb=0; nb<number6DOF; ++nb)
+    {
+        for(int q=0; q<3; ++q)
+        fb_obj[nb]->sfh[q] = sf[q];
+        
+        fb_obj[nb]->update_forcing(p,a,pgc,uvel,vvel,wvel,fx,fy,fz,iter);
+        
+        for(int q=0; q<3; ++q)
+        fb_obj[nb]->sfh[q] = nullptr;
+    }
+    
+    ULOOP
+    uvel(i,j,k) += alpha*p->dt*CPOR1*fx(i,j,k);
+    VLOOP
+    vvel(i,j,k) += alpha*p->dt*CPOR2*fy(i,j,k);
+    WLOOP
+    wvel(i,j,k) += alpha*p->dt*CPOR3*fz(i,j,k);
+}
+

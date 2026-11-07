@@ -30,6 +30,7 @@ Author: Hans Bihs
 #include"godunov.h"
 #include"diffusion.h"
 #include"pressure.h"
+#include"6DOF.h"
 #include"poisson.h"
 #include"ioflow.h"
 #include"turbulence.h"
@@ -347,6 +348,13 @@ void momentum_rk::step_ssp(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixd
         amr_momentum(p,a,pgc,pvrans,p6dof,s,1);
 
         projection(p,a,pgc,velout(a,0,s),velout(a,1,s),velout(a,2,s),ssp_b[s]);
+        
+        // X 198 2: the bodies refitted to the projected velocity, the hulls forced again, a second projection
+        if(p->X198==2 && p->X10>0)
+        {
+        p6dof->refit_cfd(p,a,pgc,s,velout(a,0,s),velout(a,1,s),velout(a,2,s),fx,fy,fz,ssp_b[s]);
+        projection(p,a,pgc,velout(a,0,s),velout(a,1,s),velout(a,2,s),ssp_b[s]);
+        }
 
         amr_stage_end(p,a,pgc,s);
     }
