@@ -1273,15 +1273,19 @@ void coral_case::parse(const std::vector<std::pair<int, std::vector<std::string>
             sm.p1 = it.need_vec("p1");
             sm.p2 = it.need_vec("p2");
             sm.D = it.need("D");
+            // drag_only: the viscous part beside a potential-flow model (HydroDyn's PropPot): drag on the members and
+            // the end faces, no buoyancy, Froude-Krylov, diffraction, added mass or end pressure
+            const bool dro = it.has("drag_only");
             sm.Cd = it.get("Cd", 1.0);
-            sm.Ca = it.get("Ca", 1.0);
-            sm.Cm = it.get("Cm", 1.0 + sm.Ca);
+            sm.Ca = it.get("Ca", dro ? 0.0 : 1.0);
+            sm.Cm = it.get("Cm", dro ? 0.0 : 1.0 + sm.Ca);
             sm.n = (int)it.get("n", 20);
             sm.end1 = it.has("end1");
             sm.end2 = it.has("end2");
-            sm.Ca_end = it.get("Ca_end", 1.0);
+            sm.Ca_end = it.get("Ca_end", dro ? 0.0 : 1.0);
             sm.Cd_end = it.get("Cd_end", 1.0);
-            sm.buoyancy = !it.has("no_buoyancy");
+            sm.buoyancy = !dro && !it.has("no_buoyancy");
+            sm.end_pressure = !dro;
             const int b = body_of(it, it.word("body"));
             if(b < 0) it.fail("strip_member needs a body");
             const double g = std::fabs(m.gravity(2)) > 0.0 ? std::fabs(m.gravity(2)) : 9.81;

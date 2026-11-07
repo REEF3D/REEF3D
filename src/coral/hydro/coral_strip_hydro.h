@@ -56,6 +56,7 @@ namespace coral
         bool end1 = false, end2 = false;              // closed end faces with pressure, added mass and drag
         double Ca_end = 1.0, Cd_end = 1.0;
         bool buoyancy = true;
+        bool end_pressure = true;                     // the dynamic pressure on the end faces (off: drag and added mass only)
     };
 
     class strip_hydro : public load
@@ -79,7 +80,7 @@ namespace coral
 
     private:
         struct strip {Vec3 s; Vec3 e; double L, D, Cd, Ca, Cm; bool buoy;};
-        struct end {Vec3 s; Vec3 n; double D, Ca, Cd;};     // body frame: point, outward normal
+        struct end {Vec3 s; Vec3 n; double D, Ca, Cd; bool p;};     // body frame: point, outward normal; with pressure
         // the forces of the current state at their points (callback per force)
         template<class Add> void forces(const model&, double t, Add &&add, double &V) const;
 
