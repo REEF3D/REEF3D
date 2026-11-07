@@ -281,19 +281,20 @@ void fnpf_breaking::coast_viscosity(lexer *p, fdm_fnpf *c, ghostcell *pgc)
         c->vb(i,j) = MAX(c->vb(i,j), p->A346);
     }
     
-    // A343 1: coastline viscosity A346 (formerly commented out above),
-    // through the implicit damping solve (needs A350>0)
-    //   A337 1: rising to A346 towards the coastline inside the relaxation
-    //           band (dist3), and A346 in every thin-film cell
-    //           (WL < 10*A344), i.e. where a drawdown has exposed the bed
-    //           but the static mask keeps the cell wet and clamped
-    //   A337 2: A346 only in the thin-film cells; the coastline band
-    //           itself stays undamped (thin coastline)
-    if(p->A343==1 && p->A337>=1 && p->A346>0.0)
+    // A343 1: coastline viscosity A346 (commented out before 2026-09-24),
+    // through the implicit damping solve (needs A350>0); off by default again,
+    // A346 alone (often in older ctrl files) does not turn it on
+    //   A337 0, 1: no coastline viscosity
+    //   A337 2: A346 only in the thin-film cells (WL < 10*A344), i.e. where a
+    //           drawdown has exposed the bed but the static mask keeps the cell
+    //           wet and clamped; the coastline band itself stays undamped
+    //   A337 3: as 2, and rising to A346 towards the coastline inside the
+    //           relaxation band (dist3)
+    if(p->A343==1 && p->A337>=2 && p->A346>0.0)
     SLICELOOP4
     if(p->wet[IJ]==1)
     {
-        if(p->A337==1 && c->coastline(i,j)>=0.0 && dist3>0.0 && c->coastline(i,j)<dist3)
+        if(p->A337==3 && c->coastline(i,j)>=0.0 && dist3>0.0 && c->coastline(i,j)<dist3)
         c->vb(i,j) = MAX(c->vb(i,j), (1.0-rb3(p,c->coastline(i,j)))*p->A346);
 
         if(c->WL(i,j) < 10.0*c->wd_criterion)

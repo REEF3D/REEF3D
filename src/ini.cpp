@@ -106,7 +106,7 @@ void control::ini_default()
     A334=1;      // int dynamic wetting-drying (A343 2/3): redistribute wet-dry clamp volume to wet neighbours: 1 on, 0 off
     A335=1.0e20; // double runup (A343 2): maximum bed elevation above still water level that can become wet
     A336=1;      // int dynamic wetting-drying (A343 2/3): eta gradients at the wet-dry front from wet cells only: 1 on, 0 off
-    A337=1;      // int static coastline (A343 1): 0 legacy; 1 wet-only Fifsf clamp average, clamp volume redistribution (A334), wet-only eta gradients and Exx=0 at the coast (A336), viscosity A346 ramped inside the coastline band and in thin-film cells (WL < 10*A344); 2 as 1 but A346 only in thin-film cells (thin coastline)
+    A337=1;      // int static coastline (A343 1): 0 legacy; 1 wet-only Fifsf clamp average, clamp volume redistribution (A334), wet-only eta gradients and Exx=0 at the coast (A336), no coastline viscosity; 2 as 1 plus viscosity A346 in thin-film cells (WL < 10*A344); 3 as 2 plus A346 ramped inside the coastline band (needs A350 1 or 4)
     A338=1;      // int remove wet areas not connected to the main water body (coastline ini): 1 on, 0 off
     A339=1;      // int coastline initialization: 1 = fast sweeping, 0 = PDE reinitialization
     A341=0.0;    // double coastline damping distance factor for dxm
