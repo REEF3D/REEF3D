@@ -45,6 +45,13 @@ void lexer::lexer_read(ghostcell *pgc)
     A210 -= 10;
     }
 
+    // SFLOW: any other A 210 would run the explicit RK3 step without a word (sflow_f_logic: A210 != 2 -> RK3)
+    if(mpirank==0 && A10==2 && A226==0 && A210!=2 && A210!=3)
+    {
+    cout<<"!!! ctrl.txt: A 210 "<<A210<<" is not a SFLOW time scheme: explicit A 210 2 / 3 (SSP-RK2 / RK3), semi-implicit A 210 11 / 12 / 13 (one-step / SSP-RK2 / SSP-RK3 predictor) !!!"<<endl;
+    exit(1);
+    }
+
     // SFLOW: wetting and drying is A 243 for both schemes; the semi-implicit step (A 210 12/13) runs its Newton
     // iteration on the wet pattern (Casulli 2009) for A 243 > 0 (inside REEF3D: A229 = 1; A 229 itself is no longer a
     // ctrl.txt key)

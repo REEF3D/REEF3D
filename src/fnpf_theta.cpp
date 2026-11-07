@@ -36,6 +36,7 @@ Architect: Hans Bihs
 #include"fnpf_body.h"
 #include"fnpf_amr.h"
 #include"fnpf_sz_weights.h"
+#include"fnpf_wave_period.h"
 #include"sflow_bicgstab.h"
 #include"matrix2D.h"
 #include"vec2D.h"
@@ -64,10 +65,15 @@ namespace
     std::unique_ptr<theta_lu> tlu;
 }
 
+// theta and beta of the column (i,j): theta and beta, or with A 379 the off-centred theta near the coastline and its
+// square (beta = theta^2 there, also with the Newmark beta of A 308 elsewhere)
+#define TL (thloc ? thl(i,j) : theta)
+#define BL (thloc && thl(i,j)>theta ? thl(i,j)*thl(i,j) : beta)
+
 fnpf_theta::fnpf_theta(lexer *p, fdm_fnpf *c, ghostcell *pgc) : fnpf_ini(p,c,pgc),fnpf_sigma(p,c,pgc),
                                                       ek(p),fk(p),Ne(p),Nf(p),Neo(p),Nfo(p),wn(p),erk1(p),frk1(p),
                                                       nEm(p),nFm(p),eko(p),fko(p),erk2(p),R0(p),Rs(p),relR(p),relT(p),relRe(p),relTe(p),fnew(p),wnew(p),en(p),
-                                                      colD(p),colA(p),colB(p),fsold(p),nEo(p),nFo(p),pxe(p),pxf(p),kE1(p),kF1(p),cR(p),cT(p)
+                                                      colD(p),colA(p),colB(p),fsold(p),nEo(p),nFo(p),pxe(p),pxf(p),kE1(p),kF1(p),cR(p),cT(p),thl(p)
 {
     gcval=250;
     if(p->j_dir==0)
@@ -123,6 +129,12 @@ fnpf_theta::fnpf_theta(lexer *p, fdm_fnpf *c, ghostcell *pgc) : fnpf_ini(p,c,pgc
     if(p->A328==1 && lsolv==2)      {bad=1; if(p->mpirank==0) cout<<"A 310 5: implicit sigma cross terms (A 328 1) with REEFMG only (A 306 1)"<<endl;}
     if(p->B98>2 || p->B99>2)        {bad=1; if(p->mpirank==0) cout<<"A 310 5: relaxation zones only (B 98 0-2, B 99 0-2)"<<endl;}
     if(theta<0.5)                   {bad=1; if(p->mpirank==0) cout<<"A 310 5: theta (A 305) >= 0.5"<<endl;}
+    // A 379 (patch 0034): theta off-centred near the still-water coastline
+    thloc = p->A379_1>0.0;
+    if(p->A379_1<0.0 || theta+p->A379_1>1.0) {bad=1; if(p->mpirank==0) cout<<"A 310 5: A 379 delta >= 0 and theta + delta <= 1"<<endl;}
+    if(thloc && p->A379_2<=0.0)     {bad=1; if(p->mpirank==0) cout<<"A 310 5: A 379 needs a distance d > 0 [m]"<<endl;}
+    if(thloc && p->A343<1)          {bad=1; if(p->mpirank==0) cout<<"A 310 5: A 379 needs a coastline (A 343 1 or 2)"<<endl;}
+    if(thloc && p->G1>0)            {bad=1; if(p->mpirank==0) cout<<"A 310 5: A 379 without mesh refinement (G 1 0)"<<endl;}
     if(p->A308>0.0 && theta!=0.5)   {bad=1; if(p->mpirank==0) cout<<"A 310 5: the 4th-order phase (A 308) needs theta 0.5 (A 305)"<<endl;}
     if(p->A308>0.0 && p->N51<2)     {bad=1; if(p->mpirank==0) cout<<"A 310 5: the 4th-order phase (A 308) needs the time step N 51 2 or 3"<<endl;}
     
@@ -163,6 +175,23 @@ void fnpf_theta::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, con
 {
     const double g  = fabs(p->W22);
     const double dt = p->dt;
+    
+    // A 379: theta + delta in the columns within d of the still-water coastline (c->coastline: the distance from the
+    // initial coastline, negative on land)
+    if(thloc && !thset)
+    {
+    int nc=0;
+    SLICELOOP4
+    {
+    thl(i,j) = (c->coastline(i,j)<p->A379_2) ? theta+p->A379_1 : theta;
+    if(thl(i,j)>theta && p->wet[IJ]==1) ++nc;
+    }
+    pgc->gcsl_start4(p,thl,50);
+    nc = pgc->globalisum(nc);
+    if(p->mpirank==0)
+    cout<<"A 310 5, A 379: theta "<<theta+p->A379_1<<" within "<<p->A379_2<<" m of the coastline ("<<nc<<" wet columns)"<<endl;
+    thset = true;
+    }
     
     // damping of eta and Fifsf with the viscosity vb of breaking and of the coastline (implicit over the step, as
     // in each RK3 stage): at the start of the step, i.e. as a source of the step, not after the solve; the
@@ -256,8 +285,8 @@ void fnpf_theta::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, con
     nEm(i,j) = ab0*Ne(i,j) + ab1*Neo(i,j);
     nFm(i,j) = ab0*Nf(i,j) + ab1*Nfo(i,j);
     
-    R0(i,j) = c->Fifsf(i,j) - g*dt*c->eta(i,j) - g*(theta-beta)*dt*dt*wn(i,j);
-    Rs(i,j) = R0(i,j) - g*theta*dt*dt*nEm(i,j) + dt*nFm(i,j);
+    R0(i,j) = c->Fifsf(i,j) - g*dt*c->eta(i,j) - g*(TL-BL)*dt*dt*wn(i,j);
+    Rs(i,j) = R0(i,j) - g*TL*dt*dt*nEm(i,j) + dt*nFm(i,j);
     
     // predictor of eta^n+1 and Fifsf^n+1, Adams-Bashforth 2 of the full tendencies: the sigma grid of
     // the solve (an Euler predictor makes an O(dt^2) grid error per step) and the cross terms of pass 0
@@ -321,7 +350,7 @@ void fnpf_theta::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, con
     
     SLICELOOP4
     {
-    c->eta(i,j) = en(i,j) + dt*(theta*wnew(i,j) + (1.0-theta)*wn(i,j) + nEm(i,j));
+    c->eta(i,j) = en(i,j) + dt*(TL*wnew(i,j) + (1.0-TL)*wn(i,j) + nEm(i,j));
     c->Fifsf(i,j) = fnew(i,j);
     
     Neo(i,j) = Ne(i,j);
@@ -457,7 +486,7 @@ void fnpf_theta::corrector_state(lexer *p, fdm_fnpf *c, ghostcell *pgc, ioflow *
     
     SLICELOOP4
     {
-    erk2(i,j) = en(i,j) + dt*(theta*wnew(i,j) + (1.0-theta)*wn(i,j) + nEm(i,j));
+    erk2(i,j) = en(i,j) + dt*(TL*wnew(i,j) + (1.0-TL)*wn(i,j) + nEm(i,j));
     c->Fz(i,j) = wnew(i,j);
     }
     
@@ -524,7 +553,7 @@ void fnpf_theta::corrector_state(lexer *p, fdm_fnpf *c, ghostcell *pgc, ioflow *
     }
     
     SLICELOOP4
-    Rs(i,j) = R0(i,j) - g*theta*dt*dt*nEm(i,j) + dt*nFm(i,j);
+    Rs(i,j) = R0(i,j) - g*TL*dt*dt*nEm(i,j) + dt*nFm(i,j);
     
     {fnpf_prof::scope ps_(fnpf_prof::gc2d); pgc->gcsl_start4(p,Rs,gcval_fifsf);}
     
@@ -661,7 +690,7 @@ void fnpf_theta::robin_build(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psol
     ILOOP
     {
         const int s = n+i;
-        const double alpha = relR(i,j)*g*beta*p->dt*p->dt*p->sigz[IJ];
+        const double alpha = relR(i,j)*g*BL*p->dt*p->dt*p->sigz[IJ];
         
         T.emplace_back(s,s,1.0 + alpha*wsz[0]);
         
@@ -866,7 +895,7 @@ void fnpf_theta::robin_build_mg(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *p
             continue;
             
             const double mt = mts[r];
-            const double A = relR(i,j)*g*beta*p->dt*p->dt*p->sigz[IJ];
+            const double A = relR(i,j)*g*BL*p->dt*p->dt*p->sigz[IJ];
             const double D = 1.0 + A*wsz[0];
             const double B = relR(i,j)*R(i,j) + relT(i,j);
             
@@ -1080,7 +1109,8 @@ void fnpf_theta::relax_affine(lexer *p, fdm_fnpf *c, ghostcell *pgc, ioflow *pfl
 // F(r)^max(s,1) (dt_crit: the step of the time-step criterion at N 47 1). Below the step of N 47 = -a the
 // relaxation is that of an RK3 run with the same step, which gets stronger per time with smaller steps; above it
 // it does not weaken with the step. a <= -1 with period (the zones, A 303 default -200): the RK3 run has -a steps per
-// period of the wave input, s = dt (-a)/T, independent of the grid (patch 0032; without a wave period N 47 0.1).
+// period of the wave input, s = dt (-a)/T, independent of the grid (patch 0032; the period: fnpf_wave_period.h,
+// reconstructed waves since 0033; without a wave period N 47 0.1).
 void fnpf_theta::relax_scale(lexer *p, double a, slice &R, slice &T, bool period)
 {
     double fac = 1.0;
@@ -1092,7 +1122,7 @@ void fnpf_theta::relax_scale(lexer *p, double a, slice &R, slice &T, bool period
     // grid; without a wave period as RK3 at N 47 0.1 of this grid
     if(period && a<=-1.0)
     {
-    const double Tw = (p->B90>0) ? ((p->B92>11) ? p->wTp : p->wT) : 0.0;
+    const double Tw = fnpf_wave_period(p);
     rk3eq = 1;
     if(Tw>0.0)
     fac = MAX(p->dt*(-a)/Tw, 1.0);
@@ -1117,7 +1147,7 @@ void fnpf_theta::relax_scale(lexer *p, double a, slice &R, slice &T, bool period
     static bool said=false;
     if(!said && p->mpirank==0 && period && p->count>=2)
     {
-    const double Tw = (p->B90>0) ? ((p->B92>11) ? p->wTp : p->wT) : 0.0;
+    const double Tw = fnpf_wave_period(p);
     cout<<"A 310 5: relaxation zones per time as RK3 at N 47 "<<-a<<", here "<<(Tw>0.0 ? Tw/(-a*p->dt_crit) : 0.0)<<" steps per period T = "<<Tw<<" s"<<endl;
     }
     if(period && p->count>=2) said=true;

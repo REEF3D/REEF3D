@@ -313,7 +313,7 @@ public:
     void pr_apply(int kx, int ky, int lmin=0);    // the rows of the levels >= lmin (pr_residual)
     void pr_prec(int kr, int kz);
     // (P 8) the counters of what limits the time step (timestep)
-    long dtl_n = 0, dtl_l0 = 0, dtl_acc = 0, dtl_gw = 0;
+    long dtl_n = 0, dtl_l0 = 0, dtl_acc = 0, dtl_gw = 0, dtl_air = 0;
     double dtl_dt = 0.0, dtl_dtv = 0.0;
     void pr_patch_solve(int id, int kt, int kz, int kc);
     void pr_residual(int kr, int kz, int kt, int lmin);

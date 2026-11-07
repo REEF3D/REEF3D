@@ -209,10 +209,10 @@ void sflow_timestep_SI::ini(lexer *p, fdm2D* b, ghostcell* pgc)
     if(p->A228<=0.0 && p->mpirank==0)
     {
     if(p->A220==2 || p->A220==3)
-    cout<<"SFLOW A 210 12/13: time step from the grid, "<<(p->A228<0.0 ? -p->A228 : 20.0)
+    cout<<"SFLOW A 210 11/12/13: time step from the grid, "<<(p->A228<0.0 ? -p->A228 : 20.0)
         <<" steps per period of a wave of 10 cells (A 228 > 0: the time step in s, A 228 < 0: the steps per period)"<<endl;
     else
-    cout<<"SFLOW A 210 12/13: time step from the grid, gravity wave Courant number "<<(p->A228<0.0 ? -p->A228 : 10.0)
+    cout<<"SFLOW A 210 11/12/13: time step from the grid, gravity wave Courant number "<<(p->A228<0.0 ? -p->A228 : 10.0)
         <<" (A 228 > 0: the time step in s, A 228 < 0: the Courant number)"<<endl;
     }
 

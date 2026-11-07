@@ -72,6 +72,8 @@ void control::ini_default()
     A301_1=0.0;  // double FNPF initial standing wave: amplitude [m], 0 off
     A301_2=1.0;  // double FNPF initial standing wave: wave length [m]
     A304=1.0e-3; // double FNPF theta-Robin (A 310 5): corrector stops when the change is below A304 times the solution (0: always A302 passes)
+    A379_1=0.0;  // double FNPF theta-Robin (A 310 5), A 343 >= 1: theta + A379_1 within A379_2 [m] of the still-water coastline (0: off; patch 0034)
+    A379_2=0.0;  // double FNPF theta-Robin (A 310 5): distance [m] from the still-water coastline of A 379
     A333=0.0;    // double FNPF theta-Robin (A 310 5), A 343 >= 1: > 0 the coastline relaxation per time as RK3 at N 47 A333 (0: as the zones, A 303)
     A303=-200.0; // double FNPF theta-Robin (A 310 5): relaxation zones, >0: factors r^(dt/A303); 0: r per step; -1<A303<0: per time as the three RK3 stages at N 47 -A303; <=-1: as an RK3 run with -A303 steps per period of the wave input (patch 0032); per step at least as one RK3 step
     A306=1;      // int FNPF theta-Robin (A 310 5): linear solver, 1 REEFMG (N 10 1, 2D/3D, MPI), 2 Eigen SparseLU (2D, serial)
