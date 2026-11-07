@@ -3425,6 +3425,8 @@ void control::ctrlsend()
     dd++;
     ictrl[ii] = X410;
     ii++;
+    ictrl[ii] = X402;
+    ii++;
     ictrl[ii] = X500;
     ii++;
     ictrl[ii] = X501;

@@ -47,15 +47,25 @@ void sflow_flux_build_f::start_U(lexer* p, fdm2D *b, ghostcell *pgc)
     }
     
     // flux x-dir
+    // X 402 1: pre-balanced form with the pressure-head surface zeta = eta - ps and the
+    // depth below it d + ps (ps = 0 without a pressure patch: the original form)
+    const double g = fabs(p->W22);
+    const int wb = (p->X10==3 && p->X402==1)?1:0;
+    double ps,zs,zn;
+    
     SLICELOOP1
     {
+    ps = wb==1?0.5*(b->pbh(i,j) + b->pbh(i+1,j)):0.0;
+    zs = b->ETAs(i,j) - ps;
+    zn = b->ETAn(i,j) - ps;
+    
     b->Fs(i,j) = b->UHs(i,j)*b->Us(i,j)
-            + 0.5*fabs(p->W22)*b->ETAs(i,j)*b->ETAs(i,j)
-            + fabs(p->W22)*b->ETAs(i,j)*b->dfx(i,j);
+            + 0.5*g*zs*zs
+            + g*zs*(b->dfx(i,j) + ps);
     
     b->Fn(i,j) = b->UHn(i,j)*b->Un(i,j)
-            + 0.5*fabs(p->W22)*b->ETAn(i,j)*b->ETAn(i,j)
-            + fabs(p->W22)*b->ETAn(i,j)*b->dfx(i,j);
+            + 0.5*g*zn*zn
+            + g*zn*(b->dfx(i,j) + ps);
     }
     
     // flux y-dir
@@ -88,15 +98,23 @@ void sflow_flux_build_f::start_V(lexer* p, fdm2D *b, ghostcell *pgc)
     }
     
     // flux y-dir
+    const double g = fabs(p->W22);
+    const int wb = (p->X10==3 && p->X402==1)?1:0;
+    double ps,ze,zw;
+    
     SLICELOOP2
     {
+    ps = wb==1?0.5*(b->pbh(i,j) + b->pbh(i,j+1)):0.0;
+    ze = b->ETAe(i,j) - ps;
+    zw = b->ETAw(i,j) - ps;
+    
     b->Fe(i,j) = b->VHe(i,j)*b->Ve(i,j) 
-            + 0.5*fabs(p->W22)*b->ETAe(i,j)*b->ETAe(i,j)
-            + fabs(p->W22)*b->ETAe(i,j)*b->dfy(i,j);
+            + 0.5*g*ze*ze
+            + g*ze*(b->dfy(i,j) + ps);
     
     b->Fw(i,j) = b->VHw(i,j)*b->Vw(i,j) 
-            + 0.5*fabs(p->W22)*b->ETAw(i,j)*b->ETAw(i,j) 
-            + fabs(p->W22)*b->ETAw(i,j)*b->dfy(i,j);
+            + 0.5*g*zw*zw 
+            + g*zw*(b->dfy(i,j) + ps);
     }
     }
 }

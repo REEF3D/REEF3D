@@ -742,6 +742,7 @@ public:
     int X400;
     double X401_p0,X401_cl,X401_cb,X401_a;
     int X410;
+    int X402;
     int X500,X501,X502,X503,X504;
     double X501_ax,X501_ay,X501_az,X501_xa,X501_ya,X501_za;
     double X502_B;

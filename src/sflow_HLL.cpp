@@ -321,6 +321,20 @@ void sflow_HLL::flux_bc(lexer *p, fdm2D *b, int ipol)
     const double g = fabs(p->W22);
     double wc,sw;
     
+    // X 402 1: hydrostatic wall flux with the pressure-head surface zeta = eta - pbh and the
+    // face depth d + ps, as in sflow_flux_build_f (ps = zeta = 0 offsets without a pressure patch)
+    const double wb = (p->X10==3 && p->X402==1)?1.0:0.0;
+    double ze,ps;
+    
+    // hydrostatic flux of a boundary ghost state (surface e, pressure head pc of the ghost cell,
+    // face pressure head pf, face depth df): 0.5 g zeta^2 + g zeta (df + pf), zeta = e - pc
+    // (X 402 0 or without a pressure patch: 0.5 g e^2 + g e df)
+    auto hsf = [&](double e, double pc, double pf, double df)
+    {
+        const double z = e - wb*pc;
+        return 0.5*g*z*z + g*z*(df + wb*pf);
+    };
+    
     //  walls: HLL flux with the mirrored ghost state, F = F_i -/+ s q_i
     //  (s = |u| + sqrt(gH)); the normal momentum of the wall cell is coupled to the wall
     SLICELOOP4
@@ -331,9 +345,11 @@ void sflow_HLL::flux_bc(lexer *p, fdm2D *b, int ipol)
         if(p->flagslice4[Im1J]<0)
         {
         sw = fabs(b->U(i,j)) + sqrt(g*wc);
+        ze = b->eta(i,j) - wb*b->pbh(i,j);
+        ps = wb*0.5*(b->pbh(i-1,j) + b->pbh(i,j));
         
         if(ipol==1)
-        Fx(i-1,j) = 0.5*g*b->eta(i,j)*b->eta(i,j) + g*b->eta(i,j)*b->dfx(i-1,j)
+        Fx(i-1,j) = 0.5*g*ze*ze + g*ze*(b->dfx(i-1,j) + ps)
                   + wc*b->U(i,j)*b->U(i,j) - sw*wc*b->U(i,j);
         
         else
@@ -343,9 +359,11 @@ void sflow_HLL::flux_bc(lexer *p, fdm2D *b, int ipol)
         if(p->flagslice4[Ip1J]<0)
         {
         sw = fabs(b->U(i,j)) + sqrt(g*wc);
+        ze = b->eta(i,j) - wb*b->pbh(i,j);
+        ps = wb*0.5*(b->pbh(i,j) + b->pbh(i+1,j));
         
         if(ipol==1)
-        Fx(i,j) = 0.5*g*b->eta(i,j)*b->eta(i,j) + g*b->eta(i,j)*b->dfx(i,j)
+        Fx(i,j) = 0.5*g*ze*ze + g*ze*(b->dfx(i,j) + ps)
                 + wc*b->U(i,j)*b->U(i,j) + sw*wc*b->U(i,j);
         
         else
@@ -358,9 +376,11 @@ void sflow_HLL::flux_bc(lexer *p, fdm2D *b, int ipol)
             if(p->flagslice4[IJm1]<0)
             {
             sw = fabs(b->V(i,j)) + sqrt(g*wc);
+            ze = b->eta(i,j) - wb*b->pbh(i,j);
+            ps = wb*0.5*(b->pbh(i,j-1) + b->pbh(i,j));
             
             if(ipol==2)
-            Fy(i,j-1) = 0.5*g*b->eta(i,j)*b->eta(i,j) + g*b->eta(i,j)*b->dfy(i,j-1)
+            Fy(i,j-1) = 0.5*g*ze*ze + g*ze*(b->dfy(i,j-1) + ps)
                       + wc*b->V(i,j)*b->V(i,j) - sw*wc*b->V(i,j);
             
             else
@@ -370,9 +390,11 @@ void sflow_HLL::flux_bc(lexer *p, fdm2D *b, int ipol)
             if(p->flagslice4[IJp1]<0)
             {
             sw = fabs(b->V(i,j)) + sqrt(g*wc);
+            ze = b->eta(i,j) - wb*b->pbh(i,j);
+            ps = wb*0.5*(b->pbh(i,j) + b->pbh(i,j+1));
             
             if(ipol==2)
-            Fy(i,j) = 0.5*g*b->eta(i,j)*b->eta(i,j) + g*b->eta(i,j)*b->dfy(i,j)
+            Fy(i,j) = 0.5*g*ze*ze + g*ze*(b->dfy(i,j) + ps)
                     + wc*b->V(i,j)*b->V(i,j) + sw*wc*b->V(i,j);
             
             else
@@ -393,7 +415,7 @@ void sflow_HLL::flux_bc(lexer *p, fdm2D *b, int ipol)
     wl = MAX(b->eta(i,j) + b->depth(i,j), 0.0);
     
         if(ipol==1)
-        Fx(i,j) = wl*b->U(i,j)*b->U(i,j) + 0.5*g*b->eta(i,j)*b->eta(i,j) + g*b->eta(i,j)*b->dfx(i,j);
+        Fx(i,j) = wl*b->U(i,j)*b->U(i,j) + hsf(b->eta(i,j),b->pbh(i,j),0.5*(b->pbh(i,j)+b->pbh(i+1,j)),b->dfx(i,j));
         
         if(ipol==2)
         Fx(i,j) = wl*b->V(i,j)*b->U(i,j);
@@ -442,7 +464,7 @@ void sflow_HLL::flux_bc(lexer *p, fdm2D *b, int ipol)
         int fi = (cs==1)?i-1:i;
         
         if(ipol==1)
-        Fx(fi,j) = wl*ug*ug + 0.5*g*eg*eg + g*eg*b->dfx(fi,j);
+        Fx(fi,j) = wl*ug*ug + hsf(eg,b->pbh(i+ii,j+jj),0.5*(b->pbh(fi,j)+b->pbh(fi+1,j)),b->dfx(fi,j));
         
         if(ipol==2)
         Fx(fi,j) = wl*vg*ug;
@@ -463,7 +485,7 @@ void sflow_HLL::flux_bc(lexer *p, fdm2D *b, int ipol)
         Fy(i,fj) = wl*ug*vg;
         
         if(ipol==2)
-        Fy(i,fj) = wl*vg*vg + 0.5*g*eg*eg + g*eg*b->dfy(i,fj);
+        Fy(i,fj) = wl*vg*vg + hsf(eg,b->pbh(i+ii,j+jj),0.5*(b->pbh(i,fj)+b->pbh(i,fj+1)),b->dfy(i,fj));
         
         if(ipol==3)
         Fy(i,fj) = wl*wg*vg;
@@ -483,7 +505,7 @@ void sflow_HLL::flux_bc(lexer *p, fdm2D *b, int ipol)
     wl = MAX(b->eta(i+1,j) + b->depth(i+1,j), 0.0);
     
         if(ipol==1)
-        Fx(i,j) = wl*b->U(i+1,j)*b->U(i+1,j) + 0.5*g*b->eta(i+1,j)*b->eta(i+1,j) + g*b->eta(i+1,j)*b->dfx(i,j);
+        Fx(i,j) = wl*b->U(i+1,j)*b->U(i+1,j) + hsf(b->eta(i+1,j),b->pbh(i+1,j),0.5*(b->pbh(i,j)+b->pbh(i+1,j)),b->dfx(i,j));
         
         if(ipol==2)
         Fx(i,j) = wl*b->V(i+1,j)*b->U(i+1,j);
@@ -525,7 +547,7 @@ void sflow_HLL::flux_bc(lexer *p, fdm2D *b, int ipol)
         const int fi = (cs==1)?i-1:i;
         
         if(ipol==1)
-        Fx(fi,j) = wl*ug*ug + 0.5*g*eg*eg + g*eg*b->dfx(fi,j);
+        Fx(fi,j) = wl*ug*ug + hsf(eg,b->pbh(i+ii,j+jj),0.5*(b->pbh(fi,j)+b->pbh(fi+1,j)),b->dfx(fi,j));
         
         if(ipol==2)
         Fx(fi,j) = wl*vg*ug;
@@ -545,7 +567,7 @@ void sflow_HLL::flux_bc(lexer *p, fdm2D *b, int ipol)
         Fy(i,fj) = wl*ug*vg;
         
         if(ipol==2)
-        Fy(i,fj) = wl*vg*vg + 0.5*g*eg*eg + g*eg*b->dfy(i,fj);
+        Fy(i,fj) = wl*vg*vg + hsf(eg,b->pbh(i+ii,j+jj),0.5*(b->pbh(i,fj)+b->pbh(i,fj+1)),b->dfy(i,fj));
         
         if(ipol==3)
         Fy(i,fj) = wl*wg*vg;

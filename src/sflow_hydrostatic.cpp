@@ -53,7 +53,15 @@ void sflow_hydrostatic::upgrad(lexer*p, fdm2D* b, slice &eta)
     
     SLICELOOP4
     WETDRY
+    {
+    // X 402 1: g zeta d(d+ps)/dx with zeta = eta - ps and the face pressure head ps
+    if(p->X10==3 && p->X402==1)
+    b->F(i,j) += fabs(p->W22)*(eta(i,j) - b->pbh(i,j))
+               *(b->dfx(i,j) + 0.5*(b->pbh(i,j)+b->pbh(i+1,j)) - b->dfx(i-1,j) - 0.5*(b->pbh(i-1,j)+b->pbh(i,j)))/p->DXN[IP];
+    
+    else
     b->F(i,j) += fabs(p->W22)*eta(i,j)*(b->dfx(i,j) - b->dfx(i-1,j))/p->DXN[IP];
+    }
 }
 
 void sflow_hydrostatic::vpgrad(lexer*p, fdm2D* b, slice &eta)
@@ -66,7 +74,14 @@ void sflow_hydrostatic::vpgrad(lexer*p, fdm2D* b, slice &eta)
     
     SLICELOOP4
     WETDRY
+    {
+    if(p->X10==3 && p->X402==1)
+    b->G(i,j) += fabs(p->W22)*(eta(i,j) - b->pbh(i,j))
+               *(b->dfy(i,j) + 0.5*(b->pbh(i,j)+b->pbh(i,j+1)) - b->dfy(i,j-1) - 0.5*(b->pbh(i,j-1)+b->pbh(i,j)))/p->DYN[JP];
+    
+    else
     b->G(i,j) += fabs(p->W22)*eta(i,j)*(b->dfy(i,j) - b->dfy(i,j-1))/p->DYN[JP];
+    }
 }
 
 void sflow_hydrostatic::wpgrad(lexer*p, fdm2D* b, slice &eta)

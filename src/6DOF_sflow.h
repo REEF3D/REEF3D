@@ -52,6 +52,8 @@ public:
     
     void start_oneway(lexer*,ghostcell*,int,slice&,slice&,slice&,slice&,slice&,slice&,slice&,bool);
     void start_shipwave(lexer*,ghostcell*,int,slice&,slice&,slice&,slice&,slice&,slice&,bool);
+    void update_press(lexer*,ghostcell*,slice&);
+    void pressure_head(lexer*,fdm2D*,ghostcell*);
 
     
 	void ini(lexer*,ghostcell*) override final;

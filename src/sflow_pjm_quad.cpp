@@ -485,7 +485,15 @@ void sflow_pjm_quad::upgrad(lexer*p, fdm2D* b, slice &eta)
     if(p->geo_curv==0)
     SLICELOOP4
     WETDRY
+    {
+    // X 402 1: g zeta d(d+ps)/dx with zeta = eta - ps and the face pressure head ps
+    if(p->X10==3 && p->X402==1)
+    b->F(i,j) += fabs(p->W22)*(eta(i,j) - b->pbh(i,j))
+               *(b->dfx(i,j) + 0.5*(b->pbh(i,j)+b->pbh(i+1,j)) - b->dfx(i-1,j) - 0.5*(b->pbh(i-1,j)+b->pbh(i,j)))/p->DXN[IP];
+    
+    else
     b->F(i,j) += fabs(p->W22)*eta(i,j)*(b->dfx(i,j) - b->dfx(i-1,j))/p->DXN[IP];
+    }
     
     // dispersion correction (A 220 3): B g grad(h^3 div(grad(eta)))
     // all derivatives central: the collocated projection only acts through central
@@ -494,8 +502,16 @@ void sflow_pjm_quad::upgrad(lexer*p, fdm2D* b, slice &eta)
     {
     double h,a1,a2,lx,ly;
     
+        // X 402 1: the long-wave acceleration -g grad(zeta) includes the hull pressure head
+        // (Ld holds zeta here, it is overwritten below)
+        const double psw = (p->X10==3 && p->X402==1)?1.0:0.0;
+        
+        for(i=p->imin; i<p->imin+p->imax; ++i)
+        for(j=p->jmin; j<p->jmin+p->jmax; ++j)
+        Ld(i,j) = eta(i,j) - psw*b->pbh(i,j);
+        
         SLICELOOP4
-        sflow_curv::grad(p,eta,i,j,Gx(i,j),Gy(i,j));
+        sflow_curv::grad(p,Ld,i,j,Gx(i,j),Gy(i,j));
         
         pgc->gcsl_start4(p,Gx,1);
         pgc->gcsl_start4(p,Gy,1);
@@ -528,8 +544,10 @@ void sflow_pjm_quad::upgrad(lexer*p, fdm2D* b, slice &eta)
     
         SLICELOOP4
         {
-        Gx(i,j) = (eta(i+1,j) - eta(i-1,j))/(p->DXP[IP] + p->DXP[IM1]);
-        Gy(i,j) = ysk ? 0.0 : (eta(i,j+1) - eta(i,j-1))/(p->DYP[JP] + p->DYP[JM1])*p->y_dir;
+        // X 402 1: the long-wave acceleration -g grad(zeta) includes the hull pressure head
+        const double ps = (p->X10==3 && p->X402==1)?1.0:0.0;
+        Gx(i,j) = (eta(i+1,j) - ps*b->pbh(i+1,j) - eta(i-1,j) + ps*b->pbh(i-1,j))/(p->DXP[IP] + p->DXP[IM1]);
+        Gy(i,j) = ysk ? 0.0 : (eta(i,j+1) - ps*b->pbh(i,j+1) - eta(i,j-1) + ps*b->pbh(i,j-1))/(p->DYP[JP] + p->DYP[JM1])*p->y_dir;
         }
         
         pgc->gcsl_start4(p,Gx,1);
@@ -564,7 +582,14 @@ void sflow_pjm_quad::vpgrad(lexer*p, fdm2D* b, slice &eta)
     if(p->geo_curv==0)
     SLICELOOP4
     WETDRY
+    {
+    if(p->X10==3 && p->X402==1)
+    b->G(i,j) += fabs(p->W22)*(eta(i,j) - b->pbh(i,j))
+               *(b->dfy(i,j) + 0.5*(b->pbh(i,j)+b->pbh(i,j+1)) - b->dfy(i,j-1) - 0.5*(b->pbh(i,j-1)+b->pbh(i,j)))/p->DYN[JP];
+    
+    else
     b->G(i,j) += fabs(p->W22)*eta(i,j)*(b->dfy(i,j) - b->dfy(i,j-1))/p->DYN[JP];
+    }
     
     // dispersion correction (A 220 3), Ld from upgrad
     if(Bdisp>0.0 && p->geo_curv==1)

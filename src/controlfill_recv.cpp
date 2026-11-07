@@ -3416,6 +3416,8 @@ void control::ctrlrecv()
     dd++;
     X410 = ictrl[ii];
     ii++;
+    X402 = ictrl[ii];
+    ii++;
     X500 = ictrl[ii];
     ii++;
     X501 = ictrl[ii];

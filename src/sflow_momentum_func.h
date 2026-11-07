@@ -120,6 +120,8 @@ protected:
     
     slice4 UHDIFF,VHDIFF,WHDIFF;
     slice4 Un,Vn,etaS;
+    slice4 zeta;
+    int wbpatch;
     
 private:
     int q;
