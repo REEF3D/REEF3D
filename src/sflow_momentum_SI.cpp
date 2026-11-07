@@ -58,7 +58,7 @@ sflow_momentum_SI::sflow_momentum_SI(lexer *p, fdm2D *b, ghostcell *pgc, sflow_H
                                       qyN(p),Hyo(p),qyo(p),qya(p),nyR(p),nyL(p),nyB(p),ny0(p),kyEL(p),kyER(p),kyPL(p),kyPR(p),ky1(p),ky2(p),
                                       phiN(p),WHp(p),Lc0(p),Unm1(p),Vnm1(p),WLh(p),WLo(p),AWo(p),WLq(p),
                                       nPW(p),nEb(p),nEo(p),nPo(p),nU(p),nV(p),nUs(p),nVs(p),nA(p),nsx(p),nsy(p),nE(p),nP(p),nL(p),nZ(p),nAE(p),nAP(p),nBE(p),nBP(p),nGx(p),nGy(p),
-                                      nF1x(p),nF2x(p),nF1y(p),nF2y(p),nH3(p),nW2(p),nCs(p),nRm(p),nRc(p),nZE(p),nZP(p),sps(p),bcA(p)
+                                      nF1x(p),nF2x(p),nF1y(p),nF2y(p),nH3(p),nW2(p),nCs(p),nRm(p),nRc(p),nZE(p),nZP(p),sps(p),bcA(p),bcS(p)
 {
     check(p);
 
@@ -1146,6 +1146,41 @@ void sflow_momentum_SI::advection(lexer *p, fdm2D *b, ghostcell *pgc)
     }
 }
 
+void sflow_momentum_SI::wall_sides(lexer *p)
+{
+    // A 210 11: the sides of the cells with an open boundary face (iowave, ioflow; also those closed for the step), as
+    // bits: 1 x-, 2 x+, 4 y-, 8 y+ (bc_face cs: 1 x-, 4 x+, 3 y-, 2 y+); wall() tells the other sides towards a solid
+    // or the outside of the domain
+    SLICELOOP4
+    bcS(i,j) = 0.0;
+
+    auto mark = [&](const bc_face &f)
+    {
+        const int bit = f.cs==1 ? 1 : (f.cs==4 ? 2 : (f.cs==3 ? 4 : 8));
+        bcS(f.i,f.j) = double(int(bcS(f.i,f.j)) | bit);
+    };
+
+    for(const bc_face &f : bcf)
+    mark(f);
+
+    for(const bc_face &f : bco)
+    mark(f);
+}
+
+double sflow_momentum_SI::wall(lexer *p, int ii, int jj, int side)
+{
+    // 1.0 if the side of cell (ii,jj) (1 x-, 2 x+, 3 y-, 4 y+) faces a solid or the outside of the domain and no open
+    // boundary (wall_sides of the step)
+    const int ai = side==1 ? ii-1 : (side==2 ? ii+1 : ii);
+    const int aj = side==3 ? jj-1 : (side==4 ? jj+1 : jj);
+    const int bit = side==1 ? 1 : (side==2 ? 2 : (side==3 ? 4 : 8));
+
+    if(p->flagslice4[(ai-p->imin)*p->jmax + (aj-p->jmin)]>=0)
+    return 0.0;
+
+    return (int(bcS(ii,jj)) & bit) ? 0.0 : 1.0;
+}
+
 void sflow_momentum_SI::advection_bcg(lexer *p, fdm2D *b, ghostcell *pgc, slice &qa, slice &qb)
 {
     // A 210 11: the fluxes q_f u_f of U and V with the face values of the BCG scheme (Bell, Colella & Glaz 1989), as
@@ -1155,9 +1190,10 @@ void sflow_momentum_SI::advection_bcg(lexer *p, fdm2D *b, ghostcell *pgc, slice 
     // q_f the discharge of the step at t^{n+1/2} (nh_levels), g the slope of the upwind cell normal to the face, g_t the
     // one along it (2D), both the generalised minmod of Basilisk (theta 1.3), v_up the velocity along the face in the
     // upwind cell (from its two faces). S = -g grad(eta^n) (with the ship pressure level of the step, X 10 3) plus the
-    // non-hydrostatic pressure of the step before (the mean of its face terms qxN, as nh_cell): without S the advected
-    // velocity misses the acceleration of the step and the nonlinear terms are first order in time (standing wave
-    // a/h 0.094, A 210 12: order 1.2 at T/1280). Slopes next to solids, dry cells and open boundaries: 0
+    // non-hydrostatic pressure of the step before (the mean of its face terms qxN, as nh_cell; a wall side with zero and
+    // its level mirrored): without S the advected velocity misses the acceleration of the step and the nonlinear terms
+    // are first order in time (standing wave a/h 0.094, A 210 12: order 1.2 at T/1280). Slopes next to solids, dry
+    // cells and open boundaries: 0
     const double dt = p->dt;
     const bool yd = (p->j_dir==1);
 
@@ -1172,6 +1208,9 @@ void sflow_momentum_SI::advection_bcg(lexer *p, fdm2D *b, ghostcell *pgc, slice 
 
     exchange4(p,pgc,bcA);
 
+    // the open sides of the cells (wall)
+    wall_sides(p);
+
     // eta^n of the source term in the cells of the neighbouring ranks (si_begin copies the interior)
     exchange4(p,pgc,eta0);
 
@@ -1183,6 +1222,9 @@ void sflow_momentum_SI::advection_bcg(lexer *p, fdm2D *b, ghostcell *pgc, slice 
     {
         double s = 0.0;
 
+        // a wall side counts with its zero face term and the mirrored level (as cell_update and nh_cell)
+        const double w1 = wall(p,a,c,dir==1 ? 1 : 3), w2 = wall(p,a,c,dir==1 ? 2 : 4);
+
         if(nh && WL0(a,c)>p->A244)
         {
         const double den = WL0(a,c)*MAX(p->dt_old,1.0e-20);
@@ -1190,29 +1232,31 @@ void sflow_momentum_SI::advection_bcg(lexer *p, fdm2D *b, ghostcell *pgc, slice 
             if(dir==1)
             {
             const double we = Hx(a,c)>0.0 ? 1.0 : 0.0, ww = Hx(a-1,c)>0.0 ? 1.0 : 0.0;
-            s += (ww*qxN(a-1,c) + we*qxN(a,c))/(MAX(we+ww,1.0)*den);
+            s += (ww*qxN(a-1,c) + we*qxN(a,c))/(MAX(we+ww+w1+w2,1.0)*den);
             }
 
             else
             {
             const double wn = Hy(a,c)>0.0 ? 1.0 : 0.0, ws = Hy(a,c-1)>0.0 ? 1.0 : 0.0;
-            s += (ws*qyN(a,c-1) + wn*qyN(a,c))/(MAX(wn+ws,1.0)*den);
+            s += (ws*qyN(a,c-1) + wn*qyN(a,c))/(MAX(wn+ws+w1+w2,1.0)*den);
             }
         }
 
         if(dir==1)
         {
-        const bool oe = ok(a+1,c), ow = ok(a-1,c);
-        if(oe && ow) return s - g*(lev(a+1,c) - lev(a-1,c))/(p->DXP[a-1+marge] + p->DXP[a+marge]);
-        if(oe) return s - g*(lev(a+1,c) - lev(a,c))/p->DXP[a+marge];
-        if(ow) return s - g*(lev(a,c) - lev(a-1,c))/p->DXP[a-1+marge];
+        const bool oe = ok(a+1,c), ow = ok(a-1,c), me = oe || w2>0.5, mw = ow || w1>0.5;
+        const double le = oe ? lev(a+1,c) : lev(a,c), lw = ow ? lev(a-1,c) : lev(a,c);
+        if(me && mw) return s - g*(le - lw)/(p->DXP[a-1+marge] + p->DXP[a+marge]);
+        if(oe) return s - g*(le - lev(a,c))/p->DXP[a+marge];
+        if(ow) return s - g*(lev(a,c) - lw)/p->DXP[a-1+marge];
         return s;
         }
 
-        const bool on = ok(a,c+1), os = ok(a,c-1);
-        if(on && os) return s - g*(lev(a,c+1) - lev(a,c-1))/(p->DYP[c-1+marge] + p->DYP[c+marge]);
-        if(on) return s - g*(lev(a,c+1) - lev(a,c))/p->DYP[c+marge];
-        if(os) return s - g*(lev(a,c) - lev(a,c-1))/p->DYP[c-1+marge];
+        const bool on = ok(a,c+1), os = ok(a,c-1), mn = on || w2>0.5, ms = os || w1>0.5;
+        const double ln = on ? lev(a,c+1) : lev(a,c), ls = os ? lev(a,c-1) : lev(a,c);
+        if(mn && ms) return s - g*(ln - ls)/(p->DYP[c-1+marge] + p->DYP[c+marge]);
+        if(on) return s - g*(ln - lev(a,c))/p->DYP[c+marge];
+        if(os) return s - g*(lev(a,c) - ls)/p->DYP[c-1+marge];
         return s;
     };
 
@@ -1757,6 +1801,9 @@ void sflow_momentum_SI::cell_update(lexer *p, fdm2D *b, ghostcell *pgc)
 
     auto wn = [&](int a, int c) { return etaI(a,c) + b->depth(a,c) > p->A244; };
 
+    if(onestep)
+    wall_sides(p);
+
     // the depth of the gravity term (the non-hydrostatic step and A 210 11: extrapolated to t^{n+1/2}, nh_levels)
     slice &Hg = tlev ? (slice&)WLh : (slice&)WL0;
 
@@ -1767,6 +1814,10 @@ void sflow_momentum_SI::cell_update(lexer *p, fdm2D *b, ghostcell *pgc)
         we = (Hx(i,j)>0.0 && wn(i+1,j)) ? 1.0 : 0.0;
         ww = (Hx(i-1,j)>0.0 && wn(i-1,j)) ? 1.0 : 0.0;
         wsum = MAX(we+ww,1.0);
+
+        // A 210 11: a wall face counts with its zero gradient (the mirrored level), as the face discharge zero there
+        if(onestep)
+        wsum = MAX(we + ww + wall(p,i,j,1) + wall(p,i,j,2), 1.0);
 
         gn  = (ww*gx0(i-1,j) + we*gx0(i,j))/wsum;
         gn1 = (ww*(etaI(i,j) - etaI(i-1,j))/p->DXP[IM1] + we*(etaI(i+1,j) - etaI(i,j))/p->DXP[IP])/wsum;
@@ -1783,6 +1834,9 @@ void sflow_momentum_SI::cell_update(lexer *p, fdm2D *b, ghostcell *pgc)
             we = (Hy(i,j)>0.0 && wn(i,j+1)) ? 1.0 : 0.0;
             ww = (Hy(i,j-1)>0.0 && wn(i,j-1)) ? 1.0 : 0.0;
             wsum = MAX(we+ww,1.0);
+
+            if(onestep)
+            wsum = MAX(we + ww + wall(p,i,j,3) + wall(p,i,j,4), 1.0);
 
             gn  = (ww*gy0(i,j-1) + we*gy0(i,j))/wsum;
             gn1 = (ww*(etaI(i,j) - etaI(i,j-1))/p->DYP[JM1] + we*(etaI(i,j+1) - etaI(i,j))/p->DYP[JP])/wsum;

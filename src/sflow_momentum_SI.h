@@ -248,6 +248,11 @@ private:
     // slopes may use
     bool onestep = false, tlev = false;
     slice4 bcA;
+    // A 210 11: a wall face (solid, outside the domain, no open boundary) counts in the cell momentum with its zero
+    // gradient and zero non-hydrostatic face term (cell_update, nh_cell, the BCG source term); bcS: the open sides
+    slice4 bcS;
+    void wall_sides(lexer*);
+    double wall(lexer*, int, int, int);
 
     double Qin, Qout;       // discharge over the open boundaries of the step (theta weighted)
     double vrelax;          // volume change of the relaxation zones of the step

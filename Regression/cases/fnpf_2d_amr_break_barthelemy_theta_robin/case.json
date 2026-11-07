@@ -1,0 +1,22 @@
+{
+ "base": "fnpf_2d_amr_break_barthelemy",
+ "steps": 1400,
+ "ctrl_set": {
+  "A 310": "5",
+  "N 51": "3",
+  "B 98": "2",
+  "B 99": "0",
+  "B 96": "4.0 0.0"
+ },
+ "description": "fnpf_2d_amr_break_barthelemy with theta-Robin and N 51 3 (generation by a 4 m relaxation zone as fnpf_2d_theta_robin_coast): A 350 4 on the patch through theta_damping and theta_breaking.",
+ "tags": [
+  "2d",
+  "fnpf",
+  "amr",
+  "breaking",
+  "coastline"
+ ],
+ "covers": [
+  "fnpf_amr::theta_damping, theta_breaking with A 350 4"
+ ]
+}

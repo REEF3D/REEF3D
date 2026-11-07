@@ -1,0 +1,8 @@
+{
+ "description": "sflow_shipwave_box with the box at rest (X 210 0): with the well-balanced pressure patch (X 402 1, default) the water under the pressure stays at rest (P = Q = 0 to round-off) and eta = pbh from the start (X 207 0); with the cell-centred source (X 402 0) the hull drives a spurious current of about 0.05 m/s.",
+ "solver": "sflow",
+ "np": 1,
+ "steps": 200,
+ "tags": ["2d", "sflow", "6dof", "ship", "well_balanced"],
+ "covers": ["sixdof_sflow::pressure_head", "sflow_momentum_func::reconstruct (zeta = eta - pbh)", "sflow_flux_build_f", "sflow_HLL::flux_bc"]
+}

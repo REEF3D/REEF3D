@@ -1430,14 +1430,14 @@ void sflow_momentum_SI::nh_cell(lexer *p, fdm2D *b, ghostcell *pgc)
         }
 
         else
-        b->UH(i,j) += (ww*qxN(i-1,j) + we*qxN(i,j))/MAX(we+ww,1.0);
+        b->UH(i,j) += (ww*qxN(i-1,j) + we*qxN(i,j))/MAX(we + ww + (onestep ? wall(p,i,j,1) + wall(p,i,j,2) : 0.0),1.0);
 
             if(p->j_dir==1 && p->geo_curv==0)
             {
             const double wn_ = (Hy(i,j)>0.0 && in(i,j+1) && wn(i,j+1)) ? 1.0 : 0.0;
             const double ws_ = (Hy(i,j-1)>0.0 && in(i,j-1) && wn(i,j-1)) ? 1.0 : 0.0;
 
-            b->VH(i,j) += (ws_*qyN(i,j-1) + wn_*qyN(i,j))/MAX(wn_+ws_,1.0);
+            b->VH(i,j) += (ws_*qyN(i,j-1) + wn_*qyN(i,j))/MAX(wn_ + ws_ + (onestep ? wall(p,i,j,3) + wall(p,i,j,4) : 0.0),1.0);
             }
 
         b->WH(i,j) = WHp(i,j);

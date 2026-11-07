@@ -221,6 +221,7 @@ VTU/state print keys (`P 20/30/40/41/42`), so runs are short and output stays sm
 | `nhflow_3d_cylinder_force_mpi2` | 2 | P 81 on the vertical cylinder in the k-eps channel (base `nhflow_3d_cylinder_kepsilon_mpi2`), surface across the rank interface, globalsum of the forces (needs patch 0001 of NHFLOW Forces; reference with 0001) |
 | `nhflow_3d_shipwave_box` | 1 | NHFLOW moving pressure patch, ship-wave mode (X10=3, X400=2) |
 | `sflow_shipwave_box` (+ `sflow_6dof_box_oneway`) | 1 | SFLOW ship pressure patch (X10=3) / one-way direct forcing (X10=2) |
+| `sflow_2d_ship_at_rest` | 1 | `sflow_shipwave_box` with the box at rest: the well-balanced pressure patch (X 402 1) keeps the water at rest under the hull (P, Q at round-off; X 402 0: 0.05 m/s), eta = pbh from the start (needs Ship Hydrodynamics 0055) |
 | `fnpf_2d_6dof_box` (+ `_rk4`) | 1 | FNPF resolved floating body, A310=3 / 4, added-mass coupling |
 | `fnpf_2d_6dof_box_pto` | 1 | the FNPF box in heave with the 6DOF power take-off (X 500 2): PTO damper (X 502) and stiff end stops (X 504) as the CORAL PTO of `fnpf_2d_coral_fluid_body`; `REEF3D_6DOF_pto_0.dat` compared |
 | `fnpf_2d_6dof_box_pto_loss` | 1 | `fnpf_2d_6dof_box_pto` with drive-train losses (X 510: loss damper and loss Coulomb friction, not absorbed power; P_loss and E_loss in `REEF3D_6DOF_pto_0.dat`); CORAL counterpart `fnpf_2d_coral_fluid_body_loss` (needs patch CORAL/0044) |
@@ -290,6 +291,9 @@ VTU/state print keys (`P 20/30/40/41/42`), so runs are short and output stays sm
 | `fnpf_3d_amr_break_theta_robin` | 1 | `fnpf_3d_amr_break` (box over the surf zone, breaking A 350 1 with the filters A 352 3, static coastline with the patches off it) with θ-Robin and N 51 3, generation B 98 2: the patches damped with their breaking viscosity at the start of the step, detection and filters on the patches at its end, consistency solve after their edits (needs patch fnpf_theta_robin/0029) |
 | `fnpf_3d_amr_break_theta_robin_mpi2` | 2 | as `fnpf_3d_amr_break_theta_robin` on 2 ranks (needs 0029) |
 | `fnpf_3d_amr_break_adapt_theta_robin` | 1 | `fnpf_3d_amr_break_adapt` (patches from the surface jump G 20 and the breaking flags G 23) with θ-Robin and N 51 3: new patches take the θ state (needs 0029) |
+| `fnpf_2d_amr_break_barthelemy` | 1 | `fnpf_2d_break_barthelemy` (Ting & Kirby, A 350 4 crest tracking, A 352 0) with a box at dx/2 over 11-17 m, RK3, 1400 steps: the crests tracked on level 0, the patch takes the prolonged viscosity (needs patch fnpf_theta_robin/0030) |
+| `fnpf_2d_amr_break_barthelemy_theta_robin` | 1 | as `fnpf_2d_amr_break_barthelemy` with θ-Robin and N 51 3, generation by a 4 m relaxation zone (B 98 2) (needs 0029–0030) |
+| `fnpf_2d_amr_break_barthelemy_theta_robin_mpi2` | 2 | as `fnpf_2d_amr_break_barthelemy_theta_robin` on 2 ranks, the box cut at the partition edge (needs 0029–0030) |
 | `fnpf_2d_regular_n16_3` | 1 | `fnpf_2d_regular` with the REEFMG V-cycle on the reference device (N 16 3): one rank, the whole V-cycle queued on the device; `same_as` the CPU run within 1e-5 (needs patches REEFMG/0002-0003) |
 | `fnpf_2d_regular_n16_4` | 1 | `fnpf_2d_regular` with the Krylov solve on the reference device (N 16 4): GCR in double around a single-precision BiCGStab on the device; `same_as` the CPU run within 1e-5 (patch REEFMG/0011) |
 | `fnpf_2d_regular_mpi2_m40` | 2 | `fnpf_2d_regular_mpi2` decomposed by REEF3D from the global grid (DIVEMesh M 50 1, M 40 1); `ranks`: bitwise `fnpf_2d_regular_mpi2`; the base of the capacity cases |
@@ -971,6 +975,7 @@ VTU/state print keys (`P 20/30/40/41/42`), so runs are short and output stays sm
 | `sflow_2d_si_nh_shoal_onestep` (`_mpi2`) | 1/2 | the mound with A 210 11: the BCG face values in 2D with the transverse terms, across two ranks |
 | `sflow_1d_si_nh_synolakis_break_onestep`, `sflow_1d_si_nh_ship_onestep` | 1 | A 210 11 with wetting and drying and the breaking model A 246 4; with the ship pressure X 10 3 in the source term |
 | `sflow_1d_si_thacker_onestep` | 1 | A 210 11 hydrostatic: the time levels of the nonlinear terms without the non-hydrostatic pressure, BCG advection with wetting and drying |
+| `sflow_1d_si_onestep_dambreak` | 1 | A 210 11 hydrostatic, theta 1/2: Stoker dam break (dx 0.05 m), the bore with the BCG advection and the advective limit of A 210 11 (flow Courant number at most 0.8 N 47) |
 | `nhflow_1d_si_nh_standing` | 1 | NHFLOW semi-implicit step with the non-hydrostatic pressure (A 510 12, A 520 2): the coupled eta-phi system after Basilisk's multilayer solver (Keller box), standing wave kh 2, 4 layers, 40 steps per period |
 | `nhflow_1d_si_nh_bar` | 1 | the same on the Beji & Battjes bar (2 layers, dt 0.02 s, relaxation zones): the bed-slope terms, the face depths and transport at t^{n+1/2} |
 | `nhflow_1d_si_nh_bar_onestep` | 1 | `nhflow_1d_si_nh_bar` with the one-step predictor (A 510 11): one stage, BCG advection with its source term, the transport and omega at t^{n+1/2}, Crank-Nicolson vertical advection (references of v4: second order in time) |
