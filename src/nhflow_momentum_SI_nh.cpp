@@ -37,7 +37,8 @@ Author: Hans Bihs
 // velocities from w_{k+1/2} = 2 w_k - w_{k-1/2}, w_{-1/2} = u_0 . grad(z_b) (Basilisk takes 0 there: it holds on a
 // flat bed only). The face term pg_k is Basilisk's hpg(): the conservative form of -grad(h phi) + [phi grad z] with the
 // face differences of the interface heights (slopes limited to tan 30 deg, max_slope), times H_f/(mean h) of the face.
-// [u . grad(z)]_k with the interface slopes of the cell (centred) and u_k on the upper, u_{k-1} on the lower interface.
+// [u . grad(z)]_k with the interface slopes of the cell (centred) and u_k on the upper, u_{k-1} on the lower interface;
+// with A 505 1 (tl2) u^{n+1} estimated from the predictor and the acceleration of the step before (nh_prepare).
 //
 // Time levels: phi fully implicit, it acts on the velocities over dt; the constraint holds for the velocities of
 // t^{n+1}, the layer discharges Q_k^{n+1} and w^{n+1} = w* - dt [phi]_k/h_k (Basilisk: those of t^{n+theta}; with them
@@ -123,18 +124,11 @@ void nhflow_momentum_SI::nh_begin(lexer *p, fdm_nhf *d, ghostcell *pgc)
     // non-hydrostatic pressure (A 520 > 0) and with the one-step predictor (A 510 11): with t^n the waves on the Beji &
     // Battjes bar steepened too much behind the bar, the more the larger dt
     //  - the face depths of the gravity term (H_f, face_depth) at t^{n+1/2}, extrapolated from t^n and t^{n-1}
-    //  - the transport of the advection of the predictor (T of the step before, t^{n-1+theta}) at t^{n+1/2}
+    //  - omega (the vertical advection of the column operator) at t^{n+1/2}
+    // The advecting transport of the predictor is that of the estimate pass of step_single (tl2)
     const double r = p->dt/MAX(p->dt_old,1.0e-20);
-    const int N = p->imax*p->jmax*(p->kmax+2);
     const size_t ns = (size_t)p->imax*p->jmax;
 
-    if(nTxP.size()!=(size_t)N)
-    {
-    nTxP.assign(Tx,Tx+N);
-    nTyP.assign(Ty,Ty+N);
-    nHxo.assign(ns,-1.0);
-    nHyo.assign(ns,-1.0);
-    }
 
     // the face depth between two wet non-shoreline cells second order in space, as Basilisk's face heights (hydro.h, a
     // variant of BCG): WL of the upwind cell extrapolated to the face and to t^{n+1/2}, WL_f = WL_up + a (1 - a c) g dx/2,
@@ -180,26 +174,16 @@ void nhflow_momentum_SI::nh_begin(lexer *p, fdm_nhf *d, ghostcell *pgc)
         }
     }
 
-    // T of the previous step is the transport of t^{n-1+theta} (theta Q^n + (1-theta) Q^{n-1}): to t^{n+1/2} it is
-    // (1 - theta) dt_old + dt/2 ahead, e = (1 - theta) + r/2 (written so that theta 1/2 gives 0.5 (1 + r) exactly)
+    // omega of the step before (from its transport, t^{n-1+theta}) to t^{n+1/2}, for the Crank-Nicolson vertical
+    // advection of the column operator (finish() computes it new at the end of the step): (1 - theta) dt_old + dt/2
+    // ahead, e = (1 - theta) + r/2 (written so that theta 1/2 gives 0.5 (1 + r) exactly)
     const double e = 0.5*(1.0+r) + (0.5-theta);
 
-    for(int q=0; q<N; ++q)
-    {
-    const double tx = Tx[q], ty = Ty[q];
-    Tx[q] = tx + e*(tx - nTxP[q]);
-    Ty[q] = ty + e*(ty - nTyP[q]);
-    nTxP[q] = tx;
-    nTyP[q] = ty;
-    }
-
-    // A 510 11: omega (the sigma velocity of the transport of the step before) to t^{n+1/2} as well, for the
-    // Crank-Nicolson vertical advection of the column operator (finish() computes it new at the end of the step)
-    if(onestep)
+    if(onestep || nh || tl2)
     {
         const int NF = p->imax*p->jmax*p->kmaxF;
 
-        if(nOmP.size()!=(size_t)NF)
+        if(std::isnan(nOmP[0]))
         nOmP.assign(d->omegaF,d->omegaF+NF);
 
         for(int q=0; q<NF; ++q)
@@ -319,6 +303,28 @@ void nhflow_momentum_SI::nh_prepare(lexer *p, fdm_nhf *d, ghostcell *pgc)
         else
         for(k=0;k<K;++k)
         WHS[IJK] = 0.0;
+    }
+
+    // tl2: the velocities of [u . grad z] and of the bed condition at t^{n+1}, as the constraint holds for them: the cell
+    // predictor plus the acceleration of the implicit part of the step before, UH* + dt WL^{n+1} acc (O(dt^2)); with the
+    // predictor alone (u*, without the gravity and pressure of the step) the nonlinear non-hydrostatic step was first
+    // order (standing wave a/h 0.1, A 510 11: order 1.35 at T/1280, the error of the first quarter period halved with dt)
+    if(tl2)
+    {
+    const int N = p->imax*p->jmax*(p->kmax+2);
+    nUZx.assign(N,0.0);
+    nUZy.assign(N,0.0);
+
+        SLICELOOP4
+        if(p->wet[IJ]==1)
+        {
+        const double H1 = nh_wl1(p,i,j);
+            for(k=0;k<K;++k)
+            {
+            nUZx[IJK] = UHD[IJK] + p->dt*H1*accU[IJK];
+            nUZy[IJK] = VHD[IJK] + p->dt*H1*accV[IJK];
+            }
+        }
     }
 
     // interface heights z_m = z_b + sig_m WL1, m = 0 .. K; centred slopes of the cells (one-sided next to solids). The
@@ -461,7 +467,7 @@ void nhflow_momentum_SI::nh_residual(lexer *p, fdm_nhf *d, ghostcell *pgc, const
 
         // the bed: w_b = u_0 . grad(z_b)
         k=0;
-        double *UU = UHD, *VV = VHD;
+        const double *UU = tl2 ? nUZx.data() : UHD, *VV = tl2 ? nUZy.data() : VHD;
         double wlo = UU[IJK]*iH0*NSX[IJK] + (yd ? VV[IJK]*iH0*NSY[IJK] : 0.0);
 
         for(k=0;k<K;++k)
@@ -632,7 +638,8 @@ void nhflow_momentum_SI::nh_cell(lexer *p, fdm_nhf *d, ghostcell *pgc)
     {
     const double we = (Hx(i,j)>0.0 && wn(i+1,j)) ? 1.0 : 0.0;
     const double ww = (Hx(i-1,j)>0.0 && wn(i-1,j)) ? 1.0 : 0.0;
-    const double wsx = MAX(we+ww,1.0);
+    const bool wz = tl2;
+    const double wsx = MAX(we + ww + (wz ? wall(p,i,j,1) + wall(p,i,j,2) : 0.0),1.0);
 
     double ve=0.0, vw=0.0, wsy=1.0;
 
@@ -640,7 +647,7 @@ void nhflow_momentum_SI::nh_cell(lexer *p, fdm_nhf *d, ghostcell *pgc)
         {
         ve = (Hy(i,j)>0.0 && wn(i,j+1)) ? 1.0 : 0.0;
         vw = (Hy(i,j-1)>0.0 && wn(i,j-1)) ? 1.0 : 0.0;
-        wsy = MAX(ve+vw,1.0);
+        wsy = MAX(ve + vw + (wz ? wall(p,i,j,3) + wall(p,i,j,4) : 0.0),1.0);
         }
 
         for(k=0;k<K;++k)

@@ -1,0 +1,17 @@
+{
+ "base": "nhflow_2d_si_river_kepsilon",
+ "description": "nhflow_2d_si_river_kepsilon with A 505 0: the time levels of t^n for the nonlinear terms (one pass, no estimate of the advecting transport, omega and face depths of the step before, implicit Euler vertical advection), the first-order path that curvilinear, multi-block and refined grids keep.",
+ "ctrl_add": [
+  "A 505 0"
+ ],
+ "tags": [
+  "2d",
+  "nhflow",
+  "river",
+  "semi_implicit",
+  "turbulence"
+ ],
+ "covers": [
+  "nhflow_momentum_SI::step_single with one pass on a Cartesian grid (A 505 0)"
+ ]
+}

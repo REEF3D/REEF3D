@@ -30,6 +30,7 @@ Author: Hans Bihs
 #include"fdm_nhf.h"
 #include"ghostcell.h"
 #include"ioflow.h"
+#include<limits>
 #include"reefckpt.h"
 #include"nhflow_reconstruct.h"
 #include"nhflow_curv.h"
@@ -165,9 +166,31 @@ nhflow_momentum_SI::nhflow_momentum_SI(lexer *p, fdm_nhf *d, ghostcell *pgc, six
     vau.assign(p->knoz,0.0);
     val.assign(p->knoz,0.0);
     vad.assign(p->knoz,0.0);
-    // A 510 11: the vertical advection of the column operator Crank-Nicolson (with omega at t^{n+1/2}, nh_begin)
-    if(onestep && elm_mode(p)==0)
+    // A 510 11, and every predictor with the non-hydrostatic pressure: the vertical advection of the column operator
+    // Crank-Nicolson (with omega at t^{n+1/2}, nh_begin)
+    // second-order time levels of the nonlinear terms (A 505 1, every predictor, hydrostatic or not) on one Cartesian
+    // grid: the advecting transport of the step from an estimate pass (step_single), the face depths and omega at
+    // t^{n+1/2} (nh_begin), the acceleration of the step in the advected velocities (the BCG source of A 510 11, the
+    // stage velocities of SSP-RK), Crank-Nicolson vertical advection in the column operator. Curvilinear, multi-block
+    // and refined grids, A 549 1 and A 505 0 keep the time levels of the step before (first order in time for the
+    // nonlinear terms, one pass)
+    tl2 = elm_mode(p)==0 && p->geo_curv==0 && p->geo_mb==0 && p->G1==0 && !patch && p->A505==1;
+
+    if(tl2)
+    {
     thv = 0.5;
+    p->Darray(accU,N);
+    p->Darray(accV,N);
+    p->Darray(accW,N);
+    p->Darray(FSx,N);
+    p->Darray(FSy,N);
+    }
+
+    // the time levels of the step before (nh_begin, nh_levels; in the checkpoints): -1 no level yet (the first
+    // step, a restart from a checkpoint without them)
+    nHxo.assign((size_t)p->imax*p->jmax,-1.0);
+    nHyo.assign((size_t)p->imax*p->jmax,-1.0);
+    nOmP.assign((size_t)p->imax*p->jmax*p->kmaxF,std::numeric_limits<double>::quiet_NaN());
 
     bc_method(p);
 
@@ -183,6 +206,9 @@ nhflow_momentum_SI::nhflow_momentum_SI(lexer *p, fdm_nhf *d, ghostcell *pgc, six
 
     else
     cout<<", SSP-RK"<<rk<<" predictor";
+
+    if(tl2)
+    cout<<", second-order time levels (A 505 1)";
 
     if(p->A537==1)
     cout<<", wetting and drying iteration";
@@ -212,7 +238,7 @@ nhflow_momentum_SI::~nhflow_momentum_SI()
 
     delete psi;
     delete ptrc;
-    for(double *a : {Bx,By,BFx,BFy,KV,N2,ELU,ELV,ELW})
+    for(double *a : {Bx,By,BFx,BFy,KV,N2,ELU,ELV,ELW,accU,accV,accW,FSx,FSy})
     delete [] a;
 
     nh_free();
@@ -251,6 +277,9 @@ void nhflow_momentum_SI::check(lexer *p)
         if(p->A620>0)
         msg("the non-hydrostatic pressure (A 520 > 0) with the density (A 620) is");
     }
+
+    if(p->A505!=0 && p->A505!=1)
+    msg("A 505 other than 0 or 1 is");
 
     if(p->A510!=1 && p->A510!=2 && p->A510!=3)
     msg("a predictor other than one step, SSP-RK2 or SSP-RK3 (A 510 11, 12, 13) is");
@@ -382,52 +411,73 @@ void nhflow_momentum_SI::step_single(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflo
     si_restore(p,d,pgc);
     si_begin(p,d,pgc,S);
 
-    // the non-hydrostatic pressure (A 520 > 0) and the one-step predictor (A 510 11): time levels of the nonlinear
-    // terms (face depths, the advecting transport at t^{n+1/2})
-    if(nh || onestep)
+    // time levels of the nonlinear terms (face depths and omega at t^{n+1/2}): the non-hydrostatic pressure (A 520 > 0),
+    // the one-step predictor (A 510 11) and the second-order time levels (tl2)
+    if(nh || onestep || tl2)
     nh_begin(p,d,pgc);
 
-    for(int s=0; s<rk; ++s)
+    // tl2: two passes. The first (the estimate) advects with the transport of the step before and solves the
+    // hydrostatic eta system (with the non-hydrostatic face terms of the step before); its face discharges give the
+    // transport of this step, theta Q^{n+1} + (1-theta) Q^n, to O(dt^2). The second advects with that transport (the
+    // momentum moves with the discharges that move the mass) and solves the full system. An extrapolation of the
+    // transport to t^{n+1/2} instead was second order as well but let an odd-even mode live in a draining river
+    // (nhflow_2d_si_river_kepsilon: the steady level 0.1 m off, never settled)
+    const int npass = tl2 ? 2 : 1;
+
+    for(int pass=0; pass<npass; ++pass)
     {
-    si_stage_vel(p,d,pgc,S,s);
-    si_stage_rhs(p,d,pgc,S,s);
-    }
+        const bool estimate = (pass<npass-1);
 
-    si_predictor_end(p,d,pgc);
+        if(pass>0)
+        si_corrector(p,d,pgc);
 
-    // A 620: the density for the pressure gradient from the predictor of the tracers with the old part of the
-    // transport (forward-backward with the step after the momentum)
-    if(p->A620>0)
-    {
-    si_old_closed(p,pgc);
-    ptrc->save(d);
-    tracer_step(p,d,pgc,1);
-    si_density(p,d);
-    ptrc->restore(d);
-    }
+        for(int s=0; s<rk; ++s)
+        {
+        si_stage_vel(p,d,pgc,S,s);
+        si_stage_rhs(p,d,pgc,S,s);
+        }
 
-    si_assemble(p,d,pgc);
-    si_rhs(p,d,pgc);
+        si_predictor_end(p,d,pgc);
 
-    // the non-hydrostatic pressure (A 520 > 0): eta^{n+1} and phi^{n+1} from the coupled system
-    if(nh)
-    {
-    nh_solve(p,d,pgc);
-    psi_iter = nh_iter;
-    psi_time = nh_time;
-    wd_iter = 1;
-    wd_cells = 0;
-    }
+        // A 620: the density for the pressure gradient from the predictor of the tracers with the old part of the
+        // transport (forward-backward with the step after the momentum); the estimate keeps that of the step before
+        if(p->A620>0 && !estimate)
+        {
+        si_old_closed(p,pgc);
+        ptrc->save(d);
+        tracer_step(p,d,pgc,1);
+        si_density(p,d);
+        ptrc->restore(d);
+        }
 
-    else
-    {
-    // initial guess eta^n; Newton iteration on WL = max(eta + d, 0) (Casulli 2009)
-    if(psolv2D==nullptr)
-    psolv2D = new_solver2D(p,pgc);
+        si_assemble(p,d,pgc);
+        si_rhs(p,d,pgc);
 
-    wd_iter = psi->solve_wetdry(p,pgc,psolv2D,ax,ay,rhsW,d->depth,bdiag,etaI,p->A537==1 ? 20 : 1,wd_cells);
-    psi_iter = psi->iter;
-    psi_time = psi->time;
+        // the non-hydrostatic pressure (A 520 > 0): eta^{n+1} and phi^{n+1} from the coupled system
+        if(nh && !estimate)
+        {
+        nh_solve(p,d,pgc);
+        psi_iter = nh_iter;
+        psi_time = nh_time;
+        wd_iter = 1;
+        wd_cells = 0;
+        }
+
+        else
+        {
+        // initial guess eta^n (the second pass: eta of the estimate); Newton iteration on WL = max(eta + d, 0)
+        // (Casulli 2009)
+        if(psolv2D==nullptr)
+        psolv2D = new_solver2D(p,pgc);
+
+        wd_iter = psi->solve_wetdry(p,pgc,psolv2D,ax,ay,rhsW,d->depth,bdiag,etaI,p->A537==1 ? 20 : 1,wd_cells);
+        psi_iter = psi->iter;
+        psi_time = psi->time;
+        }
+
+        // the estimate: the face discharges of t^{n+1} and with them the transport of the step (Tx, Ty)
+        if(estimate)
+        face_update(p,d,pgc);
     }
 
     si_end(p,d,pgc,S);
@@ -435,6 +485,22 @@ void nhflow_momentum_SI::step_single(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflo
     // tracers (A 600) with the transport of the step
     if(ptrc!=nullptr)
     tracer_step(p,d,pgc);
+}
+
+void nhflow_momentum_SI::si_corrector(lexer *p, fdm_nhf *d, ghostcell *pgc)
+{
+    // the second pass of tl2: the face discharges back to t^n, the transport of the estimate (Tx, Ty) stays
+    const int N = p->imax*p->jmax*(p->kmax+2);
+
+    memcpy(Qx,Qxn,N*sizeof(double));
+    memcpy(Qy,Qyn,N*sizeof(double));
+
+    for(i=p->imin; i<p->imin+p->imax; ++i)
+    for(j=p->jmin; j<p->jmin+p->jmax; ++j)
+    {
+    qx(i,j) = qxn(i,j);
+    qy(i,j) = qyn(i,j);
+    }
 }
 
 // tracers of one grid (the multi-block grid: nhflow_amr::si_tracer): the substeps with the partition
@@ -1492,6 +1558,25 @@ void nhflow_momentum_SI::si_stage_vel(lexer *p, fdm_nhf *d, ghostcell *pgc, nhfl
         }
     }
 
+    // SSP-RK (tl2): the velocities of a later stage carry the acceleration of the step up to the time of that stage
+    // (the stage momenta have none of the implicit terms): RK2 stage 2 and RK3 stage 2 at t^{n+1}, RK3 stage 3 at
+    // t^{n+1/2}; the acceleration is that of the implicit part of the step before (finish(): gravity, the
+    // non-hydrostatic pressure, the column operator, relaxation), as the source of the BCG face values of A 510 11.
+    // Without it the advection of the predictor misses the acceleration of the step and the nonlinear terms are first
+    // order in time
+    if(tl2 && !onestep && s>0)
+    {
+        const double ts = ((rk==3 && s==2) ? 0.5 : 1.0)*p->dt;
+
+        LOOP
+        if(p->wet[IJ]==1 && WL0(i,j)>p->A544)
+        {
+        d->U[IJK] += ts*accU[IJK];
+        d->V[IJK] += ts*accV[IJK]*p->y_dir;
+        d->W[IJK] += ts*accW[IJK];
+        }
+    }
+
     pgc->start4V(p,d->U,gcval_u);
     pgc->start4V(p,d->V,gcval_v);
     pgc->start4V(p,d->W,gcval_w);
@@ -1514,6 +1599,10 @@ void nhflow_momentum_SI::si_stage_rhs(lexer *p, fdm_nhf *d, ghostcell *pgc, nhfl
     d->wave->u_source(p,d);
     irhs(p,d,pgc);
 
+    if(FSx!=nullptr)
+    LOOP
+    FSx[IJK] = d->F[IJK];
+
     pturb->jsource(p,d);
     pflow->jsource_nhflow(p,d,pgc,pvrans,WL0);
     pwind->wind_forcing_nhf_y(p,d,pgc,d->U,d->V,d->G,WL0,d->eta);
@@ -1522,6 +1611,10 @@ void nhflow_momentum_SI::si_stage_rhs(lexer *p, fdm_nhf *d, ghostcell *pgc, nhfl
     if(d->wave!=nullptr)
     d->wave->v_source(p,d);
     jrhs(p,d,pgc);
+
+    if(FSy!=nullptr)
+    LOOP
+    FSy[IJK] = p->j_dir==1 ? d->G[IJK] : 0.0;
 
     pturb->ksource(p,d);
     pflow->ksource_nhflow(p,d,pgc,pvrans,WL0);
@@ -1679,61 +1772,6 @@ void nhflow_momentum_SI::advection(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_
 
 void nhflow_momentum_SI::advection_bcg(lexer *p, fdm_nhf *d, ghostcell *pgc, double *f, double *Fx, double *Fy)
 {
-    // the source term of the face value, dt/2 S of the upwind cell (the BCG scheme with its source, Bell, Colella &
-    // Glaz 1989): S = -g grad(eta^n) for u and v, plus the non-hydrostatic pressure gradient of the step before.
-    // Without it the advected velocity misses the acceleration of the step and the nonlinear terms are first order in
-    // time (standing wave, hydrostatic: self-convergence order 1.3 -> 1.94; Stokes-5 propagation: the wave 1.2 %
-    // slow at T/40 -> 0.6 % with the time levels of the column operator and of the constraint)
-    const int comp = f==d->U ? 0 : (f==d->V ? 1 : 2);
-    auto src = [&](int a, int b, int c) -> double
-    {
-        // the non-hydrostatic pressure of the step before: the mean of the face terms of the cell (NQ = dt_old
-        // pg/dsig, per unit sigma as UH), -[phi]/(dsig h) for w
-        double snh = 0.0;
-
-        if(nh && WL0(a,b)>p->A544)
-        {
-        const double h = WL0(a,b), dto = MAX(p->dt_old,1.0e-20);
-        const int ii=i, jj=j, kk=k;
-        i=a; j=b; k=c;
-
-            if(comp==0)
-            snh = 0.5*(NQx[Im1JK] + NQx[IJK])/(h*dto);
-
-            else if(comp==1)
-            snh = 0.5*(NQy[IJm1K] + NQy[IJK])/(h*dto);
-
-            else
-            snh = -((c<p->knoz-1 ? PHI[IJKp1] : 0.0) - PHI[IJK])/(p->DZN[KP]*h);
-
-        i=ii; j=jj; k=kk;
-        }
-
-        if(comp==2)
-        return snh;
-
-        if(comp==0)
-        {
-        const bool oe = tA(a+1,b)>0.5, ow = tA(a-1,b)>0.5;
-        if(oe && ow) return snh - g*(eta0(a+1,b) - eta0(a-1,b))/(p->DXP[a-1+marge] + p->DXP[a+marge]);
-        if(oe) return snh - g*(eta0(a+1,b) - eta0(a,b))/p->DXP[a+marge];
-        if(ow) return snh - g*(eta0(a,b) - eta0(a-1,b))/p->DXP[a-1+marge];
-        return snh;
-        }
-
-        const bool on = tA(a,b+1)>0.5, os = tA(a,b-1)>0.5;
-        if(on && os) return snh - g*(eta0(a,b+1) - eta0(a,b-1))/(p->DYP[b-1+marge] + p->DYP[b+marge]);
-        if(on) return snh - g*(eta0(a,b+1) - eta0(a,b))/p->DYP[b+marge];
-        if(os) return snh - g*(eta0(a,b) - eta0(a,b-1))/p->DYP[b-1+marge];
-        return snh;
-    };
-
-    // A 510 11: the fluxes T_k f_f of the field f (U, V or W) per layer with the face values of the BCG scheme, as
-    // Basilisk's advect() (layered/hydro.h): the upwind cell extrapolated to the face and to t^{n+1/2},
-    //   f_f = f_up + a (1 - c) g dx/2 - dt/2 v_up g_t,    c = |u_f| dt/dx, a = sign(u_f), u_f = T/H_f,
-    // g the slope of the upwind cell normal to the face, g_t the one along it, both the generalised minmod of
-    // Basilisk (theta 1.3); v_up the velocity along the face in the upwind cell (from its two faces). Slopes next to
-    // solids, dry cells and open boundaries: 0
     const double dt = p->dt;
     const int K = p->knoz;
     const bool yd = (p->j_dir==1);
@@ -1768,6 +1806,15 @@ void nhflow_momentum_SI::advection_bcg(lexer *p, fdm_nhf *d, ghostcell *pgc, dou
         const double m = MIN(MIN(th*fabs(sl),th*fabs(sr)),fabs(sc));
         return sl>0.0 ? m : -m;
     };
+
+    // the source term of the face value, dt/2 S of the upwind cell (the BCG scheme with its source, Bell, Colella &
+    // Glaz 1989): S = the acceleration of the implicit part of the step before (finish(): gravity, the non-hydrostatic
+    // pressure, the column operator, relaxation). Without it the advected velocity misses the acceleration of the step
+    // and the nonlinear terms are first order in time (standing wave, hydrostatic: self-convergence order 1.3 -> 1.94;
+    // Stokes-5 propagation: the wave 1.2 % slow at T/40 -> 0.6 % with the time levels of the column operator and of
+    // the constraint)
+    const double *acc = f==d->U ? accU : (f==d->V ? accV : accW);
+    auto src = [&](int a, int b, int c) -> double { return acc!=nullptr ? acc[ix(a,b,c)] : 0.0; };
 
     // x-faces (i+1/2)
     SLICELOOP1
@@ -2517,6 +2564,32 @@ void nhflow_momentum_SI::level_ghosts(lexer *p, fdm_nhf *d, ghostcell *pgc)
     }
 }
 
+void nhflow_momentum_SI::wall_sides(lexer *p)
+{
+    // the sides of the cells with an open boundary face (bc_face cs: 1 x-, 4 x+, 3 y-, 2 y+) as bits 1 x-, 2 x+, 4 y-, 8 y+
+    wSide.assign((size_t)p->imax*p->jmax,0);
+
+    for(const bc_face &f : bcf)
+    {
+    const unsigned char bit = f.cs==1 ? 1 : (f.cs==4 ? 2 : (f.cs==3 ? 4 : 8));
+    wSide[(f.i-p->imin)*p->jmax + (f.j-p->jmin)] |= bit;
+    }
+}
+
+double nhflow_momentum_SI::wall(lexer *p, int ii, int jj, int side)
+{
+    // 1.0 if side (1 x-, 2 x+, 3 y-, 4 y+) of cell (ii,jj) faces a solid or the outside of the domain and no open
+    // boundary face (wall_sides of the step); a dry neighbour is no wall
+    const int ai = side==1 ? ii-1 : (side==2 ? ii+1 : ii);
+    const int aj = side==3 ? jj-1 : (side==4 ? jj+1 : jj);
+    const unsigned char bit = side==1 ? 1 : (side==2 ? 2 : (side==3 ? 4 : 8));
+
+    if(p->flagslice4[(ai-p->imin)*p->jmax + (aj-p->jmin)]>0)
+    return 0.0;
+
+    return (wSide[(ii-p->imin)*p->jmax + (jj-p->jmin)] & bit) ? 0.0 : 1.0;
+}
+
 void nhflow_momentum_SI::cell_update(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
     // cell momentum: the gravity term of the cell is the mean of that of its open faces, H_f times the
@@ -2530,26 +2603,52 @@ void nhflow_momentum_SI::cell_update(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
     auto wn = [&](int a, int b) { return etaI(a,b) + d->depth(a,b) > p->A544; };
 
+    // A 505 1: a wall side counts in the mean of the face terms (SFLOW A 210 11, v13): with the full gradient of its one
+    // open face a wall cell had twice the acceleration consistent with its faces, and a grid-scale wave whose size
+    // depends on dt went out from the walls. The term of the wall face is the one that keeps the normal velocity there
+    // at zero: g H d_n eta = the sources normal to the wall (wind, Coriolis, atmospheric pressure, the density gradient;
+    // zero in free waves, the mirrored level). With zero also under wind the wall cells of a closed basin got half the
+    // gradient that balances the stress and drove a flow into the walls (nhflow_2d_si_wind_setup_a547: the depth-mean
+    // velocity of the wall cells 4 times that of the interior). Only with an open face in the direction: a column
+    // between two walls (nhflow_2d_si_kato_phillips_*, the horizontally uniform flow of one column) has no gradient
+    const bool wz = tl2;
+
+    // the column mean of the sources of the predictor (per unit area, over the step), x and y
+    auto wfor = [&](const double *F, const double *B) -> double
+    {
+        double s=0.0;
+        for(k=0;k<p->knoz;++k)
+        s += p->DZN[KP]*dt*(F[IJK] - (B!=nullptr ? WL0(i,j)*B[IJK] : 0.0));
+        return s;
+    };
+
+    if(wz || nh)
+    wall_sides(p);
+
     SLICELOOP4
     {
         if(p->wet[IJ]==1)
         {
         we = (Hx(i,j)>0.0 && wn(i+1,j)) ? 1.0 : 0.0;
         ww = (Hx(i-1,j)>0.0 && wn(i-1,j)) ? 1.0 : 0.0;
-        wsum = MAX(we+ww,1.0);
+        const double wx1 = (wz && we+ww>0.0) ? wall(p,i,j,1) + wall(p,i,j,2) : 0.0;
+        wsum = MAX(we + ww + wx1,1.0);
 
-        gu = dt*g*(ww*Hx(i-1,j)*(theta*(etaI(i,j) - etaI(i-1,j))/p->DXP[IM1] + (1.0-theta)*gx0(i-1,j))
-                 + we*Hx(i,j)*(theta*(etaI(i+1,j) - etaI(i,j))/p->DXP[IP] + (1.0-theta)*gx0(i,j)))/wsum;
+        gu = (dt*g*(ww*Hx(i-1,j)*(theta*(etaI(i,j) - etaI(i-1,j))/p->DXP[IM1] + (1.0-theta)*gx0(i-1,j))
+                  + we*Hx(i,j)*(theta*(etaI(i+1,j) - etaI(i,j))/p->DXP[IP] + (1.0-theta)*gx0(i,j)))
+              + (wx1>0.0 ? wx1*wfor(FSx,Bx) : 0.0))/wsum;
         gv = 0.0;
 
             if(p->j_dir==1)
             {
             we = (Hy(i,j)>0.0 && wn(i,j+1)) ? 1.0 : 0.0;
             ww = (Hy(i,j-1)>0.0 && wn(i,j-1)) ? 1.0 : 0.0;
-            wsum = MAX(we+ww,1.0);
+            const double wy1 = (wz && we+ww>0.0) ? wall(p,i,j,3) + wall(p,i,j,4) : 0.0;
+            wsum = MAX(we + ww + wy1,1.0);
 
-            gv = dt*g*(ww*Hy(i,j-1)*(theta*(etaI(i,j) - etaI(i,j-1))/p->DYP[JM1] + (1.0-theta)*gy0(i,j-1))
-                     + we*Hy(i,j)*(theta*(etaI(i,j+1) - etaI(i,j))/p->DYP[JP] + (1.0-theta)*gy0(i,j)))/wsum;
+            gv = (dt*g*(ww*Hy(i,j-1)*(theta*(etaI(i,j) - etaI(i,j-1))/p->DYP[JM1] + (1.0-theta)*gy0(i,j-1))
+                      + we*Hy(i,j)*(theta*(etaI(i,j+1) - etaI(i,j))/p->DYP[JP] + (1.0-theta)*gy0(i,j)))
+                  + (wy1>0.0 ? wy1*wfor(FSy,By) : 0.0))/wsum;
             }
 
             // curvilinear grid: per index direction the mean normal and the mean of H_f times the normal
@@ -2829,6 +2928,33 @@ void nhflow_momentum_SI::relax(lexer *p, fdm_nhf *d, ghostcell *pgc)
 void nhflow_momentum_SI::finish(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
     const int N = p->imax*p->jmax*(p->kmax+2);
+
+    // tl2: the acceleration of the implicit part of the step, a = (u^{n+1} - u*)/dt with u* the predictor (on the depth
+    // of t^n): gravity, the non-hydrostatic pressure, the column operator (bed friction, vertical diffusion and
+    // advection) and the relaxation zones; the next step adds it to the advected velocities (stage velocities of
+    // SSP-RK, the source of the BCG face values of A 510 11). Gravity alone there made a river with bed friction
+    // less accurate (gravity and friction nearly balance)
+    if(tl2)
+    {
+        LOOP
+        {
+            const double h1 = d->WL(i,j), h0 = WL0(i,j);
+
+            if(p->wet[IJ]==1 && h1>10.0*p->A544 && h0>10.0*p->A544)
+            {
+            accU[IJK] = (d->UH[IJK]/h1 - UHp[IJK]/h0)/p->dt;
+            accV[IJK] = p->j_dir==1 ? (d->VH[IJK]/h1 - VHp[IJK]/h0)/p->dt : 0.0;
+            accW[IJK] = (d->WH[IJK]/h1 - WHp[IJK]/h0)/p->dt;
+            }
+
+            else
+            accU[IJK] = accV[IJK] = accW[IJK] = 0.0;
+        }
+
+        exchangeC(p,pgc,accU);
+        exchangeC(p,pgc,accV);
+        exchangeC(p,pgc,accW);
+    }
 
     // velocities (Froude limiter A 531), ghost cells
     velcalc(p,d,pgc,d->UH,d->VH,d->WH,d->WL,1.0);
