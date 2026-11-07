@@ -1,0 +1,20 @@
+{
+ "base": "sflow_1d_si_nh_ship",
+ "ctrl_set": {
+  "A 210": "11"
+ },
+ "description": "sflow_1d_si_nh_ship with the one-step predictor (A 210 11): the ship pressure level of the step in the source term of the BCG face values.",
+ "tags": [
+  "quick",
+  "1d",
+  "sflow",
+  "semi_implicit",
+  "nonhydrostatic",
+  "ship",
+  "6dof"
+ ],
+ "covers": [
+  "sflow_momentum_SI::advection_bcg with X 10 3"
+ ],
+ "architect": "Hans Bihs"
+}

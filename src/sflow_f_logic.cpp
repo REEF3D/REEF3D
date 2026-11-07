@@ -47,7 +47,7 @@ void sflow_f::logic(lexer *p, fdm2D* b, ghostcell* pgc)
     if(p->N48==1 && p->A226==0)
 	ptime = new sflow_etimestep(p,b);
     
-    // semi-implicit free surface (A 210 12/13): advective time step
+    // semi-implicit free surface (A 210 11/12/13): advective time step
     if(p->N48==1 && p->A226==1)
 	ptime = new sflow_timestep_SI(p,b);
 	
@@ -190,7 +190,7 @@ void sflow_f::logic(lexer *p, fdm2D* b, ghostcell* pgc)
 	if(p->A210!=2 && p->A226==0)
 	pmom = new sflow_momentum_RK3(p,b,pgc,phll,pss,precon,pdiff,ppress,psolv,ppoissonsolv,pflow,pfsf,psfdf,p6dof);
     
-    // semi-implicit free surface, theta method (A 210 12/13, A 227), separate from the HLL integrators
+    // semi-implicit free surface, theta method (A 210 11/12/13, A 227), separate from the HLL integrators
     if(p->A226==1)
 	pmom = new sflow_momentum_SI(p,b,pgc,phll,pss,precon,pdiff,ppress,psolv,ppoissonsolv,pflow,pfsf,psfdf,p6dof);
 

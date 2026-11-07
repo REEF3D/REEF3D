@@ -36,10 +36,10 @@ void lexer::lexer_read(ghostcell *pgc)
     if(mpirank==0 && A212<0)
     A212 = (A260>0) ? 1 : ((A246==4) ? 2 : 0);   // A 246 4: the breaking viscosity acts through the implicit diffusion (explicit: the viscosity grows within the step beyond the limit of the step)
 
-    // SFLOW: A 210 12 / 13 the semi-implicit theta step (sflow_momentum_SI, A 227, A 228, wetting and drying A 243) with an SSP-RK2 / RK3
-    // predictor of the explicit terms; inside REEF3D A226 = 1 marks the semi-implicit step and A210 = 2 / 3 is the order
-    // of its predictor (A 226 itself is no longer a ctrl.txt key)
-    if(mpirank==0 && (A210==12 || A210==13))
+    // SFLOW: A 210 11 / 12 / 13 the semi-implicit theta step (sflow_momentum_SI, A 227, A 228, wetting and drying A 243) with a
+    // one-step (BCG advection) / SSP-RK2 / RK3 predictor of the explicit terms; inside REEF3D A226 = 1 marks the semi-implicit
+    // step and A210 = 1 / 2 / 3 is its predictor (A 226 itself is no longer a ctrl.txt key)
+    if(mpirank==0 && (A210==11 || A210==12 || A210==13))
     {
     A226 = 1;
     A210 -= 10;

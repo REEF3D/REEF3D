@@ -1,0 +1,22 @@
+{
+ "base": "sflow_2d_si_nh_shoal_onestep",
+ "np": 2,
+ "control_set": {
+  "M 10": "2"
+ },
+ "ctrl_set": {
+  "M 10": "2"
+ },
+ "description": "sflow_2d_si_nh_shoal_onestep on 2 ranks (the BCG slopes and source terms across the partition).",
+ "tags": [
+  "2d",
+  "sflow",
+  "semi_implicit",
+  "nonhydrostatic",
+  "mpi"
+ ],
+ "covers": [
+  "sflow_momentum_SI::advection_bcg across ranks (bcA exchange)"
+ ],
+ "architect": "Hans Bihs"
+}

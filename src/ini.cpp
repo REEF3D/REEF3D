@@ -30,7 +30,7 @@ void control::ini_default()
     
     // SFLOW
     A209=1;      // int interpolation sweeps for bed
-    A210=3;		  // int time scheme for SFLOW velocities: 2 / 3 explicit SSP-RK2 / RK3, 12 / 13 semi-implicit with an SSP-RK2 / RK3 predictor
+    A210=3;		  // int time scheme for SFLOW velocities: 2 / 3 explicit SSP-RK2 / RK3, 11 / 12 / 13 semi-implicit with a one-step (BCG) / SSP-RK2 / RK3 predictor
     A211=4;		  // int convection scheme for SLOW velocities
     A212=-1;	  // int diffusion treatment for SFLOW velocities (-1: not set, becomes 1 with a turbulence model A 260 > 0, else 0)
     A213=1;      // int SFLOW WENO5 nonlinear weights (A 211 4): 0 WENO-JS, 1 WENO-Z (default), 2 TENO5

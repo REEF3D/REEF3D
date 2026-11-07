@@ -193,6 +193,7 @@ private:
     void stage_vel(lexer*, fdm2D*, ghostcell*, slice&, slice&);
     void stage_rhs(lexer*, fdm2D*, ghostcell*, slice&, slice&, slice&, slice&, double);
     void advection(lexer*, fdm2D*, ghostcell*);
+    void advection_bcg(lexer*, fdm2D*, ghostcell*, slice&, slice&);
     void face_update(lexer*, fdm2D*, ghostcell*);
     void eta_update(lexer*, fdm2D*, ghostcell*);
     void cell_update(lexer*, fdm2D*, ghostcell*);
@@ -241,6 +242,12 @@ private:
     double theta, g;
     int rk, wd_iter, wd_cells;
     bool qini;
+
+    // A 210 11 (inside A210 = 1): one predictor stage, the advection by the BCG scheme with its source term (as NHFLOW
+    // A 510 11), the time levels of nh_levels also without the non-hydrostatic pressure (tlev); bcA: the cells the BCG
+    // slopes may use
+    bool onestep = false, tlev = false;
+    slice4 bcA;
 
     double Qin, Qout;       // discharge over the open boundaries of the step (theta weighted)
     double vrelax;          // volume change of the relaxation zones of the step

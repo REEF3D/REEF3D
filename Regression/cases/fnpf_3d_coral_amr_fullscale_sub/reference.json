@@ -193,7 +193,7 @@
   "REEF3D_FNPF_6DOF/REEF3D_6DOF_position_0.dat": {
    "rows": 20,
    "last": [
-    3.73552,
+    3.83131,
     500.004,
     100.01,
     99.6339,
@@ -202,7 +202,7 @@
     -7.3022e-56
    ],
    "colsum": [
-    38.3130556,
+    40.228699,
     10000.08,
     2000.2,
     2050.9193999999998,
@@ -211,7 +211,7 @@
     -7.639815616000511e-41
    ],
    "colabs": [
-    38.3130556,
+    40.228699,
     10000.08,
     2000.2,
     2050.9193999999998,
@@ -223,7 +223,7 @@
   "REEF3D_FNPF_6DOF/REEF3D_6DOF_velocity_0.dat": {
    "rows": 20,
    "last": [
-    3.73552,
+    3.83131,
     1.20454e-20,
     3.50209e-19,
     -0.80953,
@@ -232,7 +232,7 @@
     6.36373e-41
    ],
    "colsum": [
-    38.3130556,
+    40.228699,
     -3.94300456e-19,
     1.8494199962e-18,
     -29.231191,
@@ -241,7 +241,7 @@
     2.3701303503e-38
    ],
    "colabs": [
-    38.3130556,
+    40.228699,
     4.30176664e-19,
     1.8556249438e-18,
     29.231191,
@@ -340,7 +340,7 @@
   0.19156525704423027,
   0.19156525704423027
  ],
- "blessed_from": "/home/claude/bin/REEF3D_fin7",
- "date": "2026-11-06",
- "note": "re-blessed on hans_dev 8f1c9f17a + fnpf_theta_robin 0016-0021: FNPF outputs carry the time of their state (0017); theta-Robin 0016/0019/0020"
+ "blessed_from": "/home/claude/bin/REEF3D_fin11",
+ "date": "2026-11-07",
+ "note": "fnpf_theta_robin patch 0028: FNPF 6DOF motion logs labelled with the time of the state (t^n+1)"
 }

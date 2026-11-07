@@ -132,11 +132,12 @@ void sflow_momentum_SI::nh_ini(lexer *p)
 
 void sflow_momentum_SI::nh_levels(lexer *p, fdm2D *b, ghostcell *pgc)
 {
-    // time levels of the nonlinear terms, extrapolated from t^n and t^{n-1}: with the depth of t^n the waves on the
-    // Beji & Battjes bar lagged in proportion to dt (0.05 s at dt 0.02 s after the bar crest) and the released
-    // harmonics grew by 5 %:
+    // time levels of the nonlinear terms (the non-hydrostatic pressure and A 210 11), extrapolated from t^n and
+    // t^{n-1}: with the depth of t^n the waves on the Beji & Battjes bar lagged in proportion to dt (0.05 s at dt
+    // 0.02 s after the bar crest) and the released harmonics grew by 5 %:
     //  - face and cell depth of the gravity and A 220 3 terms at t^{n+1/2} (theta 1/2)
-    //  - depth of the pressure terms and of the constraint at t^{n+1} (P^{n+1} and the velocities of t^{n+1})
+    //  - depth of the pressure terms and of the constraint at t^{n+1} (P^{n+1} and the velocities of t^{n+1}); A 210 11:
+    //    the pressure terms at t^{n+1/2}, as the gravity term (nh_assemble)
     //  - discharge of the advection (predictor) at t^{n+1/2}
     // the continuity equation keeps WL^n and q^n: the volume stays exact
     const double r = p->dt/MAX(p->dt_old,1.0e-20);
@@ -181,14 +182,23 @@ void sflow_momentum_SI::nh_levels(lexer *p, fdm2D *b, ghostcell *pgc)
     // the non-hydrostatic pressure stays on in breaking cells (nh_active), the dissipation is the eddy viscosity of
     // A 246 4 (crest tracking and Kennedy et al. 2000, as NHFLOW A 550 4) or A 246 2 (A 250); the A 246 1/2 flags are
     // reset after the step (sflow_f, A 248 0) as for the explicit stages
-    if(nh_first)
-    SLICELOOP4
-    nEb(i,j) = b->eta(i,j);
+    // (the non-hydrostatic pressure only: A 210 11 without it runs the time levels alone)
+    if(nh)
+    {
+        if(nh_first)
+        SLICELOOP4
+        nEb(i,j) = b->eta(i,j);
 
     pfsf->breaking(p,b,pgc,b->eta,nEb,p->dt_old/MAX(p->dt,1.0e-20));
 
-    SLICELOOP4
-    nEb(i,j) = b->eta(i,j);
+        SLICELOOP4
+        nEb(i,j) = b->eta(i,j);
+    }
+
+    // A 210 11 without the non-hydrostatic pressure: the levels of t^{n-1} are there from the second step on (with it,
+    // nh_predictor clears the flag)
+    if(!nh)
+    nh_first = false;
 
     exchange1(p,pgc,Hx);
     exchange1(p,pgc,qxa);
@@ -473,7 +483,9 @@ void sflow_momentum_SI::nh_assemble(lexer *p, fdm2D *b, ghostcell *pgc)
         return;
 
         const double dd = b->depth(a1,c1) - b->depth(a,c);
-        const double HL = WLq(a,c), HR = WLq(a1,c1);
+        // the depth of the pressure terms: t^{n+1}; A 210 11: t^{n+1/2}, as the gravity term (the pressure acts over the
+        // step; with t^{n+1} the nonlinear standing wave lost second order below T/320, the constraint stays at t^{n+1})
+        const double HL = onestep ? WLh(a,c) : WLq(a,c), HR = onestep ? WLh(a1,c1) : WLq(a1,c1);
         const double s = dt*alf/dxp;
 
         cR = s*(HR - 0.5*cb*dd);

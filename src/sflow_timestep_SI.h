@@ -28,7 +28,7 @@ Author: Hans Bihs
 
 using namespace std;
 
-// Time step of the semi-implicit SFLOW (A 210 12/13, N 48 1): the advective Courant number of the flow
+// Time step of the semi-implicit SFLOW (A 210 11/12/13, N 48 1): the advective Courant number of the flow
 //   dt = N47 * 2 / max( |u|/dx + |v|/dy )            (same convention as sflow_etimestep; A 220 2/3: halved)
 // plus the explicit diffusion limit (A 212 1), and the limit of the waves (cap):
 //   A 228 > 0  the time step [s]
