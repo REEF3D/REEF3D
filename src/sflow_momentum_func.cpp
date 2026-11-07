@@ -42,6 +42,7 @@ Author: Hans Bihs
 #include"sflow_rough_void.h"
 #include"sflow_rheology_f.h"
 #include"sflow_rheology_v.h"
+#include"sflow_rheology_core.h"
 #include"solver2D.h"
 #include"6DOF.h"
 #include"sflow_boussinesq.h"
@@ -75,7 +76,19 @@ sflow_momentum_func::sflow_momentum_func(lexer *p, fdm2D *b, ghostcell *pgc, sfl
     if(p->A218==1)
     prough = new sflow_rough_manning(p);
     
-    if(p->W90==1)
+    // rheology core (W 120), else the legacy Bingham source (W 90 1)
+    if(p->W120>0)
+    {
+    prheo = new sflow_rheology_core(p);
+    
+    if(p->W90>0 && p->mpirank==0)
+    cout<<"SFLOW: W 120 "<<p->W120<<" replaces W 90 "<<p->W90<<endl;
+    
+    if(p->A226==1 && p->mpirank==0)
+    cout<<"SFLOW: W 120 basal friction is not applied in the semi-implicit integrator (A 210 12/13)"<<endl;
+    }
+    
+    else if(p->W90==1)
     prheo = new sflow_rheology_f(p);
     
     else
@@ -146,6 +159,8 @@ sflow_momentum_func::~sflow_momentum_func()
 
 void sflow_momentum_func::ini(lexer *p, fdm2D *b, ghostcell *pgc)
 {
+    prheo->ini(p,b,pgc);
+    
     // conserved variables from the initial velocities and water depth
     SLICELOOP4
     {
@@ -342,6 +357,9 @@ void sflow_momentum_func::stage(lexer *p, fdm2D *b, ghostcell *pgc,
     if(nhp==0)
     SLICELOOP4
     WHo(i,j) = 0.0;
+    
+    // rheology core: implicit basal friction on the stage momenta
+    prheo->implicit(p,b,pgc,UHo,VHo,WLo,alpha,finalize);
     
     // Boussinesq on a refined patch: u_a is solved by sflow_amr on all levels together
     // (sflow_amr::bous_solve), the stage continues in bous_resume

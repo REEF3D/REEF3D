@@ -651,6 +651,16 @@ public:
     double W108_a_2;
     int W110,W111;
     double W112;
+    // depth-integrated rheology (rheology core, SFLOW)
+    int W120;
+    double W121;
+    double W122;
+    double W123_z1,W123_z2,W123_z3,W123_beta,W123_L;
+    double W124_ds,W124_d2,W124_I0,W124_d,W124_phis;
+    double W125_tauy,W125_K,W125_n;
+    int W126;
+    double W127_lambda,W127_lambdah,W127_D;
+    int W128;
     // atmospheric forcing (met_provider, met_forcing)
     int W200,W205,W207,W208,W210,W211,W215,W218,W219,W220_n,W220_v,W222,W223,W225,W226,W227,W229;
     double W201_u,W201_dir,W202,W203,W204,W205_lon,W205_lat,W205_rot,W206_x,W206_y,W209,W212,W213,W214,W216,W217,W228;
