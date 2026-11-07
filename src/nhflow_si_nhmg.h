@@ -33,7 +33,7 @@ Author: Hans Bihs
 // The system has a block 5-point structure over the columns of a rank (blocks B x B: the cell and its neighbours in
 // +x, -x, +y, -y). Level 0 is the assembled operator; the coarse levels aggregate 2 x 2 columns (2 x 1 with one cell in y)
 // of a rank and take the Galerkin operator R A P with the piecewise constant prolongation P and R = P^T, which keeps the
-// block 5-point structure (Basilisk rediscretises on its coarse levels; the operator here comes from probing).
+// block 5-point structure (Basilisk rediscretises on its coarse levels; the operator here is assembled from the face derivatives).
 // Smoother: block Gauss-Seidel in red-black order (the column solves with the LU of the diagonal blocks). Cycle: the
 // K-cycle of Notay (AGMG): below the finest level each coarse correction is two GCR steps preconditioned with the
 // cycle of the level; with the piecewise constant aggregation the plain V-cycle needed 14 / 32 / 66 FGMRES iterations
@@ -59,7 +59,7 @@ public:
 
     int levels() const { return (int)L.size(); }
     double omega_c = 1.0;      // over-correction of the coarse correction
-    int npre = 2, npost = 2, ncoarse = 20;
+    int npre = 1, npost = 1, ncoarse = 20;      // one pre- and post-sweep: 8.1 iterations instead of 7.6 at a quarter less time
     bool kcycle = true;      // Krylov-accelerated coarse corrections (K-cycle)
 
 private:
@@ -72,6 +72,9 @@ private:
         std::vector<double> x, b, r;    // with the halo of one column
         std::vector<double> kb, v1, w1, v2, w2;     // K-cycle
         int nbx[4] = {-1,-1,-1,-1};
+        // the columns c of row r of block d that are not zero in any column of the level (finalize), in ascending
+        // order: pat[d*B + r]; the products skip the zero entries of the blocks (the same sums, bitwise)
+        std::vector<std::vector<int>> pat;
     };
 
     MPI_Comm comm;
@@ -79,10 +82,12 @@ private:
     int nb[4];
     std::vector<level> L;
     std::vector<double> sbuf, rbuf, tmp;
+    bool alone = true;      // no neighbouring rank: no halo exchange
+    void block_mul(const level &l, int d, const double *a, const double *x, double *y, double sign) const;
 
     int hix(const level &l, int ix, int iy) const { return (ix+1)*(l.ny+2) + (iy+1); }
     void exchange(level &l, std::vector<double> &v);
-    void smooth(int lev, int sweeps);
+    void smooth(int lev, int sweeps, bool zero=false);
     void residual(int lev);
     void cycle(int lev);
     void kcorrect(int lev);

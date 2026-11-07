@@ -318,7 +318,9 @@ private:
     std::vector<double> dQxL, dQxR, dQyL, dQyR;                              // d Q / d eta (per layer)
     std::vector<double> pQxL0, pQxR0, pQxL1, pQxR1, pQyL0, pQyR0, pQyL1, pQyR1;  // d Q / d phi_k, phi_{k+1}
     std::vector<double> nActG;                                               // nAct with the columns of the neighbouring ranks
-    bool nh_fixed = false;                     // in nh_solve: the inflow/outflow of the riemann/flather faces from eta^n
+    bool nh_fixed = false;
+    std::vector<std::vector<double>> fgV, fgZ;   // FGMRES of the coupled system: the Krylov vectors (kept, allocated as needed)
+    std::vector<double> nEtaP, nPhiP;            // eta and phi of the step before (the initial guess)                     // in nh_solve: the inflow/outflow of the riemann/flather faces from eta^n
     void nh_residual(lexer*, fdm_nhf*, ghostcell*, const std::vector<double>&, std::vector<double>&);
     void nh_solve(lexer*, fdm_nhf*, ghostcell*);
     void nh_solve_mg(lexer*, fdm_nhf*, ghostcell*, const std::vector<double>&, std::vector<double>&);

@@ -36,6 +36,12 @@ void lexer::lexer_read(ghostcell *pgc)
     if(mpirank==0 && A212<0)
     A212 = (A260>0) ? 1 : ((A246==4) ? 2 : 0);   // A 246 4: the breaking viscosity acts through the implicit diffusion (explicit: the viscosity grows within the step beyond the limit of the step)
 
+    // FNPF: A 316 not given -> the first-order wet-dry gradient fallback only with the moving wet-dry front
+    // (A 343 2/3); with the static coastline (A 343 0/1) the legacy zero gradient: the fallback lowered the
+    // wave heights at the gauges of static-coastline cases and made them unstable without coastline viscosity
+    if(mpirank==0 && A316<0)
+    A316 = (A343>=2) ? 1 : 0;
+
     // SFLOW: A 210 11 / 12 / 13 the semi-implicit theta step (sflow_momentum_SI, A 227, A 228, wetting and drying A 243) with a
     // one-step (BCG advection) / SSP-RK2 / RK3 predictor of the explicit terms; inside REEF3D A226 = 1 marks the semi-implicit
     // step and A210 = 1 / 2 / 3 is its predictor (A 226 itself is no longer a ctrl.txt key)

@@ -63,7 +63,8 @@ Author: Hans Bihs
 // entries to round-off, environment NHCHECK). One cell in y on one rank: band LU of the interleaved unknowns (bandwidth
 // 2 (K+1)). Otherwise (2D, MPI): FGMRES(30) preconditioned with the multigrid of nhflow_si_nhmg, whose relaxation
 // solves the K+1 unknowns of a column at once, as Basilisk's relax() of layered/nh.h; the coarse levels by aggregation,
-// K-cycle (grid-independent iteration counts: 10 - 13 for 16^2 .. 64^2 columns at |r| <= 1e-6 |b|).
+// K-cycle (grid-independent iteration counts: 10 - 13 for 16^2 .. 64^2 columns at |r| <= 1e-6 |b|; one pre- and
+// post-sweep, the initial guess extrapolated in time, |r| <= A 506 |b| with A 506 = 1e-5 by default: 6 - 7).
 // ---------------------------------------------------------------------------
 
 #include"nhflow_momentum_SI.h"
@@ -949,7 +950,7 @@ void nhflow_momentum_SI::nh_cell(lexer *p, fdm_nhf *d, ghostcell *pgc)
 void nhflow_momentum_SI::nh_solve_mg(lexer *p, fdm_nhf *d, ghostcell *pgc, const std::vector<double> &F0, std::vector<double> &xr)
 {
     // the coupled system A x = -F(0): A assembled by probing (block 5-point over the columns, five colours, three with
-    // one cell in y), FGMRES(30) right-preconditioned with one K-cycle of nhflow_si_nhmg, |r| <= 1e-6 |b|
+    // one cell in y), FGMRES(30) right-preconditioned with one K-cycle of nhflow_si_nhmg, stopping test below (A 506)
     const int K = p->knoz, B = K+1;
     const int nx = p->knox, ny = p->knoy;
     const bool yd = (p->j_dir==1);
@@ -1059,22 +1060,68 @@ void nhflow_momentum_SI::nh_solve_mg(lexer *p, fdm_nhf *d, ghostcell *pgc, const
     a[r*B+r] = 1.0;
     }
 
+    // rows in metres: the mass row is the error of eta; a constraint row k (D_k 2 h_k/dt) times dt^2/2 is D_k h_k dt, the
+    // change of the layer thickness in the step that the error of the divergence makes. Block Gauss-Seidel and the
+    // coarse levels do not change with the same scaling of every column; FGMRES and the stopping test measure metres
+    const double rs = 0.5*p->dt*p->dt;
+
+    for(int n=0; n<N; ++n)
+    {
+    i = cix[n]; j = ciy[n];
+
+        if(nAct[IJ])
+        for(int dd=0; dd<5; ++dd)
+        {
+        if(!yd && dd>2)
+        continue;
+
+        double *a = M.block(i,j,dd);
+            for(int tr=1; tr<B; ++tr)
+            for(int t=0; t<B; ++t)
+            a[tr*B+t] *= rs;
+        }
+    }
+
     M.finalize();
 
     // ---- FGMRES on the box vectors
     std::vector<double> b(nm,0.0), x(nm,0.0), w(nm), r0(nm);
+    const bool guess = true;
+    const bool hist = nEtaP.size()==(size_t)p->imax*p->jmax;
 
     for(int n=0; n<N; ++n)
     {
     const size_t q = ((size_t)cix[n]*ny + ciy[n])*B;
     i = cix[n]; j = ciy[n];
         for(int t=0; t<B; ++t)
-        b[q+t] = -F0[(size_t)B*n+t];
+        b[q+t] = -F0[(size_t)B*n+t]*(t>0 && nAct[IJ] ? rs : 1.0);
 
-    // initial guess: eta^n and phi of the step before
+    // initial guess: eta^n and phi of the step before, both extrapolated in time (r = dt/dt_old)
     x[q] = eta0(i,j);
         for(k=0;k<K;++k)
         x[q+1+k] = nAct[IJ] ? PHI[IJK] : 0.0;
+
+        if(guess && hist)
+        {
+        const double r = p->dt/MAX(p->dt_old,1.0e-20);
+        x[q] += r*(eta0(i,j) - nEtaP[IJ]);
+            for(k=0;k<K;++k)
+            if(nAct[IJ])
+            x[q+1+k] += r*(PHI[IJK] - nPhiP[IJK]);
+        }
+    }
+
+    // the levels of this step for the guess of the next one
+    {
+    const int NC = p->imax*p->jmax*(p->kmax+2);
+    nEtaP.resize((size_t)p->imax*p->jmax);
+    nPhiP.resize(NC);
+    SLICELOOP4
+    {
+    nEtaP[IJ] = eta0(i,j);
+        for(k=0;k<K;++k)
+        nPhiP[IJK] = PHI[IJK];
+    }
     }
 
     auto dot = [&](const std::vector<double> &u, const std::vector<double> &v)
@@ -1086,24 +1133,61 @@ void nhflow_momentum_SI::nh_solve_mg(lexer *p, fdm_nhf *d, ghostcell *pgc, const
     };
 
     const int m = 30, maxit = 300;
-    const double tol = 1.0e-6;
-    std::vector<std::vector<double>> V(m+1,std::vector<double>(nm)), Z(m,std::vector<double>(nm));
+
+    // stopping test (A 506, default 1e-4): max |r| <= max(A 506 max |r0|, 1e-12 max(|b|, |A x0|)), r0 = b - A x0 the
+    // residual of the guess, rows in metres (above). Relative to the step's own starting residual, not to |b|: b holds
+    // eta^n, so the |b| test of v7b loosened with a tide or a still water level away from the initial one (0.4 m in
+    // 0.45 m water: 8.0 -> 5.5 iterations, the error of the solve 7.8e-11 -> 9.8e-9 m). The floor is the round-off of
+    // b - A x (state at rest: no iterations). FGMRES minimises the 2-norm: the inner target of a cycle is the 2-norm of
+    // its starting residual times the reduction the max-norm still needs; the max-norm is checked on the true residual
+    // of every restart. 2D standing wave 64 x 64 x 4, T/40 .. T/1280, error against T/5120: 1e-4 within 1.5 % of the
+    // converged solve, 6.0 iterations (|b| test 1e-5: 8.0); 1e-3 up to 27 % at T/1280, 5.0 iterations
+    const double tol = p->A506;
+
+    // the Krylov vectors, kept from step to step and allocated when an iteration first needs them (allocating all
+    // 61 of them every step cost about as much as two iterations)
+    if(fgV.empty() || fgV[0].size()!=nm)
+    {
+    fgV.assign(m+1,std::vector<double>());
+    fgZ.assign(m,std::vector<double>());
+    }
+
+    auto need = [&](std::vector<double> &v) { if(v.size()!=nm) v.assign(nm,0.0); };
+    std::vector<std::vector<double>> &V = fgV, &Z = fgZ;
+    need(V[0]);
     std::vector<double> H((m+1)*m,0.0), cs(m,0.0), sn(m,0.0), g(m+1,0.0);
 
-    const double bn = sqrt(dot(b,b));
-    int it = 0;
+    int it = 0, cyc = 0;
+    double r0max = 0.0, rmax = 0.0, tolmax = 0.0;
 
-    while(it<maxit)
+    while(true)
     {
         M.matvec(x.data(),w.data());
 
+        double mx[3] = {0.0, 0.0, 0.0};
         for(size_t q=0; q<nm; ++q)
+        {
         V[0][q] = b[q] - w[q];
+        mx[0] = MAX(mx[0],fabs(V[0][q]));
+        mx[1] = MAX(mx[1],fabs(b[q]));
+        mx[2] = MAX(mx[2],fabs(w[q]));
+        }
 
+        pgc->globalmax(mx,3);
+        rmax = mx[0];
         const double beta = sqrt(dot(V[0],V[0]));
 
-        if(beta<=tol*MAX(bn,1.0e-30))
+        if(cyc==0)
+        {
+        r0max = rmax;
+        tolmax = MAX(tol*r0max,1.0e-12*MAX(mx[1],mx[2]));
+        }
+
+        if(rmax<=tolmax || it>=maxit || beta<=0.0)
         break;
+
+        ++cyc;
+        const double target = 0.9*beta*tolmax/rmax;
 
         for(size_t q=0; q<nm; ++q)
         V[0][q] /= beta;
@@ -1114,6 +1198,8 @@ void nhflow_momentum_SI::nh_solve_mg(lexer *p, fdm_nhf *d, ghostcell *pgc, const
         int jj=0;
         for(; jj<m && it<maxit; ++jj, ++it)
         {
+            need(Z[jj]);
+            need(V[jj+1]);
             M.vcycle(V[jj].data(),Z[jj].data());
             M.matvec(Z[jj].data(),V[jj+1].data());
 
@@ -1148,7 +1234,7 @@ void nhflow_momentum_SI::nh_solve_mg(lexer *p, fdm_nhf *d, ghostcell *pgc, const
             g[jj+1] = -sn[jj]*g[jj];
             g[jj]   =  cs[jj]*g[jj];
 
-            if(fabs(g[jj+1])<=tol*MAX(bn,1.0e-30))
+            if(fabs(g[jj+1])<=target)
             {
             ++jj; ++it;
             break;
@@ -1167,15 +1253,15 @@ void nhflow_momentum_SI::nh_solve_mg(lexer *p, fdm_nhf *d, ghostcell *pgc, const
         for(int l=0; l<jj; ++l)
         for(size_t q=0; q<nm; ++q)
         x[q] += yk[l]*Z[l][q];
-
-        if(jj>0 && fabs(g[jj])<=tol*MAX(bn,1.0e-30))
-        break;
     }
 
     nh_iter = it;
 
-    if(it>=maxit && p->mpirank==0)
-    cout<<"!!! NHFLOW semi-implicit non-hydrostatic: FGMRES not converged in "<<maxit<<" iterations, |r|/|b| "<<fabs(g[0])/MAX(bn,1.0e-30)<<" !!!"<<endl;
+    if(getenv("NHLOG") && p->mpirank==0)
+    cout<<"NHLOG "<<p->count<<" it "<<it<<" cycles "<<cyc<<" r0 "<<r0max<<" r "<<rmax<<" target "<<tolmax<<endl;
+
+    if(rmax>tolmax && p->mpirank==0)
+    cout<<"!!! NHFLOW semi-implicit non-hydrostatic: FGMRES not converged in "<<maxit<<" iterations, max |r| "<<rmax<<" m, target "<<tolmax<<" m !!!"<<endl;
 
     for(int n=0; n<N; ++n)
     {

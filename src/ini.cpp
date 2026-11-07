@@ -87,7 +87,7 @@ void control::ini_default()
     A313=3;      // int discretization for bed bc
     A314=2;      // int linear/non-linear
     A315=1;      // int eta gradient treatment: 0 legacy, 1 kinematic FSBC upwinded by dH/deta_x and symmetric at zero speed, 2 as 1 plus symmetric Ex,Ey for geometry (sigma metrics, breaking, wind, dynamic FSBC), 3 as 1 with the Godunov gradient (sonic points) in the kinematic FSBC
-    A316=1;      // int wet-dry WENO5 near the shoreline: 0 legacy (zero gradient), 1 first-order fallback from wet neighbours
+    A316=-1;     // int wet-dry WENO5 near the shoreline: 0 legacy (zero gradient), 1 first-order fallback from wet neighbours; -1 (not given): 1 with dynamic wetting-drying (A 343 2/3), 0 with the static coastline (A 343 0/1)
     A317=1;      // int bed metrics: 0 legacy (Bxx=Byy=0, left-biased Bx without wetting-drying), 1 bed curvature on, symmetric Bx
     A318=0;      // int WENO5 nonlinear weights for FNPF free-surface gradients: 0 WENO-JS, 1 WENO-Z, 2 TENO5
     A319=1.0e-5; // double TENO5 cutoff C_T for FNPF (A318 2)
@@ -106,7 +106,7 @@ void control::ini_default()
     A334=1;      // int dynamic wetting-drying (A343 2/3): redistribute wet-dry clamp volume to wet neighbours: 1 on, 0 off
     A335=1.0e20; // double runup (A343 2): maximum bed elevation above still water level that can become wet
     A336=1;      // int dynamic wetting-drying (A343 2/3): eta gradients at the wet-dry front from wet cells only: 1 on, 0 off
-    A337=1;      // int static coastline (A343 1): 0 legacy; 1 wet-only Fifsf clamp average, clamp volume redistribution (A334), wet-only eta gradients and Exx=0 at the coast (A336), viscosity A346 ramped inside the coastline band and in thin-film cells (WL < 10*A344); 2 as 1 but A346 only in thin-film cells (thin coastline)
+    A337=1;      // int static coastline (A343 1): 0 legacy; 1 wet-only Fifsf clamp average, clamp volume redistribution (A334), wet-only eta gradients and Exx=0 at the coast (A336), no coastline viscosity; 2 as 1 plus viscosity A346 in thin-film cells (WL < 10*A344); 3 as 2 plus A346 ramped inside the coastline band (needs A350 1 or 4)
     A338=1;      // int remove wet areas not connected to the main water body (coastline ini): 1 on, 0 off
     A339=1;      // int coastline initialization: 1 = fast sweeping, 0 = PDE reinitialization
     A341=0.0;    // double coastline damping distance factor for dxm
@@ -217,6 +217,7 @@ void control::ini_default()
     A536=0.0;    // double NHFLOW semi-implicit: maximum time step (s), 0: explicit gravity wave limit
     A537=1;      // int NHFLOW semi-implicit: wetting and drying iteration (Casulli 2009), 0 off
     A538=0.0;    // double NHFLOW semi-implicit: mass flux dissipation for transcritical flow, 0 off
+    A506=1.0e-4; // double NHFLOW semi-implicit with A 520 > 0 (2D, MPI): tolerance of the coupled eta-phi solve relative to the residual of the step's guess (FGMRES, max |r| <= A 506 max |r0|, rows in metres); the band LU of one row of columns is direct
     A539=0;      // int NHFLOW semi-implicit, curvilinear grid: non-orthogonal part of the face gradient of eta (explicit, deferred), 1 on
     A540=1;      // int NFHLOW wetdry scheme
     A505=1;      // int NHFLOW semi-implicit (A 510 11/12/13): second-order time levels of the nonlinear terms on one Cartesian grid (an estimate pass for the advecting transport, face depths and omega at t^{n+1/2}, the acceleration of the step in the advected velocities, Crank-Nicolson vertical advection), 0: the levels of t^n (one pass, first order, about 1.2 - 1.6 times faster per step)

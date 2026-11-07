@@ -632,6 +632,9 @@ void control::read_control(lexer* p)
                 case 537: control>>A537;
                          clear(c,numint);
                          break;
+                case 506: control>>A506;
+                         clear(c,numint);
+                         break;
                 case 538: control>>A538;
                          clear(c,numint);
                          break;
