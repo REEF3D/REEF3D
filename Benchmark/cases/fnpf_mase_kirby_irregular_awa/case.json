@@ -1,0 +1,35 @@
+{
+ "base": "fnpf_mase_kirby_irregular",
+ "description": "As fnpf_mase_kirby_irregular, with the wave input that absorbs the long waves: Dirichlet generation with active absorption at x = 0 (B 98 4: the deviation of the computed surface from the target leaves as a shallow-water wave) and second-order reconstruction (B 92 52, the bound sub- and super-harmonics of the components) from the components above 0.3 Hz of the measured toe record (the band below holds the bound and reflected long waves of the flume, which the second-order theory and the absorption take care of). The 2.5 m relaxation zone of the base case cannot absorb the long waves (L of about 40 m at 0.05 Hz), so they are trapped between it and the static coastline: Hm0 below 0.1 Hz 2.3 x measured at h = 20 cm. RK3 only: theta-Robin (A 310 5) refuses B 98 3/4.",
+ "ctrl_set": {
+  "B 98": "4",
+  "B 92": "52"
+ },
+ "generate": {
+  "script": "mase_kirby_waverecon.py",
+  "args": [
+   "0.3",
+   "3.0"
+  ]
+ },
+ "levels": {
+  "nightly": {
+   "np": 1,
+   "time": 200.0,
+   "ctrl_set": {
+    "M 10": "1"
+   },
+   "control_set": {
+    "M 10": "1",
+    "B 2": "362 1 8"
+   },
+   "check_set": {
+    "t_start": 30.0,
+    "t_end": 200.0,
+    "tol_Hm0": 0.3,
+    "tol_skew": 0.35
+   }
+  },
+  "release": {}
+ }
+}
