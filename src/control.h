@@ -86,7 +86,7 @@ public:
     double A531;
     int A532,A533;
     int A505,A534,A537,A539;          // NHFLOW hydrostatic semi-implicit free surface
-    double A535,A536,A538;
+    double A506,A535,A536,A538;
     int A540;
     double A544,A545,A546;
     int A548;                    // NHFLOW semi-implicit: still water depth of a face between wet cells, 1 the smaller

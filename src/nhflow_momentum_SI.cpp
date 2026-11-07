@@ -281,6 +281,9 @@ void nhflow_momentum_SI::check(lexer *p)
     if(p->A505!=0 && p->A505!=1)
     msg("A 505 other than 0 or 1 is");
 
+    if(p->A506<=0.0 || p->A506>=1.0)
+    msg("A 506 (tolerance of the coupled non-hydrostatic solve) outside 0 < A 506 < 1 is");
+
     if(p->A510!=1 && p->A510!=2 && p->A510!=3)
     msg("a predictor other than one step, SSP-RK2 or SSP-RK3 (A 510 11, 12, 13) is");
 

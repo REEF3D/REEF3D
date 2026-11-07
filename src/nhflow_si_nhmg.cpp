@@ -42,6 +42,11 @@ void nhflow_si_nhmg::setup(MPI_Comm cm, int b, int nx, int ny, const int n[4])
     for(int q=0; q<4; ++q)
     nb[q] = n[q]>=0 ? n[q] : MPI_PROC_NULL;
 
+    alone = true;
+    for(int q=0; q<4; ++q)
+    if(nb[q]!=MPI_PROC_NULL)
+    alone = false;
+
     // the neighbours across a rank face must have the same number of columns along it (Cartesian partition)
     {
     int mine[2] = {ny, nx}, other[4] = {-1,-1,-1,-1};
@@ -203,6 +208,28 @@ void nhflow_si_nhmg::finalize()
         }
     }
 
+    // the nonzero pattern of the blocks per level
+    for(level &v : L)
+    {
+        v.pat.assign((size_t)5*B,std::vector<int>());
+        std::vector<char> nz((size_t)5*BB,0);
+
+        for(int q=0; q<v.nx*v.ny; ++q)
+        for(int d=0; d<5; ++d)
+        {
+            const double *a = &v.A[((size_t)q*5 + d)*BB];
+            for(int e=0; e<BB; ++e)
+            if(a[e]!=0.0)
+            nz[(size_t)d*BB + e] = 1;
+        }
+
+        for(int d=0; d<5; ++d)
+        for(int r=0; r<B; ++r)
+        for(int c=0; c<B; ++c)
+        if(nz[(size_t)d*BB + r*B + c])
+        v.pat[(size_t)d*B + r].push_back(c);
+    }
+
     // the LU of the diagonal blocks
     for(level &v : L)
     for(int q=0; q<v.nx*v.ny; ++q)
@@ -215,6 +242,10 @@ void nhflow_si_nhmg::finalize()
 
 void nhflow_si_nhmg::exchange(level &l, std::vector<double> &v)
 {
+    // one rank without neighbours: the halo stays zero (as with MPI_PROC_NULL)
+    if(alone)
+    return;
+
     // x: the strips ix = 0 and nx-1 (ny columns), y: iy = 0 and ny-1 (nx columns)
     const int nx = l.nx, ny = l.ny;
 
@@ -277,24 +308,35 @@ void nhflow_si_nhmg::matvec(const double *x, double *y)
             const double *a = &v.A[((size_t)(ix*v.ny + iy)*5 + d)*BB];
             const double *xx = &v.x[(size_t)hix(v,ix+dix[d],iy+diy[d])*B];
 
-            for(int r=0; r<B; ++r)
-            {
-            double s = 0.0;
-            for(int c=0; c<B; ++c)
-            s += a[r*B+c]*xx[c];
-            yy[r] += s;
-            }
+            block_mul(v,d,a,xx,yy,1.0);
         }
     }
 }
 
-void nhflow_si_nhmg::smooth(int lev, int sweeps)
+void nhflow_si_nhmg::block_mul(const level &l, int d, const double *a, const double *x, double *y, double sign) const
 {
+    // y[r] += sign sum_c a[r B + c] x[c] over the nonzero pattern of block d of the level
+    for(int r=0; r<B; ++r)
+    {
+        const std::vector<int> &pc = l.pat[(size_t)d*B + r];
+        double t = 0.0;
+        for(int c : pc)
+        t += a[r*B+c]*x[c];
+        y[r] += sign*t;
+    }
+}
+
+void nhflow_si_nhmg::smooth(int lev, int sweeps, bool zero)
+{
+    // zero: x = 0 on entry, the first half-sweep has no neighbour products (the same result)
     level &v = L[lev];
 
     for(int s=0; s<sweeps; ++s)
     for(int colour=0; colour<2; ++colour)
     {
+        const bool first = zero && s==0 && colour==0;
+
+        if(!first)
         exchange(v,v.x);
 
         for(int ix=0; ix<v.nx; ++ix)
@@ -309,18 +351,13 @@ void nhflow_si_nhmg::smooth(int lev, int sweeps)
             for(int r=0; r<B; ++r)
             tmp[r] = bb[r];
 
+            if(!first)
             for(int d=1; d<5; ++d)
             {
                 const double *a = &v.A[(q*5 + d)*BB];
                 const double *xx = &v.x[(size_t)hix(v,ix+dix[d],iy+diy[d])*B];
 
-                for(int r=0; r<B; ++r)
-                {
-                double t = 0.0;
-                for(int c=0; c<B; ++c)
-                t += a[r*B+c]*xx[c];
-                tmp[r] -= t;
-                }
+                block_mul(v,d,a,xx,tmp.data(),-1.0);
             }
 
             lusolve(&v.LU[q*BB],&v.piv[q*B],tmp.data());
@@ -349,13 +386,7 @@ void nhflow_si_nhmg::residual(int lev)
             const double *a = &v.A[(q*5 + d)*BB];
             const double *xx = &v.x[(size_t)hix(v,ix+dix[d],iy+diy[d])*B];
 
-            for(int r=0; r<B; ++r)
-            {
-            double t = 0.0;
-            for(int c=0; c<B; ++c)
-            t += a[r*B+c]*xx[c];
-            rr[r] -= t;
-            }
+            block_mul(v,d,a,xx,rr,-1.0);
         }
     }
 }
@@ -367,11 +398,11 @@ void nhflow_si_nhmg::cycle(int lev)
 
     if(lev==(int)L.size()-1)
     {
-    smooth(lev,ncoarse);
+    smooth(lev,ncoarse,true);
     return;
     }
 
-    smooth(lev,npre);
+    smooth(lev,npre,true);
     residual(lev);
 
     level &c = L[lev+1];
@@ -420,13 +451,7 @@ void nhflow_si_nhmg::apply(int lev, std::vector<double> &x, std::vector<double> 
             const double *a = &v.A[(q*5 + d)*BB];
             const double *xx = &x[(size_t)hix(v,ix+dix[d],iy+diy[d])*B];
 
-            for(int r=0; r<B; ++r)
-            {
-            double t = 0.0;
-            for(int c=0; c<B; ++c)
-            t += a[r*B+c]*xx[c];
-            yy[r] += t;
-            }
+            block_mul(v,d,a,xx,yy,1.0);
         }
     }
 }
