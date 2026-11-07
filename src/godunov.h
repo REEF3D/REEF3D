@@ -53,11 +53,18 @@ using namespace std;
 // face density of the level set, density_f), its face states come from the same Godunov
 // reconstruction as those of the velocity, and on every face of the control volume
 //   m = U rho_face (the mass flux),   the momentum flux m u_face,
-//   rho* = rho - dt div(m),   (rho u)* = rho u - dt div(m u),   u* = (rho u)*/rho*,
+//   rho* = rho - dt [div(m) - rho div(U)],   (rho u)* = rho u - dt [div(m u) - rho u div(U)],
+//   u* = (rho u)*/rho*  (div(U): the divergence of the advecting velocities of the control volume,
+//   taken out of both, so that a constant density stays constant),
 // so that mass and momentum move with the same fluxes (Rudman 1998, Raessi and Pitsch 2012, Nangia
 // et al. 2019). rho* is only used for u*: the next step starts again from the density of the level
-// set. Where rho* would fall below half the smaller density the control volume keeps the
-// advective form.
+// set. The second-order update is taken where rho* keeps at least half the density of the control
+// volume and u* stays within the range of the velocity of the control volume and its face states.
+// Otherwise (a light control volume next to a heavy one, whose reconstructed outflow density can
+// exceed its own; a large relative loss of mass with outflow states other than u, which would
+// extrapolate u* = (rho u - m u_out)/(rho - m)) the same update with first-order upwind states,
+// u* = u + dt sum m_in (u_in - u)/rho*, a convex combination; where that fails too, the advective
+// form.
 class godunov final : public convection, public increment
 {
 public:

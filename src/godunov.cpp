@@ -390,7 +390,8 @@ void godunov::start(lexer *p, fdm *a, field &f, int ipol, field &U, field &V, fi
     auto term_cons = [&](int ii, int jj, int kk) -> double
     {
         const int q = id(ii,jj,kk);
-        double v1, v2, Dm = 0.0, Du = 0.0;
+        double v1, v2, Dm = 0.0, Du = 0.0, Dv = 0.0;
+        double umin = sf[q], umax = sf[q];
 
         // x
         {
@@ -399,7 +400,10 @@ void godunov::start(lexer *p, fdm *a, field &f, int ipol, field &U, field &V, fi
         const double w = width(p,ipol,0,ii), wl = width(p,ipol,0,ii-1), wr = width(p,ipol,0,ii+1);
         const double m2 = v2*rstate(0,q,qe,w,wr,v2), m1 = v1*rstate(0,qw,q,wl,w,v1);
         Dm += (m2-m1)/w;
-        Du += (m2*state(0,q,qe,w,wr,v2) - m1*state(0,qw,q,wl,w,v1))/w;
+        const double u2 = state(0,q,qe,w,wr,v2), u1 = state(0,qw,q,wl,w,v1);
+        umin = std::min(umin,std::min(u1,u2));  umax = std::max(umax,std::max(u1,u2));
+        Du += (m2*u2 - m1*u1)/w;
+        Dv += (v2-v1)/w;
         }
 
         // y
@@ -410,7 +414,10 @@ void godunov::start(lexer *p, fdm *a, field &f, int ipol, field &U, field &V, fi
         const double w = width(p,ipol,1,jj), wl = width(p,ipol,1,jj-1), wr = width(p,ipol,1,jj+1);
         const double m2 = v2*rstate(1,q,qn,w,wr,v2), m1 = v1*rstate(1,qs,q,wl,w,v1);
         Dm += (m2-m1)/w;
-        Du += (m2*state(1,q,qn,w,wr,v2) - m1*state(1,qs,q,wl,w,v1))/w;
+        const double u2 = state(1,q,qn,w,wr,v2), u1 = state(1,qs,q,wl,w,v1);
+        umin = std::min(umin,std::min(u1,u2));  umax = std::max(umax,std::max(u1,u2));
+        Du += (m2*u2 - m1*u1)/w;
+        Dv += (v2-v1)/w;
         }
 
         // z
@@ -420,15 +427,72 @@ void godunov::start(lexer *p, fdm *a, field &f, int ipol, field &U, field &V, fi
         const double w = width(p,ipol,2,kk), wl = width(p,ipol,2,kk-1), wr = width(p,ipol,2,kk+1);
         const double m2 = v2*rstate(2,q,qt,w,wr,v2), m1 = v1*rstate(2,qb,q,wl,w,v1);
         Dm += (m2-m1)/w;
-        Du += (m2*state(2,q,qt,w,wr,v2) - m1*state(2,qb,q,wl,w,v1))/w;
+        const double u2 = state(2,q,qt,w,wr,v2), u1 = state(2,qb,q,wl,w,v1);
+        umin = std::min(umin,std::min(u1,u2));  umax = std::max(umax,std::max(u1,u2));
+        Du += (m2*u2 - m1*u1)/w;
+        Dv += (v2-v1)/w;
         }
 
-        const double rnew = rf[q] - dtu*Dm;
+        // the advecting velocities of the control volume (means of the face velocities of the cells)
+        // are not exactly divergence free; their divergence Dv is taken out of the mass and the
+        // momentum fluxes alike, so that a constant density stays constant and a light control volume
+        // next to diverging velocities keeps its mass
+        const double rnew = rf[q] - dtu*(Dm - rf[q]*Dv);
 
-        if(rnew < rmin)
+        // the second-order update where it keeps the mass of the control volume and the velocity
+        // within the range of the velocity of the control volume and its face states; a large
+        // relative loss of mass with outflow states other than the velocity of the control volume
+        // would extrapolate the velocity, u* = (rho u - m u_out)/(rho - m), and let it grow
+        if(rnew >= rmin && rnew >= 0.5*rf[q])
+        {
+            const double un = (rf[q]*sf[q] - dtu*(Du - rf[q]*sf[q]*Dv))/rnew;
+
+            if(un >= umin && un <= umax)
+            return (un - sf[q])/dtu;
+        }
+
+        // otherwise (a light control volume next to a heavy one, whose reconstructed outflow density
+        // can exceed its own, or a velocity out of range) the same update with the first-order
+        // upwind states of the density and the velocity: u* = u + dt sum m_in (u_in - u)/rho*, a
+        // convex combination of the velocities of the control volume and its inflow neighbours;
+        // where even that fails, the advective form
+        {
+            double Dm1 = 0.0, Du1 = 0.0;
+
+            auto up = [&](int qa, int qb, double un, double &r, double &u)
+            {
+                const int qu = (un>=0.0) ? qa : qb;
+                r = rf[qu];
+                u = sf[qu];
+            };
+
+            double r2, u2, r1, u1;
+
+            vx(ipol,ii,jj,kk,U,v1,v2);
+            up(q,id(ii+1,jj,kk),v2,r2,u2);   up(id(ii-1,jj,kk),q,v1,r1,u1);
+            Dm1 += (v2*r2 - v1*r1)/width(p,ipol,0,ii);
+            Du1 += (v2*r2*u2 - v1*r1*u1)/width(p,ipol,0,ii);
+
+            if(ydir)
+            {
+            vy(ipol,ii,jj,kk,V,v1,v2);
+            up(q,id(ii,jj+1,kk),v2,r2,u2);   up(id(ii,jj-1,kk),q,v1,r1,u1);
+            Dm1 += (v2*r2 - v1*r1)/width(p,ipol,1,jj);
+            Du1 += (v2*r2*u2 - v1*r1*u1)/width(p,ipol,1,jj);
+            }
+
+            vz(ipol,ii,jj,kk,W,v1,v2);
+            up(q,id(ii,jj,kk+1),v2,r2,u2);   up(id(ii,jj,kk-1),q,v1,r1,u1);
+            Dm1 += (v2*r2 - v1*r1)/width(p,ipol,2,kk);
+            Du1 += (v2*r2*u2 - v1*r1*u1)/width(p,ipol,2,kk);
+
+            const double rnew1 = rf[q] - dtu*(Dm1 - rf[q]*Dv);
+
+            if(rnew1 >= rmin)
+            return ((rf[q]*sf[q] - dtu*(Du1 - rf[q]*sf[q]*Dv))/rnew1 - sf[q])/dtu;
+        }
+
         return term(ii,jj,kk);
-
-        return ((rf[q]*sf[q] - dtu*Du)/rnew - sf[q])/dtu;
     };
 
     if(cons)
