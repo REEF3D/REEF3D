@@ -163,7 +163,15 @@ using namespace std;
 // A 303 relaxation zones: > 0 factors r^(dt/A 303), 0 r per step, -1 < A 303 < 0 per time as the three RK3 stages
 // of an RK3 run at N 47 -A 303, <= -1 (default -200) as an RK3 run with -A 303 steps per period of the wave input;
 // A 333 the coastline relaxation (A 343 >= 1: > 0 as RK3 at N 47 A 333, 0 as the zones); A 304 tolerance of the
-// corrector (default 1e-3).
+// corrector (default 1e-3); A 379 delta d: theta + delta within d [m] of the still-water coastline (default off).
+//
+// A 379 (patch 0034): in the inner surf and swash zone the theta step at the RK3 step (N 51 3 with a coastline)
+// carries more short-wave energy than the converged solution: Mase & Kirby, Hm0 above 0.3 Hz at h = 2.5 cm 9 % above
+// RK3 at N 47 0.25, 4 % at half the step, 2 % at a quarter (passes, filters, breaking thresholds and zone strength
+// do not change it). Off-centring theta there damps it: A 379 0.1 2.0 puts the inner gauges on the converged RK3
+// ones (checker 0.220 for 0.28, RK3 0.236 converged, 0.217 at N 47 0.75 with its own damping). It is a damping of
+// order (theta - 1/2) (omega dt)^2 per step and so depends on d, delta and dt: d = 3 m over-damps (0.176). A
+// band by depth instead of by distance damps the harmonics over a bar (Beji & Battjes 0.248 -> 0.280).
 // ---------------------------------------------------------------------------
 
 class fnpf_theta final : public fnpf_ini, public fnpf_sigma
@@ -213,6 +221,7 @@ private:
     slice4 R0,Rs;          // right-hand side of the Robin row without and with the nonlinear terms
     slice4 relR,relT;      // relaxation of Fifsf in the zones, f -> relR f + relT (relR 1, relT 0 outside)
     slice4 relRe,relTe;    // relaxation of eta in the zones
+    slice4 thl;            // A 379: theta of the column (theta + A 379 delta within A 379 d of the coastline)
     slice4 fnew,wnew;      // Fifsf^n+1, w^n+1 of the solve
     slice4 en;
     slice4 colD,colA,colB; // REEFMG: Robin row per column, D Fs + A sum_m>=1 w_m Fi(knoz-m) = B
@@ -224,6 +233,8 @@ private:
     void precond_adv(lexer*, fdm_fnpf*, ghostcell*, slice&);
     
     double theta;
+    bool thloc = false;    // A 379 on: theta per column (thl), set at the first step
+    bool thset = false;
     double beta,betasum;   // Newmark beta of the Fifsf update (theta^2; A 308: 1/12 .. 1/4)
     int lsolv;             // A 306: 1 REEFMG, 2 SparseLU
     double ctol;           // A 307: residual reduction of the inexact solves (REEFMG, 0: N 44)
