@@ -229,4 +229,22 @@ int radiation_ss::nstates() const
     return n;
 }
 
+void radiation_ss::real_form(const pair &q, MatX &A, VecX &B, VecX &C)
+{
+    const int n = (int)q.lam.size();
+    A = MatX::Zero(2*n, 2*n);
+    B = VecX::Zero(2*n);
+    C = VecX::Zero(2*n);
+    for(int k=0; k<n; ++k)
+    {
+        const double lr = q.lam(k).real(), li = q.lam(k).imag();
+        A(2*k,2*k) = lr;   A(2*k,2*k+1) = -li;
+        A(2*k+1,2*k) = li; A(2*k+1,2*k+1) = lr;
+        B(2*k) = q.b(k).real();
+        B(2*k+1) = q.b(k).imag();
+        C(2*k) = q.c(k).real();
+        C(2*k+1) = -q.c(k).imag();
+    }
+}
+
 }

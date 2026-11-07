@@ -942,6 +942,9 @@
           <File Name="coral/pto/coral_pto_joint.h"/>
           <File Name="coral/pto/coral_joint_drive.h"/>
           <File Name="coral/pto/coral_joint_force.h"/>
+          <File Name="coral/pto/coral_pto_hydraulic.h"/>
+          <File Name="coral/pto/coral_generator.h"/>
+          <File Name="coral/pto/coral_pto_wec_control.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Soil">
           <File Name="coral/soil/README.md"/>
@@ -2651,6 +2654,9 @@
           <File Name="coral/pto/coral_pto_joint.cpp"/>
           <File Name="coral/pto/coral_joint_drive.cpp"/>
           <File Name="coral/pto/coral_joint_force.cpp"/>
+          <File Name="coral/pto/coral_pto_hydraulic.cpp"/>
+          <File Name="coral/pto/coral_generator.cpp"/>
+          <File Name="coral/pto/coral_pto_wec_control.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Soil">
           <File Name="coral/soil/coral_soil.cpp"/>

@@ -66,6 +66,7 @@ namespace coral
         double w_rated = 121.6805, P_rated = 5296610.0, slip = 10.0;     // rad/s, W (mechanical), %
         double T_max = 47402.91, T_rate = 15000.0;                        // N m, N m/s
         double pitch_rgn3 = 0.01745329;   // pitch above which region 3 [rad]
+        double T_rgn3 = 0.0;              // > 0: constant torque in region 3 [N m] (DISCON_OC3Hywind), else constant power
         // pitch
         double w_ref = 122.9096;          // rad/s
         double KP = 0.01882681, KI = 0.008068634, theta_K = 0.1099965;    // s, -, rad

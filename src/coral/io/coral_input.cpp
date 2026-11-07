@@ -39,6 +39,10 @@ Architect: Hans Bihs
 #include"coral/pto/coral_pto.h"
 #include"coral/pto/coral_joint_drive.h"
 #include"coral/pto/coral_joint_force.h"
+#include"coral/pto/coral_pto_wec_control.h"
+#include"coral/pto/coral_generator.h"
+#include"coral/hydro/coral_radiation.h"
+#include"coral/hydro/coral_hydro_db.h"
 #include"coral/hydro/coral_fluid_load.h"
 #include"coral/hydro/coral_body_drag.h"
 #include"coral/hydro/coral_sampled_kinematics.h"
@@ -52,6 +56,7 @@ Architect: Hans Bihs
 #include"coral/aero/coral_rotor.h"
 #include"coral/aero/coral_rotor_tune.h"
 #include"coral/control/coral_turbine_controller.h"
+#include<algorithm>
 #include<cmath>
 #include<fstream>
 #include<functional>
@@ -190,6 +195,9 @@ void coral_case::parse(const std::vector<std::pair<int, std::vector<std::string>
 
     // pass 1: settings, waves, bodies
     std::vector<std::pair<int, Vec3>> offsets;    // initial displacement of bodies, applied after the set-up
+    bool pose_on = false;                         // initial_pose: all bodies moved rigidly after the set-up
+    Vec3 pose_d = Vec3::Zero(), pose_p = Vec3::Zero();
+    Mat3 pose_R = Mat3::Identity();
     std::vector<std::pair<mooring_system*, double>> settles;
     std::map<std::string, beam_section> sections;
     bool gravity_on = true;
@@ -211,6 +219,13 @@ void coral_case::parse(const std::vector<std::pair<int, std::vector<std::string>
             else m.gravity = it.vec(1);
         }
         else if(k=="rho") rho = it.num(1);
+        else if(k=="initial_pose")
+        {
+            pose_on = true;
+            pose_d = it.vec("offset", Vec3::Zero());
+            pose_R = matrix_from_euler(it.vec("rpy", Vec3::Zero())*deg);
+            pose_p = it.vec("about", Vec3::Zero());
+        }
         else if(k=="time")
         {
             run.dt = it.need("dt");
@@ -984,6 +999,7 @@ void coral_case::parse(const std::vector<std::pair<int, std::vector<std::string>
     };
 
     // pass 3: loads in file order
+    std::map<std::string, const hydro_load*> hydros;
     for(const item &it : items)
     {
         const std::string &k = it.t[0];
@@ -1036,12 +1052,16 @@ void coral_case::parse(const std::vector<std::pair<int, std::vector<std::string>
                 if(d < 0 || d >= nd) it.fail("drag mode out of range");
                 s.quadratic_drag(d,d) = it.num(i+2);
             }
-            m.add_load(std::make_unique<hydro_load>(m, db, map, waves, s, name));
+            hydros[name] = &static_cast<hydro_load&>(m.add_load(std::make_unique<hydro_load>(m, db, map, waves, s, name)));
         }
         else if(k=="pto")
         {
-            const std::string name = it.word(1), jn = it.word("joint");
-            if(!joints.count(jn)) it.fail("unknown joint '" + jn + "'");
+            const std::string name = it.word(1);
+            const bool link = !it.has("joint");
+            const std::string jn = link ? std::string() : it.word("joint");
+            if(!link && !joints.count(jn)) it.fail("unknown joint '" + jn + "'");
+            const bool rot = it.has("rotational");
+            if(link && rot) it.fail("a link PTO (a ... b ...) acts along the line, 'rotational' needs a joint");
             pto_settings s;
             s.k = it.get("k", 0.0);
             s.c = it.get("c", 0.0);
@@ -1072,7 +1092,242 @@ void coral_case::parse(const std::vector<std::pair<int, std::vector<std::string>
             }
             const int idc = it.find("declutching");
             if(idc >= 0) {s.control = pto_control::declutching; s.t_hold = it.num(idc+1);}
-            m.add_load(std::make_unique<pto_load>(*joints[jn], it.has("rotational"), s, name));
+
+            // generator: electrical power of the direct drive or of the hydraulic motor's shaft
+            generator_settings gs;
+            bool has_gen = false;
+            const int ig = it.find("generator");
+            if(ig >= 0)
+            {
+                has_gen = true;
+                const std::string kind = it.word(ig+1);
+                if(kind == "ideal")
+                {
+                    gs.kind = generator_kind::ideal;
+                    gs.eta = it.get("eta", 1.0);
+                }
+                else if(kind == "map")
+                {
+                    std::string msg;
+                    if(!generator_model::read_map(path(it.word(ig+2)), gs, msg)) it.fail(msg);
+                }
+                else if(kind == "pmsg")
+                {
+                    gs.kind = generator_kind::pmsg;
+                    gs.kt = it.need("kt");
+                    gs.R = it.get("R", 0.0);
+                    gs.k_fe = it.get("k_fe", 0.0);
+                }
+                else
+                    it.fail("generator ideal | map <file> | pmsg kt <kt> R <R> expected");
+                gs.ratio = it.get("ratio", 1.0);
+                gs.eta_gear = it.get("eta_gear", 1.0);
+                gs.eta_conv = it.get("eta_conv", 1.0);
+                const std::string msg = generator_model(gs).check();
+                if(!msg.empty()) it.fail("generator: " + msg);
+            }
+
+            // hydraulic PTO (cylinder, check valves, accumulators, motor)
+            if(it.has("hydraulic"))
+            {
+                hydraulic_settings h;
+                h.A_a = it.need("A_a");
+                h.A_b = it.get("A_b", h.A_a);
+                h.V_a0 = it.need("V_a0");
+                h.V_b0 = it.get("V_b0", h.V_a0);
+                h.beta = it.get("beta", h.beta);
+                h.rho = it.get("rho_oil", h.rho);
+                h.Cd = it.get("Cd", h.Cd);
+                h.A_v = it.need("A_v");
+                h.dp_crack = it.get("dp_crack", h.dp_crack);
+                h.dp_open = it.get("dp_open", h.dp_open);
+                h.V_hp = it.need("V_hp");
+                h.p_hp_pre = it.need("p_hp_pre");
+                h.p_hp0 = it.get("p_hp0", h.p_hp_pre);
+                h.V_lp = it.need("V_lp");
+                h.p_lp_pre = it.need("p_lp_pre");
+                h.p_lp0 = it.get("p_lp0", h.p_lp_pre);
+                h.kappa = it.get("kappa", h.kappa);
+                h.D = it.need("D");
+                h.C_leak = it.get("C_leak", 0.0);
+                h.eta_m = it.get("eta_m", 1.0);
+                h.J = it.need("J");
+                h.c_w = it.get("c_w", 0.0);
+                h.w0 = it.get("w0", 0.0);
+                h.b_gen = it.need("b_gen");
+                h.T_max = it.get("T_max", 0.0);
+                h.p_relief = it.get("p_relief", 0.0);
+                h.K_r = it.get("K_r", 0.0);
+                if(h.K_r > 0.0 && h.p_relief <= 0.0) it.fail("the relief valve needs p_relief > 0");
+                h.dt_sub = it.get("dt_sub", h.dt_sub);
+                h.has_gen = has_gen;
+                h.gen = gs;
+                const std::string msg = h.check();
+                if(!msg.empty()) it.fail("hydraulic: " + msg);
+                s.has_hydraulic = true;
+                s.hydraulic = h;
+            }
+            else if(has_gen)
+            {
+                s.has_generator = true;
+                s.generator = gs;
+            }
+
+            // the single-DOF plant along the PTO for tuning and MPC: mass, and the hydrodynamics of a
+            // database mode (hydro <name> mode <i>) or a table w A B (tune)
+            auto plant_mass = [&]() -> double
+            {
+                if(it.has("mass")) return it.need("mass");
+                if(link || rot) it.fail("'mass' (mass or inertia along the PTO) is required for a link or rotational PTO");
+                const int b = joints[jn]->body_b;
+                if(b < 0) it.fail("'mass' is required (body b of the joint is the ground)");
+                return m.bodies[b].mass;
+            };
+            const hydro_load *hl = nullptr;
+            int mode = -1;
+            if(it.has("hydro"))
+            {
+                const std::string hn = it.word("hydro");
+                if(!hydros.count(hn)) it.fail("unknown hydro '" + hn + "' (the hydro line must come first)");
+                hl = hydros[hn];
+                mode = (int)it.need("mode") - 1;
+                if(mode < 0 || mode >= hl->database().ndof()) it.fail("mode out of range of the database");
+            }
+
+            // tuned passive or reactive gains at the period T
+            const int itn = it.find("tune");
+            if(itn >= 0)
+            {
+                const std::string how = it.word(itn+1);
+                if(how != "passive" && how != "reactive") it.fail("tune passive | reactive expected");
+                const double T = it.need("T");
+                if(T <= 0.0) it.fail("the period T must be positive");
+                const double w = 2.0*M_PI/T, mass = plant_mass();
+                double A = 0.0, B = 0.0, C = 0.0;
+                if(it.has("table"))
+                {
+                    pto_hydro_table tab;
+                    if(!tab.read(path(it.word("table")))) it.fail("cannot read the table w A B '" + it.word("table") + "'");
+                    A = tab.A(w);
+                    B = tab.B(w);
+                    C = it.need("C");
+                }
+                else if(hl)
+                {
+                    A = hl->database().added_mass(w)(mode, mode);
+                    B = hl->database().damping(w)(mode, mode);
+                    C = it.get("C", hl->database().C(mode, mode));
+                }
+                else
+                    it.fail("tune needs 'table <file>' or 'hydro <name> mode <i>'");
+                const double Bl = s.c_loss;
+                if(how == "passive")
+                    s.c = pto_bopt(w, mass, A, B, C, Bl);
+                else
+                    pto_reactive(w, mass, A, B, C, Bl, s.k, s.c);
+            }
+
+            const int isch = it.find("schedule"), iu = it.find("user"), impc = it.find("mpc");
+            if((isch >= 0) + (iu >= 0) + (impc >= 0) > 1) it.fail("one of schedule, user, mpc");
+            if((isch >= 0 || iu >= 0 || impc >= 0) && (s.control != pto_control::passive))
+                it.fail("schedule, user and mpc set the generator force: not with latching or declutching");
+            s.commanded = (isch >= 0 || iu >= 0 || impc >= 0);
+
+            pto_load *pl = nullptr;
+            if(link)
+            {
+                const int ia = it.find("a"), ib = it.find("b");
+                if(ia < 0 || ib < 0) it.fail("'joint <joint>' or 'a <body> <x y z> b <body> <x y z>' is required");
+                const int a = body_of(it, it.word(ia+1)), b = body_of(it, it.word(ib+1));
+                const Vec3 pa = it.vec(ia+2), pb = it.vec(ib+2);
+                if((pb - pa).norm() < 1.0e-9) it.fail("the two points of a link PTO must not coincide");
+                pl = &static_cast<pto_load&>(m.add_load(std::make_unique<pto_load>(m, a, pa, b, pb, s, name)));
+            }
+            else
+                pl = &static_cast<pto_load&>(m.add_load(std::make_unique<pto_load>(*joints[jn], rot, s, name)));
+
+            if(isch >= 0)
+            {
+                std::vector<double> t, kk, cc, F0;
+                std::string msg;
+                if(!pto_ctrl_schedule::read(path(it.word(isch+1)), t, kk, cc, F0, msg)) it.fail(msg);
+                pl->add_controller(std::make_unique<pto_ctrl_schedule>(t, kk, cc, F0));
+            }
+            if(iu >= 0)
+            {
+                std::vector<double> par;
+                const int ip = it.find("params");
+                if(ip >= 0)
+                {
+                    const int n = (int)it.num(ip+1);
+                    for(int q=0; q<n; ++q) par.push_back(it.num(ip+2+q));
+                }
+                try
+                {
+                    pl->add_controller(std::make_unique<pto_ctrl_user>(path(it.word(iu+1)), par, it.get("period", 0.0), s.k, s.c, s.F0));
+                }
+                catch(const std::exception &e) {it.fail(e.what());}
+            }
+            if(impc >= 0)
+            {
+                mpc_settings ms;
+                ms.Tc = it.need("Tc");
+                ms.N = (int)it.get("N", 40.0);
+                ms.r = it.get("r", 0.0);
+                ms.F_max = s.F_max;
+                ms.q_max = it.get("q_max", 0.0);
+                ms.w_q = it.get("w_q", 0.0);
+                mpc_model mm;
+                mm.m = plant_mass();
+                mm.B = it.get("B", 0.0) + s.c_loss;
+                if(hl)
+                {
+                    const hydro_db &db = hl->database();
+                    mm.A_inf = it.get("A_inf", hl->ainf()(mode, mode));
+                    mm.C = it.get("C", db.C(mode, mode));
+                    if(hl->settings().radiation && !it.has("no_radiation"))
+                    {
+                        radiation_ss ss;
+                        const radiation_ss *rs = &hl->state_space();
+                        if(rs->pairs.empty())
+                        {
+                            ss.identify(hl->memory(), hl->settings().ss_tol, hl->settings().ss_order);
+                            rs = &ss;
+                        }
+                        for(const auto &q : rs->pairs)
+                            if(q.i == mode && q.j == mode)
+                                radiation_ss::real_form(q, mm.Ar, mm.Br, mm.Cr);
+                    }
+                    if(!it.has("excitation"))
+                    {
+                        const int md = mode;
+                        mm.Fe = [hl, md](double t) {return hl->excitation_force(t)(md);};
+                    }
+                }
+                else
+                {
+                    mm.A_inf = it.get("A_inf", 0.0);
+                    mm.C = it.get("C", 0.0);
+                }
+                if(it.has("excitation"))
+                {
+                    jforce_settings fs;
+                    std::string msg;
+                    if(!joint_force::read_table(path(it.word("excitation")), fs.t, fs.F, msg)) it.fail(msg);
+                    auto tab = std::make_shared<jforce_settings>(fs);
+                    mm.Fe = [tab](double t)
+                    {
+                        const auto &T = tab->t, &F = tab->F;
+                        if(t <= T.front() || t >= T.back()) return 0.0;
+                        const size_t n = size_t(std::upper_bound(T.begin(), T.end(), t) - T.begin());
+                        const double r = (t - T[n-1])/(T[n] - T[n-1]);
+                        return (1.0 - r)*F[n-1] + r*F[n];
+                    };
+                }
+                if(!mm.Fe) it.fail("mpc needs the excitation: 'hydro <name> mode <i>' or 'excitation <t Fe table>'");
+                try {pl->add_controller(std::make_unique<pto_ctrl_mpc>(mm, ms));}
+                catch(const std::exception &e) {it.fail(e.what());}
+            }
         }
         else if(k=="drive")
         {
@@ -1081,10 +1336,21 @@ void coral_case::parse(const std::vector<std::pair<int, std::vector<std::string>
             if(!joints.count(jn)) it.fail("unknown joint '" + jn + "'");
             drive_settings s;
             const int is = it.find("sine");
-            if(is < 0) it.fail("'sine <amplitude> <period>' is required");
-            s.amp = it.num(is+1);
-            s.period = it.num(is+2);
-            if(s.period <= 0.0) it.fail("the period must be positive");
+            if(it.has("file"))
+            {
+                if(is >= 0) it.fail("'sine' or 'file', not both");
+                std::string msg;
+                if(!joint_drive::read_table(path(it.word("file")), s.t, s.q, msg)) it.fail(msg);
+                s.scale = it.get("scale", 1.0);
+                s.periodic = it.has("periodic");
+            }
+            else
+            {
+                if(is < 0) it.fail("'sine <amplitude> <period>' or 'file <t q table>' is required");
+                s.amp = it.num(is+1);
+                s.period = it.num(is+2);
+                if(s.period <= 0.0) it.fail("the period must be positive");
+            }
             s.q0 = it.get("q0", 0.0);
             s.phase = it.get("phase", 0.0);
             s.ramp = it.get("ramp", 0.0);
@@ -1273,15 +1539,19 @@ void coral_case::parse(const std::vector<std::pair<int, std::vector<std::string>
             sm.p1 = it.need_vec("p1");
             sm.p2 = it.need_vec("p2");
             sm.D = it.need("D");
+            // drag_only: the viscous part beside a potential-flow model (HydroDyn's PropPot): drag on the members and
+            // the end faces, no buoyancy, Froude-Krylov, diffraction, added mass or end pressure
+            const bool dro = it.has("drag_only");
             sm.Cd = it.get("Cd", 1.0);
-            sm.Ca = it.get("Ca", 1.0);
-            sm.Cm = it.get("Cm", 1.0 + sm.Ca);
+            sm.Ca = it.get("Ca", dro ? 0.0 : 1.0);
+            sm.Cm = it.get("Cm", dro ? 0.0 : 1.0 + sm.Ca);
             sm.n = (int)it.get("n", 20);
             sm.end1 = it.has("end1");
             sm.end2 = it.has("end2");
-            sm.Ca_end = it.get("Ca_end", 1.0);
+            sm.Ca_end = it.get("Ca_end", dro ? 0.0 : 1.0);
             sm.Cd_end = it.get("Cd_end", 1.0);
-            sm.buoyancy = !it.has("no_buoyancy");
+            sm.buoyancy = !dro && !it.has("no_buoyancy");
+            sm.end_pressure = !dro;
             const int b = body_of(it, it.word("body"));
             if(b < 0) it.fail("strip_member needs a body");
             const double g = std::fabs(m.gravity(2)) > 0.0 ? std::fabs(m.gravity(2)) : 9.81;
@@ -1543,6 +1813,8 @@ void coral_case::parse(const std::vector<std::pair<int, std::vector<std::string>
             cs.slip = it.get("slip", cs.slip);
             cs.T_max = it.get("T_max", cs.T_max);
             cs.T_rate = it.get("T_rate", cs.T_rate);
+            cs.T_rgn3 = it.get("T_rgn3", cs.T_rgn3);
+            if(cs.T_rgn3 < 0.0) it.fail("T_rgn3 must be >= 0 (0: constant power in region 3)");
             cs.pitch_rgn3 = it.get("pitch_rgn3", cs.pitch_rgn3/deg)*deg;
             cs.w_ref = it.get("rpm_ref", cs.w_ref/rpm)*rpm;
             cs.KP = it.get("KP", cs.KP);
@@ -1614,7 +1886,7 @@ void coral_case::parse(const std::vector<std::pair<int, std::vector<std::string>
         else if(k!="gravity" && k!="rho" && k!="time" && k!="output" && k!="waves" && k!="body" && k!="joint"
                 && k!="section" && k!="member" && k!="point_mass" && k!="static" && k!="modes"
                 && k!="superelement" && k!="soil" && k!="soil_layer" && k!="pile" && k!="force" && k!="fluid_kinematics"
-                && k!="point" && k!="line_type" && k!="bathymetry" && k!="wind" && k!="rho_air")
+                && k!="point" && k!="line_type" && k!="bathymetry" && k!="wind" && k!="rho_air" && k!="initial_pose")
             it.fail("unknown keyword");
     }
     if(!fluid_bodies.empty())
@@ -1633,6 +1905,16 @@ void coral_case::parse(const std::vector<std::pair<int, std::vector<std::string>
     // belong to the configuration above), then the dynamic lines settle in the displaced configuration
     for(const auto &o : offsets)
         m.bodies[o.first].x += o.second;
+    // initial_pose: the whole model turned about a point and moved (a floater with all on it, as OpenFAST's initial
+    // platform displacements); the body-frame rates stay, the global velocities turn with it
+    if(pose_on)
+        for(rigid_body &b : m.bodies)
+        {
+            b.x = pose_p + pose_d + pose_R*(b.x - pose_p);
+            b.R = pose_R*b.R;
+            b.v = pose_R*b.v;
+            b.vd = pose_R*b.vd;
+        }
     for(const auto &st : settles)
         st.first->settle(m, st.second);
 }

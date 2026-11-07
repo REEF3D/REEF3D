@@ -372,6 +372,8 @@ int main()
         const std::string paraview = "lagoon_store_test_paraview";
         if(std::system(("rm -rf "+paraview+" lagoon_store_test_solids.lagoon && mkdir "+paraview).c_str())!=0)
             std::cout<<"  (could not make)"<<std::endl;
+        // no control.txt (results copied without their input): the file is taken
+        const std::string control = paraview + "/control.txt";
         const float xyz[18] = {0,0,0, 1,0,0, 0,1,0,  0,0,1, 1,0,1, 0,1,2};
         auto vtp = [&](int per_cell)  // print_3D::write_vtp: raw appended, a size before each block
         {
@@ -396,7 +398,7 @@ int main()
         vtp(3);
         lagoon_store store("lagoon_store_test_solids.lagoon",16,1);
         store.create_root("CFD","");
-        check(store.write_solids(paraview)==2, "the 2 triangles of REEF3D_Solid.vtp written");
+        check(store.write_solids(paraview, control)==2, "the 2 triangles of REEF3D_Solid.vtp written");
         const std::string points = slurp("lagoon_store_test_solids.lagoon/solids/points/c/0/0");
         const std::string corners = slurp("lagoon_store_test_solids.lagoon/solids/triangles/c/0/0");
         bool same = points.size()==144;
@@ -409,14 +411,14 @@ int main()
               && slurp("lagoon_store_test_solids.lagoon/solids/zarr.json").find("\"role\": \"solid\"")!=std::string::npos,
               "their zarr.json: shape, role");
         vtp(4);  // not triangles: not taken
-        check(store.write_solids(paraview)==0, "a file of other cells is not taken");
+        check(store.write_solids(paraview, control)==0, "a file of other cells is not taken");
         vtp(3);
         // left over: DIVEMesh has run since (its partition two hours newer) without writing it
         std::ofstream((paraview+"/DIVEMesh_Partition.vtp").c_str())<<"x";
         struct utimbuf old_time;
         old_time.actime = old_time.modtime = std::time(nullptr) - 7200;
         utime((paraview+"/REEF3D_Solid.vtp").c_str(), &old_time);
-        check(store.write_solids(paraview)==0, "a solid file left over from another case is not taken");
+        check(store.write_solids(paraview, control)==0, "a solid file left over from another case is not taken");
         // DIVEMesh's solids: Float64 points
         {
             std::ofstream out((paraview+"/REEF3D_Solid.vtp").c_str(), std::ios::binary);
@@ -437,12 +439,19 @@ int main()
             out<<"\n</AppendedData>\n</VTKFile>\n";
         }
         if(std::system(("rm -f "+paraview+"/DIVEMesh_Partition.vtp").c_str())!=0) std::cout<<"  (could not remove)"<<std::endl;
-        check(store.write_solids(paraview)==1, "DIVEMesh's Float64 points");
+        check(store.write_solids(paraview, control)==1, "DIVEMesh's Float64 points");
         const std::string kept = slurp("lagoon_store_test_solids.lagoon/solids/points/c/0/0");
         double x0 = 0.0;
         if(kept.size()==72) std::memcpy(&x0, kept.data(), 8);
         check(x0==500000.125, "kept to the millimetre far from the origin (float64)");
-        check(store.write_solids("lagoon_store_test_nothing")==0, "no DIVEMesh_Paraview: none");
+        check(store.write_solids("lagoon_store_test_nothing", control)==0, "no DIVEMesh_Paraview: none");
+        // control.txt without solid commands: another case's file, not taken
+        std::ofstream(control.c_str())<<"B 10 0.0 8640.0 0.0 1.5 0.0 1.0\n// S 10 1 2 1 2 0 3\nM 10 12\n";
+        check(!lagoon_store::has_solid_commands(control) && store.write_solids(paraview, control)==0,
+              "control.txt without solids (S): the file left by another case is not taken");
+        std::ofstream(control.c_str())<<"B 10 0.0 8.0 0.0 4.0 0.0 1.0\nS 10 1 2 1 2 0 3\n";
+        check(lagoon_store::has_solid_commands(control) && store.write_solids(paraview, control)==1,
+              "control.txt with solids: taken");
         if(std::system(("rm -rf "+paraview+" lagoon_store_test_solids.lagoon").c_str())!=0)
             std::cout<<"  (could not clear)"<<std::endl;
     }

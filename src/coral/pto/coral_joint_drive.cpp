@@ -23,6 +23,8 @@ Architect: Hans Bihs
 #include"coral/pto/coral_joint_drive.h"
 #include"coral/core/coral_constraint.h"
 #include"coral/core/coral_model.h"
+#include"coral/pto/coral_joint_force.h"
+#include<algorithm>
 #include<cmath>
 
 namespace coral
@@ -53,10 +55,71 @@ void joint_drive::prescribed(double t, double &q, double &qd, double &qdd) const
     }
     if(t < 0.0)
         r = rd = rdd = 0.0;
+    if(!s.t.empty())
+    {
+        double Q, Qd, Qdd;
+        table(t, Q, Qd, Qdd);
+        q = s.q0 + s.scale*r*Q;
+        qd = s.scale*(rd*Q + r*Qd);
+        qdd = s.scale*(rdd*Q + 2.0*rd*Qd + r*Qdd);
+        return;
+    }
     const double sn = std::sin(a), cs = std::cos(a);
     q = s.q0 + s.amp*r*sn;
     qd = s.amp*(rd*sn + r*w*cs);
     qdd = s.amp*(rdd*sn + 2.0*rd*w*cs - r*w*w*sn);
+}
+
+void joint_drive::table(double t, double &Q, double &Qd, double &Qdd) const
+{
+    const std::vector<double> &T = settings.t, &V = settings.q;
+    const int n = (int)T.size();
+    Q = Qd = Qdd = 0.0;
+    if(n == 0)
+        return;
+    if(n == 1)
+    {
+        Q = V[0];
+        return;
+    }
+    const double P = T[n-1] - T[0];
+    if(settings.periodic)
+        t = T[0] + (t - T[0]) - P*std::floor((t - T[0])/P);
+    else if(t <= T[0] || t >= T[n-1])
+    {
+        Q = (t <= T[0]) ? V[0] : V[n-1];
+        return;
+    }
+    // slope at point i (Catmull-Rom on the uneven grid; periodic: the table wraps, the last point is the first)
+    auto slope = [&](int i) -> double
+    {
+        if(settings.periodic && (i == 0 || i == n-1))
+            return (V[1] - V[n-2])/(T[1] - T[0] + T[n-1] - T[n-2]);
+        if(i == 0) return (V[1] - V[0])/(T[1] - T[0]);
+        if(i == n-1) return (V[n-1] - V[n-2])/(T[n-1] - T[n-2]);
+        return (V[i+1] - V[i-1])/(T[i+1] - T[i-1]);
+    };
+    int i = (int)(std::upper_bound(T.begin(), T.end(), t) - T.begin()) - 1;
+    i = std::clamp(i, 0, n-2);
+    const double h = T[i+1] - T[i], u = (t - T[i])/h;
+    const double m0 = slope(i)*h, m1 = slope(i+1)*h;
+    const double u2 = u*u, u3 = u2*u;
+    Q = (2.0*u3 - 3.0*u2 + 1.0)*V[i] + (u3 - 2.0*u2 + u)*m0 + (-2.0*u3 + 3.0*u2)*V[i+1] + (u3 - u2)*m1;
+    Qd = ((6.0*u2 - 6.0*u)*V[i] + (3.0*u2 - 4.0*u + 1.0)*m0 + (-6.0*u2 + 6.0*u)*V[i+1] + (3.0*u2 - 2.0*u)*m1)/h;
+    Qdd = ((12.0*u - 6.0)*V[i] + (6.0*u - 4.0)*m0 + (-12.0*u + 6.0)*V[i+1] + (6.0*u - 2.0)*m1)/(h*h);
+}
+
+bool joint_drive::read_table(const std::string &file, std::vector<double> &t, std::vector<double> &q, std::string &msg)
+{
+    // the same format as the force table: two numbers per line, times increasing
+    if(!joint_force::read_table(file, t, q, msg))
+    {
+        const std::string tf = "(t F)";
+        const size_t p = msg.find(tf);
+        if(p != std::string::npos) msg.replace(p, tf.size(), "(t q)");
+        return false;
+    }
+    return true;
 }
 
 double joint_drive::force(const model &m, double t) const
