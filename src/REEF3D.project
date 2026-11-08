@@ -2647,6 +2647,7 @@
           <File Name="coral/mooring/coral_mooring_friction.cpp"/>
           <File Name="coral/mooring/coral_mooring_setup.cpp"/>
           <File Name="coral/mooring/coral_mooring_static.cpp"/>
+          <File Name="coral/mooring/coral_mooring_viv.cpp"/>
           <File Name="coral/mooring/coral_seabed.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="PTO">
