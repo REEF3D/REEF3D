@@ -249,13 +249,21 @@ private:
 	field2 vrk1, vrk2, fy;
 	field3 wrk1, wrk2, fz;
 
-    // level set (N40 = 2, 3, 4): ls = phi(n), frk1/frk2 = stages; low storage: frk1 = convection of the previous stage
+    // level set (N40 = 2, 3, 4): ls = phi(n), frk1/frk2 = stages; low storage: frk1 = convection of the previous stage;
+    // N 40 5 with N 59: frk1 = the level set before its last transport (phiold)
     field4 *ls, *frk1, *frk2;
 
     // N 63 2, 3: phi(n) for the stages of the level set of the one-step schemes
     field4 *lsrk = nullptr;
     int lsrk_n = 1;
     void ls_rk_all(lexer*, fdm*, ghostcell*, field&, field&, field&);
+
+    // N 40 5 with N 59: the mass transport of the momentum starts from the level set before its last
+    // transport (frk1), kept by amr_ls_transport; phiold_valid: kept in the last step of this grid (1),
+    // a double for the checkpoints (ckpt_registry)
+    bool phiold;
+    double phiold_valid;
+    unsigned long long ckid_phiold;
 
     // second-order implicit diffusion: implicit weight, accumulation weight of the solved D and
     // whether the accumulated correction is added, per stage

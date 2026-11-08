@@ -221,6 +221,11 @@ momentum_rk::momentum_rk(lexer *p, fdm *a, ghostcell *pgc, convection *pconvecti
     imex_valid = 0.0;
     ckid_imex = ckpt_registry::add_raw(p,&imex_valid,1);
 
+    // N 59 with the one-step scheme (N 40 5): the level set before its last transport
+    phiold = (stages==1 && !twoproj && levelset && p->N59>0 && p->F30>0);
+    phiold_valid = 0.0;
+    ckid_phiold = phiold ? ckpt_registry::add_raw(p,&phiold_valid,1) : 0;
+
     if(imex)
     {
     Dtmp = new field1(p);
@@ -276,6 +281,8 @@ momentum_rk::momentum_rk(lexer *p, fdm *a, ghostcell *pgc, convection *pconvecti
 momentum_rk::~momentum_rk()
 {
     ckpt_registry::remove(ckid_imex);
+    if(phiold)
+    ckpt_registry::remove(ckid_phiold);
     delete ls;
     delete frk1;
     delete frk2;
@@ -571,6 +578,15 @@ void momentum_rk::amr_ls_transport(lexer *p, fdm *a, ghostcell *pgc, int s)
     face_density(p,a,pgc,RO(0,s),RO(1,s),RO(2,s));
     }
 
+    // N 59 with N 40 5: the level set before the transport (with the projected u(n+1), which is the
+    // advecting velocity of the next momentum step); the next momentum step starts its mass transport
+    // from it
+    if(phiold)
+    {
+    std::copy(a->phi.V, a->phi.V + size_t(p->imax)*p->jmax*p->kmax, frk1->V);
+    phiold_valid = 1.0;
+    }
+
     if(levelset)
     levelset_transport(p,a,pgc,s);
 }
@@ -601,8 +617,23 @@ void momentum_rk::amr_momentum(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, 
     if(conservative)
     convection_conservative(p,a,pgc,s);
 
+    // N 59 with N 40 5: the level set is half a step ahead of the velocities; the current one was
+    // moved by u(n), the advecting velocity of this step. The density of the control volumes at the
+    // start of the mass transport is therefore that of the level set before its last transport, so
+    // that the density rho* of the update is that of the current level set, with which the
+    // projection divides (with the current level set, rho* moved the water a second time: the
+    // momentum of the interface was off by the distance the interface moves in a step, which grew
+    // with N 47). Without it (the first step, a new patch) the current level set.
+    godunov *pgod = (phiold && phiold_valid>0.5) ? dynamic_cast<godunov*>(pconvec) : nullptr;
+
+    if(pgod!=nullptr)
+    pgod->consistent_set(frk1,0.0);
+
     for(int c=0; c<3; ++c)
     component_ssp(p,a,pgc,pvrans,c,s);
+
+    if(pgod!=nullptr)
+    pgod->consistent_set(nullptr,0.0);
 
     field &uout = velout(a,0,s);
     field &vout = velout(a,1,s);

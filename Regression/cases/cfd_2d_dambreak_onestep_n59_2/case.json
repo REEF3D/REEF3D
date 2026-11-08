@@ -1,0 +1,23 @@
+{
+ "base": "cfd_2d_dambreak",
+ "np": 1,
+ "steps": 80,
+ "ctrl_set": {
+  "N 40": "5"
+ },
+ "ctrl_add": [
+  "N 59 2",
+  "N 63 3"
+ ],
+ "description": "cfd_2d_dambreak_onestep_n63_rk3 with N 59 2: the face density of the mass flux from the level set at the half step of its transport, (phi before + phi)/2 (validation 84).",
+ "tags": [
+  "quick",
+  "2d",
+  "dambreak",
+  "levelset",
+  "closed"
+ ],
+ "covers": [
+  "godunov: N 59 2 (hface) on a uniform grid, momentum_rk: the level set before its last transport (phiold)"
+ ]
+}
