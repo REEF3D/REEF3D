@@ -369,30 +369,8 @@ void momentum_rk::step_twoproj(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, 
 {
     amr_step_begin(p,a,pgc);
 
-    // 1. the half step: u(n) -> u*, the forces of time n (the pressure gradient of p(n) with the
-    // face density of phi(n), gravity, the sources) and the Godunov convection of u(n) with u(n);
-    // projected with dt/2: u(n+1/2), divergence free, and p(n+1/2)
-    // N 59: the momentum carried with the mass flux, the update of the half step over dt/2; phi(n)
-    // kept in frk1 for the density at the start of the full step
-    godunov *pgod = (p->N59>0 && levelset) ? dynamic_cast<godunov*>(pconvec) : nullptr;
-
-    if(pgod!=nullptr)
-    {
-        LOOP
-        (*frk1)(i,j,k) = a->phi(i,j,k);
-
-        pgc->start4(p,*frk1,gcval_phi);
-
-        pgod->consistent_set(nullptr,0.5*p->dt);
-    }
-
-    for(int c=0; c<3; ++c)
-    component_onestep(p,a,pgc,pvrans,c,comp(a,urk1,vrk1,wrk1,c),urk1,vrk1,wrk1,comp(a,urk2,vrk2,wrk2,c),0.5,false);
-
-    if(pgod!=nullptr)
-    pgod->consistent_set(nullptr,0.0);
-
-    momentum_forcing_start(a, p, pgc, p6dof, pfsi, urk2, vrk2, wrk2, fx, fy, fz, 0, 0.5, false);
+    // 1. the half step: u(n) -> u*, projected with dt/2: u(n+1/2), divergence free, and p(n+1/2)
+    amr_twoproj_momentum(p,a,pgc,pvrans,p6dof,true,1);
 
     projection(p,a,pgc,urk2,vrk2,wrk2,0.5);
 
@@ -400,20 +378,55 @@ void momentum_rk::step_twoproj(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, 
     // the density and viscosity of the mid-step level set (phi(n) + phi(n+1))/2 for the full step
     if(levelset)
     {
-        levelset_twoproj(p,a,pgc,urk2,vrk2,wrk2);
+        amr_ls_transport(p,a,pgc,0);
         levelset_finish(p,a,pgc,0,true,-1);
-
-        LOOP
-        a->phi(i,j,k) = 0.5*(a->phi(i,j,k) + (*ls)(i,j,k));
-
-        pgc->start4(p,a->phi,gcval_phi);
-        pupdate->start(p,a,pgc,urk2,vrk2,wrk2);
+        amr_twoproj_mid(p,a,pgc);
     }
 
-    // 3. the full step: u(n) -> u*, the Godunov convection of u(n) with the advecting velocity
-    // u(n+1/2), the pressure gradient of p(n+1/2) with the face density of phi(n+1/2), the
-    // diffusion Crank-Nicolson (D(u(n)) explicit, half implicit) where the operator is available;
-    // projected with dt: u(n+1), p(n+1)
+    // 3. the full step: u(n) -> u*, projected with dt: u(n+1), p(n+1)
+    amr_twoproj_momentum(p,a,pgc,pvrans,p6dof,false,1);
+
+    projection(p,a,pgc,a->u,a->v,a->w,1.0);
+
+    // 4. the level set, density and viscosity of n+1
+    amr_stage_end(p,a,pgc,0);
+}
+
+// the momentum of a step of N 40 6 (step_twoproj; the mesh refinement calls it grid by grid)
+// half: u* = u(n) + dt/2 [C(u(n); u(n)) + S - grad p(n)/rho(n) + g] + dt/2 D(u*) into urk2, the
+//       forces of time n (the pressure gradient of p(n) with the face density of phi(n), gravity,
+//       the sources) and the Godunov convection of u(n) with u(n)
+// full: u* = u(n) + dt [C(u(n); u(n+1/2)) + S - grad p(n+1/2)/rho(n+1/2) + g]
+//       + dt/2 [D(u(n)) + D(u*)] into a->u, the diffusion Crank-Nicolson where the operator is
+//       available (otherwise backward Euler)
+// N 59: the momentum carried with the mass flux, the update of the half step over dt/2; phi(n)
+// kept in frk1 (with its ghost cells and, on a patch, the cells around it) for the density at the
+// start of the full step
+void momentum_rk::amr_twoproj_momentum(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof *p6dof, bool half, int forcing)
+{
+    godunov *pgod = (p->N59>0 && levelset) ? dynamic_cast<godunov*>(pconvec) : nullptr;
+
+    if(half)
+    {
+        if(pgod!=nullptr)
+        {
+            const size_t nn = size_t(p->imax)*p->jmax*p->kmax;
+            std::copy(a->phi.V, a->phi.V + nn, frk1->V);
+
+            pgod->consistent_set(nullptr,0.5*p->dt);
+        }
+
+        for(int c=0; c<3; ++c)
+        component_onestep(p,a,pgc,pvrans,c,comp(a,urk1,vrk1,wrk1,c),urk1,vrk1,wrk1,comp(a,urk2,vrk2,wrk2,c),0.5,false);
+
+        if(pgod!=nullptr)
+        pgod->consistent_set(nullptr,0.0);
+
+        twoproj_forcing(p,a,pgc,p6dof,urk2,vrk2,wrk2,0.5,false,forcing);
+
+        return;
+    }
+
     const bool cn = imex;
 
     if(cn)
@@ -436,12 +449,34 @@ void momentum_rk::step_twoproj(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, 
     if(pgod!=nullptr)
     pgod->consistent_set(nullptr,0.0);
 
-    momentum_forcing_start(a, p, pgc, p6dof, pfsi, a->u, a->v, a->w, fx, fy, fz, 0, 1.0, true);
+    twoproj_forcing(p,a,pgc,p6dof,a->u,a->v,a->w,1.0,true,forcing);
+}
 
-    projection(p,a,pgc,a->u,a->v,a->w,1.0);
+// the forcing of a step of N 40 6 (1: all, as momentum_forcing_start; 2: solids and topography only,
+// the patches of the mesh refinement; 0: none)
+void momentum_rk::twoproj_forcing(lexer *p, fdm *a, ghostcell *pgc, sixdof *p6dof, field &u, field &v, field &w,
+                                  double alpha, bool final, int forcing)
+{
+    if(forcing==1)
+    momentum_forcing_start(a, p, pgc, p6dof, pfsi, u, v, w, fx, fy, fz, 0, alpha, final);
 
-    // 4. the level set, density and viscosity of n+1
-    amr_stage_end(p,a,pgc,0);
+    if(forcing==2)
+    amr_solid_forcing(p,a,pgc,u,v,w,alpha);
+}
+
+// the middle of a step of N 40 6: the level set (phi(n) + phi(n+1))/2 with phi(n+1) in ls, its
+// density and viscosity (on a patch the cells around it from the coarser level afterwards,
+// cfd_amr::step_comp)
+void momentum_rk::amr_twoproj_mid(lexer *p, fdm *a, ghostcell *pgc)
+{
+    if(!levelset)
+    return;
+
+    LOOP
+    a->phi(i,j,k) = 0.5*(a->phi(i,j,k) + (*ls)(i,j,k));
+
+    pgc->start4(p,a->phi,gcval_phi);
+    pupdate->start(p,a,pgc,urk2,vrk2,wrk2);
 }
 
 // one component of a step of the one-step schemes with the weight w of dt:
@@ -484,23 +519,6 @@ void momentum_rk::component_onestep(lexer *p, fdm *a, ghostcell *pgc, vrans *pvr
     t = pgc->timer()-starttime;
     else
     t += pgc->timer()-starttime;
-}
-
-// the level set of N 40 6: phi(n+1) = phi(n) + dt L(phi(n); u(n+1/2)) into ls (a->phi stays phi(n))
-void momentum_rk::levelset_twoproj(lexer *p, fdm *a, ghostcell *pgc, field &U, field &V, field &W)
-{
-    LOOP
-    {
-    a->L(i,j,k)=0.0;
-    (*ls)(i,j,k)=a->phi(i,j,k);
-    }
-
-    pgc->start4(p,*ls,gcval_phi);
-
-    pfsfdisc->start(p,a,*ls,4,U,V,W);
-
-    LOOP
-    (*ls)(i,j,k) += p->dt*a->L(i,j,k);
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -652,21 +670,37 @@ void momentum_rk::amr_stage_end(lexer *p, fdm *a, ghostcell *pgc, int s)
 
 field& momentum_rk::amr_vel(fdm *a, int c, int s)
 {
+    // N 40 6: both steps start from u(n) in urk1
+    if(twoproj)
+    return comp(a,urk1,vrk1,wrk1,c);
+
     return vel(a,c,s);
 }
 
+// N 40 6: the half step (s 0) into urk2, the full step (s 1) into a->u; the input of both is u(n)
+// in urk1 (vel)
 field& momentum_rk::amr_velout(fdm *a, int c, int s)
 {
+    if(twoproj)
+    return (s==0) ? comp(a,urk2,vrk2,wrk2,c) : comp(a,a->u,a->v,a->w,c);
+
     return velout(a,c,s);
 }
 
+// N 40 6: the level set of both steps in ls
 field4& momentum_rk::amr_phi_in(int s)
 {
+    if(twoproj)
+    return *ls;
+
     return (s==0) ? *ls : (s==1 ? *frk1 : *frk2);
 }
 
 field4& momentum_rk::amr_phi_out(int s)
 {
+    if(twoproj)
+    return *ls;
+
     return (s==stages-1) ? *ls : (s==0 ? *frk1 : *frk2);
 }
 
@@ -683,7 +717,14 @@ void momentum_rk::levelset_transport(lexer *p, fdm *a, ghostcell *pgc, int s)
         (*ls)(i,j,k)=a->phi(i,j,k);
         }
 
-        // (the one-step scheme: a->u is the projected u(n+1) here)
+        // (the one-step scheme N 40 5: a->u is the projected u(n+1) here; N 40 6: phi(n+1) = phi(n)
+        // + dt L(phi(n); u(n+1/2)) with the projected half-step velocity in urk2)
+        if(twoproj)
+        {
+        pgc->start4(p,*ls,gcval_phi);
+        pfsfdisc->start(p,a,*ls,4,urk2,vrk2,wrk2);
+        }
+        else
         pfsfdisc->start(p,a,*ls,4,a->u,a->v,a->w);
 
         LOOP
