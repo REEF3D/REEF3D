@@ -177,6 +177,13 @@ momentum_rk::momentum_rk(lexer *p, fdm *a, ghostcell *pgc, convection *pconvecti
     frk1 = new field4(p);
     frk2 = new field4(p);
 
+        // N 63 2, 3: the stages of the level set of the one-step schemes (the scheme of F 35)
+        if(stages==1 && (p->N63==2 || p->N63==3))
+        {
+        lsrk_n = p->N63;
+        lsrk = new field4(p);
+        }
+
         if(p->F30>0 && p->H10==0 && p->W30==0 && p->F300==0 && p->W90==0)
         pupdate = new fluid_update_fsf(p,a,pgc);
 
@@ -272,6 +279,7 @@ momentum_rk::~momentum_rk()
     delete ls;
     delete frk1;
     delete frk2;
+    delete lsrk;
     delete ur;
     delete vr;
     delete wr;
@@ -704,6 +712,58 @@ field4& momentum_rk::amr_phi_out(int s)
     return (s==stages-1) ? *ls : (s==0 ? *frk1 : *frk2);
 }
 
+// N 63 2, 3: the level set of the one-step schemes in SSP-RK2 (Heun) or SSP-RK3 (Shu-Osher) stages of
+// the scheme of F 35 with the velocity of the step held fixed: phi1 = phi + dt L(phi), then
+// phi_k+1 = a_k phi(n) + b_k (phi_k + dt L(phi_k)); phi(n) in lsrk, the stages in ls
+void momentum_rk::ls_rk_begin(lexer *p, fdm *a)
+{
+    LOOP
+    {
+    (*ls)(i,j,k) = a->phi(i,j,k);
+    (*lsrk)(i,j,k) = a->phi(i,j,k);
+    }
+}
+
+void momentum_rk::ls_rk_stage(lexer *p, fdm *a, int st, field &U, field &V, field &W)
+{
+    static const double a2[2] = {0.0, 0.5},       b2[2] = {1.0, 0.5};
+    static const double a3[3] = {0.0, 0.75, 1.0/3.0}, b3[3] = {1.0, 0.25, 2.0/3.0};
+    const double ak = (lsrk_n==3) ? a3[st] : a2[st];
+    const double bk = (lsrk_n==3) ? b3[st] : b2[st];
+
+    LOOP
+    a->L(i,j,k)=0.0;
+
+    pfsfdisc->start(p,a,*ls,4,U,V,W);
+
+    LOOP
+    (*ls)(i,j,k) = ak*(*lsrk)(i,j,k) + bk*((*ls)(i,j,k) + p->dt*a->L(i,j,k));
+}
+
+// the velocity that moves the level set of the one-step schemes: N 40 5 the projected u(n+1), N 40 6
+// the projected half-step velocity u(n+1/2)
+field& momentum_rk::ls_vel(fdm *a, int c)
+{
+    return twoproj ? comp(a,urk2,vrk2,wrk2,c) : comp(a,a->u,a->v,a->w,c);
+}
+
+void momentum_rk::ls_rk_ghost(lexer *p, ghostcell *pgc)
+{
+    pgc->start4(p,*ls,gcval_phi);
+}
+
+// all stages on one grid (a uniform grid, level 0 with subcycling)
+void momentum_rk::ls_rk_all(lexer *p, fdm *a, ghostcell *pgc, field &U, field &V, field &W)
+{
+    ls_rk_begin(p,a);
+    for(int st=0; st<lsrk_n; ++st)
+    {
+        if(st>0)
+        ls_rk_ghost(p,pgc);
+        ls_rk_stage(p,a,st,U,V,W);
+    }
+}
+
 void momentum_rk::levelset_transport(lexer *p, fdm *a, ghostcell *pgc, int s)
 {
     const bool final = (s==stages-1);
@@ -718,18 +778,21 @@ void momentum_rk::levelset_transport(lexer *p, fdm *a, ghostcell *pgc, int s)
         }
 
         // (the one-step scheme N 40 5: a->u is the projected u(n+1) here; N 40 6: phi(n+1) = phi(n)
-        // + dt L(phi(n); u(n+1/2)) with the projected half-step velocity in urk2)
+        // + dt L(phi(n); u(n+1/2)) with the projected half-step velocity in urk2); N 63 2, 3: the
+        // SSP-RK stages with that velocity
         if(twoproj)
-        {
         pgc->start4(p,*ls,gcval_phi);
-        pfsfdisc->start(p,a,*ls,4,urk2,vrk2,wrk2);
-        }
+
+        if(lsrk_n>1)
+        ls_rk_all(p,a,pgc,ls_vel(a,0),ls_vel(a,1),ls_vel(a,2));
         else
-        pfsfdisc->start(p,a,*ls,4,a->u,a->v,a->w);
+        {
+        pfsfdisc->start(p,a,*ls,4,ls_vel(a,0),ls_vel(a,1),ls_vel(a,2));
 
         LOOP
         fout(i,j,k) = (*ls)(i,j,k)
                     + p->dt*a->L(i,j,k);
+        }
     }
 
     if(s>0)

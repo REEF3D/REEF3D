@@ -171,6 +171,16 @@ public:
     field4& amr_phi_in(int s);
     field4& amr_phi_out(int s);
 
+    // N 63 2, 3: the level set of the one-step schemes with the scheme of F 35 in SSP-RK2 or SSP-RK3
+    // stages with the velocity of the step (U, V, W fixed); the mesh refinement calls the stages grid
+    // by grid with the fills of the patches in between (cfd_amr), level 0 alone takes them in
+    // amr_ls_transport.  ls_rk_n: the number of stages (1: one forward-Euler step, N 63 0, 1)
+    int ls_rk_n() const {return lsrk_n;}
+    void ls_rk_begin(lexer*, fdm*);
+    void ls_rk_stage(lexer*, fdm*, int st, field&, field&, field&);
+    void ls_rk_ghost(lexer*, ghostcell*);
+    field& ls_vel(fdm*, int c);
+
     // the diffusion and its solver (the mesh refinement: the implicit diffusion of heat and
     // concentration on the grid of this object)
     diffusion* amr_diffusion() { return pdiff; }
@@ -241,6 +251,11 @@ private:
 
     // level set (N40 = 2, 3, 4): ls = phi(n), frk1/frk2 = stages; low storage: frk1 = convection of the previous stage
     field4 *ls, *frk1, *frk2;
+
+    // N 63 2, 3: phi(n) for the stages of the level set of the one-step schemes
+    field4 *lsrk = nullptr;
+    int lsrk_n = 1;
+    void ls_rk_all(lexer*, fdm*, ghostcell*, field&, field&, field&);
 
     // second-order implicit diffusion: implicit weight, accumulation weight of the solved D and
     // whether the accumulated correction is added, per stage

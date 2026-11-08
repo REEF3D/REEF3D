@@ -1,0 +1,23 @@
+{
+ "base": "cfd_2d_dambreak",
+ "np": 1,
+ "steps": 80,
+ "ctrl_set": {
+  "N 40": "5"
+ },
+ "ctrl_add": [
+  "N 59 1",
+  "N 63 3"
+ ],
+ "description": "cfd_2d_dambreak_onestep_n63 with the level set in SSP-RK3 stages of the scheme of F 35 with the projected u(n+1) held fixed (N 63 3) (validation 83).",
+ "tags": [
+  "quick",
+  "2d",
+  "dambreak",
+  "levelset",
+  "closed"
+ ],
+ "covers": [
+  "momentum_rk::ls_rk_all: the SSP-RK3 stages of the level set on a uniform grid"
+ ]
+}

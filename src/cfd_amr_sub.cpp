@@ -543,7 +543,49 @@ void cfd_amr::patch_step_onestep(int l, double th0)
     // it leaves the coarse u(n+1) in the cells around the patches
     pr_level(p0,pgc,l,s);
 
-    // the level set with the projected u(n+1)
+    // the level set with the projected u(n+1); N 63 2, 3: its SSP-RK stages, the cells around the
+    // patches of every stage from the coarser level at the time of the stage (SSP-RK2: 0, 1, SSP-RK3:
+    // 0, 1, 1/2 of the step)
+    if(mom0->ls_rk_n()>1)
+    {
+        static const double tin2[2] = {0.0,1.0}, tin3[3] = {0.0,1.0,0.5};
+        const int nk = mom0->ls_rk_n();
+
+        for(int id : lev[l])
+        {
+            pscope3 ps(pgc,CP(id)->a,a0);
+            CP(id)->pmom->ls_rk_begin(CP(id)->pp,CP(id)->a);
+        }
+
+        for(int k=0; k<nk; ++k)
+        {
+            if(k>0)
+            {
+                for(int id : lev[l])
+                {
+                    pscope3 ps(pgc,CP(id)->a,a0);
+                    CP(id)->pmom->ls_rk_ghost(CP(id)->pp,pgc);
+                }
+                interp(l-1,th0 + 0.5*((nk==3) ? tin3[k] : tin2[k]));
+                vector<fspec> fk;
+                fk.push_back({CELL,0,[this,l,tp](int g) -> field& { return glevel(g)==l ? gmom(g)->amr_phi_in(0) : tsf(g,tp); }});
+                fill(l,fk);
+            }
+
+            cfd_amr_wclock wc(wtp);
+            for(int id : lev[l])
+            {
+                pscope3 ps(pgc,CP(id)->a,a0);
+                fdm *fa = CP(id)->a;
+                momentum_rk *m = CP(id)->pmom;
+                m->ls_rk_stage(CP(id)->pp,fa,k,m->ls_vel(fa,0),m->ls_vel(fa,1),m->ls_vel(fa,2));
+            }
+        }
+
+        // the coarser level at the end of the step again (the level set of the output)
+        interp(l-1,tho);
+    }
+    else
     {
     cfd_amr_wclock wc(wtp);
     for(int id : lev[l])

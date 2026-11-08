@@ -210,8 +210,8 @@ bool cfd_amr::scope(lexer *p, ghostcell *pgc)
 
     if(!(p->N40==2 || p->N40==3 || p->N40==5 || p->N40==6))
     why = "N 40 2, 3, 5 or 6 (SSP Runge-Kutta with the level set in the stages, or one step with one or two projections)";
-    else if((p->N40==5 || p->N40==6) && p->G7!=0)
-    why = "the one-step schemes N 40 5, 6 with G 7 0 (subcycling with them is not built yet)";
+    else if(p->N40==6 && p->G7!=0)
+    why = "the one-step scheme with two projections N 40 6 with G 7 0 (subcycling with it is not built yet; N 40 5 subcycles)";
     else if((p->N40==5 || p->N40==6) && (p->H10!=0 || p->C10!=0))
     why = "the one-step schemes N 40 5, 6 without heat or concentration (H 10, C 10)";
     else if(p->F80!=0 || p->F300!=0)
@@ -776,8 +776,12 @@ void cfd_amr::patch_objects(r3patch *rp)
     {
         delete c->pconvec;
         c->pconvec = new godunov(pp);
+        // N 63 1, 2, 3: the level set with the scheme of F 35, as on level 0
+        if(pp->N63==0)
+        {
         delete c->pfsfdisc;
         c->pfsfdisc = new godunov(pp);
+        }
     }
 
     // diffusion
@@ -1918,15 +1922,65 @@ void cfd_amr::step_comp(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof 
         lbar();
         double ta = MPI_Wtime();
 
+        // N 63 2, 3 (the one-step schemes): the SSP-RK stages of the level set on all grids in step,
+        // the cells around the patches of every stage from the coarser level at the same stage
+        const bool lsrk = (stages==1 && mom0->ls_rk_n()>1);
+        if(lsrk)
+        {
+            for(int l=1; l<=maxlev; ++l)
+            fill_stage_in(l,s);
+
+            mom0->ls_rk_begin(p,a);
+            for(int id=0; id<npat; ++id)
+            {
+                pscope ps(pgc,CP(id)->a,a0);
+                CP(id)->pmom->ls_rk_begin(CP(id)->pp,CP(id)->a);
+            }
+
+            vector<fspec> fk;
+            fk.push_back({CELL,0,[this](int g) -> field& { return gmom(g)->amr_phi_in(0); }});
+
+            for(int k=0; k<mom0->ls_rk_n(); ++k)
+            {
+                // N 40 6: the ghost cells of the input as momentum_rk::levelset_transport
+                if(k>0 || mom0->amr_twoproj())
+                {
+                    mom0->ls_rk_ghost(p,pgc);
+                    for(int id=0; id<npat; ++id)
+                    {
+                        pscope ps(pgc,CP(id)->a,a0);
+                        CP(id)->pmom->ls_rk_ghost(CP(id)->pp,pgc);
+                    }
+                    if(k>0)
+                    for(int l=1; l<=maxlev; ++l)
+                    fill(l,fk);
+                }
+
+                // the velocity of the step: N 40 5 the projected u(n+1), N 40 6 u(n+1/2)
+                mom0->ls_rk_stage(p,a,k,mom0->ls_vel(a,0),mom0->ls_vel(a,1),mom0->ls_vel(a,2));
+
+                cfd_amr_wclock wc(wtp);
+                for(int id=0; id<npat; ++id)
+                {
+                    pscope ps(pgc,CP(id)->a,a0);
+                    fdm *fa = CP(id)->a;
+                    momentum_rk *m = CP(id)->pmom;
+                    m->ls_rk_stage(CP(id)->pp,fa,k,m->ls_vel(fa,0),m->ls_vel(fa,1),m->ls_vel(fa,2));
+                }
+            }
+        }
+        else
         mom0->amr_ls_transport(p,a,pgc,s);
+
         mom0->amr_ls_finish(p,a,pgc,s,false,-1);
         t0l[0] += MPI_Wtime()-ta;
 
         for(int l=1; l<=maxlev; ++l)
         {
+            if(!lsrk)
+            {
             fill_stage_in(l,s);
 
-            {
             cfd_amr_wclock wc(wtp);
             for(int id : lev[l])
             {
