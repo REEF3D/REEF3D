@@ -774,8 +774,12 @@ void cfd_amr::patch_objects(r3patch *rp)
     {
         delete c->pconvec;
         c->pconvec = new godunov(pp);
+        // N 63 1: the level set with the scheme of F 35, as on level 0
+        if(pp->N63==0)
+        {
         delete c->pfsfdisc;
         c->pfsfdisc = new godunov(pp);
+        }
     }
 
     // diffusion
