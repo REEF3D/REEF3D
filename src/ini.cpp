@@ -524,7 +524,7 @@ void control::ini_default()
 	B97=0;          // int NHFLOW numerical beach (B 99 1|2) relaxes to the inflow current (waves on a current)
 	B98=0;          // int type of wave generation
 	B99=0;			// int type of numerical beach
-	B101=0;        // int ramp function wave geneartion
+	B101=-1;       // int ramp function wave generation: 0 off, 1 over B102 wave periods, 2 over B102 s; not given (-1): FNPF (A 10 3) starting from rest (no I 12, I 30, I 40, I 45) with wave generation (B 90 > 0) ramps over B102 wave periods as 1, otherwise 0
 	B102=1.0;        // double factor ramp function wave generation
     B105=0;            // int wave generation origin changed
  	B105_1=0.0;        // double wave generation direction and line origin in Cartesian coordianate system

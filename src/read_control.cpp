@@ -6872,6 +6872,13 @@ void control::read_control(lexer* p)
     }
 
     control.close();
+
+    // B 101 not given: FNPF wave generation from rest is switched on over B 102 wave periods (as B 101 1). The full sea at
+    // t = 0 in the relaxation zones is a shock: a directional JONSWAP sea (Hs 10.4 m, Tp 17.7 s) next to a beach zone
+    // stopped the run within 0.4-1.5 s (RK3 and theta-Robin, at any time step; validation FNPF Breaking/05). An explicit
+    // B 101 0 keeps the impulsive start; an initialised field or a restart starts without a ramp.
+    if(B101==-1)
+    B101 = (A10==3 && B90>0 && I12==0 && I30==0 && I40==0 && I45==0) ? 1 : 0;
 }
 
 // keys that are read for old ctrl.txt files but no longer used: the values are skipped with a warning
