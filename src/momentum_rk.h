@@ -85,7 +85,11 @@ A prototype (validation 75): second order in time on smooth interface flows, but
 it): the half-step velocity carries the air accelerations of the half step and convects the air
 momentum with them. N 40 5 is the robust one-step scheme.
 
-N 59 1 (N 40 5, 6 with the level set; N 40 5 also on the mesh refinement, whose patches take the
+On the mesh refinement (G 7 0, cfd_amr::step_comp) N 40 6 takes the same steps on all grids, with
+the composite projection after each of the two momentum steps and the level set of all levels
+between them.
+
+N 59 1 (N 40 5, 6 with the level set, also on the mesh refinement, whose patches take the
 same Godunov convection): the convection of the momentum as rho u, moved with the mass flux of the
 Godunov convection (godunov::start, see godunov.h); the density of the step starts from the level
 set of the step (phi(n) also in the full step of N 40 6, kept in frk1). Validation 77:
@@ -135,7 +139,17 @@ public:
     // the patches and the composite projection in between (step_ssp calls them in this order)
     int amr_stages() const {return stages;}
     bool amr_ssp() const {return scheme==SSP && !conservative;}
-    double amr_alpha(int s) const {return ssp_b[s];}
+    // N 40 6: the weight of the projection of the half step (s 0: dt/2) and of the full step (s 1: dt)
+    double amr_alpha(int s) const {return twoproj ? (s==0 ? 0.5 : 1.0) : ssp_b[s];}
+    // N 40 6 (step_twoproj) in parts, called grid by grid: the momentum of the half step (half true:
+    // u(n) -> u* in urk2) or of the full step (half false: u(n) -> u* in a->u with the advecting
+    // velocity u(n+1/2)) with the forcing (1: all, 2: solids and topography only, 0: none), and the
+    // level set, density and viscosity of the middle of the step. The stage index of the accessors
+    // (amr_vel, amr_velout, amr_alpha) is 0 for the half step, 1 for the full step; the level set
+    // of both is ls (amr_phi_in, amr_phi_out)
+    bool amr_twoproj() const {return twoproj;}
+    void amr_twoproj_momentum(lexer*, fdm*, ghostcell*, vrans*, sixdof*, bool, int);
+    void amr_twoproj_mid(lexer*, fdm*, ghostcell*);
     void amr_step_begin(lexer*, fdm*, ghostcell*);
     void amr_ls_transport(lexer*, fdm*, ghostcell*, int);
     void amr_ls_finish(lexer*, fdm*, ghostcell*, int, bool, int);
@@ -165,7 +179,7 @@ private:
     void step_ssp(lexer*, fdm*, ghostcell*, vrans*, sixdof*);
     void step_twoproj(lexer*, fdm*, ghostcell*, vrans*, sixdof*);
     void component_onestep(lexer*, fdm*, ghostcell*, vrans*, int, field&, field&, field&, field&, field&, double, bool);
-    void levelset_twoproj(lexer*, fdm*, ghostcell*, field&, field&, field&);
+    void twoproj_forcing(lexer*, fdm*, ghostcell*, sixdof*, field&, field&, field&, double, bool, int);
 
     void step_lowstorage(lexer*, fdm*, ghostcell*, vrans*, sixdof*);
 

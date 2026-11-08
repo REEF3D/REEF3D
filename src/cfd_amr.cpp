@@ -208,12 +208,12 @@ bool cfd_amr::scope(lexer *p, ghostcell *pgc)
 
     const char *why = nullptr;
 
-    if(!(p->N40==2 || p->N40==3 || p->N40==5))
-    why = "N 40 2, 3 or 5 (SSP Runge-Kutta with the level set in the stages, or one step; N 40 6 not yet)";
-    else if(p->N40==5 && p->G7!=0)
-    why = "the one-step scheme N 40 5 with G 7 0 (subcycling with N 40 5 is not built yet)";
-    else if(p->N40==5 && (p->H10!=0 || p->C10!=0))
-    why = "the one-step scheme N 40 5 without heat or concentration (H 10, C 10)";
+    if(!(p->N40==2 || p->N40==3 || p->N40==5 || p->N40==6))
+    why = "N 40 2, 3, 5 or 6 (SSP Runge-Kutta with the level set in the stages, or one step with one or two projections)";
+    else if((p->N40==5 || p->N40==6) && p->G7!=0)
+    why = "the one-step schemes N 40 5, 6 with G 7 0 (subcycling with them is not built yet)";
+    else if((p->N40==5 || p->N40==6) && (p->H10!=0 || p->C10!=0))
+    why = "the one-step schemes N 40 5, 6 without heat or concentration (H 10, C 10)";
     else if(p->F80!=0 || p->F300!=0)
     why = "the level set (F 30) or single phase flow, no VOF (F 80) or multiphase (F 300)";
     else if(!(p->T10==0 || p->T10==1 || p->T10==2 || p->T10==21 || p->T10==22))
@@ -769,10 +769,10 @@ void cfd_amr::patch_objects(r3patch *rp)
     if(c->pfsfdisc==nullptr)
     c->pfsfdisc = new fou(pp);
 
-    // the one-step scheme (N 40 5): the Godunov convection of the momentum and the level set on the
-    // patches as on level 0 (driver::logic_cfd); with the schemes of D 10 and F 35 the one stage would
-    // be a forward Euler step of WENO
-    if(pp->N40==5)
+    // the one-step schemes (N 40 5, 6): the Godunov convection of the momentum and the level set on
+    // the patches as on level 0 (driver::logic_cfd); with the schemes of D 10 and F 35 the one stage
+    // would be a forward Euler step of WENO
+    if(pp->N40==5 || pp->N40==6)
     {
         delete c->pconvec;
         c->pconvec = new godunov(pp);
@@ -1907,6 +1907,9 @@ void cfd_amr::step_comp(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof 
 
     const int stages = mom0->amr_stages();
 
+    // N 40 6: the one step with two projections (momentum_rk::step_twoproj)
+    const bool tp = mom0->amr_twoproj();
+
     // level set: transport and reinitialisation, level by level (its time closed by the barrier
     // before the momentum, or here when it comes last)
     double ta_ls = -1.0;
@@ -1966,7 +1969,7 @@ void cfd_amr::step_comp(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof 
         ta_ls = ta;
     };
 
-    // momentum and the composite projection
+    // momentum and the composite projection (N 40 6: s 0 the half step, s 1 the full step)
     auto mom_block = [&](int s)
     {
         lbar();
@@ -1977,6 +1980,9 @@ void cfd_amr::step_comp(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof 
         ta_ls = -1.0;
         }
 
+        if(tp)
+        mom0->amr_twoproj_momentum(p,a,pgc,pvrans,p6dof,s==0,1);
+        else
         mom0->amr_momentum(p,a,pgc,pvrans,p6dof,s,1);
         t0l[1] += MPI_Wtime()-tb;
 
@@ -1989,6 +1995,9 @@ void cfd_amr::step_comp(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof 
             for(int id : lev[l])
             {
                 pscope ps(pgc,CP(id)->a,a0);
+                if(tp)
+                CP(id)->pmom->amr_twoproj_momentum(CP(id)->pp,CP(id)->a,pgc,CP(id)->pvrans,(sixdof*)CP(id)->p6dof,s==0,patch_forcing());
+                else
                 CP(id)->pmom->amr_momentum(CP(id)->pp,CP(id)->a,pgc,CP(id)->pvrans,(sixdof*)CP(id)->p6dof,s,patch_forcing());
             }
         }
@@ -2025,6 +2034,50 @@ void cfd_amr::step_comp(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof 
     // the one-step scheme (N 40 5): the momentum with u(n) and the projection first, then the level
     // set with the projected u(n+1) (momentum_rk::step_ssp); the stage input (u(n), the level set)
     // around the patches before the momentum
+    if(tp)
+    {
+        // N 40 6: the one step with two projections (momentum_rk::step_twoproj) on all grids.
+        // 1. the half step from u(n), phi(n), p(n) (the stage input around the patches), the
+        // composite projection with dt/2: u(n+1/2) in urk2, p(n+1/2)
+        for(int l=1; l<=maxlev; ++l)
+        fill_stage_in(l,0);
+
+        mom_block(0);
+
+        // 2. the level set from n to n+1 with u(n+1/2) (around the patches from the composite
+        // projection), level by level, restricted
+        ls_block(0,true);
+
+        {
+        double td = MPI_Wtime();
+        restrict_scalars(0);
+
+        // the level set of the middle of the step, its density and viscosity on all grids; around
+        // the patches, level by level: the level set, the pressure p(n+1/2), u(n) and the density
+        // and viscosity from the coarser level (the momentum of the full step reads them there)
+        mom0->amr_twoproj_mid(p,a,pgc);
+        {
+        cfd_amr_wclock wc(wtp);
+        for(int id=0; id<npat; ++id)
+        {
+            pscope ps(pgc,CP(id)->a,a0);
+            CP(id)->pmom->amr_twoproj_mid(CP(id)->pp,CP(id)->a,pgc);
+        }
+        }
+
+        for(int l=1; l<=maxlev; ++l)
+        fill_stage_in(l,1);
+        tm[3] += MPI_Wtime()-td;
+        }
+
+        // 3. the full step from u(n) with the advecting velocity u(n+1/2), the composite projection
+        // with dt: u(n+1), p(n+1)
+        mom_block(1);
+
+        // 4. the level set phi(n+1), density and viscosity of n+1
+        end_block(0);
+    }
+    else
     if(stages==1)
     {
         for(int l=1; l<=maxlev; ++l)
