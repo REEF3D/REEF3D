@@ -322,6 +322,7 @@ public:
 
     // subcycling (cfd_amr_sub.cpp)
     void step_sub(lexer*, fdm*, ghostcell*, vrans*, sixdof*);
+    void patch_step_onestep(int l, double th0);
 
     // CPM on the refinement (cfd_amr_cpm.cpp): the sediment step on the grid of CPM, before the fluid step;
     // cpm_why: what the run needs for it (nullptr: covered)
