@@ -98,6 +98,7 @@ private:
     void dry_deposit(lexer*,sediment_fdm*);
     
     double ramp_dt(lexer*);
+    double ramp_morph(lexer*);   // S 105: sin^2 ramp of the morphological factor after the sediment start
     void  non_equillibrium_solve(lexer*,ghostcell*,sediment_fdm*);
     void non_equillibrium_solve_curv(lexer* p, ghostcell *pgc, sediment_fdm *s);     // curvilinear grid (G 50)
     double  susp_ED(lexer*,ghostcell*,sediment_fdm*);

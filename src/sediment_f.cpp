@@ -123,6 +123,8 @@ sediment_f::~sediment_f()
     delete s->pinflow;
     delete psusp2D;
     delete Psave;
+    delete pl_P0; delete pl_aP; delete pl_Q0; delete pl_aQ;
+    delete pl_U0; delete pl_aU; delete pl_V0; delete pl_aV;
     delete Qsave;
     delete Vtx;
     delete Vty;

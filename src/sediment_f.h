@@ -260,6 +260,14 @@ public:
     slice2 *Qsave = nullptr;
     slice4 *Vtx = nullptr, *Vty = nullptr;
     
+    // NHFLOW, S 37 2: phase-lead near-bed velocity of Nielsen (2006), u_e = cos(phi) u + sin(phi)/omega du/dt
+    // (sediment_phase_lead.cpp): previous velocities and low-pass filtered accelerations of the faces and cells
+    void phase_lead_nhflow(lexer*,fdm_nhf*,ghostcell*);
+    slice1 *pl_P0 = nullptr, *pl_aP = nullptr;
+    slice2 *pl_Q0 = nullptr, *pl_aQ = nullptr;
+    slice4 *pl_U0 = nullptr, *pl_aU = nullptr, *pl_V0 = nullptr, *pl_aV = nullptr;
+    double pl_t0 = -1.0;
+    
     double starttime;
     
     int volume_token,sedcalc;

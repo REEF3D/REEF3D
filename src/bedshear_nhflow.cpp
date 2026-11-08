@@ -58,6 +58,14 @@ void bedshear::taubed(lexer *p, fdm_nhf*d, ghostcell *pgc, sediment_fdm *s)
         V = d->V[IJK];
         W = d->W[IJK];
         
+        // S 37 2: phase-lead near-bed velocity (Nielsen 2006, sediment_phase_lead.cpp)
+        if(p->S37==2 && p->geo_curv==0)
+        {
+        U = s->ub(i,j);
+        V = s->vb(i,j);
+        W = 0.0;
+        }
+        
         dist = 0.5*p->DZN[KP]*d->WL(i,j);
         
         uabs = sqrt(U*U + V*V + W*W);
@@ -84,6 +92,14 @@ void bedshear::taubed(lexer *p, fdm_nhf*d, ghostcell *pgc, sediment_fdm *s)
         U = d->U[IJK];
         V = d->V[IJK];
         W = d->W[IJK];
+        
+        // S 37 2: phase-lead near-bed velocity (Nielsen 2006, sediment_phase_lead.cpp)
+        if(p->S37==2 && p->S16==1 && p->geo_curv==0)
+        {
+        U = s->ub(i,j);
+        V = s->vb(i,j);
+        W = 0.0;
+        }
         
         dist = 0.5*p->DZN[KP]*d->WL(i,j);
         
