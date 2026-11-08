@@ -135,6 +135,9 @@ VTU/state print keys (`P 20/30/40/41/42`), so runs are short and output stays sm
 | `cfd_2d_dambreak_onestep_n63` | 1 | `cfd_2d_dambreak_onestep_n59` with the level set moved by the scheme of F 35 (WENO, one forward-Euler step with the projected u(n+1), N 63 1) instead of the Godunov convection (needs patch REEFAMR/0170) |
 | `cfd_2d_dambreak_twoproj_n63` | 1 | `cfd_2d_dambreak_twoproj_n59` (N 40 6 at N 47 0.45) with N 63 1: the level set with F 35 in the half and the full step (needs patch REEFAMR/0170) |
 | `cfd_2d_dambreak_amr3_adapt_onestep_n63` | 1 | `cfd_2d_dambreak_amr3_adapt_onestep_n59` with N 63 1: the level set of every patch with the scheme of F 35 (needs patch REEFAMR/0170) |
+| `cfd_2d_dambreak_amr3_adapt_twoproj` (+ `_n59`) | 1 | `cfd_2d_dambreak_amr3_adapt` with N 40 6 on two adaptive levels (G 7 0): the half step of all levels and the composite projection with dt/2 (u(n+1/2) in urk2), the level set of all levels with u(n+1/2), the mid-step level set, p(n+1/2) and u(n) around the patches, the full step and the composite projection with dt; `_n59` with N 59 1: every patch keeps phi(n) with the cells around it for the density of its full step (patch CFD AMR N40 6/0001) |
+| `cfd_2d_nwt_amr_twoproj` | 1 | `cfd_2d_nwt_amr` with N 40 6: waves through a static patch (patch CFD AMR N40 6/0001) |
+| `cfd_3d_dambreak_amr_twoproj` | 2 | `cfd_3d_dambreak_amr` with N 40 6 on two ranks (patch CFD AMR N40 6/0001) |
 | `cfd_2d_nwt_wenoz` | 1 | WENO-Z weights for momentum (D 12 1) and level set + reini (F 37 1) |
 | `cfd_2d_nwt_komega` / `_kepsilon` | 1 | RANS models with free surface |
 | `cfd_2d_nwt_porous_komega` | 1 | VRANS porous box + k-ω porous sources (B295) |
