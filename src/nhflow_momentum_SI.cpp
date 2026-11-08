@@ -42,6 +42,7 @@ Author: Hans Bihs
 #include"solver.h"
 #include"solver2D.h"
 #include"reefmg2D.h"
+#include"si_tridiag2D.h"
 #ifdef REEF3D_USE_HYPRE
 #include"hypre_struct2D.h"
 #endif
@@ -52,6 +53,24 @@ Author: Hans Bihs
 #include<cstring>
 #include<sys/stat.h>
 #include<sys/types.h>
+
+namespace
+{
+// the layers 0 .. knoz-1 of every column of the box. The layer face arrays (Qx, Qy, Qxn, Qyn, Tx, Ty and the fluxes
+// Fx, Fy) are written there only: their vertical ghost entries stay 0, so these copies and sums are the full-array
+// ones (in 1D with 2 layers, one fifth of the entries; the y ghost rows remain)
+template<class F> inline void layer_loop(lexer *p, F &&fn)
+{
+    const int K = p->knoz;
+    for(int a=0; a<p->imax; ++a)
+    for(int c=0; c<p->jmax; ++c)
+    {
+    const size_t q0 = ((size_t)a*p->jmax + c)*p->kmax - p->kmin;
+    for(int m=0; m<K; ++m)
+    fn(q0+m);
+    }
+}
+}
 
 nhflow_momentum_SI::nhflow_momentum_SI(lexer *p, fdm_nhf *d, ghostcell *pgc, sixdof *pp6dof, vrans_nhflow *ppvrans,
                                        nhflow_forcing *ppnhfdf, bool block)
@@ -498,8 +517,7 @@ void nhflow_momentum_SI::si_corrector(lexer *p, fdm_nhf *d, ghostcell *pgc)
     // the second pass of tl2: the face discharges back to t^n, the transport of the estimate (Tx, Ty) stays
     const int N = p->imax*p->jmax*(p->kmax+2);
 
-    memcpy(Qx,Qxn,N*sizeof(double));
-    memcpy(Qy,Qyn,N*sizeof(double));
+    layer_loop(p,[&](size_t q){ Qx[q] = Qxn[q]; Qy[q] = Qyn[q]; });
 
     for(i=p->imin; i<p->imin+p->imax; ++i)
     for(j=p->jmin; j<p->jmin+p->jmax; ++j)
@@ -595,6 +613,11 @@ solver2D* nhflow_momentum_SI::new_solver2D(lexer *p, ghostcell *pgc)
     if(p->N10!=1)
     return new hypre_struct2D(p,pgc);
 #endif
+    // one row of cells on one rank: tridiagonal, direct (si_tridiag2D; Stoker dam break, 800 cells: REEFMG2D was 14 %
+    // of the step)
+    if(p->j_dir==0 && p->mpi_size==1 && p->geo_curv==0)
+    return new si_tridiag2D(p,pgc,new reefmg2D(p,pgc));
+
     return new reefmg2D(p,pgc);
 }
 
@@ -633,12 +656,13 @@ void nhflow_momentum_SI::si_begin(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_s
 
     // state at t^n (all cells incl. ghost cells)
     memcpy(UH0,d->UH,N*sizeof(double));
-    memcpy(VH0,d->VH,N*sizeof(double));
     memcpy(WH0,d->WH,N*sizeof(double));
 
-    if(p->j_dir==0)
-    for(int q=0;q<N;++q)
-    VH0[q] = 0.0;
+    if(p->j_dir==1)
+    memcpy(VH0,d->VH,N*sizeof(double));
+
+    else
+    std::fill(VH0,VH0+N,0.0);
 
     for(i=p->imin; i<p->imin+p->imax; ++i)
     for(j=p->jmin; j<p->jmin+p->jmax; ++j)
@@ -725,16 +749,12 @@ void nhflow_momentum_SI::si_begin(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_s
     bc_setup(p,d,pgc);
 
     if(!qini)
-    {
-    memcpy(Tx,Qx,N*sizeof(double));
-    memcpy(Ty,Qy,N*sizeof(double));
-    }
+    layer_loop(p,[&](size_t q){ Tx[q] = Qx[q]; Ty[q] = Qy[q]; });
 
     qini = true;
 
     // Q^n, q^n
-    memcpy(Qxn,Qx,N*sizeof(double));
-    memcpy(Qyn,Qy,N*sizeof(double));
+    layer_loop(p,[&](size_t q){ Qxn[q] = Qx[q]; Qyn[q] = Qy[q]; });
 
     for(i=p->imin; i<p->imin+p->imax; ++i)
     for(j=p->jmin; j<p->jmin+p->jmax; ++j)
@@ -1527,6 +1547,7 @@ void nhflow_momentum_SI::si_stage_vel(lexer *p, fdm_nhf *d, ghostcell *pgc, nhfl
 
     // ghost cells of the stage input, velocities of the stage on the water depth of t^n
     pgc->start4V(p,UHs,gcval_uh);
+    if(p->j_dir==1)     // one row of cells: V, VH stay 0 (their ghost cells too)
     pgc->start4V(p,VHs,gcval_vh);
     pgc->start4V(p,WHs,gcval_wh);
 
@@ -1584,6 +1605,7 @@ void nhflow_momentum_SI::si_stage_vel(lexer *p, fdm_nhf *d, ghostcell *pgc, nhfl
     }
 
     pgc->start4V(p,d->U,gcval_u);
+    if(p->j_dir==1)     // one row of cells: V, VH stay 0 (their ghost cells too)
     pgc->start4V(p,d->V,gcval_v);
     pgc->start4V(p,d->W,gcval_w);
 
@@ -1706,12 +1728,12 @@ void nhflow_momentum_SI::advection(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_
     // comp 0 U into F, 1 V into G, 2 W into H
     auto component = [&](int comp, double *R, double *Ls, double *Ln, double *Le, double *Lw)
     {
-        for(int q=0;q<N;++q)
-        {
-        d->Fx[q] = 0.0;
-        d->Fy[q] = 0.0;
-        d->Fz[q] = 0.0;
-        }
+        // (Fz: not used by the semi-implicit step, zero from the start; Fy in 1D: never written)
+        if(p->j_dir==1)
+        layer_loop(p,[&](size_t q){ d->Fx[q] = 0.0; d->Fy[q] = 0.0; });
+
+        else
+        layer_loop(p,[&](size_t q){ d->Fx[q] = 0.0; });
 
         if(onestep)
         advection_bcg(p,d,pgc,comp==0 ? d->U : (comp==1 ? d->V : d->W),d->Fx,d->Fy);
@@ -2430,11 +2452,11 @@ void nhflow_momentum_SI::face_update(lexer *p, fdm_nhf *d, ghostcell *pgc)
     exchangeF(p,pgc,Qy);
 
     // layer transport of the step
-    for(int q=0;q<N;++q)
+    layer_loop(p,[&](size_t q)
     {
     Tx[q] = theta*Qx[q] + (1.0-theta)*Qxn[q];
     Ty[q] = theta*Qy[q] + (1.0-theta)*Qyn[q];
-    }
+    });
 }
 
 double nhflow_momentum_SI::layer_div(lexer *p, double *fx, double *fy)
@@ -2968,6 +2990,7 @@ void nhflow_momentum_SI::finish(lexer *p, fdm_nhf *d, ghostcell *pgc)
     velcalc(p,d,pgc,d->UH,d->VH,d->WH,d->WL,1.0);
 
     pgc->start4V(p,d->UH,gcval_uh);
+    if(p->j_dir==1)     // one row of cells: V, VH stay 0 (their ghost cells too)
     pgc->start4V(p,d->VH,gcval_vh);
     pgc->start4V(p,d->WH,gcval_wh);
 
