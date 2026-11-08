@@ -1196,6 +1196,7 @@
           <File Name="6DOF_geometry.h"/>
           <File Name="6DOF_deform.h"/>
           <File Name="6DOF_brain.h"/>
+          <File Name="6DOF_brain_link.h"/>
           <File Name="6DOF_load.h"/>
           <File Name="6DOF_external.h"/>
         </VirtualDirectory>
@@ -3048,6 +3049,7 @@
             <File Name="6DOF_obj_deform.cpp"/>
             <File Name="6DOF_obj_lateralline.cpp"/>
             <File Name="6DOF_brain.cpp"/>
+            <File Name="6DOF_brain_link.cpp"/>
             <File Name="6DOF_obj_cfd_momentum.cpp"/>
           </VirtualDirectory>
         </VirtualDirectory>

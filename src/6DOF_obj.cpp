@@ -35,6 +35,7 @@ Authors: Tobias Martin, Hans Bihs
 #include"ship.h"
 #include"6DOF_deform.h"
 #include"6DOF_brain.h"
+#include"6DOF_brain_link.h"
 
 sixdof_obj::sixdof_obj(lexer *p, ghostcell *pgc, int number) : ddweno_f_nug(p),
                                                                                 georay(p),n6DOF(number),
@@ -222,6 +223,7 @@ sixdof_obj::~sixdof_obj()
 {
     geom.deform = nullptr;
     delete brain_;
+    delete brain_link_;
     delete fish_;
     
     for(size_t ql=0; ql<pload.size(); ++ql)

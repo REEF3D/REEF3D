@@ -3377,6 +3377,8 @@ void control::ctrlsend()
     ii++;
     ictrl[ii] = X196;
     ii++;
+    ictrl[ii] = X191;
+    ii++;
     ictrl[ii] = X192;
     ii++;
     ictrl[ii] = X193;
@@ -5412,6 +5414,14 @@ void control::ctrlsend()
         dd++;
         dctrl[dd] = X195_tramp[n];
         dd++;
+    }
+    
+    for(n=0;n<X191;++n)
+    {
+        ictrl[ii] = X191_id[n];
+        ii++;
+        ictrl[ii] = X191_port[n];
+        ii++;
     }
     
     for(n=0;n<X192;++n)

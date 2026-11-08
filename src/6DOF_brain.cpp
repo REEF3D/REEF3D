@@ -197,6 +197,18 @@ sixdof_brain::decision sixdof_brain::decide(double t, double f, double a, double
     }
     
     rec_ = {t, T(0), T(1), T(2), dist, psi, U, f, a, b, dpl, phd, dvis, 0};
+    
+    perc_.ex = ex;
+    perc_.el = el;
+    perc_.c = c_;
+    perc_.T = T;
+    perc_.U = U;
+    perc_.stride = stride_;
+    perc_.target = !tp_.empty();
+    perc_.llp.assign(llp_.size(), 0.0);
+    for(size_t k=0; k<llp_.size() && llT_>0.0; ++k)
+    perc_.llp[k] = llp_[k]/llT_;
+    perc_.rays = (vis!=nullptr) ? *vis : std::vector<double>();
 
     // reset the senses
     T_ = Uax_ = llT_ = 0.0;
@@ -305,4 +317,13 @@ bool sixdof_brain::ckpt_restore(const std::vector<double> &v)
     return false;
     llp_.assign(v.begin()+k, v.begin()+k+n);
     return true;
+}
+
+void sixdof_brain::external(const decision &d, double next)
+{
+    rec_.Ff = d.second ? d.f2 : d.f;
+    rec_.Fa = d.a;
+    rec_.Fb = d.b;
+    rec_.mode = 4;
+    next_ = next;
 }

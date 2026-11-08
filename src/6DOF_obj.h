@@ -62,6 +62,7 @@ class net_interface;
 class sixdof_motionext;
 class sixdof_deform;
 class sixdof_brain;
+class sixdof_brain_link;
  
 using namespace std;
 
@@ -491,7 +492,8 @@ protected:
     // checkpoint of the state of a coupling between the steps (sixdof_obj_cfd: X 198)
     virtual void ckpt_coupling(std::vector<double>&) const {}
     virtual void ckpt_coupling_restore(const std::vector<double>&) {}
-    void brain_update(lexer*, const std::vector<double>*, const std::vector<double>* =nullptr);
+    void brain_update(lexer*, ghostcell*, const std::vector<double>*, const std::vector<double>* =nullptr);
+    sixdof_brain_link *brain_link_ = nullptr;        // external brain (X 191), rank 0
     bool brain_due(lexer*) const;
     ofstream printbrain;
 };

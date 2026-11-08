@@ -178,7 +178,7 @@ void sixdof_obj_cfd::lateral_line(lexer *p, fdm *a, ghostcell *pgc)
     
     if(ll_pts_.empty() || (!out && brain_==nullptr))
     {
-        brain_update(p,nullptr,pv);
+        brain_update(p,pgc,nullptr,pv);
         return;
     }
     
@@ -225,7 +225,7 @@ void sixdof_obj_cfd::lateral_line(lexer *p, fdm *a, ghostcell *pgc)
     for(int q=0; q<n; ++q)
     pr[q] = val[4*q];
     
-    brain_update(p,&pr,pv);
+    brain_update(p,pgc,&pr,pv);
     
     if(!out || p->mpirank!=0 || !printll.is_open())
     return;

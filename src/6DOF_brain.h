@@ -87,6 +87,23 @@ public:
     // the log line of the last decision
     struct record {double t, tx, ty, tz, dist, psi, U, Ff, Fa, Fb, dpl, phd, dvis; int mode;};
     const record &last() const {return rec_;}
+    
+    // what the brain perceived at the last decision (for an external brain, X 191): the mean axes in
+    // the plane of the undulation, the speed, the CoG, the target, the mean pressures of the lateral
+    // line, the vision rays, the stride
+    struct perception
+    {
+        Eigen::Vector3d ex, el, c, T;
+        double U = 0.0, stride = 0.0;
+        bool target = false;
+        std::vector<double> llp, rays;
+    };
+    const perception &perceived() const {return perc_;}
+    const std::vector<double> &ll_s() const {return lls_;}
+    const std::vector<int> &ll_side() const {return llside_;}
+    
+    // an external brain (X 191) replaces the decision: the log record and the next decision time
+    void external(const decision&, double next);
 
     // checkpoint
     void ckpt_state(std::vector<double>&) const;
@@ -112,6 +129,7 @@ private:
     double t_start_ = 0.0, next_ = 0.0, stride_ = 0.55, refr_ = -1.0, dprev_ = -1.0, tprev_ = 0.0, side_ = 0.0, fctl_ = -1.0;
     int nstride_ = 0;
     record rec_ = {};
+    perception perc_;
 
     std::vector<double> lls_;
     std::vector<int> llside_;
