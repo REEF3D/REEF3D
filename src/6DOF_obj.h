@@ -468,6 +468,17 @@ protected:
     Eigen::Vector3d deform_vel(double, double, double) const;
     void print_fish(lexer*, double);
     ofstream printfish;
+    
+    // lateral line (X 194 id n d): probes a distance d outside the hull on both sides of n stations
+    // along the body axis, as material points of the body frame (axial x, lateral l, third axis v),
+    // and the station (s/L from the head) and side; the CFD coupling samples the fluid there
+    void lateral_line_setup(lexer*);
+    Eigen::Vector3d lateral_line_point(int, double, double) const;      // inertial frame
+    double ll_dx_ = 0.0;
+    std::vector<Eigen::Vector3d> ll_pts_;
+    std::vector<double> ll_s_;
+    std::vector<int> ll_side_;
+    ofstream printll;
 };
 
 #endif

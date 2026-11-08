@@ -81,6 +81,19 @@ sixdof_obj::sixdof_obj(lexer *p, ghostcell *pgc, int number) : ddweno_f_nug(p),
                               (p->j_dir==0) ? 2 : 1, p->X196>=1);
     }
     
+    // gait control (X 199 id t f a b t_s): targets of frequency, amplitude factor and curvature bias
+    if(fish_!=nullptr)
+    {
+        std::vector<sixdof_deform::gait_target> tg;
+        
+        for(int n=0; n<p->X199; ++n)
+        if(p->X199_id[n]==number)
+        tg.push_back({p->X199_t[n], p->X199_f[n], p->X199_a[n], p->X199_b[n], p->X199_ts[n]});
+        
+        if(!tg.empty())
+        fish_->set_gait(tg);
+    }
+    
     rb.twoD = (p->j_dir==0);
     rb.Cdamp_t[0] = p->X26_Cu;
     rb.Cdamp_t[1] = p->X26_Cv;

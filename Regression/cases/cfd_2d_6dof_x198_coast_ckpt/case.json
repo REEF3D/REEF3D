@@ -1,0 +1,9 @@
+{
+ "base": "cfd_2d_6dof_x198_coast",
+ "np": 1,
+ "steps": 80,
+ "ctrl_set": {"P 48": "40", "P 49": "0"},
+ "description": "cfd_2d_6dof_x198_coast (the rigid fish started at 0.5 m/s, X 198) with a checkpoint every 40 steps: the uninterrupted run of cfd_2d_6dof_x198_coast_restart.",
+ "tags": ["2d", "6dof", "floating", "singlephase", "checkpoint"],
+ "covers": ["sixdof_obj_cfd::ckpt_coupling: the first fit of X 198 done"]
+}

@@ -58,12 +58,24 @@ void sixdof_obj::deform_setup(lexer *p, ghostcell *pgc)
             <<", tail at x_B = "<<fish_->xtail()<<", volume: "<<fish_->volume()<<" m^3 (body: "<<geom.volume()<<")"
             <<", tail amplitude: "<<fish_->tail_amplitude()<<" m, f: "<<fish_->frequency()<<" Hz, lateral axis: "
             <<(fish_->lateral()==1 ? "y" : "z")<<", recoil: "<<(p->X196==0 ? "off" : (dc_on_ ? "on, discrete correction of the grid (X 196 2)" : "on"))<<endl;
+        
+        if(fish_->gait_on())
+        {
+            cout<<"6DOF body "<<n6DOF<<": gait control (X 199):";
+            
+            for(int n=0; n<p->X199; ++n)
+            if(p->X199_id[n]==n6DOF)
+            cout<<" t "<<p->X199_t[n]<<": f "<<p->X199_f[n]<<" a "<<p->X199_a[n]<<" b "<<p->X199_b[n]<<" t_s "<<p->X199_ts[n]<<";";
+            
+            cout<<endl;
+        }
 
         char str[1000];
         snprintf(str,sizeof(str),"%s/REEF3D_6DOF_fish_%i.dat",sixdof_output_dir(p),n6DOF);
 
         if(reefckpt_open(printfish,str,p->I45))
-        printfish<<"time \t U_swim [m/s] \t U_lat [m/s] \t heading [deg] \t tail [m] \t ramp \t P_def [W] \t St \t Re"<<endl;
+        printfish<<"time \t U_swim [m/s] \t U_lat [m/s] \t heading [deg] \t tail [m] \t ramp \t P_def [W] \t St \t Re"
+                 <<(fish_->gait_on() ? " \t f [Hz] \t a \t b" : "")<<endl;
     }
 }
 
@@ -189,5 +201,10 @@ void sixdof_obj::print_fish(lexer *p, double t)
     fish_->displacement(fish_->xtail(),0.0,dxt,dlt);
 
     printfish<<t<<" \t "<<Us<<" \t "<<Ub(l)<<" \t "<<heading*(180.0/PI)<<" \t "<<dlt
-             <<" \t "<<fish_->ramp()<<" \t "<<fish_power_<<" \t "<<St<<" \t "<<Re<<endl;
+             <<" \t "<<fish_->ramp()<<" \t "<<fish_power_<<" \t "<<St<<" \t "<<Re;
+    
+    if(fish_->gait_on())
+    printfish<<" \t "<<fish_->frequency()<<" \t "<<fish_->amp_factor()<<" \t "<<fish_->bias();
+    
+    printfish<<endl;
 }

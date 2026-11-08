@@ -62,6 +62,10 @@ public:
     void hydrodynamic_forces_cfd(lexer*, fdm*, ghostcell*,field&,field&,field&,int,bool);
     void update_position_3D(lexer*, fdm*, ghostcell*, bool);
     
+    // lateral line (X 194): pressure and velocity relative to the hull at the probes, printed with
+    // the body output
+    void lateral_line(lexer*, fdm*, ghostcell*);
+    
     // X 198: fluid-momentum coupling (6DOF_obj_cfd_momentum.cpp): the rigid-body motion fitted to the
     // predicted velocity of the stage in the hull region gives the loads of the body
     void momentum_fit(lexer*, fdm*, ghostcell*, field&, field&, field&, int);

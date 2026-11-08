@@ -713,6 +713,9 @@ void cfd_amr::body_end()
         o->print_stl(p0,pgc0);
 
         o->print_parameter(p0,pgc0);
+        
+        // lateral line (X 194) on level 0
+        o->lateral_line(p0,a0,pgc0);
     }
     pgc0->gcdf_update(p0,a0);
 }

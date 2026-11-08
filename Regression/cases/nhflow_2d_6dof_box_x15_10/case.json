@@ -1,4 +1,4 @@
 {"base": "nhflow_2d_6dof_box", "ctrl_add": ["X 15 10", "X 19 1"],
- "description": "as nhflow_2d_6dof_box with X 15 10: the body as a solid with cut faces (open fractions of the faces from the body level set, wall part with the body velocity, the cells without an open face moving with the body, loads from the pressure on the wall parts plus the still-water pressure on the STL; added-mass stabilisation, no direct forcing; A 520 switched to 1). Ship Hydrodynamics validation 31.",
+ "description": "as nhflow_2d_6dof_box with X 15 10: the body as a solid with cut faces (open fractions of the faces from the body level set, wall part with the body velocity, the cells without an open face moving with the body, loads from the pressure on the wall parts plus the still-water pressure on the STL; added-mass stabilisation, no direct forcing; the incremental projection A 520 2 since patch 0057, the full projection in nhflow_2d_6dof_box_x15_10_a1). Ship Hydrodynamics validation 31.",
  "tags": ["2d", "nhflow", "6dof", "floating"],
  "covers": ["nhflow_hullbody stage_cut/loads_cut", "nhflow_thinbody cut faces (cut_faces, projection_rhs_cut, finish_cut, extend_pressure)"]}
