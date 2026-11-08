@@ -657,15 +657,15 @@ void printer_CFD::print3D(lexer* p, fdm* a, ghostcell* pgc, turbulence *pturb, h
         file_offset+=sizeof(int);
         TPLOOP
         {
-            ffn=float(p->ipol1(a->u));
+            ffn=float(p->ipol1_print(a->u));
             memcpy(&buffer[file_offset],&ffn,sizeof(float));
             file_offset+=sizeof(float);
 
-            ffn=float(p->ipol2(a->v));
+            ffn=float(p->ipol2_print(a->v));
             memcpy(&buffer[file_offset],&ffn,sizeof(float));
             file_offset+=sizeof(float);
 
-            ffn=float(p->ipol3(a->w));
+            ffn=float(p->ipol3_print(a->w));
             memcpy(&buffer[file_offset],&ffn,sizeof(float));
             file_offset+=sizeof(float);
         }
