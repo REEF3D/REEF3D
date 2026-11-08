@@ -206,6 +206,18 @@ void sixdof_deform::raw(double x, double &h, double &ht) const
     s = std::min(1.0, std::max(0.0, s));
 
     const double A = L_*envelope(s);
+    
+    if(gait_on_)
+    {
+    const double om = 2.0*fish_pi*gcur_.f;
+    const double ph = 2.0*fish_pi*s/lambda_ - gcur_.ph;
+    const double ra = r_*gcur_.a, rat = rdot_*gcur_.a + r_*gcur_.at;
+    
+    h  = ra*A*std::sin(ph) + 0.5*L_*gcur_.b*s*s;
+    ht = -ra*A*om*std::cos(ph) + rat*A*std::sin(ph) + 0.5*L_*gcur_.bt*s*s;
+    return;
+    }
+    
     const double om = 2.0*fish_pi*f_;
     const double ph = 2.0*fish_pi*s/lambda_ - om*t_;
 
@@ -239,6 +251,12 @@ void sixdof_deform::fit(const std::vector<double> &g, double &k0, double &k1) co
 void sixdof_deform::set_time(double t)
 {
     t_ = t;
+    
+    if(gait_on_)
+    {
+    gcur_ = gait(t_);
+    bias_now_ = inext_ && (gcur_.b!=0.0 || gcur_.bt!=0.0);
+    }
 
     // ramp r(t) = 0.5 (1 - cos(pi t/t_ramp)) and its rate
     r_ = 1.0;
@@ -305,8 +323,24 @@ void sixdof_deform::midline(double t, double r, double rdot, mtab &m) const
     // (1 - cos theta) (towards the head) and its rate; the recoil translation
     const int N = fish_stations;
     const double ds = L_/double(N-1);
-    const double om = 2.0*fish_pi*f_;
+    double om = 2.0*fish_pi*f_;
     const double k = 2.0*fish_pi/lambda_;
+    
+    // gait control: phase, amplitude factor and curvature bias at t
+    double ph0 = om*t, ra = r, rat = rdot, b = 0.0, bt = 0.0;
+    
+    if(gait_on_)
+    {
+    const gait_state g = gait(t);
+    om  = 2.0*fish_pi*g.f;
+    ph0 = g.ph;
+    ra  = r*g.a;
+    rat = rdot*g.a + r*g.at;
+    b   = g.b;
+    bt  = g.bt;
+    }
+    
+    const bool bias = (b!=0.0 || bt!=0.0);
     
     m.th.resize(N); m.tht.resize(N); m.ym.resize(N); m.ymt.resize(N); m.ax.resize(N); m.axt.resize(N);
     
@@ -314,20 +348,35 @@ void sixdof_deform::midline(double t, double r, double rdot, mtab &m) const
     {
         const double sg = double(q)/double(N-1);     // s/L
         const double A = envelope(sg), As = envelope_s(sg);
-        const double ph = k*sg - om*t;
+        const double ph = k*sg - ph0;
         const double sp = std::sin(ph), cp = std::cos(ph);
         
         // y = r L A sin ph, dy/ds = r (A_s sin ph + A k cos ph)
-        const double ys  = r*(As*sp + A*k*cp);
-        const double yst = -r*om*(As*cp - A*k*sp) + rdot*(As*sp + A*k*cp);
+        const double ys  = ra*(As*sp + A*k*cp);
+        const double yst = -ra*om*(As*cp - A*k*sp) + rat*(As*sp + A*k*cp);
         
         const double sn = std::max(-0.999, std::min(0.999, ys));
         const double cs = std::sqrt(1.0 - sn*sn);
         
         m.th[q]  = std::asin(sn);
         m.tht[q] = (std::fabs(ys)<0.999) ? yst/cs : 0.0;
-        m.ym[q]  = r*L_*A*sp;
-        m.ymt[q] = -r*L_*A*om*cp + rdot*L_*A*sp;
+        m.ym[q]  = ra*L_*A*sp;
+        m.ymt[q] = -ra*L_*A*om*cp + rat*L_*A*sp;
+        
+        // curvature bias: theta += b s/L (the curvature b/L, exact for any b: a C-start)
+        if(bias)
+        {
+        m.th[q]  += b*sg;
+        m.tht[q] += bt*sg;
+        }
+    }
+    
+    // with the bias the lateral displacement from the angle: y = y_head + int_0^s sin theta
+    if(bias)
+    for(int q=1; q<N; ++q)
+    {
+        m.ym[q]  = m.ym[q-1]  + 0.5*ds*(std::sin(m.th[q-1]) + std::sin(m.th[q]));
+        m.ymt[q] = m.ymt[q-1] + 0.5*ds*(std::cos(m.th[q-1])*m.tht[q-1] + std::cos(m.th[q])*m.tht[q]);
     }
     
     // axial displacement (trapezoidal rule)
@@ -418,7 +467,8 @@ double sixdof_deform::phi_at(double t)
     if(t<=0.0)
     return 0.0;
     
-    const double dtau = (f_>0.0) ? 1.0/(64.0*f_) : 0.01;
+    const double fd = gait_on_ ? fmax_ : f_;
+    const double dtau = (fd>0.0) ? 1.0/(64.0*fd) : 0.01;
     
     static const double gx[4] = {-0.861136311594053, -0.339981043584856, 0.339981043584856, 0.861136311594053};
     static const double gw[4] = { 0.347854845137454,  0.652145154862546, 0.652145154862546, 0.347854845137454};
@@ -539,7 +589,35 @@ void sixdof_deform::velocity_at_raw(double px, double pl, double &vx, double &vl
     double x = cp*px - sp*pl + cx_;
     double l = sp*px + cp*pl + cl_;
     
-    for(int it=0; it<10; ++it)
+    // a strongly bent body (curvature bias of the gait control, the C-start): the nearest of 64
+    // stations of the deformed midline, l along its normal
+    if(bias_now_)
+    {
+        double dmin = 1.0e300;
+        
+        for(int q=0; q<=64; ++q)
+        {
+            const double xq = xtail_ + q*L_/64.0;
+            double dx, dl;
+            displacement_raw(xq,0.0,dx,dl);
+            const double ea = px - (xq + dx), eb = pl - dl;
+            const double dd = ea*ea + eb*eb;
+            
+            if(dd<dmin)
+            {
+                station st;
+                at(xhead_ - xq, st);
+                // the normal of the section (sin th, cos th), rotated by the recoil rotation
+                const double na =  cp*std::sin(st.th) + sp*std::cos(st.th);
+                const double nb = -sp*std::sin(st.th) + cp*std::cos(st.th);
+                dmin = dd;
+                x = xq;
+                l = ea*na + eb*nb;
+            }
+        }
+    }
+    
+    for(int it=0; it<(bias_now_ ? 30 : 10); ++it)
     {
         double dx, dl;
         displacement_raw(x,l,dx,dl);
@@ -569,6 +647,114 @@ void sixdof_deform::velocity_at_raw(double px, double pl, double &vx, double &vl
     }
     
     velocity_raw(x,l,vx,vl);
+}
+
+// ---------------------------------------------------------------------------------------------
+// gait control (X 199): frequency, amplitude factor and curvature bias follow their targets with
+// critically damped dynamics, closed form between the target times
+// ---------------------------------------------------------------------------------------------
+
+void sixdof_deform::set_gait(std::vector<gait_target> tg)
+{
+    std::stable_sort(tg.begin(), tg.end(), [](const gait_target &x, const gait_target &y) {return x.t<y.t;});
+    
+    gseg_.clear();
+    
+    // start: X 195 frequency, a = 1, b = 0, or the values of the targets at t <= 0
+    gait_seg sg;
+    sg.t0 = 0.0;
+    sg.s0.f = f_;
+    sg.s0.a = 1.0;
+    sg.s0.b = 0.0;
+    
+    size_t n = 0;
+    
+    for(; n<tg.size() && tg[n].t<=0.0; ++n)
+    {
+    sg.s0.f = tg[n].f;
+    sg.s0.a = tg[n].a;
+    sg.s0.b = tg[n].b;
+    }
+    
+    sg.F = sg.s0.f;
+    sg.A = sg.s0.a;
+    sg.B = sg.s0.b;
+    sg.lam = 1.0;
+    gseg_.push_back(sg);
+    
+    fmax_ = std::max(std::max(f_, sg.s0.f), fcap_);
+    
+    for(; n<tg.size(); ++n)
+    add_seg(tg[n]);
+    
+    gait_on_ = true;
+    gcur_ = gait(t_);
+}
+
+void sixdof_deform::add_seg(const gait_target &g)
+{
+    gait_seg nx;
+    nx.t0 = std::max(g.t, gseg_.back().t0);
+    nx.s0 = evolve(gseg_.back(), nx.t0 - gseg_.back().t0);
+    nx.F = g.f;
+    nx.A = g.a;
+    nx.B = g.b;
+    
+    // settling time: given, or half a tail beat of the target frequency
+    double ts = g.ts;
+    
+    if(ts<=0.0)
+    ts = 0.5/std::max(1.0e-6, (nx.F>0.0 ? nx.F : f_));
+    
+    nx.lam = 4.744/ts;
+    gseg_.push_back(nx);
+    
+    fmax_ = std::max(fmax_, nx.F);
+}
+
+void sixdof_deform::push_gait(const gait_target &g)
+{
+    if(!gait_on_)
+    set_gait({});
+    
+    add_seg(g);
+}
+
+sixdof_deform::gait_state sixdof_deform::evolve(const gait_seg &g, double tau)
+{
+    // u'' = lam^2 (U - u) - 2 lam u':  u = U + (e0 + C tau) E, u' = (u0' - lam C tau) E,
+    // e0 = u0 - U, C = u0' + lam e0, E = exp(-lam tau); int_0^tau u = U tau + e0 (1 - E)/lam
+    // + C (1 - E (1 + lam tau))/lam^2
+    gait_state s;
+    const double lam = g.lam;
+    const double E = std::exp(-lam*tau);
+    
+    auto one = [&](double u0, double ut0, double U, double &u, double &ut)
+    {
+        const double e0 = u0 - U, C = ut0 + lam*e0;
+        u  = U + (e0 + C*tau)*E;
+        ut = (ut0 - lam*C*tau)*E;
+    };
+    
+    one(g.s0.f, g.s0.ft, g.F, s.f, s.ft);
+    one(g.s0.a, g.s0.at, g.A, s.a, s.at);
+    one(g.s0.b, g.s0.bt, g.B, s.b, s.bt);
+    
+    const double e0 = g.s0.f - g.F, C = g.s0.ft + lam*e0;
+    s.ph = g.s0.ph + 2.0*fish_pi*(g.F*tau + e0*(1.0 - E)/lam + C*(1.0 - E*(1.0 + lam*tau))/(lam*lam));
+    
+    return s;
+}
+
+sixdof_deform::gait_state sixdof_deform::gait(double t) const
+{
+    // the segment of t (before the first target: the start values)
+    size_t k = 0;
+    
+    while(k+1<gseg_.size() && gseg_[k+1].t0<=t)
+    ++k;
+    
+    return evolve(gseg_[k], t - gseg_[k].t0);
 }
 
 // ---------------------------------------------------------------------------------------------

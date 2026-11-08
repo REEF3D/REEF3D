@@ -35,6 +35,7 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"ghostcell.h"
 #include"ckpt_pack.h"
+#include"6DOF_brain.h"
 
 template<class P>
 void sixdof_obj::ckpt_fields(lexer *p, P &q)
@@ -96,6 +97,41 @@ void sixdof_obj::ckpt_state(lexer *p, std::vector<double> &v)
 
     // the acceleration of the last stage of the stabilised CFD coupling (am_cfd_)
     part([&](std::vector<double> &s){ if(am_cfd_>0.0) s.assign(am_prev_.data(),am_prev_.data()+6); });
+    
+    // the deforming body (X 195): the time of the deformation (the checkpoint is read before the
+    // time of the run), the power of the deformation, the discrete recoil correction (X 196 2) and
+    // its registers of the RK stages; the momentum of the fit (X 198); the state of the coupling
+    part([&](std::vector<double> &s)
+    {
+        s.push_back(fish_!=nullptr ? 1.0 : 0.0);
+        if(fish_!=nullptr)
+        {
+            const sixdof_deform::correction &c = fish_->corr();
+            for(double x : {fish_->time(), fish_power_, c.tx, c.tl, c.psi, c.vx, c.vl, c.psit})
+            s.push_back(x);
+            for(int q=0; q<6; ++q) s.push_back(dcn_[q]);
+            for(int q=0; q<6; ++q) s.push_back(dck_[q]);
+            for(int q=0; q<3; ++q) s.push_back(dcr_[q]);
+        }
+        for(int q=0; q<6; ++q) s.push_back(mom_fit_(q));
+        s.push_back(mom_ok_ ? 1.0 : 0.0);
+        std::vector<double> cp;
+        ckpt_coupling(cp);
+        s.push_back(double(cp.size()));
+        s.insert(s.end(), cp.begin(), cp.end());
+    });
+    
+    // the brain (X 193): its decisions (the gait targets it set) and its state
+    part([&](std::vector<double> &s)
+    {
+        if(brain_==nullptr)
+        return;
+        s.push_back(double(gait_brain_.size()));
+        for(const sixdof_deform::gait_target &g : gait_brain_)
+        for(double x : {g.t, g.f, g.a, g.b, g.ts})
+        s.push_back(x);
+        brain_->ckpt_state(s);
+    });
 }
 
 bool sixdof_obj::ckpt_restore(lexer *p, ghostcell *pgc, const std::vector<double> &v)
@@ -159,11 +195,69 @@ bool sixdof_obj::ckpt_restore(lexer *p, ghostcell *pgc, const std::vector<double
     // checkpoints: 0)
     if(r.ok && r.k<v.size())
     part([&](const std::vector<double> &s, size_t&){ if(s.size()==6) for(int n=0; n<6; ++n) am_prev_(n) = s[n]; });
+    
+    // the deforming body, the fit of X 198 and the coupling (absent in older checkpoints: the
+    // deformation at the time of the run)
+    double tdef = -1.0;
+    if(r.ok && r.k<v.size())
+    part([&](const std::vector<double> &s, size_t&)
+    {
+        if(s.empty())
+        return;
+        size_t j = 0;
+        const bool fs = (s[j++]!=0.0);
+        if(fs)
+        {
+            if(s.size()<j+8+15)
+            return;
+            tdef = s[j++];
+            fish_power_ = s[j++];
+            sixdof_deform::correction c;
+            c.tx = s[j++]; c.tl = s[j++]; c.psi = s[j++]; c.vx = s[j++]; c.vl = s[j++]; c.psit = s[j++];
+            for(int q=0; q<6; ++q) dcn_[q] = s[j++];
+            for(int q=0; q<6; ++q) dck_[q] = s[j++];
+            for(int q=0; q<3; ++q) dcr_[q] = s[j++];
+            if(fish_!=nullptr && dc_on_)
+            fish_->set_corr(c);
+        }
+        if(s.size()<j+7)
+        return;
+        for(int q=0; q<6; ++q) mom_fit_(q) = s[j++];
+        mom_ok_ = (s[j++]!=0.0);
+        if(j<s.size())
+        {
+            const size_t nc = size_t(s[j++]);
+            if(s.size()>=j+nc)
+            ckpt_coupling_restore(std::vector<double>(s.begin()+j, s.begin()+j+nc));
+        }
+    });
+    
+    // the brain (X 193): the gait rebuilt with its decisions, its state (refused if missing)
+    bool brain_ok = (brain_==nullptr);
+    if(r.ok && r.k<v.size())
+    part([&](const std::vector<double> &s, size_t&)
+    {
+        if(brain_==nullptr || s.empty())
+        return;
+        const size_t nb = size_t(s[0]);
+        if(s.size()<1+5*nb)
+        return;
+        gait_brain_.clear();
+        fish_->set_gait(gait_in_);
+        for(size_t k=0; k<nb; ++k)
+        {
+            gait_brain_.push_back({s[1+5*k], s[2+5*k], s[3+5*k], s[4+5*k], s[5+5*k]});
+            fish_->push_gait(gait_brain_.back());
+        }
+        brain_ok = brain_->ckpt_restore(std::vector<double>(s.begin()+1+5*nb, s.end()));
+    });
+    if(!brain_ok)
+    return false;
 
     // the pose: trimesh, body velocities and the lexer values of the body (CoG, angles, velocities);
     // a deforming body (X 195) at the time of the checkpoint
     if(fish_!=nullptr)
-    deform_time(p->simtime);
+    deform_time(tdef>=0.0 ? tdef : p->simtime);
     
     geom.transform(R_,c_);
     update_fbvel(p,pgc);

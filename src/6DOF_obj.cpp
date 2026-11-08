@@ -34,6 +34,8 @@ Authors: Tobias Martin, Hans Bihs
 #include"net_interface.h"
 #include"ship.h"
 #include"6DOF_deform.h"
+#include"6DOF_brain.h"
+#include"6DOF_brain_link.h"
 
 sixdof_obj::sixdof_obj(lexer *p, ghostcell *pgc, int number) : ddweno_f_nug(p),
                                                                                 georay(p),n6DOF(number),
@@ -79,6 +81,21 @@ sixdof_obj::sixdof_obj(lexer *p, ghostcell *pgc, int number) : ddweno_f_nug(p),
     delete fish_;
     fish_ = new sixdof_deform(p->X195_type[n], p->X195_a[n], p->X195_lambda[n], p->X195_f[n], p->X195_tramp[n],
                               (p->j_dir==0) ? 2 : 1, p->X196>=1);
+    }
+    
+    // gait control (X 199 id t f a b t_s): targets of frequency, amplitude factor and curvature bias
+    if(fish_!=nullptr)
+    {
+        std::vector<sixdof_deform::gait_target> tg;
+        
+        for(int n=0; n<p->X199; ++n)
+        if(p->X199_id[n]==number)
+        tg.push_back({p->X199_t[n], p->X199_f[n], p->X199_a[n], p->X199_b[n], p->X199_ts[n]});
+        
+        gait_in_ = tg;
+        
+        if(!tg.empty())
+        fish_->set_gait(tg);
     }
     
     rb.twoD = (p->j_dir==0);
@@ -205,6 +222,8 @@ sixdof_obj::sixdof_obj(lexer *p, ghostcell *pgc, int number) : ddweno_f_nug(p),
 sixdof_obj::~sixdof_obj()
 {
     geom.deform = nullptr;
+    delete brain_;
+    delete brain_link_;
     delete fish_;
     
     for(size_t ql=0; ql<pload.size(); ++ql)

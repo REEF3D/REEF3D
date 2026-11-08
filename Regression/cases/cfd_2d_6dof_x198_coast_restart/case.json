@@ -1,0 +1,9 @@
+{
+ "base": "cfd_2d_6dof_x198_coast_ckpt",
+ "same_as": "cfd_2d_6dof_x198_coast_ckpt",
+ "chain": [{"case": "cfd_2d_6dof_x198_coast_ckpt", "copy": ["REEF3D_Checkpoint", "REEF3D_CFD_6DOF"]}],
+ "ctrl_set": {"I 45": "40"},
+ "description": "the restart of cfd_2d_6dof_x198_coast_ckpt from step 40: the first fit of X 198 after the restart is not a start from the initial velocity (X 102) again; regression.py ranks: bitwise the uninterrupted run.",
+ "tags": ["2d", "6dof", "floating", "singlephase", "checkpoint"],
+ "covers": ["sixdof_obj_cfd::ckpt_coupling_restore"]
+}

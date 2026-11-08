@@ -3377,6 +3377,16 @@ void control::ctrlsend()
     ii++;
     ictrl[ii] = X196;
     ii++;
+    ictrl[ii] = X191;
+    ii++;
+    ictrl[ii] = X192;
+    ii++;
+    ictrl[ii] = X193;
+    ii++;
+    ictrl[ii] = X194;
+    ii++;
+    ictrl[ii] = X199;
+    ii++;
     dctrl[dd] = X197;
     dd++;
     ictrl[ii] = X198;
@@ -5403,6 +5413,62 @@ void control::ctrlsend()
         dctrl[dd] = X195_f[n];
         dd++;
         dctrl[dd] = X195_tramp[n];
+        dd++;
+    }
+    
+    for(n=0;n<X191;++n)
+    {
+        ictrl[ii] = X191_id[n];
+        ii++;
+        ictrl[ii] = X191_port[n];
+        ii++;
+    }
+    
+    for(n=0;n<X192;++n)
+    {
+        ictrl[ii] = X192_id[n];
+        ii++;
+        for(double x : {X192_t[n], X192_x[n], X192_y[n], X192_z[n]})
+        {
+        dctrl[dd] = x;
+        dd++;
+        }
+    }
+    
+    for(n=0;n<X193;++n)
+    {
+        ictrl[ii] = X193_id[n];
+        ii++;
+        for(double x : {X193_U[n], X193_b[n], X193_D[n], X193_the[n]})
+        {
+        dctrl[dd] = x;
+        dd++;
+        }
+    }
+    
+    for(n=0;n<X194;++n)
+    {
+        ictrl[ii] = X194_id[n];
+        ii++;
+        ictrl[ii] = X194_n[n];
+        ii++;
+        dctrl[dd] = X194_d[n];
+        dd++;
+    }
+    
+    for(n=0;n<X199;++n)
+    {
+        ictrl[ii] = X199_id[n];
+        ii++;
+        dctrl[dd] = X199_t[n];
+        dd++;
+        dctrl[dd] = X199_f[n];
+        dd++;
+        dctrl[dd] = X199_a[n];
+        dd++;
+        dctrl[dd] = X199_b[n];
+        dd++;
+        dctrl[dd] = X199_ts[n];
         dd++;
     }
 

@@ -43,6 +43,7 @@ Author: Tobias Martin
 #include"6DOF_rigidbody.h"
 #include"6DOF_geometry.h"
 #include"6DOF_load.h"
+#include"6DOF_deform.h"
 #include<fstream>
 #include<iostream>
 #include<vector>
@@ -60,6 +61,8 @@ class mooring;
 class net_interface;
 class sixdof_motionext;
 class sixdof_deform;
+class sixdof_brain;
+class sixdof_brain_link;
  
 using namespace std;
 
@@ -468,6 +471,31 @@ protected:
     Eigen::Vector3d deform_vel(double, double, double) const;
     void print_fish(lexer*, double);
     ofstream printfish;
+    
+    // lateral line (X 194 id n d): probes a distance d outside the hull on both sides of n stations
+    // along the body axis, as material points of the body frame (axial x, lateral l, third axis v),
+    // and the station (s/L from the head) and side; the CFD coupling samples the fluid there
+    void lateral_line_setup(lexer*);
+    Eigen::Vector3d lateral_line_point(int, double, double) const;      // inertial frame
+    double ll_dx_ = 0.0;
+    std::vector<Eigen::Vector3d> ll_pts_;
+    std::vector<double> ll_s_;
+    std::vector<int> ll_side_;
+    ofstream printll;
+    
+    // brain (X 193): the senses of each step, the decisions as gait targets (X 199) of the deforming
+    // body, kept for the checkpoint; log
+    sixdof_brain *brain_ = nullptr;
+    std::vector<sixdof_deform::gait_target> gait_in_, gait_brain_;
+    void brain_setup(lexer*);
+    
+    // checkpoint of the state of a coupling between the steps (sixdof_obj_cfd: X 198)
+    virtual void ckpt_coupling(std::vector<double>&) const {}
+    virtual void ckpt_coupling_restore(const std::vector<double>&) {}
+    void brain_update(lexer*, ghostcell*, const std::vector<double>*, const std::vector<double>* =nullptr);
+    sixdof_brain_link *brain_link_ = nullptr;        // external brain (X 191), rank 0
+    bool brain_due(lexer*) const;
+    ofstream printbrain;
 };
 
 #endif

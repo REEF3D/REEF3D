@@ -1,0 +1,4 @@
+{"base": "nhflow_2d_6dof_box", "ctrl_add": ["X 15 10", "X 19 1", "A 520 1"],
+ "description": "nhflow_2d_6dof_box_x15_10 with the full projection (A 520 1), the pressure scheme X 15 10 was switched to before patch 0057 and still uses on the mesh refinement hierarchy: the box in waves as a solid with cut faces with nhflow_pjm (Ship Hydrodynamics validation 43).",
+ "tags": ["2d", "nhflow", "6dof", "floating"],
+ "covers": ["X 15 10 with nhflow_pjm (A 520 1)"]}

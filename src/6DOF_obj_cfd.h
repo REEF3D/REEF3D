@@ -62,6 +62,12 @@ public:
     void hydrodynamic_forces_cfd(lexer*, fdm*, ghostcell*,field&,field&,field&,int,bool);
     void update_position_3D(lexer*, fdm*, ghostcell*, bool);
     
+    // lateral line (X 194): pressure and velocity relative to the hull at the probes, printed with
+    // the body output
+    void lateral_line(lexer*, fdm*, ghostcell*);
+    // vision of the brain (X 193): the distances along its rays to the walls of the domain and the solids
+    std::vector<double> vision(lexer*, fdm*, ghostcell*);
+    
     // X 198: fluid-momentum coupling (6DOF_obj_cfd_momentum.cpp): the rigid-body motion fitted to the
     // predicted velocity of the stage in the hull region gives the loads of the body
     void momentum_fit(lexer*, fdm*, ghostcell*, field&, field&, field&, int);
@@ -80,6 +86,8 @@ public:
     Eigen::Matrix<double,6,1> mf_b_ = Eigen::Matrix<double,6,1>::Zero();
     double mf_c1_ = 0.0, mf_c2_ = 1.0, mf_tn_ = 0.0;
     bool mf_start_ = false, mf_first_ = true;
+    void ckpt_coupling(std::vector<double>&) const override;
+    void ckpt_coupling_restore(const std::vector<double>&) override;
     void momentum_loads(lexer*, int);
     void momentum_refit(lexer*, fdm*, ghostcell*, field&, field&, field&);
     void momentum_refit_set(lexer*, ghostcell*);

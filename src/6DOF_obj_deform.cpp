@@ -26,6 +26,9 @@ Architect: Hans Bihs
 #include"lexer.h"
 #include"ghostcell.h"
 #include"reefckpt.h"
+#include"6DOF_brain.h"
+#include"6DOF_brain_link.h"
+#include<cstdio>
 
 //  Prescribed deformation of a 6DOF body (X 195): undulatory swimming. The deformation acts on the
 //  body frame hull (sixdof_geometry::transform), its velocity is added to the rigid-body velocity of
@@ -39,6 +42,10 @@ void sixdof_obj::deform_setup(lexer *p, ghostcell *pgc)
     return;
 
     fish_->setup(geom);
+    
+    // brain (X 193): before the first time of the gait (the step of the recoil quadrature)
+    brain_setup(p);
+    
     deform_time(p->simtime);
     geom.deform = fish_;
     
@@ -58,12 +65,24 @@ void sixdof_obj::deform_setup(lexer *p, ghostcell *pgc)
             <<", tail at x_B = "<<fish_->xtail()<<", volume: "<<fish_->volume()<<" m^3 (body: "<<geom.volume()<<")"
             <<", tail amplitude: "<<fish_->tail_amplitude()<<" m, f: "<<fish_->frequency()<<" Hz, lateral axis: "
             <<(fish_->lateral()==1 ? "y" : "z")<<", recoil: "<<(p->X196==0 ? "off" : (dc_on_ ? "on, discrete correction of the grid (X 196 2)" : "on"))<<endl;
+        
+        if(fish_->gait_on())
+        {
+            cout<<"6DOF body "<<n6DOF<<": gait control (X 199):";
+            
+            for(int n=0; n<p->X199; ++n)
+            if(p->X199_id[n]==n6DOF)
+            cout<<" t "<<p->X199_t[n]<<": f "<<p->X199_f[n]<<" a "<<p->X199_a[n]<<" b "<<p->X199_b[n]<<" t_s "<<p->X199_ts[n]<<";";
+            
+            cout<<endl;
+        }
 
         char str[1000];
         snprintf(str,sizeof(str),"%s/REEF3D_6DOF_fish_%i.dat",sixdof_output_dir(p),n6DOF);
 
         if(reefckpt_open(printfish,str,p->I45))
-        printfish<<"time \t U_swim [m/s] \t U_lat [m/s] \t heading [deg] \t tail [m] \t ramp \t P_def [W] \t St \t Re"<<endl;
+        printfish<<"time \t U_swim [m/s] \t U_lat [m/s] \t heading [deg] \t tail [m] \t ramp \t P_def [W] \t St \t Re"
+                 <<(fish_->gait_on() ? " \t f [Hz] \t a \t b" : "")<<endl;
     }
 }
 
@@ -189,5 +208,223 @@ void sixdof_obj::print_fish(lexer *p, double t)
     fish_->displacement(fish_->xtail(),0.0,dxt,dlt);
 
     printfish<<t<<" \t "<<Us<<" \t "<<Ub(l)<<" \t "<<heading*(180.0/PI)<<" \t "<<dlt
-             <<" \t "<<fish_->ramp()<<" \t "<<fish_power_<<" \t "<<St<<" \t "<<Re<<endl;
+             <<" \t "<<fish_->ramp()<<" \t "<<fish_power_<<" \t "<<St<<" \t "<<Re;
+    
+    if(fish_->gait_on())
+    printfish<<" \t "<<fish_->frequency()<<" \t "<<fish_->amp_factor()<<" \t "<<fish_->bias();
+    
+    printfish<<endl;
+}
+
+// ---------------------------------------------------------------------------------------------
+// brain (X 193 id U_des b_max th_wall th_esc, targets X 192 id t x y z): the senses of each step, the
+// decisions once per half tail beat as gait targets of the deforming body
+// ---------------------------------------------------------------------------------------------
+
+void sixdof_obj::brain_setup(lexer *p)
+{
+    int nb = -1;
+    
+    for(int n=0; n<p->X193; ++n)
+    if(p->X193_id[n]==n6DOF)
+    nb = n;
+    
+    if(nb<0 || fish_==nullptr)
+    return;
+    
+    std::vector<sixdof_brain::target_point> tp;
+    
+    for(int n=0; n<p->X192; ++n)
+    if(p->X192_id[n]==n6DOF)
+    tp.push_back({p->X192_t[n], p->X192_x[n], p->X192_y[n], p->X192_z[n]});
+    
+    double f0 = fish_->frequency(), tramp = 0.0;
+    
+    for(int n=0; n<p->X195; ++n)
+    if(p->X195_id[n]==n6DOF)
+    {
+    f0 = p->X195_f[n];
+    tramp = p->X195_tramp[n];
+    }
+    
+    delete brain_;
+    brain_ = new sixdof_brain(p->X193_U[nb], p->X193_b[nb], p->X193_D[nb], p->X193_the[nb], f0, fish_->length(), p->W1,
+                              tramp + 1.0/f0, fish_->lateral(), tp);
+    
+    // the largest frequency of the brain fixes the step of the recoil quadrature
+    fish_->set_fcap(brain_->fmax());
+    fish_->set_gait(gait_in_);
+    gait_brain_.clear();
+    
+    // an external brain (X 191 id port): rank 0 connects to it, sends the hello line
+    int port = 0;
+    for(int n=0; n<p->X191; ++n)
+    if(p->X191_id[n]==n6DOF)
+    port = p->X191_port[n];
+    
+    if(port>0 && p->mpirank==0)
+    {
+        delete brain_link_;
+        brain_link_ = new sixdof_brain_link();
+        std::string msg, in;
+        
+        if(!brain_link_->connect_to(port, 60.0, msg))
+        {
+            cout<<"6DOF body "<<n6DOF<<": "<<msg<<endl;
+            exit(1);
+        }
+        
+        char hello[512];
+        snprintf(hello,sizeof(hello),"{\"hello\":1,\"body\":%d,\"L\":%.17g,\"f0\":%.17g,\"rho\":%.17g,\"U_des\":%.17g,\"b_max\":%.17g,\"D\":%.17g,\"th_esc\":%.17g,\"t_start\":%.17g,\"twoD\":%d}",
+                 n6DOF, fish_->length(), f0, p->W1, p->X193_U[nb], p->X193_b[nb], p->X193_D[nb], p->X193_the[nb], tramp + 1.0/f0, fish_->lateral()==2 ? 1 : 0);
+        
+        if(!brain_link_->exchange(hello, in, 60.0))
+        {
+            cout<<"6DOF body "<<n6DOF<<": the external brain (X 191) did not answer"<<endl;
+            exit(1);
+        }
+        
+        cout<<"6DOF body "<<n6DOF<<": external brain (X 191) on port "<<port<<": "<<in<<endl;
+    }
+    
+    if(p->mpirank==0)
+    {
+        cout<<"6DOF body "<<n6DOF<<": brain (X 193), U_des "<<p->X193_U[nb]<<" m/s, b_max "<<p->X193_b[nb]
+            <<", vision "<<p->X193_D[nb]<<" L, escape at "<<p->X193_the[nb]<<" q, "<<tp.size()<<" target points (X 192)"<<endl;
+        
+        char str[1000];
+        snprintf(str,sizeof(str),"%s/REEF3D_6DOF_brain_%i.dat",sixdof_output_dir(p),n6DOF);
+        
+        if(reefckpt_open(printbrain,str,p->I45))
+        printbrain<<"time \t target_x \t target_y \t target_z \t dist [m] \t bearing [deg] \t U [m/s] \t f [Hz] \t a \t b"
+                  <<" \t dp_head/q \t p_head/q \t d_vision/L \t mode (0 target, 1 avoid, 2 escape, 3 at target)"<<endl;
+    }
+}
+
+bool sixdof_obj::brain_due(lexer *p) const
+{
+    return brain_!=nullptr && brain_->due(p->simtime + p->dt);
+}
+
+void sixdof_obj::brain_update(lexer *p, ghostcell *pgc, const std::vector<double> *pr, const std::vector<double> *vis)
+{
+    if(brain_==nullptr)
+    return;
+    
+    // the senses of this step: the body at t^(n+1)
+    const int la = fish_->lateral();
+    const Eigen::Vector3d ax = R_.col(0), lat = R_.col(la);
+    const Eigen::Vector3d U(p->ufbi, p->vfbi, p->wfbi);
+    brain_->sense(p->dt, ax, lat, c_, U, pr, ll_s_, ll_side_);
+    
+    // a decision for the next step
+    const double tn = p->simtime + p->dt;
+    
+    if(!brain_->due(tn))
+    return;
+    
+    fish_->set_time(tn);
+    sixdof_brain::decision d = brain_->decide(tn, fish_->frequency(), fish_->amp_factor(), fish_->bias(), vis);
+    
+    // an external brain (X 191): the senses and the decision of the own brain out, its decision back
+    // (rank 0), to all ranks by a sum with zeros elsewhere (exact)
+    if(p->X191>0 && d.on)
+    {
+        double v[12] = {0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0};
+        
+        if(p->mpirank==0 && brain_link_!=nullptr)
+        {
+            const sixdof_brain::perception &q = brain_->perceived();
+            std::string s;
+            char b[256];
+            auto num = [&](const char *k, double x) {snprintf(b,sizeof(b),"\"%s\":%.17g,",k,x); s += b;};
+            auto vec = [&](const char *k, const double *x, size_t n)
+            {
+                s += std::string("\"") + k + "\":[";
+                for(size_t m=0; m<n; ++m)
+                {
+                    snprintf(b,sizeof(b),"%.17g%s",x[m],m+1<n ? "," : "");
+                    s += b;
+                }
+                s += "],";
+            };
+            s = "{";
+            num("t",tn); num("f",fish_->frequency()); num("a",fish_->amp_factor()); num("b",fish_->bias());
+            vec("pos",q.c.data(),3); vec("axis",q.ex.data(),3); vec("lat",q.el.data(),3);
+            num("U",q.U); num("stride",q.stride);
+            if(q.target)
+            vec("target",q.T.data(),3);
+            vec("rays",q.rays.data(),q.rays.size());
+            vec("ray_angles",sixdof_brain::rays().data(),sixdof_brain::rays().size());
+            vec("ll_p",q.llp.data(),q.llp.size());
+            vec("ll_s",brain_->ll_s().data(),brain_->ll_s().size());
+            std::vector<double> sd(brain_->ll_side().begin(), brain_->ll_side().end());
+            vec("ll_side",sd.data(),sd.size());
+            const sixdof_brain::record &r = brain_->last();
+            snprintf(b,sizeof(b),"\"own\":{\"f\":%.17g,\"a\":%.17g,\"b\":%.17g,\"ts\":%.17g,\"mode\":%d,\"second\":%d,\"t2\":%.17g,\"f2\":%.17g,\"a2\":%.17g,\"b2\":%.17g,\"ts2\":%.17g}}",
+                     d.f,d.a,d.b,d.ts,r.mode,d.second ? 1 : 0,d.second ? d.t2 : 0.0,d.second ? d.f2 : 0.0,d.second ? d.a2 : 0.0,d.second ? d.b2 : 0.0,d.second ? d.ts2 : 0.0);
+            s += b;
+            
+            std::string in;
+            if(!brain_link_->exchange(s, in, 600.0))
+            {
+                cout<<"6DOF body "<<n6DOF<<": the external brain (X 191) did not answer at t = "<<tn<<endl;
+                exit(1);
+            }
+            
+            typedef sixdof_brain_link L;
+            v[0] = L::number(in,"f",d.f);
+            v[1] = L::number(in,"a",d.a);
+            v[2] = L::number(in,"b",d.b);
+            v[3] = L::number(in,"ts",0.0);
+            v[4] = L::has(in,"t2") ? 1.0 : 0.0;
+            v[5] = L::number(in,"t2",0.0);
+            v[6] = L::number(in,"f2",0.0);
+            v[7] = L::number(in,"a2",1.0);
+            v[8] = L::number(in,"b2",0.0);
+            v[9] = L::number(in,"ts2",0.0);
+            v[10] = L::number(in,"next",0.0);
+            v[11] = 1.0;
+        }
+        
+        for(int q=0; q<12; ++q)
+        v[q] = pgc->globalsum(v[q]);
+        
+        if(v[11]!=1.0)
+        {
+            cout<<"6DOF body "<<n6DOF<<": no external brain (X 191) on rank 0"<<endl;
+            exit(1);
+        }
+        
+        // the gait stays within what the recoil quadrature allows (2 f0)
+        const double fm = brain_->fmax();
+        d.f = std::max(0.0, std::min(fm, v[0])); d.a = v[1]; d.b = v[2]; d.ts = v[3];
+        d.second = (v[4]!=0.0);
+        if(d.second)
+        {
+            d.t2 = std::max(tn, v[5]); d.f2 = std::max(0.0, std::min(fm, v[6])); d.a2 = v[7]; d.b2 = v[8]; d.ts2 = v[9];
+        }
+        
+        const double fn = d.second ? d.f2 : d.f;
+        brain_->external(d, tn + (v[10]>0.0 ? v[10] : std::min(0.5/std::max(fn,1.0e-3), 0.5)));
+    }
+    
+    if(d.on)
+    {
+        gait_brain_.push_back({d.t, d.f, d.a, d.b, d.ts});
+        fish_->push_gait(gait_brain_.back());
+        
+        if(d.second)
+        {
+            gait_brain_.push_back({d.t2, d.f2, d.a2, d.b2, d.ts2});
+            fish_->push_gait(gait_brain_.back());
+        }
+    }
+    
+    if(p->mpirank==0 && printbrain.is_open())
+    {
+        const sixdof_brain::record &r = brain_->last();
+        printbrain<<r.t<<" \t "<<r.tx<<" \t "<<r.ty<<" \t "<<r.tz<<" \t "<<r.dist<<" \t "<<r.psi*(180.0/PI)<<" \t "<<r.U
+                  <<" \t "<<r.Ff<<" \t "<<r.Fa<<" \t "<<r.Fb<<" \t "<<r.dpl<<" \t "<<r.phd<<" \t "<<r.dvis<<" \t "<<r.mode<<endl;
+    }
 }

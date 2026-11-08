@@ -69,6 +69,21 @@ class sixdof_geometry;
 //  material coordinates (Newton iterations on the map). The deformation velocity of these types
 //  has the divergence -l (d2 theta/ds dt)/(1 - l dtheta/ds) (the sections turn), which the
 //  projection of the direct forcing does not keep.
+//
+//  Gait control (X 199): the frequency f, an amplitude factor a (multiplies the envelope) and a
+//  curvature bias b (the body curvature times L) follow targets that change in time, as the
+//  descending drive and the left-right bias of a central pattern generator:
+//
+//      y(s,t) = r(t) a(t) L A(s) sin(2 pi s/lambda - phi(t)),   dphi/dt = 2 pi f(t)
+//
+//  and the bias adds b s/L to the angle of the midline (types 11-13: the curvature b/L, exact for any
+//  b, y from the angle; types 1-3: h += b L (s/L)^2/2 with s = (x_head - x)/L). Each of f, a, b follows its target U with
+//  the critically damped dynamics u'' = lambda^2 (U - u) - 2 lambda u' (the amplitude equation of
+//  the CPG model of Ijspeert et al. 2007), lambda = 4.744/t_s: 95 % of a step in the settling time
+//  t_s (default half a tail beat of the target frequency); u, u' and phi stay continuous when a
+//  target changes. The solution is closed form between the target times, so the gait is a function
+//  of t alone (stages, mesh refinement and restarts give the same body). b > 0 bends the body
+//  towards the lateral axis with the tail; a large b in a short t_s gives the C-start of an escape.
 
 class sixdof_deform
 {
@@ -102,6 +117,18 @@ public:
     const correction &corr() const {return cr_;}
     void set_corr(const correction &c) {cr_ = c; corr_on_ = true;}
 
+    // gait control (X 199 id t f a b t_s): from time t the targets f [Hz], a, b, settling time t_s [s]
+    // (0: half a tail beat); a target at t <= 0 sets the start values
+    struct gait_target {double t, f, a, b, ts;};
+    void set_gait(std::vector<gait_target>);
+    // a target after the last one (the brain, X 193), and the largest frequency it may ask for (fixes
+    // the step of the recoil quadrature; before set_gait)
+    void push_gait(const gait_target&);
+    void set_fcap(double f) {fcap_ = f;}
+    bool gait_on() const {return gait_on_;}
+    double amp_factor() const {return gcur_.a;}
+    double bias() const {return gcur_.b;}
+    
     // lateral axis of the body frame: 1 y, 2 z
     int lateral() const {return lat_;}
 
@@ -109,8 +136,8 @@ public:
     double length() const {return L_;}
     double xhead() const {return xhead_;}
     double xtail() const {return xtail_;}
-    double frequency() const {return f_;}
-    double tail_amplitude() const {return L_*envelope(1.0);}     // peak-to-peak / 2 at the tail tip (r = 1)
+    double frequency() const {return gait_on_ ? gcur_.f : f_;}
+    double tail_amplitude() const {return L_*envelope(1.0)*gcur_.a;}     // peak-to-peak / 2 at the tail tip (r = 1)
     double ramp() const {return r_;}
     double recoil0() const {return c0_;}
     double recoil1() const {return c1_;}
@@ -136,6 +163,18 @@ private:
     const double a_, lambda_, f_, tramp_;
     const bool recoil_;
 
+    // gait control: the state at time t (phase, f, a, b and their rates) and the segments between
+    // the target times (start time, start state, targets, lambda)
+    struct gait_state {double ph = 0.0, f = 0.0, ft = 0.0, a = 1.0, at = 0.0, b = 0.0, bt = 0.0;};
+    struct gait_seg {double t0, F, A, B, lam; gait_state s0;};
+    static gait_state evolve(const gait_seg&, double);
+    gait_state gait(double) const;
+    std::vector<gait_seg> gseg_;
+    bool gait_on_ = false, bias_now_ = false;
+    gait_state gcur_;
+    double fmax_ = 0.0, fcap_ = 0.0;
+    void add_seg(const gait_target&);
+    
     double t_ = 0.0, r_ = 0.0, rdot_ = 0.0;
     double c0_ = 0.0, c1_ = 0.0, d0_ = 0.0, d1_ = 0.0;
 

@@ -143,6 +143,7 @@ void sixdof_cfd::start_cfd(lexer* p, fdm* a, ghostcell* pgc, int iter, field &uv
             fb_obj[nb]->print_stl(p,pgc);
             
             fb_obj[nb]->print_parameter(p,pgc);
+            fb_obj[nb]->lateral_line(p,a,pgc);
         }
     }
     

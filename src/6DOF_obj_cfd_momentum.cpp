@@ -426,3 +426,22 @@ void sixdof_obj_cfd::momentum_refit_set(lexer *p, ghostcell *pgc)
     update_fbvel(p,pgc);
 }
 
+
+// the state of the coupling between the steps for the checkpoint: the first fit done (a restart is
+// not a start from rest or from an initial velocity), the stage of the last fit
+void sixdof_obj_cfd::ckpt_coupling(std::vector<double> &s) const
+{
+    s = {mf_first_ ? 1.0 : 0.0, mf_start_ ? 1.0 : 0.0, mf_c1_, mf_c2_, mf_tn_};
+}
+
+void sixdof_obj_cfd::ckpt_coupling_restore(const std::vector<double> &s)
+{
+    if(s.size()<5)
+    return;
+    
+    mf_first_ = (s[0]!=0.0);
+    mf_start_ = (s[1]!=0.0);
+    mf_c1_ = s[2];
+    mf_c2_ = s[3];
+    mf_tn_ = s[4];
+}

@@ -3368,6 +3368,16 @@ void control::ctrlrecv()
     ii++;
     X196 = ictrl[ii];
     ii++;
+    X191 = ictrl[ii];
+    ii++;
+    X192 = ictrl[ii];
+    ii++;
+    X193 = ictrl[ii];
+    ii++;
+    X194 = ictrl[ii];
+    ii++;
+    X199 = ictrl[ii];
+    ii++;
     X197 = dctrl[dd];
     dd++;
     X198 = ictrl[ii];
@@ -4811,6 +4821,47 @@ void control::ctrlrecv()
         Darray(X195_lambda,X195);
         Darray(X195_f,X195);
         Darray(X195_tramp,X195);
+    }
+    
+    if(X191>0)
+    {
+        Iarray(X191_id,X191);
+        Iarray(X191_port,X191);
+    }
+    
+    if(X192>0)
+    {
+        Iarray(X192_id,X192);
+        Darray(X192_t,X192);
+        Darray(X192_x,X192);
+        Darray(X192_y,X192);
+        Darray(X192_z,X192);
+    }
+    
+    if(X193>0)
+    {
+        Iarray(X193_id,X193);
+        Darray(X193_U,X193);
+        Darray(X193_b,X193);
+        Darray(X193_D,X193);
+        Darray(X193_the,X193);
+    }
+    
+    if(X194>0)
+    {
+        Iarray(X194_id,X194);
+        Iarray(X194_n,X194);
+        Darray(X194_d,X194);
+    }
+    
+    if(X199>0)
+    {
+        Iarray(X199_id,X199);
+        Darray(X199_t,X199);
+        Darray(X199_f,X199);
+        Darray(X199_a,X199);
+        Darray(X199_b,X199);
+        Darray(X199_ts,X199);
     }
 
     if(X111>0)
@@ -6796,6 +6847,62 @@ void control::ctrlrecv()
         X195_f[n] = dctrl[dd];
         dd++;
         X195_tramp[n] = dctrl[dd];
+        dd++;
+    }
+    
+    for(n=0;n<X191;++n)
+    {
+        X191_id[n] = ictrl[ii];
+        ii++;
+        X191_port[n] = ictrl[ii];
+        ii++;
+    }
+    
+    for(n=0;n<X192;++n)
+    {
+        X192_id[n] = ictrl[ii];
+        ii++;
+        for(double *x : {&X192_t[n], &X192_x[n], &X192_y[n], &X192_z[n]})
+        {
+        *x = dctrl[dd];
+        dd++;
+        }
+    }
+    
+    for(n=0;n<X193;++n)
+    {
+        X193_id[n] = ictrl[ii];
+        ii++;
+        for(double *x : {&X193_U[n], &X193_b[n], &X193_D[n], &X193_the[n]})
+        {
+        *x = dctrl[dd];
+        dd++;
+        }
+    }
+    
+    for(n=0;n<X194;++n)
+    {
+        X194_id[n] = ictrl[ii];
+        ii++;
+        X194_n[n] = ictrl[ii];
+        ii++;
+        X194_d[n] = dctrl[dd];
+        dd++;
+    }
+    
+    for(n=0;n<X199;++n)
+    {
+        X199_id[n] = ictrl[ii];
+        ii++;
+        X199_t[n] = dctrl[dd];
+        dd++;
+        X199_f[n] = dctrl[dd];
+        dd++;
+        X199_a[n] = dctrl[dd];
+        dd++;
+        X199_b[n] = dctrl[dd];
+        dd++;
+        X199_ts[n] = dctrl[dd];
         dd++;
     }
 

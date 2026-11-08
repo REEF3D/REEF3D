@@ -4459,6 +4459,21 @@ void control::read_control(lexer* p)
                 case  196: control>>X196;
                          clear(c,numint);
                          break;
+                case  191: ++X191;
+                         clear(c,numint);
+                         break;
+                case  192: ++X192;
+                         clear(c,numint);
+                         break;
+                case  193: ++X193;
+                         clear(c,numint);
+                         break;
+                case  194: ++X194;
+                         clear(c,numint);
+                         break;
+                case  199: ++X199;
+                         clear(c,numint);
+                         break;
                 case  197: control>>X197;
                          clear(c,numint);
                          break;
@@ -5508,6 +5523,32 @@ void control::read_control(lexer* p)
     Darray(X195_lambda,X195);
     Darray(X195_f,X195);
     Darray(X195_tramp,X195);
+    
+    Iarray(X191_id,X191);
+    Iarray(X191_port,X191);
+    
+    Iarray(X192_id,X192);
+    Darray(X192_t,X192);
+    Darray(X192_x,X192);
+    Darray(X192_y,X192);
+    Darray(X192_z,X192);
+    
+    Iarray(X193_id,X193);
+    Darray(X193_U,X193);
+    Darray(X193_b,X193);
+    Darray(X193_D,X193);
+    Darray(X193_the,X193);
+    
+    Iarray(X194_id,X194);
+    Iarray(X194_n,X194);
+    Darray(X194_d,X194);
+    
+    Iarray(X199_id,X199);
+    Darray(X199_t,X199);
+    Darray(X199_f,X199);
+    Darray(X199_a,X199);
+    Darray(X199_b,X199);
+    Darray(X199_ts,X199);
 
     Darray(X110_xs,X110);
     Darray(X110_ys,X110);
@@ -5803,6 +5844,11 @@ void control::read_control(lexer* p)
     int countX110=0;
     int countX111=0;
     int countX195=0;
+    int countX191=0;
+    int countX192=0;
+    int countX193=0;
+    int countX194=0;
+    int countX199=0;
     int countX163=0;
     int countX164=0;
     int countX311=0;
@@ -6670,6 +6716,27 @@ void control::read_control(lexer* p)
                          break;
                 case 195: control>>X195_id[countX195]>>X195_type[countX195]>>X195_a[countX195]>>X195_lambda[countX195]>>X195_f[countX195]>>X195_tramp[countX195];
                          ++countX195;
+                         clear(c,numint);
+                         break;
+                case 191: control>>X191_id[countX191]>>X191_port[countX191];
+                         ++countX191;
+                         clear(c,numint);
+                         break;
+                case 192: control>>X192_id[countX192]>>X192_t[countX192]>>X192_x[countX192]>>X192_y[countX192]>>X192_z[countX192];
+                         p->XYin(X192_x[countX192],X192_y[countX192]);
+                         ++countX192;
+                         clear(c,numint);
+                         break;
+                case 193: control>>X193_id[countX193]>>X193_U[countX193]>>X193_b[countX193]>>X193_D[countX193]>>X193_the[countX193];
+                         ++countX193;
+                         clear(c,numint);
+                         break;
+                case 194: control>>X194_id[countX194]>>X194_n[countX194]>>X194_d[countX194];
+                         ++countX194;
+                         clear(c,numint);
+                         break;
+                case 199: control>>X199_id[countX199]>>X199_t[countX199]>>X199_f[countX199]>>X199_a[countX199]>>X199_b[countX199]>>X199_ts[countX199];
+                         ++countX199;
                          clear(c,numint);
                          break;
                 case 163: control>>X163_x1[countX163]>>X163_y1[countX163]>>X163_z1[countX163]>>X163_x2[countX163]>>X163_y2[countX163]>>X163_z2[countX163]
