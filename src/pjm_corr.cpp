@@ -116,7 +116,10 @@ void pjm_corr::start(fdm* a,lexer*p, poisson* ppois,solver* psolv, ghostcell* pg
 // all grids in between)
 void pjm_corr::amr_prepare(lexer *p, fdm *a, poisson *ppois, ghostcell *pgc, field &uvel, field &vvel, field &wvel, double alpha)
 {
-    if(p->W32>0 && fabs(alpha-1.0)<1.0e-12)
+    // W 32: the pressure at the start of the step, the reference of the compressibility terms. SSP
+    // Runge-Kutta and N 40 5: the first stage (alpha 1). N 40 6: the half step (alpha 1/2); the full
+    // step (alpha 1) keeps p(n), its pressure is p(n+1/2) of the half step
+    if(p->W32>0 && fabs(alpha-(p->N40==6 ? 0.5 : 1.0))<1.0e-12)
     LOOP
     pn(i,j,k) = a->press(i,j,k);
 

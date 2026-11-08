@@ -710,17 +710,6 @@ void driver::logic_cfd()
     // (2, 3, 4), conservative form (33)
     bool mom_rk=false;
 
-    // N 40 6, the one-step scheme with two projections: not yet with the compressible air (W 32: the
-    // reference pressure of the step and the weights of its terms); the mesh refinement (G 1) checks
-    // its options itself (cfd_amr::scope)
-    if(p->N40==6 && p->W32>0)
-    {
-        if(p->mpirank==0)
-        cout<<"N 40 6 (the one-step scheme with two projections) is not built for the compressible air (W 32) yet: use N 40 5"<<endl;
-
-        exit(1);
-    }
-
     // N 59 (the momentum carried with the mass flux): the one-step schemes with the level set (also on
     // the mesh refinement, whose patches take the same Godunov convection), the density of the
     // level set (density_f) and no single-phase PIC

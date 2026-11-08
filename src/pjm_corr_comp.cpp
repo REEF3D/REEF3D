@@ -55,9 +55,16 @@ double pjm_corr::comp_weight(double s)
 
 void pjm_corr::comp_terms(lexer *p, fdm *a, field &u, field &v, field &w, double alpha)
 {
+    // the time from the start of the step to the projected velocity, in dt: the change of the
+    // pressure p + pcorr - p(n) over it. dt/2 for the second stage of SSP-RK3 (alpha 1/4, u(n+1/2))
+    // and the half step of N 40 6 (alpha 1/2, u(n+1/2)); dt for the other stages (the second stage
+    // of SSP-RK2, alpha 1/2, gives u(n+1)) and the full step of N 40 6
     cstage = 1.0;
 
     if(fabs(alpha-0.25)<1.0e-12)
+    cstage = 0.5;
+
+    if(p->N40==6 && fabs(alpha-0.5)<1.0e-12)
     cstage = 0.5;
 
     fac_t = 1.0/(alpha*cstage*p->dt*p->dt);

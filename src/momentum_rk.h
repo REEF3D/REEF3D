@@ -89,6 +89,9 @@ On the mesh refinement (G 7 0, cfd_amr::step_comp) N 40 6 takes the same steps o
 the composite projection after each of the two momentum steps and the level set of all levels
 between them.
 
+With the compressible air (W 32, pjm_corr_comp.cpp) both projections take p(n) of the start of the
+step as the reference of the pressure change: the half step over dt/2, the full step over dt.
+
 N 59 1 (N 40 5, 6 with the level set, also on the mesh refinement, whose patches take the
 same Godunov convection): the convection of the momentum as rho u, moved with the mass flux of the
 Godunov convection (godunov::start, see godunov.h); the density of the step starts from the level
