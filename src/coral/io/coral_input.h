@@ -118,6 +118,7 @@ Architect: Hans Bihs
 //        channels <name>_Fx .. _Mz, _P; coral/hydro/coral_body_drag.h)
 //   line_type <name> d <d> mass <m/L> (EA <EA> | EA_curve <file>) [BA <BA>] [CB <CB>] [Cdn <c>] [Cdt <c>] [Can <c>] [Cat <c>]
 //        [kb <k>] [cb <c>] [mu <mu>] [mu_axial <mu>] [mu_static <r>] [ks <k>] [cs <c>] [v_eps <v>] [EI <EI>] [BA_slack]
+//        [Cl <Cl>] [cF <cF>] [dF <dF>] [viv_tau <t>]
 //        (properties of mooring lines for 'type' and 'section'; EA_curve: nonlinear elasticity of the dynamic line,
 //        a file of 'strain tension' per line (strains increasing from >= 0, '#' comments), linear in between and
 //        beyond the last point with its slope (MoorDyn's stress-strain table, which holds the last tension there);
@@ -126,7 +127,8 @@ Architect: Hans Bihs
 //   mooring <name> <quasi_static|dynamic> a <body> <x y z> | a <point>  b <body> <x y z> | b <point>
 //        (L <L> d <d> mass <m/L> EA <EA> | type <line type> L <L> | section <line type> <L> <nseg> [section ...])
 //        [BA <BA>] [CB <CB>] [Cdn <c>] [Cdt <c>] [Can <c>] [Cat <c>] [kb <k>] [cb <c>] [mu <mu>]
-//        [mu_axial <mu>] [mu_static <r>] [ks <k>] [cs <c>] [v_eps <v>] [BA_slack] (over those of the type)
+//        [mu_axial <mu>] [mu_static <r>] [ks <k>] [cs <c>] [v_eps <v>] [BA_slack] [Cl <Cl>] [cF <cF>] [dF <dF>]
+//        [viv_tau <t>] (over those of the type)
 //        [nseg <n>] [seabed <z> | no_seabed] [dt_line <dt>] [settle <T>] [current <ux uy uz>] [exact_kinematics]
 //        [no_static] [break_time <t>] [break_tension <T>] [break_end <a|b>] [EI <EI>] [clamp_a [<dx dy dz>]] [clamp_b [...]]
 //        [EA_curve <file>] [current_profile <file>] [outputs <p|t|pt>]
@@ -160,6 +162,13 @@ Architect: Hans Bihs
 //        T = max(0, EA e) + BA de/dt (MoorDyn's and MoorDyn-F's law: a slack line resists folding up, snap loads
 //        and a falling line as in MoorDyn); default: max(0, EA e + BA de/dt) while a segment is taut, nothing
 //        when slack (a chain or rope never pushes);
+//        Cl > 0: cross-flow vortex-induced vibration of the dynamic line (Thorsen's synchronization model, as
+//        MoorDyn v2; default none): at each inner node the lift 1/2 rho d |v| Cl cos(phi) (q x v) per length across
+//        the relative flow v normal to the line, the shedding phase following dphi/dt = 2 pi |v| / d (cF + dF
+//        sin(phi_yd - phi)) with phi_yd the phase of the node's cross-flow motion, so it locks in to vibrations at
+//        frequencies (cF +- dF) |v| / d (defaults cF 0.18, dF 0.08); viv_tau: the time over which the rms of the
+//        cross-flow velocity and acceleration are taken (default five local shedding periods; MoorDyn: 500 dtM);
+//        in-line VIV is left out (as MoorDyn), the static start and settling have none;
 //        channels <name>_Fa_x .. _Fb_z (forces on the bodies), _Tmax, _Ta, _Tb (end segment tensions, negative
 //        for a segment that pushes with BA_slack); the quasi-static line has a seabed portion
 //        with friction CB only at a ground end on the seabed, else it hangs free between its ends; the names of lines and other loads must not be keywords of the line, e.g. not "d" or "L"; the
@@ -274,7 +283,8 @@ Architect: Hans Bihs
 //        t + (xi0 - xi)/u_hub; outside the grid its edge, below it the tower points)
 //   wind_probe <name> <x y z> [body <b>]          (output channels <name>_u _v _w _U of the inflow at the point)
 //   beam_sensor <name> element <beam element>      (output channels <name>_Fx _Fy _Fz _Mx _My _Mz: the loads the element
-//        exerts on its end a, the moment about the end point, in the frame of the body at end a (global for the ground);
+//        exerts on its end a with the half element lumped there (the section at the end point, as ElastoDyn's TwrBs and
+//        Root channels), the moment about the end point, in the frame of the body at end a (global for the ground);
 //        elements <member>.e<k> (k from 0), blades <rotor>_b<k>e<i>.e0; coral/structure/coral_beam.h)
 //   rotor <name> hub <x y z> axis <ax ay az> R_hub <r> blade <AeroDyn blade file> airfoils <n> <file 1> .. <file n>
 //        [blades <B>] [structure <ElastoDyn blade file>] [hub_mass <m>] [hub_inertia <J> [<J_across>]] [precone <deg>]

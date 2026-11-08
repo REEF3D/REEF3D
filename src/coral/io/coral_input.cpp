@@ -701,6 +701,10 @@ void coral_case::parse(const std::vector<std::pair<int, std::vector<std::string>
         if(!(p.mu_static > 0.0)) it.fail("mu_static (static / kinetic friction) must be > 0");
         p.EI = it.get("EI", p.EI);
         if(it.has("BA_slack")) p.BA_slack = true;
+        p.Cl = it.get("Cl", p.Cl); p.cF = it.get("cF", p.cF); p.dF = it.get("dF", p.dF);
+        p.viv_tau = it.get("viv_tau", p.viv_tau);
+        if(p.Cl < 0.0 || (p.Cl > 0.0 && !(p.cF > 0.0)) || p.dF < 0.0 || p.viv_tau == 0.0)
+            it.fail("VIV: Cl and dF must be >= 0, cF > 0, viv_tau > 0 (or < 0: five shedding periods)");
         if(p.v_eps < 0.0) it.fail("v_eps must be >= 0 (0: stick-slip friction)");
         if(p.d <= 0.0 || p.EA <= 0.0 || p.mass < 0.0 || p.EI < 0.0) it.fail("d and EA must be > 0, mass and EI >= 0");
         p.rho = rho;
