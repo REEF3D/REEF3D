@@ -107,6 +107,7 @@ public:
     double bmax = 0.068;        // largest b
     double nuacap = 1.0e20;     // largest absorbing-pressure coefficient (explicit term: 0.25 dx/dt, caller)
     double Slim = 0.44;         // limiting slope k H/2 (Stokes); onset above 1.25 Slim whatever B, no end above Slim
+    double fvisc = 1.0;         // model 5, deep-water breakers: share of eps dissipated by the viscosity (the rest: pressure)
 
     // one tracking step at time t: eta, horizontal surface velocity (us, vs), total water depth WL, wet flags,
     // zone (int per slice cell, 1: no crests, may be nullptr). With the velocity potential at the surface (phi,

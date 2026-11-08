@@ -1117,12 +1117,17 @@ void breaking_crest3d::rays(lexer *p, ghostcell *pgc, slice &eta, slice &WL, dou
 
             if(R.mech==1)
             {
-                R.nu = 0.0;
-                R.nua = (R.dpa>1.0e-12) ? R.eps/R.dpa : 0.0;
+                // the share fvisc of eps by the viscosity on the front face (the eddy viscosity of the roller, Tian et al.
+                // 2012; it also keeps the front face of the potential-flow crest regular), the rest by the pressure
+                R.nu = (R.dpn>1.0e-12) ? fvisc*R.eps/R.dpn : 0.0;
+                R.nu = MIN(R.nu, fabs(R.C)*(R.sa+R.sback));
+                R.nu = MAX(R.nu, 0.0);
+
+                R.nua = (R.dpa>1.0e-12) ? (1.0-fvisc)*R.eps/R.dpa : 0.0;
                 R.nua = MIN(R.nua, R.cb);
 
                 // above the limiting steepness the largest absorption (the wave cannot hold the energy)
-                if(over)
+                if(over && fvisc<1.0)
                 R.nua = R.cb;
 
                 R.nua = MIN(R.nua, nuacap);
@@ -1297,15 +1302,15 @@ void breaking_crest3d::rays(lexer *p, ghostcell *pgc, slice &eta, slice &WL, dou
 
                 brk[n] = 1;
 
-                if(sc>=-R.sback && sc<=R.sa && R.mech==1)
+                if(sc>=-R.sback && sc<=R.sa && R.mech==1 && R.nua>0.0)
                 {
                     const double v = R.nua*bc3_ramp((sc+R.sback)/MAX(R.sa+R.sback,1.0e-12));
 
                     if(v>(*pa)(ii,jj))
                     (*pa)(ii,jj) = v;
                 }
-                else
-                if(sc>=-R.sback && sc<=R.sa)
+
+                if(sc>=-R.sback && sc<=R.sa && (R.mech==0 || R.nu>0.0))
                 {
                     const double v = R.nu*bc3_ramp((sc+R.sback)/MAX(R.sa+R.sback,1.0e-12));
 
