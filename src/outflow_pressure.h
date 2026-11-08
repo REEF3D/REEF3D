@@ -36,10 +36,9 @@ Author: Hans Bihs
 //  1  controlled outflow, pressure condition: hydrostatic from the outflow water level
 //     (F 60 / F 62) for F 50 = 2, 3; the cell value for F 50 = 1, 4 and with a relaxation
 //     beach (B 99 = 1, 2), where the beach sets the free surface and the velocities
-//  2  controlled outflow, free surface condition (F 62, ioflow_waterlevel): hydrostatic from the
-//     outflow water level as well (F 62, ramped from F 60 over F 64), so that the pressure agrees
-//     with the level set held at that level in the ghost cells; the cell value without F 62 and
-//     with a relaxation beach (B 99 = 1, 2)
+//  2  controlled outflow, free surface condition (F 62, F 64 ramp, ioflow_waterlevel): the cell
+//     value; the level set alone holds the level (a hydrostatic value from the ramped level drove
+//     air jets and blew up the drawdown start of the ogee weir case)
 //
 // p->fsfout: F 60 / F 62 (ini_phi), during the run the ramped F 62 (ioflow_f::fsfinflow).
 // In the Poisson row of an outflow face (poisson_pcorr) the Dirichlet value of the correction is
@@ -50,9 +49,7 @@ inline double outflow_pressure(lexer *p, fdm *a, int i, int j, int k)
 {
     const int marge = increment::marge;
 
-    const bool beach = (p->B90>0 && (p->B99==1 || p->B99==2));
-
-    if(((p->B77==1 && (p->F50==2 || p->F50==3)) || (p->B77==2 && p->F62>-1.0e20)) && !beach)
+    if(p->B77==1 && (p->F50==2 || p->F50==3) && !(p->B90>0 && (p->B99==1 || p->B99==2)))
     {
     double z = (p->G502==1) ? p->ZSP[IJK] : p->ZP[KP];
 
