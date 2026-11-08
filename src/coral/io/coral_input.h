@@ -274,7 +274,8 @@ Architect: Hans Bihs
 //        t + (xi0 - xi)/u_hub; outside the grid its edge, below it the tower points)
 //   wind_probe <name> <x y z> [body <b>]          (output channels <name>_u _v _w _U of the inflow at the point)
 //   beam_sensor <name> element <beam element>      (output channels <name>_Fx _Fy _Fz _Mx _My _Mz: the loads the element
-//        exerts on its end a, the moment about the end point, in the frame of the body at end a (global for the ground);
+//        exerts on its end a with the half element lumped there (the section at the end point, as ElastoDyn's TwrBs and
+//        Root channels), the moment about the end point, in the frame of the body at end a (global for the ground);
 //        elements <member>.e<k> (k from 0), blades <rotor>_b<k>e<i>.e0; coral/structure/coral_beam.h)
 //   rotor <name> hub <x y z> axis <ax ay az> R_hub <r> blade <AeroDyn blade file> airfoils <n> <file 1> .. <file n>
 //        [blades <B>] [structure <ElastoDyn blade file>] [hub_mass <m>] [hub_inertia <J> [<J_across>]] [precone <deg>]

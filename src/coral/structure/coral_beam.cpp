@@ -270,6 +270,11 @@ void beam_element::end_loads(const model &m, Vec3 &Fa, Vec3 &Ma, Vec3 &Fb, Vec3 
     }
 }
 
+Vec3 beam_element::acceleration_a(const model &m) const
+{
+    return ba_ >= 0 ? m.body(ba_).point_acceleration(sa_) : Vec3::Zero();
+}
+
 void beam_sensor::channel_names(std::vector<std::string> &c) const
 {
     for(const char *x : {"Fx", "Fy", "Fz", "Mx", "My", "Mz"})
@@ -280,6 +285,9 @@ void beam_sensor::channel_values(const model &m, double, std::vector<double> &v)
 {
     Vec3 Fa, Ma, Fb, Mb;
     e_->end_loads(m, Fa, Ma, Fb, Mb);
+    // the half element lumped at end a (coral_frame): its weight and inertia pass through the section too
+    const double mh = 0.5*e_->section().m*e_->length0();
+    Fa += mh*(m.gravity - e_->acceleration_a(m));
     const Mat3 Rt = m.body(e_->body_a()).R.transpose();
     const Vec3 F = Rt*Fa, M = Rt*Ma;
     for(int i=0; i<3; ++i) v.push_back(F(i));

@@ -91,6 +91,8 @@ namespace coral
         // the forces and moments the element exerts on its ends (global, the moments about the end points; with
         // the damping), and the attached bodies
         void end_loads(const model&, Vec3 &Fa, Vec3 &Ma, Vec3 &Fb, Vec3 &Mb) const;
+        // the acceleration of end a's point (zero on the ground)
+        Vec3 acceleration_a(const model&) const;
         int body_a() const {return ba_;}
         int body_b() const {return bb_;}
 
@@ -122,7 +124,8 @@ namespace coral
     // the section loads at end a of a beam element as output channels <name>_Fx, _Fy, _Fz, _Mx, _My, _Mz: the force
     // and the moment (about the end point) the element exerts on end a, in the frame of the body at end a (global for
     // the ground): at a clamped tower base the loads on the foundation, at a blade root those on the hub or the pitch
-    // bearing. It adds no force.
+    // bearing. The section is at the end point, so the half element the frame builder lumps there belongs to the
+    // element: its weight and translational inertia are added (as ElastoDyn's TwrBsF, RootF). It adds no force.
     class beam_sensor : public load
     {
     public:
