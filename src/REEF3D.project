@@ -501,6 +501,7 @@
           <File Name="sflow_momentum_SI.h"/>
           <File Name="sflow_momentum_SI_nh.h"/>
           <File Name="si_eta2D.h"/>
+          <File Name="si_tridiag2D.h"/>
           <File Name="sflow_momentum.h"/>
           <VirtualDirectory Name="BC">
             <File Name="sflow_roughness.h"/>
@@ -2143,6 +2144,7 @@
           <File Name="sflow_momentum_RK2.cpp"/>
           <File Name="sflow_momentum_SI.cpp"/>
           <File Name="si_eta2D.cpp"/>
+          <File Name="si_tridiag2D.cpp"/>
           <VirtualDirectory Name="Roughness">
             <File Name="sflow_rough_void.cpp"/>
             <File Name="sflow_rough_manning.cpp"/>
