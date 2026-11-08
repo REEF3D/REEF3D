@@ -79,6 +79,15 @@ namespace
         return 1.0;
     }
 
+    // model 5: the breaker scales, the Gamma window and the mechanism go with the crest point it continues
+    void bc3_copy5(bc3_point &P, const bc3_point &Q)
+    {
+        P.Lb=Q.Lb; P.Hb=Q.Hb; P.cb=Q.cb; P.Tb=Q.Tb; P.Gam=Q.Gam; P.g0=Q.g0;
+        for(int q=0; q<5; ++q)
+        P.gs[q]=Q.gs[q];
+        P.gclosed=Q.gclosed; P.mech=Q.mech; P.wdeep=Q.wdeep;
+    }
+
     // append to a ring of 8 (oldest first)
     void bc3_push(double *a, double *b, double *c, int &n, double va, double vb, double vc)
     {
@@ -459,6 +468,7 @@ void breaking_crest3d::detect(lexer *p, ghostcell *pgc, slice &eta, slice &us, s
             P.hasC = Q.hasC;
             P.nh = Q.nh;
             P.nbh = Q.nbh;
+            bc3_copy5(P,Q);
 
             for(int q=0; q<8; ++q)
             {
@@ -511,6 +521,8 @@ void breaking_crest3d::detect(lexer *p, ghostcell *pgc, slice &eta, slice &us, s
                 P.state = 1;
                 P.ton = bq->ton;
                 P.b = bq->b;
+                bc3_copy5(P,*bq);
+                P.gclosed = 1;
 
                 if(P.hasC==0)
                 {
@@ -620,6 +632,11 @@ void breaking_crest3d::detect(lexer *p, ghostcell *pgc, slice &eta, slice &us, s
         P.us = usn;
         P.B = (P.hasC==1) ? P.us/P.C : 0.0;
 
+        // model 5: a crest whose breaking ended breaks again only after its B has fallen back (below the candidates
+        // it is not seen by rays())
+        if(model==5 && P.state==0 && P.gclosed==2 && P.B<Bcand)
+        P.gclosed = 0;
+
         if(P.hasC==1 && sample)
         bc3_push(P.tb,P.bh,nullptr,P.nbh,t,P.B,0.0);
 
@@ -666,7 +683,8 @@ void breaking_crest3d::rays(lexer *p, ghostcell *pgc, slice &eta, slice &WL, dou
                             const std::function<double(const bc3_point&)> &sback,
                             const std::function<double(const bc3_point&, double, double)> &integrand,
                             const std::function<double(const bc3_point&)> &epsf,
-                            slice &vb, int *brk, slice *kw)
+                            slice &vb, int *brk, slice *kw,
+                            const std::function<double(const bc3_point&, double, double)> *integrand_pa, slice *pa)
 {
     const double g = fabs(p->W22);
 
@@ -816,6 +834,8 @@ void breaking_crest3d::rays(lexer *p, ghostcell *pgc, slice &eta, slice &WL, dou
     // pass 2: trough values, largest front-face slope, dissipation per unit viscosity
     // ------------------------------------------------------------
     std::vector<double> et(MAX(nc,1),0.0), ht(MAX(nc,1),0.0), sl(MAX(nc,1),0.0), I(MAX(nc,1),0.0);
+    std::vector<double> I2(MAX(nc,1),0.0);
+    const bool m5 = (model==5 && integrand_pa!=nullptr && pa!=nullptr);
 
     for(int k=0; k<nc; ++k)
     {
@@ -879,7 +899,12 @@ void breaking_crest3d::rays(lexer *p, ghostcell *pgc, slice &eta, slice &WL, dou
                 const double w = (m==0 || (side==0 && m==mtr) || (side==1 && m==mback)) ? 0.5 : 1.0;
 
                 if(S>0.0)
+                {
                 I[k] += w*S*integrand(R,x,y)*ds;
+
+                if(m5)
+                I2[k] += w*S*(*integrand_pa)(R,x,y)*ds;
+                }
             }
         }
     }
@@ -890,6 +915,9 @@ void breaking_crest3d::rays(lexer *p, ghostcell *pgc, slice &eta, slice &WL, dou
         MPI_Allreduce(MPI_IN_PLACE,ht.data(),nc,MPI_DOUBLE,MPI_SUM,reef3d_comm());
         MPI_Allreduce(MPI_IN_PLACE,sl.data(),nc,MPI_DOUBLE,MPI_MAX,reef3d_comm());
         MPI_Allreduce(MPI_IN_PLACE,I.data(),nc,MPI_DOUBLE,MPI_SUM,reef3d_comm());
+
+        if(m5)
+        MPI_Allreduce(MPI_IN_PLACE,I2.data(),nc,MPI_DOUBLE,MPI_SUM,reef3d_comm());
     }
 
     // ------------------------------------------------------------
@@ -944,6 +972,172 @@ void breaking_crest3d::rays(lexer *p, ghostcell *pgc, slice &eta, slice &WL, dou
         {
             const double kk = 2.0*M_PI/R.L;
             clin = sqrt(g*tanh(kk*MAX(R.wl,1.0e-3))/kk);
+        }
+
+        // ------------------------------------------------------------
+        // model 5 (A 350 5): breaker scales, strength, duration and energy of steepness-limited breaking from the
+        // literature, the limiting steepness, absorbing pressure (fnpf_breaking_barthelemy.cpp, breaking_crest3d.h)
+        // ------------------------------------------------------------
+        if(model==5)
+        {
+            const double hs = MAX(R.wl-R.eta,1.0e-3);
+            double w=0.0, N=30.0;
+
+            if(R.L>0.0)
+            {
+                N = MAX(R.L/MAX(R.d,1.0e-12), 30.0);
+                const double mu = R.C*R.C/(g*hs);
+                const double kh = 2.0*M_PI*hs/R.L;
+                w = MIN(MAX((0.9-mu)/0.3,0.0),1.0)*MIN(MAX((kh-0.8)/0.6,0.0),1.0);
+            }
+
+            // the resolution correction of the onset threshold (calibrated on focused packets at N = 30-120 cells per
+            // wavelength) fades out between N = 120 and 200: B = 0.85 holds where the crest slow-down is resolved
+            const double wN = MIN(MAX((200.0-N)/80.0,0.0),1.0);
+            const double Bth = Bon - w*wN*BonN/sqrt(N);
+
+            // the B samples of the window |B - Bth| < win (every step), for Gamma = T_b dB/dt (D18: linear fit of B(t)
+            // over |B - 0.85| < 0.03); a crest that falls back below the window before onset starts a new window
+            if(R.state==0 && R.B<Bth-win)
+            {
+                R.g0=0.0;
+                for(int q=0; q<5; ++q)
+                R.gs[q]=0.0;
+
+                // a crest whose breaking ended (gclosed 2) can break again once its B has fallen below the window
+                R.gclosed = 0;
+            }
+
+            if(R.gclosed==0 && R.hasC==1 && fabs(R.B-Bth)<win)
+            {
+                if(R.gs[0]<0.5)
+                R.g0 = t;
+
+                const double tt = t-R.g0;
+                R.gs[0] += 1.0;
+                R.gs[1] += tt;
+                R.gs[2] += R.B;
+                R.gs[3] += tt*tt;
+                R.gs[4] += tt*R.B;
+            }
+
+            // onset: the breaker scales of D18, k_b from the crest's trough-to-trough length, c_b and T_b from linear
+            // dispersion at the still-water depth (not the tracked crest speed, which is 0.7-0.9 c_b at onset)
+            // the limiting steepness (Stokes: k H/2 = 0.44 for H/L = 0.142): a crest steeper than that cannot travel as a
+            // wave of permanent form and breaks, whatever its B (Toffoli et al. 2010: front-face slopes up to 0.55 in
+            // random seas); on grids that do not resolve the growth of B the B criterion can come too late for it
+            const double Sl = M_PI*R.H/MAX(R.L,1.0e-6);
+            const bool over = (R.L>0.0 && w>0.5 && Sl>Slim);
+
+            if(R.state==0 && R.C>=Cmin*clin && ((R.gclosed!=2 && R.B>Bth) || (w>0.5 && Sl>1.25*Slim)))
+            {
+                R.state = 1;
+                R.ton = t;
+                deepest_onset = MAX(deepest_onset, R.wl-R.eta);
+
+                R.Lb = R.L;
+                R.Hb = R.H;
+                const double kb = 2.0*M_PI/MAX(R.Lb,1.0e-6);
+                R.cb = sqrt(g*tanh(kb*hs)/kb);
+                R.Tb = R.Lb/MAX(R.cb,1.0e-6);
+                R.wdeep = w;
+                R.gclosed = 0;
+            }
+
+            if(R.state!=1)
+            {
+                R.nu=0.0;
+                R.nua=0.0;
+                continue;
+            }
+
+            // the window closes when B has passed it after onset, at the latest 0.25 T_b after onset
+            if(R.gclosed==0 && (R.B>Bth+win || t-R.ton>0.25*R.Tb))
+            R.gclosed = 1;
+
+            // deep 2: b from the local slope of the breaker, S_b = k H / 2 (H crest to trough ahead), with the laboratory fit
+            // b = 0.4 (S - 0.08)^2.5 of Romero, Melville & Kleiss (2012, JPO 42) (Drazen et al. 2008: b ~ S^2.5);
+            // geometric, so it does not depend on how well the grid resolves the growth of B
+            // The slope is the largest while the window is open (up to 0.25 T_b after onset): the onset on coarse
+            // grids (Bth < Bon) comes before the crest has reached its breaking steepness.
+            if(deep==2 && (R.ton==t || R.gclosed==0))
+            {
+                const double Sb = M_PI*R.H/MAX(R.L,1.0e-6);
+
+                if(R.ton==t || Sb>R.Gam)
+                {
+                    R.Gam = Sb;
+                    R.b = (Sb>0.08) ? MIN(0.4*pow(Sb-0.08,2.5), bmax) : 0.0;
+                }
+
+                R.Hb = MAX(R.Hb, R.H);
+            }
+
+            // deep 1: Gamma and b while the window is open: b = 0.034 (Gamma - 0.30)^2.5 (D18 eq. 3.1), at most bmax;
+            // with fewer than 3 samples in the window (B jumped across it) the slope of the last B samples as model 4.
+            // On grids that under-resolve the crest (Bth < Bon) u_s and C, and so B and dB/dt, are off by about the
+            // factor Bth/Bon (16: RP1 at L/40 u_s 1.25, C 1.60 against 1.32, 1.53 at L/97): Gamma x Bon/Bth
+            if(deep!=2 && (R.ton==t || R.gclosed==0))
+            {
+                double G = 0.0;
+
+                if(R.gs[0]>=2.5)
+                {
+                    const double n = R.gs[0];
+                    const double den = R.gs[3] - R.gs[1]*R.gs[1]/n;
+                    G = (den>0.0) ? R.Tb*(R.gs[4] - R.gs[1]*R.gs[2]/n)/den : 0.0;
+                }
+                else
+                G = MIN(R.Tb*bc3_slope(R.tb,R.bh,R.nbh,5), 1.62);
+
+                G *= Bon/MAX(Bth,1.0e-6);
+                R.Gam = G;
+                R.b = (deep==1 && G>0.30) ? MIN(0.034*pow(G-0.30,2.5), bmax) : 0.0;
+            }
+
+            // end: a deep-water breaker after tau T_b (the active breaking of the b fit), a bore when its front face
+            // has flattened (as model 4); not in the step of onset
+            const bool deepbr = (R.wdeep>0.5);
+
+            if(R.ton<t && ((deepbr && t-R.ton>=tau*R.Tb && !over) || (!deepbr && sl[k]<slope_end)))
+            {
+                // one event per steepening: no new onset until B has fallen below the window (gclosed 2)
+                R.state=0;
+                R.gclosed=2;
+                R.nu=0.0;
+                R.nua=0.0;
+                continue;
+            }
+
+            // dissipation: a deep-water breaker by the absorbing surface pressure pa = nua S eta_t (Guignard & Grilli
+            // 2001, Mohanlal et al. 2023), a bore by the viscosity as model 4
+            R.mech = (deepbr && m5) ? 1 : 0;
+            R.eps = epsf(R);
+            R.dpa = I2[k];
+
+            if(R.mech==1)
+            {
+                R.nu = 0.0;
+                R.nua = (R.dpa>1.0e-12) ? R.eps/R.dpa : 0.0;
+                R.nua = MIN(R.nua, R.cb);
+
+                // above the limiting steepness the largest absorption (the wave cannot hold the energy)
+                if(over)
+                R.nua = R.cb;
+
+                R.nua = MIN(R.nua, nuacap);
+                R.nua = MAX(R.nua, 0.0);
+            }
+            else
+            {
+                R.nua = 0.0;
+                R.nu = (R.dpn>1.0e-12) ? R.eps/R.dpn : 0.0;
+                R.nu = MIN(R.nu, fabs(R.C)*(R.sa+R.sback));
+                R.nu = MAX(R.nu, 0.0);
+            }
+
+            ++nbreak;
+            continue;
         }
 
         // onset threshold: Bon, in deep and intermediate water lowered by BonN/sqrt(N) with N = L/d the cells per
@@ -1024,6 +1218,8 @@ void breaking_crest3d::rays(lexer *p, ghostcell *pgc, slice &eta, slice &WL, dou
         P.b = R.b;
         P.nu = R.nu;
         P.sa = R.sa;
+        bc3_copy5(P,R);
+        P.nua = R.nua;
         break;
     }
 
@@ -1036,6 +1232,7 @@ void breaking_crest3d::rays(lexer *p, ghostcell *pgc, slice &eta, slice &WL, dou
         Q.ton = R.ton;
         Q.b = R.b;
         Q.sa = R.sa;
+        bc3_copy5(Q,R);
         break;
     }
 
@@ -1100,6 +1297,14 @@ void breaking_crest3d::rays(lexer *p, ghostcell *pgc, slice &eta, slice &WL, dou
 
                 brk[n] = 1;
 
+                if(sc>=-R.sback && sc<=R.sa && R.mech==1)
+                {
+                    const double v = R.nua*bc3_ramp((sc+R.sback)/MAX(R.sa+R.sback,1.0e-12));
+
+                    if(v>(*pa)(ii,jj))
+                    (*pa)(ii,jj) = v;
+                }
+                else
                 if(sc>=-R.sback && sc<=R.sa)
                 {
                     const double v = R.nu*bc3_ramp((sc+R.sback)/MAX(R.sa+R.sback,1.0e-12));
@@ -1126,10 +1331,18 @@ void breaking_crest3d::log(lexer *p, double t, const char *file)
     if(!logf.is_open())
     {
         logf.open(file);
-        logf<<"# t id x y nx ny eta C us B state H h_c h_t b eps nu L dpn"<<endl;
+        logf<<"# t id x y nx ny eta C us B state H h_c h_t b eps nu L dpn"
+            <<((model==5) ? " Gamma nwin c_b T_b L_b H_b mech nua dpa" : "")<<endl;
     }
 
     for(const bc3_point &R : cand)
+    {
     logf<<t<<" "<<R.id<<" "<<R.x<<" "<<R.y<<" "<<R.nx<<" "<<R.ny<<" "<<R.eta<<" "<<R.C<<" "<<R.us<<" "<<R.B<<" "<<R.state
-        <<" "<<R.H<<" "<<R.wl<<" "<<R.ht<<" "<<R.b<<" "<<R.eps<<" "<<R.nu<<" "<<R.L<<" "<<R.dpn<<"\n";
+        <<" "<<R.H<<" "<<R.wl<<" "<<R.ht<<" "<<R.b<<" "<<R.eps<<" "<<R.nu<<" "<<R.L<<" "<<R.dpn;
+
+    if(model==5)
+    logf<<" "<<R.Gam<<" "<<R.gs[0]<<" "<<R.cb<<" "<<R.Tb<<" "<<R.Lb<<" "<<R.Hb<<" "<<R.mech<<" "<<R.nua<<" "<<R.dpa;
+
+    logf<<"\n";
+    }
 }

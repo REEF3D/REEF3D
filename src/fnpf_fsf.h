@@ -52,6 +52,8 @@ public:
     virtual void breaking(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&,slice&,double)=0;
     // the relaxation zones for the breaking models (A 350 4), once
     virtual void breaking_zones(lexer*,ioflow*) {}
+    // A 350 5: absorbing surface pressure of the breaking crests in the dynamic FSBC tendency fk (ek: eta_t)
+    virtual void absorb(lexer*,fdm_fnpf*,slice&,slice&) {}
     virtual void coastline_eta(lexer*,fdm_fnpf*,ghostcell*,slice&)=0;
     virtual void coastline_fi(lexer*,fdm_fnpf*,ghostcell*,slice&)=0;
     virtual void coastline_fi_ini(lexer*,fdm_fnpf*,ghostcell*,slice&)=0;

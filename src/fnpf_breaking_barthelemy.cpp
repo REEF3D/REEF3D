@@ -55,6 +55,40 @@ Architect: Hans Bihs
 // the fronts before B reaches the threshold, and the breaking point is that of A350 1 again; without the
 // filter and with the default band A341 2 the swash zone of Ting & Kirby goes unstable after 20-36 s.
 
+// A 350 5: A 350 4 with the breaker scales, strength, duration and energy of steepness-limited breaking from the
+// literature (Derakhti, Banner & Kirby 2018, JFM 848, "D18"; Romero et al. 2012; Rapp & Melville 1990; Tian et al.
+// 2010) and an energy-matched absorbing surface pressure (Mohanlal et al. 2023), in deep and intermediate water (crests with C^2/(g h) < 0.6 and 2 pi h/L > 1.4,
+// ramps to 0.9 and 0.8); bores in shallow water as A 350 4.
+//   onset      B > A 359 - A 369/sqrt(N) as A 350 4, but the resolution correction fades out between N = 120 and
+//              200 cells per crest wavelength (it was calibrated at N = 30-120; B = 0.85 holds on fine grids)
+//   scales     at onset: L_b (trough to trough), H_b, k_b = 2 pi/L_b, c_b = (g tanh(k_b h)/k_b)^1/2 (linear, D18 app. A:
+//              not the tracked crest speed, which is 0.7-0.9 c_b at onset), T_b = L_b/c_b
+//   strength   eps = b c_b^5/g per unit crest length and density (D18 eq. 1.1), b <= A 407 (0.068, the largest b of
+//              the D18 data), with A 367
+//              1 (default): b = 0.4 (S - 0.08)^2.5, the laboratory fit of Romero, Melville & Kleiss (2012, JPO 42)
+//                (Drazen et al. 2008: b ~ S^2.5), S = k H/2 of the breaker (H crest to trough ahead, k = 2 pi/L), the
+//                largest S while the B window of 2 is open (until B > Bth + A 411, at most 0.25 T_b): geometric, so independent of how well the grid resolves
+//                the growth of B. Packets of Tian et al. (2010) and Rapp & Melville (1990) at L/40 against the LES
+//                losses of Derakhti & Kirby (2016): mean |error| 3.6 points (A 350 4: 3.1), no false onset
+//              2: Gamma = T_b dB/dt from a least-squares fit of B(t) over |B - Bth| < A 411 (0.03, D18 sec. 3) of the
+//                crest's own samples (every step, before and after onset), x A 359/Bth on coarse grids,
+//                b = 0.034 (Gamma - 0.30)^2.5 (D18 eq. 3.1). At L/40 Gamma comes out at 0.2-0.5 for the Rapp &
+//                Melville packets and the losses are too low (RS1 2.5 % against 14 %): Gamma needs a resolved B(t)
+//   duration   A 408 T_b (0.75, the averaging interval of the b fit, D18 app. A), then the breaker ends; the crest
+//              breaks again only after its B has fallen below the window (one event per steepening)
+//   limit      A 404 (0.44): the limiting slope k H/2 of a Stokes wave (H/L = 0.142). A crest steeper than 1.25 A 404
+//              (0.55, the largest front-face slopes of Toffoli et al. 2010) starts breaking whatever its B, a breaker
+//              steeper than A 404 does not end and is absorbed with nua = c_b (on grids that do not resolve the
+//              growth of B, B can reach the threshold only after the crest has passed the limiting steepness, and the
+//              crest then grows until the run stops; 0: off)
+//   energy     at most A 409 (0.25) of g H_b^2 L_b/8 per event (Rapp & Melville 1990: up to 25 % for plungers,
+//              Tian et al. 2010: 8-25 %): eps <= A 409 g H_b^2 L_b / (8 A 408 T_b)
+//   dissipation absorbing surface pressure pa = nua S eta_t on the front face (crest to trough ahead, sin^2 ramps) in
+//              the dynamic FSBC (Guignard & Grilli 2001, Mohanlal et al. 2023), nua = eps / int S eta_t^2 ds with
+//              eta_t of the step, nua <= c_b and <= 0.25 dx/dt (explicit term). Its rate ~ nua k damps a mode less
+//              scale-selectively than the viscosity (2 nu k^2 per FSBC), which put the loss into the spectral tail.
+//   log        P 59 1 appends Gamma nwin c_b T_b L_b H_b mech nua dpa (mech 1: pressure, 0: viscosity/bore)
+
 #include"fnpf_breaking.h"
 #include"breaking_crest3d.h"
 #include"lexer.h"
@@ -67,7 +101,7 @@ Architect: Hans Bihs
 // zones (Dirichlet generation B 98 3/4) the B 96 lengths at x-min and, with a beach B 99, at x-max, as before.
 void fnpf_breaking::breaking_zones(lexer *p, ioflow *pflow)
 {
-    if(bt_zone_built || p->A350!=4 || pflow==nullptr)
+    if(bt_zone_built || (p->A350!=4 && p->A350!=5) || pflow==nullptr)
     return;
 
     std::vector<double> b;
@@ -164,6 +198,33 @@ void fnpf_breaking::breaking_barthelemy(lexer *p, fdm_fnpf *c, ghostcell *pgc, s
         // candidates (rays, log) below the lowest onset threshold, that of N = 30 cells per wavelength
         if(bt->BonN>0.0)
         bt->Bcand = MIN(bt->Bcand, 0.9*(bt->Bon - bt->BonN/sqrt(30.0)));
+
+        // A 350 5: Derakhti et al. (2018) strength and duration, absorbing pressure (breaking_crest3d.h)
+        if(p->A350==5)
+        {
+            bt->model = 5;
+            // A 367: 1 the slope law of Romero et al. (2012) (default), 2 the Gamma law of D18, 0 off
+            bt->deep = (p->A367==1) ? 2 : ((p->A367==2) ? 1 : 0);
+            bt->bmax = MAX(p->A407,0.0);
+            bt->tau = MAX(p->A408,0.0);
+            bt->win = MAX(p->A411,1.0e-6);
+            bt->Slim = (p->A404>0.0) ? p->A404 : 1.0e20;
+            // the window below the lowest onset threshold is sampled as well
+            bt->Bcand = MIN(bt->Bcand, 0.9*(bt->Bon - bt->BonN/sqrt(30.0) - bt->win));
+        }
+    }
+
+    // A 350 5: eta_t of the step (the absorbing pressure is matched to eps with it), the explicit limit of the pressure
+    if(p->A350==5)
+    {
+        const double rdt = 1.0/MAX(alpha*p->dt,1.0e-20);
+
+        SLICELOOP4
+        bt_et(i,j) = (eta(i,j)-eta_n(i,j))*rdt;
+
+        pgc->gcsl_start4(p,bt_et,1);
+
+        bt->nuacap = 0.25*p->DXM/MAX(p->dt,1.0e-20);
     }
 
     bt->Hmin = 2.0*c->wd_criterion;
@@ -199,8 +260,26 @@ void fnpf_breaking::breaking_barthelemy(lexer *p, fdm_fnpf *c, ghostcell *pgc, s
         return (fe+ff)*R.C*((ep-em)/(2.0*dd))*((fp-2.0*f0+fm)/(dd*dd));
     };
 
+    // A 350 5: dissipation of the absorbing pressure per unit coefficient, int S eta_t^2 ds
+    const std::function<double(const bc3_point&, double, double)> integrand_pa = [&](const bc3_point &R, double x, double y)
+    {
+        const double e = bt->ip(p,bt_et,x,y);
+
+        return std::isnan(e) ? 0.0 : e*e;
+    };
+
     auto epsf = [&](const bc3_point &R)
     {
+        // A 350 5, a deep-water breaker (absorbing pressure): eps = b rho c_b^5 / g over tau T_b (D18), the energy of
+        // the event at most A 409 of the breaker's g H_b^2 L_b / 8
+        if(R.mech==1)
+        {
+            const double eps5 = R.b*pow(R.cb,5.0)/g;
+            const double ecap = p->A409*g*R.Hb*R.Hb*R.Lb/8.0/MAX(p->A408*R.Tb,1.0e-6);
+
+            return MIN(eps5, ecap);
+        }
+
         const double hc = MAX(R.wl, 1.0e-3);
         // moving bore: discharge through the jump C h_t, head loss H^3/(4 h_c h_t)
         const double eps_bore = p->A364*g*fabs(R.C)*pow(R.H,3.0)/(4.0*hc);
@@ -215,8 +294,12 @@ void fnpf_breaking::breaking_barthelemy(lexer *p, fdm_fnpf *c, ghostcell *pgc, s
     {
         c->vb(i,j) = 0.0;
         c->breaking(i,j) = 0;
+        bt_pa(i,j) = 0.0;
     }
 
+    if(p->A350==5)
+    bt->rays(p,pgc,c->eta,c->WL,t,sback,integrand,epsf,c->vb,c->breaking.V,nullptr,&integrand_pa,&bt_pa);
+    else
     bt->rays(p,pgc,c->eta,c->WL,t,sback,integrand,epsf,c->vb,c->breaking.V,nullptr);
 
     // still-water depth of the deepest onset so far: the surf zone for the filter (A352)
@@ -294,4 +377,16 @@ void fnpf_breaking::bt_filter(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta,
         filter(p,c,pgc,eta,p->A361,p->A362);
         filter(p,c,pgc,Fifsf,p->A361,p->A362);
     }
+}
+
+// A 350 5: absorbing surface pressure of the deep-water breakers in the dynamic FSBC (Guignard & Grilli 2001,
+// Mohanlal et al. 2023), Fi_t -= pa with pa = bt_pa eta_t: its work on the surface is -int bt_pa eta_t^2 dx <= 0
+// (eta_t = phi_n sqrt(1 + |grad eta|^2)); bt_pa is set once per step from the state at t^n, ek: eta_t of the stage
+void fnpf_breaking::absorb(lexer *p, fdm_fnpf *c, slice &ek, slice &fk)
+{
+    if(p->A350!=5)
+    return;
+
+    SLICELOOP4
+    fk(i,j) -= bt_pa(i,j)*ek(i,j);
 }

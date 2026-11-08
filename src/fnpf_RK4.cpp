@@ -112,6 +112,10 @@ void fnpf_RK4::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, conve
 	SLICELOOP4
 	frk1(i,j) = c->K(i,j);
     
+    // A 350 5: absorbing surface pressure of the deep-water breakers (the coefficients of t^n)
+    if(p->A350==5)
+    pf->absorb(p,c,erk1,frk1);
+    
     {fnpf_prof::scope ps_(fnpf_prof::body); pbody->stage(p,c,pgc,psolv,pf,erk1,frk1,0);}
     
     SLICELOOP4
@@ -137,7 +141,7 @@ void fnpf_RK4::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, conve
     {fnpf_prof::scope ps_(fnpf_prof::breaking); pf->breaking_zones(p,pflow);}
     {fnpf_prof::scope ps_(fnpf_prof::breaking); pf->breaking(p,c,pgc,erk,en,frk,0.5);}
     // A 352: the filter changed eta and Fifsf in place after their halo exchange
-    if((p->A350==1 || p->A350==4) && p->A352>0)
+    if((p->A350==1 || p->A350==4 || p->A350==5) && p->A352>0)
     {
     {fnpf_prof::scope ps_(fnpf_prof::gc2d); pgc->gcsl_start4(p,erk,gcval_eta);}
     {fnpf_prof::scope ps_(fnpf_prof::gc2d); pgc->gcsl_start4(p,frk,gcval_fifsf);}
@@ -169,6 +173,10 @@ void fnpf_RK4::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, conve
     SLICELOOP4
 	frk2(i,j) = c->K(i,j);
     
+    // A 350 5: absorbing surface pressure of the deep-water breakers (the coefficients of t^n)
+    if(p->A350==5)
+    pf->absorb(p,c,erk2,frk2);
+    
     {fnpf_prof::scope ps_(fnpf_prof::body); pbody->stage(p,c,pgc,psolv,pf,erk2,frk2,1);}
     
     SLICELOOP4
@@ -193,7 +201,7 @@ void fnpf_RK4::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, conve
     // fsfdisc and sigma update
     {fnpf_prof::scope ps_(fnpf_prof::breaking); pf->breaking(p,c,pgc,erk,en,frk,0.5);}
     // A 352: the filter changed eta and Fifsf in place after their halo exchange
-    if((p->A350==1 || p->A350==4) && p->A352>0)
+    if((p->A350==1 || p->A350==4 || p->A350==5) && p->A352>0)
     {
     {fnpf_prof::scope ps_(fnpf_prof::gc2d); pgc->gcsl_start4(p,erk,gcval_eta);}
     {fnpf_prof::scope ps_(fnpf_prof::gc2d); pgc->gcsl_start4(p,frk,gcval_fifsf);}
@@ -225,6 +233,10 @@ void fnpf_RK4::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, conve
     SLICELOOP4
 	frk3(i,j) = c->K(i,j);
     
+    // A 350 5: absorbing surface pressure of the deep-water breakers (the coefficients of t^n)
+    if(p->A350==5)
+    pf->absorb(p,c,erk3,frk3);
+    
     {fnpf_prof::scope ps_(fnpf_prof::body); pbody->stage(p,c,pgc,psolv,pf,erk3,frk3,2);}
     
     SLICELOOP4
@@ -249,7 +261,7 @@ void fnpf_RK4::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, conve
     // fsfdisc and sigma update
     {fnpf_prof::scope ps_(fnpf_prof::breaking); pf->breaking(p,c,pgc,erk,en,frk,1.0);}
     // A 352: the filter changed eta and Fifsf in place after their halo exchange
-    if((p->A350==1 || p->A350==4) && p->A352>0)
+    if((p->A350==1 || p->A350==4 || p->A350==5) && p->A352>0)
     {
     {fnpf_prof::scope ps_(fnpf_prof::gc2d); pgc->gcsl_start4(p,erk,gcval_eta);}
     {fnpf_prof::scope ps_(fnpf_prof::gc2d); pgc->gcsl_start4(p,frk,gcval_fifsf);}
@@ -279,6 +291,10 @@ void fnpf_RK4::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, conve
     SLICELOOP4
     frk4(i,j) = c->K(i,j);
     
+    // A 350 5: absorbing surface pressure of the deep-water breakers (the coefficients of t^n)
+    if(p->A350==5)
+    pf->absorb(p,c,erk4,frk4);
+    
     {fnpf_prof::scope ps_(fnpf_prof::body); pbody->stage(p,c,pgc,psolv,pf,erk4,frk4,3);}
     
     SLICELOOP4
@@ -303,7 +319,7 @@ void fnpf_RK4::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, conve
     // fsfdisc and sigma update
     {fnpf_prof::scope ps_(fnpf_prof::breaking); pf->breaking(p,c,pgc,c->eta,en,c->Fifsf,1.0);}
     // A 352: the filter changed eta and Fifsf in place after their halo exchange
-    if((p->A350==1 || p->A350==4) && p->A352>0)
+    if((p->A350==1 || p->A350==4 || p->A350==5) && p->A352>0)
     {
     {fnpf_prof::scope ps_(fnpf_prof::gc2d); pgc->gcsl_start4(p,c->eta,gcval_eta);}
     {fnpf_prof::scope ps_(fnpf_prof::gc2d); pgc->gcsl_start4(p,c->Fifsf,gcval_fifsf);}
