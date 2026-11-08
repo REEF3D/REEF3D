@@ -1181,11 +1181,11 @@ double sflow_momentum_SI::wall(lexer *p, int ii, int jj, int side)
 void sflow_momentum_SI::advection_bcg(lexer *p, fdm2D *b, ghostcell *pgc, slice &qa, slice &qb)
 {
     // A 210 11: the fluxes q_f u_f of U and V with the face values of the BCG scheme (Bell, Colella & Glaz 1989), as
-    // NHFLOW A 510 11 and Basilisk's advect() (layered/hydro.h): the upwind cell extrapolated to the face and to
+    // NHFLOW A 510 11 and the multilayer advection of Popinet (2020): the upwind cell extrapolated to the face and to
     // t^{n+1/2}, with the source term of the upwind cell,
     //   u_f = u_up + a (1 - c) g dx/2 - dt/2 v_up g_t + dt/2 S_up,    c = |u_f| dt/dx, a = sign(q_f),
     // q_f the discharge of the step at t^{n+1/2} (nh_levels), g the slope of the upwind cell normal to the face, g_t the
-    // one along it (2D), both the generalised minmod of Basilisk (theta 1.3), v_up the velocity along the face in the
+    // one along it (2D), both the generalised minmod (theta 1.3), v_up the velocity along the face in the
     // upwind cell (from its two faces). S = -g grad(eta^n) (with the ship pressure level of the step, X 10 3; a wall
     // side with the level mirrored) plus the non-hydrostatic increment of the cell momentum of the step before (dNx,
     // dNy of nh_cell) over H dt: without S the advected velocity misses the acceleration of the step and the nonlinear
@@ -1288,7 +1288,7 @@ void sflow_momentum_SI::advection_bcg(lexer *p, fdm2D *b, ghostcell *pgc, slice 
     };
 
     // the normal velocity of the face for its Courant number: the depth-weighted mean of the cell velocities (as
-    // Basilisk's face velocity; curvilinear: their component along the face normal)
+    // the face velocity of Popinet (2020); curvilinear: their component along the face normal)
     auto uface = [&](int dir, int a, int c)
     {
         const int a2 = dir==1 ? a+1 : a, c2 = dir==2 ? c+1 : c;

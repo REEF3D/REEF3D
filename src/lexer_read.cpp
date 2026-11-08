@@ -65,7 +65,7 @@ void lexer::lexer_read(ghostcell *pgc)
     A229 = (A243>0) ? 1 : 0;
 
     // NHFLOW: A 510 11 / 12 / 13 the semi-implicit theta step (nhflow_momentum_SI, A 535, A 536) with a one-step (BCG
-    // advection, as Basilisk) / SSP-RK2 / SSP-RK3 predictor of the explicit terms; inside REEF3D A534 = 1 marks the
+    // advection) / SSP-RK2 / SSP-RK3 predictor of the explicit terms; inside REEF3D A534 = 1 marks the
     // semi-implicit step and A510 = 1 / 2 / 3 its predictor (A 534 itself is no longer a ctrl.txt key)
     if(mpirank==0 && (A510==11 || A510==12 || A510==13))
     {

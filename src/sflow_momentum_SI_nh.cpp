@@ -25,8 +25,8 @@ Author: Hans Bihs
 //
 // The pressure of sflow_pjm_quad (Jeschke et al. 2017; A 220 3 with the improved dispersion, alpha A 224) is not
 // projected after the step, but solved together with eta^{n+1} in one linear system, so that neither sqrt(g h)
-// nor the dispersive wave speed limits the time step (as the theta = 1/2 coupled solve of Basilisk's layered
-// solver, Popinet 2020). Per cell the unknowns eta^{n+1} and P^{n+1} = p/rho, P fully implicit; per face (x and y):
+// nor the dispersive wave speed limits the time step (as the theta = 1/2 coupled solve of the multilayer
+// solver of Popinet 2020). Per cell the unknowns eta^{n+1} and P^{n+1} = p/rho, P fully implicit; per face (x and y):
 //
 //  face  q_f = q^E_f - a_f/(theta dt) (eta_R - eta_L)                                      (hydrostatic SI)
 //              - dt alpha_f [ (H_R P_R - H_L P_L) - qb_f (d_R - d_L) ] / dxp_f              (pressure, bed pressure)

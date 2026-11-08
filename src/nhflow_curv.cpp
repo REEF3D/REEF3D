@@ -45,7 +45,7 @@ void nhflow_curv::check(lexer *p)
     };
 
     refuse(p->j_dir!=1, "a 2D vertical slice (j_dir 0)");
-    refuse(p->A511==2, "the HLLC flux A 511 2 (A 511 1: HLL)");
+    refuse(p->A511==2 && p->A534!=1, "the HLLC flux A 511 2 (A 511 1: HLL)");
     // 6DOF (P5c): floating, prescribed and wavemaker bodies with the STL forces, the ship pressure patch and the
     // ship load models; not yet: the level-set forces, the viscous forces, the pierced columns, nets
     refuse(p->X10>0 && p->X60==2, "the level-set force integration of 6DOF bodies (X 60 2; X 60 1: STL)");

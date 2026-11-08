@@ -22,7 +22,7 @@ Author: Hans Bihs
 
 // ---------------------------------------------------------------------------
 // NHFLOW semi-implicit step (A 510 11/12/13) with the non-hydrostatic pressure (A 520 > 0), after the multilayer solver
-// of Basilisk (Popinet 2020, layered/nh.h with the implicit free surface layered/implicit.h): the non-hydrostatic
+// of Popinet 2020 (non-hydrostatic, with the implicit free surface): the non-hydrostatic
 // pressure phi = p/rho and the free surface eta^{n+1} come out of one coupled linear system per step.
 //
 // Layers k = 0 .. K-1 of the sigma grid, thickness h_k = WL dsig_k. phi lives on the layer interfaces: phi_k on the
@@ -34,14 +34,14 @@ Author: Hans Bihs
 //   div(h u)_k - [u . grad(z)]_k + [w]_k = 0                                    (incompressibility of layer k)
 //
 // with the Keller box scheme in the vertical: phi_k of a layer = (phi_{k-1/2} + phi_{k+1/2})/2, the interface
-// velocities from w_{k+1/2} = 2 w_k - w_{k-1/2}, w_{-1/2} = u_0 . grad(z_b) (Basilisk takes 0 there: it holds on a
-// flat bed only). The face term pg_k is Basilisk's hpg(): the conservative form of -grad(h phi) + [phi grad z] with the
+// velocities from w_{k+1/2} = 2 w_k - w_{k-1/2}, w_{-1/2} = u_0 . grad(z_b) (Popinet 2020 takes 0 there: it holds
+// on a flat bed only). The face term pg_k: the conservative form of -grad(h phi) + [phi grad z] with the
 // face differences of the interface heights (slopes limited to tan 30 deg, max_slope), times H_f/(mean h) of the face.
 // [u . grad(z)]_k with the interface slopes of the cell (centred) and u_k on the upper, u_{k-1} on the lower interface;
 // with A 505 1 (tl2) u^{n+1} estimated from the predictor and the acceleration of the step before (nh_prepare).
 //
 // Time levels: phi fully implicit, it acts on the velocities over dt; the constraint holds for the velocities of
-// t^{n+1}, the layer discharges Q_k^{n+1} and w^{n+1} = w* - dt [phi]_k/h_k (Basilisk: those of t^{n+theta}; with them
+// t^{n+1}, the layer discharges Q_k^{n+1} and w^{n+1} = w* - dt [phi]_k/h_k (Popinet 2020: those of t^{n+theta}; with them
 // the vertical velocity of the Beji & Battjes bar developed an odd-even mode in the vertical at dt 0.01, theta 0.5,
 // w^{n+1} = 2 w^{n+theta} - w*). The mass row moves WL with the transport of the step, T_k = theta Q_k^{n+1} +
 // (1-theta) Q_k^n (eta_update). The hydrostatic part is the semi-implicit step of nhflow_momentum_SI
@@ -62,7 +62,7 @@ Author: Hans Bihs
 // probing F with three or five colours, as before, took about half of the time of an NH step and gives the same
 // entries to round-off, environment NHCHECK). One cell in y on one rank: band LU of the interleaved unknowns (bandwidth
 // 2 (K+1)). Otherwise (2D, MPI): FGMRES(30) preconditioned with the multigrid of nhflow_si_nhmg, whose relaxation
-// solves the K+1 unknowns of a column at once, as Basilisk's relax() of layered/nh.h; the coarse levels by aggregation,
+// solves the K+1 unknowns of a column at once, as in Popinet 2020; the coarse levels by aggregation,
 // K-cycle (grid-independent iteration counts: 10 - 13 for 16^2 .. 64^2 columns at |r| <= 1e-6 |b|; one pre- and
 // post-sweep, the initial guess extrapolated in time, |r| <= A 506 |b| with A 506 = 1e-5 by default: 6 - 7).
 // ---------------------------------------------------------------------------
@@ -80,7 +80,7 @@ Author: Hans Bihs
 
 namespace
 {
-// Basilisk's default limit of the interface slopes (hydro.h, tan 30 deg)
+// the limit of the interface slopes (tan 30 deg, as Popinet 2020)
 const double nh_max_slope = 0.577350269189626;
 
 inline double nh_lim(double dz, double dx)
@@ -132,10 +132,30 @@ void nhflow_momentum_SI::nh_begin(lexer *p, fdm_nhf *d, ghostcell *pgc)
     const size_t ns = (size_t)p->imax*p->jmax;
 
 
-    // the face depth between two wet non-shoreline cells second order in space, as Basilisk's face heights (hydro.h, a
-    // variant of BCG): WL of the upwind cell extrapolated to the face and to t^{n+1/2}, WL_f = WL_up + a (1 - a c) g dx/2,
-    // c = |u| dt/dx, g the central gradient of WL of the upwind cell
+    // the face depth of the mass flux (hMx, hMy; si_assemble) between two wet non-shoreline cells, second order in
+    // space (BCG): WL of the upwind cell extrapolated to the face and to t^{n+1/2}, WL_f = WL_up + a (1 - a c) g dx/2,
+    // c = |u| dt/dx, g the slope of WL of the upwind cell, limited: van Leer, Superbee or van Albada (A 514 1, 2, 3),
+    // minmod otherwise. The face depth of the gravity term (Hx, Hy) stays the mean of the two cells (mlflux_faces)
     {
+    auto glim = [&](double sl, double sr)
+    {
+        if(sl*sr<=0.0)
+        return 0.0;
+
+        const double a = fabs(sl), b = fabs(sr), sg = sl>0.0 ? 1.0 : -1.0;
+
+        if(p->A514==1)
+        return 2.0*sl*sr/(sl + sr);
+
+        if(p->A514==2)
+        return sg*MAX(MIN(2.0*a,b),MIN(a,2.0*b));
+
+        if(p->A514==3)
+        return sl*sr*(sl + sr)/(sl*sl + sr*sr);
+
+        return sg*MIN(a,b);
+    };
+
     // wet deep cells; MPI: from the neighbouring ranks (flagslice4 marks only the first ghost column of a rank boundary)
     for(int ii=p->imin; ii<p->imin+p->imax; ++ii)
     for(int jj=p->jmin; jj<p->jmin+p->jmax; ++jj)
@@ -149,7 +169,6 @@ void nhflow_momentum_SI::nh_begin(lexer *p, fdm_nhf *d, ghostcell *pgc)
     auto fsw = [&](int a, int c) { return tS(a,c)>0.5; };
 
         SLICELOOP1
-        {
         if(Hx(i,j)>0.0 && fsw(i,j) && fsw(i+1,j) && fsw(i-1,j) && fsw(i+2,j))
         {
         const double u = qx(i,j)/Hx(i,j);
@@ -157,9 +176,8 @@ void nhflow_momentum_SI::nh_begin(lexer *p, fdm_nhf *d, ghostcell *pgc)
         const double c = u*p->dt/dx;
         const double a = c>=0.0 ? 1.0 : -1.0;
         const int iu = c>=0.0 ? i : i+1;
-        const double g = 0.5*(d->WL(iu+1,j) - d->WL(iu-1,j));
-        Hx(i,j) = MAX(d->WL(iu,j) + a*(1.0 - a*c)*0.5*g, p->A544);
-        }
+        const double g = glim(d->WL(iu,j) - d->WL(iu-1,j),d->WL(iu+1,j) - d->WL(iu,j));
+        hMx[IJ] = MAX(d->WL(iu,j) + a*(1.0 - a*c)*0.5*g, p->A544);
         }
 
         if(p->j_dir==1)
@@ -171,8 +189,8 @@ void nhflow_momentum_SI::nh_begin(lexer *p, fdm_nhf *d, ghostcell *pgc)
         const double c = u*p->dt/dy;
         const double a = c>=0.0 ? 1.0 : -1.0;
         const int ju = c>=0.0 ? j : j+1;
-        const double g = 0.5*(d->WL(i,ju+1) - d->WL(i,ju-1));
-        Hy(i,j) = MAX(d->WL(i,ju) + a*(1.0 - a*c)*0.5*g, p->A544);
+        const double g = glim(d->WL(i,ju) - d->WL(i,ju-1),d->WL(i,ju+1) - d->WL(i,ju));
+        hMy[IJ] = MAX(d->WL(i,ju) + a*(1.0 - a*c)*0.5*g, p->A544);
         }
     }
 
@@ -354,7 +372,7 @@ void nhflow_momentum_SI::nh_prepare(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
 void nhflow_momentum_SI::nh_faces(lexer *p, fdm_nhf *d)
 {
-    // the layer discharges of phi on the faces, NQ_k = dt pg_k/dsig_k (per unit sigma, as Qx), pg_k Basilisk's hpg
+    // the layer discharges of phi on the faces, NQ_k = dt pg_k/dsig_k (per unit sigma, as Qx), pg_k the face term of the header
     const double dt = p->dt;
     const int K = p->knoz;
     auto in = [&](int a, int c) { return p->flagslice4[(a-p->imin)*p->jmax + (c-p->jmin)]>0; };
@@ -513,7 +531,7 @@ void nhflow_momentum_SI::nh_residual(lexer *p, fdm_nhf *d, ghostcell *pgc, const
         D += wup - wlo;
         wlo = wup;
 
-        // the scaling of the row (Basilisk's 2 h/(theta dt) with theta 1)
+        // the scaling of the row (2 h/(theta dt) with theta 1, as Popinet 2020)
         y[(size_t)B*n+1+k] = D*2.0*h/dt;
         }
         }
@@ -795,7 +813,7 @@ void nhflow_momentum_SI::nh_solve(lexer *p, fdm_nhf *d, ghostcell *pgc)
     // F(0): the affine part; b = -F(0)
     nh_residual(p,d,pgc,x,F0,true);
 
-    // ---- multigrid with the column relaxation (Basilisk's solver, nhflow_si_nhmg) inside FGMRES; one row of columns
+    // ---- multigrid with the column relaxation (nhflow_si_nhmg) inside FGMRES; one row of columns
     // on one rank: the band LU (direct, the cheapest there)
     if(p->j_dir==1 || p->mpi_size>1)
     {
@@ -972,7 +990,7 @@ void nhflow_momentum_SI::nh_cell(lexer *p, fdm_nhf *d, ghostcell *pgc)
             d->WH[IJK] -= dt*(ph_up - PHI[IJK])/p->DZN[KP];
             }
 
-            // Basilisk's breaking parameter: |w| <= b sqrt(g H)
+            // the breaking parameter of Popinet 2020: |w| <= b sqrt(g H)
             if(nh_brk>0.0)
             {
             const double H = MAX(etaI(i,j) + d->depth(i,j),0.0);

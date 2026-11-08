@@ -237,7 +237,7 @@
   20.0,
   20.0
  ],
- "blessed_from": "/home/claude/build3/stage/REEF3D",
- "date": "2026-10-27",
- "note": "re-blessed at hans_dev 9996bd2 + patches 0007-0010: stale or missing at 9996bd2 (identical with and without the patches)"
+ "blessed_from": "/home/claude/nb/hd/buildN/REEF3D_v12",
+ "date": "2026-11-08",
+ "note": "v12: multilayer flux of the semi-implicit step"
 }

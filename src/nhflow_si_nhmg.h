@@ -28,7 +28,7 @@ Author: Hans Bihs
 #include<mpi.h>
 
 // Multigrid for the coupled eta-phi system of the semi-implicit non-hydrostatic NHFLOW (nhflow_momentum_SI_nh.cpp),
-// after the solver of Basilisk's multilayer model (layered/nh.h): the relaxation solves the unknowns of a whole column at
+// after the multilayer solver of Popinet 2020: the relaxation solves the unknowns of a whole column at
 // once (eta and the K interface pressures, B = K+1), the neighbouring columns fixed.
 //
 // The system has a block 5-point structure over the columns of a rank (blocks B x B: the cell and its neighbours in

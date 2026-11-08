@@ -54,7 +54,7 @@ fnpf_timestep::~fnpf_timestep()
 //
 // In potential flow no wave travels at sqrt(g h) on the grid scale: the fastest discrete mode is the shortest
 // wave the grid resolves, k = pi/dx, with omega = sqrt(g k tanh(k h)). The speed of N 51 1 (the gravity-wave
-// CFL of the Basilisk multilayer solver, Popinet 2020) is sqrt(g h) for h << dx, as N 51 0, and sqrt(g dx)
+// CFL of the multilayer solver of Popinet 2020) is sqrt(g h) for h << dx, as N 51 0, and sqrt(g dx)
 // for h >> dx, i.e. the time step grows with sqrt(h/dx) in deep water. With RK3 (stable for omega dt < sqrt(3))
 // the linear limit in deep water is N47 < 0.98 in 2D and about 0.8 in 3D with dx = dy (k = pi sqrt(2)/dx).
 double fnpf_timestep::wave_speed(lexer *p, double u, double h, double dx, double hmax)

@@ -228,6 +228,7 @@ private:
     };
 
     void face_depth(lexer*, fdm_nhf*, ghostcell*);
+    void mlflux_faces(lexer*, fdm_nhf*, ghostcell*);
     void friction(lexer*, fdm_nhf*);
     void density(lexer*, fdm_nhf*);
     void baroclinic(lexer*, fdm_nhf*);
@@ -290,13 +291,14 @@ private:
     void exchangeF(lexer*, ghostcell*, double*);
     void exchangeC(lexer*, ghostcell*, double*);
 
-    // non-hydrostatic pressure (A 520 > 0) coupled with eta^{n+1}, after Basilisk's multilayer solver
+    // non-hydrostatic pressure (A 520 > 0) coupled with eta^{n+1}, after the multilayer solver of Popinet 2020
     // (nhflow_momentum_SI_nh.cpp): phi = p/rho on the layer interfaces (PHI, k: the lower interface of layer k), the
     // layer face discharges of phi (NQx, NQy, per unit sigma), w* of the cells (WHS), the interface slopes of the
     // cells (NSX, NSY, nodes 0 .. K), the layer thicknesses at t^{n+1/2} (nWLh), the non-hydrostatic cells (nAct)
     bool nh = false;
     double *NQx = nullptr, *NQy = nullptr, *WHS = nullptr, *PHI = nullptr, *PHIo = nullptr, *NSX = nullptr, *NSY = nullptr;
-    std::vector<double> nWLh, nWLo, nHxo, nHyo;
+    // hMx, hMy: the face depths of the mass flux of the predictor (mlflux_faces, nh_begin)
+    std::vector<double> nWLh, nWLo, nHxo, nHyo, hMx, hMy;
     std::vector<double> nUZx, nUZy;            // tl2: UH^{n+1}, VH^{n+1} estimated for [u . grad z] (nh_prepare)
     std::vector<double> nOmP;                  // omega of the step before (extrapolation to t^{n+1/2}), NaN: none yet
     std::vector<char> nAct;
@@ -390,7 +392,7 @@ private:
     double *FSx = nullptr, *FSy = nullptr;    // tl2: the sources of the last predictor stage (wind, Coriolis, ...; the wall sides)
     double thv = 1.0;                          // time level of the vertical advection in the column operator (1: implicit Euler)
     std::vector<double> vau, val, vad;         // its coefficients (unscaled), for the explicit part
-    void col_adv_rhs(lexer*, const double*, double*);      // A 510 11: one stage, BCG advection (Basilisk), the nonlinear terms at t^{n+1/2}
+    void col_adv_rhs(lexer*, const double*, double*);      // A 510 11: one stage, BCG advection, the nonlinear terms at t^{n+1/2}
     bool qini;
 
     double Qin, Qout;       // discharge over the open boundaries of the step (theta weighted)

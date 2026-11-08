@@ -209,6 +209,8 @@ nhflow_momentum_SI::nhflow_momentum_SI(lexer *p, fdm_nhf *d, ghostcell *pgc, six
     // step, a restart from a checkpoint without them)
     nHxo.assign((size_t)p->imax*p->jmax,-1.0);
     nHyo.assign((size_t)p->imax*p->jmax,-1.0);
+    hMx.assign((size_t)p->imax*p->jmax,0.0);
+    hMy.assign((size_t)p->imax*p->jmax,0.0);
     nOmP.assign((size_t)p->imax*p->jmax*p->kmaxF,std::numeric_limits<double>::quiet_NaN());
 
     bc_method(p);
@@ -280,7 +282,7 @@ void nhflow_momentum_SI::check(lexer *p)
         stop=1;
     };
 
-    // the non-hydrostatic pressure (A 520 > 0): the coupled eta-phi system after Basilisk (nhflow_momentum_SI_nh.cpp),
+    // the non-hydrostatic pressure (A 520 > 0): the coupled eta-phi system after Popinet 2020 (nhflow_momentum_SI_nh.cpp),
     // Cartesian, one grid
     if(p->A520!=0)
     {
@@ -766,6 +768,9 @@ void nhflow_momentum_SI::si_begin(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_s
     // the inflow ghost cells of the stage arrays from those of t^n
     S.pflow->rkinflow_nhflow(p,d,pgc,d->U,d->V,d->W,UHa,VHa,WHa,WL0);
     S.pflow->rkinflow_nhflow(p,d,pgc,d->U,d->V,d->W,UHb,VHb,WHb,WL0);
+
+    // the face depths of the gravity term and of the mass flux
+    mlflux_faces(p,d,pgc);
 }
 
 void nhflow_momentum_SI::si_end(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_stage_obj &S)
@@ -1807,8 +1812,8 @@ void nhflow_momentum_SI::advection_bcg(lexer *p, fdm_nhf *d, ghostcell *pgc, dou
     auto ix = [&](int a, int b, int c) { return (a-p->imin)*p->jmax*p->kmax + (b-p->jmin)*p->kmax + c-p->kmin; };
     auto ok = [&](int a, int b) { return tA(a,b)>0.5; };
 
-    // the normal velocity of the face for its Courant number: the depth-weighted mean of the cell velocities (as
-    // Basilisk's face velocity; T/H_f with the extrapolated transport and the face depth of the step can be far off
+    // the normal velocity of the face for its Courant number: the depth-weighted mean of the cell velocities (T/H_f
+    // with the extrapolated transport and the face depth of the step can be far off
     // at a bore front)
     auto uface = [&](int dir, int a, int b, int c)
     {
@@ -2016,16 +2021,76 @@ void nhflow_momentum_SI::si_predictor_end(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
 }
 
+void nhflow_momentum_SI::mlflux_faces(lexer *p, fdm_nhf *d, ghostcell *pgc)
+{
+    // the face depths of the multilayer flux (Popinet 2020), after face_depth and the open boundaries:
+    //  - mass flux of the predictor (hMx, hMy): -1, the mean of the two cell transports (si_assemble); nh_begin sets the
+    //    BCG face depth at t^{n+1/2} between wet deep cells. With the upwind depth of face_depth there instead, the
+    //    flood on the tidal flat (nhflow_2d_si_tidal_flat_kepsilon, dt up to 130 s) came 1.5 times further off
+    //  - gravity term (Hx, Hy; face and cell): the mean depth of the two cells where both are wet and deep (WL above
+    //    A 545 A 544). Then g H_f (eta_R - eta_L) is a difference of g h^2/2 over a flat bed and the momentum is
+    //    conserved across a bore; with the upwind face depth the bore of the Stoker dam break ran ahead and the plateau
+    //    behind it sank, the more the smaller dt. Shoreline faces keep the depth of face_depth (wetting and drying)
+    const double hd = p->A545*p->A544;
+
+    // a fluid cell of the grid or of a neighbouring rank (not the ghost cell of an open or closed boundary: the faces
+    // of bc_setup keep their depth)
+    auto deep = [&](int a, int b)
+    {
+        const int q = (a-p->imin)*p->jmax + b-p->jmin;
+        return p->flagslice4[q]>0 && p->wet[q]==1 && d->WL(a,b)>hd;
+    };
+
+    SLICELOOP1
+    {
+    hMx[IJ] = -1.0;
+
+        if(Hx(i,j)>0.0 && deep(i,j) && deep(i+1,j))
+        Hx(i,j) = 0.5*(d->WL(i,j) + d->WL(i+1,j));
+    }
+
+    if(p->j_dir==1)
+    SLICELOOP2
+    {
+    hMy[IJ] = -1.0;
+
+        if(Hy(i,j)>0.0 && deep(i,j) && deep(i,j+1))
+        Hy(i,j) = 0.5*(d->WL(i,j) + d->WL(i,j+1));
+    }
+
+    exchange1(p,pgc,Hx);
+    exchange2(p,pgc,Hy);
+}
+
 void nhflow_momentum_SI::si_assemble(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
     const double dt = p->dt;
     double K,qh;
 
-    // column of the face predictor (momentum interpolation: the mean of the cell predictors,
-    // which carry no gravity term of this step, along the face normal), explicit part of the column
-    // discharge, eta-system coefficients a_f = theta dt (g theta dt alpha_f H_f + K_f)/dxp;
-    // face gradient of eta^n with its non-orthogonal part (curvilinear grid, explicit in both parts)
+    // column of the face predictor (the cell predictors, which carry no gravity term of this step, to the face along
+    // its normal), explicit part of the column discharge, eta-system coefficients
+    // a_f = theta dt (g theta dt alpha_f H_f + K_f)/dxp; face gradient of eta^n with its non-orthogonal part
+    // (curvilinear grid, explicit in both parts)
     double nx,ny;
+
+    // the face transport of the predictor (the multilayer flux, Popinet 2020): between wet deep cells the face depth of
+    // the mass flux (hm: hMx, hMy of nh_begin) times the mean of the two cell velocities, elsewhere (hm < 0) the mean of
+    // the two cell transports; wl, wr the weights of the two cell transports. A dry cell (or a film below A 544) has
+    // velocity zero
+    auto fweights = [&](double hm, int a, int b, int a2, int b2, double &wl, double &wr)
+    {
+        const double eps = p->A544;
+        const double hl = p->wet[(a-p->imin)*p->jmax + b-p->jmin]==1 ? WL0(a,b) : 0.0;
+        const double hr = p->wet[(a2-p->imin)*p->jmax + b2-p->jmin]==1 ? WL0(a2,b2) : 0.0;
+        if(hm<0.0)
+        {
+        wl = wr = 0.5;
+        return;
+        }
+
+        wl = hl>eps ? 0.5*hm/hl : 0.0;
+        wr = hr>eps ? 0.5*hm/hr : 0.0;
+    };
 
     SLICELOOP1
     {
@@ -2040,13 +2105,16 @@ void nhflow_momentum_SI::si_assemble(lexer *p, fdm_nhf *d, ghostcell *pgc)
         col_nu(p,d,i,j,i+1,j,wnu.data());
         col_coef(p,d,Hx(i,j),i,j,i+1,j,wnu.data(),wcu.data(),wcl.data(),wcd.data());
 
+        double fl,fr;
+        fweights(hMx[IJ],i,j,i+1,j,fl,fr);
+
         for(k=0;k<p->knoz;++k)
-        wb[k] = 0.5*(UHD[IJK] + UHD[Ip1JK])*nx + 0.5*(VHD[IJK] + VHD[Ip1JK])*ny;
+        wb[k] = fl*(UHD[IJK]*nx + VHD[IJK]*ny) + fr*(UHD[Ip1JK]*nx + VHD[Ip1JK]*ny);
 
         if(thv<1.0)
         {
         for(k=0;k<p->knoz;++k)
-        wx[k] = 0.5*(UH0[IJK] + UH0[Ip1JK])*nx + 0.5*(VH0[IJK] + VH0[Ip1JK])*ny;
+        wx[k] = fl*(UH0[IJK]*nx + VH0[IJK]*ny) + fr*(UH0[Ip1JK]*nx + VH0[Ip1JK]*ny);
         col_adv_rhs(p,wx.data(),wb.data());
         }
 
@@ -2105,13 +2173,16 @@ void nhflow_momentum_SI::si_assemble(lexer *p, fdm_nhf *d, ghostcell *pgc)
         col_nu(p,d,i,j,i,j+1,wnu.data());
         col_coef(p,d,Hy(i,j),i,j,i,j+1,wnu.data(),wcu.data(),wcl.data(),wcd.data());
 
+        double fl,fr;
+        fweights(hMy[IJ],i,j,i,j+1,fl,fr);
+
         for(k=0;k<p->knoz;++k)
-        wb[k] = 0.5*(UHD[IJK] + UHD[IJp1K])*nx + 0.5*(VHD[IJK] + VHD[IJp1K])*ny;
+        wb[k] = fl*(UHD[IJK]*nx + VHD[IJK]*ny) + fr*(UHD[IJp1K]*nx + VHD[IJp1K]*ny);
 
         if(thv<1.0)
         {
         for(k=0;k<p->knoz;++k)
-        wx[k] = 0.5*(UH0[IJK] + UH0[IJp1K])*nx + 0.5*(VH0[IJK] + VH0[IJp1K])*ny;
+        wx[k] = fl*(UH0[IJK]*nx + VH0[IJK]*ny) + fr*(UH0[IJp1K]*nx + VH0[IJp1K]*ny);
         col_adv_rhs(p,wx.data(),wb.data());
         }
 
