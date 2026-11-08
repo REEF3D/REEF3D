@@ -1283,7 +1283,7 @@ void control::ini_default()
     S34=1;              // int type of suspedned load D and E calculation
     S35=1.0;            // double Exner magnification factor
     S36=0;              // int alluvial/bedform/effective roughness
-	S37=0;		        // int inertia bedshear stress
+	S37=0;		        // int inertia bedshear stress: 1 inertia term of the particles, 2 NHFLOW phase-lead velocity of Nielsen (2006) with S 140, S 141
     S38=0;              // int shallow water bedshear calculation
     S39=100.0;            // double blend factor
     S40=0.1;            // double bedload adaptation length [m] (S33=1) or factor on water depth [-] (S33=4)
@@ -1368,6 +1368,8 @@ void control::ini_default()
     S128=0.01;             // double minimum water depth of the suspended load [m]
     S129=0;                // int sediment inflow: 0 equilibrium, 1 constant (bed load S 130, concentration S 124), 2 time series sediment-inflow.dat
     S130=0.0;              // double bed load at the inflow for S 129 1 [m^2/s], sediment volume per width
+    S140=51.0;             // double S 37 2: phase lead of the near-bed velocity in deg (Nielsen 2006)
+    S141=0.0;              // double S 37 2: wave period of the phase lead [s], <=0: S 58, else the period of the wave generation
 
     // CFD: soil stress model (soil_stress.h), Biot u-p in the cells below the bed
     S200=0;                // int soil stress model: 0 off, 1 quasi-static, 2 dynamic (soil inertia)
