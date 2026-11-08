@@ -242,11 +242,15 @@ void poisson_pcorr::start(lexer* p, fdm *a, field &press)
 		a->M.s[n] = 0.0;
 		}*/
 		
-        // outflow (IO 2): the ghost pressure is outflow_pressure(), the value pressure_io has put
-        // into the ghost cells before the projection, so the correction there is its difference
+        // outflow (IO 2): as for the patch outlets, the Dirichlet value of the correction is
+        // outflow_pressure() - cell pressure, so that the pressure next to the outflow relaxes to the
+        // outflow pressure (B 77 1: hydrostatic from F 60 / F 62). The boundary face velocity is not
+        // part of the momentum step (ulast) and not corrected, so the ghost pressure set by
+        // pressure_io alone has no effect: with (outflow_pressure - ghost pressure) = 0 the pressure
+        // level at the outflow was not held and the water level drifted (outflow 26.10)
         if(p->flag4[Ip1JK]<0 && (i+p->origin_i<p->gknox-1 || p->periodic1==0) && p->IO[Ip1JK]==2)
 		{
-		a->rhsvec.V[n] -= a->M.n[n]*(outflow_pressure(p,a,i,j,k) - a->press(i+1,j,k));
+		a->rhsvec.V[n] -= a->M.n[n]*(outflow_pressure(p,a,i,j,k) - a->press(i,j,k));
 		a->M.n[n] = 0.0;
 		}
 

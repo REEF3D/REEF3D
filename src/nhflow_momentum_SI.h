@@ -302,6 +302,9 @@ private:
     std::vector<char> nAct;
     std::shared_ptr<sflow_si_nh_lu> nhlu;
     std::shared_ptr<nhflow_si_nhmg> nhmg;
+    std::shared_ptr<nhflow_si_nhmg> nhme, nhmp;     // A 507 1: the eta system (one unknown per column) and the phi system (K)
+    int nh_lagc = 0, nh_lagit = 0, nh_lagnact = -1; // the preconditioner kept for some steps: steps since its refresh, the
+    double nh_lagdt = 0.0;                          // iterations of that step, the active columns and dt then
     int nh_iter = 0;
     double nh_time = 0.0, nh_res = 0.0, nh_brk = 0.0;
     void nh_ini(lexer*);
@@ -320,8 +323,11 @@ private:
     std::vector<double> nActG;                                               // nAct with the columns of the neighbouring ranks
     bool nh_fixed = false;
     std::vector<std::vector<double>> fgV, fgZ;   // FGMRES of the coupled system: the Krylov vectors (kept, allocated as needed)
-    std::vector<double> nEtaP, nPhiP;            // eta and phi of the step before (the initial guess)                     // in nh_solve: the inflow/outflow of the riemann/flather faces from eta^n
-    void nh_residual(lexer*, fdm_nhf*, ghostcell*, const std::vector<double>&, std::vector<double>&);
+    std::vector<std::vector<double>> fgVe, fgZe, fgVp, fgZp;   // the same for the eta and phi systems (A 507 1)
+    std::vector<double> nEtaP, nPhiP;            // eta and phi of the step before (the initial guess)
+    std::vector<double> nsx, nsF0, nsy, nmb, nmx, nmw, nmv;     // work vectors of nh_solve and nh_solve_mg (kept)
+    // zero: x = 0 (F(0); no phi faces)
+    void nh_residual(lexer*, fdm_nhf*, ghostcell*, const std::vector<double>&, std::vector<double>&, bool zero=false);
     void nh_solve(lexer*, fdm_nhf*, ghostcell*);
     void nh_solve_mg(lexer*, fdm_nhf*, ghostcell*, const std::vector<double>&, std::vector<double>&);
     void nh_cell(lexer*, fdm_nhf*, ghostcell*);

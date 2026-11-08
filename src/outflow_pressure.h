@@ -36,7 +36,14 @@ Author: Hans Bihs
 //  1  controlled outflow, pressure condition: hydrostatic from the outflow water level
 //     (F 60 / F 62) for F 50 = 2, 3; the cell value for F 50 = 1, 4 and with a relaxation
 //     beach (B 99 = 1, 2), where the beach sets the free surface and the velocities
-//  2  controlled outflow, free surface condition (F 62, ioflow_waterlevel): the cell value
+//  2  controlled outflow, free surface condition (F 62, F 64 ramp, ioflow_waterlevel): the cell
+//     value; the level set alone holds the level (a hydrostatic value from the ramped level drove
+//     air jets and blew up the drawdown start of the ogee weir case)
+//
+// p->fsfout: F 60 / F 62 (ini_phi), during the run the ramped F 62 (ioflow_f::fsfinflow).
+// In the Poisson row of an outflow face (poisson_pcorr) the Dirichlet value of the correction is
+// outflow_pressure() - cell pressure: the boundary face velocity is not part of the momentum step,
+// so the ghost pressure alone has no effect.
 // 10  free stream: zero pressure in the liquid, the cell value in the gas, (1-H) p
 inline double outflow_pressure(lexer *p, fdm *a, int i, int j, int k)
 {
