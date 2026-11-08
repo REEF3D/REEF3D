@@ -34,6 +34,7 @@ Authors: Tobias Martin, Hans Bihs
 #include"net_interface.h"
 #include"ship.h"
 #include"6DOF_deform.h"
+#include"6DOF_brain.h"
 
 sixdof_obj::sixdof_obj(lexer *p, ghostcell *pgc, int number) : ddweno_f_nug(p),
                                                                                 georay(p),n6DOF(number),
@@ -89,6 +90,8 @@ sixdof_obj::sixdof_obj(lexer *p, ghostcell *pgc, int number) : ddweno_f_nug(p),
         for(int n=0; n<p->X199; ++n)
         if(p->X199_id[n]==number)
         tg.push_back({p->X199_t[n], p->X199_f[n], p->X199_a[n], p->X199_b[n], p->X199_ts[n]});
+        
+        gait_in_ = tg;
         
         if(!tg.empty())
         fish_->set_gait(tg);
@@ -218,6 +221,7 @@ sixdof_obj::sixdof_obj(lexer *p, ghostcell *pgc, int number) : ddweno_f_nug(p),
 sixdof_obj::~sixdof_obj()
 {
     geom.deform = nullptr;
+    delete brain_;
     delete fish_;
     
     for(size_t ql=0; ql<pload.size(); ++ql)

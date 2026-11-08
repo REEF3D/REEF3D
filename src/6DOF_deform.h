@@ -121,6 +121,10 @@ public:
     // (0: half a tail beat); a target at t <= 0 sets the start values
     struct gait_target {double t, f, a, b, ts;};
     void set_gait(std::vector<gait_target>);
+    // a target after the last one (the brain, X 193), and the largest frequency it may ask for (fixes
+    // the step of the recoil quadrature; before set_gait)
+    void push_gait(const gait_target&);
+    void set_fcap(double f) {fcap_ = f;}
     bool gait_on() const {return gait_on_;}
     double amp_factor() const {return gcur_.a;}
     double bias() const {return gcur_.b;}
@@ -168,7 +172,8 @@ private:
     std::vector<gait_seg> gseg_;
     bool gait_on_ = false, bias_now_ = false;
     gait_state gcur_;
-    double fmax_ = 0.0;
+    double fmax_ = 0.0, fcap_ = 0.0;
+    void add_seg(const gait_target&);
     
     double t_ = 0.0, r_ = 0.0, rdot_ = 0.0;
     double c0_ = 0.0, c1_ = 0.0, d0_ = 0.0, d1_ = 0.0;

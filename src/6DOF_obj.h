@@ -43,6 +43,7 @@ Author: Tobias Martin
 #include"6DOF_rigidbody.h"
 #include"6DOF_geometry.h"
 #include"6DOF_load.h"
+#include"6DOF_deform.h"
 #include<fstream>
 #include<iostream>
 #include<vector>
@@ -60,6 +61,7 @@ class mooring;
 class net_interface;
 class sixdof_motionext;
 class sixdof_deform;
+class sixdof_brain;
  
 using namespace std;
 
@@ -479,6 +481,15 @@ protected:
     std::vector<double> ll_s_;
     std::vector<int> ll_side_;
     ofstream printll;
+    
+    // brain (X 193): the senses of each step, the decisions as gait targets (X 199) of the deforming
+    // body, kept for the checkpoint; log
+    sixdof_brain *brain_ = nullptr;
+    std::vector<sixdof_deform::gait_target> gait_in_, gait_brain_;
+    void brain_setup(lexer*);
+    void brain_update(lexer*, const std::vector<double>*, const std::vector<double>* =nullptr);
+    bool brain_due(lexer*) const;
+    ofstream printbrain;
 };
 
 #endif

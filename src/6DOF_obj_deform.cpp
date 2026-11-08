@@ -26,6 +26,7 @@ Architect: Hans Bihs
 #include"lexer.h"
 #include"ghostcell.h"
 #include"reefckpt.h"
+#include"6DOF_brain.h"
 
 //  Prescribed deformation of a 6DOF body (X 195): undulatory swimming. The deformation acts on the
 //  body frame hull (sixdof_geometry::transform), its velocity is added to the rigid-body velocity of
@@ -39,6 +40,10 @@ void sixdof_obj::deform_setup(lexer *p, ghostcell *pgc)
     return;
 
     fish_->setup(geom);
+    
+    // brain (X 193): before the first time of the gait (the step of the recoil quadrature)
+    brain_setup(p);
+    
     deform_time(p->simtime);
     geom.deform = fish_;
     
@@ -207,4 +212,103 @@ void sixdof_obj::print_fish(lexer *p, double t)
     printfish<<" \t "<<fish_->frequency()<<" \t "<<fish_->amp_factor()<<" \t "<<fish_->bias();
     
     printfish<<endl;
+}
+
+// ---------------------------------------------------------------------------------------------
+// brain (X 193 id U_des b_max th_wall th_esc, targets X 192 id t x y z): the senses of each step, the
+// decisions once per half tail beat as gait targets of the deforming body
+// ---------------------------------------------------------------------------------------------
+
+void sixdof_obj::brain_setup(lexer *p)
+{
+    int nb = -1;
+    
+    for(int n=0; n<p->X193; ++n)
+    if(p->X193_id[n]==n6DOF)
+    nb = n;
+    
+    if(nb<0 || fish_==nullptr)
+    return;
+    
+    std::vector<sixdof_brain::target_point> tp;
+    
+    for(int n=0; n<p->X192; ++n)
+    if(p->X192_id[n]==n6DOF)
+    tp.push_back({p->X192_t[n], p->X192_x[n], p->X192_y[n], p->X192_z[n]});
+    
+    double f0 = fish_->frequency(), tramp = 0.0;
+    
+    for(int n=0; n<p->X195; ++n)
+    if(p->X195_id[n]==n6DOF)
+    {
+    f0 = p->X195_f[n];
+    tramp = p->X195_tramp[n];
+    }
+    
+    delete brain_;
+    brain_ = new sixdof_brain(p->X193_U[nb], p->X193_b[nb], p->X193_D[nb], p->X193_the[nb], f0, fish_->length(), p->W1,
+                              tramp + 1.0/f0, fish_->lateral(), tp);
+    
+    // the largest frequency of the brain fixes the step of the recoil quadrature
+    fish_->set_fcap(brain_->fmax());
+    fish_->set_gait(gait_in_);
+    gait_brain_.clear();
+    
+    if(p->mpirank==0)
+    {
+        cout<<"6DOF body "<<n6DOF<<": brain (X 193), U_des "<<p->X193_U[nb]<<" m/s, b_max "<<p->X193_b[nb]
+            <<", vision "<<p->X193_D[nb]<<" L, escape at "<<p->X193_the[nb]<<" q, "<<tp.size()<<" target points (X 192)"<<endl;
+        
+        char str[1000];
+        snprintf(str,sizeof(str),"%s/REEF3D_6DOF_brain_%i.dat",sixdof_output_dir(p),n6DOF);
+        
+        if(reefckpt_open(printbrain,str,p->I45))
+        printbrain<<"time \t target_x \t target_y \t target_z \t dist [m] \t bearing [deg] \t U [m/s] \t f [Hz] \t a \t b"
+                  <<" \t dp_head/q \t p_head/q \t d_vision/L \t mode (0 target, 1 avoid, 2 escape, 3 at target)"<<endl;
+    }
+}
+
+bool sixdof_obj::brain_due(lexer *p) const
+{
+    return brain_!=nullptr && brain_->due(p->simtime + p->dt);
+}
+
+void sixdof_obj::brain_update(lexer *p, const std::vector<double> *pr, const std::vector<double> *vis)
+{
+    if(brain_==nullptr)
+    return;
+    
+    // the senses of this step: the body at t^(n+1)
+    const int la = fish_->lateral();
+    const Eigen::Vector3d ax = R_.col(0), lat = R_.col(la);
+    const Eigen::Vector3d U(p->ufbi, p->vfbi, p->wfbi);
+    brain_->sense(p->dt, ax, lat, c_, U, pr, ll_s_, ll_side_);
+    
+    // a decision for the next step
+    const double tn = p->simtime + p->dt;
+    
+    if(!brain_->due(tn))
+    return;
+    
+    fish_->set_time(tn);
+    const sixdof_brain::decision d = brain_->decide(tn, fish_->frequency(), fish_->amp_factor(), fish_->bias(), vis);
+    
+    if(d.on)
+    {
+        gait_brain_.push_back({d.t, d.f, d.a, d.b, d.ts});
+        fish_->push_gait(gait_brain_.back());
+        
+        if(d.second)
+        {
+            gait_brain_.push_back({d.t2, d.f2, d.a2, d.b2, d.ts2});
+            fish_->push_gait(gait_brain_.back());
+        }
+    }
+    
+    if(p->mpirank==0 && printbrain.is_open())
+    {
+        const sixdof_brain::record &r = brain_->last();
+        printbrain<<r.t<<" \t "<<r.tx<<" \t "<<r.ty<<" \t "<<r.tz<<" \t "<<r.dist<<" \t "<<r.psi*(180.0/PI)<<" \t "<<r.U
+                  <<" \t "<<r.Ff<<" \t "<<r.Fa<<" \t "<<r.Fb<<" \t "<<r.dpl<<" \t "<<r.phd<<" \t "<<r.dvis<<" \t "<<r.mode<<endl;
+    }
 }

@@ -682,31 +682,42 @@ void sixdof_deform::set_gait(std::vector<gait_target> tg)
     sg.lam = 1.0;
     gseg_.push_back(sg);
     
-    fmax_ = std::max(f_, sg.s0.f);
+    fmax_ = std::max(std::max(f_, sg.s0.f), fcap_);
     
     for(; n<tg.size(); ++n)
-    {
-        gait_seg nx;
-        nx.t0 = tg[n].t;
-        nx.s0 = evolve(gseg_.back(), nx.t0 - gseg_.back().t0);
-        nx.F = tg[n].f;
-        nx.A = tg[n].a;
-        nx.B = tg[n].b;
-        
-        // settling time: given, or half a tail beat of the target frequency
-        double ts = tg[n].ts;
-        
-        if(ts<=0.0)
-        ts = 0.5/std::max(1.0e-6, (nx.F>0.0 ? nx.F : f_));
-        
-        nx.lam = 4.744/ts;
-        gseg_.push_back(nx);
-        
-        fmax_ = std::max(fmax_, nx.F);
-    }
+    add_seg(tg[n]);
     
     gait_on_ = true;
     gcur_ = gait(t_);
+}
+
+void sixdof_deform::add_seg(const gait_target &g)
+{
+    gait_seg nx;
+    nx.t0 = std::max(g.t, gseg_.back().t0);
+    nx.s0 = evolve(gseg_.back(), nx.t0 - gseg_.back().t0);
+    nx.F = g.f;
+    nx.A = g.a;
+    nx.B = g.b;
+    
+    // settling time: given, or half a tail beat of the target frequency
+    double ts = g.ts;
+    
+    if(ts<=0.0)
+    ts = 0.5/std::max(1.0e-6, (nx.F>0.0 ? nx.F : f_));
+    
+    nx.lam = 4.744/ts;
+    gseg_.push_back(nx);
+    
+    fmax_ = std::max(fmax_, nx.F);
+}
+
+void sixdof_deform::push_gait(const gait_target &g)
+{
+    if(!gait_on_)
+    set_gait({});
+    
+    add_seg(g);
 }
 
 sixdof_deform::gait_state sixdof_deform::evolve(const gait_seg &g, double tau)

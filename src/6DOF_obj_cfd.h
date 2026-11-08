@@ -65,6 +65,8 @@ public:
     // lateral line (X 194): pressure and velocity relative to the hull at the probes, printed with
     // the body output
     void lateral_line(lexer*, fdm*, ghostcell*);
+    // vision of the brain (X 193): the distances along its rays to the walls of the domain and the solids
+    std::vector<double> vision(lexer*, fdm*, ghostcell*);
     
     // X 198: fluid-momentum coupling (6DOF_obj_cfd_momentum.cpp): the rigid-body motion fitted to the
     // predicted velocity of the stage in the hull region gives the loads of the body

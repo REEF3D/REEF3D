@@ -35,6 +35,7 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"ghostcell.h"
 #include"ckpt_pack.h"
+#include"6DOF_brain.h"
 
 template<class P>
 void sixdof_obj::ckpt_fields(lexer *p, P &q)
@@ -96,6 +97,18 @@ void sixdof_obj::ckpt_state(lexer *p, std::vector<double> &v)
 
     // the acceleration of the last stage of the stabilised CFD coupling (am_cfd_)
     part([&](std::vector<double> &s){ if(am_cfd_>0.0) s.assign(am_prev_.data(),am_prev_.data()+6); });
+    
+    // the brain (X 193): its decisions (the gait targets it set) and its state
+    part([&](std::vector<double> &s)
+    {
+        if(brain_==nullptr)
+        return;
+        s.push_back(double(gait_brain_.size()));
+        for(const sixdof_deform::gait_target &g : gait_brain_)
+        for(double x : {g.t, g.f, g.a, g.b, g.ts})
+        s.push_back(x);
+        brain_->ckpt_state(s);
+    });
 }
 
 bool sixdof_obj::ckpt_restore(lexer *p, ghostcell *pgc, const std::vector<double> &v)
@@ -159,6 +172,28 @@ bool sixdof_obj::ckpt_restore(lexer *p, ghostcell *pgc, const std::vector<double
     // checkpoints: 0)
     if(r.ok && r.k<v.size())
     part([&](const std::vector<double> &s, size_t&){ if(s.size()==6) for(int n=0; n<6; ++n) am_prev_(n) = s[n]; });
+    
+    // the brain (X 193): the gait rebuilt with its decisions, its state (refused if missing)
+    bool brain_ok = (brain_==nullptr);
+    if(r.ok && r.k<v.size())
+    part([&](const std::vector<double> &s, size_t&)
+    {
+        if(brain_==nullptr || s.empty())
+        return;
+        const size_t nb = size_t(s[0]);
+        if(s.size()<1+5*nb)
+        return;
+        gait_brain_.clear();
+        fish_->set_gait(gait_in_);
+        for(size_t k=0; k<nb; ++k)
+        {
+            gait_brain_.push_back({s[1+5*k], s[2+5*k], s[3+5*k], s[4+5*k], s[5+5*k]});
+            fish_->push_gait(gait_brain_.back());
+        }
+        brain_ok = brain_->ckpt_restore(std::vector<double>(s.begin()+1+5*nb, s.end()));
+    });
+    if(!brain_ok)
+    return false;
 
     // the pose: trimesh, body velocities and the lexer values of the body (CoG, angles, velocities);
     // a deforming body (X 195) at the time of the checkpoint

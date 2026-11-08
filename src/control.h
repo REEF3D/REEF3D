@@ -725,6 +725,10 @@ public:
     int X195,X196;
     int *X195_id,*X195_type;
     double *X195_a,*X195_lambda,*X195_f,*X195_tramp;
+    int X192,X193;
+    int *X192_id,*X193_id;
+    double *X192_t,*X192_x,*X192_y,*X192_z;
+    double *X193_U,*X193_b,*X193_D,*X193_the;
     int X194;
     int *X194_id,*X194_n;
     double *X194_d;

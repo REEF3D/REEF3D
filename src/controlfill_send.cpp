@@ -3377,6 +3377,10 @@ void control::ctrlsend()
     ii++;
     ictrl[ii] = X196;
     ii++;
+    ictrl[ii] = X192;
+    ii++;
+    ictrl[ii] = X193;
+    ii++;
     ictrl[ii] = X194;
     ii++;
     ictrl[ii] = X199;
@@ -5408,6 +5412,28 @@ void control::ctrlsend()
         dd++;
         dctrl[dd] = X195_tramp[n];
         dd++;
+    }
+    
+    for(n=0;n<X192;++n)
+    {
+        ictrl[ii] = X192_id[n];
+        ii++;
+        for(double x : {X192_t[n], X192_x[n], X192_y[n], X192_z[n]})
+        {
+        dctrl[dd] = x;
+        dd++;
+        }
+    }
+    
+    for(n=0;n<X193;++n)
+    {
+        ictrl[ii] = X193_id[n];
+        ii++;
+        for(double x : {X193_U[n], X193_b[n], X193_D[n], X193_the[n]})
+        {
+        dctrl[dd] = x;
+        dd++;
+        }
     }
     
     for(n=0;n<X194;++n)

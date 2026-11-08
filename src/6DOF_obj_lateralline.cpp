@@ -27,6 +27,7 @@ Architect: Hans Bihs
 #include"fdm.h"
 #include"ghostcell.h"
 #include"reefckpt.h"
+#include"6DOF_brain.h"
 #include<algorithm>
 
 //  Lateral line of a 6DOF body (X 194 id n d): the senses of a fish along its flanks. Probes sit a
@@ -36,7 +37,8 @@ Architect: Hans Bihs
 //  follow the flank. At each probe the fluid pressure and the fluid velocity relative to the hull
 //  (rigid-body motion and deformation), in the body frame (axial, lateral, third axis), each the
 //  mean of 3 x 3 points (one cell apart along the axis, half a cell normal to the flank): the
-//  pressure next to the forced hull varies from cell to cell. Sampled at the output steps (X 19).
+//  pressure next to the forced hull varies from cell to cell. Sampled each step when the body has
+//  a brain (X 193), else at the output steps (X 19).
 
 void sixdof_obj::lateral_line_setup(lexer *p)
 {
@@ -166,8 +168,19 @@ Eigen::Vector3d sixdof_obj::lateral_line_point(int q, double da, double dn) cons
 
 void sixdof_obj_cfd::lateral_line(lexer *p, fdm *a, ghostcell *pgc)
 {
-    if(ll_pts_.empty() || p->count%p->X19!=0)
-    return;
+    const bool out = (p->count%p->X19==0);
+    
+    // vision of the brain at its decision steps
+    std::vector<double> vis;
+    if(brain_due(p) && brain_->vision_range()>0.0)
+    vis = vision(p,a,pgc);
+    const std::vector<double> *pv = vis.empty() ? nullptr : &vis;
+    
+    if(ll_pts_.empty() || (!out && brain_==nullptr))
+    {
+        brain_update(p,nullptr,pv);
+        return;
+    }
     
     const int n = int(ll_pts_.size());
     std::vector<double> val(4*n, 0.0);
@@ -207,7 +220,14 @@ void sixdof_obj_cfd::lateral_line(lexer *p, fdm *a, ghostcell *pgc)
     for(int q=0; q<4*n; ++q)
     val[q] = pgc->globalsum(val[q]);
     
-    if(p->mpirank!=0 || !printll.is_open())
+    // the brain: the pressures of the probes
+    std::vector<double> pr(n);
+    for(int q=0; q<n; ++q)
+    pr[q] = val[4*q];
+    
+    brain_update(p,&pr,pv);
+    
+    if(!out || p->mpirank!=0 || !printll.is_open())
     return;
     
     const int la = (fish_!=nullptr) ? fish_->lateral() : (rb.twoD ? 2 : 1), va = 3 - la;
@@ -221,4 +241,65 @@ void sixdof_obj_cfd::lateral_line(lexer *p, fdm *a, ghostcell *pgc)
     }
     
     printll<<endl;
+}
+
+std::vector<double> sixdof_obj_cfd::vision(lexer *p, fdm *a, ghostcell *pgc)
+{
+    // rays from the head in the plane of the undulation: the distance to the walls of the domain
+    // (exact) and to the solids (their level set, sampled every half cell), up to the range D
+    const std::vector<double> &ang = sixdof_brain::rays();
+    const double D = brain_->vision_range();
+    const int la = fish_->lateral(), nrm = (la==1) ? 2 : 1;
+    
+    Eigen::Vector3d ex = R_.col(0), el = R_.col(la);
+    ex(nrm) = 0.0;
+    el(nrm) = 0.0;
+    ex.normalize();
+    el = (el - el.dot(ex)*ex).normalized();
+    const Eigen::Vector3d O = c_ + fish_->xhead()*R_.col(0);
+    
+    const double lo[3] = {p->global_xmin, p->global_ymin, p->global_zmin};
+    const double hi[3] = {p->global_xmax, p->global_ymax, p->global_zmax};
+    
+    std::vector<double> dist(ang.size(), D);
+    const double ds = 0.5*p->DXM;
+    const int ns = int(D/ds);
+    
+    for(size_t r=0; r<ang.size(); ++r)
+    {
+        const Eigen::Vector3d e = std::cos(ang[r])*ex + std::sin(ang[r])*el;
+        
+        // the walls of the domain
+        for(int c=0; c<3; ++c)
+        if(c!=nrm && std::fabs(e(c))>1.0e-12)
+        {
+            const double s = ((e(c)>0.0 ? hi[c] : lo[c]) - O(c))/e(c);
+            if(s>=0.0)
+            dist[r] = std::min(dist[r], s);
+        }
+        
+        // the solids: the first sample inside (level set < 0), the rank that owns it
+        if(p->solidread>0)
+        {
+            double hit = 1.0e20;
+            
+            for(int k=1; k<=ns; ++k)
+            {
+                const Eigen::Vector3d X = O + (k*ds)*e;
+                const bool own = (X(0)>=p->originx && X(0)<p->endx) && (p->j_dir==0 || (X(1)>=p->originy && X(1)<p->endy))
+                              && (X(2)>=p->originz && X(2)<p->endz);
+                
+                if(own && p->ccipol4a(a->solid, X(0), X(1), X(2))<0.0)
+                {
+                    hit = k*ds;
+                    break;
+                }
+            }
+            
+            hit = pgc->globalmin(hit);
+            dist[r] = std::min(dist[r], hit);
+        }
+    }
+    
+    return dist;
 }

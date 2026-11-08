@@ -4459,6 +4459,12 @@ void control::read_control(lexer* p)
                 case  196: control>>X196;
                          clear(c,numint);
                          break;
+                case  192: ++X192;
+                         clear(c,numint);
+                         break;
+                case  193: ++X193;
+                         clear(c,numint);
+                         break;
                 case  194: ++X194;
                          clear(c,numint);
                          break;
@@ -5515,6 +5521,18 @@ void control::read_control(lexer* p)
     Darray(X195_f,X195);
     Darray(X195_tramp,X195);
     
+    Iarray(X192_id,X192);
+    Darray(X192_t,X192);
+    Darray(X192_x,X192);
+    Darray(X192_y,X192);
+    Darray(X192_z,X192);
+    
+    Iarray(X193_id,X193);
+    Darray(X193_U,X193);
+    Darray(X193_b,X193);
+    Darray(X193_D,X193);
+    Darray(X193_the,X193);
+    
     Iarray(X194_id,X194);
     Iarray(X194_n,X194);
     Darray(X194_d,X194);
@@ -5820,6 +5838,8 @@ void control::read_control(lexer* p)
     int countX110=0;
     int countX111=0;
     int countX195=0;
+    int countX192=0;
+    int countX193=0;
     int countX194=0;
     int countX199=0;
     int countX163=0;
@@ -6689,6 +6709,15 @@ void control::read_control(lexer* p)
                          break;
                 case 195: control>>X195_id[countX195]>>X195_type[countX195]>>X195_a[countX195]>>X195_lambda[countX195]>>X195_f[countX195]>>X195_tramp[countX195];
                          ++countX195;
+                         clear(c,numint);
+                         break;
+                case 192: control>>X192_id[countX192]>>X192_t[countX192]>>X192_x[countX192]>>X192_y[countX192]>>X192_z[countX192];
+                         p->XYin(X192_x[countX192],X192_y[countX192]);
+                         ++countX192;
+                         clear(c,numint);
+                         break;
+                case 193: control>>X193_id[countX193]>>X193_U[countX193]>>X193_b[countX193]>>X193_D[countX193]>>X193_the[countX193];
+                         ++countX193;
                          clear(c,numint);
                          break;
                 case 194: control>>X194_id[countX194]>>X194_n[countX194]>>X194_d[countX194];
