@@ -565,39 +565,6 @@ void cfd_amr::step_sub(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof *
     replace_static(p,pgc);
 
     tm[7] += MPI_Wtime()-t0;
-
-    if(p->count%p->P12==0)
-    {
-        double V, dV;
-        volume(V,dV);
-        if(p->mpirank==0)
-        {
-            const std::streamsize pr = cout.precision();
-            cout<<"CFD AMR: volume of the level set over the leaf cells "<<setprecision(8)<<V<<endl;
-            cout.precision(pr);
-        }
-    }
-    if(scal && p->count%p->P12==0)
-    {
-        double smin, smax;
-        const double S = sc_total(smin,smax);
-        if(p->mpirank==0)
-        {
-            const std::streamsize pr = cout.precision();
-            cout<<"CFD AMR: "<<(scal==1 ? "heat (T V)" : "concentration (C V)")<<" over the leaf cells "<<setprecision(12)<<S
-                <<", range "<<setprecision(6)<<smin<<" "<<smax<<endl;
-            cout.precision(pr);
-        }
-    }
-    if(p->count%p->P12==0)
-    pr_report(p);
-
-    if(p->mpirank==0 && (p->count%p->P12==0))
-    {
-        cout<<"CFD AMR: subcycling, level-0 step "<<setprecision(3)<<tm[4]<<" s, the patches "<<tm[7]-tm[4]<<" s; pressure iterations (last level solve) "<<pr_it_last
-            <<"  res "<<pr_res_last<<", synchronisation "<<pr_it_sync<<" ("<<setprecision(3)<<t_sync<<" s); level projections "
-            <<setprecision(3)<<(pr_solves>0 ? double(pr_it_total)/double(pr_solves) : 0.0)<<" it mean ("<<tm[2]-t_sync<<" s)"<<endl;
-    }
 }
 
 // --------------------------------------------------------------------- floating bodies (G 7 1)

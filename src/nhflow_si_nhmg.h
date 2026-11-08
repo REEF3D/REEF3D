@@ -81,7 +81,7 @@ public:
 
 private:
     MPI_Comm comm;
-    int B=0, BB=0, nx0=0, ny0=0;
+    int B=0, BB=0, nx0=0, ny0=0, nlev=0;
     int nb[4];
     bool alone = true;      // no neighbouring rank: no halo exchange
     std::vector<double> A0, xh0, sbuf, rbuf;

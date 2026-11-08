@@ -69,7 +69,7 @@ nhflow_momentum_SI::nhflow_momentum_SI(lexer *p, fdm_nhf *d, ghostcell *pgc, six
                       &UHD,&VHD,&WHD,&dUH,&dVH};
 
     for(double **a : arr)
-    p->Darray(*a,N);
+    p->Darray_lazy(*a,N);
 
     sigma_ini(p,d,pgc,d->eta);
 
@@ -102,19 +102,19 @@ nhflow_momentum_SI::nhflow_momentum_SI(lexer *p, fdm_nhf *d, ghostcell *pgc, six
     {
     double **ba[] = {&Bx,&By,&BFx,&BFy};
     for(double **a : ba)
-    p->Darray(*a,N);
+    p->Darray_lazy(*a,N);
     }
 
     // A 623 with the algebraic eddy viscosity A 547: its stability functions
     if(p->A623>0 && p->A560==0 && (p->A547_c>0.0 || p->A547_nu0>0.0))
     {
-    p->Darray(KV,N);
-    p->Darray(N2,N);
+    p->Darray_lazy(KV,N);
+    p->Darray_lazy(N2,N);
     }
 
     // A 627 + A 623 with a turbulence model: the floor damped by f_m(Ri)
     if(p->A627_c>0.0 && p->A623>0 && p->A560>0)
-    p->Darray(N2,N);
+    p->Darray_lazy(N2,N);
 
     // the 2D solver of the eta system: created with the first solve of one grid (new_solver2D); the
     // multi-block grid solves the eta system of all blocks together (nhflow_amr_si.cpp)
@@ -139,9 +139,9 @@ nhflow_momentum_SI::nhflow_momentum_SI(lexer *p, fdm_nhf *d, ghostcell *pgc, six
     if(elm_mode(p)==1)
     {
     rk = 1;
-    p->Darray(ELU,N);
-    p->Darray(ELV,N);
-    p->Darray(ELW,N);
+    p->Darray_lazy(ELU,N);
+    p->Darray_lazy(ELV,N);
+    p->Darray_lazy(ELW,N);
     }
     qini = false;
     wd_iter = 0;
@@ -179,11 +179,11 @@ nhflow_momentum_SI::nhflow_momentum_SI(lexer *p, fdm_nhf *d, ghostcell *pgc, six
     if(tl2)
     {
     thv = 0.5;
-    p->Darray(accU,N);
-    p->Darray(accV,N);
-    p->Darray(accW,N);
-    p->Darray(FSx,N);
-    p->Darray(FSy,N);
+    p->Darray_lazy(accU,N);
+    p->Darray_lazy(accV,N);
+    p->Darray_lazy(accW,N);
+    p->Darray_lazy(FSx,N);
+    p->Darray_lazy(FSy,N);
     }
 
     // the time levels of the step before (nh_begin, nh_levels; in the checkpoints): -1 no level yet (the first
@@ -234,12 +234,12 @@ nhflow_momentum_SI::~nhflow_momentum_SI()
     double *arr[] = {Qx,Qy,Qxn,Qyn,Tx,Ty,QAx,QAy,Rx,Ry,UH0,VH0,WH0,UHa,VHa,WHa,UHb,VHb,WHb,UHp,VHp,WHp,UHD,VHD,WHD,dUH,dVH};
 
     for(double *a : arr)
-    delete [] a;
+    free(a);
 
     delete psi;
     delete ptrc;
     for(double *a : {Bx,By,BFx,BFy,KV,N2,ELU,ELV,ELW,accU,accV,accW,FSx,FSy})
-    delete [] a;
+    free(a);
 
     nh_free();
 

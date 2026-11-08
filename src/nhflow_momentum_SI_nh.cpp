@@ -102,7 +102,7 @@ void nhflow_momentum_SI::nh_ini(lexer *p)
     const int N = p->imax*p->jmax*(p->kmax+2);
     double **arr[] = {&NQx,&NQy,&WHS,&PHI,&PHIo,&NSX,&NSY};
     for(double **a : arr)
-    p->Darray(*a,N);
+    p->Darray_lazy(*a,N);
 
     nWLh.assign((size_t)p->imax*p->jmax,0.0);
     nWLo.assign((size_t)p->imax*p->jmax,-1.0);
@@ -115,7 +115,7 @@ void nhflow_momentum_SI::nh_free()
     for(double **a : arr)
     if(*a!=nullptr)
     {
-    delete [] *a;
+    free(*a);
     *a = nullptr;
     }
 }
@@ -530,10 +530,14 @@ void nhflow_momentum_SI::nh_dfaces(lexer *p, fdm_nhf *d, ghostcell *pgc)
     // eta = 0, as F(0))
     const double dt = p->dt;
     const int K = p->knoz;
-    const int N = p->imax*p->jmax*(p->kmax+2);
+
+    // the layers of the columns only (index dqi: no vertical ghost cells, a third of a 3D array with 4 layers)
+    const int NC = p->imax*p->jmax*K;
 
     for(std::vector<double> *v : {&dQxL,&dQxR,&dQyL,&dQyR,&pQxL0,&pQxR0,&pQxL1,&pQxR1,&pQyL0,&pQyR0,&pQyL1,&pQyR1})
-    v->assign(N,0.0);
+    v->assign(NC,0.0);
+
+    auto ci = [&]() { return dqi(p,i,j,k); };
 
     auto in = [&](int a, int c) { return p->flagslice4[(a-p->imin)*p->jmax + (c-p->jmin)]>0; };
     auto hh = [&](int a, int c) { return nWLh[(a-p->imin)*p->jmax + (c-p->jmin)]; };
@@ -566,8 +570,8 @@ void nhflow_momentum_SI::nh_dfaces(lexer *p, fdm_nhf *d, ghostcell *pgc)
         for(k=0;k<K;++k)
         {
         const double a = (dt*g*Hf*theta*R[IJK] + Kf)/dn;
-        dL[IJK] = a;
-        dR[IJK] = -a;
+        dL[ci()] = a;
+        dR[ci()] = -a;
         }
 
         if(nh && in(iL,jL) && in(iR,jR))
@@ -582,10 +586,10 @@ void nhflow_momentum_SI::nh_dfaces(lexer *p, fdm_nhf *d, ghostcell *pgc)
             const double su = nh_lim(zif(iR,jR,k+1) - zif(iL,jL,k+1),dxp);
             const double f = dt*c/sg;
 
-            pL0[IJK] = act(iL,jL) ? f*(sg*hL - sl) : 0.0;
-            pR0[IJK] = act(iR,jR) ? -f*(sg*hR + sl) : 0.0;
-            pL1[IJK] = (k<K-1 && act(iL,jL)) ? f*(sg*hL + su) : 0.0;
-            pR1[IJK] = (k<K-1 && act(iR,jR)) ? -f*(sg*hR - su) : 0.0;
+            pL0[ci()] = act(iL,jL) ? f*(sg*hL - sl) : 0.0;
+            pR0[ci()] = act(iR,jR) ? -f*(sg*hR + sl) : 0.0;
+            pL1[ci()] = (k<K-1 && act(iL,jL)) ? f*(sg*hL + su) : 0.0;
+            pR1[ci()] = (k<K-1 && act(iR,jR)) ? -f*(sg*hR - su) : 0.0;
             }
         }
 
@@ -630,16 +634,35 @@ void nhflow_momentum_SI::nh_dfaces(lexer *p, fdm_nhf *d, ghostcell *pgc)
             a = -f.s*f.B*(inflow ? f.Qg[k] : f.wo[k]);
             }
 
-        dL[IJK] = intR ? 0.0 : a;
-        dR[IJK] = intR ? a : 0.0;
+        dL[ci()] = intR ? 0.0 : a;
+        dR[ci()] = intR ? a : 0.0;
 
             for(int q=0;q<4;++q)
-            P4[q][IJK] = 0.0;
+            P4[q][ci()] = 0.0;
         }
     }
 
-    for(std::vector<double> *v : {&dQxL,&dQxR,&dQyL,&dQyR,&pQxL0,&pQxR0,&pQxL1,&pQxR1,&pQyL0,&pQyR0,&pQyL1,&pQyR1})
-    exchangeF(p,pgc,v->data());
+    // MPI: the faces of the neighbouring ranks through a 3D array (exchangeF)
+    if(p->mpi_size>1)
+    {
+    const int N = p->imax*p->jmax*(p->kmax+2);
+    std::vector<double> scr(N,0.0);
+
+        for(std::vector<double> *v : {&dQxL,&dQxR,&dQyL,&dQyR,&pQxL0,&pQxR0,&pQxL1,&pQxR1,&pQyL0,&pQyR0,&pQyL1,&pQyR1})
+        {
+        for(i=p->imin; i<p->imin+p->imax; ++i)
+        for(j=p->jmin; j<p->jmin+p->jmax; ++j)
+        for(k=0; k<K; ++k)
+        scr[IJK] = (*v)[ci()];
+
+        exchangeF(p,pgc,scr.data());
+
+        for(i=p->imin; i<p->imin+p->imax; ++i)
+        for(j=p->jmin; j<p->jmin+p->jmax; ++j)
+        for(k=0; k<K; ++k)
+        (*v)[ci()] = scr[IJK];
+        }
+    }
 }
 
 void nhflow_momentum_SI::nh_assemble(lexer *p, const std::function<void(int,int,int,int,int,double)> &sink)
@@ -664,18 +687,16 @@ void nhflow_momentum_SI::nh_assemble(lexer *p, const std::function<void(int,int,
                     const std::vector<double> &dR, const std::vector<double> &pL0, const std::vector<double> &pR0,
                     const std::vector<double> &pL1, const std::vector<double> &pR1)
     {
-        const int il=i, jl=j, kl=k;
-        i=fi; j=fj; k=kk;
-        at(bL,tr,0) += w*dL[IJK];
-        at(bR,tr,0) += w*dR[IJK];
-        at(bL,tr,1+kk) += w*pL0[IJK];
-        at(bR,tr,1+kk) += w*pR0[IJK];
+        const size_t q = dqi(p,fi,fj,kk);
+        at(bL,tr,0) += w*dL[q];
+        at(bR,tr,0) += w*dR[q];
+        at(bL,tr,1+kk) += w*pL0[q];
+        at(bR,tr,1+kk) += w*pR0[q];
             if(kk<K-1)
             {
-            at(bL,tr,2+kk) += w*pL1[IJK];
-            at(bR,tr,2+kk) += w*pR1[IJK];
+            at(bL,tr,2+kk) += w*pL1[q];
+            at(bR,tr,2+kk) += w*pR1[q];
             }
-        i=il; j=jl; k=kl;
     };
 
     // a row with the divergence of the layer discharges k: east and west, north and south faces
