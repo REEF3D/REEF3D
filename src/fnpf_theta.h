@@ -138,6 +138,12 @@ using namespace std;
 //   with zones per period: checker errors 0.281 and 0.0222 (before 0.276 and 0.0129); Mase & Kirby within its
 //   run-to-run spread (0.28-0.30), Tian with an energy loss of 0.111 for 0.120 (reference 0.133; validation 14).
 //
+// Wave generation and absorption at the edges (patch 0037): B 98 3/4 (and 6-8) and B 99 3-5, 7 (and 6, 8) through
+// iowave::inflow_fnpf as in RK3, with the targets at t^n+1, in the predictor and in each corrector pass with eta^n+1
+// of the pass. In the 2D flume of fnpf_2d_regular theta with Dirichlet generation has the error of theta with the
+// relaxation zone (the Crank-Nicolson phase of N 51 3); Mase & Kirby with B 98 4 and second-order reconstruction:
+// 0.197 (0.281 with the relaxation zone; RK3 0.120), 0.125 with A 379 0.1 2.0 (validation 16).
+//
 // Damping with the viscosity vb of breaking and of the coastline (A 350, A 357): at the start of the step, as a
 // source of the step (patch 0022), so the solve gives Fi of the damped surface.
 // Edits of the surface after the solve (the breaking filters A 352, the wetting-drying clamps, the coastline of

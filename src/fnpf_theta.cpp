@@ -127,7 +127,12 @@ fnpf_theta::fnpf_theta(lexer *p, fdm_fnpf *c, ghostcell *pgc) : fnpf_ini(p,c,pgc
     if(p->G1>0 && p->A328==1)       {bad=1; if(p->mpirank==0) cout<<"A 310 5: mesh refinement (G 1) with explicit sigma cross terms (A 328 0)"<<endl;}
     if(p->A311==3 || p->A327!=1)    {bad=1; if(p->mpirank==0) cout<<"A 310 5: needs the Fornberg sz stencil (A 327 1) and A 311 1, 2, 4, 5 or 6"<<endl;}
     if(p->A328==1 && lsolv==2)      {bad=1; if(p->mpirank==0) cout<<"A 310 5: implicit sigma cross terms (A 328 1) with REEFMG only (A 306 1)"<<endl;}
-    if(p->B98>2 || p->B99>2)        {bad=1; if(p->mpirank==0) cout<<"A 310 5: relaxation zones only (B 98 0-2, B 99 0-2)"<<endl;}
+    // B 98 3/4 (Dirichlet / active generation, also B 98 6-8, which iowave runs as 4) and B 99 3-5, 7 (active
+    // beach, also 6 and 8, run as 3): the edge velocity Uin of the Laplace rows and the ghost values of eta and
+    // Fifsf (iowave::inflow_fnpf) with the targets at t^n+1, in the predictor and in every corrector pass with the
+    // state of the pass (patch 0037); not with mesh refinement
+    if(p->B98>4 || p->B99>7 || p->B99==6) {bad=1; if(p->mpirank==0) cout<<"A 310 5: wave generation B 98 0-4 (6-8 as 4), absorption B 99 0-5, 7 (6, 8 as 3)"<<endl;}
+    if(p->G1>0 && (p->B98>2 || p->B99>2)) {bad=1; if(p->mpirank==0) cout<<"A 310 5: mesh refinement (G 1) with relaxation zones only (B 98 0-2, B 99 0-2)"<<endl;}
     if(theta<0.5)                   {bad=1; if(p->mpirank==0) cout<<"A 310 5: theta (A 305) >= 0.5"<<endl;}
     // A 379 (patch 0034): theta off-centred near the still-water coastline
     thloc = p->A379_1>0.0;
@@ -493,6 +498,11 @@ void fnpf_theta::corrector_state(lexer *p, fdm_fnpf *c, ghostcell *pgc, ioflow *
     SLICELOOP4
     erk2(i,j) = relRe(i,j)*erk2(i,j) + relTe(i,j);
     {fnpf_prof::scope ps_(fnpf_prof::gc2d); pgc->gcsl_start4(p,erk2,gcval_eta);}
+    
+    // B 98 3/4, B 99 3-5, 7: the edge velocity (with the absorption of the deviation of eta^n+1 of this pass from
+    // the target) and the ghost values of eta and Fifsf of this pass
+    if(p->B98>2 || p->B99>2)
+    {fnpf_prof::scope ps_(fnpf_prof::inflow); pflow->inflow_fnpf(p,c,pgc,c->Fi,c->Uin,fnew,erk2);}
     {fnpf_prof::scope ps_(fnpf_prof::body); pbody->surface(p,c,pgc,erk2,fnew,gcval_eta,gcval_fifsf);}
     
     // mesh refinement: the corrector state of the patches (eta^n+1, N^n+1/2, R), all grids consistent
@@ -1039,9 +1049,21 @@ double fnpf_theta::robin_solve_mg(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver 
 // The relaxation zones act as f -> r f + (1-r) f_target. iowave applies them to a field; here the affine map
 // is read off by applying them to f = 0 and f = 1 (which = 0: eta, 1: Fifsf), and with A 303 > 0 the factors
 // become r^(dt/A 303), so that over a fixed time the zones relax by the same amount whatever the step
-// (as B 95 for SFLOW and NHFLOW). Not for zones with a state (B 98 6, B 99 6: refused).
+// (as B 95 for SFLOW and NHFLOW). Zones with a state (B 98 6: the low-passed deviation from the target, B 99 6: the
+// low-passed surface) update it once per step with the field of their first call: that is the predicted state
+// (erk1, frk1), as the first RK3 stage, and not the probes f = 0, 1 (before patch 0037 B 98 6 and B 99 6 were
+// refused; with the probe f = 0 first the generated waves of B 98 6 lost 20 % of their height).
 void fnpf_theta::relax_affine(lexer *p, fdm_fnpf *c, ghostcell *pgc, ioflow *pflow, int which, slice &R, slice &T)
 {
+    // the state of the zones (once per step, no effect without one) from the predicted field
+    SLICELOOP4
+    T(i,j) = (which==0) ? erk1(i,j) : frk1(i,j);
+    
+    if(which==0)
+    pflow->eta_relax(p,pgc,T);
+    else
+    pflow->fifsf_relax(p,pgc,T);
+    
     // the zones: f -> R f + T from f = 0 and f = 1
     SLICELOOP4
     {
