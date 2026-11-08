@@ -209,8 +209,10 @@ void driver::logic_cfd()
 	if(p->F35>=40 && p->F35<50)
 	pfsfdisc=new hires(p,p->F35);
 
-    // the one-step schemes (N 40 5, 6): the level set with the Godunov convection as well
-    if((p->N40==5 || p->N40==6) && p->F30>0)
+    // the one-step schemes (N 40 5, 6): the level set with the Godunov convection as well; N 63 1:
+    // with the scheme of F 35 in one forward-Euler step (the Godunov reconstruction of the level set
+    // gained water in thin fast jets at N 47 0.25 and above, validation 82)
+    if((p->N40==5 || p->N40==6) && p->F30>0 && p->N63==0)
     {
     delete pfsfdisc;
     pfsfdisc=new godunov(p);
