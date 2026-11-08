@@ -281,23 +281,22 @@ void fnpf_breaking::coast_viscosity(lexer *p, fdm_fnpf *c, ghostcell *pgc)
         c->vb(i,j) = MAX(c->vb(i,j), p->A346);
     }
     
-    // A343 1: coastline viscosity A346 (commented out before 2026-09-24),
-    // through the implicit damping solve (needs A350>0); off by default again,
-    // A346 alone (often in older ctrl files) does not turn it on
-    //   A337 0, 1: no coastline viscosity
-    //   A337 2: A346 only in the thin-film cells (WL < 10*A344), i.e. where a
-    //           drawdown has exposed the bed but the static mask keeps the cell
-    //           wet and clamped; the coastline band itself stays undamped
-    //   A337 3: as 2, and rising to A346 towards the coastline inside the
-    //           relaxation band (dist3)
-    if(p->A343==1 && p->A337>=2 && p->A346>0.0)
+    // A343 1: coastline viscosity A346 through the implicit damping solve (needs A350>0), relaxed from zero at
+    // the edge of the coastline band (A341 cells or A342 m, dist3) to A346 at the coastline with the weight
+    // 1 - rb3, the complement of the relaxation of eta and Fi in the band: no viscosity without a band (A341 0,
+    // A342 0, the default) or with A346 0, no on/off switch at the band edge
+    //   A337 0: legacy, no coastline viscosity (as master, where the block was commented out)
+    //   A337 1: the ramp in the band
+    //   A337 2, 3: the ramp, and A346 in the thin-film cells (WL < 10*A344), where a drawdown has exposed the
+    //           bed but the static mask keeps the cell wet and clamped
+    if(p->A343==1 && p->A337>=1 && p->A346>0.0)
     SLICELOOP4
     if(p->wet[IJ]==1)
     {
-        if(p->A337==3 && c->coastline(i,j)>=0.0 && dist3>0.0 && c->coastline(i,j)<dist3)
+        if(c->coastline(i,j)>=0.0 && dist3>0.0 && c->coastline(i,j)<dist3)
         c->vb(i,j) = MAX(c->vb(i,j), (1.0-rb3(p,c->coastline(i,j)))*p->A346);
 
-        if(c->WL(i,j) < 10.0*c->wd_criterion)
+        if(p->A337>=2 && c->WL(i,j) < 10.0*c->wd_criterion)
         c->vb(i,j) = MAX(c->vb(i,j), p->A346);
     }
 }
