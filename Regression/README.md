@@ -132,6 +132,9 @@ VTU/state print keys (`P 20/30/40/41/42`), so runs are short and output stays sm
 | `cfd_2d_dambreak_amr_mpi2_sub_onestep` | 2 | `cfd_2d_dambreak_amr_mpi2_sub` with N 40 5: subcycling with the one-step scheme on two ranks (needs patch REEFAMR/0169) |
 | `cfd_2d_nwt_amr_zone_sub_onestep` | 1 | `cfd_2d_nwt_amr_zone_sub` with N 40 5: the relaxation of the patch over the wave generation zone with the one-step scheme and subcycling (needs patch REEFAMR/0169) |
 | `cfd_2d_dambreak_amr_adapt_sub_onestep_ckpt`, `_restart` | 1 | `cfd_2d_dambreak_amr_adapt_sub_ckpt` and `_restart` with N 40 5: the restart from step 40 with subcycling and the one-step scheme; `ranks`: bitwise the uninterrupted run (needs patch REEFAMR/0169) |
+| `cfd_2d_dambreak_onestep_n63` | 1 | `cfd_2d_dambreak_onestep_n59` with the level set moved by the scheme of F 35 (WENO, one forward-Euler step with the projected u(n+1), N 63 1) instead of the Godunov convection (needs patch REEFAMR/0170) |
+| `cfd_2d_dambreak_twoproj_n63` | 1 | `cfd_2d_dambreak_twoproj_n59` (N 40 6 at N 47 0.45) with N 63 1: the level set with F 35 in the half and the full step (needs patch REEFAMR/0170) |
+| `cfd_2d_dambreak_amr3_adapt_onestep_n63` | 1 | `cfd_2d_dambreak_amr3_adapt_onestep_n59` with N 63 1: the level set of every patch with the scheme of F 35 (needs patch REEFAMR/0170) |
 | `cfd_2d_nwt_wenoz` | 1 | WENO-Z weights for momentum (D 12 1) and level set + reini (F 37 1) |
 | `cfd_2d_nwt_komega` / `_kepsilon` | 1 | RANS models with free surface |
 | `cfd_2d_nwt_porous_komega` | 1 | VRANS porous box + k-ω porous sources (B295) |
@@ -668,11 +671,14 @@ VTU/state print keys (`P 20/30/40/41/42`), so runs are short and output stays sm
 | `nhflow_2d_awa_custom_zones` | 1 | old input: active generation (B 98 4) with a B 107 relaxation beach, waves reach the beach |
 | `fnpf_2d_dirichlet` | 1 | old input: FNPF Dirichlet generation with a B 107 beach |
 | `fnpf_2d_dirichlet_awa` | 1 | old input: FNPF Dirichlet generation with active absorption (B 99 3), waves reach the beach |
+| `fnpf_2d_dirichlet_awa_theta_robin` | 1 | as `fnpf_2d_dirichlet_awa` (Dirichlet generation B 98 3, active beach B 99 3) with θ-Robin (A 310 5, N 51 3): the edge velocity and ghost values in the predictor and every corrector pass (needs patch fnpf_theta_robin/0037) |
 | `fnpf_2d_active_gen_wall` | 1 | FNPF active generation B 98 4 with a wall at x+: the reflected waves leave through the wavemaker (shallow-water absorption against the target, ramp) |
 | `fnpf_2d_active_beach_b99_4` | 1 | FNPF active beach with the linear-theory profile B 99 4 (sinh(k h), level-wise ghost potential) |
 | `fnpf_2d_combined_beach` | 1 | FNPF combined beach B 99 6: eta and surface potential relaxed to the low-passed state over the beach, active beach at x+ |
 | `fnpf_2d_combined_gen` | 1 | FNPF combined generation B 98 6 (zone to target + low-passed deviation, active generation edge at x-) with B 99 6 |
+| `fnpf_2d_combined_gen_theta_robin` | 1 | as `fnpf_2d_combined_gen` (B 98 6, B 99 6) with θ-Robin (A 310 5, N 51 3): the state of the zones from the predicted field, not from the probes of the affine maps (needs patch fnpf_theta_robin/0037) |
 | `fnpf_2d_twoband` | 1 | FNPF two-band active absorption at the wavemaker (B 98 7) and the beach (B 99 7), reference period B 528 2 s |
+| `fnpf_2d_twoband_theta_robin` | 1 | as `fnpf_2d_twoband` (two-band active absorption B 98 7, B 99 7) with θ-Robin (A 310 5, N 51 3) (needs patch fnpf_theta_robin/0037) |
 | `fnpf_2d_irregular_2nd_b_twoband` | 1 | 2nd-order irregular waves (B 92 33) with two-band active generation (bound-wave target) and two-band beach |
 | `sflow_2d_stokes2` (+ `_mpi2`) | 1/2 | SFLOW relaxation generation + beach, Stokes 2nd (tutorial 8_1) |
 | `sflow_2d_stokes2_lagoon_mpi2` | 2 | the wave tank with its free surface and bed in the LAGOON store instead of the VTP files (P 18 1) (needs patch 0019) |

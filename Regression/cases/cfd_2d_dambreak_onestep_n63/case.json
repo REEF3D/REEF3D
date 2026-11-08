@@ -1,0 +1,23 @@
+{
+ "base": "cfd_2d_dambreak",
+ "np": 1,
+ "steps": 80,
+ "ctrl_set": {
+  "N 40": "5"
+ },
+ "ctrl_add": [
+  "N 59 1",
+  "N 63 1"
+ ],
+ "description": "cfd_2d_dambreak_onestep_n59 with the level set moved by the scheme of F 35 (WENO, one forward-Euler step with the projected u(n+1), N 63 1) instead of the Godunov convection (validation 82).",
+ "tags": [
+  "quick",
+  "2d",
+  "dambreak",
+  "levelset",
+  "closed"
+ ],
+ "covers": [
+  "driver_logic_cfd with N 63 1: the level set of the one-step scheme with F 35"
+ ]
+}

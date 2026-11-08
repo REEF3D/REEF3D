@@ -1,0 +1,20 @@
+{
+ "base": "fnpf_2d_twoband",
+ "ctrl_set": {
+  "A 310": "5",
+  "N 51": "3",
+  "A 302": "4"
+ },
+ "description": "as fnpf_2d_twoband (two-band active absorption B 98 7, B 99 7) with theta-Robin (A 310 5, N 51 3) (patch fnpf_theta_robin/0037).",
+ "tags": [
+  "quick",
+  "2d",
+  "waves",
+  "iowave",
+  "awa",
+  "fnpf"
+ ],
+ "covers": [
+  "fnpf_theta with iowave::inflow_fnpf (B 98 3/4, B 99 3/4/7)"
+ ]
+}

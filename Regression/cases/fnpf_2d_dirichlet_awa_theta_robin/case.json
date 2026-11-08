@@ -1,0 +1,19 @@
+{
+ "base": "fnpf_2d_dirichlet_awa",
+ "ctrl_set": {
+  "A 310": "5",
+  "N 51": "3",
+  "A 302": "4"
+ },
+ "description": "as fnpf_2d_dirichlet_awa (Dirichlet generation B 98 3, active beach B 99 3) with the theta-Robin time integration (A 310 5, N 51 3): the edge velocities of the Laplace rows and the ghost values of eta and Fifsf with the targets at t^n+1, in the predictor and every corrector pass (patch fnpf_theta_robin/0037).",
+ "tags": [
+  "quick",
+  "2d",
+  "fnpf",
+  "waves",
+  "iowave"
+ ],
+ "covers": [
+  "fnpf_theta with iowave::inflow_fnpf (B 98 3/4, B 99 3/4/7)"
+ ]
+}
