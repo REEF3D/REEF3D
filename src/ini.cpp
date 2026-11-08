@@ -186,6 +186,7 @@ void control::ini_default()
     A407=0.068;  // double breaking A350 5 (FNPF): largest breaking strength b of the deep-water breakers (the largest b of the data of Derakhti et al. 2018; Mohanlal et al. 2023 used 0.02)
     A408=0.75;   // double breaking A350 5: active breaking duration of a deep-water breaker in breaker periods T_b (Derakhti et al. 2018: 0.75)
     A409=0.25;   // double breaking A350 5: largest energy loss of one deep-water breaker as fraction of g H_b^2 L_b / 8 (Rapp & Melville 1990, Tian et al. 2010: up to 0.25)
+    A412=3;      // int breaking A350 5 (FNPF): dissipation of the deep-water breakers, 1 eddy viscosity on the front face (as A350 4), 2 absorbing surface pressure, 3 half each
     A411=0.03;   // double breaking A350 5: half width of the B window |B - Bth| of the fit Gamma = T_b dB/dt (Derakhti et al. 2018: 0.03)
     A405=1.0;    // double breaking A350 4/5 (FNPF): crest points kept out of this fraction of each relaxation zone, from its outer end (1: the whole zone; 0.5: breaking in the inner half, where the target weight is below 5 %)
     A403=1.0;    // double ice lid time step factor, dt <= A403/omega_lid; <0: old limit dt*1/sqrt(1+A381)
@@ -977,7 +978,7 @@ void control::ini_default()
 	N49=1.0;		// double max timestep or fixed timesteps
     N50=1;          // int adaptive timestepping method
     N51=0;          // int FNPF time step: 0 sqrt(g h_max), 1 dispersive sqrt(g dx tanh(h/dx)) + |u|, 2 discrete sigma-grid DtN (dt omega_max = N47 RK limit)
-    N59=0;          // int CFD N 40 5, 6 with the level set: 1 the momentum per volume rho u carried with the mass flux (godunov), 0 the velocity
+    N59=0;          // int CFD N 40 5, 6 with the level set: 1 the momentum per volume rho u carried with the mass flux (godunov), 2 as 1 with the face density of the mass flux from the level set at the half step of its transport, 0 the velocity
     N63=0;          // int CFD N 40 5, 6: the convection of the level set, 0 Godunov (as the momentum), 1 the scheme of F 35 in one forward-Euler step with the projected velocity, 2 in SSP-RK2 stages, 3 in SSP-RK3 stages (the velocity held fixed)
     N52=0.0;        // double FNPF time step accuracy cap: shortest relevant wave period T_min [s], 0 off
     N53=40.0;       // double FNPF time step accuracy cap: time steps per T_min, dt <= N52/N53

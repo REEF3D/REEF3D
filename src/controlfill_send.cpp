@@ -424,6 +424,8 @@ void control::ctrlsend()
     ii++;
     ictrl[ii] = A406;
     ii++;
+    ictrl[ii] = A412;
+    ii++;
     ictrl[ii] = A400;
     ii++;
     ictrl[ii] = A401;

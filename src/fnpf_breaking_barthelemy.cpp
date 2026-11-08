@@ -83,11 +83,15 @@ Architect: Hans Bihs
 //              crest then grows until the run stops; 0: off)
 //   energy     at most A 409 (0.25) of g H_b^2 L_b/8 per event (Rapp & Melville 1990: up to 25 % for plungers,
 //              Tian et al. 2010: 8-25 %): eps <= A 409 g H_b^2 L_b / (8 A 408 T_b)
-//   dissipation absorbing surface pressure pa = nua S eta_t on the front face (crest to trough ahead, sin^2 ramps) in
-//              the dynamic FSBC (Guignard & Grilli 2001, Mohanlal et al. 2023), nua = eps / int S eta_t^2 ds with
-//              eta_t of the step, nua <= c_b and <= 0.25 dx/dt (explicit term). Its rate ~ nua k damps a mode less
-//              scale-selectively than the viscosity (2 nu k^2 per FSBC), which put the loss into the spectral tail.
-//   log        P 59 1 appends Gamma nwin c_b T_b L_b H_b mech nua dpa (mech 1: pressure, 0: viscosity/bore)
+//   dissipation A 412: 1 the eddy viscosity on the front face as A 350 4, matched to eps (Tian et al. 2012,
+//              Seiffert & Ducrozet 2018); 3 (default) half of eps each; 2 absorbing surface pressure pa = nua S eta_t on the front face (crest to
+//              trough ahead, sin^2 ramps) in the dynamic FSBC (Guignard & Grilli 2001, Mohanlal et al. 2023),
+//              nua = eps / int S eta_t^2 ds with eta_t of the step, nua <= c_b and <= 0.25 dx/dt (explicit term);
+//              The pressure alone does not keep the front face of a breaking potential-flow
+//              crest regular: in the 8.6 km JONSWAP run (dx 1.5 m) front-face slopes reached 2 and the run stopped at
+//              t = 4431 s; the viscosity damps the sharp front (rate 2 nu k^2 per FSBC). Packets at L/40 (loss against
+//              the LES, TP1/TP2/TP3/RS1/RP1/RP2): A 412 1 mean |error| 3.7 points (RP2 -8.1), 2: 3.5, 3: 3.2.
+//   log        P 59 1 appends Gamma nwin c_b T_b L_b H_b mech nua dpa (mech 1: deep-water breaker (A 412), 0: bore)
 
 #include"fnpf_breaking.h"
 #include"breaking_crest3d.h"
@@ -209,6 +213,8 @@ void fnpf_breaking::breaking_barthelemy(lexer *p, fdm_fnpf *c, ghostcell *pgc, s
             bt->tau = MAX(p->A408,0.0);
             bt->win = MAX(p->A411,1.0e-6);
             bt->Slim = (p->A404>0.0) ? p->A404 : 1.0e20;
+            // A 412: dissipation of the deep-water breakers, 1 viscosity, 2 absorbing pressure, 3 half each (default)
+            bt->fvisc = (p->A412==1) ? 1.0 : ((p->A412==2) ? 0.0 : 0.5);
             // the window below the lowest onset threshold is sampled as well
             bt->Bcand = MIN(bt->Bcand, 0.9*(bt->Bon - bt->BonN/sqrt(30.0) - bt->win));
         }

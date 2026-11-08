@@ -383,6 +383,43 @@ void godunov::start(lexer *p, fdm *a, field &f, int ipol, field &U, field &V, fi
         return 0.5*(fa+fb);
     };
 
+    // N 59 2: the face density of the mass flux from the level set at the half step of its own
+    // transport, (phi_start + phi)/2, where the level set has already been moved with the advecting
+    // velocity of this update (cphi: the level set before that transport; N 40 5 with the level set
+    // kept before its last transport, the full step of N 40 6); otherwise the Godunov states of N 59 1
+    const bool hls = cons && p->N59==2 && cphi!=nullptr;
+
+    auto phh = [&](int ii, int jj, int kk) -> double
+    {
+        return 0.5*((*cphi)(ii,jj,kk) + a->phi(ii,jj,kk));
+    };
+
+    // the density on the upper face in direction d of the control volume (ii,jj,kk): in the direction
+    // of the staggering the face is the centre of the cell above, in the others the edge of the four
+    // cells around it (the mean of the level set there)
+    auto hface = [&](int d, int ii, int jj, int kk) -> double
+    {
+        const int s = ipol-1;
+        const int es[3] = {s==0, s==1, s==2};
+        const int ed[3] = {d==0, d==1, d==2};
+        double x, H;
+
+        if(d==s)
+        {
+            const int ia = ii+es[0], ja = jj+es[1], ka = kk+es[2];
+            x = phh(ia,ja,ka);
+            H = heaviside_face(p,a->phi,x,ia,ja,ka,0,0,0);
+        }
+        else
+        {
+            x = 0.25*(phh(ii,jj,kk) + phh(ii+es[0],jj+es[1],kk+es[2])
+                    + phh(ii+ed[0],jj+ed[1],kk+ed[2]) + phh(ii+es[0]+ed[0],jj+es[1]+ed[1],kk+es[2]+ed[2]));
+            H = heaviside_face(p,a->phi,x,ii,jj,kk,es[0],es[1],es[2]);
+        }
+
+        return p->W1*H + p->W3*(1.0-H);
+    };
+
     // N 59: the convection term (u* - u)/dt of the update u* = (rho u - dt div(m u))/(rho - dt div(m))
     const double dtu = (cdt>0.0) ? cdt : p->dt;
     const double rmin = 0.5*std::min(p->W1,p->W3);
@@ -398,7 +435,8 @@ void godunov::start(lexer *p, fdm *a, field &f, int ipol, field &U, field &V, fi
         vx(ipol,ii,jj,kk,U,v1,v2);
         const int qe = id(ii+1,jj,kk), qw = id(ii-1,jj,kk);
         const double w = width(p,ipol,0,ii), wl = width(p,ipol,0,ii-1), wr = width(p,ipol,0,ii+1);
-        const double m2 = v2*rstate(0,q,qe,w,wr,v2), m1 = v1*rstate(0,qw,q,wl,w,v1);
+        const double m2 = v2*(hls ? hface(0,ii,jj,kk) : rstate(0,q,qe,w,wr,v2));
+        const double m1 = v1*(hls ? hface(0,ii-1,jj,kk) : rstate(0,qw,q,wl,w,v1));
         Dm += (m2-m1)/w;
         const double u2 = state(0,q,qe,w,wr,v2), u1 = state(0,qw,q,wl,w,v1);
         umin = std::min(umin,std::min(u1,u2));  umax = std::max(umax,std::max(u1,u2));
@@ -412,7 +450,8 @@ void godunov::start(lexer *p, fdm *a, field &f, int ipol, field &U, field &V, fi
         vy(ipol,ii,jj,kk,V,v1,v2);
         const int qn = id(ii,jj+1,kk), qs = id(ii,jj-1,kk);
         const double w = width(p,ipol,1,jj), wl = width(p,ipol,1,jj-1), wr = width(p,ipol,1,jj+1);
-        const double m2 = v2*rstate(1,q,qn,w,wr,v2), m1 = v1*rstate(1,qs,q,wl,w,v1);
+        const double m2 = v2*(hls ? hface(1,ii,jj,kk) : rstate(1,q,qn,w,wr,v2));
+        const double m1 = v1*(hls ? hface(1,ii,jj-1,kk) : rstate(1,qs,q,wl,w,v1));
         Dm += (m2-m1)/w;
         const double u2 = state(1,q,qn,w,wr,v2), u1 = state(1,qs,q,wl,w,v1);
         umin = std::min(umin,std::min(u1,u2));  umax = std::max(umax,std::max(u1,u2));
@@ -425,7 +464,8 @@ void godunov::start(lexer *p, fdm *a, field &f, int ipol, field &U, field &V, fi
         vz(ipol,ii,jj,kk,W,v1,v2);
         const int qt = id(ii,jj,kk+1), qb = id(ii,jj,kk-1);
         const double w = width(p,ipol,2,kk), wl = width(p,ipol,2,kk-1), wr = width(p,ipol,2,kk+1);
-        const double m2 = v2*rstate(2,q,qt,w,wr,v2), m1 = v1*rstate(2,qb,q,wl,w,v1);
+        const double m2 = v2*(hls ? hface(2,ii,jj,kk) : rstate(2,q,qt,w,wr,v2));
+        const double m1 = v1*(hls ? hface(2,ii,jj,kk-1) : rstate(2,qb,q,wl,w,v1));
         Dm += (m2-m1)/w;
         const double u2 = state(2,q,qt,w,wr,v2), u1 = state(2,qb,q,wl,w,v1);
         umin = std::min(umin,std::min(u1,u2));  umax = std::max(umax,std::max(u1,u2));

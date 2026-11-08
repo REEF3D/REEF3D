@@ -65,6 +65,14 @@ using namespace std;
 // extrapolate u* = (rho u - m u_out)/(rho - m)) the same update with first-order upwind states,
 // u* = u + dt sum m_in (u_in - u)/rho*, a convex combination; where that fails too, the advective
 // form.
+// N 59 2: the face density of the mass flux from the level set at the half step of its own transport,
+// rho((phi_start + phi)/2) on the faces (validation 84), where the level set has already been moved
+// with the advecting velocity of the update: N 40 5 with the level set kept before its last
+// transport (phi_start, momentum_rk), the full step of N 40 6 (phi(n), phi(n+1)). The mass flux then
+// moves the water as the level set (with N 63 its WENO stages) did, time-centred and without a
+// reconstruction of the density; in the normal direction the faces of the control volume are the
+// centres of the cells, in the others the mean of the four cells of the edge. Elsewhere (the first
+// step, a new patch, the half step of N 40 6) the Godunov states of N 59 1.
 class godunov final : public convection, public increment
 {
 public:

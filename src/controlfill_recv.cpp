@@ -420,6 +420,8 @@ void control::ctrlrecv()
     ii++;
     A406 = ictrl[ii];
     ii++;
+    A412 = ictrl[ii];
+    ii++;
     A400 = ictrl[ii];
     ii++;
     A401 = ictrl[ii];
