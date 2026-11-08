@@ -1,0 +1,10 @@
+{
+ "description": "fnpf_2d_break_a350_5_deep with RK3 (A 310 3): the absorbing surface pressure of the deep-water breakers (A 350 5, slope strength A 367 1) in the three RK3 stages (dt 0.012 s: the first onset at t = 14.3 s, step 1220).",
+ "solver": "fnpf",
+ "np": 1,
+ "steps": 1500,
+ "tags": ["2d", "fnpf", "waves", "breaking", "irregular"],
+ "covers": [
+  "fnpf_breaking::absorb with A 350 5 in fnpf_RK3"
+ ]
+}
