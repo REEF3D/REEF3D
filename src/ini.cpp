@@ -1345,6 +1345,7 @@ void control::ini_default()
     S102=0.0;              // double filter: fraction of the centre value kept per pass (0: 2dx wave removed)
     S103=0.0;              // double bed celerity CFL number for dtsed, 0: off
     S104=0.0;              // double limit of bed celerity x morphological factor / near-bed flow speed for dtsed, 0: off
+    S105=0.0;              // double ramp time [s] of the morphological factor after the sediment start (sin^2), 0: off
     // SFLOW: waves in the sediment transport (sediment_waves)
     S110=0;                // int wave effects on the bed (SFLOW): 0 off, 1 from REEF3D::SEASTATE (A 750 1), 2 prescribed uniform waves S 111-113
     S111=0.0;              // double S 110 2: significant wave height Hs [m]

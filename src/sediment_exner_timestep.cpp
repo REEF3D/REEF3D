@@ -136,6 +136,11 @@ void sediment_exner::timestep(lexer* p, ghostcell *pgc, sediment_fdm *s)
     p->dtsed = MIN(p->dtsed, 0.4/(cfac*rate));
     }
     
+    // S 105: ramp of the morphological factor over S 105 seconds of flow time after the sediment start, so that the
+    // bed responds gradually instead of switching on at the full factor under fully developed waves
+    if(p->S105>0.0)
+    p->dtsed *= ramp_morph(p);
+    
     p->dtsed=pgc->timesync(p->dtsed);
     
     // effective morphological factor and bed celerity / flow speed
@@ -169,6 +174,24 @@ double sediment_exner::ramp_dt(lexer *p)
     dt=p->S29_dte;
 
     return dt;
+}
+
+// S 105: factor sin^2(pi/2 min(1, (t - t0)/S105)) on dtsed, i.e. on the morphological factor; t0 is the start of the
+// sediment transport: S 45 (S 41 2), S 47 wave periods (S 41 3), 0 otherwise (S 41 1 starts after S 43 steps)
+double sediment_exner::ramp_morph(lexer *p)
+{
+    double t0 = 0.0;
+    
+    if(p->S41==2)
+    t0 = p->S45;
+    
+    if(p->S41==3)
+    t0 = p->S47*p->wT;
+    
+    double f = (p->simtime-t0)/p->S105;
+    f = MAX(0.0,MIN(1.0,f));
+    
+    return pow(sin(0.5*PI*f),2.0);
 }
 
 // ---- curvilinear grid (G 50): the functions above with the geometry of sediment_curv.h
@@ -281,6 +304,11 @@ void sediment_exner::timestep_curv(lexer* p, ghostcell *pgc, sediment_fdm *s)
     if(rate>1.0e-20)
     p->dtsed = MIN(p->dtsed, 0.4/(cfac*rate));
     }
+    
+    // S 105: ramp of the morphological factor over S 105 seconds of flow time after the sediment start, so that the
+    // bed responds gradually instead of switching on at the full factor under fully developed waves
+    if(p->S105>0.0)
+    p->dtsed *= ramp_morph(p);
     
     p->dtsed=pgc->timesync(p->dtsed);
     
