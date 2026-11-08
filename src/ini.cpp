@@ -978,7 +978,7 @@ void control::ini_default()
 	N49=1.0;		// double max timestep or fixed timesteps
     N50=1;          // int adaptive timestepping method
     N51=0;          // int FNPF time step: 0 sqrt(g h_max), 1 dispersive sqrt(g dx tanh(h/dx)) + |u|, 2 discrete sigma-grid DtN (dt omega_max = N47 RK limit)
-    N59=0;          // int CFD N 40 5, 6 with the level set: 1 the momentum per volume rho u carried with the mass flux (godunov), 0 the velocity
+    N59=0;          // int CFD N 40 5, 6 with the level set: 1 the momentum per volume rho u carried with the mass flux (godunov), 2 as 1 with the face density of the mass flux from the level set at the half step of its transport, 0 the velocity
     N63=0;          // int CFD N 40 5, 6: the convection of the level set, 0 Godunov (as the momentum), 1 the scheme of F 35 in one forward-Euler step with the projected velocity, 2 in SSP-RK2 stages, 3 in SSP-RK3 stages (the velocity held fixed)
     N52=0.0;        // double FNPF time step accuracy cap: shortest relevant wave period T_min [s], 0 off
     N53=40.0;       // double FNPF time step accuracy cap: time steps per T_min, dt <= N52/N53

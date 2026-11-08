@@ -748,6 +748,14 @@ field4& momentum_rk::amr_phi_out(int s)
 // phi_k+1 = a_k phi(n) + b_k (phi_k + dt L(phi_k)); phi(n) in lsrk, the stages in ls
 void momentum_rk::ls_rk_begin(lexer *p, fdm *a)
 {
+    // N 59 with N 40 5: the level set before the transport, as amr_ls_transport keeps it (the stages
+    // of the mesh refinement start here and do not pass amr_ls_transport)
+    if(phiold)
+    {
+    std::copy(a->phi.V, a->phi.V + size_t(p->imax)*p->jmax*p->kmax, frk1->V);
+    phiold_valid = 1.0;
+    }
+
     LOOP
     {
     (*ls)(i,j,k) = a->phi(i,j,k);
