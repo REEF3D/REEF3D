@@ -71,6 +71,7 @@ public:
     void fine_apply(const sc_level &L,const double *x,double *y) override;
 
 private:
+    bool topo = false;      // topology() (the levels) done: with the first solve
 
     void topology(lexer*, ghostcell*);
     void start_solver8(lexer*, ghostcell*, double*, vec&, matrix_diag&, int);

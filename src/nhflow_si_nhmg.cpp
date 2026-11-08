@@ -214,6 +214,9 @@ public:
         v.x.assign((size_t)(ax+2)*(ay+2)*B,T(0));
         v.b = v.x;
         v.r = v.x;
+
+        // the K-cycle vectors only on the levels it corrects (1 .. nl-2)
+        if(l>0 && l<gnl-1)
         v.kb = v.v1 = v.w1 = v.v2 = v.w2 = v.x;
         ax = (ax+1)/2;
         ay = (ay+1)/2;
@@ -604,14 +607,21 @@ void nhflow_si_nhmg::setup(MPI_Comm cm, int b, int nx, int ny, const int n[4])
     cf.reset();
     cd.reset();
 
-    // the levels (setup of the core in double: the number of levels for levels() before the first finalize)
-    cd = std::make_shared<nhflow_si_nhmg_core<double>>();
-    cd->setup(comm,B,nx,ny,nb,alone);
+    // the number of levels (the cores repeat it with their setup at the first finalize)
+    int nl = 1, ax = nx, ay = ny;
+    while((ax>2 || ay>2) && nl<30)
+    {
+    ax = (ax+1)/2;
+    ay = (ay+1)/2;
+    ++nl;
+    }
+
+    MPI_Allreduce(&nl,&nlev,1,MPI_INT,MPI_MIN,comm);
 }
 
 int nhflow_si_nhmg::levels() const
 {
-    return cf ? (int)cf->L.size() : (cd ? (int)cd->L.size() : 0);
+    return nlev;
 }
 
 void nhflow_si_nhmg::zero()

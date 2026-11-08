@@ -117,7 +117,8 @@ reefmg::reefmg(lexer *p, ghostcell *pgc, int solve_input, int precon_input)
 
     p->Iarray(CVAL4, p->imax*p->jmax*(p->kmax+2));
 
-    topology(p,pgc);
+    // the levels with the first solve (topo): a run that never calls the solver (the semi-implicit NHFLOW, which
+    // creates it for the explicit pressure) keeps no multigrid hierarchy (128^2 x 4 cells: 9 MB)
 }
 
 reefmg::~reefmg()
@@ -251,6 +252,12 @@ void reefmg::topology(lexer *p, ghostcell *pgc)
 
 void reefmg::start(lexer *p, fdm *a, ghostcell *pgc, field &f, vec &rhsvec, int var)
 {
+    if(!topo)
+    {
+    topology(p,pgc);
+    topo = true;
+    }
+
     //  var==5: CFD pressure Poisson equation (pjm, pjm_corr; poisson_f and
     //  poisson_pcorr assemble a->M in LOOP order)
     if(var==5)
@@ -284,6 +291,12 @@ void reefmg::startf(lexer *p, ghostcell *pgc, field &f, vec &rhs, matrix_diag &M
 
 void reefmg::startV(lexer *p, ghostcell *pgc, double *f, vec &rhs, matrix_diag &M, int var)
 {
+    if(!topo)
+    {
+    topology(p,pgc);
+    topo = true;
+    }
+
     //  var==44: NHFLOW potential-flow initialisation (nhflow_potential_f, I 11 1)
     if(var==44)
     start_solver44(p,0,pgc,0,f,rhs,M);
@@ -478,6 +491,12 @@ void reefmg::startM(lexer *p, ghostcell *pgc, double *x, double *rhs, double *M,
 
 void reefmg::startF(lexer *p, ghostcell *pgc, double *f, vec &rhs, matrix_diag &M, int var)
 {
+    if(!topo)
+    {
+    topology(p,pgc);
+    topo = true;
+    }
+
     if(var==8)
     start_solver8(p,pgc,f,rhs,M,var);
 
