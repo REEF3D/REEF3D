@@ -181,6 +181,7 @@ void control::ini_default()
     A402_L=-1.0; // double ice spall length [m], <0: floe thickness
     A402_C=3.0;  // double ice spall locality: chip chord <= C*chip depth
     A402_T=1.0;  // double ice rubble lid fade-out time [s]
+    A406=3;      // int FNPF theta-Robin (A 310 5): a step whose Laplace solves fail is repeated with half the step, at most A406 times (0: off; patch 0038)
     A405=1.0;    // double breaking A350 4 (FNPF): crest points kept out of this fraction of each relaxation zone, from its outer end (1: the whole zone; 0.5: breaking in the inner half, where the target weight is below 5 %)
     A403=1.0;    // double ice lid time step factor, dt <= A403/omega_lid; <0: old limit dt*1/sqrt(1+A381)
 

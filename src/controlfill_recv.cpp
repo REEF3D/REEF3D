@@ -408,6 +408,8 @@ void control::ctrlrecv()
     dd++;
     A399_seed = ictrl[ii];
     ii++;
+    A406 = ictrl[ii];
+    ii++;
     A400 = ictrl[ii];
     ii++;
     A401 = ictrl[ii];

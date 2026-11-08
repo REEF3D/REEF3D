@@ -412,6 +412,8 @@ void control::ctrlsend()
     dd++;
     ictrl[ii] = A399_seed;
     ii++;
+    ictrl[ii] = A406;
+    ii++;
     ictrl[ii] = A400;
     ii++;
     ictrl[ii] = A401;

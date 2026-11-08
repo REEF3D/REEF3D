@@ -73,7 +73,7 @@ namespace
 fnpf_theta::fnpf_theta(lexer *p, fdm_fnpf *c, ghostcell *pgc) : fnpf_ini(p,c,pgc),fnpf_sigma(p,c,pgc),
                                                       ek(p),fk(p),Ne(p),Nf(p),Neo(p),Nfo(p),wn(p),erk1(p),frk1(p),
                                                       nEm(p),nFm(p),eko(p),fko(p),erk2(p),R0(p),Rs(p),relR(p),relT(p),relRe(p),relTe(p),fnew(p),wnew(p),en(p),
-                                                      colD(p),colA(p),colB(p),fsold(p),nEo(p),nFo(p),pxe(p),pxf(p),kE1(p),kF1(p),cR(p),cT(p),thl(p)
+                                                      colD(p),colA(p),colB(p),fsold(p),nEo(p),nFo(p),pxe(p),pxf(p),kE1(p),kF1(p),cR(p),cT(p),thl(p),sv_eta(p),sv_fifsf(p),sv_vb(p),sv_neo(p),sv_nfo(p),sv_eko(p),sv_fko(p)
 {
     gcval=250;
     if(p->j_dir==0)
@@ -176,10 +176,135 @@ fnpf_theta::~fnpf_theta()
 {
 }
 
+// A 406 n (default 3, patch 0038): a step whose Laplace solves fail (diverged, NaN, the iteration limit N 46), whose
+// largest surface velocity jumps (more than 3 times that at t^n plus 1 m/s) or whose state is not finite is repeated
+// from t^n with half the step, at most n times; the steps after it grow by at most 2 per step. In a steep deep-water
+// JONSWAP sea (Hs 15.6 m, Tp 15 s, A 350 4, A 405 0.5, A 352 3) at N 51 3 a consistency solve after a breaking edit
+// did not converge after 1035 s and the next step blew up: with A 406 the run went to 3000 s (13 steps repeated).
+// It does not help where a crest overturns: in another realisation a one-cell spike after the generation zone grew
+// into a jet that A 350 4 damped with 0.3-2.6 m2/s only, and the run stopped at 2519.6 s as without A 406 (2515.9 s).
+// Without bodies, mesh refinement and a coastline (there the state of the step is more than eta, Fifsf, Fi and the
+// viscosity); the crest tracking of A 350 4 is not repeated (once per time step). A 406 0: off.
 void fnpf_theta::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, convection *pconvec, ioflow *pflow, reini *preini)
+{
+    const bool can_retry = p->A406>0 && pamr==nullptr && p->X10==0 && p->A343==0;
+    
+    // after a rejected step: grow by at most 2 per step (Adams-Bashforth 2 with variable steps)
+    if(retry_steps>0 && dt_prev>0.0)
+    {
+    p->dt = MIN(p->dt, 2.0*dt_prev);
+    --retry_steps;
+    }
+    
+    if(can_retry)
+    state_save(p,c);
+    
+    for(int q=0; ; ++q)
+    {
+    if(step(p,c,pgc,psolv,pconvec,pflow,preini))
+    return;
+    
+    if(!can_retry || q>=p->A406)
+    return;
+    
+    if(p->mpirank==0)
+    cout<<"A 310 5: step at t = "<<setprecision(8)<<p->simtime<<setprecision(4)<<" s with dt = "<<p->dt<<" s rejected ("<<(fail_why==1 ? "a Laplace solve failed" : (fail_why==2 ? "surface velocity jump" : "state not finite"))<<"), repeated with dt = "<<0.5*p->dt<<" s (A 406)"<<endl;
+    
+    state_restore(p,c,pgc,pflow);
+    p->dt *= 0.5;
+    ++retrysum;
+    retry_steps = 4;
+    }
+}
+
+void fnpf_theta::solve_check(lexer *p)
+{
+    if(!(p->final_res==p->final_res) || p->final_res>1.0 || (p->N46>0 && p->solveriter>=p->N46))
+    {
+    if(!step_fail) fail_why = 1;
+    step_fail = true;
+    }
+}
+
+void fnpf_theta::state_save(lexer *p, fdm_fnpf *c)
+{
+    const int nf = p->imax*p->jmax*(p->kmax+2);
+    if(int(sv_fi.size())!=nf)
+    sv_fi.resize(nf);
+    
+    ILOOP
+    JLOOP
+    KLOOP
+    sv_fi[FIJK] = c->Fi[FIJK];
+    
+    SLICELOOP4
+    {
+    sv_eta(i,j) = c->eta(i,j);
+    sv_fifsf(i,j) = c->Fifsf(i,j);
+    sv_vb(i,j) = c->vb(i,j);
+    sv_neo(i,j) = Neo(i,j);
+    sv_nfo(i,j) = Nfo(i,j);
+    sv_eko(i,j) = eko(i,j);
+    sv_fko(i,j) = fko(i,j);
+    }
+    
+    sv_dtprev = dt_prev;
+    sv_nstep = nstep;
+}
+
+// the state at t^n and the fields derived from it as at the end of the last step
+void fnpf_theta::state_restore(lexer *p, fdm_fnpf *c, ghostcell *pgc, ioflow *pflow)
+{
+    ILOOP
+    JLOOP
+    KLOOP
+    c->Fi[FIJK] = sv_fi[FIJK];
+    
+    SLICELOOP4
+    {
+    c->eta(i,j) = sv_eta(i,j);
+    c->Fifsf(i,j) = sv_fifsf(i,j);
+    c->vb(i,j) = sv_vb(i,j);
+    Neo(i,j) = sv_neo(i,j);
+    Nfo(i,j) = sv_nfo(i,j);
+    eko(i,j) = sv_eko(i,j);
+    fko(i,j) = sv_fko(i,j);
+    }
+    
+    dt_prev = sv_dtprev;
+    nstep = sv_nstep;
+    
+    pgc->gcsl_start4(p,c->eta,gcval_eta);
+    pgc->gcsl_start4(p,c->Fifsf,gcval_fifsf);
+    pgc->gcsl_start4(p,c->vb,1);
+    
+    pflow->inflow_fnpf(p,c,pgc,c->Fi,c->Uin,c->Fifsf,c->eta);
+    pf->fsfdisc(p,c,pgc,c->eta,c->Fifsf);
+    sigma_update(p,c,pgc,pf,c->eta);
+    fsfbc_sig(p,c,pgc,c->Fifsf,c->Fi);
+    bedbc_sig(p,c,pgc,c->Fi,pf);
+    pgc->start7V(p,c->Fi,c->bc,gcval);
+    pf->fsfwvel(p,c,pgc,c->eta,c->Fifsf);
+    bedbc_sig(p,c,pgc,c->Fi,pf);
+    velcalc_sig(p,c,pgc,c->Fi);
+}
+
+bool fnpf_theta::step(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, convection *pconvec, ioflow *pflow, reini *preini)
 {
     const double g  = fabs(p->W22);
     const double dt = p->dt;
+    step_fail = false;
+    fail_why = 0;
+    
+    // A 406: the largest surface velocity at t^n (Fx, Fy of the end of the last step)
+    double us0=0.0;
+    if(p->A406>0)
+    {
+    SLICELOOP4
+    if(p->wet[IJ]==1)
+    us0 = MAX(us0, fabs(c->Fx(i,j)) + (p->j_dir==1 ? fabs(c->Fy(i,j)) : 0.0));
+    us0 = pgc->globalmax(us0);
+    }
     
     // A 379: theta + delta in the columns within d of the still-water coastline (c->coastline: the distance from the
     // initial coastline, negative on land)
@@ -438,6 +563,8 @@ void fnpf_theta::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, con
     {
     {fnpf_prof::scope ps_(fnpf_prof::laplace); plap->start(p,c,pgc,psolv,pf,c->Fi,c->Fifsf);}
     {fnpf_prof::scope ps_(fnpf_prof::gc3d); pgc->start7V(p,c->Fi,c->bc,gcval);}
+    if(lsolv==1 && pamr==nullptr)
+    solve_check(p);
     ++editsum;
     }
     }
@@ -477,8 +604,37 @@ void fnpf_theta::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, con
     cout<<", beta "<<beta<<" (mean "<<betasum/double(MAX(stepsum,1L))<<")";
     if(lsolv==1)
     cout<<", REEFMG cycles per step: pass 0 "<<double(cycsum0)/double(MAX(stepsum,1L))<<", corrector "<<double(cycsumc)/double(MAX(stepsum,1L));
+    if(retrysum>0)
+    cout<<", rejected steps (A 406) "<<retrysum;
     cout<<endl;
     }
+    
+    // the state of the step finite, and no jump of the surface velocity: more than 3 times that at t^n plus 1 m/s
+    // (in the steep JONSWAP sea a crest went from 13.7 to 89 m/s in one step, with all solves converged, and the
+    // next step was NaN; a breaking crest there grows by a factor of 1.2-1.8 per step)
+    {
+    double emx=0.0, us1=0.0;
+    SLICELOOP4
+    {
+    emx = MAX(emx, fabs(c->eta(i,j)) + fabs(c->Fifsf(i,j)));
+    if(p->wet[IJ]==1)
+    us1 = MAX(us1, fabs(c->Fx(i,j)) + (p->j_dir==1 ? fabs(c->Fy(i,j)) : 0.0));
+    }
+    emx = pgc->globalmax(emx);
+    us1 = pgc->globalmax(us1);
+    if(!(emx==emx) || emx>1.0e30 || !(us1==us1))
+    {
+    if(!step_fail) fail_why = 3;
+    step_fail = true;
+    }
+    if(p->A406>0 && us1>3.0*us0+1.0)
+    {
+    if(!step_fail) fail_why = 2;
+    step_fail = true;
+    }
+    }
+    
+    return !step_fail;
 }
 
 // Corrector: eta^n+1 of the current solution (eta update with Fifsf^n+1 = fnew, w^n+1 = wnew), N^n+1 on it,
@@ -971,6 +1127,8 @@ double fnpf_theta::robin_solve_mg(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver 
     else
     {fnpf_prof::scope ps_(fnpf_prof::laplace); psolv->startF(p,pgc,c->Fi,c->rhsvec,c->M,8);}
     reefmg::keep_coarse = false;
+    if(lsolv==1 && (pamr==nullptr || !pamr->active()))
+    solve_check(p);
     
     // resolved bodies: the body band of Fi
     {fnpf_prof::scope ps_(fnpf_prof::body); pbody->solve_post(p,c,pgc,c->Fi);}

@@ -169,7 +169,8 @@ using namespace std;
 // A 303 relaxation zones: > 0 factors r^(dt/A 303), 0 r per step, -1 < A 303 < 0 per time as the three RK3 stages
 // of an RK3 run at N 47 -A 303, <= -1 (default -200) as an RK3 run with -A 303 steps per period of the wave input;
 // A 333 the coastline relaxation (A 343 >= 1: > 0 as RK3 at N 47 A 333, 0 as the zones); A 304 tolerance of the
-// corrector (default 1e-3); A 379 delta d: theta + delta within d [m] of the still-water coastline (default off).
+// corrector (default 1e-3); A 379 delta d: theta + delta within d [m] of the still-water coastline (default off);
+// A 406 n: a failed step is repeated with half the step, at most n times (default 3, 0 off; patch 0038).
 //
 // A 379 (patch 0034): in the inner surf and swash zone the theta step at the RK3 step (N 51 3 with a coastline)
 // carries more short-wave energy than the converged solution: Mase & Kirby, Hm0 above 0.3 Hz at h = 2.5 cm 9 % above
@@ -187,6 +188,24 @@ public:
 	virtual ~fnpf_theta();
     
     void start(lexer*, fdm_fnpf*, ghostcell*, solver*, convection*, ioflow*, reini*) override final;
+    
+private:
+    // one theta step; false when a Laplace solve of it failed (diverged, NaN, iteration limit N 46), the largest
+    // surface velocity jumped (more than 3 times that at t^n plus 1 m/s) or the state is not finite (A 406: the
+    // step is then repeated from t^n with half the step)
+    bool step(lexer*, fdm_fnpf*, ghostcell*, solver*, convection*, ioflow*, reini*);
+    void solve_check(lexer*);
+    void state_save(lexer*, fdm_fnpf*);
+    void state_restore(lexer*, fdm_fnpf*, ghostcell*, ioflow*);
+    bool step_fail = false;
+    int fail_why = 0;              // 1 Laplace solve, 2 surface velocity jump, 3 state not finite
+    int retry_steps = 0;           // steps since the last rejected step (the step may grow by 2 per step then)
+    long retrysum = 0;
+    std::vector<double> sv_fi;
+    slice4 sv_eta, sv_fifsf, sv_vb, sv_neo, sv_nfo, sv_eko, sv_fko;
+    double sv_dtprev = 0.0;
+    int sv_nstep = 0;
+public:
     void inidisc_step1(lexer*, fdm_fnpf*, ghostcell*, ioflow*, solver*) override final;
     void inidisc_step2(lexer*, fdm_fnpf*, ghostcell*, ioflow*, solver*) override final;
     void ini_wetdry(lexer*, fdm_fnpf*, ghostcell*) override final;
