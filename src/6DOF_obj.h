@@ -487,6 +487,10 @@ protected:
     sixdof_brain *brain_ = nullptr;
     std::vector<sixdof_deform::gait_target> gait_in_, gait_brain_;
     void brain_setup(lexer*);
+    
+    // checkpoint of the state of a coupling between the steps (sixdof_obj_cfd: X 198)
+    virtual void ckpt_coupling(std::vector<double>&) const {}
+    virtual void ckpt_coupling_restore(const std::vector<double>&) {}
     void brain_update(lexer*, const std::vector<double>*, const std::vector<double>* =nullptr);
     bool brain_due(lexer*) const;
     ofstream printbrain;
