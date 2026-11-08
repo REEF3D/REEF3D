@@ -374,6 +374,10 @@ bool fnpf_theta::step(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, conv
     SLICELOOP4
     fk(i,j) = c->K(i,j);
     
+    // A 350 5: absorbing surface pressure of the deep-water breakers, part of the explicit tendency (Nf)
+    if(p->A350==5)
+    pf->absorb(p,c,ek,fk);
+    
     // resolved bodies (X 10): the loads of the state at t^n and the predictor of the body (Heun, stage 0) to
     // t^n+1; the corrector stage with the loads of the first corrector state (corrector_state)
     psolv_step = psolv;
@@ -529,7 +533,7 @@ bool fnpf_theta::step(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, conv
     
     {fnpf_prof::scope ps_(fnpf_prof::breaking); pf->breaking_zones(p,pflow);}
     {fnpf_prof::scope ps_(fnpf_prof::breaking); pf->breaking(p,c,pgc,c->eta,en,c->Fifsf,1.0);}
-    if((p->A350==1 || p->A350==4) && p->A352>0)
+    if((p->A350==1 || p->A350==4 || p->A350==5) && p->A352>0)
     {
     {fnpf_prof::scope ps_(fnpf_prof::gc2d); pgc->gcsl_start4(p,c->eta,gcval_eta);}
     {fnpf_prof::scope ps_(fnpf_prof::gc2d); pgc->gcsl_start4(p,c->Fifsf,gcval_fifsf);}

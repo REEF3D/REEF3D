@@ -61,6 +61,8 @@ public:
     void breaking_barthelemy(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&,slice&,double);
     void bt_filter(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&,slice&,double);
     void breaking_zones(lexer*,ioflow*) override;
+    // A 350 5: Fi_t -= pa, pa = bt_pa eta_t on the front faces of the deep-water breakers
+    void absorb(lexer*,fdm_fnpf*,slice&,slice&) override;
 
     
     
@@ -129,6 +131,7 @@ private:
     // A 350 4: crest tracking (breaking_crest3d), surface velocity, relaxation zones
     breaking_crest3d *bt=nullptr;
     slice4 bt_us, bt_vs;
+    slice4 bt_pa, bt_et;   // A 350 5: absorbing-pressure coefficient (m/s), eta_t of the step
     sliceint4 bt_zone;
     bool bt_zone_built=false;
     int bt_count=0;

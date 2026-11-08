@@ -1,0 +1,11 @@
+{
+ "description": "FNPF A 350 5 in the steep deep-water JONSWAP sea of fnpf_2d_break_barthelemy_deep_a405 (Hs 15.64 m, Tp 15 s, gamma 2.5, 600 m deep, dx 3 m, B 139 2, I 12 1, theta-Robin A 310 5, A 405 0.5) without the filter (A 352 0): deep-water breakers with the slope strength b(S) of Romero et al. (2012) (A 367 1), c_b and T_b from linear dispersion, active for 0.75 T_b, at most 25 % of g H_b^2 L_b/8 per event, dissipated by the absorbing surface pressure in the dynamic FSBC of the theta-Robin step.",
+ "solver": "fnpf",
+ "np": 1,
+ "steps": 300,
+ "tags": ["2d", "fnpf", "waves", "breaking", "irregular"],
+ "covers": [
+  "breaking_crest3d::rays model 5 (onset with the faded resolution correction, breaker scales, b(S), duration, one event per steepening, pressure painting)",
+  "fnpf_breaking::breaking_barthelemy and fnpf_breaking::absorb with A 350 5 in fnpf_theta"
+ ]
+}
