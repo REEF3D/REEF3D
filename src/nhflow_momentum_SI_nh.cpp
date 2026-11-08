@@ -413,7 +413,7 @@ void nhflow_momentum_SI::nh_faces(lexer *p, fdm_nhf *d)
     }
 }
 
-void nhflow_momentum_SI::nh_residual(lexer *p, fdm_nhf *d, ghostcell *pgc, const std::vector<double> &x, std::vector<double> &y)
+void nhflow_momentum_SI::nh_residual(lexer *p, fdm_nhf *d, ghostcell *pgc, const std::vector<double> &x, std::vector<double> &y, bool zero)
 {
     // F(x): the mass rows (eta_update) and the constraint rows of the step with x = (eta, phi_0 .. phi_{K-1}) per column
     const double dt = p->dt;
@@ -433,9 +433,20 @@ void nhflow_momentum_SI::nh_residual(lexer *p, fdm_nhf *d, ghostcell *pgc, const
     exchange4(p,pgc,etaI);
     exchangeC(p,pgc,PHI);
 
+    // x = 0: phi = 0, the phi faces zero (nh_faces gives 0 on every face, and so the exchange)
+    if(zero)
+    {
+    const int NF = p->imax*p->jmax*(p->kmax+2);
+    std::fill(NQx,NQx+NF,0.0);
+    std::fill(NQy,NQy+NF,0.0);
+    }
+
+    else
+    {
     nh_faces(p,d);
     exchangeF(p,pgc,NQx);
     exchangeF(p,pgc,NQy);
+    }
 
     face_update(p,d,pgc);
 
@@ -750,7 +761,10 @@ void nhflow_momentum_SI::nh_solve(lexer *p, fdm_nhf *d, ghostcell *pgc)
     ++N;
 
     const int n2 = B*N;
-    std::vector<double> x(n2), F0(n2), y(n2), e(n2);
+    std::vector<double> &x = nsx, &F0 = nsF0, &y = nsy;
+    x.assign(n2,0.0);
+    F0.resize(n2);
+    y.resize(n2);
 
     if(!nhlu)
     nhlu = std::make_shared<sflow_si_nh_lu>();
@@ -758,8 +772,7 @@ void nhflow_momentum_SI::nh_solve(lexer *p, fdm_nhf *d, ghostcell *pgc)
     auto &S = *nhlu;
 
     // F(0): the affine part; b = -F(0)
-    std::fill(x.begin(),x.end(),0.0);
-    nh_residual(p,d,pgc,x,F0);
+    nh_residual(p,d,pgc,x,F0,true);
 
     // ---- multigrid with the column relaxation (Basilisk's solver, nhflow_si_nhmg) inside FGMRES; one row of columns
     // on one rank: the band LU (direct, the cheapest there)
@@ -807,6 +820,8 @@ void nhflow_momentum_SI::nh_solve(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
     if(!probe)
     direct([&](int rr, int cc, double v){ S.at(rr,cc) = v; });
+
+    std::vector<double> e(probe ? n2 : 0);
 
     if(probe)
     for(int col=0; col<3; ++col)
@@ -949,18 +964,23 @@ void nhflow_momentum_SI::nh_cell(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
 void nhflow_momentum_SI::nh_solve_mg(lexer *p, fdm_nhf *d, ghostcell *pgc, const std::vector<double> &F0, std::vector<double> &xr)
 {
-    // the coupled system A x = -F(0): A assembled by probing (block 5-point over the columns, five colours, three with
-    // one cell in y), FGMRES(30) right-preconditioned with one K-cycle of nhflow_si_nhmg, stopping test below (A 506)
+    // the coupled system A x = -F(0): A assembled from the face derivatives (block 5-point over the columns),
+    // FGMRES(30) right-preconditioned with one K-cycle of nhflow_si_nhmg (single precision), stopping test below (A 506);
+    // A 507 1: eta, then phi (two smaller systems, the same solver)
     const int K = p->knoz, B = K+1;
     const int nx = p->knox, ny = p->knoy;
     const bool yd = (p->j_dir==1);
     const int nc = yd ? 5 : 3;
     const size_t nm = (size_t)nx*ny*B;
+    const int nbr[4] = {p->nb1, p->nb4, yd ? p->nb3 : -2, yd ? p->nb2 : -2};
+
+    // the preconditioner is rebuilt at most every lagmax steps (below); 256^2 x 4: rebuilt every step 51.8 s, every 4th
+    // 49.6 s, the iterations the same (5.1)
+    const int lagmax = 4;
 
     if(!nhmg)
     {
     nhmg = std::make_shared<nhflow_si_nhmg>();
-    const int nbr[4] = {p->nb1, p->nb4, yd ? p->nb3 : -2, yd ? p->nb2 : -2};
     nhmg->setup(pgc->mpi_comm,B,nx,ny,nbr);
 
         if(p->mpirank==0)
@@ -972,6 +992,7 @@ void nhflow_momentum_SI::nh_solve_mg(lexer *p, fdm_nhf *d, ghostcell *pgc, const
     // the cells of the residual (SLICELOOP4 order) in the box of the multigrid
     std::vector<int> cix, ciy;
     std::vector<int> cell((size_t)nx*ny,-1);
+    int nact = 0;
     {
     int n=0;
     SLICELOOP4
@@ -979,6 +1000,7 @@ void nhflow_momentum_SI::nh_solve_mg(lexer *p, fdm_nhf *d, ghostcell *pgc, const
     cix.push_back(i);
     ciy.push_back(j);
     cell[(size_t)i*ny + j] = n;
+    nact += nAct[IJ] ? 1 : 0;
     ++n;
     }
     }
@@ -992,16 +1014,19 @@ void nhflow_momentum_SI::nh_solve_mg(lexer *p, fdm_nhf *d, ghostcell *pgc, const
     // evaluations of the full residual per step). Environment NHCHECK: both, and the largest difference of the entries
     // (round-off: 1e-13 of the largest entry)
     M.zero();
-    std::vector<double> e((size_t)N*B), y((size_t)N*B);
     const bool probe = getenv("NHCHECK")!=nullptr;
+    std::vector<double> e(probe ? (size_t)N*B : 0), y(probe ? (size_t)N*B : 0);
 
     if(!probe)
     {
     nh_dfaces(p,d,pgc);
-    nh_assemble(p,[&](int ii, int jj, int dd, int tr, int t, double v){ M.block(ii,jj,dd)[tr*B+t] = v; });
+    nh_assemble(p,[&](int ii, int jj, int dd, int tr, int t, double v){ M.set(ii,jj,dd,tr,t,v); });
     }
 
     if(probe)
+    {
+    M.mark_all();
+
     for(int col=0; col<nc; ++col)
     for(int t=0; t<B; ++t)
     {
@@ -1026,6 +1051,7 @@ void nhflow_momentum_SI::nh_solve_mg(lexer *p, fdm_nhf *d, ghostcell *pgc, const
             for(int tr=0; tr<B; ++tr)
             a[tr*B+t] = y[(size_t)B*n+tr] - F0[(size_t)B*n+tr];
         }
+    }
     }
 
     if(getenv("NHCHECK"))
@@ -1054,11 +1080,8 @@ void nhflow_momentum_SI::nh_solve_mg(lexer *p, fdm_nhf *d, ghostcell *pgc, const
     for(int ii=0; ii<nx; ++ii)
     for(int jj=0; jj<ny; ++jj)
     if(cell[(size_t)ii*ny+jj]<0)
-    {
-    double *a = M.block(ii,jj,0);
     for(int r=0; r<B; ++r)
-    a[r*B+r] = 1.0;
-    }
+    M.set(ii,jj,0,r,r,1.0);
 
     // rows in metres: the mass row is the error of eta; a constraint row k (D_k 2 h_k/dt) times dt^2/2 is D_k h_k dt, the
     // change of the layer thickness in the step that the error of the divergence makes. Block Gauss-Seidel and the
@@ -1082,10 +1105,11 @@ void nhflow_momentum_SI::nh_solve_mg(lexer *p, fdm_nhf *d, ghostcell *pgc, const
         }
     }
 
-    M.finalize();
-
-    // ---- FGMRES on the box vectors
-    std::vector<double> b(nm,0.0), x(nm,0.0), w(nm), r0(nm);
+    // ---- the right-hand side and the initial guess on the box vectors
+    std::vector<double> &b = nmb, &x = nmx, &w = nmw;
+    b.assign(nm,0.0);
+    x.assign(nm,0.0);
+    w.resize(nm);
     const bool guess = true;
     const bool hist = nEtaP.size()==(size_t)p->imax*p->jmax;
 
@@ -1124,16 +1148,7 @@ void nhflow_momentum_SI::nh_solve_mg(lexer *p, fdm_nhf *d, ghostcell *pgc, const
     }
     }
 
-    auto dot = [&](const std::vector<double> &u, const std::vector<double> &v)
-    {
-        double s = 0.0;
-        for(size_t q=0; q<nm; ++q)
-        s += u[q]*v[q];
-        return pgc->globalsum(s);
-    };
-
-    const int m = 30, maxit = 300;
-
+    // ---- FGMRES(30) of a system of the multigrid MM (n unknowns, Krylov vectors V, Z kept between the steps)
     // stopping test (A 506, default 1e-4): max |r| <= max(A 506 max |r0|, 1e-12 max(|b|, |A x0|)), r0 = b - A x0 the
     // residual of the guess, rows in metres (above). Relative to the step's own starting residual, not to |b|: b holds
     // eta^n, so the |b| test of v7b loosened with a tide or a still water level away from the initial one (0.4 m in
@@ -1142,126 +1157,292 @@ void nhflow_momentum_SI::nh_solve_mg(lexer *p, fdm_nhf *d, ghostcell *pgc, const
     // its starting residual times the reduction the max-norm still needs; the max-norm is checked on the true residual
     // of every restart. 2D standing wave 64 x 64 x 4, T/40 .. T/1280, error against T/5120: 1e-4 within 1.5 % of the
     // converged solve, 6.0 iterations (|b| test 1e-5: 8.0); 1e-3 up to 27 % at T/1280, 5.0 iterations
-    const double tol = p->A506;
+    struct fg_result { int it=0, cyc=0; double r0max=0.0, rmax=0.0, tolmax=0.0; };
 
-    // the Krylov vectors, kept from step to step and allocated when an iteration first needs them (allocating all
-    // 61 of them every step cost about as much as two iterations)
-    if(fgV.empty() || fgV[0].size()!=nm)
+    auto fgmres = [&](nhflow_si_nhmg &MM, const std::vector<double> &bb, std::vector<double> &xx,
+                      std::vector<std::vector<double>> &V, std::vector<std::vector<double>> &Z, std::vector<double> &wv) -> fg_result
     {
-    fgV.assign(m+1,std::vector<double>());
-    fgZ.assign(m,std::vector<double>());
-    }
+        const size_t n = bb.size();
+        const int m = 30, maxit = 300;
+        const double tol = p->A506;
+        fg_result R;
 
-    auto need = [&](std::vector<double> &v) { if(v.size()!=nm) v.assign(nm,0.0); };
-    std::vector<std::vector<double>> &V = fgV, &Z = fgZ;
-    need(V[0]);
-    std::vector<double> H((m+1)*m,0.0), cs(m,0.0), sn(m,0.0), g(m+1,0.0);
-
-    int it = 0, cyc = 0;
-    double r0max = 0.0, rmax = 0.0, tolmax = 0.0;
-
-    while(true)
-    {
-        M.matvec(x.data(),w.data());
-
-        double mx[3] = {0.0, 0.0, 0.0};
-        for(size_t q=0; q<nm; ++q)
+        auto dot = [&](const std::vector<double> &u, const std::vector<double> &v)
         {
-        V[0][q] = b[q] - w[q];
-        mx[0] = MAX(mx[0],fabs(V[0][q]));
-        mx[1] = MAX(mx[1],fabs(b[q]));
-        mx[2] = MAX(mx[2],fabs(w[q]));
+            double s = 0.0;
+            for(size_t q=0; q<n; ++q)
+            s += u[q]*v[q];
+            return pgc->globalsum(s);
+        };
+
+        // the Krylov vectors, kept from step to step and allocated when an iteration first needs them (allocating all
+        // 61 of them every step cost about as much as two iterations)
+        if(V.empty() || V[0].size()!=n)
+        {
+        V.assign(m+1,std::vector<double>());
+        Z.assign(m,std::vector<double>());
         }
 
-        pgc->globalmax(mx,3);
-        rmax = mx[0];
-        const double beta = sqrt(dot(V[0],V[0]));
+        auto need = [&](std::vector<double> &v) { if(v.size()!=n) v.assign(n,0.0); };
+        need(V[0]);
+        std::vector<double> H((m+1)*m,0.0), cs(m,0.0), sn(m,0.0), g(m+1,0.0), hv(m+2);
+        wv.resize(n);
 
-        if(cyc==0)
+        while(true)
         {
-        r0max = rmax;
-        tolmax = MAX(tol*r0max,1.0e-12*MAX(mx[1],mx[2]));
-        }
+            MM.matvec(xx.data(),wv.data());
 
-        if(rmax<=tolmax || it>=maxit || beta<=0.0)
-        break;
-
-        ++cyc;
-        const double target = 0.9*beta*tolmax/rmax;
-
-        for(size_t q=0; q<nm; ++q)
-        V[0][q] /= beta;
-
-        std::fill(g.begin(),g.end(),0.0);
-        g[0] = beta;
-
-        int jj=0;
-        for(; jj<m && it<maxit; ++jj, ++it)
-        {
-            need(Z[jj]);
-            need(V[jj+1]);
-            M.vcycle(V[jj].data(),Z[jj].data());
-            M.matvec(Z[jj].data(),V[jj+1].data());
-
-            for(int l=0; l<=jj; ++l)
+            double mx[3] = {0.0, 0.0, 0.0};
+            for(size_t q=0; q<n; ++q)
             {
-            const double h = dot(V[jj+1],V[l]);
-            H[l*m+jj] = h;
-            for(size_t q=0; q<nm; ++q)
-            V[jj+1][q] -= h*V[l][q];
+            V[0][q] = bb[q] - wv[q];
+            mx[0] = MAX(mx[0],fabs(V[0][q]));
+            mx[1] = MAX(mx[1],fabs(bb[q]));
+            mx[2] = MAX(mx[2],fabs(wv[q]));
             }
 
-            const double h1 = sqrt(dot(V[jj+1],V[jj+1]));
-            H[(jj+1)*m+jj] = h1;
+            pgc->globalmax(mx,3);
+            R.rmax = mx[0];
+            const double beta = sqrt(dot(V[0],V[0]));
 
-            if(h1>0.0)
-            for(size_t q=0; q<nm; ++q)
-            V[jj+1][q] /= h1;
-
-            for(int l=0; l<jj; ++l)
+            if(R.cyc==0)
             {
-            const double t0 = cs[l]*H[l*m+jj] + sn[l]*H[(l+1)*m+jj];
-            H[(l+1)*m+jj] = -sn[l]*H[l*m+jj] + cs[l]*H[(l+1)*m+jj];
-            H[l*m+jj] = t0;
+            R.r0max = R.rmax;
+            R.tolmax = MAX(tol*R.r0max,1.0e-12*MAX(mx[1],mx[2]));
             }
 
-            const double a0 = H[jj*m+jj], a1 = H[(jj+1)*m+jj];
-            const double rr = sqrt(a0*a0 + a1*a1);
-            cs[jj] = rr>0.0 ? a0/rr : 1.0;
-            sn[jj] = rr>0.0 ? a1/rr : 0.0;
-            H[jj*m+jj] = rr;
-            H[(jj+1)*m+jj] = 0.0;
-            g[jj+1] = -sn[jj]*g[jj];
-            g[jj]   =  cs[jj]*g[jj];
-
-            if(fabs(g[jj+1])<=target)
-            {
-            ++jj; ++it;
+            if(R.rmax<=R.tolmax || R.it>=maxit || beta<=0.0)
             break;
+
+            ++R.cyc;
+            const double target = 0.9*beta*R.tolmax/R.rmax;
+
+            for(size_t q=0; q<n; ++q)
+            V[0][q] /= beta;
+
+            std::fill(g.begin(),g.end(),0.0);
+            g[0] = beta;
+
+            int jj=0;
+            for(; jj<m && R.it<maxit; ++jj, ++R.it)
+            {
+                need(Z[jj]);
+                need(V[jj+1]);
+                MM.vcycle(V[jj].data(),Z[jj].data());
+                MM.matvec(Z[jj].data(),V[jj+1].data());
+
+                // classical Gram-Schmidt: all products in one pass and one reduction, the update in a second pass with
+                // the new norm (before: modified Gram-Schmidt, a pass and a reduction per vector); again when the
+                // norm drops below 1/sqrt(2) of the one before (DGKS)
+                std::vector<double> &wj = V[jj+1];
+                double h1 = 0.0;
+
+                for(int pass=0; pass<2; ++pass)
+                {
+                    std::fill(hv.begin(),hv.begin()+jj+2,0.0);
+
+                    for(size_t q=0; q<n; ++q)
+                    {
+                    const double wq = wj[q];
+                    for(int l=0; l<=jj; ++l)
+                    hv[l] += wq*V[l][q];
+                    hv[jj+1] += wq*wq;
+                    }
+
+                    MPI_Allreduce(MPI_IN_PLACE,hv.data(),jj+2,MPI_DOUBLE,MPI_SUM,pgc->mpi_comm);
+
+                    double nn = 0.0;
+                    for(size_t q=0; q<n; ++q)
+                    {
+                    double s = wj[q];
+                    for(int l=0; l<=jj; ++l)
+                    s -= hv[l]*V[l][q];
+                    wj[q] = s;
+                    nn += s*s;
+                    }
+
+                    nn = pgc->globalsum(nn);
+
+                    for(int l=0; l<=jj; ++l)
+                    H[l*m+jj] = (pass==0 ? 0.0 : H[l*m+jj]) + hv[l];
+
+                    h1 = sqrt(MAX(nn,0.0));
+
+                    if(h1*h1 > 0.5*hv[jj+1])
+                    break;
+                }
+
+                H[(jj+1)*m+jj] = h1;
+
+                if(h1>0.0)
+                for(size_t q=0; q<n; ++q)
+                V[jj+1][q] /= h1;
+
+                for(int l=0; l<jj; ++l)
+                {
+                const double t0 = cs[l]*H[l*m+jj] + sn[l]*H[(l+1)*m+jj];
+                H[(l+1)*m+jj] = -sn[l]*H[l*m+jj] + cs[l]*H[(l+1)*m+jj];
+                H[l*m+jj] = t0;
+                }
+
+                const double a0 = H[jj*m+jj], a1 = H[(jj+1)*m+jj];
+                const double rr = sqrt(a0*a0 + a1*a1);
+                cs[jj] = rr>0.0 ? a0/rr : 1.0;
+                sn[jj] = rr>0.0 ? a1/rr : 0.0;
+                H[jj*m+jj] = rr;
+                H[(jj+1)*m+jj] = 0.0;
+                g[jj+1] = -sn[jj]*g[jj];
+                g[jj]   =  cs[jj]*g[jj];
+
+                if(fabs(g[jj+1])<=target)
+                {
+                ++jj; ++R.it;
+                break;
+                }
+            }
+
+            std::vector<double> yk(jj,0.0);
+            for(int l=jj-1; l>=0; --l)
+            {
+            double s = g[l];
+            for(int q=l+1; q<jj; ++q)
+            s -= H[l*m+q]*yk[q];
+            yk[l] = s/H[l*m+l];
+            }
+
+            for(size_t q=0; q<n; ++q)
+            {
+            double s = 0.0;
+            for(int l=0; l<jj; ++l)
+            s += yk[l]*Z[l][q];
+            xx[q] += s;
             }
         }
 
-        std::vector<double> yk(jj,0.0);
-        for(int l=jj-1; l>=0; --l)
-        {
-        double s = g[l];
-        for(int q=l+1; q<jj; ++q)
-        s -= H[l*m+q]*yk[q];
-        yk[l] = s/H[l*m+l];
-        }
+        return R;
+    };
 
-        for(int l=0; l<jj; ++l)
-        for(size_t q=0; q<nm; ++q)
-        x[q] += yk[l]*Z[l][q];
+    // ---- the preconditioner of an earlier step: rebuilt after lagmax steps, when dt changed by more than
+    // 10 %, when the active columns changed, or when the iterations grew by more than one over those of the rebuild
+    const bool refresh = lagmax<=1 || nh_lagc+1>=lagmax || fabs(p->dt/MAX(nh_lagdt,1.0e-20) - 1.0)>0.1
+                         || pgc->globalisum(nact)!=nh_lagnact || nh_iter>nh_lagit+1;
+
+    const int nsplit = p->A507;
+    fg_result R, R2;
+
+    if(nsplit==0)
+    {
+    M.finalize(refresh);
+    R = fgmres(M,b,x,fgV,fgZ,nmv);
     }
 
-    nh_iter = it;
+    // ---- A 507 1: eta with phi of the guess (the eta system: the mass rows and eta), then phi with the new eta (the
+    // constraint rows and phi): one block Gauss-Seidel pass over the coupled system, each part solved to A 506
+    else
+    {
+    if(!nhme)
+    {
+    nhme = std::make_shared<nhflow_si_nhmg>();
+    nhme->setup(pgc->mpi_comm,1,nx,ny,nbr);
+    nhmp = std::make_shared<nhflow_si_nhmg>();
+    nhmp->setup(pgc->mpi_comm,K,nx,ny,nbr);
+    }
 
-    if(getenv("NHLOG") && p->mpirank==0)
-    cout<<"NHLOG "<<p->count<<" it "<<it<<" cycles "<<cyc<<" r0 "<<r0max<<" r "<<rmax<<" target "<<tolmax<<endl;
+    nhflow_si_nhmg &Me = *nhme, &Mp = *nhmp;
+    Me.zero();
+    Mp.zero();
 
-    if(rmax>tolmax && p->mpirank==0)
-    cout<<"!!! NHFLOW semi-implicit non-hydrostatic: FGMRES not converged in "<<maxit<<" iterations, max |r| "<<rmax<<" m, target "<<tolmax<<" m !!!"<<endl;
+    for(int ii=0; ii<nx; ++ii)
+    for(int jj=0; jj<ny; ++jj)
+    for(int dd=0; dd<5; ++dd)
+    {
+        const double *a = M.block(ii,jj,dd);
+
+        if(a[0]!=0.0)
+        Me.set(ii,jj,dd,0,0,a[0]);
+
+        for(int r=1; r<B; ++r)
+        for(int c=1; c<B; ++c)
+        if(a[r*B+c]!=0.0)
+        Mp.set(ii,jj,dd,r-1,c-1,a[r*B+c]);
+    }
+
+    M.pattern();
+    Me.finalize(refresh);
+    Mp.finalize(refresh);
+
+    const size_t nc1 = (size_t)nx*ny;
+    std::vector<double> xs(nm,0.0), be(nc1), xe(nc1), bp(nc1*K), xp(nc1*K);
+
+    // eta: b_eta - A_eta,phi phi
+    for(size_t c=0; c<nc1; ++c)
+    for(int t=1; t<B; ++t)
+    xs[c*B+t] = x[c*B+t];
+
+    M.matvec(xs.data(),w.data());
+
+    for(size_t c=0; c<nc1; ++c)
+    {
+    be[c] = b[c*B] - w[c*B];
+    xe[c] = x[c*B];
+    }
+
+    std::vector<double> wve, wvp;
+    R = fgmres(Me,be,xe,fgVe,fgZe,wve);
+
+    // phi: b_phi - A_phi,eta eta
+    std::fill(xs.begin(),xs.end(),0.0);
+    for(size_t c=0; c<nc1; ++c)
+    xs[c*B] = xe[c];
+
+    M.matvec(xs.data(),w.data());
+
+    for(size_t c=0; c<nc1; ++c)
+    for(int t=1; t<B; ++t)
+    {
+    bp[c*K+t-1] = b[c*B+t] - w[c*B+t];
+    xp[c*K+t-1] = x[c*B+t];
+    }
+
+    R2 = fgmres(Mp,bp,xp,fgVp,fgZp,wvp);
+
+    for(size_t c=0; c<nc1; ++c)
+    {
+    x[c*B] = xe[c];
+        for(int t=1; t<B; ++t)
+        x[c*B+t] = xp[c*K+t-1];
+    }
+    }
+
+    if(refresh)
+    {
+    nh_lagc = 0;
+    nh_lagdt = p->dt;
+    nh_lagnact = pgc->globalisum(nact);
+    nh_lagit = R.it + R2.it;
+    }
+
+    else
+    ++nh_lagc;
+
+    nh_iter = R.it + R2.it;
+
+    if(getenv("NHLOG"))
+    {
+    // the residual of the coupled system (A 507 1: what the pass leaves)
+    M.matvec(x.data(),w.data());
+    double rc = 0.0;
+    for(size_t q=0; q<nm; ++q)
+    rc = MAX(rc,fabs(b[q]-w[q]));
+    rc = pgc->globalmax(rc);
+
+        if(p->mpirank==0)
+        cout<<"NHLOG "<<p->count<<" it "<<R.it<<" + "<<R2.it<<" cycles "<<R.cyc<<" r0 "<<R.r0max<<" r "<<R.rmax<<" target "<<R.tolmax
+            <<" coupled r "<<rc<<(refresh ? " refresh" : "")<<endl;
+    }
+
+    if((R.rmax>R.tolmax || R2.rmax>R2.tolmax) && p->mpirank==0)
+    cout<<"!!! NHFLOW semi-implicit non-hydrostatic: FGMRES not converged in 300 iterations, max |r| "<<MAX(R.rmax,R2.rmax)<<" m, target "<<R.tolmax<<" m !!!"<<endl;
 
     for(int n=0; n<N; ++n)
     {

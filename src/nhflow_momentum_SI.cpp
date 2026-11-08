@@ -281,6 +281,9 @@ void nhflow_momentum_SI::check(lexer *p)
     if(p->A505!=0 && p->A505!=1)
     msg("A 505 other than 0 or 1 is");
 
+    if(p->A507!=0 && p->A507!=1)
+    msg("A 507 (eta and phi one after the other) other than 0 or 1 is");
+
     if(p->A506<=0.0 || p->A506>=1.0)
     msg("A 506 (tolerance of the coupled non-hydrostatic solve) outside 0 < A 506 < 1 is");
 
