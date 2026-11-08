@@ -57,6 +57,9 @@ public:
     
     
     double ipol1(field&);
+    double ipol1_print(field&);
+    double ipol2_print(field&);
+    double ipol3_print(field&);
     double ipol2(field&);
     double ipol3(field&);
     double ipol4(field&);    
