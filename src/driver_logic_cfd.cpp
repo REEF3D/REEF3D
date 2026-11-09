@@ -680,6 +680,32 @@ void driver::logic_cfd()
     removed_option(p,pgc,p->F81==1 && (p->D30<1 || p->D30>3 || p->W32>0),"F 81 1: the single phase (p = 0 at the free surface) needs the incompressible projection (D 30 1, 2, 3, no W 32).");
     removed_option(p,pgc,picfsf && p->F46>0,"F 81 1/2: the volume correction of the level set (F 46) does not apply to the free surface from the particles.");
 
+// F 41 1: the single-phase level set (cfd_singlephase.h): the water only, p = 0 at the free surface
+    if(p->F41!=0)
+    {
+    removed_option(p,pgc,p->F41!=1,"F 41: the single-phase level set is F 41 1 (0: two phases).");
+    removed_option(p,pgc,p->F30<=0 || p->F80>0 || p->F81>0,"F 41 1: the single phase of the level set needs the level set (F 30), without VOF (F 80) or PIC (F 81; F 81 1 is the single phase of PIC).");
+    removed_option(p,pgc,p->D30<1 || p->D30>3 || p->W32>0 || p->W30>0,"F 41 1: the single phase (p = 0 at the free surface) needs the incompressible projection (D 30 1, 2, 3, no W 30 or W 32).");
+    removed_option(p,pgc,p->G1>0,"F 41 1: the single-phase level set is not available with the mesh refinement (G 1) yet.");
+    removed_option(p,pgc,p->H10>0 || p->C10>0 || p->F300>0 || p->W90>0 || p->X10>0 || p->Z10>0,"F 41 1: the single-phase level set works without heat (H 10), concentration (C 10), multiphase (F 300), rheology (W 90), floating bodies (X 10) or FSI (Z 10) yet.");
+
+        // the air takes the density and viscosity of the water: the faces of the water at the surface
+        // have the density of the water (the smoothed Heaviside of density_f would give them less)
+        p->W3 = p->W1;
+        p->W4 = p->W2;
+
+        // N 59 (rho u with the mass flux) has no density jump to follow; N 57, N 58, N 65 no air
+        if(p->N59>0)
+        {
+        if(p->mpirank==0)
+        cout<<"F 41 1: N 59 has no density jump to carry in the single phase: N 59 0"<<endl;
+        p->N59=0;
+        }
+
+        if(p->mpirank==0)
+        cout<<"F 41 1: single-phase level set, the water only, p = 0 at the free surface"<<endl;
+    }
+
     if(p->F81>0)
     ppic = new pic_f(p,a,pgc,preini,pflow,pheat,pconc);
     else

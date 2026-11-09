@@ -28,6 +28,7 @@ Author: Hans Bihs
 #include"bcmom.h"
 #include"convection.h"
 #include"godunov.h"
+#include"cfd_singlephase.h"
 #include"diffusion.h"
 #include"pressure.h"
 #include"6DOF.h"
@@ -223,6 +224,10 @@ momentum_rk::momentum_rk(lexer *p, fdm *a, ghostcell *pgc, convection *pconvecti
 
     // N 59 with the one-step scheme (N 40 5): the level set before its last transport
     phiold = (stages==1 && !twoproj && levelset && p->N59>0 && p->F30>0);
+
+    // F 41 1: the single-phase level set
+    if(p->F41==1 && p->F30>0 && p->F81==0)
+    psingle = new cfd_singlephase(p);
     phiold_valid = 0.0;
     ckid_phiold = phiold ? ckpt_registry::add_raw(p,&phiold_valid,1) : 0;
 
@@ -280,6 +285,7 @@ momentum_rk::momentum_rk(lexer *p, fdm *a, ghostcell *pgc, convection *pconvecti
 
 momentum_rk::~momentum_rk()
 {
+    delete psingle;
     ckpt_registry::remove(ckid_imex);
     if(phiold)
     ckpt_registry::remove(ckid_phiold);
@@ -1374,6 +1380,10 @@ void momentum_rk::amr_project_after(lexer *p, fdm *a, ghostcell *pgc, field &u, 
     // PIC single phase (F 81 1): the faces in the air from the water
     if(ppic!=nullptr && ppic->singlephase())
     ppic->air_velocity(p,a,pgc,u,v,w);
+
+    // the single-phase level set (F 41 1): the faces in the air from the water
+    if(psingle!=nullptr)
+    psingle->air_velocity(p,a,pgc,u,v,w);
 }
 
 // ---------------------------------------------------------------------------------------------

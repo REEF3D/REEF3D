@@ -1528,6 +1528,8 @@ void control::ctrlrecv()
     dd++;
     F40 = ictrl[ii];
     ii++;
+    F41 = ictrl[ii];
+    ii++;
     F42 = dctrl[dd];
     dd++;
     F43 = dctrl[dd];

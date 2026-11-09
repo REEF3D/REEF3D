@@ -1,0 +1,166 @@
+/*--------------------------------------------------------------------
+REEF3D
+Copyright 2008-2026 Hans Bihs
+
+This file is part of REEF3D.
+
+REEF3D is free software; you can redistribute it and/or modify it
+under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
+for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, see <http://www.gnu.org/licenses/>.
+--------------------------------------------------------------------
+Architect: Hans Bihs
+--------------------------------------------------------------------*/
+
+#include"cfd_singlephase.h"
+#include"lexer.h"
+#include"fdm.h"
+#include"ghostcell.h"
+#include<vector>
+
+namespace
+{
+inline int fid(lexer *p, int i, int j, int k)
+{
+    return (i-p->imin)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin;
+}
+}
+
+cfd_singlephase::cfd_singlephase(lexer *p) : km1(p), km2(p), km3(p)
+{
+    fmarg = p->margin;
+}
+
+cfd_singlephase::~cfd_singlephase()
+{
+}
+
+// after a projection: the faces next to a cell in the water keep the velocity of the projection (the
+// ghost fluid method set them with p = 0 at the surface); the faces between two cells in the air take,
+// layer by layer (3 layers), the mean of the neighbour faces of the same component that are known
+// (in the water or extended in an earlier layer), and 0 beyond the layers. The same extension as
+// pic_f::air_velocity for F 81 1 (the mean, not linear: a linear one grew at the tips of thin layers).
+// After each layer the values and the marks of the ghost cells come from the neighbours, so the
+// extension does not depend on the decomposition.
+void cfd_singlephase::air_velocity(lexer *p, fdm *a, ghostcell *pgc, field &u, field &v, field &w)
+{
+    extend(p,a,pgc,u,0,3);
+    extend(p,a,pgc,v,1,3);
+    extend(p,a,pgc,w,2,3);
+}
+
+void cfd_singlephase::extend(lexer *p, fdm *a, ghostcell *pgc, field &dst, int c, int layers)
+{
+    const int fm = fmarg;
+    const int jlo = p->j_dir==1 ? -fm : 0;
+    const int jhi = p->j_dir==1 ? p->knoy+fm-1 : 0;
+    const int size = p->imax*p->jmax*p->kmax;
+
+    if(c==1 && p->j_dir==0)
+    {
+        for(int n=0; n<size; ++n)
+        dst.V[n] = 0.0;
+        return;
+    }
+
+    const int di = c==0, dj = c==1, dk = c==2;
+
+    // the known faces, with the margin (phi is known there): next to a cell in the water
+    std::vector<char> known(size,0);
+
+    for(int i=-fm; i<p->knox+fm-di; ++i)
+    for(int j=jlo; j<=jhi-(p->j_dir==1 ? dj : 0); ++j)
+    for(int k=-fm; k<p->knoz+fm-dk; ++k)
+    {
+        const double f0 = a->phi(i,j,k), f1 = a->phi(i+di,j+dj,k+dk);
+
+        // next to a cell of the water (a fluid cell: the level set inside a solid is extended from the
+        // water and says nothing about the face)
+        if((f0>=0.0 && p->flag4[fid(p,i,j,k)]>0) || (f1>=0.0 && p->flag4[fid(p,i+di,j+dj,k+dk)]>0))
+        known[fid(p,i,j,k)] = 1;
+    }
+
+    field &km = c==0 ? static_cast<field&>(km1) : (c==1 ? static_cast<field&>(km2) : static_cast<field&>(km3));
+
+    for(int L=0; L<layers; ++L)
+    {
+        std::vector<char> next = known;
+
+        for(int i=0; i<p->knox; ++i)
+        for(int j=0; j<p->knoy; ++j)
+        for(int k=0; k<p->knoz; ++k)
+        {
+            const int f = fid(p,i,j,k);
+
+            if(known[f])
+            continue;
+
+            double sum=0.0;
+            int cnt=0;
+
+            auto add = [&](int si, int sj, int sk)
+            {
+                const int g1 = fid(p,i+si,j+sj,k+sk);
+
+                if(!known[g1])
+                return;
+
+                sum += dst.V[g1];
+                ++cnt;
+            };
+
+            add(-1,0,0); add(1,0,0);
+            add(0,0,-1); add(0,0,1);
+
+            if(p->j_dir==1)
+            {
+            add(0,-1,0); add(0,1,0);
+            }
+
+            if(cnt>0)
+            {
+            dst.V[f] = sum/double(cnt);
+            next[f] = 1;
+            }
+        }
+
+        known.swap(next);
+
+        for(int n=0; n<size; ++n)
+        km.V[n] = known[n] ? 1.0 : 0.0;
+
+        pgc->gcparax(p,km,c+1);
+
+        for(int n=0; n<size; ++n)
+        known[n] = km.V[n]>0.5 ? 1 : 0;
+
+        if(c==0)
+        pgc->start1(p,dst,10);
+        if(c==1)
+        pgc->start2(p,dst,11);
+        if(c==2)
+        pgc->start3(p,dst,12);
+    }
+
+    // the air beyond the layers at rest
+    for(int i=0; i<p->knox; ++i)
+    for(int j=0; j<p->knoy; ++j)
+    for(int k=0; k<p->knoz; ++k)
+    if(!known[fid(p,i,j,k)])
+    dst.V[fid(p,i,j,k)] = 0.0;
+
+    if(c==0)
+    pgc->start1(p,dst,10);
+    if(c==1)
+    pgc->start2(p,dst,11);
+    if(c==2)
+    pgc->start3(p,dst,12);
+}

@@ -2000,6 +2000,9 @@ void control::read_control(lexer* p)
                 case 40: control>>F40;
                          clear(c,numint);
                          break;
+                case 41: control>>F41;
+                         clear(c,numint);
+                         break;
                 case 42: control>>F42;
                          clear(c,numint);
                          break;

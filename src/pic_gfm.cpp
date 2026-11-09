@@ -39,6 +39,11 @@ inline double theta(double fin, double fout)
 }
 }
 
+bool gfm_single(lexer *p)
+{
+    return p->F81==1 || (p->F41==1 && p->F30>0 && p->F81==0);
+}
+
 void pic_gfm_matrix(lexer *p, fdm *a)
 {
     int n=0;

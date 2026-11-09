@@ -34,6 +34,10 @@ class field;
 
 const double PIC_GFM_THETA = 0.05;
 
+// the single phase with p = 0 at the free surface by the ghost fluid method: PIC single phase (F 81 1)
+// or the single-phase level set (F 41 1, cfd_singlephase.h)
+bool gfm_single(lexer*);
+
 // the Poisson matrix (poisson_pcorr): rows of the cells in the air p = 0, the faces of the water
 // to them with the diagonal 1/theta
 void pic_gfm_matrix(lexer*, fdm*);

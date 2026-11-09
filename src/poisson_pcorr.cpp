@@ -165,7 +165,7 @@ void poisson_pcorr::start(lexer* p, fdm *a, field &press)
     MPI_Allreduce(&ndirichlet,&nd_glob,1,MPI_INT,MPI_SUM,reef3d_comm());
 
     // (not with the single phase of PIC, F 81 1: p = 0 at the free surface)
-    if(nd_glob==0 && p->amr_patch==0 && p->W32==0 && p->F81!=1)
+    if(nd_glob==0 && p->amr_patch==0 && p->W32==0 && !gfm_single(p))
     {
         int myrank = (pin_n>=0) ? p->mpirank : 1<<30;
         int pinrank = 1<<30;
@@ -290,6 +290,6 @@ void poisson_pcorr::start(lexer* p, fdm *a, field &press)
   
 
     // PIC single phase (F 81 1): the pressure in the water only, p = 0 at the free surface
-    if(p->F81==1)
+    if(gfm_single(p))
     pic_gfm_matrix(p,a);
 }
