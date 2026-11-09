@@ -331,7 +331,7 @@ private:
     std::vector<double> nEtaP, nPhiP;            // eta and phi of the step before (the initial guess)
     std::vector<double> nsx, nsF0, nsy, nmb, nmx, nmw, nmv;     // work vectors of nh_solve and nh_solve_mg (kept)
     // zero: x = 0 (F(0); no phi faces)
-    void nh_residual(lexer*, fdm_nhf*, ghostcell*, const std::vector<double>&, std::vector<double>&, bool zero=false);
+    void nh_residual(lexer*, fdm_nhf*, ghostcell*, const std::vector<double>&, std::vector<double>&, bool zero=false, bool rows=true);
     void nh_solve(lexer*, fdm_nhf*, ghostcell*);
     void nh_solve_mg(lexer*, fdm_nhf*, ghostcell*, const std::vector<double>&, std::vector<double>&);
     void nh_cell(lexer*, fdm_nhf*, ghostcell*);
@@ -394,6 +394,10 @@ private:
     std::vector<double> vau, val, vad;         // its coefficients (unscaled), for the explicit part
     void col_adv_rhs(lexer*, const double*, double*);      // A 510 11: one stage, BCG advection, the nonlinear terms at t^{n+1/2}
     bool qini;
+    // the pass of step_single (tl2: 0 the estimate, 1 the final pass); faces_set: face_update of the step done by the
+    // coupled non-hydrostatic solve (nh_solve), si_end_faces skips it
+    int si_pass=0;
+    bool faces_set=false;
 
     double Qin, Qout;       // discharge over the open boundaries of the step (theta weighted)
     double vrelax;          // volume change of the relaxation zones of the step

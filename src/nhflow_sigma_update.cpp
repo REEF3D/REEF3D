@@ -163,7 +163,11 @@ void nhflow_sigma::sigma_update(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL)
     d->Ey(i,j)=0.0;
     }
         
+    // one cell in y (j_dir 0, Cartesian, no hull): Ey, By and so sigy stay 0, their ghost cells too (only written here)
+    const bool ydir = p->j_dir==1 || p->geo_curv==1 || d->hull!=nullptr;
+
     pgc->gcsl_start4(p,d->Ex,1);
+    if(ydir)
     pgc->gcsl_start4(p,d->Ey,1);
     
     // calculate: Bx,By,Bxx,Byy
@@ -194,6 +198,7 @@ void nhflow_sigma::sigma_update(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL)
     }
 
     pgc->gcsl_start4(p,d->Bx,1);
+    if(ydir)
     pgc->gcsl_start4(p,d->By,1);
     
     // -----------------------------------------------------
@@ -302,6 +307,7 @@ void nhflow_sigma::sigma_update(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL)
         } 
     }
     
+    if(ydir)
     SLICELOOP4
     {
         k=0;
@@ -348,6 +354,7 @@ void nhflow_sigma::sigma_update(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL)
     p->ZSP[IJK]  = p->ZP[KP]*WL(i,j) + d->bed(i,j);
     
     pgc->start7S(p,p->sigx,1);
+    if(ydir)
     pgc->start7S(p,p->sigy,1);
     pgc->start7S(p,p->sigxx,1);
     pgc->start7S(p,p->sigt,1);

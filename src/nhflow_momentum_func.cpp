@@ -182,6 +182,8 @@ void nhflow_momentum_func::velcalc(lexer *p, fdm_nhf *d, ghostcell *pgc, double 
     }
     
     pgc->start4V(p,d->U,gcval_u);
+    // the semi-implicit step with one row of cells: V stays 0, its ghost cells too (nhflow_momentum_SI)
+    if(p->j_dir==1 || p->A534!=1)
     pgc->start4V(p,d->V,gcval_v);
     pgc->start4V(p,d->W,gcval_w);
 }

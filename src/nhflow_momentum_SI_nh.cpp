@@ -431,9 +431,10 @@ void nhflow_momentum_SI::nh_faces(lexer *p, fdm_nhf *d)
     }
 }
 
-void nhflow_momentum_SI::nh_residual(lexer *p, fdm_nhf *d, ghostcell *pgc, const std::vector<double> &x, std::vector<double> &y, bool zero)
+void nhflow_momentum_SI::nh_residual(lexer *p, fdm_nhf *d, ghostcell *pgc, const std::vector<double> &x, std::vector<double> &y, bool zero, bool rows)
 {
-    // F(x): the mass rows (eta_update) and the constraint rows of the step with x = (eta, phi_0 .. phi_{K-1}) per column
+    // F(x): the mass rows (eta_update) and the constraint rows of the step with x = (eta, phi_0 .. phi_{K-1}) per column;
+    // rows false: only the state of x (etaI, PHI, the face terms and discharges), for the solution
     const double dt = p->dt;
     const int K = p->knoz, B = K+1;
     const bool yd = (p->j_dir==1);
@@ -467,6 +468,9 @@ void nhflow_momentum_SI::nh_residual(lexer *p, fdm_nhf *d, ghostcell *pgc, const
     }
 
     face_update(p,d,pgc);
+
+    if(!rows)
+    return;
 
     n=0;
     SLICELOOP4
@@ -552,8 +556,19 @@ void nhflow_momentum_SI::nh_dfaces(lexer *p, fdm_nhf *d, ghostcell *pgc)
     // the layers of the columns only (index dqi: no vertical ghost cells, a third of a 3D array with 4 layers)
     const int NC = p->imax*p->jmax*K;
 
+    // one cell in y (j_dir 0): only the row j = 0 is written and read (x faces), the others stay 0 from the first
+    // step; zeroing whole arrays was 5 % of a 1D non-hydrostatic step
+    const bool row0 = p->j_dir==0 && dQxL.size()==(size_t)NC;
+
     for(std::vector<double> *v : {&dQxL,&dQxR,&dQyL,&dQyR,&pQxL0,&pQxR0,&pQxL1,&pQxR1,&pQyL0,&pQyR0,&pQyL1,&pQyR1})
-    v->assign(NC,0.0);
+    {
+        if(!row0)
+        v->assign(NC,0.0);
+
+        else
+        for(int ii=p->imin; ii<p->imin+p->imax; ++ii)
+        std::fill(v->begin()+dqi(p,ii,0,0),v->begin()+dqi(p,ii,0,0)+K,0.0);
+    }
 
     auto ci = [&]() { return dqi(p,i,j,k); };
 
@@ -934,13 +949,14 @@ void nhflow_momentum_SI::nh_solve(lexer *p, fdm_nhf *d, ghostcell *pgc)
     nh_iter = 1;
     }
 
-    // the solution: etaI, PHI, the face terms; the pressure for the output
-    nh_residual(p,d,pgc,x,y);
+    // the solution: etaI, PHI, the face terms and discharges (face_update: si_end_faces skips its own call where the
+    // open boundaries do not depend on nh_fixed, no riemann/flather faces); the pressure for the output
+    nh_residual(p,d,pgc,x,y,false,false);
 
-    double res=0.0;
-    for(int q=0; q<n2; ++q)
-    res = MAX(res,fabs(y[q]));
-    nh_res = res;
+    faces_set = true;
+    for(const bc_face &f : bcf)
+    if(f.type==bc_riemann || f.type==bc_flather)
+    faces_set = false;
 
     FLOOP
     d->P[FIJK] = 0.0;

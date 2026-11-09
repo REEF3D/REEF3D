@@ -451,9 +451,12 @@ void nhflow_momentum_SI::step_single(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflo
     // (nhflow_2d_si_river_kepsilon: the steady level 0.1 m off, never settled)
     const int npass = tl2 ? 2 : 1;
 
+    faces_set = false;
+
     for(int pass=0; pass<npass; ++pass)
     {
         const bool estimate = (pass<npass-1);
+        si_pass = pass;
 
         if(pass>0)
         si_corrector(p,d,pgc);
@@ -781,7 +784,8 @@ void nhflow_momentum_SI::si_end(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_sta
 
 void nhflow_momentum_SI::si_end_faces(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
-    // 7. layer face discharges
+    // 7. layer face discharges (the coupled non-hydrostatic solve has them: the same inputs)
+    if(!faces_set)
     face_update(p,d,pgc);
 }
 
@@ -1550,11 +1554,15 @@ void nhflow_momentum_SI::si_stage_vel(lexer *p, fdm_nhf *d, ghostcell *pgc, nhfl
     double *UHs,*VHs,*WHs,*UHo,*VHo,*WHo,a;
     stage_arrays(s,UHs,VHs,WHs,UHo,VHo,WHo,a);
 
-    // ghost cells of the stage input, velocities of the stage on the water depth of t^n
+    // ghost cells of the stage input, velocities of the stage on the water depth of t^n; the input of stage 0 (UH0)
+    // has them from the first pass in the second one (tl2)
+    if(!(s==0 && si_pass>0))
+    {
     pgc->start4V(p,UHs,gcval_uh);
     if(p->j_dir==1)     // one row of cells: V, VH stay 0 (their ghost cells too)
     pgc->start4V(p,VHs,gcval_vh);
     pgc->start4V(p,WHs,gcval_wh);
+    }
 
     // below the depth A 546 desingularised (Kurganov and Petrova 2007), as sflow_momentum_SI::rk_stage:
     // u = sqrt(2) h (uh)/sqrt(h^4 + max(h^4, h_v^4)); a wetting cell gets the momentum of its deep

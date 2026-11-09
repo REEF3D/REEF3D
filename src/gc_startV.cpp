@@ -118,6 +118,29 @@ static void gcbl_build_impl(lexer *p, int type, int &i, int &j, int &k)
     {L.push_back(i); L.push_back(j); L.push_back(k); L.push_back(h);}
     }
 
+    // type 5: type 4 on a grid with one cell in y (j_dir 0), h from the x neighbours only. The y statements of the
+    // V-type sweeps that use it (start4V, start5V) are skipped for j_dir 0, so a cell with only flagged y neighbours
+    // (in 1D every cell) has nothing to do but the vertical ones: the same assignments in the same order
+    if(type==5)
+    LOOP
+    {
+    const int h = (p->flag4[Im1JK]<0 || p->flag4[Ip1JK]<0) ? 1 : 0;
+    if(h==1 || p->flag4[IJKm1]<0 || p->flag4[IJKp1]<0)
+    {L.push_back(i); L.push_back(j); L.push_back(k); L.push_back(h);}
+    }
+
+    // type 6: the copies of start7S as (ghost, cell) index pairs, in the order of the sweep over the type 7 list
+    if(type==6)
+    FLOOP
+    {
+    const int c = FIJK;
+    const int nb[6] = {FIm1JK, FIp1JK, FIJm1K, FIJp1K, FIJKm1, FIJKp1};
+
+        for(int m=0; m<6; ++m)
+        if(p->flag7[nb[m]]<0)
+        {L.push_back(nb[m]); L.push_back(c);}
+    }
+
     p->gcbl_count[type]=p->count;
 }
 
@@ -554,7 +577,7 @@ void ghostcell::start4V(lexer *p, double *f, int gcv)
     const bool xslip_s = nhflow_xwall_slip(p,1);
     const bool xslip_n = nhflow_xwall_slip(p,4);
     
-    GCBL_LOOP(4)
+    GCBL_LOOP(p->j_dir==0 ? 5 : 4)
     {
     if(gcbl_h==1)
     {
@@ -752,7 +775,7 @@ void ghostcell::start4V(lexer *p, double *f, int gcv)
 
 void ghostcell::start5V(lexer *p, double *f, int gcv)
 {
-    GCBL_LOOP(4)
+    GCBL_LOOP(p->j_dir==0 ? 5 : 4)
     {
     if(gcbl_h==1)
     {
@@ -1485,37 +1508,15 @@ void ghostcell::start7P(lexer *p, double *f, int gcv)
 
 void ghostcell::start7S(lexer *p, double *f, int gcv)
 {
-    GCBL_LOOP(7)
+    // the copies to the flagged neighbours of every cell, in the order of the former sweep (x, y, bed, surface
+    // side), from the pair list of the step (gcbl type 6): no flag tests and no list of cells per call
     {
-    if(gcbl_h==1)
-    {
-        if(p->flag7[FIm1JK]<0)
-        f[FIm1JK] = f[FIJK];
+    const std::vector<int> &P = gcbl_get(p,6,i,j,k);
+    const int *q = P.data();
+    const size_t n = P.size();
 
-        if(p->flag7[FIp1JK]<0)
-        f[FIp1JK] = f[FIJK];
-
-        if(p->flag7[FIJm1K]<0)
-        f[FIJm1K] = f[FIJK];
-
-        if(p->flag7[FIJp1K]<0)
-        f[FIJp1K] = f[FIJK];
-
-        if(p->flag7[FIJKm1]<0)
-        f[FIJKm1] = f[FIJK];
-
-        if(p->flag7[FIJKp1]<0)
-        f[FIJKp1] = f[FIJK];
-    }
-    else
-    {
-        if(p->flag7[FIJKm1]<0)
-        f[FIJKm1] = f[FIJK];
-
-        if(p->flag7[FIJKp1]<0)
-        f[FIJKp1] = f[FIJK];
-    
-    }
+        for(size_t m=0; m<n; m+=2)
+        f[q[m]] = f[q[m+1]];
     }
 
     if(do_comms)
