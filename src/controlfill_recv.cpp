@@ -123,6 +123,8 @@ void control::ctrlrecv()
     ii++;
     G15 = ictrl[ii];
     ii++;
+    G16 = ictrl[ii];
+    ii++;
     G12 = ictrl[ii];
     ii++;
     G12_r = dctrl[dd];
@@ -4235,6 +4237,17 @@ void control::ctrlrecv()
         Darray(G15_ze,G15);
     }
 
+    if(G16>0)
+    {
+        Darray(G16_l,G16);
+        Darray(G16_xs,G16);
+        Darray(G16_xe,G16);
+        Darray(G16_ys,G16);
+        Darray(G16_ye,G16);
+        Darray(G16_zs,G16);
+        Darray(G16_ze,G16);
+    }
+
     if(A760>0)
     {
         Darray(A760_x,A760);
@@ -5992,6 +6005,24 @@ void control::ctrlrecv()
         G15_zs[n] = dctrl[dd];
         dd++;
         G15_ze[n] = dctrl[dd];
+        dd++;
+    }
+
+    for(n=0;n<G16;++n)
+    {
+        G16_l[n] = dctrl[dd];
+        dd++;
+        G16_xs[n] = dctrl[dd];
+        dd++;
+        G16_xe[n] = dctrl[dd];
+        dd++;
+        G16_ys[n] = dctrl[dd];
+        dd++;
+        G16_ye[n] = dctrl[dd];
+        dd++;
+        G16_zs[n] = dctrl[dd];
+        dd++;
+        G16_ze[n] = dctrl[dd];
         dd++;
     }
 

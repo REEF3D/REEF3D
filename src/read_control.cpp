@@ -2298,6 +2298,9 @@ void control::read_control(lexer* p)
                 case 15: ++G15;
                          clear(c,numint);
                          break;
+                case 16: ++G16;
+                         clear(c,numint);
+                         break;
                 case 12: control>>G12_r;
                          G12=1;
                          clear(c,numint);
@@ -5140,6 +5143,14 @@ void control::read_control(lexer* p)
     Darray(G15_zs,G15);
     Darray(G15_ze,G15);
 
+    Darray(G16_l,G16);
+    Darray(G16_xs,G16);
+    Darray(G16_xe,G16);
+    Darray(G16_ys,G16);
+    Darray(G16_ye,G16);
+    Darray(G16_zs,G16);
+    Darray(G16_ze,G16);
+
     Darray(A760_x,A760);
     Darray(A760_y,A760);
 
@@ -5800,6 +5811,7 @@ void control::read_control(lexer* p)
     int countG54=0;
     int countG11=0;
     int countG15=0;
+    int countG16=0;
     int countA760=0;
     int countA611=0;
     int countA612=0;
@@ -6401,6 +6413,12 @@ void control::read_control(lexer* p)
                          p->XYin(G15_xs[countG15],G15_ys[countG15]);
                          p->XYin(G15_xe[countG15],G15_ye[countG15]);
                          ++countG15;
+                         clear(c,numint);
+                         break;
+                case 16: control>>G16_l[countG16]>>G16_xs[countG16]>>G16_xe[countG16]>>G16_ys[countG16]>>G16_ye[countG16]>>G16_zs[countG16]>>G16_ze[countG16];
+                         p->XYin(G16_xs[countG16],G16_ys[countG16]);
+                         p->XYin(G16_xe[countG16],G16_ye[countG16]);
+                         ++countG16;
                          clear(c,numint);
                          break;
                 }

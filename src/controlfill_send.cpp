@@ -127,6 +127,8 @@ void control::ctrlsend()
     ii++;
     ictrl[ii] = G15;
     ii++;
+    ictrl[ii] = G16;
+    ii++;
     ictrl[ii] = G12;
     ii++;
     dctrl[dd] = G12_r;
@@ -4557,6 +4559,24 @@ void control::ctrlsend()
         dctrl[dd] = G15_zs[n];
         dd++;
         dctrl[dd] = G15_ze[n];
+        dd++;
+    }
+
+    for(n=0;n<G16;++n)
+    {
+        dctrl[dd] = G16_l[n];
+        dd++;
+        dctrl[dd] = G16_xs[n];
+        dd++;
+        dctrl[dd] = G16_xe[n];
+        dd++;
+        dctrl[dd] = G16_ys[n];
+        dd++;
+        dctrl[dd] = G16_ye[n];
+        dd++;
+        dctrl[dd] = G16_zs[n];
+        dd++;
+        dctrl[dd] = G16_ze[n];
         dd++;
     }
 

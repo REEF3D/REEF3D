@@ -411,6 +411,8 @@ public:
     int G47;
     int G48;
     double *G15_xs,*G15_xe,*G15_ys,*G15_ye,*G15_zs,*G15_ze;
+    int G16;                     // CFD mesh refinement: static boxes refined up to a given level (G 16 l xs xe ys ye zs ze)
+    double *G16_l,*G16_xs,*G16_xe,*G16_ys,*G16_ye,*G16_zs,*G16_ze;
     double *G11_xs,*G11_xe,*G11_ys,*G11_ye;
     // grid
     int G501,G502,G505;

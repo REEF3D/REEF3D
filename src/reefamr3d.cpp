@@ -753,7 +753,7 @@ void reefamr3d::global_nodes()
     }
 }
 
-// refined tiles of every level: the seeds, the boxes G 15 on level G 1, every coarser level around
+// refined tiles of every level: the seeds, the boxes G 15 on level G 1 and G 16 on their level l, every coarser level around
 // the next finer one with a nesting band; no refinement in the wave generation and absorption zones
 // (unless the model relaxes its patches there: zone_gen_refine, zone_beach_refine)
 void reefamr3d::mark_tiles(const vector<vector<unsigned char>> *seed)
@@ -828,6 +828,19 @@ void reefamr3d::mark_tiles(const vector<vector<unsigned char>> *seed)
         for(int d=0; d<3; ++d)
         range(maxlev,d,xs[d],xe[d],lo[d],hi[d]);
         mark_cells(maxlev,lo,hi);
+    }
+
+    // G 16: boxes refined up to level l (1 <= l <= G 1), the coarser levels around them as for G 15
+    if(maxlev>=1)
+    for(int b=0; b<p0->G16; ++b)
+    {
+        const int l = MAX(1,MIN(int(p0->G16_l[b]+0.5),maxlev));
+        int lo[3], hi[3];
+        const double xs[3] = {p0->G16_xs[b],p0->G16_ys[b],p0->G16_zs[b]};
+        const double xe[3] = {p0->G16_xe[b],p0->G16_ye[b],p0->G16_ze[b]};
+        for(int d=0; d<3; ++d)
+        range(l,d,xs[d],xe[d],lo[d],hi[d]);
+        mark_cells(l,lo,hi);
     }
 
     // nesting: every level covers the parents of the next finer one with a band of nest cells
