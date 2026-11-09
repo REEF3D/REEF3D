@@ -76,6 +76,16 @@ dem_f::dem_f(lexer *p, ghostcell *pgc)
     fimplicit = p->E27;
     pormode = p->E28;
     fixeddrag = p->E29;
+    liftmodel = p->E32;
+    magnus = p->E33;
+    liftcoef = p->E34;
+    {
+        dem_vec g(p->W20,p->W21,p->W22);
+        upvec = g.norm()>1.0e-12 ? dem_vec(-g/g.norm()) : dem_vec(dem_vec::UnitZ());
+    }
+    if(p->mpirank==0 && (liftmodel>0 || magnus>0))
+    cout<<"DEM: lift of unresolved particles: shear lift "<<(liftmodel==1 ? "Saffman-Mei" : liftmodel==2 ? "bed grains" : "off")
+        <<(liftmodel==2 ? " (C_L "+std::to_string(liftcoef)+")" : std::string(""))<<", rotational lift (Magnus) "<<(magnus==1 ? "on" : "off")<<endl;
     porinit = 0;
 
     dt_old = 0.0;
@@ -225,8 +235,13 @@ void dem_f::read_input(lexer *p, ghostcell *pgc)
             ss>>sid>>mid>>B.x(0)>>B.x(1)>>B.x(2);
             if(ss>>rx>>ry>>rz)
             {
-                if(key=="particle")
-                ss>>B.v(0)>>B.v(1)>>B.v(2);
+                if(key=="particle" && (ss>>B.v(0)>>B.v(1)>>B.v(2)))
+                {
+                    // optional angular velocity (world frame)
+                    double wx,wy,wz;
+                    if(ss>>wx>>wy>>wz)
+                    B.w = dem_vec(wx,wy,wz);
+                }
             }
             B.q = rotation(rx,ry,rz);
             B.fixed = (key=="fixed");
@@ -550,6 +565,7 @@ void dem_f::set_loads(lexer *p, ghostcell *pgc)
         if(B.ghost)
         continue;
 
+        core.bodies[n].cpl.Flift.setZero();
         B.F.setZero();
         B.T.setZero();
         B.K = 0.0;
@@ -592,6 +608,13 @@ void dem_f::set_loads(lexer *p, ghostcell *pgc)
                 drag(p,n,core.bodies[n].cpl.rhof,core.bodies[n].cpl.nuf,core.bodies[n].cpl.epsf);
                 B.K *= fsub;
                 B.Kr *= fsub;
+
+                // lift (E 32, E 33), explicit over the fluid step
+                if(liftmodel>0 || magnus>0)
+                {
+                    core.bodies[n].cpl.Flift = fsub*lift(n);
+                    B.F += core.bodies[n].cpl.Flift;
+                }
 
                 // E 26: drag torque of the flow variation over the particle
                 if(multipoint==1 && solver==5 && core.bodies[n].cpl.vq>0.0)
@@ -677,6 +700,153 @@ void dem_f::drag(lexer *p, int n, double rho, double nu, double eps)
     B.K  = 0.5*rho*A*pow(eps,2.0-chi)*cdu;
     B.Kr = pi*rho*nu*d*d*d;
     B.uf = ui;
+}
+
+// ---------------------------------------------------------------------------------------------
+// lift of unresolved particles (E 32, E 33)
+//
+//  flow samples (on the rank that owns the centroid; uat returns zero inside the bed and solids):
+//    vorticity w = curl u at the centroid, central differences over h = d/2
+//    velocity at the top and bottom of the particle, x +- d/2 e_up, e_up = -g/|g|
+//
+//  E 32 1  shear lift, Saffman (1965) with the correction of Mei (1992):
+//          F = 1.615 rho nu^1/2 d^2 f (u_r x w)/|w|^1/2,  u_r = u/eps - v,
+//          f = (1 - 0.3314 b^1/2) exp(-Re_p/10) + 0.3314 b^1/2   (Re_p <= 40)
+//          f = 0.0524 (b Re_p)^1/2                             (Re_p > 40)
+//          b = Re_s/(2 Re_p), Re_s = |w| d^2/nu, Re_p = |u_r| d/nu, b limited to the range of
+//          the fit, 0.005-0.4
+//  E 32 2  lift of bed grains from the velocity difference over the grain (Wiberg & Smith 1985):
+//          F = 1/2 rho C_L A (|u_T,t|^2 - |u_B,t|^2) e_up, u_t the velocity relative to the grain
+//          normal to e_up, C_L = E 34 (0.2); the velocity at the bottom is zero inside the bed
+//  E 33 1  rotational lift (Magnus), Rubinow & Keller (1961) with C_LR of Oesterle & Bui Dinh (1998):
+//          F = 1/2 rho A C_LR |u_r| (W x u_r)/|W|,  W = w/2 - omega_p (slip spin),
+//          C_LR = 0.45 + (Re_r/Re_p - 0.45) exp(-0.05684 Re_r^0.4 Re_p^0.3), Re_r = |W| d^2/nu
+//
+//  The lift acts at the centroid (no torque), is explicit over the fluid step and is scaled by the
+//  submerged fraction as the drag; its reaction goes to the fluid with the drag reaction.
+//  E 32 1 and 2 are alternatives for the shear lift (2 for grains resting on or in a bed).
+// ---------------------------------------------------------------------------------------------
+
+void dem_f::lift_sample(int n, const std::function<dem_vec(const dem_vec&)> &uat, double *b)
+{
+    const dem_body &B = core.bodies[n];
+    double d = core.shapes[B.shape].deq;
+
+    if(liftmodel==1 || magnus==1)
+    {
+        // the interpolated field is piecewise linear, so the half diameter is small enough
+        double h = std::max(0.5*d,0.01*dxs);
+        dem_mat G = dem_mat::Zero();       // G(i,c) = du_i/dx_c
+        for(int c=0; c<3; ++c)
+        {
+            if(c==1 && core.plane2D)
+            continue;
+            dem_vec e = dem_vec::Zero();
+            e(c) = h;
+            G.col(c) = (uat(B.x + e) - uat(B.x - e))/(2.0*h);
+        }
+        b[0] = G(2,1) - G(1,2);
+        b[1] = G(0,2) - G(2,0);
+        b[2] = G(1,0) - G(0,1);
+    }
+
+    if(liftmodel==2)
+    {
+        dem_vec uT = uat(B.x + 0.5*d*upvec);
+        dem_vec uB = uat(B.x - 0.5*d*upvec);
+        for(int c=0; c<3; ++c)
+        {
+            b[3+c] = uT(c);
+            b[6+c] = uB(c);
+        }
+    }
+}
+
+// distance to the nearest wall plane of dem.txt (walls of the flume that are not part of the grid),
+// with its normal
+double dem_f::planephi(const dem_vec &x, dem_vec &nw) const
+{
+    double phi = 1.0e20;
+    for(const auto &P : core.planes)
+    {
+        double dp = P.n.dot(x) - P.d;
+        if(dp<phi)
+        {
+            phi = dp;
+            nw = P.n;
+        }
+    }
+    return phi;
+}
+
+void dem_f::lift_store(int n, const double *b, int cnt)
+{
+    dem_cpl &c = core.bodies[n].cpl;
+    if(cnt<=0)
+    return;
+    c.wfl = dem_vec(b[0],b[1],b[2])/double(cnt);
+    c.uT = dem_vec(b[3],b[4],b[5])/double(cnt);
+    c.uB = dem_vec(b[6],b[7],b[8])/double(cnt);
+}
+
+dem_vec dem_f::lift(int n)
+{
+    const dem_body &B = core.bodies[n];
+    const dem_cpl &c = B.cpl;
+    const double pi = 3.14159265358979323846;
+    double d = core.shapes[B.shape].deq;
+    double A = 0.25*pi*d*d;
+    double rho = c.rhof;
+    double nu = std::max(c.nuf,1.0e-12);
+    double eps = std::max(0.2,std::min(1.0,c.epsf));
+
+    dem_vec F = dem_vec::Zero();
+    dem_vec ur = c.ufl/eps - B.v;
+    dem_vec w = c.wfl/eps;
+    double urn = ur.norm();
+    double Rep = urn*d/nu;
+
+    // shear lift, Saffman-Mei
+    if(liftmodel==1)
+    {
+        double wn = w.norm();
+        if(wn>1.0e-12 && urn>1.0e-12)
+        {
+            double Res = wn*d*d/nu;
+            double beta = std::max(0.005,std::min(0.4,0.5*Res/Rep));
+            double f = Rep<=40.0 ? (1.0 - 0.3314*sqrt(beta))*exp(-0.1*Rep) + 0.3314*sqrt(beta)
+                                 : 0.0524*sqrt(beta*Rep);
+            F += 1.615*rho*sqrt(nu)*d*d*f*ur.cross(w)/sqrt(wn);
+        }
+    }
+
+    // bed grains: velocity difference over the grain
+    if(liftmodel==2)
+    {
+        dem_vec tT = c.uT - B.v;
+        dem_vec tB = c.uB - B.v;
+        tT -= tT.dot(upvec)*upvec;
+        tB -= tB.dot(upvec)*upvec;
+        F += 0.5*rho*liftcoef*A*(tT.squaredNorm() - tB.squaredNorm())*upvec;
+    }
+
+    // rotational lift, Magnus
+    if(magnus==1)
+    {
+        dem_vec W = 0.5*w - B.w;
+        double Wn = W.norm();
+        if(Wn>1.0e-12 && urn>1.0e-12)
+        {
+            double Rer = Wn*d*d/nu;
+            double clr = 0.45 + (Rer/Rep - 0.45)*exp(-0.05684*pow(Rer,0.4)*pow(Rep,0.3));
+            F += 0.5*rho*A*clr*urn*W.cross(ur)/Wn;
+        }
+    }
+
+    if(core.plane2D)
+    F(1) = 0.0;
+
+    return F;
 }
 
 // ---------------------------------------------------------------------------------------------

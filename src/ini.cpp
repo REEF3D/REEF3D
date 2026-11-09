@@ -1168,6 +1168,9 @@ void control::ini_default()
     E28=0;              // int NHFLOW: particle volume as porosity (0 off, 1 moving particles, 2 moving and fixed particles)
     E29=0;              // int NHFLOW unresolved: fixed particles exert drag on the fluid (0 off, 1 on)
     E30=1.0;            // double NHFLOW: relaxation time of the particle porosity [s] (E 28), 0 instantaneous
+    E32=0;              // int unresolved: shear lift, 0 off, 1 Saffman-Mei (fluid vorticity at the centroid), 2 bed grains (velocity difference over the grain, E 34)
+    E33=0;              // int unresolved: rotational lift (Magnus, Oesterle & Bui Dinh), 0 off, 1 on
+    E34=0.2;            // double unresolved: lift coefficient of the bed-grain lift (E 32 2)
 
     // Particles
     R10=0;              // int HYDRO rain: 0 off, 1 constant R 11, 2 time series rain.dat, 3 raster series rain_series.dat

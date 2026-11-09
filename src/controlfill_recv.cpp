@@ -2335,6 +2335,10 @@ void control::ctrlrecv()
     ii++;
     E29 = ictrl[ii];
     ii++;
+    E32 = ictrl[ii];
+    ii++;
+    E33 = ictrl[ii];
+    ii++;
     E23 = dctrl[dd];
     dd++;
     E24 = dctrl[dd];
@@ -2342,6 +2346,8 @@ void control::ctrlrecv()
     E25 = dctrl[dd];
     dd++;
     E30 = dctrl[dd];
+    dd++;
+    E34 = dctrl[dd];
     dd++;
 
     Q10 = ictrl[ii];

@@ -540,8 +540,8 @@ public:
     double *P352_x,*P352_y;
 
     // DEM
-    int E10,E11,E13,E16,E21,E22,E26,E27,E28,E29;
-    double E12,E14,E15,E17,E18,E19,E20,E23,E24,E25,E30;
+    int E10,E11,E13,E16,E21,E22,E26,E27,E28,E29,E32,E33;
+    double E12,E14,E15,E17,E18,E19,E20,E23,E24,E25,E30,E34;
 
     // REEF3D::HYDRO, SFLOW (A 10 2): rain-on-grid, point sources, evaporation, infiltration, roughness raster
     int R10,R12,R30,R40,R41,R50;
