@@ -25,6 +25,7 @@ Architect: Hans Bihs
 #include"fdm.h"
 #include"field.h"
 #include"interface_width.h"
+#include"cfd_airband_dt.h"
 #include<cmath>
 #include<algorithm>
 
@@ -535,34 +536,87 @@ void godunov::start(lexer *p, fdm *a, field &f, int ipol, field &U, field &V, fi
         return term(ii,jj,kk);
     };
 
+    // N 65 1 (with N 57): the momentum of the air beyond the band of N 57 semi-Lagrangian. The value at the
+    // departure point x - dt U of the control volume (U its advecting velocity uc, vc, wc), multilinear
+    // between the control volumes; the displacement at most cfd_sl_reach cells per direction (the time
+    // step keeps it there, cfd_airband_dt.h, cfd_amr::timestep) and within the extended range. A
+    // convex combination of the values around the departure point: stable at any Courant number, so
+    // that the fast air away from the free surface (pushed out of a closing gap, the roller of a jump,
+    // under a deck) no longer sets the time step. The water and the band keep the Godunov convection
+    // (and N 59).
+    const bool sl = (ipol<=3 && p->N65>0 && p->N57>0.0 && p->F30>0);
+
+    auto air = [&](int ii, int jj, int kk) -> bool
+    {
+        const int aa = (ipol==1), bb = (ipol==2), cc = (ipol==3);
+        const double ph = 0.5*(a->phi(ii,jj,kk) + a->phi(ii+aa,jj+bb,kk+cc));
+        double h = std::min(width(p,ipol,0,ii),width(p,ipol,2,kk));
+        if(ydir)
+        h = std::min(h,width(p,ipol,1,jj));
+        return ph < -p->N57*h;
+    };
+
+    auto sl_term = [&](int ii, int jj, int kk) -> double
+    {
+        const int q = id(ii,jj,kk);
+        const double r = cfd_sl_reach;
+
+        auto loc = [&](int d, int c0, int lo, int n, double vel, int &ib, double &t)
+        {
+            const double s = std::max(-r,std::min(r,dtu*vel/width(p,ipol,d,c0)));
+            const double x = double(c0) - s;
+            ib = int(std::floor(x));
+            ib = std::max(lo,std::min(lo+n-2,ib));
+            t = std::max(0.0,std::min(1.0,x-double(ib)));
+        };
+
+        int ib, jb = jj, kb;
+        double ti, tj = 0.0, tk;
+        loc(0,ii,i0,ni,uc[q],ib,ti);
+        loc(2,kk,k0,nk,wc[q],kb,tk);
+        if(ydir)
+        loc(1,jj,j0,nj,vc[q],jb,tj);
+
+        double val = 0.0;
+        for(int a1=0; a1<2; ++a1)
+        for(int b1=0; b1<(ydir ? 2 : 1); ++b1)
+        for(int c1=0; c1<2; ++c1)
+        {
+            const double wgt = (a1 ? ti : 1.0-ti)*(ydir ? (b1 ? tj : 1.0-tj) : 1.0)*(c1 ? tk : 1.0-tk);
+            val += wgt*sf[id(ib+a1,jb+b1,kb+c1)];
+        }
+
+        return (val - sf[q])/dtu;
+    };
+
     if(cons)
     {
         if(ipol==1)
         ULOOP
-        a->F(i,j,k) += term_cons(i,j,k);
+        a->F(i,j,k) += (sl && air(i,j,k)) ? sl_term(i,j,k) : term_cons(i,j,k);
 
         if(ipol==2)
         VLOOP
-        a->G(i,j,k) += term_cons(i,j,k);
+        a->G(i,j,k) += (sl && air(i,j,k)) ? sl_term(i,j,k) : term_cons(i,j,k);
 
         if(ipol==3)
         WLOOP
-        a->H(i,j,k) += term_cons(i,j,k);
+        a->H(i,j,k) += (sl && air(i,j,k)) ? sl_term(i,j,k) : term_cons(i,j,k);
 
         return;
     }
 
     if(ipol==1)
     ULOOP
-    a->F(i,j,k) += term(i,j,k);
+    a->F(i,j,k) += (sl && air(i,j,k)) ? sl_term(i,j,k) : term(i,j,k);
 
     if(ipol==2)
     VLOOP
-    a->G(i,j,k) += term(i,j,k);
+    a->G(i,j,k) += (sl && air(i,j,k)) ? sl_term(i,j,k) : term(i,j,k);
 
     if(ipol==3)
     WLOOP
-    a->H(i,j,k) += term(i,j,k);
+    a->H(i,j,k) += (sl && air(i,j,k)) ? sl_term(i,j,k) : term(i,j,k);
 
     if(ipol==4)
     LOOP

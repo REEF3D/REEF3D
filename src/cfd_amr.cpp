@@ -21,6 +21,7 @@ Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include<cstring>
+#include"cfd_airband_dt.h"
 #include"cfd_amr.h"
 #include"cfd_gravitywave_dt.h"
 #include"reef3d_mpmd.h"
@@ -1587,6 +1588,10 @@ void cfd_amr::timestep(lexer *p, fdm *a, ghostcell *pgc)
                     const double uc = MAX(fabs(fa->u(i,j,k)),fabs(fa->u(i-1,j,k)));
                     const double vc = (pp->j_dir==1) ? MAX(fabs(fa->v(i,j,k)),fabs(fa->v(i,j-1,k))) : 0.0;
                     const double wc = MAX(fabs(fa->w(i,j,k)),fabs(fa->w(i,j,k-1)));
+                    // N 65 1: the reach of the semi-Lagrangian departure point per direction (cfd_airband_dt.h)
+                    if(p->N65>0)
+                    rate = MAX(rate,MAX3(uc/pp->DXN[i+marge],((pp->j_dir==1) ? vc/pp->DYN[j+marge] : 0.0),wc/pp->DZN[k+marge]));
+                    else
                     rate = MAX(rate,uc/pp->DXN[i+marge] + ((pp->j_dir==1) ? vc/pp->DYN[j+marge] : 0.0) + wc/pp->DZN[k+marge]);
                 }
             }
@@ -1610,7 +1615,7 @@ void cfd_amr::timestep(lexer *p, fdm *a, ghostcell *pgc)
         if(airband)
         {
         if(rate>1.0e-20)
-        dta = MIN(dta,p->N58/rate*(sub ? double(1<<c->lev) : 1.0));
+        dta = MIN(dta,((p->N65>0) ? cfd_sl_reach : p->N58)/rate*(sub ? double(1<<c->lev) : 1.0));
         }
 
         if(p->N54>0.0)

@@ -37,6 +37,10 @@ Architect: Hans Bihs
 //   convection of N 40 5/6 and the explicit schemes alike).
 // Isolated velocity spikes in the air away from the free surface then no longer set the time step of
 // the whole domain at the accuracy criterion of the free surface.
+// N 65 1: the largest displacement of the semi-Lagrangian departure point of the air, in cells per
+// direction (within the extended range of godunov, two cells around the control volumes)
+constexpr double cfd_sl_reach = 2.0;
+
 struct cfd_airband
 {
     double uw=0.0, vw=0.0, ww=0.0;  // largest velocities in the water and the band
@@ -92,6 +96,12 @@ cfd_airband compute(lexer *p, fdm *a, ghostcell *pgc)
         const double vc = (p->j_dir==1) ? MAX(fabs(a->v(i,j,k)), fabs(a->v(i,j-1,k))) : 0.0;
         const double wc = MAX(fabs(a->w(i,j,k)), fabs(a->w(i,j,k-1)));
 
+        // N 65 1: the air beyond the band semi-Lagrangian, its step limited by the reach of the
+        // departure point in each direction only (cfd_sl_reach cells); otherwise the stability limit of
+        // the Godunov convection, |u|/dx + |v|/dy + |w|/dz <= N 58 / dt
+        if(p->N65>0)
+        r.rate = MAX(r.rate, MAX3(uc/p->DXN[IP], ((p->j_dir==1) ? vc/p->DYN[JP] : 0.0), wc/p->DZN[KP]));
+        else
         r.rate = MAX(r.rate, uc/p->DXN[IP] + ((p->j_dir==1) ? vc/p->DYN[JP] : 0.0) + wc/p->DZN[KP]);
         r.ua = MAX(r.ua, MAX3(uc,vc,wc));
         }
@@ -102,7 +112,7 @@ cfd_airband compute(lexer *p, fdm *a, ghostcell *pgc)
     r.uw=g[0]; r.vw=g[1]; r.ww=g[2]; r.ua=g[3]; r.rate=g[4];
 
     if(r.rate>1.0e-20)
-    r.dta = p->N58/r.rate;
+    r.dta = ((p->N65>0) ? cfd_sl_reach : p->N58)/r.rate;
 
     return r;
 }

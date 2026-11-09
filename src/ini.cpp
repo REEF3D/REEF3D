@@ -981,6 +981,7 @@ void control::ini_default()
     N51=0;          // int FNPF time step: 0 sqrt(g h_max), 1 dispersive sqrt(g dx tanh(h/dx)) + |u|, 2 discrete sigma-grid DtN (dt omega_max = N47 RK limit)
     N59=0;          // int CFD N 40 5, 6 with the level set: 1 the momentum per volume rho u carried with the mass flux (godunov), 2 as 1 with the face density of the mass flux from the level set at the half step of its transport, 0 the velocity
     N63=0;          // int CFD N 40 5, 6: the convection of the level set, 0 Godunov (as the momentum), 1 the scheme of F 35 in one forward-Euler step with the projected velocity, 2 in SSP-RK2 stages, 3 in SSP-RK3 stages (the velocity held fixed)
+    N65=0;          // int CFD N 40 5, 6 with N 57: 1 the momentum of the air beyond the band of N 57 semi-Lagrangian (stable at any Courant number), the air out of the time step but for the reach of the departure point (2 cells); 0 the Godunov convection
     N52=0.0;        // double FNPF time step accuracy cap: shortest relevant wave period T_min [s], 0 off
     N53=40.0;       // double FNPF time step accuracy cap: time steps per T_min, dt <= N52/N53
     N54=0.0;        // double CFD time step: 0 the acceleration term with gravity; > 0 gravity out of the acceleration term (the projection balances it) and the gravity-wave limit omega_max dt <= N54

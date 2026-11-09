@@ -1953,6 +1953,8 @@ void control::ctrlrecv()
     ii++;
     N63 = ictrl[ii];
     ii++;
+    N65 = ictrl[ii];
+    ii++;
     N56 = dctrl[dd];
     dd++;
     N52 = dctrl[dd];
