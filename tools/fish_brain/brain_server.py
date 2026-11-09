@@ -11,7 +11,7 @@
 #   senses {"t":..,"f":..,"a":..,"b":..,            the time of the decision, the gait now
 #           "pos":[x,y,z],"axis":[..],"lat":[..],   the CoG, the mean body axis and lateral axis in the plane
 #                                                   of the undulation (unit vectors, since the last decision)
-#           "U":..,"stride":..,                     the mean speed along the axis [m/s], the stride U/(f L) of the own brain
+#           "U":..,"stride":..,                     the mean speed along the axis over the ground [m/s], the stride s of the own brain [L]
 #           "target":[x,y,z],                       the target (X 192), if any
 #           "rays":[..],"ray_angles":[..],          vision: distances [m] at the angles to the axis [rad]
 #           "ll_p":[..],"ll_s":[..],"ll_side":[..], lateral line: mean pressure, s/L, side of each probe
@@ -23,7 +23,7 @@
 #   bye    {"bye":1}
 #
 # Policies: "own" answers the decision of the own brain (a test of the link: the run is the run of X 193);
-# "rules" is the rule brain of REEF3D (6DOF_brain.cpp) in Python, to start from; a file defines
+# "rules" is the rule brain of REEF3D (6DOF_brain.cpp) in Python, to start from (the same decisions); a file defines
 # decide(senses, state, params) -> dict (state: a dict kept between the decisions of the body).
 #
 # Architect: Hans Bihs
@@ -32,33 +32,98 @@ import argparse, json, math, socketserver, sys, threading, importlib.util
 LOCK = threading.Lock()
 
 
+# the constants of the rule brain (6DOF_brain.cpp)
+TAU, KTURN, SLOW, ARRIVE, FRONT = 1.5, 1.3, 1.5, 0.25, 0.35
+TAUU, S0, TFLOOR, PSIFLOOR, REAFF = 0.8, 0.5, 2.5, 1.0, 0.5
+
+
+def _kf_update(st, H, y, R, dt):
+    """The Kalman filter on [s, c_p0, c_p1] (sixdof_brain::kf_update)."""
+    x, P = st["kx"], st["kP"]
+    P[0][0] += 1.0e-4 * dt
+    P[1][1] += 2.5e-3 * dt
+    P[2][2] += 2.5e-3 * dt
+    for m in range(2):
+        Ph = [P[i][0] * H[m][0] + P[i][1] * H[m][1] + P[i][2] * H[m][2] for i in range(3)]
+        S = H[m][0] * Ph[0] + H[m][1] * Ph[1] + H[m][2] * Ph[2] + R
+        K = [Ph[i] / S for i in range(3)]
+        e = y[m] - (H[m][0] * x[0] + H[m][1] * x[1] + H[m][2] * x[2])
+        for i in range(3):
+            x[i] += K[i] * e
+        for i in range(3):
+            for j in range(3):
+                P[i][j] -= K[i] * Ph[j]
+    x[0] = min(0.8, max(0.25, x[0]))
+
+
 def rules(sv, st, pr):
-    """The rule brain of REEF3D (sixdof_brain::decide after the senses), with its own state."""
+    """The rule brain of REEF3D (sixdof_brain::decide after the senses), with its own state: the estimate of
+    the stride and the current from the gait and the track, the velocity through the water for the target."""
     L, f0, rho = pr["L"], pr["f0"], pr["rho"]
     Udes, bmax, Dvis, the = pr["U_des"], (pr["b_max"] if pr["b_max"] > 0 else 1.0), pr["D"], pr["th_esc"]
     t, f, a, b = sv["t"], sv["f"], sv["a"], sv["b"]
     ex, el, c = sv["axis"], sv["lat"], sv["pos"]
-    U = sv["U"]
-    Uf = max(U, 0.1 * L)
-    q = 0.5 * rho * Uf * Uf
-    fmax = 2.0 * f0
     nrm = 1 if pr["twoD"] else 2
+    p0, p1 = 0, (2 if nrm == 1 else 1)
+    fmx = 2.0 * f0
 
-    # the stride U/f while swimming straight at the full amplitude, after the start
-    if abs(b) < 0.15 and abs(a - 1.0) < 0.05 and t > pr["t_start"] + 2.0 / f0 and U > 0.0 and f > 0.0:
-        s = U / (f * L)
-        st["stride"] = s if st["nstride"] == 0 else 0.8 * st["stride"] + 0.2 * s
-        st["nstride"] += 1
+    # 1. the speed of the gait since the last decision; the estimate of the stride and the current
+    if "kx" not in st:
+        st["kx"] = [S0, 0.0, 0.0]
+        st["kP"] = [[0.15 * 0.15, 0.0, 0.0], [0.0, 0.3 * 0.3, 0.0], [0.0, 0.0, 0.3 * 0.3]]
+        st["ug"], st["tdec"], st["pdec"], st["bdec"], st["Tprev"], st["vT"] = f * a * L, t, list(c), b, None, [0.0, 0.0, 0.0]
+    dt = t - st["tdec"]
+    if dt > 0.0:
+        fal = f * a * L
+        e = math.exp(-dt / TAUU)
+        ug1 = fal + (st["ug"] - fal) * e
+        ugm = fal + (st["ug"] - fal) * (TAUU / dt) * (1.0 - e)
+        st["ug"] = ug1
+        bm = 0.5 * (b + st["bdec"])
+        R = 0.07 * 0.07 * (1.0 + 4.0 * bm * bm)
+        H = [[ugm * ex[p0], 1.0, 0.0], [ugm * ex[p1], 0.0, 1.0]]
+        y = [(c[p0] - st["pdec"][p0]) / dt, (c[p1] - st["pdec"][p1]) / dt]
+        _kf_update(st, H, y, R, dt)
+    s = st["kx"][0]
+    cur = [0.0, 0.0, 0.0]
+    cur[p0], cur[p1] = st["kx"][1], st["kx"][2]
+    Uw = max(st["ug"] * s, 0.1 * L)
+    q = 0.5 * rho * Uw * Uw
 
-    # the target: distance and bearing (> 0: towards the lateral axis)
+    # 2. the target: the wanted velocity over the ground, the velocity through the water that gives it
     has_t = "target" in sv
     T = sv["target"] if has_t else c
     r = [T[k] - c[k] for k in range(3)]
     r[nrm] = 0.0
     dist = math.sqrt(r[0] * r[0] + r[1] * r[1] + r[2] * r[2]) if has_t else 0.0
-    psi = math.atan2(sum(r[k] * el[k] for k in range(3)), sum(r[k] * ex[k] for k in range(3))) if has_t else 0.0
+    if has_t and st["Tprev"] is not None and dt > 0.0:
+        al = min(1.0, dt / 1.0)
+        st["vT"] = [(1.0 - al) * st["vT"][k] + al * (T[k] - st["Tprev"][k]) / dt for k in range(3)]
+    st["Tprev"] = list(T) if has_t else None
+    vw = [0.0, 0.0, 0.0]
+    if has_t:
+        sp = (Udes if Udes > 0.0 else f0 * s * L) * min(1.0, dist / (SLOW * L))
+        if dist > SLOW * L:
+            ca = (r[0] * ex[0] + r[1] * ex[1] + r[2] * ex[2]) / dist
+            if ca > 0.0:
+                sp = sp / max(ca, 0.5)
+        vw = [st["vT"][k] + (sp * r[k] / dist if dist > 1.0e-9 else 0.0) for k in range(3)]
+    w = [vw[k] - cur[k] for k in range(3)]
+    w[nrm] = 0.0
+    Ureq = math.sqrt(w[0] * w[0] + w[1] * w[1] + w[2] * w[2])
+    psi = math.atan2(w[0] * el[0] + w[1] * el[1] + w[2] * el[2], w[0] * ex[0] + w[1] * ex[1] + w[2] * ex[2]) if Ureq > 0.02 * L else 0.0
 
-    # the lateral line at the head (s/L < 0.35)
+    # 3. the frequency from the speed through the water, at least what a turn-around needs; the bias
+    ft, bt, mode = max(0.3 * f0, min(fmx, f)), 0.0, 0
+    if has_t:
+        Uturn = min(abs(psi) / TFLOOR * L / (KTURN * bmax), fmx * s * L) if abs(psi) > PSIFLOOR else 0.0
+        Ucmd = max(Ureq, Uturn)
+        ft = max(0.3 * f0, min(fmx, Ucmd / (s * L)))
+        bt = (psi / TAU) * L / (KTURN * Uw)
+        mode = 3 if dist < ARRIVE * L else 0
+    bt = max(-bmax, min(bmax, bt))
+
+    # the lateral line at the head (s/L < 0.35), on q through the water, the signal of the own turn removed
     dpl = phd = 0.0
     lp, ls, lsd = sv.get("ll_p", []), sv.get("ll_s", []), sv.get("ll_side", [])
     if lp:
@@ -66,14 +131,14 @@ def rules(sv, st, pr):
         nd = nh = 0
         for k in range(len(lp)):
             asum += lp[k]
-            if ls[k] < 0.35:
+            if ls[k] < FRONT:
                 dsum += lsd[k] * lp[k]
                 hsum += lp[k]
                 nh += 1
                 if lsd[k] > 0:
                     nd += 1
         if nd > 0 and nh > 0:
-            dpl = (dsum / nd) / q
+            dpl = (dsum / nd) / q + REAFF * 0.5 * (b + st["bdec"])
             phd = (hsum / nh - asum / len(lp)) / q
 
     # vision: the closest ray, the side with the longer rays (kept while the threat lasts)
@@ -94,39 +159,24 @@ def rules(sv, st, pr):
             side = st["side"]
         st["side"] = side if threat > 0.0 else 0.0
 
+    st["tdec"], st["pdec"], st["bdec"] = t, list(c), bt
+    st["est"] = (s, cur[0], cur[1], cur[2], Uw)
+
     # 1. escape: a C-start away from the side of the higher pressure
     if the > 0.0 and t >= st["refr"] and (abs(dpl) > the or phd > the):
         sg = 1.0 if dpl >= 0.0 else -1.0
         st["refr"] = t + 2.0
+        st["bdec"] = -2.5 * sg
         return {"f": f, "a": 0.5, "b": -2.5 * sg, "ts": 0.08,
-                "t2": t + 0.15, "f2": min(1.5 * f, fmax), "a2": 1.0, "b2": 0.0, "ts2": 0.2, "next": 0.4, "mode": 2}
-
-    # 3. the target: the turn rate psi/1.5 s, the frequency from the closing speed
-    ft, bt, mode = f, 0.0, 0
-    if has_t:
-        bt = (psi / 1.5) * L / (1.41 * Uf)
-        if Udes > 0.0:
-            Ud = Udes * min(1.0, dist / (1.5 * L))
-            stl = max(st["stride"], 0.1) * L
-            if st["dprev"] >= 0.0 and t > st["tprev"] and st["fctl"] > 0.0:
-                ft = st["fctl"] + 0.3 * (Ud - (st["dprev"] - dist) / (t - st["tprev"])) / stl
-            else:
-                ft = Ud / stl
-            if abs(psi) > 1.0472:
-                ft = max(ft, 0.8 * f0)
-            ft = max(0.3 * f0, min(fmax, ft))
-            st["fctl"] = ft
-        st["dprev"], st["tprev"] = dist, t
-        mode = 3 if dist < 0.25 * L else 0
-
-    bt = max(-bmax, min(bmax, bt))
+                "t2": t + 0.15, "f2": min(1.5 * f, fmx), "a2": 1.0, "b2": 0.0, "ts2": 0.2, "next": 0.4, "mode": 2}
 
     # 2. avoidance: a turn to the free side, slower
     if threat > 0.0:
-        w = min(1.0, threat / 0.25)
-        bt = (1.0 - w) * bt + w * side * bmax
-        ft = max(0.3 * f0, ft * (1.0 - 0.3 * w))
-        if w > 0.2:
+        wv = min(1.0, threat / 0.25)
+        bt = (1.0 - wv) * bt + wv * side * bmax
+        ft = max(0.3 * f0, ft * (1.0 - 0.3 * wv))
+        st["bdec"] = bt
+        if wv > 0.2:
             mode = 1
 
     return {"f": ft, "a": 1.0, "b": bt, "ts": 0.0, "next": min(0.5 / ft, 0.5), "mode": mode}
@@ -145,7 +195,7 @@ def own(sv, st, pr):
 
 class Handler(socketserver.StreamRequestHandler):
     def handle(self):
-        pr, st, log = None, {"stride": 0.55, "nstride": 0, "dprev": -1.0, "tprev": 0.0, "side": 0.0, "fctl": -1.0, "refr": -1.0}, None
+        pr, st, log = None, {"side": 0.0, "refr": -1.0}, None
         policy = self.server.policy
         for line in self.rfile:
             m = json.loads(line)
