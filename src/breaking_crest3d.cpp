@@ -26,6 +26,7 @@ Architect: Hans Bihs
 #include"slice.h"
 #include<cmath>
 #include<algorithm>
+#include<unordered_map>
 #include<sys/stat.h>
 #include<mpi.h>
 #include"reef3d_mpmd.h"
@@ -285,6 +286,99 @@ void breaking_crest3d::detect(lexer *p, ghostcell *pgc, slice &eta, slice &us, s
     const double dtp = (tprev>-1.0e19) ? t-tprev : 0.0;
     tprev = t;
 
+    // the crest points of the last step (own, then halo) as candidates of the matching: their predicted positions in
+    // square bins of side H, H the largest matching radius of any of them, so that the ones within reach of a new
+    // point lie in its bin and the 8 around it. The candidates of a point are tested in the order of the lists, so
+    // the matching is the same as testing all of them (which made the step O(n^2) in the crest points: 48 % of the
+    // step on a 1210 x 840 harbour grid, A 310 5)
+    const bool bigstep = (p->A310==5);
+    double rmx = 0.0;
+
+    for(int ii=0; ii<p->knox; ++ii)
+    rmx = MAX(rmx, p->DXN[ii+marge]);
+
+    if(p->j_dir==1)
+    for(int jj=0; jj<p->knoy; ++jj)
+    rmx = MAX(rmx, p->DYN[jj+marge]);
+
+    rmx *= 2.0*(1.0+1.0e-9);
+
+    const int nq0 = (int)prev.size();
+    const int nq = nq0 + (int)halo.size();
+    auto cq = [&](int k) -> const bc3_point& { return (k<nq0) ? prev[k] : halo[k-nq0]; };
+
+    std::vector<double> qx(nq), qy(nq);
+    std::vector<int> qbrk;
+    double H = rmx, bx0 = 1.0e300, by0 = 1.0e300, bx1 = -1.0e300, by1 = -1.0e300;
+
+    for(int k=0; k<nq; ++k)
+    {
+        const bc3_point &Q = cq(k);
+        const double mv = (Q.hasC==1) ? Q.C*dtp : 0.0;
+        qx[k] = Q.x+mv*Q.nx;
+        qy[k] = Q.y+mv*Q.ny;
+
+        if(bigstep)
+        H = MAX(H, rmx + ((Q.hasC==1) ? 0.25*fabs(Q.C)*dtp : sqrt(g*MAX(Q.wl,1.0e-3))*dtp));
+
+        bx0 = MIN(bx0,qx[k]); bx1 = MAX(bx1,qx[k]);
+        by0 = MIN(by0,qy[k]); by1 = MAX(by1,qy[k]);
+
+        if(Q.state==1 && Q.sa>0.0)
+        qbrk.push_back(k);
+    }
+
+    H *= 1.0+1.0e-9;
+    int nbx = 1, nby = 1;
+
+    if(nq>0 && std::isfinite(bx1-bx0) && std::isfinite(by1-by0))
+    {
+        nbx = (int)MIN((bx1-bx0)/H + 1.0, 1.0e6);
+        nby = (int)MIN((by1-by0)/H + 1.0, 1.0e6);
+
+        // at most about 4 bins per candidate
+        while((double)nbx*nby > 4.0*nq + 16.0)
+        {
+            H *= 2.0;
+            nbx = (int)((bx1-bx0)/H + 1.0);
+            nby = (int)((by1-by0)/H + 1.0);
+        }
+    }
+
+    auto bin_of = [&](double x, double y, int &ix, int &iy)
+    {
+        const double fx = floor((x-bx0)/H), fy = floor((y-by0)/H);
+        ix = (int)MAX(MIN(fx,(double)nbx+1.0),-2.0);
+        iy = (int)MAX(MIN(fy,(double)nby+1.0),-2.0);
+    };
+
+    // bins as offsets into one index array (counting sort; the indices of a bin ascending)
+    std::vector<int> bstart(nbx*nby+1,0), bidx(nq);
+    {
+        std::vector<int> bk(nq);
+
+        for(int k=0; k<nq; ++k)
+        {
+            int ix, iy;
+            bin_of(qx[k],qy[k],ix,iy);
+            ix = MAX(MIN(ix,nbx-1),0);
+            iy = MAX(MIN(iy,nby-1),0);
+            bk[k] = ix*nby+iy;
+            ++bstart[bk[k]+1];
+        }
+
+        for(int b=0; b<nbx*nby; ++b)
+        bstart[b+1] += bstart[b];
+
+        std::vector<int> fill(bstart.begin(),bstart.end()-1);
+
+        for(int k=0; k<nq; ++k)
+        bidx[fill[bk[k]]++] = k;
+    }
+
+    std::vector<int> near;
+    near.reserve(64);
+
     // ------------------------------------------------------------
     // 1. crest points
     // ------------------------------------------------------------
@@ -422,17 +516,32 @@ void breaking_crest3d::detect(lexer *p, ghostcell *pgc, slice &eta, slice &us, s
         // speed yet may have moved up to sqrt(g h) dt, one with a speed by the error of the prediction (a quarter
         // of C dt); with two cells only, the crests were never continued and never got a speed (no onset at 4x
         // the RK3 step, Tian TP1)
-        const bool bigstep = (p->A310==5);
         if(bigstep)
         bd = 1.0e300;
 
-        for(int list=0; list<2; ++list)
-        for(const bc3_point &Q : (list==0 ? prev : halo))
+        // the candidates in the bin of P and the 8 around it, in list order
+        near.clear();
         {
+            int ix, iy;
+            bin_of(P.x,P.y,ix,iy);
+
+            for(int bxi=MAX(ix-1,0); bxi<=MIN(ix+1,nbx-1); ++bxi)
+            for(int byi=MAX(iy-1,0); byi<=MIN(iy+1,nby-1); ++byi)
+            {
+                const int b = bxi*nby+byi;
+                near.insert(near.end(), bidx.begin()+bstart[b], bidx.begin()+bstart[b+1]);
+            }
+
+            std::sort(near.begin(),near.end());
+        }
+
+        for(int k : near)
+        {
+            const bc3_point &Q = cq(k);
+
             // predicted position of Q
-            const double mv = (Q.hasC==1) ? Q.C*dtp : 0.0;
-            const double dx = Q.x+mv*Q.nx-P.x;
-            const double dy = Q.y+mv*Q.ny-P.y;
+            const double dx = qx[k]-P.x;
+            const double dy = qy[k]-P.y;
             const double dd = dx*dx+dy*dy;
 
             double lim = bd;
@@ -492,10 +601,11 @@ void breaking_crest3d::detect(lexer *p, ghostcell *pgc, slice &eta, slice &us, s
             double bs = 1.0e20;
             const double wl0 = 1.5*MAX(p->DXN[IP], (p->j_dir==1) ? p->DYN[JP] : 0.0);
 
-            for(int list=0; list<2; ++list)
-            for(const bc3_point &Q : (list==0 ? prev : halo))
-            if(Q.state==1 && Q.sa>0.0 && fabs(Q.nx*nx+Q.ny*ny)>0.7)
+            // the breaking ones of the candidates (qbrk, in list order)
+            for(int k : qbrk)
+            if(fabs(cq(k).nx*nx+cq(k).ny*ny)>0.7)
             {
+                const bc3_point &Q = cq(k);
                 const double mv = (Q.hasC==1) ? Q.C*dtp : 0.0;
                 const double wl = wl0 + ((p->A310==5) ? 0.25*fabs(mv) : 0.0);
                 const double dx = P.x-(Q.x+mv*Q.nx);
@@ -1213,11 +1323,22 @@ void breaking_crest3d::rays(lexer *p, ghostcell *pgc, slice &eta, slice &WL, dou
         ++nbreak;
     }
 
+    // the candidate of each (rank, i, j): the first in cand, as the search through cand found it
+    std::unordered_map<long long,int> ck;
+    ck.reserve(2*cand.size()+1);
+
+    auto ckey = [](int r, int ii, int jj) { return ((long long)r<<42) ^ ((long long)(ii+(1<<20))<<21) ^ (long long)(jj+(1<<20)); };
+
+    for(int k=0; k<nc; ++k)
+    ck.emplace(ckey(cand[k].rank,cand[k].i,cand[k].j),k);
+
     // the state goes back to the own crest points
     for(bc3_point &P : pts)
-    for(const bc3_point &R : cand)
-    if(R.rank==rank && R.i==P.i && R.j==P.j)
     {
+    auto it = ck.find(ckey(rank,P.i,P.j));
+    if(it!=ck.end())
+    {
+        const bc3_point &R = cand[it->second];
         P.state = R.state;
         P.ton = R.ton;
         P.b = R.b;
@@ -1225,20 +1346,22 @@ void breaking_crest3d::rays(lexer *p, ghostcell *pgc, slice &eta, slice &WL, dou
         P.sa = R.sa;
         bc3_copy5(P,R);
         P.nua = R.nua;
-        break;
+    }
     }
 
     // the halo copies of the points of the other ranks carry the new state as well
     for(bc3_point &Q : halo)
-    for(const bc3_point &R : cand)
-    if(R.rank==Q.rank && R.i==Q.i && R.j==Q.j)
     {
+    auto it = ck.find(ckey(Q.rank,Q.i,Q.j));
+    if(it!=ck.end())
+    {
+        const bc3_point &R = cand[it->second];
         Q.state = R.state;
         Q.ton = R.ton;
         Q.b = R.b;
         Q.sa = R.sa;
         bc3_copy5(Q,R);
-        break;
+    }
     }
 
     // ------------------------------------------------------------
