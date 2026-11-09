@@ -1,0 +1,5 @@
+material 1 1.0e11 0.5 0.2
+wall_material 0.5 0.2
+shape 1 sphere 0.000050
+particle 1 1 0.15 0.0005 0.005  0 0 0  0.01 0 0  0 50 0
+particle 1 1 0.15 0.0005 0.015  0 0 0  0 0 0  0 -20 0
