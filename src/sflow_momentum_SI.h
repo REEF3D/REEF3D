@@ -196,6 +196,7 @@ private:
     };
 
     void face_depth(lexer*, fdm2D*, ghostcell*);
+    bool dry_source(lexer*, fdm2D*, int, int);
     void face_weights(lexer*, fdm2D*, int, int, int, double&, double&);    // REEF3D::HYDRO: the cell weights of the face predictor
     void friction(lexer*, fdm2D*);
     void bc_setup(lexer*, fdm2D*, ghostcell*);
