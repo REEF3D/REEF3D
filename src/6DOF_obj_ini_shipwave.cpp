@@ -128,12 +128,12 @@ double sixdof_obj::ramp_draft(lexer *p)
     
     if(p->X205==1 && p->X207==1 && p->simtime>=p->X207_ts && p->simtime<p->X207_te)
     {
-    f = p->simtime/(p->X207_te-p->X207_ts);
+    f = (p->simtime-p->X207_ts)/(p->X207_te-p->X207_ts);
     }
     
     if(p->X205==2 && p->X207==1 && p->simtime>=p->X207_ts && p->simtime<p->X207_te)
     {
-    f = p->simtime/(p->X207_te-p->X207_ts) - (1.0/PI)*sin(PI*(p->simtime/(p->X207_te-p->X207_ts)));
+    f = (p->simtime-p->X207_ts)/(p->X207_te-p->X207_ts) - (1.0/PI)*sin(PI*((p->simtime-p->X207_ts)/(p->X207_te-p->X207_ts)));
     }
     
     if(p->X207==1 && p->simtime<p->X207_ts)
