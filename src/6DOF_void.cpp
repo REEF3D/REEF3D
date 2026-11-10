@@ -107,6 +107,11 @@ void sixdof_void::ini(lexer *p, ghostcell *pgc)
 {
 }
 
+void sixdof_void::amr_net_forces(lexer *p, fdm *a)
+{
+    pnetinter->dlm_cfd_amr(p,a);
+}
+
 void sixdof_void::start_cfd(lexer* p, fdm* a, ghostcell* pgc, int iter, field &uvel, field &vvel, field &wvel, field &fx, field &fy, field &fz, bool finalize)
 {
     // Mooring

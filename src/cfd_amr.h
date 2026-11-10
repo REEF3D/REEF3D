@@ -143,7 +143,10 @@ struct cfd_amr_field
 //
 //  The step size is the minimum of all levels.  Scope of this version: two-phase or single-phase
 //  flow (F 30, N 40 2/3), RANS turbulence, solids and topography (the entities of the grid file
-//  cast on every patch at its resolution, cfd_amr_geom.cpp), floating bodies (X 10 1), the
+//  cast on every patch at its resolution, cfd_amr_geom.cpp), floating bodies (X 10 1; N 40 2, 3 and
+//  with G 7 0 the one-step scheme N 40 6, the bodies with the midpoint rule) with their mooring lines
+//  (X 310, forces on the bodies only) and nets (X 320, also fixed nets without a body; G 7 0: the nets
+//  move on level 0, their forces on the fluid are spread onto every patch, cfd_amr::net_forces), the
 //  porous structures B 200 1 (vrans_f on every patch, the zones at its cells; CPOR n at the faces of
 //  the patch edges); heat or concentration (H 10 3, C 10 3: transported by the refinement on all
 //  grids in flux form, the patch edges with flux registers, cfd_amr_scalar.cpp); sediment with CPM (S 10 1, Q 10 1) on a
@@ -605,6 +608,9 @@ private:
     void body_loads(int s, double t, bool fin);
     void body_end();
     int patch_forcing() const { return bodies ? 1 : (solids ? 2 : 0); }
+    // the nets (X 320, of the bodies or fixed): their forces on the fluid on every patch, G 7 0
+    sixdof *nets6 = nullptr;
+    void net_forces();
     void body_fit(int, int, double);
     void body_refit(int, int);
     field& kfield(int g, int m);        // kin (m 0), eps (m 1) of the turbulence model of grid g

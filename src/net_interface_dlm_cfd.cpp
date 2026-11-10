@@ -30,6 +30,28 @@ Authors: Tobias Martin, Hans Bihs
 
 void net_interface::dlm_cfd(lexer *p, fdm *a, ghostcell *pgc, int nNet)
 { 
+    dlm_cfd_spread(p,a,nNet);
+    
+    pgc->start1(p,a->Fext,10); 
+    pgc->start2(p,a->Gext,11); 
+    pgc->start3(p,a->Hext,12); 
+}
+
+// CFD mesh refinement (cfd_amr): the forces of all nets as of their last stage (the same on all
+// ranks, net::getLagrangeForces) onto the grid of a patch, with the kernel of its cells.  Its
+// momentum takes them from Fext, Gext, Hext at the faces of the patch (momentum_rk::rhs), as that
+// of level 0 takes those of dlm_cfd.
+void net_interface::dlm_cfd_amr(lexer *p, fdm *a)
+{
+    if(p->X320<=0)
+    return;
+    
+    for(int n=0; n<(int)pnet.size(); ++n)
+    dlm_cfd_spread(p,a,n);
+}
+
+void net_interface::dlm_cfd_spread(lexer *p, fdm *a, int nNet)
+{ 
     // Distribute net forces on surrounding cells
     int ii, jj, kk;
     double dist, D, dx, dy, dz;
@@ -94,8 +116,4 @@ void net_interface::dlm_cfd(lexer *p, fdm *a, ghostcell *pgc, int nNet)
             }
         }
     } 
-    
-    pgc->start1(p,a->Fext,10); 
-    pgc->start2(p,a->Gext,11); 
-    pgc->start3(p,a->Hext,12); 
 }

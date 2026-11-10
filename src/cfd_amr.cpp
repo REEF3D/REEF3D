@@ -241,6 +241,8 @@ bool cfd_amr::scope(lexer *p, ghostcell *pgc)
     why = "no DEM particles (E 10; momentum_forcing holds the particle forcing of level 0 in a static member)";
     else if(p->X10>1 || p->Z10!=0 || p->Z20!=0 || p->Z30!=0)
     why = "floating bodies X 10 0 or 1, no structures (Z 10, Z 20, Z 30)";
+    else if(p->X320>0 && p->G7!=0)
+    why = "nets (X 320) with G 7 0 (their forces on the patches are not built for the subcycling G 7 1 yet)";
     else if(p->B200!=0 && p->B200!=1)
     why = "porous structures B 200 1 (no vegetation B 200 2)";
     else if((p->solidread!=0 || p->toporead!=0) && p->G505!=0)
@@ -276,6 +278,29 @@ bool cfd_amr::scope(lexer *p, ghostcell *pgc)
     return true;
 }
 
+// --------------------------------------------------------------------- nets
+//  The nets (X 320; of a floating body or fixed, sixdof_void) are moved on level 0 with the fluid
+//  velocity of level 0 at their knots (under a patch the restricted one), where their forces on the
+//  fluid are spread to the faces around every knot (net_interface::dlm_cfd, into Fext, Gext, Hext,
+//  which the momentum of the next stage takes).  The patches get the same forces at their faces,
+//  spread with the kernel of their cells: without them the fluid of a patch did not feel the net,
+//  and level 0 under it takes the velocities of the patch.
+void cfd_amr::net_forces()
+{
+    for(int id=0; id<npat; ++id)
+    {
+        lexer *pp = CP(id)->pp;
+        fdm *fa = CP(id)->a;
+        const size_t n = size_t(pp->imax)*pp->jmax*pp->kmax;
+
+        std::fill(fa->Fext.V, fa->Fext.V + n, 0.0);
+        std::fill(fa->Gext.V, fa->Gext.V + n, 0.0);
+        std::fill(fa->Hext.V, fa->Hext.V + n, 0.0);
+
+        nets6->amr_net_forces(pp,fa);
+    }
+}
+
 // --------------------------------------------------------------------- set-up
 cfd_amr::cfd_amr(lexer *p, fdm *a, ghostcell *pgc, momentum *pmom, pressure *ppress, poisson *ppois, ioflow *pflow, vrans *pvrans,
                  fsi *pfsi, initialize *pini, turbulence *pturb, sixdof *p6dof) : reefamr3d(p,pgc), p0(p), a0(a), pois0(ppois), pflow0(pflow), pvrans0(pvrans),
@@ -290,6 +315,9 @@ cfd_amr::cfd_amr(lexer *p, fdm *a, ghostcell *pgc, momentum *pmom, pressure *ppr
     // floating bodies: moved on level 0, the hull and its forcing on every grid
     b6 = (p->X10==1) ? dynamic_cast<sixdof_cfd*>(p6dof) : nullptr;
     bodies = (b6!=nullptr && b6->objects()>0) ? 1 : 0;
+
+    // nets (X 320): their forces on the fluid on the patches as well (net_forces)
+    nets6 = (p->X320>0) ? p6dof : nullptr;
 
     mom0 = dynamic_cast<momentum_rk*>(pmom);
     press0 = dynamic_cast<pjm_corr*>(ppress);
@@ -2038,6 +2066,11 @@ void cfd_amr::step_comp(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof 
         tm[0] += tb-ta_ls;
         ta_ls = -1.0;
         }
+
+        // the forces of the nets on the patches: those of their last stage, which level 0 holds for
+        // this stage (before its forcing takes the nets to this stage)
+        if(nets6!=nullptr)
+        net_forces();
 
         if(tp)
         mom0->amr_twoproj_momentum(p,a,pgc,pvrans,p6dof,s==0,1);

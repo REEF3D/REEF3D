@@ -170,6 +170,14 @@ void sixdof_cfd::start_cfd(lexer* p, fdm* a, ghostcell* pgc, int iter, field &uv
     pgc->gcdf_update(p,a);
 }
 
+// CFD mesh refinement (cfd_amr): the forces of the nets (X 320) of all bodies, as of their last
+// stage on level 0, onto the grid of a patch
+void sixdof_cfd::amr_net_forces(lexer *p, fdm *a)
+{
+    for (int nb=0; nb<number6DOF;++nb)
+    fb_obj[nb]->amr_net_forces(p,a);
+}
+
 void sixdof_cfd::start_sflow(lexer *p, fdm2D *b, ghostcell *pgc, int iter, slice &fsglobal, slice &P, slice &Q, slice &w, slice &fx, slice &fy, slice &fz, bool finalize)
 {
     

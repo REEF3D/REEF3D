@@ -52,6 +52,7 @@ public:
     
 
     void dlm_cfd(lexer*, fdm*, ghostcell*, int);
+    void dlm_cfd_amr(lexer*, fdm*);     // CFD mesh refinement: the forces of the nets onto the grid of a patch
     void dlm_nhflow(lexer*, fdm_nhf*, ghostcell*, int);
     
     void initialize_cfd(lexer*, fdm*, ghostcell*);
@@ -80,6 +81,8 @@ public:
     bool ckpt_restore(const std::vector<double>&);
 
 private:
+    void dlm_cfd_spread(lexer*, fdm*, int);
+    
     vector<net*> pnet;
     vector<net_membrane*> pmem;
    
