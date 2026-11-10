@@ -70,6 +70,7 @@ public:
     
     // coastline / wet-dry front viscosity A346 (A343 1/2/3)
     void coast_viscosity(lexer*, fdm_fnpf*, ghostcell*);
+    void zone_viscosity(lexer*, fdm_fnpf*, ghostcell*);
 
     double ivel,jvel,kvel;
     

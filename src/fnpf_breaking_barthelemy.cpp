@@ -378,45 +378,10 @@ void fnpf_breaking::bt_filter(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta,
         }
     }
 
-    // A352 5: no filter; the breaking viscosity is raised to at least nu = dx c/(4 C), C = 0.5, in the cells of the
-    // depth-induced criterion (flag 2) and +-2 cells around them, c the phase speed of the 2 dx wave in the local
-    // depth: a 2 dx spike decays by e while it travels half a cell, longer waves much less (about with the square
-    // of their length). The maximum with the breaking and coastline viscosity, applied by fnpf_fsfbc::damping.
-    // The depth-induced cells are not limited to the still-water depth of the deepest onset (bt_db): at a steep
-    // shore the crest tracking sees the onset late and shallow, and the swash further out went unstable
-    // (validation 09). C 0.5 and no depth limit: 29 of 30 runs stable on two 2D steep-shore cases (A352 3: 27).
+    // A352 5: no filter; the zone viscosity in the cells of the depth-induced criterion (zone_viscosity)
     if(p->A352==5)
     {
-        const double g = fabs(p->W22);
-        const double C = 0.5;
-
-        SLICELOOP4
-        bx(i,j) = (c->breaking(i,j)>=2 && p->wet[IJ]==1) ? 1 : 0;
-
-        pgc->gcsl_start4int(p,bx,50);
-
-        SLICELOOP4
-        if(p->wet[IJ]==1)
-        {
-            int hit=0;
-
-            for(int qi=-2; qi<=2; ++qi)
-            for(int qj=-2*p->j_dir; qj<=2*p->j_dir; ++qj)
-            if(bx(i+qi,j+qj)==1)
-            hit=1;
-
-            if(hit==1)
-            {
-                const double wl = MAX(c->WL(i,j), c->wd_criterion);
-                const double dx = (p->j_dir==1) ? MIN(p->DXN[IP],p->DYN[JP]) : p->DXN[IP];
-                const double k = PI/dx;
-                const double cp = sqrt(g*tanh(k*wl)/k);
-
-                c->vb(i,j) = MAX(c->vb(i,j), dx*cp/(4.0*C));
-            }
-        }
-
-        pgc->gcsl_start4(p,c->vb,1);
+        zone_viscosity(p,c,pgc);
         return;
     }
 

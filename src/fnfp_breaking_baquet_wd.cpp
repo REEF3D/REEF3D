@@ -185,6 +185,10 @@ void fnpf_breaking::breaking_baquet_wd(lexer *p, fdm_fnpf *c, ghostcell *pgc, sl
         // coastline / wet-dry front viscosity A346 (A343 1 with A337, A343 2/3 with A332)
         coast_viscosity(p,c,pgc);
         
+        // A352 5: the zone viscosity in the cells of the depth-induced criterion instead of the filters below
+        if(p->A352==5)
+        zone_viscosity(p,c,pgc);
+        
         // additional breaking filter
         // shallow
         if(p->A352==1)
@@ -299,4 +303,45 @@ void fnpf_breaking::coast_viscosity(lexer *p, fdm_fnpf *c, ghostcell *pgc)
         if(p->A337>=2 && c->WL(i,j) < 10.0*c->wd_criterion)
         c->vb(i,j) = MAX(c->vb(i,j), p->A346);
     }
+}
+
+// A352 5 (A350 1, 4, 5): instead of the filter the breaking viscosity is raised to at least nu = dx c/(4 C), C = 0.5,
+// in the cells of the depth-induced criterion (flag 2: eta_t > A354 sqrt(g h), +-2 cells) and +-2 cells around them,
+// c the phase speed of the 2 dx wave in the local depth: a 2 dx spike decays by e while it travels half a cell,
+// longer waves much less (about with the square of their length). The maximum with the breaking and coastline
+// viscosity, applied by fnpf_fsfbc::damping. With A350 4/5 the flag-2 cells are not limited to the still-water
+// depth of the deepest onset (bt_db): at a steep shore the crest tracking sees the onset late and shallow
+// (FNPF Breaking validation 09).
+void fnpf_breaking::zone_viscosity(lexer *p, fdm_fnpf *c, ghostcell *pgc)
+{
+    const double g = fabs(p->W22);
+    const double C = 0.5;
+
+    SLICELOOP4
+    bx(i,j) = (c->breaking(i,j)>=2 && p->wet[IJ]==1) ? 1 : 0;
+
+    pgc->gcsl_start4int(p,bx,50);
+
+    SLICELOOP4
+    if(p->wet[IJ]==1)
+    {
+        int hit=0;
+
+        for(int qi=-2; qi<=2; ++qi)
+        for(int qj=-2*p->j_dir; qj<=2*p->j_dir; ++qj)
+        if(bx(i+qi,j+qj)==1)
+        hit=1;
+
+        if(hit==1)
+        {
+            const double wl = MAX(c->WL(i,j), c->wd_criterion);
+            const double dx = (p->j_dir==1) ? MIN(p->DXN[IP],p->DYN[JP]) : p->DXN[IP];
+            const double k = PI/dx;
+            const double cp = sqrt(g*tanh(k*wl)/k);
+
+            c->vb(i,j) = MAX(c->vb(i,j), dx*cp/(4.0*C));
+        }
+    }
+
+    pgc->gcsl_start4(p,c->vb,1);
 }

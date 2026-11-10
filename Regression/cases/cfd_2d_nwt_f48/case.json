@@ -1,0 +1,20 @@
+{
+ "base": "cfd_2d_nwt",
+ "np": 1,
+ "steps": 100,
+ "ctrl_add": [
+  "F 48 6.0"
+ ],
+ "description": "cfd_2d_nwt (SSP-RK3, the level set inside the stages) with the narrow band of the level set (F 48 6): the reinitialisation and the transport within 6 cells of the free surface and two layers around them (patch 0177, validation CFD AMR speed/03).",
+ "tags": [
+  "quick",
+  "2d",
+  "waves",
+  "levelset",
+  "narrowband"
+ ],
+ "covers": [
+  "reini_RK3 with the mask of the band (reinidisc_f::start_mask)",
+  "momentum_rk::levelset_transport with levelset_band_active, weno_hj_df_nug ipol 4"
+ ]
+}
