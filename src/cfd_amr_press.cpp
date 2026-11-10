@@ -61,10 +61,13 @@ using PRS = amr_phase<cfd_amr::PR_NPART>;
 //    - after the solve the fine faces are corrected with that flux, the coarse face is the mean of
 //      the fine faces (restriction): the velocities of all leaf cells are divergence free together
 //
-//  BiCGStab (reefamr_bicgstab), right preconditioned by one multiplicative FAC V-cycle (pr_prec):
-//  patch-local REEFMG V-cycles level by level down (zero correction around the patch), a REEFMG
-//  V-cycle on level 0 (the whole rank grid with its own Poisson matrix), patch-local V-cycles level
-//  by level up, every correction passed on into the finer levels at once.  The patches of a rank
+//  BiCGStab (reefamr_bicgstab), right preconditioned by one multiplicative FAC cycle (pr_prec): a
+//  REEFMG V-cycle on level 0 (the whole rank grid with its own Poisson matrix), then patch-local
+//  REEFMG V-cycles level by level up (zero correction around the patch).  G 48 0 (the default):
+//  the composite residual of the level and all finer ones before every level solve, every
+//  correction passed on into the finer levels at once; G 48 1 (G 40): as 0 with a down sweep
+//  before level 0; G 48 2: every level takes the residual of its own rows only, the solution of
+//  the coarser level prolonged into it first (every row once per cycle).  The patches of a rank
 //  next to each other take one V-cycle together (the joint multigrids); at the sides to the
 //  patches of the level in another multigrid (another rank, or no joint multigrid) the V-cycles
 //  reach three cells into them (their rows and right-hand side, the correction kept inside:
@@ -2238,6 +2241,152 @@ void cfd_amr::pr_prec(int kr, int kz)
         pass_on(l);
     };
 
+    // G 48 2: the residual of every level on its own rows only.  The cycle below (G 48 0) takes
+    // the composite residual three times with two refined levels: before level 0 (z is zero there:
+    // the residual is r), before level 1 on the rows of the levels 1 and 2, before level 2 on its
+    // rows; with the finest level holding most of the cells that is three passes over it for one
+    // V-cycle on it.  Here:
+    //   - the right-hand side of a level is r on its leaf cells and r restricted from the finer
+    //     levels under their patches (into kr itself: the cells under the patches are not part of
+    //     the Krylov vectors), once per cycle
+    //   - level 0: a V-cycle on that right-hand side, from zero
+    //   - level l = 1, 2, ..: the solution of level l-1 (KC, on all its rows) prolonged into the
+    //     patches, then the residual of the rows of level l with it: the leaf rows as in the
+    //     composite operator, but the flux through a face of a finer patch from the covered cell
+    //     behind it instead of the fine cells (the couplings of the multigrid of the level there,
+    //     pr_matrix); the rows under the finer patches those of the level, with that flux.  Then
+    //     the V-cycles of the level on it (pr_level_solve, as before)
+    // Every row of every grid is taken once per cycle.  The residual under the finer patches is
+    // that of the operator of the coarser level, not the restricted residual of the finer one:
+    // the same V-cycles per iteration, the same or up to 15 % fewer iterations (four adaptive
+    // levels 7.3 instead of 7.8, 3D waves with two levels 6.2 instead of 7.0; validation
+    // CFD AMR speed/02)
+    if(p0->G48==2)
+    {
+        const std::function<double*(int,int)> fz = [this,kz](int,int g) -> double* { return pvec(g,kz); };
+
+        {
+            vector<std::function<field&(int)>> cells, none;
+            cells.push_back([this,kr](int g) -> field& { return pfield(g,kr); });
+            PRS rs_(prc,PR_RESTRICT);
+            for(int g=-1; g<(int)P.size(); ++g)
+            {
+                double *r = pvec(g,kr);
+                for(int qq : cq[g+1])
+                r[qq] = 0.0;
+            }
+            for(int l=maxlev; l>0; --l)
+            restrict_level(l,cells,none);
+        }
+
+        // level 0
+        {
+            PRS p0_(prc,PR_L0CYCLE);
+            sc_level &L = mg0->fine();
+            const double *r = pvec(-1,kr);
+            double *z = pvec(-1,kz);
+            double *c = pvec(-1,KC);
+            std::fill(L.u.begin(),L.u.end(),0.0);
+            std::fill(L.f.begin(),L.f.end(),0.0);
+            for(size_t n=0; n<l0a.size(); ++n)
+            L.f[l0a[n]] = r[l0f[n]];
+
+            {
+                PRS pw_(prc,PR_WAIT);
+                lbar();
+            }
+            pr_wait();
+            const double t0 = MPI_Wtime();
+            mg0->vcycle(0,1,1);
+            tp[1] += MPI_Wtime()-t0;
+
+            for(size_t n=0; n<l0a.size(); ++n)
+            {
+                z[l0f[n]] += L.u[l0a[n]];
+                c[l0f[n]] = L.u[l0a[n]];
+            }
+
+            pr_halo0(pfield(-1,KC));
+            pr_halo0(pfield(-1,kz));
+        }
+
+        // G 40: the solution of level 0 in the shadows
+        if(place)
+        {
+            PRS sh_(prc,PR_SHADOW);
+            vector<std::function<field&(int)>> f(1,[this](int g) -> field& { return pfield(g,REEFAMR_NVEC); });
+            sh_down_f(f);
+        }
+
+        // (the fine faces of a coarse face)
+        const double nfi[3] = {1.0/double(rr[1]*rr[2]), 1.0/double(rr[0]*rr[2]), 1.0/double(rr[0]*rr[1])};
+
+        for(int l=1; l<=maxlev; ++l)
+        {
+            // z and KC of level l: the solution of level l-1
+            into(l);
+            {
+                PRS pf_(prc,PR_CFILL);
+                fill_cells(l,1,fz,false,1,true);
+            }
+
+            {
+                PRS po_(prc,PR_OPERATOR);
+                for(int id : lev[l])
+                {
+                    lexer *q = glex(id);
+                    const matrix_diag &M = gfd(id)->M;
+                    const double *x = pvec(id,kz), *r = pvec(id,kr);
+                    double *t = pvec(id,KT);
+                    const int sI = q->jmax*q->kmax;
+                    const int sJ = q->kmax;
+                    const vector<int> &LQ = aq[id+1], &LR = ar[id+1];
+                    const double *Mp=M.p.data(), *Mn=M.n.data(), *Ms=M.s.data(), *Mw=M.w.data(), *Me=M.e.data(), *Mt=M.t.data(), *Mb=M.b.data();
+
+                    for(size_t n=0; n<LQ.size(); ++n)
+                    {
+                        const int qq = LQ[n], m = LR[n];
+                        t[qq] = r[qq] - (Mp[m]*x[qq] + Mn[m]*x[qq+sI] + Ms[m]*x[qq-sI] + Mw[m]*x[qq+sJ] + Me[m]*x[qq-sJ] + Mt[m]*x[qq+1] + Mb[m]*x[qq-1]);
+                    }
+                }
+
+                for(const cfd_amr_cf &F : cf)
+                {
+                    const int lf = glevel(F.pid);
+
+                    // a fine row of the level at its edge: the coarse value at its position
+                    if(lf==l)
+                    pvec(F.pid,KT)[F.qf] += F.kf*pr_xs(F,kz);
+
+                    // a face of a finer patch: the coarse row (its coupling across the face is folded
+                    // into its diagonal, pr_matrix) and the row of the covered cell (the coupling of
+                    // the level, cp) take the flux kc of the fine face between the two of them
+                    if(lf==l+1)
+                    {
+                        const double zc = pvec(F.gc,kz)[F.qc], zp = pvec(F.gp,kz)[F.qp];
+                        pvec(F.gc,KT)[F.qc] -= F.kc*(zc-zp);
+
+                        const int rp = (F.gp<0) ? row0[F.qp] : CP(F.gp)->row[F.qp];
+                        if(rp>=0)
+                        {
+                            const double cp = mcoef(gfd(F.gp)->M,rp,F.d,F.dir);
+                            pvec(F.gp,KT)[F.qp] -= (F.kc + cp*nfi[F.d])*(zp-zc);
+                        }
+                    }
+                }
+            }
+
+            pr_level_solve(l,KT,kz,KC);
+
+            if(l<maxlev)
+            {
+                PRS pf_(prc,PR_CFILL);
+                fill_cells(l,1,fc,false,1,true);
+            }
+        }
+        return;
+    }
+
     // down (the finest level: z = 0, the residual is r), only with G 40.  Without the down sweep
     // (a V(0,2) cycle over the levels) each solve needs 0.5-1 iterations more with one or two levels
     // but every iteration half the patch V-cycles and composite residuals: the 67 CFD AMR cases 4.5 %
@@ -2250,7 +2399,7 @@ void cfd_amr::pr_prec(int kr, int kz)
     // 55 % more time.  With a core per rank every run of validation 65 was faster without it (the
     // pier 1.04-1.08 times the time of G 40 0 instead of 1.40, the off-centre pier and the dam break
     // faster than G 40 0): G 48 0 is the default
-    if(place && p0->G48!=0)
+    if(place && p0->G48==1)
     for(int l=maxlev; l>=1; --l)
     {
         if(l<maxlev)
@@ -2627,7 +2776,7 @@ void cfd_amr::pr_project(lexer *p, ghostcell *pgc, int s)
     int it;
     {
         PRS pk_(prc,PR_KRYLOV);
-        it = reefamr_bicgstab(sp,p->N44,p->N46,bn,rn,&tm[5],&tm[6]);
+        it = reefamr_bicgstab(sp,p->N44,p->N46,bn,rn,&tm[5],&tm[6],nullptr,0.0,nullptr,p->G48==2);
     }
 
     pr_it_last = it;
@@ -2911,7 +3060,7 @@ void cfd_amr::pr_level(lexer *p, ghostcell *pgc, int l, int s)
     int it;
     {
         PRS pk_(prc,PR_KRYLOV);
-        it = reefamr_bicgstab(sp,p->N44,p->N46,bn,rn,&tm[5],&tm[6]);
+        it = reefamr_bicgstab(sp,p->N44,p->N46,bn,rn,&tm[5],&tm[6],nullptr,0.0,nullptr,p->G48==2);
     }
     PRS pf_(prc,PR_FINISH);
     pr_it_last = it;
