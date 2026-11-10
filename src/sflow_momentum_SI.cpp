@@ -555,19 +555,26 @@ void sflow_momentum_SI::face_depth(lexer *p, fdm2D *b, ghostcell *pgc)
         else
         df = MIN(b->depth(i,j),b->depth(i+1,j));
 
+        int su;
         if(qini && qx(i,j)>1.0e-12)
-        eu = b->eta(i,j);
+        su = 0;
 
         else
         if(qini && qx(i,j)<-1.0e-12)
-        eu = b->eta(i+1,j);
+        su = 1;
 
         else
-        eu = MAX(b->eta(i,j),b->eta(i+1,j));
+        su = (b->eta(i+1,j)>b->eta(i,j)) ? 1 : 0;
+
+        eu = (qini && fabs(qx(i,j))>1.0e-12) ? b->eta(i+su,j) : MAX(b->eta(i,j),b->eta(i+1,j));
 
         h = eu + df;
 
         Hx(i,j) = h>p->A244 ? h : 0.0;
+
+        // a source cell with only the film of the wetting criterion gives no water (dry_source)
+        if(!hbed && dry_source(p,b,i+su,j))
+        Hx(i,j) = 0.0;
         }
     }
 
@@ -584,24 +591,42 @@ void sflow_momentum_SI::face_depth(lexer *p, fdm2D *b, ghostcell *pgc)
         else
         df = MIN(b->depth(i,j),b->depth(i,j+1));
 
+        int su;
         if(qini && qy(i,j)>1.0e-12)
-        eu = b->eta(i,j);
+        su = 0;
 
         else
         if(qini && qy(i,j)<-1.0e-12)
-        eu = b->eta(i,j+1);
+        su = 1;
 
         else
-        eu = MAX(b->eta(i,j),b->eta(i,j+1));
+        su = (b->eta(i,j+1)>b->eta(i,j)) ? 1 : 0;
+
+        eu = (qini && fabs(qy(i,j))>1.0e-12) ? b->eta(i,j+su) : MAX(b->eta(i,j),b->eta(i,j+1));
 
         h = eu + df;
 
         Hy(i,j) = h>p->A244 ? h : 0.0;
+
+        if(!hbed && dry_source(p,b,i,j+su))
+        Hy(i,j) = 0.0;
         }
     }
 
     exchange1(p,pgc,Hx);
     exchange2(p,pgc,Hy);
+}
+
+// The source cell of a face (upwind of its discharge, without flow the cell with the higher surface) holds only the
+// film of the wetting criterion: the face stays closed. Between two dry cells on a slope the face depth
+// max(eta) + min(depth) equals A 244 and opened by round-off, and the film (1 mm with A 244 1e-3) drained downhill
+// with the bed slope as surface gradient; with the mesh refinement the films of the prolonged and restricted cells
+// differ from A 244 by 1e-3 relative and opened many faces: sheets of a few mm ran down the dry canal banks behind a
+// ship, up to 0.2 m above the water, at 0.5 m/s, until an eta solve set every cell dry (NOK canal, A 210 12, G 1 1).
+// Water still flows out of a wet cell into a dry one (wetting) and out of a wet cell (drying).
+bool sflow_momentum_SI::dry_source(lexer *p, fdm2D *b, int ii, int jj)
+{
+    return b->eta(ii,jj) + b->depth(ii,jj) <= 1.01*p->A244;
 }
 
 void sflow_momentum_SI::face_weights(lexer *p, fdm2D *b, int dir, int ii, int jj, double &wl, double &wr)
