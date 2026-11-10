@@ -28,6 +28,8 @@ Author: Hans Bihs
 
 using namespace std;
 
+class diff_walllaw;
+
 class ediff2_2D final : public diffusion, public gradient
 {
 
@@ -50,5 +52,7 @@ private:
 	double D;
 	double ga;
 	double u_ijk,v_ijk,w_ijk,ev_ijk,visc_ijk;
+
+    diff_walllaw *pwl;   // the wall-law faces of B 10 (diff_walllaw.h)
 };
 #endif

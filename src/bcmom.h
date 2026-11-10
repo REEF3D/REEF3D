@@ -41,9 +41,12 @@ public:
 	virtual ~bcmom();
 	void bcmom_start(fdm*,lexer*,ghostcell*,turbulence*,field&, int);
     void bcmomPLIC_start(fdm*,lexer*,ghostcell*,turbulence*,VOF_PLIC*,field&,int);
-	void wall_law_u(fdm*,lexer*,turbulence*,field&,int,int,int,int,int,double);
-	void wall_law_v(fdm*,lexer*,turbulence*,field&,int,int,int,int,int,double);
-	void wall_law_w(fdm*,lexer*,turbulence*,field&,int,int,int,int,int,double);
+	void wall_law_u(fdm*,lexer*,turbulence*,field&,int,int,int,int,int,double,double=0.0);
+	void wall_law_v(fdm*,lexer*,turbulence*,field&,int,int,int,int,int,double,double=0.0);
+	void wall_law_w(fdm*,lexer*,turbulence*,field&,int,int,int,int,int,double,double=0.0);
+
+    // velocity of a 6DOF body at a direct-forcing face (0 at solids and topography)
+    double body_vel(fdm*,lexer*,field&,int,int,int,int,int);
 
 private:
 	const double kappa;
