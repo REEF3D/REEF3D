@@ -281,6 +281,7 @@ private:
     // column operator A = I - dt L_v + dt gamma e_0 e_0^T of a column of depth h with the layer
     // viscosities nu: the off-diagonal parts cu (k+1), cl (k-1); solve A x = b
     void col_coef(lexer*, fdm_nhf*, double h, int, int, int, int, const double *nu, double *cu, double *cl, double *cd);
+    void col_vadv_central(lexer*, int, double, double, double);   // central vertical advection of one layer of col_coef
     void col_solve(lexer*, const double *cu, const double *cl, const double *cd, double dtgam, const double *b, double *x);
     void col_nu(lexer*, fdm_nhf*, int, int, int, int, double*);
     bool visc;

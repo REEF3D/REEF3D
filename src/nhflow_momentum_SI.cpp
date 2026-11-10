@@ -1194,11 +1194,18 @@ void nhflow_momentum_SI::col_coef(lexer *p, fdm_nhf *d, double h, int i1, int j1
     // dt nu_{k+1/2} sigz^2/(dsigP_k dsig_k), nu at the level the mean of the two layers, no flux at the
     // bed and the surface (the bed shear is gamma);
     // vertical advection (sigma velocity omega of the step before, the mean of the two columns at a
-    // face), upwind and implicit: the flux omega u at k+1/2 over dsig_k h, zero at the bed and the
-    // surface; conservative (the columns of the matrix weighted with dsig sum to one), so omega does
-    // not limit the time step. A 510 11: Crank-Nicolson (thv 1/2, the explicit half on the column of t^n,
-    // col_adv_rhs) with omega at t^{n+1/2} (nh_begin); implicit Euler with the omega of the step before was
-    // first order in time (Stokes-5: about 0.4 % of the wave speed at T/40)
+    // face), implicit: the flux omega u at k+1/2 over dsig_k h, zero at the bed and the surface; conservative
+    // (the columns of the matrix weighted with dsig sum to one), so omega does not limit the time step.
+    // A 510 11: Crank-Nicolson (thv 1/2, the explicit half on the column of t^n, col_adv_rhs) with omega at
+    // t^{n+1/2} (nh_begin); implicit Euler with the omega of the step before was first order in time (Stokes-5:
+    // about 0.4 % of the wave speed at T/40).
+    // The interface value u_{k+1/2}: linear between the two layer centres, blended to the upwind value where the
+    // vertical Courant number c = dt |omega|/(dsig h) of the interface exceeds 1/2 (weight of the central value
+    // min(1, max(0, 2 - 2c)), upwind from c = 1). The upwind value alone damped waves through omega (of the order of the
+    // wave amplitude): a standing wave kh 4, 4 layers, a/h 0.0016 lost 1.1e-3 of its amplitude per period with it,
+    // 8.8e-5 with the central value (Basilisk multilayer 7.3e-5); the loss of the upwind value is proportional to the
+    // amplitude and to the layer thickness. The lock exchange (nhflow_2d_si_density_lock) runs its fronts at 0.97 instead
+    // of 0.94 of 1/2 sqrt(g' H). A 549 1 (velocity form) keeps the upwind value
     const int ii=i, jj=j, kk=k;
     const double hh = MAX(h,p->A544);
     const double s2 = 1.0/(hh*hh);
@@ -1232,12 +1239,57 @@ void nhflow_momentum_SI::col_coef(lexer *p, fdm_nhf *d, double h, int i1, int j1
     // A 549 1 (velocity form): the advective part omega du/dsigma alone, the continuity part is in h^{n+1}
     vad[q] = elm_mode(p)==1 ? 0.0 : a*(ot - ob);
 
+    // the interface values between the layer centres (flux form only; A 549 1 keeps upwind)
+    if(elm_mode(p)==0)
+    col_vadv_central(p,q,a,ot,ob);
+
     cu[q] += thv*vau[q];
     cl[q] += thv*val[q];
     cd[q] = thv*vad[q];
     }
 
     i=ii; j=jj; k=kk;
+}
+
+void nhflow_momentum_SI::col_vadv_central(lexer *p, int q, double a, double ot, double ob)
+{
+    // the vertical advection of layer q of col_coef with the interface values between the layer centres,
+    // blended to the upwind value where the vertical Courant number of the interface exceeds 1/2
+    const int K = p->knoz;
+    const int kk = k;
+
+    k=q;
+    const double dq = p->DZN[KP];
+    double wt=0.5, wb=0.5;   // wt: weight of layer q at its upper interface, wb: weight of layer q-1 at the lower one
+
+        if(q<K-1)
+        {
+        k=q+1;
+        wt = p->DZN[KP]/(dq + p->DZN[KP]);
+        }
+
+        if(q>0)
+        {
+        k=q-1;
+        wb = dq/(p->DZN[KP] + dq);
+        }
+
+    k=kk;
+
+    // the weights of the central value, 1 up to the vertical Courant number 1/2, 0 from 1
+    const double bt = MAX(0.0,MIN(1.0,2.0 - 2.0*a*fabs(ot)));
+    const double bb = MAX(0.0,MIN(1.0,2.0 - 2.0*a*fabs(ob)));
+
+    // the fluxes F_{q+1/2} = ctq x_q + ctp x_{q+1}, F_{q-1/2} = cbm x_{q-1} + cbq x_q
+    const double ctq =  (1.0-bt)*MAX(ot,0.0)  + bt*ot*wt;
+    const double ctp = -(1.0-bt)*MAX(-ot,0.0) + bt*ot*(1.0-wt);
+    const double cbm =  (1.0-bb)*MAX(ob,0.0)  + bb*ob*wb;
+    const double cbq = -(1.0-bb)*MAX(-ob,0.0) + bb*ob*(1.0-wb);
+
+    // as the upwind coefficients: row a (F_{q+1/2} - F_{q-1/2}) = (vau + val + vad) x_q - vau x_{q+1} - val x_{q-1}
+    vau[q] = -a*ctp;
+    val[q] =  a*cbm;
+    vad[q] =  a*(ctq - cbq) - vau[q] - val[q];
 }
 
 void nhflow_momentum_SI::col_adv_rhs(lexer *p, const double *x0, double *b)
@@ -1261,7 +1313,9 @@ void nhflow_momentum_SI::col_adv_rhs(lexer *p, const double *x0, double *b)
 void nhflow_momentum_SI::col_solve(lexer *p, const double *cu, const double *cl, const double *cd, double dtgam, const double *b, double *x)
 {
     // A x = b, A = I - dt L_v + dt V_omega + dt gamma e_0 e_0^T: tridiagonal, upper -cu, lower -cl,
-    // diagonal 1 + cu + cl + cd (an M-matrix, column dominant with the weights dsig): Thomas algorithm
+    // diagonal 1 + cu + cl + cd (an M-matrix, column dominant with the weights dsig, with the upwind vertical advection;
+    // the central one (col_vadv_central) adds off-diagonals of either sign only where the vertical Courant number is below 1):
+    // Thomas algorithm
     const int K = p->knoz;
     double *cp = wa.data();
 
