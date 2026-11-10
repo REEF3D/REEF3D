@@ -730,8 +730,11 @@ void breaking_crest3d::detect(lexer *p, ghostcell *pgc, slice &eta, slice &us, s
         if(P.hasC==1 && fabs(P.C)<1.0e-6)
         P.hasC=0;
 
-        // a crest travelling against n (strong opposing current): turn n
-        if(P.hasC==1 && P.C<0.0)
+        // a crest travelling against n (strong opposing current): turn n. Not a breaking crest point: at a steep coast
+        // the crest of a breaking wave stalls and is reflected, and the turned n painted its front face (crest to the
+        // next trough ahead) seaward over the back of the reflected wave, rays of breaking viscosity a few hundred
+        // metres long; it keeps the direction it broke in and its breaking ends when that front face flattens
+        if(P.hasC==1 && P.C<0.0 && P.state!=1)
         {
             P.nx=-P.nx;
             P.ny=-P.ny;
