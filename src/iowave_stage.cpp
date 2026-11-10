@@ -24,6 +24,7 @@ Architect: Hans Bihs
 #include"lexer.h"
 #include"fdm2D.h"
 #include"fdm_nhf.h"
+#include"fdm_fnpf.h"
 #include"ghostcell.h"
 #include<cmath>
 
@@ -37,14 +38,23 @@ Architect: Hans Bihs
 //  r^(dt/dt_ref) of the generation and beach zones, dt_ref = B 95 (> 0) or, with B 95 -1, the
 //  step of the finest level (dt/2^G1 with mesh refinement subcycling G 7 1, else dt).  Over a
 //  fixed time the zones then relax by the same amount whatever the step.
+//
+//  FNPF (RK3 A 310 3 and RK4 A 310 4; theta-Robin A 310 5 has its own zones, A 303): wavegen_stage_fnpf, the
+//  targets at t+dt, t+dt/2, t+dt (RK3) and t+dt/2, t+dt/2, t+dt, t+dt (RK4).  The factors of a stage are
+//  r^(w dt/dt_ref), w the weight of the stage (1).
 
-void iowave::relax_stage_factor(lexer *p)
+void iowave::relax_stage_factor(lexer *p, double w)
 {
+    double f = w;
+
+    if(p->B95!=0.0)
+    {
     double dtref = p->B95;
     if(p->B95<0.0)
     dtref = (p->G7==1 && p->G1>0) ? p->dt/double(1<<p->G1) : p->dt;
 
-    const double f = p->dt/(dtref>1.0e-20 ? dtref : 1.0e-20);
+    f *= p->dt/(dtref>1.0e-20 ? dtref : 1.0e-20);
+    }
 
     if(relax4_wg0==nullptr)
     {
@@ -108,6 +118,45 @@ void iowave::wavegen_2D_stage(lexer *p, fdm2D *b, ghostcell *pgc, double t)
     const double ts = p->simtime;
     p->simtime = t;
     wavegen_2D_precalc(p,b,pgc);
+    p->wavetime = t;
+    p->simtime = ts;
+}
+
+void iowave::wavegen_stage_fnpf(lexer *p, fdm_fnpf *c, ghostcell *pgc, double t, double w)
+{
+    // the zones of the stage: RK3 without B 95 keeps its factors (w = 1, nothing is touched)
+    if(p->B95!=0.0 || w!=1.0 || relax4_wg0!=nullptr)
+    relax_stage_factor(p,w);
+
+    if(p->B95==0.0 || p->B98!=2)
+    return;
+
+    // the targets are those of this time already (RK4: two stages at t+dt/2, two at t+dt)
+    if(stage_count==p->count && stage_time==t)
+    {
+    p->wavetime = t;
+    return;
+    }
+    stage_count = p->count;
+    stage_time = t;
+
+    // the relaxation precalc of wavegen_precalc_fnpf at time t (it takes the time from simtime)
+    const double ts = p->simtime;
+    p->simtime = t;
+
+    starttime=pgc->timer();
+
+    if(p->B89==0 && relax_gen)
+    fnpf_precalc_relax(p,pgc);
+
+    if(p->B89==1)
+    {
+    wavegen_precalc_decomp_time_fnpf(p,pgc);
+    wavegen_precalc_decomp_relax_fnpf(p,pgc);
+    }
+
+    p->wavecalctime+=pgc->timer()-starttime;
+
     p->wavetime = t;
     p->simtime = ts;
 }

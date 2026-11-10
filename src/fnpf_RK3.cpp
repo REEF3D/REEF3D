@@ -127,7 +127,8 @@ void fnpf_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, conve
     {fnpf_prof::scope ps_(fnpf_prof::damping); pf->damping(p,c,pgc,erk1,gcval_eta,1.0);}
     {fnpf_prof::scope ps_(fnpf_prof::damping); pf->damping(p,c,pgc,frk1,gcval_fifsf,1.0);}
    
-    // wavegen and coastline
+    // wavegen and coastline (B 95: the targets at the time of the stage output)
+    {fnpf_prof::scope ps_(fnpf_prof::relax); pflow->wavegen_stage_fnpf(p,c,pgc,p->simtime+1.0*p->dt,1.0);}
     {fnpf_prof::scope ps_(fnpf_prof::relax); pflow->eta_relax(p,pgc,erk1);}
     {fnpf_prof::scope ps_(fnpf_prof::wetdry); pf->wetdry(p,c,pgc,erk1,frk1);}
     {fnpf_prof::scope ps_(fnpf_prof::gc2d); pgc->gcsl_start4(p,erk1,gcval_eta);}
@@ -194,7 +195,8 @@ void fnpf_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, conve
     {fnpf_prof::scope ps_(fnpf_prof::damping); pf->damping(p,c,pgc,erk2,gcval_eta,0.25);}
     {fnpf_prof::scope ps_(fnpf_prof::damping); pf->damping(p,c,pgc,frk2,gcval_fifsf,0.25);}
     
-    // wavegen and coastline
+    // wavegen and coastline (B 95: the targets at the time of the stage output)
+    {fnpf_prof::scope ps_(fnpf_prof::relax); pflow->wavegen_stage_fnpf(p,c,pgc,p->simtime+0.5*p->dt,1.0);}
     {fnpf_prof::scope ps_(fnpf_prof::relax); pflow->eta_relax(p,pgc,erk2);}
     {fnpf_prof::scope ps_(fnpf_prof::wetdry); pf->wetdry(p,c,pgc,erk2,frk2);}
     {fnpf_prof::scope ps_(fnpf_prof::gc2d); pgc->gcsl_start4(p,erk2,gcval_eta);}
@@ -259,7 +261,8 @@ void fnpf_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, conve
     {fnpf_prof::scope ps_(fnpf_prof::damping); pf->damping(p,c,pgc,c->eta,gcval_eta,2.0/3.0);}
     {fnpf_prof::scope ps_(fnpf_prof::damping); pf->damping(p,c,pgc,c->Fifsf,gcval_fifsf,2.0/3.0);}
     
-    // wavegen and coastline
+    // wavegen and coastline (B 95: the targets at the time of the stage output)
+    {fnpf_prof::scope ps_(fnpf_prof::relax); pflow->wavegen_stage_fnpf(p,c,pgc,p->simtime+1.0*p->dt,1.0);}
     {fnpf_prof::scope ps_(fnpf_prof::relax); pflow->eta_relax(p,pgc,c->eta);}
     {fnpf_prof::scope ps_(fnpf_prof::wetdry); pf->wetdry(p,c,pgc,c->eta,c->Fifsf);}
     {fnpf_prof::scope ps_(fnpf_prof::gc2d); pgc->gcsl_start4(p,c->eta,gcval_eta);}

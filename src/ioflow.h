@@ -116,6 +116,8 @@ public:
     // nhflow
     virtual void wavegen_precalc_nhflow(lexer*,fdm_nhf*,ghostcell*)=0;
     virtual void wavegen_stage_nhflow(lexer*,fdm_nhf*,ghostcell*,double) {}
+    // FNPF RK3/RK4: zone factors of the stage (weight w) and, with B 95, the relaxation targets at time t (iowave_stage.cpp)
+    virtual void wavegen_stage_fnpf(lexer*,fdm_fnpf*,ghostcell*,double,double) {}
     virtual void ini_nhflow(lexer*,fdm_nhf*,ghostcell*)=0;
     virtual void discharge_nhflow(lexer*,fdm_nhf*,ghostcell*)=0;
     virtual void inflow_nhflow(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,double*,double*,double*,slice&)=0;
