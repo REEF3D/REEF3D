@@ -74,13 +74,16 @@ def rules(sv, st, pr):
     if "kx" not in st:
         st["kx"], st["s0"] = [s0, 0.0, 0.0], s0
         st["kP"] = [[0.09 * s0 * s0, 0.0, 0.0], [0.0, 0.3 * 0.3, 0.0], [0.0, 0.0, 0.3 * 0.3]]
-        st["ug"], st["tdec"], st["pdec"], st["bdec"], st["Tprev"], st["vT"] = f * a * L, t, list(c), b, None, [0.0, 0.0, 0.0]
+        st["ug"], st["tdec"], st["pdec"], st["bdec"], st["Tprev"], st["vT"] = -1.0, t, list(c), b, None, [0.0, 0.0, 0.0]
         st["adec"] = a
         st["tauc"] = TAUC0
     dt = t - st["tdec"]
     if dt > 0.0:
         y = [(c[p0] - st["pdec"][p0]) / dt, (c[p1] - st["pdec"][p1]) / dt]
-        if min(a, st["adec"]) < 0.95:
+        if st["ug"] < 0.0:
+            # the first interval: the speed of the gait from the track (no current assumed), no update
+            st["ug"] = min(f * a * L, max(0.0, y[0] * ex[p0] + y[1] * ex[p1]) / st["kx"][0])
+        elif min(a, st["adec"]) < 0.95:
             # gliding: no update of the estimate, the speed of the gait from the track
             uw = (y[0] - st["kx"][1]) * ex[p0] + (y[1] - st["kx"][2]) * ex[p1]
             u0 = st["ug"] * st["kx"][0]
@@ -103,7 +106,7 @@ def rules(sv, st, pr):
     s = st["kx"][0]
     cur = [0.0, 0.0, 0.0]
     cur[p0], cur[p1] = st["kx"][1], st["kx"][2]
-    Uw = max(st["ug"] * s, 0.1 * L)
+    Uw = max(sv["U"] if st["ug"] < 0.0 else st["ug"] * s, 0.1 * L)
     q = 0.5 * rho * Uw * Uw
 
     # 2. the target: the wanted velocity over the ground, the velocity through the water that gives it
@@ -181,7 +184,7 @@ def rules(sv, st, pr):
     Umin = 0.3 * f0 * s * L
     # coasting: the distance it carries the fish (its speed through the water along the axis times the
     # coasting time); the target ahead on the axis (within 30 deg)
-    dstop = st["ug"] * s * st["tauc"]
+    dstop = max(0.0, st["ug"]) * s * st["tauc"]
     rx = sum(r[k] * ex[k] for k in range(3))
     onaxis = has_t and rx > 0.0 and abs(math.atan2(sum(r[k] * el[k] for k in range(3)), rx)) < 0.5236
     cm = math.sqrt(cur[p0] * cur[p0] + cur[p1] * cur[p1])

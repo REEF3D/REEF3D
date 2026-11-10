@@ -39,7 +39,9 @@ Architect: Hans Bihs
 //     at the decision times
 //
 //  The current and the stride: the fish knows its gait and sees its track over the ground. The speed of
-//  the gait U_g follows f a L with the time 0.8 s; the ground velocity is s U_g ex + c. A Kalman filter
+//  the gait U_g follows f a L with the time 0.8 s, from the speed on the track over the first interval
+//  between decisions (a body may still be accelerating; no update then); the ground velocity is
+//  s U_g ex + c. A Kalman filter
 //  on the stride s (prior s0 L per beat, X 200, default 0.5; standard deviation 0.3 s0, kept within
 //  0.5-1.6 s0) and the current c in the plane estimates both from the CoG at
 //  the decisions (validation 11, 2D swimmer: s = 0.46, the current 0.17-0.26 m/s for the imposed 0.2 m/s,

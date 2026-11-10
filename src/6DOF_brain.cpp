@@ -137,7 +137,9 @@ sixdof_brain::decision sixdof_brain::decide(double t, double f, double a, double
         for(int j=0; j<3; ++j)
         kf_P_[i][j] = 0.0;
         kf_P_[0][0] = 0.09*s0_*s0_; kf_P_[1][1] = kf_P_[2][2] = 0.3*0.3;
-        ug_ = f*a*L_;
+        // the speed of the gait: from the track over the first interval (a body that starts from rest may
+        // still be accelerating), not yet known
+        ug_ = -1.0;
         tdec_ = t;
         pdec_ = c_;
         bdec_ = b;
@@ -154,7 +156,13 @@ sixdof_brain::decision sixdof_brain::decide(double t, double f, double a, double
     {
         const double y[2] = {(c_(p0) - pdec_(p0))/dt, (c_(p1) - pdec_(p1))/dt};
 
-        if(std::min(a, adec_)<0.95)
+        if(ug_<0.0)
+        {
+            // the first interval: the speed of the gait from the track (no current assumed), no update
+            const double uw = y[0]*ex(p0) + y[1]*ex(p1);
+            ug_ = std::min(f*a*L_, std::max(0.0, uw)/kf_x_[0]);
+        }
+        else if(std::min(a, adec_)<0.95)
         {
             // gliding (or just after it): the body coasts, the model of the speed does not hold; no update of
             // the estimate, the speed of the gait from the track (the velocity through the water along the axis)
@@ -186,7 +194,7 @@ sixdof_brain::decision sixdof_brain::decide(double t, double f, double a, double
     Eigen::Vector3d cur = Eigen::Vector3d::Zero();
     cur(p0) = kf_x_[1];
     cur(p1) = kf_x_[2];
-    const double Uw = std::max(ug_*s, 0.1*L_);
+    const double Uw = std::max((ug_<0.0 ? U : ug_*s), 0.1*L_);
     const double q = 0.5*rho_*Uw*Uw;
 
     // 2. the target: the wanted velocity over the ground (towards the target, U_des, slower within
@@ -321,7 +329,7 @@ sixdof_brain::decision sixdof_brain::decide(double t, double f, double a, double
     {
         const double Umin = 0.3*f0_*s*L_;
         const double cm = std::sqrt(cur(p0)*cur(p0) + cur(p1)*cur(p1));
-        const double dstop = ug_*s*tauc_;
+        const double dstop = std::max(0.0, ug_)*s*tauc_;
         const double rx = r(0)*ex(0) + r(1)*ex(1) + r(2)*ex(2), ry = r(0)*el(0) + r(1)*el(1) + r(2)*el(2);
         const bool onaxis = has_t && rx>0.0 && std::fabs(std::atan2(ry, rx))<0.5236;
         const bool calm = cm<Umin && vT_.norm()<Umin;
