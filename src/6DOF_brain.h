@@ -65,10 +65,17 @@ Architect: Hans Bihs
 //      negative for a body that turns away from its bias, as the 3D salmon with the uniform bias). The frequency: |w|/(s a L),
 //      no integrator; with w more than 1 rad off the axis at least the speed for the turn in 2.5 s at
 //      b_max. Within 0.25 L: at the target. In a current the fish faces it and holds station.
-//   4. glide: at the target (0.25 L), needing less than its slowest swimming speed through the water
-//      (0.3 f0 s L), in a current slower than that and seeing nothing within D, the fish stops beating its tail and coasts (amplitude
-//      factor 0, no bias); it beats again beyond 0.5 L of the target or when it needs 1.5 times that
-//      speed: burst and coast at a station in still water or in a slow current
+//   4. glide: in a current and with a target slower than its slowest swimming speed through the water
+//      (0.3 f0 s L) and seeing nothing within D, the fish stops beating its tail and coasts (amplitude
+//      factor 0, no bias): early, when the target is ahead (within 30 deg of the axis) and the distance
+//      the coast carries it (U_w times the coasting time, prior 2 s, learnt from the slowing down of its
+//      glides) reaches the target (within 0.25 L), the current known (its standard deviation below
+//      0.2 L/s, its drift over the coasting time below 0.1 L); or at the target (0.25 L), needing less
+//      than that speed. It beats again beyond 0.5 L of the target when the target is behind or the coast
+//      no longer reaches it, for at least a tail beat: burst and coast at a station in still water or in
+//      a slow current. While gliding, if the coast would carry the fish past the target (or carries it
+//      away), it brakes: the body bent with the bias 1.5 to the side that turns it towards the wanted
+//      heading, kept while it brakes (mode 6); the coasting time is learnt only from the glides with the body straight
 //  Without a target the fish keeps its frequency and swims straight.
 //
 //  The decisions: every half tail beat, at most 0.5 s apart. The brain is a function of the senses at
@@ -150,6 +157,8 @@ private:
     bool kf_on_ = false, Tset_ = false, glide_ = false;
     double kf_x_[3] = {0.0, 0.0, 0.0}, kf_P_[3][3] = {{0.0,0.0,0.0},{0.0,0.0,0.0},{0.0,0.0,0.0}};
     double ug_ = 0.0, tdec_ = 0.0, bdec_ = 0.0, adec_ = 1.0;
+    // the coasting time (learnt from the glides), the end of the last burst, the side of the braking
+    double tauc_ = 0.0, tburst_ = -1.0, bside_ = 0.0;
     Eigen::Vector3d pdec_ = Eigen::Vector3d::Zero(), Tprev_ = Eigen::Vector3d::Zero(), vT_ = Eigen::Vector3d::Zero();
     record rec_ = {};
     perception perc_;

@@ -37,6 +37,10 @@ namespace
     const double brain_psifloor = 1.0;     // ... beyond this angle to the wanted heading [rad]
     const double brain_reaff = 0.5;        // head pressure difference of a turn: -reaff b q_w
     const double brain_burst = 0.5;        // a gliding fish beats again beyond this distance of the target [L]
+    const double brain_tauc0 = 2.0;        // prior of the coasting time: the speed of a glide decays with it [s]
+    const double brain_cknown = 0.2;       // an early glide: the current known within this (sqrt of its variance) [L/s]
+    const double brain_cdrift = 0.1;       // ... and its drift over the coasting time below this [L]
+    const double brain_brake = 1.5;        // braking while gliding: the body bent with this bias (0: no braking)
 }
 
 sixdof_brain::sixdof_brain(double U_des, double b_max, double D_vis, double th_esc, double f0, double L, double rho,
@@ -140,6 +144,7 @@ sixdof_brain::decision sixdof_brain::decide(double t, double f, double a, double
         adec_ = a;
         Tset_ = false;
         vT_.setZero();
+        tauc_ = brain_tauc0;
         kf_on_ = true;
     }
 
@@ -154,7 +159,14 @@ sixdof_brain::decision sixdof_brain::decide(double t, double f, double a, double
             // gliding (or just after it): the body coasts, the model of the speed does not hold; no update of
             // the estimate, the speed of the gait from the track (the velocity through the water along the axis)
             const double uw = (y[0] - kf_x_[1])*ex(p0) + (y[1] - kf_x_[2])*ex(p1);
+            const double u0 = ug_*kf_x_[0];
             ug_ = std::max(0.0, uw)/kf_x_[0];
+
+            // the coasting time from the slowing down over a whole glide (gliding at both decisions), well
+            // above the uncertainty of the current
+            const double cm = std::sqrt(kf_x_[1]*kf_x_[1] + kf_x_[2]*kf_x_[2]);
+            if(std::max(a, adec_)<0.05 && std::max(std::fabs(b), std::fabs(bdec_))<0.05 && uw>3.0*cm + 0.05*L_ && uw<u0)
+            tauc_ = 0.7*tauc_ + 0.3*std::min(30.0, std::max(0.5, dt/std::log(u0/uw)));
         }
         else
         {
@@ -298,27 +310,55 @@ sixdof_brain::decision sixdof_brain::decide(double t, double f, double a, double
         dvis /= L_;
     }
     
-    // glide: at the target, needing less than its slowest swimming speed through the water, in a current
-    // slower than that and seeing nothing close, the fish stops beating its tail and coasts (amplitude 0,
-    // no bias); it beats again beyond brain_burst of the target or when it needs 1.5 times that speed
-    // (burst and coast)
+    // glide: in a current and with a target slower than its slowest swimming speed through the water and
+    // seeing nothing close, the fish stops beating its tail and coasts (amplitude 0, no bias)
+    //  - early: the target ahead (within 30 deg of the axis) and the coasting distance (its speed through
+    //    the water times the coasting time, learnt from its glides) reaching it, the current known
+    //  - at the target (brain_arrive), needing less than that speed
+    // It beats again beyond brain_burst of the target when the target is behind or the coast no longer
+    // reaches it (burst and coast), for at least a tail beat
     double at = 1.0;
     {
         const double Umin = 0.3*f0_*s*L_;
+        const double cm = std::sqrt(cur(p0)*cur(p0) + cur(p1)*cur(p1));
+        const double dstop = ug_*s*tauc_;
+        const double rx = r(0)*ex(0) + r(1)*ex(1) + r(2)*ex(2), ry = r(0)*el(0) + r(1)*el(1) + r(2)*el(2);
+        const bool onaxis = has_t && rx>0.0 && std::fabs(std::atan2(ry, rx))<0.5236;
+        const bool calm = cm<Umin && vT_.norm()<Umin;
+        const bool known = kf_P_[1][1] + kf_P_[2][2]<std::pow(brain_cknown*L_, 2.0) && cm*tauc_<brain_cdrift*L_;
 
-        if(!has_t || threat>0.0)
+        if(!has_t || threat>0.0 || !calm)
         glide_ = false;
         else if(glide_)
-        glide_ = !(dist>brain_burst*L_ || Ureq>1.5*Umin);
-        else
-        glide_ = (dist<brain_arrive*L_ && Ureq<Umin && std::sqrt(cur(p0)*cur(p0) + cur(p1)*cur(p1))<Umin);
+        {
+            glide_ = !(dist>brain_burst*L_ && (rx<=0.0 || dstop<dist - brain_burst*L_));
+            if(!glide_)
+            tburst_ = t + 1.0/f0_;
+        }
+        else if(t>=tburst_)
+        glide_ = (known && onaxis && dstop>=dist - brain_arrive*L_) || (dist<brain_arrive*L_ && Ureq<Umin);
 
         if(glide_)
         {
             at = 0.0;
             bt = 0.0;
             mode = 5;
+
+            // braking: the coast would carry the fish past the target (or carries it away from it): the body
+            // bent, to the side that turns it towards the wanted heading at the start of the braking, kept
+            // while it brakes (bending to and fro would swim)
+            if(brain_brake>0.0 && (rx>0.0 ? dstop>dist + brain_arrive*L_ : dist>brain_arrive*L_))
+            {
+                if(bside_==0.0)
+                bside_ = (psi*kturn_>=0.0) ? 1.0 : -1.0;
+                bt = bside_*brain_brake;
+                mode = 6;
+            }
+            else
+            bside_ = 0.0;
         }
+        else
+        bside_ = 0.0;
     }
 
     rec_ = {t, T(0), T(1), T(2), dist, psi, U, f, a, b, dpl, phd, dvis, s, cur(0), cur(1), cur(2), Uw, 0};
@@ -359,6 +399,7 @@ sixdof_brain::decision sixdof_brain::decide(double t, double f, double a, double
         bdec_ = d.b;
         adec_ = d.a;
         glide_ = false;
+        bside_ = 0.0;
         rec_.Ff = d.f2; rec_.Fa = d.a; rec_.Fb = d.b; rec_.mode = 2;
         return d;
     }
@@ -410,8 +451,8 @@ void sixdof_brain::kf_update(const double H[2][3], const double y[2], double R, 
 
 void sixdof_brain::ckpt_state(std::vector<double> &v) const
 {
-    v.push_back(3.0);      // version
-    for(double x : {T_, Uax_, llT_, t_start_, next_, refr_, side_, kf_on_ ? 1.0 : 0.0, ug_, tdec_, bdec_, Tset_ ? 1.0 : 0.0, glide_ ? 1.0 : 0.0, adec_})
+    v.push_back(4.0);      // version
+    for(double x : {T_, Uax_, llT_, t_start_, next_, refr_, side_, kf_on_ ? 1.0 : 0.0, ug_, tdec_, bdec_, Tset_ ? 1.0 : 0.0, glide_ ? 1.0 : 0.0, adec_, tauc_, tburst_, bside_})
     v.push_back(x);
     for(int k=0; k<3; ++k)
     {
@@ -431,7 +472,7 @@ void sixdof_brain::ckpt_state(std::vector<double> &v) const
 
 bool sixdof_brain::ckpt_restore(const std::vector<double> &v)
 {
-    if(v.size()<52 || int(v[0])!=3)
+    if(v.size()<55 || int(v[0])!=4)
     return false;
 
     size_t k = 1;
@@ -441,6 +482,9 @@ bool sixdof_brain::ckpt_restore(const std::vector<double> &v)
     Tset_ = (v[k++]!=0.0);
     glide_ = (v[k++]!=0.0);
     adec_ = v[k++];
+    tauc_ = v[k++];
+    tburst_ = v[k++];
+    bside_ = v[k++];
     for(int j=0; j<3; ++j)
     {
         ax_(j) = v[k++];

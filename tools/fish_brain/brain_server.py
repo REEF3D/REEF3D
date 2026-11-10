@@ -34,7 +34,8 @@ LOCK = threading.Lock()
 
 # the constants of the rule brain (6DOF_brain.cpp)
 TAU, KTURN, SLOW, ARRIVE, FRONT = 1.5, 1.3, 1.5, 0.25, 0.35
-TAUU, S0, TFLOOR, PSIFLOOR, REAFF, BURST = 0.8, 0.5, 2.5, 1.0, 0.5, 0.5
+TAUU, S0, TFLOOR, PSIFLOOR, REAFF, BURST, TAUC0 = 0.8, 0.5, 2.5, 1.0, 0.5, 0.5, 2.0
+CKNOWN, CDRIFT, BRAKE = 0.2, 0.1, 1.5
 
 
 def _kf_update(st, H, y, R, dt):
@@ -75,13 +76,20 @@ def rules(sv, st, pr):
         st["kP"] = [[0.09 * s0 * s0, 0.0, 0.0], [0.0, 0.3 * 0.3, 0.0], [0.0, 0.0, 0.3 * 0.3]]
         st["ug"], st["tdec"], st["pdec"], st["bdec"], st["Tprev"], st["vT"] = f * a * L, t, list(c), b, None, [0.0, 0.0, 0.0]
         st["adec"] = a
+        st["tauc"] = TAUC0
     dt = t - st["tdec"]
     if dt > 0.0:
         y = [(c[p0] - st["pdec"][p0]) / dt, (c[p1] - st["pdec"][p1]) / dt]
         if min(a, st["adec"]) < 0.95:
             # gliding: no update of the estimate, the speed of the gait from the track
             uw = (y[0] - st["kx"][1]) * ex[p0] + (y[1] - st["kx"][2]) * ex[p1]
+            u0 = st["ug"] * st["kx"][0]
             st["ug"] = max(0.0, uw) / st["kx"][0]
+            # the coasting time from the slowing down of the glide (both decisions gliding)
+            cm = math.sqrt(st["kx"][1] ** 2 + st["kx"][2] ** 2)
+            if max(a, st["adec"]) < 0.05 and max(abs(b), abs(st["bdec"])) < 0.05 and uw > 3.0 * cm + 0.05 * L and uw < u0:
+                tm = min(30.0, max(0.5, dt / math.log(u0 / uw)))
+                st["tauc"] = 0.7 * st["tauc"] + 0.3 * tm
         else:
             fal = f * a * L
             e = math.exp(-dt / TAUU)
@@ -167,20 +175,42 @@ def rules(sv, st, pr):
             side = st["side"]
         st["side"] = side if threat > 0.0 else 0.0
 
-    # glide: at the target, needing less than the slowest swimming speed, nothing seen: coast (a = 0)
+    # glide (a = 0) in a slow current, nothing seen: early when the coast reaches the target ahead (the
+    # current known), or at the target needing less than the slowest swimming speed; braking (mode 6)
     at = 1.0
     Umin = 0.3 * f0 * s * L
-    if not has_t or threat > 0.0:
+    # coasting: the distance it carries the fish (its speed through the water along the axis times the
+    # coasting time); the target ahead on the axis (within 30 deg)
+    dstop = st["ug"] * s * st["tauc"]
+    rx = sum(r[k] * ex[k] for k in range(3))
+    onaxis = has_t and rx > 0.0 and abs(math.atan2(sum(r[k] * el[k] for k in range(3)), rx)) < 0.5236
+    cm = math.sqrt(cur[p0] * cur[p0] + cur[p1] * cur[p1])
+    calm = cm < Umin and math.sqrt(sum(v * v for v in st["vT"])) < Umin
+    # an early glide needs the current known and its drift over the coasting time small
+    known = st["kP"][1][1] + st["kP"][2][2] < (CKNOWN * L) ** 2 and cm * st["tauc"] < CDRIFT * L
+    if not has_t or threat > 0.0 or not calm:
         st["glide"] = False
     elif st.get("glide", False):
-        st["glide"] = not (dist > BURST * L or Ureq > 1.5 * Umin)
-    else:
-        st["glide"] = dist < ARRIVE * L and Ureq < Umin and math.sqrt(cur[p0] * cur[p0] + cur[p1] * cur[p1]) < Umin
+        st["glide"] = not (dist > BURST * L and (rx <= 0.0 or dstop < dist - BURST * L))
+        if not st["glide"]:
+            st["tburst"] = t + 1.0 / f0          # a burst lasts at least one tail beat
+    elif t >= st.get("tburst", -1.0):
+        st["glide"] = (known and onaxis and dstop >= dist - ARRIVE * L) or (dist < ARRIVE * L and Ureq < Umin)
     if st["glide"]:
         at, bt, mode = 0.0, 0.0, 5
+        # braking: the coast would carry the fish past the target (or carries it away): the body bent, to
+        # the side chosen at the start of the braking (bending to and fro would swim)
+        if BRAKE > 0.0 and (dstop > dist + ARRIVE * L if rx > 0.0 else dist > ARRIVE * L):
+            if st.get("bside", 0.0) == 0.0:
+                st["bside"] = 1.0 if psi * kturn >= 0.0 else -1.0
+            bt, mode = st["bside"] * BRAKE, 6
+        else:
+            st["bside"] = 0.0
+    else:
+        st["bside"] = 0.0
 
     st["tdec"], st["pdec"], st["bdec"], st["adec"] = t, list(c), bt, at
-    st["est"] = (s, cur[0], cur[1], cur[2], Uw)
+    st["est"] = (s, cur[0], cur[1], cur[2], Uw, st["tauc"])
 
     # 1. escape: a C-start away from the side of the higher pressure
     if the > 0.0 and t >= st["refr"] and (abs(dpl) > the or phd > the):
@@ -188,7 +218,7 @@ def rules(sv, st, pr):
         st["refr"] = t + 2.0
         st["bdec"] = -2.5 * sg
         st["adec"] = 0.5
-        st["glide"] = False
+        st["glide"], st["bside"] = False, 0.0
         return {"f": f, "a": 0.5, "b": -2.5 * sg, "ts": 0.08,
                 "t2": t + 0.15, "f2": min(1.5 * f, fmx), "a2": 1.0, "b2": 0.0, "ts2": 0.2, "next": 0.4, "mode": 2}
 

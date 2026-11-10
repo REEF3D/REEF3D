@@ -311,7 +311,7 @@ void sixdof_obj::brain_setup(lexer *p)
         
         if(reefckpt_open(printbrain,str,p->I45))
         printbrain<<"time \t target_x \t target_y \t target_z \t dist [m] \t bearing [deg] \t U [m/s] \t f [Hz] \t a \t b"
-                  <<" \t dp_head/q \t p_head/q \t d_vision/L \t mode (0 target, 1 avoid, 2 escape, 3 at target, 4 external, 5 glide)"
+                  <<" \t dp_head/q \t p_head/q \t d_vision/L \t mode (0 target, 1 avoid, 2 escape, 3 at target, 4 external, 5 glide, 6 brake)"
                   <<" \t stride [L] \t current_x \t current_y \t current_z [m/s] \t U_water [m/s]"<<endl;
     }
 }
