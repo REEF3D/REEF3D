@@ -104,6 +104,11 @@ void driver::logic_fnpf()
     
 //  Wave Models
 
+    // A 328 not set: the sigma cross terms implicit with RK4 (REEFMG). Lagged by a stage (A 328 0) RK4 loses
+    // wave height at its larger step; RK3 keeps the lagged terms
+    if(p->A328<0)
+    p->A328 = (p->A310==4 && p->N10==1) ? 1 : 0;
+
     if(p->A310==3)
     ppfsg = new fnpf_RK3(p,c,pgc);
         
