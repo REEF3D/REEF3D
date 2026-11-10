@@ -1704,6 +1704,7 @@ void control::ini_default()
     X401_cb=16.0;   // sflow external pressure term cb
     X401_a=16.0;    // sflow external pressure term a
     X410=0;         // int etaval for draft
+    X411=0;         // int STL draft (X 400 10) extended outside the hull outline over the smoothing width X 41: no pressure jump at the hull side
     X402=1;         // int sflow pressure patch (X 10 3): 1 well-balanced, the pressure head is part of the HLL hydrostatic flux; 0 cell-centred source (before)
     X500=0;         // int PTO: 0 off, 1 explicit, 2 linearly implicit coupling
     X501=0;         // int PTO joint attachment point given
