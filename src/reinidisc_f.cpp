@@ -49,6 +49,17 @@ void reinidisc_f::start(lexer *p, fdm *a, ghostcell *pgc, field &f, field &L, in
     disc(p,a,pgc,f,L);
 }
 
+void reinidisc_f::start_mask(lexer *p, fdm *a, ghostcell *pgc, field &f, field &L, const unsigned char *m)
+{
+    BASELOOP
+    {
+        L.V[IJK] = 0.0;
+
+        if(m[IJK])
+        disc(p,a,pgc,f,L);
+    }
+}
+
 void reinidisc_f::start_box(lexer *p, fdm *a, ghostcell *pgc, field &f, field &L, const int *b)
 {
     for(i=b[0]; i<b[1]; ++i)

@@ -26,6 +26,7 @@ Author: Hans Bihs
 #include"reini.h"
 #include"field4.h"
 #include"increment.h"
+#include<vector>
 
 class reinidisc;
 class picard;
@@ -45,6 +46,8 @@ public:
 private:
     picard *ppicard;
 	reinidisc *prdisc;
+    class reinidisc_f *prdisc_band;     // prdisc, for the narrow band (F 48)
+    std::vector<unsigned char> band, bandt;
 
 	void step(lexer*, fdm*);
     void time_preproc(lexer*);

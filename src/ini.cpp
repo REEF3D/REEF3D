@@ -733,6 +733,7 @@ void control::ini_default()
 	F45=2.1;         // factor for calculation of epsi
 	F46=0;            // int picard iteration for lsm or reini
 	F47=10;            // int number of picard iterations
+    F48=0.0;           // double CFD level set (F 30 with the reinitialisation F 40 3): the narrow band, the reinitialisation and the transport of the level set (F 35 5) only in the cells within F48 cells of the free surface and two layers around them; the level set further away keeps its value (its sign) until the band reaches it; at least F 45 + 3, G 24 F 45 + 1 and N 57 + 2 cells; 0 off (all cells)
 	F50=2;            // int bc phi, 1: inflow or 2: outflow
     F50_flag=0;       // int flag for lsm description
 	F51=-1.0e20;		    // double i-dir zero level set start

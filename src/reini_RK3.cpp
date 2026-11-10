@@ -30,6 +30,7 @@ Author: Hans Bihs
 #include"picard_void.h"
 #include"reinidisc_f.h"
 #include"reini_fsm.h"
+#include"levelset_band.h"
 
 reini_RK3::reini_RK3(lexer* p, int type) : frk1(p),frk2(p),dt(p)
 {
@@ -75,6 +76,7 @@ reini_RK3::reini_RK3(lexer* p, int type) : frk1(p),frk2(p),dt(p)
     reinidisc_f *prdisc_f = new reinidisc_f(p);
     prdisc_f->set_weno_weights(p->F37,p->F38);
 	prdisc = prdisc_f;
+    prdisc_band = prdisc_f;
 
     time_preproc(p);
 
@@ -135,9 +137,18 @@ void reini_RK3::start(fdm *a, lexer *p, field &f, ghostcell *pgc, ioflow* pflow)
     pflow->fsfrkout(p,a,pgc,frk2);
 
     
+    // F 48: the narrow band, the cells within F48 cells of the interface and two layers around them
+    // (levelset_band.h); the other cells keep their value
+    const bool nb = (p->F48>0.0 && p->count>0);
+    if(nb)
+    levelset_band_mask(p,f,p->F48,band,bandt);
+
     for(int q=0;q<reiniter;++q)
     {
         // Step 1
+        if(nb)
+        prdisc_band->start_mask(p,a,pgc,f,a->L,band.data());
+        else
         prdisc->start(p,a,pgc,f,a->L,4);
 
         BASELOOP
@@ -146,6 +157,9 @@ void reini_RK3::start(fdm *a, lexer *p, field &f, ghostcell *pgc, ioflow* pflow)
         pgc->start4(p,frk1,gcval);
 
         // Step 2
+        if(nb)
+        prdisc_band->start_mask(p,a,pgc,frk1,a->L,band.data());
+        else
         prdisc->start(p,a,pgc,frk1,a->L,4);
 
         BASELOOP
@@ -154,6 +168,9 @@ void reini_RK3::start(fdm *a, lexer *p, field &f, ghostcell *pgc, ioflow* pflow)
         pgc->start4(p,frk2,gcval);
 
         // Step 3
+        if(nb)
+        prdisc_band->start_mask(p,a,pgc,frk2,a->L,band.data());
+        else
         prdisc->start(p,a,pgc,frk2,a->L,4);
 
         BASELOOP
@@ -167,6 +184,9 @@ void reini_RK3::start(fdm *a, lexer *p, field &f, ghostcell *pgc, ioflow* pflow)
 	
 	p->reinitime+=pgc->timer()-starttime;
 }
+
+// (levelset_band.h)
+const unsigned char *levelset_band_active = nullptr;
 
 void reini_RK3::step(lexer* p, fdm *a)
 {

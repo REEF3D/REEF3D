@@ -767,6 +767,32 @@ void driver::logic_cfd()
         p->N65=0;
     }
 
+    // F 48 (the narrow band of the level set, levelset_band.h): the reinitialisation reini_RK3 (F 40 3)
+    // and the transport of the level set of momentum_rk with F 35 5.  At least the cells that read
+    // the level set as a distance: the smoothed interface and the stencil next to it (F 45 + 3), the
+    // flag of the mesh refinement (G 24 interface thicknesses), the band of the time step (N 57)
+    if(p->F48>0.0)
+    {
+        if(p->F30<=0 || p->F80>0 || p->F81>0 || !(p->F40==3 || p->F40==23))
+        {
+            if(p->mpirank==0)
+            cout<<"F 48 (the narrow band of the level set) needs the level set (F 30) with the reinitialisation F 40 3: not used"<<endl;
+            p->F48=0.0;
+        }
+        else
+        {
+            const double wmin = MAX(MAX(p->F45+3.0,p->G24*p->F45+1.0),p->N57+2.0);
+            if(p->F48<wmin)
+            {
+                if(p->mpirank==0)
+                cout<<"F 48 "<<p->F48<<": the narrow band is at least F 45 + 3, G 24 F 45 + 1 and N 57 + 2 cells: F 48 "<<wmin<<endl;
+                p->F48=wmin;
+            }
+            if(p->mpirank==0)
+            cout<<"F 48 "<<p->F48<<": the level set in a narrow band, the reinitialisation"<<(p->F35==5 ? " and the transport" : " (the transport on all cells: F 35 is not 5)")<<" within "<<p->F48<<" cells of the free surface"<<endl;
+        }
+    }
+
     // N 57 (the time step with the band around the free surface) is in ietimestep and etimestep (level 0)
     // and in cfd_amr::timestep (the patches of the mesh refinement)
     if(p->N57>0.0 && p->mpirank==0 && (p->F30<=0 || p->N48==0))

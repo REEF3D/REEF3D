@@ -1550,6 +1550,8 @@ void control::ctrlrecv()
     ii++;
     F47 = ictrl[ii];
     ii++;
+    F48 = dctrl[dd];
+    dd++;
     F50 = ictrl[ii];
     ii++;
     F50_flag = ictrl[ii];

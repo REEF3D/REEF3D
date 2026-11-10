@@ -39,6 +39,8 @@ public:
 	void start(lexer*, fdm*, ghostcell*, field&, field&, int) override final;
 	// the fluid cells (flag4 > 0) of the box b = is, ie, js, je, ks, ke only; L elsewhere untouched
 	void start_box(lexer*, fdm*, ghostcell*, field&, field&, const int*);
+	// the cells of start with ipol 4 that the mask marks; L 0 in the others
+	void start_mask(lexer*, fdm*, ghostcell*, field&, field&, const unsigned char*);
 	
 private:
 	void disc(lexer*, fdm*, ghostcell*, field&, field&);

@@ -12,7 +12,8 @@
 // angular momentum), velocity = dd/dt, the velocity at the deformed point from the inverse map; the
 // discrete recoil correction (X 196 2 with X 198, types 1 and 11): velocity = dd/dt and the inverse map with it;
 // gait control (X 199): the state follows its targets, constant targets give X 195, the curvature
-// bias, and with changing targets midline length, recoil, velocity = dd/dt and the inverse map.
+// bias, the bias along the envelope (X 200 w 1), and with changing targets midline length, recoil,
+// velocity = dd/dt and the inverse map.
 // Architect: Hans Bihs
 
 // 6DOF_deform.cpp needs only the body-frame triangles of sixdof_geometry
@@ -490,21 +491,48 @@ int main()
             check(emax<1.0e-14, "curvature bias b L s^2/2: "+std::to_string(emax));
         }
         
+        // the bias along the envelope (X 200 w 1; a = 0, no recoil, type 12): the angle of the midline
+        // b int_0^s A / int_0^1 A, the curvature with the carangiform envelope (s from the head)
+        {
+            sixdof_geometry g(0);
+            hf.to(g,xc,false);
+            sixdof_deform d(12, 0.075, 0.75, 1.0, 0.0, 2, false);
+            d.setup(g);
+            d.set_bias_shape(1);
+            d.set_gait({{0.0, 1.0, 0.0, 0.4, 0.0}});
+            d.set_time(0.37);
+            auto I = [](double x) {return 0.02*x - 0.04125*x*x + 0.1625/3.0*x*x*x;};
+            double emax = 0.0;
+            const double h = 1.0e-4;
+            for(double sg : {0.1, 0.3, 0.5, 0.7, 0.9, 0.99})
+            {
+                double dx1, dl1, dx2, dl2;
+                const double x1 = d.xhead() - (sg - h)*d.length(), x2 = d.xhead() - (sg + h)*d.length();
+                d.displacement(x1,0.0,dx1,dl1);
+                d.displacement(x2,0.0,dx2,dl2);
+                const double th = std::atan2(dl2 - dl1, (x1 + dx1) - (x2 + dx2));
+                emax = std::max(emax, std::fabs(th - 0.4*I(sg)/I(1.0)));
+            }
+            check(emax<5.0e-4, "type 12, the bias along the envelope: the angle b int A / int A, error "+std::to_string(emax));
+        }
+        
         // inextensible midline with changing targets
-        for(int type : {1, 11})
+        for(int type : {1, 11, 12})
         {
             sixdof_geometry g(0);
             hf.to(g,xc,false);
             sixdof_deform d(type, 0.125, 1.0, 1.0, 0.5, 2, true);
             d.setup(g);
+            if(type==12)
+            d.set_bias_shape(1);
             d.set_gait(tg);
-            const std::string ty = "type "+std::to_string(type)+" gait";
+            const std::string ty = "type "+std::to_string(type)+" gait"+(type==12 ? " (the bias along the envelope)" : "");
             
             for(double t : {0.6, 0.9, 1.1, 1.4, 2.2})
             {
                 d.set_time(t);
                 
-                if(type==11)
+                if(type==11 || type==12)
                 {
                     double len = 0.0, px = 0.0, pl = 0.0;
                     const int K = 4000;

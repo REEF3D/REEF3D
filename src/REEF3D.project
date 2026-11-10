@@ -294,6 +294,7 @@
             <File Name="reini_void.h"/>
             <File Name="reini_RK3.h"/>
             <File Name="reini_fsm.h"/>
+            <File Name="levelset_band.h"/>
             <File Name="reini.h"/>
             <VirtualDirectory Name="Reinidisc">
               <File Name="reinidisc_f.h"/>

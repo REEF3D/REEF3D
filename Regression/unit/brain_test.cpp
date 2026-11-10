@@ -10,7 +10,9 @@
 // holding in a current (the fish faces it and stays at the target); a target ahead in still water at
 // U_des (the frequency U_des/(s L)); a moving target; the own turn on the lateral line (-0.5 b q at the
 // head) is no escape, a stimulus is; at a station in still water the fish glides (amplitude 0) and bursts
-// (burst and coast); a restart from the checkpoint of the brain continues it exactly.
+// (burst and coast), early enough for the coast to stop it there; the stride prior and the turn rate of a
+// body (X 200): a slow swimmer with a weak turn, a body that turns away from its bias; a restart from the checkpoint of the brain continues it
+// exactly (in a current and while gliding).
 // Architect: Hans Bihs
 #include"../../src/6DOF_brain.cpp"
 
@@ -20,6 +22,7 @@
 #include<vector>
 #include<functional>
 #include<array>
+#include<algorithm>
 
 static int nfail = 0, npass = 0;
 static void check(bool ok, const std::string &what)
@@ -33,7 +36,7 @@ struct swimmer
 {
     double x = 1.6, z = 3.0, h = 0.0, Ug = 0.0;
     double g[3] = {1.0, 1.0, 0.0}, gr[3] = {0.0, 0.0, 0.0}, gt[3] = {1.0, 1.0, 0.0}, ts[3] = {0.25, 0.25, 0.25};
-    double s_true = 0.48, cx = 0.0, cz = 0.0;
+    double s_true = 0.48, k_true = 1.3, cx = 0.0, cz = 0.0;
     double stim_t = -1.0;      // a pressure pulse across the head at this time (a startle stimulus)
     bool second = false;
     sixdof_brain::decision pend;
@@ -71,7 +74,7 @@ struct swimmer
             }
             Ug += dt/(g[1]<0.5 ? 2.5 : 0.8)*(g[0]*g[1]*1.0 - Ug);      // a gliding body coasts longer
             const double Uw = s_true*Ug*std::min(1.0, t/1.0);
-            h += dt*1.3*g[2]*Uw/1.0;
+            h += dt*k_true*g[2]*Uw/1.0;
             const Eigen::Vector3d ex(std::cos(h), 0.0, std::sin(h)), el(-std::sin(h), 0.0, std::cos(h));
             x += dt*(Uw*ex(0) + cx);
             z += dt*(Uw*ex(2) + cz);
@@ -111,10 +114,11 @@ struct swimmer
     }
 };
 
-static sixdof_brain brain(double Udes, double th, const std::vector<sixdof_brain::target_point> &tp)
+static sixdof_brain brain(double Udes, double th, const std::vector<sixdof_brain::target_point> &tp, double s0 = 0.0,
+                          double k = 0.0, double bmax = 1.0)
 {
-    // U_des, b_max 1, no vision, th_esc, f0 1 Hz, L 1 m, rho 1000, start 2 s, lateral axis z (2D)
-    return sixdof_brain(Udes, 1.0, 0.0, th, 1.0, 1.0, 1000.0, 2.0, 2, tp);
+    // U_des, b_max, no vision, th_esc, f0 1 Hz, L 1 m, rho 1000, start 2 s, lateral axis z (2D), X 200 s0 k
+    return sixdof_brain(Udes, bmax, 0.0, th, 1.0, 1.0, 1000.0, 2.0, 2, tp, s0, k);
 }
 
 static double mean_dist(const swimmer &S, double t0, std::function<std::array<double,2>(double)> T, double *mx = nullptr)
@@ -197,6 +201,62 @@ int main()
         check(std::hypot(r.cx, r.cz)<0.05, "still water station: no current from the gliding, |c| = "+std::to_string(std::hypot(r.cx, r.cz))+" m/s");
     }
 
+    // 3c. the early glide: the fish stops beating its tail before the station and coasts to it
+    {
+        swimmer S;
+        sixdof_brain B = brain(0.5, 1.5, {{0.0, 3.5, 0.0, 3.0}});
+        double t = 0.0;
+        double d0 = -1.0;
+        S.run(B, t, 30.0);
+        for(size_t k=0; k<S.log.size() && d0<0.0; ++k)
+        if(S.log[k].a==0.0)
+        {
+            const auto &p = *std::lower_bound(S.track.begin(), S.track.end(), std::array<double,4>{S.log[k].t, 0.0, 0.0, 0.0});
+            d0 = std::hypot(p[1] - 3.5, p[2] - 3.0);
+        }
+        check(d0>0.3, "early glide: the first glide starts "+std::to_string(d0)+" m before the station (> 0.25 L)");
+        double mx;
+        const double md = mean_dist(S, 12.0, [](double){return std::array<double,2>{3.5, 3.0};}, &mx);
+        check(md<0.1 && mx<0.25, "early glide: at the station after 12 s, mean distance "+std::to_string(md)+" m, max "+std::to_string(mx));
+    }
+
+    // 3d. the stride prior and the turn rate of a body (X 200): a slow swimmer (0.2 L per beat) with a weak
+    // turn (0.5 b U/L), the target 2 m ahead and 1 m to the side; with the defaults (0.5, 1.3) the stride
+    // is held at 0.25 or more and the fish sees a current that is not there
+    for(int body=0; body<2; ++body)
+    {
+        swimmer S; S.s_true = 0.2; S.k_true = 0.5;
+        sixdof_brain B = body ? brain(0.2, 1.5, {{0.0, 3.6, 0.0, 4.0}}, 0.2, 0.5) : brain(0.2, 1.5, {{0.0, 3.6, 0.0, 4.0}});
+        double t = 0.0;
+        S.run(B, t, 12.0);
+        const auto &r = B.last();
+        const double c = std::hypot(r.cx, r.cz);
+        if(body)
+        {
+            check(std::fabs(r.s - 0.2)<0.02 && c<0.03, "X 200 0.2 0.5: stride "+std::to_string(r.s)+" (0.2), no current, |c| = "+std::to_string(c)+" m/s");
+            S.run(B, t, 30.0);
+            const double md = mean_dist(S, 20.0, [](double){return std::array<double,2>{3.6, 4.0};});
+            check(md<0.3, "X 200 0.2 0.5: at the target, mean distance "+std::to_string(md)+" m");
+        }
+        else
+        check(r.s>=0.25 && c>0.03, "no X 200: stride "+std::to_string(r.s)+", a false current "+std::to_string(c)+" m/s");
+    }
+
+    // 3e. a body that turns away from its bias (k = -0.9, the 3D salmon with the uniform bias, validation
+    // 13): with X 200 k -0.9 it reaches a target 2 m ahead and 1.5 m to the side; with the default 1.3 not
+    for(int body=0; body<2; ++body)
+    {
+        swimmer S; S.k_true = -0.9;
+        sixdof_brain B = body ? brain(0.4, 1.5, {{0.0, 3.6, 0.0, 4.5}}, 0.0, -0.9) : brain(0.4, 1.5, {{0.0, 3.6, 0.0, 4.5}});
+        double t = 0.0;
+        S.run(B, t, 25.0);
+        const double md = mean_dist(S, 15.0, [](double){return std::array<double,2>{3.6, 4.5};});
+        if(body)
+        check(md<0.4, "X 200 k -0.9: at the target, mean distance "+std::to_string(md)+" m");
+        else
+        check(md>1.0, "k -0.9 without X 200: away from the target, mean distance "+std::to_string(md)+" m");
+    }
+
     // 4. a moving target at 0.25 m/s across, after the fish reached it
     {
         swimmer S;
@@ -240,6 +300,26 @@ int main()
         for(size_t k=0; same && k<S.log.size(); ++k)
         same = S.log[k].f==S2.log[k].f && S.log[k].b==S2.log[k].b && S.log[k].t==S2.log[k].t;
         check(same && S.x==S2.x && S.z==S2.z, "restart: the same decisions and track, bitwise ("+std::to_string(S.log.size())+" decisions)");
+    }
+
+    // 6b. restart while gliding at a station in still water (the coasting time, the burst)
+    {
+        swimmer S;
+        sixdof_brain B = brain(0.5, 1.5, {{0.0, 3.5, 0.0, 3.0}});
+        double t = 0.0;
+        S.run(B, t, 9.3);
+        std::vector<double> v;
+        B.ckpt_state(v);
+        swimmer S2 = S;
+        sixdof_brain B2 = brain(0.5, 1.5, {{0.0, 3.5, 0.0, 3.0}});
+        check(B2.ckpt_restore(v), "restart at a station: the checkpoint of the brain is read");
+        double t2 = t;
+        S.run(B, t, 20.0);
+        S2.run(B2, t2, 20.0);
+        bool same = S.log.size()==S2.log.size();
+        for(size_t k=0; same && k<S.log.size(); ++k)
+        same = S.log[k].f==S2.log[k].f && S.log[k].a==S2.log[k].a && S.log[k].t==S2.log[k].t;
+        check(same && S.x==S2.x && S.z==S2.z, "restart at a station: the same decisions and track, bitwise");
     }
 
     std::cout<<npass<<" passed, "<<nfail<<" failed"<<std::endl;

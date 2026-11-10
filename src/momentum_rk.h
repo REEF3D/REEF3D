@@ -262,6 +262,12 @@ private:
 
     // N 63 2, 3: phi(n) for the stages of the level set of the one-step schemes
     field4 *lsrk = nullptr;
+
+    // F 48: the narrow band of the level set (levelset_band.h): the mask of the transport, made
+    // from the input of its first stage and kept for the stages of the step
+    std::vector<unsigned char> lsband, lsband_work;
+    double lsband_w = 0.0;
+    void ls_band_begin(lexer*, field&);
     int lsrk_n = 1;
     void ls_rk_all(lexer*, fdm*, ghostcell*, field&, field&, field&);
 

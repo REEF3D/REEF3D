@@ -38,6 +38,7 @@ Author: Hans Bihs
 #include"vrans.h"
 #include"solver.h"
 #include"reini.h"
+#include"levelset_band.h"
 #include"levelset_solid_extend.h"
 #include"picard.h"
 #include"picard_f.h"
@@ -771,6 +772,14 @@ void momentum_rk::ls_rk_begin(lexer *p, fdm *a)
     }
 }
 
+// F 48: the mask of the narrow band for the transport that follows, from its input f
+void momentum_rk::ls_band_begin(lexer *p, field &f)
+{
+    lsband_w = p->F48;
+    if(lsband_w>0.0)
+    levelset_band_mask(p,f,lsband_w,lsband,lsband_work);
+}
+
 void momentum_rk::ls_rk_stage(lexer *p, fdm *a, int st, field &U, field &V, field &W)
 {
     static const double a2[2] = {0.0, 0.5},       b2[2] = {1.0, 0.5};
@@ -781,7 +790,12 @@ void momentum_rk::ls_rk_stage(lexer *p, fdm *a, int st, field &U, field &V, fiel
     LOOP
     a->L(i,j,k)=0.0;
 
+    if(st==0)
+    ls_band_begin(p,*ls);
+    if(lsband_w>0.0)
+    levelset_band_active = lsband.data();
     pfsfdisc->start(p,a,*ls,4,U,V,W);
+    levelset_band_active = nullptr;
 
     LOOP
     (*ls)(i,j,k) = ak*(*lsrk)(i,j,k) + bk*((*ls)(i,j,k) + p->dt*a->L(i,j,k));
@@ -834,7 +848,11 @@ void momentum_rk::levelset_transport(lexer *p, fdm *a, ghostcell *pgc, int s)
         ls_rk_all(p,a,pgc,ls_vel(a,0),ls_vel(a,1),ls_vel(a,2));
         else
         {
+        ls_band_begin(p,*ls);
+        if(lsband_w>0.0)
+        levelset_band_active = lsband.data();
         pfsfdisc->start(p,a,*ls,4,ls_vel(a,0),ls_vel(a,1),ls_vel(a,2));
+        levelset_band_active = nullptr;
 
         LOOP
         fout(i,j,k) = (*ls)(i,j,k)
@@ -849,7 +867,11 @@ void momentum_rk::levelset_transport(lexer *p, fdm *a, ghostcell *pgc, int s)
         LOOP
         a->L(i,j,k)=0.0;
 
+        ls_band_begin(p,fin);
+        if(lsband_w>0.0)
+        levelset_band_active = lsband.data();
         pfsfdisc->start(p,a,fin,4,vel(a,0,s),vel(a,1,s),vel(a,2,s));
+        levelset_band_active = nullptr;
 
         const double as=ssp_a[s];
         const double bs=ssp_b[s];
