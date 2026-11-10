@@ -59,6 +59,16 @@ void sixdof_obj_cfd::solve_eqmotion_cfd(lexer *p, fdm *a, ghostcell *pgc, int it
     // of time n), stage 1 the full step (the loads of the half step)
     if(p->N40==6)
     rkmid(p,pgc,iter);
+    
+    // the one-step scheme: one semi-implicit Euler step (the momenta with the loads of time n, the
+    // pose with the new momenta)
+    if(p->N40==5)
+    {
+    get_trans(p,pgc);    
+    get_rot(p);
+    
+    rb.step_symplectic(p->dt);
+    }
 }
 
 void sixdof_obj_nhflow::solve_eqmotion_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, int iter, bool finalize)

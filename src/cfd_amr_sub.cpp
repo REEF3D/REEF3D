@@ -289,11 +289,33 @@ void cfd_amr::patch_step(int l, double dt, double th0, double t)
 
     const int stages = mom0->amr_stages();
 
-    // the one-step scheme (N 40 5, no floating bodies: driver_logic_cfd)
+    // the one-step scheme (N 40 5): floating bodies as in the stages below, a level coarser than the
+    // finest with a predicted copy, the finest advances them (one stage)
     if(stages==1)
     {
-        patch_step_onestep(l,th0);
+        if(bodies && l<maxlev)
+        for(int nb=0; nb<b6->objects(); ++nb)
+        b6->object(nb)->amr_save();
+
+        patch_step_onestep(l,th0,t,dt);
         vr_record(l,dt);
+
+        if(bodies && l==maxlev)
+        {
+            const double dts = p0->dt;
+            p0->dt = dt;
+            for(int nb=0; nb<b6->objects(); ++nb)
+            {
+            b6->object(nb)->saveTimeStep(p0,0);
+            b6->object(nb)->deform_step_end();
+            }
+            p0->dt = dts;
+        }
+
+        if(bodies && l<maxlev)
+        for(int nb=0; nb<b6->objects(); ++nb)
+        b6->object(nb)->amr_restore(p0,pgc0);
+
         if(turb)
         for(int id : lev[l])
         {
@@ -491,7 +513,7 @@ void cfd_amr::patch_step(int l, double dt, double th0, double t)
 // edges in the projection of the level, the advecting velocity of the level set (pr_level fills it)
 // and the level set of the output.  The Godunov states are time-centred from the values at the start,
 // as on a uniform grid: the coarser level is not needed at the middle of the step.
-void cfd_amr::patch_step_onestep(int l, double th0)
+void cfd_amr::patch_step_onestep(int l, double th0, double t, double dt)
 {
     ghostcell *pgc = pgc0;
     const int s = 0;
@@ -529,6 +551,10 @@ void cfd_amr::patch_step_onestep(int l, double th0)
         fill(l,fs);
     }
     edge_faces(l,s);
+
+    // the bodies at the end of the step (the loads of the last step of the finest level)
+    if(bodies)
+    body_stage(l,s,t,dt);
 
     {
     cfd_amr_wclock wc(wtp);
@@ -627,6 +653,10 @@ void cfd_amr::patch_step_onestep(int l, double th0)
         CP(id)->pmom->amr_stage_end(CP(id)->pp,CP(id)->a,pgc,s);
     }
     }
+
+    // the finest level: the loads after its step, on the finest grid at every hull triangle
+    if(bodies && l==maxlev)
+    body_loads(s,t,true);
 }
 
 // two steps of level l per step (of size dtc, from the time tc) of level l-1, each followed by the

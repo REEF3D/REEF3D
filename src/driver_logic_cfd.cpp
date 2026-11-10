@@ -729,12 +729,13 @@ void driver::logic_cfd()
 	pmom = new momentum_void();
 
     // the one-step schemes (N 40 5, 6): the level set or single phase flow, no VOF or particles yet;
-    // floating bodies (X 10 1, with their mooring lines X 310 and nets X 320) with N 40 6: the bodies
-    // take the midpoint rule with the half step and the full step (sixdof_rigidbody::stage_mid)
-    if((p->N40==5 || p->N40==6) && ((p->X10>0 && !(p->N40==6 && p->X10==1)) || p->F80>0 || p->F81>0 || p->F300>0 || p->Z10>0 || p->E10>0))
+    // floating bodies (X 10 1, with their mooring lines X 310 and nets X 320): with N 40 6 the bodies
+    // take the midpoint rule with the half step and the full step (sixdof_rigidbody::stage_mid), with
+    // N 40 5 one semi-implicit Euler step (sixdof_rigidbody::step_symplectic)
+    if((p->N40==5 || p->N40==6) && (p->X10>1 || p->F80>0 || p->F81>0 || p->F300>0 || p->Z10>0 || p->E10>0))
     {
         if(p->mpirank==0)
-        cout<<"N 40 "<<p->N40<<" (the one-step scheme) works with the level set or single phase flow, without VOF (F 80), PIC (F 81), multiphase (F 300), FSI (Z 10) or DEM (E 10); floating bodies (X 10 1) with N 40 6"<<endl;
+        cout<<"N 40 "<<p->N40<<" (the one-step scheme) works with the level set or single phase flow, without VOF (F 80), PIC (F 81), multiphase (F 300), FSI (Z 10) or DEM (E 10); floating bodies: X 10 1"<<endl;
 
         exit(1);
     }

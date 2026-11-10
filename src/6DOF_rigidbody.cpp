@@ -413,6 +413,36 @@ void sixdof_rigidbody::stage_mid(int iter, double dt)
     e.normalize();
 }
 
+void sixdof_rigidbody::step_symplectic(double dt)
+{
+    // semi-implicit (symplectic) Euler step, the body with the one-step scheme (CFD N 40 5): the
+    // momenta with the loads of time n, then the position and the quaternion with the new momenta.
+    // As the level set of that scheme, which moves with the projected u(n+1): an oscillation of
+    // the body keeps its amplitude (the explicit Euler step amplifies it by 1 + (omega dt)^2 / 2
+    // per step).  Prescribed DOFs (X 11 2) keep their velocity.
+    pk = p;
+    ck = c;
+    hk = h;
+    ek = e;
+
+    p = p + dt*dp;
+    h = h + dt*dh;
+
+    for(int n=0; n<3; ++n)
+    if(dof[n]==1 && !(twoD && n==1))
+    dc(n) = p(n)/mass;
+
+    if(dof[3]!=2 && dof[4]!=2 && dof[5]!=2)
+    {
+        constrain_rotation();
+        de = 0.5*G.transpose()*I.inverse()*h;
+    }
+
+    c = c + dt*dc;
+    e = e + dt*de;
+    e.normalize();
+}
+
 void sixdof_rigidbody::stage_rk4(int iter, double dt)
 {
     // classical RK4:

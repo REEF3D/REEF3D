@@ -144,7 +144,7 @@ struct cfd_amr_field
 //  The step size is the minimum of all levels.  Scope of this version: two-phase or single-phase
 //  flow (F 30, N 40 2/3), RANS turbulence, solids and topography (the entities of the grid file
 //  cast on every patch at its resolution, cfd_amr_geom.cpp), floating bodies (X 10 1; N 40 2, 3 and
-//  with G 7 0 the one-step scheme N 40 6, the bodies with the midpoint rule) with their mooring lines
+//  the one-step schemes N 40 5 and, with G 7 0, N 40 6) with their mooring lines
 //  (X 310, forces on the bodies only) and nets (X 320, also fixed nets without a body; G 7 0: the nets
 //  move on level 0, their forces on the fluid are spread onto every patch, cfd_amr::net_forces), the
 //  porous structures B 200 1 (vrans_f on every patch, the zones at its cells; CPOR n at the faces of
@@ -329,7 +329,7 @@ public:
 
     // subcycling (cfd_amr_sub.cpp)
     void step_sub(lexer*, fdm*, ghostcell*, vrans*, sixdof*);
-    void patch_step_onestep(int l, double th0);
+    void patch_step_onestep(int l, double th0, double t, double dt);
 
     // CPM on the refinement (cfd_amr_cpm.cpp): the sediment step on the grid of CPM, before the fluid step;
     // cpm_why: what the run needs for it (nullptr: covered)

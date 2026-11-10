@@ -80,6 +80,21 @@ void net_sheet::updateFluidAcc(lexer *p, bool finalize)
         fluidVelInit_ = true;
     }
     
+    // CFD N 40 5 (one step, one projection): the velocity at the knots is the predicted one of the
+    // step. In the first step it holds the imbalance of the initial pressure (no projection has
+    // seen the bodies yet), and the difference to the second step is no fluid acceleration: it gave
+    // the net of a floating collar 8 N of lift over the whole second step (the stages of the other
+    // schemes have projected before the last one, and N 40 6 takes these loads for the half step
+    // only). The acceleration starts with the difference between the second and the third step.
+    if (finalize==true && p->A10==6 && p->N40==5 && p->count<=2)
+    {
+        for (int i = 0; i < nK; i++)
+        for (int c = 0; c < 3; c++)
+        coupledFieldn[i][c] = coupledField[i][c];
+        
+        return;
+    }
+    
     if (finalize==true && p->dt > 0.0)
     {
         for (int i = 0; i < nK; i++)

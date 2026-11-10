@@ -97,6 +97,22 @@ sixdof_void::sixdof_void(lexer *p, ghostcell *pgc)
     zeta[1] = 0.0;
     zeta[2] = 0.0;
     }
+    
+    // CFD N 40 5 (one step, one projection): one stage over the step
+    if(p->N40==5 && p->A10==6)
+    {
+    alpha[0] = 1.0;
+    alpha[1] = 1.0;
+    alpha[2] = 1.0;
+    
+    gamma[0] = 0.0;
+    gamma[1] = 0.0;
+    gamma[2] = 0.0;
+    
+    zeta[0] = 0.0;
+    zeta[1] = 0.0;
+    zeta[2] = 0.0;
+    }
 }
 
 sixdof_void::~sixdof_void()
