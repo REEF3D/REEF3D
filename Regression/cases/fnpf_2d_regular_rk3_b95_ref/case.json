@@ -2,8 +2,8 @@
  "base": "fnpf_2d_regular",
  "ctrl_set": {
   "B 95": "0.02",
-  "N 51": "2",
-  "N 47": "0.75"
+  "N 47": "0.75",
+  "N 48": "2"
  },
  "description": "as fnpf_2d_regular_rk3_b95 with B 95 0.02: step-consistent zones, relaxation factors r^(dt/0.02 s) per stage (FNPF_time_integration/0001).",
  "tags": [

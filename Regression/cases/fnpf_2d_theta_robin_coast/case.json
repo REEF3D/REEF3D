@@ -3,12 +3,11 @@
  "ctrl_set": {
   "A 310": "5",
   "A 302": "4",
-  "N 51": "3",
   "B 98": "2",
   "B 99": "0",
   "B 96": "4.0 0.0"
  },
- "description": "the surf zone of fnpf_2d_break_barthelemy (Ting & Kirby plunging breaker, A 350 4, static coastline A 343 1, A 341 10) with the theta-Robin time integration (A 310 5), generation by a 4 m relaxation zone (B 98 2, no beach): coastline relaxation in the affine maps of the relaxation zones, dry columns out of the REEFMG solve, the damping of breaking and of the coastline at the start of the step (patch 0022, no consistency solve after it); N 51 3 with a coastline stays at the RK3 step (0.75 dt_crit).",
+ "description": "the surf zone of fnpf_2d_break_barthelemy (Ting & Kirby plunging breaker, A 350 4, static coastline A 343 1, A 341 10) with the theta-Robin time integration (A 310 5), generation by a 4 m relaxation zone (B 98 2, no beach): coastline relaxation in the affine maps of the relaxation zones, dry columns out of the REEFMG solve, the damping of breaking and of the coastline at the start of the step (patch 0022, no consistency solve after it); N 48 1 with a coastline stays at the RK3 step (0.75 dt_crit).",
  "tags": [
   "2d",
   "fnpf",

@@ -980,18 +980,76 @@ void cfd_amr::fill(int l, vector<fspec> &fs, bool siblings_only, int maxdepth)
         return *q;
     };
 
+    // the values through the arrays of the fields: the index of the source cell once per item for
+    // all fields, the neighbours of the slopes by their strides (prolong_f and cell_slope took the
+    // three indices of every cell they read, per field and direction).  The same terms in the same
+    // order as prolong_f: the same values
+    const int r0 = rr[0], r1 = rr[1], r2 = rr[2];
+    auto slope = [](const double *V, long q, long st, int mode, int r) -> double
+    {
+        if(mode==2 || r==1)
+        return 0.0;
+        const double c0 = V[q];
+        const double dl = c0 - V[q-st];
+        const double dr = V[q+st] - c0;
+        if(mode==0)
+        return 0.5*(dl+dr);
+        if(dl*dr<=0.0)
+        return 0.0;
+        const double sg = dl>0.0 ? 1.0 : -1.0;
+        return sg*MIN(MIN(2.0*fabs(dl),2.0*fabs(dr)),0.5*fabs(dl+dr));
+    };
+
     fill_run(l,nv,
              [&](int kind, int g, const int *s, const int *o, double *v)
              {
+                 const lexer *q = glex(g);
+                 const long qs = cix(q,s[0],s[1],s[2]);
+                 if(kind==0)
+                 {
+                     for(int m=0; m<nv; ++m)
+                     v[m] = S(m,g).V[qs];
+                     return;
+                 }
+                 if(siblings_only)
+                 {
+                     for(int m=0; m<nv; ++m)
+                     v[m] = 0.0;
+                     return;
+                 }
+                 const long st[3] = {(long)q->jmax*q->kmax, (long)q->kmax, 1};
+                 const int rd[3] = {r0,r1,r2};
                  for(int m=0; m<nv; ++m)
-                 v[m] = (kind==0) ? S(m,g)(s[0],s[1],s[2]) : (siblings_only ? 0.0 : prolong_f(S(m,g),fs[m].type,fs[m].mode,g,s,o));
+                 {
+                     const double *V = S(m,g).V;
+                     const int mode = fs[m].mode, d0 = fs[m].type;
+                     if(d0==CELL)
+                     {
+                         double w = V[qs];
+                         for(int d=0; d<3; ++d)
+                         w += slope(V,qs,st[d],mode,rd[d])*(o[d]==0 ? -0.25 : 0.25);
+                         v[m] = w;
+                         continue;
+                     }
+                     // the coarse face value of cell c, linear in the transverse directions
+                     auto T = [&](long c)
+                     {
+                         double w = V[c];
+                         for(int t=0; t<3; ++t)
+                         if(t!=d0)
+                         w += slope(V,c,st[t],mode,rd[t])*(o[t]==0 ? -0.25 : 0.25);
+                         return w;
+                     };
+                     v[m] = (rd[d0]==2 && o[d0]==0) ? 0.5*(T(qs-st[d0]) + T(qs)) : T(qs);
+                 }
              },
              [&](r3patch *c, int id, const r3fill &f, const double *v)
              {
                  if(siblings_only && f.kind==1)
                  return;
+                 const long qd = cix(c->pp,f.d[0],f.d[1],f.d[2]);
                  for(int m=0; m<nv; ++m)
-                 D(m,id)(f.d[0],f.d[1],f.d[2]) = v[m];
+                 D(m,id).V[qd] = v[m];
              },
              maxdepth);
 }
@@ -1227,6 +1285,26 @@ void cfd_amr::restrict_level(int l, const vector<std::function<field&(int)>> &ce
             int og[3];
             goff(B.g,og);
 
+            // the fields of the patch and of the parent grid, once per block (they were asked for
+            // per cell), the children of a cell by their strides: the same sums in the same order
+            const size_t nc = cells.size();
+            vector<const double*> csrc(nc);
+            vector<double*> cdst(nc);
+            for(size_t m=0; m<nc; ++m)
+            {
+                csrc[m] = cells[m](id).V;
+                cdst[m] = cells[m](B.g).V;
+            }
+            field *fsrc[3] = {nullptr,nullptr,nullptr}, *fdst[3] = {nullptr,nullptr,nullptr};
+            for(int d0=0; d0<3; ++d0)
+            if(rr[d0]==2 && !(faces.size()<3 && d0>=(int)faces.size()))
+            {
+                fsrc[d0] = &faces[d0](id);
+                fdst[d0] = &faces[d0](B.g);
+            }
+            const lexer *qf = c->pp, *qc = glex(B.g);
+            const long sf0 = (long)qf->jmax*qf->kmax, sf1 = qf->kmax;
+
             int P[3];
             for(P[0]=B.lo[0]; P[0]<=B.hi[0]; ++P[0])
             for(P[1]=B.lo[1]; P[1]<=B.hi[1]; ++P[1])
@@ -1237,23 +1315,28 @@ void cfd_amr::restrict_level(int l, const vector<std::function<field&(int)>> &ce
                 for(int d=0; d<3; ++d)
                 f0[d] = P[d]*rr[d] - c->lo[d];
 
-                for(auto &sel : cells)
+                if(nc>0)
                 {
-                    field &src = sel(id);
-                    double s = 0.0;
-                    for(int a=0; a<rr[0]; ++a)
-                    for(int b=0; b<rr[1]; ++b)
-                    for(int e=0; e<rr[2]; ++e)
-                    s += src(f0[0]+a,f0[1]+b,f0[2]+e);
-                    sel(B.g)(pl[0],pl[1],pl[2]) = wc*s;
+                    const long qf0 = cix(qf,f0[0],f0[1],f0[2]);
+                    const long qp = cix(qc,pl[0],pl[1],pl[2]);
+                    for(size_t m=0; m<nc; ++m)
+                    {
+                        const double *src = csrc[m];
+                        double s = 0.0;
+                        for(int a=0; a<rr[0]; ++a)
+                        for(int b=0; b<rr[1]; ++b)
+                        for(int e=0; e<rr[2]; ++e)
+                        s += src[qf0 + a*sf0 + b*sf1 + e];
+                        cdst[m][qp] = wc*s;
+                    }
                 }
 
                 for(int d0=0; d0<3; ++d0)
                 {
                     if(rr[d0]!=2 || (faces.size()<3 && d0>=(int)faces.size()))
                     continue;
-                    field &src = faces[d0](id);
-                    field &dst = faces[d0](B.g);
+                    field &src = *fsrc[d0];
+                    field &dst = *fdst[d0];
                     const int nt = (rr[0]*rr[1]*rr[2])/2;
 
                     // the + face (index P) from the children at the high side, the - face (index
@@ -1960,6 +2043,9 @@ void cfd_amr::step_comp(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof 
         const bool lsrk = (stages==1 && mom0->ls_rk_n()>1);
         if(lsrk)
         {
+            // (N 40 5: the stage input around the patches is that of the start of the step, filled
+            // before the momentum; nothing has written it since)
+            if(tp)
             for(int l=1; l<=maxlev; ++l)
             fill_stage_in(l,s);
 

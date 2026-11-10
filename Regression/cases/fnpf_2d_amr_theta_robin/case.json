@@ -2,10 +2,9 @@
  "base": "fnpf_2d_amr_regular",
  "steps": 200,
  "ctrl_set": {
-  "A 310": "5",
-  "N 51": "3"
+  "A 310": "5"
  },
- "description": "fnpf_2d_amr_regular (static patch over 12-28 m, one level, 2D grid) with the theta-Robin time integration (A 310 5, REEFMG) and the step of the accuracy target (N 51 3): the patches take the theta step, the Robin rows of all grids in the composite solve.",
+ "description": "fnpf_2d_amr_regular (static patch over 12-28 m, one level, 2D grid) with the theta-Robin time integration (A 310 5, REEFMG) and the step of the accuracy target (N 48 1): the patches take the theta step, the Robin rows of all grids in the composite solve.",
  "tags": [
   "2d",
   "fnpf",
@@ -15,6 +14,6 @@
  "covers": [
   "fnpf_amr_theta: theta_predict, theta_surface, theta_solve, theta_corrector, theta_final, theta_end",
   "fnpf_amr lap_apply with xcol, lap_prepare lumping of xcol, lap_core relative tolerance (N 44 < 0, A 307)",
-  "fnpf_amr::timestep with N 51 3"
+  "fnpf_amr::timestep with the accuracy step of theta-Robin (N 48 1)"
  ]
 }

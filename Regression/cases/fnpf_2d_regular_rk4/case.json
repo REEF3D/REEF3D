@@ -2,10 +2,10 @@
  "base": "fnpf_2d_regular",
  "ctrl_set": {
   "A 310": "4",
-  "N 51": "2",
-  "N 47": "0.75"
+  "N 47": "0.75",
+  "N 48": "2"
  },
- "description": "FNPF 2D regular waves of fnpf_2d_regular with RK4 (A 310 4) at its stability step (N 51 2, N 47 0.75): the sigma cross terms implicit by default (A 328 1 with RK4 and REEFMG), the relaxation zones with the stage weights 11 c/6 (as strong per time as in RK3) (FNPF_time_integration/0002, 0003).",
+ "description": "FNPF 2D regular waves of fnpf_2d_regular with RK4 (A 310 4) at its stability step (N 48 2, N 47 0.75): the sigma cross terms implicit by default (A 328 1 with RK4 and REEFMG), the relaxation zones with the stage weights 11 c/6 (as strong per time as in RK3) (FNPF_time_integration/0002, 0003).",
  "tags": [
   "quick",
   "2d",

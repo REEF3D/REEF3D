@@ -1,0 +1,16 @@
+{
+ "base": "sflow_1d_channel_ke",
+ "same_as": "sflow_1d_channel_ke",
+ "ctrl_set": {
+  "N 48": "2"
+ },
+ "description": "as sflow_1d_channel_ke with N 48 2: the stability step of the grid is an FNPF rule (N 51 2 until November 2026), SFLOW (explicit) takes N 48 2 as N 48 1; regression.py ranks: bitwise sflow_1d_channel_ke (FNPF_time_integration/0005).",
+ "tags": [
+  "quick",
+  "sflow",
+  "turbulence"
+ ],
+ "covers": [
+  "N 48 2 outside FNPF"
+ ]
+}

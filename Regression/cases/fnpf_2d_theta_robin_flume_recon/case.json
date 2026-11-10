@@ -3,11 +3,12 @@
  "ctrl_set": {
   "A 310": "5",
   "N 48": "1",
-  "N 51": "3",
   "B 92": "51"
  },
- "files": ["waverecon.dat"],
- "description": "the flume of fnpf_2d_regular with reconstructed waves (B 92 51, three components of waverecon.dat around 1.6 s) and the theta-Robin time integration (A 310 5, N 51 3): relaxation zones per period of the wave input (A 303 -200) with the peak period of the components (fnpf_wave_period.h, patch fnpf_theta_robin/0033).",
+ "files": [
+  "waverecon.dat"
+ ],
+ "description": "the flume of fnpf_2d_regular with reconstructed waves (B 92 51, three components of waverecon.dat around 1.6 s) and the theta-Robin time integration (A 310 5, N 48 1): relaxation zones per period of the wave input (A 303 -200) with the peak period of the components (fnpf_wave_period.h, patch fnpf_theta_robin/0033).",
  "tags": [
   "quick",
   "2d",

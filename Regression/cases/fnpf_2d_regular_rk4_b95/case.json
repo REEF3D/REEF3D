@@ -2,10 +2,10 @@
  "base": "fnpf_2d_regular",
  "ctrl_set": {
   "A 310": "4",
-  "N 51": "2",
   "N 47": "0.75",
   "B 95": "0.02",
-  "A 430": "1.0e-5"
+  "A 430": "1.0e-5",
+  "N 48": "2"
  },
  "description": "as fnpf_2d_regular_rk4 with B 95 0.02 (targets at the stage times t+dt/2, t+dt/2, t+dt, t+dt, zone factors r^(11 c dt/(6 x 0.02 s))) and the Laplace tolerance A 430 1e-5, relative to the potential without its mean surface value (FNPF_time_integration/0001-0004).",
  "tags": [

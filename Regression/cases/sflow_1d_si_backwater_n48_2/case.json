@@ -1,0 +1,17 @@
+{
+ "base": "sflow_1d_si_backwater",
+ "same_as": "sflow_1d_si_backwater",
+ "ctrl_set": {
+  "N 48": "2"
+ },
+ "description": "as sflow_1d_si_backwater with N 48 2: the stability step of the grid is an FNPF rule (N 51 2 until November 2026), SFLOW semi-implicit takes N 48 2 as N 48 1; regression.py ranks: bitwise sflow_1d_si_backwater (FNPF_time_integration/0005).",
+ "tags": [
+  "quick",
+  "1d",
+  "sflow",
+  "semi_implicit"
+ ],
+ "covers": [
+  "N 48 2 outside FNPF"
+ ]
+}

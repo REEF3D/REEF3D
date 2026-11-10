@@ -2,10 +2,9 @@
  "base": "fnpf_3d_amr_break_adapt",
  "ctrl_set": {
   "A 310": "5",
-  "N 51": "3",
   "B 98": "2"
  },
- "description": "fnpf_3d_amr_break_adapt (patches from the surface jump G 20 and the breaking flags G 23, regrid every 4 steps) with theta-Robin and N 51 3: new patches during the run take the theta state (Euler predictor in their first step) and the breaking viscosity of the old patches or their parent.",
+ "description": "fnpf_3d_amr_break_adapt (patches from the surface jump G 20 and the breaking flags G 23, regrid every 4 steps) with theta-Robin and N 48 1: new patches during the run take the theta state (Euler predictor in their first step) and the breaking viscosity of the old patches or their parent.",
  "tags": [
   "3d",
   "fnpf",
