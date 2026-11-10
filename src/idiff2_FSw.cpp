@@ -257,11 +257,9 @@ void idiff2_FS::assemble_w(lexer* p, fdm* a, ghostcell *pgc, field &w_in, field 
 		a->rhsvec.V[n] -= a->M.t[n]*w(i,j,k+1);
 		a->M.t[n] = 0.0;
 		}
-        
-        }
 
 	++n;
-
+	}
     }
 }
 

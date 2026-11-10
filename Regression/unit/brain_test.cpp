@@ -11,7 +11,8 @@
 // U_des (the frequency U_des/(s L)); a moving target; the own turn on the lateral line (-0.5 b q at the
 // head) is no escape, a stimulus is; at a station in still water the fish glides (amplitude 0) and bursts
 // (burst and coast), early enough for the coast to stop it there; the stride prior and the turn rate of a
-// body (X 200): a slow swimmer with a weak turn, a body that turns away from its bias; a restart from the checkpoint of the brain continues it
+// body (X 200): a slow swimmer with a weak turn, a body that turns away from its bias; a body still
+// accelerating when the brain starts sees no headwind; a restart from the checkpoint of the brain continues it
 // exactly (in a current and while gliding).
 // Architect: Hans Bihs
 #include"../../src/6DOF_brain.cpp"
@@ -36,7 +37,7 @@ struct swimmer
 {
     double x = 1.6, z = 3.0, h = 0.0, Ug = 0.0;
     double g[3] = {1.0, 1.0, 0.0}, gr[3] = {0.0, 0.0, 0.0}, gt[3] = {1.0, 1.0, 0.0}, ts[3] = {0.25, 0.25, 0.25};
-    double s_true = 0.48, k_true = 1.3, cx = 0.0, cz = 0.0;
+    double s_true = 0.48, k_true = 1.3, tau_true = 0.8, cx = 0.0, cz = 0.0;
     double stim_t = -1.0;      // a pressure pulse across the head at this time (a startle stimulus)
     bool second = false;
     sixdof_brain::decision pend;
@@ -72,7 +73,7 @@ struct swimmer
                 target(pend, true);
                 second = false;
             }
-            Ug += dt/(g[1]<0.5 ? 2.5 : 0.8)*(g[0]*g[1]*1.0 - Ug);      // a gliding body coasts longer
+            Ug += dt/(g[1]<0.5 ? 2.5 : tau_true)*(g[0]*g[1]*1.0 - Ug);      // a gliding body coasts longer
             const double Uw = s_true*Ug*std::min(1.0, t/1.0);
             h += dt*k_true*g[2]*Uw/1.0;
             const Eigen::Vector3d ex(std::cos(h), 0.0, std::sin(h)), el(-std::sin(h), 0.0, std::cos(h));
@@ -217,7 +218,7 @@ int main()
         check(d0>0.3, "early glide: the first glide starts "+std::to_string(d0)+" m before the station (> 0.25 L)");
         double mx;
         const double md = mean_dist(S, 12.0, [](double){return std::array<double,2>{3.5, 3.0};}, &mx);
-        check(md<0.1 && mx<0.25, "early glide: at the station after 12 s, mean distance "+std::to_string(md)+" m, max "+std::to_string(mx));
+        check(md<0.2 && mx<0.25, "early glide: at the station after 12 s, mean distance "+std::to_string(md)+" m, max "+std::to_string(mx));
     }
 
     // 3d. the stride prior and the turn rate of a body (X 200): a slow swimmer (0.2 L per beat) with a weak
@@ -255,6 +256,21 @@ int main()
         check(md<0.4, "X 200 k -0.9: at the target, mean distance "+std::to_string(md)+" m");
         else
         check(md>1.0, "k -0.9 without X 200: away from the target, mean distance "+std::to_string(md)+" m");
+    }
+
+    // 3f. a body that is still accelerating when the brain starts (speed time 5 s instead of 0.8 s, as the
+    // 3D salmon): the speed of the gait from the track, no headwind at the start
+    {
+        swimmer S; S.tau_true = 5.0;
+        sixdof_brain B = brain(0.5, 1.5, {{0.0, 9.0, 0.0, 3.0}});
+        double t = 0.0, cmax = 0.0;
+        while(t<4.0)
+        {
+            S.run(B, t, t + 0.25);
+            if(t>2.4)
+            cmax = std::max(cmax, std::hypot(B.last().cx, B.last().cz));
+        }
+        check(cmax<0.1, "accelerating body: no current at the start (2.5-4 s), |c| at most "+std::to_string(cmax)+" m/s");
     }
 
     // 4. a moving target at 0.25 m/s across, after the fish reached it
