@@ -718,13 +718,13 @@ void control::ini_default()
     D22=1;            // int diffusion wall boundary condition
     D23=2;            // int time accuracy of the implicit momentum diffusion (D 20 2): 1 first order, 2 second order
 	D30=1;			// int pressure scheme
-    D32=1;          // int CFD: the faces of the projection closed inside the direct-forcing solids and the bed (solid_closed.h): 0 off (the projection solves through the solids), 1 where both cell centres lie in the solid, 2 where one of them does (thin solids of 1 cell)
+    D32=0;          // int CFD: the faces of the projection closed inside the direct-forcing solids and the bed (solid_closed.h): 0 off (the projection solves through the solids), 1 where both cell centres lie in the solid, 2 where one of them does (thin solids of 1 cell)
 
     // Free Surface
 	F30=3;			    // int level set scheme
 	F35=5;			    // int convection scheme for fsf
     F37=0;              // int WENO5 nonlinear weights for level set convection (F 35 4,5; F 305 4,5) and reini (F 40 3,23): 0 WENO-JS, 1 WENO-Z, 2 TENO5
-    F41=0;              // int the level set single phase: 1 the water only (p = 0 at the free surface by the ghost fluid method, the velocity of the water extended into the air), 0 two phases
+    F41=0;              // int the level set single phase: 1 the water only (p = 0 at the free surface by the ghost fluid method, the velocity of the water extended into the air), 2 as 1 with the closed air pockets at the adiabatic pressure of their volume (W 33, W 36), 0 two phases
     F38=1.0e-5;         // double TENO5 cutoff C_T (F 37 2)
 	F40=3;			    // int reini scheme
 	F42=-1.0;		// double maxlength

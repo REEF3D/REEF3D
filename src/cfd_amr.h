@@ -265,6 +265,10 @@ struct cfd_amr_cf
     double ustar;       // predictor of the stage
     double kf, kc;      // flux coefficients of the fine and the coarse row
     double rof;         // face density of the stage (pr_weights)
+    double gs, gf;      // F 41 1, the ghost fluid method across the face (pr_weights): the gradient
+                        // (gs x_coarse - gf x_fine)/dist (1, 1: no surface between; 0, 1/theta: the
+                        // fine cell in the water, p = 0 at the surface; 1/theta, 0: the other way)
+    bool fw, cw;        // F 41 1: the fine / coarse cell in the water (its row not p = 0)
     int ns;             // the coarse value at the position of the fine cell: sum of sw x[sg][sq]
     int sg[5], sq[5];   // (the coarse cell and its leaf neighbours in the transverse directions,
     double sw[5];       // weights of the stage: pr_weights)
@@ -338,6 +342,15 @@ public:
     // leaves its step out)
     void scalar_objects(heat*, concentration*);
     bool scalars() const { return scal>0; }
+
+    // F 41 2 (cfd_pocket.h, cfd_amr_pocket.cpp): the air pockets labelled over the leaf cells of all
+    // grids, once per step before the step
+    void pocket_update(lexer*, ghostcell*);
+
+    // F 41 1, 2 (cfd_amr_press.cpp): the extension of the water velocity into the air on the patches
+    // after the composite projection of stage s, over all patches of a level with the fills of the
+    // siblings between the layers (cfd_singlephase::ext_begin, ext_layer, ext_end)
+    void single_extend(ghostcell*, int);
 
     double tm[8] = {0,0,0,0,0,0,0,0};
     double tp[4] = {0,0,0,0};

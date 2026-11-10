@@ -1003,6 +1003,7 @@
         <File Name="pic_f.h"/>
         <File Name="pic_gfm.h"/>
         <File Name="cfd_singlephase.h"/>
+        <File Name="cfd_pocket.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="CPM">
         <File Name="CPM.h"/>
@@ -1575,6 +1576,7 @@
         <File Name="cfd_amr.cpp"/>
         <File Name="cfd_amr_press.cpp"/>
         <File Name="cfd_amr_place.cpp"/>
+        <File Name="cfd_amr_pocket.cpp"/>
         <File Name="cfd_amr_print.cpp"/>
         <File Name="cfd_amr_sub.cpp"/>
         <File Name="cfd_amr_regrid.cpp"/>
@@ -2724,6 +2726,7 @@
         <File Name="pic_f_extend.cpp"/>
         <File Name="pic_gfm.cpp"/>
         <File Name="cfd_singlephase.cpp"/>
+        <File Name="cfd_pocket.cpp"/>
         <File Name="pic_f_flip.cpp"/>
         <File Name="pic_f_redist.cpp"/>
         <File Name="pic_f_redistribute.cpp"/>

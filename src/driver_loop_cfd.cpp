@@ -21,6 +21,7 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
  #include"driver.h"
+#include"cfd_pocket.h"
 #include"regression_dump.h"
 #include"coral/reef3d/coral_reef3d.h"
 #include"dem.h"
@@ -109,6 +110,8 @@ void driver::loop_cfd(fdm* a)
         pfsf->update(p,a,pgc,a->phi);
         pdem->start_cfd(p,a,pgc);
         ppic->step_begin(p,a,pgc);   // PIC (F 81 2): the particle velocities to the water faces
+        // F 41 2: the pressures of the closed air pockets from their volumes (cfd_pocket.h)
+        cfd_pocket_update(p,a,pgc,pmom,pcfdamr);
         if(pcfdamr!=nullptr)
         pcfdamr->step(p,a,pgc,pvrans,p6dof);
         else

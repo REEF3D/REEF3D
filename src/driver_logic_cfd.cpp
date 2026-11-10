@@ -684,10 +684,11 @@ void driver::logic_cfd()
 // F 41 1: the single-phase level set (cfd_singlephase.h): the water only, p = 0 at the free surface
     if(p->F41!=0)
     {
-    removed_option(p,pgc,p->F41!=1,"F 41: the single-phase level set is F 41 1 (0: two phases).");
+    removed_option(p,pgc,p->F41!=1 && p->F41!=2,"F 41: the single-phase level set is F 41 1, with the closed air pockets F 41 2 (0: two phases).");
     removed_option(p,pgc,p->F30<=0 || p->F80>0 || p->F81>0,"F 41 1: the single phase of the level set needs the level set (F 30), without VOF (F 80) or PIC (F 81; F 81 1 is the single phase of PIC).");
     removed_option(p,pgc,p->D30<1 || p->D30>3 || p->W32>0 || p->W30>0,"F 41 1: the single phase (p = 0 at the free surface) needs the incompressible projection (D 30 1, 2, 3, no W 30 or W 32).");
-    removed_option(p,pgc,p->G1>0,"F 41 1: the single-phase level set is not available with the mesh refinement (G 1) yet.");
+    removed_option(p,pgc,p->G1>0 && p->G7!=0,"F 41 1: the single-phase level set with the mesh refinement (G 1) needs one time step for all levels (G 7 0) yet.");
+    removed_option(p,pgc,p->F41==2 && p->G1>0 && p->G40!=0,"F 41 2: the closed air pockets with the mesh refinement need the patches on the ranks of their level-0 cells (G 40 0) yet.");
     removed_option(p,pgc,p->H10>0 || p->C10>0 || p->F300>0 || p->W90>0 || p->X10>0 || p->Z10>0,"F 41 1: the single-phase level set works without heat (H 10), concentration (C 10), multiphase (F 300), rheology (W 90), floating bodies (X 10) or FSI (Z 10) yet.");
 
         // the air takes the density and viscosity of the water: the faces of the water at the surface
@@ -703,8 +704,10 @@ void driver::logic_cfd()
         p->N59=0;
         }
 
-        if(p->mpirank==0)
+        if(p->mpirank==0 && p->F41==1)
         cout<<"F 41 1: single-phase level set, the water only, p = 0 at the free surface"<<endl;
+        if(p->mpirank==0 && p->F41==2)
+        cout<<"F 41 2: single-phase level set, the water only, p = 0 at the free surface of the atmosphere, the closed air pockets adiabatic (W 33 "<<p->W33<<", W 36 "<<p->W36<<" Pa)"<<endl;
     }
 
     if(p->F81>0)
