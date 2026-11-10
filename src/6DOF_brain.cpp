@@ -26,11 +26,16 @@ Architect: Hans Bihs
 
 namespace
 {
-    const double brain_tau = 1.5;          // time to turn onto the bearing of the target [s]
-    const double brain_kturn = 1.41;       // turn rate of the gait: omega = kturn b U/L
+    const double brain_tau = 1.5;          // time to turn onto the wanted heading [s]
+    const double brain_kturn = 1.3;        // turn rate of the gait: omega = kturn b U_w/L (U_w through the water)
     const double brain_slow = 1.5;         // slower within this distance of the target [L]
     const double brain_arrive = 0.25;      // at the target within this distance [L]
     const double brain_front = 0.35;       // the head stations of the lateral line: s/L below
+    const double brain_tauu = 0.8;         // response time of the swimming speed to the gait [s]
+    const double brain_s0 = 0.5;           // prior of the stride per tail beat at full amplitude [L]
+    const double brain_tfloor = 2.5;       // the speed for a turn: the turn in this time at b_max [s]
+    const double brain_psifloor = 1.0;     // ... beyond this angle to the wanted heading [rad]
+    const double brain_reaff = 0.5;        // head pressure difference of a turn: -reaff b q_w
 }
 
 sixdof_brain::sixdof_brain(double U_des, double b_max, double D_vis, double th_esc, double f0, double L, double rho,
@@ -113,27 +118,111 @@ sixdof_brain::decision sixdof_brain::decide(double t, double f, double a, double
     el = el - el.dot(ex)*ex;
     el.normalize();
 
-    const double U = Uax_/T_;
-    const double Uf = std::max(U, 0.1*L_);
-    const double q = 0.5*rho_*Uf*Uf;
+    const double U = Uax_/T_;                                   // the speed along the axis over the ground
+    const int p0 = 0, p1 = (nrm==1) ? 2 : 1;                    // the axes of the plane of the undulation
+    const double fmx = fmax();
 
-    // the stride U/f while swimming straight at the full amplitude, after the start
-    if(std::fabs(b)<0.15 && std::fabs(a - 1.0)<0.05 && t>tstart_ + 2.0/f0_ && U>0.0 && f>0.0)
+    // 1. the speed of the gait over the time since the last decision; from it and the track over the
+    // ground the estimate of the stride and of the current (Kalman filter on s, c_p0, c_p1):
+    //    ground velocity = s U_g ex + c,   dU_g/dt = (f a L - U_g)/tau_u
+    if(!kf_on_)
     {
-        const double s = U/(f*L_);
-        stride_ = (nstride_==0) ? s : 0.8*stride_ + 0.2*s;
-        ++nstride_;
+        kf_x_[0] = brain_s0; kf_x_[1] = kf_x_[2] = 0.0;
+        for(int i=0; i<3; ++i)
+        for(int j=0; j<3; ++j)
+        kf_P_[i][j] = 0.0;
+        kf_P_[0][0] = 0.15*0.15; kf_P_[1][1] = kf_P_[2][2] = 0.3*0.3;
+        ug_ = f*a*L_;
+        tdec_ = t;
+        pdec_ = c_;
+        bdec_ = b;
+        Tset_ = false;
+        vT_.setZero();
+        kf_on_ = true;
     }
 
-    // the target: distance and bearing to the mean axis (> 0: towards the lateral axis)
+    const double dt = t - tdec_;
+
+    if(dt>0.0)
+    {
+        const double fal = f*a*L_;
+        const double e = std::exp(-dt/brain_tauu);
+        const double ug1 = fal + (ug_ - fal)*e;
+        const double ugm = fal + (ug_ - fal)*(brain_tauu/dt)*(1.0 - e);
+        ug_ = ug1;
+        const double bm = 0.5*(b + bdec_);
+        const double R = 0.07*0.07*(1.0 + 4.0*bm*bm);
+        const double H[2][3] = {{ugm*ex(p0), 1.0, 0.0}, {ugm*ex(p1), 0.0, 1.0}};
+        const double y[2] = {(c_(p0) - pdec_(p0))/dt, (c_(p1) - pdec_(p1))/dt};
+        kf_update(H, y, R, dt);
+    }
+
+    const double s = kf_x_[0];
+    Eigen::Vector3d cur = Eigen::Vector3d::Zero();
+    cur(p0) = kf_x_[1];
+    cur(p1) = kf_x_[2];
+    const double Uw = std::max(ug_*s, 0.1*L_);
+    const double q = 0.5*rho_*Uw*Uw;
+
+    // 2. the target: the wanted velocity over the ground (towards the target, U_des, slower within
+    // 1.5 L; plus the velocity of the target as seen), and the velocity through the water that gives it
+    const bool has_t = !tp_.empty();
     const Eigen::Vector3d T = target(t);
     Eigen::Vector3d r = T - c_;
     r(nrm) = 0.0;
-    const double dist = tp_.empty() ? 0.0 : r.norm();
-    const double psi = tp_.empty() ? 0.0 : std::atan2(r.dot(el), r.dot(ex));
+    const double dist = has_t ? std::sqrt(r(0)*r(0) + r(1)*r(1) + r(2)*r(2)) : 0.0;
+
+    if(has_t && Tset_ && dt>0.0)
+    {
+        const double al = std::min(1.0, dt/1.0);
+        for(int k=0; k<3; ++k)
+        vT_(k) = (1.0 - al)*vT_(k) + al*(T(k) - Tprev_(k))/dt;
+    }
+    Tprev_ = T;
+    Tset_ = has_t;
+
+    Eigen::Vector3d vw = Eigen::Vector3d::Zero();
+
+    if(has_t)
+    {
+        double sp = (Udes_>0.0 ? Udes_ : f0_*s*L_)*std::min(1.0, dist/(brain_slow*L_));
+
+        // cruising: the closing speed also on a detour (the target up to 60 deg off the axis)
+        if(dist>brain_slow*L_)
+        {
+            const double ca = (r(0)*ex(0) + r(1)*ex(1) + r(2)*ex(2))/dist;
+            if(ca>0.0)
+            sp = sp/std::max(ca, 0.5);
+        }
+
+        for(int k=0; k<3; ++k)
+        vw(k) = vT_(k) + (dist>1.0e-9 ? sp*r(k)/dist : 0.0);
+    }
+
+    Eigen::Vector3d w = vw - cur;
+    w(nrm) = 0.0;
+    const double Ureq = std::sqrt(w(0)*w(0) + w(1)*w(1) + w(2)*w(2));
+    const double psi = (Ureq>0.02*L_) ? std::atan2(w(0)*el(0) + w(1)*el(1) + w(2)*el(2), w(0)*ex(0) + w(1)*ex(1) + w(2)*ex(2)) : 0.0;
+
+    // 3. the frequency from the speed through the water (no integrator), at least the speed a turn-around
+    // needs; the bias from the turn rate psi/tau at the speed through the water
+    double ft = std::max(0.3*f0_, std::min(fmx, f)), bt = 0.0;
+    int mode = 0;
+
+    if(has_t)
+    {
+        const double Uturn = (std::fabs(psi)>brain_psifloor) ? std::min(std::fabs(psi)/brain_tfloor*L_/(brain_kturn*bmax_), fmx*s*L_) : 0.0;
+        const double Ucmd = std::max(Ureq, Uturn);
+        ft = std::max(0.3*f0_, std::min(fmx, Ucmd/(s*L_)));
+        bt = (psi/brain_tau)*L_/(brain_kturn*Uw);
+        mode = (dist<brain_arrive*L_) ? 3 : 0;
+    }
+
+    bt = std::max(-bmax_, std::min(bmax_, bt));
 
     // the lateral line at the head: the pressure difference across (p+ - p-) and the excess of the
-    // head pressure over the mean of all probes, in units of q
+    // head pressure over the mean of all probes, in units of q through the water; the signal of the
+    // own turn (-reaff b q) removed
     double dpl = 0.0, phd = 0.0;
 
     if(llT_>0.0 && !llp_.empty())
@@ -159,7 +248,7 @@ sixdof_brain::decision sixdof_brain::decide(double t, double f, double a, double
 
         if(nd>0 && nh>0)
         {
-            dpl = (dsum/nd)/q;
+            dpl = (dsum/nd)/q + brain_reaff*0.5*(b + bdec_);
             phd = (hsum/nh - asum/double(llp_.size()))/q;
         }
     }
@@ -185,7 +274,7 @@ sixdof_brain::decision sixdof_brain::decide(double t, double f, double a, double
             fm += dk;
         }
         
-        // the side with the longer rays (+: the lateral axis); equal: away from the target's side; kept
+        // the side with the longer rays (+: the lateral axis); equal: away from the wanted heading; kept
         // while the threat lasts (no dithering in front of an obstacle)
         side = (fp>fm) ? 1.0 : ((fm>fp) ? -1.0 : (psi>=0.0 ? -1.0 : 1.0));
 
@@ -196,15 +285,15 @@ sixdof_brain::decision sixdof_brain::decide(double t, double f, double a, double
         dvis /= L_;
     }
     
-    rec_ = {t, T(0), T(1), T(2), dist, psi, U, f, a, b, dpl, phd, dvis, 0};
+    rec_ = {t, T(0), T(1), T(2), dist, psi, U, f, a, b, dpl, phd, dvis, s, cur(0), cur(1), cur(2), Uw, 0};
     
     perc_.ex = ex;
     perc_.el = el;
     perc_.c = c_;
     perc_.T = T;
     perc_.U = U;
-    perc_.stride = stride_;
-    perc_.target = !tp_.empty();
+    perc_.stride = s;
+    perc_.target = has_t;
     perc_.llp.assign(llp_.size(), 0.0);
     for(size_t k=0; k<llp_.size() && llT_>0.0; ++k)
     perc_.llp[k] = llp_[k]/llT_;
@@ -216,6 +305,9 @@ sixdof_brain::decision sixdof_brain::decide(double t, double f, double a, double
     lt_.setZero();
     std::fill(llp_.begin(), llp_.end(), 0.0);
 
+    tdec_ = t;
+    pdec_ = c_;
+    bdec_ = bt;
     d.on = true;
 
     // 1. escape: a C-start away from the side of the higher pressure
@@ -224,74 +316,75 @@ sixdof_brain::decision sixdof_brain::decide(double t, double f, double a, double
         const double sg = (dpl>=0.0) ? 1.0 : -1.0;
         d.f = f; d.a = 0.5; d.b = -2.5*sg; d.ts = 0.08;
         d.second = true;
-        d.t2 = t + 0.15; d.f2 = std::min(1.5*f, fmax()); d.a2 = 1.0; d.b2 = 0.0; d.ts2 = 0.2;
+        d.t2 = t + 0.15; d.f2 = std::min(1.5*f, fmx); d.a2 = 1.0; d.b2 = 0.0; d.ts2 = 0.2;
         refr_ = t + 2.0;
         next_ = t + 0.4;
+        bdec_ = d.b;
         rec_.Ff = d.f2; rec_.Fa = d.a; rec_.Fb = d.b; rec_.mode = 2;
         return d;
     }
 
-    // 3. the target: the turn rate psi/tau, the speed from the stride
-    double ft = f, bt = 0.0;
-
-    if(!tp_.empty())
-    {
-        bt = (psi/brain_tau)*L_/(brain_kturn*Uf);
-
-        if(Udes_>0.0)
-        {
-            const double Ud = Udes_*std::min(1.0, dist/(brain_slow*L_));
-            const double st = std::max(stride_,0.1)*L_;
-
-            // the closing speed since the last decision (a moving target: the speed in it)
-            if(dprev_>=0.0 && t>tprev_ && fctl_>0.0)
-            ft = fctl_ + 0.3*(Ud - (dprev_ - dist)/(t - tprev_))/st;
-            else
-            ft = Ud/st;
-
-            if(std::fabs(psi)>1.0472)
-            ft = std::max(ft, 0.8*f0_);
-
-            ft = std::max(0.3*f0_, std::min(fmax(), ft));
-            fctl_ = ft;
-        }
-
-        dprev_ = dist;
-        tprev_ = t;
-
-        rec_.mode = (dist<brain_arrive*L_) ? 3 : 0;
-    }
-
-    bt = std::max(-bmax_, std::min(bmax_, bt));
-
     // 2. avoidance: a turn to the free side, blended in with the threat, slower
     if(threat>0.0)
     {
-        const double w = std::min(1.0, threat/0.25);
-        bt = (1.0 - w)*bt + w*side*bmax_;
-        ft = std::max(0.3*f0_, ft*(1.0 - 0.3*w));
+        const double wv = std::min(1.0, threat/0.25);
+        bt = (1.0 - wv)*bt + wv*side*bmax_;
+        ft = std::max(0.3*f0_, ft*(1.0 - 0.3*wv));
+        bdec_ = bt;
 
-        if(w>0.2)
-        rec_.mode = 1;
+        if(wv>0.2)
+        mode = 1;
     }
 
     d.f = ft; d.a = 1.0; d.b = bt; d.ts = 0.0;
     next_ = t + std::min(0.5/ft, 0.5);
-    rec_.Ff = ft; rec_.Fa = 1.0; rec_.Fb = bt;
+    rec_.Ff = ft; rec_.Fa = 1.0; rec_.Fb = bt; rec_.mode = mode;
 
     return d;
 }
 
+void sixdof_brain::kf_update(const double H[2][3], const double y[2], double R, double dt)
+{
+    // random walk of the stride and of the current, then the two components of the ground velocity
+    kf_P_[0][0] += 1.0e-4*dt;
+    kf_P_[1][1] += 2.5e-3*dt;
+    kf_P_[2][2] += 2.5e-3*dt;
+
+    for(int m=0; m<2; ++m)
+    {
+        double Ph[3], K[3];
+        for(int i=0; i<3; ++i)
+        Ph[i] = kf_P_[i][0]*H[m][0] + kf_P_[i][1]*H[m][1] + kf_P_[i][2]*H[m][2];
+        const double S = H[m][0]*Ph[0] + H[m][1]*Ph[1] + H[m][2]*Ph[2] + R;
+        for(int i=0; i<3; ++i)
+        K[i] = Ph[i]/S;
+        const double e = y[m] - (H[m][0]*kf_x_[0] + H[m][1]*kf_x_[1] + H[m][2]*kf_x_[2]);
+        for(int i=0; i<3; ++i)
+        kf_x_[i] += K[i]*e;
+        for(int i=0; i<3; ++i)
+        for(int j=0; j<3; ++j)
+        kf_P_[i][j] -= K[i]*Ph[j];
+    }
+
+    kf_x_[0] = std::min(0.8, std::max(0.25, kf_x_[0]));
+}
+
 void sixdof_brain::ckpt_state(std::vector<double> &v) const
 {
-    v.push_back(1.0);      // version
-    for(double x : {T_, Uax_, llT_, t_start_, next_, stride_, refr_, double(nstride_), dprev_, tprev_, side_, fctl_})
+    v.push_back(2.0);      // version
+    for(double x : {T_, Uax_, llT_, t_start_, next_, refr_, side_, kf_on_ ? 1.0 : 0.0, ug_, tdec_, bdec_, Tset_ ? 1.0 : 0.0})
     v.push_back(x);
     for(int k=0; k<3; ++k)
     {
         v.push_back(ax_(k));
         v.push_back(lt_(k));
         v.push_back(c_(k));
+        v.push_back(pdec_(k));
+        v.push_back(Tprev_(k));
+        v.push_back(vT_(k));
+        v.push_back(kf_x_[k]);
+        for(int j=0; j<3; ++j)
+        v.push_back(kf_P_[k][j]);
     }
     v.push_back(double(llp_.size()));
     v.insert(v.end(), llp_.begin(), llp_.end());
@@ -299,18 +392,25 @@ void sixdof_brain::ckpt_state(std::vector<double> &v) const
 
 bool sixdof_brain::ckpt_restore(const std::vector<double> &v)
 {
-    if(v.size()<22 || int(v[0])!=1)
+    if(v.size()<50 || int(v[0])!=2)
     return false;
 
     size_t k = 1;
-    T_ = v[k++]; Uax_ = v[k++]; llT_ = v[k++]; t_start_ = v[k++]; next_ = v[k++]; stride_ = v[k++]; refr_ = v[k++];
-    nstride_ = int(v[k++]);
-    dprev_ = v[k++]; tprev_ = v[k++]; side_ = v[k++]; fctl_ = v[k++];
+    T_ = v[k++]; Uax_ = v[k++]; llT_ = v[k++]; t_start_ = v[k++]; next_ = v[k++]; refr_ = v[k++]; side_ = v[k++];
+    kf_on_ = (v[k++]!=0.0);
+    ug_ = v[k++]; tdec_ = v[k++]; bdec_ = v[k++];
+    Tset_ = (v[k++]!=0.0);
     for(int j=0; j<3; ++j)
     {
         ax_(j) = v[k++];
         lt_(j) = v[k++];
         c_(j) = v[k++];
+        pdec_(j) = v[k++];
+        Tprev_(j) = v[k++];
+        vT_(j) = v[k++];
+        kf_x_[j] = v[k++];
+        for(int i=0; i<3; ++i)
+        kf_P_[j][i] = v[k++];
     }
     const size_t n = size_t(v[k++]);
     if(v.size()<k+n)

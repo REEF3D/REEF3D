@@ -297,7 +297,8 @@ void sixdof_obj::brain_setup(lexer *p)
         
         if(reefckpt_open(printbrain,str,p->I45))
         printbrain<<"time \t target_x \t target_y \t target_z \t dist [m] \t bearing [deg] \t U [m/s] \t f [Hz] \t a \t b"
-                  <<" \t dp_head/q \t p_head/q \t d_vision/L \t mode (0 target, 1 avoid, 2 escape, 3 at target)"<<endl;
+                  <<" \t dp_head/q \t p_head/q \t d_vision/L \t mode (0 target, 1 avoid, 2 escape, 3 at target)"
+                  <<" \t stride [L] \t current_x \t current_y \t current_z [m/s] \t U_water [m/s]"<<endl;
     }
 }
 
@@ -425,6 +426,7 @@ void sixdof_obj::brain_update(lexer *p, ghostcell *pgc, const std::vector<double
     {
         const sixdof_brain::record &r = brain_->last();
         printbrain<<r.t<<" \t "<<r.tx<<" \t "<<r.ty<<" \t "<<r.tz<<" \t "<<r.dist<<" \t "<<r.psi*(180.0/PI)<<" \t "<<r.U
-                  <<" \t "<<r.Ff<<" \t "<<r.Fa<<" \t "<<r.Fb<<" \t "<<r.dpl<<" \t "<<r.phd<<" \t "<<r.dvis<<" \t "<<r.mode<<endl;
+                  <<" \t "<<r.Ff<<" \t "<<r.Fa<<" \t "<<r.Fb<<" \t "<<r.dpl<<" \t "<<r.phd<<" \t "<<r.dvis<<" \t "<<r.mode
+                  <<" \t "<<r.s<<" \t "<<r.cx<<" \t "<<r.cy<<" \t "<<r.cz<<" \t "<<r.Uw<<endl;
     }
 }
