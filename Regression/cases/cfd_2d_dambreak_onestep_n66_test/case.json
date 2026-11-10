@@ -1,0 +1,20 @@
+{
+ "base": "cfd_2d_dambreak_onestep",
+ "ctrl_add": [
+  "N 66 -3"
+ ],
+ "same_as": "cfd_2d_dambreak_onestep",
+ "description": "cfd_2d_dambreak_onestep with N 66 -3, the test of the repeat of a time step (patch 0178): every third step is taken back to the state kept at its start and done again with the same time step. The run has to be cfd_2d_dambreak_onestep bit for bit (regression.py ranks); the one-step scheme on a uniform grid.",
+ "tags": [
+  "2d",
+  "dambreak",
+  "levelset",
+  "closed",
+  "steprepeat"
+ ],
+ "covers": [
+  "step_repeat (N 66)",
+  "reefrun_ckpt::mem_save, mem_restore",
+  "reefckpt in memory"
+ ]
+}

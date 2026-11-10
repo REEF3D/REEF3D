@@ -1,0 +1,20 @@
+{
+ "base": "cfd_2d_dambreak_amr3_adapt_onestep_n63_rk3",
+ "ctrl_add": [
+  "N 66 -3"
+ ],
+ "same_as": "cfd_2d_dambreak_amr3_adapt_onestep_n63_rk3",
+ "description": "cfd_2d_dambreak_amr3_adapt_onestep_n63_rk3 with N 66 -3, the test of the repeat of a time step (patch 0178): every third step is taken back to the state kept at its start and done again with the same time step. The run has to be cfd_2d_dambreak_amr3_adapt_onestep_n63_rk3 bit for bit (regression.py ranks); adaptive mesh refinement: a step with a regrid is taken back, the patches of the start of the step are back.",
+ "tags": [
+  "2d",
+  "dambreak",
+  "levelset",
+  "amr",
+  "steprepeat"
+ ],
+ "covers": [
+  "step_repeat (N 66)",
+  "reefrun_ckpt::mem_save, mem_restore",
+  "reefckpt in memory"
+ ]
+}

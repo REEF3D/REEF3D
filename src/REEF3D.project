@@ -1304,6 +1304,7 @@
         <VirtualDirectory Name="Lagoon">
           <File Name="georef.h"/>
           <File Name="lagoon_output.h"/>
+          <File Name="lagoon_nets.h"/>
           <File Name="lagoon_store.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Runlog">
@@ -3493,6 +3494,7 @@
       <VirtualDirectory Name="Printer">
         <VirtualDirectory Name="Lagoon">
           <File Name="lagoon_store.cpp"/>
+          <File Name="lagoon_nets.cpp"/>
           <File Name="lagoon_output.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Runlog">
