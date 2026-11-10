@@ -23,6 +23,7 @@ Architect: Hans Bihs
 #include"cfd_amr.h"
 #include"reef3d_mpmd.h"
 #include<map>
+#include<unordered_map>
 #include<tuple>
 #include"lexer.h"
 #include"fdm.h"
@@ -1271,7 +1272,20 @@ void cfd_amr::pr_hydro(int lsub)
     const double g = fabs(p0->W22);
 
 
-    // grid gg, column (i,j): p_h of cell kc, from the plane on top of cell ktop-1 (kc <= ktop)
+    // grid gg, column (i,j): p_h of cell kc, from the plane on top of cell ktop-1 (kc <= ktop).
+    // The sum down a column is kept (cols): the faces of a patch edge share their columns (every
+    // face under a patch, and the columns of the coarse values of its neighbours, took the sum
+    // from the top of the patch again: with a patch n cells high n smoothed steps and interface
+    // widths per face).  The same terms in the same order: the same values
+    struct hcol
+    {
+        int kdone;              // the sum holds the faces down to cell kdone
+        bool bad;               // a cell without flag below kdone: no value further down
+        double h;               // the sum at kdone
+        vector<double> hk;      // the sums of the cells ktop-1, ktop-2, ..
+    };
+    std::unordered_map<unsigned long long,hcol> cols;
+
     auto column = [&](int gg, int i, int j, int ktop, int kc, double &val) -> bool
     {
         lexer *q = glex(gg);
@@ -1286,21 +1300,41 @@ void cfd_amr::pr_hydro(int lsub)
         if(q->flag4[cix(q,i,j,k)]<=0 && k<ktop)
         return false;
 
-        double h = g*rho(phi(i,j,ktop-1),interface_width(q,phi,i,j,ktop-1))*0.5*q->DZN[ktop-1+marge];   // cell ktop-1
+        const unsigned long long key = ((unsigned long long)(gg+1)<<50) | ((unsigned long long)(i+m)<<32) | ((unsigned long long)(j+m)<<14) | (unsigned long long)(ktop+m);   // (18 bits for i and j, 14 for k)
+        auto it = cols.find(key);
+        if(it==cols.end())
+        {
+            hcol c;
+            c.kdone = ktop-1;
+            c.bad = false;
+            c.h = g*rho(phi(i,j,ktop-1),interface_width(q,phi,i,j,ktop-1))*0.5*q->DZN[ktop-1+marge];   // cell ktop-1
+            c.hk.push_back(c.h);
+            it = cols.emplace(key,std::move(c)).first;
+        }
+        hcol &c = it->second;
+
         if(kc==ktop)
         {
             if(q->flag4[cix(q,i,j,ktop)]<=0)
             return false;
-            val = h - g*rho(0.5*(phi(i,j,ktop-1)+phi(i,j,ktop)),interface_width_face(q,phi,i,j,ktop-1,0,0,1))*q->DZP[ktop-1+marge];
+            val = c.hk[0] - g*rho(0.5*(phi(i,j,ktop-1)+phi(i,j,ktop)),interface_width_face(q,phi,i,j,ktop-1,0,0,1))*q->DZP[ktop-1+marge];
             return true;
         }
-        for(int k=ktop-2; k>=kc; --k)
+        while(c.kdone>kc && !c.bad)
         {
+            const int k = c.kdone-1;
             if(q->flag4[cix(q,i,j,k)]<=0)
-            return false;
-            h += g*rho(0.5*(phi(i,j,k)+phi(i,j,k+1)),interface_width_face(q,phi,i,j,k,0,0,1))*q->DZP[k+marge];
+            {
+                c.bad = true;
+                break;
+            }
+            c.h += g*rho(0.5*(phi(i,j,k)+phi(i,j,k+1)),interface_width_face(q,phi,i,j,k,0,0,1))*q->DZP[k+marge];
+            c.hk.push_back(c.h);
+            c.kdone = k;
         }
-        val = h;
+        if(c.kdone>kc)
+        return false;
+        val = c.hk[ktop-1-kc];
         return true;
     };
 
