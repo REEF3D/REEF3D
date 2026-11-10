@@ -85,7 +85,7 @@ public:
     double A522,A526,A528;
     double A531;
     int A532,A533;
-    int A505,A507,A534,A537,A539;          // NHFLOW hydrostatic semi-implicit free surface
+    int A505,A507,A508,A534,A537,A539;          // NHFLOW hydrostatic semi-implicit free surface
     double A506,A535,A536,A538;
     int A540;
     double A544,A545,A546;
@@ -99,7 +99,7 @@ public:
     double A601_s,A601_t,A602_x1,A602_y1,A602_c1,A602_x2,A602_y2,A602_c2,A603_x1,A603_y1,A603_c1,A603_x2,A603_y2,A603_c2;
     double A604,A605_sig,A605_k0,A606_s,A606_t,A607_s,A607_t,A608;
     int A550,A551,A552;
-    double A554,A555,A557;
+    double A554,A555,A557,A558;
     double A501,A502,A503,A504;
     int A560;
     int A564,A565,A566,A567;
