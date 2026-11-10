@@ -32,7 +32,7 @@ Architect: Hans Bihs
 #include<cmath>
 
 // The period of the wave input for the relaxation zones of theta-Robin (A 303 <= -1, fnpf_theta::relax_scale):
-// regular waves wT, spectra wTp (as the step of N 51 3, fnpf_timestep::theta_tref, which does not use the peak
+// regular waves wT, spectra wTp (as the step of N 48 1, fnpf_timestep::theta_tref, which does not use the peak
 // period of reconstructed waves). Reconstructed waves (B 92 51-53,
 // waverecon.dat "A omega phase [direction]") have no wTp (other code takes wTp as the input of a spectrum, so it
 // stays 0 there); their period is the peak of the component spectrum S_n = A_n^2/(2 dw_n), smoothed as

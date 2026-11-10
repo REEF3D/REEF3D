@@ -2816,7 +2816,7 @@ void sflow_amr::timestep(lexer *p, fdm2D *b, ghostcell *pgc)
 
     dtp = pgc->globalmin(dtp);
 
-    if(p->N48==1)
+    if(p->N48>=1)
     p->dt = MIN(p->dt,dtp);
 }
 

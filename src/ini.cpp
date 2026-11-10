@@ -77,7 +77,7 @@ void control::ini_default()
     A333=0.0;    // double FNPF theta-Robin (A 310 5), A 343 >= 1: > 0 the coastline relaxation per time as RK3 at N 47 A333 (0: as the zones, A 303)
     A303=-200.0; // double FNPF theta-Robin (A 310 5): relaxation zones, >0: factors r^(dt/A303); 0: r per step; -1<A303<0: per time as the three RK3 stages at N 47 -A303; <=-1: as an RK3 run with -A303 steps per period of the wave input (patch 0032); per step at least as one RK3 step
     A306=1;      // int FNPF theta-Robin (A 310 5): linear solver, 1 REEFMG (N 10 1, 2D/3D, MPI), 2 Eigen SparseLU (2D, serial)
-    A308=0.0;    // double FNPF theta-Robin (A 310 5, A 305 0.5, N 51 2): safety factor c of the 4th-order phase (Newmark beta = max(1/12, 1/4 - 1/(c omega_max dt)^2)); 0: Crank-Nicolson (beta 1/4)
+    A308=0.0;    // double FNPF theta-Robin (A 310 5, A 305 0.5): safety factor c of the 4th-order phase (Newmark beta = max(1/12, 1/4 - 1/(c omega_max dt)^2)); 0: Crank-Nicolson (beta 1/4)
     A307=1.0e-2; // double FNPF theta-Robin (A 310 5), REEFMG with corrector passes: each solve reduces its residual by A307 from the warm start (0: N 44)
     A302=4;      // int FNPF theta-Robin (A 310 5): max corrector passes (sigma grid of eta^n+1, N at t^n+1/2 trapezoidal, cross terms of the last solution)
     A309=1;      // int interpolation sweeps for bed
@@ -979,17 +979,16 @@ void control::ini_default()
 	N45=1e8;		// max outer iter
 	N46=250;		// int max number of solver iterations
 	N47=0.3;		// doubel relaxation factor for time stepping
-	N48=1;          // int adaptive timestepping
+	N48=1;          // int time step: 0 fixed (N 49), 1 adaptive; FNPF: 1 RK3/RK4 with sqrt(g h_max), theta-Robin (A 310 5) the step of the accuracy target N 55, 2 N 47 x the stability step of the scheme on the grid (theta-Robin: of RK3); other solvers: 2 as 1
 	N49=1.0;		// double max timestep or fixed timesteps
     N50=1;          // int adaptive timestepping method
-    N51=0;          // int FNPF time step: 0 sqrt(g h_max), 1 dispersive sqrt(g dx tanh(h/dx)) + |u|, 2 discrete sigma-grid DtN (dt omega_max = N47 RK limit)
     N59=0;          // int CFD N 40 5, 6 with the level set: 1 the momentum per volume rho u carried with the mass flux (godunov), 2 as 1 with the face density of the mass flux from the level set at the half step of its transport, 0 the velocity
     N63=0;          // int CFD N 40 5, 6: the convection of the level set, 0 Godunov (as the momentum), 1 the scheme of F 35 in one forward-Euler step with the projected velocity, 2 in SSP-RK2 stages, 3 in SSP-RK3 stages (the velocity held fixed)
     N65=0;          // int CFD N 40 5, 6 with N 57: 1 the momentum of the air beyond the band of N 57 semi-Lagrangian (stable at any Courant number), the air out of the time step but for the reach of the departure point (2 cells); 0 the Godunov convection
     N52=0.0;        // double FNPF time step accuracy cap: shortest relevant wave period T_min [s], 0 off
     N53=40.0;       // double FNPF time step accuracy cap: time steps per T_min, dt <= N52/N53
     N54=0.0;        // double CFD time step: 0 the acceleration term with gravity; > 0 gravity out of the acceleration term (the projection balances it) and the gravity-wave limit omega_max dt <= N54
-    N55=1.5;        // double FNPF time step N 51 3 (theta-Robin A 310 5): phase-speed error [%] of the reference wave (N 52, or the period of the wave input)
+    N55=1.5;        // double FNPF time step of theta-Robin (A 310 5, N 48 1): phase-speed error [%] of the reference wave (N 52, or the period of the wave input)
     N57=0.0;        // double CFD time step with the level set: 0 off; > 0 the criterion N 47 over the water and a band of N57 cells into the air, the air beyond the band with the stability limit N 58
     N58=0.9;        // double CFD time step, N 57 > 0: Courant number of the air beyond the band, dt <= N58/max(|u|/dx + |v|/dy + |w|/dz)
 	N61=500.0;      // double stopping criteria velocities

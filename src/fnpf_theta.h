@@ -50,12 +50,12 @@ using namespace std;
 // (A 341/A 342/A 347) and Fifsf = 0 on land are part of the affine maps of the zones (relax_affine), i.e. of the
 // Robin rows and the eta update; the dry columns are not in the solve (A 343 1: Fifsf of the land map, A 343 2:
 // held, set by wetdry_dynamic after the step); the clamps and the dynamic front after the step are surface edits
-// (consistency solve). With a coastline N 51 3 uses at most the RK3 step of N 51 2 at N 47 0.75. The corrector
+// (consistency solve). With a coastline N 48 1 uses at most the RK3 step of N 48 2 at N 47 0.75. The corrector
 // passes precondition the change of the nonlinear terms with the advection (precond_adv) where the surface Courant
 // number |Fx| dt/dx exceeds 0.5; without that they diverged at the swash at 2 x the RK3 step. With it,
-// a static coastline runs at 2-3 x the RK3 step with N 51 2 and N 47 1.5-2.25 (Ting & Kirby: the breaking point as at
+// a static coastline runs at 2-3 x the RK3 step with N 48 2 and N 47 1.5-2.25 (Ting & Kirby: the breaking point as at
 // the RK3 step); but in Mase & Kirby the Hm0 of the shallowest gauges grows with the step (no numerical damping),
-// and the moving coastline (A 343 2) is unstable at 2 x at the wetted front, so N 51 3 keeps the RK3 step there
+// and the moving coastline (A 343 2) is unstable at 2 x at the wetted front, so N 48 1 keeps the RK3 step there
 // (validation 09).
 //
 // Resolved floating bodies (X 10 1, fnpf_6DOF): the body moves with Heun (sixdof_obj::rk2): stage 0 with the loads of
@@ -63,13 +63,13 @@ using namespace std;
 // kE1, kF1) in corrector pass 0; the later passes solve with the body at t^n+1. The footprint columns are Dirichlet
 // nodes with the extended Fifsf, not Robin rows; the body geometry on the sigma grid of a pass before its assembly
 // (solve_pre), the body band of Fi after the solve (solve_post); the psi solves of the loads with the plain Laplace
-// solver. N 51 3 stays at the RK3 step: the natural periods of the body limit it. Not with externally driven bodies,
+// solver. N 48 1 stays at the RK3 step: the natural periods of the body limit it. Not with externally driven bodies,
 // SparseLU or without corrector passes (A 302 >= 1).
 //
 // Mesh refinement (G 1, fnpf_amr_theta.cpp): the patches take the same step (tendencies, predictor, corrector passes)
 // and the Robin rows of all grids are solved together in the composite solve of fnpf_amr, with the couplings of the sz
 // stencil beyond k-1 in its operator and lumped into k-1 in its V-cycles; after each update the state of all grids is
-// made consistent (restriction, the cells around the patches). N 51 3 with the stability step of the finest cells. The
+// made consistent (restriction, the cells around the patches). N 48 1 with the stability step of the finest cells. The
 // patches with breaking A 350 1-3 (damping at the start of the step, detection and filters at its end, as level 0),
 // without bodies, wetting-drying (G 30 0) or subcycling (refused).
 //
@@ -141,7 +141,7 @@ using namespace std;
 // Wave generation and absorption at the edges (patch 0037): B 98 3/4 (and 6-8) and B 99 3-5, 7 (and 6, 8) through
 // iowave::inflow_fnpf as in RK3, with the targets at t^n+1, in the predictor and in each corrector pass with eta^n+1
 // of the pass. In the 2D flume of fnpf_2d_regular theta with Dirichlet generation has the error of theta with the
-// relaxation zone (the Crank-Nicolson phase of N 51 3); Mase & Kirby with B 98 4 and second-order reconstruction:
+// relaxation zone (the Crank-Nicolson phase of N 48 1); Mase & Kirby with B 98 4 and second-order reconstruction:
 // 0.197 (0.281 with the relaxation zone; RK3 0.120), 0.125 with A 379 0.1 2.0 (validation 16).
 //
 // Damping with the viscosity vb of breaking and of the coastline (A 350, A 357): at the start of the step, as a
@@ -153,18 +153,18 @@ using namespace std;
 // A 306 linear solver (1 REEFMG, default; 2 SparseLU), A 307 residual reduction of the REEFMG solves (default
 // 1e-2; 0: N 44).
 //
-// A 308 c > 0 (theta 0.5, N 51 2): 4th-order phase. The step above is the Newmark scheme (gamma = theta) with
+// A 308 c > 0 (theta 0.5, N 48 2): 4th-order phase. The step above is the Newmark scheme (gamma = theta) with
 // beta = theta^2 = 1/4 in the Fifsf update,
 //   Fifsf^n+1 + g beta dt^2 w^n+1 = Fifsf^n - g dt eta^n - g (theta - beta) dt^2 w^n - g theta dt^2 N_eta + dt N_Fi,
 // whose relative frequency error is (beta - 1/12) (omega dt)^2/2: (omega dt)^2/12 for Crank-Nicolson, of 4th
 // order for beta = 1/12 (Fox-Goodwin). Below 1/4 the scheme is stable for omega dt < 1/sqrt(1/4 - beta);
 // beta = max(1/12, 1/4 - 1/(c omega_max dt)^2) per step, omega_max dt = sqrt(3) dt/dt_crit the grid cut-off
-// mode of N 51 2 (Doppler shift included). The eta update and the cost are unchanged.
+// mode of N 48 2 (Doppler shift included). The eta update and the cost are unchanged.
 //   Near the limit the discrete frequencies of the shortest resolved waves approach pi/dt (Crank-Nicolson
 //   compresses them below the exact ones), so the gain is in the waves well below the cut-off: at twice the RK3
 //   step Beji & Battjes 0.233 instead of 0.351 (rel. rms), Stokes 0.03 instead of 1.26 (A 308 1); JONSWAP Hm0
 //   -5.5 % instead of -4.6 %; at four times the RK3 step no gain. Unstable at 4x with c = 0.6, stable with
-//   c = 0.8: the cut-off estimate of N 51 2 is conservative by about 1.3-1.6 (6 November 2026).
+//   c = 0.8: the cut-off estimate of N 48 2 is conservative by about 1.3-1.6 (6 November 2026).
 // A 305 theta (default 0.5: 0.55 damps 9 % per period at 21 steps), A 302 corrector passes (default 4),
 // A 303 relaxation zones: > 0 factors r^(dt/A 303), 0 r per step, -1 < A 303 < 0 per time as the three RK3 stages
 // of an RK3 run at N 47 -A 303, <= -1 (default -200) as an RK3 run with -A 303 steps per period of the wave input;
@@ -172,7 +172,7 @@ using namespace std;
 // corrector (default 1e-3); A 379 delta d: theta + delta within d [m] of the still-water coastline (default off);
 // A 406 n: a failed step is repeated with half the step, at most n times (default 3, 0 off; patch 0038).
 //
-// A 379 (patch 0034): in the inner surf and swash zone the theta step at the RK3 step (N 51 3 with a coastline)
+// A 379 (patch 0034): in the inner surf and swash zone the theta step at the RK3 step (N 48 1 with a coastline)
 // carries more short-wave energy than the converged solution: Mase & Kirby, Hm0 above 0.3 Hz at h = 2.5 cm 9 % above
 // RK3 at N 47 0.25, 4 % at half the step, 2 % at a quarter (passes, filters, breaking thresholds and zone strength
 // do not change it). Off-centring theta there damps it: A 379 0.1 2.0 puts the inner gauges on the converged RK3

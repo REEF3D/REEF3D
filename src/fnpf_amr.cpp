@@ -1528,7 +1528,7 @@ void fnpf_amr::step_end(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     load_step(p);
 }
 
-// time step of the finest grid, same CFL as fnpf_timestep (N 51)
+// time step of the finest grid, same rule as fnpf_timestep (N 48)
 void fnpf_amr::timestep(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 {
     if(maxlev<1)
@@ -1566,18 +1566,10 @@ void fnpf_amr::timestep(lexer *p, fdm_fnpf *c, ghostcell *pgc)
         if(pp->flagslice4[lij(pp,ii,jj)]>0)
         {
             double dx = sc(q)*((pp->j_dir==1) ? MIN(pp->DXN[ii+marge],pp->DYN[jj+marge]) : pp->DXN[ii+marge]);
-            if(p->N51==1)
+            if(fnpf_timestep::rule(p)>=2)
             {
-            // dispersive (N 51 1): the deepest column with the cell size of the patch (tanh(h/dx) saturates)
-            cu = MIN(cu, dx/fnpf_timestep::wave_speed(p,p->umax,depthmax,dx,depthmax));
-            cu = MIN(cu, dx/fnpf_timestep::wave_speed(p,p->vmax,depthmax,dx,depthmax));
-            continue;
-            }
-            
-            if(p->N51==2 || p->N51==3)
-            {
-            // discrete (N 51 2): the cut-off mode of the patch cells in the deepest column; N 51 3 (theta-Robin):
-            // its stability step (below)
+            // stability step (N 48 2): the cut-off mode of the patch cells in the deepest column; theta-Robin with
+            // N 48 1: its stability step (below)
             const double dxp = sc(q)*pp->DXN[ii+marge];
             const double dyp = sc(q)*pp->DYN[jj+marge];
             const int ydir = (pp->j_dir==1 && pp->knoy>1) ? 1 : 0;
@@ -1593,10 +1585,10 @@ void fnpf_amr::timestep(lexer *p, fdm_fnpf *c, ghostcell *pgc)
         }
     }
 
-    // N 51 3 (theta-Robin): the step of the accuracy target bounded by the stability step of the patch cells
+    // theta-Robin, N 48 1: the step of the accuracy target bounded by the stability step of the patch cells
     // (fnpf_timestep::theta_step: at most 4 x the RK3 step of the finest grid); dt_crit of the finest grid
     // (the Newmark beta of A 308)
-    if(p->N51==3)
+    if(fnpf_timestep::rule(p)==3)
     {
         cu = pgc->globalmin(cu);
         if(cu<1.0e10)

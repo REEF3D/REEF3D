@@ -1955,8 +1955,6 @@ void control::ctrlrecv()
     dd++;
     N50 = ictrl[ii];
     ii++;
-    N51 = ictrl[ii];
-    ii++;
     N59 = ictrl[ii];
     ii++;
     N63 = ictrl[ii];

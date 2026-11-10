@@ -101,7 +101,7 @@ Return code 0 if all cases pass (or fail as expected, see XFAIL).
 | `nhflow_mase_kirby_irregular` | NHFLOW | Mase & Kirby (1992) | Hm0 and skewness at 12 gauges | 362 x 5, 200 s | 725 x 8, 420 s |
 | `fnpf_mase_kirby_irregular` | FNPF | Mase & Kirby (1992) | Hm0 and skewness at 12 gauges | 362 x 8, 200 s | 725 x 10, 420 s |
 | `fnpf_mase_kirby_irregular_awa` | FNPF | Mase & Kirby (1992) | as `fnpf_mase_kirby_irregular`, with absorbing second-order generation (B 98 4, B 92 52, components above 0.3 Hz) | 362 x 8, 200 s | 725 x 10, 420 s |
-| `fnpf_mase_kirby_irregular_awa_theta_robin` | FNPF theta-Robin | Mase & Kirby (1992) | as `fnpf_mase_kirby_irregular_awa` with A 310 5, N 51 3 | 362 x 8, 200 s | 725 x 10, 420 s |
+| `fnpf_mase_kirby_irregular_awa_theta_robin` | FNPF theta-Robin | Mase & Kirby (1992) | as `fnpf_mase_kirby_irregular_awa` with A 310 5 (time step of the accuracy target, N 48 1) | 362 x 8, 200 s | 725 x 10, 420 s |
 | `nhflow_rapp_melville_rn`, `_rs1`, `_rp1`, `_rp2` | NHFLOW A 550 4 | Rapp & Melville (1990), LES of Derakhti & Kirby (2016) | energy loss of the focused packet (RN: none) | 1500 x 16, 40 s | 1500 x 16, 40 s, np 2 |
 | `fnpf_rapp_melville_rn`, `_rs1`, `_rp1`, `_rp2` | FNPF A 350 4 | Rapp & Melville (1990), LES of Derakhti & Kirby (2016) | energy loss of the focused packet (RN: none) | 625 x 10 (L_c/40), 40 s | 1500 x 16, 40 s, np 2 |
 | `nhflow_tian_tp2` | NHFLOW A 550 4 | Tian et al. (2010), LES of Derakhti & Kirby (2016) | energy loss, deep water k d = 7 | 800 x 10, 36 s | 1600 x 20, 36 s |

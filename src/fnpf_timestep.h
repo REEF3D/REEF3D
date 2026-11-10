@@ -41,10 +41,14 @@ public:
 	void start(fdm_fnpf*, lexer*,ghostcell*);
 	void ini(fdm_fnpf*, lexer*,ghostcell*);
 
-    // N 51: the gravity wave speed of the CFL criterion (also used by fnpf_amr::timestep)
+    // N 48: the rule of the time step, 1 sqrt(g h_max) (RK3, RK4), 2 stability step of the grid, 3 accuracy step of
+    // theta-Robin (N 48 1 with A 310 5)
+    static int rule(lexer*);
+    
+    // N 48 1: the gravity wave speed of the CFL criterion (also used by fnpf_amr::timestep)
     static double wave_speed(lexer*, double u, double h, double dx, double hmax);
     
-    // N 51 2: frequency of the grid cut-off mode with the discrete Dirichlet-to-Neumann operator of the sigma grid,
+    // N 48 2: frequency of the grid cut-off mode with the discrete Dirichlet-to-Neumann operator of the sigma grid,
     // kh2 the symbol of the horizontal cds2 Laplacian at the Nyquist mode, h the water depth
     static double omega_discrete(lexer*, double kh2, double h);
     static double rk_limit(lexer*);                        // linear stability bound of the RK scheme on the imaginary axis
@@ -52,9 +56,9 @@ public:
     
     // N 52, N 53: accuracy cap dt <= N52/N53
     static void accuracy_cap(lexer*);
-    static double theta_tref(lexer*);                       // N 51 3: period of the reference wave
-    static double theta_error(lexer*, double, double, double); // N 51 3: phase-speed error of theta-Robin
-    static double theta_step(lexer*, double);               // N 51 3: the step of the accuracy target N 55
+    static double theta_tref(lexer*);                       // theta-Robin, N 48 1: period of the reference wave
+    static double theta_error(lexer*, double, double, double); // theta-Robin, N 48 1: phase-speed error of theta-Robin
+    static double theta_step(lexer*, double);               // theta-Robin, N 48 1: the step of the accuracy target N 55
 
 
 private:

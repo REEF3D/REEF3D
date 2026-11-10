@@ -85,10 +85,11 @@ void driver::logic_cfd()
     if(p->N48==0)
 	ptstep=new fixtimestep(p);
 
-    if((p->N48==1)  && (p->D20!=0&&p->D20!=2))
+    // N 48 2 (FNPF: stability step of the grid) as N 48 1
+    if((p->N48>=1)  && (p->D20!=0&&p->D20!=2))
 	ptstep=new etimestep(p);
 
-	if((p->N48==1) && (p->D20==0||p->D20>=2))
+	if((p->N48>=1) && (p->D20==0||p->D20>=2))
 	ptstep=new ietimestep(p);
 
 

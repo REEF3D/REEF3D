@@ -44,11 +44,12 @@ void sflow_f::logic(lexer *p, fdm2D* b, ghostcell* pgc)
     if(p->N48==0)
 	ptime = new sflow_fixtimestep(p,b);
     
-    if(p->N48==1 && p->A226==0)
+    // N 48 2 (FNPF: stability step of the grid) as N 48 1
+    if(p->N48>=1 && p->A226==0)
 	ptime = new sflow_etimestep(p,b);
     
     // semi-implicit free surface (A 210 11/12/13): advective time step
-    if(p->N48==1 && p->A226==1)
+    if(p->N48>=1 && p->A226==1)
 	ptime = new sflow_timestep_SI(p,b);
 	
     // HLL fluxes, signal speeds and reconstruction (A 211: 0 first-order, 1-3 limiter, 4 WENO)

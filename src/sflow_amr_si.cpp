@@ -706,7 +706,7 @@ void sflow_amr::si_timestep(lexer *p, ghostcell *pgc)
 
     const double dtp = pgc->globalmin(MIN(cfl*2.0*cmin,capw));
 
-    if(p->N48==1)
+    if(p->N48>=1)
     p->dt = MIN(p->dt,dtp);
 
     p->dt = pgc->timesync(p->dt);

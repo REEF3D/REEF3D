@@ -141,7 +141,6 @@ fnpf_theta::fnpf_theta(lexer *p, fdm_fnpf *c, ghostcell *pgc) : fnpf_ini(p,c,pgc
     if(thloc && p->A343<1)          {bad=1; if(p->mpirank==0) cout<<"A 310 5: A 379 needs a coastline (A 343 1 or 2)"<<endl;}
     if(thloc && p->G1>0)            {bad=1; if(p->mpirank==0) cout<<"A 310 5: A 379 without mesh refinement (G 1 0)"<<endl;}
     if(p->A308>0.0 && theta!=0.5)   {bad=1; if(p->mpirank==0) cout<<"A 310 5: the 4th-order phase (A 308) needs theta 0.5 (A 305)"<<endl;}
-    if(p->A308>0.0 && p->N51<2)     {bad=1; if(p->mpirank==0) cout<<"A 310 5: the 4th-order phase (A 308) needs the time step N 51 2 or 3"<<endl;}
     
     if(bad==1)
     pgc->final(true);
@@ -179,7 +178,7 @@ fnpf_theta::~fnpf_theta()
 // A 406 n (default 3, patch 0038): a step whose Laplace solves fail (diverged, NaN, the iteration limit N 46), whose
 // largest surface velocity jumps (more than 3 times that at t^n plus 1 m/s) or whose state is not finite is repeated
 // from t^n with half the step, at most n times; the steps after it grow by at most 2 per step. In a steep deep-water
-// JONSWAP sea (Hs 15.6 m, Tp 15 s, A 350 4, A 405 0.5, A 352 3) at N 51 3 a consistency solve after a breaking edit
+// JONSWAP sea (Hs 15.6 m, Tp 15 s, A 350 4, A 405 0.5, A 352 3) at N 48 1 a consistency solve after a breaking edit
 // did not converge after 1035 s and the next step blew up: with A 406 the run went to 3000 s (13 steps repeated).
 // It does not help where a crest overturns: in another realisation a one-cell spike after the generation zone grew
 // into a jet that A 350 4 damped with 0.3-2.6 m2/s only, and the run stopped at 2519.6 s as without A 406 (2515.9 s).
@@ -394,7 +393,7 @@ bool fnpf_theta::step(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, conv
     
     // A 308 > 0: Newmark beta of the Fifsf update below 1/4 for a phase error of 4th order (beta 1/12) or
     // smaller than that of Crank-Nicolson, within the stability limit omega dt < 1/sqrt(1/4 - beta) of the
-    // grid cut-off mode, omega_max dt = sqrt(3) dt/dt_crit (N 51 2: dt_crit = sqrt(3)/omega_max, with the
+    // grid cut-off mode, omega_max dt = sqrt(3) dt/dt_crit (N 48 2: dt_crit = sqrt(3)/omega_max, with the
     // Doppler shift), with the safety factor c = A 308
     beta = theta*theta;
     if(p->A308>0.0 && p->dt_crit>0.0)

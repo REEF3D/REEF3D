@@ -2765,7 +2765,10 @@ void control::read_control(lexer* p)
                 case 50: control>>N50;
                          clear(c,numint);
                          break;
-                case 51: control>>N51;
+                case 51: // retired: the FNPF time step rule is N 48 (N 51 2 -> N 48 2; N 51 3: theta-Robin with N 48 1)
+                         retired_key(control,p,c,numint);
+                         if(p->mpirank==0)
+                         cout<<"ctrl.txt: the FNPF time step rule N 51 is N 48 now: N 48 2 for N 51 2, N 48 1 (default) for N 51 0 and, with A 310 5, for N 51 3"<<endl;
                          clear(c,numint);
                          break;
                 case 59: control>>N59;

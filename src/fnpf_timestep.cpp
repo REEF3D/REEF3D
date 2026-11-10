@@ -36,37 +36,38 @@ fnpf_timestep::~fnpf_timestep()
 {
 }
 
-// N 51: the gravity-wave part of the time step
+// N 48: the time step of FNPF (N 51 until November 2026)
 //
-//  0  (default)   dt = N47 dx / MAX(|u|, sqrt(g h_max)): the shallow-water wave speed of the deepest column
-//  1  dispersive  dt = N47 dx / (|u| + sqrt(g dx tanh(h/dx))), h the local water depth
-//  2  discrete    dt = N47 C_RK / (omega_d + pi |u|/dx + pi |v|/dy), omega_d = sqrt(g D(k)) of the grid cut-off
+//  0  fixed       dt = N 49
+//  1  (default)   RK3, RK4: dt = N47 dx / MAX(|u|, sqrt(g h_max)), the shallow-water wave speed of the deepest column
+//                 theta-Robin (A 310 5): the step of an accuracy target, the phase-speed error N 55 [%] of the reference
+//                 wave (period N 52, or of the wave input), at most 4 x the stability step of RK3 at N 47 0.75, with a
+//                 coastline (A 343 >= 1) or a floating body (X 10) at most that step (theta_step). The semi-implicit
+//                 scheme is stable for every gravity wave, so its step follows from accuracy, as in SFLOW and NHFLOW
+//  2  stability   dt = N47 C_RK / (omega_d + pi |u|/dx + pi |v|/dy), omega_d = sqrt(g D(k)) of the grid cut-off
 //                 mode with the discrete Dirichlet-to-Neumann operator D of the sigma grid (Laplace cds2 and the
 //                 free-surface sz stencil of A311/A327), C_RK = sqrt(3) (RK3), 2 sqrt(2) (RK4): N47 is the
-//                 fraction of the linear stability limit of the RK scheme (N47 < 1), for any depth, 2D and 3D
+//                 fraction of the linear stability limit of the RK scheme (N47 < 1), for any depth, 2D and 3D.
+//                 theta-Robin: N47 times the stability step of RK3 (N47 > 1 allowed)
 //
-//  3  theta-Robin (A 310 5): the step of an accuracy target, the phase-speed error N 55 [%] of the reference
-//                 wave (period N 52, or of the wave input), at most 4 x the step of N 51 2 at N 47 0.75, with a
-//                 coastline (A 343 >= 1) or a floating body (X 10) at most that step (theta_step)
+// rule(): 1, 2 as above, 3 the accuracy step of theta-Robin (N 48 1 with A 310 5; N 48 0 with A 310 5 for dt_crit).
 //
-// N 52 T_min > 0, N 53 n: accuracy cap dt <= T_min/n (any N 51). Once the stability limit is no longer the
+// N 52 T_min > 0, N 53 n: accuracy cap dt <= T_min/n (RK3, RK4). Once the stability limit is no longer the
 // constraint, the RK damping of the short waves sets the accuracy (RK3: about (pi/12)(omega dt)^3 per period).
 //
 // In potential flow no wave travels at sqrt(g h) on the grid scale: the fastest discrete mode is the shortest
-// wave the grid resolves, k = pi/dx, with omega = sqrt(g k tanh(k h)). The speed of N 51 1 (the gravity-wave
-// CFL of the multilayer solver of Popinet 2020) is sqrt(g h) for h << dx, as N 51 0, and sqrt(g dx)
-// for h >> dx, i.e. the time step grows with sqrt(h/dx) in deep water. With RK3 (stable for omega dt < sqrt(3))
-// the linear limit in deep water is N47 < 0.98 in 2D and about 0.8 in 3D with dx = dy (k = pi sqrt(2)/dx).
+// wave the grid resolves, k = pi/dx, with omega = sqrt(g k tanh(k h)): in deep water the step of N 48 2 grows with
+// sqrt(h/dx) against that of N 48 1.
+int fnpf_timestep::rule(lexer *p)
+{
+    if(p->A310==5)
+    return p->N48==2 ? 2 : 3;
+    
+    return p->N48==2 ? 2 : 1;
+}
+
 double fnpf_timestep::wave_speed(lexer *p, double u, double h, double dx, double hmax)
 {
-    if(p->N51==1)
-    {
-    const double g = fabs(p->W22)>0.0 ? fabs(p->W22) : 9.81;
-    h = MAX(h,0.0);
-    
-    return fabs(u) + sqrt(g*dx*tanh(h/dx));
-    }
-    
     return fabs(MAX(u, sqrt(9.81*hmax)));
 }
 
@@ -79,7 +80,7 @@ double fnpf_timestep::rk_limit(lexer *p)
     return (p->A310==4) ? 2.0*sqrt(2.0) : sqrt(3.0);
 }
 
-// N 51 2: omega of the grid cut-off mode, kh2 = kx^2 + ky^2 the symbol of the horizontal cds2 Laplacian
+// N 48 2: omega of the grid cut-off mode, kh2 = kx^2 + ky^2 the symbol of the horizontal cds2 Laplacian
 // at the Nyquist mode (4/dx^2 on a uniform grid), h the local water depth
 double fnpf_timestep::omega_discrete(lexer *p, double kh2, double h)
 {
@@ -94,11 +95,11 @@ double fnpf_timestep::omega_discrete(lexer *p, double kh2, double h)
     return sqrt(g*gq/h);
 }
 
-// N 51 3 (theta-Robin A 310 5): theta-Robin is stable for every gravity wave, so the step is set by accuracy.
+// theta-Robin (A 310 5), N 48 1: theta-Robin is stable for every gravity wave, so the step is set by accuracy.
 // The relative phase-speed error of a wave of period T with omega dt = W is, for theta 1/2 and the Newmark beta
 // of A 308 (beta 1/4 without: Crank-Nicolson), 1 - phi/W with 4 sin^2(phi/2) = W^2/(1 + beta W^2) (exact for
 // the linear oscillator; CN: phi = 2 atan(W/2), about W^2/12). dt is the largest step whose error at the
-// reference wave is at most N 55 per cent, at most 4 x the RK3 step of N 51 2 at N 47 0.75 (3 dt_crit, the
+// reference wave is at most N 55 per cent, at most 4 x the RK3 step of N 48 2 at N 47 0.75 (3 dt_crit, the
 // largest step tested; the corrector, breaking and the relaxation zones). The reference period T: N 52 if set,
 // otherwise that of the wave input (regular waves: T, irregular: Tp). Without one: 2 x the RK3 step. Reconstructed
 // waves (B 92 51-53) have none here: their peak period (fnpf_wave_period.h, the zones since patch 0033) would let the
@@ -137,7 +138,7 @@ double fnpf_timestep::theta_step(lexer *p, double cu)
     // preconditioner of the corrector (patch 0025) a static coastline is stable at 2-3 x that step (Ting & Kirby),
     // but the Hm0 of the shallowest gauges of Mase & Kirby grows with the step (beyond the tolerance from 1.5 x),
     // and the moving coastline (A 343 2) fails at 2 x at the wetted front. Larger steps with a static coastline:
-    // N 51 2 with N 47 1.5-2.25 (validation 09). With resolved floating bodies (X 10 1) also at most the RK3 step:
+    // N 48 2 with N 47 1.5-2.25 (validation 09). With resolved floating bodies (X 10 1) also at most the RK3 step:
     // the natural periods of the body set the step there (validation 10: at 1.5 x the heave decay of a box is
     // under-damped and the motions in waves are worse than at 1 x)
     const double dtmax = (p->A343>=1 || p->X10>0) ? 0.75*cu : 3.0*cu;
@@ -166,8 +167,8 @@ double fnpf_timestep::theta_step(lexer *p, double cu)
 
 void fnpf_timestep::accuracy_cap(lexer *p)
 {
-    // N 51 3: N 52 is the reference period of the accuracy target (theta_step), not a cap with N 53
-    if(p->N52>0.0 && p->N51!=3)
+    // theta-Robin, N 48 1: N 52 is the reference period of the accuracy target (theta_step), not a cap with N 53
+    if(p->N52>0.0 && rule(p)!=3)
     p->dt = MIN(p->dt, p->N52/MAX(p->N53,1.0));
 }
 
@@ -316,7 +317,7 @@ void fnpf_timestep::dtn_table_ini(lexer *p)
     
     if(p->mpirank==0)
     {
-        cout<<"FNPF time step N 51 2: discrete DtN of the sigma grid, knoz "<<p->knoz<<", A311 "<<p->A311<<", A327 "<<p->A327<<endl;
+        cout<<"FNPF time step: discrete DtN of the sigma grid, knoz "<<p->knoz<<", A311 "<<p->A311<<", A327 "<<p->A327<<endl;
         cout<<"        kH      g_disc   kH tanh(kH)"<<endl;
         
         const double qs[7]={0.1,1.0,3.0,10.0,30.0,100.0,1000.0};
@@ -415,7 +416,7 @@ void fnpf_timestep::start(fdm_fnpf *c, lexer *p,ghostcell *pgc)
     if(p->j_dir==0 || p->knoy==1)
     dx = p->DXN[IP];
     
-    if(p->N51==2 || p->N51==3)
+    if(rule(p)>=2)
     {
     // discrete: the cut-off mode of the local grid in the local water depth, Doppler shift by the surface velocity
     if(p->wet[IJ]==0)
@@ -428,20 +429,6 @@ void fnpf_timestep::start(fdm_fnpf *c, lexer *p,ghostcell *pgc)
     const double rate = omega_discrete(p,kx2+ky2,c->WL(i,j)) + PI*p->umax/p->DXN[IP] + (ydir==1 ? PI*p->vmax/p->DYN[JP] : 0.0);
     
     cu = MIN(cu, rk_limit(p)/(rate+1.0e-20));
-    continue;
-    }
-    
-    if(p->N51==1)
-    {
-    // dispersive: the local water depth of the wet columns
-    if(p->wet[IJ]==0)
-    continue;
-    
-    cu = MIN(cu, dx/wave_speed(p,p->umax,c->WL(i,j),dx,depthmax));
-    
-    if(p->j_dir==1)
-    cv = MIN(cv, dx/wave_speed(p,p->vmax,c->WL(i,j),dx,depthmax));
-    
     continue;
     }
     
@@ -469,8 +456,8 @@ void fnpf_timestep::start(fdm_fnpf *c, lexer *p,ghostcell *pgc)
    	p->dt=p->N47*cu;
     p->dt_crit=cu;
     
-    // N 51 3 (theta-Robin): the step of the accuracy target instead of N 47 times the stability step
-    if(p->N51==3)
+    // theta-Robin, N 48 1: the step of the accuracy target instead of N 47 times the stability step
+    if(rule(p)==3)
     {
         p->dt=theta_step(p,cu);
         
@@ -478,9 +465,9 @@ void fnpf_timestep::start(fdm_fnpf *c, lexer *p,ghostcell *pgc)
         if(!said && p->mpirank==0)
         {
         const double T = theta_tref(p);
-        cout<<"FNPF time step N 51 3 (theta-Robin): phase-speed error N 55 "<<p->N55<<" % of the reference wave T = "<<T<<" s ("
+        cout<<"FNPF time step N 48 1 (theta-Robin): phase-speed error N 55 "<<p->N55<<" % of the reference wave T = "<<T<<" s ("
             <<(p->N52>0.0 ? "N 52" : (T>0.0 ? "wave input" : "none: 2 x the RK3 step"))<<"), dt = "<<p->dt<<" s = "<<p->dt/(0.75*cu)
-            <<" x the RK3 step of N 51 2, N 47 0.75"<<(p->A343>=1 || p->X10>0 ? " (at most 1 x with a coastline, A 343 >= 1, or a floating body, X 10)" : (p->dt>=3.0*cu*(1.0-1.0e-9) ? " (the bound of 4 x)" : ""))<<endl;
+            <<" x the RK3 step of N 48 2, N 47 0.75"<<(p->A343>=1 || p->X10>0 ? " (at most 1 x with a coastline, A 343 >= 1, or a floating body, X 10)" : (p->dt>=3.0*cu*(1.0-1.0e-9) ? " (the bound of 4 x)" : ""))<<endl;
         }
         said=true;
     }
@@ -567,14 +554,7 @@ void fnpf_timestep::ini(fdm_fnpf* c, lexer* p,ghostcell* pgc)
     dx = p->DXN[IP];
     
     
-    if(p->N51==1)
-    {
-    cu = MIN(cu, dx/wave_speed(p,p->umax,p->wd-c->bed(i,j),dx,depthmax));
-    cv = MIN(cv, dx/wave_speed(p,p->vmax,p->wd-c->bed(i,j),dx,depthmax));
-    continue;
-    }
-    
-    if(p->N51==2 || p->N51==3)
+    if(rule(p)>=2)
     {
     const int ydir = (p->j_dir==1 && p->knoy>1) ? 1 : 0;
     const double kx2 = (2.0/p->DXP[IP] + 2.0/p->DXP[IM1])/p->DXN[IP];
@@ -598,20 +578,11 @@ void fnpf_timestep::ini(fdm_fnpf* c, lexer* p,ghostcell* pgc)
     p->dt=pgc->globalmin(p->dt);
     p->dt_crit=pgc->globalmin(cu);
     
-    // N 51 3 (theta-Robin): the step of the accuracy target instead of N 47 times the stability step
-    if(p->N51==3)
-    {
-        if(p->A310!=5)
-        {
-            if(p->mpirank==0)
-            cout<<"N 51 3 (time step of an accuracy target) needs the theta-Robin time integration A 310 5"<<endl;
-            pgc->final(true);
-        }
-        
-        p->dt=theta_step(p,p->dt_crit);
-    }
+    // theta-Robin, N 48 1: the step of the accuracy target instead of N 47 times the stability step
+    if(rule(p)==3)
+    p->dt=theta_step(p,p->dt_crit);
     
-    if(p->N48==1)
+    if(p->N48>=1)
     accuracy_cap(p);
     
     // N 48 0: the fixed time step N 49 from the first step on, as in start()
@@ -620,24 +591,21 @@ void fnpf_timestep::ini(fdm_fnpf* c, lexer* p,ghostcell* pgc)
     
 	p->dt_old=p->dt;
     
-    if(p->mpirank==0 && p->N51>0)
+    if(p->mpirank==0 && p->N48>0 && rule(p)>1)
     {
-        if(p->N51==1)
-        cout<<"FNPF time step N 51 1: c = |u| + sqrt(g dx tanh(h/dx)), N47 "<<p->N47<<" (deep-water RK3 limit N47 < 0.98 in 2D, 0.8 in 3D)"<<endl;
+        if(rule(p)==3)
+        cout<<"FNPF time step N 48 1 (theta-Robin): the step of the phase-speed error N 55 = "<<p->N55<<" % of the reference wave"<<endl;
         
-        if(p->N51==3)
-        cout<<"FNPF time step N 51 3 (theta-Robin): the step of the phase-speed error N 55 = "<<p->N55<<" % of the reference wave"<<endl;
-        
-        if(p->N51==2)
+        if(rule(p)==2)
         {
-        cout<<"FNPF time step N 51 2: dt omega_max = N47 C_RK, C_RK = "<<setprecision(4)<<rk_limit(p)<<", N47 "<<p->N47<<endl;
+        cout<<"FNPF time step N 48 2: dt omega_max = N47 C_RK, C_RK = "<<setprecision(4)<<rk_limit(p)<<", N47 "<<p->N47<<endl;
         
-        if(p->N47>1.0)
-        cout<<"WARNING: N47 > 1 is beyond the linear stability limit of the RK scheme with N 51 2"<<endl;
+        if(p->N47>1.0 && p->A310!=5)
+        cout<<"WARNING: N47 > 1 is beyond the linear stability limit of the RK scheme with N 48 2"<<endl;
         }
     }
     
-    if(p->mpirank==0 && p->N52>0.0 && p->N51!=3)
+    if(p->mpirank==0 && p->N52>0.0 && rule(p)!=3)
     cout<<"FNPF time step accuracy cap: dt <= N52/N53 = "<<p->N52<<"/"<<p->N53<<" = "<<p->N52/MAX(p->N53,1.0)<<" s"<<endl;
     
     if(p->B94==0)
