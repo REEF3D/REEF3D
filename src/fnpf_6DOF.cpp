@@ -27,6 +27,7 @@ Architect: Hans Bihs
 #include"ghostcell.h"
 #include"solver.h"
 #include"fnpf_laplace.h"
+#include"fnpf_laplace_cds2.h"
 #include"fnpf_fsf.h"
 #include"fnpf_bed_update.h"
 #include"fnpf_fsf_update.h"
@@ -61,13 +62,15 @@ private:
 // to X 30 x N 44 instead of the tolerance of the phi solves; the solvers (REEFMG, the composite solve
 // of fnpf_amr) read N 44 at every solve, so it is set for the solve and restored after it (the
 // stagnation stop of the composite solve scales with it)
-fnpf_psi_tol::fnpf_psi_tol(lexer *p) : p(p), n44(p->N44)
+fnpf_psi_tol::fnpf_psi_tol(lexer *p) : p(p), n44(p->N44), stage(fnpf_laplace_cds2::stage_tol)
 {
+    fnpf_laplace_cds2::stage_tol = false;
     p->N44 = n44*p->X30;
 }
 
 fnpf_psi_tol::~fnpf_psi_tol()
 {
+    fnpf_laplace_cds2::stage_tol = stage;
     p->N44 = n44;
 }
 

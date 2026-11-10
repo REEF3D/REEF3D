@@ -42,6 +42,10 @@ public:
     // mesh refinement (fnpf_amr): assemble M and rhs, but do not solve
     bool assemble_only = false;
     
+    // A 430: set during the stage solves of RK3 and RK4 (the tolerance relative to the potential without its
+    // mean); the psi solves of the body loads (fnpf_psi_tol) and theta-Robin keep N 44
+    static bool stage_tol;
+    
     // theta-Robin (A 310 5): if set, the coupling mt of the top rows to the free-surface node (moved to rhs as
     // -mt Fifsf) is stored at their row index; the other rows are not written
     double *mtsurf = nullptr;

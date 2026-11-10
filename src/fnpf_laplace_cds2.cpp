@@ -42,6 +42,8 @@ fnpf_laplace_cds2::fnpf_laplace_cds2(lexer *p)
     cout<<"A 328 1 needs REEFMG (N 10 1); sigma cross-derivatives stay explicit"<<endl;
 }
 
+bool fnpf_laplace_cds2::stage_tol = false;
+
 fnpf_laplace_cds2::~fnpf_laplace_cds2()
 {
 }
@@ -139,6 +141,32 @@ void fnpf_laplace_cds2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *pso
     FLOOP
     fold[FIJK] = f[FIJK];
     
+    // A 430: the stage solves of RK3/RK4 with a tolerance relative to the right-hand side of the potential
+    // without its mean surface value fm. REEFMG stops at |r| <= N 44 |b|, and b holds the surface potential
+    // itself (-mt Fifsf in the top rows), so a constant in the potential (it grows in time with the mean of
+    // the Bernoulli terms, and with a current) loosens the tolerance for the waves. The Laplace operator
+    // maps a constant to zero: b - A fm is b of the potential Fi - fm, here bm, and the solve stops at
+    // |r| <= A 430 |bm|.
+    const bool reltol = (p->A430>0.0 && stage_tol && !assemble_only && p->A310!=5 && p->N10==1);
+    double fm=0.0, sb=0.0, sbm=0.0;
+    
+    if(reltol)
+    {
+    double fs=0.0;
+    int nw=0;
+    
+    SLICELOOP4
+    if(p->wet[IJ]==1)
+    {
+    fs += Fifsf(i,j);
+    ++nw;
+    }
+    
+    fs = pgc->globalsum(fs);
+    nw = pgc->globalisum(nw);
+    fm = nw>0 ? fs/double(nw) : 0.0;
+    }
+    
 	n=0;
     ILOOP
     JLOOP
@@ -211,6 +239,7 @@ void fnpf_laplace_cds2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *pso
             const bool xdrop = (p->B99>2 && flag7[q+sI]<0 && bcN==2 && p->A329>=1);
             
             double rv;
+            double sbm_row=0.0;      // A 430: the part of rv that a constant fm in the potential takes away
             double cnt=0.0,cnb=0.0,cst=0.0,csb=0.0,cwt=0.0,cwb=0.0,cet=0.0,ceb=0.0;
             
             if(!mix)
@@ -377,10 +406,14 @@ void fnpf_laplace_cds2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *pso
             if(flag7[q+2]<0 && flag7[q+1]>0)
             {
             rv -= mt*f[q+2];
+            sbm_row = mt*fm;
             if(mtsurf!=nullptr)
             mtsurf[n] = mt;
             mt = 0.0;
             }
+            
+            sb  += rv*rv;
+            sbm += (rv+sbm_row)*(rv+sbm_row);
             
             Mp[n] = mp;
             Mn[n] = mn;
@@ -404,6 +437,8 @@ void fnpf_laplace_cds2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *pso
             Mp[n] = 1.0;
             Mn[n] = Ms[n] = Mw[n] = Me[n] = Mt[n] = Mb[n] = 0.0;
             rhs[n] = f[q];
+            sb  += f[q]*f[q];
+            sbm += (f[q]-fm)*(f[q]-fm);
             
             if(mix)
             {
@@ -449,9 +484,22 @@ void fnpf_laplace_cds2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *pso
     //if(p->mpirank==0 && (p->count%p->P12==0))
 	//cout<<"LAPLCE_time: "<<endtime-starttime<<endl;
     
+    // A 430: N 44 of this solve such that |r| <= A 430 |bm| (still water: bm = 0, the solve to round-off)
+    const double tol0 = p->N44;
+    
+    if(reltol)
+    {
+    sb  = pgc->globalsum(sb);
+    sbm = pgc->globalsum(sbm);
+    
+    p->N44 = sb>0.0 ? MAX(p->A430*sqrt(sbm/sb), 1.0e-12) : tol0;
+    }
+    
     starttime=pgc->timer();
     psolv->startF(p,pgc,f,c->rhsvec,c->M,8);
     endtime=pgc->timer();
+    
+    p->N44 = tol0;
     
     p->poissoniter+=p->solveriter;
     p->poissontime+=endtime-starttime;

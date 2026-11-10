@@ -92,6 +92,7 @@ void control::ini_default()
     A318=0;      // int WENO5 nonlinear weights for FNPF free-surface gradients: 0 WENO-JS, 1 WENO-Z, 2 TENO5
     A319=1.0e-5; // double TENO5 cutoff C_T for FNPF (A318 2)
     A320=1;		  // int order of Laplace equation
+    A430=0.0;    // double FNPF Laplace, RK3/RK4 stage solves (REEFMG): residual tolerance relative to the right-hand side of the potential without its mean surface value (0: N 44, relative to the full right-hand side)
     A324=0;      // int FNPF Laplace: max Picard iterations for the explicit sigma cross-derivative terms (0 = lagged by one RK stage, legacy)
     A325=1.0e-3; // double FNPF Laplace: Picard stop when the change is below A325 times the change of the first solve (A324>0)
     A328=-1;     // int FNPF Laplace: 1 sigma cross-derivatives implicit, 15-point (2D: 9-point) operator in REEFMG's BiCGStab, 7-point V-cycle preconditioner (N 10 1 only); 0 explicit; default: 1 with RK4 (A 310 4) and REEFMG, else 0

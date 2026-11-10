@@ -110,6 +110,7 @@ public:
 private:
     lexer *p;
     const double n44;
+    const bool stage;    // A 430: the psi solves keep N 44 (fnpf_laplace_cds2::stage_tol off for them)
 };
 
 class fnpf_6DOF : public fnpf_body, public increment

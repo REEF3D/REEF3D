@@ -93,7 +93,10 @@ fnpf_RK3::~fnpf_RK3()
 }
 
 void fnpf_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, convection *pconvec, ioflow *pflow, reini *preini)
-{	   
+{
+    // A 430: the tolerance of the stage solves (fnpf_laplace_cds2)
+    fnpf_laplace_cds2::stage_tol = true;
+	   
     SLICELOOP4
     en(i,j) = c->eta(i,j);
     
@@ -317,6 +320,8 @@ void fnpf_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, conve
     }
     
     c->vel_state = 2;
+    
+    fnpf_laplace_cds2::stage_tol = false;
     
     if(pamr!=nullptr)
     pamr->step_end(p,c,pgc);
