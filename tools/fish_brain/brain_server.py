@@ -34,7 +34,7 @@ LOCK = threading.Lock()
 
 # the constants of the rule brain (6DOF_brain.cpp)
 TAU, KTURN, SLOW, ARRIVE, FRONT = 1.5, 1.3, 1.5, 0.25, 0.35
-TAUU, S0, TFLOOR, PSIFLOOR, REAFF = 0.8, 0.5, 2.5, 1.0, 0.5
+TAUU, S0, TFLOOR, PSIFLOOR, REAFF, BURST = 0.8, 0.5, 2.5, 1.0, 0.5, 0.5
 
 
 def _kf_update(st, H, y, R, dt):
@@ -72,18 +72,24 @@ def rules(sv, st, pr):
         st["kx"] = [S0, 0.0, 0.0]
         st["kP"] = [[0.15 * 0.15, 0.0, 0.0], [0.0, 0.3 * 0.3, 0.0], [0.0, 0.0, 0.3 * 0.3]]
         st["ug"], st["tdec"], st["pdec"], st["bdec"], st["Tprev"], st["vT"] = f * a * L, t, list(c), b, None, [0.0, 0.0, 0.0]
+        st["adec"] = a
     dt = t - st["tdec"]
     if dt > 0.0:
-        fal = f * a * L
-        e = math.exp(-dt / TAUU)
-        ug1 = fal + (st["ug"] - fal) * e
-        ugm = fal + (st["ug"] - fal) * (TAUU / dt) * (1.0 - e)
-        st["ug"] = ug1
-        bm = 0.5 * (b + st["bdec"])
-        R = 0.07 * 0.07 * (1.0 + 4.0 * bm * bm)
-        H = [[ugm * ex[p0], 1.0, 0.0], [ugm * ex[p1], 0.0, 1.0]]
         y = [(c[p0] - st["pdec"][p0]) / dt, (c[p1] - st["pdec"][p1]) / dt]
-        _kf_update(st, H, y, R, dt)
+        if min(a, st["adec"]) < 0.95:
+            # gliding: no update of the estimate, the speed of the gait from the track
+            uw = (y[0] - st["kx"][1]) * ex[p0] + (y[1] - st["kx"][2]) * ex[p1]
+            st["ug"] = max(0.0, uw) / st["kx"][0]
+        else:
+            fal = f * a * L
+            e = math.exp(-dt / TAUU)
+            ug1 = fal + (st["ug"] - fal) * e
+            ugm = fal + (st["ug"] - fal) * (TAUU / dt) * (1.0 - e)
+            st["ug"] = ug1
+            bm = 0.5 * (b + st["bdec"])
+            R = 0.07 * 0.07 * (1.0 + 4.0 * bm * bm)
+            H = [[ugm * ex[p0], 1.0, 0.0], [ugm * ex[p1], 0.0, 1.0]]
+            _kf_update(st, H, y, R, dt)
     s = st["kx"][0]
     cur = [0.0, 0.0, 0.0]
     cur[p0], cur[p1] = st["kx"][1], st["kx"][2]
@@ -159,7 +165,19 @@ def rules(sv, st, pr):
             side = st["side"]
         st["side"] = side if threat > 0.0 else 0.0
 
-    st["tdec"], st["pdec"], st["bdec"] = t, list(c), bt
+    # glide: at the target, needing less than the slowest swimming speed, nothing seen: coast (a = 0)
+    at = 1.0
+    Umin = 0.3 * f0 * s * L
+    if not has_t or threat > 0.0:
+        st["glide"] = False
+    elif st.get("glide", False):
+        st["glide"] = not (dist > BURST * L or Ureq > 1.5 * Umin)
+    else:
+        st["glide"] = dist < ARRIVE * L and Ureq < Umin and math.sqrt(cur[p0] * cur[p0] + cur[p1] * cur[p1]) < Umin
+    if st["glide"]:
+        at, bt, mode = 0.0, 0.0, 5
+
+    st["tdec"], st["pdec"], st["bdec"], st["adec"] = t, list(c), bt, at
     st["est"] = (s, cur[0], cur[1], cur[2], Uw)
 
     # 1. escape: a C-start away from the side of the higher pressure
@@ -167,6 +185,8 @@ def rules(sv, st, pr):
         sg = 1.0 if dpl >= 0.0 else -1.0
         st["refr"] = t + 2.0
         st["bdec"] = -2.5 * sg
+        st["adec"] = 0.5
+        st["glide"] = False
         return {"f": f, "a": 0.5, "b": -2.5 * sg, "ts": 0.08,
                 "t2": t + 0.15, "f2": min(1.5 * f, fmx), "a2": 1.0, "b2": 0.0, "ts2": 0.2, "next": 0.4, "mode": 2}
 
@@ -179,7 +199,7 @@ def rules(sv, st, pr):
         if wv > 0.2:
             mode = 1
 
-    return {"f": ft, "a": 1.0, "b": bt, "ts": 0.0, "next": min(0.5 / ft, 0.5), "mode": mode}
+    return {"f": ft, "a": at, "b": bt, "ts": 0.0, "next": min(0.5 / ft, 0.5), "mode": mode}
 
 
 def own(sv, st, pr):

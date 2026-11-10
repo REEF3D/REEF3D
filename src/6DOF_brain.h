@@ -42,7 +42,9 @@ Architect: Hans Bihs
 //  the gait U_g follows f a L with the time 0.8 s; the ground velocity is s U_g ex + c. A Kalman filter
 //  on the stride s (prior 0.5 L per beat) and the current c in the plane estimates both from the CoG at
 //  the decisions (validation 11, 2D swimmer: s = 0.46, the current 0.17-0.26 m/s for the imposed 0.2 m/s,
-//  in still water at most 0.08 m/s, mean 0.04 m/s). U_w = s U_g is the speed through the water.
+//  in still water at most 0.08 m/s, mean 0.04 m/s). U_w = s U_g is the speed through the water. While the
+//  fish glides (amplitude factor below 0.95 now or at the last decision) the estimate is not updated, and
+//  U_g follows from the track.
 //
 //  Behaviours, by priority:
 //   1. escape (th_esc > 0): a strong pressure signal at the head, |p+ - p-| or the excess of the head
@@ -61,6 +63,10 @@ Architect: Hans Bihs
 //      psi the angle of w to the axis), the bias from omega = 1.3 b U_w/L. The frequency: |w|/(s a L),
 //      no integrator; with w more than 1 rad off the axis at least the speed for the turn in 2.5 s at
 //      b_max. Within 0.25 L: at the target. In a current the fish faces it and holds station.
+//   4. glide: at the target (0.25 L), needing less than its slowest swimming speed through the water
+//      (0.3 f0 s L), in a current slower than that and seeing nothing within D, the fish stops beating its tail and coasts (amplitude
+//      factor 0, no bias); it beats again beyond 0.5 L of the target or when it needs 1.5 times that
+//      speed: burst and coast at a station in still water or in a slow current
 //  Without a target the fish keeps its frequency and swims straight.
 //
 //  The decisions: every half tail beat, at most 0.5 s apart. The brain is a function of the senses at
@@ -137,9 +143,9 @@ private:
     // the estimate of the stride and the current (Kalman filter on s, c in the plane), the speed of the
     // gait, the time, CoG and bias of the last decision, the target seen and its velocity
     void kf_update(const double H[2][3], const double y[2], double R, double dt);
-    bool kf_on_ = false, Tset_ = false;
+    bool kf_on_ = false, Tset_ = false, glide_ = false;
     double kf_x_[3] = {0.0, 0.0, 0.0}, kf_P_[3][3] = {{0.0,0.0,0.0},{0.0,0.0,0.0},{0.0,0.0,0.0}};
-    double ug_ = 0.0, tdec_ = 0.0, bdec_ = 0.0;
+    double ug_ = 0.0, tdec_ = 0.0, bdec_ = 0.0, adec_ = 1.0;
     Eigen::Vector3d pdec_ = Eigen::Vector3d::Zero(), Tprev_ = Eigen::Vector3d::Zero(), vT_ = Eigen::Vector3d::Zero();
     record rec_ = {};
     perception perc_;

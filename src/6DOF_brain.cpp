@@ -36,6 +36,7 @@ namespace
     const double brain_tfloor = 2.5;       // the speed for a turn: the turn in this time at b_max [s]
     const double brain_psifloor = 1.0;     // ... beyond this angle to the wanted heading [rad]
     const double brain_reaff = 0.5;        // head pressure difference of a turn: -reaff b q_w
+    const double brain_burst = 0.5;        // a gliding fish beats again beyond this distance of the target [L]
 }
 
 sixdof_brain::sixdof_brain(double U_des, double b_max, double D_vis, double th_esc, double f0, double L, double rho,
@@ -136,6 +137,7 @@ sixdof_brain::decision sixdof_brain::decide(double t, double f, double a, double
         tdec_ = t;
         pdec_ = c_;
         bdec_ = b;
+        adec_ = a;
         Tset_ = false;
         vT_.setZero();
         kf_on_ = true;
@@ -145,16 +147,27 @@ sixdof_brain::decision sixdof_brain::decide(double t, double f, double a, double
 
     if(dt>0.0)
     {
-        const double fal = f*a*L_;
-        const double e = std::exp(-dt/brain_tauu);
-        const double ug1 = fal + (ug_ - fal)*e;
-        const double ugm = fal + (ug_ - fal)*(brain_tauu/dt)*(1.0 - e);
-        ug_ = ug1;
-        const double bm = 0.5*(b + bdec_);
-        const double R = 0.07*0.07*(1.0 + 4.0*bm*bm);
-        const double H[2][3] = {{ugm*ex(p0), 1.0, 0.0}, {ugm*ex(p1), 0.0, 1.0}};
         const double y[2] = {(c_(p0) - pdec_(p0))/dt, (c_(p1) - pdec_(p1))/dt};
-        kf_update(H, y, R, dt);
+
+        if(std::min(a, adec_)<0.95)
+        {
+            // gliding (or just after it): the body coasts, the model of the speed does not hold; no update of
+            // the estimate, the speed of the gait from the track (the velocity through the water along the axis)
+            const double uw = (y[0] - kf_x_[1])*ex(p0) + (y[1] - kf_x_[2])*ex(p1);
+            ug_ = std::max(0.0, uw)/kf_x_[0];
+        }
+        else
+        {
+            const double fal = f*a*L_;
+            const double e = std::exp(-dt/brain_tauu);
+            const double ug1 = fal + (ug_ - fal)*e;
+            const double ugm = fal + (ug_ - fal)*(brain_tauu/dt)*(1.0 - e);
+            ug_ = ug1;
+            const double bm = 0.5*(b + bdec_);
+            const double R = 0.07*0.07*(1.0 + 4.0*bm*bm);
+            const double H[2][3] = {{ugm*ex(p0), 1.0, 0.0}, {ugm*ex(p1), 0.0, 1.0}};
+            kf_update(H, y, R, dt);
+        }
     }
 
     const double s = kf_x_[0];
@@ -285,6 +298,29 @@ sixdof_brain::decision sixdof_brain::decide(double t, double f, double a, double
         dvis /= L_;
     }
     
+    // glide: at the target, needing less than its slowest swimming speed through the water, in a current
+    // slower than that and seeing nothing close, the fish stops beating its tail and coasts (amplitude 0,
+    // no bias); it beats again beyond brain_burst of the target or when it needs 1.5 times that speed
+    // (burst and coast)
+    double at = 1.0;
+    {
+        const double Umin = 0.3*f0_*s*L_;
+
+        if(!has_t || threat>0.0)
+        glide_ = false;
+        else if(glide_)
+        glide_ = !(dist>brain_burst*L_ || Ureq>1.5*Umin);
+        else
+        glide_ = (dist<brain_arrive*L_ && Ureq<Umin && std::sqrt(cur(p0)*cur(p0) + cur(p1)*cur(p1))<Umin);
+
+        if(glide_)
+        {
+            at = 0.0;
+            bt = 0.0;
+            mode = 5;
+        }
+    }
+
     rec_ = {t, T(0), T(1), T(2), dist, psi, U, f, a, b, dpl, phd, dvis, s, cur(0), cur(1), cur(2), Uw, 0};
     
     perc_.ex = ex;
@@ -308,6 +344,7 @@ sixdof_brain::decision sixdof_brain::decide(double t, double f, double a, double
     tdec_ = t;
     pdec_ = c_;
     bdec_ = bt;
+    adec_ = at;
     d.on = true;
 
     // 1. escape: a C-start away from the side of the higher pressure
@@ -320,6 +357,8 @@ sixdof_brain::decision sixdof_brain::decide(double t, double f, double a, double
         refr_ = t + 2.0;
         next_ = t + 0.4;
         bdec_ = d.b;
+        adec_ = d.a;
+        glide_ = false;
         rec_.Ff = d.f2; rec_.Fa = d.a; rec_.Fb = d.b; rec_.mode = 2;
         return d;
     }
@@ -336,9 +375,9 @@ sixdof_brain::decision sixdof_brain::decide(double t, double f, double a, double
         mode = 1;
     }
 
-    d.f = ft; d.a = 1.0; d.b = bt; d.ts = 0.0;
+    d.f = ft; d.a = at; d.b = bt; d.ts = 0.0;
     next_ = t + std::min(0.5/ft, 0.5);
-    rec_.Ff = ft; rec_.Fa = 1.0; rec_.Fb = bt; rec_.mode = mode;
+    rec_.Ff = ft; rec_.Fa = at; rec_.Fb = bt; rec_.mode = mode;
 
     return d;
 }
@@ -371,8 +410,8 @@ void sixdof_brain::kf_update(const double H[2][3], const double y[2], double R, 
 
 void sixdof_brain::ckpt_state(std::vector<double> &v) const
 {
-    v.push_back(2.0);      // version
-    for(double x : {T_, Uax_, llT_, t_start_, next_, refr_, side_, kf_on_ ? 1.0 : 0.0, ug_, tdec_, bdec_, Tset_ ? 1.0 : 0.0})
+    v.push_back(3.0);      // version
+    for(double x : {T_, Uax_, llT_, t_start_, next_, refr_, side_, kf_on_ ? 1.0 : 0.0, ug_, tdec_, bdec_, Tset_ ? 1.0 : 0.0, glide_ ? 1.0 : 0.0, adec_})
     v.push_back(x);
     for(int k=0; k<3; ++k)
     {
@@ -392,7 +431,7 @@ void sixdof_brain::ckpt_state(std::vector<double> &v) const
 
 bool sixdof_brain::ckpt_restore(const std::vector<double> &v)
 {
-    if(v.size()<50 || int(v[0])!=2)
+    if(v.size()<52 || int(v[0])!=3)
     return false;
 
     size_t k = 1;
@@ -400,6 +439,8 @@ bool sixdof_brain::ckpt_restore(const std::vector<double> &v)
     kf_on_ = (v[k++]!=0.0);
     ug_ = v[k++]; tdec_ = v[k++]; bdec_ = v[k++];
     Tset_ = (v[k++]!=0.0);
+    glide_ = (v[k++]!=0.0);
+    adec_ = v[k++];
     for(int j=0; j<3; ++j)
     {
         ax_(j) = v[k++];
