@@ -134,8 +134,8 @@ void control::ini_default()
     A359=0.85;   // double breaking A350 4/5 (FNPF), A550 4 (NHFLOW): onset threshold of B = u_s/C at the crest
     A360=8.0;    // double breaking A350 4/5 (A350 5: bores only), A550 4: termination when the largest front-face slope is below this angle (deg)
     A364=1.0;    // double breaking A350 4: coefficient of the bore (hydraulic jump) dissipation g C H^3/(4 h_c)
-    A367=1;      // int breaking A350 4/5: deep-water breaking strength, 0 off; A350 4: 1 b(Gamma) of Derakhti et al. (2018); A350 5: 1 b(S) = 0.4 (S - 0.08)^2.5 of Romero et al. (2012) with the breaker slope S = k H/2, 2 b(Gamma) of Derakhti et al. (2018) with Gamma fitted over |B - Bth| < A 411
-    A369=1.64;   // double breaking A350 4/5: onset in deep and intermediate water at B > A359 - A369/sqrt(N), N = cells per crest wavelength (0: A359 everywhere); A350 5: faded out between N = 120 and 200
+    A367=1;      // int breaking A350 4/5, A550 5: deep-water breaking strength, 0 off; A350 4: 1 b(Gamma) of Derakhti et al. (2018); A350 5: 1 b(S) = 0.4 (S - 0.08)^2.5 of Romero et al. (2012) with the breaker slope S = k H/2, 2 b(Gamma) of Derakhti et al. (2018) with Gamma fitted over |B - Bth| < A 411
+    A369=1.64;   // double breaking A350 4/5, A550 5: onset in deep and intermediate water at B > A359 - A369/sqrt(N), N = cells per crest wavelength (0: A359 everywhere); A350 5, A550 5: faded out between N = 120 and 200
     
     A370=0;      // int wind model
     A371_u=0.0;  // double wind velocity
@@ -183,12 +183,12 @@ void control::ini_default()
     A402_C=3.0;  // double ice spall locality: chip chord <= C*chip depth
     A402_T=1.0;  // double ice rubble lid fade-out time [s]
     A406=3;      // int FNPF theta-Robin (A 310 5): a step whose Laplace solves fail is repeated with half the step, at most A406 times (0: off; patch 0038)
-    A404=0.44;   // double breaking A350 5 (FNPF): limiting slope k H/2 of a breaker (Stokes 0.44): onset above 1.25 A404 whatever B, no end and the largest absorption above A404 (0: off)
-    A407=0.068;  // double breaking A350 5 (FNPF): largest breaking strength b of the deep-water breakers (the largest b of the data of Derakhti et al. 2018; Mohanlal et al. 2023 used 0.02)
-    A408=0.75;   // double breaking A350 5: active breaking duration of a deep-water breaker in breaker periods T_b (Derakhti et al. 2018: 0.75)
-    A409=0.25;   // double breaking A350 5: largest energy loss of one deep-water breaker as fraction of g H_b^2 L_b / 8 (Rapp & Melville 1990, Tian et al. 2010: up to 0.25)
-    A412=3;      // int breaking A350 5 (FNPF): dissipation of the deep-water breakers, 1 eddy viscosity on the front face (as A350 4), 2 absorbing surface pressure, 3 half each
-    A411=0.03;   // double breaking A350 5: half width of the B window |B - Bth| of the fit Gamma = T_b dB/dt (Derakhti et al. 2018: 0.03)
+    A404=0.44;   // double breaking A350 5 (FNPF), A550 5 (NHFLOW): limiting slope k H/2 of a breaker (Stokes 0.44): onset above 1.25 A404 whatever B, no end and the largest absorption above A404 (0: off)
+    A407=0.068;  // double breaking A350 5 (FNPF), A550 5 (NHFLOW): largest breaking strength b of the deep-water breakers (the largest b of the data of Derakhti et al. 2018; Mohanlal et al. 2023 used 0.02)
+    A408=0.75;   // double breaking A350 5, A550 5: active breaking duration of a deep-water breaker in breaker periods T_b (Derakhti et al. 2018: 0.75)
+    A409=0.25;   // double breaking A350 5, A550 5: largest energy loss of one deep-water breaker as fraction of g H_b^2 L_b / 8 (Rapp & Melville 1990, Tian et al. 2010: up to 0.25)
+    A412=3;      // int breaking A350 5 (FNPF): dissipation of the deep-water breakers, 1 eddy viscosity on the front face (as A350 4), 2 absorbing surface pressure, 3 half each (NHFLOW A550 5: the breaking viscosity alone)
+    A411=0.03;   // double breaking A350 5, A550 5: half width of the B window |B - Bth| of the fit Gamma = T_b dB/dt (Derakhti et al. 2018: 0.03)
     A405=1.0;    // double breaking A350 4/5 (FNPF): crest points kept out of this fraction of each relaxation zone, from its outer end (1: the whole zone; 0.5: breaking in the inner half, where the target weight is below 5 %)
     A403=1.0;    // double ice lid time step factor, dt <= A403/omega_lid; <0: old limit dt*1/sqrt(1+A381)
 
@@ -281,7 +281,7 @@ void control::ini_default()
     A502=0.5;    // double breaking eddy viscosity (A 550 3): spread over a band of A 502 h around the breaking columns (the crest behind the front); A 550 4: A 502 L_k, L_k = tanh(k h)/k
     A503=5.0;    // double breaking eddy viscosity (A 550 3): transition time T* = A 503 sqrt(h/g) (Kennedy et al. 2000: 5)
     A504=1.2;    // double breaking eddy viscosity (A 550 3): mixing length coefficient delta_b (Kennedy et al. 2000: 1.2)
-    A550=0;      // int turn on breaking (1 breaking viscosity A 557, 3 eddy viscosity of Kennedy et al. 2000, 4 as 3 with the deep-water form and the onsets of the crest tracking B = u_s/C of Barthelemy et al. 2018, A 359, A 360)
+    A550=0;      // int turn on breaking (1 breaking viscosity A 557, 3 eddy viscosity of Kennedy et al. 2000, 4 as 3 with the deep-water form and the onsets of the crest tracking B = u_s/C of Barthelemy et al. 2018, A 359, A 360; 5 as 4 plus the deep-water breakers of FNPF A 350 5 with the energy-matched viscosity, A 367, A 369, A 404, A 407-A 409, A 411)
     A551=3;      // int type of breaking detection (deep / shallow)
     A552=0;      // int additional filtering to viscosity based breaking
 

@@ -120,13 +120,16 @@ public:
     //   integrand(point, x, y)    dissipation per unit viscosity, crest length and ray length at (x, y)
     //   epsf(point)               strength per unit crest length
     //   integrand_pa(point, x, y) model 5: dissipation per unit absorbing-pressure coefficient (eta_t^2); pa its field
-    // vb: viscosity (max), brk: flags 1, kw: wavenumber 2 pi / L of the ray of the largest viscosity (may be nullptr)
+    // vb: viscosity (max), brk: flags 1, kw: wavenumber 2 pi / L of the ray of the largest viscosity (may be nullptr);
+    // vbd, kwd (model 5, NHFLOW A 550 5): the viscosity and wavenumber of the deep-water breakers (mech 1) in their own
+    // fields, without brk (nullptr: in vb with the others)
     void rays(lexer*, ghostcell*, slice &eta, slice &WL, double t,
               const std::function<double(const bc3_point&)> &sback,
               const std::function<double(const bc3_point&, double, double)> &integrand,
               const std::function<double(const bc3_point&)> &epsf,
               slice &vb, int *brk, slice *kw,
-              const std::function<double(const bc3_point&, double, double)> *integrand_pa=nullptr, slice *pa=nullptr);
+              const std::function<double(const bc3_point&, double, double)> *integrand_pa=nullptr, slice *pa=nullptr,
+              slice *vbd=nullptr, slice *kwd=nullptr);
 
     // the rays of the last call (all ranks have them) and the number of breaking crest points
     std::vector<bc3_point> cand;

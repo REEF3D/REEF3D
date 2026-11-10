@@ -794,7 +794,8 @@ void breaking_crest3d::rays(lexer *p, ghostcell *pgc, slice &eta, slice &WL, dou
                             const std::function<double(const bc3_point&, double, double)> &integrand,
                             const std::function<double(const bc3_point&)> &epsf,
                             slice &vb, int *brk, slice *kw,
-                            const std::function<double(const bc3_point&, double, double)> *integrand_pa, slice *pa)
+                            const std::function<double(const bc3_point&, double, double)> *integrand_pa, slice *pa,
+                            slice *vbd, slice *kwd)
 {
     const double g = fabs(p->W22);
 
@@ -1422,6 +1423,26 @@ void breaking_crest3d::rays(lexer *p, ghostcell *pgc, slice &eta, slice &WL, dou
 
                 if(p->wet[n]==0)
                 continue;
+
+                // vbd (NHFLOW A 550 5): the viscosity of the deep-water breakers in its own field (and wavenumber kwd),
+                // without the flags, which seed the bore viscosity of the caller
+                if(vbd!=nullptr && R.mech==1)
+                {
+                    if(sc>=-R.sback && sc<=R.sa && R.nu>0.0)
+                    {
+                        const double v = R.nu*bc3_ramp((sc+R.sback)/MAX(R.sa+R.sback,1.0e-12));
+
+                        if(v>(*vbd)(ii,jj))
+                        {
+                            (*vbd)(ii,jj) = v;
+
+                            if(kwd!=nullptr)
+                            (*kwd)(ii,jj) = R.kw;
+                        }
+                    }
+
+                    continue;
+                }
 
                 brk[n] = 1;
 

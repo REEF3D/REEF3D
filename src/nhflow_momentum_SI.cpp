@@ -173,8 +173,8 @@ nhflow_momentum_SI::nhflow_momentum_SI(lexer *p, fdm_nhf *d, ghostcell *pgc, six
     // vertical diffusion in the column operator: as nhflow_idiff (A 512 2, or A 560 > 0)
     visc = !(p->A512==0 && p->A560==0) || (p->A547_c>0.0 && p->A560==0) || (p->A547_nu0>0.0 && p->A560==0);
 
-    // wave breaking (A 550 1, 3, 4): the breaking module of the explicit NHFLOW gives the viscosity vb of the columns
-    if((p->A550==1 || p->A550==3 || p->A550==4) && !block)
+    // wave breaking (A 550 1, 3, 4, 5): the breaking module of the explicit NHFLOW gives the viscosity vb of the columns
+    if((p->A550==1 || p->A550>=3) && !block)
     {
     pbrk = new nhflow_breaking(p,d,pgc);
     visc = true;
@@ -307,12 +307,12 @@ void nhflow_momentum_SI::check(lexer *p)
         msg("the non-hydrostatic pressure (A 520 > 0) with the density (A 620) is");
     }
 
-    // wave breaking (A 550 1, 3, 4) on one Cartesian grid
+    // wave breaking (A 550 1, 3, 4, 5) on one Cartesian grid
     if(p->A550>0 && (p->geo_curv==1 || p->geo_mb>0 || p->G1>0))
     msg("wave breaking (A 550) on curvilinear, multi-block or refined grids is");
 
-    if(p->A550==2 || p->A550>4)
-    msg("A 550 other than 0, 1, 3 or 4 is");
+    if(p->A550==2 || p->A550>5)
+    msg("A 550 other than 0, 1, 3, 4 or 5 is");
 
     if(p->A505!=0 && p->A505!=1)
     msg("A 505 other than 0 or 1 is");

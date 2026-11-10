@@ -30,7 +30,7 @@ Author: Hans Bihs
 
 nhflow_breaking::nhflow_breaking(lexer* p, fdm_nhf *d, ghostcell *pgc) : bx(p), by(p), bd(p), brkflag(p), brkzone(p),
                                                                             brkage(p), brkage_n(p), brkvb(p), bt_us(p), bt_vs(p), bt_vbs(p), brkseed(p),
-                                                                            brkkseed(p), brkk(p), brkk_n(p), brkr(p), brkr_n(p), count_n(-1)
+                                                                            brkkseed(p), brkk(p), brkk_n(p), brkr(p), brkr_n(p), bt_vbd(p), bt_kwd(p), bt_pa(p), count_n(-1)
 {
     SLICELOOP4
     {
@@ -45,6 +45,9 @@ nhflow_breaking::nhflow_breaking(lexer* p, fdm_nhf *d, ghostcell *pgc) : bx(p), 
     brkk_n(i,j)=0.0;
     brkr(i,j)=0.0;
     brkr_n(i,j)=0.0;
+    bt_vbd(i,j)=0.0;
+    bt_kwd(i,j)=0.0;
+    bt_pa(i,j)=0.0;
     }
 }
 
@@ -66,6 +69,37 @@ void nhflow_breaking::breaking(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &eta,
     breaking_barthelemy(p, d, pgc, eta_n);
     breaking_kennedy(p, d, pgc, WL);
     }
+    
+    // A 550 5: the bores as A 550 4, the deep-water breakers with the energy-matched viscosity of breaking_crest3d
+    if(p->A550==5)
+    {
+    breaking_barthelemy(p, d, pgc, eta_n);
+    breaking_kennedy(p, d, pgc, WL);
+    breaking_deep(p, d, pgc);
+    }
+}
+
+void nhflow_breaking::breaking_deep(lexer *p, fdm_nhf *d, ghostcell *pgc)
+{
+    int count=0;
+    
+    SLICELOOP4
+    if(p->wet[IJ]==1 && bt_vbd(i,j)>d->vb(i,j))
+    {
+    d->vb(i,j) = bt_vbd(i,j);
+    d->vbk(i,j) = bt_kwd(i,j);
+    d->breaking(i,j) = 1;
+    ++count;
+    }
+    
+    pgc->gcsl_start4(p,d->vb,1);
+    pgc->gcsl_start4(p,d->vbk,1);
+    pgc->gcsl_start4int(p,d->breaking,50);
+    
+    count=pgc->globalisum(count);
+    
+    if(p->mpirank==0 && (p->count%p->P12==0) && count>0)
+    cout<<"breaking: deep-water breakers in "<<count<<" columns"<<endl;
 }
 
 // A 550 3: eddy viscosity of Kennedy, Chen, Kirby & Dalrymple (2000), J. Waterway Port Coastal Ocean Eng. 126(1), 39-47,
@@ -145,7 +179,7 @@ void nhflow_breaking::kennedy_part(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &
     
     if(part==1)
     {
-    const bool seeded = (p->A550==4);
+    const bool seeded = (p->A550==4 || p->A550==5);
     kn_count=0;
     
     SLICELOOP4
@@ -257,7 +291,7 @@ void nhflow_breaking::kennedy_part(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &
     
     if(part==3)
     {
-    const bool seeded = (p->A550==4);
+    const bool seeded = (p->A550==4 || p->A550==5);
     
     SLICELOOP4
     {
