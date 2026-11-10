@@ -1,0 +1,19 @@
+{
+ "base": "cfd_2d_heave_amr",
+ "ctrl_set": {
+  "N 40": "5"
+ },
+ "description": "cfd_2d_heave_amr (floating box, refined box around it, G 7 0) with the one-step scheme N 40 5: level 0 advances the body once per step, the patches cast the hull and force the body velocity.",
+ "tags": [
+  "quick",
+  "2d",
+  "6dof",
+  "floating",
+  "levelset",
+  "amr"
+ ],
+ "covers": [
+  "cfd_amr::step_comp: N 40 5 with floating bodies",
+  "sixdof_rigidbody::step_symplectic"
+ ]
+}

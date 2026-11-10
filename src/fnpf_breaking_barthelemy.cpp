@@ -38,6 +38,7 @@ Architect: Hans Bihs
 //   H crest to trough ahead, h_c water depth at the crest, L trough to trough.
 // Filter: with A352 > 0 the filter of A350 1 (A361, A362) acts on eta and Fifsf in the breaking zones and,
 // with A351 1/3, in the cells of the depth-induced criterion of A350 1 (A354) shoreward of the deepest onset.
+// A352 5: instead of the filter a viscosity floor in the cells of the depth-induced criterion (bt_filter).
 // Coastline: the coastline / wet-dry front viscosity A346 of A350 1 is applied as well.
 // Dissipation: the implicit damping of fnpf_fsfbc::damping with one viscosity per breaking crest point on
 // its front face (crest to trough ahead along n, sin^2 ramps at both ends). For a wave of permanent form
@@ -339,7 +340,7 @@ void fnpf_breaking::breaking_barthelemy(lexer *p, fdm_fnpf *c, ghostcell *pgc, s
 
 // A352 > 0: filter eta and Fifsf in the cells of the breaking zones (as A350 1 with A352 3).
 // With A351 1/3 also the cells of the depth-induced criterion of A350 1 (eta_t > A354 sqrt(g h), +-2 cells),
-// but only shoreward of the deepest breaking onset so far (still-water depth < bt_db): in the surf and swash
+// but only shoreward of the deepest breaking onset so far (still-water depth < bt_db, not with A352 5): in the surf and swash
 // zone the filter keeps the FNPF surface stable (Ting & Kirby stops at t = 20-36 s without it), offshore of
 // the break point it would flatten the crests before B reaches the onset threshold.
 void fnpf_breaking::bt_filter(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, slice &eta_n, slice &Fifsf, double alpha)
@@ -353,7 +354,7 @@ void fnpf_breaking::bt_filter(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta,
         {
             bx(i,j)=0;
 
-            if(p->wet[IJ]==1 && p->wd-c->bed(i,j)<bt_db && (eta(i,j)-eta_n(i,j))/(alpha*p->dt) > p->A354*sqrt(9.81*c->WL(i,j)))
+            if(p->wet[IJ]==1 && (p->wd-c->bed(i,j)<bt_db || p->A352==5) && (eta(i,j)-eta_n(i,j))/(alpha*p->dt) > p->A354*sqrt(9.81*c->WL(i,j)))
             bx(i,j)=2;
         }
 
@@ -375,6 +376,48 @@ void fnpf_breaking::bt_filter(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta,
             if(hit==1)
             c->breaking(i,j) = MAX(c->breaking(i,j), 2);
         }
+    }
+
+    // A352 5: no filter; the breaking viscosity is raised to at least nu = dx c/(4 C), C = 0.5, in the cells of the
+    // depth-induced criterion (flag 2) and +-2 cells around them, c the phase speed of the 2 dx wave in the local
+    // depth: a 2 dx spike decays by e while it travels half a cell, longer waves much less (about with the square
+    // of their length). The maximum with the breaking and coastline viscosity, applied by fnpf_fsfbc::damping.
+    // The depth-induced cells are not limited to the still-water depth of the deepest onset (bt_db): at a steep
+    // shore the crest tracking sees the onset late and shallow, and the swash further out went unstable
+    // (validation 09). C 0.5 and no depth limit: 29 of 30 runs stable on two 2D steep-shore cases (A352 3: 27).
+    if(p->A352==5)
+    {
+        const double g = fabs(p->W22);
+        const double C = 0.5;
+
+        SLICELOOP4
+        bx(i,j) = (c->breaking(i,j)>=2 && p->wet[IJ]==1) ? 1 : 0;
+
+        pgc->gcsl_start4int(p,bx,50);
+
+        SLICELOOP4
+        if(p->wet[IJ]==1)
+        {
+            int hit=0;
+
+            for(int qi=-2; qi<=2; ++qi)
+            for(int qj=-2*p->j_dir; qj<=2*p->j_dir; ++qj)
+            if(bx(i+qi,j+qj)==1)
+            hit=1;
+
+            if(hit==1)
+            {
+                const double wl = MAX(c->WL(i,j), c->wd_criterion);
+                const double dx = (p->j_dir==1) ? MIN(p->DXN[IP],p->DYN[JP]) : p->DXN[IP];
+                const double k = PI/dx;
+                const double cp = sqrt(g*tanh(k*wl)/k);
+
+                c->vb(i,j) = MAX(c->vb(i,j), dx*cp/(4.0*C));
+            }
+        }
+
+        pgc->gcsl_start4(p,c->vb,1);
+        return;
     }
 
     SLICELOOP4

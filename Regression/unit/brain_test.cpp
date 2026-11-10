@@ -4,11 +4,13 @@
 // Run:    ./brain_test
 // The swimmer (L = 1 m, f0 = 1 Hz, in the x-z plane): the gait follows the targets of the brain with
 // critically damped dynamics, the speed of the gait f a L with 0.8 s, the speed through the water s U_g
-// (s = 0.48 L per beat as the 2D swimmer of validation 08), the turn rate 1.3 b U_w/L, a uniform current.
+// (s = 0.48 L per beat as the 2D swimmer of validation 08; a gliding body slows down with 2.5 s), the turn
+// rate 1.3 b U_w/L, a uniform current.
 // Checks: the estimate of the stride and of the current (0.2 m/s along x, along x + z, none); station
 // holding in a current (the fish faces it and stays at the target); a target ahead in still water at
 // U_des (the frequency U_des/(s L)); a moving target; the own turn on the lateral line (-0.5 b q at the
-// head) is no escape, a stimulus is; a restart from the checkpoint of the brain continues it exactly.
+// head) is no escape, a stimulus is; at a station in still water the fish glides (amplitude 0) and bursts
+// (burst and coast); a restart from the checkpoint of the brain continues it exactly.
 // Architect: Hans Bihs
 #include"../../src/6DOF_brain.cpp"
 
@@ -67,7 +69,7 @@ struct swimmer
                 target(pend, true);
                 second = false;
             }
-            Ug += dt/0.8*(g[0]*g[1]*1.0 - Ug);
+            Ug += dt/(g[1]<0.5 ? 2.5 : 0.8)*(g[0]*g[1]*1.0 - Ug);      // a gliding body coasts longer
             const double Uw = s_true*Ug*std::min(1.0, t/1.0);
             h += dt*1.3*g[2]*Uw/1.0;
             const Eigen::Vector3d ex(std::cos(h), 0.0, std::sin(h)), el(-std::sin(h), 0.0, std::cos(h));
@@ -174,6 +176,25 @@ int main()
         check(std::hypot(r.cx, r.cz)<0.03, "still water: current "+std::to_string(std::hypot(r.cx, r.cz))+" m/s");
         check(std::fabs(S.log.back().f - 0.5/0.48)<0.06, "still water: f = "+std::to_string(S.log.back().f)+" Hz (U_des/(s L) = 1.04)");
         check(std::fabs(S.z - 3.0)<0.05, "still water: straight, z = "+std::to_string(S.z));
+    }
+
+    // 3b. still water, a station: the fish glides at it (burst and coast) instead of circling
+    {
+        swimmer S;
+        sixdof_brain B = brain(0.5, 1.5, {{0.0, 3.5, 0.0, 3.0}});
+        double t = 0.0;
+        int nglide = 0;
+        S.run(B, t, 25.0);
+        for(size_t k=0; k<S.log.size(); ++k)
+        if(S.log[k].a==0.0)
+        ++nglide;
+        const double md = mean_dist(S, 12.0, [](double){return std::array<double,2>{3.5, 3.0};});
+        check(nglide>S.log.size()/3, "still water station: gliding at "+std::to_string(nglide)+" of "+std::to_string(S.log.size())+" decisions");
+        double mx;
+        const double md2 = mean_dist(S, 12.0, [](double){return std::array<double,2>{3.5, 3.0};}, &mx);
+        check(md<0.5 && mx<0.55, "still water station: within the burst distance 0.5 L after 12 s, mean "+std::to_string(md2)+" m, max "+std::to_string(mx));
+        const auto &r = B.last();
+        check(std::hypot(r.cx, r.cz)<0.05, "still water station: no current from the gliding, |c| = "+std::to_string(std::hypot(r.cx, r.cz))+" m/s");
     }
 
     // 4. a moving target at 0.25 m/s across, after the fish reached it

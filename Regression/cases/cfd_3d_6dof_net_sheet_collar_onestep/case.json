@@ -1,0 +1,21 @@
+{
+ "base": "cfd_3d_6dof_net_sheet_collar",
+ "np": 2,
+ "steps": 15,
+ "ctrl_set": {
+  "N 40": "5"
+ },
+ "description": "cfd_3d_6dof_net_sheet_collar (floating collar with a net sheet, 2 ranks) with the one-step scheme N 40 5: the net forces once per step; the fluid acceleration at the knots starts with the difference between the second and the third step (the predicted velocity of the first step holds the imbalance of the initial pressure).",
+ "tags": [
+  "3d",
+  "6dof",
+  "floating",
+  "net",
+  "mpi"
+ ],
+ "covers": [
+  "net_sheet::updateFluidAcc with N 40 5",
+  "net_interface::netForces_cfd with one stage per step",
+  "sixdof_rigidbody::step_symplectic in 3D (surge, heave, pitch)"
+ ]
+}

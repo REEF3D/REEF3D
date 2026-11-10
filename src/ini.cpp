@@ -121,7 +121,7 @@ void control::ini_default()
     
     A350=0;      // int turn on breaking (which method)
     A351=3;      // int type of breaking detection (deep / shallow)
-    A352=0;      // int additional filtering to viscosity based breaking
+    A352=0;      // int additional filtering to viscosity based breaking; A 350 4/5: 1-3 the filter in all breaking zones, 5 instead of the filter the viscosity dx c/(4*0.5) in the depth-induced zone (A 351 1/3; c the phase speed of the 2 dx wave)
     A354=0.6;    // double breaking parameter alpha
     A355=1.25;   // double breaking parameter slope alpha
     A356=0.1;   // double breaking parameter slope beta
