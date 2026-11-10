@@ -89,6 +89,12 @@ On the mesh refinement (G 7 0, cfd_amr::step_comp) N 40 6 takes the same steps o
 the composite projection after each of the two momentum steps and the level set of all levels
 between them.
 
+Floating bodies (X 10 1, with their mooring lines X 310 and nets X 320; also on the mesh refinement):
+the forcing of the half step is stage 0 of the bodies, that of the full step stage 1. The bodies take
+the explicit midpoint rule (sixdof_rigidbody::stage_mid): to n+1/2 with the loads of p(n), from n to
+n+1 with the loads of p(n+1/2); the hulls are cast and the body velocity forced at n+1/2 before the
+first projection and at n+1 before the second. No X 198 and no N 59 with bodies yet.
+
 With the compressible air (W 32, pjm_corr_comp.cpp) both projections take p(n) of the start of the
 step as the reference of the pressure change: the half step over dt/2, the full step over dt.
 

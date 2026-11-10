@@ -54,6 +54,11 @@ void sixdof_obj_cfd::solve_eqmotion_cfd(lexer *p, fdm *a, ghostcell *pgc, int it
     // low-storage RK3: FCLS3 (4, 24), RKLS3_df (14, also N40=13 with X10>0), RKLS3 (44)
     if(p->N40==4 || p->N40==14 || p->N40==24 || p->N40==44)
     rkls3(p,pgc,iter);
+    
+    // the one-step scheme with two projections: the midpoint rule, stage 0 the half step (the loads
+    // of time n), stage 1 the full step (the loads of the half step)
+    if(p->N40==6)
+    rkmid(p,pgc,iter);
 }
 
 void sixdof_obj_nhflow::solve_eqmotion_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, int iter, bool finalize)
@@ -135,6 +140,14 @@ void sixdof_obj::rk3(lexer *p, ghostcell *pgc, int iter)
     get_rot(p);
     
     rb.stage_rk3(iter,p->dt);
+}
+
+void sixdof_obj::rkmid(lexer *p, ghostcell *pgc, int iter)
+{
+    get_trans(p,pgc);    
+    get_rot(p);
+    
+    rb.stage_mid(iter,p->dt);
 }
 
 void sixdof_obj::rkls3(lexer *p, ghostcell *pgc, int iter)

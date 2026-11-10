@@ -49,6 +49,16 @@ sixdof_cfd::sixdof_cfd(lexer *p, fdm *a, ghostcell *pgc)
         p->X198 = 0;
     }
     
+    // the one-step scheme with two projections (N 40 6): the bodies take the midpoint rule
+    // (sixdof_rigidbody::stage_mid); the fluid-momentum coupling has no stages for it yet
+    if(p->X198>0 && p->N40==6)
+    {
+        if(p->mpirank==0)
+        cout<<"!!! X 198 (fluid-momentum coupling) has no stages for N 40 6 yet: X 197 / the explicit coupling instead"<<endl;
+        
+        p->X198 = 0;
+    }
+    
     // X 198 1 with the SSP Runge-Kutta stages (N 40 3 with the CFD mesh refinement, G 1 > 0; without it
     // the bodies take the low-storage RK3): the 2D swimmer is 9 % slow at N 47 0.25, as fast as with
     // the low-storage RK3 at 0.1 or with X 198 2 (refit after the projection; Fish Swimming validation 06)

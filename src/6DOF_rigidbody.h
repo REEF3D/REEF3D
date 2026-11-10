@@ -111,6 +111,7 @@ public:
     void stage_rk3(int, double);                        // TVD RK3 (Shu-Osher)
     void stage_rkls3(int, double, double, double);      // low-storage RK3: stage iter, gamma, zeta, dt
     void stage_rk4(int, double);                        // classical RK4, stages 0..3
+    void stage_mid(int, double);                        // explicit midpoint rule: stage 0 the half step, 1 the full step (CFD N 40 6)
     void step_onestep(double);                          // single step with frozen derivatives (prescribed motion)
 
     void save_history(double);                          // shift n1..n3, argument: stage time step

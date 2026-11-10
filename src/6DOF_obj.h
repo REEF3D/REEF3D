@@ -230,6 +230,7 @@ protected:
     void rk2(lexer*, ghostcell*,int);
     void rk3(lexer*, ghostcell*,int);
     void rkls3(lexer*, ghostcell*,int);
+    void rkmid(lexer*, ghostcell*,int);
 
    
    // ray cast 3D: geometry core kernels

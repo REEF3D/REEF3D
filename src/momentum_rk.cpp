@@ -478,8 +478,10 @@ void momentum_rk::amr_twoproj_momentum(lexer *p, fdm *a, ghostcell *pgc, vrans *
 void momentum_rk::twoproj_forcing(lexer *p, fdm *a, ghostcell *pgc, sixdof *p6dof, field &u, field &v, field &w,
                                   double alpha, bool final, int forcing)
 {
+    // the floating bodies (X 10 1): stage 0 the half step, stage 1 the full step (the midpoint rule,
+    // sixdof_rigidbody::stage_mid)
     if(forcing==1)
-    momentum_forcing_start(a, p, pgc, p6dof, pfsi, u, v, w, fx, fy, fz, 0, alpha, final);
+    momentum_forcing_start(a, p, pgc, p6dof, pfsi, u, v, w, fx, fy, fz, final ? 1 : 0, alpha, final);
 
     if(forcing==2)
     amr_solid_forcing(p,a,pgc,u,v,w,alpha);

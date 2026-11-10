@@ -392,6 +392,27 @@ void sixdof_rigidbody::stage_rkls3(int iter, double gamma, double zeta, double d
     dek = de;
 }
 
+void sixdof_rigidbody::stage_mid(int iter, double dt)
+{
+    // explicit midpoint rule, the stages of the one-step scheme with two projections (CFD N 40 6):
+    // iter 0: y(n+1/2) = y(n) + dt/2 f(y(n)), iter 1: y(n+1) = y(n) + dt f(y(n+1/2))
+    if(iter==0)
+    {
+        pk = p;
+        ck = c;
+        hk = h;
+        ek = e;
+    }
+
+    const double w = (iter==0) ? 0.5 : 1.0;
+
+    p = pk + w*dt*dp;
+    c = ck + w*dt*dc;
+    h = hk + w*dt*dh;
+    e = ek + w*dt*de;
+    e.normalize();
+}
+
 void sixdof_rigidbody::stage_rk4(int iter, double dt)
 {
     // classical RK4:

@@ -159,6 +159,22 @@ sixdof_obj::sixdof_obj(lexer *p, ghostcell *pgc, int number) : ddweno_f_nug(p),
     zeta[2] = 0.0;
     }
     
+    // CFD N 40 6 (one step, two projections): stage 0 the half step, stage 1 the full step
+    if(p->N40==6 && p->A10==6)
+    {
+    alpha[0] = 0.5;
+    alpha[1] = 1.0;
+    alpha[2] = 1.0;
+    
+    gamma[0] = 0.0;
+    gamma[1] = 0.0;
+    gamma[2] = 0.0;
+    
+    zeta[0] = 0.0;
+    zeta[1] = 0.0;
+    zeta[2] = 0.0;
+    }
+    
     
     // external motion: motion files (X 240 1, 11) with 6DOF_motion-<id>.dat of the body, otherwise
     // 6DOF_motion.dat; a body without prescribed DOF (X 111) needs none
