@@ -6,7 +6,7 @@
 # REEF3D (rank 0) connects to 127.0.0.1:port and sends one line of JSON per decision (once per half
 # tail beat); the server answers with one line of JSON:
 #
-#   hello  {"hello":1,"body":0,"L":..,"f0":..,"rho":..,"U_des":..,"b_max":..,"D":..,"th_esc":..,"t_start":..,"twoD":1}
+#   hello  {"hello":1,"body":0,"L":..,"f0":..,"rho":..,"U_des":..,"b_max":..,"D":..,"th_esc":..,"t_start":..,"twoD":1,"s0":..,"k_turn":..}
 #          -> {"ok":1,"policy":"rules"}
 #   senses {"t":..,"f":..,"a":..,"b":..,            the time of the decision, the gait now
 #           "pos":[x,y,z],"axis":[..],"lat":[..],   the CoG, the mean body axis and lateral axis in the plane
@@ -53,7 +53,7 @@ def _kf_update(st, H, y, R, dt):
         for i in range(3):
             for j in range(3):
                 P[i][j] -= K[i] * Ph[j]
-    x[0] = min(0.8, max(0.25, x[0]))
+    x[0] = min(1.6 * st["s0"], max(0.5 * st["s0"], x[0]))
 
 
 def rules(sv, st, pr):
@@ -61,6 +61,8 @@ def rules(sv, st, pr):
     the stride and the current from the gait and the track, the velocity through the water for the target."""
     L, f0, rho = pr["L"], pr["f0"], pr["rho"]
     Udes, bmax, Dvis, the = pr["U_des"], (pr["b_max"] if pr["b_max"] > 0 else 1.0), pr["D"], pr["th_esc"]
+    s0 = pr.get("s0", 0.0) or S0                 # X 200: the prior of the stride and the turn rate of the bias
+    kturn = pr.get("k_turn", 0.0) or KTURN
     t, f, a, b = sv["t"], sv["f"], sv["a"], sv["b"]
     ex, el, c = sv["axis"], sv["lat"], sv["pos"]
     nrm = 1 if pr["twoD"] else 2
@@ -69,8 +71,8 @@ def rules(sv, st, pr):
 
     # 1. the speed of the gait since the last decision; the estimate of the stride and the current
     if "kx" not in st:
-        st["kx"] = [S0, 0.0, 0.0]
-        st["kP"] = [[0.15 * 0.15, 0.0, 0.0], [0.0, 0.3 * 0.3, 0.0], [0.0, 0.0, 0.3 * 0.3]]
+        st["kx"], st["s0"] = [s0, 0.0, 0.0], s0
+        st["kP"] = [[0.09 * s0 * s0, 0.0, 0.0], [0.0, 0.3 * 0.3, 0.0], [0.0, 0.0, 0.3 * 0.3]]
         st["ug"], st["tdec"], st["pdec"], st["bdec"], st["Tprev"], st["vT"] = f * a * L, t, list(c), b, None, [0.0, 0.0, 0.0]
         st["adec"] = a
     dt = t - st["tdec"]
@@ -122,10 +124,10 @@ def rules(sv, st, pr):
     # 3. the frequency from the speed through the water, at least what a turn-around needs; the bias
     ft, bt, mode = max(0.3 * f0, min(fmx, f)), 0.0, 0
     if has_t:
-        Uturn = min(abs(psi) / TFLOOR * L / (KTURN * bmax), fmx * s * L) if abs(psi) > PSIFLOOR else 0.0
+        Uturn = min(abs(psi) / TFLOOR * L / (abs(kturn) * bmax), fmx * s * L) if abs(psi) > PSIFLOOR else 0.0
         Ucmd = max(Ureq, Uturn)
         ft = max(0.3 * f0, min(fmx, Ucmd / (s * L)))
-        bt = (psi / TAU) * L / (KTURN * Uw)
+        bt = (psi / TAU) * L / (kturn * Uw)
         mode = 3 if dist < ARRIVE * L else 0
     bt = max(-bmax, min(bmax, bt))
 

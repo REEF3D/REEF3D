@@ -74,6 +74,9 @@ void sixdof_obj::deform_setup(lexer *p, ghostcell *pgc)
             if(p->X199_id[n]==n6DOF)
             cout<<" t "<<p->X199_t[n]<<": f "<<p->X199_f[n]<<" a "<<p->X199_a[n]<<" b "<<p->X199_b[n]<<" t_s "<<p->X199_ts[n]<<";";
             
+            if(fish_->bias_shape()==1)
+            cout<<" the bias along the envelope (X 200)";
+            
             cout<<endl;
         }
 
@@ -247,9 +250,18 @@ void sixdof_obj::brain_setup(lexer *p)
     tramp = p->X195_tramp[n];
     }
     
+    // the swimming of the body (X 200 id s0 k): the prior of the stride and the turn rate of the bias
+    double s0 = 0.0, kturn = 0.0;
+    for(int n=0; n<p->X200; ++n)
+    if(p->X200_id[n]==n6DOF)
+    {
+    s0 = p->X200_s[n];
+    kturn = p->X200_k[n];
+    }
+    
     delete brain_;
     brain_ = new sixdof_brain(p->X193_U[nb], p->X193_b[nb], p->X193_D[nb], p->X193_the[nb], f0, fish_->length(), p->W1,
-                              tramp + 1.0/f0, fish_->lateral(), tp);
+                              tramp + 1.0/f0, fish_->lateral(), tp, s0, kturn);
     
     // the largest frequency of the brain fixes the step of the recoil quadrature
     fish_->set_fcap(brain_->fmax());
@@ -274,9 +286,10 @@ void sixdof_obj::brain_setup(lexer *p)
             exit(1);
         }
         
-        char hello[512];
-        snprintf(hello,sizeof(hello),"{\"hello\":1,\"body\":%d,\"L\":%.17g,\"f0\":%.17g,\"rho\":%.17g,\"U_des\":%.17g,\"b_max\":%.17g,\"D\":%.17g,\"th_esc\":%.17g,\"t_start\":%.17g,\"twoD\":%d}",
-                 n6DOF, fish_->length(), f0, p->W1, p->X193_U[nb], p->X193_b[nb], p->X193_D[nb], p->X193_the[nb], tramp + 1.0/f0, fish_->lateral()==2 ? 1 : 0);
+        char hello[1024];
+        snprintf(hello,sizeof(hello),"{\"hello\":1,\"body\":%d,\"L\":%.17g,\"f0\":%.17g,\"rho\":%.17g,\"U_des\":%.17g,\"b_max\":%.17g,\"D\":%.17g,\"th_esc\":%.17g,\"t_start\":%.17g,\"twoD\":%d,\"s0\":%.17g,\"k_turn\":%.17g}",
+                 n6DOF, fish_->length(), f0, p->W1, p->X193_U[nb], p->X193_b[nb], p->X193_D[nb], p->X193_the[nb], tramp + 1.0/f0, fish_->lateral()==2 ? 1 : 0,
+                 brain_->stride_prior(), brain_->turn_rate());
         
         if(!brain_link_->exchange(hello, in, 60.0))
         {
@@ -290,7 +303,8 @@ void sixdof_obj::brain_setup(lexer *p)
     if(p->mpirank==0)
     {
         cout<<"6DOF body "<<n6DOF<<": brain (X 193), U_des "<<p->X193_U[nb]<<" m/s, b_max "<<p->X193_b[nb]
-            <<", vision "<<p->X193_D[nb]<<" L, escape at "<<p->X193_the[nb]<<" q, "<<tp.size()<<" target points (X 192)"<<endl;
+            <<", vision "<<p->X193_D[nb]<<" L, escape at "<<p->X193_the[nb]<<" q, "<<tp.size()<<" target points (X 192)"
+            <<"; stride prior "<<brain_->stride_prior()<<" L, turn rate "<<brain_->turn_rate()<<" b U/L (X 200)"<<endl;
         
         char str[1000];
         snprintf(str,sizeof(str),"%s/REEF3D_6DOF_brain_%i.dat",sixdof_output_dir(p),n6DOF);

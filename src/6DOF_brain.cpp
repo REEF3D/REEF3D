@@ -27,12 +27,12 @@ Architect: Hans Bihs
 namespace
 {
     const double brain_tau = 1.5;          // time to turn onto the wanted heading [s]
-    const double brain_kturn = 1.3;        // turn rate of the gait: omega = kturn b U_w/L (U_w through the water)
+    const double brain_kturn = 1.3;        // default turn rate of the gait: omega = k b U_w/L (U_w through the water)
     const double brain_slow = 1.5;         // slower within this distance of the target [L]
     const double brain_arrive = 0.25;      // at the target within this distance [L]
     const double brain_front = 0.35;       // the head stations of the lateral line: s/L below
     const double brain_tauu = 0.8;         // response time of the swimming speed to the gait [s]
-    const double brain_s0 = 0.5;           // prior of the stride per tail beat at full amplitude [L]
+    const double brain_s0 = 0.5;           // default prior of the stride per tail beat at full amplitude [L]
     const double brain_tfloor = 2.5;       // the speed for a turn: the turn in this time at b_max [s]
     const double brain_psifloor = 1.0;     // ... beyond this angle to the wanted heading [rad]
     const double brain_reaff = 0.5;        // head pressure difference of a turn: -reaff b q_w
@@ -40,9 +40,9 @@ namespace
 }
 
 sixdof_brain::sixdof_brain(double U_des, double b_max, double D_vis, double th_esc, double f0, double L, double rho,
-                           double t_start, int lateral, const std::vector<target_point> &tp)
+                           double t_start, int lateral, const std::vector<target_point> &tp, double s0, double k_turn)
              : Udes_(U_des), bmax_(b_max>0.0 ? b_max : 1.0), Dvis_(D_vis), the_(th_esc), f0_(f0), L_(L), rho_(rho),
-               tstart_(t_start), lat_(lateral), tp_(tp)
+               tstart_(t_start), s0_(s0>0.0 ? s0 : brain_s0), kturn_(k_turn!=0.0 ? k_turn : brain_kturn), lat_(lateral), tp_(tp)
 {
     std::stable_sort(tp_.begin(), tp_.end(), [](const target_point &a, const target_point &b) {return a.t<b.t;});
     t_start_ = tstart_;
@@ -128,11 +128,11 @@ sixdof_brain::decision sixdof_brain::decide(double t, double f, double a, double
     //    ground velocity = s U_g ex + c,   dU_g/dt = (f a L - U_g)/tau_u
     if(!kf_on_)
     {
-        kf_x_[0] = brain_s0; kf_x_[1] = kf_x_[2] = 0.0;
+        kf_x_[0] = s0_; kf_x_[1] = kf_x_[2] = 0.0;
         for(int i=0; i<3; ++i)
         for(int j=0; j<3; ++j)
         kf_P_[i][j] = 0.0;
-        kf_P_[0][0] = 0.15*0.15; kf_P_[1][1] = kf_P_[2][2] = 0.3*0.3;
+        kf_P_[0][0] = 0.09*s0_*s0_; kf_P_[1][1] = kf_P_[2][2] = 0.3*0.3;
         ug_ = f*a*L_;
         tdec_ = t;
         pdec_ = c_;
@@ -224,10 +224,10 @@ sixdof_brain::decision sixdof_brain::decide(double t, double f, double a, double
 
     if(has_t)
     {
-        const double Uturn = (std::fabs(psi)>brain_psifloor) ? std::min(std::fabs(psi)/brain_tfloor*L_/(brain_kturn*bmax_), fmx*s*L_) : 0.0;
+        const double Uturn = (std::fabs(psi)>brain_psifloor) ? std::min(std::fabs(psi)/brain_tfloor*L_/(std::fabs(kturn_)*bmax_), fmx*s*L_) : 0.0;
         const double Ucmd = std::max(Ureq, Uturn);
         ft = std::max(0.3*f0_, std::min(fmx, Ucmd/(s*L_)));
-        bt = (psi/brain_tau)*L_/(brain_kturn*Uw);
+        bt = (psi/brain_tau)*L_/(kturn_*Uw);
         mode = (dist<brain_arrive*L_) ? 3 : 0;
     }
 
@@ -405,7 +405,7 @@ void sixdof_brain::kf_update(const double H[2][3], const double y[2], double R, 
         kf_P_[i][j] -= K[i]*Ph[j];
     }
 
-    kf_x_[0] = std::min(0.8, std::max(0.25, kf_x_[0]));
+    kf_x_[0] = std::min(1.6*s0_, std::max(0.5*s0_, kf_x_[0]));
 }
 
 void sixdof_brain::ckpt_state(std::vector<double> &v) const

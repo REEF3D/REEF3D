@@ -77,7 +77,9 @@ class sixdof_geometry;
 //      y(s,t) = r(t) a(t) L A(s) sin(2 pi s/lambda - phi(t)),   dphi/dt = 2 pi f(t)
 //
 //  and the bias adds b s/L to the angle of the midline (types 11-13: the curvature b/L, exact for any
-//  b, y from the angle; types 1-3: h += b L (s/L)^2/2 with s = (x_head - x)/L). Each of f, a, b follows its target U with
+//  b, y from the angle; types 1-3: h += b L (s/L)^2/2 with s = (x_head - x)/L). Types 11-13 with the bias
+//  along the envelope (X 200 w = 1): the angle b int_0^s A / int_0^1 A, the curvature follows A(s) (a
+//  carangiform body bends its tail, as a rudder; the total bend head to tail stays b). Each of f, a, b follows its target U with
 //  the critically damped dynamics u'' = lambda^2 (U - u) - 2 lambda u' (the amplitude equation of
 //  the CPG model of Ijspeert et al. 2007), lambda = 4.744/t_s: 95 % of a step in the settling time
 //  t_s (default half a tail beat of the target frequency); u, u' and phi stay continuous when a
@@ -126,6 +128,9 @@ public:
     void push_gait(const gait_target&);
     void set_fcap(double f) {fcap_ = f;}
     bool gait_on() const {return gait_on_;}
+    // the bias along the body (X 200, types 11-13): 0 uniform curvature, 1 the curvature along the envelope
+    void set_bias_shape(int w) {bshape_ = w;}
+    int bias_shape() const {return bshape_;}
     double amp_factor() const {return gcur_.a;}
     double bias() const {return gcur_.b;}
     
@@ -154,6 +159,7 @@ private:
     
     double envelope(double) const;
     double envelope_s(double) const;
+    double bias_weight(double) const;
     void raw(double, double&, double&) const;       // h and dh/dt without the recoil terms
     void fit(const std::vector<double>&, double&, double&) const;
 
@@ -171,6 +177,7 @@ private:
     gait_state gait(double) const;
     std::vector<gait_seg> gseg_;
     bool gait_on_ = false, bias_now_ = false;
+    int bshape_ = 0;
     gait_state gcur_;
     double fmax_ = 0.0, fcap_ = 0.0;
     void add_seg(const gait_target&);

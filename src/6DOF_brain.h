@@ -40,7 +40,8 @@ Architect: Hans Bihs
 //
 //  The current and the stride: the fish knows its gait and sees its track over the ground. The speed of
 //  the gait U_g follows f a L with the time 0.8 s; the ground velocity is s U_g ex + c. A Kalman filter
-//  on the stride s (prior 0.5 L per beat) and the current c in the plane estimates both from the CoG at
+//  on the stride s (prior s0 L per beat, X 200, default 0.5; standard deviation 0.3 s0, kept within
+//  0.5-1.6 s0) and the current c in the plane estimates both from the CoG at
 //  the decisions (validation 11, 2D swimmer: s = 0.46, the current 0.17-0.26 m/s for the imposed 0.2 m/s,
 //  in still water at most 0.08 m/s, mean 0.04 m/s). U_w = s U_g is the speed through the water. While the
 //  fish glides (amplitude factor below 0.95 now or at the last decision) the estimate is not updated, and
@@ -60,7 +61,8 @@ Architect: Hans Bihs
 //      the target (slower within 1.5 L; beyond, U_des/cos of the angle between axis and target up to
 //      60 deg, the closing speed on a detour) plus the velocity of the target as seen; the fish swims
 //      w = wanted - c through the water. The heading: along w, the turn rate psi/tau (tau = 1.5 s,
-//      psi the angle of w to the axis), the bias from omega = 1.3 b U_w/L. The frequency: |w|/(s a L),
+//      psi the angle of w to the axis), the bias from omega = k b U_w/L (k: X 200, default 1.3, the 2D eel;
+//      negative for a body that turns away from its bias, as the 3D salmon with the uniform bias). The frequency: |w|/(s a L),
 //      no integrator; with w more than 1 rad off the axis at least the speed for the turn in 2.5 s at
 //      b_max. Within 0.25 L: at the target. In a current the fish faces it and holds station.
 //   4. glide: at the target (0.25 L), needing less than its slowest swimming speed through the water
@@ -79,7 +81,7 @@ public:
     struct target_point {double t, x, y, z;};
 
     sixdof_brain(double U_des, double b_max, double D_vis, double th_esc, double f0, double L, double rho,
-                 double t_start, int lateral, const std::vector<target_point>&);
+                 double t_start, int lateral, const std::vector<target_point>&, double s0 = 0.0, double k_turn = 0.0);
 
     // the senses of one time step: dt, the body axis and the lateral axis (inertial frame), the CoG,
     // the CoG velocity; the lateral line (per probe: s/L, side, pressure) when the body has one
@@ -122,12 +124,14 @@ public:
     bool ckpt_restore(const std::vector<double>&);
 
     double fmax() const {return 2.0*f0_;}
+    double stride_prior() const {return s0_;}
+    double turn_rate() const {return kturn_;}
 
 private:
 
     Eigen::Vector3d target(double t) const;
 
-    const double Udes_, bmax_, Dvis_, the_, f0_, L_, rho_, tstart_;
+    const double Udes_, bmax_, Dvis_, the_, f0_, L_, rho_, tstart_, s0_, kturn_;
     const int lat_;
     std::vector<target_point> tp_;
 

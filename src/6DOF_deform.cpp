@@ -188,6 +188,24 @@ double sixdof_deform::envelope(double s) const
     return a_*(s + 0.03125)/1.03125;
 }
 
+double sixdof_deform::bias_weight(double s) const
+{
+    // the angle of the bias at s/L per unit b: s (uniform curvature) or int_0^s A / int_0^1 A (along the envelope)
+    if(bshape_==0)
+    return s;
+
+    auto I = [this](double x)
+    {
+        if(type_==2)
+        return 0.02*x - 0.04125*x*x + 0.1625/3.0*x*x*x;
+        if(type_==3)
+        return std::exp(x - 1.0) - std::exp(-1.0);
+        return 0.5*x*x + 0.03125*x;
+    };
+
+    return I(s)/I(1.0);
+}
+
 double sixdof_deform::envelope_s(double s) const
 {
     // dA/ds
@@ -363,11 +381,13 @@ void sixdof_deform::midline(double t, double r, double rdot, mtab &m) const
         m.ym[q]  = ra*L_*A*sp;
         m.ymt[q] = -ra*L_*A*om*cp + rat*L_*A*sp;
         
-        // curvature bias: theta += b s/L (the curvature b/L, exact for any b: a C-start)
+        // curvature bias: theta += b W(s/L), W = s/L (the curvature b/L, exact for any b: a C-start) or with
+        // the bias along the envelope (X 200) the curvature b A(s)/(L int_0^1 A ds)
         if(bias)
         {
-        m.th[q]  += b*sg;
-        m.tht[q] += bt*sg;
+        const double W = bias_weight(sg);
+        m.th[q]  += b*W;
+        m.tht[q] += bt*W;
         }
     }
     
