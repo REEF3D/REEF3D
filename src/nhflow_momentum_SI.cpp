@@ -21,6 +21,8 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"nhflow_momentum_SI.h"
+#include"nhflow_breaking.h"
+#include"nhflow_breaking_profile.h"
 #include"nhflow_stratification.h"
 #include"seastate_nhflow.h"
 #include"si_eta2D.h"
@@ -171,6 +173,13 @@ nhflow_momentum_SI::nhflow_momentum_SI(lexer *p, fdm_nhf *d, ghostcell *pgc, six
     // vertical diffusion in the column operator: as nhflow_idiff (A 512 2, or A 560 > 0)
     visc = !(p->A512==0 && p->A560==0) || (p->A547_c>0.0 && p->A560==0) || (p->A547_nu0>0.0 && p->A560==0);
 
+    // wave breaking (A 550 1, 3, 4): the breaking module of the explicit NHFLOW gives the viscosity vb of the columns
+    if((p->A550==1 || p->A550==3 || p->A550==4) && !block)
+    {
+    pbrk = new nhflow_breaking(p,d,pgc);
+    visc = true;
+    }
+
     // non-hydrostatic pressure (A 520 > 0): the coupled eta-phi system (nhflow_momentum_SI_nh.cpp)
     nh_ini(p);
 
@@ -252,6 +261,8 @@ nhflow_momentum_SI::nhflow_momentum_SI(lexer *p, fdm_nhf *d, ghostcell *pgc, six
 
 nhflow_momentum_SI::~nhflow_momentum_SI()
 {
+    delete pbrk;
+
     double *arr[] = {Qx,Qy,Qxn,Qyn,Tx,Ty,QAx,QAy,Rx,Ry,UH0,VH0,WH0,UHa,VHa,WHa,UHb,VHb,WHb,UHp,VHp,WHp,UHD,VHD,WHD,dUH,dVH};
 
     for(double *a : arr)
@@ -289,15 +300,19 @@ void nhflow_momentum_SI::check(lexer *p)
         if(p->geo_curv==1 || p->geo_mb>0 || p->G1>0)
         msg("the non-hydrostatic pressure (A 520 > 0) on curvilinear, multi-block or refined grids is");
 
-        if(p->A537==1)
-        msg("the non-hydrostatic pressure (A 520 > 0) with the wetting and drying iteration (A 537 1) is; set A 537 0,");
-
         if(elm_mode(p)>0)
         msg("the non-hydrostatic pressure (A 520 > 0) with the semi-Lagrangian advection (A 549 1) is");
 
         if(p->A620>0)
         msg("the non-hydrostatic pressure (A 520 > 0) with the density (A 620) is");
     }
+
+    // wave breaking (A 550 1, 3, 4) on one Cartesian grid
+    if(p->A550>0 && (p->geo_curv==1 || p->geo_mb>0 || p->G1>0))
+    msg("wave breaking (A 550) on curvilinear, multi-block or refined grids is");
+
+    if(p->A550==2 || p->A550>4)
+    msg("A 550 other than 0, 1, 3 or 4 is");
 
     if(p->A505!=0 && p->A505!=1)
     msg("A 505 other than 0 or 1 is");
@@ -489,8 +504,8 @@ void nhflow_momentum_SI::step_single(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflo
         nh_solve(p,d,pgc);
         psi_iter = nh_iter;
         psi_time = nh_time;
-        wd_iter = 1;
-        wd_cells = 0;
+        wd_iter = nh_wdit;
+        wd_cells = nh_dry;
         }
 
         else
@@ -799,6 +814,13 @@ void nhflow_momentum_SI::si_end_cells(lexer *p, fdm_nhf *d, ghostcell *pgc, nhfl
 
     relax(p,d,pgc);
     finish(p,d,pgc);
+
+    // wave breaking: the viscosity of the next step from the water level of this one (deta/dt of eta_update)
+    if(pbrk!=nullptr)
+    {
+    pbrk->breaking_zones(p,S.pflow);
+    pbrk->breaking(p,d,pgc,d->eta,d->eta_n,d->WL,1.0);
+    }
 
     SLICELOOP4
     WLk(i,j) = d->WL(i,j);
@@ -1116,6 +1138,19 @@ void nhflow_momentum_SI::eddy_floor(lexer *p, fdm_nhf *d)
     i=ii; j=jj; k=kk;
 }
 
+double nhflow_momentum_SI::vb_layer(lexer *p, fdm_nhf *d, int a, int b, int kk)
+{
+    // the breaking viscosity of layer kk of column (a,b), as nhflow_idiff_v: A 550 1 in the top layer, A 550 3/4 in all
+    // layers (A 550 4 with the depth profile of the orbital velocity, nhflow_vbz)
+    if(pbrk==nullptr)
+    return 0.0;
+
+    if(p->A550>=3)
+    return nhflow_vbz(p,d,a,b,p->ZP[kk+marge]);
+
+    return kk==p->knoz-1 ? d->vb(a,b) : 0.0;
+}
+
 void nhflow_momentum_SI::col_nu(lexer *p, fdm_nhf *d, int i1, int j1, int i2, int j2, double *nu)
 {
     // layer viscosities of the column (i1,j1), or the mean of two columns (a face)
@@ -1129,9 +1164,9 @@ void nhflow_momentum_SI::col_nu(lexer *p, fdm_nhf *d, int i1, int j1, int i2, in
         else
         {
         i=i1; j=j1;
-        const double n1 = d->VISC[IJK] + d->EV[IJK];
+        const double n1 = d->VISC[IJK] + d->EV[IJK] + vb_layer(p,d,i1,j1,k);
         i=i2; j=j2;
-        const double n2 = d->VISC[IJK] + d->EV[IJK];
+        const double n2 = d->VISC[IJK] + d->EV[IJK] + vb_layer(p,d,i2,j2,k);
         nu[k] = 0.5*(n1 + n2);
         }
     }
@@ -1672,7 +1707,7 @@ void nhflow_momentum_SI::si_stage_rhs(lexer *p, fdm_nhf *d, ghostcell *pgc, nhfl
     // horizontal diffusion along the sigma layers (explicit); the vertical diffusion is implicit in
     // the column operator
     if(visc)
-    hdiffusion(p,d);
+    hdiffusion(p,d,pgc);
 
     LOOP
     {
@@ -1928,7 +1963,7 @@ void nhflow_momentum_SI::advection_bcg(lexer *p, fdm_nhf *d, ghostcell *pgc, dou
     }
 }
 
-void nhflow_momentum_SI::hdiffusion(lexer *p, fdm_nhf *d)
+void nhflow_momentum_SI::hdiffusion(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
     // WL div_h( nu_h grad_h u ) per layer, u = U, V, W of the stage, nu_h = VISC + EV (EVH with the
     // HLES split A 561), the mean of the two cells at a face; compact Laplacian (curvilinear grid: the
@@ -1937,6 +1972,13 @@ void nhflow_momentum_SI::hdiffusion(lexer *p, fdm_nhf *d)
     double *EVh = (p->A561>0) ? d->EVH : d->EV;
 
     auto nu = [&](int q) { return d->VISC[q] + EVh[q]; };
+
+    // wave breaking: with the breaking viscosity, sub-steps (hdiffusion_brk)
+    if(pbrk!=nullptr)
+    {
+    hdiffusion_brk(p,d,pgc);
+    return;
+    }
 
     LOOP
     WETDRY
@@ -1956,6 +1998,7 @@ void nhflow_momentum_SI::hdiffusion(lexer *p, fdm_nhf *d)
         cS = p->j_dir==1 ? 1.0/(p->DYP[JM1]*p->DYN[JP]) : 0.0;
         }
 
+        {
         if(p->flagslice4[Ip1J]>0 && p->wet[Ip1J]==1)
         {
         c = 0.5*(nu(IJK) + nu(Ip1JK))*cE;
@@ -1991,10 +2034,142 @@ void nhflow_momentum_SI::hdiffusion(lexer *p, fdm_nhf *d)
             }
         }
 
+        }
+
     d->F[IJK] += wl*fu;
     d->G[IJK] += wl*fv*p->y_dir;
     d->H[IJK] += wl*fw;
     }
+}
+
+void nhflow_momentum_SI::hdiffusion_brk(lexer *p, fdm_nhf *d, ghostcell *pgc)
+{
+    // the horizontal diffusion of hdiffusion with the breaking viscosity of the layers (vb_layer): explicit in n
+    // sub-steps of dt/n, n from the largest diffusion number dt sum_f c_f of the grid (at most 0.45 per sub-step); the
+    // breaking viscosity of a front (Kennedy: 0.1 m2/s in 0.2 m water) is 10 - 20 times the explicit limit of a
+    // semi-implicit dt. The forcing of the step: WL (u^n_sub - u)/dt
+    double *EVh = (p->A561>0) ? d->EVH : d->EV;
+    const int N = p->imax*p->jmax*(p->kmax+2);
+
+    hdU.assign(d->U,d->U+N);
+    hdV.assign(d->V,d->V+N);
+    hdW.assign(d->W,d->W+N);
+
+    // face coefficients per cell: east, west, north, south (0 where closed or dry)
+    hdN.assign((size_t)4*N,0.0);
+    double smax = 0.0;
+
+    auto nub = [&](int a, int b, int q) { return d->VISC[q] + EVh[q] + vb_layer(p,d,a,b,k); };
+
+    LOOP
+    WETDRY
+    {
+    double cE,cW,cN,cS;
+
+        if(p->geo_curv==1)
+        nhflow_curv::lapcoef(p,i,j,cE,cW,cN,cS);
+
+        else
+        {
+        cE = 1.0/(p->DXP[IP]*p->DXN[IP]);
+        cW = 1.0/(p->DXP[IM1]*p->DXN[IP]);
+        cN = p->j_dir==1 ? 1.0/(p->DYP[JP]*p->DYN[JP]) : 0.0;
+        cS = p->j_dir==1 ? 1.0/(p->DYP[JM1]*p->DYN[JP]) : 0.0;
+        }
+
+    double *c = &hdN[4*(size_t)(IJK)];
+
+    // the stress h nu du/dx at a face with the smaller depth of the two cells (flux form: the faces cancel in the
+    // sum over the cells, so the diffusion has no net force; h_P du/dt = sum_f h_f nu_f du/dx_f, h_f/h_P <= 1, so
+    // the explicit limit is that of nu). The velocity form h_P div(nu grad u) of hdiffusion is not conservative: at a
+    // breaking front u and h fall together, and the term -nu du/dx dh/dx is a net force against the waves
+    const double hP = MAX(WL0(i,j),p->A544);
+    auto hr = [&](int a, int b) { return MIN(1.0, MIN(WL0(i,j),WL0(a,b))/hP); };
+
+        if(p->flagslice4[Ip1J]>0 && p->wet[Ip1J]==1)
+        c[0] = 0.5*(nub(i,j,IJK) + nub(i+1,j,Ip1JK))*cE*hr(i+1,j);
+
+        if(p->flagslice4[Im1J]>0 && p->wet[Im1J]==1)
+        c[1] = 0.5*(nub(i,j,IJK) + nub(i-1,j,Im1JK))*cW*hr(i-1,j);
+
+        if(p->j_dir==1)
+        {
+            if(p->flagslice4[IJp1]>0 && p->wet[IJp1]==1)
+            c[2] = 0.5*(nub(i,j,IJK) + nub(i,j+1,IJp1K))*cN*hr(i,j+1);
+
+            if(p->flagslice4[IJm1]>0 && p->wet[IJm1]==1)
+            c[3] = 0.5*(nub(i,j,IJK) + nub(i,j-1,IJm1K))*cS*hr(i,j-1);
+        }
+
+    smax = MAX(smax, p->dt*(c[0] + c[1] + c[2] + c[3]));
+    }
+
+    smax = pgc->globalmax(smax);
+    const int nsub = MAX(1,(int)ceil(smax/0.45));
+    const double ds = p->dt/double(nsub);
+
+    std::vector<double> nu_(N), nv_(N), nw_(N);
+
+    for(int m=0; m<nsub; ++m)
+    {
+        if(m>0)
+        {
+        exchangeC(p,pgc,hdU.data());
+        exchangeC(p,pgc,hdV.data());
+        exchangeC(p,pgc,hdW.data());
+        }
+
+        LOOP
+        {
+        nu_[IJK] = hdU[IJK];
+        nv_[IJK] = hdV[IJK];
+        nw_[IJK] = hdW[IJK];
+        }
+
+        LOOP
+        WETDRY
+        {
+        const double *c = &hdN[4*(size_t)(IJK)];
+        double fu=0.0, fv=0.0, fw=0.0;
+
+        auto add = [&](double cf, int q)
+        {
+            if(cf<=0.0)
+            return;
+            fu += cf*(hdU[q] - hdU[IJK]);
+            fv += cf*(hdV[q] - hdV[IJK]);
+            fw += cf*(hdW[q] - hdW[IJK]);
+        };
+
+        add(c[0],Ip1JK);
+        add(c[1],Im1JK);
+        add(c[2],IJp1K);
+        add(c[3],IJm1K);
+
+        nu_[IJK] = hdU[IJK] + ds*fu;
+        nv_[IJK] = hdV[IJK] + ds*fv;
+        nw_[IJK] = hdW[IJK] + ds*fw;
+        }
+
+        LOOP
+        {
+        hdU[IJK] = nu_[IJK];
+        hdV[IJK] = nv_[IJK];
+        hdW[IJK] = nw_[IJK];
+        }
+    }
+
+    LOOP
+    WETDRY
+    {
+    const double wl = WL0(i,j);
+    d->F[IJK] += wl*(hdU[IJK] - d->U[IJK])/p->dt;
+    d->G[IJK] += wl*(hdV[IJK] - d->V[IJK])/p->dt*p->y_dir;
+    d->H[IJK] += wl*(hdW[IJK] - d->W[IJK])/p->dt;
+    }
+
+    if(p->mpirank==0 && nsub>1 && p->count%p->P12==0)
+    cout<<"breaking: horizontal diffusion in "<<nsub<<" sub-steps"<<endl;
 }
 
 double nhflow_momentum_SI::dissipation(lexer *p, double q, double h, double dxp)

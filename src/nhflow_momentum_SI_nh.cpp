@@ -97,7 +97,7 @@ void nhflow_momentum_SI::nh_ini(lexer *p)
     if(!nh)
     return;
 
-    nh_brk = 0.0;
+    nh_brk = p->A558;   // A 558: the breaking limiter |w| <= A 558 sqrt(g H) of Popinet 2020 (nh_cell)
 
     const int N = p->imax*p->jmax*(p->kmax+2);
     double **arr[] = {&NQx,&NQy,&WHS,&PHI,&PHIo,&NSX,&NSY};
@@ -107,6 +107,7 @@ void nhflow_momentum_SI::nh_ini(lexer *p)
     nWLh.assign((size_t)p->imax*p->jmax,0.0);
     nWLo.assign((size_t)p->imax*p->jmax,-1.0);
     nAct.assign((size_t)p->imax*p->jmax,0);
+    nPw.assign((size_t)p->imax*p->jmax,1.0);
 }
 
 void nhflow_momentum_SI::nh_free()
@@ -486,7 +487,7 @@ void nhflow_momentum_SI::nh_residual(lexer *p, fdm_nhf *d, ghostcell *pgc, const
     if(mass_source)
     w += dt*wsrc(i,j);
 
-    y[(size_t)B*n] = etaI(i,j) + d->depth(i,j) - w;
+    y[(size_t)B*n] = nPw[IJ]*(etaI(i,j) + d->depth(i,j)) - w;
 
         if(!nAct[IJ])
         {
@@ -748,7 +749,7 @@ void nhflow_momentum_SI::nh_assemble(lexer *p, const std::function<void(int,int,
     };
 
     // mass row: eta + d - WL^n + dt sum_k dsig_k div(theta Q_k)
-    at(0,0,0) += 1.0;
+    at(0,0,0) += nPw[IJ];
     for(int kk=0;kk<K;++kk)
     adddiv(0,dt*theta*p->DZN[kk+marge],kk);
 
@@ -825,7 +826,21 @@ void nhflow_momentum_SI::nh_solve(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
     auto &S = *nhlu;
 
+    // wetting and drying (A 537 1): the mass row of a column is pw (eta + d) - WL^{n+1}(fluxes), pw = 1 where the column
+    // is wet at the iterate (eta + d > 0) or has no open face, 0 otherwise (a dry column: its eta from the balance of
+    // its faces, its water level 0), as the hydrostatic eta solve (si_eta2D::solve_wetdry, Casulli 2009); the coupled
+    // system solved again with the new pattern until it no longer changes (at most 20 times). A 537 0: pw = 1, once
+    const int itwd = p->A537==1 ? 20 : 1;
+    nPw.assign((size_t)p->imax*p->jmax,1.0);
+    nh_pwnew = false;
+    int wdit = 0;
+
+    for(int itw=0; itw<itwd; ++itw)
+    {
+    ++wdit;
+
     // F(0): the affine part; b = -F(0)
+    std::fill(x.begin(),x.end(),0.0);
     nh_residual(p,d,pgc,x,F0,true);
 
     // ---- multigrid with the column relaxation (nhflow_si_nhmg) inside FGMRES; one row of columns
@@ -948,6 +963,43 @@ void nhflow_momentum_SI::nh_solve(lexer *p, fdm_nhf *d, ghostcell *pgc)
     S.solve(x);
     nh_iter = 1;
     }
+
+        if(itwd==1)
+        break;
+
+    // the new wet pattern from eta of x
+    int change = 0;
+    {
+    int n=0;
+    SLICELOOP4
+    {
+    const bool coupled = Hx(i,j)>0.0 || Hx(i-1,j)>0.0 || (p->j_dir==1 && (Hy(i,j)>0.0 || Hy(i,j-1)>0.0));
+    const double pn = (x[(size_t)B*n] + d->depth(i,j)>0.0 || !coupled) ? 1.0 : 0.0;
+
+        if(pn!=nPw[IJ])
+        {
+        nPw[IJ] = pn;
+        ++change;
+        }
+    ++n;
+    }
+    }
+
+    change = pgc->globalisum(change);
+
+        if(change==0)
+        break;
+
+    nh_pwnew = true;
+    }
+
+    // the iterations of the wet pattern and the dry columns for the log (as the hydrostatic solve)
+    nh_wdit = wdit;
+    nh_dry = 0;
+    SLICELOOP4
+    if(nPw[IJ]<0.5)
+    ++nh_dry;
+    nh_dry = pgc->globalisum(nh_dry);
 
     // the solution: etaI, PHI, the face terms and discharges (face_update: si_end_faces skips its own call where the
     // open boundaries do not depend on nh_fixed, no riemann/flather faces); the pressure for the output
@@ -1380,7 +1432,7 @@ void nhflow_momentum_SI::nh_solve_mg(lexer *p, fdm_nhf *d, ghostcell *pgc, const
     // ---- the preconditioner of an earlier step: rebuilt after lagmax steps, when dt changed by more than
     // 10 %, when the active columns changed, or when the iterations grew by more than one over those of the rebuild
     const bool refresh = lagmax<=1 || nh_lagc+1>=lagmax || fabs(p->dt/MAX(nh_lagdt,1.0e-20) - 1.0)>0.1
-                         || pgc->globalisum(nact)!=nh_lagnact || nh_iter>nh_lagit+1;
+                         || pgc->globalisum(nact)!=nh_lagnact || nh_iter>nh_lagit+1 || nh_pwnew;
 
     const int nsplit = p->A507;
     fg_result R, R2;

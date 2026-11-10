@@ -107,6 +107,8 @@ using namespace std;
 // boundary conditions.
 // ---------------------------------------------------------------------------
 
+class nhflow_breaking;
+
 class nhflow_momentum_SI final : public nhflow_momentum_func
 {
 public:
@@ -252,7 +254,9 @@ private:
     void advection(lexer*, fdm_nhf*, ghostcell*, nhflow_reconstruct*);
     void si_corrector(lexer*, fdm_nhf*, ghostcell*);
     void advection_bcg(lexer*, fdm_nhf*, ghostcell*, double*, double*, double*);
-    void hdiffusion(lexer*, fdm_nhf*);
+    void hdiffusion(lexer*, fdm_nhf*, ghostcell*);
+    void hdiffusion_brk(lexer*, fdm_nhf*, ghostcell*);
+    std::vector<double> hdU, hdV, hdW, hdN;
     void face_update(lexer*, fdm_nhf*, ghostcell*);
     void eta_update(lexer*, fdm_nhf*, ghostcell*, nhflow_fsf*);
     void cell_update(lexer*, fdm_nhf*, ghostcell*);
@@ -309,6 +313,11 @@ private:
     double nh_lagdt = 0.0;                          // iterations of that step, the active columns and dt then
     int nh_iter = 0;
     double nh_time = 0.0, nh_res = 0.0, nh_brk = 0.0;
+    // wetting and drying of the coupled solve (A 537 1): pw of the mass rows, the pattern changed in this step, the
+    // iterations of the pattern and the dry columns
+    std::vector<double> nPw;
+    bool nh_pwnew = false;
+    int nh_wdit = 1, nh_dry = 0;
     void nh_ini(lexer*);
     void nh_free();
     void nh_levels(lexer*, fdm_nhf*);
@@ -397,6 +406,10 @@ private:
     // the pass of step_single (tl2: 0 the estimate, 1 the final pass); faces_set: face_update of the step done by the
     // coupled non-hydrostatic solve (nh_solve), si_end_faces skips it
     int si_pass=0;
+    // wave breaking (A 550 1/3/4): the breaking viscosity vb of the columns from the water level of the step, used in the
+    // next step (horizontal diffusion of the predictor, column operator); nbrk_lim: its cap for the explicit diffusion
+    nhflow_breaking *pbrk = nullptr;
+    double vb_layer(lexer*, fdm_nhf*, int, int, int);
     bool faces_set=false;
 
     double Qin, Qout;       // discharge over the open boundaries of the step (theta weighted)

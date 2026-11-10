@@ -286,6 +286,7 @@ void control::ini_default()
     A554=0.6;    // double breaking parameter alpha (A 550 3: start of breaking, deta/dt > A 554 sqrt(g h); Kennedy et al. 2000: 0.35-0.65)
     A555=1.25;   // double breaking parameter slope alpha
     A557=1.86;   // double viscosity breaking wave
+    A558=0.0;    // double NHFLOW semi-implicit with A 520 > 0: breaking limiter of the vertical velocity |w| <= A 558 sqrt(g H) (Popinet 2020, 0.1 there), 0 off
     
     A560=0;      // int turbulence model
     A564=1;      // int eddyv limiter (NHFLOW: 1 realizability, 2 SST; >= 1 also the length-scale limit l <= kappa h)
