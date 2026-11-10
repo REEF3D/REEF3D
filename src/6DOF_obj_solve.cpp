@@ -55,7 +55,7 @@ void sixdof_obj_cfd::solve_eqmotion_cfd(lexer *p, fdm *a, ghostcell *pgc, int it
     if(p->N40==4 || p->N40==14 || p->N40==24 || p->N40==44)
     rkls3(p,pgc,iter);
     
-    // the one-step scheme with two projections: the midpoint rule, stage 0 the half step (the loads
+    // the one-step scheme with two projections: position Verlet, stage 0 the half step (the loads
     // of time n), stage 1 the full step (the loads of the half step)
     if(p->N40==6)
     rkmid(p,pgc,iter);
@@ -152,12 +152,44 @@ void sixdof_obj::rk3(lexer *p, ghostcell *pgc, int iter)
     rb.stage_rk3(iter,p->dt);
 }
 
+// The body with the one-step scheme with two projections (CFD N 40 6): position Verlet
+// (Stoermer-Verlet, second order, symplectic: a floating body in heave keeps its energy).
+//   iter 0, the half step: the pose from n to n+1/2 with the momenta of n, the momenta to n+1/2
+//           with the loads of p(n) (the velocity the half step forces)
+//   iter 1, the full step: the momenta from n to n+1 with the loads of p(n+1/2), the pose from
+//           n+1/2 to n+1 with the momenta of n+1
+// Prescribed motions (sixdof_motionext) act on the derivatives as in the stages: get_trans and
+// get_rot again after the momenta, so the pose takes the prescribed velocity.
 void sixdof_obj::rkmid(lexer *p, ghostcell *pgc, int iter)
 {
+    const double dt = p->dt;
+    
     get_trans(p,pgc);    
     get_rot(p);
     
-    rb.stage_mid(iter,p->dt);
+    if(iter==0)
+    {
+        rb.pk = rb.p;
+        rb.ck = rb.c;
+        rb.hk = rb.h;
+        rb.ek = rb.e;
+        
+        rb.c = rb.ck + 0.5*dt*rb.dc;
+        rb.e = (rb.ek + 0.5*dt*rb.de).normalized();
+        
+        rb.p = rb.pk + 0.5*dt*rb.dp;
+        rb.h = rb.hk + 0.5*dt*rb.dh;
+        return;
+    }
+    
+    rb.p = rb.pk + dt*rb.dp;
+    rb.h = rb.hk + dt*rb.dh;
+    
+    get_trans(p,pgc);    
+    get_rot(p);
+    
+    rb.c = rb.c + 0.5*dt*rb.dc;
+    rb.e = (rb.e + 0.5*dt*rb.de).normalized();
 }
 
 void sixdof_obj::rkls3(lexer *p, ghostcell *pgc, int iter)

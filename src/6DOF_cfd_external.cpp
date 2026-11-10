@@ -78,6 +78,15 @@ void sixdof_cfd::ext_nodes(lexer *p, int iter, double &cs, double &cn, int &ns) 
         ns = 3;
         if(iter>=0 && iter<3) {cs = cl[iter]; cn = nl[iter];}
     }
+
+    // the one-step schemes: N 40 5 one call from n to n+1 (the defaults), N 40 6 the half step (to n+1/2)
+    // and the full step (from n to n+1)
+    if(p->N40==6)
+    {
+        ns = 2;
+        cs = 0.0;
+        cn = (iter==0) ? 0.5 : 1.0;
+    }
 }
 
 void sixdof_cfd::ext_connect(lexer *p, ghostcell *pgc)

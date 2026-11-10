@@ -91,12 +91,13 @@ between them.
 
 Floating bodies (X 10 1, with their mooring lines X 310 and nets X 320; also on the mesh refinement):
 the forcing of the half step is stage 0 of the bodies, that of the full step stage 1. The bodies take
-the explicit midpoint rule (sixdof_rigidbody::stage_mid): to n+1/2 with the loads of p(n), from n to
-n+1 with the loads of p(n+1/2); the hulls are cast and the body velocity forced at n+1/2 before the
+position Verlet (sixdof_obj::rkmid): the pose to n+1/2 with the momenta of n and the momenta to n+1/2
+with the loads of p(n); the momenta from n to n+1 with the loads of p(n+1/2) and the pose from n+1/2 to
+n+1 with them; the hulls are cast and the body velocity forced at n+1/2 before the
 first projection and at n+1 before the second. With N 40 5 the bodies take one semi-implicit Euler step
 per step (sixdof_rigidbody::step_symplectic: the momenta with the loads of p(n), the pose with the new
-momenta), also with the subcycling of the mesh refinement (cfd_amr::patch_step_onestep). No X 198 and
-no N 59 with bodies yet.
+momenta), also with the subcycling of the mesh refinement (cfd_amr::patch_step_onestep). N 59 works with bodies (uniform
+grid and mesh refinement); no X 198 with N 40 5, 6 yet.
 
 With the compressible air (W 32, pjm_corr_comp.cpp) both projections take p(n) of the start of the
 step as the reference of the pressure change: the half step over dt/2, the full step over dt.

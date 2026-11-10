@@ -49,8 +49,8 @@ sixdof_cfd::sixdof_cfd(lexer *p, fdm *a, ghostcell *pgc)
         p->X198 = 0;
     }
     
-    // the one-step scheme with two projections (N 40 6): the bodies take the midpoint rule
-    // (sixdof_rigidbody::stage_mid); the fluid-momentum coupling has no stages for it yet
+    // the one-step scheme with two projections (N 40 6): the bodies take the position Verlet
+    // steps (sixdof_obj::rkmid); the fluid-momentum coupling has no stages for it yet
     if(p->X198>0 && (p->N40==5 || p->N40==6))
     {
         if(p->mpirank==0)

@@ -730,7 +730,7 @@ void driver::logic_cfd()
 
     // the one-step schemes (N 40 5, 6): the level set or single phase flow, no VOF or particles yet;
     // floating bodies (X 10 1, with their mooring lines X 310 and nets X 320): with N 40 6 the bodies
-    // take the midpoint rule with the half step and the full step (sixdof_rigidbody::stage_mid), with
+    // take position Verlet with the half step and the full step (sixdof_obj::rkmid), with
     // N 40 5 one semi-implicit Euler step (sixdof_rigidbody::step_symplectic)
     if((p->N40==5 || p->N40==6) && (p->X10>1 || p->F80>0 || p->F81>0 || p->F300>0 || p->Z10>0 || p->E10>0))
     {
@@ -747,11 +747,11 @@ void driver::logic_cfd()
     // N 59 (the momentum carried with the mass flux): the one-step schemes with the level set (also on
     // the mesh refinement, whose patches take the same Godunov convection), the density of the
     // level set (density_f) and no single-phase PIC
-    if(p->N59>0 && (!(p->N40==5 || p->N40==6) || p->F30<=0 || p->X10>0
+    if(p->N59>0 && (!(p->N40==5 || p->N40==6) || p->F30<=0
        || p->H10>0 || p->C10>0 || p->W30>0 || p->W90>0 || p->F81>0))
     {
         if(p->mpirank==0)
-        cout<<"N 59 works with N 40 5 or 6 and the level set (F 30), without floating bodies (X 10), heat (H 10), concentration (C 10), compressible air (W 30), rheology (W 90) or PIC (F 81) yet"<<endl;
+        cout<<"N 59 works with N 40 5 or 6 and the level set (F 30), without heat (H 10), concentration (C 10), compressible air (W 30), rheology (W 90) or PIC (F 81) yet"<<endl;
 
         exit(1);
     }
