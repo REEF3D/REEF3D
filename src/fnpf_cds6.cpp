@@ -43,7 +43,7 @@ double fnpf_cds6::fx(lexer *p, field &f, double ivel1, double ivel2)
 double fnpf_cds6::fy(lexer *p, field &f, double jvel1, double jvel2)
 {
     return (f(i,j+3,k) - 9.0*f(i,j+2,k) + 45.0*f(i,j+1,k) - 45.0*f(i,j-1,k) + 9.0*f(i,j-2,k) - f(i,j-3,k))
-          /(p->YP[JP3] - 9.0*p->YP[JP3] + 45.0*p->YP[JP1] - 45.0*p->YP[JM1] + 9.0*p->YP[JM2] - p->YP[JM3]);
+          /(p->YP[JP3] - 9.0*p->YP[JP2] + 45.0*p->YP[JP1] - 45.0*p->YP[JM1] + 9.0*p->YP[JM2] - p->YP[JM3]);
 }
 
 double fnpf_cds6::fz(lexer *p, field &f, double kvel1, double kvel2)
@@ -61,7 +61,7 @@ double fnpf_cds6::sx(lexer *p, slice &f, double ivel)
 double fnpf_cds6::sy(lexer *p, slice &f, double jvel)
 {
     return (f(i,j+3) - 9.0*f(i,j+2) + 45.0*f(i,j+1) - 45.0*f(i,j-1) + 9.0*f(i,j-2) - f(i,j-3))
-          /(p->YP[JP3] - 9.0*p->YP[JP3] + 45.0*p->YP[JP1] - 45.0*p->YP[JM1] + 9.0*p->YP[JM2] - p->YP[JM3]);  
+          /(p->YP[JP3] - 9.0*p->YP[JP2] + 45.0*p->YP[JP1] - 45.0*p->YP[JM1] + 9.0*p->YP[JM2] - p->YP[JM3]);  
 }
 
 double fnpf_cds6::sz(lexer *p, double *f)
