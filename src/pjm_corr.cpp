@@ -22,6 +22,7 @@ Author: Hans Bihs
 
 #include"pjm_corr.h"
 #include"pic_gfm.h"
+#include"solid_closed.h"
 #include"lexer.h"
 #include"fdm.h" 
 #include"ghostcell.h"
@@ -153,11 +154,13 @@ void pjm_corr::ucorr(lexer* p, fdm* a, field& uvel,double alpha)
     if(gfm_single(p))
     {
     ULOOP
+    if(!solid_face_closed(p,a,i,j,k,1,0,0))
 	uvel(i,j,k) -= alpha*p->dt*CPOR1*PORVAL1*pic_gfm_grad(p,a,pcorr,i,j,k,1,0,0,p->DXP[IP])/pd->roface(p,a,1,0,0);
     return;
     }
 
 	ULOOP
+    if(!solid_face_closed(p,a,i,j,k,1,0,0))
 	uvel(i,j,k) -= alpha*p->dt*CPOR1*PORVAL1*((pcorr(i+1,j,k)-pcorr(i,j,k))
 	/(p->DXP[IP]*pd->roface(p,a,1,0,0)));
 }
@@ -168,12 +171,14 @@ void pjm_corr::vcorr(lexer* p, fdm* a, field& vvel,double alpha)
     {
     if(p->j_dir==1)
     VLOOP
+    if(!solid_face_closed(p,a,i,j,k,0,1,0))
 	vvel(i,j,k) -= alpha*p->dt*CPOR2*PORVAL2*pic_gfm_grad(p,a,pcorr,i,j,k,0,1,0,p->DYP[JP])/pd->roface(p,a,0,1,0);
     return;
     }
 
     if(p->j_dir==1)
 	VLOOP
+    if(!solid_face_closed(p,a,i,j,k,0,1,0))
 	vvel(i,j,k) -= alpha*p->dt*CPOR2*PORVAL2*((pcorr(i,j+1,k)-pcorr(i,j,k))
 	/(p->DYP[JP]*pd->roface(p,a,0,1,0)));
 }
@@ -183,11 +188,13 @@ void pjm_corr::wcorr(lexer* p, fdm* a, field& wvel,double alpha)
     if(gfm_single(p))
     {
     WLOOP
+    if(!solid_face_closed(p,a,i,j,k,0,0,1))
 	wvel(i,j,k) -= alpha*p->dt*CPOR3*PORVAL3*pic_gfm_grad(p,a,pcorr,i,j,k,0,0,1,p->DZP[KP])/pd->roface(p,a,0,0,1);
     return;
     }
 
 	WLOOP
+    if(!solid_face_closed(p,a,i,j,k,0,0,1))
 	wvel(i,j,k) -= alpha*p->dt*CPOR3*PORVAL3*((pcorr(i,j,k+1)-pcorr(i,j,k))
 	/(p->DZP[KP]*pd->roface(p,a,0,0,1)));
 }
@@ -222,6 +229,31 @@ void pjm_corr::rhs(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, field &
     pcorr(i,j,k)=0.0;
     
     pgc->start4(p,pcorr,1);
+
+    // D 32: the faces closed in the solids (solid_closed.h) take no flux.  The forcing left the
+    // share 1-H of the velocity there (H < 1 within the smoothing width of the solid surface) and
+    // the next predictor would add the pressure gradient across the closed face: set to 0
+    if(p->D32>0)
+    LOOP
+    {
+        if(p->flag4[Ip1JK]>0 && solid_face_closed(p,a,i,j,k,1,0,0))
+        u(i,j,k) = 0.0;
+        if(p->flag4[Im1JK]>0 && solid_face_closed(p,a,i,j,k,-1,0,0))
+        u(i-1,j,k) = 0.0;
+
+        if(p->j_dir==1)
+        {
+        if(p->flag4[IJp1K]>0 && solid_face_closed(p,a,i,j,k,0,1,0))
+        v(i,j,k) = 0.0;
+        if(p->flag4[IJm1K]>0 && solid_face_closed(p,a,i,j,k,0,-1,0))
+        v(i,j-1,k) = 0.0;
+        }
+
+        if(p->flag4[IJKp1]>0 && solid_face_closed(p,a,i,j,k,0,0,1))
+        w(i,j,k) = 0.0;
+        if(p->flag4[IJKm1]>0 && solid_face_closed(p,a,i,j,k,0,0,-1))
+        w(i,j,k-1) = 0.0;
+    }
 
     count=0;
     LOOP

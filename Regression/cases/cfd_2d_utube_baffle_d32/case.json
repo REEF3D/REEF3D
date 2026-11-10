@@ -1,0 +1,16 @@
+{
+ "np": 1,
+ "steps": 200,
+ "description": "A closed tank 0.6 x 0.6 m (dx 5 mm) with a baffle (S 10, 4 cells thick, x 0.40-0.42 m) from the lid down to z = 0.15 m, which closes the air of the right chamber; the free surface starts tilted, higher on the right (F 57), two phases with the compressible air (N 40 5, N 59 2, W 32 2). D 32 1: the faces of the projection inside the baffle closed (both cell centres in the solid). The right chamber holds its water column: level 0.345-0.355 m against 0.265-0.28 m on the left over 3 s, the air pressure difference -760 Pa (rho g dh = -755 Pa). Without D 32 the air passes through the baffle (the projection solves through the solid: a Darcy medium of permeability dt/rho), the levels oscillate around the same mean and the air pressures differ by less than 60 Pa.",
+ "tags": [
+  "quick",
+  "2d",
+  "levelset",
+  "solid",
+  "closed",
+  "compressible"
+ ],
+ "covers": [
+  "solid_closed.h: poisson_pcorr (Neumann at the closed faces, rows of the cells without an open face), pjm_corr::rhs (the closed face velocities 0), pjm_corr::ucorr/vcorr/wcorr (not corrected)"
+ ]
+}
