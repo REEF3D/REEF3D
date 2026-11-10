@@ -26,6 +26,7 @@ Architect: Hans Bihs
 #include"field1.h"
 #include"field2.h"
 #include"field3.h"
+#include"field4.h"
 
 class lexer;
 class fdm;
@@ -46,6 +47,22 @@ public:
     ~cfd_singlephase();
 
     void air_velocity(lexer*, fdm*, ghostcell*, field&, field&, field&);
+
+    // the patches of the mesh refinement (cfd_amr::single_extend): the same extension component by
+    // component, layer by layer over all patches of a level, the faces and the marks of the cells
+    // around a patch from its siblings between the layers (the fills). ext_begin: the known faces
+    // (the marks km), those around the patch known (the faces of the coarser grid there, extended
+    // on it; the fill of the siblings sets their own marks); ext_layer: one layer; ext_end: 0 beyond
+    void ext_begin(lexer*, fdm*, int);
+    void ext_layer(lexer*, field&, int);
+    void ext_end(lexer*, field&, int);
+    field& marks(int c) { return c==0 ? static_cast<field&>(km1) : (c==1 ? static_cast<field&>(km2) : static_cast<field&>(km3)); }
+
+    // F 41 2: the closed air pockets (cfd_pocket.h). pid: the pocket of a cell in the air at the last
+    // labelling (>= 0), -1 a cell of the atmosphere, -2 none (water, a covered or a solid cell); pa: the
+    // pressure of the pocket of a cell in the air, 0 in the atmosphere (the value of the ghost fluid
+    // method at the surface, pic_gfm_air); lab: the labels of the labelling (scratch)
+    field4 pid, pa, lab;
 
 private:
     void extend(lexer*, fdm*, ghostcell*, field&, int, int);

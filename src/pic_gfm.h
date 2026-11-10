@@ -23,6 +23,8 @@ Architect: Hans Bihs
 #ifndef PIC_GFM_H_
 #define PIC_GFM_H_
 
+#include<functional>
+
 class lexer;
 class fdm;
 class field;
@@ -42,7 +44,26 @@ bool gfm_single(lexer*);
 // to them with the diagonal 1/theta
 void pic_gfm_matrix(lexer*, fdm*);
 
-// the gradient of the pressure across the face from (i,j,k) in the direction (di,dj,dk), spacing dx
+// theta of the ghost fluid method: the distance from the cell centre in the water (level set fin)
+// to the surface, in the spacing to the centre in the air (fout), at least PIC_GFM_THETA
+double pic_gfm_theta(double fin, double fout);
+
+// the composite projection of the mesh refinement (cfd_amr, F 41 1): the faces at the patch edges
+// are assembled by the composite operator, with the ghost fluid method across them there.
+// pic_gfm_matrix leaves the faces for which keep(p,i,j,k,s) is true (s: 0 +i, 1 -i, 2 +j, 3 -j,
+// 4 +k, 5 -k); nullptr: none
+void pic_gfm_keep(const std::function<bool(lexer*,int,int,int,int)> *keep);
+
+// F 41 2, the closed air pockets (cfd_pocket.h): the pressure of the air at the surface is that of the
+// pocket of the cell in the air (0 in the atmosphere). pic_gfm_air_field registers the field of these
+// pressures of a grid (cfd_singlephase::pa; lexer nullptr: removes the field); pic_gfm_air the value of
+// a cell (0 without a field)
+void pic_gfm_air_field(lexer*, field*);
+double pic_gfm_air(lexer*, int, int, int);
+
+// the gradient of the pressure across the face from (i,j,k) in the direction (di,dj,dk), spacing dx.
+// For the pressure (a->press) the surface has the pressure of the air pocket (F 41 2, pic_gfm_air);
+// for the correction (pcorr) 0: the projection keeps it
 double pic_gfm_grad(lexer*, fdm*, field&, int, int, int, int, int, int, double);
 
 #endif

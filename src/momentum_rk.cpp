@@ -226,8 +226,8 @@ momentum_rk::momentum_rk(lexer *p, fdm *a, ghostcell *pgc, convection *pconvecti
     // N 59 with the one-step scheme (N 40 5): the level set before its last transport
     phiold = (stages==1 && !twoproj && levelset && p->N59>0 && p->F30>0);
 
-    // F 41 1: the single-phase level set
-    if(p->F41==1 && p->F30>0 && p->F81==0)
+    // F 41 1, 2: the single-phase level set
+    if((p->F41==1 || p->F41==2) && p->F30>0 && p->F81==0)
     psingle = new cfd_singlephase(p);
     phiold_valid = 0.0;
     ckid_phiold = phiold ? ckpt_registry::add_raw(p,&phiold_valid,1) : 0;

@@ -25,6 +25,7 @@ Architect: Hans Bihs
 #include"fdm.h"
 #include"field.h"
 #include<algorithm>
+#include<map>
 
 namespace
 {
@@ -37,11 +38,49 @@ inline double theta(double fin, double fout)
 {
     return std::max(PIC_GFM_THETA, fin/(fin-fout));
 }
+
+const std::function<bool(lexer*,int,int,int,int)> *gfm_keep = nullptr;
+
+std::map<lexer*,field*> gfm_air;
+}
+
+void pic_gfm_air_field(lexer *p, field *f)
+{
+    if(p!=nullptr)
+    {
+        gfm_air[p] = f;
+        return;
+    }
+    for(auto it=gfm_air.begin(); it!=gfm_air.end();)
+    if(it->second==f)
+    it = gfm_air.erase(it);
+    else
+    ++it;
+}
+
+double pic_gfm_air(lexer *p, int i, int j, int k)
+{
+    if(gfm_air.empty())
+    return 0.0;
+    const auto it = gfm_air.find(p);
+    if(it==gfm_air.end())
+    return 0.0;
+    return (*it->second)(i,j,k);
+}
+
+double pic_gfm_theta(double fin, double fout)
+{
+    return theta(fin,fout);
+}
+
+void pic_gfm_keep(const std::function<bool(lexer*,int,int,int,int)> *keep)
+{
+    gfm_keep = keep;
 }
 
 bool gfm_single(lexer *p)
 {
-    return p->F81==1 || (p->F41==1 && p->F30>0 && p->F81==0);
+    return p->F81==1 || ((p->F41==1 || p->F41==2) && p->F30>0 && p->F81==0);
 }
 
 void pic_gfm_matrix(lexer *p, fdm *a)
@@ -88,6 +127,10 @@ void pic_gfm_matrix(lexer *p, fdm *a)
             if(f1>=0.0)
             continue;
 
+            // a face at a patch edge: the composite operator (cfd_amr::pr_matrix, pr_apply)
+            if(gfm_keep!=nullptr && (*gfm_keep)(p,i,j,k,s))
+            continue;
+
             const double c = -(*coef[s]);
             a->M.p[n] += c*(1.0/theta(f0,f1) - 1.0);
             *coef[s] = 0.0;
@@ -105,11 +148,14 @@ double pic_gfm_grad(lexer *p, fdm *a, field &pr, int i, int j, int k, int di, in
     if(f0>=0.0 && f1>=0.0)
     return (pr(i+di,j+dj,k+dk) - pr(i,j,k))/dx;
 
+    // the pressure of the surface: 0, or that of the air pocket (F 41 2) for the pressure itself
+    const bool air = &pr==&a->press;
+
     if(f0>=0.0)
-    return -pr(i,j,k)/(theta(f0,f1)*dx);
+    return ((air ? pic_gfm_air(p,i+di,j+dj,k+dk) : 0.0) - pr(i,j,k))/(theta(f0,f1)*dx);
 
     if(f1>=0.0)
-    return pr(i+di,j+dj,k+dk)/(theta(f1,f0)*dx);
+    return (pr(i+di,j+dj,k+dk) - (air ? pic_gfm_air(p,i,j,k) : 0.0))/(theta(f1,f0)*dx);
 
     return 0.0;
 }

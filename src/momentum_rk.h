@@ -193,6 +193,10 @@ public:
     diffusion* amr_diffusion() { return pdiff; }
     solver* amr_solver() { return psolv; }
 
+    // F 41 1, 2: the single-phase level set of this grid (nullptr: two phases); F 41 2 keeps the
+    // fields of the air pockets there (cfd_pocket.h)
+    cfd_singlephase* single() { return psingle; }
+
 private:
     enum {SSP=0, LOWSTORAGE=1};
 

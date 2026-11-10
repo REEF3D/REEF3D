@@ -1,0 +1,24 @@
+{
+ "base": "cfd_2d_dambreak_amr_adapt_singlephase",
+ "np": 2,
+ "steps": 48,
+ "ctrl_add": [
+  "G 40 3"
+ ],
+ "description": "cfd_2d_dambreak_amr_adapt_singlephase on 2 ranks with G 40 3 (the level-1 boxes cut at the rank boxes of level 0).",
+ "tags": [
+  "quick",
+  "2d",
+  "dambreak",
+  "levelset",
+  "amr",
+  "adaptive",
+  "mpi",
+  "place",
+  "singlephase"
+ ],
+ "covers": [
+  "F 41 1 with G 40 3"
+ ],
+ "architect": "Hans Bihs"
+}

@@ -724,7 +724,7 @@ void control::ini_default()
 	F30=3;			    // int level set scheme
 	F35=5;			    // int convection scheme for fsf
     F37=0;              // int WENO5 nonlinear weights for level set convection (F 35 4,5; F 305 4,5) and reini (F 40 3,23): 0 WENO-JS, 1 WENO-Z, 2 TENO5
-    F41=0;              // int the level set single phase: 1 the water only (p = 0 at the free surface by the ghost fluid method, the velocity of the water extended into the air), 0 two phases
+    F41=0;              // int the level set single phase: 1 the water only (p = 0 at the free surface by the ghost fluid method, the velocity of the water extended into the air), 2 as 1 with the closed air pockets at the adiabatic pressure of their volume (W 33, W 36), 0 two phases
     F38=1.0e-5;         // double TENO5 cutoff C_T (F 37 2)
 	F40=3;			    // int reini scheme
 	F42=-1.0;		// double maxlength

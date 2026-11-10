@@ -1,0 +1,21 @@
+{
+ "base": "cfd_2d_utube_pocket",
+ "np": 1,
+ "ctrl_add": [
+  "G 1 1",
+  "G 15 0.3 0.6 -1.0 1.0 0.2 0.6"
+ ],
+ "tags": [
+  "quick",
+  "2d",
+  "levelset",
+  "singlephase",
+  "amr"
+ ],
+ "description": "cfd_2d_utube_pocket with a refined patch over the right part (G 1 1, G 15): the pocket on the patch, the atmosphere on level 0 and the patch, joined across the patch edge; the ghost fluid method with the pressure of the pocket at the faces of the patch edges (cfd_amr::pr_predict).",
+ "covers": [
+  "cfd_amr::pocket_update: the leaf cells, the patch edges, the sibling fills",
+  "the registry field pocket (injected into new patches)"
+ ],
+ "architect": "Hans Bihs"
+}
