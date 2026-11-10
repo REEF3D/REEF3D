@@ -1,0 +1,16 @@
+{
+ "np": 1,
+ "steps": 200,
+ "description": "A closed tank 0.6 x 0.6 m (dx 5 mm) with a baffle (S 10, 4 cells thick, x 0.40-0.42 m) from the lid down to z = 0.15 m, which closes the air of the right chamber; the free surface starts tilted, higher on the right (F 57), two phases with the compressible air (N 40 5, N 59 2, W 32 2). D 32 2: the faces closed where one of the two cell centres lies in the solid (thin solids of one cell; the wall moves to the cell face next to the solid). Same water columns and pressures as D 32 1 to 1 %.",
+ "tags": [
+  "quick",
+  "2d",
+  "levelset",
+  "solid",
+  "closed",
+  "compressible"
+ ],
+ "covers": [
+  "solid_closed.h D 32 2"
+ ]
+}

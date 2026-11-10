@@ -27,6 +27,7 @@ Architect: Hans Bihs
 #include<tuple>
 #include"lexer.h"
 #include"fdm.h"
+#include"solid_closed.h"
 #include"ghostcell.h"
 #include"heaviside.h"
 #include"interface_width.h"
@@ -43,6 +44,17 @@ Architect: Hans Bihs
 #include"definitions.h"
 
 using PRS = amr_phase<cfd_amr::PR_NPART>;
+
+// D 32: the face of a patch edge closed in a solid (solid_closed.h), on the grid of the fine cell: the
+// fine cell and the cell around the patch across the face
+static bool cf_closed(lexer *pp, fdm *a, const cfd_amr_cf &F)
+{
+    if(pp->D32<=0)
+    return false;
+    int e[3] = {0,0,0};
+    e[F.d] = F.dir;
+    return solid_face_closed(pp,a,F.fi[0],F.fi[1],F.fi[2],e[0],e[1],e[2]);
+}
 
 //  The composite pressure projection of REEF3D::CFD with mesh refinement.
 //
@@ -1550,6 +1562,10 @@ void cfd_amr::pr_predict(int s)
             v -= (1.0-Hf)*bs*p0->dt*p0->W22*fpc;
         }
 
+        // D 32: a face closed in a solid takes no flux
+        if(cf_closed(CP(F.pid)->pp,CP(F.pid)->a,F))
+        v = 0.0;
+
         F.ustar = v;
         field &ff = CP(F.pid)->pmom->amr_velout(CP(F.pid)->a,F.d,s);
         ff(F.ff[0],F.ff[1],F.ff[2]) = v;
@@ -1631,6 +1647,11 @@ void cfd_amr::pr_matrix(int s)
         const double rof = F.rof;
         F.kf = 1.0/(rof*F.dist*F.dxnf);
         F.kc = F.area/(rof*F.dist*F.dxnc);
+
+        // D 32: a face closed in a solid: no coupling (Neumann on both sides, the fine row lost its
+        // coupling to the cell around the patch in poisson_pcorr already)
+        if(cf_closed(pp,a,F))
+        F.kf = F.kc = 0.0;
 
         // the couplings across the face are in pr_apply (the fine row to the coarse value at its
         // position, the coarse row to the fluxes of its fine faces); the diagonal of the fine row
@@ -2724,8 +2745,14 @@ void cfd_amr::pr_correct(int s)
     {
         const double xf = pvec(F.pid,-1)[F.qf];
         const double xc = pr_xs(F,-1);
-        const double rof = 1.0/(F.kf*F.dist*F.dxnf);
         field &ff = CP(F.pid)->pmom->amr_velout(CP(F.pid)->a,F.d,s);
+        // (D 32: kf 0 on a face closed in a solid, its velocity stays F.ustar = 0)
+        if(F.kf==0.0)
+        {
+        ff(F.ff[0],F.ff[1],F.ff[2]) = F.ustar;
+        continue;
+        }
+        const double rof = 1.0/(F.kf*F.dist*F.dxnf);
         ff(F.ff[0],F.ff[1],F.ff[2]) = F.ustar - double(F.dir)*alpha*p0->dt*(xc-xf)/(F.dist*rof);
     }
 }
@@ -2967,7 +2994,7 @@ void cfd_amr::pr_level(lexer *p, ghostcell *pgc, int l, int s)
     {
         if(CP(F.pid)->lev!=l)
         continue;
-        F.kf = 1.0/(F.rof*F.dist*F.dxnf);
+        F.kf = cf_closed(CP(F.pid)->pp,CP(F.pid)->a,F) ? 0.0 : 1.0/(F.rof*F.dist*F.dxnf);
         matrix_diag &Mf = CP(F.pid)->a->M;
         double &cfn = mcoef(Mf,F.nf,F.d,F.dir);
         Mf.p[F.nf] += cfn + F.kf;
@@ -3307,8 +3334,14 @@ void cfd_amr::pr_sync_project(lexer *p, ghostcell *pgc)
     {
         const double xf = pvec(F.pid,-1)[F.qf];
         const double xc = pr_xs(F,-1);
-        const double rof = 1.0/(F.kf*F.dist*F.dxnf);
         field &ff = CP(F.pid)->pmom->amr_velout(CP(F.pid)->a,F.d,s);
+        // (D 32: kf 0 on a face closed in a solid, its velocity stays F.ustar = 0)
+        if(F.kf==0.0)
+        {
+        ff(F.ff[0],F.ff[1],F.ff[2]) = F.ustar;
+        continue;
+        }
+        const double rof = 1.0/(F.kf*F.dist*F.dxnf);
         ff(F.ff[0],F.ff[1],F.ff[2]) = F.ustar - double(F.dir)*alpha*p->dt*(xc-xf)/(F.dist*rof);
     }
 

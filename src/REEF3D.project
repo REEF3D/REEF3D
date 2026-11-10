@@ -248,6 +248,7 @@
           <File Name="pressure.h"/>
           <File Name="pjm_hydrostatic.h"/>
           <File Name="pjm_corr.h"/>
+          <File Name="solid_closed.h"/>
           <VirtualDirectory Name="Reference">
             <File Name="pressure_reference.h"/>
           </VirtualDirectory>

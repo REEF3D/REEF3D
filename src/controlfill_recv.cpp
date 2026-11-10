@@ -1523,6 +1523,8 @@ void control::ctrlrecv()
     ii++;
     D30 = ictrl[ii];
     ii++;
+    D32 = ictrl[ii];
+    ii++;
 
     F30 = ictrl[ii];
     ii++;

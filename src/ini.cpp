@@ -718,6 +718,7 @@ void control::ini_default()
     D22=1;            // int diffusion wall boundary condition
     D23=2;            // int time accuracy of the implicit momentum diffusion (D 20 2): 1 first order, 2 second order
 	D30=1;			// int pressure scheme
+    D32=1;          // int CFD: the faces of the projection closed inside the direct-forcing solids and the bed (solid_closed.h): 0 off (the projection solves through the solids), 1 where both cell centres lie in the solid, 2 where one of them does (thin solids of 1 cell)
 
     // Free Surface
 	F30=3;			    // int level set scheme
