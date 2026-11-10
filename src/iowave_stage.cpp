@@ -40,8 +40,11 @@ Architect: Hans Bihs
 //  fixed time the zones then relax by the same amount whatever the step.
 //
 //  FNPF (RK3 A 310 3 and RK4 A 310 4; theta-Robin A 310 5 has its own zones, A 303): wavegen_stage_fnpf, the
-//  targets at t+dt, t+dt/2, t+dt (RK3) and t+dt/2, t+dt/2, t+dt, t+dt (RK4).  The factors of a stage are
-//  r^(w dt/dt_ref), w the weight of the stage (1).
+//  targets at t+dt, t+dt/2, t+dt (RK3) and t+dt/2, t+dt/2, t+dt, t+dt (RK4).  The weight w is the share of
+//  the relaxation of a step that the stage carries: 1 in RK3.  In RK4 only the relaxation of the new state
+//  enters the state (the three before act on the stage values), where the three stages of RK3 relax it by
+//  r/3 + r^2/2 + r^3/6 = 1 - (11/6)(1-r) + ..: RK4 relaxes with r^(11 c/6), c the node of the stage output
+//  (1/2, 1/2, 1, 1), so its zones are as strong per time as those of RK3, with and without B 95.
 
 void iowave::relax_stage_factor(lexer *p, double w)
 {

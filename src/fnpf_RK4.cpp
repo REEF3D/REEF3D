@@ -127,8 +127,9 @@ void fnpf_RK4::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, conve
     {fnpf_prof::scope ps_(fnpf_prof::damping); pf->damping(p,c,pgc,erk,gcval_eta,0.5);}
     {fnpf_prof::scope ps_(fnpf_prof::damping); pf->damping(p,c,pgc,frk,gcval_fifsf,0.5);}
     
-    // wavegen and coastline (B 95: the targets at the time of the stage output)
-    {fnpf_prof::scope ps_(fnpf_prof::relax); pflow->wavegen_stage_fnpf(p,c,pgc,p->simtime+0.5*p->dt,1.0);}
+    // wavegen and coastline: the zones with the weight of the stage (as strong per time as in RK3, iowave_stage.cpp),
+    // B 95: the targets at the time of the stage output
+    {fnpf_prof::scope ps_(fnpf_prof::relax); pflow->wavegen_stage_fnpf(p,c,pgc,p->simtime+0.5*p->dt,11.0/12.0);}
     {fnpf_prof::scope ps_(fnpf_prof::relax); pflow->eta_relax(p,pgc,erk);}
     {fnpf_prof::scope ps_(fnpf_prof::wetdry); pf->wetdry(p,c,pgc,erk,frk);}
     {fnpf_prof::scope ps_(fnpf_prof::gc2d); pgc->gcsl_start4(p,erk,gcval_eta);}
@@ -189,8 +190,9 @@ void fnpf_RK4::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, conve
     {fnpf_prof::scope ps_(fnpf_prof::damping); pf->damping(p,c,pgc,erk,gcval_eta,0.5);}
     {fnpf_prof::scope ps_(fnpf_prof::damping); pf->damping(p,c,pgc,frk,gcval_fifsf,0.5);}
     
-    // wavegen and coastline (B 95: the targets at the time of the stage output)
-    {fnpf_prof::scope ps_(fnpf_prof::relax); pflow->wavegen_stage_fnpf(p,c,pgc,p->simtime+0.5*p->dt,1.0);}
+    // wavegen and coastline: the zones with the weight of the stage (as strong per time as in RK3, iowave_stage.cpp),
+    // B 95: the targets at the time of the stage output
+    {fnpf_prof::scope ps_(fnpf_prof::relax); pflow->wavegen_stage_fnpf(p,c,pgc,p->simtime+0.5*p->dt,11.0/12.0);}
     {fnpf_prof::scope ps_(fnpf_prof::relax); pflow->eta_relax(p,pgc,erk);}
     {fnpf_prof::scope ps_(fnpf_prof::wetdry); pf->wetdry(p,c,pgc,erk,frk);}
     {fnpf_prof::scope ps_(fnpf_prof::gc2d); pgc->gcsl_start4(p,erk,gcval_eta);}
@@ -250,8 +252,9 @@ void fnpf_RK4::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, conve
     {fnpf_prof::scope ps_(fnpf_prof::damping); pf->damping(p,c,pgc,erk,gcval_eta,1.0);}
     {fnpf_prof::scope ps_(fnpf_prof::damping); pf->damping(p,c,pgc,frk,gcval_fifsf,1.0);}
     
-    // wavegen and coastline (B 95: the targets at the time of the stage output)
-    {fnpf_prof::scope ps_(fnpf_prof::relax); pflow->wavegen_stage_fnpf(p,c,pgc,p->simtime+1.0*p->dt,1.0);}
+    // wavegen and coastline: the zones with the weight of the stage (as strong per time as in RK3, iowave_stage.cpp),
+    // B 95: the targets at the time of the stage output
+    {fnpf_prof::scope ps_(fnpf_prof::relax); pflow->wavegen_stage_fnpf(p,c,pgc,p->simtime+1.0*p->dt,11.0/6.0);}
     {fnpf_prof::scope ps_(fnpf_prof::relax); pflow->eta_relax(p,pgc,erk);}
     {fnpf_prof::scope ps_(fnpf_prof::wetdry); pf->wetdry(p,c,pgc,erk,frk);}
     {fnpf_prof::scope ps_(fnpf_prof::gc2d); pgc->gcsl_start4(p,erk,gcval_eta);}
@@ -309,8 +312,8 @@ void fnpf_RK4::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, conve
     {fnpf_prof::scope ps_(fnpf_prof::damping); pf->damping(p,c,pgc,c->eta,gcval_eta,1.0);}
     {fnpf_prof::scope ps_(fnpf_prof::damping); pf->damping(p,c,pgc,c->Fifsf,gcval_fifsf,1.0);}
     
-    // wavegen and coastline (B 95: the targets at the time of the stage output)
-    {fnpf_prof::scope ps_(fnpf_prof::relax); pflow->wavegen_stage_fnpf(p,c,pgc,p->simtime+p->dt,1.0);}
+    // wavegen and coastline: the relaxation that enters the state, with the weight of the three stages of RK3
+    {fnpf_prof::scope ps_(fnpf_prof::relax); pflow->wavegen_stage_fnpf(p,c,pgc,p->simtime+p->dt,11.0/6.0);}
     {fnpf_prof::scope ps_(fnpf_prof::relax); pflow->eta_relax(p,pgc,c->eta);}
     {fnpf_prof::scope ps_(fnpf_prof::wetdry); pf->wetdry(p,c,pgc,c->eta,c->Fifsf);}
     {fnpf_prof::scope ps_(fnpf_prof::gc2d); pgc->gcsl_start4(p,c->eta,gcval_eta);}
