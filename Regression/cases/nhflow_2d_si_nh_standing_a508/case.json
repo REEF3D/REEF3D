@@ -1,0 +1,20 @@
+{
+ "base": "nhflow_2d_si_nh_standing",
+ "ctrl_set": {
+  "A 508": "1"
+ },
+ "description": "nhflow_2d_si_nh_standing with the fourth-order horizontal operators (A 508 1): both horizontal directions, the coupled eta-phi system by FGMRES with the explicit phi face terms in its right-hand side.",
+ "tags": [
+  "quick",
+  "2d",
+  "nhflow",
+  "semi_implicit",
+  "nonhydrostatic",
+  "fourth_order"
+ ],
+ "covers": [
+  "nhflow_momentum_SI_ho: ho_begin, ho_face, ho_cell, ho_gradient, ho_predictor, ho_cell_gravity",
+  "the y direction of the fourth-order operators",
+  "nh_solve_mg with ho_phi_add"
+ ]
+}

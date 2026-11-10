@@ -1,0 +1,3 @@
+{"description": "CFD 3D open channel 2 m x 0.2 m with wall-law side walls (C 12 / C 13 21) and bed, k-eps, D 22 2 with B 10 1, 2 ranks: the D 22 2 wall rows of u, v, w (row index inside the loop) and the wall-law faces of all three components across the rank border.",
+ "solver": "cfd", "np": 2, "steps": 120, "tags": ["3d", "turbulence", "walls", "mpi"],
+ "covers": ["idiff2_FSu/FSw D 22 2 row index", "diff_walllaw rows (idiff2_FSu, FSv, FSw)"]}

@@ -1,0 +1,19 @@
+{
+ "base": "cfd_3d_heave_sphere_6dof_mooring",
+ "np": 2,
+ "ctrl_set": {
+  "N 40": "6"
+ },
+ "description": "cfd_3d_heave_sphere_6dof_mooring (floating sphere, two spring mooring lines X 310 4, all six DOFs free) with the one-step scheme with two projections (N 40 6).",
+ "tags": [
+  "3d",
+  "6dof",
+  "floating",
+  "mpi",
+  "mooring"
+ ],
+ "covers": [
+  "mooringForces in the half step and the full step of N 40 6",
+  "sixdof_rigidbody::stage_mid with all six DOFs (quaternion, angular momentum)"
+ ]
+}

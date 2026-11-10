@@ -1,0 +1,4 @@
+{"np": 1, "steps": 40,
+ "description": "2D heave decay of a floating box (X 10 1, heave free, density 500) with the one-step scheme with two projections N 40 6 and N 59 2, N 57 1, N 58 1.0, N 54 1, N 63 3, N 65 1, N 47 0.4: the body in position Verlet over the half step and the full step (sixdof_obj::onestep_cfd; patch 0059). Over 4 s the heave follows N 40 3 within 2 mm with 162 steps instead of 447.",
+ "tags": ["quick", "2d", "6dof", "floating", "levelset", "twoproj"],
+ "covers": ["sixdof_obj::onestep_cfd N 40 6 (position Verlet, iter 0 half step, iter 1 full step)", "momentum_rk::twoproj_forcing stage index of the bodies", "6DOF stage weights alpha of N 40 6", "driver_logic_cfd: X 10 with N 40 5, 6 and N 59"]}

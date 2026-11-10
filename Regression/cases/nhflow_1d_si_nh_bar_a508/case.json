@@ -1,0 +1,21 @@
+{
+ "base": "nhflow_1d_si_nh_bar",
+ "ctrl_set": {
+  "A 510": "11",
+  "A 508": "1"
+ },
+ "description": "nhflow_1d_si_nh_bar with the one-step predictor (A 510 11) and the fourth-order horizontal operators (A 508 1): waves over the Beji & Battjes bar with the relaxation zones; sloping bed (interface slopes in the explicit phi face terms), the face depth of the mass flux times (-1, 9, 9, -1)/16 of the cell velocities.",
+ "tags": [
+  "1d",
+  "nhflow",
+  "semi_implicit",
+  "nonhydrostatic",
+  "onestep",
+  "fourth_order"
+ ],
+ "covers": [
+  "nhflow_momentum_SI_ho: ho_begin, ho_face, ho_cell, ho_gradient, ho_predictor, ho_cell_gravity",
+  "ho_phi_corr on a sloping bed",
+  "ho_estimate (eta of the estimate pass)"
+ ]
+}

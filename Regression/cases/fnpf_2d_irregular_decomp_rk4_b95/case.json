@@ -1,0 +1,19 @@
+{
+ "base": "fnpf_2d_irregular_decomp",
+ "ctrl_set": {
+  "A 310": "4",
+  "B 95": "-1"
+ },
+ "description": "as fnpf_2d_irregular_decomp (B 89 1, spatial and temporal decomposition of the irregular waves) with RK4 and B 95 -1: the decomposed relaxation targets at the stage times (FNPF_time_integration/0001-0003).",
+ "tags": [
+  "quick",
+  "2d",
+  "fnpf",
+  "waves",
+  "iowave",
+  "irregular"
+ ],
+ "covers": [
+  "wavegen_stage_fnpf with B 89 1 (wavegen_precalc_decomp_time_fnpf, _relax_fnpf)"
+ ]
+}

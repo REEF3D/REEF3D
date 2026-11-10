@@ -1,0 +1,21 @@
+{
+ "base": "cfd_2d_dambreak_amr3_adapt_sub",
+ "np": 1,
+ "steps": 60,
+ "ctrl_add": [
+  "G 48 2"
+ ],
+ "description": "cfd_2d_dambreak_amr3_adapt_sub (subcycling G 7 1, two adaptive levels) with G 48 2: the synchronisation projection with the cycle of the levels' own rows, the level projections with the half-step exit.",
+ "tags": [
+  "quick",
+  "2d",
+  "dambreak",
+  "levelset",
+  "amr",
+  "adaptive"
+ ],
+ "covers": [
+  "cfd_amr::pr_sync_project through pr_prec with G 48 2",
+  "the level projections with the half-step exit"
+ ]
+}

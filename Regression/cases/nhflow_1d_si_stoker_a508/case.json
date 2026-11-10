@@ -1,0 +1,18 @@
+{
+ "base": "nhflow_1d_si_stoker",
+ "ctrl_set": {
+  "A 508": "1"
+ },
+ "description": "nhflow_1d_si_stoker with the fourth-order horizontal operators (A 508 1): hydrostatic dam break on a wet bed; the bore and the rarefaction with the fourth-order interpolation and gradient (no limiter).",
+ "tags": [
+  "quick",
+  "1d",
+  "nhflow",
+  "semi_implicit",
+  "dambreak",
+  "fourth_order"
+ ],
+ "covers": [
+  "nhflow_momentum_SI_ho: ho_begin, ho_face, ho_cell, ho_gradient, ho_predictor, ho_cell_gravity"
+ ]
+}

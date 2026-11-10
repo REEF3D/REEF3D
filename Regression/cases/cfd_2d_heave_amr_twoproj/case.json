@@ -1,0 +1,20 @@
+{
+ "base": "cfd_2d_heave_amr",
+ "ctrl_set": {
+  "N 40": "6"
+ },
+ "description": "cfd_2d_heave_amr (2D heave decay of a floating box, a refined box around the body and the free surface, G 7 0) with the one-step scheme with two projections (N 40 6): level 0 advances the body with the midpoint rule (half step, full step), the patches cast the hull and force the body velocity in both steps.",
+ "tags": [
+  "quick",
+  "2d",
+  "6dof",
+  "floating",
+  "levelset",
+  "amr"
+ ],
+ "covers": [
+  "cfd_amr::step_comp: N 40 6 with floating bodies",
+  "cfd_amr_6dof::start_cfd with the stages 0 and 1 of N 40 6",
+  "sixdof_rigidbody::stage_mid"
+ ]
+}

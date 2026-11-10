@@ -1,0 +1,3 @@
+{"base": "cfd_2d_channel_kepsilon", "ctrl_set": {"D 22": "2"},
+ "description": "cfd_2d_channel_kepsilon with the implicit ghost-cell walls D 22 2 and the wall law B 10 1: zero gradient through the bed face (diff_walllaw), the wall law the only bed stress (before: the diffusion to the no-slip ghost on top of it, u* twice the log law).",
+ "tags": ["2d", "turbulence", "walls"], "covers": ["diff_walllaw rows (idiff2_FSu_2D, idiff2_FSw_2D)", "D 22 2 with B 10 1"]}
