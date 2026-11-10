@@ -228,6 +228,7 @@ void control::ini_default()
     A539=0;      // int NHFLOW semi-implicit, curvilinear grid: non-orthogonal part of the face gradient of eta (explicit, deferred), 1 on
     A540=1;      // int NFHLOW wetdry scheme
     A505=1;      // int NHFLOW semi-implicit (A 510 11/12/13): second-order time levels of the nonlinear terms on one Cartesian grid (an estimate pass for the advecting transport, face depths and omega at t^{n+1/2}, the acceleration of the step in the advected velocities, Crank-Nicolson vertical advection), 0: the levels of t^n (one pass, first order, about 1.2 - 1.6 times faster per step)
+    A508=0;      // int NHFLOW semi-implicit (A 510 11/12/13): 1: fourth-order horizontal operators on one uniform Cartesian grid (cell-to-face and face-to-cell interpolation, the gradient of eta and of the non-hydrostatic pressure; nhflow_momentum_SI_ho.cpp), 0: second order
     A507=0;      // int NHFLOW semi-implicit with A 520 > 0 (2D, MPI): 1: eta and phi solved one after the other (one block Gauss-Seidel pass over the coupled system, eta with phi of the guess, then phi with the new eta), 0: the coupled solve
     A544=0.001;  // double wetting & drying criterion
     A545=10.0;   // double deep criterion

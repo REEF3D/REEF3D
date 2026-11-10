@@ -303,7 +303,22 @@ private:
     double *NQx = nullptr, *NQy = nullptr, *WHS = nullptr, *PHI = nullptr, *PHIo = nullptr, *NSX = nullptr, *NSY = nullptr;
     // hMx, hMy: the face depths of the mass flux of the predictor (mlflux_faces, nh_begin)
     std::vector<double> nWLh, nWLo, nHxo, nHyo, hMx, hMy;
-    std::vector<double> nUZx, nUZy;            // tl2: UH^{n+1}, VH^{n+1} estimated for [u . grad z] (nh_prepare)
+    std::vector<double> nUZx, nUZy;
+
+    // fourth-order horizontal operators (A 508 1, nhflow_momentum_SI_ho.cpp): hoC the fluid cells of the stencils (with
+    // those of the neighbouring ranks), hoE eta of the estimate pass, NQcx, NQcy the explicit part of the phi face terms
+    bool ho = false, ho_ux = false, ho_uy = false, ho_phi = false;
+    double *NQcx = nullptr, *NQcy = nullptr;
+    std::vector<double> hoPS;
+    void ho_begin(lexer*,fdm_nhf*,ghostcell*);
+    void ho_estimate(lexer*,ghostcell*);
+    bool ho_face(lexer*,int,int,int);
+    bool ho_cell(lexer*,fdm_nhf*,int,int,int);
+    void ho_gradient(lexer*,fdm_nhf*,int,double&,double&);
+    void ho_predictor(lexer*,int,const double*,double*);
+    void ho_cell_gravity(lexer*,fdm_nhf*,double&,double&);
+    void ho_phi_corr(lexer*,fdm_nhf*,ghostcell*);
+    void ho_phi_add(lexer*);            // tl2: UH^{n+1}, VH^{n+1} estimated for [u . grad z] (nh_prepare)
     std::vector<double> nOmP;                  // omega of the step before (extrapolation to t^{n+1/2}), NaN: none yet
     std::vector<char> nAct;
     std::shared_ptr<sflow_si_nh_lu> nhlu;
@@ -372,7 +387,7 @@ private:
     slice2 qy, qyn, qyE, Hy, aly, gmy, ay, ky, gy0, cy0;
 
     // cell state of the step: t^n, implicit eta, bed friction rate, right-hand side, scratch
-    slice4 eta0, WL0, etaI, gmc, rhsW, bdiag, tS, tE, tA;
+    slice4 eta0, WL0, etaI, gmc, rhsW, bdiag, tS, tE, tA, hoC, hoE;
 
     // water depth at the end of the step, the start of the next (see start); boundary copies
     slice4 WLk, etaB, WLb;

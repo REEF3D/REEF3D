@@ -468,6 +468,9 @@ void nhflow_momentum_SI::nh_residual(lexer *p, fdm_nhf *d, ghostcell *pgc, const
     exchangeF(p,pgc,NQy);
     }
 
+    if(ho)
+    ho_phi_add(p);
+
     face_update(p,d,pgc);
 
     if(!rows)
@@ -811,6 +814,10 @@ void nhflow_momentum_SI::nh_solve(lexer *p, fdm_nhf *d, ghostcell *pgc)
     nh_prepare(p,d,pgc);
     nh_fixed = true;
 
+    // fourth order (A 508 1): the explicit part of the phi face terms of this step
+    if(ho)
+    ho_phi_corr(p,d,pgc);
+
     int N=0;
     SLICELOOP4
     ++N;
@@ -1028,9 +1035,18 @@ void nhflow_momentum_SI::nh_cell(lexer *p, fdm_nhf *d, ghostcell *pgc)
     const int K = p->knoz;
     auto wn = [&](int a, int b) { return etaI(a,b) + d->depth(a,b) > p->A544; };
 
+    // fourth order (A 508 1): the face terms two faces away, also those of the neighbouring ranks
+    if(ho)
+    {
+    exchangeC(p,pgc,NQx);
+    exchangeC(p,pgc,NQy);
+    }
+
     SLICELOOP4
     if(p->wet[IJ]==1 && wn(i,j))
     {
+    const bool h4x = ho && ho_cell(p,d,1,i,j);
+    const bool h4y = ho && ho_cell(p,d,2,i,j);
     const double we = (Hx(i,j)>0.0 && wn(i+1,j)) ? 1.0 : 0.0;
     const double ww = (Hx(i-1,j)>0.0 && wn(i-1,j)) ? 1.0 : 0.0;
     const bool wz = tl2;
@@ -1047,8 +1063,16 @@ void nhflow_momentum_SI::nh_cell(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
         for(k=0;k<K;++k)
         {
+        if(h4x)
+        d->UH[IJK] += (9.0*(NQx[Im1JK] + NQx[IJK]) - NQx[Im2JK] - NQx[Ip1JK])/16.0;
+
+        else
         d->UH[IJK] += (ww*NQx[Im1JK] + we*NQx[IJK])/wsx;
 
+        if(h4y)
+        d->VH[IJK] += (9.0*(NQy[IJm1K] + NQy[IJK]) - NQy[IJm2K] - NQy[IJp1K])/16.0;
+
+        else
         if(p->j_dir==1)
         d->VH[IJK] += (vw*NQy[IJm1K] + ve*NQy[IJK])/wsy;
 
@@ -1556,5 +1580,101 @@ void nhflow_momentum_SI::nh_solve_mg(lexer *p, fdm_nhf *d, ghostcell *pgc, const
     const size_t q = ((size_t)cix[n]*ny + ciy[n])*B;
         for(int t=0; t<B; ++t)
         xr[(size_t)B*n+t] = x[q+t];
+    }
+}
+
+// ---------------------------------------------------------------------------------------------------------------------
+// fourth-order horizontal operators (A 508 1, nhflow_momentum_SI_ho.cpp): the non-hydrostatic pressure
+// ---------------------------------------------------------------------------------------------------------------------
+
+// the explicit part of the phi face terms (NQcx, NQcy): the face term of nh_faces with -delta^2 phi/12 along the face
+// normal in place of phi, phi extrapolated to this step from the two steps before (PHI, PHIo)
+void nhflow_momentum_SI::ho_phi_corr(lexer *p, fdm_nhf *d, ghostcell *pgc)
+{
+    const double dt = p->dt;
+    const int K = p->knoz;
+    const int N = p->imax*p->jmax*(p->kmax+2);
+
+    if(NQcx==nullptr)
+    {
+    p->Darray_lazy(NQcx,N);
+    p->Darray_lazy(NQcy,N);
+    }
+
+    hoPS.resize(N);
+
+    const double r = ho_phi ? p->dt/MAX(p->dt_old,1.0e-20) : 0.0;
+
+    for(int q=0; q<N; ++q)
+    {
+    hoPS[q] = PHI[q] + r*(PHI[q] - PHIo[q]);
+    PHIo[q] = PHI[q];
+    NQcx[q] = 0.0;
+    NQcy[q] = 0.0;
+    }
+
+    ho_phi = true;
+
+    auto hh = [&](int a, int c) { return nWLh[(a-p->imin)*p->jmax + (c-p->jmin)]; };
+    auto zif = [&](int a, int c, int m) { return d->bed(a,c) + p->ZN[m+marge]*hh(a,c); };
+    auto ps = [&](int a, int c, int kk)
+    {
+        return kk<K ? hoPS[(a-p->imin)*p->jmax*p->kmax + (c-p->jmin)*p->kmax + kk-p->kmin] : 0.0;
+    };
+
+    // face of the cells (iL,jL) - (iR,jR) along (di,dj)
+    auto face = [&](int iL, int jL, int iR, int jR, int di, int dj, double dx, double Hf, double *NQ)
+    {
+        const double hL = hh(iL,jL), hR = hh(iR,jR);
+        const double c = (hL+hR)>1.0e-20 ? Hf/(dx*(hL + hR)) : 0.0;
+        auto cc = [&](int a, int b, int kk) { return -(ps(a+di,b+dj,kk) - 2.0*ps(a,b,kk) + ps(a-di,b-dj,kk))/12.0; };
+
+        for(k=0;k<K;++k)
+        {
+        const double s  = p->DZN[KP];
+        const double sl = nh_lim(zif(iR,jR,k) - zif(iL,jL,k),dx);
+        const double su = nh_lim(zif(iR,jR,k+1) - zif(iL,jL,k+1),dx);
+
+        const double fL = cc(iL,jL,k), uL = cc(iL,jL,k+1);
+        const double fR = cc(iR,jR,k), uR = cc(iR,jR,k+1);
+
+        const double br = (s*hL - sl)*fL - (s*hR + sl)*fR + (s*hL + su)*uL - (s*hR - su)*uR;
+
+        NQ[IJK] = dt*br*c/s;
+        }
+    };
+
+    SLICELOOP1
+    if(Hx(i,j)>0.0 && ho_face(p,1,i,j))
+    face(i,j,i+1,j,1,0,p->DXP[IP],Hx(i,j),NQcx);
+
+    if(p->j_dir==1)
+    SLICELOOP2
+    if(Hy(i,j)>0.0 && ho_face(p,2,i,j))
+    face(i,j,i,j+1,0,1,p->DYP[JP],Hy(i,j),NQcy);
+
+    // open boundary faces: no pressure term
+    for(const bc_face &f : bcf)
+    {
+    i=f.fi;
+    j=f.fj;
+    double *NQ = (f.cs==1 || f.cs==4) ? NQcx : NQcy;
+        for(k=0;k<K;++k)
+        NQ[IJK] = 0.0;
+    }
+
+    exchangeF(p,pgc,NQcx);
+    exchangeF(p,pgc,NQcy);
+}
+
+// the phi face terms of the step with their explicit part (nh_residual, after nh_faces and its exchange)
+void nhflow_momentum_SI::ho_phi_add(lexer *p)
+{
+    const int N = p->imax*p->jmax*(p->kmax+2);
+
+    for(int q=0; q<N; ++q)
+    {
+    NQx[q] += NQcx[q];
+    NQy[q] += NQcy[q];
     }
 }

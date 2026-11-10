@@ -79,7 +79,7 @@ nhflow_momentum_SI::nhflow_momentum_SI(lexer *p, fdm_nhf *d, ghostcell *pgc, six
                                     : nhflow_momentum_func(p,d,pgc),
                                       qx(p),qxn(p),qxE(p),Hx(p),alx(p),gmx(p),ax(p),kx(p),gx0(p),cx0(p),
                                       qy(p),qyn(p),qyE(p),Hy(p),aly(p),gmy(p),ay(p),ky(p),gy0(p),cy0(p),
-                                      eta0(p),WL0(p),etaI(p),gmc(p),rhsW(p),bdiag(p),tS(p),tE(p),tA(p),
+                                      eta0(p),WL0(p),etaI(p),gmc(p),rhsW(p),bdiag(p),tS(p),tE(p),tA(p),hoC(p),hoE(p),
                                       WLk(p),etaB(p),WLb(p),wsrc(p)
 {
     check(p);
@@ -320,6 +320,12 @@ void nhflow_momentum_SI::check(lexer *p)
     if(p->A507!=0 && p->A507!=1)
     msg("A 507 (eta and phi one after the other) other than 0 or 1 is");
 
+    if(p->A508!=0 && p->A508!=1)
+    msg("A 508 (fourth-order horizontal operators) other than 0 or 1 is");
+
+    if(p->A508==1 && (p->geo_curv==1 || p->geo_mb>0 || p->G1>0))
+    msg("fourth-order horizontal operators (A 508 1) on curvilinear, multi-block or refined grids are");
+
     if(p->A506<=0.0 || p->A506>=1.0)
     msg("A 506 (tolerance of the coupled non-hydrostatic solve) outside 0 < A 506 < 1 is");
 
@@ -458,6 +464,10 @@ void nhflow_momentum_SI::step_single(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflo
     if(nh || onestep || tl2)
     nh_begin(p,d,pgc);
 
+    // fourth-order horizontal operators (A 508 1): the cells of the stencils
+    if(p->A508==1)
+    ho_begin(p,d,pgc);
+
     // tl2: two passes. The first (the estimate) advects with the transport of the step before and solves the
     // hydrostatic eta system (with the non-hydrostatic face terms of the step before); its face discharges give the
     // transport of this step, theta Q^{n+1} + (1-theta) Q^n, to O(dt^2). The second advects with that transport (the
@@ -523,6 +533,9 @@ void nhflow_momentum_SI::step_single(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflo
         // the estimate: the face discharges of t^{n+1} and with them the transport of the step (Tx, Ty)
         if(estimate)
         face_update(p,d,pgc);
+
+        if(estimate && ho)
+        ho_estimate(p,pgc);
     }
 
     si_end(p,d,pgc,S);
@@ -2284,6 +2297,9 @@ void nhflow_momentum_SI::si_assemble(lexer *p, fdm_nhf *d, ghostcell *pgc)
         cx0(i,j) = fcorr(p,d->eta,1,i,j);
         gx0(i,j) = (d->eta(i+1,j) - d->eta(i,j))/dn + cx0(i,j);
 
+        if(ho)
+        ho_gradient(p,d,1,gx0(i,j),cx0(i,j));
+
         // column: Q~ = A^-1 (I - dt L_v) Q^, r = A^-1 1
         col_nu(p,d,i,j,i+1,j,wnu.data());
         col_coef(p,d,Hx(i,j),i,j,i+1,j,wnu.data(),wcu.data(),wcl.data(),wcd.data());
@@ -2294,10 +2310,17 @@ void nhflow_momentum_SI::si_assemble(lexer *p, fdm_nhf *d, ghostcell *pgc)
         for(k=0;k<p->knoz;++k)
         wb[k] = fl*(UHD[IJK]*nx + VHD[IJK]*ny) + fr*(UHD[Ip1JK]*nx + VHD[Ip1JK]*ny);
 
+        if(ho)
+        ho_predictor(p,1,UHD,wb.data());
+
         if(thv<1.0)
         {
         for(k=0;k<p->knoz;++k)
         wx[k] = fl*(UH0[IJK]*nx + VH0[IJK]*ny) + fr*(UH0[Ip1JK]*nx + VH0[Ip1JK]*ny);
+
+        if(ho)
+        ho_predictor(p,1,UH0,wx.data());
+
         col_adv_rhs(p,wx.data(),wb.data());
         }
 
@@ -2353,6 +2376,9 @@ void nhflow_momentum_SI::si_assemble(lexer *p, fdm_nhf *d, ghostcell *pgc)
         cy0(i,j) = fcorr(p,d->eta,2,i,j);
         gy0(i,j) = (d->eta(i,j+1) - d->eta(i,j))/dn + cy0(i,j);
 
+        if(ho)
+        ho_gradient(p,d,2,gy0(i,j),cy0(i,j));
+
         col_nu(p,d,i,j,i,j+1,wnu.data());
         col_coef(p,d,Hy(i,j),i,j,i,j+1,wnu.data(),wcu.data(),wcl.data(),wcd.data());
 
@@ -2362,10 +2388,17 @@ void nhflow_momentum_SI::si_assemble(lexer *p, fdm_nhf *d, ghostcell *pgc)
         for(k=0;k<p->knoz;++k)
         wb[k] = fl*(UHD[IJK]*nx + VHD[IJK]*ny) + fr*(UHD[IJp1K]*nx + VHD[IJp1K]*ny);
 
+        if(ho)
+        ho_predictor(p,2,VHD,wb.data());
+
         if(thv<1.0)
         {
         for(k=0;k<p->knoz;++k)
         wx[k] = fl*(UH0[IJK]*nx + VH0[IJK]*ny) + fr*(UH0[IJp1K]*nx + VH0[IJp1K]*ny);
+
+        if(ho)
+        ho_predictor(p,2,VH0,wx.data());
+
         col_adv_rhs(p,wx.data(),wb.data());
         }
 
@@ -3013,6 +3046,10 @@ void nhflow_momentum_SI::cell_update(lexer *p, fdm_nhf *d, ghostcell *pgc)
             gv = dt*g*gy;
 
             }
+
+        // fourth order (A 508 1): the face terms with their explicit part, (-1, 9, 9, -1)/16 of four faces
+        if(ho)
+        ho_cell_gravity(p,d,gu,gv);
 
         // a cell that is dry at the end of the step gets no gravity term (its eta is not a level)
         if(!wn(i,j))
