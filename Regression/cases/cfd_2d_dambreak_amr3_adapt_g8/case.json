@@ -1,0 +1,24 @@
+{
+ "base": "cfd_2d_dambreak",
+ "np": 1,
+ "steps": 60,
+ "ctrl_add": [
+  "G 1 2",
+  "G 24 3",
+  "G 2 2",
+  "G 5 0",
+  "G 8 1"
+ ],
+ "description": "cfd_2d_dambreak_amr3_adapt with G 8 1: the coarse value at a fine cell of a patch edge with the level set of the coarse column (validation CFD AMR speed/06).",
+ "tags": [
+  "quick",
+  "2d",
+  "dambreak",
+  "levelset",
+  "amr",
+  "adaptive"
+ ],
+ "covers": [
+  "cfd_amr::pr_weights: G 8 1, the weights of the coarse value from the level set of the coarse column"
+ ]
+}

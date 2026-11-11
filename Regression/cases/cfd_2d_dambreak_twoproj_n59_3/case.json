@@ -1,0 +1,24 @@
+{
+ "base": "cfd_2d_dambreak",
+ "np": 1,
+ "steps": 80,
+ "ctrl_set": {
+  "N 40": "6",
+  "N 47": "0.45"
+ },
+ "ctrl_add": [
+  "N 59 3",
+  "N 63 3"
+ ],
+ "description": "cfd_2d_dambreak_twoproj_n59_2 with N 59 3 in the full step of N 40 6 (validation CFD AMR speed/05).",
+ "tags": [
+  "quick",
+  "2d",
+  "dambreak",
+  "levelset",
+  "closed"
+ ],
+ "covers": [
+  "godunov: N 59 3 in the full step of N 40 6"
+ ]
+}

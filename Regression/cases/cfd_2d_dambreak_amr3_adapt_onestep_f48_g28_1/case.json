@@ -1,0 +1,21 @@
+{
+ "base": "cfd_2d_dambreak_amr3_adapt_onestep_f48",
+ "np": 1,
+ "steps": 60,
+ "ctrl_add": [
+  "G 28 1"
+ ],
+ "description": "cfd_2d_dambreak_amr3_adapt_onestep_f48 with G 28 1: the interface width of level 0 is F 45 x 4 = 8.4 cells of level 2, so F 48 is raised to 8.4 + 3 = 11.4 cells (the density reads the level set that far from the surface).",
+ "tags": [
+  "quick",
+  "2d",
+  "dambreak",
+  "levelset",
+  "narrowband",
+  "amr",
+  "adaptive"
+ ],
+ "covers": [
+  "driver_logic_cfd: the least width of F 48 with G 28 1"
+ ]
+}
