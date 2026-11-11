@@ -42,8 +42,36 @@ ioflow_v::~ioflow_v()
 {
 }
 
+// the outflow ghost cells (C 1x 2, 7, 8) marked IO 2, so that the Poisson rows of the outflow faces
+// take the outflow pressure (B 77, outflow_pressure) as the Dirichlet value of the correction
+// (poisson_pcorr).  Without the marks the correction was 0 at the outflow ghost and the pressure
+// level there not held: a still tank with an outflow at its own level (C 14 2, F 62) drained at
+// the bottom of the outflow and drew air in above (0.6 m/s in the water after 0.02 s with N 40 6,
+// N 54; 0.1 m/s with N 40 3).  Only the outflow: the inflow marks (IO 1) would change the
+// turbulence ghost cells of ioflow_v.
 void ioflow_v::gcio_update(lexer *p, fdm *a, ghostcell *pgc)
 {
+    MALOOP
+    p->IO[IJK] = 0;
+
+    GC4LOOP
+    {
+    i = p->gcb4[n][0];
+    j = p->gcb4[n][1];
+    k = p->gcb4[n][2];
+    const int cs = p->gcb4[n][3];
+    const int bc = p->gcb4[n][4];
+
+        if((bc==2 || bc==7 || bc==8) && p->flagsf4[IJK]>0)
+        {
+        if(cs==1) p->IO[Im1JK] = 2;
+        if(cs==4) p->IO[Ip1JK] = 2;
+        if(cs==3) p->IO[IJm1K] = 2;
+        if(cs==2) p->IO[IJp1K] = 2;
+        if(cs==5) p->IO[IJKm1] = 2;
+        if(cs==6) p->IO[IJKp1] = 2;
+        }
+    }
 }
 
 void ioflow_v::gcio_update_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
