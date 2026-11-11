@@ -36,12 +36,13 @@ using namespace std;
 class sflow_fsf
 {
 public:    
+    virtual ~sflow_fsf() = default;
 
     // checkpoints (P 48, I 45): the arrays of the object that carry over to the next step
     virtual void ckpt_fields(const std::function<void(const char*, char, double*)>&, const std::function<void(const char*, char, int*)>&) {}
-    virtual ~sflow_fsf() = default;    // deleted through the base pointer (AMR patches)
-	virtual void ini(lexer*, fdm2D*, ghostcell*, ioflow*)=0;
-    
+
+    virtual void ini(lexer*, fdm2D*, ghostcell*, ioflow*)=0;
+
     // WLout = a*WL0 + (1-a)*(WLs + dt*K), K = -div(FEx,FEy)
     virtual void update(lexer*, fdm2D*, ghostcell*, ioflow*, slice&, slice&, slice&, double)=0;
     virtual void depth_update(lexer*, fdm2D*, ghostcell*, slice&)=0;

@@ -31,7 +31,7 @@ Author: Hans Bihs
 
 using namespace std;
 
-class wave_lib_flap_eta final : public wave_lib_precalc, public wave_lib_parameters, public increment
+class wave_lib_flap_eta final : public wave_lib_precalc, public wave_lib_parameters
 {
 public:
     // checkpoints (P 48, I 45): the position in the time series of the wavemaker

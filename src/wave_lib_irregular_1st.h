@@ -31,8 +31,7 @@ Author: Hans Bihs
 
 using namespace std;
 
-class wave_lib_irregular_1st final : public wave_lib, public wave_lib_parameters, public wave_lib_spectrum,
-                               public increment
+class wave_lib_irregular_1st final : public wave_lib, public wave_lib_parameters, public wave_lib_spectrum
 {
 public:
     void ckpt_state(std::vector<double> &v) override { zg.state(v); }

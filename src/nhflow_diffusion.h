@@ -35,8 +35,7 @@ using namespace std;
 class nhflow_diffusion
 {
 public:
-
-    virtual ~nhflow_diffusion() {}
+    virtual ~nhflow_diffusion() = default;
 
     virtual void diff_u(lexer*, fdm_nhf*, ghostcell*, ioflow*, solver*, double*, double*, double*, double*, double*, slice&, double)=0;
     virtual void diff_v(lexer*, fdm_nhf*, ghostcell*, ioflow*, solver*, double*, double*, double*, double*, double*, slice&, double)=0;

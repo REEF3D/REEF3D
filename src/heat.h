@@ -42,7 +42,6 @@ class heat
 public:
     virtual ~heat() = default;
 
-
 	virtual void start(fdm*, lexer*, convection*, diffusion*, solver*, ghostcell*, ioflow*)=0;
 	virtual void ttimesave(lexer*, fdm*)=0;
     

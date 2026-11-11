@@ -38,10 +38,11 @@ using namespace std;
 class sflow_pressure
 {
 public:
+    virtual ~sflow_pressure() = default;
 
     // checkpoints (P 48, I 45): the arrays of the object that carry over to the next step
     virtual void ckpt_fields(const std::function<void(const char*, char, double*)>&, const std::function<void(const char*, char, int*)>&) {}
-    virtual ~sflow_pressure() = default;    // deleted through the base pointer (AMR patches)
+
     // projection of the conserved momenta UH, VH, WH at water depth WL;
     // Un, Vn: velocities at the beginning of the RK stage
 	virtual void start(lexer*, fdm2D*, ghostcell*, solver2D*, ioflow*, slice&, slice&, slice&, slice&, slice&, slice&, double)=0;

@@ -38,6 +38,7 @@ using namespace std;
 class sflow_momentum 
 {
 public:
+    virtual ~sflow_momentum() = default;
 
     // checkpoints (P 48, I 45): the arrays of the object that carry over to the next step
     virtual void ckpt_fields(const std::function<void(const char*, char, double*)>&, const std::function<void(const char*, char, int*)>&) {}

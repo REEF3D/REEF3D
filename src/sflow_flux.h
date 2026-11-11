@@ -31,6 +31,7 @@ using namespace std;
 class sflow_flux 
 {
 public:
+    virtual ~sflow_flux() = default;
 
     virtual void u_flux(int,slice&,double&,double&)=0;
 	virtual void v_flux(int,slice&,double&,double&)=0;

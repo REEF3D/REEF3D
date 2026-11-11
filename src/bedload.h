@@ -34,8 +34,8 @@ using namespace std;
 class bedload
 {
 public:
+    virtual ~bedload() = default;
 
-    virtual ~bedload(){}
 	virtual void start(lexer*, ghostcell*, sediment_fdm*)=0;
 
 };

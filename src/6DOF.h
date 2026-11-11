@@ -39,7 +39,7 @@ using namespace std;
 class sixdof
 {
 public:
-    virtual ~sixdof() {}
+    virtual ~sixdof() = default;
 
     virtual void start_cfd(lexer*,fdm*,ghostcell*,int,field&,field&,field&,field&,field&,field&,bool)=0;
     // X 198 2: the bodies fitted again to the projected velocity of the stage and the fluid of their hulls forced

@@ -33,6 +33,7 @@ using namespace std;
 class reinitopo
 {
 public:
+    virtual ~reinitopo() = default;
 
 	virtual void start(lexer*,fdm*,ghostcell*,field&)=0;
 

@@ -41,6 +41,7 @@ using namespace std;
 class multiphase
 {
 public:
+    virtual ~multiphase() = default;
 
 	virtual void start(lexer*,fdm*,ghostcell*,convection*,solver*,ioflow*,reini*)=0;
 	virtual void ini(lexer*,fdm*,ghostcell*,ioflow*,convection*,solver*)=0;
