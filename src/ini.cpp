@@ -86,9 +86,7 @@ void control::ini_default()
     A312=2;      // int discretization for second-order gradient
     A313=3;      // int discretization for bed bc
     A314=2;      // int linear/non-linear
-    A315=1;      // int eta gradient treatment: 0 legacy, 1 kinematic FSBC upwinded by dH/deta_x and symmetric at zero speed, 2 as 1 plus symmetric Ex,Ey for geometry (sigma metrics, breaking, wind, dynamic FSBC), 3 as 1 with the Godunov gradient (sonic points) in the kinematic FSBC
     A316=-1;     // int wet-dry WENO5 near the shoreline: 0 legacy (zero gradient), 1 first-order fallback from wet neighbours; -1 (not given): 1 with dynamic wetting-drying (A 343 2/3), 0 with the static coastline (A 343 0/1)
-    A317=1;      // int bed metrics: 0 legacy (Bxx=Byy=0, left-biased Bx without wetting-drying), 1 bed curvature on, symmetric Bx
     A318=0;      // int WENO5 nonlinear weights for FNPF free-surface gradients: 0 WENO-JS, 1 WENO-Z, 2 TENO5
     A319=1.0e-5; // double TENO5 cutoff C_T for FNPF (A318 2)
     A320=1;		  // int order of Laplace equation
@@ -97,7 +95,6 @@ void control::ini_default()
     A325=1.0e-3; // double FNPF Laplace: Picard stop when the change is below A325 times the change of the first solve (A324>0)
     A328=-1;     // int FNPF Laplace: 1 sigma cross-derivatives implicit, 15-point (2D: 9-point) operator in REEFMG's BiCGStab, 7-point V-cycle preconditioner (N 10 1 only); 0 explicit; default: 1 with RK4 (A 310 4) and REEFMG, else 0
     A326=0.0;    // double static coastline (A343 1): coastline relaxation towards the running mean of eta, Fi over this time scale (s) instead of 0; 0 = relax to 0
-    A327=1;      // int FNPF free-surface vertical velocity Fz: 0 legacy index-space one-sided stencil, 1 Fornberg weights on the sigma nodes ZN
     A329=1;      // int wave maker BC order
     
     

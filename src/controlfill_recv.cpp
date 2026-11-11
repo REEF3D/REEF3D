@@ -252,11 +252,7 @@ void control::ctrlrecv()
     ii++;
     A314 = ictrl[ii];
     ii++;
-    A315 = ictrl[ii];
-    ii++;
     A316 = ictrl[ii];
-    ii++;
-    A317 = ictrl[ii];
     ii++;
     A318 = ictrl[ii];
     ii++;
@@ -270,8 +266,6 @@ void control::ctrlrecv()
     dd++;
     A430 = dctrl[dd];
     dd++;
-    A327 = ictrl[ii];
-    ii++;
     A328 = ictrl[ii];
     ii++;
     A329 = ictrl[ii];

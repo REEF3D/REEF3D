@@ -256,11 +256,7 @@ void control::ctrlsend()
     ii++;
     ictrl[ii] = A314;
     ii++;
-    ictrl[ii] = A315;
-    ii++;
     ictrl[ii] = A316;
-    ii++;
-    ictrl[ii] = A317;
     ii++;
     ictrl[ii] = A318;
     ii++;
@@ -274,8 +270,6 @@ void control::ctrlsend()
     dd++;
     dctrl[dd] = A430;
     dd++;
-    ictrl[ii] = A327;
-    ii++;
     ictrl[ii] = A328;
     ii++;
     ictrl[ii] = A329;

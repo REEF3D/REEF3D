@@ -34,10 +34,9 @@ Author: Hans Bihs
 #include "wind_f.h"
 #include "fnpf_ice.h"
 #include "wind_v.h"
-#include "fnpf_hj_godunov.h"
 
 fnpf_fsfbc_wd::fnpf_fsfbc_wd(lexer *p, fdm_fnpf *c, ghostcell *pgc) : fnpf_breaking(p,c,pgc),wetcoast(p),
-                                                                      ef(p),df(p),eqxm(p),eqxp(p),eqym(p),eqyp(p),wetage(p),wdfront(p),wd_dvol(p),wd_nwet(p),eta_ref(p),fi_ref(p),
+                                                                      ef(p),df(p),wetage(p),wdfront(p),wd_dvol(p),wd_nwet(p),eta_ref(p),fi_ref(p),
                                                                       wdconn(p),wdref(p),wdL(p),wdS(p),
                                                                       pconvec(std::in_place_type<fnpf_voiddisc>, p),
                                                                       pdx(std::in_place_type<fnpf_hires>),
@@ -133,17 +132,14 @@ void fnpf_fsfbc_wd::fsfdisc(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, s
     // which runs before the first fsfdisc call), so this was dead work
     // costing 4 slice halo exchanges per RK stage.
 
-    // A315==0 legacy: Ex,Ey upwinded by sign of Fx,Fy (zero gradient at zero speed) and used everywhere.
-    // A315>=1:
-    //   - Exu,Eyu (kinematic FSBC only): upwinded by dH/deta_x = Fx - 2*Fz*Ex, the characteristic speed
-    //     of eta_t + Fx*Ex - Fz*(1 + Ex^2 + Ey^2) = 0; previous-stage Fz, Ex used for the sign.
-    //   - zero speed gives the symmetric gradient instead of 0.
-    //   - Ex,Ey (sigma metrics, breaking, wind, dynamic FSBC): upwinded by sign of Fx,Fy as before (A315==1)
-    //     or symmetric (A315==2).
+    // Ex,Ey upwinded by the sign of Fx,Fy (zero gradient at zero speed) and used everywhere, also in the kinematic
+    // FSBC (Exu = Ex, Eyu = Ey). (The former A315 1-3, the kinematic FSBC upwinded by its characteristic speed
+    // Fx - 2 Fz Ex, symmetric gradients and the Godunov gradient, are removed: without the A352 filter A315 1 was
+    // less stable at a steep shore.)
     // A316==1: WENO5 Fx,Fy fall back to a first-order gradient from wet neighbours where the
     //          stencil is not fully wet (legacy A316==0: zero).
-    // A317==1: bed curvature Bxx,Byy updated together with Bx,By (legacy A317==0: Bxx=Byy=0).
-    const int zerosym = (p->A315==0) ? 0 : 1;
+    // bed curvature Bxx,Byy updated together with Bx,By (the former A317 0: Bxx=Byy=0).
+    const int zerosym = 0;
     const int fallback = (p->A316==0) ? 0 : 1;
 
     std::visit([&](auto &conv, auto &ddx, auto &dx)
@@ -162,31 +158,14 @@ void fnpf_fsfbc_wd::fsfdisc(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, s
 
                 c->Fx(i,j) = conv.dswenox_dq_wd(*dqF,uvel,zerosym,fallback);
 
-                if(p->A315==0)
-                {
-                    c->Ex(i,j) = pconeta->dswenox_dq(*dqE,uvel);
-                    c->Exu(i,j) = c->Ex(i,j);
-                }
-                else
-                {
-                    const double evel = uvel - 2.0*c->Fz(i,j)*c->Ex(i,j);
-
-                    c->Exu(i,j) = pconeta->dswenox_dq_upsym(*dqE,evel);
-                    c->Ex(i,j) = (p->A315==2) ? pconeta->dswenox_dq_sym(*dqE) : pconeta->dswenox_dq_upsym(*dqE,uvel);
-                    
-                    if(p->A315==3)
-                    {
-                    eqxm(i,j) = pconeta->dswenox_dq(*dqE,1.0);
-                    eqxp(i,j) = pconeta->dswenox_dq(*dqE,-1.0);
-                    }
-                }
+                c->Ex(i,j) = pconeta->dswenox_dq(*dqE,uvel);
+                c->Exu(i,j) = c->Ex(i,j);
 
                 c->Exx(i,j) = ddx.sxx(p,eta);
 
                 c->Bx(i,j) = dx.sx(p,c->depth,1.0);
 
-                if(p->A317==1)
-                    c->Bxx(i,j) = ddx.sxx(p,c->depth);
+                c->Bxx(i,j) = ddx.sxx(p,c->depth);
             }
 
             // 3D
@@ -202,31 +181,14 @@ void fnpf_fsfbc_wd::fsfdisc(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, s
 
                     c->Fy(i,j) = conv.dswenoy_dq_wd(*dqF,vvel,zerosym,fallback);
 
-                    if(p->A315==0)
-                    {
-                        c->Ey(i,j) = pconeta->dswenoy_dq(*dqE,vvel);
-                        c->Eyu(i,j) = c->Ey(i,j);
-                    }
-                    else
-                    {
-                        const double evel = vvel - 2.0*c->Fz(i,j)*c->Ey(i,j);
-
-                        c->Eyu(i,j) = pconeta->dswenoy_dq_upsym(*dqE,evel);
-                        c->Ey(i,j) = (p->A315==2) ? pconeta->dswenoy_dq_sym(*dqE) : pconeta->dswenoy_dq_upsym(*dqE,vvel);
-                        
-                        if(p->A315==3)
-                        {
-                        eqym(i,j) = pconeta->dswenoy_dq(*dqE,1.0);
-                        eqyp(i,j) = pconeta->dswenoy_dq(*dqE,-1.0);
-                        }
-                    }
+                    c->Ey(i,j) = pconeta->dswenoy_dq(*dqE,vvel);
+                    c->Eyu(i,j) = c->Ey(i,j);
 
                     c->Eyy(i,j) = ddx.syy(p,eta);
 
                     c->By(i,j) = dx.sy(p,c->depth,1.0);
 
-                    if(p->A317==1)
-                        c->Byy(i,j) = ddx.syy(p,c->depth);
+                    c->Byy(i,j) = ddx.syy(p,c->depth);
                 }
             }
         }
@@ -243,66 +205,30 @@ void fnpf_fsfbc_wd::fsfdisc(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, s
             {
                 ivel = (Fifsf(i+1,j) - Fifsf(i-1,j))/(p->DXP[IP]+p->DXP[IM1]);
 
-                if(p->A315==0)
-                {
-                    c->Fx(i,j) = conv.sx(p,Fifsf,ivel);
-                    c->Ex(i,j) = conv.sx(p,eta,ivel);
-                    c->Exu(i,j) = c->Ex(i,j);
-                }
-                else
-                {
-                    const double evel = ivel - 2.0*c->Fz(i,j)*c->Ex(i,j);
-
-                    c->Fx(i,j) = sxu(Fifsf,ivel);
-                    c->Exu(i,j) = sxu(eta,evel);
-                    c->Ex(i,j) = (p->A315==2) ? sxs(eta) : sxu(eta,ivel);
-                    
-                    if(p->A315==3)
-                    {
-                    eqxm(i,j) = conv.sx(p,eta,1.0);
-                    eqxp(i,j) = conv.sx(p,eta,-1.0);
-                    }
-                }
+                c->Fx(i,j) = conv.sx(p,Fifsf,ivel);
+                c->Ex(i,j) = conv.sx(p,eta,ivel);
+                c->Exu(i,j) = c->Ex(i,j);
 
                 c->Exx(i,j) = ddx.sxx(p,eta);
 
                 c->Bx(i,j) = dx.sx(p,c->depth,1.0);
 
-                if(p->A317==1)
-                    c->Bxx(i,j) = ddx.sxx(p,c->depth);
+                c->Bxx(i,j) = ddx.sxx(p,c->depth);
 
                 // 3D
                 if(p->j_dir)
                 {
                     jvel = (Fifsf(i,j+1) - Fifsf(i,j-1))/(p->DYP[JP]+p->DYP[JM1]);
 
-                    if(p->A315==0)
-                    {
-                        c->Fy(i,j) = conv.sy(p,Fifsf,jvel);
-                        c->Ey(i,j) = conv.sy(p,eta,jvel);
-                        c->Eyu(i,j) = c->Ey(i,j);
-                    }
-                    else
-                    {
-                        const double evel = jvel - 2.0*c->Fz(i,j)*c->Ey(i,j);
-
-                        c->Fy(i,j) = syu(Fifsf,jvel);
-                        c->Eyu(i,j) = syu(eta,evel);
-                        c->Ey(i,j) = (p->A315==2) ? sys(eta) : syu(eta,jvel);
-                        
-                        if(p->A315==3)
-                        {
-                        eqym(i,j) = conv.sy(p,eta,1.0);
-                        eqyp(i,j) = conv.sy(p,eta,-1.0);
-                        }
-                    }
+                    c->Fy(i,j) = conv.sy(p,Fifsf,jvel);
+                    c->Ey(i,j) = conv.sy(p,eta,jvel);
+                    c->Eyu(i,j) = c->Ey(i,j);
 
                     c->Eyy(i,j) = ddx.syy(p,eta);
 
                     c->By(i,j) = dx.sy(p,c->depth,1.0);
 
-                    if(p->A317==1)
-                        c->Byy(i,j) = ddx.syy(p,c->depth);
+                    c->Byy(i,j) = ddx.syy(p,c->depth);
                 }
             }
         }
@@ -335,15 +261,9 @@ void fnpf_fsfbc_wd::fsfdisc(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, s
             const double gb = bw ? (eta(i,j)-eta(i-1,j))/p->DXP[IM1] : 0.0;
             const double gf = fw ? (eta(i+1,j)-eta(i,j))/p->DXP[IP] : 0.0;
 
-            c->Ex(i,j) = onesided(bw,fw,gb,gf, (p->A315==2) ? 0.0 : c->Fx(i,j));
-            c->Exu(i,j) = (p->A315==0) ? c->Ex(i,j) : onesided(bw,fw,gb,gf, c->Fx(i,j) - 2.0*c->Fz(i,j)*c->Ex(i,j));
+            c->Ex(i,j) = onesided(bw,fw,gb,gf, c->Fx(i,j));
+            c->Exu(i,j) = c->Ex(i,j);
             
-            // A315 3: the wet one-sided gradients as the two biases
-            if(p->A315==3)
-            {
-            eqxm(i,j) = bw ? gb : (fw ? gf : 0.0);
-            eqxp(i,j) = fw ? gf : (bw ? gb : 0.0);
-            }
             // no surface curvature in the sigma metrics at the front: the film
             // depth W jumps between columns there and Exx/W (sigxx) turned 2dx
             // noise of a few-mm film into a Laplace blow-up
@@ -357,14 +277,9 @@ void fnpf_fsfbc_wd::fsfdisc(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, s
                 const double hb = bs ? (eta(i,j)-eta(i,j-1))/p->DYP[JM1] : 0.0;
                 const double hf = fs ? (eta(i,j+1)-eta(i,j))/p->DYP[JP] : 0.0;
 
-                c->Ey(i,j) = onesided(bs,fs,hb,hf, (p->A315==2) ? 0.0 : c->Fy(i,j));
-                c->Eyu(i,j) = (p->A315==0) ? c->Ey(i,j) : onesided(bs,fs,hb,hf, c->Fy(i,j) - 2.0*c->Fz(i,j)*c->Ey(i,j));
+                c->Ey(i,j) = onesided(bs,fs,hb,hf, c->Fy(i,j));
+                c->Eyu(i,j) = c->Ey(i,j);
                 
-                if(p->A315==3)
-                {
-                eqym(i,j) = bs ? hb : (fs ? hf : 0.0);
-                eqyp(i,j) = fs ? hf : (bs ? hb : 0.0);
-                }
                 c->Eyy(i,j) = 0.0;
             }
         }
@@ -387,15 +302,13 @@ void fnpf_fsfbc_wd::fsfdisc_ini(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &et
         c->K(i,j) = 0.0;
     }
 
-    // A317==0 legacy: Bx left-biased (sx with speed 1.0, overwritten by fsfdisc), Bxx from df,
-    // which is never filled, so Bxx=0.
-    // A317==1: Bx from the same symmetric operator as in fsfdisc, Bxx from the depth.
-    slice &bdd = (p->A317==0) ? static_cast<slice&>(df) : static_cast<slice&>(c->depth);
+    // Bx from the same symmetric operator as in fsfdisc, Bxx from the depth (the former A317 0: Bx left-biased, Bxx = 0)
+    slice &bdd = c->depth;
 
     std::visit([&](auto &conv, auto &ddx, auto &dx)
     {
-        auto bsx = [&](slice &f) {return p->A317==0 ? conv.sx(p,f,1.0) : dx.sx(p,f,1.0);};
-        auto bsy = [&](slice &f) {return p->A317==0 ? conv.sy(p,f,1.0) : dx.sy(p,f,1.0);};
+        auto bsx = [&](slice &f) {return dx.sx(p,f,1.0);};
+        auto bsy = [&](slice &f) {return dx.sy(p,f,1.0);};
 
         // 3D
         if(p->j_dir)
@@ -462,19 +375,10 @@ void fnpf_fsfbc_wd::kfsfbc(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     }
     else if(p->A314==2)
     {
-        // A315 3: Godunov gradient with the Fx,Fy,Fz of this stage (fnpf_hj_godunov.h)
-        if(p->A315==3)
-        SLICELOOP4
-        if(p->wet[IJ]==1)
-        {
-        c->Exu(i,j) = fnpf_hj_godunov(eqxm(i,j),eqxp(i,j),c->Fx(i,j),c->Fz(i,j));
-        c->Eyu(i,j) = p->j_dir ? fnpf_hj_godunov(eqym(i,j),eqyp(i,j),c->Fy(i,j),c->Fz(i,j)) : 0.0;
-        }
-        
         SLICELOOP4
         {
             if(p->wet[IJ]==1)
-                // Exu,Eyu: upwinded eta gradient (equal to Ex,Ey for A315==0)
+                // Exu,Eyu: the eta gradient of the kinematic FSBC (equal to Ex,Ey)
                 c->K(i,j) = - c->Fx(i,j)*c->Exu(i,j) - c->Fy(i,j)*c->Eyu(i,j)
                             + c->Fz(i,j)*(1.0 + pow(c->Exu(i,j),2.0) + pow(c->Eyu(i,j),2.0));
             else if(p->wet[IJ]==0)

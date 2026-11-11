@@ -64,7 +64,7 @@ public:
 private:
     static double dtn_discrete(lexer*, double q);          // dimensionless discrete DtN g(q) = H D, q = kH
     static double dtn_lookup(double q);
-    static int sz_weights(lexer*, double*);                // weights of the free-surface sz stencil (A311, A327)
+    static int sz_weights(lexer*, double*);                // weights of the free-surface sz stencil (A311)
     
     static std::vector<double> tab_lq, tab_g;              // log10(q), g(q)
     static double tab_lqmin, tab_lqmax, tab_dlq, gmax_ratio;

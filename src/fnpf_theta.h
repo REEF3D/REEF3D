@@ -83,7 +83,7 @@ using namespace std;
 //
 //   Fifsf^n+1 + g theta^2 dt^2 w^n+1 = R,   R = Fifsf^n - g dt eta^n - g theta (1-theta) dt^2 w^n - g theta dt^2 N_eta + dt N_Fi
 //
-// with w = sigz sz(Fi) the free-surface vertical velocity of the sz stencil of A311 (A327 1). For theta >= 1/2
+// with w = sigz sz(Fi) the free-surface vertical velocity of the sz stencil of A311 (Fornberg weights). For theta >= 1/2
 // the linear gravity waves are unconditionally stable; theta = 1/2 is Crank-Nicolson (no damping), theta > 1/2
 // damps the grid-scale waves.
 //

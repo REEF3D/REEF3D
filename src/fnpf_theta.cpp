@@ -125,7 +125,7 @@ fnpf_theta::fnpf_theta(lexer *p, fdm_fnpf *c, ghostcell *pgc) : fnpf_ini(p,c,pgc
     if(p->G1>0 && p->G30==1)        {bad=1; if(p->mpirank==0) cout<<"A 310 5: mesh refinement (G 1) with the patches off the coastline (G 30 0)"<<endl;}
     if(p->G1>0 && p->G7==1)         {bad=1; if(p->mpirank==0) cout<<"A 310 5: mesh refinement (G 1) without subcycling (G 7 0)"<<endl;}
     if(p->G1>0 && p->A328==1)       {bad=1; if(p->mpirank==0) cout<<"A 310 5: mesh refinement (G 1) with explicit sigma cross terms (A 328 0)"<<endl;}
-    if(p->A311==3 || p->A327!=1)    {bad=1; if(p->mpirank==0) cout<<"A 310 5: needs the Fornberg sz stencil (A 327 1) and A 311 1, 2, 4, 5 or 6"<<endl;}
+    if(p->A311==3)    {bad=1; if(p->mpirank==0) cout<<"A 310 5: needs A 311 1, 2, 4, 5 or 6"<<endl;}
     if(p->A328==1 && lsolv==2)      {bad=1; if(p->mpirank==0) cout<<"A 310 5: implicit sigma cross terms (A 328 1) with REEFMG only (A 306 1)"<<endl;}
     // B 98 3/4 (Dirichlet / active generation, also B 98 6-8, which iowave runs as 4) and B 99 3-5, 7 (active
     // beach, also 6 and 8, run as 3): the edge velocity Uin of the Laplace rows and the ghost values of eta and
@@ -668,7 +668,7 @@ void fnpf_theta::corrector_state(lexer *p, fdm_fnpf *c, ghostcell *pgc, ioflow *
     if(pamr!=nullptr)
     pamr->theta_corrector(p,pgc,erk2,fnew,theta,beta);
     
-    // Fx, Ex, Exu of eta^n+1, Fifsf^n+1 (the upwinding of A315 uses the Fz just set)
+    // Fx, Ex, Exu of eta^n+1, Fifsf^n+1 (for the kinematic FSBC with the Fz just set)
     {fnpf_prof::scope ps_(fnpf_prof::fsfdisc); pf->fsfdisc(p,c,pgc,erk2,fnew);}
     
     {fnpf_prof::scope ps_(fnpf_prof::fsfbc); pf->kfsfbc(p,c,pgc);}

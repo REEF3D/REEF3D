@@ -46,7 +46,7 @@ fnpf_timestep::~fnpf_timestep()
 //                 scheme is stable for every gravity wave, so its step follows from accuracy, as in SFLOW and NHFLOW
 //  2  stability   dt = N47 C_RK / (omega_d + pi |u|/dx + pi |v|/dy), omega_d = sqrt(g D(k)) of the grid cut-off
 //                 mode with the discrete Dirichlet-to-Neumann operator D of the sigma grid (Laplace cds2 and the
-//                 free-surface sz stencil of A311/A327), C_RK = sqrt(3) (RK3), 2 sqrt(2) (RK4): N47 is the
+//                 free-surface sz stencil of A311), C_RK = sqrt(3) (RK3), 2 sqrt(2) (RK4): N47 is the
 //                 fraction of the linear stability limit of the RK scheme (N47 < 1), for any depth, 2D and 3D.
 //                 theta-Robin: N47 times the stability step of RK3 (N47 > 1 allowed)
 //
@@ -173,8 +173,8 @@ void fnpf_timestep::accuracy_cap(lexer *p)
 }
 
 // weights w[m] of f[knoz-m] such that sz = sum_m w[m] f[knoz-m] (sigma units), as the sz() of the free-surface
-// discretisation chosen by A311: A327 1 Fornberg weights on the sigma nodes (fnpf_sz_weights), A327 0 the legacy
-// ratio form sum(a f)/sum(a ZN); weno3 (A311 3) uses Fornberg weights on 5 nodes in both cases
+// discretisation chosen by A311: Fornberg weights on the sigma nodes (fnpf_sz_weights); the former A327 0 used the
+// legacy ratio form sum(a f)/sum(a ZN)
 int fnpf_timestep::sz_weights(lexer *p, double *w)
 {
     const int N = p->knoz;
@@ -189,47 +189,18 @@ int fnpf_timestep::sz_weights(lexer *p, double *w)
     while(np>3 && N<np-1)
     np -= 2;
     
-    if(p->A327==1 || p->A311==3)
-    {
-        fnpf_sz_weights szw(p);
-        
-        const double *ww = szw.weights(np);
-        
-        if(ww==nullptr && np>3)
-        ww = szw.weights(np=3);
-        
-        if(ww==nullptr)
-        ww = szw.weights(np=2);
-        
-        for(int m=0;m<np;++m)
-        w[m] = ww[m];
-        
-        return np;
-    }
+    fnpf_sz_weights szw(p);
     
-    double a[7];
+    const double *ww = szw.weights(np);
     
-    if(np==7)
-    {
-    a[0]=-49.0/20.0; a[1]=6.0; a[2]=-7.5; a[3]=20.0/3.0; a[4]=-3.75; a[5]=6.0/5.0; a[6]=-1.0/6.0;
-    }
+    if(ww==nullptr && np>3)
+    ww = szw.weights(np=3);
     
-    else if(np==5)
-    {
-    a[0]=-25.0/12.0; a[1]=4.0; a[2]=-3.0; a[3]=4.0/3.0; a[4]=-0.25;
-    }
-    
-    else
-    {
-    a[0]=-1.5; a[1]=2.0; a[2]=-0.5;
-    }
-    
-    double den=0.0;
-    for(int m=0;m<np;++m)
-    den += a[m]*p->ZN[N-m+marge];
+    if(ww==nullptr)
+    ww = szw.weights(np=2);
     
     for(int m=0;m<np;++m)
-    w[m] = a[m]/den;
+    w[m] = ww[m];
     
     return np;
 }
@@ -317,7 +288,7 @@ void fnpf_timestep::dtn_table_ini(lexer *p)
     
     if(p->mpirank==0)
     {
-        cout<<"FNPF time step: discrete DtN of the sigma grid, knoz "<<p->knoz<<", A311 "<<p->A311<<", A327 "<<p->A327<<endl;
+        cout<<"FNPF time step: discrete DtN of the sigma grid, knoz "<<p->knoz<<", A311 "<<p->A311<<endl;
         cout<<"        kH      g_disc   kH tanh(kH)"<<endl;
         
         const double qs[7]={0.1,1.0,3.0,10.0,30.0,100.0,1000.0};

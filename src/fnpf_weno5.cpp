@@ -130,20 +130,5 @@ double fnpf_weno5::sy(lexer *p, slice &f, double jvel)
 
 double fnpf_weno5::sz(lexer *p, double *f)
 {
-    if(p->A327==1)
     return szw.eval(p,f,FIJK,5);
-
-    if(p->flag7[FIJK]>0 && p->flag7[FIJKm1]>0 && p->flag7[FIJKm2]>0 && p->flag7[FIJKm3]>0)
-    {
-        return (-(25.0/12.0)*f[FIJK] + 4.0*f[FIJKm1] - 3.0*f[FIJKm2] + (4.0/3.0)*f[FIJKm3] - 0.25*f[FIJKm4])
-              /(-(25.0/12.0)*p->ZN[KP] + 4.0*p->ZN[KM1] - 3.0*p->ZN[KM2] + (4.0/3.0)*p->ZN[KM3] - 0.25*p->ZN[KM4]);
-    }
-    else if(p->flag7[FIJK]>0 && p->flag7[FIJKm1]>0)
-    {
-        return (-1.5*f[FIJK] + 2.0*f[FIJKm1] - 0.5*f[FIJKm2])/(-1.5*p->ZN[KP] + 2.0*p->ZN[KM1] - 0.5*p->ZN[KM2]);
-    }
-    else
-    {
-        return (f[FIJK] - f[FIJKm1])/(p->ZN[KM1]);
-    }
 }
