@@ -40,7 +40,7 @@ namespace
     const double brain_tauc0 = 2.0;        // prior of the coasting time: the speed of a glide decays with it [s]
     const double brain_cknown = 0.2;       // an early glide: the current known within this (sqrt of its variance) [L/s]
     const double brain_cdrift = 0.1;       // ... and its drift over the coasting time below this [L]
-    const double brain_brake = 1.5;        // braking while gliding: the body bent with this bias (0: no braking)
+    const double brain_brake = 2.5;        // braking while gliding: the body bent with this bias (0: no braking)
 }
 
 sixdof_brain::sixdof_brain(double U_des, double b_max, double D_vis, double th_esc, double f0, double L, double rho,
@@ -395,8 +395,9 @@ sixdof_brain::decision sixdof_brain::decide(double t, double f, double a, double
     adec_ = at;
     d.on = true;
 
-    // 1. escape: a C-start away from the side of the higher pressure
-    if(the_>0.0 && t>=refr_ && (std::fabs(dpl)>the_ || phd>the_))
+    // 1. escape: a C-start away from the side of the higher pressure; not while the fish coasts or brakes (the
+    // bent body of the braking gives a pressure across the head far above the -reaff b q of a swimming turn)
+    if(the_>0.0 && t>=refr_ && !(glide_ || a<0.95) && (std::fabs(dpl)>the_ || phd>the_))
     {
         const double sg = (dpl>=0.0) ? 1.0 : -1.0;
         d.f = f; d.a = 0.5; d.b = -2.5*sg; d.ts = 0.08;

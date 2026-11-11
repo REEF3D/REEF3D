@@ -35,7 +35,7 @@ LOCK = threading.Lock()
 # the constants of the rule brain (6DOF_brain.cpp)
 TAU, KTURN, SLOW, ARRIVE, FRONT = 1.5, 1.3, 1.5, 0.25, 0.35
 TAUU, S0, TFLOOR, PSIFLOOR, REAFF, BURST, TAUC0 = 0.8, 0.5, 2.5, 1.0, 0.5, 0.5, 2.0
-CKNOWN, CDRIFT, BRAKE = 0.2, 0.1, 1.5
+CKNOWN, CDRIFT, BRAKE = 0.2, 0.1, 2.5
 
 
 def _kf_update(st, H, y, R, dt):
@@ -215,8 +215,8 @@ def rules(sv, st, pr):
     st["tdec"], st["pdec"], st["bdec"], st["adec"] = t, list(c), bt, at
     st["est"] = (s, cur[0], cur[1], cur[2], Uw, st["tauc"])
 
-    # 1. escape: a C-start away from the side of the higher pressure
-    if the > 0.0 and t >= st["refr"] and (abs(dpl) > the or phd > the):
+    # 1. escape: a C-start away from the side of the higher pressure (not while coasting or braking)
+    if the > 0.0 and t >= st["refr"] and not (st["glide"] or a < 0.95) and (abs(dpl) > the or phd > the):
         sg = 1.0 if dpl >= 0.0 else -1.0
         st["refr"] = t + 2.0
         st["bdec"] = -2.5 * sg

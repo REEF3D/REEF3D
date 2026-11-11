@@ -55,7 +55,8 @@ Architect: Hans Bihs
 //      from the side of the higher pressure (a 0.5, b -+2.5 in 0.08 s, after 0.15 s back to b = 0 at
 //      1.5 times the frequency), then 2 s without a new escape. The signal of the own turn,
 //      -0.5 b q at the head (validation 11), is taken off p+ - p- first. The flank lateral line senses
-//      a wall only within ~0.1 L, so th_esc ~ 1.5: a startle at contact or a strong stimulus
+//      a wall only within ~0.1 L, so th_esc ~ 1.5: a startle at contact or a strong stimulus. Not while
+//      the fish glides or brakes (the pressure of the bent body is far above that of a swimming turn)
 //   2. avoidance (D > 0): the threat w = (1 - d/D)^2 of the closest ray; a turn to the side with the
 //      longer rays (kept while the threat lasts), the bias blended from the target's to +-b_max with
 //      min(1, w/0.25), the frequency times 1 - 0.3 min(1, w/0.25)
@@ -76,8 +77,9 @@ Architect: Hans Bihs
 //      than that speed. It beats again beyond 0.5 L of the target when the target is behind or the coast
 //      no longer reaches it, for at least a tail beat: burst and coast at a station in still water or in
 //      a slow current. While gliding, if the coast would carry the fish past the target (or carries it
-//      away), it brakes: the body bent with the bias 1.5 to the side that turns it towards the wanted
-//      heading, kept while it brakes (mode 6); the coasting time is learnt only from the glides with the body straight
+//      away), it brakes: the body bent with the bias 2.5 to the side that turns it towards the wanted
+//      heading, kept while it brakes (mode 6); the coasting time is learnt only from the glides with the
+//      body straight
 //  Without a target the fish keeps its frequency and swims straight.
 //
 //  The decisions: every half tail beat, at most 0.5 s apart. The brain is a function of the senses at
