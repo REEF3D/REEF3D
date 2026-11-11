@@ -573,6 +573,8 @@ void cfd_amr::regrid(lexer *p, ghostcell *pgc, bool replace)
         for(int l=maxlev; l>=1; --l)
         {
             restrict_level(l,cells,faces);
+            if(!sub)
+            restrict_press_hydro(l);
             if(l>=2)
             fill(l-1,fs);
         }

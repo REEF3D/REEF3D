@@ -425,6 +425,7 @@ private:
     void restrict_level(int l, const vector<std::function<field&(int)>> &cells, const vector<std::function<field&(int)>> &faces);
     void restrict_vel(int s);
     void restrict_scalars(int s);
+    void restrict_press_hydro(int l);   // G 29
 
     // stage parts
     void fill_stage_in(int l, int s);

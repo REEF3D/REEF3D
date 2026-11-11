@@ -799,6 +799,21 @@ void driver::logic_cfd()
         }
     }
 
+    // G 29: the pressure under the patches restricted relative to the hydrostatic pressure of each
+    // grid (cfd_amr::restrict_press_hydro): two-phase level set, gravity along z
+    if(p->G29!=0 && (p->G29!=1 || p->F30<=0 || p->F80>0 || p->F41>0 || p->W20!=0.0 || p->W21!=0.0 || p->W22==0.0 || !cfd_amr::scope(p,pgc)))
+    {
+        if(p->mpirank==0)
+        cout<<"G 29 "<<p->G29<<" (the pressure under the patches relative to the hydrostatic pressure of each grid) needs the CFD mesh refinement (G 1) with the two-phase level set (F 30, not F 41) and gravity along z: not used"<<endl;
+        p->G29=0;
+    }
+    if(p->G29==1 && p->G7!=0)
+    {
+        if(p->mpirank==0)
+        cout<<"G 29: with the subcycling (G 7 1) the cells under the patches keep the pressure of their own level (it is not restricted): not used"<<endl;
+        p->G29=0;
+    }
+
     // F 48 (the narrow band of the level set, levelset_band.h): the reinitialisation reini_RK3 (F 40 3)
     // and the transport of the level set of momentum_rk with F 35 5.  At least the cells that read
     // the level set as a distance: the smoothed interface and the stencil next to it (F 45 + 3), the

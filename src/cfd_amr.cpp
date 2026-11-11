@@ -1867,6 +1867,128 @@ void cfd_amr::restrict_vel(int s)
     pgc0->start3(p0,mom0->amr_velout(a0,2,s),12);
 }
 
+// G 29: the pressure of the cells under the patches of level l, just restricted (the mean of the
+// children), relative to the discrete hydrostatic pressure of each grid:
+//
+//     p_C = h_C + mean over the children f of (p_f - h_f)
+//
+// h of a grid: the sum of g rho dz down a column from the plane on top of the patch, with the face
+// densities of the grid's own w equation (as pr_hydro: the cell below the plane with half its
+// height, then the faces).  Every level smears the free surface over F 45 of its own cells, so in
+// the interface band the restricted fine pressure (the fine hydrostatic pressure) is not the
+// hydrostatic pressure of the coarse grid: up to several Pa at a coarse cell next to the surface.
+// The coarse faces from an uncovered cell to a covered one then carried a pressure gradient at rest
+// (4e-3 m/s per step in still water across a patch edge), which reached the patch edges through the
+// transverse slopes of the coarse face velocity in pr_predict and the fills around the patches.
+// At rest p_f - h_f is the same for all children, and p_C is the hydrostatic pressure of the coarse
+// grid.  The coarse column runs through the parent blocks of the patch (several grids possible);
+// a column with a cell without flag (a solid) keeps the mean below it.  Gravity along z only.
+void cfd_amr::restrict_press_hydro(int l)
+{
+    if(p0->G29!=1 || rr[2]!=2)
+    return;
+
+    const double g = fabs(p0->W22);
+    auto rho = [](const lexer *q, double ph, double e) { const double H = heaviside(ph,e); return q->W1*H + q->W3*(1.0-H); };
+
+    for(int id : lev[l])
+    {
+        cfd_amr_patch *c = CP(id);
+        lexer *pp = c->pp;
+        fdm *af = c->a;
+
+        // the parent block of a coarse cell (global index of the coarser level)
+        auto block = [&](const int *P) -> const r3patch::pblock*
+        {
+            for(const r3patch::pblock &B : c->par)
+            if(P[0]>=B.lo[0] && P[0]<=B.hi[0] && P[1]>=B.lo[1] && P[1]<=B.hi[1] && P[2]>=B.lo[2] && P[2]<=B.hi[2])
+            return &B;
+            return nullptr;
+        };
+
+        int Plo[3], Phi[3];
+        for(int d=0; d<3; ++d)
+        {
+            Plo[d] = fdiv(c->lo[d],rr[d]);
+            Phi[d] = fdiv(c->hi[d],rr[d]);
+        }
+        const int nch = rr[0]*rr[1];
+        vector<double> hf(nch), phf(nch), wf(nch);
+
+        int P[3];
+        for(P[0]=Plo[0]; P[0]<=Phi[0]; ++P[0])
+        for(P[1]=Plo[1]; P[1]<=Phi[1]; ++P[1])
+        {
+            double hc = 0.0, phc = 0.0, wc = 0.0, dzc = 0.0;
+            bool ok = true;
+            for(P[2]=Phi[2]; P[2]>=Plo[2] && ok; --P[2])
+            {
+                const r3patch::pblock *B = block(P);
+                if(B==nullptr)
+                {
+                    ok = false;
+                    break;
+                }
+                int og[3];
+                goff(B->g,og);
+                lexer *q = glex(B->g);
+                fdm *ac = gfd(B->g);
+                const int i = P[0]-og[0], j = P[1]-og[1], k = P[2]-og[2];
+                if(q->flag4[cix(q,i,j,k)]<=0)
+                {
+                    ok = false;
+                    break;
+                }
+
+                // the coarse column down to this cell
+                const double ph = ac->phi(i,j,k);
+                const double w = interface_width(q,ac->phi,i,j,k);
+                const double dz = q->DZN[k+marge];
+                if(P[2]==Phi[2])
+                hc = g*rho(q,ph,w)*0.5*dz;
+                else
+                hc += g*rho(q,0.5*(ph+phc),0.5*(w+wc))*0.5*(dz+dzc);
+                phc = ph;
+                wc = w;
+                dzc = dz;
+
+                // the fine columns of the children down to the two cells of this coarse cell
+                double hm = 0.0;
+                int n = 0;
+                for(int a=0; a<rr[0] && ok; ++a)
+                for(int b=0; b<rr[1] && ok; ++b)
+                {
+                    const int fi = P[0]*rr[0]+a-c->lo[0], fj = P[1]*rr[1]+b-c->lo[1];
+                    const int m = a*rr[1]+b;
+                    for(int e=rr[2]-1; e>=0; --e)
+                    {
+                        const int fk = P[2]*rr[2]+e-c->lo[2];
+                        if(pp->flag4[cix(pp,fi,fj,fk)]<=0)
+                        {
+                            ok = false;
+                            break;
+                        }
+                        const double phk = af->phi(fi,fj,fk);
+                        const double wk = interface_width(pp,af->phi,fi,fj,fk);
+                        if(P[2]==Phi[2] && e==rr[2]-1)
+                        hf[m] = g*rho(pp,phk,wk)*0.5*pp->DZN[fk+marge];
+                        else
+                        hf[m] += g*rho(pp,0.5*(phk+phf[m]),0.5*(wk+wf[m]))*pp->DZP[fk+marge];
+                        phf[m] = phk;
+                        wf[m] = wk;
+                        hm += hf[m];
+                        ++n;
+                    }
+                }
+                if(!ok)
+                break;
+
+                ac->press(i,j,k) += hc - hm/double(n);
+            }
+        }
+    }
+}
+
 // restriction of the level set, pressure, density, viscosity at the end of the stage
 void cfd_amr::restrict_scalars(int s)
 {
@@ -1874,7 +1996,10 @@ void cfd_amr::restrict_scalars(int s)
     cells.push_back([this,s](int g) -> field& { return gmom(g)->amr_phi_out(s); });
 
     for(int l=maxlev; l>=1; --l)
-    restrict_level(l,cells,none);
+    {
+        restrict_level(l,cells,none);
+        restrict_press_hydro(l);
+    }
 
     if(turb)
     pturb0->gcupdate(p0,a0,pgc0);
