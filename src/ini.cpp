@@ -855,6 +855,7 @@ void control::ini_default()
     G25=0;      // int CFD mesh refinement: flag the cells within this many cells of a solid, the topography or a floating body; 0 off
     G26=0.0;    // double CFD mesh refinement: flag the cells with a vorticity above this value [1/s]; 0 off
     G27=0.0;    // double CFD mesh refinement with CPM: flag the cells near the bed where it is mobile, the bed shear stress above this many times the critical one or the bed moved by a cell of the grid of CPM; 0 off
+    G28=0;      // int CFD mesh refinement: the half width of the smoothed interface of the density and the viscosity (the Heaviside of F 45): 0 (default) F 45 times the cell size of every level, 1 one width on all levels, that of level 0 (F 45 times its spacing, as without refinement), 2 one width on all levels, that of the finest level G 1
     G30=0;      // int NHFLOW and FNPF mesh refinement: 1 patches may cover dry and shallow cells (wetting and drying in the patches; FNPF: the static coastline A 343 1 or the moving one A 343 2, 3), 0 they keep 4 level-0 cells away
     G31=1;      // int NHFLOW mesh refinement with A 512 2: 1 one implicit diffusion solve over the leaf cells of all grids (composite), 0 every grid solves its own
     G52=0;      // int curvilinear NHFLOW (G 50): 1 the i-walls are slip walls as the j-walls (normal velocity mirrored, the pressure correction Neumann), so that a wall acts the same in any index direction (set on multi-block grids); 0 the Cartesian x-walls

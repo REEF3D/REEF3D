@@ -771,6 +771,34 @@ void driver::logic_cfd()
         p->N65=0;
     }
 
+    // G 28: one half width of the smoothed interface of the density and the viscosity on all levels
+    // of the mesh refinement (interface_width.h), that of level 0 (1) or of the finest level G 1 (2),
+    // F 45 times the spacing of that level (as initialize::inipsi).  Without it every level smears
+    // the free surface over F 45 of its own cells, so a coarse and a fine cell at the same distance
+    // from the free surface have different densities (at the patch edges across the free surface
+    // and under the patches)
+    p->psi_rho=0.0;
+    if(p->G28!=0)
+    {
+        if(p->G28<0 || p->G28>2 || p->F30<=0 || p->F80>0 || !cfd_amr::scope(p,pgc))
+        {
+            if(p->mpirank==0)
+            cout<<"G 28 "<<p->G28<<" (one interface width on all levels: 1 that of level 0, 2 that of the finest level) needs the CFD mesh refinement (G 1) with the level set (F 30): not used"<<endl;
+            p->G28=0;
+        }
+        else
+        {
+            const double h0 = (p->j_dir==0) ? 0.5*(p->DXM+p->DZM) : (1.0/3.0)*(p->DXM+p->DYM+p->DZM);
+            p->psi_rho = p->F45*h0;
+            if(p->G28==2)
+            p->psi_rho /= pow(2.0,p->G1);
+
+            if(p->mpirank==0)
+            cout<<"G 28 "<<p->G28<<": the density and the viscosity with one interface half width on all levels, "<<p->psi_rho
+                <<" m ("<<p->psi_rho/h0<<" cells of level 0, "<<p->psi_rho/(h0/pow(2.0,p->G1))<<" cells of level "<<p->G1<<")"<<endl;
+        }
+    }
+
     // F 48 (the narrow band of the level set, levelset_band.h): the reinitialisation reini_RK3 (F 40 3)
     // and the transport of the level set of momentum_rk with F 35 5.  At least the cells that read
     // the level set as a distance: the smoothed interface and the stencil next to it (F 45 + 3), the
@@ -785,11 +813,17 @@ void driver::logic_cfd()
         }
         else
         {
-            const double wmin = MAX(MAX(p->F45+3.0,p->G24*p->F45+1.0),p->N57+2.0);
+            double wmin = MAX(MAX(p->F45+3.0,p->G24*p->F45+1.0),p->N57+2.0);
+            // G 28: the smoothed interface in cells of the finest level
+            if(p->psi_rho>0.0)
+            {
+                const double h0 = (p->j_dir==0) ? 0.5*(p->DXM+p->DZM) : (1.0/3.0)*(p->DXM+p->DYM+p->DZM);
+                wmin = MAX(wmin,p->psi_rho/(h0/pow(2.0,p->G1))+3.0);
+            }
             if(p->F48<wmin)
             {
                 if(p->mpirank==0)
-                cout<<"F 48 "<<p->F48<<": the narrow band is at least F 45 + 3, G 24 F 45 + 1 and N 57 + 2 cells: F 48 "<<wmin<<endl;
+                cout<<"F 48 "<<p->F48<<": the narrow band is at least F 45 + 3 (G 28: the interface width + 3), G 24 F 45 + 1 and N 57 + 2 cells: F 48 "<<wmin<<endl;
                 p->F48=wmin;
             }
             if(p->mpirank==0)

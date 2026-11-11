@@ -175,13 +175,14 @@ void cfd_amr::interp(int l, double th)
             // synchronisation, it is not smooth from step to step at the free surface: extrapolated
             // there it fed its jumps back through the edges of the finer level (two levels, the free
             // surface across the edge of level 2: unstable after 1.3 s).  From a patch it is held at
-            // the end value in the interface band and the air (phi < 3 psi), extrapolated in the
-            // water (held everywhere, the waves lost 1-3.5 % of their amplitude along two levels)
+            // the end value in the interface band and the air (phi < 3 psi; G 28: 3 psi_rho),
+            // extrapolated in the water (held everywhere, the waves lost 1-3.5 % of their amplitude
+            // along two levels)
             const double w = (m!=tl_press) ? th : (press_step ? th+0.5 : 1.0);
             if(m==tl_press && l>=1 && w>1.0)
             {
                 const double *ph = stf(g,tl_phi).V;
-                const double band = 3.0*glex(g)->psi;
+                const double band = 3.0*interface_band(glex(g));
                 for(size_t q=0; q<n; ++q)
                 t[q] = o[q] + ((ph[q]<band) ? 1.0 : w)*(c[q]-o[q]);
                 continue;

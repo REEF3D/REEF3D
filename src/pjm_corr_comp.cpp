@@ -83,7 +83,7 @@ void pjm_corr::comp_terms(lexer *p, fdm *a, field &u, field &v, field &w, double
         if(a->phi(i,j,k)<0.0)
         {
         epsi = interface_width(p,a->phi,i,j,k);
-        hn = epsi/p->F45;
+        hn = interface_width_grid(p,a->phi,i,j,k)/p->F45;    // the cell size (with G 28 epsi is the width of the density)
 
         comp_a = epsi + hn;
         comp_r = 2.0*hn;

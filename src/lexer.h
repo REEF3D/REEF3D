@@ -321,6 +321,7 @@ public:
 
     // free surface
     double psi,psi0;
+    double psi_rho;     // G 28: the half width of the smoothed interface of the fluid properties, the same on all levels of the mesh refinement; 0: F 45 times the local cell size (interface_width.h)
     int reini_iter;     // reinitialisation iterations of the next reini call (the momentum classes set it per stage, default F44)
 	int pressval;
 

@@ -1225,7 +1225,7 @@ void cfd_amr::pr_weights()
     {
         lexer *qc = glex(F.gc);
         fdm *ac = gfd(F.gc);
-        const double e = qc->psi, row = qc->W1, roa = qc->W3;
+        const double e = interface_band(qc), row = qc->W1, roa = qc->W3;
         const double *dn[3] = {qc->DXN,qc->DYN,qc->DZN};
         const double phC = ac->phi.V[F.qc];
         const double phf = CP(F.pid)->a->phi.V[F.qf];
@@ -2200,10 +2200,11 @@ void cfd_amr::pr_residual(int kr, int kz, int kt, int lmin)
     restrict_level(l,cells,none);
 }
 
-// the half width of the interface band of grid g (psi of its level)
+// the half width of the interface band of grid g (psi of its level; with G 28 the one width of the
+// density on all levels)
 double cfd_amr::psi_band(int g)
 {
-    return (g<0) ? p0->psi : glex(g)->psi;
+    return interface_band((g<0) ? p0 : glex(g));
 }
 
 // z = M^-1 r: one multiplicative FAC V-cycle over the levels.  Down (G 40 only): on every level,

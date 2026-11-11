@@ -2335,12 +2335,14 @@ void reefamr3d::build_lexer(r3patch &c)
     pgc0->dgcslini4(pp);
 
     // interface thickness of the level (F 45 x the spacing of the level), as initialize::inipsi;
-    // the fluid properties take the local width of the grid (interface_width.h), so per level
+    // the fluid properties take the local width of the grid (interface_width.h), so per level;
+    // with G 28 the one width psi_rho of level 0 (logic_cfd) on every level
     if(p->j_dir==0)
     pp->psi = p->F45*0.5*(pp->DXM+pp->DZM);
     else
     pp->psi = p->F45*(1.0/3.0)*(pp->DXM+pp->DYM+pp->DZM);
     pp->psi0 = pp->psi;
+    pp->psi_rho = p->psi_rho;
 }
 
 // --------------------------------------------------------------------- plans
