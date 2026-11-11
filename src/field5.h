@@ -23,13 +23,13 @@ Author: Hans Bihs
 #ifndef FIELD5_H_
 #define FIELD5_H_
 
-#include"field.h"
+#include "field.h"
 
 class field5 final : public field
 {
 public:
-    field5(lexer* p, bool allocate=true) : field(p,allocate) {}
-    virtual ~field5() = default;
+    explicit field5(lexer *p, bool allocate=true) : field(p,allocate) {}
+    ~field5() override;
 };
 
 #endif

@@ -39,7 +39,7 @@ inline void levelset_band_mask(lexer *p, field &f, double w, std::vector<unsigne
     band.resize(nn);
     const double bw = w*p->DXM;
     for(size_t q=0; q<nn; ++q)
-    band[q] = std::fabs(f.V[q])<bw ? 1 : 0;
+    band[q] = std::fabs(f.data()[q])<bw ? 1 : 0;
 
     const long sI = (long)p->jmax*p->kmax, sJ = p->kmax;
     const bool y = (p->j_dir==1);

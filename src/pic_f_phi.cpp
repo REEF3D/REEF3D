@@ -411,13 +411,8 @@ void pic_f::phi_build(lexer *p, fdm *a, ghostcell *pgc)
     // pressure is 0 at the surface, pic_gfm.cpp)
     if(single)
     {
-        const int size = p->imax*p->jmax*p->kmax;
-
-        for(int n=0; n<size; ++n)
-        {
-        a->ro.V[n] = p->W1;
-        a->visc.V[n] = p->W2;
-        }
+        std::fill(a->ro.begin(),a->ro.end(), p->W1);
+        std::fill(a->visc.begin(),a->visc.end(), p->W2);
     }
 
     phitime += pgc->timer() - starttime;

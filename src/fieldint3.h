@@ -23,13 +23,13 @@ Author: Hans Bihs
 #ifndef FIELDINT3_H_
 #define FIELDINT3_H_
 
-#include"fieldint.h"
+#include "fieldint.h"
 
 class fieldint3 final : public fieldint
 {
 public:
-    fieldint3(lexer* p) : fieldint(p) {}
-    virtual ~fieldint3() = default;
+    explicit fieldint3(lexer *p) : fieldint(p) {}
+    ~fieldint3() override;
 };
 
 #endif

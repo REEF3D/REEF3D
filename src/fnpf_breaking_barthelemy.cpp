@@ -246,7 +246,7 @@ void fnpf_breaking::breaking_barthelemy(lexer *p, fdm_fnpf *c, ghostcell *pgc, s
     pgc->gcsl_start4(p,bt_us,1);
     pgc->gcsl_start4(p,bt_vs,1);
 
-    bt->detect(p,pgc,c->eta,bt_us,bt_vs,c->WL,bt_zone_built ? bt_zone.V : nullptr,t,&c->Fifsf);
+    bt->detect(p,pgc,c->eta,bt_us,bt_vs,c->WL,bt_zone_built ? bt_zone.data() : nullptr,t,&c->Fifsf);
 
     // dissipation of the damping per unit viscosity, crest length and ray length
     const double fe = (p->A357==1 || p->A357==3) ? p->A366 : 0.0;
@@ -305,9 +305,9 @@ void fnpf_breaking::breaking_barthelemy(lexer *p, fdm_fnpf *c, ghostcell *pgc, s
     }
 
     if(p->A350==5)
-    bt->rays(p,pgc,c->eta,c->WL,t,sback,integrand,epsf,c->vb,c->breaking.V,nullptr,&integrand_pa,&bt_pa);
+    bt->rays(p,pgc,c->eta,c->WL,t,sback,integrand,epsf,c->vb,c->breaking.data(),nullptr,&integrand_pa,&bt_pa);
     else
-    bt->rays(p,pgc,c->eta,c->WL,t,sback,integrand,epsf,c->vb,c->breaking.V,nullptr);
+    bt->rays(p,pgc,c->eta,c->WL,t,sback,integrand,epsf,c->vb,c->breaking.data(),nullptr);
 
     // still-water depth of the deepest onset so far: the surf zone for the filter (A352)
     bt_db = MAX(bt_db, bt->deepest_onset);

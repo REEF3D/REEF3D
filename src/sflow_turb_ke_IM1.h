@@ -41,9 +41,9 @@ public:
     void ckpt_fields(const std::function<void(const char*, char, double*)> &fd, const std::function<void(const char*, char, int*)> &fi) override
     {
         sflow_turb_io::ckpt_fields(fd,fi);
-        fd("turb_ke_IM1_kn",'S',kn.V); fd("turb_ke_IM1_en",'S',en.V); fd("turb_ke_IM1_Pk",'S',Pk.V);
-        fd("turb_ke_IM1_S",'S',S.V); fd("turb_ke_IM1_ustar",'S',ustar.V); fd("turb_ke_IM1_cf",'S',cf.V);
-        fi("turb_ke_IM1_wallf",'S',wallf.V);
+        fd("turb_ke_IM1_kn",'S',kn.data()); fd("turb_ke_IM1_en",'S',en.data()); fd("turb_ke_IM1_Pk",'S',Pk.data());
+        fd("turb_ke_IM1_S",'S',S.data()); fd("turb_ke_IM1_ustar",'S',ustar.data()); fd("turb_ke_IM1_cf",'S',cf.data());
+        fi("turb_ke_IM1_wallf",'S',wallf.data());
     }
     sflow_turb_ke_IM1(lexer*);
 	virtual ~sflow_turb_ke_IM1();

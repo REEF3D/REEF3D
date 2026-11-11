@@ -102,8 +102,8 @@ void sflow_momentum_SI::nh_amr_lap(lexer *p, ghostcell *pgc_nh)
 {
     const bool yd = (p->j_dir==1);
     const int J = p->jmax;
-    const double *H3 = nH3.V, *E = nE.V, *lc = nh_lc.data();
-    double *Lv = nL.V;
+    const double *H3 = nH3.data(), *E = nE.data(), *lc = nh_lc.data();
+    double *Lv = nL.data();
 
     SLICELOOP4
     {
@@ -133,13 +133,13 @@ void sflow_momentum_SI::nh_amr_faces(lexer *p, bool affine)
     // q = EL E_L + ER E_R + PL P_L + PR P_R + B (L_R - L_L) + k1 / k2 (kface of nh_assemble)
     const bool bd = (Bdisp>0.0);
     const int J = p->jmax;
-    const double *E = nE.V, *Pp = nP.V, *Lp = nL.V;
+    const double *E = nE.data(), *Pp = nP.data(), *Lp = nL.data();
 
     // all faces of the arrays (the faces of the partition halo with the exchanged coefficients and values, as
     // nh_solve computes them on the fly; the coefficients of faces nh_assemble does not set are 0)
     {
-    const double *EL = kxEL.V, *ER = kxER.V, *PL = kxPL.V, *PR = kxPR.V, *B = nxB.V, *K1 = kx1.V, *K2 = kx2.V;
-    double *F1 = nF1x.V, *F2 = nF2x.V;
+    const double *EL = kxEL.data(), *ER = kxER.data(), *PL = kxPL.data(), *PR = kxPR.data(), *B = nxB.data(), *K1 = kx1.data(), *K2 = kx2.data();
+    double *F1 = nF1x.data(), *F2 = nF2x.data();
     const int nq = (p->imax-1)*J;
 
     for(int q=0; q<nq; ++q)
@@ -153,8 +153,8 @@ void sflow_momentum_SI::nh_amr_faces(lexer *p, bool affine)
 
     if(p->j_dir==1)
     {
-    const double *EL = kyEL.V, *ER = kyER.V, *PL = kyPL.V, *PR = kyPR.V, *B = nyB.V, *K1 = ky1.V, *K2 = ky2.V;
-    double *F1 = nF1y.V, *F2 = nF2y.V;
+    const double *EL = kyEL.data(), *ER = kyER.data(), *PL = kyPL.data(), *PR = kyPR.data(), *B = nyB.data(), *K1 = ky1.data(), *K2 = ky2.data();
+    double *F1 = nF1y.data(), *F2 = nF2y.data();
 
     for(int a=0; a<p->imax; ++a)
     for(int q=a*J; q<a*J+J-1; ++q)
@@ -187,8 +187,8 @@ void sflow_momentum_SI::nh_amr_rows(lexer *p, bool affine, double *y)
     const double tdt = theta*p->dt;
     const bool yd = (p->j_dir==1);
     const int J = p->jmax, nl = (int)nh_lq.size();
-    const double *F1x = nF1x.V, *F2x = nF2x.V, *F1y = nF1y.V, *F2y = nF2y.V;
-    const double *PW = nPW.V, *E = nE.V, *Pp = nP.V, *A = nA.V, *W2 = nW2.V, *Cs = nCs.V;
+    const double *F1x = nF1x.data(), *F2x = nF2x.data(), *F1y = nF1y.data(), *F2y = nF2y.data();
+    const double *PW = nPW.data(), *E = nE.data(), *Pp = nP.data(), *A = nA.data(), *W2 = nW2.data(), *Cs = nCs.data();
 
     for(int k=0; k<nl; ++k)
     {
@@ -436,8 +436,8 @@ void sflow_momentum_SI::nh_amr_prec(lexer *p, ghostcell *pgc, const std::functio
     const char *ow = nh_own.data();
     const int N = (int)nh_cq.size(), J = p->jmax;
     const int *cq = nh_cq.data();
-    const double *Rm = nRm.V, *Rc = nRc.V, *A = nA.V, *AE = nAE.V, *AP = nAP.V;
-    double *BE = nBE.V, *BP = nBP.V, *Z = nZ.V, *ZE = nZE.V, *ZP = nZP.V;
+    const double *Rm = nRm.data(), *Rc = nRc.data(), *A = nA.data(), *AE = nAE.data(), *AP = nAP.data();
+    double *BE = nBE.data(), *BP = nBP.data(), *Z = nZ.data(), *ZE = nZE.data(), *ZP = nZP.data();
 
     for(int n=0; n<N; ++n)
     {
@@ -460,8 +460,8 @@ void sflow_momentum_SI::nh_amr_prec(lexer *p, ghostcell *pgc, const std::functio
     exchange4(p,pgc,nBP);
 
     // the mass row of (bE, bP) without the A 220 3 term
-    const double *XEL = kxEL.V, *XER = kxER.V, *XPL = kxPL.V, *XPR = kxPR.V;
-    const double *YEL = kyEL.V, *YER = kyER.V, *YPL = kyPL.V, *YPR = kyPR.V;
+    const double *XEL = kxEL.data(), *XER = kxER.data(), *XPL = kxPL.data(), *XPR = kxPR.data();
+    const double *YEL = kyEL.data(), *YER = kyER.data(), *YPL = kyPL.data(), *YPR = kyPR.data();
     auto qx = [&](int q) { return XEL[q]*BE[q] + XER[q]*BE[q+J] + XPL[q]*BP[q] + XPR[q]*BP[q+J]; };
     auto qy = [&](int q) { return YEL[q]*BE[q] + YER[q]*BE[q+1] + YPL[q]*BP[q] + YPR[q]*BP[q+1]; };
 

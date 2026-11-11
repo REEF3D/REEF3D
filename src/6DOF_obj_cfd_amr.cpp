@@ -26,6 +26,7 @@ Architect: Hans Bihs
 #include"ghostcell.h"
 #include"fieldint.h"
 #include"reinidisc_f.h"
+#include<algorithm>
 
 //  The level set fb of a body on the grid of a patch of the CFD mesh refinement (cfd_amr_6dof):
 //  as ray_cast and reini_RK2, with the workspace of the patch grid and over the cells around the
@@ -105,26 +106,26 @@ void sixdof_obj_cfd::ray_cast_amr(lexer *p, fdm *a, ghostcell *pgc, fieldint5 &i
         {
             if(rayiter==0)
             {
-            georay.cart_io(p,0,tri_x,tri_y,tri_z,tstart[qn],tend[qn],g,io.V,cl.V,cr.V);
+            georay.cart_io(p,0,tri_x,tri_y,tri_z,tstart[qn],tend[qn],g,io.data(),cl.data(),cr.data());
 
             if(p->j_dir==1)
-            georay.cart_io(p,1,tri_x,tri_y,tri_z,tstart[qn],tend[qn],g,io.V,cl.V,cr.V);
+            georay.cart_io(p,1,tri_x,tri_y,tri_z,tstart[qn],tend[qn],g,io.data(),cl.data(),cr.data());
 
-            georay.cart_io(p,2,tri_x,tri_y,tri_z,tstart[qn],tend[qn],g,io.V,cl.V,cr.V);
+            georay.cart_io(p,2,tri_x,tri_y,tri_z,tstart[qn],tend[qn],g,io.data(),cl.data(),cr.data());
             }
 
             if(rayiter==1 && p->X188==1)
             {
-            georay.cart_dist(p,0,tri_x,tri_y,tri_z,tstart[qn],tend[qn],g,io.V,a->fb.V);
+            georay.cart_dist(p,0,tri_x,tri_y,tri_z,tstart[qn],tend[qn],g,io.data(),a->fb.data());
 
             if(p->j_dir==1)
-            georay.cart_dist(p,1,tri_x,tri_y,tri_z,tstart[qn],tend[qn],g,io.V,a->fb.V);
+            georay.cart_dist(p,1,tri_x,tri_y,tri_z,tstart[qn],tend[qn],g,io.data(),a->fb.data());
 
-            georay.cart_dist(p,2,tri_x,tri_y,tri_z,tstart[qn],tend[qn],g,io.V,a->fb.V);
+            georay.cart_dist(p,2,tri_x,tri_y,tri_z,tstart[qn],tend[qn],g,io.data(),a->fb.data());
             }
 
             if(rayiter==1 && p->X188==2)
-            georay.cart_vertexdist(p,tri_x,tri_y,tri_z,tstart[qn],tend[qn],a->fb.V);
+            georay.cart_vertexdist(p,tri_x,tri_y,tri_z,tstart[qn],tend[qn],a->fb.data());
         }
     }
 
@@ -175,29 +176,27 @@ void sixdof_obj_cfd::reini_amr(lexer *p, fdm *a, ghostcell *pgc, field &f, reini
     BOXLOOP
     {
     if(p->j_dir==0)
-    dtt.V[IJK] = p->F43*MIN(p->DXP[IP],p->DZP[KP]);
+    dtt(i,j,k) = p->F43*MIN(p->DXP[IP],p->DZP[KP]);
 
     if(p->j_dir==1)
-	dtt.V[IJK] = p->F43*MIN3(p->DXP[IP],p->DYP[JP],p->DZP[KP]);
+	dtt(i,j,k) = p->F43*MIN3(p->DXP[IP],p->DYP[JP],p->DZP[KP]);
 	}
 
-    const int n = p->imax*p->jmax*p->kmax;
-    for(int q=0; q<n; ++q)
-    frk.V[q] = f.V[q];
+    std::ranges::copy(f,frk.begin());
 
     for(int q=0;q<5;++q)
 	{
 		prd->start_box(p,a,pgc,f,LL,b);
 
 		BOXLOOP
-		frk.V[IJK] = f.V[IJK] + dtt.V[IJK]*LL.V[IJK];
+		frk(i,j,k) = f(i,j,k) + dtt(i,j,k)*LL(i,j,k);
 
         pgc->start4a(p,frk,50);
 
 		prd->start_box(p,a,pgc,frk,LL,b);
 
 		BOXLOOP
-		f.V[IJK] = 0.5*f.V[IJK] + 0.5*frk.V[IJK] + 0.5*dtt.V[IJK]*LL.V[IJK];
+		f(i,j,k) = 0.5*f(i,j,k) + 0.5*frk(i,j,k) + 0.5*dtt(i,j,k)*LL(i,j,k);
 
         pgc->start4a(p,f,50);
 	}

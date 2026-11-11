@@ -60,7 +60,7 @@ public:
     {
         fd("mom_UHDIFF",'C',UHDIFF); fd("mom_VHDIFF",'C',VHDIFF); fd("mom_WHDIFF",'C',WHDIFF);
         fsfbody_ckpt_fields(fd);
-        fd("mom_UHRK1",'C',UHRK1); fd("mom_VHRK1",'C',VHRK1); fd("mom_WHRK1",'C',WHRK1); fd("mom_WLRK1",'S',WLRK1.V);
+        fd("mom_UHRK1",'C',UHRK1); fd("mom_VHRK1",'C',VHRK1); fd("mom_WHRK1",'C',WHRK1); fd("mom_WLRK1",'S',WLRK1.data());
     }
 
     double *UHDIFF,*VHDIFF,*WHDIFF;

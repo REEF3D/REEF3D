@@ -38,7 +38,7 @@ public:
 
     void ckpt_fields(const std::function<void(const char*, char, double*)> &fd, const std::function<void(const char*, char, int*)> &fi) override
     {
-        fd("eta_K",'S',K.V);
+        fd("eta_K",'S',K.data());
     }
 	sflow_eta(lexer*, fdm2D*, ghostcell*,patchBC_interface*);
 	virtual ~sflow_eta();

@@ -29,7 +29,6 @@ Architect: Hans Bihs
 #include"sflow_fsf.h"
 #include"sflow_momentum_RK3.h"
 #include<cmath>
-#include<cstring>
 #include<algorithm>
 #include<mpi.h>
 
@@ -106,7 +105,7 @@ void sflow_amr::sub_snapshot(int g)
         continue;
         if(T.f[k]==nullptr)
         T.f[k] = new slice(G.q);
-        memcpy(T.f[k]->V,src[k]->V,n*sizeof(double));
+        std::ranges::copy(*src[k],T.f[k]->begin());
     }
     T.wet.assign(G.q->wet,G.q->wet+n);
 }

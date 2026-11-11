@@ -35,18 +35,18 @@ template<class FD, class FI>
 void nhflow_ckpt_fields(lexer *p, fdm_nhf *d, FD &&fd, FI &&fi)
 {
     // slices
-    fd("eta",'S',d->eta.V); fd("eta_n",'S',d->eta_n.V); fd("WL",'S',d->WL.V); fd("detadt",'S',d->detadt.V);
-    fd("detadt_n",'S',d->detadt_n.V); fd("un",'S',d->un.V); fd("vn",'S',d->vn.V); fd("dudt",'S',d->dudt.V);
-    fd("bed",'S',d->bed.V); fd("depth",'S',d->depth.V); fd("K",'S',d->K.V);
-    fd("Ex",'S',d->Ex.V); fd("Ey",'S',d->Ey.V); fd("Exx",'S',d->Exx.V); fd("Eyy",'S',d->Eyy.V);
-    fd("Bx",'S',d->Bx.V); fd("By",'S',d->By.V); fd("Bxx",'S',d->Bxx.V); fd("Byy",'S',d->Byy.V);
-    fd("hx",'S',d->hx.V); fd("hy",'S',d->hy.V); fd("ks",'S',d->ks.V); fd("coastline",'S',d->coastline.V);
-    fd("vb",'S',d->vb.V); fd("fs",'S',d->fs.V); fd("breaking_print",'S',d->breaking_print.V); fd("Hs",'S',d->Hs.V);
-    fd("ETAs",'S',d->ETAs.V); fd("ETAn",'S',d->ETAn.V); fd("ETAe",'S',d->ETAe.V); fd("ETAw",'S',d->ETAw.V);
-    fd("Ds",'S',d->Ds.V); fd("Dn",'S',d->Dn.V); fd("De",'S',d->De.V); fd("Dw",'S',d->Dw.V);
-    fd("dfx",'S',d->dfx.V); fd("dfy",'S',d->dfy.V);
-    fi("etaloc",'S',d->etaloc.V); fi("wet_n",'S',d->wet_n.V); fi("breaking",'S',d->breaking.V);
-    fi("breaklog",'S',d->breaklog.V); fi("bc",'S',d->bc.V);
+    fd("eta",'S',d->eta.data()); fd("eta_n",'S',d->eta_n.data()); fd("WL",'S',d->WL.data()); fd("detadt",'S',d->detadt.data());
+    fd("detadt_n",'S',d->detadt_n.data()); fd("un",'S',d->un.data()); fd("vn",'S',d->vn.data()); fd("dudt",'S',d->dudt.data());
+    fd("bed",'S',d->bed.data()); fd("depth",'S',d->depth.data()); fd("K",'S',d->K.data());
+    fd("Ex",'S',d->Ex.data()); fd("Ey",'S',d->Ey.data()); fd("Exx",'S',d->Exx.data()); fd("Eyy",'S',d->Eyy.data());
+    fd("Bx",'S',d->Bx.data()); fd("By",'S',d->By.data()); fd("Bxx",'S',d->Bxx.data()); fd("Byy",'S',d->Byy.data());
+    fd("hx",'S',d->hx.data()); fd("hy",'S',d->hy.data()); fd("ks",'S',d->ks.data()); fd("coastline",'S',d->coastline.data());
+    fd("vb",'S',d->vb.data()); fd("fs",'S',d->fs.data()); fd("breaking_print",'S',d->breaking_print.data()); fd("Hs",'S',d->Hs.data());
+    fd("ETAs",'S',d->ETAs.data()); fd("ETAn",'S',d->ETAn.data()); fd("ETAe",'S',d->ETAe.data()); fd("ETAw",'S',d->ETAw.data());
+    fd("Ds",'S',d->Ds.data()); fd("Dn",'S',d->Dn.data()); fd("De",'S',d->De.data()); fd("Dw",'S',d->Dw.data());
+    fd("dfx",'S',d->dfx.data()); fd("dfy",'S',d->dfy.data());
+    fi("etaloc",'S',d->etaloc.data()); fi("wet_n",'S',d->wet_n.data()); fi("breaking",'S',d->breaking.data());
+    fi("breaklog",'S',d->breaklog.data()); fi("bc",'S',d->bc.data());
 
     // velocities, momenta, pressure, the cell fields of the step
     fd("U",'C',d->U); fd("V",'C',d->V); fd("W",'C',d->W); fd("omegaF",'F',d->omegaF);

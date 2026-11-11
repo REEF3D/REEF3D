@@ -351,14 +351,14 @@ void sflow_amr::si_nh_solve(lexer *p, ghostcell *pgc, rsi_result &res)
             {
                 if(pass==0)
                 {
-                c.r0.assign(m->nRm.V,m->nRm.V+na);
-                c.r0.insert(c.r0.end(),m->nRc.V,m->nRc.V+na);
+                c.r0.assign(m->nRm.data(),m->nRm.data()+na);
+                c.r0.insert(c.r0.end(),m->nRc.data(),m->nRc.data()+na);
                 }
 
                 else
                 {
-                std::copy(c.r0.begin(),c.r0.begin()+na,m->nRm.V);
-                std::copy(c.r0.begin()+na,c.r0.end(),m->nRc.V);
+                std::copy(c.r0.begin(),c.r0.begin()+na,m->nRm.data());
+                std::copy(c.r0.begin()+na,c.r0.end(),m->nRc.data());
                 }
             }
 
@@ -368,16 +368,16 @@ void sflow_amr::si_nh_solve(lexer *p, ghostcell *pgc, rsi_result &res)
                 {
                 // the interpolated correction of the level below on all cells of the patch (0 where the patch cell has
                 // no parent on this rank)
-                std::fill(m->nE.V,m->nE.V+na,0.0);
-                std::fill(m->nP.V,m->nP.V+na,0.0);
+                std::fill(m->nE.begin(),m->nE.end(),0.0);
+                std::fill(m->nP.begin(),m->nP.end(),0.0);
 
                 for(size_t k=0; k<c.tl.size(); k+=6)
                 {
                     const int qq = c.tl[k], gp = c.tl[k+1], ic = c.tl[k+2], jc = c.tl[k+3], ox = c.tl[k+4], oy = c.tl[k+5];
                     sflow_momentum_SI *mp = gsi(gp);
                     lexer *qp = glex(gp);
-                    m->nE.V[qq] = rsi_interp(qp,mp->nZE,ic,jc,ox,oy);
-                    m->nP.V[qq] = rsi_interp(qp,mp->nZP,ic,jc,ox,oy);
+                    m->nE.data()[qq] = rsi_interp(qp,mp->nZE,ic,jc,ox,oy);
+                    m->nP.data()[qq] = rsi_interp(qp,mp->nZP,ic,jc,ox,oy);
                 }
                 }
 
@@ -402,8 +402,8 @@ void sflow_amr::si_nh_solve(lexer *p, ghostcell *pgc, rsi_result &res)
                 for(size_t k=0; k<c.leaf.size(); k+=2)
                 {
                     const int qq = m->nh_lq[k/2];
-                    m->nRm.V[qq] -= tw[k];
-                    m->nRc.V[qq] -= tw[k+1];
+                    m->nRm.data()[qq] -= tw[k];
+                    m->nRc.data()[qq] -= tw[k+1];
                 }
             }
 

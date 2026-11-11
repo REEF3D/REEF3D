@@ -68,7 +68,7 @@ public:
        
     void ckpt_state(lexer*, std::vector<double>&) override final;
     bool ckpt_restore(lexer*, ghostcell*, const std::vector<double>&) override final;
-    double* ckpt_slice() override final {return press.V;}
+    double* ckpt_slice() override final {return press.data();}
 	void ini(lexer*,ghostcell*) override final;
     void initialize(lexer*, fdm*, ghostcell*) override final;
     void initialize(lexer*, fdm2D*, ghostcell*) override final;

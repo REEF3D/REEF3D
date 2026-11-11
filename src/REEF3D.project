@@ -1380,6 +1380,7 @@
           <File Name="field4.h"/>
           <File Name="field4a.h"/>
           <File Name="field5.h"/>
+          <File Name="field7.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Fieldint">
           <File Name="fieldint.h"/>
@@ -1388,6 +1389,7 @@
           <File Name="fieldint3.h"/>
           <File Name="fieldint4.h"/>
           <File Name="fieldint5.h"/>
+          <File Name="fieldint7.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Geotopo">
           <File Name="geotopo.h"/>
@@ -3586,6 +3588,10 @@
             <File Name="grid_helper_gcb4a.cpp"/>
           </VirtualDirectory>
         </VirtualDirectory>
+        <VirtualDirectory Name="Fieldint">
+          <File Name="fields.cpp"/>
+          <File Name="fieldints.cpp"/>
+        </VirtualDirectory>
         <VirtualDirectory Name="Increment">
           <File Name="increment.cpp"/>
         </VirtualDirectory>
@@ -3597,6 +3603,8 @@
           <File Name="boundarycheck.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Slice">
+          <File Name="slices.cpp"/>
+          <File Name="sliceints.cpp"/>
           <VirtualDirectory Name="MGC">
             <File Name="mgcslice4.cpp"/>
             <File Name="mgcslice2.cpp"/>

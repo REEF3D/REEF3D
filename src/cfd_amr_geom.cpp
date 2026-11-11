@@ -317,9 +317,9 @@ void cfd_amr::patch_geometry(int id)
         {
             const int q = cq(i,j,k);
             if(fabs(phi[q])<0.5*big)
-            f.V[q] = phi[q];
+            f.data()[q] = phi[q];
             else
-            f.V[q] = ((phi[q]<0.0) ? -1.0 : 1.0)*MAX(fabs(f.V[q]),band);
+            f.data()[q] = ((phi[q]<0.0) ? -1.0 : 1.0)*MAX(fabs(f.data()[q]),band);
         }
     }
 }

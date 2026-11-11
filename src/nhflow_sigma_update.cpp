@@ -62,7 +62,7 @@ void nhflow_sigma::sigma_update(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL)
     
         if(same==1)
         for(size_t q=0; q<ns; ++q)
-        if(dprev[q]!=df.V[q])
+        if(dprev[q]!=df.data()[q])
         {
         same = 0;
         break;
@@ -71,18 +71,18 @@ void nhflow_sigma::sigma_update(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL)
     same = pgc->globalimin(same);
     
         if(same==1)
-        std::copy(dfilt.begin(),dfilt.end(),df.V);
+        std::copy(dfilt.begin(),dfilt.end(),df.data());
         
         else
         {
-        dprev.assign(df.V,df.V+ns);
+        dprev.assign(df.data(),df.data()+ns);
         dprev_bed = p->gcsldfbed4_count;
         
         filter_sg(p,pgc,df);
     
         pgc->gcsl_start4(p,df,1);
         
-        dfilt.assign(df.V,df.V+ns);
+        dfilt.assign(df.data(),df.data()+ns);
         }
     }
     

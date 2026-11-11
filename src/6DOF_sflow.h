@@ -79,7 +79,7 @@ public:
     // patch of the ship waves as a slice
     void ckpt_state(lexer*, std::vector<double>&) override final;
     bool ckpt_restore(lexer*, ghostcell*, const std::vector<double>&) override final;
-    double* ckpt_slice() override final {return press.V;}
+    double* ckpt_slice() override final {return press.data();}
     void ckpt_fields(const std::function<void(const char*,char,double*)>&, const std::function<void(const char*,char,int*)>&) override final;
 
     // bodies, for the SFLOW mesh refinement
