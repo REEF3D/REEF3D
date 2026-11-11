@@ -259,9 +259,13 @@ private:
     // slopes may use
     bool onestep = false, tlev = false;
     slice4 bcA;
-    // A 210 11: a wall face (solid, outside the domain, no open boundary) counts in the cell momentum with its zero
-    // gradient and zero non-hydrostatic face term (cell_update, nh_cell, the BCG source term); bcS: the open sides
+    // A 210 11: a wall face (solid, outside the domain, no open boundary) counts in the cell momentum with the term
+    // that keeps the normal velocity there at zero (cell_update: g H d_n eta = the sources normal to the wall, zero in
+    // free waves) and a zero non-hydrostatic face term (nh_cell; the BCG source term: the mirrored level); bcS: the
+    // open sides; FSx, FSy: the sources of the predictor stage (wind, Coriolis, atmospheric pressure, ...) per unit
+    // area, as F, G
     slice4 bcS;
+    slice4 FSx, FSy;
     // A 210 11 with A 220 2/3: the non-hydrostatic increment of the cell momentum of the step before (nh_cell), the
     // NH part of the BCG source term
     slice4 dNx, dNy;

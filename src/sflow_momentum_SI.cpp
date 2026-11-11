@@ -58,7 +58,7 @@ sflow_momentum_SI::sflow_momentum_SI(lexer *p, fdm2D *b, ghostcell *pgc, sflow_H
                                       qyN(p),Hyo(p),qyo(p),qya(p),nyR(p),nyL(p),nyB(p),ny0(p),kyEL(p),kyER(p),kyPL(p),kyPR(p),ky1(p),ky2(p),
                                       phiN(p),WHp(p),Lc0(p),Unm1(p),Vnm1(p),WLh(p),WLo(p),AWo(p),WLq(p),
                                       nPW(p),nEb(p),nEo(p),nPo(p),nU(p),nV(p),nUs(p),nVs(p),nA(p),nsx(p),nsy(p),nE(p),nP(p),nL(p),nZ(p),nAE(p),nAP(p),nBE(p),nBP(p),nGx(p),nGy(p),
-                                      nF1x(p),nF2x(p),nF1y(p),nF2y(p),nH3(p),nW2(p),nCs(p),nRm(p),nRc(p),nZE(p),nZP(p),sps(p),bcA(p),bcS(p),dNx(p),dNy(p)
+                                      nF1x(p),nF2x(p),nF1y(p),nF2y(p),nH3(p),nW2(p),nCs(p),nRm(p),nRc(p),nZE(p),nZP(p),sps(p),bcA(p),bcS(p),FSx(p),FSy(p),dNx(p),dNy(p)
 {
     check(p);
 
@@ -1032,6 +1032,14 @@ void sflow_momentum_SI::stage_rhs(lexer *p, fdm2D *b, ghostcell *pgc, slice &UHs
     // advection with the face discharges of t^n
     advection(p,b,pgc);
 
+    // A 210 11: the sources of the stage (FSx, FSy) for the wall sides of cell_update
+    if(onestep)
+    SLICELOOP4
+    {
+    FSx(i,j) = b->F(i,j);
+    FSy(i,j) = b->G(i,j);
+    }
+
     // sources and diffusion (as the explicit stage, without gravity and bed friction; the ship pressure X 10 3 with
     // the gravity term, si_assemble and cell_update)
     prheo->u_source(p,b,b->U,b->V,WL0);
@@ -1040,6 +1048,11 @@ void sflow_momentum_SI::stage_rhs(lexer *p, fdm2D *b, ghostcell *pgc, slice &UHs
     if(b->wave!=nullptr)
     b->wave->u_source(p,b);
     irhs(p,b);
+
+    if(onestep)
+    SLICELOOP4
+    FSx(i,j) = b->F(i,j) - FSx(i,j);
+
 	pdiff->diff_u(p,b,pgc,psolv,UHDIFF,UHs,b->U,b->V,WL0,alpha);
 
     if(p->j_dir==1)
@@ -1050,7 +1063,16 @@ void sflow_momentum_SI::stage_rhs(lexer *p, fdm2D *b, ghostcell *pgc, slice &UHs
     if(b->wave!=nullptr)
     b->wave->v_source(p,b);
     jrhs(p,b);
+
+        if(onestep)
+        SLICELOOP4
+        FSy(i,j) = b->G(i,j) - FSy(i,j);
     }
+
+    else
+    if(onestep)
+    SLICELOOP4
+    FSy(i,j) = 0.0;
     pdiff->diff_v(p,b,pgc,psolv,VHDIFF,VHs,b->U,b->V,WL0,alpha);
 
     SLICELOOP4
@@ -1881,9 +1903,20 @@ void sflow_momentum_SI::cell_update(lexer *p, fdm2D *b, ghostcell *pgc)
         ww = (Hx(i-1,j)>0.0 && wn(i-1,j)) ? 1.0 : 0.0;
         wsum = MAX(we+ww,1.0);
 
-        // A 210 11: a wall face counts with its zero gradient (the mirrored level), as the face discharge zero there
-        if(onestep)
-        wsum = MAX(we + ww + wall(p,i,j,1) + wall(p,i,j,2), 1.0);
+        // A 210 11: a wall face counts in the mean with the term that keeps the face discharge zero there: g H d_n eta
+        // = the sources of the predictor normal to the wall (wind, Coriolis, atmospheric pressure; FSx, FSy of
+        // stage_rhs), zero in free waves (the mirrored level). With zero also under wind a wall cell of a closed basin
+        // got half the gradient that balances the stress, and the wind drove a flow into the walls (NHFLOW A 510 11,
+        // nhflow_2d_si_wind_setup_a547: the wall cells 4 times the depth-mean velocity of the interior). Only with an
+        // open face in the direction (as NHFLOW): a cell between two walls has no gradient
+        double fw = 0.0;
+
+        if(onestep && we+ww>0.0)
+        {
+        const double wx = wall(p,i,j,1) + wall(p,i,j,2);
+        wsum = MAX(we + ww + wx, 1.0);
+        fw = wx*FSx(i,j);
+        }
 
         gn  = (ww*gx0(i-1,j) + we*gx0(i,j))/wsum;
         gn1 = (ww*(etaI(i,j) - etaI(i-1,j))/p->DXP[IM1] + we*(etaI(i+1,j) - etaI(i,j))/p->DXP[IP])/wsum;
@@ -1891,7 +1924,7 @@ void sflow_momentum_SI::cell_update(lexer *p, fdm2D *b, ghostcell *pgc)
         if(ship)
         gn1 += (ww*(sps(i,j) - sps(i-1,j))/p->DXP[IM1] + we*(sps(i+1,j) - sps(i,j))/p->DXP[IP])/(wsum*theta);
 
-        b->UH(i,j) = alc(i,j)*(UHp(i,j) - dt*g*Hg(i,j)*(theta*gn1 + (1.0-theta)*gn));
+        b->UH(i,j) = alc(i,j)*(UHp(i,j) - dt*g*Hg(i,j)*(theta*gn1 + (1.0-theta)*gn) - dt*fw/wsum);
 
         b->VH(i,j) = 0.0;
 
@@ -1901,8 +1934,14 @@ void sflow_momentum_SI::cell_update(lexer *p, fdm2D *b, ghostcell *pgc)
             ww = (Hy(i,j-1)>0.0 && wn(i,j-1)) ? 1.0 : 0.0;
             wsum = MAX(we+ww,1.0);
 
-            if(onestep)
-            wsum = MAX(we + ww + wall(p,i,j,3) + wall(p,i,j,4), 1.0);
+            fw = 0.0;
+
+            if(onestep && we+ww>0.0)
+            {
+            const double wy = wall(p,i,j,3) + wall(p,i,j,4);
+            wsum = MAX(we + ww + wy, 1.0);
+            fw = wy*FSy(i,j);
+            }
 
             gn  = (ww*gy0(i,j-1) + we*gy0(i,j))/wsum;
             gn1 = (ww*(etaI(i,j) - etaI(i,j-1))/p->DYP[JM1] + we*(etaI(i,j+1) - etaI(i,j))/p->DYP[JP])/wsum;
@@ -1910,7 +1949,7 @@ void sflow_momentum_SI::cell_update(lexer *p, fdm2D *b, ghostcell *pgc)
             if(ship)
             gn1 += (ww*(sps(i,j) - sps(i,j-1))/p->DYP[JM1] + we*(sps(i,j+1) - sps(i,j))/p->DYP[JP])/(wsum*theta);
 
-            b->VH(i,j) = alc(i,j)*(VHp(i,j) - dt*g*Hg(i,j)*(theta*gn1 + (1.0-theta)*gn));
+            b->VH(i,j) = alc(i,j)*(VHp(i,j) - dt*g*Hg(i,j)*(theta*gn1 + (1.0-theta)*gn) - dt*fw/wsum);
             }
 
             // curvilinear grid: per index direction the mean normal and the mean normal gradient of the open faces,
@@ -1922,9 +1961,15 @@ void sflow_momentum_SI::cell_update(lexer *p, fdm2D *b, ghostcell *pgc)
             double ax_=0.0, ay_=0.0, ag=0.0, bx_=0.0, by_=0.0, bg=0.0;
             int na=0, nb=0;
 
+            // A 210 11: the index directions with an open face (the wall faces carry the sources only there)
+            const bool o1 = (Hx(i,j)>0.0 && wn(i+1,j)) || (Hx(i-1,j)>0.0 && wn(i-1,j));
+            const bool o2 = (Hy(i,j)>0.0 && wn(i,j+1)) || (Hy(i,j-1)>0.0 && wn(i,j-1));
+
             auto face = [&](int dir, int fi, int fj, int oi, int oj, double H, double G0, double G1)
             {
-                // A 210 11: a wall face counts with its normal and the zero gradient (the mirrored level)
+                // A 210 11: a wall face counts with its normal and the gradient that keeps the discharge through it
+                // zero, g H d_n eta = the sources normal to the face (as the Cartesian grid above; zero in free waves,
+                // the mirrored level)
                 const int sd = dir==1 ? (fi==i ? 2 : 1) : (fj==j ? 4 : 3);
                 const bool wf = onestep && (H<=0.0 || !wn(oi,oj)) && wall(p,i,j,sd)>0.5;
 
@@ -1932,7 +1977,8 @@ void sflow_momentum_SI::cell_update(lexer *p, fdm2D *b, ghostcell *pgc)
                 return;
 
                 fnorm(p,dir,fi,fj,nx,ny);
-                const double G = wf ? 0.0 : theta*G1 + (1.0-theta)*G0;
+                const bool wo = wf && (dir==1 ? o1 : o2) && Hg(i,j)>0.0;
+                const double G = wf ? (wo ? (FSx(i,j)*nx + FSy(i,j)*ny)/(g*Hg(i,j)) : 0.0) : theta*G1 + (1.0-theta)*G0;
 
                 if(dir==1)
                 {
