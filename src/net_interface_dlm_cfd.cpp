@@ -167,11 +167,20 @@ void net_interface::dlm_cfd_spread(lexer *p, fdm *a, int nNet)
             dy = p->DYN[jj + marge];
             dz = p->DZN[kk + marge];
 
-            for (int i_it = ii - 2; i_it <= ii + 2; i_it++)
+            // the faces of this grid only.  A knot beyond the upper end of the grid has the index kno + 1
+            // (position::posc_i), and the kernel then reached the index kno + 3, one past the cells
+            // around the grid: a knot two to four cells beyond the upper edge of a rank or of a patch
+            // of the mesh refinement added its force to memory behind the field (in x) or to the
+            // faces of another row (in y, z).
+            const int i0 = MAX(ii - 2, p->imin), i1 = MIN(ii + 2, p->imin + p->imax - 1);
+            const int j0 = MAX(jj - 2, p->jmin), j1 = MIN(jj + 2, p->jmin + p->jmax - 1);
+            const int k0 = MAX(kk - 2, p->kmin), k1 = MIN(kk + 2, p->kmin + p->kmax - 1);
+
+            for (int i_it = i0; i_it <= i1; i_it++)
             {
-                for (int j_it = jj - 2; j_it <= jj + 2; j_it++)
+                for (int j_it = j0; j_it <= j1; j_it++)
                 {
-                    for (int k_it = kk - 2; k_it <= kk + 2; k_it++)
+                    for (int k_it = k0; k_it <= k1; k_it++)
                     {
                         dist = sqrt(pow(p->XN[i_it + 1 + marge] - coordI(0), 2.0))/dx;
                         D = kernel_peskin(dist);
