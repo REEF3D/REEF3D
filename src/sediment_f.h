@@ -121,6 +121,7 @@ public:
     
     void sediment_algorithm_nhflow(lexer*, fdm_nhf*, ghostcell*, ioflow*);
     void prep_nhflow(lexer*, fdm_nhf*, ghostcell*);
+    void thin_water(lexer*, ghostcell*, int);
     void fill_PQ_nhflow(lexer*,fdm_nhf*,ghostcell*);
     void active_nhflow(lexer*, fdm_nhf*, ghostcell*);
     void active_ini_nhflow(lexer*, fdm_nhf*, ghostcell*);

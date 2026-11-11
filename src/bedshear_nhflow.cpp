@@ -292,6 +292,16 @@ void bedshear::taubed(lexer *p, fdm_nhf*d, ghostcell *pgc, sediment_fdm *s)
         }
 
 
+        // S 133: upper limit of the Shields number (swash and wetting fronts: the friction coefficient of a thin
+        // layer is of order 0.1 and the velocities of the front are the least reliable ones)
+        if(p->S133>0.0)
+        {
+        const double tau_max = p->S133*(p->S22-density)*fabs(p->W22)*p->S20;
+        
+        tau_eff = MIN(tau_eff, tau_max);
+        tau_i = MIN(tau_i, tau_max);
+        }
+
     s->tau_eff(i,j) = tau_eff;
     s->tau_i(i,j) = tau_i;
     s->shearvel_eff(i,j) = sqrt(tau_eff/density);

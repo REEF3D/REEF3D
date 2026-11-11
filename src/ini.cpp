@@ -1386,6 +1386,9 @@ void control::ini_default()
     S128=0.01;             // double minimum water depth of the suspended load [m]
     S129=0;                // int sediment inflow: 0 equilibrium, 1 constant (bed load S 130, concentration S 124), 2 time series sediment-inflow.dat
     S130=0.0;              // double bed load at the inflow for S 129 1 [m^2/s], sediment volume per width
+    S131=0.0;              // double NHFLOW thin water: bed load at most S131 h |u| (sediment volume per water volume of the flow), 0: off
+    S132=0.0;              // double NHFLOW thin water: depth [m] below which there is no bed load and no pick-up, full transport from 2 S132, 0: off
+    S133=0.0;              // double NHFLOW: upper limit of the Shields number of the bed shear stress, 0: off
     S140=51.0;             // double S 37 2: phase lead of the near-bed velocity in deg (Nielsen 2006)
     S141=0.0;              // double S 37 2: wave period of the phase lead [s], <=0: S 58, else the period of the wave generation
 

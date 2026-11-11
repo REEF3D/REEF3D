@@ -98,6 +98,9 @@ void sediment_RK2::RK2_step1_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow
     
     // suspended load -------
     pcbed->start(p,pgc,s);
+    
+    // thin water (S 131, S 132)
+    thin_water(p,pgc,1);
 	
     // relax *******
 	prelax->start(p,pgc,s);
@@ -157,6 +160,9 @@ void sediment_RK2::RK2_step2_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow
     
     // bedload_direction *******
     pbeddir->start(p,pgc,s);
+    
+    // thin water (S 131, S 132): the bed load of this stage
+    thin_water(p,pgc,0);
     
     // suspended load: the reference concentration of stage 1 is kept, the suspended solver of
     // this time step ran with it (cbn, see susp_ED)
