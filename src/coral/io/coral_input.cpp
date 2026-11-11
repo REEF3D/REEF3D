@@ -1484,6 +1484,18 @@ void coral_case::parse(const std::vector<std::pair<int, std::vector<std::string>
             c.Cm = it.get("Cm", 1.0 + c.Ca);
             c.n = (int)it.get("n", 2);
             c.buoyancy = !it.has("no_buoyancy");
+            if(it.has("model"))
+            {
+                const std::string mo = it.word("model");
+                if(mo=="morison") c.model = slender_model::morison;
+                else if(mo=="lagrangian") c.model = slender_model::lagrangian;
+                else if(mo=="extended") c.model = slender_model::extended;
+                else if(mo=="rainey") c.model = slender_model::rainey;
+                else if(mo=="kf") c.model = slender_model::kf;
+                else it.fail("model must be morison, lagrangian, extended, rainey or kf");
+            }
+            c.step = it.get("step", -1.0);
+            c.plane = it.has("plane");
             std::shared_ptr<const point_set> pts;
             std::vector<std::pair<int,int>> elems;
             const double g = std::fabs(m.gravity(2)) > 0.0 ? std::fabs(m.gravity(2)) : 9.81;

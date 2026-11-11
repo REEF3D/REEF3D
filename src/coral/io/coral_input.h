@@ -200,9 +200,14 @@ Architect: Hans Bihs
 //        time unless exact_kinematics; drag_only: the drag of the members and ends only, beside a potential-flow
 //        model as HydroDyn's PropPot members; coral/hydro/coral_strip_hydro.h)
 //   morison <name> member <m> [D <D>] [Cd <c>] [Ca <c>] [Cm <c>] [n <strips per element>] [current <u v w>]
-//        [no_buoyancy] [flooded <D_inner>]
+//        [no_buoyancy] [flooded <D_inner>] [model <morison|lagrangian|extended|rainey|kf>] [step <d>] [plane]
 //        (distributed on a frame or superelement member, buoyancy of the submerged strips; D defaults to
-//        the section's; flooded: the inner water below z = 0 as node mass, frame members only)
+//        the section's; flooded: the inner water below z = 0 as node mass, frame members only; model: the
+//        slender-body load for steep waves and ringing, lagrangian the particle acceleration, extended with
+//        the axial divergence, rainey with Rainey's point force at the surface, kf with Kristiansen and
+//        Faltinsen's scattering force at z = 0; step: the stencil of a sampled fluid's gradients (D/2), plane:
+//        a 2D fluid; channels <name>_Fx .. _Mz and for rainey, kf _Fpx _Fpy _Fpz, the point force;
+//        coral/hydro/coral_member_morison.h)
 //   section <name> tube D <D> t <t> E <E> G <G> rho <rho>
 //   section <name> EA <EA> EIy <EI> EIz <EI> GJ <GJ> m <m/L> [GAy <GA>] [GAz <GA>] [rIx <r>] [rIy <r>] [rIz <r>] [D <D>]
 //   member <name> p1 <x y z> p2 <x y z> n <n> section <s> [section2 <s>] [orient <x y z>] [beta <b>]
