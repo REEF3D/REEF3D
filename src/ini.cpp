@@ -208,7 +208,7 @@ void control::ini_default()
     A519=-1;     // int turn on bed roughness (not given: 1 with a turbulence model A 560 or sediment S 10, else 0; lexer_read)
     A520=2;		// int NHFLOW pressure scheme: 0 hydrostatic, 1 projection, 2 incremental projection
     A521=0;		// int wetdry/forcing flux 
-    A522=5.0;    // double p_alpha
+    A522=5.0;    // double NHFLOW projection, bed node: the horizontal divergence of the half cell on the bed takes the bed cell with the weight 1 - fac, fac = 0.5 max(1 - A 522 |bed slope|, 0) (uniform layers). 0: the half cell of the bed node (weight 0.5, the consistent continuity equation on a sloping bed; use with A 508 1); 5 (default): more of the bed cell on slopes (weight 0.625 at 1:20, 0.75 at 1:10, 1 from 1:5)
     A524=2;      // int sigma gradients
     A526=1.1;    // double direct forcing factor
     A527=0;      // int NHFLOW WENO5 nonlinear weights (A514 4,5): 0 WENO-JS, 1 WENO-Z (default), 2 TENO5
@@ -227,7 +227,7 @@ void control::ini_default()
     A539=0;      // int NHFLOW semi-implicit, curvilinear grid: non-orthogonal part of the face gradient of eta (explicit, deferred), 1 on
     A540=1;      // int NFHLOW wetdry scheme
     A505=1;      // int NHFLOW semi-implicit (A 510 11/12/13): second-order time levels of the nonlinear terms on one Cartesian grid (an estimate pass for the advecting transport, face depths and omega at t^{n+1/2}, the acceleration of the step in the advected velocities, Crank-Nicolson vertical advection), 0: the levels of t^n (one pass, first order, about 1.2 - 1.6 times faster per step)
-    A508=0;      // int NHFLOW semi-implicit (A 510 11/12/13): 1: fourth-order horizontal operators on one uniform Cartesian grid (cell-to-face and face-to-cell interpolation, the gradient of eta and of the non-hydrostatic pressure; nhflow_momentum_SI_ho.cpp), 0: second order
+    A508=0;      // int NHFLOW semi-implicit (A 510 11/12/13): 1: fourth-order horizontal operators on one uniform Cartesian grid (cell-to-face and face-to-cell interpolation, the gradient of eta and of the non-hydrostatic pressure; nhflow_momentum_SI_ho.cpp), 0: second order; explicit NHFLOW (A 510 2/3, A 520 1/2): 1: fourth-order horizontal divergence and pressure gradient of the projection (nhflow_pjm_ho.h; second order next to boundaries, dry cells and solids, and on curvilinear, multi-block and refined grids, with membranes, thin bodies and 6DOF), 0: second order
     A507=0;      // int NHFLOW semi-implicit with A 520 > 0 (2D, MPI): 1: eta and phi solved one after the other (one block Gauss-Seidel pass over the coupled system, eta with phi of the guess, then phi with the new eta), 0: the coupled solve
     A544=0.001;  // double wetting & drying criterion
     A545=10.0;   // double deep criterion

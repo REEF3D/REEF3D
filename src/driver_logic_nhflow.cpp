@@ -253,6 +253,10 @@ void driver::logic_nhflow()
     
     if(p->A520==2)
     pnhpress = new nhflow_pjm_corr(p,d,pgc,pBC);
+    
+    // A 508 1 with the explicit schemes: fourth-order horizontal operators of the projection (nhflow_pjm_ho.h)
+    if(p->A508==1 && p->A534==0 && p->A520>0 && (p->geo_curv==1 || p->G1>0 || p->geo_mb>0 || p->X10>0) && p->mpirank==0)
+    cout<<"NHFLOW: A 508 1 (fourth-order horizontal operators of the projection) needs one uniform Cartesian grid without 6DOF, second order used"<<endl;
 
 //Turbulence
     // unknown A 560: no model would be created (pnhfturb uninitialised) and the run crashed later

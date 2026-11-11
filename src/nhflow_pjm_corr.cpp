@@ -27,6 +27,7 @@ Author: Hans Bihs
 #include"nhflow_membrane_beta.h"
 #include"ghostcell.h"
 #include"nhflow_poisson_pcorr.h"
+#include"nhflow_pjm_ho.h"
 #include"solver.h"
 #include"ioflow.h"
 #include"nhflow_poisson.h"
@@ -180,6 +181,8 @@ void nhflow_pjm_corr::rhs(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, doubl
     
     pgc->start7P(p,PCORR,gcval_press);
     
+    const bool ho = nhflow_pjm_ho::active(p,d);
+    
     n=0;
     LOOP
     {
@@ -229,13 +232,30 @@ void nhflow_pjm_corr::rhs(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, doubl
                                 + p->sigy[FIJK]*dVdz
                                 + dWdz)/(alpha*p->dt);
         else
-        d->rhsvec.V[n] =      -  ((U2-U1)/(p->DXP[IP] + p->DXP[IM1])
+        {
+        // A 508 1: fourth-order horizontal divergence (nhflow_pjm_ho.h)
+        double dUdx = (U2-U1)/(p->DXP[IP] + p->DXP[IM1]);
+        double dVdy = (V2-V1)/(p->DYP[JP] + p->DYP[JM1]);
+        
+        if(ho)
+        {
+        const double f0 = p->DZN[KM1]/(p->DZN[KP]+p->DZN[KM1]);
+        
+        if(nhflow_pjm_ho::x(p,d,i,j,k))
+        dUdx = nhflow_pjm_ho::divx(p,U,i,j,k,(k==0 ? MAX((1.0 - p->A522*fabs(d->Bx(i,j))),0.0) : 1.0)*f0);
+        
+        if(nhflow_pjm_ho::y(p,d,i,j,k))
+        dVdy = nhflow_pjm_ho::divy(p,V,i,j,k,(k==0 ? MAX((1.0 - p->A522*fabs(d->By(i,j))),0.0) : 1.0)*f0);
+        }
+        
+        d->rhsvec.V[n] =      -  (dUdx
                                 + p->sigx[FIJK]*dUdz
                                 
-                                + (V2-V1)/(p->DYP[JP] + p->DYP[JM1])
+                                + dVdy
                                 + p->sigy[FIJK]*dVdz
 
                                 + dWdz)/(alpha*p->dt);
+        }
         }
                             
     ++n;
@@ -256,6 +276,8 @@ void nhflow_pjm_corr::vel_setup(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U,
 
 void nhflow_pjm_corr::ucorr(lexer* p, fdm_nhf *d, slice &WL, double *UH, double *PCORR, double alpha)
 {
+    const bool ho = nhflow_pjm_ho::active(p,d);
+    
 	LOOP
     WETDRYDEEP
     {
@@ -268,6 +290,10 @@ void nhflow_pjm_corr::ucorr(lexer* p, fdm_nhf *d, slice &WL, double *UH, double 
     else
     dPdx = (0.5*(PCORR[FIp1JKp1]+PCORR[FIp1JK])-0.5*(PCORR[FIm1JKp1]+PCORR[FIm1JK]))/(p->DXP[IP]+p->DXP[IM1]);
     
+    // A 508 1: fourth-order horizontal gradient (nhflow_pjm_ho.h)
+    if(ho && nhflow_pjm_ho::x(p,d,i,j,k))
+    dPdx = nhflow_pjm_ho::gradx(p,PCORR,i,j,k);
+    
 	UH[IJK] -= alpha*p->dt*CPORNH*WL(i,j)*(1.0/p->W1)*
     
                 (dPdx
@@ -278,6 +304,8 @@ void nhflow_pjm_corr::ucorr(lexer* p, fdm_nhf *d, slice &WL, double *UH, double 
 
 void nhflow_pjm_corr::vcorr(lexer* p, fdm_nhf *d, slice &WL, double *VH, double *PCORR, double alpha)
 {
+    const bool ho = nhflow_pjm_ho::active(p,d);
+    
     if(p->j_dir==1)
     LOOP
     WETDRYDEEP
@@ -289,6 +317,9 @@ void nhflow_pjm_corr::vcorr(lexer* p, fdm_nhf *d, slice &WL, double *VH, double 
     nhflow_curv::pgrad_layer(p,PCORR,i,j,k,dPdx,dPdy);
     else
     dPdy = (0.5*(PCORR[FIJp1Kp1]+PCORR[FIJp1K])-0.5*(PCORR[FIJm1Kp1]+PCORR[FIJm1K]))/(p->DYP[JP]+p->DYP[JM1]);
+    
+    if(ho && nhflow_pjm_ho::y(p,d,i,j,k))
+    dPdy = nhflow_pjm_ho::grady(p,PCORR,i,j,k);
     
     VH[IJK] -= alpha*p->dt*CPORNH*WL(i,j)*(1.0/p->W1)*
     
@@ -307,6 +338,8 @@ void nhflow_pjm_corr::wcorr(lexer* p, fdm_nhf *d, slice &WL, double *WH, double 
 
 void nhflow_pjm_corr::upgrad(lexer*p, fdm_nhf *d, slice &WL)
 {
+    const bool ho = nhflow_pjm_ho::active(p,d);
+    
     // curvilinear grid: g eta sum(d_face S_face)/A (nhflow_curv.h)
     if(p->geo_curv==1)
     LOOP
@@ -333,6 +366,10 @@ void nhflow_pjm_corr::upgrad(lexer*p, fdm_nhf *d, slice &WL)
     if(tb)
     dPdx = nhflow_membrane_gradx(p,d,d->P,i,j,k);
     
+    // A 508 1: fourth-order horizontal gradient (nhflow_pjm_ho.h)
+    if(ho && nhflow_pjm_ho::x(p,d,i,j,k))
+    dPdx = nhflow_pjm_ho::gradx(p,d->P,i,j,k);
+    
     d->F[IJK] -= (1.0/p->W1)*WL(i,j)*
                 (dPdx
                 + (tb ? MBETAVAL : 1.0)*0.5*(p->sigx[FIJK]+p->sigx[FIJKp1])*((d->P[FIJKp1]-d->P[FIJK])/p->DZN[KP]));
@@ -341,6 +378,8 @@ void nhflow_pjm_corr::upgrad(lexer*p, fdm_nhf *d, slice &WL)
 
 void nhflow_pjm_corr::vpgrad(lexer*p, fdm_nhf *d, slice &WL)
 {
+    const bool ho = nhflow_pjm_ho::active(p,d);
+    
     if(p->geo_curv==1)
     LOOP
     WETDRY
@@ -365,6 +404,9 @@ void nhflow_pjm_corr::vpgrad(lexer*p, fdm_nhf *d, slice &WL)
     
     if(tb)
     dPdy = nhflow_membrane_grady(p,d,d->P,i,j,k);
+    
+    if(ho && nhflow_pjm_ho::y(p,d,i,j,k))
+    dPdy = nhflow_pjm_ho::grady(p,d->P,i,j,k);
     
 	d->G[IJK] -= (1.0/p->W1)*WL(i,j)*
                 (dPdy

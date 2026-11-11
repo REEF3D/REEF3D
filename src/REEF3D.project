@@ -699,6 +699,7 @@
           <File Name="nhflow_pjm_corr.h"/>
           <File Name="nhflow_pjm_hs.h"/>
           <File Name="nhflow_pjm.h"/>
+          <File Name="nhflow_pjm_ho.h"/>
           <VirtualDirectory Name="Poisson">
             <File Name="nhflow_poisson_pcorr.h"/>
             <File Name="nhflow_xwall.h"/>
