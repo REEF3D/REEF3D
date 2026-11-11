@@ -63,7 +63,7 @@ void nhflow_gradient::bedwall_set(fdm_nhf *d)
 
 bool nhflow_gradient::bedwall(const double *f)
 {
-    return bw_d!=nullptr && k==0 && p->A518==1 && p->A519>0 && p->flag4[IJKm1]<0
+    return bw_d!=nullptr && k==0 && p->A518==1 && p->A519>0 && p->flag4(i,j,k-1)<0
         && (f==bw_d->U || f==bw_d->V);
 }
 

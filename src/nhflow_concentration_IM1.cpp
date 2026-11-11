@@ -99,39 +99,39 @@ void nhflow_concentration_IM1::bcconc_start(lexer *p, fdm_nhf *d, ghostcell *pgc
         int n=0;
         LOOP
         {
-            if((p->flag4[Im1JK]<0 || p->DF[Im1JK]<0))
+            if((p->flag4(i-1,j,k)<0 || p->DF[Im1JK]<0))
             {
             d->rhsvec.V[n] -= d->M.s[n]*CONC[IJK];
             d->M.s[n] = 0.0;
             }
             
-            if((p->flag4[Ip1JK]<0 || p->DF[Ip1JK]<0))
+            if((p->flag4(i+1,j,k)<0 || p->DF[Ip1JK]<0))
             {
             d->rhsvec.V[n] -= d->M.n[n]*CONC[IJK];
             d->M.n[n] = 0.0;
             }
             
             if(p->j_dir==1)
-            if((p->flag4[IJm1K]<0 || p->DF[IJm1K]<0))
+            if((p->flag4(i,j-1,k)<0 || p->DF[IJm1K]<0))
             {
             d->rhsvec.V[n] -= d->M.e[n]*CONC[IJK];
             d->M.e[n] = 0.0;
             }
             
             if(p->j_dir==1)
-            if((p->flag4[IJp1K]<0 || p->DF[IJp1K]<0))
+            if((p->flag4(i,j+1,k)<0 || p->DF[IJp1K]<0))
             {
             d->rhsvec.V[n] -= d->M.w[n]*CONC[IJK];
             d->M.w[n] = 0.0;
             }
             
-            if(p->flag4[IJKm1]<0 || p->DF[IJKm1]<0)
+            if(p->flag4(i,j,k-1)<0 || p->DF[IJKm1]<0)
             {
             d->rhsvec.V[n] -= d->M.b[n]*CONC[IJK];
             d->M.b[n] = 0.0;
             }
             
-            if(p->flag4[IJKp1]<0 || p->DF[IJKp1]<0)
+            if(p->flag4(i,j,k+1)<0 || p->DF[IJKp1]<0)
             {
             d->rhsvec.V[n] -= d->M.t[n]*CONC[IJK];
             d->M.t[n] = 0.0;

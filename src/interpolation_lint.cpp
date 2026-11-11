@@ -29,21 +29,21 @@ double interpolation::lint1(field& b, int& i,int& j, int& k, double wa, double w
 {
     v1=v2=v3=v4=v5=v6=v7=v8=0.0;
 
-    if(p->flag1[IJK]>TOPO_FLAG)
+    if(p->flag1(i,j,k)>TOPO_FLAG)
     v1=b(i,j,k);
-    if(p->flag1[IJp1K]>TOPO_FLAG)
+    if(p->flag1(i,j+1,k)>TOPO_FLAG)
     v2=b(i,j+1,k);
-    if(p->flag1[Ip1JK]>TOPO_FLAG)
+    if(p->flag1(i+1,j,k)>TOPO_FLAG)
     v3=b(i+1,j,k);
-    if(p->flag1[Ip1Jp1K]>TOPO_FLAG)
+    if(p->flag1(i+1,j+1,k)>TOPO_FLAG)
     v4=b(i+1,j+1,k);
-    if(p->flag1[IJKp1]>TOPO_FLAG)
+    if(p->flag1(i,j,k+1)>TOPO_FLAG)
     v5=b(i,j,k+1);
-    if(p->flag1[IJp1Kp1]>TOPO_FLAG)
+    if(p->flag1(i,j+1,k+1)>TOPO_FLAG)
     v6=b(i,j+1,k+1);
-    if(p->flag1[Ip1JKp1]>TOPO_FLAG)
+    if(p->flag1(i+1,j,k+1)>TOPO_FLAG)
     v7=b(i+1,j,k+1);
-    if(p->flag1[Ip1Jp1Kp1]>TOPO_FLAG)
+    if(p->flag1(i+1,j+1,k+1)>TOPO_FLAG)
     v8=b(i+1,j+1,k+1);
     
     //cout<<" v1: "<<v1<<" v3: "<<v3<<" ";
@@ -67,21 +67,21 @@ double interpolation::lint1c(field& b, int& i,int& j, int& k, double wa, double 
 {
     v1=v2=v3=v4=v5=v6=v7=v8=0.0;
 
-    if(p->flag1[IJK]>OBJ_FLAG)
+    if(p->flag1(i,j,k)>OBJ_FLAG)
     v1=b(i,j,k);
-    if(p->flag1[IJp1K]>OBJ_FLAG)
+    if(p->flag1(i,j+1,k)>OBJ_FLAG)
     v2=b(i,j+1,k);
-    if(p->flag1[Ip1JK]>OBJ_FLAG)
+    if(p->flag1(i+1,j,k)>OBJ_FLAG)
     v3=b(i+1,j,k);
-    if(p->flag1[Ip1Jp1K]>OBJ_FLAG)
+    if(p->flag1(i+1,j+1,k)>OBJ_FLAG)
     v4=b(i+1,j+1,k);
-    if(p->flag1[IJKp1]>OBJ_FLAG)
+    if(p->flag1(i,j,k+1)>OBJ_FLAG)
     v5=b(i,j,k+1);
-    if(p->flag1[IJp1Kp1]>OBJ_FLAG)
+    if(p->flag1(i,j+1,k+1)>OBJ_FLAG)
     v6=b(i,j+1,k+1);
-    if(p->flag1[Ip1JKp1]>OBJ_FLAG)
+    if(p->flag1(i+1,j,k+1)>OBJ_FLAG)
     v7=b(i+1,j,k+1);
-    if(p->flag1[Ip1Jp1Kp1]>OBJ_FLAG)
+    if(p->flag1(i+1,j+1,k+1)>OBJ_FLAG)
     v8=b(i+1,j+1,k+1);
 
     x1 = wa*v1 + (1.0-wa)*v3;
@@ -103,21 +103,21 @@ double interpolation::lint2(field& b, int& i,int& j, int& k, double wa, double w
 {
     v1=v2=v3=v4=v5=v6=v7=v8=0.0;
 
-    if(p->flag2[IJK]>TOPO_FLAG)
+    if(p->flag2(i,j,k)>TOPO_FLAG)
     v1=b(i,j,k);
-    if(p->flag2[IJp1K]>TOPO_FLAG)
+    if(p->flag2(i,j+1,k)>TOPO_FLAG)
     v2=b(i,j+1,k);
-    if(p->flag2[Ip1JK]>TOPO_FLAG)
+    if(p->flag2(i+1,j,k)>TOPO_FLAG)
     v3=b(i+1,j,k);
-    if(p->flag2[Ip1Jp1K]>TOPO_FLAG)
+    if(p->flag2(i+1,j+1,k)>TOPO_FLAG)
     v4=b(i+1,j+1,k);
-    if(p->flag2[IJKp1]>TOPO_FLAG)
+    if(p->flag2(i,j,k+1)>TOPO_FLAG)
     v5=b(i,j,k+1);
-    if(p->flag2[IJp1Kp1]>TOPO_FLAG)
+    if(p->flag2(i,j+1,k+1)>TOPO_FLAG)
     v6=b(i,j+1,k+1);
-    if(p->flag2[Ip1JKp1]>TOPO_FLAG)
+    if(p->flag2(i+1,j,k+1)>TOPO_FLAG)
     v7=b(i+1,j,k+1);
-    if(p->flag2[Ip1Jp1Kp1]>TOPO_FLAG)
+    if(p->flag2(i+1,j+1,k+1)>TOPO_FLAG)
     v8=b(i+1,j+1,k+1);
 
     x1 = wa*v1 + (1.0-wa)*v3;
@@ -138,21 +138,21 @@ double interpolation::lint2c(field& b, int& i,int& j, int& k, double wa, double 
 {
     v1=v2=v3=v4=v5=v6=v7=v8=0.0;
 
-    if(p->flag2[IJK]>OBJ_FLAG)
+    if(p->flag2(i,j,k)>OBJ_FLAG)
     v1=b(i,j,k);
-    if(p->flag2[IJp1K]>OBJ_FLAG)
+    if(p->flag2(i,j+1,k)>OBJ_FLAG)
     v2=b(i,j+1,k);
-    if(p->flag2[Ip1JK]>OBJ_FLAG)
+    if(p->flag2(i+1,j,k)>OBJ_FLAG)
     v3=b(i+1,j,k);
-    if(p->flag2[Ip1Jp1K]>OBJ_FLAG)
+    if(p->flag2(i+1,j+1,k)>OBJ_FLAG)
     v4=b(i+1,j+1,k);
-    if(p->flag2[IJKp1]>OBJ_FLAG)
+    if(p->flag2(i,j,k+1)>OBJ_FLAG)
     v5=b(i,j,k+1);
-    if(p->flag2[IJp1Kp1]>OBJ_FLAG)
+    if(p->flag2(i,j+1,k+1)>OBJ_FLAG)
     v6=b(i,j+1,k+1);
-    if(p->flag2[Ip1JKp1]>OBJ_FLAG)
+    if(p->flag2(i+1,j,k+1)>OBJ_FLAG)
     v7=b(i+1,j,k+1);
-    if(p->flag2[Ip1Jp1Kp1]>OBJ_FLAG)
+    if(p->flag2(i+1,j+1,k+1)>OBJ_FLAG)
     v8=b(i+1,j+1,k+1);
 
     x1 = wa*v1 + (1.0-wa)*v3;
@@ -173,21 +173,21 @@ double interpolation::lint3(field& b, int& i,int& j, int& k, double wa, double w
 {
     v1=v2=v3=v4=v5=v6=v7=v8=0.0;
 
-    if(p->flag3[IJK]>TOPO_FLAG)
+    if(p->flag3(i,j,k)>TOPO_FLAG)
     v1=b(i,j,k);
-    if(p->flag3[IJp1K]>TOPO_FLAG)
+    if(p->flag3(i,j+1,k)>TOPO_FLAG)
     v2=b(i,j+1,k);
-    if(p->flag3[Ip1JK]>TOPO_FLAG)
+    if(p->flag3(i+1,j,k)>TOPO_FLAG)
     v3=b(i+1,j,k);
-    if(p->flag3[Ip1Jp1K]>TOPO_FLAG)
+    if(p->flag3(i+1,j+1,k)>TOPO_FLAG)
     v4=b(i+1,j+1,k);
-    if(p->flag3[IJKp1]>TOPO_FLAG)
+    if(p->flag3(i,j,k+1)>TOPO_FLAG)
     v5=b(i,j,k+1);
-    if(p->flag3[IJp1Kp1]>TOPO_FLAG)
+    if(p->flag3(i,j+1,k+1)>TOPO_FLAG)
     v6=b(i,j+1,k+1);
-    if(p->flag3[Ip1JKp1]>TOPO_FLAG)
+    if(p->flag3(i+1,j,k+1)>TOPO_FLAG)
     v7=b(i+1,j,k+1);
-    if(p->flag3[Ip1Jp1Kp1]>TOPO_FLAG)
+    if(p->flag3(i+1,j+1,k+1)>TOPO_FLAG)
     v8=b(i+1,j+1,k+1);
 
     x1 = wa*v1 + (1.0-wa)*v3;
@@ -208,21 +208,21 @@ double interpolation::lint3c(field& b, int& i,int& j, int& k, double wa, double 
 {
     v1=v2=v3=v4=v5=v6=v7=v8=0.0;
 
-    if(p->flag3[IJK]>OBJ_FLAG)
+    if(p->flag3(i,j,k)>OBJ_FLAG)
     v1=b(i,j,k);
-    if(p->flag3[IJp1K]>OBJ_FLAG)
+    if(p->flag3(i,j+1,k)>OBJ_FLAG)
     v2=b(i,j+1,k);
-    if(p->flag3[Ip1JK]>OBJ_FLAG)
+    if(p->flag3(i+1,j,k)>OBJ_FLAG)
     v3=b(i+1,j,k);
-    if(p->flag3[Ip1Jp1K]>OBJ_FLAG)
+    if(p->flag3(i+1,j+1,k)>OBJ_FLAG)
     v4=b(i+1,j+1,k);
-    if(p->flag3[IJKp1]>OBJ_FLAG)
+    if(p->flag3(i,j,k+1)>OBJ_FLAG)
     v5=b(i,j,k+1);
-    if(p->flag3[IJp1Kp1]>OBJ_FLAG)
+    if(p->flag3(i,j+1,k+1)>OBJ_FLAG)
     v6=b(i,j+1,k+1);
-    if(p->flag3[Ip1JKp1]>OBJ_FLAG)
+    if(p->flag3(i+1,j,k+1)>OBJ_FLAG)
     v7=b(i+1,j,k+1);
-    if(p->flag3[Ip1Jp1Kp1]>OBJ_FLAG)
+    if(p->flag3(i+1,j+1,k+1)>OBJ_FLAG)
     v8=b(i+1,j+1,k+1);
 
     x1 = wa*v1 + (1.0-wa)*v3;
@@ -243,21 +243,21 @@ double interpolation::lint4(field& f, int& i,int& j, int& k, double wa, double w
 {
     v1=v2=v3=v4=v5=v6=v7=v8=0.0;
 
-    if(p->flag4[IJK]>TOPO_FLAG)
+    if(p->flag4(i,j,k)>TOPO_FLAG)
     v1=f(i,j,k);
-    if(p->flag4[IJp1K]>TOPO_FLAG)
+    if(p->flag4(i,j+1,k)>TOPO_FLAG)
     v2=f(i,j+1,k);
-    if(p->flag4[Ip1JK]>TOPO_FLAG)
+    if(p->flag4(i+1,j,k)>TOPO_FLAG)
     v3=f(i+1,j,k);
-    if(p->flag4[Ip1Jp1K]>TOPO_FLAG)
+    if(p->flag4(i+1,j+1,k)>TOPO_FLAG)
     v4=f(i+1,j+1,k);
-    if(p->flag4[IJKp1]>TOPO_FLAG)
+    if(p->flag4(i,j,k+1)>TOPO_FLAG)
     v5=f(i,j,k+1);
-    if(p->flag4[IJp1Kp1]>TOPO_FLAG)
+    if(p->flag4(i,j+1,k+1)>TOPO_FLAG)
     v6=f(i,j+1,k+1);
-    if(p->flag4[Ip1JKp1]>TOPO_FLAG)
+    if(p->flag4(i+1,j,k+1)>TOPO_FLAG)
     v7=f(i+1,j,k+1);
-    if(p->flag4[Ip1Jp1Kp1]>TOPO_FLAG)
+    if(p->flag4(i+1,j+1,k+1)>TOPO_FLAG)
     v8=f(i+1,j+1,k+1);
     
     //cout<<" v1: "<<v1<<" v3: "<<v3<<" ";
@@ -299,22 +299,22 @@ double interpolation::lint4b(field& f, int& i,int& j, int& k, double wa, double 
 {
      v1=v2=v3=v4=v5=v6=v7=v8=0.0;
 
-    if(p->flag4[IJK]>TOPO_FLAG)
+    if(p->flag4(i,j,k)>TOPO_FLAG)
     v1=f(i,j,k);
-    if(p->flag4[IJp1K]>TOPO_FLAG)
+    if(p->flag4(i,j+1,k)>TOPO_FLAG)
     v2=f(i,j+1,k);
-    if(p->flag4[Ip1JK]>TOPO_FLAG)
+    if(p->flag4(i+1,j,k)>TOPO_FLAG)
     v3=f(i+1,j,k);
-    if(p->flag4[Ip1Jp1K]>TOPO_FLAG)
+    if(p->flag4(i+1,j+1,k)>TOPO_FLAG)
     v4=f(i+1,j+1,k);
     
-    if(p->flag4[IJK]<=TOPO_FLAG)
+    if(p->flag4(i,j,k)<=TOPO_FLAG)
     v1=f(i,j,k+1);
-    if(p->flag4[IJp1K]<=TOPO_FLAG)
+    if(p->flag4(i,j+1,k)<=TOPO_FLAG)
     v2=f(i,j+1,k+1);
-    if(p->flag4[Ip1JK]<=TOPO_FLAG)
+    if(p->flag4(i+1,j,k)<=TOPO_FLAG)
     v3=f(i+1,j,k+1);
-    if(p->flag4[Ip1Jp1K]<=TOPO_FLAG)
+    if(p->flag4(i+1,j+1,k)<=TOPO_FLAG)
     v4=f(i+1,j+1,k+1);
     
     v5=f(i,j,k+1);

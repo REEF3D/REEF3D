@@ -88,7 +88,7 @@ void nhflow_idiff::diff_u(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow, s
             
             // A 518 2 resolved no-slip bed: the bed face has the molecular viscosity of the cell, nu_t = 0 at the
             // wall (the ghost cells of VISC (0) and EV (copied) are not wall values)
-            if(p->A518==2 && p->flag4[IJKm1]<0)
+            if(p->A518==2 && p->flag4(i,j,k-1)<0)
             visc_KM1 = visc_KM1h = d->VISC[IJK];
             visc_KP1h = 0.5*(visc_IPh + d->VISC[IJKp1] + EVh[IJKp1]);
             
@@ -216,7 +216,7 @@ void nhflow_idiff::diff_u(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow, s
             }
         }
         
-        if(p->wet[IJ]==0 || p->flag4[IJK]<0 || p->DF[IJK]<0)
+        if(p->wet[IJ]==0 || p->flag4(i,j,k)<0 || p->DF[IJK]<0)
         {
         d->M.p[n]  =  1.0;
 
@@ -246,7 +246,7 @@ void nhflow_idiff::diff_u(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow, s
     n=0;
 	LOOP
 	{
-        if(p->wet[IJ]==1 && p->DF[IJK]>0 && p->flag4[IJKm1]<0)
+        if(p->wet[IJ]==1 && p->DF[IJK]>0 && p->flag4(i,j,k-1)<0)
         {
             if(p->A518==2)
             {
@@ -268,37 +268,37 @@ void nhflow_idiff::diff_u(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow, s
 	{
         if(p->wet[IJ]==1 && p->DF[IJK]>0)
         {
-            if(p->flag4[Im1JK]<0 || p->DF[Im1JK]<0)
+            if(p->flag4(i-1,j,k)<0 || p->DF[Im1JK]<0)
             {
             d->rhsvec.V[n] -= d->M.s[n]*UH[IJK];
             d->M.s[n] = 0.0;
             }
             
-            if(p->flag4[Ip1JK]<0 || p->DF[Ip1JK]<0)
+            if(p->flag4(i+1,j,k)<0 || p->DF[Ip1JK]<0)
             {
             d->rhsvec.V[n] -= d->M.n[n]*UH[IJK];
             d->M.n[n] = 0.0;
             }
             
-            if(p->flag4[IJm1K]<0 || p->DF[IJm1K]<0)
+            if(p->flag4(i,j-1,k)<0 || p->DF[IJm1K]<0)
             {
             d->rhsvec.V[n] -= d->M.e[n]*UH[IJK]*p->y_dir;
             d->M.e[n] = 0.0;
             }
             
-            if(p->flag4[IJp1K]<0 || p->DF[IJp1K]<0)
+            if(p->flag4(i,j+1,k)<0 || p->DF[IJp1K]<0)
             {
             d->rhsvec.V[n] -= d->M.w[n]*UH[IJK]*p->y_dir;
             d->M.w[n] = 0.0;
             }
             
-            if(p->flag4[IJKm1]<0 || p->DF[IJKm1]<0)
+            if(p->flag4(i,j,k-1)<0 || p->DF[IJKm1]<0)
             {
             d->rhsvec.V[n] -= d->M.b[n]*UH[IJK];
             d->M.b[n] = 0.0;
             }
             
-            if(p->flag4[IJKp1]<0 || p->DF[IJKp1]<0)
+            if(p->flag4(i,j,k+1)<0 || p->DF[IJKp1]<0)
             {
             d->rhsvec.V[n] -= d->M.t[n]*UH[IJK];
             d->M.t[n] = 0.0;
@@ -319,37 +319,37 @@ void nhflow_idiff::diff_u(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow, s
 	{
         if(p->wet[IJ]==1 && p->DF[IJK]>0)
         {
-            if(p->flag4[Im1JK]<0 || p->DF[Im1JK]<0)
+            if(p->flag4(i-1,j,k)<0 || p->DF[Im1JK]<0)
             {
-            d->rhsvec.V[n] -= d->M.s[n]*(p->DF[Im1JK]<0 && p->flag4[Im1JK]>0 ? -UH[IJK] : UH[Im1JK]);
+            d->rhsvec.V[n] -= d->M.s[n]*(p->DF[Im1JK]<0 && p->flag4(i-1,j,k)>0 ? -UH[IJK] : UH[Im1JK]);
             d->M.s[n] = 0.0;
             }
             
-            if(p->flag4[Ip1JK]<0 || p->DF[Ip1JK]<0)
+            if(p->flag4(i+1,j,k)<0 || p->DF[Ip1JK]<0)
             {
-            d->rhsvec.V[n] -= d->M.n[n]*(p->DF[Ip1JK]<0 && p->flag4[Ip1JK]>0 ? -UH[IJK] : UH[Ip1JK]);
+            d->rhsvec.V[n] -= d->M.n[n]*(p->DF[Ip1JK]<0 && p->flag4(i+1,j,k)>0 ? -UH[IJK] : UH[Ip1JK]);
             d->M.n[n] = 0.0;
             }
             
-            if(p->flag4[IJm1K]<0 || p->DF[IJm1K]<0)
+            if(p->flag4(i,j-1,k)<0 || p->DF[IJm1K]<0)
             {
-            d->rhsvec.V[n] -= d->M.e[n]*(p->DF[IJm1K]<0 && p->flag4[IJm1K]>0 ? UH[IJK] : UH[IJm1K])*p->y_dir;
+            d->rhsvec.V[n] -= d->M.e[n]*(p->DF[IJm1K]<0 && p->flag4(i,j-1,k)>0 ? UH[IJK] : UH[IJm1K])*p->y_dir;
             d->M.e[n] = 0.0;
             }
             
-            if(p->flag4[IJp1K]<0 || p->DF[IJp1K]<0)
+            if(p->flag4(i,j+1,k)<0 || p->DF[IJp1K]<0)
             {
-            d->rhsvec.V[n] -= d->M.w[n]*(p->DF[IJp1K]<0 && p->flag4[IJp1K]>0 ? UH[IJK] : UH[IJp1K])*p->y_dir;
+            d->rhsvec.V[n] -= d->M.w[n]*(p->DF[IJp1K]<0 && p->flag4(i,j+1,k)>0 ? UH[IJK] : UH[IJp1K])*p->y_dir;
             d->M.w[n] = 0.0;
             }
             
-            if(p->flag4[IJKm1]<0 || p->DF[IJKm1]<0)
+            if(p->flag4(i,j,k-1)<0 || p->DF[IJKm1]<0)
             {
-            d->rhsvec.V[n] -= d->M.b[n]*(p->DF[IJKm1]<0 && p->flag4[IJKm1]>0 ? UH[IJK] : UH[IJKm1]);
+            d->rhsvec.V[n] -= d->M.b[n]*(p->DF[IJKm1]<0 && p->flag4(i,j,k-1)>0 ? UH[IJK] : UH[IJKm1]);
             d->M.b[n] = 0.0;
             }
             
-            if(p->flag4[IJKp1]<0 || p->DF[IJKp1]<0)
+            if(p->flag4(i,j,k+1)<0 || p->DF[IJKp1]<0)
             {
             d->rhsvec.V[n] -= d->M.t[n]*UH[IJK];
             d->M.t[n] = 0.0;

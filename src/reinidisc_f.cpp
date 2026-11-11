@@ -68,7 +68,7 @@ void reinidisc_f::start_box(lexer *p, fdm *a, ghostcell *pgc, field &f, field &L
     {
         L(i,j,k) = 0.0;
 
-        if(p->flag4[IJK]>0)
+        if(p->flag4(i,j,k)>0)
         disc(p,a,pgc,f,L);
     }
 }

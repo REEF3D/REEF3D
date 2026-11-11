@@ -37,29 +37,29 @@ void ghostcell::flagfield(lexer *p)
     p->flag4[i]=OBJ_FLAG;
     }
     
-    flagx(p,p->flag4);
+    flagx(p,p->flag4.data());
     
 	if(p->Y60==1)
     {
         LOOP
         {
             if(p->i_dir==1)
-            if(p->flag4[Im1JK]<0
-            && p->flag4[Ip1JK]<0)
-            p->flag4[IJK]=OBJ_FLAG;
+            if(p->flag4(i-1,j,k)<0
+            && p->flag4(i+1,j,k)<0)
+            p->flag4(i,j,k)=OBJ_FLAG;
 
             if(p->j_dir==1)
-            if(p->flag4[IJm1K]<0
-            && p->flag4[IJp1K]<0)
-            p->flag4[IJK]=OBJ_FLAG;
+            if(p->flag4(i,j-1,k)<0
+            && p->flag4(i,j+1,k)<0)
+            p->flag4(i,j,k)=OBJ_FLAG;
 
             if(p->k_dir==1)
-            if(p->flag4[IJKm1]<0
-            && p->flag4[IJKp1]<0)
-            p->flag4[IJK]=OBJ_FLAG;
+            if(p->flag4(i,j,k-1)<0
+            && p->flag4(i,j,k+1)<0)
+            p->flag4(i,j,k)=OBJ_FLAG;
         }
 
-        flagx(p,p->flag4);
+        flagx(p,p->flag4.data());
     }
     
     for(i=0;i<p->imax*p->jmax*p->kmax; ++i)
@@ -76,7 +76,7 @@ void ghostcell::flagfield(lexer *p)
     k=p->gcb4[n][2];
 
         if(p->gcb4[n][3]==4 && (p->periodic1!=1 || i+p->origin_i<p->gknox-1))
-        p->flag1[IJK]=OBJ_FLAG;
+        p->flag1(i,j,k)=OBJ_FLAG;
     }
 
     GC4LOOP
@@ -86,7 +86,7 @@ void ghostcell::flagfield(lexer *p)
     k=p->gcb4[n][2];
 
         if(p->gcb4[n][3]==2 && (p->periodic2!=1 || j+p->origin_j<p->gknoy-1))
-        p->flag2[IJK]=OBJ_FLAG;
+        p->flag2(i,j,k)=OBJ_FLAG;
     }
 
     GC4LOOP
@@ -96,10 +96,10 @@ void ghostcell::flagfield(lexer *p)
     k=p->gcb4[n][2];
 
         if(p->gcb4[n][3]==6 && (p->periodic3!=1 || k+p->origin_k<p->gknoz-1))
-        p->flag3[IJK]=OBJ_FLAG;
+        p->flag3(i,j,k)=OBJ_FLAG;
     }
 
-    flagx(p,p->flag1);
-    flagx(p,p->flag2);
-    flagx(p,p->flag3);
+    flagx(p,p->flag1.data());
+    flagx(p,p->flag2.data());
+    flagx(p,p->flag3.data());
 }

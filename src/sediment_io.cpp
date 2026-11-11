@@ -133,7 +133,7 @@ void sediment_f::fill_PQ_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
     for(j=0; j<p->knoy; ++j)
     {
     i=0;
-    if(p->flag4[IJK]>0 && p->IO[Im1JK]>0)
+    if(p->flag4(i,j,k)>0 && p->IO[Im1JK]>0)
     s->P(-1,j) = 0.5*(d->U[Im1JK] + d->U[IJK]);
     }
     
@@ -141,7 +141,7 @@ void sediment_f::fill_PQ_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
     for(j=0; j<p->knoy; ++j)
     {
     i=p->knox-1;
-    if(p->flag4[IJK]>0 && p->IO[Ip1JK]>0)
+    if(p->flag4(i,j,k)>0 && p->IO[Ip1JK]>0)
     s->P(i,j) = 0.5*(d->U[IJK] + d->U[Ip1JK]);
     }
     
@@ -149,7 +149,7 @@ void sediment_f::fill_PQ_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
     for(i=0; i<p->knox; ++i)
     {
     j=0;
-    if(p->flag4[IJK]>0 && p->IO[IJm1K]>0)
+    if(p->flag4(i,j,k)>0 && p->IO[IJm1K]>0)
     s->Q(i,-1) = 0.5*(d->V[IJm1K] + d->V[IJK]);
     }
     
@@ -157,7 +157,7 @@ void sediment_f::fill_PQ_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
     for(i=0; i<p->knox; ++i)
     {
     j=p->knoy-1;
-    if(p->flag4[IJK]>0 && p->IO[IJp1K]>0)
+    if(p->flag4(i,j,k)>0 && p->IO[IJp1K]>0)
     s->Q(i,j) = 0.5*(d->V[IJK] + d->V[IJp1K]);
     }
 }

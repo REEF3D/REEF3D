@@ -99,7 +99,7 @@ void  kepsilon_func::eddyvisc(fdm* a, lexer* p, ghostcell* pgc, vrans* pvrans)
 		j=p->gcin[n][1];
 		k=p->gcin[n][2];
         
-        if(i>=p->knox || p->flag4[IJK]<0)   // stay inside the local subdomain and the fluid
+        if(i>=p->knox || p->flag4(i,j,k)<0)   // stay inside the local subdomain and the fluid
         continue;
 
 		if(a->phi(i,j,k)<0.0)

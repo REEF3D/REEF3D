@@ -52,7 +52,7 @@ void fnpf_ckpt_fields(lexer *p, fdm_fnpf *c, FD &&fd, FI &&fi)
     // the sigma grid and the flags of the lexer that change in time (wetting and drying)
     fd("sig",'F',p->sig); fd("sigx",'F',p->sigx); fd("sigy",'F',p->sigy); fd("sigxx",'F',p->sigxx);
     fd("sigz",'S',p->sigz); fd("ZSN",'F',p->ZSN); fd("ZSP",'C',p->ZSP);
-    fi("flagslice4",'S',p->flagslice4); fi("flag7",'F',p->flag7); fi("flag4",'C',p->flag4);
+    fi("flagslice4",'S',p->flagslice4); fi("flag7",'F',p->flag7); fi("flag4",'C',p->flag4.data());
     fi("wet",'S',p->wet); fi("lwet_n",'S',p->wet_n); fi("deep",'S',p->deep);
 }
 

@@ -218,56 +218,56 @@ void potential_f::laplace(lexer *p, fdm *a, ghostcell *pgc, field &phi)
         if((p->X10==0 || a->fb(i,j,k)>0.0) && p->flagsf4[IJK]>0 && (a->phi(i,j,k)>=0.0 || p->I21==0))
         {
             
-		if((p->flag4[Im1JK]<0 && bc(i-1,j,k)==0) || (p->X10==1 && a->fb(i-1,j,k)<0.0)
+		if((p->flag4(i-1,j,k)<0 && bc(i-1,j,k)==0) || (p->X10==1 && a->fb(i-1,j,k)<0.0)
            || (p->flagsf4[Im1JK]<0 && bc(i-1,j,k)==0) || (a->phi(i-1,j,k)<0.0 && p->I21==1))
 		{
 		a->M.p[n] += a->M.s[n];
 		a->M.s[n] = 0.0;
 		}
         
-        if(p->flag4[Im1JK]<0 && bc(i-1,j,k)==1)
+        if(p->flag4(i-1,j,k)<0 && bc(i-1,j,k)==1)
 		{
         a->rhsvec.V[n] += a->M.s[n]*p->Ui*p->DXP[IM1];
 		a->M.p[n] += a->M.s[n];
 		a->M.s[n] = 0.0;
 		}
 		
-		if((p->flag4[Ip1JK]<0 && bc(i+1,j,k)==0) || (p->X10==1 && a->fb(i+1,j,k)<0.0)
+		if((p->flag4(i+1,j,k)<0 && bc(i+1,j,k)==0) || (p->X10==1 && a->fb(i+1,j,k)<0.0)
            || (p->flagsf4[Ip1JK]<0 && bc(i+1,j,k)==0) || (a->phi(i+1,j,k)<0.0 && p->I21==1))
 		{
 		a->M.p[n] += a->M.n[n];
 		a->M.n[n] = 0.0;
 		}
         
-        if(p->flag4[Ip1JK]<0 && bc(i+1,j,k)==2)
+        if(p->flag4(i+1,j,k)<0 && bc(i+1,j,k)==2)
 		{
          a->rhsvec.V[n] -= a->M.n[n]*p->Uo*p->DXP[IP1];
          a->M.p[n] += a->M.n[n];
 		a->M.n[n] = 0.0;
 		}
 		
-		if(p->flag4[IJm1K]<0 || (p->X10==1 && a->fb(i,j-1,k)<0.0)
+		if(p->flag4(i,j-1,k)<0 || (p->X10==1 && a->fb(i,j-1,k)<0.0)
            || p->flagsf4[IJm1K]<0 || (a->phi(i,j-1,k)<0.0 && p->I21==1))
 		{
 		a->M.p[n] += a->M.e[n];
 		a->M.e[n] = 0.0;
 		}
 		
-		if(p->flag4[IJp1K]<0 || (p->X10==1 && a->fb(i,j+1,k)<0.0)
+		if(p->flag4(i,j+1,k)<0 || (p->X10==1 && a->fb(i,j+1,k)<0.0)
            || p->flagsf4[IJp1K]<0 || (a->phi(i,j+1,k)<0.0 && p->I21==1))
 		{
 		a->M.p[n] += a->M.w[n];
 		a->M.w[n] = 0.0;
 		}
 		
-		if(p->flag4[IJKm1]<0 || (p->X10==1 && a->fb(i,j,k-1)<0.0)
+		if(p->flag4(i,j,k-1)<0 || (p->X10==1 && a->fb(i,j,k-1)<0.0)
            || p->flagsf4[IJKm1]<0 || (a->phi(i,j,k-1)<0.0 && p->I21==1))
 		{
 		a->M.p[n] += a->M.b[n];
 		a->M.b[n] = 0.0;
 		}
 		
-		if(p->flag4[IJKp1]<0 || (p->X10==1 && a->fb(i,j,k+1)<0.0)
+		if(p->flag4(i,j,k+1)<0 || (p->X10==1 && a->fb(i,j,k+1)<0.0)
            || p->flagsf4[IJKp1]<0 || (a->phi(i,j,k+1)<0.0 && p->I21==1))
 		{
 		a->M.p[n] += a->M.t[n];
@@ -287,22 +287,22 @@ void potential_f::ini_bc(lexer *p, fdm *a, ghostcell *pgc)
     
     LOOP
     {
-        if(p->flag4[Im1JK]<0)
+        if(p->flag4(i-1,j,k)<0)
 		bc(i-1,j,k)=0;
 		
-		if(p->flag4[Ip1JK]<0)
+		if(p->flag4(i+1,j,k)<0)
 		bc(i+1,j,k)=0;
 		
-		if(p->flag4[IJm1K]<0)
+		if(p->flag4(i,j-1,k)<0)
 		bc(i,j-1,k)=0;
 		
-		if(p->flag4[IJp1K]<0)
+		if(p->flag4(i,j+1,k)<0)
 		bc(i,j+1,k)=0;
 		
-		if(p->flag4[IJKm1]<0)
+		if(p->flag4(i,j,k-1)<0)
 		bc(i,j,k-1)=0;
 		
-		if(p->flag4[IJKp1]<0)
+		if(p->flag4(i,j,k+1)<0)
 		bc(i,j,k+1)=0;
     }
     

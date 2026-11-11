@@ -171,12 +171,12 @@ void poisson_pcorr::start(lexer* p, fdm *a, field &press)
 	{
         int nf = noflux[IJK];
         double *coef[6] = {&a->M.s[n],&a->M.w[n],&a->M.e[n],&a->M.n[n],&a->M.b[n],&a->M.t[n]};   // cs = 1..6
-        bool ghost[6] = {p->flag4[Im1JK]<0 && (i+p->origin_i>0 || p->periodic1==0),
-                         p->flag4[IJp1K]<0 && (j+p->origin_j<p->gknoy-1 || p->periodic2==0) && p->j_dir==1,
-                         p->flag4[IJm1K]<0 && (j+p->origin_j>0 || p->periodic2==0) && p->j_dir==1,
-                         p->flag4[Ip1JK]<0 && (i+p->origin_i<p->gknox-1 || p->periodic1==0),
-                         p->flag4[IJKm1]<0 && (k+p->origin_k>0 || p->periodic3==0),
-                         p->flag4[IJKp1]<0 && (k+p->origin_k<p->gknoz-1 || p->periodic3==0)};
+        bool ghost[6] = {p->flag4(i-1,j,k)<0 && (i+p->origin_i>0 || p->periodic1==0),
+                         p->flag4(i,j+1,k)<0 && (j+p->origin_j<p->gknoy-1 || p->periodic2==0) && p->j_dir==1,
+                         p->flag4(i,j-1,k)<0 && (j+p->origin_j>0 || p->periodic2==0) && p->j_dir==1,
+                         p->flag4(i+1,j,k)<0 && (i+p->origin_i<p->gknox-1 || p->periodic1==0),
+                         p->flag4(i,j,k-1)<0 && (k+p->origin_k>0 || p->periodic3==0),
+                         p->flag4(i,j,k+1)<0 && (k+p->origin_k<p->gknoz-1 || p->periodic3==0)};
 
         for(int cs=1; cs<=6; ++cs)
         {
@@ -253,14 +253,14 @@ void poisson_pcorr::start(lexer* p, fdm *a, field &press)
         }
 
         // inflow
-		if(p->flag4[Im1JK]<0 && (i+p->origin_i>0 || p->periodic1==0))
+		if(p->flag4(i-1,j,k)<0 && (i+p->origin_i>0 || p->periodic1==0))
 		{
 		a->rhsvec.V[n] -= a->M.s[n]*press(i-1,j,k);
 		a->M.s[n] = 0.0;
 		}
         
         /*
-        if(p->flag4[Im1JK]<0 &&  p->IO[Im1JK]==1)
+        if(p->flag4(i-1,j,k)<0 &&  p->IO[Im1JK]==1)
 		{
         pval=(p->fsfin - p->pos_z())*a->ro(i,j,k)*fabs(p->W22);
         //cout<<"FSFIN: "<<p->fsfin<<endl;
@@ -269,7 +269,7 @@ void poisson_pcorr::start(lexer* p, fdm *a, field &press)
 		}*/
         
         // AWA inflow
-        /*if(p->flag4[Ip1JK]<0 && (i+p->origin_i<p->gknox-1 || p->periodic1==0) && (p->IO[Ip1JK]==2 && p->B90==1 && p->B99>2))
+        /*if(p->flag4(i+1,j,k)<0 && (i+p->origin_i<p->gknox-1 || p->periodic1==0) && (p->IO[Ip1JK]==2 && p->B90==1 && p->B99>2))
         {
         pval=(p->fsfout - p->pos_z())*a->ro(i,j,k)*fabs(p->W22);
         
@@ -279,7 +279,7 @@ void poisson_pcorr::start(lexer* p, fdm *a, field &press)
         }*/
         
         /*
-        if(p->flag4[Im1JK]<0 && (i+p->origin_i>0 || p->periodic1==0) && p->IO[Im1JK]==1)
+        if(p->flag4(i-1,j,k)<0 && (i+p->origin_i>0 || p->periodic1==0) && p->IO[Im1JK]==1)
 		{
              pval=a->press(i,j,k);
              
@@ -294,38 +294,38 @@ void poisson_pcorr::start(lexer* p, fdm *a, field &press)
         // part of the momentum step (ulast) and not corrected, so the ghost pressure set by
         // pressure_io alone has no effect: with (outflow_pressure - ghost pressure) = 0 the pressure
         // level at the outflow was not held and the water level drifted (outflow 26.10)
-        if(p->flag4[Ip1JK]<0 && (i+p->origin_i<p->gknox-1 || p->periodic1==0) && p->IO[Ip1JK]==2)
+        if(p->flag4(i+1,j,k)<0 && (i+p->origin_i<p->gknox-1 || p->periodic1==0) && p->IO[Ip1JK]==2)
 		{
 		a->rhsvec.V[n] -= a->M.n[n]*(outflow_pressure(p,a,i,j,k) - a->press(i,j,k));
 		a->M.n[n] = 0.0;
 		}
 
-		if(p->flag4[Ip1JK]<0 && (i+p->origin_i<p->gknox-1 || p->periodic1==0))
+		if(p->flag4(i+1,j,k)<0 && (i+p->origin_i<p->gknox-1 || p->periodic1==0))
 		{
 		a->rhsvec.V[n] -= a->M.n[n]*press(i+1,j,k);
 		a->M.n[n] = 0.0;
 		}
         
     // ----
-		if(p->flag4[IJm1K]<0 && (j+p->origin_j>0 || p->periodic2==0) && p->j_dir==1)
+		if(p->flag4(i,j-1,k)<0 && (j+p->origin_j>0 || p->periodic2==0) && p->j_dir==1)
 		{
 		a->rhsvec.V[n] -= a->M.e[n]*press(i,j-1,k);
 		a->M.e[n] = 0.0;
 		}
 		
-		if(p->flag4[IJp1K]<0 && (j+p->origin_j<p->gknoy-1 || p->periodic2==0) && p->j_dir==1)
+		if(p->flag4(i,j+1,k)<0 && (j+p->origin_j<p->gknoy-1 || p->periodic2==0) && p->j_dir==1)
 		{
 		a->rhsvec.V[n] -= a->M.w[n]*press(i,j+1,k);
 		a->M.w[n] = 0.0;
 		}
 		
-		if(p->flag4[IJKm1]<0 && (k+p->origin_k>0 || p->periodic3==0))
+		if(p->flag4(i,j,k-1)<0 && (k+p->origin_k>0 || p->periodic3==0))
 		{
 		a->rhsvec.V[n] -= a->M.b[n]*press(i,j,k-1);
 		a->M.b[n] = 0.0;
 		}
 		
-		if(p->flag4[IJKp1]<0 && (k+p->origin_k<p->gknoz-1 || p->periodic3==0))
+		if(p->flag4(i,j,k+1)<0 && (k+p->origin_k<p->gknoz-1 || p->periodic3==0))
 		{
 		a->rhsvec.V[n] -= a->M.t[n]*press(i,j,k+1);
 		a->M.t[n] = 0.0;

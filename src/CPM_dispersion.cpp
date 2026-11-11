@@ -59,7 +59,7 @@ void CPM::dispersion_update(lexer *p, fdm *a, ghostcell *pgc)
         
         Kt(i,j,k) = water*damp*MAX(a->eddyv(i,j,k),0.0)/Sc;
         
-        if(p->flag4[IJK]<0)
+        if(p->flag4(i,j,k)<0)
         Kt(i,j,k) = 0.0;
         
         kmax = MAX(kmax,Kt(i,j,k));

@@ -481,7 +481,7 @@ void fnpf_amr::build_lexer3D(fnpf_amr_patch &c)
     const int n3 = pp->imax*pp->jmax*pp->kmax;
     const int n7 = pp->imax*pp->jmax*(pp->kmax+2);
 
-    pp->Iarray(pp->flag4,n3);
+    pp->flag4.resize();
     pp->Iarray(pp->flag7,n7);
     for(int q=0; q<n7; ++q)
     pp->flag7[q] = -10;
@@ -513,7 +513,6 @@ void fnpf_amr::free_lexer3D(fnpf_amr_patch &c)
     const int n3 = pp->imax*pp->jmax*pp->kmax;
     const int n7 = pp->imax*pp->jmax*(pp->kmax+2);
 
-    pp->del_Iarray(pp->flag4,n3);
     pp->del_Iarray(pp->flag7,n7);
     pp->del_Darray(pp->ZSN,pp->imax*pp->jmax*(pp->kmax+1));
     pp->del_Darray(pp->ZSP,n3);

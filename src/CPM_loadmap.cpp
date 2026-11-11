@@ -123,7 +123,7 @@ void CPM::loadmap_write(lexer *p, fdm *a, ghostcell *pgc)
     double nfr=0.0, Sr=0.0, Ar=0.0;
 
     LOOP
-    if(p->flag4[IJK]>0)
+    if(p->flag4(i,j,k)>0)
     nf[(size_t(i)*p->knoy + j)*p->knoz + k] = 1.0;
 
     for(size_t c=0;c<nc;++c)

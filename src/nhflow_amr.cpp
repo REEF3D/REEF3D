@@ -660,10 +660,10 @@ void nhflow_amr::build_lexer3D(nhflow_amr_patch &c)
     const int n7 = pp->imax*pp->jmax*(pp->kmax+2);
     const int nsl = pp->imax*pp->jmax;
 
-    pp->Iarray(pp->flag1,n3);
-    pp->Iarray(pp->flag2,n3);
-    pp->Iarray(pp->flag3,n3);
-    pp->Iarray(pp->flag4,n3);
+    pp->flag1.resize();
+    pp->flag2.resize();
+    pp->flag3.resize();
+    pp->flag4.resize();
     pp->Iarray(pp->flag5,n3);
     pp->Iarray(pp->flag7,n7);
     pp->Iarray(pp->IO,n3);
@@ -826,10 +826,6 @@ void nhflow_amr::free_lexer3D(nhflow_amr_patch &c)
     const int n7 = pp->imax*pp->jmax*(pp->kmax+2);
     const int nsl = pp->imax*pp->jmax;
 
-    pp->del_Iarray(pp->flag1,n3);
-    pp->del_Iarray(pp->flag2,n3);
-    pp->del_Iarray(pp->flag3,n3);
-    pp->del_Iarray(pp->flag4,n3);
     pp->del_Iarray(pp->flag5,n3);
     pp->del_Iarray(pp->flag7,n7);
     pp->del_Iarray(pp->IO,n3);

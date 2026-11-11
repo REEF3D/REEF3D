@@ -329,7 +329,7 @@ void lexer::read_grid()
     
     grid::assign_margin();
     
-    Iarray(flag4,imax*jmax*kmax);
+    flag4.resize(-1);
     Darray(flag_solid,imax*jmax*kmax);
     Darray(flag_topo,imax*jmax*kmax);
     Darray(solidbed,imax*jmax);
@@ -345,9 +345,6 @@ void lexer::read_grid()
     Iarray(flagslice1,imax*jmax);
     Iarray(flagslice2,imax*jmax);
     Iarray(flagslice4,imax*jmax);
-    
-    for(n=0;n<imax*jmax*kmax;++n)
-    flag4[n]=-1;
     
     for(n=0;n<imax*jmax*kmax;++n)
     flag_solid[n]=0.0;

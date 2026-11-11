@@ -843,7 +843,7 @@ void net_membrane::build_map(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
             for(k=0; k<p->knoz; ++k)
             {
-                if(p->flag4[IJK]<=0)
+                if(p->flag4(i,j,k)<=0)
                 continue;
 
                 // inside a floating body (X 10, level set FB < 0): the direct forcing of the body sets the velocity

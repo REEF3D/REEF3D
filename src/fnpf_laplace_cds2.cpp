@@ -202,7 +202,7 @@ void fnpf_laplace_cds2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *pso
         col.set(p,c,i,j);
         
         KLOOP
-        if(p->flag4[IJK]>0)
+        if(p->flag4(i,j,k)>0)
         {
             const int q = c0 + k;
             

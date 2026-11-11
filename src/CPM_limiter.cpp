@@ -306,7 +306,7 @@ void CPM::limiter(lexer *p, fdm *a, ghostcell *pgc, double *X0, double *Y0, doub
         {
             i=tc_i[q]; j=tc_j[q]; k=tc_k[q];
             
-            if(p->flag4[IJK]<=OBJ_FLAG)
+            if(p->flag4(i,j,k)<=OBJ_FLAG)
             continue;
             
             long long v = llround(Lh0(i,j,k));
@@ -330,7 +330,7 @@ void CPM::limiter(lexer *p, fdm *a, ghostcell *pgc, double *X0, double *Y0, doub
         {
             i=tc_i[q]; j=tc_j[q]; k=tc_k[q];
             
-            if(p->flag4[IJK]<=OBJ_FLAG)
+            if(p->flag4(i,j,k)<=OBJ_FLAG)
             continue;
             
             double V = p->DXN[IP]*p->DYN[JP]*p->DZN[KP];

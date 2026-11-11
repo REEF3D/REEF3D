@@ -182,13 +182,13 @@ void dem_f::feedback_cfd(lexer *p, fdm *a, ghostcell *pgc)
         for(j=j0; j<=j1; ++j)
         for(k=k0; k<=k1; ++k)
         {
-            if(p->flag1[IJK]>0)
+            if(p->flag1(i,j,k)>0)
             sw[4*n+0] += kernel(relpos(p,p->pos1_x(),p->pos1_y(),p->pos1_z(),B.x).norm(),R)*p->DXP[IP]*p->DYN[JP]*p->DZN[KP];
-            if(p->flag2[IJK]>0)
+            if(p->flag2(i,j,k)>0)
             sw[4*n+1] += kernel(relpos(p,p->pos2_x(),p->pos2_y(),p->pos2_z(),B.x).norm(),R)*p->DXN[IP]*p->DYP[JP]*p->DZN[KP];
-            if(p->flag3[IJK]>0)
+            if(p->flag3(i,j,k)>0)
             sw[4*n+2] += kernel(relpos(p,p->pos3_x(),p->pos3_y(),p->pos3_z(),B.x).norm(),R)*p->DXN[IP]*p->DYN[JP]*p->DZP[KP];
-            if(p->flag4[IJK]>0)
+            if(p->flag4(i,j,k)>0)
             sw[4*n+3] += kernel(relpos(p,p->pos_x(),p->pos_y(),p->pos_z(),B.x).norm(),Ra)*p->DXN[IP]*p->DYN[JP]*p->DZN[KP];
         }
     }
@@ -236,28 +236,28 @@ void dem_f::feedback_cfd(lexer *p, fdm *a, ghostcell *pgc)
         {
             double wk;
 
-            if(p->flag1[IJK]>0 && sw[4*n+0]>0.0)
+            if(p->flag1(i,j,k)>0 && sw[4*n+0]>0.0)
             {
                 wk = kernel(relpos(p,p->pos1_x(),p->pos1_y(),p->pos1_z(),B.x).norm(),R);
                 double ro = 0.5*(a->ro(i,j,k)+a->ro(i+1,j,k));
                 (*Sx)(i,j,k) += core.bodies[n].cpl.Ffp(0)*wk/(ro*sw[4*n+0]);
             }
 
-            if(p->flag2[IJK]>0 && sw[4*n+1]>0.0 && p->j_dir==1)
+            if(p->flag2(i,j,k)>0 && sw[4*n+1]>0.0 && p->j_dir==1)
             {
                 wk = kernel(relpos(p,p->pos2_x(),p->pos2_y(),p->pos2_z(),B.x).norm(),R);
                 double ro = 0.5*(a->ro(i,j,k)+a->ro(i,j+1,k));
                 (*Sy)(i,j,k) += core.bodies[n].cpl.Ffp(1)*wk/(ro*sw[4*n+1]);
             }
 
-            if(p->flag3[IJK]>0 && sw[4*n+2]>0.0)
+            if(p->flag3(i,j,k)>0 && sw[4*n+2]>0.0)
             {
                 wk = kernel(relpos(p,p->pos3_x(),p->pos3_y(),p->pos3_z(),B.x).norm(),R);
                 double ro = 0.5*(a->ro(i,j,k)+a->ro(i,j,k+1));
                 (*Sz)(i,j,k) += core.bodies[n].cpl.Ffp(2)*wk/(ro*sw[4*n+2]);
             }
 
-            if(p->flag4[IJK]>0 && sw[4*n+3]>0.0)
+            if(p->flag4(i,j,k)>0 && sw[4*n+3]>0.0)
             {
                 wk = kernel(relpos(p,p->pos_x(),p->pos_y(),p->pos_z(),B.x).norm(),Ra);
                 (*ALPHA)(i,j,k) += S.volume*wk/sw[4*n+3];
@@ -331,7 +331,7 @@ void dem_f::forcing_cfd(lexer *p, fdm *a, ghostcell *pgc, int iter, double alpha
         {
             double f,H;
 
-            if(p->flag1[IJK]>0)
+            if(p->flag1(i,j,k)>0)
             {
                 double xf=p->pos1_x(), yf=p->pos1_y(), zf=p->pos1_z();
                 forcepoint(xf,yf,zf,0,u(i,j,k),f,H);
@@ -344,7 +344,7 @@ void dem_f::forcing_cfd(lexer *p, fdm *a, ghostcell *pgc, int iter, double alpha
                 }
             }
 
-            if(p->flag2[IJK]>0 && p->j_dir==1)
+            if(p->flag2(i,j,k)>0 && p->j_dir==1)
             {
                 double xf=p->pos2_x(), yf=p->pos2_y(), zf=p->pos2_z();
                 forcepoint(xf,yf,zf,1,v(i,j,k),f,H);
@@ -357,7 +357,7 @@ void dem_f::forcing_cfd(lexer *p, fdm *a, ghostcell *pgc, int iter, double alpha
                 }
             }
 
-            if(p->flag3[IJK]>0)
+            if(p->flag3(i,j,k)>0)
             {
                 double xf=p->pos3_x(), yf=p->pos3_y(), zf=p->pos3_z();
                 forcepoint(xf,yf,zf,2,w(i,j,k),f,H);
@@ -370,7 +370,7 @@ void dem_f::forcing_cfd(lexer *p, fdm *a, ghostcell *pgc, int iter, double alpha
                 }
             }
 
-            if(finalize && p->flag4[IJK]>0)
+            if(finalize && p->flag4(i,j,k)>0)
             {
                 dem_vec r = relpos(p,p->pos_x(),p->pos_y(),p->pos_z(),B.x);
                 if(r.squaredNorm()<=rlim*rlim)
@@ -508,7 +508,7 @@ void dem_f::internal_cfd(lexer *p, fdm *a, ghostcell *pgc)
         for(j=j0; j<=j1; ++j)
         for(k=k0; k<=k1; ++k)
         {
-            if(p->flag4[IJK]<=0)
+            if(p->flag4(i,j,k)<=0)
             continue;
 
             dem_vec r = relpos(p,p->pos_x(),p->pos_y(),p->pos_z(),B.x);

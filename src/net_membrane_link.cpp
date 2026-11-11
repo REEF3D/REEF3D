@@ -295,7 +295,7 @@ void net_membrane::link_mobility(lexer *p, fdm_nhf *d, ghostcell *pgc, double a)
         }
 
         // +x, -x
-        if(sideC_[Ip1JK]*s<0.0 && p->flag4[Ip1JK]>0)
+        if(sideC_[Ip1JK]*s<0.0 && p->flag4(i+1,j,k)>0)
         {
             const double b = beta(p->DXP[IP]);
             d->MBX[IJK] = MIN(d->MBX[IJK],b);
@@ -309,7 +309,7 @@ void net_membrane::link_mobility(lexer *p, fdm_nhf *d, ghostcell *pgc, double a)
             }
         }
 
-        if(sideC_[Im1JK]*s<0.0 && p->flag4[Im1JK]>0)
+        if(sideC_[Im1JK]*s<0.0 && p->flag4(i-1,j,k)>0)
         {
             const double b = beta(p->DXP[IM1]);
             bmin = MIN(bmin,b);
@@ -327,7 +327,7 @@ void net_membrane::link_mobility(lexer *p, fdm_nhf *d, ghostcell *pgc, double a)
         // +y, -y
         if(p->j_dir==1)
         {
-            if(sideC_[IJp1K]*s<0.0 && p->flag4[IJp1K]>0)
+            if(sideC_[IJp1K]*s<0.0 && p->flag4(i,j+1,k)>0)
             {
                 const double b = beta(p->DYP[JP]);
                 d->MBY[IJK] = MIN(d->MBY[IJK],b);
@@ -341,7 +341,7 @@ void net_membrane::link_mobility(lexer *p, fdm_nhf *d, ghostcell *pgc, double a)
                 }
             }
 
-            if(sideC_[IJm1K]*s<0.0 && p->flag4[IJm1K]>0)
+            if(sideC_[IJm1K]*s<0.0 && p->flag4(i,j-1,k)>0)
             {
                 const double b = beta(p->DYP[JM1]);
                 bmin = MIN(bmin,b);
