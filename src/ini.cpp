@@ -91,7 +91,7 @@ void control::ini_default()
     A319=1.0e-5; // double TENO5 cutoff C_T for FNPF (A318 2)
     A320=1;		  // int order of Laplace equation
     A430=0.0;    // double FNPF Laplace, RK3/RK4 stage solves (REEFMG): residual tolerance relative to the right-hand side of the potential without its mean surface value (0: N 44, relative to the full right-hand side)
-    A321=0;      // int FNPF Laplace, RK3/RK4 stage solves: 1 start value extrapolated in time from the solution of the last step (one 3D array), 2 as 1 and the coarse levels of REEFMG of the first stage solve kept for the other stages of the step; 0 start value and coarse levels as before
+    A321=2;      // int FNPF Laplace, RK3/RK4 stage solves: 1 start value extrapolated in time from the solution of the last step (one 3D array), 2 (default) as 1 and the coarse levels of REEFMG of the first stage solve kept for the other stages of the step; 0 start value and coarse levels as before 11 November 2026
     A324=0;      // int FNPF Laplace: max Picard iterations for the explicit sigma cross-derivative terms (0 = lagged by one RK stage, legacy)
     A325=1.0e-3; // double FNPF Laplace: Picard stop when the change is below A325 times the change of the first solve (A324>0)
     A328=-1;     // int FNPF Laplace: 1 sigma cross-derivatives implicit, 15-point (2D: 9-point) operator in REEFMG's BiCGStab, 7-point V-cycle preconditioner (N 10 1 only); 0 explicit; default: 1 with RK4 (A 310 4) and REEFMG, else 0
