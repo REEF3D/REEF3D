@@ -1203,7 +1203,16 @@ inline double rmass(double phi1, double phi2, double ds, double e, double row, d
 // the weights of the coarse value at the position of the fine cell, for the stage: linear in the
 // transverse directions in the density-weighted distance (the acceleration (dp/ds)/rho is taken
 // constant between the cells, not dp/ds): at a free surface across a patch edge, the hydrostatic
-// pressure and the pressure correction keep their kink, the faces in the air no spurious gradient
+// pressure and the pressure correction keep their kink, the faces in the air no spurious gradient.
+// G 8 1: the mass from the coarse centre to the height of the fine cell with the level set of the
+// coarse column there (linear between the coarse cells), the column of the mass between the coarse
+// cells it is divided by, so the weights are those of the coarse column. G 8 0: the level set of
+// the fine cell at the end of that line. Where the fine cell lies closer to the free surface than
+// the coarse column (in the air next to a free surface along the patch edge), its density in the
+// interface width of the coarse grid made the weights grow to 3 and more against 0.125 for linear
+// interpolation: the coarse pressure and its correction were extrapolated onto the fine faces, the
+// faces of the patch edge oscillated in the air, and the oscillation moved the fine level set
+// further towards the free surface (2D weir, validation CFD AMR speed/06)
 void cfd_amr::pr_weights()
 {
     // face density of the fine face (the level set of the fine cell and of the cell across)
@@ -1251,8 +1260,18 @@ void cfd_amr::pr_weights()
             if(F.tdel[t]==0.0)
             continue;
             const double h = dn[t][F.ci[t]+marge];
-            const double mf = rmass(phC,phf,F.tdel[t]*h,e,row,roa);
             const int qm = F.tq[t][0], qp = F.tq[t][1];
+            double phs = phf;
+            if(p0->G8==1)
+            {
+                if(qm>=0 && qp>=0)
+                phs = phC + F.tdel[t]*0.5*(ac->phi.V[qp]-ac->phi.V[qm]);
+                else if(qp>=0)
+                phs = phC + F.tdel[t]*(ac->phi.V[qp]-phC);
+                else if(qm>=0)
+                phs = phC + F.tdel[t]*(phC-ac->phi.V[qm]);
+            }
+            const double mf = rmass(phC,phs,F.tdel[t]*h,e,row,roa);
 
             if(qm>=0 && qp>=0)
             {

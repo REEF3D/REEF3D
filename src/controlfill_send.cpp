@@ -205,6 +205,8 @@ void control::ctrlsend()
     ii++;
     ictrl[ii] = G7;
     ii++;
+    ictrl[ii] = G8;
+    ii++;
 
     dctrl[dd] = A305;
     dd++;

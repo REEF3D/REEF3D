@@ -406,6 +406,7 @@ public:
     double G12_r,G13_L,G13_a,G20,G21;
     double *G10_xs,*G10_xe,*G10_ys,*G10_ye;
     int G15,G25;
+    int G8;                      // CFD mesh refinement: the coarse value at a fine cell of a patch edge from the level set of the coarse column
     int G28;                     // CFD mesh refinement: one interface width of the fluid properties on all levels (1 that of level 0, 2 that of the finest level)
     int G29;                     // CFD mesh refinement: 1 the pressure under the patches restricted relative to the discrete hydrostatic pressure of each grid
     double G24,G26,G27,G41,G42,G44,G46;

@@ -839,6 +839,7 @@ void control::ini_default()
     G5=4;       // int SFLOW, FNPF, NHFLOW and CFD mesh refinement: regrids a refined tile is kept after its last flag (hysteresis)
     G6=0;       // int FNPF and NHFLOW mesh refinement: 1 doubles the sigma layers on every refined level
     G7=0;       // int SFLOW, NHFLOW and CFD mesh refinement: 0 one time step for all levels, 1 subcycling (every level two steps per step of the next coarser one)
+    G8=0;       // int CFD mesh refinement: the coarse value at the position of a fine cell at a patch edge (the pressure, its correction and the hydrostatic pressure, linear in the density-weighted distance across the coarse cell): 1 the density of the coarse column from its own level set, interpolated to the height of the fine cell, so that the weights are those of the coarse column; 0 the level set of the fine cell at its end (the weights grow without bound where the fine cell lies closer to the free surface than the coarse column: the faces of a patch edge in the air near the free surface then oscillate and grow)
     G10=0;      // int SFLOW, FNPF and NHFLOW mesh refinement: number of static refinement boxes
     G15=0;      // int CFD mesh refinement: number of static refinement boxes xs xe ys ye zs ze
     G16=0;      // int CFD mesh refinement: number of static refinement boxes refined up to level l: l xs xe ys ye zs ze (G 15: up to the finest level G 1)
