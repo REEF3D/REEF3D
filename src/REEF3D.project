@@ -552,6 +552,7 @@
           <VirtualDirectory Name="Diffusion">
             <File Name="sflow_idiff.h"/>
             <File Name="sflow_ediff.h"/>
+            <File Name="sflow_diffusion_flux.h"/>
             <File Name="sflow_diffusion_void.h"/>
             <File Name="sflow_diffusion.h"/>
           </VirtualDirectory>
