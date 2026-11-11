@@ -187,6 +187,10 @@ void sediment_f::ini_parameters(lexer *p, ghostcell *pgc)
     
     if(p->mpirank==0)
     cout<<"sediment fall velocity ws: "<<s->ws<<endl;
+    
+    // exchange velocity of the suspended load with the bed before the first suspended solve
+    for(int n=0; n<p->imax*p->jmax; ++n)
+    s->wsx.V[n] = s->ws;
 }
 
 void sediment_f::ini_guard(lexer *p, ghostcell *pgc)

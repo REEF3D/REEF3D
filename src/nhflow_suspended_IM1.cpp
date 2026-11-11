@@ -188,11 +188,19 @@ void nhflow_suspended_IM1::suspsource(lexer* p, fdm_nhf *d, double *CONC, sedime
     {   
         // exchange with the bed only where the Exner equation applies it (erodible region S71-S72, DFBED>0),
         // otherwise erosion from or deposition onto a fixed bed creates or deletes sediment
+        // E - D = ws (c_a - c_0/rbe) = wsx (cbe - c_0), wsx = ws/rbe: pick-up ws c_a at the reference level z = a
+        // and deposition with the near-bed concentration c_0/rbe of the Rouse profile in the bottom cell
+        // (bedconc_VR: cbe = rbe c_a is the cell mean). The equilibrium c_0 = cbe is that of ws (cbe - c_0); away
+        // from it the exchange no longer slows down with the thickness of the bottom cell (rbe << 1 in a thick
+        // cell).
         if(k==0 && p->DF[IJK]>0 && p->wet[IJ]==1 && p->DFBED[IJ]>0 && p->XP[IP]>=p->S71 && p->XP[IP]<=p->S72)
         {
         zdist = p->DZN[KP]*d->WL(i,j);
-        d->rhsvec.V[count]  += (-s->ws)*(-s->cbe(i,j))/zdist;
-        d->M.p[count] += (s->ws)/zdist;
+        
+        s->wsx(i,j) = s->ws/MAX(s->rbe(i,j),1.0e-8);
+        
+        d->rhsvec.V[count]  += s->wsx(i,j)*s->cbe(i,j)/zdist;
+        d->M.p[count] += s->wsx(i,j)/zdist;
         }
         
         /*
@@ -415,7 +423,7 @@ void nhflow_suspended_IM1::clearrhs(lexer* p, fdm_nhf *d)
 
 void nhflow_suspended_IM1::exchange_sum(lexer *p, fdm_nhf *d, sediment_fdm *s)
 {
-    // the implicit exchange of the solve, ws (cbe - c_0) on the cells of suspsource; the bed takes it from the
+    // the implicit exchange of the solve, wsx (cbe - c_0) on the cells of suspsource; the bed takes it from the
     // sediment step on (susp_ED: count > S 43)
     if(p->S62!=1 || p->count<=p->S43)
     return;
@@ -423,7 +431,7 @@ void nhflow_suspended_IM1::exchange_sum(lexer *p, fdm_nhf *d, sediment_fdm *s)
     k=0;
     SLICELOOP4
     if(p->DF[IJK]>0 && p->wet[IJ]==1 && p->DFBED[IJ]>0 && p->XP[IP]>=p->S71 && p->XP[IP]<=p->S72)
-    ED(i,j) += s->ws*(s->cbe(i,j) - d->CONC[IJK])*p->dt;
+    ED(i,j) += s->wsx(i,j)*(s->cbe(i,j) - d->CONC[IJK])*p->dt;
     
     acc[0] += p->dt;
     acc[1] += 1.0;

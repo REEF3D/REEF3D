@@ -63,6 +63,10 @@ public:
     
     slice4 qb,qbe,qbs;
     slice4 cbe,cb,cbn,conc;
+    // NHFLOW suspended load: rbe, the ratio of the equilibrium concentration of the bottom cell (cbe, cell mean)
+    // to the reference concentration c_a at z = a (bedconc_VR); wsx, the exchange velocity of the last
+    // suspended solve, E - D = wsx (cbe - c_0), wsx = ws/rbe (hindered with S 127 1)
+    slice4 rbe,wsx;
     slice4 ub,vb;   // curvilinear grid (G 50): near-bed velocity of the cells (Cartesian components, sediment_curv)
     slice4 dryd;    // NHFLOW: suspended sediment volume per area of columns that fell dry, deposited at the next bed update
     
