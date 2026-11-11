@@ -31,8 +31,10 @@ Author: Hans Bihs
 
 
 bedshear::bedshear(lexer *p, turbulence *ppturb) : norm_vec(p), kappa(0.4), uw_mean(p), vw_mean(p), uw_old(p), vw_old(p), uw_hat(p),
-                                                    uw_dt(p), vw_dt(p)
+                                                    uw_dt(p), vw_dt(p), ua_old(p), va_old(p), ua_dt(p), va_dt(p)
 {
+    ta_old=0.0;
+    ta_count=0;
     tau=0.0;
     tauc=0.0;
     pturb=ppturb;

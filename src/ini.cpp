@@ -1300,7 +1300,7 @@ void control::ini_default()
     S34=1;              // int type of suspedned load D and E calculation
     S35=1.0;            // double Exner magnification factor
     S36=0;              // int alluvial/bedform/effective roughness
-	S37=0;		        // int inertia bedshear stress: 1 inertia term of the particles, 2 NHFLOW phase-lead velocity of Nielsen (2006) with S 140, S 141
+	S37=0;		        // int inertia bedshear stress: 1 inertia stress of the grains rho cm cv cn d50 du/dt (NHFLOW: signed, added as a vector), 2 NHFLOW phase-lead velocity of Nielsen (2006) with S 140, S 141
     S38=0;              // int shallow water bedshear calculation
     S39=100.0;            // double blend factor
     S40=0.1;            // double bedload adaptation length [m] (S33=1) or factor on water depth [-] (S33=4)

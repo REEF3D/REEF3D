@@ -116,6 +116,12 @@ private:
     // S 59: time derivative of the oscillatory part (phase lead) and fw of the last tau_wave call
     slice4 uw_dt,vw_dt;
     double tw_fw;
+    
+    // S 37 1 (NHFLOW): acceleration of the bottom-layer velocity between two calls (bed_acceleration)
+    void bed_acceleration(lexer*, fdm_nhf*);
+    slice4 ua_old,va_old,ua_dt,va_dt;
+    double ta_old;
+    int ta_count;
 };
 
 #endif
