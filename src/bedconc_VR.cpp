@@ -87,8 +87,16 @@ void bedconc_VR::start(lexer* p, ghostcell *pgc, sediment_fdm *s)
     P = s->ws/(kappa*MAX(s->shearvel_eff(i,j),1.0e-6));
     P = MIN(P,5.0);
     
-    s->rbe(i,j) = rouse_mean(adist, MIN(p->DZN[KP]*h, h), h, P);
+    const double zt = MIN(p->DZN[KP]*h, h);
+    
+    s->rbe(i,j) = rouse_mean(adist, zt, h, P);
     s->cbe(i,j) = ca*s->rbe(i,j);
+    
+    // the node of the bottom cell for the flux to the cell above: the cell centre, not below z = a
+    z1 = MIN(MAX(p->ZP[KP]*h, adist), zt);
+    
+    s->rbz(i,j) = z1;
+    s->rbf(i,j) = ((z1>adist && h>adist) ? pow((adist/(h-adist))*((h-z1)/z1), P) : 1.0)/s->rbe(i,j);
     continue;
     }
 

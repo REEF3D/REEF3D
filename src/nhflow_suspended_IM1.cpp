@@ -61,6 +61,7 @@ void nhflow_suspended_IM1::start(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_sc
     inflow_conc(p,d,s);
     pconvec->start(p,d,d->CONC,4,d->U,d->V,WVEL);
     pdiff->diff_scalar(p,d,pgc,psolv,d->CONC,1.0,1.0);
+    settling_fit(p,d,s);
 	suspsource(p,d,d->CONC,s);
 	timesource(p,d,d->CONC);
     bcsusp_start(p,d,pgc,s,d->CONC);
@@ -180,6 +181,109 @@ void nhflow_suspended_IM1::fill_wvel(lexer *p, fdm_nhf *d, ghostcell *pgc, sedim
         ws_eff *= pow(MAX(1.0 - cface/0.635, 0.0), nval);
         WVEL[FIJK] = d->omegaF[FIJK] - ws_eff;
         }
+    }
+}
+
+void nhflow_suspended_IM1::settling_fit(lexer *p, fdm_nhf *d, sediment_fdm *s)
+{
+    // Vertical settling and diffusion as one exponentially fitted flux (Allen & Southwell 1955, Il'in 1969; the
+    // exponential scheme of Patankar). The first-order upwind flux of WVEL carries the numerical diffusivity
+    // |w| dz/2; near the bed that is as large as the eddy diffusivity kappa u* z itself (ws dz/2 against
+    // kappa u* dz/2 in the bottom cell), and the profile above the bed came out several times fuller than the
+    // Rouse profile on every practical grid. The diffusivity of each face between two cells is reduced by
+    //     eps (1 + x - x coth x),   x = |w| dz/(2 eps),
+    // so that upwind plus diffusion is the exact flux of the steady settling-diffusion balance with eps and w of
+    // the face: eps - |w| dz/2 for x << 1 (second order), no diffusion left for x >> 1 (upwind). The reduced
+    // diffusivity is never negative: the matrix stays an M-matrix. Bed and free surface faces are closed.
+    //
+    // The face between the bottom cell and the cell above: the bottom cell carries the mean of the near-bed
+    // profile (bedconc_VR), which is well above the profile at its centre (a factor 2 for a Rouse number of 1.8
+    // and a cell of five reference heights). Taken as the value at the centre it fed the cells above with that
+    // factor. The flux of this face sees the bottom cell as a node at rbz = max(centre, a) with the value
+    // rbf c_0, the Rouse profile at rbz: a (c_1 - rbf c_0), with a over the distance from rbz to the centre
+    // above. The same flux leaves the bottom cell and enters the cell above (conservative).
+    auto fit = [](double eps, double wd)
+    {
+        if(eps<=1.0e-20 || wd<=0.0)
+        return 0.0;
+        
+        const double x = 0.5*wd/eps;
+        
+        if(x>30.0)
+        return -eps;
+        
+        if(x<1.0e-4)
+        return -eps*x;
+        
+        const double e = exp(-2.0*x);
+        
+        return eps*(x*(1.0+e)/(1.0-e) - 1.0 - x);
+    };
+    
+    double eps,c;
+    
+    n=0;
+    LOOP
+    {
+        if(p->DF[IJK]>0 && p->wet[IJ]==1)
+        {
+        const double epsP = d->VISC[IJK] + d->EV0[IJK];
+        const double sz2 = p->sigz[IJ]*p->sigz[IJ];
+        const double sxyz2 = pow(0.5*(p->sigx[FIJK]+p->sigx[FIJKp1]),2.0) + pow(0.5*(p->sigy[FIJK]+p->sigy[FIJKp1]),2.0) + sz2;
+        const bool bedcell = p->DFBED[IJ]>0 && p->knoz>1;
+        
+            // the face between the bottom cell and the cell above, seen from either cell
+            if(bedcell && (k==0 || k==1) && p->DF[k==0 ? IJKp1 : IJKm1]>0)
+            {
+            const int kb = k;
+            k=0;
+            const double zc = p->ZP[KP]*d->WL(i,j);
+            const double dzs = p->DZP[KP];
+            const double wface = fabs(WVEL[FIJKp1]);
+            eps = 0.5*(d->VISC[IJK] + d->EV0[IJK] + d->VISC[IJKp1] + d->EV0[IJKp1]);
+            k=kb;
+            
+            // sigma distance from the node of the bottom cell to the centre above
+            const double dzn = MAX(dzs - MAX(s->rbz(i,j)-zc,0.0)/MAX(d->WL(i,j),1.0e-20), 0.25*dzs);
+            const double phi = s->rbf(i,j);
+            
+            const double a_old = eps*sxyz2/(dzs*p->DZN[KP]);
+            const double a_new = (eps*sxyz2 + fit(eps, wface*dzn*d->WL(i,j))*sz2)/(dzn*p->DZN[KP]);
+            
+                if(k==0)
+                {
+                d->M.t[n] -= a_new - a_old;
+                d->M.p[n] += a_new*phi - a_old;
+                }
+                
+                if(k==1)
+                {
+                d->M.b[n] -= a_new*phi - a_old;
+                d->M.p[n] += a_new - a_old;
+                }
+            }
+        
+            // face above
+            if(k<p->knoz-1 && p->DF[IJKp1]>0 && !(bedcell && k==0))
+            {
+            eps = 0.5*(epsP + d->VISC[IJKp1] + d->EV0[IJKp1]);
+            c = fit(eps, fabs(WVEL[FIJKp1])*p->DZP[KP]*d->WL(i,j))*sz2/(p->DZP[KP]*p->DZN[KP]);
+            
+            d->M.t[n] -= c;
+            d->M.p[n] += c;
+            }
+            
+            // face below
+            if(k>0 && p->DF[IJKm1]>0 && !(bedcell && k==1))
+            {
+            eps = 0.5*(epsP + d->VISC[IJKm1] + d->EV0[IJKm1]);
+            c = fit(eps, fabs(WVEL[FIJK])*p->DZP[KM1]*d->WL(i,j))*sz2/(p->DZP[KM1]*p->DZN[KP]);
+            
+            d->M.b[n] -= c;
+            d->M.p[n] += c;
+            }
+        }
+    ++n;
     }
 }
 
