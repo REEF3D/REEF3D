@@ -23,7 +23,7 @@ Architect: Hans Bihs
 #ifndef NHFLOW_PJM_HO_H_
 #define NHFLOW_PJM_HO_H_
 
-// Fourth-order horizontal operators of the explicit NHFLOW projection (A 508 1 with A 510 2 / 3, A 520 1 / 2),
+// Fourth-order horizontal operators of the explicit NHFLOW projection (A 510 2 / 3, A 520 1 / 2),
 // shared by nhflow_pjm and nhflow_pjm_corr.
 //
 // The divergence at the pressure nodes and the gradient of the non-hydrostatic pressure at the cell centres are
@@ -51,7 +51,7 @@ namespace nhflow_pjm_ho
 
 inline bool active(lexer *p, fdm_nhf *d)
 {
-    return p->A508==1 && p->geo_curv==0 && p->G1==0 && p->geo_mb==0 && p->X10==0 && d->MBETA==nullptr && d->thinbody==nullptr;
+    return p->geo_curv==0 && p->G1==0 && p->geo_mb==0 && p->X10==0 && d->MBETA==nullptr && d->thinbody==nullptr;
 }
 
 inline bool column(lexer *p, int a, int b)

@@ -83,10 +83,10 @@ public:
     // NHFLOW
     int A509,A510,A511,A512,A513,A514,A515,A516,A517,A518,A519;
     int A520,A521,A524,A527,A529,A530;
-    double A522,A526,A528;
+    double A526,A528;
     double A531;
     int A532,A533;
-    int A505,A507,A508,A534,A537,A539;          // NHFLOW hydrostatic semi-implicit free surface
+    int A505,A507,A534,A537,A539;          // NHFLOW hydrostatic semi-implicit free surface
     double A506,A535,A536,A538;
     int A540;
     double A544,A545,A546;

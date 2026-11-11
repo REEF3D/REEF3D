@@ -306,7 +306,7 @@ private:
     std::vector<double> nWLh, nWLo, nHxo, nHyo, hMx, hMy;
     std::vector<double> nUZx, nUZy;
 
-    // fourth-order horizontal operators (A 508 1, nhflow_momentum_SI_ho.cpp): hoC the fluid cells of the stencils (with
+    // fourth-order horizontal operators (nhflow_momentum_SI_ho.cpp): hoC the fluid cells of the stencils (with
     // those of the neighbouring ranks), hoE eta of the estimate pass, NQcx, NQcy the explicit part of the phi face terms
     bool ho = false, ho_ux = false, ho_uy = false, ho_phi = false;
     double *NQcx = nullptr, *NQcy = nullptr;

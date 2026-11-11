@@ -27,7 +27,7 @@ Architect: Hans Bihs
 #include<cmath>
 
 // ---------------------------------------------------------------------------------------------------------------------
-// Fourth-order horizontal operators of the semi-implicit step (A 508 1), on one uniform Cartesian grid
+// Fourth-order horizontal operators of the semi-implicit step, on one uniform Cartesian grid
 //
 // The second-order step carries linear waves too slowly, with an error of (k dx)^2/6 in the wave speed of a long wave:
 // (k dx)^2/8 from the two means between the cells and the faces (the cell predictor to the faces, the face terms of

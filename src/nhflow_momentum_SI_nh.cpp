@@ -814,7 +814,7 @@ void nhflow_momentum_SI::nh_solve(lexer *p, fdm_nhf *d, ghostcell *pgc)
     nh_prepare(p,d,pgc);
     nh_fixed = true;
 
-    // fourth order (A 508 1): the explicit part of the phi face terms of this step
+    // fourth order: the explicit part of the phi face terms of this step
     if(ho)
     ho_phi_corr(p,d,pgc);
 
@@ -1035,7 +1035,7 @@ void nhflow_momentum_SI::nh_cell(lexer *p, fdm_nhf *d, ghostcell *pgc)
     const int K = p->knoz;
     auto wn = [&](int a, int b) { return etaI(a,b) + d->depth(a,b) > p->A544; };
 
-    // fourth order (A 508 1): the face terms two faces away, also those of the neighbouring ranks
+    // fourth order: the face terms two faces away, also those of the neighbouring ranks
     if(ho)
     {
     exchangeC(p,pgc,NQx);
@@ -1584,7 +1584,7 @@ void nhflow_momentum_SI::nh_solve_mg(lexer *p, fdm_nhf *d, ghostcell *pgc, const
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
-// fourth-order horizontal operators (A 508 1, nhflow_momentum_SI_ho.cpp): the non-hydrostatic pressure
+// fourth-order horizontal operators (nhflow_momentum_SI_ho.cpp): the non-hydrostatic pressure
 // ---------------------------------------------------------------------------------------------------------------------
 
 // the explicit part of the phi face terms (NQcx, NQcy): the face term of nh_faces with -delta^2 phi/12 along the face

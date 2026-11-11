@@ -202,20 +202,6 @@ double nhflow_curv::divh_level(lexer *p, fdm_nhf *d, const double *U, const doub
     double faci = p->DZN[kk-1+marge]/(p->DZN[kk+marge]+p->DZN[kk-1+marge]);
     double facj = faci;
 
-    // next to the bed: the slope of the bed along the index directions (Cartesian: Bx, By)
-    if(kk==0)
-    {
-        double ex = xc(ii+1,jj)-xc(ii-1,jj), ey = yc(ii+1,jj)-yc(ii-1,jj);
-        double l = sqrt(ex*ex+ey*ey);
-        const double bi = (l>0.0) ? fabs(d->Bx(ii,jj)*ex + d->By(ii,jj)*ey)/l : 0.0;
-        ex = xc(ii,jj+1)-xc(ii,jj-1); ey = yc(ii,jj+1)-yc(ii,jj-1);
-        l = sqrt(ex*ex+ey*ey);
-        const double bj = (l>0.0) ? fabs(d->Bx(ii,jj)*ex + d->By(ii,jj)*ey)/l : 0.0;
-
-        faci = MAX((1.0 - p->A522*bi),0.0)*p->DZN[kk-1+marge]/(p->DZN[kk+marge]+p->DZN[kk-1+marge]);
-        facj = MAX((1.0 - p->A522*bj),0.0)*p->DZN[kk-1+marge]/(p->DZN[kk+marge]+p->DZN[kk-1+marge]);
-    }
-
     // bed node: the velocity below the bed 0, whatever the bed ghost cells (A 518), as nhflow_pjm::rhs
     auto li = [&](const double *f, int a, int b) { return (1.0-faci)*f[C(a,b,kk)] + (kk==0 ? 0.0 : faci*f[C(a,b,kk-1)]); };
     auto lj = [&](const double *f, int a, int b) { return (1.0-facj)*f[C(a,b,kk)] + (kk==0 ? 0.0 : facj*f[C(a,b,kk-1)]); };

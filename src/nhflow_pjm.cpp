@@ -180,7 +180,7 @@ void nhflow_pjm::ucorr(lexer* p, fdm_nhf *d, slice &WL, double *UH, double *P, d
                 (cut ? nhflow_cut_gx(p,d,WL,d->P,i,j,k) :
                 (d->MBETA!=nullptr ? nhflow_membrane_gradx(p,d,d->P,i,j,k) :
                 p->geo_curv==1 ? px :
-                (ho && nhflow_pjm_ho::x(p,d,i,j,k)) ? nhflow_pjm_ho::gradx(p,d->P,i,j,k) :     // A 508 1 (nhflow_pjm_ho.h)
+                (ho && nhflow_pjm_ho::x(p,d,i,j,k)) ? nhflow_pjm_ho::gradx(p,d->P,i,j,k) :     // fourth order (nhflow_pjm_ho.h)
                 ((0.5*(d->P[FIp1JKp1]+d->P[FIp1JK])-0.5*(d->P[FIm1JKp1]+d->P[FIm1JK]))/(p->DXP[IP]+p->DXP[IM1])))
                 
                 + MBETAVAL*0.5*(p->sigx[FIJK]+p->sigx[FIJKp1])*((d->P[FIJKp1]-d->P[FIJK])/p->DZN[KP]));
@@ -250,7 +250,10 @@ void nhflow_pjm::rhs(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V,
         // bed node (k==0): the velocity below the bed is taken as 0 here, whatever the bed ghost cells of the velocity
         // (A 518): the bed face then carries (1-fac) U of the bed cell, the half cell of the bed node half its
         // horizontal divergence. With the mirrored ghost cells of the wall-function bed (A 518 1) in this place the
-        // dispersion of the waves changed (linear sloshing, kh = pi/2, 5 layers: period +1.8 % instead of -0.1 %)
+        // dispersion of the waves changed (linear sloshing, kh = pi/2, 5 layers: period +1.8 % instead of -0.1 %).
+        // This is the continuity equation of the half cell on the bed, on a sloping bed too: the slope enters through
+        // sigx dU/dz only. (A 522, retired, gave the bed cell a larger weight on slopes, 1 - 0.5 max(1 - 5 |slope|, 0):
+        // on the Beji & Battjes bar the higher harmonics behind the bar came out wrong with it.)
         const bool bednode = (k==0);
         const double Ub1 = bednode ? 0.0 : U[Im1JKm1], Ub2 = bednode ? 0.0 : U[Ip1JKm1];
         const double Vb1 = bednode ? 0.0 : V[IJm1Km1], Vb2 = bednode ? 0.0 : V[IJp1Km1];
@@ -262,22 +265,7 @@ void nhflow_pjm::rhs(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V,
         U2 = (1.0-fac)*U[Ip1JK] + fac*Ub2; 
         
         V1 = (1.0-fac)*V[IJm1K] + fac*Vb1; 
-        V2 = (1.0-fac)*V[IJp1K] + fac*Vb2;     
-        
-        if(k==0)
-        {
-        fac = MAX((1.0 - p->A522*fabs(d->Bx(i,j))),0.0)*p->DZN[KM1]/(p->DZN[KP]+p->DZN[KM1]);
-        
-        U1 = (1.0-fac)*U[Im1JK] + fac*Ub1; 
-        U2 = (1.0-fac)*U[Ip1JK] + fac*Ub2; 
-        
-        
-        fac = MAX((1.0 - p->A522*fabs(d->By(i,j))),0.0)*p->DZN[KM1]/(p->DZN[KP]+p->DZN[KM1]);
-        
-        V1 = (1.0-fac)*V[IJm1K] + fac*Vb1; 
-        V2 = (1.0-fac)*V[IJp1K] + fac*Vb2; 
-        }
-        
+        V2 = (1.0-fac)*V[IJp1K] + fac*Vb2;
 
         dUdz = (U[IJK] - Ubc)/p->DZP[KM1];
         dVdz = (V[IJK] - Vbc)/p->DZP[KM1];
@@ -291,7 +279,7 @@ void nhflow_pjm::rhs(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V,
                                 + dWdz)/(alpha*p->dt);
         else
         {
-        // A 508 1: fourth-order horizontal divergence (nhflow_pjm_ho.h)
+        // fourth-order horizontal divergence (nhflow_pjm_ho.h)
         double dUdx = (U2-U1)/(p->DXP[IP] + p->DXP[IM1]);
         double dVdy = (V2-V1)/(p->DYP[JP] + p->DYP[JM1]);
         
@@ -300,10 +288,10 @@ void nhflow_pjm::rhs(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V,
         const double f0 = p->DZN[KM1]/(p->DZN[KP]+p->DZN[KM1]);
         
         if(nhflow_pjm_ho::x(p,d,i,j,k))
-        dUdx = nhflow_pjm_ho::divx(p,U,i,j,k,(k==0 ? MAX((1.0 - p->A522*fabs(d->Bx(i,j))),0.0) : 1.0)*f0);
+        dUdx = nhflow_pjm_ho::divx(p,U,i,j,k,f0);
         
         if(nhflow_pjm_ho::y(p,d,i,j,k))
-        dVdy = nhflow_pjm_ho::divy(p,V,i,j,k,(k==0 ? MAX((1.0 - p->A522*fabs(d->By(i,j))),0.0) : 1.0)*f0);
+        dVdy = nhflow_pjm_ho::divy(p,V,i,j,k,f0);
         }
         
         d->rhsvec.V[n] =      -  (dUdx

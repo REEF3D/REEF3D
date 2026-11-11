@@ -808,12 +808,6 @@ void nhflow_thinbody::projection_rhs(lexer *p, fdm_nhf *d, double *U, double *V,
                 double facx = p->DZN[KM1]/(p->DZN[KP]+p->DZN[KM1]);
                 double facy = facx;
                 
-                if(k==0)
-                {
-                facx = MAX((1.0 - p->A522*fabs(d->Bx(i,j))),0.0)*p->DZN[KM1]/(p->DZN[KP]+p->DZN[KM1]);
-                facy = MAX((1.0 - p->A522*fabs(d->By(i,j))),0.0)*p->DZN[KM1]/(p->DZN[KP]+p->DZN[KM1]);
-                }
-                
                 const double wx = c==0 ? 1.0-facx : facx;
                 const double wy = c==0 ? 1.0-facy : facy;
                 const double cx = 2.0/((p->DXP[IP]+p->DXP[IM1])*adt);
@@ -1681,12 +1675,6 @@ void nhflow_thinbody::projection_rhs_cut(lexer *p, fdm_nhf *d, double *U, double
                 
                 double facx = p->DZN[KM1]/(p->DZN[KP]+p->DZN[KM1]);
                 double facy = facx;
-                
-                if(k==0)
-                {
-                facx = MAX((1.0 - p->A522*fabs(d->Bx(i,j))),0.0)*p->DZN[KM1]/(p->DZN[KP]+p->DZN[KM1]);
-                facy = MAX((1.0 - p->A522*fabs(d->By(i,j))),0.0)*p->DZN[KM1]/(p->DZN[KP]+p->DZN[KM1]);
-                }
                 
                 const double wx = c==0 ? 1.0-facx : facx;
                 const double wy = c==0 ? 1.0-facy : facy;

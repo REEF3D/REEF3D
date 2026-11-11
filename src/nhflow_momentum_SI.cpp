@@ -320,12 +320,6 @@ void nhflow_momentum_SI::check(lexer *p)
     if(p->A507!=0 && p->A507!=1)
     msg("A 507 (eta and phi one after the other) other than 0 or 1 is");
 
-    if(p->A508!=0 && p->A508!=1)
-    msg("A 508 (fourth-order horizontal operators) other than 0 or 1 is");
-
-    if(p->A508==1 && (p->geo_curv==1 || p->geo_mb>0 || p->G1>0))
-    msg("fourth-order horizontal operators (A 508 1) on curvilinear, multi-block or refined grids are");
-
     if(p->A506<=0.0 || p->A506>=1.0)
     msg("A 506 (tolerance of the coupled non-hydrostatic solve) outside 0 < A 506 < 1 is");
 
@@ -464,8 +458,11 @@ void nhflow_momentum_SI::step_single(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflo
     if(nh || onestep || tl2)
     nh_begin(p,d,pgc);
 
-    // fourth-order horizontal operators (A 508 1): the cells of the stencils
-    if(p->A508==1)
+    // fourth-order horizontal operators on one Cartesian grid (uniform spacing: ho_begin): the cells of the stencils.
+    // Second order stays on curvilinear, multi-block and refined grids and with the semi-Lagrangian advection
+    // (A 549 1: with the fourth-order operators at Courant 2 the Thacker basin went unstable, eta 14 m for 0.8 m).
+    // (A 508, retired: was 0 / 1)
+    if(p->geo_curv==0 && p->geo_mb==0 && p->G1==0 && elm_mode(p)==0)
     ho_begin(p,d,pgc);
 
     // tl2: two passes. The first (the estimate) advects with the transport of the step before and solves the
@@ -3101,7 +3098,7 @@ void nhflow_momentum_SI::cell_update(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
             }
 
-        // fourth order (A 508 1): the face terms with their explicit part, (-1, 9, 9, -1)/16 of four faces
+        // fourth order: the face terms with their explicit part, (-1, 9, 9, -1)/16 of four faces
         if(ho)
         ho_cell_gravity(p,d,gu,gv);
 
