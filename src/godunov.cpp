@@ -384,11 +384,11 @@ void godunov::start(lexer *p, fdm *a, field &f, int ipol, field &U, field &V, fi
         return 0.5*(fa+fb);
     };
 
-    // N 59 2: the face density of the mass flux from the level set at the half step of its own
+    // N 59 2, 3: the face density of the mass flux from the level set at the half step of its own
     // transport, (phi_start + phi)/2, where the level set has already been moved with the advecting
     // velocity of this update (cphi: the level set before that transport; N 40 5 with the level set
     // kept before its last transport, the full step of N 40 6); otherwise the Godunov states of N 59 1
-    const bool hls = cons && p->N59==2 && cphi!=nullptr;
+    const bool hls = cons && p->N59>=2 && cphi!=nullptr;
 
     auto phh = [&](int ii, int jj, int kk) -> double
     {
@@ -425,6 +425,32 @@ void godunov::start(lexer *p, fdm *a, field &f, int ipol, field &U, field &V, fi
     const double dtu = (cdt>0.0) ? cdt : p->dt;
     const double rmin = 0.5*std::min(p->W1,p->W3);
 
+    // N 59 3: the momentum flux m u of a face into the control volume q. The face density of N 59 2 is
+    // the level set at the face, not the density of the fluid on the upwind side: where light fluid
+    // flows in and the level set there says heavier (air pushing into the water, an interface that the
+    // level set moved without a flux), m u carried the velocity of the light fluid with the heavy
+    // density, and the update gave the control volume the velocity of the air (the range of the face
+    // states holds it, and the control volume gains mass instead of losing it). The face density
+    // above that of the upwind control volume (the larger of its density at the start of the transport
+    // and of the current level set) carries the velocity of q itself; the mass flux stays that of
+    // N 59 2. Outflow faces carry their face state as before.
+    const bool hup = hls && p->N59==3;
+
+    auto mflux = [&](double m, double vn, bool in, int qu, int iu, int ju, int ku, double us, double uq) -> double
+    {
+        if(!hup || !in)
+        return m*us;
+
+        const double ru = std::max(rf[qu], rho_cv(p,a->phi,ipol,std::min(iu,p->knox),
+                                                  (p->j_dir==1) ? std::min(ju,p->knoy) : ju,std::min(ku,p->knoz)));
+        const double r = m/vn;
+
+        if(r<=ru)
+        return m*us;
+
+        return vn*(ru*us + (r-ru)*uq);
+    };
+
     auto term_cons = [&](int ii, int jj, int kk) -> double
     {
         const int q = id(ii,jj,kk);
@@ -441,7 +467,7 @@ void godunov::start(lexer *p, fdm *a, field &f, int ipol, field &U, field &V, fi
         Dm += (m2-m1)/w;
         const double u2 = state(0,q,qe,w,wr,v2), u1 = state(0,qw,q,wl,w,v1);
         umin = std::min(umin,std::min(u1,u2));  umax = std::max(umax,std::max(u1,u2));
-        Du += (m2*u2 - m1*u1)/w;
+        Du += (mflux(m2,v2,v2<0.0,qe,ii+1,jj,kk,u2,sf[q]) - mflux(m1,v1,v1>0.0,qw,ii-1,jj,kk,u1,sf[q]))/w;
         Dv += (v2-v1)/w;
         }
 
@@ -456,7 +482,7 @@ void godunov::start(lexer *p, fdm *a, field &f, int ipol, field &U, field &V, fi
         Dm += (m2-m1)/w;
         const double u2 = state(1,q,qn,w,wr,v2), u1 = state(1,qs,q,wl,w,v1);
         umin = std::min(umin,std::min(u1,u2));  umax = std::max(umax,std::max(u1,u2));
-        Du += (m2*u2 - m1*u1)/w;
+        Du += (mflux(m2,v2,v2<0.0,qn,ii,jj+1,kk,u2,sf[q]) - mflux(m1,v1,v1>0.0,qs,ii,jj-1,kk,u1,sf[q]))/w;
         Dv += (v2-v1)/w;
         }
 
@@ -470,7 +496,7 @@ void godunov::start(lexer *p, fdm *a, field &f, int ipol, field &U, field &V, fi
         Dm += (m2-m1)/w;
         const double u2 = state(2,q,qt,w,wr,v2), u1 = state(2,qb,q,wl,w,v1);
         umin = std::min(umin,std::min(u1,u2));  umax = std::max(umax,std::max(u1,u2));
-        Du += (m2*u2 - m1*u1)/w;
+        Du += (mflux(m2,v2,v2<0.0,qt,ii,jj,kk+1,u2,sf[q]) - mflux(m1,v1,v1>0.0,qb,ii,jj,kk-1,u1,sf[q]))/w;
         Dv += (v2-v1)/w;
         }
 
