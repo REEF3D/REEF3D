@@ -26,6 +26,7 @@ Author: Alexander Hanke
 #include "lexer.h"
 #include "ckpt_registry.h"
 
+#include <cassert>
 #include <cstddef>
 #include <type_traits>
 #include <vector>
@@ -76,6 +77,41 @@ public:
     inline T &operator()(int ii, int jj, int kk) noexcept {return m_base[ii*m_js + jj*m_ks + kk];}
     inline const T &operator()(int ii, int jj, int kk) const noexcept {return m_base[ii*m_js + jj*m_ks + kk];}
 
+    /*!
+     * @brief Lightweight, capture-by-value view: the folded base pointer and
+     * strides copied out once, so a loop body indexes local values instead of
+     * reloading this->m_base/m_js/m_ks through operator(). Mirrors the amrex::Array4 captured by FIELDLOOP under USE_AMREX
+     * (materialized once per tile, then indexed by value) so the same LOOP
+     * macros can be hoisted out of the loop body and stay vectorizable.
+     *
+     * Canonical description of the aliasing rules; slice_base::View refers here.
+     *
+     * base is __restrict: while a View is alive, nothing else may reach the same
+     * elements through another pointer. Do not hold a view() and a const_view()
+     * (or two views) of the same field in one loop, e.g. out(i,j,k) = in(i+1,j,k)
+     * on a single field, and do not mix a view with operator()/data() on that
+     * field for writes; that is undefined behaviour. Drop __restrict if that
+     * pattern is needed.
+     */
+    struct View
+    {
+        T *__restrict base;        ///< already origin-folded, see cache_addressing()
+        stride_t js, ks;
+        inline T &operator()(int ii, int jj, int kk) const noexcept
+        { return base[ii*js + jj*ks + kk]; }
+    };
+
+    struct ConstView
+    {
+        const T *__restrict base;
+        stride_t js, ks;
+        inline const T &operator()(int ii, int jj, int kk) const noexcept
+        { return base[ii*js + jj*ks + kk]; }
+    };
+
+    inline View view() noexcept { return View{m_base, m_js, m_ks}; }
+    inline ConstView const_view() const noexcept { return ConstView{m_base, m_js, m_ks}; }
+
     T *data() noexcept {return V.data();}
     const T *data() const noexcept {return V.data();}
 
@@ -97,14 +133,16 @@ protected:
      * documentation is the canonical description of that layout and the slack plane.
      *
      * allocate=false: the field is not used in this run (V stays empty)
+     * checkpoint=false: scratch storage rebuilt before every use (e.g. a solver's
+     * row numbering); not entered in the checkpoint registry
      */
-    field_base(lexer *pp, int kz, std::size_t slack, bool allocate=true) :
+    field_base(lexer *pp, int kz, std::size_t slack, bool allocate=true, bool checkpoint=true) :
         V(allocate ? static_cast<std::size_t>(pp->imax)*static_cast<std::size_t>(pp->jmax)*static_cast<std::size_t>(kz) + slack : 0, T{}),
         imin(pp->imin), jmin(pp->jmin),
         kmin(pp->kmin), kmax(kz),
         jkmax(static_cast<stride_t>(pp->jmax)*kz)
     {
-        if(V.size() > 0)
+        if(checkpoint && V.size() > 0)
         {
             if(kmax==pp->kmax && slack==0)
             {
@@ -112,8 +150,8 @@ protected:
             }
             else if(kmax==pp->kmaxF)
             {
-                // Placeholder for future use, e.g. for a field7 with kmaxF
-                // ckid = ckpt_registry::add(p,'F',std::is_same<T,int>::value,V);
+                // field7/fieldint7: the slack plane is headroom, not state - consumers take imax*jmax*kmaxF
+                ckid = ckpt_registry::add(pp,'F',std::is_same<T,int>::value,V.data());
             }
         }
 
@@ -136,6 +174,10 @@ protected:
      */
     void cache_addressing() noexcept
     {
+        // m_base is formed below as V.data() minus the origin offset; that stays
+        // inside the allocation only if no origin is positive
+        assert(imin<=0 && jmin<=0 && kmin<=0);
+
         if(V.empty())
         {
             // allocate=false: no folded base into an empty buffer (and none left
