@@ -282,9 +282,13 @@ bool cfd_amr::scope(lexer *p, ghostcell *pgc)
 //  The nets (X 320; of a floating body or fixed, sixdof_void) are moved on level 0 with the fluid
 //  velocity of level 0 at their knots (under a patch the restricted one), where their forces on the
 //  fluid are spread to the faces around every knot (net_interface::dlm_cfd, into Fext, Gext, Hext,
-//  which the momentum of the next stage takes).  The patches get the same forces at their faces,
-//  spread with the kernel of their cells: without them the fluid of a patch did not feel the net,
-//  and level 0 under it takes the velocities of the patch.
+//  which the momentum of the next stage takes).  The patches get the same forces at their faces:
+//  without them the fluid of a patch did not feel the net, and level 0 under it takes the
+//  velocities of the patch.  The kernel of a knot: that of the cells of the finest level that
+//  reaches well around the knot, with its coarser levels (reefamr3d::kernel_level), on that level
+//  and on the finer ones; the coarser levels keep their own kernel, on faces that are covered.
+//  The force of a knot is then on the leaf faces once, wherever the net lies in the patches:
+//  inside one, across a patch edge, next to one or outside (the kernel of level 0 on all levels).
 void cfd_amr::net_forces()
 {
     for(int id=0; id<npat; ++id)
@@ -292,12 +296,23 @@ void cfd_amr::net_forces()
         lexer *pp = CP(id)->pp;
         fdm *fa = CP(id)->a;
         const size_t n = size_t(pp->imax)*pp->jmax*pp->kmax;
+        const int L = CP(id)->lev;
+        int fmax = 1;
+        for(int d=0; d<3; ++d)
+        fmax = MAX(fmax,ratio(L,d));
+        
+        const std::function<void(const double*,int*)> width = [&](const double *x, int *f)
+        {
+            const int lk = CP(id)->shadow ? L : kernel_level(x);
+            for(int d=0; d<3; ++d)
+            f[d] = (lk>L) ? 1 : ratio(L-lk,d);
+        };
 
         std::fill(fa->Fext.V, fa->Fext.V + n, 0.0);
         std::fill(fa->Gext.V, fa->Gext.V + n, 0.0);
         std::fill(fa->Hext.V, fa->Hext.V + n, 0.0);
 
-        nets6->amr_net_forces(pp,fa);
+        nets6->amr_net_forces(pp,fa,fmax,width);
     }
 }
 

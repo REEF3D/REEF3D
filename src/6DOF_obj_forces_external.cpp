@@ -279,9 +279,9 @@ void sixdof_obj_cfd::netForces_cfd(lexer *p, fdm* a, ghostcell *pgc, double alph
     }
 }
 
-void sixdof_obj_cfd::amr_net_forces(lexer *p, fdm *a)
+void sixdof_obj_cfd::amr_net_forces(lexer *p, fdm *a, int fmax, const std::function<void(const double*,int*)> &width)
 {
-    pnetinter->dlm_cfd_amr(p,a);
+    pnetinter->dlm_cfd_amr(p,a,fmax,width);
 }
 
 void sixdof_obj_nhflow::netForces_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, double alpha, bool finalize)

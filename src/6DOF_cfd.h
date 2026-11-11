@@ -68,7 +68,7 @@ public:
     void jsource2D(lexer*,fdm2D*,ghostcell*) override final;
 
     // CFD mesh refinement: the forces of the nets of the bodies onto the grid of a patch
-    void amr_net_forces(lexer*,fdm*) override final;
+    void amr_net_forces(lexer*,fdm*,int,const std::function<void(const double*,int*)>&) override final;
 
     // the bodies, for the CFD mesh refinement (cfd_amr)
     int objects() const {return number6DOF;}

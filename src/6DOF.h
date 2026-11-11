@@ -70,7 +70,7 @@ public:
     
     // CFD mesh refinement (cfd_amr): the forces of the nets (X 320) as of their last stage onto the
     // grid of a patch (its lexer and fdm), added to Fext, Gext, Hext
-    virtual void amr_net_forces(lexer*,fdm*) {}
+    virtual void amr_net_forces(lexer*,fdm*,int,const std::function<void(const double*,int*)>&) {}
     
     virtual void ini(lexer*,ghostcell*)=0;
     // runtime coupling (reefcouple, I 243): number of bodies and the state of body n: CoG (3), velocity

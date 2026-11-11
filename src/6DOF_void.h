@@ -74,7 +74,7 @@ public:
     void jsource2D(lexer*,fdm2D*,ghostcell*) override final;
 
     // CFD mesh refinement: the forces of the fixed nets onto the grid of a patch
-    void amr_net_forces(lexer*,fdm*) override final;
+    void amr_net_forces(lexer*,fdm*,int,const std::function<void(const double*,int*)>&) override final;
 
     // checkpoints (P 48, I 45): the fixed nets (X 320) and mooring lines (X 310) without a floating body
     void ckpt_state(lexer*, std::vector<double>&) override final;

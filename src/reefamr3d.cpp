@@ -143,6 +143,54 @@ bool reefamr3d::refined(int l, const int *I) const
     return tile_marked(l,I[0]/tile[0],I[1]/tile[1],I[2]/tile[2]);
 }
 
+// The level whose cells give the width of the kernel of a point force at x (the knots of the
+// nets): the finest level l with the cells around x refined on every level 1..l (3 cells of the
+// next coarser level to every side, clipped at the domain).  The kernel of a level (2 cells wide
+// to every side) then lies on faces that are covered by the next finer level, for every level
+// coarser than l, and on faces of level l itself: the force of the point is on the leaf faces
+// once, whatever the edges of the patches around it.  0: the kernel of level 0.
+int reefamr3d::kernel_level(const double *x) const
+{
+    int lev = 0;
+    for(int l=1; l<=maxlev; ++l)
+    {
+        int ta[3], tb[3];
+        for(int d=0; d<3; ++d)
+        {
+            if(rr[d]!=2)
+            {
+                ta[d] = 0;
+                tb[d] = tn[l][d]-1;
+                continue;
+            }
+            // the cell of level l-1 that holds x (clamped into the domain)
+            const int n = gn(l-1,d);
+            int a = 0, b = n;
+            while(b-a>1)
+            {
+                const int m = (a+b)/2;
+                if(x[d]>=node(l-1,d,m))
+                a = m;
+                else
+                b = m;
+            }
+            const int lo = MAX(2*(a-3),0), hi = MIN(2*(a+3)+1,gn(l,d)-1);
+            ta[d] = lo/tile[d];
+            tb[d] = hi/tile[d];
+        }
+        bool all = true;
+        for(int ti=ta[0]; ti<=tb[0] && all; ++ti)
+        for(int tj=ta[1]; tj<=tb[1] && all; ++tj)
+        for(int tk=ta[2]; tk<=tb[2] && all; ++tk)
+        if(!tile_marked(l,ti,tj,tk))
+        all = false;
+        if(!all)
+        break;
+        lev = l;
+    }
+    return lev;
+}
+
 bool reefamr3d::covered(int l, const int *I) const
 {
     if(l>=maxlev)

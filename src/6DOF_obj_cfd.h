@@ -112,7 +112,7 @@ public:
     // stage, the pose and the body velocities (the hull is cast on the patches, not on level 0)
     void amr_stage_cfd(lexer*, fdm*, ghostcell*, int);
     // ... the forces of the nets (X 320) as of their last stage onto the grid of a patch (Fext, Gext, Hext)
-    void amr_net_forces(lexer*, fdm*);
+    void amr_net_forces(lexer*, fdm*, int, const std::function<void(const double*,int*)>&);
 
 private:
     
