@@ -313,6 +313,7 @@ public:
     int finest_id(double, double, double) const;
     void step(lexer*, fdm*, ghostcell*, vrans*, sixdof*);
     void timestep(lexer*, fdm*, ghostcell*);
+    void velmax(lexer*);    // the largest |u|, |v|, |w| over the finest grids (timestep: printed, into umax, vmax, wmax)
     void print(lexer*, ghostcell*, bool after=false);
     bool print_lagoon(lexer*, ghostcell*, int num);    // P 18: the blocks into the LAGOON store
 

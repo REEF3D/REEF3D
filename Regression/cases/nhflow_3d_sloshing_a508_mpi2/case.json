@@ -1,0 +1,19 @@
+{
+ "description": "Explicit NHFLOW (SSP-RK2) with the fourth-order horizontal operators of the projection (A 508 1) in the non-incremental projection (A 520 1) on two ranks: free oscillation in a closed basin 1.6 m x 1.6 m, 0.4 m deep, 32 x 32 x 4 cells, initial surface cos(2 pi x/L) cos(pi y/L) set in 16 x 16 boxes (F 72). 200 steps.",
+ "solver": "nhflow",
+ "np": 2,
+ "steps": 200,
+ "tags": [
+  "3d",
+  "nhflow",
+  "nonhydrostatic",
+  "mpi",
+  "fourth_order"
+ ],
+ "covers": [
+  "nhflow_pjm_ho: divx, divy, gradx, grady in nhflow_pjm (rhs, ucorr, vcorr)",
+  "the stencil across the rank boundary",
+  "second-order fallback at the walls"
+ ],
+ "architect": "Hans Bihs"
+}

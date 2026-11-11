@@ -131,6 +131,7 @@ public:
     int *deep;
     int *wetfix = nullptr;          // mesh refinement (NHFLOW G 30): flag a cell keeps through wetdry, -1 none
     int amr_patch = 0;              // mesh refinement (CFD, G 15): 1 on the lexer of a patch
+    int amr_cfd = 0;                // mesh refinement (CFD, G 1): 1 on level 0 while it runs: cfd_amr::velmax prints umax, vmax, wmax over the finest grids, not the time step
     double *amrvb = nullptr;        // mesh refinement (NHFLOW A 550): breaking viscosity of the source of a filled cell, -1 none
     int gcbextra;
     int solidread,toporead,porousread,topoforcing;

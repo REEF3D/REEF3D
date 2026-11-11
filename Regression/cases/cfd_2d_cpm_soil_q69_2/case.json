@@ -1,0 +1,32 @@
+{
+ "description": "cfd_2d_cpm_bedload_layer_solids with the seepage of the bed from the soil stress model, Q 69 2: the CPM pore pressure p* = p*_0 (Laplace solution of the first step, Q 69 1) + the excess pore pressure of the soil model (S 200 1, fine sand k 1e-5 m/s, Sr 0.95: consolidation with a lag of about 0.1 s); seepage force on the parcels and effective stress of the contact network from it; the block and the floor rigid and impermeable in the soil",
+ "base": "cfd_2d_cpm_bedload_layer_solids",
+ "ctrl_add": [
+  "Q 69 2",
+  "S 200 1",
+  "S 201 1.333e7",
+  "S 202 0.3333333333 0.3333333333",
+  "S 204 1.0e-5 1.0e-5 1.0e-5",
+  "S 205 0.4",
+  "S 206 0.95",
+  "S 208 1.1e5",
+  "S 216 0.04 0.0 0.0125",
+  "S 216 0.06 0.0 0.0125",
+  "S 216 0.03 0.0 0.0025"
+ ],
+ "np": 1,
+ "steps": 150,
+ "tags": [
+  "quick",
+  "2d",
+  "cpm",
+  "solid",
+  "soil"
+ ],
+ "covers": [
+  "CPM::seepage_update Q 69 2, CPM::seepage_gradient",
+  "soil_stress::instance, running, pore",
+  "soil_stress with solids in the soil"
+ ],
+ "architect": "Hans Bihs"
+}

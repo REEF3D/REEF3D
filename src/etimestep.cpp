@@ -113,7 +113,8 @@ void etimestep::start(fdm *a, lexer *p, ghostcell *pgc, turbulence *pturb)
     p->pressmin=-gmax[11];
     }
 
-    if(p->mpirank==0 && (p->count%p->P12==0))
+    // with the mesh refinement (G 1) cfd_amr::timestep prints them, over the finest grids
+    if(p->mpirank==0 && (p->count%p->P12==0) && p->amr_cfd==0)
     {
 	cout<<"umax: "<<setprecision(3)<<p->umax<<" \t utime: "<<p->utime<<endl;
 	cout<<"vmax: "<<setprecision(3)<<p->vmax<<" \t vtime: "<<p->vtime<<endl;

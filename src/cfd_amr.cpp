@@ -1488,6 +1488,9 @@ void cfd_amr::patch_fields_ini(int id)
 
 void cfd_amr::ini(lexer *p, fdm *a, ghostcell *pgc)
 {
+    // the time step of level 0 leaves the printout of umax, vmax, wmax to velmax
+    p0->amr_cfd = 1;
+
     for(int id=0; id<npat; ++id)
     patch_fields_ini(id);
 
@@ -1754,6 +1757,74 @@ void cfd_amr::timestep(lexer *p, fdm *a, ghostcell *pgc)
         q->pp->dt = p->dt;
         q->pp->dt_old = p->dt_old;
     }
+
+    velmax(p);
+}
+
+// the largest |u|, |v|, |w| of the step over the finest grid everywhere: the faces of the cells of
+// level 0 and of the patches that no finer patch covers (the leaf cells), over all ranks.  Printed
+// every P 12 steps in place of the level-0 values of the time step (etimestep, ietimestep,
+// fixtimestep); umax, vmax, wmax of lexer (the maxlog, the stop at N 61) take them as well
+void cfd_amr::velmax(lexer *p)
+{
+    double vm[3] = {0.0,0.0,0.0};
+
+    auto grid = [&](lexer *q, fdm *f, int lv, const int *o)
+    {
+        int I[3];
+        for(int i=0; i<q->knox; ++i)
+        for(int j=0; j<q->knoy; ++j)
+        for(int k=0; k<q->knoz; ++k)
+        {
+            I[0] = i+o[0]; I[1] = j+o[1]; I[2] = k+o[2];
+            if(covered(lv,I))
+            continue;
+
+            int n = cix(q,i,j,k);
+            if(q->flag1[n]>0)
+            vm[0] = MAX(vm[0],fabs(f->u(i,j,k)));
+            n = cix(q,i-1,j,k);
+            if(q->flag1[n]>0)
+            vm[0] = MAX(vm[0],fabs(f->u(i-1,j,k)));
+
+            if(q->j_dir==1)
+            {
+            n = cix(q,i,j,k);
+            if(q->flag2[n]>0)
+            vm[1] = MAX(vm[1],fabs(f->v(i,j,k)));
+            n = cix(q,i,j-1,k);
+            if(q->flag2[n]>0)
+            vm[1] = MAX(vm[1],fabs(f->v(i,j-1,k)));
+            }
+
+            n = cix(q,i,j,k);
+            if(q->flag3[n]>0)
+            vm[2] = MAX(vm[2],fabs(f->w(i,j,k)));
+            n = cix(q,i,j,k-1);
+            if(q->flag3[n]>0)
+            vm[2] = MAX(vm[2],fabs(f->w(i,j,k-1)));
+        }
+    };
+
+    grid(p0,a0,0,org);
+    for(int id=0; id<npat; ++id)
+    {
+        cfd_amr_patch *c = CP(id);
+        grid(c->pp,c->a,c->lev,c->lo);
+    }
+
+    MPI_Allreduce(MPI_IN_PLACE,vm,3,MPI_DOUBLE,MPI_MAX,reef3d_comm());
+
+    if(p->mpirank==0 && (p->count%p->P12==0))
+    {
+    cout<<"umax: "<<setprecision(3)<<vm[0]<<endl;
+    cout<<"vmax: "<<setprecision(3)<<vm[1]<<endl;
+    cout<<"wmax: "<<setprecision(3)<<vm[2]<<endl;
+    }
+
+    p->umax = MAX(p->umax,vm[0]);
+    p->vmax = MAX(p->vmax,vm[1]);
+    p->wmax = MAX(p->wmax,vm[2]);
 }
 
 // --------------------------------------------------------------------- the step

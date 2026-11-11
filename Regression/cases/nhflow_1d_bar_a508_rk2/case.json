@@ -1,0 +1,9 @@
+{
+ "description": "Explicit NHFLOW (SSP-RK2, A 520 2) with the fourth-order horizontal operators of the projection (A 508 1) and the consistent bed node (A 522 0): Beji & Battjes bar (Benchmark nhflow_beji_battjes_bar), 750 cells, 4 sigma layers, relaxation zones. 800 steps: the waves reach the bar crest.",
+ "solver": "nhflow",
+ "np": 1,
+ "steps": 800,
+ "tags": ["1d", "nhflow", "nonhydrostatic", "waves", "fourth_order"],
+ "covers": ["nhflow_pjm_ho: divx at the pressure nodes and the bed node on a sloping bed, gradx of the pressure increment and of the old pressure (nhflow_pjm_corr::rhs, ucorr, upgrad)", "second-order fallback next to the open boundaries", "A 522 0"],
+ "architect": "Hans Bihs"
+}
