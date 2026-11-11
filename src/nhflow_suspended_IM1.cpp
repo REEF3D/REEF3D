@@ -230,19 +230,24 @@ void nhflow_suspended_IM1::inflow_conc(lexer *p, fdm_nhf *d, sediment_fdm *s)
     // at the x- edge carry the depth-averaged concentration C_in with the profile of the first column (uniform
     // while that column is clear); bcsusp_start takes them as the upwind (Dirichlet) value of the inflow face.
     // C_in < 0: zero gradient as before (the face coefficient is folded into the diagonal)
+    // All four edges of the domain (it was the x- edge only: an inflow through another edge stayed zero gradient).
     cin_on = 0;
     
     const double cin = (s->pinflow!=nullptr) ? s->pinflow->conc(p) : p->S124;
     
-    if(cin<0.0 || p->origin_i!=0)
+    if(cin<0.0)
     return;
     
     cin_on = 1;
     
-    i=0;
+    double cm;
+    
+    // x-
+    if(p->origin_i==0)
     for(j=0; j<p->knoy; ++j)
     {
-    double cm=0.0;
+    i=0;
+    cm=0.0;
     
         for(k=0; k<p->knoz; ++k)
         cm += MAX(d->CONC[IJK],0.0)*p->DZN[KP];
@@ -250,6 +255,51 @@ void nhflow_suspended_IM1::inflow_conc(lexer *p, fdm_nhf *d, sediment_fdm *s)
         for(k=0; k<p->knoz; ++k)
         if(p->IO[Im1JK]==1)
         d->CONC[Im1JK] = d->CONC[Im2JK] = d->CONC[Im3JK] = (cm>1.0e-12) ? cin*MAX(d->CONC[IJK],0.0)/cm : cin;
+    }
+    
+    // x+
+    if(p->origin_i+p->knox==p->gknox)
+    for(j=0; j<p->knoy; ++j)
+    {
+    i=p->knox-1;
+    cm=0.0;
+    
+        for(k=0; k<p->knoz; ++k)
+        cm += MAX(d->CONC[IJK],0.0)*p->DZN[KP];
+    
+        for(k=0; k<p->knoz; ++k)
+        if(p->IO[Ip1JK]==1)
+        d->CONC[Ip1JK] = d->CONC[Ip2JK] = d->CONC[Ip3JK] = (cm>1.0e-12) ? cin*MAX(d->CONC[IJK],0.0)/cm : cin;
+    }
+    
+    // y-
+    if(p->j_dir==1 && p->origin_j==0)
+    for(i=0; i<p->knox; ++i)
+    {
+    j=0;
+    cm=0.0;
+    
+        for(k=0; k<p->knoz; ++k)
+        cm += MAX(d->CONC[IJK],0.0)*p->DZN[KP];
+    
+        for(k=0; k<p->knoz; ++k)
+        if(p->IO[IJm1K]==1)
+        d->CONC[IJm1K] = d->CONC[IJm2K] = d->CONC[IJm3K] = (cm>1.0e-12) ? cin*MAX(d->CONC[IJK],0.0)/cm : cin;
+    }
+    
+    // y+
+    if(p->j_dir==1 && p->origin_j+p->knoy==p->gknoy)
+    for(i=0; i<p->knox; ++i)
+    {
+    j=p->knoy-1;
+    cm=0.0;
+    
+        for(k=0; k<p->knoz; ++k)
+        cm += MAX(d->CONC[IJK],0.0)*p->DZN[KP];
+    
+        for(k=0; k<p->knoz; ++k)
+        if(p->IO[IJp1K]==1)
+        d->CONC[IJp1K] = d->CONC[IJp2K] = d->CONC[IJp3K] = (cm>1.0e-12) ? cin*MAX(d->CONC[IJK],0.0)/cm : cin;
     }
 }
 
@@ -270,6 +320,24 @@ void nhflow_suspended_IM1::bcsusp_start(lexer *p, fdm_nhf *d, ghostcell *pgc, se
             {
             d->rhsvec.V[n] -= d->M.s[n]*CONC[Im1JK];
             d->M.s[n] = 0.0;
+            }
+            
+            if(cin_on==1 && i+p->origin_i==p->gknox-1 && p->IO[Ip1JK]==1 && p->DF[Ip1JK]>0)
+            {
+            d->rhsvec.V[n] -= d->M.n[n]*CONC[Ip1JK];
+            d->M.n[n] = 0.0;
+            }
+            
+            if(cin_on==1 && p->j_dir==1 && j+p->origin_j==0 && p->IO[IJm1K]==1 && p->DF[IJm1K]>0)
+            {
+            d->rhsvec.V[n] -= d->M.e[n]*CONC[IJm1K];
+            d->M.e[n] = 0.0;
+            }
+            
+            if(cin_on==1 && p->j_dir==1 && j+p->origin_j==p->gknoy-1 && p->IO[IJp1K]==1 && p->DF[IJp1K]>0)
+            {
+            d->rhsvec.V[n] -= d->M.w[n]*CONC[IJp1K];
+            d->M.w[n] = 0.0;
             }
             
             if(p->flag4[Im1JK]<0 || p->DF[Im1JK]<0 || p->wet[Im1J]==0)
