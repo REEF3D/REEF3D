@@ -1,9 +1,6 @@
 {
  "base": "nhflow_2d_si_nh_standing",
- "ctrl_set": {
-  "A 508": "1"
- },
- "description": "nhflow_2d_si_nh_standing with the fourth-order horizontal operators (A 508 1): both horizontal directions, the coupled eta-phi system by FGMRES with the explicit phi face terms in its right-hand side.",
+ "description": "nhflow_2d_si_nh_standing with the fourth-order horizontal operators: both horizontal directions, the coupled eta-phi system by FGMRES with the explicit phi face terms in its right-hand side. Since A 508 was retired (always fourth order on one Cartesian grid) this is the run of nhflow_2d_si_nh_standing.",
  "tags": [
   "quick",
   "2d",

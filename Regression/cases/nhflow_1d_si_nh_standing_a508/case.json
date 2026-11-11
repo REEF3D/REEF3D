@@ -1,9 +1,6 @@
 {
  "base": "nhflow_1d_si_nh_standing",
- "ctrl_set": {
-  "A 508": "1"
- },
- "description": "nhflow_1d_si_nh_standing with the fourth-order horizontal operators (A 508 1): the cell predictor to the faces and the face terms to the cells with (-1, 9, 9, -1)/16, the explicit -delta^2/12 part of the gradient of eta and of the phi face terms; the two cells next to each wall keep the second-order terms.",
+ "description": "nhflow_1d_si_nh_standing with the fourth-order horizontal operators: the cell predictor to the faces and the face terms to the cells with (-1, 9, 9, -1)/16, the explicit -delta^2/12 part of the gradient of eta and of the phi face terms; the two cells next to each wall keep the second-order terms. Since A 508 was retired (always fourth order on one Cartesian grid) this is the run of nhflow_1d_si_nh_standing.",
  "tags": [
   "quick",
   "1d",

@@ -1,0 +1,21 @@
+{
+ "base": "fnpf_3d_shortcrested",
+ "ctrl_set": {
+  "A 431": "2"
+ },
+ "description": "FNPF 3D short-crested irregular waves of fnpf_3d_shortcrested (RK3, breaking A 350 1, fixed step, 2 ranks) with A 431 2.",
+ "tags": [
+  "3d",
+  "fnpf",
+  "waves",
+  "iowave",
+  "irregular",
+  "solver",
+  "mpi"
+ ],
+ "covers": [
+  "A 431 2 with RK3 in 3D on several ranks"
+ ],
+ "same_as": "fnpf_3d_shortcrested",
+ "same_as_rtol": 1e-06
+}

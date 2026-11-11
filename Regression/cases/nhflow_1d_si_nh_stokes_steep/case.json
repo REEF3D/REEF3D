@@ -1,5 +1,5 @@
 {
- "description": "NHFLOW semi-implicit step with the non-hydrostatic pressure under a steep progressive wave: 5th-order Stokes wave kh 3, ka 0.21 (d 1 m, H 0.14 m, T 1.14 s) in a tank of 8 wavelengths (512 x 4 cells, sigma stretching B 103 5, dt T/58, A 510 11, A 508 1), 26 periods. The phi face terms of the cells are inside the column solve, so the implicit half of the vertical advection acts on the velocity of t^{n+1}; added after the solve, the layers exchanged horizontal momentum in the mean and a shear current grew by 3.6 mm/s per second (0.2 with the terms in the solve).",
+ "description": "NHFLOW semi-implicit step with the non-hydrostatic pressure under a steep progressive wave: 5th-order Stokes wave kh 3, ka 0.21 (d 1 m, H 0.14 m, T 1.14 s) in a tank of 8 wavelengths (512 x 4 cells, sigma stretching B 103 5, dt T/58, A 510 11), 26 periods. The phi face terms of the cells are inside the column solve, so the implicit half of the vertical advection acts on the velocity of t^{n+1}; added after the solve, the layers exchanged horizontal momentum in the mean and a shear current grew by 3.6 mm/s per second (0.2 with the terms in the solve).",
  "solver": "nhflow",
  "np": 1,
  "steps": 1500,

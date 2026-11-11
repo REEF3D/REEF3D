@@ -1,0 +1,19 @@
+{
+ "base": "nhflow_2d_beach_suspended_mpi2",
+ "ctrl_add": [
+  "S 37 1"
+ ],
+ "description": "nhflow_2d_beach_suspended_mpi2 with the inertia stress of the grains S 37 1: rho cm cv cn d50 du/dt from the acceleration of the bottom-layer velocity between two sediment steps (bedshear::bed_acceleration, both components, limited to 0.3 g, zero in dry columns), added to the bed shear stress as a vector. Before, the term was the magnitude of the acceleration times S 21 d50 and only the RK2 momentum solver filled it.",
+ "tags": [
+  "2d",
+  "nhflow",
+  "sediment",
+  "suspended",
+  "waves",
+  "mpi"
+ ],
+ "covers": [
+  "bedshear::bed_acceleration",
+  "bedshear::taubed (NHFLOW) S 37 1"
+ ]
+}

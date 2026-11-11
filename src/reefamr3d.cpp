@@ -1088,10 +1088,29 @@ void reefamr3d::mark_tiles(const vector<vector<unsigned char>> *seed)
         return -1;
     };
 
-    // the tiles of level l to extend; returns their number
+    // tiles that may not be refined: at an in- or outflow boundary or a patch boundary condition
+    // (fbd), in a wave zone, or given up below (off)
+    vector<vector<char>> off(maxlev+1);
+    for(int l=1; l<=maxlev; ++l)
+    off[l].assign(tmask[l].size(),0);
+    auto zone_tile = [&](int l, int ti) -> bool
+    {
+        const int I0 = ti*tile[0] - 3, I1 = MIN((ti+1)*tile[0],gn(l,0)) + 3;
+        const double xa = node(l,0,MAX(I0,0)), xb = node(l,0,MIN(I1,gn(l,0)));
+        return xa<zx0 || xb>zx1;
+    };
+    auto barred = [&](int l, size_t t) -> bool
+    {
+        return fbd[l][t]!=0 || off[l][t]!=0 || zone_tile(l,int(t/((size_t)tn[l][1]*tn[l][2])));
+    };
+    int retreated = 0;
+
+    // the tiles of level l to extend; returns their number.  Where the tile across may not be
+    // refined (an in- or outflow boundary, a wave zone), the level gives up its tile at the
+    // partition edge instead: its edge moves inwards, off the partition edge
     auto edges = [&](int l, bool fix) -> int
     {
-        vector<size_t> add;
+        vector<size_t> add, rem;
         int I[3];
         for(I[0]=0; I[0]<gn(l,0); ++I[0])
         for(I[1]=0; I[1]<gn(l,1); ++I[1])
@@ -1120,14 +1139,28 @@ void reefamr3d::mark_tiles(const vector<vector<unsigned char>> *seed)
                     b[d] = N/R;
                     if(rank_of(a)==rank_of(b))
                     continue;
-                    add.push_back(((size_t)(J[0]/tile[0])*tn[l][1] + J[1]/tile[1])*tn[l][2] + J[2]/tile[2]);
+                    const size_t tj = ((size_t)(J[0]/tile[0])*tn[l][1] + J[1]/tile[1])*tn[l][2] + J[2]/tile[2];
+                    if(fix && barred(l,tj))
+                    rem.push_back(((size_t)(I[0]/tile[0])*tn[l][1] + I[1]/tile[1])*tn[l][2] + I[2]/tile[2]);
+                    else
+                    add.push_back(tj);
                 }
             }
         }
         if(fix)
-        for(size_t t : add)
-        tmask[l][t] = 1;
-        return (int)add.size();
+        {
+            for(size_t t : add)
+            tmask[l][t] = 1;
+            std::sort(rem.begin(),rem.end());
+            rem.erase(std::unique(rem.begin(),rem.end()),rem.end());
+            for(size_t t : rem)
+            {
+                tmask[l][t] = 0;
+                off[l][t] = 1;
+            }
+            retreated += (int)rem.size();
+        }
+        return (int)(add.size()+rem.size());
     };
 
     // a periodic edge: a level is refined on both sides of it alike (the cells next to it on one side
@@ -1174,33 +1207,93 @@ void reefamr3d::mark_tiles(const vector<vector<unsigned char>> *seed)
     // (G 40: the shadows give every level-1 patch its coarse cells, the finer levels are cut at
     // their units: no extension at the partition edges)
     int extended = 0, extended_seam = 0;
-    for(int l=maxlev; l>=1 && (!place || per[0] || per[1]); --l)
+    for(int round=0; round<64 && (!place || per[0] || per[1]); ++round)
     {
-        for(int pass=0; pass<64; ++pass)
+        const int ret0 = retreated;
+        int undone = 0, barred_nest = 0;
+
+        for(int l=maxlev; l>=1; --l)
         {
-            const int n = place ? 0 : edges(l,true);
-            const int ns = seam(l,true);
-            extended += n;
-            extended_seam += ns;
-            if(n+ns==0)
-            break;
+            for(int pass=0; pass<64; ++pass)
+            {
+                const int r0 = retreated;
+                const int n = place ? 0 : edges(l,true);
+                const int ns = seam(l,true);
+                extended += n - (retreated-r0);
+                extended_seam += ns;
+                if(n+ns==0)
+                break;
+            }
+
+            if(l>=2)
+            {
+                for(int ti=0; ti<tn[l][0]; ++ti)
+                for(int tj=0; tj<tn[l][1]; ++tj)
+                for(int tk=0; tk<tn[l][2]; ++tk)
+                if(tile_marked(l,ti,tj,tk))
+                {
+                    int lo[3], hi[3];
+                    const int t[3] = {ti,tj,tk};
+                    for(int d=0; d<3; ++d)
+                    {
+                        lo[d] = fdiv(t[d]*tile[d],rr[d]) - (rr[d]==2 ? nest : 0);
+                        hi[d] = fdiv((t[d]+1)*tile[d]-1,rr[d]) + (rr[d]==2 ? nest : 0);
+                    }
+                    mark_cells(l-1,lo,hi);
+                }
+
+                // the tiles given up stay on the coarser level
+                if(retreated>0)
+                for(size_t t=0; t<tmask[l-1].size(); ++t)
+                if(tmask[l-1][t] && off[l-1][t])
+                {
+                    tmask[l-1][t] = 0;
+                    ++barred_nest;
+                }
+            }
         }
 
-        if(l>=2)
+        // after a retreat: the finer tiles that lost their nesting are given up as well (their
+        // parents and one more cell on the coarser level), and the edges are looked at again
+        if(barred_nest>0 || retreated>ret0)
+        for(int l=2; l<=maxlev; ++l)
         for(int ti=0; ti<tn[l][0]; ++ti)
         for(int tj=0; tj<tn[l][1]; ++tj)
         for(int tk=0; tk<tn[l][2]; ++tk)
         if(tile_marked(l,ti,tj,tk))
         {
-            int lo[3], hi[3];
             const int t[3] = {ti,tj,tk};
+            int lo[3], hi[3];
             for(int d=0; d<3; ++d)
             {
-                lo[d] = fdiv(t[d]*tile[d],rr[d]) - (rr[d]==2 ? nest : 0);
-                hi[d] = fdiv((t[d]+1)*tile[d]-1,rr[d]) + (rr[d]==2 ? nest : 0);
+                lo[d] = fdiv(t[d]*tile[d],rr[d]) - (rr[d]==2 ? 1 : 0);
+                hi[d] = fdiv((t[d]+1)*tile[d]-1,rr[d]) + (rr[d]==2 ? 1 : 0);
+                if(!per[d])
+                {
+                    lo[d] = MAX(lo[d],0);
+                    hi[d] = MIN(hi[d],gn(l-1,d)-1);
+                }
             }
-            mark_cells(l-1,lo,hi);
+            bool ok = true;
+            int I[3], J[3];
+            for(I[0]=lo[0]; I[0]<=hi[0] && ok; ++I[0])
+            for(I[1]=lo[1]; I[1]<=hi[1] && ok; ++I[1])
+            for(I[2]=lo[2]; I[2]<=hi[2] && ok; ++I[2])
+            if(!wrap(l-1,I,J) || !refined(l-1,J))
+            ok = false;
+
+            if(!ok)
+            {
+                const size_t ix = ((size_t)ti*tn[l][1] + tj)*tn[l][2] + tk;
+                tmask[l][ix] = 0;
+                off[l][ix] = 1;
+                ++undone;
+            }
         }
+
+        retreated += undone;
+        if(retreated==ret0)
+        break;
     }
 
     // checks after the extensions: the wave zones, the edges
@@ -1230,6 +1323,8 @@ void reefamr3d::mark_tiles(const vector<vector<unsigned char>> *seed)
 
     if(myrank==0 && verbose && extended>0)
     cout<<"CFD AMR: "<<extended<<" tiles added: the edges of the refined region kept off the partition edges"<<endl;
+    if(myrank==0 && verbose && retreated>0)
+    cout<<"CFD AMR: "<<retreated<<" tiles not refined: the edges of the refined region kept off the partition edges next to an in- or outflow boundary or a wave zone"<<endl;
     if(myrank==0 && verbose && extended_seam>0)
     cout<<"CFD AMR: "<<extended_seam<<" tiles added: the refined region alike on both sides of a periodic edge"<<endl;
 
