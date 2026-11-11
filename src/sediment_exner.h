@@ -95,6 +95,7 @@ private:
     void face_closure(lexer*,double&,double&,double&,double&);
     void qb_clear(lexer*,sediment_fdm*);
     void qb_inflow(lexer*,sediment_fdm*,int);
+    void qb_inflow(lexer*,sediment_fdm*,int,slice4&);
     void dry_deposit(lexer*,sediment_fdm*);
     
     double ramp_dt(lexer*);

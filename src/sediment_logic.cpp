@@ -113,6 +113,14 @@ void sediment_f::sediment_logic(lexer *p, ghostcell *pgc, turbulence *pturb)
         exit(1);
     }
 
+    // S 33 2: S 40 is the number of saltation lengths (the default S 40 0.1 is a length in m for S 33 1)
+    if(p->S33==2 && p->S40<1.0)
+    {
+        if(p->mpirank==0)
+        cout<<"!!! S 33 2: the adaptation length is S 40 saltation lengths of van Rijn, S 40 >= 1 (found "<<p->S40<<"); one length is 10-200 d50 !!!"<<endl;
+        exit(1);
+    }
+
     s = new sediment_fdm(p);
     
     // multi-fraction bed

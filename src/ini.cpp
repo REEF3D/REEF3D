@@ -1303,7 +1303,7 @@ void control::ini_default()
 	S37=0;		        // int inertia bedshear stress: 1 inertia stress of the grains rho cm cv cn d50 du/dt (NHFLOW: signed, added as a vector), 2 NHFLOW phase-lead velocity of Nielsen (2006) with S 140, S 141
     S38=0;              // int shallow water bedshear calculation
     S39=100.0;            // double blend factor
-    S40=0.1;            // double bedload adaptation length [m] (S33=1) or factor on water depth [-] (S33=4)
+    S40=0.1;            // double bedload adaptation length [m] (S33=1), number of saltation lengths [-] (S33=2, >= 1) or factor on water depth [-] (S33=4)
 	S41=1;				// int type of sediment start criterion
 	S42=1;				// int type of sediment interval criterion
     S43=1000;          // int number of water iteration, before sediment transport starts
