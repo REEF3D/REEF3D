@@ -276,7 +276,7 @@ void control::read_control(lexer* p)
                 case 320: control>>A320;
                          clear(c,numint);
                          break;
-                case 321: retired_key(control,p,c,numint);
+                case 321: control>>A321;
                          clear(c,numint);
                          break;
                 case 322: retired_key(control,p,c,numint);

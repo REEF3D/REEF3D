@@ -33,6 +33,7 @@ Author: Hans Bihs
 #include"fnpf_fsfbc_wd.h"
 #include"fnpf_body.h"
 #include"fnpf_prof.h"
+#include"reefmg.h"
 
 fnpf_RK4::fnpf_RK4(lexer *p, fdm_fnpf *c, ghostcell *pgc) : fnpf_ini(p,c,pgc),fnpf_sigma(p,c,pgc),
                                                       erk1(p),erk2(p),erk3(p),erk(p),en(p),
@@ -58,7 +59,8 @@ fnpf_RK4::fnpf_RK4(lexer *p, fdm_fnpf *c, ghostcell *pgc) : fnpf_ini(p,c,pgc),fn
     gcval_fifsf = 160;
     }
     
-    plap = new fnpf_laplace_cds2(p);
+    plap0 = new fnpf_laplace_cds2(p);
+    plap = plap0;
     
     
     if(p->A343==0)
@@ -97,6 +99,13 @@ void fnpf_RK4::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, conve
 {
     // A 430: the tolerance of the stage solves (fnpf_laplace_cds2)
     fnpf_laplace_cds2::stage_tol = true;
+    
+    // A 321: start values of the stage solves extrapolated in time (1, 2), the coarse levels of REEFMG of the
+    // first stage solve kept in the other three (2). Not with resolved bodies, whose solves are not
+    // those of plap0 alone. The second and the fourth solve start from the solution of the solve
+    // before them, which is at their time.
+    const bool sv = (p->A321>=1 && p->X10==0);
+    const bool kc = (p->A321>=2 && p->X10==0 && p->N10==1);
 
     
     SLICELOOP4
@@ -161,6 +170,7 @@ void fnpf_RK4::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, conve
     
     // solve Fi
     {fnpf_prof::scope ps_(fnpf_prof::gc3d); pgc->start7V(p,c->Fi,c->bc,gcval);}
+    if(sv) plap0->start_value(p,1,0.5);     // Fi at t^n, for t^n + dt/2
     {fnpf_prof::scope ps_(fnpf_prof::laplace); plap->start(p,c,pgc,psolv,pf,c->Fi,frk);}
     {fnpf_prof::scope ps_(fnpf_prof::gc3d); pgc->start7V(p,c->Fi,c->bc,gcval);}
     {fnpf_prof::scope ps_(fnpf_prof::fsfwvel); pf->fsfwvel(p,c,pgc,erk,frk);}
@@ -223,6 +233,7 @@ void fnpf_RK4::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, conve
     
     // solve Fi
     {fnpf_prof::scope ps_(fnpf_prof::gc3d); pgc->start7V(p,c->Fi,c->bc,gcval);}
+    if(kc) reefmg::keep_coarse = true;
     {fnpf_prof::scope ps_(fnpf_prof::laplace); plap->start(p,c,pgc,psolv,pf,c->Fi,frk);}
     {fnpf_prof::scope ps_(fnpf_prof::gc3d); pgc->start7V(p,c->Fi,c->bc,gcval);}
     {fnpf_prof::scope ps_(fnpf_prof::fsfwvel); pf->fsfwvel(p,c,pgc,erk,frk);}
@@ -285,6 +296,8 @@ void fnpf_RK4::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, conve
     
     // solve Fi
     {fnpf_prof::scope ps_(fnpf_prof::gc3d); pgc->start7V(p,c->Fi,c->bc,gcval);}
+    if(sv) plap0->start_value(p,2,0.0);     // Fi at t^n + dt/2, for t^n + dt
+    if(kc) reefmg::keep_coarse = true;
     {fnpf_prof::scope ps_(fnpf_prof::laplace); plap->start(p,c,pgc,psolv,pf,c->Fi,frk);}
     {fnpf_prof::scope ps_(fnpf_prof::gc3d); pgc->start7V(p,c->Fi,c->bc,gcval);}
     {fnpf_prof::scope ps_(fnpf_prof::fsfwvel); pf->fsfwvel(p,c,pgc,erk,frk);}
@@ -344,6 +357,7 @@ void fnpf_RK4::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, conve
     
     // solve Fi
     {fnpf_prof::scope ps_(fnpf_prof::gc3d); pgc->start7V(p,c->Fi,c->bc,gcval);}
+    if(kc) reefmg::keep_coarse = true;
     {fnpf_prof::scope ps_(fnpf_prof::laplace); plap->start(p,c,pgc,psolv,pf,c->Fi,c->Fifsf);}
     {fnpf_prof::scope ps_(fnpf_prof::gc3d); pgc->start7V(p,c->Fi,c->bc,gcval);}
     {fnpf_prof::scope ps_(fnpf_prof::fsfwvel); pf->fsfwvel(p,c,pgc,c->eta,c->Fifsf);}

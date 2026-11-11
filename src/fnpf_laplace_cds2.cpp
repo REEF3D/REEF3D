@@ -48,6 +48,42 @@ fnpf_laplace_cds2::~fnpf_laplace_cds2()
 {
 }
 
+void fnpf_laplace_cds2::start_value(lexer *p, int kind, double c)
+{
+    if(kind==1)
+    {
+    if(fn.empty())
+    {
+    fn.assign(size_t(p->imax)*size_t(p->jmax)*size_t(p->kmax+2),0.0);
+    sv_dt = 0.0;
+    }
+    
+    // no solution at t^n-1 in the first step (and the first step after a restart): f itself
+    const double r = sv_dt>0.0 ? c*p->dt/sv_dt : 0.0;
+    
+    sv_a = 1.0 + r;
+    sv_b = -r;
+    sv_store = true;
+    sv_dt = p->dt;
+    }
+    
+    if(kind==2)
+    {
+    sv_a = 2.0;
+    sv_b = -1.0;
+    sv_store = false;
+    }
+    
+    if(kind==3)
+    {
+    sv_a = 0.5;
+    sv_b = 0.5;
+    sv_store = false;
+    }
+    
+    sv_on = !fn.empty();
+}
+
 void fnpf_laplace_cds2::picard_bc(lexer *p, fdm_fnpf *c, ghostcell *pgc, double *f, fnpf_fsf *pf)
 {
     pbed->bedbc_sig(p,c,pgc,f,pf);
@@ -478,7 +514,10 @@ void fnpf_laplace_cds2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *pso
     
     // mesh refinement: the rows are solved together with those of the patches (fnpf_amr)
     if(assemble_only)
+    {
+    sv_on = false;
     return;
+    }
     
     endtime=pgc->timer();
     //if(p->mpirank==0 && (p->count%p->P12==0))
@@ -493,6 +532,35 @@ void fnpf_laplace_cds2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *pso
     sbm = pgc->globalsum(sbm);
     
     p->N44 = sb>0.0 ? MAX(p->A430*sqrt(sbm/sb), 1.0e-12) : tol0;
+    }
+    
+    // A 321: the start value of this solve at the unknowns (the rows of the assembly), fn = f at t^n
+    if(sv_on)
+    {
+    double *const __restrict fr = fn.data();
+    const int knoz = p->knoz;
+    
+    ILOOP
+    JLOOP
+    {
+        k=0;
+        const int c0 = FIJK;
+        const bool wetcol = (p->wet[IJ]==1);
+        
+        for(int kk=0; kk<knoz; ++kk)
+        {
+        const int q = c0 + kk;
+        const double fq = f[q];
+        
+        if(wetcol && flag7[q]>0)
+        f[q] = sv_a*fq + sv_b*fr[q];
+        
+        if(sv_store)
+        fr[q] = fq;
+        }
+    }
+    
+    sv_on = false;
     }
     
     starttime=pgc->timer();
