@@ -3,7 +3,7 @@
  "ctrl_set": {
   "A 321": "1"
  },
- "description": "FNPF 2D regular waves of fnpf_2d_regular (RK3) with the start values of the stage solves of the Laplace equation extrapolated in time (A 321 1): from the solutions at t^n and t^n-1 for the first stage, from the solution of the stage before and that at t^n for the other two. The solution is that of fnpf_2d_regular within the tolerance of the solves (N 44).",
+ "description": "FNPF 2D regular waves of fnpf_2d_regular (RK3) with the start values of the stage solves of the Laplace equation extrapolated in time, but the coarse levels of REEFMG built in every solve (A 321 1; the default is A 321 2). The solution is that of fnpf_2d_regular within the tolerance of the solves (N 44).",
  "tags": [
   "quick",
   "2d",
@@ -13,8 +13,7 @@
   "solver"
  ],
  "covers": [
-  "fnpf_laplace_cds2::start_value kinds 1, 2, 3 (RK3)",
-  "A 321 1"
+  "A 321 1: start values without reefmg::keep_coarse"
  ],
  "same_as": "fnpf_2d_regular",
  "same_as_rtol": 1e-06

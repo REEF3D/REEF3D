@@ -1,0 +1,16 @@
+{
+ "description": "2D single-phase channel (F30=0, F40=0) with constant-discharge inflow on cells taller than 2 m (dz = 3 m): W10 = 18 m3/s over 12 m x 3 m gives 0.5 m/s. The inflow and outflow areas (ioflow_f::Qin/Qout) take the full cells without a free surface; before, phi = 1.0 counted dy*(dz/2 + 1) per cell and the inflow came out at 0.6 m/s (+20 %).",
+ "np": 1,
+ "steps": 30,
+ "tags": [
+  "quick",
+  "2d",
+  "singlephase",
+  "inflow"
+ ],
+ "covers": [
+  "F30=0 single phase",
+  "B60=1 inflow area with dz > 2 m",
+  "ioflow_f::Qin/Qout full cells without a free surface"
+ ]
+}

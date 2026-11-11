@@ -1,0 +1,32 @@
+{
+ "base": "nhflow_2d_susp_flume",
+ "np": 2,
+ "steps": 800,
+ "control_set": {
+  "B 2": "80 16 6",
+  "B 10": "0.0 8.0 0.0 1.6 0.0 0.5",
+  "M 10": "2"
+ },
+ "control_add": [
+  "S 10 3.0 3.3 0.6 0.9 -1.0 2.0"
+ ],
+ "ctrl_set": {
+  "W 10": "0.48",
+  "S 10": "0",
+  "S 12": "0"
+ },
+ "description": "NHFLOW channel 8 x 1.6 m, h 0.5 m, 0.6 m/s (k-epsilon, bed friction), with a pier 0.3 x 0.3 m through the water column (DIVEMesh solid, A 580 0: its columns have no slice cell), two subdomains; no sediment. The solid columns are dry (nhflow_fsf_f::solid_dry) and their faces are walls: the hydrostatic pressure of the fluid cell in the normal momentum, no other flux (wetdry_fluxes, nhflow_HLL solid_face_flux). Stagnation in front of the pier (0.27-0.43 m/s, depth 0.55 m), 0.5-0.84 m/s beside it, 0.2 m/s in the wake, the same on both sides. Before, the faces of the pier were open or carried extrapolated fluxes: 5-7 m/s behind the pier and up to 2.1 m of water beside it (Dropbox/Claude/Exner Review/validation/07_nhflow_pier_flow).",
+ "tags": [
+  "3d",
+  "nhflow",
+  "structure",
+  "inflow",
+  "mpi"
+ ],
+ "covers": [
+  "nhflow_fsf_f::solid_dry",
+  "nhflow_fsf_f::wetdry_fluxes at the faces of solid columns",
+  "nhflow_HLL solid_face_flux",
+  "nhflow_HLL::aij_E closed continuity flux at a solid"
+ ]
+}

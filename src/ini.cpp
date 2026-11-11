@@ -218,7 +218,7 @@ void control::ini_default()
     A532=1;      // int  Froude number limiter area
     A533=0;      // int  add veritcal velocity to CFL 
     A534=0;      // int NHFLOW semi-implicit free surface (theta method), set from A 510 11/12/13 (lexer_read; no longer a ctrl.txt key)
-    A535=0.55;   // double NHFLOW semi-implicit: theta
+    A535=0.5;   // double NHFLOW semi-implicit: theta
     A536=0.0;    // double NHFLOW semi-implicit: maximum time step (s), 0: explicit gravity wave limit
     A537=1;      // int NHFLOW semi-implicit: wetting and drying iteration (Casulli 2009), 0 off
     A538=0.0;    // double NHFLOW semi-implicit: mass flux dissipation for transcritical flow, 0 off
