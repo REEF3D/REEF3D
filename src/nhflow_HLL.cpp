@@ -345,6 +345,30 @@ inline double n2x(lexer *p, int i, int j) { double nx,ny,l; nhflow_curv::normal(
 inline double n2y(lexer *p, int i, int j) { double nx,ny,l; nhflow_curv::normal(p,2,i,j,nx,ny,l); return ny; }
 }
 
+// The faces of a solid column (no cell, dry: nhflow_fsf_f::solid_dry) on its high-index sides are no faces of the
+// flux sweeps; their fluxes came from the ghost cell update of the flux arrays, extrapolated values (the pressure
+// of the wall up to a factor two off or of the wrong sign, tangential momentum through the wall). A wall: the
+// hydrostatic pressure of the fluid cell in the momentum normal to it, as on the low-index sides (wetdry_fluxes),
+// and no flux of the other components. eq 1, 2, 3: the U, V, W equation. Cartesian grids.
+static void solid_face_flux(lexer *p, fdm_nhf *d, int eq)
+{
+    if(p->geo_curv==1)
+    return;
+    
+    int i,j,k;
+    const double g = fabs(p->W22);
+    
+    LOOP
+    WETDRY
+    {
+        if(p->flag4[Im1JK]<0 && p->wet[Im1J]==0 && i+p->origin_i>0)
+        d->Fx[Im1JK] = (eq==1) ? 0.5*g*d->eta(i,j)*d->eta(i,j) + g*d->eta(i,j)*d->dfx(i-1,j) : 0.0;
+        
+        if(p->j_dir==1 && p->flag4[IJm1K]<0 && p->wet[IJm1]==0 && j+p->origin_j>0)
+        d->Fy[IJm1K] = (eq==2) ? 0.5*g*d->eta(i,j)*d->eta(i,j) + g*d->eta(i,j)*d->dfy(i,j-1) : 0.0;
+    }
+}
+
 void nhflow_HLL::aij_U(lexer *&p,fdm_nhf *&d, int ipol)
 {
     // X 15 3: momentum fluxes at body faces from the fluid side only (hll_sweep_x/y, body_zflux)
@@ -400,6 +424,7 @@ void nhflow_HLL::aij_U(lexer *&p,fdm_nhf *&d, int ipol)
     if(p->geo_curv==1)
     nhflow_curv::bc_fluxes(p,d,1,d->Fx,d->Fy);
     pgc->start3V(p,d->Fz,10);
+    solid_face_flux(p,d,1);
     
     if(phook!=nullptr)
     phook->flux_hook(p,d,hook_id,1,d->Fx,d->Fy);
@@ -479,6 +504,7 @@ void nhflow_HLL::aij_V(lexer *&p, fdm_nhf *&d, int ipol)
     if(p->geo_curv==1)
     nhflow_curv::bc_fluxes(p,d,2,d->Fx,d->Fy);
     pgc->start3V(p,d->Fz,11);
+    solid_face_flux(p,d,2);
     
     if(phook!=nullptr)
     phook->flux_hook(p,d,hook_id,2,d->Fx,d->Fy);
@@ -569,6 +595,7 @@ void nhflow_HLL::aij_W(lexer *&p,fdm_nhf *&d, int ipol)
     if(p->geo_curv==1)
     nhflow_curv::bc_fluxes(p,d,3,d->Fx,d->Fy);
     pgc->start3V(p,d->Fz,12);
+    solid_face_flux(p,d,3);
     
     if(phook!=nullptr)
     phook->flux_hook(p,d,hook_id,3,d->Fx,d->Fy);

@@ -53,6 +53,7 @@ public:
     void kinematic_bed(lexer*, fdm_nhf*, double*, double*, double*) override final;
     
     void wetdry(lexer*, fdm_nhf*, ghostcell*, double*, double*, double*, slice&) override final;
+    void solid_dry(lexer*);
     void wetdry_fluxes(lexer*, fdm_nhf*, ghostcell*,slice&,double*,double*,double*,double*,double*,double*) override final;
 
     void ucorr(lexer*, fdm_nhf*, double*, slice&, double) override final;

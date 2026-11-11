@@ -33,7 +33,11 @@ void nhflow_fsf_f::wetdry_fluxes(lexer* p, fdm_nhf* d, ghostcell* pgc, slice &WL
    if(p->A540==1)
    { 
     // eta + WL
-    SLICELOOP1
+    // all faces of the grid, also those of a solid column (no slice cell, dry: nhflow_fsf_f::solid_dry), which
+    // have no face flag: the face of the fluid cell on the low-index side of a solid kept eta = 0 and
+    // carried no hydrostatic pressure, the wall did not push back and the cell accelerated into it
+    IULOOP
+    JLOOP
     {
         if(p->wet[IJ]==1 && p->wet[Ip1J]==0)
         {
@@ -66,7 +70,8 @@ void nhflow_fsf_f::wetdry_fluxes(lexer* p, fdm_nhf* d, ghostcell* pgc, slice &WL
     }
     
     if(p->j_dir==1)
-    SLICELOOP2
+    ILOOP
+    JVLOOP
     {
         if(p->wet[IJ]==1 && p->wet[IJp1]==0)
         {

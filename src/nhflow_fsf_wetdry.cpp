@@ -25,6 +25,41 @@ Author: Hans Bihs
 #include"fdm_nhf.h"
 #include"ghostcell.h"
 
+// Solid columns inside the grid (DIVEMesh solids as bed level, A 580 0: no slice cell) are dry. The ghost cell
+// update of the wet flags gives them the flag of the fluid cell next to them, wet. The continuity flux and the
+// face states are closed where the neighbour is dry (nhflow_HLL::aij_E, wetdry_fluxes), so that a wet solid
+// column left its faces open: water flowed into and out of a pier (a jet of 7 m/s and 2 m of water beside
+// a pier in a 0.6 m/s, 0.5 m deep channel).
+void nhflow_fsf_f::solid_dry(lexer *p)
+{
+    // the columns behind the wall faces of the slice boundary list (gcbsl4, type 21) inside the grid; the edges
+    // of the domain and the faces to other blocks or grids are not walls of this kind and keep their ghost values
+    int ii,jj,cs;
+    
+    for(int n=0; n<p->gcbsl4_count; ++n)
+    if(p->gcbsl4[n][4]==21)
+    {
+    ii = p->gcbsl4[n][0];
+    jj = p->gcbsl4[n][1];
+    cs = p->gcbsl4[n][3];
+    
+    if(cs==1)
+    --ii;
+    
+    if(cs==4)
+    ++ii;
+    
+    if(cs==3)
+    --jj;
+    
+    if(cs==2)
+    ++jj;
+    
+    if(ii+p->origin_i>=0 && ii+p->origin_i<p->gknox && jj+p->origin_j>=0 && jj+p->origin_j<p->gknoy)
+    p->wet[(ii-p->imin)*p->jmax + (jj-p->jmin)] = 0;
+    }
+}
+
 void nhflow_fsf_f::wetdry(lexer* p, fdm_nhf* d, ghostcell* pgc, double *UH, double *VH, double *WH, slice &WL)
 {
         // mesh refinement (G 30): the cells around a patch keep the flags and the state of their
@@ -58,6 +93,7 @@ void nhflow_fsf_f::wetdry(lexer* p, fdm_nhf* d, ghostcell* pgc, double *UH, doub
     }
     
     pgc->gcsl_start4Vint(p,p->wet,50);
+    solid_dry(p);
     
     // ----------------
     // ----------------
@@ -98,6 +134,7 @@ void nhflow_fsf_f::wetdry(lexer* p, fdm_nhf* d, ghostcell* pgc, double *UH, doub
      
      pgc->gcsl_start4(p,d->eta,gcval_eta);
      pgc->gcsl_start4Vint(p,p->wet,50);
+     solid_dry(p);
     
     // ----------------
     // ----------------
@@ -154,6 +191,7 @@ void nhflow_fsf_f::wetdry(lexer* p, fdm_nhf* d, ghostcell* pgc, double *UH, doub
     }
     
     pgc->gcsl_start4Vint(p,p->wet,50);
+    solid_dry(p);
     
     //------------
     LOOP
