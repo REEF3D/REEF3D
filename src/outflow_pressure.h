@@ -28,6 +28,7 @@ Author: Hans Bihs
 #include"fdm.h"
 #include"heaviside.h"
 #include"increment.h"
+#include"interface_width.h"
 
 // pressure in the outflow ghost cells of the boundary cell (i,j,k), B 77
 // (one definition for the ghost cells of ioflow_f / iowave / ioflow_v and the Poisson rows)
@@ -44,10 +45,33 @@ Author: Hans Bihs
 // In the Poisson row of an outflow face (poisson_pcorr) the Dirichlet value of the correction is
 // outflow_pressure() - cell pressure: the boundary face velocity is not part of the momentum step,
 // so the ghost pressure alone has no effect.
+// 3  controlled outflow, as 1 with the density of the smoothed interface integrated over the column:
+//    p = g [rho_a (F62 - z) + (rho_w - rho_a) I(F62 - z)], I(phi) the integral of the Heaviside
+//    function (I = phi in the water beyond the band, 0 in the air beyond it).  B 77 1 takes
+//    (F62 - z) rho(cell) g, the density of the cell times the depth: in the interface band that is
+//    not the pressure of the column (an air cell just above the surface got a negative pressure,
+//    the column above it a positive one, some 20 Pa): a still tank with an outflow at its own level
+//    drew the air in at 0.5 m/s and the water at 0.1 m/s.  Deep in the water and in the air both
+//    are the same.
 // 10  free stream: zero pressure in the liquid, the cell value in the gas, (1-H) p
 inline double outflow_pressure(lexer *p, fdm *a, int i, int j, int k)
 {
     const int marge = increment::marge;
+
+    if(p->B77==3 && (p->F50==2 || p->F50==3) && !(p->B90>0 && (p->B99==1 || p->B99==2)))
+    {
+        const double z = (p->G502==1) ? p->ZSP[IJK] : p->ZP[KP];
+        const double e = interface_width(p,a->phi,i,j,k);
+        const double phi = p->fsfout - z;
+
+        double I = 0.0;
+        if(phi>=e)
+        I = phi;
+        else if(phi>-e)
+        I = 0.5*(phi + e) + (phi*phi - e*e)/(4.0*e) - (e/(2.0*PI*PI))*(cos(PI*phi/e) + 1.0);
+
+        return fabs(p->W22)*(p->W3*phi + (p->W1 - p->W3)*I);
+    }
 
     if(p->B77==1 && (p->F50==2 || p->F50==3) && !(p->B90>0 && (p->B99==1 || p->B99==2)))
     {

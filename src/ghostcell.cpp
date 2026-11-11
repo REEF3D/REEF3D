@@ -195,7 +195,7 @@ void ghostcell::gc_ini(lexer* p)
 
     // pressure outflow
     pressout_lable=0;
-    if(p->B77==1 || p->B77==10)
+    if(p->B77==1 || p->B77==3 || p->B77==10)
         pressout_lable=1;
 
 
