@@ -327,13 +327,16 @@ private:
     std::shared_ptr<nhflow_si_nhmg> nhme, nhmp;     // A 507 1: the eta system (one unknown per column) and the phi system (K)
     int nh_lagc = 0, nh_lagit = 0, nh_lagnact = -1; // the preconditioner kept for some steps: steps since its refresh, the
     double nh_lagdt = 0.0;                          // iterations of that step, the active columns and dt then
-    int nh_iter = 0;
+    int nh_iter = 0, nh_iter1 = 0;   // the iterations of the last solve and of the first pass of the step
     double nh_time = 0.0, nh_res = 0.0, nh_brk = 0.0;
-    // wetting and drying of the coupled solve (A 537 1): pw of the mass rows, the pattern changed in this step, the
-    // iterations of the pattern and the dry columns
+    // wetting and drying of the coupled solve (A 537 1): pw of the mass rows, the iterations of the pattern and the dry
+    // columns
     std::vector<double> nPw;
-    bool nh_pwnew = false;
     int nh_wdit = 1, nh_dry = 0;
+    // a further pass of the pattern (A 537 1, nh_wdpass); with tl2 (nh_warm) FGMRES starts from the solution of the pass
+    // before and stops at the smaller of the residual of the first pass (nh_tolabs, metres) and A 506 of its own start
+    bool nh_wdpass = false, nh_warm = false;
+    double nh_tolabs = 0.0;
     void nh_ini(lexer*);
     void nh_free();
     void nh_levels(lexer*, fdm_nhf*);

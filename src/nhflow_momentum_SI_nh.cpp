@@ -68,6 +68,7 @@ Author: Hans Bihs
 // ---------------------------------------------------------------------------
 
 #include"nhflow_momentum_SI.h"
+#include"si_eta2D.h"
 #include"lexer.h"
 #include"fdm_nhf.h"
 #include"ghostcell.h"
@@ -836,10 +837,25 @@ void nhflow_momentum_SI::nh_solve(lexer *p, fdm_nhf *d, ghostcell *pgc)
     // wetting and drying (A 537 1): the mass row of a column is pw (eta + d) - WL^{n+1}(fluxes), pw = 1 where the column
     // is wet at the iterate (eta + d > 0) or has no open face, 0 otherwise (a dry column: its eta from the balance of
     // its faces, its water level 0), as the hydrostatic eta solve (si_eta2D::solve_wetdry, Casulli 2009); the coupled
-    // system solved again with the new pattern until it no longer changes (at most 20 times). A 537 0: pw = 1, once
+    // system solved again with the new pattern until it no longer changes (at most 20 times). A 537 0: pw = 1, once.
+    // With the second-order time levels (tl2) the first pass starts from the wet pattern of the hydrostatic estimate of
+    // this step (its eta solve iterates the pattern as well, si_eta2D::solve_wetdry): from all wet, a step with a dry
+    // column next to a wet one took a second pass (conical island: 1.6 passes per step, 0.04 from the estimate; 4 layers
+    // 531 s -> 406 s, A 537 0: 419 s, the same solution). A further pass then starts FGMRES from the solution of the pass
+    // before and keeps the preconditioner (some mass rows changed); where the pattern still changes after 4 passes, the
+    // passes start again from all wet, the start of Casulli's iteration. Without tl2: from all wet, every pass from the
+    // guess of the step, the preconditioner rebuilt for a new pattern
     const int itwd = p->A537==1 ? 20 : 1;
+    const bool est = itwd>1 && tl2;
     nPw.assign((size_t)p->imax*p->jmax,1.0);
-    nh_pwnew = false;
+
+    if(est)
+    SLICELOOP4
+    nPw[IJ] = psi->wd_pattern(i,j)>0.5 ? 1.0 : 0.0;
+
+    nh_wdpass = false;
+    nh_warm = false;
+    bool restarted = !est;
     int wdit = 0;
 
     for(int itw=0; itw<itwd; ++itw)
@@ -997,8 +1013,19 @@ void nhflow_momentum_SI::nh_solve(lexer *p, fdm_nhf *d, ghostcell *pgc)
         if(change==0)
         break;
 
-    nh_pwnew = true;
+        // the pattern of the step before did not settle: from all wet
+        if(itw==3 && !restarted)
+        {
+        std::fill(nPw.begin(),nPw.end(),1.0);
+        restarted = true;
+        }
+
+    nh_wdpass = true;
+    nh_warm = est;
     }
+
+    nh_wdpass = false;
+    nh_warm = false;
 
     // the iterations of the wet pattern and the dry columns for the log (as the hydrostatic solve)
     nh_wdit = wdit;
@@ -1239,8 +1266,10 @@ void nhflow_momentum_SI::nh_solve_mg(lexer *p, fdm_nhf *d, ghostcell *pgc, const
     // ---- the right-hand side and the initial guess on the box vectors
     std::vector<double> &b = nmb, &x = nmx, &w = nmw;
     b.assign(nm,0.0);
-    x.assign(nm,0.0);
     w.resize(nm);
+    const bool warm = nh_warm && x.size()==nm;
+    if(!warm)
+    x.assign(nm,0.0);
     const bool guess = true;
     const bool hist = nEtaP.size()==(size_t)p->imax*p->jmax;
 
@@ -1250,6 +1279,10 @@ void nhflow_momentum_SI::nh_solve_mg(lexer *p, fdm_nhf *d, ghostcell *pgc, const
     i = cix[n]; j = ciy[n];
         for(int t=0; t<B; ++t)
         b[q+t] = -F0[(size_t)B*n+t]*(t>0 && nAct[IJ] ? rs : 1.0);
+
+    // a further pass of the wet pattern: the solution of the pass before (x as it is)
+    if(warm)
+    continue;
 
     // initial guess: eta^n and phi of the step before, both extrapolated in time (r = dt/dt_old)
     x[q] = eta0(i,j);
@@ -1266,7 +1299,9 @@ void nhflow_momentum_SI::nh_solve_mg(lexer *p, fdm_nhf *d, ghostcell *pgc, const
         }
     }
 
-    // the levels of this step for the guess of the next one
+    // the levels of this step for the guess of the next one (once per step: a further pass of the wet pattern found
+    // them set, and with them the extrapolation of its own guess gone)
+    if(!warm)
     {
     const int NC = p->imax*p->jmax*(p->kmax+2);
     nEtaP.resize((size_t)p->imax*p->jmax);
@@ -1290,8 +1325,11 @@ void nhflow_momentum_SI::nh_solve_mg(lexer *p, fdm_nhf *d, ghostcell *pgc, const
     // converged solve, 6.0 iterations (|b| test 1e-5: 8.0); 1e-3 up to 27 % at T/1280, 5.0 iterations
     struct fg_result { int it=0, cyc=0; double r0max=0.0, rmax=0.0, tolmax=0.0; };
 
+    // tabs > 0: at most this stopping residual (a further pass of the wet pattern: that of the first pass, or A 506 of its
+    // own starting residual where that is smaller)
     auto fgmres = [&](nhflow_si_nhmg &MM, const std::vector<double> &bb, std::vector<double> &xx,
-                      std::vector<std::vector<double>> &V, std::vector<std::vector<double>> &Z, std::vector<double> &wv) -> fg_result
+                      std::vector<std::vector<double>> &V, std::vector<std::vector<double>> &Z, std::vector<double> &wv,
+                      double tabs=0.0) -> fg_result
     {
         const size_t n = bb.size();
         const int m = 30, maxit = 300;
@@ -1339,7 +1377,7 @@ void nhflow_momentum_SI::nh_solve_mg(lexer *p, fdm_nhf *d, ghostcell *pgc, const
             if(R.cyc==0)
             {
             R.r0max = R.rmax;
-            R.tolmax = MAX(tol*R.r0max,1.0e-12*MAX(mx[1],mx[2]));
+            R.tolmax = MAX(tabs>0.0 ? MIN(tabs,tol*R.r0max) : tol*R.r0max,1.0e-12*MAX(mx[1],mx[2]));
             }
 
             if(R.rmax<=R.tolmax || R.it>=maxit || beta<=0.0)
@@ -1454,9 +1492,11 @@ void nhflow_momentum_SI::nh_solve_mg(lexer *p, fdm_nhf *d, ghostcell *pgc, const
     };
 
     // ---- the preconditioner of an earlier step: rebuilt after lagmax steps, when dt changed by more than
-    // 10 %, when the active columns changed, or when the iterations grew by more than one over those of the rebuild
+    // 10 %, when the active columns changed, or when the iterations of the first pass grew by more than one over those of
+    // the rebuild. A further pass of the wet pattern from the solution of the pass before (nh_warm) keeps it, and its
+    // iterations set no rebuild either; one from the guess of the step rebuilds it
     const bool refresh = lagmax<=1 || nh_lagc+1>=lagmax || fabs(p->dt/MAX(nh_lagdt,1.0e-20) - 1.0)>0.1
-                         || pgc->globalisum(nact)!=nh_lagnact || nh_iter>nh_lagit+1 || nh_pwnew;
+                         || pgc->globalisum(nact)!=nh_lagnact || nh_iter1>nh_lagit+1 || (nh_wdpass && !nh_warm);
 
     const int nsplit = p->A507;
     fg_result R, R2;
@@ -1464,7 +1504,10 @@ void nhflow_momentum_SI::nh_solve_mg(lexer *p, fdm_nhf *d, ghostcell *pgc, const
     if(nsplit==0)
     {
     M.finalize(refresh);
-    R = fgmres(M,b,x,fgV,fgZ,nmv);
+    R = fgmres(M,b,x,fgV,fgZ,nmv,warm ? nh_tolabs : 0.0);
+
+        if(!warm)
+        nh_tolabs = R.tolmax;
     }
 
     // ---- A 507 1: eta with phi of the guess (the eta system: the mass rows and eta), then phi with the new eta (the
@@ -1545,7 +1588,7 @@ void nhflow_momentum_SI::nh_solve_mg(lexer *p, fdm_nhf *d, ghostcell *pgc, const
     }
     }
 
-    if(refresh)
+    if(refresh && !warm)
     {
     nh_lagc = 0;
     nh_lagdt = p->dt;
@@ -1553,10 +1596,13 @@ void nhflow_momentum_SI::nh_solve_mg(lexer *p, fdm_nhf *d, ghostcell *pgc, const
     nh_lagit = R.it + R2.it;
     }
 
-    else
+    else if(!warm)
     ++nh_lagc;
 
     nh_iter = R.it + R2.it;
+
+    if(!warm)
+    nh_iter1 = nh_iter;
 
     if(getenv("NHLOG"))
     {

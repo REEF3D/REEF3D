@@ -136,5 +136,5 @@
  ],
  "blessed_from": "/home/claude/reg/new/REEF3D",
  "date": "2026-11-11",
- "note": "new: A 431 (FNPF_check/0004) on hans_dev 334c1759f + 0004, regression flags -O2 (GCC 13, OpenMPI 4.1.6, Linux x86-64), DIVEMesh hans_dev 2ee2a7e"
+ "note": "new: A 321 (FNPF_check/0004) on hans_dev 334c1759f + 0004, regression flags -O2 (GCC 13, OpenMPI 4.1.6, Linux x86-64), DIVEMesh hans_dev 2ee2a7e"
 }

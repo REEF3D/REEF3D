@@ -1,0 +1,21 @@
+{
+ "base": "fnpf_2d_regular",
+ "ctrl_set": {
+  "A 321": "2"
+ },
+ "description": "as fnpf_2d_regular_a321_1 with the coarse levels of REEFMG of the first stage solve kept for the other two stages of the step (A 321 2): only the line factorisation of the fine level is made again (reefmg::keep_coarse).",
+ "tags": [
+  "quick",
+  "2d",
+  "fnpf",
+  "waves",
+  "iowave",
+  "solver"
+ ],
+ "covers": [
+  "A 321 2 with RK3",
+  "reefmg::keep_coarse in the RK stages"
+ ],
+ "same_as": "fnpf_2d_regular",
+ "same_as_rtol": 1e-06
+}
