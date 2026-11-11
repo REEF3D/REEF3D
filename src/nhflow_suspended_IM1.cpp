@@ -161,6 +161,7 @@ void nhflow_suspended_IM1::fill_wvel(lexer *p, fdm_nhf *d, ghostcell *pgc, sedim
     // settling across a sigma face is -ws (D*dsigma/dt of -ws = -ws).
     // Face k lies between cells k-1 and k; bed (k=0) and surface (k=knoz) faces stay closed,
     // bed exchange is handled by suspsource().
+    // S 127 1: hindered settling (Richardson-Zaki), in the bed exchange as well (suspsource); S 127 0: ws
     double ws_eff,nval,Re_p,cface;
 
     Re_p = s->ws*p->S20/p->W2;
@@ -173,7 +174,10 @@ void nhflow_suspended_IM1::fill_wvel(lexer *p, fdm_nhf *d, ghostcell *pgc, sedim
         if(k>0 && k<p->knoz && p->DF[IJK]>0 && p->wet[IJ]==1)
         {
         cface = 0.5*(d->CONC[IJK] + d->CONC[IJKm1]);
-        ws_eff = s->ws * pow(MAX(1.0 - cface/0.635, 0.0), nval);
+        ws_eff = s->ws;
+        
+        if(p->S127==1)
+        ws_eff *= pow(MAX(1.0 - cface/0.635, 0.0), nval);
         WVEL[FIJK] = d->omegaF[FIJK] - ws_eff;
         }
     }
@@ -181,7 +185,10 @@ void nhflow_suspended_IM1::fill_wvel(lexer *p, fdm_nhf *d, ghostcell *pgc, sedim
 
 void nhflow_suspended_IM1::suspsource(lexer* p, fdm_nhf *d, double *CONC, sediment_fdm *s)
 {    
-    double zdist;
+    double zdist,wsb;
+    
+    const double Re_p = s->ws*p->S20/p->W2;
+    const double nval = (4.7 + 0.41*pow(Re_p,0.75))/(1 + 0.175*pow(Re_p,0.75));
     
     count=0;
     LOOP
@@ -192,12 +199,17 @@ void nhflow_suspended_IM1::suspsource(lexer* p, fdm_nhf *d, double *CONC, sedime
         // and deposition with the near-bed concentration c_0/rbe of the Rouse profile in the bottom cell
         // (bedconc_VR: cbe = rbe c_a is the cell mean). The equilibrium c_0 = cbe is that of ws (cbe - c_0); away
         // from it the exchange no longer slows down with the thickness of the bottom cell (rbe << 1 in a thick
-        // cell).
+        // cell). S 127 1: the fall velocity hindered with the concentration of the cell, as at the faces above.
         if(k==0 && p->DF[IJK]>0 && p->wet[IJ]==1 && p->DFBED[IJ]>0 && p->XP[IP]>=p->S71 && p->XP[IP]<=p->S72)
         {
         zdist = p->DZN[KP]*d->WL(i,j);
         
-        s->wsx(i,j) = s->ws/MAX(s->rbe(i,j),1.0e-8);
+        wsb = s->ws;
+        
+        if(p->S127==1)
+        wsb *= pow(MAX(1.0 - MAX(d->CONC[IJK],0.0)/0.635, 0.0), nval);
+        
+        s->wsx(i,j) = wsb/MAX(s->rbe(i,j),1.0e-8);
         
         d->rhsvec.V[count]  += s->wsx(i,j)*s->cbe(i,j)/zdist;
         d->M.p[count] += s->wsx(i,j)/zdist;

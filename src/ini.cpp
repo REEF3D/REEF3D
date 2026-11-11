@@ -1382,7 +1382,7 @@ void control::ini_default()
     S124=-1.0;             // double inflow concentration, <0: equilibrium C_eq, >=0: prescribed (volume concentration)
     S125=2;                // int advection: 1 first-order upwind, 2 MUSCL minmod
     S126=0.05;             // double maximum equilibrium concentration (volume)
-    S127=0;                // int hindered settling (Richardson-Zaki): 0 off, 1 on
+    S127=0;                // int hindered settling (Richardson-Zaki), SFLOW S 120 and NHFLOW S 12: 0 off, 1 on
     S128=0.01;             // double minimum water depth of the suspended load [m]
     S129=0;                // int sediment inflow: 0 equilibrium, 1 constant (bed load S 130, concentration S 124), 2 time series sediment-inflow.dat
     S130=0.0;              // double bed load at the inflow for S 129 1 [m^2/s], sediment volume per width
