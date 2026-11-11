@@ -58,7 +58,7 @@ void amr_fb_range(const double *XP, int lo, int hi, double x0, double x1, int &s
 }
 }
 
-void sixdof_obj_cfd::ray_cast_amr(lexer *p, fdm *a, ghostcell *pgc, fieldint5 &io, fieldint5 &cl, fieldint5 &cr, int *box)
+void sixdof_obj_cfd::ray_cast_amr(lexer *p, fdm *a, ghostcell *pgc, fieldint4 &io, fieldint4 &cl, fieldint4 &cr, int *box)
 {
     const int m = p->margin;      // the cells around the grid (increment::marge is that of the node arrays)
     const int jm = (p->j_dir==1) ? m : 0;

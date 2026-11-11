@@ -28,7 +28,7 @@ Author: Hans Bihs
 
 sediment_wenoflux::sediment_wenoflux(lexer* p) :  weno_nug_func(p)
 {
-    p->Darray(ckz,p->knoz+1+4*marge,5);
+    p->Darray(ckz,p->knoz+1+2*marge,5);
     
     fnpf_discrete_weights dw(p);
 

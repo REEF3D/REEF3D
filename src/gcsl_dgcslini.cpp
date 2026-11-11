@@ -22,7 +22,6 @@ Author: Hans Bihs
 
 #include"ghostcell.h"
 #include"lexer.h"
-#include"sliceint5.h"
 
 void ghostcell::dgcslini1(lexer* p)
 {

@@ -101,7 +101,7 @@ public:
     // mesh refinement (cfd_amr, 6DOF_obj_cfd_amr.cpp): the level set of the body on the grid of a
     // patch, the cells around the patch included, with the workspace of that grid; both work in
     // the box of the body on the grid (box: is, ie, js, je, ks, ke, set by ray_cast_amr)
-    void ray_cast_amr(lexer*, fdm*, ghostcell*, fieldint5&, fieldint5&, fieldint5&, int*);
+    void ray_cast_amr(lexer*, fdm*, ghostcell*, fieldint4&, fieldint4&, fieldint4&, int*);
     void reini_amr(lexer*, fdm*, ghostcell*, field&, reinidisc_f*, field4a&, field4a&, field4a&, const int*);
     // ... the loads (X 60 1) from the finest grid at each hull triangle (set by cfd_amr, G 7 1)
     const amr_grid_lookup *amr_loads = nullptr;
@@ -136,11 +136,11 @@ private:
     void ray_cast(lexer*, fdm*, ghostcell*);
     void reini_RK2(lexer*, fdm*, ghostcell*, field&);
     
-    fieldint5 cutl,cutr,fbio;
+    fieldint4 cutl,cutr,fbio;
     reinidisc *prdisc;
     field4a f, frk1, L, dt;
-    fieldint5 vertice, nodeflag;
-    field5 eta;
+    fieldint4 vertice, nodeflag;
+    field4 eta;
     
     void actuator_point(lexer*, int, Eigen::Vector3d&, double&);
     double actuator_fluid_fraction(lexer*, fdm*, int);

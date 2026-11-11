@@ -25,7 +25,7 @@ Architect: Hans Bihs
 
 #include"6DOF.h"
 #include"increment.h"
-#include"fieldint5.h"
+#include"fieldint4.h"
 #include"field4a.h"
 #include<vector>
 
@@ -82,7 +82,7 @@ private:
     void reset_fbh(lexer*, fdm*, ghostcell*);
 
     sixdof_cfd *b;
-    fieldint5 cutl, cutr, fbio;
+    fieldint4 cutl, cutr, fbio;
     field4a frk1, L, dt;
     reinidisc_f *prdisc;
     int box[6];             // the box of the body on the grid (ray_cast_amr)

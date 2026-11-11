@@ -28,7 +28,7 @@ Author: Hans Bihs
 class fieldint4 final : public fieldint
 {
 public:
-    explicit fieldint4(lexer *p) : fieldint(p) {}
+    explicit fieldint4(lexer *p, bool allocate=true) : fieldint(p, allocate) {}
     ~fieldint4() override;
 };
 
