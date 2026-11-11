@@ -61,6 +61,7 @@ void driver::loop_cfd(fdm* a)
 	{		
         ++p->count;
         starttime=pgc->timer();
+        p->poissontime=0.0;     // the projections of the step add their time (pjm_corr, cfd_amr)
         
         if(p->mpirank==0 && (p->count%p->P12==0))
         {
@@ -158,6 +159,7 @@ void driver::loop_cfd(fdm* a)
 		p->totaltime+=p->itertime;
 		p->gctotaltime+=p->gctime;
 		p->Xtotaltime+=p->xtime;
+		p->poissontotaltime+=p->poissontime;
 		p->meantime=(p->totaltime/double(p->count));
 		p->gcmeantime=(p->gctotaltime/double(p->count));
 		p->Xmeantime=(p->Xtotaltime/double(p->count));
@@ -169,6 +171,9 @@ void driver::loop_cfd(fdm* a)
             if(p->X10>0)
             cout<<"fbtime: "<<setprecision(3)<<p->fbtime<<endl;
             cout<<"reinitime: "<<setprecision(3)<<p->reinitime<<endl;
+            // all Poisson solves of the step (every stage; with the mesh refinement every projection of all levels)
+            cout<<"poissontime: "<<setprecision(3)<<p->poissontime<<"\t total poissontime: "<<setprecision(6)<<p->poissontotaltime
+                <<"   poisson cost: "<<setprecision(3)<<(p->itertime>0.0 ? 100.0*p->poissontime/p->itertime : 0.0)<<" %"<<endl;
             cout<<"gctime: "<<setprecision(3)<<p->gctime<<"\t average gctime: "<<setprecision(3)<<p->gcmeantime<<endl;
             cout<<"Xtime: "<<setprecision(3)<<p->xtime<<"\t average Xtime: "<<setprecision(3)<<p->Xmeantime<<endl;		
             cout<<"total time: "<<setprecision(6)<<p->totaltime<<"   average time: "<<setprecision(3)<<p->meantime<<endl;

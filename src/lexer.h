@@ -275,6 +275,7 @@ public:
 	double meantime,totaltime;
 	double gcmeantime,gctotaltime;
 	double Xmeantime,Xtotaltime;
+    double poissontotaltime = 0.0;  // CFD: the sum of poissontime (all projections of a step) over the run
 	double maxbed, minbed;
 	double susptime,maxtopovel;
 	double gctime, xtime;

@@ -2999,7 +2999,8 @@ void cfd_amr::pr_project(lexer *p, ghostcell *pgc, int s)
 
     restrict_vel(s);
 
-    p->poissontime = MPI_Wtime()-t0;
+    // all projections of the step (the driver prints the sum and resets it)
+    p->poissontime += MPI_Wtime()-t0;
 }
 
 // --------------------------------------------------------------------- level projection (G 7 1)
@@ -3319,6 +3320,7 @@ void cfd_amr::pr_level(lexer *p, ghostcell *pgc, int l, int s)
     for(int g=-1; g<npat; ++g)
     prg.push_back(g);
 
+    p->poissontime += MPI_Wtime()-t0;
     tm[2] += MPI_Wtime()-t0;
 }
 
@@ -3517,6 +3519,7 @@ void cfd_amr::pr_sync_project(lexer *p, ghostcell *pgc)
     CP(id)->pp->dt = dts[id];
 
     t_sync += MPI_Wtime()-t0;
+    p->poissontime += MPI_Wtime()-t0;
     tm[2] += MPI_Wtime()-t0;
 }
 

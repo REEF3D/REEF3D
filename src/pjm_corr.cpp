@@ -107,10 +107,12 @@ void pjm_corr::start(fdm* a,lexer*p, poisson* ppois,solver* psolv, ghostcell* pg
 
     p->poissoniter=p->solveriter;
 
-	p->poissontime=pgc->timer()-starttime;
+    // poissontime: all projections of the step (the driver prints the sum and resets it)
+    const double ptime=pgc->timer()-starttime;
+	p->poissontime+=ptime;
 
 	if(p->mpirank==0 && (p->count%p->P12==0))
-	cout<<"piter: "<<p->solveriter<<"  ptime: "<<setprecision(3)<<p->poissontime<<endl;
+	cout<<"piter: "<<p->solveriter<<"  ptime: "<<setprecision(3)<<ptime<<endl;
 }
 
 // the parts of start before and after the solve (mesh refinement, cfd_amr: the composite solve of
