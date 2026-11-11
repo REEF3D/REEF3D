@@ -144,7 +144,7 @@ void fnpf_vtp_fsf::print2D(lexer *p, fdm_fnpf *c, ghostcell* pgc)
 
     // the piece in memory (lagoon_surface::piece writes the file where it is wanted); every array
     // made in a buffer and written at once: the same bytes as value by value
-    sprintf(name,"./REEF3D_FNPF_VTP_FSF/REEF3D-FNPF-FSF-%08i-%06i.vtp",num,p->mpirank+1);
+    snprintf(name,sizeof(name),"./REEF3D_FNPF_VTP_FSF/REEF3D-FNPF-FSF-%08i-%06i.vtp",num,p->mpirank+1);
     std::ostringstream result(std::ios::out | std::ios::binary);
 
     vtp3D::beginning(p,result,p->pointnum2D,0,0,0,p->polygon_sum);

@@ -137,10 +137,10 @@ void net_barQuasiStatic::print(lexer *p)
 		if(!(stored && p->P18==1))
 		{
         if(p->A10==5)
-		sprintf(name,"./REEF3D_NHFLOW_6DOF_Net/REEF3D-Net-%08i-%06i.vtk",nNet,num);
+		snprintf(name,sizeof(name),"./REEF3D_NHFLOW_6DOF_Net/REEF3D-Net-%08i-%06i.vtk",nNet,num);
         
         if(p->A10==6)
-		sprintf(name,"./REEF3D_CFD_6DOF_Net/REEF3D-Net-%08i-%06i.vtk",nNet,num);
+		snprintf(name,sizeof(name),"./REEF3D_CFD_6DOF_Net/REEF3D-Net-%08i-%06i.vtk",nNet,num);
 
 		ofstream result;
 		result.open(name);

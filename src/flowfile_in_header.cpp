@@ -32,7 +32,7 @@ Author: Hans Bihs
 void flowfile_in::header_read(lexer *p, ghostcell *pgc)
 {
     // Open File
-    sprintf(name,"./REEF3D_FlowFile/REEF3D-flowheader-%i.r3d",p->I230);
+    snprintf(name,sizeof(name),"./REEF3D_FlowFile/REEF3D-flowheader-%i.r3d",p->I230);
 	
     
     // count entries
@@ -131,12 +131,12 @@ void flowfile_in::header_read(lexer *p, ghostcell *pgc)
     q1 = iter[1];
     
     // Open File 0
-    sprintf(name0,"./REEF3D_FlowFile/REEF3D-flowfile-%i-%i.r3d",p->I230,q0);
+    snprintf(name0,sizeof(name0),"./REEF3D_FlowFile/REEF3D-flowfile-%i-%i.r3d",p->I230,q0);
     
     flowfile0.open(name0, ios::binary);
 
     // Open File 1
-    sprintf(name1,"./REEF3D_FlowFile/REEF3D-flowfile-%i-%i.r3d",p->I230,q1);
+    snprintf(name1,sizeof(name1),"./REEF3D_FlowFile/REEF3D-flowfile-%i-%i.r3d",p->I230,q1);
     
     flowfile1.open(name1, ios::binary);
 

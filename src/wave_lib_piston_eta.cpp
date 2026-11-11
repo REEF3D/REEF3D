@@ -126,7 +126,7 @@ void wave_lib_piston_eta::read(lexer *p, ghostcell* pgc)
 	double val,val0,val1;
 	int count;
 	
-	sprintf(name,"wavemaker_eta.dat");
+	snprintf(name,sizeof(name),"wavemaker_eta.dat");
 
 // open file------------
 	ifstream file(name, ios_base::in);

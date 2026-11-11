@@ -50,9 +50,6 @@ Authors: Hans Bihs, Tobias Martin
 class sixdof_rigidbody
 {
 public:
-
-    EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
-
     sixdof_rigidbody();
 
     // ---- configuration

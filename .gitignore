@@ -27,7 +27,6 @@ src/.ctagsd
 .DS_Store
 # Git patch files
 *.patch
-
 # regression suite run directories
 tests/regression/runs/
 __pycache__/

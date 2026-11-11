@@ -293,7 +293,7 @@ void nhflow_vtp_fsf::print2D(lexer *p, fdm_nhf *d, ghostcell* pgc, sediment *pse
     ++n;
 
     // Open File
-    sprintf(name,"./REEF3D_NHFLOW_VTP_FSF/REEF3D-NHFLOW-FSF-%08i-%06i.vtp",num,p->mpirank+1);
+    snprintf(name,sizeof(name),"./REEF3D_NHFLOW_VTP_FSF/REEF3D-NHFLOW-FSF-%08i-%06i.vtp",num,p->mpirank+1);
     // the piece in memory: lagoon_surface::piece writes the file where it is wanted (vtp_piece_buffer.h)
     std::ostringstream result(std::ios::out | std::ios::binary);
     vtp_piece_buffer bin;
