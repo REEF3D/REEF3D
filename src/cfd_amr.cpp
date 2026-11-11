@@ -395,7 +395,11 @@ cfd_amr::cfd_amr(lexer *p, fdm *a, ghostcell *pgc, momentum *pmom, pressure *ppr
     for(int nb=0; nb<b6->objects(); ++nb)
     {
         b6->object(nb)->amr_loads = this;
-        b6->object(nb)->set_cfd_added_mass(p0->X198>0 ? 0.0 : (p0->X197>0.0 ? p0->X197 : 0.5));
+        // the one-step scheme (N 40 5): the loads of p(n) carry the reaction to the last two steps of
+        // the body, the added mass of half the displaced fluid with the acceleration of the last step
+        // alone makes the coupling grow (a ship in shallow water); none as on a uniform grid, X 197 as given
+        const double am_default = (p0->N40==5) ? 0.0 : 0.5;
+        b6->object(nb)->set_cfd_added_mass(p0->X198>0 ? 0.0 : (p0->X197>0.0 ? p0->X197 : am_default));
     }
     th_end.assign(maxlev+1,0.0);
     if(mom0->amr_stages()==3)

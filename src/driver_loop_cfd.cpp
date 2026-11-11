@@ -51,6 +51,40 @@ Author: Hans Bihs
 #include"soil_stress.h"
 
 
+namespace
+{
+// a 6DOF body (X 10 1) with a free degree of freedom (X 11, X 111: 1 free, 2 prescribed, 0 fixed)
+bool cfd_free_body(lexer *p)
+{
+    if(p->X10!=1)
+    return false;
+
+    const int nb = MAX(p->X20,1);
+
+    for(int b=0; b<nb; ++b)
+    {
+        int dof[6] = {p->X11_u,p->X11_v,p->X11_w,p->X11_p,p->X11_q,p->X11_r};
+
+        for(int n=0; n<p->X111; ++n)
+        if(p->X111_id[n]==b)
+        {
+        dof[0] = p->X111_u[n];
+        dof[1] = p->X111_v[n];
+        dof[2] = p->X111_w[n];
+        dof[3] = p->X111_p[n];
+        dof[4] = p->X111_q[n];
+        dof[5] = p->X111_r[n];
+        }
+
+        for(int q=0; q<6; ++q)
+        if(dof[q]==1 && !(p->j_dir==0 && (q==1 || q==3 || q==5)))
+        return true;
+    }
+
+    return false;
+}
+}
+
 void driver::loop_cfd(fdm* a)
 {
     if(p->mpirank==0)
@@ -140,6 +174,14 @@ void driver::loop_cfd(fdm* a)
         psoil->step(p,a,pgc);
 
         ptstep->start(a,p,pgc,pturb);
+
+        // floating bodies with free DOFs and the one-step scheme (N 40 5): the loads of p(n) answer
+        // the velocity change of the body over the last step, divided by the new step. A step much
+        // longer than the last one (after the first steps, which the forcing limits) turns the loads
+        // of the short step into a kick of the body: the step grows by 10 % per step at most
+        if(p->N40==5 && p->N48>0 && cfd_free_body(p))
+        p->dt = MIN(p->dt, 1.1*p->dt_old);
+
         if(pcfdamr!=nullptr)
         pcfdamr->timestep(p,a,pgc);
         

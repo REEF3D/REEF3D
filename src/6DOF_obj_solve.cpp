@@ -67,6 +67,15 @@ void sixdof_obj_cfd::solve_eqmotion_cfd(lexer *p, fdm *a, ghostcell *pgc, int it
     get_trans(p,pgc);    
     get_rot(p);
     
+    // the first step of a run from rest: there is no pressure yet (the loads are the weight alone),
+    // the free DOFs would fall for a step and the fluid answer with a pressure pulse; they keep
+    // their momenta, the prescribed DOFs (X 11 2) move
+    if(p->count<=1 && p->I40==0)
+    {
+    rb.dp.setZero();
+    rb.dh.setZero();
+    }
+    
     rb.step_symplectic(p->dt);
     }
 }
