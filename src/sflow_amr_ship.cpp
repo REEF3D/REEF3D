@@ -71,6 +71,67 @@ double sflow_amr_ship::cellwidth(lexer *p, int ii, int jj)
     return sqrt(p->AREA2D[(ii-p->imin)*p->jmax + (jj-p->jmin)]);
 }
 
+// X 411 1 (STL draft, X 400 10): the patch cells outside the hull outline (fs > 0) within the smoothing width of
+// the pressure patch (fs < psi, psi as in Hsolid) take the draft of their neighbour closest to the hull, as
+// sixdof_obj_2D::draft_extension on level 0: H(-fs,psi)*draft then goes to zero without the jump of about draft/2
+// at the hull side, and the hull section is the same on the patch and on level 0, whatever the refinement.
+// The patch array is ray-cast as a whole (ghost layers included), so the sweeps run on the whole array and need
+// no exchange; neighbours beyond the array edge are left out
+void sflow_amr_ship::draft_extension(lexer *p, slice &fs, int i0, int i1, int j0, int j1)
+{
+    const int sweeps = int(p->X41) + 2;
+    double psi,fmin,val;
+    int changed;
+
+    auto take = [&](int a, int e)
+    {
+        if(a<i0 || a>=i1 || e<j0 || e>=j1)
+        return;
+
+        if(draft(a,e)>0.0 && fs(a,e)<fmin)
+        {
+        fmin = fs(a,e);
+        val = draft(a,e);
+        }
+    };
+
+    for(int q=0; q<sweeps; ++q)
+    {
+        changed = 0;
+
+        for(i=i0; i<i1; ++i)
+        for(j=j0; j<j1; ++j)
+        {
+        psi = p->X41*(1.0/2.0)*(p->DXN[IP] + p->DYN[JP]);
+
+            if(fs(i,j)>0.0 && fs(i,j)<psi && draft(i,j)<=0.0)
+            {
+            fmin = fs(i,j);
+            val = 0.0;
+
+            // the neighbour closest to the hull that has a draft
+            take(i-1,j);
+            take(i+1,j);
+
+                if(p->j_dir==1)
+                {
+                take(i,j-1);
+                take(i,j+1);
+                }
+
+                if(val>0.0)
+                {
+                draft(i,j) = val;
+                ++changed;
+                }
+            }
+        }
+
+    if(changed==0)
+    break;
+    }
+}
+
 // X 10 2: direct forcing of the body velocity (the body is moved on level 0)
 void sflow_amr_ship::start_sflow(lexer *p, fdm2D *b, ghostcell *pgc, int iter, slice &fs, slice &P, slice &Q, slice &w,
                                  slice &fx, slice &fy, slice &eta, bool finalize)
@@ -354,6 +415,12 @@ void sflow_amr::ship_fields(sflow_amr_patch &c, bool withpress)
         }
     }
 
+    // X 411 1: the draft continued outside the hull outline over the smoothing width, as on level 0
+    // (sixdof_obj_2D::ray_cast_2D). After the level set, which takes the waterline from draft > 0, and before the
+    // pressure and the initial water level (X 207 0), which both use the draft
+    if(p0->X411==1)
+    s->draft_extension(pp,bp->fs,i0,i1,j0,j1);
+
     if(!withpress)
     return;
 
@@ -438,6 +505,7 @@ void sflow_amr::ship_pbh(sflow_amr_patch &c)
     bp->pbh(ii,jj) = (p0->X402==1) ? s->press(ii,jj)/rg : 0.0;
 }
 
+// curvilinear grid (G 50): no draft extension X 411 here, as on level 0 (sixdof_obj_2D::ray_cast_2D_curv)
 // curvilinear grid (G 50): ship_fields with the physical cell centres of the patch (XC2D, YC2D): the draft from
 // vertical rays through the centres, the level set as on level 0 (the distance to the waterline), the pressure
 // with the physical gradient and the bilinear interpolation on the patch cell centres

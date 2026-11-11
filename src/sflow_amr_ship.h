@@ -71,6 +71,10 @@ public:
     bool sflow_press_step(lexer*, slice&) override final;
 
     double Hsolid(lexer*, slice&);
+
+    // X 411 1: the draft continued outside the hull outline over the smoothing width, on the patch cells
+    // [i0,i1) x [j0,j1) (the whole patch array), as sixdof_obj_2D::draft_extension on level 0
+    void draft_extension(lexer*, slice&, int, int, int, int);
     static double cellwidth(lexer*, int, int);
 
     slice4 press, draft, press_n;

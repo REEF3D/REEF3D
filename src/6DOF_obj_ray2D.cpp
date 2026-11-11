@@ -108,7 +108,8 @@ void sixdof_obj_2D::draft_extension(lexer *p, ghostcell *pgc)
     // hull. The patch H(-fs,psi)*draft then goes to zero without the jump of about draft/2 at the hull side, and the
     // smoothing adds outside what it removes inside, so the hull section stays the same on grids of different
     // resolution (with draft = 0 outside, the section a grid sees changes by O(dx) with the position of the cell
-    // centres relative to the hull side). Cartesian grids without mesh refinement (not in sflow_amr_ship).
+    // centres relative to the hull side). Cartesian grids; the refined SFLOW patches do the same on their cells
+    // (sflow_amr_ship::draft_extension).
     const int sweeps = int(p->X41) + 2;
     double psi,fmin,val;
     int changed;
