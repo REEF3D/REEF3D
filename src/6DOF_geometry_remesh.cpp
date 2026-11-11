@@ -28,7 +28,21 @@ Author: Hans Bihs
 #include<algorithm>
 #include<chrono>
 
-// X 185 4: re-triangulate the 6DOF body surface with an adaptive isotropic remesher.
+// X 185 4, 5: re-triangulate the 6DOF body surface with an adaptive isotropic remesher.
+//
+// X 185 4 (default): the remeshed surface stays within X 179 fluid cells (default 0.05) of the STL.
+// Long edges are split; an edge is collapsed, an edge flipped or a vertex moved only if the new
+// triangles stay within that distance of the STL and the surface they replace within it of them
+// (every triangle carries the distance it has used up, so the changes do not add up).  Flat faces
+// are remeshed freely, curved parts are coarsened as far as their chords stay within the distance,
+// walls and details larger than it are kept.  X 179 0: the shape is kept exactly, only flat faces
+// and straight edges are remeshed.  The distance between the remeshed and the input surface is
+// measured both ways and printed.  A closed surface also keeps its volume within 1 %: otherwise
+// (and for a surface further off than twice the tolerance) the tolerance is halved, up to four times,
+// then the exact shape is taken.
+// X 185 5: the surface is approximated with triangles of the target length (as X 185 4 before):
+// vertices on the STL surface, features above X 187 kept, but chords across curved parts, and
+// walls or details thinner than the target length are lost.
 //
 // Target edge length = X 186 (default 1) * local cell size of the fluid grid, with the cell size
 // (X 190) the geometric mean of the active spacings (2, default, regular triangles of one cell
@@ -47,7 +61,7 @@ Author: Hans Bihs
 // (biharmonic, curvature continuous patch); X 184 0 keeps them as open boundaries.
 // Sharp edges (X 187 feature angle), corners and open boundaries are preserved; every vertex
 // stays on the original STL surface and the triangle orientation is kept.
-// A remeshed closed surface whose volume differs by more than 15 % from the input (walls or features thinner
+// X 185 5: a remeshed closed surface whose volume differs by more than 15 % from the input (walls or features thinner
 // than the target length, which collapse) is rejected: the input triangles are kept and the function returns
 // true, sixdof_geometry::refine then splits them as with X 185 1.
 
@@ -201,6 +215,8 @@ bool sixdof_geometry::geometry_remesh(lexer *p, ghostcell *pgc)
     prm.feature_angle = p->X187;
     prm.iterations = p->X189;
     prm.hole_fill = p->X184;
+    prm.keep_shape = (p->X185!=5);
+    prm.dist_tol = (p->X186>0.0) ? MAX(p->X179,0.0)/p->X186 : 0.0;
 
     std::vector<int> ntri(entity_sum,0);
     std::vector<double> buf;
@@ -259,10 +275,16 @@ bool sixdof_geometry::geometry_remesh(lexer *p, ghostcell *pgc)
 
             sixdof_remesh::print_stats(cout,st);
             
+            if(st.shape_rejected)
+            {
+                cout<<"  WARNING: the input triangles are split instead (X 185 1)"<<endl;
+                rejected = 1;
+            }
+            
             if(st.vol_rejected)
             {
                 cout<<"  WARNING: the remeshed surface changes the volume of the body by more than "<<100.0*prm.max_vol_change
-                    <<"%, the input triangles are split instead (X 185 1); for thin-walled bodies use X 185 1 or a smaller X 186"<<endl;
+                    <<"%, the input triangles are split instead (X 185 1); use X 185 4 (the shape kept) or a smaller X 186"<<endl;
                 rejected = 1;
             }
 

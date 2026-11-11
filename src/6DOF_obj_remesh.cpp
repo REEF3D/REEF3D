@@ -370,6 +370,87 @@ private:
     mesh M;
     double diag=1.0, cos_feat=0.0, tiny_area=0.0;
 
+    // keep_shape: the tolerance of the distance at x, the distance every face has used up, and the
+    // test of a change
+    double eps_floor=0.0;
+    double eps_at(const vec3 &x) const {return std::max(eps_floor,prm.dist_tol*hiso(x));}
+    std::vector<double> ferr;
+    double &FE(int f)
+    {
+        if(ferr.size()<M.F.size()) ferr.resize(M.F.size(),0.0);
+        return ferr[f];
+    }
+    double flipE=0.0;
+    // distance to the input surface (n: only its faces turned as n, so that the other side of a
+    // thin wall does not count)
+    double ref_dist(const vec3 &q, const vec3 &n) const
+    {
+        const vec3 c=project_surface(q,n);
+        return std::sqrt(dist2(c,q));
+    }
+    // the triangle lies within eps of the input surface: its edge midpoints and its centroid (its
+    // corners are vertices of the mesh, which are on it); corner: also the corner pa (a moved vertex)
+    bool tri_on_ref(const vec3 &pa, const vec3 &pb, const vec3 &pc, bool corner, double eps) const
+    {
+        const vec3 n=unit(cross(pb-pa,pc-pa));
+        if(corner && ref_dist(pa,n)>eps) return false;
+        if(ref_dist(0.5*(pa+pb),n)>eps) return false;
+        if(ref_dist(0.5*(pb+pc),n)>eps) return false;
+        if(ref_dist(0.5*(pc+pa),n)>eps) return false;
+        return ref_dist((1.0/3.0)*(pa+pb+pc),n)<=eps;
+    }
+    // vertex v at np (a collapse onto np: the faces of skip vanish): the new faces around v within
+    // the tolerance of the input surface, and the faces they replace (v, their edge midpoints and
+    // centroids) within what is left of the tolerance of the new ones.  E: the distance the new
+    // faces have used up.  With the tolerance 0 a vertex inside a flat face may go anywhere in it, a
+    // vertex on the straight edge between two flat faces along that edge, any other vertex nowhere.
+    bool move_keeps_shape(int v, const vec3 &np, const std::vector<int> *skip, bool corner, double &E)
+    {
+        const vec3 pv=M.P[v];
+        const double eps=eps_at(np);
+        auto skipped=[&](int f){return skip!=nullptr && std::find(skip->begin(),skip->end(),f)!=skip->end();};
+
+        std::vector<std::array<vec3,3> > nt;
+        double e0=0.0;
+        for(int f: M.vf[v])
+        {
+            e0=std::max(e0,FE(f));
+            if(skipped(f)) continue;
+            const auto &t=M.F[f];
+            const int q = t[0]==v ? 0 : (t[1]==v ? 1 : 2);
+            nt.push_back({np,M.P[t[(q+1)%3]],M.P[t[(q+2)%3]]});
+        }
+        if(e0>eps || nt.empty()) return false;
+
+        // the replaced faces from the new ones
+        auto ndist=[&](const vec3 &q)
+        {
+            double best=1.0e300;
+            for(const auto &t: nt) best=std::min(best,dist2(closest_on_triangle(q,t[0],t[1],t[2]),q));
+            return std::sqrt(best);
+        };
+        double dloc=ndist(pv);
+        for(int f: M.vf[v])
+        {
+            if(e0+dloc>eps) return false;
+            const auto &t=M.F[f];
+            const int q = t[0]==v ? 0 : (t[1]==v ? 1 : 2);
+            const vec3 &p1=M.P[t[(q+1)%3]], &p2=M.P[t[(q+2)%3]];
+            dloc=std::max(dloc,ndist(0.5*(pv+p1)));
+            dloc=std::max(dloc,ndist(0.5*(pv+p2)));
+            dloc=std::max(dloc,ndist((1.0/3.0)*(pv+p1+p2)));
+        }
+        E=e0+dloc;
+        if(E>eps) return false;
+
+        // the new faces from the input surface
+        for(const auto &t: nt)
+        if(!tri_on_ref(t[0],t[1],t[2],corner,eps)) return false;
+
+        return true;
+    }
+    void deviation();
+
     // reference surface
     std::vector<vec3> rP;
     std::vector<std::array<int,3> > rF;
@@ -1178,6 +1259,7 @@ void remesher::split(int a, int b)
     int m=M.add_vertex(0.5*(M.P[a]+M.P[b]), ch>=0 ? 1 : 0, ch);
     if(ch>=0)
     {
+        if(!prm.keep_shape)
         M.P[m]=project_chain(M.P[m],ch);
         M.fe.erase(k);
         M.fe[ekey(a,m)]=ch;
@@ -1204,6 +1286,7 @@ void remesher::split(int a, int b)
         M.fal.push_back(1);
         M.fpatch.push_back(M.fpatch[f]);
         int g=int(M.F.size())-1;
+        if(prm.keep_shape) {const double e=FE(f); FE(g)=e;}
         M.vf[m].push_back(g);
         M.vf[w].push_back(g);
         M.vf[c].push_back(g);
@@ -1274,6 +1357,14 @@ bool remesher::collapse(int a, int b)
         if(tri_minangle(p0,p1,p2)<1.0*PI_/180.0) return false;
     }
 
+    // the shape is kept: the faces that move with a within the tolerance
+    double Enew=0.0;
+    if(prm.keep_shape)
+    {
+        if(!move_keeps_shape(a,pb,&ef,false,Enew)) return false;
+        for(int f: M.vf[a]) FE(f)=Enew;
+    }
+
     // perform
     for(int f: ef) M.kill_face(f);
     std::vector<int> fa=M.vf[a];
@@ -1320,11 +1411,34 @@ bool remesher::flip_ok(int a, int b, int &f1, int &f2, int &c, int &d)
     vec3 nm=unit(n1)+unit(n2);
     if(dot(g1,nm)<=0.0 || dot(g2,nm)<=0.0) return false;
     if(dot(g1,g2) < cos_feat*lg1*lg2) return false;
+
+    // the shape is kept: the new faces within the tolerance of the input surface, the old edge
+    // and faces within what is left of it of the new ones
+    if(prm.keep_shape)
+    {
+        const vec3 mid=0.5*(pc+pd);
+        const double eps=eps_at(mid);
+        const double e0=std::max(FE(f1),FE(f2));
+        auto ndist=[&](const vec3 &q)
+        {
+            return std::sqrt(std::min(dist2(closest_on_triangle(q,pc,pa,pd),q),dist2(closest_on_triangle(q,pd,pb,pc),q)));
+        };
+        double dloc=ndist(0.5*(pa+pb));
+        dloc=std::max(dloc,ndist((1.0/3.0)*(pa+pb+pc)));
+        dloc=std::max(dloc,ndist((1.0/3.0)*(pa+pb+pd)));
+        flipE=e0+dloc;
+        if(flipE>eps) return false;
+        const vec3 u1=unit(g1), u2=unit(g2);
+        if(ref_dist(mid,unit(u1+u2))>eps) return false;
+        if(ref_dist((1.0/3.0)*(pc+pa+pd),u1)>eps) return false;
+        if(ref_dist((1.0/3.0)*(pd+pb+pc),u2)>eps) return false;
+    }
     return true;
 }
 
 void remesher::do_flip(int a, int b, int f1, int f2, int c, int d)
 {
+    if(prm.keep_shape) FE(f1)=FE(f2)=flipE;
     M.F[f1]={c,a,d};
     M.F[f2]={d,b,c};
     mesh::erase_val(M.vf[a],f2);
@@ -1514,7 +1628,68 @@ void remesher::relax()
             np=p+lambda*(c-p);
             np=project_chain(np,M.chain[v]);
         }
-        if(faces_ok_after_move(int(v),np)) M.P[v]=np;
+        if(!faces_ok_after_move(int(v),np)) continue;
+        if(prm.keep_shape)
+        {
+            double Enew=0.0;
+            if(!move_keeps_shape(int(v),np,nullptr,true,Enew)) continue;
+            for(int f: M.vf[v]) FE(f)=Enew;
+        }
+        M.P[v]=np;
+    }
+}
+
+// the largest distance between the remeshed surface and the input surface (after welding and hole
+// filling), both ways, at the corners, edge midpoints and centroids of the triangles
+void remesher::deviation()
+{
+    st.dev_out=st.dev_in=st.dev_rel=0.0;
+
+    std::vector<std::array<int,3> > oF;
+    std::vector<std::array<double,6> > bb;
+    for(size_t f=0; f<M.F.size(); ++f)
+    {
+        if(!M.fal[f]) continue;
+        const auto &t=M.F[f];
+        const vec3 &a=M.P[t[0]], &b=M.P[t[1]], &c=M.P[t[2]];
+        for(const vec3 &q : {a, b, c, 0.5*(a+b), 0.5*(b+c), 0.5*(c+a), (1.0/3.0)*(a+b+c)})
+        {
+            const double dq=ref_dist(q,vec3{0.0,0.0,0.0});
+            st.dev_out=std::max(st.dev_out,dq);
+            st.dev_rel=std::max(st.dev_rel,dq/eps_at(q));
+        }
+
+        oF.push_back(t);
+        std::array<double,6> x;
+        for(int d=0; d<3; ++d)
+        {
+            x[d]  =std::min(a[d],std::min(b[d],c[d]));
+            x[3+d]=std::max(a[d],std::max(b[d],c[d]));
+        }
+        bb.push_back(x);
+    }
+
+    bvh ob;
+    ob.build(bb);
+    auto odist=[&](const vec3 &q)
+    {
+        double best=1.0e300;
+        ob.closest(q,[&](int f)
+        {
+            const auto &t=oF[f];
+            return dist2(closest_on_triangle(q,M.P[t[0]],M.P[t[1]],M.P[t[2]]),q);
+        },best);
+        return std::sqrt(best);
+    };
+    for(const auto &t: rF)
+    {
+        const vec3 &a=rP[t[0]], &b=rP[t[1]], &c=rP[t[2]];
+        for(const vec3 &q : {a, b, c, 0.5*(a+b), 0.5*(b+c), 0.5*(c+a), (1.0/3.0)*(a+b+c)})
+        {
+            const double dq=odist(q);
+            st.dev_in=std::max(st.dev_in,dq);
+            st.dev_rel=std::max(st.dev_rel,dq/eps_at(q));
+        }
     }
 }
 
@@ -1522,6 +1697,7 @@ bool remesher::run(const std::vector<vec3> &in, std::vector<vec3> &out)
 {
     cos_feat=std::cos(prm.feature_angle*PI_/180.0);
     st.ntri_in=int(in.size()/3);
+    st.keep_shape=prm.keep_shape;
     soup_stats(in,st.area_in,st.vol_in,st.minangle_in,st.q_mean_in,st.q_min_in,st.frac_q05_in);
 
     if(in.size()<9) return false;
@@ -1545,6 +1721,10 @@ bool remesher::run(const std::vector<vec3> &in, std::vector<vec3> &out)
     for(auto &t: rF)
     st.vol_ref+=dot(rP[t[0]],cross(rP[t[1]],rP[t[2]]))/6.0;
 
+    eps_floor=prm.shape_tol*diag;
+    st.dist_tol=prm.dist_tol;
+
+    // (keep_shape: the estimate from the area is a lower bound, curved parts keep their triangles)
     st.ntri_estimate=estimate_triangles();
     if(st.ntri_estimate>prm.max_tri) return false;
 
@@ -1601,6 +1781,17 @@ bool remesher::run(const std::vector<vec3> &in, std::vector<vec3> &out)
     }
     if(!out.empty()) st.q_mean_metric/=double(out.size()/3);
 
+    // the distance between the remeshed and the input surface; keep_shape: every change was tested
+    // against the tolerance at sample points, the surface as a whole once more (twice the tolerance:
+    // the samples of the final test are not those of the changes)
+    deviation();
+    st.diag=diag;
+    if(prm.keep_shape && st.dev_rel>(prm.dist_tol>0.0 ? 2.0 : 100.0))
+    {
+        st.shape_rejected=true;
+        return false;
+    }
+
     if(st.closed && std::fabs(st.vol_ref)>0.0 && std::fabs(st.vol_out-st.vol_ref)>prm.max_vol_change*std::fabs(st.vol_ref))
     {
         st.vol_rejected=true;
@@ -1625,9 +1816,30 @@ bool sixdof_remesh::remesh(const std::vector<vec3> &in, std::vector<vec3> &out, 
 
 bool sixdof_remesh::remesh(const std::vector<vec3> &in, std::vector<vec3> &out, const metric_func &H, const params &prm, stats &st)
 {
-    st=stats();
-    remesher r(H,prm,st);
-    bool ok=r.run(in,out);
+    // keep_shape with a tolerance: a closed surface also keeps its volume within max_vol_keep (the
+    // chords of a convex surface are all inside it, their volume errors add up: a body of thin tubes
+    // lost 1.2 % at 0.05 cells, a quarter of its excess buoyancy); otherwise, or when the surface
+    // as a whole is further off than the tolerance allows, once more with half the tolerance, after
+    // four halvings with the exact shape
+    params pe=prm;
+    bool ok=false;
+    for(int n=0; n<6; ++n)
+    {
+        st=stats();
+        st.tol_first=prm.dist_tol;
+        remesher r(H,pe,st);
+        ok=r.run(in,out);
+
+        if(!(prm.keep_shape && pe.dist_tol>0.0))
+        break;
+
+        const bool volbad = ok && st.closed && std::fabs(st.vol_ref)>0.0
+                            && std::fabs(st.vol_out-st.vol_ref)>prm.max_vol_keep*std::fabs(st.vol_ref);
+        if(!volbad && !st.shape_rejected)
+        break;
+
+        pe.dist_tol = (n<4) ? 0.5*pe.dist_tol : 0.0;
+    }
     if(!ok) out=in;
     st.ok=ok;
     return ok;
@@ -1657,6 +1869,23 @@ void sixdof_remesh::print_stats(std::ostream &os, const stats &st)
     os<<"  edge/target    : mean "<<st.Lh_mean<<"  min "<<st.Lh_min<<"  max "<<st.Lh_max
       <<"   (target = X 186 cells)   quality in grid metric: mean "<<st.q_mean_metric<<"  min "<<st.q_min_metric<<std::endl;
     os<<"  area           : "<<st.area_in<<" -> "<<st.area_out<<"   volume: "<<st.vol_in<<" -> "<<st.vol_out<<std::endl;
+    if(st.diag>0.0)
+    {
+    os<<"  distance       : remeshed surface from the input "<<std::setprecision(3)<<st.dev_out<<", input from the remeshed surface "<<st.dev_in;
+    if(!st.keep_shape)
+    os<<"   (approximated, X 185 5)";
+    else if(st.dist_tol>0.0)
+    {
+    os<<"   ("<<st.dev_rel<<" of the tolerance at most";
+    if(st.dist_tol<st.tol_first) os<<"; X 179 reduced by the factor "<<st.tol_first/st.dist_tol<<" for the volume or the distance";
+    os<<")";
+    }
+    else
+    os<<"   ("<<std::max(st.dev_out,st.dev_in)/st.diag<<" of the box diagonal; exact shape"<<(st.tol_first>0.0 ? ", the surfaces with a tolerance changed the volume or the distance too much)" : ", X 179 0)");
+    os<<std::setprecision(4)<<std::endl;
+    }
+    if(st.shape_rejected)
+    os<<"  the remeshed surface is further from the input than the tolerance of the kept shape, rejected"<<std::endl;
     if(st.vol_rejected)
     os<<"  volume change  : "<<100.0*(st.vol_out-st.vol_ref)/st.vol_ref<<"% of the closed input surface ("<<st.vol_ref
       <<"), walls or features thinner than the target length, remeshed surface rejected"<<std::endl;

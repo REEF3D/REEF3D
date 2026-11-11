@@ -4504,6 +4504,9 @@ void control::read_control(lexer* p)
                 case  184: control>>X184;
                          clear(c,numint);
                          break;
+                case  179: control>>X179;
+                         clear(c,numint);
+                         break;
                 case  185: control>>X185;
                          clear(c,numint);
                          break;

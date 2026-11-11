@@ -1649,12 +1649,13 @@ void control::ini_default()
     X182_dx=X182_dy=X182_dz=0.0;  // double translation of stl geometry
     X183=0;
     X183_x=X183_y=X183_z=X183_phi=X183_theta=X183_psi=0.0;
-    X184=1;     // int remeshing (X 185 4): close gaps and fill holes, 0 off, 1 harmonic patch, 2 biharmonic patch
-    X185=4;     // int stl refinement
+    X184=1;     // int remeshing (X 185 4, 5): close gaps and fill holes, 0 off, 1 harmonic patch, 2 biharmonic patch
+    X185=4;     // int stl refinement: 0 off, 1-3 split triangles longer than X 186 cells (1 DXM, 2 the smallest cell, 3 the cell at the triangle), 4 remeshing towards the cell size that keeps the shape of the STL (flat faces and straight edges are remeshed, curved parts and thin walls keep their triangles, split where too long; the distance to the STL is printed), 5 remeshing that approximates the surface with triangles of the target size (X 185 4 before: chords across curved parts, thin walls are lost)
+    X179=0.05;  // double remeshing (X 185 4): largest distance of the remeshed surface from the STL, in fluid cells (curved parts are coarsened only as far as the chords stay within it, walls and details larger than it are kept; halved until a closed body keeps its volume within 1 %); 0 the shape is kept exactly (only flat faces and straight edges are remeshed)
     X186=1.0;   // double refinement factor: target triangle size in fluid cells
-    X187=30.0;  // double remeshing (X 185 4): feature angle in degrees
-    X189=10;    // int remeshing (X 185 4): number of iterations
-    X190=2;     // int remeshing (X 185 4): cell size, 1 grid metric (anisotropic), 2 geometric mean of dx,dy,dz, 3 smallest spacing
+    X187=30.0;  // double remeshing (X 185 4, 5): feature angle in degrees
+    X189=10;    // int remeshing (X 185 4, 5): number of iterations
+    X190=2;     // int remeshing (X 185 4, 5): cell size, 1 grid metric (anisotropic), 2 geometric mean of dx,dy,dz, 3 smallest spacing
     X188=1;     // int ray cast algorithm
     X195=0;     // int deforming bodies (X 195 id type a lambda f t_ramp): undulatory swimming, number of entries; type 1 linear, 2 carangiform, 3 anguilliform envelope (lateral shear of the hull), 11-13 the same on an inextensible midline
     X196=1;     // int deforming bodies (X 195): recoil correction (no net momentum and angular momentum of the deformation), 0 off, 2 with X 198 also the discrete correction of the grid (the deformation without the rigid-body part of its velocity in the hull region of the grid, each stage)

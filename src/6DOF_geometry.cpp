@@ -159,10 +159,12 @@ void sixdof_geometry::primitives(lexer *p, ghostcell *pgc)
 void sixdof_geometry::refine(lexer *p, ghostcell *pgc)
 {
     // X 185 1-3: split triangles larger than the grid
-    // X 185 4  : adaptive isotropic re-triangulation matching the local grid spacing; a remeshed surface that
-    //            does not keep the volume of the closed body (thin walls) is rejected, the input triangles
-    //            are then split as with X 185 1
-    if(p->X185==4)
+    // X 185 4  : re-triangulation towards the local grid spacing that keeps the shape of the STL (flat
+    //            faces and straight edges are remeshed, curved parts keep their triangles)
+    // X 185 5  : re-triangulation matching the local grid spacing, the surface approximated; a remeshed
+    //            surface that does not keep the volume of the closed body (thin walls) is rejected, the
+    //            input triangles are then split as with X 185 1
+    if(p->X185==4 || p->X185==5)
     {
         if(geometry_remesh(p,pgc))
         geometry_refinement(p,pgc);

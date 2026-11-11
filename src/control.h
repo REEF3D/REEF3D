@@ -746,7 +746,7 @@ public:
     double X197;
     int X198;
     double X198_c;
-    double X186,X187;
+    double X179,X186,X187;
     int X205;
     int X206,X207;
     double X206_ts,X206_te,X207_ts,X207_te;
