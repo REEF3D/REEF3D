@@ -103,18 +103,18 @@ void control::ini_default()
     
     A330=10;     // int dynamic wetting-drying (A343 2/3): minimum number of time steps a rewetted cell stays wet
     A331=1.0;    // double dynamic wetting-drying (A343 2/3): rewetting hysteresis margin as factor of A344
-    A332=2;      // int dynamic wetting-drying (A343 2/3): width in cells of the front viscosity band (viscosity A346 > 0, needs A350 1), 0 off
+    A332=2;      // int dynamic wetting-drying (A343 2/3): width in cells of the front viscosity band (viscosity A346 with A358 1, needs A350 1), 0 off
     A334=1;      // int dynamic wetting-drying (A343 2/3): redistribute wet-dry clamp volume to wet neighbours: 1 on, 0 off
     A335=1.0e20; // double runup (A343 2): maximum bed elevation above still water level that can become wet
     A336=1;      // int dynamic wetting-drying (A343 2/3): eta gradients at the wet-dry front from wet cells only: 1 on, 0 off
-    A337=1;      // int static coastline (A343 1): 0 legacy (no coastline viscosity); 1 wet-only Fifsf clamp average, clamp volume redistribution (A334), wet-only eta gradients and Exx=0 at the coast (A336), coastline viscosity A346 relaxed from 0 at the edge of the coastline band (A341, A342) to A346 at the coastline (needs A350 1, 4 or 5); 2 as 1 plus A346 in thin-film cells (WL < 10*A344); 3 as 2
+    A337=1;      // int static coastline (A343 1): 0 legacy (no coastline viscosity); 1 wet-only Fifsf clamp average, clamp volume redistribution (A334), wet-only eta gradients and Exx=0 at the coast (A336), coastline viscosity A346 (with A358 1) relaxed from 0 at the edge of the coastline band (A341, A342) to A346 at the coastline (needs A350 1, 4 or 5); 2 as 1 plus A346 in thin-film cells (WL < 10*A344); 3 as 2
     A338=1;      // int remove wet areas not connected to the main water body (coastline ini): 1 on, 0 off
     A339=1;      // int coastline initialization: 1 = fast sweeping, 0 = PDE reinitialization
     A341=0.0;    // double coastline damping distance factor for dxm
     A342=0.0;    // double coastline damping absolute distance
     A343=1;      // int wetting-drying: 0 off, 1 static coastline, 2 dynamic runup and rundown (no coastline damping), 3 dynamic rundown only
     A344=0.001; // double wetting criterion value
-    A346=0.0;     // double viscosity damping within the coastline (A343 1: coastline band A341/A342 and A337 2/3 thin-film cells; A343 2/3: front band A332; needs A350 1, 4 or 5): 0 off (default), e.g. 1.86 as before the default became 0
+    A346=1.86;   // double viscosity of the coastline viscosity, used with A358 1
     A347=1;     // int coastline relaxation for Fi and eta
     A348=1;     // int beach relaxation for Fi and eta
     A349=10.0;   // double initial coastline damping distance factor for dxm
@@ -126,6 +126,7 @@ void control::ini_default()
     A355=1.25;   // double breaking parameter slope alpha
     A356=0.1;   // double breaking parameter slope beta
     A357=1;     // int breaking for Fi and eta
+    A358=0;      // int FNPF coastline viscosity A346 (needs A350 1, 4 or 5; A343 1: ramp in the coastline band A341/A342 and A337 2/3 thin-film cells; A343 2/3: front band A332): 0 off (default, as before A337), 1 on
     
     A361=5;      // int breaking filter outer iter
     A362=2;      // int breaking filter inner iter

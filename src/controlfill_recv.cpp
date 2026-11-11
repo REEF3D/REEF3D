@@ -296,6 +296,8 @@ void control::ctrlrecv()
     ii++;
     A339 = ictrl[ii];
     ii++;
+    A358 = ictrl[ii];
+    ii++;
     A341 = dctrl[dd];
     dd++;
     A342 = dctrl[dd];

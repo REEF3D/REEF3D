@@ -240,15 +240,15 @@ void fnpf_breaking::breaking_baquet_wd(lexer *p, fdm_fnpf *c, ghostcell *pgc, sl
     cout<<"breaking: "<<count<<endl;
 }
 
-// coastline / wet-dry front viscosity (raises vb to at least A346 there); part of the Baquet
-// model (A350 1), also used by A350 4
+// coastline / wet-dry front viscosity (raises vb to at least A346 there) with A358 1 (default 0: off, as before
+// A337); part of the Baquet model (A350 1), also used by A350 4/5
 void fnpf_breaking::coast_viscosity(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 {
     // A343 2/3: viscosity band along the moving wet-dry front
     // (replaces the static coastline viscosity above, which is tied to
     // the initial coastline); cells within A332 cells of a dry cell get
     // at least A346, applied through the implicit damping solve
-    if(p->A343>=2 && p->A332>0 && p->A346>0.0)
+    if(p->A358==1 && p->A343>=2 && p->A332>0 && p->A346>0.0)
     {
         SLICELOOP4
         wdband(i,j) = (p->wet[IJ]==0) ? 1 : 0;
@@ -293,7 +293,7 @@ void fnpf_breaking::coast_viscosity(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     //   A337 1: the ramp in the band
     //   A337 2, 3: the ramp, and A346 in the thin-film cells (WL < 10*A344), where a drawdown has exposed the
     //           bed but the static mask keeps the cell wet and clamped
-    if(p->A343==1 && p->A337>=1 && p->A346>0.0)
+    if(p->A358==1 && p->A343==1 && p->A337>=1 && p->A346>0.0)
     SLICELOOP4
     if(p->wet[IJ]==1)
     {
