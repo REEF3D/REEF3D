@@ -339,7 +339,7 @@ cfd_amr::cfd_amr(lexer *p, fdm *a, ghostcell *pgc, momentum *pmom, pressure *ppr
     {
         sc_conv = (scal==1) ? p->H15 : p->C15;
         sc_diff = (p->D20==1) ? 1 : (p->D20>=2 ? 2 : 0);
-        sc_sig = (scal==1) ? p->sigT : 1.0;
+        sc_sig = (scal==1) ? heat::sigT : 1.0;
     }
 
     // the registry of the patch state (cfd_amr_fields.cpp)

@@ -166,7 +166,7 @@ void run_scalars(lexer *p, F &&f)
     f("simtime",p->simtime); f("dt",p->dt); f("dt_old",p->dt_old);
     f("printtime",p->printtime); f("sedprinttime",p->sedprinttime); f("fsfprinttime",p->fsfprinttime);
     f("fsfsedprinttime",p->fsfsedprinttime); f("probeprinttime",p->probeprinttime);
-    f("stateprinttime",p->stateprinttime); f("exportprinttime",p->exportprinttime); f("wavetime",p->wavetime);
+    f("stateprinttime",p->stateprinttime); f("wavetime",p->wavetime);
     f("totaltime",p->totaltime); f("gctotaltime",p->gctotaltime); f("Xtotaltime",p->Xtotaltime);
     // the in- and outflow of the last step (ioflow: the turbulence inflow profile uses Ui before the
     // momentum step sets it again), the maxima of the last step
@@ -177,10 +177,9 @@ void run_scalars(lexer *p, F &&f)
     f("phimean",p->phimean); f("phiout",p->phiout); f("phiin",p->phiin);
     // the pressure reference of the last step (B 30; the loads of the 6DOF bodies take it off)
     f("pressgage",p->pressgage);
-    // sediment (S 10): the sediment time and step (S 19, S 29, outputs), the morphological times (S 42),
-    // the bed range and the slide cells of the log
-    f("sedtime",p->sedtime); f("dtsed",p->dtsed); f("sedsimtime",p->sedsimtime); f("sedwavetime",p->sedwavetime);
-    f("bedmin",p->bedmin); f("bedmax",p->bedmax); f("slidecells",p->slidecells);
+    // sediment (S 10): the sediment time and step (S 19, S 29, outputs), the slide cells of the log (the
+    // morphological times and the bed range: sediment_f::ckpt_state)
+    f("sedtime",p->sedtime); f("dtsed",p->dtsed); f("slidecells",p->slidecells);
 }
 }
 

@@ -107,12 +107,12 @@ void sediment_exner::topovel_curv(lexer* p, ghostcell *pgc, sediment_fdm *s, int
     SEDSLICELOOP
 	if(p->pos_x()>=p->S71 && p->pos_x()<=p->S72)
 	{
-        sgx1 = sediment_curv::face_sign(p,s,1,i-1,j,bend_td(p,1,i-1,j));
-        sgx2 = sediment_curv::face_sign(p,s,1,i,j,bend_td(p,1,i,j));
-        sgy1 = sediment_curv::face_sign(p,s,2,i,j-1,bend_td(p,2,i,j-1));
-        sgy2 = sediment_curv::face_sign(p,s,2,i,j,bend_td(p,2,i,j));
+        sgx1 = sediment_curv::face_sign(p,s,1,i-1,j,bend_td(p,s,1,i-1,j));
+        sgx2 = sediment_curv::face_sign(p,s,1,i,j,bend_td(p,s,1,i,j));
+        sgy1 = sediment_curv::face_sign(p,s,2,i,j-1,bend_td(p,s,2,i,j-1));
+        sgy2 = sediment_curv::face_sign(p,s,2,i,j,bend_td(p,s,2,i,j));
         
-        face_closure(p,sgx1,sgx2,sgy1,sgy2);
+        face_closure(p,s,sgx1,sgx2,sgy1,sgy2);
         
         const int ci=i, cj=j;
         const double div = (face_flux(1,ci,cj,sgx2) - face_flux(1,ci-1,cj,sgx1)
@@ -120,7 +120,7 @@ void sediment_exner::topovel_curv(lexer* p, ghostcell *pgc, sediment_fdm *s, int
         
         s->vz(i,j) =  -p->S35*s->guard(i,j)*prelax->rf(p,pgc)*(1.0/(1.0-p->S24))*(div + susp_ED(p,pgc,s));
 
-        if(p->DFBED[IJ]<0)
+        if(s->DFBED[IJ]<0)
         s->vz(i,j) = 0.0;
 	}
     

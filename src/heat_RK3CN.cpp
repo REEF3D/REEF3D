@@ -51,7 +51,7 @@ void heat_RK3CN::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdiff, 
     clearrhs(p,a,pgc);
     pconvec->start(p,a,T,4,a->u,a->v,a->w);
     addrhs(p,a,pgc,1.0);
-    pdiff->diff_scalar(p,a,pgc,psolv,ark1,T,thermdiff,a->eddyv,p->sigT, 8.0/15.0);
+    pdiff->diff_scalar(p,a,pgc,psolv,ark1,T,thermdiff,a->eddyv,sigT, 8.0/15.0);
     
     bcheat_start(p,a,pgc,ark1); 
     pgc->start4(p,ark1,gcval_heat);
@@ -62,7 +62,7 @@ void heat_RK3CN::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdiff, 
     addrhs(p,a,pgc,25.0/8.0);
     pconvec->start(p,a,T,4,a->u,a->v,a->w);
     addrhs(p,a,pgc,-17.0/8.0);
-    pdiff->diff_scalar(p,a,pgc,psolv,ark2,ark1,thermdiff,a->eddyv,p->sigT, 2.0/15.0);
+    pdiff->diff_scalar(p,a,pgc,psolv,ark2,ark1,thermdiff,a->eddyv,sigT, 2.0/15.0);
 	
     bcheat_start(p,a,pgc,ark2);
     pgc->start4(p,ark2,gcval_heat);
@@ -73,7 +73,7 @@ void heat_RK3CN::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdiff, 
     addrhs(p,a,pgc,9.0/4.0);
     pconvec->start(p,a,ark1,4,a->u,a->v,a->w);
     addrhs(p,a,pgc,-5.0/4.0);
-    pdiff->diff_scalar(p,a,pgc,psolv,T,ark2,thermdiff,a->eddyv,p->sigT, 1.0/3.0);
+    pdiff->diff_scalar(p,a,pgc,psolv,T,ark2,thermdiff,a->eddyv,sigT, 1.0/3.0);
     
 	
     bcheat_start(p,a,pgc,T);
