@@ -102,6 +102,11 @@ void sandslide_f::start(lexer *p, ghostcell *pgc, sediment_fdm *s)
     }
 }
 
+// A cell steeper than the angle of repose towards a neighbour gives it S 92/6 (S 92/12 on the diagonals) of the
+// excess height dh - tan(phi) d (plus tan(S 93) d): the slope comes down to the angle of repose, lower by S 93,
+// and stays there. The transfer was that share of the whole height difference dh: the slope ended below the
+// angle of repose and a spike of one cell turned into a pit. The weights add up to one for a cell that all
+// eight neighbours slide into.
 void sandslide_f::slide(lexer *p, ghostcell *pgc, sediment_fdm *s)
 {
     // curvilinear grid (G 50): sediment_curv.h
@@ -124,7 +129,7 @@ void sandslide_f::slide(lexer *p, ghostcell *pgc, sediment_fdm *s)
         if(dh>maxdh && fabs(dh)<1.0e15)
         if(p->DFBED[Im1J]>0 && SLIDE_NB(-1,0))
 		{
-            dh_corr = dh + tan(p->S93*(PI/180.0))*p->DXP[IM1];
+            dh_corr = (dh-maxdh) + tan(p->S93*(PI/180.0))*p->DXP[IM1];
             
             fh(i,j)-= fac1*dh_corr;
             fh(i-1,j)+= fac1*dh_corr*SLIDE_AR(-1,0);
@@ -144,7 +149,7 @@ void sandslide_f::slide(lexer *p, ghostcell *pgc, sediment_fdm *s)
         if(dh>maxdh && fabs(dh)<1.0e15)
         if(p->DFBED[Ip1J]>0 && SLIDE_NB(1,0))
 		{
-			dh_corr = dh + tan(p->S93*(PI/180.0))*p->DXP[IP];
+			dh_corr = (dh-maxdh) + tan(p->S93*(PI/180.0))*p->DXP[IP];
             
             fh(i,j)-= fac1*dh_corr;
             fh(i+1,j)+= fac1*dh_corr*SLIDE_AR(1,0);
@@ -164,7 +169,7 @@ void sandslide_f::slide(lexer *p, ghostcell *pgc, sediment_fdm *s)
         if(dh>maxdh && fabs(dh)<1.0e15)
         if(p->DFBED[IJm1]>0 && SLIDE_NB(0,-1))
 		{          
-            dh_corr = dh + tan(p->S93*(PI/180.0))*p->DYP[JM1];
+            dh_corr = (dh-maxdh) + tan(p->S93*(PI/180.0))*p->DYP[JM1];
             
             fh(i,j)-= fac1*dh_corr;
             fh(i,j-1)+= fac1*dh_corr*SLIDE_AR(0,-1);
@@ -178,14 +183,13 @@ void sandslide_f::slide(lexer *p, ghostcell *pgc, sediment_fdm *s)
 
         // 4
         dh = s->bedzh(i,j) - s->bedzh(i,j+1);
-		dh_corr = dh + tan(p->S93*(PI/180.0))*p->DYP[JP];
         
         maxdh = tan(s->phi(i,j))*p->DYP[JP];
         
         if(dh>maxdh && fabs(dh)<1.0e15)
         if(p->DFBED[IJp1]>0 && SLIDE_NB(0,1))
 		{
-            dh_corr = dh + tan(p->S93*(PI/180.0))*p->DYP[JP];
+            dh_corr = (dh-maxdh) + tan(p->S93*(PI/180.0))*p->DYP[JP];
             
             fh(i,j)-= fac1*dh_corr;
             fh(i,j+1)+= fac1*dh_corr*SLIDE_AR(0,1);
@@ -206,7 +210,7 @@ void sandslide_f::slide(lexer *p, ghostcell *pgc, sediment_fdm *s)
         if(dh>maxdhs && fabs(dh)<1.0e15)
         if(p->DFBED[Im1Jm1]>0 && SLIDE_NB(-1,-1))
         {
-            dh_corr = dh + tan(p->S93*(PI/180.0))*sqrt(p->DXP[IM1]*p->DXP[IM1] + p->DYP[JM1]*p->DYP[JM1]);
+            dh_corr = (dh-maxdhs) + tan(p->S93*(PI/180.0))*sqrt(p->DXP[IM1]*p->DXP[IM1] + p->DYP[JM1]*p->DYP[JM1]);
             
             fh(i,j)-= fac2*dh_corr;
             fh(i-1,j-1)+= fac2*dh_corr*SLIDE_AR(-1,-1);
@@ -227,7 +231,7 @@ void sandslide_f::slide(lexer *p, ghostcell *pgc, sediment_fdm *s)
         if(dh>maxdhs && fabs(dh)<1.0e15)
         if(p->DFBED[Im1Jp1]>0 && SLIDE_NB(-1,1))
 		{   
-            dh_corr = dh + tan(p->S93*(PI/180.0))*sqrt(p->DXP[IM1]*p->DXP[IM1] + p->DYP[JP]*p->DYP[JP]);         
+            dh_corr = (dh-maxdhs) + tan(p->S93*(PI/180.0))*sqrt(p->DXP[IM1]*p->DXP[IM1] + p->DYP[JP]*p->DYP[JP]);         
             
             fh(i,j)-= fac2*dh_corr;
             fh(i-1,j+1)+= fac2*dh_corr*SLIDE_AR(-1,1);
@@ -247,7 +251,7 @@ void sandslide_f::slide(lexer *p, ghostcell *pgc, sediment_fdm *s)
         if(dh>maxdhs && fabs(dh)<1.0e15)
         if(p->DFBED[Ip1Jm1]>0 && SLIDE_NB(1,-1))
 		{
-            dh_corr = dh + tan(p->S93*(PI/180.0))*sqrt(p->DXP[IP]*p->DXP[IP] + p->DYP[JM1]*p->DYP[JM1]);
+            dh_corr = (dh-maxdhs) + tan(p->S93*(PI/180.0))*sqrt(p->DXP[IP]*p->DXP[IP] + p->DYP[JM1]*p->DYP[JM1]);
             
 			fh(i,j)-= fac2*dh_corr;
             fh(i+1,j-1)+= fac2*dh_corr*SLIDE_AR(1,-1);
@@ -267,7 +271,7 @@ void sandslide_f::slide(lexer *p, ghostcell *pgc, sediment_fdm *s)
         if(dh>maxdhs && fabs(dh)<1.0e15)
         if(p->DFBED[Ip1Jp1]>0 && SLIDE_NB(1,1))
 		{   
-            dh_corr = dh + tan(p->S93*(PI/180.0))*sqrt(p->DXP[IP]*p->DXP[IP] + p->DYP[JP]*p->DYP[JP]);   
+            dh_corr = (dh-maxdhs) + tan(p->S93*(PI/180.0))*sqrt(p->DXP[IP]*p->DXP[IP] + p->DYP[JP]*p->DYP[JP]);   
       
             fh(i,j)-= fac2*dh_corr;
             fh(i+1,j+1)+= fac2*dh_corr*SLIDE_AR(1,1);
@@ -299,7 +303,7 @@ void sandslide_f::slide_curv(lexer *p, ghostcell *pgc, sediment_fdm *s)
         if(dh>maxdh && fabs(dh)<1.0e15)
         if(p->DFBED[Im1J]>0 && SLIDE_NB(-1,0))
 		{
-            dh_corr = dh + tan(p->S93*(PI/180.0))*SLIDE_D(-1,0,p->DXP[IM1]);
+            dh_corr = (dh-maxdh) + tan(p->S93*(PI/180.0))*SLIDE_D(-1,0,p->DXP[IM1]);
             
             fh(i,j)-= fac1*dh_corr;
             fh(i-1,j)+= fac1*dh_corr*SLIDE_ARC(-1,0);
@@ -319,7 +323,7 @@ void sandslide_f::slide_curv(lexer *p, ghostcell *pgc, sediment_fdm *s)
         if(dh>maxdh && fabs(dh)<1.0e15)
         if(p->DFBED[Ip1J]>0 && SLIDE_NB(1,0))
 		{
-			dh_corr = dh + tan(p->S93*(PI/180.0))*SLIDE_D(1,0,p->DXP[IP]);
+			dh_corr = (dh-maxdh) + tan(p->S93*(PI/180.0))*SLIDE_D(1,0,p->DXP[IP]);
             
             fh(i,j)-= fac1*dh_corr;
             fh(i+1,j)+= fac1*dh_corr*SLIDE_ARC(1,0);
@@ -339,7 +343,7 @@ void sandslide_f::slide_curv(lexer *p, ghostcell *pgc, sediment_fdm *s)
         if(dh>maxdh && fabs(dh)<1.0e15)
         if(p->DFBED[IJm1]>0 && SLIDE_NB(0,-1))
 		{          
-            dh_corr = dh + tan(p->S93*(PI/180.0))*SLIDE_D(0,-1,p->DYP[JM1]);
+            dh_corr = (dh-maxdh) + tan(p->S93*(PI/180.0))*SLIDE_D(0,-1,p->DYP[JM1]);
             
             fh(i,j)-= fac1*dh_corr;
             fh(i,j-1)+= fac1*dh_corr*SLIDE_ARC(0,-1);
@@ -353,14 +357,13 @@ void sandslide_f::slide_curv(lexer *p, ghostcell *pgc, sediment_fdm *s)
 
         // 4
         dh = s->bedzh(i,j) - s->bedzh(i,j+1);
-		dh_corr = dh + tan(p->S93*(PI/180.0))*SLIDE_D(0,1,p->DYP[JP]);
         
         maxdh = tan(s->phi(i,j))*SLIDE_D(0,1,p->DYP[JP]);
         
         if(dh>maxdh && fabs(dh)<1.0e15)
         if(p->DFBED[IJp1]>0 && SLIDE_NB(0,1))
 		{
-            dh_corr = dh + tan(p->S93*(PI/180.0))*SLIDE_D(0,1,p->DYP[JP]);
+            dh_corr = (dh-maxdh) + tan(p->S93*(PI/180.0))*SLIDE_D(0,1,p->DYP[JP]);
             
             fh(i,j)-= fac1*dh_corr;
             fh(i,j+1)+= fac1*dh_corr*SLIDE_ARC(0,1);
@@ -381,7 +384,7 @@ void sandslide_f::slide_curv(lexer *p, ghostcell *pgc, sediment_fdm *s)
         if(dh>maxdhs && fabs(dh)<1.0e15)
         if(p->DFBED[Im1Jm1]>0 && SLIDE_NB(-1,-1))
         {
-            dh_corr = dh + tan(p->S93*(PI/180.0))*SLIDE_D(-1,-1,sqrt(p->DXP[IM1]*p->DXP[IM1] + p->DYP[JM1]*p->DYP[JM1]));
+            dh_corr = (dh-maxdhs) + tan(p->S93*(PI/180.0))*SLIDE_D(-1,-1,sqrt(p->DXP[IM1]*p->DXP[IM1] + p->DYP[JM1]*p->DYP[JM1]));
             
             fh(i,j)-= fac2*dh_corr;
             fh(i-1,j-1)+= fac2*dh_corr*SLIDE_ARC(-1,-1);
@@ -402,7 +405,7 @@ void sandslide_f::slide_curv(lexer *p, ghostcell *pgc, sediment_fdm *s)
         if(dh>maxdhs && fabs(dh)<1.0e15)
         if(p->DFBED[Im1Jp1]>0 && SLIDE_NB(-1,1))
 		{   
-            dh_corr = dh + tan(p->S93*(PI/180.0))*SLIDE_D(-1,1,sqrt(p->DXP[IM1]*p->DXP[IM1] + p->DYP[JP]*p->DYP[JP]));         
+            dh_corr = (dh-maxdhs) + tan(p->S93*(PI/180.0))*SLIDE_D(-1,1,sqrt(p->DXP[IM1]*p->DXP[IM1] + p->DYP[JP]*p->DYP[JP]));         
             
             fh(i,j)-= fac2*dh_corr;
             fh(i-1,j+1)+= fac2*dh_corr*SLIDE_ARC(-1,1);
@@ -422,7 +425,7 @@ void sandslide_f::slide_curv(lexer *p, ghostcell *pgc, sediment_fdm *s)
         if(dh>maxdhs && fabs(dh)<1.0e15)
         if(p->DFBED[Ip1Jm1]>0 && SLIDE_NB(1,-1))
 		{
-            dh_corr = dh + tan(p->S93*(PI/180.0))*SLIDE_D(1,-1,sqrt(p->DXP[IP]*p->DXP[IP] + p->DYP[JM1]*p->DYP[JM1]));
+            dh_corr = (dh-maxdhs) + tan(p->S93*(PI/180.0))*SLIDE_D(1,-1,sqrt(p->DXP[IP]*p->DXP[IP] + p->DYP[JM1]*p->DYP[JM1]));
             
 			fh(i,j)-= fac2*dh_corr;
             fh(i+1,j-1)+= fac2*dh_corr*SLIDE_ARC(1,-1);
@@ -442,7 +445,7 @@ void sandslide_f::slide_curv(lexer *p, ghostcell *pgc, sediment_fdm *s)
         if(dh>maxdhs && fabs(dh)<1.0e15)
         if(p->DFBED[Ip1Jp1]>0 && SLIDE_NB(1,1))
 		{   
-            dh_corr = dh + tan(p->S93*(PI/180.0))*SLIDE_D(1,1,sqrt(p->DXP[IP]*p->DXP[IP] + p->DYP[JP]*p->DYP[JP]));   
+            dh_corr = (dh-maxdhs) + tan(p->S93*(PI/180.0))*SLIDE_D(1,1,sqrt(p->DXP[IP]*p->DXP[IP] + p->DYP[JP]*p->DYP[JP]));   
       
             fh(i,j)-= fac2*dh_corr;
             fh(i+1,j+1)+= fac2*dh_corr*SLIDE_ARC(1,1);
