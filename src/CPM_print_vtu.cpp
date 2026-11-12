@@ -41,6 +41,13 @@ void CPM::name_ParaView_parallel_CPM(lexer *p, ofstream &result)
     
     if(p->Q69>0)
     result<<"<PDataArray type=\"Float32\" Name=\"CPM_Pstar\"/>\n";
+    
+    if(p->Q87>0 && p->Q12==2)
+    {
+    result<<"<PDataArray type=\"Float32\" Name=\"CPM_Gd\"/>\n";
+    result<<"<PDataArray type=\"Float32\" Name=\"CPM_I\"/>\n";
+    result<<"<PDataArray type=\"Float32\" Name=\"CPM_Yr\"/>\n";
+    }
 }
 
 void CPM::name_ParaView_CPM(lexer *p, ostream &result, int *offset, int &n)
@@ -62,6 +69,17 @@ void CPM::name_ParaView_CPM(lexer *p, ostream &result, int *offset, int &n)
     result<<"<DataArray type=\"Float32\" Name=\"CPM_Pstar\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
     ++n;
     }
+    
+    // diagnostics of the packed bed (Q 87): shear rate, inertial number, yield ratio of the column
+    if(p->Q87>0 && p->Q12==2)
+    {
+    result<<"<DataArray type=\"Float32\" Name=\"CPM_Gd\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
+    ++n;
+    result<<"<DataArray type=\"Float32\" Name=\"CPM_I\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
+    ++n;
+    result<<"<DataArray type=\"Float32\" Name=\"CPM_Yr\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
+    ++n;
+    }
 }
 
 void CPM::offset_ParaView_CPM(lexer *p, int *offset, int &n)
@@ -78,6 +96,13 @@ void CPM::offset_ParaView_CPM(lexer *p, int *offset, int &n)
 	++n;
     
     if(p->Q69>0)
+    {
+    offset[n]=offset[n-1]+4*(p->pointnum)+4;
+	++n;
+    }
+    
+    if(p->Q87>0 && p->Q12==2)
+    for(int q=0; q<3; ++q)
     {
     offset[n]=offset[n-1]+4*(p->pointnum)+4;
 	++n;
@@ -161,6 +186,28 @@ void CPM::print_3D_CPM(lexer* p, ghostcell *pgc, vector<char> &buffer, size_t &m
         ffn=float(p->ipol4_a(Pse));
         memcpy(&buffer[m],&ffn,sizeof(float));
         m+=sizeof(float);
+    }
+    }
+    
+    // diagnostics of the packed bed (Q 87)
+    if(p->Q87>0 && p->Q12==2)
+    {
+    bed_diagnostics(p,pgc);
+    
+    field4a *df[3] = {&Gd,&In,&Yr};
+    
+    for(int q=0; q<3; ++q)
+    {
+    iin=sizeof(float)*p->pointnum;
+    memcpy(&buffer[m],&iin,sizeof(int));
+    m+=sizeof(int);
+    
+    TPLOOP
+    {
+        ffn=float(p->ipol4_a(*df[q]));
+        memcpy(&buffer[m],&ffn,sizeof(float));
+        m+=sizeof(float);
+    }
     }
     }
 }

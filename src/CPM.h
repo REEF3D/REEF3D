@@ -170,6 +170,7 @@ private:
     double contact_pressure(double, double);
     double contact_pressure_deriv(double, double);
     void dilatancy(lexer*, ghostcell*);
+    void bed_diagnostics(lexer*, ghostcell*);
     field4a T0e,Tiso;
     
     void stress_gradient(lexer*, fdm*, ghostcell*, sediment_fdm*);
@@ -270,6 +271,7 @@ private:
     field4a cellSum;
     field4a Us,Vs,Ws;
     field4a Pov;
+    field4a Gd,In;   // Q 87: deviatoric shear rate and inertial number of the parcels' velocity on the grid (diagnostics)
     field4a Fxy,Yr;  // column integral of the lateral load |int grad_h(Pov) dz| and the yield ratio Fxy/(mu_s Pov) (Q 67)
     field4a Kc,KUx,KUy,KUz;
     field4a dSx,dSy,dSz;
