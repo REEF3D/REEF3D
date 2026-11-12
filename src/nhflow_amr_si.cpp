@@ -540,6 +540,14 @@ void nhflow_amr::si_step(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_momentum_f
         m->si_begin(q,dd,pgc,S);
     });
 
+    // A 510 11: the face depths and omega of every grid at t^{n+1/2} (nh_begin, from the levels of t^n and of the step
+    // before of the grid itself; the cells around the grids hold the state of t^n)
+    if(gsi(-1)->onestep)
+    si_all(pgc,[&](int g, lexer *q, fdm_nhf *dd, nhflow_momentum_SI *m, nhflow_stage_obj &S)
+    {
+        m->nh_begin(q,dd,pgc);
+    });
+
     // the advection hooks (face matching with the patches)
     if(si_lv)
     si_hooks(true);

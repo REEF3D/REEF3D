@@ -206,6 +206,12 @@ nhflow_momentum_SI::nhflow_momentum_SI(lexer *p, fdm_nhf *d, ghostcell *pgc, six
     // nonlinear terms, one pass)
     tl2 = elm_mode(p)==0 && p->geo_curv==0 && p->geo_mb==0 && p->G1==0 && !patch && p->A505==1;
 
+    // A 510 11 without tl2 (curvilinear, multi-block and refined grids, A 505 0): Crank-Nicolson vertical advection with
+    // omega at t^{n+1/2} (nh_begin), as with tl2 (A 505 0 had implicit Euler here; no regression case combines it with
+    // A 510 11)
+    if(onestep)
+    thv = 0.5;
+
     if(tl2)
     {
     thv = 0.5;
@@ -328,9 +334,9 @@ void nhflow_momentum_SI::check(lexer *p)
     if(p->A510!=1 && p->A510!=2 && p->A510!=3)
     msg("a predictor other than one step, SSP-RK2 or SSP-RK3 (A 510 11, 12, 13) is");
 
-    // A 510 11: the BCG advection on one Cartesian grid
-    if(p->A510==1 && (p->geo_curv==1 || p->geo_mb>0 || p->G1>0))
-    msg("the one-step predictor (A 510 11) on curvilinear, multi-block or refined grids is; A 510 12 works,");
+    // A 510 11 on curvilinear, multi-block and refined grids: the BCG advection without its source term (the
+    // acceleration of the step before is a quantity of the second-order time levels, tl2, one Cartesian grid), the face
+    // depths and omega at t^{n+1/2} (nh_begin on every grid), Crank-Nicolson vertical advection
 
     // mesh refinement (G 1): one eta system over the leaf cells of all grids (reefamr_si.cpp), one global time step
     // with the same sigma layers on every level
@@ -1918,6 +1924,13 @@ void nhflow_momentum_SI::advection_bcg(lexer *p, fdm_nhf *d, ghostcell *pgc, dou
     const int K = p->knoz;
     const bool yd = (p->j_dir==1);
 
+    // curvilinear grid (G 50): U, V Cartesian, T the transport through the face per unit length (normal); the slopes
+    // along the index directions per index, the extrapolation half an index step, the face Courant number with the
+    // normal velocity over the distance of the two centres along the face normal (dnorm), the transverse slope over
+    // the mean centre distance of the two faces along the face (as SFLOW A 210 11)
+    const bool cv = (p->geo_curv==1);
+    auto dn = [&](int dir, int a, int b) { const double r = sflow_curv::dnorm(p,dir,a,b); return r>1.0e-12 ? r : 1.0e-12; };
+
     auto ix = [&](int a, int b, int c) { return (a-p->imin)*p->jmax*p->kmax + (b-p->jmin)*p->kmax + c-p->kmin; };
     auto ok = [&](int a, int b) { return tA(a,b)>0.5; };
 
@@ -1927,9 +1940,21 @@ void nhflow_momentum_SI::advection_bcg(lexer *p, fdm_nhf *d, ghostcell *pgc, dou
     auto uface = [&](int dir, int a, int b, int c)
     {
         const int a2 = dir==1 ? a+1 : a, b2 = dir==2 ? b+1 : b;
-        const double *u = dir==1 ? d->U : d->V;
         const double hl = ok(a,b) ? WL0(a,b) : 0.0, hr = ok(a2,b2) ? WL0(a2,b2) : 0.0;
-        return (hl+hr)>0.0 ? (hl*u[ix(a,b,c)] + hr*u[ix(a2,b2,c)])/(hl + hr) : 0.0;
+
+        if((hl+hr)<=0.0)
+        return 0.0;
+
+        if(cv)
+        {
+        double nx,ny,len;
+        nhflow_curv::normal(p,dir,a,b,nx,ny,len);
+        const double ul = d->U[ix(a,b,c)]*nx + d->V[ix(a,b,c)]*ny, ur = d->U[ix(a2,b2,c)]*nx + d->V[ix(a2,b2,c)]*ny;
+        return (hl*ul + hr*ur)/(hl + hr);
+        }
+
+        const double *u = dir==1 ? d->U : d->V;
+        return (hl*u[ix(a,b,c)] + hr*u[ix(a2,b2,c)])/(hl + hr);
     };
 
     // the limited slope of the cell from the values and centre distances on its two sides (one-sided: 0)
@@ -1973,9 +1998,9 @@ void nhflow_momentum_SI::advection_bcg(lexer *p, fdm_nhf *d, ghostcell *pgc, dou
         continue;
         }
 
-        const double dx = p->DXN[iu+marge];
-        const double c = MIN(fabs(uface(1,i,j,k))*dt/dx,1.0);
-        const double g = slope(f[ix(iu-1,j,k)],f[ix(iu,j,k)],f[ix(iu+1,j,k)],p->DXP[iu-1+marge],p->DXP[iu+marge],ok(iu-1,j),ok(iu+1,j));
+        const double dx = cv ? 1.0 : p->DXN[iu+marge];
+        const double c = MIN(fabs(uface(1,i,j,k))*dt/(cv ? dn(1,i,j) : dx),1.0);
+        const double g = slope(f[ix(iu-1,j,k)],f[ix(iu,j,k)],f[ix(iu+1,j,k)],cv ? 1.0 : p->DXP[iu-1+marge],cv ? 1.0 : p->DXP[iu+marge],ok(iu-1,j),ok(iu+1,j));
 
         double ff = f[ix(iu,j,k)] + a*(1.0 - c)*g*0.5*dx + 0.5*dt*src(iu,j,k);
 
@@ -1986,8 +2011,9 @@ void nhflow_momentum_SI::advection_bcg(lexer *p, fdm_nhf *d, ghostcell *pgc, dou
             if(hs>p->A544)
             {
             const double v = (Ty[ix(iu,j-1,k)] + Ty[ix(iu,j,k)])/hs;
-            const double gt = slope(f[ix(iu,j-1,k)],f[ix(iu,j,k)],f[ix(iu,j+1,k)],p->DYP[j-1+marge],p->DYP[j+marge],ok(iu,j-1),ok(iu,j+1));
-            ff -= 0.5*dt*v*gt;
+            const double gt = slope(f[ix(iu,j-1,k)],f[ix(iu,j,k)],f[ix(iu,j+1,k)],cv ? 1.0 : p->DYP[j-1+marge],cv ? 1.0 : p->DYP[j+marge],ok(iu,j-1),ok(iu,j+1));
+            const double ds = cv ? 0.5*(dn(2,iu,j-1) + dn(2,iu,j)) : 1.0;
+            ff -= 0.5*dt*v*gt/ds;
             }
         }
 
@@ -2010,9 +2036,9 @@ void nhflow_momentum_SI::advection_bcg(lexer *p, fdm_nhf *d, ghostcell *pgc, dou
         continue;
         }
 
-        const double dy = p->DYN[ju+marge];
-        const double c = MIN(fabs(uface(2,i,j,k))*dt/dy,1.0);
-        const double g = slope(f[ix(i,ju-1,k)],f[ix(i,ju,k)],f[ix(i,ju+1,k)],p->DYP[ju-1+marge],p->DYP[ju+marge],ok(i,ju-1),ok(i,ju+1));
+        const double dy = cv ? 1.0 : p->DYN[ju+marge];
+        const double c = MIN(fabs(uface(2,i,j,k))*dt/(cv ? dn(2,i,j) : dy),1.0);
+        const double g = slope(f[ix(i,ju-1,k)],f[ix(i,ju,k)],f[ix(i,ju+1,k)],cv ? 1.0 : p->DYP[ju-1+marge],cv ? 1.0 : p->DYP[ju+marge],ok(i,ju-1),ok(i,ju+1));
 
         double ff = f[ix(i,ju,k)] + a*(1.0 - c)*g*0.5*dy + 0.5*dt*src(i,ju,k);
 
@@ -2021,8 +2047,9 @@ void nhflow_momentum_SI::advection_bcg(lexer *p, fdm_nhf *d, ghostcell *pgc, dou
         if(hs>p->A544)
         {
         const double u = (Tx[ix(i-1,ju,k)] + Tx[ix(i,ju,k)])/hs;
-        const double gt = slope(f[ix(i-1,ju,k)],f[ix(i,ju,k)],f[ix(i+1,ju,k)],p->DXP[i-1+marge],p->DXP[i+marge],ok(i-1,ju),ok(i+1,ju));
-        ff -= 0.5*dt*u*gt;
+        const double gt = slope(f[ix(i-1,ju,k)],f[ix(i,ju,k)],f[ix(i+1,ju,k)],cv ? 1.0 : p->DXP[i-1+marge],cv ? 1.0 : p->DXP[i+marge],ok(i-1,ju),ok(i+1,ju));
+        const double ds = cv ? 0.5*(dn(1,i-1,ju) + dn(1,i,ju)) : 1.0;
+        ff -= 0.5*dt*u*gt/ds;
         }
 
         Fy[IJK] = t*ff;

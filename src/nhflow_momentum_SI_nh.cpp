@@ -68,6 +68,7 @@ Author: Hans Bihs
 // ---------------------------------------------------------------------------
 
 #include"nhflow_momentum_SI.h"
+#include"sflow_curv.h"
 #include"si_eta2D.h"
 #include"lexer.h"
 #include"fdm_nhf.h"
@@ -174,7 +175,7 @@ void nhflow_momentum_SI::nh_begin(lexer *p, fdm_nhf *d, ghostcell *pgc)
         if(Hx(i,j)>0.0 && fsw(i,j) && fsw(i+1,j) && fsw(i-1,j) && fsw(i+2,j))
         {
         const double u = qx(i,j)/Hx(i,j);
-        const double dx = p->DXP[IP];
+        const double dx = p->geo_curv==1 ? MAX(sflow_curv::dnorm(p,1,i,j),1.0e-12) : p->DXP[IP];   // curvilinear: along the normal
         const double c = u*p->dt/dx;
         const double a = c>=0.0 ? 1.0 : -1.0;
         const int iu = c>=0.0 ? i : i+1;
@@ -187,7 +188,7 @@ void nhflow_momentum_SI::nh_begin(lexer *p, fdm_nhf *d, ghostcell *pgc)
         if(Hy(i,j)>0.0 && fsw(i,j) && fsw(i,j+1) && fsw(i,j-1) && fsw(i,j+2))
         {
         const double u = qy(i,j)/Hy(i,j);
-        const double dy = p->DYP[JP];
+        const double dy = p->geo_curv==1 ? MAX(sflow_curv::dnorm(p,2,i,j),1.0e-12) : p->DYP[JP];
         const double c = u*p->dt/dy;
         const double a = c>=0.0 ? 1.0 : -1.0;
         const int ju = c>=0.0 ? j : j+1;

@@ -338,7 +338,9 @@ int nhflow_amr::keys_ok(lexer *p)
 {
     int ok=1;
     if(mom0==nullptr) ok=0;
-    if(p->A510!=2 && p->A510!=3) ok=0;
+    // A510 = 2/3: RK2/RK3, explicit or the semi-implicit predictor (A 510 12/13); A510 = 1: the semi-implicit one-step
+    // predictor (A 510 11, inside A534 = 1)
+    if(p->A510!=2 && p->A510!=3 && !(p->A510==1 && p->A534==1)) ok=0;
     if(p->A511!=1 && p->A511!=2) ok=0;
     if(p->A520<0 || p->A520>2) ok=0;
     if(p->A512<0 || p->A512>2) ok=0;
@@ -393,7 +395,7 @@ void nhflow_amr::ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
     if(ok==0 && p->geo_mb>0)
     {
         if(p->mpirank==0)
-        cout<<"!!! NHFLOW multi-block grid: only for A 510 2/3, A 511 1/2, A 520 0/1/2, A 512 0/1/2, A 560 0/1/2/21/22 (A 561 0, A 563 0), A 519 0/1, A 550 0/1/3 (3 without refinement), B 200 0, S 10 0/1 (S 12 0, S 51 0, S 31 1/2, S 32 1/2), no solids, membranes, nets, DEM, particles, rods or FEM structures !!!"<<endl;
+        cout<<"!!! NHFLOW multi-block grid: only for A 510 2/3 or 11/12/13, A 511 1/2, A 520 0/1/2, A 512 0/1/2, A 560 0/1/2/21/22 (A 561 0, A 563 0), A 519 0/1, A 550 0/1/3 (3 without refinement), B 200 0, S 10 0/1 (S 12 0, S 51 0, S 31 1/2, S 32 1/2), no solids, membranes, nets, DEM, particles, rods or FEM structures !!!"<<endl;
         exit(1);
     }
 
@@ -409,7 +411,7 @@ void nhflow_amr::ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
     if(ok==0)
     {
         if(p->mpirank==0)
-        cout<<"NHFLOW AMR (G 1): only for A 510 2/3, A 511 1/2, A 520 0/1/2, A 512 0/1/2, A 560 0/1/2/21/22 (not with A 561, A 563), A 519 0/1, A 550 0/1, B 200 0, S 10 0/1 (S 12 0, S 51 0, S 31 1/2, S 32 1/2), "
+        cout<<"NHFLOW AMR (G 1): only for A 510 2/3 or 11/12/13, A 511 1/2, A 520 0/1/2, A 512 0/1/2, A 560 0/1/2/21/22 (not with A 561, A 563), A 519 0/1, A 550 0/1, B 200 0, S 10 0/1 (S 12 0, S 51 0, S 31 1/2, S 32 1/2), "
             <<"X 10 0/1/2 (X 60 1, X 16 0, A 516 0/1/3), fixed solids A 581-590 (not with G 7 1, A 516 2/4), no solids of the grid file (A 580 1), membranes, nets, DEM, particles, rods or FEM structures, and on a 2D grid Cartesian "
             <<"-- refinement switched off"<<endl;
         maxlev=0;
