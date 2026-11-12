@@ -272,6 +272,15 @@ private:
     void wall_sides(lexer*);
     double wall(lexer*, int, int, int);
 
+    // the face depth of the gravity term (the multilayer flux of Popinet 2020, as NHFLOW v12; mlflux_faces): between two
+    // wet deep cells (WL > 10 A 244, fluid cells of the grid or of the neighbouring ranks) the face depth Hx, Hy is the
+    // mean of the two cell depths (mfx, mfy = 1), so that g H_f (eta_R - eta_L) is a difference of g h^2/2 over a flat
+    // bed and the momentum is conserved across a bore; the cell takes the mean of H_f times the face gradient of these
+    // faces. (The BCG face depth of NHFLOW's mass flux was tried: Stoker 0.21 -> 0.51 % at u dt/dx 0.4, not taken)
+    slice1 mfx;
+    slice2 mfy;
+    void mlflux_faces(lexer*, fdm2D*, ghostcell*);
+
     double Qin, Qout;       // discharge over the open boundaries of the step (theta weighted)
     double vrelax;          // volume change of the relaxation zones of the step
     ofstream silog;

@@ -58,7 +58,7 @@ sflow_momentum_SI::sflow_momentum_SI(lexer *p, fdm2D *b, ghostcell *pgc, sflow_H
                                       qyN(p),Hyo(p),qyo(p),qya(p),nyR(p),nyL(p),nyB(p),ny0(p),kyEL(p),kyER(p),kyPL(p),kyPR(p),ky1(p),ky2(p),
                                       phiN(p),WHp(p),Lc0(p),Unm1(p),Vnm1(p),WLh(p),WLo(p),AWo(p),WLq(p),
                                       nPW(p),nEb(p),nEo(p),nPo(p),nU(p),nV(p),nUs(p),nVs(p),nA(p),nsx(p),nsy(p),nE(p),nP(p),nL(p),nZ(p),nAE(p),nAP(p),nBE(p),nBP(p),nGx(p),nGy(p),
-                                      nF1x(p),nF2x(p),nF1y(p),nF2y(p),nH3(p),nW2(p),nCs(p),nRm(p),nRc(p),nZE(p),nZP(p),sps(p),bcA(p),bcS(p),FSx(p),FSy(p),dNx(p),dNy(p)
+                                      nF1x(p),nF2x(p),nF1y(p),nF2y(p),nH3(p),nW2(p),nCs(p),nRm(p),nRc(p),nZE(p),nZP(p),sps(p),bcA(p),bcS(p),FSx(p),FSy(p),dNx(p),dNy(p),mfx(p),mfy(p)
 {
     check(p);
 
@@ -401,6 +401,9 @@ void sflow_momentum_SI::si_begin(lexer *p, fdm2D* b, ghostcell* pgc)
     // 2. open boundaries (the first step also sets their face discharges)
     bc_setup(p,b,pgc);
 
+    // 3. the face depths of the gravity term (multilayer flux)
+    mlflux_faces(p,b,pgc);
+
     qini = true;
 
     SLICELOOP1
@@ -627,6 +630,53 @@ void sflow_momentum_SI::face_depth(lexer *p, fdm2D *b, ghostcell *pgc)
 bool sflow_momentum_SI::dry_source(lexer *p, fdm2D *b, int ii, int jj)
 {
     return b->eta(ii,jj) + b->depth(ii,jj) <= 1.01*p->A244;
+}
+
+void sflow_momentum_SI::mlflux_faces(lexer *p, fdm2D *b, ghostcell *pgc)
+{
+    // the face depth of the gravity term (multilayer flux, Popinet 2020; as NHFLOW v12), after face_depth, the friction
+    // and the open boundaries: the mean depth of the two cells where both are wet and deep (WL above 10 A 244). Then
+    // g H_f (eta_R - eta_L) is a difference of g h^2/2 over a flat bed and the momentum is conserved across a bore; with
+    // the upwind face depth of face_depth the bore of a dam break runs ahead and the plateau behind it sinks. Shoreline
+    // faces keep the depth of face_depth (wetting and drying), and so do the open boundary faces (bc_setup: the ghost
+    // cells are not fluid cells) and REEF3D::HYDRO (the depth of the higher bed). mfx, mfy mark the faces (cell_update)
+    const double hd = 10.0*p->A244;
+    const bool hbed = hydro_sflow::wetting(p);
+
+    // a fluid cell of the grid or of a neighbouring rank
+    auto deep = [&](int a, int c)
+    {
+        const int q = (a-p->imin)*p->jmax + c-p->jmin;
+        return p->flagslice4[q]>0 && p->wet[q]==1 && WL0(a,c)>hd;
+    };
+
+    SLICELOOP1
+    {
+    mfx(i,j) = 0.0;
+
+        if(!hbed && Hx(i,j)>0.0 && deep(i,j) && deep(i+1,j))
+        {
+        Hx(i,j) = 0.5*(WL0(i,j) + WL0(i+1,j));
+        mfx(i,j) = 1.0;
+        }
+    }
+
+    if(p->j_dir==1)
+    SLICELOOP2
+    {
+    mfy(i,j) = 0.0;
+
+        if(!hbed && Hy(i,j)>0.0 && deep(i,j) && deep(i,j+1))
+        {
+        Hy(i,j) = 0.5*(WL0(i,j) + WL0(i,j+1));
+        mfy(i,j) = 1.0;
+        }
+    }
+
+    exchange1(p,pgc,Hx);
+    exchange1(p,pgc,mfx);
+    exchange2(p,pgc,Hy);
+    exchange2(p,pgc,mfy);
 }
 
 void sflow_momentum_SI::face_weights(lexer *p, fdm2D *b, int dir, int ii, int jj, double &wl, double &wr)
@@ -1918,11 +1968,15 @@ void sflow_momentum_SI::cell_update(lexer *p, fdm2D *b, ghostcell *pgc)
         fw = wx*FSx(i,j);
         }
 
-        gn  = (ww*gx0(i-1,j) + we*gx0(i,j))/wsum;
-        gn1 = (ww*(etaI(i,j) - etaI(i-1,j))/p->DXP[IM1] + we*(etaI(i+1,j) - etaI(i,j))/p->DXP[IP])/wsum;
+        // a face between two wet deep cells (mfx, mlflux_faces) with its own depth H_f, the mean of the two cells: the
+        // mean of g H_f d_x eta of the faces conserves the momentum across a bore (a difference of g h^2/2)
+        const double hw = mfx(i-1,j)>0.5 ? Hx(i-1,j)/Hg(i,j) : 1.0, he = mfx(i,j)>0.5 ? Hx(i,j)/Hg(i,j) : 1.0;
+
+        gn  = (ww*hw*gx0(i-1,j) + we*he*gx0(i,j))/wsum;
+        gn1 = (ww*hw*(etaI(i,j) - etaI(i-1,j))/p->DXP[IM1] + we*he*(etaI(i+1,j) - etaI(i,j))/p->DXP[IP])/wsum;
 
         if(ship)
-        gn1 += (ww*(sps(i,j) - sps(i-1,j))/p->DXP[IM1] + we*(sps(i+1,j) - sps(i,j))/p->DXP[IP])/(wsum*theta);
+        gn1 += (ww*hw*(sps(i,j) - sps(i-1,j))/p->DXP[IM1] + we*he*(sps(i+1,j) - sps(i,j))/p->DXP[IP])/(wsum*theta);
 
         b->UH(i,j) = alc(i,j)*(UHp(i,j) - dt*g*Hg(i,j)*(theta*gn1 + (1.0-theta)*gn) - dt*fw/wsum);
 
@@ -1943,11 +1997,13 @@ void sflow_momentum_SI::cell_update(lexer *p, fdm2D *b, ghostcell *pgc)
             fw = wy*FSy(i,j);
             }
 
-            gn  = (ww*gy0(i,j-1) + we*gy0(i,j))/wsum;
-            gn1 = (ww*(etaI(i,j) - etaI(i,j-1))/p->DYP[JM1] + we*(etaI(i,j+1) - etaI(i,j))/p->DYP[JP])/wsum;
+            const double hs = mfy(i,j-1)>0.5 ? Hy(i,j-1)/Hg(i,j) : 1.0, hn = mfy(i,j)>0.5 ? Hy(i,j)/Hg(i,j) : 1.0;
+
+            gn  = (ww*hs*gy0(i,j-1) + we*hn*gy0(i,j))/wsum;
+            gn1 = (ww*hs*(etaI(i,j) - etaI(i,j-1))/p->DYP[JM1] + we*hn*(etaI(i,j+1) - etaI(i,j))/p->DYP[JP])/wsum;
 
             if(ship)
-            gn1 += (ww*(sps(i,j) - sps(i,j-1))/p->DYP[JM1] + we*(sps(i,j+1) - sps(i,j))/p->DYP[JP])/(wsum*theta);
+            gn1 += (ww*hs*(sps(i,j) - sps(i,j-1))/p->DYP[JM1] + we*hn*(sps(i,j+1) - sps(i,j))/p->DYP[JP])/(wsum*theta);
 
             b->VH(i,j) = alc(i,j)*(VHp(i,j) - dt*g*Hg(i,j)*(theta*gn1 + (1.0-theta)*gn) - dt*fw/wsum);
             }
@@ -1978,7 +2034,10 @@ void sflow_momentum_SI::cell_update(lexer *p, fdm2D *b, ghostcell *pgc)
 
                 fnorm(p,dir,fi,fj,nx,ny);
                 const bool wo = wf && (dir==1 ? o1 : o2) && Hg(i,j)>0.0;
-                const double G = wf ? (wo ? (FSx(i,j)*nx + FSy(i,j)*ny)/(g*Hg(i,j)) : 0.0) : theta*G1 + (1.0-theta)*G0;
+                // a face between two wet deep cells with its own depth (mlflux_faces), as the Cartesian grid
+                const double mf = dir==1 ? mfx(fi,fj) : mfy(fi,fj);
+                const double hr = (!wf && mf>0.5) ? H/Hg(i,j) : 1.0;
+                const double G = wf ? (wo ? (FSx(i,j)*nx + FSy(i,j)*ny)/(g*Hg(i,j)) : 0.0) : hr*(theta*G1 + (1.0-theta)*G0);
 
                 if(dir==1)
                 {
