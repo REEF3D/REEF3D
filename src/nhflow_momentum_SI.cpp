@@ -2172,56 +2172,114 @@ void nhflow_momentum_SI::hdiffusion_brk(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
     smax = pgc->globalmax(smax);
     const int nsub = MAX(1,(int)ceil(smax/0.45));
-    const double ds = p->dt/double(nsub);
 
     std::vector<double> nu_(N), nv_(N), nw_(N);
 
-    for(int m=0; m<nsub; ++m)
+    // L u of the cell: sum_f c_f (u_nb - u_P)
+    auto lap = [&](const std::vector<double> &x) -> double
     {
-        if(m>0)
-        {
-        exchangeC(p,pgc,hdU.data());
-        exchangeC(p,pgc,hdV.data());
-        exchangeC(p,pgc,hdW.data());
-        }
-
-        LOOP
-        {
-        nu_[IJK] = hdU[IJK];
-        nv_[IJK] = hdV[IJK];
-        nw_[IJK] = hdW[IJK];
-        }
-
-        LOOP
-        WETDRY
-        {
         const double *c = &hdN[4*(size_t)(IJK)];
-        double fu=0.0, fv=0.0, fw=0.0;
+        double f = 0.0;
+        if(c[0]>0.0) f += c[0]*(x[Ip1JK] - x[IJK]);
+        if(c[1]>0.0) f += c[1]*(x[Im1JK] - x[IJK]);
+        if(c[2]>0.0) f += c[2]*(x[IJp1K] - x[IJK]);
+        if(c[3]>0.0) f += c[3]*(x[IJm1K] - x[IJK]);
+        return f;
+    };
 
-        auto add = [&](double cf, int q)
+    // up to hd_nfe sub-steps: forward Euler in nsub sub-steps of dt/nsub
+    const int hd_nfe = 3;
+    int nstage = nsub;
+
+    if(nsub<=hd_nfe)
+    {
+    const double ds = p->dt/double(nsub);
+
+        for(int m=0; m<nsub; ++m)
         {
-            if(cf<=0.0)
-            return;
-            fu += cf*(hdU[q] - hdU[IJK]);
-            fv += cf*(hdV[q] - hdV[IJK]);
-            fw += cf*(hdW[q] - hdW[IJK]);
-        };
+            if(m>0)
+            {
+            exchangeC(p,pgc,hdU.data());
+            exchangeC(p,pgc,hdV.data());
+            exchangeC(p,pgc,hdW.data());
+            }
 
-        add(c[0],Ip1JK);
-        add(c[1],Im1JK);
-        add(c[2],IJp1K);
-        add(c[3],IJm1K);
+            LOOP
+            {
+            nu_[IJK] = hdU[IJK];
+            nv_[IJK] = hdV[IJK];
+            nw_[IJK] = hdW[IJK];
+            }
 
-        nu_[IJK] = hdU[IJK] + ds*fu;
-        nv_[IJK] = hdV[IJK] + ds*fv;
-        nw_[IJK] = hdW[IJK] + ds*fw;
+            LOOP
+            WETDRY
+            {
+            nu_[IJK] = hdU[IJK] + ds*lap(hdU);
+            nv_[IJK] = hdV[IJK] + ds*lap(hdV);
+            nw_[IJK] = hdW[IJK] + ds*lap(hdW);
+            }
+
+            LOOP
+            {
+            hdU[IJK] = nu_[IJK];
+            hdV[IJK] = nv_[IJK];
+            hdW[IJK] = nw_[IJK];
+            }
         }
+    }
 
-        LOOP
+    // more: one step of dt in s stages of the Runge-Kutta-Legendre scheme (RKL1, Meyer, Balsara and Aslam 2014),
+    //     Y_1 = Y_0 + mt_1 dt L Y_0,   Y_j = mu_j Y_{j-1} + nu_j Y_{j-2} + mt_j dt L Y_{j-1},
+    //     mu_j = (2j-1)/j, nu_j = (1-j)/j, mt_j = mu_j 2/(s^2+s),
+    // stable for dt up to (s^2+s)/2 forward-Euler steps: s with (s^2+s)/2 >= nsub, so that the stiffest mode sits
+    // where the nsub sub-steps had it (0.9 of the forward-Euler limit). The stage count grows with the square root of
+    // the diffusion number: a breaking front that took 149 sub-steps takes 17 stages. First order in dt as the
+    // sub-steps, conservative as each stage is the flux form
+    else
+    {
+    const int s = (int)ceil(0.5*(sqrt(1.0 + 8.0*double(nsub)) - 1.0));
+    const double w1 = 2.0/double(s*s + s);
+    nstage = s;
+
+    std::vector<double> pu_(hdU), pv_(hdV), pw_(hdW);   // Y_{j-2}
+
+        for(int m=1; m<=s; ++m)
         {
-        hdU[IJK] = nu_[IJK];
-        hdV[IJK] = nv_[IJK];
-        hdW[IJK] = nw_[IJK];
+            if(m>1)
+            {
+            exchangeC(p,pgc,hdU.data());
+            exchangeC(p,pgc,hdV.data());
+            exchangeC(p,pgc,hdW.data());
+            }
+
+        const double mu = double(2*m-1)/double(m);
+        const double nn = double(1-m)/double(m);
+        const double mt = mu*w1*p->dt;
+
+            LOOP
+            {
+            nu_[IJK] = hdU[IJK];
+            nv_[IJK] = hdV[IJK];
+            nw_[IJK] = hdW[IJK];
+            }
+
+            LOOP
+            WETDRY
+            {
+            nu_[IJK] = mu*hdU[IJK] + nn*pu_[IJK] + mt*lap(hdU);
+            nv_[IJK] = mu*hdV[IJK] + nn*pv_[IJK] + mt*lap(hdV);
+            nw_[IJK] = mu*hdW[IJK] + nn*pw_[IJK] + mt*lap(hdW);
+            }
+
+            LOOP
+            {
+            pu_[IJK] = hdU[IJK];
+            pv_[IJK] = hdV[IJK];
+            pw_[IJK] = hdW[IJK];
+            hdU[IJK] = nu_[IJK];
+            hdV[IJK] = nv_[IJK];
+            hdW[IJK] = nw_[IJK];
+            }
         }
     }
 
@@ -2235,7 +2293,7 @@ void nhflow_momentum_SI::hdiffusion_brk(lexer *p, fdm_nhf *d, ghostcell *pgc)
     }
 
     if(p->mpirank==0 && nsub>1 && p->count%p->P12==0)
-    cout<<"breaking: horizontal diffusion in "<<nsub<<" sub-steps"<<endl;
+    cout<<"breaking: horizontal diffusion in "<<nstage<<(nsub<=hd_nfe ? " sub-steps" : " stages")<<" ("<<nsub<<" explicit sub-steps)"<<endl;
 }
 
 double nhflow_momentum_SI::dissipation(lexer *p, double q, double h, double dxp)
