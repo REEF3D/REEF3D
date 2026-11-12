@@ -103,7 +103,7 @@ public:
 
     // the face discharges of the checkpoint; the time levels (nh_levels), the W tendency, U^{n-1} and the initial guess
     // of the coupled solve hold the step before (a checkpoint written after the first step)
-    void ckpt_restored() override { qini = true;  nh_first = false;  nh_x0 = nh; }
+    void ckpt_restored() override { qini = true;  nh_first = false;  nh_x0 = nh;  ho_eo = true; }
     void water_column(lexer*, fdm2D*) override;      // REEF3D::HYDRO losses: WLk = WL
     bool boundary_flow(double &qin, double &qout) override { qin = Qin;  qout = -Qout;  return true; }
     void ckpt_fields(const std::function<void(const char*, char, double*)> &fd, const std::function<void(const char*, char, int*)> &fi) override
@@ -132,7 +132,7 @@ public:
         fd("momentum_SI_WLo",'S',WLo.V); fd("momentum_SI_Unm1",'S',Unm1.V); fd("momentum_SI_Vnm1",'S',Vnm1.V);
         fd("momentum_SI_AWo",'S',AWo.V); fd("momentum_SI_nEb",'S',nEb.V); fd("momentum_SI_nEo",'S',nEo.V);
         fd("momentum_SI_nPo",'S',nPo.V); fd("momentum_SI_dNx",'S',dNx.V); fd("momentum_SI_dNy",'S',dNy.V);
-        fd("momentum_SI_acU",'S',acU.V); fd("momentum_SI_acV",'S',acV.V);
+        fd("momentum_SI_acU",'S',acU.V); fd("momentum_SI_acV",'S',acV.V); fd("momentum_SI_hoEo",'S',hoEo.V);
     }
 	sflow_momentum_SI(lexer*, fdm2D*, ghostcell*, sflow_HLL*, sflow_signal_speed*, sflow_reconstruct*, sflow_diffusion*, sflow_pressure*,
                         solver2D*, solver2D*, ioflow*, sflow_fsf*, sflow_forcing*, sixdof*, bool block=false);
@@ -289,6 +289,20 @@ private:
     slice4 acU, acV;
     double stc = 0.0;
     bool tl12 = false;      // A 210 12/13 with the second-order time levels (not with REEF3D::HYDRO)
+
+    // fourth-order horizontal operators on one uniform Cartesian grid (sflow_momentum_SI_ho.cpp, as NHFLOW v15 / 0004):
+    // hoC the wet deep fluid cells of the stencils (with those of the neighbouring ranks), hoEx eta^{n+1} extrapolated
+    // from t^n and t^{n-1} (hoEo) for the explicit part of its gradient, cx0, cy0 that explicit part of the faces
+    bool ho = false, ho_ux = false, ho_uy = false, ho_grid = false, ho_eo = false;
+    slice4 hoC, hoEx, hoEo;
+    slice1 cx0;
+    slice2 cy0;
+    void ho_begin(lexer*, fdm2D*, ghostcell*);
+    bool ho_face(lexer*, int, int, int);
+    bool ho_cell(lexer*, fdm2D*, int, int, int);
+    void ho_gradient(lexer*, fdm2D*, int, double&, double&);
+    double ho_pred(lexer*, int, slice&);
+    void ho_phi_corr(lexer*, fdm2D*, ghostcell*);
 
     double Qin, Qout;       // discharge over the open boundaries of the step (theta weighted)
     double vrelax;          // volume change of the relaxation zones of the step

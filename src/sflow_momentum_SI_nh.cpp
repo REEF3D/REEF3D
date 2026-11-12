@@ -511,6 +511,9 @@ void sflow_momentum_SI::nh_assemble(lexer *p, fdm2D *b, ghostcell *pgc)
     SLICELOOP2
     fcoef(i,j,i,j+1,cv ? fdn(p,2,i,j) : p->DYP[JP],aly(i,j),Hy(i,j),nyR(i,j),nyL(i,j),nyB(i,j),ny0(i,j));
 
+    // fourth-order horizontal operators (sflow_momentum_SI_ho.cpp): the explicit part of the pressure terms in c0
+    ho_phi_corr(p,b,pgc);
+
     exchange1(p,pgc,nxR); exchange1(p,pgc,nxL); exchange1(p,pgc,nxB); exchange1(p,pgc,nx0);
     exchange2(p,pgc,nyR); exchange2(p,pgc,nyL); exchange2(p,pgc,nyB); exchange2(p,pgc,ny0);
 
@@ -1438,7 +1441,13 @@ void sflow_momentum_SI::nh_cell(lexer *p, fdm2D *b, ghostcell *pgc)
 
         else
         {
+        // fourth order (sflow_momentum_SI_ho.cpp): (-1, 9, 9, -1)/16 of four faces
+        if(ho_cell(p,b,1,i,j))
+        dNx(i,j) = (9.0*(qxN(i-1,j) + qxN(i,j)) - qxN(i-2,j) - qxN(i+1,j))/16.0;
+
+        else
         dNx(i,j) = (ww*qxN(i-1,j) + we*qxN(i,j))/MAX(we + ww + wall(p,i,j,1) + wall(p,i,j,2),1.0);
+
         dNy(i,j) = 0.0;
         b->UH(i,j) += dNx(i,j);
         }
@@ -1448,6 +1457,10 @@ void sflow_momentum_SI::nh_cell(lexer *p, fdm2D *b, ghostcell *pgc)
             const double wn_ = (Hy(i,j)>0.0 && in(i,j+1) && wn(i,j+1)) ? 1.0 : 0.0;
             const double ws_ = (Hy(i,j-1)>0.0 && in(i,j-1) && wn(i,j-1)) ? 1.0 : 0.0;
 
+            if(ho_cell(p,b,2,i,j))
+            dNy(i,j) = (9.0*(qyN(i,j-1) + qyN(i,j)) - qyN(i,j-2) - qyN(i,j+1))/16.0;
+
+            else
             dNy(i,j) = (ws_*qyN(i,j-1) + wn_*qyN(i,j))/MAX(wn_ + ws_ + wall(p,i,j,3) + wall(p,i,j,4),1.0);
             b->VH(i,j) += dNy(i,j);
             }

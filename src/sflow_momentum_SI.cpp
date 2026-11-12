@@ -58,7 +58,7 @@ sflow_momentum_SI::sflow_momentum_SI(lexer *p, fdm2D *b, ghostcell *pgc, sflow_H
                                       qyN(p),Hyo(p),qyo(p),qya(p),nyR(p),nyL(p),nyB(p),ny0(p),kyEL(p),kyER(p),kyPL(p),kyPR(p),ky1(p),ky2(p),
                                       phiN(p),WHp(p),Lc0(p),Unm1(p),Vnm1(p),WLh(p),WLo(p),AWo(p),WLq(p),
                                       nPW(p),nEb(p),nEo(p),nPo(p),nU(p),nV(p),nUs(p),nVs(p),nA(p),nsx(p),nsy(p),nE(p),nP(p),nL(p),nZ(p),nAE(p),nAP(p),nBE(p),nBP(p),nGx(p),nGy(p),
-                                      nF1x(p),nF2x(p),nF1y(p),nF2y(p),nH3(p),nW2(p),nCs(p),nRm(p),nRc(p),nZE(p),nZP(p),sps(p),bcA(p),bcS(p),FSx(p),FSy(p),dNx(p),dNy(p),mfx(p),mfy(p),acU(p),acV(p)
+                                      nF1x(p),nF2x(p),nF1y(p),nF2y(p),nH3(p),nW2(p),nCs(p),nRm(p),nRc(p),nZE(p),nZP(p),sps(p),bcA(p),bcS(p),FSx(p),FSy(p),dNx(p),dNy(p),mfx(p),mfy(p),acU(p),acV(p),hoC(p),hoEx(p),hoEo(p),cx0(p),cy0(p)
 {
     check(p);
 
@@ -264,6 +264,9 @@ void sflow_momentum_SI::step_single(lexer *p, fdm2D* b, ghostcell* pgc)
     // time levels of the nonlinear terms (every predictor)
     if(tlev)
     nh_levels(p,b,pgc);
+
+    // fourth-order horizontal operators on one uniform Cartesian grid (sflow_momentum_SI_ho.cpp)
+    ho_begin(p,b,pgc);
 
     // 3. predictor of the explicit terms
     for(int s=0; s<rk; ++s)
@@ -1572,6 +1575,13 @@ void sflow_momentum_SI::si_assemble(lexer *p, fdm2D *b, ghostcell *pgc)
     const bool hbed = hydro_sflow::wetting(p);
     double nx,ny,wl,wr;
 
+    // the explicit part of the fourth-order gradient of eta^{n+1} (ho_gradient), zero where second order
+    SLICELOOP1
+    cx0(i,j) = 0.0;
+
+    SLICELOOP2
+    cy0(i,j) = 0.0;
+
     SLICELOOP1
     {
         if(Hx(i,j)>0.0 && cv)
@@ -1600,11 +1610,18 @@ void sflow_momentum_SI::si_assemble(lexer *p, fdm2D *b, ghostcell *pgc)
         {
         gx0(i,j) = (b->eta(i+1,j) - b->eta(i,j))/p->DXP[IP];
 
+        // fourth order (sflow_momentum_SI_ho.cpp): the gradient of eta^n and the explicit part of that of eta^{n+1}
+        ho_gradient(p,b,1,gx0(i,j),cx0(i,j));
+
         if(hbed)
         {
         face_weights(p,b,1,i,j,wl,wr);
         qxE(i,j) = alx(i,j)*(wl*UHp(i,j) + wr*UHp(i+1,j) - dt*g*Hx(i,j)*(1.0-theta)*gx0(i,j));
         }
+
+        else
+        if(ho_face(p,1,i,j))
+        qxE(i,j) = alx(i,j)*(ho_pred(p,1,UHp) - dt*g*Hx(i,j)*((1.0-theta)*gx0(i,j) + theta*cx0(i,j)));
 
         else
         qxE(i,j) = alx(i,j)*(0.5*(UHp(i,j) + UHp(i+1,j)) - dt*g*Hx(i,j)*(1.0-theta)*gx0(i,j));
@@ -1653,11 +1670,17 @@ void sflow_momentum_SI::si_assemble(lexer *p, fdm2D *b, ghostcell *pgc)
         {
         gy0(i,j) = (b->eta(i,j+1) - b->eta(i,j))/p->DYP[JP];
 
+        ho_gradient(p,b,2,gy0(i,j),cy0(i,j));
+
         if(hbed)
         {
         face_weights(p,b,2,i,j,wl,wr);
         qyE(i,j) = aly(i,j)*(wl*VHp(i,j) + wr*VHp(i,j+1) - dt*g*Hy(i,j)*(1.0-theta)*gy0(i,j));
         }
+
+        else
+        if(ho_face(p,2,i,j))
+        qyE(i,j) = aly(i,j)*(ho_pred(p,2,VHp) - dt*g*Hy(i,j)*((1.0-theta)*gy0(i,j) + theta*cy0(i,j)));
 
         else
         qyE(i,j) = aly(i,j)*(0.5*(VHp(i,j) + VHp(i,j+1)) - dt*g*Hy(i,j)*(1.0-theta)*gy0(i,j));
@@ -1692,6 +1715,8 @@ void sflow_momentum_SI::si_assemble(lexer *p, fdm2D *b, ghostcell *pgc)
     }
 
     exchange1(p,pgc,gx0);
+    exchange1(p,pgc,cx0);
+    exchange2(p,pgc,cy0);
     exchange1(p,pgc,qxE);
     exchange1(p,pgc,ax);
     exchange1(p,pgc,kx);
@@ -1999,12 +2024,19 @@ void sflow_momentum_SI::cell_update(lexer *p, fdm2D *b, ghostcell *pgc)
         const double hw = mfx(i-1,j)>0.5 ? Hx(i-1,j)/Hg(i,j) : 1.0, he = mfx(i,j)>0.5 ? Hx(i,j)/Hg(i,j) : 1.0;
 
         gn  = (ww*hw*gx0(i-1,j) + we*he*gx0(i,j))/wsum;
-        gn1 = (ww*hw*(etaI(i,j) - etaI(i-1,j))/p->DXP[IM1] + we*he*(etaI(i+1,j) - etaI(i,j))/p->DXP[IP])/wsum;
+        gn1 = (ww*hw*((etaI(i,j) - etaI(i-1,j))/p->DXP[IM1] + cx0(i-1,j)) + we*he*((etaI(i+1,j) - etaI(i,j))/p->DXP[IP] + cx0(i,j)))/wsum;
 
         if(ship)
         gn1 += (ww*hw*(sps(i,j) - sps(i-1,j))/p->DXP[IM1] + we*he*(sps(i+1,j) - sps(i,j))/p->DXP[IP])/(wsum*theta);
 
         b->UH(i,j) = alc(i,j)*(UHp(i,j) - dt*g*Hg(i,j)*(theta*gn1 + (1.0-theta)*gn) - dt*fw/wsum);
+
+        // fourth order (sflow_momentum_SI_ho.cpp): (-1, 9, 9, -1)/16 of H_f times the face gradient of four faces
+        if(ho_cell(p,b,1,i,j))
+        {
+        auto aF = [&](int f) { return Hx(f,j)*(theta*((etaI(f+1,j) - etaI(f,j))/p->DXP[f+marge] + cx0(f,j)) + (1.0-theta)*gx0(f,j)); };
+        b->UH(i,j) = alc(i,j)*(UHp(i,j) - dt*g*(9.0*(aF(i-1) + aF(i)) - aF(i-2) - aF(i+1))/16.0);
+        }
 
         b->VH(i,j) = 0.0;
 
@@ -2026,12 +2058,18 @@ void sflow_momentum_SI::cell_update(lexer *p, fdm2D *b, ghostcell *pgc)
             const double hs = mfy(i,j-1)>0.5 ? Hy(i,j-1)/Hg(i,j) : 1.0, hn = mfy(i,j)>0.5 ? Hy(i,j)/Hg(i,j) : 1.0;
 
             gn  = (ww*hs*gy0(i,j-1) + we*hn*gy0(i,j))/wsum;
-            gn1 = (ww*hs*(etaI(i,j) - etaI(i,j-1))/p->DYP[JM1] + we*hn*(etaI(i,j+1) - etaI(i,j))/p->DYP[JP])/wsum;
+            gn1 = (ww*hs*((etaI(i,j) - etaI(i,j-1))/p->DYP[JM1] + cy0(i,j-1)) + we*hn*((etaI(i,j+1) - etaI(i,j))/p->DYP[JP] + cy0(i,j)))/wsum;
 
             if(ship)
             gn1 += (ww*hs*(sps(i,j) - sps(i,j-1))/p->DYP[JM1] + we*hn*(sps(i,j+1) - sps(i,j))/p->DYP[JP])/(wsum*theta);
 
             b->VH(i,j) = alc(i,j)*(VHp(i,j) - dt*g*Hg(i,j)*(theta*gn1 + (1.0-theta)*gn) - dt*fw/wsum);
+
+            if(ho_cell(p,b,2,i,j))
+            {
+            auto aF = [&](int f) { return Hy(i,f)*(theta*((etaI(i,f+1) - etaI(i,f))/p->DYP[f+marge] + cy0(i,f)) + (1.0-theta)*gy0(i,f)); };
+            b->VH(i,j) = alc(i,j)*(VHp(i,j) - dt*g*(9.0*(aF(j-1) + aF(j)) - aF(j-2) - aF(j+1))/16.0);
+            }
             }
 
             // curvilinear grid: per index direction the mean normal and the mean normal gradient of the open faces,

@@ -2146,6 +2146,7 @@
         </VirtualDirectory>
         <VirtualDirectory Name="Momentum">
           <File Name="sflow_momentum_SI_nh.cpp"/>
+          <File Name="sflow_momentum_SI_ho.cpp"/>
           <File Name="sflow_momentum_SI_nh_amr.cpp"/>
           <VirtualDirectory Name="Func">
             <File Name="sflow_momentum_func.cpp"/>
