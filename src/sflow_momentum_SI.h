@@ -132,6 +132,7 @@ public:
         fd("momentum_SI_WLo",'S',WLo.V); fd("momentum_SI_Unm1",'S',Unm1.V); fd("momentum_SI_Vnm1",'S',Vnm1.V);
         fd("momentum_SI_AWo",'S',AWo.V); fd("momentum_SI_nEb",'S',nEb.V); fd("momentum_SI_nEo",'S',nEo.V);
         fd("momentum_SI_nPo",'S',nPo.V); fd("momentum_SI_dNx",'S',dNx.V); fd("momentum_SI_dNy",'S',dNy.V);
+        fd("momentum_SI_acU",'S',acU.V); fd("momentum_SI_acV",'S',acV.V);
     }
 	sflow_momentum_SI(lexer*, fdm2D*, ghostcell*, sflow_HLL*, sflow_signal_speed*, sflow_reconstruct*, sflow_diffusion*, sflow_pressure*,
                         solver2D*, solver2D*, ioflow*, sflow_fsf*, sflow_forcing*, sixdof*, bool block=false);
@@ -280,6 +281,14 @@ private:
     slice1 mfx;
     slice2 mfy;
     void mlflux_faces(lexer*, fdm2D*, ghostcell*);
+
+    // second-order time levels of the SSP-RK predictors (A 210 12/13), as NHFLOW A 505 1 without its estimate pass:
+    // the velocities of a later stage carry the acceleration of the implicit part of the step before (acU, acV:
+    // gravity, the non-hydrostatic pressure, the bed friction of cell_update) up to the time of the stage, on the depth
+    // of that time (RK2 stage 2, RK3 stage 2: t^{n+1}, WLq; RK3 stage 3: t^{n+1/2}, WLh); stc the time of the stage in dt
+    slice4 acU, acV;
+    double stc = 0.0;
+    bool tl12 = false;      // A 210 12/13 with the second-order time levels (not with REEF3D::HYDRO)
 
     double Qin, Qout;       // discharge over the open boundaries of the step (theta weighted)
     double vrelax;          // volume change of the relaxation zones of the step

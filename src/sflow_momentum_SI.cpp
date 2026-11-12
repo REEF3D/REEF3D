@@ -58,7 +58,7 @@ sflow_momentum_SI::sflow_momentum_SI(lexer *p, fdm2D *b, ghostcell *pgc, sflow_H
                                       qyN(p),Hyo(p),qyo(p),qya(p),nyR(p),nyL(p),nyB(p),ny0(p),kyEL(p),kyER(p),kyPL(p),kyPR(p),ky1(p),ky2(p),
                                       phiN(p),WHp(p),Lc0(p),Unm1(p),Vnm1(p),WLh(p),WLo(p),AWo(p),WLq(p),
                                       nPW(p),nEb(p),nEo(p),nPo(p),nU(p),nV(p),nUs(p),nVs(p),nA(p),nsx(p),nsy(p),nE(p),nP(p),nL(p),nZ(p),nAE(p),nAP(p),nBE(p),nBP(p),nGx(p),nGy(p),
-                                      nF1x(p),nF2x(p),nF1y(p),nF2y(p),nH3(p),nW2(p),nCs(p),nRm(p),nRc(p),nZE(p),nZP(p),sps(p),bcA(p),bcS(p),FSx(p),FSy(p),dNx(p),dNy(p),mfx(p),mfy(p)
+                                      nF1x(p),nF2x(p),nF1y(p),nF2y(p),nH3(p),nW2(p),nCs(p),nRm(p),nRc(p),nZE(p),nZP(p),sps(p),bcA(p),bcS(p),FSx(p),FSy(p),dNx(p),dNy(p),mfx(p),mfy(p),acU(p),acV(p)
 {
     check(p);
 
@@ -85,8 +85,16 @@ sflow_momentum_SI::sflow_momentum_SI(lexer *p, fdm2D *b, ghostcell *pgc, sflow_H
 
     nh_ini(p);
 
-    // the time levels of the nonlinear terms (nh_levels): with the non-hydrostatic pressure and with A 210 11
-    tlev = (nh || onestep);
+    // the time levels of the nonlinear terms (nh_levels), every predictor: the depths of the gravity and A 220 3 terms
+    // at t^{n+1/2}, the advecting discharge at t^{n+1/2}; with the SSP-RK predictors of A 210 12/13 (before only with
+    // the non-hydrostatic pressure) also the acceleration of the step before in the later stages (stage_vel). With t^n
+    // and without that acceleration the nonlinear terms of A 210 12/13 were first order in time (hydrostatic and
+    // non-hydrostatic, SFLOW_NH_SI validation 01)
+    // (REEF3D::HYDRO, rain and point sources: A 210 12/13 as before, the time levels only with the non-hydrostatic
+    // pressure: on the rain-fed sheet flow of a tilted plane the extrapolated levels gave smaller steps and a 10 times
+    // larger volume residual, 1e-6 m3)
+    tl12 = !onestep && !hydro_sflow::wetting(p);
+    tlev = (nh || onestep || tl12);
 
     patch = block;
 
@@ -253,7 +261,7 @@ void sflow_momentum_SI::step_single(lexer *p, fdm2D* b, ghostcell* pgc)
 
     si_begin(p,b,pgc);
 
-    // time levels of the nonlinear terms: the non-hydrostatic pressure (A 220 2/3) and the one-step predictor (A 210 11)
+    // time levels of the nonlinear terms (every predictor)
     if(tlev)
     nh_levels(p,b,pgc);
 
@@ -452,7 +460,14 @@ void sflow_momentum_SI::si_stage_vel(lexer *p, fdm2D* b, ghostcell* pgc, int s)
 {
     slice *UHs,*VHs,*UHo,*VHo;
     stage_io_si(s,UHs,VHs,UHo,VHo);
+
+    // the time of the stage: SSP-RK2 0, 1; SSP-RK3 0, 1, 1/2. Not with REEF3D::HYDRO (rain and point sources, the
+    // depth of the higher bed): on the wetting banks of a steep valley with rain the acceleration of the films drove
+    // the stages to the N 61 stop (sflow_2d_sed_steep_valley_s67; tl12)
+    stc = (!tl12 || s==0) ? 0.0 : (s==1 ? 1.0 : 0.5);
+
     stage_vel(p,b,pgc,*UHs,*VHs);
+    stc = 0.0;
 }
 
 void sflow_momentum_SI::si_stage_rhs(lexer *p, fdm2D* b, ghostcell* pgc, int s)
@@ -1026,6 +1041,17 @@ void sflow_momentum_SI::stage_vel(lexer *p, fdm2D *b, ghostcell *pgc, slice &UHs
     {
         if(p->wet[IJ]==1 && WL0(i,j)>p->A244)
         {
+            // a later stage of A 210 12/13 (stc > 0): the momentum with the acceleration of the implicit part of the
+            // step before up to the time of the stage, on the depth of that time; thin water (the depth of the stage
+            // or of t^n below A 232) as before
+            if(stc>0.0 && WL0(i,j)>=p->A232 && (stc>0.75 ? WLq(i,j) : WLh(i,j))>=p->A232)
+            {
+            const double hs = stc>0.75 ? WLq(i,j) : WLh(i,j);
+            b->U(i,j) = (UHs(i,j) + stc*p->dt*acU(i,j))/hs;
+            b->V(i,j) = (VHs(i,j) + stc*p->dt*acV(i,j))/hs*p->y_dir;
+            }
+
+            else
             if(WL0(i,j)>=p->A232)
             {
             b->U(i,j) = UHs(i,j)/WL0(i,j);
@@ -1082,8 +1108,7 @@ void sflow_momentum_SI::stage_rhs(lexer *p, fdm2D *b, ghostcell *pgc, slice &UHs
     // advection with the face discharges of t^n
     advection(p,b,pgc);
 
-    // A 210 11: the sources of the stage (FSx, FSy) for the wall sides of cell_update
-    if(onestep)
+    // the sources of the stage (FSx, FSy) for the wall sides of cell_update (SSP-RK: those of the last stage)
     SLICELOOP4
     {
     FSx(i,j) = b->F(i,j);
@@ -1099,7 +1124,6 @@ void sflow_momentum_SI::stage_rhs(lexer *p, fdm2D *b, ghostcell *pgc, slice &UHs
     b->wave->u_source(p,b);
     irhs(p,b);
 
-    if(onestep)
     SLICELOOP4
     FSx(i,j) = b->F(i,j) - FSx(i,j);
 
@@ -1114,13 +1138,11 @@ void sflow_momentum_SI::stage_rhs(lexer *p, fdm2D *b, ghostcell *pgc, slice &UHs
     b->wave->v_source(p,b);
     jrhs(p,b);
 
-        if(onestep)
         SLICELOOP4
         FSy(i,j) = b->G(i,j) - FSy(i,j);
     }
 
     else
-    if(onestep)
     SLICELOOP4
     FSy(i,j) = 0.0;
     pdiff->diff_v(p,b,pgc,psolv,VHDIFF,VHs,b->U,b->V,WL0,alpha);
@@ -1265,6 +1287,10 @@ double sflow_momentum_SI::wall(lexer *p, int ii, int jj, int side)
 {
     // 1.0 if the side of cell (ii,jj) (1 x-, 2 x+, 3 y-, 4 y+) faces a solid or the outside of the domain and no open
     // boundary (wall_sides of the step)
+    // A 210 11, and A 210 12/13 with the second-order time levels (tl12): the wall sides; 0 otherwise (as before)
+    if(!(onestep || tl12))
+    return 0.0;
+
     const int ai = side==1 ? ii-1 : (side==2 ? ii+1 : ii);
     const int aj = side==3 ? jj-1 : (side==4 ? jj+1 : jj);
     const int bit = side==1 ? 1 : (side==2 ? 2 : (side==3 ? 4 : 8));
@@ -1939,7 +1965,6 @@ void sflow_momentum_SI::cell_update(lexer *p, fdm2D *b, ghostcell *pgc)
 
     auto wn = [&](int a, int c) { return etaI(a,c) + b->depth(a,c) > p->A244; };
 
-    if(onestep)
     wall_sides(p);
 
     // the depth of the gravity term (the non-hydrostatic step and A 210 11: extrapolated to t^{n+1/2}, nh_levels)
@@ -1953,7 +1978,8 @@ void sflow_momentum_SI::cell_update(lexer *p, fdm2D *b, ghostcell *pgc)
         ww = (Hx(i-1,j)>0.0 && wn(i-1,j)) ? 1.0 : 0.0;
         wsum = MAX(we+ww,1.0);
 
-        // A 210 11: a wall face counts in the mean with the term that keeps the face discharge zero there: g H d_n eta
+        // a wall face (every predictor; A 210 12/13 since the second-order time levels, before A 210 11 only) counts in
+        // the mean with the term that keeps the face discharge zero there: g H d_n eta
         // = the sources of the predictor normal to the wall (wind, Coriolis, atmospheric pressure; FSx, FSy of
         // stage_rhs), zero in free waves (the mirrored level). With zero also under wind a wall cell of a closed basin
         // got half the gradient that balances the stress, and the wind drove a flow into the walls (NHFLOW A 510 11,
@@ -1961,7 +1987,7 @@ void sflow_momentum_SI::cell_update(lexer *p, fdm2D *b, ghostcell *pgc)
         // open face in the direction (as NHFLOW): a cell between two walls has no gradient
         double fw = 0.0;
 
-        if(onestep && we+ww>0.0)
+        if(we+ww>0.0)
         {
         const double wx = wall(p,i,j,1) + wall(p,i,j,2);
         wsum = MAX(we + ww + wx, 1.0);
@@ -1990,7 +2016,7 @@ void sflow_momentum_SI::cell_update(lexer *p, fdm2D *b, ghostcell *pgc)
 
             fw = 0.0;
 
-            if(onestep && we+ww>0.0)
+            if(we+ww>0.0)
             {
             const double wy = wall(p,i,j,3) + wall(p,i,j,4);
             wsum = MAX(we + ww + wy, 1.0);
@@ -2023,11 +2049,11 @@ void sflow_momentum_SI::cell_update(lexer *p, fdm2D *b, ghostcell *pgc)
 
             auto face = [&](int dir, int fi, int fj, int oi, int oj, double H, double G0, double G1)
             {
-                // A 210 11: a wall face counts with its normal and the gradient that keeps the discharge through it
+                // a wall face counts with its normal and the gradient that keeps the discharge through it
                 // zero, g H d_n eta = the sources normal to the face (as the Cartesian grid above; zero in free waves,
                 // the mirrored level)
                 const int sd = dir==1 ? (fi==i ? 2 : 1) : (fj==j ? 4 : 3);
-                const bool wf = onestep && (H<=0.0 || !wn(oi,oj)) && wall(p,i,j,sd)>0.5;
+                const bool wf = (H<=0.0 || !wn(oi,oj)) && wall(p,i,j,sd)>0.5;
 
                 if((H<=0.0 || !wn(oi,oj)) && !wf)
                 return;
@@ -2106,6 +2132,18 @@ void sflow_momentum_SI::cell_update(lexer *p, fdm2D *b, ghostcell *pgc)
     // non-hydrostatic pressure (A 220 2/3): UH with the mean of the face terms, WH
     if(nh)
     nh_cell(p,b,pgc);
+
+    // A 210 12/13: the acceleration of the implicit part of the step (gravity, non-hydrostatic pressure, bed friction)
+    // for the later predictor stages of the next step (stage_vel)
+    // in wet deep cells (WL of t^n and t^{n+1} above 10 A 244, not next to the shoreline); 0 in thin water, where
+    // the momentum of the step is that of wetting, drying and the friction of a film
+    if(tl12)
+    SLICELOOP4
+    {
+    const bool dp = p->wet[IJ]==1 && p->deep[IJ]==1 && WL0(i,j)>10.0*p->A244 && etaI(i,j) + b->depth(i,j)>10.0*p->A244;
+    acU(i,j) = dp ? (b->UH(i,j) - UHp(i,j))/dt : 0.0;
+    acV(i,j) = dp ? (b->VH(i,j) - VHp(i,j))/dt*p->y_dir : 0.0;
+    }
 
     // X 10 2: the body moves over the step, the direct forcing sets the momentum of its cells to the body velocity
     // (sflow_forcing with the velocities of the new momentum, as the stages of the explicit step); the face discharges

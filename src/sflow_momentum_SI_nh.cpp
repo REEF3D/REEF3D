@@ -483,9 +483,10 @@ void sflow_momentum_SI::nh_assemble(lexer *p, fdm2D *b, ghostcell *pgc)
         return;
 
         const double dd = b->depth(a1,c1) - b->depth(a,c);
-        // the depth of the pressure terms: t^{n+1}; A 210 11: t^{n+1/2}, as the gravity term (the pressure acts over the
-        // step; with t^{n+1} the nonlinear standing wave lost second order below T/320, the constraint stays at t^{n+1})
-        const double HL = onestep ? WLh(a,c) : WLq(a,c), HR = onestep ? WLh(a1,c1) : WLq(a1,c1);
+        // the depth of the pressure terms: t^{n+1/2}, as the gravity term (the pressure acts over the step; with t^{n+1}
+        // the nonlinear standing wave lost second order below T/320, the constraint stays at t^{n+1}); every predictor
+        // (REEF3D::HYDRO with A 210 12/13: t^{n+1}, as before)
+        const double HL = (onestep || tl12) ? WLh(a,c) : WLq(a,c), HR = (onestep || tl12) ? WLh(a1,c1) : WLq(a1,c1);
         const double s = dt*alf/dxp;
 
         cR = s*(HR - 0.5*cb*dd);
@@ -1390,9 +1391,9 @@ void sflow_momentum_SI::nh_cell(lexer *p, fdm2D *b, ghostcell *pgc)
             const double ws_ = (Hy(i,j-1)>0.0 && in(i,j-1) && wn(i,j-1)) ? 1.0 : 0.0;
             double nx, ny, ax_=0.0, ay_=0.0, bx_=0.0, by_=0.0;
 
-            // A 210 11: a wall face with its normal and zero (as cell_update)
-            const double w1 = onestep ? wall(p,i,j,1) : 0.0, w2 = onestep ? wall(p,i,j,2) : 0.0;
-            const double w3 = onestep ? wall(p,i,j,3) : 0.0, w4 = onestep ? wall(p,i,j,4) : 0.0;
+            // a wall face with its normal and zero (as cell_update)
+            const double w1 = wall(p,i,j,1), w2 = wall(p,i,j,2);
+            const double w3 = wall(p,i,j,3), w4 = wall(p,i,j,4);
 
             if(we+w2>0.0) { fnorm(p,1,i,j,nx,ny);   ax_ += nx; ay_ += ny; }
             if(ww+w1>0.0) { fnorm(p,1,i-1,j,nx,ny); ax_ += nx; ay_ += ny; }
@@ -1437,7 +1438,7 @@ void sflow_momentum_SI::nh_cell(lexer *p, fdm2D *b, ghostcell *pgc)
 
         else
         {
-        dNx(i,j) = (ww*qxN(i-1,j) + we*qxN(i,j))/MAX(we + ww + (onestep ? wall(p,i,j,1) + wall(p,i,j,2) : 0.0),1.0);
+        dNx(i,j) = (ww*qxN(i-1,j) + we*qxN(i,j))/MAX(we + ww + wall(p,i,j,1) + wall(p,i,j,2),1.0);
         dNy(i,j) = 0.0;
         b->UH(i,j) += dNx(i,j);
         }
@@ -1447,7 +1448,7 @@ void sflow_momentum_SI::nh_cell(lexer *p, fdm2D *b, ghostcell *pgc)
             const double wn_ = (Hy(i,j)>0.0 && in(i,j+1) && wn(i,j+1)) ? 1.0 : 0.0;
             const double ws_ = (Hy(i,j-1)>0.0 && in(i,j-1) && wn(i,j-1)) ? 1.0 : 0.0;
 
-            dNy(i,j) = (ws_*qyN(i,j-1) + wn_*qyN(i,j))/MAX(wn_ + ws_ + (onestep ? wall(p,i,j,3) + wall(p,i,j,4) : 0.0),1.0);
+            dNy(i,j) = (ws_*qyN(i,j-1) + wn_*qyN(i,j))/MAX(wn_ + ws_ + wall(p,i,j,3) + wall(p,i,j,4),1.0);
             b->VH(i,j) += dNy(i,j);
             }
 
