@@ -1,0 +1,23 @@
+{
+ "np": 1,
+ "steps": 400,
+ "tags": [
+  "2d",
+  "sflow",
+  "river",
+  "bend",
+  "lags",
+  "curvilinear",
+  "sediment",
+  "spiral_momentum"
+ ],
+ "description": "P8c: the LFM bend of sflow_2d_curv_sed_bend_lfm_lags with the dispersion of the main-flow momentum by the spiral flow (S 98 0.5, the secondary flow of Delft3D-FLOW): the spiral-flow intensity of the sediment (S 95 2) drives the dispersion stresses M_sn = -beta h |U| I of the SFLOW momentum.",
+ "covers": [
+  "sflow_momentum_func::spiral_source (curvilinear finite volumes over the cell faces)",
+  "sediment_f::update_sflow: the intensity of the spiral flow to fdm2D::spiral"
+ ],
+ "solver": "sflow",
+ "files": [
+  "curvgrid.dat"
+ ]
+}

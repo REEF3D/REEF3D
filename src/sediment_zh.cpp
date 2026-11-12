@@ -99,7 +99,7 @@ void sediment_f::volume_calc(lexer *p, fdm *a,ghostcell *pgc)
 
 	LOOP
 	{
-       epsi = interface_width(p,a->topo,i,j,k);
+       epsi = interface_width_grid(p,a->topo,i,j,k);
         
 		H = heaviside(a->topo(i,j,k),epsi);
 

@@ -32,13 +32,16 @@ Author: Hans Bihs
 //  counters of the refinement (the interval P 182 / P 181 of the log and the grids).
 
 #include"sflow_amr.h"
+#include"sflow_momentum_SI.h"
 #include"reef3d_mpmd.h"
 #include"reefckpt.h"
 #include"sflow_ckpt_fields.h"
+#include"hydro_sflow.h"
 #include"sflow_momentum_RK3.h"
 #include"sflow_fsf.h"
 #include"sflow_pressure.h"
 #include"sflow_diffusion.h"
+#include"sflow_turbulence.h"
 #include"sediment_f.h"
 #include"ckpt_registry.h"
 #include"lexer.h"
@@ -80,6 +83,9 @@ void patch_fields(sflow_amr_patch *c, const reefamr::ckpt_visit &v)
     auto fd = [&](const char *n, char k, double *V){ listed.insert(V); v(n,k,V,nullptr); };
     auto fi = [&](const char *n, char k, int *V){ listed.insert(V); v(n,k,nullptr,V); };
     sflow_ckpt_fields(c->pp,c->b,fd,fi);
+    // REEF3D::HYDRO: the cumulative infiltration and rain
+    if(c->b->hydro!=nullptr)
+    c->b->hydro->ckpt_fields(fd,fi);
     // shoreline: the restricted surface offsets of the covered cells (used by the stages of the next
     // step) and the parent surfaces of the ghost cells
     if(c->sfc.size()==(size_t)c->pp->imax*c->pp->jmax)
@@ -88,12 +94,17 @@ void patch_fields(sflow_amr_patch *c, const reefamr::ckpt_visit &v)
     fd("amr_gsf",'S',c->gsf.data());
     if(c->pmom!=nullptr)
     c->pmom->ckpt_fields(fd,fi);
+    if(c->psim!=nullptr)
+    c->psim->ckpt_fields(fd,fi);
     if(c->pfsf!=nullptr)
     c->pfsf->ckpt_fields(fd,fi);
     if(c->ppress!=nullptr)
     c->ppress->ckpt_fields(fd,fi);
     if(c->pdiff!=nullptr)
     c->pdiff->ckpt_fields(fd,fi);
+    // A 260 1/2: the turbulence model of the patch
+    if(c->pturb!=nullptr)
+    c->pturb->ckpt_fields(fd,fi);
 
     // S 10: the sediment cell flags and the arrays of the sediment objects of the patch
     if(c->sed!=nullptr)
@@ -184,6 +195,11 @@ bool sflow_amr::ckpt_read(reefckpt &ck, string &msg)
 
     if(!ckpt_read_patches(ck,"sflow_amr",[&](reefamr_patch *q, const ckpt_visit &v){ patch_fields(SP(q),v); },msg))
     return false;
+
+    // semi-implicit free surface: the face discharges of the checkpoint
+    for(auto q : P)
+    if(SP(q)->psim!=nullptr)
+    SP(q)->psim->ckpt_restored();
 
     if(ck.has("sflow_amr_print"))
     {

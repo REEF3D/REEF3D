@@ -75,7 +75,7 @@ public:
     // NHFLOW
     
     vec rhsvec;
-    vec2D xvec,rvec;
+    vec2D xvec,rvec;    // not used by NHFLOW: empty (they were 2D vectors of the 3D row count)
     
     // 3D array
     double *U,*V,*W,*omegaF;
@@ -86,7 +86,8 @@ public:
     double *Pbc = nullptr;   // iowave: non-hydrostatic pressure of the incoming waves at an open x- edge (Poisson)
     double *F,*G,*H,*L;
     double *Fext,*Gext,*Hext;
-    double *POR,*PORPART;
+    double *POR;
+    double *PORPART = nullptr;  // VRANS porous structures (B 200 1)
     double *MBETA = nullptr;    // membrane mobility in the pressure Poisson equation (X 330), else unallocated
     double *MCHI = nullptr;     // fraction of the prescribed static pressure below membrane floors (X 330)
     double *MRCX = nullptr;     // membrane (X 330): face correction velocities of the last projection,
@@ -102,29 +103,33 @@ public:
     nhflow_fsf_hull *hull = nullptr;   // X 13 2: the hull as the top of the water columns (nhflow_fsf_hull.h)
     nhflow_hullbody *hullbody = nullptr;   // X 15 8: the hull as a sharp thin body (nhflow_hullbody.h)
     int solid_flux = 0;         // 1: no continuity flux through the faces of cells with p->DF < 0 (FEM structures, Z 30); 2: only p->DF == -1 (direct forcing solids, A 521 0)
-    double *PORDEM;         // porosity of the REEF3D::DEM particles (E 28), 1 without
-    double *test;
-    double *KIN;
-    double *CONC;
+    // the fields with nullptr below are allocated only for the options that read them (nhflow_memory.h)
+    double *PORDEM = nullptr;   // porosity of the REEF3D::DEM particles (E 10 > 0)
+    double *test = nullptr;     // output P 23, work array of A 520 3
+    double *KIN = nullptr;      // turbulence models (A 560 > 0)
+    double *CONC = nullptr;     // suspended sediment (S 12 > 0), output P 26
     double *SALT = nullptr;     // NHFLOW semi-implicit tracers (A 600 1/2): salinity (psu), cell centres
     double *TEMP = nullptr;     // A 600 2: temperature (deg C)
     
     double *SOLID,*FB,*FHB;
-    double *PORSTRUC;
+    double *PORSTRUC = nullptr; // VRANS porous structures (B 200 1)
     
     double *Fx,*Fy,*Fz;
-    double *FEx,*FEy,*FSW,*DWDT;
-    double *Fs,*Fn,*Fe,*Fw;
+    double *FEx,*FEy;
     double *Ss,*Sn,*Se,*Sw;
-    double *SSx,*SSy;
     
-    double *Un,*Us,*Ue,*Uw,*Ub,*Ut;
-    double *Vn,*Vs,*Ve,*Vw,*Vb,*Vt;
-    double *Wn,*Ws,*We,*Ww,*Wb,*Wt;
+    // face states: s/n the left/right state of the x face i+1/2, e/w of the y face j+1/2, b/t of the z face k+1/2.
+    // The tangential velocities of the horizontal faces (Vs..Ww, nullptr) only for HLLC, the curvilinear grid
+    // and the semi-implicit momentum (nhflow_tangential_faces); the conserved variables have no z faces.
+    double *Un,*Us,*Ub,*Ut;
+    double *Ve,*Vw,*Vb,*Vt;
+    double *Wb,*Wt;
+    double *Vn = nullptr, *Vs = nullptr, *Wn = nullptr, *Ws = nullptr;
+    double *Ue = nullptr, *Uw = nullptr, *We = nullptr, *Ww = nullptr;
     
-    double *UHn,*UHs,*UHe,*UHw,*UHb,*UHt;
-    double *VHn,*VHs,*VHe,*VHw,*VHb,*VHt;
-    double *WHn,*WHs,*WHe,*WHw,*WHb,*WHt;
+    double *UHn,*UHs,*UHe,*UHw;
+    double *VHn,*VHs,*VHe,*VHw;
+    double *WHn,*WHs,*WHe,*WHw;
     
     slice1 ETAs,ETAn;
     slice2 ETAe,ETAw;
@@ -133,7 +138,7 @@ public:
     slice1 dfx;
     slice2 dfy;
 
-    matrix2D N;
+    matrix2D N;         // not used by NHFLOW: empty
 	matrix_diag M;    
     
     double gi,gj,gk;

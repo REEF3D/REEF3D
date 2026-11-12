@@ -1,0 +1,22 @@
+{
+ "base": "cfd_2d_dambreak_amr_adapt_place_g48_2",
+ "np": 2,
+ "steps": 48,
+ "ctrl_add": [
+  "G 28 1"
+ ],
+ "description": "cfd_2d_dambreak_amr_adapt_place_g48_2 with G 28 1: the one interface width on the patches placed on the other rank (G 40 1), the composite preconditioner G 48 2 with the shadows of level 0.",
+ "tags": [
+  "quick",
+  "2d",
+  "dambreak",
+  "levelset",
+  "amr",
+  "adaptive",
+  "mpi",
+  "place"
+ ],
+ "covers": [
+  "G 28 with G 40 1 (the shadows) and G 48 2"
+ ]
+}

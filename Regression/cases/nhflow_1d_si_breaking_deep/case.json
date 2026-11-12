@@ -1,0 +1,19 @@
+{
+ "description": "NHFLOW semi-implicit with deep-water breaking (A 550 5): the focused packet RP1 of Rapp & Melville (1990), coarse (750 cells x 8 layers, dx 0.04 m = L_c/50, dt 0.02 s, theta 1/2, A 510 11, A 520 2), reconstructed waves (B 92 51, waverecon.dat); the crest tracking of A 550 4 with the deep-water breakers of FNPF A 350 5 (breaker scales, b(S), duration, energy) and their energy-matched viscosity.",
+ "solver": "nhflow",
+ "np": 1,
+ "steps": 1100,
+ "files": ["waverecon.dat"],
+ "tags": [
+  "1d",
+  "nhflow",
+  "semi_implicit",
+  "breaking",
+  "deep-water"
+ ],
+ "covers": [
+  "nhflow_breaking::breaking_barthelemy (A 550 5: breaking_crest3d model 5 with the NHFLOW dissipation per unit viscosity)",
+  "breaking_crest3d::rays (vbd, kwd: the deep-water breakers in their own field)",
+  "nhflow_breaking::breaking_deep"
+ ]
+}

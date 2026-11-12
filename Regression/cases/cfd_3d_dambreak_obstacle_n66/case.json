@@ -1,0 +1,18 @@
+{
+ "base": "cfd_3d_dambreak_obstacle",
+ "ctrl_add": [
+  "N 66 1.2"
+ ],
+ "description": "cfd_3d_dambreak_obstacle with N 66 1.2 (patch 0178): a step is repeated with half the time step when the time step after it is below 1/1.2 of it. 2 steps are repeated; 3D, 4 ranks (a low ratio, so that the short run has repeats; 2 is the value for a run).",
+ "tags": [
+  "3d",
+  "dambreak",
+  "mpi",
+  "solid",
+  "steprepeat"
+ ],
+ "covers": [
+  "step_repeat::again",
+  "the time step of a repeated step"
+ ]
+}

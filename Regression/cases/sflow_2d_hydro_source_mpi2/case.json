@@ -1,0 +1,18 @@
+{
+ "description": "sflow_2d_hydro_source_si on 2 ranks: the point source in the cell of one rank.",
+ "solver": "sflow",
+ "np": 2,
+ "steps": 60,
+ "tags": [
+  "quick",
+  "2d",
+  "sflow",
+  "hydro",
+  "semi_implicit",
+  "wetdry",
+  "mpi"
+ ],
+ "covers": [
+  "R 40 point sources across ranks (the owner rank of the cell)"
+ ]
+}

@@ -212,5 +212,6 @@ void sixdof_obj_cfd::amr_stage_cfd(lexer *p, fdm *a, ghostcell *pgc, int iter)
 {
     solve_eqmotion_cfd(p,a,pgc,iter,false);
     quat_matrices(p);
+    deform_stage(p,iter);
     pose_update(p,pgc);
 }

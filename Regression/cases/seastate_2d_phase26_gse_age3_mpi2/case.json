@@ -1,0 +1,15 @@
+{
+ "base": "seastate_2d_phase26_gse_age3",
+ "np": 2,
+ "same_as": "seastate_2d_phase26_gse_age3",
+ "description": "seastate_2d_phase26_gse_age3 on 2 ranks: the age solver pipelined as the solver of the spectra, the GSE step by the global index of the cells: bitwise the result of one rank. Validation in Dropbox SEASTATE/validation/82_gse_age.",
+ "tags": [
+  "quick",
+  "2d",
+  "seastate",
+  "mpi"
+ ],
+ "covers": [
+  "A 776 3 on 2 ranks"
+ ]
+}

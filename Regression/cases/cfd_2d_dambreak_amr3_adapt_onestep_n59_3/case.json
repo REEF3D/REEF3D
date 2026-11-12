@@ -1,0 +1,23 @@
+{
+ "base": "cfd_2d_dambreak_amr3_adapt",
+ "np": 1,
+ "steps": 60,
+ "ctrl_set": {
+  "N 40": "5"
+ },
+ "ctrl_add": [
+  "N 59 3",
+  "N 63 3"
+ ],
+ "description": "cfd_2d_dambreak_amr3_adapt_onestep_n59_2 with N 59 3 on every grid (validation CFD AMR speed/05).",
+ "tags": [
+  "quick",
+  "2d",
+  "dambreak",
+  "levelset",
+  "amr"
+ ],
+ "covers": [
+  "godunov: N 59 3 on the patches, the upwind control volume in the cells around a patch"
+ ]
+}

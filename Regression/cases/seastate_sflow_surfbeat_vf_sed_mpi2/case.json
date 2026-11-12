@@ -1,0 +1,41 @@
+{
+ "base": "seastate_sflow_surfbeat_vf_mpi2",
+ "ctrl_add": [
+  "S 10 1",
+  "S 11 8",
+  "S 16 2",
+  "S 20 0.00015",
+  "S 21 3.0",
+  "S 15 3",
+  "S 17 1.0",
+  "S 35 20.0",
+  "S 41 1",
+  "S 43 500",
+  "S 44 1",
+  "S 110 1",
+  "S 118 1",
+  "S 120 2",
+  "P 76 1",
+  "P 79 1"
+ ],
+ "np": 2,
+ "steps": 1500,
+ "description": "seastate_sflow_surfbeat_vf_mpi2 (vortex force A 751 2, two subdomains) with the sediment of seastate_sflow_surfbeat_sed: the suspended load moves with the Eulerian current plus the Stokes transport of the waves and the roller.",
+ "tags": [
+  "2d",
+  "sflow",
+  "seastate",
+  "sediment",
+  "waves",
+  "suspended",
+  "mpi"
+ ],
+ "covers": [
+  "sediment_susp2D Stokes face flux (seastate_coupling::stokes_x/y, stokes_ramp)",
+  "seastate_coupling::bed_waves on two ranks"
+ ],
+ "control_set": {
+  "S 61": null,
+  "T 61": "16.57 96.57 -1.0 21.0 0.0 1.0"
+ }
+}

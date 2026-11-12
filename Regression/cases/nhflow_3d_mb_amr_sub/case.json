@@ -1,0 +1,20 @@
+{
+ "base": "nhflow_3d_mb_amr",
+ "ctrl_add": [
+  "G 7 1"
+ ],
+ "description": "nhflow_3d_mb_amr (four turned curvilinear blocks, a refinement box over the vertex) with subcycling (G 7 1): level 0, the native grid with the blocks, takes its step alone with one pressure solve over the blocks (sub_level0_blocks), then the patches two steps with the cells around them from their parent block interpolated in time, refluxing across the turned block faces (the outside cell and the sign of the fluxes on the target block: reefamr_match side2, sgn), the synchronisation projection over the blocks and the patches.",
+ "tags": [
+  "3d",
+  "nhflow",
+  "curvilinear",
+  "multiblock",
+  "amr",
+  "subcycling"
+ ],
+ "covers": [
+  "nhflow_amr::sub_level0_blocks",
+  "level_grids(0) with the blocks in sub_swap_in/out, sub_reflux, sub_project",
+  "reefamr_match::side2"
+ ]
+}

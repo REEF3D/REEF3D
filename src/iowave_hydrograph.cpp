@@ -29,7 +29,8 @@ Author: Hans Bihs
 
 double iowave::hydrograph_ipol(lexer *p, ghostcell* pgc, double ** hydro, int hydrocount)
 {
-	double val;
+	// before the first time of the series: its first value (was unset after the first step)
+	double val = hydro[0][1];
     
     for(n=0;n<hydrocount-1;++n)
     if(p->simtime>=hydro[n][0] && p->simtime<hydro[n+1][0])

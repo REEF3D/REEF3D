@@ -39,6 +39,9 @@ seastate_sflow::seastate_sflow(lexer *p, fdm2D *b, ghostcell *pgc) : seastate_co
 
 void seastate_sflow::ini(lexer *p, fdm2D *b, ghostcell *pgc)
 {
+    // mesh refinement (G 1): the coupling acts on level 0 (the environment from the restricted fields); the patches
+    // take the wave force, div(M) and Hs, Tp from their parents (sflow_amr::wave_sync, sflow_amr_wave.cpp)
+
     // wave-dependent drag of the met forcing (W 207 7): the sea state of the coupling
     if(p->W207==7 && p->W200>0)
     {

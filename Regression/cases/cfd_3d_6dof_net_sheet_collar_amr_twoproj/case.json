@@ -1,0 +1,36 @@
+{
+ "base": "cfd_3d_6dof_net_sheet_collar",
+ "np": 2,
+ "steps": 12,
+ "ctrl_set": {
+  "N 40": "6"
+ },
+ "ctrl_add": [
+  "X 310 1",
+  "X 311 0.2 0.8 0.2 0.8 0.0 0.6 0.04647 6434.3 3274.062 0.003 1.1 20 0 0",
+  "X 311 1.8 1.2 0.2 0.8 0.0 0.6 0.04647 6434.3 3274.062 0.003 1.1 20 0 0",
+  "X 311 0.2 0.8 1.8 1.2 0.0 0.6 0.04647 6434.3 3274.062 0.003 1.1 20 0 0",
+  "X 311 1.8 1.2 1.8 1.2 0.0 0.6 0.04647 6434.3 3274.062 0.003 1.1 20 0 0",
+  "G 1 1",
+  "G 2 4",
+  "G 7 0",
+  "G 12 0.15"
+ ],
+ "description": "The set-up of the OF1 case in small: cfd_3d_6dof_net_sheet_collar (floating thin-walled collar, net sheet X 320 4 below it) with four catenary mooring lines (X 310 1, X 311), the mesh refinement around the body (G 1 1, the zone G 12 0.15, G 7 0) and the one-step scheme with two projections (N 40 6), 2 ranks: level 0 advances the body with the midpoint rule and the loads of the patches, the mooring forces and the net forces; the net forces on the fluid are spread onto the patches as well (before, the fluid of a patch did not feel the net).",
+ "tags": [
+  "3d",
+  "6dof",
+  "floating",
+  "net",
+  "mooring",
+  "mpi",
+  "amr",
+  "adaptive"
+ ],
+ "covers": [
+  "cfd_amr::step_comp: N 40 6 with floating bodies (the stages 0 and 1 of the bodies on level 0 and on the patches)",
+  "cfd_amr::net_forces, sixdof_cfd::amr_net_forces, net_interface::dlm_cfd_amr",
+  "mooring_Catenary with the mesh refinement and N 40 6",
+  "cfd_amr zone of the body (G 12) on 2 ranks"
+ ]
+}

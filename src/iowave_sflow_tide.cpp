@@ -91,8 +91,9 @@ void iowave::sflow_open_edges(lexer *p, fdm2D *b, ghostcell *pgc, slice &U, slic
     if(p->open_xm==0 && p->open_xp==0 && p->open_ym==0 && p->open_yp==0)
     return;
 
-    if(edge_h.empty())
-    edge_h.assign(size_t(p->imax)*size_t(p->jmax),0.0);
+    // the ghost depth of each edge apart (side 1..4): the cell in the corner of two open edges has two
+    if(edge_h.size()!=4*size_t(p->imax)*size_t(p->jmax))
+    edge_h.assign(4*size_t(p->imax)*size_t(p->jmax),0.0);
 
     const double g = fabs(p->W22);
 
@@ -237,7 +238,7 @@ void iowave::sflow_open_edges(lexer *p, fdm2D *b, ghostcell *pgc, slice &U, slic
                 ung = z->has_Q ? uq : (xedge ? nn*ub : nn*vb);
             }
 
-            edge_h[IJ] = hg;
+            edge_h[size_t(side-1)*size_t(p->imax*p->jmax) + IJ] = hg;
 
             // inflow: tangential velocity of the background (+ waves), outflow: of the interior
             const bool in = ung>0.0;
@@ -308,7 +309,8 @@ void iowave::sflow_open_edges_eta(lexer *p, fdm2D *b, slice &eta)
 
             // Riemann, clamped level: h_g of this step; Flather, clamped discharge: zero gradient
             const bool own_h = z->method==bc_method::riemann || z->method==bc_method::clamp_level;
-            const double eg = (own_h && !edge_h.empty() && edge_h[IJ]>0.0) ? edge_h[IJ] - b->depth(i,j) : eta(i,j);
+            const size_t e = size_t(side-1)*size_t(p->imax*p->jmax) + IJ;
+            const double eg = (own_h && e<edge_h.size() && edge_h[e]>0.0) ? edge_h[e] - b->depth(i,j) : eta(i,j);
 
             for(int q=1; q<=3; ++q)
             eta(i+q*di,j+q*dj) = eg;

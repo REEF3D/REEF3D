@@ -71,11 +71,11 @@ public:
     void P_relax(lexer*,ghostcell*,double*) override;
     void WL_relax(lexer*,ghostcell*,slice&,slice&) override;
     void fifsf_relax(lexer*, ghostcell*, slice&) override final;
-    void eta_relax(lexer*,ghostcell*,slice&) override final;
-    void um_relax(lexer*,ghostcell*,slice&,slice&,slice&) override final;
-    void vm_relax(lexer*,ghostcell*,slice&,slice&,slice&) override final;
-	void wm_relax(lexer*,ghostcell*,slice&,slice&,slice&) override final;
-	void pm_relax(lexer*,ghostcell*,slice&) override final;
+    void eta_relax(lexer*,ghostcell*,slice&) override;
+    void um_relax(lexer*,ghostcell*,slice&,slice&,slice&) override;
+    void vm_relax(lexer*,ghostcell*,slice&,slice&,slice&) override;
+	void wm_relax(lexer*,ghostcell*,slice&,slice&,slice&) override;
+	void pm_relax(lexer*,ghostcell*,slice&) override;
     
     void wavegen_2D_precalc(lexer*,fdm2D*,ghostcell*) override final;
     
@@ -115,7 +115,7 @@ public:
     void ksource_nhflow(lexer*,fdm_nhf*,ghostcell*,vrans_nhflow*,slice&) override final;
     void fsfinflow_nhflow(lexer*,fdm_nhf*,ghostcell*,slice&) override;
     void vrans_sed_update(lexer*,fdm*,ghostcell*,vrans*) override final;
-    void turb_relax_nhflow(lexer*,fdm_nhf*,ghostcell*,double*) override final {};
+    void turb_relax_nhflow(lexer*,fdm_nhf*,ghostcell*,double*) override {};
 	
 private:
     void velocity_inlet(lexer*,fdm*,ghostcell*,field&,field&,field&);

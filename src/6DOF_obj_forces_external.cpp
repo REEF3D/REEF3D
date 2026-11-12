@@ -171,7 +171,7 @@ void sixdof_obj_nhflow::coupling_stabilisation(lexer *p, int iter, double Ma, Ei
     return;
     
     // free translations only
-    const int fr[3] = {p->X11_u==1, p->X11_v==1 && p->j_dir==1, p->X11_w==1};
+    const int fr[3] = {rb.dof[0]==1, rb.dof[1]==1 && p->j_dir==1, rb.dof[2]==1};
     
     for(int r=0; r<3; ++r)
     for(int c=0; c<3; ++c)
@@ -277,6 +277,11 @@ void sixdof_obj_cfd::netForces_cfd(lexer *p, fdm* a, ghostcell *pgc, double alph
         Mext += Mne[n];
         Next += Nne[n];
     }
+}
+
+void sixdof_obj_cfd::amr_net_forces(lexer *p, fdm *a, int fmax, const std::function<void(const double*,int*)> &width)
+{
+    pnetinter->dlm_cfd_amr(p,a,fmax,width);
 }
 
 void sixdof_obj_nhflow::netForces_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, double alpha, bool finalize)

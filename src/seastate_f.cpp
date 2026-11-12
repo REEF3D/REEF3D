@@ -71,6 +71,11 @@ seastate_f::~seastate_f()
     delete pex;
     delete psolv;
     delete N0;
+    delete gNs;
+    delete gM;
+    delete gM0;
+    delete gMs;
+    delete pasolv;
     delete psrc;
     delete proll;
     delete bser;
@@ -101,6 +106,10 @@ void seastate_f::start(lexer *p, ghostcell *pgc)
     rck->read();
     if(ss_resume>0)
     --p->count;
+
+    // the online collocation from the model time of the checkpoint (Phase 25; it started at model time 0 before)
+    if(p->A787==1)
+    colloc_ini(p,pgc);
     }
     t_ini = pgc->timer()-t0;
 
@@ -135,6 +144,10 @@ void seastate_f::start(lexer *p, ghostcell *pgc)
         // nesting output (A 785 1)
         if(p->A785==1)
         spcout(p,pgc,false);
+
+        // online collocation (A 787 1), nonstationary
+        if(pcol!=nullptr && p->A700!=2)
+        colloc(p,pgc,false);
 
         // printer (mesh refinement: the patches with every print of level 0)
         double ptime=pgc->timer();
@@ -195,6 +208,9 @@ void seastate_f::start(lexer *p, ghostcell *pgc)
     if(kba)
     pipeline_report(p,pgc);
 
+    // online collocation (A 787 1): a stationary run takes the final field; the statistics
+    colloc_end(p,pgc);
+
     preg->seastate_final(p,e,pgc);
 
     pgc->final();
@@ -243,6 +259,7 @@ void seastate_f::step(lexer *p, ghostcell *pgc)
 {
     // implicit transport in x, y, sigma, theta with the source terms (if any)
     tnew = p->simtime + dtw;
+    seastate_implicit::lag_key = tnew;      // Phase 23 (A 768 1): the time step of the state of the wind input
 
     if(bser!=nullptr || wmet!=nullptr)
     forcing_update(p,pgc,tnew);
@@ -290,6 +307,7 @@ void seastate_f::step_coupled(lexer *p, ghostcell *pgc, double dt)
 
     // the host calls at the start of its step: the wave field is advanced to the host's time
     tnew = p->simtime;
+    seastate_implicit::lag_key = tnew;      // Phase 23 (A 768 1)
 
     if(bser!=nullptr || wmet!=nullptr)
     forcing_update(p,pgc,tnew);
@@ -311,4 +329,7 @@ void seastate_f::step_coupled(lexer *p, ghostcell *pgc, double dt)
 
     if(p->A785==1)
     spcout(p,pgc,false);
+
+    if(pcol!=nullptr && p->A700!=2)
+    colloc(p,pgc,false);
 }

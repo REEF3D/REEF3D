@@ -25,11 +25,15 @@ Author: Hans Bihs
 
 #include"increment.h"
 #include"vtp3D.h"
+#include<utility>
+#include<vector>
 
 class lexer;
 class fdm_nhf;
 class ghostcell;
 class sediment;
+class scour_core;
+class slice;
 
 using namespace std;
 
@@ -42,9 +46,13 @@ public:
 
     void start(lexer*,fdm_nhf*,ghostcell*,sediment*);
 
+    // P 187: the scour parameters as further point data of the bed
+    scour_core *scour = nullptr;
+
 private:
     void print2D(lexer*,fdm_nhf*,ghostcell*,sediment*);
     void pvtp(lexer*,sediment*,int);
+    static std::vector<std::pair<const char*,slice*>> scour_fields(scour_core*);
 
     char name[200];
     int n,iin,offset[200];

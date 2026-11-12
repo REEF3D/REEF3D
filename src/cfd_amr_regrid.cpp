@@ -41,6 +41,8 @@ Architect: Hans Bihs
 //    G 24 n   the interface band: |phi| < n psi (psi of the flagging level)
 //    G 25 n   within n cells of a solid, the topography or a floating body (|solid|, |topo|, |fb| < n dx)
 //    G 26 w   a vorticity |curl u| > w [1/s]
+//    G 27 r   near a mobile bed (CPM, cfd_amr_cpm.cpp): within two cells of the bed where its shear stress is
+//             above r times the critical one or it has moved by a cell of the grid of CPM
 //    G 12 r   the zone of the floating bodies (cfd_amr_zone.cpp), on the finest level
 //    G 15     boxes, always refined to the finest level
 //  A flagged cell of level l (with a buffer of G 3 cells) marks the tiles of its children on level
@@ -104,6 +106,10 @@ bool cfd_amr::flagged(int g, int i, int j, int k, int lt, bool init)
         return true;
     }
 
+    // G 27: near a mobile bed (CPM on the refinement)
+    if(p0->G27>0.0 && !init && cpm_flag(g,i,j,k))
+    return true;
+
     if(p0->G26>0.0)
     {
         // cell-centred velocities, central differences
@@ -136,6 +142,10 @@ void cfd_amr::flags(vector<vector<unsigned char>> &seed, bool init)
 
     if(!adapt)
     return;
+
+    // G 27: the mobile columns of the grid of CPM
+    if(p0->G27>0.0 && !init && cpm_on())
+    cpm_mobile();
 
     const int buf = MAX(p0->G3,0);
     int bb[3];
@@ -369,11 +379,11 @@ void cfd_amr::measure_load()
     }
 }
 
-// G 40 1 with G 41 0 and a static refinement (no regrid): the work measured over steps 5-15, then
+// G 40 1, 3 with G 41 0 and a static refinement (no regrid): the work measured over steps 5-15, then
 // the units placed once more with the measured weight of a patch cell
 void cfd_amr::replace_static(lexer *p, ghostcell *pgc)
 {
-    if(adapt || place!=1 || !lmeas() || (p->count!=5 && p->count!=15))
+    if(adapt || (place!=1 && place!=3) || !lmeas() || (p->count!=5 && p->count!=15))
     return;
     measure_load();
     if(p->count==15)
@@ -535,7 +545,10 @@ void cfd_amr::regrid(lexer *p, ghostcell *pgc, bool replace)
         pgc->start4(pp,fa->visc,1);
         c->ppress->ini(pp,fa,pgc);
         if(solids)
+        {
+        pgc->solid_forcing_flag_update(pp,fa);
         pgc->solid_forcing_ini(pp,fa);
+        }
         if(bodies)
         c->p6dof->body(pp,fa,pgc);
     }
@@ -560,6 +573,8 @@ void cfd_amr::regrid(lexer *p, ghostcell *pgc, bool replace)
         for(int l=maxlev; l>=1; --l)
         {
             restrict_level(l,cells,faces);
+            if(!sub)
+            restrict_press_hydro(l);
             if(l>=2)
             fill(l-1,fs);
         }
@@ -586,6 +601,9 @@ void cfd_amr::regrid(lexer *p, ghostcell *pgc, bool replace)
         CP(id)->pturb->ktimesave(CP(id)->pp,CP(id)->a,pgc);
         CP(id)->pturb->etimesave(CP(id)->pp,CP(id)->a,pgc);
     }
+
+    // CPM: the plans with the new patches, the bed of CPM onto them (in place of the bed of the grid file)
+    cpm_regrid();
 
     if(p->mpirank==0)
     {

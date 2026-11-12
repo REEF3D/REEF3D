@@ -100,13 +100,13 @@ void vrans_veg::initialize_cfd(lexer *p, fdm *a, ghostcell *pgc)
     {
 		zmin=MIN(p->B322_zs[qn],p->B322_ze[qn]);
         
-            if(p->B322_xs[qn]<=p->B322_xe[qn])
+            if(p->B322_ys[qn]<=p->B322_ye[qn])
             {
             ys = p->B322_ys[qn];
             ye = p->B322_ye[qn];
             }
             
-            if(p->B322_xs[qn]>p->B322_xe[qn])
+            if(p->B322_ys[qn]>p->B322_ye[qn])
             {
             ys = p->B322_ye[qn];
             ye = p->B322_ys[qn];

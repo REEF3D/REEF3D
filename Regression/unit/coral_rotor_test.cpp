@@ -4,7 +4,9 @@
 // element); spin-up of the free rotor against J domega/dt = Q(omega) of the steady rotor; the k omega^2 generator
 // settles where Q(omega) = K omega^2; constant torque and the slip generator; torsion of the flexible drivetrain at
 // its natural frequency; yawed inflow with the skewed wake (yaw angle, larger induction downwind); tower potential
-// flow; mass and inertia of hub and blades; ElastoDyn's blade file; the keyword with its channels.
+// flow; mass and inertia of hub and blades (flexible: the table's integral, also with stations inside the
+// elements); ElastoDyn's blade file (with and without PitchAxis); the keyword with its
+// channels.
 // Architect: Hans Bihs
 #include"coral/aero/coral_rotor.h"
 #include"coral/core/coral_model.h"
@@ -371,6 +373,25 @@ static void test_flexible()
     check(hb.blade_nodes.size()==3 && hb.blade_nodes[0].size()==13 && std::fabs(vb.T/va.T - 1.0) < 1e-10 && std::fabs(vb.Q/va.Q - 1.0) < 1e-10,
           fmt("12 beam elements per blade: the undeformed rotor's thrust %.1f kN and torque %.1f kN m = the rigid one's", vb.T/1e3, vb.Q/1e3));
 
+    // the blade mass: the table's integral, also with stations inside the elements, on 1 kg pitch bearings
+    {
+        rotor_spec p = design();
+        p.structure.frac = {0.0, 0.13, 1.0};
+        p.structure.mass = {400.0, 900.0, 100.0};
+        p.structure.EI_flap = p.structure.EI_edge = {1e10, 1e9, 1e8};
+        p.structure.pitch_axis = p.structure.twist = {0, 0, 0};
+        p.blade_elements = 12;
+        p.pitch_joints = true;
+        model mp;
+        build_rotor(mp, w, p);
+        double mbl = 0.0;
+        for(const rigid_body &q : mp.bodies)
+            if(q.name.find("_b") != std::string::npos || q.name.find("_pitch") != std::string::npos) mbl += q.mass;
+        for(const auto &q : mp.point_masses) mbl += q.mass;
+        const double Lb = R - p.R_hub, mt = Lb*(0.5*(400.0 + 900.0)*0.13 + 0.5*(900.0 + 100.0)*0.87);
+        check(std::fabs(mbl - 3.0*(mt + 1.0)) < 1e-6*mt, fmt("flexible blades: %.3f kg = 3 x (the table's integral %.3f kg + a 1 kg bearing)", mbl, 3.0*(mt + 1.0)));
+    }
+
     // the uniform cantilever blade at rest: first flap and edge frequencies 3.516/(2 pi) sqrt(EI/(m L^4))
     rotor_spec u = design(10);
     u.R_hub = 0.0;
@@ -490,6 +511,21 @@ static void test_input()
         return std::string();
     };
     check(err("rotor r hub 0 0 90 axis 1 0 0 R_hub 2 blade x.dat airfoils 1 a.dat\n").find("needs a wind") != std::string::npos, "rotor without wind: error");
+    // ElastoDyn's blade file of OpenFAST 3.5 and later: no PitchAxis column, the columns by the header's names
+    {
+        const std::string head = "------- ELASTODYN V1.00.* INDIVIDUAL BLADE INPUT FILE ----\ntest\n---- BLADE PARAMETERS ----\n"
+                                 "          3   NBlInpSt    - Number of blade input stations (-)\n     1.0   AdjBlMs\n     2.0   AdjFlSt\n     1.0   AdjEdSt\n"
+                                 "---- DISTRIBUTED BLADE PROPERTIES ----\n";
+        blade_structure a, b;
+        std::string msg;
+        const bool oka = blade_structure::read_string(head + "BlFract PitchAxis StrcTwst BMassDen FlpStff EdgStff\n(-) (-) (deg) (kg/m) (Nm^2) (Nm^2)\n"
+            "0.0 0.25 13.3 400 1e10 1e10\n0.5 0.25 5.0 250 1e9 2e9\n1.0 0.25 0.1 100 1e7 2e7\n---- BLADE MODE SHAPES ----\n    0.0622   BldFl1Sh(2)\n", a, msg);
+        const bool okb = blade_structure::read_string(head + "BlFract StrcTwst BMassDen FlpStff EdgStff\n(-) (deg) (kg/m) (Nm^2) (Nm^2)\n"
+            "0.0 13.3 400 1e10 1e10\n0.5 5.0 250 1e9 2e9\n1.0 0.1 100 1e7 2e7\n---- BLADE MODE SHAPES ----\n    0.0622   BldFl1Sh(2)\n", b, msg);
+        check(oka && okb && a.frac==b.frac && a.twist==b.twist && a.mass==b.mass && a.EI_flap==b.EI_flap && a.EI_edge==b.EI_edge
+              && b.EI_flap[1]==2e9 && b.pitch_axis[1]==0.25,
+              "ElastoDyn blade file without the PitchAxis column (OpenFAST 3.5 and later): the same table, AdjFlSt applied");
+    }
 }
 
 int main()

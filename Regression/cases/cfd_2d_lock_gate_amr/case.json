@@ -1,0 +1,26 @@
+{
+ "base": "cfd_2d_lock_gate",
+ "np": 1,
+ "steps": 40,
+ "ctrl_add": [
+  "G 1 1",
+  "G 15 0.70 1.90 0.0 0.05 0.30 0.95"
+ ],
+ "description": "cfd_2d_lock_gate with one refined level over the gate and the box (G 1 1, static box G 15; N 40 3, the refinement needs the SSP stages): several bodies on a patch, each with the level set of its own cast or of its cast kept while it has not moved (cfd_amr_6dof::start_bodies), the level set of both bodies after the stage (patch 0041).",
+ "tags": [
+  "quick",
+  "2d",
+  "6dof",
+  "levelset",
+  "closed",
+  "amr"
+ ],
+ "covers": [
+  "cfd_amr_6dof::start_bodies (several bodies on a patch)",
+  "cfd_amr_6dof::restore / combine",
+  "levelset_solid_extend X 48 3 on a patch"
+ ],
+ "ctrl_set": {
+  "N 40": "3"
+ }
+}

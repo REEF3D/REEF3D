@@ -44,6 +44,8 @@ Author: Hans Bihs
 #include"acoustics_fwh.h"
 #include"acoustics_void.h"
 #include"cavitation.h"
+#include"pic_f.h"
+#include"pic_void.h"
 
 // stop for input options whose code was removed
 static void removed_option(lexer *p, ghostcell *pgc, bool used, const char *msg)
@@ -70,7 +72,7 @@ void driver::logic_cfd()
     cout<<"creating objects"<<endl;
 
     // removed options
-    removed_option(p,pgc,p->N40==5,"N 40 5: momentum_RK3CN has been removed, use N 40 3 or N 40 13.");
+    removed_option(p,pgc,p->N40==1,"N 40 1: the one-step scheme is N 40 5 now (N 40 6: with two projections).");
     removed_option(p,pgc,p->T10==12,"T 10 12: EARSM has been removed, use T 10 2 (k-omega; the EARSM stresses were not coupled to the momentum equations).");
     removed_option(p,pgc,p->F80==1 || p->F80==3,"F 80 1/3: VOF_AB and VOF_RK3 have been removed, use F 80 4 (PLIC) or the level set (F 30).");
     removed_option(p,pgc,p->F85>=51 && p->F85<=53,"F 85 51/52/53: HRIC, HRIC_mod and CICSAM have been removed.");
@@ -86,10 +88,11 @@ void driver::logic_cfd()
     if(p->N48==0)
 	ptstep=new fixtimestep(p);
 
-    if((p->N48==1)  && (p->D20!=0&&p->D20!=2))
+    // N 48 2 (FNPF: stability step of the grid) as N 48 1
+    if((p->N48>=1)  && (p->D20!=0&&p->D20!=2))
 	ptstep=new etimestep(p);
 
-	if((p->N48==1) && (p->D20==0||p->D20>=2))
+	if((p->N48>=1) && (p->D20==0||p->D20>=2))
 	ptstep=new ietimestep(p);
 
 
@@ -144,6 +147,13 @@ void driver::logic_cfd()
 
 	if(p->D10>=10 && p->D10<30)
 	pconvec=new hires(p,p->D10);
+
+    // the one-step schemes (N 40 5, 6): the Godunov convection, time-centred, whatever D 10 is
+    if(p->N40==5 || p->N40==6)
+    {
+    delete pconvec;
+    pconvec=new godunov(p);
+    }
 
 
 	// Convection Turbulence
@@ -202,7 +212,16 @@ void driver::logic_cfd()
 
 	if(p->F35>=40 && p->F35<50)
 	pfsfdisc=new hires(p,p->F35);
-    
+
+    // the one-step schemes (N 40 5, 6): the level set with the Godunov convection as well; N 63 1, 2,
+    // 3: with the scheme of F 35 in one forward-Euler step, in SSP-RK2 or SSP-RK3 stages (the Godunov
+    // reconstruction of the level set gained water in thin fast jets at N 47 0.25 and above,
+    // validations 82, 83)
+    if((p->N40==5 || p->N40==6) && p->F30>0 && p->N63==0)
+    {
+    delete pfsfdisc;
+    pfsfdisc=new godunov(p);
+    }
   
 //  Convection Multiphase LSM
 	if(p->F305==0)
@@ -418,7 +437,7 @@ void driver::logic_cfd()
 
    
 // Free Surface
-    if(((p->F30==0) || (p->N40==2||p->N40==3||p->N40==4||p->N40==22||p->N40==23||p->N40==24||p->N40==33)) && p->F80==0)
+    if(((p->F30==0) || (p->N40==2||p->N40==3||p->N40==4||p->N40==5||p->N40==6||p->N40==22||p->N40==23||p->N40==24||p->N40==33)) && p->F80==0)
 	pfsf = new levelset_void(p,a,pgc,pheat,pconc);
     
 	if(p->F30==2 && (p->N40==44||p->N40==12||p->N40==13||p->N40==14))
@@ -426,6 +445,10 @@ void driver::logic_cfd()
 
 	if(p->F30==3  &&  (p->N40==44||p->N40==12||p->N40==13||p->N40==14))
 	pfsf = new levelset_RK3(p,a,pgc,pheat,pconc);
+
+    // PIC (F 81 1, 2): the free surface from the particles (pic_f), no level set transport
+    if((p->F81==1 || p->F81==2) && p->F30>0 && p->F80==0)
+    pfsf = new levelset_void(p,a,pgc,pheat,pconc);
 
 
 	if(p->F40==0)
@@ -658,6 +681,55 @@ void driver::logic_cfd()
 
     momentum_forcing::pdem = pdem;
 
+// PIC (F 81 1, 2: the free surface and the momentum of the water from the particles; F 81 1
+// single phase (p = 0 at the surface, no air), F 81 2 with the air on the grid;
+// F 81 10: passive particles)
+    const bool picfsf = (p->F81==1 || p->F81==2);
+    removed_option(p,pgc,p->F81!=0 && p->F81!=1 && p->F81!=2 && p->F81!=10,"F 81: unknown PIC option; use 1 (single-phase), 2 (water particles, Eulerian air) or 10 (passive particles).");
+    removed_option(p,pgc,p->F81>0 && (p->F30<=0 || p->F80>0),"F 81: the PIC particles are seeded in the water of the level set (F 30); not with VOF (F 80) yet.");
+    removed_option(p,pgc,p->F81>0 && p->G1>0,"F 81: PIC is not available with the mesh refinement (G 1) yet.");
+    removed_option(p,pgc,p->F81>0 && p->F83<1,"F 83: PIC needs at least 1 particle per cell and direction.");
+    removed_option(p,pgc,picfsf && p->B90>0 && ((p->B98!=0 && p->B98!=2) || (p->B99!=0 && p->B99!=1 && p->B99!=2)),"F 81 1/2: waves only with the relaxation zones (B 98 2, B 99 1 or 2) with the free surface from the particles yet; the Dirichlet wave generation and the active absorption bring no particles in.");
+    removed_option(p,pgc,picfsf && (p->F77<0 || p->F77>2),"F 77: the velocity transfer of the particles is 0 (FLIP/PIC, F 82), 1 (APIC) or 2 (FLIP/PIC with the affine velocities of APIC).");
+    removed_option(p,pgc,picfsf && (p->N40==0 || p->N40==33),"F 81 1/2: the momentum of the particles needs the non-conservative Runge-Kutta momentum (N 40 2, 3, 4, 12, 13, 22, 23, 24, 44).");
+    removed_option(p,pgc,p->F81==1 && (p->D30<1 || p->D30>3 || p->W32>0),"F 81 1: the single phase (p = 0 at the free surface) needs the incompressible projection (D 30 1, 2, 3, no W 32).");
+    removed_option(p,pgc,picfsf && p->F46>0,"F 81 1/2: the volume correction of the level set (F 46) does not apply to the free surface from the particles.");
+
+// F 41 1: the single-phase level set (cfd_singlephase.h): the water only, p = 0 at the free surface
+    if(p->F41!=0)
+    {
+    removed_option(p,pgc,p->F41!=1 && p->F41!=2,"F 41: the single-phase level set is F 41 1, with the closed air pockets F 41 2 (0: two phases).");
+    removed_option(p,pgc,p->F30<=0 || p->F80>0 || p->F81>0,"F 41 1: the single phase of the level set needs the level set (F 30), without VOF (F 80) or PIC (F 81; F 81 1 is the single phase of PIC).");
+    removed_option(p,pgc,p->D30<1 || p->D30>3 || p->W32>0 || p->W30>0,"F 41 1: the single phase (p = 0 at the free surface) needs the incompressible projection (D 30 1, 2, 3, no W 30 or W 32).");
+    removed_option(p,pgc,p->G1>0 && p->G7!=0,"F 41 1: the single-phase level set with the mesh refinement (G 1) needs one time step for all levels (G 7 0) yet.");
+    removed_option(p,pgc,p->F41==2 && p->G1>0 && p->G40!=0,"F 41 2: the closed air pockets with the mesh refinement need the patches on the ranks of their level-0 cells (G 40 0) yet.");
+    removed_option(p,pgc,p->H10>0 || p->C10>0 || p->F300>0 || p->W90>0 || p->X10>0 || p->Z10>0,"F 41 1: the single-phase level set works without heat (H 10), concentration (C 10), multiphase (F 300), rheology (W 90), floating bodies (X 10) or FSI (Z 10) yet.");
+
+        // the air takes the density and viscosity of the water: the faces of the water at the surface
+        // have the density of the water (the smoothed Heaviside of density_f would give them less)
+        p->W3 = p->W1;
+        p->W4 = p->W2;
+
+        // N 59 (rho u with the mass flux) has no density jump to follow; N 57, N 58, N 65 no air
+        if(p->N59>0)
+        {
+        if(p->mpirank==0)
+        cout<<"F 41 1: N 59 has no density jump to carry in the single phase: N 59 0"<<endl;
+        p->N59=0;
+        }
+
+        if(p->mpirank==0 && p->F41==1)
+        cout<<"F 41 1: single-phase level set, the water only, p = 0 at the free surface"<<endl;
+        if(p->mpirank==0 && p->F41==2)
+        cout<<"F 41 2: single-phase level set, the water only, p = 0 at the free surface of the atmosphere, the closed air pockets adiabatic (W 33 "<<p->W33<<", W 36 "<<p->W36<<" Pa)"<<endl;
+    }
+
+    if(p->F81>0)
+    ppic = new pic_f(p,a,pgc,preini,pflow,pheat,pconc);
+    else
+    ppic = new pic_void();
+    momentum_rk::ppic = ppic;
+
 // FSI
     if(p->Z10==0)
     pfsi = new fsi_void(p,pgc);
@@ -669,16 +741,137 @@ void driver::logic_cfd()
 // Velocities
 	if(p->N40==0)
 	pmom = new momentum_void();
+
+    // the one-step schemes (N 40 5, 6): the level set or single phase flow, no VOF or particles yet;
+    // floating bodies (X 10 1, with their mooring lines X 310 and nets X 320): with N 40 6 the bodies
+    // take position Verlet with the half step and the full step (sixdof_obj::rkmid), with
+    // N 40 5 one semi-implicit Euler step (sixdof_rigidbody::step_symplectic)
+    if((p->N40==5 || p->N40==6) && (p->X10>1 || p->F80>0 || p->F81>0 || p->F300>0 || p->Z10>0 || p->E10>0))
+    {
+        if(p->mpirank==0)
+        cout<<"N 40 "<<p->N40<<" (the one-step scheme) works with the level set or single phase flow, without VOF (F 80), PIC (F 81), multiphase (F 300), FSI (Z 10) or DEM (E 10); floating bodies: X 10 1"<<endl;
+
+        exit(1);
+    }
     
     // RK2, RK3 and low-storage RK3 with the level set outside (12, 13, 44) or inside the stages
     // (2, 3, 4), conservative form (33)
     bool mom_rk=false;
 
-    if(p->N40==2 || p->N40==22 || p->N40==12 || p->N40==44
+    // N 59 (the momentum carried with the mass flux): the one-step schemes with the level set (also on
+    // the mesh refinement, whose patches take the same Godunov convection), the density of the
+    // level set (density_f) and no single-phase PIC
+    if(p->N59>0 && (!(p->N40==5 || p->N40==6) || p->F30<=0
+       || p->H10>0 || p->C10>0 || p->W30>0 || p->W90>0 || p->F81>0))
+    {
+        if(p->mpirank==0)
+        cout<<"N 59 works with N 40 5 or 6 and the level set (F 30), without heat (H 10), concentration (C 10), compressible air (W 30), rheology (W 90) or PIC (F 81) yet"<<endl;
+
+        exit(1);
+    }
+
+    if(p->N40==5 || p->N40==6 || p->N40==2 || p->N40==22 || p->N40==12 || p->N40==44
     || ((p->N40==3 || p->N40==23 || p->N40==4 || p->N40==24 || p->N40==13 || p->N40==33) && p->F80!=4))
     {
 	pmom = new momentum_rk(p,a,pgc,pconvec,pfsfdisc,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow,pheat,pconc,preini,pfsi);
     mom_rk=true;
+    }
+
+    // N 65 (the air beyond the band of N 57 semi-Lagrangian): the one-step schemes with N 57
+    if(p->N65>0 && !((p->N40==5 || p->N40==6) && p->F30>0 && p->N57>0.0 && p->N48>0))
+    {
+        if(p->mpirank==0)
+        cout<<"N 65 needs N 40 5 or 6 with the level set (F 30) and N 57 > 0 (adaptive time step N 48): not used"<<endl;
+        p->N65=0;
+    }
+
+    // G 28: one half width of the smoothed interface of the density and the viscosity on all levels
+    // of the mesh refinement (interface_width.h), that of level 0 (1) or of the finest level G 1 (2),
+    // F 45 times the spacing of that level (as initialize::inipsi).  Without it every level smears
+    // the free surface over F 45 of its own cells, so a coarse and a fine cell at the same distance
+    // from the free surface have different densities (at the patch edges across the free surface
+    // and under the patches)
+    p->psi_rho=0.0;
+    if(p->G28!=0)
+    {
+        if(p->G28<0 || p->G28>2 || p->F30<=0 || p->F80>0 || !cfd_amr::scope(p,pgc))
+        {
+            if(p->mpirank==0)
+            cout<<"G 28 "<<p->G28<<" (one interface width on all levels: 1 that of level 0, 2 that of the finest level) needs the CFD mesh refinement (G 1) with the level set (F 30): not used"<<endl;
+            p->G28=0;
+        }
+        else
+        {
+            const double h0 = (p->j_dir==0) ? 0.5*(p->DXM+p->DZM) : (1.0/3.0)*(p->DXM+p->DYM+p->DZM);
+            p->psi_rho = p->F45*h0;
+            if(p->G28==2)
+            p->psi_rho /= pow(2.0,p->G1);
+
+            if(p->mpirank==0)
+            cout<<"G 28 "<<p->G28<<": the density and the viscosity with one interface half width on all levels, "<<p->psi_rho
+                <<" m ("<<p->psi_rho/h0<<" cells of level 0, "<<p->psi_rho/(h0/pow(2.0,p->G1))<<" cells of level "<<p->G1<<")"<<endl;
+        }
+    }
+
+    // G 29: the pressure under the patches restricted relative to the hydrostatic pressure of each
+    // grid (cfd_amr::restrict_press_hydro): two-phase level set, gravity along z
+    if(p->G29!=0 && (p->G29!=1 || p->F30<=0 || p->F80>0 || p->F41>0 || p->W20!=0.0 || p->W21!=0.0 || p->W22==0.0 || !cfd_amr::scope(p,pgc)))
+    {
+        if(p->mpirank==0)
+        cout<<"G 29 "<<p->G29<<" (the pressure under the patches relative to the hydrostatic pressure of each grid) needs the CFD mesh refinement (G 1) with the two-phase level set (F 30, not F 41) and gravity along z: not used"<<endl;
+        p->G29=0;
+    }
+    if(p->G29==1 && p->G7!=0)
+    {
+        if(p->mpirank==0)
+        cout<<"G 29: with the subcycling (G 7 1) the cells under the patches keep the pressure of their own level (it is not restricted): not used"<<endl;
+        p->G29=0;
+    }
+
+    // F 48 (the narrow band of the level set, levelset_band.h): the reinitialisation reini_RK3 (F 40 3)
+    // and the transport of the level set of momentum_rk with F 35 5.  At least the cells that read
+    // the level set as a distance: the smoothed interface and the stencil next to it (F 45 + 3), the
+    // flag of the mesh refinement (G 24 interface thicknesses), the band of the time step (N 57)
+    if(p->F48>0.0)
+    {
+        if(p->F30<=0 || p->F80>0 || p->F81>0 || !(p->F40==3 || p->F40==23))
+        {
+            if(p->mpirank==0)
+            cout<<"F 48 (the narrow band of the level set) needs the level set (F 30) with the reinitialisation F 40 3: not used"<<endl;
+            p->F48=0.0;
+        }
+        else
+        {
+            double wmin = MAX(MAX(p->F45+3.0,p->G24*p->F45+1.0),p->N57+2.0);
+            // G 28: the smoothed interface in cells of the finest level
+            if(p->psi_rho>0.0)
+            {
+                const double h0 = (p->j_dir==0) ? 0.5*(p->DXM+p->DZM) : (1.0/3.0)*(p->DXM+p->DYM+p->DZM);
+                wmin = MAX(wmin,p->psi_rho/(h0/pow(2.0,p->G1))+3.0);
+            }
+            if(p->F48<wmin)
+            {
+                if(p->mpirank==0)
+                cout<<"F 48 "<<p->F48<<": the narrow band is at least F 45 + 3 (G 28: the interface width + 3), G 24 F 45 + 1 and N 57 + 2 cells: F 48 "<<wmin<<endl;
+                p->F48=wmin;
+            }
+            if(p->mpirank==0)
+            cout<<"F 48 "<<p->F48<<": the level set in a narrow band, the reinitialisation"<<(p->F35==5 ? " and the transport" : " (the transport on all cells: F 35 is not 5)")<<" within "<<p->F48<<" cells of the free surface"<<endl;
+        }
+    }
+
+    // N 57 (the time step with the band around the free surface) is in ietimestep and etimestep (level 0)
+    // and in cfd_amr::timestep (the patches of the mesh refinement)
+    if(p->N57>0.0 && p->mpirank==0 && (p->F30<=0 || p->N48==0))
+    cout<<"N 57 needs the level set (F 30) and the adaptive time step (N 48 1): not used"<<endl;
+
+    // N 54 (gravity out of the acceleration term of the time step) is in the Runge-Kutta momentum
+    if(p->N54>0.0 && !mom_rk)
+    {
+        if(p->mpirank==0)
+        cout<<"N 54 needs the Runge-Kutta momentum (N 40 2, 3, 4, 12, 13, 22, 23, 24, 33, 44, F 80 not 4): the time step with gravity (N 54 0)"<<endl;
+
+        p->N54=0.0;
     }
 
     // the point-implicit VRANS resistance (B 268 1) is in momentum_rk, explicit for the other schemes

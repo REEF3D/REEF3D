@@ -1,0 +1,18 @@
+{
+ "base": "nhflow_3d_si_amr_basin_ckpt",
+ "ctrl_set": {
+  "A 510": "11"
+ },
+ "description": "nhflow_3d_si_amr_basin_ckpt with A 510 11: the uninterrupted run of nhflow_3d_si_amr_basin_onestep_restart.",
+ "tags": [
+  "3d",
+  "nhflow",
+  "semi_implicit",
+  "amr",
+  "checkpoint"
+ ],
+ "covers": [
+  "the time levels of A 510 11 (face depths and omega of the step before) of the patches in the checkpoints"
+ ],
+ "architect": "Hans Bihs"
+}

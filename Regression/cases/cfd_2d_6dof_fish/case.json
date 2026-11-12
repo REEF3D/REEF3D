@@ -1,0 +1,8 @@
+{
+ "np": 1,
+ "steps": 40,
+ "files": ["floating.stl"],
+ "description": "Self-propelled deforming 6DOF body (X 195): 2D anguilliform swimmer of Kern & Koumoutsakos (2006) (STL, L = 1, linear envelope 0.125 L, wave length L, 1 Hz, ramp 0.1 s, recoil on), neutrally buoyant, free surge, heave and pitch (X 11 1 0 1 0 1 0), single phase (F 30 0), stabilised coupling X 197 8 (added mass of the equivalent elliptic cylinder).",
+ "tags": ["quick", "2d", "6dof", "floating", "deform", "singlephase"],
+ "covers": ["sixdof_deform: mass distribution of the hull, recoil, ramp", "sixdof_geometry::transform with the deformation", "update_forcing: deformation velocity in the direct forcing (X 14 1)", "forces_stl: deformation power, REEF3D_6DOF_fish_0.dat", "maxvel with the deformation velocity", "X 197: cfd_added_mass without mesh refinement", "deform_stage: stage times of TVD RK3"]
+}

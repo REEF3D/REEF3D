@@ -204,8 +204,21 @@ bool CPM::ckpt_rank_restore(lexer *p, ghostcell *pgc, const std::vector<std::vec
 
     const double gx = p->global_xmax, gy = p->global_ymax, gz = p->global_zmax;
     auto in = [](double v, double lo, double hi, double gmax){ return v>=lo && (v<hi || (hi>=gmax-1.0e-12 && v<=hi)); };
+    // periodic sides: a parcel beyond the period (on its way to the rank across, part::xchange_fillback)
+    // goes to the rank of its position within the period, moved by the period
+    const bool wx = p->periodic1>0, wy = p->periodic2>0 && p->j_dir==1;
+    auto shift = [](double v, double lo, double hi)
+    {
+        const double L = hi-lo;
+        double s = 0.0;
+        while(v+s>=hi) s -= L;
+        while(v+s<lo) s += L;
+        return s;
+    };
     auto mine = [&](double x, double y, double z)
     {
+        if(wx) x += shift(x,p->global_xmin,gx);
+        if(wy) y += shift(y,p->global_ymin,gy);
         return in(x,p->originx,p->endx,gx) && (p->j_dir==0 || in(y,p->originy,p->endy,gy)) && in(z,p->originz,p->endz,gz);
     };
     std::vector<std::vector<double>> parcels;
@@ -215,6 +228,22 @@ bool CPM::ckpt_rank_restore(lexer *p, ghostcell *pgc, const std::vector<std::vec
         if(!head(v,j,false))
         return false;
         part::ckpt_parcels(v,j,mine,parcels);
+    }
+    // (the slots: X, Y at 6, 7, their RK1 positions at 9, 10, part::ckpt_state)
+    for(std::vector<double> &s : parcels)
+    {
+        if(wx)
+        {
+            const double d = shift(s[6],p->global_xmin,gx);
+            s[6] += d;
+            s[9] += d;
+        }
+        if(wy)
+        {
+            const double d = shift(s[7],p->global_ymin,gy);
+            s[7] += d;
+            s[10] += d;
+        }
     }
     P.ckpt_set(p,parcels);
     return true;

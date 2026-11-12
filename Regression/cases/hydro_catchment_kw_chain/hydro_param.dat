@@ -1,0 +1,18 @@
+// pass-through: rain becomes runoff in the same step (no snow, soil at FC with BETA 1, K0 = 1, no MAXBAS)
+all
+TT -100.0
+FC 100.0
+INI_SM 1.0
+BETA 1.0
+LP 1.0
+PERC 0.0
+UZL 0.0
+K0 1.0
+K1 0.0
+K2 0.0
+MAXBAS 0.0
+PCALT 0.0
+TCALT 0.0
+CH_N 0.035
+CH_WA 5.0
+CH_WB 0.0

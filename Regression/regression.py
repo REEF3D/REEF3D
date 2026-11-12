@@ -80,6 +80,7 @@ TEXT_OUTPUT_GLOBS = [
     "REEF3D_CFD_CPM_Particle/*.dat",
     "REEF3D_CFD_Acoustics/*.dat",
     "REEF3D_CFD_Cavitation/*.dat",
+    "REEF3D_CFD_Soil/*.dat",            # soil stress probes (S 216)
     "REEF3D_FEM/*.dat",
     "REEF3D_NHFLOW_WSF/*.dat",
     "REEF3D_NHFLOW_ProbePoint/*.dat",
@@ -94,6 +95,11 @@ TEXT_OUTPUT_GLOBS = [
     "REEF3D_NHFLOW_Log/REEF3D_NHFLOW_tracer*.dat",   # tracers (A 600): log and gauges
     "REEF3D_DEM/*.dat",
     "REEF3D_SFLOW_AMR/*.dat",
+    "REEF3D_SFLOW_Log/REEF3D-SFLOW-Hydro-Budget.dat",   # REEF3D::HYDRO volume budget (R 10 - R 50)
+    "REEF3D_HYDRO/REEF3D-HYDRO-Gauges.dat",             # REEF3D::HYDRO catchment model (R 100)
+    "REEF3D_HYDRO/REEF3D-HYDRO-Budget.dat",
+    "REEF3D_HYDRO/REEF3D-HYDRO-Means.dat",
+    "REEF3D_HYDRO/REEF3D-HYDRO-Coupled.dat",           # coupled with SFLOW (R 100 2)
     "REEF3D_FNPF_AMR/*.dat",
     "REEF3D_FNPF_WSF/*.dat",
     "REEF3D_FNPF_ProbePoint/*.dat",
@@ -106,6 +112,7 @@ TEXT_OUTPUT_GLOBS = [
     "REEF3D_SFLOW_MAX/*.dat",
     "REEF3D_SEASTATE_Log/*.dat",
     "REEF3D_SEASTATE_Spectra/*.dat",
+    "REEF3D_SEASTATE_Collocation/*.dat",   # online collocation (A 787 1): the statistics per source
     "REEF3D_CORAL/*.dat",
 ]
 
@@ -118,7 +125,7 @@ BULK_OUTPUT = ["REEF3D_CFD_VTU", "REEF3D_CFD_6DOF_VTP", "REEF3D_CFD_6DOF_Normals
                "REEF3D_NHFLOW_6DOF_VTP", "REEF3D_NHFLOW_6DOF_Normals_VTP", "REEF3D_NHFLOW_6DOF_STL",
                "REEF3D_FNPF_6DOF_VTP", "REEF3D_FNPF_6DOF_Normals_VTP", "REEF3D_FNPF_6DOF_STL",
                "REEF3D_CFD_6DOF_STL", "REEF3D_SFLOW_6DOF_VTP", "REEF3D_SEASTATE_VTP",
-               "REEF3D_DEM_VTP"]
+               "REEF3D_DEM_VTP", "DIVEMesh_Hydro"]
 
 LEVELS = ["identical", "close", "different", "failed"]
 

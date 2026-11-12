@@ -98,6 +98,8 @@ void pjm_hydrostatic::start(fdm* a,lexer*p, poisson* ppois,solver* psolv, ghostc
     if(p->mpirank==0 && (p->count%p->P12==0))
     cout<<".";
 
+    starttime=pgc->timer();
+
 	vel_setup(p,a,pgc,uvel,vvel,wvel,alpha);	
     rhs(p,a,pgc,uvel,vvel,wvel,alpha);
 
@@ -109,10 +111,12 @@ void pjm_hydrostatic::start(fdm* a,lexer*p, poisson* ppois,solver* psolv, ghostc
     
     p->poissoniter=p->solveriter;
 
-	p->poissontime=endtime-starttime;
+    // poissontime: all projections of the step (the driver prints the sum and resets it)
+    endtime=pgc->timer();
+	p->poissontime+=endtime-starttime;
 
 	if(p->mpirank==0 && (p->count%p->P12==0))
-	cout<<"piter: "<<p->solveriter<<"  ptime: "<<setprecision(3)<<p->poissontime<<endl;
+	cout<<"piter: "<<p->solveriter<<"  ptime: "<<setprecision(3)<<endtime-starttime<<endl;
 }
 
 void pjm_hydrostatic::ucorr(lexer* p, fdm* a, field& uvel,double alpha)

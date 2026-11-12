@@ -65,6 +65,7 @@ void sflow_curv::check(lexer *p)
     // horizontal diffusion explicit (A 212 1, sflow_ediff::curv_stress) with W 2 and the algebraic eddy viscosity
     // (A 260 3 mixing length, A 260 4 parabolic); the implicit diffusion and the transport models not yet
     refuse(p->A212==2, "the implicit horizontal diffusion A 212 2 (use A 212 1)");
+    refuse(p->A246==4, "the breaking model with crest tracking A 246 4 (Cartesian grids; use A 246 1/2)");
     refuse(p->A260!=0 && p->A260!=3 && p->A260!=4, "the turbulence models A 260 1/2 (A 260 3 and 4 are)");
     refuse(p->B98>=1 || p->B90>=1, "wave generation and absorption (B 90, B 98)");
     refuse(p->B440>0 || p->B441>0 || p->B442>0, "patch boundary conditions (B 440-442)");
@@ -103,14 +104,22 @@ void sflow_curv::flux(lexer *p, fdm2D *b, int ipol)
 {
     const double g = fabs(p->W22);
     double nx,ny,len,Ps,Pn;
+    
+    // X 402 1: pre-balanced form with the pressure-head surface zeta = eta - ps and the depth below it
+    // d + ps (ps: face mean of the hull pressure head b->pbh), as sflow_flux_build_f
+    const double wb = (p->X10==3 && p->X402==1)?1.0:0.0;
+    double ps,zs,zn;
 
     // i-faces (normal velocity in Us/Un)
     SLICELOOP1
     {
     normal(p,1,i,j,nx,ny,len);
 
-    Ps = 0.5*g*b->ETAs(i,j)*b->ETAs(i,j) + g*b->ETAs(i,j)*b->dfx(i,j);
-    Pn = 0.5*g*b->ETAn(i,j)*b->ETAn(i,j) + g*b->ETAn(i,j)*b->dfx(i,j);
+    ps = wb*0.5*(b->pbh(i,j) + b->pbh(i+1,j));
+    zs = b->ETAs(i,j) - ps;
+    zn = b->ETAn(i,j) - ps;
+    Ps = 0.5*g*zs*zs + g*zs*(b->dfx(i,j) + ps);
+    Pn = 0.5*g*zn*zn + g*zn*(b->dfx(i,j) + ps);
 
         if(ipol==1)
         {
@@ -142,8 +151,11 @@ void sflow_curv::flux(lexer *p, fdm2D *b, int ipol)
     {
     normal(p,2,i,j,nx,ny,len);
 
-    Ps = 0.5*g*b->ETAe(i,j)*b->ETAe(i,j) + g*b->ETAe(i,j)*b->dfy(i,j);
-    Pn = 0.5*g*b->ETAw(i,j)*b->ETAw(i,j) + g*b->ETAw(i,j)*b->dfy(i,j);
+    ps = wb*0.5*(b->pbh(i,j) + b->pbh(i,j+1));
+    zs = b->ETAe(i,j) - ps;
+    zn = b->ETAw(i,j) - ps;
+    Ps = 0.5*g*zs*zs + g*zs*(b->dfy(i,j) + ps);
+    Pn = 0.5*g*zn*zn + g*zn*(b->dfy(i,j) + ps);
 
         if(ipol==1)
         {
@@ -175,6 +187,9 @@ void sflow_curv::flux_bc(lexer *p, fdm2D *b, int ipol, slice &Fx, slice &Fy, int
 {
     const double g = fabs(p->W22);
     double wc,sw,un,nx,ny,len,P,Fnrm;
+    
+    // X 402 1: wall flux with the pressure-head surface (sflow_HLL::flux_bc)
+    const double wb = (p->X10==3 && p->X402==1)?1.0:0.0;
 
     // normal-momentum flux of a wall face, as Cartesian components (mass, WH: none)
     //   side -1: the wall is on the -n side of the cell (interior right state), +1: on the +n side
@@ -183,7 +198,9 @@ void sflow_curv::flux_bc(lexer *p, fdm2D *b, int ipol, slice &Fx, slice &Fy, int
         normal(p,dir,fi,fj,nx,ny,len);
         un = b->U(i,j)*nx + b->V(i,j)*ny;
         sw = fabs(un) + sqrt(g*wc);
-        P = 0.5*g*b->eta(i,j)*b->eta(i,j) + g*b->eta(i,j)*dface;
+        const double pf = wb*0.5*(b->pbh(fi,fj) + (dir==1 ? b->pbh(fi+1,fj) : b->pbh(fi,fj+1)));
+        const double ze = b->eta(i,j) - wb*b->pbh(i,j);
+        P = 0.5*g*ze*ze + g*ze*(dface + pf);
         Fnrm = P + wc*un*un + side*sw*wc*un;
 
         if(ipol==1)
@@ -222,7 +239,9 @@ void sflow_curv::flux_bc(lexer *p, fdm2D *b, int ipol, slice &Fx, slice &Fy, int
 
         normal(p,1,fi,fj,nx,ny,len);
         un = b->U(gi,gj)*nx + b->V(gi,gj)*ny;
-        P = 0.5*g*eg*eg + g*eg*b->dfx(fi,fj);
+        // X 402 1: zeta = eta - pbh of the ghost cell, the face pressure head (as the walls)
+        const double zg = eg - wb*b->pbh(gi,gj);
+        P = 0.5*g*zg*zg + g*zg*(b->dfx(fi,fj) + wb*0.5*(b->pbh(fi,fj) + b->pbh(fi+1,fj)));
 
         if(ipol==1)
         Fx(fi,fj) = wl*b->U(gi,gj)*un + P*nx;
@@ -237,12 +256,42 @@ void sflow_curv::flux_bc(lexer *p, fdm2D *b, int ipol, slice &Fx, slice &Fy, int
         Fx(fi,fj) = wl*un;
     };
 
+    // through a j-face (the y edges of the j faces of a block of a multi-block grid, side 3: -j, 2: +j)
+    auto ghostj = [&](int gi, int gj, int fi, int fj)
+    {
+        const double eg = b->eta(gi,gj);
+        const double wl = MAX(eg + b->depth(gi,gj), 0.0);
+
+        normal(p,2,fi,fj,nx,ny,len);
+        un = b->U(gi,gj)*nx + b->V(gi,gj)*ny;
+        const double zg = eg - wb*b->pbh(gi,gj);
+        P = 0.5*g*zg*zg + g*zg*(b->dfy(fi,fj) + wb*0.5*(b->pbh(fi,fj) + b->pbh(fi,fj+1)));
+
+        if(ipol==1)
+        Fy(fi,fj) = wl*b->U(gi,gj)*un + P*nx;
+
+        if(ipol==2)
+        Fy(fi,fj) = wl*b->V(gi,gj)*un + P*ny;
+
+        if(ipol==3)
+        Fy(fi,fj) = wl*b->W(gi,gj)*un;
+
+        if(ipol==4)
+        Fy(fi,fj) = wl*un;
+    };
+
     if(inflow==1)
     for(n=0;n<p->gcslin_count;n++)
     {
     i=p->gcslin[n][0];
     j=p->gcslin[n][1];
 
+    if(p->gcslin[n][3]==3)
+    ghostj(i,j-1,i,j-1);
+    else
+    if(p->gcslin[n][3]==2)
+    ghostj(i,j+1,i,j);
+    else
     ghost(i-1,j,i-1,j);
     }
 
@@ -252,6 +301,12 @@ void sflow_curv::flux_bc(lexer *p, fdm2D *b, int ipol, slice &Fx, slice &Fy, int
     i=p->gcslout[n][0];
     j=p->gcslout[n][1];
 
+    if(p->gcslout[n][3]==3)
+    ghostj(i,j-1,i,j-1);
+    else
+    if(p->gcslout[n][3]==2)
+    ghostj(i,j+1,i,j);
+    else
     ghost(i+1,j,i,j);
     }
 }
@@ -270,6 +325,25 @@ void sflow_curv::pgrad(lexer *p, fdm2D *b, slice &eta, slice &f, int comp)
     const double *S1 = (comp==1) ? p->SX1 : p->SY1;
     const double *S2 = (comp==1) ? p->SX2 : p->SY2;
 
+    // X 402 1: g zeta grad(d + ps) with zeta = eta - pbh and the face pressure head ps (as the flux)
+    if(p->X10==3 && p->X402==1)
+    {
+    double pe,pw,pn,pso;
+    
+    SLICELOOP4
+    WETDRY
+    {
+    pe  = 0.5*(b->pbh(i,j) + b->pbh(i+1,j));
+    pw  = 0.5*(b->pbh(i-1,j) + b->pbh(i,j));
+    pn  = 0.5*(b->pbh(i,j) + b->pbh(i,j+1));
+    pso = 0.5*(b->pbh(i,j-1) + b->pbh(i,j));
+    
+    f(i,j) += g*(eta(i,j) - b->pbh(i,j))*((b->dfx(i,j)+pe)*S1[IJ] - (b->dfx(i-1,j)+pw)*S1[Im1J]
+                                       + (b->dfy(i,j)+pn)*S2[IJ] - (b->dfy(i,j-1)+pso)*S2[IJm1])/p->AREA2D[IJ];
+    }
+    return;
+    }
+    
     SLICELOOP4
     WETDRY
     f(i,j) += g*eta(i,j)*(b->dfx(i,j)*S1[IJ] - b->dfx(i-1,j)*S1[Im1J]

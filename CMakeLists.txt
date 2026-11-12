@@ -88,6 +88,10 @@ else()
   message(STATUS "Building without HYPRE (default): Poisson solves with REEFMG (N 10 1); -DREEF3D_USE_HYPRE=ON to enable")
 endif()
 
+# ── Metal (REEFMG on the Apple Silicon GPU, N 16 1) ──────────────────────────
+# src/reefmg_device_metal.cpp is part of every macOS build; Metal is loaded at run time, so nothing
+# is linked and nothing needs to be switched on (-DREEF3D_NO_METAL leaves it out).
+
 # ── Eigen ─────────────────────────────────────────────────────────────────────
 
 set(EIGEN_LOCAL_DIR "${PROJECT_SOURCE_DIR}/ThirdParty/eigen-${REEF3D_EIGEN_VERSION}")
@@ -134,7 +138,7 @@ list(FILTER CORAL_APP_SOURCES EXCLUDE REGEX "/src/coral/reef3d/")
 add_executable(CORAL EXCLUDE_FROM_ALL ${CORAL_APP_SOURCES})
 set_target_properties(CORAL PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}/bin")
 target_include_directories(CORAL PRIVATE ${PROJECT_SOURCE_DIR}/src)
-target_link_libraries(CORAL PRIVATE Eigen3::Eigen)
+target_link_libraries(CORAL PRIVATE Eigen3::Eigen ${CMAKE_DL_LIBS})
 target_compile_features(CORAL PRIVATE cxx_std_20)
 
 set_target_properties(REEF3D PROPERTIES
@@ -200,7 +204,8 @@ target_link_libraries(REEF3D PRIVATE
   ZLIB::ZLIB
   Threads::Threads
   $<$<BOOL:${REEF3D_USE_HYPRE}>:HYPRE::HYPRE>
-  Eigen3::Eigen)
+  Eigen3::Eigen
+  ${CMAKE_DL_LIBS})   # dlopen of user PTO controllers (CORAL pto ... user <library>)
 
 # ── OpenMP threads for the FEM solid (Z 30) ──────────────────────────────────
 # On by default when the compiler supports OpenMP; without it the solid runs on one

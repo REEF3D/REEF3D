@@ -29,6 +29,8 @@ Architect: Hans Bihs
 #include"heat_print.h"
 #include"concentration_io.h"
 #include"cavitation.h"
+#include"cfd_singlephase.h"
+#include"momentum_rk.h"
 #include<iostream>
 #include<string>
 #include<mpi.h>
@@ -139,6 +141,23 @@ void cfd_amr::register_fields()
         e.get = [](fdm *a, turbulence*) -> field& { return a->phi; };   // not used (pget, get0)
         e.pget = [](cfd_amr_patch *c) -> field& { return c->pcav->alpha; };
         e.get0 = [this]() -> field& { return cfield(-1); };
+        reg.push_back(e);
+    }
+
+    // F 41 2: the air pocket of the cells at the last labelling (cfd_pocket.h), injected into new
+    // patches: the pockets of the next labelling find their mass there
+    if(p0->F41==2)
+    {
+        cfd_amr_field e;
+        e.name = "pocket";
+        e.type = CELL;
+        e.prolong = 2;
+        e.roles = AF_STATE;
+        e.gc = 0;
+        e.gcval = 0;
+        e.get = [](fdm *a, turbulence*) -> field& { return a->phi; };   // not used (pget, get0)
+        e.pget = [](cfd_amr_patch *c) -> field& { return c->pmom->single()->pid; };
+        e.get0 = [this]() -> field& { return mom0->single()->pid; };
         reg.push_back(e);
     }
 

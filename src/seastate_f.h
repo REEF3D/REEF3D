@@ -41,6 +41,7 @@ class seastate_roller;
 class seastate_spc_series;
 class met_provider;
 class seastate_amr;
+class seastate_collocation;
 class seastate_fas2;
 class seastate_bathy;
 class slice4;
@@ -85,6 +86,11 @@ Phase 3: coupling and handover.
                 irregular wave generation of FNPF/NHFLOW (B 85 11,
                 spectrum-file-2d.dat format), sector A 761 around the
                 mean direction, written every step
+  colloc        online collocation (A 787 1): the observations of
+                seastate-collocation.csv (time, x, y, hs, source, id) with
+                the model Hs, Tm01, Tp and direction at their place and
+                time on the rank of the cell, matchups and statistics in
+                REEF3D_SEASTATE_Collocation (seastate_f_collocation.cpp)
   spcout        nesting output (A 785 1): 2D spectra at the points of
                 seastate-spcout.dat (x y per line, model coordinates),
                 bilinear between the cell centres of level 0, every
@@ -212,6 +218,10 @@ private:
     void handover(lexer*, ghostcell*);
     void spcout_ini(lexer*, ghostcell*);
     void spcout(lexer*, ghostcell*, bool force);
+    void colloc_ini(lexer*, ghostcell*);
+    void colloc(lexer*, ghostcell*, bool fin);
+    void colloc_end(lexer*, ghostcell*);
+    bool colloc_sample(lexer*, int k, double *v);
     void check_keys(lexer*, ghostcell*);
     void environment(lexer*, ghostcell*);
     void storage(lexer*, ghostcell*);
@@ -224,6 +234,11 @@ private:
     void sources(lexer*, ghostcell*);
     void kinematics(lexer*, ghostcell*, double);
     void transport(lexer*, ghostcell*);
+    void gse_step(lexer*, ghostcell*);      // A 776 (Phase 25): the GSE closure after the transport of a step
+    void age_ini(lexer*, ghostcell*);       // A 776 3 (Phase 26): the transported age, its solver and stores
+    void age_start(lexer*);                 // A 776 3: the old time level of the age, before the transport of a step
+    void age_step(lexer*, ghostcell*);      // A 776 3: the age transported with the spectra, reset in the wind sea
+    void gse_age_step(lexer*, ghostcell*);  // A 776 3: the GSE step with the age per bin
     void parameters(lexer*, ghostcell*);
 
     void forcing_ini(lexer*, ghostcell*);
@@ -244,6 +259,13 @@ private:
     seastate_exchange *pex;
     seastate_implicit *psolv;
     seastate_store *N0;
+    seastate_store *gNs = nullptr;          // A 776: the spectra after the transport, the right-hand side of the GSE step
+    seastate_store *gM = nullptr;           // A 776 3: the age-weighted action t_a N per bin
+    seastate_store *gM0 = nullptr;          // A 776 3: its old time level with the ageing, M + dt N
+    seastate_store *gMs = nullptr;          // A 776 3: M after the transport, the right-hand side of its GSE step
+    seastate_implicit *pasolv = nullptr;    // A 776 3: the transport of M (no source terms)
+    std::vector<float> Mb, Mside[4];        // A 776 3: the boundary spectra times their age A 777
+    bool gMset = false;                     // A 776 3: M set from the initial spectra
     seastate_source *psrc;
 
     std::vector<float> Nb;      // boundary spectrum
@@ -252,6 +274,8 @@ private:
     double dtw;                 // wave time step (A 706 stand-alone, the coupling interval in coupled runs)
     bool coupled;
     bool remote = false;                // A 750 2: coupled, on the own grid (seastate_remote_wave)
+    int g1 = 0;                         // mesh refinement of the wave model: G 1, not in-process (A 750 1: the
+                                        // refinement is the host's, the waves run on its level 0)
     bool kba = false;                   // Phase 14: the sweeps pipelined across the ranks (A 781 1)
     double conv;
     std::vector<double> hs_old;
@@ -279,6 +303,14 @@ private:
     // nesting output (A 785 1)
     std::vector<double> spc_x, spc_y;       // output points [m], model coordinates
     double spc_tnext = 0.0;                 // model time of the next record
+
+    // online collocation (A 787 1, seastate_f_collocation.cpp)
+    seastate_collocation *pcol = nullptr;
+    std::vector<int> col_ci, col_cj;        // the cell of every observation on this rank, -1: another rank or outside
+    std::vector<double> col_ts, col_s;      // the sample at the end of the step before the observation: time, Hs Tm01 Tp dir Tm-1,0 depth U10
+    std::vector<char> col_sw, col_done;     // the sample wet; the observation finished
+    size_t col_next = 0;                    // the first observation not finished
+    double col_tlog = 0.0;                  // model time of the next summary in the log
     std::vector<float> Nside[4];            // boundary spectra per side and boundary cell
     struct bweight {int a, b; float wa, wb;};
     std::vector<bweight> bw[4];

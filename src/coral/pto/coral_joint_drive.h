@@ -25,6 +25,10 @@ Architect: Hans Bihs
 //   q_p(t) = q0 + a r(t) sin(2 pi t / T + phi),   r(t) = (1 - cos(pi t / t_r))/2 for t < t_r, else 1
 //   F = -k (q - q_p) - c (q' - q_p')
 // (force along the axis of a prismatic or cylindrical joint, torque about the axis of a revolute one).
+// Instead of the sine, any motion from a table t q (file): q_p(t) = q0 + s r(t) Q(t), Q the C1 cubic
+// Hermite curve through the table points (Catmull-Rom slopes), held at the end values outside the
+// table unless periodic (repeats with the period t_last - t_first); measured motions, multisines,
+// irregular forced motions (WEC-Sim's PTO actuation motion).
 // With k much larger than the stiffness of the rest of the system the motion error is F/k; F is then the
 // force needed to impose the motion (the joint reaction along the axis).
 
@@ -33,6 +37,7 @@ Architect: Hans Bihs
 
 #include"coral/core/coral_load.h"
 #include<string>
+#include<vector>
 
 namespace coral
 {
@@ -42,6 +47,9 @@ namespace coral
     {
         double q0 = 0.0, amp = 0.0, period = 1.0, phase = 0.0, ramp = 0.0;
         double k = 1.0e7, c = 1.0e4;
+        std::vector<double> t, q;        // table motion (empty: the sine)
+        double scale = 1.0;
+        bool periodic = false;
     };
 
     class joint_drive : public load
@@ -60,6 +68,10 @@ namespace coral
         // prescribed coordinate, rate and acceleration at t
         void prescribed(double t, double &q, double &qd, double &qdd) const;
         double force(const model&, double t) const;
+        // the table curve and its first and second derivatives at t (without q0, scale and ramp)
+        void table(double t, double &Q, double &Qd, double &Qdd) const;
+        // reads a table "t q" (blank lines and lines from '#' on are skipped); false with msg on an error
+        static bool read_table(const std::string &file, std::vector<double> &t, std::vector<double> &q, std::string &msg);
 
         drive_settings settings;
 

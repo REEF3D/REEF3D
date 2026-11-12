@@ -33,6 +33,7 @@ public:
 	nhflow_komega_IM1(lexer *, fdm_nhf*, ghostcell*);
 	virtual ~nhflow_komega_IM1();
 	void start(lexer*, fdm_nhf*, ghostcell*, nhflow_scalar_convection*, nhflow_diffusion*, solver*, ioflow*, vrans_nhflow*) override final;
+	void start_part(lexer*, fdm_nhf*, ghostcell*, nhflow_scalar_convection*, nhflow_diffusion*, solver*, ioflow*, vrans_nhflow*, int) override final;
 	void ktimesave(lexer*, fdm_nhf*, ghostcell*) override final;
 	void etimesave(lexer*, fdm_nhf*, ghostcell*) override final;
 	void timesource(lexer*,fdm_nhf*,double*);

@@ -1,0 +1,18 @@
+{
+ "base": "nhflow_2d_amr_hull_x15_10",
+ "ctrl_add": [
+  "G 7 1"
+ ],
+ "description": "nhflow_2d_amr_hull_x15_10 with subcycling (G 7 1): the solid with cut faces on the subcycled levels, level 0 with the predicted body, the finest level with the loads (zone margin 12 level-0 cells).",
+ "tags": [
+  "2d",
+  "nhflow",
+  "6dof",
+  "floating",
+  "amr"
+ ],
+ "covers": [
+  "nhflow_amr_sub with the cut-face hull",
+  "the force file of the stage loads with subcycling"
+ ]
+}

@@ -172,6 +172,7 @@ public:
     const vector<r3gpatch> *GPforce = nullptr;     // restart (I 45): the patch table of the checkpoint (make_boxes)
     vector<vector<int>> glev;       // [l] global ids
     vector<r3xplan> xp;             // [l] remote fills
+    int plan_gen = 0;               // counts the plans (the fill lists and xp): the plans kept from them (cfd_amr::cfp) know they are old
     vector<double> gx[3];           // global level-0 nodes, with margin nodes (index + marge)
 
     // G 40: the placement of the units (level-1 pieces with their finer patches) and the shadows
@@ -249,6 +250,7 @@ public:
                                                         // edge) in the box of this rank: L local; else false
     bool refined(int l, const int *I) const;            // level-l cell in the region of level l (l >= 1)
     bool covered(int l, const int *I) const;            // level-l cell covered by level l+1
+    int kernel_level(const double *x) const;            // the level of the kernel of a point force at x
     int gpatch_at(int l, const int *I) const;           // global patch whose box holds I, -1
     lexer* glex(int g);
     void goff(int g, int *o);                           // local index = global index - o
@@ -315,6 +317,10 @@ protected:
 
     void build_lexer(r3patch&);
     void xrun(r3xplan&, int);
+    // the exchange of a plan with counts and displacements per rank (doubles), as MPI_Alltoallv but
+    // point to point with only the ranks that send or receive (a fill reaches the neighbouring
+    // ranks), the part of this rank copied; every rank calls it in the same order (tag 3171)
+    void xchg(const double *sb, const int *sc, const int *sd, double *rb, const int *rc, const int *rd);
 
 private:
     void global_nodes();

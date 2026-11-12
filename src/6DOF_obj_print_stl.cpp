@@ -52,13 +52,13 @@ void sixdof_obj::print_stl(lexer *p, ghostcell *pgc)
 
         if(p->P185>0)
         for(int qn=0; qn<p->P185; ++qn)
-        if(p->simtime>printtime_wT[qn] 
+        if(p->simtime>printtime_wF[qn] 
             && p->simtime>=p->P185_ts[qn] 
             && p->simtime<=(p->P185_te[qn]+0.5*p->P185_dt[qn]))
         {
             printflag=true;
 
-            printtime_wT[qn]+=p->P185_dt[qn];
+            printtime_wF[qn]+=p->P185_dt[qn];
         }
     }
     
@@ -80,13 +80,13 @@ void sixdof_obj::print_stl(lexer *p, ghostcell *pgc)
 
         if(p->P185>0)
         for(int qn=0; qn<p->P185; ++qn)
-        if(p->simtime>printtime_wT[qn] 
+        if(p->simtime>printtime_wF[qn] 
             && p->simtime>=p->P185_ts[qn] 
             && p->simtime<=(p->P185_te[qn]+0.5*p->P185_dt[qn]))
         {
             printflag=true;
 
-            printtime_wT[qn]+=p->P185_dt[qn];
+            printtime_wF[qn]+=p->P185_dt[qn];
         }
     }
 

@@ -1,0 +1,4 @@
+{"np": 1, "steps": 8,
+ "description": "3D paddle (X 110, 0.025 x 0.125 x 0.04 m, its faces between the cell centres) submerged in a closed tank with CFD mesh refinement (G 1 2, static box G 15) and subcycling (G 7 1); rotation about x prescribed (X 11 0 0 0 2 0 0, X 211 -20 rad/s) with the ramp X 206 0.03-0.06 s: three steps at rest, the ramp, then spinning. The body is small against its refined box.",
+ "tags": ["quick", "3d", "6dof", "floating", "levelset", "amr"],
+ "covers": ["cfd_amr_6dof::cast in the box of the body (ray_cast_amr, reini_amr, reinidisc_f::start_box) on both levels (propeller speed patch 1, ship_propeller_cfd_amr 261018)", "no cast while the body has the triangles of the last cast (before the ramp; patch 2)", "prescribed rotation on the patches with subcycling"]}

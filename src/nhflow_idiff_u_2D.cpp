@@ -78,6 +78,11 @@ void nhflow_idiff_2D::diff_u(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow
             visc_KP1 = 0.5*(visc_IP + d->VISC[IJKp1] + d->EV[IJKp1]);
             
             visc_KM1h = 0.5*(visc_IPh + d->VISC[IJKm1] + EVh[IJKm1]);
+            
+            // A 518 2 resolved no-slip bed: the bed face has the molecular viscosity of the cell, nu_t = 0 at the
+            // wall (the ghost cells of VISC (0) and EV (copied) are not wall values)
+            if(p->A518==2 && p->flag4[IJKm1]<0)
+            visc_KM1 = visc_KM1h = d->VISC[IJK];
             visc_KP1h = 0.5*(visc_IPh + d->VISC[IJKp1] + EVh[IJKp1]);
             
             // breaking viscosity vb, face values the mean of the two cells (both cells of a face use the same coefficient):
@@ -175,6 +180,32 @@ void nhflow_idiff_2D::diff_u(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow
         d->rhsvec.V[n] =  0.0;
         }
         
+	++n;
+	}
+    
+    // bed face (A 518), implicit, before A 513 (which takes the faces to solid or ghost cells with the values of the
+    // stage input UH, explicitly: lagged by the stage, an error of the order nu dt/dz^2 of the bed cell)
+    //  1 wall-function bed: zero gradient, the bed shear is the friction of A 519 in F
+    //  2 resolved no-slip bed: u = 0 on the bed face. The no-slip condition holds for the velocity of the stage,
+    //    X + dt F: the explicit sources F (pressure gradient, convection) are added to the solution X of this
+    //    system afterwards (nhflow_momentum_RK2/RK3). With dt F of zero gradient the ghost of X is -X - 2 dt F of
+    //    the cell; the ghost -X alone left the splitting error dt D(F) in the steady state, 2 nu dt/dz^2 of the
+    //    bed shear (laminar channel with 10 layers: +3.5 % in the bed cell, growing with finer layers)
+    n=0;
+	LOOP
+	{
+        if(p->wet[IJ]==1 && p->DF[IJK]>0 && p->flag4[IJKm1]<0)
+        {
+            if(p->A518==2)
+            {
+            d->M.p[n] -= d->M.b[n];
+            d->rhsvec.V[n] += 2.0*d->M.b[n]*p->dt*CPORNH*d->F[IJK];
+            }
+            else
+            d->M.p[n] += d->M.b[n];
+            
+        d->M.b[n] = 0.0;
+        }
 	++n;
 	}
     

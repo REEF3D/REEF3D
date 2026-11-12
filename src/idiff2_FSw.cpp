@@ -26,6 +26,7 @@ Author: Hans Bihs
 #include"ghostcell.h"
 #include"solver.h"
 #include"diff_wallghost.h"
+#include"diff_walllaw.h"
 
 void idiff2_FS::diff_w(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &diff, field &w_in, field &u, field &v, field &w, double alpha)
 {
@@ -124,6 +125,14 @@ void idiff2_FS::assemble_w(lexer* p, fdm* a, ghostcell *pgc, field &w_in, field 
     
 	 ++n;
 	}
+    
+    // wall-law faces (B 10): zero gradient, the wall law of bcmom is the only wall stress there (diff_walllaw.h);
+    // D 22 1 cuts these faces below
+    if(p->D22!=1)
+    {
+    pwl->update(p,2);
+    pwl->rows(p,a->M,2);
+    }
     
     if(p->D22==1)
     {
@@ -257,11 +266,9 @@ void idiff2_FS::assemble_w(lexer* p, fdm* a, ghostcell *pgc, field &w_in, field 
 		a->rhsvec.V[n] -= a->M.t[n]*w(i,j,k+1);
 		a->M.t[n] = 0.0;
 		}
-        
-        }
 
 	++n;
-
+	}
     }
 }
 

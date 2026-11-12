@@ -1,0 +1,25 @@
+{
+ "base": "nhflow_2d_si_tidal_flat_kepsilon",
+ "steps": 150,
+ "ctrl_add": [
+  "G 1 1",
+  "G 2 0",
+  "G 3 2",
+  "G 4 8",
+  "G 10 5000.0 8000.0 -1 51"
+ ],
+ "description": "nhflow_2d_si_tidal_flat_kepsilon with a patch over the drying slope: wetting and drying on the composite system, k-epsilon on the levels.",
+ "tags": [
+  "2d",
+  "nhflow",
+  "semi_implicit",
+  "amr",
+  "wetdry",
+  "turbulence"
+ ],
+ "covers": [
+  "nhflow_amr_si turb_step on levels",
+  "composite wet/dry"
+ ],
+ "architect": "Hans Bihs"
+}

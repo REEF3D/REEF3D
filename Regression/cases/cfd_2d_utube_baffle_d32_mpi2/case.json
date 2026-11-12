@@ -1,0 +1,16 @@
+{
+ "np": 2,
+ "steps": 200,
+ "description": "A closed tank 0.6 x 0.6 m (dx 5 mm) with a baffle (S 10, 4 cells thick, x 0.40-0.42 m) from the lid down to z = 0.15 m, which closes the air of the right chamber; the free surface starts tilted, higher on the right (F 57), two phases with the compressible air (N 40 5, N 59 2, W 32 2). cfd_2d_utube_baffle_d32 on 2 ranks: the closed faces at the partition boundary (the solid level set of the halo cells), the velocities of the closed halo faces set 0 on both sides.",
+ "tags": [
+  "2d",
+  "levelset",
+  "solid",
+  "closed",
+  "compressible",
+  "mpi"
+ ],
+ "covers": [
+  "solid_closed.h across the partition boundary"
+ ]
+}

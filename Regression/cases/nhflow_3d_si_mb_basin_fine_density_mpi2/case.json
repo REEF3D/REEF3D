@@ -1,0 +1,20 @@
+{
+ "base": "nhflow_3d_si_mb_basin_fine_density",
+ "same_as": "nhflow_3d_si_mb_basin_fine_density",
+ "same_as_rtol": 1e-06,
+ "np": 2,
+ "description": "nhflow_3d_si_mb_basin_fine_density on 2 ranks: the same to solver tolerance (the outer columns of the pressure gradient two cells into the partition halo).",
+ "tags": [
+  "3d",
+  "nhflow",
+  "semi_implicit",
+  "curvilinear",
+  "multiblock",
+  "tracer",
+  "density",
+  "mpi"
+ ],
+ "covers": [
+  "baroclinic_face on a partitioned native grid"
+ ]
+}

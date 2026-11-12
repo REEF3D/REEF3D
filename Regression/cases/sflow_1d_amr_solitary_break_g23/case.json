@@ -1,0 +1,20 @@
+{
+ "base": "sflow_1d_amr_solitary_break",
+ "description": "the breaking solitary wave refined only where it breaks (G 23 1): the patches appear with the breaking on the shelf",
+ "ctrl_set": {
+  "G 20": null,
+  "G 23": "1"
+ },
+ "tags": [
+  "1d",
+  "sflow",
+  "amr",
+  "adaptive",
+  "nh",
+  "waves",
+  "breaking"
+ ],
+ "covers": [
+  "sflow_amr::tag G 23"
+ ]
+}

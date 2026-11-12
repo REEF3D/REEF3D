@@ -125,7 +125,15 @@ void CPM::bedload_columns(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
         double tx=0.0, ty=0.0, hc=0.0;
         bool rest=false;
         
-        bedshear::column_tau(p,a,pturb_,i,j,s->bedzh(i,j),ks,p->Q66,(p->Q68==1||p->Q68==2)?p->Q68:0,p->W1,tx,ty,hc,rest,p->Q79==1?1:0);
+        // CPM on the mesh refinement: where the fluid comes from a coarser grid, the velocity and k at least at its
+        // first cell. k is taken at the reference height only where that first cell sets it (above Q 66): with a
+        // higher Q 66 the stress is that of one grid, with k of the first fluid cell as without refinement (k at the
+        // reference height 2 cells above the bed, with Q 68 1, scoured the pipeline 0.09 D deeper with G 27 than with
+        // a static box, validation 32). Q 86 1 (the second cell of the coarser grid): k of the first fluid cell
+        const double ha = amr_href.empty() ? 0.0 : amr_href[(size_t)i*p->knoy+j];
+        const double href = MAX(p->Q66, ha);
+        
+        bedshear::column_tau(p,a,pturb_,i,j,s->bedzh(i,j),ks,href,(p->Q68==1||p->Q68==2)?p->Q68:0,p->W1,tx,ty,hc,rest,p->Q79==1?1:0,(ha>p->Q66 && p->Q86!=1)?1:0);
         
         blTx(i,j) = tx;
         blTy(i,j) = ty;
@@ -265,15 +273,35 @@ double CPM::bedload_place(lexer *p, fdm *a, double x, double y, double z, int ic
     const int kc0 = kc;
     const double zl0 = zl;
 
+    // a level inside a solid body (half a grain below the bed level on a fixed floor, a column of a pier) goes up to the
+    // first cell above the solid; the parcel stayed in the solid cell without a capacity check (37 parcels and growing in
+    // a cell at the top of a fixed floor behind the sand). A column that is solid up to the top keeps the old rule.
+    if(p->solidread>0)
+    {
+        int ks0 = kc;
+
+        while(kc<p->knoz-1 && a->solid(ic,jc,kc)<0.0)
+        ++kc;
+
+        if(a->solid(ic,jc,kc)<0.0)
+        kc = ks0;
+
+        else if(kc>ks0)
+        zl = MAX(zl, p->ZN[kc+marge] + 0.5*MIN(d, p->DZN[kc+marge]));
+    }
+
+    const int kc1 = kc;
+    const double zl1 = zl;
+
     while(kc<p->knoz-1)
     {
         int ii=ic, jj=jc, kk=kc;
-        
+
         // never into a solid body: the parcel stays at the bed level (cell over-filled)
         if(p->solidread>0 && a->solid(ii,jj,kk)<0.0)
         {
-            kc = kc0;
-            zl = zl0;
+            kc = kc1;
+            zl = zl1;
             break;
         }
         

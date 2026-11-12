@@ -28,6 +28,19 @@ Authors: Hans Bihs, Alexander Hanke
 #include"suspended.h"
 #include"sediment_exner.h"
 #include"ckpt_pack.h"
+// the classes deleted in the destructor (deleting a pointer to an incomplete type ran no destructor)
+#include"sediment_fdm.h"
+#include"bedload.h"
+#include"bedconc.h"
+#include"sandslide.h"
+#include"topo_relax.h"
+#include"vrans.h"
+#include"bedslope.h"
+#include"bedshear_reduction.h"
+#include"topo.h"
+#include"diffusion.h"
+#include"convection.h"
+#include"bedload_direction.h"
 #include<sys/stat.h>
 
 sediment_part::sediment_part(lexer *p, fdm *a, ghostcell *pgc, turbulence *ppturb, patchBC_interface *ppBC) : por(p), d50(p)
@@ -61,10 +74,9 @@ sediment_part::~sediment_part()
     delete psuspdiff;
     delete psuspdisc;
     delete pbedshear;
-    delete pBC;
     delete pbeddir;
     delete pslope;
-    delete pturb;
+    // pBC and pturb belong to the caller (constructor arguments): they were deleted here as well
 }
 
 // hybrid suspension (Q 58 3, see CPM_suspension.cpp): erosion concentration from the parcel bed,

@@ -47,6 +47,9 @@ void bedshear::taubed(lexer *p, fdm_nhf*d, ghostcell *pgc, sediment_fdm *s)
     if(p->S16==9)
     tau_wave_step(p);
     
+    if(p->S37==1)
+    bed_acceleration(p,d);
+    
     SEDSLICELOOP
     {
         k=0;
@@ -57,6 +60,14 @@ void bedshear::taubed(lexer *p, fdm_nhf*d, ghostcell *pgc, sediment_fdm *s)
         U = d->U[IJK];
         V = d->V[IJK];
         W = d->W[IJK];
+        
+        // S 37 2: phase-lead near-bed velocity (Nielsen 2006, sediment_phase_lead.cpp)
+        if(p->S37==2 && p->geo_curv==0)
+        {
+        U = s->ub(i,j);
+        V = s->vb(i,j);
+        W = 0.0;
+        }
         
         dist = 0.5*p->DZN[KP]*d->WL(i,j);
         
@@ -84,6 +95,14 @@ void bedshear::taubed(lexer *p, fdm_nhf*d, ghostcell *pgc, sediment_fdm *s)
         U = d->U[IJK];
         V = d->V[IJK];
         W = d->W[IJK];
+        
+        // S 37 2: phase-lead near-bed velocity (Nielsen 2006, sediment_phase_lead.cpp)
+        if(p->S37==2 && p->S16==1 && p->geo_curv==0)
+        {
+        U = s->ub(i,j);
+        V = s->vb(i,j);
+        W = 0.0;
+        }
         
         dist = 0.5*p->DZN[KP]*d->WL(i,j);
         
@@ -121,7 +140,7 @@ void bedshear::taubed(lexer *p, fdm_nhf*d, ghostcell *pgc, sediment_fdm *s)
         
         u_plus = uplus(dist,s->ks_eff(i,j));
 
-        tau_eff = MAX(density*(uabs*uabs)/(u_plus*u_plus), density*d->KIN[IJK]*0.3);
+        tau_eff = MAX(density*(uabs*uabs)/(u_plus*u_plus), density*(d->KIN!=nullptr ? d->KIN[IJK] : 0.0)*0.3);
         }
         
         // S 16 10: the bed shear stress of the CFD S 16 10 and the CPM bedload layer (bedshear::column_tau):
@@ -155,7 +174,7 @@ void bedshear::taubed(lexer *p, fdm_nhf*d, ghostcell *pgc, sediment_fdm *s)
         }
         
         if(p->S16==4)
-        tau_eff = density*d->KIN[IJK]*0.3;
+        tau_eff = density*(d->KIN!=nullptr ? d->KIN[IJK] : 0.0)*0.3;
         
         if(p->S16==6)
         {
@@ -182,7 +201,7 @@ void bedshear::taubed(lexer *p, fdm_nhf*d, ghostcell *pgc, sediment_fdm *s)
         //Cval=18.0*log10((12.0*wh)/s->ks_eff(i,j));	
         //tau_eff = density*pow(sqrt(9.81)*(u_abs/Cval),2.0);
         
-        manning = pow(s->ks(i,j),1.0/6.0)/20.0;
+        manning = pow(s->ks(i,j),1.0/6.0)/(8.1*sqrt(9.81));   // Strickler: 1/n = 8.1 sqrt(g)/ks^(1/6) = 25.4/ks^(1/6)
         cf = pow(manning,2.0)/pow(MAX(d->WL(i,j),1.0e-6),1.0/3.0);
         
         //cf = sqrt(9.81)/log(12.0*d->WL(i,j)/(s->ks(i,j)));
@@ -228,7 +247,7 @@ void bedshear::taubed(lexer *p, fdm_nhf*d, ghostcell *pgc, sediment_fdm *s)
             
             u_abs = sqrt(U*U + V*V);
 
-            manning = pow(s->ks(i,j),1.0/6.0)/20.0;
+            manning = pow(s->ks(i,j),1.0/6.0)/(8.1*sqrt(9.81));   // Strickler: 1/n = 8.1 sqrt(g)/ks^(1/6) = 25.4/ks^(1/6)
             cf = pow(manning,2.0)/pow(MAX(d->WL(i,j),1.0e-6),1.0/3.0);
 
             tau_s = p->W1*9.81*cf*u_abs*u_abs; 
@@ -246,27 +265,42 @@ void bedshear::taubed(lexer *p, fdm_nhf*d, ghostcell *pgc, sediment_fdm *s)
         }
         
         
-        // add inertia bed shear stress
+        // S 37 1: inertia of the grains. The pressure gradient and the added mass of an accelerating flow push a
+        // grain with rho cm (pi/6) d^3 du/dt, over its area share d^2/cn a stress rho cm cv cn d50 du/dt in the
+        // direction of the acceleration (bed_acceleration: signed, both components). It is added to the shear stress
+        // as a vector, |tau e_u + tau_acc|: more stress while the flow accelerates, less while it decelerates
+        // (the term was the magnitude of the acceleration times S 21 d50: it raised the stress in both phases,
+        // and only the RK2 momentum solver filled it)
         if(p->S37==1)
         {
-        
-            double cm,cv,cn,ci,tau_acc;
+            const double cm = 1.5;
+            const double cv = PI/6.0;
+            const double cn = 1.0/(cm*cm);
+            const double ca = p->W1 * cm*cv*cn * p->S20;
             
-            ci=1.0;
-            cm = 1.5;
-            cv = PI/6.0;
-            cn = ci/(cm*cm);
+            const double ub = d->U[IJK];
+            const double vb = p->j_dir==1 ? d->V[IJK] : 0.0;
+            const double um = sqrt(ub*ub + vb*vb);
+            const double ex = um>1.0e-10 ? ub/um : 0.0;
+            const double ey = um>1.0e-10 ? vb/um : 0.0;
             
-            tau_acc = p->W1 * cm*cv*cn * p->S20 * p->S21 * d->dudt(i,j);
+            const double ax = ca*ua_dt(i,j);
+            const double ay = ca*va_dt(i,j);
             
-            //cout<<tau_acc<<endl;
-            
-            // the inertia term is signed: no negative shear stress (sqrt below)
-            tau_eff = MAX(tau_eff + tau_acc, 0.0);
-            tau_i = MAX(tau_i + tau_acc, 0.0);
-            
+            tau_eff = sqrt((tau_eff*ex + ax)*(tau_eff*ex + ax) + (tau_eff*ey + ay)*(tau_eff*ey + ay));
+            tau_i   = sqrt((tau_i*ex + ax)*(tau_i*ex + ax) + (tau_i*ey + ay)*(tau_i*ey + ay));
         }
 
+
+        // S 133: upper limit of the Shields number (swash and wetting fronts: the friction coefficient of a thin
+        // layer is of order 0.1 and the velocities of the front are the least reliable ones)
+        if(p->S133>0.0)
+        {
+        const double tau_max = p->S133*(p->S22-density)*fabs(p->W22)*p->S20;
+        
+        tau_eff = MIN(tau_eff, tau_max);
+        tau_i = MIN(tau_i, tau_max);
+        }
 
     s->tau_eff(i,j) = tau_eff;
     s->tau_i(i,j) = tau_i;
@@ -292,6 +326,53 @@ void bedshear::taucritbed(lexer *p, fdm_nhf* d, ghostcell *pgc, sediment_fdm *s)
     s->MOB(i,j) = s->shields_eff(i,j)/(fabs(s->shields_crit(i,j))>1.0e-10?s->shields_crit(i,j):1.0e10);
 }
 /*--------------------------------------------------------------------
+S 37 1: acceleration of the bottom-layer velocity between two calls of the bed shear stress (the sediment steps;
+both stages of the RK2 sediment S 10 12 see the acceleration of the last flow step), for every momentum solver.
+Limited to 0.3 g and zero in dry columns, as the phase-lead velocity S 37 2: wetting and drying make the velocity jump.
+--------------------------------------------------------------------*/
+void bedshear::bed_acceleration(lexer *p, fdm_nhf *d)
+{
+    const double dta = p->simtime - ta_old;
+    
+    // the same time level (second RK stage): the acceleration is kept
+    if(dta<=1.0e-12)
+    return;
+    
+    const double amax = 0.3*fabs(p->W22);
+    
+    k=0;
+    SLICELOOP4
+    {
+    const double ub = d->U[IJK];
+    const double vb = p->j_dir==1 ? d->V[IJK] : 0.0;
+    
+    double ax = 0.0, ay = 0.0;
+    
+        if(ta_count>0 && p->wet[IJ]==1)
+        {
+        ax = (ub - ua_old(i,j))/dta;
+        ay = (vb - va_old(i,j))/dta;
+        
+        const double am = sqrt(ax*ax + ay*ay);
+        
+            if(am>amax)
+            {
+            ax *= amax/am;
+            ay *= amax/am;
+            }
+        }
+    
+    ua_dt(i,j) = ax;
+    va_dt(i,j) = ay;
+    ua_old(i,j) = ub;
+    va_old(i,j) = vb;
+    }
+    
+    ta_old = p->simtime;
+    ++ta_count;
+}
+
+/*--------------------------------------------------------------------
 bed shear stress of a bed column on the NHFLOW sigma grid (S 16 10), the same as bedshear::column_tau of CFD:
 the first cell centre is half a cell above the bed; href > 0 takes the velocity href cells (of the first cell)
 above the bed, at most half the water depth, linear between the cell centres (below the second cell centre
@@ -314,7 +395,7 @@ bool bedshear::column_tau(lexer *p, fdm_nhf *d, int i, int j, double ks, double 
     double ur = d->U[IJK];
     double vr = p->j_dir==1 ? d->V[IJK] : 0.0;
     double zr = p->ZP[KP]*wl;
-    double kin = d->KIN[IJK];
+    double kin = d->KIN!=nullptr ? d->KIN[IJK] : 0.0;   // (k = 0 without a turbulence model)
     
     if(href>0.0)
     {

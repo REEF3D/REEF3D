@@ -1,0 +1,20 @@
+{
+ "base": "fnpf_2d_regular",
+ "ctrl_set": {
+  "A 321": "1"
+ },
+ "description": "FNPF 2D regular waves of fnpf_2d_regular (RK3) with the start values of the stage solves of the Laplace equation extrapolated in time, but the coarse levels of REEFMG built in every solve (A 321 1; the default is A 321 2). The solution is that of fnpf_2d_regular within the tolerance of the solves (N 44).",
+ "tags": [
+  "quick",
+  "2d",
+  "fnpf",
+  "waves",
+  "iowave",
+  "solver"
+ ],
+ "covers": [
+  "A 321 1: start values without reefmg::keep_coarse"
+ ],
+ "same_as": "fnpf_2d_regular",
+ "same_as_rtol": 1e-06
+}

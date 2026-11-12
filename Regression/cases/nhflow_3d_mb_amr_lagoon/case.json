@@ -1,0 +1,23 @@
+{
+ "base": "nhflow_3d_mb_amr",
+ "ctrl_set": {
+  "P 18": "2",
+  "P 180": "1",
+  "P 181": "5"
+ },
+ "same_as": "nhflow_3d_mb_amr",
+ "tags": [
+  "3d",
+  "nhflow",
+  "curvilinear",
+  "multiblock",
+  "amr"
+ ],
+ "description": "As nhflow_3d_mb_amr with its free surface every 5 steps (P 180 1, P 181 5) as structured grids (.vts) and in the LAGOON store (P 18 2): the four blocks and the patches of level 1 as the AMR set nhflow_amr of curvilinear grids (horizontal curvilinear, every node's x and y) with the cell field covered (1 under a patch, 2 in the ring of block 0); the run as nhflow_3d_mb_amr (same_as, bitwise).",
+ "covers": [
+  "nhflow_amr::print_lagoon on a curvilinear grid (G 50 1 with blocks): the nodes of every grid, cover0, cover",
+  "lagoon_amr: a set of curvilinear grids (x_end, y_end counting the nodes, pack and unpack with the flag)",
+  "nhflow_amr::write_vtr0, write_vtr: the covered array of the .vts files",
+  "nhflow_curv::check: P 18 with mesh refinement or blocks no longer refused"
+ ]
+}

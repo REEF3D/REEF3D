@@ -7,7 +7,7 @@
 #        MF (S 35), SEDSTART (s, flow time before the bed moves), SPIRAL (S 95: 1, or 2 with the lag, SPIRALLAG the S 97 factor),
 #        SUSP (S 64, the suspended part; SUSPCA the S 65 factor), NONEQ (S 33 mode), SUPPLY (the S 76 box xs xe ys ye of the
 #        inflow reach whose bed is held and whose cells carry the bed load into the river; "none": no supply),
-#        XCTRL (;), NOGRID (reuse the grid of rundir))
+#        BOX (the harbour block xmin xmax ymin ymax of nidelva_harbour_grid.py), XCTRL (;), NOGRID (reuse the grid of rundir))
 import sys, os, re, json, shutil, subprocess
 
 T = os.path.dirname(os.path.abspath(__file__))
@@ -26,7 +26,7 @@ os.makedirs(d, exist_ok=True)
 
 if not os.environ.get("NOGRID"):
     subprocess.run([sys.executable, os.path.join(T, "nidelva_harbour_grid.py"), geo, d, "--q", str(Q), "--wl", str(WL),
-                    "--nz", str(nz)], check=True)
+                    "--nz", str(nz)] + (["--box"] + os.environ["BOX"].split() if os.environ.get("BOX") else []), check=True)
 control = open(os.path.join(d, "control.txt")).read().replace("M 10 NP", "M 10 %d" % np_)
 open(os.path.join(d, "control.txt"), "w").write(control)
 

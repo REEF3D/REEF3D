@@ -1,0 +1,22 @@
+{
+ "base": "cfd_2d_nwt",
+ "np": 1,
+ "steps": 100,
+ "ctrl_set": {
+  "N 40": "5"
+ },
+ "ctrl_add": [
+  "N 59 1",
+  "N 63 2"
+ ],
+ "description": "cfd_2d_nwt_onestep_n59 with the level set in SSP-RK2 stages of the scheme of F 35 (N 63 2): waves and the relaxation zones (validation 83).",
+ "tags": [
+  "quick",
+  "2d",
+  "waves",
+  "levelset"
+ ],
+ "covers": [
+  "momentum_rk::ls_rk_all: the SSP-RK2 stages of the level set"
+ ]
+}

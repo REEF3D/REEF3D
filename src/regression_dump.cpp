@@ -290,14 +290,15 @@ void regression_dump::nhflow_collect(lexer *p, fdm_nhf *d)
     LOOP
     data.back().push_back(d->EV[IJK]);
 
+    // (KIN and CONC are allocated only with a turbulence model / suspended sediment, nhflow_memory.h: zero without)
     add("KIN",p->cellnum);
     LOOP
-    data.back().push_back(d->KIN[IJK]);
+    data.back().push_back(d->KIN!=nullptr ? d->KIN[IJK] : 0.0);
 
     // sediment (zero without sediment transport): suspended concentration and bed level
     add("CONC",p->cellnum);
     LOOP
-    data.back().push_back(d->CONC[IJK]);
+    data.back().push_back(d->CONC!=nullptr ? d->CONC[IJK] : 0.0);
 
     add("bed",p->cellnum);
     SLICELOOP4
@@ -429,7 +430,13 @@ void regression_dump::fnpf_ini(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 
     steplog<<"# count simtime dt  sum(Fi^2) sum(U^2) sum(W^2) sum(eta^2) sum(Fifsf^2) sum(WL^2)  (rank-local, hexfloat)"<<std::endl;
 
+    // the 3D velocities when they are not stored (fnpf_memory.h)
+    const bool vel_tmp = c->vel3D_make(p,pgc);
+    
     fnpf_state(p,c);
+    
+    if(vel_tmp)
+    c->vel3D_free(p);
 }
 
 void regression_dump::fnpf_step(lexer *p, fdm_fnpf *c, ghostcell *pgc)
@@ -438,6 +445,9 @@ void regression_dump::fnpf_step(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     return;
 
     double sfi=0.0, su=0.0, sw=0.0, se=0.0, sff=0.0, swl=0.0;
+    
+    // the 3D velocities when they are not stored (fnpf_memory.h)
+    const bool vel_tmp = c->vel3D_make(p,pgc);
 
     FLOOP
     {
@@ -458,6 +468,9 @@ void regression_dump::fnpf_step(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 
     if(every>0 && p->count%every==0)
     fnpf_state(p,c);
+    
+    if(vel_tmp)
+    c->vel3D_free(p);
 }
 
 void regression_dump::fnpf_final(lexer *p, fdm_fnpf *c, ghostcell *pgc)
@@ -466,7 +479,13 @@ void regression_dump::fnpf_final(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     return;
 
     steplog.flush();
+    
+    const bool vel_tmp = c->vel3D_make(p,pgc);
+    
     fnpf_state(p,c);
+    
+    if(vel_tmp)
+    c->vel3D_free(p);
 }
 
 // ---------------------------------------------------------------------
@@ -683,4 +702,38 @@ void regression_dump::seastate_final(lexer *p, fdm_seastate *e, ghostcell *pgc)
 
     steplog.flush();
     seastate_state(p,e);
+}
+
+// ---------------------------------------------------------------------
+// a model with its own fields (REEF3D::HYDRO catchment model)
+// ---------------------------------------------------------------------
+
+void regression_dump::model_ini(lexer *p, const std::string &header)
+{
+    if(!is_active)
+    return;
+
+    steplog<<"# count simtime dt  "<<header<<"  (rank-local, hexfloat)"<<std::endl;
+}
+
+void regression_dump::model_step(lexer *p, const std::vector<double> &sums)
+{
+    if(!is_active)
+    return;
+
+    steplog<<p->count<<" "<<p->simtime<<" "<<p->dt<<" ";
+    for(double s : sums)
+    steplog<<" "<<s;
+    steplog<<"\n";
+}
+
+void regression_dump::model_state(lexer *p, const std::vector<std::string> &n, const std::vector<std::vector<double>> &d)
+{
+    if(!is_active || last_written==p->count)
+    return;
+
+    steplog.flush();
+    names=n;
+    data=d;
+    write_state(p);
 }

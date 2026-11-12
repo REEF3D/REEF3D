@@ -21,6 +21,7 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"nhflow_sigma.h"
+#include<algorithm>
 #include"lexer.h"
 #include"fdm_nhf.h"
 #include"ghostcell.h"
@@ -52,9 +53,38 @@ void nhflow_sigma::sigma_update(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL)
     
     pgc->gcsl_start4(p,df,1);
     
-    filter_sg(p,pgc,df);
+    // the depth changes only with the bed (morphology, moving bodies): the filtered depth of the last call when the
+    // slice with its ghost cells and the bed forcing cells are the same on every rank (the same values: the filter is
+    // a function of them); before: filtered every step (Stoker dam break: the filter was 12 % of the step)
+    {
+    const size_t ns = (size_t)p->imax*p->jmax;
+    int same = (dprev.size()==ns && dprev_bed==p->gcsldfbed4_count) ? 1 : 0;
     
-    pgc->gcsl_start4(p,df,1);
+        if(same==1)
+        for(size_t q=0; q<ns; ++q)
+        if(dprev[q]!=df.V[q])
+        {
+        same = 0;
+        break;
+        }
+    
+    same = pgc->globalimin(same);
+    
+        if(same==1)
+        std::copy(dfilt.begin(),dfilt.end(),df.V);
+        
+        else
+        {
+        dprev.assign(df.V,df.V+ns);
+        dprev_bed = p->gcsldfbed4_count;
+        
+        filter_sg(p,pgc,df);
+    
+        pgc->gcsl_start4(p,df,1);
+        
+        dfilt.assign(df.V,df.V+ns);
+        }
+    }
     
     // curvilinear grid (G 50): gradients by the chain rule with the cell centres, the second
     // derivatives only enter as Laplacians (Exx + Eyy, Bxx + Byy): the compact Laplacian in Exx, Bxx
@@ -133,7 +163,11 @@ void nhflow_sigma::sigma_update(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL)
     d->Ey(i,j)=0.0;
     }
         
+    // one cell in y (j_dir 0, Cartesian, no hull): Ey, By and so sigy stay 0, their ghost cells too (only written here)
+    const bool ydir = p->j_dir==1 || p->geo_curv==1 || d->hull!=nullptr;
+
     pgc->gcsl_start4(p,d->Ex,1);
+    if(ydir)
     pgc->gcsl_start4(p,d->Ey,1);
     
     // calculate: Bx,By,Bxx,Byy
@@ -164,6 +198,7 @@ void nhflow_sigma::sigma_update(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL)
     }
 
     pgc->gcsl_start4(p,d->Bx,1);
+    if(ydir)
     pgc->gcsl_start4(p,d->By,1);
     
     // -----------------------------------------------------
@@ -272,6 +307,7 @@ void nhflow_sigma::sigma_update(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL)
         } 
     }
     
+    if(ydir)
     SLICELOOP4
     {
         k=0;
@@ -318,6 +354,7 @@ void nhflow_sigma::sigma_update(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL)
     p->ZSP[IJK]  = p->ZP[KP]*WL(i,j) + d->bed(i,j);
     
     pgc->start7S(p,p->sigx,1);
+    if(ydir)
     pgc->start7S(p,p->sigy,1);
     pgc->start7S(p,p->sigxx,1);
     pgc->start7S(p,p->sigt,1);

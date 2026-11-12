@@ -35,7 +35,29 @@ Author: Hans Bihs
 
 void dem_f::fluid_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
-    const int nv = 24;     // 0-13 as before; E 26: 14-16 sum qw u_q, 17 sum qw, 18-20 sum qw r x u_q, 21-23 sum qw r
+    const int nv = 24 + nlift;     // 0-13 as before; E 26: 14-16 sum qw u_q, 17 sum qw, 18-20 sum qw r x u_q, 21-23 sum qw r; 24-32 lift samples (E 32, E 33)
+    bool dolift = liftmodel>0 || magnus>0;
+
+    // fluid velocity for the lift samples: zero inside the bed and the solids, and between the bed and
+    // the centre of the first sigma layer linear to zero at the bed (no-slip; the interpolation alone
+    // holds the value of the first layer down to the bed)
+    auto uat = [&](const dem_vec &x) -> dem_vec
+    {
+        dem_vec np;
+        if(wallphi_nhflow(p,d,x(0),x(1),x(2))<=0.0 || planephi(x,np)<=0.0)
+        return dem_vec::Zero();
+        double zb = p->ccslipol4(d->bed,x(0),x(1));
+        double zc = zb + 0.5*p->DZN[0+marge]*p->ccslipol4(d->WL,x(0),x(1));
+        double f = 1.0, z = x(2);
+        if(z<zc && zc>zb)
+        {
+            f = std::max(0.0,(z-zb)/(zc-zb));
+            z = zc;
+        }
+        return f*dem_vec(p->ccipol4V(d->U,d->WL,d->bed,x(0),x(1),z),
+                         p->j_dir==1 ? p->ccipol4V(d->V,d->WL,d->bed,x(0),x(1),z) : 0.0,
+                         p->ccipol4V(d->W,d->WL,d->bed,x(0),x(1),z));
+    };
     vector<double> buf(nb*nv,0.0);
     dem_vec g(p->W20,p->W21,p->W22);
 
@@ -119,6 +141,9 @@ void dem_f::fluid_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
             b[4] = p->W2;
             b[5] = 1.0 - std::max(0.0,p->ccipol4V(ALPHAV,d->WL,d->bed,B.x(0),B.x(1),B.x(2)) - core.bodies[n].cpl.aself);
             b[6] = 1.0;
+
+            if(dolift && !B.fixed && B.mode==0)
+            lift_sample(n,uat,&b[24]);
         }
 
         // large particles (resolved or surface-piercing): ambient water level, avoids self-interaction
@@ -185,6 +210,9 @@ void dem_f::fluid_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
         core.bodies[n].cpl.Fb = dem_vec(b[7],b[8],b[9]);
         core.bodies[n].cpl.Tb = dem_vec(b[10],b[11],b[12]);
         core.bodies[n].cpl.vsub = b[13];
+
+        if(dolift)
+        lift_store(n,&b[24],cnt);
 
         // E 26: volume-averaged fluid velocity over the submerged part, and the moment of the
         // velocity variation over the particle (gives the drag torque of a non-uniform flow)
@@ -375,7 +403,7 @@ void dem_f::feedback_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
         if(B.fixed)
         B.cpl.Ffp = fixeddrag==1 ? dem_vec(-B.K*B.uf) : dem_vec(dem_vec::Zero());
         else
-        B.cpl.Ffp = -(B.K*(B.uf - B.v) + B.madd*(B.af - ap));
+        B.cpl.Ffp = -(B.K*(B.uf - B.v) + B.madd*(B.af - ap) + B.cpl.Flift);
         for(int q=0; q<3; ++q)
         ffp[nf*n+q] = B.cpl.Ffp(q);
         ffp[nf*n+3] = B.cpl.vsub;

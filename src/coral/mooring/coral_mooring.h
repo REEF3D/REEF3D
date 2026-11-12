@@ -37,11 +37,13 @@ Architect: Hans Bihs
 // over its vertical extent, so nodes cross the free surface smoothly; an end node's piece reaches from the node
 // into the line), waves and current (uniform and a profile over the height), seabed contact (penalty kb [Pa/m],
 // damping cb [Pa s/m], Coulomb friction mu across and mu_axial along the line with the regularization
-// velocity v_eps). The inner nodes are advanced with an
-// explicit Runge-Kutta scheme (RK4) and sub-steps inside the step of the multibody system, the end
-// points moving on cubic Hermite curves from the converged to the trial positions and velocities of the
+// velocity v_eps, or stick-slip), optionally cross-flow vortex-induced vibration (mooring_props::Cl: the lift of
+// Thorsen's synchronization model at the inner nodes, its shedding phases advanced with the nodes, as MoorDyn v2).
+// The inner nodes are advanced with an explicit Runge-Kutta scheme (RK4) and sub-steps inside the step of the
+// multibody system, the end points moving on cubic Hermite curves from the converged to the trial positions and velocities of the
 // attachment points; eval() integrates from the converged line state (cached per trial state), commit()
-// keeps the converged line. The force on an attached body is the tension of the end segment plus the
+// keeps the converged line (the integration of the last trial when the converged state is that trial within
+// 1e-10 relative: the time integrator stops on a Newton increment below its tolerance). The force on an attached body is the tension of the end segment plus the
 // weight, drag and Froude-Krylov force of the end half-segment, minus its inertia: mass and added mass
 // (normal and tangential, submerged) times the acceleration of the attachment point (as the coupled
 // points of MoorDyn), so the body carries the end node. The line starts from the catenary profile
@@ -112,6 +114,14 @@ namespace coral
         // taut, a slack segment carries nothing (a chain or rope never pushes); true: T = max(0, EA e) + BA de/dt in
         // every segment, also slack and compressed ones (MoorDyn's and MoorDyn-F's law: the damping pushes)
         bool BA_slack = false;
+        // cross-flow vortex-induced vibration of the dynamic line (Thorsen's synchronization model, as MoorDyn v2):
+        // at each inner node a lift force 1/2 rho d |v| Cl cos(phi) (q x v) along the cross-flow direction (v: the
+        // relative flow normal to the line, q its tangent); the phase of the vortex shedding follows
+        // dphi/dt = 2 pi |v| / d (cF + dF sin(phi_yd - phi)), phi_yd the phase of the node's cross-flow velocity
+        // (from the velocity and acceleration normalized by their rms over the time viv_tau; < 0: five periods of
+        // the shedding at the node, d / (cF |v|) each), so the shedding locks in to a vibration within the
+        // frequency band cF +- dF. Cl 0: none
+        double Cl = 0.0, cF = 0.18, dF = 0.08, viv_tau = -1.0;
         // nonlinear elasticity of the dynamic line (MoorDyn's stress-strain table): the tension at the strains
         // EA_strain (increasing, from 0), linear in between and beyond the last point with the last slope (MoorDyn
         // holds the last tension there); empty: EA. The quasi-static line, the catenary start and BA < 0 take
@@ -300,6 +310,10 @@ namespace coral
         // stick-slip friction: the anchors of the nodes in contact (NaN: none) and their sliding flags. Not part of
         // state: a larger state changes the compiler's inlining in the sub-step loop (several times slower)
         struct stick_t {std::vector<Vec3> a; std::vector<signed char> slip;};
+        // vortex-induced vibration: per node the shedding phase phi, the mean squares of the cross-flow velocity and
+        // acceleration, the last acceleration; work: the stage phases, the phase rates of the stages (outside state
+        // for the same reason as stick_t)
+        struct viv_t {std::vector<double> phi, y2, a2; std::vector<Vec3> acc; std::vector<double> ps, pd, d[3];};
         struct line_t
         {
             std::string name;
@@ -370,12 +384,24 @@ namespace coral
         Vec3 seabed_friction(const line_t &L, int i, const Vec3 &x, const Vec3 &vx, const Vec3 &q, const Vec3 &nb,
                              double Fn, double ll, bool upd, bool &has, bool &contact) const;
         void lose_anchor(int i) const;
+        // the cross-flow lift of inner node i of line L (vrn: the relative flow normal to the line, sl the submerged
+        // length of its piece); the phase rate into vc_->pd; upd: the rms of the cross-flow velocity and acceleration
+        // advance by the sub-step vh_
+        Vec3 viv_lift(const line_t &L, int i, const Vec3 &vx, const Vec3 &q, const Vec3 &vrn, double sl, bool upd) const;
+        // the phases of the VIV nodes for Runge-Kutta stage k (-1: the start of the sub-step, else phi + c d[k]), the
+        // rates of stage k kept; the step of the phases over h (RK4)
+        void viv_stage(int k, double c) const;
+        void viv_keep(int k) const;
+        void viv_advance(double h) const;
+        // the start phases of a line's inner nodes spread over 0 .. 2 pi (as MoorDyn), the mean squares zero
+        void viv_start();
         // the line end nodes on points take the points' state
         void point_ends(state&) const;
         // from the converged state at t0 to t1 with the body ends on Hermite curves (motion per attachment)
         // fs: the stick-slip anchors carried along (nullptr: no stick friction, e.g. settling)
+        // vf: the VIV phases carried along (nullptr: none)
         void integrate(state&, const std::vector<end_motion>&, double t0, double t1, double extra, bool at_rest=false,
-                       stick_t *fs=nullptr) const;
+                       stick_t *fs=nullptr, viv_t *vf=nullptr) const;
         // keep the segment tensions and end forces of the converged state; throws if it is not finite
         void keep_converged();
         void update_dt();
@@ -409,6 +435,10 @@ namespace coral
         stick_t st_;                   // stick-slip anchors and sliding flags (converged)
         bool stick_ = false;           // a line or point with stick-slip friction
         mutable stick_t *sc_ = nullptr;     // the anchors of the running integration (nullptr: none)
+        viv_t vv_;                     // vortex-induced vibration (converged)
+        bool viv_ = false;             // a line with Cl > 0
+        mutable viv_t *vc_ = nullptr;  // the phases of the running integration (nullptr: none)
+        mutable double vh_ = 0.0;      // the sub-step
         double t_ = 0.0;
         long gen_ = 0;                 // changes with the converged state
         bool static_start_ = true;     // initialize(): static equilibrium first (once)
@@ -425,13 +455,21 @@ namespace coral
         mutable std::vector<Vec3> w_[4];
         mutable state ws_;
 
-        // trial cache: time, positions and velocities of the attachments; forces and end masses
+        // trial cache: time, positions and velocities of the attachments; forces and end masses; the integrated
+        // state of the last trial with the lines' work arrays (commit() takes it when the converged state is that
+        // trial, instead of integrating the step again)
+        struct line_work {std::vector<Vec3> T; Vec3 F[2]; Mat3 M[2]; Vec3 cd[2];};
+        mutable state cs_;
+        mutable stick_t cst_;
+        mutable std::vector<line_work> cw_;
         mutable double ct_ = -1.0e300;
         mutable std::vector<Vec3> cr_, cv_, cF_, cMb_;
         mutable std::vector<Mat3> cM_;
         mutable std::vector<Vec3> cd_;     // clamp directions of the cached trial
         bool clamped_ = false;             // some end is clamped (bending)
         mutable bool cvalid_ = false;
+    public:
+        long commits_ = 0, commit_hits_ = 0;           // steps, steps that took the last trial's integration
     };
 
     // a single dynamic line between two attachment points: a mooring system of one line (the interface of

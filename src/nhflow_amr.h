@@ -140,16 +140,18 @@ using namespace std;
 //  without refinement, G 4 tile width, G 3, G 20, G 21, G 12, G 13, G 2, G 5, G 6, G 7, G 22, G 23,
 //  G 30, G 31, G 40), A 510 2/3, A 511 1/2, A 514 all, A 519 0/1, A 520 0/1/2, A 512 0/1/2, A 550 0/1
 //  (with A 510 2/3; on a multi-block grid the blocks break as one grid), A 560 0/1/2/21/22 (turbulence on every grid, nhflow_amr_turb.cpp; not with
-//  G 7 1, A 561, A 563), B 200 0, X 10 0/1/2 (X 60 1, X 16 0, A 516 0/1/3; X 15 8, the sharp
-//  hull: on every grid, G 7 0, G 12, A 520 1, one body), S 10 0/1 (bed load on
-//  every grid, nhflow_amr_sed.cpp; S 12 0, S 51 0, S 31 1/2, S 32 1/2), fixed solids A 581-590 (not
-//  with G 7 1 or A 516 2/4; not A 580 1), no membranes (X 330), nets (X 320), DEM (E 10), particles
-//  (L 10), rods or FEM structures (Z 20, Z 30).  Cartesian and curvilinear grids (G 50 2), 2D grids
+//  A 561, A 563; with G 7 1 every level steps its own with its time step), B 200 0, X 10 0/1/2 (X 60 1, X 16 0, A 516 0/1/3; X 15 8, the sharp
+//  hull: on every grid, G 7 0/1, the zone around it (G 12, or implicit with G 10 boxes or flags),
+//  A 520 1, one body), S 10 0/1 (bed load on every grid, nhflow_amr_sed.cpp; S 12 0, S 51 0,
+//  S 31 1/2, S 32 1/2), fixed solids A 581-590 (not with G 7 1 or A 516 2/4; not A 580 1), no
+//  membranes (X 330), nets (X 320), DEM (E 10), particles (L 10), rods or FEM structures (Z 20,
+//  Z 30).  Cartesian and curvilinear grids (G 50 2), 2D grids
 //  (one cell in y) Cartesian only.  The multi-block grid (G 50 1 with DIVEMesh R 20 1,
 //  nhflow_amr_block.cpp): the blocks 1.. are level-0 patches of the hierarchy, with or without
-//  refinement, not with G 7 1, A 550, X 10 > 2, or bodies with G 40 (nhflow_amr::blocks_check); the
-//  hydrostatic semi-implicit free surface (A 534 1, nhflow_amr_si.cpp) on the multi-block grid
-//  without refinement (A 534 1 with G 1 is refused by nhflow_momentum_SI::check).  Checkpoints
+//  refinement (G 7 1: level 0 is the native grid with the blocks, sub_level0_blocks, without bodies),
+//  not with X 10 > 2, or bodies with G 40 (nhflow_amr::blocks_check); the
+//  hydrostatic semi-implicit free surface (A 510 12/13, nhflow_amr_si.cpp) on the multi-block grid
+//  without refinement (A 510 12/13 with G 1 is refused by nhflow_momentum_SI::check).  Checkpoints
 //  (P 48, I 45): nhflow_amr_ckpt.cpp.  Patches stay out of the relaxation zones (B 96), the in- and
 //  outflow band and, without G 30 1 and checked at every regrid, 4 level-0 cells away from dry or
 //  shallow cells (they are fully wet; level 0 keeps its wetting and drying).
@@ -158,8 +160,9 @@ using namespace std;
 //  viscosity (A 512 2) is one composite solve over the leaf cells of all grids (G 31 1, the
 //  default: nhflow_amr_diff.cpp, a patch split in pieces gives the same result as the whole
 //  patch), or with G 31 0 every grid solves its own (a bicgstab_ijk per patch, its global sums
-//  local to the patch inside pscope).  The viscous flux across a coarse-fine interface is not
-//  matched.  G 23 1 flags the cells with breaking viscosity for the adaptive mode.
+//  local to the patch inside pscope).  With G 31 1 the viscous flux across a coarse-fine interface is
+//  matched (the coarse face takes the sum of the fine faces, nhflow_amr_diff.cpp df_fix; single-block
+//  grids), with G 31 0 and with G 7 1 (every grid its own) not.  G 23 1 flags the cells with breaking viscosity for the adaptive mode.
 //
 //  Wetting and drying in the patches (G 30 1): the patches may cover dry and shallow cells, the
 //  NHFLOW wetting and drying (A 540) runs on every grid.  The coupling: the cells around a patch
@@ -229,6 +232,10 @@ struct nhflow_amr_patch : public reefamr_patch
     // G 7 1: fine face fluxes summed over the steps of the patch within one step of its parent
     // (dt * RK weight), freg[ipol][side][r*knoz+k], ipol 1-4
     vector<double> freg[5][4];
+    // G 7 1 with the non-hydrostatic pressure: the pressure on the box faces summed in the same way,
+    // preg[side][r*knoz+k], the mean of the first cell and of the cell around the box (A 520 2: with its
+    // correction, the parent pressure the solve held there)
+    vector<double> preg[4];
 };
 
 class reefckpt;
@@ -275,23 +282,11 @@ public:
     // the time step of all grids (nhflow_momentum_RK2/RK3::start)
     void step(lexer*, fdm_nhf*, ghostcell*, nhflow_momentum_func*, nhflow_stage_obj&) override;
 
-    // hydrostatic semi-implicit free surface on the multi-block grid (A 534 1, nhflow_amr_si.cpp): the
+    // hydrostatic semi-implicit free surface on the multi-block grid (A 510 12/13, nhflow_amr_si.cpp): the
     // parts of the step of every block (nhflow_momentum_SI), the cells around the blocks filled in
     // between, one eta system over the cells of all blocks (BiCGStab, one REEFMG2D V-cycle per grid as preconditioner)
     void si_step(lexer*, fdm_nhf*, ghostcell*, nhflow_momentum_func*, nhflow_stage_obj&);
 
-    // vector space of the composite eta solve (reefamr_bicgstab)
-    void si_apply(int, int);
-    void si_prec(int, int);
-    void si_ras(int, int);
-    void si_cs_build();             // G 57: the coarse space of the eta solve (aggregates over all grids)
-    void si_cs_correct(int, int);
-    double si_dot(int, int);
-    void si_opstart();
-    void si_op_p(double, double);
-    void si_op_s(double);
-    void si_op_x(double, double);
-    void si_restart();
 
     // face fluxes of grid id (0: level 0, n: patch n-1) before the divergence
     void flux_hook(lexer*, fdm_nhf*, int, int, double*, double*) override;
@@ -369,7 +364,7 @@ private:
 
     // patch lexer: 3D flags, boundary list, sigma arrays
     void build_lexer3D(nhflow_amr_patch&);
-    void open_lists(nhflow_amr_patch&, bool, bool);     // G 54: the 3D in- and outflow cells of the open faces of a block
+    void open_lists(nhflow_amr_patch&, bool, bool, bool=false, bool=false);     // G 54: the 3D in- and outflow cells of the open faces of a block
     void free_lexer3D(nhflow_amr_patch&);
 
     // interpolation from the coarser grid g: cell (ic,jc), quadrant (ox,oy); the last argument
@@ -509,10 +504,14 @@ private:
     // one grid (nhflow_amr_diff.cpp)
     bool brk0 = false;
     void breaking_level0(ghostcell*, int);
+    void kennedy_level0(ghostcell*);    // A 550 3 on block 0 and the blocks
+    void ken_exchange0(ghostcell*, int);
     void brk_exchange0(ghostcell*, int);
     void df_free();
     void df_core(lexer*);
     void df_sync(int);
+    solver* df_capsolver();
+    bool df_l0 = false;             // the system of level 0 alone (the turbulence of the blocks, turb_composite0)
     double* dvec(int, int);         // grid, vector (-1: the unknowns of the solve)
     struct dgrid
     {
@@ -522,7 +521,14 @@ private:
         int var = 0;
         vector<int> lq, lr;         // leaf cells: IJK, matrix row
         vector<int> aq;             // all computed cells (LOOP): IJK
+        vector<int> row;            // IJK -> matrix row (the index in aq), -1 none
     };
+    // the viscous flux across the coarse-fine interfaces (df_fix): the coarse face of a leaf cell next to a
+    // finer patch takes the sum of the fine faces, so that the diffusion conserves momentum there
+    void df_fix(int kx, int ky, double sg);
+    double df_fine(int id, int side, int r, int K, int k, int kx);    // the fine faces of coarse layer k: sum V T
+    vector<vector<double>> dfr;     // [grid id+1][rmatch index * K]: the fine sums from other ranks
+    std::unordered_map<const reefamr_patch*,int> dfid;  // patch -> id
     vector<dgrid> dg;               // [g+1]
     int dcur = -1;                  // grid whose phase_D runs
     vector<vector<double>> dkv0;    // level-0 vectors
@@ -570,12 +576,14 @@ private:
     // G 7 1: subcycling (nhflow_amr_sub.cpp)
     int sub = 0;                    // 1: subcycled
     bool hb = false;                // the hull as a sharp thin body (X 15 8) on every grid
+    void hull_cover(lexer*, ghostcell*);    // X 15 8: the hull and its band on the finest level, else stop
     int hstage = 0;                 // RK stage of the grids running (flux register weights)
     int wlo = 0, whi = -1;          // level window of the restriction and of the composite solve (whi<0: maxlev)
     int wtop() const { return whi<0 ? maxlev : whi; }
     bool pr_edge = false;           // composite solve with its lowest level > 0: the parent columns are fixed
     bool pr_dir = false;            // pr_fill of a Krylov vector (the fixed parent columns are 0)
     double zr_user = 0.0;           // G 12 as given (G 7 1 with bodies widens the zone margin)
+    double hb_zr = 0.0;             // X 15 8 with G 7 1: the margin for the added-mass flow around the hull
     int pr_wkey = -1;               // window of the current row lists
     struct tcol                     // parent columns read by the fills of the next level, their start-of-step values
     {
@@ -593,10 +601,14 @@ private:
     void sub_swap_out(int);
     void sub_fill(ghostcell*, int, int, double);
     vector<vector<double>> cregL, cregR, rflux;   // [id+1]: coarse face fluxes summed over the step (4 K per entry), received fine sums
+    vector<vector<double>> pregL, pregR, rpres;   // [id+1]: the pressure on those faces from the coarse side (K per entry), received fine sums
+    void sub_preg(int l, int s);    // the pressure on the coarse-fine faces after the pressure of stage s of level l
     vector<double> dtlev;           // step of each level in the current level-0 step
     void sub_creg_reset(int);
     void sub_dfx();
     void sub_step(lexer*, fdm_nhf*, ghostcell*, nhflow_momentum_func*, nhflow_stage_obj&);
+    void sub_level0_blocks(lexer*, fdm_nhf*, ghostcell*, nhflow_momentum_func*, nhflow_stage_obj&);
+    vector<int> level_grids(int) const;     // level 0: the native grid (-1) and the blocks 1..; else lev[l]
     void sub_level(lexer*, ghostcell*, int, int, double, double);
     void sub_sync(lexer*, ghostcell*, int);
     void sub_reflux(int);
@@ -645,10 +657,19 @@ private:
     void turb_blocks_ini(ghostcell*);
     void turb_regrid(ghostcell*, int, vector<reefamr_patch*>&);
     void turb_step(lexer*, ghostcell*);
+    void turb_level(ghostcell*, int);     // G 7 1: the turbulence step of the level-l patches (their own step)
+    void turb_sync(ghostcell*, int);      // G 7 1: the levels above l restricted into level l
+    // the turbulence of level 0 and the blocks as one grid, from the step of level 0 (nhflow_turbulence::defer)
+    bool turb_composite0(lexer*, fdm_nhf*, ghostcell*, nhflow_scalar_convection*, nhflow_diffusion*, solver*, ioflow*, vrans_nhflow*);
+    int turb_c0count = -1;          // the step of the last composite turbulence of level 0
     void potential(lexer*, ghostcell*);     // I 11: potential flow initialisation over the blocks
     bool ring0(int ii, int jj) const { return nblk>0 && nring[(ii-p0->imin)*p0->jmax + (jj-p0->jmin)]==1; }
 
     // output
+    // which cells another grid shows (the leaf cells of mass() are 0): 1 a finer patch covers the cell,
+    // 2 the ring of block 0 (the blocks 1.. have its cells); of level 0 and of a patch
+    int cover0(int ii, int jj);
+    int cover(reefamr_patch *q, int ii, int jj);
     void write_vtr(lexer*, nhflow_amr_patch&, int);
     void write_vtr0(lexer*, fdm_nhf*);
     bool print_lagoon(lexer*, fdm_nhf*, ghostcell*);
@@ -660,35 +681,27 @@ private:
     nhflow_momentum_func *mom0;
     nhflow_stage_obj *S0p = nullptr;
 
-    // A 534 1 (nhflow_amr_si.cpp): the grids of the composite eta system (-1 the native grid, then
-    // lev[0]), their own rows (i, j, row of the si_eta2D assembly) and the Krylov vectors per grid
-    std::vector<int> sigrid;
-    std::vector<std::vector<int>> sirow;
-    std::vector<std::vector<slice*>> sivec;
+    // A 510 12/13 (nhflow_amr_si.cpp): the semi-implicit step of all grids (the native grid, the blocks 1.., the patches
+    // of the levels), the eta system of all of them (reefamr_si.cpp)
     nhflow_momentum_SI* gsi(int);
-    bool si_own(int, int, int);
-    void si_setup();
-    template<class F> void si_each(ghostcell*, F);
+    template<class F> void si_each(ghostcell*, F);          // the level-0 grids (native grid, blocks)
+    template<class F> void si_level(ghostcell*, int, F);    // the patches of a level
+    template<class F> void si_all(ghostcell*, F);           // all grids: level 0, then the levels
     template<class A> void si_fill3(ghostcell*, int, int, A);
-    void si_fillv(ghostcell*, int);
     void si_fillF(ghostcell*);
-    void si_tracer(lexer*, ghostcell*);   // tracers (A 600) of all blocks
+    void si_tracer(lexer*, ghostcell*, int phase=0);   // tracers (A 600) of all blocks (phase: nhflow_tracer_SI::prepare)
     std::vector<double> sitr_dist;
     std::vector<int> sitr_cell, sitr_grid;
     bool sitr_mask = false;
-    void si_dirichlet(ghostcell*);
     void si_solve(lexer*, ghostcell*);
+    void si_hooks(bool);                  // the advection hooks of the grids (face matching with patches)
+    void si_match_faces();                // q^E, q^n of the coarse faces next to the patches
+    void si_match_layers();               // Q, T, q after the face update
+    bool si_lv = false;                   // patches in the step
     ghostcell *sipgc = nullptr;
-    // P7: preconditioner of the composite eta solve, one REEFMG2D V-cycle per grid on its own rows
-    // (the cells around the grid with a zero residual: restricted additive Schwarz)
-    std::vector<reefmg2D*> simg;
-    std::vector<vec2D*> sir;
-    std::vector<slice*> siz;
-    std::vector<int> sinrow;
-    std::vector<char> sirebuild;
-    // G 57: the coarse space across the grids of the eta solve
-    struct si_cs_impl *sics = nullptr;
-    int sics_n = 0;
+    bool rsi_rows_of(int, rsi_rows&) override;
+    void rsi_bound() override;
+    void rsi_run(int, const std::function<void()>&) override;
     ioflow *pflowv;                 // objects shared by all patches (their NHFLOW calls do nothing)
     patchBC_interface *pBCv;
     sediment *psedv;

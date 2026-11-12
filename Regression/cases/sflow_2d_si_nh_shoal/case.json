@@ -1,0 +1,19 @@
+{
+ "description": "SFLOW semi-implicit step with the coupled non-hydrostatic pressure (A 210 12, A 220 3): 2D basin 14 x 8 m, h = 0.45 m, Gaussian mound (S 53, crest 0.1 m below still water), regular waves H = 5 mm, T = 2 s, dx = 0.1 m, automatic time step (no A 228: 20 steps per period of a 10-cell wave with the model phase speed). The waves refract and focus behind the mound.",
+ "solver": "sflow",
+ "np": 1,
+ "steps": 150,
+ "tags": [
+  "quick",
+  "2d",
+  "sflow",
+  "semi_implicit",
+  "nonhydrostatic",
+  "waves"
+ ],
+ "covers": [
+  "sflow_momentum_SI_nh 2D: FGMRES and the two-V-cycle preconditioner",
+  "sflow_timestep_SI::wave_cap (automatic time step, A 228 not given)"
+ ],
+ "architect": "Hans Bihs"
+}

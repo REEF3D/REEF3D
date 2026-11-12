@@ -210,6 +210,52 @@ void fnpf_fsfbc_wd::coastline_vel(lexer *p, fdm_fnpf *c, ghostcell *pgc, double 
     }
 }
 
+// coastline_vel at the surface node only (the surface velocities Us, Vs, Ws): the same factors
+void fnpf_fsfbc_wd::coastline_vel_sl(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &F)
+{
+    if(p->A343==2)
+    return;
+    
+    double fac=1.0;
+    
+    if(coast_cached(p))
+    {
+        if(!cz_built) coast_cache(p,c);
+        
+        for(const coast_cell &q : cz5)
+        {
+            i=q.i; j=q.j;
+            F(i,j) = q.r*F(i,j);
+        }
+        
+        if(p->A343>=1)
+        for(const coast_cell &q : czdry)
+        {
+            i=q.i; j=q.j;
+            F(i,j)=0.0;
+        }
+        
+        return;
+    }
+    
+    SLICELOOP4
+    {
+        if(p->I30>=1 && p->count==0)
+        fac=p->A349;
+        
+        if(c->coastline(i,j)>=0.0)
+        {
+            db = c->coastline(i,j);
+            
+            if(db<fac*dist5)
+            F(i,j) = rb5(p,db)*F(i,j);
+        }
+        
+        if(c->coastline(i,j)<0.0 && p->A343>=1)
+        F(i,j)=0.0;
+    }
+}
+
 void fnpf_fsfbc_wd::coastline_fi_ini(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &f)
 {
     // A343 2 (full runup/rundown): no coastline damping. Dry cells are held

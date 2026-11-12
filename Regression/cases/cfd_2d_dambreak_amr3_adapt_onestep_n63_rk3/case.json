@@ -1,0 +1,23 @@
+{
+ "base": "cfd_2d_dambreak_amr3_adapt",
+ "np": 1,
+ "steps": 60,
+ "ctrl_set": {
+  "N 40": "5"
+ },
+ "ctrl_add": [
+  "N 59 1",
+  "N 63 3"
+ ],
+ "description": "cfd_2d_dambreak_amr3_adapt_onestep_n63 with the level set in SSP-RK3 stages (N 63 3): the stages on all grids in step, the cells around the patches of every stage from the coarser level at the same stage (validation 83).",
+ "tags": [
+  "quick",
+  "2d",
+  "dambreak",
+  "levelset",
+  "amr"
+ ],
+ "covers": [
+  "cfd_amr::step (G 7 0): the SSP-RK stages of the level set over the levels"
+ ]
+}

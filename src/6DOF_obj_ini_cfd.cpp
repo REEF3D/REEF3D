@@ -39,7 +39,7 @@ sixdof_obj_cfd::sixdof_obj_cfd(lexer *p, ghostcell *pgc, int number) : sixdof_ob
                                                                        cutl(p),cutr(p),fbio(p),f(p),frk1(p),L(p),dt(p),
                                                                        vertice(p),nodeflag(p),eta(p)
 {
-    prdisc = new reinidisc_f(p,true);
+    prdisc = new reinidisc_f(p,true,p->X14==2 ? 1.0e-6 : 0.0);
 }
 
 sixdof_obj_cfd::~sixdof_obj_cfd()
@@ -62,6 +62,14 @@ void sixdof_obj_cfd::initialize_cfd(lexer *p, fdm *a, ghostcell *pgc)
     if(p->X50==2)
     print_ini_stl(p,pgc);
  
+    // stabilised coupling of a light or neutrally buoyant body (X 197, e.g. a slender body or a swimming fish)
+    if(p->X197>0.0)
+    set_cfd_added_mass(p->X197);
+    
+    // ... not with the fluid-momentum coupling (X 198), which needs no added-mass stabilisation
+    if(p->X198>0)
+    set_cfd_added_mass(0.0);
+    
     // Initialise processor boundaries
     ini_parallel(p,pgc);
     
@@ -82,6 +90,10 @@ void sixdof_obj_cfd::initialize_cfd(lexer *p, fdm *a, ghostcell *pgc)
     
     // Initialise position of bodies
     iniPosition_RBM(p,pgc);
+    
+    // stabilised coupling (X 197): the added mass of the equivalent ellipsoid of the hull
+    if(p->X197>0.0)
+    added_mass_ellipsoid(p);
 	
 	// Recalculate distances
 	ray_cast(p,a,pgc);

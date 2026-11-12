@@ -21,6 +21,7 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"sflow_idiff.h"
+#include"sflow_diffusion_flux.h"
 #include"lexer.h"
 #include"ghostcell.h"
 #include"fdm2D.h"
@@ -34,16 +35,6 @@ sflow_idiff::sflow_idiff(lexer* p) : f(p)
 
 sflow_idiff::~sflow_idiff()
 {
-}
-
-double sflow_idiff::viscosity(lexer *p, fdm2D *b)
-{
-    visc = p->W2 + b->eddyv(i,j);
-    
-    if(p->A246==2 && b->breaking(i,j)==1)
-    visc += p->A250;
-    
-    return visc;
 }
 
 void sflow_idiff::bc(lexer *p, fdm2D *b, slice &u)
@@ -124,20 +115,23 @@ void sflow_idiff::diff_u(lexer* p, fdm2D *b, ghostcell *pgc, solver2D *psolv, sl
     
     starttime=pgc->timer();
     
+    // flux form (sflow_diffusion_flux.h), divided by the depth of the cell: h_P du/dt = sum_f (h nu)_f du/dn_f
     n=0;
     SLICELOOP4
     {
-    viscosity(p,b);
-    
-    cxp = 2.0*visc/(p->DXP[IP]*p->DXN[IP]);
-    cxm = 2.0*visc/(p->DXP[IM1]*p->DXN[IP]);
-    cyp = visc/(p->DYP[JP]*p->DYN[JP])*p->y_dir;
-    cym = visc/(p->DYP[JM1]*p->DYN[JP])*p->y_dir;
-    
-    dxy=0.0;
-    if(p->j_dir==1 && p->flagslice4[Ip1Jp1]>0 && p->flagslice4[Ip1Jm1]>0 && p->flagslice4[Im1Jp1]>0 && p->flagslice4[Im1Jm1]>0
-       && p->wet[Ip1Jp1]==1 && p->wet[Ip1Jm1]==1 && p->wet[Im1Jp1]==1 && p->wet[Im1Jm1]==1)
-    dxy = (V(i+1,j+1) - V(i+1,j-1) - V(i-1,j+1) + V(i-1,j-1))/((p->DXP[IP]+p->DXP[IM1])*(p->DYP[JP]+p->DYP[JM1]));
+    cxp=cxm=cyp=cym=dxy=0.0;
+
+        if(p->wet[IJ]==1 && WL(i,j)>0.0)
+        {
+        const double ih = 1.0/WL(i,j);
+
+        cxp = 2.0*sflow_dflux::hnu(p,b,WL,i,j,i+1,j)*ih/(p->DXP[IP]*p->DXN[IP]);
+        cxm = 2.0*sflow_dflux::hnu(p,b,WL,i,j,i-1,j)*ih/(p->DXP[IM1]*p->DXN[IP]);
+        cyp = sflow_dflux::hnu(p,b,WL,i,j,i,j+1)*ih/(p->DYP[JP]*p->DYN[JP])*p->y_dir;
+        cym = sflow_dflux::hnu(p,b,WL,i,j,i,j-1)*ih/(p->DYP[JM1]*p->DYN[JP])*p->y_dir;
+
+        dxy = sflow_dflux::cross(p,b,WL,V,i,j,1)*ih;
+        }
     
 	b->M.p[n] = cxp + cxm + cyp + cym + 1.0/(alpha*p->dt);
     b->M.n[n] = -cxp;
@@ -145,7 +139,7 @@ void sflow_idiff::diff_u(lexer* p, fdm2D *b, ghostcell *pgc, solver2D *psolv, sl
     b->M.w[n] = -cyp;
     b->M.e[n] = -cym;
     
-	b->rhsvec.V[n] = visc*dxy + U(i,j)/(alpha*p->dt);
+	b->rhsvec.V[n] = dxy + U(i,j)/(alpha*p->dt);
     
     f(i,j) = U(i,j);
 	++n;
@@ -181,17 +175,19 @@ void sflow_idiff::diff_v(lexer* p, fdm2D *b, ghostcell *pgc, solver2D *psolv, sl
     n=0;
     SLICELOOP4
     {
-    viscosity(p,b);
-    
-    cxp = visc/(p->DXP[IP]*p->DXN[IP]);
-    cxm = visc/(p->DXP[IM1]*p->DXN[IP]);
-    cyp = 2.0*visc/(p->DYP[JP]*p->DYN[JP]);
-    cym = 2.0*visc/(p->DYP[JM1]*p->DYN[JP]);
-    
-    dxy=0.0;
-    if(p->flagslice4[Ip1Jp1]>0 && p->flagslice4[Ip1Jm1]>0 && p->flagslice4[Im1Jp1]>0 && p->flagslice4[Im1Jm1]>0
-       && p->wet[Ip1Jp1]==1 && p->wet[Ip1Jm1]==1 && p->wet[Im1Jp1]==1 && p->wet[Im1Jm1]==1)
-    dxy = (U(i+1,j+1) - U(i+1,j-1) - U(i-1,j+1) + U(i-1,j-1))/((p->DXP[IP]+p->DXP[IM1])*(p->DYP[JP]+p->DYP[JM1]));
+    cxp=cxm=cyp=cym=dxy=0.0;
+
+        if(p->wet[IJ]==1 && WL(i,j)>0.0)
+        {
+        const double ih = 1.0/WL(i,j);
+
+        cxp = sflow_dflux::hnu(p,b,WL,i,j,i+1,j)*ih/(p->DXP[IP]*p->DXN[IP]);
+        cxm = sflow_dflux::hnu(p,b,WL,i,j,i-1,j)*ih/(p->DXP[IM1]*p->DXN[IP]);
+        cyp = 2.0*sflow_dflux::hnu(p,b,WL,i,j,i,j+1)*ih/(p->DYP[JP]*p->DYN[JP]);
+        cym = 2.0*sflow_dflux::hnu(p,b,WL,i,j,i,j-1)*ih/(p->DYP[JM1]*p->DYN[JP]);
+
+        dxy = sflow_dflux::cross(p,b,WL,U,i,j,2)*ih;
+        }
     
 	b->M.p[n] = cxp + cxm + cyp + cym + 1.0/(alpha*p->dt);
     b->M.n[n] = -cxp;
@@ -199,7 +195,7 @@ void sflow_idiff::diff_v(lexer* p, fdm2D *b, ghostcell *pgc, solver2D *psolv, sl
     b->M.w[n] = -cyp;
     b->M.e[n] = -cym;
     
-	b->rhsvec.V[n] = visc*dxy + V(i,j)/(alpha*p->dt);
+	b->rhsvec.V[n] = dxy + V(i,j)/(alpha*p->dt);
     
     f(i,j) = V(i,j);
 	++n;
@@ -227,12 +223,17 @@ void sflow_idiff::diff_w(lexer* p, fdm2D *b, ghostcell *pgc, solver2D *psolv, sl
     n=0;
     SLICELOOP4
     {
-    viscosity(p,b);
-    
-    cxp = visc/(p->DXP[IP]*p->DXN[IP]);
-    cxm = visc/(p->DXP[IM1]*p->DXN[IP]);
-    cyp = visc/(p->DYP[JP]*p->DYN[JP])*p->y_dir;
-    cym = visc/(p->DYP[JM1]*p->DYN[JP])*p->y_dir;
+    cxp=cxm=cyp=cym=0.0;
+
+        if(p->wet[IJ]==1 && WL(i,j)>0.0)
+        {
+        const double ih = 1.0/WL(i,j);
+
+        cxp = sflow_dflux::hnu(p,b,WL,i,j,i+1,j)*ih/(p->DXP[IP]*p->DXN[IP]);
+        cxm = sflow_dflux::hnu(p,b,WL,i,j,i-1,j)*ih/(p->DXP[IM1]*p->DXN[IP]);
+        cyp = sflow_dflux::hnu(p,b,WL,i,j,i,j+1)*ih/(p->DYP[JP]*p->DYN[JP])*p->y_dir;
+        cym = sflow_dflux::hnu(p,b,WL,i,j,i,j-1)*ih/(p->DYP[JM1]*p->DYN[JP])*p->y_dir;
+        }
     
 	b->M.p[n] = cxp + cxm + cyp + cym + 1.0/(alpha*p->dt);
     b->M.n[n] = -cxp;

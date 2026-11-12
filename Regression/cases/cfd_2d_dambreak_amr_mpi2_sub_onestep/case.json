@@ -1,0 +1,20 @@
+{
+ "base": "cfd_2d_dambreak_amr_mpi2_sub",
+ "np": 2,
+ "steps": 20,
+ "ctrl_set": {
+  "N 40": "5"
+ },
+ "description": "cfd_2d_dambreak_amr_mpi2_sub (one static level on two ranks, subcycling G 7 1) with the one-step scheme (N 40 5) (validation 80).",
+ "tags": [
+  "quick",
+  "2d",
+  "dambreak",
+  "levelset",
+  "amr",
+  "mpi"
+ ],
+ "covers": [
+  "subcycling with N 40 5 on two ranks"
+ ]
+}

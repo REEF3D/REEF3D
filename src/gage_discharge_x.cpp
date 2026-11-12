@@ -68,6 +68,10 @@ void gage_discharge_x::start(lexer *p, fdm *a, ghostcell *pgc)
 {
     double epsi,H;
 
+    // wet area of the cells from phi (the distance to the free surface) only with a free surface (level set
+    // F 30 > 0 or VOF F 80 > 0); in single phase (F 30 0, F 80 0) phi is no distance (1.0 everywhere): full cells
+    const bool fsf = (p->F30>0 || p->F80>0);
+
     for(n=0;n<p->P167;++n)
     q[n]=0.0;
 
@@ -86,15 +90,15 @@ void gage_discharge_x::start(lexer *p, fdm *a, ghostcell *pgc)
         PCHECK
         {
 			area=0.0;
-            if(a->phi(i,j,k)>-0.5*p->DZN[KP]-1.0e-20 && a->topo(i,j,k)>0.0)
+            if((!fsf || a->phi(i,j,k)>-0.5*p->DZN[KP]-1.0e-20) && a->topo(i,j,k)>0.0)
 			{
-            if(a->phi(i,j,k)>=0.5*p->DZN[KP])
+            if(!fsf || a->phi(i,j,k)>=0.5*p->DZN[KP])
             area=p->DYN[JP]*p->DZN[KP];
 
-            if(a->phi(i,j,k)<0.5*p->DZN[KP] && a->phi(i,j,k)>0.0)
+            if(fsf && a->phi(i,j,k)<0.5*p->DZN[KP] && a->phi(i,j,k)>0.0)
             area=p->DYN[JP]*(p->DZN[KP]*0.5 + a->phi(i,j,k));
 			
-			if(a->phi(i,j,k)>=-0.5*p->DZN[KP] -1.0e-20 && a->phi(i,j,k)<=0.0*p->DZN[KP])
+			if(fsf && a->phi(i,j,k)>=-0.5*p->DZN[KP]-1.0e-20 && a->phi(i,j,k)<=0.0*p->DZN[KP])
             area=p->DYN[JP]*(p->DZN[KP]*0.5 - fabs(a->phi(i,j,k)));
 
             q[n]+=area*0.5*(a->u(i,j,k) + a->u(i-1,j,k));

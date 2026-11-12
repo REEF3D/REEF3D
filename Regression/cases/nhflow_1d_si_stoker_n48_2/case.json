@@ -1,0 +1,17 @@
+{
+ "base": "nhflow_1d_si_stoker",
+ "same_as": "nhflow_1d_si_stoker",
+ "ctrl_set": {
+  "N 48": "2"
+ },
+ "description": "as nhflow_1d_si_stoker with N 48 2: the stability step of the grid is an FNPF rule (N 51 2 until November 2026), NHFLOW semi-implicit takes N 48 2 as N 48 1; regression.py ranks: bitwise nhflow_1d_si_stoker (FNPF_time_integration/0005).",
+ "tags": [
+  "1d",
+  "nhflow",
+  "semi_implicit",
+  "quick"
+ ],
+ "covers": [
+  "N 48 2 outside FNPF"
+ ]
+}

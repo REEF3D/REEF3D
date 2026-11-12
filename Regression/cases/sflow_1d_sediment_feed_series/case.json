@@ -1,0 +1,16 @@
+{
+ "base": "sflow_1d_susp_flume",
+ "ctrl_set": {
+  "S 11": "1",
+  "S 35": "1.0",
+  "S 124": "-1.0"
+ },
+ "ctrl_add": [
+  "S 129 2"
+ ],
+ "files": ["sediment-inflow.dat"],
+ "steps": 4000,
+ "description": "sflow_1d_susp_flume with van Rijn bed load (S 11 1) and bed change (S 35 1), and the sediment supply at the inflow from the time series sediment-inflow.dat (S 129 2): no supply for 50 s (the inflow cells erode), a feed of 8e-6 m^2/s bed load and C = 2e-4 from 60 to 120 s (deposition near the inflow), equilibrium after 130 s (qb, C < 0: zero gradient, C_eq).",
+ "tags": ["quick", "1d", "sflow", "sediment", "suspended", "inflow"],
+ "covers": ["sediment_inflow time series S 129 2", "sediment_exner::qb_inflow", "sediment_susp2D::cin with the time series"]
+}

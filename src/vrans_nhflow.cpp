@@ -122,6 +122,7 @@ void vrans_nhflow_f::update(lexer *p, fdm_nhf *d, ghostcell *pgc, double alpha, 
     
     // porosity of the DEM particles (E 28), 1 otherwise
     LOOP
+    if(d->PORDEM!=nullptr)    // REEF3D::DEM (E 10): the porosity of the particles, 1 without (not allocated)
     d->POR[IJK] *= d->PORDEM[IJK];
 
     pgc->start5Vfull(p,d->POR,1);

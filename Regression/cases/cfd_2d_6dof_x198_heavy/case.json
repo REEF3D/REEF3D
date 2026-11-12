@@ -1,0 +1,19 @@
+{
+ "base": "cfd_2d_6dof_fish",
+ "np": 1,
+ "steps": 40,
+ "ctrl_set": {
+  "X 195": null,
+  "X 197": null,
+  "X 21": "1100.0",
+  "X 11": "1 0 0 0 0 0"
+ },
+ "ctrl_add": [
+  "X 198 1 1.0",
+  "X 14 2",
+  "W 20 0.5"
+ ],
+ "description": "the rigid fish of cfd_2d_6dof_fish 10 % heavier than water, accelerated in x by gravity (W 20 0.5), surge only, with the fluid-momentum coupling (X 198) and the low-storage RK3 of the bodies: the load of the body beyond the fluid (M - rho_f V) g with gamma + zeta of each stage (before: gamma alone, 1.68 times the load over the step) and the momentum of the fluid gained in the stage with the ratio of the masses. After 1 s the velocity agrees with the SSP-RK3 stages and with X 197 to 2 % (Fish Swimming validation 06).",
+ "tags": ["quick", "2d", "6dof", "floating", "singlephase"],
+ "covers": ["sixdof_obj_cfd::momentum_loads, low-storage RK3 with rho_b > rho_f"]
+}

@@ -1,0 +1,24 @@
+{
+ "base": "nhflow_3d_curv_dambreak_rot90",
+ "ctrl_set": {
+  "A 520": "0",
+  "A 510": "11",
+  "A 535": "0.5",
+  "A 536": "0.05",
+  "A 519": "1"
+ },
+ "description": "nhflow_3d_curv_dambreak_rot90 hydrostatic with the semi-implicit one-step predictor (A 510 11, theta 0.5): the BCG advection on a curvilinear grid (slopes per index, the normal velocity of the face, the transverse term over the centre distance along the face) and the face depths and omega at t^{n+1/2}. Checked by hand: the same basin on its grid turned by a further 90 deg gives eta and WL per cell index equal to 3.3e-16 m and the turned velocities to 8e-16 m/s after 30 steps.",
+ "steps": 30,
+ "tags": [
+  "quick",
+  "3d",
+  "nhflow",
+  "semi_implicit",
+  "curvilinear"
+ ],
+ "covers": [
+  "nhflow_momentum_SI::advection_bcg on a curvilinear grid",
+  "nh_begin: the BCG face depth along the face normal"
+ ],
+ "architect": "Hans Bihs"
+}

@@ -21,6 +21,7 @@ Authors: Hans Bihs, Tobias Martin
 --------------------------------------------------------------------*/
 
 #include"weno_hj_df_nug.h"
+#include"levelset_band.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"flux_HJ_CDS2.h"
@@ -81,6 +82,15 @@ void weno_hj_df_nug::start(lexer* p, fdm* a, field& b, int ipol, field& uvel, fi
     a->H(i,j,k)+=aij(p,a,b,3,uvel,vvel,wvel,p->DXP,p->DYP,p->DZN);
     }
 
+    // F 48: the level set in its narrow band only (levelset_band.h)
+    if(ipol==4 && levelset_band_active!=nullptr)
+    {
+    const unsigned char *m = levelset_band_active;
+    LOOP
+    if(m[IJK])
+    a->L(i,j,k)+=aij(p,a,b,4,uvel,vvel,wvel,p->DXP,p->DYP,p->DZP);
+    }
+    else
     if(ipol==4)
     LOOP
     a->L(i,j,k)+=aij(p,a,b,4,uvel,vvel,wvel,p->DXP,p->DYP,p->DZP);

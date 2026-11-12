@@ -17,7 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Hans Bihs
+Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
 #ifndef MATRIX_DIAG_H_
@@ -48,6 +48,15 @@ public:
     //  w = j+1, e = j-1. Empty unless the Laplace assembly sizes them; only
     //  REEFMG's Krylov operator reads them.
     std::vector<double> nt,nb,st,sb,wt,wb,et,eb;
+
+    //  Optional couplings of single rows to cells of their own column beyond
+    //  k-1/k+1: row (i,j,k) to (i,j,kc), local indices. The FNPF theta-Robin
+    //  surface rows (A 310 5): the Robin condition eliminated into the top
+    //  Laplace row couples it to the lower nodes of the sz stencil. Empty
+    //  unless that assembly fills them; only REEFMG's Krylov operator reads
+    //  them, the V-cycle preconditions with the 7-point part.
+    struct colcoupling {int i,j,k,kc; double v;};
+    std::vector<colcoupling> xcol;
 };
 
 #endif

@@ -106,8 +106,9 @@ void sixdof_obj_nhflow::initialize_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
     // Initialise global variables
 	update_fbvel(p,pgc);
     
-    // X 15 8: the hull as a sharp thin body (nhflow_hullbody), the thin-body service with it
-    if(p->X15==8 && d->hullbody==nullptr)
+    // X 15 8: the hull as a sharp thin body (nhflow_hullbody), the thin-body service with it; X 15 10: the body as a
+    // solid with cut faces (the same client and service)
+    if((p->X15==8 || p->X15==10) && d->hullbody==nullptr)
     d->hullbody = new nhflow_hullbody(p,d,pgc,this);
 
     // Print initial body (not on a restart from a checkpoint, I 45 1: printed already)

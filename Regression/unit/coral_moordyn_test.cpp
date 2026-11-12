@@ -3,9 +3,11 @@
 // Regression/moordyn/ref/ (written by Regression/moordyn/coral_moordyn_compare --ref); per case the largest
 // difference of every channel (mooring force and moment on the body, end tensions of the lines, positions of
 // the free points, and for a free body its motion) relative to the channel's range must stay below the case's
-// tolerance. Then the MoorDyn-type input options of the dynamic line: BA < 0 (damping ratio), EA_curve
+// tolerance (snap loads: the mean peaks per period). Published and measured results: the Lowe and Langley (2006)
+// jumper (top tension), the chain of Azcona et al. (2017) in the basin of Ecole Centrale de Nantes (static
+// fairlead tension, the dynamic peak against the quasi-static one). The cases marked 'unit' run; any case by name. Then the MoorDyn-type input options of the dynamic line: BA < 0 (damping ratio), EA_curve
 // (stress-strain table), current_profile, outputs (node positions and segment tensions).
-// Build:  g++ -O2 -std=c++20 -I../../ThirdParty/eigen-5.0.0 -DEIGEN_MPL2_ONLY -I../../src
+// Build:  g++ -O2 -DEIGEN_NO_DEBUG -std=c++20 -I../../ThirdParty/eigen-5.0.0 -DEIGEN_MPL2_ONLY -I../../src
 //         coral_moordyn_test.cpp <CORAL objects> -o coral_moordyn_test   (or coral_tests.sh)
 // Run:    ./coral_moordyn_test [case ...]   from Regression/unit
 // Architect: Hans Bihs
@@ -38,7 +40,7 @@ static void test_cases(const std::vector<std::string> &only)
 {
     for(const case_spec &c : cases())
     {
-        if(!only.empty() && std::find(only.begin(), only.end(), c.name)==only.end())
+        if(only.empty() ? !c.unit : std::find(only.begin(), only.end(), c.name)==only.end())
             continue;
         std::cout<<c.name<<": "<<c.title<<std::endl;
         series ref;
@@ -49,14 +51,38 @@ static void test_cases(const std::vector<std::string> &only)
         catch(const std::exception &e) {check(false, std::string("CORAL: ") + e.what()); continue;}
         double worst = 0.0;
         std::string wn;
-        for(const auto &e : compare(ref, s, c.t_cmp))
+        for(const auto &e : c.peaks ? compare_peaks(ref, s, c.t_cmp, c.T) : compare(ref, s, c.t_cmp))
         {
             if(!c.free_body && (e.name=="x" || e.name=="z" || e.name=="pitch"))
                 continue;
             if(e.rel > worst) {worst = e.rel; wn = e.name;}
         }
-        check(worst <= c.tol, fmt("largest difference to MoorDyn %.2f %% of the range", 100.0*worst) + " (" + wn + "), tolerance "
-              + fmt("%.1f %%", 100.0*c.tol));
+        check(worst <= c.tol, fmt(c.peaks ? "largest difference of the mean peaks to MoorDyn %.2f %%" : "largest difference to MoorDyn %.2f %% of the range",
+                                  100.0*worst) + " (" + wn + "), tolerance " + fmt("%.1f %%", 100.0*c.tol));
+        // published or measured results
+        if(!c.ext_ref.empty())
+        {
+            try
+            {
+                const auto ext = read_ext("../moordyn/" + c.ext_ref);
+                double md, rms, tm;
+                compare_ext(s, ext, c.ext_channel, c.ext_scale, c.ext_t0, md, rms, tm);
+                check(md <= c.ext_tol, fmt("against the published solution: largest difference %.3f (at %.1f s), rms %.3f, tolerance %.2f", md, tm, rms, c.ext_tol));
+            }
+            catch(const std::exception &e) {check(false, e.what());}
+        }
+        if(std::isfinite(c.ext_static))
+        {
+            const double v = c.ext_scale*s.rows[0][s.col(c.ext_channel)];
+            check(std::fabs(v/c.ext_static - 1.0) <= c.ext_static_tol,
+                  fmt("static: measured %.4g, CORAL %.4g (%+.2f %%), tolerance %.1f %%", c.ext_static, v, 100.0*(v/c.ext_static - 1.0), 100.0*c.ext_static_tol));
+        }
+        if(c.peaks && std::isfinite(c.ext_peak))
+        {
+            const double v = c.ext_scale*mean_peak(s, c.ext_channel, c.t_cmp, c.T);
+            check(std::fabs(v/c.ext_peak - 1.0) <= c.ext_peak_tol,
+                  fmt("mean peak: published %.4g, CORAL %.4g (%+.1f %%), tolerance %.0f %%", c.ext_peak, v, 100.0*(v/c.ext_peak - 1.0), 100.0*c.ext_peak_tol));
+        }
     }
 }
 

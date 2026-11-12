@@ -59,6 +59,9 @@ reefmg2D::reefmg2D(lexer *p, ghostcell *pgc)
     mg.set_ordering(p->N12==2 ? 1 : 0);
     mg.set_precision(p->N14==32 ? 32 : 64);
     mg.set_agglomeration(p->N15==1 ? 1 : 0);
+    mg.set_device(p->N16);   // N 16, see reefmg.cpp
+    mg.set_device_cycle(p->N17,p->N19);
+    mg.set_device_precision(p->N21);
 
     Mcur=0;
     mg.set_fine_operator(this);
@@ -77,6 +80,9 @@ reefmg2D::reefmg2D(lexer *p, ghostcell *pgc, bool loc)
     mg.set_ordering(p->N12==2 ? 1 : 0);
     mg.set_precision(p->N14==32 ? 32 : 64);
     mg.set_agglomeration(0);
+    mg.set_device(p->N16);   // N 16, see reefmg.cpp
+    mg.set_device_cycle(p->N17,p->N19);
+    mg.set_device_precision(p->N21);
 
     Mcur=0;
     mg.set_fine_operator(this);
@@ -133,6 +139,8 @@ void reefmg2D::topology(lexer *p, ghostcell *pgc)
         cout<<"REEFMG2D periodic boundaries are not supported yet - the halo "
             <<"exchange has no wraparound.  "<<REEFMG2D_ALT<<endl;
 
+        // every rank stops here: the barrier lets rank 0 print before the abort of another rank
+        MPI_Barrier(pgc->mpi_comm);
         MPI_Abort(MPI_COMM_WORLD,-2760);
     }
 
@@ -140,8 +148,10 @@ void reefmg2D::topology(lexer *p, ghostcell *pgc)
     {
         if(p->mpirank==0)
         cout<<"REEFMG2D the grid is decomposed in z ("<<npz<<" ranks) - decompose "
-            <<"in x and y only.  "<<REEFMG2D_ALT<<endl;
+            <<"in x and y only (DIVEMesh M 13 0, the default; M 30 with 1 in z).  "<<REEFMG2D_ALT<<endl;
 
+        // every rank stops here: the barrier lets rank 0 print before the abort of another rank
+        MPI_Barrier(pgc->mpi_comm);
         MPI_Abort(MPI_COMM_WORLD,-2761);
     }
 
@@ -171,6 +181,8 @@ void reefmg2D::topology(lexer *p, ghostcell *pgc)
                 <<"sharing an x position must share knox, and likewise in y.  "
                 <<REEFMG2D_ALT<<endl;
 
+            // every rank stops here: the barrier lets rank 0 print before the abort of another rank
+            MPI_Barrier(pgc->mpi_comm);
             MPI_Abort(MPI_COMM_WORLD,-2762);
         }
     }
@@ -196,6 +208,9 @@ void reefmg2D::topology(lexer *p, ghostcell *pgc)
         if(mg.agglomerated())
         cout<<"REEFMG2D coarse-grid agglomeration: "<<mg.agglomerated_cells()
             <<" cells gathered on every rank"<<endl;
+
+        if(p->N16>0)
+        cout<<"REEFMG2D "<<mg.device_status()<<endl;
     }
 }
 
@@ -269,7 +284,16 @@ void reefmg2D::vcycle(lexer *p, ghostcell *pgc, slice &z, matrix2D &M, vec2D &r,
     z(i,j)=0.0;
 
     bool singular=false;
-    const double ldx=fill(p,pgc,mg,z,M,r,singular);
+    double ldx=0.0;
+
+    if(rebuild || !keep_matrix || !filled || Mcur!=&M)
+    {
+    ldx=fill(p,pgc,mg,z,M,r,singular);
+    filled=true;
+    }
+
+    else
+    fill_rhs(p,pgc,mg,z,M,r);
 
     if(rebuild)
     {
@@ -402,6 +426,7 @@ double reefmg2D::fill(lexer *p, ghostcell *pgc, reefmg_core &core, slice &f, mat
 
     //  pass 2: copy the active rows
     double ldx=0.0, excmax=0.0;
+    arow.clear(); drow.clear(); dq.clear(); dn.clear(); dc.clear();
 
     ILOOP
     JLOOP
@@ -447,6 +472,7 @@ double reefmg2D::fill(lexer *p, ghostcell *pgc, reefmg_core &core, slice &f, mat
             else
             {
                 fv-=c[d]*dhalo[nq[d]];
+                dq.push_back(q); dn.push_back(nq[d]); dc.push_back(c[d]);
                 c[d]=0.0;
             }
         }
@@ -478,6 +504,7 @@ double reefmg2D::fill(lexer *p, ghostcell *pgc, reefmg_core &core, slice &f, mat
         L.u[q]=uv;
         L.act[q]=1;
         nbm[q]=m;
+        arow.push_back(q);
 
         if(uv!=uv || fv!=fv)
         err=1;
@@ -495,6 +522,57 @@ double reefmg2D::fill(lexer *p, ghostcell *pgc, reefmg_core &core, slice &f, mat
     singular=(excmax<1.0e-10);
 
     return ldx;
+}
+
+//  the right-hand side of the matrix of the last fill(): the same values as fill() for an unchanged matrix
+void reefmg2D::fill_rhs(lexer *p, ghostcell *pgc, reefmg_core &core, slice &f, matrix2D &M, vec2D &rhs)
+{
+    sc_level &L=core.fine();
+
+    std::fill(L.u.begin(),L.u.end(),0.0); std::fill(L.f.begin(),L.f.end(),0.0);
+
+    int err=0;
+
+    if(drow.empty())
+    {
+    ILOOP
+    JLOOP
+    if(dflag[L.idx(i,j,0)])
+    drow.push_back((long)i*p->knoy + j);
+    drow.push_back(-1);     // the list is built
+    }
+
+    for(long ij : drow)
+    {
+        if(ij<0)
+        break;
+
+        i=(int)(ij/p->knoy); j=(int)(ij%p->knoy);
+        const long q=L.idx(i,j,0);
+        const int r=cval[IJ];
+        const double v=rhs.V[r]/M.p[r];
+        dval[q]=dhalo[q]=v;
+
+        if(v!=v)
+        err=1;
+    }
+
+    core.halo_vec(L,dhalo);
+
+    for(long q : arow)
+    {
+        const double fv=rhs.V[rowmap[q]];
+        L.f[q]=fv;
+
+        if(fv!=fv)
+        err=1;
+    }
+
+    for(size_t k=0; k<dq.size(); ++k)
+    L.f[dq[k]]-=dc[k]*dhalo[dn[k]];
+
+    if(err)
+    p->solver_error=1;
 }
 
 void reefmg2D::fillback(lexer *p, reefmg_core &core, slice &f)

@@ -1,0 +1,18 @@
+{
+ "base": "seastate_2d_phase14_windsea",
+ "ctrl_set": {
+  "A 732": "3"
+ },
+ "ctrl_add": [
+  "A 769 1"
+ ],
+ "description": "seastate_2d_phase14_windsea with A 732 3 (ST4) and the limiter of Hersbach and Janssen (A 769 1, Phase 25), f_ref = max(f_m, f_m,ws) of the ST4 terms as ecWAM. Validation in Dropbox SEASTATE/validation/78_limiter.",
+ "tags": [
+  "quick",
+  "2d",
+  "seastate"
+ ],
+ "covers": [
+  "seastate_source: the limiter of Hersbach and Janssen (A 769 1), ST4"
+ ]
+}

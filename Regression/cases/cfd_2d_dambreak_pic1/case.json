@@ -1,0 +1,24 @@
+{
+ "base": "cfd_2d_dambreak",
+ "ctrl_set": {
+  "F 81": "1",
+  "F 87": "0.02",
+  "P 18": "1"
+ },
+ "tags": [
+  "quick",
+  "2d",
+  "dambreak",
+  "pic"
+ ],
+ "description": "as cfd_2d_dambreak with the free surface and the momentum of the water from the PIC particles, single phase (F 81 1, since patch 0009; before: phase 1, the momentum Eulerian): APIC velocities to the faces next to the water, no air in the momentum, p = 0 at the free surface by the ghost fluid method, the velocity of the water extended into the air after each projection, spray more than 2 cells away from the water ballistic",
+ "covers": [
+  "pic_gfm: the Poisson matrix and the gradients of the ghost fluid method (poisson_pcorr, pjm_corr)",
+  "pic_f_extend: air_velocity, the extension next to the water",
+  "pic_f_flip: step_begin and g2p of the single phase",
+  "pic_f_phi: water fraction, table of the flat surface, band, redistance; density and viscosity of the water",
+  "pic_f_reseed",
+  "momentum_rk without convection (F 81 1)"
+ ],
+ "architect": "Hans Bihs"
+}

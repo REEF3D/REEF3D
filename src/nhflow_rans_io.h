@@ -40,7 +40,7 @@ public:
     nhflow_rans_io(lexer*,fdm_nhf*);
 	virtual ~nhflow_rans_io();
     
-    void print_2D(lexer*, fdm_nhf*, ghostcell*,ofstream&,int) override final;
+    void print_2D(lexer*, fdm_nhf*, ghostcell*,std::ostream&,int) override final;
     void print_3D(lexer*, fdm_nhf*, ghostcell*, std::vector<char>&, size_t&) override final;
     void ini(lexer*, fdm_nhf*, ghostcell*) override final;
     void inflow(lexer*, fdm_nhf*, ghostcell*);
@@ -60,7 +60,7 @@ public:
     void offset_ParaView(lexer*, int*, int &) override final;
     
     void name_pvtp(lexer*, fdm_nhf*, ghostcell*,ofstream&) override final;
-    void name_vtp(lexer*, fdm_nhf*, ghostcell*,ofstream&, int*, int &) override final;
+    void name_vtp(lexer*, fdm_nhf*, ghostcell*,std::ostream &, int*, int &) override final;
     void offset_ParaView_2D(lexer*, int*, int &) override final;
     
     void ckpt_fields(const std::function<void(const char*, char, double*)> &fd, const std::function<void(const char*, char, int*)> &fi) override
@@ -74,6 +74,8 @@ public:
     
     void wetting_ini(lexer*, fdm_nhf*, double*, double*, bool);
     void length_limit(lexer*, fdm_nhf*, bool);
+    void strat_kmin(lexer*);                // A 623: k >= A 626 k_min
+    void strat_limit(lexer*, fdm_nhf*);     // A 623: Galperin length limit l <= c_lim sqrt(2k)/N (epsilon)
     
     // SST/Bradshaw limiter (A 564 2), shared by k-epsilon and k-omega
     void walldist_h(lexer*, fdm_nhf*, ghostcell*);

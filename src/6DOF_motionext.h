@@ -49,7 +49,12 @@ public:
     virtual void ckpt_state(std::vector<double>&) const {}
     virtual void ckpt_restore(const std::vector<double>&, size_t&) {}
 
+    // DOF modes of the body (X 11, X 111 for single bodies): 2 is prescribed by this motion
+    void set_dof(const int *d) { for(int n=0; n<6; ++n) dof[n]=d[n]; }
+
 protected:
+    int dof[6] = {1,1,1,1,1,1};
+
     inline std::vector<std::vector<double>> readTable(const std::string& path, size_t M) {
         std::ifstream file(path);
         if (!file) {

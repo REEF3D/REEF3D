@@ -39,6 +39,16 @@ static inline double ediff_nb(lexer *p, const double *f, int c, int n)
     return f[n];
 }
 
+// the bed neighbour (k-1) of u and v: A 518 2 resolved no-slip bed, u = 0 on the bed face (ghost -u of the cell,
+// whatever A 513); A 518 1 the mirrored ghost (zero gradient), as ediff_nb
+static inline double ediff_nb_bed(lexer *p, const double *f, int c, int n)
+{
+    if(p->A518==2 && p->flag4[n]<0)
+    return -f[c];
+    
+    return ediff_nb(p,f,c,n);
+}
+
 nhflow_ediff::nhflow_ediff(lexer* p)
 {
 	gcval_u=10;
@@ -89,7 +99,7 @@ void nhflow_ediff::diff_u(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow, s
     const double fc = UH[IJK];
     const double fim = ediff_nb(p,UH,IJK,Im1JK), fip = ediff_nb(p,UH,IJK,Ip1JK);
     const double fjm = ediff_nb(p,UH,IJK,IJm1K), fjp = ediff_nb(p,UH,IJK,IJp1K);
-    const double fkm = ediff_nb(p,UH,IJK,IJKm1), fkp = ediff_nb(p,UH,IJK,IJKp1);
+    const double fkm = ediff_nb_bed(p,UH,IJK,IJKm1), fkp = ediff_nb(p,UH,IJK,IJKp1);
 
     d->F[IJK] += 2.0*visch*((fip-fc)/p->DXP[IP] - (fc-fim)/p->DXP[IM1])/p->DXN[IP]
 
@@ -144,7 +154,7 @@ void nhflow_ediff::diff_v(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow, s
     const double fc = VH[IJK];
     const double fim = ediff_nb(p,VH,IJK,Im1JK), fip = ediff_nb(p,VH,IJK,Ip1JK);
     const double fjm = ediff_nb(p,VH,IJK,IJm1K), fjp = ediff_nb(p,VH,IJK,IJp1K);
-    const double fkm = ediff_nb(p,VH,IJK,IJKm1), fkp = ediff_nb(p,VH,IJK,IJKp1);
+    const double fkm = ediff_nb_bed(p,VH,IJK,IJKm1), fkp = ediff_nb(p,VH,IJK,IJKp1);
 
     d->G[IJK] += visch*((fip-fc)/p->DXP[IP] - (fc-fim)/p->DXP[IM1])/p->DXN[IP]
 

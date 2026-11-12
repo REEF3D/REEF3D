@@ -82,6 +82,7 @@ void seastate_f::ini_common(lexer *p, ghostcell *pgc, bool coupled_)
 {
     coupled = coupled_;
     restart = (!coupled && p->I45==1);
+    g1 = (coupled && !remote) ? 0 : p->G1;
 
     check_keys(p,pgc);
 
@@ -143,6 +144,9 @@ void seastate_f::ini_common(lexer *p, ghostcell *pgc, bool coupled_)
     // sweep are corrected (energy conservation across rank borders); surfbeat: always 2 (the
     // second-order correction is lagged, results independent of the decomposition)
     iter_max = p->A707>0 ? p->A707 : (p->A700==2 ? 50 : ((p->M10>1 || p->A770==1) ? 2 : 1));
+    // Phase 27: nonstationary with A 779, the iterations of a step until Hs settles, at most A 707 (default 10)
+    if(p->A700==1 && p->A779>0.0)
+    iter_max = p->A707>0 ? p->A707 : 10;
 
     // surfbeat with second-order advection (A 775 2): 2 halo layers
     const bool second = (p->A770==1 && p->A775==2);
@@ -162,6 +166,8 @@ void seastate_f::ini_common(lexer *p, ghostcell *pgc, bool coupled_)
 
     if(p->A700==2)
     psolv->source_iterations(p->A738,p->A739);
+    psolv->source_once(p->A767==1);
+    psolv->lagging(seastate_implicit::lag_wanted(p->A700,p->A730,p->A732,p->A768,p->A770),p);
 
     if(sb!=nullptr)
     psolv->boundary_rows(&Nbx,&Nbx0);
@@ -206,7 +212,7 @@ void seastate_f::ini_common(lexer *p, ghostcell *pgc, bool coupled_)
     dfT = new slice4(p);
     dfK = new slice4(p);
     dfC = new slice4(p);
-    if(p->G1>0)
+    if(g1>0)
     dfE = new slice4(p);
     psolv->diffraction(dca,dcax,dcay);
     }
@@ -245,10 +251,10 @@ void seastate_f::ini_common(lexer *p, ghostcell *pgc, bool coupled_)
 
     // Phase 14: the sweeps pipelined across the ranks (A 781 1) on a grid without refinement: the result of one rank,
     // so nonstationary one iteration per step as on one rank (unless A 707, FAS or surfbeat)
-    if(p->A781==1 && p->M10>1 && p->G1<1 && !second)
+    if(p->A781==1 && p->M10>1 && g1<1 && !second)
     {
     kba = psolv->pipeline(p,pgc);
-    if(kba && p->A700==1 && p->A707<=0 && p->A758_n<=0 && p->A770!=1)
+    if(kba && p->A700==1 && p->A707<=0 && p->A779<=0.0 && p->A758_n<=0 && p->A770!=1)
     {
     iter_max = 1;
     delete N0;
@@ -259,8 +265,12 @@ void seastate_f::ini_common(lexer *p, ghostcell *pgc, bool coupled_)
             <<(kba ? ": the result of one rank; tiles of "+std::to_string(psolv->pipeline_tile(0))+" x "+std::to_string(psolv->pipeline_tile(1))+" cells" : ": not possible, the ranks are not aligned; each rank from the halo of the last exchange")<<endl;
     }
 
+    // Phase 26: the transported age of the GSE closure (A 776 3)
+    if(p->A776==3)
+    age_ini(p,pgc);
+
     // Phase 12: FAS on a uniform grid (A 758 without mesh refinement): a V-cycle over coarse grids of 2 x 2 cells
-    if(p->A758_n>0 && p->G1<1)
+    if(p->A758_n>0 && g1<1)
     {
     const std::vector<float> *s[4] = {&Nside[0],&Nside[1],&Nside[2],&Nside[3]};
     pfas = new seastate_fas2(p,pgc,e,psolv,pex,psrc,bser!=nullptr ? s : nullptr,wmet!=nullptr ? wU10 : nullptr,
@@ -275,7 +285,7 @@ void seastate_f::ini_common(lexer *p, ghostcell *pgc, bool coupled_)
     }
 
     // mesh refinement (G 1): static hierarchy of patches
-    if(p->G1>0)
+    if(g1>0)
     {
     pamr = new seastate_amr(p,pgc);
     seastate_amr::level0 l0 = {e,psolv,pex,psrc,N0,bathy,wmet,tref,pobs,vegr};
@@ -347,6 +357,11 @@ void seastate_f::ini_common(lexer *p, ghostcell *pgc, bool coupled_)
     spcout_ini(p,pgc);
     spcout(p,pgc,!restart);
     }
+
+    // online collocation (A 787 1); a restart after the checkpoint is read (seastate_f::start: the model time of the
+    // checkpoint)
+    if(p->A787==1 && !restart)
+    colloc_ini(p,pgc);
 }
 
 void seastate_f::check_keys(lexer *p, ghostcell *pgc)
@@ -367,6 +382,16 @@ void seastate_f::check_keys(lexer *p, ghostcell *pgc)
     msg = "A 708: the convergence criterion must be positive";
     else if(p->A710!=0 && p->A710!=1)
     msg = "A 710: initial spectrum must be 0 (zero) or 1 (parametric)";
+    else if(p->A727_x1>=p->A727_x0 && (p->A710!=1 || !(p->A727_y1>=p->A727_y0)))
+    msg = "A 727: the box of the initial spectrum needs A 710 1 and y1 >= y0";
+    else if(p->A776<0 || p->A776>3 || (p->A776==1 && !(p->A777>0.0)) || (p->A776==3 && !(p->A777>=0.0)) || (p->A776>0 && p->A778<1))
+    msg = "A 776: the GSE closure must be 0, 1 (with the age A 777 > 0), 2 or 3 (the transported age, A 777 >= 0 the age of the initial and boundary spectra), with A 778 >= 1 iterations";
+    else if(p->A776==3 && (restart || p->A770==1 || p->A795>0.0))
+    msg = "A 776 3: the transported age is not in the checkpoints (no restart I 45 1), not with the surfbeat model (A 770 1) or the spectral sparsity (A 795)";
+    else if(p->A779<0.0 || (p->A779>0.0 && (p->A700!=1 || g1>0 || p->A770==1 || p->A707==1)))
+    msg = "A 779: the convergence within a nonstationary step must be >= 0; it is for nonstationary runs (A 700 1) without refinement or the surfbeat model, with A 707 >= 2 (the most iterations) or 0 (10)";
+    else if(p->A776>0 && (p->A700!=1 || g1>0 || coupled))
+    msg = "A 776: the GSE closure is for nonstationary stand-alone runs on uniform grids (no refinement)";
     else if(p->A711<0 || p->A711>3)
     msg = "A 711: boundary spectrum must be 0 (none), 1 (parametric), 2 (SWAN spectrum file) or 3 (time series of spectra at many locations)";
     else if(p->A712_xm<0 || p->A712_xm>2 || p->A712_xp<0 || p->A712_xp>2 || p->A712_ym<0 || p->A712_ym>2 || p->A712_yp<0 || p->A712_yp>2)
@@ -393,14 +418,18 @@ void seastate_f::check_keys(lexer *p, ghostcell *pgc)
     else if(p->A730==1 && !(p->A731_u10>=0.0))
     msg = "A 731: the wind speed must not be negative";
     else if(p->A730>=1 && p->A732<1)
-    msg = "A 730: wind input needs the deep-water physics A 732 1 (Komen) or 2 (van der Westhuysen)";
-    else if(p->A732<0 || p->A732>2)
-    msg = "A 732: deep-water physics must be 0 (off), 1 (Komen) or 2 (van der Westhuysen et al. 2007, SWAN GEN3 WESTH)";
+    msg = "A 730: wind input needs the deep-water physics A 732 1 (Komen), 2 (van der Westhuysen), 3 (Ardhuin et al. 2010) or 4 (Janssen and Bidlot 2023)";
+    else if(p->A732<0 || p->A732>4)
+    msg = "A 732: deep-water physics must be 0 (off), 1 (Komen), 2 (van der Westhuysen et al. 2007, SWAN GEN3 WESTH), 3 (Ardhuin et al. 2010, ecWAM IPHYS 1) or 4 (Janssen and Bidlot 2023 input with the Ardhuin dissipation, ecWAM operational)";
+    else if(p->A732>=3 && (!(p->A763>=0.0) || p->A764>=1.0 || (p->A765!=0 && p->A765!=1) || (p->A766!=0 && p->A766!=1)))
+    msg = "A 763-766: beta_max must not be negative (0: the default), the sheltering below 1 (negative: the default), the tail and the swell damping 0 or 1";
+    else if(p->A732>=3 && (p->A716_w>0.0 || p->A715_k>1))
+    msg = "A 732 3, 4: the saturation of the Ardhuin whitecapping needs uniform directions (no A 715, A 716)";
     else if(p->A758_n<0 || p->A758_m<0)
     msg = "A 758: the FAS period and the coarse iterations must not be negative";
-    else if(p->A758_n>0 && p->G1<1 && (p->A718>=1 || p->A754>0))
+    else if(p->A758_n>0 && g1<1 && (p->A718>=1 || p->A754>0))
     msg = "A 758: the FAS coarse grid of a uniform grid (no G 1) is not available with diffraction (A 718) or vegetation (A 754)";
-    else if(p->A758_n>0 && p->G1<1 && coupled)
+    else if(p->A758_n>0 && g1<1 && coupled)
     msg = "A 758: the FAS coarse grid of a uniform grid (no G 1) is not available in a coupled run";
     else if(p->A758_n>0 && p->A700==1 && (p->A707>0 ? p->A707 : (p->M10>1 ? 2 : 1))<2)
     msg = "A 758: nonstationary, the FAS coarse-grid correction needs at least 2 iterations per step (A 707), a fine iteration after each correction";
@@ -414,6 +443,20 @@ void seastate_f::check_keys(lexer *p, ghostcell *pgc)
     msg = "A 734: the linear growth coefficient must not be negative";
     else if(!(p->A735>=0.0))
     msg = "A 735: the limiter coefficient must not be negative";
+    else if(p->A769<0 || p->A769>2)
+    msg = "A 769: the source-term limiter must be 0 (SWAN), 1 (Hersbach and Janssen) or 2 (none: the conservative DIA and the linearised whitecapping)";
+    else if(p->A769==2 && (p->A732<1 || p->A732>2 || p->A733!=1))
+    msg = "A 769 2: the limiter-free integration is for the Komen and van der Westhuysen physics with the DIA (A 732 1, 2; A 733 1)";
+    else if(p->A769==2 && p->A700!=1)
+    msg = "A 769 2: the limiter-free integration needs a nonstationary run (A 700 1); stationary runs keep the limiter";
+    else if(p->A769==2 && (p->A795>0.0 || p->A767==1))
+    msg = "A 769 2: not with the spectral sparsity (A 795) or the source terms once per iteration (A 767 1)";
+    else if(p->A769==2 && (p->A716_w>0.0 || p->A715_k>1))
+    msg = "A 769 2: not with the non-uniform direction grids (A 715, A 716)";
+    else if(p->A769==1 && p->A700!=1)
+    msg = "A 769 1: the limiter of Hersbach and Janssen bounds the change per time step; it needs a nonstationary run (A 700 1)";
+    else if(p->A769==1 && coupled && !remote)
+    msg = "A 769 1: the limiter of Hersbach and Janssen takes the time step A 706; not with the time step of a coupled host";
     else if(p->A740!=0 && p->A740!=1 && p->A740!=2)
     msg = "A 740: depth-induced breaking must be 0 (off), 1 (Battjes-Janssen) or 2 (Roelvink, surfbeat)";
     else if(p->A740==2 && p->A770!=1)
@@ -466,13 +509,13 @@ void seastate_f::check_keys(lexer *p, ghostcell *pgc)
     msg = "A 790: the bathymetry raster must be 0 (off) or 1 (seastate-bathy.dat)";
     else if(p->A790==1 && coupled && !remote)
     msg = "A 790 1: the bathymetry raster is for stand-alone runs (A 10 7); a host model sets the bed";
-    else if(p->G1>0 && coupled)
-    msg = "G 1: mesh refinement of SEASTATE is for stand-alone runs (A 10 7), not with the coupling (A 750)";
-    else if(p->G1>0 && p->A770==1)
+    else if(g1>0 && coupled)
+    msg = "G 1: mesh refinement of SEASTATE is for stand-alone runs (A 10 7), not for the remote waves (A 750 2; in-process, A 750 1, G 1 refines the host, the waves run on its level 0)";
+    else if(g1>0 && p->A770==1)
     msg = "G 1: mesh refinement is not available with the surfbeat model (A 770 1)";
-    else if(p->G1>0 && p->G40!=0)
+    else if(g1>0 && p->G40!=0)
     msg = "G 40: SEASTATE patches are cut at the rank boxes (G 40 0)";
-    else if(p->G1>0 && (p->G4<4 || p->G4%2!=0))
+    else if(g1>0 && (p->G4<4 || p->G4%2!=0))
     msg = "G 4: the tile size must be even and at least 4";
     else if(p->A791<0.0 || p->A792<0 || p->A792>3 || p->A793<0.0 || p->A794<0 || p->A762<0)
     msg = "A 791-794, A 762: the refinement criteria must not be negative (A 792 at most 3)";
@@ -526,6 +569,14 @@ void seastate_f::check_keys(lexer *p, ghostcell *pgc)
     msg = "A 738, A 739: at least one source iteration, the tolerance must not be negative";
     else if(p->A798<1)
     msg = "A 798: at least one thread per rank";
+    else if(p->A767!=0 && p->A767!=1)
+    msg = "A 767: the source terms once per iteration must be 0 (off) or 1 (on)";
+    else if(p->A787!=0 && p->A787!=1)
+    msg = "A 787: the online collocation must be 0 (off) or 1 (seastate-collocation.csv)";
+    else if(p->A789<0.0)
+    msg = "A 789: the interval of the collocation summary must not be negative (0: at the end only)";
+    else if(p->A768!=0 && p->A768!=1)
+    msg = "A 768: u* of A 732 3 and 4 must be 0 (the fixed point in every evaluation) or 1 (from the wave stress of the last time step, ecWAM)";
     else if(p->A799!=0 && p->A799!=1)
     msg = "A 799: the convergence test must be 0 (change per iteration) or 1 (estimated distance to the solution)";
     else if(p->A718<0 || p->A718>2)
@@ -780,12 +831,17 @@ void seastate_f::storage(lexer *p, ghostcell *pgc)
     cout<<"SEASTATE mode: surfbeat, nonstationary, time step "<<(coupled ? "of the host" : "A 706")<<", refraction "<<p->A713<<", no frequency shift"<<endl;
     else
     cout<<"SEASTATE mode: "<<(p->A700==2 ? "stationary" : "nonstationary")<<", time step "<<p->A706<<" s, refraction "<<p->A713<<", frequency shift "<<p->A714<<endl;
-    if(p->A795>0.0 || p->A796==2 || (p->A797==1 && p->G1>0))
+    if(p->A700==1 && p->A779>0.0)
+    cout<<"SEASTATE iterations of a step (A 779): until the largest relative change of Hs is below "<<fmt(p->A779)<<", at most "<<(p->A707>0 ? p->A707 : 10)<<" (A 707)"<<endl;
+    if(p->A776>0)
+    cout<<"SEASTATE GSE closure (A 776 "<<p->A776<<"): the flux inside a bin as a diffusion D = t_a Sigma over each step, t_a "
+        <<(p->A776==2 ? std::string("the model time") : p->A776==3 ? std::string("transported per bin, reset in the wind sea (1.7 U10 cos > c), initial and boundary age ")+std::to_string(p->A777)+" s" : std::to_string(p->A777)+" s")<<", "<<p->A778<<" Gauss-Seidel iterations (A 778)"<<endl;
+    if(p->A795>0.0 || p->A796==2 || (p->A797==1 && g1>0))
     {
     cout<<"SEASTATE solver:";
     if(p->A795>0.0) cout<<" spectral sparsity (A 795, threshold "<<scientific<<setprecision(1)<<p->A795<<defaultfloat<<setprecision(6)<<" of the cell energy per bin)";
     if(p->A796==2) cout<<(p->A795>0.0 ? "," : "")<<" second-order geographic advection (A 796 2)";
-    if(p->A797==1 && p->G1>0) cout<<(p->A795>0.0 || p->A796==2 ? "," : "")<<" composite sweep across the refinement levels (A 797 1)";
+    if(p->A797==1 && g1>0) cout<<(p->A795>0.0 || p->A796==2 ? "," : "")<<" composite sweep across the refinement levels (A 797 1)";
     cout<<endl;
     }
     if(p->A798>1 || (p->A700==2 && (p->A738>1 || p->A799==1)))
@@ -796,11 +852,21 @@ void seastate_f::storage(lexer *p, ghostcell *pgc)
     if(p->A700==2 && p->A799==1) cout<<(p->A798>1 || p->A738>1 ? "," : "")<<" convergence test on the estimated distance to the solution (A 799 1)";
     cout<<endl;
     }
+    if(p->A767==1)
+    {
+    const bool ws = (p->A730==1 || p->A730==2 || (p->A732>=1 && p->A733==1));
+    cout<<"SEASTATE solver (Phase 21b): the source terms of a cell once per iteration (A 767 1)";
+    if(ws) cout<<", evaluated in the sweep of the first quadrant and kept for the others (floats, the bins of the other quadrants per wet cell)";
+    else cout<<", not used: no wind input or DIA";
+    if(p->A770==1) cout<<", not with surfbeat";
+    if(p->A797==1 && g1>0) cout<<", not in the composite sweep (A 797 1)";
+    cout<<endl;
+    }
     if(p->A718>=1)
     {
     cout<<"SEASTATE solver (Phase 6):";
     cout<<" diffraction"<<(p->A718==1 ? " (total energy, as SWAN)" : " (per frequency)")<<", smoothing "<<(p->A719>0 ? std::to_string(p->A719)+" steps" : std::string("from the wavelength"))<<" (A 718, A 719)";
-    if(p->G1>0) cout<<", on every refinement level";
+    if(g1>0) cout<<", on every refinement level";
     cout<<endl;
     }
     if(p->A720==1)
@@ -868,10 +934,33 @@ void seastate_f::sources(lexer *p, ghostcell *pgc)
 
     sp.komen = (p->A732>=1);
     sp.westh = (p->A732==2);
+    sp.st4   = (p->A732==3 || p->A732==4);
+    if(p->A732==4)
+    sp.st4p = seastate_st4_param::jb2023();
+    if(p->A763>0.0)
+    sp.st4p.betamax = p->A763;
+    if(p->A764>=0.0)
+    sp.st4p.tauwshelter = p->A764;
+    sp.st4p.tail = (p->A765==1);
+    sp.st4p.swell = (p->A766==1);
     sp.cds2  = p->A757_cds2;
     sp.br    = p->A757_br;
     sp.dia   = (p->A732>=1 && p->A733==1);
     sp.limiter = p->A735;
+    sp.limiter_type = (p->A769==1) ? 1 : 0;
+    sp.limiter_dt = p->A706;
+    // A 769 2 (Phase 25): no limiter; the DIA as a conservative production-destruction system (two passes per solve of a
+    // cell, seastate_implicit::cell), the whitecapping linearised with its degree in N
+    if(p->A769==2)
+    {
+    sp.limiter = 0.0;
+    sp.dia_mp = true;
+    sp.wc_newton = true;
+    // the upper bound of ecWAM (FLMAX, alpha_p,max 0.031): with van der Westhuysen it holds the Yan input at the high
+    // frequencies (Phase 25, 0059); with Komen too (Phase 26, 0061): without it a field run diverges after 1 h at
+    // 900 s, from rest, the input of the high frequencies explicit and the whitecapping still weak (validation 81)
+    sp.flmax = 0.031;
+    }
 
     sp.breaking = (p->A740==1 || p->A740==2);
     sp.breaking_model = (p->A740==2) ? 2 : 1;
@@ -905,18 +994,26 @@ void seastate_f::sources(lexer *p, ghostcell *pgc)
     {
     cout<<"SEASTATE source terms:";
     if(sp.wind && p->A730==1)
-    cout<<" wind U10 "<<sp.U10<<" m/s to "<<p->A731_dir<<" deg ("<<(sp.westh ? "Yan" : "Komen")<<", linear growth "<<sp.Alin<<"),";
+    cout<<" wind U10 "<<sp.U10<<" m/s to "<<p->A731_dir<<" deg ("<<(sp.st4 ? (sp.st4p.gc ? "Janssen-Bidlot" : "Ardhuin") : (sp.westh ? "Yan" : "Komen"))<<", linear growth "<<sp.Alin<<"),";
     if(sp.wind && p->A730==2)
-    cout<<" wind field of the met forcing W 200 "<<p->W200<<" ("<<(sp.westh ? "Yan" : "Komen")<<", linear growth "<<sp.Alin<<"),";
-    if(sp.wind && sp.drag>0)
+    cout<<" wind field of the met forcing W 200 "<<p->W200<<" ("<<(sp.st4 ? (sp.st4p.gc ? "Janssen-Bidlot" : "Ardhuin") : (sp.westh ? "Yan" : "Komen"))<<", linear growth "<<sp.Alin<<"),";
+    if(sp.wind && sp.drag>0 && !sp.st4)
     cout<<" drag of u* the met law "<<sp.drag<<(p->A729==2 ? " (A 729 2, A 728)," : " (A 729 1, W 207),");
-    if(sp.komen && !sp.westh)
+    if(sp.komen && !sp.westh && !sp.st4)
     cout<<" whitecapping (Komen),";
     if(sp.westh)
     cout<<" whitecapping (van der Westhuysen, cds2 "<<sp.cds2<<", br "<<sp.br<<"),";
+    if(sp.st4)
+    cout<<(sp.st4p.gc ? " Janssen and Bidlot 2023 (ecWAM IPHYS 1 with LLGCBZ0, LLNORMAGAM: gravity-capillary roughness, renormalised growth rate," : " Ardhuin et al. 2010 (ecWAM IPHYS 1:")<<" beta_max "<<sp.st4p.betamax<<", sheltering "<<sp.st4p.tauwshelter<<", swell damping "
+        <<(sp.st4p.swell ? "on" : "off")<<", saturation whitecapping, diagnostic tail "<<(sp.st4p.tail ? "on" : "off")
+        <<(sp.wind ? (seastate_implicit::lag_wanted(p->A700,p->A730,p->A732,p->A768,p->A770) ? ", u* from the wave stress of the last time step as ecWAM (A 768 1)" : ", u* from the fixed point with the wave stress in every evaluation") : "")<<"),";
     if(sp.dia)
     cout<<" quadruplets (DIA),";
-    if(sp.komen)
+    if(sp.dia_mp)
+    cout<<" no limiter: the DIA conservative in action (modified Patankar, two passes), the whitecapping linearised"<<(sp.flmax>0.0 ? ", the upper bound FLMAX (alpha 0.031)" : "")<<" (A 769 2),";
+    else if(sp.komen && sp.limiter>0.0 && sp.limiter_type==1)
+    cout<<" limiter of Hersbach and Janssen (A 769 1, dt "<<sp.limiter_dt<<" s),";
+    else if(sp.komen)
     cout<<" action density limiter "<<sp.limiter<<",";
     if(sp.breaking && sp.breaking_model==1)
     cout<<" breaking (Battjes-Janssen, alpha "<<sp.alpha<<", gamma "<<sp.gamma<<"),";

@@ -12,6 +12,8 @@
 #             incremental with a cache in build/release/lto-cache), LTO=full the previous full LTO
 #             (single-threaded link); GCC -flto=auto
 #   OMP=0     no OpenMP threads for the FEM solid (Z 30); OMP=auto (default) turns them on when available
+#   The REEFMG preconditioner on the Apple Silicon GPU (N 16 1, src/reefmg_device_metal.cpp) is part of
+#   every macOS build: nothing to switch on, no framework to link (Metal is loaded at run time)
 HYPRE        ?= 0
 PCH          ?= 1
 LTO          ?= 1
@@ -56,6 +58,11 @@ SRC          += $(shell find src/coral -name '*.cpp' -not -path 'src/coral/app/*
 INCLUDE      += -I src
 # zlib: the LAGOON store output (P 18) compresses its chunks with gzip, in a thread
 LDFLAGS      += -lz -pthread
+# dlopen of user PTO controllers (CORAL pto ... user <library>): libdl on Linux, in libSystem on macOS
+ifeq ($(shell uname -s),Linux)
+DL_LIBS      := -ldl
+endif
+LDFLAGS      += $(DL_LIBS)
 
 # ── compiler flags per configuration ─────────────────────────────────────────
 ifeq ($(CONFIG),release)
@@ -199,7 +206,7 @@ coral: $(CORAL_APP)
 
 $(CORAL_APP): $(CORAL_OBJECTS)
 	@mkdir -p $(@D)
-	$(CXX) $(CXXFLAGS) -o $@ $^ $(OMPLIBS)
+	$(CXX) $(CXXFLAGS) -o $@ $^ $(OMPLIBS) $(DL_LIBS)
 
 ifeq ($(CONFIG),coral)
 -include $(CORAL_OBJECTS:.o=.d)

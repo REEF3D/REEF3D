@@ -17,15 +17,19 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Hans Bihs
+Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include "reefmg_core.h"
+#include "reefmg_device.h"
 
 #include <cmath>
 #include <cstdio>
+#include <cstdlib>
 #include <cstring>
 #include <algorithm>
+#include <chrono>
+#include <unistd.h>
 
 namespace
 {
@@ -112,6 +116,24 @@ reefmg_core::reefmg_core()
     agg_cycles=1;
     agg_cells=0;
     nuse=0;
+    devn=0;
+    devkind=0;
+    devkry=false;
+    kryon=false;
+    devktol=1.0e-3;
+    devkmax=20;
+    devkit=devksolves=0;
+    devmode=false;
+    dev=0;
+    devwin=MPI_WIN_NULL;
+    dev0=0;
+    dev0copy=false;
+    devgx=devgy=devox=devoy=devnlev=0;
+    devcycles=devsweeps=0;
+    devprec=0;
+    pctime=0.0;
+    pccount=0;
+    for(int m=0;m<4;++m) devt[m]=0.0;
     errmsg[0]='\0';
 }
 
@@ -123,6 +145,11 @@ reefmg_core::~reefmg_core()
     int fin=0;
     MPI_Finalized(&fin);
 
+    if(fin==0)
+    device_release();
+    else
+    delete dev;
+
     if(comm!=MPI_COMM_NULL && fin==0)
     MPI_Comm_free(&comm);
 }
@@ -131,6 +158,9 @@ bool reefmg_core::setup(MPI_Comm cart,
                              int nx,int ny,int nz,int gnx,int gny,int maxlevel,
                              const double *dxn,const double *dyn,int perx,int pery)
 {
+    //  a previous device hierarchy and its shared window go first
+    device_release();
+
     //  A duplicate keeps the topology but gives the solver its own message
     //  space, and outlives the caller's handle.
     if(comm!=MPI_COMM_NULL)
@@ -291,6 +321,9 @@ bool reefmg_core::setup(MPI_Comm cart,
     if(aggmode==1 && nprocs>1)
     setup_agglomeration(npx,npy);
 
+    if(devkind>0)
+    device_setup(maxlevel,perx,pery);
+
     return true;
 }
 
@@ -421,6 +454,13 @@ void reefmg_core::halo(sc_level &L)
 //  which is what keeps the free-surface Dirichlet term alive on every level.
 void reefmg_core::coarsen()
 {
+    //  the device builds its own hierarchy of the whole domain
+    if(devmode)
+    {
+        device_upload();
+        return;
+    }
+
     if(pcbits==32) coarsen_t<float >();
     else           coarsen_t<double>();
 
@@ -556,10 +596,24 @@ void reefmg_core::factor_lines()
     else           factor_lines_t<double>();
 }
 
-template<class T>
-void reefmg_core::factor_lines_t()
+void reefmg_core::refactor_fine()
 {
-    for(int l=0;l<nuse;++l)
+    if(devmode)
+    {
+        coarsen();
+        return;
+    }
+
+    if(pcbits==32) factor_lines_t<float >(0,1);
+    else           factor_lines_t<double>(0,1);
+}
+
+template<class T>
+void reefmg_core::factor_lines_t(int l0, int l1)
+{
+    if(l1<0) l1=nuse;
+
+    for(int l=l0;l<l1;++l)
     {
         sc_level &L=lev[l];
         const int nz=L.nz;
@@ -1045,6 +1099,14 @@ void reefmg_core::prolong_xy(const sc_level &C,sc_level &F)
 
 void reefmg_core::vcycle(int l,int pre,int post)
 {
+    //  a host calling the cycle directly (reefmg2D::vcycle): the device has
+    //  no CPU coarse levels to run it on, so defect correction through it
+    if(devmode && l==0)
+    {
+        device_vcycle0(pre,post);
+        return;
+    }
+
     sc_level &L=lev[l];
 
     if(l==nuse-1)
@@ -1121,6 +1183,22 @@ void reefmg_core::apply(sc_level &L,int l,std::vector<double> &x,
 void reefmg_core::precondition(std::vector<double> &rhs,
                                     std::vector<double> &x,int pre,int post)
 {
+    //  wall time of the preconditioner (precondition_time())
+    struct pc_timer
+    {
+        double &acc;
+        const std::chrono::steady_clock::time_point t0;
+        explicit pc_timer(double &a) : acc(a), t0(std::chrono::steady_clock::now()) {}
+        ~pc_timer(){acc+=std::chrono::duration<double>(std::chrono::steady_clock::now()-t0).count();}
+    } timer(pctime);
+    ++pccount;
+
+    if(devmode)
+    {
+        device_precondition(rhs,x,pre,post);
+        return;
+    }
+
     sc_level &F=lev[0];
     F.f.swap(rhs);
     F.u.swap(x);
@@ -1141,7 +1219,7 @@ void reefmg_core::cycle_step(int pre,int post)
 {
     sc_level &F=lev[0];
 
-    if(pcbits==64 && !(fexact && fineop))
+    if(pcbits==64 && !(fexact && fineop) && !devmode)
     {
         vcycle(0,pre,post);
         return;
@@ -1172,6 +1250,7 @@ int reefmg_core::solve_vcycle(double tol,int maxiter,double &relres,int pre,int 
     int it=0;
     residual(F);
     double rn=sqrt(dot(F,F.r,F.r));
+    if(tol<0.0) tol=-tol*rn/bn;
 
     while(rn/bn>tol && it<maxiter)
     {
@@ -1218,6 +1297,10 @@ int reefmg_core::solve(double tol,int maxiter,double &relres,int pre,int post)
     const double rn2=dot(F,kr,kr);
     double rn=sqrt(rn2), rho1=rn2;
     int it=0;
+
+    //  tol < 0: the residual is reduced by -tol relative to the initial one
+    //  (the warm-started corrector solves of the FNPF theta-Robin step)
+    if(tol<0.0) tol=-tol*rn/bn;
 
     while(rn/bn>tol && it<maxiter)
     {
@@ -1340,6 +1423,10 @@ int reefmg_core::solve(double tol,int maxiter,double &relres,int pre,int post)
 int reefmg_core::solve_auto(double tol,int maxiter,double &relres,
                                  int pre,int post,int mode)
 {
+    //  N 16 2, 4: GCR around the device's Krylov solve, in every mode
+    if(devmode && devkry)
+    return solve_gcr(tol,maxiter,relres);
+
     //  the V-cycle alone only knows the 7-point part of a host operator
     if(mode==1 || (fexact && fineop))
     return solve(tol,maxiter,relres,pre,post);
@@ -1354,6 +1441,7 @@ int reefmg_core::solve_auto(double tol,int maxiter,double &relres,
     residual(F);
     double rn=sqrt(dot(F,F.r,F.r)), prev=rn;
     int it=0, bad=0;
+    if(tol<0.0) tol=-tol*rn/bn;
 
     while(rn/bn>tol && it<maxiter)
     {
@@ -1379,6 +1467,131 @@ int reefmg_core::solve_auto(double tol,int maxiter,double &relres,
     return it;
 }
 
+//  N 16 2, 4: GCR in double with the exact operator, preconditioned by a
+//  Krylov solve on the device (device_precondition with kryon).  The
+//  device solve varies from one application to the next, so the outer
+//  method must be flexible: GCR keeps the preconditioned directions z_i and
+//  their images c_i = A z_i, makes every new c orthogonal to the earlier
+//  ones (one reduction) and minimises the residual over them.  One device
+//  solve and one product with the exact operator per iteration; three
+//  directions, then a restart (the BiCGStab vectors hold them).  The device
+//  solve reduces the residual by its tolerance (1e-3) or more - usually
+//  1e-4 to 1e-5, the limit of single precision - so N 44 1e-8 takes about
+//  two iterations.
+int reefmg_core::solve_gcr(double tol,int maxiter,double &relres)
+{
+    sc_level &F=lev[0];
+    const long N=F.size();
+    const int nz=F.nz;
+
+    for(long q=0;q<N;++q) if(F.act[q]==0){F.u[q]=0.0; F.f[q]=0.0;}
+
+    const double bn=sqrt(dot(F,F.f,F.f));
+    if(bn==0.0){relres=0.0; std::fill(F.u.begin(),F.u.end(),0.0); return 0;}
+
+    residual(F);
+    kr=F.r;
+    double rn=sqrt(dot(F,kr,kr));
+    if(tol<0.0) tol=-tol*rn/bn;
+
+    const int M=3;
+    std::vector<double> *Z[M]={&kp,&ky,&kz}, *C[M]={&kt,&kv,&krhat};
+    double cc[M]={0.0,0.0,0.0};
+
+    int it=0,k=0;
+    kryon=true;
+
+    while(rn/bn>tol && it<maxiter)
+    {
+        if(k==M) k=0;    // restart: the directions are dropped
+        std::vector<double> &z=*Z[k], &c=*C[k];
+
+        precondition(kr,z,1,1);
+        apply(F,0,z,c);
+
+        //  c -= sum beta_i c_i, z -= sum beta_i z_i, beta_i = (c,c_i)/(c_i,c_i)
+        if(k>0)
+        {
+            double loc[M]={0.0,0.0,0.0}, g[M]={0.0,0.0,0.0};
+            for(int i=0;i<F.nx;++i)
+            for(int j=0;j<F.ny;++j)
+            {
+                const long col=F.idx(i,j,0);
+                const double *cq=&c[col];
+                for(int m=0;m<k;++m)
+                {
+                    const double *cm=&(*C[m])[col];
+                    double a=0.0;
+                    for(int kk=0;kk<nz;++kk) a+=cq[kk]*cm[kk];
+                    loc[m]+=a;
+                }
+            }
+            MPI_Allreduce(loc,g,k,MPI_DOUBLE,MPI_SUM,comm);
+            double beta[M]={0.0,0.0,0.0};
+            for(int m=0;m<k;++m) beta[m]=(cc[m]>0.0)? g[m]/cc[m] : 0.0;
+
+            for(int i=0;i<F.nx;++i)
+            for(int j=0;j<F.ny;++j)
+            {
+                const long col=F.idx(i,j,0);
+                double *cq=&c[col], *zq=&z[col];
+                for(int m=0;m<k;++m)
+                {
+                    const double *cm=&(*C[m])[col], *zm=&(*Z[m])[col];
+                    const double b=beta[m];
+                    for(int kk=0;kk<nz;++kk){cq[kk]-=b*cm[kk]; zq[kk]-=b*zm[kk];}
+                }
+            }
+        }
+
+        //  (c,c) and (r,c): one pass, one reduction
+        double g2[2]={0.0,0.0};
+        {
+            double a0=0.0,a1=0.0,a2=0.0,a3=0.0, b0=0.0,b1=0.0,b2=0.0,b3=0.0;
+            for(int i=0;i<F.nx;++i)
+            for(int j=0;j<F.ny;++j)
+            {
+                const long col=F.idx(i,j,0);
+                acc4(&c[col],&c[col],nz,a0,a1,a2,a3);
+                acc4(&kr[col],&c[col],nz,b0,b1,b2,b3);
+            }
+            double loc[2]={(a0+a1)+(a2+a3),(b0+b1)+(b2+b3)};
+            MPI_Allreduce(loc,g2,2,MPI_DOUBLE,MPI_SUM,comm);
+        }
+        if(!(g2[0]>0.0)) break;
+        cc[k]=g2[0];
+        const double alpha=g2[1]/g2[0];
+
+        //  u += alpha z, r -= alpha c, |r|^2 in the same pass
+        {
+            double a0=0.0,a1=0.0,a2=0.0,a3=0.0;
+            for(int i=0;i<F.nx;++i)
+            for(int j=0;j<F.ny;++j)
+            {
+                const long col=F.idx(i,j,0);
+                double *uc=&F.u[col], *rc=&kr[col];
+                const double *zc=&z[col], *cq=&c[col];
+                for(int kk=0;kk<nz;++kk)
+                {
+                    uc[kk]+=alpha*zc[kk];
+                    rc[kk]-=alpha*cq[kk];
+                }
+                acc4(rc,rc,nz,a0,a1,a2,a3);
+            }
+            double loc=(a0+a1)+(a2+a3), g=0.0;
+            MPI_Allreduce(&loc,&g,1,MPI_DOUBLE,MPI_SUM,comm);
+            rn=sqrt(g);
+        }
+
+        ++k;
+        ++it;
+    }
+
+    kryon=false;
+    relres=rn/bn;
+    return it;
+}
+
 long reefmg_core::memory_bytes() const
 {
     long s=0;
@@ -1397,6 +1610,9 @@ long reefmg_core::memory_bytes() const
            +kt.capacity()+ky.capacity()+kz.capacity()+sbuf.capacity()+rbuf.capacity())*sizeof(double);
     s+=long(agg_send.capacity()+agg_recv.capacity())*sizeof(double);
     if(agg) s+=agg->memory_bytes();
+    if(dev) s+=dev->memory_bytes();
+    if(devmode && myrank==0) s+=rmg_layout(devgx,devgy,lev[0].nz,devhalf(),devkry).bytes;   // the shared fine level
+    s+=long(kd.capacity())*sizeof(double);
     return s;
 }
 
@@ -1615,4 +1831,518 @@ void reefmg_core::coarse_solve_agg()
         double *cu=&C.u[C.idx(i,j,0)];
         for(int k=0;k<nz;++k) cu[k]=gu[k];
     }
+}
+
+//  ======================================================= device path (N 16)
+//
+//  One hierarchy of the whole domain on the device, driven by rank 0.  Its
+//  fine level lives in an MPI shared-memory window: every rank writes its
+//  block of the coefficients (device_upload) and of each right-hand side
+//  (device_precondition) into it in the device layout, rank 0 runs the
+//  device, every rank reads its block of the correction.  No messages, two
+//  barriers per V-cycle.
+
+namespace
+{
+    //  Cell widths of a coarse level from the finer one, as build_widths,
+    //  with the ghost entries of exchange_widths: the edge cell itself at a
+    //  domain edge, the opposite edge when periodic.
+    void widths_ghosts(std::vector<double> &h,int n,int per)
+    {
+        h[0]  =per? h[n] : h[1];
+        h[n+1]=per? h[1] : h[n];
+    }
+
+    long page_size()
+    {
+        const long p=sysconf(_SC_PAGESIZE);
+        return p>0? p : 16384;
+    }
+}
+
+int reefmg_core::device_levels() const
+{
+    //  a hierarchy truncated by the host (set_active_levels, the screened
+    //  depth-averaged problems) keeps its number of levels on the device
+    if(nuse<(int)lev.size())
+    return std::max(1,std::min(nuse,devnlev));
+    return devnlev;
+}
+
+float* reefmg_core::window_array(int a) const
+{
+    const rmg_layout lay(devgx,devgy,lev[0].nz,devhalf(),devkry);
+    return (float*)(dev0+lay.off[a]);
+}
+
+void reefmg_core::device_release()
+{
+    delete dev;
+    dev=0;
+    if(devwin!=MPI_WIN_NULL)
+    MPI_Win_free(&devwin);
+    devwin=MPI_WIN_NULL;
+    dev0=0;
+    devmode=false;
+}
+
+void reefmg_core::device_setup(int maxlevel,int perx,int pery)
+{
+    device_release();
+    dev0copy=false;
+
+    const sc_level &F=lev[0];
+    const int nz=F.nz;
+    std::string err;
+    int ok=1;
+
+    //  all ranks in one shared memory
+    {
+        MPI_Comm shm;
+        MPI_Comm_split_type(comm,MPI_COMM_TYPE_SHARED,myrank,MPI_INFO_NULL,&shm);
+        int ns=0;
+        MPI_Comm_size(shm,&ns);
+        MPI_Comm_free(&shm);
+        if(ns!=nprocs)
+        {
+            ok=0;
+            err="the ranks are not all on one node (the device solve shares memory between them)";
+        }
+    }
+
+    //  global layout of the fine level: block sizes and positions of all
+    //  ranks, as setup_agglomeration does for the coarsest level
+    std::vector<int> rcx(nprocs,0),rcy(nprocs,0),bnx(nprocs),bny(nprocs);
+    {
+        int me[2]={F.nx,F.ny};
+        std::vector<int> all(2*nprocs,0);
+        MPI_Allgather(me,2,MPI_INT,&all[0],2,MPI_INT,comm);
+        for(int r=0;r<nprocs;++r){bnx[r]=all[2*r]; bny[r]=all[2*r+1];}
+
+        if(nprocs>1)
+        {
+            int nd=0;
+            MPI_Cartdim_get(comm,&nd);
+            for(int r=0;r<nprocs;++r)
+            {
+                int crd[3]={0,0,0};
+                MPI_Cart_coords(comm,r,nd,crd);
+                rcx[r]=crd[0];
+                rcy[r]=nd>1 ? crd[1] : 0;
+            }
+        }
+    }
+    int npx=0,npy=0;
+    for(int r=0;r<nprocs;++r){npx=std::max(npx,rcx[r]+1); npy=std::max(npy,rcy[r]+1);}
+
+    std::vector<int> wx(npx,-1),wy(npy,-1),ox(npx+1,0),oy(npy+1,0);
+    for(int r=0;r<nprocs;++r)
+    {
+        if(wx[rcx[r]]<0) wx[rcx[r]]=bnx[r];
+        if(wy[rcy[r]]<0) wy[rcy[r]]=bny[r];
+        if(wx[rcx[r]]!=bnx[r] || wy[rcy[r]]!=bny[r])
+        {
+            ok=0;
+            err="inconsistent block sizes of the decomposition";
+        }
+    }
+    for(int c=0;c<npx;++c) ox[c+1]=ox[c]+std::max(wx[c],0);
+    for(int c=0;c<npy;++c) oy[c+1]=oy[c]+std::max(wy[c],0);
+
+    devgx=ox[npx]; devgy=oy[npy];
+    devox=ox[rcx[myrank]]; devoy=oy[rcy[myrank]];
+
+    //  global cell widths of the fine level
+    std::vector<double> gx(devgx+2,1.0),gy(devgy+2,1.0);
+    {
+        std::vector<int> dx_(nprocs),dy_(nprocs);
+        int ax=0,ay=0;
+        for(int r=0;r<nprocs;++r){dx_[r]=ax; ax+=bnx[r]; dy_[r]=ay; ay+=bny[r];}
+        std::vector<double> allx(ax),ally(ay);
+        MPI_Allgatherv(&F.hx[1],F.nx,MPI_DOUBLE,&allx[0],&bnx[0],&dx_[0],MPI_DOUBLE,comm);
+        MPI_Allgatherv(&F.hy[1],F.ny,MPI_DOUBLE,&ally[0],&bny[0],&dy_[0],MPI_DOUBLE,comm);
+
+        for(int r=0;r<nprocs;++r)
+        {
+            if(rcy[r]==0) for(int i=0;i<bnx[r];++i) gx[1+ox[rcx[r]]+i]=allx[dx_[r]+i];
+            if(rcx[r]==0) for(int j=0;j<bny[r];++j) gy[1+oy[rcy[r]]+j]=ally[dy_[r]+j];
+        }
+        widths_ghosts(gx,devgx,perx);
+        widths_ghosts(gy,devgy,pery);
+    }
+
+    //  coarsening schedule of the global grid: setup()'s rule on one rank
+    std::vector<rmg_level_desc> desc;
+    std::vector<std::vector<double> > hxs,hys;
+    {
+        double Hx=0.0,Hy=0.0;
+        for(int i=0;i<devgx;++i) Hx+=gx[i+1];
+        for(int j=0;j<devgy;++j) Hy+=gy[j+1];
+        Hx/=std::max(devgx,1); Hy/=std::max(devgy,1);
+
+        rmg_level_desc d0={devgx,devgy,nz,1,1,devkry? 1 : 0};
+        desc.push_back(d0);
+        hxs.push_back(gx); hys.push_back(gy);
+
+        int ax=devgx, ay=devgy;
+        while(maxlevel<=0 || (int)desc.size()-1<maxlevel)
+        {
+            const bool cx=ax>=8 || (ax>=2 && ay>=8);
+            const bool cy=ay>=8 || (ay>=2 && ax>=8);
+            int rx=cx?2:1, ry=cy?2:1;
+            if(cx && cy)
+            {
+                const double r=Hx/Hy;
+                if(r> 1.41421356) rx=1;
+                if(r< 0.70710678) ry=1;
+            }
+            if(rx==1 && ry==1) break;
+            const int bx=(rx==2)? (ax+1)/2 : ax;
+            const int by=(ry==2)? (ay+1)/2 : ay;
+            if(rx==2) Hx*=2.0;
+            if(ry==2) Hy*=2.0;
+
+            const std::vector<double> &px=hxs.back(), &py=hys.back();
+            std::vector<double> cxw(bx+2,1.0), cyw(by+2,1.0);
+            for(int I=0;I<bx;++I)
+            {
+                double w=0.0;
+                for(int a=0;a<rx;++a) if(rx*I+a<ax) w+=px[rx*I+a+1];
+                cxw[I+1]=(w>0.0? w : 1.0);
+            }
+            for(int J=0;J<by;++J)
+            {
+                double w=0.0;
+                for(int b=0;b<ry;++b) if(ry*J+b<ay) w+=py[ry*J+b+1];
+                cyw[J+1]=(w>0.0? w : 1.0);
+            }
+            widths_ghosts(cxw,bx,perx);
+            widths_ghosts(cyw,by,pery);
+
+            rmg_level_desc d={bx,by,nz,rx,ry,0};
+            desc.push_back(d);
+            hxs.push_back(cxw); hys.push_back(cyw);
+            ax=bx; ay=by;
+        }
+    }
+    devnlev=(int)desc.size();
+
+    //  the device, on rank 0
+    if(myrank==0 && ok)
+    {
+        dev=reefmg_device_create(devkind,err);
+        if(!dev) ok=0;
+    }
+    MPI_Bcast(&ok,1,MPI_INT,0,comm);
+    if(!ok)
+    {
+        delete dev;
+        dev=0;
+        devmsg="N 16 "+std::to_string(devn)+": "+err+" - the V-cycle runs on the CPU";
+        return;
+    }
+
+    //  the shared fine level, page aligned on every rank: the mapping starts
+    //  on a page boundary in every process, so one offset fits all
+    const rmg_layout lay(devgx,devgy,nz,devhalf(),devkry);
+    const long page=page_size();
+    {
+        char *mine=0;
+        const MPI_Aint want=(myrank==0)? (MPI_Aint)(lay.bytes+2*page) : 0;
+        MPI_Win_allocate_shared(want,1,MPI_INFO_NULL,comm,&mine,&devwin);
+
+        MPI_Aint qs=0; int du=0; char *b0=0;
+        MPI_Win_shared_query(devwin,0,&qs,&du,&b0);
+
+        long off=0;
+        if(myrank==0)
+        {
+            off=(long)((page-((unsigned long)b0)%(unsigned long)page)%(unsigned long)page);
+            std::memset(b0+off,0,(size_t)lay.bytes);
+        }
+        MPI_Bcast(&off,1,MPI_LONG,0,comm);
+        dev0=b0+off;
+    }
+
+    //  rank 0 builds the hierarchy, on the shared fine level if the device
+    //  can use that memory, else with a fine level of its own (copied)
+    if(myrank==0)
+    {
+        if(!dev->build(desc,perx,pery,devhalf(),dev0,err))
+        {
+            delete dev;
+            dev=reefmg_device_create(devkind,err);
+            dev0copy=true;
+            ok=(dev && dev->build(desc,perx,pery,devhalf(),0,err))? 1 : 0;
+        }
+
+        if(ok)
+        for(int l=0;l<devnlev;++l)
+        {
+            float *hx=(float*)dev->arr(l,RMG_HX), *hy=(float*)dev->arr(l,RMG_HY);
+            for(int i=0;i<desc[l].nx+2;++i) hx[i]=(float)hxs[l][i];
+            for(int j=0;j<desc[l].ny+2;++j) hy[j]=(float)hys[l][j];
+        }
+    }
+    MPI_Bcast(&ok,1,MPI_INT,0,comm);
+    if(!ok)
+    {
+        devmsg="N 16 "+std::to_string(devn)+": "+err+" - the V-cycle runs on the CPU";
+        device_release();
+        return;
+    }
+
+    devmode=true;
+
+    //  the Krylov solve on the device (N 16 2, 4): tolerance and iterations
+    if(devkry)
+    {
+        const char *et=std::getenv("REEFMG_DEVICE_KTOL"), *em=std::getenv("REEFMG_DEVICE_KMAX");
+        if(et && et[0] && std::atof(et)>0.0) devktol=std::atof(et);
+        if(em && em[0] && std::atoi(em)>0) devkmax=std::atoi(em);
+    }
+
+    char msg[512];
+    const int nc=(devcycles>0)? devcycles : (devkry? 1 : 2);
+    snprintf(msg,sizeof(msg),
+             "%s on the device: %s - one hierarchy of the whole %d x %d x %d grid for %d rank%s, "
+             "%d levels, single precision%s, red-black line smoothing, %d V-cycle%s per application, %s sweeps%s",
+             devkry? "Krylov solve" : "V-cycle",
+             myrank==0? dev->name().c_str() : "", devgx,devgy,nz,nprocs,nprocs>1?"s":"",devnlev,
+             devhalf()? " (smoother coefficients in half precision)" : "",
+             nc,nc>1?"s":"",std::to_string((devsweeps>0)? devsweeps : 2).c_str(),
+             dev0copy? " (fine level copied)" : "");
+    devmsg=msg;
+    if(devkry)
+    {
+        snprintf(msg,sizeof(msg),"; BiCGStab on the device to %.0e (at most %d iterations), GCR in double on the CPU ranks",
+                 devktol,devkmax);
+        devmsg+=msg;
+    }
+}
+
+//  The transfers between a rank's block (k contiguous) and the shared fine
+//  level (k slowest) run over strips of JB columns: the strip's columns,
+//  JB*nz values, stay in L1 while every layer k is written as one
+//  contiguous run of JB values.
+namespace
+{
+    const int JB=32;
+
+    //  Offsets in a device row (reefmg_device_kernels.h: colour (i+j)&1
+    //  selects the half, (j+1)/2 the place in it) of the global columns
+    //  gj = oy+j0 .. oy+j1-1 in global row gi
+    inline void row_offsets(int gi,int oy,int j0,int j1,int hh,int *off)
+    {
+        for(int j=j0;j<j1;++j)
+        {
+            const int gj=oy+j;
+            off[j-j0]=((gi+gj)&1)*hh+((gj+1)>>1);
+        }
+    }
+
+    double wtime()
+    {
+        return std::chrono::duration<double>(std::chrono::steady_clock::now().time_since_epoch()).count();
+    }
+}
+
+//  Once per coarsen(): this rank's block of the fine coefficients and the
+//  activity into the shared fine level; rank 0 lets the device build the
+//  coarse levels and the factorisations from it.
+void reefmg_core::device_upload()
+{
+    const double t0=wtime();
+    const sc_level &L=lev[0];
+    const int nz=L.nz;
+    const rmg_layout lay(devgx,devgy,nz,devhalf(),devkry);
+    const long si=lay.si, sk=lay.sk;
+    int off[JB];
+
+    float *g[7];
+    for(int m=0;m<7;++m) g[m]=window_array(RMG_P+m);
+    unsigned char *ga=(unsigned char*)window_array(RMG_ACT);
+
+    const float *hf[7]={L.pf.data(),L.nf.data(),L.sf.data(),L.wf.data(),L.ef.data(),L.tf.data(),L.bf.data()};
+    const double *hd[7]={L.p.data(),L.n.data(),L.s.data(),L.w.data(),L.e.data(),L.t.data(),L.b.data()};
+
+    for(int i=0;i<L.nx;++i)
+    for(int j0=0;j0<L.ny;j0+=JB)
+    {
+        const int j1=std::min(L.ny,j0+JB);
+        const long c0=L.idx(i,0,0);
+        row_offsets(devox+i,devoy,j0,j1,lay.hh,off);
+        for(int k=0;k<nz;++k)
+        {
+            const long qr=k*sk+(devox+i+1)*si;
+            for(int m=0;m<7;++m)
+            {
+                float *gm=g[m]+qr;
+                if(pcbits==32){const float  *h=hf[m]+c0+k; for(int j=j0;j<j1;++j) gm[off[j-j0]]=h[(long)j*nz];}
+                else          {const double *h=hd[m]+c0+k; for(int j=j0;j<j1;++j) gm[off[j-j0]]=float(h[(long)j*nz]);}
+            }
+            const char *a=&L.act[c0+k];
+            unsigned char *gam=ga+qr;
+            for(int j=j0;j<j1;++j) gam[off[j-j0]]=(a[(long)j*nz]!=0);
+        }
+    }
+    const double t1=wtime();
+
+    MPI_Barrier(comm);
+    const double t2=wtime();
+
+    if(myrank==0)
+    {
+        if(dev0copy)
+        {
+            const long N=lay.sk*nz;
+            for(int m=0;m<7;++m) std::memcpy(dev->arr(0,RMG_P+m),window_array(RMG_P+m),N*sizeof(float));
+            std::memcpy(dev->arr(0,RMG_ACT),window_array(RMG_ACT),N);
+        }
+        dev->coarsen(device_levels());
+    }
+    devt[0]+=t1-t0;
+    devt[2]+=t2-t1;
+}
+
+void reefmg_core::device_sync()
+{
+    std::string err;
+    if(!dev->sync(err))
+    {
+        fprintf(stderr,"REEFMG device (N 16) failed: %s\n",err.c_str());
+        MPI_Abort(MPI_COMM_WORLD,-2770);
+    }
+}
+
+//  precondition() on the device: x = V(rhs).  Every rank rounds its block of
+//  the right-hand side into the shared fine level, rank 0 cycles the whole
+//  domain, every rank widens its block of the correction.  The halo of x is
+//  left as it is: the operator exchanges it before reading it.
+void reefmg_core::device_precondition(std::vector<double> &rhs,std::vector<double> &x,
+                                      int pre,int post)
+{
+    const double t0=wtime();
+    const sc_level &L=lev[0];
+    const int nz=L.nz;
+    const rmg_layout lay(devgx,devgy,nz,devhalf(),devkry);
+    const long si=lay.si, sk=lay.sk;
+    const long N=lay.sk*nz;
+    int off[JB];
+
+    float *gf=window_array(RMG_F);
+    const double *r=&rhs[0];
+    for(int i=0;i<L.nx;++i)
+    for(int j0=0;j0<L.ny;j0+=JB)
+    {
+        const int j1=std::min(L.ny,j0+JB);
+        const double *rc=r+L.idx(i,0,0);
+        row_offsets(devox+i,devoy,j0,j1,lay.hh,off);
+        for(int k=0;k<nz;++k)
+        {
+            float *g=gf+k*sk+(devox+i+1)*si;
+            const double *h=rc+k;
+            for(int j=j0;j<j1;++j) g[off[j-j0]]=float(h[(long)j*nz]);
+        }
+    }
+    const double t1=wtime();
+
+    MPI_Barrier(comm);
+    const double t2=wtime();
+
+    if(myrank==0)
+    {
+        if(dev0copy) std::memcpy(dev->arr(0,RMG_F),gf,N*sizeof(float));
+        //  N 17 / N 19: 2 V-cycles with 2 sweeps unless set (see set_device_cycle)
+        const int sw=(devsweeps>0)? devsweeps : 2;
+        (void)pre; (void)post;
+        if(devkry && kryon)
+        {
+            //  N 16 2, 4: a solve on the device, 1 V-cycle per application unless set
+            double rel=1.0;
+            devkit+=dev->krylov(device_levels(),sw,sw,sweepstyle,coarse_sweeps,(devcycles>0)? devcycles : 1,
+                                devktol,devkmax,rel);
+            ++devksolves;
+        }
+        else
+        dev->vcycle(device_levels(),sw,sw,sweepstyle,coarse_sweeps,(devcycles>0)? devcycles : 2);
+        device_sync();
+        if(dev0copy) std::memcpy(window_array(RMG_U),dev->arr(0,RMG_U),N*sizeof(float));
+    }
+    const double t3=wtime();
+
+    MPI_Barrier(comm);
+    const double t4=wtime();
+
+    const float *gu=window_array(RMG_U);
+    double *xo=&x[0];
+    for(int i=0;i<L.nx;++i)
+    for(int j0=0;j0<L.ny;j0+=JB)
+    {
+        const int j1=std::min(L.ny,j0+JB);
+        double *xc=xo+L.idx(i,0,0);
+        row_offsets(devox+i,devoy,j0,j1,lay.hh,off);
+        for(int k=0;k<nz;++k)
+        {
+            const float *g=gu+k*sk+(devox+i+1)*si;
+            double *h=xc+k;
+            for(int j=j0;j<j1;++j) h[(long)j*nz]=g[off[j-j0]];
+        }
+    }
+    const double t5=wtime();
+
+    devt[1]+=(t1-t0)+(t5-t4);
+    devt[2]+=(t2-t1)+(t4-t3);
+    devt[3]+=t3-t2;
+}
+
+std::string reefmg_core::device_timing() const
+{
+    char s[256];
+    const double gpu=(dev? dev->gpu_time() : 0.0);
+    snprintf(s,sizeof(s),"upload %.3g s  transfers %.3g s  barriers %.3g s  device %.3g s (GPU busy %.3g s)",
+             devt[0],devt[1],devt[2],devt[3],gpu);
+    std::string r=s;
+    if(dev)
+    {
+        snprintf(s,sizeof(s),"  V-cycles %ld",dev->vcycles());
+        r+=s;
+    }
+    if(devkry && devksolves>0)
+    {
+        snprintf(s,sizeof(s),"  device solves %ld, BiCGStab iterations %ld",devksolves,devkit);
+        r+=s;
+    }
+    return r;
+}
+
+//  vcycle(0) for a host that calls the cycle itself: one defect-correction
+//  step u += V(f - A u) with the stored fine operator
+void reefmg_core::device_vcycle0(int pre,int post)
+{
+    sc_level &F=lev[0];
+    residual_cycle(F);
+    if(kd.size()!=F.u.size()) kd.assign(F.u.size(),0.0);
+    precondition(F.r,kd,pre,post);
+
+    for(int i=0;i<F.nx;++i)
+    for(int j=0;j<F.ny;++j)
+    {
+        const long col=F.idx(i,j,0);
+        for(int k=0;k<F.nz;++k) F.u[col+k]+=kd[col+k];
+    }
+}
+
+void reefmg_core::reset_timers()
+{
+    pctime=0.0;
+    pccount=0;
+    for(int m=0;m<4;++m) devt[m]=0.0;
+    devkit=devksolves=0;
+    if(dev){dev->reset_gpu_time(); dev->reset_vcycles();}
+}
+
+std::string reefmg_core::device_profile() const
+{
+    return dev? dev->profile_report() : std::string();
 }

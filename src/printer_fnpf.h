@@ -38,6 +38,7 @@ class fnpf_print_wsfline;
 class fnpf_print_wsfline_y;
 class fnpf_vtp_fsf;
 class fnpf_vtp_bed;
+class fnpf_scour;
 class fnpf_state;
 class fnpf_breaking_log;
 class fnpf_print_Hs;
@@ -45,6 +46,7 @@ class fnpf_vel_probe;
 class fnpf_vel_probe_theory;
 class fnpf_runup;
 class fnpf_print_kinematics;
+class fnpf_print_scour;
 class lagoon_output;
 
 using namespace std;
@@ -59,12 +61,16 @@ public:
     virtual ~printer_fnpf() = default;
     void start(lexer*,fdm_fnpf*,ghostcell*,ioflow*) override final;
     void print_stop(lexer*,fdm_fnpf*,ghostcell*) override final;
+    void print_end(lexer*,fdm_fnpf*,ghostcell*) override final;
     void ckpt_state(std::vector<double>&) override;
     void ckpt_restore(const std::vector<double>&) override;
     void flush_outputs() override;
 
 private:
     void print(lexer*,fdm_fnpf*,ghostcell*);
+    void print_fsf(lexer*,fdm_fnpf*,ghostcell*);
+    int last_print = -1;    // the iteration of the last volume output (print_end)
+    int last_fsf = -1;      // and of the last free surface output
     void parallel(lexer*,int);
 
     vtk3D *outputFormat;
@@ -89,6 +95,7 @@ private:
     potentialfile_out *ppotentialfile;
     fnpf_vtp_fsf *pfsf = nullptr;
     fnpf_vtp_bed *pbed = nullptr;
+    fnpf_scour *pscourbed = nullptr;  // P 187: scour parameters in the bed output
     fnpf_state *pstate;
     fnpf_breaking_log *pbreaklog;
     fnpf_force_ale **pforce_ale;
@@ -97,6 +104,7 @@ private:
     fnpf_vel_probe *pvel;
     fnpf_vel_probe_theory *pveltheo;
     fnpf_print_kinematics **pkin;
+    fnpf_print_scour *pscour = nullptr;  // P 83, P 84: scour gauges
     lagoon_output *plagoon = nullptr;  // P 18: LAGOON store of the volume
 };
 

@@ -118,6 +118,29 @@ static void gcbl_build_impl(lexer *p, int type, int &i, int &j, int &k)
     {L.push_back(i); L.push_back(j); L.push_back(k); L.push_back(h);}
     }
 
+    // type 5: type 4 on a grid with one cell in y (j_dir 0), h from the x neighbours only. The y statements of the
+    // V-type sweeps that use it (start4V, start5V) are skipped for j_dir 0, so a cell with only flagged y neighbours
+    // (in 1D every cell) has nothing to do but the vertical ones: the same assignments in the same order
+    if(type==5)
+    LOOP
+    {
+    const int h = (p->flag4[Im1JK]<0 || p->flag4[Ip1JK]<0) ? 1 : 0;
+    if(h==1 || p->flag4[IJKm1]<0 || p->flag4[IJKp1]<0)
+    {L.push_back(i); L.push_back(j); L.push_back(k); L.push_back(h);}
+    }
+
+    // type 6: the copies of start7S as (ghost, cell) index pairs, in the order of the sweep over the type 7 list
+    if(type==6)
+    FLOOP
+    {
+    const int c = FIJK;
+    const int nb[6] = {FIm1JK, FIp1JK, FIJm1K, FIJp1K, FIJKm1, FIJKp1};
+
+        for(int m=0; m<6; ++m)
+        if(p->flag7[nb[m]]<0)
+        {L.push_back(nb[m]); L.push_back(c);}
+    }
+
     p->gcbl_count[type]=p->count;
 }
 
@@ -486,6 +509,31 @@ void ghostcell::start3V(lexer *p, double *f, int gcv)
     p->gctime+=timer()-starttime;
 }
 
+// bed ghost cells of the horizontal velocity (U, V, UH, VH: gcv 10, 11, 14, 15), A 518:
+//  1 wall-function bed (default): mirrored symmetrically, zero normal gradient. The bed shear enters the
+//    momentum equations as the wall friction of A 519, not through the ghost cells; the reconstruction
+//    and the velocity gradients see smooth data at the bed
+//  2 resolved no-slip bed: mirrored antisymmetrically, u = 0 on the bed face (wall-resolving grids,
+//    laminar flow, wall-resolved LES)
+// The ghost cells were set to 0 with A 518 2 before (the bed-face value u/2 of the cell: neither slip nor
+// no-slip) and copied (not mirrored) with A 518 1. The divergence at the bed node of the pressure Poisson
+// equation does not use them (nhflow_pjm::rhs: 0 below the bed, as before).
+// Ghost m mirrors the cell m-1 above the bed; with fewer layers the top cell is repeated (the ghost cells
+// above the top layer are not necessarily set yet in this sweep).
+static inline void nhflow_bed_ghost(lexer *p, double *f, int i, int j, int k)
+{
+    const double sg = (p->A518==2) ? -1.0 : 1.0;
+    const int above = p->knoz-1-k;   // cells above the bed cell in the column
+    
+    const double f0 = f[IJK];
+    const double f1 = above>=1 ? f[IJKp1] : f0;
+    const double f2 = above>=2 ? f[IJKp2] : f1;
+    
+    f[IJKm1] = sg*f0;
+    f[IJKm2] = sg*f1;
+    f[IJKm3] = sg*f2;
+}
+
 void ghostcell::start4V_par(lexer *p, double *f, int gcv)
 {
     if(do_comms)
@@ -529,7 +577,7 @@ void ghostcell::start4V(lexer *p, double *f, int gcv)
     const bool xslip_s = nhflow_xwall_slip(p,1);
     const bool xslip_n = nhflow_xwall_slip(p,4);
     
-    GCBL_LOOP(4)
+    GCBL_LOOP(p->j_dir==0 ? 5 : 4)
     {
     if(gcbl_h==1)
     {
@@ -664,22 +712,9 @@ void ghostcell::start4V(lexer *p, double *f, int gcv)
             f[IJKp3] = f[IJK];
         }
 
-        // bed
+        // bed: A 518 (nhflow_bed_ghost)
         if(p->flag4[IJKm1]<0 && (gcv==10||gcv==11||gcv==14||gcv==15))
-        {
-            if(p->A518==1)
-            {
-                f[IJKm1] = f[IJK];
-                f[IJKm2] = f[IJK];
-                f[IJKm3] = f[IJK];
-            }
-             if(p->A518==2)
-            {
-                f[IJKm1] = 0.0;
-                f[IJKm2] = 0.0;
-                f[IJKm3] = 0.0;
-            }
-        }
+        nhflow_bed_ghost(p,f,i,j,k);
     }
     else
     {
@@ -704,22 +739,9 @@ void ghostcell::start4V(lexer *p, double *f, int gcv)
             f[IJKp3] = f[IJK];
         }
 
-        // bed
+        // bed: A 518 (nhflow_bed_ghost)
         if(p->flag4[IJKm1]<0 && (gcv==10||gcv==11||gcv==14||gcv==15))
-        {
-            if(p->A518==1)
-            {
-                f[IJKm1] = f[IJK];
-                f[IJKm2] = f[IJK];
-                f[IJKm3] = f[IJK];
-            }
-             if(p->A518==2)
-            {
-                f[IJKm1] = 0.0;
-                f[IJKm2] = 0.0;
-                f[IJKm3] = 0.0;
-            }
-        }
+        nhflow_bed_ghost(p,f,i,j,k);
     
     }
     }
@@ -753,7 +775,7 @@ void ghostcell::start4V(lexer *p, double *f, int gcv)
 
 void ghostcell::start5V(lexer *p, double *f, int gcv)
 {
-    GCBL_LOOP(4)
+    GCBL_LOOP(p->j_dir==0 ? 5 : 4)
     {
     if(gcbl_h==1)
     {
@@ -1486,37 +1508,15 @@ void ghostcell::start7P(lexer *p, double *f, int gcv)
 
 void ghostcell::start7S(lexer *p, double *f, int gcv)
 {
-    GCBL_LOOP(7)
+    // the copies to the flagged neighbours of every cell, in the order of the former sweep (x, y, bed, surface
+    // side), from the pair list of the step (gcbl type 6): no flag tests and no list of cells per call
     {
-    if(gcbl_h==1)
-    {
-        if(p->flag7[FIm1JK]<0)
-        f[FIm1JK] = f[FIJK];
+    const std::vector<int> &P = gcbl_get(p,6,i,j,k);
+    const int *q = P.data();
+    const size_t n = P.size();
 
-        if(p->flag7[FIp1JK]<0)
-        f[FIp1JK] = f[FIJK];
-
-        if(p->flag7[FIJm1K]<0)
-        f[FIJm1K] = f[FIJK];
-
-        if(p->flag7[FIJp1K]<0)
-        f[FIJp1K] = f[FIJK];
-
-        if(p->flag7[FIJKm1]<0)
-        f[FIJKm1] = f[FIJK];
-
-        if(p->flag7[FIJKp1]<0)
-        f[FIJKp1] = f[FIJK];
-    }
-    else
-    {
-        if(p->flag7[FIJKm1]<0)
-        f[FIJKm1] = f[FIJK];
-
-        if(p->flag7[FIJKp1]<0)
-        f[FIJKp1] = f[FIJK];
-    
-    }
+        for(size_t m=0; m<n; m+=2)
+        f[q[m]] = f[q[m+1]];
     }
 
     if(do_comms)

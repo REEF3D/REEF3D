@@ -123,7 +123,7 @@ public:
     static void pgrad_layer(lexer*, const double *P, int i, int j, int k, double &px, double &py);
     // horizontal divergence of (U,V) at sigma level k (between cells k-1 and k) of column (i,j), as
     // the Poisson right-hand sides: the layers interpolated to the level, next to the bed (k==0) the
-    // lower cell weighted down with the bed slope along the index direction (A 522)
+    // velocity below the bed 0 (the half cell of the bed node)
     static double divh_level(lexer*, fdm_nhf*, const double *U, const double *V, int i, int j, int k);
     // 2 (sigx d/dx + sigy d/dy) dP/dsigma at level k (the cross terms of the sigma Laplacian)
     static double sigma_cross(lexer*, const double *P, int i, int j, int k);

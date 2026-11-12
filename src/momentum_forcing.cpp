@@ -121,6 +121,8 @@ void momentum_forcing::momentum_forcing_start(fdm* a, lexer* p, ghostcell *pgc, 
         // particle sediment (CPM): two-way coupling
         if(psed!=nullptr)
         psed->forcing_cfd(p,a,pgc,alpha,u,v,w);
+        if(amr_psed)
+        amr_psed(p,a,alpha,u,v,w);
         
         
     // ghostcell update: the flags depend on the geometry only (solid, topo, fb), rebuild when it changed

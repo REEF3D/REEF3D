@@ -54,8 +54,43 @@ public:
     void solve_eqmotion_cfd(lexer*,fdm*,ghostcell*,int,bool);
     void initialize_cfd(lexer*,fdm*,ghostcell*);
     void update_forcing(lexer*, fdm*, ghostcell*,field&,field&,field&,field&,field&,field&,int);
+    // the forcing weights of the solids and the topography at the faces in this stage (a->fbh1-3 of
+    // ghostcell::solid_forcing), set by sixdof_cfd and cfd_amr_6dof for update_forcing: the weight of
+    // a face of the body is limited so that the weights of the solids and of all bodies at the face
+    // add up to 1 at most (a body that reaches into a solid or into another body)
+    field *sfh[3] = {nullptr,nullptr,nullptr};
     void hydrodynamic_forces_cfd(lexer*, fdm*, ghostcell*,field&,field&,field&,int,bool);
     void update_position_3D(lexer*, fdm*, ghostcell*, bool);
+    
+    // lateral line (X 194): pressure and velocity relative to the hull at the probes, printed with
+    // the body output
+    void lateral_line(lexer*, fdm*, ghostcell*);
+    // vision of the brain (X 193): the distances along its rays to the walls of the domain and the solids
+    std::vector<double> vision(lexer*, fdm*, ghostcell*);
+    
+    // X 198: fluid-momentum coupling (6DOF_obj_cfd_momentum.cpp): the rigid-body motion fitted to the
+    // predicted velocity of the stage in the hull region gives the loads of the body
+    void momentum_fit(lexer*, fdm*, ghostcell*, field&, field&, field&, int);
+    void momentum_deform(lexer*, fdm*, ghostcell*);
+    // ... in parts for the mesh refinement (cfd_amr: the predicted velocity of the patches of the
+    // finest level): begin, add the grids, end (sums over the ranks, the solve)
+    void momentum_fit_begin(lexer*, int);
+    void momentum_fit_add(lexer*, fdm*, field&, field&, field&);
+    void momentum_fit_end(lexer*, ghostcell*);
+    void momentum_deform_begin();
+    void momentum_deform_add(lexer*, fdm*);
+    void momentum_deform_end(lexer*, ghostcell*);
+    template<class G> void momentum_acc(lexer*, fdm*, G, Eigen::Matrix<double,6,6>&, Eigen::Matrix<double,6,1>&);
+    Eigen::Matrix<double,6,1> momentum_solve(lexer*, ghostcell*, Eigen::Matrix<double,6,6>&, Eigen::Matrix<double,6,1>&, bool&);
+    Eigen::Matrix<double,6,6> mf_N_ = Eigen::Matrix<double,6,6>::Zero();
+    Eigen::Matrix<double,6,1> mf_b_ = Eigen::Matrix<double,6,1>::Zero();
+    double mf_c1_ = 0.0, mf_c2_ = 1.0, mf_tn_ = 0.0;
+    bool mf_start_ = false, mf_first_ = true;
+    void ckpt_coupling(std::vector<double>&) const override;
+    void ckpt_coupling_restore(const std::vector<double>&) override;
+    void momentum_loads(lexer*, int);
+    void momentum_refit(lexer*, fdm*, ghostcell*, field&, field&, field&);
+    void momentum_refit_set(lexer*, ghostcell*);
     
     // actuator disks of the load models (body-force propellers): acceleration of the fluid,
     // added to the forcing terms fx, fy, fz of the stage (water part of the cells outside the body)
@@ -76,6 +111,8 @@ public:
     // ... G 7 1: stage iter of the body with the step of a level (p->dt): the loads of its last
     // stage, the pose and the body velocities (the hull is cast on the patches, not on level 0)
     void amr_stage_cfd(lexer*, fdm*, ghostcell*, int);
+    // ... the forces of the nets (X 320) as of their last stage onto the grid of a patch (Fext, Gext, Hext)
+    void amr_net_forces(lexer*, fdm*, int, const std::function<void(const double*,int*)>&);
 
 private:
     
@@ -83,6 +120,7 @@ private:
     void externalForces_cfd(lexer*, fdm*, ghostcell*, double, bool);
     void netForces_cfd(lexer*, fdm*, ghostcell*, double, bool);
     double Hsolidface(lexer*, fdm*, int,int,int);
+    void face_normal(lexer*, fdm*, int, double&, double&, double&);
     double Hsolidface_t(lexer*, fdm*, int,int,int);
     void geometry_parameters(lexer*, fdm*, ghostcell*);
     void geometry_ls(lexer*, fdm*, ghostcell*);

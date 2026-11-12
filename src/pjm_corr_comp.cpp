@@ -55,13 +55,25 @@ double pjm_corr::comp_weight(double s)
 
 void pjm_corr::comp_terms(lexer *p, fdm *a, field &u, field &v, field &w, double alpha)
 {
+    // the time from the start of the step to the projected velocity, in dt: the change of the
+    // pressure p + pcorr - p(n) over it. dt/2 for the second stage of SSP-RK3 (alpha 1/4, u(n+1/2))
+    // and the half step of N 40 6 (alpha 1/2, u(n+1/2)); dt for the other stages (the second stage
+    // of SSP-RK2, alpha 1/2, gives u(n+1)) and the full step of N 40 6
     cstage = 1.0;
 
     if(fabs(alpha-0.25)<1.0e-12)
     cstage = 0.5;
 
+    if(p->N40==6 && fabs(alpha-0.5)<1.0e-12)
+    cstage = 0.5;
+
     fac_t = 1.0/(alpha*cstage*p->dt*p->dt);
     fac_c = 1.0/(alpha*p->dt);
+
+    n=0;
+    LOOP
+    ++n;
+    comp_k.assign(n,0.0);
 
     n=0;
     LOOP
@@ -71,7 +83,7 @@ void pjm_corr::comp_terms(lexer *p, fdm *a, field &u, field &v, field &w, double
         if(a->phi(i,j,k)<0.0)
         {
         epsi = interface_width(p,a->phi,i,j,k);
-        hn = epsi/p->F45;
+        hn = interface_width_grid(p,a->phi,i,j,k)/p->F45;    // the cell size (with G 28 epsi is the width of the density)
 
         comp_a = epsi + hn;
         comp_r = 2.0*hn;
@@ -91,6 +103,7 @@ void pjm_corr::comp_terms(lexer *p, fdm *a, field &u, field &v, field &w, double
         {
         pabs = MAX(p->W36 + a->press(i,j,k), 0.01*p->W36);
         kappa = wt/(p->W33*pabs);
+        comp_k[n] = kappa;
 
         a->M.p[n] += kappa*fac_t;
         a->rhsvec.V[n] -= kappa*(a->press(i,j,k)-pn(i,j,k))*fac_t;

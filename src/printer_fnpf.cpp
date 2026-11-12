@@ -33,6 +33,7 @@ Author: Hans Bihs
 #include"fnpf_print_wsfline_y.h"
 #include"fnpf_vtp_fsf.h"
 #include"fnpf_vtp_bed.h"
+#include"fnpf_scour.h"
 #include"fnpf_breaking_log.h"
 #include"fnpf_print_Hs.h"
 #include"fnpf_vel_probe.h"
@@ -41,6 +42,7 @@ Author: Hans Bihs
 #include"potentialfile_out.h"
 #include"fnpf_state.h"
 #include"fnpf_print_kinematics.h"
+#include"fnpf_print_scour.h"
 #include<sys/stat.h>
 #include<sys/types.h>
 #include<sstream>
@@ -107,6 +109,9 @@ printer_fnpf::printer_fnpf(lexer* p, fdm_fnpf *c, ghostcell *pgc)
     if(p->P66>0)
      pveltheo = new fnpf_vel_probe_theory(p,c);
 
+    if(p->P83>0 || p->P84>0)
+        pscour = new fnpf_print_scour(p,c);
+
     if(p->P230>0)
         ppotentialfile = new potentialfile_out(p,c,pgc);
 
@@ -114,6 +119,21 @@ printer_fnpf::printer_fnpf(lexer* p, fdm_fnpf *c, ghostcell *pgc)
         pfsf = new fnpf_vtp_fsf(p,c,pgc);
 
     pbed = new fnpf_vtp_bed(p,c,pgc);
+
+    // P 187: scour parameters in the bed output, written with the free surface, P 198: scour gauges
+    // (not with mesh refinement)
+    const bool scour = p->P187==1 || p->P198>0;
+
+    if(scour && p->G1>0 && p->mpirank==0)
+        cout<<"FNPF scour (P 187, P 198) is not available with mesh refinement (G 1), off"<<endl;
+
+    if(scour && p->G1<=0)
+    {
+        pscourbed = new fnpf_scour(p,c,pgc);
+
+        if(p->P187==1)
+        pbed->scour = pscourbed;
+    }
 
     if(p->P40>0)
         pstate=new fnpf_state(p,c,pgc);
@@ -176,6 +196,16 @@ void printer_fnpf::start(lexer* p, fdm_fnpf* c,ghostcell* pgc, ioflow *pflow)
     if(p->P66>0)
     pveltheo->start(p,c,pgc,pflow);
 
+    if(pscour!=nullptr)
+    pscour->start(p,c,pgc);
+
+    // P 187: bed velocity statistics, every time step
+    if(pscourbed!=nullptr)
+    {
+    pscourbed->sample(p,c,pgc);
+    pscourbed->gauges(p,pgc);
+    }
+
     // Print out based on iteration
     if(p->count%p->P20==0 && p->P30<0.0 && p->P34<0.0 && p->P20>0)
     {
@@ -203,13 +233,13 @@ void printer_fnpf::start(lexer* p, fdm_fnpf* c,ghostcell* pgc, ioflow *pflow)
     // Print FSF
     if(((p->count%p->P181==0 && p->P182<0.0 && p->P180==1 )|| (p->count==0 &&  p->P182<0.0 && p->P180==1)) && p->P181>0)
     {
-        pfsf->start(p,c,pgc);
+        print_fsf(p,c,pgc);
     }
 
 
     if((p->simtime>p->fsfprinttime && p->P182>0.0 && p->P180==1) || (p->count==0 &&  p->P182>0.0 && p->P180==1))
     {
-        pfsf->start(p,c,pgc);
+        print_fsf(p,c,pgc);
         p->fsfprinttime+=p->P182;
     }
 
@@ -217,22 +247,25 @@ void printer_fnpf::start(lexer* p, fdm_fnpf* c,ghostcell* pgc, ioflow *pflow)
     for(int qn=0; qn<p->P184; ++qn)
     if(p->count%p->P184_dit[qn]==0 && p->count>=p->P184_its[qn] && p->count<=(p->P184_ite[qn]))
     {
-        pfsf->start(p,c,pgc);
+        print_fsf(p,c,pgc);
     }
 
     if(p->P180==1 && p->P185>0)
     for(int qn=0; qn<p->P185; ++qn)
     if(p->simtime>printfsftime_wT[qn] && p->simtime>=p->P185_ts[qn] && p->simtime<=(p->P185_te[qn]+0.5*p->P185_dt[qn]))
     {
-        pfsf->start(p,c,pgc);
+        print_fsf(p,c,pgc);
 
         printfsftime_wT[qn]+=p->P185_dt[qn];
     }
 
     // Print BED: at the start, and at the first output of a restart (I 45: a new LAGOON store, the bed of the
     // earlier one stays with it)
-    if(p->count==0 || !bed_printed)
+    // (with P 187 the bed is written with the free surface: here only when that has not happened yet)
+    if((p->count==0 && p->P187!=1) || !bed_printed)
     {
+    if(pbed->scour!=nullptr)
+    pscourbed->evaluate(p,pgc);
     pbed->start(p,c,pgc,pflow);
     bed_printed = true;
     }
@@ -285,19 +318,57 @@ void printer_fnpf::start(lexer* p, fdm_fnpf* c,ghostcell* pgc, ioflow *pflow)
 void printer_fnpf::print_stop(lexer* p, fdm_fnpf *c, ghostcell* pgc)
 {
     if(p->P180==1)
-    pfsf->start(p,c,pgc);
+    print_fsf(p,c,pgc);
 
     print(p,c,pgc);
+
+    if(pscourbed!=nullptr)
+        pscourbed->gauge_flush();
 
     if(plagoon)  // the last output of the LAGOON store is counted
         plagoon->finish(p,pgc);
     lagoon_output::finish_all(p,pgc);  // and those of the free surface and bed
 }
 
+void printer_fnpf::print_end(lexer* p, fdm_fnpf *c, ghostcell* pgc)
+{
+    if(pscourbed!=nullptr)
+        pscourbed->gauge_flush();
+
+    // the state at the end of the run, also when it ends between two outputs (N 45 before P 30)
+    const bool volume = (p->P20>0 && p->P30<0.0 && p->P34<0.0) || p->P30>0.0 || p->P35>0;
+    const bool fsf = p->P180==1 && (p->P181>0 || p->P182>0.0 || p->P184>0 || p->P185>0);
+
+    if(fsf && last_fsf!=p->count)
+        print_fsf(p,c,pgc);
+
+    if(volume && last_print!=p->count)
+        print(p,c,pgc);
+}
+
+void printer_fnpf::print_fsf(lexer* p, fdm_fnpf *c, ghostcell* pgc)
+{
+    pfsf->start(p,c,pgc);
+    last_fsf = p->count;
+
+    // P 187: the bed with the scour parameters at the free-surface frequency
+    if(pscourbed!=nullptr && p->P187==1)
+    {
+    pscourbed->evaluate(p,pgc);
+    pbed->start(p,c,pgc,nullptr);
+    bed_printed = true;
+    }
+}
+
 void printer_fnpf::print(lexer* p, fdm_fnpf *c, ghostcell* pgc)
 {
+    last_print = p->count;
+
     if(p->P10==vtk3D::type::vtu || p->P10==vtk3D::type::vts)
     {
+        // the 3D velocities for this output when they are not stored (fnpf_memory.h)
+        const bool vel_tmp = c->vel3D_make(p,pgc);
+        
         SLICELOOP4
         {
             if(c->breaking(i,j)==1)
@@ -311,6 +382,7 @@ void printer_fnpf::print(lexer* p, fdm_fnpf *c, ghostcell* pgc)
         pgc->gcsl_start4(p,c->WL,50);
         pgc->gcsl_start4(p,c->bed,50);
         pgc->gcsl_start4(p,c->breaking_print,50);
+        if(p->P23==1)
         pgc->start4(p,c->test,1);
 
         i=-1;
@@ -676,6 +748,11 @@ void printer_fnpf::print(lexer* p, fdm_fnpf *c, ghostcell* pgc)
 
         if(lagoon_output::vtu_files(p))
             writeFile(name, total_size);
+        
+        release_buffer();
+        
+        if(vel_tmp)
+        c->vel3D_free(p);
 
         ++printcount;
     }
@@ -702,6 +779,8 @@ void printer_fnpf::ckpt_state(std::vector<double> &v)
     v.push_back(nP185);
     for(int qn=0; qn<nP185; ++qn)
     v.push_back(printfsftime_wT[qn]);
+    if(pscour!=nullptr)
+    pscour->ckpt_state(v);   // the scour gauges P 83, P 84
 }
 
 void printer_fnpf::ckpt_restore(const std::vector<double> &v)
@@ -724,6 +803,8 @@ void printer_fnpf::ckpt_restore(const std::vector<double> &v)
         const double t = nx();
         if(qn<nP185) printfsftime_wT[qn] = t;
     }
+    if(pscour!=nullptr)
+    pscour->ckpt_restore(v,q);
 }
 
 void printer_fnpf::flush_outputs()

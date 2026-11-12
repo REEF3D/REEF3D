@@ -1,0 +1,15 @@
+{
+ "base": "seastate_2d_phase14_windsea",
+ "ctrl_add": [
+  "A 769 1"
+ ],
+ "description": "seastate_2d_phase14_windsea (nonstationary wind-sea growth from rest, one rank, Komen, DIA, 10 steps of 300 s) with the limiter of Hersbach and Janssen (A 769 1, Phase 25): |dF| <= 5e-7 g f^-4 u* f_m dt, f_m the mean frequency sig_-1,0/2pi, instead of the SWAN limiter. Validation in Dropbox SEASTATE/validation/78_limiter.",
+ "tags": [
+  "quick",
+  "2d",
+  "seastate"
+ ],
+ "covers": [
+  "seastate_source: the limiter of Hersbach and Janssen (A 769 1), Komen"
+ ]
+}

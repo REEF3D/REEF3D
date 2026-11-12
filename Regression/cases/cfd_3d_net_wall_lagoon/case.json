@@ -1,0 +1,8 @@
+{
+ "base": "cfd_3d_net_wall",
+ "ctrl_set": {"P 18": "1", "P 20": "10"},
+ "keep_keys": ["P 20"],
+ "tags": ["3d", "net", "inflow", "mpi", "lagoon"],
+ "description": "as cfd_3d_net_wall, the quasi-static wall net written to the LAGOON store instead of its .vtk files (P 18 1) every 10 steps: REEF3D_CFD.lagoon with the particle set cfd_net (role net: the knots with Tension, the bars as lines with the number of their net), the outputs 0, 1, 2 as the .vtk files would be (the start: the state after the first step, as its file is left); no REEF3D-Net .vtk file. The solution is that of the case without the store.",
+ "covers": ["lagoon_nets (net_barQuasiStatic::print, P 18 1)", "lagoon_nets::finish from lagoon_output::finish_all"]
+}

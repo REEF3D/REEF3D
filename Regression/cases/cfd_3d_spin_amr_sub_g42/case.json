@@ -1,0 +1,6 @@
+{"np": 1, "steps": 8,
+ "description": "cfd_3d_spin_amr_sub with G 42 0.1: a patch casts the paddle again only when a vertex has moved more than 0.1 of its cell size since its last cast; the stages in between keep that level set (the forcing velocity of each stage).",
+ "base": "cfd_3d_spin_amr_sub",
+ "ctrl_add": ["G 42 0.1"],
+ "tags": ["quick", "3d", "6dof", "floating", "levelset", "amr"],
+ "covers": ["G 42 > 0: cfd_amr_6dof::unchanged with a tolerance against the triangles of the last cast (propeller speed patch 3, ship_propeller_cfd_amr 261018)"]}

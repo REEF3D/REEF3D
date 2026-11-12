@@ -1,0 +1,9 @@
+{
+ "base": "fnpf_2d_regular_mpi2",
+ "control_set": {"M 50": "1"},
+ "ctrl_set": {"M 40": "1"},
+ "same_as": "fnpf_2d_regular_mpi2",
+ "description": "fnpf_2d_regular_mpi2 decomposed by REEF3D from the global grid of DIVEMesh (M 50 1, M 40 1): bitwise the run on the grid files of DIVEMesh; the base of the capacity cases (M 42, M 43, DIVEMesh M 36)",
+ "tags": ["quick", "2d", "fnpf", "mpi", "capacity"],
+ "covers": ["dmpart::build"]
+}

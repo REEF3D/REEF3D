@@ -40,6 +40,8 @@ Author: Hans Bihs
 #include"sflow_vtp_bed.h"
 #include"6DOF_sflow.h"
 #include"sflow_amr.h"
+#include"hydro_sflow.h"
+#include"hydro_couple.h"
 #include"reefrun_ckpt.h"
 
 void sflow_f::ini(lexer *p, fdm2D* b, ghostcell* pgc)
@@ -170,6 +172,10 @@ void sflow_f::ini(lexer *p, fdm2D* b, ghostcell* pgc)
 
     pflow->ini2D(p,b,pgc);
     
+    // A 246 4: the breaking masks (relaxation zones, open boundaries)
+    if(pfsf!=nullptr)
+    pfsf->breaking_zones(p,pflow);
+    
     pgc->gcsl_start4(p,b->eta,gcval_eta);
     pgc->gcsl_start4(p,b->bed,50);
     
@@ -206,6 +212,27 @@ void sflow_f::ini(lexer *p, fdm2D* b, ghostcell* pgc)
     cout<<"!!! B 50 "<<p->B50<<" is set but A 218 0: no bed friction (A 218 1: Manning, n = ks^(1/6)/20)"<<endl;
 
     pgc->gcsl_start4(p,b->ks,50);
+
+    // REEF3D::HYDRO (R 10 - R 50): the level-0 object with the inputs of all grids (the patches and blocks: sflow_amr_hydro.cpp)
+    if(hydro_sflow::active(p))
+    {
+    b->hydro = new hydro_sflow(p,b,pgc);
+    b->hydro->ini(p,b,pgc);
+    }
+
+    // REEF3D::HYDRO catchment model coupled with SFLOW (R 100 2): before a restart reads its state
+    if(p->R100==2)
+    {
+        if(pamr!=nullptr)
+        {
+            if(p->mpirank==0)
+            cout<<"!!! HYDRO: R 100 2 with mesh refinement or multi-block grids is not available yet !!!"<<endl;
+            pgc->final(true);
+        }
+
+    pcpl = new hydro_couple(p,b,pgc);
+    pcpl->ini(p,b,pgc);
+    }
 
     //sediment ini
     psed->ini_sflow(p,b,pgc);

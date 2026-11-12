@@ -1,0 +1,22 @@
+{
+ "base": "cfd_2d_dambreak_amr3_adapt_onestep_f48",
+ "np": 1,
+ "steps": 60,
+ "ctrl_add": [
+  "G 28 2"
+ ],
+ "description": "cfd_2d_dambreak_amr3_adapt_onestep_f48 with G 28 2: the interface width of the finest level on all levels (level 0 sees a sharper free surface), with the narrow band of the level set (F 48) and the one-step scheme.",
+ "tags": [
+  "quick",
+  "2d",
+  "dambreak",
+  "levelset",
+  "narrowband",
+  "amr",
+  "adaptive"
+ ],
+ "covers": [
+  "G 28 2: the width of the finest level",
+  "the least width of F 48 with G 28"
+ ]
+}

@@ -1,0 +1,4 @@
+{"base": "nhflow_3d_amr_hull_x15_8", "np": 2, "ctrl_add": ["G 40 1"],
+ "description": "nhflow_3d_amr_hull_x15_8 on 2 ranks with placed patches (G 40 1): the zone placed whole on one rank, the hull loads of the patch on its rank and of the leaf part of level 0 on all ranks.",
+ "tags": ["3d", "nhflow", "6dof", "floating", "amr", "mpi"],
+ "covers": ["X 15 8 with placed patches: amr_owner_nhflow in the leaf test of the hull loads, the thin body of the patch without exchange"]}

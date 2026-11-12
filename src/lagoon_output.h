@@ -147,7 +147,15 @@ public:
     static void piece_written(lexer*, ghostcell*, lagoon_surface *&writer, const char *solver,
                               const char *output, const char *source, const char *file, int num);
 
-    void vtp_piece(lexer*, ghostcell*, std::string buffer, int num, const std::string &file);
+    // a rank's VTP piece of an output made in memory (all ranks call it): written to the file
+    // where files are wanted (P 18 0 and 2, or once the store has failed), into the store with
+    // P 18 - with P 18 1 straight from memory, no file is written and read back
+    static void piece(lexer*, ghostcell*, lagoon_surface *&writer, const char *solver,
+                      const char *output, const char *source, const char *file, int num, std::string &buffer);
+
+    // the piece goes into the background writer (moved from buffer) or, if the store cannot
+    // take it, stays in buffer
+    void vtp_piece(lexer*, ghostcell*, std::string &buffer, int num, const std::string &file);
 
     // every rank, at each LAGOON output (volume or surface): the surfaces' outputs
     // written so far are counted, so a surface written once (the bed) is counted

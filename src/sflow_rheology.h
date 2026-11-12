@@ -26,6 +26,7 @@ Author: Hans Bihs
 class lexer;
 class fdm2D;
 class slice;
+class ghostcell;
 
 using namespace std;
 
@@ -39,6 +40,11 @@ public:
     // bed shear stress for the conserved momenta: args U, V, WL (cell centres)
 	virtual void u_source(lexer*, fdm2D*, slice&, slice&, slice&)=0;
     virtual void v_source(lexer*, fdm2D*, slice&, slice&, slice&)=0;
+    
+    // rheology core (W 120): initial state, and the implicit basal friction step on the stage
+    // momenta UH, VH with the stage depth WL (args: UH, VH, WL, alpha of the stage, last stage)
+    virtual void ini(lexer*, fdm2D*, ghostcell*) {}
+    virtual void implicit(lexer*, fdm2D*, ghostcell*, slice&, slice&, slice&, double, bool) {}
 
 };
 

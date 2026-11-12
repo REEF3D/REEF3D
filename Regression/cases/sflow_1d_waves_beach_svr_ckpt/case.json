@@ -1,0 +1,9 @@
+{
+ "base": "sflow_1d_waves_beach_svr",
+ "np": 1,
+ "steps": 1500,
+ "ctrl_set": {"P 48": "500", "P 49": "0"},
+ "description": "sflow_1d_waves_beach_svr with a checkpoint every 500 steps (P 48 500, P 49 0): the uninterrupted run of sflow_1d_waves_beach_svr_restart.",
+ "tags": ["1d", "sflow", "sediment", "waves", "suspended", "checkpoint"],
+ "covers": ["cfd_ckpt_write/read tag reg (SFLOW) with the slices of sediment_waves, bedload_waves, transport_direction and sediment_susp2D"]
+}

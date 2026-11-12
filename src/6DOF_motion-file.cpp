@@ -25,7 +25,7 @@ Authors: Hans Bihs
 #include"fdm.h"
 #include"ghostcell.h"
 
-sixdof_motionext_file::sixdof_motionext_file(lexer *p, ghostcell *pgc)
+sixdof_motionext_file::sixdof_motionext_file(lexer *p, ghostcell *pgc, int nb) : id(nb)
 {
     ini(p,pgc);
     
@@ -82,7 +82,7 @@ void sixdof_motionext_file::motionext_trans(lexer *p, ghostcell *pgc, Eigen::Vec
     }
     
     
-    if(p->X11_u==2)
+    if(dof[0]==2)
     {
         Uext = 0.0;
         
@@ -93,7 +93,7 @@ void sixdof_motionext_file::motionext_trans(lexer *p, ghostcell *pgc, Eigen::Vec
         dc_(0) = Uext*ramp_vel(p);
     }
 
-    if (p->X11_v==2)
+    if (dof[1]==2)
     {
         Vext = 0.0;
         
@@ -104,7 +104,7 @@ void sixdof_motionext_file::motionext_trans(lexer *p, ghostcell *pgc, Eigen::Vec
         dc_(1) = Vext*ramp_vel(p);
     }
     
-    if (p->X11_w==2)
+    if (dof[2]==2)
     {
         Wext = 0.0;
         
@@ -118,7 +118,7 @@ void sixdof_motionext_file::motionext_trans(lexer *p, ghostcell *pgc, Eigen::Vec
 
 void sixdof_motionext_file::motionext_rot(lexer *p, Eigen::Vector3d& dh_, Eigen::Vector3d& h_, Eigen::Vector4d& de_, Eigen::Matrix<double, 3, 4>&G_,  Eigen::Matrix3d&I_)
 {
-    if(p->X11_p==2)
+    if(dof[3]==2)
     {
         Pext = 0.0;
         
@@ -126,7 +126,7 @@ void sixdof_motionext_file::motionext_rot(lexer *p, Eigen::Vector3d& dh_, Eigen:
         Pext = (data[timecount][1]-data[timecount_old][1])/(data[timecount][0]-data[timecount_old][0]);
     }
 
-    if(p->X11_q==2)
+    if(dof[4]==2)
     {
         Qext = 0.0;
         
@@ -134,7 +134,7 @@ void sixdof_motionext_file::motionext_rot(lexer *p, Eigen::Vector3d& dh_, Eigen:
         Qext = (data[timecount][2]-data[timecount_old][2])/(data[timecount][0]-data[timecount_old][0]);
     }
 
-    if(p->X11_r==2)
+    if(dof[5]==2)
     {
         Rext = 0.0;
         
@@ -142,15 +142,15 @@ void sixdof_motionext_file::motionext_rot(lexer *p, Eigen::Vector3d& dh_, Eigen:
         Rext = (data[timecount][3]-data[timecount_old][3])/(data[timecount][0]-data[timecount_old][0]);
     }
     
-    if(p->X11_p == 2) dh_(0) = 0.0;
-    if(p->X11_q == 2) dh_(1) = 0.0;
-    if(p->X11_r == 2) dh_(2) = 0.0;
+    if(dof[3] == 2) dh_(0) = 0.0;
+    if(dof[4] == 2) dh_(1) = 0.0;
+    if(dof[5] == 2) dh_(2) = 0.0;
 
     omega_ = I_.inverse() * h_;
 
-    if(p->X11_p == 2) omega_(0) = Pext*ramp_vel(p);
-    if(p->X11_q == 2) omega_(1) = Qext*ramp_vel(p);
-    if(p->X11_r == 2) omega_(2) = Rext*ramp_vel(p);
+    if(dof[3] == 2) omega_(0) = Pext*ramp_vel(p);
+    if(dof[4] == 2) omega_(1) = Qext*ramp_vel(p);
+    if(dof[5] == 2) omega_(2) = Rext*ramp_vel(p);
 
     h_ = I_*omega_;
 

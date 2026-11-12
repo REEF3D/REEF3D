@@ -1,0 +1,20 @@
+{
+ "base": "cfd_3d_dambreak_amr",
+ "np": 2,
+ "steps": 20,
+ "ctrl_set": {
+  "N 40": "6"
+ },
+ "description": "cfd_3d_dambreak_amr with N 40 6 on two ranks: the fills of the half-step velocity, the mid-step level set and the pressure p(n+1/2) around the patch across the partition edge.",
+ "tags": [
+  "quick",
+  "3d",
+  "dambreak",
+  "levelset",
+  "amr",
+  "mpi"
+ ],
+ "covers": [
+  "cfd_amr::step_comp: N 40 6 in 3D with MPI"
+ ]
+}

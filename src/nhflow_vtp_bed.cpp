@@ -25,13 +25,25 @@ Author: Hans Bihs
 #include"fdm_nhf.h"
 #include"ghostcell.h"
 #include"sediment.h"
+#include"scour_core.h"
 #include<sys/stat.h>
 #include<sys/types.h>
 #include"lagoon_output.h"
+#include"vtp_piece_buffer.h"
+#include<sstream>
 
 namespace
 {
 lagoon_surface *lagoon_bed = nullptr;  // P 18
+}
+
+// the point data of the scour option (P 187) in the order of the file
+std::vector<std::pair<const char*,slice*>> nhflow_vtp_bed::scour_fields(scour_core *s)
+{
+    std::vector<std::pair<const char*,slice*>> f;
+    for(int q=0; q<scour_core::NQ; ++q)
+    f.push_back({scour_core::name(q),s->field(q)});
+    return f;
 }
 
 nhflow_vtp_bed::nhflow_vtp_bed(lexer *p)
@@ -78,6 +90,14 @@ void nhflow_vtp_bed::print2D(lexer *p, fdm_nhf *d, ghostcell* pgc, sediment *pse
     // depth
     offset[n]=offset[n-1]+sizeof(float)*p->pointnum2D+sizeof(int);
     ++n;
+    // scour (P 187)
+    const int nsc = scour!=nullptr ? scour_core::NQ : 0;
+    for(int q=0; q<nsc; ++q)
+    {
+    offset[n]=offset[n-1]+sizeof(float)*p->pointnum2D+sizeof(int);
+    ++n;
+    }
+
     // sediment bedlaod
     if(p->P76==1)
         psed->offset_ParaView_2D_bedload(p,offset,n);
@@ -105,8 +125,10 @@ void nhflow_vtp_bed::print2D(lexer *p, fdm_nhf *d, ghostcell* pgc, sediment *pse
     sprintf(name,"./REEF3D_NHFLOW_VTP_BED/REEF3D-NHFLOW-BED-%08i-%06i.vtp",num,p->mpirank+1);
 
     // Open File
-    ofstream result;
-    result.open(name, ios::binary);
+    // the piece in memory: lagoon_surface::piece writes the file where it is wanted (vtp_piece_buffer.h)
+    std::ostringstream result(std::ios::out | std::ios::binary);
+    vtp_piece_buffer bin;
+    bin.s.reserve(size_t(p->pointnum2D)*80);
 
     vtp3D::beginning(p,result,p->pointnum2D,0,0,0,p->polygon_sum);
 
@@ -120,6 +142,12 @@ void nhflow_vtp_bed::print2D(lexer *p, fdm_nhf *d, ghostcell* pgc, sediment *pse
     ++n;
     result<<"<DataArray type=\"Float32\" Name=\"depth\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
     ++n;
+
+    for(int q=0; q<nsc; ++q)
+    {
+    result<<"<DataArray type=\"Float32\" Name=\""<<scour_core::name(q)<<"\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
+    ++n;
+    }
     if(p->P76==1)
         psed->name_ParaView_bedload(p,result,offset,n);
     if(p->P77==1)
@@ -143,22 +171,22 @@ void nhflow_vtp_bed::print2D(lexer *p, fdm_nhf *d, ghostcell* pgc, sediment *pse
 
     //  XYZ
     iin=sizeof(float)*p->pointnum2D*3;
-    result.write((char*)&iin, sizeof(int));
+    bin.write((char*)&iin, sizeof(int));
     TPSLICELOOP
     {
         ffn=(p->geo_curv==1) ? float(p->XN2D[p->nij(i+1,j+1)]) : float(p->Xout(p->XN[IP1],p->YN[JP1]));
-        result.write((char*)&ffn, sizeof(float));
+        bin.write((char*)&ffn, sizeof(float));
 
         ffn=(p->geo_curv==1) ? float(p->YN2D[p->nij(i+1,j+1)]) : float(p->Yout(p->XN[IP1],p->YN[JP1]));
-        result.write((char*)&ffn, sizeof(float));
+        bin.write((char*)&ffn, sizeof(float));
 
         ffn=float(p->sl_ipol4(d->bed));
-        result.write((char*)&ffn, sizeof(float));
+        bin.write((char*)&ffn, sizeof(float));
     }
     
     //  Velocities
     iin=sizeof(float)*p->pointnum2D*3;
-    result.write((char*)&iin, sizeof(int));
+    bin.write((char*)&iin, sizeof(int));
     TPSLICELOOP
     {
         k = 0;
@@ -173,7 +201,7 @@ void nhflow_vtp_bed::print2D(lexer *p, fdm_nhf *d, ghostcell* pgc, sediment *pse
         else if(p->j_dir==1)
             ffn=float(0.5*(d->U[IJK]+d->U[IJp1K]));
 
-        result.write((char*)&ffn, sizeof(float));
+        bin.write((char*)&ffn, sizeof(float));
 
         if(p->j_dir==0)
         {
@@ -185,7 +213,7 @@ void nhflow_vtp_bed::print2D(lexer *p, fdm_nhf *d, ghostcell* pgc, sediment *pse
         else if(p->j_dir==1)
             ffn=float(0.5*(d->V[IJK]+d->V[IJp1K]));
 
-        result.write((char*)&ffn, sizeof(float));
+        bin.write((char*)&ffn, sizeof(float));
 
         if(p->j_dir==0)
         {
@@ -197,42 +225,55 @@ void nhflow_vtp_bed::print2D(lexer *p, fdm_nhf *d, ghostcell* pgc, sediment *pse
         else if(p->j_dir==1)
             ffn=float(0.5*(d->W[IJK]+d->W[IJp1K]));
 
-        result.write((char*)&ffn, sizeof(float));
+        bin.write((char*)&ffn, sizeof(float));
     }
 
     //  Elevation
     iin=sizeof(float)*p->pointnum2D;
-    result.write((char*)&iin, sizeof(int));
+    bin.write((char*)&iin, sizeof(int));
     TPSLICELOOP
     {
         ffn=float(p->sl_ipol4(d->bed));
-        result.write((char*)&ffn, sizeof(float));
+        bin.write((char*)&ffn, sizeof(float));
     }
 
     //  Depth
     iin=sizeof(float)*p->pointnum2D;
-    result.write((char*)&iin, sizeof(int));
+    bin.write((char*)&iin, sizeof(int));
     TPSLICELOOP
     {
         ffn=float(p->sl_ipol4(d->depth));
-        result.write((char*)&ffn, sizeof(float));
+        bin.write((char*)&ffn, sizeof(float));
+    }
+
+    //  Scour (P 187)
+    for(int q=0; q<nsc; ++q)
+    {
+    slice &f = *scour->field(q);
+    iin=sizeof(float)*p->pointnum2D;
+    bin.write((char*)&iin, sizeof(int));
+    TPSLICELOOP
+    {
+        ffn=float(p->sl_ipol4(f));
+        bin.write((char*)&ffn, sizeof(float));
+    }
     }
 
     //  sediment bedload
     if(p->P76==1)
-        psed->print_2D_bedload(p,pgc,result);
+        {std::ostringstream part(std::ios::out | std::ios::binary); psed->print_2D_bedload(p,pgc,part); bin.s += part.str();}
 
     //  sediment parameter 1
     if(p->P77==1)
-        psed->print_2D_parameter1(p,pgc,result);
+        {std::ostringstream part(std::ios::out | std::ios::binary); psed->print_2D_parameter1(p,pgc,part); bin.s += part.str();}
 
     //  sediment parameter 2
     if(p->P78==1)
-        psed->print_2D_parameter2(p,pgc,result);
+        {std::ostringstream part(std::ios::out | std::ios::binary); psed->print_2D_parameter2(p,pgc,part); bin.s += part.str();}
 
     //  bed shear stress
     if(p->P79>=1)
-        psed->print_2D_bedshear(p,pgc,result);
+        {std::ostringstream part(std::ios::out | std::ios::binary); psed->print_2D_bedshear(p,pgc,part); bin.s += part.str();}
 
     //  Test
     if(p->P23==1)
@@ -240,11 +281,11 @@ void nhflow_vtp_bed::print2D(lexer *p, fdm_nhf *d, ghostcell* pgc, sediment *pse
         pgc->gcsl_start4(p,d->test2D,1);
 
         iin=sizeof(float)*p->pointnum2D;
-        result.write((char*)&iin, sizeof(int));
+        bin.write((char*)&iin, sizeof(int));
         TPSLICELOOP
         {
             ffn=float(p->sl_ipol4(d->test2D));
-            result.write((char*)&ffn, sizeof(float));
+            bin.write((char*)&ffn, sizeof(float));
         }
     }
 
@@ -253,46 +294,51 @@ void nhflow_vtp_bed::print2D(lexer *p, fdm_nhf *d, ghostcell* pgc, sediment *pse
 
     //  Connectivity
     iin=sizeof(int)*p->polygon_sum*3;
-    result.write((char*)&iin, sizeof(int));
+    bin.write((char*)&iin, sizeof(int));
     SLICEBASELOOP
     {
         // Triangle 1
         iin=int(d->nodeval2D(i-1,j-1))-1;
-        result.write((char*)&iin, sizeof(int));
+        bin.write((char*)&iin, sizeof(int));
 
         iin=int(d->nodeval2D(i,j-1))-1;
-        result.write((char*)&iin, sizeof(int));
+        bin.write((char*)&iin, sizeof(int));
 
         iin=int(d->nodeval2D(i,j))-1;
-        result.write((char*)&iin, sizeof(int));
+        bin.write((char*)&iin, sizeof(int));
 
 
         // Triangle 2
         iin=int(d->nodeval2D(i-1,j-1))-1;
-        result.write((char*)&iin, sizeof(int));
+        bin.write((char*)&iin, sizeof(int));
 
         iin=int(d->nodeval2D(i,j))-1;
-        result.write((char*)&iin, sizeof(int));
+        bin.write((char*)&iin, sizeof(int));
 
         iin=int(d->nodeval2D(i-1,j))-1;
-        result.write((char*)&iin, sizeof(int));
+        bin.write((char*)&iin, sizeof(int));
     }
 
     //  Offset of Connectivity
     iin=sizeof(int)*p->polygon_sum;
-    result.write((char*)&iin, sizeof(int));
+    bin.write((char*)&iin, sizeof(int));
     for(n=0;n<p->polygon_sum;++n)
     {
         iin=(n+1)*3;
-        result.write((char*)&iin, sizeof(int));
+        bin.write((char*)&iin, sizeof(int));
     }
 
-    vtp3D::footer(result);
-
-    result.close();
+    // the header, the binary part and the footer
+    std::string piece = result.str();
+    piece += bin.s;
+    {
+    std::ostringstream foot;
+    vtp3D::footer(foot);
+    piece += foot.str();
+    }
 
     // P 18: the piece in the LAGOON store (P 18 1: instead of the file, P 18 2: as well)
-    lagoon_surface::piece_written(p,pgc,lagoon_bed,"NHFLOW","bed","REEF3D_NHFLOW_VTP_BED",name,num);
+    lagoon_surface::piece(p,pgc,lagoon_bed,"NHFLOW","bed","REEF3D_NHFLOW_VTP_BED",name,num,piece);
 
     ++printcount;
 }

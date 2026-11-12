@@ -1,0 +1,7 @@
+{
+ "description": "2D lock filling through a culvert: chamber at 0.18 m, upper reach at 0.38 m (outflow boundary F 62), a culvert 0.12 m high under a solid (S 10) with a valve (6DOF body, heave prescribed from 6DOF_motion-0.dat, X 111) that reaches 0.01 m into the culvert roof and 0.02 m below the bed, and a fixed second body (gate, X 11 0) on the upper sill. The weights of solid and body forcing at a face add up to 1 at most (patch 0042; before it the run blew up in the first steps).",
+ "np": 1, "steps": 40,
+ "files": ["floating.stl", "floating-1.stl", "6DOF_motion-0.dat"],
+ "tags": ["quick", "2d", "6dof", "solid", "levelset"],
+ "covers": ["sixdof_obj_cfd::update_forcing Hlimit (body in a solid)", "sixdof_cfd::setup sf weights", "X 111", "X 48 3"]
+}

@@ -30,7 +30,7 @@ Author: Hans Bihs
 
 nhflow_breaking::nhflow_breaking(lexer* p, fdm_nhf *d, ghostcell *pgc) : bx(p), by(p), bd(p), brkflag(p), brkzone(p),
                                                                             brkage(p), brkage_n(p), brkvb(p), bt_us(p), bt_vs(p), bt_vbs(p), brkseed(p),
-                                                                            brkkseed(p), brkk(p), brkk_n(p), brkr(p), brkr_n(p), count_n(-1)
+                                                                            brkkseed(p), brkk(p), brkk_n(p), brkr(p), brkr_n(p), bt_vbd(p), bt_kwd(p), bt_pa(p), count_n(-1)
 {
     SLICELOOP4
     {
@@ -45,6 +45,9 @@ nhflow_breaking::nhflow_breaking(lexer* p, fdm_nhf *d, ghostcell *pgc) : bx(p), 
     brkk_n(i,j)=0.0;
     brkr(i,j)=0.0;
     brkr_n(i,j)=0.0;
+    bt_vbd(i,j)=0.0;
+    bt_kwd(i,j)=0.0;
+    bt_pa(i,j)=0.0;
     }
 }
 
@@ -66,6 +69,37 @@ void nhflow_breaking::breaking(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &eta,
     breaking_barthelemy(p, d, pgc, eta_n);
     breaking_kennedy(p, d, pgc, WL);
     }
+    
+    // A 550 5: the bores as A 550 4, the deep-water breakers with the energy-matched viscosity of breaking_crest3d
+    if(p->A550==5)
+    {
+    breaking_barthelemy(p, d, pgc, eta_n);
+    breaking_kennedy(p, d, pgc, WL);
+    breaking_deep(p, d, pgc);
+    }
+}
+
+void nhflow_breaking::breaking_deep(lexer *p, fdm_nhf *d, ghostcell *pgc)
+{
+    int count=0;
+    
+    SLICELOOP4
+    if(p->wet[IJ]==1 && bt_vbd(i,j)>d->vb(i,j))
+    {
+    d->vb(i,j) = bt_vbd(i,j);
+    d->vbk(i,j) = bt_kwd(i,j);
+    d->breaking(i,j) = 1;
+    ++count;
+    }
+    
+    pgc->gcsl_start4(p,d->vb,1);
+    pgc->gcsl_start4(p,d->vbk,1);
+    pgc->gcsl_start4int(p,d->breaking,50);
+    
+    count=pgc->globalisum(count);
+    
+    if(p->mpirank==0 && (p->count%p->P12==0) && count>0)
+    cout<<"breaking: deep-water breakers in "<<count<<" columns"<<endl;
 }
 
 // A 550 3: eddy viscosity of Kennedy, Chen, Kirby & Dalrymple (2000), J. Waterway Port Coastal Ocean Eng. 126(1), 39-47,
@@ -89,8 +123,41 @@ void nhflow_breaking::breaking(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &eta,
 // No breaking in the relaxation zones (breaking_zones).
 void nhflow_breaking::breaking_kennedy(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL)
 {
+    // multi-block grid (nhflow_amr::breaking_level0): only the arguments, the parts run on all blocks with the
+    // exchanges between the blocks in between
+    if(brk_defer)
+    {
+    brk_WL = &WL;
+    return;
+    }
+    
+    kennedy_part(p,d,pgc,WL,0,0);
+    kennedy_part(p,d,pgc,WL,1,0);
+    
+    const int nband = pgc->globalimax(kn_band);
+    
+    for(int qn=0; qn<nband; ++qn)
+    {
+    kennedy_part(p,d,pgc,WL,2,qn);
+    kennedy_part(p,d,pgc,WL,3,qn);
+    }
+    
+    kennedy_part(p,d,pgc,WL,4,0);
+    
+    const int count=pgc->globalisum(kn_count);
+    
+    if(p->mpirank==0 && (p->count%p->P12==0))
+    cout<<"breaking: "<<count<<endl;
+}
+
+// the parts of breaking_kennedy: 0 the ages of the last step, 1 the viscosity of the columns (kn_count) and the width
+// of the band (kn_band cells), 2 the ghost cells before the pass qn of the band, 3 the pass, 4 the flags
+void nhflow_breaking::kennedy_part(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL, int part, int qn)
+{
     const double g = fabs(p->W22);
     
+    if(part==0)
+    {
     // new time step: the ages (and with A 550 4 the wavenumbers) at the end of the last step
     if(p->count>count_n)
     {
@@ -107,9 +174,13 @@ void nhflow_breaking::breaking_kennedy(lexer *p, fdm_nhf *d, ghostcell *pgc, sli
     
     count_n=p->count;
     }
+    return;
+    }
     
-    const bool seeded = (p->A550==4);
-    int count=0;
+    if(part==1)
+    {
+    const bool seeded = (p->A550==4 || p->A550==5);
+    kn_count=0;
     
     SLICELOOP4
     {
@@ -177,7 +248,7 @@ void nhflow_breaking::breaking_kennedy(lexer *p, fdm_nhf *d, ghostcell *pgc, sli
             brkk(i,j) = kw;
             brkr(i,j) = r0;
             brkflag(i,j) = 1;
-            ++count;
+            ++kn_count;
             }
             
             // A 550 4: the event of a seeded column ages also below the threshold, so the threshold relaxes from
@@ -192,8 +263,8 @@ void nhflow_breaking::breaking_kennedy(lexer *p, fdm_nhf *d, ghostcell *pgc, sli
         }
     }
     
-    // spread over the band of A 502 h: bd is the width in cells, by marks the band columns
-    int nband=0;
+    // spread over the band of A 502 h (A 550 4: A 502 L_k of the event): bd is the largest width in cells
+    kn_band=0;
     
     SLICELOOP4
     {
@@ -203,18 +274,24 @@ void nhflow_breaking::breaking_kennedy(lexer *p, fdm_nhf *d, ghostcell *pgc, sli
     dxl = MIN(dxl,p->DYN[JP]);
     
     bd(i,j) = (p->wet[IJ]==1 && brkzone(i,j)==0) ? int(ceil(p->A502*MAX(WL(i,j),0.0)/dxl - 1.0e-9)) : 0;
-    nband = MAX(nband,bd(i,j));
+    kn_band = MAX(kn_band,bd(i,j));
     }
-    
-    nband = pgc->globalimax(nband);
     
     SLICELOOP4
     d->vbk(i,j) = brkk(i,j);
+    return;
+    }
     
-    for(int qn=0; qn<nband; ++qn)
+    if(part==2)
     {
     pgc->gcsl_start4(p,d->vb,1);
     pgc->gcsl_start4(p,d->vbk,1);
+    return;
+    }
+    
+    if(part==3)
+    {
+    const bool seeded = (p->A550==4 || p->A550==5);
     
     SLICELOOP4
     {
@@ -223,7 +300,12 @@ void nhflow_breaking::breaking_kennedy(lexer *p, fdm_nhf *d, ghostcell *pgc, sli
     
         if(qn<bd(i,j))
         {
-        auto take = [&](int ii, int jj) { if(d->vb(ii,jj)>brkvb(i,j)) { brkvb(i,j) = d->vb(ii,jj); bt_vbs(i,j) = d->vbk(ii,jj); } };
+        // A 550 4: the band of an event is A 502 L_k wide, L_k = tanh(k h)/k with the wavenumber k of the event
+        // carried with vb (<= h; with A 502 h in deep water the band reached over the next crest and trough)
+        const double hb = MAX(WL(i,j),0.0);
+        const double dxb = (p->j_dir==1) ? MIN(p->DXN[IP],p->DYN[JP]) : p->DXN[IP];
+        auto inband = [&](double kv) { return !(seeded && kv>0.0) || qn < int(ceil(p->A502*tanh(kv*hb)/kv/dxb - 1.0e-9)); };
+        auto take = [&](int ii, int jj) { if(d->vb(ii,jj)>brkvb(i,j) && inband(d->vbk(ii,jj))) { brkvb(i,j) = d->vb(ii,jj); bt_vbs(i,j) = d->vbk(ii,jj); } };
         take(i-1,j);
         take(i+1,j);
         
@@ -240,6 +322,7 @@ void nhflow_breaking::breaking_kennedy(lexer *p, fdm_nhf *d, ghostcell *pgc, sli
     d->vb(i,j) = brkvb(i,j);
     d->vbk(i,j) = bt_vbs(i,j);
     }
+    return;
     }
     
     SLICELOOP4
@@ -248,15 +331,20 @@ void nhflow_breaking::breaking_kennedy(lexer *p, fdm_nhf *d, ghostcell *pgc, sli
     pgc->gcsl_start4(p,d->vb,1);
     pgc->gcsl_start4(p,d->vbk,1);
     pgc->gcsl_start4int(p,d->breaking,50);
-    
-    count=pgc->globalisum(count);
-    
-    if(p->mpirank==0 && (p->count%p->P12==0))
-    cout<<"breaking: "<<count<<endl;
 }
 
 // the relaxation zones of the wave generation and the numerical beach (ioflow::relax_boxes): deta/dt of the
 // continuity is not the change of the relaxed water level there
+void nhflow_breaking::breaking_zone_mask(lexer *p, const std::function<void(const std::function<void(int,int)>&)> &cells)
+{
+    SLICELOOP4
+    brkzone(i,j) = 0;
+
+    cells([&](int ii, int jj) { brkzone(ii,jj) = 1; });
+
+    brkzone_built = true;
+}
+
 void nhflow_breaking::breaking_zones(lexer *p, ioflow *pflow)
 {
     if(brkzone_built || p->A550<2 || pflow==nullptr)

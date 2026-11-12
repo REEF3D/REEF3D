@@ -1,0 +1,19 @@
+{
+ "base": "nhflow_3d_si_amr_basin",
+ "ctrl_set": {
+  "P 48": "10",
+  "P 49": "0"
+ },
+ "description": "nhflow_3d_si_amr_basin with a checkpoint every 10 steps: the uninterrupted run of nhflow_3d_si_amr_basin_restart.",
+ "tags": [
+  "3d",
+  "nhflow",
+  "semi_implicit",
+  "amr",
+  "checkpoint"
+ ],
+ "covers": [
+  "nhflow_amr checkpoint of the semi-implicit patches"
+ ],
+ "architect": "Hans Bihs"
+}

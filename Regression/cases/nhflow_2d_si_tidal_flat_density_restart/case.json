@@ -1,0 +1,33 @@
+{
+ "base": "nhflow_2d_si_tidal_flat_density_ckpt",
+ "same_as": "nhflow_2d_si_tidal_flat_density_ckpt",
+ "chain": [
+  {
+   "case": "nhflow_2d_si_tidal_flat_density_ckpt",
+   "copy": [
+    "REEF3D_Checkpoint",
+    "REEF3D_NHFLOW_Log",
+    "REEF3D_NHFLOW_WSF",
+    "REEF3D_NHFLOW_Tidal"
+   ]
+  }
+ ],
+ "ctrl_set": {
+  "I 45": "150"
+ },
+ "description": "the restart of nhflow_2d_si_tidal_flat_density_ckpt from step 150: the final state and the text outputs bitwise those of the uninterrupted run (regression.py ranks).",
+ "tags": [
+  "2d",
+  "nhflow",
+  "semi_implicit",
+  "wetdry",
+  "turbulence",
+  "tide",
+  "tracer",
+  "density",
+  "checkpoint"
+ ],
+ "covers": [
+  "the restart with A 620, bitwise"
+ ]
+}

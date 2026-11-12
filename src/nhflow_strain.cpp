@@ -21,6 +21,7 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"nhflow_strain.h"
+#include"nhflow_stratification.h"
 #include"nhflow_wall.h"
 #include"lexer.h"
 #include"fdm_nhf.h"
@@ -28,9 +29,19 @@ Author: Hans Bihs
 
 nhflow_strain::nhflow_strain(lexer *p, fdm_nhf *d)	: nhflow_gradient(p),epsi(p->F45*p->DXM)
 {
+    // the bed cell of the wall-function bed: du/dz, dv/dz from the log law (nhflow_gradient.cpp)
+    bedwall_set(d);
+    
     p->Darray(PK,p->imax*p->jmax*(p->kmax+2));
     p->Darray(PK0,p->imax*p->jmax*(p->kmax+2));
     p->Darray(PK_b,p->imax*p->jmax*(p->kmax+2));
+
+    if(p->A623>0)
+    {
+    p->Darray(GBS,p->imax*p->jmax*(p->kmax+2));
+    p->Darray(GBS0,p->imax*p->jmax*(p->kmax+2));
+    p->Darray(N2S,p->imax*p->jmax*(p->kmax+2));
+    }
     
     TQ11=TQ22=TQ33=TQ12=TQ13=TQ23=nullptr;
     
@@ -113,6 +124,24 @@ void nhflow_strain::Pk_b_update(lexer *p, fdm_nhf *d, ghostcell *pgc)
     if(k==p->knoz-1)
     val = (1.0/0.85)*(1.0/p->W1)*d->EV0[IJK]*(p->W22*(p->W3 - p->W1)/(p->DZN[KP]*d->WL(i,j)));
     PK_b[IJK] = val;
+    }
+}
+
+// A 623 (P12c): the buoyancy production of the stratification G_b = -(nu_t/sigma_t) N^2, N^2 from the density of
+// the tracers (nhflow_n2), sigma_t of the tracers (A 605); with EV (k equation) and EV0 (epsilon equation)
+void nhflow_strain::Pk_strat(lexer *p, fdm_nhf *d)
+{
+    if(GBS==nullptr)
+    return;
+
+    const double sigt = p->A605_sig>0.0 ? p->A605_sig : 1.0;
+
+    nhflow_n2(p,d,N2S);
+
+    LOOP
+    {
+    GBS[IJK]  = -d->EV[IJK]*N2S[IJK]/sigt;
+    GBS0[IJK] = -d->EV0[IJK]*N2S[IJK]/sigt;
     }
 }
 

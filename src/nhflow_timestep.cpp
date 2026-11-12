@@ -21,6 +21,8 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"nhflow_timestep.h"
+#include"nhflow_flux_face.h"
+#include"vrans_definitions.h"
 #include<iomanip>
 #include"lexer.h"
 #include"nhflow_curv.h"
@@ -149,6 +151,29 @@ void nhflow_timestep::start(lexer *p, fdm_nhf *d, ghostcell *pgc)
     
     if(p->A533==1)
     cw = MIN(cw, dz/(p->wmax));
+    
+    // VRANS (B 206 1): wave speeds of the porous equations, a +- b of nhflow_face::por_speed with the
+    // cell porosity (advective speed C u/n^2 up to 3 u in an armour layer, celerity sqrt(C g D/n))
+    if(p->B200==1 && p->B206==1 && d->POR[IJK]<1.0-1.0e-10)
+    {
+    const double n = d->POR[IJK];
+    const double C = CPORNHval(n);
+    double a,b;
+    
+    nhflow_face::por_speed(p,n,n,fabs(d->U[IJK]),d->WL(i,j),a,b);
+    cu = MIN(cu, dx/(a + b + 1.0e-20));
+    
+    if(p->j_dir==1)
+    {
+    nhflow_face::por_speed(p,n,n,fabs(d->V[IJK]),d->WL(i,j),a,b);
+    cv = MIN(cv, dx/(a + b + 1.0e-20));
+    }
+    
+    cw = MIN(cw, dx/(C*fabs(d->W[IJK])/(n*n) + 1.0e-20));
+    
+    if(p->A533==1)
+    cw = MIN(cw, dz/(C*fabs(d->W[IJK])/(n*n) + 1.0e-20));
+    }
     
     if(p->B200==1 || p->A533==1)
     cu = MIN(cu, 1.0/(0.00001

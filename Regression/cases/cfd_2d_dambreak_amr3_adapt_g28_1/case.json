@@ -1,0 +1,21 @@
+{
+ "base": "cfd_2d_dambreak_amr3_adapt",
+ "np": 1,
+ "steps": 60,
+ "ctrl_add": [
+  "G 28 1"
+ ],
+ "description": "cfd_2d_dambreak_amr3_adapt with G 28 1: two adaptive levels, the density smeared over the interface width of level 0 on every level; new patches, the band of the prolongation in the composite preconditioner (psi_band) with the one width.",
+ "tags": [
+  "quick",
+  "2d",
+  "dambreak",
+  "levelset",
+  "amr",
+  "adaptive"
+ ],
+ "covers": [
+  "G 28 1 on two adaptive levels, the regrids",
+  "cfd_amr::psi_band with G 28"
+ ]
+}

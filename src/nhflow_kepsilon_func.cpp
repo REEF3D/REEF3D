@@ -215,6 +215,27 @@ void nhflow_kepsilon_func::kinsource(lexer *p, fdm_nhf *d, vrans_nhflow* pvrans)
 	++count;
     }
     
+    // stratification (A 623): G_b = -(nu_t/sigma_t) N^2, a sink implicitly, a source explicitly
+    if(GBS!=nullptr)
+    {
+    count=0;
+    LOOP
+    {
+        const double gb = GBS[IJK];
+
+        if(WALLF[IJK]==0)
+        {
+        if(gb<0.0)
+        d->M.p[count] += -gb/MAX(KIN[IJK],1.0e-10);
+
+        if(gb>0.0)
+        d->rhsvec.V[count] += gb;
+        }
+
+    ++count;
+    }
+    }
+
     // VRANS turbulence source (B 295 1)
     pvrans->ke_source(p,d,KIN,EPS);
 }
@@ -241,6 +262,35 @@ void nhflow_kepsilon_func::epssource(lexer *p, fdm_nhf *d, vrans_nhflow* pvrans)
         ++count;
         }
         
+    // stratification (A 623): c1e c3e eps/k G_b, c3e = 1 unstable (G_b > 0), A 624 stable; with G_b of nu_t0 and
+    // the same bound as the production (eps/k nu_t0 <= cmu k); a negative term implicitly
+    if(GBS0!=nullptr)
+    {
+    count=0;
+    LOOP
+    {
+        const double gb = GBS0[IJK];
+        const double c3 = gb>0.0 ? 1.0 : p->A624;
+        const double ratio = MAX(EPS[IJK],0.0)/(KIN[IJK]>(1.0e-10)?(fabs(KIN[IJK])):(1.0e20));
+        const double kpos  = MAX(KIN[IJK],0.0);
+        double src;
+
+        if(ratio*d->EV0[IJK]<=p->cmu*kpos || d->EV0[IJK]<=1.0e-20)
+        src = ke_c_1e*c3*ratio*gb;
+
+        else
+        src = ke_c_1e*c3*p->cmu*kpos*gb/d->EV0[IJK];
+
+        if(src>0.0)
+        d->rhsvec.V[count] += src;
+
+        if(src<0.0)
+        d->M.p[count] += -src/MAX(EPS[IJK],1.0e-20);
+
+    ++count;
+    }
+    }
+
     // VRANS turbulence source (B 295 1)
     pvrans->eps_source(p,d,KIN,EPS);
 }

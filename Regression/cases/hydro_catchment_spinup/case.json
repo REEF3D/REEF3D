@@ -1,0 +1,22 @@
+{
+ "description": "hydro_catchment_hbv for 360 steps, writing the state REEF3D_HYDRO/hydro_state.dat at the end (R 107 1)",
+ "solver": "sflow",
+ "np": 1,
+ "steps": 360,
+ "files": [
+  "catchment_dem.asc",
+  "catchment_glacier.asc",
+  "catchment_zone.asc",
+  "hydro_forcing.dat",
+  "hydro_param.dat"
+ ],
+ "tags": [
+  "quick",
+  "hydro",
+  "catchment",
+  "restart"
+ ],
+ "covers": [
+  "hydro_core::write_state"
+ ]
+}

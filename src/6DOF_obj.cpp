@@ -33,6 +33,9 @@ Authors: Tobias Martin, Hans Bihs
 #include"6DOF_motionext_void.h"
 #include"net_interface.h"
 #include"ship.h"
+#include"6DOF_deform.h"
+#include"6DOF_brain.h"
+#include"6DOF_brain_link.h"
 
 sixdof_obj::sixdof_obj(lexer *p, ghostcell *pgc, int number) : ddweno_f_nug(p),
                                                                                 georay(p),n6DOF(number),
@@ -57,6 +60,49 @@ sixdof_obj::sixdof_obj(lexer *p, ghostcell *pgc, int number) : ddweno_f_nug(p),
     rb.dof[3] = p->X11_p;
     rb.dof[4] = p->X11_q;
     rb.dof[5] = p->X11_r;
+    
+    // single bodies (X 111 id u v w p q r): own DOF modes, e.g. prescribed lock gates and a free ship
+    for(int n=0; n<p->X111; ++n)
+    if(p->X111_id[n]==number)
+    {
+    rb.dof[0] = p->X111_u[n];
+    rb.dof[1] = p->X111_v[n];
+    rb.dof[2] = p->X111_w[n];
+    rb.dof[3] = p->X111_p[n];
+    rb.dof[4] = p->X111_q[n];
+    rb.dof[5] = p->X111_r[n];
+    }
+    
+    // prescribed deformation (X 195 id type a lambda f t_ramp): undulatory swimming, lateral axis
+    // y of the body frame in 3D, z in 2D (x-z plane)
+    for(int n=0; n<p->X195; ++n)
+    if(p->X195_id[n]==number)
+    {
+    delete fish_;
+    fish_ = new sixdof_deform(p->X195_type[n], p->X195_a[n], p->X195_lambda[n], p->X195_f[n], p->X195_tramp[n],
+                              (p->j_dir==0) ? 2 : 1, p->X196>=1);
+    
+    // the bias along the body (X 200 id s0 k w)
+    for(int m=0; m<p->X200; ++m)
+    if(p->X200_id[m]==number)
+    fish_->set_bias_shape(int(p->X200_w[m] + 0.5));
+    }
+    
+    // gait control (X 199 id t f a b t_s): targets of frequency, amplitude factor and curvature bias
+    if(fish_!=nullptr)
+    {
+        std::vector<sixdof_deform::gait_target> tg;
+        
+        for(int n=0; n<p->X199; ++n)
+        if(p->X199_id[n]==number)
+        tg.push_back({p->X199_t[n], p->X199_f[n], p->X199_a[n], p->X199_b[n], p->X199_ts[n]});
+        
+        gait_in_ = tg;
+        
+        if(!tg.empty())
+        fish_->set_gait(tg);
+    }
+    
     rb.twoD = (p->j_dir==0);
     rb.Cdamp_t[0] = p->X26_Cu;
     rb.Cdamp_t[1] = p->X26_Cv;
@@ -118,21 +164,63 @@ sixdof_obj::sixdof_obj(lexer *p, ghostcell *pgc, int number) : ddweno_f_nug(p),
     zeta[2] = 0.0;
     }
     
+    // CFD N 40 6 (one step, two projections): stage 0 the half step, stage 1 the full step
+    if(p->N40==6 && p->A10==6)
+    {
+    alpha[0] = 0.5;
+    alpha[1] = 1.0;
+    alpha[2] = 1.0;
     
-    if(p->X210==0 && p->X211==0)
-    pmotion = new sixdof_motionext_void(p,pgc);
+    gamma[0] = 0.0;
+    gamma[1] = 0.0;
+    gamma[2] = 0.0;
     
-    if((p->X210==1 || p->X211==1) && p->X240==0)
-    pmotion = new sixdof_motionext_fixed(p,pgc);
+    zeta[0] = 0.0;
+    zeta[1] = 0.0;
+    zeta[2] = 0.0;
+    }
     
-    if(p->X240==1)
-    pmotion = new sixdof_motionext_file(p,pgc);
+    // CFD N 40 5 (one step, one projection): one stage over the step
+    if(p->N40==5 && p->A10==6)
+    {
+    alpha[0] = 1.0;
+    alpha[1] = 1.0;
+    alpha[2] = 1.0;
     
-    if(p->X240==11)
-    pmotion = new sixdof_motionext_file_CoG(p,pgc);
+    gamma[0] = 0.0;
+    gamma[1] = 0.0;
+    gamma[2] = 0.0;
+    
+    zeta[0] = 0.0;
+    zeta[1] = 0.0;
+    zeta[2] = 0.0;
+    }
+    
+    
+    // external motion: motion files (X 240 1, 11) with 6DOF_motion-<id>.dat of the body, otherwise
+    // 6DOF_motion.dat; a body without prescribed DOF (X 111) needs none
+    bool prescribed=false;
+    for(int n=0; n<6; ++n)
+    if(rb.dof[n]==2)
+    prescribed=true;
     
     if(p->X240==21)
     pmotion = new sixdof_motionext_wavemaker(p,pgc);
+    
+    else if(p->X240==1 && prescribed)
+    pmotion = new sixdof_motionext_file(p,pgc,number);
+    
+    else if(p->X240==11 && prescribed)
+    pmotion = new sixdof_motionext_file_CoG(p,pgc,number);
+    
+    else if((p->X210==1 || p->X211==1) && p->X240==0)
+    pmotion = new sixdof_motionext_fixed(p,pgc);
+    
+    else
+    pmotion = new sixdof_motionext_void(p,pgc);
+    
+    // the prescribed DOF of this body (X 11 or X 111)
+    pmotion->set_dof(rb.dof);
     
     Mass_fb =  Rfb = Vfb = 1.0;
     
@@ -170,6 +258,11 @@ sixdof_obj::sixdof_obj(lexer *p, ghostcell *pgc, int number) : ddweno_f_nug(p),
 
 sixdof_obj::~sixdof_obj()
 {
+    geom.deform = nullptr;
+    delete brain_;
+    delete brain_link_;
+    delete fish_;
+    
     for(size_t ql=0; ql<pload.size(); ++ql)
     delete pload[ql];
 }

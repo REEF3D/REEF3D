@@ -1,0 +1,7 @@
+{
+ "description": "Upper head of the CEMT Va lock (validation 27_cfd_lock_cemt_va, make_head_test.py closed --amr --thick, level 0 0.04 m): two closed mitre leaves (6DOF bodies of the direct forcing, yaw and position from 6DOF_motion-<id>.dat, X 11 2 2 0 0 0 2) against a 0.20 m head, the level set extended into the solids and bodies (X 48 3), one refined level around the leaves (G 1 1, G 12) whose edges run through the thick lock walls. The faces of a patch edge inside a solid took the coarse pressure gradient replaced by the fine one in full, with the densities of the level set extended into the solid (air on one grid, water on the other): 120 m/s after 11 steps on hans_dev f124d3b61. With patch 0054 only the unforced share of such a face (1-H) gets the replacement.",
+ "np": 1, "steps": 20,
+ "files": ["floating.stl", "floating-1.stl", "6DOF_motion-0.dat", "6DOF_motion-1.dat"],
+ "tags": ["3d", "6dof", "levelset", "amr", "solids"],
+ "covers": ["cfd_amr::pr_predict at patch edges inside solids and bodies (cfd_amr::forced_share)", "cfd_amr_6dof several bodies on a patch", "levelset_solid_extend X 48 3 on a patch", "sixdof_motionext_file X 11 2 2 0 0 0 2 (rotation from the motion file)"]
+}

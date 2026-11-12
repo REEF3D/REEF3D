@@ -1,0 +1,31 @@
+{
+ "description": "hydro_coupled_chain_down from the state of hydro_coupled_warm_spinup (R 108 1) with the river start state (R 109 1800): the channels set to the steady discharges of the coupled network, SFLOW 1800 s with these sources, then the coupled run (validation 08: the outflow is at the steady 2 m3/s when the coupling starts).",
+ "solver": "sflow",
+ "np": 1,
+ "steps": 600,
+ "files": [
+  "catchment_dem.asc",
+  "geo.dat",
+  "hydro_forcing.dat",
+  "hydro_param.dat"
+ ],
+ "tags": [
+  "quick",
+  "hydro",
+  "catchment",
+  "coupled",
+  "restart"
+ ],
+ "covers": [
+  "hydro_couple::start_state, start_budget",
+  "hydro_core::read_state version 2"
+ ],
+ "chain": [
+  {
+   "case": "hydro_coupled_warm_spinup",
+   "files": {
+    "REEF3D_HYDRO/hydro_state.dat": "hydro_state.dat"
+   }
+  }
+ ]
+}

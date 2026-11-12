@@ -1,0 +1,18 @@
+{
+ "base": "nhflow_2d_si_nh_standing_a508",
+ "np": 2,
+ "description": "nhflow_2d_si_nh_standing_a508 on 2 ranks: the stencils across the rank boundary (the fluid cells hoC, eta of the estimate, the phi face terms two faces away); matches the 1-rank run to the solver tolerance.",
+ "tags": [
+  "2d",
+  "nhflow",
+  "semi_implicit",
+  "nonhydrostatic",
+  "fourth_order",
+  "mpi"
+ ],
+ "covers": [
+  "ho_begin: exchange of hoC",
+  "nh_cell: exchangeC of NQx, NQy",
+  "ho_estimate"
+ ]
+}

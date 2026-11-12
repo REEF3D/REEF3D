@@ -38,8 +38,9 @@ class nhflow_momentum_SI;
 using namespace std;
 
 // ---------------------------------------------------------------------------
-// Tracers of the hydrostatic semi-implicit NHFLOW (A 534 1, A 600): salinity (A 600 1), and
-// temperature (A 600 2), passive in P12a (no density yet).
+// Tracers of the hydrostatic semi-implicit NHFLOW (A 510 11/12/13, A 600): salinity (A 600 1), and
+// temperature (A 600 2); passive, or with A 620 the density and its pressure gradient
+// (nhflow_momentum_SI_density.cpp; the predictor of the density: prepare phase 1, save, restore).
 //
 // Finite volumes on the sigma layers with the transport of the step: the layer face transport
 // T_k = theta Q_k^{n+1} + (1-theta) Q_k^n that moved the water (nhflow_momentum_SI::face_update), and
@@ -58,7 +59,10 @@ using namespace std;
 //     (Sweby 1984: second order in time and space), first order at the open boundaries; horizontal
 //     diffusion along the sigma layers (A 604, through the open faces only)
 //  2. vertical, implicit per column: upwind advection with omega, diffusion K_v = EV/sigma_t + K0
-//     (A 605; EV of the turbulence model or of A 547), an M-matrix: positive for any omega
+//     (A 605; EV of the turbulence model or of A 547), an M-matrix: positive for any omega; A 613 2 (the
+//     default with A 620) adds the explicit TVD correction (Lax-Wendroff part of the limited difference,
+//     from the values at the start of the substep): the upwind part alone mixes a stratification by
+//     |omega| dz/2, and with the density that mixing drives spurious currents on slopes which mix more
 // nsub (the same on all grids and ranks, at most A 610) keeps dt (in + 2 out + diffusion) / content of every
 // layer below 0.9 (upwind A 609 1: dt (out + diffusion)), so that the horizontal step is bounded; the
 // columns shallower than 10 A 544 do not count. A layer beyond the bound in its substep (draining
@@ -70,7 +74,8 @@ using namespace std;
 // the discharge boundaries (rivers: B 60, G 54) A 606, the water level and radiating boundaries (sea)
 // A 607 with the Thatcher-Harleman return (A 608, per layer: after the flow turns inward the value
 // goes from the last outflow value to the sea value as 1/2 (1 - cos(pi t/T_TH))).
-// Initial values: A 601 uniform, A 602 / A 603 linear between two points.
+// Initial values (before the first momentum step): A 601 uniform, A 602 / A 603 linear between two points,
+// A 611 / A 612 functions of z (linear between a list of levels, constant beyond).
 // Multi-block grids (G 50 1): nhflow_amr::si_tracer fills the cells around the blocks before every
 // substep; a face between two blocks gets the same flux on both sides (same T_k and face depth, same
 // cell values).
@@ -87,7 +92,13 @@ public:
 
     // the step: prepare (initial values, omega, boundary values, the ratio of the substeps), nsub
     // substeps (the caller fills the cells around the grid before each), finish
-    double prepare(lexer*, fdm_nhf*);
+    // phase: 0 the step with the transport T after the momentum; 1 (A 620) the predictor before the momentum,
+    // the old part (1-theta) Q^n of the transport (the density of the pressure gradient: with the step after
+    // the momentum forward-backward for the internal waves), between save and restore
+    double prepare(lexer*, fdm_nhf*, int phase=0);
+    void save(fdm_nhf*);
+    void restore(fdm_nhf*);
+    void ensure_ini(lexer*, fdm_nhf*);                 // the initial values (before the first momentum step)
     void flushed(lexer*, fdm_nhf*, int s, int nsub);   // pass 1 of a substep: the outflow value of flushed cells (Cx)
     void substep(lexer*, fdm_nhf*, int s, int nsub);   // pass 2: the fluxes and the column (the caller fills Cx between)
     static int substeps(lexer*, double rmax);
@@ -130,6 +141,7 @@ private:
 
 public:
     void mask_own(lexer*);
+    bool fluid(lexer*, int, int) const;          // a fluid cell (the mask: also deep in the halo, around a block)
 
     // checkpoints: the Thatcher-Harleman state, the initialisation flag
     void ckpt_fields(const std::function<void(const char*, char, double*)> &fd);
@@ -142,11 +154,11 @@ private:
     double lim(double a, double b) const;
     int cidx(lexer*, int, int, int) const;
     int sidx(lexer*, int, int) const;
-    bool fluid(lexer*, int, int) const;
     void initial(lexer*, fdm_nhf*);
+    double prepare_step(lexer*, fdm_nhf*, int phase);
 
     nhflow_momentum_SI *m;
-    int K, N, scheme;
+    int K, N, scheme, vscheme;
     double dt;
     double riv[2], sea[2], tth, kh, sigt, k0;     // A 606, A 607, A 608, A 604, A 605
     double sdt = 0.0, sfa = 0.0;                  // the substep: its length, its start (fraction of the step)
@@ -160,6 +172,14 @@ private:
     // omega of the transport per column (K+1 levels), the water depths of the step
     vector<double> om;
     slice4 wl0, wl1;
+
+    // the transport (the step: nhflow_momentum_SI::Tx, Ty; the predictor: tsx, tsy); the water depths
+    // WL^n, WL^{n+1} (face Courant numbers at the fraction [fr0, fr1] of the step); the saved tracers
+    const double *tx = nullptr, *ty = nullptr;
+    double *tsx = nullptr, *tsy = nullptr;
+    slice4 wn0, wn1;
+    double fr0 = 0.0, fr1 = 1.0;
+    vector<double> sav[2];
 
     // the values at the start of the substep (all cells), the work column
     double *Co[2];

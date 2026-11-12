@@ -27,6 +27,7 @@ Architect: Hans Bihs
 #include"ghostcell.h"
 #include"nhflow_pressure.h"
 #include"6DOF_nhflow.h"
+#include"nhflow_curv.h"
 #include<cmath>
 #include<mpi.h>
 #include<algorithm>
@@ -51,14 +52,19 @@ Architect: Hans Bihs
 //
 //  After the two steps of level l+1 (sub_sync): the coarse cells of level l next to the patches
 //  take the difference of the summed fine and coarse fluxes (continuity into WL, layer by layer
-//  with the sigma thickness, momentum UH, VH, WH per layer), the levels above l are restricted
+//  with the sigma thickness, momentum UH, VH, WH per layer) and, with the non-hydrostatic pressure,
+//  of the summed pressures on the interface faces in their pressure gradient (sub_preg: after every
+//  pressure of a level, the coarse side from the covered cell, the fine side from the patch with the
+//  parent pressure around it); the levels above l are restricted
 //  into level l, then the synchronisation projection: one composite correction solve over the
 //  levels l..L for the divergence the coupled velocities have now (the parent columns of level l
 //  fixed at 0), the velocity correction on all those grids, the correction added to the pressure.
 //
 //  The time step of level 0 is limited by the cells of level l as if they were 2^l times larger
-//  (dt_cell_size).  The regrid runs at the end of a level-0 step.  Not with floating bodies; the
-//  implicit diffusion per grid (G 31 1 needs all grids at the same time).
+//  (dt_cell_size).  The regrid runs at the end of a level-0 step.  The implicit diffusion per grid
+//  (G 31 1 needs all grids at the same time).  Turbulence (A 560): every level steps its model at the
+//  start of each of its steps with its own time step (turb_level), the finer levels restricted into the
+//  coarser ones after their steps (turb_sync, nhflow_amr_turb.cpp).
 
 namespace
 {
@@ -199,13 +205,20 @@ void nhflow_amr::sub_snapshot(int g)
 }
 
 // the parent columns of level lp at time theta of their step (0: start, 1: end = current)
-void nhflow_amr::sub_swap_in(int lp, double theta)
+// the grids of level l: level 0 the native grid and the blocks 1.. of a multi-block grid
+vector<int> nhflow_amr::level_grids(int l) const
 {
     vector<int> grids;
-    if(lp==0)
+    if(l==0)
     grids.push_back(-1);
-    else
-    grids = lev[lp];
+    for(int id : lev[l])
+    grids.push_back(id);
+    return grids;
+}
+
+void nhflow_amr::sub_swap_in(int lp, double theta)
+{
+    const vector<int> grids = level_grids(lp);
 
     for(int g : grids)
     {
@@ -242,11 +255,7 @@ void nhflow_amr::sub_swap_in(int lp, double theta)
 
 void nhflow_amr::sub_swap_out(int lp)
 {
-    vector<int> grids;
-    if(lp==0)
-    grids.push_back(-1);
-    else
-    grids = lev[lp];
+    const vector<int> grids = level_grids(lp);
 
     for(int g : grids)
     {
@@ -282,6 +291,86 @@ void nhflow_amr::sub_creg_reset(int g)
     const int K = glex(g)->knoz;
     cregL[t].assign(match[t].size()*4*(size_t)K,0.0);
     cregR[t].assign(rmatch[t].size()*4*(size_t)K,0.0);
+    pregL[t].assign(match[t].size()*(size_t)K,0.0);
+    pregR[t].assign(rmatch[t].size()*(size_t)K,0.0);
+}
+
+// the pressure on the coarse-fine faces after the pressure of stage s of level l, summed with the RK
+// weight times the step of the level (as the fluxes): the faces of the level-l grids next to level-(l+1)
+// patches from the coarse side (the mean of the cell outside the patch and the covered cell, layer by
+// layer), the box faces of the level-l patches from the fine side (the mean of the first cell and of
+// the cell around the box; A 520 2: that cell with its correction, the parent pressure the level solve
+// held there).  The momentum of the coarse cell takes the pressure gradient of the covered cell's
+// pressure; sub_reflux replaces the coarse face pressure in it by the fine one
+void nhflow_amr::sub_preg(int l, int s)
+{
+    if(p0->A520==0)
+    return;
+
+    const double w = rkw(s)*dtlev[l];
+
+    // the pressure of layer k between its two nodes
+    auto pm = [&](lexer *q, const double *f, int ii, int jj, int k) { return 0.5*(f[fidx(q,ii,jj,k)] + f[fidx(q,ii,jj,k+1)]); };
+
+    if(l<maxlev)
+    for(int g : level_grids(l))
+    {
+        const int t = g+1;
+        if(t>=(int)match.size())
+        continue;
+        lexer *q = glex(g);
+        fdm_nhf *d = gfd(g);
+        const int K = q->knoz;
+
+        auto add = [&](const reefamr_match &m, double *R)
+        {
+            const int s2 = (m.side2>=0) ? m.side2 : m.side;
+            const int ii = m.fi + (s2==1 ? 1 : 0), jj = m.fj + (s2==3 ? 1 : 0);
+            const int ic = ii + (s2==0 ? 1 : 0) - (s2==1 ? 1 : 0);
+            const int jc = jj + (s2==2 ? 1 : 0) - (s2==3 ? 1 : 0);
+            for(int k=0; k<K; ++k)
+            R[k] += w*0.5*(pm(q,d->P,ii,jj,k) + pm(q,d->P,ic,jc,k));
+        };
+
+        for(size_t n=0; n<match[t].size(); ++n)
+        add(match[t][n],&pregL[t][n*K]);
+        if(t<(int)rmatch.size())
+        for(size_t n=0; n<rmatch[t].size(); ++n)
+        add(rmatch[t][n],&pregR[t][n*K]);
+    }
+
+    if(l>=1)
+    for(int id : lev[l])
+    {
+        nhflow_amr_patch *c = NP(id);
+        lexer *pp = c->pp;
+        fdm_nhf *d = c->d;
+        const int Kf = pp->knoz;
+        const double *pc = (p0->A520==2) ? c->ptgt : nullptr;
+
+        for(int side=0; side<4; ++side)
+        {
+            if(sy==0 && side>=2)
+            continue;
+            const int nr = (side<2) ? c->ny : c->nx;
+            vector<double> &R = c->preg[side];
+            for(int r=0; r<nr; ++r)
+            {
+                int i1, j1, i0, j0;
+                if(side==0)      { i1 = EXT;          i0 = EXT-1;      j1 = j0 = EY+r; }
+                else if(side==1) { i1 = EXT+c->nx-1;  i0 = EXT+c->nx;  j1 = j0 = EY+r; }
+                else if(side==2) { j1 = EY;           j0 = EY-1;       i1 = i0 = EXT+r; }
+                else             { j1 = EY+c->ny-1;   j0 = EY+c->ny;   i1 = i0 = EXT+r; }
+                for(int k=0; k<Kf; ++k)
+                {
+                    double po = pm(pp,d->P,i0,j0,k);
+                    if(pc!=nullptr)
+                    po += pm(pp,pc,i0,j0,k);
+                    R[r*Kf+k] += w*0.5*(pm(pp,d->P,i1,j1,k) + po);
+                }
+            }
+        }
+    }
 }
 
 // fine face depths of the patch boxes for the coarse faces next to them (the coarse grids run
@@ -332,6 +421,9 @@ void nhflow_amr::sub_step(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_momentum_
     cregL.resize(P.size()+1);
     cregR.resize(P.size()+1);
     rflux.resize(P.size()+1);
+    pregL.resize(P.size()+1);
+    pregR.resize(P.size()+1);
+    rpres.resize(P.size()+1);
 
     double t0 = MPI_Wtime();
     sub_dfx();
@@ -340,8 +432,11 @@ void nhflow_amr::sub_step(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_momentum_
     S0p = &S0;
     mom->step_begin(p,d,pgc,S0);
 
-    sub_snapshot(-1);
-    sub_creg_reset(-1);
+    for(int g : level_grids(0))
+    {
+        sub_snapshot(g);
+        sub_creg_reset(g);
+    }
 
     // floating bodies: level 0 with a predicted copy (the finest level advances the body)
     const bool bpred = (b6!=nullptr && maxlev>0);
@@ -353,7 +448,10 @@ void nhflow_amr::sub_step(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_momentum_
     }
     bfin = 0;
 
-    // level 0 alone, with its own pressure
+    // level 0 alone, with its own pressure (multi-block: the native grid and the blocks, sub_level0_blocks)
+    if(nblk>0)
+    sub_level0_blocks(p,d,pgc,mom,S0);
+    else
     for(int s=0; s<ns; ++s)
     {
         cur_stage = s;
@@ -361,6 +459,7 @@ void nhflow_amr::sub_step(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_momentum_
         mom->phase_F(p,d,pgc,S0,s);
         mom->phase_M(p,d,pgc,S0,s);
         mom->phase_P(p,d,pgc,S0,s);
+        sub_preg(0,s);
         mom->phase_E(p,d,pgc,S0,s);
     }
     cur_stage = -1;
@@ -379,6 +478,8 @@ void nhflow_amr::sub_step(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_momentum_
         for(int ip=1; ip<=4; ++ip)
         for(int side=0; side<4; ++side)
         c->freg[ip][side].assign((size_t)(side<2 ? c->ny : c->nx)*c->pp->knoz,0.0);
+        for(int side=0; side<4; ++side)
+        c->preg[side].assign((size_t)(side<2 ? c->ny : c->nx)*c->pp->knoz,0.0);
     }
 
     sub_level(p,pgc,1,0,t,0.5*dt);
@@ -392,6 +493,126 @@ void nhflow_amr::sub_step(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_momentum_
 
 // step k (0, 1) of the level-l patches from time t with dt, within the step of level l-1; then
 // the steps of the finer levels and the synchronisation of level l with them
+// G 7 1 on a multi-block grid: the step of level 0 (the native grid and the blocks 1..) alone, as the stages of
+// nhflow_amr::step without the patches: before every stage the cells around the blocks and the ring of the native
+// grid from the cells they stand for (fill_level0), the continuity and momentum of the blocks and of the native
+// grid (with breaking, A 550 1: the continuity of all, the breaking of level 0 over the blocks, then the momentum),
+// the pressure as one solve over the grids of level 0 (the composite solve with the level window 0: the columns
+// covered by the patches are unknowns of level 0 as on a uniform grid), the end of the stage.  The implicit
+// diffusion per grid (G 31 1 needs all grids at the same time, as for the patches with G 7 1).  The turbulence of
+// the blocks as in turb_step (level 0 has made its step in the driver)
+void nhflow_amr::sub_level0_blocks(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_momentum_func *mom, nhflow_stage_obj &S0)
+{
+    const int ns = mom->stages();
+
+    {
+    comms_off guard(pgc);
+    for(int id : lev[0])
+    {
+        nhflow_amr_patch *c = NP(id);
+        lexer *pp = c->pp;
+        pp->dt = p->dt;
+        pp->dt_old = p->dt_old;
+        pp->simtime = p->simtime;
+        pp->count = p->count;
+        pp->amr_follow(*p);
+        pscope ps(pgc,c->d,d0);
+        c->pmom->step_begin(pp,c->d,pgc,c->S);
+    }
+    }
+
+    // A 560: the blocks step their models with the cells around them from level 0 and from each other (not when
+    // level 0 has stepped them with its own step, turb_composite0)
+    if(turb)
+    {
+        const double t0 = MPI_Wtime();
+        if(turb_c0count!=p->count)
+        {
+            turb_fill0(pgc);
+            for(int id : lev[0])
+            turb_run(pgc,*NP(id));
+            turb_fill0(pgc);
+        }
+        for(int id : lev[0])
+        turb_save(pgc,*NP(id));
+        tturb += MPI_Wtime()-t0;
+    }
+
+    for(int s=0; s<ns; ++s)
+    {
+        cur_stage = s;
+        hstage = s;
+
+        double t0 = MPI_Wtime();
+        fill_level0(pgc,s);
+        tm[0] += MPI_Wtime()-t0;
+
+        if(brk0)
+        {
+            blocks_phase(pgc,s,0);
+            mom->phase_F(p,d,pgc,S0,s);
+            t0 = MPI_Wtime();
+            breaking_level0(pgc,-1);
+            tm[1] += MPI_Wtime()-t0;
+            blocks_phase(pgc,s,1);
+            mom->phase_M(p,d,pgc,S0,s);
+        }
+        else
+        {
+            blocks_phase(pgc,s,0);
+            blocks_phase(pgc,s,1);
+            mom->phase_F(p,d,pgc,S0,s);
+            mom->phase_M(p,d,pgc,S0,s);
+        }
+
+        halo0(pgc,s);
+
+        mom->phase_P1(p,d,pgc,S0,s);
+        {
+        comms_off guard(pgc);
+        for(int id : lev[0])
+        {
+            nhflow_amr_patch *c = NP(id);
+            pscope ps(pgc,c->d,d0);
+            c->pmom->phase_P1(c->pp,c->d,pgc,c->S,s);
+        }
+        }
+
+        // the pressure of the grids of level 0 in one solve
+        wlo = whi = 0;
+        press_solve(p,pgc,s);
+        wlo = 0;
+        whi = -1;
+
+        {
+        comms_off guard(pgc);
+        for(int id : lev[0])
+        {
+            nhflow_amr_patch *c = NP(id);
+            pscope ps(pgc,c->d,d0);
+            c->pmom->phase_P2(c->pp,c->d,pgc,c->S,s);
+        }
+        }
+        mom->phase_P2(p,d,pgc,S0,s);
+        sub_preg(0,s);
+
+        {
+        comms_off guard(pgc);
+        for(int id : lev[0])
+        {
+            nhflow_amr_patch *c = NP(id);
+            pscope ps(pgc,c->d,d0);
+            c->pmom->phase_E(c->pp,c->d,pgc,c->S,s);
+        }
+        }
+        mom->phase_E(p,d,pgc,S0,s);
+    }
+    cur_stage = -1;
+
+    // the cells around the blocks and the ring at the end of the step (the parents of level 1)
+    fill_level0(pgc,-1);
+}
+
 void nhflow_amr::sub_level(lexer *p, ghostcell *pgc, int l, int k, double t, double dt)
 {
     const int ns = mom0->stages();
@@ -413,6 +634,9 @@ void nhflow_amr::sub_level(lexer *p, ghostcell *pgc, int l, int k, double t, dou
         c->pmom->step_begin(pp,c->d,pgc,c->S);
     }
     }
+
+    // A 560: the turbulence step of the level (the cells around its patches from the level or the parent)
+    turb_level(pgc,l);
 
     // floating bodies: a level coarser than the finest steps with a predicted copy
     const bool bpred = (b6!=nullptr && l<maxlev);
@@ -520,6 +744,8 @@ void nhflow_amr::sub_level(lexer *p, ghostcell *pgc, int l, int k, double t, dou
         for(int ip=1; ip<=4; ++ip)
         for(int side=0; side<4; ++side)
         c->freg[ip][side].assign((size_t)(side<2 ? c->ny : c->nx)*c->pp->knoz,0.0);
+        for(int side=0; side<4; ++side)
+        c->preg[side].assign((size_t)(side<2 ? c->ny : c->nx)*c->pp->knoz,0.0);
     }
 
     sub_level(p,pgc,l+1,0,t,0.5*dt);
@@ -657,6 +883,9 @@ void nhflow_amr::sub_press_level(lexer *p, ghostcell *pgc, int l, int k, int s)
     }
     }
 
+    // the pressure on the coarse-fine faces of the level (the finer levels' refluxing)
+    sub_preg(l,s);
+
     tm[4] += MPI_Wtime()-t0;
 }
 
@@ -687,10 +916,17 @@ void nhflow_amr::sub_sync(lexer *p, ghostcell *pgc, int l)
 
     if(p->A520>0)
     sub_project(p,pgc,l);
+
+    // A 560: the turbulence of the levels above l into level l
+    turb_sync(pgc,l);
 }
 
 // coarse cells of level l next to the level-(l+1) patches: the summed fine face fluxes replace the
-// summed coarse ones, layer by layer
+// summed coarse ones, layer by layer.  With the non-hydrostatic pressure also the pressure on the face in
+// the momentum of the coarse cell (sub_preg): the coarse step took the gradient of the covered cell's own
+// pressure; where a steep front meets the interface that pressure is far from the one the patches had at
+// the face, and the fine fluxes alone (whose hydrostatic part the fine pressure balances) moved the coarse
+// cell too far
 void nhflow_amr::sub_reflux(int l)
 {
     const int K = klev(l);
@@ -723,14 +959,30 @@ void nhflow_amr::sub_reflux(int l)
                     rflux[tgt][(size_t)idx*NR+m] = v[m];
                 });
 
-    vector<int> grids;
-    if(l==0)
-    grids.push_back(-1);
-    else
-    grids = lev[l];
+    const bool pr = (p0->A520>0);
+    if(pr)
+    {
+        for(size_t t=0; t<rmatch.size() && t<rpres.size(); ++t)
+        rpres[t].assign(rmatch[t].size()*(size_t)K,0.0);
+
+        face_run_at(l+1,K,7290+l+1,
+                    [&](reefamr_patch *q, int side, int r, double *sb)
+                    {
+                        nhflow_amr_patch *c = NP(q);
+                        for(int k=0; k<K; ++k)
+                        sb[k] = fmean(c->preg[side],side,r,k);
+                    },
+                    [&](int tgt, int idx, const double *v)
+                    {
+                        for(int k=0; k<K; ++k)
+                        rpres[tgt][(size_t)idx*K+k] = v[k];
+                    });
+    }
+
+    const vector<int> grids = level_grids(l);
 
     const double wd = p0->A544;
-    vector<double> dlt(NR);
+    vector<double> dlt(NR), pdl(K,0.0);
 
     for(int g : grids)
     {
@@ -740,9 +992,11 @@ void nhflow_amr::sub_reflux(int l)
 
         auto fix = [&](const reefamr_match &m)
         {
-            const int ii = m.fi + (m.side==1 ? 1 : 0);
-            const int jj = m.fj + (m.side==3 ? 1 : 0);
-            const double sg = (m.side==0 || m.side==2) ? -1.0 : 1.0;
+            // the outside cell as seen on the target grid (multi-block: a turned neighbour block, side2)
+            const int s2 = (m.side2>=0) ? m.side2 : m.side;
+            const int ii = m.fi + (s2==1 ? 1 : 0);
+            const int jj = m.fj + (s2==3 ? 1 : 0);
+            const double sg = (s2==0 || s2==2) ? -1.0 : 1.0;
             // curvilinear grid: face length over cell area (the fluxes are per unit length)
             const double f = (q->geo_curv==1) ? sg*((m.dir==0) ? q->LEN1[lij(q,m.fi,m.fj)] : q->LEN2[lij(q,m.fi,m.fj)])/q->AREA2D[lij(q,ii,jj)]
                            : ((m.dir==0) ? sg/q->DXN[ii+marge] : sg*q->y_dir/q->DYN[jj+marge]);
@@ -759,6 +1013,28 @@ void nhflow_amr::sub_reflux(int l)
                 d->UH[c] += f*dlt[k];
                 d->VH[c] += f*dlt[K+k];
                 d->WH[c] += f*dlt[2*K+k];
+            }
+
+            // the pressure: the coarse face pressure is the mean of the outside and the covered cell, so the covered
+            // cell's pressure in the gradient of the outside cell changes by twice the difference of the summed face
+            // pressures (pdl); the gradient as nhflow_pjm_corr (Cartesian) and nhflow_curv::pgrad_layer
+            const int n2 = lij(q,ii,jj);
+            if(pr && q->wet[n2]==1 && q->deep[n2]==1)
+            for(int k=0; k<K; ++k)
+            {
+                const double dp = 2.0*pdl[k];
+                double gx = 0.0, gy = 0.0;
+                if(q->geo_curv==1)
+                nhflow_curv::grad5(q,ii,jj,s2==0 ? dp : 0.0,s2==1 ? dp : 0.0,s2==2 ? dp : 0.0,s2==3 ? dp : 0.0,gx,gy);
+                else
+                if(m.dir==0)
+                gx = (s2==0 ? dp : -dp)/(q->DXP[ii+marge]+q->DXP[ii-1+marge]);
+                else
+                gy = (s2==2 ? dp : -dp)/(q->DYP[jj+marge]+q->DYP[jj-1+marge]);
+
+                const int c = cidx(q,ii,jj,k);
+                d->UH[c] -= d->WL(ii,jj)/p0->W1*gx;
+                d->VH[c] -= d->WL(ii,jj)/p0->W1*gy;
             }
 
             // derived values as after the restriction
@@ -778,9 +1054,13 @@ void nhflow_amr::sub_reflux(int l)
         {
             const reefamr_match &m = match[t][n];
             nhflow_amr_patch *c = NP(m.child);
+            // (multi-block: the fine fluxes against the normal of the coarse face, sgn, as flux_hook)
             for(int ip=1; ip<=4; ++ip)
             for(int k=0; k<K; ++k)
-            dlt[(ip-1)*K+k] = fmean(c->freg[ip][m.side],m.side,m.r,k) - cregL[t][(4*n+ip-1)*K+k];
+            dlt[(ip-1)*K+k] = double(m.sgn)*fmean(c->freg[ip][m.side],m.side,m.r,k) - cregL[t][(4*n+ip-1)*K+k];
+            if(pr)
+            for(int k=0; k<K; ++k)
+            pdl[k] = fmean(c->preg[m.side],m.side,m.r,k) - pregL[t][n*K+k];
             fix(m);
         }
 
@@ -788,7 +1068,10 @@ void nhflow_amr::sub_reflux(int l)
         {
             const reefamr_match &m = rmatch[t][n];
             for(int m2=0; m2<NR; ++m2)
-            dlt[m2] = rflux[t][n*NR+m2] - cregR[t][n*NR+m2];
+            dlt[m2] = double(m.sgn)*rflux[t][n*NR+m2] - cregR[t][n*NR+m2];
+            if(pr)
+            for(int k=0; k<K; ++k)
+            pdl[k] = rpres[t][n*(size_t)K+k] - pregR[t][n*(size_t)K+k];
             fix(m);
         }
     }
@@ -802,11 +1085,9 @@ void nhflow_amr::sub_project(lexer *p, ghostcell *pgc, int l)
     const double t0 = MPI_Wtime();
     const int last = mom0->stages()-1;
 
-    // the window grids
-    vector<int> grids;
-    if(l==0)
-    grids.push_back(-1);
-    for(int m=MAX(l,1); m<=maxlev; ++m)
+    // the window grids (level 0: the native grid and the blocks of a multi-block grid)
+    vector<int> grids = level_grids(l);
+    for(int m=l+1; m<=maxlev; ++m)
     for(int id : lev[m])
     grids.push_back(id);
 
@@ -866,6 +1147,29 @@ void nhflow_amr::sub_project(lexer *p, ghostcell *pgc, int l)
     sub_sy_it += pr_it_last;
     ++sub_sy_n;
 
+    // the sharp hull (X 15 8): amr_finish stores the Rhie-Chow face corrections of the pressure it is given
+    // (nhflow_membrane_rc_store, linear in the pressure), here those of the correction; the next continuity
+    // flux needs the corrections of the last stage plus those of the synchronisation
+    // (the stored ones set to 0 first, so that a cell amr_finish does not write, e.g. a halo cell of a patch, keeps
+    // its value once; the correction is the difference to the pressure kept: A 520 1)
+    vector<vector<double>> RCX(grids.size()), RCY(grids.size());
+    if(hb && total)
+    for(size_t n=0; n<grids.size(); ++n)
+    {
+        lexer *q = glex(grids[n]);
+        fdm_nhf *dd = gfd(grids[n]);
+        if(dd->MBETA==nullptr)
+        continue;
+        const size_t nc = (size_t)q->imax*q->jmax*q->kmax;
+        RCX[n].assign(dd->MRCX,dd->MRCX+nc);
+        std::fill(dd->MRCX,dd->MRCX+nc,0.0);
+        if(q->j_dir==1)
+        {
+        RCY[n].assign(dd->MRCY,dd->MRCY+nc);
+        std::fill(dd->MRCY,dd->MRCY+nc,0.0);
+        }
+    }
+
     for(int g : grids)
     {
         stg O = stage_out(g,last);
@@ -886,6 +1190,15 @@ void nhflow_amr::sub_project(lexer *p, ghostcell *pgc, int l)
         fdm_nhf *dd = gfd(grids[n]);
         for(size_t m=0; m<Psave[n].size(); ++m)
         dd->P[m] += Psave[n][m];
+    }
+
+    for(size_t n=0; n<grids.size(); ++n)
+    {
+        fdm_nhf *dd = gfd(grids[n]);
+        for(size_t m=0; m<RCX[n].size(); ++m)
+        dd->MRCX[m] += RCX[n][m];
+        for(size_t m=0; m<RCY[n].size(); ++m)
+        dd->MRCY[m] += RCY[n][m];
     }
 
     for(size_t n=0; n<grids.size(); ++n)
@@ -915,6 +1228,10 @@ void nhflow_amr::sub_project(lexer *p, ghostcell *pgc, int l)
 
     if(l==0)
     halo0(pgc,last);
+
+    // multi-block: the ring and the cells around the blocks from the corrected state
+    if(l==0 && nblk>0)
+    fill_level0(pgc,-1);
 
     tm[4] += MPI_Wtime()-t0;
     tsync += MPI_Wtime()-t0;

@@ -1,0 +1,24 @@
+{
+ "base": "cfd_2d_dambreak_amr3_adapt",
+ "np": 1,
+ "steps": 60,
+ "ctrl_set": {
+  "N 40": "5"
+ },
+ "description": "cfd_2d_dambreak_amr3_adapt_onestep_n59 with the time step of the band around the free surface (N 57 1, N 58 0.9) on the patches: every patch takes the criterion of the time step over its water and a band of one of its cells into the air, its air beyond the band only the stability limit (validation 79).",
+ "tags": [
+  "quick",
+  "2d",
+  "dambreak",
+  "levelset",
+  "amr"
+ ],
+ "covers": [
+  "cfd_amr::timestep with N 57: the band criterion and the air beyond the band on the patches"
+ ],
+ "ctrl_add": [
+  "N 59 1",
+  "N 57 1",
+  "N 58 0.9"
+ ]
+}

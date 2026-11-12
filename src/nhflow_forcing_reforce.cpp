@@ -21,6 +21,7 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"nhflow_forcing.h"
+#include"nhflow_hullbody.h"
 #include"lexer.h"
 #include"fdm_nhf.h"
 #include"ghostcell.h"
@@ -117,6 +118,10 @@ void nhflow_forcing::reforcing(lexer *p, fdm_nhf *d, ghostcell *pgc, sixdof *p6d
             d->W[IJK] += alpha*p->dt*CPORNH*FZ[IJK];
         }
     }
+    
+    // X 15 10: the cells of the solid body (no open face) at the rigid-body velocity after the projection
+    if(d->hullbody!=nullptr)
+    d->hullbody->reforce(p,d,pgc,UH,VH,WH,WL);
     
     pgc->gcsl_start4(p,d->eta,gcval_eta);
     pgc->gcsl_start4(p,WL,gcval_eta);

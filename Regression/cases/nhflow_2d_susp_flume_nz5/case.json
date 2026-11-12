@@ -1,0 +1,19 @@
+{
+ "base": "nhflow_2d_susp_flume",
+ "control_set": {
+  "B 2": "200 1 5"
+ },
+ "description": "nhflow_2d_susp_flume with 5 instead of 20 layers: the bottom cell is 20 reference heights thick (a = 0.01 h). Pick-up at the reference level (bedconc_VR: cbe the mean of the Rouse profile over the bottom cell, rbe; nhflow_suspended_IM1::suspsource: E - D = ws/rbe (cbe - c_0)), exponentially fitted vertical flux and the bottom cell coupled through its near-bed profile (settling_fit). Depth-mean concentration at 38 m after 150 s for 5 / 10 / 20 / 40 / 80 layers: 0.43 / 0.44 / 0.45 / 0.46 / 0.42e-4 (Rouse equilibrium 0.42e-4); before 0.13 / 0.22 / 0.40 / 0.71 / 0.56e-4 (Dropbox/Claude/Exner Review/validation/06_nhflow_fixes_261111).",
+ "tags": [
+  "2d",
+  "nhflow",
+  "sediment",
+  "suspended",
+  "inflow"
+ ],
+ "covers": [
+  "bedconc_VR::rouse_mean, rbe, rbf, rbz",
+  "nhflow_suspended_IM1::settling_fit",
+  "nhflow_suspended_IM1::suspsource with wsx = ws/rbe on a coarse vertical grid"
+ ]
+}

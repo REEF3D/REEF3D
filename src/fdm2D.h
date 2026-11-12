@@ -40,6 +40,7 @@ Author: Hans Bihs
 class lexer;
 class seastate_sflow;
 class met_forcing;
+class hydro_sflow;
 
 using namespace std;
 
@@ -109,6 +110,7 @@ public:
 	slice2 hy;
 	slice4 hp,dpx,dpy;
     slice4 test;
+    slice4 pbh;     // body pressure head press/(rho g) [m] of the X 10 3 pressure patch (<= 0)
     slice4 Hs,fs;
     slice1 fx;
     slice2 fy;
@@ -120,19 +122,30 @@ public:
     sliceint5 nodeval;
     sliceint4 breaking; 
     slice4 breaking_print;
+    slice4 vb;          // breaking eddy viscosity (A 246 4, sflow_breaking_kb), m2/s
     
     sliceint1 wet1,deep1;
     sliceint2 wet2,deep2;
     
     slice4 ks;
+    slice4 spiral;      // S 98: the intensity I of the spiral flow from the sediment (S 95), m/s
 	
 	vec2D xvec,rhsvec;
 
     // REEF3D::SEASTATE coupling (A 750 1), nullptr otherwise
     seastate_sflow *wave = nullptr;
+    
+    // depth-averaged suspended load (S 120 > 0, sediment_susp2D): the mass flux of the continuity of the time step,
+    // RK-weighted over the stages (sflow_eta::update), and the step it belongs to
+    slice1 *FEacc_x = nullptr;
+    slice2 *FEacc_y = nullptr;
+    int FEacc_step = -1;
 
     // REEF3D atmospheric forcing (W 200) of this grid, owned by the momentum class (output)
     met_forcing *met = nullptr;
+
+    // REEF3D::HYDRO (R 10, R 20, R 30, R 40, R 50) of level 0, nullptr otherwise
+    hydro_sflow *hydro = nullptr;
 
 	matrix2D M;
 

@@ -31,7 +31,12 @@ void sflow_f::logic(lexer *p, fdm2D* b, ghostcell* pgc)
     // curvilinear grid (G 50): options available on it
     if(p->geo_curv==1)
     sflow_curv::check(p);
-    
+
+    // mesh refinement given: a box (G 10), a flag (G 20 surface jump, G 21 second difference, G 22 shoreline,
+    // G 23 breaking) or the body zone (G 12).  One test for every choice below that depends on it (eddy viscosity,
+    // sflow_amr, the message without anything to refine)
+    const bool amr_given = (p->G10>0 || p->G20>0.0 || p->G21>0.0 || p->G22>0 || p->G23==1 || p->G12>0);
+
     // forcing
     psfdf=new sflow_forcing(p);
     
@@ -39,11 +44,12 @@ void sflow_f::logic(lexer *p, fdm2D* b, ghostcell* pgc)
     if(p->N48==0)
 	ptime = new sflow_fixtimestep(p,b);
     
-    if(p->N48==1 && p->A226==0)
+    // N 48 2 (FNPF: stability step of the grid) as N 48 1
+    if(p->N48>=1 && p->A226==0)
 	ptime = new sflow_etimestep(p,b);
     
-    // semi-implicit free surface (A 226 1): advective time step
-    if(p->N48==1 && p->A226==1)
+    // semi-implicit free surface (A 210 11/12/13): advective time step
+    if(p->N48>=1 && p->A226==1)
 	ptime = new sflow_timestep_SI(p,b);
 	
     // HLL fluxes, signal speeds and reconstruction (A 211: 0 first-order, 1-3 limiter, 4 WENO)
@@ -113,9 +119,9 @@ void sflow_f::logic(lexer *p, fdm2D* b, ghostcell* pgc)
     if(p->A260==4)
 	pturb =  new sflow_turb_parabolic(p);
     
-    // curvilinear grids and REEFAMR (G 1 with boxes or flags, multi-block G 50 1): the algebraic eddy viscosity
-    // (A 260 3/4) by each grid in its explicit diffusion (sflow_ediff::own_eddyv), from the state of the stage
-    const int amr_on = ((p->G1>0 && (p->G10>0 || p->G20>0.0 || p->G22>0 || p->G12>0)) || p->geo_mb>0) ? 1 : 0;
+    // curvilinear grids and REEFAMR (G 1 with boxes, flags or the body zone, multi-block G 50 1): the algebraic eddy
+    // viscosity (A 260 3/4) by each grid in its explicit diffusion (sflow_ediff::own_eddyv), from the state of the stage
+    const int amr_on = ((p->G1>0 && amr_given) || p->geo_mb>0) ? 1 : 0;
     if((p->geo_curv==1 || amr_on==1) && (p->A260==3 || p->A260==4) && p->A212==1)
     {
     delete pturb;
@@ -185,15 +191,27 @@ void sflow_f::logic(lexer *p, fdm2D* b, ghostcell* pgc)
 	if(p->A210!=2 && p->A226==0)
 	pmom = new sflow_momentum_RK3(p,b,pgc,phll,pss,precon,pdiff,ppress,psolv,ppoissonsolv,pflow,pfsf,psfdf,p6dof);
     
-    // semi-implicit free surface, theta method (A 226 1, A 227), separate from the HLL integrators
+    // semi-implicit free surface, theta method (A 210 11/12/13, A 227), separate from the HLL integrators
     if(p->A226==1)
 	pmom = new sflow_momentum_SI(p,b,pgc,phll,pss,precon,pdiff,ppress,psolv,ppoissonsolv,pflow,pfsf,psfdf,p6dof);
 
     // mesh refinement (G 1): static boxes (G 10) and/or flagged regions (G 20-23)
-    if((p->G1>0 && (p->G10>0 || p->G20>0.0 || p->G21>0.0 || p->G22>0 || p->G23==1 || p->G12>0)) || p->geo_mb>0)
+    if(amr_on==1)
     {
     sflow_momentum_RK3 *prk3 = dynamic_cast<sflow_momentum_RK3*>(pmom);
-    
+    sflow_momentum_SI *psi = dynamic_cast<sflow_momentum_SI*>(pmom);
+
+        // semi-implicit free surface (A 210 12/13): the blocks and the patches have their own semi-implicit objects; an RK3
+        // object of level 0 serves the fills and the restriction of the refinement (sflow_amr_si.cpp)
+        if(psi!=nullptr)
+        {
+        met_forcing *pm = b->met;       // the met forcing of the semi-implicit object (the helper makes its own)
+        sflow_momentum_RK3 *hrk3 = new sflow_momentum_RK3(p,b,pgc,phll,pss,precon,pdiff,ppress,psolv,ppoissonsolv,pflow,pfsf,psfdf,p6dof);
+        b->met = pm;
+        pamr = new sflow_amr(p,b,pgc,pBC,p6dof,pflow,phll,hrk3);
+        pamr->si_attach(psi);
+        }
+
         if(prk3!=nullptr)
         {
         pamr = new sflow_amr(p,b,pgc,pBC,p6dof,pflow,phll,prk3);
@@ -209,21 +227,25 @@ void sflow_f::logic(lexer *p, fdm2D* b, ghostcell* pgc)
         }
 
         // the refinement runs with the RK3 integrator only: say so instead of running the native grid
-        // alone (RK2 A 210 2, the semi-implicit free surface A 226 1)
-        if(prk3==nullptr && p->G1>0 && p->geo_mb==0 && p->mpirank==0)
-        cout<<"SFLOW AMR (G 1): only with A 210 3 and A 226 0 -- refinement switched off"<<endl;
+        // alone (RK2 A 210 2, the semi-implicit free surface A 210 11/12/13)
+        if(prk3==nullptr && psi==nullptr && p->G1>0 && p->geo_mb==0 && p->mpirank==0)
+        cout<<"SFLOW AMR (G 1): only with A 210 3, 11, 12 or 13 -- refinement switched off"<<endl;
 
-        // multi-block grid: the blocks 1.. run in the mesh refinement (RK3 only)
-        if(prk3==nullptr && p->geo_mb>0)
+        // multi-block grid: the blocks 1.. run in the mesh refinement (RK3 or the semi-implicit free surface)
+        if(prk3==nullptr && psi==nullptr && p->geo_mb>0)
         {
             if(p->mpirank==0)
-            cout<<"!!! SFLOW multi-block grid (G 50 1 with DIVEMesh R 20 1): only with A 210 3 and A 226 0 !!!"<<endl;
+            cout<<"!!! SFLOW multi-block grid (G 50 1 with DIVEMesh R 20 1): only with A 210 3, 11, 12 or 13 !!!"<<endl;
             exit(1);
         }
+
+        // A 260 1/2: the level-0 turbulence model for the models of the patches (sflow_amr_turb.cpp)
+        if(pamr!=nullptr)
+        pamr->turb_attach(pturb);
     }
 
     // G 1 without anything to refine: no box (G 10), no flag (G 20-23) and no body zone (G 12)
-    if(p->G1>0 && !(p->G10>0 || p->G20>0.0 || p->G21>0.0 || p->G22>0 || p->G23==1 || p->G12>0) && p->geo_mb==0 && p->mpirank==0)
+    if(p->G1>0 && !amr_given && p->geo_mb==0 && p->mpirank==0)
     cout<<"SFLOW AMR (G 1): no refinement box (G 10), flag (G 20-23) or body zone (G 12) given -- refinement switched off"<<endl;
     
     //Potential Flow Solver

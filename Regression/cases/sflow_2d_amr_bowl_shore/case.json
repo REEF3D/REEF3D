@@ -1,0 +1,18 @@
+{
+ "description": "SFLOW Thacker bowl (planar sloshing, h0 0.1 m, a 1 m, A 251 0.1) on 0.1 m cells, one level of patches following the shoreline (G 22, regrid every 4 steps): the shoreline crosses the box edges as the water runs up and recedes, the trailing side is coarsened while it holds the film the receding water leaves (above A 244). The restriction leaves a parent of dry film-holding children dry, the fresh children of a dry parent above the film take its water level.",
+ "solver": "sflow",
+ "np": 1,
+ "steps": 280,
+ "files": ["geo.dat"],
+ "tags": [
+  "2d",
+  "sflow",
+  "amr",
+  "wetdry"
+ ],
+ "covers": [
+  "sflow_amr::restrict_level: the wet flag of the parent from the wet children",
+  "sflow_amr::ini_block: the water level of a dry parent above the film"
+ ],
+ "architect": "Hans Bihs"
+}

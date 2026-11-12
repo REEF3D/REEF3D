@@ -1,0 +1,23 @@
+{
+ "base": "sflow_2d_si_nh_ship",
+ "ctrl_add": [
+  "G 1 1",
+  "G 2 0",
+  "G 10 4.0 40.0 -1.0 6.0"
+ ],
+ "steps": 100,
+ "description": "sflow_2d_si_nh_ship with a static refined box (G 1 1, G 10) along the path of the pressure, dx 0.25 m on the patch: the ship pressure on the patch with the composite coupled system.",
+ "tags": [
+  "2d",
+  "sflow",
+  "semi_implicit",
+  "nonhydrostatic",
+  "amr",
+  "ship",
+  "6dof"
+ ],
+ "covers": [
+  "X 10 3 on a static patch with sflow_amr::si_nh_solve"
+ ],
+ "architect": "Hans Bihs"
+}

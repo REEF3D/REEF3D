@@ -1,0 +1,33 @@
+{
+ "base": "seastate_sflow_vortex_mpi2",
+ "ctrl_set": {
+  "W 207": "7",
+  "A 729": "2"
+ },
+ "ctrl_add": [
+  "A 728 4",
+  "G 1 1",
+  "G 2 0",
+  "G 3 2",
+  "G 4 8",
+  "G 10 100000.0 300000.0 60000.0 340000.0",
+  "G 7 1",
+  "G 40 2"
+ ],
+ "description": "seastate_sflow_vortex_mpi2 (GAHM vortex, SEASTATE coupled in-process) with the wave-dependent drag (W 207 7) and a patch of 5 km cells along the track, subcycled (G 7 1) and placed (G 40 2): the met forcing of every patch takes Hs, Tp of its parents for its roughness.",
+ "tags": [
+  "2d",
+  "sflow",
+  "seastate",
+  "amr",
+  "met",
+  "vortex",
+  "mpi",
+  "subcycling",
+  "place"
+ ],
+ "covers": [
+  "sflow_amr::wave_fields: Hs, Tp of the patches and met_forcing::waves (W 207 7)"
+ ],
+ "architect": "Hans Bihs"
+}

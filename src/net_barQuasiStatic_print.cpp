@@ -25,6 +25,8 @@ Author: Tobias Martin
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
+#include"lagoon_nets.h"
+#include<vector>
 
 
 void net_barQuasiStatic::print(lexer *p)
@@ -78,13 +80,6 @@ void net_barQuasiStatic::print(lexer *p)
 	)
 	{
 		printtime+=p->P30;
-		
-        if(p->A10==5)
-		sprintf(name,"./REEF3D_NHFLOW_6DOF_Net/REEF3D-Net-%08i-%06i.vtk",nNet,num);
-        
-        if(p->A10==6)
-		sprintf(name,"./REEF3D_CFD_6DOF_Net/REEF3D-Net-%08i-%06i.vtk",nNet,num);
-
 
 		// Tension forces
 		double *T;
@@ -99,6 +94,53 @@ void net_barQuasiStatic::print(lexer *p)
 				T[j] = MAX(fabs(A(i,j)),T[j]); 
 			}
 		}
+
+		// at each knot: the sum of half its bars'
+		std::vector<double> knot_tension(nK, 0.0);
+		for (int n = 0; n < nK; ++n)
+		{
+			double output = 0.0;
+			for (int i = 0; i < nf; ++i)
+			{
+				if (Pi[i]==n || Ni[i]==n)
+				{
+					output += T[i]/2.0;
+				}
+			}
+			knot_tension[n] = output;
+		}
+
+		p->del_Darray(T, nf);
+
+		// P 18: the net in the LAGOON store as well (lagoon_nets); P 18 1: instead of the .vtk file
+		lagoon_nets::knots k;
+		k.xyz.resize(3*nK);
+		k.tension.resize(nK);
+		for (int n = 0; n < nK; ++n)
+		{
+			for (int c = 0; c < 3; ++c)
+			k.xyz[3*n+c] = float(K_[n][c]);
+			k.tension[n] = float(knot_tension[n]);
+		}
+		for (int i = 0; i < nf; i++)
+		{
+			k.bars.push_back(Pi[i]);
+			k.bars.push_back(Ni[i]);
+		}
+		for (int i = 0; i < nbK; i++)
+		{
+			k.bars.push_back(Pb[i]);
+			k.bars.push_back(Nb[i]);
+		}
+		const bool stored = lagoon_nets::output(p, nNet, num, std::move(k));
+
+		if(!(stored && p->P18==1))
+		{
+        if(p->A10==5)
+		sprintf(name,"./REEF3D_NHFLOW_6DOF_Net/REEF3D-Net-%08i-%06i.vtk",nNet,num);
+        
+        if(p->A10==6)
+		sprintf(name,"./REEF3D_CFD_6DOF_Net/REEF3D-Net-%08i-%06i.vtk",nNet,num);
 
 		ofstream result;
 		result.open(name);
@@ -135,26 +177,13 @@ void net_barQuasiStatic::print(lexer *p)
 		result<<"\nPOINT_DATA " << nK <<endl;
 		result<<"SCALARS Tension float 1 \nLOOKUP_TABLE default"<<endl;
 		
-		double output;
 		for (int n = 0; n < nK; ++n)
 		{
-			output = 0.0;
-			int index = 0;
-			for (int i = 0; i < nf; ++i)
-			{
-				if (Pi[i]==n || Ni[i]==n)
-				{
-					output += T[i]/2.0;
-					index++;
-				}
-			}
-			
-			result<<output<<endl;
+			result<<knot_tension[n]<<endl;
 		}
-		
-		p->del_Darray(T, nf);
 
 		result.close();
+		}
 	}
 }
 

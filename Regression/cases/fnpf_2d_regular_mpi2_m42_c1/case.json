@@ -1,0 +1,8 @@
+{
+ "base": "fnpf_2d_regular_mpi2_m40",
+ "ctrl_set": {"M 42": "1", "M 43": "1.0"},
+ "same_as": "fnpf_2d_regular_mpi2_m40",
+ "description": "fnpf_2d_regular_mpi2_m40 with rank 1 an E-rank (M 42 1) of capacity 1 (M 43 1): all capacities equal, bitwise the decomposition and the run without them (no steering of the cores off macOS)",
+ "tags": ["quick", "2d", "fnpf", "mpi", "capacity"],
+ "covers": ["core_class::setup", "core_class::initial", "dmpart_cuts.h optimise (equal capacities)"]
+}

@@ -29,8 +29,12 @@ Author: Hans Bihs
 #include"slice4.h"
 #include<vector>
 #include<fstream>
+#include<functional>
+#include<memory>
 
 class si_eta2D;
+struct sflow_si_nh_lu;
+class nhflow_si_nhmg;
 class nhflow_tracer_SI;
 class solver2D;
 class wind;
@@ -39,7 +43,7 @@ class met_forcing;
 using namespace std;
 
 // ---------------------------------------------------------------------------
-// NHFLOW hydrostatic semi-implicit free surface (A 534 1), theta method (A 535).
+// NHFLOW hydrostatic semi-implicit free surface (A 510 11/12/13), theta method (A 535).
 //
 // For long simulations (tide, river, coastal ocean): the gravity wave speed sqrt(gh) no longer
 // limits the time step, only advection does (nhflow_timestep_SI, cap A 536).
@@ -94,10 +98,16 @@ using namespace std;
 //     over the open faces; WH: the predictor with the implicit vertical advection (no pressure)
 // 10. relaxation zones once per step, the layer face discharges follow the change
 //
-// Not yet (stops in check()): non-hydrostatic pressure (A 520 > 0), mesh refinement (G 1), VRANS,
+// Mesh refinement (G 1): every patch has its own object; the stage runner runs the parts on all grids, finest
+// first where the coarse faces next to a patch take the fine fluxes (advection, discharges), and one eta system over
+// the leaf cells of all grids (reefamr_si.cpp); not with subcycling (G 7 1), vertical refinement (G 6 1) or tracers.
+//
+// Not yet (stops in check()): non-hydrostatic pressure (A 520 > 0), VRANS,
 // 6DOF / floating bodies, SEASTATE, side-wall friction A 519 2, membranes, FEM coupling, patch
 // boundary conditions.
 // ---------------------------------------------------------------------------
+
+class nhflow_breaking;
 
 class nhflow_momentum_SI final : public nhflow_momentum_func
 {
@@ -118,8 +128,18 @@ public:
     void si_stage_vel(lexer*, fdm_nhf*, ghostcell*, nhflow_stage_obj&, int);   // velocities of predictor stage s
     void si_stage_rhs(lexer*, fdm_nhf*, ghostcell*, nhflow_stage_obj&, int);   // explicit terms, stage s
     void si_predictor_end(lexer*, fdm_nhf*, ghostcell*);                // the predictor to the faces (UHD, VHD)
-    void si_assemble(lexer*, fdm_nhf*, ghostcell*);                     // column operator, eta system
+    void si_assemble(lexer*, fdm_nhf*, ghostcell*);                     // column operator, face coefficients
+    void si_rhs(lexer*, fdm_nhf*, ghostcell*);                          // right-hand side of the eta system
+    void si_old_closed(lexer*, ghostcell*);                             // no old discharge on the closed faces
+    void si_density(lexer*, fdm_nhf*);                                  // A 620: the density, its pressure gradient
     void si_end(lexer*, fdm_nhf*, ghostcell*, nhflow_stage_obj&);       // faces, WL, cells, omega
+    void si_end_faces(lexer*, fdm_nhf*, ghostcell*);                    // the face discharges (si_end in two parts)
+    void si_end_cells(lexer*, fdm_nhf*, ghostcell*, nhflow_stage_obj&); // WL, cells, omega
+    void step_single(lexer*, fdm_nhf*, ghostcell*, nhflow_stage_obj&);  // the step of one grid
+
+    // mesh refinement: called by the advection of a component (0 U, 1 V, 2 W) with its layer face fluxes before the
+    // divergence (the coarse faces next to a finer patch take the fine fluxes, a patch records its box faces)
+    std::function<void(lexer*, int, double*, double*)> fhook;
     int si_stages() const { return rk; }
 
     bool patch;             // a block 1.. of a multi-block grid (no log file, no global output)
@@ -129,8 +149,20 @@ public:
 
     // tracers (A 600): salinity, temperature (nhflow_tracer_SI), after the momentum step
     nhflow_tracer_SI *ptrc = nullptr;
+
+    // density from the tracers and its pressure gradient (A 620, nhflow_momentum_SI_density.cpp)
+    static double eos(lexer*, double S, double T);
+    static double internal_speed(lexer*, fdm_nhf*, int, int);
+    // the advective time step limit of a cell (cmin of dt = 2 cfl cmin), A 549 0 and 1
+    static double adv_cmin(lexer*, double u, double v, double ci, int i, int j, double cfl);
+    static int elm_mode(lexer *p) { return p->A549; }      // A 549 m C: the mode and the Courant number
+    static double elm_c(lexer *p) { return p->A549_c; }
     bool trc_mask = false;
-    void tracer_step(lexer*, fdm_nhf*, ghostcell*);
+
+    // A 623 with A 547: the vertical eddy diffusivity of the tracers K = nu_n/sigma_t f_h(Ri) + nu0/sigma_t
+    // (nullptr: EV/sigma_t), the buoyancy frequency
+    double *KV = nullptr, *N2 = nullptr;   // N2 also with A 627 + A 623 (the floor damped by f_m(Ri))
+    void tracer_step(lexer*, fdm_nhf*, ghostcell*, int phase=0);
 
     // the stage interface of the mesh refinement (nhflow_amr) is not used: one theta step
     int stages() const override final { return 1; }
@@ -163,6 +195,11 @@ public:
         fd("si_VHb",'C',VHb); fd("si_WHb",'C',WHb); fd("si_UHp",'C',UHp); fd("si_VHp",'C',VHp);
         fd("si_WHp",'C',WHp); fd("si_UHD",'C',UHD); fd("si_VHD",'C',VHD); fd("si_WHD",'C',WHD);
         fd("si_dUH",'C',dUH); fd("si_dVH",'C',dVH);
+        // the time levels of the step before (second order in time, tl2; nh_begin, nh_levels)
+        fd("si_accU",'C',accU); fd("si_accV",'C',accV); fd("si_accW",'C',accW);
+        fd("si_Bx",'C',Bx); fd("si_By",'C',By); fd("si_BFx",'C',BFx); fd("si_BFy",'C',BFy);
+        fd("si_nOmP",'F',nOmP.data()); fd("si_nHxo",'S',nHxo.data()); fd("si_nHyo",'S',nHyo.data());
+        if(!nWLo.empty()) fd("si_nWLo",'S',nWLo.data());
         tracer_ckpt_fields(fd);
     }
     void ckpt_restored() override { qini = true; }   // the face discharges of the checkpoint
@@ -193,14 +230,33 @@ private:
     };
 
     void face_depth(lexer*, fdm_nhf*, ghostcell*);
+    void mlflux_faces(lexer*, fdm_nhf*, ghostcell*);
     void friction(lexer*, fdm_nhf*);
+    void density(lexer*, fdm_nhf*);
+    void baroclinic(lexer*, fdm_nhf*);
+    void baroclinic_face(lexer*, fdm_nhf*, int dir, int fi, int fj, double *bn);
+    void baroclinic_column(lexer*, fdm_nhf*, int, int, double *P);
+    double *Bx = nullptr, *By = nullptr;     // (1/rho0) grad_z p' of the cells (A 620)
+    double *BFx = nullptr, *BFy = nullptr;   // its normal component on the faces (the layer face discharges)
+    vector<double> bpl, bpr, bcr, bcz, bcd, bce;
     void eddy_algebraic(lexer*, fdm_nhf*);     // A 547: parabolic eddy viscosity from the bed friction velocity
+    void eddy_floor(lexer*, fdm_nhf*);         // A 627: turbulence model, eddy viscosity >= c times that profile (thin water)
+    double col_ustar(lexer*, fdm_nhf*, double h);   // bed (+ wind) friction velocity of the column (i,j), 0 dry
+    // A 549 1: semi-Lagrangian momentum advection (nhflow_momentum_SI_elm.cpp), the velocities at the feet of the
+    // characteristics of the cells
+    void elm_departure(lexer*, fdm_nhf*);
+    bool elm_fluid(lexer*, int, int);
+    double *ELU = nullptr, *ELV = nullptr, *ELW = nullptr;
     void bc_setup(lexer*, fdm_nhf*, ghostcell*);
     void bc_method(lexer*);
     void stage_arrays(int, double*&, double*&, double*&, double*&, double*&, double*&, double&);
     solver2D* new_solver2D(lexer*, ghostcell*);
     void advection(lexer*, fdm_nhf*, ghostcell*, nhflow_reconstruct*);
-    void hdiffusion(lexer*, fdm_nhf*);
+    void si_corrector(lexer*, fdm_nhf*, ghostcell*);
+    void advection_bcg(lexer*, fdm_nhf*, ghostcell*, double*, double*, double*);
+    void hdiffusion(lexer*, fdm_nhf*, ghostcell*);
+    void hdiffusion_brk(lexer*, fdm_nhf*, ghostcell*);
+    std::vector<double> hdU, hdV, hdW, hdN;
     void face_update(lexer*, fdm_nhf*, ghostcell*);
     void eta_update(lexer*, fdm_nhf*, ghostcell*, nhflow_fsf*);
     void cell_update(lexer*, fdm_nhf*, ghostcell*);
@@ -225,10 +281,12 @@ private:
     // column operator A = I - dt L_v + dt gamma e_0 e_0^T of a column of depth h with the layer
     // viscosities nu: the off-diagonal parts cu (k+1), cl (k-1); solve A x = b
     void col_coef(lexer*, fdm_nhf*, double h, int, int, int, int, const double *nu, double *cu, double *cl, double *cd);
+    void col_vadv_central(lexer*, int, double, double, double);   // central vertical advection of one layer of col_coef
     void col_solve(lexer*, const double *cu, const double *cl, const double *cd, double dtgam, const double *b, double *x);
     void col_nu(lexer*, fdm_nhf*, int, int, int, int, double*);
     bool visc;
     vector<double> wcu, wcl, wcd, wnu, wa, wb, wr, wx;   // column work arrays (knoz)
+    vector<double> wnx, wny;                             // the phi face terms of a cell (nh_cell_faces)
     double dissipation(lexer*, double, double, double);
     double div(lexer*, slice&, slice&);
     double layer_div(lexer*, double*, double*);
@@ -238,6 +296,82 @@ private:
     void exchange4(lexer*, ghostcell*, slice&);
     void exchangeF(lexer*, ghostcell*, double*);
     void exchangeC(lexer*, ghostcell*, double*);
+
+    // non-hydrostatic pressure (A 520 > 0) coupled with eta^{n+1}, after the multilayer solver of Popinet 2020
+    // (nhflow_momentum_SI_nh.cpp): phi = p/rho on the layer interfaces (PHI, k: the lower interface of layer k), the
+    // layer face discharges of phi (NQx, NQy, per unit sigma), w* of the cells (WHS), the interface slopes of the
+    // cells (NSX, NSY, nodes 0 .. K), the layer thicknesses at t^{n+1/2} (nWLh), the non-hydrostatic cells (nAct)
+    bool nh = false;
+    double *NQx = nullptr, *NQy = nullptr, *WHS = nullptr, *PHI = nullptr, *PHIo = nullptr, *NSX = nullptr, *NSY = nullptr;
+    // hMx, hMy: the face depths of the mass flux of the predictor (mlflux_faces, nh_begin)
+    std::vector<double> nWLh, nWLo, nHxo, nHyo, hMx, hMy;
+    std::vector<double> nUZx, nUZy;
+
+    // fourth-order horizontal operators (nhflow_momentum_SI_ho.cpp): hoC the fluid cells of the stencils (with
+    // those of the neighbouring ranks), hoE eta of the estimate pass, NQcx, NQcy the explicit part of the phi face terms
+    bool ho = false, ho_ux = false, ho_uy = false, ho_phi = false;
+    double *NQcx = nullptr, *NQcy = nullptr;
+    std::vector<double> hoPS;
+    void ho_begin(lexer*,fdm_nhf*,ghostcell*);
+    void ho_estimate(lexer*,ghostcell*);
+    bool ho_face(lexer*,int,int,int);
+    bool ho_cell(lexer*,fdm_nhf*,int,int,int);
+    void ho_gradient(lexer*,fdm_nhf*,int,double&,double&);
+    void ho_predictor(lexer*,int,const double*,double*);
+    void ho_cell_gravity(lexer*,fdm_nhf*,double&,double&);
+    void ho_phi_corr(lexer*,fdm_nhf*,ghostcell*);
+    void ho_phi_add(lexer*);            // tl2: UH^{n+1}, VH^{n+1} estimated for [u . grad z] (nh_prepare)
+    std::vector<double> nOmP;                  // omega of the step before (extrapolation to t^{n+1/2}), NaN: none yet
+    std::vector<char> nAct;
+    std::shared_ptr<sflow_si_nh_lu> nhlu;
+    std::shared_ptr<nhflow_si_nhmg> nhmg;
+    std::shared_ptr<nhflow_si_nhmg> nhme, nhmp;     // A 507 1: the eta system (one unknown per column) and the phi system (K)
+    int nh_lagc = 0, nh_lagit = 0, nh_lagnact = -1; // the preconditioner kept for some steps: steps since its refresh, the
+    double nh_lagdt = 0.0;                          // iterations of that step, the active columns and dt then
+    int nh_iter = 0, nh_iter1 = 0;   // the iterations of the last solve and of the first pass of the step
+    double nh_time = 0.0, nh_res = 0.0, nh_brk = 0.0;
+    // wetting and drying of the coupled solve (A 537 1): pw of the mass rows, the iterations of the pattern and the dry
+    // columns
+    std::vector<double> nPw;
+    int nh_wdit = 1, nh_dry = 0;
+    // a further pass of the pattern (A 537 1, nh_wdpass); with tl2 (nh_warm) FGMRES starts from the solution of the pass
+    // before and stops at the smaller of the residual of the first pass (nh_tolabs, metres) and A 506 of its own start
+    bool nh_wdpass = false, nh_warm = false;
+    double nh_tolabs = 0.0;
+    void nh_ini(lexer*);
+    void nh_free();
+    void nh_levels(lexer*, fdm_nhf*);
+    double nh_wl1(lexer*, int, int);      // the depth of t^{n+1}, extrapolated (the constraint)
+    void nh_begin(lexer*, fdm_nhf*, ghostcell*);
+    void nh_prepare(lexer*, fdm_nhf*, ghostcell*);
+    void nh_faces(lexer*, fdm_nhf*);
+    // the coupled system assembled directly (instead of probing nh_residual): the derivatives of the layer discharges
+    // of the faces, d Q_k / d eta (the cells left and right) and d Q_k / d phi (phi_k and phi_{k+1} left and right)
+    void nh_dfaces(lexer*, fdm_nhf*, ghostcell*);
+    void nh_assemble(lexer*, const std::function<void(int,int,int,int,int,double)>&);
+    // the layers of the columns only: index dqi
+    size_t dqi(lexer *p, int a, int c, int m) const { return ((size_t)(a-p->imin)*p->jmax + (c-p->jmin))*p->knoz + m; }
+    std::vector<double> dQxL, dQxR, dQyL, dQyR;                              // d Q / d eta (per layer)
+    std::vector<double> pQxL0, pQxR0, pQxL1, pQxR1, pQyL0, pQyR0, pQyL1, pQyR1;  // d Q / d phi_k, phi_{k+1}
+    std::vector<double> nActG;                                               // nAct with the columns of the neighbouring ranks
+    bool nh_fixed = false;
+    std::vector<std::vector<double>> fgV, fgZ;   // FGMRES of the coupled system: the Krylov vectors (kept, allocated as needed)
+    std::vector<std::vector<double>> fgVe, fgZe, fgVp, fgZp;   // the same for the eta and phi systems (A 507 1)
+    std::vector<double> nEtaP, nPhiP;            // eta and phi of the step before (the initial guess)
+    std::vector<double> nsx, nsF0, nsy, nmb, nmx, nmw, nmv;     // work vectors of nh_solve and nh_solve_mg (kept)
+    // zero: x = 0 (F(0); no phi faces)
+    void nh_residual(lexer*, fdm_nhf*, ghostcell*, const std::vector<double>&, std::vector<double>&, bool zero=false, bool rows=true);
+    void nh_solve(lexer*, fdm_nhf*, ghostcell*);
+    void nh_solve_mg(lexer*, fdm_nhf*, ghostcell*, const std::vector<double>&, std::vector<double>&);
+    void nh_cell(lexer*, fdm_nhf*, ghostcell*);
+    void nh_cell_faces(lexer*, fdm_nhf*, double*, double*);
+
+    // A 505 1: a cell side towards a wall (a solid or the outside of the domain, no open boundary face) counts in the
+    // cell momentum with its zero face term (cell_update, nh_cell); wSide: the sides of the cells with an open boundary
+    // face (bits 1 x-, 2 x+, 4 y-, 8 y+), from bcf (wall_sides)
+    std::vector<unsigned char> wSide;
+    void wall_sides(lexer*);
+    double wall(lexer*, int, int, int);
 
     si_eta2D *psi;
     solver2D *psolv2D;
@@ -259,7 +393,7 @@ private:
     slice2 qy, qyn, qyE, Hy, aly, gmy, ay, ky, gy0, cy0;
 
     // cell state of the step: t^n, implicit eta, bed friction rate, right-hand side, scratch
-    slice4 eta0, WL0, etaI, gmc, rhsW, bdiag, tS, tE;
+    slice4 eta0, WL0, etaI, gmc, rhsW, bdiag, tS, tE, tA, hoC, hoE;
 
     // water depth at the end of the step, the start of the next (see start); boundary copies
     slice4 WLk, etaB, WLb;
@@ -282,7 +416,22 @@ private:
 
     double theta, g;
     int rk, wd_iter, wd_cells, gcval_eta;
+    bool onestep = false;
+    bool tl2 = false;          // second-order time levels of the nonlinear terms (one Cartesian grid, no A 549 1)
+    double *accU = nullptr, *accV = nullptr, *accW = nullptr;    // tl2: the implicit acceleration of the step before
+    double *FSx = nullptr, *FSy = nullptr;    // tl2: the sources of the last predictor stage (wind, Coriolis, ...; the wall sides)
+    double thv = 1.0;                          // time level of the vertical advection in the column operator (1: implicit Euler)
+    std::vector<double> vau, val, vad;         // its coefficients (unscaled), for the explicit part
+    void col_adv_rhs(lexer*, const double*, double*);      // A 510 11: one stage, BCG advection, the nonlinear terms at t^{n+1/2}
     bool qini;
+    // the pass of step_single (tl2: 0 the estimate, 1 the final pass); faces_set: face_update of the step done by the
+    // coupled non-hydrostatic solve (nh_solve), si_end_faces skips it
+    int si_pass=0;
+    // wave breaking (A 550 1/3/4): the breaking viscosity vb of the columns from the water level of the step, used in the
+    // next step (horizontal diffusion of the predictor, column operator); nbrk_lim: its cap for the explicit diffusion
+    nhflow_breaking *pbrk = nullptr;
+    double vb_layer(lexer*, fdm_nhf*, int, int, int);
+    bool faces_set=false;
 
     double Qin, Qout;       // discharge over the open boundaries of the step (theta weighted)
     double vrelax;          // volume change of the relaxation zones of the step

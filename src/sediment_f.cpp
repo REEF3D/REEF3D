@@ -34,6 +34,24 @@ Author: Hans Bihs
 #include"sediment_mixture.h"
 #include"nhflow_suspended.h"
 #include"ckpt_pack.h"
+// the classes deleted in the destructor (deleting a pointer to an incomplete type ran no destructor)
+#include"bedload.h"
+#include"bedconc.h"
+#include"sandslide.h"
+#include"topo_relax.h"
+#include"vrans.h"
+#include"bedslope.h"
+#include"bedshear_reduction.h"
+#include"nhflow_scalar_convection.h"
+#include"nhflow_diffusion.h"
+#include"bedload_direction.h"
+#include"sediment_roughness.h"
+#include"sediment_waves.h"
+#include"sediment_inflow.h"
+#include"bedload_waves.h"
+#include"sediment_susp2D.h"
+#include"slice1.h"
+#include"slice2.h"
 
 sediment_f::sediment_f(lexer *p, ghostcell *pgc, turbulence *pturb, patchBC_interface *ppBC)
 {
@@ -101,6 +119,15 @@ sediment_f::~sediment_f()
     delete pbedshear;
     delete pbeddir;
     delete pks;
+    delete pwaves;
+    delete s->pinflow;
+    delete psusp2D;
+    delete Psave;
+    delete pl_P0; delete pl_aP; delete pl_Q0; delete pl_aQ;
+    delete pl_U0; delete pl_aU; delete pl_V0; delete pl_aV;
+    delete Qsave;
+    delete Vtx;
+    delete Vty;
     delete s;
 }
 
@@ -161,6 +188,10 @@ void sediment_f::start_sflow(lexer *p, fdm2D *b, ghostcell *pgc, ioflow *pflow, 
 {
     if((p->S41==1 && p->count>=p->S43) || (p->S41==2 && p->simtime>=p->S45) || (p->S41==3 && p->simtime/p->wT>=p->S47 && p->count>0))
 	{
+        // depth-averaged suspended load (S 120): every flow step
+        if(psusp2D!=nullptr)
+        susp_sflow(p,b,pgc,P,Q);
+        
 		if(p->S42==1 && p->count%p->S44==0)
 		sediment_algorithm_sflow(p,b,pgc,pflow,P,Q);
 		

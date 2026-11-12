@@ -27,6 +27,7 @@ Author: Hans Bihs
 #include"fdm2D.h"
 #include"ghostcell.h"
 #include"sediment_fdm.h"
+#include"sediment_susp2D.h"
 #include"patchBC_interface.h"
 #include"bedslope.h"
 #include"sediment_mixture.h"
@@ -144,6 +145,10 @@ void sediment_f::ini_sflow(lexer *p, fdm2D *b, ghostcell *pgc)
     
     active_ini_sflow(p,b,pgc);
     
+    // depth-averaged suspended load (S 120)
+    if(psusp2D!=nullptr)
+    psusp2D->ini(p,b,pgc,s);
+    
     if(s->pmix!=nullptr)
     s->pmix->ini(p,pgc,s);
     
@@ -182,6 +187,10 @@ void sediment_f::ini_parameters(lexer *p, ghostcell *pgc)
     
     if(p->mpirank==0)
     cout<<"sediment fall velocity ws: "<<s->ws<<endl;
+    
+    // exchange velocity of the suspended load with the bed before the first suspended solve
+    for(int n=0; n<p->imax*p->jmax; ++n)
+    s->wsx.V[n] = s->ws;
 }
 
 void sediment_f::ini_guard(lexer *p, ghostcell *pgc)
@@ -191,6 +200,23 @@ void sediment_f::ini_guard(lexer *p, ghostcell *pgc)
     
     if(p->S78==1)
     {
+        // the inflow cells: SFLOW on a curvilinear grid the 2D list gcslin (the 3D list gcin is not filled for SFLOW:
+        // its zero entries held the bed of the cell (0,0) only, the inflow corner); the inflow faces are closed there
+        // (dfbed_inflow) and the held first row supplies the reach.  With a sediment supply at the inflow (S 129 > 0)
+        // and on Cartesian grids the inflow faces stay open (fill_PQ_sflow, sediment_exner::qb_inflow) and the first
+        // row is not held.
+        const bool slin = (p->A10==2 && p->geo_curv==1 && p->S129==0);
+
+        if(slin)
+        for(n=0;n<p->gcslin_count;++n)
+        {
+        i=p->gcslin[n][0];
+        j=p->gcslin[n][1];
+
+        s->guard(i,j)=0.0;
+        }
+
+        if(!slin)
         for(n=0;n<p->gcin_count;++n)
         {
         i=p->gcin[n][0];

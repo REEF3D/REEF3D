@@ -1,0 +1,20 @@
+{
+ "base": "fnpf_2d_regular",
+ "ctrl_set": {
+  "B 95": "-1",
+  "N 47": "0.75",
+  "N 48": "2"
+ },
+ "description": "FNPF 2D regular waves of fnpf_2d_regular with RK3 at the stability step (N 48 2, N 47 0.75) and B 95 -1: the relaxation targets at the time of the stage output (t+dt, t+dt/2, t+dt), the zone factors as they are (FNPF_time_integration/0001).",
+ "tags": [
+  "quick",
+  "2d",
+  "fnpf",
+  "waves",
+  "iowave"
+ ],
+ "covers": [
+  "iowave::wavegen_stage_fnpf (RK3)",
+  "fnpf_precalc_relax at the stage times"
+ ]
+}

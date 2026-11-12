@@ -83,6 +83,9 @@ void mooring_system::break_line(int k, int e, double t)
     L.broken = e;
     L.t_broken = t;
     layout(lr, pr);
+    // the VIV phases of the lines stay (the new point is appended)
+    if(viv_)
+        viv_start();
     // the velocities stay
     for(size_t q=0; q<lv.size(); ++q) v_[q] = lv[q];
     for(size_t j=0; j<points_.size(); ++j) v_[points_[j].idx] = pv[j];
@@ -134,6 +137,7 @@ int mooring_system::add_point(const std::string &name, const Vec3 &p, const moor
     if(pp.mu > 0.0 && !(pp.v_eps > 0.0))
         stick_ = true;
     st_ = stick_t();
+    vv_ = viv_t();
     points_.push_back(P);
     pr.push_back(p);
     layout(lr, pr);
@@ -304,6 +308,10 @@ int mooring_system::add_line(const model &m, const std::string &name, const moor
         if(p.cs > p.cb) dtc = std::min(dtc, 0.5*mn0/(2.0*L.p.BA/l_ + p.cs*p.d*l_));
     }
     st_ = stick_t();
+    // vortex-induced vibration: the phases start in initialize()
+    if(p.Cl > 0.0)
+        viv_ = true;
+    vv_ = viv_t();
     L.dt = dtc;
     // the ends: global positions
     const mooring_end *ends[2] = {&a, &b};
@@ -504,6 +512,8 @@ void mooring_system::initialize(const model &m, double t0)
         equilibrium(m, t0);
     started_ = true;
     t_ = t0;
+    if(viv_ && vv_.phi.size() != r_.size())
+        viv_start();
     for(attach_t &a : att_)
     {
         const rigid_body &B = m.body(a.body);
@@ -644,6 +654,14 @@ void mooring_system::save_state(std::vector<double> &v) const
         o.list(st_.a, [&](const Vec3 &x){o.m(x);});
         o.list(st_.slip, [&](signed char c){o.i((int)c);});
     }
+    // vortex-induced vibration: the phases, mean squares and accelerations
+    if(viv_)
+    {
+        o.list(vv_.phi, [&](double x){o.d(x);});
+        o.list(vv_.y2, [&](double x){o.d(x);});
+        o.list(vv_.a2, [&](double x){o.d(x);});
+        o.list(vv_.acc, [&](const Vec3 &x){o.m(x);});
+    }
 }
 
 bool mooring_system::load_state(const std::vector<double> &v, size_t &k)
@@ -697,6 +715,23 @@ bool mooring_system::load_state(const std::vector<double> &v, size_t &k)
         in.list(st_.slip, [&](signed char &c){int q = 0; in.i(q); c = (signed char)q;});
         if(st_.a.size() != st_.slip.size() || st_.a.size() > r_.size())
             in.ok = false;
+    }
+    if(viv_ && in.ok)
+    {
+        viv_t &V = vv_;
+        in.list(V.phi, [&](double &x){in.d(x);});
+        in.list(V.y2, [&](double &x){in.d(x);});
+        in.list(V.a2, [&](double &x){in.d(x);});
+        in.list(V.acc, [&](Vec3 &x){in.m(x);});
+        const size_t n = r_.size();
+        if(V.phi.size() != n || V.y2.size() != n || V.a2.size() != n || V.acc.size() != n)
+            in.ok = false;
+        else
+        {
+            V.ps.assign(n, 0.0);
+            V.pd.assign(n, 0.0);
+            for(int q=0; q<3; ++q) V.d[q].assign(n, 0.0);
+        }
     }
     started_ = true;
     ++gen_;

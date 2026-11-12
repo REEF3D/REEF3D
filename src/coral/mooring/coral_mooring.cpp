@@ -288,6 +288,7 @@ void mooring_system::line_accel(const line_t &L, const state &s, double t, std::
     // alpha (normal) and beta (tangential); side: where the node's piece of line lies along q (0: centred on an
     // inner node, +1: from the node along q (end a), -1: against q (end b))
     const bool fric = p.mu > 0.0 || p.mu_axial > 0.0;
+    const bool viv = vc_ && p.Cl > 0.0;
     auto external = [&](int node, const Vec3 &x, const Vec3 &vx, const Vec3 &q, double ll, double side, double &an, double &at)
     {
         Vec3 F = p.mass*ll*g;
@@ -316,6 +317,9 @@ void mooring_system::line_accel(const line_t &L, const state &s, double t, std::
             }
             an = fs*p.rho*A*ll*p.Can;
             at = fs*p.rho*A*ll*p.Cat;
+            // vortex-induced vibration: the cross-flow lift at the inner nodes
+            if(viv && side == 0.0)
+                F += viv_lift(L, o + node, vx, q, vrn, fs*ll, upd);
         }
         // seabed: penalty and damping normal to it, friction (seabed_friction); a surface or the fluid's bed:
         // along its normal n, the penetration (zb - z) n_z, the friction in its tangent plane
@@ -403,6 +407,8 @@ void mooring_system::line_accel(const line_t &L, const state &s, double t, std::
         const double al = mi + an, be = at - an;
         const double fq = F.dot(q);
         a[o+i] = (F - (be/(al + be))*fq*q)/al;
+        if(viv && upd)
+            vc_->acc[o+i] = a[o+i];
     }
     // end forces: tension of the end segment, weight and hydrodynamics of the end half-segment; its mass
     // and added mass (carried by the attached body or point)
@@ -504,7 +510,7 @@ void mooring_system::point_ends(state &s) const
 }
 
 void mooring_system::integrate(state &s, const std::vector<end_motion> &em, double t0, double t1, double extra, bool at_rest,
-                               stick_t *fs) const
+                               stick_t *fs, viv_t *vf) const
 {
     const double T = t1 - t0;
     // the water: at rest (settling), exact, or from the converged nodes at t0 and t1
@@ -537,6 +543,11 @@ void mooring_system::integrate(state &s, const std::vector<end_motion> &em, doub
         fs->slip.resize(nn, 0);
         sc_ = fs;
     }
+    // vortex-induced vibration: the phases advance with the nodes (RK4), none while settling
+    vc_ = nullptr;
+    vh_ = h;
+    if(vf && viv_ && !at_rest && vf->phi.size()==(size_t)nn)
+        vc_ = vf;
     state &s2 = ws_;
     s2 = s;
     std::vector<Vec3> rs(nn), vs(nn);
@@ -577,21 +588,26 @@ void mooring_system::integrate(state &s, const std::vector<end_motion> &em, doub
         const double tk = t0 + k*h;
         // RK4 on (r, v) of the inner nodes and the points; the stage velocities are the stage states' v
         ends(s, tk);
+        if(vc_) viv_stage(-1, 0.0);
         accel(s, tk, k1, extra, true);
+        if(vc_) {viv_keep(0); viv_stage(0, 0.5*h);}
         for(int i : free_) {s2.r[i] = s.r[i] + 0.5*h*s.v[i]; s2.v[i] = s.v[i] + 0.5*h*k1[i];}
         rs = s.v;
         ends(s2, tk + 0.5*h);
         accel(s2, tk + 0.5*h, k2, extra);
+        if(vc_) {viv_keep(1); viv_stage(1, 0.5*h);}
         vs = s2.v;
         for(int i : free_) {s2.r[i] = s.r[i] + 0.5*h*vs[i]; s2.v[i] = s.v[i] + 0.5*h*k2[i];}
         for(int i : free_) rs[i] += 2.0*vs[i];
         point_ends(s2);
         accel(s2, tk + 0.5*h, k3, extra);
+        if(vc_) {viv_keep(2); viv_stage(2, h);}
         vs = s2.v;
         for(int i : free_) {s2.r[i] = s.r[i] + h*vs[i]; s2.v[i] = s.v[i] + h*k3[i];}
         for(int i : free_) rs[i] += 2.0*vs[i];
         ends(s2, tk + h);
         accel(s2, tk + h, k4, extra);
+        if(vc_) viv_advance(h);
         for(int i : free_)
         {
             s.r[i] += h/6.0*(rs[i] + s2.v[i]);
@@ -606,8 +622,11 @@ void mooring_system::integrate(state &s, const std::vector<end_motion> &em, doub
             lines_[att_[k].line].cd[att_[k].end] = em[k].d1;
     }
     point_ends(s);
+    // the accelerations at t1 for the next sub-step's cross-flow acceleration (the mean squares stay)
+    if(vc_) {viv_stage(-1, 0.0); vh_ = 0.0;}
     accel(s, t1, k1, extra, true);
     sc_ = nullptr;
+    vc_ = nullptr;
 }
 
 void mooring_system::eval(const model &m, double t, VecX &f) const
@@ -640,7 +659,18 @@ void mooring_system::eval(const model &m, double t, VecX &f) const
         }
         state s{r_, v_};
         stick_t f = st_;
-        integrate(s, em, t_, t, 0.0, false, &f);
+        viv_t vf = vv_;
+        integrate(s, em, t_, t, 0.0, false, &f, &vf);
+        cs_ = std::move(s);
+        cst_ = std::move(f);
+        cw_.resize(lines_.size());
+        for(size_t k=0; k<lines_.size(); ++k)
+        {
+            const line_t &L = lines_[k];
+            line_work &w = cw_[k];
+            w.T = L.T;
+            for(int e=0; e<2; ++e) {w.F[e] = L.F[e]; w.M[e] = L.M[e]; w.cd[e] = L.cd[e];}
+        }
         cr_ = r1;
         cv_ = v1;
         cF_.resize(na);
@@ -688,8 +718,34 @@ void mooring_system::commit(const model &m, double t, double)
             em[k].d1 = B.R*att_[k].ds;
         }
     }
-    state s{r_, v_};
-    integrate(s, em, t_, t, 0.0, false, &st_);
+    // the converged state is the last trial that eval() integrated, up to the last Newton increment (the time
+    // integrator stops on an increment below its tolerance, 1e-12 relative, without evaluating the loads there): take
+    // that integration instead of integrating the step again (positions and velocities within 1e-10 relative, the
+    // end forces of the lines then within 1e-10 EA/l of a fairlead)
+    bool hit = cvalid_ && t==ct_ && cw_.size()==lines_.size();
+    auto near = [](const Vec3 &a, const Vec3 &b) {return (a - b).cwiseAbs().maxCoeff() <= 1.0e-10*(1.0 + a.cwiseAbs().maxCoeff());};
+    for(size_t k=0; k<na && hit; ++k)
+        hit = near(em[k].r1, cr_[k]) && near(em[k].v1, cv_[k]) && (!clamped_ || att_[k].ds.isZero() || near(em[k].d1, cd_[k]));
+    state s;
+    if(hit)
+    {
+        s = std::move(cs_);
+        st_ = std::move(cst_);
+        for(size_t k=0; k<lines_.size(); ++k)
+        {
+            const line_t &L = lines_[k];
+            const line_work &w = cw_[k];
+            L.T = w.T;
+            for(int e=0; e<2; ++e) {L.F[e] = w.F[e]; L.M[e] = w.M[e]; L.cd[e] = w.cd[e];}
+        }
+        ++commit_hits_;
+    }
+    else
+    {
+        s = state{r_, v_};
+        integrate(s, em, t_, t, 0.0, false, &st_, &vv_);
+    }
+    ++commits_;
     for(size_t k=0; k<na; ++k)
     {
         attach_t &a = att_[k];

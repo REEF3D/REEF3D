@@ -1,0 +1,16 @@
+{
+ "base": "fnpf_2d_theta_robin_flume",
+ "np": 2,
+ "description": "as fnpf_2d_theta_robin_flume on 2 MPI ranks.",
+ "tags": [
+  "quick",
+  "2d",
+  "fnpf",
+  "waves",
+  "iowave",
+  "mpi"
+ ],
+ "covers": [
+  "fnpf_theta MPI"
+ ]
+}

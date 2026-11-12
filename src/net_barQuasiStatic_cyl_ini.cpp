@@ -449,7 +449,7 @@ void net_barQuasiStatic::cyl_ini(lexer *p, ghostcell *pgc)
     
   
     // Geometrical constraints for boundary meshes, positiv clockwise
-    int addOwner, addNeigh;
+    int addOwner=-1, addNeigh=-1;
     
     for (int i = 0; i < nd; i++)
     {

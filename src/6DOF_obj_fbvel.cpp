@@ -63,7 +63,9 @@ void sixdof_obj::update_fbvel(lexer *p, ghostcell *pgc)
 
 void sixdof_obj::saveTimeStep(lexer *p, int iter)
 {
-    rb.save_history(alpha[iter]*p->dt);
+    // alpha holds three stages; the fourth stage of FNPF RK4 (iter 3) read past the array (the stage time step is only
+    // stored with the history and the checkpoint)
+    rb.save_history(((iter>=0 && iter<3) ? alpha[iter] : 1.0)*p->dt);
 }
 
 void sixdof_obj::maxvel(lexer *p, ghostcell *pgc)
@@ -88,6 +90,15 @@ void sixdof_obj::maxvel(lexer *p, ghostcell *pgc)
         uvel = p->ufbi + rz*p->qfbi - ry*p->rfbi;
         vvel = p->vfbi + rx*p->rfbi - rz*p->pfbi;
         wvel = p->wfbi + ry*p->pfbi - rx*p->qfbi;
+        
+        // deforming body (X 195): with the velocity of the deformation
+        if(fish_!=nullptr)
+        {
+        const Eigen::Vector3d vd = deform_vel(tri_x[n][q],tri_y[n][q],tri_z[n][q]);
+        uvel += vd(0);
+        vvel += vd(1);
+        wvel += vd(2);
+        }
         
         p->ufbmax = MAX(p->ufbmax, fabs(uvel));
         p->vfbmax = MAX(p->vfbmax, fabs(vvel));

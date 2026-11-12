@@ -58,6 +58,7 @@ seastate_fas2::seastate_fas2(lexer *p, ghostcell *pgc, fdm_seastate *e, seastate
     csolv->threads(p->A798);
     if(p->A700==2)
     csolv->source_iterations(p->A738,p->A739);
+    csolv->source_once(p->A767==1);
 
     bool sides=false;
     for(int k=0; k<4; ++k)

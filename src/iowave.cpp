@@ -427,6 +427,33 @@ iowave::iowave(lexer *p, ghostcell *pgc, patchBC_interface *ppBC)  : wave_interf
         }
 	}
     
+    // Dirichlet wave generation (B 98 3, 4) of FNPF and NHFLOW writes the ghost cells i-1 .. i-3 of the inflow cells:
+    // it works at the x- side only. An inflow at another side generates no waves; say so (a flume along y with B 98 3
+    // ran silently without waves), with the alternatives
+    if((p->A10==3 || p->A10==5) && (p->B98==3 || p->B98==4))
+    {
+        int nother = 0;
+        
+        for(int q=0; q<p->gcslin_count; ++q)
+        if(p->gcslin[q][3]!=1)
+        ++nother;
+        
+        nother = pgc->globalisum(nother);
+        
+        if(nother>0 && p->mpirank==0)
+        {
+        cout<<"!!! iowave: Dirichlet wave generation (B 98 "<<p->B98<<") works at the x- side only; the "<<nother
+            <<" inflow columns at the other sides generate no waves !!!"<<endl;
+        
+        if(p->A10==3)
+        cout<<"!!! FNPF: use relaxation (B 98 2 with B 105 / B 108) there !!!"<<endl;
+        
+        if(p->A10==5)
+        cout<<"!!! NHFLOW: use relaxation (B 98 2 with B 105 / B 108) or, at a y side, a Riemann edge with the waves"
+            <<" (B 520 id 3 1, B 521 id 3 0 0 0, B 523 id bg, B 524 id 1; the side flagged as outflow in DIVEMesh) !!!"<<endl;
+        }
+    }
+    
     if(p->B99==1 || p->B99==2)
     beach_relax=1;
     

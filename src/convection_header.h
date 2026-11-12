@@ -48,6 +48,7 @@ Author: Hans Bihs
 #include"idiff2_PLIC.h"
 
 #include"hires.h"
+#include"godunov.h"
 
 
 #endif

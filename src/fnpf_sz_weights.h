@@ -27,14 +27,14 @@ Author: Hans Bihs
 #include"increment.h"
 
 /*
-    One-sided d/dsigma at the free-surface node k = knoz (A327 1).
+    One-sided d/dsigma at the free-surface node k = knoz.
 
     The weights are computed on the actual sigma-node positions ZN
     (Fornberg 1988, Math. Comp. 51, 699-706), so an n-point stencil is exact
     for polynomials of degree n-1 in sigma for any node spacing.
 
     The legacy form sum(c*f)/sum(c*ZN) with uniform-grid coefficients c
-    (A327 0) is the chain rule in grid-index space: exact for polynomials in
+    (the former A327 0) is the chain rule in grid-index space: exact for polynomials in
     the index, not in sigma. It is accurate only while ZN(k) is smooth on the
     scale of one index step and degrades on strongly stretched vertical grids,
     e.g. few layers in deep water (B103 5, large B113).
@@ -107,6 +107,9 @@ public:
 
         return 0.0;
     }
+
+    // the weights of the n-point stencil on the nodes knoz, knoz-1, ... (nullptr if not available)
+    const double* weights(int n) const { return (n>=2 && n<=maxpt && valid[n]) ? w[n] : nullptr; }
 
 private:
     static const int maxpt = 7;

@@ -80,6 +80,14 @@ public:
     //  (reefamr_xzlu) in place of the V-cycle (SFLOW mesh refinement on a 2D grid)
     void set_exact_line(bool on) { exact_line = on; }
 
+    //  vcycle() without rebuild: the matrix is the one of the last rebuild, only the right-hand side is copied
+    //  (fill_rhs: the values of the decoupled rows and their Dirichlet data; the SI-NH preconditioner, whose
+    //  matrices are fixed during a solve)
+    void set_keep_matrix(bool on) { keep_matrix = on; }
+
+    //  sweeps of the coarsest level of vcycle() (default 16)
+    void set_coarse_sweeps(int n) { mg.set_coarse_sweeps(n); }
+
     //  exact fine operator for the Krylov iteration in fp32 mode (sc_operator)
     void fine_apply(const sc_level &L,const double *x,double *y) override;
 
@@ -93,6 +101,7 @@ private:
     //  anywhere carries a reaction or Dirichlet term (pure Neumann).
     double fill(lexer*, ghostcell*, reefmg_core&, slice&, matrix2D&, vec2D&, bool &singular);
     void fillback(lexer*, reefmg_core&, slice&);
+    void fill_rhs(lexer*, ghostcell*, reefmg_core&, slice&, matrix2D&, vec2D&);
 
     void solve_neumann(lexer*, ghostcell*, slice&, matrix2D&, vec2D&, vec2D&, int);
     void solve_hypre(lexer*, ghostcell*, slice&, matrix2D&, vec2D&, vec2D&, int);
@@ -102,6 +111,7 @@ private:
     reefmg_core mg;
     reefamr_xzlu xz;
     bool exact_line = false, xzon = false;
+    bool keep_matrix = false, filled = false;
 
     matrix2D *Mcur;               // matrix of the current solve (fine_apply)
     std::vector<int> cval;        // slice index IJ -> matrix2D row, -1 if none
@@ -111,6 +121,9 @@ private:
     std::vector<char> dflag;      // fine cell: 1 decoupled row, solved directly
     std::vector<double> amask;    // fine cell incl. halo: 1 active, 0 not
     std::vector<double> dhalo;    // fine cell incl. halo: decoupled values
+    std::vector<long> arow, drow; // fill_rhs: the active and the decoupled fine cells
+    std::vector<long> dq, dn;     // fill_rhs: the dropped couplings of the active rows, cell and neighbour
+    std::vector<double> dc;       //           and their coefficients
 
     int solve_mode, presweep, postsweep;
     int npx,npy,ndir;

@@ -101,7 +101,7 @@ void driver::logic_nhflow()
     pnhfsf = new nhflow_fsf_f(p,d,pgc,pflow,pBC);
     
 // time stepping
-    // time stepping; hydrostatic semi-implicit free surface (A 534 1): the advective time step
+    // time stepping; hydrostatic semi-implicit free surface (A 510 11/12/13): the advective time step
     if(p->A534==1)
     {
     nhflow_momentum_SI::check(p);
@@ -111,11 +111,50 @@ void driver::logic_nhflow()
     if(p->A534!=1)
 	pnhfstep=new nhflow_timestep(p);
 
+    // density from the tracers (A 620): needs the tracers
+    if(p->A620>0 && p->A600==0)
+    {
+        if(p->mpirank==0)
+        cout<<"!!! NHFLOW density (A 620) needs the tracers (A 600 1/2) !!!"<<endl;
+        exit(1);
+    }
+
+    // mixing damped by the stratification (A 623): needs the density; A 547 or k-epsilon
+    if(p->A623>0 && p->A620==0)
+    {
+        if(p->mpirank==0)
+        cout<<"!!! NHFLOW stratified mixing (A 623) needs the density (A 620 1/2) !!!"<<endl;
+        exit(1);
+    }
+
+    if(p->A623>0 && p->A560!=0 && p->A560!=1 && p->A560!=21)
+    {
+        if(p->mpirank==0)
+        cout<<"!!! NHFLOW stratified mixing (A 623): with the algebraic eddy viscosity (A 547) or k-epsilon (A 560 1, 21) only !!!"<<endl;
+        exit(1);
+    }
+
+    // semi-Lagrangian momentum advection (A 549 1): the hydrostatic semi-implicit path
+    if(p->A549!=0 && (p->A549!=1 || p->A534!=1 || p->A549_c<=0.0 || p->A549_c>2.5))
+    {
+        if(p->mpirank==0)
+        cout<<"!!! NHFLOW A 549 m C: m 0 or 1 (semi-Lagrangian momentum advection, with A 510 11/12/13 only), 0 < C <= 2.5 !!!"<<endl;
+        exit(1);
+    }
+
+    // eddy viscosity floor of a turbulence model in thin water (A 627): the semi-implicit path with a turbulence model
+    if(p->A627_c>0.0 && (p->A534!=1 || p->A560==0))
+    {
+        if(p->mpirank==0)
+        cout<<"!!! NHFLOW eddy viscosity floor (A 627): with the hydrostatic semi-implicit free surface (A 510 11/12/13) and a turbulence model (A 560 > 0) only !!!"<<endl;
+        exit(1);
+    }
+
     // tracers (A 600): the semi-implicit path only
     if(p->A600>0 && p->A534!=1)
     {
         if(p->mpirank==0)
-        cout<<"!!! NHFLOW tracers (A 600) need the hydrostatic semi-implicit free surface (A 534 1) !!!"<<endl;
+        cout<<"!!! NHFLOW tracers (A 600) need the hydrostatic semi-implicit free surface (A 510 11/12/13) !!!"<<endl;
         exit(1);
     }
 
@@ -123,15 +162,23 @@ void driver::logic_nhflow()
     // signal speed
     pss = new nhflow_signal_speed(p);
     
+    // A 520: 0 hydrostatic, 1 projection, 2 incremental projection (A 520 3, the HLLYL flux with its pressure
+    // scheme nhflow_pjm_yl, has been removed)
+    if(p->A520<0 || p->A520>2)
+    {
+        if(p->mpirank==0)
+        cout<<endl<<"A 520 "<<p->A520<<": unknown NHFLOW pressure scheme; use 0 (hydrostatic), 1 (projection) or 2 (incremental projection). "
+            <<"A 520 3 (the HLLYL flux) has been removed."<<endl<<endl;
+        
+        pgc->final(true);
+    }
+    
 //Convection	
-    if(p->A511==1 && p->A520!=3)
+    if(p->A511==1)
 	pnhfconvec = new nhflow_HLL(p,pgc,pBC);
     
-    if(p->A511==2 && p->A520!=3)
+    if(p->A511==2)
 	pnhfconvec = new nhflow_HLL(p,pgc,pBC);   // HLLC mode inside nhflow_HLL (A 511 2)
-    
-    if(p->A520==3)
-	pnhfconvec = new nhflow_HLLYL(p,pgc,pBC);
     
     pnhfscalarconvec = new nhflow_scalar_ifou(p,1);   // advective form for k, epsilon/omega
     
@@ -174,11 +221,26 @@ void driver::logic_nhflow()
         p->A520=1;
     }
     
-    // the hull as a sharp thin body (X 15 8): the same, blocked links of a moving body
-    if(p->X15==8 && p->X10>0 && p->A520==2)
+    // the hull as a sharp thin body (X 15 8) keeps the incremental projection (nhflow_pjm_corr: the old pressure in the
+    // predictor with the link mobilities, the wall velocity in the right-hand side). The full projection damps short
+    // waves: a 2D wave of T 1.4 s in 3 m depth (dx 0.1 m, 30 layers) kept 88.5 % of its height over 20 m with A 520 1
+    // against 98.5 % with A 520 2; in the ship frame of the KVLCC2-like hull (dx 0.3 m, 20 layers) the incident wave
+    // reached the hull at 62 % of its height at lambda/L 0.6 and 93 % at 1.0 (Ship Hydrodynamics validation 34).
+    // On the mesh refinement hierarchy the hull needs the full projection (nhflow_amr::keys_ok).
+    if(p->X15==8 && p->X10>0 && p->A520==2 && p->G1>0)
     {
         if(p->mpirank==0)
-        cout<<"X 15 8: sharp hull, pressure scheme A 520 2 -> A 520 1 (full projection)"<<endl;
+        cout<<"X 15 8 on the mesh refinement hierarchy (G 1): pressure scheme A 520 2 -> A 520 1 (full projection)"<<endl;
+
+        p->A520=1;
+    }
+    
+    // the body as a solid with cut faces (X 15 10): the cut faces are in the full projection only (nhflow_pjm: the
+    // divergence of the wall parts, the pressure extension)
+    if(p->X15==10 && p->X10>0 && p->A520==2)
+    {
+        if(p->mpirank==0)
+        cout<<"X 15 10: pressure scheme A 520 2 -> A 520 1 (full projection)"<<endl;
 
         p->A520=1;
     }
@@ -191,9 +253,6 @@ void driver::logic_nhflow()
     
     if(p->A520==2)
     pnhpress = new nhflow_pjm_corr(p,d,pgc,pBC);
-    
-    if(p->A520==3)
-    pnhpress = new nhflow_pjm_yl(p,d,pgc,pBC);
 
 //Turbulence
     // unknown A 560: no model would be created (pnhfturb uninitialised) and the run crashed later
@@ -203,6 +262,35 @@ void driver::logic_nhflow()
         cout<<endl<<"A 560: unknown NHFLOW turbulence model; use 0 (laminar), 1/21 (k-epsilon), 2/22 (k-omega) or 31 (LES Smagorinsky)."<<endl<<endl;
         
         pgc->final(true);
+    }
+    
+    // no bed friction in the momentum equations (A 519 0; the diffusion has a zero-gradient bed with A 513 1): the flow
+    // slips over the bed, a RANS model gets its turbulence only from the wall function of the bottom cell and the
+    // velocity profile stays a plug (open-channel flow: nu_t far below the parabolic profile, the bed shear stress of
+    // the sediment S 16 from the near-bed velocity about twice too high)
+    if(p->A519==0 && p->A518!=2 && (p->A560==1 || p->A560==21 || p->A560==2 || p->A560==22 || p->S10>0) && p->mpirank==0)
+    cout<<"NOTE A 519 0: no bed friction in the momentum equations, the flow slips over the bed; A 519 1 (the default "
+        <<"with a turbulence model A 560 or sediment transport S 10) for open-channel flow"<<endl;
+    
+    // bed of the velocity (A 518): 1 the wall-function bed, mirrored ghost cells, zero gradient in the diffusion and
+    // the bed shear from the log-law friction A 519; 2 the resolved no-slip bed, u = 0 on the bed face in the
+    // ghost cells and in the diffusion, the bed shear from the diffusion (gc_startV.cpp, nhflow_idiff, nhflow_bcmom)
+    if(p->A518==2 && p->mpirank==0)
+    {
+        if(p->A519>0)
+        cout<<"NOTE A 518 2: resolved no-slip bed, the bed shear comes from the diffusion; no bed friction of A 519 at the bed"<<endl;
+        
+        if(p->A512==0 && p->A560==0)
+        cout<<"!!! A 518 2 without diffusion (A 512 0, A 560 0): the no-slip bed acts only through the ghost cells"<<endl;
+        
+        // the bed face has the molecular viscosity only (nu_t = 0 at the wall): with a RANS model the bed cell has to lie
+        // in the viscous sublayer (z+ < 5); on a coarse grid the bed shear is far too low (open channel, k-epsilon,
+        // 20 layers over 2 m: u* half the log law), A 518 1 there
+        if(p->A560==1 || p->A560==21 || p->A560==2 || p->A560==22)
+        cout<<"!!! A 518 2 with a RANS model (A 560 "<<p->A560<<"): wall-resolving grids only (bed cell z+ < 5), A 518 1 otherwise"<<endl;
+        
+        if(p->A534==1)
+        cout<<"!!! A 518 2 with the semi-implicit free surface (A 510 11/12/13): its column operator keeps the log-law bed friction (A 519 1)"<<endl;
     }
     
     // HLES split (A 561) and QCR (A 563) work with the RANS models (k-epsilon, k-omega) only
@@ -316,6 +404,28 @@ void driver::logic_nhflow()
 	pnhfvrans = new vrans_nhflow_f(p,d,pgc);
 
 //IOFlow
+    // the zones of the native grid (B 520 without B 522), their backgrounds (B 510-515), the wave sources (B 500-504)
+    // and the start with the background current (B 531) belong to iowave (B 90 1): without it they are read and not
+    // used. The zones on the faces of blocks 1.. (B 522) work without it (nhflow_amr, ioflow_amr_block)
+    if(p->B90==0 && p->mpirank==0)
+    {
+        const int native = p->B520 - p->B522;
+        const int bg = p->B510 + p->B511 + p->B513 + p->B514 + p->B515;
+        const int src = p->B500 + p->B501 + p->B502 + p->B504;
+        std::string what;
+        auto add = [&](const std::string &w) { what += (what.empty() ? "" : ", ") + w; };
+        if(native>0)
+        add(std::to_string(native)+" zone(s) of B 520 on the native grid");
+        if(bg>0 && p->B522==0)
+        add("the backgrounds of B 510-515");
+        if(src>0)
+        add("the wave sources of B 500-504");
+        if(p->B531!=0)
+        add("B 531 (the start with the background current)");
+        if(!what.empty())
+        cout<<"!!! B 90 0: "<<what<<" given but not used: they need the wave module, B 90 1 (a current without waves: B 90 1 with waves of zero height) !!!"<<endl;
+    }
+
 	if(p->B60==0 && p->B90==0 && p->B180==0)
 	pflow = new ioflow_v(p,pgc,pBC);
 
@@ -367,12 +477,10 @@ void driver::logic_nhflow()
     if(p->A510==3 && p->A534!=1)
 	pnhfmom = new nhflow_momentum_RK3(p,d,pgc,p6dof,pnhfvrans,pnhfdf);    
     
-    // hydrostatic semi-implicit free surface (A 534 1, theta method)
+    // hydrostatic semi-implicit free surface (A 510 11/12/13, theta method)
     if(p->A534==1)
 	pnhfmom = new nhflow_momentum_SI(p,d,pgc,p6dof,pnhfvrans,pnhfdf);
     
-    if(p->A534==1 && p->A550>0 && p->mpirank==0)
-    cout<<"A 550: wave breaking is not available with the semi-implicit free surface (A 534 1), no breaking"<<endl;
 
 // mesh refinement (G 1): patches on the NHFLOW grid
     // multi-block grid (G 50 1, DIVEMesh R 20 1): the blocks 1.. are level-0 patches of the hierarchy

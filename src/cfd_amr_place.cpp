@@ -59,7 +59,16 @@ void cfd_amr::sh_run(r3cplan &X, const vector<std::function<field&(int)>> &f, bo
 {
     if(!place || f.empty())
     return;
-    auto F = [&](int m, int g) -> double* { return f[m](g).V; };
+    // (the arrays resolved once per grid, not per item)
+    const int ng = (int)P.size()+1;
+    vector<double*> tab(f.size()*(size_t)ng,nullptr);
+    auto F = [&](int m, int g) -> double*
+    {
+        double *&t = tab[(size_t)m*ng+g+1];
+        if(t==nullptr)
+        t = f[m](g).V;
+        return t;
+    };
     cplan_run(X,(int)f.size(),F,F,add);
 }
 
@@ -197,6 +206,59 @@ void cfd_amr::sh_plans()
     cplan_build(pu_cf[d],false,icf[d]);
     cplan_build(pu_cc,false,icc);
     cplan_build(pu_key,false,ik);
+
+    // down for the solver vectors (sh_down1): only the cells of the shadows the operator and the
+    // fills next to the level-1 patches read, the coarse cells at their edges with their transverse
+    // neighbours (the stencils of pr_weights) and the parents of the cells next to the patches (the
+    // fills up to depth 1, injection); sh_down sends every cell of the shadow arrays
+    {
+        vector<vector<char>> mark(P.size());
+        auto need = [&](int g, int q)
+        {
+            if(g<npat || q<0)
+            return;
+            vector<char> &m = mark[g];
+            if(m.empty())
+            m.assign((size_t)P[g]->pp->imax*P[g]->pp->jmax*P[g]->pp->kmax,0);
+            m[q] = 1;
+        };
+        for(int id : lev[1])
+        {
+            const r3patch *c = P[id];
+            for(const r3fill &f : c->fill)
+            if(f.kind==1 && f.depth<=1)
+            need(f.g,cix(glex(f.g),f.s[0],f.s[1],f.s[2]));
+        }
+        for(const cfd_amr_cf &F : cf)
+        {
+            if(glevel(F.pid)!=1)
+            continue;
+            need(F.gc,F.qc);
+            for(int t=0; t<3; ++t)
+            {
+                need(F.gc,F.tq[t][0]);
+                need(F.gc,F.tq[t][1]);
+            }
+        }
+
+        vector<vector<int>> it(nranks);
+        for(int g=npat; g<(int)P.size(); ++g)
+        {
+            if(mark[g].empty())
+            continue;
+            const r3patch *c = P[g];
+            const lexer *q = c->pp;
+            const int sI = q->jmax*q->kmax;
+            for(int n=0; n<(int)mark[g].size(); ++n)
+            if(mark[g][n])
+            {
+                int I[3] = {c->lo[0] + n/sI + q->imin, c->lo[1] + (n/q->kmax)%q->jmax + q->jmin, c->lo[2] + n%q->kmax + q->kmin};
+                wrap0(I);
+                push(it,owner0(I),g,n,I,0);
+            }
+        }
+        cplan_build(sh_down1,true,it);
+    }
 
     // the porosity of the shadows (it does not change)
     vector<std::function<field&(int)>> por;

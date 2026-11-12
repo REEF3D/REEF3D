@@ -30,6 +30,7 @@ Author: Hans Bihs
 #include"nhflow_print_wsf.h"
 #include"nhflow_vtp_fsf.h"
 #include"nhflow_vtp_bed.h"
+#include"nhflow_scour.h"
 #include"nhflow_state.h"
 #include"nhflow_print_wsf_theory.h"
 #include"nhflow_print_wsfline.h"
@@ -43,6 +44,7 @@ Author: Hans Bihs
 #include"nhflow_depavg_vel_lineprobe.h"
 #include"nhflow_depandtime_avg_vel_lineprobe.h"
 #include"nhflow_probe_vel.h"
+#include"nhflow_print_scour.h"
 #include"nhflow_probe_vel_theory.h"
 #include"nhflow_probe_press.h"
 #include"nhflow_print_Hs.h"
@@ -129,6 +131,9 @@ printer_nhflow::printer_nhflow(lexer* p, fdm_nhf *d, ghostcell *pgc)
     if(p->P65>0)
     pvel=new nhflow_probe_vel(p,d);
 
+    if(p->P83>0 || p->P84>0)
+    pscour = new nhflow_print_scour(p,d);
+
     if(p->P67>0)
     puprofile = new nhflow_profile_u(p,d);
 
@@ -174,10 +179,32 @@ printer_nhflow::printer_nhflow(lexer* p, fdm_nhf *d, ghostcell *pgc)
     pfsf = new nhflow_vtp_fsf(p,d,pgc);
 
     pbed = new nhflow_vtp_bed(p);
+
+    // P 187: scour parameters in the bed output, written with the free surface, P 198: scour gauges
+    // (not with mesh refinement)
+    const bool scour = p->P187==1 || p->P198>0;
+
+    if(scour && p->G1>0 && p->mpirank==0)
+        cout<<"NHFLOW scour (P 187, P 198) is not available with mesh refinement (G 1), off"<<endl;
+
+    if(scour && p->G1<=0)
+    {
+        pscourbed = new nhflow_scour(p,d,pgc);
+
+        if(p->P187==1)
+        pbed->scour = pscourbed;
+    }
 }
 
 void printer_nhflow::start(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pflow, nhflow_turbulence *pnhfturb, sediment *psed)
 {
+    // P 187, P 198: near-bed velocity statistics, every time step, and the scour gauges
+    if(pscourbed!=nullptr)
+    {
+    pscourbed->sample(p,d,pgc);
+    pscourbed->gauges(p,pgc);
+    }
+
     // Gages
     if(p->P51>0)
     pwsf->height_gauge(p,d,pgc,d->eta);
@@ -200,9 +227,13 @@ void printer_nhflow::start(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pflow, 
     if(p->P65>0)
     pvel->start(p,d,pgc);
 
+    if(pscour!=nullptr)
+    pscour->start(p,d,pgc);
+
     if(p->P66>0)
     pveltheo->start(p,d,pgc,pflow);
 
+    if(pfsf!=nullptr)
     pfsf->preproc(p,d,pgc);
 
     if(p->P186>0)
@@ -243,29 +274,29 @@ void printer_nhflow::start(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pflow, 
     // Print FSF + Bed
     if(((p->count%p->P181==0 && p->P182<0.0 && p->P183<0.0 && p->P180==1 )|| (p->count==0 &&  p->P182<0.0 && p->P180==1)) && p->P181>0)
     {
-        pfsf->start(p,d,pgc,psed,pnhfturb);
+        print_fsf(p,d,pgc,psed,pnhfturb);
 
-        if(p->S10>0)
-            pbed->start(p,d,pgc,psed);
+        if(p->S10>0 || p->P187==1)
+            print_bed(p,d,pgc,psed);
     }
 
 
-    if((p->simtime>p->fsfprinttime && p->P182>0.0 && p->P183<0.0 && p->P180==1) || (p->count==0 && p->P182>0.0))
+    if((p->simtime>p->fsfprinttime && p->P182>0.0 && p->P183<0.0 && p->P180==1) || (p->count==0 && p->P182>0.0 && p->P180==1))
     {
-        pfsf->start(p,d,pgc,psed,pnhfturb);
+        print_fsf(p,d,pgc,psed,pnhfturb);
 
-        if(p->S10>0)
-            pbed->start(p,d,pgc,psed);
+        if(p->S10>0 || p->P187==1)
+            print_bed(p,d,pgc,psed);
 
         p->fsfprinttime+=p->P182;
     }
 
     if((p->sedtime>p->fsfsedprinttime && p->P182<0.0 && p->P183>0.0 && p->P180==1) || (p->count==0 && p->P183>0.0))
     {
-        pfsf->start(p,d,pgc,psed,pnhfturb);
+        print_fsf(p,d,pgc,psed,pnhfturb);
 
-        if(p->S10>0)
-        pbed->start(p,d,pgc,psed);
+        if(p->S10>0 || p->P187==1)
+        print_bed(p,d,pgc,psed);
 
         p->fsfsedprinttime+=p->P183;
     }
@@ -274,31 +305,29 @@ void printer_nhflow::start(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pflow, 
         for(int qn=0; qn<p->P184; ++qn)
             if(p->count%p->P184_dit[qn]==0 && p->count>=p->P184_its[qn] && p->count<=(p->P184_ite[qn]))
             {
-                pfsf->start(p,d,pgc,psed,pnhfturb);
+                print_fsf(p,d,pgc,psed,pnhfturb);
 
-                if(p->S10>0)
-                    pbed->start(p,d,pgc,psed);
+                if(p->S10>0 || p->P187==1)
+                    print_bed(p,d,pgc,psed);
             }
 
     if(p->P180==1 && p->P185>0)
         for(int qn=0; qn<p->P185; ++qn)
             if(p->simtime>printfsftime_wT[qn] && p->simtime>=p->P185_ts[qn] && p->simtime<=(p->P185_te[qn]+0.5*p->P185_dt[qn]))
             {
-                pfsf->start(p,d,pgc,psed,pnhfturb);
+                print_fsf(p,d,pgc,psed,pnhfturb);
 
-                if(p->S10>0)
-                    pbed->start(p,d,pgc,psed);
+                if(p->S10>0 || p->P187==1)
+                    print_bed(p,d,pgc,psed);
 
                 printfsftime_wT[qn]+=p->P185_dt[qn];
             }
 
     // Print BED
     // the fixed bed: at the start, and at the first output of a restart (I 45: a new LAGOON store)
-    if((p->count==0 || !bed_printed) && p->S10==0)
-    {
-        pbed->start(p,d,pgc,psed);
-        bed_printed = true;
-    }
+    // (with P 187 the bed is written with the free surface: here only when that has not happened yet)
+    if(((p->count==0 && p->P187!=1) || !bed_printed) && p->S10==0)
+    print_bed(p,d,pgc,psed);
 
 
     // Gages
@@ -366,19 +395,60 @@ void printer_nhflow::print_stop(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pf
 {
     print(p,d,pgc,pnhfturb,psed);
 
-    if(p->S10>0)
-        pbed->start(p,d,pgc,psed);
+    if(p->S10>0 || p->P187==1)
+        print_bed(p,d,pgc,psed);
 
     if(p->P180==1)
-        pfsf->start(p,d,pgc,psed,pnhfturb);
+        print_fsf(p,d,pgc,psed,pnhfturb);
+
+    if(pscourbed!=nullptr)
+        pscourbed->gauge_flush();
 
     if(plagoon)  // the last output of the LAGOON store is counted
         plagoon->finish(p,pgc);
     lagoon_output::finish_all(p,pgc);  // and those of the free surface and bed
 }
 
+void printer_nhflow::print_end(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pflow, nhflow_turbulence *pnhfturb, sediment *psed)
+{
+    if(pscourbed!=nullptr)
+        pscourbed->gauge_flush();
+
+    // the state at the end of the run, also when it ends between two outputs (N 45 before P 30)
+    const bool volume = (p->P20>0 && p->P30<0.0 && p->P34<0.0) || p->P30>0.0 || p->P34>0.0 || p->P35>0;
+    const bool fsf = p->P180==1 && (p->P181>0 || p->P182>0.0 || p->P183>0.0 || p->P184>0 || p->P185>0);
+
+    if(fsf && last_fsf!=p->count)
+    {
+        print_fsf(p,d,pgc,psed,pnhfturb);
+
+        if(p->S10>0 || p->P187==1)
+            print_bed(p,d,pgc,psed);
+    }
+
+    if(volume && last_print!=p->count)
+        print(p,d,pgc,pnhfturb,psed);
+}
+
+void printer_nhflow::print_bed(lexer* p, fdm_nhf* d, ghostcell* pgc, sediment *psed)
+{
+    if(pbed->scour!=nullptr)
+    pscourbed->evaluate(p,pgc);
+
+    pbed->start(p,d,pgc,psed);
+    bed_printed = true;
+}
+
+void printer_nhflow::print_fsf(lexer* p, fdm_nhf* d, ghostcell* pgc, sediment *psed, nhflow_turbulence *pnhfturb)
+{
+    pfsf->start(p,d,pgc,psed,pnhfturb);
+    last_fsf = p->count;
+}
+
 void printer_nhflow::print(lexer* p, fdm_nhf *d, ghostcell* pgc, nhflow_turbulence *pnhfturb, sediment *psed)
 {
+    last_print = p->count;
+
     if(p->P10==vtk3D::type::vtu || p->P10==vtk3D::type::vts)
     {
         /*
@@ -398,6 +468,7 @@ void printer_nhflow::print(lexer* p, fdm_nhf *d, ghostcell* pgc, nhflow_turbulen
 
         pgc->gcsl_start4(p,d->bed,50);
         pgc->gcsl_start4(p,d->breaking_print,50);
+        if(d->test!=nullptr)
         pgc->start5V(p,d->test,1);
 
         pgc->dgcslpol(p,d->WL,p->dgcsl4,p->dgcsl4_count,14);
@@ -933,6 +1004,8 @@ void printer_nhflow::print(lexer* p, fdm_nhf *d, ghostcell* pgc, nhflow_turbulen
 
         if(lagoon_output::vtu_files(p))
             writeFile(name, total_size);
+        
+        release_buffer();
 
         ++printcount;
     }
@@ -964,6 +1037,8 @@ void printer_nhflow::ckpt_state(std::vector<double> &v)
     v.push_back(nP185);
     for(int qn=0; qn<nP185; ++qn)
     v.push_back(printfsftime_wT[qn]);
+    if(pscour!=nullptr)
+    pscour->ckpt_state(v);   // the scour gauges P 83, P 84
 }
 
 void printer_nhflow::ckpt_restore(const std::vector<double> &v)
@@ -986,6 +1061,8 @@ void printer_nhflow::ckpt_restore(const std::vector<double> &v)
         const double t = nx();
         if(qn<nP185) printfsftime_wT[qn] = t;
     }
+    if(pscour!=nullptr)
+    pscour->ckpt_restore(v,q);
 }
 
 void printer_nhflow::flush_outputs()

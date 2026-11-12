@@ -112,7 +112,7 @@ public:
             return 0.0;
     }
 
-    // Wet-dry aware upwinded gradient with two options (see A315, A316):
+    // Wet-dry aware upwinded gradient with two options (see A316):
     //   zerosym  = 1: symmetric gradient at zero speed instead of 0
     //   fallback = 1: first-order gradient from wet neighbours when the WENO5
     //                 stencil is not fully wet, instead of 0

@@ -165,6 +165,46 @@ void wave_field::kinematics(const Vec3 &p, double t, Vec3 &u, Vec3 &du, double &
     p_rho *= r;
 }
 
+void wave_field::gradients(const Vec3 &p, double t, Mat3 &G, Vec3 &slope) const
+{
+    G.setZero();
+    slope.setZero();
+    const double z = std::min(p(2), 0.0);
+    const double d = depth_;
+    for(const auto &c : comp_)
+    {
+        const double cb = std::cos(c.beta), sb = std::sin(c.beta);
+        const double th = c.w*t - c.k*(p(0)*cb + p(1)*sb) + c.phase;
+        double fh, fv;        // depth functions of the horizontal and vertical velocity; d fh/dz = k fv, d fv/dz = k fh
+        if(d <= 0.0 || c.k*d > 20.0)
+            fh = fv = std::exp(c.k*z);
+        else
+        {
+            const double kz = c.k*(z + d);
+            fh = std::cosh(kz)/std::sinh(c.k*d);
+            fv = std::sinh(kz)/std::sinh(c.k*d);
+        }
+        const double cs = std::cos(th), sn = std::sin(th);
+        const double awk = c.a*c.w*c.k;
+        // u_h = a w fh cos(th) along (cb, sb), w = -a w fv sin(th), d th/dx = -k cb, d th/dy = -k sb
+        const double dh = awk*fh*sn;          // d u_h / d (horizontal distance along the direction)
+        const double e[2] = {cb, sb};
+        for(int i=0; i<2; ++i)
+        {
+            for(int j=0; j<2; ++j)
+                G(i,j) += dh*e[i]*e[j];
+            G(i,2) += awk*fv*cs*e[i];           // d u_h/dz
+            G(2,i) += awk*fv*cs*e[i];           // d w/dx_i (irrotational)
+        }
+        G(2,2) += -awk*fh*sn;                   // d w/dz = -(du/dx + dv/dy)
+        slope(0) += c.a*c.k*cb*sn;
+        slope(1) += c.a*c.k*sb*sn;
+    }
+    const double r = ramp(t);
+    G *= r;
+    slope *= r;
+}
+
 double wave_field::hs() const
 {
     double m0 = 0.0;

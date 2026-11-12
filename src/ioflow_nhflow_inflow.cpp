@@ -119,7 +119,7 @@ void ioflow_f::inflow_log_nhflow(lexer *p, fdm_nhf *d,ghostcell *pgc, double *U,
     double depth, ks, H, B, M, I;
     double tau, shearvel;
     const double visc = p->W2;
-    double ratio;
+    double ratio=1.0;
 
     // water depth
     for(n=0;n<p->gcin_count;++n)

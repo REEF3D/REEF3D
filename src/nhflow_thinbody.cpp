@@ -27,8 +27,9 @@ Architect: Hans Bihs
 #include"ghostcell.h"
 #include"slice.h"
 #include<cmath>
+#include<vector>
 
-nhflow_thinbody::nhflow_thinbody(lexer *p, fdm_nhf *d, ghostcell *ppgc) : etaL(p), fp(p), cbx(p), cby(p), phi(p), rL(p), Hx(p), Hy(p), cr(p), cd(p), cq(p), wf(p), rt(p), first(true), nlowg(0), nlow(0)
+nhflow_thinbody::nhflow_thinbody(lexer *p, fdm_nhf *d, ghostcell *ppgc) : etaL(p), fp(p), cbx(p), cby(p), phi(p), rL(p), Hx(p), Hy(p), cr(p), cd(p), cq(p), wf(p), cz(p), atop(p), rt(p), first(true), nlowg(0), nlow(0)
 {
     pgc = ppgc;
     ncell = p->imax*p->jmax*(p->kmax+2);
@@ -80,6 +81,16 @@ nhflow_thinbody::~nhflow_thinbody()
     delete [] tv;
     delete [] sideN;
     delete [] fz;
+    
+    if(axl!=nullptr)
+    {
+    delete [] axl;
+    delete [] axh;
+    delete [] ayl;
+    delete [] ayh;
+    delete [] azc;
+    delete [] azn;
+    }
 }
 
 void nhflow_thinbody::begin(lexer *p)
@@ -337,6 +348,11 @@ double nhflow_thinbody::inner_volume_local(lexer *p, fdm_nhf *d, const std::func
 
 double nhflow_thinbody::head(lexer *p, fdm_nhf *d, int i, int j, int k)
 {
+    // cut faces: the free surface of the column where its top is open, the outer level carried across (eta_L) where the
+    // body covers it, weighted with the open fraction of the top (continuous as the body covers a column)
+    if(cutmode)
+    return atop(i,j)*d->eta(i,j) + (1.0-atop(i,j))*etaL(i,j);
+    
     return low[IJK]>0.5 ? etaL(i,j) : d->eta(i,j);
 }
 
@@ -354,8 +370,14 @@ void nhflow_thinbody::update_etaL(lexer *p, fdm_nhf *d, int iter)
     
     pgc->gcsl_start4(p,etaL,50);
     
-    for(int it=0; it<iter; ++it)
+    // cut faces (X 15 10): iterated to convergence (a fixed number of Gauss-Seidel sweeps leaves a part of the error
+    // with the sweep direction in it: a symmetric body then gets an asymmetric head below it and starts to pitch)
+    const int maxit = cutmode ? MAX(iter,2000) : iter;
+    
+    for(int it=0; it<maxit; ++it)
     {
+        double dmax=0.0;
+        
         SLICELOOP4
         if((rt(i,j)>0.5 || fp(i,j)>0.5) && p->wet[IJ]==1)
         {
@@ -398,10 +420,20 @@ void nhflow_thinbody::update_etaL(lexer *p, fdm_nhf *d, int iter)
             add(i,j-1,p->DYP[JM1]);
             }
             
-            etaL(i,j) = w>0.0 ? s/w : d->eta(i,j);
+            double en = w>0.0 ? s/w : d->eta(i,j);
+            
+            // cut faces: over-relaxed (SOR), the change checked for convergence
+            if(cutmode && w>0.0)
+            en = etaL(i,j) + 1.6*(en - etaL(i,j));
+            
+            dmax = MAX(dmax,fabs(en-etaL(i,j)));
+            etaL(i,j) = en;
         }
         
         pgc->gcsl_start4(p,etaL,50);
+        
+        if(cutmode && it%5==4 && pgc->globalmax(dmax)<1.0e-9)
+        break;
     }
 }
 
@@ -475,6 +507,11 @@ void nhflow_thinbody::flux_hook(lexer *p, fdm_nhf *d, int id, int ipol, double *
     // advected quantity: U, V or W
     const double *Q = ipol==1 ? d->U : (ipol==2 ? d->V : d->W);
     
+    // cut faces (X 15 10): the x and y faces from the apertures
+    if(cutmode)
+    cut_faces(p,d,ipol,Fx,Fy,R,Q);
+    else
+    {
     // ---------------------------------------------------------------- x faces (i+1/2), i = -1 .. knox-1
     for(i=-1; i<p->knox; ++i)
     for(j=0; j<p->knoy; ++j)
@@ -682,6 +719,8 @@ void nhflow_thinbody::flux_hook(lexer *p, fdm_nhf *d, int id, int ipol, double *
         }
     }
     
+    }   // !cutmode
+    
     if(ipol==4)
     {
         if(nlowg>0)
@@ -703,6 +742,9 @@ void nhflow_thinbody::flux_hook(lexer *p, fdm_nhf *d, int id, int ipol, double *
             {
                 bool nearz=false;
                 
+                if(cutmode)
+                nearz = cz(i,j)>0.5;
+                else
                 for(int o=-2; o<=2; ++o)
                 if(k+o>=0 && k+o<p->knoz-1 && fz[IJK+o]>0.5)
                 nearz=true;
@@ -713,12 +755,22 @@ void nhflow_thinbody::flux_hook(lexer *p, fdm_nhf *d, int id, int ipol, double *
                     d->Fz[IJK] = om*(om>=0.0 ? Q[IJK] : Q[IJKp1]);
                 }
             }
+            
+            // cut faces: the momentum flux through the open part of the horizontal face only (no momentum through the
+            // wall part; a cell with little water would otherwise take the full momentum flux from below)
+            if(cutmode)
+            {
+                const double om = d->omegaF[FIJKp1];
+                
+                if(azn[IJKp1]<1.0)
+                d->Fz[IJK] = azn[IJKp1]*om*(om>=0.0 ? Q[IJK] : Q[IJKp1]);
+            }
         }
         
         // pjm::upgrad / vpgrad add eta g (dfx_i - dfx_i-1)/dx with eta; below a floor the head is eta_L
-        if(low[IJK]>0.5 && p->wet[IJ]==1)
+        if((cutmode || low[IJK]>0.5) && p->wet[IJ]==1)
         {
-            const double de = etaL(i,j) - d->eta(i,j);
+            const double de = cutmode ? head(p,d,i,j,k) - d->eta(i,j) : etaL(i,j) - d->eta(i,j);
             
             if(ipol==1)
             R[IJK] += de*g*(0.5*(d->depth(i+1,j)-d->depth(i-1,j)))/p->DXN[IP];
@@ -733,6 +785,12 @@ void nhflow_thinbody::projection_rhs(lexer *p, fdm_nhf *d, double *U, double *V,
 {
     // the face velocity of a blocked link in the divergence of nhflow_pjm::rhs is the wall velocity: row n (node k at
     // the bottom of cell k) averages the faces of the cells k (weight 1 - fac) and k-1 (fac)
+    if(cutmode)
+    {
+    projection_rhs_cut(p,d,U,V,W,alpha);
+    return;
+    }
+    
     const double adt = alpha*p->dt;
     int n=0;
     
@@ -749,12 +807,6 @@ void nhflow_thinbody::projection_rhs(lexer *p, fdm_nhf *d, double *U, double *V,
                 
                 double facx = p->DZN[KM1]/(p->DZN[KP]+p->DZN[KM1]);
                 double facy = facx;
-                
-                if(k==0)
-                {
-                facx = MAX((1.0 - p->A522*fabs(d->Bx(i,j))),0.0)*p->DZN[KM1]/(p->DZN[KP]+p->DZN[KM1]);
-                facy = MAX((1.0 - p->A522*fabs(d->By(i,j))),0.0)*p->DZN[KM1]/(p->DZN[KP]+p->DZN[KM1]);
-                }
                 
                 const double wx = c==0 ? 1.0-facx : facx;
                 const double wy = c==0 ? 1.0-facy : facy;
@@ -1034,14 +1086,69 @@ void nhflow_thinbody::lid_correction(lexer *p, fdm_nhf *d, double *Fx, double *F
     for(j=0; j<p->knoy; ++j)
     for(k=0; k<p->knoz; ++k)
     if((isL(IJK) || isL(Ip1JK)) && bx[IJK]<0.5 && p->flag4[IJK]>0 && p->flag4[Ip1JK]>0 && p->wet[IJ]==1 && p->wet[Ip1J]==1)
-    Hx(i,j) += p->DZN[KP];
+    Hx(i,j) += p->DZN[KP]*(cutmode ? 0.5*(axl[IJK]+axh[IJK]) : 1.0);
     
     if(p->j_dir==1)
     for(i=0; i<p->knox; ++i)
     for(j=-1; j<p->knoy; ++j)
     for(k=0; k<p->knoz; ++k)
     if((isL(IJK) || isL(IJp1K)) && by[IJK]<0.5 && p->flag4[IJK]>0 && p->flag4[IJp1K]>0 && p->wet[IJ]==1 && p->wet[IJp1]==1)
-    Hy(i,j) += p->DZN[KP];
+    Hy(i,j) += p->DZN[KP]*(cutmode ? 0.5*(ayl[IJK]+ayh[IJK]) : 1.0);
+    
+    // in a current (lid_outflow): the edge faces of the footprint through which the lower region takes water in get no
+    // correction (Neumann for phi), the imbalance leaves through the outflow edges. With phi = 0 at every edge, the
+    // imbalance of the first footprint columns behind the bow went mostly back out through the bow face: in the column in
+    // front of the bow the pile-up of the stagnation flow could not drain under the keel, and on a fine grid it grew
+    // into an oscillation with the inner level (2D box in a current of 1 m/s at dx 0.05 m: the level in front of the bow
+    // rose by 0.5 m within 0.4 s and the run failed; Ship Hydrodynamics validation 32)
+    if(lid_outflow)
+    {
+        auto actc = [&](int ii, int jj) {return fp(ii,jj)>0.5 && p->wet[(ii-p->imin)*p->jmax + (jj-p->jmin)]==1;};
+        int nout=0;
+        std::vector<std::pair<int,int>> inx, iny;
+        
+        for(i=-1; i<p->knox; ++i)
+        for(j=0; j<p->knoy; ++j)
+        if(Hx(i,j)>0.0 && actc(i,j)!=actc(i+1,j))
+        {
+            double fs=0.0;
+            
+            for(k=0; k<p->knoz; ++k)
+            if((isL(IJK) || isL(Ip1JK)) && bx[IJK]<0.5)
+            fs += p->DZN[KP]*Fx[IJK];
+            
+            if(actc(i+1,j) ? fs>0.0 : fs<0.0)
+            inx.push_back({i,j});
+            else
+            ++nout;
+        }
+        
+        if(p->j_dir==1)
+        for(i=0; i<p->knox; ++i)
+        for(j=-1; j<p->knoy; ++j)
+        if(Hy(i,j)>0.0 && actc(i,j)!=actc(i,j+1))
+        {
+            double fs=0.0;
+            
+            for(k=0; k<p->knoz; ++k)
+            if((isL(IJK) || isL(IJp1K)) && by[IJK]<0.5)
+            fs += p->DZN[KP]*Fy[IJK];
+            
+            if(actc(i,j+1) ? fs>0.0 : fs<0.0)
+            iny.push_back({i,j});
+            else
+            ++nout;
+        }
+        
+        // without an outflow edge (anywhere) the edges stay Dirichlet
+        if(pgc->globalisum(nout)>0)
+        {
+            for(auto &f : inx)
+            Hx(f.first,f.second)=0.0;
+            for(auto &f : iny)
+            Hy(f.first,f.second)=0.0;
+        }
+    }
     
     // net outflow of the lower cells
     LOOP
@@ -1155,7 +1262,7 @@ void nhflow_thinbody::lid_correction(lexer *p, fdm_nhf *d, double *Fx, double *F
         
         for(k=0; k<p->knoz; ++k)
         if((isL(IJK) || isL(Ip1JK)) && bx[IJK]<0.5 && p->flag4[IJK]>0 && p->flag4[Ip1JK]>0)
-        Fx[IJK] += c;
+        Fx[IJK] += c*(cutmode ? 0.5*(axl[IJK]+axh[IJK]) : 1.0);
     }
     
     if(p->j_dir==1)
@@ -1167,6 +1274,538 @@ void nhflow_thinbody::lid_correction(lexer *p, fdm_nhf *d, double *Fx, double *F
         
         for(k=0; k<p->knoz; ++k)
         if((isL(IJK) || isL(IJp1K)) && by[IJK]<0.5 && p->flag4[IJK]>0 && p->flag4[IJp1K]>0)
-        Fy[IJK] += c;
+        Fy[IJK] += c*(cutmode ? 0.5*(ayl[IJK]+ayh[IJK]) : 1.0);
+    }
+}
+
+// ------------------------------------------------------------------ cut faces (X 15 10)
+void nhflow_thinbody::enable_cut(lexer *p)
+{
+    if(axl!=nullptr)
+    return;
+    
+    p->Darray(axl,ncell);
+    p->Darray(axh,ncell);
+    p->Darray(ayl,ncell);
+    p->Darray(ayh,ncell);
+    p->Darray(azc,ncell);
+    p->Darray(azn,ncell);
+    
+    for(int q=0; q<ncell; ++q)
+    axl[q]=axh[q]=ayl[q]=ayh[q]=azc[q]=azn[q]=1.0;
+    
+    p->Darray(wnode,p->imax*p->jmax*p->kmaxF);
+    p->Darray(ptmp,p->imax*p->jmax*p->kmaxF);
+    
+    p->Darray(ikap,ncell);
+    
+    for(int q=0; q<ncell; ++q)
+    ikap[q]=1.0;
+    
+    cutmode = true;
+}
+
+// the explicit right-hand side of the momentum of a cut cell per its water (the fluxes through its open faces and its
+// wall parts act on kap V, not on the whole cell)
+void nhflow_thinbody::scale_rhs(lexer *p, double *F)
+{
+    if(ikap==nullptr)
+    return;
+    
+    LOOP
+    F[IJK] *= ikap[IJK];
+}
+
+void nhflow_thinbody::finish_cut(lexer *p, fdm_nhf *d, ghostcell *pgc)
+{
+    pgc->start4V(p,ux,1);
+    pgc->start4V(p,uy,1);
+    pgc->start4V(p,uz,1);
+    
+    auto sol = [&](int q) {return solidC!=nullptr && solidC[q]>0.5;};
+    
+    for(int q=0; q<ncell; ++q)
+    low[q]=fz[q]=0.0;
+    
+    // vertical faces between a cell with no open face and one with water; lower cells: below an odd number of such
+    // faces (from the top of the column), floor velocity the body velocity of the cell above the topmost lower cell
+    int n=0;
+    
+    ILOOP
+    JLOOP
+    {
+        fp(i,j) = 0.0;
+        wf(i,j) = 0.0;
+        
+        if(p->wet[IJ]==0)
+        continue;
+        
+        for(k=0; k<p->knoz-1; ++k)
+        if(sol(IJK)!=sol(IJKp1))
+        fz[IJK]=1.0;
+        
+        double par=0.0;
+        bool wset=false;
+        
+        for(k=p->knoz-1; k>=0; --k)
+        {
+            if(k<p->knoz-1 && fz[IJK]>0.5)
+            par = 1.0-par;
+            
+            low[IJK] = sol(IJK) ? 0.0 : par;
+            
+            if(low[IJK]>0.5)
+            {
+                fp(i,j) = 1.0;
+                ++n;
+                
+                if(!wset && k<p->knoz-1)
+                {
+                wf(i,j) = uz[IJKp1];
+                wset = true;
+                }
+            }
+        }
+    }
+    
+    nlow = n;
+    nlowg = pgc->globalisum(n);
+    
+    // columns with a face that is not fully open towards the +x / +y neighbour
+    SLICELOOP4
+    {
+    cbx(i,j)=0.0;
+    cby(i,j)=0.0;
+    rt(i,j)=0.0;
+    }
+    
+    LOOP
+    {
+        if(0.5*(axl[IJK]+axh[IJK])<1.0)
+        cbx(i,j)=1.0;
+        
+        if(p->j_dir==1 && 0.5*(ayl[IJK]+ayh[IJK])<1.0)
+        cby(i,j)=1.0;
+    }
+    
+    // columns with a cut or solid cell
+    SLICELOOP4
+    cz(i,j)=0.0;
+    
+    LOOP
+    if(azn[IJK]<1.0 || azc[IJK]<1.0 || sol(IJK))
+    cz(i,j)=1.0;
+    
+    pgc->gcsl_start4(p,cz,1);
+    
+    // columns whose free surface the body covers in part or in whole: the outer level is carried across them (eta_L)
+    SLICELOOP4
+    if(p->wet[IJ]==1 && atop(i,j)<1.0)
+    rt(i,j)=1.0;
+    
+    // cell pressure of the velocity correction: the nodes weighted with the water of the lower and the upper half of the
+    // cell (open fractions of the half faces and of the bottom / top face); a node inside the body has no pressure of
+    // the water (its row has closed links only)
+    for(int q=0; q<ncell; ++q)
+    pw[q]=0.5;
+    
+    LOOP
+    {
+        double fl = axl[IJK] + axl[Im1JK] + azn[IJK];
+        double fh = axh[IJK] + axh[Im1JK] + (k<p->knoz-1 ? azn[IJKp1] : atop(i,j));
+        
+        if(p->j_dir==1)
+        {
+        fl += ayl[IJK] + ayl[IJm1K];
+        fh += ayh[IJK] + ayh[IJm1K];
+        }
+        
+        pw[IJK] = fl+fh>0.0 ? fl/(fl+fh) : 0.5;
+    }
+    
+    pgc->start4V(p,pw,1);
+    pgc->gcsl_start4(p,wf,1);
+    pgc->gcsl_start4(p,cbx,1);
+    pgc->gcsl_start4(p,cby,1);
+    pgc->gcsl_start4(p,rt,1);
+    pgc->gcsl_start4(p,fp,1);
+    pgc->start4V(p,low,1);
+    pgc->start4V(p,fz,1);
+}
+
+// the x and y faces with their apertures: a F(fluid) + (1-a) F(wall). F(fluid) near the body is the local flux of
+// flux_hook (states from the own side: van Leer slopes weighted with the aperture of the next face, so that a slope
+// does not reach through the body, HLL dissipation); the wall part as the blocked faces.
+// The free-surface dissipation of the mass flux (the gravity wave speed times the jump of the head) is weighted with
+// the open fraction of the column tops on the two sides, min(atop): where the body covers a column there is no free
+// surface, only the head eta_L carried across, and the jump of eta_L along the hull drove a flux below it. With the
+// full weight a 2D box fixed in waves (T 1.4 s, B 2 m, T 0.4 m, dx 0.1 m) reflected 0.65 and passed 0.15 below it
+// (theory 0.998 and 0.057; X 15 8 with the same projection 0.80 and 0.05), a box of 1 m draft passed 0.10 (X 15 8
+// 0.004). The momentum keeps its dissipation: without it the box in a current lost its heave damping (Ship
+// Hydrodynamics validation 42)
+void nhflow_thinbody::cut_faces(lexer *p, fdm_nhf *d, int ipol, double *Fx, double *Fy, double *R, const double *Q)
+{
+    const double g = fabs(p->W22);
+    
+    auto Dc = [&](int ii, int jj) {return MAX(d->eta(ii,jj) + d->depth(ii,jj), p->A544);};
+    
+    auto vl = [](double a, double b)
+    {
+        const double den = fabs(a) + fabs(b);
+        return den>1.0e-20 ? (a*fabs(b) + fabs(a)*b)/den : 0.0;
+    };
+    
+    auto AX = [&](int q) {return 0.5*(axl[q]+axh[q]);};
+    auto AY = [&](int q) {return 0.5*(ayl[q]+ayh[q]);};
+    
+    // ---------------------------------------------------------------- x faces (i+1/2), i = -1 .. knox-1
+    for(i=-1; i<p->knox; ++i)
+    for(j=0; j<p->knoy; ++j)
+    {
+        bool near=false;
+        
+        for(int o=-2; o<=2; ++o)
+        if(cbx(i+o,j)>0.5)
+        near=true;
+        
+        for(k=0; k<p->knoz; ++k)
+        {
+            if(p->flag4[IJK]<=0 || p->flag4[Ip1JK]<=0 || p->wet[IJ]==0 || p->wet[Ip1J]==0)
+            continue;
+            
+            const double A = AX(IJK);
+            const bool L = false;   // below a covering body: the head eta_L (head())
+            
+            // weight of the free-surface dissipation of the mass flux: the open fraction of the column tops
+            const double wfs = MIN(atop(i,j),atop(i+1,j));
+            
+            if(A>=1.0 && !L && !near && wfs>=1.0)
+            continue;
+            
+            const double Da = Dc(i,j), Db = Dc(i+1,j);
+            const double hf = 0.5*(d->depth(i,j) + d->depth(i+1,j));
+            const double ea = head(p,d,i,j,k), eb = head(p,d,i+1,j,k);
+            const double Ua = d->U[IJK], Ub = d->U[Ip1JK];
+            const double wm = (p->flag4[Im1JK]>0 && p->wet[Im1J]==1) ? AX(Im1JK) : 0.0;
+            const double wp = (p->flag4[Ip2JK]>0 && p->wet[Ip2J]==1) ? AX(Ip1JK) : 0.0;
+            
+            auto states = [&](const double *F, double &fl, double &fr)
+            {
+                const double dc = (F[Ip1JK]-F[IJK])/p->DXP[IP];
+                fl = F[IJK]   + 0.5*p->DXN[IP]*wm*vl(dc,(F[IJK]-F[Im1JK])/p->DXP[IM1]);
+                fr = F[Ip1JK] - 0.5*p->DXN[IP1]*wp*vl((F[Ip2JK]-F[Ip1JK])/p->DXP[IP1],dc);
+            };
+            
+            if(ipol==4)
+            {
+                double Ff;
+                
+                if(L)
+                {
+                    const double dxs = p->DXP[IM1], dxc = p->DXP[IP], dxn = p->DXP[IP1];
+                    const double dUi  = (dxc*d->MRCX[IJK]   + dxs*d->MRCX[Im1JK])/(dxc+dxs);
+                    const double dUi1 = (dxn*d->MRCX[Ip1JK] + dxc*d->MRCX[IJK])/(dxn+dxc);
+                    
+                    Ff = 0.5*(Da+Db)*(0.5*(Ua+Ub) + d->MRCX[IJK] - 0.5*(dUi+dUi1));
+                }
+                else
+                {
+                    double UL,UR;
+                    states(d->U,UL,UR);
+                    const double c = sqrt(g*MAX(Da,Db)) + MAX(fabs(UL),fabs(UR));
+                    
+                    Ff = 0.5*(Da*UL + Db*UR) - 0.5*wfs*c*(eb - ea);
+                }
+                
+                Fx[IJK] = A*Ff + (1.0-A)*0.5*(Da+Db)*ux[IJK];
+                continue;
+            }
+            
+            double UL,UR,QL,QR;
+            states(d->U,UL,UR);
+            states(Q,QL,QR);
+            
+            const double sx = (ipol==1 && !L) ? sqrt(g*MAX(Da,Db)) + MAX(fabs(UL),fabs(UR)) : fabs(0.5*(UL+UR));
+            
+            double Ff = 0.5*(Da*UL*QL + Db*UR*QR) - 0.5*sx*(Db*QR - Da*QL);
+            
+            if(ipol==1)
+            {
+                const double ef = 0.5*(ea+eb);
+                Ff += g*(0.5*ef*ef + ef*hf);
+            }
+            
+            if(A>=1.0)
+            {
+            Fx[IJK] = Ff;
+            continue;
+            }
+            
+            if(ipol==1)
+            {
+                const double Fa = g*(0.5*ea*ea + ea*hf) + Da*ux[IJK]*ux[IJK];
+                const double Fb = g*(0.5*eb*eb + eb*hf) + Db*ux[IJK]*ux[IJK];
+                
+                Fx[IJK] = A*Ff + (1.0-A)*Fa;
+                
+                if(i+1<p->knox)
+                R[Ip1JK] += (1.0-A)*(Fb - Fa)/p->DXN[IP1];
+            }
+            else
+            Fx[IJK] = A*Ff + (1.0-A)*0.5*(Da+Db)*ux[IJK]*0.5*(Q[IJK]+Q[Ip1JK]);
+        }
+    }
+    
+    // ---------------------------------------------------------------- y faces (j+1/2), j = -1 .. knoy-1
+    if(p->j_dir==1)
+    for(i=0; i<p->knox; ++i)
+    for(j=-1; j<p->knoy; ++j)
+    {
+        bool near=false;
+        
+        for(int o=-2; o<=2; ++o)
+        if(cby(i,j+o)>0.5)
+        near=true;
+        
+        for(k=0; k<p->knoz; ++k)
+        {
+            if(p->flag4[IJK]<=0 || p->flag4[IJp1K]<=0 || p->wet[IJ]==0 || p->wet[IJp1]==0)
+            continue;
+            
+            const double A = AY(IJK);
+            const bool L = false;
+            const double wfs = MIN(atop(i,j),atop(i,j+1));
+            
+            if(A>=1.0 && !L && !near && wfs>=1.0)
+            continue;
+            
+            const double Da = Dc(i,j), Db = Dc(i,j+1);
+            const double hf = 0.5*(d->depth(i,j) + d->depth(i,j+1));
+            const double ea = head(p,d,i,j,k), eb = head(p,d,i,j+1,k);
+            const double Va = d->V[IJK], Vb = d->V[IJp1K];
+            const double wm = (p->flag4[IJm1K]>0 && p->wet[IJm1]==1) ? AY(IJm1K) : 0.0;
+            const double wp = (p->flag4[IJp2K]>0 && p->wet[IJp2]==1) ? AY(IJp1K) : 0.0;
+            
+            auto states = [&](const double *F, double &fl, double &fr)
+            {
+                const double dc = (F[IJp1K]-F[IJK])/p->DYP[JP];
+                fl = F[IJK]   + 0.5*p->DYN[JP]*wm*vl(dc,(F[IJK]-F[IJm1K])/p->DYP[JM1]);
+                fr = F[IJp1K] - 0.5*p->DYN[JP1]*wp*vl((F[IJp2K]-F[IJp1K])/p->DYP[JP1],dc);
+            };
+            
+            if(ipol==4)
+            {
+                double Ff;
+                
+                if(L)
+                {
+                    const double dys = p->DYP[JM1], dyc = p->DYP[JP], dyn = p->DYP[JP1];
+                    const double dVj  = (dyc*d->MRCY[IJK]   + dys*d->MRCY[IJm1K])/(dyc+dys);
+                    const double dVj1 = (dyn*d->MRCY[IJp1K] + dyc*d->MRCY[IJK])/(dyn+dyc);
+                    
+                    Ff = 0.5*(Da+Db)*(0.5*(Va+Vb) + d->MRCY[IJK] - 0.5*(dVj+dVj1));
+                }
+                else
+                {
+                    double VL,VR;
+                    states(d->V,VL,VR);
+                    const double c = sqrt(g*MAX(Da,Db)) + MAX(fabs(VL),fabs(VR));
+                    
+                    Ff = 0.5*(Da*VL + Db*VR) - 0.5*wfs*c*(eb - ea);
+                }
+                
+                Fy[IJK] = A*Ff + (1.0-A)*0.5*(Da+Db)*uy[IJK];
+                continue;
+            }
+            
+            double VL,VR,QL,QR;
+            states(d->V,VL,VR);
+            states(Q,QL,QR);
+            
+            const double sy = (ipol==2 && !L) ? sqrt(g*MAX(Da,Db)) + MAX(fabs(VL),fabs(VR)) : fabs(0.5*(VL+VR));
+            
+            double Ff = 0.5*(Da*VL*QL + Db*VR*QR) - 0.5*sy*(Db*QR - Da*QL);
+            
+            if(ipol==2)
+            {
+                const double ef = 0.5*(ea+eb);
+                Ff += g*(0.5*ef*ef + ef*hf);
+            }
+            
+            if(A>=1.0)
+            {
+            Fy[IJK] = Ff;
+            continue;
+            }
+            
+            if(ipol==2)
+            {
+                const double Fa = g*(0.5*ea*ea + ea*hf) + Da*uy[IJK]*uy[IJK];
+                const double Fb = g*(0.5*eb*eb + eb*hf) + Db*uy[IJK]*uy[IJK];
+                
+                Fy[IJK] = A*Ff + (1.0-A)*Fa;
+                
+                if(j+1<p->knoy)
+                R[IJp1K] += (1.0-A)*(Fb - Fa)/p->DYN[JP1];
+            }
+            else
+            Fy[IJK] = A*Ff + (1.0-A)*0.5*(Da+Db)*uy[IJK]*0.5*(Q[IJK]+Q[IJp1K]);
+        }
+    }
+}
+
+// divergence of the projection with the cut faces: the face velocity a u + (1-a) u_wall. Row n (node k at the bottom of
+// cell k) averages the x / y faces of the layers k (weight 1 - fac, its lower half belongs to the node) and k-1 (fac,
+// its upper half); vertically the faces through the cell centres k and k-1 (W)
+void nhflow_thinbody::projection_rhs_cut(lexer *p, fdm_nhf *d, double *U, double *V, double *W, double alpha)
+{
+    const double adt = alpha*p->dt;
+    int n=0;
+    
+    LOOP
+    {
+        WETDRYDEEP
+        {
+            for(int c=0; c<2; ++c)
+            {
+                const int kk = k-c;
+                
+                if(kk<0)
+                continue;
+                
+                double facx = p->DZN[KM1]/(p->DZN[KP]+p->DZN[KM1]);
+                double facy = facx;
+                
+                const double wx = c==0 ? 1.0-facx : facx;
+                const double wy = c==0 ? 1.0-facy : facy;
+                const double cx = 2.0/((p->DXP[IP]+p->DXP[IM1])*adt);
+                const double cy = 2.0/((p->DYP[JP]+p->DYP[JM1])*adt);
+                
+                const int q  = cidx(p,i,j,kk);
+                const int qe = cidx(p,i+1,j,kk);
+                const int qw = cidx(p,i-1,j,kk);
+                
+                const double ae = c==0 ? axl[q]  : axh[q];
+                const double aw = c==0 ? axl[qw] : axh[qw];
+                
+                d->rhsvec.V[n] += wx*(1.0-ae)*(0.5*(U[q]+U[qe]) - ux[q])*cx;
+                d->rhsvec.V[n] += wx*(1.0-aw)*(ux[qw] - 0.5*(U[qw]+U[q]))*cx;
+                
+                if(p->j_dir==1)
+                {
+                const int qn = cidx(p,i,j+1,kk);
+                const int qs = cidx(p,i,j-1,kk);
+                
+                const double an = c==0 ? ayl[q]  : ayh[q];
+                const double as = c==0 ? ayl[qs] : ayh[qs];
+                
+                d->rhsvec.V[n] += wy*(1.0-an)*(0.5*(V[q]+V[qn]) - uy[q])*cy;
+                d->rhsvec.V[n] += wy*(1.0-as)*(uy[qs] - 0.5*(V[qs]+V[q]))*cy;
+                }
+            }
+            
+            // the sigma terms of the horizontal divergence (vertical differences of U, V at the node) with the mean
+            // aperture of the node faces, so that the row of a node with little water has a small divergence as well
+            {
+            double am = anode_x(p,i,j,k) + anode_x(p,i-1,j,k) + azc[IJK] + (k>0 ? azc[IJKm1] : 1.0);
+            int na = 4;
+            
+            if(p->j_dir==1)
+            {
+            am += anode_y(p,i,j,k) + anode_y(p,i,j-1,k);
+            na += 2;
+            }
+            
+            am /= double(na);
+            
+            const double sg = -(p->sigx[FIJK]*(U[IJK]-U[IJKm1])/p->DZP[KM1]
+                              + p->sigy[FIJK]*(V[IJK]-V[IJKm1])/p->DZP[KM1]*p->y_dir)/adt;
+            
+            d->rhsvec.V[n] += (am-1.0)*sg;
+            }
+            
+            const double sz = p->sigz[IJ]/(p->DZP[KM1]*adt);
+            
+            d->rhsvec.V[n] -= sz*(1.0-azc[IJK])*(uz[IJK] - W[IJK]);
+            
+            if(k>0)
+            d->rhsvec.V[n] += sz*(1.0-azc[IJKm1])*(uz[IJKm1] - W[IJKm1]);
+        }
+        
+        ++n;
+    }
+}
+
+void nhflow_thinbody::extend_pressure(lexer *p, fdm_nhf *d, ghostcell *pgc, double *P)
+{
+    // water measure of a node: the largest aperture of the faces of its control volume; below theta the pressure is
+    // blended towards the mean of the neighbours weighted with their water measure (theta: the solved pressure only);
+    // nodes without water start from zero, so that a level left by the solver does not survive
+    const double theta = 0.05;
+    const int nn = p->imax*p->jmax*p->kmaxF;
+    
+    for(int q=0; q<nn; ++q)
+    wnode[q] = 1.0;
+    
+    LOOP
+    {
+        double w = MAX(anode_x(p,i,j,k),anode_x(p,i-1,j,k));
+        
+        if(p->j_dir==1)
+        w = MAX(w,MAX(anode_y(p,i,j,k),anode_y(p,i,j-1,k)));
+        
+        w = MAX(w,azc[IJK]);
+        
+        if(k>0)
+        w = MAX(w,azc[IJKm1]);
+        
+        wnode[FIJK] = w;
+        
+        if(w<=0.0)
+        P[FIJK] = 0.0;
+    }
+    
+    pgc->start7S(p,wnode,1);
+    pgc->start7P(p,P,540);
+    
+    for(int it=0; it<6; ++it)
+    {
+        for(int q=0; q<nn; ++q)
+        ptmp[q] = P[q];
+        
+        LOOP
+        if(wnode[FIJK]<theta)
+        {
+            double sp=0.0, sw=0.0;
+            
+            auto add = [&](int f, bool ok)
+            {
+                if(!ok)
+                return;
+                
+                const double w = wnode[f] + 1.0e-6;
+                sp += w*ptmp[f];
+                sw += w;
+            };
+            
+            add(FIp1JK,true);
+            add(FIm1JK,true);
+            
+            if(p->j_dir==1)
+            {
+            add(FIJp1K,true);
+            add(FIJm1K,true);
+            }
+            
+            add(FIJKp1,true);
+            add(FIJKm1,k>0);
+            
+            const double s = wnode[FIJK]/theta;
+            
+            if(sw>0.0)
+            P[FIJK] = s*ptmp[FIJK] + (1.0-s)*sp/sw;
+        }
+        
+        pgc->start7P(p,P,540);
     }
 }

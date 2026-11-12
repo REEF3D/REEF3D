@@ -1,0 +1,36 @@
+{
+ "base": "sflow_2d_amr_vortex_sub_ckpt",
+ "same_as": "sflow_2d_amr_vortex_sub_ckpt",
+ "chain": [
+  {
+   "case": "sflow_2d_amr_vortex_sub_ckpt",
+   "copy": [
+    "REEF3D_Checkpoint",
+    "REEF3D_SFLOW_AMR",
+    "REEF3D_SFLOW_WSF",
+    "REEF3D_SFLOW_ProbePoint",
+    "REEF3D_SFLOW_WSFLINE"
+   ]
+  }
+ ],
+ "ctrl_set": {
+  "I 45": "50"
+ },
+ "description": "the restart of sflow_2d_amr_vortex_sub_ckpt from step 50 (I 45 50) with its outputs copied in: the patches under the vortex rebuild their met forcing from the checkpoint time; regression.py ranks: the final state and the text outputs bitwise those of the uninterrupted run.",
+ "tags": [
+  "2d",
+  "sflow",
+  "amr",
+  "adaptive",
+  "subcycling",
+  "met",
+  "vortex",
+  "mpi",
+  "place",
+  "checkpoint"
+ ],
+ "covers": [
+  "the bitwise restart of SFLOW + mesh refinement under met forcing (W 200 3)"
+ ],
+ "architect": "Hans Bihs"
+}

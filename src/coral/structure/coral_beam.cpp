@@ -247,6 +247,53 @@ Eigen::Matrix<double,7,12> beam_element::strain_matrix(const model &m) const
     return Bm;
 }
 
+void beam_element::end_loads(const model &m, Vec3 &Fa, Vec3 &Ma, Vec3 &Fb, Vec3 &Mb) const
+{
+    const rigid_body &A = m.body(ba_), &B = m.body(bb_);
+    const Vec12 g = element_force(A.x, A.R, B.x, B.R, rates(m));
+    // the generalized moments are about the body's reference point, in the body frame
+    Fa = g.segment<3>(0);
+    Fb = g.segment<3>(6);
+    Ma = A.R*g.segment<3>(3) + (A.x - A.point(sa_)).cross(Fa);
+    Mb = B.R*g.segment<3>(9) + (B.x - B.point(sb_)).cross(Fb);
+    // an end on the ground gets no generalized force: the element's balance (no mass in the element)
+    const Vec3 pa = A.point(sa_), pb = B.point(sb_);
+    if(ba_ < 0)
+    {
+        Fa = -Fb;
+        Ma = -(Mb + (pb - pa).cross(Fb));
+    }
+    if(bb_ < 0)
+    {
+        Fb = -Fa;
+        Mb = -(Ma + (pa - pb).cross(Fa));
+    }
+}
+
+Vec3 beam_element::acceleration_a(const model &m) const
+{
+    return ba_ >= 0 ? m.body(ba_).point_acceleration(sa_) : Vec3::Zero();
+}
+
+void beam_sensor::channel_names(std::vector<std::string> &c) const
+{
+    for(const char *x : {"Fx", "Fy", "Fz", "Mx", "My", "Mz"})
+        c.push_back(name_ + "_" + x);
+}
+
+void beam_sensor::channel_values(const model &m, double, std::vector<double> &v) const
+{
+    Vec3 Fa, Ma, Fb, Mb;
+    e_->end_loads(m, Fa, Ma, Fb, Mb);
+    // the half element lumped at end a (coral_frame): its weight and inertia pass through the section too
+    const double mh = 0.5*e_->section().m*e_->length0();
+    Fa += mh*(m.gravity - e_->acceleration_a(m));
+    const Mat3 Rt = m.body(e_->body_a()).R.transpose();
+    const Vec3 F = Rt*Fa, M = Rt*Ma;
+    for(int i=0; i<3; ++i) v.push_back(F(i));
+    for(int i=0; i<3; ++i) v.push_back(M(i));
+}
+
 void beam_element::eval(const model &m, double, VecX &f) const
 {
     const rigid_body &A = m.body(ba_), &B = m.body(bb_);

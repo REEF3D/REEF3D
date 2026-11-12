@@ -71,6 +71,9 @@ void sixdof_obj_cfd::forces_lsm_calc(lexer* p, fdm *a, ghostcell *pgc, int iter,
     Xe_p=Ye_p=Ze_p=Xe_v=Ye_v=Ze_v=0.0;
     nx=ny=nz=0.0;
     
+    // deforming body (X 195): power of the deformation on the fluid, -sum F . u_def
+    double Pdef = 0.0;
+    
     polygon_num=facount;
 	
 	polygon_sum=0;
@@ -247,6 +250,15 @@ void sixdof_obj_cfd::forces_lsm_calc(lexer* p, fdm *a, ghostcell *pgc, int iter,
             vval -= u_fb(1) + u_fb(5)*rx - u_fb(3)*rz;
             wval -= u_fb(2) + u_fb(3)*ry - u_fb(4)*rx;
             
+            // deforming body (X 195): with the velocity of the deformation
+            if(fish_!=nullptr)
+            {
+            const Eigen::Vector3d vd = deform_vel(xc,yc,zc);
+            uval -= vd(0);
+            vval -= vd(1);
+            wval -= vd(2);
+            }
+            
             double dn = sqrt(pow(nx*p->DXP[IP],2.0) + pow(ny*p->DYP[JP],2.0) + pow(nz*p->DZP[KP],2.0));
             dn = dn>1.0e-20?dn:1.0e20;
             const double un = uval*nx + vval*ny + wval*nz;
@@ -304,6 +316,12 @@ void sixdof_obj_cfd::forces_lsm_calc(lexer* p, fdm *a, ghostcell *pgc, int iter,
 			Xe += Fx;
 			Ye += Fy;
 			Ze += Fz;
+            
+            if(fish_!=nullptr)
+            {
+            const Eigen::Vector3d vd = deform_vel(xc,yc,zc);
+            Pdef -= Fx*vd(0) + Fy*vd(1) + Fz*vd(2);
+            }
 
 			Ke += (yc - c_(1))*Fz - (zc - c_(2))*Fy;
 			Me += (zc - c_(2))*Fx - (xc - c_(0))*Fz;
@@ -330,6 +348,9 @@ void sixdof_obj_cfd::forces_lsm_calc(lexer* p, fdm *a, ghostcell *pgc, int iter,
 	Ke = pgc->globalsum(Ke);
 	Me = pgc->globalsum(Me);
 	Ne = pgc->globalsum(Ne);
+    
+    if(fish_!=nullptr)
+    fish_power_ = pgc->globalsum(Pdef);
 
 	Xe_p = pgc->globalsum(Xe_p);
 	Ye_p = pgc->globalsum(Ye_p);

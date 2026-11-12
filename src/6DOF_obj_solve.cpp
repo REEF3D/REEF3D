@@ -33,6 +33,10 @@ void sixdof_obj_cfd::solve_eqmotion_cfd(lexer *p, fdm *a, ghostcell *pgc, int it
 {
     externalForces_cfd(p, a, pgc, alpha[iter], finalize);
     
+    // X 198: the fluid loads of the stage from the fitted velocity of the hull region
+    if(p->X198>0)
+    momentum_loads(p,iter);
+    
     // load models (ship module) sample the CFD velocity
     sixdof_fluid_cfd fluid(p,a,pgc);
     pfluid = &fluid;
@@ -50,6 +54,30 @@ void sixdof_obj_cfd::solve_eqmotion_cfd(lexer *p, fdm *a, ghostcell *pgc, int it
     // low-storage RK3: FCLS3 (4, 24), RKLS3_df (14, also N40=13 with X10>0), RKLS3 (44)
     if(p->N40==4 || p->N40==14 || p->N40==24 || p->N40==44)
     rkls3(p,pgc,iter);
+    
+    // the one-step scheme with two projections: position Verlet, stage 0 the half step (the loads
+    // of time n), stage 1 the full step (the loads of the half step)
+    if(p->N40==6)
+    rkmid(p,pgc,iter);
+    
+    // the one-step scheme: one semi-implicit Euler step (the momenta with the loads of time n, the
+    // pose with the new momenta)
+    if(p->N40==5)
+    {
+    get_trans(p,pgc);    
+    get_rot(p);
+    
+    // the first step of a run from rest: there is no pressure yet (the loads are the weight alone),
+    // the free DOFs would fall for a step and the fluid answer with a pressure pulse; they keep
+    // their momenta, the prescribed DOFs (X 11 2) move
+    if(p->count<=1 && p->I40==0)
+    {
+    rb.dp.setZero();
+    rb.dh.setZero();
+    }
+    
+    rb.step_symplectic(p->dt);
+    }
 }
 
 void sixdof_obj_nhflow::solve_eqmotion_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, int iter, bool finalize)
@@ -72,8 +100,9 @@ void sixdof_obj_nhflow::solve_eqmotion_nhflow(lexer *p, fdm_nhf *d, ghostcell *p
     if(p->X330>0)
     membrane_stabilisation(p,iter);
     
-    // the hull as a sharp thin body (X 15 8): added-mass stabilisation of the partitioned coupling
-    if(p->X15==8 && d->hullbody!=nullptr)
+    // the hull as a sharp thin body (X 15 8) or a solid with cut faces (X 15 10): added-mass stabilisation of the
+    // partitioned coupling
+    if((p->X15==8 || p->X15==10) && d->hullbody!=nullptr)
     hull_stabilisation(p,iter);
     
     // porous floating body: linearly implicit drag
@@ -130,6 +159,46 @@ void sixdof_obj::rk3(lexer *p, ghostcell *pgc, int iter)
     get_rot(p);
     
     rb.stage_rk3(iter,p->dt);
+}
+
+// The body with the one-step scheme with two projections (CFD N 40 6): position Verlet
+// (Stoermer-Verlet, second order, symplectic: a floating body in heave keeps its energy).
+//   iter 0, the half step: the pose from n to n+1/2 with the momenta of n, the momenta to n+1/2
+//           with the loads of p(n) (the velocity the half step forces)
+//   iter 1, the full step: the momenta from n to n+1 with the loads of p(n+1/2), the pose from
+//           n+1/2 to n+1 with the momenta of n+1
+// Prescribed motions (sixdof_motionext) act on the derivatives as in the stages: get_trans and
+// get_rot again after the momenta, so the pose takes the prescribed velocity.
+void sixdof_obj::rkmid(lexer *p, ghostcell *pgc, int iter)
+{
+    const double dt = p->dt;
+    
+    get_trans(p,pgc);    
+    get_rot(p);
+    
+    if(iter==0)
+    {
+        rb.pk = rb.p;
+        rb.ck = rb.c;
+        rb.hk = rb.h;
+        rb.ek = rb.e;
+        
+        rb.c = rb.ck + 0.5*dt*rb.dc;
+        rb.e = (rb.ek + 0.5*dt*rb.de).normalized();
+        
+        rb.p = rb.pk + 0.5*dt*rb.dp;
+        rb.h = rb.hk + 0.5*dt*rb.dh;
+        return;
+    }
+    
+    rb.p = rb.pk + dt*rb.dp;
+    rb.h = rb.hk + dt*rb.dh;
+    
+    get_trans(p,pgc);    
+    get_rot(p);
+    
+    rb.c = rb.c + 0.5*dt*rb.dc;
+    rb.e = (rb.e + 0.5*dt*rb.de).normalized();
 }
 
 void sixdof_obj::rkls3(lexer *p, ghostcell *pgc, int iter)

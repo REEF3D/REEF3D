@@ -23,6 +23,10 @@ Author: Hans Bihs
 #include"sflow_curv.h"
 #include"reef3d_mpmd.h"
 #include"sflow_amr.h"
+#include"sflow_turbulence.h"
+#include"solver2D.h"
+#include"seastate_sflow.h"
+#include"hydro_sflow.h"
 #include"gcsl_yskip.h"
 #include"reefckpt.h"
 #include"sflow_boussinesq.h"
@@ -40,6 +44,7 @@ Author: Hans Bihs
 #include"sflow_eta.h"
 #include"sflow_forcing.h"
 #include"sflow_momentum_RK3.h"
+#include"sflow_momentum_SI.h"
 #include"sflow_pjm_lin.h"
 #include"sflow_pjm_quad.h"
 #include"sflow_ediff.h"
@@ -100,6 +105,18 @@ sflow_amr::sflow_amr(lexer *p, fdm2D *b, ghostcell *pgc, patchBC_interface *ppBC
     q.tile += q.tile%2;
     q.nest = 3;
     q.keep = MIN(MAX(p->G5,0),250);
+
+    // A 210 12/13 with A 220 2/3: a new patch starts from the coarse solution where it did not overlap an old one; the
+    // fine grid answers that state with short waves that the semi-implicit step does not damp (the explicit step does,
+    // HLL), and with tiles that come and go every few regrids (G 5 4, G 2 4, G 20 0.002) the Beji & Battjes bar blew
+    // up after 30 s. Tiles kept for at least 20 regrids: stable there (G 5 10 was not); with more cells flagged
+    // (G 20 0.001) it still blew up (open)
+    if(p->A226==1 && (p->A220==2 || p->A220==3) && p->G2>0 && q.keep<20)
+    {
+    q.keep = 20;
+    if(p->mpirank==0)
+    cout<<"SFLOW AMR with A 210 11/12/13 and A 220 "<<p->A220<<": refined tiles kept for 20 regrids after their last flag (G 5 "<<p->G5<<" raised)"<<endl;
+    }
     // the coarse faces next to a finer patch also on the grids that compute them around their box: the
     // wet-dry update of a stage reads the new state of the cells around the box, which otherwise depended
     // on which grid holds the face (another partition, another layout of the patches)
@@ -149,6 +166,10 @@ sflow_amr::sflow_amr(lexer *p, fdm2D *b, ghostcell *pgc, patchBC_interface *ppBC
         shipmode = p->X10;
     }
 
+    // turbulence k-epsilon / k-omega (A 260 1/2): every patch has its own model (sflow_amr_turb.cpp); Cartesian grids
+    // without multi-block
+    turb = ((p->A260==1 || p->A260==2) && p->geo_mb==0 && p->geo_curv==0) ? 1 : 0;
+
     // boxes only: static patches
     if(tol_eta<=0.0 && tol_curv<=0.0 && !flagbreak && shore==0 && (p->G12==0 || shipmode==0))
     q.regrid = 0;
@@ -183,13 +204,11 @@ sflow_amr::sflow_amr(lexer *p, fdm2D *b, ghostcell *pgc, patchBC_interface *ppBC
     q.za = p->G13_a;
 
     // several ranks (G 40 1): the patches are placed for the load of the ranks; parents and old
-    // patches on other ranks are reached through the block plans and old_run of the core.  Not
-    // with the moving body (X 10 2/3): its fields on the patches come from the level-0 cells
-    // below the patch (fs0_at)
-    q.place = (p->G40>=1 && p->mpi_size>1 && shipmode==0) ? MIN(p->G40,2) : 0;
+    // patches on other ranks are reached through the block plans and old_run of the core.  With the
+    // moving body (X 10 2/3) the level-0 level set below the patches comes from the ranks that hold it
+    // (ship_fs_exchange); the draft and the pressure are evaluated on the patch itself
+    q.place = (p->G40>=1 && p->mpi_size>1) ? (p->G40>=3 ? 1 : MIN(p->G40,2)) : 0;     // (G 40 3, the owner placement of CFD: as 1 here)
     q.rebalance = 0.1;
-    if(p->G40>=1 && shipmode>0 && p->mpirank==0)
-    cout<<"SFLOW AMR: G 40 is not available with the moving body (X 10 2/3), the patches stay on the rank below"<<endl;
 
     configure(q);
 
@@ -242,12 +261,20 @@ void sflow_amr::ini(lexer *p, fdm2D *b, ghostcell *pgc)
     // scope
     int ok=1;
     if(p->A220<0 || p->A220>4) ok=0;
-    if(p->A210==2) ok=0;
-    if(p->A260!=0 && p->A260!=3 && p->A260!=4) ok=0;   // the algebraic eddy viscosity of every grid (sflow_ediff)
+    if(p->A210==2 && si==0) ok=0;
+    // semi-implicit free surface (A 210 12/13): one global time step (sflow_amr_si.cpp); the ship pressure X 10 3 on
+    // Cartesian grids, the pressure of the step on the patches (sflow_amr::si_step)
+    // A 220 2/3: the coupled eta-P system over the leaf cells (sflow_amr_sinh.cpp), Cartesian, without multi-block
+    if(si==1 && ((p->A220!=0 && !((p->A220==2 || p->A220==3) && p->geo_mb==0 && p->geo_curv==0)) || p->G7==1 || (p->X10!=0 && p->X10!=3))) ok=0;
+    if(si==1 && p->X10==3 && (p->geo_mb>0 || p->geo_curv==1)) ok=0;
+    // the algebraic eddy viscosity of every grid (sflow_ediff); k-epsilon / k-omega with a model on every patch
+    // (sflow_amr_turb.cpp), Cartesian without multi-block
+    if(p->A260!=0 && p->A260!=3 && p->A260!=4 && turb==0) ok=0;
     // sediment transport (S 10 1): bed load, Exner (S 31 1/2, S 32 1/2), sand slide, no fractions (sflow_amr_sed.cpp)
     if(p->S10!=0 && (p->S10!=1 || p->S51>0 || p->S31==3 || p->S32>=3)) ok=0;
     if(p->X10>3) ok=0;
     if(p->W90!=0) ok=0;
+    if(p->A246==4) ok=0;                                           // breaking with crest tracking: one grid (sflow_breaking_kb)
     if(p->j_dir!=1 && (p->geo_mb>0 || p->geo_curv==1)) ok=0;     // 2D grid (one cell in y): Cartesian
 
     // multi-block grid (G 50 1, DIVEMesh R 20 1): hydrostatic, without subcycling; moving bodies X 10 2/3 (P5c: the
@@ -260,7 +287,7 @@ void sflow_amr::ini(lexer *p, fdm2D *b, ghostcell *pgc)
         if(ok==0)
         {
             if(p->mpirank==0)
-            cout<<"!!! SFLOW multi-block grid: only for A 220 0, A 210 3, A 260 0/3/4, S 10 0/1 (S 51 0, S 31 1/2, S 32 1/2), X 10 0/2/3, W 90 0, without G 7 1 !!!"<<endl;
+            cout<<"!!! SFLOW multi-block grid: only for A 246 0-2, A 220 0, A 210 3 or 11/12/13, A 260 0/3/4, S 10 0/1 (S 51 0, S 31 1/2, S 32 1/2), X 10 0/2/3 (A 210 11/12/13: X 10 0), W 90 0, without G 7 1 !!!"<<endl;
             exit(1);
         }
     }
@@ -268,7 +295,7 @@ void sflow_amr::ini(lexer *p, fdm2D *b, ghostcell *pgc)
     if(ok==0)
     {
         if(p->mpirank==0)
-        cout<<"SFLOW AMR (G 1): only for A 220 0-4, A 210 3, A 260 0/3/4, S 10 0/1 (S 51 0, S 31 1/2, S 32 1/2), X 10 0-3, W 90 0, and with one cell in y Cartesian -- refinement switched off"<<endl;
+        cout<<"SFLOW AMR (G 1): only for A 246 0-2, A 220 0-4, A 210 3 or 11/12/13 (A 210 11/12/13: A 220 0 or 2/3 Cartesian without multi-block, X 10 0 or 3 (Cartesian), without G 7 1), A 260 0-4 (1/2 Cartesian), S 10 0/1 (S 51 0, S 31 1/2, S 32 1/2), X 10 0-3, W 90 0, and with one cell in y Cartesian -- refinement switched off"<<endl;
         maxlev=0;
         return;
     }
@@ -431,24 +458,51 @@ void sflow_amr::patch_objects(reefamr_patch *q, ghostcell *pgc)
     // iowave edges of level 0 (open_xm .. open_yp) are not the block's
     const int zin = (c->blk>0 && c->lev==0) ? bzone[0][c->blk] : -1;
     const int zout = (c->blk>0 && c->lev==0) ? bzone[1][c->blk] : -1;
+    // relaxation and beach zones (B 522 methods 1, 2)
+    const int rin = (c->blk>0 && c->lev==0) ? bzr[0][c->blk] : -1;
+    const int rout = (c->blk>0 && c->lev==0) ? bzr[1][c->blk] : -1;
+    // the j faces (two open faces that are not opposite, geo_mesh::turn_blocks): edges and beach zones
+    const int zjm = (c->blk>0 && c->lev==0) ? bzone[2][c->blk] : -1;
+    const int zjp = (c->blk>0 && c->lev==0) ? bzone[3][c->blk] : -1;
+    const int rjm = (c->blk>0 && c->lev==0) ? bzr[2][c->blk] : -1;
+    const int rjp = (c->blk>0 && c->lev==0) ? bzr[3][c->blk] : -1;
     if(c->blk>0)
     {
         pp->open_xm = (zin>=0) ? 1 : 0;
         pp->open_xp = (zout>=0) ? 1 : 0;
-        pp->open_ym = pp->open_yp = 0;
+        pp->open_ym = (zjm>=0) ? 1 : 0;
+        pp->open_yp = (zjp>=0) ? 1 : 0;
     }
-    if(c->blk>0 && c->lev==0 && (bopen[0][c->blk]>=0 || bopen[1][c->blk]>=0 || zin>=0 || zout>=0))
+    const bool eopen = zin>=0 || zout>=0 || zjm>=0 || zjp>=0;
+    if(c->blk>0 && c->lev==0 && (bopen[0][c->blk]>=0 || bopen[1][c->blk]>=0 || eopen || rin>=0 || rout>=0 || rjm>=0 || rjp>=0))
     {
         c->pio = new ioflow_amr_block(pp,pgc,pBC);
         pp->amr_own_io = 1;
         c->pio->open_faces(pp,bopen[0][c->blk],bopen[1][c->blk]);
-        c->pio->open_edges(pp,zin>=0 ? &bzones[zin] : nullptr,zout>=0 ? &bzones[zout] : nullptr,bzbg);
+        c->pio->open_edges(pp,zin>=0 ? &bzones[zin] : nullptr,zout>=0 ? &bzones[zout] : nullptr,bzbg,
+                           zjm>=0 ? &bzones[zjm] : nullptr,zjp>=0 ? &bzones[zjp] : nullptr);
+        // the zones (the faces closed: walls, as the native grid with B 98 2); the waves of the relaxation zones with
+        // the B 92 waves (level 0 has no wave generation on a curvilinear grid, sflow_curv::check)
+        c->pio->open_zones(pp,rin>=0 ? &bzones[rin] : nullptr,rout>=0 ? &bzones[rout] : nullptr,bzbg,p0->B92>0,
+                           EXT,blk[c->blk].ni,EXT,blk[c->blk].nj,rjm>=0 ? &bzones[rjm] : nullptr,rjp>=0 ? &bzones[rjp] : nullptr);
+        if(bopen[0][c->blk]>=0 || bopen[1][c->blk]>=0 || eopen)
         c->phll->open_io();
     }
 
     c->pmom = new sflow_momentum_RK3(pp,c->b,pgc,c->phll,c->pss,c->precon,c->pdiff,c->ppress,c->psolv,nullptr,pflow_of(c),c->pfsf,c->psfdf,p6);
     c->pmom->nh_defer = (nh==1);
     c->pmom->bous_defer = (bous==1);
+
+    // semi-implicit free surface (A 210 12/13): the step of the grid (sflow_amr_si.cpp); the RK3 object of the patch serves
+    // the fills and the restriction (its stage arrays of stage 0 in and stage 2 out are the fields of the grid). A
+    // refined patch has no open boundaries (no refinement next to them)
+    if(si==1)
+    {
+        if(c->lev>=1)
+        pp->open_xm = pp->open_xp = pp->open_ym = pp->open_yp = 0;
+        c->psim = new sflow_momentum_SI(pp,c->b,pgc,c->phll,c->pss,c->precon,c->pdiff,c->ppress,c->psolv,nullptr,pflow_of(c),c->pfsf,c->psfdf,p6,true);
+        c->psim->amrgrid = true;
+    }
 
     for(int ip=0; ip<5; ++ip)
     {
@@ -469,6 +523,9 @@ void sflow_amr::patch_objects(reefamr_patch *q, ghostcell *pgc)
 
     c->sfc.assign((size_t)pp->imax*pp->jmax,NAN);
     c->gsf.assign((size_t)pp->imax*pp->jmax,NAN);
+
+    // A 260 1/2: the turbulence model of the patch
+    turb_objects(*c,pgc);
 }
 
 ioflow* sflow_amr::pflow_of(sflow_amr_patch *c)
@@ -491,7 +548,14 @@ void sflow_amr::patch_delete(reefamr_patch *q)
     if(c->pp->DFBED!=nullptr)
     c->pp->del_Iarray(c->pp->DFBED,c->pp->imax*c->pp->jmax);
     }
+    delete c->pturb;
+    delete c->ptsolv;
+    delete c->b->hydro;
+    c->b->hydro = nullptr;
+    delete c->b->wave;
+    c->b->wave = nullptr;
     delete c->pmom;
+    delete c->psim;
     delete c->pio;
     delete c->pship;
     delete c->psolv;
@@ -656,6 +720,9 @@ void sflow_amr::regrid_static(ghostcell *pgc)
 // any rank), the other blocks prolonged from their parent (on its rank)
 void sflow_amr::regrid_state(ghostcell *pgc, vector<reefamr_patch*> &oldP)
 {
+    // A 750: the wave fields of the patches again at the next step (wave_sync)
+    wave_dirty = true;
+
     cache_stage(0);
 
     for(int l=1; l<=maxlev; ++l)
@@ -679,6 +746,12 @@ void sflow_amr::regrid_state(ghostcell *pgc, vector<reefamr_patch*> &oldP)
         dryfill = ini_pass;
         ini_patch_prolong(l);
         dryfill = false;
+
+        // A 260 1/2: k, epsilon/omega and the eddy viscosity of the fresh patches
+        turb_regrid(pgc,l,oldP);
+
+        // HYDRO: the cumulative infiltration and rain of the fresh patches
+        hydro_regrid(pgc,l,oldP);
 
         {
         comms_off guard(pgc);
@@ -707,7 +780,7 @@ void sflow_amr::regrid_finish(ghostcell *pgc, int old_total)
     // non-hydrostatic pressure outside the patch interiors, as after a pressure solve: the rows
     // of the next solve take it in the computed cells beyond the patch (Uest, bed acceleration),
     // where a new patch otherwise has 0 and a kept one the values of the last solve
-    if(nh==1)
+    if(nh==1 && si==0)
     for(int l=1; l<=maxlev; ++l)
     nh_qfill(l,-1);
 }
@@ -1047,7 +1120,8 @@ void sflow_amr::ini_patch_old(int l, vector<reefamr_patch*> &oldP)
 
 // the other blocks of the fresh level-l patches: prolonged from the parent (prolong_parts of the
 // four children and the parent's values on its rank), finished with the child depths, then the
-// mass and momentum of a fully wet parent restored exactly
+// mass and momentum of a wet parent restored exactly (at a shoreline: shore_fit) and the water
+// level of a dry one kept
 void sflow_amr::ini_patch_prolong(int l)
 {
     const int nv = 4*NPR+7;
@@ -1112,6 +1186,24 @@ void sflow_amr::ini_block(sflow_amr_patch &c, int bi, int bj, const double *pv)
     int nw = (sy==0) ? pp->wet[lij(pp,i0,j0)] + pp->wet[lij(pp,i0+1,j0)]
                      : pp->wet[lij(pp,i0,j0)] + pp->wet[lij(pp,i0+1,j0)] + pp->wet[lij(pp,i0,j0+1)] + pp->wet[lij(pp,i0+1,j0+1)];
 
+    // shoreline: a wet parent some of whose children fall dry (the parent's surface below their bed): the children
+    // take one water surface that holds the parent's volume, the dry ones the film A 244 (shore_fit); the
+    // parent's surface alone gave them another volume.  The momentum of the parent goes to the wet children by
+    // their depth.  Not in the initial hierarchy: its children start from the surface (a lake at rest)
+    if(nw<nch && (int)w[0]==1 && pv[0]==2.0 && !dryfill)
+    shore_fit(c,i0,j0,pv);
+    else
+    // a dry parent above the film (the film a receding shoreline leaves behind: sflow_eta::wetdry dries cells
+    // without taking their water) passes its water level on to its children instead of the film A 244.  The
+    // patches following a shoreline (G 22) otherwise lost that water at every fresh block (Thacker bowl:
+    // 1.6e-3 of the mass in 11 s, which hid as much of the gain of the wet-dry resets)
+    if((int)w[0]==0 && pv[0]==0.0 && w[1]>wd)
+    {
+        for(int a=0;a<2;++a)
+        for(int d=0;d<=sy;++d)
+        b->WL(i0+a,j0+d) = w[1];
+    }
+    else
     // curvilinear grid: the volumes of the children (area weighted) sum to the parent's
     if(nw==nch && (int)w[0]==1 && pp->geo_curv==1)
     {
@@ -1204,6 +1296,118 @@ void sflow_amr::ini_block(sflow_amr_patch &c, int bi, int bj, const double *pv)
     }
 }
 
+// shoreline: the children of a wet parent at a shoreline (ini_block) at one water surface s with the parent's
+// volume, sum_k A_k max(s + depth_k, A 244) = A WL_parent (A_k: the child areas, A their sum), the children
+// with s + depth_k above A 244 wet; velocities as prolonged (also for a child that falls wet only now), the
+// momentum of the parent (UH, VH, WH) restored over the wet children by their depth
+void sflow_amr::shore_fit(sflow_amr_patch &c, int i0, int j0, const double *pv)
+{
+    lexer *pp = c.pp;
+    fdm2D *b = c.b;
+    const double wd = p0->A244;
+    const double *w = &pv[4*NPR];
+    const int n = 2<<sy;
+
+    int ci[4], cj[4], pk[4];
+    double A[4], dep[4], at=0.0;
+    for(int k=0; k<n; ++k)
+    {
+        // (the values of the child (a,d) start at pv[(2a+d) NPR], as packed by ini_patch_prolong; 2D grid: d = 0)
+        const int a = (sy==0) ? k : k/2, d = (sy==0) ? 0 : k%2;
+        pk[k] = 2*a+d;
+        ci[k] = i0+a;
+        cj[k] = j0+d;
+        A[k] = (pp->geo_curv==1) ? pp->AREA2D[lij(pp,ci[k],cj[k])] : 1.0;
+        dep[k] = b->depth(ci[k],cj[k]);
+        at += A[k];
+    }
+
+    // the surface: f(s) = sum_k A_k max(s + dep_k, wd) increases piecewise linearly; on the segment where the
+    // children up to m (by the levels wd - dep_k where they start to take water) are wet,
+    // s = (V - wd sum_dry A - sum_wet A dep) / sum_wet A
+    const double V = at*w[1];
+    int ord[4];
+    for(int k=0; k<n; ++k)
+    ord[k] = k;
+    std::sort(ord,ord+n,[&](int x, int y) { return dep[x]>dep[y]; });
+
+    double s = 0.0;
+    for(int m=1; m<=n; ++m)
+    {
+        double aw=0.0, ad=0.0, ab=0.0;
+        for(int q=0; q<n; ++q)
+        {
+            const int k = ord[q];
+            if(q<m)
+            {
+            aw += A[k];
+            ab += A[k]*dep[k];
+            }
+            else
+            ad += A[k];
+        }
+        s = (V - wd*ad - ab)/aw;
+        if(m==n || s <= wd - dep[ord[m]])
+        break;
+    }
+
+    double h[4], sh=0.0;
+    int wt[4], nw=0;
+    for(int k=0; k<n; ++k)
+    {
+        h[k] = MAX(s + dep[k], wd);
+        wt[k] = (h[k]>wd+eps) ? 1 : 0;
+        nw += wt[k];
+        if(wt[k]==1)
+        sh += A[k]*h[k];
+    }
+
+    // all within the film: the parent's water level on every child
+    if(nw==0)
+    {
+        for(int k=0; k<n; ++k)
+        {
+            b->WL(ci[k],cj[k]) = w[1];
+            b->UH(ci[k],cj[k]) = b->VH(ci[k],cj[k]) = b->WH(ci[k],cj[k]) = 0.0;
+            if(bous==1)
+            b->MX(ci[k],cj[k]) = b->MY(ci[k],cj[k]) = 0.0;
+            pp->wet[lij(pp,ci[k],cj[k])] = 0;
+        }
+        return;
+    }
+
+    double su=0.0, sv=0.0, sw=0.0;
+    for(int k=0; k<n; ++k)
+    {
+        const double *r = &pv[pk[k]*NPR];
+        const double hk = (wt[k]==1) ? h[k] : 0.0;
+        b->WL(ci[k],cj[k]) = h[k];
+        b->UH(ci[k],cj[k]) = hk*r[2];
+        b->VH(ci[k],cj[k]) = hk*r[3];
+        b->WH(ci[k],cj[k]) = hk*r[4];
+        if(bous==1)
+        {
+        b->MX(ci[k],cj[k]) = hk*r[7];
+        b->MY(ci[k],cj[k]) = hk*r[8];
+        if(wt[k]==0)
+        b->UA(ci[k],cj[k]) = b->VA(ci[k],cj[k]) = 0.0;
+        }
+        pp->wet[lij(pp,ci[k],cj[k])] = wt[k];
+        su += A[k]*b->UH(ci[k],cj[k]);
+        sv += A[k]*b->VH(ci[k],cj[k]);
+        sw += A[k]*b->WH(ci[k],cj[k]);
+    }
+
+    const double du = at*w[2] - su, dv = at*w[3] - sv, dw = at*w[4] - sw;
+    for(int k=0; k<n; ++k)
+    if(wt[k]==1)
+    {
+        b->UH(ci[k],cj[k]) += h[k]/sh*du;
+        b->VH(ci[k],cj[k]) += h[k]/sh*dv;
+        b->WH(ci[k],cj[k]) += h[k]/sh*dw;
+    }
+}
+
 void sflow_amr::ini_patch_finish(lexer *p, sflow_amr_patch &c)
 {
     lexer *pp = c.pp;
@@ -1292,16 +1496,17 @@ void sflow_amr::blocks_ini(lexer *p, ghostcell *pgc)
 
         // X 10 3 (X 207 0): the draft of the ship depresses the water level at t = 0, as on level 0
         // (sixdof_obj_2D::ini_shipwave)
+        // (X 402 1: the equilibrium depression of the applied pressure, eta = pbh, as level 0)
         if(shipmode==3 && p->X207==0)
         {
             zone_setup(p0);
-            ship_fields(*c,false);
+            ship_fields(*c,p->X402==1);
             for(int ii=pp->imin; ii<pp->imin+pp->imax; ++ii)
             for(int jj=pp->jmin; jj<pp->jmin+pp->jmax; ++jj)
             {
                 i=ii; j=jj;
                 const double H = c->pship->Hsolid(pp,pb->fs);
-                pb->eta(ii,jj) = -H*c->pship->draft(ii,jj);
+                pb->eta(ii,jj) = (p->X402==1) ? pb->pbh(ii,jj) : -H*c->pship->draft(ii,jj);
                 pb->WL(ii,jj) = MAX(pb->eta(ii,jj) + pb->depth(ii,jj),0.0);
             }
         }
@@ -1309,6 +1514,11 @@ void sflow_amr::blocks_ini(lexer *p, ghostcell *pgc)
         for(int ii=0; ii<pp->knox; ++ii)
         for(int jj=0; jj<pp->knoy; ++jj)
         pp->wet[lij(pp,ii,jj)]=1;
+
+        // B 522 relaxation and beach zones: the state at the start as sflow_f::ini
+        if(c->pio!=nullptr)
+        c->pio->zones_ini2D(pp,pb,pgc);
+
         c->pfsf->depth_update(pp,pb,pgc,pb->WL);
 
         ini_patch_finish(p,*c);
@@ -1826,7 +2036,7 @@ void sflow_amr::restrict_level(lexer *p, int l, int s)
     // shoreline: the surface of the wet children (v[nv]); the parents of other cells hold none
     sfc_reset(l-1);
 
-    block_up(l,nv+1,7020+l,
+    block_up(l,nv+2,7020+l,
              [&](reefamr_patch *q, int id, int k, double *v)
              {
                  sflow_amr_patch &c = *SP(q);
@@ -1865,6 +2075,14 @@ void sflow_amr::restrict_level(lexer *p, int l, int s)
                  }
                  }
                  v[nv] = (sa>0.0 && (nw<nf || np>0)) ? se/sa : NAN;
+
+                 // the wet children (the wet flag of the parent)
+                 int nwf = 0;
+                 for(int a=0;a<2;++a)
+                 for(int d=0;d<=sy;++d)
+                 if(pp->flagslice4[lij(pp,i0+a,j0+d)]>0 && pp->wet[lij(pp,i0+a,j0+d)]==1)
+                 ++nwf;
+                 v[nv+1] = nwf;
                  }
 
                  // curvilinear grid: area weighted (the children of a cell differ in area)
@@ -1921,7 +2139,14 @@ void sflow_amr::restrict_level(lexer *p, int l, int s)
 
                  (*pWLo)(ic,jc)=wl; (*pUHo)(ic,jc)=uh; (*pVHo)(ic,jc)=vh; (*pWHo)(ic,jc)=wh;
 
-                 int w = wl>p->A244+eps ? 1 : 0;
+                 // wet: above the film and with a wet child.  Children that are all dry, holding the film a
+                 // receding shoreline leaves behind (above A 244: sflow_eta::wetdry dries without taking the
+                 // water), leave the parent dry with their mean water level, as a uniform grid holds that film.
+                 // As a wet cell it drained in the next stages, and the resets to A 244 put water back: the
+                 // patches following a shoreline (G 22) gained mass at every coarsening of the trailing side
+                 // (Thacker bowl: 0.83 % in 11 s against 0.35 % on the uniform finest grid) and left the film
+                 // in isolated spots
+                 int w = (wl>p->A244+eps && v[nv+1]>0.5) ? 1 : 0;
                  G.q->wet[lij(G.q,ic,jc)] = w;
 
                  double wlvl = fabs(wl)>p->A244 ? wl : 1.0e20;
@@ -2019,6 +2244,9 @@ void sflow_amr::exchange_fluxes(int l)
 // --------------------------------------------------------------------- stages
 void sflow_amr::step_begin(lexer *p, fdm2D *b, ghostcell *pgc)
 {
+    // A 750: the wave force of the patches after a wave step or a regrid (sflow_amr_wave.cpp)
+    wave_sync(pgc);
+
     // G 7 1: level 0 steps alone, the patches follow in step_end
     if(sub==1)
     {
@@ -2215,6 +2443,19 @@ void sflow_amr::step_end(lexer *p, fdm2D *b, ghostcell *pgc)
     cache_stage(0);
     fill_level0(pgc,0);
     tm[0] += MPI_Wtime()-t0;
+    }
+
+    // the outputs on the finest grid (gauges, probes, free surface) read the end-of-step state of the patches up to
+    // the cells around them (fills_current): the face velocities (P, Q) and depths (hx, hy) from it.  The last
+    // stage left them from its own input around the boxes, and a fresh patch of the regrid had none (P = Q = 0)
+    if(nblk==0 && patches_total>0)
+    {
+    comms_off guard(pgc);
+    for(auto q : P)
+    {
+        sflow_amr_patch *c = SP(q);
+        c->pmom->face_velocities(c->pp,c->b,pgc,c->b->WL);
+    }
     }
 
     // load statistics of the ranks (G 43)
@@ -2472,6 +2713,14 @@ void sflow_amr::timestep(lexer *p, fdm2D *b, ghostcell *pgc)
     if(!active())
     return;
 
+    // semi-implicit free surface: the advective limit over the cells of the blocks and the patches (sflow_amr_si.cpp)
+    if(si==1)
+    {
+        if(p->count>0)
+        si_timestep(p,pgc);
+        return;
+    }
+
     // initial time step (sflow_etimestep::ini): linear in DXM, so scale with the finest patch
     if(p->count==0)
     {
@@ -2567,7 +2816,7 @@ void sflow_amr::timestep(lexer *p, fdm2D *b, ghostcell *pgc)
 
     dtp = pgc->globalmin(dtp);
 
-    if(p->N48==1)
+    if(p->N48>=1)
     p->dt = MIN(p->dt,dtp);
 }
 

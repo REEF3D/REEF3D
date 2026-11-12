@@ -59,7 +59,8 @@ void bcmom::bcmom_start(fdm* a, lexer* p,ghostcell *pgc, turbulence *pturb,field
         
         QGCDF1LOOP
         if(p->gcdf1[q][3]!=1 && p->gcdf1[q][3]!=4)   // tangential faces only, as in the gcb1 loop above
-		wall_law_u(a,p,pturb,b,p->gcdf1[q][0], p->gcdf1[q][1], p->gcdf1[q][2], p->gcdf1[q][3], p->gcdf1[q][4],  0.5*p->DXM);
+		wall_law_u(a,p,pturb,b,p->gcdf1[q][0], p->gcdf1[q][1], p->gcdf1[q][2], p->gcdf1[q][3], p->gcdf1[q][4],  0.5*p->DXM,
+                   body_vel(a,p,b,0,p->gcdf1[q][0], p->gcdf1[q][1], p->gcdf1[q][2], p->gcdf1[q][3]));
 	}
 
 	if(gcval==11 && p->B10!=0 && p->j_dir==1)
@@ -70,7 +71,8 @@ void bcmom::bcmom_start(fdm* a, lexer* p,ghostcell *pgc, turbulence *pturb,field
         
         QGCDF2LOOP
         if(p->gcdf2[q][3]!=2 && p->gcdf2[q][3]!=3)   // tangential faces only, as in the gcb2 loop above
-		wall_law_v(a,p,pturb,b,p->gcdf2[q][0], p->gcdf2[q][1], p->gcdf2[q][2], p->gcdf2[q][3], p->gcdf2[q][4],  0.5*p->DXM);
+		wall_law_v(a,p,pturb,b,p->gcdf2[q][0], p->gcdf2[q][1], p->gcdf2[q][2], p->gcdf2[q][3], p->gcdf2[q][4],  0.5*p->DXM,
+                   body_vel(a,p,b,1,p->gcdf2[q][0], p->gcdf2[q][1], p->gcdf2[q][2], p->gcdf2[q][3]));
 	}
 
 	if(gcval==12 && p->B10!=0)
@@ -81,13 +83,40 @@ void bcmom::bcmom_start(fdm* a, lexer* p,ghostcell *pgc, turbulence *pturb,field
         
         QGCDF3LOOP
         if(p->gcdf3[q][3]!=5 && p->gcdf3[q][3]!=6)   // tangential faces only, as in the gcb3 loop above
-		wall_law_w(a,p,pturb,b,p->gcdf3[q][0], p->gcdf3[q][1], p->gcdf3[q][2], p->gcdf3[q][3], p->gcdf3[q][4],  0.5*p->DXM);
+		wall_law_w(a,p,pturb,b,p->gcdf3[q][0], p->gcdf3[q][1], p->gcdf3[q][2], p->gcdf3[q][3], p->gcdf3[q][4],  0.5*p->DXM,
+                   body_vel(a,p,b,2,p->gcdf3[q][0], p->gcdf3[q][1], p->gcdf3[q][2], p->gcdf3[q][3]));
 
 	}
 	surface_tension(a,p,a->phi,gcval);
 }
 
-void bcmom::wall_law_u(fdm* a,lexer* p, turbulence *pturb,field& b,int ii,int jj,int kk,int cs,int bc,double dist)
+// velocity of a 6DOF body (X 10) at the direct-forcing face cs of the velocity point (ii,jj,kk) of component c:
+// the velocity of the point on the other side of the face if it lies inside a body (fb < 0 there; the direct
+// forcing holds it at the body velocity); 0 at the faces of solids and topography. The wall law then acts on the
+// velocity relative to the moving surface (it used the absolute velocity: a moving body braked the fluid next to
+// it towards rest instead of dragging it along)
+double bcmom::body_vel(fdm* a, lexer* p, field& b, int c, int ii, int jj, int kk, int cs)
+{
+    if(p->X10==0)
+    return 0.0;
+
+    if(cs==1) --ii;
+    if(cs==4) ++ii;
+    if(cs==3) --jj;
+    if(cs==2) ++jj;
+    if(cs==5) --kk;
+    if(cs==6) ++kk;
+
+    // level set of the bodies at the velocity point: the mean of its two cells
+    const double phib = 0.5*(a->fb(ii,jj,kk) + a->fb(ii+(c==0),jj+(c==1),kk+(c==2)));
+
+    if(phib<0.0)
+    return b(ii,jj,kk);
+
+    return 0.0;
+}
+
+void bcmom::wall_law_u(fdm* a,lexer* p, turbulence *pturb,field& b,int ii,int jj,int kk,int cs,int bc,double dist, double ub)
 {
 	i=ii;
 	j=jj;
@@ -109,10 +138,12 @@ void bcmom::wall_law_u(fdm* a,lexer* p, turbulence *pturb,field& b,int ii,int jj
 
 		uplus = (1.0/kappa)*MAX(1.0,log(30.0*(z0/ks)));
     
-	a->F(i,j,k) -= ((fabs(b(i,j,k))*b(i,j,k))/(uplus*uplus*deltaZ));   // b: velocity of the RK stage
+	// b: velocity of the RK stage, relative to the wall (ub: a moving 6DOF body, 0 otherwise)
+	const double ur = b(i,j,k) - ub;
+	a->F(i,j,k) -= ((fabs(ur)*ur)/(uplus*uplus*deltaZ));
 }
 
-void bcmom::wall_law_v(fdm* a,lexer* p, turbulence *pturb,field& b,int ii,int jj,int kk,int cs,int bc,double dist)
+void bcmom::wall_law_v(fdm* a,lexer* p, turbulence *pturb,field& b,int ii,int jj,int kk,int cs,int bc,double dist, double ub)
 {
 	i=ii;
 	j=jj;
@@ -133,10 +164,12 @@ void bcmom::wall_law_v(fdm* a,lexer* p, turbulence *pturb,field& b,int ii,int jj
 
 		uplus = (1.0/kappa)*MAX(1.0,log(30.0*(z0/ks)));
 
-	a->G(i,j,k) -= ((fabs(b(i,j,k))*b(i,j,k))/(uplus*uplus*deltaZ));   // b: velocity of the RK stage
+	// b: velocity of the RK stage, relative to the wall (ub: a moving 6DOF body, 0 otherwise)
+	const double ur = b(i,j,k) - ub;
+	a->G(i,j,k) -= ((fabs(ur)*ur)/(uplus*uplus*deltaZ));
 }
 
-void bcmom::wall_law_w(fdm* a,lexer* p, turbulence *pturb,field& b,int ii,int jj,int kk,int cs,int bc,double dist)
+void bcmom::wall_law_w(fdm* a,lexer* p, turbulence *pturb,field& b,int ii,int jj,int kk,int cs,int bc,double dist, double ub)
 {
 	i=ii;
 	j=jj;
@@ -157,7 +190,9 @@ void bcmom::wall_law_w(fdm* a,lexer* p, turbulence *pturb,field& b,int ii,int jj
 
 		uplus = (1.0/kappa)*MAX(1.0,log(30.0*(z0/ks)));
 
-	a->H(i,j,k) -= ((fabs(b(i,j,k))*b(i,j,k))/(uplus*uplus*deltaZ));   // b: velocity of the RK stage
+	// b: velocity of the RK stage, relative to the wall (ub: a moving 6DOF body, 0 otherwise)
+	const double ur = b(i,j,k) - ub;
+	a->H(i,j,k) -= ((fabs(ur)*ur)/(uplus*uplus*deltaZ));
 }
 
 

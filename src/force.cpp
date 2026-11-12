@@ -157,8 +157,6 @@ void force::start(lexer *p, fdm *a, ghostcell *pgc)
         if(p->count==2)
         cout<<"Atot_solid: "<<A_tot<<endl;  
         
-        cout<<"Fx: "<<Fx<<" Fy: "<<Fy<<" Fz: "<<Fz<<endl;
-
         print_force(p,a,pgc);
         }
     

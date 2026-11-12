@@ -23,6 +23,7 @@ Author: Hans Bihs
 #include"fnpf_vtp_bed.h"
 #include"lexer.h"
 #include"runlog.h"
+#include"scour_core.h"
 
 void fnpf_vtp_bed::pvtp(lexer *p, int num)
 {
@@ -37,6 +38,9 @@ void fnpf_vtp_bed::pvtp(lexer *p, int num)
     result<<"<PPointData>\n";
     result<<"<PDataArray type=\"Float32\" Name=\"elevation\"/>\n";
     result<<"<PDataArray type=\"Float32\" Name=\"depth\"/>\n";
+    if(scour!=nullptr)
+    for(auto &f : scour_fields(scour))
+    result<<"<PDataArray type=\"Float32\" Name=\""<<f.first<<"\"/>\n";
     result<<"</PPointData>\n";
 
     char pname[200];

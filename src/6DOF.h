@@ -42,6 +42,9 @@ public:
     virtual ~sixdof() {}
 
     virtual void start_cfd(lexer*,fdm*,ghostcell*,int,field&,field&,field&,field&,field&,field&,bool)=0;
+    // X 198 2: the bodies fitted again to the projected velocity of the stage and the fluid of their hulls forced
+    // again (u += alpha dt f); the caller projects once more
+    virtual void refit_cfd(lexer*,fdm*,ghostcell*,int,field&,field&,field&,field&,field&,field&,double) {}
     virtual void start_nhflow(lexer*,fdm_nhf*,ghostcell*,int,double*,double*,double*,double*,double*,double*,slice&,slice&,bool)=0;
     virtual void start_sflow(lexer*,fdm2D*,ghostcell*,int,slice&,slice&,slice&,slice&,slice&,slice&,slice&,bool)=0;
     
@@ -64,6 +67,10 @@ public:
     // body velocity (us, vs, ws) at the keel point of every column at the pose of stage iter;
     // false: not available
     virtual bool keel_nhflow(lexer*,fdm_nhf*,ghostcell*,int,slice&,slice&,slice&,slice&,slice&,slice&) {return false;};
+    
+    // CFD mesh refinement (cfd_amr): the forces of the nets (X 320) as of their last stage onto the
+    // grid of a patch (its lexer and fdm), added to Fext, Gext, Hext
+    virtual void amr_net_forces(lexer*,fdm*,int,const std::function<void(const double*,int*)>&) {}
     
     virtual void ini(lexer*,ghostcell*)=0;
     // runtime coupling (reefcouple, I 243): number of bodies and the state of body n: CoG (3), velocity
@@ -92,6 +99,13 @@ public:
     
     virtual void isource2D(lexer*,fdm2D*,ghostcell*)=0;
     virtual void jsource2D(lexer*,fdm2D*,ghostcell*)=0;
+
+    // SFLOW ship waves (X 10 3) with the semi-implicit step (A 210 12/13): the pressure of the step is the mean of the
+    // pressure of its start and of its end (the step moves the body first)
+    virtual void sflow_midpoint(bool) {}
+    // the pressure of the step (the stored sign: minus the pressure on the water) into ps, all cells of the array;
+    // false: none
+    virtual bool sflow_press_step(lexer*, slice&) { return false; }
 };
 
 #endif

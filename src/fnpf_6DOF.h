@@ -87,6 +87,10 @@ struct fnpf_6DOF_grid
     slice4 *foot = nullptr, *psiD = nullptr, *zeroslice = nullptr, *eta_ext = nullptr, *fi_ext = nullptr;
     bool ext_ini = false;
     int footcount = 0;
+    // enclosed fluid pockets of the hull (close_pockets): visit stamps, the stamp, the nodes closed so far
+    std::vector<int> pocket_seen;
+    int pocket_stamp = 0;
+    long pockets_closed = 0;
     fnpf_bed_update *pbed = nullptr;
     fnpf_fsf_update *pvel = nullptr;
     slice *Keta = nullptr, *Kfi = nullptr;      // patch: tendencies of the current stage
@@ -106,6 +110,7 @@ public:
 private:
     lexer *p;
     const double n44;
+    const bool stage;    // A 430: the psi solves keep N 44 (fnpf_laplace_cds2::stage_tol off for them)
 };
 
 class fnpf_6DOF : public fnpf_body, public increment
@@ -120,6 +125,9 @@ public:
     void surface(lexer*, fdm_fnpf*, ghostcell*, slice&, slice&, int, int) override;
     void velocity(lexer*, fdm_fnpf*, ghostcell*) override;
     fnpf_laplace* laplace(fnpf_laplace*) override;
+    void solve_pre(lexer *p, fdm_fnpf *c, ghostcell *pgc) override {pre_solve(p,c,pgc);}
+    void solve_post(lexer *p, fdm_fnpf *c, ghostcell *pgc, double *f) override {post_solve(p,c,pgc,f);}
+    slice* footprint_mask() override;
     
     // mesh refinement (fnpf_amr)
     bool present() const override {return true;}
@@ -160,6 +168,7 @@ public:
 private:
     void geometry(fnpf_6DOF_grid&, ghostcell*);
     void extrapolate(fnpf_6DOF_grid&, ghostcell*, double*);
+    void close_pockets(fnpf_6DOF_grid&, double *FBF);
     void body_velocities(fnpf_6DOF_grid&, ghostcell*);
     void ini(lexer*, fdm_fnpf*, ghostcell*);
     void forces(lexer*, fdm_fnpf*, ghostcell*, solver*, fnpf_fsf*, slice&, slice&, int);

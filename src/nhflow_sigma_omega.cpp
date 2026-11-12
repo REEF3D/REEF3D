@@ -55,6 +55,23 @@ void nhflow_sigma::omega_update(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL,
                         + (d->FEx[IJK] - d->FEx[Im1JK])/p->DXN[IP]  + (d->FEy[IJK] - d->FEy[IJm1K])/p->DYN[JP]*p->y_dir);
     }
     
+    // VRANS (B 200 1, B 221 1): the sigma faces move with the free surface (z_t = sigma D_t) through the
+    // porous structure, which is fixed in space. The water volume a moving face sweeps is n_f sigma D_t,
+    // not sigma D_t (Reynolds transport of the fluid fraction, d/dt int_V(t) n dV = int n v_g.N dA):
+    //      omega_f = Q_f - n_f sigma_f D_t,   Q_f the Darcy flux through the face from the layer continuity.
+    // The loops above give Q_f - sigma_f D_t (storage 1 in every layer); with D_t = -sum(div)/n_s
+    // (continuity n_s deta/dt + div Q = 0) the flux through the surface was sum(div)(1/n_s - 1) instead of 0,
+    // and every porous layer below a moving surface got a spurious vertical flux (1-n_f) sigma_f D_t
+    // (0.5 m/s at the run-down over an armour layer). Face porosity n_f: mean of the two cells, the
+    // surface porosity n_s (d->PORS) at the free surface. Open water (n = 1) unchanged.
+    if(p->B200==1 && p->B221==1)
+    LOOP
+    {
+        const double nf = (k==p->knoz-1) ? d->PORS(i,j) : 0.5*(d->POR[IJK] + d->POR[IJKp1]);
+        
+        d->omegaF[FIJKp1] += (1.0 - nf)*p->ZN[KP1]*d->detadt(i,j);
+    }
+    
       
     GC4LOOP
     if(p->gcb4[n][3]==6 && p->gcb4[n][4]==3)

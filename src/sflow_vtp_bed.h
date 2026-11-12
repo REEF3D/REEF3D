@@ -41,6 +41,8 @@ public:
     sflow_vtp_bed(lexer*);
     virtual ~sflow_vtp_bed() = default;
     void start(lexer*,fdm2D*,ghostcell*,sediment*);
+    // the end of a run (N 45, N 41, S 19): the last bed, unless the last step wrote it
+    void print_end(lexer*,fdm2D*,ghostcell*,sediment*);
 
     // checkpoints (P 48, I 45): the counter and the time of the next output
     void ckpt_state(vector<double> &v) const { v.push_back(printbedcount); v.push_back(printbedtime); }
@@ -55,5 +57,6 @@ private:
     float ffn;
     int printbedcount;
     double printbedtime;
+    int last_print = -1;    // the iteration of the last output (print_end)
 };
 #endif

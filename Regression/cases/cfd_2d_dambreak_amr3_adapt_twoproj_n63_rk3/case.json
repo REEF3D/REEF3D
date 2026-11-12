@@ -1,0 +1,24 @@
+{
+ "base": "cfd_2d_dambreak_amr3_adapt",
+ "np": 1,
+ "steps": 60,
+ "ctrl_set": {
+  "N 40": "6"
+ },
+ "ctrl_add": [
+  "N 59 1",
+  "N 63 3"
+ ],
+ "description": "cfd_2d_dambreak_amr3_adapt_twoproj_n59 (N 40 6 on two adaptive levels) with the level set in SSP-RK3 stages of the scheme of F 35 with u(n+1/2) (N 63 3): the stages on all grids in step (validation 83).",
+ "tags": [
+  "quick",
+  "2d",
+  "dambreak",
+  "levelset",
+  "amr",
+  "adaptive"
+ ],
+ "covers": [
+  "cfd_amr ls_block with N 40 6 and N 63 3: momentum_rk::ls_vel u(n+1/2) on the patches"
+ ]
+}

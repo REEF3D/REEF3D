@@ -2,7 +2,7 @@
 // tuning (coral/aero/coral_rotor_tune): the torque law of the NREL 5 MW baseline continuous through its regions, the
 // speed filter's step response, the PI pitch loop with gain scheduling, rate limit and anti-windup, the PI gains of the
 // NREL 5 MW from its published sensitivity and inertia; the tuning of a Glauert-optimum rotor (Cp_max, K, rated
-// power held above rated); the closed loop in the multibody model: tip speed ratio lambda_opt below rated, rated speed,
+// power held above rated, or the torque with T_rgn3); the closed loop in the multibody model: tip speed ratio lambda_opt below rated, rated speed,
 // power and the tuned pitch above it; the keyword and its channels; the controller state round trip; the floating
 // compensation: the platform's part of the speed out of the pitch loop, the sensitivities, a rotor on a pitching platform.
 // Architect: Hans Bihs
@@ -104,6 +104,10 @@ static void test_torque_law()
           "region 2: K w^2; region 3: P_rated/w, also below rated speed with pitch above pitch_rgn3");
     check(std::fabs(T(s.w_rated) - s.P_rated/s.w_rated) < 1e-6 && T(s.w_rated) < s.T_max,
           fmt("rated torque %.0f N m below T_max %.0f N m", T(s.w_rated), s.T_max));
+    turbine_controller q;
+    q.set.T_rgn3 = 43093.55;
+    check(q.torque_law(130.0, 0.0)==43093.55 && q.torque_law(110.0, 0.05)==43093.55 && std::fabs(q.torque_law(100.0, 0.0) - s.K*1e4) < 1e-9,
+          "T_rgn3: constant torque in region 3 (DISCON_OC3Hywind), region 2 unchanged");
 }
 
 static void test_filter_pi()

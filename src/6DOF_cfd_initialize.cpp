@@ -24,11 +24,18 @@ Authors: Tobias Martin, Hans Bihs
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
+#include<algorithm>
 
 void sixdof_cfd::initialize(lexer *p, fdm *a, ghostcell *pgc)
 {
     for (int nb = 0; nb < number6DOF; nb++)
+    {
     fb_obj[nb]->initialize_cfd(p, a, pgc);
+    
+    fb_combine(p,a,nb);
+    }
+    
+    fb_finish(p,a,pgc);
 }
 
 void sixdof_cfd::initialize(lexer *p, fdm2D *b, ghostcell *pgc)
@@ -45,6 +52,15 @@ void sixdof_cfd::ini(lexer *p, ghostcell *pgc)
 
 void sixdof_cfd::setup(lexer *p, fdm *a, ghostcell *pgc)
 {
+    // the weights of the solids and the topography (ghostcell::solid_forcing of this stage)
+    if(sf[0]!=nullptr)
+    {
+    const int n = p->imax*p->jmax*p->kmax;
+    std::copy(a->fbh1.V, a->fbh1.V+n, sf[0]->V);
+    std::copy(a->fbh2.V, a->fbh2.V+n, sf[1]->V);
+    std::copy(a->fbh3.V, a->fbh3.V+n, sf[2]->V);
+    }
+    
     // Reset heaviside field
     ULOOP
     a->fbh1(i,j,k) = 0.0;

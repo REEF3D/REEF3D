@@ -1,0 +1,23 @@
+{
+ "base": "cfd_2d_dambreak",
+ "np": 1,
+ "steps": 80,
+ "ctrl_set": {
+  "N 40": "6",
+  "N 47": "0.45"
+ },
+ "description": "cfd_2d_dambreak_twoproj with N 59 1 at N 47 0.45: the half step over dt/2 from phi(n), the full step from phi(n) kept in frk1 (validation 77: stable at N 47 0.45 in the 2D dam break).",
+ "tags": [
+  "quick",
+  "2d",
+  "dambreak",
+  "levelset",
+  "closed"
+ ],
+ "covers": [
+  "momentum_rk::step_twoproj with N 59 (godunov::consistent_set)"
+ ],
+ "ctrl_add": [
+  "N 59 1"
+ ]
+}

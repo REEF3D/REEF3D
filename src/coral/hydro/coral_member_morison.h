@@ -28,6 +28,22 @@ Architect: Hans Bihs
 // the same weights. Wave kinematics from the wave_field (linear, z = 0 kinematics above the still water
 // level); only the parts of the strips below the instantaneous elevation carry load (a strip cut by the
 // surface counts with its wet part, so the load is continuous in time). Axial (end) effects are left out.
+//
+// Higher-order slender-body models for steep waves and ringing (model; as compared by Suja-Thauvin et al. 2020,
+// Marine Structures 72, 102743), with the fluid velocity u (waves and current), its gradient G = du/dx and the axis e:
+//   morison     a_w = du/dt at the point (local acceleration), as above
+//   lagrangian  a_w = du/dt + G u, the particle (Lagrangian) acceleration
+//   extended    lagrangian + rho A Ca (e.G.e) u_n, the axial-divergence term (Rainey; u dw/dz on a vertical member)
+//   rainey      extended + the point force at the free surface, at z = eta on the member:
+//                 F_eta = -1/2 rho A Ca |u_n|^2 (grad eta)_n          (Rainey 1989, 1995)
+//   kf          extended + the scattering point force at the still water level (Kristiansen and Faltinsen 2017):
+//                 F_psi = rho A Ca (4/g) |u_n|^2 (du/dt)_n,  u, du/dt at z = 0
+// The structure's own motion stays in the added-mass and drag terms only (as in the reference). Gradients and slope
+// come from the wave source (CORAL's linear waves) or, for a sampled fluid, from a stencil of six points around each
+// strip centre and each waterline point (+-step along x, y, z; one-sided where a neighbour is dry or below the bed;
+// plane: no y neighbours, for a 2D fluid). At the waterline a sampled fluid gives z = 0 in a crest and the surface in a
+// trough; u at z = eta (Rainey) and at z = 0 (kf) follow by the first-order Taylor step with du/dz (as Suja-Thauvin
+// et al.); du/dt at z = 0 in a trough is the rate of the surface value.
 
 #ifndef CORAL_MEMBER_MORISON_H_
 #define CORAL_MEMBER_MORISON_H_
@@ -42,6 +58,8 @@ Architect: Hans Bihs
 
 namespace coral
 {
+    enum class slender_model {morison, lagrangian, extended, rainey, kf};
+
     struct member_morison_coef
     {
         double D = 1.0;
@@ -50,6 +68,9 @@ namespace coral
         double Cm = -1.0;          // < 0: 1 + Ca
         int n = 2;                 // strips per element
         bool buoyancy = true;
+        slender_model model = slender_model::morison;
+        double step = -1.0;        // stencil step of a sampled fluid's gradients (< 0: D/2)
+        bool plane = false;        // a 2D fluid: no gradients across the plane (y)
     };
 
     class member_morison : public load
@@ -72,8 +93,18 @@ namespace coral
         // total force (global) and moment about the origin of all strips
         void total(const model&, double t, Vec3 &F, Vec3 &M) const;
 
+        // total point force at the free surface or the still water level (rainey, kf)
+        Vec3 point_force(const model&, double t) const;
+
     private:
-        template<class Sink> void strips(const model&, double t, Sink sink) const;
+        template<class Sink> void strips(const model&, double t, Sink sink, bool points=true) const;
+        bool higher() const {return c_.model != slender_model::morison;}
+        bool surface_point() const {return c_.model == slender_model::rainey || c_.model == slender_model::kf;}
+        bool stencil() const {return higher() && waves_ && !waves_->has_gradients();}
+        // gradient and slope from the stencil points i6 .. i6+5 around the point pc with velocity uc
+        void stencil_gradient(int i6, const Vec3 &pc, double t, const Vec3 &uc, Mat3 &G, Vec3 &slope) const;
+        void init_waterline(const std::vector<Vec3> &P) const;
+        double step() const {return c_.step > 0.0 ? c_.step : 0.5*c_.D;}
         std::string name_;
         std::shared_ptr<const point_set> pts_;
         std::vector<std::pair<int,int>> elem_;
@@ -83,6 +114,8 @@ namespace coral
         double rho_, g_;
         Vec3 current_;
         std::vector<int> bodies_, coords_;
+        mutable std::vector<int> wl_;          // elements crossing z = 0 at the start (rainey, kf)
+        mutable bool wl_init_ = false;
     };
 }
 

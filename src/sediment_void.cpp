@@ -91,7 +91,7 @@ double sediment_void::bedzhval(int ii, int jj)
     return val;
 }
 
-void sediment_void::print_2D_bedload(lexer* p, ghostcell *pgc, ofstream &result)
+void sediment_void::print_2D_bedload(lexer* p, ghostcell *pgc, std::ostream &result)
 {	
 }
 
@@ -115,7 +115,7 @@ void sediment_void::offset_ParaView_bedload(lexer *p, int *offset, int &n)
 {
 }
 
-void sediment_void::print_2D_bedshear(lexer* p, ghostcell *pgc, ofstream &result)
+void sediment_void::print_2D_bedshear(lexer* p, ghostcell *pgc, std::ostream &result)
 {	
 }
 
@@ -139,7 +139,7 @@ void sediment_void::offset_ParaView_bedshear(lexer *p, int *offset, int &n)
 {
 }
 
-void sediment_void::print_2D_parameter1(lexer* p, ghostcell *pgc, ofstream &result)
+void sediment_void::print_2D_parameter1(lexer* p, ghostcell *pgc, std::ostream &result)
 {	
 }
 
@@ -163,7 +163,7 @@ void sediment_void::offset_ParaView_parameter1(lexer *p, int *offset, int &n)
 {
 }
 
-void sediment_void::print_2D_parameter2(lexer* p, ghostcell *pgc, ofstream &result)
+void sediment_void::print_2D_parameter2(lexer* p, ghostcell *pgc, std::ostream &result)
 {	
 }
 

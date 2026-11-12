@@ -27,6 +27,7 @@ plots of verification runs are kept out of the repository (`~/Dropbox/Claude/REE
 | `tools/make_cases.py` | writes `cases/` (documents the gauge lists and geometry; the case files are the source of truth) |
 | `tools/berkhoff_geo.py`, `conical_geo.py`, `thacker_geo.py` | `geo.dat` bathymetries (run automatically by `write`/`run`, `"generate"` in case.json) |
 | `tools/mase_kirby_waverecon.py` | `waverecon.dat` wave components from the measured Mase & Kirby record |
+| `tools/rapp_melville_waverecon.py`, `tian_waverecon.py` | `waverecon.dat` of the focused packets (Rapp & Melville, Tian et al., set-up of Derakhti & Kirby 2016) |
 | `tools/run_suite.sh` | run one level + plots |
 
 ## Two levels
@@ -99,6 +100,14 @@ Return code 0 if all cases pass (or fail as expected, see XFAIL).
 | `sflow_mase_kirby_irregular` | SFLOW | Mase & Kirby (1992) | Hm0 and skewness at 12 gauges on a 1:20 slope | dx 0.04, 150 s | dx 0.02, 420 s |
 | `nhflow_mase_kirby_irregular` | NHFLOW | Mase & Kirby (1992) | Hm0 and skewness at 12 gauges | 362 x 5, 200 s | 725 x 8, 420 s |
 | `fnpf_mase_kirby_irregular` | FNPF | Mase & Kirby (1992) | Hm0 and skewness at 12 gauges | 362 x 8, 200 s | 725 x 10, 420 s |
+| `fnpf_mase_kirby_irregular_awa` | FNPF | Mase & Kirby (1992) | as `fnpf_mase_kirby_irregular`, with absorbing second-order generation (B 98 4, B 92 52, components above 0.3 Hz) | 362 x 8, 200 s | 725 x 10, 420 s |
+| `fnpf_mase_kirby_irregular_awa_theta_robin` | FNPF theta-Robin | Mase & Kirby (1992) | as `fnpf_mase_kirby_irregular_awa` with A 310 5 (time step of the accuracy target, N 48 1) | 362 x 8, 200 s | 725 x 10, 420 s |
+| `nhflow_rapp_melville_rn`, `_rs1`, `_rp1`, `_rp2` | NHFLOW A 550 4 | Rapp & Melville (1990), LES of Derakhti & Kirby (2016) | energy loss of the focused packet (RN: none) | 1500 x 16, 40 s | 1500 x 16, 40 s, np 2 |
+| `fnpf_rapp_melville_rn`, `_rs1`, `_rp1`, `_rp2` | FNPF A 350 4 | Rapp & Melville (1990), LES of Derakhti & Kirby (2016) | energy loss of the focused packet (RN: none) | 625 x 10 (L_c/40), 40 s | 1500 x 16, 40 s, np 2 |
+| `nhflow_tian_tp2` | NHFLOW A 550 4 | Tian et al. (2010), LES of Derakhti & Kirby (2016) | energy loss, deep water k d = 7 | 800 x 10, 36 s | 1600 x 20, 36 s |
+| `fnpf_tian_tn`, `_tp1`, `_tp2`, `_tp3` | FNPF A 350 4 | Tian et al. (2010), LES of Derakhti & Kirby (2016) | energy loss, deep water k d = 7 (TN: none) | 1185 x 10 (L_c/40), 36 s | 1600 x 20, 36 s |
+| `nhflow_ting_kirby_spilling` (+ `_x3`, `_y`) | NHFLOW A 550 4 | Ting & Kirby (1994) | breaking point; wave height along the flume along y against 3D along x | dx 0.025 x 4, 30 s | 40 s |
+| `fnpf_ting_kirby_spilling` (+ `_x3`, `_y`) | FNPF A 350 4 | Ting & Kirby (1994) | breaking point; wave height along the flume along y against 3D along x | dx 0.025 x 10, 30 s | 40 s |
 | `fnpf_jonswap_spectrum` | FNPF | JONSWAP (DNV-RP-C205) | Hm0, Tp, spectral shape at 3 gauges | 400 x 8, 600 s | 800 x 10, 1100 s |
 | `cfd_sloshing_linear` | CFD | linear sloshing theory | first-mode period | dx 0.02 | dx 0.01 |
 | `nhflow_sloshing_linear` | NHFLOW | linear sloshing theory | first-mode period | 50 x 5 | 100 x 10 |
@@ -132,6 +141,8 @@ smaller initial offset of the sphere for linear theory).
 | `oscillation_period` | sloshing | period from up-crossings vs. linear theory |
 | `thacker1d` | parabolic bowl | exact Thacker depth, rel. L1 |
 | `profiles_abs` | free-surface profiles at physical times | rms(z - z_data)/h_ref per profile |
+| `packet_energy_loss` | focused wave packets | 1 - <int eta^2 dt>_down / <int eta^2 dt>_up over two gauge windows (Derakhti & Kirby 2016, eq. 4.5b) vs. `loss_ref` (or below `loss_max`) |
+| `profile_match` | orientation | mean wave height along the flume against a partner case of the same run (`partner`, `axis`, `partner_axis`), max \|H - H_partner\| / max H |
 
 A case can have `"extra_checks"` (a list of further check dicts, e.g. time series plus run-up);
 all of them must pass.
@@ -291,6 +302,18 @@ MPICH 4.2.3, REEFMG, `make all`). The fixes are delivered as patches in
    excess is infragravity energy (f < 0.3 Hz): 1.6x measured at the toe, 1.9x at h = 2.5 cm. The
    linear (first-order) wave generation radiates free long waves that the static coastline
    reflects. Second-order (subharmonic) generation or an absorbing shoreline would address it.
+   **The long waves are trapped at the generating end** (fnpf_theta_robin validation 15, RK3): the
+   2.5 m relaxation zone cannot absorb waves of 40 m length (0.05 Hz), so the long waves reflected
+   at the coastline come back; a longer domain and zone (7.5 m) makes it worse (0.235 -> 0.265).
+   Dirichlet generation with active absorption (`B 98 4`) brings the nightly error at N 47 0.75 from
+   0.235 to 0.152; with second-order reconstruction (`B 92 52`) of the components above 0.3 Hz to
+   0.120, with Hm0 below 0.1 Hz at the measured level up to h = 5 cm. As the case runs (N 47 1):
+   nightly 0.226 -> 0.107, release 0.384 -> 0.226 (pass). New case
+   `fnpf_mase_kirby_irregular_awa`. Still about 1.7 x measured in 0.1-0.3 Hz at h = 2.5 cm.
+   With the coastline defaults of 77bfe2b6c / bd6061579 (no coastline viscosity, A 316 0 with the
+   static coastline): base case nightly 0.107, release 0.258 (XFAIL by 0.008); `_awa` nightly
+   0.038, release 0.116; theta-Robin with edge generation (`_awa_theta_robin`, patch
+   fnpf_theta_robin/0037) nightly 0.078, release 0.154.
 14. **NHFLOW numerical damping at coarse resolution (Berkhoff shoal)**: the nightly Berkhoff case
    (dx = 0.1 m) gave about 60 % of the measured wave heights. **Not a 3D effect**: a 2D flume with
    the same wave (T = 1 s, h = 0.45 m, flat bed) loses 16 % of the height over 14 m at dx = 0.1 m
@@ -341,6 +364,8 @@ run was possible they are provisional (marked).
 | `fnpf_ting_kirby_plunging` | XFAIL, max. H 1.7 m before x_b | - | xfail entry; dx = 0.025 m stopped at t = 91 s, release now at dx = 0.05 m (not run) |
 | `fnpf_berkhoff_shoal` | PASS, rms 0.07-0.27, 0.31 on section 7 | - | PASS, rms 0.09-0.18; 0.21 on section 7 (focus 7 % high) |
 | `fnpf_mase_kirby_irregular` | PASS, Hm0 ratio 0.98-1.09, 1.26 at h = 2.5 cm | - | XFAIL, 1.18 / 1.39 at h = 5 / 2.5 cm (infragravity, finding 13) |
+| `fnpf_mase_kirby_irregular_awa` | PASS, error 0.038 (base case 0.107) | absorbing second-order generation; with the coastline defaults of 77bfe2b6c / bd6061579 (before: 0.107, base 0.226) | PASS, error 0.116 (base case 0.258, XFAIL) |
+| `fnpf_mase_kirby_irregular_awa_theta_robin` | PASS, error 0.078 | new (fnpf_theta_robin/0037); theta-Robin with the relaxation zone of the base case: 0.152 | PASS, error 0.154 |
 | `fnpf_jonswap_spectrum` | PASS, Hm0 -3..-4 %, Tp 1.44 vs 1.50 s, shape rms 0.09 | - | PASS, Hm0 -0.2..-0.8 %, shape rms 0.06 |
 | `cfd_dambreak_2d_martin_moyce` | PASS, mean 8 %, max 18 % | - | PASS, mean 7 %, max 20 % |
 | `cfd_dambreak_3d_kleefsman` | PASS (with `F 46 3`): volume -0.9 %, P1 peak -4 % / 0.05 s late, rms P1-P4 0.38-0.58, P5-P8 0.62-0.69, heights 0.03-0.53; 33 min | F 46 fix (0004): was FAIL, -18 % volume, N 61 stop at 1.77 s | not run |
@@ -356,3 +381,42 @@ run was possible they are provisional (marked).
 
 The 3D CFD cases (and the 2D CFD plunging breaker) need several hours each at the nightly level,
 more than the 2-core sandbox allows; their nightly and release levels are meant for the cluster.
+
+### Breaking cases added with NHFLOW Breaking v5
+
+Nightly level, Linux, 1-2 cores per case. Ting & Kirby rows: hans_dev b19f3cef0 + NHFLOW Breaking patches
+0002-0014. Deep-water rows: f86154267 + 0002-0011 (patches 0012-0014 do not change 2D flumes):
+
+| case | nightly | release |
+|---|---|---|
+| `nhflow_rapp_melville_rn` / `fnpf_` | PASS, loss 0.0 / 0.0 (non-breaking packet; FNPF: see below) | not run |
+| `nhflow_rapp_melville_rs1` / `fnpf_` | PASS, loss 8.0 % (LES 14.0 %) / v5 XFAIL 3.6 % (spilling packet not detected; FNPF since patch 0015: see below) | not run |
+| `nhflow_rapp_melville_rp1` / `fnpf_` | PASS, loss 26.2 % / v5 22.7 % (LES 28.9 %) | not run |
+| `nhflow_rapp_melville_rp2` / `fnpf_` | PASS, loss 30.1 % / v5 26.3 % (LES 31.7 %) | not run |
+| `nhflow_tian_tp2` | PASS, loss 22.6 % (no crest reaches B = A 359 on this grid; the scheme alone) | PASS, 25.6 % (LES 25.0 %; 42.8 % before patch 0011; run with the same breaking code on e6238a7cb) |
+| `nhflow_ting_kirby_spilling` (+ `_x3`) | XFAIL, max. H 1.0 m (3D 1.7 m) before x_b | not run |
+| `nhflow_ting_kirby_spilling_y` | PASS, H along y vs `_x3` within 2.1 % | not run |
+| `fnpf_ting_kirby_spilling` (+ `_x3`) | PASS, x_b -0.4 m (3D: -0.4 m) | not run |
+| `fnpf_ting_kirby_spilling_y` | PASS, H along y vs `_x3` within 5.2 % (tol 8 %); both within 4.9 % of the 2D flume (7.1 % before patch 0014). The 2D flume itself changes by 7.1 % with N 47 0.99, `_x3` by 5.4 % with one rank: inner surf zone, 5 waves | not run |
+
+### FNPF deep-water breaking at L_c/40 (NHFLOW Breaking patch 0015)
+
+hans_dev b19f3cef0 + NHFLOW Breaking patches 0002-0015, Linux. Nightly: dx = L_c/40, 10 layers, np 1. Release:
+Rapp & Melville dx 0.02 m (L_c/97), 16 layers, np 2; Tian dx 0.01 m (L_c/54), 20 layers, np 1. Tolerance +-7 points
+of the LES loss of Derakhti & Kirby (2016).
+
+| case | nightly (L_c/40) | release |
+|---|---|---|
+| `fnpf_rapp_melville_rn` | PASS, loss 0.1 % | not run |
+| `fnpf_rapp_melville_rs1` | PASS, 16.2 % (LES 14.0 %) | PASS, 14.1 % (v5: XFAIL 3.6 %) |
+| `fnpf_rapp_melville_rp1` | PASS, 30.8 % (LES 28.9 %) | PASS, 34.0 % (v5: 22.7 %) |
+| `fnpf_rapp_melville_rp2` | PASS, 36.2 % (LES 31.7 %) | PASS, 33.5 % (v5: 26.3 %) |
+| `fnpf_tian_tn` | PASS, loss 1.0 % | not run |
+| `fnpf_tian_tp1` | PASS, 11.8 % (LES 13.3 %) | PASS, 11.8 % |
+| `fnpf_tian_tp2` | PASS, 30.5 % (LES 25.0 %) | PASS, 31.0 % |
+| `fnpf_tian_tp3` | PASS, 33.5 % (LES 30.3 %) | PASS, 25.7 % |
+| `fnpf_ting_kirby_spilling` (+ `_x3`) | PASS, x_b -0.4 m (3D: -0.4 m); onset threshold unchanged in shallow water, H within 3.3 % (3D 4.9 %) of v5 from the limit of Gamma | not run |
+| `fnpf_ting_kirby_spilling_y` | PASS, H along y vs `_x3` within 3.6 % (tol 8 %) | not run |
+
+v5 at L_c/40 (no benchmark entry then): Rapp & Melville RS1 / RP1 / RP2 2.5 / 6.9 / 9.0 % (no crest detected),
+Tian TP1 / TP2 / TP3 1.7 / 19.0 / 12.8 %. At the release grid v5 gave Tian TP1 / TP2 / TP3 3.2 / 22.5 / 20.1 %.

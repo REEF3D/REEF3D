@@ -1,0 +1,16 @@
+{
+ "base": "seastate_2d_phase14_windsea",
+ "ctrl_add": [
+  "A 776 3",
+  "A 777 3600.0"
+ ],
+ "description": "seastate_2d_phase14_windsea (Komen, growth from rest at 15 m/s, 10 steps of 300 s) with the transported age (A 776 3): the bins of the wind sea (1.7 U10 cos(theta - theta_w) > c) have the age 0, so the closure leaves them; the other bins with the age of the initial and boundary spectra A 777 1 h. Validation in Dropbox SEASTATE/validation/82_gse_age.",
+ "tags": [
+  "quick",
+  "2d",
+  "seastate"
+ ],
+ "covers": [
+  "A 776 3: the reset in the wind sea, A 777 of the boundary"
+ ]
+}

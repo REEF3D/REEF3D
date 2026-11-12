@@ -115,6 +115,11 @@ void driver::driver_ini_nhflow()
     SLICELOOP4
     d->ks(i,j) = p->S21*p->S20;
     
+    // S 28 2: the hydraulic roughness B 50 (e.g. bedforms) for the flow, the grain roughness S 21 d50 for the sediment
+    if(p->S10>0 && p->S28==2)
+    SLICELOOP4
+    d->ks(i,j) = p->B50;
+    
     pgc->gcsl_start4(p,d->ks,50);
     
     pgc->start4V(p,d->RO,1);

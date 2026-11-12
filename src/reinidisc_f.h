@@ -32,11 +32,15 @@ using namespace std;
 class reinidisc_f final : public reinidisc, public ddweno_nug
 {
 public:
-	reinidisc_f(lexer* p, bool fixed_interface=false);
+	// tie > 0: one-sided slopes below tie count as zero (the upwind direction of a cell on a
+	// symmetry plane of the level set does not follow the round-off of its neighbours)
+	reinidisc_f(lexer* p, bool fixed_interface=false, double tie=0.0);
 	virtual ~reinidisc_f();
 	void start(lexer*, fdm*, ghostcell*, field&, field&, int) override final;
 	// the fluid cells (flag4 > 0) of the box b = is, ie, js, je, ks, ke only; L elsewhere untouched
 	void start_box(lexer*, fdm*, ghostcell*, field&, field&, const int*);
+	// the cells of start with ipol 4 that the mask marks; L 0 in the others
+	void start_mask(lexer*, fdm*, ghostcell*, field&, field&, const unsigned char*);
 	
 private:
 	void disc(lexer*, fdm*, ghostcell*, field&, field&);
@@ -52,6 +56,7 @@ private:
 	double deltax,denom;
     
     const bool fixed_interface;
+    const double tie;
 };
 
 #endif

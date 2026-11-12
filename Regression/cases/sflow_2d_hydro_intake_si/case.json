@@ -1,0 +1,16 @@
+{
+ "description": "REEF3D::HYDRO abstraction (R 40 with Q < 0, 0.1 m3/s) from 0.2 m of water in a closed basin, semi-implicit.",
+ "solver": "sflow",
+ "np": 1,
+ "steps": 60,
+ "tags": [
+  "quick",
+  "2d",
+  "sflow",
+  "hydro",
+  "semi_implicit"
+ ],
+ "covers": [
+  "R 40 with Q < 0: abstraction limited to the water above A 244"
+ ]
+}

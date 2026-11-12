@@ -1,0 +1,4 @@
+{"solver": "nhflow", "np": 1, "steps": 40, "files": ["../nhflow_3d_amr_hull_x15_8/floating.stl"],
+ "description": "floating hemisphere R 0.5 m (X 180 STL) released 0.05 m above equilibrium, free in heave, dx 0.1 m, 6 x 6 x 3.5 m, X 15 10 (cut faces) in 3D: the quadrilateral apertures, the y faces, the head of the covered columns. Ship Hydrodynamics validation 31 (5 s: T_n, a33/M, zeta against Hulme).",
+ "tags": ["3d", "nhflow", "6dof", "floating"],
+ "covers": ["X 15 10 in 3D"]}

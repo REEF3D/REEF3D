@@ -96,6 +96,10 @@ struct amr_load_counts
     int npatch = 0;         // patches of the rank
     double wpred = 0.0;     // predicted work (the model of the placement)
     double tpatch = -1.0;   // the module's own clock of the patch kernels (cumulative), <0: amr_clock::patch
+    // further clocks of the module (cumulative, s; the same number and names at every report): per rank
+    // in the window, and max/mean over the ranks in the summary (CFD: the parts of the projection)
+    std::vector<double> clk;
+    std::vector<std::string> clk_names;
 };
 
 class amr_load
@@ -114,6 +118,7 @@ private:
     bool started = false;
     int steps = 0;
     double w0 = 0.0, m0 = 0.0, p0 = 0.0, r0 = 0.0, rm0 = 0.0;
+    std::vector<double> c0;     // the clocks of the module at the start of the window
     std::ofstream sout, rout;
 };
 

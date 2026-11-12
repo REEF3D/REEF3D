@@ -121,22 +121,24 @@ void flowfile_in::ff_inflow(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v
     k=p->gcin[n][2];
     
     // U
-    if(k<maxk && a->phi(i-1,j,k)>=0.6*p->DXM)
-    uval = U0[0][k+dk]*t0 + U1[0][k+dk]*t1;
-    
+    // air above the file profile: 0, else (water and the interface band, which kept the value of the previous
+    // inflow cell before) the file value
     if(k>=maxk || a->phi(i-1,j,k)<-0.6*p->DXM)
     uval = 0.0;
+    else
+    uval = U0[0][k+dk]*t0 + U1[0][k+dk]*t1;
 
     u(i-1,j,k)=uval;
     u(i-2,j,k)=uval;
     u(i-3,j,k)=uval;
     
     // V 
-    if(k<maxk && a->phi(i-1,j,k)>=0.6*p->DXM)
-    vval = V0[0][k+dk]*t0 + V1[0][k+dk]*t1;
-    
+    // air above the file profile: 0, else (water and the interface band, which kept the value of the previous
+    // inflow cell before) the file value
     if(k>=maxk || a->phi(i-1,j,k)<-0.6*p->DXM)
     vval = 0.0;
+    else
+    vval = V0[0][k+dk]*t0 + V1[0][k+dk]*t1;
     
     v(i-1,j,k)=vval;
     v(i-2,j,k)=vval;
@@ -144,11 +146,12 @@ void flowfile_in::ff_inflow(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v
     
 
     // W
-    if(k<maxk && a->phi(i-1,j,k)>=0.6*p->DXM)
-    wval = W0[0][k+dk]*t0 + W1[0][k+dk]*t1;
-    
+    // air above the file profile: 0, else (water and the interface band, which kept the value of the previous
+    // inflow cell before) the file value
     if(k>=maxk || a->phi(i-1,j,k)<-0.6*p->DXM)
     wval = 0.0;
+    else
+    wval = W0[0][k+dk]*t0 + W1[0][k+dk]*t1;
 	
     w(i-1,j,k)=wval;
     w(i-2,j,k)=wval;

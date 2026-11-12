@@ -1,0 +1,8 @@
+{
+ "description": "NHFLOW 2D open channel (h 2 m, U 1 m/s, ks 0.01 m) with the Smagorinsky LES (A 560 31) and bed friction A 519 1 on the wall-function bed A 518 1: du/dz, dv/dz of the bed cell from the log law in the strain (nhflow_gradient bedwall), mirrored bed ghost cells, implicit zero-gradient bed face.",
+ "solver": "nhflow",
+ "np": 1,
+ "steps": 300,
+ "tags": ["quick", "2d", "nhflow", "turbulence", "les", "bed"],
+ "covers": ["nhflow_gradient dfdsig_bed", "nhflow_LES_Smagorinsky strain at the bed", "nhflow_idiff_u_2D bed face A 518 1"]
+}

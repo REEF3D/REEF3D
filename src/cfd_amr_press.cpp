@@ -23,14 +23,20 @@ Architect: Hans Bihs
 #include"cfd_amr.h"
 #include"reef3d_mpmd.h"
 #include<map>
+#include<unordered_map>
 #include<tuple>
 #include"lexer.h"
 #include"fdm.h"
+#include"solid_closed.h"
 #include"ghostcell.h"
 #include"heaviside.h"
 #include"interface_width.h"
 #include"momentum_rk.h"
 #include"pjm_corr.h"
+#include"pic_gfm.h"
+#include"cfd_singlephase.h"
+#include<set>
+#include<array>
 #include"ioflow.h"
 #include"reefmg_core.h"
 #include"reefamr_krylov.h"
@@ -40,6 +46,19 @@ Architect: Hans Bihs
 #include<algorithm>
 #include<limits>
 #include"definitions.h"
+
+using PRS = amr_phase<cfd_amr::PR_NPART>;
+
+// D 32: the face of a patch edge closed in a solid (solid_closed.h), on the grid of the fine cell: the
+// fine cell and the cell around the patch across the face
+static bool cf_closed(lexer *pp, fdm *a, const cfd_amr_cf &F)
+{
+    if(pp->D32<=0)
+    return false;
+    int e[3] = {0,0,0};
+    e[F.d] = F.dir;
+    return solid_face_closed(pp,a,F.fi[0],F.fi[1],F.fi[2],e[0],e[1],e[2]);
+}
 
 //  The composite pressure projection of REEF3D::CFD with mesh refinement.
 //
@@ -58,10 +77,13 @@ Architect: Hans Bihs
 //    - after the solve the fine faces are corrected with that flux, the coarse face is the mean of
 //      the fine faces (restriction): the velocities of all leaf cells are divergence free together
 //
-//  BiCGStab (reefamr_bicgstab), right preconditioned by one multiplicative FAC V-cycle (pr_prec):
-//  patch-local REEFMG V-cycles level by level down (zero correction around the patch), a REEFMG
-//  V-cycle on level 0 (the whole rank grid with its own Poisson matrix), patch-local V-cycles level
-//  by level up, every correction passed on into the finer levels at once.  The patches of a rank
+//  BiCGStab (reefamr_bicgstab), right preconditioned by one multiplicative FAC cycle (pr_prec): a
+//  REEFMG V-cycle on level 0 (the whole rank grid with its own Poisson matrix), then patch-local
+//  REEFMG V-cycles level by level up (zero correction around the patch).  G 48 0 (the default):
+//  the composite residual of the level and all finer ones before every level solve, every
+//  correction passed on into the finer levels at once; G 48 1 (G 40): as 0 with a down sweep
+//  before level 0; G 48 2: every level takes the residual of its own rows only, the solution of
+//  the coarser level prolonged into it first (every row once per cycle).  The patches of a rank
 //  next to each other take one V-cycle together (the joint multigrids); at the sides to the
 //  patches of the level in another multigrid (another rank, or no joint multigrid) the V-cycles
 //  reach three cells into them (their rows and right-hand side, the correction kept inside:
@@ -411,6 +433,8 @@ void cfd_amr::pr_setup()
                     F.area /= double(rr[e]);
 
                     F.ustar = F.kf = F.kc = 0.0;
+                    F.gs = F.gf = 1.0;
+                    F.fw = F.cw = true;
                     cf.push_back(F);
                 }
             }
@@ -446,6 +470,11 @@ void cfd_amr::pr_setup()
     mg0 = new reefmg_core;
     mg0->set_precision(p0->N14==32 ? 32 : 64);
     mg0->set_fine_operator(&pr_fineop_none);
+    // N 16: the level-0 V-cycle on a device (the Apple GPU), as the uniform solver (reefmg.cpp);
+    // the patch and level multigrids stay on the CPU
+    mg0->set_device(reefmg_core::vcycle_device(p0->N16));   // N 16 2, 4: the V-cycle device
+    mg0->set_device_cycle(p0->N17,p0->N19);
+    mg0->set_device_precision(p0->N21);
     if(!mg0->setup(pgc0->cart(),p0->knox,p0->knoy,p0->knoz,p0->gknox,p0->gknoy,p0->N13,p0->DXN+marge-1,p0->DYN+marge-1,
                    p0->periodic1>0,p0->periodic2>0 && p0->j_dir==1))
     {
@@ -453,6 +482,8 @@ void cfd_amr::pr_setup()
         cout<<"CFD AMR: level-0 multigrid "<<mg0->err()<<endl;
         MPI_Abort(MPI_COMM_WORLD,-3122);
     }
+    if(p0->mpirank==0 && p0->N16>0)
+    cout<<"CFD AMR: level-0 multigrid: "<<mg0->device_status()<<endl;
     }
 
     // the joint multigrids of the levels (the patches of a rank next to each other), then the overlap
@@ -1068,13 +1099,13 @@ void cfd_amr::pr_level_vcycle(int m, int kr, int kz, int kc)
 
 void cfd_amr::pr_level_solve(int l, int kr, int kz, int kc)
 {
+    PRS ps_(prc,PR_LCYCLE);
     // the overlap (pr_ras): the right-hand side in the overlap of the patch multigrids (the patches next
     // to them)
     if(pr_ovl)
     {
-        vector<fspec> fs;
-        fs.push_back({CELL,2,[this,kr](int g) -> field& { return pfield(g,kr); }});
-        fill(l,fs,true);
+        PRS po_(prc,PR_OVFILL);
+        fill_cells(l,1,[this,kr](int,int g) -> double* { return pvec(g,kr); },true);
     }
     for(int m=0; m<(int)lmg.size(); ++m)
     if(P[lmg[m].ids[0]]->lev==l)
@@ -1172,7 +1203,16 @@ inline double rmass(double phi1, double phi2, double ds, double e, double row, d
 // the weights of the coarse value at the position of the fine cell, for the stage: linear in the
 // transverse directions in the density-weighted distance (the acceleration (dp/ds)/rho is taken
 // constant between the cells, not dp/ds): at a free surface across a patch edge, the hydrostatic
-// pressure and the pressure correction keep their kink, the faces in the air no spurious gradient
+// pressure and the pressure correction keep their kink, the faces in the air no spurious gradient.
+// G 8 1: the mass from the coarse centre to the height of the fine cell with the level set of the
+// coarse column there (linear between the coarse cells), the column of the mass between the coarse
+// cells it is divided by, so the weights are those of the coarse column. G 8 0: the level set of
+// the fine cell at the end of that line. Where the fine cell lies closer to the free surface than
+// the coarse column (in the air next to a free surface along the patch edge), its density in the
+// interface width of the coarse grid made the weights grow to 3 and more against 0.125 for linear
+// interpolation: the coarse pressure and its correction were extrapolated onto the fine faces, the
+// faces of the patch edge oscillated in the air, and the oscillation moved the fine level set
+// further towards the free surface (2D weir, validation CFD AMR speed/06)
 void cfd_amr::pr_weights()
 {
     // face density of the fine face (the level set of the fine cell and of the cell across)
@@ -1194,7 +1234,7 @@ void cfd_amr::pr_weights()
     {
         lexer *qc = glex(F.gc);
         fdm *ac = gfd(F.gc);
-        const double e = qc->psi, row = qc->W1, roa = qc->W3;
+        const double e = interface_band(qc), row = qc->W1, roa = qc->W3;
         const double *dn[3] = {qc->DXN,qc->DYN,qc->DZN};
         const double phC = ac->phi.V[F.qc];
         const double phf = CP(F.pid)->a->phi.V[F.qf];
@@ -1220,8 +1260,18 @@ void cfd_amr::pr_weights()
             if(F.tdel[t]==0.0)
             continue;
             const double h = dn[t][F.ci[t]+marge];
-            const double mf = rmass(phC,phf,F.tdel[t]*h,e,row,roa);
             const int qm = F.tq[t][0], qp = F.tq[t][1];
+            double phs = phf;
+            if(p0->G8==1)
+            {
+                if(qm>=0 && qp>=0)
+                phs = phC + F.tdel[t]*0.5*(ac->phi.V[qp]-ac->phi.V[qm]);
+                else if(qp>=0)
+                phs = phC + F.tdel[t]*(ac->phi.V[qp]-phC);
+                else if(qm>=0)
+                phs = phC + F.tdel[t]*(phC-ac->phi.V[qm]);
+            }
+            const double mf = rmass(phC,phs,F.tdel[t]*h,e,row,roa);
 
             if(qm>=0 && qp>=0)
             {
@@ -1243,6 +1293,43 @@ void cfd_amr::pr_weights()
             }
         }
     }
+
+    // F 41 1: p = 0 at the free surface by the ghost fluid method across the faces at the patch
+    // edges, as pic_gfm_matrix / pic_gfm_grad within a grid.  The line from the fine cell to the
+    // coarse value at its position (dist): the level set of the fine cell and the coarse level set
+    // there (the weights of the coarse value, linear with the one density of the single phase).
+    // A cell in the air has the row p = 0 (pic_gfm_matrix): its side of the face is left out
+    const bool gfm = gfm_single(p0);
+    for(cfd_amr_cf &F : cf)
+    {
+        F.gs = F.gf = 1.0;
+        F.fw = F.cw = true;
+        if(!gfm)
+        continue;
+
+        const double phf = CP(F.pid)->a->phi.V[F.qf];
+        double phs = 0.0;
+        for(int m=0; m<F.ns; ++m)
+        phs += F.sw[m]*gfd(F.sg[m])->phi.V[F.sq[m]];
+
+        F.fw = phf>=0.0;
+        F.cw = gfd(F.gc)->phi.V[F.qc]>=0.0;
+
+        if(phf>=0.0 && phs>=0.0)
+        continue;
+        if(phf>=0.0)
+        {
+            F.gs = 0.0;
+            F.gf = 1.0/pic_gfm_theta(phf,phs);
+        }
+        else if(phs>=0.0)
+        {
+            F.gs = 1.0/pic_gfm_theta(phs,phf);
+            F.gf = 0.0;
+        }
+        else
+        F.gs = F.gf = 0.0;
+    }
 }
 
 // The hydrostatic pressure of the fine cell and at its position on the coarse side, for the faces
@@ -1262,7 +1349,20 @@ void cfd_amr::pr_hydro(int lsub)
     const double g = fabs(p0->W22);
 
 
-    // grid gg, column (i,j): p_h of cell kc, from the plane on top of cell ktop-1 (kc <= ktop)
+    // grid gg, column (i,j): p_h of cell kc, from the plane on top of cell ktop-1 (kc <= ktop).
+    // The sum down a column is kept (cols): the faces of a patch edge share their columns (every
+    // face under a patch, and the columns of the coarse values of its neighbours, took the sum
+    // from the top of the patch again: with a patch n cells high n smoothed steps and interface
+    // widths per face).  The same terms in the same order: the same values
+    struct hcol
+    {
+        int kdone;              // the sum holds the faces down to cell kdone
+        bool bad;               // a cell without flag below kdone: no value further down
+        double h;               // the sum at kdone
+        vector<double> hk;      // the sums of the cells ktop-1, ktop-2, ..
+    };
+    std::unordered_map<unsigned long long,hcol> cols;
+
     auto column = [&](int gg, int i, int j, int ktop, int kc, double &val) -> bool
     {
         lexer *q = glex(gg);
@@ -1277,21 +1377,41 @@ void cfd_amr::pr_hydro(int lsub)
         if(q->flag4[cix(q,i,j,k)]<=0 && k<ktop)
         return false;
 
-        double h = g*rho(phi(i,j,ktop-1),interface_width(q,phi,i,j,ktop-1))*0.5*q->DZN[ktop-1+marge];   // cell ktop-1
+        const unsigned long long key = ((unsigned long long)(gg+1)<<50) | ((unsigned long long)(i+m)<<32) | ((unsigned long long)(j+m)<<14) | (unsigned long long)(ktop+m);   // (18 bits for i and j, 14 for k)
+        auto it = cols.find(key);
+        if(it==cols.end())
+        {
+            hcol c;
+            c.kdone = ktop-1;
+            c.bad = false;
+            c.h = g*rho(phi(i,j,ktop-1),interface_width(q,phi,i,j,ktop-1))*0.5*q->DZN[ktop-1+marge];   // cell ktop-1
+            c.hk.push_back(c.h);
+            it = cols.emplace(key,std::move(c)).first;
+        }
+        hcol &c = it->second;
+
         if(kc==ktop)
         {
             if(q->flag4[cix(q,i,j,ktop)]<=0)
             return false;
-            val = h - g*rho(0.5*(phi(i,j,ktop-1)+phi(i,j,ktop)),interface_width_face(q,phi,i,j,ktop-1,0,0,1))*q->DZP[ktop-1+marge];
+            val = c.hk[0] - g*rho(0.5*(phi(i,j,ktop-1)+phi(i,j,ktop)),interface_width_face(q,phi,i,j,ktop-1,0,0,1))*q->DZP[ktop-1+marge];
             return true;
         }
-        for(int k=ktop-2; k>=kc; --k)
+        while(c.kdone>kc && !c.bad)
         {
+            const int k = c.kdone-1;
             if(q->flag4[cix(q,i,j,k)]<=0)
-            return false;
-            h += g*rho(0.5*(phi(i,j,k)+phi(i,j,k+1)),interface_width_face(q,phi,i,j,k,0,0,1))*q->DZP[k+marge];
+            {
+                c.bad = true;
+                break;
+            }
+            c.h += g*rho(0.5*(phi(i,j,k)+phi(i,j,k+1)),interface_width_face(q,phi,i,j,k,0,0,1))*q->DZP[k+marge];
+            c.hk.push_back(c.h);
+            c.kdone = k;
         }
-        val = h;
+        if(c.kdone>kc)
+        return false;
+        val = c.hk[ktop-1-kc];
         return true;
     };
 
@@ -1364,6 +1484,66 @@ double cfd_amr::pr_ps(const cfd_amr_cf &F)
     return v;
 }
 
+// the share of the direct forcing at a face (field d, cell index c of grid g; the face between c and
+// c + e_d), as the forcing took it: the solids and the bed (ghostcell::solid_forcing) and the 6DOF
+// bodies (sixdof_obj_cfd::update_forcing; fbh1-3 hold the Heaviside of the bodies alone after their
+// forcing, the solids are kept apart, cfd_amr_6dof::reset_fbh).  Inside a solid or a body (its level
+// set at the face < 0) the share is H; outside, in the tangential mode (B 21 1, X 14 > 0) the forcing
+// takes |n_d| H, the component along the normal only
+double cfd_amr::forced_share(int g, const int *c, int d)
+{
+    lexer *q = glex(g);
+    fdm *f = gfd(g);
+    const int e[3] = {d==0 ? 1 : 0, d==1 ? 1 : 0, d==2 ? 1 : 0};
+    const int i0 = c[0], j0 = c[1], k0 = c[2];
+    const int i1 = i0+e[0], j1 = j0+e[1], k1 = k0+e[2];
+
+    // |n_d| of the level set ls at cell c (central differences, as the forcing)
+    auto normal_d = [&](field &ls) -> double
+    {
+        const double nx = (ls(i0+1,j0,k0) - ls(i0-1,j0,k0))/(2.0*q->DXN[i0+marge]);
+        const double ny = (ls(i0,j0+1,k0) - ls(i0,j0-1,k0))/(2.0*q->DYN[j0+marge]);
+        const double nz = (ls(i0,j0,k0+1) - ls(i0,j0,k0-1))/(2.0*q->DZN[k0+marge]);
+        const double norm = sqrt(nx*nx + ny*ny + nz*nz);
+        if(norm<=1.0e-20)
+        return 0.0;
+        return fabs(d==0 ? nx : (d==1 ? ny : nz))/norm;
+    };
+
+    double H = 0.0;
+    if(q->G505==0 && (q->solidread>0 || q->topoforcing>0))
+    {
+        const double phs = 0.5*(f->solid(i0,j0,k0)+f->solid(i1,j1,k1));
+        const double pht = 0.5*(f->topo(i0,j0,k0)+f->topo(i1,j1,k1));
+        double ph;
+        if(q->topoforcing>0 && q->solidread>0)
+        ph = MIN(phs,pht);
+        else if(q->topoforcing>0)
+        ph = pht;
+        else
+        ph = phs;
+
+        const double psi = (q->j_dir==1) ? q->X41*(1.0/3.0)*(q->DXN[i0+marge]+q->DYN[j0+marge]+q->DZN[k0+marge])
+                                         : q->X41*0.5*(q->DXN[i0+marge]+q->DZN[k0+marge]);
+        double Hs = heaviside(-ph,psi);
+        if(q->B21==1 && ph>=0.0)
+        {
+            const bool topo_normal = q->topoforcing>0 && (q->solidread==0 || phs>=pht);
+            Hs *= normal_d(topo_normal ? (field&)f->topo : (field&)f->solid);
+        }
+        H += Hs;
+    }
+    if(bodies)
+    {
+        field &fbh = (d==0) ? (field&)f->fbh1 : (d==1 ? (field&)f->fbh2 : (field&)f->fbh3);
+        double Hb = fbh(i0,j0,k0);
+        if(q->X14!=0 && 0.5*(f->fb(i0,j0,k0)+f->fb(i1,j1,k1))>0.0)
+        Hb *= normal_d(f->fb);
+        H += Hb;
+    }
+    return MAX(0.0,MIN(1.0,H));
+}
+
 // the stage predictor at the faces of the patch edges: the coarse face velocity, linear in the
 // transverse directions
 void cfd_amr::pr_predict(int s)
@@ -1426,16 +1606,70 @@ void cfd_amr::pr_predict(int s)
             lexer *ql = (F.dir>0) ? qp : qc;
             const double *dp[3] = {ql->DXP,ql->DYP,ql->DZP};
             const int Lc = (F.dir>0) ? F.pi[F.d] : F.ci[F.d];
-            const double Gc = double(F.dir)*(pC-pP)/(dp[F.d][Lc+marge]*roc);
-            const double Gf = double(F.dir)*(pCs-pf)/(F.dist*rof);
+            double Gc = double(F.dir)*(pC-pP)/(dp[F.d][Lc+marge]*roc);
+            double Gf = double(F.dir)*(pCs-pf)/(F.dist*rof);
 
-            v += bs*p0->dt*(Gc-Gf);
+            // F 41 1: the gradients of the ghost fluid method.  The coarse face as the coarse
+            // momentum took it (pjm_corr::upgrad, pic_gfm_grad); the fine face with the factors of
+            // the composite operator (pr_weights).  The surface between the fine cell and the coarse
+            // value: the whole pressures (p = 0 in the air) and the gravity kept
+            bool hyd = F.hok;
+            if(gfm_single(p0))
+            {
+                // (F 41 2: the pressure of the surface is that of the air pocket of the cell in the
+                // air, pic_gfm_air)
+                const double pm = (F.dir>0) ? pP : pC, fm = (F.dir>0) ? phP : phC;
+                const double pl = (F.dir>0) ? pC : pP, fl = (F.dir>0) ? phC : phP;
+                const double am = (F.dir>0) ? pic_gfm_air(qp,F.pi[0],F.pi[1],F.pi[2]) : pic_gfm_air(qc,F.ci[0],F.ci[1],F.ci[2]);
+                const double al = (F.dir>0) ? pic_gfm_air(qc,F.ci[0],F.ci[1],F.ci[2]) : pic_gfm_air(qp,F.pi[0],F.pi[1],F.pi[2]);
+                const double dx = dp[F.d][Lc+marge];
+                double g = 0.0;
+                if(fm>=0.0 && fl>=0.0)
+                g = (pl-pm)/dx;
+                else if(fm>=0.0)
+                g = (al-pm)/(pic_gfm_theta(fm,fl)*dx);
+                else if(fl>=0.0)
+                g = (pl-am)/(pic_gfm_theta(fl,fm)*dx);
+                Gc = g/roc;
+
+                if(F.gs!=1.0 || F.gf!=1.0)
+                {
+                    hyd = false;
+                    double I = 0.0;
+                    if(F.gs==0.0 && F.gf>0.0)
+                    {
+                        // the fine cell in the water: the pocket of a cell in the air of the coarse value
+                        for(int m=0; m<F.ns; ++m)
+                        if(gfd(F.sg[m])->phi.V[F.sq[m]]<0.0)
+                        {
+                            I = F.gf*pic_gfm_air(glex(F.sg[m]),F.sc[m][0],F.sc[m][1],F.sc[m][2]);
+                            break;
+                        }
+                    }
+                    else if(F.gf==0.0 && F.gs>0.0)
+                    I = -F.gs*pic_gfm_air(pp,F.fi[0],F.fi[1],F.fi[2]);
+                    Gf = double(F.dir)*(F.gs*pr_ps(F) - F.gf*af->press(F.fi[0],F.fi[1],F.fi[2]) + I)/(F.dist*rof);
+                }
+            }
+
+            // the direct forcing (solids G 505 0, 6DOF bodies X 10) took the share H of the coarse
+            // face to its target velocity, the pressure gradient and the gravity with it: they are
+            // replaced on the share 1-H only.  Replaced on the whole face, a face deep in a solid
+            // took dt (Gc-Gf) with the densities of the level set extended into the solid (X 48 2,
+            // 3), in the air above the free surface there 1000 times the velocity of water
+            const double Hf = MAX(forced_share(F.gface,F.cf,F.d),forced_share(F.pid,F.ff,F.d));
+
+            v += (1.0-Hf)*bs*p0->dt*(Gc-Gf);
 
             // a face normal to gravity: the hydrostatic part of the pressure gradient balances the
             // gravity of the coarse stage velocity, both out
-            if(F.hok && F.d==2)
-            v -= bs*p0->dt*p0->W22*fpc;
+            if(hyd && F.d==2)
+            v -= (1.0-Hf)*bs*p0->dt*p0->W22*fpc;
         }
+
+        // D 32: a face closed in a solid takes no flux
+        if(cf_closed(CP(F.pid)->pp,CP(F.pid)->a,F))
+        v = 0.0;
 
         F.ustar = v;
         field &ff = CP(F.pid)->pmom->amr_velout(CP(F.pid)->a,F.d,s);
@@ -1519,12 +1753,20 @@ void cfd_amr::pr_matrix(int s)
         F.kf = 1.0/(rof*F.dist*F.dxnf);
         F.kc = F.area/(rof*F.dist*F.dxnc);
 
+        // D 32: a face closed in a solid: no coupling (Neumann on both sides, the fine row lost its
+        // coupling to the cell around the patch in poisson_pcorr already)
+        if(cf_closed(pp,a,F))
+        F.kf = F.kc = 0.0;
+
         // the couplings across the face are in pr_apply (the fine row to the coarse value at its
         // position, the coarse row to the fluxes of its fine faces); the diagonal of the fine row
         // keeps its part
+        // (F 41 1: a fine cell in the air keeps its row p = 0; the ghost fluid method across the
+        // face: gf on the diagonal, gs on the coupling in pr_apply)
         matrix_diag &Mf = a->M;
         double &cfn = mcoef(Mf,F.nf,F.d,F.dir);
-        Mf.p[F.nf] += cfn + F.kf;
+        if(F.fw)
+        Mf.p[F.nf] += cfn + F.kf*F.gf;
         cfn = 0.0;
 
         // (G 40: the coarse cell in a shadow; its rank folds the row, sh_folds)
@@ -1547,7 +1789,7 @@ void cfd_amr::pr_matrix(int s)
     {
         std::map<std::tuple<int,int,int,int,int,int>,double> ks;
         for(const cfd_amr_cf &F : cf)
-        if(F.gc==F.gp)
+        if(F.gc==F.gp && F.cw)
         ks[std::make_tuple(F.gc,F.ci[0],F.ci[1],F.ci[2],F.d,F.dir)] += F.kc;
 
         // G 40: the keys of the shadows to the ranks of their coarse cells (sh_ks)
@@ -1776,22 +2018,32 @@ void cfd_amr::sh_ks()
 
 // the cells around the patches: the vector of the patch of the same level, or the value of the
 // coarser cell (the patch rows couple to the coarse cell across a patch edge); the level-0 halo
-void cfd_amr::pr_sync(int k)
+// the halos of vector k for the operator: the level-0 halo and the fills of the patches.  For the
+// rows of the levels >= lmin only (pr_residual): the fills of the levels >= lmin - 1 (the coarse
+// values the edges of level lmin read, with their transverse neighbours), the level-0 halo while
+// level 1 is filled
+void cfd_amr::pr_sync(int k, int lmin, bool sh1)
 {
-    vector<fspec> fs;
-    fs.push_back({CELL,2,[this,k](int g) -> field& { return pfield(g,k); }});
+    pr_wait();
+    PRS ps_(prc,PR_HALO);
+    const std::function<double*(int,int)> fs = [this,k](int,int g) -> double* { return pvec(g,k); };
 
     // level projection (G 7 1): the patches of the level next to each other
     if(prl>0)
     {
-        fill(prl,fs);
+        fill_cells(prl,1,fs);
         return;
     }
 
+    // (the fills of level lmin - 1 as well: without them the coarse values across the edges of level
+    // lmin are not those of the full apply, the results change)
+    const int lf = MAX(lmin-1,1);
+    if(lf<=1)
     pr_halo0(pfield(-1,k));
 
     // (the operator reaches one cell around a patch: the cells next to it)
-    fill_all(fs,1);
+    for(int l=lf; l<=maxlev; ++l)
+    fill_cells(l,1,fs,false,1,sh1);
 }
 
 // the halo of a level-0 vector: the neighbour ranks, the periodic edges
@@ -1812,12 +2064,18 @@ void cfd_amr::pr_halo0(field &f)
 }
 
 // y = A x on the leaf cells
-void cfd_amr::pr_apply(int kx, int ky)
+// y = A x on the leaf cells; lmin > 0: the rows of the grids of the levels >= lmin only (the fine
+// side of the edges of level lmin, both sides of the finer edges), the other rows of y left as they
+// are (pr_residual: the residual of the levels a level solve reads)
+void cfd_amr::pr_apply(int kx, int ky, int lmin)
 {
-    pr_sync(kx);
+    PRS ps_(prc,PR_OPERATOR);
+    pr_sync(kx,lmin,true);
 
     for(int g : prg)
     {
+        if(glevel(g)<lmin)
+        continue;
         lexer *q = glex(g);
         const matrix_diag &M = gfd(g)->M;
         const double *x = pvec(g,kx);
@@ -1844,20 +2102,31 @@ void cfd_amr::pr_apply(int kx, int ky)
     return;
 
     // G 40: the fluxes into the coarse cells of the shadows go to the ranks of those cells
+    // (the shadows are level 0: their rows only with lmin 0)
     const std::function<field&(int)> fy = [this,ky](int g) -> field& { return pfield(g,ky); };
-    if(place)
-    sh_zero(pu_cc,fy);
+    if(place && lmin==0)
+    {
+        PRS sh_(prc,PR_SHADOW);
+        sh_zero(pu_cc,fy);
+    }
 
     for(const cfd_amr_cf &F : cf)
     {
+        const int lf = glevel(F.pid);
+        if(lf<lmin)
+        continue;
         const double xs = pr_xs(F,kx);
         const double xf = pvec(F.pid,kx)[F.qf];
-        pvec(F.pid,ky)[F.qf] -= F.kf*xs;
-        pvec(F.gc,ky)[F.qc] += F.kc*(xs-xf);
+        // (F 41 1: the rows of the cells in the air p = 0; the ghost fluid method, gs and gf)
+        if(F.fw)
+        pvec(F.pid,ky)[F.qf] -= F.kf*F.gs*xs;
+        if(lf-1>=lmin && F.cw)
+        pvec(F.gc,ky)[F.qc] += F.kc*(F.gs*xs-F.gf*xf);
     }
 
-    if(place)
+    if(place && lmin==0)
     {
+        PRS sh_(prc,PR_SHADOW);
         vector<std::function<field&(int)>> f(1,fy);
         sh_run(pu_cc,f,true);
     }
@@ -1872,6 +2141,7 @@ double cfd_amr::pr_dot(int ka, int kb)
         for(int qq : UQ(g))
         s += a[qq]*b[qq];
     }
+    pr_wait();
     MPI_Allreduce(MPI_IN_PLACE,&s,1,MPI_DOUBLE,MPI_SUM,reef3d_comm());
     return s;
 }
@@ -1927,12 +2197,16 @@ void cfd_amr::pr_x(double alp, double om)
 }
 
 // the composite residual r - A z into kt: leaf cells, then the cells under the patches of the levels
-// above lmin from their children (finest first)
+// above lmin from their children (finest first).  Only the rows of the levels >= lmin: the level
+// solves that follow read no other (pr_apply with lmin; the same values as the full apply)
 void cfd_amr::pr_residual(int kr, int kz, int kt, int lmin)
 {
-    pr_apply(kz,kt);
+    PRS ps_(prc,PR_OPERATOR);
+    pr_apply(kz,kt,lmin);
     for(int g=-1; g<(int)P.size(); ++g)
     {
+        if(glevel(g)<lmin)
+        continue;
         const double *r = pvec(g,kr);
         double *t = pvec(g,kt);
         for(int qq : lq[g+1])
@@ -1940,14 +2214,16 @@ void cfd_amr::pr_residual(int kr, int kz, int kt, int lmin)
     }
     vector<std::function<field&(int)>> cells, none;
     cells.push_back([this,kt](int g) -> field& { return pfield(g,kt); });
+    PRS rs_(prc,PR_RESTRICT);
     for(int l=maxlev; l>lmin; --l)
     restrict_level(l,cells,none);
 }
 
-// the half width of the interface band of grid g (psi of its level)
+// the half width of the interface band of grid g (psi of its level; with G 28 the one width of the
+// density on all levels)
 double cfd_amr::psi_band(int g)
 {
-    return (g<0) ? p0->psi : glex(g)->psi;
+    return interface_band((g<0) ? p0 : glex(g));
 }
 
 // z = M^-1 r: one multiplicative FAC V-cycle over the levels.  Down (G 40 only): on every level,
@@ -1963,6 +2239,7 @@ double cfd_amr::psi_band(int g)
 // surface 67; with the corrections passed on 4.6-4.8, and 11.)
 void cfd_amr::pr_prec(int kr, int kz)
 {
+    PRS ps_(prc,PR_PREC);
     const int KT = REEFAMR_NTMP;        // residual
     const int KC = REEFAMR_NVEC;        // the correction of a level, passed on to the finer levels
 
@@ -2005,13 +2282,13 @@ void cfd_amr::pr_prec(int kr, int kz)
     }
 
     // KC of a level: its cells around the patches (the slopes of the prolongation reach one cell)
-    vector<fspec> fc;
-    fc.push_back({CELL,2,[this](int g) -> field& { return pfield(g,REEFAMR_NVEC); }});
+    const std::function<double*(int,int)> fc = [this](int,int g) -> double* { return pvec(g,REEFAMR_NVEC); };
 
     // the correction of level l-1 (KC) prolonged into the patches of level l: added to z, and into
     // KC of level l (linear: the central differences of the parent, as prolong mode 0)
     auto into = [&](int l)
     {
+        PRS pi_(prc,PR_PROLONG);
         for(int id : lev[l])
         {
             cfd_amr_patch *c = CP(id);
@@ -2071,7 +2348,10 @@ void cfd_amr::pr_prec(int kr, int kz)
         {
             into(lv);
             if(lv<maxlev)
-            fill(lv,fc,false,1);
+            {
+                PRS pf_(prc,PR_CFILL);
+                fill_cells(lv,1,fc,false,1,true);
+            }
         }
     };
 
@@ -2086,16 +2366,172 @@ void cfd_amr::pr_prec(int kr, int kz)
         for(int id : lev[l])
         zero_patch(id,pvec(id,KC));
         pr_level_solve(l,kt,kz,KC);
-        fill(l,fc,false,1);
+        {
+            PRS pf_(prc,PR_CFILL);
+            fill_cells(l,1,fc,false,1,true);
+        }
         pass_on(l);
     };
+
+    // G 48 2: the residual of every level on its own rows only.  The cycle below (G 48 0) takes
+    // the composite residual three times with two refined levels: before level 0 (z is zero there:
+    // the residual is r), before level 1 on the rows of the levels 1 and 2, before level 2 on its
+    // rows; with the finest level holding most of the cells that is three passes over it for one
+    // V-cycle on it.  Here:
+    //   - the right-hand side of a level is r on its leaf cells and r restricted from the finer
+    //     levels under their patches (into kr itself: the cells under the patches are not part of
+    //     the Krylov vectors), once per cycle
+    //   - level 0: a V-cycle on that right-hand side, from zero
+    //   - level l = 1, 2, ..: the solution of level l-1 (KC, on all its rows) prolonged into the
+    //     patches, then the residual of the rows of level l with it: the leaf rows as in the
+    //     composite operator, but the flux through a face of a finer patch from the covered cell
+    //     behind it instead of the fine cells (the couplings of the multigrid of the level there,
+    //     pr_matrix); the rows under the finer patches those of the level, with that flux.  Then
+    //     the V-cycles of the level on it (pr_level_solve, as before)
+    // Every row of every grid is taken once per cycle.  The residual under the finer patches is
+    // that of the operator of the coarser level, not the restricted residual of the finer one:
+    // the same V-cycles per iteration, the same or up to 15 % fewer iterations (four adaptive
+    // levels 7.3 instead of 7.8, 3D waves with two levels 6.2 instead of 7.0; validation
+    // CFD AMR speed/02)
+    if(p0->G48==2)
+    {
+        const std::function<double*(int,int)> fz = [this,kz](int,int g) -> double* { return pvec(g,kz); };
+
+        {
+            vector<std::function<field&(int)>> cells, none;
+            cells.push_back([this,kr](int g) -> field& { return pfield(g,kr); });
+            PRS rs_(prc,PR_RESTRICT);
+            for(int g=-1; g<(int)P.size(); ++g)
+            {
+                double *r = pvec(g,kr);
+                for(int qq : cq[g+1])
+                r[qq] = 0.0;
+            }
+            for(int l=maxlev; l>0; --l)
+            restrict_level(l,cells,none);
+        }
+
+        // level 0
+        {
+            PRS p0_(prc,PR_L0CYCLE);
+            sc_level &L = mg0->fine();
+            const double *r = pvec(-1,kr);
+            double *z = pvec(-1,kz);
+            double *c = pvec(-1,KC);
+            std::fill(L.u.begin(),L.u.end(),0.0);
+            std::fill(L.f.begin(),L.f.end(),0.0);
+            for(size_t n=0; n<l0a.size(); ++n)
+            L.f[l0a[n]] = r[l0f[n]];
+
+            {
+                PRS pw_(prc,PR_WAIT);
+                lbar();
+            }
+            pr_wait();
+            const double t0 = MPI_Wtime();
+            mg0->vcycle(0,1,1);
+            tp[1] += MPI_Wtime()-t0;
+
+            for(size_t n=0; n<l0a.size(); ++n)
+            {
+                z[l0f[n]] += L.u[l0a[n]];
+                c[l0f[n]] = L.u[l0a[n]];
+            }
+
+            pr_halo0(pfield(-1,KC));
+            pr_halo0(pfield(-1,kz));
+        }
+
+        // G 40: the solution of level 0 in the shadows
+        if(place)
+        {
+            PRS sh_(prc,PR_SHADOW);
+            vector<std::function<field&(int)>> f(1,[this](int g) -> field& { return pfield(g,REEFAMR_NVEC); });
+            sh_down_f(f);
+        }
+
+        // (the fine faces of a coarse face)
+        const double nfi[3] = {1.0/double(rr[1]*rr[2]), 1.0/double(rr[0]*rr[2]), 1.0/double(rr[0]*rr[1])};
+
+        for(int l=1; l<=maxlev; ++l)
+        {
+            // z and KC of level l: the solution of level l-1
+            into(l);
+            {
+                PRS pf_(prc,PR_CFILL);
+                fill_cells(l,1,fz,false,1,true);
+            }
+
+            {
+                PRS po_(prc,PR_OPERATOR);
+                for(int id : lev[l])
+                {
+                    lexer *q = glex(id);
+                    const matrix_diag &M = gfd(id)->M;
+                    const double *x = pvec(id,kz), *r = pvec(id,kr);
+                    double *t = pvec(id,KT);
+                    const int sI = q->jmax*q->kmax;
+                    const int sJ = q->kmax;
+                    const vector<int> &LQ = aq[id+1], &LR = ar[id+1];
+                    const double *Mp=M.p.data(), *Mn=M.n.data(), *Ms=M.s.data(), *Mw=M.w.data(), *Me=M.e.data(), *Mt=M.t.data(), *Mb=M.b.data();
+
+                    for(size_t n=0; n<LQ.size(); ++n)
+                    {
+                        const int qq = LQ[n], m = LR[n];
+                        t[qq] = r[qq] - (Mp[m]*x[qq] + Mn[m]*x[qq+sI] + Ms[m]*x[qq-sI] + Mw[m]*x[qq+sJ] + Me[m]*x[qq-sJ] + Mt[m]*x[qq+1] + Mb[m]*x[qq-1]);
+                    }
+                }
+
+                for(const cfd_amr_cf &F : cf)
+                {
+                    const int lf = glevel(F.pid);
+
+                    // a fine row of the level at its edge: the coarse value at its position
+                    if(lf==l)
+                    pvec(F.pid,KT)[F.qf] += F.kf*pr_xs(F,kz);
+
+                    // a face of a finer patch: the coarse row (its coupling across the face is folded
+                    // into its diagonal, pr_matrix) and the row of the covered cell (the coupling of
+                    // the level, cp) take the flux kc of the fine face between the two of them
+                    if(lf==l+1)
+                    {
+                        const double zc = pvec(F.gc,kz)[F.qc], zp = pvec(F.gp,kz)[F.qp];
+                        pvec(F.gc,KT)[F.qc] -= F.kc*(zc-zp);
+
+                        const int rp = (F.gp<0) ? row0[F.qp] : CP(F.gp)->row[F.qp];
+                        if(rp>=0)
+                        {
+                            const double cp = mcoef(gfd(F.gp)->M,rp,F.d,F.dir);
+                            pvec(F.gp,KT)[F.qp] -= (F.kc + cp*nfi[F.d])*(zp-zc);
+                        }
+                    }
+                }
+            }
+
+            pr_level_solve(l,KT,kz,KC);
+
+            if(l<maxlev)
+            {
+                PRS pf_(prc,PR_CFILL);
+                fill_cells(l,1,fc,false,1,true);
+            }
+        }
+        return;
+    }
 
     // down (the finest level: z = 0, the residual is r), only with G 40.  Without the down sweep
     // (a V(0,2) cycle over the levels) each solve needs 0.5-1 iterations more with one or two levels
     // but every iteration half the patch V-cycles and composite residuals: the 67 CFD AMR cases 4.5 %
     // faster, four adaptive levels 8.7 iterations instead of 10.4 (20 -> 12 s).  With G 40 the down
-    // sweep stays (the dam break on 2 and 3 ranks: 7.6 and 8.2 iterations with it, 12 and 14 without)
-    if(place)
+    // sweep was kept (the dam break on 2 and 3 ranks: 7.6 and 8.2 iterations with it, 12 and 14
+    // without); G 48 1 keeps it, G 48 0 leaves it out.  Measured with the parts of the
+    // projection (validation 60): without it the scaled pier on 2 ranks takes 11 instead of 13
+    // iterations and 34 % less time in the projection, the adaptive dam break on 2 ranks 17 instead
+    // of 13 iterations and 29 % less time; on 3 ranks (on 2 cores) 13-16 instead of 8 iterations and
+    // 55 % more time.  With a core per rank every run of validation 65 was faster without it (the
+    // pier 1.04-1.08 times the time of G 40 0 instead of 1.40, the off-centre pier and the dam break
+    // faster than G 40 0): G 48 0 is the default
+    if(place && p0->G48==1)
     for(int l=maxlev; l>=1; --l)
     {
         if(l<maxlev)
@@ -2106,6 +2542,7 @@ void cfd_amr::pr_prec(int kr, int kz)
     // level 0
     pr_residual(kr,kz,KT,0);
     {
+        PRS p0_(prc,PR_L0CYCLE);
         sc_level &L = mg0->fine();
         double *t = pvec(-1,KT);
         double *z = pvec(-1,kz);
@@ -2115,7 +2552,11 @@ void cfd_amr::pr_prec(int kr, int kz)
         for(size_t n=0; n<l0a.size(); ++n)
         L.f[l0a[n]] = t[l0f[n]];
 
-        lbar();
+        {
+            PRS pw_(prc,PR_WAIT);
+            lbar();
+        }
+        pr_wait();
         const double t0 = MPI_Wtime();
         mg0->vcycle(0,1,1);
         tp[1] += MPI_Wtime()-t0;
@@ -2132,6 +2573,7 @@ void cfd_amr::pr_prec(int kr, int kz)
     // G 40: the correction of level 0 in the shadows
     if(place)
     {
+        PRS sh_(prc,PR_SHADOW);
         vector<std::function<field&(int)>> f(1,[this](int g) -> field& { return pfield(g,REEFAMR_NVEC); });
         sh_down_f(f);
     }
@@ -2216,10 +2658,7 @@ void cfd_amr::pr_coef_fill(int l)
                 c->kc7[3]->V[qq] = M.w[r]; c->kc7[4]->V[qq] = M.e[r]; c->kc7[5]->V[qq] = M.t[r]; c->kc7[6]->V[qq] = M.b[r];
             }
         }
-        vector<fspec> fs;
-        for(int m=0; m<7; ++m)
-        fs.push_back({CELL,2,[this,m](int g) -> field& { return *CP(g)->kc7[m]; }});
-        fill(lv,fs,true);
+        fill_cells(lv,7,[this](int m, int g) -> double* { return CP(g)->kc7[m]->V; },true);
     }
 }
 
@@ -2417,15 +2856,23 @@ void cfd_amr::pr_correct(int s)
     {
         const double xf = pvec(F.pid,-1)[F.qf];
         const double xc = pr_xs(F,-1);
-        const double rof = 1.0/(F.kf*F.dist*F.dxnf);
         field &ff = CP(F.pid)->pmom->amr_velout(CP(F.pid)->a,F.d,s);
-        ff(F.ff[0],F.ff[1],F.ff[2]) = F.ustar - double(F.dir)*alpha*p0->dt*(xc-xf)/(F.dist*rof);
+        // (D 32: kf 0 on a face closed in a solid, its velocity stays F.ustar = 0)
+        if(F.kf==0.0)
+        {
+        ff(F.ff[0],F.ff[1],F.ff[2]) = F.ustar;
+        continue;
+        }
+        const double rof = 1.0/(F.kf*F.dist*F.dxnf);
+        // (F 41: the ghost fluid method across the face, gs and gf of pr_weights)
+        ff(F.ff[0],F.ff[1],F.ff[2]) = F.ustar - double(F.dir)*alpha*p0->dt*(F.gs*xc-F.gf*xf)/(F.dist*rof);
     }
 }
 
 // the projection of stage s on all grids
 void cfd_amr::pr_project(lexer *p, ghostcell *pgc, int s)
 {
+    PRS ps_(prc,PR_ASSEMBLY,true);
     const double alpha = mom0->amr_alpha(s);
     const double t0 = MPI_Wtime();
 
@@ -2435,6 +2882,46 @@ void cfd_amr::pr_project(lexer *p, ghostcell *pgc, int s)
     pr_predict(s);
 
     field &u0 = mom0->amr_velout(a0,0,s), &v0 = mom0->amr_velout(a0,1,s), &w0 = mom0->amr_velout(a0,2,s);
+
+    // F 41 1: the faces at the patch edges are assembled by the composite operator (pr_matrix,
+    // pr_apply), with the ghost fluid method across them; the rows of each grid (pic_gfm_matrix)
+    // leave them: the fine cell to the cell around the patch, the coarse cell to the covered one
+    std::set<std::array<int,5>> gfm_edge;
+    std::map<lexer*,int> gfm_grid;
+    const std::function<bool(lexer*,int,int,int,int)> gfm_keep = [&](lexer *q, int i, int j, int k, int sd) -> bool
+    {
+        const auto it = gfm_grid.find(q);
+        return it!=gfm_grid.end() && gfm_edge.count({it->second,i,j,k,sd})>0;
+    };
+    if(gfm_single(p0))
+    {
+        for(int g=-1; g<npat; ++g)
+        gfm_grid[glex(g)] = g;
+        for(const cfd_amr_cf &F : cf)
+        {
+            gfm_edge.insert({F.pid,F.fi[0],F.fi[1],F.fi[2],2*F.d+(F.dir>0 ? 0 : 1)});
+            gfm_edge.insert({F.gc,F.ci[0],F.ci[1],F.ci[2],2*F.d+(F.dir>0 ? 1 : 0)});
+        }
+
+        // G 40: the coarse cells of the edges of the level-1 patches are in the shadows; the level-0
+        // cells of this rank at the edges of patches on other ranks, from the keys (the cells whose
+        // rows fold the face, sh_folds)
+        if(place)
+        {
+            const int jk = p0->jmax*p0->kmax;
+            for(size_t r=0; r<pu_key.rq.size(); ++r)
+            for(size_t q=0; q<pu_key.rq[r].size(); ++q)
+            {
+                const int t = pu_key.rt[r][q];
+                if(t%3==2)
+                continue;
+                const int qq = pu_key.rq[r][q];
+                const int d = t/6, dir = ((t/3)%2) ? 1 : -1;
+                gfm_edge.insert({-1,qq/jk + p0->imin,(qq%jk)/p0->kmax + p0->jmin,qq%p0->kmax + p0->kmin,2*d+(dir>0 ? 1 : 0)});
+            }
+        }
+        pic_gfm_keep(&gfm_keep);
+    }
 
     pflow0->pressure_io(p,a0,pgc);
     press0->amr_prepare(p,a0,pois0,pgc,u0,v0,w0,alpha);
@@ -2447,6 +2934,7 @@ void cfd_amr::pr_project(lexer *p, ghostcell *pgc, int s)
         c->pflow->pressure_io(c->pp,c->a,pgc);
         c->ppress->amr_prepare(c->pp,c->a,c->ppois,pgc,m->amr_velout(c->a,0,s),m->amr_velout(c->a,1,s),m->amr_velout(c->a,2,s),alpha);
     }
+    pic_gfm_keep(nullptr);
 
     pr_matrix(s);
 
@@ -2465,7 +2953,11 @@ void cfd_amr::pr_project(lexer *p, ghostcell *pgc, int s)
 
     double bn, rn;
     pr_space sp{this};
-    int it = reefamr_bicgstab(sp,p->N44,p->N46,bn,rn,&tm[5],&tm[6]);
+    int it;
+    {
+        PRS pk_(prc,PR_KRYLOV);
+        it = reefamr_bicgstab(sp,p->N44,p->N46,bn,rn,&tm[5],&tm[6],nullptr,0.0,nullptr,p->G48==2);
+    }
 
     pr_it_last = it;
     pr_it_total += it;
@@ -2475,6 +2967,7 @@ void cfd_amr::pr_project(lexer *p, ghostcell *pgc, int s)
     p->poissoniter = it;
     p->final_res = pr_res_last;
 
+    PRS pf_(prc,PR_FINISH);
     pr_sync(-1);
 
     // pressure and velocities of every grid
@@ -2501,9 +2994,13 @@ void cfd_amr::pr_project(lexer *p, ghostcell *pgc, int s)
         m->amr_project_after(c->pp,c->a,pgc,m->amr_velout(c->a,0,s),m->amr_velout(c->a,1,s),m->amr_velout(c->a,2,s));
     }
 
+    // F 41 1, 2: the velocity of the water extended into the air on the patches, level by level
+    single_extend(pgc,s);
+
     restrict_vel(s);
 
-    p->poissontime = MPI_Wtime()-t0;
+    // all projections of the step (the driver prints the sum and resets it)
+    p->poissontime += MPI_Wtime()-t0;
 }
 
 // --------------------------------------------------------------------- level projection (G 7 1)
@@ -2555,6 +3052,7 @@ void cfd_amr::pr_components()
 // made compatible (the round-off of the coarser solve) and the correction gets the mean 0.
 void cfd_amr::pr_level(lexer *p, ghostcell *pgc, int l, int s)
 {
+    PRS ps_(prc,PR_ASSEMBLY,true);
     const double alpha = mom0->amr_alpha(s);
     const double t0 = MPI_Wtime();
 
@@ -2626,9 +3124,11 @@ void cfd_amr::pr_level(lexer *p, ghostcell *pgc, int l, int s)
         const double Gc = double(F.dir)*(pC-pP)/(dp[F.d][Lc+marge]*roc);
         const double Gf = double(F.dir)*(pCs-pf)/(F.dist*F.rof);
 
-        v += alpha*pp->dt*(Gc-Gf);
+        // the share of the direct forcing alone (pr_predict)
+        const double Hf = MAX(forced_share(F.gface,F.cf,F.d),forced_share(F.pid,F.ff,F.d));
+        v += (1.0-Hf)*alpha*pp->dt*(Gc-Gf);
         if(F.hok && F.d==2)
-        v -= alpha*pp->dt*p0->W22*fpc;
+        v -= (1.0-Hf)*alpha*pp->dt*p0->W22*fpc;
 
         F.ustar = v;
         c->pmom->amr_velout(c->a,F.d,s)(F.ff[0],F.ff[1],F.ff[2]) = v;
@@ -2651,7 +3151,7 @@ void cfd_amr::pr_level(lexer *p, ghostcell *pgc, int l, int s)
     {
         if(CP(F.pid)->lev!=l)
         continue;
-        F.kf = 1.0/(F.rof*F.dist*F.dxnf);
+        F.kf = cf_closed(CP(F.pid)->pp,CP(F.pid)->a,F) ? 0.0 : 1.0/(F.rof*F.dist*F.dxnf);
         matrix_diag &Mf = CP(F.pid)->a->M;
         double &cfn = mcoef(Mf,F.nf,F.d,F.dir);
         Mf.p[F.nf] += cfn + F.kf;
@@ -2741,7 +3241,12 @@ void cfd_amr::pr_level(lexer *p, ghostcell *pgc, int l, int s)
 
     double bn, rn;
     pr_space sp{this};
-    int it = reefamr_bicgstab(sp,p->N44,p->N46,bn,rn,&tm[5],&tm[6]);
+    int it;
+    {
+        PRS pk_(prc,PR_KRYLOV);
+        it = reefamr_bicgstab(sp,p->N44,p->N46,bn,rn,&tm[5],&tm[6],nullptr,0.0,nullptr,p->G48==2);
+    }
+    PRS pf_(prc,PR_FINISH);
     pr_it_last = it;
     pr_it_total += it;
     ++pr_solves;
@@ -2815,6 +3320,7 @@ void cfd_amr::pr_level(lexer *p, ghostcell *pgc, int l, int s)
     for(int g=-1; g<npat; ++g)
     prg.push_back(g);
 
+    p->poissontime += MPI_Wtime()-t0;
     tm[2] += MPI_Wtime()-t0;
 }
 
@@ -2827,6 +3333,7 @@ void cfd_amr::pr_level(lexer *p, ghostcell *pgc, int l, int s)
 // correction added to the pressure.  The step of level 0, alpha 1.
 void cfd_amr::pr_sync_project(lexer *p, ghostcell *pgc)
 {
+    PRS ps_(prc,PR_ASSEMBLY,true);
     const int s = mom0->amr_stages()-1;     // the end state of the step: velout of the last stage
     const double alpha = 1.0;
     const double t0 = MPI_Wtime();
@@ -2905,6 +3412,10 @@ void cfd_amr::pr_sync_project(lexer *p, ghostcell *pgc)
         b[qq] = 0.0;
     }
 
+    // W 32: the compressible rows take the volume the levels disagree on at the patch edges
+    // (cfd_amr_sub.cpp), not the compression the level projections made
+    vr_sync_rhs();
+
     // the start: the correction of the last synchronisation (the mismatch at the patch edges
     // changes slowly from step to step), as long as the patches are the same
     if(sync_x_ok && sync_x.size()==npat+1)
@@ -2933,7 +3444,12 @@ void cfd_amr::pr_sync_project(lexer *p, ghostcell *pgc)
 
     double bn, rn;
     pr_space sp{this};
-    int it = reefamr_bicgstab(sp,tol,p->N46,bn,rn,&tm[5],&tm[6]);
+    int it;
+    {
+        PRS pk_(prc,PR_KRYLOV);
+        it = reefamr_bicgstab(sp,tol,p->N46,bn,rn,&tm[5],&tm[6]);
+    }
+    PRS pf_(prc,PR_FINISH);
     pr_it_sync = it;
 
     sync_x.assign(npat+1,vector<double>());
@@ -2945,6 +3461,18 @@ void cfd_amr::pr_sync_project(lexer *p, ghostcell *pgc)
         sync_x[g+1].push_back(x[qq]);
     }
     sync_x_ok = true;
+
+    // W 32: the pressure is the state of the compressible air.  The correction of the leaf cells
+    // restricted onto the cells under the patches (finest first), so the coarser levels step on
+    // with the pressure of the patches above them (without: the covered cells kept the pressure
+    // before the synchronisation, the sealed box +2.5 %, rms 107 Pa; with: +0.6 %, 23 Pa)
+    if(p0->W32>0)
+    {
+        vector<std::function<field&(int)>> cells, none;
+        cells.push_back([this](int g) -> field& { return pfield(g,-1); });
+        for(int l=maxlev; l>=1; --l)
+        restrict_level(l,cells,none);
+    }
 
     pr_sync(-1);
 
@@ -2964,8 +3492,14 @@ void cfd_amr::pr_sync_project(lexer *p, ghostcell *pgc)
     {
         const double xf = pvec(F.pid,-1)[F.qf];
         const double xc = pr_xs(F,-1);
-        const double rof = 1.0/(F.kf*F.dist*F.dxnf);
         field &ff = CP(F.pid)->pmom->amr_velout(CP(F.pid)->a,F.d,s);
+        // (D 32: kf 0 on a face closed in a solid, its velocity stays F.ustar = 0)
+        if(F.kf==0.0)
+        {
+        ff(F.ff[0],F.ff[1],F.ff[2]) = F.ustar;
+        continue;
+        }
+        const double rof = 1.0/(F.kf*F.dist*F.dxnf);
         ff(F.ff[0],F.ff[1],F.ff[2]) = F.ustar - double(F.dir)*alpha*p->dt*(xc-xf)/(F.dist*rof);
     }
 
@@ -2985,5 +3519,123 @@ void cfd_amr::pr_sync_project(lexer *p, ghostcell *pgc)
     CP(id)->pp->dt = dts[id];
 
     t_sync += MPI_Wtime()-t0;
+    p->poissontime += MPI_Wtime()-t0;
     tm[2] += MPI_Wtime()-t0;
+}
+
+// --------------------------------------------------------------------- the parts of the projections
+const char* cfd_amr::pr_part_name(int k)
+{
+    static const char *nm[PR_NPART] = {"assembly", "operator", "halo fills", "shadows", "restriction", "prolongation",
+                                       "correction fills", "overlap fills", "level cycles", "level-0 cycle",
+                                       "preconditioner, other", "Krylov vectors", "waits", "finish"};
+    return (k>=0 && k<PR_NPART) ? nm[k] : "?";
+}
+
+// G 43: a timed barrier (PR_WAIT) before an exchange, so that the ranks that arrive early wait here
+// and the MPI time of the parts is that of the exchanges themselves.  Inside a projection only: all
+// ranks are in the same projection and call the same exchanges in the same order
+void cfd_amr::pr_wait()
+{
+    if(p0->G43<=0 || nranks<2 || !prc.active())
+    return;
+    PRS pw_(prc,PR_WAIT);
+    MPI_Barrier(reef3d_comm());
+}
+
+// the parts of the projections since the start: max and mean over the ranks, the share of the
+// blocking MPI calls in the mean, and what the parts leave of the projection time tm[2] (the
+// projection outside the scopes: the barriers of G 41 0 after it).  Collective
+void cfd_amr::pr_report(lexer *p)
+{
+    const int N = PR_NPART;
+    double loc[2*N+2], mx[2*N+2], sm[2*N+2];
+    double tot=0.0;
+    for(int k=0; k<N; ++k)
+    {
+        loc[k] = prc.t[k];
+        loc[N+k] = prc.m[k];
+        tot += prc.t[k];
+    }
+    loc[2*N] = tm[2];
+    loc[2*N+1] = tm[2]-tot;
+    MPI_Reduce(loc,mx,2*N+2,MPI_DOUBLE,MPI_MAX,0,reef3d_comm());
+    MPI_Reduce(loc,sm,2*N+2,MPI_DOUBLE,MPI_SUM,0,reef3d_comm());
+
+    if(p->mpirank!=0)
+    return;
+
+    const double nr = double(max(nranks,1));
+    const std::streamsize pr = cout.precision();
+    cout<<"CFD AMR: projection by part, s max/mean over "<<int(nr)<<" ranks (MPI share of the mean):";
+    for(int k=0; k<N; ++k)
+    {
+        const double mean = sm[k]/nr;
+        if(mx[k]<=0.0)
+        continue;
+        cout<<" "<<pr_part_name(k)<<" "<<setprecision(3)<<mx[k]<<"/"<<mean;
+        if(mean>0.0)
+        cout<<" ("<<int(100.0*sm[N+k]/sm[k]+0.5)<<"%)";
+        cout<<",";
+    }
+    cout<<" projection "<<setprecision(3)<<mx[2*N]<<"/"<<sm[2*N]/nr<<", not in a part "<<sm[2*N+1]/nr<<endl;
+    cout.precision(pr);
+}
+
+// F 41 1, 2: the velocity of the water extended into the air on the patches after a projection
+// (cfd_singlephase::air_velocity on level 0): per level, per component, layer by layer over all
+// patches of the level, the faces and their marks of the cells around each patch from its
+// siblings between the layers (on this rank and the others). The faces around a patch at the
+// edges to the coarser grid are known: those of the coarser grid, extended there before. Without
+// the fills the extension of a patch would end at its own edges, and the run would depend on how
+// the refined region is cut into patches (G 40 places them differently on several ranks)
+void cfd_amr::single_extend(ghostcell *pgc, int s)
+{
+    if(npat==0 || mom0->single()==nullptr)
+    return;
+
+    for(int l=1; l<=maxlev; ++l)
+    {
+        vector<int> ids;
+        for(int id=0; id<npat; ++id)
+        if(CP(id)->lev==l)
+        ids.push_back(id);
+
+        for(int c=0; c<3; ++c)
+        {
+            auto vel = [this,s,c](int g) -> field& { return gmom(g)->amr_velout(gfd(g),c,s); };
+            auto mk = [this,c](int g) -> field& { return gmom(g)->single()->marks(c); };
+
+            for(int id : ids)
+            CP(id)->pmom->single()->ext_begin(CP(id)->pp,CP(id)->a,c);
+
+            vector<fspec> fm(1), fb(2);
+            fm[0].type = c; fm[0].mode = 2; fm[0].f = mk;
+            fb[0].type = c; fb[0].mode = 2; fb[0].f = vel;
+            fb[1] = fm[0];
+            fill(l,fm,true);
+
+            for(int L=0; L<3; ++L)
+            {
+                for(int id : ids)
+                CP(id)->pmom->single()->ext_layer(CP(id)->pp,vel(id),c);
+                fill(l,fb,true);
+            }
+
+            for(int id : ids)
+            CP(id)->pmom->single()->ext_end(CP(id)->pp,vel(id),c);
+            vector<fspec> fv(1,fb[0]);
+            fill(l,fv,true);
+        }
+    }
+
+    // the boundary values of the patches
+    for(int id=0; id<npat; ++id)
+    {
+        cfd_amr_patch *c = CP(id);
+        pscope2 ps(pgc,c->a,a0);
+        pgc->start1(c->pp,c->pmom->amr_velout(c->a,0,s),10);
+        pgc->start2(c->pp,c->pmom->amr_velout(c->a,1,s),11);
+        pgc->start3(c->pp,c->pmom->amr_velout(c->a,2,s),12);
+    }
 }

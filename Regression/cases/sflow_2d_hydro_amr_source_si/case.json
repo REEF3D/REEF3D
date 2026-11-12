@@ -1,0 +1,25 @@
+{
+ "base": "sflow_2d_hydro_source_si",
+ "np": 1,
+ "steps": 60,
+ "ctrl_add": [
+  "G 1 1",
+  "G 2 0",
+  "G 3 2",
+  "G 4 8",
+  "G 10 20.0 60.0 30.0 70.0"
+ ],
+ "description": "sflow_2d_hydro_source_si with a static patch around the point source: the source in the cell of the patch and of level 0, the water crosses the patch boundary.",
+ "tags": [
+  "quick",
+  "2d",
+  "sflow",
+  "hydro",
+  "amr",
+  "semi_implicit",
+  "wetdry"
+ ],
+ "covers": [
+  "point sources in the cells of a patch (hydro_sflow::locate, Cartesian)"
+ ]
+}

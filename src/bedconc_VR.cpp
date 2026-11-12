@@ -74,11 +74,30 @@ void bedconc_VR::start(lexer* p, ghostcell *pgc, sediment_fdm *s)
     // reference concentration at z = a
     ca = MIN( (0.015*d50*pow(Ti,1.5))/(pow(Ds,0.3)*adist), 0.05); // c_max = 0.05
 
-    // height of the first cell centre above the bed
-    if(p->A10==5)               // NHFLOW: ZP is sigma in [0,1]
+    // NHFLOW (ZP is sigma in [0,1]): the equilibrium concentration of the bottom cell is the mean of the Rouse
+    // profile over the cell, c = c_a below z = a. The cell value of the suspended solve is a cell mean, and the
+    // profile is convex: its value at the cell centre is far below its mean in a thick bottom cell. rbe = mean/c_a
+    // goes to the suspended solve, which exchanges ws (c_a - c_0/rbe) with the bed: pick-up ws c_a at the
+    // reference level and deposition with the near-bed concentration c_0/rbe, on any vertical grid
+    // (nhflow_suspended_IM1::suspsource).
+    if(p->A10==5)
     {
     k  = 0;
-    z1 = p->ZP[KP]*h;
+    
+    P = s->ws/(kappa*MAX(s->shearvel_eff(i,j),1.0e-6));
+    P = MIN(P,5.0);
+    
+    const double zt = MIN(p->DZN[KP]*h, h);
+    
+    s->rbe(i,j) = rouse_mean(adist, zt, h, P);
+    s->cbe(i,j) = ca*s->rbe(i,j);
+    
+    // the node of the bottom cell for the flux to the cell above: the cell centre, not below z = a
+    z1 = MIN(MAX(p->ZP[KP]*h, adist), zt);
+    
+    s->rbz(i,j) = z1;
+    s->rbf(i,j) = ((z1>adist && h>adist) ? pow((adist/(h-adist))*((h-z1)/z1), P) : 1.0)/s->rbe(i,j);
+    continue;
     }
 
     if(p->A10==6)               // CFD: ZP is physical z
@@ -97,12 +116,36 @@ void bedconc_VR::start(lexer* p, ghostcell *pgc, sediment_fdm *s)
     R = pow( (adist/(h-adist)) * ((h-z1)/z1), P );
 
     s->cbe(i,j) = ca*R;
+    s->rbe(i,j) = 1.0;
     
     
     //cout<<"adist: "<<adist<<" ca: "<<ca<<" cbe: "<<s->cbe(i,j)<<endl;
     }
 }
 
-
-
+// mean over the bottom cell 0 < z < zt of the Rouse profile relative to c_a,
+//     r(z) = ( a/(h-a) (h-z)/z )^P  for z > a,   r = 1 below a,
+// Simpson rule in ln z (r falls like z^-P above a)
+double bedconc_VR::rouse_mean(double a, double zt, double h, double P)
+{
+    if(zt<=a || h<=a)
+    return 1.0;
+    
+    const int N = 32;
+    const double x0 = log(a);
+    const double dx = (log(zt) - x0)/double(N);
+    double sum = 0.0;
+    
+    for(int q=0; q<=N; ++q)
+    {
+    const double z = MIN(exp(x0 + double(q)*dx), h);
+    const double r = pow((a/(h-a))*((h-z)/z), P)*z;
+    
+    sum += ((q==0 || q==N) ? 1.0 : ((q%2==1) ? 4.0 : 2.0))*r;
+    }
+    
+    const double R = (a + sum*dx/3.0)/zt;
+    
+    return MAX(MIN(R,1.0),1.0e-8);
+}
 

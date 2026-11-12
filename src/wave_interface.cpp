@@ -303,16 +303,14 @@ double wave_interface::wave_eta(lexer *p, ghostcell *pgc, double x, double y)
 
 double wave_interface::wave_um(lexer *p, ghostcell *pgc, double x, double y)
 {
-    double um;
-    
-    return um;
+    // not implemented (no caller); returned an uninitialised value
+    return 0.0;
 }
 
 double wave_interface::wave_vm(lexer *p, ghostcell *pgc, double x, double y)
 {
-    double vm;
-    
-    return vm;
+    // not implemented (no caller); returned an uninitialised value
+    return 0.0;
 }
 
 void wave_interface::wave_prestep(lexer *p, ghostcell *pgc)

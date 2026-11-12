@@ -41,6 +41,7 @@
   <Dependencies/>
   <VirtualDirectory Name="HEADERS">
     <VirtualDirectory Name="REEFAMR">
+      <File Name="amr_phase_clock.h"/>
       <File Name="reefckpt.h"/>
       <File Name="reefrun_ckpt.h"/>
       <File Name="ckpt_registry.h"/>
@@ -83,6 +84,8 @@
         <File Name="reefmg.h"/>
         <File Name="reefmg_core.h"/>
         <File Name="reefmg2D.h"/>
+        <File Name="reefmg_device.h"/>
+        <File Name="reefmg_device_kernels.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Stationary">
         <File Name="solver_void.h"/>
@@ -126,6 +129,7 @@
         <File Name="seastate_exchange.h"/>
         <File Name="seastate_implicit.h"/>
         <File Name="seastate_source.h"/>
+        <File Name="seastate_st4.h"/>
         <File Name="seastate_sflow.h"/>
         <File Name="seastate_surfbeat.h"/>
         <File Name="seastate_roller.h"/>
@@ -133,6 +137,7 @@
         <File Name="seastate_remote.h"/>
         <File Name="seastate_nhflow.h"/>
         <File Name="seastate_forcing.h"/>
+        <File Name="seastate_collocation.h"/>
         <File Name="seastate_amr.h"/>
         <File Name="seastate_bathy.h"/>
         <File Name="seastate_fas2.h"/>
@@ -155,6 +160,7 @@
           </VirtualDirectory>
           <VirtualDirectory Name="Probes">
             <File Name="probe_core.h"/>
+            <File Name="scour_gauge.h"/>
             <File Name="probe_vel_theory.h"/>
             <File Name="probe_vel.h"/>
             <File Name="probe_pressure.h"/>
@@ -242,12 +248,14 @@
           <File Name="pressure.h"/>
           <File Name="pjm_hydrostatic.h"/>
           <File Name="pjm_corr.h"/>
+          <File Name="solid_closed.h"/>
           <VirtualDirectory Name="Reference">
             <File Name="pressure_reference.h"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Poisson">
             <File Name="poisson_pcorr.h"/>
             <File Name="diff_wallghost.h"/>
+            <File Name="diff_walllaw.h"/>
             <File Name="bc_noflux.h"/>
             <File Name="poisson.h"/>
           </VirtualDirectory>
@@ -286,6 +294,8 @@
             <File Name="reini_walld.h"/>
             <File Name="reini_void.h"/>
             <File Name="reini_RK3.h"/>
+            <File Name="reini_fsm.h"/>
+            <File Name="levelset_band.h"/>
             <File Name="reini.h"/>
             <VirtualDirectory Name="Reinidisc">
               <File Name="reinidisc_f.h"/>
@@ -296,6 +306,7 @@
             <File Name="levelset_void.h"/>
             <File Name="levelset_RK3.h"/>
             <File Name="levelset_RK2.h"/>
+            <File Name="levelset_solid_extend.h"/>
             <VirtualDirectory Name="Picard">
               <File Name="picard_void.h"/>
               <File Name="picard_lsm.h"/>
@@ -308,6 +319,8 @@
           <VirtualDirectory Name="Time">
             <File Name="timestep.h"/>
             <File Name="ietimestep.h"/>
+            <File Name="cfd_airband_dt.h"/>
+            <File Name="cfd_gravitywave_dt.h"/>
             <File Name="fixtimestep.h"/>
             <File Name="etimestep.h"/>
           </VirtualDirectory>
@@ -406,6 +419,7 @@
             <File Name="hires.h"/>
             <File Name="hcds6.h"/>
             <File Name="fou.h"/>
+            <File Name="godunov.h"/>
             <File Name="convection_void.h"/>
             <File Name="convection.h"/>
             <File Name="cds4.h"/>
@@ -488,7 +502,9 @@
           <File Name="sflow_momentum_RK3.h"/>
           <File Name="sflow_momentum_RK2.h"/>
           <File Name="sflow_momentum_SI.h"/>
+          <File Name="sflow_momentum_SI_nh.h"/>
           <File Name="si_eta2D.h"/>
+          <File Name="si_tridiag2D.h"/>
           <File Name="sflow_momentum.h"/>
           <VirtualDirectory Name="BC">
             <File Name="sflow_roughness.h"/>
@@ -504,6 +520,7 @@
         <VirtualDirectory Name="FSF">
           <File Name="sflow_fsf.h"/>
           <File Name="sflow_eta.h"/>
+          <File Name="sflow_breaking_kb.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="FDM">
           <VirtualDirectory Name="Potential Flow">
@@ -515,6 +532,7 @@
             <File Name="sflow_rheology_v.h"/>
             <File Name="sflow_rheology_f.h"/>
             <File Name="sflow_rheology.h"/>
+            <File Name="sflow_rheology_core.h"/>
           </VirtualDirectory>
           <File Name="fdm2D.h"/>
           <VirtualDirectory Name="Time">
@@ -534,6 +552,7 @@
           <VirtualDirectory Name="Diffusion">
             <File Name="sflow_idiff.h"/>
             <File Name="sflow_ediff.h"/>
+            <File Name="sflow_diffusion_flux.h"/>
             <File Name="sflow_diffusion_void.h"/>
             <File Name="sflow_diffusion.h"/>
           </VirtualDirectory>
@@ -583,7 +602,6 @@
         <VirtualDirectory Name="Convect">
           <File Name="nhflow_solid_flux.h"/>
           <File Name="nhflow_flux_face.h"/>
-          <File Name="nhflow_HLLYL.h"/>
           <VirtualDirectory Name="Scalar">
             <File Name="nhflow_scalar_void.h"/>
             <File Name="nhflow_scalar_ifou.h"/>
@@ -592,8 +610,6 @@
             <File Name="nhflow_scalar_iweno.h"/>
             <File Name="nhflow_scalar_convection.h"/>
           </VirtualDirectory>
-          <File Name="nhflow_flux_build.h"/>
-          <File Name="nhflow_flux_build_f.h"/>
           <VirtualDirectory Name="Signal Speed">
             <File Name="nhflow_signal_speed.h"/>
           </VirtualDirectory>
@@ -624,6 +640,7 @@
             <File Name="nhflow_depandtime_avg_vel_lineprobe.h"/>
             <File Name="nhflow_probe_vel_theory.h"/>
             <File Name="nhflow_probe_vel.h"/>
+            <File Name="nhflow_print_scour.h"/>
             <File Name="nhflow_probe_press.h"/>
             <File Name="nhflow_profile_u.h"/>
             <File Name="nhflow_timeavg_vel_profile.h"/>
@@ -639,6 +656,7 @@
           </VirtualDirectory>
           <VirtualDirectory Name="VTP BED">
             <File Name="nhflow_vtp_bed.h"/>
+            <File Name="nhflow_scour.h"/>
           </VirtualDirectory>
           <VirtualDirectory Name="WSF">
             <File Name="nhflow_print_wsfline_y.h"/>
@@ -679,10 +697,10 @@
         <File Name="nhflow_v.h"/>
         <File Name="nhflow.h"/>
         <VirtualDirectory Name="Pressure">
-          <File Name="nhflow_pjm_yl.h"/>
           <File Name="nhflow_pjm_corr.h"/>
           <File Name="nhflow_pjm_hs.h"/>
           <File Name="nhflow_pjm.h"/>
+          <File Name="nhflow_pjm_ho.h"/>
           <VirtualDirectory Name="Poisson">
             <File Name="nhflow_poisson_pcorr.h"/>
             <File Name="nhflow_xwall.h"/>
@@ -702,6 +720,9 @@
           <File Name="nhflow_momentum_RK2.h"/>
           <File Name="nhflow_momentum_RK3.h"/>
           <File Name="nhflow_momentum_SI.h"/>
+          <File Name="nhflow_si_nhmg.h"/>
+          <File Name="nhflow_stratification.h"/>
+          <File Name="nhflow_memory.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="FSF">
           <File Name="nhflow_fsf_body.h"/>
@@ -734,6 +755,8 @@
           <File Name="fnpf_fsf_update.h"/>
           <File Name="fnpf_bed_update.h"/>
           <File Name="fnpf_sigma.h"/>
+          <File Name="fnpf_sigma_col.h"/>
+          <File Name="fnpf_memory.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Printer">
           <VirtualDirectory Name="Kinematics">
@@ -762,6 +785,8 @@
           </VirtualDirectory>
           <VirtualDirectory Name="VTP BED">
             <File Name="fnpf_vtp_bed.h"/>
+            <File Name="fnpf_scour.h"/>
+            <File Name="scour_core.h"/>
           </VirtualDirectory>
           <VirtualDirectory Name="VTP FSF">
             <File Name="fnpf_vtp_fsf.h"/>
@@ -770,6 +795,7 @@
           <VirtualDirectory Name="Probes">
             <File Name="fnpf_vel_probe.h"/>
             <File Name="fnpf_vel_probe_theory.h"/>
+            <File Name="fnpf_print_scour.h"/>
           </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="Laplace">
@@ -786,11 +812,13 @@
           <File Name="fnpf_fsf.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="FNPF">
+          <File Name="fnpf_theta.h"/>
           <File Name="fnpf_RK3.h"/>
           <File Name="fnpf_RK4.h"/>
           <File Name="fnpf.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="FDM">
+          <File Name="fnpf_prof.h"/>
           <File Name="fdm_fnpf.h"/>
           <VirtualDirectory Name="Timestep">
             <File Name="fnpf_timestep.h"/>
@@ -882,6 +910,7 @@
           <File Name="coral/aero/coral_rotor.h"/>
           <File Name="coral/aero/coral_rotor_aero.h"/>
           <File Name="coral/aero/coral_rotor_tune.h"/>
+          <File Name="coral/aero/coral_unsteady_aero.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Control">
           <File Name="coral/control/README.md"/>
@@ -919,6 +948,9 @@
           <File Name="coral/pto/coral_pto_joint.h"/>
           <File Name="coral/pto/coral_joint_drive.h"/>
           <File Name="coral/pto/coral_joint_force.h"/>
+          <File Name="coral/pto/coral_pto_hydraulic.h"/>
+          <File Name="coral/pto/coral_generator.h"/>
+          <File Name="coral/pto/coral_pto_wec_control.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Soil">
           <File Name="coral/soil/README.md"/>
@@ -968,6 +1000,14 @@
         <File Name="nhflow_particle_void.h"/>
         <File Name="nhflow_particle_f.h"/>
       </VirtualDirectory>
+      <VirtualDirectory Name="PIC">
+        <File Name="pic.h"/>
+        <File Name="pic_void.h"/>
+        <File Name="pic_f.h"/>
+        <File Name="pic_gfm.h"/>
+        <File Name="cfd_singlephase.h"/>
+        <File Name="cfd_pocket.h"/>
+      </VirtualDirectory>
       <VirtualDirectory Name="CPM">
         <File Name="CPM.h"/>
         <File Name="part.h"/>
@@ -986,6 +1026,12 @@
         <File Name="met_provider.h"/>
         <File Name="met_source.h"/>
         <File Name="met_vortex.h"/>
+      </VirtualDirectory>
+      <VirtualDirectory Name="Hydro">
+        <File Name="hydro_raster.h"/>
+        <File Name="hydro_core.h"/>
+        <File Name="hydro_couple.h"/>
+        <File Name="hydro_sflow.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Multiphase">
         <VirtualDirectory Name="Fluid Update">
@@ -1017,11 +1063,18 @@
         <File Name="FSI.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Sediment">
+        <VirtualDirectory Name="Soil Stress">
+          <File Name="soil_stress.h"/>
+        </VirtualDirectory>
         <VirtualDirectory Name="Bedslope">
           <File Name="bedslope.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Grain Fractions">
           <File Name="sediment_mixture.h"/>
+          <File Name="sediment_waves.h"/>
+          <File Name="bedload_waves.h"/>
+          <File Name="sediment_inflow.h"/>
+          <File Name="sediment_susp2D.h"/>
           <File Name="sediment_roughness.h"/>
         </VirtualDirectory>
         <File Name="sediment_RK2.h"/>
@@ -1149,6 +1202,9 @@
         <VirtualDirectory Name="Core">
           <File Name="6DOF_rigidbody.h"/>
           <File Name="6DOF_geometry.h"/>
+          <File Name="6DOF_deform.h"/>
+          <File Name="6DOF_brain.h"/>
+          <File Name="6DOF_brain_link.h"/>
           <File Name="6DOF_load.h"/>
           <File Name="6DOF_external.h"/>
         </VirtualDirectory>
@@ -1238,6 +1294,7 @@
       <VirtualDirectory Name="Rheology">
         <File Name="rheology.h"/>
         <File Name="rheology_f.h"/>
+        <File Name="rheology_core.h"/>
         <File Name="rheology_v.h"/>
       </VirtualDirectory>
     </VirtualDirectory>
@@ -1249,6 +1306,7 @@
         <VirtualDirectory Name="Lagoon">
           <File Name="georef.h"/>
           <File Name="lagoon_output.h"/>
+          <File Name="lagoon_nets.h"/>
           <File Name="lagoon_store.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Runlog">
@@ -1263,6 +1321,7 @@
           <File Name="vts3D.h"/>
           <File Name="vtr3D.h"/>
           <File Name="vtp3D.h"/>
+          <File Name="vtp_piece_buffer.h"/>
           <File Name="vtks.h"/>
           <File Name="vtk3D.h"/>
         </VirtualDirectory>
@@ -1424,6 +1483,7 @@
         <File Name="wave_lib.h"/>
         <File Name="wave_lib_cnoidal_1st.h"/>
         <File Name="wave_lib_cnoidal_5th.h"/>
+        <File Name="wave_lib_cnoidal_consistent.h"/>
         <File Name="wave_lib_steady_fi.h"/>
         <File Name="wave_lib_cnoidal_shallow.h"/>
         <File Name="wave_lib_deep.h"/>
@@ -1477,7 +1537,12 @@
       </VirtualDirectory>
       <VirtualDirectory Name="SFLOW">
         <File Name="sflow_amr_ship.cpp"/>
+        <File Name="sflow_amr_turb.cpp"/>
+        <File Name="sflow_amr_wave.cpp"/>
+        <File Name="sflow_amr_hydro.cpp"/>
         <File Name="sflow_amr_nh.cpp"/>
+        <File Name="sflow_amr_si.cpp"/>
+        <File Name="sflow_amr_sinh.cpp"/>
         <File Name="sflow_amr_sub.cpp"/>
         <File Name="sflow_amr_subnh.cpp"/>
         <File Name="sflow_amr_linesolve.cpp"/>
@@ -1492,6 +1557,7 @@
         <File Name="fnpf_amr_sub.cpp"/>
         <File Name="fnpf_amr_print.cpp"/>
         <File Name="fnpf_amr_lap.cpp"/>
+        <File Name="fnpf_amr_theta.cpp"/>
         <File Name="fnpf_amr.cpp"/>
         <File Name="fnpf_amr_ckpt.cpp"/>
       </VirtualDirectory>
@@ -1514,6 +1580,7 @@
         <File Name="cfd_amr.cpp"/>
         <File Name="cfd_amr_press.cpp"/>
         <File Name="cfd_amr_place.cpp"/>
+        <File Name="cfd_amr_pocket.cpp"/>
         <File Name="cfd_amr_print.cpp"/>
         <File Name="cfd_amr_sub.cpp"/>
         <File Name="cfd_amr_regrid.cpp"/>
@@ -1528,6 +1595,7 @@
       </VirtualDirectory>
       <File Name="reefamr.cpp"/>
       <File Name="reefamr_regrid.cpp"/>
+      <File Name="reefamr_si.cpp"/>
       <File Name="reefamr_block.cpp"/>
       <File Name="reefamr_zone.cpp"/>
       <File Name="mpi_clock.cpp"/>
@@ -1537,6 +1605,8 @@
         <File Name="reefmg.cpp"/>
         <File Name="reefmg_core.cpp"/>
         <File Name="reefmg2D.cpp"/>
+        <File Name="reefmg_device.cpp"/>
+        <File Name="reefmg_device_metal.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Stationary">
         <File Name="solver_void.cpp"/>
@@ -1606,14 +1676,18 @@
         </VirtualDirectory>
         <VirtualDirectory Name="Sources">
           <File Name="seastate_source.cpp"/>
+          <File Name="seastate_st4.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Coupling">
           <File Name="seastate_f_forcing.cpp"/>
           <File Name="seastate_forcing.cpp"/>
+          <File Name="seastate_collocation.cpp"/>
+          <File Name="seastate_f_collocation.cpp"/>
           <File Name="seastate_f_surfbeat.cpp"/>
           <File Name="seastate_surfbeat.cpp"/>
           <File Name="seastate_coupling.cpp"/>
           <File Name="seastate_remote.cpp"/>
+          <File Name="seastate_coupling_bed.cpp"/>
           <File Name="seastate_nhflow.cpp"/>
           <File Name="seastate_sflow.cpp"/>
         </VirtualDirectory>
@@ -1631,6 +1705,7 @@
         <File Name="seastate_f_kinematics.cpp"/>
         <File Name="seastate_f_param.cpp"/>
         <File Name="seastate_f_transport.cpp"/>
+        <File Name="seastate_f_gse.cpp"/>
         <File Name="seastate_implicit.cpp"/>
         <File Name="seastate_f_handover.cpp"/>
         <File Name="seastate_roller.cpp"/>
@@ -1667,6 +1742,7 @@
           </VirtualDirectory>
           <VirtualDirectory Name="Probes">
             <File Name="probe_core.cpp"/>
+            <File Name="scour_gauge.cpp"/>
             <File Name="probe_vel_theory.cpp"/>
             <File Name="probe_vel.cpp"/>
             <File Name="probe_pressure.cpp"/>
@@ -1834,6 +1910,7 @@
             <File Name="hires.cpp"/>
             <File Name="hcds6.cpp"/>
             <File Name="fou.cpp"/>
+            <File Name="godunov.cpp"/>
             <File Name="discrete_void.cpp"/>
             <File Name="cds4.cpp"/>
             <File Name="cds2.cpp"/>
@@ -1908,6 +1985,7 @@
           <VirtualDirectory Name="Poisson">
             <File Name="poisson_pcorr.cpp"/>
             <File Name="diff_wallghost.cpp"/>
+            <File Name="diff_walllaw.cpp"/>
             <File Name="bc_noflux.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Density">
@@ -1962,6 +2040,7 @@
             <File Name="reini_walld.cpp"/>
             <File Name="reini_void.cpp"/>
             <File Name="reini_RK3.cpp"/>
+            <File Name="reini_fsm.cpp"/>
             <VirtualDirectory Name="Reinidisc">
               <File Name="reinidisc_f.cpp"/>
             </VirtualDirectory>
@@ -1970,6 +2049,7 @@
             <File Name="levelset_void.cpp"/>
             <File Name="levelset_RK3.cpp"/>
             <File Name="levelset_RK2.cpp"/>
+            <File Name="levelset_solid_extend.cpp"/>
             <VirtualDirectory Name="Picard">
               <File Name="picard_void.cpp"/>
               <File Name="picard_lsm.cpp"/>
@@ -2065,6 +2145,9 @@
           <File Name="sflow_hydrostatic.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Momentum">
+          <File Name="sflow_momentum_SI_nh.cpp"/>
+          <File Name="sflow_momentum_SI_ho.cpp"/>
+          <File Name="sflow_momentum_SI_nh_amr.cpp"/>
           <VirtualDirectory Name="Func">
             <File Name="sflow_momentum_func.cpp"/>
           </VirtualDirectory>
@@ -2072,6 +2155,7 @@
           <File Name="sflow_momentum_RK2.cpp"/>
           <File Name="sflow_momentum_SI.cpp"/>
           <File Name="si_eta2D.cpp"/>
+          <File Name="si_tridiag2D.cpp"/>
           <VirtualDirectory Name="Roughness">
             <File Name="sflow_rough_void.cpp"/>
             <File Name="sflow_rough_manning.cpp"/>
@@ -2084,6 +2168,7 @@
           <File Name="sflow_eta_deep.cpp"/>
           <File Name="sflow_eta_wetdry.cpp"/>
           <File Name="sflow_eta_breaking.cpp"/>
+          <File Name="sflow_breaking_kb.cpp"/>
           <File Name="sflow_eta.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="FDM">
@@ -2096,6 +2181,7 @@
             <File Name="sflow_rheology_bingham.cpp"/>
             <File Name="sflow_rheology_v.cpp"/>
             <File Name="sflow_rheology_f.cpp"/>
+            <File Name="sflow_rheology_core.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Time">
             <File Name="sflow_fixtimestep.cpp"/>
@@ -2186,7 +2272,6 @@
           </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="Convect">
-          <File Name="nhflow_HLLYL.cpp"/>
           <VirtualDirectory Name="Scalar">
             <File Name="nhflow_scalar_void.cpp"/>
             <File Name="nhflow_scalar_ifou.cpp"/>
@@ -2194,7 +2279,6 @@
             <File Name="nhflow_scalar_iweno.cpp"/>
           </VirtualDirectory>
           <File Name="nhflow_thinbody.cpp"/>
-          <File Name="nhflow_flux_build_f.cpp"/>
           <VirtualDirectory Name="Signal Speed">
             <File Name="nhflow_signal_speed.cpp"/>
           </VirtualDirectory>
@@ -2237,6 +2321,7 @@
             <File Name="nhflow_depandtime_avg_vel_lineprobe.cpp"/>
             <File Name="nhflow_probe_vel_theory.cpp"/>
             <File Name="nhflow_probe_vel.cpp"/>
+            <File Name="nhflow_print_scour.cpp"/>
             <File Name="nhflow_profile_u.cpp"/>
             <File Name="nhflow_timeavg_vel_profile.cpp"/>
             <File Name="nhflow_print_timeavg_wsfline.cpp"/>
@@ -2250,6 +2335,7 @@
           <VirtualDirectory Name="VTP BED">
             <File Name="nhflow_vtp_bed_pvtp.cpp"/>
             <File Name="nhflow_vtp_bed.cpp"/>
+            <File Name="nhflow_scour.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="VTP FSF">
             <File Name="nhflow_vtp_fsf_pvtp.cpp"/>
@@ -2308,7 +2394,6 @@
         <File Name="nhflow_v.cpp"/>
         <File Name="nhflow_f.cpp"/>
         <VirtualDirectory Name="Pressure">
-          <File Name="nhflow_pjm_yl.cpp"/>
           <File Name="nhflow_pjm_corr.cpp"/>
           <File Name="nhflow_pjm_hs.cpp"/>
           <File Name="nhflow_pjm.cpp"/>
@@ -2327,6 +2412,12 @@
           </VirtualDirectory>
           <File Name="nhflow_momentum_RK3.cpp"/>
           <File Name="nhflow_momentum_SI.cpp"/>
+          <File Name="nhflow_momentum_SI_density.cpp"/>
+          <File Name="nhflow_momentum_SI_elm.cpp"/>
+          <File Name="nhflow_momentum_SI_ho.cpp"/>
+          <File Name="nhflow_momentum_SI_nh.cpp"/>
+          <File Name="nhflow_si_nhmg.cpp"/>
+          <File Name="nhflow_stratification.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="FSF">
           <File Name="nhflow_fsf_body.cpp"/>
@@ -2335,7 +2426,7 @@
           <VirtualDirectory Name="Breaking">
             <File Name="nhflow_breaking_filter.cpp"/>
             <File Name="nhflow_breaking.cpp"/>
-          <File Name="nhflow_breaking_barthelemy.cpp"/>
+            <File Name="nhflow_breaking_barthelemy.cpp"/>
           </VirtualDirectory>
           <File Name="nhflow_fsf_coastline.cpp"/>
           <File Name="nhflow_fsf_wetdry_fluxes.cpp"/>
@@ -2397,6 +2488,7 @@
           <VirtualDirectory Name="Probes">
             <File Name="fnpf_vel_probe_theory.cpp"/>
             <File Name="fnpf_vel_probe.cpp"/>
+            <File Name="fnpf_print_scour.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Force ALE">
             <File Name="fnpf_force_ale_print.cpp"/>
@@ -2425,6 +2517,8 @@
           <VirtualDirectory Name="VTP BED">
             <File Name="fnpf_vtp_bed_pvtp.cpp"/>
             <File Name="fnpf_vtp_bed.cpp"/>
+            <File Name="fnpf_scour.cpp"/>
+            <File Name="scour_core.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="State">
             <File Name="fnpf_state_mainheader.cpp"/>
@@ -2461,10 +2555,12 @@
           <File Name="fnpf_fsfbc.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="FNPF">
+          <File Name="fnpf_theta.cpp"/>
           <File Name="fnpf_RK4.cpp"/>
           <File Name="fnpf_RK3.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="FDM">
+          <File Name="fnpf_prof.cpp"/>
           <File Name="fdm_fnpf.cpp"/>
           <VirtualDirectory Name="Timestep">
             <File Name="fnpf_timestep.cpp"/>
@@ -2540,6 +2636,7 @@
           <File Name="coral/aero/coral_rotor.cpp"/>
           <File Name="coral/aero/coral_rotor_aero.cpp"/>
           <File Name="coral/aero/coral_rotor_tune.cpp"/>
+          <File Name="coral/aero/coral_unsteady_aero.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Control">
           <File Name="coral/control/coral_turbine_controller.cpp"/>
@@ -2564,6 +2661,7 @@
           <File Name="coral/mooring/coral_mooring_friction.cpp"/>
           <File Name="coral/mooring/coral_mooring_setup.cpp"/>
           <File Name="coral/mooring/coral_mooring_static.cpp"/>
+          <File Name="coral/mooring/coral_mooring_viv.cpp"/>
           <File Name="coral/mooring/coral_seabed.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="PTO">
@@ -2573,6 +2671,9 @@
           <File Name="coral/pto/coral_pto_joint.cpp"/>
           <File Name="coral/pto/coral_joint_drive.cpp"/>
           <File Name="coral/pto/coral_joint_force.cpp"/>
+          <File Name="coral/pto/coral_pto_hydraulic.cpp"/>
+          <File Name="coral/pto/coral_generator.cpp"/>
+          <File Name="coral/pto/coral_pto_wec_control.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Soil">
           <File Name="coral/soil/coral_soil.cpp"/>
@@ -2618,6 +2719,25 @@
         <File Name="nhflow_particle_f_seed.cpp"/>
         <File Name="nhflow_particle_f_print.cpp"/>
         <File Name="nhflow_particle_f_move.cpp"/>
+      </VirtualDirectory>
+      <VirtualDirectory Name="PIC">
+        <File Name="pic_f.cpp"/>
+        <File Name="pic_f_seed.cpp"/>
+        <File Name="pic_f_move.cpp"/>
+        <File Name="pic_f_xchange.cpp"/>
+        <File Name="pic_f_print.cpp"/>
+        <File Name="pic_f_ipol.cpp"/>
+        <File Name="pic_f_phi.cpp"/>
+        <File Name="pic_f_reseed.cpp"/>
+        <File Name="pic_f_extend.cpp"/>
+        <File Name="pic_gfm.cpp"/>
+        <File Name="cfd_singlephase.cpp"/>
+        <File Name="cfd_pocket.cpp"/>
+        <File Name="pic_f_flip.cpp"/>
+        <File Name="pic_f_redist.cpp"/>
+        <File Name="pic_f_redistribute.cpp"/>
+        <File Name="pic_f_relax.cpp"/>
+        <File Name="pic_f_inflow.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="CPM">
         <VirtualDirectory Name="Bedload">
@@ -2710,6 +2830,16 @@
         <File Name="met_provider.cpp"/>
         <File Name="met_vortex.cpp"/>
       </VirtualDirectory>
+      <VirtualDirectory Name="Hydro">
+        <File Name="hydro_raster.cpp"/>
+        <File Name="hydro_core.cpp"/>
+        <File Name="hydro_core_hbv.cpp"/>
+        <File Name="hydro_core_out.cpp"/>
+        <File Name="hydro_core_reservoir.cpp"/>
+        <File Name="hydro_core_route.cpp"/>
+        <File Name="hydro_couple.cpp"/>
+        <File Name="hydro_sflow.cpp"/>
+      </VirtualDirectory>
       <VirtualDirectory Name="Multiphase">
         <VirtualDirectory Name="Fluid Update">
           <File Name="multiphase_fluid_update_rheology.cpp"/>
@@ -2780,11 +2910,20 @@
         <File Name="benchmark_convection.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Sediment">
+        <VirtualDirectory Name="Soil Stress">
+          <File Name="soil_stress.cpp"/>
+          <File Name="soil_stress_solve.cpp"/>
+          <File Name="soil_stress_print.cpp"/>
+        </VirtualDirectory>
         <VirtualDirectory Name="Bedslope">
           <File Name="bedslope.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Grain Fractions">
           <File Name="sediment_mixture.cpp"/>
+          <File Name="sediment_waves.cpp"/>
+          <File Name="bedload_waves.cpp"/>
+          <File Name="sediment_susp2D.cpp"/>
+          <File Name="sediment_inflow.cpp"/>
           <File Name="sediment_roughness.cpp"/>
         </VirtualDirectory>
         <File Name="sediment_RK2.cpp"/>
@@ -2886,6 +3025,7 @@
           <File Name="sediment_active.cpp"/>
           <File Name="sediment_void.cpp"/>
           <File Name="sediment_prep.cpp"/>
+          <File Name="sediment_phase_lead.cpp"/>
           <File Name="sediment_update.cpp"/>
           <File Name="sediment_zh.cpp"/>
           <File Name="sediment_ini.cpp"/>
@@ -2923,6 +3063,12 @@
             <File Name="6DOF_geometry_refinement.cpp"/>
             <File Name="6DOF_geometry_remesh.cpp"/>
             <File Name="6DOF_obj_remesh.cpp"/>
+            <File Name="6DOF_deform.cpp"/>
+            <File Name="6DOF_obj_deform.cpp"/>
+            <File Name="6DOF_obj_lateralline.cpp"/>
+            <File Name="6DOF_brain.cpp"/>
+            <File Name="6DOF_brain_link.cpp"/>
+            <File Name="6DOF_obj_cfd_momentum.cpp"/>
           </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="Membrane">
@@ -3223,6 +3369,7 @@
         <File Name="rheology_Herschel-Bulkley.cpp"/>
         <File Name="rheology_Mohr_Coulomb_and_Herschel_Bulkley.cpp"/>
         <File Name="rheology_f.cpp"/>
+        <File Name="rheology_core.cpp"/>
         <File Name="rheology_v.cpp"/>
         <File Name="rheology_velsource.cpp"/>
       </VirtualDirectory>
@@ -3350,6 +3497,7 @@
       <VirtualDirectory Name="Printer">
         <VirtualDirectory Name="Lagoon">
           <File Name="lagoon_store.cpp"/>
+          <File Name="lagoon_nets.cpp"/>
           <File Name="lagoon_output.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Runlog">

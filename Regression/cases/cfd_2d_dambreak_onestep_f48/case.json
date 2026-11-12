@@ -1,0 +1,19 @@
+{
+ "base": "cfd_2d_dambreak_onestep_n63_rk3",
+ "np": 1,
+ "steps": 60,
+ "ctrl_add": [
+  "F 48 6.0"
+ ],
+ "description": "cfd_2d_dambreak_onestep_n63_rk3 with the narrow band (F 48 6): the free surface moving fast, cells entering and leaving the band.",
+ "tags": [
+  "quick",
+  "2d",
+  "dambreak",
+  "levelset",
+  "narrowband"
+ ],
+ "covers": [
+  "the band following the free surface of a dam break"
+ ]
+}

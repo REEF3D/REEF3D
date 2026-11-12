@@ -1,0 +1,25 @@
+{
+ "base": "sflow_1d_si_tidal_flat",
+ "steps": 200,
+ "ctrl_add": [
+  "G 1 1",
+  "G 2 0",
+  "G 3 2",
+  "G 4 8",
+  "G 10 5000.0 8000.0 -1 51"
+ ],
+ "description": "sflow_1d_si_tidal_flat with a patch over the drying slope (x-only refinement) whose right edge the shoreline crosses: wetting and drying (Newton) on the composite system; the coarse faces next to the patch take the coefficients of the fine faces (rsi_couple), so that a coarse shoreline cell is coupled through them. Volume to round-off of the Newton iteration (5e-11 per step).",
+ "tags": [
+  "1d",
+  "sflow",
+  "semi_implicit",
+  "amr",
+  "wetdry"
+ ],
+ "covers": [
+  "reefamr_si 2D grid (xz line solves)",
+  "composite wet/dry iteration",
+  "reefamr::rsi_couple"
+ ],
+ "architect": "Hans Bihs"
+}

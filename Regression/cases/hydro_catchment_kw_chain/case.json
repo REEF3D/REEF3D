@@ -1,0 +1,22 @@
+{
+ "description": "REEF3D::HYDRO catchment model only (R 100 1): DIVEMesh W 10 builds 20 hydrology cells of 100 m along a valley (2000 m x 100 m strip), 36 mm/h for 1 h pass straight through HBV (pass-through parameters) and are routed with the kinematic wave (R 106 1); outlet discharge and volume budget as text. Validated against the analytic solution in Dropbox HYDRO/validation/07_catchment_model.",
+ "solver": "sflow",
+ "np": 1,
+ "steps": 720,
+ "files": [
+  "catchment_dem.asc",
+  "hydro_forcing.dat",
+  "hydro_param.dat"
+ ],
+ "tags": [
+  "quick",
+  "hydro",
+  "catchment",
+  "routing"
+ ],
+ "covers": [
+  "DIVEMesh catchment (W 10, 11, 12, 20): priority flood, D8, cells, chain",
+  "hydro_core::kinwave, route",
+  "hydro_core budget, gauges"
+ ]
+}

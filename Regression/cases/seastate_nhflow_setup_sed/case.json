@@ -1,0 +1,32 @@
+{
+ "base": "seastate_nhflow_si_setup",
+ "control_set": {
+  "S 61": null,
+  "T 61": "200.0 800.0 -1.0 11.0 0.0 12.0"
+ },
+ "ctrl_set": {
+  "A 751": "1"
+ },
+ "ctrl_add": [
+  "S 10 1",
+  "S 11 6",
+  "S 20 0.0002",
+  "S 21 3.0",
+  "S 15 3",
+  "S 17 1.0",
+  "S 35 10.0",
+  "S 41 1",
+  "S 43 20",
+  "S 44 1",
+  "S 110 1",
+  "S 118 1",
+  "S 90 1",
+  "P 76 1",
+  "P 79 1"
+ ],
+ "np": 1,
+ "steps": 100,
+ "description": "seastate_nhflow_si_setup with the radiation stress (A 751 1: the SEASTATE force uniform over the 5 sigma layers, Lagrangian NHFLOW velocity) on an erodible plane beach (T 61): Soulsby-van Rijn total load (S 11 6) with the SEASTATE wave field (S 110 1, Baldock stirring S 118 1), the Eulerian current of the bottom layer (S 119 0: minus the Stokes drift M/h, tau_c corrected), the depth-averaged current of the log profile through the bottom layer for the formula, sand slide (S 90 1), morphological factor 10 from step 20: NHFLOW as the current model of phase-averaged waves.",
+ "tags": ["quick", "1d", "nhflow", "seastate", "sediment", "waves", "semi_implicit"],
+ "covers": ["sediment_waves::eulerian_nhflow", "sediment_waves::depth_mean_nhflow", "sediment_algorithm_nhflow with S 110 / S 11 6-9", "sediment_f::transport_direction in NHFLOW"]
+}

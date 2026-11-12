@@ -1,0 +1,17 @@
+{
+ "base": "sflow_2d_si_mb_quadrants",
+ "ctrl_set": {
+  "A 210": "11"
+ },
+ "description": "sflow_2d_si_mb_quadrants with A 210 11: four turned curvilinear blocks; the gauges equal those of one block with the same 64 x 64 curvilinear grid (G 50 2, assembled from blocks.dat) to 4e-9 m (checked by hand), as with A 210 13.",
+ "tags": [
+  "2d",
+  "multiblock",
+  "sflow",
+  "semi_implicit"
+ ],
+ "covers": [
+  "A 210 11 on a multi-block grid (sflow_amr::si_step: the time levels around the blocks)"
+ ],
+ "architect": "Hans Bihs"
+}

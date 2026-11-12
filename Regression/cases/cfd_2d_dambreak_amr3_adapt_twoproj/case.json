@@ -1,0 +1,22 @@
+{
+ "base": "cfd_2d_dambreak_amr3_adapt",
+ "np": 1,
+ "steps": 60,
+ "ctrl_set": {
+  "N 40": "6"
+ },
+ "description": "cfd_2d_dambreak_amr3_adapt with the one-step scheme with two projections (N 40 6) on two adaptive levels: cfd_amr::step_comp with the half step of all levels and the composite projection with dt/2, the level set of all levels with u(n+1/2), the mid-step level set around the patches, the full step and the composite projection with dt.",
+ "tags": [
+  "quick",
+  "2d",
+  "dambreak",
+  "levelset",
+  "amr",
+  "adaptive"
+ ],
+ "covers": [
+  "cfd_amr::step_comp: N 40 6 (mom_block 0, ls_block, amr_twoproj_mid, mom_block 1, end_block)",
+  "momentum_rk::amr_twoproj_momentum on the patches, the Crank-Nicolson diffusion with u(n) around the patches",
+  "godunov on the patches"
+ ]
+}

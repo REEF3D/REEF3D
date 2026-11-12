@@ -1,0 +1,17 @@
+{
+ "base": "nhflow_2d_susp_flume",
+ "ctrl_add": [
+  "S 127 1"
+ ],
+ "steps": 1000,
+ "description": "nhflow_2d_susp_flume with hindered settling S 127 1: the fall velocity ws (1 - c/0.635)^n at the faces between the cells and in the bed exchange (pick-up and deposition, with the concentration of the bottom cell). S 127 0 (default) has no hindered settling; before it was always on at the faces and never at the bed.",
+ "tags": [
+  "2d",
+  "nhflow",
+  "sediment",
+  "suspended"
+ ],
+ "covers": [
+  "nhflow_suspended_IM1::fill_wvel and suspsource with S 127 1"
+ ]
+}

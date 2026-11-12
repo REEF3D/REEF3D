@@ -1,0 +1,23 @@
+{
+ "base": "cfd_2d_dambreak",
+ "np": 1,
+ "steps": 80,
+ "ctrl_set": {
+  "N 40": "5"
+ },
+ "ctrl_add": [
+  "N 63 3",
+  "N 54 1",
+  "F 41 1"
+ ],
+ "description": "cfd_2d_dambreak_singlephase with the one-step scheme N 40 5 and the WENO level set in RK3 stages (validation 88).",
+ "tags": [
+  "quick",
+  "2d",
+  "levelset",
+  "singlephase"
+ ],
+ "covers": [
+  "F 41 1 with N 40 5"
+ ]
+}

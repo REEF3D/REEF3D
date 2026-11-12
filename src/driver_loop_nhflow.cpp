@@ -193,6 +193,10 @@ void driver::loop_nhflow()
     stop(p,a,pgc);
 	}
 
+	// the state at the end of the run (N 45, N 41, S 19), unless the last step wrote it: before the
+	// checkpoint, which keeps the output counters
+	pprint->print_end(p,d,pgc,pflow,pnhfturb,psed);
+
 	// a checkpoint at the end of the run (P 48): it can be continued with a later end (I 45 1)
 	ckpt().finish();
 

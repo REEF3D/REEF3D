@@ -1,0 +1,23 @@
+{
+ "description": "hydro_coupled_chain_down with SFLOW on 600-1400 m: the outflow of SFLOW returns into the hydrology cell below it (lagged by one exchange), the infiltration of SFLOW (R 30 1, 5 mm/h) into the upper zone of the cells.",
+ "solver": "sflow",
+ "np": 1,
+ "steps": 400,
+ "files": [
+  "catchment_dem.asc",
+  "geo.dat",
+  "hydro_forcing.dat",
+  "hydro_param.dat"
+ ],
+ "tags": [
+  "quick",
+  "hydro",
+  "catchment",
+  "coupled",
+  "semi_implicit"
+ ],
+ "covers": [
+  "hydro_couple::exchange_in (Qret, addv)",
+  "hydro_core ret, addv"
+ ]
+}

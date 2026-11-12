@@ -80,12 +80,16 @@ static inline double nhflow_bed_drag(double vel, double ut, double dn, double ks
 // A519 2: friction at every wall face (nhflow_wall.h, the same walls as the turbulence wall functions),
 //         on the velocity components tangential to the face; ks = B57 at side and top walls, the bed
 //         roughness d->ks at the bed. Faces add up (corner cells feel both walls).
+// The bed friction belongs to the wall-function bed (A 518 1). The resolved no-slip bed (A 518 2) carries the
+// bed shear in the diffusion (u = 0 on the bed face): no bed friction on top of it.
 void nhflow_bcmom::wall_friction(lexer *p, fdm_nhf *d, int comp, double *VEL, double *F, slice &WL)
 {
     double U,V,W,dz;
     int w[6],n;
     
-    if(p->A519==1 && comp<2)
+    const bool bedfric = p->A518!=2;
+    
+    if(p->A519==1 && comp<2 && bedfric)
     {
     k=0;
     
@@ -121,7 +125,7 @@ void nhflow_bcmom::wall_friction(lexer *p, fdm_nhf *d, int comp, double *VEL, do
         F[IJK] -= n*nhflow_wall_drag(VEL[IJK], sqrt(U*U + W*W), p->DYN[JP], p->B57, WL(i,j));
         
         // bed: u, v
-        if(w[4] && comp!=2)
+        if(w[4] && comp!=2 && bedfric)
         F[IJK] -= nhflow_bed_drag(VEL[IJK], sqrt(U*U + V*V), dz, d->ks(i,j), WL(i,j), p->dt);
         
         // solid above: u, v

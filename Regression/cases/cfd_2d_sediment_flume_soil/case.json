@@ -1,0 +1,33 @@
+{
+ "description": "cfd_2d_sediment_flume on a 1 cm grid with the soil stress model below the moving bed (S 200 1, k 1e-4 m/s, Sr 0.975; Exner from step 20): the soil region follows the bed (cells taken from and given to the soil every step, refactorisation of the preconditioner), the block of the flume reaches through the soil (rigid, impermeable), soil probes up- and downstream of it",
+ "base": "cfd_2d_sediment_flume",
+ "ctrl_add": [
+  "I 12 1",
+  "S 200 1",
+  "S 201 1.333e7",
+  "S 202 0.3333333333 0.3333333333",
+  "S 204 1.0e-4 1.0e-4 1.0e-4",
+  "S 205 0.4",
+  "S 206 0.975",
+  "S 208 1.1e5",
+  "S 216 0.97 0.0 -0.01",
+  "S 216 1.09 0.0 -0.01",
+  "S 216 1.15 0.0 -0.09"
+ ],
+ "np": 1,
+ "steps": 400,
+ "tags": [
+  "2d",
+  "cfd",
+  "sediment",
+  "soil"
+ ],
+ "covers": [
+  "soil_stress on a moving bed (Exner): classify, new soil cells from rest",
+  "soil_stress::factorize after a change of the soil region"
+ ],
+ "architect": "Hans Bihs",
+ "control_set": {
+  "B 1": "0.01"
+ }
+}

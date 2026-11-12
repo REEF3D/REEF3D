@@ -17,7 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Hans Bihs
+Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include "reefmg.h"
@@ -43,6 +43,8 @@ Author: Hans Bihs
 #include <iostream>
 #include <iomanip>
 #include <vector>
+
+bool reefmg::keep_coarse=false;
 
 reefmg::reefmg(lexer *p, ghostcell *pgc, int solve_input, int precon_input)
 {
@@ -85,6 +87,28 @@ reefmg::reefmg(lexer *p, ghostcell *pgc, int solve_input, int precon_input)
     //  V-cycle, which may pay at high rank counts.  Must precede setup().
     mg.set_agglomeration(p->N15==1 ? 1 : 0);
 
+    //  N 16: the V-cycle on a device - 1 the Apple Silicon GPU (Metal, in
+    //  every macOS build), 3 the reference device (the GPU kernels on the
+    //  CPU, for tests).  One single-precision hierarchy of the whole domain
+    //  on the device, built and cycled by rank 0 for all ranks through an
+    //  MPI shared-memory window (all ranks on one node); red-black line
+    //  smoothing whatever N 12 says.  BiCGStab and the exact operator stay
+    //  distributed on the CPU ranks in double.  2 (Metal) and 4 (reference):
+    //  the Krylov solve on the device as well - BiCGStab in single
+    //  precision on the device as the preconditioner of GCR in double on
+    //  the CPU ranks, about two exact-operator products per solve instead of
+    //  four (reefmg_core::set_device).  Falls back to the CPU with a message
+    //  if the device is not available.  Must precede setup().
+    mg.set_device(p->N16);
+
+    //  N 17 / N 19: V-cycles per preconditioner application and smoothing
+    //  sweeps on the device (0: 2 and 2)
+    mg.set_device_cycle(p->N17,p->N19);
+
+    //  N 21: the device smoother's coefficients in half precision (16, the
+    //  default) or single (32)
+    mg.set_device_precision(p->N21);
+
 
     //  In fp32 mode reefmg stores no double coefficients; BiCGStab takes the
     //  exact operator from REEF3D's own matrix through fine_apply().
@@ -93,7 +117,8 @@ reefmg::reefmg(lexer *p, ghostcell *pgc, int solve_input, int precon_input)
 
     p->Iarray(CVAL4, p->imax*p->jmax*(p->kmax+2));
 
-    topology(p,pgc);
+    // the levels with the first solve (topo): a run that never calls the solver (the semi-implicit NHFLOW, which
+    // creates it for the explicit pressure) keeps no multigrid hierarchy (128^2 x 4 cells: 9 MB)
 }
 
 reefmg::~reefmg()
@@ -130,6 +155,8 @@ void reefmg::topology(lexer *p, ghostcell *pgc)
         cout<<"REEFMG periodic boundaries in z are not supported - the vertical "
             <<"line solver needs closed columns.  "<<REEFMG_ALT<<endl;
 
+        // every rank stops here: the barrier lets rank 0 print before the abort of another rank
+        MPI_Barrier(pgc->mpi_comm);
         MPI_Abort(MPI_COMM_WORLD,-2749);
     }
 
@@ -140,8 +167,10 @@ void reefmg::topology(lexer *p, ghostcell *pgc)
         if(p->mpirank==0)
         cout<<"REEFMG the grid is decomposed in z ("<<npz<<" ranks).  The vertical "
             <<"line solver needs each vertical column on one rank - decompose in x and y "
-            <<"only.  "<<REEFMG_ALT<<endl;
+            <<"only (DIVEMesh M 13 0, the default; M 30 with 1 in z).  "<<REEFMG_ALT<<endl;
 
+        // every rank stops here: the barrier lets rank 0 print before the abort of another rank
+        MPI_Barrier(pgc->mpi_comm);
         MPI_Abort(MPI_COMM_WORLD,-2750);
     }
 
@@ -174,6 +203,8 @@ void reefmg::topology(lexer *p, ghostcell *pgc)
                 <<"sharing an x position must share knox, and likewise in y.  "
                 <<REEFMG_ALT<<endl;
 
+            // every rank stops here (bad from the gathered sizes): the barrier lets rank 0 print
+            MPI_Barrier(pgc->mpi_comm);
             MPI_Abort(MPI_COMM_WORLD,-2757);
         }
     }
@@ -209,6 +240,9 @@ void reefmg::topology(lexer *p, ghostcell *pgc)
         cout<<"REEFMG coarse-grid agglomeration refused: the gathered problem ("
             <<mg.agglomerated_cells()<<" cells) is too large to hold on every rank"<<endl;
 
+        if(p->N16>0)
+        cout<<"REEFMG "<<mg.device_status()<<endl;
+
         /*if(p->knox%2!=0 || (p->knoy>1 && p->knoy%2!=0))
         cout<<"REEFMG note - odd local cell numbers give ragged coarse cells.  "
             <<"The coarse operators account for this, but even knox/knoy per rank "
@@ -218,6 +252,12 @@ void reefmg::topology(lexer *p, ghostcell *pgc)
 
 void reefmg::start(lexer *p, fdm *a, ghostcell *pgc, field &f, vec &rhsvec, int var)
 {
+    if(!topo)
+    {
+    topology(p,pgc);
+    topo = true;
+    }
+
     //  var==5: CFD pressure Poisson equation (pjm, pjm_corr; poisson_f and
     //  poisson_pcorr assemble a->M in LOOP order)
     if(var==5)
@@ -251,6 +291,12 @@ void reefmg::startf(lexer *p, ghostcell *pgc, field &f, vec &rhs, matrix_diag &M
 
 void reefmg::startV(lexer *p, ghostcell *pgc, double *f, vec &rhs, matrix_diag &M, int var)
 {
+    if(!topo)
+    {
+    topology(p,pgc);
+    topo = true;
+    }
+
     //  var==44: NHFLOW potential-flow initialisation (nhflow_potential_f, I 11 1)
     if(var==44)
     start_solver44(p,0,pgc,0,f,rhs,M);
@@ -445,6 +491,12 @@ void reefmg::startM(lexer *p, ghostcell *pgc, double *x, double *rhs, double *M,
 
 void reefmg::startF(lexer *p, ghostcell *pgc, double *f, vec &rhs, matrix_diag &M, int var)
 {
+    if(!topo)
+    {
+    topology(p,pgc);
+    topo = true;
+    }
+
     if(var==8)
     start_solver8(p,pgc,f,rhs,M,var);
 
@@ -496,15 +548,23 @@ void reefmg::start_solver8(lexer *p, ghostcell *pgc, double *f, vec &rhs,
         if(pgc->globalisum(changed)>0)
         {
             mg.coarsen();
+            coarsened=true;
             mkey=h;
             mkey_ok=true;
         }
     }
     else
     {
+        //  FNPF theta-Robin corrector passes: the coarse levels of the last solve
+        int keep=(keep_coarse && coarsened && !fill_topo) ? 1 : 0;
+        if(pgc->globalimin(keep)==1)
+        mg.refactor_fine();
+        else
         mg.coarsen();
+        coarsened=true;
         mkey_ok=false;
     }
+    keep_coarse=false;
     const double coarsentime=pgc->timer()-starttime;
 
     starttime=pgc->timer();
@@ -522,6 +582,14 @@ void reefmg::start_solver8(lexer *p, ghostcell *pgc, double *f, vec &rhs,
         <<"  coarsen "<<setprecision(3)<<coarsentime
         <<" s  solve "<<setprecision(3)<<solvetime<<" s"<<endl;
 
+    //  N 16: where the time of this coarsen and solve went (rank 0)
+    if(mg.on_device())
+    {
+        if(p->mpirank==0 && p->count%p->P12==0 && !solver_print_quiet())
+        cout<<"REEFMG device: "<<mg.device_timing()<<endl;
+        mg.reset_timers();
+    }
+
     if(p->solveriter>=p->N46 && p->mpirank==0)
     cout<<"REEFMG WARNING - iteration limit N 46 = "<<p->N46<<" reached, res "
         <<relres<<endl;
@@ -538,7 +606,9 @@ void reefmg::fill_matrix8(lexer *p, double *f, vec &rhs, matrix_diag &M)
     //  A 328 1 (FNPF) / A 529 1 (NHFLOW): the Laplace / Poisson assembly has sized
     //  the cross-couplings nt..eb. BiCGStab then multiplies through fine_apply(),
     //  which needs rowmap and colrow0 also in fp64 mode.
-    mixed = ((p->A328==1 || p->A529==1) && !M.nt.empty() && M.nt.size()==M.p.size());
+    cross = ((p->A328==1 || p->A529==1) && !M.nt.empty() && M.nt.size()==M.p.size());
+    colx = !M.xcol.empty();
+    mixed = cross || colx;
     const bool rmap = fp32 || mixed;
 
     //  First call: zero everything once (this also leaves the halo of the
@@ -599,15 +669,21 @@ void reefmg::fill_matrix8(lexer *p, double *f, vec &rhs, matrix_diag &M)
 
     fill_topo=topo;
 
-    if(topo)
-    {
-        wetsig.assign(p->wet,p->wet+nsl);
+    //  rowmap and colrow0 are also built when the Krylov operator is needed
+    //  for the first time after solves without it (A 310 5: the theta-Robin
+    //  solves with xcol between plain Dirichlet solves)
+    if(topo && !rmap)
+    rmap_ok=false;
 
-        if(rmap)
-        {
-            if((long)rowmap.size()!=L.size()) rowmap.resize(L.size());
-            std::fill(rowmap.begin(),rowmap.end(),-1);
-        }
+    const bool rtopo = rmap && (topo || !rmap_ok);
+
+    if(topo)
+    wetsig.assign(p->wet,p->wet+nsl);
+
+    if(rtopo)
+    {
+        if((long)rowmap.size()!=L.size()) rowmap.resize(L.size());
+        std::fill(rowmap.begin(),rowmap.end(),-1);
     }
 
     //  One pass per column. Every interior entry is written each call, so the
@@ -644,7 +720,7 @@ void reefmg::fill_matrix8(lexer *p, double *f, vec &rhs, matrix_diag &M)
                     L.ef[q]=(float)Me[r];   // j-1
                     L.tf[q]=(float)Mt[r];   // k+1
                     L.bf[q]=(float)Mb[r];   // k-1
-                    if(topo) rowmap[q]=r;
+                    if(rtopo) rowmap[q]=r;
                 }
                 else
                 {
@@ -655,7 +731,7 @@ void reefmg::fill_matrix8(lexer *p, double *f, vec &rhs, matrix_diag &M)
                     L.e[q]=Me[r];   // j-1
                     L.t[q]=Mt[r];   // k+1
                     L.b[q]=Mb[r];   // k-1
-                    if(topo && mixed) rowmap[q]=r;
+                    if(rtopo) rowmap[q]=r;
                 }
 
                 const double fv=R[r], uv=f[fc+kk];
@@ -693,11 +769,27 @@ void reefmg::fill_matrix8(lexer *p, double *f, vec &rhs, matrix_diag &M)
     if(err)
     p->solver_error=1;
 
+    //  A 310 5: the in-column couplings xcol (row k to k-3, k-4, ... of the higher-order free-surface stencils)
+    //  lumped into the k-1 coupling of the V-cycle operator: the line solve stays tridiagonal, and the row sums
+    //  - the constant mode of a column, which carries the Neumann-like top rows of shallow columns at large steps -
+    //  are those of the exact operator, which the Krylov iteration applies (fine_apply)
+    if(colx)
+    for(const matrix_diag::colcoupling &X : M.xcol)
+    {
+        const long q=L.idx(X.i,X.j,X.k);
+        if(!L.act[q]) continue;
+        if(fp32) L.bf[q]+=(float)X.v;
+        else     L.b[q]+=X.v;
+    }
+
     //  First row of every column whose cells are all active and numbered
     //  consecutively - every fully wet column, given CVAL4's LOOP order -
     //  so that fine_apply() can run it as a plain stencil.
-    if(rmap && topo)
-    build_colrow0(L);
+    if(rtopo)
+    {
+        build_colrow0(L);
+        rmap_ok=true;
+    }
 }
 
 void reefmg::build_colrow0(const sc_level &L)
@@ -755,7 +847,7 @@ void reefmg::fine_apply(const sc_level &L,const double *x,double *y)
             for(int kk=1;kk<nzl;  ++kk) yc[kk]+=B[kk]*xc[kk-1];
 
             //  A 328 1: sigma cross-couplings (i+-1,k+-1), (j+-1,k+-1)
-            if(mixed)
+            if(cross)
             {
                 const double *NT=M.nt.data()+r0, *NB=M.nb.data()+r0, *ST=M.st.data()+r0, *SB=M.sb.data()+r0;
                 const double *WT=M.wt.data()+r0, *WB=M.wb.data()+r0, *ET=M.et.data()+r0, *EB=M.eb.data()+r0;
@@ -779,7 +871,7 @@ void reefmg::fine_apply(const sc_level &L,const double *x,double *y)
             if(kk<L.nz-1) v+=M.t[r]*x[q+1];
             if(kk>0)      v+=M.b[r]*x[q-1];
 
-            if(mixed)
+            if(cross)
             {
                 if(kk<L.nz-1) v+=M.nt[r]*x[q+sx+1]+M.st[r]*x[q-sx+1]+M.wt[r]*x[q+sy+1]+M.et[r]*x[q-sy+1];
                 if(kk>0)      v+=M.nb[r]*x[q+sx-1]+M.sb[r]*x[q-sx-1]+M.wb[r]*x[q+sy-1]+M.eb[r]*x[q-sy-1];
@@ -787,6 +879,11 @@ void reefmg::fine_apply(const sc_level &L,const double *x,double *y)
             y[q]=v;
         }
     }
+
+    //  A 310 5: couplings of single rows within their column
+    if(colx)
+    for(const matrix_diag::colcoupling &X : M.xcol)
+    y[L.idx(X.i,X.j,X.k)]+=X.v*x[L.idx(X.i,X.j,X.kc)];
 }
 
 void reefmg::fillbackvec8(lexer *p, double *f)
@@ -836,6 +933,7 @@ void reefmg::start_solver5(lexer *p, ghostcell *pgc, field &f, vec &rhs, matrix_
 
     starttime=pgc->timer();
     mg.coarsen();
+    coarsened=false;    //  not the var-8 hierarchy (keep_coarse)
     mkey_ok=false;
     const double coarsentime=pgc->timer()-starttime;
 
@@ -853,6 +951,14 @@ void reefmg::start_solver5(lexer *p, ghostcell *pgc, field &f, vec &rhs, matrix_
         <<"  res "<<setprecision(3)<<relres
         <<"  coarsen "<<setprecision(3)<<coarsentime
         <<" s  solve "<<setprecision(3)<<solvetime<<" s"<<endl;
+
+    //  N 16: where the time of this coarsen and solve went (rank 0)
+    if(mg.on_device())
+    {
+        if(p->mpirank==0 && p->count%p->P12==0 && !solver_print_quiet())
+        cout<<"REEFMG device: "<<mg.device_timing()<<endl;
+        mg.reset_timers();
+    }
 
     if(p->solveriter>=p->N46 && p->mpirank==0)
     cout<<"REEFMG WARNING - iteration limit N 46 = "<<p->N46<<" reached, res "
@@ -916,6 +1022,7 @@ void reefmg::fill_matrix5(lexer *p, field &f, vec &rhs, matrix_diag &M)
         if((long)rowmap.size()!=L.size()) rowmap.resize(L.size());
         std::fill(rowmap.begin(),rowmap.end(),-1);
     }
+    rmap_ok=false;      // rowmap is not that of fill_matrix8 any more
 
     int err=0;
 

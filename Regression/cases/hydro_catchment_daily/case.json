@@ -1,0 +1,24 @@
+{
+ "description": "REEF3D::HYDRO catchment model only (R 100 1), synthetic mountain catchment, daily steps for one year from 1 September, PET columns in hydro_forcing.dat, outflow of a cell downstream within the step (R 106 0).",
+ "solver": "sflow",
+ "np": 1,
+ "steps": 365,
+ "files": [
+  "catchment_dem.asc",
+  "catchment_glacier.asc",
+  "catchment_zone.asc",
+  "hydro_forcing.dat",
+  "hydro_param.dat"
+ ],
+ "tags": [
+  "quick",
+  "hydro",
+  "catchment",
+  "snow"
+ ],
+ "covers": [
+  "daily steps (recession conversion, MAXBAS weights)",
+  "PET columns",
+  "R 106 0"
+ ]
+}

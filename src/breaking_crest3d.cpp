@@ -26,6 +26,7 @@ Architect: Hans Bihs
 #include"slice.h"
 #include<cmath>
 #include<algorithm>
+#include<unordered_map>
 #include<sys/stat.h>
 #include<mpi.h>
 #include"reef3d_mpmd.h"
@@ -77,6 +78,15 @@ namespace
         return pow(sin(0.5*M_PI*(1.0-s)/a),2.0);
 
         return 1.0;
+    }
+
+    // model 5: the breaker scales, the Gamma window and the mechanism go with the crest point it continues
+    void bc3_copy5(bc3_point &P, const bc3_point &Q)
+    {
+        P.Lb=Q.Lb; P.Hb=Q.Hb; P.cb=Q.cb; P.Tb=Q.Tb; P.Gam=Q.Gam; P.g0=Q.g0;
+        for(int q=0; q<5; ++q)
+        P.gs[q]=Q.gs[q];
+        P.gclosed=Q.gclosed; P.mech=Q.mech; P.wdeep=Q.wdeep;
     }
 
     // append to a ring of 8 (oldest first)
@@ -210,6 +220,44 @@ double breaking_crest3d::ip(lexer *p, slice &f, double x, double y)
     return (1.0-a)*(1.0-b)*f(ii,jj) + a*(1.0-b)*f(ii+1,jj) + (1.0-a)*b*f(ii,jj+1) + a*b*f(ii+1,jj+1);
 }
 
+// walls: the sides without inflow / outflow cells (gcbsl4 side codes: 1 x-, 4 x+, 3 y-, 2 y+)
+void breaking_crest3d::walls(lexer *p, ghostcell *pgc)
+{
+    int open[5] = {0,0,0,0,0};
+
+    for(int q=0; q<p->gcslin_count; ++q)
+    {
+        const int cs = p->gcslin[q][3];
+        open[cs==1 ? 1 : cs==4 ? 2 : cs==3 ? 3 : 4] = 1;
+    }
+
+    for(int q=0; q<p->gcslout_count; ++q)
+    {
+        const int cs = p->gcslout[q][3];
+        open[cs==1 ? 1 : cs==4 ? 2 : cs==3 ? 3 : 4] = 1;
+    }
+
+    for(int e=1; e<=4; ++e)
+    wallside[e] = (pgc->globalimax(open[e])==0 && (e<=2 || p->j_dir==1)) ? 1 : 0;
+
+    wallside[0] = 0;
+}
+
+// a ray sample beyond a wall is moved back onto the wall (the ray slides along it); true if moved
+bool breaking_crest3d::clampxy(lexer *p, double &x, double &y)
+{
+    const double ex = 1.0e-9*(p->global_xmax-p->global_xmin);
+    const double ey = 1.0e-9*(p->global_ymax-p->global_ymin);
+    bool moved = false;
+
+    if(wallside[1]==1 && x<p->global_xmin+ex) {x = p->global_xmin+ex; moved = true;}
+    if(wallside[2]==1 && x>p->global_xmax-ex) {x = p->global_xmax-ex; moved = true;}
+    if(wallside[3]==1 && y<p->global_ymin+ey) {y = p->global_ymin+ey; moved = true;}
+    if(wallside[4]==1 && y>p->global_ymax-ey) {y = p->global_ymax-ey; moved = true;}
+
+    return moved;
+}
+
 bool breaking_crest3d::wetcell(lexer *p, int ii, int jj)
 {
     return p->wet[(ii-p->imin)*p->jmax + (jj-p->jmin)]==1;
@@ -237,6 +285,99 @@ void breaking_crest3d::detect(lexer *p, ghostcell *pgc, slice &eta, slice &us, s
 
     const double dtp = (tprev>-1.0e19) ? t-tprev : 0.0;
     tprev = t;
+
+    // the crest points of the last step (own, then halo) as candidates of the matching: their predicted positions in
+    // square bins of side H, H the largest matching radius of any of them, so that the ones within reach of a new
+    // point lie in its bin and the 8 around it. The candidates of a point are tested in the order of the lists, so
+    // the matching is the same as testing all of them (which made the step O(n^2) in the crest points: 48 % of the
+    // step on a 1210 x 840 harbour grid, A 310 5)
+    const bool bigstep = (p->A310==5);
+    double rmx = 0.0;
+
+    for(int ii=0; ii<p->knox; ++ii)
+    rmx = MAX(rmx, p->DXN[ii+marge]);
+
+    if(p->j_dir==1)
+    for(int jj=0; jj<p->knoy; ++jj)
+    rmx = MAX(rmx, p->DYN[jj+marge]);
+
+    rmx *= 2.0*(1.0+1.0e-9);
+
+    const int nq0 = (int)prev.size();
+    const int nq = nq0 + (int)halo.size();
+    auto cq = [&](int k) -> const bc3_point& { return (k<nq0) ? prev[k] : halo[k-nq0]; };
+
+    std::vector<double> qx(nq), qy(nq);
+    std::vector<int> qbrk;
+    double H = rmx, bx0 = 1.0e300, by0 = 1.0e300, bx1 = -1.0e300, by1 = -1.0e300;
+
+    for(int k=0; k<nq; ++k)
+    {
+        const bc3_point &Q = cq(k);
+        const double mv = (Q.hasC==1) ? Q.C*dtp : 0.0;
+        qx[k] = Q.x+mv*Q.nx;
+        qy[k] = Q.y+mv*Q.ny;
+
+        if(bigstep)
+        H = MAX(H, rmx + ((Q.hasC==1) ? 0.25*fabs(Q.C)*dtp : sqrt(g*MAX(Q.wl,1.0e-3))*dtp));
+
+        bx0 = MIN(bx0,qx[k]); bx1 = MAX(bx1,qx[k]);
+        by0 = MIN(by0,qy[k]); by1 = MAX(by1,qy[k]);
+
+        if(Q.state==1 && Q.sa>0.0)
+        qbrk.push_back(k);
+    }
+
+    H *= 1.0+1.0e-9;
+    int nbx = 1, nby = 1;
+
+    if(nq>0 && std::isfinite(bx1-bx0) && std::isfinite(by1-by0))
+    {
+        nbx = (int)MIN((bx1-bx0)/H + 1.0, 1.0e6);
+        nby = (int)MIN((by1-by0)/H + 1.0, 1.0e6);
+
+        // at most about 4 bins per candidate
+        while((double)nbx*nby > 4.0*nq + 16.0)
+        {
+            H *= 2.0;
+            nbx = (int)((bx1-bx0)/H + 1.0);
+            nby = (int)((by1-by0)/H + 1.0);
+        }
+    }
+
+    auto bin_of = [&](double x, double y, int &ix, int &iy)
+    {
+        const double fx = floor((x-bx0)/H), fy = floor((y-by0)/H);
+        ix = (int)MAX(MIN(fx,(double)nbx+1.0),-2.0);
+        iy = (int)MAX(MIN(fy,(double)nby+1.0),-2.0);
+    };
+
+    // bins as offsets into one index array (counting sort; the indices of a bin ascending)
+    std::vector<int> bstart(nbx*nby+1,0), bidx(nq);
+    {
+        std::vector<int> bk(nq);
+
+        for(int k=0; k<nq; ++k)
+        {
+            int ix, iy;
+            bin_of(qx[k],qy[k],ix,iy);
+            ix = MAX(MIN(ix,nbx-1),0);
+            iy = MAX(MIN(iy,nby-1),0);
+            bk[k] = ix*nby+iy;
+            ++bstart[bk[k]+1];
+        }
+
+        for(int b=0; b<nbx*nby; ++b)
+        bstart[b+1] += bstart[b];
+
+        std::vector<int> fill(bstart.begin(),bstart.end()-1);
+
+        for(int k=0; k<nq; ++k)
+        bidx[fill[bk[k]]++] = k;
+    }
+
+    std::vector<int> near;
+    near.reserve(64);
 
     // ------------------------------------------------------------
     // 1. crest points
@@ -371,16 +512,46 @@ void breaking_crest3d::detect(lexer *p, ghostcell *pgc, slice &eta, slice &us, s
         const bc3_point *best=nullptr;
         double bd = rm*rm;
 
-        for(int list=0; list<2; ++list)
-        for(const bc3_point &Q : (list==0 ? prev : halo))
+        // large steps (theta-Robin A 310 5, several cells of crest travel per step): a crest point without a
+        // speed yet may have moved up to sqrt(g h) dt, one with a speed by the error of the prediction (a quarter
+        // of C dt); with two cells only, the crests were never continued and never got a speed (no onset at 4x
+        // the RK3 step, Tian TP1)
+        if(bigstep)
+        bd = 1.0e300;
+
+        // the candidates in the bin of P and the 8 around it, in list order
+        near.clear();
         {
+            int ix, iy;
+            bin_of(P.x,P.y,ix,iy);
+
+            for(int bxi=MAX(ix-1,0); bxi<=MIN(ix+1,nbx-1); ++bxi)
+            for(int byi=MAX(iy-1,0); byi<=MIN(iy+1,nby-1); ++byi)
+            {
+                const int b = bxi*nby+byi;
+                near.insert(near.end(), bidx.begin()+bstart[b], bidx.begin()+bstart[b+1]);
+            }
+
+            std::sort(near.begin(),near.end());
+        }
+
+        for(int k : near)
+        {
+            const bc3_point &Q = cq(k);
+
             // predicted position of Q
-            const double mv = (Q.hasC==1) ? Q.C*dtp : 0.0;
-            const double dx = Q.x+mv*Q.nx-P.x;
-            const double dy = Q.y+mv*Q.ny-P.y;
+            const double dx = qx[k]-P.x;
+            const double dy = qy[k]-P.y;
             const double dd = dx*dx+dy*dy;
 
-            if(dd<=bd && fabs(Q.nx*nx+Q.ny*ny)>0.7)
+            double lim = bd;
+            if(bigstep)
+            {
+            const double ra = rm + ((Q.hasC==1) ? 0.25*fabs(Q.C)*dtp : sqrt(g*MAX(Q.wl,1.0e-3))*dtp);
+            lim = MIN(bd, ra*ra);
+            }
+
+            if(dd<=lim && fabs(Q.nx*nx+Q.ny*ny)>0.7)
             {
                 bd = dd;
                 best = &Q;
@@ -406,6 +577,7 @@ void breaking_crest3d::detect(lexer *p, ghostcell *pgc, slice &eta, slice &us, s
             P.hasC = Q.hasC;
             P.nh = Q.nh;
             P.nbh = Q.nbh;
+            bc3_copy5(P,Q);
 
             for(int q=0; q<8; ++q)
             {
@@ -427,13 +599,15 @@ void breaking_crest3d::detect(lexer *p, ghostcell *pgc, slice &eta, slice &us, s
         {
             const bc3_point *bq=nullptr;
             double bs = 1.0e20;
-            const double wl = 1.5*MAX(p->DXN[IP], (p->j_dir==1) ? p->DYN[JP] : 0.0);
+            const double wl0 = 1.5*MAX(p->DXN[IP], (p->j_dir==1) ? p->DYN[JP] : 0.0);
 
-            for(int list=0; list<2; ++list)
-            for(const bc3_point &Q : (list==0 ? prev : halo))
-            if(Q.state==1 && Q.sa>0.0 && fabs(Q.nx*nx+Q.ny*ny)>0.7)
+            // the breaking ones of the candidates (qbrk, in list order)
+            for(int k : qbrk)
+            if(fabs(cq(k).nx*nx+cq(k).ny*ny)>0.7)
             {
+                const bc3_point &Q = cq(k);
                 const double mv = (Q.hasC==1) ? Q.C*dtp : 0.0;
+                const double wl = wl0 + ((p->A310==5) ? 0.25*fabs(mv) : 0.0);
                 const double dx = P.x-(Q.x+mv*Q.nx);
                 const double dy = P.y-(Q.y+mv*Q.ny);
                 const double s = dx*Q.nx + dy*Q.ny;
@@ -457,6 +631,8 @@ void breaking_crest3d::detect(lexer *p, ghostcell *pgc, slice &eta, slice &us, s
                 P.state = 1;
                 P.ton = bq->ton;
                 P.b = bq->b;
+                bc3_copy5(P,*bq);
+                P.gclosed = 1;
 
                 if(P.hasC==0)
                 {
@@ -554,8 +730,11 @@ void breaking_crest3d::detect(lexer *p, ghostcell *pgc, slice &eta, slice &us, s
         if(P.hasC==1 && fabs(P.C)<1.0e-6)
         P.hasC=0;
 
-        // a crest travelling against n (strong opposing current): turn n
-        if(P.hasC==1 && P.C<0.0)
+        // a crest travelling against n (strong opposing current): turn n. Not a breaking crest point: at a steep coast
+        // the crest of a breaking wave stalls and is reflected, and the turned n painted its front face (crest to the
+        // next trough ahead) seaward over the back of the reflected wave, rays of breaking viscosity a few hundred
+        // metres long; it keeps the direction it broke in and its breaking ends when that front face flattens
+        if(P.hasC==1 && P.C<0.0 && P.state!=1)
         {
             P.nx=-P.nx;
             P.ny=-P.ny;
@@ -565,6 +744,11 @@ void breaking_crest3d::detect(lexer *p, ghostcell *pgc, slice &eta, slice &us, s
 
         P.us = usn;
         P.B = (P.hasC==1) ? P.us/P.C : 0.0;
+
+        // model 5: a crest whose breaking ended breaks again only after its B has fallen back (below the candidates
+        // it is not seen by rays())
+        if(model==5 && P.state==0 && P.gclosed==2 && P.B<Bcand)
+        P.gclosed = 0;
 
         if(P.hasC==1 && sample)
         bc3_push(P.tb,P.bh,nullptr,P.nbh,t,P.B,0.0);
@@ -612,9 +796,18 @@ void breaking_crest3d::rays(lexer *p, ghostcell *pgc, slice &eta, slice &WL, dou
                             const std::function<double(const bc3_point&)> &sback,
                             const std::function<double(const bc3_point&, double, double)> &integrand,
                             const std::function<double(const bc3_point&)> &epsf,
-                            slice &vb, int *brk, slice *kw)
+                            slice &vb, int *brk, slice *kw,
+                            const std::function<double(const bc3_point&, double, double)> *integrand_pa, slice *pa,
+                            slice *vbd, slice *kwd)
 {
     const double g = fabs(p->W22);
+
+    if(wallside[0]==-1)
+    walls(p,pgc);
+
+    // an axis with a wall side: the ray is not cut there (clampxy), the own subdomain is tested per sample
+    const bool xwall = wallside[1]==1 || wallside[2]==1;
+    const bool ywall = wallside[3]==1 || wallside[4]==1;
 
     // ------------------------------------------------------------
     // candidates of all ranks
@@ -645,6 +838,8 @@ void breaking_crest3d::rays(lexer *p, ghostcell *pgc, slice &eta, slice &WL, dou
         double s0=0.0, s1=smax_all;
         const double vx = dir*R.nx, vy = dir*R.ny;
 
+        if(!xwall)
+        {
         if(fabs(vx)>1.0e-14)
         {
             const double a = (xa-R.x)/vx, b = (xb-R.x)/vx;
@@ -654,8 +849,9 @@ void breaking_crest3d::rays(lexer *p, ghostcell *pgc, slice &eta, slice &WL, dou
         else
         if(R.x<xa || R.x>=xb)
         s1=-1.0;
+        }
 
-        if(p->j_dir==1)
+        if(p->j_dir==1 && !ywall)
         {
             if(fabs(vy)>1.0e-14)
             {
@@ -693,8 +889,13 @@ void breaking_crest3d::rays(lexer *p, ghostcell *pgc, slice &eta, slice &WL, dou
 
             for(int m=m0; m<=m1 && found==1000000000; ++m)
             {
-                const double x = R.x + dir*m*ds*R.nx;
-                const double y = R.y + dir*m*ds*R.ny;
+                double x = R.x + dir*m*ds*R.nx;
+                double y = R.y + dir*m*ds*R.ny;
+                double xm = x-dir*ds*R.nx, ym = y-dir*ds*R.ny;
+                double xp = x+dir*ds*R.nx, yp = y+dir*ds*R.ny;
+                clampxy(p,x,y);
+                clampxy(p,xm,ym);
+                clampxy(p,xp,yp);
 
                 if(!own(p,x,y))
                 continue;
@@ -710,8 +911,8 @@ void breaking_crest3d::rays(lexer *p, ghostcell *pgc, slice &eta, slice &WL, dou
                 }
 
                 const double e0 = ip(p,eta,x,y);
-                const double em = ip(p,eta,x-dir*ds*R.nx,y-dir*ds*R.ny);
-                const double ep = ip(p,eta,x+dir*ds*R.nx,y+dir*ds*R.ny);
+                const double em = ip(p,eta,xm,ym);
+                const double ep = ip(p,eta,xp,yp);
 
                 if(!std::isnan(ep) && e0<=em && e0<ep)
                 found = m;
@@ -747,6 +948,8 @@ void breaking_crest3d::rays(lexer *p, ghostcell *pgc, slice &eta, slice &WL, dou
     // pass 2: trough values, largest front-face slope, dissipation per unit viscosity
     // ------------------------------------------------------------
     std::vector<double> et(MAX(nc,1),0.0), ht(MAX(nc,1),0.0), sl(MAX(nc,1),0.0), I(MAX(nc,1),0.0);
+    std::vector<double> I2(MAX(nc,1),0.0);
+    const bool m5 = (model==5 && integrand_pa!=nullptr && pa!=nullptr);
 
     for(int k=0; k<nc; ++k)
     {
@@ -780,8 +983,13 @@ void breaking_crest3d::rays(lexer *p, ghostcell *pgc, slice &eta, slice &WL, dou
             for(int m=m0; m<=m1; ++m)
             {
                 const double s = dir*m*ds;
-                const double x = R.x + s*R.nx;
-                const double y = R.y + s*R.ny;
+                double x = R.x + s*R.nx;
+                double y = R.y + s*R.ny;
+                double xm = x-R.d*R.nx, ym = y-R.d*R.ny;
+                double xp = x+R.d*R.nx, yp = y+R.d*R.ny;
+                clampxy(p,x,y);
+                clampxy(p,xm,ym);
+                clampxy(p,xp,yp);
 
                 if(!own(p,x,y))
                 continue;
@@ -794,8 +1002,8 @@ void breaking_crest3d::rays(lexer *p, ghostcell *pgc, slice &eta, slice &WL, dou
 
                 if(side==0)
                 {
-                    const double em = ip(p,eta,x-R.d*R.nx,y-R.d*R.ny);
-                    const double ep = ip(p,eta,x+R.d*R.nx,y+R.d*R.ny);
+                    const double em = ip(p,eta,xm,ym);
+                    const double ep = ip(p,eta,xp,yp);
 
                     if(!std::isnan(em) && !std::isnan(ep))
                     sl[k] = MAX(sl[k], fabs(ep-em)/(2.0*R.d));
@@ -805,7 +1013,12 @@ void breaking_crest3d::rays(lexer *p, ghostcell *pgc, slice &eta, slice &WL, dou
                 const double w = (m==0 || (side==0 && m==mtr) || (side==1 && m==mback)) ? 0.5 : 1.0;
 
                 if(S>0.0)
+                {
                 I[k] += w*S*integrand(R,x,y)*ds;
+
+                if(m5)
+                I2[k] += w*S*(*integrand_pa)(R,x,y)*ds;
+                }
             }
         }
     }
@@ -816,6 +1029,9 @@ void breaking_crest3d::rays(lexer *p, ghostcell *pgc, slice &eta, slice &WL, dou
         MPI_Allreduce(MPI_IN_PLACE,ht.data(),nc,MPI_DOUBLE,MPI_SUM,reef3d_comm());
         MPI_Allreduce(MPI_IN_PLACE,sl.data(),nc,MPI_DOUBLE,MPI_MAX,reef3d_comm());
         MPI_Allreduce(MPI_IN_PLACE,I.data(),nc,MPI_DOUBLE,MPI_SUM,reef3d_comm());
+
+        if(m5)
+        MPI_Allreduce(MPI_IN_PLACE,I2.data(),nc,MPI_DOUBLE,MPI_SUM,reef3d_comm());
     }
 
     // ------------------------------------------------------------
@@ -872,8 +1088,201 @@ void breaking_crest3d::rays(lexer *p, ghostcell *pgc, slice &eta, slice &WL, dou
             clin = sqrt(g*tanh(kk*MAX(R.wl,1.0e-3))/kk);
         }
 
+        // ------------------------------------------------------------
+        // model 5 (A 350 5): breaker scales, strength, duration and energy of steepness-limited breaking from the
+        // literature, the limiting steepness, absorbing pressure (fnpf_breaking_barthelemy.cpp, breaking_crest3d.h)
+        // ------------------------------------------------------------
+        if(model==5)
+        {
+            const double hs = MAX(R.wl-R.eta,1.0e-3);
+            double w=0.0, N=30.0;
+
+            if(R.L>0.0)
+            {
+                N = MAX(R.L/MAX(R.d,1.0e-12), 30.0);
+                const double mu = R.C*R.C/(g*hs);
+                const double kh = 2.0*M_PI*hs/R.L;
+                w = MIN(MAX((0.9-mu)/0.3,0.0),1.0)*MIN(MAX((kh-0.8)/0.6,0.0),1.0);
+            }
+
+            // the resolution correction of the onset threshold (calibrated on focused packets at N = 30-120 cells per
+            // wavelength) fades out between N = 120 and 200: B = 0.85 holds where the crest slow-down is resolved
+            const double wN = MIN(MAX((200.0-N)/80.0,0.0),1.0);
+            const double Bth = Bon - w*wN*BonN/sqrt(N);
+
+            // the B samples of the window |B - Bth| < win (every step), for Gamma = T_b dB/dt (D18: linear fit of B(t)
+            // over |B - 0.85| < 0.03); a crest that falls back below the window before onset starts a new window
+            if(R.state==0 && R.B<Bth-win)
+            {
+                R.g0=0.0;
+                for(int q=0; q<5; ++q)
+                R.gs[q]=0.0;
+
+                // a crest whose breaking ended (gclosed 2) can break again once its B has fallen below the window
+                R.gclosed = 0;
+            }
+
+            if(R.gclosed==0 && R.hasC==1 && fabs(R.B-Bth)<win)
+            {
+                if(R.gs[0]<0.5)
+                R.g0 = t;
+
+                const double tt = t-R.g0;
+                R.gs[0] += 1.0;
+                R.gs[1] += tt;
+                R.gs[2] += R.B;
+                R.gs[3] += tt*tt;
+                R.gs[4] += tt*R.B;
+            }
+
+            // onset: the breaker scales of D18, k_b from the crest's trough-to-trough length, c_b and T_b from linear
+            // dispersion at the still-water depth (not the tracked crest speed, which is 0.7-0.9 c_b at onset)
+            // the limiting steepness (Stokes: k H/2 = 0.44 for H/L = 0.142): a crest steeper than that cannot travel as a
+            // wave of permanent form and breaks, whatever its B (Toffoli et al. 2010: front-face slopes up to 0.55 in
+            // random seas); on grids that do not resolve the growth of B the B criterion can come too late for it
+            const double Sl = M_PI*R.H/MAX(R.L,1.0e-6);
+            const bool over = (R.L>0.0 && w>0.5 && Sl>Slim);
+
+            if(R.state==0 && R.C>=Cmin*clin && ((R.gclosed!=2 && R.B>Bth) || (w>0.5 && Sl>1.25*Slim)))
+            {
+                R.state = 1;
+                R.ton = t;
+                deepest_onset = MAX(deepest_onset, R.wl-R.eta);
+
+                R.Lb = R.L;
+                R.Hb = R.H;
+                const double kb = 2.0*M_PI/MAX(R.Lb,1.0e-6);
+                R.cb = sqrt(g*tanh(kb*hs)/kb);
+                R.Tb = R.Lb/MAX(R.cb,1.0e-6);
+                R.wdeep = w;
+                R.gclosed = 0;
+            }
+
+            if(R.state!=1)
+            {
+                R.nu=0.0;
+                R.nua=0.0;
+                continue;
+            }
+
+            // the window closes when B has passed it after onset, at the latest 0.25 T_b after onset
+            if(R.gclosed==0 && (R.B>Bth+win || t-R.ton>0.25*R.Tb))
+            R.gclosed = 1;
+
+            // deep 2: b from the local slope of the breaker, S_b = k H / 2 (H crest to trough ahead), with the laboratory fit
+            // b = 0.4 (S - 0.08)^2.5 of Romero, Melville & Kleiss (2012, JPO 42) (Drazen et al. 2008: b ~ S^2.5);
+            // geometric, so it does not depend on how well the grid resolves the growth of B
+            // The slope is the largest while the window is open (up to 0.25 T_b after onset): the onset on coarse
+            // grids (Bth < Bon) comes before the crest has reached its breaking steepness.
+            if(deep==2 && (R.ton==t || R.gclosed==0))
+            {
+                const double Sb = M_PI*R.H/MAX(R.L,1.0e-6);
+
+                if(R.ton==t || Sb>R.Gam)
+                {
+                    R.Gam = Sb;
+                    R.b = (Sb>0.08) ? MIN(0.4*pow(Sb-0.08,2.5), bmax) : 0.0;
+                }
+
+                R.Hb = MAX(R.Hb, R.H);
+            }
+
+            // deep 1: Gamma and b while the window is open: b = 0.034 (Gamma - 0.30)^2.5 (D18 eq. 3.1), at most bmax;
+            // with fewer than 3 samples in the window (B jumped across it) the slope of the last B samples as model 4.
+            // On grids that under-resolve the crest (Bth < Bon) u_s and C, and so B and dB/dt, are off by about the
+            // factor Bth/Bon (16: RP1 at L/40 u_s 1.25, C 1.60 against 1.32, 1.53 at L/97): Gamma x Bon/Bth
+            if(deep!=2 && (R.ton==t || R.gclosed==0))
+            {
+                double G = 0.0;
+
+                if(R.gs[0]>=2.5)
+                {
+                    const double n = R.gs[0];
+                    const double den = R.gs[3] - R.gs[1]*R.gs[1]/n;
+                    G = (den>0.0) ? R.Tb*(R.gs[4] - R.gs[1]*R.gs[2]/n)/den : 0.0;
+                }
+                else
+                G = MIN(R.Tb*bc3_slope(R.tb,R.bh,R.nbh,5), 1.62);
+
+                G *= Bon/MAX(Bth,1.0e-6);
+                R.Gam = G;
+                R.b = (deep==1 && G>0.30) ? MIN(0.034*pow(G-0.30,2.5), bmax) : 0.0;
+            }
+
+            // end: a deep-water breaker after tau T_b (the active breaking of the b fit), a bore when its front face
+            // has flattened (as model 4); not in the step of onset
+            const bool deepbr = (R.wdeep>0.5);
+
+            if(R.ton<t && ((deepbr && t-R.ton>=tau*R.Tb && !over) || (!deepbr && sl[k]<slope_end)))
+            {
+                // one event per steepening: no new onset until B has fallen below the window (gclosed 2)
+                R.state=0;
+                R.gclosed=2;
+                R.nu=0.0;
+                R.nua=0.0;
+                continue;
+            }
+
+            // dissipation: a deep-water breaker by the absorbing surface pressure pa = nua S eta_t (Guignard & Grilli
+            // 2001, Mohanlal et al. 2023), a bore by the viscosity as model 4
+            R.mech = (deepbr && m5) ? 1 : 0;
+            R.eps = epsf(R);
+            R.dpa = I2[k];
+
+            if(R.mech==1)
+            {
+                // the share fvisc of eps by the viscosity on the front face (the eddy viscosity of the roller, Tian et al.
+                // 2012; it also keeps the front face of the potential-flow crest regular), the rest by the pressure
+                R.nu = (R.dpn>1.0e-12) ? fvisc*R.eps/R.dpn : 0.0;
+                R.nu = MIN(R.nu, fabs(R.C)*(R.sa+R.sback));
+                R.nu = MAX(R.nu, 0.0);
+
+                R.nua = (R.dpa>1.0e-12) ? (1.0-fvisc)*R.eps/R.dpa : 0.0;
+                R.nua = MIN(R.nua, R.cb);
+
+                // above the limiting steepness the largest absorption (the wave cannot hold the energy)
+                if(over && fvisc<1.0)
+                R.nua = R.cb;
+
+                R.nua = MIN(R.nua, nuacap);
+                R.nua = MAX(R.nua, 0.0);
+            }
+            else
+            {
+                R.nua = 0.0;
+                R.nu = (R.dpn>1.0e-12) ? R.eps/R.dpn : 0.0;
+                R.nu = MIN(R.nu, fabs(R.C)*(R.sa+R.sback));
+                R.nu = MAX(R.nu, 0.0);
+            }
+
+            ++nbreak;
+            continue;
+        }
+
+        // onset threshold: Bon, in deep and intermediate water lowered by BonN/sqrt(N) with N = L/d the cells per
+        // wavelength of the crest: on coarse grids the crest slow-down before breaking is not resolved, C stays high and
+        // u_s low, and B of a breaking crest stays below Bon. Deep and intermediate water by both
+        //   mu = C^2/(g h) (linear waves: tanh(kh)/kh): full correction for mu < 0.6, none for mu > 0.9; crests and
+        //   bores in shallow water travel at C^2 >= g h, and the short crests riding on the bores of the inner surf zone
+        //   (L ~ 2 h) have kh ~ 2 by their own L;
+        //   kh = 2 pi h / L: full correction for kh > 1.4, none for kh < 0.8; the thin crests of the swash travel slower
+        //   than sqrt(g h);
+        // h the still-water depth at the crest. N at least 30, the coarsest grid of the calibration: short crests
+        // (ripples, crests riding on a longer wave) keep the threshold of N = 30.
+        double Bth = Bon;
+
+        if(BonN>0.0 && R.L>0.0)
+        {
+            const double N = MAX(R.L/MAX(R.d,1.0e-12), 30.0);
+            const double hs = MAX(R.wl-R.eta,1.0e-3);
+            const double mu = R.C*R.C/(g*hs);
+            const double kh = 2.0*M_PI*hs/R.L;
+            const double w = MIN(MAX((0.9-mu)/0.3,0.0),1.0)*MIN(MAX((kh-0.8)/0.6,0.0),1.0);
+            Bth = Bon - w*BonN/sqrt(N);
+        }
+
         // onset
-        if(R.state==0 && R.B>Bon && R.C>=Cmin*clin)
+        if(R.state==0 && R.B>Bth && R.C>=Cmin*clin)
         {
             R.state = 1;
             R.ton = t;
@@ -885,7 +1294,11 @@ void breaking_crest3d::rays(lexer *p, ghostcell *pgc, slice &eta, slice &WL, dou
             if(deep==1)
             {
                 const double Tb = R.L/MAX(fabs(R.C),1.0e-6);
-                const double Gm = Tb*bc3_slope(R.tb,R.bh,R.nbh,5);
+
+                // Gamma at most 1.62, the largest of the data of the fit (Derakhti et al. 2018, Table 1; b = 0.068): on
+                // coarse grids B of the tracked crest jumps between samples, and dB/dt over the last samples gave
+                // Gamma up to 6 (b up to 2) in the Tian et al. packets at 40-80 cells per wavelength
+                const double Gm = MIN(Tb*bc3_slope(R.tb,R.bh,R.nbh,5), 1.62);
 
                 if(Gm>0.30)
                 R.b = 0.034*pow(Gm-0.30,2.5);
@@ -914,29 +1327,45 @@ void breaking_crest3d::rays(lexer *p, ghostcell *pgc, slice &eta, slice &WL, dou
         ++nbreak;
     }
 
+    // the candidate of each (rank, i, j): the first in cand, as the search through cand found it
+    std::unordered_map<long long,int> ck;
+    ck.reserve(2*cand.size()+1);
+
+    auto ckey = [](int r, int ii, int jj) { return ((long long)r<<42) ^ ((long long)(ii+(1<<20))<<21) ^ (long long)(jj+(1<<20)); };
+
+    for(int k=0; k<nc; ++k)
+    ck.emplace(ckey(cand[k].rank,cand[k].i,cand[k].j),k);
+
     // the state goes back to the own crest points
     for(bc3_point &P : pts)
-    for(const bc3_point &R : cand)
-    if(R.rank==rank && R.i==P.i && R.j==P.j)
     {
+    auto it = ck.find(ckey(rank,P.i,P.j));
+    if(it!=ck.end())
+    {
+        const bc3_point &R = cand[it->second];
         P.state = R.state;
         P.ton = R.ton;
         P.b = R.b;
         P.nu = R.nu;
         P.sa = R.sa;
-        break;
+        bc3_copy5(P,R);
+        P.nua = R.nua;
+    }
     }
 
     // the halo copies of the points of the other ranks carry the new state as well
     for(bc3_point &Q : halo)
-    for(const bc3_point &R : cand)
-    if(R.rank==Q.rank && R.i==Q.i && R.j==Q.j)
     {
+    auto it = ck.find(ckey(Q.rank,Q.i,Q.j));
+    if(it!=ck.end())
+    {
+        const bc3_point &R = cand[it->second];
         Q.state = R.state;
         Q.ton = R.ton;
         Q.b = R.b;
         Q.sa = R.sa;
-        break;
+        bc3_copy5(Q,R);
+    }
     }
 
     // ------------------------------------------------------------
@@ -964,8 +1393,9 @@ void breaking_crest3d::rays(lexer *p, ghostcell *pgc, slice &eta, slice &WL, dou
         for(int m=m0; m<=m1; ++m)
         {
             const double s = dir*m*ds;
-            const double x = R.x + s*R.nx;
-            const double y = R.y + s*R.ny;
+            double x = R.x + s*R.nx;
+            double y = R.y + s*R.ny;
+            const bool slid = clampxy(p,x,y);
 
             const int ic = cell_i(p,x), jc = cell_j(p,y);
 
@@ -980,9 +1410,10 @@ void breaking_crest3d::rays(lexer *p, ghostcell *pgc, slice &eta, slice &WL, dou
                 if(ii<0 || ii>=p->knox || jj<0 || jj>=p->knoy)
                 continue;
 
-                const double cx = p->XP[ii+marge] - R.x;
-                const double cy = (p->j_dir==1) ? p->YP[jj+marge] - R.y : 0.0;
-                const double sc = cx*R.nx + cy*R.ny;
+                // position along the ray and distance from it; for a sample slid along a wall, from the sample
+                const double cx = p->XP[ii+marge] - (slid ? x : R.x);
+                const double cy = (p->j_dir==1) ? p->YP[jj+marge] - (slid ? y : R.y) : 0.0;
+                const double sc = (slid ? s : 0.0) + cx*R.nx + cy*R.ny;
                 const double pd = fabs(-cx*R.ny + cy*R.nx);
                 // half width of the painted strip: 1.5 cells, so that the strips of neighbouring crest points overlap
                 // and reach the cells next to the side walls
@@ -996,9 +1427,37 @@ void breaking_crest3d::rays(lexer *p, ghostcell *pgc, slice &eta, slice &WL, dou
                 if(p->wet[n]==0)
                 continue;
 
+                // vbd (NHFLOW A 550 5): the viscosity of the deep-water breakers in its own field (and wavenumber kwd),
+                // without the flags, which seed the bore viscosity of the caller
+                if(vbd!=nullptr && R.mech==1)
+                {
+                    if(sc>=-R.sback && sc<=R.sa && R.nu>0.0)
+                    {
+                        const double v = R.nu*bc3_ramp((sc+R.sback)/MAX(R.sa+R.sback,1.0e-12));
+
+                        if(v>(*vbd)(ii,jj))
+                        {
+                            (*vbd)(ii,jj) = v;
+
+                            if(kwd!=nullptr)
+                            (*kwd)(ii,jj) = R.kw;
+                        }
+                    }
+
+                    continue;
+                }
+
                 brk[n] = 1;
 
-                if(sc>=-R.sback && sc<=R.sa)
+                if(sc>=-R.sback && sc<=R.sa && R.mech==1 && R.nua>0.0)
+                {
+                    const double v = R.nua*bc3_ramp((sc+R.sback)/MAX(R.sa+R.sback,1.0e-12));
+
+                    if(v>(*pa)(ii,jj))
+                    (*pa)(ii,jj) = v;
+                }
+
+                if(sc>=-R.sback && sc<=R.sa && (R.mech==0 || R.nu>0.0))
                 {
                     const double v = R.nu*bc3_ramp((sc+R.sback)/MAX(R.sa+R.sback,1.0e-12));
 
@@ -1024,10 +1483,18 @@ void breaking_crest3d::log(lexer *p, double t, const char *file)
     if(!logf.is_open())
     {
         logf.open(file);
-        logf<<"# t id x y nx ny eta C us B state H h_c h_t b eps nu L dpn"<<endl;
+        logf<<"# t id x y nx ny eta C us B state H h_c h_t b eps nu L dpn"
+            <<((model==5) ? " Gamma nwin c_b T_b L_b H_b mech nua dpa" : "")<<endl;
     }
 
     for(const bc3_point &R : cand)
+    {
     logf<<t<<" "<<R.id<<" "<<R.x<<" "<<R.y<<" "<<R.nx<<" "<<R.ny<<" "<<R.eta<<" "<<R.C<<" "<<R.us<<" "<<R.B<<" "<<R.state
-        <<" "<<R.H<<" "<<R.wl<<" "<<R.ht<<" "<<R.b<<" "<<R.eps<<" "<<R.nu<<" "<<R.L<<" "<<R.dpn<<"\n";
+        <<" "<<R.H<<" "<<R.wl<<" "<<R.ht<<" "<<R.b<<" "<<R.eps<<" "<<R.nu<<" "<<R.L<<" "<<R.dpn;
+
+    if(model==5)
+    logf<<" "<<R.Gam<<" "<<R.gs[0]<<" "<<R.cb<<" "<<R.Tb<<" "<<R.Lb<<" "<<R.Hb<<" "<<R.mech<<" "<<R.nua<<" "<<R.dpa;
+
+    logf<<"\n";
+    }
 }

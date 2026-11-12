@@ -143,6 +143,7 @@ void amr_load::step(lexer *p, const function<amr_load_counts()> &counts)
         p0 = (c.tpatch>=0.0) ? c.tpatch : amr_clock::patch;
         r0 = amr_clock::regrid;
         rm0 = amr_clock::regrid_mpi;
+        c0 = c.clk;
         return;
     }
 
@@ -154,12 +155,17 @@ void amr_load::step(lexer *p, const function<amr_load_counts()> &counts)
 
 void amr_load::report(lexer *p, const amr_load_counts &c, int nsteps)
 {
-    const int NV = 11;
+    const int NB = 11;
+    const int NC = (int)c.clk.size();
+    const int NV = NB+NC;
     const double now = MPI_Wtime();
     const double tp = (c.tpatch>=0.0) ? c.tpatch : amr_clock::patch;
 
-    double d[NV] = {now-w0, amr_clock::mpi-m0, tp-p0, amr_clock::regrid-r0, amr_clock::regrid_mpi-rm0,
-                    c.n0, c.n0a, c.np, double(c.npatch), c.wpred, double(nsteps)};
+    vector<double> d = {now-w0, amr_clock::mpi-m0, tp-p0, amr_clock::regrid-r0, amr_clock::regrid_mpi-rm0,
+                        c.n0, c.n0a, c.np, double(c.npatch), c.wpred, double(nsteps)};
+    for(int k=0; k<NC; ++k)
+    d.push_back(c.clk[k]-(k<(int)c0.size() ? c0[k] : 0.0));
+    c0 = c.clk;
 
     // the next window starts here (the gather below counts into it)
     w0 = now;
@@ -172,7 +178,7 @@ void amr_load::report(lexer *p, const amr_load_counts &c, int nsteps)
     const int nr = p->mpi_size;
     const int me = p->mpirank;
     vector<double> all(me==0 ? (size_t)NV*nr : 1);
-    MPI_Gather(d,NV,MPI_DOUBLE,&all[0],NV,MPI_DOUBLE,0,reef3d_comm());
+    MPI_Gather(d.data(),NV,MPI_DOUBLE,&all[0],NV,MPI_DOUBLE,0,reef3d_comm());
 
     if(me!=0)
     return;
@@ -220,6 +226,19 @@ void amr_load::report(lexer *p, const amr_load_counts &c, int nsteps)
         sp += V(r,2); mxp = max(mxp,V(r,2));
         s0 += lev0[r]; mx0 = max(mx0,lev0[r]);
     }
+    // the clocks of the module: max/mean over the ranks
+    vector<double> Lc(NC,1.0);
+    for(int k=0; k<NC; ++k)
+    {
+        double s=0.0, mx=0.0;
+        for(int r=0; r<nr; ++r)
+        {
+            s += V(r,NB+k);
+            mx = max(mx,V(r,NB+k));
+        }
+        Lc[k] = (s>0.0) ? mx/(s/nr) : 1.0;
+    }
+
     const double Lpatch = (sp>0.0) ? mxp/(sp/nr) : 1.0;
     const double Llev0 = (s0>0.0) ? mx0/(s0/nr) : 1.0;
 
@@ -267,22 +286,36 @@ void amr_load::report(lexer *p, const amr_load_counts &c, int nsteps)
         sout<<"# "<<name<<" load statistics (G 43 "<<p->G43<<"), "<<nr<<" ranks; busy = wall - MPI time per rank"<<endl;
         sout<<"# count \t simtime \t steps \t wall per step [s] \t busy max/mean \t predicted max/mean \t parallel efficiency mean(busy)/wall"
               " \t imbalance loss (max-mean busy)/wall \t MPI share \t patch share \t regrid share \t patch cell cost (fit, level-0 cells)"
-              " \t r(predicted,busy) \t slowest rank \t patches \t cells \t patch time max/mean \t level-0 time max/mean"<<endl;
+              " \t r(predicted,busy) \t slowest rank \t patches \t cells \t patch time max/mean \t level-0 time max/mean";
+        for(int k=0; k<NC; ++k)
+        sout<<" \t "<<(k<(int)c.clk_names.size() ? c.clk_names[k] : string("clock"))<<" max/mean";
+        sout<<endl;
         }
         if(h2)
         {
         rout<<"# "<<name<<" load per rank (G 43 "<<p->G43<<"); times in s over the steps since the last report"<<endl;
-        rout<<"# count \t rank \t level-0 cells \t not solid \t patch cells \t patches \t predicted work \t wall \t MPI \t patch \t regrid \t busy \t busy/mean \t level 0 (busy - patch - regrid work)"<<endl;
+        rout<<"# count \t rank \t level-0 cells \t not solid \t patch cells \t patches \t predicted work \t wall \t MPI \t patch \t regrid \t busy \t busy/mean \t level 0 (busy - patch - regrid work)";
+        for(int k=0; k<NC; ++k)
+        rout<<" \t "<<(k<(int)c.clk_names.size() ? c.clk_names[k] : string("clock"))<<" [s]";
+        rout<<endl;
         }
     }
 
     sout<<p->count<<" \t "<<setprecision(10)<<p->simtime<<" \t "<<nsteps<<" \t "<<setprecision(5)<<mwall/max(nsteps,1)
         <<" \t "<<L<<" \t "<<Lp<<" \t "<<eff<<" \t "<<loss<<" \t "<<fm<<" \t "<<fp<<" \t "<<fr<<" \t "<<wfit<<" \t "<<rcorr
-        <<" \t "<<slow<<" \t "<<long(spatches)<<" \t "<<setprecision(12)<<scells<<" \t "<<setprecision(5)<<Lpatch<<" \t "<<Llev0<<endl;
+        <<" \t "<<slow<<" \t "<<long(spatches)<<" \t "<<setprecision(12)<<scells<<" \t "<<setprecision(5)<<Lpatch<<" \t "<<Llev0;
+    for(int k=0; k<NC; ++k)
+    sout<<" \t "<<Lc[k];
+    sout<<endl;
 
     for(int r=0; r<nr; ++r)
+    {
     rout<<p->count<<" \t "<<r<<" \t "<<setprecision(10)<<V(r,5)<<" \t "<<V(r,6)<<" \t "<<V(r,7)<<" \t "<<long(V(r,8))<<" \t "<<V(r,9)
-        <<" \t "<<setprecision(5)<<V(r,0)<<" \t "<<V(r,1)<<" \t "<<V(r,2)<<" \t "<<V(r,3)<<" \t "<<busy[r]<<" \t "<<(mb>0.0 ? busy[r]/mb : 1.0)<<" \t "<<lev0[r]<<endl;
+        <<" \t "<<setprecision(5)<<V(r,0)<<" \t "<<V(r,1)<<" \t "<<V(r,2)<<" \t "<<V(r,3)<<" \t "<<busy[r]<<" \t "<<(mb>0.0 ? busy[r]/mb : 1.0)<<" \t "<<lev0[r];
+        for(int k=0; k<NC; ++k)
+        rout<<" \t "<<V(r,NB+k);
+        rout<<endl;
+    }
 
     sout.flush();
     rout.flush();

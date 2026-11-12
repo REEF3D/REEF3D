@@ -1,0 +1,16 @@
+{
+ "base": "nhflow_2d_si_nh_standing",
+ "np": 2,
+ "description": "nhflow_2d_si_nh_standing on 2 ranks: the multigrid halo exchange and the probing colours across the rank boundary; matches the 1-rank run to the solver tolerance.",
+ "tags": [
+  "2d",
+  "nhflow",
+  "semi_implicit",
+  "nonhydrostatic",
+  "mpi"
+ ],
+ "covers": [
+  "nhflow_si_nhmg::exchange",
+  "nh_begin / nh_prepare: face-depth flags and nWLh of the neighbouring ranks"
+ ]
+}

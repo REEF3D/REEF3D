@@ -1144,17 +1144,40 @@ void reefamr::build_bc2D(ghostcell *pgc, reefamr_patch &c)
     // one of the block
     const bool om = c.blk>0 && c.lev==0 && (bopen[0][c.blk]>=0 || bzone[0][c.blk]>=0);
     const bool op = c.blk>0 && c.lev==0 && (bopen[1][c.blk]>=0 || bzone[1][c.blk]>=0);
+    // an edge zone on a j face (geo_mesh::turn_blocks: two open faces that are not opposite): the -j (side 3) or +j
+    // face (side 2) as an outflow side, as the y edges of the native grid
+    const bool ojm = c.blk>0 && c.lev==0 && bzone[2][c.blk]>=0;
+    const bool ojp = c.blk>0 && c.lev==0 && bzone[3][c.blk]>=0;
     if(om || op)
     {
-        const int oi = pp->origin_i, gn = pp->gknox, s1 = pp->bcside1, s4 = pp->bcside4;
+        // (the j sides out of reach: a block with an open j face has its origin_j, below)
+        const int oi = pp->origin_i, gn = pp->gknox, s1 = pp->bcside1, s4 = pp->bcside4, oj = pp->origin_j;
         pp->origin_i = -EXT;
         pp->gknox = blk[c.blk].ni;
+        pp->origin_j = -100000000;
         pp->bcside1 = om ? 1 : 21;
         pp->bcside4 = op ? 2 : 21;
         pgc->gcsl_setbc1(pp);
         pgc->gcsl_setbc2(pp);
         pgc->gcsl_setbc4(pp);
+        pp->origin_i = oi; pp->gknox = gn; pp->bcside1 = s1; pp->bcside4 = s4; pp->origin_j = oj;
+    }
+    if(ojm || ojp)
+    {
+        const int oi = pp->origin_i, gn = pp->gknox, s1 = pp->bcside1, s4 = pp->bcside4;
+        const int oj = pp->origin_j, gm = pp->gknoy, s2 = pp->bcside2, s3 = pp->bcside3;
+        pp->origin_i = -EXT;
+        pp->gknox = blk[c.blk].ni;
+        pp->origin_j = -EY;
+        pp->gknoy = blk[c.blk].nj;
+        pp->bcside1 = pp->bcside4 = 21;
+        pp->bcside3 = ojm ? 2 : 21;
+        pp->bcside2 = ojp ? 2 : 21;
+        pgc->gcsl_setbc1(pp);
+        pgc->gcsl_setbc2(pp);
+        pgc->gcsl_setbc4(pp);
         pp->origin_i = oi; pp->gknox = gn; pp->bcside1 = s1; pp->bcside4 = s4;
+        pp->origin_j = oj; pp->gknoy = gm; pp->bcside2 = s2; pp->bcside3 = s3;
     }
 
     pgc->gcsl_setbcio(pp);

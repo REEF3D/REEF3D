@@ -150,7 +150,7 @@ void vts3D::structureWrite(lexer *p, fdm_fnpf *c, std::vector<char> &buffer, siz
 {
     float ffn;
     int iin;
-    double phase;
+    double phase = 0.0;    // no rotation outside the motion window (was unset)
     double zcoor;
 
     //  XYZ

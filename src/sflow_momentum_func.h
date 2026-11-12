@@ -120,6 +120,8 @@ protected:
     
     slice4 UHDIFF,VHDIFF,WHDIFF;
     slice4 Un,Vn,etaS;
+    slice4 zeta;
+    int wbpatch;
     
 private:
     int q;
@@ -136,6 +138,7 @@ private:
     void wall_bc(lexer*, slice&, slice&, slice&, int);   // free-slip wall of boundary cell (i,j), side cs
     void neumann(lexer*, slice&, int);
     void outflow_clip(lexer*, slice&, slice&);         // outflow ghost cells of boundary cell (i,j): no backflow
+    void spiral_source(lexer*, fdm2D*, slice&, int);   // S 98: dispersion of the main-flow momentum by the spiral flow
 };
 
 #endif

@@ -1,0 +1,15 @@
+{
+ "base": "seastate_2d_phase27_settle",
+ "np": 2,
+ "same_as": "seastate_2d_phase27_settle",
+ "description": "seastate_2d_phase27_settle on 2 ranks: the test of A 779 with the global largest change, the sweeps pipelined (A 781 1): the same iterations per step and bitwise the result of one rank. Validation in Dropbox SEASTATE/validation/83_settle.",
+ "tags": [
+  "quick",
+  "2d",
+  "seastate",
+  "mpi"
+ ],
+ "covers": [
+  "A 779 on 2 ranks"
+ ]
+}

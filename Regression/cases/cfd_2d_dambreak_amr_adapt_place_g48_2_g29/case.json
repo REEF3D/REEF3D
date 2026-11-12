@@ -1,0 +1,22 @@
+{
+ "base": "cfd_2d_dambreak_amr_adapt_place_g48_2",
+ "np": 2,
+ "steps": 48,
+ "ctrl_add": [
+  "G 29 1"
+ ],
+ "description": "cfd_2d_dambreak_amr_adapt_place_g48_2 with G 29 1: the hydrostatic restriction into the shadows of level 0 (G 40 1, patches on the other rank) with G 48 2.",
+ "tags": [
+  "quick",
+  "2d",
+  "dambreak",
+  "levelset",
+  "amr",
+  "adaptive",
+  "mpi",
+  "place"
+ ],
+ "covers": [
+  "G 29 with G 40 1"
+ ]
+}

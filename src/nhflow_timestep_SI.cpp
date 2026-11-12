@@ -26,6 +26,7 @@ Author: Hans Bihs
 #include"fdm_nhf.h"
 #include"ghostcell.h"
 #include"nhflow_curv.h"
+#include"nhflow_momentum_SI.h"
 #include"sflow_curv.h"
 
 nhflow_timestep_SI::nhflow_timestep_SI(lexer* p) : nhflow_timestep(p), cfl(p->N47)
@@ -39,7 +40,7 @@ nhflow_timestep_SI::~nhflow_timestep_SI()
 void nhflow_timestep_SI::start(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
     const double g = fabs(p->W22);
-    double hmax=0.0, sigma, cmin=1.0e20;
+    double hmax=0.0, cmin=1.0e20;
 
     p->umax=p->vmax=p->wmax=p->viscmax=p->omegamax=0.0;
 	p->dt_old=p->dt;
@@ -60,20 +61,12 @@ void nhflow_timestep_SI::start(lexer *p, fdm_nhf *d, ghostcell *pgc)
     WETDRY
     if(d->WL(i,j)>p->A544)
     {
-    sigma = fabs(d->U[IJK])/p->DXN[IP];
+    // the speed of the first internal mode adds to the flow (A 620: the baroclinic term is explicit)
+    const double ci = p->A620>0 ? nhflow_momentum_SI::internal_speed(p,d,i,j) : 0.0;
 
-    if(p->j_dir==1)
-    sigma += fabs(d->V[IJK])/p->DYN[JP];
-
-    // curvilinear grid: the speed over the widths of the cell across its faces
-    if(p->geo_curv==1)
-    {
-    const double sp = sqrt(d->U[IJK]*d->U[IJK] + d->V[IJK]*d->V[IJK]);
-    sigma = sp/nhflow_curv::width1(p,i,j) + sp/nhflow_curv::width2(p,i,j);
-    }
-
-    if(sigma>1.0e-20)
-    cmin = MIN(cmin,1.0/sigma);
+    // the Courant number of the flow and the internal speed (curvilinear grid: the speed over the widths of the cell
+    // across its faces); A 549 1 (semi-Lagrangian advection): the flow up to A549_c
+    cmin = MIN(cmin,nhflow_momentum_SI::adv_cmin(p,d->U[IJK],d->V[IJK],ci,i,j,cfl));
 
     hmax = MAX(hmax,d->WL(i,j));
 
@@ -154,7 +147,7 @@ void nhflow_timestep_SI::ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
     nhflow_timestep::ini(p,d,pgc);
 
     if(p->A536<=0.0 && p->mpirank==0)
-    cout<<"NHFLOW A 534 1: no A 536 (maximum time step) given, the time step stays at the explicit gravity wave limit"<<endl;
+    cout<<"NHFLOW A 510 11/12/13: no A 536 (maximum time step) given, the time step stays at the explicit gravity wave limit"<<endl;
 
 	p->dt=pgc->timesync(p->dt);
 	p->dt_old=p->dt;

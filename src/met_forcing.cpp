@@ -301,7 +301,7 @@ void met_forcing::offset_vtp(lexer *p, int *offset, int &n)
     ++n;
 }
 
-void met_forcing::name_vtp(ofstream &result, int *offset, int &n)
+void met_forcing::name_vtp(std::ostream &result, int *offset, int &n)
 {
     if(!wind)
     return;
@@ -324,7 +324,7 @@ void met_forcing::name_pvtp(ofstream &result)
     result<<"<PDataArray type=\"Float32\" Name=\"wind_stress\" NumberOfComponents=\"3\"/>\n";
 }
 
-void met_forcing::print_vtp(lexer *p, ofstream &result)
+void met_forcing::print_vtp(lexer *p, std::ostream &result)
 {
     if(!wind)
     return;

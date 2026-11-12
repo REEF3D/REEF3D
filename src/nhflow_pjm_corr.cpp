@@ -27,6 +27,7 @@ Author: Hans Bihs
 #include"nhflow_membrane_beta.h"
 #include"ghostcell.h"
 #include"nhflow_poisson_pcorr.h"
+#include"nhflow_pjm_ho.h"
 #include"solver.h"
 #include"ioflow.h"
 #include"nhflow_poisson.h"
@@ -34,6 +35,7 @@ Author: Hans Bihs
 #include"patchBC_interface.h"
 #include"vrans.h"
 #include"vrans_definitions.h"
+#include"nhflow_thinbody.h"
 
 #define WLVL (fabs(WL(i,j))>(p->A544)?WL(i,j):1.0e20)
 
@@ -113,8 +115,11 @@ void nhflow_pjm_corr::start(lexer *p, fdm_nhf *d, solver* psolv, ghostcell* pgc,
     // increment is corrected. With the total pressure the face flux contains avg(G_wide P^n) - G_compact P^n,
     // a divergence the projection never sees; it moves the free surface of the layer columns in an odd-even
     // pattern that grows (seen with moving membranes, R_t = R_n and floorpressure 0).
+    // sharp thin bodies (the hull X 15 8, nhflow_thinbody): the predictor takes the old pressure with the link mobilities
+    // (upgrad, vpgrad, wpgrad), so the cell velocities carry the face-mobility gradient of the total pressure and the
+    // Rhie-Chow faces are stored with it
     if(d->MBETA!=nullptr)
-    nhflow_membrane_rc_store(p,d,pgc,PCORR,alpha*p->dt);
+    nhflow_membrane_rc_store(p,d,pgc,d->thinbody!=nullptr ? d->P : PCORR,alpha*p->dt);
 
     p->poissoniter=p->solveriter;
 
@@ -176,37 +181,35 @@ void nhflow_pjm_corr::rhs(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, doubl
     
     pgc->start7P(p,PCORR,gcval_press);
     
+    const bool ho = nhflow_pjm_ho::active(p,d);
+    
     n=0;
     LOOP
     {
         WETDRYDEEP
         {
+        // bed node (k==0): the velocity below the bed is taken as 0 here, whatever the bed ghost cells of the velocity
+        // (A 518): the bed face then carries (1-fac) U of the bed cell, the half cell of the bed node half its
+        // horizontal divergence. With the mirrored ghost cells of the wall-function bed (A 518 1) in this place the
+        // dispersion of the waves changed (linear sloshing, kh = pi/2, 5 layers: period +1.8 % instead of -0.1 %).
+        // This is the continuity equation of the half cell on the bed, on a sloping bed too: the slope enters through
+        // sigx dU/dz only. (A 522, retired, gave the bed cell a larger weight on slopes, 1 - 0.5 max(1 - 5 |slope|, 0):
+        // on the Beji & Battjes bar the higher harmonics behind the bar came out wrong with it.)
+        const bool bednode = (k==0);
+        const double Ub1 = bednode ? 0.0 : U[Im1JKm1], Ub2 = bednode ? 0.0 : U[Ip1JKm1];
+        const double Vb1 = bednode ? 0.0 : V[IJm1Km1], Vb2 = bednode ? 0.0 : V[IJp1Km1];
+        const double Ubc = bednode ? 0.0 : U[IJKm1],   Vbc = bednode ? 0.0 : V[IJKm1];
+        
         fac = p->DZN[KM1]/(p->DZN[KP]+p->DZN[KM1]);    
 
-        U1 = (1.0-fac)*U[Im1JK] + fac*U[Im1JKm1]; 
-        U2 = (1.0-fac)*U[Ip1JK] + fac*U[Ip1JKm1]; 
+        U1 = (1.0-fac)*U[Im1JK] + fac*Ub1; 
+        U2 = (1.0-fac)*U[Ip1JK] + fac*Ub2; 
         
-        V1 = (1.0-fac)*V[IJm1K] + fac*V[IJm1Km1]; 
-        V2 = (1.0-fac)*V[IJp1K] + fac*V[IJp1Km1];   
+        V1 = (1.0-fac)*V[IJm1K] + fac*Vb1; 
+        V2 = (1.0-fac)*V[IJp1K] + fac*Vb2;
 
-        
-        if(k==0)
-        {
-        fac = MAX((1.0 - p->A522*fabs(d->Bx(i,j))),0.0)*p->DZN[KM1]/(p->DZN[KP]+p->DZN[KM1]);
-        
-        U1 = (1.0-fac)*U[Im1JK] + fac*U[Im1JKm1]; 
-        U2 = (1.0-fac)*U[Ip1JK] + fac*U[Ip1JKm1]; 
-        
-        
-        fac = MAX((1.0 - p->A522*fabs(d->By(i,j))),0.0)*p->DZN[KM1]/(p->DZN[KP]+p->DZN[KM1]);
-        
-        V1 = (1.0-fac)*V[IJm1K] + fac*V[IJm1Km1]; 
-        V2 = (1.0-fac)*V[IJp1K] + fac*V[IJp1Km1]; 
-        }
-     
-
-        dUdz = (U[IJK] - U[IJKm1])/p->DZP[KM1];
-        dVdz = (V[IJK] - V[IJKm1])/p->DZP[KM1];
+        dUdz = (U[IJK] - Ubc)/p->DZP[KM1];
+        dVdz = (V[IJK] - Vbc)/p->DZP[KM1];
         dWdz = p->sigz[IJ]*(W[IJK]-W[IJKm1])/p->DZP[KM1];
          
         // curvilinear grid: the horizontal divergence by the chain rule (nhflow_curv.h)
@@ -216,17 +219,38 @@ void nhflow_pjm_corr::rhs(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, doubl
                                 + p->sigy[FIJK]*dVdz
                                 + dWdz)/(alpha*p->dt);
         else
-        d->rhsvec.V[n] =      -  ((U2-U1)/(p->DXP[IP] + p->DXP[IM1])
+        {
+        // fourth-order horizontal divergence (nhflow_pjm_ho.h)
+        double dUdx = (U2-U1)/(p->DXP[IP] + p->DXP[IM1]);
+        double dVdy = (V2-V1)/(p->DYP[JP] + p->DYP[JM1]);
+        
+        if(ho)
+        {
+        const double f0 = p->DZN[KM1]/(p->DZN[KP]+p->DZN[KM1]);
+        
+        if(nhflow_pjm_ho::x(p,d,i,j,k))
+        dUdx = nhflow_pjm_ho::divx(p,U,i,j,k,f0);
+        
+        if(nhflow_pjm_ho::y(p,d,i,j,k))
+        dVdy = nhflow_pjm_ho::divy(p,V,i,j,k,f0);
+        }
+        
+        d->rhsvec.V[n] =      -  (dUdx
                                 + p->sigx[FIJK]*dUdz
                                 
-                                + (V2-V1)/(p->DYP[JP] + p->DYP[JM1])
+                                + dVdy
                                 + p->sigy[FIJK]*dVdz
 
                                 + dWdz)/(alpha*p->dt);
         }
+        }
                             
     ++n;
     }
+    
+    // sharp thin bodies: wall velocity at the blocked links (as nhflow_pjm::rhs)
+    if(d->thinbody!=nullptr)
+    d->thinbody->projection_rhs(p,d,U,V,W,alpha);
 }
 
 void nhflow_pjm_corr::bedbc(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V, double *W,double alpha)
@@ -239,6 +263,8 @@ void nhflow_pjm_corr::vel_setup(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U,
 
 void nhflow_pjm_corr::ucorr(lexer* p, fdm_nhf *d, slice &WL, double *UH, double *PCORR, double alpha)
 {
+    const bool ho = nhflow_pjm_ho::active(p,d);
+    
 	LOOP
     WETDRYDEEP
     {
@@ -251,6 +277,10 @@ void nhflow_pjm_corr::ucorr(lexer* p, fdm_nhf *d, slice &WL, double *UH, double 
     else
     dPdx = (0.5*(PCORR[FIp1JKp1]+PCORR[FIp1JK])-0.5*(PCORR[FIm1JKp1]+PCORR[FIm1JK]))/(p->DXP[IP]+p->DXP[IM1]);
     
+    // fourth-order horizontal gradient (nhflow_pjm_ho.h)
+    if(ho && nhflow_pjm_ho::x(p,d,i,j,k))
+    dPdx = nhflow_pjm_ho::gradx(p,PCORR,i,j,k);
+    
 	UH[IJK] -= alpha*p->dt*CPORNH*WL(i,j)*(1.0/p->W1)*
     
                 (dPdx
@@ -261,6 +291,8 @@ void nhflow_pjm_corr::ucorr(lexer* p, fdm_nhf *d, slice &WL, double *UH, double 
 
 void nhflow_pjm_corr::vcorr(lexer* p, fdm_nhf *d, slice &WL, double *VH, double *PCORR, double alpha)
 {
+    const bool ho = nhflow_pjm_ho::active(p,d);
+    
     if(p->j_dir==1)
     LOOP
     WETDRYDEEP
@@ -272,6 +304,9 @@ void nhflow_pjm_corr::vcorr(lexer* p, fdm_nhf *d, slice &WL, double *VH, double 
     nhflow_curv::pgrad_layer(p,PCORR,i,j,k,dPdx,dPdy);
     else
     dPdy = (0.5*(PCORR[FIJp1Kp1]+PCORR[FIJp1K])-0.5*(PCORR[FIJm1Kp1]+PCORR[FIJm1K]))/(p->DYP[JP]+p->DYP[JM1]);
+    
+    if(ho && nhflow_pjm_ho::y(p,d,i,j,k))
+    dPdy = nhflow_pjm_ho::grady(p,PCORR,i,j,k);
     
     VH[IJK] -= alpha*p->dt*CPORNH*WL(i,j)*(1.0/p->W1)*
     
@@ -290,6 +325,8 @@ void nhflow_pjm_corr::wcorr(lexer* p, fdm_nhf *d, slice &WL, double *WH, double 
 
 void nhflow_pjm_corr::upgrad(lexer*p, fdm_nhf *d, slice &WL)
 {
+    const bool ho = nhflow_pjm_ho::active(p,d);
+    
     // curvilinear grid: g eta sum(d_face S_face)/A (nhflow_curv.h)
     if(p->geo_curv==1)
     LOOP
@@ -310,14 +347,26 @@ void nhflow_pjm_corr::upgrad(lexer*p, fdm_nhf *d, slice &WL)
     else
     dPdx = (0.5*(d->P[FIp1JKp1]+d->P[FIp1JK])-0.5*(d->P[FIm1JKp1]+d->P[FIm1JK]))/(p->DXP[IP]+p->DXP[IM1]);
     
+    // sharp thin bodies: the old pressure with the link mobilities, as the correction (no pressure across the hull)
+    const bool tb = d->thinbody!=nullptr && d->MBETA!=nullptr;
+    
+    if(tb)
+    dPdx = nhflow_membrane_gradx(p,d,d->P,i,j,k);
+    
+    // fourth-order horizontal gradient (nhflow_pjm_ho.h)
+    if(ho && nhflow_pjm_ho::x(p,d,i,j,k))
+    dPdx = nhflow_pjm_ho::gradx(p,d->P,i,j,k);
+    
     d->F[IJK] -= (1.0/p->W1)*WL(i,j)*
                 (dPdx
-                + 0.5*(p->sigx[FIJK]+p->sigx[FIJKp1])*((d->P[FIJKp1]-d->P[FIJK])/p->DZN[KP]));
+                + (tb ? MBETAVAL : 1.0)*0.5*(p->sigx[FIJK]+p->sigx[FIJKp1])*((d->P[FIJKp1]-d->P[FIJK])/p->DZN[KP]));
     }
 }
 
 void nhflow_pjm_corr::vpgrad(lexer*p, fdm_nhf *d, slice &WL)
 {
+    const bool ho = nhflow_pjm_ho::active(p,d);
+    
     if(p->geo_curv==1)
     LOOP
     WETDRY
@@ -338,9 +387,17 @@ void nhflow_pjm_corr::vpgrad(lexer*p, fdm_nhf *d, slice &WL)
     else
     dPdy = (0.5*(d->P[FIJp1Kp1]+d->P[FIJp1K])-0.5*(d->P[FIJm1Kp1]+d->P[FIJm1K]))/(p->DYP[JP]+p->DYP[JM1]);
     
+    const bool tb = d->thinbody!=nullptr && d->MBETA!=nullptr;
+    
+    if(tb)
+    dPdy = nhflow_membrane_grady(p,d,d->P,i,j,k);
+    
+    if(ho && nhflow_pjm_ho::y(p,d,i,j,k))
+    dPdy = nhflow_pjm_ho::grady(p,d->P,i,j,k);
+    
 	d->G[IJK] -= (1.0/p->W1)*WL(i,j)*
                 (dPdy
-                + 0.5*(p->sigy[FIJK]+p->sigy[FIJKp1])*((d->P[FIJKp1]-d->P[FIJK])/p->DZN[KP]));
+                + (tb ? MBETAVAL : 1.0)*0.5*(p->sigy[FIJK]+p->sigy[FIJKp1])*((d->P[FIJKp1]-d->P[FIJK])/p->DZN[KP]));
     }
 }
 
@@ -348,7 +405,7 @@ void nhflow_pjm_corr::wpgrad(lexer*p, fdm_nhf *d, slice &WL)
 {
     LOOP
     WETDRYDEEP
-    d->H[IJK] -= (1.0/p->W1)*((d->P[FIJKp1]-d->P[FIJK])/(p->DZN[KP]));
+    d->H[IJK] -= (d->thinbody!=nullptr && d->MBETA!=nullptr ? MBETAVAL : 1.0)*(1.0/p->W1)*((d->P[FIJKp1]-d->P[FIJK])/(p->DZN[KP]));
 }
 
 double nhflow_pjm_corr::limiter(double v1, double v2)

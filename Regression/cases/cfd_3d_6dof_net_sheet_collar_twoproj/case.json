@@ -1,0 +1,22 @@
+{
+ "base": "cfd_3d_6dof_net_sheet_collar",
+ "np": 2,
+ "steps": 15,
+ "ctrl_set": {
+  "N 40": "6"
+ },
+ "description": "cfd_3d_6dof_net_sheet_collar (floating thin-walled collar with a net sheet below it, surge, heave and pitch free, 2 ranks) with the one-step scheme with two projections (N 40 6): the body takes the midpoint rule, stage 0 the half step with the loads of time n, stage 1 the full step with the loads of the half step; the net forces on the fluid of both steps.",
+ "tags": [
+  "3d",
+  "6dof",
+  "floating",
+  "net",
+  "mpi"
+ ],
+ "covers": [
+  "driver logic_cfd: N 40 6 with X 10 1",
+  "sixdof_rigidbody::stage_mid, sixdof_obj::rkmid, alpha 0.5 / 1.0",
+  "momentum_rk::twoproj_forcing with the stage of the bodies",
+  "net_interface::netForces_cfd in the half step and the full step"
+ ]
+}

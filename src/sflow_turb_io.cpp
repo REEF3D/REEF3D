@@ -34,7 +34,7 @@ sflow_turb_io::~sflow_turb_io()
 {
 }
 
-void sflow_turb_io::print_2D(lexer *p, fdm2D *b, ghostcell *pgc, ofstream &result)
+void sflow_turb_io::print_2D(lexer *p, fdm2D *b, ghostcell *pgc, std::ostream &result)
 {
     iin=4*(p->pointnum2D);
 	result.write((char*)&iin, sizeof (int));
@@ -91,7 +91,7 @@ void sflow_turb_io::name_pvtp(lexer *p, fdm2D *b, ghostcell *pgc,ofstream &resul
     result<<"<PDataArray type=\"Float32\" Name=\"omega\"/>\n";
 }
 
-void sflow_turb_io::name_vtp(lexer *p, fdm2D *b, ghostcell *pgc,ofstream &result, int *offset, int &n)
+void sflow_turb_io::name_vtp(lexer *p, fdm2D *b, ghostcell *pgc,std::ostream &result, int *offset, int &n)
 {
     result<<"<DataArray type=\"Float32\" Name=\"kin\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
     ++n;

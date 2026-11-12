@@ -1,0 +1,11 @@
+{
+ "base": "sflow_1d_waves_beach_svr_ckpt",
+ "np": 1,
+ "steps": 1500,
+ "same_as": "sflow_1d_waves_beach_svr_ckpt",
+ "chain": [{"case": "sflow_1d_waves_beach_svr_ckpt", "copy": ["REEF3D_Checkpoint"]}],
+ "ctrl_set": {"I 45": "1000"},
+ "description": "the restart of sflow_1d_waves_beach_svr_ckpt from its checkpoint at step 1000 (I 45 1000); regression.py ranks: the final state bitwise that of the uninterrupted run.",
+ "tags": ["1d", "sflow", "sediment", "waves", "suspended", "checkpoint"],
+ "covers": ["checkpoints with S 110, S 11 6-9 and S 120"]
+}

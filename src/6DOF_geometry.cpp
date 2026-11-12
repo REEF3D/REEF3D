@@ -21,6 +21,7 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"6DOF_geometry.h"
+#include"6DOF_deform.h"
 #include"lexer.h"
 #include"ghostcell.h"
 #include"geo_primitive.h"
@@ -158,9 +159,16 @@ void sixdof_geometry::primitives(lexer *p, ghostcell *pgc)
 void sixdof_geometry::refine(lexer *p, ghostcell *pgc)
 {
     // X 185 1-3: split triangles larger than the grid
-    // X 185 4  : adaptive isotropic re-triangulation matching the local grid spacing
-    if(p->X185==4)
-    geometry_remesh(p,pgc);
+    // X 185 4  : re-triangulation towards the local grid spacing that keeps the shape of the STL (flat
+    //            faces and straight edges are remeshed, curved parts keep their triangles)
+    // X 185 5  : re-triangulation matching the local grid spacing, the surface approximated; a remeshed
+    //            surface that does not keep the volume of the closed body (thin walls) is rejected, the
+    //            input triangles are then split as with X 185 1
+    if(p->X185==4 || p->X185==5)
+    {
+        if(geometry_remesh(p,pgc))
+        geometry_refinement(p,pgc);
+    }
     
     else
     geometry_refinement(p,pgc);
@@ -256,6 +264,16 @@ void sixdof_geometry::transform(const Eigen::Matrix3d &R, const Eigen::Vector3d 
         for(int q=0; q<3; q++)
         {
             Eigen::Vector3d point(tri_x0[n][q], tri_y0[n][q], tri_z0[n][q]);
+            
+            // displacement of the deformation in the body frame (axial and lateral)
+            if(deform!=nullptr)
+            {
+            const int l = deform->lateral();
+            double dx, dl;
+            deform->displacement(point(0),point(l),dx,dl);
+            point(0) += dx;
+            point(l) += dl;
+            }
 					
             point = R*point;
         

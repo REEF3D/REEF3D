@@ -36,7 +36,7 @@ class slice;
 using namespace std;
 
 // Semi-implicit free surface (theta method): the 2D eta system, shared by the
-// semi-implicit SFLOW (A 226 1) and the hydrostatic semi-implicit NHFLOW (A 534 1).
+// semi-implicit SFLOW (A 210 12/13) and the hydrostatic semi-implicit NHFLOW (A 510 11/12/13).
 //
 //   eta^{n+1} - div_h( a_f grad_f eta^{n+1} ) = rhs
 //

@@ -133,6 +133,16 @@ nhflow_amr::nhflow_amr(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_momentum *pm
     q.zr = p->G12_r;
     q.zalign = true;
 
+    // the hull as a sharp thin body (X 15 8) without G 12 (refinement by boxes G 10 or by the flags): the hull
+    // still gets its zone, margin 4 level-0 cells (below), so that the hull and its band lie inside the finest
+    // level wherever the boxes or flags are; hull_cover checks it at every step
+    // the same for the solid with cut faces (X 15 10)
+    if(b6!=nullptr && (p->X15==8 || p->X15==10) && p->G12<=0)
+    {
+    q.zones = true;
+    q.zr = 0.0;
+    }
+
     // optional wake wedge (G 13 L a, as SFLOW): the zone is oriented along the direction of
     // motion (the yaw angle at rest) and a wedge of half angle a reaches back from the bow by L
     // at most, where the bow has been; without G 13 the rectangle aligned with x and y
@@ -191,7 +201,7 @@ nhflow_amr::nhflow_amr(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_momentum *pm
     // several ranks (G 40 1): the patches are not cut at the rank boxes but placed for the load of
     // the ranks; parents and old patches on other ranks are reached through the block plans and
     // old_run of the core
-    q.place = (p->G40>=1 && p->mpi_size>1) ? MIN(p->G40,2) : 0;
+    q.place = (p->G40>=1 && p->mpi_size>1) ? (p->G40>=3 ? 1 : MIN(p->G40,2)) : 0;     // (G 40 3, the owner placement of CFD: as 1 here)
     q.rebalance = 0.1;
 
     // implicit diffusion (A 512 2): one composite solve over the leaf cells of all grids (G 31 1,
@@ -199,21 +209,24 @@ nhflow_amr::nhflow_amr(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_momentum *pm
     // (a turbulence model with A 512 0 diffuses implicitly as A 512 2, driver_logic_nhflow)
     cdiff = ((p->A512==2 || (p->A512==0 && p->A560>0)) && (p->G31==1 || p->geo_mb>0));
     brk_split = (cdiff && p->A550==1);
-    brk0 = (p->geo_mb>0 && p->A550==1);
+    brk0 = (p->geo_mb>0 && (p->A550==1 || p->A550==3));
 
-    // subcycling (G 7 1, nhflow_amr_sub.cpp): floating bodies with the zone around the hull (G 12:
-    // the finest level advances the body); every grid solves its own implicit diffusion (G 31 1
+    // subcycling (G 7 1, nhflow_amr_sub.cpp): floating bodies with the zone around the hull (G 12, for
+    // X 15 8 also without it: the finest level advances the body); every grid solves its own implicit diffusion (G 31 1
     // needs all grids at the same time)
-    sub = (p->G7==1 && (b6==nullptr || p->G12>0)) ? 1 : 0;
+    sub = (p->G7==1 && (b6==nullptr || q.zones)) ? 1 : 0;
 
     // the hull as a sharp thin body (X 15 8, nhflow_hullbody): every grid holds the hull (blocked links, wall
     // velocity, the thin-body service of nhflow_thinbody), the loads are summed over the leaf grids.  The hull
     // with its band (the local fluxes within two cells, the footprint of the lower cells, the lid correction)
-    // lies inside the finest level: the zone around the hull (G 12) with a margin of at least 4 level-0 cells,
-    // one time step for all levels (G 7 0), on several ranks the zone placed whole (G 40 1)
-    hb = (b6!=nullptr && p->X15==8);
-    if(hb)
-    sub = 0;
+    // lies inside the finest level: the zone around the hull (G 12) with a margin of at least 4 level-0 cells
+    // (12 with G 7 1, as all bodies), on several ranks the zone placed whole (G 40 1).  With subcycling (G 7 1)
+    // the hull is on every level's steps as the direct forcing is; the coarse levels step with their own picture
+    // of the hull, and the finest level takes their pressure at the edge of the zone: the near field of the
+    // hull should lie inside the zone (the margin is widened for it in ini)
+    // the solid with cut faces (X 15 10) the same way: every grid cuts its faces with the body, the loads of every
+    // cell with water from the finest grid at it, the still-water part on the STL from the grid at the facet
+    hb = (b6!=nullptr && (p->X15==8 || p->X15==10));
     if(hb)
     q.place_whole_zones = true;
 
@@ -325,21 +338,25 @@ int nhflow_amr::keys_ok(lexer *p)
 {
     int ok=1;
     if(mom0==nullptr) ok=0;
-    if(p->A510!=2 && p->A510!=3) ok=0;
+    // A510 = 2/3: RK2/RK3, explicit or the semi-implicit predictor (A 510 12/13); A510 = 1: the semi-implicit one-step
+    // predictor (A 510 11, inside A534 = 1)
+    if(p->A510!=2 && p->A510!=3 && !(p->A510==1 && p->A534==1)) ok=0;
     if(p->A511!=1 && p->A511!=2) ok=0;
     if(p->A520<0 || p->A520>2) ok=0;
     if(p->A512<0 || p->A512>2) ok=0;
     // turbulence (nhflow_amr_turb.cpp): k-epsilon and k-omega on every grid, one time step for all levels, without
     // the HLES split and QCR
     if(p->A560!=0 && p->A560!=1 && p->A560!=21 && p->A560!=2 && p->A560!=22) ok=0;
-    if(p->A560!=0 && (p->G7==1 || p->A561!=0 || p->A563!=0.0)) ok=0;
+    if(p->A560!=0 && (p->A561!=0 || p->A563!=0.0)) ok=0;
     // the side-wall friction and wall functions (A 519 2) need the side walls in the boundary lists of the grids; the
     // patches and the blocks have the bed and the surface only
     if(p->A519==2) ok=0;
     // breaking (A 550 1, RK2 and RK3): it acts through the implicit diffusion (A 512 2), composite (G 31 1)
     // or per grid (G 31 0); on a multi-block grid the blocks break as one grid (breaking_level0). The eddy viscosity
-    // (A 550 3) is not on the patches
-    if(p->A550!=0 && (p->A550!=1 || (p->A510!=2 && p->A510!=3))) ok=0;
+    // (A 550 3) on a multi-block grid without refinement (kennedy_level0), not on the patches; not A 550 4 (the crest
+    // tracking of the whole grid)
+    if(p->A550!=0 && (p->A510!=2 && p->A510!=3)) ok=0;
+    if(p->A550!=0 && p->A550!=1 && !(p->A550==3 && p->geo_mb>0 && maxlev==0)) ok=0;
     if(p->B200!=0 || p->X330!=0 || p->A599!=0) ok=0;
     // sediment transport (S 10 1): bed load, Exner (S 31 1/2, S 32 1/2), sand slide; no suspended load, no
     // sediment fractions (nhflow_amr_sed.cpp)
@@ -352,9 +369,10 @@ int nhflow_amr::keys_ok(lexer *p)
     if(p->E10>0 || p->L10>0 || p->Z20>0 || p->Z30>0) ok=0;
     if(p->j_dir!=1 && (p->geo_mb>0 || p->geo_curv==1)) ok=0;     // 2D grid (one cell in y): Cartesian
 
-    // X 15 8 (hb): one body with the zone around it (G 12), the full projection (A 520 1), no multi-block grid, on
-    // several ranks the placed patches (G 40 1, the zone whole on one rank)
-    if(ok==1 && hb && (p->G12<=0 || b6->objects()!=1 || p->A520!=1 || p->geo_mb>0 || (p->mpi_size>1 && p->G40<1)))
+    // X 15 8 / X 15 10 (hb): one body, the full projection (A 520 1), Cartesian grids (no multi-block or curvilinear
+    // grid), on several ranks the placed patches (G 40 1, the zone around the hull whole on one rank); the zone is there
+    // with or without G 12
+    if(ok==1 && hb && (b6->objects()!=1 || p->A520!=1 || p->geo_mb>0 || p->geo_curv==1 || (p->mpi_size>1 && p->G40<1)))
     ok=-1;
 
     return ok;
@@ -377,14 +395,14 @@ void nhflow_amr::ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
     if(ok==0 && p->geo_mb>0)
     {
         if(p->mpirank==0)
-        cout<<"!!! NHFLOW multi-block grid: only for A 510 2/3, A 511 1/2, A 520 0/1/2, A 512 0/1/2, A 560 0/1/2/21/22 (A 561 0, A 563 0), A 519 0/1, A 550 0/1, B 200 0, S 10 0/1 (S 12 0, S 51 0, S 31 1/2, S 32 1/2), no solids, membranes, nets, DEM, particles, rods or FEM structures !!!"<<endl;
+        cout<<"!!! NHFLOW multi-block grid: only for A 510 2/3 or 11/12/13, A 511 1/2, A 520 0/1/2, A 512 0/1/2, A 560 0/1/2/21/22 (A 561 0, A 563 0), A 519 0/1, A 550 0/1/3 (3 without refinement), B 200 0, S 10 0/1 (S 12 0, S 51 0, S 31 1/2, S 32 1/2), no solids, membranes, nets, DEM, particles, rods or FEM structures !!!"<<endl;
         exit(1);
     }
 
     if(ok==-1)
     {
         if(p->mpirank==0)
-        cout<<"NHFLOW AMR (G 1) with the sharp hull (X 15 8): only for one body with the zone around it (G 12), A 520 1, "
+        cout<<"NHFLOW AMR (G 1) with the sharp hull (X 15 8): only for one body, A 520 1, "
             <<"Cartesian grids, and on several ranks with placed patches (G 40 1) -- refinement switched off"<<endl;
         maxlev=0;
         return;
@@ -393,7 +411,7 @@ void nhflow_amr::ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
     if(ok==0)
     {
         if(p->mpirank==0)
-        cout<<"NHFLOW AMR (G 1): only for A 510 2/3, A 511 1/2, A 520 0/1/2, A 512 0/1/2, A 560 0/1/2/21/22 (not with G 7 1, A 561, A 563), A 519 0/1, A 550 0/1, B 200 0, S 10 0/1 (S 12 0, S 51 0, S 31 1/2, S 32 1/2), "
+        cout<<"NHFLOW AMR (G 1): only for A 510 2/3 or 11/12/13, A 511 1/2, A 520 0/1/2, A 512 0/1/2, A 560 0/1/2/21/22 (not with A 561, A 563), A 519 0/1, A 550 0/1, B 200 0, S 10 0/1 (S 12 0, S 51 0, S 31 1/2, S 32 1/2), "
             <<"X 10 0/1/2 (X 60 1, X 16 0, A 516 0/1/3), fixed solids A 581-590 (not with G 7 1, A 516 2/4), no solids of the grid file (A 580 1), membranes, nets, DEM, particles, rods or FEM structures, and on a 2D grid Cartesian "
             <<"-- refinement switched off"<<endl;
         maxlev=0;
@@ -428,6 +446,40 @@ void nhflow_amr::ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
     // fixed solids: the refinement boxes around them (G 12)
     if(solids)
     solid_zone(p,pgc);
+
+    // the sharp hull (X 15 8) with subcycling (G 7 1): level 0 steps first with its own coarse hull, and the finest
+    // level takes level 0's pressure at the edge of the zone.  The added-mass flow around the hull has to lie
+    // inside the zone: its margin is at least the narrower horizontal extent B of the wetted hull, and on a 2D
+    // grid, where the outer flow reaches to the depth h, at least min(h, 3 B) (validation 25 of Ship
+    // Hydrodynamics: 2D box, margin 0.38 h a33 4.9 % low, margin h 0.3-0.4 %; hemisphere, margin B 0.4 %)
+    hb_zr = 0.0;
+    if(hb && sub==1 && par.zones)
+    {
+        sixdof_obj *o = b6->object(0);
+        double **tx = o->amr_tri(0), **ty = o->amr_tri(1), **tz = o->amr_tri(2);
+        double x0=1.0e20, x1=-1.0e20, y0=1.0e20, y1=-1.0e20;
+        for(int n=0; n<o->amr_tricount(); ++n)
+        for(int q=0; q<3; ++q)
+        if(tz[n][q]<=p->wd)
+        {
+            x0 = MIN(x0,tx[n][q]); x1 = MAX(x1,tx[n][q]);
+            y0 = MIN(y0,ty[n][q]); y1 = MAX(y1,ty[n][q]);
+        }
+        const double B = (x1<x0) ? 0.0 : ((p->j_dir==0) ? x1-x0 : MIN(x1-x0,y1-y0));
+        hb_zr = B;
+
+        if(p->j_dir==0)
+        {
+            double h = 0.0;
+            for(int i=0; i<p->knox; ++i)
+            for(int j=0; j<p->knoy; ++j)
+            h = MAX(h, p->wd - d->bed(i,j));
+            h = pgc->globalmax(h);
+            hb_zr = MIN(h,3.0*B);
+        }
+
+        par.zr = MAX(par.zr,hb_zr);
+    }
 
     setup(p,pgc);
 
@@ -464,6 +516,8 @@ void nhflow_amr::ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
     for(int it=0; it<maxlev; ++it)
     regrid(p,pgc,true);
+
+    hull_cover(p,pgc);
 
     if(nblk>0 && maxlev>=1)
     fill_level0(pgc,-1);
@@ -522,7 +576,7 @@ void nhflow_amr::ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
             return false;
         };
 
-        // X 15 8: the hull loads summed over the leaf part of every grid of this rank
+        // X 15 8 / X 15 10: the hull loads summed over the leaf part of every grid of this rank
         if(hb)
         b6->object(0)->amr_grids_nhflow = [this](const std::function<void(const sixdof_obj_nhflow::nhflow_grid&)> &f)
         {
@@ -571,15 +625,20 @@ void nhflow_amr::ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
     cout<<"NHFLOW AMR: G 7 1 (subcycling) with floating bodies needs the zone around the hull (G 12) -- one time step for all levels"<<endl;
     if(hb)
     {
-    cout<<"NHFLOW AMR: the sharp hull (X 15 8) on every grid, the loads from the finest grid at every blocked face";
-    if(p->G7==1)
-    cout<<"; G 7 1 not with X 15 8 -- one time step for all levels";
-    if(par.zr>zr_user)
+    cout<<(p->X15==10 ? "NHFLOW AMR: the solid with cut faces (X 15 10) on every grid, the loads from the finest grid at every cut cell"
+                      : "NHFLOW AMR: the sharp hull (X 15 8) on every grid, the loads from the finest grid at every blocked face");
+    if(sub==0 && par.zr>zr_user && p->G12>0)
     cout<<"; zone margin "<<par.zr<<" m (4 cells of level 0) instead of G 12 "<<zr_user;
+    if(p->G12<=0)
+    cout<<"; without G 12 the zone around the hull with a margin of "<<par.zr<<" m ("<<((sub==1) ? 12 : 4)<<" cells of level 0)";
     cout<<endl;
     }
-    if(sub==1 && par.zones && par.zr>zr_user)
+    if(sub==1 && par.zones && par.zr>zr_user && p->G12>0 && !hb)
     cout<<"NHFLOW AMR: G 7 1 with bodies: zone margin "<<par.zr<<" m (12 cells of level 0) instead of G 12 "<<zr_user<<endl;
+    if(sub==1 && hb)
+    cout<<"NHFLOW AMR: G 7 1 with the sharp hull: zone margin "<<par.zr<<" m (at least 12 cells of level 0 and "<<hb_zr
+        <<" m for the added-mass flow around the hull"<<((p->j_dir==0) ? ", 2D: min(depth, 3 B)" : ", the narrower extent B")
+        <<"; G 12 "<<zr_user<<")"<<endl;
     if(p->G7==1 && sub==1 && p->A512==2 && p->G31==1)
     cout<<"NHFLOW AMR: G 7 1: every grid solves its own implicit diffusion (G 31 1 needs all grids at the same time)"<<endl;
     }
@@ -702,10 +761,11 @@ void nhflow_amr::build_lexer3D(nhflow_amr_patch &c)
 // the 3D in- and outflow cells of the open faces of a block (G 54): the fluid cells of its first (-i, gcin)
 // and last (+i, gcout) column of cells, the ghost cells beyond them marked IO 1 / 2 (as ioflow_gcio_lists and
 // ioflow_gcio_marks with the DIVEMesh boundary groups 1 and 2 on the native grid)
-void nhflow_amr::open_lists(nhflow_amr_patch &c, bool in, bool out)
+void nhflow_amr::open_lists(nhflow_amr_patch &c, bool in, bool out, bool jm, bool jp)
 {
     lexer *pp = c.pp;
     const int i0 = EXT, i1 = EXT+blk[c.blk].ni-1;
+    const int j0 = EY, j1 = EY+blk[c.blk].nj-1;
     auto fluid = [&](int ii, int jj) { return pp->flagslice4[lij(pp,ii,jj)]>0; };
 
     int nin=0, nout=0;
@@ -714,6 +774,14 @@ void nhflow_amr::open_lists(nhflow_amr_patch &c, bool in, bool out)
         if(in && fluid(i0,jj) && !fluid(i0-1,jj))
         nin += pp->knoz;
         if(out && fluid(i1,jj) && !fluid(i1+1,jj))
+        nout += pp->knoz;
+    }
+    // the edges of the j faces in the outflow list (as the y edges of the native grid, iowave::gcio_update_nhflow)
+    for(int ii=i0; ii<=i1; ++ii)
+    {
+        if(jm && fluid(ii,j0) && !fluid(ii,j0-1))
+        nout += pp->knoz;
+        if(jp && fluid(ii,j1) && !fluid(ii,j1+1))
         nout += pp->knoz;
     }
 
@@ -736,6 +804,22 @@ void nhflow_amr::open_lists(nhflow_amr_patch &c, bool in, bool out)
         {
             pp->gcout[b][0]=i1; pp->gcout[b][1]=jj; pp->gcout[b][2]=kk; pp->gcout[b][3]=4; pp->gcout[b][4]=2; pp->gcout[b][5]=0;
             pp->IO[cidx(pp,i1+1,jj,kk)] = 2;
+            ++b;
+        }
+    }
+    for(int ii=i0; ii<=i1; ++ii)
+    for(int kk=0; kk<pp->knoz; ++kk)
+    {
+        if(jm && fluid(ii,j0) && !fluid(ii,j0-1))
+        {
+            pp->gcout[b][0]=ii; pp->gcout[b][1]=j0; pp->gcout[b][2]=kk; pp->gcout[b][3]=3; pp->gcout[b][4]=2; pp->gcout[b][5]=0;
+            pp->IO[cidx(pp,ii,j0-1,kk)] = 2;
+            ++b;
+        }
+        if(jp && fluid(ii,j1) && !fluid(ii,j1+1))
+        {
+            pp->gcout[b][0]=ii; pp->gcout[b][1]=j1; pp->gcout[b][2]=kk; pp->gcout[b][3]=2; pp->gcout[b][4]=2; pp->gcout[b][5]=0;
+            pp->IO[cidx(pp,ii,j1+1,kk)] = 2;
             ++b;
         }
     }
@@ -794,8 +878,13 @@ void nhflow_amr::patch_objects(reefamr_patch *q, ghostcell *pgc)
     const int zout = (c->blk>0 && c->lev==0) ? bzone[1][c->blk] : -1;
     const int rin = (c->blk>0 && c->lev==0) ? bzr[0][c->blk] : -1;
     const int rout = (c->blk>0 && c->lev==0) ? bzr[1][c->blk] : -1;
-    const bool open = oin>=0 || oout>=0 || zin>=0 || zout>=0;
-    const bool zoned = open || rin>=0 || rout>=0;
+    // the j faces (two open faces that are not opposite, geo_mesh::turn_blocks): edges and beach zones
+    const int zjm = (c->blk>0 && c->lev==0) ? bzone[2][c->blk] : -1;
+    const int zjp = (c->blk>0 && c->lev==0) ? bzone[3][c->blk] : -1;
+    const int rjm = (c->blk>0 && c->lev==0) ? bzr[2][c->blk] : -1;
+    const int rjp = (c->blk>0 && c->lev==0) ? bzr[3][c->blk] : -1;
+    const bool open = oin>=0 || oout>=0 || zin>=0 || zout>=0 || zjm>=0 || zjp>=0;
+    const bool zoned = open || rin>=0 || rout>=0 || rjm>=0 || rjp>=0;
     if(c->blk>0)
     {
         pp->B60 = (oin>=0 || oout>=0) ? 1 : 0;
@@ -805,10 +894,11 @@ void nhflow_amr::patch_objects(reefamr_patch *q, ghostcell *pgc)
         pp->B99 = 0;
         pp->open_xm = (zin>=0) ? 1 : 0;
         pp->open_xp = (zout>=0) ? 1 : 0;
-        pp->open_ym = pp->open_yp = 0;
+        pp->open_ym = (zjm>=0) ? 1 : 0;
+        pp->open_yp = (zjp>=0) ? 1 : 0;
         // an edge zone: the non-hydrostatic pressure at the -i edge 0 as at the iowave edges (nhflow_poisson, B 90);
         // a relaxation or beach zone: the relaxation of the semi-implicit step (nhflow_momentum_SI::relax)
-        if(zin>=0 || zout>=0 || rin>=0 || rout>=0)
+        if(zin>=0 || zout>=0 || rin>=0 || rout>=0 || zjm>=0 || zjp>=0 || rjm>=0 || rjp>=0)
         pp->B90 = 1;
         // a relaxation zone on the -i face: that face is the generation side of the block as x- of the native grid
         // with B 98 2 (the velocities zero gradient in the ghost cells, start4V; not a G 52 wall, nhflow_curv::iwall)
@@ -823,8 +913,16 @@ void nhflow_amr::patch_objects(reefamr_patch *q, ghostcell *pgc)
     build_bc2D(pgc,*c);
     build_lexer3D(*c);
 
+    // an open j face: the cells of the block as the cells of a native grid in y (the y edges find their row by
+    // origin_j + j and gknoy, gc_startV, nhflow_curv), after the lists of the slices (build_bc2D sets the j sides)
+    if(zjm>=0 || zjp>=0)
+    {
+        pp->origin_j = -EY;
+        pp->gknoy = blk[c->blk].nj;
+    }
+
     if(open)
-    open_lists(*c,oin>=0 || zin>=0,oout>=0 || zout>=0);
+    open_lists(*c,oin>=0 || zin>=0,oout>=0 || zout>=0,zjm>=0,zjp>=0);
 
     // vectors of the Poisson rows (nhflow_poisson fills them over FBASELOOP and LOOP)
     pp->veclength = pp->imax*pp->jmax*pp->kmaxF;
@@ -857,10 +955,11 @@ void nhflow_amr::patch_objects(reefamr_patch *q, ghostcell *pgc)
         c->pio = new ioflow_amr_block(pp,pgc,pBCv);
         pp->amr_own_io = 1;
         c->pio->open_faces(pp,oin,oout);
-        c->pio->open_edges(pp,zin>=0 ? &bzones[zin] : nullptr,zout>=0 ? &bzones[zout] : nullptr,bzbg);
+        c->pio->open_edges(pp,zin>=0 ? &bzones[zin] : nullptr,zout>=0 ? &bzones[zout] : nullptr,bzbg,
+                           zjm>=0 ? &bzones[zjm] : nullptr,zjp>=0 ? &bzones[zjp] : nullptr);
         // relaxation and beach zones (B 522 methods 1, 2), the waves with B 90 1 and B 98 2 on level 0
         c->pio->open_zones(pp,rin>=0 ? &bzones[rin] : nullptr,rout>=0 ? &bzones[rout] : nullptr,bzbg,p0->B90>0 && p0->B98==2,
-                           EXT,blk[c->blk].ni,EXT,blk[c->blk].nj);
+                           EXT,blk[c->blk].ni,EXT,blk[c->blk].nj,rjm>=0 ? &bzones[rjm] : nullptr,rjp>=0 ? &bzones[rjp] : nullptr);
         c->pflow = c->pio;
     }
     // the floating bodies on the patch grid (all calls do nothing without bodies)
@@ -934,8 +1033,9 @@ void nhflow_amr::patch_objects(reefamr_patch *q, ghostcell *pgc)
     if(c->pmom!=nullptr && c->pmom->pfsfbody!=nullptr)
     c->pmom->pfsfbody->set_patch();
 
-    // the hull as a sharp thin body (X 15 8): the patch holds it too, with its thin-body service (stage() from the
-    // forcing of the patch, the flux hook through this class, the projection terms through the patch's rows)
+    // the hull as a sharp thin body (X 15 8) or a solid with cut faces (X 15 10): the patch holds it too, with its
+    // thin-body service (stage() from the forcing of the patch, the flux hook through this class, the projection terms
+    // through the patch's rows)
     if(hb)
     {
     d->hullbody = new nhflow_hullbody(pp,d,pgc,b6->object(0));
@@ -1041,10 +1141,11 @@ void nhflow_amr::patch_delete(reefamr_patch *q)
         double **a[] = {&d->U,&d->V,&d->W,&d->omegaF,&d->UH,&d->VH,&d->WH,&d->P,&d->RO,&d->VISC,&d->EV,&d->EV0,
                         &d->F,&d->G,&d->H,&d->L,&d->Fext,&d->Gext,&d->Hext,&d->POR,&d->PORPART,&d->PORDEM,&d->test,
                         &d->KIN,&d->CONC,&d->SOLID,&d->FB,&d->FHB,&d->PORSTRUC,&d->Fx,&d->Fy,&d->Fz,&d->FEx,&d->FEy,
-                        &d->FSW,&d->DWDT,&d->Fs,&d->Fn,&d->Fe,&d->Fw,&d->Ss,&d->Sn,&d->Se,&d->Sw,&d->SSx,&d->SSy,
+                        &d->Ss,&d->Sn,&d->Se,&d->Sw,
                         &d->Us,&d->Un,&d->Ue,&d->Uw,&d->Ub,&d->Ut,&d->Vs,&d->Vn,&d->Ve,&d->Vw,&d->Vb,&d->Vt,
-                        &d->Ws,&d->Wn,&d->We,&d->Ww,&d->Wb,&d->Wt,&d->UHs,&d->UHn,&d->UHe,&d->UHw,&d->UHb,&d->UHt,
-                        &d->VHs,&d->VHn,&d->VHe,&d->VHw,&d->VHb,&d->VHt,&d->WHs,&d->WHn,&d->WHe,&d->WHw,&d->WHb,&d->WHt};
+                        &d->Ws,&d->Wn,&d->We,&d->Ww,&d->Wb,&d->Wt,&d->UHs,&d->UHn,&d->UHe,&d->UHw,
+                        &d->VHs,&d->VHn,&d->VHe,&d->VHw,&d->WHs,&d->WHn,&d->WHe,&d->WHw};
+        // (the fields of some options only are nullptr without them, nhflow_memory.h: delete[] of nullptr)
         for(auto f : a)
         pp->del_Darray(*f,n7);
         pp->del_Iarray(d->NODEVAL,pp->imax*pp->jmax*(pp->kmax+3));
@@ -2247,7 +2348,7 @@ void nhflow_amr::regrid_state(ghostcell *pgc, vector<reefamr_patch*> &oldP)
             const int nv0 = 3 + 2 + 6*K + K+1 + 1;
             // X 15 8: and the state of the hull (nhflow_hullbody::amr_get: sides with their hysteresis, thin body,
             // Rhie-Chow face corrections), so that a rebuilt patch continues the hull of the old one
-            const int nh = hb ? (K + (K+1) + (K+2) + 2*K) : 0;
+            const int nh = hb ? (K + (K+1) + (K+2) + 2*K + 1) : 0;
             const int nv = nv0 + nh;
             old_run(l,nv,7630+l,oldP,
                     [&](reefamr_patch *o, int io, int jo, double *v)
@@ -2641,7 +2742,7 @@ void nhflow_amr::exchange_fluxes(int l)
 // --------------------------------------------------------------------- time stepping
 void nhflow_amr::step(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_momentum_func *mom, nhflow_stage_obj &S0)
 {
-    // A 534 1: hydrostatic semi-implicit free surface, one eta system over the blocks (nhflow_amr_si.cpp)
+    // A 510 12/13: hydrostatic semi-implicit free surface, one eta system over the blocks (nhflow_amr_si.cpp)
     if(p->A534==1)
     {
         si_step(p,d,pgc,mom,S0);
@@ -2672,6 +2773,9 @@ void nhflow_amr::step(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_momentum_func
         sub_step(p,d,pgc,mom,S0);
         regrid_step(p,pgc);
         fill_out(pgc);
+        // multi-block: the ring and the cells around the blocks from the end of the step
+        if(nblk>0)
+        fill_level0(pgc,-1);
         return;
     }
 
@@ -2779,6 +2883,8 @@ void nhflow_amr::step(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_momentum_func
         t0 = MPI_Wtime();
         if(brk_split)
         breaking_patches(pgc);
+        else if(brk0)
+        breaking_level0(pgc,-1);
         tm[1] += MPI_Wtime()-t0;
 
         t0 = MPI_Wtime();
@@ -2913,8 +3019,75 @@ void nhflow_amr::regrid_step(lexer *p, ghostcell *pgc)
         tm[7] += MPI_Wtime()-t0;
     }
 
+    // X 15 8: the hull and its band on the finest level
+    hull_cover(p,pgc);
+
     // load statistics of the ranks (G 43)
     load_step(p);
+}
+
+// X 15 8: the hull with its band (the level-0 cells within 2.5 cells of it, where the thin body acts: blocked
+// links, local fluxes, lower cells, lid) must lie on the finest level, or the hull sits on a coarse-fine edge
+// that the thin body does not handle.  The zone around the hull (G 12, or implicit without it) keeps it so
+// while it follows the body; a static zone (G 2 0) does not follow, and the run stops when the hull leaves
+// the finest level
+void nhflow_amr::hull_cover(lexer *p, ghostcell *pgc)
+{
+    if(!hb || maxlev<1)
+    return;
+
+    lexer *q = p0;
+    const int m = marge;
+    // the cell size of the body's level set (its mean horizontal spacing; DXM also counts the sigma spacing),
+    // below the clip of the level set away from the hull (NB DSM >= 3 DSM)
+    const double band = 2.5*b6->object(0)->nhflow_dsm();
+    int miss = 0;
+    double xm = 0.0, ym = 0.0;
+
+    for(int i=0; i<q->knox && miss==0; ++i)
+    for(int j=0; j<q->knoy && miss==0; ++j)
+    {
+        bool near = false;
+        for(int k=0; k<q->knoz; ++k)
+        if(d0->FB[cidx(q,i,j,k)]<band)
+        near = true;
+        if(!near)
+        continue;
+
+        const double x = 0.5*(q->XN[i+m]+q->XN[i+1+m]), y = 0.5*(q->YN[j+m]+q->YN[j+1+m]);
+        int lf = 0;
+        // placed patches (G 40 1): the global list, a patch of the hull may sit on another rank
+        if(par.place>0)
+        {
+            for(const reefamr_gpatch &G : GP)
+            if(G.lev>lf && x>=gnode(0,G.lev,G.I0) && x<gnode(0,G.lev,G.I1+1) && y>=gnode(1,G.lev,G.J0) && y<gnode(1,G.lev,G.J1+1))
+            lf = G.lev;
+        }
+        else
+        {
+            const int g = finest_at(x,y);
+            lf = (g<0) ? 0 : P[g]->lev;
+        }
+        if(lf<maxlev)
+        {
+            miss = 1;
+            xm = x;
+            ym = y;
+        }
+    }
+
+    const int lmiss = miss;
+    miss = (int)pgc->globalmax(double(miss));
+    if(miss==0)
+    return;
+
+    xm = pgc->globalmax(lmiss ? xm : -1.0e20);
+    ym = pgc->globalmax(lmiss ? ym : -1.0e20);
+    if(p->mpirank==0)
+    cout<<"!!! NHFLOW AMR with the sharp hull (X 15 8): the hull left the finest level (near x = "<<xm<<", y = "<<ym
+        <<"): let the zone follow the body (G 2 > 0) or widen G 12 / the G 10 box !!!"<<endl;
+    pgc->final();
+    exit(1);
 }
 
 // --------------------------------------------------------------------- floating bodies

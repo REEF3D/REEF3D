@@ -21,9 +21,11 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
  #include"driver.h"
+#include"cfd_pocket.h"
 #include"regression_dump.h"
 #include"coral/reef3d/coral_reef3d.h"
 #include"dem.h"
+#include"pic.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
@@ -48,7 +50,42 @@ Author: Hans Bihs
 #include"reefrun_ckpt.h"
 #include"reefcouple.h"
 #include"wave_lib_fnpf_couple.h"
+#include"soil_stress.h"
 
+
+namespace
+{
+// a 6DOF body (X 10 1) with a free degree of freedom (X 11, X 111: 1 free, 2 prescribed, 0 fixed)
+bool cfd_free_body(lexer *p)
+{
+    if(p->X10!=1)
+    return false;
+
+    const int nb = MAX(p->X20,1);
+
+    for(int b=0; b<nb; ++b)
+    {
+        int dof[6] = {p->X11_u,p->X11_v,p->X11_w,p->X11_p,p->X11_q,p->X11_r};
+
+        for(int n=0; n<p->X111; ++n)
+        if(p->X111_id[n]==b)
+        {
+        dof[0] = p->X111_u[n];
+        dof[1] = p->X111_v[n];
+        dof[2] = p->X111_w[n];
+        dof[3] = p->X111_p[n];
+        dof[4] = p->X111_q[n];
+        dof[5] = p->X111_r[n];
+        }
+
+        for(int q=0; q<6; ++q)
+        if(dof[q]==1 && !(p->j_dir==0 && (q==1 || q==3 || q==5)))
+        return true;
+    }
+
+    return false;
+}
+}
 
 void driver::loop_cfd(fdm* a)
 {
@@ -60,6 +97,7 @@ void driver::loop_cfd(fdm* a)
 	{		
         ++p->count;
         starttime=pgc->timer();
+        p->poissontime=0.0;     // the projections of the step add their time (pjm_corr, cfd_amr)
         
         if(p->mpirank==0 && (p->count%p->P12==0))
         {
@@ -108,6 +146,9 @@ void driver::loop_cfd(fdm* a)
         pflow->w_relax(p,a,pgc,a->w);
         pfsf->update(p,a,pgc,a->phi);
         pdem->start_cfd(p,a,pgc);
+        ppic->step_begin(p,a,pgc);   // PIC (F 81 2): the particle velocities to the water faces
+        // F 41 2: the pressures of the closed air pockets from their volumes (cfd_pocket.h)
+        cfd_pocket_update(p,a,pgc,pmom,pcfdamr);
         if(pcav)
         pcav->coefficients(p,a,pgc);
         if(pcav && pcfdamr!=nullptr)
@@ -134,7 +175,23 @@ void driver::loop_cfd(fdm* a)
 
         //timestep control
         p->simtime+=p->dt;
+
+        // PIC particles (F 81): moved over the step with the new velocity, exchanged, output
+        ppic->start(p,a,pgc);
+
+        // soil stress model (S 200), at the new time level
+        if(psoil!=nullptr)
+        psoil->step(p,a,pgc);
+
         ptstep->start(a,p,pgc,pturb);
+
+        // floating bodies with free DOFs and the one-step scheme (N 40 5): the loads of p(n) answer
+        // the velocity change of the body over the last step, divided by the new step. A step much
+        // longer than the last one (after the first steps, which the forcing limits) turns the loads
+        // of the short step into a kick of the body: the step grows by 10 % per step at most
+        if(p->N40==5 && p->N48>0 && cfd_free_body(p))
+        p->dt = MIN(p->dt, 1.1*p->dt_old);
+
         if(pcfdamr!=nullptr)
         pcfdamr->timestep(p,a,pgc);
         
@@ -155,6 +212,7 @@ void driver::loop_cfd(fdm* a)
 		p->totaltime+=p->itertime;
 		p->gctotaltime+=p->gctime;
 		p->Xtotaltime+=p->xtime;
+		p->poissontotaltime+=p->poissontime;
 		p->meantime=(p->totaltime/double(p->count));
 		p->gcmeantime=(p->gctotaltime/double(p->count));
 		p->Xmeantime=(p->Xtotaltime/double(p->count));
@@ -166,6 +224,9 @@ void driver::loop_cfd(fdm* a)
             if(p->X10>0)
             cout<<"fbtime: "<<setprecision(3)<<p->fbtime<<endl;
             cout<<"reinitime: "<<setprecision(3)<<p->reinitime<<endl;
+            // all Poisson solves of the step (every stage; with the mesh refinement every projection of all levels)
+            cout<<"poissontime: "<<setprecision(3)<<p->poissontime<<"\t total poissontime: "<<setprecision(6)<<p->poissontotaltime
+                <<"   poisson cost: "<<setprecision(3)<<(p->itertime>0.0 ? 100.0*p->poissontime/p->itertime : 0.0)<<" %"<<endl;
             cout<<"gctime: "<<setprecision(3)<<p->gctime<<"\t average gctime: "<<setprecision(3)<<p->gcmeantime<<endl;
             cout<<"Xtime: "<<setprecision(3)<<p->xtime<<"\t average Xtime: "<<setprecision(3)<<p->Xmeantime<<endl;		
             cout<<"total time: "<<setprecision(6)<<p->totaltime<<"   average time: "<<setprecision(3)<<p->meantime<<endl;
@@ -189,6 +250,10 @@ void driver::loop_cfd(fdm* a)
     
     stop(p,a,pgc);
 	}
+
+	// the state at the end of the run (N 45, N 41, S 19), unless the last step wrote it: before the
+	// checkpoint, which keeps the output counters
+	pprint->print_end(p,a,pgc,pturb,pheat,pflow,pdata,pconc,pmp,psed);
 
 	// a checkpoint at the end of the run (P 48): it can be continued with a later end (I 45 1)
 	ckpt().finish();

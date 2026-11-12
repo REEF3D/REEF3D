@@ -185,6 +185,10 @@ void fnpf_breaking::breaking_baquet_wd(lexer *p, fdm_fnpf *c, ghostcell *pgc, sl
         // coastline / wet-dry front viscosity A346 (A343 1 with A337, A343 2/3 with A332)
         coast_viscosity(p,c,pgc);
         
+        // A352 5: the zone viscosity in the cells of the depth-induced criterion instead of the filters below
+        if(p->A352==5)
+        zone_viscosity(p,c,pgc);
+        
         // additional breaking filter
         // shallow
         if(p->A352==1)
@@ -236,15 +240,15 @@ void fnpf_breaking::breaking_baquet_wd(lexer *p, fdm_fnpf *c, ghostcell *pgc, sl
     cout<<"breaking: "<<count<<endl;
 }
 
-// coastline / wet-dry front viscosity (raises vb to at least A346 there); part of the Baquet
-// model (A350 1), also used by A350 4
+// coastline / wet-dry front viscosity (raises vb to at least A346 there) with A358 1 (default 0: off, as before
+// A337); part of the Baquet model (A350 1), also used by A350 4/5
 void fnpf_breaking::coast_viscosity(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 {
     // A343 2/3: viscosity band along the moving wet-dry front
     // (replaces the static coastline viscosity above, which is tied to
     // the initial coastline); cells within A332 cells of a dry cell get
     // at least A346, applied through the implicit damping solve
-    if(p->A343>=2 && p->A332>0 && p->A346>0.0)
+    if(p->A358==1 && p->A343>=2 && p->A332>0 && p->A346>0.0)
     {
         SLICELOOP4
         wdband(i,j) = (p->wet[IJ]==0) ? 1 : 0;
@@ -281,22 +285,63 @@ void fnpf_breaking::coast_viscosity(lexer *p, fdm_fnpf *c, ghostcell *pgc)
         c->vb(i,j) = MAX(c->vb(i,j), p->A346);
     }
     
-    // A343 1: coastline viscosity A346 (formerly commented out above),
-    // through the implicit damping solve (needs A350>0)
-    //   A337 1: rising to A346 towards the coastline inside the relaxation
-    //           band (dist3), and A346 in every thin-film cell
-    //           (WL < 10*A344), i.e. where a drawdown has exposed the bed
-    //           but the static mask keeps the cell wet and clamped
-    //   A337 2: A346 only in the thin-film cells; the coastline band
-    //           itself stays undamped (thin coastline)
-    if(p->A343==1 && p->A337>=1 && p->A346>0.0)
+    // A343 1: coastline viscosity A346 through the implicit damping solve (needs A350>0), relaxed from zero at
+    // the edge of the coastline band (A341 cells or A342 m, dist3) to A346 at the coastline with the weight
+    // 1 - rb3, the complement of the relaxation of eta and Fi in the band: no viscosity without a band (A341 0,
+    // A342 0, the default) or with A346 0, no on/off switch at the band edge
+    //   A337 0: legacy, no coastline viscosity (as master, where the block was commented out)
+    //   A337 1: the ramp in the band
+    //   A337 2, 3: the ramp, and A346 in the thin-film cells (WL < 10*A344), where a drawdown has exposed the
+    //           bed but the static mask keeps the cell wet and clamped
+    if(p->A358==1 && p->A343==1 && p->A337>=1 && p->A346>0.0)
     SLICELOOP4
     if(p->wet[IJ]==1)
     {
-        if(p->A337==1 && c->coastline(i,j)>=0.0 && dist3>0.0 && c->coastline(i,j)<dist3)
+        if(c->coastline(i,j)>=0.0 && dist3>0.0 && c->coastline(i,j)<dist3)
         c->vb(i,j) = MAX(c->vb(i,j), (1.0-rb3(p,c->coastline(i,j)))*p->A346);
 
-        if(c->WL(i,j) < 10.0*c->wd_criterion)
+        if(p->A337>=2 && c->WL(i,j) < 10.0*c->wd_criterion)
         c->vb(i,j) = MAX(c->vb(i,j), p->A346);
     }
+}
+
+// A352 5 (A350 1, 4, 5): instead of the filter the breaking viscosity is raised to at least nu = dx c/(4 C), C = 0.5,
+// in the cells of the depth-induced criterion (flag 2: eta_t > A354 sqrt(g h), +-2 cells) and +-2 cells around them,
+// c the phase speed of the 2 dx wave in the local depth: a 2 dx spike decays by e while it travels half a cell,
+// longer waves much less (about with the square of their length). The maximum with the breaking and coastline
+// viscosity, applied by fnpf_fsfbc::damping. With A350 4/5 the flag-2 cells are not limited to the still-water
+// depth of the deepest onset (bt_db): at a steep shore the crest tracking sees the onset late and shallow
+// (FNPF Breaking validation 09).
+void fnpf_breaking::zone_viscosity(lexer *p, fdm_fnpf *c, ghostcell *pgc)
+{
+    const double g = fabs(p->W22);
+    const double C = 0.5;
+
+    SLICELOOP4
+    bx(i,j) = (c->breaking(i,j)>=2 && p->wet[IJ]==1) ? 1 : 0;
+
+    pgc->gcsl_start4int(p,bx,50);
+
+    SLICELOOP4
+    if(p->wet[IJ]==1)
+    {
+        int hit=0;
+
+        for(int qi=-2; qi<=2; ++qi)
+        for(int qj=-2*p->j_dir; qj<=2*p->j_dir; ++qj)
+        if(bx(i+qi,j+qj)==1)
+        hit=1;
+
+        if(hit==1)
+        {
+            const double wl = MAX(c->WL(i,j), c->wd_criterion);
+            const double dx = (p->j_dir==1) ? MIN(p->DXN[IP],p->DYN[JP]) : p->DXN[IP];
+            const double k = PI/dx;
+            const double cp = sqrt(g*tanh(k*wl)/k);
+
+            c->vb(i,j) = MAX(c->vb(i,j), dx*cp/(4.0*C));
+        }
+    }
+
+    pgc->gcsl_start4(p,c->vb,1);
 }

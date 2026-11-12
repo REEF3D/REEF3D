@@ -17,7 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Hans Bihs
+Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
 #ifndef REEFMG_CORE_H_
@@ -25,6 +25,9 @@ Author: Hans Bihs
 
 #include <mpi.h>
 #include <vector>
+#include <string>
+
+class reefmg_device;
 
 //  Multigrid for the FNPF Laplace equation on a sigma grid.
 //
@@ -133,6 +136,10 @@ public:
     //  level coefficients have been filled, i.e. once per solve.
     void coarsen();
 
+    //  only the line factorisations of the finest level, for refilled fine
+    //  coefficients; the coarse levels stay those of the last coarsen()
+    void refactor_fine();
+
     //  BiCGStab preconditioned by one V-cycle.  Returns the iteration count;
     //  relres receives the achieved relative residual.
     int solve(double tol,int maxiter,double &relres,int pre,int post);
@@ -144,6 +151,8 @@ public:
     //  mode 0: V-cycles only, 1: BiCGStab only, 2: V-cycles with automatic
     //  fallback to BiCGStab if the cycle stalls.  Mode 2 is the default: the
     //  cycle alone is cheaper, the wrapper is there for the awkward matrices.
+    //  tol > 0: relative to |b|; tol < 0: the residual is reduced by -tol
+    //  relative to the initial one (warm-started inexact solves).
     int solve_auto(double tol,int maxiter,double &relres,int pre,int post,int mode);
 
     int fallbacks() const {return nfallback;}
@@ -202,6 +211,86 @@ public:
     void set_ordering(int o){ordering=(o==1?1:0);}
     int  precision() const {return pcbits;}
 
+    //  The preconditioner on a device (N 16): 0 CPU (default), 1 the Apple
+    //  Silicon GPU (Metal), 3 the reference device (the device kernels in
+    //  loops on the CPU, for tests); 2 and 4 the same devices with the
+    //  Krylov solve on the device (below).  Must be called before setup().
+    //
+    //  The device holds ONE single-precision hierarchy of the whole domain
+    //  and builds and cycles it for all ranks: every rank writes its block
+    //  of the fine coefficients (once per coarsen()) and of each
+    //  right-hand side straight into the device's fine level - an MPI
+    //  shared-memory window, so all ranks must be on one node - rank 0 runs
+    //  the coarsening, the factorisations and the V-cycle on the device,
+    //  and every rank reads its block of the correction back.  BiCGStab,
+    //  the exact fine operator and the convergence test stay distributed on
+    //  the CPU ranks in double, so the converged answer does not depend on
+    //  the device.  The V-cycle uses red-black line smoothing whatever
+    //  N 12 says; the stationary iteration (solve modes 0 and 2) becomes a
+    //  defect correction; the CPU coarse levels are not built; coarse-grid
+    //  agglomeration (N 15) is not needed.  If the device cannot be set up,
+    //  the solver stays on the CPU and device_status() says why.
+    //
+    //  N 16 2 and 4, the Krylov solve on the device: every preconditioner
+    //  application is a whole solve on the device - BiCGStab in single
+    //  precision on its fine operator, preconditioned by the V-cycle, to
+    //  a residual reduction of 1e-3 (reefmg_device::krylov) - and the CPU
+    //  ranks run a flexible Krylov method in double around it (GCR, see
+    //  solve_gcr): the exact operator once per device solve, instead of
+    //  twice per BiCGStab iteration.  A single-precision solve cannot
+    //  reduce the residual much below 1e-5 relative, and the device's
+    //  BiCGStab usually stops well below its tolerance, so two device
+    //  solves reach N 44 1e-8.  The host-driven vcycle(0) of the REEFAMR
+    //  level-0 multigrids stays a V-cycle.  REEFMG_DEVICE_KTOL and
+    //  REEFMG_DEVICE_KMAX (environment) set the device solve's tolerance
+    //  and its iterations (default 1e-3, 20).
+    //  N 16 for a host that drives the cycle itself (vcycle(0), the REEFAMR
+    //  level-0 multigrids): the Krylov variants 2 and 4 as their V-cycle
+    //  devices 1 and 3
+    static int vcycle_device(int n){return n==2? 1 : (n==4? 3 : n);}
+    void set_device(int n)
+    {
+        devn=n;
+        devkind=(n==1 || n==2)? 1 : ((n==3 || n==4)? 2 : (n>0? n : 0));
+        devkry=(n==2 || n==4);
+    }
+
+    //  Strength of the preconditioner on the device (N 17, N 19): ncycle
+    //  V-cycles per application and sweeps pre- and post-smoothing sweeps
+    //  per level.  0: the default, 2 and 2 - the GPU cycle is cheap next to
+    //  a BiCGStab iteration on the CPU ranks, and 2 x 2 halves the
+    //  iterations (FNPF basin on 12 ranks, M3 Max: 1.42x the CPU at
+    //  7.7 M cells, against 1.27x with one cycle and one sweep).  With the
+    //  Krylov solve on the device (N 16 2, 4) ncycle is the V-cycles per
+    //  application inside the device's BiCGStab, default 1.
+    void set_device_cycle(int ncycle,int sweeps){devcycles=ncycle; devsweeps=sweeps;}
+
+    //  Precision of the device smoother's coefficients (N 21): 16 (the
+    //  default, also for 0) or 32.  With 16 the couplings of every cell are
+    //  divided by the pivot of its column and held in half precision - the
+    //  smoother, three quarters of the GPU time, reads 12 instead of 28
+    //  bytes of coefficients per cell; the coarse operators, the residual
+    //  and everything else stay in single precision.
+    void set_device_precision(int bits){devprec=bits;}
+    bool on_device() const {return devmode;}
+    const std::string& device_status() const {return devmsg;}
+
+    //  wall time spent in the preconditioner (V-cycles applied by BiCGStab
+    //  and the stationary iteration), CPU or device, and the number of
+    //  applications, since construction or the last reset
+    double precondition_time() const {return pctime;}
+    long precondition_calls() const {return pccount;}
+    void reset_timers();
+
+    //  device path: where the time went since the last reset_timers(), on
+    //  this rank - writing the coefficients (upload), writing right-hand
+    //  sides and reading corrections (transfers), waiting for the other
+    //  ranks (barriers), waiting for the device (device; rank 0), and the
+    //  time the GPU was busy (rank 0, Metal)
+    std::string device_timing() const;
+    //  GPU time per kind of kernel (Metal with REEFMG_DEVICE_PROFILE=1)
+    std::string device_profile() const;
+
     void vcycle(int l,int pre,int post);
     void residual(sc_level &L);          // always double: Krylov and convergence test
     void residual_cycle(sc_level &L);    // inside the V-cycle, follows set_precision
@@ -218,7 +307,7 @@ private:
     template<class C> void line_zebra_t(sc_level &L,int sweeps,int dir);
     template<class C> void residual_t(sc_level &L);
     template<class T> void coarsen_t();
-    template<class T> void factor_lines_t();
+    template<class T> void factor_lines_t(int l0=0, int l1=-1);
     void build_widths(const double *dxn,const double *dyn);
     void exchange_widths(sc_level &L);
     void restrict_xy(sc_level &F,sc_level &C);
@@ -227,6 +316,41 @@ private:
     void precondition(std::vector<double> &rhs,std::vector<double> &x,int pre,int post);
     void cycle_step(int pre,int post);   // one stationary step, defect correction in fp32
     void factor_lines();
+
+    //  device path (N 16), see set_device()
+    void device_setup(int maxlevel,int perx,int pery);
+    void device_release();
+    void device_upload();
+    void device_precondition(std::vector<double> &rhs,std::vector<double> &x,int pre,int post);
+    void device_vcycle0(int pre,int post);
+    void device_sync();
+    int  device_levels() const;
+    float* window_array(int a) const;
+    int solve_gcr(double tol,int maxiter,double &relres);
+
+    int devn;                // N 16 as given
+    int devkind;             // requested device, 0 none (reefmg_device_create: 1 Metal, 2 reference)
+    bool devkry;             // N 16 2, 4: the Krylov solve on the device
+    bool kryon;              // device_precondition: a Krylov solve (solve_gcr) instead of the V-cycles
+    double devktol;          // its tolerance and iterations (REEFMG_DEVICE_KTOL, REEFMG_DEVICE_KMAX)
+    int devkmax;
+    long devkit,devksolves;  // device Krylov iterations and solves, see device_timing()
+    bool devmode;            // the preconditioner runs on the device (all ranks)
+    reefmg_device *dev;      // the device, rank 0 only
+    std::string devmsg;
+    MPI_Win devwin;          // shared memory: the device's fine level
+    char *dev0;              // its start on this rank
+    bool dev0copy;           // rank 0: the device keeps its own fine level, copied
+    int devgx,devgy;         // global fine extent
+    int devox,devoy;         // offset of this rank's block in it
+    int devnlev;             // levels of the device hierarchy
+    int devcycles,devsweeps; // see set_device_cycle()
+    int devprec;             // see set_device_precision()
+    bool devhalf() const {return devprec!=32;}
+    std::vector<double> kd;  // device_vcycle0
+    double pctime;           // see precondition_time()
+    long pccount;
+    double devt[4];          // see device_timing()
 
     std::vector<sc_level> lev;
 

@@ -1,0 +1,17 @@
+{
+ "base": "sflow_1d_si_nh_bar",
+ "ctrl_set": {
+  "A 220": "2"
+ },
+ "description": "sflow_1d_si_nh_bar with the quadratic pressure without the improved dispersion (A 220 2): no h^3 lap(eta) term, the preconditioner with one V-cycle.",
+ "tags": [
+  "1d",
+  "sflow",
+  "semi_implicit",
+  "nonhydrostatic"
+ ],
+ "covers": [
+  "sflow_momentum_SI_nh A 220 2"
+ ],
+ "architect": "Hans Bihs"
+}

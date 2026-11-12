@@ -51,6 +51,7 @@ class sflow_diffusion;
 class sflow_filter;
 class sflow_turbulence;
 class sflow_forcing;
+class hydro_couple;
 class sediment;
 class turbulence;
 class patchBC_interface;
@@ -118,6 +119,7 @@ private:
     
     sixdof *p6dof;
     sflow_amr *pamr = nullptr;
+    hydro_couple *pcpl = nullptr;      // REEF3D::HYDRO catchment model coupled (R 100 2)
 	
 	double starttime, endtime;
     

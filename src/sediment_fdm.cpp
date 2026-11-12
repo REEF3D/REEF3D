@@ -32,11 +32,19 @@ sediment_fdm::sediment_fdm(lexer *p) : P(p),Q(p),
                                        alpha(p),teta(p),gamma(p),beta(p),phi(p),
                                        active(p),
                                        bedk(p),slide_fh(p),
-                                       cbe(p),cb(p),cbn(p),conc(p),ub(p),vb(p),dryd(p),
+                                       cbe(p),cb(p),cbn(p),conc(p),rbe(p),wsx(p),rbf(p),rbz(p),ub(p),vb(p),dryd(p),
                                        waterlevel(p),guard(p),MOB(p),tau_i(p)
 {
     dk = p->S20;
     pmix = nullptr;
+    
+    for(int n=0; n<p->imax*p->jmax; ++n)
+    {
+    rbe.V[n] = 1.0;
+    wsx.V[n] = 0.0;
+    rbf.V[n] = 1.0;
+    rbz.V[n] = 0.0;
+    }
 
 }
 

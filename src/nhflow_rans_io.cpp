@@ -47,7 +47,7 @@ nhflow_rans_io::~nhflow_rans_io()
 // 2D output (bed mode 0, free surface mode 1): eddyv, kin, eps/omega of the bottom or top sigma layer at the
 // slice vertices, 3 arrays of pointnum2D as offset_ParaView_2D and name_vtp declare (was: a first eddyv array of
 // pointnum 3D values, the second eddyv array not written and the layer index left at 0/1). Not called at present.
-void nhflow_rans_io::print_2D(lexer* p, fdm_nhf *d, ghostcell *pgc, ofstream &result, int mode)
+void nhflow_rans_io::print_2D(lexer* p, fdm_nhf *d, ghostcell *pgc, std::ostream &result, int mode)
 {
     const int kk = (mode==1) ? p->knoz-1 : 0;
     double *field[3] = {d->EV, KIN, EPS};
@@ -263,7 +263,7 @@ void nhflow_rans_io::name_pvtp(lexer *p, fdm_nhf *d, ghostcell *pgc, ofstream &r
     result<<"<PDataArray type=\"Float32\" Name=\"omega\"/>\n";
 }
 
-void nhflow_rans_io::name_vtp(lexer *p, fdm_nhf *d, ghostcell *pgc, ofstream &result, int *offset, int &n)
+void nhflow_rans_io::name_vtp(lexer *p, fdm_nhf *d, ghostcell *pgc, std::ostream &result, int *offset, int &n)
 {
     result<<"<DataArray type=\"Float32\" Name=\"eddyv\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
     ++n;
@@ -399,6 +399,35 @@ void nhflow_rans_io::length_limit(lexer *p, fdm_nhf *d, bool komega)
     
     SLICELOOP4
     WETN[IJ] = p->wet[IJ];
+}
+
+// A 623 (P12c), k-epsilon in a stratification: the floor k_min (A 626) keeps the quiet stratified water able to take up
+// turbulence from the shear (with k -> 0 the eddy viscosity vanishes, the shear piles up at the edge of the turbulent
+// layer and is released in bursts), and the length limit of Galperin et al. (1988), l <= c_lim sqrt(2k)/N (A 626),
+// bounds the eddy viscosity of that floor in the stratified water: nu_t <= cmu^(1/4) c_lim sqrt(2) k/N
+void nhflow_rans_io::strat_kmin(lexer *p)
+{
+    if(N2S==nullptr)
+    return;
+
+    LOOP
+    if(p->DF[IJK]>0)
+    KIN[IJK] = MAX(KIN[IJK],p->A626_kmin);
+}
+
+void nhflow_rans_io::strat_limit(lexer *p, fdm_nhf *d)
+{
+    if(N2S==nullptr)
+    return;
+
+    const double c34 = pow(p->cmu,0.75);
+
+    LOOP
+    if(p->DF[IJK]>0 && N2S[IJK]>0.0 && KIN[IJK]>0.0)
+    {
+        const double lmax = p->A626_clim*sqrt(2.0*KIN[IJK]/N2S[IJK]);
+        EPS[IJK] = MAX(EPS[IJK], c34*pow(KIN[IJK],1.5)/lmax);
+    }
 }
 
 // horizontal wall distance for the SST F2 (A 564 2): distance of the cell centre, along its sigma layer, to the nearest

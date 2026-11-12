@@ -51,6 +51,8 @@ Author: Hans Bihs
 #include"6DOF.h"
 #include"cfd_ckpt.h"
 #include"sediment.h"
+#include"hydro_sflow.h"
+#include"hydro_couple.h"
 
 using namespace std;
 
@@ -86,9 +88,12 @@ reefrun_ckpt& sflow_f::ckpt(lexer *p, fdm2D *b, ghostcell *pgc)
         // the 6DOF bodies on the grid
         if(p->X10>0)
         p6dof->ckpt_fields(fd,fi);
+        // REEF3D::HYDRO: the cumulative infiltration
+        if(b->hydro!=nullptr)
+        b->hydro->ckpt_fields(fd,fi);
     };
 
-    h.write = [this,p,fields](reefckpt &ck)
+    h.write = [this,p,b,pgc,fields](reefckpt &ck)
     {
         std::function<void(const char*,char,double*)> wd = [&](const char *n, char, double *V){ if(V!=nullptr) ck.put_S(n,V); };
         std::function<void(const char*,char,int*)> wi = [&](const char *n, char, int *V){ if(V!=nullptr) ck.put_Si(n,V); };
@@ -120,13 +125,29 @@ reefrun_ckpt& sflow_f::ckpt(lexer *p, fdm2D *b, ghostcell *pgc)
             ck.put_Si("DFBED",p->DFBED);
         }
 
+        // REEF3D::HYDRO: the volume budget (the same on all ranks)
+        if(b->hydro!=nullptr)
+        {
+            vector<double> hv;
+            b->hydro->ckpt_state(hv);
+            ck.blob("hydro",hv);
+        }
+
+        // REEF3D::HYDRO coupled (R 100 2): the catchment model and the coupling (gathered on rank 0)
+        if(pcpl!=nullptr)
+        {
+            vector<double> cv;
+            pcpl->ckpt_state(p,pgc,cv);
+            ck.blob("hydro_couple",cv);
+        }
+
         // the state of the boundary conditions (local to the rank)
         vector<double> io;
         pflow->ckpt_state(p,io);
         ck.rank_blob("ioflow",io);
     };
 
-    h.read = [this,p,pgc,fields](reefckpt &ck, string &msg)
+    h.read = [this,p,b,pgc,fields](reefckpt &ck, string &msg)
     {
         bool ok = true;
         std::function<void(const char*,char,double*)> rd = [&](const char *n, char, double *V){ if(V==nullptr || !ck.has(n)) return; ok = ck.get_S(n,V) && ok; };
@@ -163,6 +184,16 @@ reefrun_ckpt& sflow_f::ckpt(lexer *p, fdm2D *b, ghostcell *pgc)
             }
             if(p6dof->ckpt_slice()!=nullptr && ck.has("sixdof_slice"))
             ok = ck.get_S("sixdof_slice",p6dof->ckpt_slice()) && ok;
+            
+            // X 402 1: the pressure head of the restored hull pressure (sixdof_sflow::pressure_head)
+            if(p->X10==3 && p->X402==1 && p6dof->ckpt_slice()!=nullptr)
+            {
+            const double rg = p->W1*fabs(p->W22);
+            const double *pr = p6dof->ckpt_slice();
+            
+            for(int n=0; n<p->imax*p->jmax; ++n)
+            b->pbh.V[n] = pr[n]/rg;
+            }
         }
 
         // sediment (S 10)
@@ -180,6 +211,26 @@ reefrun_ckpt& sflow_f::ckpt(lexer *p, fdm2D *b, ghostcell *pgc)
             ok = ck.get_Si("DFBED",p->DFBED) && ok;
         }
 
+        // REEF3D::HYDRO: the volume budget
+        if(b->hydro!=nullptr)
+        {
+            if(!ck.has("hydro") || !b->hydro->ckpt_restore(ck.get_blob("hydro")))
+            {
+                msg = "the checkpoint has no HYDRO budget that fits this run (R 10 - R 50)";
+                return false;
+            }
+        }
+
+        // REEF3D::HYDRO coupled (R 100 2)
+        if(pcpl!=nullptr)
+        {
+            if(!ck.has("hydro_couple") || !pcpl->ckpt_restore(p,b,ck.get_blob("hydro_couple")))
+            {
+                msg = "the checkpoint has no catchment model (R 100 2) that fits this run";
+                return false;
+            }
+        }
+
         // the state of the boundary conditions: on the same decomposition (else they start again)
         if(ck.same_decomposition())
         pflow->ckpt_restore(p,ck.get_rank_blob("ioflow",p->mpirank));
@@ -194,6 +245,8 @@ reefrun_ckpt& sflow_f::ckpt(lexer *p, fdm2D *b, ghostcell *pgc)
         pprint->flush_outputs();
         if(pamr!=nullptr)
         pamr->flush_outputs();
+        if(pcpl!=nullptr)
+        pcpl->flush();
         mainlogout.flush();
     };
 

@@ -1,0 +1,18 @@
+{
+ "base": "nhflow_3d_amr_stairs",
+ "ctrl_add": [
+  "G 7 1"
+ ],
+ "same_as": "nhflow_3d_amr_stairs",
+ "same_as_rtol": 0.1,
+ "description": "nhflow_3d_amr_stairs with subcycling (G 7 1): the front of the column at the coarse-fine interface, along the faces and at the re-entrant corners. The coarse cells outside the patches take the pressure of the patches on the interface faces (sub_preg, sub_reflux), not only their fluxes; without it the velocity of those cells was off by 17 % of the largest velocity (the fluxes moved them, the coarse pressure of the covered cells did not hold them back). `ranks`: the final state within 10 % of the largest value of each field of nhflow_3d_amr_stairs (the same time step, one step for all levels; with it 7 %, before 17 %).",
+ "tags": [
+  "3d",
+  "nhflow",
+  "amr",
+  "subcycling"
+ ],
+ "covers": [
+  "nhflow_amr::sub_preg (coarse and fine side), the pressure in sub_reflux, Cartesian"
+ ]
+}

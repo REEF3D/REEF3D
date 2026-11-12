@@ -56,6 +56,8 @@ public:
 
     void start(lexer*,fdm2D*,ghostcell*,ioflow*,sflow_turbulence*,sediment*);
     void print2D(lexer*,fdm2D*,ghostcell*,sflow_turbulence*,sediment*);
+    // the end of a run (N 45, N 41, S 19): the last state, unless the last step wrote it
+    void print_end(lexer*,fdm2D*,ghostcell*,sflow_turbulence*,sediment*);
     void flush_outputs();   // a rebalance stop (G 46)
 
     // the maxima (P 112, P 115): written at the end of the run, in the checkpoints
@@ -64,6 +66,7 @@ public:
 
 private:
     void pvtp(lexer*,fdm2D*,ghostcell*,sflow_turbulence*,sediment*,int);
+    int last_print = -1;    // the iteration of the last output (print_end)
 
     char name[200];
     int n,iin,offset[200];

@@ -1,0 +1,21 @@
+{
+ "base": "cfd_2d_dambreak_amr3_adapt",
+ "np": 1,
+ "steps": 60,
+ "ctrl_add": [
+  "G 29 1"
+ ],
+ "description": "cfd_2d_dambreak_amr3_adapt with G 29 1: two adaptive levels, the hydrostatic restriction level by level (level 2 into level 1, then level 1 into level 0) and after every regrid.",
+ "tags": [
+  "quick",
+  "2d",
+  "dambreak",
+  "levelset",
+  "amr",
+  "adaptive"
+ ],
+ "covers": [
+  "cfd_amr::restrict_press_hydro after the regrid (cfd_amr_regrid)",
+  "the coarse column through several parent blocks"
+ ]
+}

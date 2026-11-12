@@ -1,0 +1,4 @@
+{"np": 1, "steps": 20,
+ "description": "cfd_2d_heave_amr_sub with two refined levels (G 1 2): level 2 advances the body, level 0 and level 1 step with a predicted copy (saved and put back around their steps).",
+ "tags": ["quick", "2d", "6dof", "floating", "levelset", "amr"],
+ "covers": ["cfd_amr::patch_step with bodies on a level coarser than the finest (amr_save, amr_restore)", "the force output after every step of the finest level (patch 0120)", "pr_sync_project over three levels"]}

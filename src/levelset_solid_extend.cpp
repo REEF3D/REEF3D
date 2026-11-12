@@ -61,10 +61,20 @@ Architect: Hans Bihs
 //
 //  X 48 2 (the default); X 48 0 keeps the level set inside the solids as it is, X 48 1 is the copy
 //  into the ghost cells of the flagged solids (G 505 1, ghostcell::solid_forcing_lsm).
+//
+//  X 48 3: as 2, and inside the 6DOF bodies of the direct forcing as well (X 10, the level set a->fb
+//  of all bodies at the pose of the stage).  A body between two water levels (a lock gate, its top
+//  above both) holds the free surface of the start inside, a step at the face of the high side: the
+//  same jet along the face, and the water level of the high side falls (the water goes into the air
+//  above, the level set loses it), 0.12 m in 7 s at 0.32 m head (validation 26_cfd_ship_lock).  The
+//  layers of the body follow the level set of their own side; with fewer than about four cells across
+//  the body the two sides meet in the middle.
 
 namespace
 {
-const int solid_band = 8;   // layers of cells
+const int solid_band = 8;   // layers of cells (of level 0)
+
+double dxm0 = 0.0;          // DXM of level 0 (mesh refinement)
 
 // the neighbour after the next one (l2) towards the fluid as well, from the next (l1)
 inline bool towards(unsigned char l1, unsigned char l2)
@@ -82,8 +92,12 @@ inline double extrapolate(double f1, double f2, double h1, double h2)
 
 void levelset_solid_extend(lexer *p, fdm *a, ghostcell *pgc, field &f, int gcval)
 {
-    // with a free surface (F 30), solids of the direct forcing (G 505 0)
-    if(p->X48!=2 || p->F30==0 || p->solidread==0 || p->G505!=0)
+    // with a free surface (F 30): solids of the direct forcing (G 505 0; X 48 2, 3), the 6DOF bodies
+    // (X 10; X 48 3) with the level set a->fb of all bodies
+    const bool solids = (p->X48==2 || p->X48==3) && p->solidread>0 && p->G505==0;
+    const bool bodies = p->X48==3 && p->X10>0;
+    
+    if(p->F30==0 || (!solids && !bodies))
     return;
 
     int i,j,k;
@@ -109,38 +123,78 @@ void levelset_solid_extend(lexer *p, fdm *a, ghostcell *pgc, field &f, int gcval
         if(jd && ((j<0 && !ym) || (j>=p->knoy && !yp)))
         continue;
 
-        if(a->solid(i,j,k)>=0.0)
+        if(!((solids && a->solid(i,j,k)<0.0) || (bodies && a->fb(i,j,k)<0.0)))
         layer[IJK]=0;
         else
         solid.push_back(IJK);
     }
 
     const int si = p->jmax*p->kmax, sj = p->kmax, sk = 1;
-    std::vector<std::vector<int> > band(solid_band+1);
-    for(int l=1; l<=solid_band; ++l)
+
+    // the depth of the layers: solid_band cells of level 0, the same distance on a patch of the mesh
+    // refinement (cfd_amr), so that the solid cells at the edge of a patch (filled from the coarser
+    // level) and those inside it have the level set of the same extension; with 8 cells of the patch
+    // a wall thicker than that kept the level set of the start inside, against the extended values of
+    // the coarser level at the patch edge: a step in the density in the solid, and the pressure
+    // correction blew the velocities up there
+    if(p->amr_patch==0)
+    dxm0 = p->DXM;
+
+    int nband = solid_band;
+    if(p->amr_patch>0 && dxm0>0.0)
+    nband = MIN(250, MAX(solid_band, int(ceil(double(solid_band)*dxm0/p->DXM - 1.0e-9))));
+
+    // layer 1: the solid cells next to the fluid; layer l: the solid cells next to layer l-1 (from
+    // the cells of layer l-1, the same cells as a sweep over all solid cells per layer)
+    std::vector<char> insolid(n,0);
+    for(int q : solid)
+    insolid[q]=1;
+
+    std::vector<std::vector<int> > band(nband+1);
     for(int q : solid)
     {
-        if(layer[q]!=outside)
-        continue;
         const int ii = q/si, jj = (q/sj)%p->jmax, kk = q%p->kmax;
         bool next = false;
-        if(ii>0 && layer[q-si]==l-1) next = true;
-        if(ii<p->imax-1 && layer[q+si]==l-1) next = true;
-        if(jd && jj>0 && layer[q-sj]==l-1) next = true;
-        if(jd && jj<p->jmax-1 && layer[q+sj]==l-1) next = true;
-        if(kk>0 && layer[q-sk]==l-1) next = true;
-        if(kk<p->kmax-1 && layer[q+sk]==l-1) next = true;
+        if(ii>0 && layer[q-si]==0) next = true;
+        if(ii<p->imax-1 && layer[q+si]==0) next = true;
+        if(jd && jj>0 && layer[q-sj]==0) next = true;
+        if(jd && jj<p->jmax-1 && layer[q+sj]==0) next = true;
+        if(kk>0 && layer[q-sk]==0) next = true;
+        if(kk<p->kmax-1 && layer[q+sk]==0) next = true;
         if(next)
+        band[1].push_back(q);
+    }
+    for(int q : band[1])
+    layer[q]=1;
+
+    for(int l=2; l<=nband; ++l)
+    {
+        for(int r : band[l-1])
         {
-        layer[q]=l;
-        band[l].push_back(q);
+            const int ii = r/si, jj = (r/sj)%p->jmax, kk = r%p->kmax;
+            auto add = [&](int q)
+            {
+                if(insolid[q] && layer[q]==outside)
+                {
+                layer[q]=l;
+                band[l].push_back(q);
+                }
+            };
+            if(ii<p->imax-1) add(r+si);
+            if(ii>0) add(r-si);
+            if(jd && jj<p->jmax-1) add(r+sj);
+            if(jd && jj>0) add(r-sj);
+            if(kk<p->kmax-1) add(r+sk);
+            if(kk>0) add(r-sk);
         }
+        if(band[l].empty())
+        break;
     }
 
     // (every rank takes part in the ghost cell exchange)
     for(int pass=0; pass<2; ++pass)
     {
-        for(int l=1; l<=solid_band; ++l)
+        for(int l=1; l<=nband; ++l)
         for(int q : band[l])
         {
             i = q/si + p->imin;

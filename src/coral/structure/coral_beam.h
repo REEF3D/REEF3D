@@ -40,6 +40,8 @@ Architect: Hans Bihs
 
 #include"coral/core/coral_load.h"
 #include"coral/core/coral_types.h"
+#include<string>
+#include<vector>
 
 namespace coral
 {
@@ -86,6 +88,13 @@ namespace coral
         Eigen::Matrix<double,7,1> local_forces(const Eigen::Matrix<double,7,1> &d) const;
         // current element frame (columns x, y, z) and end positions
         Mat3 frame(const model&, Vec3 &pa, Vec3 &pb) const;
+        // the forces and moments the element exerts on its ends (global, the moments about the end points; with
+        // the damping), and the attached bodies
+        void end_loads(const model&, Vec3 &Fa, Vec3 &Ma, Vec3 &Fb, Vec3 &Mb) const;
+        // the acceleration of end a's point (zero on the ground)
+        Vec3 acceleration_a(const model&) const;
+        int body_a() const {return ba_;}
+        int body_b() const {return bb_;}
 
     private:
         using Vec7 = Eigen::Matrix<double,7,1>;
@@ -107,6 +116,29 @@ namespace coral
         double L0_;
         beam_section s_;
         double beta_;
+    };
+}
+
+namespace coral
+{
+    // the section loads at end a of a beam element as output channels <name>_Fx, _Fy, _Fz, _Mx, _My, _Mz: the force
+    // and the moment (about the end point) the element exerts on end a, in the frame of the body at end a (global for
+    // the ground): at a clamped tower base the loads on the foundation, at a blade root those on the hub or the pitch
+    // bearing. The section is at the end point, so the half element the frame builder lumps there belongs to the
+    // element: its weight and translational inertia are added (as ElastoDyn's TwrBsF, RootF). It adds no force.
+    class beam_sensor : public load
+    {
+    public:
+        beam_sensor(const beam_element &e, const std::string &name) : e_(&e), name_(name) {}
+        std::string name() const override {return name_;}
+        coupling_kind coupling() const override {return coupling_kind::local;}
+        void eval(const model&, double, VecX&) const override {}
+        void channel_names(std::vector<std::string>&) const override;
+        void channel_values(const model&, double t, std::vector<double>&) const override;
+
+    private:
+        const beam_element *e_;
+        std::string name_;
     };
 }
 

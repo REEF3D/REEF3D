@@ -412,9 +412,15 @@ void wave_lib_spectrum::directional_spreading(lexer* p) // modified
 
             }
 
-            // p->B133 divided by p->wN must be an interger
-            if(p->wN % p->B133==0)
-                NR=int(p->wN/p->B133);
+            // p->B133 divided by p->wN must be an interger (NR was unset otherwise: out-of-bounds writes or no angles)
+            if(p->B133<1 || p->B133>p->wN || p->wN % p->B133!=0)
+            {
+                if(p->mpirank==0)
+                cout<<"!!! B 133 (number of directions "<<p->B133<<") must divide the number of components "<<p->wN<<" !!!"<<endl;
+                exit(1);
+            }
+            
+            NR=int(p->wN/p->B133);
 
             // create an angular array of the same length as the frequency array
             count=0;

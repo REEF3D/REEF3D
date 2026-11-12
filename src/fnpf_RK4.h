@@ -29,6 +29,7 @@ Author: Hans Bihs
 #include"slice4.h"
 
 class fnpf_laplace;
+class fnpf_laplace_cds2;
 class fnpf_fsf;
 class fnpf_body;
 class field;
@@ -58,6 +59,7 @@ private:
     slice4 frk1,frk2,frk3,frk;
 
     fnpf_laplace *plap;
+    fnpf_laplace_cds2 *plap0;
     fnpf_fsf *pf;
     fnpf_body *pbody;
     

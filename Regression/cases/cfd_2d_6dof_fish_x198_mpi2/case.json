@@ -1,0 +1,8 @@
+{
+ "base": "cfd_2d_6dof_fish_x198",
+ "np": 2,
+ "steps": 40,
+ "description": "cfd_2d_6dof_fish_x198 on 2 ranks split in x: the normal equations of the fit summed over the ranks.",
+ "tags": ["2d", "6dof", "floating", "deform", "singlephase", "mpi"],
+ "covers": ["momentum_fit globalsum"]
+}

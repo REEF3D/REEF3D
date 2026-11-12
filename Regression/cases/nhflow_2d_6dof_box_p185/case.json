@@ -1,0 +1,4 @@
+{"base": "nhflow_2d_6dof_box",
+ "ctrl_add": ["P 180 1", "P 182 1000.0", "P 185 0.05 0.2 0.05", "P 185 0.25 0.4 0.05"],
+ "description": "as nhflow_2d_6dof_box with free-surface and 6DOF VTP output in two time windows (P 185) and none in P 35: the 6DOF printer used the P 35 window array for the P 185 windows and crashed at the start (patch 0030).",
+ "tags": ["2d", "nhflow", "6dof", "floating", "output"], "covers": ["sixdof_obj::print_vtp P 185 windows", "printtime_wF"]}

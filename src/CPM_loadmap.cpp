@@ -26,6 +26,8 @@ Architect: Hans Bihs
 #include"fdm.h"
 #include"ghostcell.h"
 #include"amr_load.h"
+#include"sediment_fdm.h"
+#include<cmath>
 #include<mpi.h>
 #include<iomanip>
 #include<sys/stat.h>
@@ -245,4 +247,29 @@ void CPM::loadmap_write(lexer *p, fdm *a, ghostcell *pgc)
     out<<v<<((++m)%10==0 ? "\n" : " ");
 
     out<<endl;
+}
+
+// the active parcels of every cell of the rank, (i knoy + j) knoz + k (the weights of the grid of CPM on the
+// mesh refinement, cfd_amr_cpm.cpp)
+void CPM::parcels_per_cell(lexer *p, std::vector<double> &c)
+{
+    c.assign(size_t(p->knox)*p->knoy*p->knoz,0.0);
+
+    for(n=0;n<P.index;++n)
+    if(P.Flag[n]>=ACTIVE)
+    {
+        const int ic = MAX(0, MIN(p->knox-1, pci(p,n,P.X[n])));
+        const int jc = p->j_dir==1 ? MAX(0, MIN(p->knoy-1, pcj(p,n,P.Y[n]))) : 0;
+        const int kc = MAX(0, MIN(p->knoz-1, pck(p,n,P.Z[n])));
+        c[(size_t(ic)*p->knoy + jc)*p->knoz + kc] += 1.0;
+    }
+}
+
+// the bed shear stress of column (i,j): of the bedload layer (Q 58 > 0), else of the bed shear model (G 27 of the
+// mesh refinement, cfd_amr_cpm.cpp)
+double CPM::column_tau(lexer *p, sediment_fdm *s, int ic, int jc)
+{
+    if(p->Q58>0 && p->S10!=2)
+    return sqrt(blTx(ic,jc)*blTx(ic,jc) + blTy(ic,jc)*blTy(ic,jc));
+    return s->tau_eff(ic,jc);
 }

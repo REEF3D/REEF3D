@@ -21,6 +21,8 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"nhflow_signal_speed.h"
+#include"nhflow_flux_face.h"
+#include"vrans_definitions.h"
 #include"lexer.h"
 #include"ghostcell.h"
 #include"fdm_nhf.h"
@@ -41,6 +43,8 @@ void nhflow_signal_speed::signal_speed_update(lexer* p, ghostcell *pgc, fdm_nhf 
 {
     // Same expressions as before; the celerities sqrt(9.81*D) depend only on
     // the column and are evaluated once per (i,j) instead of 4-6 times per cell.
+    
+    const bool porous = (p->B200==1 && p->B206==1);
     
     // signal speed x-dir  (ULOOP)
     for(i=0; i<p->knox-p->ulast; ++i)
@@ -65,7 +69,6 @@ void nhflow_signal_speed::signal_speed_update(lexer* p, ghostcell *pgc, fdm_nhf 
         {
         d->Ss[IJK] = MIN(us - cs, usx - dsx);
         d->Sn[IJK] = MAX(un + cn, usx + dsx);
-        d->SSx[IJK] = usx;
         }
         
         else
@@ -73,7 +76,6 @@ void nhflow_signal_speed::signal_speed_update(lexer* p, ghostcell *pgc, fdm_nhf 
         {
         d->Ss[IJK] = un - 2.0*cn;
         d->Sn[IJK] = un +     cn;
-        d->SSx[IJK] = d->Ss[IJK];
         }
         
         else
@@ -81,7 +83,6 @@ void nhflow_signal_speed::signal_speed_update(lexer* p, ghostcell *pgc, fdm_nhf 
         {
         d->Ss[IJK] = us -     cs;
         d->Sn[IJK] = us + 2.0*cs;
-        d->SSx[IJK] = d->Sn[IJK];
         }
         
         else
@@ -89,7 +90,40 @@ void nhflow_signal_speed::signal_speed_update(lexer* p, ghostcell *pgc, fdm_nhf 
         {
         d->Ss[IJK] = 0.0;
         d->Sn[IJK] = 0.0;
-        d->SSx[IJK] = 0.0;
+        }
+        
+        // VRANS (B 206 1): wave speeds of the porous equations (nhflow_face::por_speed), Davis bounds
+        if(porous)
+        {
+        const double nf = PORVALNH1;
+        
+            if(nf<1.0-1.0e-10)
+            {
+            const double ns = nhflow_face::por_surf_x(p,d,i,j);
+            double as,bs,an,bn;
+            nhflow_face::por_speed(p,nf,ns,us,Ds(i,j),as,bs);
+            nhflow_face::por_speed(p,nf,ns,un,Dn(i,j),an,bn);
+            
+            if((wP==1 && wN==1) && (dfP==1 && dfN==1))
+            {
+            d->Ss[IJK] = MIN(as - bs, an - bn);
+            d->Sn[IJK] = MAX(as + bs, an + bn);
+            }
+            
+            else
+            if((wP==0 && wN==1) || (dfP<0 && dfN==1))
+            {
+            d->Ss[IJK] = an - 2.0*bn;
+            d->Sn[IJK] = an +     bn;
+            }
+            
+            else
+            if((wP==1 && wN==0) || (dfP==1 && dfN<0))
+            {
+            d->Ss[IJK] = as -     bs;
+            d->Sn[IJK] = as + 2.0*bs;
+            }
+            }
         }
         }
     }
@@ -118,7 +152,6 @@ void nhflow_signal_speed::signal_speed_update(lexer* p, ghostcell *pgc, fdm_nhf 
         {
         d->Se[IJK] = MIN(ve - ce, usy - dsy);
         d->Sw[IJK] = MAX(vw + cw, usy + dsy);
-        d->SSy[IJK] = usy;
         }
 
         else
@@ -126,7 +159,6 @@ void nhflow_signal_speed::signal_speed_update(lexer* p, ghostcell *pgc, fdm_nhf 
         {
         d->Se[IJK] = vw - 2.0*cw;
         d->Sw[IJK] = vw +     cw;
-        d->SSy[IJK] = d->Se[IJK];
         }
         
         else
@@ -134,7 +166,6 @@ void nhflow_signal_speed::signal_speed_update(lexer* p, ghostcell *pgc, fdm_nhf 
         {
         d->Se[IJK] = ve -     ce;
         d->Sw[IJK] = ve + 2.0*ce;
-        d->SSy[IJK] = d->Sw[IJK];
         }
         
         else
@@ -142,7 +173,40 @@ void nhflow_signal_speed::signal_speed_update(lexer* p, ghostcell *pgc, fdm_nhf 
         {
         d->Se[IJK] = 0.0;
         d->Sw[IJK] = 0.0;
-        d->SSy[IJK] = 0.0;
+        }
+        
+        // VRANS (B 206 1): wave speeds of the porous equations (nhflow_face::por_speed), Davis bounds
+        if(porous)
+        {
+        const double nf = PORVALNH2;
+        
+            if(nf<1.0-1.0e-10)
+            {
+            const double ns = nhflow_face::por_surf_y(p,d,i,j);
+            double ae,be,aw,bw;
+            nhflow_face::por_speed(p,nf,ns,ve,De(i,j),ae,be);
+            nhflow_face::por_speed(p,nf,ns,vw,Dw(i,j),aw,bw);
+            
+            if((wP==1 && wN==1) && (dfP==1 && dfN==1))
+            {
+            d->Se[IJK] = MIN(ae - be, aw - bw);
+            d->Sw[IJK] = MAX(ae + be, aw + bw);
+            }
+            
+            else
+            if((wP==0 && wN==1) || (dfP<0 && dfN==1))
+            {
+            d->Se[IJK] = aw - 2.0*bw;
+            d->Sw[IJK] = aw +     bw;
+            }
+            
+            else
+            if((wP==1 && wN==0) || (dfP==1 && dfN<0))
+            {
+            d->Se[IJK] = ae -     be;
+            d->Sw[IJK] = ae + 2.0*be;
+            }
+            }
         }
         }
     }

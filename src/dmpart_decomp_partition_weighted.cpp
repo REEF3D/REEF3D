@@ -33,11 +33,19 @@ Author: Hans Bihs
 //      CPM, the parcels included, REEF3D_CFD_CPM_Particle/REEF3D_CFD_CPM_loadmap.dat) gives
 //      the work of every active cell,
 //    times the factors of the weight boxes M 34 xs xe ys ye zs ze f (cell centre in the box).
-//  The subdomains per direction: M 30 if given, else as for M 20 1 (M 11-13).
+//  The subdomains per direction: M 30 if given (kept as given), else chosen by the load: of all
+//  layouts mx x my x mz of the ranks in the directions of M 11-13 (DIVEMesh: z only with M 13 1;
+//  at least 3 cells per subdomain),
+//  the one with the lightest heaviest subdomain, and among those within 1 % of it the one with the
+//  least cut area (the ghost cells exchanged); it replaces the layout of M 20 1 (the least cut area
+//  for equal widths) only when its heaviest subdomain is at least 5 % lighter.
 //  The cuts of one direction for fixed cuts of the others are optimal: the least bottleneck B for
 //  which the greedy sweep (each slab of the other directions at most B per subdomain) needs at most
 //  m subdomains, by bisection.  The directions are swept in turn until the heaviest subdomain does
 //  not get lighter.  Subdomains are at least 3 cells wide where the grid allows it.
+//  Warnings: a subdomain narrower than 3 cells; the heaviest subdomain above 1.1 times the mean, with
+//  the best layout M 30 for the same number of ranks and the heaviest subdomain for 1-2 ranks fewer
+//  or more.
 
 #include "dmpart_decomp.h"
 #include <vector>
@@ -45,6 +53,8 @@ Author: Hans Bihs
 #include <sstream>
 #include <algorithm>
 #include <cmath>
+#include <iomanip>
+#include <ostream>
 
 namespace dmpart
 {
@@ -157,10 +167,220 @@ double cuts_1d(const std::vector<std::vector<double>> &P, int N, int m, int wmin
 }
 }
 
+// the cuts C of the subdomains M[d] per direction for the cell weights w (i, j, k; Nd cells): the
+// equal widths of M 20 1 (h0 their heaviest subdomain), then the directions swept in turn, each
+// with the least bottleneck cuts for the cuts of the others, until the heaviest does not get
+// lighter; returns the heaviest subdomain, mean the mean
+static double optimise(const std::vector<double> &w, const int *Nd, const int *M, std::vector<int> *C, double &h0, double &mean)
+{
+    const int NX=Nd[0], NY=Nd[1], NZ=Nd[2];
+    auto W = [&](int ii, int jj, int kk) -> double { return w[((size_t)ii*NY+jj)*NZ+kk]; };
+
+    for(int d=0; d<3; ++d)
+    {
+        C[d].resize(M[d]+1);
+        for(int n=0; n<=M[d]; ++n)
+        C[d][n] = (int)(((long)n*Nd[d])/M[d]);
+    }
+
+    // the heaviest subdomain and the mean
+    auto heaviest = [&](double &mn)
+    {
+        std::vector<double> sub((size_t)M[0]*M[1]*M[2],0.0);
+        std::vector<int> ix(NX), jy(NY), kz(NZ);
+        for(int n=0; n<M[0]; ++n) for(int q=C[0][n]; q<C[0][n+1]; ++q) ix[q]=n;
+        for(int n=0; n<M[1]; ++n) for(int q=C[1][n]; q<C[1][n+1]; ++q) jy[q]=n;
+        for(int n=0; n<M[2]; ++n) for(int q=C[2][n]; q<C[2][n+1]; ++q) kz[q]=n;
+        double tot=0.0;
+        for(int i=0; i<NX; ++i)
+        for(int j=0; j<NY; ++j)
+        for(int k=0; k<NZ; ++k)
+        {
+            sub[((size_t)ix[i]*M[1]+jy[j])*M[2]+kz[k]] += W(i,j,k);
+            tot += W(i,j,k);
+        }
+        mn = tot/double(sub.size());
+        return *std::max_element(sub.begin(),sub.end());
+    };
+
+    h0 = heaviest(mean);
+    double hcur = h0;
+
+    for(int sweep=0; sweep<20; ++sweep)
+    {
+        const double hstart = hcur;
+
+        for(int d=0; d<3; ++d)
+        {
+            if(M[d]<=1)
+            continue;
+
+            // the slabs: the subdomains of the other two directions
+            const int e = (d+1)%3, f = (d+2)%3;
+            const int ns = M[e]*M[f];
+            std::vector<std::vector<double>> P(ns,std::vector<double>(Nd[d],0.0));
+            std::vector<int> ie(Nd[e]), jf(Nd[f]);
+            for(int n=0; n<M[e]; ++n) for(int q=C[e][n]; q<C[e][n+1]; ++q) ie[q]=n;
+            for(int n=0; n<M[f]; ++n) for(int q=C[f][n]; q<C[f][n+1]; ++q) jf[q]=n;
+
+            for(int i=0; i<NX; ++i)
+            for(int j=0; j<NY; ++j)
+            for(int k=0; k<NZ; ++k)
+            {
+                const int idx[3] = {i,j,k};
+                P[ie[idx[e]]*M[f]+jf[idx[f]]][idx[d]] += W(i,j,k);
+            }
+
+            const int wmin = (Nd[d]>=3*M[d]) ? 3 : std::max(1,Nd[d]/M[d]);
+            std::vector<int> cut;
+            const double hd = cuts_1d(P,Nd[d],M[d],wmin,cut);
+
+            // take the new cuts when they are complete and not heavier
+            if(hd>=0.0 && (int)cut.size()==M[d]+1 && cut[0]==0 && cut[M[d]]==Nd[d])
+            {
+                std::vector<int> old = C[d];
+                C[d] = cut;
+                double m2;
+                const double hnew = heaviest(m2);
+                if(hnew<=hcur*(1.0+1.0e-12))
+                hcur = hnew;
+                else
+                C[d] = old;
+            }
+        }
+
+        if(hcur>=hstart*(1.0-1.0e-6))
+        break;
+    }
+    return hcur;
+}
+
+// a layout of the subdomains, its heaviest subdomain (optimised cuts) and its cut area
+struct layout
+{
+    int T[3];
+    double h, area;
+};
+
+// every layout T[0] x T[1] x T[2] = m: a direction split only where allowed (M 11-13) and with at
+// least 3 cells per subdomain, with the heaviest subdomain of its optimised cuts and its cut area
+static std::vector<layout> layouts(const std::vector<double> &w, const int *Nd, int m, const int *allow)
+{
+    std::vector<layout> out;
+    for(int a=1; a<=m; ++a)
+    for(int b=1; a*b<=m; ++b)
+    {
+        if(m%(a*b)!=0)
+        continue;
+        layout L;
+        L.T[0]=a; L.T[1]=b; L.T[2]=m/(a*b);
+        bool ok = true;
+        for(int d=0; d<3; ++d)
+        if(L.T[d]>1 && (allow[d]==0 || Nd[d]<3*L.T[d]))
+        ok = false;
+        if(!ok)
+        continue;
+        std::vector<int> CC[3];
+        double h0, mn;
+        L.h = optimise(w,Nd,L.T,CC,h0,mn);
+        L.area = 0.0;
+        for(int d=0; d<3; ++d)
+        L.area += double(L.T[d]-1)*double(Nd[(d+1)%3])*double(Nd[(d+2)%3]);
+        out.push_back(L);
+    }
+    return out;
+}
+
+// the lightest of the layouts: the least heaviest subdomain, and among those within 1 % of it the
+// least cut area; nullptr none
+static const layout *lightest(const std::vector<layout> &ls)
+{
+    const layout *b = nullptr;
+    for(const layout &L : ls)
+    if(b==nullptr || L.h<b->h)
+    b = &L;
+    if(b==nullptr)
+    return nullptr;
+    const double hb = b->h;
+    for(const layout &L : ls)
+    if(L.h<=1.01*hb && (L.area<b->area || (L.area==b->area && L.h<b->h)))
+    b = &L;
+    return b;
+}
+
+// the warnings of the weighted partition: subdomains narrower than 3 cells (the margin of CFD and
+// the ghost cells reach 3 cells); the heaviest subdomain above 1.1 times the mean (the cuts of a
+// tensor product cannot split a heavy region finer than its slabs): the best layout M 30 for this
+// number of ranks, and the heaviest subdomain for 1-2 ranks fewer or more, against the present one
+// (the time of a step goes with the heaviest subdomain); the layouts split only the directions of
+// allow
+static void advise(const std::vector<double> &w, const int *Nd, const int *M, const std::vector<int> *C, double hcur, double mean,
+                   const int *allow, const std::vector<layout> *same, std::ostream &ddout)
+{
+    const std::streamsize pr = cout.precision();
+    const char *dn[3] = {"x","y","z"};
+    for(int d=0; d<3; ++d)
+    {
+        int wmin = Nd[d];
+        for(int n=0; n<M[d]; ++n)
+        wmin = std::min(wmin,C[d][n+1]-C[d][n]);
+        if(M[d]>1 && wmin<3)
+        {
+            cout<<"M 20 5: warning -- a subdomain is only "<<wmin<<" cells wide along "<<dn[d]<<" ("<<Nd[d]<<" cells in "<<M[d]
+                <<" subdomains); 3 cells are needed by the margin of the patches and the ghost cells: fewer subdomains along "<<dn[d]<<" (M 30)"<<endl;
+            ddout<<"M 20 5: warning, subdomains narrower than 3 cells along "<<dn[d]<<endl;
+        }
+    }
+
+    if(hcur<=1.1*mean)
+    return;
+
+    const int n = M[0]*M[1]*M[2];
+    // the best layout for m ranks (the layouts of n already searched: same); returns the heaviest
+    // subdomain, <0 none
+    auto best = [&](int m, int *L) -> double
+    {
+        std::vector<layout> ls;
+        if(m!=n || same==nullptr)
+        ls = layouts(w,Nd,m,allow);
+        const layout *b = lightest((m==n && same!=nullptr) ? *same : ls);
+        if(b==nullptr)
+        return -1.0;
+        for(int d=0; d<3; ++d)
+        L[d] = b->T[d];
+        return b->h;
+    };
+
+    cout<<"M 20 5: warning -- the heaviest subdomain is "<<setprecision(3)<<hcur/mean<<" times the mean: the load of a heavy region cannot be cut finer than its slabs"<<endl;
+    ddout<<"M 20 5: warning, heaviest subdomain "<<hcur/mean<<" times the mean"<<endl;
+
+    int L[3];
+    const double hb = best(n,L);
+    if(hb>0.0 && hb<0.98*hcur)
+    cout<<"M 20 5:   M 30 "<<L[0]<<" "<<L[1]<<" "<<L[2]<<" gives "<<hb/mean<<" times the mean on the same "<<n<<" ranks"<<endl;
+    else
+    cout<<"M 20 5:   no other layout of "<<n<<" ranks is lighter"<<endl;
+
+    // the step time with other numbers of ranks, as the heaviest subdomain against the present one
+    const double h1 = (hb>0.0 && hb<hcur) ? hb : hcur;
+    for(int m=std::max(1,n-2); m<=n+2; ++m)
+    {
+        if(m==n)
+        continue;
+        int Lm[3];
+        const double hm = best(m,Lm);
+        if(hm<0.0)
+        continue;
+        cout<<"M 20 5:   "<<m<<" ranks (M 30 "<<Lm[0]<<" "<<Lm[1]<<" "<<Lm[2]<<"): the heaviest subdomain "<<hm/h1<<" times that of "<<n<<" ranks"<<endl;
+    }
+    cout.precision(pr);
+}
+
 void decomp::partition_weighted(lexer* p, dive* a)
 {
-    // ---- subdomains per direction
-    if(p->M30_x>0 && p->M30_y>0 && p->M30_z>0)
+    // ---- subdomains per direction: M 30 as given, else that of M 20 1 to start from
+    const bool given = (p->M30_x>0 && p->M30_y>0 && p->M30_z>0);
+    if(given)
     {
         a->mx=p->M30_x;
         a->my=p->M30_y;
@@ -173,7 +393,7 @@ void decomp::partition_weighted(lexer* p, dive* a)
     }
 
     const int NX=a->knox, NY=a->knoy, NZ=a->knoz;
-    const int M[3] = {a->mx,a->my,a->mz};
+    int M[3] = {a->mx,a->my,a->mz};
     const int Nd[3] = {NX,NY,NZ};
 
     // ---- weights
@@ -278,6 +498,12 @@ void decomp::partition_weighted(lexer* p, dive* a)
         }
     }
 
+    // the weights of the cells given (REEF3D: the grid of CPM on the mesh refinement)
+    if(p->Wcell!=nullptr && p->Wcell->size()==(size_t)NX*NY*NZ)
+    LOOP
+    if(a->flag(i,j,k)>0)
+    W(i,j,k) = (*p->Wcell)[((size_t)i*NY+j)*NZ+k];
+
     for(int b=0; b<p->M34; ++b)
     LOOP
     {
@@ -288,84 +514,43 @@ void decomp::partition_weighted(lexer* p, dive* a)
         W(i,j,k) *= p->M34_f[b];
     }
 
-    // ---- cuts: start from the equal widths of M 20 1
+    // ---- cuts: start from the equal widths of M 20 1, then the least bottleneck
     std::vector<int> C[3];
-    for(int d=0; d<3; ++d)
-    {
-        C[d].resize(M[d]+1);
-        for(int n=0; n<=M[d]; ++n)
-        C[d][n] = (int)(((long)n*Nd[d])/M[d]);
-    }
-
-    // the heaviest subdomain and the mean
-    auto heaviest = [&](double &mean)
-    {
-        std::vector<double> sub((size_t)M[0]*M[1]*M[2],0.0);
-        std::vector<int> ix(NX), jy(NY), kz(NZ);
-        for(int n=0; n<M[0]; ++n) for(int q=C[0][n]; q<C[0][n+1]; ++q) ix[q]=n;
-        for(int n=0; n<M[1]; ++n) for(int q=C[1][n]; q<C[1][n+1]; ++q) jy[q]=n;
-        for(int n=0; n<M[2]; ++n) for(int q=C[2][n]; q<C[2][n+1]; ++q) kz[q]=n;
-        double tot=0.0;
-        LOOP
-        {
-            sub[((size_t)ix[i]*M[1]+jy[j])*M[2]+kz[k]] += W(i,j,k);
-            tot += W(i,j,k);
-        }
-        mean = tot/double(sub.size());
-        return *std::max_element(sub.begin(),sub.end());
-    };
-
-    double mean=0.0;
-    const double h0 = heaviest(mean);
-    double hcur = h0;
-
-    for(int sweep=0; sweep<20; ++sweep)
-    {
-        const double hstart = hcur;
-
-        for(int d=0; d<3; ++d)
-        {
-            if(M[d]<=1)
-            continue;
-
-            // the slabs: the subdomains of the other two directions
-            const int e = (d+1)%3, f = (d+2)%3;
-            const int ns = M[e]*M[f];
-            std::vector<std::vector<double>> P(ns,std::vector<double>(Nd[d],0.0));
-            std::vector<int> ie(Nd[e]), jf(Nd[f]);
-            for(int n=0; n<M[e]; ++n) for(int q=C[e][n]; q<C[e][n+1]; ++q) ie[q]=n;
-            for(int n=0; n<M[f]; ++n) for(int q=C[f][n]; q<C[f][n+1]; ++q) jf[q]=n;
-
-            LOOP
-            {
-                const int idx[3] = {i,j,k};
-                P[ie[idx[e]]*M[f]+jf[idx[f]]][idx[d]] += W(i,j,k);
-            }
-
-            const int wmin = (Nd[d]>=3*M[d]) ? 3 : std::max(1,Nd[d]/M[d]);
-            std::vector<int> cut;
-            const double hd = cuts_1d(P,Nd[d],M[d],wmin,cut);
-
-            // take the new cuts when they are complete and not heavier
-            if(hd>=0.0 && (int)cut.size()==M[d]+1 && cut[0]==0 && cut[M[d]]==Nd[d])
-            {
-                std::vector<int> old = C[d];
-                C[d] = cut;
-                double m2;
-                const double hnew = heaviest(m2);
-                if(hnew<=hcur*(1.0+1.0e-12))
-                hcur = hnew;
-                else
-                C[d] = old;
-            }
-        }
-
-        if(hcur>=hstart*(1.0-1.0e-6))
-        break;
-    }
+    double mean=0.0, h0=0.0;
+    double hcur = optimise(w,Nd,M,C,h0,mean);
 
     cout<<"M 20 5: weighted partition "<<M[0]<<" x "<<M[1]<<" x "<<M[2]<<", heaviest subdomain / mean "<<h0/mean<<" (equal widths) -> "<<hcur/mean<<endl;
     ddout<<"M 20 5: heaviest subdomain / mean "<<h0/mean<<" (equal widths) -> "<<hcur/mean<<endl;
+
+    // ---- the layout by the load (M 30 not given): the lightest of all layouts of the ranks, taken
+    // when its heaviest subdomain is at least 5 % lighter (the heaviest can not get below the mean:
+    // within 5 % of it nothing is searched)
+    // the directions that may be split: those of M 11-13 (DIVEMesh: z only with M 13 1) and those
+    // the layout splits already (M 30)
+    const int allow[3] = {(p->M11==1 || M[0]>1) ? 1 : 0, (p->M12==1 || M[1]>1) ? 1 : 0, (p->M13==1 || M[2]>1) ? 1 : 0};
+    std::vector<layout> same;
+    bool searched = false;
+    if(!given && hcur>mean/0.95)
+    {
+        same = layouts(w,Nd,M[0]*M[1]*M[2],allow);
+        searched = true;
+        const layout *b = lightest(same);
+        if(b!=nullptr && b->h<0.95*hcur && (b->T[0]!=M[0] || b->T[1]!=M[1] || b->T[2]!=M[2]))
+        {
+            const double hold = hcur;
+            for(int d=0; d<3; ++d)
+            M[d] = b->T[d];
+            hcur = optimise(w,Nd,M,C,h0,mean);
+            a->mx=M[0];
+            a->my=M[1];
+            a->mz=M[2];
+            cout<<"M 20 5: the layout by the load "<<M[0]<<" x "<<M[1]<<" x "<<M[2]<<", heaviest subdomain / mean "<<hold/mean<<" -> "<<hcur/mean
+                <<" (M 30 fixes the layout)"<<endl;
+            ddout<<"M 20 5: layout by the load "<<M[0]<<" "<<M[1]<<" "<<M[2]<<", heaviest subdomain / mean "<<hcur/mean<<endl;
+        }
+    }
+
+    advise(w,Nd,M,C,hcur,mean,allow,searched ? &same : nullptr,ddout);
 
     // ---- nodes and origins
     for(n=0; n<=a->mx; ++n)

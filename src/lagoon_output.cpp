@@ -21,6 +21,7 @@ Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"lagoon_output.h"
+#include"lagoon_nets.h"
 #include"lexer.h"
 #include"ghostcell.h"
 #include"runlog.h"
@@ -169,6 +170,7 @@ std::vector<lagoon_output*> &lagoon_output::all()
 
 void lagoon_output::finish_all(lexer *p, ghostcell *pgc)
 {
+    lagoon_nets::finish(p);  // the nets' last output (rank 0)
     for(lagoon_output *writer : all())
         writer->finish(p, pgc);
     lagoon_surface::finish_all(p, pgc);
@@ -394,7 +396,36 @@ void lagoon_surface::piece_written(lexer *p, ghostcell *pgc, lagoon_surface *&wr
     std::stringstream text;
     text << in.rdbuf();
     in.close();
-    writer->vtp_piece(p, pgc, text.str(), num, file);
+    std::string buffer = text.str();
+    writer->vtp_piece(p, pgc, buffer, num, file);
+}
+
+namespace
+{
+bool write_piece_file(const char *file, const std::string &buffer)
+{
+    std::ofstream out(file, std::ios::binary);
+    out.write(buffer.data(), std::streamsize(buffer.size()));
+    return bool(out);
+}
+}
+
+void lagoon_surface::piece(lexer *p, ghostcell *pgc, lagoon_surface *&writer, const char *solver,
+                           const char *output, const char *source, const char *file, int num, std::string &buffer)
+{
+    const bool files = lagoon_output::vtu_files(p);
+    if(files)
+        write_piece_file(file, buffer);
+    if(p->P18<=0)
+        return;
+    settle_all(p, pgc);  // the outputs before this one, also of the other surfaces (the bed)
+    if(writer==nullptr)
+        writer = new lagoon_surface(p, pgc, solver, output, source);
+    // (no file to remove once the store has the output when none was written)
+    writer->vtp_piece(p, pgc, buffer, num, files ? std::string(file) : std::string());
+    // the store did not take it (it cannot read the piece, or a rank failed before): the file after all
+    if(!files && !buffer.empty())
+        write_piece_file(file, buffer);
 }
 
 void lagoon_surface::settle_all(lexer *p, ghostcell *pgc)
@@ -462,7 +493,7 @@ bool lagoon_surface::start(lexer *p, ghostcell *pgc, const std::vector<lagoon_st
     return true;
 }
 
-void lagoon_surface::vtp_piece(lexer *p, ghostcell *pgc, std::string buffer, int num, const std::string &file)
+void lagoon_surface::vtp_piece(lexer *p, ghostcell *pgc, std::string &buffer, int num, const std::string &file)
 {
     if(!usable)
         return;
@@ -515,6 +546,7 @@ void lagoon_surface::vtp_piece(lexer *p, ghostcell *pgc, std::string buffer, int
         pending.points = points_offset;
         pending.parsed = parsed;
         pending.buffer = std::move(buffer);
+        buffer.clear();  // taken: the caller's piece is empty
         written = false;
         worker = std::thread(&lagoon_surface::write_job, this, &pending);
     }

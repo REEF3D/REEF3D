@@ -206,7 +206,7 @@ double density_vof::roface(lexer *p, fdm *a, int d_i, int d_j, int d_k)
                     cout<<"density case missing 3D d_i:"<<d_i<<" d_j:"<<d_j<<" d_k:"<<d_k<<" exepcheck 0"<<endl;
             }
         }
-        roval=roval = p->W1*H + p->W3*(1.0-H);
+        roval = p->W1*H + p->W3*(1.0-H);
     }
     
     return roval;

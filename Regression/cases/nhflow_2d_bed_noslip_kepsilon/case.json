@@ -1,0 +1,8 @@
+{
+ "description": "NHFLOW 2D open channel with k-epsilon (A 560 1) on the resolved no-slip bed A 518 2 with A 519 1 given: no log-law bed friction at the bed (nhflow_bcmom), the bed shear from the diffusion (molecular viscosity at the bed face), the NOTE of driver_logic_nhflow.",
+ "solver": "nhflow",
+ "np": 1,
+ "steps": 300,
+ "tags": ["2d", "nhflow", "turbulence", "bed"],
+ "covers": ["nhflow_bcmom wall_friction A 518 2", "driver_logic_nhflow A 518 notes"]
+}

@@ -143,6 +143,54 @@ bool reefamr3d::refined(int l, const int *I) const
     return tile_marked(l,I[0]/tile[0],I[1]/tile[1],I[2]/tile[2]);
 }
 
+// The level whose cells give the width of the kernel of a point force at x (the knots of the
+// nets): the finest level l with the cells around x refined on every level 1..l (3 cells of the
+// next coarser level to every side, clipped at the domain).  The kernel of a level (2 cells wide
+// to every side) then lies on faces that are covered by the next finer level, for every level
+// coarser than l, and on faces of level l itself: the force of the point is on the leaf faces
+// once, whatever the edges of the patches around it.  0: the kernel of level 0.
+int reefamr3d::kernel_level(const double *x) const
+{
+    int lev = 0;
+    for(int l=1; l<=maxlev; ++l)
+    {
+        int ta[3], tb[3];
+        for(int d=0; d<3; ++d)
+        {
+            if(rr[d]!=2)
+            {
+                ta[d] = 0;
+                tb[d] = tn[l][d]-1;
+                continue;
+            }
+            // the cell of level l-1 that holds x (clamped into the domain)
+            const int n = gn(l-1,d);
+            int a = 0, b = n;
+            while(b-a>1)
+            {
+                const int m = (a+b)/2;
+                if(x[d]>=node(l-1,d,m))
+                a = m;
+                else
+                b = m;
+            }
+            const int lo = MAX(2*(a-3),0), hi = MIN(2*(a+3)+1,gn(l,d)-1);
+            ta[d] = lo/tile[d];
+            tb[d] = hi/tile[d];
+        }
+        bool all = true;
+        for(int ti=ta[0]; ti<=tb[0] && all; ++ti)
+        for(int tj=ta[1]; tj<=tb[1] && all; ++tj)
+        for(int tk=ta[2]; tk<=tb[2] && all; ++tk)
+        if(!tile_marked(l,ti,tj,tk))
+        all = false;
+        if(!all)
+        break;
+        lev = l;
+    }
+    return lev;
+}
+
 bool reefamr3d::covered(int l, const int *I) const
 {
     if(l>=maxlev)
@@ -753,7 +801,7 @@ void reefamr3d::global_nodes()
     }
 }
 
-// refined tiles of every level: the seeds, the boxes G 15 on level G 1, every coarser level around
+// refined tiles of every level: the seeds, the boxes G 15 on level G 1 and G 16 on their level l, every coarser level around
 // the next finer one with a nesting band; no refinement in the wave generation and absorption zones
 // (unless the model relaxes its patches there: zone_gen_refine, zone_beach_refine)
 void reefamr3d::mark_tiles(const vector<vector<unsigned char>> *seed)
@@ -828,6 +876,19 @@ void reefamr3d::mark_tiles(const vector<vector<unsigned char>> *seed)
         for(int d=0; d<3; ++d)
         range(maxlev,d,xs[d],xe[d],lo[d],hi[d]);
         mark_cells(maxlev,lo,hi);
+    }
+
+    // G 16: boxes refined up to level l (1 <= l <= G 1), the coarser levels around them as for G 15
+    if(maxlev>=1)
+    for(int b=0; b<p0->G16; ++b)
+    {
+        const int l = MAX(1,MIN(int(p0->G16_l[b]+0.5),maxlev));
+        int lo[3], hi[3];
+        const double xs[3] = {p0->G16_xs[b],p0->G16_ys[b],p0->G16_zs[b]};
+        const double xe[3] = {p0->G16_xe[b],p0->G16_ye[b],p0->G16_ze[b]};
+        for(int d=0; d<3; ++d)
+        range(l,d,xs[d],xe[d],lo[d],hi[d]);
+        mark_cells(l,lo,hi);
     }
 
     // nesting: every level covers the parents of the next finer one with a band of nest cells
@@ -1075,10 +1136,29 @@ void reefamr3d::mark_tiles(const vector<vector<unsigned char>> *seed)
         return -1;
     };
 
-    // the tiles of level l to extend; returns their number
+    // tiles that may not be refined: at an in- or outflow boundary or a patch boundary condition
+    // (fbd), in a wave zone, or given up below (off)
+    vector<vector<char>> off(maxlev+1);
+    for(int l=1; l<=maxlev; ++l)
+    off[l].assign(tmask[l].size(),0);
+    auto zone_tile = [&](int l, int ti) -> bool
+    {
+        const int I0 = ti*tile[0] - 3, I1 = MIN((ti+1)*tile[0],gn(l,0)) + 3;
+        const double xa = node(l,0,MAX(I0,0)), xb = node(l,0,MIN(I1,gn(l,0)));
+        return xa<zx0 || xb>zx1;
+    };
+    auto barred = [&](int l, size_t t) -> bool
+    {
+        return fbd[l][t]!=0 || off[l][t]!=0 || zone_tile(l,int(t/((size_t)tn[l][1]*tn[l][2])));
+    };
+    int retreated = 0;
+
+    // the tiles of level l to extend; returns their number.  Where the tile across may not be
+    // refined (an in- or outflow boundary, a wave zone), the level gives up its tile at the
+    // partition edge instead: its edge moves inwards, off the partition edge
     auto edges = [&](int l, bool fix) -> int
     {
-        vector<size_t> add;
+        vector<size_t> add, rem;
         int I[3];
         for(I[0]=0; I[0]<gn(l,0); ++I[0])
         for(I[1]=0; I[1]<gn(l,1); ++I[1])
@@ -1107,14 +1187,28 @@ void reefamr3d::mark_tiles(const vector<vector<unsigned char>> *seed)
                     b[d] = N/R;
                     if(rank_of(a)==rank_of(b))
                     continue;
-                    add.push_back(((size_t)(J[0]/tile[0])*tn[l][1] + J[1]/tile[1])*tn[l][2] + J[2]/tile[2]);
+                    const size_t tj = ((size_t)(J[0]/tile[0])*tn[l][1] + J[1]/tile[1])*tn[l][2] + J[2]/tile[2];
+                    if(fix && barred(l,tj))
+                    rem.push_back(((size_t)(I[0]/tile[0])*tn[l][1] + I[1]/tile[1])*tn[l][2] + I[2]/tile[2]);
+                    else
+                    add.push_back(tj);
                 }
             }
         }
         if(fix)
-        for(size_t t : add)
-        tmask[l][t] = 1;
-        return (int)add.size();
+        {
+            for(size_t t : add)
+            tmask[l][t] = 1;
+            std::sort(rem.begin(),rem.end());
+            rem.erase(std::unique(rem.begin(),rem.end()),rem.end());
+            for(size_t t : rem)
+            {
+                tmask[l][t] = 0;
+                off[l][t] = 1;
+            }
+            retreated += (int)rem.size();
+        }
+        return (int)(add.size()+rem.size());
     };
 
     // a periodic edge: a level is refined on both sides of it alike (the cells next to it on one side
@@ -1161,33 +1255,93 @@ void reefamr3d::mark_tiles(const vector<vector<unsigned char>> *seed)
     // (G 40: the shadows give every level-1 patch its coarse cells, the finer levels are cut at
     // their units: no extension at the partition edges)
     int extended = 0, extended_seam = 0;
-    for(int l=maxlev; l>=1 && (!place || per[0] || per[1]); --l)
+    for(int round=0; round<64 && (!place || per[0] || per[1]); ++round)
     {
-        for(int pass=0; pass<64; ++pass)
+        const int ret0 = retreated;
+        int undone = 0, barred_nest = 0;
+
+        for(int l=maxlev; l>=1; --l)
         {
-            const int n = place ? 0 : edges(l,true);
-            const int ns = seam(l,true);
-            extended += n;
-            extended_seam += ns;
-            if(n+ns==0)
-            break;
+            for(int pass=0; pass<64; ++pass)
+            {
+                const int r0 = retreated;
+                const int n = place ? 0 : edges(l,true);
+                const int ns = seam(l,true);
+                extended += n - (retreated-r0);
+                extended_seam += ns;
+                if(n+ns==0)
+                break;
+            }
+
+            if(l>=2)
+            {
+                for(int ti=0; ti<tn[l][0]; ++ti)
+                for(int tj=0; tj<tn[l][1]; ++tj)
+                for(int tk=0; tk<tn[l][2]; ++tk)
+                if(tile_marked(l,ti,tj,tk))
+                {
+                    int lo[3], hi[3];
+                    const int t[3] = {ti,tj,tk};
+                    for(int d=0; d<3; ++d)
+                    {
+                        lo[d] = fdiv(t[d]*tile[d],rr[d]) - (rr[d]==2 ? nest : 0);
+                        hi[d] = fdiv((t[d]+1)*tile[d]-1,rr[d]) + (rr[d]==2 ? nest : 0);
+                    }
+                    mark_cells(l-1,lo,hi);
+                }
+
+                // the tiles given up stay on the coarser level
+                if(retreated>0)
+                for(size_t t=0; t<tmask[l-1].size(); ++t)
+                if(tmask[l-1][t] && off[l-1][t])
+                {
+                    tmask[l-1][t] = 0;
+                    ++barred_nest;
+                }
+            }
         }
 
-        if(l>=2)
+        // after a retreat: the finer tiles that lost their nesting are given up as well (their
+        // parents and one more cell on the coarser level), and the edges are looked at again
+        if(barred_nest>0 || retreated>ret0)
+        for(int l=2; l<=maxlev; ++l)
         for(int ti=0; ti<tn[l][0]; ++ti)
         for(int tj=0; tj<tn[l][1]; ++tj)
         for(int tk=0; tk<tn[l][2]; ++tk)
         if(tile_marked(l,ti,tj,tk))
         {
-            int lo[3], hi[3];
             const int t[3] = {ti,tj,tk};
+            int lo[3], hi[3];
             for(int d=0; d<3; ++d)
             {
-                lo[d] = fdiv(t[d]*tile[d],rr[d]) - (rr[d]==2 ? nest : 0);
-                hi[d] = fdiv((t[d]+1)*tile[d]-1,rr[d]) + (rr[d]==2 ? nest : 0);
+                lo[d] = fdiv(t[d]*tile[d],rr[d]) - (rr[d]==2 ? 1 : 0);
+                hi[d] = fdiv((t[d]+1)*tile[d]-1,rr[d]) + (rr[d]==2 ? 1 : 0);
+                if(!per[d])
+                {
+                    lo[d] = MAX(lo[d],0);
+                    hi[d] = MIN(hi[d],gn(l-1,d)-1);
+                }
             }
-            mark_cells(l-1,lo,hi);
+            bool ok = true;
+            int I[3], J[3];
+            for(I[0]=lo[0]; I[0]<=hi[0] && ok; ++I[0])
+            for(I[1]=lo[1]; I[1]<=hi[1] && ok; ++I[1])
+            for(I[2]=lo[2]; I[2]<=hi[2] && ok; ++I[2])
+            if(!wrap(l-1,I,J) || !refined(l-1,J))
+            ok = false;
+
+            if(!ok)
+            {
+                const size_t ix = ((size_t)ti*tn[l][1] + tj)*tn[l][2] + tk;
+                tmask[l][ix] = 0;
+                off[l][ix] = 1;
+                ++undone;
+            }
         }
+
+        retreated += undone;
+        if(retreated==ret0)
+        break;
     }
 
     // checks after the extensions: the wave zones, the edges
@@ -1217,6 +1371,8 @@ void reefamr3d::mark_tiles(const vector<vector<unsigned char>> *seed)
 
     if(myrank==0 && verbose && extended>0)
     cout<<"CFD AMR: "<<extended<<" tiles added: the edges of the refined region kept off the partition edges"<<endl;
+    if(myrank==0 && verbose && retreated>0)
+    cout<<"CFD AMR: "<<retreated<<" tiles not refined: the edges of the refined region kept off the partition edges next to an in- or outflow boundary or a wave zone"<<endl;
     if(myrank==0 && verbose && extended_seam>0)
     cout<<"CFD AMR: "<<extended_seam<<" tiles added: the refined region alike on both sides of a periodic edge"<<endl;
 
@@ -1505,6 +1661,7 @@ void reefamr3d::place_units(vector<vector<int>> &mb)
     // the ranks; cut into pieces of a quarter of the mean work, 10 pieces of a two-level dam break
     // on 2 ranks took 70-95 BiCGStab iterations instead of 8)
     const bool fill_ranks = (place==1 && !ptest && ptv!=3 && nranks>1);
+    const bool owner_place = (place==3 && !ptest && ptv!=3 && nranks>1);    // G 40 3, below
     vector<int> rcap;           // the ranks of the pieces of fill_ranks
     if(maxlev>=1 && fill_ranks)
     {
@@ -1621,7 +1778,7 @@ void reefamr3d::place_units(vector<vector<int>> &mb)
         c.rank = r;
         pcs.push_back(c);
     }
-    else if(maxlev>=1)
+    else if(maxlev>=1 && !owner_place)
     for(size_t b=0; b<mb[1].size()/6; ++b)
     {
         piece c;
@@ -1631,6 +1788,145 @@ void reefamr3d::place_units(vector<vector<int>> &mb)
             c.hi[d] = mb[1][6*b+3+d];
         }
         split(c);
+    }
+
+    // G 40 3: the level-1 boxes cut at the rank boxes of level 0 (where the cut conforms: no edge of
+    // a finer level on it), every piece on the rank below its centre: the patches of G 40 0, through
+    // the shadows.  Then, as long as the heaviest rank lies more than 3 % of the mean above it, the
+    // move that lowers it most onto the lightest rank: a whole piece, or the part of one cut off at a
+    // conforming tile edge (x and y; z only without).  A piece on its own rank takes the cells of its
+    // shadow from that rank (no messages); the pieces that stay are those of G 40 0.
+    vector<int> rown;
+    if(maxlev>=1 && owner_place)
+    {
+        vector<int> cuts[3];
+        for(int d=0; d<3; ++d)
+        {
+            const int R = ratio(1,d);
+            for(int r=0; r<nranks; ++r)
+            {
+                cuts[d].push_back(rbox[6*r+d]*R);
+                cuts[d].push_back((rbox[6*r+d]+rbox[6*r+3+d])*R);
+            }
+            std::sort(cuts[d].begin(),cuts[d].end());
+            cuts[d].erase(std::unique(cuts[d].begin(),cuts[d].end()),cuts[d].end());
+        }
+        auto own = [&](piece &c)
+        {
+            c.w = unit_work(c.lo,c.hi);
+            int C[3];
+            for(int d=0; d<3; ++d)
+            C[d] = fdiv((c.lo[d]+c.hi[d])/2,rr[d]);
+            c.rank = owner0(C);
+        };
+        std::function<void(piece)> cut = [&](piece c)
+        {
+            for(int d=0; d<3; ++d)
+            for(int X : cuts[d])
+            if(X>c.lo[d] && X<=c.hi[d] && conforming(d,X,c.lo,c.hi))
+            {
+                piece A = c, B = c;
+                A.hi[d] = X-1;
+                B.lo[d] = X;
+                cut(A);
+                cut(B);
+                return;
+            }
+            own(c);
+            pcs.push_back(c);
+        };
+        for(size_t b=0; b<mb[1].size()/6; ++b)
+        {
+            piece c;
+            for(int d=0; d<3; ++d)
+            {
+                c.lo[d] = mb[1][6*b+d];
+                c.hi[d] = mb[1][6*b+3+d];
+            }
+            cut(c);
+        }
+
+        const double tol = 0.03*wmean;
+        for(int it=0; it<4*(int)pcs.size()+16; ++it)
+        {
+            vector<double> L = base;
+            for(const piece &c : pcs)
+            L[c.rank] += c.w;
+            int r = 0, q = 0;
+            for(int k=1; k<nranks; ++k)
+            {
+                if(L[k]>L[r]) r = k;
+                if(L[k]<L[q]) q = k;
+            }
+            if(L[r]<=wmean+tol || r==q)
+            break;
+
+            // a whole piece of r onto q
+            int bi = -1;
+            double bm = L[r];
+            for(size_t i=0; i<pcs.size(); ++i)
+            if(pcs[i].rank==r)
+            {
+                const double m = MAX(L[r]-pcs[i].w,L[q]+pcs[i].w);
+                if(m<bm)
+                {
+                    bm = m;
+                    bi = (int)i;
+                }
+            }
+            // a part of a piece of r, cut at a conforming tile edge, onto q
+            int ci = -1, cd = -1, cX = 0, chigh = 0;
+            double cm = bm;
+            for(int pass=0; pass<2 && ci<0; ++pass)
+            for(size_t i=0; i<pcs.size(); ++i)
+            {
+                if(pcs[i].rank!=r)
+                continue;
+                const piece &c = pcs[i];
+                for(int d=0; d<3; ++d)
+                {
+                    if(rr[d]!=2 || (pass==0)==(d==2))
+                    continue;
+                    for(int X=(c.lo[d]/tile[d]+1)*tile[d]; X<=c.hi[d]; X+=tile[d])
+                    {
+                        int a[3] = {c.lo[0],c.lo[1],c.lo[2]}, e[3] = {c.hi[0],c.hi[1],c.hi[2]};
+                        e[d] = X-1;
+                        const double wl = unit_work(a,e);
+                        for(int hs=0; hs<2; ++hs)
+                        {
+                            const double part = hs ? c.w-wl : wl;
+                            const double m = MAX(L[r]-part,L[q]+part);
+                            if(m<cm-1.0e-9*wmean && conforming(d,X,c.lo,c.hi))
+                            {
+                                cm = m;
+                                ci = (int)i;
+                                cd = d;
+                                cX = X;
+                                chigh = hs;
+                            }
+                        }
+                    }
+                }
+            }
+
+            if(ci>=0 && cm<bm)
+            {
+                piece A = pcs[ci], B = pcs[ci];
+                A.hi[cd] = cX-1;
+                B.lo[cd] = cX;
+                A.w = unit_work(A.lo,A.hi);
+                B.w = unit_work(B.lo,B.hi);
+                (chigh ? B : A).rank = q;
+                pcs[ci] = A;
+                pcs.push_back(B);
+            }
+            else if(bi>=0 && bm<L[r]-1.0e-9*wmean)
+            pcs[bi].rank = q;
+            else
+            break;
+        }
+        for(const piece &c : pcs)
+        rown.push_back(c.rank);
     }
 
     // placement: largest first
@@ -1646,7 +1942,7 @@ void reefamr3d::place_units(vector<vector<int>> &mb)
             if(rk[i]>=0)
             continue;
             int r = -1;
-            if(place==1)
+            if(place==1 || place==3)
             {
                 int C[3];
                 for(int d=0; d<3; ++d)
@@ -1669,6 +1965,12 @@ void reefamr3d::place_units(vector<vector<int>> &mb)
 
     vector<int> rf(pcs.size(),-1), rkp(pcs.size(),-1);
     vector<double> lf = base, lk = base;
+    if(owner_place)
+    for(size_t i=0; i<pcs.size(); ++i)
+    {
+        rf[i] = rown[i];
+        lf[rf[i]] += pcs[i].w;
+    }
     if(fill_ranks)
     for(size_t i=0; i<pcs.size(); ++i)
     {
@@ -1687,7 +1989,7 @@ void reefamr3d::place_units(vector<vector<int>> &mb)
     greedy(rf,lf);
 
     bool keep = false;
-    if(place==1 && !GPold.empty() && !ptest)
+    if((place==1 || place==3) && !GPold.empty() && !ptest)
     {
         for(size_t i=0; i<pcs.size(); ++i)
         for(const r3gpatch &o : GPold)
@@ -2176,17 +2478,20 @@ void reefamr3d::build_lexer(r3patch &c)
     pgc0->dgcslini4(pp);
 
     // interface thickness of the level (F 45 x the spacing of the level), as initialize::inipsi;
-    // the fluid properties take the local width of the grid (interface_width.h), so per level
+    // the fluid properties take the local width of the grid (interface_width.h), so per level;
+    // with G 28 the one width psi_rho of level 0 (logic_cfd) on every level
     if(p->j_dir==0)
     pp->psi = p->F45*0.5*(pp->DXM+pp->DZM);
     else
     pp->psi = p->F45*(1.0/3.0)*(pp->DXM+pp->DYM+pp->DZM);
     pp->psi0 = pp->psi;
+    pp->psi_rho = p->psi_rho;
 }
 
 // --------------------------------------------------------------------- plans
 void reefamr3d::plans()
 {
+    ++plan_gen;
     xp.assign(maxlev+1,r3xplan());
     const int m = marge>=3 ? 3 : marge;     // the CFD margin: 3 cells
     (void)m;
@@ -2443,6 +2748,28 @@ void reefamr3d::xrun(r3xplan &X, int nv)
         rc[r] = X.rcnt[r]*nv; rd[r] = X.rdsp[r]*nv;
     }
     double dummy = 0.0;
-    MPI_Alltoallv(X.sbuf.empty()?&dummy:&X.sbuf[0],&sc[0],&sd[0],MPI_DOUBLE,
-                  X.rbuf.empty()?&dummy:&X.rbuf[0],&rc[0],&rd[0],MPI_DOUBLE,reef3d_comm());
+    xchg(X.sbuf.empty()?&dummy:&X.sbuf[0],&sc[0],&sd[0],X.rbuf.empty()?&dummy:&X.rbuf[0],&rc[0],&rd[0]);
+}
+
+void reefamr3d::xchg(const double *sb, const int *sc, const int *sd, double *rb, const int *rc, const int *rd)
+{
+    // a collective per fill waited for every rank; the messages go only to the ranks with items
+    vector<MPI_Request> rq;
+    rq.reserve(2*nranks);
+    for(int r=0; r<nranks; ++r)
+    if(r!=myrank && rc[r]>0)
+    {
+        rq.emplace_back();
+        MPI_Irecv(rb+rd[r],rc[r],MPI_DOUBLE,r,3171,reef3d_comm(),&rq.back());
+    }
+    for(int r=0; r<nranks; ++r)
+    if(r!=myrank && sc[r]>0)
+    {
+        rq.emplace_back();
+        MPI_Isend(sb+sd[r],sc[r],MPI_DOUBLE,r,3171,reef3d_comm(),&rq.back());
+    }
+    if(sc[myrank]>0)
+    std::copy(sb+sd[myrank],sb+sd[myrank]+sc[myrank],rb+rd[myrank]);
+    if(!rq.empty())
+    MPI_Waitall((int)rq.size(),rq.data(),MPI_STATUSES_IGNORE);
 }

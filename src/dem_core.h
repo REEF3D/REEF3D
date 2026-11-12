@@ -143,6 +143,9 @@ struct dem_cpl
     dem_vec Aq = dem_vec::Zero();   // E 26: sum qw r x (u_q - u_mean) over the submerged quadrature points
     double vq = 0.0;                // E 26: submerged quadrature volume
     int basemode = 0;
+    // lift (E 32, E 33): fluid vorticity at the centroid, fluid velocity at the top and bottom of the
+    // particle (along -g), and the lift force of the step (its reaction goes to the fluid)
+    dem_vec wfl = dem_vec::Zero(), uT = dem_vec::Zero(), uB = dem_vec::Zero(), Flift = dem_vec::Zero();
 };
 
 struct dem_body

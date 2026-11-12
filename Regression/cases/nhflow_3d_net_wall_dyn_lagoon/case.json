@@ -1,0 +1,8 @@
+{
+ "base": "nhflow_3d_net_wall_dyn",
+ "ctrl_set": {"P 18": "1", "P 20": "10"},
+ "keep_keys": ["P 20"],
+ "tags": ["3d", "net", "nhflow", "mpi", "lagoon"],
+ "description": "as nhflow_3d_net_wall_dyn, the dynamic bar net (X 320 13) written to the LAGOON store (P 18 1) every 10 steps: REEF3D_NHFLOW.lagoon with the particle set nhflow_net, the knots with Tension, Velocity and Acceleration (net_barDyn::print writes its .vtk files to REEF3D_CFD_6DOF_Net, which an NHFLOW run does not make: its nets were seen only through the store). The solution is that of the case without the store.",
+ "covers": ["lagoon_nets with a dynamic net (net_barDyn::print: Velocity, Acceleration)"]
+}

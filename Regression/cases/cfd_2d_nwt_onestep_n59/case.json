@@ -1,0 +1,21 @@
+{
+ "base": "cfd_2d_nwt",
+ "np": 1,
+ "steps": 100,
+ "ctrl_set": {
+  "N 40": "5"
+ },
+ "description": "cfd_2d_nwt_onestep with N 59 1: the consistent momentum at the waves of the relaxation zones (validation 77: the gauges as without it).",
+ "tags": [
+  "quick",
+  "2d",
+  "waves",
+  "levelset"
+ ],
+ "covers": [
+  "godunov with N 59 in a wave tank with relaxation zones"
+ ],
+ "ctrl_add": [
+  "N 59 1"
+ ]
+}

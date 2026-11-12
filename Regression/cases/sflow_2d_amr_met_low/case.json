@@ -1,0 +1,21 @@
+{
+ "description": "SFLOW AMR with a met file (W 200 2): a Gaussian low (3000 Pa, R 50 km) on a background gradient, moving north at 6 m/s (met-forcing.r3m, tools/met_forcing.py low, 10 km nodes, 1 h records), air pressure gradient (W 208 1) and inverse barometer on the Flather edges, Coriolis per cell (W 211 2); 400 km x 400 km, 50 m deep, level 0 at 10 km, one level following the surge (G 21 0.002, regrid every 4 steps), subcycled (G 7 1): every patch has its own met forcing at the time of its own steps and grows the window of the met file.",
+ "solver": "sflow",
+ "np": 1,
+ "steps": 120,
+ "files": [
+  "met-forcing.r3m"
+ ],
+ "tags": [
+  "2d",
+  "sflow",
+  "amr",
+  "adaptive",
+  "subcycling",
+  "met"
+ ],
+ "covers": [
+  "met_forcing on the patches with W 200 2 (met_file::window grown by the patches) and G 7 1 (the met provider at the time of the patch steps)"
+ ],
+ "architect": "Hans Bihs"
+}

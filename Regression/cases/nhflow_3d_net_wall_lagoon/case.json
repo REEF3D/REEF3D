@@ -1,0 +1,8 @@
+{
+ "base": "nhflow_3d_net_wall",
+ "ctrl_set": {"P 18": "2", "P 20": "10"},
+ "keep_keys": ["P 20"],
+ "tags": ["3d", "nhflow", "net", "lagoon"],
+ "description": "as nhflow_3d_net_wall, the quasi-static wall net in the LAGOON store and as .vtk files (P 18 2) every 10 steps: REEF3D_NHFLOW.lagoon with the particle set nhflow_net, the same knots, bars and Tension as the REEF3D-Net .vtk files of REEF3D_NHFLOW_6DOF_Net. The solution is that of the case without the store.",
+ "covers": ["lagoon_nets for NHFLOW (net_barQuasiStatic::print, P 18 2)"]
+}

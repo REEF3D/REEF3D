@@ -65,5 +65,11 @@ void sixdof_obj::iniPosition_RBM(lexer *p, ghostcell *pgc)
     
     // Initialise rotation matrices
     quat_matrices(p);
+    
+    // prescribed deformation (X 195): kinematics on the body frame hull
+    deform_setup(p,pgc);
+    
+    // lateral line (X 194)
+    lateral_line_setup(p);
 }
 

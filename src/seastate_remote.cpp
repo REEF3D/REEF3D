@@ -170,6 +170,25 @@ void seastate_remote_wave::run(lexer *p, ghostcell *pgc)
 
     host_wind = theirs[5]>0.5;
 
+    // widths of the host cells from their centres (the faces halfway between the centres)
+    auto widths = [](const std::vector<double> &c, std::vector<double> &w)
+    {
+        const int n = int(c.size());
+        w.assign(n,1.0);
+
+        if(n<2)
+        return;
+
+        for(int k=0; k<n; ++k)
+        {
+        const double lo = (k>0) ? 0.5*(c[k-1]+c[k]) : c[0] - 0.5*(c[1]-c[0]);
+        const double hi = (k<n-1) ? 0.5*(c[k]+c[k+1]) : c[n-1] + 0.5*(c[n-1]-c[n-2]);
+        w[k] = hi - lo;
+        }
+    };
+    widths(rx,hwx);
+    widths(ry,hwy);
+
     ini_wave(p,pgc,int(theirs[8])==5 ? "NHFLOW" : "SFLOW");
 
     fdm_seastate *e = pwave->e;
@@ -277,21 +296,22 @@ void seastate_remote_wave::map_host(lexer *p)
 
         if(a1>a0 && b1>b0)
         {
-            // mean over the host cells of the box
+            // area-weighted mean over the host cells of the box (a stretched host grid: cells of different size)
             for(int a=a0; a<a1; ++a)
             for(int b=b0; b<b1; ++b)
             {
             const size_t q = size_t(a)*nyh + b;
+            const double w = hwx[a]*hwy[b];
 
-            sw += Wh[q];
-            n += 1.0;
+            sw += w*Wh[q];
+            n += w;
 
                 if(Wh[q]>p->A705)
                 {
-                se += Eh[q];
-                su += Uh[q];
-                sv += Vh[q];
-                nw += 1.0;
+                se += w*Eh[q];
+                su += w*Uh[q];
+                sv += w*Vh[q];
+                nw += w;
                 }
             }
         }

@@ -22,6 +22,7 @@ Author: Hans Bihs
 
 #include"fdm_nhf.h"
 #include"lexer.h"
+#include"nhflow_memory.h"
 
 fdm_nhf::fdm_nhf(lexer *p) :  eta(p),etaloc(p),
                               wet_n(p),breaking(p),breaklog(p),bc(p),
@@ -35,132 +36,132 @@ fdm_nhf::fdm_nhf(lexer *p) :  eta(p),etaloc(p),
                               coastline(p),PORS(p),vb(p),vbk(p),
                               test2D(p),fs(p),
                               breaking_print(p),Hs(p),
-                              rhsvec(p),rvec(p),xvec(p),N(p),M(p),
+                              rhsvec(p),rvec(p,0),xvec(p,0),N(p,0),M(p),
                               ETAs(p),ETAn(p),ETAe(p),ETAw(p),
                               Ds(p),Dn(p),De(p),Dw(p),dfx(p),dfy(p)
 {    
     // largest forcing terms (reset by nhflow_timestep; AMR patch grids start without one)
     maxF=maxG=maxH=0.0;
 
-    p->Darray(p->sig, p->imax*p->jmax*(p->kmax+2));
-    p->Darray(p->sigx,p->imax*p->jmax*(p->kmax+2));
-    p->Darray(p->sigy,p->imax*p->jmax*(p->kmax+2));
+    p->Darray_lazy(p->sig,p->imax*p->jmax*(p->kmax+2));
+    p->Darray_lazy(p->sigx,p->imax*p->jmax*(p->kmax+2));
+    p->Darray_lazy(p->sigy,p->imax*p->jmax*(p->kmax+2));
     p->Darray(p->sigz,p->imax*p->jmax);
-    p->Darray(p->sigt,p->imax*p->jmax*(p->kmax+2));
-    p->Darray(p->sigxx,p->imax*p->jmax*(p->kmax+2));
+    p->Darray_lazy(p->sigt,p->imax*p->jmax*(p->kmax+2));
+    p->Darray_lazy(p->sigxx,p->imax*p->jmax*(p->kmax+2));
     
     
-    p->Darray(U,p->imax*p->jmax*(p->kmax+2));
-    p->Darray(V,p->imax*p->jmax*(p->kmax+2));
-    p->Darray(W,p->imax*p->jmax*(p->kmax+2));
-    p->Darray(omegaF,p->imax*p->jmax*(p->kmax+2));
+    p->Darray_lazy(U,p->imax*p->jmax*(p->kmax+2));
+    p->Darray_lazy(V,p->imax*p->jmax*(p->kmax+2));
+    p->Darray_lazy(W,p->imax*p->jmax*(p->kmax+2));
+    p->Darray_lazy(omegaF,p->imax*p->jmax*(p->kmax+2));
     
-    p->Darray(UH,p->imax*p->jmax*(p->kmax+2));
-    p->Darray(VH,p->imax*p->jmax*(p->kmax+2));
-    p->Darray(WH,p->imax*p->jmax*(p->kmax+2));
+    p->Darray_lazy(UH,p->imax*p->jmax*(p->kmax+2));
+    p->Darray_lazy(VH,p->imax*p->jmax*(p->kmax+2));
+    p->Darray_lazy(WH,p->imax*p->jmax*(p->kmax+2));
 
-    p->Darray(P,p->imax*p->jmax*(p->kmax+2));
-    p->Darray(RO,p->imax*p->jmax*(p->kmax+2));
-    p->Darray(VISC,p->imax*p->jmax*(p->kmax+2));
-    p->Darray(EV,p->imax*p->jmax*(p->kmax+2));
-    p->Darray(EV0,p->imax*p->jmax*(p->kmax+2));
-    p->Darray(EVH,p->imax*p->jmax*(p->kmax+2));
+    p->Darray_lazy(P,p->imax*p->jmax*(p->kmax+2));
+    p->Darray_lazy(RO,p->imax*p->jmax*(p->kmax+2));
+    p->Darray_lazy(VISC,p->imax*p->jmax*(p->kmax+2));
+    p->Darray_lazy(EV,p->imax*p->jmax*(p->kmax+2));
+    p->Darray_lazy(EV0,p->imax*p->jmax*(p->kmax+2));
+    p->Darray_lazy(EVH,p->imax*p->jmax*(p->kmax+2));
     
-    p->Darray(F,p->imax*p->jmax*(p->kmax+2));
-    p->Darray(G,p->imax*p->jmax*(p->kmax+2));
-    p->Darray(H,p->imax*p->jmax*(p->kmax+2));
-    p->Darray(L,p->imax*p->jmax*(p->kmax+2));
+    p->Darray_lazy(F,p->imax*p->jmax*(p->kmax+2));
+    p->Darray_lazy(G,p->imax*p->jmax*(p->kmax+2));
+    p->Darray_lazy(H,p->imax*p->jmax*(p->kmax+2));
+    p->Darray_lazy(L,p->imax*p->jmax*(p->kmax+2));
     
-    p->Darray(Fext,p->imax*p->jmax*(p->kmax+2));
-    p->Darray(Gext,p->imax*p->jmax*(p->kmax+2));
-    p->Darray(Hext,p->imax*p->jmax*(p->kmax+2));
+    p->Darray_lazy(Fext,p->imax*p->jmax*(p->kmax+2));
+    p->Darray_lazy(Gext,p->imax*p->jmax*(p->kmax+2));
+    p->Darray_lazy(Hext,p->imax*p->jmax*(p->kmax+2));
     
-    p->Darray(POR,p->imax*p->jmax*(p->kmax+2));
-    p->Darray(PORPART,p->imax*p->jmax*(p->kmax+2));
-    p->Darray(PORDEM,p->imax*p->jmax*(p->kmax+2));
+    p->Darray_lazy(POR,p->imax*p->jmax*(p->kmax+2));
+    // the fields of some options only (nhflow_memory.h), nullptr otherwise
+    if(nhflow_vrans_fields(p))
+    p->Darray_lazy(PORPART,p->imax*p->jmax*(p->kmax+2));
+    
+    if(nhflow_dem_field(p))
+    {
+    p->Darray_lazy(PORDEM,p->imax*p->jmax*(p->kmax+2));
     for(int n=0; n<p->imax*p->jmax*(p->kmax+2); ++n)
     PORDEM[n] = 1.0;
+    }
     
-    p->Darray(test,p->imax*p->jmax*(p->kmax+2));
+    if(nhflow_test_field(p))
+    p->Darray_lazy(test,p->imax*p->jmax*(p->kmax+2));
     
-    p->Darray(KIN,p->imax*p->jmax*(p->kmax+2));
-    p->Darray(CONC,p->imax*p->jmax*(p->kmax+2));
+    if(nhflow_kin_field(p))
+    p->Darray_lazy(KIN,p->imax*p->jmax*(p->kmax+2));
+    
+    if(nhflow_conc_field(p))
+    p->Darray_lazy(CONC,p->imax*p->jmax*(p->kmax+2));
 
     // tracers of the semi-implicit NHFLOW (A 600): only when switched on
     if(p->A600>=1)
-    p->Darray(SALT,p->imax*p->jmax*(p->kmax+2));
+    p->Darray_lazy(SALT,p->imax*p->jmax*(p->kmax+2));
     if(p->A600>=2)
-    p->Darray(TEMP,p->imax*p->jmax*(p->kmax+2));
+    p->Darray_lazy(TEMP,p->imax*p->jmax*(p->kmax+2));
     
-    p->Darray(SOLID,p->imax*p->jmax*(p->kmax+2));
-    p->Darray(FB,p->imax*p->jmax*(p->kmax+2));
-    p->Darray(FHB,p->imax*p->jmax*(p->kmax+2));
-    p->Darray(PORSTRUC,p->imax*p->jmax*(p->kmax+2));
+    p->Darray_lazy(SOLID,p->imax*p->jmax*(p->kmax+2));
+    p->Darray_lazy(FB,p->imax*p->jmax*(p->kmax+2));
+    p->Darray_lazy(FHB,p->imax*p->jmax*(p->kmax+2));
+    if(nhflow_vrans_fields(p))
+    p->Darray_lazy(PORSTRUC,p->imax*p->jmax*(p->kmax+2));
     
-    p->Darray(Fx,p->imax*p->jmax*(p->kmax+2));
-    p->Darray(Fy,p->imax*p->jmax*(p->kmax+2));
-    p->Darray(Fz,p->imax*p->jmax*(p->kmax+2));
+    p->Darray_lazy(Fx,p->imax*p->jmax*(p->kmax+2));
+    p->Darray_lazy(Fy,p->imax*p->jmax*(p->kmax+2));
+    p->Darray_lazy(Fz,p->imax*p->jmax*(p->kmax+2));
     
-    p->Darray(FEx,p->imax*p->jmax*(p->kmax+2));
-    p->Darray(FEy,p->imax*p->jmax*(p->kmax+2));
-    p->Darray(FSW,p->imax*p->jmax*(p->kmax+2));
-    p->Darray(DWDT,p->imax*p->jmax*(p->kmax+2));
+    p->Darray_lazy(FEx,p->imax*p->jmax*(p->kmax+2));
+    p->Darray_lazy(FEy,p->imax*p->jmax*(p->kmax+2));
     
-    p->Darray(Fs,p->imax*p->jmax*(p->kmax+2));
-    p->Darray(Fn,p->imax*p->jmax*(p->kmax+2));
-    p->Darray(Fe,p->imax*p->jmax*(p->kmax+2));
-    p->Darray(Fw,p->imax*p->jmax*(p->kmax+2));
+    p->Darray_lazy(Ss,p->imax*p->jmax*(p->kmax+2));
+    p->Darray_lazy(Sn,p->imax*p->jmax*(p->kmax+2));
+    p->Darray_lazy(Se,p->imax*p->jmax*(p->kmax+2));
+    p->Darray_lazy(Sw,p->imax*p->jmax*(p->kmax+2));
     
-    p->Darray(Ss,p->imax*p->jmax*(p->kmax+2));
-    p->Darray(Sn,p->imax*p->jmax*(p->kmax+2));
-    p->Darray(Se,p->imax*p->jmax*(p->kmax+2));
-    p->Darray(Sw,p->imax*p->jmax*(p->kmax+2));
+    // face states (fdm_nhf.h): the normal velocities, the vertical faces of the velocities and the horizontal
+    // faces of the conserved variables; the tangential velocities of the horizontal faces only where they are read
+    p->Darray_lazy(Us,p->imax*p->jmax*(p->kmax+2));
+    p->Darray_lazy(Un,p->imax*p->jmax*(p->kmax+2));
+    p->Darray_lazy(Ub,p->imax*p->jmax*(p->kmax+2));
+    p->Darray_lazy(Ut,p->imax*p->jmax*(p->kmax+2));
     
-    p->Darray(SSx,p->imax*p->jmax*(p->kmax+2));
-    p->Darray(SSy,p->imax*p->jmax*(p->kmax+2));
+    p->Darray_lazy(Ve,p->imax*p->jmax*(p->kmax+2));
+    p->Darray_lazy(Vw,p->imax*p->jmax*(p->kmax+2));
+    p->Darray_lazy(Vb,p->imax*p->jmax*(p->kmax+2));
+    p->Darray_lazy(Vt,p->imax*p->jmax*(p->kmax+2));
     
-    p->Darray(Us,p->imax*p->jmax*(p->kmax+2));
-    p->Darray(Un,p->imax*p->jmax*(p->kmax+2));
-    p->Darray(Ue,p->imax*p->jmax*(p->kmax+2));
-    p->Darray(Uw,p->imax*p->jmax*(p->kmax+2));  
-    p->Darray(Ub,p->imax*p->jmax*(p->kmax+2));
-    p->Darray(Ut,p->imax*p->jmax*(p->kmax+2));  
+    p->Darray_lazy(Wb,p->imax*p->jmax*(p->kmax+2));
+    p->Darray_lazy(Wt,p->imax*p->jmax*(p->kmax+2));
     
-    p->Darray(Vs,p->imax*p->jmax*(p->kmax+2));
-    p->Darray(Vn,p->imax*p->jmax*(p->kmax+2));
-    p->Darray(Ve,p->imax*p->jmax*(p->kmax+2));
-    p->Darray(Vw,p->imax*p->jmax*(p->kmax+2));  
-    p->Darray(Vb,p->imax*p->jmax*(p->kmax+2));
-    p->Darray(Vt,p->imax*p->jmax*(p->kmax+2));  
-    
-    p->Darray(Ws,p->imax*p->jmax*(p->kmax+2));
-    p->Darray(Wn,p->imax*p->jmax*(p->kmax+2));
-    p->Darray(We,p->imax*p->jmax*(p->kmax+2));
-    p->Darray(Ww,p->imax*p->jmax*(p->kmax+2));  
-    p->Darray(Wb,p->imax*p->jmax*(p->kmax+2));
-    p->Darray(Wt,p->imax*p->jmax*(p->kmax+2)); 
+    if(nhflow_tangential_faces(p))
+    {
+    p->Darray_lazy(Ue,p->imax*p->jmax*(p->kmax+2));
+    p->Darray_lazy(Uw,p->imax*p->jmax*(p->kmax+2));
+    p->Darray_lazy(Vs,p->imax*p->jmax*(p->kmax+2));
+    p->Darray_lazy(Vn,p->imax*p->jmax*(p->kmax+2));
+    p->Darray_lazy(Ws,p->imax*p->jmax*(p->kmax+2));
+    p->Darray_lazy(Wn,p->imax*p->jmax*(p->kmax+2));
+    p->Darray_lazy(We,p->imax*p->jmax*(p->kmax+2));
+    p->Darray_lazy(Ww,p->imax*p->jmax*(p->kmax+2));
+    }
 
-
-    p->Darray(UHs,p->imax*p->jmax*(p->kmax+2));
-    p->Darray(UHn,p->imax*p->jmax*(p->kmax+2));
-    p->Darray(UHe,p->imax*p->jmax*(p->kmax+2));
-    p->Darray(UHw,p->imax*p->jmax*(p->kmax+2));  
-    p->Darray(UHb,p->imax*p->jmax*(p->kmax+2));
-    p->Darray(UHt,p->imax*p->jmax*(p->kmax+2));  
+    p->Darray_lazy(UHs,p->imax*p->jmax*(p->kmax+2));
+    p->Darray_lazy(UHn,p->imax*p->jmax*(p->kmax+2));
+    p->Darray_lazy(UHe,p->imax*p->jmax*(p->kmax+2));
+    p->Darray_lazy(UHw,p->imax*p->jmax*(p->kmax+2));
     
-    p->Darray(VHs,p->imax*p->jmax*(p->kmax+2));
-    p->Darray(VHn,p->imax*p->jmax*(p->kmax+2));
-    p->Darray(VHe,p->imax*p->jmax*(p->kmax+2));
-    p->Darray(VHw,p->imax*p->jmax*(p->kmax+2));  
-    p->Darray(VHb,p->imax*p->jmax*(p->kmax+2));
-    p->Darray(VHt,p->imax*p->jmax*(p->kmax+2));  
+    p->Darray_lazy(VHs,p->imax*p->jmax*(p->kmax+2));
+    p->Darray_lazy(VHn,p->imax*p->jmax*(p->kmax+2));
+    p->Darray_lazy(VHe,p->imax*p->jmax*(p->kmax+2));
+    p->Darray_lazy(VHw,p->imax*p->jmax*(p->kmax+2));
     
-    p->Darray(WHs,p->imax*p->jmax*(p->kmax+2));
-    p->Darray(WHn,p->imax*p->jmax*(p->kmax+2));
-    p->Darray(WHe,p->imax*p->jmax*(p->kmax+2));
-    p->Darray(WHw,p->imax*p->jmax*(p->kmax+2));  
-    p->Darray(WHb,p->imax*p->jmax*(p->kmax+2));
-    p->Darray(WHt,p->imax*p->jmax*(p->kmax+2)); 
+    p->Darray_lazy(WHs,p->imax*p->jmax*(p->kmax+2));
+    p->Darray_lazy(WHn,p->imax*p->jmax*(p->kmax+2));
+    p->Darray_lazy(WHe,p->imax*p->jmax*(p->kmax+2));
+    p->Darray_lazy(WHw,p->imax*p->jmax*(p->kmax+2));
     
     p->Iarray(NODEVAL,p->imax*p->jmax*(p->kmax+3));
 

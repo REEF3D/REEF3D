@@ -1,0 +1,23 @@
+{
+ "description": "hydro_catchment_hbv on 2 ranks: the cells are split into two ranges, the lateral inflows are gathered and the network is routed on every rank; gauges identical to 1 rank (bitwise), budget sums to round-off.",
+ "solver": "sflow",
+ "np": 2,
+ "steps": 720,
+ "files": [
+  "catchment_dem.asc",
+  "catchment_glacier.asc",
+  "catchment_zone.asc",
+  "hydro_forcing.dat",
+  "hydro_param.dat"
+ ],
+ "tags": [
+  "quick",
+  "hydro",
+  "catchment",
+  "mpi",
+  "snow"
+ ],
+ "covers": [
+  "hydro_core partition, gather, MPI budget and VTK gather"
+ ]
+}

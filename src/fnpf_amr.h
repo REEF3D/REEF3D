@@ -46,6 +46,7 @@ class reefmg_core;
 class fnpf_body;
 class solver;
 class fnpf_fsf_update;
+struct fnpf_amr_theta;
 
 using namespace std;
 
@@ -105,8 +106,9 @@ using namespace std;
 //  coastline may lie outside it.
 //
 //  Scope of this version: refinement G 1 levels, G 10 boxes, G 11 boxes without
-//  refinement, G 4 tile width, G 12 zone around the body, G 20-23 adaptive flags; RK3 (A 310 3), wetting-drying
-//  A 343 0-3 (patches off the coast; A 343 1 with G 30 1 also over it), breaking A 350 0-3, X 10 0 or 1, no ice (A 380 0),
+//  refinement, G 4 tile width, G 12 zone around the body, G 20-23 adaptive flags; RK3 (A 310 3) or theta-Robin (A 310 5, fnpf_amr_theta.cpp: no bodies, G 30 1
+//  or G 7 1), wetting-drying
+//  A 343 0-3 (patches off the coast; A 343 1 with G 30 1 also over it), breaking A 350 0-4 (4: crests tracked on level 0, A 352 0), X 10 0 or 1, no ice (A 380 0),
 //  A 324 (Picard on the cross-derivatives) and A 328 1 (in the rows), 3D and 2D grids (Cartesian).
 //  No refinement in the relaxation zones (B 96) and next to in- and outflow boundaries.
 
@@ -140,6 +142,8 @@ struct fnpf_amr_patch : public reefamr_patch
     long xzkey[3] = {-1,-1,-1};     // its factorisation: layout, window, step
     vector<int> fill1;              // the entries of fill next to the patch (the reach of the Laplace rows)
     vector<int> fill2;              // the entries of fill within two columns of the patch (the stencils of the prolongation into the next finer level)
+
+    fnpf_amr_theta *th = nullptr;   // theta-Robin (A 310 5): the state of the step on the patch (fnpf_amr_theta.cpp)
 };
 
 class reefckpt;
@@ -179,6 +183,28 @@ public:
     void stage_surface(lexer*, fdm_fnpf*, ghostcell*, slice&, slice&, int);
     // fnpf_RK3: end of the time step
     void step_end(lexer*, fdm_fnpf*, ghostcell*);
+
+    // theta-Robin (A 310 5, fnpf_theta; fnpf_amr_theta.cpp).  The patches take the step of level 0 with the
+    // same formulas (no relaxation zones, coastline or bodies on the patches; breaking A 350 1-3), the Robin rows of
+    // all grids are solved together (lap_core, with the in-column couplings xcol of the sz stencil):
+    //   theta_predict    the tendencies at t^n, the nonlinear parts N, the predictor (s 0) and R of pass 0
+    //   theta_surface    the state s (0 predictor, 1 corrector, 2 end of the step) of all grids consistent:
+    //                    restriction into the covered columns, the cells around the patches filled
+    //   theta_solve      the Robin rows of the patches (level 0: fnpf_theta::robin_build_mg), the composite
+    //                    solve, Fifsf^n+1 and w^n+1 of the patches; the change of the patch columns in dmax, xmax
+    //   theta_corrector  eta^n+1 of the last solution (s 1), N^n+1/2 and R of the next pass
+    //   theta_final      eta^n+1, Fifsf^n+1 of the patches (s 2); theta_end the derived fields
+    void theta_predict(lexer*, ghostcell*, double theta, double beta);
+    void theta_surface(lexer*, ghostcell*, slice&, slice&, int);
+    void theta_solve(lexer*, fdm_fnpf*, ghostcell*, double*, int, double beta, double&, double&);
+    void theta_corrector(lexer*, ghostcell*, slice&, slice&, double theta, double beta);
+    void theta_final(lexer*, ghostcell*, double theta);
+    void theta_end(lexer*, ghostcell*);
+    // A 350 1-3: the damping of eta and Fifsf of the patches with their breaking viscosity at the start of the step,
+    // level by level after level 0 (returns true if a patch damped); the detection and the filters on the patches
+    // at the end of the step (true if they changed eta or Fifsf of a patch: consistency solve)
+    bool theta_damping(lexer*, ghostcell*);
+    bool theta_breaking(lexer*, ghostcell*);
 
     // the Laplace solver for fnpf_RK3: level 0 assembled by plap0, then all grids together
     fnpf_laplace* laplace(fnpf_laplace *outer, fnpf_laplace_cds2 *plap0);
@@ -331,6 +357,7 @@ private:
     int lap_wkey = 0;               // level window of the row lists (G 7 1)
     struct lgrid
     {
+        vector<char> leaf;          // A 310 5: Fi index -> leaf row (the rows of the couplings xcol)
         vector<int> lq, lr;         // leaf unknowns: Fi index, matrix row
         vector<int> cq;             // covered unknowns: Fi index
         vector<int> aq, ar;         // all leaf rows (lq, lr: without the fixed rows)
@@ -427,6 +454,7 @@ private:
     // coarser grid held), detection on the patch, the viscosity of the cells around the patches
     // from the source grid
     bool brk = false;
+    bool theta_mode = false;        // A 310 5: the detection is at the end of the step (theta_breaking), not in lap_solve
     void level_damping(int, ghostcell*, int, int, int, double);
     void patch_breaking(int, ghostcell*, int, double);
 
@@ -464,6 +492,10 @@ private:
     // filled with the stage values of the coarser grid first (not the lagged ones of the last fill)
     bool stage_ring() const { return brk || wd; }
     void stage_damp_coast(int, ghostcell*, int);
+
+    // theta-Robin (A 310 5): the state of a patch
+    void theta_delete(fnpf_amr_patch&);
+    void theta_rows(fnpf_amr_patch&, slice&, double);
 
     fdm_fnpf *c0;
     fnpf_laplace_cds2 *plap0 = nullptr;

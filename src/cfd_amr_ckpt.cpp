@@ -29,6 +29,8 @@ Author: Hans Bihs
 //  lexer of the patch) with its box (rank blob cfd_amr_patches).  A patch of the same box takes them
 //  as they are (bitwise); another one (a changed decomposition, G 40 units cut anew) takes its cells
 //  from the patches of its level in the checkpoint that hold them, the solver arrays start again.
+//  CPM on the refinement: the grid of CPM the same way with its pieces, its sediment objects and parcels
+//  (cfd_amr_cpm.cpp).
 
 #include"cfd_amr.h"
 #include"reef3d_mpmd.h"
@@ -37,6 +39,7 @@ Author: Hans Bihs
 #include"ckpt_registry.h"
 #include"amr_load.h"
 #include<cstring>
+#include<algorithm>
 #include<fstream>
 #include<iomanip>
 #include<sys/stat.h>
@@ -159,6 +162,9 @@ void cfd_amr::ckpt_write(reefckpt &ck)
         S.insert(S.end(),x.begin(),x.end());
     }
     ck.rank_blob("cfd_amr_sync",S);
+
+    // CPM on the refinement: its grid, its sediment objects and parcels (cfd_amr_cpm.cpp)
+    cpm_ckpt_write(ck);
 }
 
 bool cfd_amr::ckpt_read(reefckpt &ck, string &msg)
@@ -352,17 +358,33 @@ bool cfd_amr::ckpt_read(reefckpt &ck, string &msg)
         continue;
 
         // another box: the cells (I,J,K) of the level from the patches of the checkpoint that hold them,
-        // the interior of a patch first
+        // the interior of a patch first.  The arrays of a patch of the checkpoint fit as far as both have
+        // them in the same order: a patch next to one of another rank has the matrix rows of the overlap
+        // (kc7, pr_overlap) after its other arrays, which a patch without such a neighbour lacks (a change
+        // of the decomposition, e.g. 2 ranks to 1)
+        vector<char> fits(cp.size(),0);
+        for(size_t t=0; t<cp.size(); ++t)
+        {
+            const ckpatch &o = cp[t];
+            if(o.shadow || o.lev!=c->lev)
+            continue;
+            bool f = true;
+            const size_t nc = std::min(o.code.size(),e.size());
+            for(size_t r=0; r<nc && f; ++r)
+            if(o.code[r]!=int(code_of(e[r])))
+            f = false;
+            fits[t] = f ? 1 : 0;
+        }
         const int jk = q->jmax*q->kmax;
         for(size_t r=0; r<e.size(); ++r)
         {
             // the scalars of the objects (the same on all patches of the level): from one of them
             if(e[r].kind=='R' && !e[r].local)
             {
-                for(const auto &o : cp)
-                if(!o.shadow && o.lev==c->lev && o.code.size()==e.size() && o.code[r]==int(code_of(e[r])) && (long long)o.data[r].size()==e[r].n)
+                for(size_t t=0; t<cp.size(); ++t)
+                if(fits[t] && r<cp[t].code.size() && (long long)cp[t].data[r].size()==e[r].n)
                 {
-                    std::copy(o.data[r].begin(),o.data[r].end(),(double*)e[r].V);
+                    std::copy(cp[t].data[r].begin(),cp[t].data[r].end(),(double*)e[r].V);
                     break;
                 }
                 continue;
@@ -379,9 +401,10 @@ bool cfd_amr::ckpt_read(reefckpt &ck, string &msg)
 
                 const ckpatch *src = nullptr;
                 int best = 2;
-                for(const auto &o : cp)
+                for(size_t t=0; t<cp.size(); ++t)
                 {
-                    if(o.shadow || o.lev!=c->lev || o.code.size()!=e.size() || o.code[r]!=int(code_of(e[r])))
+                    const ckpatch &o = cp[t];
+                    if(!fits[t] || r>=o.code.size())
                     continue;
                     const int oi = I-o.lo[0], oj = J-o.lo[1], ok = K-o.lo[2];
                     if(oi<o.imin || oi>=o.imin+o.imax || oj<o.jmin || oj>=o.jmin+o.jmax)
@@ -446,7 +469,8 @@ bool cfd_amr::ckpt_read(reefckpt &ck, string &msg)
     if(p0->mpirank==0 && verbose)
     cout<<"CFD AMR: restart from the checkpoint, "<<exact<<" patches as they were, "<<mapped<<" mapped (rank 0)"<<endl;
 
-    return true;
+    // CPM on the refinement: its grid, its sediment objects and parcels, its bed onto the grids
+    return cpm_ckpt_read(ck,msg);
 }
 
 // the load map (G 45, G 46): per step of the window of G 46 the patch cells over every level-0 cell
@@ -521,9 +545,14 @@ void cfd_amr::lmap_step(lexer *p)
 // nx ny nz, then the cells (i*ny + j)*nz + k
 void cfd_amr::write_loadmap(lexer *p)
 {
-    // the weight of a patch cell from the busy times of the ranks (collective)
+    // the weight of a patch cell from the busy times of the ranks (collective).  The fit needs ranks
+    // with different mixes of level-0 and patch cells; when they are too much alike (after a
+    // rebalance), the last fitted weight (wpatch, kept in the checkpoint: it carries over the
+    // rebalance restart).  (The timers of the level-0 and the patch work leave out the composite
+    // parts of the projection, most of them patch work: their ratio came out at a quarter of the
+    // fit on the scaled pier, validation 63.)
     double w = (p->G41>0.0) ? p->G41 : wpatch;
-    bool fit = false;
+    int fit = 0;
     if(p->G41<=0.0 && nranks>1 && lm_steps>0)
     {
         const double t = amr_window_busy(), x = lm_n0/double(lm_steps), y = lm_np/double(lm_steps);
@@ -536,9 +565,12 @@ void cfd_amr::write_loadmap(lexer *p)
             if(A>0.0 && B>0.0)
             {
                 w = MIN(MAX(B/A,0.25),16.0);
-                fit = true;
+                wpatch = w;
+                fit = 1;
             }
         }
+        if(fit==0)
+        fit = 2;
     }
 
     if(p->mpirank!=0)
@@ -554,7 +586,7 @@ void cfd_amr::write_loadmap(lexer *p)
     mkdir("./REEF3D_CFD_AMR",0777);
     ofstream out("./REEF3D_CFD_AMR/REEF3D_CFD_AMR_loadmap.dat");
     out<<"# REEF3D CFD AMR load map (G 45/46): work per step of every level-0 cell (1 + its patch cells times "<<w
-       <<(fit ? ", measured" : "")<<"), averaged over "<<lm_steps<<" steps, count "<<p->count<<endl;
+       <<(fit==1 ? ", measured" : (fit==2 ? ", the last measured" : ""))<<"), averaged over "<<lm_steps<<" steps, count "<<p->count<<endl;
     out<<NX<<" "<<NY<<" "<<NZ<<endl;
     out<<setprecision(8);
     size_t n=0;
@@ -565,7 +597,8 @@ void cfd_amr::write_loadmap(lexer *p)
     out<<endl;
 
     const streamsize pr = cout.precision();
-    cout<<"CFD AMR: load map, a patch cell "<<setprecision(3)<<w<<" level-0 cells"<<(fit ? " (fitted to the busy times of the ranks)" : "")<<endl;
+    cout<<"CFD AMR: load map, a patch cell "<<setprecision(3)<<w<<" level-0 cells"
+        <<(fit==1 ? " (fitted to the busy times of the ranks)" : (fit==2 ? " (the ranks too much alike for the fit: the last weight)" : ""))<<endl;
     cout.precision(pr);
 }
 

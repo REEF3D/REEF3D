@@ -236,15 +236,22 @@ void dem_f::print_state(lexer *p, const vector<dem_body> &bodies)
     if(!out.is_open())
     return;
 
+    // with lift (E 32, E 33) the lift force (part of Fx Fy Fz) in three more columns
+    bool wlift = liftmodel>0 || magnus>0;
     if(head)
-    out<<"# time id x y z qw qx qy qz u v w wx wy wz active resolved Fx Fy Fz ufx ufy ufz"<<endl;
+    out<<"# time id x y z qw qx qy qz u v w wx wy wz active resolved Fx Fy Fz ufx ufy ufz"<<(wlift ? " FLx FLy FLz" : "")<<endl;
 
     out<<setprecision(10);
     for(auto &B : bodies)
-    out<<p->simtime<<" "<<B.id<<" "<<B.x(0)<<" "<<B.x(1)<<" "<<B.x(2)<<" "
-       <<B.q.w()<<" "<<B.q.x()<<" "<<B.q.y()<<" "<<B.q.z()<<" "
-       <<B.v(0)<<" "<<B.v(1)<<" "<<B.v(2)<<" "<<B.w(0)<<" "<<B.w(1)<<" "<<B.w(2)<<" "
-       <<(B.active?1:0)<<" "<<B.mode<<" "
-       <<B.cpl.Fhyd(0)<<" "<<B.cpl.Fhyd(1)<<" "<<B.cpl.Fhyd(2)<<" "
-       <<B.cpl.ufl(0)<<" "<<B.cpl.ufl(1)<<" "<<B.cpl.ufl(2)<<"\n";
+    {
+        out<<p->simtime<<" "<<B.id<<" "<<B.x(0)<<" "<<B.x(1)<<" "<<B.x(2)<<" "
+           <<B.q.w()<<" "<<B.q.x()<<" "<<B.q.y()<<" "<<B.q.z()<<" "
+           <<B.v(0)<<" "<<B.v(1)<<" "<<B.v(2)<<" "<<B.w(0)<<" "<<B.w(1)<<" "<<B.w(2)<<" "
+           <<(B.active?1:0)<<" "<<B.mode<<" "
+           <<B.cpl.Fhyd(0)<<" "<<B.cpl.Fhyd(1)<<" "<<B.cpl.Fhyd(2)<<" "
+           <<B.cpl.ufl(0)<<" "<<B.cpl.ufl(1)<<" "<<B.cpl.ufl(2);
+        if(wlift)
+        out<<" "<<B.cpl.Flift(0)<<" "<<B.cpl.Flift(1)<<" "<<B.cpl.Flift(2);
+        out<<"\n";
+    }
 }

@@ -48,7 +48,7 @@ ghostcell::ghostcell(int& argc, char **argv, lexer *p) : margin(p->margin)
 
 ghostcell::ghostcell(lexer *p) : margin(p->margin)
 {
-    MPI_Comm_dup(MPI_COMM_WORLD,&mpi_comm);
+    MPI_Comm_dup(reef3d_comm(),&mpi_comm);
 
     MPI_Comm_rank(mpi_comm,&p->mpirank);
     MPI_Comm_size(mpi_comm,&p->mpi_size);
@@ -195,7 +195,7 @@ void ghostcell::gc_ini(lexer* p)
 
     // pressure outflow
     pressout_lable=0;
-    if(p->B77==1 || p->B77==10)
+    if(p->B77==1 || p->B77==3 || p->B77==10)
         pressout_lable=1;
 
 

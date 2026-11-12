@@ -27,7 +27,8 @@ Coupling modes (ctrl E 11):
  0 dry        no fluid forces
  1 unresolved particles smaller than the grid: drag (Haider-Levenspiel with
               Di Felice voidage correction, implicit in the DEM step), buoyancy from
-              volume quadrature, added mass and fluid acceleration; the reaction is
+              volume quadrature, added mass and fluid acceleration, optional lift
+              (E 32 shear lift Saffman-Mei or bed grains, E 33 Magnus); the reaction is
               spread to the fluid momentum with a compact kernel
  2 resolved   particles larger than the grid: direct forcing of the fluid velocity
               inside the particle level set, hydrodynamic force from the volume
@@ -49,6 +50,7 @@ that owns the evaluation point and returned to the particle's owner.
 #include<vector>
 #include<string>
 #include<unordered_map>
+#include<functional>
 
 class lexer;
 class fdm;
@@ -231,6 +233,17 @@ private:
     double peskin(double) const;
     template<class F> void peskin_spread(lexer*, fdm_nhf*, const dem_vec&, F&&);
     bool fluidcoupled(const dem_body&) const;
+
+    // lift of unresolved particles (E 32, E 33, E 34): the samples of the flow at the particle
+    // (vorticity, velocity at the top and bottom) and the lift force from them
+    static const int nlift = 9;
+    void lift_sample(int, const std::function<dem_vec(const dem_vec&)>&, double*);
+    void lift_store(int, const double*, int);
+    dem_vec lift(int);
+    double planephi(const dem_vec&, dem_vec&) const;
+    int liftmodel, magnus;
+    double liftcoef;
+    dem_vec upvec;
 
     // parameters
     double hybrid_ratio, Ca, hs_factor, travel, kernel_cells, void_factor;

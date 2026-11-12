@@ -52,6 +52,8 @@ public:
     
     void start_oneway(lexer*,ghostcell*,int,slice&,slice&,slice&,slice&,slice&,slice&,slice&,bool);
     void start_shipwave(lexer*,ghostcell*,int,slice&,slice&,slice&,slice&,slice&,slice&,bool);
+    void update_press(lexer*,ghostcell*,slice&);
+    void pressure_head(lexer*,fdm2D*,ghostcell*);
 
     
 	void ini(lexer*,ghostcell*) override final;
@@ -70,6 +72,8 @@ public:
     
     void isource2D(lexer*,fdm2D*,ghostcell*) override final;
     void jsource2D(lexer*,fdm2D*,ghostcell*) override final;
+    void sflow_midpoint(bool on) override final {mid = on;}
+    bool sflow_press_step(lexer*, slice&) override final;
 
     // checkpoints (P 48, I 45): the bodies one after the other, each with its length; the pressure
     // patch of the ship waves as a slice
@@ -95,6 +99,8 @@ private:
     vector<sixdof_obj_2D*> fb_obj;
 
     slice4 press;
+    slice4 press_n;     // A 210 12/13 (sflow_midpoint): the pressure of the start of the step
+    bool mid = false;
 
 
 };

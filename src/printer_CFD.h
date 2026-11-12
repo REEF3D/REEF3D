@@ -67,6 +67,7 @@ public:
     virtual ~printer_CFD() = default;
     void start(lexer*,fdm*,ghostcell*,turbulence*,heat*,ioflow*,expdata*,concentration*,multiphase*,sediment*) override final;
     void print_stop(lexer*,fdm*,ghostcell*,turbulence*,heat*,ioflow*,expdata*,concentration*,multiphase*,sediment*) override final;
+    void print_end(lexer*,fdm*,ghostcell*,turbulence*,heat*,ioflow*,expdata*,concentration*,multiphase*,sediment*) override final;
     void amr_probes(const amr_grid_lookup*) override final;
     void ckpt_state(std::vector<double>&) override final;
     void ckpt_restore(const std::vector<double>&) override final;
@@ -74,6 +75,9 @@ public:
 
 private:
     void print3D(lexer*,fdm*,ghostcell*,turbulence*,heat*,expdata*,concentration*,multiphase*,sediment*);
+    void print_fsf(lexer*,fdm*,ghostcell*);
+    int last_print = -1;    // the iteration of the last volume output (print_end)
+    int last_fsf = -1;      // and of the last free surface output
     void parallel(lexer*,fdm*,ghostcell*,turbulence*,heat*,expdata*,concentration*,multiphase*,sediment*,int);
 
     vtk3D *outputFormat;

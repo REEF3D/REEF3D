@@ -1,0 +1,34 @@
+{
+ "base": "sflow_2d_hydro_amr_ckpt",
+ "np": 1,
+ "steps": 120,
+ "same_as": "sflow_2d_hydro_amr_ckpt",
+ "chain": [
+  {
+   "case": "sflow_2d_hydro_amr_ckpt",
+   "copy": [
+    "REEF3D_Checkpoint",
+    "REEF3D_SFLOW_WSF",
+    "REEF3D_SFLOW_Log",
+    "REEF3D_SFLOW_AMR",
+    "REEF3D_SFLOW_ProbePoint",
+    "REEF3D_SFLOW_WSFLINE"
+   ]
+  }
+ ],
+ "ctrl_set": {
+  "I 45": "60"
+ },
+ "description": "the restart of sflow_2d_hydro_amr_ckpt at step 60 (I 45 60); regression.py ranks: the final state and the budget bitwise those of the uninterrupted run.",
+ "tags": [
+  "2d",
+  "sflow",
+  "hydro",
+  "amr",
+  "semi_implicit",
+  "checkpoint"
+ ],
+ "covers": [
+  "hydro_sflow::ckpt_restore with patches (store0_leaf)"
+ ]
+}

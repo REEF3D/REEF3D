@@ -1,0 +1,23 @@
+{
+ "base": "cfd_2d_dambreak_amr3_adapt",
+ "np": 1,
+ "steps": 60,
+ "ctrl_set": {
+  "N 40": "6"
+ },
+ "ctrl_add": [
+  "N 59 1"
+ ],
+ "description": "cfd_2d_dambreak_amr3_adapt_twoproj with the momentum carried with the mass flux (N 59 1): every patch keeps phi(n) with the cells around it for the density of its full step.",
+ "tags": [
+  "quick",
+  "2d",
+  "dambreak",
+  "levelset",
+  "amr",
+  "adaptive"
+ ],
+ "covers": [
+  "momentum_rk::amr_twoproj_momentum: phi(n) of the patch with its margin in frk1, godunov::consistent_set"
+ ]
+}

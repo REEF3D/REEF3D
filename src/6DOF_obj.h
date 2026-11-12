@@ -17,7 +17,8 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Authors: Hans Bihs, Tobias Martin
+Architect: Hans Bihs
+Author: Tobias Martin
 --------------------------------------------------------------------*/
 
 #ifndef SIXDOF_OBJ_H_
@@ -42,6 +43,7 @@ Authors: Hans Bihs, Tobias Martin
 #include"6DOF_rigidbody.h"
 #include"6DOF_geometry.h"
 #include"6DOF_load.h"
+#include"6DOF_deform.h"
 #include<fstream>
 #include<iostream>
 #include<vector>
@@ -58,6 +60,9 @@ class nhflow_reinidisc_fsf;
 class mooring;
 class net_interface;
 class sixdof_motionext;
+class sixdof_deform;
+class sixdof_brain;
+class sixdof_brain_link;
  
 using namespace std;
 
@@ -163,6 +168,14 @@ public:
                              double nx, double ny, double nz);
     const std::vector<double> &external_strips() const {return strip_F_;}
 
+    // prescribed deformation (X 195, undulatory swimming, 6DOF_obj_deform.cpp): the time of the
+    // deformation for stage iter of the body (t^n + c_iter dt of its RK scheme), before its pose update
+    void deform_stage(lexer*, int);
+    bool deform_on() const {return fish_!=nullptr;}
+    // X 198: the end of the step (the discrete recoil correction at t^n of the next step)
+    void deform_step_end();
+
+
     // read-only access for the SFLOW mesh refinement (sflow_amr)
     int amr_tricount() const {return tricount;}
     double **amr_tri(int d) {return d==0?tri_x:(d==1?tri_y:tri_z);}
@@ -217,6 +230,7 @@ protected:
     void rk2(lexer*, ghostcell*,int);
     void rk3(lexer*, ghostcell*,int);
     void rkls3(lexer*, ghostcell*,int);
+    void rkmid(lexer*, ghostcell*,int);
 
    
    // ray cast 3D: geometry core kernels
@@ -328,6 +342,7 @@ protected:
     double curr_time;
     double printtime,printtimenormal;
     double *printtime_wT;
+    double *printtime_wF=nullptr;   // next print time of each P 185 window (SFLOW, NHFLOW); printtime_wT: P 35
     int nCorr;
     int q,iin;
     float ffn;
@@ -395,6 +410,26 @@ protected:
     double am_cfd_ = 0.0;
     Eigen::Matrix<double,6,1> am_prev_ = Eigen::Matrix<double,6,1>::Zero();
     void cfd_added_mass(lexer*);
+    
+    // X 197: A from the added mass of the equivalent ellipsoid of the hull (2D: elliptic cylinder),
+    // body frame, about the CoG (am_ell_: the ellipsoid in the box of the hull, its centre off the
+    // CoG couples translations and rotations), plus the fluid inside the hull, instead of the displaced
+    // fluid alone: a slender body (a fish) has a lateral added mass of many times its mass
+    Eigen::Matrix<double,6,6> am_ell_ = Eigen::Matrix<double,6,6>::Zero();
+    bool am_ell_on_ = false;
+    
+    // X 198: fluid-momentum coupling: the rigid-body velocity (U, omega) fitted to the predicted
+    // velocity of the stage in the hull region (weights rho (2H - 1) dV, deformation velocity removed)
+    Eigen::Matrix<double,6,1> mom_fit_ = Eigen::Matrix<double,6,1>::Zero();
+    bool mom_ok_ = false;
+    // ... the discrete recoil correction of a deforming body (X 195, sixdof_deform::correction): its
+    // value at the start of the step (n), the register of the RK stage (k), the rates of the last
+    // stage (low-storage RK3)
+    double dcn_[6] = {0,0,0,0,0,0}, dck_[6] = {0,0,0,0,0,0}, dcr_[3] = {0,0,0};
+    bool dc_on_ = false;
+    double dc_amr_[6+6+3+6] = {};      // amr_save: the correction, dcn_, dck_ (first 3), dcr_
+
+    void added_mass_ellipsoid(lexer*);
 
     // FNPF with several bodies (X 20 > 1): apply_added_mass only assembles the body's block
     // (Lc_, rc_), fnpf_6DOF solves the system of all bodies with the cross added mass and
@@ -423,9 +458,45 @@ protected:
     bool pto_on_ = false, pto_implicit_ = false, pto_warned_ = false;
     double pto_E_ = 0.0, pto_Estep_ = 0.0;
     double pto_Eloss_ = 0.0, pto_Elossstep_ = 0.0;     // dissipated in the drive-train losses (X 510)
-    int pto_rk_ = 3;   // RK scheme of the body: 2 (NHFLOW A 510 2), 3 (TVD RK3), 4 (FNPF A 310 4)
+    int pto_rk_ = 3;   // RK scheme of the body: 2 (NHFLOW A 510 2, FNPF A 310 5), 3 (TVD RK3), 4 (FNPF A 310 4)
     void pto_rk(int, double&, double&) const;
     ofstream printpto;
+    
+    // prescribed deformation (X 195): kinematics, velocity of the deformation at a point (inertial
+    // frame), the power of the body on the fluid by the deformation (load integration), log
+    sixdof_deform *fish_ = nullptr;
+    double fish_t_amr_ = 0.0;
+    double fish_power_ = 0.0;
+    void deform_setup(lexer*, ghostcell*);
+    void deform_time(double);
+    Eigen::Vector3d deform_vel(double, double, double) const;
+    void print_fish(lexer*, double);
+    ofstream printfish;
+    
+    // lateral line (X 194 id n d): probes a distance d outside the hull on both sides of n stations
+    // along the body axis, as material points of the body frame (axial x, lateral l, third axis v),
+    // and the station (s/L from the head) and side; the CFD coupling samples the fluid there
+    void lateral_line_setup(lexer*);
+    Eigen::Vector3d lateral_line_point(int, double, double) const;      // inertial frame
+    double ll_dx_ = 0.0;
+    std::vector<Eigen::Vector3d> ll_pts_;
+    std::vector<double> ll_s_;
+    std::vector<int> ll_side_;
+    ofstream printll;
+    
+    // brain (X 193): the senses of each step, the decisions as gait targets (X 199) of the deforming
+    // body, kept for the checkpoint; log
+    sixdof_brain *brain_ = nullptr;
+    std::vector<sixdof_deform::gait_target> gait_in_, gait_brain_;
+    void brain_setup(lexer*);
+    
+    // checkpoint of the state of a coupling between the steps (sixdof_obj_cfd: X 198)
+    virtual void ckpt_coupling(std::vector<double>&) const {}
+    virtual void ckpt_coupling_restore(const std::vector<double>&) {}
+    void brain_update(lexer*, ghostcell*, const std::vector<double>*, const std::vector<double>* =nullptr);
+    sixdof_brain_link *brain_link_ = nullptr;        // external brain (X 191), rank 0
+    bool brain_due(lexer*) const;
+    ofstream printbrain;
 };
 
 #endif

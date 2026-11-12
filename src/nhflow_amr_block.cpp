@@ -30,6 +30,7 @@ Author: Hans Bihs
 #include"nhflow_fsf.h"
 #include"nhflow_potential_f.h"
 #include"ioflow_amr_block.h"
+#include"nhflow_breaking.h"
 #include<cstdlib>
 #include<cstring>
 #include<cstdint>
@@ -72,13 +73,13 @@ typedef reefamr_comms_off comms_off;
 void nhflow_amr::blocks_check(lexer *p)
 {
     int ok=1;
-    if(p->G7==1) ok=0;              // subcycling
+    if(p->G7==1 && p->X10>0) ok=0;  // subcycling (sub_level0_blocks): without bodies
     if(p->X10>2) ok=0;              // floating (X 10 1) and prescribed (X 10 2) bodies only (P5c)
     if(p->X10>0 && p->G40>0) ok=0;  // bodies: the patches on the rank of the block piece below
     if(ok==0)
     {
         if(p->mpirank==0)
-        cout<<"!!! NHFLOW multi-block grid: not with subcycling (G 7 1) or the ship pressure X 10 3 (X 10 1/2 without G 40) !!!"<<endl;
+        cout<<"!!! NHFLOW multi-block grid: not with subcycling (G 7 1) and bodies, the ship pressure X 10 3, or X 10 1/2 with G 40 !!!"<<endl;
         exit(1);
     }
 }
@@ -187,6 +188,10 @@ void nhflow_amr::blocks_sigma(ghostcell *pgc)
             c->pio->zones_ini(pp,d,pgc);
             c->pmom->sigma_ini(pp,d,pgc,d->eta);
             c->pmom->inidisc(pp,d,pgc,c->pfsf);
+
+            // A 550 3: no breaking in the zones (as nhflow_breaking::breaking_zones with ioflow::relax_boxes)
+            if(nhflow_breaking *b = dynamic_cast<nhflow_breaking*>(c->pmom))
+            b->breaking_zone_mask(pp,[&](const std::function<void(int,int)> &in) { c->pio->zone_cells(pp,in); });
         }
         c->pfsf->kinematic_fsf(pp,d,d->U,d->V,d->W,d->eta);
 

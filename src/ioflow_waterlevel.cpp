@@ -40,7 +40,7 @@ void ioflow_f::fsfinflow(lexer *p, fdm *a, ghostcell *pgc)
     p->phiout=p->F62;
 
     if(p->F61>-1.0e20)
-    p->phiin=p->F62;
+    p->phiin=p->F61;
 
     count=0;
     zval=0.0;
@@ -105,25 +105,28 @@ void ioflow_f::fsfinflow(lexer *p, fdm *a, ghostcell *pgc)
     p->phiout=pgc->globalmax(p->phiout);
     }
     
-    // set outflow fsf 
+    // set outflow fsf: F 62, ramped from F 60 over F 64 iterations
+    // (was F62 > 1.0e-20: an outflow level F 62 <= 0 fell back to the inflow level phimean)
     double wsfout=p->phimean;
     double f;
     
-    if(p->F62>1.0e-20)
+    if(p->F62>-1.0e20)
     {
-        if(p->F64==0)
         wsfout=p->F62;
         
-        if(p->F64>0)
+        if(p->F64>0 && p->F60>-1.0e20)
         {
+        f = 1.0;
+        
         if(p->count<p->F64)
         f = 0.5*cos(PI + PI*double(p->count)/double(p->F64)) + 0.5;
         
-        if(p->count>=p->F64)
-        f = 1.0;
-        
         wsfout = f*p->F62 + (1.0-f)*p->F60;
         }
+        
+    // the level the outflow pressure (B 77 1, 2, outflow_pressure) and the RK stages of the
+    // level set (fsfrkout) use
+    p->fsfout=wsfout;
     }
     
     if(p->F62>-1.0e20 && p->B77==2)
@@ -162,9 +165,9 @@ void ioflow_f::fsfrkout(lexer *p, fdm *a, ghostcell *pgc, field& f)
         j=p->gcout[n][1];
         k=p->gcout[n][2];
 
-        f(i+1,j,k)=p->F62-p->pos_z();
-        f(i+2,j,k)=p->F62-p->pos_z();
-        f(i+3,j,k)=p->F62-p->pos_z();
+        f(i+1,j,k)=p->fsfout-p->pos_z();
+        f(i+2,j,k)=p->fsfout-p->pos_z();
+        f(i+3,j,k)=p->fsfout-p->pos_z();
         }
 }
 

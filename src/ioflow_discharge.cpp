@@ -56,6 +56,10 @@ void ioflow_f::Qin(lexer *p, fdm* a, ghostcell* pgc)
     p->Qi=0.0;
     p->Ui=0.0;
 
+    // wet area of the cells from phi (the distance to the free surface) only with a free surface (level set
+    // F 30 > 0 or VOF F 80 > 0); in single phase (F 30 0, F 80 0) phi is no distance (1.0 everywhere): full cells
+    const bool fsf = (p->F30>0 || p->F80>0);
+
     // in
     for(n=0;n<p->gcin_count;n++)
     if(p->gcin[n][3]>0)
@@ -65,15 +69,15 @@ void ioflow_f::Qin(lexer *p, fdm* a, ghostcell* pgc)
     j=p->gcin[n][1];
     k=p->gcin[n][2];
 
-        if(a->phi(i,j,k)>-0.5*p->DZN[KP]-1.0e-20 && a->topo(i,j,k)>0.0)
+        if((!fsf || a->phi(i,j,k)>-0.5*p->DZN[KP]-1.0e-20) && a->topo(i,j,k)>0.0)
         {
-            if(a->phi(i,j,k)>=0.5*p->DZN[KP])
+            if(!fsf || a->phi(i,j,k)>=0.5*p->DZN[KP])
             area=p->DYN[JP]*p->DZN[KP];
 
-            if(a->phi(i,j,k)<0.5*p->DZN[KP] && a->phi(i,j,k)>0.0)
+            if(fsf && a->phi(i,j,k)<0.5*p->DZN[KP] && a->phi(i,j,k)>0.0)
             area=p->DYN[JP]*(p->DZN[KP]*0.5 + a->phi(i,j,k));
 			
-			if(a->phi(i,j,k)>=-0.5*p->DZN[KP] -1.0e-20 && a->phi(i,j,k)<=0.0)
+			if(fsf && a->phi(i,j,k)>=-0.5*p->DZN[KP]-1.0e-20 && a->phi(i,j,k)<=0.0)
             area=p->DYN[JP]*(p->DZN[KP]*0.5 - fabs(a->phi(i,j,k)));
 
 
@@ -104,6 +108,10 @@ void ioflow_f::Qout(lexer *p, fdm* a, ghostcell* pgc)
     p->Qo=0.0;
     p->Uo=0.0;
 
+    // wet area of the cells from phi (the distance to the free surface) only with a free surface (level set
+    // F 30 > 0 or VOF F 80 > 0); in single phase (F 30 0, F 80 0) phi is no distance (1.0 everywhere): full cells
+    const bool fsf = (p->F30>0 || p->F80>0);
+
     // out
     for(n=0;n<p->gcout_count;n++)
     if(p->gcout[n][3]>0)
@@ -113,16 +121,16 @@ void ioflow_f::Qout(lexer *p, fdm* a, ghostcell* pgc)
     j=p->gcout[n][1];
     k=p->gcout[n][2];
 
-        if(a->phi(i,j,k)>-0.5*p->DZN[KP]-1.0e-20 && a->topo(i,j,k)>0.0)
+        if((!fsf || a->phi(i,j,k)>-0.5*p->DZN[KP]-1.0e-20) && a->topo(i,j,k)>0.0)
         {
 
-            if(a->phi(i,j,k)>=0.5*p->DZN[KP])
+            if(!fsf || a->phi(i,j,k)>=0.5*p->DZN[KP])
             area=p->DYN[JP]*p->DZN[KP];
 
-            if(a->phi(i,j,k)<0.5*p->DZN[KP] && a->phi(i,j,k)>0.0)
+            if(fsf && a->phi(i,j,k)<0.5*p->DZN[KP] && a->phi(i,j,k)>0.0)
             area=p->DYN[JP]*(p->DZN[KP]*0.5 + a->phi(i,j,k));
 			
-			if(a->phi(i,j,k)>=-0.5*p->DZN[KP]-1.0e-20 && a->phi(i,j,k)<=0.0)
+			if(fsf && a->phi(i,j,k)>=-0.5*p->DZN[KP]-1.0e-20 && a->phi(i,j,k)<=0.0)
             area=p->DYN[JP]*(p->DZN[KP]*0.5 - fabs(a->phi(i,j,k)));
 
             Ao+=area;

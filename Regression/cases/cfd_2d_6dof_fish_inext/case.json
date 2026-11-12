@@ -1,0 +1,11 @@
+{
+ "base": "cfd_2d_6dof_fish",
+ "np": 1,
+ "steps": 40,
+ "ctrl_set": {
+  "X 195": "0 11 0.125 1.0 1.0 0.1"
+ },
+ "description": "cfd_2d_6dof_fish with the inextensible midline (X 195 type 11): the lateral displacement along the arc length, the axial contraction, the sections normal to the midline, the recoil translation (axial and lateral) and the recoil rotation integrated in time; the velocity at the forced faces from the inverse map of the midline.",
+ "tags": ["quick", "2d", "6dof", "floating", "deform", "singlephase"],
+ "covers": ["sixdof_deform::midline, phi_at (the recoil rotation, Gauss quadrature cached at T/64)", "sixdof_deform::velocity_at (Newton iterations)", "update_forcing: the deformation velocity where H > 0"]
+}

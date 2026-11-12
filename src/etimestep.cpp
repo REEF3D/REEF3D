@@ -21,6 +21,8 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"etimestep.h"
+#include"cfd_gravitywave_dt.h"
+#include"cfd_airband_dt.h"
 #include<iomanip>
 #include"lexer.h"
 #include"fdm.h"
@@ -111,7 +113,8 @@ void etimestep::start(fdm *a, lexer *p, ghostcell *pgc, turbulence *pturb)
     p->pressmin=-gmax[11];
     }
 
-    if(p->mpirank==0 && (p->count%p->P12==0))
+    // with the mesh refinement (G 1) cfd_amr::timestep prints them, over the finest grids
+    if(p->mpirank==0 && (p->count%p->P12==0) && p->amr_cfd==0)
     {
 	cout<<"umax: "<<setprecision(3)<<p->umax<<" \t utime: "<<p->utime<<endl;
 	cout<<"vmax: "<<setprecision(3)<<p->vmax<<" \t vtime: "<<p->vtime<<endl;
@@ -137,6 +140,30 @@ void etimestep::start(fdm *a, lexer *p, ghostcell *pgc, turbulence *pturb)
 // maximum reynolds stress source term
 	visccrit=p->viscmax*(6.0/pow(p->DXM,2.0));  
  
+    // N 57 (with the level set): the criterion of the time step with the velocities of the water and of
+    // a band of N 57 cells into the air; the air beyond the band gets its stability limit below
+    // (cfd_airband_dt.h). The global maxima are restored for the logs after the time step.
+    const bool airband = (p->N57>0.0 && p->F30>0);
+    const double umax_all=p->umax, vmax_all=p->vmax, wmax_all=p->wmax;
+    cfd_airband ab;
+
+    if(airband)
+    {
+    ab = cfd_airband_dt().compute(p,a,pgc);
+    p->umax = MAX(ab.uw, p->ufbmax);
+    p->vmax = MAX(ab.vw, p->vfbmax);
+    p->wmax = MAX(ab.ww, p->wfbmax);
+
+        for(double wi : {p->W11_u,p->W12_u,p->W13_u,p->W14_u,p->W15_u,p->W16_u})
+        p->umax = MAX(p->umax,wi);
+
+        for(double wi : {p->W11_v,p->W12_v,p->W13_v,p->W14_v,p->W15_v,p->W16_v})
+        p->vmax = MAX(p->vmax,wi);
+
+        for(double wi : {p->W11_w,p->W12_w,p->W13_w,p->W14_w,p->W15_w,p->W16_w})
+        p->wmax = MAX(p->wmax,wi);
+    }
+
     cu=1.0e10;
     cv=1.0e10;
     cw=1.0e10;
@@ -190,6 +217,32 @@ void etimestep::start(fdm *a, lexer *p, ghostcell *pgc, turbulence *pturb)
 
 	p->dt=p->N47*cu;
    // p->dt = MIN(p->dt,10.0*p->dt_old);
+
+    // N 54: the gravity-wave limit (the acceleration term is without gravity then)
+    if(p->N54>0.0)
+    {
+    double dxg = 1.0e10;
+    LOOP
+    dxg = MIN(dxg, (p->j_dir==1) ? MIN3(p->DXN[IP],p->DYN[JP],p->DZN[KP]) : MIN(p->DXN[IP],p->DZN[KP]));
+    dxg = pgc->globalmin(dxg);
+    p->dt = MIN(p->dt, cfd_gravitywave_dt(p->N54,p->W20,p->W21,p->W22,dxg));
+    }
+
+    // N 57: the air beyond the band, dt <= N 58 / max(|u|/dx + |v|/dy + |w|/dz)
+    if(airband)
+    {
+        const double dtw = p->dt;
+        p->dt = MIN(p->dt, ab.dta);
+
+        if(p->mpirank==0 && (p->count%p->P12==0))
+        cout<<"N 57 dt: water and band "<<setprecision(4)<<dtw<<"  air beyond the band "<<ab.dta
+            <<" (largest air speed "<<setprecision(3)<<ab.ua<<", in the band "<<MAX3(ab.uw,ab.vw,ab.ww)<<")"
+            <<((ab.dta<dtw) ? "  -> air" : "  -> water and band")<<endl;
+
+    p->umax=umax_all;
+    p->vmax=vmax_all;
+    p->wmax=wmax_all;
+    }
     
 	a->maxF=0.0;
 	a->maxG=0.0;

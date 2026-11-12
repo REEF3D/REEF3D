@@ -20,7 +20,10 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
+#include<cstring>
+#include"cfd_airband_dt.h"
 #include"cfd_amr.h"
+#include"cfd_gravitywave_dt.h"
 #include"reef3d_mpmd.h"
 #include"patchBC_codes.h"
 #include"lexer.h"
@@ -33,6 +36,7 @@ Architect: Hans Bihs
 #include"poisson_pcorr.h"
 #include"convection.h"
 #include"fou.h"
+#include"godunov.h"
 #include"weno_flux_nug.h"
 #include"weno_hj_nug.h"
 #include"weno_hj_df_nug.h"
@@ -206,16 +210,18 @@ bool cfd_amr::scope(lexer *p, ghostcell *pgc)
 
     const char *why = nullptr;
 
-    if(!(p->N40==2 || p->N40==3))
-    why = "N 40 2 or 3 (SSP Runge-Kutta, level set in the stages)";
+    if(!(p->N40==2 || p->N40==3 || p->N40==5 || p->N40==6))
+    why = "N 40 2, 3, 5 or 6 (SSP Runge-Kutta with the level set in the stages, or one step with one or two projections)";
+    else if(p->N40==6 && p->G7!=0)
+    why = "the one-step scheme with two projections N 40 6 with G 7 0 (subcycling with it is not built yet; N 40 5 subcycles)";
+    else if((p->N40==5 || p->N40==6) && (p->H10!=0 || p->C10!=0))
+    why = "the one-step schemes N 40 5, 6 without heat or concentration (H 10, C 10)";
     else if(p->F80!=0 || p->F300!=0)
     why = "the level set (F 30) or single phase flow, no VOF (F 80) or multiphase (F 300)";
     else if(!(p->T10==0 || p->T10==1 || p->T10==2 || p->T10==21 || p->T10==22))
     why = "laminar flow or a RANS model (T 10 0, 1, 2, 21, 22)";
     else if(p->W30!=0 || p->W90!=0)
-    why = "no compressibility W 30 or rheology W 90 (the air compressibility W 32 works)";
-    else if(p->W32!=0 && p->G7!=0)
-    why = "the air compressibility W 32 with one time step for all levels, G 7 0 (with subcycling the synchronisation projection does not keep the compression of the air)";
+    why = "no compressibility W 30 or rheology W 90 (the air compressibility W 32 works, with G 7 0 and G 7 1)";
     else if(p->H10!=0 && p->C10!=0)
     why = "heat or concentration, not both (H 10, C 10)";
     else if((p->H10!=0 && p->H10!=3) || (p->C10!=0 && p->C10!=3))
@@ -236,6 +242,8 @@ bool cfd_amr::scope(lexer *p, ghostcell *pgc)
     why = "no DEM particles (E 10; momentum_forcing holds the particle forcing of level 0 in a static member)";
     else if(p->X10>1 || p->Z10!=0 || p->Z20!=0 || p->Z30!=0)
     why = "floating bodies X 10 0 or 1, no structures (Z 10, Z 20, Z 30)";
+    else if(p->X320>0 && p->G7!=0)
+    why = "nets (X 320) with G 7 0 (their forces on the patches are not built for the subcycling G 7 1 yet)";
     else if(p->B200!=0 && p->B200!=1)
     why = "porous structures B 200 1 (no vegetation B 200 2)";
     else if((p->solidread!=0 || p->toporead!=0) && p->G505!=0)
@@ -271,6 +279,44 @@ bool cfd_amr::scope(lexer *p, ghostcell *pgc)
     return true;
 }
 
+// --------------------------------------------------------------------- nets
+//  The nets (X 320; of a floating body or fixed, sixdof_void) are moved on level 0 with the fluid
+//  velocity of level 0 at their knots (under a patch the restricted one), where their forces on the
+//  fluid are spread to the faces around every knot (net_interface::dlm_cfd, into Fext, Gext, Hext,
+//  which the momentum of the next stage takes).  The patches get the same forces at their faces:
+//  without them the fluid of a patch did not feel the net, and level 0 under it takes the
+//  velocities of the patch.  The kernel of a knot: that of the cells of the finest level that
+//  reaches well around the knot, with its coarser levels (reefamr3d::kernel_level), on that level
+//  and on the finer ones; the coarser levels keep their own kernel, on faces that are covered.
+//  The force of a knot is then on the leaf faces once, wherever the net lies in the patches:
+//  inside one, across a patch edge, next to one or outside (the kernel of level 0 on all levels).
+void cfd_amr::net_forces()
+{
+    for(int id=0; id<npat; ++id)
+    {
+        lexer *pp = CP(id)->pp;
+        fdm *fa = CP(id)->a;
+        const size_t n = size_t(pp->imax)*pp->jmax*pp->kmax;
+        const int L = CP(id)->lev;
+        int fmax = 1;
+        for(int d=0; d<3; ++d)
+        fmax = MAX(fmax,ratio(L,d));
+        
+        const std::function<void(const double*,int*)> width = [&](const double *x, int *f)
+        {
+            const int lk = CP(id)->shadow ? L : kernel_level(x);
+            for(int d=0; d<3; ++d)
+            f[d] = (lk>L) ? 1 : ratio(L-lk,d);
+        };
+
+        std::fill(fa->Fext.V, fa->Fext.V + n, 0.0);
+        std::fill(fa->Gext.V, fa->Gext.V + n, 0.0);
+        std::fill(fa->Hext.V, fa->Hext.V + n, 0.0);
+
+        nets6->amr_net_forces(pp,fa,fmax,width);
+    }
+}
+
 // --------------------------------------------------------------------- set-up
 cfd_amr::cfd_amr(lexer *p, fdm *a, ghostcell *pgc, momentum *pmom, pressure *ppress, poisson *ppois, ioflow *pflow, vrans *pvrans,
                  fsi *pfsi, initialize *pini, turbulence *pturb, sixdof *p6dof) : reefamr3d(p,pgc), p0(p), a0(a), pois0(ppois), pflow0(pflow), pvrans0(pvrans),
@@ -285,6 +331,9 @@ cfd_amr::cfd_amr(lexer *p, fdm *a, ghostcell *pgc, momentum *pmom, pressure *ppr
     // floating bodies: moved on level 0, the hull and its forcing on every grid
     b6 = (p->X10==1) ? dynamic_cast<sixdof_cfd*>(p6dof) : nullptr;
     bodies = (b6!=nullptr && b6->objects()>0) ? 1 : 0;
+
+    // nets (X 320): their forces on the fluid on the patches as well (net_forces)
+    nets6 = (p->X320>0) ? p6dof : nullptr;
 
     mom0 = dynamic_cast<momentum_rk*>(pmom);
     press0 = dynamic_cast<pjm_corr*>(ppress);
@@ -332,11 +381,27 @@ cfd_amr::cfd_amr(lexer *p, fdm *a, ghostcell *pgc, momentum *pmom, pressure *ppr
     // density 500, validation 51), with G 7 1 in pitch (a box 0.25 x 0.12 of density 500 heeled
     // 10 degrees: stopped after 0.11 s; two boxes 4 cm apart in heave: the vertical force changed
     // by 166 N from one finest step to the next after 1 s, validation 54)
+    // the fluid-momentum coupling (X 198) fits the body to the predicted velocity of the patches of
+    // the finest level, with subcycling (G 7 1, cfd_amr_sub.cpp); without it the levels share the
+    // stages and level 0 advances the body before the patches predict: the added-mass stabilisation
+    // instead
+    if(bodies && p0->X198>0 && sub==0)
+    {
+        if(p0->mpirank==0)
+        cout<<"!!! X 198 (fluid-momentum coupling) with the mesh refinement needs the subcycling (G 7 1): X 197 / the added mass of half the displaced fluid instead"<<endl;
+        
+        p0->X198 = 0;
+    }
+    
     if(bodies)
     for(int nb=0; nb<b6->objects(); ++nb)
     {
         b6->object(nb)->amr_loads = this;
-        b6->object(nb)->set_cfd_added_mass(0.5);
+        // the one-step scheme (N 40 5): the loads of p(n) carry the reaction to the last two steps of
+        // the body, the added mass of half the displaced fluid with the acceleration of the last step
+        // alone makes the coupling grow (a ship in shallow water); none as on a uniform grid, X 197 as given
+        const double am_default = (p0->N40==5) ? 0.0 : 0.5;
+        b6->object(nb)->set_cfd_added_mass(p0->X198>0 ? 0.0 : (p0->X197>0.0 ? p0->X197 : am_default));
     }
     th_end.assign(maxlev+1,0.0);
     if(mom0->amr_stages()==3)
@@ -351,10 +416,12 @@ cfd_amr::cfd_amr(lexer *p, fdm *a, ghostcell *pgc, momentum *pmom, pressure *ppr
     }
 
     // G 40: the units placed for the load of the ranks (the level-1 patches with the shadows of
-    // level 0; G 40 2: the test of it, small pieces placed anew at every regrid)
+    // level 0; G 40 2: the test of it, small pieces placed anew at every regrid; G 40 3: the
+    // level-1 boxes cut at the rank boxes of level 0 and left on their rank, moved only to lower
+    // the heaviest rank, reefamr3d::place_units)
     // (periodic boundaries: the shadows take the level-0 cells across a periodic edge from the other
     // end, reefamr3d::wrap0)
-    place = (p->G40>=1) ? MIN(p->G40,2) : 0;
+    place = (p->G40>=1) ? (p->G40>=3 ? 3 : p->G40) : 0;
     // G 41: the work of a patch cell in the placement (0: measured, from 1 until the first measurement)
     wpatch = (p->G41>0.0) ? p->G41 : 1.0;
 
@@ -366,7 +433,7 @@ cfd_amr::cfd_amr(lexer *p, fdm *a, ghostcell *pgc, momentum *pmom, pressure *ppr
 
     // the hierarchy: static boxes G 15, adaptive with the flags G 24-26 (and the body zone G 12) of the
     // initial level 0
-    adapt = (p->G24>0.0 || p->G25>0 || p->G26>0.0 || bzone) ? 1 : 0;
+    adapt = (p->G24>0.0 || p->G25>0 || p->G26>0.0 || bzone || (p->G27>0.0 && p->S10==1 && p->Q10>=1)) ? 1 : 0;
     if(adapt)
     {
         setup_base(p,pgc);
@@ -753,6 +820,21 @@ void cfd_amr::patch_objects(r3patch *rp)
     if(c->pfsfdisc==nullptr)
     c->pfsfdisc = new fou(pp);
 
+    // the one-step schemes (N 40 5, 6): the Godunov convection of the momentum and the level set on
+    // the patches as on level 0 (driver::logic_cfd); with the schemes of D 10 and F 35 the one stage
+    // would be a forward Euler step of WENO
+    if(pp->N40==5 || pp->N40==6)
+    {
+        delete c->pconvec;
+        c->pconvec = new godunov(pp);
+        // N 63 1, 2, 3: the level set with the scheme of F 35, as on level 0
+        if(pp->N63==0)
+        {
+        delete c->pfsfdisc;
+        c->pfsfdisc = new godunov(pp);
+        }
+    }
+
     // diffusion
     if(pp->D20==0)
     c->pdiff = new diff_void;
@@ -901,7 +983,10 @@ void cfd_amr::fill(int l, vector<fspec> &fs, bool siblings_only, int maxdepth)
 
     // G 40: the coarser level of the level-1 patches, their shadows, from level 0
     if(place && l==1 && !siblings_only)
-    sh_fill_down(fs);
+    {
+        amr_phase<PR_NPART> sh_(prc,PR_SHADOW);
+        sh_fill_down(fs);
+    }
 
     // the fields of the grids, resolved once per fill (the field functions of fs are evaluated for
     // the grids they are asked for, as before, but once each)
@@ -922,18 +1007,76 @@ void cfd_amr::fill(int l, vector<fspec> &fs, bool siblings_only, int maxdepth)
         return *q;
     };
 
+    // the values through the arrays of the fields: the index of the source cell once per item for
+    // all fields, the neighbours of the slopes by their strides (prolong_f and cell_slope took the
+    // three indices of every cell they read, per field and direction).  The same terms in the same
+    // order as prolong_f: the same values
+    const int r0 = rr[0], r1 = rr[1], r2 = rr[2];
+    auto slope = [](const double *V, long q, long st, int mode, int r) -> double
+    {
+        if(mode==2 || r==1)
+        return 0.0;
+        const double c0 = V[q];
+        const double dl = c0 - V[q-st];
+        const double dr = V[q+st] - c0;
+        if(mode==0)
+        return 0.5*(dl+dr);
+        if(dl*dr<=0.0)
+        return 0.0;
+        const double sg = dl>0.0 ? 1.0 : -1.0;
+        return sg*MIN(MIN(2.0*fabs(dl),2.0*fabs(dr)),0.5*fabs(dl+dr));
+    };
+
     fill_run(l,nv,
              [&](int kind, int g, const int *s, const int *o, double *v)
              {
+                 const lexer *q = glex(g);
+                 const long qs = cix(q,s[0],s[1],s[2]);
+                 if(kind==0)
+                 {
+                     for(int m=0; m<nv; ++m)
+                     v[m] = S(m,g).V[qs];
+                     return;
+                 }
+                 if(siblings_only)
+                 {
+                     for(int m=0; m<nv; ++m)
+                     v[m] = 0.0;
+                     return;
+                 }
+                 const long st[3] = {(long)q->jmax*q->kmax, (long)q->kmax, 1};
+                 const int rd[3] = {r0,r1,r2};
                  for(int m=0; m<nv; ++m)
-                 v[m] = (kind==0) ? S(m,g)(s[0],s[1],s[2]) : (siblings_only ? 0.0 : prolong_f(S(m,g),fs[m].type,fs[m].mode,g,s,o));
+                 {
+                     const double *V = S(m,g).V;
+                     const int mode = fs[m].mode, d0 = fs[m].type;
+                     if(d0==CELL)
+                     {
+                         double w = V[qs];
+                         for(int d=0; d<3; ++d)
+                         w += slope(V,qs,st[d],mode,rd[d])*(o[d]==0 ? -0.25 : 0.25);
+                         v[m] = w;
+                         continue;
+                     }
+                     // the coarse face value of cell c, linear in the transverse directions
+                     auto T = [&](long c)
+                     {
+                         double w = V[c];
+                         for(int t=0; t<3; ++t)
+                         if(t!=d0)
+                         w += slope(V,c,st[t],mode,rd[t])*(o[t]==0 ? -0.25 : 0.25);
+                         return w;
+                     };
+                     v[m] = (rd[d0]==2 && o[d0]==0) ? 0.5*(T(qs-st[d0]) + T(qs)) : T(qs);
+                 }
              },
              [&](r3patch *c, int id, const r3fill &f, const double *v)
              {
                  if(siblings_only && f.kind==1)
                  return;
+                 const long qd = cix(c->pp,f.d[0],f.d[1],f.d[2]);
                  for(int m=0; m<nv; ++m)
-                 D(m,id)(f.d[0],f.d[1],f.d[2]) = v[m];
+                 D(m,id).V[qd] = v[m];
              },
              maxdepth);
 }
@@ -942,6 +1085,177 @@ void cfd_amr::fill_all(vector<fspec> &fs, int maxdepth)
 {
     for(int l=1; l<=maxlev; ++l)
     fill(l,fs,false,maxdepth);
+}
+
+//  The fills of the solver vectors.  The projection fills its vectors some ten times per iteration
+//  (the halos of the operator, the corrections, the overlaps); fill walks the fill lists of the
+//  patches for each, with the field functions, the three slopes of a prolongation and the cell
+//  indices per item, and sends all the cells around the patches of another rank (three deep) where
+//  the operator reads the next cell only.  Here per level, siblings_only and maxdepth a plan from
+//  those lists: the copies and prolongations as pairs of array indices, the items sent only those of
+//  the cells up to maxdepth (the receiving rank tells the serving one which, once).  The values are
+//  those of fill (injection: the value of the parent, + 0.0 as the slopes of prolong_f add).  The
+//  plans are made anew after new fill lists (plan_gen, every rebuild of the hierarchy); making one
+//  is collective, as the fill is.
+cfd_amr::cfill_plan& cfd_amr::cfp_get(int l, bool sib, int maxdepth)
+{
+    if(cfp_gen!=plan_gen)
+    {
+        cfp.clear();
+        cfp_gen = plan_gen;
+    }
+    for(cfill_plan &C : cfp)
+    if(C.l==l && C.sib==sib && C.maxdepth==maxdepth)
+    return C;
+
+    cfp.emplace_back();
+    cfill_plan &C = cfp.back();
+    C.l = l;
+    C.sib = sib;
+    C.maxdepth = maxdepth;
+
+    vector<int> slot(P.size()+1,-1);
+    auto gslot = [&](int g) -> int
+    {
+        int &s = slot[g+1];
+        if(s<0)
+        {
+            s = (int)C.grids.size();
+            C.grids.push_back(g);
+        }
+        return s;
+    };
+
+    r3xplan &X = xp[l];
+    vector<char> need(X.nrecv,0);
+    vector<int> rslot;                  // the remote entries: the slot of fill
+    for(int id : lev[l])
+    {
+        const r3patch *c = P[id];
+        lexer *q = c->pp;
+        for(const r3fill &f : c->fill)
+        {
+            if(f.kind==3 || f.depth>maxdepth || (sib && f.kind==1))
+            continue;
+            const int d = cix(q,f.d[0],f.d[1],f.d[2]);
+            if(f.kind==2)
+            {
+                C.rg.push_back(gslot(id));
+                C.rq.push_back(d);
+                rslot.push_back(f.slot);
+                need[f.slot] = 1;
+                continue;
+            }
+            C.dg.push_back(gslot(id));
+            C.dq.push_back(d);
+            C.sg.push_back(gslot(f.g));
+            C.sq.push_back(cix(glex(f.g),f.s[0],f.s[1],f.s[2]));
+            C.pz.push_back(f.kind==1 && (f.o[0]!=0 || f.o[1]!=0 || f.o[2]!=0) ? 1 : 0);
+        }
+    }
+
+    if(nranks>1)
+    {
+        // the serving rank learns which of its items are needed
+        vector<char> sneed(X.nsend+1,0);
+        MPI_Alltoallv(need.empty()?nullptr:need.data(),X.rcnt.data(),X.rdsp.data(),MPI_CHAR,
+                      sneed.data(),X.scnt.data(),X.sdsp.data(),MPI_CHAR,reef3d_comm());
+
+        C.scnt.assign(nranks,0);
+        C.rcnt.assign(nranks,0);
+        C.sdsp.assign(nranks,0);
+        C.rdsp.assign(nranks,0);
+        for(int r=0; r<nranks; ++r)
+        {
+            for(int m=X.sdsp[r]; m<X.sdsp[r]+X.scnt[r]; ++m)
+            if(sneed[m])
+            {
+                const r3serve &S = X.serve[m];
+                C.vg.push_back(gslot(S.g));
+                C.vq.push_back(cix(glex(S.g),S.s[0],S.s[1],S.s[2]));
+                ++C.scnt[r];
+            }
+            for(int m=X.rdsp[r]; m<X.rdsp[r]+X.rcnt[r]; ++m)
+            C.rcnt[r] += need[m];
+            if(r>0)
+            {
+                C.sdsp[r] = C.sdsp[r-1]+C.scnt[r-1];
+                C.rdsp[r] = C.rdsp[r-1]+C.rcnt[r-1];
+            }
+        }
+        C.nsend = (int)C.vg.size();
+        C.nrecv = C.rdsp[nranks-1]+C.rcnt[nranks-1];
+
+        // the slots of fill (X) -> the items received here (in the order of X per rank)
+        vector<int> remap(X.nrecv,-1);
+        int n = 0;
+        for(int m=0; m<X.nrecv; ++m)
+        if(need[m])
+        remap[m] = n++;
+        for(int &s : rslot)
+        s = remap[s];
+        C.rs = rslot;
+    }
+
+    return C;
+}
+
+void cfd_amr::fill_cells(int l, int nv, const std::function<double*(int,int)> &ptr, bool sib, int maxdepth, bool sh1)
+{
+    // G 40: the coarser level of the level-1 patches, their shadows, from level 0 (as fill)
+    if(place && l==1 && !sib)
+    {
+        amr_phase<PR_NPART> sh_(prc,PR_SHADOW);
+        const int ng = (int)P.size()+1;
+        vector<double*> tab((size_t)nv*ng,nullptr);
+        auto F = [&](int m, int g) -> double*
+        {
+            double *&t = tab[(size_t)m*ng+g+1];
+            if(t==nullptr)
+            t = ptr(m,g);
+            return t;
+        };
+        cplan_run(sh1 ? sh_down1 : sh_down,nv,F,F,false);
+    }
+
+    cfill_plan &C = cfp_get(l,sib,maxdepth);
+    const int ng = (int)C.grids.size();
+    cfp_tab.resize((size_t)nv*ng);
+    for(int m=0; m<nv; ++m)
+    for(int s=0; s<ng; ++s)
+    cfp_tab[(size_t)m*ng+s] = ptr(m,C.grids[s]);
+    double *const *T = cfp_tab.data();
+
+    if(nranks>1)
+    {
+        C.sbuf.resize((size_t)C.nsend*nv+1);
+        C.rbuf.resize((size_t)C.nrecv*nv+1);
+        for(int q=0; q<C.nsend; ++q)
+        for(int m=0; m<nv; ++m)
+        C.sbuf[(size_t)q*nv+m] = T[(size_t)m*ng+C.vg[q]][C.vq[q]];
+
+        vector<int> sc(nranks), sd(nranks), rc(nranks), rd(nranks);
+        for(int r=0; r<nranks; ++r)
+        {
+            sc[r] = C.scnt[r]*nv; sd[r] = C.sdsp[r]*nv;
+            rc[r] = C.rcnt[r]*nv; rd[r] = C.rdsp[r]*nv;
+        }
+        xchg(C.sbuf.data(),sc.data(),sd.data(),C.rbuf.data(),rc.data(),rd.data());
+    }
+
+    const size_t nl = C.dq.size();
+    for(int m=0; m<nv; ++m)
+    {
+        double *const *Tm = T+(size_t)m*ng;
+        for(size_t n=0; n<nl; ++n)
+        {
+            const double v = Tm[C.sg[n]][C.sq[n]];
+            Tm[C.dg[n]][C.dq[n]] = C.pz[n] ? v+0.0 : v;
+        }
+        const size_t nr = C.rq.size();
+        for(size_t n=0; n<nr; ++n)
+        Tm[C.rg[n]][C.rq[n]] = C.rbuf[(size_t)C.rs[n]*nv+m];
+    }
 }
 
 // density and viscosity of the cells around patch id from its level set (as fluid_update_fsf, with
@@ -998,6 +1312,26 @@ void cfd_amr::restrict_level(int l, const vector<std::function<field&(int)>> &ce
             int og[3];
             goff(B.g,og);
 
+            // the fields of the patch and of the parent grid, once per block (they were asked for
+            // per cell), the children of a cell by their strides: the same sums in the same order
+            const size_t nc = cells.size();
+            vector<const double*> csrc(nc);
+            vector<double*> cdst(nc);
+            for(size_t m=0; m<nc; ++m)
+            {
+                csrc[m] = cells[m](id).V;
+                cdst[m] = cells[m](B.g).V;
+            }
+            field *fsrc[3] = {nullptr,nullptr,nullptr}, *fdst[3] = {nullptr,nullptr,nullptr};
+            for(int d0=0; d0<3; ++d0)
+            if(rr[d0]==2 && !(faces.size()<3 && d0>=(int)faces.size()))
+            {
+                fsrc[d0] = &faces[d0](id);
+                fdst[d0] = &faces[d0](B.g);
+            }
+            const lexer *qf = c->pp, *qc = glex(B.g);
+            const long sf0 = (long)qf->jmax*qf->kmax, sf1 = qf->kmax;
+
             int P[3];
             for(P[0]=B.lo[0]; P[0]<=B.hi[0]; ++P[0])
             for(P[1]=B.lo[1]; P[1]<=B.hi[1]; ++P[1])
@@ -1008,23 +1342,28 @@ void cfd_amr::restrict_level(int l, const vector<std::function<field&(int)>> &ce
                 for(int d=0; d<3; ++d)
                 f0[d] = P[d]*rr[d] - c->lo[d];
 
-                for(auto &sel : cells)
+                if(nc>0)
                 {
-                    field &src = sel(id);
-                    double s = 0.0;
-                    for(int a=0; a<rr[0]; ++a)
-                    for(int b=0; b<rr[1]; ++b)
-                    for(int e=0; e<rr[2]; ++e)
-                    s += src(f0[0]+a,f0[1]+b,f0[2]+e);
-                    sel(B.g)(pl[0],pl[1],pl[2]) = wc*s;
+                    const long qf0 = cix(qf,f0[0],f0[1],f0[2]);
+                    const long qp = cix(qc,pl[0],pl[1],pl[2]);
+                    for(size_t m=0; m<nc; ++m)
+                    {
+                        const double *src = csrc[m];
+                        double s = 0.0;
+                        for(int a=0; a<rr[0]; ++a)
+                        for(int b=0; b<rr[1]; ++b)
+                        for(int e=0; e<rr[2]; ++e)
+                        s += src[qf0 + a*sf0 + b*sf1 + e];
+                        cdst[m][qp] = wc*s;
+                    }
                 }
 
                 for(int d0=0; d0<3; ++d0)
                 {
                     if(rr[d0]!=2 || (faces.size()<3 && d0>=(int)faces.size()))
                     continue;
-                    field &src = faces[d0](id);
-                    field &dst = faces[d0](B.g);
+                    field &src = *fsrc[d0];
+                    field &dst = *fdst[d0];
                     const int nt = (rr[0]*rr[1]*rr[2])/2;
 
                     // the + face (index P) from the children at the high side, the - face (index
@@ -1176,6 +1515,9 @@ void cfd_amr::patch_fields_ini(int id)
 
 void cfd_amr::ini(lexer *p, fdm *a, ghostcell *pgc)
 {
+    // the time step of level 0 leaves the printout of umax, vmax, wmax to velmax
+    p0->amr_cfd = 1;
+
     for(int id=0; id<npat; ++id)
     patch_fields_ini(id);
 
@@ -1259,9 +1601,14 @@ void cfd_amr::ini(lexer *p, fdm *a, ghostcell *pgc)
 
         c->ppress->ini(pp,fa,pgc);
 
-        // solids and topography: the direct forcing fields and flags of the patch
+        // solids and topography: the direct forcing fields and flags of the patch (DF: the cells in a solid
+        // or the bed, which the implicit diffusion of D 22 1 does not couple to; level 0 sets them in
+        // momentum_forcing, the patches force by amr_solid_forcing)
         if(solids)
+        {
+        pgc->solid_forcing_flag_update(pp,fa);
         pgc->solid_forcing_ini(pp,fa);
+        }
         if(bodies)
         c->p6dof->body(pp,fa,pgc);
         if(turb)
@@ -1303,11 +1650,19 @@ void cfd_amr::ini(lexer *p, fdm *a, ghostcell *pgc)
 
 // --------------------------------------------------------------------- time step
 // the step size of the finest level (all levels step together): the criterion of ietimestep on
-// every patch, the minimum with level 0
+// every patch, the minimum with level 0 (N 57: the band criterion of every patch and the stability
+// limit of its air beyond the band, as on level 0)
 void cfd_amr::timestep(lexer *p, fdm *a, ghostcell *pgc)
 {
     double cu = 1.0e10;
-    double vpat[5] = {0.0,0.0,0.0,0.0,0.0};     // largest velocity on the patches: value, x, y, z, level
+    // N 54: the gravity-wave limit of the patches (the acceleration term is without gravity)
+    double dtg = 1.0e10;
+    // N 57 (with the level set), as cfd_airband_dt.h on level 0: the criterion of every patch with the
+    // velocities of its water and of a band of N 57 of its cells into the air; its air beyond the band
+    // with the stability limit N 58 / max(|u|/dx + |v|/dy + |w|/dz). dta: the step that air allows on
+    // all patches
+    const bool airband = (p->N57>0.0 && p->F30>0);
+    double dta = 1.0e10;
 
     for(int id=0; id<npat; ++id)
     {
@@ -1325,18 +1680,25 @@ void cfd_amr::timestep(lexer *p, fdm *a, ghostcell *pgc)
         for(int k=-1; k<=pp->knoz; ++k)
         {
             const int q = cix(pp,i,j,k);
-            const bool in = (i>=0 && i<pp->knox && j>=0 && j<pp->knoy && k>=0 && k<pp->knoz);
             const double au = (pp->flag1[q]>0) ? fabs(fa->u(i,j,k)) : 0.0;
             const double av = (pp->flag2[q]>0) ? fabs(fa->v(i,j,k)) : 0.0;
             const double aw = (pp->flag3[q]>0) ? fabs(fa->w(i,j,k)) : 0.0;
+            if(!airband)
+            {
             umax = MAX(umax,au);
             vmax = MAX(vmax,av);
             wmax = MAX(wmax,aw);
-            if(in && MAX3(au,av,aw)>vpat[0])
+            }
+            else
             {
-                vpat[0] = MAX3(au,av,aw);
-                vpat[1] = pp->XP[i+marge]; vpat[2] = pp->YP[j+marge]; vpat[3] = pp->ZP[k+marge];
-                vpat[4] = c->lev;
+                // N 57: a face counts when its level set (the mean of its two cells) is above -N 57 dx
+                const double ph = fa->phi(i,j,k);
+                if(0.5*(ph+fa->phi(i+1,j,k)) > -p->N57*pp->DXP[i+marge])
+                umax = MAX(umax,au);
+                if(pp->j_dir==1 && 0.5*(ph+fa->phi(i,j+1,k)) > -p->N57*pp->DYP[j+marge])
+                vmax = MAX(vmax,av);
+                if(0.5*(ph+fa->phi(i,j,k+1)) > -p->N57*pp->DZP[k+marge])
+                wmax = MAX(wmax,aw);
             }
         }
 
@@ -1349,6 +1711,7 @@ void cfd_amr::timestep(lexer *p, fdm *a, ghostcell *pgc)
         if(p->count==0)
         vel = MAX(vel,sqrt(2.0*sqrt(p->W20*p->W20+p->W21*p->W21+p->W22*p->W22)*(p->zcoormax-p->zcoormin)));
 
+        double dxg = 1.0e10, rate = 0.0;
         for(int i=0; i<pp->knox; ++i)
         for(int j=0; j<pp->knoy; ++j)
         for(int k=0; k<pp->knoz; ++k)
@@ -1356,6 +1719,24 @@ void cfd_amr::timestep(lexer *p, fdm *a, ghostcell *pgc)
             if(pp->flag4[cix(pp,i,j,k)]<=0)
             continue;
             const double dx = MIN3(pp->DXN[i+marge],pp->DYN[j+marge],pp->DZN[k+marge]);
+
+            // N 57: a cell of the air beyond the band, with the velocities of its faces
+            if(airband)
+            {
+                const double dl = MIN3(pp->DXN[i+marge],(pp->j_dir==1) ? pp->DYN[j+marge] : 1.0e10,pp->DZN[k+marge]);
+                if(fa->phi(i,j,k) <= -p->N57*dl)
+                {
+                    const double uc = MAX(fabs(fa->u(i,j,k)),fabs(fa->u(i-1,j,k)));
+                    const double vc = (pp->j_dir==1) ? MAX(fabs(fa->v(i,j,k)),fabs(fa->v(i,j-1,k))) : 0.0;
+                    const double wc = MAX(fabs(fa->w(i,j,k)),fabs(fa->w(i,j,k-1)));
+                    // N 65 1: the reach of the semi-Lagrangian departure point per direction (cfd_airband_dt.h)
+                    if(p->N65>0)
+                    rate = MAX(rate,MAX3(uc/pp->DXN[i+marge],((pp->j_dir==1) ? vc/pp->DYN[j+marge] : 0.0),wc/pp->DZN[k+marge]));
+                    else
+                    rate = MAX(rate,uc/pp->DXN[i+marge] + ((pp->j_dir==1) ? vc/pp->DYN[j+marge] : 0.0) + wc/pp->DZN[k+marge]);
+                }
+            }
+            dxg = MIN(dxg,(pp->j_dir==1) ? dx : MIN(pp->DXN[i+marge],pp->DZN[k+marge]));
             if(p->N50==2)
             {
                 cp = MIN(cp,2.0/(umax/pp->DXN[i+marge] + sqrt(4.0*fabs(fa->maxF)/pp->DXN[i+marge])));
@@ -1372,53 +1753,105 @@ void cfd_amr::timestep(lexer *p, fdm *a, ghostcell *pgc)
         cp *= double(1<<c->lev);
         cu = MIN(cu,cp);
 
+        if(airband)
+        {
+        if(rate>1.0e-20)
+        dta = MIN(dta,((p->N65>0) ? cfd_sl_reach : p->N58)/rate*(sub ? double(1<<c->lev) : 1.0));
+        }
+
+        if(p->N54>0.0)
+        dtg = MIN(dtg,cfd_gravitywave_dt(p->N54,p->W20,p->W21,p->W22,dxg)*(sub ? double(1<<c->lev) : 1.0));
+
         fa->maxF = fa->maxG = fa->maxH = 0.0;
     }
 
     double g = -cu;
     MPI_Allreduce(MPI_IN_PLACE,&g,1,MPI_DOUBLE,MPI_MAX,reef3d_comm());
     cu = -g;
-
-    // the largest velocity of the level-0 leaf cells (diagnostics)
-    double v0[5] = {0.0,0.0,0.0,0.0,0.0};
-    for(int i=0; i<p->knox; ++i)
-    for(int j=0; j<p->knoy; ++j)
-    for(int k=0; k<p->knoz; ++k)
+    if(p->N54>0.0)
+    MPI_Allreduce(MPI_IN_PLACE,&dtg,1,MPI_DOUBLE,MPI_MIN,reef3d_comm());
+    if(airband)
     {
-        const int q = cix(p,i,j,k);
-        const int I[3] = {i+org[0],j+org[1],k+org[2]};
-        if(p->flag4[q]<=0 || covered(0,I))
-        continue;
-        const double vv = MAX3(fabs(a->u(i,j,k)),fabs(a->v(i,j,k)),fabs(a->w(i,j,k)));
-        if(vv>v0[0])
-        {
-            v0[0] = vv;
-            v0[1] = p->XP[i+marge]; v0[2] = p->YP[j+marge]; v0[3] = p->ZP[k+marge];
-        }
-    }
-    {
-        struct { double v; int r; } in = {v0[0],myrank}, out;
-        MPI_Allreduce(&in,&out,1,MPI_DOUBLE_INT,MPI_MAXLOC,reef3d_comm());
-        MPI_Bcast(v0,5,MPI_DOUBLE,out.r,reef3d_comm());
-        if(myrank==0 && (p->count%p->P12==0))
-        cout<<"CFD AMR: largest velocity on level 0 (leaf cells) "<<setprecision(3)<<v0[0]<<" at ("<<v0[1]<<", "<<v0[2]<<", "<<v0[3]<<")"<<endl;
-    }
-
-    {
-        struct { double v; int r; } in = {vpat[0],myrank}, out;
-        MPI_Allreduce(&in,&out,1,MPI_DOUBLE_INT,MPI_MAXLOC,reef3d_comm());
-        MPI_Bcast(vpat,5,MPI_DOUBLE,out.r,reef3d_comm());
-        if(myrank==0 && (p->count%p->P12==0))
-        cout<<"CFD AMR: largest velocity on the patches "<<setprecision(3)<<vpat[0]<<" at ("<<vpat[1]<<", "<<vpat[2]<<", "<<vpat[3]<<"), level "<<int(vpat[4])<<endl;
+    MPI_Allreduce(MPI_IN_PLACE,&dta,1,MPI_DOUBLE,MPI_MIN,reef3d_comm());
     }
 
     p->dt = MIN(p->dt,p->N47*cu);
+    p->dt = MIN(p->dt,dtg);
+    p->dt = MIN(p->dt,dta);
 
     for(auto q : P)
     {
         q->pp->dt = p->dt;
         q->pp->dt_old = p->dt_old;
     }
+
+    velmax(p);
+}
+
+// the largest |u|, |v|, |w| of the step over the finest grid everywhere: the faces of the cells of
+// level 0 and of the patches that no finer patch covers (the leaf cells), over all ranks.  Printed
+// every P 12 steps in place of the level-0 values of the time step (etimestep, ietimestep,
+// fixtimestep); umax, vmax, wmax of lexer (the maxlog, the stop at N 61) take them as well
+void cfd_amr::velmax(lexer *p)
+{
+    double vm[3] = {0.0,0.0,0.0};
+
+    auto grid = [&](lexer *q, fdm *f, int lv, const int *o)
+    {
+        int I[3];
+        for(int i=0; i<q->knox; ++i)
+        for(int j=0; j<q->knoy; ++j)
+        for(int k=0; k<q->knoz; ++k)
+        {
+            I[0] = i+o[0]; I[1] = j+o[1]; I[2] = k+o[2];
+            if(covered(lv,I))
+            continue;
+
+            int n = cix(q,i,j,k);
+            if(q->flag1[n]>0)
+            vm[0] = MAX(vm[0],fabs(f->u(i,j,k)));
+            n = cix(q,i-1,j,k);
+            if(q->flag1[n]>0)
+            vm[0] = MAX(vm[0],fabs(f->u(i-1,j,k)));
+
+            if(q->j_dir==1)
+            {
+            n = cix(q,i,j,k);
+            if(q->flag2[n]>0)
+            vm[1] = MAX(vm[1],fabs(f->v(i,j,k)));
+            n = cix(q,i,j-1,k);
+            if(q->flag2[n]>0)
+            vm[1] = MAX(vm[1],fabs(f->v(i,j-1,k)));
+            }
+
+            n = cix(q,i,j,k);
+            if(q->flag3[n]>0)
+            vm[2] = MAX(vm[2],fabs(f->w(i,j,k)));
+            n = cix(q,i,j,k-1);
+            if(q->flag3[n]>0)
+            vm[2] = MAX(vm[2],fabs(f->w(i,j,k-1)));
+        }
+    };
+
+    grid(p0,a0,0,org);
+    for(int id=0; id<npat; ++id)
+    {
+        cfd_amr_patch *c = CP(id);
+        grid(c->pp,c->a,c->lev,c->lo);
+    }
+
+    MPI_Allreduce(MPI_IN_PLACE,vm,3,MPI_DOUBLE,MPI_MAX,reef3d_comm());
+
+    if(p->mpirank==0 && (p->count%p->P12==0))
+    {
+    cout<<"umax: "<<setprecision(3)<<vm[0]<<endl;
+    cout<<"vmax: "<<setprecision(3)<<vm[1]<<endl;
+    cout<<"wmax: "<<setprecision(3)<<vm[2]<<endl;
+    }
+
+    p->umax = MAX(p->umax,vm[0]);
+    p->vmax = MAX(p->vmax,vm[1]);
+    p->wmax = MAX(p->wmax,vm[2]);
 }
 
 // --------------------------------------------------------------------- the step
@@ -1532,6 +1965,128 @@ void cfd_amr::restrict_vel(int s)
     pgc0->start3(p0,mom0->amr_velout(a0,2,s),12);
 }
 
+// G 29: the pressure of the cells under the patches of level l, just restricted (the mean of the
+// children), relative to the discrete hydrostatic pressure of each grid:
+//
+//     p_C = h_C + mean over the children f of (p_f - h_f)
+//
+// h of a grid: the sum of g rho dz down a column from the plane on top of the patch, with the face
+// densities of the grid's own w equation (as pr_hydro: the cell below the plane with half its
+// height, then the faces).  Every level smears the free surface over F 45 of its own cells, so in
+// the interface band the restricted fine pressure (the fine hydrostatic pressure) is not the
+// hydrostatic pressure of the coarse grid: up to several Pa at a coarse cell next to the surface.
+// The coarse faces from an uncovered cell to a covered one then carried a pressure gradient at rest
+// (4e-3 m/s per step in still water across a patch edge), which reached the patch edges through the
+// transverse slopes of the coarse face velocity in pr_predict and the fills around the patches.
+// At rest p_f - h_f is the same for all children, and p_C is the hydrostatic pressure of the coarse
+// grid.  The coarse column runs through the parent blocks of the patch (several grids possible);
+// a column with a cell without flag (a solid) keeps the mean below it.  Gravity along z only.
+void cfd_amr::restrict_press_hydro(int l)
+{
+    if(p0->G29!=1 || rr[2]!=2)
+    return;
+
+    const double g = fabs(p0->W22);
+    auto rho = [](const lexer *q, double ph, double e) { const double H = heaviside(ph,e); return q->W1*H + q->W3*(1.0-H); };
+
+    for(int id : lev[l])
+    {
+        cfd_amr_patch *c = CP(id);
+        lexer *pp = c->pp;
+        fdm *af = c->a;
+
+        // the parent block of a coarse cell (global index of the coarser level)
+        auto block = [&](const int *P) -> const r3patch::pblock*
+        {
+            for(const r3patch::pblock &B : c->par)
+            if(P[0]>=B.lo[0] && P[0]<=B.hi[0] && P[1]>=B.lo[1] && P[1]<=B.hi[1] && P[2]>=B.lo[2] && P[2]<=B.hi[2])
+            return &B;
+            return nullptr;
+        };
+
+        int Plo[3], Phi[3];
+        for(int d=0; d<3; ++d)
+        {
+            Plo[d] = fdiv(c->lo[d],rr[d]);
+            Phi[d] = fdiv(c->hi[d],rr[d]);
+        }
+        const int nch = rr[0]*rr[1];
+        vector<double> hf(nch), phf(nch), wf(nch);
+
+        int P[3];
+        for(P[0]=Plo[0]; P[0]<=Phi[0]; ++P[0])
+        for(P[1]=Plo[1]; P[1]<=Phi[1]; ++P[1])
+        {
+            double hc = 0.0, phc = 0.0, wc = 0.0, dzc = 0.0;
+            bool ok = true;
+            for(P[2]=Phi[2]; P[2]>=Plo[2] && ok; --P[2])
+            {
+                const r3patch::pblock *B = block(P);
+                if(B==nullptr)
+                {
+                    ok = false;
+                    break;
+                }
+                int og[3];
+                goff(B->g,og);
+                lexer *q = glex(B->g);
+                fdm *ac = gfd(B->g);
+                const int i = P[0]-og[0], j = P[1]-og[1], k = P[2]-og[2];
+                if(q->flag4[cix(q,i,j,k)]<=0)
+                {
+                    ok = false;
+                    break;
+                }
+
+                // the coarse column down to this cell
+                const double ph = ac->phi(i,j,k);
+                const double w = interface_width(q,ac->phi,i,j,k);
+                const double dz = q->DZN[k+marge];
+                if(P[2]==Phi[2])
+                hc = g*rho(q,ph,w)*0.5*dz;
+                else
+                hc += g*rho(q,0.5*(ph+phc),0.5*(w+wc))*0.5*(dz+dzc);
+                phc = ph;
+                wc = w;
+                dzc = dz;
+
+                // the fine columns of the children down to the two cells of this coarse cell
+                double hm = 0.0;
+                int n = 0;
+                for(int a=0; a<rr[0] && ok; ++a)
+                for(int b=0; b<rr[1] && ok; ++b)
+                {
+                    const int fi = P[0]*rr[0]+a-c->lo[0], fj = P[1]*rr[1]+b-c->lo[1];
+                    const int m = a*rr[1]+b;
+                    for(int e=rr[2]-1; e>=0; --e)
+                    {
+                        const int fk = P[2]*rr[2]+e-c->lo[2];
+                        if(pp->flag4[cix(pp,fi,fj,fk)]<=0)
+                        {
+                            ok = false;
+                            break;
+                        }
+                        const double phk = af->phi(fi,fj,fk);
+                        const double wk = interface_width(pp,af->phi,fi,fj,fk);
+                        if(P[2]==Phi[2] && e==rr[2]-1)
+                        hf[m] = g*rho(pp,phk,wk)*0.5*pp->DZN[fk+marge];
+                        else
+                        hf[m] += g*rho(pp,0.5*(phk+phf[m]),0.5*(wk+wf[m]))*pp->DZP[fk+marge];
+                        phf[m] = phk;
+                        wf[m] = wk;
+                        hm += hf[m];
+                        ++n;
+                    }
+                }
+                if(!ok)
+                break;
+
+                ac->press(i,j,k) += hc - hm/double(n);
+            }
+        }
+    }
+}
+
 // restriction of the level set, pressure, density, viscosity at the end of the stage
 void cfd_amr::restrict_scalars(int s)
 {
@@ -1539,7 +2094,10 @@ void cfd_amr::restrict_scalars(int s)
     cells.push_back([this,s](int g) -> field& { return gmom(g)->amr_phi_out(s); });
 
     for(int l=maxlev; l>=1; --l)
-    restrict_level(l,cells,none);
+    {
+        restrict_level(l,cells,none);
+        restrict_press_hydro(l);
+    }
 
     if(turb)
     pturb0->gcupdate(p0,a0,pgc0);
@@ -1558,7 +2116,8 @@ void cfd_amr::fill_press_out()
 {
     vector<fspec> fs;
     for(const cfd_amr_field &e : reg)
-    if(e.name=="press")
+    // the names are pointers: compare the strings (== compared the addresses of the literals)
+    if(std::strcmp(e.name,"press")==0)
     {
         const cfd_amr_field *pe = &e;
         fs.push_back({e.type,e.prolong,[this,pe](int g) -> field& { return rf(*pe,g); }});
@@ -1624,6 +2183,17 @@ void cfd_amr::load_step(lexer *p)
         }
         c.wpred = c.n0 + wpatch*c.np;
         c.tpatch = wtp + tp[0];
+        // the parts of the projections (time, then the MPI time of each)
+        for(int k=0; k<PR_NPART; ++k)
+        {
+            c.clk.push_back(prc.t[k]);
+            c.clk_names.push_back(string("projection ")+pr_part_name(k));
+        }
+        for(int k=0; k<PR_NPART; ++k)
+        {
+            c.clk.push_back(prc.m[k]);
+            c.clk_names.push_back(string("projection ")+pr_part_name(k)+" MPI");
+        }
         return c;
     });
 }
@@ -1680,21 +2250,79 @@ void cfd_amr::step_comp(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof 
 
     const int stages = mom0->amr_stages();
 
-    for(int s=0; s<stages; ++s)
+    // N 40 6: the one step with two projections (momentum_rk::step_twoproj)
+    const bool tp = mom0->amr_twoproj();
+
+    // level set: transport and reinitialisation, level by level (its time closed by the barrier
+    // before the momentum, or here when it comes last)
+    double ta_ls = -1.0;
+    auto ls_block = [&](int s, bool close)
     {
         lbar();
         double ta = MPI_Wtime();
 
-        // level set
+        // N 63 2, 3 (the one-step schemes): the SSP-RK stages of the level set on all grids in step,
+        // the cells around the patches of every stage from the coarser level at the same stage
+        const bool lsrk = (stages==1 && mom0->ls_rk_n()>1);
+        if(lsrk)
+        {
+            // (N 40 5: the stage input around the patches is that of the start of the step, filled
+            // before the momentum; nothing has written it since)
+            if(tp)
+            for(int l=1; l<=maxlev; ++l)
+            fill_stage_in(l,s);
+
+            mom0->ls_rk_begin(p,a);
+            for(int id=0; id<npat; ++id)
+            {
+                pscope ps(pgc,CP(id)->a,a0);
+                CP(id)->pmom->ls_rk_begin(CP(id)->pp,CP(id)->a);
+            }
+
+            vector<fspec> fk;
+            fk.push_back({CELL,0,[this](int g) -> field& { return gmom(g)->amr_phi_in(0); }});
+
+            for(int k=0; k<mom0->ls_rk_n(); ++k)
+            {
+                // N 40 6: the ghost cells of the input as momentum_rk::levelset_transport
+                if(k>0 || mom0->amr_twoproj())
+                {
+                    mom0->ls_rk_ghost(p,pgc);
+                    for(int id=0; id<npat; ++id)
+                    {
+                        pscope ps(pgc,CP(id)->a,a0);
+                        CP(id)->pmom->ls_rk_ghost(CP(id)->pp,pgc);
+                    }
+                    if(k>0)
+                    for(int l=1; l<=maxlev; ++l)
+                    fill(l,fk);
+                }
+
+                // the velocity of the step: N 40 5 the projected u(n+1), N 40 6 u(n+1/2)
+                mom0->ls_rk_stage(p,a,k,mom0->ls_vel(a,0),mom0->ls_vel(a,1),mom0->ls_vel(a,2));
+
+                cfd_amr_wclock wc(wtp);
+                for(int id=0; id<npat; ++id)
+                {
+                    pscope ps(pgc,CP(id)->a,a0);
+                    fdm *fa = CP(id)->a;
+                    momentum_rk *m = CP(id)->pmom;
+                    m->ls_rk_stage(CP(id)->pp,fa,k,m->ls_vel(fa,0),m->ls_vel(fa,1),m->ls_vel(fa,2));
+                }
+            }
+        }
+        else
         mom0->amr_ls_transport(p,a,pgc,s);
+
         mom0->amr_ls_finish(p,a,pgc,s,false,-1);
         t0l[0] += MPI_Wtime()-ta;
 
         for(int l=1; l<=maxlev; ++l)
         {
+            if(!lsrk)
+            {
             fill_stage_in(l,s);
 
-            {
             cfd_amr_wclock wc(wtp);
             for(int id : lev[l])
             {
@@ -1728,11 +2356,34 @@ void cfd_amr::step_comp(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof 
             }
         }
 
+        if(close)
+        {
+        lbar();
+        tm[0] += MPI_Wtime()-ta;
+        }
+        else
+        ta_ls = ta;
+    };
+
+    // momentum and the composite projection (N 40 6: s 0 the half step, s 1 the full step)
+    auto mom_block = [&](int s)
+    {
         lbar();
         double tb = MPI_Wtime();
-        tm[0] += tb-ta;
+        if(ta_ls>=0.0)
+        {
+        tm[0] += tb-ta_ls;
+        ta_ls = -1.0;
+        }
 
-        // momentum
+        // the forces of the nets on the patches: those of their last stage, which level 0 holds for
+        // this stage (before its forcing takes the nets to this stage)
+        if(nets6!=nullptr)
+        net_forces();
+
+        if(tp)
+        mom0->amr_twoproj_momentum(p,a,pgc,pvrans,p6dof,s==0,1);
+        else
         mom0->amr_momentum(p,a,pgc,pvrans,p6dof,s,1);
         t0l[1] += MPI_Wtime()-tb;
 
@@ -1745,6 +2396,9 @@ void cfd_amr::step_comp(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof 
             for(int id : lev[l])
             {
                 pscope ps(pgc,CP(id)->a,a0);
+                if(tp)
+                CP(id)->pmom->amr_twoproj_momentum(CP(id)->pp,CP(id)->a,pgc,CP(id)->pvrans,(sixdof*)CP(id)->p6dof,s==0,patch_forcing());
+                else
                 CP(id)->pmom->amr_momentum(CP(id)->pp,CP(id)->a,pgc,CP(id)->pvrans,(sixdof*)CP(id)->p6dof,s,patch_forcing());
             }
         }
@@ -1752,14 +2406,16 @@ void cfd_amr::step_comp(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof 
         double tc = MPI_Wtime();
         tm[1] += tc-tb;
 
-        // composite projection
         pr_project(p,pgc,s);
 
         lbar();
-        double td = MPI_Wtime();
-        tm[2] += td-tc;
+        tm[2] += MPI_Wtime()-tc;
+    };
 
-        // end of the stage
+    // end of the stage
+    auto end_block = [&](int s)
+    {
+        double td = MPI_Wtime();
         mom0->amr_stage_end(p,a,pgc,s);
         t0l[2] += MPI_Wtime()-td;
         {
@@ -1774,6 +2430,70 @@ void cfd_amr::step_comp(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof 
         restrict_scalars(s);
 
         tm[3] += MPI_Wtime()-td;
+    };
+
+    // the one-step scheme (N 40 5): the momentum with u(n) and the projection first, then the level
+    // set with the projected u(n+1) (momentum_rk::step_ssp); the stage input (u(n), the level set)
+    // around the patches before the momentum
+    if(tp)
+    {
+        // N 40 6: the one step with two projections (momentum_rk::step_twoproj) on all grids.
+        // 1. the half step from u(n), phi(n), p(n) (the stage input around the patches), the
+        // composite projection with dt/2: u(n+1/2) in urk2, p(n+1/2)
+        for(int l=1; l<=maxlev; ++l)
+        fill_stage_in(l,0);
+
+        mom_block(0);
+
+        // 2. the level set from n to n+1 with u(n+1/2) (around the patches from the composite
+        // projection), level by level, restricted
+        ls_block(0,true);
+
+        {
+        double td = MPI_Wtime();
+        restrict_scalars(0);
+
+        // the level set of the middle of the step, its density and viscosity on all grids; around
+        // the patches, level by level: the level set, the pressure p(n+1/2), u(n) and the density
+        // and viscosity from the coarser level (the momentum of the full step reads them there)
+        mom0->amr_twoproj_mid(p,a,pgc);
+        {
+        cfd_amr_wclock wc(wtp);
+        for(int id=0; id<npat; ++id)
+        {
+            pscope ps(pgc,CP(id)->a,a0);
+            CP(id)->pmom->amr_twoproj_mid(CP(id)->pp,CP(id)->a,pgc);
+        }
+        }
+
+        for(int l=1; l<=maxlev; ++l)
+        fill_stage_in(l,1);
+        tm[3] += MPI_Wtime()-td;
+        }
+
+        // 3. the full step from u(n) with the advecting velocity u(n+1/2), the composite projection
+        // with dt: u(n+1), p(n+1)
+        mom_block(1);
+
+        // 4. the level set phi(n+1), density and viscosity of n+1
+        end_block(0);
+    }
+    else
+    if(stages==1)
+    {
+        for(int l=1; l<=maxlev; ++l)
+        fill_stage_in(l,0);
+
+        mom_block(0);
+        ls_block(0,true);
+        end_block(0);
+    }
+    else
+    for(int s=0; s<stages; ++s)
+    {
+        ls_block(s,false);
+        mom_block(s);
+        end_block(s);
     }
 
     // the volume correction over the leaf cells of all grids (F 46 2, 3)
@@ -1793,33 +2513,4 @@ void cfd_amr::step_comp(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof 
     replace_static(p,pgc);
 
     tm[7] += MPI_Wtime()-t0;
-
-
-    if(p->count%p->P12==0)
-    {
-        double V, dV;
-        volume(V,dV);
-        if(p->mpirank==0)
-        {
-            const std::streamsize pr = cout.precision();
-            cout<<"CFD AMR: volume of the level set over the leaf cells "<<setprecision(8)<<V<<endl;
-            cout.precision(pr);
-        }
-    }
-    if(scal && p->count%p->P12==0)
-    {
-        double smin, smax;
-        const double S = sc_total(smin,smax);
-        if(p->mpirank==0)
-        {
-            const std::streamsize pr = cout.precision();
-            cout<<"CFD AMR: "<<(scal==1 ? "heat (T V)" : "concentration (C V)")<<" over the leaf cells "<<setprecision(12)<<S
-                <<", range "<<setprecision(6)<<smin<<" "<<smax<<endl;
-            cout.precision(pr);
-        }
-    }
-
-    if(p->mpirank==0 && (p->count%p->P12==0))
-    cout<<"CFD AMR: pressure iterations "<<pr_it_last<<"  res "<<setprecision(3)<<pr_res_last
-        <<"  time: level set "<<tm[0]<<" momentum "<<tm[1]<<" projection "<<tm[2]<<" end "<<tm[3]<<" total "<<tm[7]<<" (solver: prec "<<tm[5]<<" apply "<<tm[6]<<" patch cycles "<<tp[0]<<" level-0 cycles "<<tp[1]<<"; level 0: level set "<<t0l[0]<<" momentum "<<t0l[1]<<" end "<<t0l[2]<<")"<<endl;
 }

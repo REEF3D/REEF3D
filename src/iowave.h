@@ -189,6 +189,7 @@ public:
     // NHFLOW
     void wavegen_precalc_nhflow(lexer*,fdm_nhf*,ghostcell*) override final;
     void wavegen_stage_nhflow(lexer*,fdm_nhf*,ghostcell*,double) override final;
+    void wavegen_stage_fnpf(lexer*,fdm_fnpf*,ghostcell*,double,double) override final;
     void wavegen_2D_stage(lexer*,fdm2D*,ghostcell*,double) override final;
     void wavegen_precalc_ini_nhflow(lexer*,fdm_nhf*,ghostcell*);
     void discharge_nhflow(lexer*,fdm_nhf*,ghostcell*) override final;
@@ -234,8 +235,10 @@ private:
     slice4 relax4_wg, relax4_nb;
     // B 95: the relaxation functions as computed at the start (relax4_wg/nb then hold r^(dt/dt_ref))
     slice4 *relax4_wg0 = nullptr, *relax4_nb0 = nullptr;
+    int stage_count = -1;        // FNPF: step and time of the last stage targets (wavegen_stage_fnpf)
+    double stage_time = 0.0;
     double relax_fac = 1.0;
-    void relax_stage_factor(lexer*);
+    void relax_stage_factor(lexer*,double w=1.0);
     bc_zone_set zones;      // generation and beach zones (B 96, B 107, B 108)
     
     // combined beach (B 99 6, NHFLOW, SFLOW and FNPF): the beach relaxes to the state low-passed over beach_tau,
@@ -307,6 +310,11 @@ private:
     void zones_check(lexer*);
     std::vector<int> gen_idx;
     bool gen_built=false;
+    // wavegen_2D_precalc: the values of the last evaluation (time, grid, bed of the zone columns); the SI step
+    // (A 210 12/13, B 95) evaluates t^{n+1} in its relaxation, the main loop of the next step the same time again
+    double pc2D_time=0.0;
+    const lexer *pc2D_p=nullptr;
+    std::vector<double> pc2D_bed;
     
     // tidal / current background (B 510-514, B 523; NHFLOW): background index of the
     // generation and beach zone of each column (IJ), -1: none; still water depth per column
@@ -323,6 +331,7 @@ private:
     // edges (B 520 3-5), the relaxation and the beach zones of SFLOW and NHFLOW target (iowave_met.cpp)
     double eta_ib(lexer*,ghostcell*,double,double);
     void nhflow_bg_update(lexer*,fdm_nhf*,ghostcell*);
+    void background_initialize_nhflow(lexer*,fdm_nhf*,ghostcell*);   // B 531 1: start with the background current
     void nhflow_open_edges(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,double*,double*,double*,slice&);
     // curvilinear grid (G 50): inward normal, length and centre of the boundary face of an edge cell
     void curv_edge_normal(lexer*,int,int,int,double&,double&);

@@ -92,6 +92,8 @@ void seastate_coupling::ini_wave(lexer *p, ghostcell *pgc, const char *host)
     {
     seastate_source_param prm = pwave->source()->param();
     prm.wind = prm.wind && (remote ? host_wind : (p->W200>0 || p->A570>0));
+    // the net source: the DIA into S as usual (A 769 2 integrates it in the solver)
+    prm.dia_mp = false;
 
     if(pwave->roller()!=nullptr)
     prm.breaking = false;
@@ -391,6 +393,8 @@ void seastate_coupling::forces(lexer *p, ghostcell *pgc, slice &U, slice &V)
     Tpw(i,j) = e->wet(i,j)==1 ? e->Tp(i,j) : 0.0;
     }
 
+    ++nupd;
+
     if(pmetw!=nullptr)
     pmetw->waves_update(p);
 }
@@ -640,6 +644,8 @@ void seastate_coupling::remote_step(lexer *p, ghostcell *pgc, slice &eta, slice 
         for(int n=0; n<5; ++n)
         (*T[n])(i,j) = ws>0.0 ? v[n]/ws : 0.0;
     }
+
+    ++nupd;
 
     if(pmetw!=nullptr)
     pmetw->waves_update(p);

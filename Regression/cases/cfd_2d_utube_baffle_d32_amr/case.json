@@ -1,0 +1,17 @@
+{
+ "np": 1,
+ "steps": 200,
+ "description": "A closed tank 0.6 x 0.6 m (dx 5 mm) with a baffle (S 10, 4 cells thick, x 0.40-0.42 m) from the lid down to z = 0.15 m, which closes the air of the right chamber; the free surface starts tilted, higher on the right (F 57), two phases with the compressible air (N 40 5, N 59 2, W 32 2). cfd_2d_utube_baffle_d32 with one refined level (G 1 1, G 7 0, box x 0.30-0.60 m over the baffle and the right chamber): the closed faces on the patch (its solid cast at its resolution) and at the patch edges (cfd_amr pr_predict: the face velocity 0, pr_matrix: no coupling, pr_correct: not corrected).",
+ "tags": [
+  "quick",
+  "2d",
+  "levelset",
+  "solid",
+  "closed",
+  "compressible",
+  "amr"
+ ],
+ "covers": [
+  "cfd_amr_press.cpp cf_closed: pr_predict, pr_matrix, pr_level, pr_correct"
+ ]
+}

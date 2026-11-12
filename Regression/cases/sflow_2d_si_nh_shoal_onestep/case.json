@@ -1,0 +1,18 @@
+{
+ "base": "sflow_2d_si_nh_shoal",
+ "ctrl_set": {
+  "A 210": "11"
+ },
+ "description": "sflow_2d_si_nh_shoal with the one-step predictor (A 210 11): the BCG face values in 2D with the transverse terms.",
+ "tags": [
+  "2d",
+  "sflow",
+  "semi_implicit",
+  "nonhydrostatic",
+  "waves"
+ ],
+ "covers": [
+  "sflow_momentum_SI::advection_bcg (2D, transverse terms)"
+ ],
+ "architect": "Hans Bihs"
+}

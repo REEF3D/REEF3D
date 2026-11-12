@@ -26,6 +26,7 @@ The validation case of the multi-block grids (P5 gate): the IIHR flume of Shumat
 | `digitize_fig9_10.py` | digitizes the dots of Figs. 9 and 10 from the 300 dpi images of the PDF (`pdfimages -f 8 -l 9 -png`): the curve of the model removed row by row, isolated dots and dots on the curve; writes `data/fig9_10_profiles.json` |
 | `data/fig9_10_profiles.json` | the measured profiles of Figs. 9 and 10 (Shumate 1998, RUN5): 33 stations, 9-13 points each, about +-0.05 U0 (Fig. 9) and +-0.015 U0 (Fig. 10); Fig. 10 read with the scale 0.6 (its bar reads 6.0, which gives 3.4 U0 at the junction, ten times the branch inflow), x/W = 1 of Fig. 10 not digitized (the dots lie on the zero line) |
 | `make_regression_cases.py` | the regression cases of P6a, P6b and P6c (below); keeps the references of the cases it rewrites |
+| `weber_run.py case [weber_case.py options]` | P8c: weber_case.py, DIVEMesh and REEF3D with the AMR dump the comparisons read |
 
 ## Results (SFLOW, W/dx = 16, 7168 cells, 400 s)
 
@@ -116,6 +117,34 @@ k-omega, W/dx 12, 8 layers, 300 s; SFLOW W/dx 16, 400 s:
 - SFLOW: the bed friction changes the results little (RUN5 k-epsilon +5.4 -> +5.5 %, mixing length +6.2 % both)
 - the P6b wall lists made the NHFLOW surface dip by 6 mm in the first column of block 1 behind the interface across
   the channel (x/W = -1); all NHFLOW runs above are with the P6c wall lists (`../nhflow_multiblock/README.md`)
+
+## Results P8c: W/dx 16 and the depth
+
+NHFLOW k-omega, hydrostatic, 8 layers, 300 s, layout b, the binary of P8c (hans_dev c683148 + P8b/P8c; the P6c
+binary is not available: at W/dx 12 the current build gives RUN5 +6.9 % against +5.8 % in P6c).  `weber_run.py case
+[weber_case.py options]` runs a case (`--xctrl "A 560 2"`; with `P 48 1000` in `--xctrl` a killed run restarts from its checkpoint
+with `I 45 1` added to ctrl.txt).
+
+| run | W/dx | h(x*=-7) | rise | minimum | reversed flow top / bottom | Fig. 5 rms | Fig. 8 rms | slow zone bed / top | Fig. 9 / 10 rms | core at x/W = -2, y/W 0.25 |
+|---|---|---|---|---|---|---|---|---|---|---|
+| RUN5 measured | | 0.3100 (Huang's H0) | +5.0 % | 0.95 | none | | | 0.13 / 0.18 | | |
+| RUN5 | 12 | 0.2991 | +6.9 % | 0.970 | none | 0.014 | 0.177 | 0.12 / 0.16 | 0.080 / 0.044 | -0.17 U0 |
+| RUN5 | 16 | 0.2990 | +6.8 % | 0.965 | 0.34 W x 0.06 W / none | 0.014 | 0.162 | 0.12 / 0.17 | 0.074 / 0.046 | -0.14 U0 |
+| RUN5, tailgate 0.307 m | 12 | 0.3096 | +6.2 % | 0.973 | none | 0.013 | 0.207 | 0.13 / 0.16 | 0.084 / 0.045 | -0.20 U0 |
+| RUN2 measured | | 0.3054 | +8.8 % | 0.92 | larger near the surface | | | 0.16 / 0.31 | | |
+| RUN2 (P6c) | 12 | | +11.0 % | 0.936 | 2.3 W x 0.17 W / 1.3 W x 0.17 W | | 0.146 | 0.20 / 0.29 | | |
+| RUN2 | 16 | 0.2995 | +12.5 % | 0.925 | 2.41 W x 0.19 W / 1.66 W x 0.13 W | | 0.151 | 0.21 / 0.28 | | |
+
+- W/dx 16 against 12: the shear layer a little sharper (RUN5 Fig. 8 0.177 -> 0.162, Fig. 9 0.080 -> 0.074, the
+  slow core at x/W = -2 0.17 -> 0.14 U0 too slow), the surface the same (rise +6.8 against +6.9 %; RUN2 +12.5 against
+  +11.0 %): the resolution does not explain the rise.  W/dx 24 (about 5 times the cost of W/dx 16, 15 - 20 h on the 2
+  cores here) not run.
+- The depth: with the tailgate 0.296 m the runs are 3.5 % (RUN5) and 2 % (RUN2) shallower at x*=-7 than Huang's H0
+  (the P6c note "1.5 % deeper" is not reproduced by the current build).  With the tailgate raised to 0.307 m (RUN5
+  h(x*=-7) = 0.3096) the rise drops to +6.2 % (measured +5.0 %), but the velocities against U0 = 0.628 m/s (Weber's,
+  from 0.296 m) are 3 % lower everywhere (Fig. 8 mean +0.15).  The measurements mix both depths: Huang's H0 for the
+  surface and U0 of 0.296 m for the velocities.
+- Left: the rise (RUN2 +12.5 against +8.8 %), the side-wall friction (`A 519 2`, refused on blocks) and W/dx 24.
 
 ## Notes
 

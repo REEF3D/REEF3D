@@ -1,0 +1,3 @@
+{"base": "cfd_2d_channel_kepsilon", "ctrl_set": {"D 20": "1"},
+ "description": "cfd_2d_channel_kepsilon with the explicit diffusion D 20 1 and the wall law B 10 1: no diffusive flux through the bed face (ediff2_2D, diff_walllaw).",
+ "tags": ["2d", "turbulence", "walls"], "covers": ["ediff2_2D wall-law faces"]}

@@ -28,7 +28,7 @@ int wave_lib_hdc::pos_i(lexer *p, double xs)
     int is,ie,iloc;
     int stop=0;
     int count=0;
-    int ii;
+    int ii=0;
     double XM1,XP,XP1,Xstart,Xend;
     
     is = 0;
@@ -126,7 +126,7 @@ int wave_lib_hdc::pos_j(lexer *p, double ys)
     int js,je,jloc;
     int stop=0;
     int count=0;
-    int jj;
+    int jj=0;
     double YM1,YP,YP1,Ystart,Yend;
     
     js = 0;
@@ -227,7 +227,7 @@ int wave_lib_hdc::pos_k(lexer *p, double zs, int i, int k)
     int ks,ke,kloc;
     int stop=0;
     int count=0;
-    int kk;
+    int kk=0;
     
     ks = 0;
     ke = Nz;

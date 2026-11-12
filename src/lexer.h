@@ -17,7 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Hans Bihs
+Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
 #ifndef LEXER_H_
@@ -69,6 +69,7 @@ public:
 //---- setup
     void lexer_read(ghostcell*);
     void flagini();
+    void flagfree_fnpf();   // FNPF: the 3D flags only the grid set-up reads, given back after the initialisation
 	void gridini(ghostcell*);
     void grid_solids(ghostcell*);   // solids and topography of the grid file for all modules
     void geometry_ini(ghostcell*);  // horizontal geometry layer of the grid (lexer_geometry.cpp)
@@ -130,6 +131,7 @@ public:
     int *deep;
     int *wetfix = nullptr;          // mesh refinement (NHFLOW G 30): flag a cell keeps through wetdry, -1 none
     int amr_patch = 0;              // mesh refinement (CFD, G 15): 1 on the lexer of a patch
+    int amr_cfd = 0;                // mesh refinement (CFD, G 1): 1 on level 0 while it runs: cfd_amr::velmax prints umax, vmax, wmax over the finest grids, not the time step
     double *amrvb = nullptr;        // mesh refinement (NHFLOW A 550): breaking viscosity of the source of a filled cell, -1 none
     int gcbextra;
     int solidread,toporead,porousread,topoforcing;
@@ -264,6 +266,7 @@ public:
     int sediter;
     double final_res;
 	double dt,dt_old,simtime,viscmax,RK_alpha;
+    double dt_crit;     // FNPF: the step of the time-step criterion at N 47 1 (fnpf_timestep), scales the theta-Robin relaxation zones
 	double mindt,maxdt;
 	double umax,vmax,wmax,epsmax,kinmax,pressmin,pressmax,omegamax;
 	double presstime,veltime,reinitime,turbtime,plstime,itertime;
@@ -272,6 +275,7 @@ public:
 	double meantime,totaltime;
 	double gcmeantime,gctotaltime;
 	double Xmeantime,Xtotaltime;
+    double poissontotaltime = 0.0;  // CFD: the sum of poissontime (all projections of a step) over the run
 	double maxbed, minbed;
 	double susptime,maxtopovel;
 	double gctime, xtime;
@@ -319,6 +323,7 @@ public:
 
     // free surface
     double psi,psi0;
+    double psi_rho;     // G 28: the half width of the smoothed interface of the fluid properties, the same on all levels of the mesh refinement; 0: F 45 times the local cell size (interface_width.h)
     int reini_iter;     // reinitialisation iterations of the next reini call (the momentum classes set it per stage, default F44)
 	int pressval;
 

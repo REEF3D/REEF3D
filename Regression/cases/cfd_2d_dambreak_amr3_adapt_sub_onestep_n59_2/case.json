@@ -1,0 +1,24 @@
+{
+ "base": "cfd_2d_dambreak_amr3_adapt_sub",
+ "np": 1,
+ "steps": 60,
+ "ctrl_set": {
+  "N 40": "5"
+ },
+ "ctrl_add": [
+  "N 59 2",
+  "N 63 3"
+ ],
+ "description": "cfd_2d_dambreak_amr3_adapt_sub_onestep_n63_rk3 with N 59 2: with subcycling (validation 84).",
+ "tags": [
+  "quick",
+  "2d",
+  "dambreak",
+  "levelset",
+  "amr",
+  "adaptive"
+ ],
+ "covers": [
+  "godunov: N 59 2 with subcycling G 7 1"
+ ]
+}

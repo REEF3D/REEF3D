@@ -90,6 +90,8 @@ namespace coral
         VecX drag_force(const model&) const;
 
         const MatX &ainf() const {return Ainf_;}
+        const hydro_db &database() const {return *db_;}
+        const hydro_settings &settings() const {return set_;}
         const retardation &memory() const {return K_;}
         const radiation_ss &state_space() const {return ss_;}
 

@@ -21,6 +21,8 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"pjm_corr.h"
+#include"pic_gfm.h"
+#include"solid_closed.h"
 #include"lexer.h"
 #include"fdm.h" 
 #include"ghostcell.h"
@@ -110,17 +112,22 @@ void pjm_corr::start(fdm* a,lexer*p, poisson* ppois,solver* psolv, ghostcell* pg
 
     p->poissoniter=p->solveriter;
 
-	p->poissontime=pgc->timer()-starttime;
+    // poissontime: all projections of the step (the driver prints the sum and resets it)
+    const double ptime=pgc->timer()-starttime;
+	p->poissontime+=ptime;
 
 	if(p->mpirank==0 && (p->count%p->P12==0))
-	cout<<"piter: "<<p->solveriter<<"  ptime: "<<setprecision(3)<<p->poissontime<<endl;
+	cout<<"piter: "<<p->solveriter<<"  ptime: "<<setprecision(3)<<ptime<<endl;
 }
 
 // the parts of start before and after the solve (mesh refinement, cfd_amr: the composite solve of
 // all grids in between)
 void pjm_corr::amr_prepare(lexer *p, fdm *a, poisson *ppois, ghostcell *pgc, field &uvel, field &vvel, field &wvel, double alpha)
 {
-    if(p->W32>0 && fabs(alpha-1.0)<1.0e-12)
+    // W 32: the pressure at the start of the step, the reference of the compressibility terms. SSP
+    // Runge-Kutta and N 40 5: the first stage (alpha 1). N 40 6: the half step (alpha 1/2); the full
+    // step (alpha 1) keeps p(n), its pressure is p(n+1/2) of the half step
+    if(p->W32>0 && fabs(alpha-(p->N40==6 ? 0.5 : 1.0))<1.0e-12)
     LOOP
     pn(i,j,k) = a->press(i,j,k);
 
@@ -141,6 +148,9 @@ void pjm_corr::amr_finish(lexer *p, fdm *a, ghostcell *pgc, field &uvel, field &
 {
     pgc->start4(p,pcorr,gcval_press);
     presscorr(p,a,uvel,vvel,wvel,pcorr,alpha);
+
+    // PIC single phase (F 81 1): the pressure is 0 at the free surface, no reference
+    if(!gfm_single(p))
     reference_start(p,a,pgc);
 	pgc->start4(p,a->press,gcval_press);
     
@@ -150,29 +160,68 @@ void pjm_corr::amr_finish(lexer *p, fdm *a, ghostcell *pgc, field &uvel, field &
 }
 
 void pjm_corr::ucorr(lexer* p, fdm* a, field& uvel,double alpha)
-{	
+{
+    // PIC single phase (F 81 1): the gradient of the ghost fluid method at the free surface
+    if(gfm_single(p))
+    {
+    ULOOP
+    if(!solid_face_closed(p,a,i,j,k,1,0,0))
+	uvel(i,j,k) -= alpha*p->dt*CPOR1*PORVAL1*pic_gfm_grad(p,a,pcorr,i,j,k,1,0,0,p->DXP[IP])/pd->roface(p,a,1,0,0);
+    return;
+    }
+
 	ULOOP
+    if(!solid_face_closed(p,a,i,j,k,1,0,0))
 	uvel(i,j,k) -= alpha*p->dt*CPOR1*PORVAL1*((pcorr(i+1,j,k)-pcorr(i,j,k))
 	/(p->DXP[IP]*pd->roface(p,a,1,0,0)));
 }
 
 void pjm_corr::vcorr(lexer* p, fdm* a, field& vvel,double alpha)
-{	
+{
+    if(gfm_single(p))
+    {
+    if(p->j_dir==1)
+    VLOOP
+    if(!solid_face_closed(p,a,i,j,k,0,1,0))
+	vvel(i,j,k) -= alpha*p->dt*CPOR2*PORVAL2*pic_gfm_grad(p,a,pcorr,i,j,k,0,1,0,p->DYP[JP])/pd->roface(p,a,0,1,0);
+    return;
+    }
+
     if(p->j_dir==1)
 	VLOOP
+    if(!solid_face_closed(p,a,i,j,k,0,1,0))
 	vvel(i,j,k) -= alpha*p->dt*CPOR2*PORVAL2*((pcorr(i,j+1,k)-pcorr(i,j,k))
 	/(p->DYP[JP]*pd->roface(p,a,0,1,0)));
 }
 
 void pjm_corr::wcorr(lexer* p, fdm* a, field& wvel,double alpha)
-{	
+{
+    if(gfm_single(p))
+    {
+    WLOOP
+    if(!solid_face_closed(p,a,i,j,k,0,0,1))
+	wvel(i,j,k) -= alpha*p->dt*CPOR3*PORVAL3*pic_gfm_grad(p,a,pcorr,i,j,k,0,0,1,p->DZP[KP])/pd->roface(p,a,0,0,1);
+    return;
+    }
+
 	WLOOP
+    if(!solid_face_closed(p,a,i,j,k,0,0,1))
 	wvel(i,j,k) -= alpha*p->dt*CPOR3*PORVAL3*((pcorr(i,j,k+1)-pcorr(i,j,k))
 	/(p->DZP[KP]*pd->roface(p,a,0,0,1)));
 }
 
 void pjm_corr::presscorr(lexer* p, fdm* a, field& uvel, field& vvel, field& wvel, field& pcorr, double alpha)
 {
+    // PIC single phase (F 81 1): 0 in the air (the gradients of the ghost fluid method do not use
+    // the pressure there, pic_gfm_grad)
+    if(gfm_single(p))
+    {
+    // (F 41 2: the pressure of the air pocket of the cell, pic_gfm_air)
+    LOOP
+    a->press(i,j,k) = a->phi(i,j,k)>=0.0 ? a->press(i,j,k) + pcorr(i,j,k) : pic_gfm_air(p,i,j,k);
+    return;
+    }
+
     LOOP
     a->press(i,j,k) += pcorr(i,j,k); 
 }
@@ -192,6 +241,31 @@ void pjm_corr::rhs(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, field &
     pcorr(i,j,k)=0.0;
     
     pgc->start4(p,pcorr,1);
+
+    // D 32: the faces closed in the solids (solid_closed.h) take no flux.  The forcing left the
+    // share 1-H of the velocity there (H < 1 within the smoothing width of the solid surface) and
+    // the next predictor would add the pressure gradient across the closed face: set to 0
+    if(p->D32>0)
+    LOOP
+    {
+        if(p->flag4[Ip1JK]>0 && solid_face_closed(p,a,i,j,k,1,0,0))
+        u(i,j,k) = 0.0;
+        if(p->flag4[Im1JK]>0 && solid_face_closed(p,a,i,j,k,-1,0,0))
+        u(i-1,j,k) = 0.0;
+
+        if(p->j_dir==1)
+        {
+        if(p->flag4[IJp1K]>0 && solid_face_closed(p,a,i,j,k,0,1,0))
+        v(i,j,k) = 0.0;
+        if(p->flag4[IJm1K]>0 && solid_face_closed(p,a,i,j,k,0,-1,0))
+        v(i,j-1,k) = 0.0;
+        }
+
+        if(p->flag4[IJKp1]>0 && solid_face_closed(p,a,i,j,k,0,0,1))
+        w(i,j,k) = 0.0;
+        if(p->flag4[IJKm1]>0 && solid_face_closed(p,a,i,j,k,0,0,-1))
+        w(i,j,k-1) = 0.0;
+    }
 
     count=0;
     LOOP
@@ -224,12 +298,31 @@ void pjm_corr::vel_setup(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, f
 
 void pjm_corr::upgrad(lexer*p,fdm* a, slice &eta, slice &eta_n)
 {
+    // PIC single phase (F 81 1): the gradient of the ghost fluid method at the free surface, as in
+    // the correction (pjm_corr::ucorr), so that the pressure is 0 at the surface after it
+    if(gfm_single(p))
+    {
+    ULOOP
+    a->F(i,j,k) -= PORVAL1*pic_gfm_grad(p,a,a->press,i,j,k,1,0,0,p->DXP[IP])/pd->roface(p,a,1,0,0);
+    return;
+    }
+
     ULOOP
     a->F(i,j,k) -= PORVAL1*(a->press(i+1,j,k)-a->press(i,j,k))/(p->DXP[IP]*pd->roface(p,a,1,0,0));
 }
 
 void pjm_corr::vpgrad(lexer*p,fdm* a, slice &eta, slice &eta_n)
 {
+    // PIC single phase (F 81 1): the gradient of the ghost fluid method at the free surface, as in
+    // the correction (pjm_corr::vcorr), so that the pressure is 0 at the surface after it
+    if(gfm_single(p))
+    {
+    if(p->j_dir==1)
+    VLOOP
+    a->G(i,j,k) -= PORVAL2*pic_gfm_grad(p,a,a->press,i,j,k,0,1,0,p->DYP[JP])/pd->roface(p,a,0,1,0);
+    return;
+    }
+
     if(p->j_dir==1)
     VLOOP
     a->G(i,j,k) -= PORVAL2*(a->press(i,j+1,k)-a->press(i,j,k))/(p->DYP[JP]*pd->roface(p,a,0,1,0));
@@ -237,6 +330,15 @@ void pjm_corr::vpgrad(lexer*p,fdm* a, slice &eta, slice &eta_n)
 
 void pjm_corr::wpgrad(lexer*p,fdm* a, slice &eta, slice &eta_n)
 {
+    // PIC single phase (F 81 1): the gradient of the ghost fluid method at the free surface, as in
+    // the correction (pjm_corr::wcorr), so that the pressure is 0 at the surface after it
+    if(gfm_single(p))
+    {
+    WLOOP
+    a->H(i,j,k) -= PORVAL3*pic_gfm_grad(p,a,a->press,i,j,k,0,0,1,p->DZP[KP])/pd->roface(p,a,0,0,1);
+    return;
+    }
+
     WLOOP
     a->H(i,j,k) -= PORVAL3*(a->press(i,j,k+1)-a->press(i,j,k))/(p->DZP[KP]*pd->roface(p,a,0,0,1));
 }

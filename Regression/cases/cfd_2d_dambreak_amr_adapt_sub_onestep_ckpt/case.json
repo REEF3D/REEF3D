@@ -1,0 +1,20 @@
+{
+ "base": "cfd_2d_dambreak_amr_adapt_sub",
+ "ctrl_set": {
+  "P 48": "20",
+  "P 49": "0",
+  "N 40": "5"
+ },
+ "description": "cfd_2d_dambreak_amr_adapt_sub_ckpt with the one-step scheme (N 40 5): the uninterrupted run of the restart case (validation 80).",
+ "tags": [
+  "2d",
+  "dambreak",
+  "levelset",
+  "amr",
+  "adaptive",
+  "checkpoint"
+ ],
+ "covers": [
+  "cfd_amr::ckpt_write with G 7 1 and N 40 5"
+ ]
+}

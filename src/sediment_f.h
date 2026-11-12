@@ -59,6 +59,12 @@ class sediment_exner;
 class fdm_nhf;
 class fdm2D;
 class ioflow;
+class sediment_waves;
+class bedload_waves;
+class sediment_susp2D;
+class slice1;
+class slice2;
+class slice4;
 
 // mesh refinement and multi-block grids: the sediment step of all grids (nhflow_amr, sflow_amr), called by
 // the level-0 sediment_f instead of its own step (sediment_amr.cpp)
@@ -115,6 +121,7 @@ public:
     
     void sediment_algorithm_nhflow(lexer*, fdm_nhf*, ghostcell*, ioflow*);
     void prep_nhflow(lexer*, fdm_nhf*, ghostcell*);
+    void thin_water(lexer*, ghostcell*, int);
     void fill_PQ_nhflow(lexer*,fdm_nhf*,ghostcell*);
     void active_nhflow(lexer*, fdm_nhf*, ghostcell*);
     void active_ini_nhflow(lexer*, fdm_nhf*, ghostcell*);
@@ -129,8 +136,19 @@ public:
     void active_sflow(lexer*, fdm2D*, ghostcell*);
     void active_ini_sflow(lexer*, fdm2D*, ghostcell*);
     
+    // SFLOW: bed shear stress with the waves (S 110), shared by the sediment step and the suspended load
+    void physics_sflow(lexer*, fdm2D*, ghostcell*, slice&, slice&);
+    // SFLOW: depth-averaged suspended load (S 120), every flow step once the sediment transport has started
+    void susp_sflow(lexer*, fdm2D*, ghostcell*, slice&, slice&);
+    // SFLOW wave formulas (S 11 6-9): the face directions of the Exner step from the transport direction
+    // (mode 1, s->P and s->Q saved), mode 0 restores the flow velocities
+    void transport_direction(lexer*, ghostcell*, int mode);
+    void check_sflow_waves(lexer*);
+    
     void active_zone(lexer*, ghostcell*);
     void dfbed_comms(lexer*, ghostcell*);
+    void dfbed_inflow(lexer*);
+    void inflow_PQ(lexer*);
     
     
     // ---
@@ -158,28 +176,28 @@ public:
     void print_probes(lexer*, ghostcell*,sediment_fdm*, ioflow*) override final;
     void print_particles(lexer*,sediment_fdm*) override final {};
     
-    void print_2D_bedload(lexer*, ghostcell*,ofstream&) override final;
+    void print_2D_bedload(lexer*, ghostcell*,std::ostream&) override final;
     void print_3D_bedload(lexer*, ghostcell*, std::vector<char>&, size_t&) override final;
 	void name_ParaView_parallel_bedload(lexer*,ofstream&) override final;
     void name_ParaView_bedload(lexer*, ostream&, int*, int &) override final;
     void offset_ParaView_2D_bedload(lexer*, int*, int &) override final;
     void offset_ParaView_bedload(lexer*, int*, int &) override final;
     
-	void print_2D_bedshear(lexer*, ghostcell*,ofstream&) override final;
+	void print_2D_bedshear(lexer*, ghostcell*,std::ostream&) override final;
     void print_3D_bedshear(lexer*, ghostcell*, std::vector<char>&, size_t&) override final;
 	void name_ParaView_parallel_bedshear(lexer*,ofstream&) override final;
     void name_ParaView_bedshear(lexer*, ostream&, int*, int &) override final;
     void offset_ParaView_2D_bedshear(lexer*, int*, int &) override final;
     void offset_ParaView_bedshear(lexer*, int*, int &) override final;
     
-    void print_2D_parameter1(lexer*, ghostcell*,ofstream&) override final;
+    void print_2D_parameter1(lexer*, ghostcell*,std::ostream&) override final;
     void print_3D_parameter1(lexer*, ghostcell*, std::vector<char>&, size_t&) override final;
 	void name_ParaView_parallel_parameter1(lexer*,ofstream&) override final;
     void name_ParaView_parameter1(lexer*, ostream&, int*, int &) override final;
     void offset_ParaView_2D_parameter1(lexer*, int*, int &) override final;
     void offset_ParaView_parameter1(lexer*, int*, int &) override final;
     
-    void print_2D_parameter2(lexer*, ghostcell*,ofstream&) override final;
+    void print_2D_parameter2(lexer*, ghostcell*,std::ostream&) override final;
     void print_3D_parameter2(lexer*, ghostcell*, std::vector<char>&, size_t&) override final;
 	void name_ParaView_parallel_parameter2(lexer*,ofstream&) override final;
     void name_ParaView_parameter2(lexer*, ostream&, int*, int &) override final;
@@ -234,6 +252,22 @@ public:
     sediment_f *psed;
     ofstream sedlogout;
     sediment_roughness *pks = nullptr; 
+    
+    // SFLOW: waves (S 110), wave formulas (S 11 6-9), depth-averaged suspended load (S 120)
+    sediment_waves *pwaves = nullptr;
+    bedload_waves *pbedw = nullptr;
+    sediment_susp2D *psusp2D = nullptr;
+    slice1 *Psave = nullptr;
+    slice2 *Qsave = nullptr;
+    slice4 *Vtx = nullptr, *Vty = nullptr;
+    
+    // NHFLOW, S 37 2: phase-lead near-bed velocity of Nielsen (2006), u_e = cos(phi) u + sin(phi)/omega du/dt
+    // (sediment_phase_lead.cpp): previous velocities and low-pass filtered accelerations of the faces and cells
+    void phase_lead_nhflow(lexer*,fdm_nhf*,ghostcell*);
+    slice1 *pl_P0 = nullptr, *pl_aP = nullptr;
+    slice2 *pl_Q0 = nullptr, *pl_aQ = nullptr;
+    slice4 *pl_U0 = nullptr, *pl_aU = nullptr, *pl_V0 = nullptr, *pl_aV = nullptr;
+    double pl_t0 = -1.0;
     
     double starttime;
     

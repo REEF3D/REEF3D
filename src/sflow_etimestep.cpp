@@ -149,6 +149,9 @@ void sflow_etimestep::start(lexer *p, fdm2D* b, ghostcell* pgc)
         if(p->A246==2 && b->breaking(i,j)==1)
         visc += p->A250;
         
+        if(p->A246==4)
+        visc += b->vb(i,j);
+        
         p->viscmax = MAX(p->viscmax,visc);
         
         dtv = MIN(dtv, 0.5/(visc*(1.0/(p->DXN[IP]*p->DXN[IP]) + p->y_dir/(p->DYN[JP]*p->DYN[JP])) + 1.0e-20));

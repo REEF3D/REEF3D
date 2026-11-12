@@ -1,0 +1,8 @@
+{
+ "description": "NHFLOW 2D laminar open channel (h 0.1 m, U 0.01 m/s, nu 1e-3, Re 1), resolved no-slip bed A 518 2: antisymmetric bed ghost cells, implicit no-slip bed face in the diffusion with the molecular viscosity of the cell and the dt F correction of the stage velocity. The developed profile (parabola): Dropbox/Claude/NHFLOW Bed BC/validation/01_laminar_channel.",
+ "solver": "nhflow",
+ "np": 1,
+ "steps": 300,
+ "tags": ["quick", "2d", "nhflow", "diffusion", "bed"],
+ "covers": ["gc_startV nhflow_bed_ghost A 518 2", "nhflow_idiff_u_2D bed face A 518 2"]
+}

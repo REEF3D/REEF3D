@@ -54,7 +54,9 @@ using namespace std;
 //    ray), the crest-to-trough height H, the water depths at crest and trough, the largest front-face slope, and the
 //    caller's dissipation per unit viscosity along the painted interval [-s_back, s_ahead]. Minima, maxima and
 //    sums over the ranks; every rank then has the same numbers for every ray.
-// 4. state: onset at B > Bon with H > Hmin and C > Cmin c_lin, c_lin the linear phase speed at the crest depth for
+// 4. state: onset at B > Bon (deep and intermediate water, C^2/(g h) < 0.6-0.9 and 2 pi h/L > 0.8-1.4:
+//    Bon - BonN/sqrt(L/d), L/d at least 30) with H > Hmin
+//    and C > Cmin c_lin, c_lin the linear phase speed at the crest depth for
 //    the period of the generated waves (or k = 2 pi/L): no onset of short waves riding on the waves, end when the largest front-face slope falls below slope_end (not in the
 //    step of onset). Strength per unit crest length eps (caller), viscosity nu = eps / (dissipation per nu),
 //    at most |C| (s_back + s_ahead).
@@ -74,6 +76,10 @@ struct bc3_point
     int state=0, hasC=0, nh=0, nbh=0, i=0, j=0, rank=0;
     double th[8], xh[8], yh[8];            // position samples (t, x, y), oldest first
     double tb[8], bh[8];                   // B samples (t, B)
+    // model 5 (A 350 5, A 550 5): breaker scales frozen at onset, the B samples of the window |B - Bth| < win for
+    // Gamma = T_b dB/dt (sums of t - g0, B, (t - g0)^2, (t - g0) B), the absorbing pressure and the mechanism
+    double Lb=0.0, Hb=0.0, cb=0.0, Tb=0.0, Gam=0.0, g0=0.0, gs[5]={0.0,0.0,0.0,0.0,0.0}, nua=0.0, dpa=0.0, wdeep=0.0;
+    int gclosed=0, mech=0;                 // window closed (B above it after onset); 0 viscosity, 1 absorbing pressure
 };
 
 class breaking_crest3d : public increment
@@ -84,12 +90,24 @@ public:
 
     // parameters
     double Bon = 0.85;          // onset B
+    double BonN = 0.0;          // deep and intermediate water: onset at Bon - BonN/sqrt(N), N = L/d cells per crest wavelength
     double Bcand = 0.5;         // rays and log for B above this
     double slope_end = 0.1405;  // tan(8 deg)
     double Hmin = 0.0;          // smallest crest-to-trough height
     double Cmin = 0.5;          // onset only for crests travelling at least at Cmin of the linear phase speed
     double Tdom = 0.0;          // period of the generated waves (0: unknown, the phase speed from k = 2 pi / L)
-    int deep = 1;               // deep-water strength b(Gamma) (Derakhti et al. 2018)
+    int deep = 1;               // deep-water strength: 1 b(Gamma) (Derakhti et al. 2018), 2 (model 5) b(S) (Romero et al. 2012), 0 off
+    // model 5 (A 350 5, fnpf_breaking_barthelemy.cpp): breaker scales at onset from linear dispersion at k_b = 2 pi / L
+    // (c_b, T_b), b from the breaker slope (deep 2) or from Gamma = T_b dB/dt fitted over |B - Bth| < win (deep 1),
+    // b <= bmax, eps = b c_b^5/g, a deep-water breaker active for tau T_b and dissipated by an absorbing surface
+    // pressure, one event per steepening; bores (shallow water) as model 4. BonN fades out between N = 120 and 200.
+    int model = 4;
+    double win = 0.03;          // half width of the B window of the Gamma fit
+    double tau = 0.75;          // active breaking duration / T_b (deep-water breakers)
+    double bmax = 0.068;        // largest b
+    double nuacap = 1.0e20;     // largest absorbing-pressure coefficient (explicit term: 0.25 dx/dt, caller)
+    double Slim = 0.44;         // limiting slope k H/2 (Stokes); onset above 1.25 Slim whatever B, no end above Slim
+    double fvisc = 1.0;         // model 5, deep-water breakers: share of eps dissipated by the viscosity (the rest: pressure)
 
     // one tracking step at time t: eta, horizontal surface velocity (us, vs), total water depth WL, wet flags,
     // zone (int per slice cell, 1: no crests, may be nullptr). With the velocity potential at the surface (phi,
@@ -101,12 +119,17 @@ public:
     //   sback(point)              length of the interval behind the crest that is painted (0: crest to trough)
     //   integrand(point, x, y)    dissipation per unit viscosity, crest length and ray length at (x, y)
     //   epsf(point)               strength per unit crest length
-    // vb: viscosity (max), brk: flags 1, kw: wavenumber 2 pi / L of the ray of the largest viscosity (may be nullptr)
+    //   integrand_pa(point, x, y) model 5: dissipation per unit absorbing-pressure coefficient (eta_t^2); pa its field
+    // vb: viscosity (max), brk: flags 1, kw: wavenumber 2 pi / L of the ray of the largest viscosity (may be nullptr);
+    // vbd, kwd (model 5, NHFLOW A 550 5): the viscosity and wavenumber of the deep-water breakers (mech 1) in their own
+    // fields, without brk (nullptr: in vb with the others)
     void rays(lexer*, ghostcell*, slice &eta, slice &WL, double t,
               const std::function<double(const bc3_point&)> &sback,
               const std::function<double(const bc3_point&, double, double)> &integrand,
               const std::function<double(const bc3_point&)> &epsf,
-              slice &vb, int *brk, slice *kw);
+              slice &vb, int *brk, slice *kw,
+              const std::function<double(const bc3_point&, double, double)> *integrand_pa=nullptr, slice *pa=nullptr,
+              slice *vbd=nullptr, slice *kwd=nullptr);
 
     // the rays of the last call (all ranks have them) and the number of breaking crest points
     std::vector<bc3_point> cand;
@@ -133,6 +156,12 @@ private:
     std::ofstream logf;
 
     bool wetcell(lexer*, int, int);
+    
+    // the sides of the domain that are walls (1: x-, 2: x+, 3: y-, 4: y+; no inflow / outflow cells on any rank),
+    // set at the first rays(): a ray that reaches a wall slides along it instead of ending there
+    int wallside[5] = {-1,0,0,0,0};
+    void walls(lexer*, ghostcell*);
+    bool clampxy(lexer*, double &x, double &y);
     double celld(lexer*, int, int, double, double);
     void exchange_halo(lexer*);
 };

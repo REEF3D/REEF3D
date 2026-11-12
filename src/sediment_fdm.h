@@ -33,6 +33,8 @@ Author: Hans Bihs
 using namespace std;
 
 class sediment_mixture;
+class sediment_waves;
+class sediment_inflow;
 
 class sediment_fdm
 {
@@ -61,6 +63,12 @@ public:
     
     slice4 qb,qbe,qbs;
     slice4 cbe,cb,cbn,conc;
+    // NHFLOW suspended load: rbe, the ratio of the equilibrium concentration of the bottom cell (cbe, cell mean)
+    // to the reference concentration c_a at z = a (bedconc_VR); wsx, the exchange velocity of the last
+    // suspended solve, E - D = wsx (cbe - c_0), wsx = ws/rbe (hindered with S 127 1)
+    // rbf, rbz: the bottom cell seen from the cell above, a node at the height rbz = max(cell centre, a) that
+    // carries rbf times the cell mean (the Rouse profile at rbz over its mean), for the flux between the two cells
+    slice4 rbe,wsx,rbf,rbz;
     slice4 ub,vb;   // curvilinear grid (G 50): near-bed velocity of the cells (Cartesian components, sediment_curv)
     slice4 dryd;    // NHFLOW: suspended sediment volume per area of columns that fell dry, deposited at the next bed update
     
@@ -76,6 +84,16 @@ public:
     
     // multi-fraction bed model (S51>0), nullptr otherwise
     sediment_mixture *pmix;
+    
+    // SFLOW, NHFLOW: waves in the sediment transport (S 110 > 0), nullptr otherwise
+    sediment_waves *pwave = nullptr;
+    
+    // sediment supply at the inflow (S 129, S 124, sediment_inflow.h)
+    sediment_inflow *pinflow = nullptr;
+    
+    // SFLOW: mean exchange rate E - D of the depth-averaged suspended load since the last bed update
+    // (S 120 > 0, sediment_susp2D), nullptr otherwise
+    slice4 *edrate = nullptr;
 
 };
 

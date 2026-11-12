@@ -54,14 +54,16 @@ public:
     double A261,A262,A263,A264;
     double A222,A223,A224,A247,A249,A244,A251_val;
     double A250;
-    int A226,A229;          // SFLOW semi-implicit free surface
+    int A226,A229;          // SFLOW semi-implicit free surface (A226: from A 210 12 / 13, A229: from A 243; not read from ctrl.txt)
     double A227,A228,A231,A232;
 
     // FNPF
-    int A309,A310,A311,A312,A313,A314,A315,A316,A317,A318,A320,A324,A327,A328,A329,A330,A332,A334,A336,A337,A338,A339,A343,A347,A348;
-    double A319,A325,A326,A331,A335,A341,A342,A344,A346,A349;
+    int A302,A306,A309,A310,A311,A312,A313,A314,A316,A318,A320,A324,A328,A329,A330,A332,A334,A336,A337,A338,A339,A343,A347,A348,A358;
+    double A301_1,A301_2,A303,A304,A305,A307,A308,A333,A379_1,A379_2,A404,A405,A407,A408,A409,A411,A319,A325,A326,A331,A335,A341,A342,A344,A346,A349;
+    double A430;
+    int A321;
     int A350,A351,A352,A357,A361,A362;
-    double A354,A355,A356,A365,A366,A359,A360,A364;
+    double A354,A355,A356,A365,A366,A359,A360,A364,A369;
     int A367;
     int A370,A372,A373,A374,A378;
     double A371_u,A371_dir,A375,A376_s,A376_sc,A376_c,A377;
@@ -70,7 +72,7 @@ public:
     int A390,A394,A395_dir,A395_off;
     double A391,A392_K,A392_C,A393,A396,A397_E,A397_nu,A398,A399_m,A399_A;
     int A399_seed;
-    int A400,A401;
+    int A400,A401,A406,A412;
     double A402_L,A402_C,A402_T;
     double A403;
     double A381,A382,A383,A384_mu,A384_e,A387,A389;
@@ -82,20 +84,24 @@ public:
     // NHFLOW
     int A509,A510,A511,A512,A513,A514,A515,A516,A517,A518,A519;
     int A520,A521,A524,A527,A529,A530;
-    double A522,A526,A528;
+    double A526,A528;
     double A531;
     int A532,A533;
-    int A534,A537,A539;          // NHFLOW hydrostatic semi-implicit free surface
-    double A535,A536,A538;
+    int A505,A507,A534,A537,A539;          // NHFLOW hydrostatic semi-implicit free surface
+    double A506,A535,A536,A538;
     int A540;
     double A544,A545,A546;
     int A548;                    // NHFLOW semi-implicit: still water depth of a face between wet cells, 1 the smaller
     double A547_c,A547_nu0;      // NHFLOW semi-implicit: algebraic vertical eddy viscosity (A 547 c nu0)
     int A600,A602,A603,A609,A610;    // NHFLOW semi-implicit: tracers (salinity, temperature), A 600 - 610
+    int A549,A611,A612,A613,A620,A622,A623;
+    double A624,A625_am,A625_pm,A625_ah,A625_ph,A626_kmin,A626_clim,A627_c,A627_h,A549_c;         // NHFLOW semi-implicit: vertical initial profiles, density and its pressure gradient
+    double *A611_z,*A611_c,*A612_z,*A612_c;
+    double A621_rho0,A621_t0,A621_s0,A621_alpha,A621_beta;
     double A601_s,A601_t,A602_x1,A602_y1,A602_c1,A602_x2,A602_y2,A602_c2,A603_x1,A603_y1,A603_c1,A603_x2,A603_y2,A603_c2;
     double A604,A605_sig,A605_k0,A606_s,A606_t,A607_s,A607_t,A608;
     int A550,A551,A552;
-    double A554,A555,A557;
+    double A554,A555,A557,A558;
     double A501,A502,A503,A504;
     int A560;
     int A564,A565,A566,A567;
@@ -130,7 +136,7 @@ public:
 
     // Spectral
     int A700,A701,A703,A704,A707,A710,A711,A712_xm,A712_xp,A712_ym,A712_yp,A713,A714,A720;
-    double A702_fmin,A702_fmax,A705,A706,A708,A721_us,A721_ue,A721_xs,A721_xe;
+    double A702_fmin,A702_fmax,A705,A706,A708,A721_us,A721_ue,A721_xs,A721_xe,A727_x0,A727_x1,A727_y0,A727_y1,A777,A779;
     int A728,A729,A730,A785,A732,A733,A740,A742,A744;
     double A731_u10,A731_dir,A734,A735,A741_alpha,A741_gamma,A743,A745;
     int A737;
@@ -139,7 +145,7 @@ public:
     double A752,A761;
     int A748,A770,A773,A774,A775;
     double A746,A747,A749,A771,A772,A780,A786;
-    int A790,A792,A794,A796,A797,A738,A798,A799,A781,A715_k,A718,A719,A722;
+    int A790,A792,A794,A796,A797,A738,A798,A799,A781,A767,A769,A776,A778,A715_k,A718,A719,A722;
     int A758_m;
     int A758_n;
     int A762;
@@ -150,6 +156,9 @@ public:
     double A716_w;
     int A717;
     double A717_th1,A717_th2;
+    double A763,A764;
+    int A765,A766,A768,A787;
+    double A788,A789;
     double A709,A791,A793,A795,A739;
     double *A760_x,*A760_y;
     double *A722_xs,*A722_ys,*A722_xe,*A722_ye,*A722_kt,*A722_kr,*A722_zc;
@@ -201,6 +210,7 @@ public:
     double B534_d,B534_dx,B534_fl,B534_fh;   // iowave: SIRW absorption at x- (B 98 8): gauge distance, spacing, band [Hz] (0: from B 528)
     double B535_d,B535_dx,B535_fl,B535_fh;   // iowave: SIRW absorption at x+ (B 99 8): gauge distance, spacing, band [Hz] (0: from B 528)
     int B536;           // iowave NHFLOW: active absorption target of the piston wavemaker, 0 shallow water (legacy), 1 linear paddle theory
+    int B531;           // iowave NHFLOW: 1 start with the background current of the zones (B 510-514, B 523) in the whole domain
     int *B515_id; double *B515_x0,*B515_y0,*B515_href;
     int *B510_id,*B510_mode; double *B510_dir,*B510_tramp;
     int *B511_id; double *B511_a,*B511_T,*B511_phase;
@@ -234,7 +244,7 @@ public:
     
     int B200,B201,B208;
     double B201_n, B201_d50, B201_alpha, B201_beta;
-    int B202,B203,B204,B205;
+    int B202,B203,B204,B205,B206,B221;
     double *B202_t,*B202_n,*B202_d50,*B202_alpha,*B202_beta;
     double B209;
     int B210;
@@ -322,12 +332,12 @@ public:
     double *C75_x,*C75_z,*C75_a,*C75_s,*C75_l,*C75_v;
 
     // discretization
-    int D10,D11,D12,D20,D21,D22,D23,D30;
+    int D10,D11,D12,D20,D21,D22,D23,D30,D32;
     double D13;
 
     // Free Surface
-    int F30,F35,F37,F40,F44,F46,F47,F50,F150,F151;
-    double F38,F42,F43,F45;
+    int F30,F35,F37,F40,F41,F44,F46,F47,F50,F150,F151;
+    double F38,F42,F43,F45,F48;
     double F51,F52,F53,F54,F55,F56;
     int F50_flag;
     double F57_1,F57_2,F57_3,F57_4;
@@ -344,7 +354,8 @@ public:
     double *F71_xs, *F71_xe, *F71_ys, *F71_ye, *F71_zs, *F71_ze;
     int F72;
     double *F72_xs, *F72_xe, *F72_ys, *F72_ye, *F72_h;
-    int F80,F85;
+    int F77,F78,F80,F81,F83,F85,F86;
+    double F79,F82,F87;
 
     int F88,F90;
     double F91;
@@ -396,11 +407,17 @@ public:
     double G12_r,G13_L,G13_a,G20,G21;
     double *G10_xs,*G10_xe,*G10_ys,*G10_ye;
     int G15,G25;
-    double G24,G26,G41,G42,G44,G46;
+    int G8;                      // CFD mesh refinement: the coarse value at a fine cell of a patch edge from the level set of the coarse column
+    int G28;                     // CFD mesh refinement: one interface width of the fluid properties on all levels (1 that of level 0, 2 that of the finest level)
+    int G29;                     // CFD mesh refinement: 1 the pressure under the patches restricted relative to the discrete hydrostatic pressure of each grid
+    double G24,G26,G27,G41,G42,G44,G46;
     int G56;                     // multi-block grid: G 56 a dz given (load-balanced placement of the blocks, the cut of G 55 by load)
     double G56_a,G56_z;          // the load of a dry cell a, dz (m)
     int G47;
+    int G48;
     double *G15_xs,*G15_xe,*G15_ys,*G15_ye,*G15_zs,*G15_ze;
+    int G16;                     // CFD mesh refinement: static boxes refined up to a given level (G 16 l xs xe ys ye zs ze)
+    double *G16_l,*G16_xs,*G16_xe,*G16_ys,*G16_ye,*G16_zs,*G16_ze;
     double *G11_xs,*G11_xe,*G11_ys,*G11_ye;
     // grid
     int G501,G502,G505;
@@ -432,10 +449,13 @@ public:
     double I244_xs,I244_xe,I244_ys,I244_ye,I245;
     int I246;
 
+    // Numerical Options of the one-step scheme (N 40 5)
+    double N56;
+
     // Numerical Options
-    int N10,N11,N12,N13,N14,N15,N18,N40,N45,N46,N48;
-    int N20,N22,N23,N25,N26;
-    double N41,N43,N44,N47,N49,N50,N61;
+    int N10,N11,N12,N13,N14,N15,N16,N17,N18,N19,N40,N45,N46,N48,N59,N63,N65;
+    int N20,N21,N22,N23,N25,N26;
+    double N41,N43,N44,N47,N49,N50,N52,N53,N54,N55,N57,N58,N61;
 
     // MPI Options
     int M10,M40,M41;
@@ -472,10 +492,26 @@ public:
     double *P69_x,*P69_y;
     double *P81_xs,*P81_xe,*P81_ys,*P81_ye,*P81_zs,*P81_ze;
     double *P85_x,*P85_y,*P85_r,*P85_cd,*P85_cm;
+    int P83,P84;                                            // scour gauges: P 83 Sumer-Fredsoe incremental, P 84 sediment balance
+    double *P83_x,*P83_y,*P83_D,*P84_x,*P84_y,*P84_D;       // x y and pile diameter D of each gauge
+    double P86_Tw,P86_Tp,P86_cb,P86_dt;                     // P 86: statistics window, Tp, backfilling factor, output interval
+    double P87_amax,P87_beta,P87_k;                         // P 87: sediment balance amplification, decay, rate coefficient
+    int P89;                                                // P 89: equilibrium scour of P 83, P 84: 0 Sumer & Fredsoe 2001, 1 Hoballah Jalloul et al. 2026
     double *P88_x,*P88_y;
     double P91;
     double P101_xm,P101_ym,P101_zs,P101_ze,P101_r1,P101_r2;
     int P110;
+    int P187,P196;                      // P 187: FNPF scour parameters in the bed output, P 196: ambient current from scour_current.dat
+    double P188_D,P188_ts,P188_T;       // P 188: structure diameter, start of the statistics, wave period (<= 0: wave input)
+    double P189_U,P189_dir;             // P 189: ambient current speed and direction (deg, towards, from the x-axis)
+    double P197_d,P197_rho;             // P 197: armour stone size and density,
+    double P197_aamp,P197_kt,P197_gE,P197_nr;   // velocity amplification, kt, environmental factor gamma_E, roughness ks/D50 (REEF_Tools)
+    int P193;                           // P 193: FNPF/NHFLOW scour protection gauges
+    double *P193_x,*P193_y;
+    int P198;                           // P 198: FNPF scour gauges
+    double *P198_x,*P198_y;
+    double P199_dt,P199_Tw;             // P 199: scour gauge output interval, statistics time window,
+    int P199_m;                         //        U_m: 0 sqrt(2) sigma_u (irregular waves), 1 maximum (regular waves)
     double P111;
     int P112,P115;
     double P113,P114;
@@ -511,8 +547,18 @@ public:
     double *P352_x,*P352_y;
 
     // DEM
-    int E10,E11,E13,E16,E21,E22,E26,E27,E28,E29;
-    double E12,E14,E15,E17,E18,E19,E20,E23,E24,E25,E30;
+    int E10,E11,E13,E16,E21,E22,E26,E27,E28,E29,E32,E33;
+    double E12,E14,E15,E17,E18,E19,E20,E23,E24,E25,E30,E34;
+
+    // REEF3D::HYDRO, SFLOW (A 10 2): rain-on-grid, point sources, evaporation, infiltration, roughness raster
+    int R10,R12,R30,R40,R41,R50;
+    double R11,R20,R31,R32_Ks,R32_psi,R32_dth,R90;
+    int R33,R35;            // HYDRO: infiltration and sealed fraction from rasters
+    double R34;             // HYDRO: sealed fraction
+    int R100,R106,R107,R108,R110;    // HYDRO catchment model
+    double R101,R102,R103,R104,R105,R109;
+    int *R40_ID,*R41_ID;
+    double *R40_x,*R40_y,*R40_Q;
 
     // Particles
     int Q10;
@@ -535,6 +581,9 @@ public:
 
     double Q25,Q30,Q45,Q53,Q54,Q55,Q56,Q59,Q60,Q62,Q63,Q64,Q65,Q66,Q70,Q75,Q76,Q77;
     int Q72,Q74,Q78,Q79;
+    int Q85;
+    int Q86;
+    double Q85_xs,Q85_xe,Q85_ys,Q85_ye,Q85_zs,Q85_ze;
     double Q41;
     int Q61,*Q61_i;
     double *Q61_x,*Q61_y,*Q61_z;
@@ -562,8 +611,8 @@ public:
 
 
     // Sediment Transport
-    int S10,S11,S12,S15,S16,S25,S27,S28,S29,S31,S32,S33,S34,S36,S37,S38,S41,S42,S43,S44,S50,S61,S62,S73,S74,S75,S76,S77,S78,S80,S84,S85,S86,S95,S90,S91,S94,S100,S101,S49,S51,S54,S56,S59;
-    double S13,S14,S17,S18,S19,S20,S21,S22,S23,S24,S26_a,S26_b,S30,S35,S39,S40,S45,S46,S47,S48,S57,S71,S72,S81,S82,S87,S88,S89,S96,S97,S64,S65,S92,S93,S102,S103,S104,S52,S53,S55,S58,S59_phi,S63;
+    int S10,S11,S12,S15,S16,S25,S27,S28,S29,S31,S32,S33,S34,S36,S37,S38,S41,S42,S43,S44,S50,S61,S62,S73,S74,S75,S76,S77,S78,S80,S84,S85,S86,S95,S90,S91,S94,S100,S101,S49,S51,S54,S56,S59,S110,S115,S116,S118,S119,S120,S125,S127,S129;
+    double S13,S14,S17,S18,S19,S20,S21,S22,S23,S24,S26_a,S26_b,S30,S35,S39,S40,S45,S46,S47,S48,S57,S71,S72,S81,S82,S87,S88,S89,S96,S97,S98,S64,S65,S92,S93,S102,S103,S104,S52,S53,S55,S58,S59_phi,S63,S111,S112,S113,S114,S117,S121,S122,S123,S124,S126,S128,S130,S131,S132,S133,S140,S141;
     double S29_ts,S29_te,S29_dts,S29_dte;
     double *S73_val,*S73_dist,*S73_b,*S73_x,*S73_y;
     double *S74_xs,*S74_xe,*S74_ys,*S74_ye;
@@ -571,6 +620,12 @@ public:
     double *S75_x,*S75_dist;
     double *S51_d,*S51_fa,*S51_fs;
     double S77_xs,S77_xe;
+    double S105;   // S 105: ramp time [s] of the morphological factor after the sediment start
+    // soil stress model (CFD, S 200 - S 217)
+    int S200,S211,S212,S214_n,S215,S216,S217;
+    double S201,S202_hh,S202_vh,S203_O,S203_L,S204_x,S204_y,S204_z,S205,S206,S207,S208,S209,S210,S213,S214_tol;
+    double S217_p0,S217_L,S217_T;
+    double *S216_x,*S216_y,*S216_z;
 
     // Turbulence
     int T10,T12,T21,T33,T34,T36,T39,T41,T45;
@@ -611,6 +666,16 @@ public:
     double W108_a_2;
     int W110,W111;
     double W112;
+    // depth-integrated rheology (rheology core, SFLOW)
+    int W120;
+    double W121;
+    double W122;
+    double W123_z1,W123_z2,W123_z3,W123_beta,W123_L;
+    double W124_ds,W124_d2,W124_I0,W124_d,W124_phis;
+    double W125_tauy,W125_K,W125_n;
+    int W126;
+    double W127_lambda,W127_lambdah,W127_D;
+    int W128;
     // atmospheric forcing (met_provider, met_forcing)
     int W200,W205,W207,W208,W210,W211,W215,W218,W219,W220_n,W220_v,W222,W223,W225,W226,W227,W229;
     double W201_u,W201_dir,W202,W203,W204,W205_lon,W205_lat,W205_rot,W206_x,W206_y,W209,W212,W213,W214,W216,W217,W228;
@@ -621,6 +686,8 @@ public:
     int X39,X40,X45,X46,X48,X49,X50,X60,X110,X120,X131,X132,X133;
     int X100,X101,X102,X103,X141,X142,X143,X153,X170,X171,X172;
     int X180,X181,X182,X183,X210,X211;
+    int X111;
+    int *X111_id,*X111_u,*X111_v,*X111_w,*X111_p,*X111_q,*X111_r;
     int X310, X311, X312, X313, X314, X315, X320, X321;
     int X20;
     double X21_d,X22_m;
@@ -670,7 +737,29 @@ public:
     double X182_dx,X182_dy,X182_dz;
     double X183_x,X183_y,X183_z,X183_phi,X183_theta,X183_psi;
     int X184,X185,X188,X189,X190;
-    double X186,X187;
+    int X195,X196;
+    int *X195_id,*X195_type;
+    double *X195_a,*X195_lambda,*X195_f,*X195_tramp;
+    int X191;
+    int *X191_id,*X191_port;
+    int X192,X193;
+    int *X192_id,*X193_id;
+    double *X192_t,*X192_x,*X192_y,*X192_z;
+    double *X193_U,*X193_b,*X193_D,*X193_the;
+    int X200,*X200_id;
+    double *X200_s,*X200_k,*X200_w;
+    int X201,*X201_id;
+    double *X201_u,*X201_d;
+    int X194;
+    int *X194_id,*X194_n;
+    double *X194_d;
+    int X199;
+    int *X199_id;
+    double *X199_t,*X199_f,*X199_a,*X199_b,*X199_ts;
+    double X197;
+    int X198;
+    double X198_c;
+    double X179,X186,X187;
     int X205;
     int X206,X207;
     double X206_ts,X206_te,X207_ts,X207_te;
@@ -694,6 +783,8 @@ public:
     int X400;
     double X401_p0,X401_cl,X401_cb,X401_a;
     int X410;
+    int X411;
+    int X402;
     int X500,X501,X502,X503,X504;
     double X501_ax,X501_ay,X501_az,X501_xa,X501_ya,X501_za;
     double X502_B;

@@ -33,6 +33,9 @@ Architect: Hans Bihs
 //        [velocity <vx vy vz>] [omega <wx wy wz>] [offset <dx dy dz>]
 //        (inertia about the CoG, body axes; the joints and loads are set up in the configuration given by
 //        cog and rpy, the equilibrium; offset displaces the body afterwards, e.g. for a decay test)
+//   initial_pose [offset <dx dy dz>] [rpy <r p y>] [about <x y z>]
+//        (after the set-up, every body is turned by rpy about the point and moved by offset: a floater with all
+//        on it starts displaced, as OpenFAST's initial platform DOFs; the lines start from there)
 //   joint <name> <fixed|spherical|revolute|prismatic|cylindrical|planar> <body a> <body b>
 //        point <x y z> [axis <ax ay az>]
 //   waves regular H <H> T <T> [direction <deg>] [phase <deg>]
@@ -43,12 +46,62 @@ Architect: Hans Bihs
 //        [memory <T> <dt>] [no_radiation] [no_excitation] [no_hydrostatics] [no_buoyancy]
 //        [damping <mode> <value>] [drag <mode> <value>] [volume <i> <V>] [ref <i> <x y z>]
 //        (modes 1..6N of the database; damping linear, drag quadratic, diagonal entries)
-//   pto <name> joint <joint> [rotational] [k <k>] [c <c>] [q0 <q>] [F0 <F>] [coulomb <Fc>]
-//        [v_eps <v>] [F_max <F>] [P_max <P>] [stops <qmin> <qmax> <k_stop> [<c_stop>]]
-//        [latching <t_hold> <c_latch> [<k_latch>]] [declutching <t_hold>]
-//        (elements and controllers of the PTO library, coral/pto/coral_pto_element.h)
-//   drive <name> joint <joint> sine <amplitude> <period> [phase <deg>] [ramp <t>] [q0 <q>] [rotational]
-//        [k <k>] [c <c>]          (prescribed joint motion by a stiff spring-damper, default k 1e7, c 1e4;
+//   pto <name> (joint <joint> [rotational] | a <body> <x y z> b <body> <x y z>) [k <k>] [c <c>] [q0 <q>] [F0 <F>]
+//        [coulomb <Fc>] [v_eps <v>] [c_loss <c>] [coulomb_loss <Fc>] [F_max <F>] [P_max <P>]
+//        [stops <qmin> <qmax> <k_stop> [<c_stop>]] [latching <t_hold> <c_latch> [<k_latch>]] [declutching <t_hold>]
+//        [hydraulic ...] [generator ...] [tune ...] [schedule <file> | user <library> ... | mpc ...]
+//        (elements and controllers of the PTO library, coral/pto/coral_pto_element.h; in a joint, or between a
+//        point on body a and one on body b (link: q the change of their distance, the force along the line,
+//        positive pushing them apart; an actuator or cylinder between a flap and the ground, a rod, a tether: the
+//        motion conversion of the geometry is exact), coral/pto/coral_pto.h)
+//        hydraulic A_a <A> [A_b <A>] V_a0 <V> [V_b0 <V>] A_v <A> V_hp <V> p_hp_pre <p> [p_hp0 <p>] V_lp <V> p_lp_pre <p>
+//            [p_lp0 <p>] D <D> J <J> b_gen <b> [beta <B>] [rho_oil <rho>] [Cd <c>] [dp_crack <p>] [dp_open <p>]
+//            [kappa <k>] [C_leak <c>] [eta_m <e>] [c_w <c>] [w0 <w>] [T_max <T>] [p_relief <p> K_r <K>] [dt_sub <dt>]
+//            (PTO-Sim type hydraulic PTO, coral/pto/coral_pto_hydraulic.h: double-acting cylinder (areas cap and rod
+//            side, chamber volumes at the start with the hoses, A_b and V_b0 default to A_a and V_a0), four check
+//            valves (open area, discharge coefficient 0.61, cracking pressure 0, opening range 1e5 Pa), HP and LP gas
+//            accumulators (volume, precharge, initial pressure: default the precharge; polytropic kappa 1.4), motor
+//            (displacement [m^3/rad], leakage [m^3/(s Pa)], torque efficiency), shaft (inertia, friction), generator
+//            torque b_gen w (|T| <= T_max), relief valve HP -> LP; bulk modulus 1.5e9 Pa, oil 850 kg/m^3; pressures
+//            relative to the ambient (a single-rod cylinder pushes with p (A_a - A_b) at rest); sub-step 1e-3 s of the
+//            implicit integration; channels <name>_pa, _pb, _php, _plp, _w, _Qm, _Pgen (generator shaft power) and with
+//            a generator _Pe, _Ee)
+//        generator (ideal [eta <e>] | map <file> | pmsg kt <kt> [R <R>] [k_fe <k>]) [ratio <n>] [eta_gear <e>]
+//            [eta_conv <e>]
+//            (electrical side, coral/pto/coral_generator.h: of the direct drive, or on the shaft of the hydraulic motor;
+//            ideal efficiency, an efficiency map (first line 0 T_1 .. T_m, then w eta_1 .. eta_m; speed and torque
+//            absolute, bilinear), or a permanent-magnet machine with field-oriented control (torque or force constant
+//            kt = 3/2 p lambda or 3/2 pi/tau lambda, phase resistance R, iron losses k_fe w^2); a gear, rack and
+//            pinion or ball screw turns the PTO rate into the shaft speed ratio qd and the force into F/ratio with the
+//            efficiency eta_gear; power electronics eta_conv; motoring (reactive control) pays the losses; channels
+//            <name>_Pe (delivered power), _Ee, with pmsg _I)
+//        tune (passive | reactive) T <T> (table <file> | hydro <hydro> mode <i>) [mass <m>] [C <C>]
+//            (gains of a single-DOF absorber at the period T: passive c = B_opt, reactive k = w^2 (m + A) - C,
+//            c = B (with c_loss the loss in parallel); A(w), B(w) from a table 'w A B' (the pto_hydro.dat of X 506,
+//            C needed) or mode i of a hydro database (C from it); mass: default the mass of body b of a translational
+//            joint, needed for a link or rotation)
+//        schedule <file>
+//            (K, B, F0 of the generator from a table 't k c [F0]', linear in time: gains per sea state in long runs)
+//        user <library> [params <n> <p1> .. <pn>] [period <T>]
+//            (a controller of one's own in a shared library, C interface in coral/pto/coral_pto_wec_control.h: from
+//            t, q, qd, F, P and the parameters it sets K, B, F0 of the generator, every step or every period T;
+//            optional functions to save and load its state for restarts; example
+//            Regression/unit/coral_pto_user_example.c)
+//        mpc Tc <T> [N <n>] [r <r>] [q_max <q>] [w_q <w>] (hydro <hydro> mode <i> | [A_inf <A>] [C <C>]) [B <B>]
+//            [mass <m>] [excitation <t Fe table>] [no_radiation]
+//            (model predictive control of a single-DOF absorber, coral/pto/coral_pto_wec_control.h: every period Tc the
+//            force sequence over N periods (default 40) that maximises the absorbed energy minus r/2 F^2 (a regularisation
+//            0.01 Tc/(m + A_inf) is always added to r), |F| <= F_max of
+//            the PTO, a soft stroke limit q_max (quadratic penalty w_q, default automatic); the model: mass, A_inf, C and
+//            the radiation memory (state space of the database mode) of the hydro database or given, linear damping B
+//            (plus c_loss); the excitation predicted from the linear excitation of the hydro database (CORAL's waves)
+//            or from a table t Fe (e.g. with a resolved fluid); a horizon of about two wave periods; channel _Fmpc)
+//        (schedule, user and mpc set the force once per step or period: they replace latching and declutching; the
+//        generator, the limits, the stops and the losses stay)
+//   drive <name> joint <joint> (sine <amplitude> <period> [phase <deg>] | file <t q table> [scale <s>] [periodic])
+//        [ramp <t>] [q0 <q>] [rotational] [k <k>] [c <c>]
+//        (prescribed joint motion by a stiff spring-damper, default k 1e7, c 1e4; a sine, or any motion from a
+//        table through a C1 cubic Hermite curve, held at the end values outside the table unless periodic;
 //        forced oscillation in a resolved fluid, coral/pto/coral_joint_drive.h)
 //   jforce <name> joint <joint> file <t F table> [scale <s>] [ramp <t>] [periodic] [rotational]
 //        (prescribed force along the joint axis, or torque about it, interpolated in the table, 0 outside
@@ -65,6 +118,7 @@ Architect: Hans Bihs
 //        channels <name>_Fx .. _Mz, _P; coral/hydro/coral_body_drag.h)
 //   line_type <name> d <d> mass <m/L> (EA <EA> | EA_curve <file>) [BA <BA>] [CB <CB>] [Cdn <c>] [Cdt <c>] [Can <c>] [Cat <c>]
 //        [kb <k>] [cb <c>] [mu <mu>] [mu_axial <mu>] [mu_static <r>] [ks <k>] [cs <c>] [v_eps <v>] [EI <EI>] [BA_slack]
+//        [Cl <Cl>] [cF <cF>] [dF <dF>] [viv_tau <t>]
 //        (properties of mooring lines for 'type' and 'section'; EA_curve: nonlinear elasticity of the dynamic line,
 //        a file of 'strain tension' per line (strains increasing from >= 0, '#' comments), linear in between and
 //        beyond the last point with its slope (MoorDyn's stress-strain table, which holds the last tension there);
@@ -73,7 +127,8 @@ Architect: Hans Bihs
 //   mooring <name> <quasi_static|dynamic> a <body> <x y z> | a <point>  b <body> <x y z> | b <point>
 //        (L <L> d <d> mass <m/L> EA <EA> | type <line type> L <L> | section <line type> <L> <nseg> [section ...])
 //        [BA <BA>] [CB <CB>] [Cdn <c>] [Cdt <c>] [Can <c>] [Cat <c>] [kb <k>] [cb <c>] [mu <mu>]
-//        [mu_axial <mu>] [mu_static <r>] [ks <k>] [cs <c>] [v_eps <v>] [BA_slack] (over those of the type)
+//        [mu_axial <mu>] [mu_static <r>] [ks <k>] [cs <c>] [v_eps <v>] [BA_slack] [Cl <Cl>] [cF <cF>] [dF <dF>]
+//        [viv_tau <t>] (over those of the type)
 //        [nseg <n>] [seabed <z> | no_seabed] [dt_line <dt>] [settle <T>] [current <ux uy uz>] [exact_kinematics]
 //        [no_static] [break_time <t>] [break_tension <T>] [break_end <a|b>] [EI <EI>] [clamp_a [<dx dy dz>]] [clamp_b [...]]
 //        [EA_curve <file>] [current_profile <file>] [outputs <p|t|pt>]
@@ -107,6 +162,13 @@ Architect: Hans Bihs
 //        T = max(0, EA e) + BA de/dt (MoorDyn's and MoorDyn-F's law: a slack line resists folding up, snap loads
 //        and a falling line as in MoorDyn); default: max(0, EA e + BA de/dt) while a segment is taut, nothing
 //        when slack (a chain or rope never pushes);
+//        Cl > 0: cross-flow vortex-induced vibration of the dynamic line (Thorsen's synchronization model, as
+//        MoorDyn v2; default none): at each inner node the lift 1/2 rho d |v| Cl cos(phi) (q x v) per length across
+//        the relative flow v normal to the line, the shedding phase following dphi/dt = 2 pi |v| / d (cF + dF
+//        sin(phi_yd - phi)) with phi_yd the phase of the node's cross-flow motion, so it locks in to vibrations at
+//        frequencies (cF +- dF) |v| / d (defaults cF 0.18, dF 0.08); viv_tau: the time over which the rms of the
+//        cross-flow velocity and acceleration are taken (default five local shedding periods; MoorDyn: 500 dtM);
+//        in-line VIV is left out (as MoorDyn), the static start and settling have none;
 //        channels <name>_Fa_x .. _Fb_z (forces on the bodies), _Tmax, _Ta, _Tb (end segment tensions, negative
 //        for a segment that pushes with BA_slack); the quasi-static line has a seabed portion
 //        with friction CB only at a ground end on the seabed, else it hangs free between its ends; the names of lines and other loads must not be keywords of the line, e.g. not "d" or "L"; the
@@ -130,16 +192,22 @@ Architect: Hans Bihs
 //        whose seabed defaults to the lowest ground end of its lines; channels <point>_x, _y, _z)
 //   morison <name> body <b> p1 <x y z> p2 <x y z> D <D> [Cd <c>] [Ca <c>] [Cm <c>] [n <n>] [current <u v w>]
 //   strip_member <name> body <b> p1 <x y z> p2 <x y z> D <D> [Cd <c>] [Ca <c>] [Cm <c>] [n <n>] [end1] [end2]
-//        [Ca_end <c>] [Cd_end <c>] [no_buoyancy] [current <u v w>] [exact_kinematics]
+//        [Ca_end <c>] [Cd_end <c>] [no_buoyancy] [drag_only] [current <u v w>] [exact_kinematics]
 //        (strip theory of a rigid floater with nonlinear hydrostatics: buoyancy of the wet part of each strip below the
 //        instantaneous elevation, Morison normal to the member, and at closed ends below the surface (end1, end2) the
 //        waves' dynamic pressure, added mass Ca_end rho D^3/6 and drag along the axis; channels <name>_Fx .. _Mz
 //        (moment about the body's CoG), _V (submerged volume); the wave kinematics at the undisplaced strips once per
-//        time unless exact_kinematics; coral/hydro/coral_strip_hydro.h)
+//        time unless exact_kinematics; drag_only: the drag of the members and ends only, beside a potential-flow
+//        model as HydroDyn's PropPot members; coral/hydro/coral_strip_hydro.h)
 //   morison <name> member <m> [D <D>] [Cd <c>] [Ca <c>] [Cm <c>] [n <strips per element>] [current <u v w>]
-//        [no_buoyancy] [flooded <D_inner>]
+//        [no_buoyancy] [flooded <D_inner>] [model <morison|lagrangian|extended|rainey|kf>] [step <d>] [plane]
 //        (distributed on a frame or superelement member, buoyancy of the submerged strips; D defaults to
-//        the section's; flooded: the inner water below z = 0 as node mass, frame members only)
+//        the section's; flooded: the inner water below z = 0 as node mass, frame members only; model: the
+//        slender-body load for steep waves and ringing, lagrangian the particle acceleration, extended with
+//        the axial divergence, rainey with Rainey's point force at the surface, kf with Kristiansen and
+//        Faltinsen's scattering force at z = 0; step: the stencil of a sampled fluid's gradients (D/2), plane:
+//        a 2D fluid; channels <name>_Fx .. _Mz and for rainey, kf _Fpx _Fpy _Fpz, the point force;
+//        coral/hydro/coral_member_morison.h)
 //   section <name> tube D <D> t <t> E <E> G <G> rho <rho>
 //   section <name> EA <EA> EIy <EI> EIz <EI> GJ <GJ> m <m/L> [GAy <GA>] [GAz <GA>] [rIx <r>] [rIy <r>] [rIz <r>] [D <D>]
 //   member <name> p1 <x y z> p2 <x y z> n <n> section <s> [section2 <s>] [orient <x y z>] [beta <b>]
@@ -219,12 +287,17 @@ Architect: Hans Bihs
 //        (TurbSim full field, frozen: a point at the downwind distance xi from the origin sees the grid at
 //        t + (xi0 - xi)/u_hub; outside the grid its edge, below it the tower points)
 //   wind_probe <name> <x y z> [body <b>]          (output channels <name>_u _v _w _U of the inflow at the point)
+//   beam_sensor <name> element <beam element>      (output channels <name>_Fx _Fy _Fz _Mx _My _Mz: the loads the element
+//        exerts on its end a with the half element lumped there (the section at the end point, as ElastoDyn's TwrBs and
+//        Root channels), the moment about the end point, in the frame of the body at end a (global for the ground);
+//        elements <member>.e<k> (k from 0), blades <rotor>_b<k>e<i>.e0; coral/structure/coral_beam.h)
 //   rotor <name> hub <x y z> axis <ax ay az> R_hub <r> blade <AeroDyn blade file> airfoils <n> <file 1> .. <file n>
 //        [blades <B>] [structure <ElastoDyn blade file>] [hub_mass <m>] [hub_inertia <J> [<J_across>]] [precone <deg>]
 //        [azimuth <deg>] [ccw] [nacelle <body>] [rpm <rpm>] [pitch <deg> | pitch_file <t deg table>]
 //        [gearbox <N>] [gen_inertia <J_hss>] [shaft <k> <c>] [efficiency <eta>]
 //        [generator none | constant <T> | slip <slope> <rpm_sync> | k_omega2 <K> [<T_max>]]
 //        [no_skew] [no_tip_loss] [no_hub_loss] [no_tangential] [no_induction] [no_drag_induction]
+//        [dynamic_inflow [di_tau1 <s>] [di_k <k>]] [dynamic_stall oye | hgm [ds_T_f0 <T>] [ds_T_p <T>]]
 //        [tower <x y z base> <x y z top> <D_base> <D_top> [tower_body <b>]]
 //        [pitch_joints [pitch_freq <Hz>] [pitch_zeta <z>]] [blade_elements <n> [blade_beta <s>] [ea_per_mass <EA/m>] [gj_factor <f>]]
 //        (wind turbine rotor: hub (body <name>_hub, <name>_gen with the shaft torsion) turning in the revolute joint
@@ -235,6 +308,10 @@ Architect: Hans Bihs
 //        shaft (N m, rad/s; rpm_sync of the high-speed shaft), shaft torsion k [N m/rad], c [N m s/rad] on the
 //        low-speed shaft with the generator on a body of its own; quasi-steady blade element momentum with
 //        Prandtl's tip and hub loss, Buhl's correction and the skewed wake; tower potential flow;
+//        dynamic_inflow: Øye's filter of the induced velocities (tau1 from the mean induction and the hub wind, or
+//        di_tau1; k 0.6, or di_k; channel <name>_tau1); dynamic_stall: Øye's (T_f0 6) or the Beddoes-Leishman model of
+//        Hansen, Gaunaa and Madsen (A1, A2, b1, b2, T_f0, T_p from the airfoil file, else Jones' 0.165, 0.335, 0.0455, 0.3
+//        and AeroDyn's 3, 1.7; ds_T_f0 and ds_T_p override) (coral/aero/coral_unsteady_aero.h);
 //        channels <name>_azimuth _rpm _T _Q _P _Cp _Ct _lambda _U _yaw _pitch _b<k>_Moop _b<k>_Mip and
 //        <name>_dt_rpm_rotor _rpm_gen _T_gen _P_gen _T_shaft; blades rigid on the hub unless: pitch_joints: each blade
 //        on a pitch bearing (body <name>_pitch<k>, revolute joint <name>_pitch<k> on the hub, positive towards feather)
@@ -244,10 +321,12 @@ Architect: Hans Bihs
 //        blade_beta (0.0022 s)), nodes <name>_b<k>e<i>:1; coral/aero/coral_rotor.h)
 //   controller <name> rotor <rotor> [tune P_rated <W> rpm_rated <rpm> [omega_n <rad/s>] [zeta <z>] [write <file>]]
 //        [K <N m s^2>] [rpm_cutin <rpm>] [rpm_rgn2 <rpm>] [rpm_rated_torque <rpm>] [P_rated <W>] [slip <%>] [T_max <N m>]
-//        [T_rate <N m/s>] [pitch_rgn3 <deg>] [rpm_ref <rpm>] [KP <s>] [KI <->] [theta_K <deg>] [theta_min <deg>]
+//        [T_rate <N m/s>] [T_rgn3 <N m>] [pitch_rgn3 <deg>] [rpm_ref <rpm>] [KP <s>] [KI <->] [theta_K <deg>] [theta_min <deg>]
 //        [theta_max <deg>] [theta_rate <deg/s>] [corner <Hz>] [dt <s>] [no_pitch] [no_torque]
+//        [floating [U_float <m/s>] [float_gain <g>] [float_A <1/s> float_B <rad/s^2 per m/s>]]
 //        (wind turbine controller of the NREL 5 MW baseline type on the filtered generator speed: variable-speed
-//        torque (regions 1, 1.5, 2 k omega^2, 2.5, 3 constant power) and gain-scheduled PI collective pitch; speeds and
+//        torque (regions 1, 1.5, 2 k omega^2, 2.5, 3 constant power, or constant torque T_rgn3 as DISCON_OC3Hywind) and
+//        gain-scheduled PI collective pitch; speeds and
 //        torque on the generator (high-speed) side, K in N m s^2/rad^2; the defaults are the NREL 5 MW's (DISCON); it sets
 //        the rotor's generator torque and the pitch command of its pitch actuators (or the pitch of rigid blades without
 //        pitch bearings) once per step; tune: the gains for this rotor from CORAL's steady BEM at the rated power and the
@@ -256,7 +335,11 @@ Architect: Hans Bihs
 //        rpm_ref = N rpm_rated (the rotor speed), rpm_rated_torque (region 3 of the torque law) 0.99 of it, rpm_cutin, rpm_rgn2 0.57 and 0.74 of rpm_ref
 //        and T_max 1.1 rated torque as the NREL 5 MW; K Omega_rated^3 must stay below P_rated: the baseline torque law
 //        reaches the rated power at the rated speed, not before), given values override; write: the steady operating curve and the
-//        tuning; channels <name>_wf (rpm), _T, _pitch (deg), _region; coral/control/coral_turbine_controller.h)
+//        tuning; floating: the platform's part of the speed out of the pitch loop's error (parallel compensation of
+//        the negative damping of platform pitch, the hub's velocity along the shaft through a first-order drivetrain
+//        model; with tune from CORAL's BEM at U_float, 1.25 U_rated by default, else float_A and float_B given;
+//        float_gain 1); channels <name>_wf (rpm), _T, _pitch (deg), _region, floating: _wplat (rpm), _vnac (m/s);
+//        coral/control/coral_turbine_controller.h)
 //   static                                       static equilibrium before the time integration
 //   modes <n> [damped]                           linear analysis: the first n modes (modes.dat, mode_shapes.dat)
 //   output vtp <dt>                              VTP of the structure (coral_vtp/)

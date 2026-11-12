@@ -1,0 +1,19 @@
+{
+ "base": "cfd_2d_nwt_amr",
+ "np": 1,
+ "steps": 100,
+ "ctrl_add": [
+  "G 29 1"
+ ],
+ "description": "cfd_2d_nwt_amr with G 29 1: waves through the refined box, the free surface across its vertical edges.",
+ "tags": [
+  "quick",
+  "2d",
+  "waves",
+  "levelset",
+  "amr"
+ ],
+ "covers": [
+  "G 29 with waves across the patch edges"
+ ]
+}

@@ -43,6 +43,7 @@ Author: Hans Bihs
 #include"lagoon_output.h"
 #include"regression_dump.h"
 #include"seastate_sflow.h"
+#include"hydro_sflow.h"
 #include<iostream>
 #include<fstream>
 #include<sys/stat.h>
@@ -50,6 +51,8 @@ Author: Hans Bihs
 #include"runlog.h"
 #include"reefckpt.h"
 #include"reefrun_ckpt.h"
+#include"hydro_core.h"
+#include"hydro_couple.h"
 
 sflow_f::sflow_f(lexer *p, fdm2D *b, ghostcell* pgc, patchBC_interface *ppBC)
 {
@@ -64,6 +67,15 @@ sflow_f::~sflow_f()
 
 void sflow_f::start(lexer *p, fdm2D* b, ghostcell* pgc)
 {	
+    // REEF3D::HYDRO catchment model only (R 100 1): no hydrodynamics
+    if(p->R100==1)
+    {
+        {
+        hydro_core hc(p,pgc);
+        hc.run(p,pgc);
+        }
+        pgc->final();
+    }
 	
 	// logic
 	logic(p,b,pgc);
@@ -92,6 +104,10 @@ void sflow_f::start(lexer *p, fdm2D* b, ghostcell* pgc)
         ++p->count;
         starttime=pgc->timer();
 
+        // REEF3D::HYDRO coupled (R 100 2): the catchment step and the exchange when due, the step ends on the next exchange
+        if(pcpl!=nullptr)
+        pcpl->step(p,b,pgc);
+
         if(p->mpirank==0 && (p->count%p->P12==0))
         {
         cout<<"------------------------------------"<<endl;
@@ -110,14 +126,42 @@ void sflow_f::start(lexer *p, fdm2D* b, ghostcell* pgc)
         if(b->wave!=nullptr)
         b->wave->start(p,b,pgc);
 
+        // REEF3D::HYDRO: rain and point sources of the step (with the mesh refinement or multi-block grids: of all grids)
+        if(b->hydro!=nullptr)
+        {
+            if(pamr!=nullptr)
+            pamr->hydro_prepare(p,b,pgc);
+            else
+            b->hydro->prepare(p,b,pgc);
+        }
+
         // outer loop
 		double temptime=pgc->timer();
 		pmom->start(p,b,pgc);
 		double mtime=pgc->timer()-temptime;
+
+        // REEF3D::HYDRO: evaporation, infiltration and abstraction after the continuity of the step
+        if(b->hydro!=nullptr)
+        {
+        double qin,qout;
+        if(pmom->boundary_flow(qin,qout))
+        b->hydro->boundary(qin,qout);
+
+            if(pamr!=nullptr)
+            pamr->hydro_sinks(p,b,pgc);
+            else
+            b->hydro->sinks(p,b,pgc);
+
+        pmom->water_column(p,b);
+        }
     
         
         // turbulence
         pturb->start(p,b,pgc,pconvec,pdiff,psolv,pflow);
+
+        // A 260 1/2 with mesh refinement: the models of the patches (sflow_amr_turb.cpp)
+        if(pamr!=nullptr)
+        pamr->turb_step(p,b,pgc);
         
         // breaking waves
         int count=0;
@@ -148,6 +192,10 @@ void sflow_f::start(lexer *p, fdm2D* b, ghostcell* pgc)
 		
         //timestep control
         p->simtime+=p->dt;
+
+        // REEF3D::HYDRO: volume budget at the end of the step
+        if(b->hydro!=nullptr)
+        b->hydro->budget(p,b,pgc);
         ptime->start(p,b,pgc);
         
         if(pamr!=nullptr)
@@ -242,6 +290,11 @@ void sflow_f::start(lexer *p, fdm2D* b, ghostcell* pgc)
     
 	}
 
+	// the state at the end of the run (N 45, N 41, S 19), unless the last step wrote it: before the
+	// checkpoint, which keeps the output counters
+	pprint->print_end(p,b,pgc,pturb,psed);
+	pprintbed->print_end(p,b,pgc,psed);
+
 	// the maxima of the run (P 112, P 115)
 	pprint->finish(p,b,pgc);
 
@@ -263,6 +316,9 @@ void sflow_f::start(lexer *p, fdm2D* b, ghostcell* pgc)
 	}
     
     rdump.sflow_final(p,b,pgc);
+
+    if(pcpl!=nullptr)
+    pcpl->final(p,b,pgc);
     
     pgc->final();
 	

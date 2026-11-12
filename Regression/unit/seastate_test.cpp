@@ -2,7 +2,7 @@
 // Standalone verification of the REEF3D::SEASTATE kernels: spectral grid, block-sparse action
 // storage, integrated wave parameters, dispersion relation, SWAN spectrum files, source terms (incl. vegetation), surfbeat boundary generator, forcing files,
 // structure formulas (d'Angremond, porous), the DIA of a sweep window (Phase 8). No MPI, no REEF3D binary.
-// Build:  g++ -O2 -std=c++20 -I../../src seastate_test.cpp ../../src/seastate_grid.cpp ../../src/seastate_store.cpp ../../src/seastate_param.cpp ../../src/seastate_dispersion.cpp ../../src/seastate_swan_spc.cpp ../../src/seastate_source.cpp ../../src/seastate_st4.cpp ../../src/seastate_surfbeat.cpp ../../src/seastate_forcing.cpp ../../src/seastate_bathy.cpp ../../src/seastate_structure.cpp seastate_test_threads.cpp -o seastate_test
+// Build:  g++ -O2 -std=c++20 -I../../src seastate_test.cpp ../../src/seastate_grid.cpp ../../src/seastate_store.cpp ../../src/seastate_param.cpp ../../src/seastate_dispersion.cpp ../../src/seastate_swan_spc.cpp ../../src/seastate_source.cpp ../../src/seastate_st4.cpp ../../src/seastate_surfbeat.cpp ../../src/seastate_forcing.cpp ../../src/seastate_collocation.cpp ../../src/seastate_bathy.cpp ../../src/seastate_structure.cpp seastate_test_threads.cpp -o seastate_test
 // Run:    ./seastate_test
 #include"seastate_bathy.h"
 #include"seastate_grid.h"
@@ -15,6 +15,7 @@
 #include"seastate_forcing.h"
 #include"seastate_structure.h"
 #include"seastate_st4.h"
+#include"seastate_collocation.h"
 #include<cstdio>
 #include<fstream>
 #include<algorithm>
@@ -397,9 +398,9 @@ static void test_swan_spc()
     struct {bool naut, energy; const char *name;} cases[3] = {{false,false,"CDIR VaDens"},{true,false,"NDIR VaDens"},{false,true,"CDIR EnDens"}};
     for(auto &c : cases)
     {
-        write_spc("seastate_test.spc",1.5,9.0,40.0,8.0,c.naut,c.energy);
+        write_spc("seastate_test_tmp.spc",1.5,9.0,40.0,8.0,c.naut,c.energy);
         seastate_swan_spc spc;
-        const bool ok=spc.read("seastate_test.spc",err);
+        const bool ok=spc.read("seastate_test_tmp.spc",err);
         check(ok && spc.f.size()==40 && spc.dir.size()==36,std::string(c.name)+": read 40 x 36 spectrum");
         std::vector<float> N;
         spc.to_grid(sg,N);
@@ -409,7 +410,7 @@ static void test_swan_spc()
         check(std::fabs(sp.dir-40.0)<0.5,std::string(c.name)+": mean direction 40 deg (Cartesian)");
         check(spc.x==100.0 && spc.y==200.0,std::string(c.name)+": location");
     }
-    std::remove("seastate_test.spc");
+    std::remove("seastate_test_tmp.spc");
 
     seastate_swan_spc bad;
     check(!bad.read("no_such_file.spc",err),"missing file reported");
@@ -807,7 +808,7 @@ static void test_surfbeat()
 }
 
 // ---------------------------------------------------------------------------------------------
-// external forcing: date-times, series of SWAN spectra, wind field
+// external forcing: date-times, series of SWAN spectra (the wind field: met_test.cpp)
 // ---------------------------------------------------------------------------------------------
 static void test_forcing()
 {
@@ -863,41 +864,106 @@ static void test_forcing()
     ser.advance(ser.time(1)+1e5,err);
     check(ser.weight(ser.time(1)+1e5)==1.0 && ser.records==3,"spectra series: clamped after the last record");
 
-    // wind field: linear in x and y, two times
-    const char *wf = "/tmp/seastate_test_wind.dat";
+    // the wind field of SEASTATE is the met forcing (A 730 2, W 200, met-forcing.r3m) since hans_dev 221581380; its
+    // reader (bilinear in space, linear in time, windows, clamping) is tested in met_test.cpp
+}
+
+// Phase 24: online collocation (A 787 1): the file of the observations, the times, the statistics
+static void test_collocation()
+{
+    std::cout<<"seastate_collocation"<<std::endl;
+
+    double t1, t2, t3;
+    check(seastate_collocation::parse_time("20220129.061231",t1) && seastate_collocation::parse_time("2022-01-29 06:12:31",t2)
+          && seastate_collocation::parse_time("2022-01-29T06:12:31.250",t3) && t1==t2 && std::fabs(t3-t1-0.25)<1e-6
+          && t1==seastate_datetime(20220129.061231),"times: YYYYMMDD.HHMMSS, ISO with a space or T, fractions of a second");
+    double tx;
+    check(!seastate_collocation::parse_time("29/01/2022",tx) && !seastate_collocation::parse_time("2022-13-01",tx),"times: other formats rejected");
+    check(seastate_collocation::stamp(t1)=="20220129.061231","stamp: seconds since 1970 -> YYYYMMDD.HHMMSS");
+
+    const char *f = "seastate_test_colloc.csv";
     {
-        std::ofstream o(wf);
-        o<<"wind test\n3 2\n100.0 -50.0 200.0 300.0\n";
-        for(int k=0;k<2;++k)
-        {
-            o<<(k==0 ? "20261005.000000" : "20261005.060000")<<"\n";
-            for(int c=0;c<2;++c)
-            for(int jj=0;jj<2;++jj)
-            {
-                for(int ii=0;ii<3;++ii)
-                {
-                    const double x=100.0+200.0*ii, y=-50.0+300.0*jj;
-                    o<<(c==0 ? 5.0+0.01*x+0.002*y+k*4.0 : -3.0+0.004*x-0.01*y)<<" ";
-                }
-                o<<"$ row\n";
-            }
-        }
+        std::ofstream o(f);
+        o<<"# observations\nhs,time,y,x,source,id,extra\n";
+        o<<"2.5,2022-01-29 07:00:00,20.0,10.0,buoy,ekofisk,1\n";
+        o<<"3.0,2022-01-29 06:00:00,0.0,-5.0,alti,jason-3,1\n";
+        o<<"\n4.0,2022-01-29 06:30:00,5.0,6.0,alti,saral,1  # comment\n";
     }
-    seastate_wind_series ws;
-    const bool okw = ws.open(wf,err);
-    if(!okw) std::cout<<"        "<<err<<std::endl;
-    double werr=0.0;
-    const double tw = seastate_datetime(20261005.03);
-    ws.advance(tw,err);
-    for(double x : {100.0,230.0,499.0}) for(double y : {-50.0,10.0,250.0})
+    seastate_collocation c;
+    std::string err;
+    const double tref = seastate_datetime(20220129.0);
+    const bool ok = c.read(f,tref,err);
+    if(!ok) std::cout<<"        "<<err<<std::endl;
+    check(ok && c.obs.size()==3 && c.sources.size()==2 && c.ids.size()==3,"file: columns by name, comments, empty lines");
+    check(ok && c.obs[0].t==6.0*3600.0 && c.obs[1].t==6.5*3600.0 && c.obs[2].t==7.0*3600.0 && c.obs[0].x==-5.0 && c.obs[2].y==20.0
+          && c.sources[c.obs[2].src]=="buoy" && c.ids[c.obs[1].id]=="saral","file: sorted by time, model time from tref, x, y, source, id");
     {
-        double u,v; ws.at(tw,x,y,u,v);
-        werr=std::max(werr,std::fabs(u-(5.0+0.01*x+0.002*y+2.0))+std::fabs(v-(-3.0+0.004*x-0.01*y)));
+        std::ofstream o("seastate_test_colloc_bad.csv");
+        o<<"time,x,hs\n2022-01-29 06:00:00,1,2\n";
     }
-    double uc,vc; ws.at(tw,-1000.0,1000.0,uc,vc);
-    std::cout<<"        wind: max. interpolation error "<<werr<<std::endl;
-    check(okw && ws.nx==3 && ws.ny==2 && werr<1e-12,"wind field: bilinear in space and linear in time are exact for a linear field");
-    check(std::fabs(uc-(5.0+0.01*100.0+0.002*250.0+2.0))<1e-12,"wind field: clamped to the grid outside");
+    seastate_collocation b;
+    check(!b.read("seastate_test_colloc_bad.csv",0.0,err) && !b.read("no_such_file.csv",0.0,err),"file without y, missing file: rejected");
+    std::remove(f);
+    std::remove("seastate_test_colloc_bad.csv");
+
+    // statistics against a direct computation
+    const double o[5] = {1.0,2.0,3.0,4.0,5.0}, m[5] = {1.2,1.9,3.5,4.4,4.8};
+    seastate_colloc_stats s;
+    double bd=0.0, sd2=0.0;
+    for(int k=0; k<5; ++k) {s.add(o[k],m[k]); bd += m[k]-o[k]; sd2 += (m[k]-o[k])*(m[k]-o[k]);}
+    bd /= 5.0;
+    double var=0.0;
+    for(int k=0; k<5; ++k) var += (m[k]-o[k]-bd)*(m[k]-o[k]-bd);
+    var /= 5.0;
+    double mo=3.0, mm=0.0, cxy=0.0, cxx=0.0, cyy=0.0;
+    for(int k=0; k<5; ++k) mm += m[k]/5.0;
+    for(int k=0; k<5; ++k) {cxy += (o[k]-mo)*(m[k]-mm); cxx += (o[k]-mo)*(o[k]-mo); cyy += (m[k]-mm)*(m[k]-mm);}
+    check(s.n==5 && std::fabs(s.bias()-bd)<1e-12 && std::fabs(s.rmse()-std::sqrt(sd2/5.0))<1e-12 && std::fabs(s.si()-std::sqrt(var)/3.0)<1e-12
+          && std::fabs(s.r()-cxy/std::sqrt(cxx*cyy))<1e-12,"statistics: bias, RMSE, scatter index, correlation");
+
+    // Phase 25: the observed periods (optional columns), the regimes, the periods, the quantiles
+    {
+        std::ofstream o(f);
+        o<<"time,x,y,hs,source,tp,tm10\n";
+        o<<"2022-01-29 06:00:00,0,0,1.5,buoy,8.0,\n";
+        o<<"2022-01-29 06:10:00,0,0,7.0,buoy,nan,9.5\n";
+        o<<"2022-01-29 06:20:00,0,0,3.0,alti,,\n";
+    }
+    seastate_collocation q;
+    const bool okq = q.read(f,tref,err);
+    std::remove(f);
+    check(okq && q.has_tp && !q.has_tm01 && q.has_tm10 && q.obs[0].tp==8.0 && std::isnan(q.obs[1].tp) && q.obs[1].tm10==9.5
+          && std::isnan(q.obs[2].tp) && std::isnan(q.obs[0].tm10),"file: the observed periods tp, tm10 (empty and nan: none)");
+
+    // cp at 10 s in deep water g T / 2 pi; at 10 s in 5 m depth close to sqrt(g d)
+    const double c0 = seastate_collocation::phase_speed(10.0,0.0), c5 = seastate_collocation::phase_speed(10.0,5.0);
+    const double k5 = 2.0*3.14159265358979323846/(10.0*c5);
+    check(std::fabs(c0-9.81*10.0/(2.0*3.14159265358979323846))<1e-9 && c5<std::sqrt(9.81*5.0)
+          && std::fabs(std::pow(2.0*3.14159265358979323846/10.0,2)-9.81*k5*std::tanh(k5*5.0))<1e-9,"phase speed: deep water, dispersion in 5 m");
+
+    // three matchups: buoy (Hs 1.5, Tp 8 observed), buoy (Hs 7), alti (Hs 3)
+    seastate_matchup a, b2, c2;
+    a.src = 0; a.hs_obs = 1.5; a.hs = 1.7; a.tp_obs = 8.0; a.tp = 8.6; a.tm01_obs = std::nan(""); a.tm10_obs = std::nan("");
+    a.depth = 15.0; a.u10 = 20.0;
+    b2.src = 0; b2.hs_obs = 7.0; b2.hs = 7.9; b2.tp_obs = std::nan(""); b2.tm10_obs = 9.5; b2.tm10 = 9.1; b2.tm01_obs = std::nan("");
+    b2.tp = 11.0; b2.depth = 300.0; b2.u10 = 0.5;
+    c2.src = 1; c2.hs_obs = 3.0; c2.hs = 2.6; c2.tp_obs = c2.tm01_obs = c2.tm10_obs = std::nan(""); c2.tp = 6.0; c2.depth = 60.0; c2.u10 = 15.0;
+    q.count(a); q.count(b2); q.count(c2);
+    // (source 0 is buoy, the order of the file)
+    const int sb = int(std::find(q.sources.begin(),q.sources.end(),"buoy") - q.sources.begin());
+    check(sb==0 && q.total.n==3 && q.regime(0,1,-1).n==1 && q.regime(0,4,-1).n==1 && q.regime(0,2,-1).n==1
+          && std::fabs(q.regime(0,4,0).bias()-0.9)<1e-12 && q.regime(0,2,1).n==1,"regimes: the classes of the observed Hs (1-2, 2-4, 6-8)");
+    check(q.regime(1,1,-1).n==1 && q.regime(1,3,1).n==1 && q.regime(1,5,0).n==1,"regimes: the classes of the model depth (10-20, 50-100, 200+)");
+    // wave age: a: cp(8.6 s, 15 m)/20 < 0.8; c2: cp(6 s, 60 m) = 9.37/15 = 0.62 < 0.8; b2: U10 < 1 -> swell
+    check(q.regime(2,0,-1).n==2 && q.regime(2,3,-1).n==1 && q.regime(2,3,0).n==1,"regimes: wave age (young wind sea, swell with U10 < 1 m/s)");
+    check(q.period(0,-1).n==1 && std::fabs(q.period(0,0).bias()-0.6)<1e-12 && q.period(1,-1).n==0 && q.period(2,-1).n==1
+          && std::fabs(q.period(2,-1).bias()+0.4)<1e-12,"periods: Tp and Tm-1,0 where observed only");
+    check(std::fabs(q.quantile(-1,0.5,false)-3.0)<1e-6 && std::fabs(q.quantile(-1,1.0,true)-7.9)<1e-6
+          && std::fabs(q.quantile(-1,0.9,false)-(3.0+0.8*4.0))<1e-6 && std::fabs(q.quantile(0,0.0,true)-1.7)<1e-6,
+          "quantiles: linear between the order statistics, per source");
+    const std::string tr = q.regimes_table(), tq = q.quantiles_table(), tpp = q.periods_table();
+    check(tr.find("0 \t 4 \t -1 \t 1 \t ")!=std::string::npos && tq.find("-1 \t 1 \t 3 \t 7 \t 7.9")!=std::string::npos
+          && tpp.find("tp 1, tm01 0, tm10 1")!=std::string::npos,"tables: regimes, quantiles, periods");
 }
 
 // Phase 5b: bathymetry raster (A 790 1) and the maximum energy of SWAN (A 737 1)
@@ -1184,6 +1250,112 @@ static void test_dia_window()
 
 
 // ---------------------------------------------------------------------------------------------
+// Phase 25: A 769 2, the limiter-free integration: the DIA as a conservative production-destruction system
+// (seastate_source::dia_mp) and the linearised whitecapping (wc_newton)
+// ---------------------------------------------------------------------------------------------
+static void test_limiter_free()
+{
+    std::cout<<"A 769 2: conservative DIA (dia_mp), linearised whitecapping"<<std::endl;
+
+    for(int ndir : {24,36})
+    {
+    // fmax 2 Hz: the spectrum is empty at the top, so no action leaves through the tail
+    seastate_grid sg(40,0.04,2.0,ndir);
+    const int nb=sg.nbin;
+    const double d=200.0;
+    cell_kin ck(sg,d);
+    std::vector<float> N=make_spectrum(sg,2.0,8.0,3.3,0.6,4.0);
+
+    seastate_source_param sp; sp.dia=true; sp.dia_mp=true;
+    seastate_source src(sg,sp);
+    std::vector<double> P(nb), D(nb), G(nb), L(nb), r(nb,1.0), S(nb), dS(nb);
+    src.compute(N.data(),d,ck.k.data(),ck.cg.data(),P.data(),D.data());
+    src.dia_mp(N.data(),r.data(),G.data(),L.data());
+
+    // the standard DIA of the same spectrum
+    seastate_source_param sq; sq.dia=true;
+    seastate_source std_(sg,sq);
+    std_.quadruplets(N.data(),d,ck.k.data(),S.data(),dS.data());
+
+    double gmin=0.0, lmin=0.0, bal=0.0, gross=0.0, e2=0.0, s2=0.0, pd=0.0;
+    for(int b=0;b<nb;++b)
+    {
+        const double w=sg.dsig[b/ndir]*sg.dth[b%ndir], s=G[b]-L[b]*double(N[b]);
+        gmin=std::min(gmin,G[b]); lmin=std::min(lmin,L[b]);
+        bal+=w*s; gross+=w*L[b]*double(N[b]);
+        e2+=w*(s-S[b])*(s-S[b]); s2+=w*S[b]*S[b];
+        pd=std::max(pd,std::fabs(P[b])+std::fabs(D[b]));
+    }
+    std::cout<<"        "<<ndir<<" directions: action balance "<<bal/gross<<" of the gross loss; against the standard DIA rel. L2 "
+             <<std::sqrt(e2/s2)<<std::endl;
+    check(gmin>=0.0 && lmin>=0.0,"dia_mp: gains and loss rates non-negative ("+std::to_string(ndir)+" directions)");
+    check(std::fabs(bal)<1e-10*gross,"dia_mp: conservative in action at r = 1 ("+std::to_string(ndir)+" directions)");
+    check(std::sqrt(e2/s2)<1e-3,"dia_mp at r = 1: the standard DIA within its interpolation (rel. L2 < 1e-3)");
+    check(pd==0.0,"with dia_mp the DIA is not in P and D");
+
+    // the gains of the ratios: r = 2 everywhere doubles the gains, the loss rates stay
+    std::vector<double> G2(nb), L2(nb), r2(nb,2.0);
+    src.dia_mp(N.data(),r2.data(),G2.data(),L2.data());
+    double eg=0.0, el=0.0;
+    for(int b=0;b<nb;++b) {eg=std::max(eg,std::fabs(G2[b]-2.0*G[b])); el=std::max(el,std::fabs(L2[b]-L[b]));}
+    check(eg<=1e-12*(*std::max_element(G.begin(),G.end())) && el==0.0,"dia_mp: the gains scale with r, the loss rates do not");
+
+    // a window of the sweep (a quadrant and a band of frequencies): G and L of its bins as with the full circle
+    double ew=0.0;
+    for(int q=0;q<4;++q)
+    {
+        const int a=q*ndir/4, b=(q+1)*ndir/4-1, la=2, lb=sg.nsig-3;
+        src.compute(N.data(),d,ck.k.data(),ck.cg.data(),P.data(),D.data(),a,b,la,lb);
+        std::vector<double> Gw(nb), Lw(nb);
+        src.dia_mp(N.data(),r.data(),Gw.data(),Lw.data());
+        for(int l=la;l<=lb;++l) for(int m=a;m<=b;++m)
+        {
+            const int x=sg.bin(l,m);
+            ew=std::max(ew,std::fabs(Gw[x]-G[x])/(G[x]+L[x]*N[x]+1e-300));
+            ew=std::max(ew,std::fabs(Lw[x]-L[x])/(L[x]+1e-300));
+        }
+    }
+    check(ew<1e-12,"dia_mp of a window equals the full circle in the window ("+std::to_string(ndir)+" directions)");
+    }
+
+    // the linearised whitecapping: the same S = P - D N, D larger by (q - 1) times the whitecapping rate
+    for(int westh=0; westh<2; ++westh)
+    {
+    seastate_grid sg(30,0.04,1.0,24);
+    const int nb=sg.nbin;
+    cell_kin ck(sg,500.0);
+    std::vector<float> N=make_spectrum(sg,3.0,9.0,3.3,0.6,4.0);
+    seastate_source_param a; a.wind=true; a.U10=18.0; a.komen=true; a.westh=(westh==1); a.dia=true; a.limiter=0.0;
+    seastate_source_param b=a; b.wc_newton=true;
+    seastate_source sa(sg,a), sb(sg,b);
+    std::vector<double> Pa(nb), Da(nb), Pb(nb), Db(nb);
+    sa.compute(N.data(),500.0,ck.k.data(),ck.cg.data(),Pa.data(),Da.data());
+    sb.compute(N.data(),500.0,ck.k.data(),ck.cg.data(),Pb.data(),Db.data());
+    double es=0.0, sm=0.0; bool larger=true;
+    for(int x=0;x<nb;++x)
+    {
+        const double s1=Pa[x]-Da[x]*N[x], s2=Pb[x]-Db[x]*N[x];
+        es=std::max(es,std::fabs(s1-s2)); sm=std::max(sm,std::fabs(Pa[x])+std::fabs(Da[x]*N[x]));
+        if(Db[x]<Da[x] || Pb[x]<Pa[x]) larger=false;
+    }
+    check(es<=1e-12*sm && larger,std::string("wc_newton: the same source term, D and P not smaller (")+(westh ? "Westhuysen" : "Komen")+")");
+    }
+
+    // the upper bound of A 769 2 with A 732 1, 2 (flmax, 0059): the FLMAX of the ST4 terms with the same alpha_p,max
+    {
+    seastate_grid sg(30,0.04,1.0,24);
+    seastate_source_param a; a.wind=true; a.U10=18.0; a.komen=true; a.dia=true; a.flmax=0.031;
+    seastate_source_param b; b.wind=true; b.U10=18.0; b.komen=true; b.st4=true; b.dia=true; b.st4p.alphapmax=0.031;
+    seastate_source sa(sg,a), sb(sg,b);
+    seastate_source_param c=a; c.flmax=0.0;
+    seastate_source sc(sg,c);
+    double e=0.0;
+    for(int l=0;l<sg.nsig;++l) e=std::max(e,std::fabs(sa.upper()[l]-sb.upper()[l])/sb.upper()[l]);
+    check(sa.upper()!=nullptr && e<1e-12 && sc.upper()==nullptr,"flmax: the bound of A 732 1, 2 equals FLMAX of A 732 3 (alpha 0.031); none without it");
+    }
+}
+
+// ---------------------------------------------------------------------------------------------
 // Phase 20: Ardhuin et al. (2010) as ecWAM IPHYS 1 (A 732 3), against the Python port of ecWAM
 // (validation 69, ecwam_st4.py) on the same spectrum
 // ---------------------------------------------------------------------------------------------
@@ -1225,7 +1397,7 @@ static void test_st4()
     s4.wind(N.data(),row.data(),k.data(),cg.data(),20.0,wdir,false);
     std::cout<<"        u* "<<s4.ust<<" (ecWAM port 0.8879935003), z0 "<<s4.z0<<", tau_w "<<s4.tauw<<", cut-off "<<s4.lc<<", "<<s4.iters<<" iterations"<<std::endl;
     check(close(s4.ust,8.879935002613e-01,1e-9) && close(s4.z0,1.221091203245e-03,1e-8) && close(s4.tauw,6.441716702711e-01,1e-8) && s4.lc==24,
-          "ST4: u*, z0, tau_w and the cut-off of the fixed point as the ecWAM port (TAUT_Z0, STRESSO, TAU_PHI_HF, FRCUTINDEX; secant steps on tau_w)");
+          "ST4: u*, z0, tau_w and the cut-off of the fixed point as the ecWAM port (TAUT_Z0, STRESSO, TAU_PHI_HF, FRCUTINDEX; Phase 23: secant steps and regula falsi on tau_w)");
 
     // growth rate, swell damping, whitecapping of single bins (SINPUT_ARD, SDISSIP_ARD)
     {
@@ -1286,12 +1458,12 @@ static void test_st4()
         seastate_st4 jb;
         jb.init(sg,seastate_st4_param::jb2023(),g);
         jb.wind(N.data(),row.data(),k.data(),cg.data(),20.0,wdir,false);
-        std::cout<<"        JB2023: u* "<<jb.ust<<" (ecWAM port 0.8515815536), z0 "<<jb.z0<<", tau_w "<<jb.tauw<<", cut-off "<<jb.lc<<std::endl;
-        check(close(jb.ust,8.515815536042e-01,1e-9) && close(jb.z0,8.322351301467e-04,1e-8) && close(jb.tauw,5.503381091615e-01,1e-8) && jb.lc==24,
+        std::cout<<"        JB2023: u* "<<jb.ust<<" (ecWAM port 0.8515787410), z0 "<<jb.z0<<", tau_w "<<jb.tauw<<", cut-off "<<jb.lc<<std::endl;
+        check(close(jb.ust,8.515787409550e-01,1e-9) && close(jb.z0,8.322098376792e-04,1e-8) && close(jb.tauw,5.503336362325e-01,1e-8) && jb.lc==24,
               "JB2023: u*, z0, tau_w with the gravity-capillary stress (STRESS_GC, HALPHAP) and the renormalisation as the ecWAM port");
         const int L[6]={10,15,20,24,30,12}, M[6]={3,3,5,2,0,20};
-        const double G[6]={5.933361749285e-05,2.423954791189e-04,7.061289796898e-04,2.565967641019e-03,1.378789678992e-02,0.0};
-        const double S[6]={4.001628613798e-06,1.038512631683e-05,3.261740652647e-05,5.568844549059e-05,1.873161389521e-04,2.392280605158e-05};
+        const double G[6]={5.933334901921e-05,2.423932165655e-04,7.061215647255e-04,2.565932876686e-03,1.378771860980e-02,0.0};
+        const double S[6]={4.001609971511e-06,1.038507796354e-05,3.261726241126e-05,5.568818370292e-05,1.873152767456e-04,2.392271909870e-05};
         std::vector<double> P(sg.nbin,0.0), D(sg.nbin,0.0), Dl(ndir);
         jb.add(N.data(),k.data(),cg.data(),0,nsig-1,0,ndir-1,P.data(),D.data());
         bool ok=true;
@@ -1302,6 +1474,50 @@ static void test_st4()
             ok = ok && std::fabs(jb.rate(b)-G[i])<=1e-8*std::max(G[i],1e-6) && std::fabs(D[b]-Dl[M[i]]-S[i])<=1e-8*S[i];
         }
         check(ok,"JB2023: renormalised growth rate and swell damping of 6 bins as the ecWAM port (1e-8)");
+    }
+
+    // Phase 23 (A 768 1): u* from the wave stress of the last time step (tau_w 0.5, direction 0.2, u* 0.9), the two
+    // calls of SINFLX of ecWAM, against the port for A 732 3 and 4
+    {
+        const int L[6]={10,15,20,24,30,12}, M[6]={3,3,5,2,0,20};
+        const double G3[6]={6.228759928700e-05,2.679541733596e-04,7.895926672388e-04,2.950394330914e-03,1.579989257710e-02,0.0};
+        const double S3[6]={4.170512630059e-06,1.079410145284e-05,3.368423134870e-05,5.739948804012e-05,1.914698793028e-04,2.492237419897e-05};
+        const double G4[6]={5.893976626029e-05,2.389425449259e-04,6.948053849081e-04,2.512930181466e-03,1.351597776942e-02,0.0};
+        const double S4[6]={3.973116517751e-06,1.031117328269e-05,3.239740209534e-05,5.528790466337e-05,1.859978583966e-04,2.379112528140e-05};
+        for(int ph=3; ph<=4; ++ph)
+        {
+            seastate_st4 s;
+            s.init(sg,ph==3 ? seastate_st4_param() : seastate_st4_param::jb2023(),g);
+            s.lag(0.5,0.2,0.9);
+            s.wind(N.data(),row.data(),k.data(),cg.data(),20.0,wdir,false);
+            const double *Gr = ph==3 ? G3 : G4, *Sr = ph==3 ? S3 : S4;
+            std::vector<double> P(sg.nbin,0.0), D(sg.nbin,0.0), Dl(ndir);
+            s.add(N.data(),k.data(),cg.data(),0,nsig-1,0,ndir-1,P.data(),D.data());
+            bool ok = s.iters==2 && s.lc==24;
+            if(ph==3)
+            ok = ok && close(s.ust,8.789308424516e-01,1e-9) && close(s.z0,1.112585891977e-03,1e-8) && close(s.tauw,6.350151838146e-01,1e-8);
+            else
+            ok = ok && close(s.ust,8.473414515639e-01,1e-9) && close(s.z0,7.939800853609e-04,1e-8) && close(s.tauw,5.435005037898e-01,1e-8);
+            for(int i=0;i<6;++i)
+            {
+                const int b=sg.bin(L[i],M[i]);
+                s.dissipation(N.data(),k.data(),cg.data(),L[i],Dl.data());
+                ok = ok && std::fabs(s.rate(b)-Gr[i])<=1e-8*std::max(Gr[i],1e-6) && std::fabs(D[b]-Dl[M[i]]-Sr[i])<=1e-8*Sr[i];
+            }
+            check(ok,ph==3 ? "ST4, Phase 23: u* from the wave stress of the last time step (two calls of SINFLX) as the ecWAM port"
+                           : "JB2023, Phase 23: u* from the wave stress of the last time step (two calls of SINFLX) as the ecWAM port");
+        }
+
+        // in seastate_source: lag() for one compute only, the state for the next step; the fixed point again after it
+        seastate_source_param sp; sp.wind=true; sp.U10=20.0; sp.wdir=wdir; sp.komen=true; sp.st4=true; sp.dia=true;
+        seastate_source src(sg,sp);
+        std::vector<double> P(sg.nbin), D(sg.nbin);
+        src.lag(0.5,0.2,0.9);
+        src.compute(N.data(),5000.0,k.data(),cg.data(),P.data(),D.data());
+        const bool a = close(src.lag_ustar(),8.789308424516e-01,1e-9) && close(src.lag_tauw(),6.350151838146e-01,1e-8) && src.st4().iters==2;
+        src.compute(N.data(),5000.0,k.data(),cg.data(),P.data(),D.data());
+        const bool b = close(src.lag_ustar(),8.879935002613e-01,1e-9) && src.st4().iters>2;
+        check(a && b,"ST4, Phase 23: seastate_source::lag() acts on the next compute() only");
     }
 }
 
@@ -1315,12 +1531,14 @@ int main()
     test_source();
     test_surfbeat();
     test_forcing();
+    test_collocation();
     test_bathy();
     test_vegetation();
     test_structure();
     test_dia_window();
     test_memory();
     test_st4();
+    test_limiter_free();
 
     std::cout<<std::endl<<(nfail ? "FAILED: " : "all passed")<<(nfail ? std::to_string(nfail) : std::string())<<std::endl;
     return nfail ? 1 : 0;

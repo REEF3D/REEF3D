@@ -34,6 +34,7 @@ version 3 or later (see seastate_source.cpp).
 
 #include<vector>
 #include <cstddef>
+#include"seastate_st4.h"
 
 class seastate_grid;
 
@@ -57,6 +58,25 @@ to gamma alpha_PM/(2 sig k^3 c_g), gamma = A 735 (0.1), alpha_PM =
 0.0081. It is active only while the wind-sea spectrum is far from its
 balance (large time steps, early stationary iterations); breaking,
 friction and triads are not limited.
+A 769 1 (Phase 25): the limiter of Hersbach and Janssen (1999), as
+ecWAM, instead: |dF| <= 5e-7 g f^-4 u* f_ref dt per time step dt, F =
+2 pi sig N, f_ref = max(f_m, f_m,ws) of the ST4 terms (A 732 3, 4),
+the mean frequency sig_-1,0 / 2 pi otherwise; none where u* = 0.
+Bounds that scale with the wind and the time step, which do not hold
+the growth back as the SWAN limiter does at large time steps (Dropbox
+SEASTATE/validation/78_limiter).
+A 769 2 (Phase 25, Komen A 732 1, nonstationary): no limiter. The DIA as a
+production-destruction system per interaction, conservative in action
+(modified Patankar, Burchard et al. 2003; dia_mp): the donors lose
+implicitly, the receivers gain the transfer times the ratio N_new/N of
+the donors, two passes per solve of a cell (seastate_implicit::cell),
+so N stays positive at any time step; the whitecapping linearised with
+its degree in N (wc_newton: D += (q-1) w, P += (q-1) w N, the same S).
+With A 732 2 (Phase 25, 0059) also the upper bound of ecWAM (FLMAX,
+alpha_p,max 0.031 per frequency, flmax): it holds the Yan input of van
+der Westhuysen at the high frequencies, which grows by up to 46 times in
+a step of 900 s before the saturation dissipation acts, at the level of
+a saturated tail. Komen is stable without it.
 
 The formulations and default coefficients follow SWAN 41.51 (routines
 in brackets):
@@ -82,6 +102,17 @@ in brackets):
                    f_br C_ds (B_k/B_r)^(p/2) (sqrt(g k)/sig)^(p/2-1)
                    sqrt(g k) + (1 - f_br) 3e-5 (st/s_PM)^4 sig_-10 k/k_WAM,
                    st = k_WAM sqrt(E_tot), C_ds 5e-5, B_r 1.75e-3 (A 757) -> D
+  wind input,      Ardhuin et al. (2010) as the ECMWF model ecWAM, IPHYS 1
+  swell damping,   (A 732 3, Phase 20, seastate_st4): Janssen growth rate with
+  whitecapping     the sheltering of the friction velocity, u* and z0 from the
+  (A 732 3)        stress balance with the wave stress of the spectrum (the
+                   fixed point per cell), swell damping of Ardhuin et al.
+                   (2009), saturation-based whitecapping B_r 9e-4, the
+                   diagnostic f^-5 tail above max(2.5 f_m, 3 f_PM) and the
+                   upper bound alpha_p 0.031 (see seastate_st4.h)    -> P, D
+  (A 732 4)        Janssen and Bidlot (2023), ecWAM operational: A 732 3 with
+                   the gravity-capillary background roughness and the
+                   renormalised growth rate (Phase 21)               -> P, D
   quadruplets     DIA (Hasselmann et al. 1985) (FAC4WW, SWSNL1):
                    lambda 0.25, C 3e7, shallow-water scaling
                    1 + 5.5/x (1 - 0.833 x) exp(-1.25 x),
@@ -135,8 +166,16 @@ struct seastate_source_param
     bool komen = false;                  // whitecapping (and exponential wind input with wind)
     bool westh = false;                  // ... as van der Westhuysen et al. (2007): Yan wind input, saturation-based whitecapping (SWAN GEN3 WESTH)
     double cds2 = 5.0e-5, br = 1.75e-3;  // ... its coefficient and saturation threshold
+    bool st4 = false;                    // ... as Ardhuin et al. (2010), ecWAM IPHYS 1 (A 732 3, Phase 20; A 732 4 with st4p.gc, normagam, Phase 21): wind input with sheltering,
+                                         // swell damping, saturation-based whitecapping, u* from the wave stress, diagnostic tail
+    seastate_st4_param st4p;
     bool dia = false;                    // quadruplets
+    bool dia_mp = false;                 // A 769 2: the DIA by dia_mp() (conservative modified Patankar), not into P and D
     double limiter = 0.1;                // action density limiter gamma with komen, 0: off
+    int limiter_type = 0;                // 0 SWAN (Ris 1997), 1 Hersbach and Janssen (1999) as ecWAM (A 769 1)
+    bool wc_newton = false;              // whitecapping linearised with the degree q of the term in N (Phase 25)
+    double flmax = 0.0;                  // A 732 1, 2: the upper bound of ecWAM FLMAX with this alpha_p,max (A 769 2: 0.031), 0 off
+    double limiter_dt = 0.0;             // the time step [s] of the Hersbach-Janssen limiter
 
     bool breaking = false;
     bool emax = false;                   // Battjes-Janssen: total energy limited to (gamma d)^2/4 (SWAN SINTGRL)
@@ -192,12 +231,50 @@ public:
     // total energy (gamma d)^2/4 (tail included, as SWAN SINTGRL); true if it was scaled
     bool cap(float *N, double depth) const;
 
+    // A 769 2 (prm.dia_mp, Phase 25): the DIA of the last compute as a conservative production-destruction system per
+    // interaction (modified Patankar): Lr the loss rate of every bin [1/s] (the donors, implicit), G the gain [N/s] with
+    // the transfer of each interaction times the ratio r = N_new/N of its donors (N the spectrum of the compute); the
+    // bins of the window of the compute complete
+    // gains_only: G alone, Lr as it is (the second pass: the loss rates do not depend on r)
+    void dia_mp(const float *N, const double *r, double *G, double *Lr, bool gains_only=false) const;
+
     // single terms as dN/dt [N/s], for tests and diagnostics (S of size nbin, overwritten)
     void quadruplets(const float *N, double depth, const float *k, double *S, double *dSdN = nullptr);
     void triads(const float *N, double depth, const float *k, const float *cg, double *S);
 
     // maximum change of N per iteration of the last call (per frequency), nullptr: no limiter
-    const double *limit() const {return (prm.komen && prm.limiter>0.0) ? dNmax.data() : nullptr;}
+    const double *limit() const {return (prm.komen && prm.limiter>0.0 && (prm.limiter_type==0 || hjs>0.0)) ? dNmax.data() : nullptr;}
+    // A 769 1: u* f_ref of the last compute (the bound of the Hersbach-Janssen limiter), 0 none; A 767 1: the value of
+    // the kept evaluation of the cell for limits()
+    double hj_scale() const {return hjs;}
+    void take_hj(double s) {hjs = s;}
+
+    // Phase 21b (A 767 1, the source terms of a cell taken from the evaluation in the first sweep of the iteration):
+    // the limiter of the cell (k, cg) for all frequencies without the source terms, and the row sums of set_rows()
+    // or cap() dropped (they belong to this cell, the next compute() is for another)
+    void limits(const float *k, const float *cg);
+    void drop_rows() const {rows_ready = false;}
+    // ST4 (A 732 3): keep u*, the growth rates and the cut-off of the last compute for the next computes of the
+    // same cell (the widened windows of the spectral sparsity, A 795), true until freeze(false)
+    void freeze(bool f) {frozen = f;}
+    // ST4: the diagnostic tail after the solve of a cell, directions ma..mb (the cut-off of the last compute)
+    void project(float *N, const float *k, const float *cg, int ma, int mb) const;
+    // ST4: the first frequency of the diagnostic tail of the last compute, nsig without a tail
+    int tail_from() const {return (prm.st4 && prm.wind && prm.U10>0.0) ? st4s.tail_from() : nsig;}
+    // A 767 1: the tail of the kept evaluation of the cell (tail_from() of that evaluation) for project(); the next
+    // compute() drops it
+    void take_tail(int lt) {if(prm.st4) st4s.take_tail(lt);}
+    // ST4: the upper bound of N per frequency (ecWAM FLMAX, Phillips alpha_p,max / pi per bin), nullptr: none
+    // A 732 1, 2 with prm.flmax (A 769 2): the same bound with alpha_p,max = prm.flmax
+    const double *upper() const {return prm.st4 ? st4s.upper() : (prm.flmax>0.0 ? nmaxk.data() : nullptr);}
+    const seastate_st4 &st4() const {return st4s;}
+    // ST4 (Phase 23, A 768 1): the next compute() starts from the wave stress and u* of the last time step of the cell
+    // (ecWAM); lag_tauw(), lag_tauwdir(), lag_ustar(): the state after compute() for the next time step (0 without wind)
+    bool lags() const {return prm.st4 && prm.wind;}
+    void lag(double tw, double twd, double us) {if(prm.st4) st4s.lag(tw,twd,us);}
+    double lag_tauw() const {return (prm.st4 && prm.wind && prm.U10>0.0 && !st4s.calmed) ? st4s.tauw : 0.0;}
+    double lag_tauwdir() const {return (prm.st4 && prm.wind && prm.U10>0.0 && !st4s.calmed) ? st4s.tauwdir : 0.0;}
+    double lag_ustar() const {return (prm.st4 && prm.wind && prm.U10>0.0 && !st4s.calmed) ? st4s.ust : 0.0;}
 
     // integral parameters of the last call
     double Etot = 0.0, sigm01 = 0.0, sigm_10 = 0.0, km_wam = 0.0, Hs = 0.0, Qb = 0.0, ursell = 0.0;
@@ -209,16 +286,26 @@ public:
     double ustar_of(double U10) const;                // friction velocity of the drag prm.drag
 
 private:
+    double hjs = 0.0;                   // A 769 1: u* f_ref of the last compute (or taken)
+    int mp_l0 = 0, mp_l1 = -1, mp_m0 = 0, mp_m1 = -1;   // A 769 2: the centres of the last dia()
+    std::vector<double> rsg;            // 1/(2 pi sig)
+    std::vector<double> nmaxk;          // prm.flmax: N_max per frequency (as seastate_st4)
+    mutable std::vector<int> mpW;       // A 769 2: the bin direction of each padded direction, -1 none
+    mutable std::vector<double> mpR, mpG, mpL, mpA;   // A 769 2: padded rows of the ratios, gains and loss rates; rates
+    void hj_limits(int la, int lb);     // A 769 1: dNmax of the frequencies la..lb from hjs
     void moments(const float *N, double depth, const float *k);
     void dia(const float *N, double depth);
     void lta(const float *N, double depth, const float *k, const float *cg);
     void vegetation(const float *N, double depth, const float *k, double *D);
     void split(const float *N, double *P, double *D);
+    seastate_st4 st4s;
+    bool frozen = false;
     int wa = 0, wb = 0;             // direction window of the current compute
     int fa = 0, fb = 0;             // frequency band of the current compute
 
     // DIA arrays with the directions continued periodically beyond 0 and ndir-1 (no index wrapping in
     // the loops): UE for m = -2 dpad .. ndir-1+2 dpad, SA1/SA2 and the derivatives for m = -dpad .. ndir-1+dpad
+    // (compact sector, not periodic: zero beyond 0 .. ndir-1 from the allocation, never written; Phase 21b)
     double &ue(int l, int m) {return UE[size_t(l+uoff)*uw + size_t(m+2*dpad)];}
     double &sa1(int l, int m) {return SA1[sx(l,m)];}
     double &sa2(int l, int m) {return SA2[sx(l,m)];}

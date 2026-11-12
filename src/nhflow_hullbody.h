@@ -55,6 +55,9 @@ public:
     virtual ~nhflow_hullbody();
 
     void stage(lexer*, fdm_nhf*, ghostcell*, double, double*, double*, double*, slice&);
+    // X 15 10: the cells of the solid at the rigid-body velocity after the projection
+    void reforce(lexer*, fdm_nhf*, ghostcell*, double*, double*, double*, slice&);
+    bool cut;                   // X 15 10: the body as a solid with cut faces
     void forces(lexer*, fdm_nhf*, ghostcell*, slice&, bool);
     void print(lexer*, fdm_nhf*, ghostcell*, const double* = nullptr);
     
@@ -73,18 +76,34 @@ public:
 
 private:
     void body_velocity(double, double, double, double&, double&, double&) const;
+    void footprint_level(lexer*, fdm_nhf*, ghostcell*, slice&, double);
+    double keel_height(lexer*, fdm_nhf*, int, int) const;
+    void enclosed_water(lexer*, fdm_nhf*, ghostcell*, double*, double*, slice&);   // horizontal velocity of the water inside the hull
     bool hull_normal(lexer*, fdm_nhf*, int, int, double&, double&, double&) const;
 
     sixdof_obj_nhflow *obj;
     nhflow_thinbody *tb;
     double *side0C;             // cell sides of the last stage (hysteresis)
     double *side0N;             // node sides of the last stage
+    double *solidC;             // X 15 10: 1 for a cell with no open face (moves with the body)
+    double *kapC;               // X 15 10: water fraction of the cells
+    void solid_velocity(lexer*, fdm_nhf*, ghostcell*, double*, double*, double*, slice&);
+    void stage_cut(lexer*, fdm_nhf*, ghostcell*, double, double*, double*, double*, slice&);
+    double cut_lam(lexer*, int, int, int) const;
+    double cut_zlink(lexer*, int, int, int) const;
+    void loads_cut(lexer*, fdm_nhf*, slice&, const std::function<bool(double,double)>*, double*, double*);
     double hyst;                // hysteresis distance
     double Rn;                  // hydraulic resistance of the blocked links [m/s]
+    bool plain_horizontal;      // horizontal loads on the face normals, without the hull-normal weighting (ship frame)
+    bool fp_on;                 // footprint level: ship frame with a current
+    double *zk0;                // keel height of a footprint column when it entered the footprint (1e20: outside)
+    double fp_tau;              // relaxation time of the footprint level [s]
     int nbx,nby,nbz;            // blocked links on this rank (last stage)
     int nlink;                  // global
     bool told,marked;
     double Fp[6];               // last loads: Fx, Fy, Fz, Mx, My, Mz
+    double Fst[3][6];           // X 15 10: the loads of the last three stages (oldest first), for the printed loads
+    int nst=0;
     double tstage,tsum;
 
     ofstream out;

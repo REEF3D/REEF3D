@@ -85,8 +85,10 @@ class nhflow;
 class multiphase;
 class nhflow_momentum;
 class nhflow_particle;
+class pic;
 class particle_base;
 class coral_reef3d;
+class soil_stress;
 
 #include<iostream>
 #include<fstream>
@@ -202,6 +204,7 @@ public:
     fnpf_ice *pfice = nullptr;
     fnpf_amr *pfamr = nullptr;
     coral_reef3d *pcoral = nullptr;   // REEF3D::CORAL structural solver (Z 40)
+    soil_stress *psoil = nullptr;     // REEF3D::CFD soil stress model (S 200)
     std::vector<double> coral_ckpt;   // its state from the checkpoint (I 45 1), until coral_ini
     nhflow_amr *pnhfamr = nullptr;
     nhflow_longrun *plongrun = nullptr;
@@ -227,6 +230,7 @@ public:
     vrans_nhflow *pnhfvrans;
     sixdof *p6dof;
     dem *pdem;
+    pic *ppic = nullptr;   // PIC particles of the CFD free surface flow (F 81)
     turbulence *pturbcfd;
 
 private:

@@ -1,0 +1,16 @@
+{
+ "base": "seastate_2d_phase17_windsea",
+ "ctrl_add": [
+  "A 767 1"
+ ],
+ "description": "seastate_2d_phase17_windsea (two refinement levels, composite sweep A 797 1, wind sea) with A 767 1: not used in the composite sweep, bitwise the run without (same_as, Phase 21b).",
+ "tags": [
+  "quick",
+  "2d",
+  "seastate"
+ ],
+ "covers": [
+  "A 767 1 off in the composite sweep (visit, solve)"
+ ],
+ "same_as": "seastate_2d_phase17_windsea"
+}

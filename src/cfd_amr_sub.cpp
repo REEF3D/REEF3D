@@ -31,6 +31,8 @@ Architect: Hans Bihs
 #include"turbulence.h"
 #include"6DOF_cfd.h"
 #include"cfd_amr_6dof.h"
+#include"pjm_corr.h"
+#include"reefamr_krylov.h"
 #include"field1.h"
 #include"field2.h"
 #include"field3.h"
@@ -56,7 +58,8 @@ Architect: Hans Bihs
 //  field divergence free.  The fine grid acts on the coarse one through the restriction
 //  (velocities, level set, density, viscosity) and the synchronisation.  Floating bodies (X 10 1):
 //  the finest level advances them, the coarser levels step with a predicted copy (the loads of the
-//  last finest stage).
+//  last finest stage).  The one-step scheme (N 40 5) takes the same steps with the order of
+//  momentum_rk::step_ssp (patch_step_onestep).
 
 namespace
 {
@@ -172,13 +175,14 @@ void cfd_amr::interp(int l, double th)
             // synchronisation, it is not smooth from step to step at the free surface: extrapolated
             // there it fed its jumps back through the edges of the finer level (two levels, the free
             // surface across the edge of level 2: unstable after 1.3 s).  From a patch it is held at
-            // the end value in the interface band and the air (phi < 3 psi), extrapolated in the
-            // water (held everywhere, the waves lost 1-3.5 % of their amplitude along two levels)
+            // the end value in the interface band and the air (phi < 3 psi; G 28: 3 psi_rho),
+            // extrapolated in the water (held everywhere, the waves lost 1-3.5 % of their amplitude
+            // along two levels)
             const double w = (m!=tl_press) ? th : (press_step ? th+0.5 : 1.0);
             if(m==tl_press && l>=1 && w>1.0)
             {
                 const double *ph = stf(g,tl_phi).V;
-                const double band = 3.0*glex(g)->psi;
+                const double band = 3.0*interface_band(glex(g));
                 for(size_t q=0; q<n; ++q)
                 t[q] = o[q] + ((ph[q]<band) ? 1.0 : w)*(c[q]-o[q]);
                 continue;
@@ -208,7 +212,16 @@ void cfd_amr::fill_level(int l, double th)
 }
 
 // restriction of level l onto the grids of level l-1 at the end of their step: velocities (faces),
-// level set, density, viscosity
+// level set, density, viscosity.
+// The one-step scheme (N 40 5): the coarse faces at the edges of the patches keep the values of the
+// coarser level; the synchronisation at the end of the level-0 step gives them the mean of the fine
+// faces.  With the mean of the fine faces there, the coarse cell next to the edge starts its next step
+// with the divergence of the mismatch.  The projection of the coarser level removes it, and the one-step
+// scheme keeps that correction in the pressure (p += pcorr, with the momentum of the next step using
+// grad p): its pressure then swings from step to step.  Where the free surface crosses the edge, the
+// fine air faces of the edge answer the swing with dt dp/(dx rho_air), and their mean is restricted
+// onto the coarse face again: the scaled pier, the free surface across the high edge of level 3, grew
+// by 1.3x per level-0 step and stopped at 0.92 s with 6500 m/s (validation 80).  SSP-RK3 damps it.
 void cfd_amr::restrict_sub(int l)
 {
     vector<std::function<field&(int)>> cells = rcells(AF_RSTEP), faces = rfaces(AF_RSTEP);
@@ -217,7 +230,22 @@ void cfd_amr::restrict_sub(int l)
     if(scal)
     sc_reflux(l);
 
+    const bool keep_edges = (mom0->amr_stages()==1);
+    vector<double> ek;
+    if(keep_edges)
+    for(const cfd_amr_cf &F : cf)
+    if(glevel(F.pid)==l)
+    ek.push_back(gmom(F.gface)->amr_velout(gfd(F.gface),F.d,0)(F.cf[0],F.cf[1],F.cf[2]));
+
     restrict_level(l,cells,faces);
+
+    if(keep_edges)
+    {
+        size_t m = 0;
+        for(const cfd_amr_cf &F : cf)
+        if(glevel(F.pid)==l)
+        gmom(F.gface)->amr_velout(gfd(F.gface),F.d,0)(F.cf[0],F.cf[1],F.cf[2]) = ek[m++];
+    }
 
     if(l==1)
     {
@@ -261,6 +289,43 @@ void cfd_amr::patch_step(int l, double dt, double th0, double t)
     }
 
     const int stages = mom0->amr_stages();
+
+    // the one-step scheme (N 40 5): floating bodies as in the stages below, a level coarser than the
+    // finest with a predicted copy, the finest advances them (one stage)
+    if(stages==1)
+    {
+        if(bodies && l<maxlev)
+        for(int nb=0; nb<b6->objects(); ++nb)
+        b6->object(nb)->amr_save();
+
+        patch_step_onestep(l,th0,t,dt);
+        vr_record(l,dt);
+
+        if(bodies && l==maxlev)
+        {
+            const double dts = p0->dt;
+            p0->dt = dt;
+            for(int nb=0; nb<b6->objects(); ++nb)
+            {
+            b6->object(nb)->saveTimeStep(p0,0);
+            b6->object(nb)->deform_step_end();
+            }
+            p0->dt = dts;
+        }
+
+        if(bodies && l<maxlev)
+        for(int nb=0; nb<b6->objects(); ++nb)
+        b6->object(nb)->amr_restore(p0,pgc0);
+
+        if(turb)
+        for(int id : lev[l])
+        {
+            pscope3 ps(pgc,CP(id)->a,a0);
+            CP(id)->pturb->ktimesave(CP(id)->pp,CP(id)->a,pgc);
+            CP(id)->pturb->etimesave(CP(id)->pp,CP(id)->a,pgc);
+        }
+        return;
+    }
 
     // floating bodies: a level coarser than the finest steps with a predicted copy
     if(bodies && l<maxlev)
@@ -342,8 +407,12 @@ void cfd_amr::patch_step(int l, double dt, double th0, double t)
         }
         edge_faces(l,s);
 
+        // X 198 (fluid-momentum coupling) on the finest level: the patches predict, the bodies are
+        // fitted to the predicted velocity of all of them and advanced, then the patches are forced
+        const bool fit = bodies && l==maxlev && p0->X198>0;
+        
         // the bodies at the output time of the stage
-        if(bodies)
+        if(bodies && !fit)
         body_stage(l,s,t,dt);
 
         {
@@ -351,12 +420,43 @@ void cfd_amr::patch_step(int l, double dt, double th0, double t)
         for(int id : lev[l])
         {
             pscope3 ps(pgc,CP(id)->a,a0);
-            CP(id)->pmom->amr_momentum(CP(id)->pp,CP(id)->a,pgc,CP(id)->pvrans,(sixdof*)CP(id)->p6dof,s,patch_forcing());
+            CP(id)->pmom->amr_momentum(CP(id)->pp,CP(id)->a,pgc,CP(id)->pvrans,(sixdof*)CP(id)->p6dof,s,fit ? 3 : patch_forcing());
         }
+        }
+        
+        if(fit)
+        {
+            body_fit(l,s,t);
+            body_stage(l,s,t,dt);
+            
+            cfd_amr_wclock wc(wtp);
+            for(int id : lev[l])
+            {
+                pscope3 ps(pgc,CP(id)->a,a0);
+                CP(id)->pmom->amr_forcing(CP(id)->pp,CP(id)->a,pgc,(sixdof*)CP(id)->p6dof,s);
+            }
         }
 
         // the projection of the level with the coarse flux at the patch edges
         pr_level(p0,pgc,l,s);
+        
+        // X 198 2: the bodies refitted to the projected velocity of the patches, the patches forced
+        // again, a second projection of the level
+        if(fit && p0->X198==2)
+        {
+            body_refit(l,s);
+            
+            {
+            cfd_amr_wclock wc(wtp);
+            for(int id : lev[l])
+            {
+                pscope3 ps(pgc,CP(id)->a,a0);
+                CP(id)->pmom->amr_forcing(CP(id)->pp,CP(id)->a,pgc,(sixdof*)CP(id)->p6dof,s);
+            }
+            }
+            
+            pr_level(p0,pgc,l,s);
+        }
 
         {
         cfd_amr_wclock wc(wtp);
@@ -378,12 +478,18 @@ void cfd_amr::patch_step(int l, double dt, double th0, double t)
         body_loads(s,t,s==stages-1);
     }
 
+    // W 32: the faces at the patch edges at the end of the step (the volume registers)
+    vr_record(l,dt);
+
     if(bodies && l==maxlev)
     {
         const double dts = p0->dt;
         p0->dt = dt;
         for(int nb=0; nb<b6->objects(); ++nb)
+        {
         b6->object(nb)->saveTimeStep(p0,stages-1);
+        b6->object(nb)->deform_step_end();
+        }
         p0->dt = dts;
     }
 
@@ -398,6 +504,160 @@ void cfd_amr::patch_step(int l, double dt, double th0, double t)
         CP(id)->pturb->ktimesave(CP(id)->pp,CP(id)->a,pgc);
         CP(id)->pturb->etimesave(CP(id)->pp,CP(id)->a,pgc);
     }
+}
+
+// the step of the patches of level l with the one-step scheme (N 40 5), as momentum_rk::step_ssp:
+// the momentum with u(n) and the level set phi(n), the projection of the level, then the level set
+// moved by the projected u(n+1).  The cells around the patches: the coarser level at the start of
+// the step (th0) for the input of the momentum (u(n), phi(n), the density and viscosity from it, the
+// pressure), at its end for the Dirichlet values of the implicit diffusion, the faces of the patch
+// edges in the projection of the level, the advecting velocity of the level set (pr_level fills it)
+// and the level set of the output.  The Godunov states are time-centred from the values at the start,
+// as on a uniform grid: the coarser level is not needed at the middle of the step.
+void cfd_amr::patch_step_onestep(int l, double th0, double t, double dt)
+{
+    ghostcell *pgc = pgc0;
+    const int s = 0;
+    const double thi = th0;
+    const double tho = th0 + 0.5;
+    const int tp = tl_phi;
+
+    // the input of the step around the patches: velocities, the fields of the stage input, the
+    // level set into the input of its transport
+    interp(l-1,thi);
+    {
+        vector<fspec> fs;
+        for(int c=0; c<3; ++c)
+        fs.push_back({c,1,[this,c,l](int g) -> field& { return glevel(g)==l ? gmom(g)->amr_vel(gfd(g),c,0) : tsf(g,c); }});
+        for(const cfd_amr_field &e : reg)
+        if(e.roles & AF_STAGEIN)
+        {
+            const cfd_amr_field *pe = &e;
+            fs.push_back({e.type,e.prolong,[this,pe,l](int g) -> field& { return glevel(g)==l ? rf(*pe,g) : tsf(g,pe->tl); }});
+        }
+        fs.push_back({CELL,0,[this,l,tp](int g) -> field& { return glevel(g)==l ? gfd(g)->phi : tsf(g,tp); },
+                             [this](int g) -> field& { return gmom(g)->amr_phi_in(0); }});
+        fill(l,fs);
+        for(int id : lev[l])
+        margin_rovisc(id);
+    }
+
+    // the coarser level at the end of the step: the Dirichlet values of the implicit diffusion
+    interp(l-1,tho);
+    {
+        vector<fspec> fs;
+        for(int c=0; c<3; ++c)
+        fs.push_back({c,1,[this,c,l](int g) -> field& { return glevel(g)==l ? gmom(g)->amr_vel(gfd(g),c,0) : tsf(g,c); },
+                          [this,c](int g) -> field& { return gmom(g)->amr_velout(gfd(g),c,0); }});
+        fill(l,fs);
+    }
+    edge_faces(l,s);
+
+    // the bodies at the end of the step (the loads of the last step of the finest level)
+    if(bodies)
+    body_stage(l,s,t,dt);
+
+    {
+    cfd_amr_wclock wc(wtp);
+    for(int id : lev[l])
+    {
+        pscope3 ps(pgc,CP(id)->a,a0);
+        CP(id)->pmom->amr_momentum(CP(id)->pp,CP(id)->a,pgc,CP(id)->pvrans,(sixdof*)CP(id)->p6dof,s,patch_forcing());
+    }
+    }
+
+    // the projection of the level with the coarse flux at the patch edges (at the end of the step);
+    // it leaves the coarse u(n+1) in the cells around the patches
+    pr_level(p0,pgc,l,s);
+
+    // the level set with the projected u(n+1); N 63 2, 3: its SSP-RK stages, the cells around the
+    // patches of every stage from the coarser level at the time of the stage (SSP-RK2: 0, 1, SSP-RK3:
+    // 0, 1, 1/2 of the step)
+    if(mom0->ls_rk_n()>1)
+    {
+        static const double tin2[2] = {0.0,1.0}, tin3[3] = {0.0,1.0,0.5};
+        const int nk = mom0->ls_rk_n();
+
+        for(int id : lev[l])
+        {
+            pscope3 ps(pgc,CP(id)->a,a0);
+            CP(id)->pmom->ls_rk_begin(CP(id)->pp,CP(id)->a);
+        }
+
+        for(int k=0; k<nk; ++k)
+        {
+            if(k>0)
+            {
+                for(int id : lev[l])
+                {
+                    pscope3 ps(pgc,CP(id)->a,a0);
+                    CP(id)->pmom->ls_rk_ghost(CP(id)->pp,pgc);
+                }
+                interp(l-1,th0 + 0.5*((nk==3) ? tin3[k] : tin2[k]));
+                vector<fspec> fk;
+                fk.push_back({CELL,0,[this,l,tp](int g) -> field& { return glevel(g)==l ? gmom(g)->amr_phi_in(0) : tsf(g,tp); }});
+                fill(l,fk);
+            }
+
+            cfd_amr_wclock wc(wtp);
+            for(int id : lev[l])
+            {
+                pscope3 ps(pgc,CP(id)->a,a0);
+                fdm *fa = CP(id)->a;
+                momentum_rk *m = CP(id)->pmom;
+                m->ls_rk_stage(CP(id)->pp,fa,k,m->ls_vel(fa,0),m->ls_vel(fa,1),m->ls_vel(fa,2));
+            }
+        }
+
+        // the coarser level at the end of the step again (the level set of the output)
+        interp(l-1,tho);
+    }
+    else
+    {
+    cfd_amr_wclock wc(wtp);
+    for(int id : lev[l])
+    {
+        pscope3 ps(pgc,CP(id)->a,a0);
+        CP(id)->pmom->amr_ls_transport(CP(id)->pp,CP(id)->a,pgc,s);
+    }
+    }
+
+    vector<fspec> fo;
+    fo.push_back({CELL,0,[this,l,tp](int g) -> field& { return glevel(g)==l ? gmom(g)->amr_phi_out(0) : tsf(g,tp); }});
+    fill(l,fo);
+
+    const int iters = mom0->amr_reini_iters(p0,s);
+    for(int it=0; it<iters; ++it)
+    {
+        if(it>0)
+        fill(l,fo);
+
+        cfd_amr_wclock wc(wtp);
+        for(int id : lev[l])
+        {
+            pscope3 ps(pgc,CP(id)->a,a0);
+            if(it==0)
+            {
+            patch_relax_phi(id,CP(id)->pmom->amr_phi_out(s));
+            CP(id)->pmom->amr_ls_finish(CP(id)->pp,CP(id)->a,pgc,s,false,1);
+            }
+            else
+            CP(id)->pmom->amr_ls_reini(CP(id)->pp,CP(id)->a,pgc,s,1);
+        }
+    }
+
+    {
+    cfd_amr_wclock wc(wtp);
+    for(int id : lev[l])
+    {
+        pscope3 ps(pgc,CP(id)->a,a0);
+        CP(id)->pmom->amr_stage_end(CP(id)->pp,CP(id)->a,pgc,s);
+    }
+    }
+
+    // the finest level: the loads after its step, on the finest grid at every hull triangle
+    if(bodies && l==maxlev)
+    body_loads(s,t,true);
 }
 
 // two steps of level l per step (of size dtc, from the time tc) of level l-1, each followed by the
@@ -447,6 +707,9 @@ void cfd_amr::step_sub(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof *
     // level 0: its step as step_ssp (the volume correction over all levels at the end)
     save_old(0);
 
+    // W 32: the volume registers of the patch edges (the synchronisation)
+    vr_reset();
+
     // heat, concentration on level 0 (the flux registers of the level-1 edges start with its fluxes)
     if(scal)
     sc_step_level(0,p->dt,0.0);
@@ -478,6 +741,17 @@ void cfd_amr::step_sub(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof *
     }
 
     mom0->amr_step_begin(p,a,pgc);
+    // the one-step scheme (N 40 5): the momentum and the projection first, then the level set with
+    // the projected u(n+1) (momentum_rk::step_ssp)
+    if(mom0->amr_stages()==1)
+    {
+        mom0->amr_momentum(p,a,pgc,pvrans,p6dof,0,1);
+        mom0->amr_projection(p,a,pgc,0);
+        mom0->amr_ls_transport(p,a,pgc,0);
+        mom0->amr_ls_finish(p,a,pgc,0,false,-1);
+        mom0->amr_stage_end(p,a,pgc,0);
+    }
+    else
     for(int s=0; s<mom0->amr_stages(); ++s)
     {
         mom0->amr_ls_transport(p,a,pgc,s);
@@ -486,6 +760,8 @@ void cfd_amr::step_sub(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof *
         mom0->amr_projection(p,a,pgc,s);
         mom0->amr_stage_end(p,a,pgc,s);
     }
+
+    vr_record(0,p->dt);
 
     const double t1 = MPI_Wtime();
     tm[4] += t1-t0;
@@ -517,36 +793,6 @@ void cfd_amr::step_sub(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof *
     replace_static(p,pgc);
 
     tm[7] += MPI_Wtime()-t0;
-
-    if(p->count%p->P12==0)
-    {
-        double V, dV;
-        volume(V,dV);
-        if(p->mpirank==0)
-        {
-            const std::streamsize pr = cout.precision();
-            cout<<"CFD AMR: volume of the level set over the leaf cells "<<setprecision(8)<<V<<endl;
-            cout.precision(pr);
-        }
-    }
-    if(scal && p->count%p->P12==0)
-    {
-        double smin, smax;
-        const double S = sc_total(smin,smax);
-        if(p->mpirank==0)
-        {
-            const std::streamsize pr = cout.precision();
-            cout<<"CFD AMR: "<<(scal==1 ? "heat (T V)" : "concentration (C V)")<<" over the leaf cells "<<setprecision(12)<<S
-                <<", range "<<setprecision(6)<<smin<<" "<<smax<<endl;
-            cout.precision(pr);
-        }
-    }
-    if(p->mpirank==0 && (p->count%p->P12==0))
-    {
-        cout<<"CFD AMR: subcycling, level-0 step "<<setprecision(3)<<tm[4]<<" s, the patches "<<tm[7]-tm[4]<<" s; pressure iterations (last level solve) "<<pr_it_last
-            <<"  res "<<pr_res_last<<", synchronisation "<<pr_it_sync<<" ("<<setprecision(3)<<t_sync<<" s); level projections "
-            <<setprecision(3)<<(pr_solves>0 ? double(pr_it_total)/double(pr_solves) : 0.0)<<" it mean ("<<tm[2]-t_sync<<" s)"<<endl;
-    }
 }
 
 // --------------------------------------------------------------------- floating bodies (G 7 1)
@@ -561,6 +807,67 @@ void cfd_amr::body_stage(int l, int s, double t, double dt)
     b6->object(nb)->amr_stage_cfd(p0,a0,pgc0,s);
     p0->dt = dts;
     p0->simtime = ts;
+}
+
+// X 198: the rigid-body motion of the bodies fitted to the predicted velocity of stage s of the
+// patches of level l (the finest), and the rates of the discrete recoil correction of a deforming body
+// (the hull region of the patches at the pose of the last stage); the start of the finest step is t
+void cfd_amr::body_fit(int l, int s, double t)
+{
+    const double ts = p0->simtime;
+    p0->simtime = t;
+    
+    for(int nb=0; nb<b6->objects(); ++nb)
+    {
+        sixdof_obj_cfd *o = b6->object(nb);
+        
+        // the patches: no level-0 cover
+        const char *cover = o->amr_cover;
+        o->amr_cover = nullptr;
+        
+        o->momentum_deform_begin();
+        for(int id : lev[l])
+        {
+            pscope3 ps(pgc0,CP(id)->a,a0);
+            o->momentum_deform_add(CP(id)->pp,CP(id)->a);
+        }
+        o->momentum_deform_end(p0,pgc0);
+        
+        o->momentum_fit_begin(p0,s);
+        for(int id : lev[l])
+        {
+            pscope3 ps(pgc0,CP(id)->a,a0);
+            o->momentum_fit_add(CP(id)->pp,CP(id)->a,gmom(id)->amr_velout(CP(id)->a,0,s),gmom(id)->amr_velout(CP(id)->a,1,s),gmom(id)->amr_velout(CP(id)->a,2,s));
+        }
+        o->momentum_fit_end(p0,pgc0);
+        
+        o->amr_cover = cover;
+    }
+    
+    p0->simtime = ts;
+}
+
+// X 198 2: the bodies at the rigid-body motion of the projected velocity of stage s on the patches of level l
+void cfd_amr::body_refit(int l, int s)
+{
+    for(int nb=0; nb<b6->objects(); ++nb)
+    {
+        sixdof_obj_cfd *o = b6->object(nb);
+        
+        const char *cover = o->amr_cover;
+        o->amr_cover = nullptr;
+        
+        o->momentum_fit_begin(p0,-1);
+        for(int id : lev[l])
+        {
+            pscope3 ps(pgc0,CP(id)->a,a0);
+            o->momentum_fit_add(CP(id)->pp,CP(id)->a,gmom(id)->amr_velout(CP(id)->a,0,s),gmom(id)->amr_velout(CP(id)->a,1,s),gmom(id)->amr_velout(CP(id)->a,2,s));
+        }
+        o->momentum_fit_end(p0,pgc0);
+        o->momentum_refit_set(p0,pgc0);
+        
+        o->amr_cover = cover;
+    }
 }
 
 // the loads after stage s of the finest level (hull triangles on the finest grid there, else on
@@ -601,6 +908,9 @@ void cfd_amr::body_end()
         o->print_stl(p0,pgc0);
 
         o->print_parameter(p0,pgc0);
+        
+        // lateral line (X 194) on level 0
+        o->lateral_line(p0,a0,pgc0);
     }
     pgc0->gcdf_update(p0,a0);
 }
@@ -688,4 +998,109 @@ void cfd_amr::rovisc_all()
     pgc0->start4(p0,a0->phi,gcval_phi);
     pgc0->start4(p0,a0->ro,1);
     pgc0->start4(p0,a0->visc,1);
+}
+
+// --------------------------------------------------------------------- compressible air (W 32, G 7 1)
+//  Every level projection compresses the air of its cells: SSP-RK3 with the projection in every
+//  stage makes kappa (p - p^n) = -t_out dt div u at the output of each stage, so over a step of a
+//  level the pressure change of a cell is -dt div u at the end of that step (kappa = w/(gamma p),
+//  pjm_corr_comp.cpp).  A level takes the flux of its own faces; at a patch edge the coarser level
+//  and the patch have each their own: the coarse cell next to the edge was compressed by the
+//  coarse face, the air that crossed the edge on the fine side is that of the fine faces over the
+//  steps of the patch.  The synchronisation of hans_dev took the divergence at the end of the
+//  level-0 step as its right-hand side everywhere: in the compressible cells that is the
+//  compression the level projections made on purpose, and it compressed the air a second time
+//  (the sealed box with the patch edges across the free surface: 12.2 kPa against 6.75 kPa).
+//  Here the right-hand side of a compressible row is the volume the levels disagree on: per face
+//  at a patch edge the time integral of the face velocity over the steps of the patch minus that
+//  over the steps of the coarser level (registers vr_f, vr_c: the velocity at the end of each step
+//  times the step, as the compression above), averaged over the level-0 step, as a divergence in
+//  the coarse cell next to the edge; 0 in every other compressible row.  The rows of the
+//  incompressible cells keep the divergence at the end of the step.  The diagonal of the
+//  compressibility stays (a closed box has no pinning of the pressure: singular without it).  The
+//  correction is restricted onto the cells under the patches (pr_sync_project): the pressure is the
+//  state of the air, and the coarser levels step on with that of the patches.  The sealed box with
+//  the patch edges across the free surface (cfd_2d_compressible_box_amr_sub): +0.6 % against the
+//  isentropic pressure after 2.5 s (G 7 0 -0.1 %, no refinement -0.4 %).
+
+void cfd_amr::vr_reset()
+{
+    if(p0->W32<=0)
+    return;
+
+    vr_f.assign(cf.size(),0.0);
+    vr_c.assign(cf.size(),0.0);
+}
+
+void cfd_amr::vr_record(int l, double dt)
+{
+    if(p0->W32<=0 || vr_f.size()!=cf.size())
+    return;
+
+    const int s = mom0->amr_stages()-1;
+
+    // the coarse side of the level-1 edges with G 40: the level-0 faces into the shadows
+    if(l==0 && place)
+    {
+        vector<std::function<field&(int)>> f;
+        for(int c=0; c<3; ++c)
+        f.push_back([this,s,c](int g) -> field& { return gmom(g)->amr_velout(gfd(g),c,s); });
+        sh_down_f(f);
+    }
+
+    for(size_t n=0; n<cf.size(); ++n)
+    {
+        const cfd_amr_cf &F = cf[n];
+        const int lf = glevel(F.pid);
+        if(lf==l && l>=1)
+        vr_f[n] += dt*F.area*CP(F.pid)->pmom->amr_velout(CP(F.pid)->a,F.d,s)(F.ff[0],F.ff[1],F.ff[2]);
+        if(lf==l+1)
+        vr_c[n] += dt*F.area*gmom(F.gface)->amr_velout(gfd(F.gface),F.d,s)(F.cf[0],F.cf[1],F.cf[2]);
+    }
+}
+
+void cfd_amr::vr_sync_rhs()
+{
+    if(p0->W32<=0 || vr_f.size()!=cf.size())
+    return;
+
+    const int KT = REEFAMR_NTMP;
+    const double dt = p0->dt;
+
+    for(int g=-1; g<(int)P.size(); ++g)
+    {
+        const lexer *q = glex(g);
+        std::fill(pvec(g,KT),pvec(g,KT)+(size_t)q->imax*q->jmax*q->kmax,0.0);
+    }
+
+    // the coarse cell next to the edge: the mismatch of the face (mean velocity over the step) as
+    // the divergence it adds to the cell; the face is the - face of the cell if it lies at +d
+    for(size_t n=0; n<cf.size(); ++n)
+    {
+        const cfd_amr_cf &F = cf[n];
+        const lexer *q = glex(F.gc);
+        const double *dn = (F.d==0) ? q->DXN : (F.d==1 ? q->DYN : q->DZN);
+        const double dx = dn[F.ci[F.d]+marge];
+        const double du = (vr_f[n]-vr_c[n])/dt;
+        const double ddiv = (F.dir>0 ? -1.0 : 1.0)*du/dx;
+        pvec(F.gc,KT)[F.qc] -= ddiv/dt;
+    }
+
+    // G 40: the coarse cells of the level-1 edges are in the shadows, their rows on level 0
+    if(place)
+    {
+        vector<std::function<field&(int)>> f(1,[this,KT](int g) -> field& { return pfield(g,KT); });
+        sh_run(pu_cc,f,true);
+    }
+
+    for(int g : prg)
+    {
+        const vector<double> &K = (g<0) ? press0->comp_k : CP(g)->ppress->comp_k;
+        const double *T = pvec(g,KT);
+        double *b = pvec(g,REEFAMR_NS);
+        const vector<int> &LQ = lq[g+1], &LR = lr[g+1];
+        for(size_t n=0; n<LQ.size(); ++n)
+        if((size_t)LR[n]<K.size() && K[LR[n]]>0.0)
+        b[LQ[n]] = T[LQ[n]];
+    }
 }

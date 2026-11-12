@@ -1,0 +1,19 @@
+{
+ "base": "nhflow_2d_si_tidal_flat_kepsilon_floor",
+ "description": "nhflow_2d_si_tidal_flat_kepsilon_floor with the semi-Lagrangian momentum advection (A 549 1 2.0): with a turbulence model the Courant number of the time step stays at 1 (the explicit upwind convection of k and epsilon).",
+ "ctrl_add": [
+  "A 549 1 2.0"
+ ],
+ "tags": [
+  "2d",
+  "elm",
+  "nhflow",
+  "semi_implicit",
+  "tide",
+  "turbulence",
+  "wetdry"
+ ],
+ "covers": [
+  "nhflow_momentum_SI::adv_cmin with a turbulence model (A 549 1)"
+ ]
+}

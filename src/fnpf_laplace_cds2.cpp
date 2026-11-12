@@ -17,7 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Hans Bihs
+Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"fnpf_laplace_cds2.h"
@@ -26,6 +26,7 @@ Author: Hans Bihs
 #include"ghostcell.h"
 #include"solver.h"
 #include"fnpf_bed_update.h"
+#include"fnpf_sigma_col.h"
 #include"fnpf_laplace_body_bc.h"
 #include"solver_print.h"
 
@@ -41,8 +42,46 @@ fnpf_laplace_cds2::fnpf_laplace_cds2(lexer *p)
     cout<<"A 328 1 needs REEFMG (N 10 1); sigma cross-derivatives stay explicit"<<endl;
 }
 
+bool fnpf_laplace_cds2::stage_tol = false;
+
 fnpf_laplace_cds2::~fnpf_laplace_cds2()
 {
+}
+
+void fnpf_laplace_cds2::start_value(lexer *p, int kind, double c)
+{
+    if(kind==1)
+    {
+    if(fn.empty())
+    {
+    fn.assign(size_t(p->imax)*size_t(p->jmax)*size_t(p->kmax+2),0.0);
+    sv_dt = 0.0;
+    }
+    
+    // no solution at t^n-1 in the first step (and the first step after a restart): f itself
+    const double r = sv_dt>0.0 ? c*p->dt/sv_dt : 0.0;
+    
+    sv_a = 1.0 + r;
+    sv_b = -r;
+    sv_store = true;
+    sv_dt = p->dt;
+    }
+    
+    if(kind==2)
+    {
+    sv_a = 2.0;
+    sv_b = -1.0;
+    sv_store = false;
+    }
+    
+    if(kind==3)
+    {
+    sv_a = 0.5;
+    sv_b = 0.5;
+    sv_store = false;
+    }
+    
+    sv_on = !fn.empty();
 }
 
 void fnpf_laplace_cds2::picard_bc(lexer *p, fdm_fnpf *c, ghostcell *pgc, double *f, fnpf_fsf *pf)
@@ -138,6 +177,32 @@ void fnpf_laplace_cds2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *pso
     FLOOP
     fold[FIJK] = f[FIJK];
     
+    // A 430: the stage solves of RK3/RK4 with a tolerance relative to the right-hand side of the potential
+    // without its mean surface value fm. REEFMG stops at |r| <= N 44 |b|, and b holds the surface potential
+    // itself (-mt Fifsf in the top rows), so a constant in the potential (it grows in time with the mean of
+    // the Bernoulli terms, and with a current) loosens the tolerance for the waves. The Laplace operator
+    // maps a constant to zero: b - A fm is b of the potential Fi - fm, here bm, and the solve stops at
+    // |r| <= A 430 |bm|.
+    const bool reltol = (p->A430>0.0 && stage_tol && !assemble_only && p->A310!=5 && p->N10==1);
+    double fm=0.0, sb=0.0, sbm=0.0;
+    
+    if(reltol)
+    {
+    double fs=0.0;
+    int nw=0;
+    
+    SLICELOOP4
+    if(p->wet[IJ]==1)
+    {
+    fs += Fifsf(i,j);
+    ++nw;
+    }
+    
+    fs = pgc->globalsum(fs);
+    nw = pgc->globalisum(nw);
+    fm = nw>0 ? fs/double(nw) : 0.0;
+    }
+    
 	n=0;
     ILOOP
     JLOOP
@@ -166,6 +231,12 @@ void fnpf_laplace_cds2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *pso
         const double bx = c->Bx(i,j);
         const double by = c->By(i,j);
         
+        // the sigma metrics of the column (without the 3D arrays, fnpf_sigma_col.h)
+        fnpf_sigma_col col;
+        
+        if(sigx==nullptr)
+        col.set(p,c,i,j);
+        
         KLOOP
         if(p->flag4[IJK]>0)
         {
@@ -173,9 +244,21 @@ void fnpf_laplace_cds2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *pso
             
             if(wP==1 && flag7[q]>0 && !body.body(q))
             {
-            const double sx  = sigx[q];
-            const double sy  = sigy[q];
-            const double sxx = sigxx[q];
+            double sx,sy,sxx;
+            
+            if(sigx!=nullptr)
+            {
+            sx  = sigx[q];
+            sy  = sigy[q];
+            sxx = sigxx[q];
+            }
+            else
+            {
+            const double s = p->ZN[KP];
+            sx  = col.sx(s);
+            sy  = col.sy(s);
+            sxx = col.sxx(s,sx,sy);
+            }
             const double s2  = sx*sx + sy*sy + sz*sz;
             const double dzc = p->DZN[KP]+p->DZN[KM1];
             
@@ -192,6 +275,7 @@ void fnpf_laplace_cds2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *pso
             const bool xdrop = (p->B99>2 && flag7[q+sI]<0 && bcN==2 && p->A329>=1);
             
             double rv;
+            double sbm_row=0.0;      // A 430: the part of rv that a constant fm in the potential takes away
             double cnt=0.0,cnb=0.0,cst=0.0,csb=0.0,cwt=0.0,cwb=0.0,cet=0.0,ceb=0.0;
             
             if(!mix)
@@ -358,8 +442,14 @@ void fnpf_laplace_cds2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *pso
             if(flag7[q+2]<0 && flag7[q+1]>0)
             {
             rv -= mt*f[q+2];
+            sbm_row = mt*fm;
+            if(mtsurf!=nullptr)
+            mtsurf[n] = mt;
             mt = 0.0;
             }
+            
+            sb  += rv*rv;
+            sbm += (rv+sbm_row)*(rv+sbm_row);
             
             Mp[n] = mp;
             Mn[n] = mn;
@@ -383,6 +473,8 @@ void fnpf_laplace_cds2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *pso
             Mp[n] = 1.0;
             Mn[n] = Ms[n] = Mw[n] = Me[n] = Mt[n] = Mb[n] = 0.0;
             rhs[n] = f[q];
+            sb  += f[q]*f[q];
+            sbm += (f[q]-fm)*(f[q]-fm);
             
             if(mix)
             {
@@ -422,15 +514,60 @@ void fnpf_laplace_cds2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *pso
     
     // mesh refinement: the rows are solved together with those of the patches (fnpf_amr)
     if(assemble_only)
+    {
+    sv_on = false;
     return;
+    }
     
     endtime=pgc->timer();
     //if(p->mpirank==0 && (p->count%p->P12==0))
 	//cout<<"LAPLCE_time: "<<endtime-starttime<<endl;
     
+    // A 430: N 44 of this solve such that |r| <= A 430 |bm| (still water: bm = 0, the solve to round-off)
+    const double tol0 = p->N44;
+    
+    if(reltol)
+    {
+    sb  = pgc->globalsum(sb);
+    sbm = pgc->globalsum(sbm);
+    
+    p->N44 = sb>0.0 ? MAX(p->A430*sqrt(sbm/sb), 1.0e-12) : tol0;
+    }
+    
+    // A 321: the start value of this solve at the unknowns (the rows of the assembly), fn = f at t^n
+    if(sv_on)
+    {
+    double *const __restrict fr = fn.data();
+    const int knoz = p->knoz;
+    
+    ILOOP
+    JLOOP
+    {
+        k=0;
+        const int c0 = FIJK;
+        const bool wetcol = (p->wet[IJ]==1);
+        
+        for(int kk=0; kk<knoz; ++kk)
+        {
+        const int q = c0 + kk;
+        const double fq = f[q];
+        
+        if(wetcol && flag7[q]>0)
+        f[q] = sv_a*fq + sv_b*fr[q];
+        
+        if(sv_store)
+        fr[q] = fq;
+        }
+    }
+    
+    sv_on = false;
+    }
+    
     starttime=pgc->timer();
     psolv->startF(p,pgc,f,c->rhsvec,c->M,8);
     endtime=pgc->timer();
+    
+    p->N44 = tol0;
     
     p->poissoniter+=p->solveriter;
     p->poissontime+=endtime-starttime;

@@ -28,7 +28,7 @@ Author: Hans Bihs
 
 fnpf_breaking::fnpf_breaking(lexer *p, fdm_fnpf *c, ghostcell *pgc) : bx(p), by(p), eta_t(p), t_break(p), B_coeff(p),
                  S_local(p), b_strength(p), c_phase(p), k_local(p), L_break(p), B_ramp(p), brk_flag(p),k_smooth(p),vb_brk(p),
-                 wdband(p), bt_us(p), bt_vs(p), bt_zone(p)
+                 wdband(p), bt_us(p), bt_vs(p), bt_pa(p), bt_et(p), bt_zone(p)
 
 {
     count_n = 0;        // step of the last reset of the breaking flags (breaking_baquet_wd)
@@ -112,7 +112,7 @@ void fnpf_breaking::breaking(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, 
     if(p->A350==3)
     breaking_romero(p, c, pgc, eta, eta_n, Fifsf, alpha);
     
-    if(p->A350==4)
+    if(p->A350==4 || p->A350==5)
     breaking_barthelemy(p, c, pgc, eta, eta_n, Fifsf, alpha);
 }
 

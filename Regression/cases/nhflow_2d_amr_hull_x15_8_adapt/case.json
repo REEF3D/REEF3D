@@ -1,0 +1,4 @@
+{"base": "nhflow_2d_6dof_box_x15_8", "ctrl_add": ["G 1 1", "G 4 4", "G 6 1", "G 21 0.0005", "G 2 4"],
+ "description": "nhflow_2d_6dof_box_x15_8 with solution-adaptive refinement (G 21, curvature of the surface) and no G 12: the patches follow the waves, the sharp hull (X 15 8) gets its zone implicitly and follows the box.",
+ "tags": ["2d", "nhflow", "6dof", "floating", "amr"],
+ "covers": ["nhflow_amr: X 15 8 with the adaptive flags and the implicit zone", "nhflow_amr::hull_cover with regrids"]}
