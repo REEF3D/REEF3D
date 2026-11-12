@@ -980,7 +980,7 @@ void control::ini_default()
 	N44=1.0e-8;     // double stopping criteria pressure
 	N45=1e8;		// max outer iter
 	N46=250;		// int max number of solver iterations
-	N47=0.3;		// doubel relaxation factor for time stepping
+	N47=-1.0;		// double relaxation factor for time stepping (-1: not set, becomes 0.3, SFLOW A 210 11: 0.5, lexer_read)
 	N48=1;          // int time step: 0 fixed (N 49), 1 adaptive; FNPF: 1 RK3/RK4 with sqrt(g h_max), theta-Robin (A 310 5) the step of the accuracy target N 55, 2 N 47 x the stability step of the scheme on the grid (theta-Robin: of RK3); other solvers: 2 as 1
 	N49=1.0;		// double max timestep or fixed timesteps
     N50=1;          // int adaptive timestepping method

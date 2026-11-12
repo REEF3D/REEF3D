@@ -130,11 +130,11 @@ void control::read_control(lexer* p)
                          clear(c,numint);
                          break;
                 case 226: control>>A226;
-                         // retired: the semi-implicit SFLOW is A 210 12 / 13
+                         // retired: the semi-implicit SFLOW is A 210 11 / 12 / 13
                          if(A226==1)
                          {
-                         cout<<"!!! ctrl.txt: A 226 1 is no longer used: the semi-implicit SFLOW is A 210 12 (SSP-RK2 predictor) "
-                             <<"or A 210 13 (SSP-RK3 predictor) !!!"<<endl;
+                         cout<<"!!! ctrl.txt: A 226 1 is no longer used: the semi-implicit SFLOW is A 210 11 (one-step predictor, "
+                             <<"recommended), A 210 12 (SSP-RK2 predictor) or A 210 13 (SSP-RK3 predictor) !!!"<<endl;
                          exit(1);
                          }
                          cout<<"ctrl.txt: A 226 0 is no longer used and is ignored (explicit SFLOW: A 210 2 / 3)"<<endl;

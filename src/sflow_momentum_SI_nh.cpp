@@ -935,7 +935,7 @@ void sflow_momentum_SI::nh_solve(lexer *p, fdm2D *b, ghostcell *pgc)
         if(!S.factor())
         {
         if(p->mpirank==0)
-        cout<<"!!! SFLOW A 210 12/13 with A 220 "<<p->A220<<": the coupled eta-P system is singular !!!"<<endl;
+        cout<<"!!! SFLOW A 210 11/12/13 with A 220 "<<p->A220<<": the coupled eta-P system is singular !!!"<<endl;
         exit(1);
         }
 

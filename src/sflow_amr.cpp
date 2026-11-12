@@ -115,7 +115,7 @@ sflow_amr::sflow_amr(lexer *p, fdm2D *b, ghostcell *pgc, patchBC_interface *ppBC
     {
     q.keep = 20;
     if(p->mpirank==0)
-    cout<<"SFLOW AMR with A 210 12/13 and A 220 "<<p->A220<<": refined tiles kept for 20 regrids after their last flag (G 5 "<<p->G5<<" raised)"<<endl;
+    cout<<"SFLOW AMR with A 210 11/12/13 and A 220 "<<p->A220<<": refined tiles kept for 20 regrids after their last flag (G 5 "<<p->G5<<" raised)"<<endl;
     }
     // the coarse faces next to a finer patch also on the grids that compute them around their box: the
     // wet-dry update of a stage reads the new state of the cells around the box, which otherwise depended
@@ -287,7 +287,7 @@ void sflow_amr::ini(lexer *p, fdm2D *b, ghostcell *pgc)
         if(ok==0)
         {
             if(p->mpirank==0)
-            cout<<"!!! SFLOW multi-block grid: only for A 246 0-2, A 220 0, A 210 3 or 12/13, A 260 0/3/4, S 10 0/1 (S 51 0, S 31 1/2, S 32 1/2), X 10 0/2/3 (A 210 12/13: X 10 0), W 90 0, without G 7 1 !!!"<<endl;
+            cout<<"!!! SFLOW multi-block grid: only for A 246 0-2, A 220 0, A 210 3 or 11/12/13, A 260 0/3/4, S 10 0/1 (S 51 0, S 31 1/2, S 32 1/2), X 10 0/2/3 (A 210 11/12/13: X 10 0), W 90 0, without G 7 1 !!!"<<endl;
             exit(1);
         }
     }
@@ -295,7 +295,7 @@ void sflow_amr::ini(lexer *p, fdm2D *b, ghostcell *pgc)
     if(ok==0)
     {
         if(p->mpirank==0)
-        cout<<"SFLOW AMR (G 1): only for A 246 0-2, A 220 0-4, A 210 3 or 12/13 (A 210 12/13: A 220 0 or 2/3 Cartesian without multi-block, X 10 0 or 3 (Cartesian), without G 7 1), A 260 0-4 (1/2 Cartesian), S 10 0/1 (S 51 0, S 31 1/2, S 32 1/2), X 10 0-3, W 90 0, and with one cell in y Cartesian -- refinement switched off"<<endl;
+        cout<<"SFLOW AMR (G 1): only for A 246 0-2, A 220 0-4, A 210 3 or 11/12/13 (A 210 11/12/13: A 220 0 or 2/3 Cartesian without multi-block, X 10 0 or 3 (Cartesian), without G 7 1), A 260 0-4 (1/2 Cartesian), S 10 0/1 (S 51 0, S 31 1/2, S 32 1/2), X 10 0-3, W 90 0, and with one cell in y Cartesian -- refinement switched off"<<endl;
         maxlev=0;
         return;
     }

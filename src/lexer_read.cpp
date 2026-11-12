@@ -58,6 +58,12 @@ void lexer::lexer_read(ghostcell *pgc)
     exit(1);
     }
 
+    // N 47 not given in ctrl.txt -> 0.3; SFLOW A 210 11 (inside A226 = 1, A210 = 1): 0.5, the flow Courant number at most
+    // 0.4 there (sflow_timestep_SI: u dt/dx <= 0.8 N 47), the accuracy limit of the one-step predictor at bores; with 0.3 a
+    // flow-limited run took 1.5 - 2.6 times as long as A 210 13 for the same time error
+    if(mpirank==0 && N47<0.0)
+    N47 = (A10==2 && A226==1 && A210==1) ? 0.5 : 0.3;
+
     // SFLOW: wetting and drying is A 243 for both schemes; the semi-implicit step (A 210 12/13) runs its Newton
     // iteration on the wet pattern (Casulli 2009) for A 243 > 0 (inside REEF3D: A229 = 1; A 229 itself is no longer a
     // ctrl.txt key)
