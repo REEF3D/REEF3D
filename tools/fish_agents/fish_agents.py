@@ -4,17 +4,21 @@
 #
 #   python3 fish_agents.py case.json [--out tracks.csv] [--summary summary.json]
 #
-# The body (2D, in the x-z plane of a 2D REEF3D run): a point with a heading. Its gait (frequency f, amplitude
-# factor a, curvature bias b) follows the targets of the brain with the critically damped dynamics of the gait
-# control (X 199). The speed through the water U = s U_g along the heading, U_g follows f a L: rising with
-# tau_up (thrust), falling with tau_down when the gait slows, with tau_coast when the tail is still (a < 0.5),
-# with tau_brake when it is still and the body bent (|b| > 0.5), then not below U_brake (the bent body still
-# drifts and turns). The heading turns with k b U/L (k_brake while it brakes). The fish moves
-# with U along its heading plus the velocity of the flow at its position. These constants come from the
-# resolved runs: the 2D swimmer of REEF3D (L = 1 m, 1 Hz): k 1.3 (validation 08), tau_coast 11 s (validation 13);
-# s 0.49, tau_up = tau_down 0.58 s (fitted apart: 0.61 and 0.49 s), tau_brake 0.86 s, U_brake 0.13 m/s, k_brake
-# 1.77 fitted to its station run with the brain of patch 0020 (validation 17, calibrate.py). The brain's own
-# model of the speed (X 201 tau_u tau_d) is set apart from the body in "brain".
+# The body (2D, in the x-z plane of a 2D REEF3D run): a point with a heading (body_step). Its gait (frequency f,
+# amplitude factor a, curvature bias b) follows the targets of the brain with the critically damped dynamics of
+# the gait control (X 199). The speed through the water U = s U_g along the heading, U_g follows f a L: rising
+# with tau_up (thrust), falling with tau_down when the gait slows, with tau_coast when the tail is still
+# (a < 0.5); with the tail still and the body bent (|b| > 0.5) it brakes with a quadratic drag,
+# dU/dt = -C_brake U^2. The heading turns with k b U/L (k_brake with the tail still). The fish moves with U
+# along its heading plus the velocity of the flow at its position. The constants come from the resolved runs
+# of the 2D swimmer of REEF3D (L = 1 m, 1 Hz): k 1.3 (validation 08), tau_coast 11 s (validation 13), C_brake
+# 3.5 1/m (the bent body, b = 2.5, validation 16; calibrate.py --brake), s 0.49, tau_up = tau_down 0.58 s and
+# k_brake 1.77 fitted to its station run with the brain of patch 0020 (validation 17, calibrate.py). The brain's
+# own model of the speed (X 201 tau_u tau_d) is set apart from the body in "brain".
+#
+# Sheltering (experimental, "shelter"): the target walks within R of the station towards less effort (the mean
+# tail-beat frequency) or less current (the estimate of the brain), a biased random walk (shelter()). In the
+# cylinder wake of validation 18 it costs more effort than it saves.
 #
 # The flow: uniform, or the velocity of a 2D REEF3D run (REEF3D_CFD_VTU), one output or a series looped in time,
 # bilinear on the grid of the run.
@@ -27,13 +31,16 @@
 # case.json:
 #   {"T": 30, "dt": 0.01, "out_dt": 0.1, "seed": 1,
 #    "body": {"L": 1.0, "f0": 1.0, "s": 0.49, "k": 1.3, "k_brake": 1.77, "tau_up": 0.58, "tau_down": 0.58,
-#             "tau_coast": 11.0, "tau_brake": 0.86, "U_brake": 0.13, "r_fish": 0.15, "D_fish": 0.0},
+#             "tau_coast": 11.0, "C_brake": 3.5, "r_fish": 0.15, "D_fish": 0.0},
 #    "brain": {"U_des": 0.5, "b_max": 1.0, "D": 1.5, "s0": 0.5, "k_turn": 1.3, "tau_u": 0.8, "tau_d": 0.8},
 #    "flow": {"type": "uniform", "u": [0.2, 0.0]}  or  {"type": "reef3d", "run": "<dir>", "t0": 20, "t1": 40},
 #    "box": [0, 8, 0, 6], "walls": [0, 0, 1, 1], "cylinders": [[4.0, 3.0, 0.4]],
+#    "shelter": {"R": 1.5, "step": 0.3, "every": 10, "measure": 5, "v": 0.05, "gain": 0, "forget": 0,
+#                "metric": "effort" | "current"},   (optional)
 #    "fish": [{"x": 1.6, "z": 3.0, "h": 0.0, "target": [3.5, 3.0]}, ...]
 #         or {"n": 50, "region": [x0, x1, z0, z1], "h": [h0, h1], "target": [x, z] | "start", "spread": 0.5}}
-# Output: the tracks (t id x z heading_deg U f a b mode) every out_dt; the summary per fish.
+# Output: the tracks (t id x z heading_deg U f a b mode target_x target_z) every out_dt; the summary per fish.
+# 3D (a sea cage): fish_agents3d.py.
 #
 # Architect: Hans Bihs
 import argparse, json, math, os, random, re, sys, glob
@@ -156,6 +163,23 @@ def ray_lengths(px, pz, dx, dz, box, circles, walls=(1, 1, 1, 1)):
 
 
 # ---------------------------------------------------------------------------------------------------------------
+# the body
+BODY = {"L": 1.0, "f0": 1.0, "s": 0.49, "k": 1.3, "k_brake": 1.77, "tau_up": 0.58, "tau_down": 0.58,
+        "tau_coast": 11.0, "C_brake": 3.5, "r_fish": 0.15, "D_fish": 0.0}
+
+
+def body_step(Ug, fg, ag, bg, t, dt, body):
+    """the speed of the gait U_g after dt (the speed through the water is s U_g) and the turn rate k of the bias"""
+    target = fg * ag * body["L"] * min(1.0, t / 1.0)              # the ramp of the gait (1 s)
+    if ag < 0.5 and abs(bg) > 0.5:
+        # braking: the bent body slows with a quadratic drag, dU/dt = -C_brake U^2 (2D CFD, b = 2.5: from
+        # 0.53 m/s to 0.12 m/s in 2 s and 0.09 m/s in 3 s)
+        return Ug - dt * body["C_brake"] * body["s"] * Ug * Ug, body["k_brake"]
+    tau = body["tau_coast"] if ag < 0.5 else (body["tau_up"] if target >= Ug else body["tau_down"])
+    return Ug + dt / tau * (target - Ug), (body["k_brake"] if ag < 0.5 else body["k"])
+
+
+# ---------------------------------------------------------------------------------------------------------------
 class Fish:
     def __init__(self, i, x, z, h, target, body, brain, t_start):
         self.i, self.x, self.z, self.h = i, x, z, h
@@ -171,13 +195,62 @@ class Fish:
                    "tau_u": brain.get("tau_u", 0.0), "tau_d": brain.get("tau_d", 0.0)}
         self.acc_U = 0.0; self.acc_n = 0
         self.mode = -1
+        # sheltering: the offset of the target from the station, its direction, the effort (mean tail-beat
+        # frequency) at the best offset so far, the effort summed since the last move
+        self.off = [0.0, 0.0]; self.goal = [0.0, 0.0]; self.best = [0.0, 0.0]; self.Ebest = math.inf; self.dir = None
+        self.acc_f = 0.0; self.acc_nf = 0; self.sh_next = None
+
+    def aim(self):
+        return (self.target[0] + self.off[0], self.target[1] + self.off[1])
+
+
+def shelter(f, sh, t, rnd):
+    """the target walks within sh["R"] of the station towards less effort: a biased random walk on the mean
+    tail-beat frequency, measured over the last sh["measure"] s of each sh["every"] s at the new offset (the
+    target glides there at sh["v"] m/s, then the fish settles): on in the same direction while the effort
+    falls, else back to the best offset and a new direction; the best effort is forgotten slowly (sh["forget"]
+    per move)"""
+    if f.sh_next is None:
+        f.sh_next = t + sh.get("wait", 10.0)
+        return
+    if t < f.sh_next - sh.get("measure", sh["every"]):
+        f.acc_f = 0.0; f.acc_nf = 0                # settling after the last move: not measured
+        return
+    if t < f.sh_next or f.acc_nf == 0:
+        return
+    E = f.acc_f / f.acc_nf
+    f.acc_f = 0.0; f.acc_nf = 0
+    f.Ebest *= 1.0 + sh.get("forget", 0.02)
+    if E < f.Ebest * (1.0 - sh.get("gain", 0.0)):
+        f.Ebest, f.best = E, list(f.goal)
+        if f.dir is None:
+            a = rnd.uniform(0.0, 2.0 * math.pi); f.dir = [math.cos(a), math.sin(a)]
+        g = f.goal
+    else:
+        g = f.best
+        a = rnd.uniform(0.0, 2.0 * math.pi); f.dir = [math.cos(a), math.sin(a)]
+    g = [g[0] + sh["step"] * f.dir[0], g[1] + sh["step"] * f.dir[1]]
+    r = math.hypot(*g)
+    if r > sh["R"]:
+        g = [g[0] * sh["R"] / r, g[1] * sh["R"] / r]
+    move = math.hypot(g[0] - f.off[0], g[1] - f.off[1])
+    f.goal = g
+    f.sh_next = t + move / sh.get("v", 0.05) + sh["every"]
+
+
+def shelter_move(f, sh, dt):
+    """the target glides towards its new offset"""
+    dx, dz = f.goal[0] - f.off[0], f.goal[1] - f.off[1]
+    d = math.hypot(dx, dz); st = sh.get("v", 0.05) * dt
+    if d <= st:
+        f.off = list(f.goal)
+    else:
+        f.off = [f.off[0] + st * dx / d, f.off[1] + st * dz / d]
 
 
 def run(case):
     rnd = random.Random(case.get("seed", 1))
-    body = dict({"L": 1.0, "f0": 1.0, "s": 0.49, "k": 1.3, "k_brake": 1.77, "tau_up": 0.58, "tau_down": 0.58,
-                 "tau_coast": 11.0, "tau_brake": 0.86, "U_brake": 0.13, "r_fish": 0.15, "D_fish": 0.0},
-                **case.get("body", {}))
+    body = dict(BODY, **case.get("body", {}))
     brain = dict({"U_des": 0.5, "b_max": 1.0, "D": 1.5}, **case.get("brain", {}))
     L, f0 = body["L"], body["f0"]
     T, dt, out_dt = case.get("T", 20.0), case.get("dt", 0.01), case.get("out_dt", 0.1)
@@ -187,6 +260,8 @@ def run(case):
     fl = case.get("flow", {"type": "uniform", "u": [0.0, 0.0]})
     flow = UniformFlow(fl["u"]) if fl["type"] == "uniform" else Reef3dFlow(fl["run"], fl.get("t0"), fl.get("t1"))
     t_start = case.get("t_start", 1.0 + 1.0 / f0)                    # the brain starts after the ramp and a beat
+    sh = case.get("shelter")                                          # {"R": 1.5, "step": 0.3, "every": 5, "wait": 10}
+    rsh = random.Random(case.get("seed", 1) + 7)
 
     fish = []
     spec = case["fish"]
@@ -228,20 +303,17 @@ def run(case):
                     f.g[key][2] = v; f.g[key][3] = f.second[4]
                 f.second = None
             fg, ag, bg = f.g["f"][0], f.g["a"][0], f.g["b"][0]
-            ramp = min(1.0, t / 1.0)
-            target_U = fg * ag * L * ramp
-            if ag < 0.5:
-                if abs(bg) > 0.5:
-                    # braking: the bent body slows down fast, but not to rest (2D CFD: 0.1-0.2 m/s)
-                    tau = body["tau_brake"]
-                    target_U = max(target_U, body["U_brake"] / body["s"])
-                else:
-                    tau = body["tau_coast"]
+            f.Ug, kt = body_step(f.Ug, fg, ag, bg, t, dt, body)
+            if sh and sh.get("metric", "effort") == "current":
+                kx = f.st.get("kx", [0.0, 0.0, 0.0])
+                f.acc_f += math.hypot(kx[1], kx[2])
             else:
-                tau = body["tau_up"] if target_U >= f.Ug else body["tau_down"]
-            f.Ug += dt / tau * (target_U - f.Ug)
+                f.acc_f += fg * (1.0 if ag > 0.5 else 0.0)
+            f.acc_nf += 1
+            if sh:
+                shelter_move(f, sh, dt)
             Uw = body["s"] * f.Ug
-            f.h += dt * (body["k_brake"] if ag < 0.5 else body["k"]) * bg * Uw / L
+            f.h += dt * kt * bg * Uw / L
             ex, ez = math.cos(f.h), math.sin(f.h)
             nx, nz = f.x + dt * (Uw * ex + uf[k]), f.z + dt * (Uw * ez + wf[k])
             # held at the box and outside the solids
@@ -269,6 +341,8 @@ def run(case):
         for k, f in enumerate(fish):
             if t < f.next:
                 continue
+            if sh:
+                shelter(f, sh, t, rsh)
             ex, ez = math.cos(f.h), math.sin(f.h)
             hx, hz = f.x + 0.5 * L * ex, f.z + 0.5 * L * ez
             # the other fish are seen only within D_fish of the head (a school keeps its spacing, it does not
@@ -279,7 +353,7 @@ def run(case):
             rays = [ray_lengths(hx, hz, math.cos(f.h + an), math.sin(f.h + an), box, circles, walls) for an in ANG]
             sv = {"t": t, "f": f.g["f"][0], "a": f.g["a"][0], "b": f.g["b"][0], "pos": [f.x, 0.0, f.z],
                   "axis": [ex, 0.0, ez], "lat": [-ez, 0.0, ex], "U": f.acc_U / max(1, f.acc_n),
-                  "stride": f.st.get("kx", [0.5])[0], "target": [f.target[0], 0.0, f.target[1]],
+                  "stride": f.st.get("kx", [0.5])[0], "target": [f.aim()[0], 0.0, f.aim()[1]],
                   "rays": rays, "ray_angles": ANG}
             d = bs.rules(sv, f.st, f.pr)
             ts = d.get("ts", 0.0) or 0.5 / max(f.g["f"][0], 0.1)
@@ -291,7 +365,8 @@ def run(case):
             f.acc_U = 0.0; f.acc_n = 0
         if t >= t_out - 1e-9:
             for f in fish:
-                rows.append((t, f.i, f.x, f.z, math.degrees(f.h), body["s"] * f.Ug, f.g["f"][0], f.g["a"][0], f.g["b"][0], f.mode))
+                rows.append((t, f.i, f.x, f.z, math.degrees(f.h), body["s"] * f.Ug, f.g["f"][0], f.g["a"][0], f.g["b"][0], f.mode,
+                             f.aim()[0], f.aim()[1]))
             t_out += out_dt
     return fish, rows
 
@@ -317,9 +392,9 @@ def main():
     case = json.load(open(a.case))
     fish, rows = run(case)
     with open(a.out, "w") as fo:
-        fo.write("t id x z heading U f a b mode\n")
+        fo.write("t id x z heading U f a b mode target_x target_z\n")
         for r in rows:
-            fo.write("%.3f %d %.5f %.5f %.3f %.5f %.4f %.4f %.4f %d\n" % r)
+            fo.write("%.3f %d %.5f %.5f %.3f %.5f %.4f %.4f %.4f %d %.4f %.4f\n" % r)
     s = summarise(fish, rows, a.after)
     if a.summary:
         json.dump(s, open(a.summary, "w"), indent=1)
