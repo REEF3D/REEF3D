@@ -13,7 +13,7 @@
 // (kinetic energy split) and the VTP file are written; offshore keywords (superelement, soil,
 // soil_layer, pile, morison on frame and superelement members, point_mass at an offset, force, linear6
 // with full matrices) build the expected loads and the model finds its static equilibrium; initial_pose
-// turns and moves the whole model with its joints closed.
+// turns and moves the whole model with its joints closed; output ... only selects the columns.
 // Architect: Hans Bihs
 #include"coral/core/coral_gravity.h"
 #include"coral/core/coral_constraint.h"
@@ -34,6 +34,7 @@
 #include"coral/hydro/coral_member_morison.h"
 #include<cmath>
 #include<cstdio>
+#include<algorithm>
 #include<fstream>
 #include<iostream>
 #include<memory>
@@ -520,6 +521,32 @@ static void test_initial_pose()
     check(e < 1e-12 && g.norm() < 1e-12, msg);
 }
 
+// output ... only: the columns whose names start with the given prefixes
+static void test_output_only()
+{
+    std::cout<<"output only"<<std::endl;
+    coral_case c;
+    c.read_string("time dt 0.05 end 1\noutput dt 0.1 file /tmp/coral_only.dat only a_ sp_\n"
+                  "body a mass 1 cog 0 0 0\nbody b mass 1 cog 1 0 0\nspring sp a a 0 0 0 b b 1 0 0 k 10\n", ".");
+    time_series ts;
+    ts.open("/tmp/coral_only.dat", c.m, false, c.run.out_only);
+    ts.write(c.m, 0.0);
+    ts.close();
+    std::ifstream f("/tmp/coral_only.dat");
+    std::string l1, l2, l3;
+    std::getline(f, l1); std::getline(f, l2); std::getline(f, l3);
+    std::istringstream h(l2), d(l3);
+    std::vector<std::string> names; std::string w;
+    h>>w;
+    while(h>>w) names.push_back(w);
+    int nv = 0; double x;
+    while(d>>x) ++nv;
+    bool ok = c.run.out_only.size()==2 && names.size()==ts.columns().size() && (int)names.size()==nv && names[0]=="t";
+    for(size_t i=1; i<names.size(); ++i) ok = ok && (names[i].rfind("a_", 0)==0 || names[i].rfind("sp_", 0)==0);
+    check(ok && names.size() == 13 + (size_t)std::count_if(names.begin(), names.end(), [](const std::string &n){return n.rfind("sp_", 0)==0;}),
+          "output only a_ sp_: t, the 12 columns of body a and the spring's channels; header and values agree");
+}
+
 int main()
 {
     test_full_model();
@@ -532,6 +559,7 @@ int main()
     test_mooring_sections();
     test_bathymetry_input();
     test_initial_pose();
+    test_output_only();
     std::cout<<(nfail ? "FAILED: " : "all passed")<<(nfail ? std::to_string(nfail) : "")<<std::endl;
     return nfail ? 1 : 0;
 }

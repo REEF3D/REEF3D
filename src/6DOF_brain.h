@@ -168,6 +168,8 @@ private:
     double ug_ = 0.0, tdec_ = 0.0, bdec_ = 0.0, adec_ = 1.0;
     // the coasting time (learnt from the glides), the end of the last burst, the side of the braking
     double tauc_ = 0.0, tburst_ = -1.0, bside_ = 0.0;
+    // the updates of the filter since the start
+    int nkf_ = 0;
     Eigen::Vector3d pdec_ = Eigen::Vector3d::Zero(), Tprev_ = Eigen::Vector3d::Zero(), vT_ = Eigen::Vector3d::Zero();
     record rec_ = {};
     perception perc_;

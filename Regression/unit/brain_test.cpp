@@ -7,7 +7,8 @@
 // (s = 0.48 L per beat as the 2D swimmer of validation 08; a gliding body slows down with 2.5 s), the turn
 // rate 1.3 b U_w/L, a uniform current.
 // Checks: the estimate of the stride and of the current (0.2 m/s along x, along x + z, none); station
-// holding in a current (the fish faces it and stays at the target); a target ahead in still water at
+// holding in a current (the fish faces it and stays at the target; starting close to it, no glide before the
+// current is known); a target ahead in still water at
 // U_des (the frequency U_des/(s L)); a moving target; the own turn on the lateral line (-0.5 b q at the
 // head) is no escape, a stimulus is; at a station in still water the fish glides (amplitude 0) and bursts
 // (burst and coast), early enough for the coast to stop it there; the stride prior and the turn rate of a
@@ -162,6 +163,18 @@ int main()
         check(S.nesc==0, "current 0.2: no escape from the own turns ("+std::to_string(S.nesc)+")");
         const double fm = S.log.back().f;
         check(std::fabs(fm*0.48 - 0.2)<0.08, "current 0.2: swimming at the current speed, f = "+std::to_string(fm)+" Hz");
+    }
+
+    // 1b. the same current, the fish starting 0.4 m downstream of the station and facing it: it arrives before
+    // it has learnt the current and must not glide there (a glide stops the estimate, the fish drifts off)
+    {
+        swimmer S; S.cx = 0.2; S.x = 3.9; S.h = 3.14159265358979323846;
+        sixdof_brain B = brain(0.5, 1.5, {{0.0, 3.5, 0.0, 3.0}});
+        double t = 0.0;
+        S.run(B, t, 20.0);
+        double mx;
+        const double md = mean_dist(S, 8.0, [](double){return std::array<double,2>{3.5, 3.0};}, &mx);
+        check(md<0.15 && mx<0.3, "current 0.2, start 0.4 m from the station: held after 8 s, mean distance "+std::to_string(md)+" m (max "+std::to_string(mx)+")");
     }
 
     // 2. a diagonal current of 0.2 m/s

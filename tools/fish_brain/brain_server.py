@@ -35,7 +35,7 @@ LOCK = threading.Lock()
 # the constants of the rule brain (6DOF_brain.cpp)
 TAU, KTURN, SLOW, ARRIVE, FRONT = 1.5, 1.3, 1.5, 0.25, 0.35
 TAUU, S0, TFLOOR, PSIFLOOR, REAFF, BURST, TAUC0 = 0.8, 0.5, 2.5, 1.0, 0.5, 0.5, 2.0
-CKNOWN, CDRIFT, BRAKE = 0.2, 0.1, 2.5
+CKNOWN, CDRIFT, BRAKE, NKNOWN = 0.2, 0.1, 2.5, 3
 
 
 def _kf_update(st, H, y, R, dt):
@@ -106,6 +106,7 @@ def rules(sv, st, pr):
             R = 0.07 * 0.07 * (1.0 + 4.0 * bm * bm)
             H = [[ugm * ex[p0], 1.0, 0.0], [ugm * ex[p1], 0.0, 1.0]]
             _kf_update(st, H, y, R, dt)
+            st["nkf"] = st.get("nkf", 0) + 1
     s = st["kx"][0]
     cur = [0.0, 0.0, 0.0]
     cur[p0], cur[p1] = st["kx"][1], st["kx"][2]
@@ -193,7 +194,10 @@ def rules(sv, st, pr):
     cm = math.sqrt(cur[p0] * cur[p0] + cur[p1] * cur[p1])
     calm = cm < Umin and math.sqrt(sum(v * v for v in st["vT"])) < Umin
     # an early glide needs the current known and its drift over the coasting time small
-    known = st["kP"][1][1] + st["kP"][2][2] < (CKNOWN * L) ** 2 and cm * st["tauc"] < CDRIFT * L
+    # at the target: the current learnt over NKNOWN updates (a glide stops the estimate)
+    cvar = st["kP"][1][1] + st["kP"][2][2] < (CKNOWN * L) ** 2
+    known = cvar and cm * st["tauc"] < CDRIFT * L
+    learnt = cvar and st.get("nkf", 0) >= NKNOWN
     if not has_t or threat > 0.0 or not calm:
         st["glide"] = False
     elif st.get("glide", False):
@@ -201,7 +205,7 @@ def rules(sv, st, pr):
         if not st["glide"]:
             st["tburst"] = t + 1.0 / f0          # a burst lasts at least one tail beat
     elif t >= st.get("tburst", -1.0):
-        st["glide"] = (known and onaxis and dstop >= dist - ARRIVE * L) or (dist < ARRIVE * L and Ureq < Umin)
+        st["glide"] = (known and onaxis and dstop >= dist - ARRIVE * L) or (learnt and dist < ARRIVE * L and Ureq < Umin)
     if st["glide"]:
         at, bt, mode = 0.0, 0.0, 5
         # braking: the coast would carry the fish past the target (or carries it away): the body bent, to

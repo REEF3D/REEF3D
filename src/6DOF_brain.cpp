@@ -38,7 +38,8 @@ namespace
     const double brain_reaff = 0.5;        // head pressure difference of a turn: -reaff b q_w
     const double brain_burst = 0.5;        // a gliding fish beats again beyond this distance of the target [L]
     const double brain_tauc0 = 2.0;        // prior of the coasting time: the speed of a glide decays with it [s]
-    const double brain_cknown = 0.2;       // an early glide: the current known within this (sqrt of its variance) [L/s]
+    const double brain_cknown = 0.2;       // a glide: the current known within this (sqrt of its variance) [L/s]
+    const int brain_nknown = 3;            // a glide at the target: the filter updated this many times at least
     const double brain_cdrift = 0.1;       // ... and its drift over the coasting time below this [L]
     const double brain_brake = 2.5;        // braking while gliding: the body bent with this bias (0: no braking)
 }
@@ -149,6 +150,7 @@ sixdof_brain::decision sixdof_brain::decide(double t, double f, double a, double
         Tset_ = false;
         vT_.setZero();
         tauc_ = brain_tauc0;
+        nkf_ = 0;
         kf_on_ = true;
     }
 
@@ -191,6 +193,7 @@ sixdof_brain::decision sixdof_brain::decide(double t, double f, double a, double
             const double R = 0.07*0.07*(1.0 + 4.0*bm*bm);
             const double H[2][3] = {{ugm*ex(p0), 1.0, 0.0}, {ugm*ex(p1), 0.0, 1.0}};
             kf_update(H, y, R, dt);
+            ++nkf_;
         }
     }
 
@@ -326,7 +329,9 @@ sixdof_brain::decision sixdof_brain::decide(double t, double f, double a, double
     // seeing nothing close, the fish stops beating its tail and coasts (amplitude 0, no bias)
     //  - early: the target ahead (within 30 deg of the axis) and the coasting distance (its speed through
     //    the water times the coasting time, learnt from its glides) reaching it, the current known
-    //  - at the target (brain_arrive), needing less than that speed
+    //  - at the target (brain_arrive), needing less than that speed, the current learnt (within brain_cknown,
+    //    after brain_nknown updates of the filter: a glide stops the estimate, and a fish that arrives before
+    //    it has learnt the current drifts off)
     // It beats again beyond brain_burst of the target when the target is behind or the coast no longer
     // reaches it (burst and coast), for at least a tail beat
     double at = 1.0;
@@ -337,7 +342,9 @@ sixdof_brain::decision sixdof_brain::decide(double t, double f, double a, double
         const double rx = r(0)*ex(0) + r(1)*ex(1) + r(2)*ex(2), ry = r(0)*el(0) + r(1)*el(1) + r(2)*el(2);
         const bool onaxis = has_t && rx>0.0 && std::fabs(std::atan2(ry, rx))<0.5236;
         const bool calm = cm<Umin && vT_.norm()<Umin;
-        const bool known = kf_P_[1][1] + kf_P_[2][2]<std::pow(brain_cknown*L_, 2.0) && cm*tauc_<brain_cdrift*L_;
+        const bool cvar = kf_P_[1][1] + kf_P_[2][2]<std::pow(brain_cknown*L_, 2.0);
+        const bool known = cvar && cm*tauc_<brain_cdrift*L_;
+        const bool learnt = cvar && nkf_>=brain_nknown;
 
         if(!has_t || threat>0.0 || !calm)
         glide_ = false;
@@ -348,7 +355,7 @@ sixdof_brain::decision sixdof_brain::decide(double t, double f, double a, double
             tburst_ = t + 1.0/f0_;
         }
         else if(t>=tburst_)
-        glide_ = (known && onaxis && dstop>=dist - brain_arrive*L_) || (dist<brain_arrive*L_ && Ureq<Umin);
+        glide_ = (known && onaxis && dstop>=dist - brain_arrive*L_) || (learnt && dist<brain_arrive*L_ && Ureq<Umin);
 
         if(glide_)
         {
@@ -464,8 +471,8 @@ void sixdof_brain::kf_update(const double H[2][3], const double y[2], double R, 
 
 void sixdof_brain::ckpt_state(std::vector<double> &v) const
 {
-    v.push_back(4.0);      // version
-    for(double x : {T_, Uax_, llT_, t_start_, next_, refr_, side_, kf_on_ ? 1.0 : 0.0, ug_, tdec_, bdec_, Tset_ ? 1.0 : 0.0, glide_ ? 1.0 : 0.0, adec_, tauc_, tburst_, bside_})
+    v.push_back(5.0);      // version
+    for(double x : {T_, Uax_, llT_, t_start_, next_, refr_, side_, kf_on_ ? 1.0 : 0.0, ug_, tdec_, bdec_, Tset_ ? 1.0 : 0.0, glide_ ? 1.0 : 0.0, adec_, tauc_, tburst_, bside_, double(nkf_)})
     v.push_back(x);
     for(int k=0; k<3; ++k)
     {
@@ -485,7 +492,9 @@ void sixdof_brain::ckpt_state(std::vector<double> &v) const
 
 bool sixdof_brain::ckpt_restore(const std::vector<double> &v)
 {
-    if(v.size()<55 || int(v[0])!=4)
+    // version 4 (patches 0016-0022): without the count of the updates (taken as learnt)
+    const int ver = v.empty() ? 0 : int(v[0]);
+    if(v.size()<55 || (ver!=4 && ver!=5))
     return false;
 
     size_t k = 1;
@@ -498,6 +507,7 @@ bool sixdof_brain::ckpt_restore(const std::vector<double> &v)
     tauc_ = v[k++];
     tburst_ = v[k++];
     bside_ = v[k++];
+    nkf_ = (ver>=5) ? int(v[k++]) : brain_nknown;
     for(int j=0; j<3; ++j)
     {
         ax_(j) = v[k++];
