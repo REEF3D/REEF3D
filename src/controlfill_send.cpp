@@ -3435,6 +3435,8 @@ void control::ctrlsend()
     ii++;
     ictrl[ii] = X200;
     ii++;
+    ictrl[ii] = X201;
+    ii++;
     ictrl[ii] = X194;
     ii++;
     ictrl[ii] = X199;
@@ -5523,6 +5525,17 @@ void control::ctrlsend()
         ictrl[ii] = X200_id[n];
         ii++;
         for(double x : {X200_s[n], X200_k[n], X200_w[n]})
+        {
+        dctrl[dd] = x;
+        dd++;
+        }
+    }
+    
+    for(n=0;n<X201;++n)
+    {
+        ictrl[ii] = X201_id[n];
+        ii++;
+        for(double x : {X201_u[n], X201_d[n]})
         {
         dctrl[dd] = x;
         dd++;

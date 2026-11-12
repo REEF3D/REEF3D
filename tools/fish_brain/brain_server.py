@@ -6,7 +6,7 @@
 # REEF3D (rank 0) connects to 127.0.0.1:port and sends one line of JSON per decision (once per half
 # tail beat); the server answers with one line of JSON:
 #
-#   hello  {"hello":1,"body":0,"L":..,"f0":..,"rho":..,"U_des":..,"b_max":..,"D":..,"th_esc":..,"t_start":..,"twoD":1,"s0":..,"k_turn":..}
+#   hello  {"hello":1,"body":0,"L":..,"f0":..,"rho":..,"U_des":..,"b_max":..,"D":..,"th_esc":..,"t_start":..,"twoD":1,"s0":..,"k_turn":..,"tau_u":..,"tau_d":..}
 #          -> {"ok":1,"policy":"rules"}
 #   senses {"t":..,"f":..,"a":..,"b":..,            the time of the decision, the gait now
 #           "pos":[x,y,z],"axis":[..],"lat":[..],   the CoG, the mean body axis and lateral axis in the plane
@@ -64,6 +64,8 @@ def rules(sv, st, pr):
     Udes, bmax, Dvis, the = pr["U_des"], (pr["b_max"] if pr["b_max"] > 0 else 1.0), pr["D"], pr["th_esc"]
     s0 = pr.get("s0", 0.0) or S0                 # X 200: the prior of the stride and the turn rate of the bias
     kturn = pr.get("k_turn", 0.0) or KTURN
+    tauu = pr.get("tau_u", 0.0) or TAUU         # X 201: how fast the speed follows a faster and a slower gait
+    taud = pr.get("tau_d", 0.0) or TAUU
     t, f, a, b = sv["t"], sv["f"], sv["a"], sv["b"]
     ex, el, c = sv["axis"], sv["lat"], sv["pos"]
     nrm = 1 if pr["twoD"] else 2
@@ -95,9 +97,10 @@ def rules(sv, st, pr):
                 st["tauc"] = 0.7 * st["tauc"] + 0.3 * tm
         else:
             fal = f * a * L
-            e = math.exp(-dt / TAUU)
+            tu = tauu if fal >= st["ug"] else taud                 # up with tau_u, down with tau_d (X 201)
+            e = math.exp(-dt / tu)
             ug1 = fal + (st["ug"] - fal) * e
-            ugm = fal + (st["ug"] - fal) * (TAUU / dt) * (1.0 - e)
+            ugm = fal + (st["ug"] - fal) * (tu / dt) * (1.0 - e)
             st["ug"] = ug1
             bm = 0.5 * (b + st["bdec"])
             R = 0.07 * 0.07 * (1.0 + 4.0 * bm * bm)

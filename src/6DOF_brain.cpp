@@ -31,7 +31,7 @@ namespace
     const double brain_slow = 1.5;         // slower within this distance of the target [L]
     const double brain_arrive = 0.25;      // at the target within this distance [L]
     const double brain_front = 0.35;       // the head stations of the lateral line: s/L below
-    const double brain_tauu = 0.8;         // response time of the swimming speed to the gait [s]
+    const double brain_tauu = 0.8;         // default response time of the swimming speed to the gait (X 201) [s]
     const double brain_s0 = 0.5;           // default prior of the stride per tail beat at full amplitude [L]
     const double brain_tfloor = 2.5;       // the speed for a turn: the turn in this time at b_max [s]
     const double brain_psifloor = 1.0;     // ... beyond this angle to the wanted heading [rad]
@@ -44,9 +44,11 @@ namespace
 }
 
 sixdof_brain::sixdof_brain(double U_des, double b_max, double D_vis, double th_esc, double f0, double L, double rho,
-                           double t_start, int lateral, const std::vector<target_point> &tp, double s0, double k_turn)
+                           double t_start, int lateral, const std::vector<target_point> &tp, double s0, double k_turn,
+                           double tau_u, double tau_d)
              : Udes_(U_des), bmax_(b_max>0.0 ? b_max : 1.0), Dvis_(D_vis), the_(th_esc), f0_(f0), L_(L), rho_(rho),
-               tstart_(t_start), s0_(s0>0.0 ? s0 : brain_s0), kturn_(k_turn!=0.0 ? k_turn : brain_kturn), lat_(lateral), tp_(tp)
+               tstart_(t_start), s0_(s0>0.0 ? s0 : brain_s0), kturn_(k_turn!=0.0 ? k_turn : brain_kturn),
+               tauu_(tau_u>0.0 ? tau_u : brain_tauu), taud_(tau_d>0.0 ? tau_d : brain_tauu), lat_(lateral), tp_(tp)
 {
     std::stable_sort(tp_.begin(), tp_.end(), [](const target_point &a, const target_point &b) {return a.t<b.t;});
     t_start_ = tstart_;
@@ -179,9 +181,11 @@ sixdof_brain::decision sixdof_brain::decide(double t, double f, double a, double
         else
         {
             const double fal = f*a*L_;
-            const double e = std::exp(-dt/brain_tauu);
+            // the speed follows a faster gait with tau_u, a slower one with tau_d (X 201)
+            const double tu = (fal>=ug_) ? tauu_ : taud_;
+            const double e = std::exp(-dt/tu);
             const double ug1 = fal + (ug_ - fal)*e;
-            const double ugm = fal + (ug_ - fal)*(brain_tauu/dt)*(1.0 - e);
+            const double ugm = fal + (ug_ - fal)*(tu/dt)*(1.0 - e);
             ug_ = ug1;
             const double bm = 0.5*(b + bdec_);
             const double R = 0.07*0.07*(1.0 + 4.0*bm*bm);

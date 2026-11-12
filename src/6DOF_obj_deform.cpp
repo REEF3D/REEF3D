@@ -259,9 +259,18 @@ void sixdof_obj::brain_setup(lexer *p)
     kturn = p->X200_k[n];
     }
     
+    // how fast its speed follows the gait (X 201 id tau_u tau_d)
+    double tauu = 0.0, taud = 0.0;
+    for(int n=0; n<p->X201; ++n)
+    if(p->X201_id[n]==n6DOF)
+    {
+    tauu = p->X201_u[n];
+    taud = p->X201_d[n];
+    }
+    
     delete brain_;
     brain_ = new sixdof_brain(p->X193_U[nb], p->X193_b[nb], p->X193_D[nb], p->X193_the[nb], f0, fish_->length(), p->W1,
-                              tramp + 1.0/f0, fish_->lateral(), tp, s0, kturn);
+                              tramp + 1.0/f0, fish_->lateral(), tp, s0, kturn, tauu, taud);
     
     // the largest frequency of the brain fixes the step of the recoil quadrature
     fish_->set_fcap(brain_->fmax());
@@ -287,9 +296,9 @@ void sixdof_obj::brain_setup(lexer *p)
         }
         
         char hello[1024];
-        snprintf(hello,sizeof(hello),"{\"hello\":1,\"body\":%d,\"L\":%.17g,\"f0\":%.17g,\"rho\":%.17g,\"U_des\":%.17g,\"b_max\":%.17g,\"D\":%.17g,\"th_esc\":%.17g,\"t_start\":%.17g,\"twoD\":%d,\"s0\":%.17g,\"k_turn\":%.17g}",
+        snprintf(hello,sizeof(hello),"{\"hello\":1,\"body\":%d,\"L\":%.17g,\"f0\":%.17g,\"rho\":%.17g,\"U_des\":%.17g,\"b_max\":%.17g,\"D\":%.17g,\"th_esc\":%.17g,\"t_start\":%.17g,\"twoD\":%d,\"s0\":%.17g,\"k_turn\":%.17g,\"tau_u\":%.17g,\"tau_d\":%.17g}",
                  n6DOF, fish_->length(), f0, p->W1, p->X193_U[nb], p->X193_b[nb], p->X193_D[nb], p->X193_the[nb], tramp + 1.0/f0, fish_->lateral()==2 ? 1 : 0,
-                 brain_->stride_prior(), brain_->turn_rate());
+                 brain_->stride_prior(), brain_->turn_rate(), brain_->speed_time_up(), brain_->speed_time_down());
         
         if(!brain_link_->exchange(hello, in, 60.0))
         {
@@ -304,7 +313,8 @@ void sixdof_obj::brain_setup(lexer *p)
     {
         cout<<"6DOF body "<<n6DOF<<": brain (X 193), U_des "<<p->X193_U[nb]<<" m/s, b_max "<<p->X193_b[nb]
             <<", vision "<<p->X193_D[nb]<<" L, escape at "<<p->X193_the[nb]<<" q, "<<tp.size()<<" target points (X 192)"
-            <<"; stride prior "<<brain_->stride_prior()<<" L, turn rate "<<brain_->turn_rate()<<" b U/L (X 200)"<<endl;
+            <<"; stride prior "<<brain_->stride_prior()<<" L, turn rate "<<brain_->turn_rate()<<" b U/L (X 200)"
+            <<"; speed time of the gait "<<brain_->speed_time_up()<<" s up, "<<brain_->speed_time_down()<<" s down (X 201)"<<endl;
         
         char str[1000];
         snprintf(str,sizeof(str),"%s/REEF3D_6DOF_brain_%i.dat",sixdof_output_dir(p),n6DOF);

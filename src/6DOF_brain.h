@@ -39,7 +39,9 @@ Architect: Hans Bihs
 //     at the decision times
 //
 //  The current and the stride: the fish knows its gait and sees its track over the ground. The speed of
-//  the gait U_g follows f a L with the time 0.8 s, from the speed on the track over the first interval
+//  the gait U_g follows f a L with the time tau_u when the gait is faster and tau_d when it is slower
+//  (X 201, default 0.8 s; the 3D salmon keeps its speed for seconds after its frequency drops: tau_d about
+//  4.5 s, validation 17), from the speed on the track over the first interval
 //  between decisions (a body may still be accelerating; no update then); the ground velocity is
 //  s U_g ex + c. A Kalman filter
 //  on the stride s (prior s0 L per beat, X 200, default 0.5; standard deviation 0.3 s0, kept within
@@ -92,7 +94,8 @@ public:
     struct target_point {double t, x, y, z;};
 
     sixdof_brain(double U_des, double b_max, double D_vis, double th_esc, double f0, double L, double rho,
-                 double t_start, int lateral, const std::vector<target_point>&, double s0 = 0.0, double k_turn = 0.0);
+                 double t_start, int lateral, const std::vector<target_point>&, double s0 = 0.0, double k_turn = 0.0,
+                 double tau_u = 0.0, double tau_d = 0.0);
 
     // the senses of one time step: dt, the body axis and the lateral axis (inertial frame), the CoG,
     // the CoG velocity; the lateral line (per probe: s/L, side, pressure) when the body has one
@@ -137,12 +140,14 @@ public:
     double fmax() const {return 2.0*f0_;}
     double stride_prior() const {return s0_;}
     double turn_rate() const {return kturn_;}
+    double speed_time_up() const {return tauu_;}
+    double speed_time_down() const {return taud_;}
 
 private:
 
     Eigen::Vector3d target(double t) const;
 
-    const double Udes_, bmax_, Dvis_, the_, f0_, L_, rho_, tstart_, s0_, kturn_;
+    const double Udes_, bmax_, Dvis_, the_, f0_, L_, rho_, tstart_, s0_, kturn_, tauu_, taud_;
     const int lat_;
     std::vector<target_point> tp_;
 
