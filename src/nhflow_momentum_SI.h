@@ -286,6 +286,7 @@ private:
     void col_nu(lexer*, fdm_nhf*, int, int, int, int, double*);
     bool visc;
     vector<double> wcu, wcl, wcd, wnu, wa, wb, wr, wx;   // column work arrays (knoz)
+    vector<double> wnx, wny;                             // the phi face terms of a cell (nh_cell_faces)
     double dissipation(lexer*, double, double, double);
     double div(lexer*, slice&, slice&);
     double layer_div(lexer*, double*, double*);
@@ -363,6 +364,7 @@ private:
     void nh_solve(lexer*, fdm_nhf*, ghostcell*);
     void nh_solve_mg(lexer*, fdm_nhf*, ghostcell*, const std::vector<double>&, std::vector<double>&);
     void nh_cell(lexer*, fdm_nhf*, ghostcell*);
+    void nh_cell_faces(lexer*, fdm_nhf*, double*, double*);
 
     // A 505 1: a cell side towards a wall (a solid or the outside of the domain, no open boundary face) counts in the
     // cell momentum with its zero face term (cell_update, nh_cell); wSide: the sides of the cells with an open boundary

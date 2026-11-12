@@ -189,6 +189,8 @@ nhflow_momentum_SI::nhflow_momentum_SI(lexer *p, fdm_nhf *d, ghostcell *pgc, six
     wnu.assign(p->knoz,0.0);
     wa.assign(p->knoz,0.0);
     wb.assign(p->knoz,0.0);
+    wnx.assign(p->knoz,0.0);
+    wny.assign(p->knoz,0.0);
     wr.assign(p->knoz,0.0);
     wx.assign(p->knoz,0.0);
     vau.assign(p->knoz,0.0);
@@ -2993,6 +2995,13 @@ void nhflow_momentum_SI::cell_update(lexer *p, fdm_nhf *d, ghostcell *pgc)
     if(wz || nh)
     wall_sides(p);
 
+    // fourth order: the phi face terms two faces away, also those of the neighbouring ranks (nh_cell_faces)
+    if(nh && ho)
+    {
+    exchangeC(p,pgc,NQx);
+    exchangeC(p,pgc,NQy);
+    }
+
     SLICELOOP4
     {
         if(p->wet[IJ]==1)
@@ -3115,8 +3124,21 @@ void nhflow_momentum_SI::cell_update(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
         col_solve(p,wcu.data(),wcl.data(),wcd.data(),dt*gmc(i,j),wb.data(),wr.data());
 
+        // the non-hydrostatic pressure (A 520 > 0): its face terms in the cell, inside the column solve as the predictor.
+        // The implicit part of the vertical advection (and the vertical diffusion, the bed friction) then acts on the
+        // velocity of t^{n+1}. Added after the solve, the advected velocity of the implicit half missed the pressure
+        // term of the step, dt/2 grad(phi): in phase with omega under a progressive wave, so the layers exchanged
+        // horizontal momentum in the mean, in proportion to dt and to the wave amplitude squared. A Stokes wave
+        // kh 3, ka 0.21 at T/58 drove a shear current that grew by 3.6 mm/s per second (against the waves near the
+        // surface, forward at the bed) and lengthened the wave period along the tank; with the terms in the solve
+        // it grows by 0.2 mm/s per second
+        const bool nhc = nh && wn(i,j);
+
+        if(nhc)
+        nh_cell_faces(p,d,wnx.data(),wny.data());
+
         for(k=0;k<p->knoz;++k)
-        wb[k] = UHD[IJK] - (Bx!=nullptr ? dt*WL0(i,j)*Bx[IJK] : 0.0);
+        wb[k] = UHD[IJK] - (Bx!=nullptr ? dt*WL0(i,j)*Bx[IJK] : 0.0) + (nhc ? wnx[k] : 0.0);
 
         if(thv<1.0)
         {
@@ -3136,7 +3158,7 @@ void nhflow_momentum_SI::cell_update(lexer *p, fdm_nhf *d, ghostcell *pgc)
             if(p->j_dir==1)
             {
             for(k=0;k<p->knoz;++k)
-            wb[k] = VHD[IJK] - (By!=nullptr ? dt*WL0(i,j)*By[IJK] : 0.0);
+            wb[k] = VHD[IJK] - (By!=nullptr ? dt*WL0(i,j)*By[IJK] : 0.0) + (nhc ? wny[k] : 0.0);
 
             if(thv<1.0)
             {
@@ -3195,7 +3217,7 @@ void nhflow_momentum_SI::cell_update(lexer *p, fdm_nhf *d, ghostcell *pgc)
         }
     }
 
-    // the non-hydrostatic pressure (A 520 > 0): its face terms in the cells, the vertical momentum
+    // the non-hydrostatic pressure (A 520 > 0): the vertical momentum (its face terms are in the column solve above)
     if(nh)
     nh_cell(p,d,pgc);
 }

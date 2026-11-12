@@ -1,0 +1,18 @@
+{
+ "base": "nhflow_3d_si_amr_basin_mpi2",
+ "ctrl_set": {
+  "A 510": "11"
+ },
+ "description": "nhflow_3d_si_amr_basin_onestep on 2 ranks.",
+ "tags": [
+  "3d",
+  "nhflow",
+  "semi_implicit",
+  "amr",
+  "mpi"
+ ],
+ "covers": [
+  "A 510 11 with mesh refinement on 2 ranks (the BCG flags and slopes across the ranks)"
+ ],
+ "architect": "Hans Bihs"
+}

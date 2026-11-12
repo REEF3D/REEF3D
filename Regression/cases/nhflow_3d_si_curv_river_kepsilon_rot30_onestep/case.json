@@ -1,0 +1,18 @@
+{
+ "base": "nhflow_3d_si_curv_river_kepsilon_rot30",
+ "ctrl_set": {
+  "A 510": "11"
+ },
+ "description": "nhflow_3d_si_curv_river_kepsilon_rot30 with A 510 11: the river reach on the curvilinear grid turned by 30 deg (inflow along the face normal, stage outflow, k-epsilon).",
+ "tags": [
+  "3d",
+  "nhflow",
+  "semi_implicit",
+  "curvilinear",
+  "turbulence"
+ ],
+ "covers": [
+  "A 510 11 on a curvilinear grid with open boundaries"
+ ],
+ "architect": "Hans Bihs"
+}

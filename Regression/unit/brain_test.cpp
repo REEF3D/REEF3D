@@ -12,8 +12,9 @@
 // head) is no escape, a stimulus is; at a station in still water the fish glides (amplitude 0) and bursts
 // (burst and coast), early enough for the coast to stop it there; the stride prior and the turn rate of a
 // body (X 200): a slow swimmer with a weak turn, a body that turns away from its bias; a body still
-// accelerating when the brain starts sees no headwind; a restart from the checkpoint of the brain continues it
-// exactly (in a current and while gliding).
+// accelerating when the brain starts sees no headwind; a body that keeps its speed when its gait slows
+// (X 201) sees no tailwind; a restart from the checkpoint of the brain continues it exactly (in a current and
+// while gliding).
 // Architect: Hans Bihs
 #include"../../src/6DOF_brain.cpp"
 
@@ -37,7 +38,7 @@ struct swimmer
 {
     double x = 1.6, z = 3.0, h = 0.0, Ug = 0.0;
     double g[3] = {1.0, 1.0, 0.0}, gr[3] = {0.0, 0.0, 0.0}, gt[3] = {1.0, 1.0, 0.0}, ts[3] = {0.25, 0.25, 0.25};
-    double s_true = 0.48, k_true = 1.3, tau_true = 0.8, cx = 0.0, cz = 0.0;
+    double s_true = 0.48, k_true = 1.3, tau_true = 0.8, tau_down = 0.0, cx = 0.0, cz = 0.0;
     double stim_t = -1.0;      // a pressure pulse across the head at this time (a startle stimulus)
     bool second = false;
     sixdof_brain::decision pend;
@@ -73,7 +74,10 @@ struct swimmer
                 target(pend, true);
                 second = false;
             }
-            Ug += dt/(g[1]<0.5 ? 2.5 : tau_true)*(g[0]*g[1]*1.0 - Ug);      // a gliding body coasts longer
+            // the speed rises with tau_true; it falls with 2.5 s when gliding, with tau_down (0: tau_true)
+            // when the gait only slows down
+            const double gt_ = g[0]*g[1]*1.0;
+            Ug += dt/(g[1]<0.5 ? 2.5 : ((gt_<Ug && tau_down>0.0) ? tau_down : tau_true))*(gt_ - Ug);
             const double Uw = s_true*Ug*std::min(1.0, t/1.0);
             h += dt*k_true*g[2]*Uw/1.0;
             const Eigen::Vector3d ex(std::cos(h), 0.0, std::sin(h)), el(-std::sin(h), 0.0, std::cos(h));
@@ -116,10 +120,11 @@ struct swimmer
 };
 
 static sixdof_brain brain(double Udes, double th, const std::vector<sixdof_brain::target_point> &tp, double s0 = 0.0,
-                          double k = 0.0, double bmax = 1.0)
+                          double k = 0.0, double bmax = 1.0, double tau_u = 0.0, double tau_d = 0.0)
 {
-    // U_des, b_max, no vision, th_esc, f0 1 Hz, L 1 m, rho 1000, start 2 s, lateral axis z (2D), X 200 s0 k
-    return sixdof_brain(Udes, bmax, 0.0, th, 1.0, 1.0, 1000.0, 2.0, 2, tp, s0, k);
+    // U_des, b_max, no vision, th_esc, f0 1 Hz, L 1 m, rho 1000, start 2 s, lateral axis z (2D), X 200 s0 k,
+    // X 201 tau_u tau_d
+    return sixdof_brain(Udes, bmax, 0.0, th, 1.0, 1.0, 1000.0, 2.0, 2, tp, s0, k, tau_u, tau_d);
 }
 
 static double mean_dist(const swimmer &S, double t0, std::function<std::array<double,2>(double)> T, double *mx = nullptr)
@@ -271,6 +276,32 @@ int main()
             cmax = std::max(cmax, std::hypot(B.last().cx, B.last().cz));
         }
         check(cmax<0.1, "accelerating body: no current at the start (2.5-4 s), |c| at most "+std::to_string(cmax)+" m/s");
+    }
+
+    // 3g. a body that keeps its speed for seconds when its gait slows (falling with 4.5 s, as the 3D salmon,
+    // validation 17; stride 0.15 L, U_des 0.2 m/s), a target 3 m ahead in still water: the brain lowers the
+    // frequency on the approach. With X 201 0.8 4.5 no current; with the default 0.8 s a false tailwind
+    for(int body=0; body<2; ++body)
+    {
+        swimmer S; S.s_true = 0.15; S.tau_down = 4.5;
+        const std::vector<sixdof_brain::target_point> tp = {{0.0, 4.6, 0.0, 3.0}};
+        sixdof_brain B = body ? brain(0.2, 1.5, tp, 0.15, 0.0, 1.0, 0.8, 4.5) : brain(0.2, 1.5, tp, 0.15);
+        double t = 0.0, cmax = 0.0;
+        while(t<20.0)
+        {
+            S.run(B, t, t + 0.25);
+            if(t>3.0)
+            cmax = std::max(cmax, std::hypot(B.last().cx, B.last().cz));
+        }
+        double mx;
+        const double md = mean_dist(S, 15.0, [](double){return std::array<double,2>{4.6, 3.0};}, &mx);
+        if(body)
+        {
+            check(cmax<0.02, "X 201 0.8 4.5: no current on the approach, |c| at most "+std::to_string(cmax)+" m/s");
+            check(md<0.3 && mx<0.5, "X 201 0.8 4.5: at the target after 15 s, mean distance "+std::to_string(md)+" m, max "+std::to_string(mx));
+        }
+        else
+        check(cmax>0.05, "falling with 4.5 s without X 201: a false tailwind "+std::to_string(cmax)+" m/s");
     }
 
     // 4. a moving target at 0.25 m/s across, after the fish reached it

@@ -1055,23 +1055,13 @@ void nhflow_momentum_SI::nh_solve(lexer *p, fdm_nhf *d, ghostcell *pgc)
     nh_time = pgc->timer() - starttime_nh;
 }
 
-void nhflow_momentum_SI::nh_cell(lexer *p, fdm_nhf *d, ghostcell *pgc)
+void nhflow_momentum_SI::nh_cell_faces(lexer *p, fdm_nhf *d, double *cx, double *cy)
 {
-    // UH, VH: the mean of the face terms of the open faces (as the gravity term of cell_update); WH: -dt [phi]_k/dsig_k
-    const double dt = p->dt;
+    // the phi face terms of the cell (i,j), for UH and VH: the mean of those of its open faces, as the gravity term of
+    // cell_update; fourth order: (-1, 9, 9, -1)/16 of four faces
     const int K = p->knoz;
     auto wn = [&](int a, int b) { return etaI(a,b) + d->depth(a,b) > p->A544; };
 
-    // fourth order: the face terms two faces away, also those of the neighbouring ranks
-    if(ho)
-    {
-    exchangeC(p,pgc,NQx);
-    exchangeC(p,pgc,NQy);
-    }
-
-    SLICELOOP4
-    if(p->wet[IJ]==1 && wn(i,j))
-    {
     const bool h4x = ho && ho_cell(p,d,1,i,j);
     const bool h4y = ho && ho_cell(p,d,2,i,j);
     const double we = (Hx(i,j)>0.0 && wn(i+1,j)) ? 1.0 : 0.0;
@@ -1081,28 +1071,40 @@ void nhflow_momentum_SI::nh_cell(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
     double ve=0.0, vw=0.0, wsy=1.0;
 
-        if(p->j_dir==1)
-        {
-        ve = (Hy(i,j)>0.0 && wn(i,j+1)) ? 1.0 : 0.0;
-        vw = (Hy(i,j-1)>0.0 && wn(i,j-1)) ? 1.0 : 0.0;
-        wsy = MAX(ve + vw + (wz ? wall(p,i,j,3) + wall(p,i,j,4) : 0.0),1.0);
-        }
+    if(p->j_dir==1)
+    {
+    ve = (Hy(i,j)>0.0 && wn(i,j+1)) ? 1.0 : 0.0;
+    vw = (Hy(i,j-1)>0.0 && wn(i,j-1)) ? 1.0 : 0.0;
+    wsy = MAX(ve + vw + (wz ? wall(p,i,j,3) + wall(p,i,j,4) : 0.0),1.0);
+    }
 
+    for(k=0;k<K;++k)
+    {
+    cx[k] = h4x ? (9.0*(NQx[Im1JK] + NQx[IJK]) - NQx[Im2JK] - NQx[Ip1JK])/16.0 : (ww*NQx[Im1JK] + we*NQx[IJK])/wsx;
+
+    cy[k] = 0.0;
+
+    if(h4y)
+    cy[k] = (9.0*(NQy[IJm1K] + NQy[IJK]) - NQy[IJm2K] - NQy[IJp1K])/16.0;
+
+    else
+    if(p->j_dir==1)
+    cy[k] = (vw*NQy[IJm1K] + ve*NQy[IJK])/wsy;
+    }
+}
+
+void nhflow_momentum_SI::nh_cell(lexer *p, fdm_nhf *d, ghostcell *pgc)
+{
+    // WH: -dt [phi]_k/dsig_k (UH, VH: the face terms of phi are in the column solve of cell_update, nh_cell_faces)
+    const double dt = p->dt;
+    const int K = p->knoz;
+    auto wn = [&](int a, int b) { return etaI(a,b) + d->depth(a,b) > p->A544; };
+
+    SLICELOOP4
+    if(p->wet[IJ]==1 && wn(i,j))
+    {
         for(k=0;k<K;++k)
         {
-        if(h4x)
-        d->UH[IJK] += (9.0*(NQx[Im1JK] + NQx[IJK]) - NQx[Im2JK] - NQx[Ip1JK])/16.0;
-
-        else
-        d->UH[IJK] += (ww*NQx[Im1JK] + we*NQx[IJK])/wsx;
-
-        if(h4y)
-        d->VH[IJK] += (9.0*(NQy[IJm1K] + NQy[IJK]) - NQy[IJm2K] - NQy[IJp1K])/16.0;
-
-        else
-        if(p->j_dir==1)
-        d->VH[IJK] += (vw*NQy[IJm1K] + ve*NQy[IJK])/wsy;
-
             if(nAct[IJ])
             {
             const double ph_up = (k<K-1) ? PHI[IJKp1] : 0.0;
