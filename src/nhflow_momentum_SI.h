@@ -328,6 +328,8 @@ private:
     std::shared_ptr<nhflow_si_nhmg> nhme, nhmp;     // A 507 1: the eta system (one unknown per column) and the phi system (K)
     int nh_lagc = 0, nh_lagit = 0, nh_lagnact = -1; // the preconditioner kept for some steps: steps since its refresh, the
     double nh_lagdt = 0.0;                          // iterations of that step, the active columns and dt then
+    std::vector<char> nh_lagpat;                    // the wet pattern (pw) and active columns of the preconditioner
+    int nh_reb = 0;                                 // the preconditioner rebuilt inside FGMRES (stall) in this solve
     int nh_iter = 0, nh_iter1 = 0;   // the iterations of the last solve and of the first pass of the step
     double nh_time = 0.0, nh_res = 0.0, nh_brk = 0.0;
     // wetting and drying of the coupled solve (A 537 1): pw of the mass rows, the iterations of the pattern and the dry

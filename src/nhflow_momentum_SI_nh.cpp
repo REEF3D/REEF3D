@@ -843,8 +843,8 @@ void nhflow_momentum_SI::nh_solve(lexer *p, fdm_nhf *d, ghostcell *pgc)
     // this step (its eta solve iterates the pattern as well, si_eta2D::solve_wetdry): from all wet, a step with a dry
     // column next to a wet one took a second pass (conical island: 1.6 passes per step, 0.04 from the estimate; 4 layers
     // 531 s -> 406 s, A 537 0: 419 s, the same solution). A further pass then starts FGMRES from the solution of the pass
-    // before and keeps the preconditioner (some mass rows changed); where the pattern still changes after 4 passes, the
-    // passes start again from all wet, the start of Casulli's iteration. Without tl2: from all wet, every pass from the
+    // before (the preconditioner rebuilt for the changed mass rows, nh_solve_mg); where the pattern still changes after
+    // 4 passes, the passes start again from all wet, the start of Casulli's iteration. Without tl2: from all wet, every pass from the
     // guess of the step, the preconditioner rebuilt for a new pattern
     const int itwd = p->A537==1 ? 20 : 1;
     const bool est = itwd>1 && tl2;
@@ -1326,7 +1326,8 @@ void nhflow_momentum_SI::nh_solve_mg(lexer *p, fdm_nhf *d, ghostcell *pgc, const
     // its starting residual times the reduction the max-norm still needs; the max-norm is checked on the true residual
     // of every restart. 2D standing wave 64 x 64 x 4, T/40 .. T/1280, error against T/5120: 1e-4 within 1.5 % of the
     // converged solve, 6.0 iterations (|b| test 1e-5: 8.0); 1e-3 up to 27 % at T/1280, 5.0 iterations
-    struct fg_result { int it=0, cyc=0; double r0max=0.0, rmax=0.0, tolmax=0.0; };
+    // reb, itreb: the preconditioner rebuilt inside the solve (stall, below) and the iterations before that
+    struct fg_result { int it=0, cyc=0, reb=0, itreb=0; double r0max=0.0, rmax=0.0, tolmax=0.0; };
 
     // tabs > 0: at most this stopping residual (a further pass of the wet pattern: that of the first pass, or A 506 of its
     // own starting residual where that is smaller)
@@ -1358,6 +1359,7 @@ void nhflow_momentum_SI::nh_solve_mg(lexer *p, fdm_nhf *d, ghostcell *pgc, const
         auto need = [&](std::vector<double> &v) { if(v.size()!=n) v.assign(n,0.0); };
         need(V[0]);
         std::vector<double> H((m+1)*m,0.0), cs(m,0.0), sn(m,0.0), g(m+1,0.0), hv(m+2);
+        std::vector<std::pair<int,double>> hst;     // iterations and max |r| at every restart (stall test)
         wv.resize(n);
 
         while(true)
@@ -1385,6 +1387,27 @@ void nhflow_momentum_SI::nh_solve_mg(lexer *p, fdm_nhf *d, ghostcell *pgc, const
 
             if(R.rmax<=R.tolmax || R.it>=maxit || beta<=0.0)
             break;
+
+            // stall: the max-norm residual not reduced tenfold over the last 2 m iterations (two restart cycles; a
+            // solve takes about 5): the preconditioner of an earlier step no longer fits this operator, rebuilt from
+            // it, once per solve. Measured against the residual 2 m iterations back, not r0: the stalls of the stale
+            // preconditioner reduce r0 1e4 times in a few iterations and then stay at 2-7 mm (harbour smoke test)
+            hst.push_back({R.it,R.rmax});
+
+            if(!R.reb && R.it>=2*m)
+            {
+            double rb = -1.0;
+            for(const auto &h : hst)
+            if(h.first<=R.it-2*m)
+            rb = h.second;
+
+                if(rb>0.0 && R.rmax>0.1*rb)
+                {
+                MM.finalize(true);
+                R.reb = 1;
+                R.itreb = R.it;
+                }
+            }
 
             ++R.cyc;
             const double target = 0.9*beta*R.tolmax/R.rmax;
@@ -1496,10 +1519,27 @@ void nhflow_momentum_SI::nh_solve_mg(lexer *p, fdm_nhf *d, ghostcell *pgc, const
 
     // ---- the preconditioner of an earlier step: rebuilt after lagmax steps, when dt changed by more than
     // 10 %, when the active columns changed, or when the iterations of the first pass grew by more than one over those of
-    // the rebuild. A further pass of the wet pattern from the solution of the pass before (nh_warm) keeps it, and its
-    // iterations set no rebuild either; one from the guess of the step rebuilds it
+    // the rebuild. The iterations of a further pass of the wet pattern from the solution of the pass before (nh_warm)
+    // set no rebuild; a further pass from the guess of the step rebuilds it.
+    // Also rebuilt when a column changed its wet pattern (pw of the mass row, A 537 1) or became active or inactive since
+    // the rebuild, a further pass of the pattern included: a dry mass row (pw = 0) has only the face terms, about
+    // dt^2 g A 544/dx^2 of a wet one (2e-5 at dt 0.31 s, dx 10 m, A 544 0.01), so a preconditioner of the other pattern
+    // inverts that row 1e5 times too large or too small (harbour 10 m, 7 columns re-wetted under a preconditioner two
+    // steps old: 300 iterations instead of 4)
+    const size_t ncol = (size_t)p->imax*p->jmax;
+    auto colpat = [&](int q) { return (char)((nPw[q]>0.5 ? 1 : 0) + (nAct[q] ? 2 : 0)); };
+    int pchg = nh_lagpat.size()!=ncol ? 1 : 0;
+
+    if(pchg==0)
+    SLICELOOP4
+    if(nh_lagpat[IJ]!=colpat(IJ))
+    ++pchg;
+
+    pchg = pgc->globalisum(pchg);
+
     const bool refresh = lagmax<=1 || nh_lagc+1>=lagmax || fabs(p->dt/MAX(nh_lagdt,1.0e-20) - 1.0)>0.1
-                         || pgc->globalisum(nact)!=nh_lagnact || nh_iter1>nh_lagit+1 || (nh_wdpass && !nh_warm);
+                         || pgc->globalisum(nact)!=nh_lagnact || nh_iter1>nh_lagit+1 || (nh_wdpass && !nh_warm)
+                         || pchg>0;
 
     const int nsplit = p->A507;
     fg_result R, R2;
@@ -1591,12 +1631,24 @@ void nhflow_momentum_SI::nh_solve_mg(lexer *p, fdm_nhf *d, ghostcell *pgc, const
     }
     }
 
-    if(refresh && !warm)
+    // the preconditioner now in use: rebuilt at the start (refresh) or inside FGMRES (stall); the iterations of the
+    // rebuild those after it
+    nh_reb = R.reb + R2.reb;
+    const bool rebuilt = refresh || nh_reb>0;
+
+    if(rebuilt)
+    {
+    nh_lagpat.resize(ncol);
+    for(size_t q=0; q<ncol; ++q)
+    nh_lagpat[q] = colpat((int)q);
+    }
+
+    if(rebuilt && !warm)
     {
     nh_lagc = 0;
     nh_lagdt = p->dt;
     nh_lagnact = pgc->globalisum(nact);
-    nh_lagit = R.it + R2.it;
+    nh_lagit = R.it - R.itreb + R2.it - R2.itreb;
     }
 
     else if(!warm)
@@ -1618,7 +1670,8 @@ void nhflow_momentum_SI::nh_solve_mg(lexer *p, fdm_nhf *d, ghostcell *pgc, const
 
         if(p->mpirank==0)
         cout<<"NHLOG "<<p->count<<" it "<<R.it<<" + "<<R2.it<<" cycles "<<R.cyc<<" r0 "<<R.r0max<<" r "<<R.rmax<<" target "<<R.tolmax
-            <<" coupled r "<<rc<<(refresh ? " refresh" : "")<<endl;
+            <<" coupled r "<<rc<<(refresh ? " refresh" : "")<<(pchg>0 ? " pattern "+std::to_string(pchg) : "")
+            <<(nh_reb>0 ? " stall-rebuild at "+std::to_string(R.itreb+R2.itreb) : "")<<endl;
     }
 
     if((R.rmax>R.tolmax || R2.rmax>R2.tolmax) && p->mpirank==0)
