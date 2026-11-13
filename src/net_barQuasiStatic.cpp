@@ -28,6 +28,9 @@ Authors: Tobias Martin, Hans Bihs
 
 net_barQuasiStatic::net_barQuasiStatic(int number, lexer *p):nNet(number),f_(p),dt(p),frk1(p),frk2(p),L_(p), cutl(p), cutr(p)
 {
+    // the forces of the first line of REEF3D_6DOF_Net_Forces (the print of the initialisation,
+    // before any screen forces): zero, not what the memory held
+    Fx = Fy = Fz = 0.0;
 }
 
 net_barQuasiStatic::~net_barQuasiStatic()
