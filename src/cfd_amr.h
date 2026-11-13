@@ -721,7 +721,6 @@ private:
     vector<vector<double>> kval;        // per shadow: the sum of kc of its keys (pu_key order)
     std::map<std::pair<int,int>,std::pair<double,double>> kc_row;     // D 32: per coarse row (grid, row) at a patch edge the sum of kc of its fine faces and the size of the couplings it folded
     std::map<int,vector<char>> pr_cmask;            // D 32: per patch the cells with a closed face (pr_prec: no coarse correction into them)
-    bool cf_closed(const cfd_amr_cf &F);  // D 32: the face of a patch edge closed in a solid, on the grid of the fine cell or on the coarser grid
     bool d32_inside(int g, const int *q);  // D 32: the centre of a cell of grid g in a solid or the bed
     void pr_rows_closed();              // D 32: the coarse rows at a patch edge left without a coupling: p x = 0
     std::map<std::tuple<int,int,int,int,int,int>,int> kidx;    // (shadow, coarse cell, d, dir) -> its key
