@@ -107,18 +107,8 @@ void sflow_f::start(lexer *p, fdm2D* b, ghostcell* pgc)
         if(pcpl!=nullptr)
         pcpl->step(p,b,pgc);
 
-        if(p->mpirank==0 && (p->count%p->P12==0))
-        {
-        cout<<"------------------------------------"<<endl;
-        cout<<p->count<<endl;
-        
-        cout<<"simtime: "<<p->simtime<<endl;
-		cout<<"timestep: "<<p->dt<<endl;
-        
-		if(p->B90>0)
-		cout<<"t/T: "<<p->simtime/p->wT<<endl;
-        }
-        
+        screen_step(p);
+
         pflow->wavegen_2D_precalc(p,b,pgc);
 
         // REEF3D::SEASTATE: wave step and wave forcing (A 750 1)
@@ -134,7 +124,7 @@ void sflow_f::start(lexer *p, fdm2D* b, ghostcell* pgc)
             b->hydro->prepare(p,b,pgc);
         }
 
-        // outer loop
+        // momentum and free surface step
 		double temptime=pgc->timer();
 		pmom->start(p,b,pgc);
 		double mtime=pgc->timer()-temptime;
@@ -153,8 +143,7 @@ void sflow_f::start(lexer *p, fdm2D* b, ghostcell* pgc)
 
         pmom->water_column(p,b);
         }
-    
-        
+
         // turbulence
         pturb->start(p,b,pgc,pconvec,pdiff,psolv,pflow);
 
@@ -162,25 +151,8 @@ void sflow_f::start(lexer *p, fdm2D* b, ghostcell* pgc)
         if(pamr!=nullptr)
         pamr->turb_step(p,b,pgc);
         
-        // breaking waves
-        int count=0;
-        SLICELOOP4
-        if(b->breaking(i,j)>0)
-        {
-        b->breaking_print(i,j)=1;
-        ++count;
-        }
-        pgc->gcsl_start4(p,b->breaking_print,1);
-    
-        count=pgc->globalisum(count);
-        
-        if(p->mpirank==0 && (p->count%p->P12==0))
-        cout<<"breaking: "<<count<<endl;
-        
-        if(p->A248==0)
-        SLICELOOP4
-        b->breaking(i,j)=0;
-        
+        breaking_count(p,b,pgc);
+
         // sediment transport
         psed->start_sflow(p,b,pgc,pflow,b->P,b->Q);
         pfsf->depth_update(p,b,pgc,b->WL);
@@ -189,23 +161,21 @@ void sflow_f::start(lexer *p, fdm2D* b, ghostcell* pgc)
         pturb->ktimesave(p,b,pgc);
         pturb->etimesave(p,b,pgc);
 		
-        //timestep control
         p->simtime+=p->dt;
 
         // REEF3D::HYDRO: volume budget at the end of the step
         if(b->hydro!=nullptr)
         b->hydro->budget(p,b,pgc);
+
+        // time step of the next step
         ptime->start(p,b,pgc);
-        
+
         if(pamr!=nullptr)
         pamr->timestep(p,b,pgc);
-        
-        
+
         // printer
-		//print_debug(p,b,pgc);
-		
-		double ptime=pgc->timer();
-		
+		double printstart=pgc->timer();
+
         if(pamr!=nullptr)
         pamr->print(p,b,pgc);
         
@@ -214,79 +184,21 @@ void sflow_f::start(lexer *p, fdm2D* b, ghostcell* pgc)
         lagoon_output::poll_all(p,pgc);  // outputs of the LAGOON store written by now (P 18)
         rdump.sflow_step(p,b,pgc);
 		
-		p->printouttime=pgc->timer()-ptime;
+		p->printouttime=pgc->timer()-printstart;
 
-        // Shell-Printout
-        if(p->mpirank==0)
-        {
-        endtime=pgc->timer();
-        
-		p->itertime=endtime-starttime;
-		p->totaltime+=p->itertime;
-		p->gctotaltime+=p->gctime;
-		p->Xtotaltime+=p->xtime;
-		p->meantime=(p->totaltime/double(p->count));
-		p->gcmeantime=(p->gctotaltime/double(p->count));
-		p->Xmeantime=(p->Xtotaltime/double(p->count));
-		
-            if(p->mpirank==0 && (p->count%p->P12==0))
-            {
-            if(p->B90>0)
-            cout<<"mtime: "<<setprecision(3)<<mtime<<endl;
-            if(p->X10>0)
-            cout<<"fbtime: "<<setprecision(3)<<p->fbtime<<endl;
-            cout<<"wavegentime: "<<setprecision(3)<<p->wavecalctime<<endl;
-            cout<<"printouttime: "<<setprecision(3)<<p->printouttime<<endl;
-            cout<<"gctime: "<<setprecision(3)<<p->gctime<<"\t average gctime: "<<setprecision(3)<<p->gcmeantime<<endl;
-            cout<<"Xtime: "<<setprecision(3)<<p->xtime<<"\t average Xtime: "<<setprecision(3)<<p->Xmeantime<<endl;		
-            cout<<"total time: "<<setprecision(6)<<p->totaltime<<"   average time: "<<setprecision(3)<<p->meantime<<endl;
-            cout<<"timer per step: "<<setprecision(3)<<p->itertime<<endl;
-            }
-            
-        mainlog(p);
-        }
-        
-    p->gctime=0.0;
-    p->xtime=0.0;
-	p->reinitime=0.0;
-	p->wavecalctime=0.0;
-	p->lsmtime=0.0;
-	p->printouttime=0.0;
-    p->fbtime=0.0;
-    
-    SLICELOOP1
-    b->Pn(i,j) = b->P(i,j);
-    
-    SLICELOOP2
-    b->Qn(i,j) = b->Q(i,j);
-    
-    p->solver_error = pgc->globalimax(p->solver_error);
-    
-    if(p->umax>p->N61 || p->vmax>p->N61 || p->umax!=p->umax || p->vmax!=p->vmax)
-    {
-    
-        if(p->mpirank==0)
-        cout<<endl<<"EMERGENCY STOP  --  velocities exceeding critical value N 61"<<endl<<endl;
-        
-        pprint->print2D(p,b,pgc,pturb,psed);
-    
-    pgc->final(true);
-    }
-    
-    if(p->solver_error>=1)
-    {
-        if(p->mpirank==0)
-        cout<<endl<<"!!! EMERGENCY STOP  --  linear solver broke down (NaN in the system or the solution)!  !!!     "<<p->solver_error<<endl<<endl;
-        
-        pprint->print2D(p,b,pgc,pturb,psed);
-    
-    pgc->final(true);
-    }
-    
-    // checkpoint on any decomposition (P 48), rebalance on the measured load (G 46): the state at the
-    // end of the step (Pn, Qn included)
-    ckpt(p,b,pgc).step();
-    
+        screen_timing(p,pgc,mtime);
+
+        SLICELOOP1
+        b->Pn(i,j) = b->P(i,j);
+
+        SLICELOOP2
+        b->Qn(i,j) = b->Q(i,j);
+
+        emergency_stop(p,b,pgc);
+
+        // checkpoint on any decomposition (P 48), rebalance on the measured load (G 46): the state at the
+        // end of the step (Pn, Qn included)
+        ckpt(p,b,pgc).step();
 	}
 
 	// the state at the end of the run (N 45, N 41, S 19), unless the last step wrote it: before the
@@ -323,30 +235,109 @@ void sflow_f::start(lexer *p, fdm2D* b, ghostcell* pgc)
 	
 }
 
-void sflow_f::print_debug(lexer *p, fdm2D* b, ghostcell* pgc)
-{	
-	
-	char name[100];
-	ofstream debug;
-	
-	// Create Folder
-	if(p->mpirank==0)
-	mkdir("./REEF3D_SFLOW_Log",0777);
-	
-	
-	sprintf(name,"./REEF3D_PLS/POS-%i-%i.dat",p->count,p->mpirank+1);
+void sflow_f::screen_step(lexer *p)
+{
+    if(p->mpirank==0 && (p->count%p->P12==0))
+    {
+    cout<<"------------------------------------"<<endl;
+    cout<<p->count<<endl;
 
-	sprintf(name,"./REEF3D_SFLOW_Log/SFLOW_Debug-%i-%i.dat",p->count,p->mpirank+1);
-		
-		
-	debug.open(name);
-	
-	
-	SLICELOOP4
-	debug<<b->eta(i,j)<<" "<<b->bed(i,j)<<" "<<b->depth(i,j)<<endl;
+    cout<<"simtime: "<<p->simtime<<endl;
+    cout<<"timestep: "<<p->dt<<endl;
 
-	
-	debug.close();
+    if(p->B90>0)
+    cout<<"t/T: "<<p->simtime/p->wT<<endl;
+    }
+}
+
+void sflow_f::breaking_count(lexer *p, fdm2D* b, ghostcell* pgc)
+{
+    // breaking cells of the step: into breaking_print for the output, counted on the screen
+    int count=0;
+    SLICELOOP4
+    if(b->breaking(i,j)>0)
+    {
+    b->breaking_print(i,j)=1;
+    ++count;
+    }
+    pgc->gcsl_start4(p,b->breaking_print,1);
+
+    count=pgc->globalisum(count);
+
+    if(p->mpirank==0 && (p->count%p->P12==0))
+    cout<<"breaking: "<<count<<endl;
+
+    // A 248 0: the breaking flags are not kept to the next step
+    if(p->A248==0)
+    SLICELOOP4
+    b->breaking(i,j)=0;
+}
+
+void sflow_f::screen_timing(lexer *p, ghostcell* pgc, double mtime)
+{
+    // timers of the step on the screen and in the main log, then reset for the next step
+    if(p->mpirank==0)
+    {
+    endtime=pgc->timer();
+
+    p->itertime=endtime-starttime;
+    p->totaltime+=p->itertime;
+    p->gctotaltime+=p->gctime;
+    p->Xtotaltime+=p->xtime;
+    p->meantime=(p->totaltime/double(p->count));
+    p->gcmeantime=(p->gctotaltime/double(p->count));
+    p->Xmeantime=(p->Xtotaltime/double(p->count));
+
+        if(p->count%p->P12==0)
+        {
+        if(p->B90>0)
+        cout<<"mtime: "<<setprecision(3)<<mtime<<endl;
+        if(p->X10>0)
+        cout<<"fbtime: "<<setprecision(3)<<p->fbtime<<endl;
+        cout<<"wavegentime: "<<setprecision(3)<<p->wavecalctime<<endl;
+        cout<<"printouttime: "<<setprecision(3)<<p->printouttime<<endl;
+        cout<<"gctime: "<<setprecision(3)<<p->gctime<<"\t average gctime: "<<setprecision(3)<<p->gcmeantime<<endl;
+        cout<<"Xtime: "<<setprecision(3)<<p->xtime<<"\t average Xtime: "<<setprecision(3)<<p->Xmeantime<<endl;
+        cout<<"total time: "<<setprecision(6)<<p->totaltime<<"   average time: "<<setprecision(3)<<p->meantime<<endl;
+        cout<<"timer per step: "<<setprecision(3)<<p->itertime<<endl;
+        }
+
+    mainlog(p);
+    }
+
+    p->gctime=0.0;
+    p->xtime=0.0;
+    p->reinitime=0.0;
+    p->wavecalctime=0.0;
+    p->lsmtime=0.0;
+    p->printouttime=0.0;
+    p->fbtime=0.0;
+}
+
+void sflow_f::emergency_stop(lexer *p, fdm2D* b, ghostcell* pgc)
+{
+    // velocities above N 61 or NaN, or a linear solver that broke down: the state is written and the run stops
+    p->solver_error = pgc->globalimax(p->solver_error);
+
+    if(p->umax>p->N61 || p->vmax>p->N61 || p->umax!=p->umax || p->vmax!=p->vmax)
+    {
+        if(p->mpirank==0)
+        cout<<endl<<"EMERGENCY STOP  --  velocities exceeding critical value N 61"<<endl<<endl;
+
+        pprint->print2D(p,b,pgc,pturb,psed);
+
+    pgc->final(true);
+    }
+
+    if(p->solver_error>=1)
+    {
+        if(p->mpirank==0)
+        cout<<endl<<"!!! EMERGENCY STOP  --  linear solver broke down (NaN in the system or the solution)!  !!!     "<<p->solver_error<<endl<<endl;
+
+        pprint->print2D(p,b,pgc,pturb,psed);
+
+    pgc->final(true);
+    }
 }
 
 void sflow_f::log_ini(lexer *p)

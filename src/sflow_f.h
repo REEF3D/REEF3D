@@ -80,7 +80,11 @@ private:
 	
 	void maxcoor(lexer*, fdm2D*, ghostcell*);
 	
-	void print_debug(lexer*, fdm2D*, ghostcell*);
+	// main loop: screen output, breaking cells, timers, emergency stop (sflow_f.cpp)
+	void screen_step(lexer*);
+	void breaking_count(lexer*, fdm2D*, ghostcell*);
+	void screen_timing(lexer*, ghostcell*, double);
+	void emergency_stop(lexer*, fdm2D*, ghostcell*);
     
     // checkpoints (P 48, I 45) and the rebalance (G 46): the hooks of SFLOW (sflow_f_ckpt.cpp) for
     // the run part (reefrun_ckpt.h)

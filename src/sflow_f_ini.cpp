@@ -260,7 +260,6 @@ void sflow_f::ini(lexer *p, fdm2D* b, ghostcell* pgc)
     log_ini(p);
     if(p->I45!=1)
     {
-	print_debug(p,b,pgc);
     pprint->start(p,b,pgc,pflow,pturb,psed);
 	pprintbed->start(p,b,pgc,psed);
     }
