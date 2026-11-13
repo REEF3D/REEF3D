@@ -53,7 +53,8 @@ using namespace std;
 // One time step:
 //  1. face depth H_f = eta_up + d_f (eta upwind of q^n, max(eta) for q = 0; d_f the mean
 //     still water depth, the smaller one next to a dry cell), open faces H_f > A 244,
-//     implicit bed friction alpha = 1/(1 + dt gamma), gamma = c_f |u| / H (Manning, A 218 1)
+//     implicit bed friction alpha = 1/(1 + dt gamma), gamma = c_f |u| / H (Manning, A 218 1);
+//     the basal friction of the rheology core (W 120) multiplies alpha in step 5 (rheo_friction)
 //  2. open boundaries from the ghost cells of ioflow / iowave (bc_setup):
 //     discharge (flux given), water level (Dirichlet), radiating (Riemann, Flather, free
 //     outflow: q_in = A - B eta^{n+1}, implicit)
@@ -200,6 +201,8 @@ private:
     bool dry_source(lexer*, fdm2D*, int, int);
     void face_weights(lexer*, fdm2D*, int, int, int, double&, double&);    // REEF3D::HYDRO: the cell weights of the face predictor
     void friction(lexer*, fdm2D*);
+    void rheo_friction(lexer*, fdm2D*, ghostcell*);
+    int rheo_passes(lexer*) const;
     void bc_setup(lexer*, fdm2D*, ghostcell*);
     void bc_method(lexer*);
     void stage_vel(lexer*, fdm2D*, ghostcell*, slice&, slice&);
@@ -368,6 +371,14 @@ private:
     void nh_amr_prec(lexer*, ghostcell*, const std::function<bool(int,int)> &own);
     void nh_amr_finish(lexer*, fdm2D*, ghostcell*);
     int nh_amr_wetdry(lexer*, fdm2D*, const std::function<bool(int,int)> &leaf);
+
+    // rheology core (W 120, rheo_friction): the frictionless estimate of the new cell momentum, UH* - dt g H G(eta),
+    // the factors of friction() (Manning) of the step; rpass: the pass of the step (0: eta^n, then eta^{n+1} of the
+    // pass before)
+    slice4 rUH, rVH, rlc;
+    slice1 rlx;
+    slice2 rly;
+    int rpass = 0;
 };
 
 #endif

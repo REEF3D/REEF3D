@@ -3027,6 +3027,8 @@ void control::ctrlrecv()
     dd++;
     W128 = ictrl[ii];
     ii++;
+    W129 = ictrl[ii];
+    ii++;
     W130 = ictrl[ii];
     ii++;
     W131 = ictrl[ii];

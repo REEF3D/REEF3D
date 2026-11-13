@@ -671,6 +671,7 @@ public:
     int W126;
     double W127_lambda,W127_lambdah,W127_D;
     int W128;
+    int W129;
     // local rheology (rheology core, CFD)
     int W130,W131;
     double W132;

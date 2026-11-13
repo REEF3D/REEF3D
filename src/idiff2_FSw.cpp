@@ -93,8 +93,8 @@ void idiff2_FS::assemble_w(lexer* p, fdm* a, ghostcell *pgc, field &w_in, field 
 				  + visc_ddy_m/(p->DYP[JM1]*p->DYN[JP])
 				  + CPOR3/(alpha*p->dt);
 				  
-	a->rhsvec.V[n] +=  ((a->u(i,j,k+1)-u(i,j,k))*visc_ddx_p - (u(i-1,j,k+1)-u(i-1,j,k))*visc_ddx_m)/(p->DZP[KP]*p->DXN[IP])
-						+  ((a->v(i,j,k+1)-v(i,j,k))*visc_ddy_p - (v(i,j-1,k+1)-v(i,j-1,k))*visc_ddy_m)/(p->DZP[KP]*p->DYN[JP])
+	a->rhsvec.V[n] +=  ((u(i,j,k+1)-u(i,j,k))*visc_ddx_p - (u(i-1,j,k+1)-u(i-1,j,k))*visc_ddx_m)/(p->DZP[KP]*p->DXN[IP])
+						+  ((v(i,j,k+1)-v(i,j,k))*visc_ddy_p - (v(i,j-1,k+1)-v(i,j-1,k))*visc_ddy_m)/(p->DZP[KP]*p->DYN[JP])
 									
 						+ (CPOR3*w_in(i,j,k))/(alpha*p->dt);
 	 

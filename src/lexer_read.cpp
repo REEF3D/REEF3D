@@ -96,6 +96,16 @@ void lexer::lexer_read(ghostcell *pgc)
         cout<<"W 130: N 46 "<<N46<<" -> 2000 (solver iterations of the implicit momentum diffusion with the rheology)"<<endl;
         N46 = 2000;
         }
+
+    // the wall boundary of the implicit diffusion: D 22 1 folds the wall ghost cells into the diagonal (zero
+    // gradient), which leaves the wall stress to the log law of bcmom; a viscous or viscoplastic material has no wall
+    // law and slipped freely along the walls (viscous gravity current, case 09 of Validation/rheology: front 0.31 m at
+    // 1 s against 0.14 m of Huppert 1982). D 22 2 takes the ghost cells of the boundary conditions (no slip)
+        if(D22==1)
+        {
+        cout<<"W 130: D 22 1 -> 2 (no-slip walls in the implicit momentum diffusion; D 22 1 is free slip for viscous flows)"<<endl;
+        D22 = 2;
+        }
     }
     
     // CFD: the legacy rheology source terms W 110 2 - 7 are retired (inconsistent units and directions, only with the

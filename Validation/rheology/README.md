@@ -2,7 +2,7 @@
 
 These cases check the rheology core (`src/rheology_core.{h,cpp}`) and its two adapters:
 
-- SFLOW (`src/sflow_rheology_core.{h,cpp}`, W 120 - W 128), cases 01-05. They compare against analytical solutions, an ODE reference with the same closure, and the Carbopol experiments of Cochard & Ancey (2009).
+- SFLOW (`src/sflow_rheology_core.{h,cpp}`, W 120 - W 129), cases 01-05 (explicit) and 10 (semi-implicit). They compare against analytical solutions, an ODE reference with the same closure, and the Carbopol experiments of Cochard & Ancey (2009).
 - CFD (`src/rheology_cfd_core.{h,cpp}`, W 130 - W 134), cases 06-09. They compare against exact steady film profiles, the runout of granular column collapses, the arrested viscoplastic deposit of case 02, and (09, Newtonian) the viscous gravity current of Huppert (1982), which checks the no-slip wall.
 
 All cases write the LAGOON store and the VTU/VTP files (`P 18 2`); the evaluation scripts read the VTU/VTP files.
@@ -35,8 +35,17 @@ The flow is a single depth-averaged layer of the rheological material: SFLOW, hy
 | W 126 | int | pore pressure: 0 off, 1 constant ratio, 2 advected and relaxing (0) |
 | W 127 | 3 × double | λ (initial or constant), λ_h (value the excess relaxes to), D [m²/s] (0, 0, 0) |
 | W 128 | int | bed-normal gravity g cos²θ from the bed slope in the normal stress (0) |
+| W 129 | int | semi-implicit SFLOW: extra solves of the eta system with the friction of the new level (1) |
 
-The density of the material is `W 1`. W 90 1 in SFLOW, the legacy explicit Bingham source, still runs when W 120 is 0. W 120 does not yet act in the semi-implicit integrator (`A 210 12/13`); the code prints a note when both are set.
+The density of the material is `W 1`. W 90 1 in SFLOW, the legacy explicit Bingham source, still runs when W 120 is 0.
+
+**Semi-implicit SFLOW (`A 210 11/12/13`, `sflow_momentum_SI::rheo_friction`).** The friction is the same backward-Euler step, applied as a factor α = s/U* on the momentum of the cells and of the faces (the faces carry the mass), next to the Manning factor:
+
+- U* is the frictionless estimate of the new speed: the predictor with the full gravity term, `UH* − dt g H ∇η`. The factor also multiplies the implicit gravity term, so a face below the static threshold (α = 0) stays at rest whatever η^{n+1} does.
+- With η^n alone the deposit of case 02 ran 15 % too far at the large semi-implicit time steps (gravity Courant number 10): the factor is linear in the speed, and as the slope relaxes during the step the yield stress no longer holds the flow. So the η system is solved once more with the driving force of θη^{n+1} + (1−θ)η^n (`W 129`, default 1 extra solve). The factor of a later pass is at most that of the pass before; with free factors the faces near the threshold flipped between rest and motion from pass to pass.
+- A cell next to a face at rest takes the mean of its new face discharges. Its own momentum otherwise lived on between static faces (2 cm/s in the arrested deposit of case 02 while no mass moved).
+- The pore pressure ratio is advected and relaxed after the step with the new momentum.
+- Cartesian grids (single grid, multi-block, mesh refinement); curvilinear grids stop with a message. The extra solve runs on a single grid; on multi-block and refined grids the factor of η^n is used.
 
 **Settings for fast granular and debris flows.** Every case here sets these two keys:
 
@@ -52,7 +61,7 @@ The rheological material is phase 1 of the level set; air is phase 2. The adapte
   - `W 131 2` (default): p is the solved pressure minus the gauge pressure.
   - `W 131 1`: lithostatic ρ₁ (g·n) φ, with n the unit normal of the level set. This is correct only under a flat surface. Next to a steep flank (a column, a slide front) φ is the horizontal distance to the flank, not the overburden, so p is far too low. In the a = 0.5 collapse it gave a runout of 1.08 L0 against 0.85 L0 with the solved pressure.
 - The stress acts through the implicit momentum diffusion (`D 20 2`), which has the full 2μD stress with the transpose terms. There are no extra source terms.
-- No-slip walls need `D 22 2` (2D only for now, see 07). The default `D 22 1` acts as free slip for viscous flows.
+- W 130 > 0 sets `D 22 2` (no-slip walls in the implicit diffusion). `D 22 1`, the default for water, folds the wall ghost cells into the diagonal and leaves the wall stress to the log law; a viscous material then slips freely along the walls (case 09).
 - With W 130 > 0, REEF3D raises N 46 (maximum solver iterations) to at least 2000.
   - The implicit u, v, w systems with viscosity contrasts of 10⁴–10⁷ need about 1000–1500 iterations.
   - With the default cap of 250 they stopped unconverged. The yield surfaces then oscillated and a periodic film jumped to several m/s (2D only: a single periodic column was fine).
@@ -78,6 +87,10 @@ python3 tools/rheo_eval.py cochard <run>/cochard 03_cochard_ancey_12deg/results 
 python3 tools/rheo_eval.py pore <run>/layer 04_pore_pressure_layer/results
 g++ -O2 -std=c++17 -I../../src tools/uniform_ode.cpp ../../src/rheology_core.cpp -o uniform_ode
 python3 tools/rheo_eval.py uniform <run>/u_ ./uniform_ode 05_uniform_layer_laws/results  # runs <run>/u_<case>
+for c in mangeney hb_core layer u_voellmy u_pouliquen u_muI u_hb u_hbc; do tools/run_case.sh <REEF3D> <DiveMESH> 10_sflow_semi_implicit/cases/$c <run>/si_$c; done
+tools/run_case.sh <REEF3D> <DiveMESH> 10_sflow_semi_implicit/cases/cochard <run>/si_cochard "mpirun -np 2"
+python3 tools/rheo_eval.py si <run>/si_ <run>/ 10_sflow_semi_implicit/results   # <run>/mangeney, <run>/hb_core: the explicit runs
+python3 tools/rheo_eval.py mangeney <run>/si_mangeney <out>; python3 tools/rheo_eval.py uniform <run>/si_u_ ./uniform_ode <out>   # the tables (pore, arrest, cochard likewise)
 ```
 
 CFD cases (06: one rank each; 07–09: two ranks):
@@ -228,10 +241,10 @@ Grid series at a = 0.5 (deposit at rest from about 0.35 s):
 - **Effective pressure:** the lithostatic pressure (W 131 1) gives 1.08 at 2.5 mm, because φ under the flank is not the overburden. W 131 2 is the default.
 - **Interface currents:** 0.1–0.35 m/s remain in the interface cells and in the air near the toe, not in the bulk.
 
-**Wall boundary of the implicit diffusion (`D 22`).** This case needs `D 22 2`. Two problems of the REEF3D CFD diffusion turned up here; neither is in the rheology:
+**Wall boundary and 3D implicit diffusion.** Two problems of the REEF3D CFD diffusion turned up here; neither is in the rheology. Both are fixed:
 
-- `D 22 1` (default) folds the wall ghost cells into the diagonal and acts as free slip for viscous flows. See case 09.
-- `D 22 2` is wrong in 3D. A quasi-2D column (2–4 cells in y, symmetry planes) with ν = 0.005–0.05 m²/s stays frozen. With periodic y it runs faster than in 2D and has a spurious v. Water (ν = 1e-6) is unaffected, and D 23 1/2 makes no difference. The wall ghost coefficients of `diff_wallghost` look correct; the cause is not found yet.
+- `D 22 1` (default) folds the wall ghost cells into the diagonal and acts as free slip for viscous flows (case 09). W 130 now sets `D 22 2`.
+- 3D viscous flows were wrong (not `D 22 2` itself). A quasi-2D column (2–4 cells in y, symmetry planes) with ν = 0.005–0.05 m²/s stayed frozen; with periodic y it ran 4 times faster than in 2D. The cause: the cross terms ∂/∂x(ν ∂u/∂z) and ∂/∂y(ν ∂v/∂z) of the 3D w diffusion (`idiff2_FSw`, also `idiff2_CNw`, `idiff2_PLICw`) took u(i,j,k+1) and v(i,j,k+1) from the field of the start of the step (`a->u`, `a->v`) and u(i,j,k), v(i,j,k) from the stage. In RK stages 2 and 3 that is a spurious stress of the order ν Δu_stage/dz², large for viscous materials and invisible for water. The 2D version was right. Fixed: the quasi-2D column (Newtonian ν = 0.05, 2 cells in y, symmetry planes or periodic) now equals the 2D run to the printed digits (front 0.10 L0 at 0.2 s, max u 0.087–0.093 m/s); with periodic y a spurious v of 3e-3 m/s remains (symmetry planes: 2e-6). The μ(I) collapse a = 0.5 at dx = 2.5 mm with 2 cells in y and symmetry planes gives the 2D deposit to the printed digits (front h > 5 mm 0.72 L0, h > 2 mm 0.83 L0, h(0) 0.0512 m at 0.6 s; 5 min on 2 ranks). The wall ghost coefficients (`diff_wallghost`) were checked face by face: free slip c1 = 1 on the symmetry planes, no slip c1 = −1 at the bed and the walls, 0 for the normal component.
 
 ![](07_cfd_column_collapse/results/07_cfd_collapse.png)
 
@@ -265,13 +278,36 @@ With `D 22 1` the bed acts as free slip, so the current runs off like an invisci
 
 ![](09_cfd_viscous_current/results/09_viscous_current.png)
 
+### 10 SFLOW semi-implicit (A 210 11): cases 01–05 again
+
+- **Set-up:** the controls of 01–05 with `A 210 11` (one-step predictor), the semi-implicit defaults (θ = 0.55, gravity Courant number 10, N 47 0.5), and `A 531 20` instead of `A 531 1.0e6`: with the Froude limiter off the semi-implicit thin front blew up (also without friction), with its default (Fr ≤ 3) it held the Coulomb front back by 45 %. `W 129 1` (one extra solve of the η system).
+- **References:** as 01–05, and the explicit runs.
+
+| case | semi-implicit | explicit (01–05) | steps SI / explicit |
+|---|---|---|---|
+| 01 Coulomb dam break, L1(h) at 1 / 2 / 3 s | 0.34 / 0.52 / 0.75 % | 0.11 / 0.14 / 0.19 % | 1269 / 1201 |
+| 01 front h > 1 mm at 3 s (exact 24.65 m) | 22.0 m | 22.95 m | |
+| 02 Carbopol arrest: x_f, h(0), max \|u\| at 60 s | 1.44 m, 0.145 m, 2.4e-4 m/s | 1.46 m, 0.145 m, 3.0e-4 m/s | 1028 / 18066 |
+| 02 with `W 129 0` (η^n only) | 1.69 m, 0.109 m | | |
+| 03 Cochard & Ancey (2D, 2 ranks): front at 1 / 2 / 30 s | 0.78 / 0.86 / 0.98 m | 0.78 / 0.86 / 1.00 m | 767 / 6030 |
+| 04 pore pressure: peak speed (exact 2.1455 m/s), stop (exact 9.78 s) | 2.120 m/s, 10.9 s (dt ≈ 0.5 s) | 2.1448 m/s, 9.80 s | 34 / 169 |
+| 05 uniform layers: steady u, all laws | ODE to 4 digits (HBC at 3 s: −4.8 %, not steady yet) | ODE to 4–5 digits | 19–143 / 165–449 |
+| 05 max error / max u during the acceleration | 3.5–20 % (gravity Courant 10); 0.4–5.7 % with `A 228 -1` | 0.13–2 % | |
+
+- **Arrest:** the deposit equals the explicit one. With η^n alone the yield stress no longer holds the flow as the slope relaxes in the large steps: 16 % further, h(0) 25 % lower, and bursts of 0.1 m/s in the deposit. More passes (W 129 2, 4) give 1.47 m / 0.144 m.
+- **Time steps:** the semi-implicit step pays off in slow and arrested flows (02: 18 times fewer steps, 03: 8 times). The fast dam break of 01 is limited by the flow Courant number in both.
+- **Transients:** the friction step is first order in time; at gravity Courant number 10 the acceleration of the uniform layers is up to 20 % off before the steady state, at Courant number 1 (`A 228 -1`) 0.4–5.7 %. Use `A 228` when the transient matters.
+- **Front on a dry slope:** the semi-implicit front of 01 lags 11 % against the exact one (explicit 7 %), with a step of 5–20 cm at the tip. The frictionless dam break shows the same front (2 s: 18.9 m against 22.0 m exact, explicit 21.0 m); this is the wet/dry front of the semi-implicit SFLOW on a steep dry slope, not the friction.
+
+![](10_sflow_semi_implicit/results/10_semi_implicit.png)
+
 ## Not covered yet
 
 - Mesh refinement (G 1): the friction step runs in every level's stage. The pore pressure is advected per level and not exchanged between levels.
-- Semi-implicit SFLOW (A 210 12/13): no friction step yet.
+- Semi-implicit SFLOW on curvilinear grids: the rheology core stops with a message. The front of a dry-bed dam break on a steep slope lags in the semi-implicit SFLOW with and without friction (case 10); this is the wet/dry front of the semi-implicit step, not the rheology.
 - Restart from checkpoints: the pore pressure ratio is not in the checkpoints yet and starts again from W 127.
 - CFD: three-phase (slide + water + air) with a conservative slide fraction, and pore pressure as a field (step 2).
 - CFD: the μ(I) column collapse (07) is grid-converged but runs out 20–55 % further than the quasi-2D experiments. The interface band is still to be checked.
-- CFD 3D: the implicit wall diffusion `D 22 2` freezes viscous flows in 3D, and `D 22 1` acts as free slip for them (07, 09). All CFD cases here are 2D.
+- CFD 3D: only a quasi-2D check so far (07); no 3D validation case yet.
 - CFD: the multiphase level set (F 300 3) uses the adapter, but no case runs it.
 - The effective pressure W 131 1 (lithostatic from φ) is only right under flat surfaces.
