@@ -118,8 +118,6 @@ double interpolation::ccipol4V(double *f, slice &WL, slice &bed, double xp, doub
 
 double interpolation::ccipol7V(double *f, slice &WL, slice &bed, double xp, double yp, double zp)
 {
-    double ZSN_FIp1JK,ZSN_FIJK,ZSN_FIJKp1,ZSN_FIp1JKp1;
-    double ZSN_FIp1Jp1K,ZSN_FIJp1K,ZSN_FIJp1Kp1,ZSN_FIp1Jp1Kp1;
     double WLval,bedval;
     double Z1,Z2;
     

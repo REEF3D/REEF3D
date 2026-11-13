@@ -50,7 +50,6 @@ namespace
                  vector<int> &IO, vector<int> &CL, vector<int> &CR, vector<char> &outside)
     {
         int i,j,k,n;
-        const int marge = increment::marge;
         
         const int nf = p->imax*p->jmax*p->kmax;
         

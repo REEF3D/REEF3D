@@ -146,7 +146,7 @@ double bedshear::tau_wave(lexer *p, double uvel, double vvel, double ks, double 
 double bedshear::tau_wave_current(lexer *p, double uvel, double vvel, double ks, double density, double zs)
 {
     // updates the running mean, the oscillatory part and fw (once per bed column and step)
-    double tw = tau_wave(p,uvel,vvel,ks,density);
+    tau_wave(p,uvel,vvel,ks,density);
     
     double T = p->S58>0.0 ? p->S58 : p->wT;
     
@@ -203,7 +203,7 @@ bedshear::~bedshear()
 void bedshear::taubed(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
 {
 	int count;
-	double zval,fac,topoval,taukin,tauvel,density;
+	double zval,taukin,tauvel,density;
     double tau_eff,tau_i;
     
     if(p->S16==9)
@@ -328,7 +328,6 @@ void bedshear::taubed(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
     if(p->S16==6)
     {
         double Cval,wh;
-        double bedlevel,waterlevel;
         count=0;
         uvel=vvel=wh=0.0;
         KLOOP
@@ -380,7 +379,7 @@ void bedshear::taubed(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
     
     if(p->S16==8)
     {
-    double E,B,dB,ustar,y_plus,visc,ks_plus,tau0;
+    double ustar,y_plus,visc,ks_plus,tau0;
     double v_d,v_t;
     
     visc=p->W2;

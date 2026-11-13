@@ -74,7 +74,7 @@ void ediff2_2D::idiff_scalar(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, fi
 
 void ediff2_2D::diff_u(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &diff, field &u_in, field &u, field &v, field &w, double alpha)
 {
-	double visc_ddy_p,visc_ddy_m,visc_ddz_p,visc_ddz_m;
+	double visc_ddz_p,visc_ddz_m;
     
     ULOOP
     diff(i,j,k) = u_in(i,j,k);
@@ -121,7 +121,7 @@ void ediff2_2D::diff_v(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &d
 
 void ediff2_2D::diff_w(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &diff, field &w_in, field &u, field &v, field &w, double alpha)
 {
-	double visc_ddx_p,visc_ddx_m,visc_ddy_p,visc_ddy_m;
+	double visc_ddx_p,visc_ddx_m;
 	
     WLOOP
     diff(i,j,k) = w_in(i,j,k);

@@ -28,7 +28,7 @@ Author: Hans Bihs
 #include"concentration.h"
 #include"heaviside.h"
 
-fluid_update_fsf_concentration::fluid_update_fsf_concentration(lexer *p, fdm* a, ghostcell* pgc, concentration *&ppconcentration) : dx(p->DXM)
+fluid_update_fsf_concentration::fluid_update_fsf_concentration(lexer *p, fdm* a, ghostcell* pgc, concentration *&ppconcentration)
 {
     gcval_ro=1;
 	gcval_visc=1;

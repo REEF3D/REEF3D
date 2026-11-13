@@ -27,7 +27,6 @@ Author: Hans Bihs
 
 void sixdof_obj_cfd::triangulation(lexer *p,fdm* a, ghostcell *pgc, field& f)
 {
-	int negcount, poscount;
     
     polygon_num=facount=0;
     

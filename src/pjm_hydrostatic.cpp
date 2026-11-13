@@ -138,7 +138,7 @@ void pjm_hydrostatic::wcorr(lexer* p, fdm* a, field& wvel,double alpha)
  
 void pjm_hydrostatic::rhs(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, field &w, double alpha)
 {
-    double H,roval,phival,epsi,psi;
+    double H,roval,phival,psi;
     
     
     if(p->j_dir==0)        

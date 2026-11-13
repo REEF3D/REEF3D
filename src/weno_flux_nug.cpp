@@ -236,9 +236,6 @@ double weno_flux_nug::fy(lexer *p,fdm *a, field& b, field& vvel, int ipol, doubl
 double weno_flux_nug::fz(lexer *p,fdm *a, field& b, field& wvel, int ipol, double advec)
 {
     grad = 0.0;
-    
-    double gz1,gz2,gz3;
-    double g1,g2,g3;
 
 	if(advec>0.0)
 	{

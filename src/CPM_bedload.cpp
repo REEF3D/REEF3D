@@ -270,8 +270,6 @@ double CPM::bedload_place(lexer *p, fdm *a, double x, double y, double z, int ic
     Locc(is,js,ks) -= vpar;
 
     int kc = MAX(0, MIN(p->knoz-1, p->posc_k(zl)));
-    const int kc0 = kc;
-    const double zl0 = zl;
 
     // a level inside a solid body (half a grain below the bed level on a fixed floor, a column of a pier) goes up to the
     // first cell above the solid; the parcel stayed in the solid cell without a capacity check (37 parcels and growing in

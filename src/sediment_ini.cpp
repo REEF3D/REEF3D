@@ -34,7 +34,7 @@ Author: Hans Bihs
 
 void sediment_f::ini_cfd(lexer *p, fdm *a,ghostcell *pgc)
 {
-	double h,h1;
+	double h;
     
     SLICELOOP4
     s->reduce(i,j) = 1.0;
@@ -164,9 +164,6 @@ void sediment_f::ini_parameters(lexer *p, ghostcell *pgc)
     double g=9.81;
     double d50=p->S20;
     double visc=p->W2;
-    double Ls = p->S20;
-    double cd = 1.5;
-    double R = rhosed/rhowat-1.0;
     
     // van Rijn / USACE
     if(p->S25==0)

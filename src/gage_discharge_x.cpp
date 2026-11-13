@@ -66,7 +66,6 @@ gage_discharge_x::~gage_discharge_x()
 
 void gage_discharge_x::start(lexer *p, fdm *a, ghostcell *pgc)
 {
-    double epsi,H;
 
     // wet area of the cells from phi (the distance to the free surface) only with a free surface (level set
     // F 30 > 0 or VOF F 80 > 0); in single phase (F 30 0, F 80 0) phi is no distance (1.0 everywhere): full cells

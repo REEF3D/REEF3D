@@ -107,7 +107,7 @@ void benchmark_TaylorGreen::start(lexer* p, fdm *a, ghostcell *pgc, convection *
 	double x,y,z,xp,yp,zp;
 	double X1NM1P,growfactor1;
 
-	double uu, vv, ww, vmag, vmag2, velmag2, vol;
+	double uu, vv, ww, vmag2, velmag2, vol;
 
 	double vVolAvg = 0.0;
 	double velVolAvg = 0.0;

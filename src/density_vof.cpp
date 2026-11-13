@@ -29,11 +29,6 @@ Author: Fabian Knoblauch
 
 density_vof::density_vof(lexer* p) : epsi(p->F45*p->DXM), eps(2.1*p->DXM)
 {
-    
-    
-    double psim;
-    int count;
-    
     if(p->j_dir==0)        
     p->psi = p->F45*(1.0/2.0)*(p->DXM+p->DZM);
         

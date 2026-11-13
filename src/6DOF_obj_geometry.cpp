@@ -149,12 +149,6 @@ void sixdof_obj_cfd::geometry_ls(lexer *p, fdm *a, ghostcell *pgc)
 	if(p->mpirank==0)
 	cout<<"Center of Gravity   xg: "<<c_(0)<<" yg: "<<c_(1)<<" zg: "<<c_(2)<<endl;
 
-
-	double xgn = c_(0);
-	double ygn = c_(1);
-	double zgn = c_(2);
-
-
 // Moments of Inertia
 
     double Ix,Iy,Iz;	
@@ -306,12 +300,6 @@ void sixdof_obj_nhflow::geometry_ls_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
 	
 	if(p->mpirank==0)
 	cout<<"Center of Gravity   xg: "<<c_(0)<<" yg: "<<c_(1)<<" zg: "<<c_(2)<<endl;
-
-
-	double xgn = c_(0);
-	double ygn = c_(1);
-	double zgn = c_(2);
-
 
 // Moments of Inertia
 

@@ -28,9 +28,6 @@ Authors: Hans Bihs
 void sixdof_motionext_file_CoG::read_format_1(lexer *p, ghostcell *pgc)
 {
     char name[100];
-	double val,val0,val1;
-    double sign,beta,s;
-	int count;
 	
 	// the file of the body (several bodies), otherwise the common one
 	sprintf(name,"6DOF_motion-%i.dat",id);

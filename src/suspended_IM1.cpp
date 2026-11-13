@@ -62,7 +62,6 @@ void suspended_IM1::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdif
 void suspended_IM1::timesource(lexer* p, fdm* a, field& fn)
 {
     int count=0;
-    int q;
 
     LOOP
     {
@@ -120,7 +119,6 @@ void suspended_IM1::suspsource(lexer* p,fdm* a,field& conc, sediment_fdm *s)
 
 void suspended_IM1::bcsusp_start(lexer* p, fdm* a,ghostcell *pgc, sediment_fdm *s, field& conc)
 {
-    double cval;
     
     // The bed exchanges with the concentration only through suspsource (erosion w_s c_be, deposition
     // w_s c_1), which the Exner equation (susp_ED) and the CPM hybrid (Q 58 3, 4) apply to the bed.

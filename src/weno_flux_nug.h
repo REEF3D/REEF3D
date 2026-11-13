@@ -58,9 +58,7 @@ private:
 
     
 	double L,grad;
-    double sig;
 
-	double gradx, grady, gradz;
 	double fu1,fv1,fw1,fu2,fv2,fw2;
     
     double ivel1,ivel2,jvel1,jvel2,kvel1,kvel2;

@@ -29,9 +29,8 @@ Author: Hans Bihs
 
 void iowave::active_wavegen(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v, field& w)
 {
-    int ii;
-    double fac,fac1,H;
-    double eta_R,Uc,Un,Vc,Wc,eta_T,eta_M,wsf;
+    double fac1,H;
+    double eta_R,Uc,eta_T,eta_M,wsf;
     
     
         // get the fsf elevation

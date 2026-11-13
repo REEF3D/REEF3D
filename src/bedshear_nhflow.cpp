@@ -179,7 +179,6 @@ void bedshear::taubed(lexer *p, fdm_nhf*d, ghostcell *pgc, sediment_fdm *s)
         if(p->S16==6)
         {
         double wh;
-        double bedlevel,waterlevel;
         double cellcount=0.0;
         U=V=wh=0.0;
         KLOOP
@@ -223,7 +222,6 @@ void bedshear::taubed(lexer *p, fdm_nhf*d, ghostcell *pgc, sediment_fdm *s)
         if(p->S38==1 && d->WL(i,j)<p->S39*p->A544)
         {
             double fac,wh;
-            double bedlevel,waterlevel;
             U=V=wh=0.0;
             KLOOP
             {

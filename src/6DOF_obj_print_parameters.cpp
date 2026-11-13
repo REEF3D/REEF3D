@@ -40,9 +40,7 @@ void sixdof_obj::print_parameter(lexer *p, ghostcell *pgc, double t)
 	if(p->mpirank==0 && p->count%p->X19==0)
     {
         ofstream print;
-        char str[1000];
-        
-        
+
         printpos<<t<<" \t "<<p->xg<<" \t "<<p->yg<<" \t "<<p->zg<<" \t "<<phi*(180/PI)<<" \t "<<theta*(180/PI)<<" \t "<<psi*(180/PI)<<endl;
 
 

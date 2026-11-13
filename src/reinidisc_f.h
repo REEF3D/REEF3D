@@ -46,14 +46,11 @@ private:
 	void disc(lexer*, fdm*, ghostcell*, field&, field&);
 	
 	double xmin,xplus,ymin,yplus,zmin,zplus;
-	double dxmin,dxplus,dymin,dyplus,dzmin,dzplus;
-	double uwx,uwy,uwz,ddt;
-	double lsv,dv,lsSig;
+	double lsv,lsSig;
 	
 	double dx, dy, dz, dnorm, sign;
-	double sx,sy,sz,snorm,op;
 	
-	double deltax,denom;
+	double deltax;
     
     const bool fixed_interface;
     const double tie;

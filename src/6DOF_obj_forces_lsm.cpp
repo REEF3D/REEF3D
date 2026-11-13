@@ -46,7 +46,7 @@ void sixdof_obj_cfd::forces_lsm(lexer* p, fdm *a, ghostcell *pgc,field& uvel, fi
 
 void sixdof_obj_cfd::forces_lsm_calc(lexer* p, fdm *a, ghostcell *pgc, int iter, bool finalize)
 {
-    double ux,vy,wz,vel,pressure,density,viscosity;
+    double density,viscosity;
     double du,dv,dw;
     double xloc,yloc,zloc;
 	double xlocvel,ylocvel,zlocvel;
@@ -386,7 +386,6 @@ void sixdof_obj_cfd::forces_lsm_calc(lexer* p, fdm *a, ghostcell *pgc, int iter,
     if (p->mpirank==0 && finalize==1)  
     {
         ofstream print;
-        char str[1000];
 
         printforce<<curr_time<<" \t "<<Xe<<" \t "<<Ye<<" \t "<<Ze<<" \t "<<Ke
         <<" \t "<<Me<<" \t "<<Ne<<" \t "<<Xe_p<<" \t "<<Ye_p<<" \t "<<Ze_p<<" \t "<<Xe_v<<" \t "<<Ye_v<<" \t "<<Ze_v<<endl;   

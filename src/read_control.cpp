@@ -43,8 +43,7 @@ void control::read_control(lexer* p)
     char c;
     int numint;
     int count=0;
-    int count2=0;
-    double xtemp,ytemp;
+    double xtemp;
 
     std::ifstream control("ctrl.txt", std::ios_base::in);
     if(!control)
@@ -5875,8 +5874,6 @@ void control::read_control(lexer* p)
     int countB217=0;
     int countB218=0;
     int countB219=0;
-    int countB231=0;
-    int countB232=0;
     int countB240=0;
     int countB270=0;
     int countB274=0;

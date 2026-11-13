@@ -70,7 +70,7 @@ void idiff2_FS_2D::diff_u(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field
 // matrix and rhs of the implicit diffusion of u (into a->M, a->rhsvec, which must be zero)
 void idiff2_FS_2D::assemble_u(lexer* p, fdm* a, ghostcell *pgc, field &u_in, field &u, field &v, field &w, double alpha)
 {
-	double visc_ddy_p,visc_ddy_m,visc_ddz_p,visc_ddz_m;
+	double visc_ddz_p,visc_ddz_m;
 
 
 	n=0;

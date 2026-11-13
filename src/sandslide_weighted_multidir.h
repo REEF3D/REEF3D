@@ -49,10 +49,6 @@ private:
     int gcval_topo,slidecount;
 
     double fac1, fac2;
-    double dh,maxdh,maxdhs,dh_corr;
-    double slide_dh,slide_dhs;
-	double teta, alpha, beta, gamma;
-    double phi;
     
     void compute_fh(lexer*, ghostcell*, sediment_fdm*);
     void compute_fh_curv(lexer *p, ghostcell *pgc, sediment_fdm *s);     // curvilinear grid (G 50)
@@ -60,7 +56,6 @@ private:
     
     double tan_phi;       // Tangent of angle of repose
     double relax;         // Relaxation factor (S 92, 0 < relax <= 1)
-    int maxiter;          // Maximum iterations
     double tol;           // Convergence tolerance
 
 }; 

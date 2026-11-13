@@ -56,10 +56,6 @@ private:
     int gcval_topo,count;
 
     double fac1, fac2;
-    double dh,maxdh,maxdhs,dh_corr;
-    double slide_dh,slide_dhs;
-	double teta, alpha, beta, gamma;
-    double phi;
     
     double relax;
 }; 

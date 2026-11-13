@@ -28,7 +28,7 @@ Author: Hans Bihs
 #include"heat.h"
 #include"heaviside.h"
 
-fluid_update_fsf_heat_Bouss::fluid_update_fsf_heat_Bouss(lexer *p, fdm* a, ghostcell* pgc, heat *&ppheat) : dx(p->DXM)
+fluid_update_fsf_heat_Bouss::fluid_update_fsf_heat_Bouss(lexer *p, fdm* a, ghostcell* pgc, heat *&ppheat)
 {
     gcval_ro=1;
 	gcval_visc=1;

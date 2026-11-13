@@ -288,18 +288,6 @@ void ghostcell::start2V(lexer *p, double *f, int gcv)
     if(do_comms)
     gcparacoxV1(p, f, gcv);
     
-    int inflow=0;
-    int outflow=0;
-
-    if(p->B98>=3 || (p->B60>=1 && p->river_xm==1))
-    inflow=1;
-
-    if(p->B99>=3)
-    outflow=1;
-
-    if(p->B60>=1 && p->river_xp==1)
-    outflow=1;
-
     // 10 U
     // 11 V
     // 12 W
@@ -430,18 +418,6 @@ void ghostcell::start3V(lexer *p, double *f, int gcv)
     gcparaxV1(p, f, gcv);
     if(do_comms)
     gcparacoxV1(p, f, gcv);
-
-    int inflow=0;
-    int outflow=0;
-
-    if(p->B98>=3 || (p->B60>=1 && p->river_xm==1))
-    inflow=1;
-
-    if(p->B99>=3)
-    outflow=1;
-
-    if(p->B60>=1 && p->river_xp==1)
-    outflow=1;
 
     // 10 U
     // 11 V

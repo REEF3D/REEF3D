@@ -27,8 +27,7 @@ Author: Hans Bihs
 #include"ghostcell.h"
 #include"heaviside.h"
 
-fluid_update_fsf_comp::fluid_update_fsf_comp(lexer *p, fdm* a, ghostcell* pgc) : dx(p->DXM),
-												visc_air(p->W4),visc_water(p->W2),ro_water(p->W1)
+fluid_update_fsf_comp::fluid_update_fsf_comp(lexer *p, fdm* a, ghostcell* pgc) : visc_air(p->W4),visc_water(p->W2),ro_water(p->W1)
 {
     gcval_ro=1;
 	gcval_visc=1;

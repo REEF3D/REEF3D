@@ -54,7 +54,7 @@ void idiff2_FS_2D::diff_w(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field
 // matrix and rhs of the implicit diffusion of w (into a->M, a->rhsvec, which must be zero)
 void idiff2_FS_2D::assemble_w(lexer* p, fdm* a, ghostcell *pgc, field &w_in, field &u, field &v, field &w, double alpha)
 {
-	double visc_ddx_p,visc_ddx_m,visc_ddy_p,visc_ddy_m;
+	double visc_ddx_p,visc_ddx_m;
 
 	n=0;
 

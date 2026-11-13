@@ -42,17 +42,13 @@ void force::force_calc(lexer* p, fdm *a, ghostcell *pgc)
     Fy = pgc->globalsum(F[1]);
     Fz = pgc->globalsum(F[2]);
     
-    const double Ax = pgc->globalsum(F[4]);
-    const double Ay = pgc->globalsum(F[5]);
     A_tot = pgc->globalsum(F[3]);
-    const double Px = pgc->globalsum(F[6]);
-    
 }
 
 // the pieces of this grid: F = Fx, Fy, Fz, area, Ax, Ay, Px (added)
 void force::force_sum(lexer* p, fdm *a, double *F)
 {
-    double ux,vy,wz,vel,pressure,density,viscosity;
+    double density,viscosity;
     double du,dv,dw,dn,un;
     double xloc,yloc,zloc;
 	double xlocvel,ylocvel,zlocvel;
