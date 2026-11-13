@@ -1,0 +1,17 @@
+{
+ "np": 1,
+ "steps": 30,
+ "description": "A slab 4 cm thick above the water (S 10, z 0.70-0.74 m; level 0 at 6 cm does not see it, level 1 with 2 cells, level 2 with 3) under two refined levels with D 32 2, the slab crossing the end of both boxes; a water column at the wall (F 70) sends a bore under it. Before, the composite BiCGStab diverged in the first projection (250 iterations, 1e6 m/s): the closed rows 1 x = 0 next to the air took a correction 1e3-1e4 times that of their neighbours in the level solves. Now the closed rows keep the size of their diagonal with D 32 2 on the mesh refinement (poisson_pcorr), the coarse correction is not prolonged into the cells with a closed face (cfd_amr::pr_prec), a fine face at a patch edge is closed where the coarser grid closed its face (cfd_amr::cf_closed) and the coarse value at a fine face is not taken across a closed face of the coarse cell (cfd_amr::pr_weights).",
+ "tags": [
+  "quick",
+  "3d",
+  "levelset",
+  "solid",
+  "closed",
+  "amr"
+ ],
+ "covers": [
+  "poisson_pcorr.cpp (D 32 2, G 1 > 0: the diagonal of a closed row)",
+  "cfd_amr_press.cpp cf_closed, pr_weights, pr_prec (D 32)"
+ ]
+}
