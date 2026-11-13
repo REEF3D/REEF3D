@@ -2478,6 +2478,8 @@ void control::ctrlrecv()
     ii++;
     Q87 = ictrl[ii];
     ii++;
+    Q88 = dctrl[dd];
+    dd++;
     Q50 = ictrl[ii];
     ii++;
     Q72 = ictrl[ii];

@@ -144,6 +144,14 @@ void CPM::substep_euler(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, turbu
     if(layer)
     bedload_exchange(p,a,pgc,s,dt);
     
+    const bool shear = p->Q88>0.0 && p->Q12==2;
+    
+    if(shear)
+    {
+        sh_hj.assign(P.index,-1.0);
+        sh_fi.assign(P.index,1.0);
+    }
+    
     for(n=0;n<P.index;++n)
     if(P.Flag[n]==ACTIVE)
     {
@@ -164,6 +172,9 @@ void CPM::substep_euler(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, turbu
             P.XRK1[n] = P.X[n];
             P.YRK1[n] = P.Y[n];
             P.ZRK1[n] = P.Z[n];
+            
+            if(shear)
+            sh_hj[n] = 2.0;
             continue;
         }
         
@@ -180,13 +191,20 @@ void CPM::substep_euler(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, turbu
         P.VRK1[n] = (P.V[n] + dt*G)*fac;
         P.WRK1[n] = (P.W[n] + dt*H)*fac;
         
+        if(shear)
+        sh_fi[n] = 1.0/fac;
+        
         // friction
         if(p->Q12==2 && p->Q13==1)
         friction(p,a,P.X[n],P.Y[n],P.Z[n],P.URK1[n],P.VRK1[n],P.WRK1[n],dt,fac);
         
-        // jammed bed
+        // jammed bed (Q 88: in a packed cell the jam holds the vertical motion only, the horizontal motion is held by
+        // the friction on the grid, shear_implicit)
+        if(!(shear && Ts(pci(p,n,P.X[n]),pcj(p,n,P.Y[n]),pck(p,n,P.Z[n]))>=theta_bed))
+        {
         P.URK1[n] *= 1.0-Hjam;
         P.VRK1[n] *= 1.0-Hjam;
+        }
         P.WRK1[n] *= 1.0-Hjam;
         
         // tentative position
@@ -207,7 +225,14 @@ void CPM::substep_euler(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, turbu
         // sub-grid bedload layer: a parcel settling from the flow onto the bed is deposited
         if(layer)
         bedload_settle(p,a,s,n);
+        
+        if(shear && !(layer && P.Hop[n]>0.0))
+        sh_hj[n] = Hjam;
     }
+    
+    // Q 88: implicit Coulomb friction of the packed bed on the grid
+    if(shear)
+    shear_implicit(p,a,pgc,dt);
 
     loadmap_substep(p);
 

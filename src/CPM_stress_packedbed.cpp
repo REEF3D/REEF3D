@@ -646,6 +646,19 @@ void CPM::friction(lexer *p, fdm *a, double xp, double yp, double zp, double &up
     
     double smag = sqrt(sx*sx + sy*sy + sz*sz);
     
+    // Q 88: in a packed cell the friction comes from the shear stress on the grid (shear_implicit); only the normal
+    // contact stays (a slow grain does not move into a packed substrate)
+    if(p->Q88>0.0 && Ts(i,j,k)>=theta_bed)
+    {
+        if(packed && sn>0.0 && smag <= fac*dt*mu_s*aN)
+        {
+            up -= sn*ex;
+            vp -= sn*ey;
+            wp -= sn*ez;
+        }
+        return;
+    }
+    
     // static friction: stick
     if(smag <= fac*dt*mu_s*aN)
     {

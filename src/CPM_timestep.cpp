@@ -87,6 +87,9 @@ void CPM::timestep(lexer *p, ghostcell *pgc)
         if(p->Q11==2 && p->Q19==1)
         cout<<"CPM grid-limited step: rejected moves "<<nrej<<"  shortened moves "<<nclip<<"  max occupancy "<<setprecision(4)<<omax<<" (capacity "<<MAX(theta_max, theta_0 + P.ParcelFactor*Vp/(p->DXM*p->DXM*(p->j_dir==1?p->DXM:p->DYN[marge])))<<")  fix-up passes "<<nit<<endl;
         
+        if(p->Q11==2 && p->Q88>0.0)
+        cout<<"CPM friction on the grid (Q 88, last sub-step): active cells "<<sh_nact<<"  CG iterations "<<sh_iter<<" (0: tridiagonal)"<<endl;
+        
         cout<<"Up_max: "<<setprecision(4)<<maxVelU<<"  Vp_max: "<<maxVelV<<"  Wp_max: "<<maxVelW<<endl;
         cout<<defaultfloat;
     }

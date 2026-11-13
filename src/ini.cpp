@@ -1249,6 +1249,7 @@ void control::ini_default()
     Q85_xs=Q85_xe=Q85_ys=Q85_ye=Q85_zs=Q85_ze=0.0;
     Q86=0;              // int CFD mesh refinement, CPM bedload layer: the common reference height of the bed shear stress where a column takes the fluid of a coarser grid, 0 the centre of the first cell of that grid, 1 the centre of its second cell (velocity; k of the first fluid cell)
     Q87=0;              // int CPM: diagnostics of the packed bed in the VTU output, 1: shear rate CPM_Gd, inertial number CPM_I and yield ratio CPM_Yr (no change to the physics)
+    Q88=0.0;            // double CPM: implicit Coulomb friction of the packed bed on the horizontal planes of the grid, regularisation shear rate [1/s] (0: off, the friction of the parcels on their substrate; 1e-4 as tested, CPM_shear_implicit.cpp)
     Q70=0.0;            // double seepage (Q 69): excess pore pressure [Pa] at the bottom of the domain (upflow tests), 0: closed bottom
     Q72=2;              // int bedload layer: passes of a 1-2-1 filter over the columns of the bed level seen by the fluid, 0: off
     Q74=0;              // int bedload layer: 1 grains of the bed not released into the suspension see no resolved flow and no dispersion
