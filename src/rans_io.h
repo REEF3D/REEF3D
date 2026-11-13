@@ -45,6 +45,8 @@ public:
     void ini(lexer*, fdm*, ghostcell*) override final;
     void plain_wallfunc(lexer*, fdm*, ghostcell*);
     void inflow_turb(lexer*, fdm*, ghostcell*);
+    double inflow_turb_k46(lexer*);
+    double inflow_turb_e46(lexer*, double);
     double fsf_depth(lexer*, fdm*);
     double kinval(int,int,int) override final;
     double epsval(int,int,int) override final;

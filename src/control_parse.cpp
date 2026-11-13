@@ -98,6 +98,10 @@ void control::parse(lexer* p)
     if(T10==0)
     I13=0;
 
+    // T 46 I L: the prescribed turbulence is also the initial field, so the turbulence is initialised (as I 10 1)
+    if(T46_I>0.0 && T10>0 && I40==0)
+    I13=1;
+
     // floating bodies: low-storage RK3; with the CFD mesh refinement (G 1 > 0, SSP stages only)
     // the SSP-RK3 of the input (the bodies have its stage weights)
     if((N40==3 || N40==23 ) && X10>0 && G1==0)

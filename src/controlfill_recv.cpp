@@ -2476,6 +2476,10 @@ void control::ctrlrecv()
     dd++;
     Q86 = ictrl[ii];
     ii++;
+    Q87 = ictrl[ii];
+    ii++;
+    Q88 = dctrl[dd];
+    dd++;
     Q50 = ictrl[ii];
     ii++;
     Q72 = ictrl[ii];
@@ -2828,6 +2832,10 @@ void control::ctrlrecv()
     dd++;
     T45 = ictrl[ii];
     ii++;
+    T46_I = dctrl[dd];
+    dd++;
+    T46_L = dctrl[dd];
+    dd++;
 
     W1  = dctrl[dd];
     dd++;

@@ -2761,6 +2761,7 @@
         </VirtualDirectory>
         <VirtualDirectory Name="Stress">
           <File Name="CPM_stress_snider.cpp"/>
+          <File Name="CPM_shear_implicit.cpp"/>
           <File Name="CPM_stress_packedbed.cpp"/>
         </VirtualDirectory>
         <File Name="CPM_move.cpp"/>

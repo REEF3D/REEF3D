@@ -170,6 +170,17 @@ private:
     double contact_pressure(double, double);
     double contact_pressure_deriv(double, double);
     void dilatancy(lexer*, ghostcell*);
+    void bed_diagnostics(lexer*, ghostcell*);
+    
+    // Q 88: implicit Coulomb friction of the packed bed on the grid (CPM_shear_implicit.cpp), work fields
+    void shear_alloc(lexer*);
+    void shear_implicit(lexer*, fdm*, ghostcell*, double);
+    field4a *shU=nullptr,*shV=nullptr,*shW=nullptr,*shF=nullptr,*shJ=nullptr,*shE=nullptr;
+    field4a *shC=nullptr,*shR=nullptr,*shZ=nullptr,*shP=nullptr,*shA=nullptr,*shX=nullptr;
+    field4a *shUo=nullptr,*shVo=nullptr,*shI=nullptr;
+    bool sh_alloc=false;
+    std::vector<double> sh_hj,sh_fi;   // per parcel in the sub-step: jam weight Hjam (-1 bedload layer, 2 sleeping), 1 + dt D (drag)
+    int sh_nact=0, sh_iter=0;
     field4a T0e,Tiso;
     
     void stress_gradient(lexer*, fdm*, ghostcell*, sediment_fdm*);
@@ -270,6 +281,7 @@ private:
     field4a cellSum;
     field4a Us,Vs,Ws;
     field4a Pov;
+    field4a Gd,In;   // Q 87: deviatoric shear rate and inertial number of the parcels' velocity on the grid (diagnostics)
     field4a Fxy,Yr;  // column integral of the lateral load |int grad_h(Pov) dz| and the yield ratio Fxy/(mu_s Pov) (Q 67)
     field4a Kc,KUx,KUy,KUz;
     field4a dSx,dSy,dSz;

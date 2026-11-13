@@ -1,0 +1,23 @@
+{
+ "base": "cfd_2d_channel_komega_mpi2",
+ "control_set": {
+  "M 20": "4",
+  "M 30": "1 1 2",
+  "M 33": "9"
+ },
+ "ctrl_set": {
+  "N 10": "3",
+  "I 10": "0"
+ },
+ "description": "cfd_2d_channel_komega_mpi2 split in z at z = 0.18 m, below the free surface at 0.24 m (M 20 4, M 30 1 1 2, M 33 9; BiCGStab N 10 3, as REEFMG needs whole columns; I 10 0, as the potential-flow start crashes in bicgstab_ijk_2D on this split): the inflow columns of rans_io::inflow_turb take bed and interface over both ranks. Before, the upper rank took its own lowest face (0.18 m) as the bed, H = 0.06 m instead of 0.24 m.",
+ "tags": [
+  "2d",
+  "inflow",
+  "turbulence",
+  "mpi"
+ ],
+ "covers": [
+  "rans_io::inflow_turb bed and interface over all ranks (z-decomposition)"
+ ],
+ "steps": 100
+}

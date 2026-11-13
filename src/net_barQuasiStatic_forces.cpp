@@ -132,14 +132,20 @@ void net_barQuasiStatic::screenForceCoeff
 
     double logRe = log10(Re);
 
-    double cd_circ =
+    // the drag coefficient of a circular twine as in net_barDyn and net_sheet (Martin, Kamath and
+    // Bihs 2020): the fit of the cylinder data above Re 32, below it the Stokes-range formula. The
+    // polynomial was overwritten here with 1.1 + 4/sqrt(Re), which gave C_D 10-26 % higher (d 1.35 to
+    // 2.5 mm, U 0.1 to 1 m/s; net panel V&V, OF1 in current)
+    double cd_circ = min(1.45 + 8.55*pow(Re, -0.9), 7.0);
+    if (Re > 32)
+    {
+        cd_circ =
         -78.46675 + 254.73878*logRe - 327.8864*pow(logRe,2.0)
         + 223.64577*pow(logRe,3.0) - 87.92234*pow(logRe,4.0)
         + 20.00769*pow(logRe,5.0) - 2.44894*pow(logRe,6.0)
         + 0.12479*pow(logRe,7.0);
-   
-    cd_circ = 1.1 + 4.0*pow(Re,(-0.5));
-    
+    }
+
 
     double cd0 = cd_circ*Sn*(2.0 - Sn)/(2.0*pow(1.0 - Sn,2.0));
 

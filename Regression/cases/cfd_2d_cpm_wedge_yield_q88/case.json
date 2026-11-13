@@ -1,0 +1,7 @@
+{
+ "description": "The submerged 40 degree sand wedge of cfd_2d_cpm_wedge_yield (Q 67 1) with the implicit Coulomb friction of the packed bed on the grid (Q 88 1e-4, patch 0059)",
+ "covers": ["CPM implicit friction on the horizontal planes of the grid (Q 88, CPM_shear_implicit.cpp): parcels to the grid, viscosity from the lagged shear rate, tridiagonal solve per column, PIC back to the parcels",
+            "CPM jam of the vertical motion only with Q 88, friction of the parcels only in the open cells"],
+ "np": 1, "steps": 300,
+ "tags": ["quick", "2d", "cpm"]
+}

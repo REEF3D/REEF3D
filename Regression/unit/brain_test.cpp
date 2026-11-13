@@ -39,11 +39,12 @@ struct swimmer
 {
     double x = 1.6, z = 3.0, h = 0.0, Ug = 0.0;
     double g[3] = {1.0, 1.0, 0.0}, gr[3] = {0.0, 0.0, 0.0}, gt[3] = {1.0, 1.0, 0.0}, ts[3] = {0.25, 0.25, 0.25};
-    double s_true = 0.48, k_true = 1.3, tau_true = 0.8, tau_down = 0.0, cx = 0.0, cz = 0.0;
+    double s_true = 0.48, k_true = 1.3, tau_true = 0.8, tau_down = 0.0, tau_glide = 2.5, C_brake = 0.0, cx = 0.0, cz = 0.0;
     double stim_t = -1.0;      // a pressure pulse across the head at this time (a startle stimulus)
     bool second = false;
     sixdof_brain::decision pend;
     std::vector<sixdof_brain::decision> log;
+    std::vector<sixdof_brain::record> rec;      // the record of the brain at each decision
     std::vector<std::array<double,4> > track;   // t, x, z, h
     int nesc = 0;
 
@@ -75,10 +76,13 @@ struct swimmer
                 target(pend, true);
                 second = false;
             }
-            // the speed rises with tau_true; it falls with 2.5 s when gliding, with tau_down (0: tau_true)
+            // the speed rises with tau_true; it falls with tau_glide when gliding, with tau_down (0: tau_true)
             // when the gait only slows down
             const double gt_ = g[0]*g[1]*1.0;
-            Ug += dt/(g[1]<0.5 ? 2.5 : ((gt_<Ug && tau_down>0.0) ? tau_down : tau_true))*(gt_ - Ug);
+            Ug += dt/(g[1]<0.5 ? tau_glide : ((gt_<Ug && tau_down>0.0) ? tau_down : tau_true))*(gt_ - Ug);
+            // the bent body brakes the glide like a quadratic drag, dU/dt = -C_brake (|b|/2.5) U^2 (validation 18)
+            if(g[1]<0.5)
+            Ug -= dt*C_brake*std::min(1.0, std::fabs(g[2])/2.5)*s_true*Ug*std::fabs(Ug);
             const double Uw = s_true*Ug*std::min(1.0, t/1.0);
             h += dt*k_true*g[2]*Uw/1.0;
             const Eigen::Vector3d ex(std::cos(h), 0.0, std::sin(h)), el(-std::sin(h), 0.0, std::cos(h));
@@ -112,6 +116,7 @@ struct swimmer
                     second = d.second;
                     pend = d;
                     log.push_back(d);
+                    rec.push_back(B.last());
                     if(B.last().mode==2)
                     ++nesc;
                 }
@@ -315,6 +320,35 @@ int main()
         }
         else
         check(cmax>0.05, "falling with 4.5 s without X 201: a false tailwind "+std::to_string(cmax)+" m/s");
+    }
+
+    // 3h. the station in still water does not hinge on the start (validation 20): a body that coasts long (11 s,
+    // the 2D swimmer) and brakes when bent (C 3.5 1/m, validation 18); with the brain starting at 1, 1.5 or 2 s
+    // and the fish 1.9, 1.7 or 2.1 m before the station it holds the station, and a fish gliding or braking
+    // with the station behind does not beat its tail again within twice the burst distance (0.5 L): the bent
+    // body turns it back first (a beat with the station behind costs a turn-round of 1.5 L; the brain of
+    // 0024: such a beat and a loop out to 1.29 m)
+    {
+        int nback = 0;
+        double mxall = 0.0, mdall = 0.0;
+        for(double ts0 : {1.0, 1.5, 2.0})
+        for(double x0 : {1.6, 1.8, 1.4})
+        {
+            swimmer S;
+            S.x = x0;
+            S.tau_glide = 11.0;
+            S.C_brake = 3.5;
+            sixdof_brain B(0.5, 1.0, 0.0, 1.5, 1.0, 1.0, 1000.0, ts0, 2, {{0.0, 3.5, 0.0, 3.0}}, 0.0, 0.0, 0.0, 0.0);
+            double t = 0.0, mx;
+            S.run(B, t, 25.0);
+            mdall = std::max(mdall, mean_dist(S, 12.0, [](double){return std::array<double,2>{3.5, 3.0};}, &mx));
+            mxall = std::max(mxall, mx);
+            for(size_t k=1; k<S.rec.size(); ++k)
+            if((S.rec[k-1].mode==5 || S.rec[k-1].mode==6) && S.rec[k].mode==0 && std::fabs(S.rec[k].psi)>2.0944 && S.rec[k].dist<1.0)
+            ++nback;
+        }
+        check(nback==0, "still water station, 3 starts x 3 distances: no beat with the station behind within 2 x 0.5 L, with it more than 120 deg off the heading ("+std::to_string(nback)+")");
+        check(mdall<0.6 && mxall<0.7, "still water station, 3 starts x 3 distances: largest mean distance after 12 s "+std::to_string(mdall)+" m, largest "+std::to_string(mxall)+" m");
     }
 
     // 4. a moving target at 0.25 m/s across, after the fish reached it

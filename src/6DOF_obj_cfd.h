@@ -136,6 +136,14 @@ private:
     void ray_cast(lexer*, fdm*, ghostcell*);
     void reini_RK2(lexer*, fdm*, ghostcell*, field&);
     
+    // the level set of the body (fb) after its last ray cast and reinitialisation on the grid fbc_a,
+    // with the triangles of that cast: a body that has not moved (a fixed body, X 11 0 0 0 0 0 0)
+    // takes it instead of a new cast at every stage (update_trimesh_3D)
+    bool fb_unchanged(lexer*, fdm*, ghostcell*);
+    void fb_store(lexer*, fdm*);
+    vector<double> fbc_tri, fbc_v;
+    const fdm *fbc_a = nullptr;
+    
     fieldint5 cutl,cutr,fbio;
     reinidisc *prdisc;
     field4a f, frk1, L, dt;

@@ -189,8 +189,8 @@ def rules(sv, st, pr):
     # coasting: the distance it carries the fish (its speed through the water along the axis times the
     # coasting time); the target ahead on the axis (within 30 deg)
     dstop = max(0.0, st["ug"]) * s * st["tauc"]
-    rx = sum(r[k] * ex[k] for k in range(3))
-    onaxis = has_t and rx > 0.0 and abs(math.atan2(sum(r[k] * el[k] for k in range(3)), rx)) < 0.5236
+    rx, ry = sum(r[k] * ex[k] for k in range(3)), sum(r[k] * el[k] for k in range(3))
+    onaxis = has_t and rx > 0.0 and abs(math.atan2(ry, rx)) < 0.5236
     cm = math.sqrt(cur[p0] * cur[p0] + cur[p1] * cur[p1])
     calm = cm < Umin and math.sqrt(sum(v * v for v in st["vT"])) < Umin
     # an early glide needs the current known and its drift over the coasting time small
@@ -201,19 +201,26 @@ def rules(sv, st, pr):
     if not has_t or threat > 0.0 or not calm:
         st["glide"] = False
     elif st.get("glide", False):
-        st["glide"] = not (dist > BURST * L and (rx <= 0.0 or dstop < dist - BURST * L))
+        # beyond BURST when the coast no longer reaches the target ahead; with the target behind it keeps
+        # braking (the bent body turns it towards the target) up to twice BURST
+        st["glide"] = not (dist > BURST * L and (dist > 2.0 * BURST * L if rx <= 0.0 else dstop < dist - BURST * L))
         if not st["glide"]:
             st["tburst"] = t + 1.0 / f0          # a burst lasts at least one tail beat
     elif t >= st.get("tburst", -1.0):
         st["glide"] = (known and onaxis and dstop >= dist - ARRIVE * L) or (learnt and dist < ARRIVE * L and Ureq < Umin)
     if st["glide"]:
-        at, bt, mode = 0.0, 0.0, 5
-        # braking: the coast would carry the fish past the target (or carries it away): the body bent, to
-        # the side chosen at the start of the braking (bending to and fro would swim)
-        if BRAKE > 0.0 and (dstop > dist + ARRIVE * L if rx > 0.0 else dist > ARRIVE * L):
+        # the tail still: the slowest frequency, so that the bend is released slowly; braking keeps the
+        # frequency of the turn, so that the bend builds quickly
+        fturn = ft
+        ft, at, bt, mode = 0.3 * f0, 0.0, 0.0, 5
+        # braking: the coast would carry the fish past the target, away from it, or past it to the side (the
+        # target ahead but off the axis): the body bent, to the side chosen at the start of the braking
+        # (bending to and fro would swim); the fish turns towards the target while it coasts
+        if BRAKE > 0.0 and ((dstop > dist + ARRIVE * L or (not onaxis and dist > ARRIVE * L)) if rx > 0.0
+                            else dist > ARRIVE * L):
             if st.get("bside", 0.0) == 0.0:
                 st["bside"] = 1.0 if psi * kturn >= 0.0 else -1.0
-            bt, mode = st["bside"] * BRAKE, 6
+            ft, bt, mode = fturn, st["bside"] * BRAKE, 6
         else:
             st["bside"] = 0.0
     else:

@@ -332,8 +332,9 @@ sixdof_brain::decision sixdof_brain::decide(double t, double f, double a, double
     //  - at the target (brain_arrive), needing less than that speed, the current learnt (within brain_cknown,
     //    after brain_nknown updates of the filter: a glide stops the estimate, and a fish that arrives before
     //    it has learnt the current drifts off)
-    // It beats again beyond brain_burst of the target when the target is behind or the coast no longer
-    // reaches it (burst and coast), for at least a tail beat
+    // It beats again beyond brain_burst of the target when the coast no longer reaches the target ahead, and
+    // with the target behind only beyond twice brain_burst, while the bent body turns it back (burst and
+    // coast), for at least a tail beat
     double at = 1.0;
     {
         const double Umin = 0.3*f0_*s*L_;
@@ -350,7 +351,10 @@ sixdof_brain::decision sixdof_brain::decide(double t, double f, double a, double
         glide_ = false;
         else if(glide_)
         {
-            glide_ = !(dist>brain_burst*L_ && (rx<=0.0 || dstop<dist - brain_burst*L_));
+            // beyond brain_burst of the target it beats again: with the target ahead when the coast no longer
+            // reaches it; with the target behind only beyond twice brain_burst, until then it keeps braking (the
+            // bent body turns it towards the target; beating with the target behind costs a turn-round of 1.5 L)
+            glide_ = !(dist>brain_burst*L_ && (rx<=0.0 ? dist>2.0*brain_burst*L_ : dstop<dist - brain_burst*L_));
             if(!glide_)
             tburst_ = t + 1.0/f0_;
         }
@@ -359,18 +363,25 @@ sixdof_brain::decision sixdof_brain::decide(double t, double f, double a, double
 
         if(glide_)
         {
+            // the tail still: the slowest frequency, so that the bend of the body is released slowly (released
+            // at the frequency of a turn, the bend of the brake throws the fish forward); braking keeps the
+            // frequency of the turn, so that the bend builds quickly
+            const double fturn = ft;
+            ft = 0.3*f0_;
             at = 0.0;
             bt = 0.0;
             mode = 5;
 
-            // braking: the coast would carry the fish past the target (or carries it away from it): the body
-            // bent, to the side that turns it towards the wanted heading at the start of the braking, kept
-            // while it brakes (bending to and fro would swim)
-            if(brain_brake>0.0 && (rx>0.0 ? dstop>dist + brain_arrive*L_ : dist>brain_arrive*L_))
+            // braking: the coast would carry the fish past the target, carries it away from it, or past it
+            // to the side (the target ahead but off the axis): the body bent, to the side that turns it towards
+            // the wanted heading at the start of the braking, kept while it brakes (bending to and fro would
+            // swim); so the fish turns towards the target while it coasts, and beats again with it ahead
+            if(brain_brake>0.0 && (rx>0.0 ? (dstop>dist + brain_arrive*L_ || (!onaxis && dist>brain_arrive*L_)) : dist>brain_arrive*L_))
             {
                 if(bside_==0.0)
                 bside_ = (psi*kturn_>=0.0) ? 1.0 : -1.0;
                 bt = bside_*brain_brake;
+                ft = fturn;
                 mode = 6;
             }
             else

@@ -2484,6 +2484,10 @@ void control::ctrlsend()
     dd++;
     ictrl[ii] = Q86;
     ii++;
+    ictrl[ii] = Q87;
+    ii++;
+    dctrl[dd] = Q88;
+    dd++;
     ictrl[ii] = Q50;
     ii++;
     ictrl[ii] = Q72;
@@ -2837,6 +2841,10 @@ void control::ctrlsend()
     dd++;
     ictrl[ii] = T45;
     ii++;
+    dctrl[dd] = T46_I;
+    dd++;
+    dctrl[dd] = T46_L;
+    dd++;
 
     dctrl[dd] = W1;
     dd++;
