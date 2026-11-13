@@ -29,7 +29,6 @@ Author: Hans Bihs
 class lexer;
 class fdm_fnpf;
 class ghostcell;
-class ioflow;
 
 using namespace std;
 

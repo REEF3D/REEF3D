@@ -44,7 +44,6 @@ public:
     void ini(lexer*,fdm_fnpf*,ghostcell*);
 
 private:	
-	
     void fnpf_runup_calc(lexer*,fdm_fnpf*,ghostcell*);
 	void print_fnpf_runup(lexer*,fdm_fnpf*,ghostcell*);
     void print_ini(lexer*,fdm_fnpf*,ghostcell*);
@@ -63,7 +62,7 @@ private:
     double R1,R2,R3,R4,R5,R6; //Run-up calculations
     
     // printing
-    char name[100],pname[100],epsvar[100];
+    char name[100];
     int iin,offset[100];
     float ffn;
     int fnpf_runupprintcount;
@@ -74,5 +73,3 @@ private:
 };
 
 #endif
-
-

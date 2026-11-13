@@ -53,10 +53,7 @@ private:
    
    slice4 frk1,frk2,L,dt,wet_n,cpx,cpy;
    
-   
-   int reiniter,change;
-   
-
+   int reiniter;
 };
 
 #endif

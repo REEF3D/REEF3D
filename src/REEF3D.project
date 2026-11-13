@@ -831,7 +831,6 @@
           <File Name="fnpf_weno5.h"/>
           <File Name="fnpf_weno3.h"/>
           <File Name="fnpf_voiddisc.h"/>
-          <File Name="fnpf_etadisc.h"/>
           <File Name="fnpf_convection.h"/>
           <File Name="fnpf_cds6_wd.h"/>
           <File Name="fnpf_cds6.h"/>

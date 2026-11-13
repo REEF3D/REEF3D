@@ -49,11 +49,8 @@ public:
     fnpf_body* body() override final {return pbody;}
     
 private:
-
     int gcval,gcval_u,gcval_v,gcval_w;
     int gcval_eta,gcval_fifsf;
-    int hypre_type;
-    double starttime,endtime;
 
     slice4 erk1,erk2,erk3,erk,en;
     slice4 frk1,frk2,frk3,frk;

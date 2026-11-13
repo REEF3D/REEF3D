@@ -45,9 +45,6 @@ public:
     // theta-Robin (N 48 1 with A 310 5)
     static int rule(lexer*);
     
-    // N 48 1: the gravity wave speed of the CFL criterion (also used by fnpf_amr::timestep)
-    static double wave_speed(lexer*, double u, double h, double dx, double hmax);
-    
     // N 48 2: frequency of the grid cut-off mode with the discrete Dirichlet-to-Neumann operator of the sigma grid,
     // kh2 the symbol of the horizontal cds2 Laplacian at the Nyquist mode, h the water depth
     static double omega_discrete(lexer*, double kh2, double h);
@@ -60,7 +57,6 @@ public:
     static double theta_error(lexer*, double, double, double); // theta-Robin, N 48 1: phase-speed error of theta-Robin
     static double theta_step(lexer*, double);               // theta-Robin, N 48 1: the step of the accuracy target N 55
 
-
 private:
     static double dtn_discrete(lexer*, double q);          // dimensionless discrete DtN g(q) = H D, q = kH
     static double dtn_lookup(double q);
@@ -70,14 +66,12 @@ private:
     static double tab_lqmin, tab_lqmax, tab_dlq, gmax_ratio;
     static int dtn_ok;
     
-	double sqd,wallu,wallv,wallw;
+	double sqd;
 	double cu,cv,cw;
 	const double epsi;
-	double isor,jsor,ksor;
 	double irsm,jrsm,krsm;
     const double maxtimestep, c0_orig;
     double dx;
-
 };
 
 #endif

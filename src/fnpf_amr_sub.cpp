@@ -277,7 +277,6 @@ void fnpf_amr::sub_step(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 
     sub_sync(p,pgc,0,1.0);
 
-    slev = 0;
     tsub = t;
 }
 
@@ -298,7 +297,6 @@ void fnpf_amr::sub_level(lexer *p, ghostcell *pgc, int l, int k, double t, doubl
 
     for(int s=0; s<3; ++s)
     {
-        slev = l;
         tsub = t;
         sub_stage(p,pgc,l,k,s,dt);
     }

@@ -28,10 +28,7 @@ Author: Hans Bihs
 
 class lexer;
 class ghostcell;
-class field;
-class vec;
 class fdm_fnpf;
-class fnpf_ddx;
 class fnpf_convection;
 class fnpf_fsf;
 
@@ -44,12 +41,9 @@ public:
 	virtual ~fnpf_bed_update();
     
     void bedbc_sig(lexer*, fdm_fnpf*, ghostcell*,double*,fnpf_fsf*);
-    void waterdepth(lexer*, fdm_fnpf*, ghostcell*);
 
 private: 
-    
     fnpf_convection *pconvec;
-    fnpf_ddx *pddx;
 };
 
 #endif

@@ -31,7 +31,6 @@ class lexer;
 class wsfline_core;
 class fdm_fnpf;
 class ghostcell;
-class field;
 class ioflow;
 class slice;
 

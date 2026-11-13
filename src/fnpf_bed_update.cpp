@@ -80,13 +80,3 @@ void fnpf_bed_update::bedbc_sig(lexer *p, fdm_fnpf *c, ghostcell *pgc, double *F
     Fi[FIJKm3] = (bcval/denom)*(3.0*p->DZN[KP]) + Fi[FIJK];
     }
 }
-
-void fnpf_bed_update::waterdepth(lexer *p, fdm_fnpf *c, ghostcell *pgc)
-{
-    SLICELOOP4
-	c->depth(i,j) = p->wd - c->bed(i,j);
-}
-
-
-
-

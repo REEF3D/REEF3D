@@ -191,7 +191,7 @@ void fnpf_breaking::compute_steepness(lexer *p, fdm_fnpf *c,
     double dx = p->DXM;
     double dy = p->DYM;
     double deta_dx, deta_dy;
-    double H_local, k;
+    double k;
 
     SLICELOOP4
     {

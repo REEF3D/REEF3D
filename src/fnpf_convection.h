@@ -26,7 +26,6 @@ Author: Hans Bihs
 class lexer;
 class field;
 class slice;
-class vec;
 
 class fnpf_convection
 {

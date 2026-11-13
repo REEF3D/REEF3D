@@ -66,11 +66,6 @@ int fnpf_timestep::rule(lexer *p)
     return p->N48==2 ? 2 : 1;
 }
 
-double fnpf_timestep::wave_speed(lexer *p, double u, double h, double dx, double hmax)
-{
-    return fabs(MAX(u, sqrt(9.81*hmax)));
-}
-
 std::vector<double> fnpf_timestep::tab_lq, fnpf_timestep::tab_g;
 double fnpf_timestep::tab_lqmin=-4.0, fnpf_timestep::tab_lqmax=6.0, fnpf_timestep::tab_dlq=0.0, fnpf_timestep::gmax_ratio=0.0;
 int fnpf_timestep::dtn_ok=0;

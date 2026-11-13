@@ -26,7 +26,6 @@ Author: Hans Bihs
 
 void iowave::wavegen_precalc_decomp_space_fnpf(lexer *p, ghostcell *pgc)
 {
-    double fsfloc;
     int qn;
 
 

@@ -41,8 +41,6 @@ Author: Hans Bihs
 #include <variant>
 #include <vector>
 
-class fnpf_laplace;
-class field;
 class fnpf_coastline;
 class solver2D;
 class wind;
@@ -130,7 +128,7 @@ private:
     solver2D *psolv;
     wind *pwind;
 
-    double ivel,jvel,kvel;
+    double ivel,jvel;
 
     double dist3,dist4,dist5,expinverse,db;
 
@@ -141,8 +139,6 @@ private:
 
     int count_n;
     int coastline_count;
-
-    static constexpr double eps = 1.0e-6;
 };
 
 #endif

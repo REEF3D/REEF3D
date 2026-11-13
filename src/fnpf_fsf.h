@@ -26,11 +26,7 @@ Author: Hans Bihs
 class lexer;
 class ghostcell;
 class fdm_fnpf;
-class fnpf_laplace;
 class slice;
-class fnpf_convection;
-class fnpf_ddx;
-class fnpf_etadisc;
 
 using namespace std;
 

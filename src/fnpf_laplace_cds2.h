@@ -63,10 +63,8 @@ public:
     void picard_bc(lexer*, fdm_fnpf*, ghostcell*, double*, fnpf_fsf*);
     
 private:
-    
     fnpf_bed_update *pbed;
     
-    double sigxyz2;
     double ab,denom;
     double starttime,endtime;
     int gcval;
@@ -77,7 +75,6 @@ private:
     std::vector<double> fn;      // the solution at t^n (t^n-1 until the first solve of the step)
     double sv_a = 1.0, sv_b = 0.0, sv_dt = 0.0;
     bool sv_on = false, sv_store = false;
-
 };
 
 #endif

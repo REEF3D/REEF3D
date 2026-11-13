@@ -42,14 +42,6 @@ public:
 	double sy(lexer*, slice&, double) override final;
     double sz(lexer*, double*) override final;
 
-private:
-   
-
-	double L,grad;
-	
-	double gradx, grady, gradz;
-	double fu1,fv1,fw1,fu2,fv2,fw2;
-
 };
 
 #endif

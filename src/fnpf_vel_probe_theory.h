@@ -30,7 +30,6 @@ Author: Hans Bihs
 class lexer;
 class fdm_fnpf;
 class ghostcell;
-class slice;
 class ioflow;
 
 using namespace std;
@@ -43,10 +42,8 @@ public:
 
 	void start(lexer*, fdm_fnpf*, ghostcell*,ioflow*);
 
-
 private:
     void ini_location(lexer*, fdm_fnpf*);
-
 
 	char name[100];
 
@@ -56,11 +53,7 @@ private:
     ofstream *pout;
     double *val;
 	
-	double uval,vval,wval,pval,kval,eval,edval;
-    
-    
-    
-
+	double uval,vval,wval;
 };
 
 #endif

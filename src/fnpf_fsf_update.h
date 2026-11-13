@@ -28,10 +28,7 @@ Author: Hans Bihs
 class lexer;
 class fdm_fnpf;
 class ghostcell;
-class ioflow;
 class slice;
-class field;
-class vec;
 
 using namespace std;
 

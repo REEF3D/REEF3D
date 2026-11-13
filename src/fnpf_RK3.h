@@ -53,8 +53,6 @@ public:
 private:
     int gcval,gcval_u,gcval_v,gcval_w;
     int gcval_eta,gcval_fifsf;
-    int hypre_type;
-    double starttime,endtime;
 
     slice4 erk1,erk2;
     slice4 frk1,frk2;
@@ -66,10 +64,6 @@ private:
     fnpf_amr *pamr = nullptr;
     fnpf_fsf *pf;
     fnpf_body *pbody;
-    
-    int gcval_sl;
-    double t0;
-
 };
 
 #endif

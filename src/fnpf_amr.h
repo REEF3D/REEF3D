@@ -37,15 +37,12 @@ class slice;
 class slice4;
 class solver;
 class fnpf_fsf;
-class fnpf_fsfbc;
 class fnpf_sigma;
 class fnpf_fsf_update;
 class fnpf_bed_update;
 class fnpf_laplace_cds2;
 class reefmg_core;
 class fnpf_body;
-class solver;
-class fnpf_fsf_update;
 struct fnpf_amr_theta;
 
 using namespace std;
@@ -269,9 +266,6 @@ public:
     // values of f from the parent phi_t, set by sub_psi_edges
     void lap_solve_psi_level(lexer*, ghostcell*, int, double**, slice**);
     void sub_psi_edges(int, double**);
-    int sub_level_now() const { return slev; }
-    bool sub_last_finest() const { return bfin==(1<<maxlev)-1; }
-    double sub_time() const { return tsub; }
 
 protected:
     // REEFAMR hooks
@@ -290,7 +284,6 @@ private:
     fnpf_amr_patch* FP(int n) { return static_cast<fnpf_amr_patch*>(P[n]); }
     static fnpf_amr_patch* FP(reefamr_patch *c) { return static_cast<fnpf_amr_patch*>(c); }
 
-    lexer* glx(int g) { return glex(g); }
     fdm_fnpf* gfd(int g) { return (g<0) ? c0 : FP(g)->c; }
     inline int fidx(lexer*, int, int, int) const;   // FIJK of lexer q (inline: fnpf_amr_fill.h)
     int gknoz(int g);                                // sigma layers of grid g
@@ -417,9 +410,8 @@ private:
     const vector<char> *lap_wgp = nullptr;
     bool lap_nol0 = false;
     int lap_wextra = 0;
-    int slev = 0;                   // level of the current subcycled step
     int bfin = 0;                   // finest steps done in the level-0 step
-    double tsub = 0.0;              // start time of the current step of slev
+    double tsub = 0.0;              // start time of the current subcycled step
     vector<double> dtlev;           // step of each level in the current level-0 step
     struct tcol
     {

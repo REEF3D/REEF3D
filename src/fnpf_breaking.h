@@ -30,13 +30,6 @@ Author: Hans Bihs
 #include<deque>
 #include<fstream>
 
-class fnpf_laplace;
-class field;
-class fnpf_convection;
-class fnpf_ddx;
-class fnpf_etadisc;
-class fnpf_coastline;
-class solver2D;
 class breaking_crest3d;
 class ioflow;
 
@@ -64,8 +57,6 @@ public:
     // A 350 5: Fi_t -= pa, pa = bt_pa eta_t on the front faces of the deep-water breakers
     void absorb(lexer*,fdm_fnpf*,slice&,slice&) override;
 
-    
-    
     void filter(lexer*, fdm_fnpf*,ghostcell*, slice&, int, int);
     
     // coastline / wet-dry front viscosity A346 (A343 1/2/3)
@@ -93,10 +84,6 @@ private:
     // stage water depth eta + wd - bed (>= 0.01)
     double romero_depth(lexer*, fdm_fnpf*, slice&);
 
-    // --- Helper: Hilbert-transform-based envelope and phase ---
-    void compute_hilbert_steepness(lexer*, fdm_fnpf*, ghostcell*);
-    
-    
     double rb3(lexer*,double);
     
     double dist3,dist4,db;
@@ -122,7 +109,6 @@ private:
     double alpha_eta;   // KFSBC dissipation scaling (0 = off)
     int ini_done;       // First call flag
     
-    
     double a_coeff;       // Romero a coefficient
     double S0;            // onset threshold steepness
     double alpha_L;       // breaking zone width fraction
@@ -141,7 +127,6 @@ private:
     
     int steep_method;     // steepness computation method
     int cspeed_method;    // phase speed computation method
-    
 };
 
 #endif

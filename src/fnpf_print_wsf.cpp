@@ -113,8 +113,6 @@ fnpf_print_wsf::fnpf_print_wsf(lexer *p, fdm_fnpf *c) : fileFlushMaxCount(100)
 	p->Iarray(jloc,gauge_num);
 	p->Iarray(flag,gauge_num);
 	p->Darray(wsf,gauge_num);
-    p->Darray(deta,gauge_num);
-    p->Darray(Uhorz,gauge_num);
 
     ini_location(p,c);
 }
@@ -141,8 +139,6 @@ void fnpf_print_wsf::height_gauge(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &
 
 void fnpf_print_wsf::fill_eta(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &f)
 {
-    double zval=0.0;
-
     for(n=0;n<gauge_num;++n)
     wsf[n]=-1.0e20;
 
@@ -155,8 +151,6 @@ void fnpf_print_wsf::fill_eta(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &f)
     for(n=0;n<gauge_num;++n)
     if(amr==nullptr ? flag[n]>0 : ap.mine[n]!=0)
     {
-    zval=0.0;
-
     i=iloc[n];
     j=jloc[n];
 
@@ -171,16 +165,6 @@ void fnpf_print_wsf::fill_eta(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &f)
     }
 	
     pgc->globalmax(wsf,gauge_num);   // one reduction for all gauges
-}
-
-void fnpf_print_wsf::fill_deta(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &f)
-{
-    
-}
-    
-void fnpf_print_wsf::fill_Uhorz(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &f)
-{
-    
 }
 
 

@@ -55,12 +55,12 @@ private:
 	double dvdxi(lexer*, fdm_fnpf*, ghostcell*);
 	
     // force ale variabes
-    double Fx1,Fy1,Fx,Fy,xc,yc,rc,cd,cm,etan,dtn,eta2n,ax1,ay1,ax2,ay2,ax3,ay3,dudsig_,dvdsig_;
-	double *u,*v,*un,*vn,*ax,*ay;
+    double xc,yc,etan,ax1,ay1,ax2,ay2,ax3,ay3,dudsig_,dvdsig_;
+	double *v,*un,*vn,*ax,*ay;
     const int ID;
     
     // printing
-    char name[100],pname[100],epsvar[100];
+    char name[100];
     int iin,offset[100];
     float ffn;
     double ddn;
@@ -72,5 +72,3 @@ private:
 };
 
 #endif
-
-
