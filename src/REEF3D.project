@@ -2347,7 +2347,6 @@
           </VirtualDirectory>
           <VirtualDirectory Name="Sigma">
             <File Name="nhflow_curv.cpp"/>
-            <File Name="nhflow_sigma_bedacc.cpp"/>
             <File Name="nhflow_sigma_omega.cpp"/>
             <File Name="nhflow_sigma_ini.cpp"/>
             <File Name="nhflow_sigma_update.cpp"/>

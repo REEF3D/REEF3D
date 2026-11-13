@@ -36,7 +36,7 @@ void nhflow_ckpt_fields(lexer *p, fdm_nhf *d, FD &&fd, FI &&fi)
 {
     // slices
     fd("eta",'S',d->eta.V); fd("eta_n",'S',d->eta_n.V); fd("WL",'S',d->WL.V); fd("detadt",'S',d->detadt.V);
-    fd("detadt_n",'S',d->detadt_n.V); fd("un",'S',d->un.V); fd("vn",'S',d->vn.V); fd("dudt",'S',d->dudt.V);
+    fd("detadt_n",'S',d->detadt_n.V);
     fd("bed",'S',d->bed.V); fd("depth",'S',d->depth.V); fd("K",'S',d->K.V);
     fd("Ex",'S',d->Ex.V); fd("Ey",'S',d->Ey.V); fd("Exx",'S',d->Exx.V); fd("Eyy",'S',d->Eyy.V);
     fd("Bx",'S',d->Bx.V); fd("By",'S',d->By.V); fd("Bxx",'S',d->Bxx.V); fd("Byy",'S',d->Byy.V);
