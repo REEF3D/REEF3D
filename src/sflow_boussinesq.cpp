@@ -29,14 +29,15 @@ Author: Hans Bihs
 
 #define HWL (WL(i,j)>p->A244?WL(i,j):1.0e20)
 
-sflow_boussinesq::sflow_boussinesq(lexer *p, fdm2D *b, ghostcell *pgc) : zeta(-0.53), breakratio(0.8),
+sflow_boussinesq::sflow_boussinesq(lexer *p, fdm2D *b, ghostcell *pgc) :
+                                    Xp(p),Xn(p),Xs(p),Xr(p),Yp(p),Ye(p),Yw(p),Yr(p),
+                                    Ra(p),Rb(p),ucart(p),vcart(p),
+                                    zeta(-0.53), breakratio(0.8),
                                     A(p),B(p),Ax(p),Ay(p),Bx(p),By(p),
                                     U4(p),V4(p),U1p(p),V1p(p),Cx(p),Cy(p),
                                     T1(p),T2(p),etat(p),
-                                    vy(p),hvy(p),ux(p),hux(p),
-                                    mask(p),io(p),ua_n(p),va_n(p),f(p),
-                                    Xp(p),Xn(p),Xs(p),Xr(p),Yp(p),Ye(p),Yw(p),Yr(p),
-                                    Ra(p),Rb(p),ucart(p),vcart(p),uy(p),vx(p),huy(p),hvx(p)
+                                    vy(p),hvy(p),ux(p),hux(p),uy(p),vx(p),huy(p),hvx(p),
+                                    mask(p),io(p),ua_n(p),va_n(p),f(p)
 {
     // (not for the patches of the mesh refinement, whose lexer has no domain origin)
     if(p->mpirank==0 && p->origin_i>-1000000)

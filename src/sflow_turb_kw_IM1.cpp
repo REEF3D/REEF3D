@@ -31,8 +31,7 @@ Author: Hans Bihs
 
 #define HP (fabs(b->hp(i,j))>(p->A244)?b->hp(i,j):1.0e20)
 
-sflow_turb_kw_IM1::sflow_turb_kw_IM1(lexer* p) : sflow_turb_io(p), kn(p), wn(p), Pk(p), S(p), ustar(p), cf(p),
-                                                 Vw(p), Qw(p),
+sflow_turb_kw_IM1::sflow_turb_kw_IM1(lexer* p) : sflow_turb_io(p), kn(p), wn(p), Pk(p), S(p), Vw(p), Qw(p), ustar(p), cf(p),
                                                  kw_alpha(5.0/9.0), kw_beta(3.0/40.0),kw_sigma_k(2.0),kw_sigma_w(2.0)
 {
     gcval_kin=20;

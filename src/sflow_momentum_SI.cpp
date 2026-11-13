@@ -48,18 +48,19 @@ sflow_momentum_SI::sflow_momentum_SI(lexer *p, fdm2D *b, ghostcell *pgc, sflow_H
                                      solver2D *ppsolv, solver2D *pppoissonsolv, ioflow *ppflow, sflow_fsf *ppfsf,
                                      sflow_forcing *ppsfdf, sixdof *pp6dof, bool block)
                                     : sflow_momentum_func(p,b,pgc,pphll,ppss,pprecon,ppdiff,pppress,ppsolv,pppoissonsolv,ppflow,ppfsf,ppsfdf,pp6dof),
-                                      qx(p),qxn(p),qxE(p),Hx(p),alx(p),ax(p),kx(p),gx0(p),
-                                      qy(p),qyn(p),qyE(p),Hy(p),aly(p),ay(p),ky(p),gy0(p),
-                                      fxU(p),fxV(p),fyU(p),fyV(p),
-                                      eta0(p),WL0(p),UH0(p),VH0(p),UHa(p),VHa(p),UHb(p),VHb(p),UHp(p),VHp(p),
-                                      WHz(p),dUH(p),dVH(p),etaI(p),alc(p),rhs(p),rhsW(p),bdiag(p),wsrc(p),hsrc(p),
-                                      tU(p),tV(p),tUH(p),tVH(p),WLk(p),etaB(p),
-                                      qxN(p),Hxo(p),qxo(p),qxa(p),nxR(p),nxL(p),nxB(p),nx0(p),kxEL(p),kxER(p),kxPL(p),kxPR(p),kx1(p),kx2(p),
-                                      qyN(p),Hyo(p),qyo(p),qya(p),nyR(p),nyL(p),nyB(p),ny0(p),kyEL(p),kyER(p),kyPL(p),kyPR(p),ky1(p),ky2(p),
-                                      phiN(p),WHp(p),Lc0(p),Unm1(p),Vnm1(p),WLh(p),WLo(p),AWo(p),WLq(p),
-                                      nPW(p),nEb(p),nEo(p),nPo(p),nU(p),nV(p),nUs(p),nVs(p),nA(p),nsx(p),nsy(p),nE(p),nP(p),nL(p),nZ(p),nAE(p),nAP(p),nBE(p),nBP(p),nGx(p),nGy(p),
-                                      nF1x(p),nF2x(p),nF1y(p),nF2y(p),nH3(p),nW2(p),nCs(p),nRm(p),nRc(p),nZE(p),nZP(p),sps(p),bcA(p),bcS(p),FSx(p),FSy(p),dNx(p),dNy(p),mfx(p),mfy(p),acU(p),acV(p),hoC(p),hoEx(p),hoEo(p),cx0(p),cy0(p),
-                                      rUH(p),rVH(p),rlc(p),rlx(p),rly(p)
+                                      qx(p),qxn(p),qxE(p),Hx(p),alx(p),ax(p),kx(p),gx0(p),qy(p),qyn(p),qyE(p),Hy(p),
+                                      aly(p),ay(p),ky(p),gy0(p),fxU(p),fxV(p),fyU(p),fyV(p),eta0(p),WL0(p),UH0(p),
+                                      VH0(p),UHa(p),VHa(p),UHb(p),VHb(p),UHp(p),VHp(p),WHz(p),dUH(p),dVH(p),etaI(p),
+                                      alc(p),rhs(p),rhsW(p),bdiag(p),wsrc(p),hsrc(p),tU(p),tV(p),tUH(p),tVH(p),WLk(p),
+                                      etaB(p),bcA(p),bcS(p),FSx(p),FSy(p),dNx(p),dNy(p),mfx(p),mfy(p),acU(p),acV(p),
+                                      hoC(p),hoEx(p),hoEo(p),cx0(p),cy0(p),qxN(p),Hxo(p),qxo(p),qxa(p),nxR(p),nxL(p),
+                                      nxB(p),nx0(p),kxEL(p),kxER(p),kxPL(p),kxPR(p),kx1(p),kx2(p),qyN(p),Hyo(p),
+                                      qyo(p),qya(p),nyR(p),nyL(p),nyB(p),ny0(p),kyEL(p),kyER(p),kyPL(p),kyPR(p),
+                                      ky1(p),ky2(p),phiN(p),WHp(p),Lc0(p),Unm1(p),Vnm1(p),WLh(p),WLo(p),AWo(p),WLq(p),
+                                      nPW(p),nEb(p),nEo(p),nPo(p),nU(p),nV(p),nUs(p),nVs(p),nA(p),nsx(p),nsy(p),nE(p),
+                                      nP(p),nL(p),nZ(p),nAE(p),nAP(p),nBE(p),nBP(p),nGx(p),nGy(p),sps(p),nF1x(p),
+                                      nF2x(p),nF1y(p),nF2y(p),nH3(p),nW2(p),nCs(p),nRm(p),nRc(p),nZE(p),nZP(p),rUH(p),
+                                      rVH(p),rlc(p),rlx(p),rly(p)
 {
     check(p);
 
