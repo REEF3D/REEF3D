@@ -153,32 +153,34 @@ void rans_io::tau_calc(fdm* a, lexer* p, double maxwdist)
 
 // inflow turbulence for discharge inflow (B 60 >= 1), written into the inflow ghost cells i-1..i-3 before
 // each k and eps/omega solve; the bc routines take these values as Dirichlet data.
-// Equilibrium open-channel profile, consistent with the log law and the wall functions:
-//   u* = Ui/(2.5 ln(11 H/ks))          (as ioflow_f::inflow_log)
-//   k = u*^2/sqrt(cmu) (1-z/H),  eps = u*^3/(kappa z) (1-z/H),  omega = u*/(sqrt(cmu) kappa z),
-//   i.e. nu_t = kappa u* z (1-z/H); (1-z/H) is bounded below by 0.1 at the free surface.
-// Air cells and all other inflow types (e.g. wave generation) get zero gradient.
-// discharge inflow (B 60 >= 1): equilibrium open-channel profile in the inflow ghost cells, per inflow column
+// Default: equilibrium open-channel profile, per inflow column, consistent with the log law and the wall functions
 //   u* = Ui/(2.5 ln(11 H/ks)),  k = u*^2/sqrt(cmu) (1-z/H),  eps = u*^3/(kappa z) (1-z/H),  omega = u*/(sqrt(cmu) kappa z)
-// H is the local water depth of the column: from the lowest wet face to the interpolated interface (was the top
-// face of the highest wet cell over the whole inflow, up to one cell too deep). Columns of this rank without an
-// interface (z-decomposition) use the inflow-wide values. ks is the bed roughness of roughness::ks_val (B 55 or
-// B 50; with sediment S 21 S 20 or S 20 by S 28). Air cells and the wave-only inflow (B 60 0) keep zero gradient.
+//   i.e. nu_t = kappa u* z (1-z/H); (1-z/H) is bounded below by 0.1 at the top.
+// H is the depth of the column, from the lowest wet face to
+//   - the interpolated interface with a free surface (level set F 30 > 0 or VOF F 80 > 0),
+//   - the top face of the highest fluid cell in single phase (F 30 0, F 80 0: phi = 1 everywhere, no interface;
+//     before, no H was found and the inflow kept zero gradient, i.e. the initial field).
+// Bed and top of a column are taken over all ranks (global column j), so z-decomposed columns get the full depth.
+// Columns without an interface use the inflow-wide values. ks is the bed roughness of roughness::ks_val (B 55 or
+// B 50; with sediment S 21 S 20 or S 20 by S 28).
+// Air cells and the wave-only inflow (B 60 0) keep zero gradient.
 void rans_io::inflow_turb(lexer* p, fdm* a, ghostcell* pgc)
 {
     const double kappa = 0.4;
     double zbed_g=+1.0e20, zint_g=-1.0e20;
-    double ks, z, fz, kval, eval, H, zb, ustar;
+    double ks=0.0001, z, fz, kval, eval, H, zb, ustar;
     int n,q;
     
     const bool keps = (p->T10==1 || p->T10==11 || p->T10==21);
+    const bool fsf  = (p->F30>0 || p->F80>0);
+    const int ny = p->gknoy;
     
-    std::vector<double> zbed, zint;
+    // col[jg] = -(bed), col[ny+jg] = top of the water (interface or top of the fluid) of the global column jg
+    std::vector<double> col;
     
     if(p->B60>=1)
     {
-        zbed.assign(p->jmax, +1.0e20);
-        zint.assign(p->jmax, -1.0e20);
+        col.assign(2*ny, -1.0e20);
         
         for(n=0;n<p->gcin_count;++n)
         {
@@ -186,19 +188,28 @@ void rans_io::inflow_turb(lexer* p, fdm* a, ghostcell* pgc)
         j=p->gcin[n][1];
         k=p->gcin[n][2];
         
-            const int jj = j - p->jmin;
+            const int jg = j + p->origin_j;
+            
+            if(jg<0 || jg>=ny)
+            continue;
             
             if(a->phi(i,j,k)>0.0)
-            zbed[jj] = MIN(zbed[jj], p->ZN[KP]);
+            col[jg] = MAX(col[jg], -p->ZN[KP]);
             
-            if(a->phi(i,j,k)>=0.0 && a->phi(i,j,k+1)<0.0)
-            zint[jj] = MAX(zint[jj], p->ZP[KP] + a->phi(i,j,k)*p->DZP[KP]/(a->phi(i,j,k)-a->phi(i,j,k+1)));
+            if(fsf && a->phi(i,j,k)>=0.0 && a->phi(i,j,k+1)<0.0)
+            col[ny+jg] = MAX(col[ny+jg], p->ZP[KP] + a->phi(i,j,k)*p->DZP[KP]/(a->phi(i,j,k)-a->phi(i,j,k+1)));
             
-            zbed_g = MIN(zbed_g, zbed[jj]);
-            zint_g = MAX(zint_g, zint[jj]);
+            if(!fsf)
+            col[ny+jg] = MAX(col[ny+jg], p->ZN[KP1]);
         }
-        zbed_g = pgc->globalmin(zbed_g);
-        zint_g = pgc->globalmax(zint_g);
+        
+        pgc->globalmax(col.data(), 2*ny);
+        
+        for(int jg=0;jg<ny;++jg)
+        {
+            zbed_g = MIN(zbed_g, -col[jg]);
+            zint_g = MAX(zint_g, col[ny+jg]);
+        }
         
         ks = (p->B55>0.0) ? p->B55 : p->B50;
         
@@ -220,12 +231,12 @@ void rans_io::inflow_turb(lexer* p, fdm* a, ghostcell* pgc)
         
         if(p->B60>=1 && a->phi(i,j,k)>0.0)
         {
-            const int jj = j - p->jmin;
+            const int jg = MAX(0, MIN(ny-1, j + p->origin_j));
             
-            zb = zbed[jj];
-            H  = zint[jj] - zb;
+            zb = -col[jg];
+            H  = col[ny+jg] - zb;
             
-            if(zint[jj]<-1.0e19 || zb>1.0e19 || H<=0.0)
+            if(col[ny+jg]<-1.0e19 || zb>1.0e19 || H<=0.0)
             {
             zb = zbed_g;
             H  = zint_g - zbed_g;
