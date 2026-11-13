@@ -70,9 +70,6 @@ void sflow_f::logic(lexer *p, fdm2D* b, ghostcell* pgc)
     if(p->A211>=4)
     pconvec = new sflow_weno_flux(p);
 
-    // filter
-    pfilter = new sflow_filter(p);
-	
 	// free surface
 	if(p->A240>=1)
 	pfsf = new sflow_eta(p,b,pgc,pBC);

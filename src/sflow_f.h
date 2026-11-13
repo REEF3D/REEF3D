@@ -48,7 +48,6 @@ class sflow_HLL;
 class sflow_signal_speed;
 class sflow_reconstruct;
 class sflow_diffusion;
-class sflow_filter;
 class sflow_turbulence;
 class sflow_forcing;
 class hydro_couple;
@@ -107,7 +106,6 @@ private:
     sflow_signal_speed *pss;
     sflow_reconstruct *precon;
 	sflow_diffusion *pdiff;
-    sflow_filter *pfilter;
     sflow_turbulence *pturb;
     sediment *psed;
     sflow_potential *potflow;

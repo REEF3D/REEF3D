@@ -547,7 +547,6 @@
             <File Name="sflow_flux.h"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Filtering">
-            <File Name="sflow_filter.h"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Diffusion">
             <File Name="sflow_idiff.h"/>
@@ -2174,7 +2173,6 @@
             <File Name="sflow_flux_face_CDS.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Filtering">
-            <File Name="sflow_filter.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Diffusion">
             <File Name="sflow_idiff.cpp"/>

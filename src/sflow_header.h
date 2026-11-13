@@ -65,7 +65,6 @@ Author: Hans Bihs
 #include"sflow_idiff.h"
 #include"sflow_pjm_lin.h"
 #include"sflow_pjm_quad.h"
-#include"sflow_filter.h"
 
 #include"sediment_f.h"
 #include"sediment_void.h"
