@@ -62,7 +62,12 @@ public:
     slice4 kin, eps;
     
     int gcval_eps,gcval_kin;
-    
+
+protected:
+    // rows of the implicit k-epsilon / k-omega equations (sflow_turb_ke_IM1, sflow_turb_kw_IM1)
+    void timesource(lexer*, fdm2D*, slice&);    // 1/dt, the explicit terms L and f^n/dt
+    void wall_bc(lexer*, fdm2D*, slice&);       // no flux through walls and to dry cells, f = 0 in dry cells
+
 private:
     
     double val;

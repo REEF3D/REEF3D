@@ -57,11 +57,8 @@ private:
     void ustar_update(lexer*, fdm2D*, ghostcell*);
 	void kin_source(lexer*, fdm2D*);
 	void eps_source(lexer*, fdm2D*);
-    void timesource(lexer*, fdm2D*, slice&);
     void eddyvisc(lexer*, fdm2D*, ghostcell*);
     void clearrhs(lexer*, fdm2D*);
-    void wall_law_kin(lexer*, fdm2D*);
-    void wall_law_eps(lexer*, fdm2D*);
 
     slice4 kn, en, Pk, S, ustar, cf;
     sliceint4 wallf;

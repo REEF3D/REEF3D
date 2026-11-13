@@ -109,3 +109,70 @@ void sflow_turb_io::offset_ParaView_2D(lexer *p, int *offset, int &n)
 	offset[n]=offset[n-1]+4*(p->pointnum2D)+4;
 	++n;
 }
+
+void sflow_turb_io::timesource(lexer* p, fdm2D *b, slice &fn)
+{
+    int count=0;
+    SLICELOOP4
+    {
+        b->M.p[count] += 1.0/p->dt;
+
+        b->rhsvec.V[count] += b->L(i,j) + fn(i,j)/p->dt;
+
+	++count;
+    }
+}
+
+void sflow_turb_io::wall_bc(lexer* p, fdm2D *b, slice &f)
+{
+    // SFLOW side walls are free-slip in the momentum equations (sflow_momentum_func): zero gradient of k and
+    // epsilon / omega there and at dry neighbours, without wall functions
+    n=0;
+    SLICELOOP4
+    {
+        if(p->wet[IJ]==1)
+        {
+        if(p->flagslice4[Im1J]<0 || p->wet[Im1J]==0)
+        {
+        b->rhsvec.V[n] -= b->M.s[n]*f(i,j);
+        b->M.s[n] = 0.0;
+        }
+
+        if(p->flagslice4[Ip1J]<0 || p->wet[Ip1J]==0)
+        {
+        b->rhsvec.V[n] -= b->M.n[n]*f(i,j);
+        b->M.n[n] = 0.0;
+        }
+
+        if(p->flagslice4[IJm1]<0 || p->wet[IJm1]==0)
+        {
+        b->rhsvec.V[n] -= b->M.e[n]*f(i,j);
+        b->M.e[n] = 0.0;
+        }
+
+        if(p->flagslice4[IJp1]<0 || p->wet[IJp1]==0)
+        {
+        b->rhsvec.V[n] -= b->M.w[n]*f(i,j);
+        b->M.w[n] = 0.0;
+        }
+        }
+
+    ++n;
+    }
+
+    // dry cells: identity rows, f = 0
+    n=0;
+    SLICELOOP4
+    {
+        if(p->wet[IJ]==0)
+        {
+        b->M.p[n] = 1.0;
+        b->M.n[n] = 0.0;
+        b->M.s[n] = 0.0;
+        b->M.w[n] = 0.0;
+        b->M.e[n] = 0.0;
+        b->rhsvec.V[n] = 0.0;
+        }
+    ++n;
+    }
+}

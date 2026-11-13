@@ -60,7 +60,7 @@ void sflow_turb_kw_IM1::start(lexer *p, fdm2D *b, ghostcell *pgc, sflow_convecti
     pdiff->diff_scalar(p,b,pgc,psolv,kin,kw_sigma_k,1.0);
 	kin_source(p,b);
 	timesource(p,b,kn);
-    wall_law_kin(p,b);
+    wall_bc(p,b,kin);
     psolv->start(p,pgc,kin,b->M,b->xvec,b->rhsvec,4);
     pgc->gcsl_start4(p,kin,gcval_kin);
 	p->kintime=pgc->timer()-starttime;
@@ -75,7 +75,7 @@ void sflow_turb_kw_IM1::start(lexer *p, fdm2D *b, ghostcell *pgc, sflow_convecti
     pdiff->diff_scalar(p,b,pgc,psolv,eps,kw_sigma_w,1.0);
 	omega_source(p,b);
 	timesource(p,b,wn);
-    wall_law_omega(p,b);
+    wall_bc(p,b,eps);
 	psolv->start(p,pgc,eps,b->M,b->xvec,b->rhsvec,4);
     pgc->gcsl_start4(p,eps,gcval_eps);
 	p->epstime=pgc->timer()-starttime;
@@ -210,19 +210,6 @@ void sflow_turb_kw_IM1::ustar_update(lexer* p, fdm2D *b, ghostcell *pgc)
     
 }
 
-void sflow_turb_kw_IM1::timesource(lexer* p, fdm2D *b, slice &fn)
-{
-    count=0;
-    SLICELOOP4
-    {
-        b->M.p[count] += 1.0/p->dt;
-
-        b->rhsvec.V[count] += b->L(i,j) + fn(i,j)/p->dt;
-		
-	++count;
-    }
-}
-
 void sflow_turb_kw_IM1::clearrhs(lexer* p, fdm2D *b)
 {
     count=0;
@@ -233,130 +220,4 @@ void sflow_turb_kw_IM1::clearrhs(lexer* p, fdm2D *b)
 	++count;
     }
 }
-
-// ****************************
-// WALL KIN
-// ****************************
-void sflow_turb_kw_IM1::wall_law_kin(lexer* p, fdm2D *b)
-{
-    // SFLOW side walls are free-slip in the momentum equations (sflow_momentum_func), so they get
-    // zero-gradient k and omega without wall functions, as in sflow_turb_ke_IM1
-    
-    
-    n=0;
-	SLICELOOP4
-	{
-        if(p->wet[IJ]==1)
-        {
-		if(p->flagslice4[Im1J]<0 || p->wet[Im1J]==0)
-		{
-        b->rhsvec.V[n] -= b->M.s[n]*kin(i,j);
-		b->M.s[n] = 0.0;
-		}
-        
-        if(p->flagslice4[Ip1J]<0 || p->wet[Ip1J]==0)
-		{
-        b->rhsvec.V[n] -= b->M.n[n]*kin(i,j);
-		b->M.n[n] = 0.0;
-		}
-        
-        if(p->flagslice4[IJm1]<0 || p->wet[IJm1]==0)
-		{
-        b->rhsvec.V[n] -= b->M.e[n]*kin(i,j);
-		b->M.e[n] = 0.0;
-		}
-        
-        if(p->flagslice4[IJp1]<0 || p->wet[IJp1]==0)
-		{
-        b->rhsvec.V[n] -= b->M.w[n]*kin(i,j);
-		b->M.w[n] = 0.0;
-		}
-        }
-		
-	++n;
-	}
-    
-    // dry cells: identity rows
-    n=0;
-    SLICELOOP4
-	{
-        if(p->wet[IJ]==0)
-        {
-        b->M.p[n] = 1.0;
-        b->M.n[n] = 0.0;
-        b->M.s[n] = 0.0;
-        b->M.w[n] = 0.0;
-        b->M.e[n] = 0.0;
-        b->rhsvec.V[n] = 0.0;
-        }
-	++n;
-	}
-
-}
-
-void sflow_turb_kw_IM1::wall_law_omega(lexer* p, fdm2D *b)
-{
-
-    
-    
-    n=0;
-	SLICELOOP4
-	{
-        if(p->wet[IJ]==1)
-        {
-		if(p->flagslice4[Im1J]<0 || p->wet[Im1J]==0)
-		{
-        b->rhsvec.V[n] -= b->M.s[n]*eps(i,j);
-		b->M.s[n] = 0.0;
-		}
-        
-        if(p->flagslice4[Ip1J]<0 || p->wet[Ip1J]==0)
-		{
-        b->rhsvec.V[n] -= b->M.n[n]*eps(i,j);
-		b->M.n[n] = 0.0;
-		}
-        
-        if(p->flagslice4[IJm1]<0 || p->wet[IJm1]==0)
-		{
-        b->rhsvec.V[n] -= b->M.e[n]*eps(i,j);
-		b->M.e[n] = 0.0;
-		}
-        
-        if(p->flagslice4[IJp1]<0 || p->wet[IJp1]==0)
-		{
-        b->rhsvec.V[n] -= b->M.w[n]*eps(i,j);
-		b->M.w[n] = 0.0;
-		}
-        }
-		
-	++n;
-	}
-    
-    // dry cells: identity rows
-    n=0;
-    SLICELOOP4
-	{
-        if(p->wet[IJ]==0)
-        {
-        b->M.p[n] = 1.0;
-        b->M.n[n] = 0.0;
-        b->M.s[n] = 0.0;
-        b->M.w[n] = 0.0;
-        b->M.e[n] = 0.0;
-        b->rhsvec.V[n] = 0.0;
-        }
-	++n;
-	}
-}
-
-
-
-
-
-
-
-
-
-
-
 
