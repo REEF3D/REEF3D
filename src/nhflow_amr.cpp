@@ -24,6 +24,7 @@ Author: Hans Bihs
 #include"nhflow_amr.h"
 #include"nhflow_momentum_SI.h"
 #include"nhflow_amr_fill.h"
+#include"ks_map.h"
 #include"lexer.h"
 #include"bc_zone.h"
 #include"fdm_nhf.h"
@@ -1059,10 +1060,12 @@ void nhflow_amr::patch_objects(reefamr_patch *q, ghostcell *pgc)
         d->RO[n] = pp->W1;
         d->VISC[n] = pp->W2;
     }
+    // B 58 1: the bed roughness from the map ./ks-map.dat at the cell centroids, else B 50
+    const ks_map *km = (pp->B58==1) ? &ks_map::get(pp) : nullptr;
     for(int ii=pp->imin; ii<pp->imin+pp->imax; ++ii)
     for(int jj=pp->jmin; jj<pp->jmin+pp->jmax; ++jj)
     {
-        d->ks(ii,jj) = pp->B50;
+        d->ks(ii,jj) = km ? km->at(cxc(pp,ii,jj),cyc(pp,ii,jj),pp->B50) : pp->B50;
         d->breaking(ii,jj) = 0;
     }
 

@@ -182,7 +182,7 @@ public:
     int B10,B11,B20,B21,B22,B23;
     int B30,B32,B33;
     double B31,B32_x,B32_y,B32_z;
-    int B60,B61,B62,B71,B75,B76,B77,B84,B85,B81,B82,B86,B87,B89,B90,B91,B92,B93,B94,B97,B98,B99,B101,B105,B106,B107;
+    int B58,B60,B61,B62,B71,B75,B76,B77,B84,B85,B81,B82,B86,B87,B89,B90,B91,B92,B93,B94,B97,B98,B99,B101,B105,B106,B107;
     int B136,B138,B138_1,B138_2,B139;
     int B180,B191,B192,B240,B241,B242,B243;
     double B29,B50,B51,B52,B53,B54,B55,B56,B57,B81_1,B81_2,B81_3,B83,B117,B118,B87_1,B87_2,B88;
@@ -671,6 +671,11 @@ public:
     int W126;
     double W127_lambda,W127_lambdah,W127_D;
     int W128;
+    // local rheology (rheology core, CFD)
+    int W130,W131;
+    double W132;
+    double W133_min,W133_max;
+    double W134;
     // atmospheric forcing (met_provider, met_forcing)
     int W200,W205,W207,W208,W210,W211,W215,W218,W219,W220_n,W220_v,W222,W223,W225,W226,W227,W229;
     double W201_u,W201_dir,W202,W203,W204,W205_lon,W205_lat,W205_rot,W206_x,W206_y,W209,W212,W213,W214,W216,W217,W228;

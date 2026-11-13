@@ -477,7 +477,7 @@ inline void rmg_coarsen(const rmg_tp T, int M, int R, int K,
     for(int a=0; a<rx; ++a) if(rx*I+a<T.fnx) ihi = rx*I+a;
     for(int b=0; b<ry; ++b) if(ry*J+b<T.fny) jhi = ry*J+b;
 
-    float volsum = 0.0f, tsum = 0.0f, bsum = 0.0f, xsum = 0.0f;
+    float volsum = 0.0f, tsum = 0.0f, bsum = 0.0f, xsum = 0.0f, psum = 0.0f;
     float an = 0.0f, as = 0.0f, aw = 0.0f, ae = 0.0f;
     float wn = 0.0f, ws = 0.0f, ww = 0.0f, we = 0.0f;
     int na = 0;
@@ -499,6 +499,7 @@ inline void rmg_coarsen(const rmg_tp T, int M, int R, int K,
         tsum += vt*vol;
         bsum += vb*vol;
         xsum += (vp+vn+vs+vw+ve+vt+vb)*vol;
+        psum += (vp<0.0f ? -vp : vp)*vol;
 
         if(i==ihi)
         {
@@ -555,7 +556,23 @@ inline void rmg_coarsen(const rmg_tp T, int M, int R, int K,
     if(k==0)        vb = 0.0f;
     if(k==T.nz-1)   vt = 0.0f;
 
-    cp[qc] = xsum/volsum - (vn+vs+vw+ve+vt+vb);
+    // a vanishing diagonal (an island of a pure-Neumann block, reefmg_core::coarsen_t): the sum of the couplings,
+    // without any an identity row
+    float vp = xsum/volsum - (vn+vs+vw+ve+vt+vb);
+    const float off = (vn<0.0f?-vn:vn)+(vs<0.0f?-vs:vs)+(vw<0.0f?-vw:vw)+(ve<0.0f?-ve:ve)+(vt<0.0f?-vt:vt)+(vb<0.0f?-vb:vb);
+    if(!(vp > 1.0e-6f*psum/volsum))
+    {
+        if(off > 0.0f)
+        vp = off;
+        else
+        {
+            cp[qc] = 1.0f;
+            cn[qc] = 0.0f; cs[qc] = 0.0f; cw[qc] = 0.0f; ce[qc] = 0.0f; ct[qc] = 0.0f; cb[qc] = 0.0f;
+            cact[qc] = 0;
+            return;
+        }
+    }
+    cp[qc] = vp;
     cn[qc] = vn; cs[qc] = vs; cw[qc] = vw; ce[qc] = ve; ct[qc] = vt; cb[qc] = vb;
 }
 

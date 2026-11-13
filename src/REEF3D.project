@@ -1295,6 +1295,7 @@
         <File Name="rheology.h"/>
         <File Name="rheology_f.h"/>
         <File Name="rheology_core.h"/>
+        <File Name="rheology_cfd_core.h"/>
         <File Name="rheology_v.h"/>
       </VirtualDirectory>
     </VirtualDirectory>
@@ -3371,6 +3372,7 @@
         <File Name="rheology_Mohr_Coulomb_and_Herschel_Bulkley.cpp"/>
         <File Name="rheology_f.cpp"/>
         <File Name="rheology_core.cpp"/>
+        <File Name="rheology_cfd_core.cpp"/>
         <File Name="rheology_v.cpp"/>
         <File Name="rheology_velsource.cpp"/>
       </VirtualDirectory>

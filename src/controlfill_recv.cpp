@@ -1031,6 +1031,8 @@ void control::ctrlrecv()
     dd++;
     B57 = dctrl[dd];
     dd++;
+    B58 = ictrl[ii];
+    ii++;
     B60 = ictrl[ii];
     ii++;
     B61 = ictrl[ii];
@@ -3023,6 +3025,18 @@ void control::ctrlrecv()
     dd++;
     W128 = ictrl[ii];
     ii++;
+    W130 = ictrl[ii];
+    ii++;
+    W131 = ictrl[ii];
+    ii++;
+    W132 = dctrl[dd];
+    dd++;
+    W133_min = dctrl[dd];
+    dd++;
+    W133_max = dctrl[dd];
+    dd++;
+    W134 = dctrl[dd];
+    dd++;
     W200 = ictrl[ii];
     ii++;
     W201_u = dctrl[dd];

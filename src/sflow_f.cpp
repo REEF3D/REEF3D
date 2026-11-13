@@ -277,7 +277,7 @@ void sflow_f::start(lexer *p, fdm2D* b, ghostcell* pgc)
     if(p->solver_error>=1)
     {
         if(p->mpirank==0)
-        cout<<endl<<"!!! EMERGENCY STOP  --  HYPRE solver broke down!  !!!     "<<p->solver_error<<endl<<endl;
+        cout<<endl<<"!!! EMERGENCY STOP  --  linear solver broke down (NaN in the system or the solution)!  !!!     "<<p->solver_error<<endl<<endl;
         
         pprint->print2D(p,b,pgc,pturb,psed);
     

@@ -489,6 +489,7 @@ void control::ini_default()
 	B55=-1.0;		// double global wall roughness ks
 	B56=-1.0;		// double global wall roughness ks
     B57=0.0001;       // double global side wall roughness
+    B58=0;            // int bed roughness map: 1 ks per cell from ./ks-map.dat (raster, bilinear; outside: B 50)
 	B60=0;            // int ioflow discharge
 	B61=2;            // int plain or logarithmic inflow profile
     B62=0;            // int SFLOW/NHFLOW discharge inflow across the face: 0 as B 61, 1 by conveyance (depth average u ~ h^(2/3))
@@ -1534,6 +1535,12 @@ void control::ini_default()
     W127_lambdah=0.0;// double hydrostatic pore pressure ratio the excess decays to
     W127_D=0.0;      // double hydraulic diffusivity [m^2/s]
     W128=0;          // int bed-normal gravity cos^2(theta) from the bed slope in the basal normal stress
+    W130=0;          // int local rheology (CFD): 1 Herschel-Bulkley, 2 Herschel-Bulkley-Coulomb, 3 mu(I), 4 Coulomb-viscoplastic
+    W131=2;          // int effective pressure: 2 solved pressure, 1 lithostatic from the level set (rho (g.n) phi: only for surfaces without steep flanks)
+    W132=1000.0;     // double Papanastasiou regularisation m [s]
+    W133_min=-1.0;   // double minimum effective dynamic viscosity [Pa s] (< 0: W 1 W 2)
+    W133_max=1.0e4;  // double maximum effective dynamic viscosity [Pa s]
+    W134=1.9;        // double mu(I) partial regularisation alpha (<= 0: no regularisation)
     W200=0;          // int atmospheric forcing (SFLOW, NHFLOW): 0 off, 1 uniform (W 201, W 202), 2 met file met-forcing.r3m, 3 vortex, 4 blend
     W201_u=0.0;      // double uniform wind speed U10 [m/s]
     W201_dir=0.0;    // double uniform wind direction [deg], counter-clockwise from the x axis, the direction the wind blows to
