@@ -264,6 +264,7 @@ struct cfd_amr_cf
     double dxnf, dxnc;  // cell widths along d
     double ustar;       // predictor of the stage
     double kf, kc;      // flux coefficients of the fine and the coarse row
+    double ap;          // D 1 2: the open fraction of the fine face (solid_aperture.h); 1 otherwise
     double rof;         // face density of the stage (pr_weights)
     double gs, gf;      // F 41 1, the ghost fluid method across the face (pr_weights): the gradient
                         // (gs x_coarse - gf x_fine)/dist (1, 1: no surface between; 0, 1/theta: the
@@ -555,7 +556,11 @@ private:
     void pr_matrix(int s);
     void pr_predict(int s);
     double forced_share(int g, const int *c, int d);
+    bool cf_shut(const cfd_amr_cf&);    // D 32: the face of a patch edge closed on the fine or on the coarse grid
     void pr_correct(int s);
+    void pr_apertures();                // D 1 2: the open fractions of the faces at the patch edges
+    double cf_weight(const cfd_amr_cf &F);  // the share of a fine face in the velocity of its coarse face
+    void cf_coarse_faces(int s);        // D 1 2: the coarse faces at the patch edges from their fine faces
     void pr_project(lexer*, ghostcell*, int s);
     void pr_sync(int k, int lmin=0, bool sh1=false);     // sh1: the shadows only where the operator reads them (pr_apply)
     void pr_covered_coef();                              // the coarse couplings under the finer patches from the fine faces

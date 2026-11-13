@@ -1527,6 +1527,8 @@ void control::ctrlrecv()
     ii++;
     D32 = ictrl[ii];
     ii++;
+    D1 = ictrl[ii];
+    ii++;
 
     F30 = ictrl[ii];
     ii++;

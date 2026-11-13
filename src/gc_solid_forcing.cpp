@@ -68,6 +68,17 @@ void ghostcell::solid_forcing(lexer *p, fdm *a, double alpha, field& uvel, field
         return p->topoforcing>0 && (p->solidread==0 || phis>=phit);
     };
     
+    // D 1 2: the static solids and the bed are walls of the pressure projection with the open
+    // fractions of the cell faces (solid_aperture.h) instead of the direct forcing: no force here.
+    // A closed face has the velocity 0 (pjm_corr::rhs) and is a wall for the diffusion and the wall
+    // law (the flags DF, ghostcell::solid_forcing_flag_update); an open face is a face of the fluid.
+    // The forcing on the open faces next to the wall took the predictor off a gradient field, which
+    // the projection cannot take out again (still water on a beach: an air flow of 5e-4 m/s along
+    // the shore line, 2.5e-6 m/s without), and held the fluid of the cut cells along a wall back (a
+    // film of water on a baffle when the free surface fell, and a jet of 1.1 m/s beside it).
+    // The Heaviside fields fbh (particles, level set of the direct forcing) are set as before
+    const bool walls = p->D1==2;
+
     if(p->B21==0)
     {
         
@@ -76,6 +87,7 @@ void ghostcell::solid_forcing(lexer *p, fdm *a, double alpha, field& uvel, field
         uf = 0.0;
         H = Hsolidface(p,a,1,0,0);
        
+        if(!walls)
         fx(i,j,k) += H*(uf - uvel(i,j,k))/(alpha*p->dt);   
         a->fbh1(i,j,k) = min(a->fbh1(i,j,k) + H, 1.0); 
     }
@@ -85,6 +97,7 @@ void ghostcell::solid_forcing(lexer *p, fdm *a, double alpha, field& uvel, field
         vf = 0.0;
         H = Hsolidface(p,a,0,1,0);
        
+        if(!walls)
         fy(i,j,k) += H*(vf - vvel(i,j,k))/(alpha*p->dt);
         a->fbh2(i,j,k) = min(a->fbh2(i,j,k) + H, 1.0); 
     }
@@ -94,6 +107,7 @@ void ghostcell::solid_forcing(lexer *p, fdm *a, double alpha, field& uvel, field
         wf = 0.0;
         H = Hsolidface(p,a,0,0,1);
 
+        if(!walls)
         fz(i,j,k) += H*(wf - wvel(i,j,k))/(alpha*p->dt);
         a->fbh3(i,j,k) = min(a->fbh3(i,j,k) + H, 1.0); 
     }
@@ -160,6 +174,8 @@ void ghostcell::solid_forcing(lexer *p, fdm *a, double alpha, field& uvel, field
         
 
 		// Construct the field around the solid body to adjust the tangential velocity and calculate forcing
+        if(!walls)
+        {
 		// X 46 2: the share continuous across the surface (forcing_share.h)
 		if(p->X46==2)
 		fx(i,j,k) += forcing_weight_smooth(H,fabs(nx),phival_sf,forcing_psi(p,i,j,k))*(uf - uvel(i,j,k))/(alpha*p->dt);
@@ -169,6 +185,7 @@ void ghostcell::solid_forcing(lexer *p, fdm *a, double alpha, field& uvel, field
 
 		if(p->X46!=2 && phival_sf>=0.0)
 		fx(i,j,k) +=   fabs(nx)*H*(uf - uvel(i,j,k))/(alpha*p->dt);
+        }
 
 
         a->fbh1(i,j,k) = min(a->fbh1(i,j,k) + H, 1.0); 
@@ -208,6 +225,8 @@ void ghostcell::solid_forcing(lexer *p, fdm *a, double alpha, field& uvel, field
 		phival_sf = sf_phi(0.5*(a->solid(i,j,k) + a->solid(i,j+1,k)), 0.5*(a->topo(i,j,k) + a->topo(i,j+1,k)));
 	  
 		//Construct the field around the solid body to adjust the tangential velocity and calculate forcing
+        if(!walls)
+        {
 		// X 46 2: the share continuous across the surface (forcing_share.h)
 		if(p->X46==2)
 		fy(i,j,k) += forcing_weight_smooth(H,fabs(ny),phival_sf,forcing_psi(p,i,j,k))*(vf - vvel(i,j,k))/(alpha*p->dt);
@@ -217,6 +236,7 @@ void ghostcell::solid_forcing(lexer *p, fdm *a, double alpha, field& uvel, field
 
 		if(p->X46!=2 && phival_sf>=0.0)
 		fy(i,j,k) +=   fabs(ny)*H*(vf - vvel(i,j,k))/(alpha*p->dt);
+        }
 
 	  
         a->fbh2(i,j,k) = min(a->fbh2(i,j,k) + H , 1.0); 
@@ -257,6 +277,8 @@ void ghostcell::solid_forcing(lexer *p, fdm *a, double alpha, field& uvel, field
 		
 		// Construct the field around the solid body to adjust the tangential velocity and calculate forcing
 
+        if(!walls)
+        {
 		// X 46 2: the share continuous across the surface (forcing_share.h)
 		if(p->X46==2)
 		fz(i,j,k) += forcing_weight_smooth(H,fabs(nz),phival_sf,forcing_psi(p,i,j,k))*(wf - wvel(i,j,k))/(alpha*p->dt);
@@ -266,6 +288,7 @@ void ghostcell::solid_forcing(lexer *p, fdm *a, double alpha, field& uvel, field
 
 		if(p->X46!=2 && phival_sf>=0.0)
 		fz(i,j,k) +=   fabs(nz)*H*(wf - wvel(i,j,k))/(alpha*p->dt);
+        }
 	
     
         a->fbh3(i,j,k) = min(a->fbh3(i,j,k) + H , 1.0); 

@@ -97,6 +97,13 @@ public:
     field3 fbh3;
     field4 fbh4;
     field4 fbh5;
+
+    // D 1 2: the open fraction of the cell faces at the static solids and the bed (solid_aperture.h)
+    field1 apx;
+    field2 apy;
+    field3 apz;
+    bool ap_done;
+    unsigned long long ap_sum;
     
     //PLIC
     field4 nX,nY,nZ,Alpha;

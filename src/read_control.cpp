@@ -1861,6 +1861,9 @@ void control::read_control(lexer* p)
             case 'D':control>>numint;
                 switch(numint)
                 {
+                case  1: control>>D1;
+                         clear(c,numint);
+                         break;
                 case 10: control>>D10;
                          clear(c,numint);
                          break;

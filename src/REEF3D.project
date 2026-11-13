@@ -250,6 +250,7 @@
           <File Name="pjm_corr.h"/>
           <File Name="solid_closed.h"/>
           <File Name="forcing_share.h"/>
+          <File Name="solid_aperture.h"/>
           <VirtualDirectory Name="Reference">
             <File Name="pressure_reference.h"/>
           </VirtualDirectory>
@@ -1292,6 +1293,7 @@
           <File Name="georef.h"/>
           <File Name="lagoon_output.h"/>
           <File Name="lagoon_nets.h"/>
+          <File Name="lagoon_membranes.h"/>
           <File Name="lagoon_store.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Runlog">
@@ -3460,6 +3462,7 @@
         <VirtualDirectory Name="Lagoon">
           <File Name="lagoon_store.cpp"/>
           <File Name="lagoon_nets.cpp"/>
+          <File Name="lagoon_membranes.cpp"/>
           <File Name="lagoon_output.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Runlog">
@@ -3576,6 +3579,7 @@
         </VirtualDirectory>
         <VirtualDirectory Name="Solid">
           <File Name="solid.cpp"/>
+          <File Name="solid_aperture.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Decomp">
           <File Name="dmpart_build.cpp"/>

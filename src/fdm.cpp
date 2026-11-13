@@ -40,6 +40,7 @@ fdm::fdm(lexer *p, unsigned lean) :
             topo(p),solid(p),
             test(p,!(lean&FDM_LEAN_TEST)),
             fb(p),fbh1(p),fbh2(p),fbh3(p),fbh4(p),fbh5(p),
+            apx(p,p->D1==2),apy(p,p->D1==2),apz(p,p->D1==2),ap_done(false),ap_sum(0),
             porosity(p),porpart(p,!(lean&FDM_LEAN_POR)),porA(p,!(lean&FDM_LEAN_POR)),porB(p,!(lean&FDM_LEAN_POR)),
             walld(p,!(lean&FDM_LEAN_WALLD)),
             nodeval(p,!(lean&FDM_LEAN_NODE)),nodeval2D(p),etaloc(p),
