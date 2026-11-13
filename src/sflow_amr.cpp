@@ -53,7 +53,6 @@ Author: Hans Bihs
 #include"6DOF_sflow.h"
 #include"reefmg_core.h"
 #include"reefmg2D.h"
-#include"vec2D.h"
 #include"ioflow_void.h"
 #include"ioflow_amr_block.h"
 #include<cmath>

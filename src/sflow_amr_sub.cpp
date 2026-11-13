@@ -25,7 +25,6 @@ Architect: Hans Bihs
 #include"fdm2D.h"
 #include"ghostcell.h"
 #include"slice.h"
-#include"sflow_eta.h"
 #include"sflow_fsf.h"
 #include"sflow_momentum_RK3.h"
 #include<cmath>

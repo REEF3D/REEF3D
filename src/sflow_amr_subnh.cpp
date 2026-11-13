@@ -26,8 +26,6 @@ Architect: Hans Bihs
 #include"fdm2D.h"
 #include"ghostcell.h"
 #include"slice.h"
-#include"matrix2D.h"
-#include"vec2D.h"
 #include"sflow_pressure_nh.h"
 #include"sflow_momentum_RK3.h"
 #include<cmath>

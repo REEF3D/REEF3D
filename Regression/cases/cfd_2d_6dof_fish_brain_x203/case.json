@@ -1,0 +1,12 @@
+{
+ "base": "cfd_2d_6dof_fish_brain",
+ "np": 2,
+ "steps": 440,
+ "ctrl_add": [
+  "X 200 0 0.52 0 0",
+  "X 203 0 0.05"
+ ],
+ "description": "cfd_2d_6dof_fish_brain with a body that knows its stride, for the brain (X 203 id sd): the prior of the stride 0.52 L per beat (X 200) with a spread of 0.05 s0 instead of 0.3 s0, and its drift scaled alike; the brain log of the decisions and the estimates. Fish Swimming patch 0030.",
+ "tags": ["2d", "6dof", "floating", "deform", "singlephase", "mpi"],
+ "covers": ["sixdof_brain (the spread of the stride)", "sixdof_obj::brain_setup (X 203)", "control: X 203 read, sent, received"]
+}

@@ -22,7 +22,6 @@ Author: Hans Bihs
 
 #include"6DOF_obj_2D.h"
 #include"lexer.h"
-#include"fdm_nhf.h"
 #include"ghostcell.h"
 
 void sixdof_obj_2D::update_forcing_sflow(lexer *p, ghostcell *pgc, 

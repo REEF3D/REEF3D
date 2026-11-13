@@ -24,7 +24,6 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"ghostcell.h"
 #include"fdm2D.h"
-#include"patchBC_interface.h"
 
 sflow_signal_speed::sflow_signal_speed(lexer* p) 
 {

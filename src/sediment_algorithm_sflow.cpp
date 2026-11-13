@@ -25,12 +25,8 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm2D.h"
 #include"ghostcell.h"
-#include"convection.h"
 #include"ioflow.h"
 #include"topo.h"
-#include"reinitopo.h"
-#include"suspended.h"
-#include"bedload.h"
 #include"bedshear.h"
 #include"sandslide.h"
 #include"topo_relax.h"
@@ -43,8 +39,6 @@ Author: Hans Bihs
 #include"bedload_waves.h"
 #include"sediment_susp2D.h"
 #include"seastate_sflow.h"
-#include"slice1.h"
-#include"slice2.h"
 
 void sediment_f::sediment_algorithm_sflow(lexer *p, fdm2D *b, ghostcell *pgc, ioflow *pflow, slice &P, slice &Q)
 {

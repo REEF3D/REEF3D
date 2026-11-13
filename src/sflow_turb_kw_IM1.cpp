@@ -26,7 +26,6 @@ Author: Hans Bihs
 #include"ghostcell.h"
 #include"sflow_idiff.h"
 #include"solver2D.h"
-#include"sflow_iweno_hj.h"
 #include"sflow_ifou.h"
 
 

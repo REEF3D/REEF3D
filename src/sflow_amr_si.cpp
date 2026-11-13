@@ -23,7 +23,6 @@ Architect: Hans Bihs
 #include"sflow_amr.h"
 #include"sflow_momentum_SI.h"
 #include"sflow_timestep_SI.h"
-#include"sflow_momentum_RK3.h"
 #include"sflow_curv.h"
 #include"sflow_amr_ship.h"
 #include"sflow_fsf.h"
@@ -31,7 +30,6 @@ Architect: Hans Bihs
 #include"lexer.h"
 #include"fdm2D.h"
 #include"ghostcell.h"
-#include"slice4.h"
 #include<cmath>
 #include<mpi.h>
 #include<iomanip>

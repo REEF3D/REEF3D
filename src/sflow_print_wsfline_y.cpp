@@ -27,7 +27,6 @@ Author: Hans Bihs
 #include"fdm2D.h"
 #include"ghostcell.h"
 #include"ioflow.h"
-#include"wave_interface.h"
 #include<sys/stat.h>
 #include<sys/types.h>
 #include"wsfline_ipol.h"

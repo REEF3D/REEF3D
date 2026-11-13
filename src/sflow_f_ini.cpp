@@ -26,14 +26,12 @@ Author: Hans Bihs
 #include"fdm2D.h"
 #include"ghostcell.h"
 #include"iowave.h"
-#include"sediment.h"
 #ifdef REEF3D_USE_HYPRE
 #include"hypre_struct2D.h"
 #endif
 #include"sflow_etimestep.h"
 #include"sflow_weno_flux.h"
 #include"sflow_eta.h"
-#include"sflow_hydrostatic.h"
 #include"sflow_potential.h"
 #include"sflow_momentum.h"
 #include"sflow_vtp_fsf.h"

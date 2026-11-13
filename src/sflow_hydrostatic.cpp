@@ -27,7 +27,6 @@ Author: Hans Bihs
 #include"solver2D.h"
 #include"ioflow.h"
 #include"patchBC_interface.h"
-#include"sflow_curv.h"
 
 sflow_hydrostatic::sflow_hydrostatic(lexer* p, fdm2D *b, patchBC_interface *ppBC)
 {

@@ -24,7 +24,6 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm2D.h"
 #include"ghostcell.h"
-#include"turbulence.h"
 #include<sys/stat.h>
 #include<sys/types.h>
 #include"reefckpt.h"

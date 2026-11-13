@@ -23,12 +23,9 @@ Author: Hans Bihs
 #include"bedshear.h"
 #include"sediment_curv.h"
 #include"lexer.h"
-#include"fdm.h"
 #include"fdm2D.h"
 #include"ghostcell.h"
 #include"sediment_fdm.h"
-#include"turbulence.h"
-#include"sliceint.h"
 
 #define HP (fabs(b->hp(i,j))>1.0e-20?b->hp(i,j):1.0e20)
 

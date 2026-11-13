@@ -25,7 +25,6 @@ Architect: Hans Bihs
 #include"lexer.h"
 #include"fdm2D.h"
 #include"ghostcell.h"
-#include"slice4.h"
 #include<cmath>
 #include<mpi.h>
 

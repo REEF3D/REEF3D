@@ -130,11 +130,11 @@ struct swimmer
 };
 
 static sixdof_brain brain(double Udes, double th, const std::vector<sixdof_brain::target_point> &tp, double s0 = 0.0,
-                          double k = 0.0, double bmax = 1.0, double tau_u = 0.0, double tau_d = 0.0, double nb = 0.0)
+                          double k = 0.0, double bmax = 1.0, double tau_u = 0.0, double tau_d = 0.0, double nb = 0.0, double ssd = 0.0)
 {
     // U_des, b_max, no vision, th_esc, f0 1 Hz, L 1 m, rho 1000, start 2 s, lateral axis z (2D), X 200 s0 k,
-    // X 201 tau_u tau_d, X 202 n n
-    return sixdof_brain(Udes, bmax, 0.0, th, 1.0, 1.0, 1000.0, 2.0, 2, tp, s0, k, tau_u, tau_d, nb, nb);
+    // X 201 tau_u tau_d, X 202 n n, X 203 sd
+    return sixdof_brain(Udes, bmax, 0.0, th, 1.0, 1.0, 1000.0, 2.0, 2, tp, s0, k, tau_u, tau_d, nb, nb, ssd);
 }
 
 static double mean_dist(const swimmer &S, double t0, std::function<std::array<double,2>(double)> T, double *mx = nullptr)
@@ -394,6 +394,21 @@ int main()
             md[k] = mean_dist(S, 12.0, [](double){return std::array<double,2>{3.5, 3.0};});
         }
         check(std::fabs(cr[0] - 0.2)<0.03 && md[0]<0.2 && md[0]<md[1], "X 202 0.8 0.8: current "+std::to_string(cr[0])+" m/s (0.2), station mean distance "+std::to_string(md[0])+" m (X 201 0.8 s: "+std::to_string(md[1])+" m)");
+    }
+
+    // 3k. a body that knows its stride (X 200 s0 0.52, X 203 0.05; validation 24): a swimmer of stride 0.52 L that
+    // follows its gait over 0.8 tail beats holds a station in 0.3 m/s; the brain keeps its stride within 0.02 of
+    // 0.52 the whole time and reads the current within 0.02
+    {
+        swimmer S; S.cx = 0.3; S.nb_true = 0.8; S.s_true = 0.52;
+        sixdof_brain B = brain(0.5, 1.5, {{0.0, 3.5, 0.0, 3.0}}, 0.52, 0.0, 1.0, 0.0, 0.0, 0.0, 0.05);
+        double t = 0.0, ds = 0.0;
+        for(double te=2.5; te<=30.0; te+=0.5)
+        {
+            S.run(B, t, te);
+            ds = std::max(ds, std::fabs(B.last().s - 0.52));
+        }
+        check(ds<0.02 && std::fabs(B.last().cx - 0.3)<0.02, "X 203 0.05: the stride within "+std::to_string(ds)+" of 0.52, current "+std::to_string(B.last().cx)+" m/s (0.3)");
     }
 
     // 4. a moving target at 0.25 m/s across, after the fish reached it

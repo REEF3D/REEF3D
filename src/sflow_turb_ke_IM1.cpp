@@ -27,7 +27,6 @@ Author: Hans Bihs
 #include"sflow_idiff.h"
 #include"solver2D.h"
 #include"sflow_iweno_hj.h"
-#include"sflow_ifou.h"
 
 #define HP (fabs(b->hp(i,j))>(p->A244)?b->hp(i,j):1.0e20)
 
