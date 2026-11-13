@@ -259,7 +259,7 @@ def run(case):
     cyl = np.array(case.get("cylinders", []), float).reshape(-1, 3)
     fl = case.get("flow", {"type": "uniform", "u": [0.0, 0.0]})
     flow = UniformFlow(fl["u"]) if fl["type"] == "uniform" else Reef3dFlow(fl["run"], fl.get("t0"), fl.get("t1"))
-    t_start = case.get("t_start", 1.0 + 1.0 / f0)                    # the brain starts after the ramp and a beat
+    t_start = case.get("t_start", max(1.0, 0.5 / f0))                # the brain starts at the end of the ramp (1 s)
     sh = case.get("shelter")                                          # {"R": 1.5, "step": 0.3, "every": 5, "wait": 10}
     rsh = random.Random(case.get("seed", 1) + 7)
 

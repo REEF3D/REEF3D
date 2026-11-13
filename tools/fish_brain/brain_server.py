@@ -36,6 +36,7 @@ LOCK = threading.Lock()
 TAU, KTURN, SLOW, ARRIVE, FRONT = 1.5, 1.3, 1.5, 0.25, 0.35
 TAUU, S0, TFLOOR, PSIFLOOR, REAFF, BURST, TAUC0 = 0.8, 0.5, 2.5, 1.0, 0.5, 0.5, 2.0
 CKNOWN, CDRIFT, BRAKE, NKNOWN = 0.2, 0.1, 2.5, 3
+UESC = 0.3                     # an escape: the pressures in units of q at this speed at least [L/s]
 
 
 def _kf_update(st, H, y, R, dt):
@@ -79,6 +80,7 @@ def rules(sv, st, pr):
         st["ug"], st["tdec"], st["pdec"], st["bdec"], st["Tprev"], st["vT"] = -1.0, t, list(c), b, None, [0.0, 0.0, 0.0]
         st["adec"] = a
         st["tauc"] = TAUC0
+        st["refr"] = max(st.get("refr", -1.0), t + 1.0 / f0)   # no escape in the first tail beat (the start-up)
     dt = t - st["tdec"]
     if dt > 0.0:
         y = [(c[p0] - st["pdec"][p0]) / dt, (c[p1] - st["pdec"][p1]) / dt]
@@ -230,7 +232,9 @@ def rules(sv, st, pr):
     st["est"] = (s, cur[0], cur[1], cur[2], Uw, st["tauc"])
 
     # 1. escape: a C-start away from the side of the higher pressure (not while coasting or braking)
-    if the > 0.0 and t >= st["refr"] and not (st["glide"] or a < 0.95) and (abs(dpl) > the or phd > the):
+    # (the pressures against q at UESC at least: at a low speed the own turns and the start-up are no stimulus)
+    qesc = q / max(q, 0.5 * rho * (UESC * L) ** 2)
+    if the > 0.0 and t >= st["refr"] and not (st["glide"] or a < 0.95) and (abs(dpl) * qesc > the or phd * qesc > the):
         sg = 1.0 if dpl >= 0.0 else -1.0
         st["refr"] = t + 2.0
         st["bdec"] = -2.5 * sg
