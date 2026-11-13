@@ -52,8 +52,15 @@ public:
     // DOF modes of the body (X 11, X 111 for single bodies): 2 is prescribed by this motion
     void set_dof(const int *d) { for(int n=0; n<6; ++n) dof[n]=d[n]; }
 
+    // CFD: the time at the end of the stage of the body integrator (sixdof_obj_cfd::solve_eqmotion_cfd).
+    // A motion file takes its velocity there; not set: at p->simtime, the start of the step
+    void set_stage_time(double t) { tstage = t; }
+    // the prescribed translations at that time into the position of the body (motion file)
+    virtual void stage_position(lexer*, Eigen::Vector3d&) {}
+
 protected:
     int dof[6] = {1,1,1,1,1,1};
+    double tstage = -1.0e20;
 
     inline std::vector<std::vector<double>> readTable(const std::string& path, size_t M) {
         std::ifstream file(path);

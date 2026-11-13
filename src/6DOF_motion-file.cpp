@@ -86,6 +86,9 @@ void sixdof_motionext_file::motionext_trans(lexer *p, ghostcell *pgc, Eigen::Vec
         if(p->simtime>=ts && p->simtime<=te)
         Uext = (data[timecount][1]-data[timecount_old][1])/(data[timecount][0]-data[timecount_old][0]);
         
+        if(tstage>-1.0e19)
+        Uext = stage_vel(1,tstage);
+        
         dp_(0) = 0.0;
         dc_(0) = Uext*ramp_vel(p);
     }
@@ -97,6 +100,9 @@ void sixdof_motionext_file::motionext_trans(lexer *p, ghostcell *pgc, Eigen::Vec
         if(p->simtime>=ts && p->simtime<=te)
         Vext = (data[timecount][2]-data[timecount_old][2])/(data[timecount][0]-data[timecount_old][0]);
         
+        if(tstage>-1.0e19)
+        Vext = stage_vel(2,tstage);
+        
         dp_(1) = 0.0;
         dc_(1) = Vext*ramp_vel(p);
     }
@@ -107,6 +113,9 @@ void sixdof_motionext_file::motionext_trans(lexer *p, ghostcell *pgc, Eigen::Vec
         
         if(p->simtime>=ts && p->simtime<=te)
         Wext = (data[timecount][3]-data[timecount_old][3])/(data[timecount][0]-data[timecount_old][0]);
+        
+        if(tstage>-1.0e19)
+        Wext = stage_vel(3,tstage);
         
         dp_(2) = 0.0;
         dc_(2) = Wext*ramp_vel(p);
@@ -121,6 +130,9 @@ void sixdof_motionext_file::motionext_rot(lexer *p, Eigen::Vector3d& dh_, Eigen:
         
         if(p->simtime>=ts && p->simtime<=te)
         Pext = (data[timecount][1]-data[timecount_old][1])/(data[timecount][0]-data[timecount_old][0]);
+        
+        if(tstage>-1.0e19)
+        Pext = stage_vel(1,tstage);
     }
 
     if(dof[4]==2)
@@ -129,6 +141,9 @@ void sixdof_motionext_file::motionext_rot(lexer *p, Eigen::Vector3d& dh_, Eigen:
         
         if(p->simtime>=ts && p->simtime<=te)
         Qext = (data[timecount][2]-data[timecount_old][2])/(data[timecount][0]-data[timecount_old][0]);
+        
+        if(tstage>-1.0e19)
+        Qext = stage_vel(2,tstage);
     }
 
     if(dof[5]==2)
@@ -137,6 +152,9 @@ void sixdof_motionext_file::motionext_rot(lexer *p, Eigen::Vector3d& dh_, Eigen:
         
         if(p->simtime>=ts && p->simtime<=te)
         Rext = (data[timecount][3]-data[timecount_old][3])/(data[timecount][0]-data[timecount_old][0]);
+        
+        if(tstage>-1.0e19)
+        Rext = stage_vel(3,tstage);
     }
     
     if(dof[3] == 2) dh_(0) = 0.0;
@@ -152,6 +170,74 @@ void sixdof_motionext_file::motionext_rot(lexer *p, Eigen::Vector3d& dh_, Eigen:
     h_ = I_*omega_;
 
     de_ = 0.5*G_.transpose()*omega_;
+}
+
+// The velocity of column col of the file at the time t (CFD, the end of a stage of the body integrator):
+// the velocity at a sample from the samples before and after it (central difference, one-sided at the
+// ends of the file), linear in time between the samples.
+//
+// The velocity was the difference quotient of the interval of the file at p->simtime, the start of the
+// step, for every stage: a step function in time, the same for all stages.  The fluid then took the
+// change of the velocity of a whole step in the first stage and none in the others, although the stages
+// end at different times (SSP-RK3: t+dt, t+dt/2, t+dt).  With the pressure carried from stage to stage
+// the stage pressures alternate (P, 3P, P/2 for a constant acceleration) and the loads of the step see
+// about half the pressure of the acceleration (the added mass of a submerged square: 24.6 kg/m with the
+// closed projection X 49 against 51-54 kg/m with N 40 5; 66.7 kg/m through the leak of the open one)
+double sixdof_motionext_file::stage_vel(int col, double t)
+{
+    const int n = int(data.size());
+
+    if(n<2 || t<ts || t>te)
+    return 0.0;
+
+    kstage = MAX(0,MIN(kstage,n-2));
+
+    while(kstage<n-2 && t>=data[kstage+1][0])
+    ++kstage;
+
+    while(kstage>0 && t<data[kstage][0])
+    --kstage;
+
+    auto node = [&](int k)
+    {
+        const int a = MAX(k-1,0), b = MIN(k+1,n-1);
+        return (data[b][col]-data[a][col])/(data[b][0]-data[a][0]);
+    };
+
+    const double t0 = data[kstage][0], t1 = data[kstage+1][0];
+    const double w = (t1>t0) ? MAX(0.0,MIN(1.0,(t-t0)/(t1-t0))) : 0.0;
+
+    return (1.0-w)*node(kstage) + w*node(kstage+1);
+}
+
+// The position of the prescribed translations at the time the stage ends, from the file (linear between
+// the samples), relative to the first sample: the body starts where X 110 / the STL put it.  The pose
+// integrated from the velocity at the end of the stage runs ahead of the file by up to dt/2 times the
+// change of the velocity (2.5 mm of 30 mm at 80 steps per period); the velocity is the target of the
+// forcing, the position is taken from the file.  Not with the ramp of the velocity (X 206)
+void sixdof_motionext_file::stage_position(lexer *p, Eigen::Vector3d &c_)
+{
+    const int n = int(data.size());
+
+    if(tstage<-1.0e19 || n<2 || tstage<ts || tstage>te || p->X206==1)
+    return;
+
+    stage_vel(1,tstage);    // the interval kstage
+
+    const double t0 = data[kstage][0], t1 = data[kstage+1][0];
+    const double w = (t1>t0) ? MAX(0.0,MIN(1.0,(tstage-t0)/(t1-t0))) : 0.0;
+
+    for(int q=0; q<3; ++q)
+    if(dof[q]==2)
+    {
+        if(!c0set[q])
+        {
+        c0[q] = c_(q) - data[0][q+1];
+        c0set[q] = true;
+        }
+
+        c_(q) = c0[q] + (1.0-w)*data[kstage][q+1] + w*data[kstage+1][q+1];
+    }
 }
 
 double sixdof_motionext_file::ramp_vel(lexer *p)

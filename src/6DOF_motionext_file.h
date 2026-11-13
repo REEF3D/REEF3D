@@ -39,6 +39,7 @@ using namespace std;
 class sixdof_motionext_file final : public sixdof_motionext
 {
 public:
+    void stage_position(lexer*, Eigen::Vector3d&) override;
     void ckpt_state(std::vector<double> &v) const override { for(double x : {double(timecount),double(timecount_old),Uext,Vext,Wext,Pext,Qext,Rext}) v.push_back(x); }
     void ckpt_restore(const std::vector<double> &v, size_t &k) override
     { if(k+8>v.size()) return; timecount=int(v[k++]); timecount_old=int(v[k++]); Uext=v[k++]; Vext=v[k++]; Wext=v[k++]; Pext=v[k++]; Qext=v[k++]; Rext=v[k++]; }
@@ -58,6 +59,9 @@ private:
     double ramp_vel(lexer*);
     
     void read_format_1(lexer*,ghostcell*);
+    double stage_vel(int col, double t);
+    double c0[3] = {0.0,0.0,0.0};     // the body at the first sample of the file (stage_position)
+    bool c0set[3] = {false,false,false};
     
     Eigen::Vector3d omega_;
     
@@ -70,6 +74,7 @@ private:
     std::vector<std::vector<double>> data;
     double ts,te;
     int timecount,timecount_old;
+    int kstage = 0;     // interval of the file at the stage time (stage_vel)
     int id;     // body number (6DOF_motion-<id>.dat)
     
     double Uext, Vext, Wext, Pext, Qext, Rext;

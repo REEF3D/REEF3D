@@ -28,6 +28,7 @@ Authors: Tobias Martin, Hans Bihs
 #include"fdm.h"
 #include"fdm_nhf.h"
 #include"ghostcell.h"
+#include"6DOF_motionext.h"
 
 void sixdof_obj_cfd::solve_eqmotion_cfd(lexer *p, fdm *a, ghostcell *pgc, int iter, bool finalize)
 {
@@ -44,6 +45,25 @@ void sixdof_obj_cfd::solve_eqmotion_cfd(lexer *p, fdm *a, ghostcell *pgc, int it
     update_forces(p);
     
     pfluid = nullptr;
+    
+    // prescribed motion: the velocity at the time the stage ends (p->simtime is the start of the step).
+    // SSP-RK2: t+dt, t+dt; SSP-RK3: t+dt, t+dt/2, t+dt; low-storage RK3: t+8/15 dt, t+2/3 dt, t+dt;
+    // N 40 6: t+dt/2, t+dt; N 40 5: t+dt
+    if(pmotion!=nullptr)
+    {
+        double c = 1.0;
+        
+        if(p->N40==3 || p->N40==13 || p->N40==23 || p->N40==33)
+        c = (iter==1) ? 0.5 : 1.0;
+        
+        if(p->N40==4 || p->N40==14 || p->N40==24 || p->N40==44)
+        c = (iter==0) ? 8.0/15.0 : (iter==1 ? 2.0/3.0 : 1.0);
+        
+        if(p->N40==6)
+        c = (iter==0) ? 0.5 : 1.0;
+        
+        pmotion->set_stage_time(p->simtime + c*p->dt);
+    }
     
     if(p->N40==2 || p->N40==12 || p->N40==22)
     rk2(p,pgc,iter);
@@ -78,6 +98,10 @@ void sixdof_obj_cfd::solve_eqmotion_cfd(lexer *p, fdm *a, ghostcell *pgc, int it
     
     rb.step_symplectic(p->dt);
     }
+
+    // prescribed translations: the position at the end of the stage from the motion file
+    if(pmotion!=nullptr)
+    pmotion->stage_position(p,rb.c);
 }
 
 void sixdof_obj_nhflow::solve_eqmotion_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, int iter, bool finalize)
