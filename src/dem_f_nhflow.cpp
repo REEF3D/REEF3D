@@ -35,7 +35,7 @@ Author: Hans Bihs
 
 void dem_f::fluid_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
-    const int nv = 24 + nlift;     // 0-13 as before; E 26: 14-16 sum qw u_q, 17 sum qw, 18-20 sum qw r x u_q, 21-23 sum qw r; 24-32 lift samples (E 32, E 33)
+    const int nv = 24 + nlift;     // 0-13 the base sums; E 26: 14-16 sum qw u_q, 17 sum qw, 18-20 sum qw r x u_q, 21-23 sum qw r; 24-32 lift samples (E 32, E 33)
     bool dolift = liftmodel>0 || magnus>0;
 
     // fluid velocity for the lift samples: zero inside the bed and the solids, and between the bed and

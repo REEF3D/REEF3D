@@ -53,7 +53,7 @@ void iowave::nhflow_precalc_relax(lexer *p, fdm_nhf *d, ghostcell *pgc)
     
 // U, V, W in one pass over the generation-zone cells (LOOP order), with the
 // three velocities of a cell from one evaluation of the phase and depth
-// functions. uval/vval/wval share the count sequence of the former three loops.
+// functions. uval/vval/wval share one count sequence.
     count=0;
     
     if(p->B98==2)

@@ -333,9 +333,8 @@ int nhflow_fsf_body::gsum_i(ghostcell *pgc, int v)
 void nhflow_fsf_body::solve(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
     // harmonic extension of eta over the footprint (SOR, warm start). Converged on the residual
-    // |mean of the neighbours - value| < 1e-6 DXM (was 1e-9 DXM on the update, up to 1000 sweeps
-    // with a halo exchange each); the halo is exchanged every sweep only when the footprint spans
-    // ranks
+    // |mean of the neighbours - value| < 1e-6 DXM; the halo is exchanged every sweep only when the
+    // footprint spans ranks
     const int nf = int(fi.size());
     const int nrank = patch ? 1 : pgc->globalisum(nf>0 ? 1 : 0);
     const double tol = 1.0e-6*MAX(p->DXM,1.0e-12);

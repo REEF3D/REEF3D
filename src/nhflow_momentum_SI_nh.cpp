@@ -59,8 +59,7 @@ Author: Hans Bihs
 //
 // Solution (nh_solve): the operator is the residual F(x) of the full step with x = (eta, phi_0 .. phi_{K-1}) per
 // column; A x = F(x) - F(0), A assembled directly from the derivatives of the face discharges (nh_dfaces, nh_assemble;
-// probing F with three or five colours, as before, took about half of the time of an NH step and gives the same
-// entries to round-off, environment NHCHECK). One cell in y on one rank: band LU of the interleaved unknowns (bandwidth
+// checked against probing F with three or five colours with the environment variable NHCHECK). One cell in y on one rank: band LU of the interleaved unknowns (bandwidth
 // 2 (K+1)). Otherwise (2D, MPI): FGMRES(30) preconditioned with the multigrid of nhflow_si_nhmg, whose relaxation
 // solves the K+1 unknowns of a column at once, as in Popinet 2020; the coarse levels by aggregation,
 // K-cycle (grid-independent iteration counts: 10 - 13 for 16^2 .. 64^2 columns at |r| <= 1e-6 |b|; one pre- and

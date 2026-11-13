@@ -104,7 +104,7 @@ void nhflow_komega_bc::bckin_matrix(lexer *p, fdm_nhf *d, double *KIN, double *E
             if((p->flag4[Im1JK]<0 || p->DF[Im1JK]<0))
             {
             if(TURBIN(Im1JK)) d->rhsvec.V[n] -= d->M.s[n]*KIN[Im1JK];   // discharge inflow profile (Dirichlet)
-            else d->M.p[n] += d->M.s[n];   // zero gradient, implicit (was lagged)
+            else d->M.p[n] += d->M.s[n];   // zero gradient, implicit
             d->M.s[n] = 0.0;
             }
             
@@ -216,7 +216,7 @@ void nhflow_komega_bc::bcomega_matrix(lexer *p, fdm_nhf *d, double *KIN, double 
             if(p->flag4[Im1JK]<0 || p->DF[Im1JK]<0)
             {
             if(TURBIN(Im1JK)) d->rhsvec.V[n] -= d->M.s[n]*EPS[Im1JK];   // discharge inflow profile (Dirichlet)
-            else d->M.p[n] += d->M.s[n];   // zero gradient, implicit (was lagged)
+            else d->M.p[n] += d->M.s[n];   // zero gradient, implicit
             d->M.s[n] = 0.0;
             }
             

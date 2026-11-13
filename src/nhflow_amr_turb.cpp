@@ -61,7 +61,7 @@ using namespace nhflow_amr_detail;
 // A fresh patch of a regrid takes its fields from an old patch of the same level where there was one, else linear
 // from its parent.
 //
-// Subcycling (G 7 1, turb_level, turb_sync): level 0 makes its step in the driver as before; every step of a level
+// Subcycling (G 7 1, turb_level, turb_sync): level 0 makes its step in the driver; every step of a level
 // l >= 1 (sub_level, with the time step of the level) starts with the turbulence step of its patches, the cells
 // around them from a patch of the level or linear from the parent as it is then (the parent has made its own
 // turbulence step at the start of its step: its fields are those of the end of that step, not interpolated in

@@ -45,11 +45,13 @@ using namespace std;
 // ---------------------------------------------------------------------------
 // NHFLOW hydrostatic semi-implicit free surface (A 510 11/12/13), theta method (A 535).
 //
-// For long simulations (tide, river, coastal ocean): the gravity wave speed sqrt(gh) no longer
-// limits the time step, only advection does (nhflow_timestep_SI, cap A 536).
-// Hydrostatic only (A 520 0). Separate from the explicit integrators (nhflow_momentum_RK2/RK3),
-// which are not touched; the shared parts of nhflow_momentum_func (sigma metrics, omega,
-// velocities, bed friction) and the 2D eta system of the semi-implicit SFLOW (si_eta2D) are used.
+// For long simulations (tide, river, coastal ocean): the gravity wave speed sqrt(gh) does not
+// limit the time step, only advection does (nhflow_timestep_SI, cap A 536).
+// Separate from the explicit integrators (nhflow_momentum_RK2/RK3); the shared parts of
+// nhflow_momentum_func (sigma metrics, omega, velocities, bed friction) and the 2D eta system of
+// the semi-implicit SFLOW (si_eta2D) are used. The description below is the hydrostatic step;
+// with A 520 > 0 the non-hydrostatic pressure joins eta in one coupled eta-phi system
+// (nhflow_momentum_SI_nh.cpp, Cartesian, one grid).
 //
 // Prognostic: WL, UH, VH, WH per sigma layer (cell centres) and the layer face discharges
 // Qx, Qy (per unit sigma and unit face width, as d->FEx/FEy), which carry the mass flux.
@@ -102,9 +104,9 @@ using namespace std;
 // first where the coarse faces next to a patch take the fine fluxes (advection, discharges), and one eta system over
 // the leaf cells of all grids (reefamr_si.cpp); not with subcycling (G 7 1), vertical refinement (G 6 1) or tracers.
 //
-// Not yet (stops in check()): non-hydrostatic pressure (A 520 > 0), VRANS,
-// 6DOF / floating bodies, SEASTATE, side-wall friction A 519 2, membranes, FEM coupling, patch
-// boundary conditions.
+// Not available (stops in check()): VRANS, 6DOF / floating bodies / direct forcing, side-wall
+// friction A 519 2, membranes, FEM coupling, patch boundary conditions, SEASTATE surfbeat (A 770 1);
+// the non-hydrostatic pressure and wave breaking on one Cartesian grid only.
 // ---------------------------------------------------------------------------
 
 class nhflow_breaking;

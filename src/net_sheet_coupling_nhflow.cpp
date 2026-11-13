@@ -59,7 +59,7 @@ void net_sheet::coupling_dlm_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
     }   
     
     // the force of a point is on the rank that holds it, zero on the others: one reduction for all
-    // points (it was three for each point: some 13 000 per stage for the 25 nets of OF1)
+    // points
     std::vector<double> fsum(3*nK);
     for (int pI = 0; pI < nK; pI++)
     for (int q = 0; q < 3; q++)

@@ -153,8 +153,7 @@ void iowave::nhflow_active_wavegen(lexer *p, fdm_nhf *d, ghostcell *pgc, double 
             
                 
                 // fsf deviation
-                // target at this column, ramped like the velocities (it was evaluated at the x of
-                // the last precalc cell and y = 0, without the ramp)
+                // target at this column, ramped like the velocities
                 eta_T = ramp(p)*wave_eta(p,pgc,xgen(p),ygen(p));
                 
                 // B 536 1: piston wavemaker against the linear surface elevation of the paddle signal at this

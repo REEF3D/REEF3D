@@ -207,8 +207,7 @@ nhflow_momentum_SI::nhflow_momentum_SI(lexer *p, fdm_nhf *d, ghostcell *pgc, six
     tl2 = elm_mode(p)==0 && p->geo_curv==0 && p->geo_mb==0 && p->G1==0 && !patch && p->A505==1;
 
     // A 510 11 without tl2 (curvilinear, multi-block and refined grids, A 505 0): Crank-Nicolson vertical advection with
-    // omega at t^{n+1/2} (nh_begin), as with tl2 (A 505 0 had implicit Euler here; no regression case combines it with
-    // A 510 11)
+    // omega at t^{n+1/2} (nh_begin), as with tl2
     if(onestep)
     thv = 0.5;
 
@@ -468,8 +467,7 @@ void nhflow_momentum_SI::step_single(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflo
 
     // fourth-order horizontal operators on one Cartesian grid (uniform spacing: ho_begin): the cells of the stencils.
     // Second order stays on curvilinear, multi-block and refined grids and with the semi-Lagrangian advection
-    // (A 549 1: with the fourth-order operators at Courant 2 the Thacker basin went unstable, eta 14 m for 0.8 m).
-    // (A 508, retired: was 0 / 1)
+    // (A 549 1: with the fourth-order operators at Courant 2 the Thacker basin went unstable).
     if(p->geo_curv==0 && p->geo_mb==0 && p->G1==0 && elm_mode(p)==0)
     ho_begin(p,d,pgc);
 

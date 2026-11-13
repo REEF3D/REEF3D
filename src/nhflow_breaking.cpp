@@ -473,9 +473,8 @@ void nhflow_breaking::breaking_detect(lexer *p, fdm_nhf *d, ghostcell *pgc, slic
     // depth induced breaking
     if((p->A551==1 || p->A551==3) && p->count>1)
     {
-    // deta/dt of the stage from the continuity (nhflow_fsf rk2/rk3 steps). (eta - eta_n)/(alpha dt) was right
-    // only in the first stage: eta_n is the level of the previous stage, so in the RK2 corrector it was about
-    // dt d2eta/dt2 and the test did not fire
+    // deta/dt of the stage from the continuity (nhflow_fsf rk2/rk3 steps); (eta - eta_n)/(alpha dt) is right
+    // only in the first stage (eta_n is the level of the previous stage)
     const double g = fabs(p->W22);
     
     SLICELOOP4

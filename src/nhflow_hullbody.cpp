@@ -767,7 +767,7 @@ void nhflow_hullbody::finish_loads(lexer *p, fdm_nhf *d, ghostcell *pgc, const d
     // X 15 10: the printed loads are the stage loads in the weights of the Runge-Kutta scheme (the loads of a stage
     // follow its pressure projection): the force by which the time step changes the momentum of the water. The
     // pressure of the single stages differs by more than the mean load on a body in a current; only the weighted
-    // sum enters the flow. The body motion takes the loads of the stage as before.
+    // sum enters the flow. The body motion takes the loads of the stage.
     if(cut)
     {
         for(int s=0; s<2; ++s)

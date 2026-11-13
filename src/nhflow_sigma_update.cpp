@@ -201,8 +201,7 @@ void nhflow_sigma::sigma_update(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL)
     // -----------------------------------------------------
     
     // sigx, sigy, sigz, sigt, sigxx in one column sweep.
-    // Same expressions as the former separate FLOOPs; the column constants
-    // (WLVL, B/E slopes and curvatures) are evaluated once per (i,j).
+    // the column constants (WLVL, B/E slopes and curvatures) once per (i,j)
     SLICELOOP4
     {
     if(p->wet[IJ]==0)

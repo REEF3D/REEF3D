@@ -302,7 +302,7 @@ void nhflow_suspended_IM1::suspsource(lexer* p, fdm_nhf *d, double *CONC, sedime
         // E - D = ws (c_a - c_0/rbe) = wsx (cbe - c_0), wsx = ws/rbe: pick-up ws c_a at the reference level z = a
         // and deposition with the near-bed concentration c_0/rbe of the Rouse profile in the bottom cell
         // (bedconc_VR: cbe = rbe c_a is the cell mean). The equilibrium c_0 = cbe is that of ws (cbe - c_0); away
-        // from it the exchange no longer slows down with the thickness of the bottom cell (rbe << 1 in a thick
+        // from it the exchange does not slow down with the thickness of the bottom cell (rbe << 1 in a thick
         // cell). S 127 1: the fall velocity hindered with the concentration of the cell, as at the faces above.
         if(k==0 && p->DF[IJK]>0 && p->wet[IJ]==1 && p->DFBED[IJ]>0 && p->XP[IP]>=p->S71 && p->XP[IP]<=p->S72)
         {
@@ -328,8 +328,7 @@ void nhflow_suspended_IM1::inflow_conc(lexer *p, fdm_nhf *d, sediment_fdm *s)
     // prescribed inflow concentration (S 124 >= 0, or the time series of S 129 2): the inflow ghost columns (IO 1)
     // at the x- edge carry the depth-averaged concentration C_in with the profile of the first column (uniform
     // while that column is clear); bcsusp_start takes them as the upwind (Dirichlet) value of the inflow face.
-    // C_in < 0: zero gradient as before (the face coefficient is folded into the diagonal)
-    // All four edges of the domain (it was the x- edge only: an inflow through another edge stayed zero gradient).
+    // C_in < 0: zero gradient (the face coefficient is folded into the diagonal). All four edges of the domain.
     cin_on = 0;
     
     const double cin = (s->pinflow!=nullptr) ? s->pinflow->conc(p) : p->S124;
@@ -482,7 +481,7 @@ void nhflow_suspended_IM1::bcsusp_start(lexer *p, fdm_nhf *d, ghostcell *pgc, se
             d->M.t[n] = 0.0;
             }
             
-            // free surface: impermeable, implicit zero gradient (was a ghost value C = 0: diffusive loss)
+            // free surface: impermeable, implicit zero gradient (no diffusive loss)
             if(k==p->knoz-1)
             {
             d->M.p[n] += d->M.t[n];
@@ -592,7 +591,7 @@ void nhflow_suspended_IM1::exchange_sum(lexer *p, fdm_nhf *d, sediment_fdm *s)
 
 void nhflow_suspended_IM1::bed_rate(lexer *p, ghostcell *pgc, sediment_fdm *s)
 {
-    // one flow step since the last bed update: the bed takes ws (cbn - cb) of that step (susp_ED), as before;
+    // one flow step since the last bed update: the bed takes ws (cbn - cb) of that step (susp_ED);
     // several flow steps (S 44 > 1, S 42 2, 3): the mean rate of all of them, so that with S 15 4 the bed takes
     // exactly the exchange of the water column
     s->edrate = nullptr;

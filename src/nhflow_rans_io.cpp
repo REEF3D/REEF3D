@@ -45,8 +45,7 @@ nhflow_rans_io::~nhflow_rans_io()
 }
 
 // 2D output (bed mode 0, free surface mode 1): eddyv, kin, eps/omega of the bottom or top sigma layer at the
-// slice vertices, 3 arrays of pointnum2D as offset_ParaView_2D and name_vtp declare (was: a first eddyv array of
-// pointnum 3D values, the second eddyv array not written and the layer index left at 0/1). Not called at present.
+// slice vertices, 3 arrays of pointnum2D as offset_ParaView_2D and name_vtp declare. Not called at present.
 void nhflow_rans_io::print_2D(lexer* p, fdm_nhf *d, ghostcell *pgc, std::ostream &result, int mode)
 {
     const int kk = (mode==1) ? p->knoz-1 : 0;

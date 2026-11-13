@@ -81,7 +81,7 @@ void nhflow_kepsilon_IM1::start_part(lexer* p, fdm_nhf* d, ghostcell* pgc, nhflo
 
     if(part==1)
     {
-    // k >= 0 also against the explicit convection (was only with the buoyancy sink A 566 1)
+    // k >= 0 also against the explicit convection (not only with the buoyancy sink A 566 1)
     LOOP
     KIN[IJK] = MAX(KIN[IJK],0.0);
     strat_kmin(p);
@@ -115,7 +115,7 @@ void nhflow_kepsilon_IM1::start_part(lexer* p, fdm_nhf* d, ghostcell* pgc, nhflo
 
     eddyvisc(p,d,pgc,pvrans);
     // relaxation zones: k, eps and both eddy viscosities with the same factor (nu_t = cmu k^2/eps scales with it),
-    // then d->KIN (was copied before the relaxation)
+    // then d->KIN
     pflow->turb_relax_nhflow(p,d,pgc,KIN);
     pflow->turb_relax_nhflow(p,d,pgc,EPS);
     pflow->turb_relax_nhflow(p,d,pgc,d->EV);

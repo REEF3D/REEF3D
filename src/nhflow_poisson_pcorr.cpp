@@ -287,7 +287,7 @@ void nhflow_poisson_pcorr::start(lexer* p, fdm_nhf *d, double *P)
             
             // East
             // solid wall: homogeneous Neumann dp/dn=0 (ghost = cell value), i.e. the
-            // coupling moves onto the diagonal; dry / shallow neighbour: p=0 as before
+            // coupling moves onto the diagonal; dry / shallow neighbour: p=0
             if(p->flag7[FIJm1K]<0 && p->j_dir==1)
             {
             d->M.p[n] += d->M.e[n];

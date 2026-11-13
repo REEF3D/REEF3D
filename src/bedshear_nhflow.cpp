@@ -261,8 +261,6 @@ void bedshear::taubed(lexer *p, fdm_nhf*d, ghostcell *pgc, sediment_fdm *s)
         // grain with rho cm (pi/6) d^3 du/dt, over its area share d^2/cn a stress rho cm cv cn d50 du/dt in the
         // direction of the acceleration (bed_acceleration: signed, both components). It is added to the shear stress
         // as a vector, |tau e_u + tau_acc|: more stress while the flow accelerates, less while it decelerates
-        // (the term was the magnitude of the acceleration times S 21 d50: it raised the stress in both phases,
-        // and only the RK2 momentum solver filled it)
         if(p->S37==1)
         {
             const double cm = 1.5;

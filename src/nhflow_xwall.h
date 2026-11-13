@@ -30,7 +30,7 @@ Architect: Hans Bihs
 // side 1: x-, 4: x+.
 // Not where waves travelling along x are generated (B 98 >= 2, x-) or absorbed (B 99 >= 1, x+): the relaxation
 // zone or the wavemaker there imposes the wave up to the side, which is then open to it (zero-gradient U at x-,
-// pressure correction 0), as before. Waves along x: generation direction B 105 within 60 deg of x.
+// pressure correction 0). Waves along x: generation direction B 105 within 60 deg of x.
 inline bool nhflow_xwall_slip(lexer *p, int side)
 {
     const bool along_x = fabs(cos(p->B105_1*3.14159265358979323846/180.0))>0.5;

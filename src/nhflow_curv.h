@@ -47,7 +47,7 @@ using namespace std;
 // Horizontal derivatives (sigma metrics, pressure gradient, divergence of the Poisson right-hand
 // side) by the chain rule with the cell centres (sflow_curv::grad5); the Laplacians compact with the
 // face lengths and the centre distances along the face normals, the non-orthogonal part deferred.
-// The Cartesian kernels are not touched: every curvilinear path is a branch on p->geo_curv.
+// Every curvilinear path is a branch on p->geo_curv next to the Cartesian kernel.
 
 class nhflow_curv : public increment
 {

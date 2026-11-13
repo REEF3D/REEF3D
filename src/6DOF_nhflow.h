@@ -96,7 +96,7 @@ public:
     
     // X 13: the top-cell distance of the pierced-column level at the pose of the stage. The body
     // is then advanced at the start of the stage (advance_stage, from the loads of the last
-    // stage, as before), not in phase_P1, so the footprint and the loads see the same hull.
+    // stage), not in phase_P1, so the footprint and the loads see the same hull.
     bool top_phi_nhflow(lexer*,fdm_nhf*,ghostcell*,int,slice&,slice&) override final;
     
     // X 13 2: the keel of the hull at the pose of the stage (advance_stage as for X 13 1)
