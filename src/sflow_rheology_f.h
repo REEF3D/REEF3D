@@ -46,13 +46,12 @@ public:
 private:
     double bingham(lexer*, fdm2D*, double, double, double, double);
     
-    double cf,manning;
+    double cf;
     
     double tau_zx,tau_zy,u_abs;
     double tau0,val;
     double press;
     double tanphi;
-    double hc,denom;
 };
 
 #endif

@@ -66,7 +66,7 @@ private:
     
     double const kw_alpha, kw_beta,kw_sigma_k,kw_sigma_w;
     
-    int gcval_kin, gcval_omega;
+    int gcval_kin;
     int count;
     double starttime;
     

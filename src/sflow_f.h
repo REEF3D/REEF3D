@@ -112,7 +112,6 @@ private:
     sediment *psed;
     sflow_potential *potflow;
     
-    fdm *aa;
     turbulence *pturbcfd;
     
     patchBC_interface *pBC;

@@ -48,7 +48,6 @@ private:
     
     double ivel1,ivel2,jvel1,jvel2;
     double udir,vdir;
-    double iadvec,jadvec;
     
     int count;
 

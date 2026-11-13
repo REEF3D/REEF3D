@@ -26,7 +26,7 @@ Author: Hans Bihs
 #include"fdm2D.h"
 #include"patchBC_interface.h"
 
-sflow_reconstruct_weno::sflow_reconstruct_weno(lexer* p, patchBC_interface *ppBC) : weno_nug_func(p), dfdx(p), dfdy(p)
+sflow_reconstruct_weno::sflow_reconstruct_weno(lexer* p, patchBC_interface *ppBC) : weno_nug_func(p)
 {
     pBC = ppBC;
 
@@ -36,7 +36,7 @@ sflow_reconstruct_weno::sflow_reconstruct_weno(lexer* p, patchBC_interface *ppBC
     set_weno_weights(p->A213,p->A222);
 }
 
-sflow_reconstruct_weno::sflow_reconstruct_weno(lexer* p, patchBC_interface *ppBC, int own) : weno_nug_func(p,own), dfdx(p), dfdy(p)
+sflow_reconstruct_weno::sflow_reconstruct_weno(lexer* p, patchBC_interface *ppBC, int own) : weno_nug_func(p,own)
 {
     pBC = ppBC;
 

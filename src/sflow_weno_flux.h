@@ -52,7 +52,7 @@ private:
 
 	double L,grad;
     double dx,dy;
-	double ul,ur,vl,vr;
+	double vl;
     
 	const double tttw,fourth,third,sevsix,elvsix,sixth,fivsix,tenth;
 	const double sixten,treten;
@@ -61,7 +61,6 @@ private:
 	double alpha1,alpha2,alpha3;
 	double w1,w2,w3;
 	double q1,q2,q3,q4,q5;
-	double gradx, grady, gradz;
 	double fu1,fv1,fu2,fv2;
 
 	void is(slice&);
