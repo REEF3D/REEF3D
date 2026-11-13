@@ -56,7 +56,7 @@ void sixdof_obj_cfd::forces_stl(lexer* p, fdm *a, ghostcell *pgc,field& uvel, fi
 
     // X 34 2: the acceleration of the body over the last time step, from its velocities (free,
     // prescribed and external motion alike); once per time step, at its first stage
-    if(p->X34==2 && p->simtime>x34_time_)
+    if((p->X34==2 || (p->X49>0 && p->X34==0)) && p->simtime>x34_time_)
     {
         if(x34_time_>-1.0e19 && p->simtime-x34_time_>1.0e-14)
         x34_acc_ = (u_fb - x34_uprev_)/(p->simtime-x34_time_);
@@ -151,9 +151,14 @@ void sixdof_obj_cfd::forces_stl(lexer* p, fdm *a, ghostcell *pgc,field& uvel, fi
             ny=0.0;
             
             // Add normal stress contributions
-            xlocp = xc + q->X42*nx*q->DXP[IP];
-            ylocp = yc + q->X42*ny*q->DYP[JP];
-            zlocp = zc + q->X42*nz*q->DZP[KP];
+            // with X 49 (the pressure inside the body is not solved) the probe points lie off the hull
+            // and their pressure is taken to the hull: X 42 1.5 and X 34 2 where they are not set
+            const double x42 = (q->X49>0 && q->X42<=0.0) ? 1.5 : q->X42;
+            const int x34 = (q->X49>0 && q->X34==0) ? 2 : q->X34;
+
+            xlocp = xc + x42*nx*q->DXP[IP];
+            ylocp = yc + x42*ny*q->DYP[JP];
+            zlocp = zc + x42*nz*q->DZP[KP];
 
             p_int = q->ccipol4a(fa->press,xlocp,ylocp,zlocp) - p->pressgage;
 
@@ -161,13 +166,13 @@ void sixdof_obj_cfd::forces_stl(lexer* p, fdm *a, ghostcell *pgc,field& uvel, fi
             // normal with the pressure gradient of the fluid there, dp/dn = rho n.(g - a): 1 the fluid at
             // rest relative to the body (g alone), 2 with the acceleration of the hull over the last time step.  With X 49 the pressure inside the body is not
             // solved (the faces are closed) and the interpolation at the hull would reach into it
-            if(q->X34>0 && q->X42>0.0)
+            if(x34>0 && x42>0.0)
             {
-                const double ddx = q->X42*nx*q->DXP[IP], ddy = q->X42*ny*q->DYP[JP], ddz = q->X42*nz*q->DZP[KP];
+                const double ddx = x42*nx*q->DXP[IP], ddy = x42*ny*q->DYP[JP], ddz = x42*nz*q->DZP[KP];
                 const double rho_m = q->ccipol4a(fa->ro,xc+0.5*ddx,yc+0.5*ddy,zc+0.5*ddz);
                 double ax = a->gi, ay = a->gj, az = a->gk;
 
-                if(q->X34==2)
+                if(x34==2)
                 {
                     // the acceleration of the hull at the triangle: dU/dt + dw/dt x r + w x (w x r)
                     const double rx = xc - c_(0), ry = yc - c_(1), rz = zc - c_(2);

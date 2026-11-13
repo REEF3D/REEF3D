@@ -654,11 +654,23 @@ void driver::logic_cfd()
     preso = new reinitopo_RK3(p,"solid");
     
 // 6DOF
-    // X 49 (the forced share not corrected by the projection): a body does not leak any more and the
-    // fluid answers its acceleration with the full added mass.  The explicit coupling of the loads is
-    // then unstable for a light body (a box of density 500 in heave), which the leak of the open
-    // projection damped.  The stabilised coupling X 197 with its consistent added mass on both sides
-    // is switched on with it (not with the fluid-momentum coupling X 198)
+    // X 49 and X 46 not set in the control file: on for the 6DOF bodies with the one-step scheme N 40 5
+    // and the loads on the triangles of the hull (X 60 1), not with the fluid-momentum coupling X 198.
+    // There the closed projection gave the added mass of the fine grid (a square oscillating in a
+    // closed box: 54.3 kg/m at dx 0.02, 53.2 at dx 0.01); with the stages of N 40 3 and N 40 6 it is
+    // 20 and 10 % too high, they keep the open projection
+    // Not with the subcycled mesh refinement (G 1 with G 7 1): there the heave of a box differed
+    // from the run with one time step for all levels (9 mm after 0.6 s), not understood yet
+    if(p->X49<0)
+    p->X49 = (p->X10>0 && p->N40==5 && p->X60==1 && p->X198==0 && !(p->G1>0 && p->G7!=0)) ? 1 : 0;
+
+    if(p->X46<0)
+    p->X46 = (p->X49>0) ? 1 : 0;
+
+    // X 49: a body does not leak any more and the fluid answers its acceleration with the full added
+    // mass.  The explicit coupling of the loads is then unstable for a light body (a box of density
+    // 500 in heave), which the leak of the open projection damped.  The stabilised coupling X 197
+    // with its consistent added mass on both sides is switched on with it (not with X 198)
     if(p->X49>0 && p->X10>0 && p->X197<=0.0 && p->X198==0)
     p->X197 = 1.0;
 

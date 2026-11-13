@@ -37,6 +37,12 @@ Architect: Hans Bihs
 //   outside, tangential mode (B 21 1, X 14 > 0):      w = |n_d| H   (the normal component only)
 // H the smoothed Heaviside of half width X 41 cells.
 //
+// X 46 and X 49: 1 the 6DOF bodies, 2 the bodies and the solids and the bed (the solids not tested yet).
+// Not set in the control file: on (1) for bodies with the one-step scheme N 40 5 and the loads X 60 1
+// (not with X 198 or the subcycled mesh refinement G 7 1),
+// together with the loads from probe points off the hull (X 42 1.5, X 34 2) and the stabilised coupling
+// X 197 1 (driver_logic_cfd); X 49 0 keeps the open projection.
+//
 // X 46 1: the share continuous across the surface.  The switch from |n_d| H to H at the level set 0
 //         is a jump of up to 0.5 in the share of a face tangential to the surface; when a body moves,
 //         each such face takes it once, a kick in the forcing and in the pressure of that step.
@@ -112,7 +118,7 @@ inline double forcing_psi(lexer *p, int i0, int j0, int k0)
 // forcing of the stage took it (ghostcell::solid_forcing, sixdof_obj_cfd::update_forcing).  With
 // bodies (X 10) fbh1-3 hold the Heaviside of the bodies alone (sixdof_cfd::setup), the solids are
 // taken from their level sets here; without bodies fbh1-3 are the solids
-inline double forcing_share_face(lexer *p, fdm *a, int i0, int j0, int k0, int d)
+inline double forcing_share_face(lexer *p, fdm *a, int i0, int j0, int k0, int d, bool solids=true)
 {
     const int i1 = i0 + (d==0), j1 = j0 + (d==1), k1 = k0 + (d==2);
     const double psi = forcing_psi(p,i0,j0,k0);
@@ -120,7 +126,7 @@ inline double forcing_share_face(lexer *p, fdm *a, int i0, int j0, int k0, int d
     double w = 0.0;
 
     // solids and bed
-    if(p->G505==0 && (p->solidread>0 || p->topoforcing>0))
+    if(solids && p->G505==0 && (p->solidread>0 || p->topoforcing>0))
     {
         const double phs = 0.5*(a->solid(i0,j0,k0) + a->solid(i1,j1,k1));
         const double pht = 0.5*(a->topo(i0,j0,k0) + a->topo(i1,j1,k1));
@@ -134,7 +140,7 @@ inline double forcing_share_face(lexer *p, fdm *a, int i0, int j0, int k0, int d
             const bool topo_normal = p->topoforcing>0 && (p->solidread==0 || phs>=pht);
             field &ls = topo_normal ? (field&)a->topo : (field&)a->solid;
 
-            if(p->X46==1)
+            if(p->X46==2)
             Hs = forcing_weight_smooth(Hs,forcing_absn(p,ls,i0,j0,k0,d,false),ph,psi);
 
             else if(ph>=0.0)
@@ -154,7 +160,7 @@ inline double forcing_share_face(lexer *p, fdm *a, int i0, int j0, int k0, int d
         {
             const double ph = 0.5*(a->fb(i0,j0,k0) + a->fb(i1,j1,k1));
 
-            if(p->X46==1)
+            if(p->X46>=1)
             Hb = forcing_weight_smooth(Hb,forcing_absn(p,a->fb,i0,j0,k0,d,p->X14==2),ph,psi);
 
             else if(ph>0.0)
@@ -171,7 +177,7 @@ inline double forcing_share_face(lexer *p, fdm *a, int i0, int j0, int k0, int d
 // coefficient of that size only costs the condition of the matrix)
 inline double forcing_open_face(lexer *p, fdm *a, int i0, int j0, int k0, int d)
 {
-    const double o = 1.0 - forcing_share_face(p,a,i0,j0,k0,d);
+    const double o = 1.0 - forcing_share_face(p,a,i0,j0,k0,d,p->X49==2);
 
     return o<1.0e-3 ? 0.0 : o;
 }

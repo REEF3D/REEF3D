@@ -213,13 +213,13 @@ void sixdof_obj_cfd::update_forcing(lexer *p, fdm *a, ghostcell *pgc,field& uvel
 		
 		// Construct the field around the solid body to adjust the tangential velocity and calculate forcing
 		// X 46 1: the share continuous across the surface (forcing_share.h)
-		if(p->X46==1)
+		if(p->X46>=1)
 		fx(i,j,k) += forcing_weight_smooth(H,fabs(nx),phival_fb,forcing_psi(p,i,j,k))*(uf - uvel(i,j,k))/(alpha[iter]*p->dt);
 
-		if(p->X46!=1 && phival_fb<=0.0)
+		if(p->X46<1 && phival_fb<=0.0)
 		fx(i,j,k) += H*(uf - uvel(i,j,k))/(alpha[iter]*p->dt); 
 
-		if(p->X46!=1 && phival_fb>0.0)
+		if(p->X46<1 && phival_fb>0.0)
 		fx(i,j,k) +=   fabs(nx)*H*(uf - uvel(i,j,k))/(alpha[iter]*p->dt);
             
 
@@ -265,13 +265,13 @@ void sixdof_obj_cfd::update_forcing(lexer *p, fdm *a, ghostcell *pgc,field& uvel
 	  
 		//Construct the field around the solid body to adjust the tangential velocity and calculate forcing
 		// X 46 1: the share continuous across the surface (forcing_share.h)
-		if(p->X46==1)
+		if(p->X46>=1)
 		fy(i,j,k) += forcing_weight_smooth(H,fabs(ny),phival_fb,forcing_psi(p,i,j,k))*(vf - vvel(i,j,k))/(alpha[iter]*p->dt);
 
-		if(p->X46!=1 && phival_fb<=0.0)
+		if(p->X46<1 && phival_fb<=0.0)
 		fy(i,j,k) += H*(vf - vvel(i,j,k))/(alpha[iter]*p->dt); 
 
-		if(p->X46!=1 && phival_fb>0.0)
+		if(p->X46<1 && phival_fb>0.0)
 		fy(i,j,k) +=   fabs(ny)*H*(vf - vvel(i,j,k))/(alpha[iter]*p->dt);
 
 
@@ -317,13 +317,13 @@ void sixdof_obj_cfd::update_forcing(lexer *p, fdm *a, ghostcell *pgc,field& uvel
 		// Construct the field around the solid body to adjust the tangential velocity and calculate forcing
 
 		// X 46 1: the share continuous across the surface (forcing_share.h)
-		if(p->X46==1)
+		if(p->X46>=1)
 		fz(i,j,k) += forcing_weight_smooth(H,fabs(nz),phival_fb,forcing_psi(p,i,j,k))*(wf - wvel(i,j,k))/(alpha[iter]*p->dt);
 
-		if(p->X46!=1 && phival_fb<=0.0)
+		if(p->X46<1 && phival_fb<=0.0)
 		fz(i,j,k) += H*(wf - wvel(i,j,k))/(alpha[iter]*p->dt); 
 
-		if(p->X46!=1 && phival_fb>0.0)
+		if(p->X46<1 && phival_fb>0.0)
 		fz(i,j,k) +=   fabs(nz)*H*(wf - wvel(i,j,k))/(alpha[iter]*p->dt);
 
 

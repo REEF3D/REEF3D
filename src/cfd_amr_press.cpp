@@ -1519,7 +1519,7 @@ double cfd_amr::forced_share(int g, const int *c, int d)
     const int i0 = c[0], j0 = c[1], k0 = c[2];
 
     // X 46 1: the share continuous across the surface, one definition for all grids (forcing_share.h)
-    if(q->X46==1)
+    if(q->X46>=1)
     return forcing_share_face(q,f,i0,j0,k0,d);
     const int i1 = i0+e[0], j1 = j0+e[1], k1 = k0+e[2];
 
@@ -1791,7 +1791,9 @@ void cfd_amr::pr_matrix(int s)
         // (pr_correct)
         if(p0->X49>0)
         {
-            double o = 1.0 - MAX(forced_share(F.gface,F.cf,F.d),forced_share(F.pid,F.ff,F.d));
+            // (X 49 1: the share of the bodies alone, 2 with the solids)
+            double o = 1.0 - MAX(forcing_share_face(glex(F.gface),gfd(F.gface),F.cf[0],F.cf[1],F.cf[2],F.d,p0->X49==2),
+                                 forcing_share_face(glex(F.pid),gfd(F.pid),F.ff[0],F.ff[1],F.ff[2],F.d,p0->X49==2));
             if(o<1.0e-3)
             o = 0.0;
             F.kf *= o;
@@ -3210,7 +3212,9 @@ void cfd_amr::pr_level(lexer *p, ghostcell *pgc, int l, int s)
         // X 49: the open share of the face (pr_matrix)
         if(p0->X49>0)
         {
-            double o = 1.0 - MAX(forced_share(F.gface,F.cf,F.d),forced_share(F.pid,F.ff,F.d));
+            // (X 49 1: the share of the bodies alone, 2 with the solids)
+            double o = 1.0 - MAX(forcing_share_face(glex(F.gface),gfd(F.gface),F.cf[0],F.cf[1],F.cf[2],F.d,p0->X49==2),
+                                 forcing_share_face(glex(F.pid),gfd(F.pid),F.ff[0],F.ff[1],F.ff[2],F.d,p0->X49==2));
             if(o<1.0e-3)
             o = 0.0;
             F.kf *= o;
