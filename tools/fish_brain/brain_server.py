@@ -6,7 +6,7 @@
 # REEF3D (rank 0) connects to 127.0.0.1:port and sends one line of JSON per decision (once per half
 # tail beat); the server answers with one line of JSON:
 #
-#   hello  {"hello":1,"body":0,"L":..,"f0":..,"rho":..,"U_des":..,"b_max":..,"D":..,"th_esc":..,"t_start":..,"twoD":1,"s0":..,"k_turn":..,"tau_u":..,"tau_d":..,"n_u":..,"n_d":..}
+#   hello  {"hello":1,"body":0,"L":..,"f0":..,"rho":..,"U_des":..,"b_max":..,"D":..,"th_esc":..,"t_start":..,"twoD":1,"s0":..,"k_turn":..,"tau_u":..,"tau_d":..,"n_u":..,"n_d":..,"s_sd":..}
 #          -> {"ok":1,"policy":"rules"}
 #   senses {"t":..,"f":..,"a":..,"b":..,            the time of the decision, the gait now
 #           "pos":[x,y,z],"axis":[..],"lat":[..],   the CoG, the mean body axis and lateral axis in the plane
@@ -42,7 +42,8 @@ UESC = 0.3                     # an escape: the pressures in units of q at this 
 def _kf_update(st, H, y, R, dt):
     """The Kalman filter on [s, c_p0, c_p1] (sixdof_brain::kf_update)."""
     x, P = st["kx"], st["kP"]
-    P[0][0] += 1.0e-4 * dt
+    ssd = st.get("ssd", 0.0)
+    P[0][0] += 1.0e-4 * dt * ssd * ssd / 0.09 if ssd > 0.0 else 1.0e-4 * dt
     P[1][1] += 2.5e-3 * dt
     P[2][2] += 2.5e-3 * dt
     for m in range(2):
@@ -69,6 +70,7 @@ def rules(sv, st, pr):
     taud = pr.get("tau_d", 0.0) or TAUU
     nu = max(0.0, pr.get("n_u", 0.0) or 0.0)     # X 202: the speed follows the gait in tail beats (replaces X 201)
     nd = (pr.get("n_d", 0.0) or 0.0) or nu
+    ssd = max(0.0, pr.get("s_sd", 0.0) or 0.0)    # X 203: the spread of the stride about s0 (0: 0.3)
     t, f, a, b = sv["t"], sv["f"], sv["a"], sv["b"]
     ex, el, c = sv["axis"], sv["lat"], sv["pos"]
     nrm = 1 if pr["twoD"] else 2
@@ -78,7 +80,8 @@ def rules(sv, st, pr):
     # 1. the speed of the gait since the last decision; the estimate of the stride and the current
     if "kx" not in st:
         st["kx"], st["s0"] = [s0, 0.0, 0.0], s0
-        st["kP"] = [[0.09 * s0 * s0, 0.0, 0.0], [0.0, 0.3 * 0.3, 0.0], [0.0, 0.0, 0.3 * 0.3]]
+        st["kP"] = [[(ssd * ssd * s0 * s0 if ssd > 0.0 else 0.09 * s0 * s0), 0.0, 0.0], [0.0, 0.3 * 0.3, 0.0], [0.0, 0.0, 0.3 * 0.3]]
+        st["ssd"] = ssd
         st["ug"], st["tdec"], st["pdec"], st["bdec"], st["Tprev"], st["vT"] = -1.0, t, list(c), b, None, [0.0, 0.0, 0.0]
         st["adec"] = a
         st["tauc"] = TAUC0

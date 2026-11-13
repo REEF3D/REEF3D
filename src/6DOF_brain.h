@@ -46,7 +46,7 @@ Architect: Hans Bihs
 //  stride of 0.52-0.58 L, validation 23); from the speed on the track over the first interval
 //  between decisions (a body may still be accelerating; no update then); the ground velocity is
 //  s U_g ex + c. A Kalman filter
-//  on the stride s (prior s0 L per beat, X 200, default 0.5; standard deviation 0.3 s0, kept within
+//  on the stride s (prior s0 L per beat, X 200, default 0.5; standard deviation 0.3 s0 or X 203 sd s0, kept within
 //  0.5-1.6 s0) and the current c in the plane estimates both from the CoG at
 //  the decisions (validation 11, 2D swimmer: s = 0.46, the current 0.17-0.26 m/s for the imposed 0.2 m/s,
 //  in still water at most 0.08 m/s, mean 0.04 m/s). U_w = s U_g is the speed through the water. While the
@@ -97,7 +97,7 @@ public:
 
     sixdof_brain(double U_des, double b_max, double D_vis, double th_esc, double f0, double L, double rho,
                  double t_start, int lateral, const std::vector<target_point>&, double s0 = 0.0, double k_turn = 0.0,
-                 double tau_u = 0.0, double tau_d = 0.0, double n_u = 0.0, double n_d = 0.0);
+                 double tau_u = 0.0, double tau_d = 0.0, double n_u = 0.0, double n_d = 0.0, double s_sd = 0.0);
 
     // the senses of one time step: dt, the body axis and the lateral axis (inertial frame), the CoG,
     // the CoG velocity; the lateral line (per probe: s/L, side, pressure) when the body has one
@@ -146,12 +146,13 @@ public:
     double speed_time_down() const {return taud_;}
     double speed_beats_up() const {return nu_;}
     double speed_beats_down() const {return nd_;}
+    double stride_spread() const {return ssd_;}
 
 private:
 
     Eigen::Vector3d target(double t) const;
 
-    const double Udes_, bmax_, Dvis_, the_, f0_, L_, rho_, tstart_, s0_, kturn_, tauu_, taud_, nu_, nd_;
+    const double Udes_, bmax_, Dvis_, the_, f0_, L_, rho_, tstart_, s0_, kturn_, tauu_, taud_, nu_, nd_, ssd_;
     const int lat_;
     std::vector<target_point> tp_;
 

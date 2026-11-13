@@ -149,7 +149,7 @@ class Fish3:
                    "b_max": brain["b_max"], "D": brain["D"], "th_esc": 0.0, "t_start": t_start, "twoD": 0,
                    "s0": brain.get("s0", 0.0), "k_turn": brain.get("k_turn", 0.0),
                    "tau_u": brain.get("tau_u", 0.0), "tau_d": brain.get("tau_d", 0.0),
-                   "n_u": brain.get("n_u", 0.0), "n_d": brain.get("n_d", 0.0)}
+                   "n_u": brain.get("n_u", 0.0), "n_d": brain.get("n_d", 0.0), "s_sd": brain.get("s_sd", 0.0)}
         self.acc_U = 0.0; self.acc_n = 0
         self.mode = -1
 

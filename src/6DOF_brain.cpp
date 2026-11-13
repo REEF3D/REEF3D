@@ -47,11 +47,12 @@ namespace
 
 sixdof_brain::sixdof_brain(double U_des, double b_max, double D_vis, double th_esc, double f0, double L, double rho,
                            double t_start, int lateral, const std::vector<target_point> &tp, double s0, double k_turn,
-                           double tau_u, double tau_d, double n_u, double n_d)
+                           double tau_u, double tau_d, double n_u, double n_d, double s_sd)
              : Udes_(U_des), bmax_(b_max>0.0 ? b_max : 1.0), Dvis_(D_vis), the_(th_esc), f0_(f0), L_(L), rho_(rho),
                tstart_(t_start), s0_(s0>0.0 ? s0 : brain_s0), kturn_(k_turn!=0.0 ? k_turn : brain_kturn),
                tauu_(tau_u>0.0 ? tau_u : brain_tauu), taud_(tau_d>0.0 ? tau_d : brain_tauu),
-               nu_(std::max(0.0, n_u)), nd_(n_d>0.0 ? n_d : std::max(0.0, n_u)), lat_(lateral), tp_(tp)
+               nu_(std::max(0.0, n_u)), nd_(n_d>0.0 ? n_d : std::max(0.0, n_u)),
+               ssd_(std::max(0.0, s_sd)), lat_(lateral), tp_(tp)
 {
     std::stable_sort(tp_.begin(), tp_.end(), [](const target_point &a, const target_point &b) {return a.t<b.t;});
     t_start_ = tstart_;
@@ -141,7 +142,8 @@ sixdof_brain::decision sixdof_brain::decide(double t, double f, double a, double
         for(int i=0; i<3; ++i)
         for(int j=0; j<3; ++j)
         kf_P_[i][j] = 0.0;
-        kf_P_[0][0] = 0.09*s0_*s0_; kf_P_[1][1] = kf_P_[2][2] = 0.3*0.3;
+        // the spread of the stride: 0.3 s0, or how well the body knows it (X 203 sd)
+        kf_P_[0][0] = (ssd_>0.0) ? ssd_*ssd_*s0_*s0_ : 0.09*s0_*s0_; kf_P_[1][1] = kf_P_[2][2] = 0.3*0.3;
         // the speed of the gait: from the track over the first interval (a body that starts from rest may
         // still be accelerating), not yet known
         ug_ = -1.0;
@@ -476,7 +478,7 @@ sixdof_brain::decision sixdof_brain::decide(double t, double f, double a, double
 void sixdof_brain::kf_update(const double H[2][3], const double y[2], double R, double dt)
 {
     // random walk of the stride and of the current, then the two components of the ground velocity
-    kf_P_[0][0] += 1.0e-4*dt;
+    kf_P_[0][0] += (ssd_>0.0) ? 1.0e-4*dt*ssd_*ssd_/0.09 : 1.0e-4*dt;
     kf_P_[1][1] += 2.5e-3*dt;
     kf_P_[2][2] += 2.5e-3*dt;
 
