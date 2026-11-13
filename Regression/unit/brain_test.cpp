@@ -39,7 +39,7 @@ struct swimmer
 {
     double x = 1.6, z = 3.0, h = 0.0, Ug = 0.0;
     double g[3] = {1.0, 1.0, 0.0}, gr[3] = {0.0, 0.0, 0.0}, gt[3] = {1.0, 1.0, 0.0}, ts[3] = {0.25, 0.25, 0.25};
-    double s_true = 0.48, k_true = 1.3, tau_true = 0.8, tau_down = 0.0, tau_glide = 2.5, C_brake = 0.0, cx = 0.0, cz = 0.0;
+    double s_true = 0.48, k_true = 1.3, tau_true = 0.8, tau_down = 0.0, tau_glide = 2.5, C_brake = 0.0, nb_true = 0.0, cx = 0.0, cz = 0.0;
     double stim_t = -1.0;      // a pressure pulse across the head at this time (a startle stimulus)
     bool second = false;
     sixdof_brain::decision pend;
@@ -79,6 +79,10 @@ struct swimmer
             // the speed rises with tau_true; it falls with tau_glide when gliding, with tau_down (0: tau_true)
             // when the gait only slows down
             const double gt_ = g[0]*g[1]*1.0;
+            // (nb_true > 0: swimming, it follows the gait over nb_true tail beats, the time nb_true/f)
+            if(nb_true>0.0 && g[1]>=0.5)
+            Ug += dt*std::max(g[0], 0.1)/nb_true*(gt_ - Ug);
+            else
             Ug += dt/(g[1]<0.5 ? tau_glide : ((gt_<Ug && tau_down>0.0) ? tau_down : tau_true))*(gt_ - Ug);
             // the bent body brakes the glide like a quadratic drag, dU/dt = -C_brake (|b|/2.5) U^2 (validation 18)
             if(g[1]<0.5)
@@ -126,11 +130,11 @@ struct swimmer
 };
 
 static sixdof_brain brain(double Udes, double th, const std::vector<sixdof_brain::target_point> &tp, double s0 = 0.0,
-                          double k = 0.0, double bmax = 1.0, double tau_u = 0.0, double tau_d = 0.0)
+                          double k = 0.0, double bmax = 1.0, double tau_u = 0.0, double tau_d = 0.0, double nb = 0.0)
 {
     // U_des, b_max, no vision, th_esc, f0 1 Hz, L 1 m, rho 1000, start 2 s, lateral axis z (2D), X 200 s0 k,
-    // X 201 tau_u tau_d
-    return sixdof_brain(Udes, bmax, 0.0, th, 1.0, 1.0, 1000.0, 2.0, 2, tp, s0, k, tau_u, tau_d);
+    // X 201 tau_u tau_d, X 202 n n
+    return sixdof_brain(Udes, bmax, 0.0, th, 1.0, 1.0, 1000.0, 2.0, 2, tp, s0, k, tau_u, tau_d, nb, nb);
 }
 
 static double mean_dist(const swimmer &S, double t0, std::function<std::array<double,2>(double)> T, double *mx = nullptr)
@@ -373,6 +377,23 @@ int main()
             }
         }
         check(glided && cg>0.05, "current from the drift of a glide: "+std::to_string(cg)+" m/s read against the heading while gliding (true 0.1)");
+    }
+
+    // 3j. a body whose speed follows its gait over 0.8 tail beats (the 2D swimmer, validation 23: 2.7 s at 0.3 Hz),
+    // started 0.4 m downstream of its station in 0.2 m/s and facing it: with X 202 0.8 0.8 the brain reads the
+    // current and holds the station closer than with the times of X 201 (0.8 s)
+    {
+        double cr[2], md[2];
+        for(int k=0; k<2; ++k)
+        {
+            swimmer S; S.cx = 0.2; S.x = 3.9; S.h = 3.14159265358979323846; S.nb_true = 0.8;
+            sixdof_brain B = brain(0.5, 1.5, {{0.0, 3.5, 0.0, 3.0}}, 0.0, 0.0, 1.0, 0.0, 0.0, k==0 ? 0.8 : 0.0);
+            double t = 0.0;
+            S.run(B, t, 25.0);
+            cr[k] = B.last().cx;
+            md[k] = mean_dist(S, 12.0, [](double){return std::array<double,2>{3.5, 3.0};});
+        }
+        check(std::fabs(cr[0] - 0.2)<0.03 && md[0]<0.2 && md[0]<md[1], "X 202 0.8 0.8: current "+std::to_string(cr[0])+" m/s (0.2), station mean distance "+std::to_string(md[0])+" m (X 201 0.8 s: "+std::to_string(md[1])+" m)");
     }
 
     // 4. a moving target at 0.25 m/s across, after the fish reached it

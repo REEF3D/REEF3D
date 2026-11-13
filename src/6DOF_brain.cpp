@@ -47,10 +47,11 @@ namespace
 
 sixdof_brain::sixdof_brain(double U_des, double b_max, double D_vis, double th_esc, double f0, double L, double rho,
                            double t_start, int lateral, const std::vector<target_point> &tp, double s0, double k_turn,
-                           double tau_u, double tau_d)
+                           double tau_u, double tau_d, double n_u, double n_d)
              : Udes_(U_des), bmax_(b_max>0.0 ? b_max : 1.0), Dvis_(D_vis), the_(th_esc), f0_(f0), L_(L), rho_(rho),
                tstart_(t_start), s0_(s0>0.0 ? s0 : brain_s0), kturn_(k_turn!=0.0 ? k_turn : brain_kturn),
-               tauu_(tau_u>0.0 ? tau_u : brain_tauu), taud_(tau_d>0.0 ? tau_d : brain_tauu), lat_(lateral), tp_(tp)
+               tauu_(tau_u>0.0 ? tau_u : brain_tauu), taud_(tau_d>0.0 ? tau_d : brain_tauu),
+               nu_(std::max(0.0, n_u)), nd_(n_d>0.0 ? n_d : std::max(0.0, n_u)), lat_(lateral), tp_(tp)
 {
     std::stable_sort(tp_.begin(), tp_.end(), [](const target_point &a, const target_point &b) {return a.t<b.t;});
     t_start_ = tstart_;
@@ -197,8 +198,9 @@ sixdof_brain::decision sixdof_brain::decide(double t, double f, double a, double
         else
         {
             const double fal = f*a*L_;
-            // the speed follows a faster gait with tau_u, a slower one with tau_d (X 201)
-            const double tu = (fal>=ug_) ? tauu_ : taud_;
+            // the speed follows a faster gait with tau_u, a slower one with tau_d (X 201), or with n_u, n_d tail
+            // beats of the gait (X 202)
+            const double tu = (nu_>0.0) ? ((fal>=ug_) ? nu_ : nd_)/std::max(f, 0.1*f0_) : ((fal>=ug_) ? tauu_ : taud_);
             const double e = std::exp(-dt/tu);
             const double ug1 = fal + (ug_ - fal)*e;
             const double ugm = fal + (ug_ - fal)*(tu/dt)*(1.0 - e);

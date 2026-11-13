@@ -41,7 +41,9 @@ Architect: Hans Bihs
 //  The current and the stride: the fish knows its gait and sees its track over the ground. The speed of
 //  the gait U_g follows f a L with the time tau_u when the gait is faster and tau_d when it is slower
 //  (X 201, default 0.8 s; the 3D salmon keeps its speed for seconds after its frequency drops: tau_d about
-//  4.5 s, validation 17), from the speed on the track over the first interval
+//  4.5 s, validation 17), or, with X 202 n_u n_d, in tail beats: the time n/f at the frequency f of the gait,
+//  fast at a fast gait, slow at a slow one (the 2D swimmer: 0.8 beats up, 0.65 down at 0.3-1 Hz, with one
+//  stride of 0.52-0.58 L, validation 23); from the speed on the track over the first interval
 //  between decisions (a body may still be accelerating; no update then); the ground velocity is
 //  s U_g ex + c. A Kalman filter
 //  on the stride s (prior s0 L per beat, X 200, default 0.5; standard deviation 0.3 s0, kept within
@@ -95,7 +97,7 @@ public:
 
     sixdof_brain(double U_des, double b_max, double D_vis, double th_esc, double f0, double L, double rho,
                  double t_start, int lateral, const std::vector<target_point>&, double s0 = 0.0, double k_turn = 0.0,
-                 double tau_u = 0.0, double tau_d = 0.0);
+                 double tau_u = 0.0, double tau_d = 0.0, double n_u = 0.0, double n_d = 0.0);
 
     // the senses of one time step: dt, the body axis and the lateral axis (inertial frame), the CoG,
     // the CoG velocity; the lateral line (per probe: s/L, side, pressure) when the body has one
@@ -142,12 +144,14 @@ public:
     double turn_rate() const {return kturn_;}
     double speed_time_up() const {return tauu_;}
     double speed_time_down() const {return taud_;}
+    double speed_beats_up() const {return nu_;}
+    double speed_beats_down() const {return nd_;}
 
 private:
 
     Eigen::Vector3d target(double t) const;
 
-    const double Udes_, bmax_, Dvis_, the_, f0_, L_, rho_, tstart_, s0_, kturn_, tauu_, taud_;
+    const double Udes_, bmax_, Dvis_, the_, f0_, L_, rho_, tstart_, s0_, kturn_, tauu_, taud_, nu_, nd_;
     const int lat_;
     std::vector<target_point> tp_;
 

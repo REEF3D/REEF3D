@@ -1,0 +1,9 @@
+{
+ "base": "nhflow_3d_membrane_sharp_flex",
+ "np": 1,
+ "files": ["membrane.dat"],
+ "ctrl_set": {"P 18": "1"},
+ "tags": ["3d", "nhflow", "membrane", "flexible", "lagoon"],
+ "description": "as nhflow_3d_membrane_sharp_flex on one rank, the membrane printed every 0.01 s (membrane.dat 'print 0.01') into the LAGOON store instead of its .vtp files (P 18 1): REEF3D_NHFLOW.lagoon with the particle set nhflow_membrane (role membrane: the nodes with velocity, displacement and load, the panels as polygons with the number of their membrane, dp, force, tension and tag), an output stored once a membrane prints in a later step and the last at the end of the run (lagoon_output::finish_all); no REEF3D-NHFLOW-Membrane .vtp file. The solution is that of the case without the store.",
+ "covers": ["lagoon_membranes (net_membrane::print_vtp, P 18 1)"]
+}

@@ -1,0 +1,11 @@
+{
+ "base": "cfd_2d_6dof_fish_brain",
+ "np": 2,
+ "steps": 440,
+ "ctrl_add": [
+  "X 202 0 0.8 0.65"
+ ],
+ "description": "cfd_2d_6dof_fish_brain with the speed of the body following its gait in tail beats, for the brain (X 202 id n_u n_d): the speed of the gait f a L that the brain expects rises over 0.8 and falls over 0.65 tail beats of the gait (the time n/f), instead of the times of X 201; the brain log of the decisions and the estimates. Fish Swimming patch 0029.",
+ "tags": ["2d", "6dof", "floating", "deform", "singlephase", "mpi"],
+ "covers": ["sixdof_brain (speed of the gait in tail beats)", "sixdof_obj::brain_setup (X 202)", "control: X 202 read, sent, received"]
+}
