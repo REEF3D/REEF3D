@@ -2841,6 +2841,10 @@ void control::ctrlsend()
     dd++;
     ictrl[ii] = T45;
     ii++;
+    dctrl[dd] = T46_I;
+    dd++;
+    dctrl[dd] = T46_L;
+    dd++;
 
     dctrl[dd] = W1;
     dd++;

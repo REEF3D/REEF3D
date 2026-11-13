@@ -4041,6 +4041,9 @@ void control::read_control(lexer* p)
                 case 45: control>>T45;
                          clear(c,numint);
                          break;
+                case 46: control>>T46_I>>T46_L;
+                         clear(c,numint);
+                         break;
                 }
                 break;
 

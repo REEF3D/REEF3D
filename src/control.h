@@ -631,7 +631,7 @@ public:
 
     // Turbulence
     int T10,T12,T21,T33,T34,T36,T39,T41,T45;
-    double T23,T31,T37,T38,T42,T44;
+    double T23,T31,T37,T38,T42,T44,T46_I,T46_L;
 
     // Waterflow
     double W1,W2,W3,W4,W5,W6,W7,W10,W_fb;

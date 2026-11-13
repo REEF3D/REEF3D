@@ -84,6 +84,28 @@ void rans_io::plain_wallfunc(lexer* p, fdm*a, ghostcell* pgc)
 	tau_calc(a,p,hmax);
 
 
+    // T 46 I L: the initial field takes the prescribed inflow turbulence (k, eps/omega, nu_t) in the whole fluid
+    // (T 46 switches the turbulence initialisation I 13 on, control::control_parse)
+    if(p->T46_I>0.0 && p->T46_L>0.0)
+    {
+    const bool keps = (p->T10==1 || p->T10==11 || p->T10==21);
+    const double k46 = inflow_turb_k46(p);
+    const double e46 = inflow_turb_e46(p,k46);
+    const double nut46 = keps ? p->cmu*k46*k46/e46 : k46/e46;
+    
+    if(p->mpirank==0)
+    cout<<"T 46: inflow and initial turbulence  I: "<<p->T46_I<<"  L: "<<p->T46_L<<"  k: "<<k46
+        <<(keps?"  eps: ":"  omega: ")<<e46<<"  nu_t: "<<nut46<<endl;
+    
+    LOOP
+    {
+    kin(i,j,k) = k46;
+    eps(i,j,k) = e46;
+    a->eddyv(i,j,k) = nut46;
+    }
+    }
+    
+    if(!(p->T46_I>0.0 && p->T46_L>0.0))
 	LOOP
 	{
 	a->eddyv(i,j,k)=sqrt(tau)*0.11*depth;
@@ -163,22 +185,32 @@ void rans_io::tau_calc(fdm* a, lexer* p, double maxwdist)
 // Bed and top of a column are taken over all ranks (global column j), so z-decomposed columns get the full depth.
 // Columns without an interface use the inflow-wide values. ks is the bed roughness of roughness::ks_val (B 55 or
 // B 50; with sediment S 21 S 20 or S 20 by S 28).
+// T 46 I L (I > 0): prescribed inflow turbulence instead of the profile, uniform over the wet inflow:
+//   k = 1.5 (I Ui)^2,  eps = cmu^0.75 k^1.5/L,  omega = sqrt(k)/(cmu^0.25 L)   (nu_t = cmu^0.25 sqrt(k) L)
 // Air cells and the wave-only inflow (B 60 0) keep zero gradient.
 void rans_io::inflow_turb(lexer* p, fdm* a, ghostcell* pgc)
 {
     const double kappa = 0.4;
     double zbed_g=+1.0e20, zint_g=-1.0e20;
     double ks=0.0001, z, fz, kval, eval, H, zb, ustar;
+    double k46=0.0, e46=0.0;
     int n,q;
     
     const bool keps = (p->T10==1 || p->T10==11 || p->T10==21);
     const bool fsf  = (p->F30>0 || p->F80>0);
+    const bool t46  = (p->T46_I>0.0 && p->T46_L>0.0);
     const int ny = p->gknoy;
     
     // col[jg] = -(bed), col[ny+jg] = top of the water (interface or top of the fluid) of the global column jg
     std::vector<double> col;
     
-    if(p->B60>=1)
+    if(p->B60>=1 && t46)
+    {
+        k46 = inflow_turb_k46(p);
+        e46 = inflow_turb_e46(p,k46);
+    }
+    
+    if(p->B60>=1 && !t46)
     {
         col.assign(2*ny, -1.0e20);
         
@@ -229,7 +261,13 @@ void rans_io::inflow_turb(lexer* p, fdm* a, ghostcell* pgc)
         kval = kin(i,j,k);
         eval = eps(i,j,k);
         
-        if(p->B60>=1 && a->phi(i,j,k)>0.0)
+        if(p->B60>=1 && t46 && a->phi(i,j,k)>0.0)
+        {
+            kval = k46;
+            eval = e46;
+        }
+        
+        if(p->B60>=1 && !t46 && a->phi(i,j,k)>0.0)
         {
             const int jg = MAX(0, MIN(ny-1, j + p->origin_j));
             
@@ -265,6 +303,23 @@ void rans_io::inflow_turb(lexer* p, fdm* a, ghostcell* pgc)
         eps(i-q,j,k) = eval;
         }
     }
+}
+
+// T 46 I L: k = 1.5 (I U)^2 with the discharge inflow velocity U = |Ui| (0.01 m/s if there is none)
+double rans_io::inflow_turb_k46(lexer* p)
+{
+    const double U = (fabs(p->Ui)>1.0e-6) ? fabs(p->Ui) : 0.01;
+    
+    return MAX(1.5*pow(p->T46_I*U,2.0), 1.0e-12);
+}
+
+// T 46 I L: eps = cmu^0.75 k^1.5/L (k-epsilon), omega = sqrt(k)/(cmu^0.25 L) (k-omega)
+double rans_io::inflow_turb_e46(lexer* p, double kval)
+{
+    if(p->T10==1 || p->T10==11 || p->T10==21)
+    return pow(p->cmu,0.75)*pow(kval,1.5)/p->T46_L;
+    
+    return sqrt(kval)/(pow(p->cmu,0.25)*p->T46_L);
 }
 
 // local water depth at the column (i,j) for the free-surface damping T 36 3: a->WL from the ioflow

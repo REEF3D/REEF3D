@@ -2832,6 +2832,10 @@ void control::ctrlrecv()
     dd++;
     T45 = ictrl[ii];
     ii++;
+    T46_I = dctrl[dd];
+    dd++;
+    T46_L = dctrl[dd];
+    dd++;
 
     W1  = dctrl[dd];
     dd++;

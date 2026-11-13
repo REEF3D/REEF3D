@@ -79,6 +79,7 @@ void driver::logic_cfd()
     removed_option(p,pgc,!T10_ok,"T 10: unknown turbulence model; use 0 (laminar), 1/21 (k-epsilon), 2/22 (k-omega), 31 (LES Smagorinsky) or 33 (LES WALE).");
     removed_option(p,pgc,p->T10>0 && p->T12!=0 && p->T12!=1 && p->T12!=5 && p->T12!=55,"T 12: unknown convection scheme for k, epsilon/omega; use 0, 1 (first-order upwind), 5 or 55 (WENO).");
     removed_option(p,pgc,(p->T10==31 || p->T10==33) && p->T21!=0 && p->T21!=1 && p->T21!=2,"T 21: unknown LES filter; use 0, 1 or 2.");
+    removed_option(p,pgc,p->T46_I>0.0 && p->T46_L<=0.0,"T 46 I L: give the turbulence length scale L > 0.");
 
 
 // time stepping

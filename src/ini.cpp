@@ -1437,6 +1437,8 @@ void control::ini_default()
     T42=0.05;           // double lambda2 factor (Larsen & Fuhrman stabilization)
     T44=1.0;            // double komega_func wall BC velocity factor for DF
     T45=0;              // int buoyancy term
+    T46_I=0.0;          // double inflow turbulence intensity I (k = 1.5 (I U)^2); 0: open-channel profile
+    T46_L=0.0;          // double inflow turbulence length scale L [m] (omega = sqrt(k)/(cmu^0.25 L))
 
     // Water Properties
 	W1=998.2;		// double density water
