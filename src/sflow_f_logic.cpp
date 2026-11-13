@@ -139,7 +139,7 @@ void sflow_f::logic(lexer *p, fdm2D* b, ghostcell* pgc)
     psed = new sediment_void();
 
     if(p->S10>0)
-    psed = new sediment_f(p,pgc,pturbcfd,pBC);
+    psed = new sediment_f(p,pgc,nullptr,pBC);     // no CFD turbulence model in SFLOW
 	
 	// solver
     //  N 10 1: REEFMG, the same multigrid as for FNPF, NHFLOW and CFD, run

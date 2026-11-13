@@ -52,7 +52,6 @@ class sflow_turbulence;
 class sflow_forcing;
 class hydro_couple;
 class sediment;
-class turbulence;
 class patchBC_interface;
 class sixdof;
 class sflow_amr;
@@ -113,9 +112,7 @@ private:
     sflow_turbulence *pturb;
     sediment *psed;
     sflow_potential *potflow;
-    
-    turbulence *pturbcfd;
-    
+
     patchBC_interface *pBC;
     
     sixdof *p6dof;
