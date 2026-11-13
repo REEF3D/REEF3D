@@ -79,7 +79,7 @@ void bedshear::taubed(lexer *p, fdm2D *b, ghostcell *pgc, sediment_fdm *s)
     }
     
     s->tau_eff(i,j) = tau;
-    s->tau_i(i,j) = tau;     // depth-averaged: no separate grain shear stress (was never set in SFLOW)
+    s->tau_i(i,j) = tau;     // depth-averaged: no separate grain shear stress
     s->shearvel_eff(i,j) = sqrt(tau/density);
     s->shields_eff(i,j) = tau/((p->S22-density)*fabs(p->W22)*p->S20);
     }
@@ -147,7 +147,7 @@ void bedshear::taubed_curv(lexer *p, fdm2D *b, ghostcell *pgc, sediment_fdm *s)
     }
     
     s->tau_eff(i,j) = tau;
-    s->tau_i(i,j) = tau;     // depth-averaged: no separate grain shear stress (was never set in SFLOW)
+    s->tau_i(i,j) = tau;     // depth-averaged: no separate grain shear stress
     s->shearvel_eff(i,j) = sqrt(tau/density);
     s->shields_eff(i,j) = tau/((p->S22-density)*fabs(p->W22)*p->S20);
     }

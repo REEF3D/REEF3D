@@ -125,9 +125,6 @@ void sandslide_weighted_multidir::compute_fh(lexer *p, ghostcell *pgc, sediment_
     // A single over-steep pair gets exactly half its excess (pair equilibrium for equal cells);
     // the total outflow is at most half the largest excess, and every pair keeps draining until
     // it reaches phi.
-    // (was: total 0.5*relax*min(excess) with relax 0.5, shared out by excess-slope^2 weights:
-    // min(excess) -> 0 as soon as one neighbour is close to phi, so the cell stopped draining its
-    // steeper neighbours; the cone of validation case 03 stalled at 39 deg on the diagonals)
     int di_arr[8] = {-1, 0, 1, -1, 1, -1, 0, 1};
     int dj_arr[8] = {-1, -1, -1, 0, 0, 1, 1, 1};
     
@@ -232,9 +229,6 @@ void sandslide_weighted_multidir::compute_fh_curv(lexer *p, ghostcell *pgc, sedi
     // A single over-steep pair gets exactly half its excess (pair equilibrium for equal cells);
     // the total outflow is at most half the largest excess, and every pair keeps draining until
     // it reaches phi.
-    // (was: total 0.5*relax*min(excess) with relax 0.5, shared out by excess-slope^2 weights:
-    // min(excess) -> 0 as soon as one neighbour is close to phi, so the cell stopped draining its
-    // steeper neighbours; the cone of validation case 03 stalled at 39 deg on the diagonals)
     int di_arr[8] = {-1, 0, 1, -1, 1, -1, 0, 1};
     int dj_arr[8] = {-1, -1, -1, 0, 0, 1, 1, 1};
     

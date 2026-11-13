@@ -180,7 +180,7 @@ void komega_func_PLIC::eddyvisc(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans)
         epsi = p->T38*(1.0/2.0)*(p->DXN[IP] + p->DZN[KP]); 
         
         
-        // dimensionless weight, 1 at vof = 0.5 (was the 1/m delta function capped at 1)
+        // dimensionless weight, 1 at vof = 0.5
         if(a->vof(i,j,k)>p->F93 && a->vof(i,j,k)<p->F94)
         dirac = 0.5*(1.0 + cos(2.0*PI*(a->vof(i,j,k)-0.5)));
             

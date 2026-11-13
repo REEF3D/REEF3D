@@ -207,7 +207,7 @@ void ietimestep::start(fdm *a, lexer *p, ghostcell *pgc, turbulence *pturb)
 	cb = MIN(cb, 2.0/sqrt((4.0*fabs(p->fbmax))/dx));
     }
     
-    // minimum over all ranks (was the value of rank 0, i.e. of its cells only)
+    // minimum over all ranks
     {
     double gmax[2] = {-cu,-cb};
     pgc->globalmax(gmax,2);

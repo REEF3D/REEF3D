@@ -136,7 +136,7 @@ void benchmark_TaylorGreen::start(lexer* p, fdm *a, ghostcell *pgc, convection *
             vx(i,j,k) = 0.0;
             vy(i,j,k) = pudz(p,a) - pwdx(p,a);
             vz(i,j,k) = 0.0;
-            // 2D: the kinetic energy of u and w (was unset)
+            // 2D: the kinetic energy of u and w
             uu = 0.5*(a->u(i,j,k) + a->u(i-1,j,k));
             vv = 0.0;
             ww = 0.5*(a->w(i,j,k) + a->w(i,j,k-1));

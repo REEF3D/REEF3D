@@ -1267,7 +1267,7 @@ void momentum_rk::component_lowstorage(lexer *p, fdm *a, ghostcell *pgc, vrans *
 // common parts of a stage
 // ---------------------------------------------------------------------------------------------
 
-// ust: the velocity component c of the stage, used by the explicit wall shear (was u(n) in every stage)
+// ust: the velocity component c of the stage, used by the explicit wall shear
 void momentum_rk::sources(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, int c, field &ust)
 {
     if(c==0)

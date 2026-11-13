@@ -55,11 +55,9 @@ void fsi_strip::coupling_force(lexer *p, double alpha)
 
 void fsi_strip::distribute_forces(lexer *p, fdm *a, ghostcell *pgc, field& fx, field& fy, field& fz, field& eps0)
 {
-    // Same kernel and stencil as before, with three changes that do not alter the result:
-    //  - points whose kernel footprint cannot reach this subdomain are skipped
-    //    (previously every rank looped over every Lagrangian point of every strip),
-    //  - separable 1D kernel weights, zero-weight stencil entries skipped,
-    //  - ghost-cell exchange, eps0 reset and epsget moved to fsi_strips::forcing (once per call).
+    // Points whose kernel footprint cannot reach this subdomain are skipped; separable 1D kernel
+    // weights, zero-weight stencil entries skipped; the ghost-cell exchange, eps0 reset and epsget
+    // are done once per call in fsi_strips::forcing.
     
     int ii, jj, kk, i_it, j_it, k_it;
     double dx, dy, dz, dV, D, dxdydz;

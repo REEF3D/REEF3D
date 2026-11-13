@@ -35,8 +35,7 @@ roughness::~roughness()
 
 double roughness::ks_val(lexer *p, fdm* a,int ii,int jj, int kk, int cs, int bc)
 {
-	// the sediment test uses the cell (ii,jj,kk) passed in (was the global loop indices i,j,k; the same cell in
-	// every current caller)
+	// the sediment test uses the cell (ii,jj,kk) passed in
 	ks=p->B50;
     if(ks<=0.0) ks=0.0001;
 	

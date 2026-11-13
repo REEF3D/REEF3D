@@ -184,7 +184,7 @@ void komega_func::eddyvisc(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans)
         epsi = p->T38*(1.0/2.0)*(p->DXN[IP] + p->DZN[KP]); 
         
         
-        // dimensionless weight, 1 at the interface and 0 at the band edge (was the 1/m delta function capped at 1)
+        // dimensionless weight, 1 at the interface and 0 at the band edge
         if(fabs(a->phi(i,j,k))<epsi)
         dirac = 0.5*(1.0 + cos((PI*a->phi(i,j,k))/epsi));
             

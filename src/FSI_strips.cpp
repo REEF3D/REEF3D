@@ -71,7 +71,7 @@ void fsi_strips::forcing(lexer* p, fdm* a, ghostcell* pgc, double alpha, field &
     starttime0=pgc->timer();
     
     // Get velocity at Lagrangian points: local interpolation for all strips,
-    // then a single reduction (was 3 MPI_Allreduce per Lagrangian point and strip)
+    // then a single reduction
     int offset = 0;
     for (int num = 0; num < numberStrips; num++)
     {

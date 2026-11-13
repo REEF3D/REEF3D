@@ -1360,8 +1360,8 @@ void control::ini_default()
     S92=1.0;                // double sandslide correction factor
     S93=0.0;				// double delta phi for sandlide correciton
     S94=1;                // int sandslide intervall
-	S100=3;					// int number of bed filter outer iterations (was hard-coded 3 in topovel2)
-    S101=5;					// int number of bed filter inner iterations (was hard-coded 5 in topovel2)
+	S100=3;					// int number of bed filter outer iterations
+    S101=5;					// int number of bed filter inner iterations
     S102=0.0;              // double filter: fraction of the centre value kept per pass (0: 2dx wave removed)
     S103=0.0;              // double bed celerity CFL number for dtsed, 0: off
     S104=0.0;              // double limit of bed celerity x morphological factor / near-bed flow speed for dtsed, 0: off

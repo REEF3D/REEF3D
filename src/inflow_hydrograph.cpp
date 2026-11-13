@@ -29,7 +29,7 @@ Author: Hans Bihs
 
 double ioflow_f::hydrograph_ipol(lexer *p, ghostcell* pgc, double ** hydro, int hydrocount)
 {
-	// before the first time of the series: its first value (was unset after the first step)
+	// before the first time of the series: its first value
 	double val = hydro[0][1];
     
     for(n=0;n<hydrocount-1;++n)

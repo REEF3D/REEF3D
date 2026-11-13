@@ -185,7 +185,7 @@ void sandslide_steepest_descent::find_steepest_neighbor(lexer* p, slice& zh, int
             if(!SLIDE_NB(di,dj))
             continue;
                 
-            // distance between the cell centres (was 0.5*(dx+dy) and sqrt(2) of it: wrong for dx != dy)
+            // distance between the cell centres
             double ddx = di<0?p->DXP[IM1]:(di>0?p->DXP[IP]:0.0);
             double ddy = dj<0?p->DYP[JM1]:(dj>0?p->DYP[JP]:0.0);
             double dist = sqrt(ddx*ddx + ddy*ddy);
@@ -231,7 +231,7 @@ void sandslide_steepest_descent::find_steepest_neighbor_curv(lexer* p, slice& zh
             if(!SLIDE_NB(di,dj))
             continue;
                 
-            // distance between the cell centres (was 0.5*(dx+dy) and sqrt(2) of it: wrong for dx != dy)
+            // distance between the cell centres
             double ddx = di<0?p->DXP[IM1]:(di>0?p->DXP[IP]:0.0);
             double ddy = dj<0?p->DYP[JM1]:(dj>0?p->DYP[JP]:0.0);
             double dist = sqrt(ddx*ddx + ddy*ddy);

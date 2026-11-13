@@ -57,7 +57,7 @@ private:
 	
     vector<fsi_strip*> pstrip;
     vector<double> velbuf;      // packed Lagrangian velocities of all strips, one MPI_Allreduce per call
-    field4 eps0;                // shared RANS forcing field (was one full field4 per strip)
+    field4 eps0;                // shared RANS forcing field
     turbulence *pturb;
 };
 
