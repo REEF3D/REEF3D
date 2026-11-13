@@ -1,0 +1,16 @@
+{
+ "np": 1,
+ "steps": 60,
+ "description": "A beach 1:5 (S 61) with the closed faces of the projection in the solids (D 32 1) under two refined levels: the box of level 1 (G 16) reaches from the bottom of the domain through the bed, the box of level 2 (G 15) starts in the bed. A coarse cell just inside the bed below the edge of a finer patch has all faces closed on its own grid but the one to the covered cell above it (the centre of that cell in the water), and the fine faces of that face are closed on the grid of the patch (the centres of the fine cells in the bed): its row folded the coupling into the diagonal and took no flux of the fine faces, a row without a coupling and with a diagonal of 0 (NaN in the first projection). cfd_amr::pr_rows_closed sets such a row to 1 x = 0; ks_apply and ks_half the same in the multigrid of the coarser grid. A water column at the wall (F 70) sends a bore up the beach through the patches.",
+ "tags": [
+  "quick",
+  "2d",
+  "levelset",
+  "solid",
+  "closed",
+  "amr"
+ ],
+ "covers": [
+  "cfd_amr_press.cpp pr_rows_closed, ks_apply, ks_half (D 32 with patches in a solid)"
+ ]
+}

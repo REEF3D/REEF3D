@@ -151,6 +151,25 @@ inline T& mcoef_mg(std::vector<T> &n, std::vector<T> &s, std::vector<T> &w, std:
     return dir>0 ? t[q] : b[q];
 }
 
+// D 32: a multigrid row that lost its last coupling (the fine faces of its patch-edge face all closed
+// in a solid, K = 0, and its other faces closed in poisson_pcorr): the row 1 x = 0, as a cell with
+// all faces closed.  Its diagonal is otherwise the rounding rest of the couplings taken out of it
+// (0 or 1e-16 of a coupling): the smoother divides by it, NaN in the first projection
+template<class T>
+inline void mg_row_closed(std::vector<T> &p, std::vector<T> &n, std::vector<T> &s, std::vector<T> &w, std::vector<T> &e, std::vector<T> &t, std::vector<T> &b, long q)
+{
+    if(n[q]==T(0) && s[q]==T(0) && w[q]==T(0) && e[q]==T(0) && t[q]==T(0) && b[q]==T(0))
+    p[q] = T(1);
+}
+
+inline void mg_row_closed(reefmg_core *mg, sc_level &L, long q)
+{
+    if(mg->precision()==32)
+    mg_row_closed(L.pf,L.nf,L.sf,L.wf,L.ef,L.tf,L.bf,q);
+    else
+    mg_row_closed(L.p,L.n,L.s,L.w,L.e,L.t,L.b,q);
+}
+
 // G 40: one row of ks_apply on its rank (the other cell on another rank): h 1 the coarse cell c (its
 // coupling towards -dir), h 2 the covered cell c (towards dir)
 void ks_half(reefmg_core *mg, const int *c, int d, int dir, int h, const int *n, double K)
@@ -179,6 +198,8 @@ void ks_half(reefmg_core *mg, const int *c, int d, int dir, int h, const int *n,
         L.p[lq] += a + K;
         a = -K;
     }
+    if(K==0.0)
+    mg_row_closed(mg,L,lq);
 }
 
 // the couplings of a coarse cell ci of multigrid mg next to a patch to the covered cell across the
@@ -215,6 +236,11 @@ void ks_apply(reefmg_core *mg, const int *ci, int d, int dir, const int *n, doub
         L.p[lp] += b + K;
         c = -K;
         b = -K;
+    }
+    if(K==0.0)
+    {
+    mg_row_closed(mg,L,lc);
+    mg_row_closed(mg,L,lp);
     }
 }
 
@@ -1743,6 +1769,8 @@ void cfd_amr::pr_matrix(int s)
     pr_patch_mg(id,1.0);
 
     // the faces at the patch edges
+    // (D 32: the sum of kc of the fine faces of every coarse row at a patch edge, pr_rows_closed)
+    kc_row.clear();
     for(cfd_amr_cf &F : cf)
     {
         cfd_amr_patch *c = CP(F.pid);
@@ -1776,6 +1804,8 @@ void cfd_amr::pr_matrix(int s)
         double &ccn = mcoef(Mc,F.nc,F.d,-F.dir);
         Mc.p[F.nc] += ccn;
         ccn = 0.0;
+        if(p0->D32>0)
+        kc_row[std::make_pair(F.gc,F.nc)] += F.kc;
     }
     if(place)
     sh_folds();
@@ -1829,6 +1859,7 @@ void cfd_amr::pr_matrix(int s)
         }
     }
 
+    pr_rows_closed();
     pr_covered_coef();
 
     mg0->coarsen();
@@ -1837,6 +1868,33 @@ void cfd_amr::pr_matrix(int s)
     CP(id)->mg->coarsen();
     for(int m=0; m<(int)lmg.size(); ++m)
     pr_level_mg_fill_comp(m);
+}
+
+// D 32: a coarse cell at a patch edge whose fine faces are all closed in a solid (cf_closed, on the
+// grid of the fine cells: kc = 0) and whose other faces poisson_pcorr closed on its own grid.  Its
+// row folded the coupling to the covered cell into the diagonal and takes no flux of the fine
+// faces: no coupling is left, and the diagonal is the rounding rest of the couplings taken out of
+// it.  poisson_pcorr could not see this (on the coarse grid the face to the covered cell was open:
+// the centre of the covered cell lies in the fluid, the centres of its fine cells at the face in the
+// solid; a bed or a solid surface between the two).  The row 1 x = 0, as for a cell with all its
+// faces closed; its right-hand side has no open face either
+void cfd_amr::pr_rows_closed()
+{
+    if(p0->D32<=0)
+    return;
+
+    for(const auto &kv : kc_row)
+    {
+        if(kv.second!=0.0)
+        continue;
+        fdm *a = gfd(kv.first.first);
+        matrix_diag &M = a->M;
+        const int n = kv.first.second;
+        if(M.n[n]!=0.0 || M.s[n]!=0.0 || M.w[n]!=0.0 || M.e[n]!=0.0 || M.t[n]!=0.0 || M.b[n]!=0.0)
+        continue;
+        M.p[n] = 1.0;
+        a->rhsvec.V[n] = 0.0;
+    }
 }
 
 // the multigrid of a coarser grid under the finer patches: the coupling between two covered cells
@@ -2013,6 +2071,10 @@ void cfd_amr::sh_ks()
         ks_apply(mg0,ci,d,dir,n,pu_key.rb[r][q]);
         else
         ks_half(mg0,ci,d,dir,h,n,pu_key.rb[r][q]);
+
+        // D 32: the coarse rows folded by sh_folds (pr_rows_closed)
+        if(p0->D32>0 && h!=2 && row0[qq]>=0)
+        kc_row[std::make_pair(-1,row0[qq])] += pu_key.rb[r][q];
     }
 }
 
