@@ -462,6 +462,12 @@ protected:
     sixdof_deform *fish_ = nullptr;
     double fish_t_amr_ = 0.0;
     double fish_power_ = 0.0;
+
+    // X 34 2: the acceleration of the body from its velocities u_fb of the last two time steps (the
+    // loads take the pressure of the probe points to the hull with it, forces_stl)
+    Eigen::Matrix<double,6,1> x34_acc_ = Eigen::Matrix<double,6,1>::Zero();
+    Eigen::Matrix<double,6,1> x34_uprev_ = Eigen::Matrix<double,6,1>::Zero();
+    double x34_time_ = -1.0e20;
     void deform_setup(lexer*, ghostcell*);
     void deform_time(double);
     Eigen::Vector3d deform_vel(double, double, double) const;
