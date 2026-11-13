@@ -68,16 +68,12 @@ double nhflow_les_io::ccipol_kinval(lexer *p, ghostcell *pgc, double xp, double 
 {
     double val=0.0;
 
-    //val=p->ccipol4( kin, xp, yp, zp);
-
     return val;
 }
 
 double nhflow_les_io::ccipol_epsval(lexer *p, ghostcell *pgc, double xp, double yp, double zp)
 {
     double val=0.0;
-
-    //val=p->ccipol4( eps, xp, yp, zp);
 
     return val;
 }
@@ -86,16 +82,12 @@ double nhflow_les_io::ccipol_a_kinval(lexer *p, ghostcell *pgc, double xp, doubl
 {
     double val=0.0;
 
-    //val=p->ccipol4a( kin, xp, yp, zp);
-
     return val;
 }
 
 double nhflow_les_io::ccipol_a_epsval(lexer *p, ghostcell *pgc, double xp, double yp, double zp)
 {
     double val=0.0;
-
-    //val=p->ccipol4a( eps, xp, yp, zp);
 
     return val;
 }
@@ -104,16 +96,12 @@ double nhflow_les_io::kinval(int ii, int jj, int kk)
 {
     double val=0.0;
 
-    //val=kin(ii,jj,kk);
-
     return val;
 }
 
 double nhflow_les_io::epsval(int ii, int jj, int kk)
 {
     double val=0.0;
-
-    //val=eps(ii,jj,kk);
 
     return val;
 }

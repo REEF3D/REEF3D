@@ -104,8 +104,6 @@ void nhflow_print_wsfline::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *p
 
             pcore->wsf[q][i]=wsfline_at_y(p,f,i,j,p->P52_y[q])+p->phimean;
             pcore->loc[q][i]=p->pos_x();
-            
-            //cout<<p->mpirank<<" pcore->wsf[q][i]: "<<pcore->wsf[q][i]<<" "<<f(i,j)<<" "<<p->phimean<<" "<<p->wd<<endl;
         }
     }
 	

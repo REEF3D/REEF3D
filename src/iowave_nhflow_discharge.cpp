@@ -45,7 +45,6 @@ void iowave::discharge_nhflow(lexer *p, fdm_nhf *d,ghostcell *pgc)
     }
     
     // patchBC
-    //pBC->patchBC_discharge(p,a,pgc);
 }
 
 void iowave::Qin_nhf(lexer *p, fdm_nhf *d, ghostcell* pgc)
@@ -78,8 +77,6 @@ void iowave::Qin_nhf(lexer *p, fdm_nhf *d, ghostcell* pgc)
         
         area=p->DYN[JP]*p->DZN[KP]*d->WL(i-1,j);
         
-        //cout<<"i: "<<i<<" p->DYN[JP]: "<<p->DYN[JP]<<" k: "<<k<<" p->DZN[KP]*p->sigz[IJ]: "<<p->DZN[KP]*p->sigz[IJ]<<" "<<p->sigz[IJ]<<endl;
-
         Ai+=area;
                 
         p->Qi+=area*d->U[Im1JK];
@@ -90,7 +87,6 @@ void iowave::Qin_nhf(lexer *p, fdm_nhf *d, ghostcell* pgc)
     Ai=pgc->globalsum(Ai);
     p->Qi=pgc->globalsum(p->Qi);
     
-    //if(p->B60==1)
     p->Ui=p->W10/(Ai>1.0e-20?Ai:1.0e20); 
     
     

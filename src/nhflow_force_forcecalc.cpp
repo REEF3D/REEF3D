@@ -157,23 +157,12 @@ void nhflow_force::add_triangle(lexer* p, fdm_nhf *d, int q1, int q2, int q3)
             etaval = p->ccslipol4(d->eta,xc,yc);  
             hspval = (p->wd + etaval - zc)*p->W1*fabs(p->W22);
             
-            //if(zc>p->wd + etaval)
-            //pval = hspval = 0.0;
-            
-            /*double Fval = -(pval + hspval)*A*nx;
-            
-            if(Fval != Fval)
-            cout<<"NAN FORCE: "<<pval<<" "<<hspval<<" "<<A<<" "<<nx<<endl;*/
-            
             // Force
             Fx += -(pval + hspval)*A*nx;
-                       //+ 0.0*density*viscosity*A*(du*ny+du*nz);
                        
             Fy += -(pval + hspval)*A*ny;
-                      // + 0.0*density*viscosity*A*(dv*nx+dv*nz);
                     
             Fz += -(pval + hspval)*A*nz;
-                      // + 0.0*density*viscosity*A*(dw*nx+dw*ny); 
                       
     Ax+=fabs(A*nx);    
     Ay+=A*ny;

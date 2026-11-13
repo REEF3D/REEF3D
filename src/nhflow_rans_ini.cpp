@@ -27,29 +27,6 @@ Author: Hans Bihs
 
 void nhflow_rans_io::ini(lexer* p, fdm_nhf *d, ghostcell* pgc)
 {
-	/*gcval_kin=20;
-	gcval_eps=30;
-	gcval_edv=24;
-	
-	if(p->B60>=1)
-	uref=p->Ui;
-	
-	if(p->B90>0)
-	uref=0.01;
-	
-    if(fabs(uref)<1.0e-6)
-    uref=0.01;
-
-    plain_wallfunc(p,a,pgc);*/
-    
-    /*if(p->B90==1)
-    LOOP
-    {
-    KIN[IJK] = 0.0001;
-    EPS[IJK] = 1000.0001;
-    }*/
-    
-    
     if(p->B60>=1)
     {
     LOOP

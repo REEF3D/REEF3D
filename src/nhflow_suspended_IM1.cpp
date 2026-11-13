@@ -319,11 +319,6 @@ void nhflow_suspended_IM1::suspsource(lexer* p, fdm_nhf *d, double *CONC, sedime
         d->M.p[count] += s->wsx(i,j)/zdist;
         }
         
-        /*
-        if(p->mpirank==0)
-        if(i==10 && k==p->knoz-1)
-        d->rhsvec.V[count] += 0.00001;*/
-
 	++count;
     }
 }

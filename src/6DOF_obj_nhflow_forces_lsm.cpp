@@ -154,15 +154,11 @@ void sixdof_obj_nhflow::force_calc_lsm(lexer* p, fdm_nhf *d, ghostcell *pgc, sli
             
             // Force
             Fx = -(pval + hspval)*A*nx*f_jdir;
-                       //+ 0.0*density*viscosity*A*(du*ny+du*nz);
                        
             if(p->j_dir==1)
             Fy = -(pval + hspval)*A*ny*f_jdir;
-                      // + 0.0*density*viscosity*A*(dv*nx+dv*nz);
                     
             Fz = -(pval + hspval)*A*nz*f_jdir;
-                      // + 0.0*density*viscosity*A*(dw*nx+dw*ny); 
-                      
                       
             Ax+=A*nx;    
             Ay+=A*ny;
@@ -196,15 +192,6 @@ void sixdof_obj_nhflow::force_calc_lsm(lexer* p, fdm_nhf *d, ghostcell *pgc, sli
     Xe += p->W20*Mass_fb;
 	Ye += p->W21*Mass_fb;
 	Ze += p->W22*Mass_fb;
-    
-    
-    /*
-    // Print results	
-    if (p->mpirank==0 && finalize==1) 
-    {
-        printforce<<curr_time<<" \t "<<Xe<<" \t "<<Ye<<" \t "<<Ze<<" \t "<<Ke
-        <<" \t "<<Me<<" \t "<<Ne<<" \t "<<Xe_p<<" \t "<<Ye_p<<" \t "<<Ze_p<<" \t "<<Xe_v<<" \t "<<Ye_v<<" \t "<<Ze_v<<endl;   
-    }*/
 }
 
 void sixdof_obj_nhflow::allocate(lexer* p, fdm_nhf *d, ghostcell *pgc)

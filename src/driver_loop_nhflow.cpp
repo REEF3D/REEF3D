@@ -114,7 +114,6 @@ void driver::loop_nhflow()
         //save previous timestep
         pnhfturb->ktimesave(p,d,pgc);
         pnhfturb->etimesave(p,d,pgc);
-        //pflow->veltimesave(p,a,pgc,pvrans);
         
         // REEF3D::CORAL (Z 40): structural model from simtime to simtime + dt
         if(pcoral!=nullptr)

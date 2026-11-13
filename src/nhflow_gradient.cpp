@@ -137,9 +137,6 @@ double nhflow_gradient::dudz(double *U)
     if(bedwall(U))
     grad = p->sigz[IJ]*dfdsig_bed(U);
     
-    //if(k==p->knoz-1)
-    //grad = p->sigz[IJ]*(U[IJK] - U[IJKm1])/(p->DZP[KM1]);
-
 	return grad;
 }
 
@@ -175,9 +172,6 @@ double nhflow_gradient::dvdz(double *V)
     if(bedwall(V))
     grad = p->sigz[IJ]*dfdsig_bed(V);
     
-    //if(k==p->knoz-1)
-    //grad = p->sigz[IJ]*(V[IJK] - V[IJKm1])/(p->DZP[KM1]);
-
 	return grad;
 }
 
@@ -211,9 +205,6 @@ double nhflow_gradient::dwdz(double *W)
     if(k==0)
     grad = p->sigz[IJ]*(W[IJK] - W[IJKm1])/(p->DZP[KM1]);
     
-    //if(k==p->knoz-1)
-    //sgrad = p->sigz[IJ]*(W[IJK] - W[IJKm1])/(p->DZP[KM1]);
-
 	return grad;
 }
 

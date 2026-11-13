@@ -41,8 +41,6 @@ void nhflow_force::triangulation(lexer *p, fdm_nhf *d, ghostcell *pgc)
     ks = p->posf_sig(MAX(MIN(is,p->knox-1),0),MAX(MIN(js,p->knoy-1),0),p->P81_zs[ID]);
     ke = p->posf_sig(MAX(MIN(ie,p->knox-1),0),MAX(MIN(je,p->knoy-1),0),p->P81_ze[ID]);
     
-    //cout<<p->P81_zs[ID]<<" ke: "<<p->P81_ze[ID]<<" ze: "<<ze<<" ks: "<<ks<<" ke: "<<ke<<endl;
-    
     NDBASELOOP
     eta[IJK] = 0.125*(d->SOLID[IJK] + d->SOLID[Ip1JK] + d->SOLID[IJp1K] + d->SOLID[Ip1Jp1K]
                       + d->SOLID[IJKp1] + d->SOLID[Ip1JKp1] + d->SOLID[IJp1Kp1] + d->SOLID[Ip1Jp1Kp1]);

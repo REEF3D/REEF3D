@@ -77,41 +77,7 @@ void nhflow_reconstruct_weno::reconstruct_2D_x(lexer* p, ghostcell *pgc, fdm_nhf
     // water level on a bank) takes the limited slope of the wet cells instead (wetdry_x)
     wetdry_x(p,f,fs,fn);
     
-    //pgc->gcsl_start1(p,fs,1);  // face states are only read at their own face (IJK / (i,j)): no halo/BC needed
-    //pgc->gcsl_start1(p,fn,1);  // face states are only read at their own face (IJK / (i,j)): no halo/BC needed
-    /*
-    // Dirichlet Wave Generation
-    if(p->B98>2)
-    {   
-    for(n=0;n<p->gcslin_count;n++)
-    for(i=p->gcslin[n][0];i<p->gcslin[n][0]+5;++i)
-    {
-        // i
-        j=p->gcslin[n][1];
-        
-        dfdx_plus = (f(i+1,j) - f(i,j))/p->DXP[IP];
-        dfdx_min  = (f(i,j) - f(i-1,j))/p->DXP[IM1];
-        
-        dfdx(i,j) = limiter(dfdx_plus,dfdx_min);
-        
-    }
-    
-    pgc->gcsl_start1(p,dfdx,1);
-    
-    // reconstruct
-    for(n=0;n<p->gcslin_count;n++)
-    for(i=p->gcslin[n][0];i<p->gcslin[n][0]+4;++i)
-    {
-    j=p->gcslin[n][1];
-
-        
-        fs(i,j) = f(i,j)   + 0.5*p->DXP[IM1]*dfdx(i,j); 
-        fn(i,j) = f(i+1,j) - 0.5*p->DXP[IP]*dfdx(i+1,j);
-    }
-    
-    //pgc->gcsl_start1(p,fs,1);  // face states are only read at their own face (IJK / (i,j)): no halo/BC needed
-    //pgc->gcsl_start1(p,fn,1);  // face states are only read at their own face (IJK / (i,j)): no halo/BC needed
-    }*/
+    // no halo exchange of fs, fn: the face states are only read at their own face
 }
 
 void nhflow_reconstruct_weno::reconstruct_2D_y(lexer* p, ghostcell *pgc, fdm_nhf*, slice& f, slice &fe, slice &fw)
@@ -147,8 +113,7 @@ void nhflow_reconstruct_weno::reconstruct_2D_y(lexer* p, ghostcell *pgc, fdm_nhf
     if(p->j_dir==1)
     wetdry_y(p,f,fe,fw);
     
-    //pgc->gcsl_start2(p,fe,1);  // face states are only read at their own face (IJK / (i,j)): no halo/BC needed
-    //pgc->gcsl_start2(p,fw,1);  // face states are only read at their own face (IJK / (i,j)): no halo/BC needed
+    // no halo exchange of fe, fw: the face states are only read at their own face
 }
 
 void nhflow_reconstruct_weno::reconstruct_2D_WL(lexer* p, ghostcell *pgc, fdm_nhf *d)
@@ -176,10 +141,7 @@ void nhflow_reconstruct_weno::reconstruct_2D_WL(lexer* p, ghostcell *pgc, fdm_nh
     d->Dw(i,j) = MAX(d->ETAw(i,j)  + 0.5*(d->depth(i,j+1)+d->depth(i,j)), p->A544);
     }
     
-    //pgc->gcsl_start1(p,d->Ds,1);  // face states are only read at their own face (IJK / (i,j)): no halo/BC needed
-    //pgc->gcsl_start1(p,d->Dn,1);  // face states are only read at their own face (IJK / (i,j)): no halo/BC needed
-    //pgc->gcsl_start2(p,d->De,1);  // face states are only read at their own face (IJK / (i,j)): no halo/BC needed
-    //pgc->gcsl_start2(p,d->Dw,1);  // face states are only read at their own face (IJK / (i,j)): no halo/BC needed
+    // no halo exchange of d->Ds, d->Dn, d->De, d->Dw: the face states are only read at their own face
 }
 
 // ---------------------------------------------------------------------------
@@ -330,8 +292,7 @@ void nhflow_reconstruct_weno::reconstruct_3D_x(lexer* p, ghostcell *pgc, fdm_nhf
         }
     }
     
-    //pgc->start1V(p,Fs,1);  // face states are only read at their own face (IJK / (i,j)): no halo/BC needed
-    //pgc->start1V(p,Fn,1);  // face states are only read at their own face (IJK / (i,j)): no halo/BC needed
+    // no halo exchange of Fs, Fn: the face states are only read at their own face
 }
 
 void nhflow_reconstruct_weno::reconstruct_3D_y(lexer* p, ghostcell *pgc, fdm_nhf *d, double *Fy, double *Fe, double *Fw)
@@ -387,8 +348,7 @@ void nhflow_reconstruct_weno::reconstruct_3D_y(lexer* p, ghostcell *pgc, fdm_nhf
     }
     }
     
-    //pgc->start2V(p,Fe,1);  // face states are only read at their own face (IJK / (i,j)): no halo/BC needed
-    //pgc->start2V(p,Fw,1);  // face states are only read at their own face (IJK / (i,j)): no halo/BC needed
+    // no halo exchange of Fe, Fw: the face states are only read at their own face
 }
 
 void nhflow_reconstruct_weno::reconstruct_3D_z(lexer* p, ghostcell *pgc, fdm_nhf *d, double *Fz, double *Fb, double *Ft)
@@ -446,8 +406,7 @@ void nhflow_reconstruct_weno::reconstruct_3D_z(lexer* p, ghostcell *pgc, fdm_nhf
         }
     }
     
-    //pgc->start3V(p,Fb,1);  // face states are only read at their own face (IJK / (i,j)): no halo/BC needed
-    //pgc->start3V(p,Ft,1);  // face states are only read at their own face (IJK / (i,j)): no halo/BC needed
+    // no halo exchange of Fb, Ft: the face states are only read at their own face
 }
 
 void nhflow_reconstruct_weno::iqmin(lexer *p, double *F)

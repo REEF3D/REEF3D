@@ -32,17 +32,11 @@ void ioflow_f::inflow_nhflow(lexer *p, fdm_nhf *d,ghostcell *pgc, double *U, dou
         if(p->B61==1)
         {
         inflow_plain_nhflow(p,d,pgc,U,V,W,UH,VH,WH);
-
-            //if((p->count==0&&p->I11==1)||p->B60==3||p->B60==4)
-            //outflow_log(p,a,pgc,u,v,w);
         }
 
         if(p->B61==2 || p->B61==4 || p->B61==5)
         {
         inflow_log_nhflow(p,d,pgc,U,V,W,UH,VH,WH);
-
-            //if((p->count==0&&p->I11==1)||p->B60==3||p->B60==4)
-            //outflow_log(p,a,pgc,u,v,w);
         }
     }
 }
@@ -161,9 +155,6 @@ void ioflow_f::inflow_log_nhflow(lexer *p, fdm_nhf *d,ghostcell *pgc, double *U,
         
         zcoor = p->ZSP[IJK]-d->bed(i,j);
         
-        //cout<<"zcoor: "<<MAX(30.0*MIN(zcoor,dmax)/ks,1.0)<<endl;
-        //cout<<"Uvel: "<<shearvel*2.5*log(MAX(30.0*MIN(zcoor,hmax)/ks,1.0))<<endl;
-            
             // B 62 1: the log profile of each column scaled so that its depth average goes with
             // h^(2/3) (Manning strip), shallow columns at the edges of the inflow get small velocities
             double cfac = 1.0;
@@ -204,9 +195,6 @@ void ioflow_f::inflow_log_nhflow(lexer *p, fdm_nhf *d,ghostcell *pgc, double *U,
 	if(fabs(p->Qi)<1.0e-20)
 	ratio=1.0;
     
-    //if(p->mpirank==0)
-    //cout<<"W10: "<<p->W10<<" Qi: "<<p->Qi<<" ratio: "<<ratio<<endl;
-
         for(n=0;n<p->gcin_count;++n)
         {
         i=p->gcin[n][0];
@@ -321,8 +309,6 @@ void ioflow_f::rkinflow_nhflow(lexer *p, fdm_nhf *d,ghostcell *pgc, double *F, d
     j=p->gcin[n][1];
     k=p->gcin[n][2];
     
-    //cout<<G[Im1JK]<<" "<<G[IJK]<<endl;
-
         F[Im3JK]=F[Im2JK]=F[Im1JK]=G[Im1JK];
     }
 }

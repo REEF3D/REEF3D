@@ -64,10 +64,6 @@ void iowave::nhflow_active_wavegen(lexer *p, fdm_nhf *d, ghostcell *pgc, double 
             if(p->A515==2 || p->A515==4)
             {
             etaval = d->eta(i,j);
-            /*
-            WL(i-1,j) = WL(i,j);
-            WL(i-2,j) = WL(i,j);
-            WL(i-3,j) = WL(i,j);*/
             }
             
             if(p->A515==3)
@@ -97,10 +93,6 @@ void iowave::nhflow_active_wavegen(lexer *p, fdm_nhf *d, ghostcell *pgc, double 
             if(p->A515==2 || p->A515==4)
             {
             etaval = d->eta(i,j);
-            /*
-            WL(i-1,j) = WL(i,j);
-            WL(i-2,j) = WL(i,j);
-            WL(i-3,j) = WL(i,j);*/
             }
             
             if(p->A515==3)

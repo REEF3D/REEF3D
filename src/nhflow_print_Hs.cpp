@@ -78,13 +78,9 @@ void nhflow_print_Hs::start(lexer *p, ghostcell *pgc, slice &eta, slice &Hs)
     ETAmean(i,j)      = ETAsum(i,j)/(fabs(T_sum)>1.0e-10?T_sum:1.0e20);
     ETA2sum(i,j)     += eta(i,j)*eta(i,j);
     
-    //cout <<" NumDT1 " << NumDT1 <<" T_sum " << T_sum << " wtim " << wtime<<endl;
-    //cin.get();  
-    
     if(NumDT1>1)
     { 
 	    ETAvar(i,j)        = (1.0/double(NumDT1-1))*ETA2sum(i,j)-ETAmean(i,j)*ETAmean(i,j)*(double(NumDT1)/double(NumDT1-1.0));
-        //cout<<ETAvar(i,j)<<endl;
 	    Hs(i,j)         = 4.0*sqrt(MAX(ETAvar(i,j),0.0));
     }
 	  

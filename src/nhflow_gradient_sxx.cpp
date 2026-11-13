@@ -34,7 +34,4 @@ double nhflow_gradient::sxx(slice &f)
 double nhflow_gradient::syy(slice &f)
 {
     return ((f(i,j+1)-f(i,j))/p->DYP[JP] - (f(i,j)-f(i,j-1))/p->DYP[JM1])/p->DYN[JP];  
-    
-    /*return (-f(i,j+2) + 8.0*f(i,j+1) - 8.0*f(i,j-1) + f(i,j-2))
-          /(-p->YP[JP2] + 8.0*p->YP[JP1] - 8.0*p->YP[JM1] + p->YP[JM2]);*/
 }

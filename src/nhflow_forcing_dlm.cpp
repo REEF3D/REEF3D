@@ -28,12 +28,6 @@ Author: Hans Bihs
 void nhflow_forcing::dlm_forcing(lexer *p, fdm_nhf *d, ghostcell *pgc, 
                              double alpha, double *U, double *V, double *W, slice &WL)
 {
-    /*
-    LOOP
-    eps0(i,j,k) = 0.0;
-    
-    pgc->start4(p,eps0,30);*/
-
     for(int n=0; n<p->A584; ++n)
     for(int q=0; q<Np; ++q)
     if(EL_f[n][q]==1)

@@ -281,7 +281,6 @@ void nhflow_vtp_bed::print2D(lexer *p, fdm_nhf *d, ghostcell* pgc, sediment *pse
     }
 
     //  kin and eps
-    //pnhfturb->print_2D(p,d,pgc,result,1);
 
     //  Connectivity
     iin=sizeof(int)*p->polygon_sum*3;
