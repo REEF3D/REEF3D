@@ -147,13 +147,29 @@ sixdof_brain::decision sixdof_brain::decide(double t, double f, double a, double
         // the speed of the gait: from the track over the first interval (a body that starts from rest may
         // still be accelerating), not yet known
         ug_ = -1.0;
+        E0_ = 0.0;
+        tauc_ = brain_tauc0;
+
+        // with the speed in tail beats (X 202): the body at rest over the ground at t = 0 (as REEF3D starts it),
+        // the speed of its gait from rest over the ramp of the gait (to the start of the brain, at f0), and the
+        // water that passed the body at rest, -c along the axis, decaying with the coasting time: the ground
+        // velocity along the axis s U_g + (1 - E0) c ex, so the first interval reads the current (validation 25)
+        if(nu_>0.0)
+        {
+            const int n = std::max(1, int(std::ceil(t/0.01)));
+            const double h = t/n;
+            double u = 0.0;
+            for(int i=0; i<n; ++i)
+            u += h*f0_/nu_*(f0_*L_*std::min(1.0, (i + 0.5)*h/std::max(t, 1.0e-9)) - u);
+            ug_ = u;
+            E0_ = std::exp(-t/tauc_);
+        }
         tdec_ = t;
         pdec_ = c_;
         bdec_ = b;
         adec_ = a;
         Tset_ = false;
         vT_.setZero();
-        tauc_ = brain_tauc0;
         nkf_ = 0;
         kf_on_ = true;
         // no escape in the first tail beat: the pressures of the start-up (the gait still ramping up) are no
@@ -177,7 +193,11 @@ sixdof_brain::decision sixdof_brain::decide(double t, double f, double a, double
         {
             // gliding (or just after it): the body coasts, the model of the speed does not hold; no update of
             // the estimate, the speed of the gait from the track (the velocity through the water along the axis)
-            double uw = (y[0] - kf_x_[1])*ex(p0) + (y[1] - kf_x_[2])*ex(p1);
+            // (the water that passed the body at the start, X 202: the current felt only by 1 - E0)
+            const double Em = (E0_>0.0) ? E0_*tauc_/dt*(1.0 - std::exp(-dt/tauc_)) : 0.0;
+            E0_ *= std::exp(-dt/tauc_);
+            double uw = (Em>0.0) ? (y[0] - (1.0 - Em)*kf_x_[1])*ex(p0) + (y[1] - (1.0 - Em)*kf_x_[2])*ex(p1)
+                                 : (y[0] - kf_x_[1])*ex(p0) + (y[1] - kf_x_[2])*ex(p1);
             const double u0 = ug_*kf_x_[0];
 
             // a coasting body does not move backwards through the water: drifting back faster than the current
@@ -209,8 +229,13 @@ sixdof_brain::decision sixdof_brain::decide(double t, double f, double a, double
             ug_ = ug1;
             const double bm = 0.5*(b + bdec_);
             const double R = 0.07*0.07*(1.0 + 4.0*bm*bm);
-            const double H[2][3] = {{ugm*ex(p0), 1.0, 0.0}, {ugm*ex(p1), 0.0, 1.0}};
-            kf_update(H, y, R, dt);
+            // the water that passed the body at the start (X 202): the current along the axis felt by 1 - E0 only
+            const double Em = (E0_>0.0) ? E0_*tauc_/dt*(1.0 - std::exp(-dt/tauc_)) : 0.0;
+            E0_ *= std::exp(-dt/tauc_);
+            const double H0[2][3] = {{ugm*ex(p0), 1.0, 0.0}, {ugm*ex(p1), 0.0, 1.0}};
+            const double H1[2][3] = {{ugm*ex(p0), 1.0 - Em*ex(p0)*ex(p0), -Em*ex(p1)*ex(p0)},
+                                     {ugm*ex(p1), -Em*ex(p0)*ex(p1), 1.0 - Em*ex(p1)*ex(p1)}};
+            kf_update(Em>0.0 ? H1 : H0, y, R, dt);
             ++nkf_;
         }
     }
@@ -503,8 +528,8 @@ void sixdof_brain::kf_update(const double H[2][3], const double y[2], double R, 
 
 void sixdof_brain::ckpt_state(std::vector<double> &v) const
 {
-    v.push_back(5.0);      // version
-    for(double x : {T_, Uax_, llT_, t_start_, next_, refr_, side_, kf_on_ ? 1.0 : 0.0, ug_, tdec_, bdec_, Tset_ ? 1.0 : 0.0, glide_ ? 1.0 : 0.0, adec_, tauc_, tburst_, bside_, double(nkf_)})
+    v.push_back(6.0);      // version
+    for(double x : {T_, Uax_, llT_, t_start_, next_, refr_, side_, kf_on_ ? 1.0 : 0.0, ug_, tdec_, bdec_, Tset_ ? 1.0 : 0.0, glide_ ? 1.0 : 0.0, adec_, tauc_, tburst_, bside_, double(nkf_), E0_})
     v.push_back(x);
     for(int k=0; k<3; ++k)
     {
@@ -524,9 +549,10 @@ void sixdof_brain::ckpt_state(std::vector<double> &v) const
 
 bool sixdof_brain::ckpt_restore(const std::vector<double> &v)
 {
-    // version 4 (patches 0016-0022): without the count of the updates (taken as learnt)
+    // version 4 (patches 0016-0022): without the count of the updates (taken as learnt); version 5 (0023-0030)
+    // without the water that passed the body at the start (0)
     const int ver = v.empty() ? 0 : int(v[0]);
-    if(v.size()<55 || (ver!=4 && ver!=5))
+    if(v.size()<55 || ver<4 || ver>6)
     return false;
 
     size_t k = 1;
@@ -540,6 +566,7 @@ bool sixdof_brain::ckpt_restore(const std::vector<double> &v)
     tburst_ = v[k++];
     bside_ = v[k++];
     nkf_ = (ver>=5) ? int(v[k++]) : brain_nknown;
+    E0_ = (ver>=6) ? v[k++] : 0.0;
     for(int j=0; j<3; ++j)
     {
         ax_(j) = v[k++];

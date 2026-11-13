@@ -43,7 +43,9 @@ Architect: Hans Bihs
 //  (X 201, default 0.8 s; the 3D salmon keeps its speed for seconds after its frequency drops: tau_d about
 //  4.5 s, validation 17), or, with X 202 n_u n_d, in tail beats: the time n/f at the frequency f of the gait,
 //  fast at a fast gait, slow at a slow one (the 2D swimmer: 0.8 beats up, 0.65 down at 0.3-1 Hz, with one
-//  stride of 0.52-0.58 L, validation 23); from the speed on the track over the first interval
+//  stride of 0.52-0.58 L, validation 23); from the speed on the track over the first interval, or with X 202 from
+//  rest over the ramp of the gait, the body at rest over the ground at t = 0 (the water that passed it, -c along
+//  the axis, decays with the coasting time; validation 25)
 //  between decisions (a body may still be accelerating; no update then); the ground velocity is
 //  s U_g ex + c. A Kalman filter
 //  on the stride s (prior s0 L per beat, X 200, default 0.5; standard deviation 0.3 s0 or X 203 sd s0, kept within
@@ -172,7 +174,7 @@ private:
     double kf_x_[3] = {0.0, 0.0, 0.0}, kf_P_[3][3] = {{0.0,0.0,0.0},{0.0,0.0,0.0},{0.0,0.0,0.0}};
     double ug_ = 0.0, tdec_ = 0.0, bdec_ = 0.0, adec_ = 1.0;
     // the coasting time (learnt from the glides), the end of the last burst, the side of the braking
-    double tauc_ = 0.0, tburst_ = -1.0, bside_ = 0.0;
+    double tauc_ = 0.0, tburst_ = -1.0, bside_ = 0.0, E0_ = 0.0;
     // the updates of the filter since the start
     int nkf_ = 0;
     Eigen::Vector3d pdec_ = Eigen::Vector3d::Zero(), Tprev_ = Eigen::Vector3d::Zero(), vT_ = Eigen::Vector3d::Zero();

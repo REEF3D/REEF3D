@@ -86,6 +86,14 @@ def rules(sv, st, pr):
         st["adec"] = a
         st["tauc"] = TAUC0
         st["refr"] = max(st.get("refr", -1.0), t + 1.0 / f0)   # no escape in the first tail beat (the start-up)
+        st["E0"] = 0.0
+        if nu > 0.0:
+            # X 202: the body at rest over the ground at t = 0; the speed of the gait from rest over the ramp, the
+            # water that passed the body at rest decaying with the coasting time (sixdof_brain::decide)
+            n = max(1, int(math.ceil(t / 0.01))); h = t / n; u = 0.0
+            for i in range(n):
+                u += h * f0 / nu * (f0 * L * min(1.0, (i + 0.5) * h / max(t, 1.0e-9)) - u)
+            st["ug"], st["E0"] = u, math.exp(-t / st["tauc"])
     dt = t - st["tdec"]
     if dt > 0.0:
         y = [(c[p0] - st["pdec"][p0]) / dt, (c[p1] - st["pdec"][p1]) / dt]
@@ -94,7 +102,10 @@ def rules(sv, st, pr):
             st["ug"] = min(f * a * L, max(0.0, y[0] * ex[p0] + y[1] * ex[p1]) / st["kx"][0])
         elif min(a, st["adec"]) < 0.95:
             # gliding: no update of the estimate, the speed of the gait from the track
-            uw = (y[0] - st["kx"][1]) * ex[p0] + (y[1] - st["kx"][2]) * ex[p1]
+            E0 = st.get("E0", 0.0)
+            Em = E0 * st["tauc"] / dt * (1.0 - math.exp(-dt / st["tauc"])) if E0 > 0.0 else 0.0
+            st["E0"] = E0 * math.exp(-dt / st["tauc"])
+            uw = (y[0] - (1.0 - Em) * st["kx"][1]) * ex[p0] + (y[1] - (1.0 - Em) * st["kx"][2]) * ex[p1]
             u0 = st["ug"] * st["kx"][0]
             # a coasting body does not move backwards through the water: drifting back faster than the current
             # read allows (straight, no brake, the tail still), the current along the axis is at least that drift
@@ -120,7 +131,11 @@ def rules(sv, st, pr):
             st["ug"] = ug1
             bm = 0.5 * (b + st["bdec"])
             R = 0.07 * 0.07 * (1.0 + 4.0 * bm * bm)
-            H = [[ugm * ex[p0], 1.0, 0.0], [ugm * ex[p1], 0.0, 1.0]]
+            E0 = st.get("E0", 0.0)                                 # the water that passed the body at the start
+            Em = E0 * st["tauc"] / dt * (1.0 - math.exp(-dt / st["tauc"])) if E0 > 0.0 else 0.0
+            st["E0"] = E0 * math.exp(-dt / st["tauc"])
+            H = [[ugm * ex[p0], 1.0 - Em * ex[p0] * ex[p0], -Em * ex[p1] * ex[p0]],
+                 [ugm * ex[p1], -Em * ex[p0] * ex[p1], 1.0 - Em * ex[p1] * ex[p1]]]
             _kf_update(st, H, y, R, dt)
             st["nkf"] = st.get("nkf", 0) + 1
     s = st["kx"][0]
