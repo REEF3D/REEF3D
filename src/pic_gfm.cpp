@@ -39,6 +39,12 @@ inline double theta(double fin, double fout)
     return std::max(PIC_GFM_THETA, fin/(fin-fout));
 }
 
+// F 81 1: fin >= PIC_GFM_WET h > fout, theta about in [PIC_GFM_WET, 1 + PIC_GFM_WET]
+inline double theta(lexer *p, double fin, double fout)
+{
+    return p->F81==1 ? std::max(1.0e-3, fin/(fin-fout)) : theta(fin,fout);
+}
+
 const std::function<bool(lexer*,int,int,int,int)> *gfm_keep = nullptr;
 
 std::map<lexer*,field*> gfm_air;
@@ -78,6 +84,11 @@ void pic_gfm_keep(const std::function<bool(lexer*,int,int,int,int)> *keep)
     gfm_keep = keep;
 }
 
+bool pic_gfm_water(lexer *p, fdm *a, int i, int j, int k)
+{
+    return a->phi(i,j,k) >= (p->F81==1 ? PIC_GFM_WET*p->DXM : 0.0);
+}
+
 bool gfm_single(lexer *p)
 {
     return p->F81==1 || ((p->F41==1 || p->F41==2) && p->F30>0 && p->F81==0);
@@ -97,7 +108,7 @@ void pic_gfm_matrix(lexer *p, fdm *a)
         const double f0 = a->phi(i,j,k);
 
         // a cell in the air: p = 0
-        if(f0<0.0)
+        if(!pic_gfm_water(p,a,i,j,k))
         {
         a->M.p[n] = 1.0;
         a->M.n[n] = a->M.s[n] = a->M.e[n] = a->M.w[n] = a->M.t[n] = a->M.b[n] = 0.0;
@@ -124,7 +135,7 @@ void pic_gfm_matrix(lexer *p, fdm *a)
 
             const double f1 = a->phi(ni,nj,nk);
 
-            if(f1>=0.0)
+            if(pic_gfm_water(p,a,ni,nj,nk))
             continue;
 
             // a face at a patch edge: the composite operator (cfd_amr::pr_matrix, pr_apply)
@@ -132,7 +143,7 @@ void pic_gfm_matrix(lexer *p, fdm *a)
             continue;
 
             const double c = -(*coef[s]);
-            a->M.p[n] += c*(1.0/theta(f0,f1) - 1.0);
+            a->M.p[n] += c*(1.0/theta(p,f0,f1) - 1.0);
             *coef[s] = 0.0;
         }
 
@@ -144,18 +155,20 @@ double pic_gfm_grad(lexer *p, fdm *a, field &pr, int i, int j, int k, int di, in
 {
     const double f0 = a->phi(i,j,k);
     const double f1 = a->phi(i+di,j+dj,k+dk);
+    const bool w0 = pic_gfm_water(p,a,i,j,k);
+    const bool w1 = pic_gfm_water(p,a,i+di,j+dj,k+dk);
 
-    if(f0>=0.0 && f1>=0.0)
+    if(w0 && w1)
     return (pr(i+di,j+dj,k+dk) - pr(i,j,k))/dx;
 
     // the pressure of the surface: 0, or that of the air pocket (F 41 2) for the pressure itself
     const bool air = &pr==&a->press;
 
-    if(f0>=0.0)
-    return ((air ? pic_gfm_air(p,i+di,j+dj,k+dk) : 0.0) - pr(i,j,k))/(theta(f0,f1)*dx);
+    if(w0)
+    return ((air ? pic_gfm_air(p,i+di,j+dj,k+dk) : 0.0) - pr(i,j,k))/(theta(p,f0,f1)*dx);
 
-    if(f1>=0.0)
-    return (pr(i+di,j+dj,k+dk) - (air ? pic_gfm_air(p,i,j,k) : 0.0))/(theta(f1,f0)*dx);
+    if(w1)
+    return (pr(i+di,j+dj,k+dk) - (air ? pic_gfm_air(p,i,j,k) : 0.0))/(theta(p,f1,f0)*dx);
 
     return 0.0;
 }

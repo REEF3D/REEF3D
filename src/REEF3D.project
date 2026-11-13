@@ -2337,6 +2337,7 @@
             <File Name="nhflow_vtp_bed_pvtp.cpp"/>
             <File Name="nhflow_vtp_bed.cpp"/>
             <File Name="nhflow_scour.cpp"/>
+            <File Name="ks_map.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="VTP FSF">
             <File Name="nhflow_vtp_fsf_pvtp.cpp"/>

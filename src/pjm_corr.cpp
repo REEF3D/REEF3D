@@ -209,7 +209,7 @@ void pjm_corr::presscorr(lexer* p, fdm* a, field& uvel, field& vvel, field& wvel
     {
     // (F 41 2: the pressure of the air pocket of the cell, pic_gfm_air)
     LOOP
-    a->press(i,j,k) = a->phi(i,j,k)>=0.0 ? a->press(i,j,k) + pcorr(i,j,k) : pic_gfm_air(p,i,j,k);
+    a->press(i,j,k) = pic_gfm_water(p,a,i,j,k) ? a->press(i,j,k) + pcorr(i,j,k) : pic_gfm_air(p,i,j,k);
     return;
     }
 

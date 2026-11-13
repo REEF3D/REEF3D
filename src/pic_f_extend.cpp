@@ -27,6 +27,7 @@ Architect: Hans Bihs
 #include"field1.h"
 #include"field2.h"
 #include"field3.h"
+#include"pic_gfm.h"
 #include<vector>
 
 // The velocity of the water for the particles (F 81 1, 2; Kelly et al. 2015, section 3.3):
@@ -110,7 +111,10 @@ void pic_f::extend(lexer *p, fdm *a, ghostcell *pgc, field &src, field &dst, int
     {
         const double f0 = a->phi(i,j,k), f1 = a->phi(i+di,j+dj,k+dk);
 
-        if(zero ? (f0>=0.0 || f1>=0.0) : (0.5*(f0+f1) >= 0.0))
+        // single phase: the cells in the water as for the pressure (pic_gfm_water)
+        const double wet = PIC_GFM_WET*p->DXM;
+
+        if(zero ? (f0>=wet || f1>=wet) : (0.5*(f0+f1) >= 0.0))
         known[fid(p,i,j,k)] = 1;
     }
 

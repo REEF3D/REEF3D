@@ -36,6 +36,7 @@ struct pic_data
     double u,v,w;   // velocity (phase 0: the CFD velocity at the particle)
     double id;      // global id, the same for any decomposition: seeding cell * F 83^dim + sub-position
     double b[9] = {0,0,0,0,0,0,0,0,0};   // APIC (F 77 1, 2): the gradients of u, v, w at the particle
+    double xn[3] = {0,0,0};               // F 76 1: the position at the start of the time step
 };
 
 class field;
@@ -60,6 +61,7 @@ public:
     bool flip() const override { return flipmode; }
     bool singlephase() const override { return single; }
     void air_velocity(lexer*, fdm*, ghostcell*, field&, field&, field&) override;
+    void stage(lexer*, fdm*, ghostcell*, int, field&, field&, field&) override;
     void mask_convection(lexer*, fdm*, int, const double*, field&) override;
 
 private:
@@ -91,7 +93,7 @@ private:
 
     // the free surface from the particles (pic_f_phi.cpp; F 81 1, 2)
     void phi_ini(lexer*, fdm*, ghostcell*);
-    void phi_build(lexer*, fdm*, ghostcell*);
+    void phi_build(lexer*, fdm*, ghostcell*, bool stage=false);
     void redistance(lexer*, fdm*, const std::vector<char>&);
     void support(lexer*, fdm*);
     void fraction_table(lexer*);
@@ -140,6 +142,8 @@ private:
     bool surface;             // F 81 1, 2: the free surface (phi) from the particles; F 81 10: passive particles
     bool flipmode;            // F 81 1, 2: the momentum of the water from the particles
     bool single;              // F 81 1: single phase (PICIN), p = 0 at the surface, no air in the momentum
+    bool rkstages;            // F 76 1 (with F 81 1, 2): the particles move in the stages of the SSP-RK3 step
+    bool staged;              // this step they did (pic_f::stage), pic_f::start does not move them
     bool apic;                // F 81 1, 2 with F 77 1, 2: affine velocities (Jiang et al. 2015)
     bool relaxzones;          // the relaxation zones of the waves (B 90 with B 98 2, B 99 1, 2)
     std::vector<char> zcol;   // per cell column of the subdomain: in a relaxation zone

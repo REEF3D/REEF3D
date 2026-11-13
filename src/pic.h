@@ -70,6 +70,11 @@ public:
     // air take the velocity of the water extended into them (momentum_rk::amr_project_after)
     virtual bool singlephase() const { return false; }
     virtual void air_velocity(lexer*, fdm*, ghostcell*, field&, field&, field&) {}
+
+    // F 81 1, 2 with F 76 1: the particles and their free surface move with the stages of the
+    // SSP-RK3 step (momentum_rk::step_ssp): before stages 1 and 2 (s = 1, 2) with the input
+    // velocity of the stage before, after the step (s = 3) with that of the last stage
+    virtual void stage(lexer*, fdm*, ghostcell*, int, field&, field&, field&) {}
 };
 
 #endif

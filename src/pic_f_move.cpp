@@ -91,6 +91,105 @@ void pic_f::move(lexer *p, fdm *a, ghostcell *pgc)
     lost_total += lost;
 }
 
+// F 81 1, 2 with F 76 1: the particles move with the stages of the SSP-RK3 step of the momentum
+// (momentum_rk::step_ssp), as the level set does inside the stages (N 40 3):
+//     x1 = xn + dt u(n)(xn)                      before stage 1, s = 1
+//     x2 = 3/4 xn + 1/4 (x1 + dt u1(x1))         before stage 2, s = 2
+//     x(n+1) = 1/3 xn + 2/3 (x2 + dt u2(x2))     after the step, s = 3
+// with u(n), u1, u2 the input velocities of the stages (extended into the air), and the free surface
+// from the particles before stages 1 and 2, so that each stage has the surface of its time (as the
+// level set in the stages of N 40 3). Moved once per step with the frozen u(n+1) (F 76 0), the
+// sloshing tank at 2 cells per wave height and CFL 0.25 lost per period 3.2 % of its energy with
+// F 81 2 and 4.0 % with F 81 1, less with a smaller time step; with the stages 0.5 % and 1.1 %
+// (the level set 0.0 %). The velocity of the particles (pic_f::g2p) is that at their position at
+// the start of the step (xn).
+void pic_f::stage(lexer *p, fdm *a, ghostcell *pgc, int s, field &U, field &V, field &W)
+{
+    if(!rkstages)
+    return;
+
+    extend(p,a,pgc,U,*uw,0,3,single);
+    extend(p,a,pgc,V,*vw,1,3,single);
+    extend(p,a,pgc,W,*ww,2,3,single);
+
+    const double dt = p->dt;
+    const double c0 = s==1 ? 0.0 : (s==2 ? 0.75 : 1.0/3.0);   // weight of xn
+
+    if(s==1)
+    lost = 0;
+
+    size_t n=0;
+    while(n<P.size())
+    {
+        pic_data &q = P[n];
+
+        if(s==1)
+        {
+        q.xn[0] = q.x;
+        q.xn[1] = q.y;
+        q.xn[2] = q.z;
+        }
+
+        const double x0=q.x, y0=q.y, z0=q.z;
+        double up,vp,wp;
+
+        // F 81 1: spray more than 2 cells away from the water with its own velocity (pic_f::g2p)
+        if(single && ballistic(p,a,q))
+        {
+        up = q.u;
+        vp = q.v;
+        wp = q.w;
+        }
+        else
+        velocity(p,a,x0,y0,z0,up,vp,wp);
+
+        q.x = c0*q.xn[0] + (1.0-c0)*(x0 + dt*up);
+        q.y = p->j_dir==1 ? c0*q.xn[1] + (1.0-c0)*(y0 + dt*vp) : y0;
+        q.z = c0*q.xn[2] + (1.0-c0)*(z0 + dt*wp);
+
+        // out through an open boundary: removed at the end of the step; in the stages before it
+        // goes on beyond the boundary (in the ghost cells, with the velocity there), its position
+        // of the step may come back, and the free surface of the stages leaves it out (phi_build,
+        // as that of the end of the step without it); walls reflect it
+        double xd=q.x, yd=q.y, zd=q.z;
+        const bool inside = domain(p,xd,yd,zd);
+
+        if(!inside && s==3)
+        {
+            ++lost;
+            P[n] = P.back();
+            P.pop_back();
+            continue;
+        }
+
+        if(inside)
+        {
+        q.x = xd;
+        q.y = yd;
+        q.z = zd;
+
+        slide(p,a,q,x0,y0,z0);
+
+        if(p->X10>0)
+        push_out(p,a,q);
+        }
+
+        ++n;
+    }
+
+    xchange(p,pgc);
+
+    if(s<3)
+    phi_build(p,a,pgc,true);
+
+    if(s==3)
+    {
+    lost = (long long)pgc->globalsum(double(lost));
+    lost_total += lost;
+    staged = true;
+    }
+}
+
 void pic_f::velocity(lexer *p, fdm *a, double xp, double yp, double zp, double &up, double &vp, double &wp)
 {
     // F 81 1, 2: the velocity of the water extended into the air (pic_f_extend.cpp)

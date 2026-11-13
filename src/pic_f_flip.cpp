@@ -27,6 +27,7 @@ Architect: Hans Bihs
 #include"field1.h"
 #include"field2.h"
 #include"field3.h"
+#include"pic_gfm.h"
 #include<vector>
 
 // Phase 2 (F 81 1, 2): the momentum of the water from the particles (F 81 2: the air Eulerian).
@@ -133,7 +134,9 @@ void pic_f::step_begin(lexer *p, fdm *a, ghostcell *pgc)
             // the extension (pic_f::air_velocity)
             const double f0 = a->phi(i,j,k), f1 = a->phi(i+di,j+dj,k+dk);
 
-            if(single ? (f0<0.0 && f1<0.0) : (0.5*(f0+f1) < 0.0))
+            const double wet = PIC_GFM_WET*p->DXM;
+
+            if(single ? (f0<wet && f1<wet) : (0.5*(f0+f1) < 0.0))
             continue;
 
             f(i,j,k) = sv[g]/sw[g];

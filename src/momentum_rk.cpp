@@ -367,6 +367,10 @@ void momentum_rk::step_ssp(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixd
         if(levelset)
         amr_ls_finish(p,a,pgc,s,true,-1);
 
+        // PIC (F 81 1, 2, F 76 1): the particles and their surface to the time of the stage
+        if(ppic!=nullptr && stages==3 && s>0)
+        ppic->stage(p,a,pgc,s,vel(a,0,s-1),vel(a,1,s-1),vel(a,2,s-1));
+
         amr_momentum(p,a,pgc,pvrans,p6dof,s,1);
 
         projection(p,a,pgc,velout(a,0,s),velout(a,1,s),velout(a,2,s),ssp_b[s]);
@@ -380,6 +384,10 @@ void momentum_rk::step_ssp(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixd
 
         amr_stage_end(p,a,pgc,s);
     }
+
+    // PIC (F 76 1): the particles to the end of the step with the input velocity of the last stage
+    if(ppic!=nullptr && stages==3)
+    ppic->stage(p,a,pgc,3,vel(a,0,2),vel(a,1,2),vel(a,2,2));
 }
 
 // ---------------------------------------------------------------------------------------------

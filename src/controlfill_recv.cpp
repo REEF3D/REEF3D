@@ -1624,6 +1624,8 @@ void control::ctrlrecv()
     ii++;
     F72 = ictrl[ii];
     ii++;
+    F76 = ictrl[ii];
+    ii++;
     F77 = ictrl[ii];
     ii++;
     F78 = ictrl[ii];
