@@ -1,0 +1,21 @@
+{
+ "description": "OF1 in current, in small: a fixed 6DOF hull (X 10 1, X 11 0 0 0 0 0 0, STL column through the rigid lid) and two rigid quasi-static nets (X 320 3 wall, X 320 2 cylinder) in a single-phase current (F 30 0, F 60 1.0 above the lid: water, W 22 0, B 60 1, B 61 1), N 40 4, laminar, 2 MPI ranks. The hull keeps the level set of its first cast (sixdof_obj_cfd::fb_unchanged), the net forces are reduced in one MPI_Allreduce per net and exchanged once for all nets.",
+ "np": 2,
+ "steps": 30,
+ "files": [
+  "floating.stl"
+ ],
+ "tags": [
+  "3d",
+  "6dof",
+  "net",
+  "inflow",
+  "mpi"
+ ],
+ "covers": [
+  "sixdof_obj_cfd::update_trimesh_3D fixed body (fb_unchanged, fb_store)",
+  "net_barQuasiStatic wall and cylinder nets",
+  "ghostcell::globalsum(double*,int)",
+  "net_interface::netForces_cfd (one Fext/Gext/Hext exchange)"
+ ]
+}

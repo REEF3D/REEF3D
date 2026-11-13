@@ -1,0 +1,7 @@
+{
+ "base": "cfd_2d_singlephase_channel_komega",
+ "ctrl_add": ["T 46 0.05 0.02"],
+ "description": "cfd_2d_singlephase_channel_komega with the prescribed inflow turbulence T 46 I L (I = 0.05, L = 0.02 m): k = 1.5 (I U)^2, omega = sqrt(k)/(cmu^0.25 L) in the inflow ghost cells and as the initial field.",
+ "tags": ["quick", "2d", "singlephase", "inflow", "turbulence"],
+ "covers": ["rans_io::inflow_turb T 46", "rans_io::plain_wallfunc T 46 initial field"]
+}

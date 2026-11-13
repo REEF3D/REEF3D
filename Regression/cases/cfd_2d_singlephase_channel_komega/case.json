@@ -1,0 +1,7 @@
+{
+ "description": "2D single-phase channel (F 30 0, F 40 0, rigid lid C 16 3), k-omega, discharge inflow B 60 1 (0.5 m/s, 0.24 m deep): the open-channel inflow profile of rans_io::inflow_turb takes the top of the fluid as H. Before, phi = 1 everywhere gave no interface and the inflow ghost cells kept the interior values (zero gradient).",
+ "np": 1,
+ "steps": 200,
+ "tags": ["quick", "2d", "singlephase", "inflow", "turbulence"],
+ "covers": ["rans_io::inflow_turb single phase H = top of the fluid"]
+}

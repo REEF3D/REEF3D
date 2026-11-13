@@ -1,0 +1,8 @@
+{
+ "base": "cfd_2d_singlephase_channel_komega",
+ "ctrl_set": {"T 10": "1"},
+ "ctrl_add": ["T 46 0.05 0.02"],
+ "description": "as cfd_2d_singlephase_channel_komega_t46 with k-epsilon: eps = cmu^0.75 k^1.5/L.",
+ "tags": ["quick", "2d", "singlephase", "inflow", "turbulence"],
+ "covers": ["rans_io::inflow_turb T 46 k-epsilon"]
+}
