@@ -40,6 +40,7 @@ Author: Hans Bihs
 #include"density_pst.h"
 #include"pic_gfm.h"
 #include"solid_closed.h"
+#include"forcing_share.h"
 
 poisson_pcorr::poisson_pcorr(lexer *p, heat *&pheat, concentration *&pconc) 
 {
@@ -110,6 +111,55 @@ void poisson_pcorr::start(lexer* p, fdm *a, field &press)
 	++n;
 	}
     
+
+    // X 49: the share of a face that the direct forcing took to its target velocity (solids, bed,
+    // 6DOF bodies) is not corrected (forcing_share.h): the coefficient of the face times the open
+    // share 1-w, the same factor in the correction (pjm_corr::ucorr).  A cell without an open face
+    // to a cell of the domain (inside a body or a solid): the correction 0
+    if(p->X49>0)
+    {
+    n=0;
+    LOOP
+    {
+        double *coef[6] = {&a->M.s[n],&a->M.n[n],&a->M.e[n],&a->M.w[n],&a->M.b[n],&a->M.t[n]};
+        const int di[6] = {-1,1,0,0,0,0};
+        const int dj[6] = {0,0,-1,1,0,0};
+        const int dk[6] = {0,0,0,0,-1,1};
+        int open=0, shared=0;
+
+        for(int q=0; q<6; ++q)
+        {
+            if(*coef[q]==0.0)
+            continue;
+
+            // a neighbour in the domain (the boundary faces are set below)
+            if(p->flag4[(i+di[q]-p->imin)*p->jmax*p->kmax + (j+dj[q]-p->jmin)*p->kmax + k+dk[q]-p->kmin]<=0)
+            continue;
+
+            const double o = forcing_open(p,a,i,j,k,di[q],dj[q],dk[q]);
+
+            if(o<1.0)
+            {
+            a->M.p[n] += (1.0-o)*(*coef[q]);
+            *coef[q] *= o;
+            ++shared;
+            }
+
+            if(o>0.0)
+            ++open;
+        }
+
+        // no open face to a cell of the domain: the row 1 x = 0, the boundary faces dropped
+        if(open==0 && shared>0)
+        {
+        for(int q=0; q<6; ++q)
+        *coef[q] = 0.0;
+        a->M.p[n] = 1.0;
+        a->rhsvec.V[n] = 0.0;
+        }
+    ++n;
+    }
+    }
 
     // D 32: the faces inside the direct-forcing solids and the bed closed (solid_closed.h): Neumann for
     // the correction (the coupling dropped from the diagonal and the neighbour), the face velocity 0

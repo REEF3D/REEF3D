@@ -23,6 +23,7 @@ Author: Hans Bihs
 #include"pjm_corr.h"
 #include"pic_gfm.h"
 #include"solid_closed.h"
+#include"forcing_share.h"
 #include"lexer.h"
 #include"fdm.h" 
 #include"ghostcell.h"
@@ -161,6 +162,16 @@ void pjm_corr::ucorr(lexer* p, fdm* a, field& uvel,double alpha)
     return;
     }
 
+    // X 49: the share of the face taken by the direct forcing is not corrected (forcing_share.h)
+    if(p->X49>0)
+    {
+    ULOOP
+    if(!solid_face_closed(p,a,i,j,k,1,0,0))
+	uvel(i,j,k) -= forcing_open_face(p,a,i,j,k,0)*alpha*p->dt*CPOR1*PORVAL1*((pcorr(i+1,j,k)-pcorr(i,j,k))
+	/(p->DXP[IP]*pd->roface(p,a,1,0,0)));
+    return;
+    }
+
 	ULOOP
     if(!solid_face_closed(p,a,i,j,k,1,0,0))
 	uvel(i,j,k) -= alpha*p->dt*CPOR1*PORVAL1*((pcorr(i+1,j,k)-pcorr(i,j,k))
@@ -178,6 +189,16 @@ void pjm_corr::vcorr(lexer* p, fdm* a, field& vvel,double alpha)
     return;
     }
 
+    if(p->X49>0)
+    {
+    if(p->j_dir==1)
+	VLOOP
+    if(!solid_face_closed(p,a,i,j,k,0,1,0))
+	vvel(i,j,k) -= forcing_open_face(p,a,i,j,k,1)*alpha*p->dt*CPOR2*PORVAL2*((pcorr(i,j+1,k)-pcorr(i,j,k))
+	/(p->DYP[JP]*pd->roface(p,a,0,1,0)));
+    return;
+    }
+
     if(p->j_dir==1)
 	VLOOP
     if(!solid_face_closed(p,a,i,j,k,0,1,0))
@@ -192,6 +213,15 @@ void pjm_corr::wcorr(lexer* p, fdm* a, field& wvel,double alpha)
     WLOOP
     if(!solid_face_closed(p,a,i,j,k,0,0,1))
 	wvel(i,j,k) -= alpha*p->dt*CPOR3*PORVAL3*pic_gfm_grad(p,a,pcorr,i,j,k,0,0,1,p->DZP[KP])/pd->roface(p,a,0,0,1);
+    return;
+    }
+
+    if(p->X49>0)
+    {
+    WLOOP
+    if(!solid_face_closed(p,a,i,j,k,0,0,1))
+	wvel(i,j,k) -= forcing_open_face(p,a,i,j,k,2)*alpha*p->dt*CPOR3*PORVAL3*((pcorr(i,j,k+1)-pcorr(i,j,k))
+	/(p->DZP[KP]*pd->roface(p,a,0,0,1)));
     return;
     }
 

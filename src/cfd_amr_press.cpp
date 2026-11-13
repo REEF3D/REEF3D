@@ -1785,6 +1785,19 @@ void cfd_amr::pr_matrix(int s)
         if(cf_closed(pp,a,F))
         F.kf = F.kc = 0.0;
 
+        // X 49: the share of the face taken by the direct forcing is not corrected (forcing_share.h):
+        // the couplings times the open share, the larger share of the coarse face and the fine face
+        // as in the predictor of the face (pr_predict).  The correction of the face follows from kf
+        // (pr_correct)
+        if(p0->X49>0)
+        {
+            double o = 1.0 - MAX(forced_share(F.gface,F.cf,F.d),forced_share(F.pid,F.ff,F.d));
+            if(o<1.0e-3)
+            o = 0.0;
+            F.kf *= o;
+            F.kc *= o;
+        }
+
         // the couplings across the face are in pr_apply (the fine row to the coarse value at its
         // position, the coarse row to the fluxes of its fine faces); the diagonal of the fine row
         // keeps its part
@@ -1803,7 +1816,7 @@ void cfd_amr::pr_matrix(int s)
         double &ccn = mcoef(Mc,F.nc,F.d,-F.dir);
         Mc.p[F.nc] += ccn;
         ccn = 0.0;
-        if(p0->D32>0)
+        if(p0->D32>0 || p0->X49>0)
         kc_row[std::make_pair(F.gc,F.nc)] += F.kc;
     }
     if(place)
@@ -1879,7 +1892,7 @@ void cfd_amr::pr_matrix(int s)
 // faces closed; its right-hand side has no open face either
 void cfd_amr::pr_rows_closed()
 {
-    if(p0->D32<=0)
+    if(p0->D32<=0 && p0->X49<=0)
     return;
 
     for(const auto &kv : kc_row)
@@ -2072,7 +2085,7 @@ void cfd_amr::sh_ks()
         ks_half(mg0,ci,d,dir,h,n,pu_key.rb[r][q]);
 
         // D 32: the coarse rows folded by sh_folds (pr_rows_closed)
-        if(p0->D32>0 && h!=2 && row0[qq]>=0)
+        if((p0->D32>0 || p0->X49>0) && h!=2 && row0[qq]>=0)
         kc_row[std::make_pair(-1,row0[qq])] += pu_key.rb[r][q];
     }
 }
@@ -3194,6 +3207,14 @@ void cfd_amr::pr_level(lexer *p, ghostcell *pgc, int l, int s)
         if(CP(F.pid)->lev!=l)
         continue;
         F.kf = cf_closed(CP(F.pid)->pp,CP(F.pid)->a,F) ? 0.0 : 1.0/(F.rof*F.dist*F.dxnf);
+        // X 49: the open share of the face (pr_matrix)
+        if(p0->X49>0)
+        {
+            double o = 1.0 - MAX(forced_share(F.gface,F.cf,F.d),forced_share(F.pid,F.ff,F.d));
+            if(o<1.0e-3)
+            o = 0.0;
+            F.kf *= o;
+        }
         matrix_diag &Mf = CP(F.pid)->a->M;
         double &cfn = mcoef(Mf,F.nf,F.d,F.dir);
         Mf.p[F.nf] += cfn + F.kf;
