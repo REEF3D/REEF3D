@@ -62,6 +62,18 @@ Architect: Hans Bihs
 //  X 48 2 (the default); X 48 0 keeps the level set inside the solids as it is, X 48 1 is the copy
 //  into the ghost cells of the flagged solids (G 505 1, ghostcell::solid_forcing_lsm).
 //
+//  X 48 4: as 3, but the fluid below a solid does not take part (a cell next to the fluid only below
+//  it is not in layer 1, and the fluid below a cell is not one of its directions), and the layers go
+//  through the whole solid.  The fluid under a solid roof (a culvert in a lock wall) is enclosed
+//  water: its level set is the distance the reinitialisation finds, to the zero crossing the
+//  extension put into the wall above it, not the free surface.  Extrapolated upwards into the wall
+//  it lowered that crossing, the reinitialisation then the level set of the culvert, and so on: in a
+//  3D culvert under a 0.36 m wall the level set at the culvert roof fell from 0.08 to 0.0 in 4 s; in
+//  the full lock the wrong values reached the top of the walls and the air above them (phi -0.04
+//  instead of -0.28 at the wall top after 25 s), and from there the air over the whole lock.  With
+//  X 48 4 the solid takes the level set of the free surface around it (sideways, from above), and its
+//  deep cells are not left to the reinitialisation.
+//
 //  X 48 3: as 2, and inside the 6DOF bodies of the direct forcing as well (X 10, the level set a->fb
 //  of all bodies at the pose of the stage).  A body between two water levels (a lock gate, its top
 //  above both) holds the free surface of the start inside, a step at the face of the high side: the
@@ -94,8 +106,10 @@ void levelset_solid_extend(lexer *p, fdm *a, ghostcell *pgc, field &f, int gcval
 {
     // with a free surface (F 30): solids of the direct forcing (G 505 0; X 48 2, 3), the 6DOF bodies
     // (X 10; X 48 3) with the level set a->fb of all bodies
-    const bool solids = (p->X48==2 || p->X48==3) && p->solidread>0 && p->G505==0;
-    const bool bodies = p->X48==3 && p->X10>0;
+    const bool solids = (p->X48==2 || p->X48==3 || p->X48==4) && p->solidread>0 && p->G505==0;
+    const bool bodies = (p->X48==3 || p->X48==4) && p->X10>0;
+    // X 48 4: not from the fluid below a solid, and through the whole solid (see the top)
+    const bool fs4 = p->X48==4;
     
     if(p->F30==0 || (!solids && !bodies))
     return;
@@ -141,6 +155,8 @@ void levelset_solid_extend(lexer *p, fdm *a, ghostcell *pgc, field &f, int gcval
     dxm0 = p->DXM;
 
     int nband = solid_band;
+    if(fs4)
+    nband = 100000;
     if(p->amr_patch>0 && dxm0>0.0)
     nband = MIN(250, MAX(solid_band, int(ceil(double(solid_band)*dxm0/p->DXM - 1.0e-9))));
 
@@ -159,7 +175,7 @@ void levelset_solid_extend(lexer *p, fdm *a, ghostcell *pgc, field &f, int gcval
         if(ii<p->imax-1 && layer[q+si]==0) next = true;
         if(jd && jj>0 && layer[q-sj]==0) next = true;
         if(jd && jj<p->jmax-1 && layer[q+sj]==0) next = true;
-        if(kk>0 && layer[q-sk]==0) next = true;
+        if(kk>0 && layer[q-sk]==0 && !fs4) next = true;
         if(kk<p->kmax-1 && layer[q+sk]==0) next = true;
         if(next)
         band[1].push_back(q);
@@ -233,7 +249,7 @@ void levelset_solid_extend(lexer *p, fdm *a, ghostcell *pgc, field &f, int gcval
                 sum += towards(layer[q+sk],layer[q+2*sk]) ? extrapolate(f(i,j,k+1),f(i,j,k+2),p->DZP[KP],p->DZP[KP1]) : f(i,j,k+1);
                 ++count;
             }
-            if(layer[q-sk]<l)
+            if(layer[q-sk]<l && !(fs4 && layer[q-sk]==0))
             {
                 sum += towards(layer[q-sk],layer[q-2*sk]) ? extrapolate(f(i,j,k-1),f(i,j,k-2),p->DZP[KM1],p->DZP[KM2]) : f(i,j,k-1);
                 ++count;
