@@ -453,7 +453,6 @@
           <File Name="sflow_forcing.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Turbulence">
-          <File Name="sflow_turb_kw_IM1_v1.h"/>
           <File Name="sflow_turb_io_void.h"/>
           <File Name="sflow_turb_io.h"/>
           <File Name="sflow_turbulence.h"/>
@@ -2066,7 +2065,6 @@
         <File Name="river_ini.cpp"/>
         <File Name="sflow_f.cpp"/>
         <VirtualDirectory Name="Turbulence">
-          <File Name="sflow_turb_kw_IM1_v1.cpp"/>
           <File Name="sflow_turb_io_void.cpp"/>
           <File Name="sflow_turb_io.cpp"/>
           <File Name="sflow_turb_void.cpp"/>

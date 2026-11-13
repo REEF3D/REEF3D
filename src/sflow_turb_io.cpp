@@ -87,7 +87,7 @@ void sflow_turb_io::name_pvtp(lexer *p, fdm2D *b, ghostcell *pgc,ofstream &resul
 	
 	if(p->A260==1)
 	result<<"<PDataArray type=\"Float32\" Name=\"epsilon\"/>\n";
-	if(p->A260==2 || p->A260==5)
+	if(p->A260==2)
     result<<"<PDataArray type=\"Float32\" Name=\"omega\"/>\n";
 }
 
@@ -97,7 +97,7 @@ void sflow_turb_io::name_vtp(lexer *p, fdm2D *b, ghostcell *pgc,std::ostream &re
     ++n;
 	if(p->A260==1)
 	result<<"<DataArray type=\"Float32\" Name=\"epsilon\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
-	if(p->A260==2 || p->A260==5)
+	if(p->A260==2)
     result<<"<DataArray type=\"Float32\" Name=\"omega\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
     ++n;
 }
