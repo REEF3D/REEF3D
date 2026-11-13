@@ -41,7 +41,6 @@ public:
     double Sij2(lexer*,fdm*);
 	double Qij2(lexer*,fdm*);
     
-	double sij(lexer*,fdm*,int,int);
 	double qij(lexer*,fdm*,int,int);
 	double pk(lexer*,fdm*,field&);
     double pk_b(lexer*,fdm*,field&);
@@ -50,9 +49,7 @@ public:
     double strainterm(lexer*,fdm*);
     double strainterm(lexer*,field&,field&,field&);
     double rotationterm(lexer*,field&,field&,field&);
-    double magSqrSd(lexer*,fdm*);
     double magSqrSd(lexer*,field&,field&,field&);
-    double strainplain(lexer*,fdm*);
 
 private:
     void symmetricStrainRateTensor(lexer*,field&,field&,field&);

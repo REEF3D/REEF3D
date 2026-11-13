@@ -58,7 +58,7 @@ struct gcsl_labels
     }
 };
 
-// gcsl_neumann / gcsl_noslip / gcsl_neumann_int at the cell c (sx: the stride in i), mg cells deep,
+// gcsl_neumann / gcsl_noslip (also for integer slices) at the cell c (sx: the stride in i), mg cells deep,
 // inline (the same writes in the same order)
 template<class T>
 inline void gcsl_neumann_at(T *c, int sx, int cs, int mg)
@@ -237,7 +237,6 @@ void ghostcell::gcsl_start1int(lexer *p, sliceint &f, int gcv)
 {
     const int m0 = margin;
     starttime=timer();
-    // (gcsl_neumann_int inline)
     QQGCSL1LOOP
     gcsl_neumann_at(&f(p->gcbsl1[qq][0],p->gcbsl1[qq][1]),p->jmax,p->gcbsl1[qq][3],gcsl_depth(p->gcbsl1[qq][2],m0));
     endtime=timer();
@@ -258,7 +257,6 @@ void ghostcell::gcsl_start2int(lexer *p, sliceint &f, int gcv)
 {
     const int m0 = margin;
     starttime=timer();
-    // (gcsl_neumann_int inline)
     QQGCSL2LOOP
     gcsl_neumann_at(&f(p->gcbsl2[qq][0],p->gcbsl2[qq][1]),p->jmax,p->gcbsl2[qq][3],gcsl_depth(p->gcbsl2[qq][2],m0));
     endtime=timer();
@@ -279,7 +277,6 @@ void ghostcell::gcsl_start4int(lexer *p, sliceint &f, int gcv)
 {
     const int m0 = margin;
     starttime=timer();
-    // (gcsl_neumann_int inline)
     QQGCSL4LOOP
     gcsl_neumann_at(&f(p->gcbsl4[qq][0],p->gcbsl4[qq][1]),p->jmax,p->gcbsl4[qq][3],gcsl_depth(p->gcbsl4[qq][2],m0));
     endtime=timer();
@@ -300,7 +297,6 @@ void ghostcell::gcsl_start4Vint(lexer *p, int *f, int gcv)
 {
     const int m0 = margin;
     starttime=timer();
-    // (gcsl_neumann_V_int inline)
     QQGCSL4LOOP
     gcsl_neumann_at(f + (p->gcbsl4[qq][0]-p->imin)*p->jmax + (p->gcbsl4[qq][1]-p->jmin),p->jmax,p->gcbsl4[qq][3],gcsl_depth(p->gcbsl4[qq][2],m0));
     endtime=timer();

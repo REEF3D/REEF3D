@@ -125,12 +125,3 @@ void ghostcell::gcsldistro2(lexer *p, slice &f, int ii, int jj, int nn, int gcv,
 	gcsl_sommerfeld(p,f,gcv,bc,cs);
  
 }
-
-void ghostcell::gcsldistro2int(lexer *p, sliceint &f, int ii, int jj, int nn, int gcv, int bc, int cs)
-{
-    i=ii;
-	j=jj;
-	n=nn;
-
-	gcsl_neumann_int(f,gcv,bc,cs);    
-}

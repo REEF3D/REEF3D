@@ -130,10 +130,8 @@ public:
     void driver_ini_fnpf();
     // checkpoints of FNPF and NHFLOW on any decomposition (P 48, I 45) and the rebalance (G 46):
     // the hooks of the modules (driver_ckpt.cpp) for the run part (reefrun_ckpt.h)
-    void ckpt_write();
     void ckpt_read();
     std::string ckpt_unsupported();
-    void rebalance_check();
     reefrun_ckpt& ckpt();
     reefrun_ckpt *rck = nullptr;
     

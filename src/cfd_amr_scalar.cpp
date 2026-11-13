@@ -645,30 +645,3 @@ void cfd_amr::sc_step_level(int l, double dt, double th0)
         sc_record_shadows(dt,true);
     }
 }
-
-// the sum of s V over the leaf cells of all grids (smin, smax: the range of s there)
-double cfd_amr::sc_total(double &smin, double &smax)
-{
-    double sum = 0.0;
-    smin = 1.0e300;
-    smax = -1.0e300;
-    for(int g=-1; g<(int)P.size(); ++g)
-    {
-        lexer *q = glex(g);
-        field &S = sfield(g);
-        for(int c : lq[g+1])
-        {
-            const int jk = q->jmax*q->kmax;
-            const int i = c/jk + q->imin;
-            const int r = c%jk;
-            const int j = r/q->kmax + q->jmin;
-            const int k = r%q->kmax + q->kmin;
-            sum += S.V[c]*q->DXN[i+marge]*q->DYN[j+marge]*q->DZN[k+marge];
-            smin = std::min(smin,S.V[c]);
-            smax = std::max(smax,S.V[c]);
-        }
-    }
-    smin = pgc0->globalmin(smin);
-    smax = pgc0->globalmax(smax);
-    return pgc0->globalsum(sum);
-}

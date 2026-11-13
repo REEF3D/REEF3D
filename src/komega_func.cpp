@@ -40,12 +40,6 @@ komega_func::~komega_func()
 {
 }
 
-void  komega_func::clearfield(lexer *p, fdm*  a, field& b)
-{
-	LOOP
-	b(i,j,k)=0.0;
-}
-
 void komega_func::isource(lexer *p, fdm* a)
 {
     if(p->T33==0)
@@ -316,7 +310,3 @@ void komega_func::epsfsf(lexer *p, fdm* a, ghostcell *pgc, ioflow *pflow)
 	}
 	}
 }
-
-
-
-

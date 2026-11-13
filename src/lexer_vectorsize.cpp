@@ -87,12 +87,3 @@ void lexer::vecsize(ghostcell *pgc)
     
     vec2Dlength = slicenum + gcbnum*3  + gcpara_sum*4;    
 }
-
-void lexer::gcbextra_est(ghostcell *pgc)
-{
-    
-    
-    
-    
-    
-}

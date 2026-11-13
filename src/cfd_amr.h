@@ -359,15 +359,13 @@ public:
     double wtp = 0.0;               // the loops over the patches of this rank (their work without the fills)
 
     // the parts of the composite projections (pr_project, pr_level, pr_sync_project), exclusive
-    // clocks with their MPI time (amr_phase_clock.h); reported every P 12 steps as max/mean over the
-    // ranks (pr_report) and per rank with G 43.  PR_WAIT: with G 43 a timed barrier before the halo
+    // clocks with their MPI time (amr_phase_clock.h); reported per rank with G 43.  PR_WAIT: with G 43 a timed barrier before the halo
     // exchanges, the dot products and the level-0 V-cycle, so that the ranks that arrive early wait
     // there and not inside the exchanges (the results do not change)
     enum { PR_ASSEMBLY, PR_OPERATOR, PR_HALO, PR_SHADOW, PR_RESTRICT, PR_PROLONG, PR_CFILL, PR_OVFILL,
            PR_LCYCLE, PR_L0CYCLE, PR_PREC, PR_KRYLOV, PR_WAIT, PR_FINISH, PR_NPART };
     static const char* pr_part_name(int k);
     amr_phase_clock<PR_NPART> prc;
-    void pr_report(lexer*);         // collective, every P 12 steps
     void pr_wait();                 // G 43: the timed barrier (PR_WAIT)
 
 protected:
@@ -765,7 +763,6 @@ private:
     void sc_reflux(int l);              // the flux registers of the patch edges of level l onto level l-1
     void sc_reset(int lfine);
     void sc_record_shadows(double w, bool diff);    // G 40: the coarse fluxes of level 0 at the level-1 edges
-    double sc_total(double &smin, double &smax);
 
     // the output of the patches in the time windows P 35 (cfd_amr_print.cpp): the next output time of
     // every window, as printer_CFD::printtime_wT

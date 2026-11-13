@@ -73,10 +73,3 @@ void sixdof_obj::ini_fbvel(lexer *p, ghostcell *pgc)
     printtimenormal = 0.0;
     p->printcount_sixdof = 0;
 }
-
-void sixdof_obj_cfd::ini_parameter_stl(lexer *p, fdm *a, ghostcell *pgc)
-{
-    
-    
-}
-

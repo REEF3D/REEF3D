@@ -97,10 +97,8 @@ public:
 	void control_calc();
 	void gridsize();
 	void vecsize(ghostcell*);
-    void gcbextra_est(ghostcell*);
 	void vellast();
 	void lexer_ini();
-	int conv(double);
 
     // 2D
     void grid2Dsize();

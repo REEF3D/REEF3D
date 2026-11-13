@@ -115,9 +115,8 @@ public:
     // velocity of cell (ii,jj): i-part from the mean of its i-faces, j-part from its j-faces
     static void cellvel(lexer*, sediment_fdm*, int ii, int jj, double &u, double &v);
 
-    // transport direction u.n/|u| of face i+1/2 (dir 1) or j+1/2 (dir 2) of cell (ii,jj)
-    static double face_sign(lexer*, sediment_fdm*, int dir, int ii, int jj);
-    // the same with the direction turned to the left by delta, tan(delta) = td (spiral-flow correction, S 95)
+    // transport direction u.n/|u| of face i+1/2 (dir 1) or j+1/2 (dir 2) of cell (ii,jj), turned to the
+    // left by delta, tan(delta) = td (spiral-flow correction, S 95; td = 0: none)
     static double face_sign(lexer*, sediment_fdm*, int dir, int ii, int jj, double td);
 
     // bed gradient of cell (ii,jj) (bedslope, bedload direction): central index differences,

@@ -116,7 +116,6 @@ public:
 
 private:
     
-    void ini_parameter_stl(lexer*, fdm*, ghostcell*);
     void externalForces_cfd(lexer*, fdm*, ghostcell*, double, bool);
     void netForces_cfd(lexer*, fdm*, ghostcell*, double, bool);
     double Hsolidface(lexer*, fdm*, int,int,int);

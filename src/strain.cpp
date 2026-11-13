@@ -70,31 +70,6 @@ void strain::wallf_update(lexer *p, fdm *a, ghostcell *pgc, fieldint &wallf)
     wallf(i,j,k)=1;
 }
 
-double strain::sij(lexer *p, fdm *a, int ii, int jj)
-{
-	double s=0.0;
-
-    if(ii==1 && jj==1)
-        s = 2.0*pudx(p,a);
-
-    if((ii==1 && jj==2) || (ii==2 && jj==1))
-        s = pudy(p,a) + pvdx(p,a);
-
-    if((ii==1 && jj==3) ||( ii==3 && jj==1))
-        s = pudz(p,a) + pwdx(p,a);
-
-    if(ii==2 && jj==2)
-        s = 2.0*pvdy(p,a);
-
-    if((ii==2 && jj==3) || (ii==3 && jj==2))
-        s = pvdz(p,a) + pwdy(p,a);
-
-    if(ii==3 && jj==3)
-        s = 2.0*pwdz(p,a);
-
-	return 0.5*s;
-}
-
 double strain::Sij2(lexer *p, fdm *a)
 {    
     symmetricStrainRateTensor(p,a->u,a->v,a->w);
@@ -143,11 +118,6 @@ void strain::symmetricStrainRateTensor(lexer *p, field &u, field &v, field &w)
     }
 }
 
-double strain::magSqrSd(lexer *p, fdm *a)
-{
-    return magSqrSd(p,a->u,a->v,a->w);
-}
-
 double strain::magSqrSd(lexer *p, field &u, field &v, field &w)
 {
     symmetricStrainRateTensor(p,u,v,w);
@@ -176,19 +146,4 @@ double strain::magSqrSd(lexer *p, field &u, field &v, field &w)
     double Sd = ((1.0/24.0)*((pow(Strain, 2.0)*pow(Strain, 2.0)) + (pow(Omega, 2.0)*pow(Omega, 2.0)))) + ((2.0/12.0)*(pow(Strain, 2.0)*pow(Omega, 2.0))) + (2.0*IV_SR);
 
 	return Sd;
-}
-
-
-double strain::strainplain(lexer *p, fdm *a)
-{
-    s11 = pudx(p,a);
-    s22 = pvdy(p,a)*p->y_dir;
-    s33 = pwdz(p,a);
-    s12 = (pudy(p,a) + pvdx(p,a))*p->y_dir;
-    s13 = (pudz(p,a) + pwdx(p,a));
-    s23 = (pvdz(p,a) + pwdy(p,a))*p->y_dir;
-
-    double s = 2.0*s11*s11 + 2.0*s22*s22 + 2.0*s33*s33 + s12*s12 + s13*s13 + s23*s23;
-
-	return s;
 }

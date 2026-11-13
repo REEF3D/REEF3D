@@ -35,12 +35,6 @@ kepsilon_func::~kepsilon_func()
 {
 }
 
-void  kepsilon_func::clearfield(lexer *p, fdm*  a, field& b)
-{
-	LOOP
-	b(i,j,k)=0.0;
-}
-
 void kepsilon_func::isource(lexer *p, fdm* a)
 {
     if(p->T33==0)

@@ -268,10 +268,6 @@ void print_wsf::amr_gauge(lexer *p, int n)
     wsf[n] = zs;
 }
 
-void print_wsf::write(lexer *p, fdm *a, ghostcell *pgc)
-{
-}
-
 void print_wsf::ini_location(lexer *p, fdm *a, ghostcell *pgc)
 {
     int check;
@@ -293,5 +289,3 @@ void print_wsf::ini_location(lexer *p, fdm *a, ghostcell *pgc)
     
     }
 }
-
-

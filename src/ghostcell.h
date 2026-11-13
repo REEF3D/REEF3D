@@ -200,10 +200,6 @@ public:
 	void gcsldistro2(lexer*, slice&,int, int, int, int, int, int);
 	void gcsldistro4(lexer*, slice&,int, int, int, int, int, int);
 
-    void gcsldistro1int(lexer*, sliceint&,int, int, int, int, int, int);
-    void gcsldistro2int(lexer*, sliceint&,int, int, int, int, int, int);
-    void gcsldistro4int(lexer*, sliceint&,int, int, int, int, int, int);
-    void gcsldistro4Vint(lexer*, int*,int, int, int, int, int, int);
 
     int gcsleval1(lexer*,int,int,int);
 	int gcsleval2(lexer*,int,int,int);
@@ -227,8 +223,6 @@ public:
     void gcsl_neumann_hx(slice&,int,int,int);
     void gcsl_neumann_hy(slice&,int,int,int);
     void gcsl_neumann_x(slice&,int,int,int);
-    void gcsl_neumann_int(sliceint&,int,int,int);
-    void gcsl_neumann_V_int(lexer*,int*,int,int,int);
 	void gcsl_noslip(slice&,int,int,int);
     void gcsl_sommerfeld(lexer*,slice&,int,int,int);
     void gcsl_outflow(lexer*,slice&,int,int,int);

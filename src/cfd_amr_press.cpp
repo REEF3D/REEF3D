@@ -3580,45 +3580,6 @@ void cfd_amr::pr_wait()
     MPI_Barrier(reef3d_comm());
 }
 
-// the parts of the projections since the start: max and mean over the ranks, the share of the
-// blocking MPI calls in the mean, and what the parts leave of the projection time tm[2] (the
-// projection outside the scopes: the barriers of G 41 0 after it).  Collective
-void cfd_amr::pr_report(lexer *p)
-{
-    const int N = PR_NPART;
-    double loc[2*N+2], mx[2*N+2], sm[2*N+2];
-    double tot=0.0;
-    for(int k=0; k<N; ++k)
-    {
-        loc[k] = prc.t[k];
-        loc[N+k] = prc.m[k];
-        tot += prc.t[k];
-    }
-    loc[2*N] = tm[2];
-    loc[2*N+1] = tm[2]-tot;
-    MPI_Reduce(loc,mx,2*N+2,MPI_DOUBLE,MPI_MAX,0,reef3d_comm());
-    MPI_Reduce(loc,sm,2*N+2,MPI_DOUBLE,MPI_SUM,0,reef3d_comm());
-
-    if(p->mpirank!=0)
-    return;
-
-    const double nr = double(max(nranks,1));
-    const std::streamsize pr = cout.precision();
-    cout<<"CFD AMR: projection by part, s max/mean over "<<int(nr)<<" ranks (MPI share of the mean):";
-    for(int k=0; k<N; ++k)
-    {
-        const double mean = sm[k]/nr;
-        if(mx[k]<=0.0)
-        continue;
-        cout<<" "<<pr_part_name(k)<<" "<<setprecision(3)<<mx[k]<<"/"<<mean;
-        if(mean>0.0)
-        cout<<" ("<<int(100.0*sm[N+k]/sm[k]+0.5)<<"%)";
-        cout<<",";
-    }
-    cout<<" projection "<<setprecision(3)<<mx[2*N]<<"/"<<sm[2*N]/nr<<", not in a part "<<sm[2*N+1]/nr<<endl;
-    cout.precision(pr);
-}
-
 // F 41 1, 2: the velocity of the water extended into the air on the patches after a projection
 // (cfd_singlephase::air_velocity on level 0): per level, per component, layer by layer over all
 // patches of the level, the faces and their marks of the cells around each patch from its

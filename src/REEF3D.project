@@ -2783,7 +2783,6 @@
           <File Name="CPM_suspension.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="FDM">
-          <File Name="CPM_Heaviside.cpp"/>
           <File Name="CPM_timestep.cpp"/>
           <File Name="CPM_relax.cpp"/>
           <File Name="CPM_count.cpp"/>
@@ -3478,7 +3477,6 @@
         <File Name="gcxsl_paracox_int.cpp"/>
         <File Name="gcsl_outflow.cpp"/>
         <File Name="gcsl_sommerfeld.cpp"/>
-        <File Name="gcsl_neumann_int.cpp"/>
         <File Name="gcxsl_parax_int.cpp"/>
         <File Name="gcsl_start.cpp"/>
         <File Name="gcxsl_parax.cpp"/>

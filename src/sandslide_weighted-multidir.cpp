@@ -196,29 +196,6 @@ void sandslide_weighted_multidir::compute_fh(lexer *p, ghostcell *pgc, sediment_
 }
 
 
-double  sandslide_weighted_multidir::compute_slope(lexer* p, slice & zh, int i, int j, int di, int dj)
-{
-    // curvilinear grid (G 50): sediment_curv.h
-    if(p->geo_curv==1)
-    {
-    return compute_slope_curv(p,zh,i,j,di,dj);
-    }
-
-    // Compute distance to neighbor (accounting for diagonal)
-    double dist;
-    double dx = 0.5*(p->DXN[IP] + p->DYN[JP]);
-    
-    if(di != 0 && dj != 0)
-        dist = dx * sqrt(2.0);  // diagonal
-    else
-        dist = dx;              // cardinal direction
-    
-    // Slope = elevation difference / horizontal distance
-    double dz = zh(i,j) - zh(i+di, j+dj);
-    
-    return dz / dist;
-}
-
 // ---- curvilinear grid (G 50): the functions above with the geometry of sediment_curv.h
 
 void sandslide_weighted_multidir::compute_fh_curv(lexer *p, ghostcell *pgc, sediment_fdm *s)

@@ -146,13 +146,3 @@ void suspended_RK2::sedfsf(lexer* p,fdm* a,field& conc)
     if(a->phi(i,j,k)<0.0)
     conc(i,j,k)=0.0;
 }
-
-void suspended_RK2::clearrhs(lexer* p, fdm* a)
-{
-    count=0;
-    LOOP
-    {
-    a->rhsvec.V[count]=0.0;
-	++count;
-    }
-}

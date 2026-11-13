@@ -41,13 +41,9 @@ public:
 	void epssource(lexer*,fdm*,vrans*);
 	void epsfsf(lexer*,fdm*,ghostcell*,ioflow*);
 	void eddyvisc(fdm*,lexer*,ghostcell*,vrans*);
-	void clearfield(lexer*,fdm*,field&);
 
 	int count,q;
 	double starttime;
 };
 
 #endif
-
-
-

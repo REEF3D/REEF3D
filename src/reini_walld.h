@@ -45,7 +45,6 @@ public:
 private:
 
 
-	void step(fdm*, lexer*);
 	double dt,minsign,maxdiff;
 
 	int gcval_phi,gcval_iniphi,gcval_ro,reiniter;	

@@ -407,32 +407,3 @@ void initialize::iniphi_wedge(lexer* p, fdm *a, ghostcell* pgc)
     for(int qn=0; qn<p->F115; ++qn)
     iniphi_wedge_add(p,a,p->F115_xs[qn],p->F115_xe[qn],p->F115_ys[qn],p->F115_ye[qn],p->F115_zs[qn],p->F115_ze[qn],1,false);
 }
-
-void initialize::iniphi_surfarea(lexer* p, fdm *a, ghostcell* pgc)
-{
-	double dx,dy,dz,dnorm,dirac;
-	double area=0.0;
-	double epsi = 1.6*p->DXM;
-	
-    LOOP
-	{
-    epsi = (1.6/3.0)*(p->DXN[IP]+p->DYN[JP]+p->DZN[KP]);
-        
-	dx = (a->phi(i+1,j,k)-a->phi(i-1,j,k))/(p->DXP[IM1]+p->DXP[IP]);
-	dy = (a->phi(i,j+1,k)-a->phi(i,j-1,k))/(p->DYP[JM1]+p->DYP[JP]);
-	dz = (a->phi(i,j,k+1)-a->phi(i,j,k-1))/(p->DZP[KM1]+p->DZP[KP]);
-	
-	dnorm = sqrt(p->DXN[IP]*p->DXN[IP] + p->DYN[JP]*p->DYN[JP] + p->DZN[KP]*p->DZN[KP]);
-	
-
-	dirac=0.0;
-	
-	if(fabs(a->phi(i,j,k))<epsi)
-	dirac = (0.5/epsi)*(1.0 + cos((PI*a->phi(i,j,k))/epsi));
-	
-	area +=  pow(p->DXM,3.0) * dirac *dnorm;
-	}
-	
-	area = pgc->globalsum(area);
-	
-}

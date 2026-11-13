@@ -56,7 +56,6 @@ private:
     
     void compute_fh(lexer*, ghostcell*, sediment_fdm*);
     void compute_fh_curv(lexer *p, ghostcell *pgc, sediment_fdm *s);     // curvilinear grid (G 50)
-    double compute_slope(lexer* p, slice&, int i, int j, int di, int dj);
     double compute_slope_curv(lexer* p, slice & zh, int i, int j, int di, int dj);     // curvilinear grid (G 50)
     
     double tan_phi;       // Tangent of angle of repose
@@ -67,4 +66,3 @@ private:
 }; 
 
 #endif
-

@@ -409,17 +409,7 @@ reefrun_ckpt& driver::ckpt()
     return *rck;
 }
 
-void driver::ckpt_write()
-{
-    ckpt().write();
-}
-
 void driver::ckpt_read()
 {
     ckpt().read();
-}
-
-void driver::rebalance_check()
-{
-    ckpt().rebalance_check();
 }
