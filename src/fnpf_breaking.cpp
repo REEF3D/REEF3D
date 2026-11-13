@@ -96,14 +96,7 @@ fnpf_breaking::~fnpf_breaking()
 
 void fnpf_breaking::breaking(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, slice &eta_n, slice &Fifsf, double alpha)
 {
-    if(p->A350==1 && p->A343==0)
-    breaking_baquet_wd(p, c, pgc, eta, eta_n, Fifsf, alpha);
-    
-    if(p->A350==1 && p->A343==1)
-    breaking_baquet_wd(p, c, pgc, eta, eta_n, Fifsf, alpha);
-    
-    // A343 2/3: dynamic wetting-drying previously fell through here (no breaking viscosity at all)
-    if(p->A350==1 && p->A343>=2)
+    if(p->A350==1)
     breaking_baquet_wd(p, c, pgc, eta, eta_n, Fifsf, alpha);
     
     if(p->A350==2)

@@ -287,8 +287,7 @@ double* fnpf_6DOF::mode_array(fnpf_6DOF_grid &G, int nb, int m)
 // with c' = c + d the solution for the same hull is psi_j - sum_k (e_j x d)_k psi_k (k: the translation
 // modes, Neumann data n_k).  The last solution of mode j (at the c of the last refresh) is corrected
 // with the translation modes of this refresh before the solve, so that its start residual no longer
-// carries the motion of the centre of gravity since then.  Moored cylinder with all six DOFs free
-// (dx 0.08 m, a patch): the start residual of roll and pitch from 2.4e-2 to 1.6e-3 relative.  Needs
+// carries the motion of the centre of gravity since then.  Needs
 // the translations k with (e_j x d)_k != 0 to be solved; otherwise the last solution is kept as it is.
 void fnpf_6DOF::mode_shift(fnpf_6DOF_grid &G, int nb, int m, double *const *tr, const Eigen::Vector3d &d)
 {
@@ -467,9 +466,8 @@ void fnpf_6DOF::body_velocities(fnpf_6DOF_grid &G, ghostcell *pgc)
     // fluid (or already filled) neighbours.  velcalc_sig differentiates the body-band values
     // of Fi there with 4th-order stencils that reach two nodes into the body, where the
     // extrapolation is only a continuation; at the free-surface node of a footprint column
-    // W is Fz from the extended Fifsf over the body interior.  Both gave |U|,|W| of several
-    // m/s that alternate from column to column (moored box, X 311, from about 7 s on: 4-5
-    // m/s with a body velocity of 0.2-0.5 m/s).  The hull loads sample U,V,W half a cell off
+    // W is Fz from the extended Fifsf over the body interior.  Both give large velocities
+    // that alternate from column to column.  The hull loads sample U,V,W half a cell off
     // the hull with trilinear weights that include these nodes, and umax/wmax (time step,
     // N 61 stop, output) took them up.  The fluid velocity continued into the body keeps the
     // slip velocity at the hull and the normal velocity of the fluid next to it.
@@ -1061,11 +1059,10 @@ void fnpf_6DOF::geometry(fnpf_6DOF_grid &G, ghostcell *pgc)
 
 // Fluid pockets enclosed by the hull: fluid nodes that reach neither the free surface nor the edge of the
 // grid through other fluid nodes, e.g. a thin gap between two hull parts that a vertical ray crosses
-// several times (the flank of a pitched column just above a pontoon: the crossings at 111.07, 111.47,
-// 112.17, 112.40 m of one column, a node in the gap between them). Their Laplace rows have body faces
+// several times (the flank of a pitched column just above a pontoon). Their Laplace rows have body faces
 // only, whose ghost values the assembly eliminates with the Neumann data: the row sum is zero, the row
-// singular, and the solve leaves the pocket at an arbitrary value (-6e12 at t = 136.6 s in CORAL validation 24,
-// with a converged residual). The body-node fill carries it into the hull and the next
+// singular, and the solve leaves the pocket at an arbitrary value (with a converged residual). The
+// body-node fill carries it into the hull and the next
 // stage blows up. A pocket of at most MAXP nodes becomes body nodes (of the body next to it); a gap
 // that thin is not resolved by the grid anyway.
 void fnpf_6DOF::close_pockets(fnpf_6DOF_grid &G, double *FBF)

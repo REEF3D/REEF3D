@@ -130,11 +130,11 @@ fnpf_theta::fnpf_theta(lexer *p, fdm_fnpf *c, ghostcell *pgc) : fnpf_ini(p,c,pgc
     // B 98 3/4 (Dirichlet / active generation, also B 98 6-8, which iowave runs as 4) and B 99 3-5, 7 (active
     // beach, also 6 and 8, run as 3): the edge velocity Uin of the Laplace rows and the ghost values of eta and
     // Fifsf (iowave::inflow_fnpf) with the targets at t^n+1, in the predictor and in every corrector pass with the
-    // state of the pass (patch 0037); not with mesh refinement
+    // state of the pass; not with mesh refinement
     if(p->B98>4 || p->B99>7 || p->B99==6) {bad=1; if(p->mpirank==0) cout<<"A 310 5: wave generation B 98 0-4 (6-8 as 4), absorption B 99 0-5, 7 (6, 8 as 3)"<<endl;}
     if(p->G1>0 && (p->B98>2 || p->B99>2)) {bad=1; if(p->mpirank==0) cout<<"A 310 5: mesh refinement (G 1) with relaxation zones only (B 98 0-2, B 99 0-2)"<<endl;}
     if(theta<0.5)                   {bad=1; if(p->mpirank==0) cout<<"A 310 5: theta (A 305) >= 0.5"<<endl;}
-    // A 379 (patch 0034): theta off-centred near the still-water coastline
+    // A 379: theta off-centred near the still-water coastline
     thloc = p->A379_1>0.0;
     if(p->A379_1<0.0 || theta+p->A379_1>1.0) {bad=1; if(p->mpirank==0) cout<<"A 310 5: A 379 delta >= 0 and theta + delta <= 1"<<endl;}
     if(thloc && p->A379_2<=0.0)     {bad=1; if(p->mpirank==0) cout<<"A 310 5: A 379 needs a distance d > 0 [m]"<<endl;}
@@ -175,15 +175,11 @@ fnpf_theta::~fnpf_theta()
 {
 }
 
-// A 406 n (default 3, patch 0038): a step whose Laplace solves fail (diverged, NaN, the iteration limit N 46), whose
+// A 406 n (default 3, 0 off): a step whose Laplace solves fail (diverged, NaN, the iteration limit N 46), whose
 // largest surface velocity jumps (more than 3 times that at t^n plus 1 m/s) or whose state is not finite is repeated
-// from t^n with half the step, at most n times; the steps after it grow by at most 2 per step. In a steep deep-water
-// JONSWAP sea (Hs 15.6 m, Tp 15 s, A 350 4, A 405 0.5, A 352 3) at N 48 1 a consistency solve after a breaking edit
-// did not converge after 1035 s and the next step blew up: with A 406 the run went to 3000 s (13 steps repeated).
-// It does not help where a crest overturns: in another realisation a one-cell spike after the generation zone grew
-// into a jet that A 350 4 damped with 0.3-2.6 m2/s only, and the run stopped at 2519.6 s as without A 406 (2515.9 s).
-// Without bodies, mesh refinement and a coastline (there the state of the step is more than eta, Fifsf, Fi and the
-// viscosity); the crest tracking of A 350 4 is not repeated (once per time step). A 406 0: off.
+// from t^n with half the step, at most n times; the steps after it grow by at most 2 per step. It does not help
+// where a crest overturns. Without bodies, mesh refinement and a coastline (there the state of the step is more than
+// eta, Fifsf, Fi and the viscosity); the crest tracking of A 350 4 is not repeated (once per time step).
 void fnpf_theta::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, convection *pconvec, ioflow *pflow, reini *preini)
 {
     const bool can_retry = p->A406>0 && pamr==nullptr && p->X10==0 && p->A343==0;
@@ -324,9 +320,8 @@ bool fnpf_theta::step(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, conv
     
     // damping of eta and Fifsf with the viscosity vb of breaking and of the coastline (implicit over the step, as
     // in each RK3 stage): at the start of the step, i.e. as a source of the step, not after the solve; the
-    // solve then gives Fi of the damped surface, without a further Laplace solve (until patch 0022 a consistency
-    // solve followed the damping after the solve, in the surf zone in almost every step). w^n is that of the
-    // surface before the damping, as the tendencies of the step.
+    // solve then gives Fi of the damped surface, without a further Laplace solve. w^n is that of the surface
+    // before the damping, as the tendencies of the step.
     if(p->A350>0)
     {
     double vbm=0.0;
@@ -510,8 +505,8 @@ bool fnpf_theta::step(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, conv
     }
     
     // the surface of the solve: the edits below (breaking filters, wetting-drying, coastline) change it after the
-    // solve, and Fi below would no longer be that of the edited surface (as with the relaxation zones before
-    // patch 0006); then a Dirichlet solve on the final grid follows (as the last RK3 stage)
+    // solve, and Fi below would no longer be that of the edited surface; then a Dirichlet solve on the final grid
+    // follows (as the last RK3 stage)
     SLICELOOP4
     {
     erk1(i,j) = c->eta(i,j);
@@ -613,8 +608,7 @@ bool fnpf_theta::step(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, conv
     }
     
     // the state of the step finite, and no jump of the surface velocity: more than 3 times that at t^n plus 1 m/s
-    // (in the steep JONSWAP sea a crest went from 13.7 to 89 m/s in one step, with all solves converged, and the
-    // next step was NaN; a breaking crest there grows by a factor of 1.2-1.8 per step)
+    // (an overturning crest can jump with all solves converged; a breaking crest grows by less per step)
     {
     double emx=0.0, us1=0.0;
     SLICELOOP4
@@ -703,8 +697,7 @@ void fnpf_theta::corrector_state(lexer *p, fdm_fnpf *c, ghostcell *pgc, ioflow *
     
     // the change of N of this pass through (I + dt/2 (Fx Dx + Fy Dy))^-1, Dx, Dy upwind: Newton for the advection
     // of the free-surface conditions (eta_t + Fx Ex, Fifsf_t + Fx^2/2: both advect with Fx), so that the passes
-    // converge also where |Fx| dt/dx > 1. Without it they diverge at |Fx| dt/dx of about 2 (the swash of Ting &
-    // Kirby at 2 x the RK3 step); with it Ting & Kirby runs at 3 x (validation 09).
+    // converge also where |Fx| dt/dx > 1 (without it they diverge at |Fx| dt/dx of about 2).
     if(padv)
     {
     SLICELOOP4
@@ -1212,8 +1205,7 @@ double fnpf_theta::robin_solve_mg(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver 
 // become r^(dt/A 303), so that over a fixed time the zones relax by the same amount whatever the step
 // (as B 95 for SFLOW and NHFLOW). Zones with a state (B 98 6: the low-passed deviation from the target, B 99 6: the
 // low-passed surface) update it once per step with the field of their first call: that is the predicted state
-// (erk1, frk1), as the first RK3 stage, and not the probes f = 0, 1 (before patch 0037 B 98 6 and B 99 6 were
-// refused; with the probe f = 0 first the generated waves of B 98 6 lost 20 % of their height).
+// (erk1, frk1), as the first RK3 stage, and not the probes f = 0, 1.
 void fnpf_theta::relax_affine(lexer *p, fdm_fnpf *c, ghostcell *pgc, ioflow *pflow, int which, slice &R, slice &T)
 {
     // the state of the zones (once per step, no effect without one) from the predicted field
@@ -1248,11 +1240,7 @@ void fnpf_theta::relax_affine(lexer *p, fdm_fnpf *c, ghostcell *pgc, ioflow *pfl
     // A 343 >= 1: the coastline relaxation (A 341/A 342/A 347, to 0 or to the running mean A 326) and Fifsf = 0 on
     // land, before the zones as in the RK3 stages (f -> zones(coast(f))); A 333 0 (default): per time as the zones
     // (A 303), A 333 > 0: as RK3 at N 47 A 333. The band is a numerical sponge at the shoreline whose strength per
-    // time in RK3 is that of its three stages per step (RK3 itself changes the swash with its step: the standard
-    // deviation of eta at the still-water shoreline of fnpf_3d_amr_break at N 47 0.75 is 1.31 times that at 0.25).
-    // At A 303 -0.1 it acted as in an RK3 run at N 47 0.1 and damped the swash there to 10 % of RK3's at N 47 0.25;
-    // A 333 0.75 gives 110 %, but the Mase & Kirby checker error goes from 0.276 to 0.302 (validation 12). With the
-    // zones per period (A 303 -200, patch 0032) the band follows them: 62 % there (330 steps per period at -0.1)
+    // time in RK3 is that of its three stages per step.
     if(p->A343>=1)
     {
     SLICELOOP4
@@ -1292,8 +1280,8 @@ void fnpf_theta::relax_affine(lexer *p, fdm_fnpf *c, ghostcell *pgc, ioflow *pfl
 // F(r)^max(s,1) (dt_crit: the step of the time-step criterion at N 47 1). Below the step of N 47 = -a the
 // relaxation is that of an RK3 run with the same step, which gets stronger per time with smaller steps; above it
 // it does not weaken with the step. a <= -1 with period (the zones, A 303 default -200): the RK3 run has -a steps per
-// period of the wave input, s = dt (-a)/T, independent of the grid (patch 0032; the period: fnpf_wave_period.h,
-// reconstructed waves since 0033; without a wave period N 47 0.1).
+// period of the wave input, s = dt (-a)/T, independent of the grid (the period: fnpf_wave_period.h; without a
+// wave period N 47 0.1).
 void fnpf_theta::relax_scale(lexer *p, double a, slice &R, slice &T, bool period)
 {
     double fac = 1.0;

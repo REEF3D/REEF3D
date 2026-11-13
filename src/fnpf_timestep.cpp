@@ -36,7 +36,7 @@ fnpf_timestep::~fnpf_timestep()
 {
 }
 
-// N 48: the time step of FNPF (N 51 until November 2026)
+// N 48: the time step of FNPF
 //
 //  0  fixed       dt = N 49
 //  1  (default)   RK3, RK4: dt = N47 dx / MAX(|u|, sqrt(g h_max)), the shallow-water wave speed of the deepest column
@@ -97,8 +97,8 @@ double fnpf_timestep::omega_discrete(lexer *p, double kh2, double h)
 // reference wave is at most N 55 per cent, at most 4 x the RK3 step of N 48 2 at N 47 0.75 (3 dt_crit, the
 // largest step tested; the corrector, breaking and the relaxation zones). The reference period T: N 52 if set,
 // otherwise that of the wave input (regular waves: T, irregular: Tp). Without one: 2 x the RK3 step. Reconstructed
-// waves (B 92 51-53) have none here: their peak period (fnpf_wave_period.h, the zones since patch 0033) would let the
-// step grow past the frequencies of a focused packet (Tian tp1: 1.6 x the step, energy loss error 0.017 for 0.013).
+// waves (B 92 51-53) have none here: their peak period (fnpf_wave_period.h) would let the step grow past the
+// frequencies of a focused packet.
 double fnpf_timestep::theta_tref(lexer *p)
 {
     if(p->N52>0.0)
@@ -129,13 +129,10 @@ double fnpf_timestep::theta_error(lexer *p, double dt, double cu, double T)
 
 double fnpf_timestep::theta_step(lexer *p, double cu)
 {
-    // at most 4 x the RK3 step; with a coastline (A 343 >= 1) at most the RK3 step at N 47 0.75: with the advection
-    // preconditioner of the corrector (patch 0025) a static coastline is stable at 2-3 x that step (Ting & Kirby),
-    // but the Hm0 of the shallowest gauges of Mase & Kirby grows with the step (beyond the tolerance from 1.5 x),
-    // and the moving coastline (A 343 2) fails at 2 x at the wetted front. Larger steps with a static coastline:
-    // N 48 2 with N 47 1.5-2.25 (validation 09). With resolved floating bodies (X 10 1) also at most the RK3 step:
-    // the natural periods of the body set the step there (validation 10: at 1.5 x the heave decay of a box is
-    // under-damped and the motions in waves are worse than at 1 x)
+    // at most 4 x the RK3 step; with a coastline (A 343 >= 1) at most the RK3 step at N 47 0.75 (the shallowest
+    // gauges grow with the step, and the moving coastline A 343 2 fails at 2 x at the wetted front; larger steps
+    // with a static coastline: N 48 2 with N 47 1.5-2.25). With resolved floating bodies (X 10 1) also at most the
+    // RK3 step: the natural periods of the body set the step there.
     const double dtmax = (p->A343>=1 || p->X10>0) ? 0.75*cu : 3.0*cu;
     const double T = theta_tref(p);
     
@@ -168,8 +165,7 @@ void fnpf_timestep::accuracy_cap(lexer *p)
 }
 
 // weights w[m] of f[knoz-m] such that sz = sum_m w[m] f[knoz-m] (sigma units), as the sz() of the free-surface
-// discretisation chosen by A311: Fornberg weights on the sigma nodes (fnpf_sz_weights); the former A327 0 used the
-// legacy ratio form sum(a f)/sum(a ZN)
+// discretisation chosen by A311: Fornberg weights on the sigma nodes (fnpf_sz_weights)
 int fnpf_timestep::sz_weights(lexer *p, double *w)
 {
     const int N = p->knoz;
@@ -407,7 +403,7 @@ void fnpf_timestep::start(fdm_fnpf *c, lexer *p,ghostcell *pgc)
     if(p->j_dir==1 )
     cu = MIN(cu,cv);
     
-    // minimum over all ranks (was the value of rank 0, i.e. of its cells only)
+    // minimum over all ranks
     cu = pgc->globalmin(cu);
     
     // no water and no velocity: the time step would be N47*1e10 and the run would end silently

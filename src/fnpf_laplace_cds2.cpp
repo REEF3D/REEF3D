@@ -97,9 +97,7 @@ void fnpf_laplace_cds2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *pso
     
     starttime=pgc->timer();
     
-    // Fused single-pass assembly (previously two full LOOP sweeps).
-    // Column-constant factors are hoisted; per-cell arithmetic is kept in
-    // the original evaluation order, so M and rhs are bit-identical.
+    // Single-pass assembly; column-constant factors are hoisted.
     const int sI = p->jmax*p->kmaxF;
     const int sJ = p->kmaxF;
     

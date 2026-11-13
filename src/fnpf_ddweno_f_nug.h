@@ -47,7 +47,7 @@ public:
     double dswenox(slice&, double);
     double dswenoy(slice&, double);
 
-    // Upwinded WENO5 gradient at (i,j) from weno_nug_func::dsdiffx/dsdiffy output, bit-identical to dswenox/dswenoy.
+    // Upwinded WENO5 gradient at (i,j) from weno_nug_func::dsdiffx/dsdiffy output, as dswenox/dswenoy.
     inline double dswenox_dq(slice &dq, double uvel)
     {
         if(uvel>0.0)

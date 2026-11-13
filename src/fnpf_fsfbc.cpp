@@ -95,16 +95,8 @@ void fnpf_fsfbc::fsfdisc(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, slic
 
     pgc->gcsl_start4(p,c->WL,50);
 
-    // ef/df: removed. Both slices were copied, halo-exchanged 4x and passed to
-    // filter(), which has no (i,j) loop and so only touched one stale cell.
-    // Neither ef nor df is read afterwards (df is only read in fsfdisc_ini,
-    // which runs before the first fsfdisc call), so this was dead work
-    // costing 4 slice halo exchanges per RK stage.
-
     // Ex,Ey upwinded by the sign of Fx,Fy (zero gradient at zero speed) and used everywhere, also in the kinematic
-    // FSBC (Exu = Ex, Eyu = Ey). (The former A315 1-3, the kinematic FSBC upwinded by its characteristic speed
-    // Fx - 2 Fz Ex, symmetric gradients and the Godunov gradient, are removed: without the A352 filter A315 1 was
-    // less stable at a steep shore.)
+    // FSBC (Exu = Ex, Eyu = Ey).
     std::visit([&](auto &conv, auto &ddx)
     {
         // WENO5: face divided differences once per field and direction, inlined stencils
@@ -181,7 +173,7 @@ void fnpf_fsfbc::fsfdisc(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, slic
 
 void fnpf_fsfbc::fsfdisc_ini(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, slice &Fifsf)
 {
-    // symmetric Bx, Bxx from the depth (the former A317 0: Bx left-biased, Bxx = 0)
+    // symmetric Bx, Bxx from the depth
     slice &bdd = c->depth;
 
     std::visit([&](auto &conv, auto &ddx)

@@ -156,14 +156,12 @@ void fnpf_fsfbc_wd::wetdry(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, sl
 //   A343 3: rundown only. Only initially wet cells may dry and rewet, the
 //           coastline damping A341/A342 around the initial coastline is kept
 //
-// Compared with the former A343 2 implementation:
 //  - the wet/dry flags change only once per time step (first call with a new
 //    p->count, i.e. the first RK stage); later stages only enforce the
 //    constraints, so the RK stages see one consistent mask
 //  - drying keeps Fifsf; a rewetted cell gets Fifsf from its wet face
-//    neighbours instead of the stale value/zero, which otherwise produces a
-//    jump of the size of the Bernoulli drift of Fi (O(100) m^2/s) and thus
-//    O(10) m/s surface velocities in the first step after rewetting
+//    neighbours (the stale value or zero would be a jump of the size of the
+//    Bernoulli drift of Fi, and large surface velocities after rewetting)
 //  - hysteresis: rewetting needs a wet neighbour whose surface is at least
 //    A331*A344 above the dry cell's level, and a rewetted cell stays wet for
 //    at least A330 time steps (below the criterion it is clamped as for A343 1)

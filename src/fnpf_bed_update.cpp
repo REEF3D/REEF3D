@@ -52,7 +52,7 @@ void fnpf_bed_update::bedbc_sig(lexer *p, fdm_fnpf *c, ghostcell *pgc, double *F
     SLICELOOP4
     {
     // tangential gradient of the potential the ghost cells are set for (the body potentials of
-    // fnpf_6DOF are passed as Fi, the gradient was taken from c->Fi)
+    // fnpf_6DOF are passed as Fi)
     bcval =   (c->Bx(i,j)*(Fi[FIp1JK]-Fi[FIm1JK])/(p->DXP[IP] + p->DXP[IM1])
     
             +  c->By(i,j)*(Fi[FIJp1K]-Fi[FIJm1K])/(p->DYP[JP] + p->DYP[JM1]));

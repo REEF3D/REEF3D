@@ -110,8 +110,7 @@ void driver::loop_fnpf()
         p->simtime+=p->dt;
         
         // printer: after the time update, so the outputs carry the time of the state they hold (t^n+1), as in
-        // CFD, NHFLOW and SFLOW; the theory gauges (P 50) are evaluated at that time too. Before 6 November 2026
-        // the outputs were written with the label t^n, one step before their state.
+        // CFD, NHFLOW and SFLOW; the theory gauges (P 50) are evaluated at that time too.
         {
         fnpf_prof::scope ps_(fnpf_prof::print);
         pprint->start(p,c,pgc,pflow);

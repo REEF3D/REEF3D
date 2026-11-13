@@ -31,8 +31,6 @@ Author: Hans Bihs
 // with b(S) = a * (S - S0)^(5/2), fe = A 366 when eta is damped (A 357 1, 3), ff = 1 when Fi is
 // damped (A 357 1, 2). For a linear wave of amplitude A, g|grad eta|^2 + k tanh(kh)|grad Fi|^2
 // = g (kA)^2 at every phase, so with A 357 1 and A 366 1 the matching is phase independent.
-// (The former denominator |grad_H(Fi)|^2 alone has the wrong dimension: vb came out in m/s,
-// 2k times the matched value in deep water.)
 //
 // Three methods for computing local steepness S:
 //   1. Gradient-based:  S = |grad_H(eta)|  (simplest, underestimates)
@@ -56,7 +54,6 @@ Author: Hans Bihs
 void fnpf_breaking::breaking_romero(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, slice &eta_n, slice &Fifsf, double alpha)
 {
     // --- Step 0: Compute eta_t of the stage ---
-    // (was (c->eta - eta_old)/dt with eta_old updated at every call: zero in RK stages 1, 2)
     SLICELOOP4
     eta_t(i,j) = (eta(i,j) - eta_n(i,j)) / (alpha*p->dt);
     
@@ -121,8 +118,7 @@ void fnpf_breaking::compute_local_wavenumber(lexer *p, fdm_fnpf *c,
     double d2eta_dx2, d2eta_dy2, eta_c;
     double k_est;
     
-    // upper bound: the shortest wave the grid resolves (was 5.0 1/m, i.e. L > 1.26 m,
-    // which clamped every laboratory-scale wave)
+    // upper bound: the shortest wave the grid resolves
     const double k_max = PI/dx;
 
     SLICELOOP4
@@ -289,7 +285,7 @@ void fnpf_breaking::compute_phase_speed(lexer *p, fdm_fnpf *c,
             // c = sqrt(g * tanh(k*h) / k)
 
             double k = k_local(i,j);
-            double h_local = romero_depth(p, c, eta);   // was wd + eta: ignored the bed
+            double h_local = romero_depth(p, c, eta);
 
             double kh = k * h_local;
 
@@ -354,7 +350,7 @@ void fnpf_breaking::detect_breaking(lexer *p, fdm_fnpf *c,
             continue;
         }
         
-        h_local = romero_depth(p, c, eta);   // was wd + eta: ignored the bed
+        h_local = romero_depth(p, c, eta);
 
         // --- Primary criterion: steepness exceeds threshold ---
         int steep_trigger = (S_local(i,j) > S0) ? 1 : 0;
@@ -409,7 +405,7 @@ void fnpf_breaking::compute_eddy_viscosity(lexer *p, fdm_fnpf *c,
     {
         if (c->breaking(i,j)== 1)
         {
-            h_local = romero_depth(p, c, eta);   // was wd + eta: ignored the bed
+            h_local = romero_depth(p, c, eta);
 
             k  = k_local(i,j);
             cp = c_phase(i,j);
@@ -467,8 +463,7 @@ void fnpf_breaking::compute_eddy_viscosity(lexer *p, fdm_fnpf *c,
             // ---- Eddy viscosity via energy matching ----
             // c->vb = B(t) * b(S) * c^5 / (g * L_b * diss)
             // floor for a very small surface signal: 1e-3 of the phase average of diss for a
-            // linear wave, 0.5*(fe + ff) * g * S^2 (replaces the former fallback
-            // b*c/(2 pi alpha_L S^2), which had the dimension m/s as well)
+            // linear wave, 0.5*(fe + ff) * g * S^2
             if (b > 0.0 && (fe + ff) > 0.0)
             {
                 diss = MAX(diss, 1.0e-3 * 0.5 * (fe + ff) * 9.81 * S * S);

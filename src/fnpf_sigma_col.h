@@ -33,9 +33,8 @@ Author: Hans Bihs
 // sig = ZN. Instead of three 3D arrays (and sig) they are evaluated where they are read: the Laplace
 // assembly, the velocities and the bed boundary condition. sigma_update fills the 3D arrays only
 // for the other readers (fnpf_sigma_3D), with the same functions, so the values are the same bit
-// for bit, and they are those of the old arrays: the column quantities do not change between
-// sigma_update and these readers (fsfdisc and wetdry, which write them, come before sigma_update
-// in every RK stage).
+// for bit: the column quantities do not change between sigma_update and these readers (fsfdisc
+// and wetdry, which write them, come before sigma_update in every RK stage).
 struct fnpf_sigma_col
 {
     double W,W2,bxW,exW,byW,eyW,tbx,tex,tby,tey,sbex,bex,sbey,bey;
