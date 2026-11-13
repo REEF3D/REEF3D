@@ -58,7 +58,8 @@ sflow_momentum_SI::sflow_momentum_SI(lexer *p, fdm2D *b, ghostcell *pgc, sflow_H
                                       qyN(p),Hyo(p),qyo(p),qya(p),nyR(p),nyL(p),nyB(p),ny0(p),kyEL(p),kyER(p),kyPL(p),kyPR(p),ky1(p),ky2(p),
                                       phiN(p),WHp(p),Lc0(p),Unm1(p),Vnm1(p),WLh(p),WLo(p),AWo(p),WLq(p),
                                       nPW(p),nEb(p),nEo(p),nPo(p),nU(p),nV(p),nUs(p),nVs(p),nA(p),nsx(p),nsy(p),nE(p),nP(p),nL(p),nZ(p),nAE(p),nAP(p),nBE(p),nBP(p),nGx(p),nGy(p),
-                                      nF1x(p),nF2x(p),nF1y(p),nF2y(p),nH3(p),nW2(p),nCs(p),nRm(p),nRc(p),nZE(p),nZP(p),sps(p),bcA(p),bcS(p),FSx(p),FSy(p),dNx(p),dNy(p),mfx(p),mfy(p),acU(p),acV(p),hoC(p),hoEx(p),hoEo(p),cx0(p),cy0(p)
+                                      nF1x(p),nF2x(p),nF1y(p),nF2y(p),nH3(p),nW2(p),nCs(p),nRm(p),nRc(p),nZE(p),nZP(p),sps(p),bcA(p),bcS(p),FSx(p),FSy(p),dNx(p),dNy(p),mfx(p),mfy(p),acU(p),acV(p),hoC(p),hoEx(p),hoEo(p),cx0(p),cy0(p),
+                                      rUH(p),rVH(p),rlc(p),rlx(p),rly(p)
 {
     check(p);
 
@@ -196,6 +197,10 @@ void sflow_momentum_SI::check(lexer *p)
     if(p->A750>0 && p->A770==1)
     msg("SEASTATE surfbeat (A 770 1) is");
 
+    // rheology core (W 120): the basal friction (rheo_friction) on Cartesian grids
+    if(p->W120>0 && p->geo_curv==1)
+    msg("the rheology core (W 120) on curvilinear grids is");
+
     if(stop==1)
     exit(1);
 
@@ -290,7 +295,20 @@ void sflow_momentum_SI::step_single(lexer *p, fdm2D* b, ghostcell* pgc)
     }
 
     else
+    {
     wd_iter = psi->solve_wetdry(p,pgc,ppoissonsolv,ax,ay,rhsW,b->depth,bdiag,etaI,p->A229==1 ? 20 : 1,wd_cells);
+
+        // rheology core (W 120): the friction factors with the driving force of the new level, the eta system again
+        // (rheo_friction)
+        for(rpass=1; rpass<rheo_passes(p); ++rpass)
+        {
+        si_assemble(p,b,pgc);
+        si_rhs(p,b,pgc);
+        wd_iter = psi->solve_wetdry(p,pgc,ppoissonsolv,ax,ay,rhsW,b->depth,bdiag,etaI,p->A229==1 ? 20 : 1,wd_cells);
+        }
+
+    rpass = 0;
+    }
 
     si_end_faces(p,b,pgc);
     si_end_cells(p,b,pgc);
@@ -521,6 +539,9 @@ void sflow_momentum_SI::si_end_cells(lexer *p, fdm2D* b, ghostcell* pgc)
 
     // 9.-10. cell momentum, relaxation zones, velocities, ghost cells
     cell_update(p,b,pgc);
+
+    // rheology core (W 120): the pore pressure ratio, advected and relaxed with the momentum of t^{n+1}
+    prheo->si_end(p,b,pgc,b->UH,b->VH,b->WL);
 
     SLICELOOP4
     {
@@ -805,6 +826,113 @@ void sflow_momentum_SI::friction(lexer *p, fdm2D *b)
     v = b->V(i,j)*p->y_dir;
 
     alc(i,j) = 1.0/(1.0 + p->dt*cf*sqrt(u*u + v*v)/h);
+    }
+}
+
+int sflow_momentum_SI::rheo_passes(lexer *p) const
+{
+    // rheology core (W 120): the eta system once with the friction of eta^n, W 129 times more with that of the new level
+    return prheo->si_friction() ? 1 + MAX(p->W129,0) : 1;
+}
+
+void sflow_momentum_SI::rheo_friction(lexer *p, fdm2D *b, ghostcell *pgc)
+{
+    // rheology core (W 120): the basal friction of the layer (Coulomb, Voellmy, mu(I), Herschel-Bulkley, ... with the
+    // yield criterion) as a factor on alpha_f and alpha_c, with the Manning factor of friction(). The factor is that of
+    // the backward-Euler friction step of the core, s/Ustar with s + dt tau_b(s)/(rho h) = Ustar (the same step as the
+    // explicit integrators, sflow_rheology_core::implicit), for the frictionless estimate of the new momentum: the
+    // predictor with the full gravity term,
+    //   cells  UH* - dt g H G_c(eta)   (G_c the mean of the open face gradients, as cell_update)
+    //   faces  avg(UH*) - dt g H_f grad_f eta along the face, the tangential part the mean of the two cells,
+    // Ustar = |.|/H, with eta = eta^n in the first pass (rpass 0) and theta eta^{n+1} + (1 - theta) eta^n of the pass
+    // before in the passes after it (step_single: the eta system solved again with the factors of the new level; the
+// factor of a pass at most that of the pass before).
+    // Below the static threshold (the driving force of the step, gravity, the along-slope gravity W 20/W 21 and the
+    // sources of the predictor, cannot overcome the static friction) the factor is 0 and the face and the cell stay at
+    // rest, also with the implicit gravity term (it carries alpha_f); above it the factor 1/(1 + dt tau_b(s)/(rho h s))
+    // is the friction of the speed s at the end of the step. Cartesian grids (check)
+    if(!prheo->si_friction())
+    return;
+
+    const double dt = p->dt;
+    slice &Hg = tlev ? (slice&)WLh : (slice&)WL0;
+
+    // the factors of friction() (Manning) of the step
+    if(rpass==0)
+    {
+        SLICELOOP1
+        rlx(i,j) = alx(i,j);
+
+        SLICELOOP2
+        rly(i,j) = aly(i,j);
+
+        SLICELOOP4
+        rlc(i,j) = alc(i,j);
+    }
+
+    // the factor of a pass is at most that of the pass before (the passes of a step converge from above: with the free
+    // factor the faces near the yield threshold flipped between rest and motion from pass to pass, and the second
+    // extra pass gave a front of 1.60 m instead of 1.44 m in case 02)
+    auto rmin = [&](double al, double al0, double f) { return rpass==0 ? f : MIN(al0>0.0 ? al/al0 : 1.0, f); };
+
+    const double te = rpass==0 ? 0.0 : theta;
+    auto lev = [&](int ii, int jj) { return te*etaI(ii,jj) + (1.0-te)*b->eta(ii,jj); };
+    auto gxf = [&](int ii, int jj) { return Hx(ii,jj)>0.0 ? (lev(ii+1,jj) - lev(ii,jj))/p->DXP[ii+marge] : 0.0; };
+    auto gyf = [&](int ii, int jj) { return Hy(ii,jj)>0.0 ? (lev(ii,jj+1) - lev(ii,jj))/p->DYP[jj+marge] : 0.0; };
+
+    // cells: the frictionless estimate and its factor
+    SLICELOOP4
+    {
+        rUH(i,j) = 0.0;
+        rVH(i,j) = 0.0;
+
+        if(p->wet[IJ]==0)
+        continue;
+
+        const double ox = (Hx(i-1,j)>0.0 ? 1.0 : 0.0) + (Hx(i,j)>0.0 ? 1.0 : 0.0);
+        rUH(i,j) = UHp(i,j) - dt*g*Hg(i,j)*(gxf(i-1,j) + gxf(i,j))/MAX(ox,1.0);
+
+        if(p->j_dir==1)
+        {
+        const double oy = (Hy(i,j-1)>0.0 ? 1.0 : 0.0) + (Hy(i,j)>0.0 ? 1.0 : 0.0);
+        rVH(i,j) = VHp(i,j) - dt*g*Hg(i,j)*(gyf(i,j-1) + gyf(i,j))/MAX(oy,1.0);
+        }
+
+    }
+
+    exchange4(p,pgc,rUH);
+    exchange4(p,pgc,rVH);
+
+    // faces: the normal estimate, the tangential part from the cells
+    SLICELOOP1
+    if(Hx(i,j)>p->A244)
+    {
+    const double qn = 0.5*(UHp(i,j) + UHp(i+1,j)) - dt*g*Hx(i,j)*gxf(i,j);
+    const double qt = 0.5*(rVH(i,j) + rVH(i+1,j));
+    alx(i,j) = rlx(i,j)*rmin(alx(i,j),rlx(i,j),prheo->si_factor(p,b,i,j,1,Hx(i,j),sqrt(qn*qn + qt*qt)/Hx(i,j),dt));
+    }
+
+    if(p->j_dir==1)
+    SLICELOOP2
+    if(Hy(i,j)>p->A244)
+    {
+    const double qn = 0.5*(VHp(i,j) + VHp(i,j+1)) - dt*g*Hy(i,j)*gyf(i,j);
+    const double qt = 0.5*(rUH(i,j) + rUH(i,j+1));
+    aly(i,j) = rly(i,j)*rmin(aly(i,j),rly(i,j),prheo->si_factor(p,b,i,j,2,Hy(i,j),sqrt(qn*qn + qt*qt)/Hy(i,j),dt));
+    }
+
+    exchange1(p,pgc,alx);
+    exchange2(p,pgc,aly);
+
+    // cells (next to a face at rest the cell takes the mean of its face discharges after the step, cell_update)
+    SLICELOOP4
+    {
+        const double h = WL0(i,j);
+
+        if(p->wet[IJ]==0 || h<=p->A244)
+        continue;
+
+        alc(i,j) = rlc(i,j)*rmin(alc(i,j),rlc(i,j),prheo->si_factor(p,b,i,j,0,h,sqrt(rUH(i,j)*rUH(i,j) + rVH(i,j)*rVH(i,j))/h,dt));
     }
 }
 
@@ -1582,6 +1710,9 @@ void sflow_momentum_SI::si_assemble(lexer *p, fdm2D *b, ghostcell *pgc)
     SLICELOOP2
     cy0(i,j) = 0.0;
 
+    // rheology core (W 120): the basal friction of the layer on alpha_f, alpha_c
+    rheo_friction(p,b,pgc);
+
     SLICELOOP1
     {
         if(Hx(i,j)>0.0 && cv)
@@ -2170,6 +2301,26 @@ void sflow_momentum_SI::cell_update(lexer *p, fdm2D *b, ghostcell *pgc)
     // non-hydrostatic pressure (A 220 2/3): UH with the mean of the face terms, WH
     if(nh)
     nh_cell(p,b,pgc);
+
+    // rheology core (W 120): a cell next to a face at rest (below the yield threshold, alpha_f = 0) takes the mean of
+    // its new face discharges. Its own momentum otherwise lives on between the faces that carry the mass: the face
+    // predictor (the mean of the cells) kept the next face just above the threshold, and the cell held a velocity of
+    // 2 cm/s in the arrested Carbopol deposit of case 02 while no mass moved
+    if(prheo->si_friction())
+    SLICELOOP4
+    if(p->wet[IJ]==1)
+    {
+        bool rest = (Hx(i-1,j)>p->A244 && alx(i-1,j)<=0.0) || (Hx(i,j)>p->A244 && alx(i,j)<=0.0);
+
+        if(p->j_dir==1)
+        rest = rest || (Hy(i,j-1)>p->A244 && aly(i,j-1)<=0.0) || (Hy(i,j)>p->A244 && aly(i,j)<=0.0);
+
+        if(rest)
+        {
+        b->UH(i,j) = 0.5*((Hx(i-1,j)>0.0 ? qx(i-1,j) : 0.0) + (Hx(i,j)>0.0 ? qx(i,j) : 0.0));
+        b->VH(i,j) = p->j_dir==1 ? 0.5*((Hy(i,j-1)>0.0 ? qy(i,j-1) : 0.0) + (Hy(i,j)>0.0 ? qy(i,j) : 0.0)) : 0.0;
+        }
+    }
 
     // A 210 12/13: the acceleration of the implicit part of the step (gravity, non-hydrostatic pressure, bed friction)
     // for the later predictor stages of the next step (stage_vel)

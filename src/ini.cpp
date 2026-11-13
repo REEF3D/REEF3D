@@ -1535,6 +1535,7 @@ void control::ini_default()
     W127_lambdah=0.0;// double hydrostatic pore pressure ratio the excess decays to
     W127_D=0.0;      // double hydraulic diffusivity [m^2/s]
     W128=0;          // int bed-normal gravity cos^2(theta) from the bed slope in the basal normal stress
+    W129=1;          // int SFLOW semi-implicit with the rheology core: extra solves of the eta system with the friction of the new level (W 120)
     W130=0;          // int local rheology (CFD): 1 Herschel-Bulkley, 2 Herschel-Bulkley-Coulomb, 3 mu(I), 4 Coulomb-viscoplastic
     W131=2;          // int effective pressure: 2 solved pressure, 1 lithostatic from the level set (rho (g.n) phi: only for surfaces without steep flanks)
     W132=1000.0;     // double Papanastasiou regularisation m [s]

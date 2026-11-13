@@ -83,9 +83,6 @@ sflow_momentum_func::sflow_momentum_func(lexer *p, fdm2D *b, ghostcell *pgc, sfl
     
     if(p->W90>0 && p->mpirank==0)
     cout<<"SFLOW: W 120 "<<p->W120<<" replaces W 90 "<<p->W90<<endl;
-    
-    if(p->A226==1 && p->mpirank==0)
-    cout<<"SFLOW: W 120 basal friction is not applied in the semi-implicit integrator (A 210 12/13)"<<endl;
     }
     
     else if(p->W90==1)

@@ -461,6 +461,36 @@ def huppert(runs, out):
     fig.tight_layout(); fig.savefig(os.path.join(out, "09_viscous_current.png"))
     return rows
 
+def semi_implicit(prefix_si, prefix_ex, out):
+    # case 10: the semi-implicit SFLOW (A 210 11) against the explicit runs of the same cases and the references;
+    # <prefix>mangeney, <prefix>hb_core
+    plt = style()
+    fig, ax = plt.subplots(1, 2, figsize=(10, 3.6))
+    g = 9.81; th = math.radians(35); gx, gn = g*math.sin(th), g*math.cos(th); tand = math.tan(math.radians(25))
+    rows = {}
+    for k, (pre, ls, lab) in enumerate(((prefix_si, "-", "semi-implicit A 210 11"), (prefix_ex, ":", "explicit RK3"))):
+        if pre is None or not os.path.isdir(pre + "mangeney"):
+            continue
+        for t, d in frames(pre + "mangeney"):
+            if abs(t - 3.0) > 0.06:
+                continue
+            x, h, u = line(d)
+            ax[0].plot(x, h, color=(BLUE, ORANGE)[k], lw=1.6, ls=ls, label=lab)
+            if k == 0:
+                he, ue, xb = mangeney_exact(x, t, 1.0, gn, gx, tand)
+                ax[0].plot(x, he, color=GREY, lw=1.0, ls="--", label="Mangeney et al. (2000)")
+        F = frames(pre + "hb_core")
+        x, h, u = line(F[-1][1])
+        ax[1].plot(x, h, color=(BLUE, ORANGE)[k], lw=1.6, ls=ls, label=lab)
+        rows[lab] = dict(arrest_front=round(float(front(x, h, 1e-3)), 3), arrest_h_wall=round(float(h[0]), 4))
+    V = 0.5*0.3; a = math.sqrt(2*89.0/(1000.0*g)); xf = (3*V/(2*a))**(2.0/3.0)
+    xx = np.linspace(0, xf, 300)
+    ax[1].plot(xx, a*np.sqrt(xf - xx), color=GREY, lw=1.0, ls="--", label="fully yielded")
+    ax[0].set_xlim(-12, 30); ax[0].set_xlabel("x along slope (m)"); ax[0].set_ylabel("h (m)"); ax[0].set_title("01 Coulomb dam break, t = 3 s", fontsize=10); ax[0].legend()
+    ax[1].set_xlim(0, 2); ax[1].set_xlabel("x (m)"); ax[1].set_ylabel("h (m)"); ax[1].set_title("02 Carbopol deposit, t = 60 s", fontsize=10); ax[1].legend()
+    fig.tight_layout(); fig.savefig(os.path.join(out, "10_semi_implicit.png"))
+    return rows
+
 if __name__ == "__main__":
     cmd = sys.argv[1]
     if cmd == "mangeney":
@@ -479,6 +509,8 @@ if __name__ == "__main__":
         r = collapse(sys.argv[2], sys.argv[3])
     elif cmd == "cfdarrest":
         r = cfdarrest(sys.argv[2], sys.argv[3] if len(sys.argv) > 4 else None, sys.argv[-1])
+    elif cmd == "si":
+        r = semi_implicit(sys.argv[2], sys.argv[3] if len(sys.argv) > 4 else None, sys.argv[-1])
     elif cmd == "huppert":
         r = huppert(sys.argv[2:-1], sys.argv[-1])
     print(json.dumps(r, indent=1))
