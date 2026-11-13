@@ -57,6 +57,7 @@ Author: Hans Bihs
 #include"nhflow_turbulence.h"
 #include"nhflow_momentum.h"
 #include"nhflow_longrun.h"
+#include"ks_map.h"
 #include"ioflow.h"
 #include"cfd_ckpt.h"
 #include"dem.h"
@@ -230,6 +231,16 @@ reefrun_ckpt& driver::ckpt()
         level0();
         if(p->A10==5)
         pnhfmom->ckpt_restored();
+
+        // B 58 1: the bed roughness from the map of the case, not from the checkpoint (driver_ini_nhflow): the map
+        // can be changed at a restart
+        if(p->A10==5 && p->B58==1 && (p->S10==0 || p->S28==2))
+        {
+            const ks_map &km = ks_map::get(p);
+            SLICELOOP4
+            d->ks(i,j) = km.at(p->XC2D[IJ],p->YC2D[IJ],p->B50);
+            pgc->gcsl_start4(p,d->ks,50);
+        }
         if(p->A10==6)
         {
             if(!cfd_ckpt_read(p,ck,msg))
