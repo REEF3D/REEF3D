@@ -35,7 +35,6 @@ class sixdof;
 class mooring;
 class fsi;
 class dem;
-class nhflow_reinidisc_fsf;
 class rodtree_coupling;
 class fem_coupling;
 class nhflow_pressure;

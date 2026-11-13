@@ -25,7 +25,6 @@ Author: Hans Bihs
 #include"fdm_nhf.h"
 #include"ghostcell.h"
 #include"6DOF.h"
-#include"nhflow_reinidisc_fsf.h"
 
 void nhflow_geometry::geometry_ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {

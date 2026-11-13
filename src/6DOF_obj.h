@@ -56,7 +56,6 @@ class fdm_nhf;
 class fdm_fnpf;
 class ghostcell;
 class reinidisc;
-class nhflow_reinidisc_fsf;
 class mooring;
 class net_interface;
 class sixdof_motionext;

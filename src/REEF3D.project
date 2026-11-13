@@ -674,9 +674,6 @@
             <File Name="nhflow_potential_f.h"/>
             <File Name="nhflow_potential.h"/>
           </VirtualDirectory>
-          <VirtualDirectory Name="Reinitialization">
-            <File Name="nhflow_reinidisc_fsf.h"/>
-          </VirtualDirectory>
           <VirtualDirectory Name="Sigma">
             <File Name="nhflow_sigma.h"/>
           </VirtualDirectory>
@@ -2213,7 +2210,6 @@
             <File Name="nhflow_geometry_print_vtp.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Ray Casting">
-            <File Name="nhflow_geometry_reini_RK2.cpp"/>
             <File Name="nhflow_geometry_raycast.cpp"/>
           </VirtualDirectory>
           <File Name="nhflow_geometry.cpp"/>
@@ -2347,9 +2343,6 @@
           <VirtualDirectory Name="Potential Flow">
             <File Name="nhflow_potential_v.cpp"/>
             <File Name="nhflow_potential_f.cpp"/>
-          </VirtualDirectory>
-          <VirtualDirectory Name="Reinitialization">
-            <File Name="nhflow_reinidisc_fsf.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Sigma">
             <File Name="nhflow_curv.cpp"/>
@@ -3186,9 +3179,6 @@
             <VirtualDirectory Name="Objects">
               <File Name="6DOF_obj_flap_double.cpp"/>
               <File Name="6DOF_obj_piston.cpp"/>
-            </VirtualDirectory>
-            <VirtualDirectory Name="Reini NHFLOW">
-              <File Name="6DOF_obj_nhflow_reini_RK2.cpp"/>
             </VirtualDirectory>
             <VirtualDirectory Name="Ray Cast NHFLOW">
               <File Name="6DOF_nhflow_forcing_raycast.cpp"/>

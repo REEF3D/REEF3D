@@ -25,7 +25,6 @@ Author: Hans Bihs
 #include"fdm_nhf.h"
 #include"ghostcell.h"
 #include"6DOF.h"
-#include"nhflow_reinidisc_fsf.h"
 
 void nhflow_forcing::forcing_ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
@@ -41,7 +40,6 @@ void nhflow_forcing::forcing_ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
     geometry_ini(p, d, pgc);
     objects_create_forcing(p, pgc);
     ray_cast(p, d, pgc, d->SOLID);
-    reini_RK2(p, d, pgc, d->SOLID);
     // ************************
     
     SLICELOOP4

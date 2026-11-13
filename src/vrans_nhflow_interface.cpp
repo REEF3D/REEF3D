@@ -24,7 +24,6 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm_nhf.h"
 #include"ghostcell.h"
-#include"nhflow_reinidisc_fsf.h"
 
 // half width of the porous Heaviside at cell (i,j,k): B209 dx
 double vrans_nhflow_f::porpsi(lexer *p, fdm_nhf *d)

@@ -33,7 +33,6 @@ class lexer;
 class fdm_nhf;
 class ghostcell;
 class slice;
-class nhflow_reinidisc_fsf;
 
 using namespace std;
 
@@ -44,7 +43,6 @@ public:
 	virtual ~nhflow_geometry();
     
     void ray_cast(lexer*, fdm_nhf*, ghostcell*, double*);
-    void reini_RK2(lexer*, fdm_nhf*, ghostcell*, double*);
     
     void objects_create_forcing(lexer*, ghostcell*);
     void objects_create_vrans(lexer*, ghostcell*);
@@ -114,7 +112,6 @@ private:
     double amr_bx[4] = {0.0,0.0,0.0,0.0};
     
     int *IO,*CR,*CL;
-    double *FRK1,*dt,*L;
     
     double DSM;
     
@@ -127,12 +124,8 @@ private:
     double zmin,zmax;
     double starttime;
     
-    int reiniter;
-    
     const double epsi;
     
-    nhflow_reinidisc_fsf *prdisc;
-
     
     double phi,theta,psi;
     double xrot,yrot,zrot;

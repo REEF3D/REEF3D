@@ -26,7 +26,6 @@ Authors: Hans Bihs, Tobias Martin
 #include"6DOF_obj_2D.h"
 #include<array>
 
-class nhflow_reinidisc_fsf;
 
 //  Fluid access of the load models (ship module) in NHFLOW: velocity at points, MPI-summed
 class sixdof_fluid_nhflow : public sixdof_fluid
@@ -132,7 +131,6 @@ private:
     void geometry_ls_nhflow(lexer*, fdm_nhf*, ghostcell*);
     void update_trimesh_nhflow(lexer*, fdm_nhf*, ghostcell*, bool);
     void ray_cast(lexer*, fdm_nhf*, ghostcell*);
-    void nhflow_reini_RK2(lexer*, fdm_nhf*, ghostcell*, double*);
     void allocate(lexer*,fdm_nhf*,ghostcell*);
     void deallocate(lexer*,fdm_nhf*,ghostcell*);
     void print_force(lexer*,fdm_nhf*,ghostcell*);
@@ -146,9 +144,7 @@ private:
     void finalize(lexer*,fdm_nhf*);
     double triangle_area(lexer*,double,double,double,double,double,double,double,double,double);
     
-    nhflow_reinidisc_fsf *pnhfrdisc;
     int *IO,*CR,*CL;
-    double *FRK1,*DTT,*LL;
     int *vert, *nflag;
     double *fsf;
 };

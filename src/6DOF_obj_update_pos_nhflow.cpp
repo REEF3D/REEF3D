@@ -53,7 +53,6 @@ void sixdof_obj_nhflow::update_trimesh_nhflow(lexer *p, fdm_nhf *d, ghostcell *p
     
     // Update floating level set function
 	ray_cast(p,d,pgc);
-	nhflow_reini_RK2(p,d,pgc,d->FB);
 }
 
 void sixdof_obj_nhflow::update_wavemaker_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &fsglobal, int iter, bool finalize)
@@ -80,6 +79,5 @@ void sixdof_obj_nhflow::update_wavemaker_nhflow(lexer *p, fdm_nhf *d, ghostcell 
     
     // Update floating level set function
 	ray_cast(p,d,pgc);
-	nhflow_reini_RK2(p,d,pgc,d->FB);
 
 }

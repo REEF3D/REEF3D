@@ -25,7 +25,6 @@ Author: Hans Bihs
 #include"fdm_nhf.h"
 #include"ghostcell.h"
 #include"6DOF.h"
-#include"nhflow_reinidisc_fsf.h"
 #include"geo_mesh.h"
 
 nhflow_geometry::nhflow_geometry(lexer *p, fdm_nhf *d, ghostcell *pgc) : georay(p), epsi(1.6)
@@ -73,20 +72,12 @@ nhflow_geometry::nhflow_geometry(lexer *p, fdm_nhf *d, ghostcell *pgc) : georay(
     
     // ----
     IO = CL = CR = nullptr;
-    FRK1 = dt = L = nullptr;
-    prdisc = nullptr;
 
     if(forcing_flag==1 || p->B200>=1)
     {
     p->Iarray(IO,p->imax*p->jmax*(p->kmax+2));
     p->Iarray(CL,p->imax*p->jmax*(p->kmax+2));
     p->Iarray(CR,p->imax*p->jmax*(p->kmax+2));
-    
-    p->Darray(FRK1,p->imax*p->jmax*(p->kmax+2));
-    p->Darray(dt,p->imax*p->jmax*(p->kmax+2));
-    p->Darray(L,p->imax*p->jmax*(p->kmax+2));
-
-    prdisc = new nhflow_reinidisc_fsf(p);
     }
 }
 
@@ -95,9 +86,5 @@ nhflow_geometry::~nhflow_geometry()
     delete [] IO;
     delete [] CL;
     delete [] CR;
-    delete [] FRK1;
-    delete [] dt;
-    delete [] L;
-    delete prdisc;
 }
 

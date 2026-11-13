@@ -26,7 +26,6 @@ Author: Hans Bihs
 #include"ghostcell.h"
 #include"nhflow_geometry.h"
 #include"6DOF.h"
-#include"nhflow_reinidisc_fsf.h"
 #include"vrans.h"
 #include"rodtree_coupling.h"
 #include"fem_coupling.h"
@@ -110,7 +109,6 @@ void nhflow_forcing::forcing(lexer *p, fdm_nhf *d, ghostcell *pgc, sixdof *p6dof
     // update direct forcing function
     // ************************
     ray_cast(p, d, pgc, d->SOLID);
-    reini_RK2(p, d, pgc, d->SOLID);
     // ************************
     
     // solid forcing

@@ -36,7 +36,6 @@ class sixdof;
 class vrans;
 class mooring;
 class fsi;
-class nhflow_reinidisc_fsf;
 #include<vector>
 
 using namespace std;
