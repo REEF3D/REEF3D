@@ -21,6 +21,7 @@ Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"cfd_amr.h"
+#include"cell_index.h"
 #include"reef3d_mpmd.h"
 #include<map>
 #include<unordered_map>
@@ -91,13 +92,6 @@ static bool cf_closed(lexer *pp, fdm *a, const cfd_amr_cf &F)
 
 namespace
 {
-inline int fdiv(int a, int r) { return (a>=0) ? a/r : -((-a+r-1)/r); }
-
-inline int cix(const lexer *q, int i, int j, int k)
-{
-    return (i-q->imin)*q->jmax*q->kmax + (j-q->jmin)*q->kmax + k-q->kmin;
-}
-
 struct pr_fineop : public sc_operator
 {
     void fine_apply(const sc_level&, const double*, double*) override
@@ -271,8 +265,8 @@ void cfd_amr::pr_setup()
         for(int i=0; i<q->knox; ++i)
         for(int j=0; j<q->knoy; ++j)
         for(int k=0; k<q->knoz; ++k)
-        if(q->flag4[cix(q,i,j,k)]>0)
-        row[cix(q,i,j,k)] = n++;
+        if(q->flag4[cell_index(q,i,j,k)]>0)
+        row[cell_index(q,i,j,k)] = n++;
     };
 
     number(p0,row0);
@@ -301,7 +295,7 @@ void cfd_amr::pr_setup()
         for(int j=0; j<q->knoy; ++j)
         for(int k=0; k<q->knoz; ++k)
         {
-            const int qq = cix(q,i,j,k);
+            const int qq = cell_index(q,i,j,k);
             if(row[qq]<0)
             continue;
             const int I[3] = {i+og[0],j+og[1],k+og[2]};
@@ -367,7 +361,7 @@ void cfd_amr::pr_setup()
         for(int j=0; j<pp->knoy; ++j)
         for(int k=0; k<pp->knoz; ++k)
         {
-            const int qf = cix(pp,i,j,k);
+            const int qf = cell_index(pp,i,j,k);
             if(c->row[qf]<0)
             continue;
 
@@ -380,7 +374,7 @@ void cfd_amr::pr_setup()
                 {
                     int mi[3] = {i,j,k};
                     mi[d] += dir;
-                    const int qm = cix(pp,mi[0],mi[1],mi[2]);
+                    const int qm = cell_index(pp,mi[0],mi[1],mi[2]);
                     if(c->mkind[qm]!=1 || pp->flag4[qm]<=0)
                     continue;
 
@@ -396,7 +390,7 @@ void cfd_amr::pr_setup()
                     for(int e=0; e<3; ++e)
                     {
                         I[e] = c->lo[e]+fi[e];
-                        Pg[e] = fdiv(I[e],rr[e]);
+                        Pg[e] = floor_div(I[e],rr[e]);
                         F.o[e] = I[e]-Pg[e]*rr[e];
                         Cg[e] = Pg[e];
                         F.ff[e] = fi[e];
@@ -422,8 +416,8 @@ void cfd_amr::pr_setup()
                     }
                     lexer *qp = glex(F.gp);
                     lexer *qc = glex(F.gc);
-                    F.qp = cix(qp,pl[0],pl[1],pl[2]);
-                    F.qc = cix(qc,cl[0],cl[1],cl[2]);
+                    F.qp = cell_index(qp,pl[0],pl[1],pl[2]);
+                    F.qc = cell_index(qc,cl[0],cl[1],cl[2]);
                     const vector<int> &rowc = (F.gc<0) ? row0 : CP(F.gc)->row;     // (a shadow: the cells with fluid)
                     F.nc = rowc[F.qc];
                     if(F.nc<0)
@@ -580,10 +574,10 @@ void cfd_amr::pr_setup()
         for(int i=0; i<p0->knox; ++i)
         for(int j=0; j<p0->knoy; ++j)
         for(int k=0; k<p0->knoz; ++k)
-        if(row0[cix(p0,i,j,k)]>=0)
+        if(row0[cell_index(p0,i,j,k)]>=0)
         {
             l0a.push_back(L.idx(i,j,k));
-            l0f.push_back(cix(p0,i,j,k));
+            l0f.push_back(cell_index(p0,i,j,k));
         }
     }
 }
@@ -768,7 +762,7 @@ void cfd_amr::pr_level_mg_setup()
                         for(int d=0; d<3; ++d)
                         if((q[d]<0 || q[d]>=nn[d]) && (rr[d]!=2 || pr_wrap(id,d) || M.wrap[d]))
                         skip = true;
-                        const int qq = cix(pp,i,j,k);
+                        const int qq = cell_index(pp,i,j,k);
                         if(skip || c->mkind[qq]!=2 || pp->flag4[qq]<=0)
                         continue;
                         ovc v;
@@ -917,7 +911,7 @@ void cfd_amr::pr_level_mg_fill(int m)
             return false;
             cfd_amr_patch *e = CP(g);
             const int qi = b[0]-M.o(g,0), qj = b[1]-M.o(g,1), qk = b[2]-M.o(g,2);
-            return e->row[cix(e->pp,qi,qj,qk)]>=0;
+            return e->row[cell_index(e->pp,qi,qj,qk)]>=0;
         };
 
         for(int i=0; i<pp->knox; ++i)
@@ -925,7 +919,7 @@ void cfd_amr::pr_level_mg_fill(int m)
         for(int k=0; k<pp->knoz; ++k)
         {
             const long q = L.idx(i+o[0],j+o[1],k+o[2]);
-            const int r = c->row[cix(pp,i,j,k)];
+            const int r = c->row[cell_index(pp,i,j,k)];
             if(r<0)
             continue;
             pr_coef(M.mg,L,q,A.p[r]*(1.0+1.0e-6),
@@ -965,7 +959,7 @@ void cfd_amr::pr_level_mg_ovrows(int m, double dshift)
         if(g<0)
         return false;
         cfd_amr_patch *e = CP(g);
-        return e->row[cix(e->pp,b[0]-M.o(g,0),b[1]-M.o(g,1),b[2]-M.o(g,2))]>=0;
+        return e->row[cell_index(e->pp,b[0]-M.o(g,0),b[1]-M.o(g,1),b[2]-M.o(g,2))]>=0;
     };
     for(int i=0; i<M.n[0]; ++i)
     for(int j=0; j<M.n[1]; ++j)
@@ -1032,7 +1026,7 @@ void cfd_amr::pr_level_mg_fill_comp(int m)
             if(g<0 || g==id)
             return false;
             cfd_amr_patch *e = CP(g);
-            return e->row[cix(e->pp,b[0]-M.o(g,0),b[1]-M.o(g,1),b[2]-M.o(g,2))]>=0;
+            return e->row[cell_index(e->pp,b[0]-M.o(g,0),b[1]-M.o(g,1),b[2]-M.o(g,2))]>=0;
         };
 
         for(int i=0; i<nn[0]; ++i)
@@ -1049,7 +1043,7 @@ void cfd_amr::pr_level_mg_fill_comp(int m)
             {
                 cc[0]=S.p[s]; cc[1]=S.n[s]; cc[2]=S.s[s]; cc[3]=S.w[s]; cc[4]=S.e[s]; cc[5]=S.t[s]; cc[6]=S.b[s];
             }
-            const int r = c->row[cix(pp,i,j,k)];
+            const int r = c->row[cell_index(pp,i,j,k)];
             if(r>=0)
             {
                 if(sib(i,j,k,0,1))  cc[1] = A.n[r];
@@ -1086,7 +1080,7 @@ void cfd_amr::pr_level_vcycle(int m, int kr, int kz, int kc)
         for(int j=0; j<pp->knoy; ++j)
         for(int k=0; k<pp->knoz; ++k)
         {
-            const int qq = cix(pp,i,j,k);
+            const int qq = cell_index(pp,i,j,k);
             if(c->row[qq]>=0)
             L.f[L.idx(i+o[0],j+o[1],k+o[2])] = t[qq];
         }
@@ -1111,7 +1105,7 @@ void cfd_amr::pr_level_vcycle(int m, int kr, int kz, int kc)
         for(int j=0; j<pp->knoy; ++j)
         for(int k=0; k<pp->knoz; ++k)
         {
-            const int qq = cix(pp,i,j,k);
+            const int qq = cell_index(pp,i,j,k);
             if(c->row[qq]<0)
             continue;
             const double u = L.u[L.idx(i+o[0],j+o[1],k+o[2])];
@@ -1174,7 +1168,7 @@ void cfd_amr::pr_stencils()
             }
             if(cl[0]<-1 || cl[0]>qc->knox || cl[1]<-1 || cl[1]>qc->knoy || cl[2]<-1 || cl[2]>qc->knoz)
             return false;
-            return qc->flag4[cix(qc,cl[0],cl[1],cl[2])]>0;
+            return qc->flag4[cell_index(qc,cl[0],cl[1],cl[2])]>0;
         };
 
         for(int t=0; t<3; ++t)
@@ -1188,9 +1182,9 @@ void cfd_amr::pr_stencils()
             cm[t] -= 1;
             cp[t] += 1;
             if(leaf(cm))
-            F.tq[t][0] = cix(qc,cm[0],cm[1],cm[2]);
+            F.tq[t][0] = cell_index(qc,cm[0],cm[1],cm[2]);
             if(leaf(cp))
-            F.tq[t][1] = cix(qc,cp[0],cp[1],cp[2]);
+            F.tq[t][1] = cell_index(qc,cp[0],cp[1],cp[2]);
         }
     }
 }
@@ -1400,7 +1394,7 @@ void cfd_amr::pr_hydro(int lsub)
         // densities as the grid has them: the local interface width (interface_width.h)
         auto rho = [&](double ph, double e) { const double H = heaviside(ph,e); return q->W1*H + q->W3*(1.0-H); };
         for(int k=k0; k<=MIN(kc+1,ktop); ++k)
-        if(q->flag4[cix(q,i,j,k)]<=0 && k<ktop)
+        if(q->flag4[cell_index(q,i,j,k)]<=0 && k<ktop)
         return false;
 
         const unsigned long long key = ((unsigned long long)(gg+1)<<50) | ((unsigned long long)(i+m)<<32) | ((unsigned long long)(j+m)<<14) | (unsigned long long)(ktop+m);   // (18 bits for i and j, 14 for k)
@@ -1418,7 +1412,7 @@ void cfd_amr::pr_hydro(int lsub)
 
         if(kc==ktop)
         {
-            if(q->flag4[cix(q,i,j,ktop)]<=0)
+            if(q->flag4[cell_index(q,i,j,ktop)]<=0)
             return false;
             val = c.hk[0] - g*rho(0.5*(phi(i,j,ktop-1)+phi(i,j,ktop)),interface_width_face(q,phi,i,j,ktop-1,0,0,1))*q->DZP[ktop-1+marge];
             return true;
@@ -1426,7 +1420,7 @@ void cfd_amr::pr_hydro(int lsub)
         while(c.kdone>kc && !c.bad)
         {
             const int k = c.kdone-1;
-            if(q->flag4[cix(q,i,j,k)]<=0)
+            if(q->flag4[cell_index(q,i,j,k)]<=0)
             {
                 c.bad = true;
                 break;
@@ -1466,7 +1460,7 @@ void cfd_amr::pr_hydro(int lsub)
         const int *ch = (F.d==2) ? F.ci : F.pi;
         int og[3];
         goff(gh,og);
-        const int ktop = fdiv(c->hi[2]+1,rr[2]) - og[2];
+        const int ktop = floor_div(c->hi[2]+1,rr[2]) - og[2];
         double hs = 0.0;
         bool ok = true;
         for(int m=0; m<F.ns && ok; ++m)
@@ -1749,7 +1743,7 @@ void cfd_amr::pr_matrix(int s)
         for(int k=0; k<p0->knoz; ++k)
         {
             const long q = L.idx(i,j,k);
-            const int r = row0[cix(p0,i,j,k)];
+            const int r = row0[cell_index(p0,i,j,k)];
             if(r<0)
             {
                 pr_coef(mg0,L,q,1.0,0.0,0.0,0.0,0.0,0.0,0.0);
@@ -1915,7 +1909,7 @@ void cfd_amr::pr_covered_coef()
         field &phi = gfd(g)->phi;
         int o[3] = {0,0,0};
         o[d] = 1;
-        const int qa = cix(q,I[0],I[1],I[2]), qb = cix(q,I[0]+o[0],I[1]+o[1],I[2]+o[2]);
+        const int qa = cell_index(q,I[0],I[1],I[2]), qb = cell_index(q,I[0]+o[0],I[1]+o[1],I[2]+o[2]);
         const double H = heaviside_face(q,phi,0.5*(phi.V[qa]+phi.V[qb]),I[0],I[1],I[2],o[0],o[1],o[2]);
         return rmix(q,H,0.5*(sval(g,qa)+sval(g,qb)));
     };
@@ -1963,7 +1957,7 @@ void cfd_amr::pr_covered_coef()
         {
             const int I[3] = {i,j,k};
             const int G[3] = {i+og[0],j+og[1],k+og[2]};
-            if(row[cix(q,i,j,k)]<0 || !covered(lc,G))
+            if(row[cell_index(q,i,j,k)]<0 || !covered(lc,G))
             continue;
             for(int d=0; d<3; ++d)
             {
@@ -1972,7 +1966,7 @@ void cfd_amr::pr_covered_coef()
                 int J[3] = {i,j,k}, GJ[3] = {G[0],G[1],G[2]};
                 J[d] += 1;
                 GJ[d] += 1;
-                if(row[cix(q,J[0],J[1],J[2])]<0 || !covered(lc,GJ))
+                if(row[cell_index(q,J[0],J[1],J[2])]<0 || !covered(lc,GJ))
                 continue;
 
                 // the fine faces at the coarse face: the + faces of the fine cells of the last layer of I
@@ -2324,7 +2318,7 @@ void cfd_amr::pr_prec(int kr, int kz)
         for(int i=-1; i<=q->knox; ++i)
         for(int j=-1; j<=q->knoy; ++j)
         {
-            const size_t a = cix(q,i,j,-1);
+            const size_t a = cell_index(q,i,j,-1);
             std::fill(v+a,v+a+q->knoz+2,0.0);
         }
     };
@@ -2371,7 +2365,7 @@ void cfd_amr::pr_prec(int kr, int kz)
                 for(Pg[1]=B.lo[1]; Pg[1]<=B.hi[1]; ++Pg[1])
                 for(Pg[2]=B.lo[2]; Pg[2]<=B.hi[2]; ++Pg[2])
                 {
-                    const long qs = cix(q,Pg[0]-og[0],Pg[1]-og[1],Pg[2]-og[2]);
+                    const long qs = cell_index(q,Pg[0]-og[0],Pg[1]-og[1],Pg[2]-og[2]);
                     const double c0 = f[qs];
                     double sl[3];
                     for(int d=0; d<3; ++d)
@@ -2381,7 +2375,7 @@ void cfd_amr::pr_prec(int kr, int kz)
                     for(int e=0; e<rr[2]; ++e)
                     {
                         const int i = Pg[0]*rr[0]+a-c->lo[0], j = Pg[1]*rr[1]+b-c->lo[1], k = Pg[2]*rr[2]+e-c->lo[2];
-                        const int qq = cix(pp,i,j,k);
+                        const int qq = cell_index(pp,i,j,k);
                         if(c->row[qq]<0)
                         continue;
                         // not inside the interface band of the coarser level: there its density is
@@ -2682,7 +2676,7 @@ void cfd_amr::pr_overlap()
                 for(I[1]=a[1]; I[1]<=b[1] && !sib; ++I[1])
                 for(I[2]=a[2]; I[2]<=b[2] && !sib; ++I[2])
                 {
-                    const int k = c->mkind[cix(pp,I[0],I[1],I[2])];
+                    const int k = c->mkind[cell_index(pp,I[0],I[1],I[2])];
                     if(k==0 || k==2)
                     sib = true;
                 }
@@ -2712,7 +2706,7 @@ void cfd_amr::pr_coef_fill(int l)
             for(int j=0; j<pp->knoy; ++j)
             for(int k=0; k<pp->knoz; ++k)
             {
-                const int qq = cix(pp,i,j,k);
+                const int qq = cell_index(pp,i,j,k);
                 const int r = c->row[qq];
                 if(r<0)
                 continue;
@@ -2752,7 +2746,7 @@ void cfd_amr::pr_patch_mg(int id, double dshift)
         for(int k=0; k<nz; ++k)
         {
             const long q = L.idx(i,j,k);
-            const int r = c->row[cix(pp,i,j,k)];
+            const int r = c->row[cell_index(pp,i,j,k)];
             if(r<0)
             {
                 pr_coef(c->mg,L,q,1.0,0.0,0.0,0.0,0.0,0.0,0.0);
@@ -2773,7 +2767,7 @@ void cfd_amr::pr_patch_mg(int id, double dshift)
     {
         if(i<-ol[0] || i>=nx+oh[0] || j<-ol[1] || j>=ny+oh[1] || k<-ol[2] || k>=nz+oh[2] || in(i,j,k))
         return false;
-        const int qq = cix(pp,i,j,k);
+        const int qq = cell_index(pp,i,j,k);
         return (c->mkind[qq]==0 || c->mkind[qq]==2) && pp->flag4[qq]>0;
     };
     // (a direction over which the patch is periodic over itself: no overlap there, the couplings
@@ -2791,7 +2785,7 @@ void cfd_amr::pr_patch_mg(int id, double dshift)
     for(int k=-ol[2]; k<nz+oh[2]; ++k)
     {
         const long q = L.idx(i+ol[0],j+ol[1],k+ol[2]);
-        const int qq = cix(pp,i,j,k);
+        const int qq = cell_index(pp,i,j,k);
         double cc[7];
         if(in(i,j,k))
         {
@@ -2839,7 +2833,7 @@ void cfd_amr::pr_patch_solve(int id, int kt, int kz, int kc)
     for(int j=0; j<pp->knoy; ++j)
     for(int k=0; k<pp->knoz; ++k)
     {
-        const int qq = cix(pp,i,j,k);
+        const int qq = cell_index(pp,i,j,k);
         if(c->row[qq]>=0)
         L.f[L.idx(i+ol[0],j+ol[1],k+ol[2])] = t[qq];
     }
@@ -2851,7 +2845,7 @@ void cfd_amr::pr_patch_solve(int id, int kt, int kz, int kc)
     {
         if(i>=0 && i<pp->knox && j>=0 && j<pp->knoy && k>=0 && k<pp->knoz)
         continue;
-        const int qq = cix(pp,i,j,k);
+        const int qq = cell_index(pp,i,j,k);
         if((c->mkind[qq]==0 || c->mkind[qq]==2) && pp->flag4[qq]>0)
         L.f[L.idx(i+ol[0],j+ol[1],k+ol[2])] = t[qq];
     }
@@ -2862,7 +2856,7 @@ void cfd_amr::pr_patch_solve(int id, int kt, int kz, int kc)
     for(int j=0; j<pp->knoy; ++j)
     for(int k=0; k<pp->knoz; ++k)
     {
-        const int qq = cix(pp,i,j,k);
+        const int qq = cell_index(pp,i,j,k);
         if(c->row[qq]<0)
         continue;
         const double u = L.u[L.idx(i+ol[0],j+ol[1],k+ol[2])];
@@ -2888,25 +2882,6 @@ struct pr_space
     void op_x(double alp, double om) { a->pr_x(alp,om); }
 };
 
-// patch work: no exchange, rank-local reductions, the fdm of the patch in the ghostcell object
-struct pscope2
-{
-    ghostcell *g;
-    fdm *back;
-    bool oldc, oldl;
-    pscope2(ghostcell *gg, fdm *a, fdm *a0) : g(gg), back(a0)
-    {
-        oldc = g->set_comms(false);
-        oldl = g->set_local(true);
-        g->fdm_update(a);
-    }
-    ~pscope2()
-    {
-        g->fdm_update(back);
-        g->set_comms(oldc);
-        g->set_local(oldl);
-    }
-};
 }
 
 // the faces at the patch edges after the solve: corrected with the flux of the composite rows
@@ -2991,7 +2966,7 @@ void cfd_amr::pr_project(lexer *p, ghostcell *pgc, int s)
     for(int id=0; id<npat; ++id)
     {
         cfd_amr_patch *c = CP(id);
-        pscope2 ps(pgc,c->a,a0);
+        cfd_amr_scope ps(pgc,c->a,a0);
         momentum_rk *m = c->pmom;
         c->pflow->pressure_io(c->pp,c->a,pgc);
         c->ppress->amr_prepare(c->pp,c->a,c->ppois,pgc,m->amr_velout(c->a,0,s),m->amr_velout(c->a,1,s),m->amr_velout(c->a,2,s),alpha);
@@ -3038,7 +3013,7 @@ void cfd_amr::pr_project(lexer *p, ghostcell *pgc, int s)
     for(int id=0; id<npat; ++id)
     {
         cfd_amr_patch *c = CP(id);
-        pscope2 ps(pgc,c->a,a0);
+        cfd_amr_scope ps(pgc,c->a,a0);
         momentum_rk *m = c->pmom;
         c->ppress->amr_finish(c->pp,c->a,pgc,m->amr_velout(c->a,0,s),m->amr_velout(c->a,1,s),m->amr_velout(c->a,2,s),alpha);
     }
@@ -3050,7 +3025,7 @@ void cfd_amr::pr_project(lexer *p, ghostcell *pgc, int s)
     for(int id=0; id<npat; ++id)
     {
         cfd_amr_patch *c = CP(id);
-        pscope2 ps(pgc,c->a,a0);
+        cfd_amr_scope ps(pgc,c->a,a0);
         momentum_rk *m = c->pmom;
         patch_relax_vel(id,m->amr_velout(c->a,0,s),m->amr_velout(c->a,1,s),m->amr_velout(c->a,2,s));
         m->amr_project_after(c->pp,c->a,pgc,m->amr_velout(c->a,0,s),m->amr_velout(c->a,1,s),m->amr_velout(c->a,2,s));
@@ -3199,7 +3174,7 @@ void cfd_amr::pr_level(lexer *p, ghostcell *pgc, int l, int s)
     for(int id : lev[l])
     {
         cfd_amr_patch *c = CP(id);
-        pscope2 ps(pgc,c->a,a0);
+        cfd_amr_scope ps(pgc,c->a,a0);
         momentum_rk *m = c->pmom;
         c->pflow->pressure_io(c->pp,c->a,pgc);
         c->ppress->amr_prepare(c->pp,c->a,c->ppois,pgc,m->amr_velout(c->a,0,s),m->amr_velout(c->a,1,s),m->amr_velout(c->a,2,s),alpha);
@@ -3347,7 +3322,7 @@ void cfd_amr::pr_level(lexer *p, ghostcell *pgc, int l, int s)
     for(int id : lev[l])
     {
         cfd_amr_patch *c = CP(id);
-        pscope2 ps(pgc,c->a,a0);
+        cfd_amr_scope ps(pgc,c->a,a0);
         momentum_rk *m = c->pmom;
         c->ppress->amr_finish(c->pp,c->a,pgc,m->amr_velout(c->a,0,s),m->amr_velout(c->a,1,s),m->amr_velout(c->a,2,s),alpha);
     }
@@ -3370,7 +3345,7 @@ void cfd_amr::pr_level(lexer *p, ghostcell *pgc, int l, int s)
     for(int id : lev[l])
     {
         cfd_amr_patch *c = CP(id);
-        pscope2 ps(pgc,c->a,a0);
+        cfd_amr_scope ps(pgc,c->a,a0);
         momentum_rk *m = c->pmom;
         patch_relax_vel(id,m->amr_velout(c->a,0,s),m->amr_velout(c->a,1,s),m->amr_velout(c->a,2,s));
         m->amr_project_after(c->pp,c->a,pgc,m->amr_velout(c->a,0,s),m->amr_velout(c->a,1,s),m->amr_velout(c->a,2,s));
@@ -3456,7 +3431,7 @@ void cfd_amr::pr_sync_project(lexer *p, ghostcell *pgc)
     for(int id=0; id<npat; ++id)
     {
         cfd_amr_patch *c = CP(id);
-        pscope2 ps(pgc,c->a,a0);
+        cfd_amr_scope ps(pgc,c->a,a0);
         momentum_rk *m = c->pmom;
         c->pflow->pressure_io(c->pp,c->a,pgc);
         c->ppress->amr_prepare(c->pp,c->a,c->ppois,pgc,m->amr_velout(c->a,0,s),m->amr_velout(c->a,1,s),m->amr_velout(c->a,2,s),alpha);
@@ -3542,7 +3517,7 @@ void cfd_amr::pr_sync_project(lexer *p, ghostcell *pgc)
     for(int id=0; id<npat; ++id)
     {
         cfd_amr_patch *c = CP(id);
-        pscope2 ps(pgc,c->a,a0);
+        cfd_amr_scope ps(pgc,c->a,a0);
         momentum_rk *m = c->pmom;
         c->ppress->amr_finish(c->pp,c->a,pgc,m->amr_velout(c->a,0,s),m->amr_velout(c->a,1,s),m->amr_velout(c->a,2,s),alpha);
     }
@@ -3569,7 +3544,7 @@ void cfd_amr::pr_sync_project(lexer *p, ghostcell *pgc)
     for(int id=0; id<npat; ++id)
     {
         cfd_amr_patch *c = CP(id);
-        pscope2 ps(pgc,c->a,a0);
+        cfd_amr_scope ps(pgc,c->a,a0);
         momentum_rk *m = c->pmom;
         patch_relax_vel(id,m->amr_velout(c->a,0,s),m->amr_velout(c->a,1,s),m->amr_velout(c->a,2,s));
         m->amr_project_after(c->pp,c->a,pgc,m->amr_velout(c->a,0,s),m->amr_velout(c->a,1,s),m->amr_velout(c->a,2,s));
@@ -3695,7 +3670,7 @@ void cfd_amr::single_extend(ghostcell *pgc, int s)
     for(int id=0; id<npat; ++id)
     {
         cfd_amr_patch *c = CP(id);
-        pscope2 ps(pgc,c->a,a0);
+        cfd_amr_scope ps(pgc,c->a,a0);
         pgc->start1(c->pp,c->pmom->amr_velout(c->a,0,s),10);
         pgc->start2(c->pp,c->pmom->amr_velout(c->a,1,s),11);
         pgc->start3(c->pp,c->pmom->amr_velout(c->a,2,s),12);

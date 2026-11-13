@@ -21,6 +21,7 @@ Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"pic_f.h"
+#include"cell_index.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
@@ -59,14 +60,6 @@ Architect: Hans Bihs
 // In the relaxation zones of the waves the update is the same as elsewhere: the PIC update there
 // (patch 0005) damped the waves of the generation by 8 %.
 
-namespace
-{
-inline int fid(lexer *p, int i, int j, int k)
-{
-    return (i-p->imin)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin;
-}
-}
-
 void pic_f::step_begin(lexer *p, fdm *a, ghostcell *pgc)
 {
     if(!flipmode)
@@ -99,7 +92,7 @@ void pic_f::step_begin(lexer *p, fdm *a, ghostcell *pgc)
 
             for(int m=0; m<n; ++m)
             {
-                const int g = fid(p,ii[m],jj[m],kk[m]);
+                const int g = cell_index(p,ii[m],jj[m],kk[m]);
                 double v = val;
 
                 if(apic)
@@ -124,7 +117,7 @@ void pic_f::step_begin(lexer *p, fdm *a, ghostcell *pgc)
         for(int j=0; j<p->knoy; ++j)
         for(int k=0; k<p->knoz; ++k)
         {
-            const int g = fid(p,i,j,k);
+            const int g = cell_index(p,i,j,k);
 
             if(flag[g]<=0 || sw[g]<=1.0e-12)
             continue;
@@ -235,7 +228,7 @@ void pic_f::mask_convection(lexer *p, fdm *a, int c, const double *before, field
     for(int k=0; k<p->knoz; ++k)
     if(0.5*(a->phi(i,j,k) + a->phi(i+di,j+dj,k+dk)) >= 0.0)
     {
-        const int g = fid(p,i,j,k);
+        const int g = cell_index(p,i,j,k);
         F.V[g] = before[g];
     }
 }

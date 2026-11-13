@@ -63,25 +63,6 @@ Architect: Hans Bihs
 
 namespace
 {
-struct pscope3
-{
-    ghostcell *g;
-    fdm *back;
-    bool oldc, oldl;
-    pscope3(ghostcell *gg, fdm *a, fdm *a0) : g(gg), back(a0)
-    {
-        oldc = g->set_comms(false);
-        oldl = g->set_local(true);
-        g->fdm_update(a);
-    }
-    ~pscope3()
-    {
-        g->fdm_update(back);
-        g->set_comms(oldc);
-        g->set_local(oldl);
-    }
-};
-
 inline void cdecode(const lexer *q, int qq, int &i, int &j, int &k)
 {
     const int jk = q->jmax*q->kmax;
@@ -284,7 +265,7 @@ void cfd_amr::patch_step(int l, double dt, double th0, double t)
 
     for(int id : lev[l])
     {
-        pscope3 ps(pgc,CP(id)->a,a0);
+        cfd_amr_scope ps(pgc,CP(id)->a,a0);
         CP(id)->pmom->amr_step_begin(CP(id)->pp,CP(id)->a,pgc);
     }
 
@@ -320,7 +301,7 @@ void cfd_amr::patch_step(int l, double dt, double th0, double t)
         if(turb)
         for(int id : lev[l])
         {
-            pscope3 ps(pgc,CP(id)->a,a0);
+            cfd_amr_scope ps(pgc,CP(id)->a,a0);
             CP(id)->pturb->ktimesave(CP(id)->pp,CP(id)->a,pgc);
             CP(id)->pturb->etimesave(CP(id)->pp,CP(id)->a,pgc);
         }
@@ -364,7 +345,7 @@ void cfd_amr::patch_step(int l, double dt, double th0, double t)
         cfd_amr_wclock wc(wtp);
         for(int id : lev[l])
         {
-            pscope3 ps(pgc,CP(id)->a,a0);
+            cfd_amr_scope ps(pgc,CP(id)->a,a0);
             CP(id)->pmom->amr_ls_transport(CP(id)->pp,CP(id)->a,pgc,s);
         }
         }
@@ -386,7 +367,7 @@ void cfd_amr::patch_step(int l, double dt, double th0, double t)
             cfd_amr_wclock wc(wtp);
             for(int id : lev[l])
             {
-                pscope3 ps(pgc,CP(id)->a,a0);
+                cfd_amr_scope ps(pgc,CP(id)->a,a0);
                 if(it==0)
                 {
                 patch_relax_phi(id,CP(id)->pmom->amr_phi_out(s));
@@ -419,7 +400,7 @@ void cfd_amr::patch_step(int l, double dt, double th0, double t)
         cfd_amr_wclock wc(wtp);
         for(int id : lev[l])
         {
-            pscope3 ps(pgc,CP(id)->a,a0);
+            cfd_amr_scope ps(pgc,CP(id)->a,a0);
             CP(id)->pmom->amr_momentum(CP(id)->pp,CP(id)->a,pgc,CP(id)->pvrans,(sixdof*)CP(id)->p6dof,s,fit ? 3 : patch_forcing());
         }
         }
@@ -432,7 +413,7 @@ void cfd_amr::patch_step(int l, double dt, double th0, double t)
             cfd_amr_wclock wc(wtp);
             for(int id : lev[l])
             {
-                pscope3 ps(pgc,CP(id)->a,a0);
+                cfd_amr_scope ps(pgc,CP(id)->a,a0);
                 CP(id)->pmom->amr_forcing(CP(id)->pp,CP(id)->a,pgc,(sixdof*)CP(id)->p6dof,s);
             }
         }
@@ -450,7 +431,7 @@ void cfd_amr::patch_step(int l, double dt, double th0, double t)
             cfd_amr_wclock wc(wtp);
             for(int id : lev[l])
             {
-                pscope3 ps(pgc,CP(id)->a,a0);
+                cfd_amr_scope ps(pgc,CP(id)->a,a0);
                 CP(id)->pmom->amr_forcing(CP(id)->pp,CP(id)->a,pgc,(sixdof*)CP(id)->p6dof,s);
             }
             }
@@ -462,7 +443,7 @@ void cfd_amr::patch_step(int l, double dt, double th0, double t)
         cfd_amr_wclock wc(wtp);
         for(int id : lev[l])
         {
-            pscope3 ps(pgc,CP(id)->a,a0);
+            cfd_amr_scope ps(pgc,CP(id)->a,a0);
             CP(id)->pmom->amr_stage_end(CP(id)->pp,CP(id)->a,pgc,s);
         }
         }
@@ -500,7 +481,7 @@ void cfd_amr::patch_step(int l, double dt, double th0, double t)
     if(turb)
     for(int id : lev[l])
     {
-        pscope3 ps(pgc,CP(id)->a,a0);
+        cfd_amr_scope ps(pgc,CP(id)->a,a0);
         CP(id)->pturb->ktimesave(CP(id)->pp,CP(id)->a,pgc);
         CP(id)->pturb->etimesave(CP(id)->pp,CP(id)->a,pgc);
     }
@@ -561,7 +542,7 @@ void cfd_amr::patch_step_onestep(int l, double th0, double t, double dt)
     cfd_amr_wclock wc(wtp);
     for(int id : lev[l])
     {
-        pscope3 ps(pgc,CP(id)->a,a0);
+        cfd_amr_scope ps(pgc,CP(id)->a,a0);
         CP(id)->pmom->amr_momentum(CP(id)->pp,CP(id)->a,pgc,CP(id)->pvrans,(sixdof*)CP(id)->p6dof,s,patch_forcing());
     }
     }
@@ -580,7 +561,7 @@ void cfd_amr::patch_step_onestep(int l, double th0, double t, double dt)
 
         for(int id : lev[l])
         {
-            pscope3 ps(pgc,CP(id)->a,a0);
+            cfd_amr_scope ps(pgc,CP(id)->a,a0);
             CP(id)->pmom->ls_rk_begin(CP(id)->pp,CP(id)->a);
         }
 
@@ -590,7 +571,7 @@ void cfd_amr::patch_step_onestep(int l, double th0, double t, double dt)
             {
                 for(int id : lev[l])
                 {
-                    pscope3 ps(pgc,CP(id)->a,a0);
+                    cfd_amr_scope ps(pgc,CP(id)->a,a0);
                     CP(id)->pmom->ls_rk_ghost(CP(id)->pp,pgc);
                 }
                 interp(l-1,th0 + 0.5*((nk==3) ? tin3[k] : tin2[k]));
@@ -602,7 +583,7 @@ void cfd_amr::patch_step_onestep(int l, double th0, double t, double dt)
             cfd_amr_wclock wc(wtp);
             for(int id : lev[l])
             {
-                pscope3 ps(pgc,CP(id)->a,a0);
+                cfd_amr_scope ps(pgc,CP(id)->a,a0);
                 fdm *fa = CP(id)->a;
                 momentum_rk *m = CP(id)->pmom;
                 m->ls_rk_stage(CP(id)->pp,fa,k,m->ls_vel(fa,0),m->ls_vel(fa,1),m->ls_vel(fa,2));
@@ -617,7 +598,7 @@ void cfd_amr::patch_step_onestep(int l, double th0, double t, double dt)
     cfd_amr_wclock wc(wtp);
     for(int id : lev[l])
     {
-        pscope3 ps(pgc,CP(id)->a,a0);
+        cfd_amr_scope ps(pgc,CP(id)->a,a0);
         CP(id)->pmom->amr_ls_transport(CP(id)->pp,CP(id)->a,pgc,s);
     }
     }
@@ -635,7 +616,7 @@ void cfd_amr::patch_step_onestep(int l, double th0, double t, double dt)
         cfd_amr_wclock wc(wtp);
         for(int id : lev[l])
         {
-            pscope3 ps(pgc,CP(id)->a,a0);
+            cfd_amr_scope ps(pgc,CP(id)->a,a0);
             if(it==0)
             {
             patch_relax_phi(id,CP(id)->pmom->amr_phi_out(s));
@@ -650,7 +631,7 @@ void cfd_amr::patch_step_onestep(int l, double th0, double t, double dt)
     cfd_amr_wclock wc(wtp);
     for(int id : lev[l])
     {
-        pscope3 ps(pgc,CP(id)->a,a0);
+        cfd_amr_scope ps(pgc,CP(id)->a,a0);
         CP(id)->pmom->amr_stage_end(CP(id)->pp,CP(id)->a,pgc,s);
     }
     }
@@ -828,7 +809,7 @@ void cfd_amr::body_fit(int l, int s, double t)
         o->momentum_deform_begin();
         for(int id : lev[l])
         {
-            pscope3 ps(pgc0,CP(id)->a,a0);
+            cfd_amr_scope ps(pgc0,CP(id)->a,a0);
             o->momentum_deform_add(CP(id)->pp,CP(id)->a);
         }
         o->momentum_deform_end(p0,pgc0);
@@ -836,7 +817,7 @@ void cfd_amr::body_fit(int l, int s, double t)
         o->momentum_fit_begin(p0,s);
         for(int id : lev[l])
         {
-            pscope3 ps(pgc0,CP(id)->a,a0);
+            cfd_amr_scope ps(pgc0,CP(id)->a,a0);
             o->momentum_fit_add(CP(id)->pp,CP(id)->a,gmom(id)->amr_velout(CP(id)->a,0,s),gmom(id)->amr_velout(CP(id)->a,1,s),gmom(id)->amr_velout(CP(id)->a,2,s));
         }
         o->momentum_fit_end(p0,pgc0);
@@ -860,7 +841,7 @@ void cfd_amr::body_refit(int l, int s)
         o->momentum_fit_begin(p0,-1);
         for(int id : lev[l])
         {
-            pscope3 ps(pgc0,CP(id)->a,a0);
+            cfd_amr_scope ps(pgc0,CP(id)->a,a0);
             o->momentum_fit_add(CP(id)->pp,CP(id)->a,gmom(id)->amr_velout(CP(id)->a,0,s),gmom(id)->amr_velout(CP(id)->a,1,s),gmom(id)->amr_velout(CP(id)->a,2,s));
         }
         o->momentum_fit_end(p0,pgc0);

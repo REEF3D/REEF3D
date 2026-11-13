@@ -21,6 +21,7 @@ Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"cfd_amr.h"
+#include"cell_index.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
@@ -45,15 +46,6 @@ Architect: Hans Bihs
 //  A face is set on the rank that holds the cell below it and on the one that holds the cell above
 //  (its copy in the halo).  Every exchange is collective; the shadows hold no state.
 
-namespace
-{
-inline int fdiv(int a, int r) { return (a>=0) ? a/r : -((-a+r-1)/r); }
-
-inline int cix(const lexer *q, int i, int j, int k)
-{
-    return (i-q->imin)*q->jmax*q->kmax + (j-q->jmin)*q->kmax + k-q->kmin;
-}
-}
 
 void cfd_amr::sh_run(r3cplan &X, const vector<std::function<field&(int)>> &f, bool add)
 {
@@ -96,7 +88,7 @@ void cfd_amr::sh_plans()
     auto sidx = [&](int g, const int *I) -> int
     {
         const r3patch *c = P[g];
-        return cix(c->pp,I[0]-c->lo[0],I[1]-c->lo[1],I[2]-c->lo[2]);
+        return cell_index(c->pp,I[0]-c->lo[0],I[1]-c->lo[1],I[2]-c->lo[2]);
     };
     auto push = [&](vector<vector<int>> &it, int r, int g, int q, const int *I, int tag)
     {
@@ -132,8 +124,8 @@ void cfd_amr::sh_plans()
         int a[3], b[3];
         for(int d=0; d<3; ++d)
         {
-            a[d] = fdiv(c->lo[d],rr[d]);
-            b[d] = fdiv(c->hi[d],rr[d]);
+            a[d] = floor_div(c->lo[d],rr[d]);
+            b[d] = floor_div(c->hi[d],rr[d]);
         }
         int I[3];
         for(I[0]=a[0]; I[0]<=b[0]; ++I[0])
@@ -178,7 +170,7 @@ void cfd_amr::sh_plans()
 
         const int Cf[3] = {F.cf[0]+og[0],F.cf[1]+og[1],F.cf[2]+og[2]};
         if(sf.insert(std::make_tuple(g,F.d,Cf[0],Cf[1],Cf[2])).second)
-        push_face(icf[F.d],g,cix(P[g]->pp,F.cf[0],F.cf[1],F.cf[2]),Cf,F.d);
+        push_face(icf[F.d],g,cell_index(P[g]->pp,F.cf[0],F.cf[1],F.cf[2]),Cf,F.d);
 
         const int C[3] = {F.ci[0]+og[0],F.ci[1]+og[1],F.ci[2]+og[2]};
         if(scc.insert(std::make_tuple(g,C[0],C[1],C[2],0)).second)
@@ -227,7 +219,7 @@ void cfd_amr::sh_plans()
             const r3patch *c = P[id];
             for(const r3fill &f : c->fill)
             if(f.kind==1 && f.depth<=1)
-            need(f.g,cix(glex(f.g),f.s[0],f.s[1],f.s[2]));
+            need(f.g,cell_index(glex(f.g),f.s[0],f.s[1],f.s[2]));
         }
         for(const cfd_amr_cf &F : cf)
         {

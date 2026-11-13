@@ -21,6 +21,7 @@ Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"cfd_amr.h"
+#include"cell_index.h"
 #include"cfd_amr_cpm.h"
 #include"reef3d_mpmd.h"
 #include"lexer.h"
@@ -117,26 +118,6 @@ CPM) come from the grid of CPM; level 0 writes no bed of its own.
 
 namespace
 {
-// a patch kernel: ghostcell without exchange, rank-local reductions, the fdm of the patch (as cfd_amr.cpp)
-struct pscope
-{
-    ghostcell *g;
-    fdm *back;
-    bool oldc, oldl;
-    pscope(ghostcell *gg, fdm *a, fdm *a0) : g(gg), back(a0)
-    {
-        oldc = g->set_comms(false);
-        oldl = g->set_local(true);
-        g->fdm_update(a);
-    }
-    ~pscope()
-    {
-        g->fdm_update(back);
-        g->set_comms(oldc);
-        g->set_local(oldl);
-    }
-};
-
 // k and its dissipation of the patches, held for the bed shear stress of the layer (Q 68)
 class turbulence_amr_copy : public turbulence
 {
@@ -165,12 +146,6 @@ public:
     void name_ParaView(lexer*, std::stringstream&, int*, int&) override {}
     void offset_ParaView(lexer*, int*, int&) override {}
 };
-
-// index of a cell in the arrays of lexer q (field layout)
-inline int cix(const lexer *q, int i, int j, int k)
-{
-    return (i-q->imin)*q->jmax*q->kmax + (j-q->jmin)*q->kmax + k-q->kmin;
-}
 
 // the cell of the arrays of grid q along direction d whose value (face: type 1, centre: 0) lies at or
 // below x, and the weight of it in the linear interpolation; constant outside the arrays
@@ -795,7 +770,7 @@ void cfd_amr::cpm_plans()
         C->lev_of[((size_t)i*q->knoy+j)*q->knoz+k] = (signed char)l;
         const int it[5] = {lid,l,J[0],J[1],J[2]};
         req[rank].insert(req[rank].end(),it,it+5);
-        pos[rank].push_back(cix(q,i,j,k));
+        pos[rank].push_back(cell_index(q,i,j,k));
     }
 
     C->nipol_all = C->nipol;
@@ -850,7 +825,7 @@ void cfd_amr::cpm_plans()
 
         if(l==L)
         {
-            C->sv_q[t] = cix(gq,Jf[0]-og[0],Jf[1]-og[1],Jf[2]-og[2]);
+            C->sv_q[t] = cell_index(gq,Jf[0]-og[0],Jf[1]-og[1],Jf[2]-og[2]);
             continue;
         }
 
@@ -888,7 +863,7 @@ void cfd_amr::cpm_plans()
             {
                 const int jj = (gq->j_dir==0) ? 0 : i0[1]+b;
                 const double wy = (gq->j_dir==0) ? (b==0 ? 1.0 : 0.0) : (b==0 ? w0[1] : 1.0-w0[1]);
-                C->st_i.push_back(cix(gq,i0[0]+a,jj,i0[2]+c));
+                C->st_i.push_back(cell_index(gq,i0[0]+a,jj,i0[2]+c));
                 C->st_w.push_back((a==0 ? w0[0] : 1.0-w0[0])*wy*(c==0 ? w0[2] : 1.0-w0[2]));
             }
         }
@@ -944,7 +919,7 @@ void cfd_amr::cpm_bplans()
             }
             const int t = (int)C->tg.size();
             C->tg.push_back(g);
-            C->tq.push_back(cix(gq,i,j,k));
+            C->tq.push_back(cell_index(gq,i,j,k));
             C->tleaf.push_back(leaf ? 1 : 0);
             C->tcnt.push_back(double(R[0])*R[1]*R[2]);
 
@@ -1120,7 +1095,7 @@ void cfd_amr::cpm_push()
             for(int i=B[0]; i<=B[3]; ++i)
             for(int j=B[1]; j<=B[4]; ++j)
             for(int k=B[2]; k<=B[5]; ++k)
-            s += V[cix(q,i,j,k)];
+            s += V[cell_index(q,i,j,k)];
             sb[(size_t)t*nf+f] = s;
         }
     }
@@ -1182,7 +1157,7 @@ void cfd_amr::cpm_push()
     for(int id=0; id<npat; ++id)
     {
         cfd_amr_patch *c = CP(id);
-        pscope ps(pgc0,c->a,a0);
+        cfd_amr_scope ps(pgc0,c->a,a0);
         if(p0->D22==1)
         pgc0->solid_forcing_flag_update(c->pp,c->a);
         pgc0->gcdf_update(c->pp,c->a);
@@ -1236,7 +1211,7 @@ void cfd_amr::cpm_forcing(lexer *pp, double alpha, field &u, field &v, field &w)
     for(int j=0; j<pp->knoy; ++j)
     for(int k=0; k<pp->knoz; ++k)
     {
-        const int c = cix(pp,i,j,k);
+        const int c = cell_index(pp,i,j,k);
         if(pp->flag1[c]>0)
         u.V[c] = (u.V[c] + adt*0.5*(Kx[c]+Kx[c+di]))/(1.0 + adt*0.5*(Kc[c]+Kc[c+di]));
     }
@@ -1246,7 +1221,7 @@ void cfd_amr::cpm_forcing(lexer *pp, double alpha, field &u, field &v, field &w)
     for(int j=0; j<pp->knoy-pp->vlast; ++j)
     for(int k=0; k<pp->knoz; ++k)
     {
-        const int c = cix(pp,i,j,k);
+        const int c = cell_index(pp,i,j,k);
         if(pp->flag2[c]>0)
         v.V[c] = (v.V[c] + adt*0.5*(Ky[c]+Ky[c+dj]))/(1.0 + adt*0.5*(Kc[c]+Kc[c+dj]));
     }
@@ -1255,7 +1230,7 @@ void cfd_amr::cpm_forcing(lexer *pp, double alpha, field &u, field &v, field &w)
     for(int j=0; j<pp->knoy; ++j)
     for(int k=0; k<pp->knoz-pp->wlast; ++k)
     {
-        const int c = cix(pp,i,j,k);
+        const int c = cell_index(pp,i,j,k);
         if(pp->flag3[c]>0)
         w.V[c] = (w.V[c] + adt*0.5*(Kz[c]+Kz[c+1]))/(1.0 + adt*0.5*(Kc[c]+Kc[c+1]));
     }

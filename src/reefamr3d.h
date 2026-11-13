@@ -344,4 +344,7 @@ struct reefamr3d_local
     ~reefamr3d_local();
 };
 
+// floor(a/r), also for negative a
+inline int floor_div(int a, int r) { return (a>=0) ? a/r : -((-a+r-1)/r); }
+
 #endif

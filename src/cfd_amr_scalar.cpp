@@ -21,6 +21,7 @@ Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"cfd_amr.h"
+#include"cell_index.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
@@ -70,30 +71,6 @@ Architect: Hans Bihs
 
 namespace
 {
-inline int cix(const lexer *q, int i, int j, int k)
-{
-    return (i-q->imin)*q->jmax*q->kmax + (j-q->jmin)*q->kmax + k-q->kmin;
-}
-
-struct sscope
-{
-    ghostcell *g;
-    fdm *back;
-    bool oldc, oldl;
-    sscope(ghostcell *gg, fdm *a, fdm *a0) : g(gg), back(a0)
-    {
-        oldc = g->set_comms(false);
-        oldl = g->set_local(true);
-        g->fdm_update(a);
-    }
-    ~sscope()
-    {
-        g->fdm_update(back);
-        g->set_comms(oldc);
-        g->set_local(oldl);
-    }
-};
-
 // SSP-RK3: the weight of the fluxes of stage s in the step, the input time of the stage
 const double sc_w[3] = {1.0/6.0, 1.0/6.0, 2.0/3.0};
 const double sc_tin[3] = {0.0, 1.0, 0.5};
@@ -251,7 +228,7 @@ void cfd_amr::sc_flux(int g)
 
     auto act = [&](int i, int j, int k) -> bool
     {
-        return i>=0 && i<n[0] && j>=0 && j<n[1] && k>=0 && k<n[2] && q->flag4[cix(q,i,j,k)]>0;
+        return i>=0 && i<n[0] && j>=0 && j<n[1] && k>=0 && k<n[2] && q->flag4[cell_index(q,i,j,k)]>0;
     };
 
     for(int d=0; d<3; ++d)
@@ -407,7 +384,7 @@ void cfd_amr::sc_update(int g, int s, double dt)
     for(int j=0; j<q->knoy; ++j)
     for(int k=0; k<q->knoz; ++k)
     {
-        const int c = cix(q,i,j,k);
+        const int c = cell_index(q,i,j,k);
         if(q->flag4[c]<=0)
         continue;
         S.V[c] = a0*S0.V[c] + b0*(S.V[c] + dt*L.V[c]);
@@ -426,7 +403,7 @@ void cfd_amr::sc_bc(int g)
     for(int j=0; j<q->knoy; ++j)
     for(int k=0; k<q->knoz; ++k)
     {
-        const int c = cix(q,i,j,k);
+        const int c = cell_index(q,i,j,k);
         if(q->flag4[c]>0 && a->phi.V[c]<0.0)
         S.V[c] = 0.0;
     }
@@ -434,7 +411,7 @@ void cfd_amr::sc_bc(int g)
     pgc0->start4(p0,S,80);
     else
     {
-        sscope ps(pgc0,a,a0);
+        cfd_amr_scope ps(pgc0,a,a0);
         pgc0->start4(q,S,80);
     }
 }
@@ -454,14 +431,14 @@ void cfd_amr::sc_diffuse(int g)
     for(int i=0; i<q->knox; ++i)
     for(int j=0; j<q->knoy; ++j)
     for(int k=0; k<q->knoz; ++k)
-    if(q->flag4[cix(q,i,j,k)]>0)
+    if(q->flag4[cell_index(q,i,j,k)]>0)
     a->rhsvec.V[n++] = 0.0;
 
     if(g<0)
     pd->diff_scalar(q,a,pgc0,ps,S,kap,a->eddyv,sc_sig,1.0);
     else
     {
-        sscope sp(pgc0,a,a0);
+        cfd_amr_scope sp(pgc0,a,a0);
         pd->diff_scalar(q,a,pgc0,ps,S,kap,a->eddyv,sc_sig,1.0);
     }
 }

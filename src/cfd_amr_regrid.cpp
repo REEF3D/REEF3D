@@ -21,6 +21,7 @@ Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"cfd_amr.h"
+#include"cell_index.h"
 #include"reef3d_mpmd.h"
 #include"lexer.h"
 #include"fdm.h"
@@ -53,34 +54,6 @@ Architect: Hans Bihs
 //  level by level); then the coarser levels get the restriction of the finer ones.
 //  The first hierarchy (setup) takes all levels from the flags of the initial level 0.
 
-namespace
-{
-inline int fdiv(int a, int r) { return (a>=0) ? a/r : -((-a+r-1)/r); }
-
-inline int cix(const lexer *q, int i, int j, int k)
-{
-    return (i-q->imin)*q->jmax*q->kmax + (j-q->jmin)*q->kmax + k-q->kmin;
-}
-
-struct pscope4
-{
-    ghostcell *g;
-    fdm *back;
-    bool oldc, oldl;
-    pscope4(ghostcell *gg, fdm *a, fdm *a0) : g(gg), back(a0)
-    {
-        oldc = g->set_comms(false);
-        oldl = g->set_local(true);
-        g->fdm_update(a);
-    }
-    ~pscope4()
-    {
-        g->fdm_update(back);
-        g->set_comms(oldc);
-        g->set_local(oldl);
-    }
-};
-}
 
 // the criteria at cell (i,j,k) of grid g for the tiles of level lt (init: level 0 for all levels,
 // with the interface thickness and the spacing of level lt-1)
@@ -175,7 +148,7 @@ void cfd_amr::flags(vector<vector<unsigned char>> &seed, bool init)
             for(int j=0; j<q->knoy; ++j)
             for(int k=0; k<q->knoz; ++k)
             {
-                if(q->flag4[cix(q,i,j,k)]<=0)
+                if(q->flag4[cell_index(q,i,j,k)]<=0)
                 continue;
                 if(!flagged(g,i,j,k,lt,init))
                 continue;
@@ -495,7 +468,7 @@ void cfd_amr::regrid(lexer *p, ghostcell *pgc, bool replace)
                     bool in = true;
                     for(int d=0; d<3; ++d)
                     {
-                        Pg[d] = fdiv(I[d],rr[d]);
+                        Pg[d] = floor_div(I[d],rr[d]);
                         oo[d] = I[d]-Pg[d]*rr[d];
                         s[d] = Pg[d]-og[d];
                         if(Pg[d]<B.lo[d] || Pg[d]>B.hi[d])
@@ -535,7 +508,7 @@ void cfd_amr::regrid(lexer *p, ghostcell *pgc, bool replace)
         cfd_amr_patch *c = CP(id);
         lexer *pp = c->pp;
         fdm *fa = c->a;
-        pscope4 ps(pgc,fa,a0);
+        cfd_amr_scope ps(pgc,fa,a0);
         pgc->start1(pp,fa->u,10);
         pgc->start2(pp,fa->v,11);
         pgc->start3(pp,fa->w,12);

@@ -22,6 +22,7 @@ Architect: Hans Bihs
 
 #include<cstring>
 #include"cfd_airband_dt.h"
+#include"cell_index.h"
 #include"cfd_amr.h"
 #include"cfd_gravitywave_dt.h"
 #include"reef3d_mpmd.h"
@@ -89,15 +90,6 @@ Architect: Hans Bihs
 
 namespace
 {
-// floor(a/r) for negative a as well
-inline int fdiv(int a, int r) { return (a>=0) ? a/r : -((-a+r-1)/r); }
-
-// index of a cell in the arrays of lexer q (field layout)
-inline int cix(const lexer *q, int i, int j, int k)
-{
-    return (i-q->imin)*q->jmax*q->kmax + (j-q->jmin)*q->kmax + k-q->kmin;
-}
-
 // The implicit diffusion of a patch: the cells around the patch are Dirichlet values (the stage
 // velocity of the coarser level).  bicgstab_ijk keeps its own vector and exchanges the cells
 // around a rank grid with the partition neighbours; a patch has no neighbours, so the couplings
@@ -138,7 +130,7 @@ public:
         for(int j=0; j<p->knoy-vl; ++j)
         for(int k=0; k<p->knoz-wl; ++k)
         {
-            const int q = cix(p,i,j,k);
+            const int q = cell_index(p,i,j,k);
             if(flag[q]<=0)
             continue;
             if(ed!=nullptr && !std::isnan((*ed)[q]))
@@ -176,25 +168,6 @@ private:
     const vector<double> *edge;
 };
 
-// patch work: no exchange, rank-local reductions, the fdm of the patch in the ghostcell object
-struct pscope
-{
-    ghostcell *g;
-    fdm *back;
-    bool oldc, oldl;
-    pscope(ghostcell *gg, fdm *a, fdm *a0) : g(gg), back(a0)
-    {
-        oldc = g->set_comms(false);
-        oldl = g->set_local(true);
-        g->fdm_update(a);
-    }
-    ~pscope()
-    {
-        g->fdm_update(back);
-        g->set_comms(oldc);
-        g->set_local(oldl);
-    }
-};
 }
 
 cfd_amr_patch::~cfd_amr_patch()
@@ -314,6 +287,20 @@ void cfd_amr::net_forces()
 
         nets6->amr_net_forces(pp,fa,fmax,width);
     }
+}
+
+cfd_amr_scope::cfd_amr_scope(ghostcell *gg, fdm *a, fdm *a0) : g(gg), back(a0)
+{
+    oldc = g->set_comms(false);
+    oldl = g->set_local(true);
+    g->fdm_update(a);
+}
+
+cfd_amr_scope::~cfd_amr_scope()
+{
+    g->fdm_update(back);
+    g->set_comms(oldc);
+    g->set_local(oldl);
 }
 
 // --------------------------------------------------------------------- set-up
@@ -517,7 +504,7 @@ void cfd_amr::hierarchy(bool first)
         cfd_amr_patch *c = CP(id);
         c->mkind.assign(c->pp->imax*c->pp->jmax*c->pp->kmax,-1);
         for(const r3fill &f : c->fill)
-        c->mkind[cix(c->pp,f.d[0],f.d[1],f.d[2])] = (signed char)f.kind;
+        c->mkind[cell_index(c->pp,f.d[0],f.d[1],f.d[2])] = (signed char)f.kind;
     }
 
     pr_setup();
@@ -616,7 +603,7 @@ int cfd_amr::finest_id(double x, double y, double z) const
         for(int ii=i-2; ii<=i+2 && ok; ++ii)
         for(int jj=j-jw; jj<=j+jw && ok; ++jj)
         for(int kk=k-2; kk<=k+2 && ok; ++kk)
-        if(c->mkind[cix(pp,ii,jj,kk)]==1)
+        if(c->mkind[cell_index(pp,ii,jj,kk)]==1)
         ok = false;
         if(!ok)
         continue;
@@ -737,7 +724,7 @@ void cfd_amr::patch_objects(r3patch *rp)
     if(!turb)
     lean |= FDM_LEAN_WALLD;
     c->a = new fdm(pp,lean);
-    pscope ps(pgc0,c->a,a0);
+    cfd_amr_scope ps(pgc0,c->a,a0);
     ghostcell *pgc = pgc0;
     fdm *a = c->a;
 
@@ -1023,7 +1010,7 @@ void cfd_amr::fill(int l, vector<fspec> &fs, bool siblings_only, int maxdepth)
              [&](int kind, int g, const int *s, const int *o, double *v)
              {
                  const lexer *q = glex(g);
-                 const long qs = cix(q,s[0],s[1],s[2]);
+                 const long qs = cell_index(q,s[0],s[1],s[2]);
                  if(kind==0)
                  {
                      for(int m=0; m<nv; ++m)
@@ -1066,7 +1053,7 @@ void cfd_amr::fill(int l, vector<fspec> &fs, bool siblings_only, int maxdepth)
              {
                  if(siblings_only && f.kind==1)
                  return;
-                 const long qd = cix(c->pp,f.d[0],f.d[1],f.d[2]);
+                 const long qd = cell_index(c->pp,f.d[0],f.d[1],f.d[2]);
                  for(int m=0; m<nv; ++m)
                  D(m,id).V[qd] = v[m];
              },
@@ -1129,7 +1116,7 @@ cfd_amr::cfill_plan& cfd_amr::cfp_get(int l, bool sib, int maxdepth)
         {
             if(f.kind==3 || f.depth>maxdepth || (sib && f.kind==1))
             continue;
-            const int d = cix(q,f.d[0],f.d[1],f.d[2]);
+            const int d = cell_index(q,f.d[0],f.d[1],f.d[2]);
             if(f.kind==2)
             {
                 C.rg.push_back(gslot(id));
@@ -1141,7 +1128,7 @@ cfd_amr::cfill_plan& cfd_amr::cfp_get(int l, bool sib, int maxdepth)
             C.dg.push_back(gslot(id));
             C.dq.push_back(d);
             C.sg.push_back(gslot(f.g));
-            C.sq.push_back(cix(glex(f.g),f.s[0],f.s[1],f.s[2]));
+            C.sq.push_back(cell_index(glex(f.g),f.s[0],f.s[1],f.s[2]));
             C.pz.push_back(f.kind==1 && (f.o[0]!=0 || f.o[1]!=0 || f.o[2]!=0) ? 1 : 0);
         }
     }
@@ -1164,7 +1151,7 @@ cfd_amr::cfill_plan& cfd_amr::cfp_get(int l, bool sib, int maxdepth)
             {
                 const r3serve &S = X.serve[m];
                 C.vg.push_back(gslot(S.g));
-                C.vq.push_back(cix(glex(S.g),S.s[0],S.s[1],S.s[2]));
+                C.vq.push_back(cell_index(glex(S.g),S.s[0],S.s[1],S.s[2]));
                 ++C.scnt[r];
             }
             for(int m=X.rdsp[r]; m<X.rdsp[r]+X.rcnt[r]; ++m)
@@ -1281,7 +1268,7 @@ void cfd_amr::bc_state(int id)
     cfd_amr_patch *c = CP(id);
     lexer *pp = c->pp;
     fdm *fa = c->a;
-    pscope ps(pgc0,fa,a0);
+    cfd_amr_scope ps(pgc0,fa,a0);
 
     bc_grid(id,AF_BCSTATE);
 
@@ -1336,8 +1323,8 @@ void cfd_amr::restrict_level(int l, const vector<std::function<field&(int)>> &ce
 
                 if(nc>0)
                 {
-                    const long qf0 = cix(qf,f0[0],f0[1],f0[2]);
-                    const long qp = cix(qc,pl[0],pl[1],pl[2]);
+                    const long qf0 = cell_index(qf,f0[0],f0[1],f0[2]);
+                    const long qp = cell_index(qc,pl[0],pl[1],pl[2]);
                     for(size_t m=0; m<nc; ++m)
                     {
                         const double *src = csrc[m];
@@ -1443,7 +1430,7 @@ void cfd_amr::turb_step(int l)
     for(int id : lev[l])
     {
         cfd_amr_patch *c = CP(id);
-        pscope ps(pgc0,c->a,a0);
+        cfd_amr_scope ps(pgc0,c->a,a0);
         c->pturb->start(c->a,c->pp,c->pturbdisc,c->pturbdiff,c->psolv,pgc0,c->pflow,c->pvrans);
         if(patch_relax_turb(id))
         pgc0->start4(c->pp,c->a->eddyv,24);
@@ -1465,7 +1452,7 @@ void cfd_amr::patch_fields_ini(int id)
     ghostcell *pgc = pgc0;
     cfd_amr_patch *c = CP(id);
     lexer *pp = c->pp;
-    pscope ps(pgc,c->a,a0);
+    cfd_amr_scope ps(pgc,c->a,a0);
     const double psi = pp->psi, psi0 = pp->psi0;
     pini0->start(c->a,pp,pgc);
     c->pflow->ini(pp,c->a,pgc);
@@ -1544,7 +1531,7 @@ void cfd_amr::ini(lexer *p, fdm *a, ghostcell *pgc)
                     bool in = true;
                     for(int d=0; d<3; ++d)
                     {
-                        Pg[d] = fdiv(I[d],rr[d]);
+                        Pg[d] = floor_div(I[d],rr[d]);
                         o[d] = I[d]-Pg[d]*rr[d];
                         s[d] = Pg[d]-og[d];
                         if(Pg[d]<B.lo[d] || Pg[d]>B.hi[d])
@@ -1576,7 +1563,7 @@ void cfd_amr::ini(lexer *p, fdm *a, ghostcell *pgc)
         cfd_amr_patch *c = CP(id);
         lexer *pp = c->pp;
         fdm *fa = c->a;
-        pscope ps(pgc,fa,a0);
+        cfd_amr_scope ps(pgc,fa,a0);
 
         for(int i=0; i<pp->knox; ++i)
         for(int j=0; j<pp->knoy; ++j)
@@ -1671,7 +1658,7 @@ void cfd_amr::timestep(lexer *p, fdm *a, ghostcell *pgc)
         for(int j=-jl; j<pp->knoy+jl; ++j)
         for(int k=-1; k<=pp->knoz; ++k)
         {
-            const int q = cix(pp,i,j,k);
+            const int q = cell_index(pp,i,j,k);
             const double au = (pp->flag1[q]>0) ? fabs(fa->u(i,j,k)) : 0.0;
             const double av = (pp->flag2[q]>0) ? fabs(fa->v(i,j,k)) : 0.0;
             const double aw = (pp->flag3[q]>0) ? fabs(fa->w(i,j,k)) : 0.0;
@@ -1708,7 +1695,7 @@ void cfd_amr::timestep(lexer *p, fdm *a, ghostcell *pgc)
         for(int j=0; j<pp->knoy; ++j)
         for(int k=0; k<pp->knoz; ++k)
         {
-            if(pp->flag4[cix(pp,i,j,k)]<=0)
+            if(pp->flag4[cell_index(pp,i,j,k)]<=0)
             continue;
             const double dx = MIN3(pp->DXN[i+marge],pp->DYN[j+marge],pp->DZN[k+marge]);
 
@@ -1799,27 +1786,27 @@ void cfd_amr::velmax(lexer *p)
             if(covered(lv,I))
             continue;
 
-            int n = cix(q,i,j,k);
+            int n = cell_index(q,i,j,k);
             if(q->flag1[n]>0)
             vm[0] = MAX(vm[0],fabs(f->u(i,j,k)));
-            n = cix(q,i-1,j,k);
+            n = cell_index(q,i-1,j,k);
             if(q->flag1[n]>0)
             vm[0] = MAX(vm[0],fabs(f->u(i-1,j,k)));
 
             if(q->j_dir==1)
             {
-            n = cix(q,i,j,k);
+            n = cell_index(q,i,j,k);
             if(q->flag2[n]>0)
             vm[1] = MAX(vm[1],fabs(f->v(i,j,k)));
-            n = cix(q,i,j-1,k);
+            n = cell_index(q,i,j-1,k);
             if(q->flag2[n]>0)
             vm[1] = MAX(vm[1],fabs(f->v(i,j-1,k)));
             }
 
-            n = cix(q,i,j,k);
+            n = cell_index(q,i,j,k);
             if(q->flag3[n]>0)
             vm[2] = MAX(vm[2],fabs(f->w(i,j,k)));
-            n = cix(q,i,j,k-1);
+            n = cell_index(q,i,j,k-1);
             if(q->flag3[n]>0)
             vm[2] = MAX(vm[2],fabs(f->w(i,j,k-1)));
         }
@@ -1926,7 +1913,7 @@ void cfd_amr::edge_faces(int l, int s)
         for(int t=0; t<3; ++t)
         if(t!=F.d)
         v += cell_slope(fc,F.gface,F.cf,t,1)*(F.o[t]==0 ? -0.25 : 0.25);
-        c->edge[F.d][cix(c->pp,F.ff[0],F.ff[1],F.ff[2])] = v;
+        c->edge[F.d][cell_index(c->pp,F.ff[0],F.ff[1],F.ff[2])] = v;
     }
 }
 
@@ -1999,8 +1986,8 @@ void cfd_amr::restrict_press_hydro(int l)
         int Plo[3], Phi[3];
         for(int d=0; d<3; ++d)
         {
-            Plo[d] = fdiv(c->lo[d],rr[d]);
-            Phi[d] = fdiv(c->hi[d],rr[d]);
+            Plo[d] = floor_div(c->lo[d],rr[d]);
+            Phi[d] = floor_div(c->hi[d],rr[d]);
         }
         const int nch = rr[0]*rr[1];
         vector<double> hf(nch), phf(nch), wf(nch);
@@ -2024,7 +2011,7 @@ void cfd_amr::restrict_press_hydro(int l)
                 lexer *q = glex(B->g);
                 fdm *ac = gfd(B->g);
                 const int i = P[0]-og[0], j = P[1]-og[1], k = P[2]-og[2];
-                if(q->flag4[cix(q,i,j,k)]<=0)
+                if(q->flag4[cell_index(q,i,j,k)]<=0)
                 {
                     ok = false;
                     break;
@@ -2053,7 +2040,7 @@ void cfd_amr::restrict_press_hydro(int l)
                     for(int e=rr[2]-1; e>=0; --e)
                     {
                         const int fk = P[2]*rr[2]+e-c->lo[2];
-                        if(pp->flag4[cix(pp,fi,fj,fk)]<=0)
+                        if(pp->flag4[cell_index(pp,fi,fj,fk)]<=0)
                         {
                             ok = false;
                             break;
@@ -2164,7 +2151,7 @@ void cfd_amr::load_step(lexer *p)
         for(int i=0; i<p0->knox; ++i)
         for(int j=0; j<p0->knoy; ++j)
         for(int k=0; k<p0->knoz; ++k)
-        if(p0->flag4[cix(p0,i,j,k)]>0)
+        if(p0->flag4[cell_index(p0,i,j,k)]>0)
         ++act;
         c.n0a = double(act);
 
@@ -2236,7 +2223,7 @@ void cfd_amr::step_comp(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof 
     mom0->amr_step_begin(p,a,pgc);
     for(int id=0; id<npat; ++id)
     {
-        pscope ps(pgc,CP(id)->a,a0);
+        cfd_amr_scope ps(pgc,CP(id)->a,a0);
         CP(id)->pmom->amr_step_begin(CP(id)->pp,CP(id)->a,pgc);
     }
 
@@ -2267,7 +2254,7 @@ void cfd_amr::step_comp(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof 
             mom0->ls_rk_begin(p,a);
             for(int id=0; id<npat; ++id)
             {
-                pscope ps(pgc,CP(id)->a,a0);
+                cfd_amr_scope ps(pgc,CP(id)->a,a0);
                 CP(id)->pmom->ls_rk_begin(CP(id)->pp,CP(id)->a);
             }
 
@@ -2282,7 +2269,7 @@ void cfd_amr::step_comp(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof 
                     mom0->ls_rk_ghost(p,pgc);
                     for(int id=0; id<npat; ++id)
                     {
-                        pscope ps(pgc,CP(id)->a,a0);
+                        cfd_amr_scope ps(pgc,CP(id)->a,a0);
                         CP(id)->pmom->ls_rk_ghost(CP(id)->pp,pgc);
                     }
                     if(k>0)
@@ -2296,7 +2283,7 @@ void cfd_amr::step_comp(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof 
                 cfd_amr_wclock wc(wtp);
                 for(int id=0; id<npat; ++id)
                 {
-                    pscope ps(pgc,CP(id)->a,a0);
+                    cfd_amr_scope ps(pgc,CP(id)->a,a0);
                     fdm *fa = CP(id)->a;
                     momentum_rk *m = CP(id)->pmom;
                     m->ls_rk_stage(CP(id)->pp,fa,k,m->ls_vel(fa,0),m->ls_vel(fa,1),m->ls_vel(fa,2));
@@ -2318,7 +2305,7 @@ void cfd_amr::step_comp(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof 
             cfd_amr_wclock wc(wtp);
             for(int id : lev[l])
             {
-                pscope ps(pgc,CP(id)->a,a0);
+                cfd_amr_scope ps(pgc,CP(id)->a,a0);
                 CP(id)->pmom->amr_ls_transport(CP(id)->pp,CP(id)->a,pgc,s);
             }
             }
@@ -2336,7 +2323,7 @@ void cfd_amr::step_comp(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof 
                 cfd_amr_wclock wc(wtp);
                 for(int id : lev[l])
                 {
-                    pscope ps(pgc,CP(id)->a,a0);
+                    cfd_amr_scope ps(pgc,CP(id)->a,a0);
                     if(it==0)
                     {
                     patch_relax_phi(id,CP(id)->pmom->amr_phi_out(s));
@@ -2387,7 +2374,7 @@ void cfd_amr::step_comp(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof 
             cfd_amr_wclock wc(wtp);
             for(int id : lev[l])
             {
-                pscope ps(pgc,CP(id)->a,a0);
+                cfd_amr_scope ps(pgc,CP(id)->a,a0);
                 if(tp)
                 CP(id)->pmom->amr_twoproj_momentum(CP(id)->pp,CP(id)->a,pgc,CP(id)->pvrans,(sixdof*)CP(id)->p6dof,s==0,patch_forcing());
                 else
@@ -2414,7 +2401,7 @@ void cfd_amr::step_comp(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof 
         cfd_amr_wclock wc(wtp);
         for(int id=0; id<npat; ++id)
         {
-            pscope ps(pgc,CP(id)->a,a0);
+            cfd_amr_scope ps(pgc,CP(id)->a,a0);
             CP(id)->pmom->amr_stage_end(CP(id)->pp,CP(id)->a,pgc,s);
         }
         }
@@ -2453,7 +2440,7 @@ void cfd_amr::step_comp(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof 
         cfd_amr_wclock wc(wtp);
         for(int id=0; id<npat; ++id)
         {
-            pscope ps(pgc,CP(id)->a,a0);
+            cfd_amr_scope ps(pgc,CP(id)->a,a0);
             CP(id)->pmom->amr_twoproj_mid(CP(id)->pp,CP(id)->a,pgc);
         }
         }
@@ -2494,7 +2481,7 @@ void cfd_amr::step_comp(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof 
     if(turb)
     for(int id=0; id<npat; ++id)
     {
-        pscope ps(pgc,CP(id)->a,a0);
+        cfd_amr_scope ps(pgc,CP(id)->a,a0);
         CP(id)->pturb->ktimesave(CP(id)->pp,CP(id)->a,pgc);
         CP(id)->pturb->etimesave(CP(id)->pp,CP(id)->a,pgc);
     }

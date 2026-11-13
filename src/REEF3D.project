@@ -325,6 +325,7 @@
             <File Name="etimestep.h"/>
           </VirtualDirectory>
           <File Name="fdm.h"/>
+          <File Name="cell_index.h"/>
           <File Name="heaviside.h"/>
           <VirtualDirectory Name="Surftens">
             <File Name="surftens.h"/>

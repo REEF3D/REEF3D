@@ -772,4 +772,15 @@ private:
     vector<double> p35_next;
 };
 
+// a patch kernel: ghostcell without MPI exchange, rank-local reductions and the fdm a of the patch;
+// the end of the scope restores the fdm a0 and the previous modes
+struct cfd_amr_scope
+{
+    ghostcell *g;
+    fdm *back;
+    bool oldc, oldl;
+    cfd_amr_scope(ghostcell*, fdm *a, fdm *a0);
+    ~cfd_amr_scope();
+};
+
 #endif

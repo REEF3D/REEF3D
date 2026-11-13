@@ -21,6 +21,7 @@ Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"pic_f.h"
+#include"cell_index.h"
 #include"lexer.h"
 #include"fdm.h"
 #include<algorithm>
@@ -48,14 +49,6 @@ Architect: Hans Bihs
 // on the decomposition. The reinitialisation of the level set afterwards (F 44) continues the
 // distance beyond the band.
 
-namespace
-{
-inline int fid(lexer *p, int i, int j, int k)
-{
-    return (i-p->imin)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin;
-}
-}
-
 void pic_f::redistance(lexer *p, fdm *a, const std::vector<char> &inband)
 {
     const int S = 2;
@@ -76,7 +69,7 @@ void pic_f::redistance(lexer *p, fdm *a, const std::vector<char> &inband)
     auto fluid = [&](int i, int j, int k)
     {
         return i>=-fm && i<p->knox+fm && k>=-fm && k<p->knoz+fm && (!d3 || (j>=-fm && j<p->knoy+fm))
-            && p->flag4[fid(p,i,j,k)]>0;
+            && p->flag4[cell_index(p,i,j,k)]>0;
     };
 
     for(int i=ilo; i<=ihi; ++i)
@@ -86,7 +79,7 @@ void pic_f::redistance(lexer *p, fdm *a, const std::vector<char> &inband)
         if(!fluid(i,j,k))
         continue;
 
-        const int f = fid(p,i,j,k);
+        const int f = cell_index(p,i,j,k);
         const double v0 = V[f];
         const bool w0 = v0>=0.0;
         const double X[3] = {p->XP[i+marge], p->YP[j+marge], p->ZP[k+marge]};
@@ -110,7 +103,7 @@ void pic_f::redistance(lexer *p, fdm *a, const std::vector<char> &inband)
                 if(!fluid(ni,nj,nk))
                 continue;
 
-                const double vn = V[fid(p,ni,nj,nk)];
+                const double vn = V[cell_index(p,ni,nj,nk)];
                 const double xn = ax==0 ? p->XP[ni+marge] : (ax==1 ? p->YP[nj+marge] : p->ZP[nk+marge]);
 
                 if(sd<0)
@@ -162,7 +155,7 @@ void pic_f::redistance(lexer *p, fdm *a, const std::vector<char> &inband)
         if(!inband[l])
         continue;
 
-        const int f = fid(p,i,j,k);
+        const int f = cell_index(p,i,j,k);
         const double X[3] = {p->XP[i+marge], p->YP[j+marge], p->ZP[k+marge]};
         double dmin2 = 1.0e30;
 
@@ -170,7 +163,7 @@ void pic_f::redistance(lexer *p, fdm *a, const std::vector<char> &inband)
         for(int nj=(d3 ? j-S : 0); nj<=(d3 ? j+S : 0); ++nj)
         for(int nk=k-S; nk<=k+S; ++nk)
         {
-            const int g = fid(p,ni,nj,nk);
+            const int g = cell_index(p,ni,nj,nk);
 
             if(!iface[g])
             continue;

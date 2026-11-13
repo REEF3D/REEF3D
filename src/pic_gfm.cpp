@@ -21,6 +21,7 @@ Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"pic_gfm.h"
+#include"cell_index.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"field.h"
@@ -29,11 +30,6 @@ Architect: Hans Bihs
 
 namespace
 {
-inline int gid(lexer *p, int i, int j, int k)
-{
-    return (i-p->imin)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin;
-}
-
 inline double theta(double fin, double fout)
 {
     return std::max(PIC_GFM_THETA, fin/(fin-fout));
@@ -102,7 +98,7 @@ void pic_gfm_matrix(lexer *p, fdm *a)
     for(int j=0; j<p->knoy; ++j)
     for(int k=0; k<p->knoz; ++k)
     {
-        if(p->flag4[gid(p,i,j,k)]<=0)    // the cells of LOOP (PCHECK)
+        if(p->flag4[cell_index(p,i,j,k)]<=0)    // the cells of LOOP (PCHECK)
         continue;
 
         const double f0 = a->phi(i,j,k);
@@ -130,7 +126,7 @@ void pic_gfm_matrix(lexer *p, fdm *a)
 
             const int ni = i+di[s], nj = j+dj[s], nk = k+dk[s];
 
-            if(p->flag4[gid(p,ni,nj,nk)]<0 || *coef[s]==0.0)
+            if(p->flag4[cell_index(p,ni,nj,nk)]<0 || *coef[s]==0.0)
             continue;
 
             const double f1 = a->phi(ni,nj,nk);

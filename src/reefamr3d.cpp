@@ -37,11 +37,6 @@ Architect: Hans Bihs
 #include<map>
 #include<cstdlib>
 
-namespace
-{
-// floor(a/r) for negative a as well
-inline int fdiv(int a, int r) { return (a>=0) ? a/r : -((-a+r-1)/r); }
-}
 
 reefamr3d_local::reefamr3d_local(ghostcell *gg) : g(gg)
 {
@@ -226,7 +221,7 @@ void reefamr3d::goff(int g, int *o)
 double reefamr3d::node(int l, int d, int I) const
 {
     const int R = ratio(l,d);
-    const int I0 = fdiv(I,R);
+    const int I0 = floor_div(I,R);
     const double f = double(I - I0*R)/double(R);
     const vector<double> &x = gx[d];
     const int a = I0+marge;
@@ -551,8 +546,8 @@ void reefamr3d::make_shadows(vector<r3patch*> *old, vector<int> &fresh_sh)
         for(int d=0; d<3; ++d)
         {
             const int b = (rr[d]==2) ? 2 : 0;
-            lo[d] = MAX(fdiv(c->lo[d],rr[d])-b,0);
-            hi[d] = MIN(fdiv(c->hi[d],rr[d])+b,gn0[d]-1);
+            lo[d] = MAX(floor_div(c->lo[d],rr[d])-b,0);
+            hi[d] = MIN(floor_div(c->hi[d],rr[d])+b,gn0[d]-1);
         }
         r3patch *q = nullptr;
         if(old!=nullptr)
@@ -903,8 +898,8 @@ void reefamr3d::mark_tiles(const vector<vector<unsigned char>> *seed)
         const int t[3] = {ti,tj,tk};
         for(int d=0; d<3; ++d)
         {
-            lo[d] = fdiv(t[d]*tile[d],rr[d]) - (rr[d]==2 ? nest : 0);
-            hi[d] = fdiv((t[d]+1)*tile[d]-1,rr[d]) + (rr[d]==2 ? nest : 0);
+            lo[d] = floor_div(t[d]*tile[d],rr[d]) - (rr[d]==2 ? nest : 0);
+            hi[d] = floor_div((t[d]+1)*tile[d]-1,rr[d]) + (rr[d]==2 ? nest : 0);
         }
         mark_cells(l,lo,hi);
     }
@@ -1024,8 +1019,8 @@ void reefamr3d::mark_tiles(const vector<vector<unsigned char>> *seed)
                 int a[3], b[3];
                 for(int d=0; d<3; ++d)
                 {
-                    const int lo = MAX(fdiv(t[d]*tile[d],rr[d]) - (rr[d]==2 ? nest : 0),0);
-                    const int hi = MIN(fdiv((t[d]+1)*tile[d]-1,rr[d]) + (rr[d]==2 ? nest : 0),gn(l-1,d)-1);
+                    const int lo = MAX(floor_div(t[d]*tile[d],rr[d]) - (rr[d]==2 ? nest : 0),0);
+                    const int hi = MIN(floor_div((t[d]+1)*tile[d]-1,rr[d]) + (rr[d]==2 ? nest : 0),gn(l-1,d)-1);
                     a[d] = lo/tile[d];
                     b[d] = hi/tile[d];
                 }
@@ -1090,8 +1085,8 @@ void reefamr3d::mark_tiles(const vector<vector<unsigned char>> *seed)
         int lo[3], hi[3];
         for(int d=0; d<3; ++d)
         {
-            lo[d] = fdiv(t[d]*tile[d],rr[d]) - (rr[d]==2 ? 1 : 0);
-            hi[d] = fdiv((t[d]+1)*tile[d]-1,rr[d]) + (rr[d]==2 ? 1 : 0);
+            lo[d] = floor_div(t[d]*tile[d],rr[d]) - (rr[d]==2 ? 1 : 0);
+            hi[d] = floor_div((t[d]+1)*tile[d]-1,rr[d]) + (rr[d]==2 ? 1 : 0);
             if(!per[d])
             {
                 lo[d] = MAX(lo[d],0);
@@ -1182,7 +1177,7 @@ void reefamr3d::mark_tiles(const vector<vector<unsigned char>> *seed)
                     continue;
                     int a[3], b[3];
                     for(int e=0; e<3; ++e)
-                    a[e] = b[e] = fdiv(I[e],ratio(l,e));
+                    a[e] = b[e] = floor_div(I[e],ratio(l,e));
                     a[d] = N/R-1;
                     b[d] = N/R;
                     if(rank_of(a)==rank_of(b))
@@ -1284,8 +1279,8 @@ void reefamr3d::mark_tiles(const vector<vector<unsigned char>> *seed)
                     const int t[3] = {ti,tj,tk};
                     for(int d=0; d<3; ++d)
                     {
-                        lo[d] = fdiv(t[d]*tile[d],rr[d]) - (rr[d]==2 ? nest : 0);
-                        hi[d] = fdiv((t[d]+1)*tile[d]-1,rr[d]) + (rr[d]==2 ? nest : 0);
+                        lo[d] = floor_div(t[d]*tile[d],rr[d]) - (rr[d]==2 ? nest : 0);
+                        hi[d] = floor_div((t[d]+1)*tile[d]-1,rr[d]) + (rr[d]==2 ? nest : 0);
                     }
                     mark_cells(l-1,lo,hi);
                 }
@@ -1314,8 +1309,8 @@ void reefamr3d::mark_tiles(const vector<vector<unsigned char>> *seed)
             int lo[3], hi[3];
             for(int d=0; d<3; ++d)
             {
-                lo[d] = fdiv(t[d]*tile[d],rr[d]) - (rr[d]==2 ? 1 : 0);
-                hi[d] = fdiv((t[d]+1)*tile[d]-1,rr[d]) + (rr[d]==2 ? 1 : 0);
+                lo[d] = floor_div(t[d]*tile[d],rr[d]) - (rr[d]==2 ? 1 : 0);
+                hi[d] = floor_div((t[d]+1)*tile[d]-1,rr[d]) + (rr[d]==2 ? 1 : 0);
                 if(!per[d])
                 {
                     lo[d] = MAX(lo[d],0);
@@ -1816,7 +1811,7 @@ void reefamr3d::place_units(vector<vector<int>> &mb)
             c.w = unit_work(c.lo,c.hi);
             int C[3];
             for(int d=0; d<3; ++d)
-            C[d] = fdiv((c.lo[d]+c.hi[d])/2,rr[d]);
+            C[d] = floor_div((c.lo[d]+c.hi[d])/2,rr[d]);
             c.rank = owner0(C);
         };
         std::function<void(piece)> cut = [&](piece c)
@@ -1946,7 +1941,7 @@ void reefamr3d::place_units(vector<vector<int>> &mb)
             {
                 int C[3];
                 for(int d=0; d<3; ++d)
-                C[d] = fdiv((pcs[i].lo[d]+pcs[i].hi[d])/2,rr[d]);
+                C[d] = floor_div((pcs[i].lo[d]+pcs[i].hi[d])/2,rr[d]);
                 const int pr = owner0(C);
                 if(load[pr]+pcs[i].w<=1.05*wmean)
                 r = pr;
@@ -1982,7 +1977,7 @@ void reefamr3d::place_units(vector<vector<int>> &mb)
     {
         int C[3];
         for(int d=0; d<3; ++d)
-        C[d] = fdiv((pcs[i].lo[d]+pcs[i].hi[d])/2,rr[d]);
+        C[d] = floor_div((pcs[i].lo[d]+pcs[i].hi[d])/2,rr[d]);
         rf[i] = (ptv==2) ? pcs[i].rank : (owner0(C)+1)%nranks;
         lf[rf[i]] += pcs[i].w;
     }
@@ -2193,7 +2188,7 @@ void reefamr3d::build_lexer(r3patch &c)
     {
         const int a[3] = {ii,jj,kk};
         for(int d=0; d<3; ++d)
-        L[d] = fdiv(c.lo[d]+a[d],R[d]) - (src ? 0 : org[d]);
+        L[d] = floor_div(c.lo[d]+a[d],R[d]) - (src ? 0 : org[d]);
         if(wrap1)
         {
             int Gb[3], Lw[3];
@@ -2393,7 +2388,7 @@ void reefamr3d::build_lexer(r3patch &c)
         for(int jj=pp->jmin; jj<=pp->jmin+pp->jmax; ++jj)
         {
             const int NI = c.lo[0]+ii, NJ = c.lo[1]+jj;      // global level-l node
-            const int K = fdiv(NI,R[0]), L = fdiv(NJ,R[1]);
+            const int K = floor_div(NI,R[0]), L = floor_div(NJ,R[1]);
             const double fr = double(NI-K*R[0])/double(R[0]), fs = double(NJ-L*R[1])/double(R[1]);
             double x00,y00,x10,y10,x01,y01,x11,y11;
             node0(K,L,x00,y00); node0(K+1,L,x10,y10); node0(K,L+1,x01,y01); node0(K+1,L+1,x11,y11);
@@ -2514,8 +2509,8 @@ void reefamr3d::plans()
                 int clo[3], chi[3];
                 for(int d=0; d<3; ++d)
                 {
-                    clo[d] = fdiv(c.lo[d],rr[d]);
-                    chi[d] = fdiv(c.hi[d],rr[d]);
+                    clo[d] = floor_div(c.lo[d],rr[d]);
+                    chi[d] = floor_div(c.hi[d],rr[d]);
                 }
                 auto add = [&](int g, const int *a, const int *b)
                 {
@@ -2605,7 +2600,7 @@ void reefamr3d::plans()
                 int Gp[3];
                 for(int d=0; d<3; ++d)
                 {
-                    Gp[d] = fdiv(G[d],rr[d]);
+                    Gp[d] = floor_div(G[d],rr[d]);
                     f.o[d] = G[d]-Gp[d]*rr[d];
                 }
                 f.kind = 1;

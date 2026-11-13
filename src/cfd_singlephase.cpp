@@ -21,19 +21,12 @@ Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"cfd_singlephase.h"
+#include"cell_index.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
 #include"pic_gfm.h"
 #include<vector>
-
-namespace
-{
-inline int fid(lexer *p, int i, int j, int k)
-{
-    return (i-p->imin)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin;
-}
-}
 
 cfd_singlephase::cfd_singlephase(lexer *p) : km1(p), km2(p), km3(p), pid(p,p->F41==2), pa(p,p->F41==2), lab(p,p->F41==2)
 {
@@ -102,8 +95,8 @@ void cfd_singlephase::extend(lexer *p, fdm *a, ghostcell *pgc, field &dst, int c
 
         // next to a cell of the water (a fluid cell: the level set inside a solid is extended from the
         // water and says nothing about the face)
-        if((f0>=0.0 && p->flag4[fid(p,i,j,k)]>0) || (f1>=0.0 && p->flag4[fid(p,i+di,j+dj,k+dk)]>0))
-        known[fid(p,i,j,k)] = 1;
+        if((f0>=0.0 && p->flag4[cell_index(p,i,j,k)]>0) || (f1>=0.0 && p->flag4[cell_index(p,i+di,j+dj,k+dk)]>0))
+        known[cell_index(p,i,j,k)] = 1;
     }
 
     field &km = c==0 ? static_cast<field&>(km1) : (c==1 ? static_cast<field&>(km2) : static_cast<field&>(km3));
@@ -116,7 +109,7 @@ void cfd_singlephase::extend(lexer *p, fdm *a, ghostcell *pgc, field &dst, int c
         for(int j=0; j<p->knoy; ++j)
         for(int k=0; k<p->knoz; ++k)
         {
-            const int f = fid(p,i,j,k);
+            const int f = cell_index(p,i,j,k);
 
             if(known[f])
             continue;
@@ -126,7 +119,7 @@ void cfd_singlephase::extend(lexer *p, fdm *a, ghostcell *pgc, field &dst, int c
 
             auto add = [&](int si, int sj, int sk)
             {
-                const int g1 = fid(p,i+si,j+sj,k+sk);
+                const int g1 = cell_index(p,i+si,j+sj,k+sk);
 
                 if(!known[g1])
                 return;
@@ -172,8 +165,8 @@ void cfd_singlephase::extend(lexer *p, fdm *a, ghostcell *pgc, field &dst, int c
     for(int i=0; i<p->knox; ++i)
     for(int j=0; j<p->knoy; ++j)
     for(int k=0; k<p->knoz; ++k)
-    if(!known[fid(p,i,j,k)])
-    dst.V[fid(p,i,j,k)] = 0.0;
+    if(!known[cell_index(p,i,j,k)])
+    dst.V[cell_index(p,i,j,k)] = 0.0;
 
     if(c==0)
     pgc->start1(p,dst,10);
@@ -207,7 +200,7 @@ void cfd_singlephase::ext_begin(lexer *p, fdm *a, int c)
     for(int k=-fm; k<p->knoz+fm-dk; ++k)
     {
         const bool inner = i>=0 && i<p->knox && j>=0 && j<p->knoy && k>=0 && k<p->knoz;
-        const int q0 = fid(p,i,j,k), q1 = fid(p,i+di,j+dj,k+dk);
+        const int q0 = cell_index(p,i,j,k), q1 = cell_index(p,i+di,j+dj,k+dk);
         const double f0 = a->phi(i,j,k), f1 = a->phi(i+di,j+dj,k+dk);
         const bool water = (f0>=0.0 && p->flag4[q0]>0) || (f1>=0.0 && p->flag4[q1]>0);
         if(inner)
@@ -230,7 +223,7 @@ void cfd_singlephase::ext_layer(lexer *p, field &dst, int c)
     for(int j=0; j<p->knoy; ++j)
     for(int k=0; k<p->knoz; ++k)
     {
-        const int f = fid(p,i,j,k);
+        const int f = cell_index(p,i,j,k);
         if(km.V[f]>0.5)
         continue;
 
@@ -238,7 +231,7 @@ void cfd_singlephase::ext_layer(lexer *p, field &dst, int c)
         int cnt=0;
         auto add = [&](int si, int sj, int sk)
         {
-            const int g1 = fid(p,i+si,j+sj,k+sk);
+            const int g1 = cell_index(p,i+si,j+sj,k+sk);
             if(km.V[g1]<=0.5)
             return;
             sum += dst.V[g1];
