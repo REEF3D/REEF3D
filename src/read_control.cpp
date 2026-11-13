@@ -1885,6 +1885,9 @@ void control::read_control(lexer* p)
                 case 23: control>>D23;
                          clear(c,numint);
                          break;
+                case 24: control>>D24;
+                         clear(c,numint);
+                         break;
                 case 30: control>>D30;
                          clear(c,numint);
                          break;

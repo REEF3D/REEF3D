@@ -72,6 +72,10 @@ void fluid_update_rheology::start(lexer *p, fdm* a, ghostcell* pgc, field &u, fi
 
         visc1 = prheo->viscosity(p,a,pgc,u,v,w);
         a->visc(i,j,k) = visc1*H_phi + visc2*(1.0-H_phi);
+        
+        // dynamic form of the diffusion (D 24): rho nu is the blend of the dynamic viscosities
+        if(p->D24>0)
+        a->visc(i,j,k) = (ro1*visc1*H_phi + ro2*visc2*(1.0-H_phi))/a->ro(i,j,k);
 
         if(p->flagsf4[IJK]>0)
         {

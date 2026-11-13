@@ -27,6 +27,7 @@ Author: Hans Bihs
 #include"solver.h"
 #include"diff_wallghost.h"
 #include"diff_walllaw.h"
+#include"diff_dynamic.h"
 
 void idiff2_FS_2D::diff_w(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &diff, field &w_in, field &u, field &v, field &w, double alpha)
 {
@@ -58,36 +59,51 @@ void idiff2_FS_2D::assemble_w(lexer* p, fdm* a, ghostcell *pgc, field &w_in, fie
 
 	n=0;
 
+    // D 24 > 0: the dynamic form, mu = rho (nu + nu_t) and 1/rho at the velocity node (diff_dynamic.h)
+    pdyn->update(p,a);
+    field &vi = pdyn->visc(a);
+    field &ed = pdyn->eddyv(a);
+    double ir;
+
     WLOOP
     {
-	ev_ijk=a->eddyv(i,j,k);
-	ev_im_j_k=a->eddyv(i-1,j,k);
-	ev_ip_j_k=a->eddyv(i+1,j,k);
-	ev_i_j_kp=a->eddyv(i,j,k+1);
+	ev_ijk=ed(i,j,k);
+	ev_im_j_k=ed(i-1,j,k);
+	ev_ip_j_k=ed(i+1,j,k);
+	ev_i_j_kp=ed(i,j,k+1);
 	
-	visc_ijk=a->visc(i,j,k);
-	visc_im_j_k=a->visc(i-1,j,k);
-	visc_ip_j_k=a->visc(i+1,j,k);
-	visc_i_j_kp=a->visc(i,j,k+1);
+	visc_ijk=vi(i,j,k);
+	visc_im_j_k=vi(i-1,j,k);
+	visc_ip_j_k=vi(i+1,j,k);
+	visc_i_j_kp=vi(i,j,k+1);
 	
-	visc_ddx_p = (visc_ijk+ev_ijk + visc_i_j_kp+ev_i_j_kp + visc_ip_j_k+ev_ip_j_k + a->visc(i+1,j,k+1)+a->eddyv(i+1,j,k+1))*0.25;
-	visc_ddx_m = (visc_im_j_k+ev_im_j_k + a->visc(i-1,j,k+1)+a->eddyv(i-1,j,k+1) + visc_ijk+ev_ijk + visc_i_j_kp+ev_i_j_kp)*0.25;
+	visc_ddx_p = (visc_ijk+ev_ijk + visc_i_j_kp+ev_i_j_kp + visc_ip_j_k+ev_ip_j_k + vi(i+1,j,k+1)+ed(i+1,j,k+1))*0.25;
+	visc_ddx_m = (visc_im_j_k+ev_im_j_k + vi(i-1,j,k+1)+ed(i-1,j,k+1) + visc_ijk+ev_ijk + visc_i_j_kp+ev_i_j_kp)*0.25;
+
+    if(pdyn->mode==2)
+    {
+    visc_ddx_p = pdyn->corner(visc_ijk+ev_ijk, visc_i_j_kp+ev_i_j_kp, visc_ip_j_k+ev_ip_j_k, vi(i+1,j,k+1)+ed(i+1,j,k+1));
+    visc_ddx_m = pdyn->corner(visc_im_j_k+ev_im_j_k, vi(i-1,j,k+1)+ed(i-1,j,k+1), visc_ijk+ev_ijk, visc_i_j_kp+ev_i_j_kp);
+    }
+
+    ir = pdyn->irho(a,2,i,j,k);
+
     
-	a->M.p[n] = 2.0*(visc_i_j_kp+ev_i_j_kp)/(p->DZN[KP1]*p->DZP[KP])
+	a->M.p[n] = (2.0*(visc_i_j_kp+ev_i_j_kp)/(p->DZN[KP1]*p->DZP[KP])
 				  + 2.0*(visc_ijk+ev_ijk)/(p->DZN[KP]*p->DZP[KP])
 				  + visc_ddx_p/(p->DXP[IP]*p->DXN[IP])
-				  + visc_ddx_m/(p->DXP[IM1]*p->DXN[IP])
-				  + CPOR3/(alpha*p->dt);
+				  + visc_ddx_m/(p->DXP[IM1]*p->DXN[IP]))*ir
+				   + CPOR3/(alpha*p->dt);
 				  
-	a->rhsvec.V[n] += ((u(i,j,k+1)-u(i,j,k))*visc_ddx_p - (u(i-1,j,k+1)-u(i-1,j,k))*visc_ddx_m)/(p->DZP[KP]*p->DXN[IP])
+	a->rhsvec.V[n] += (((u(i,j,k+1)-u(i,j,k))*visc_ddx_p - (u(i-1,j,k+1)-u(i-1,j,k))*visc_ddx_m)/(p->DZP[KP]*p->DXN[IP]))*ir
 
-						+ (CPOR3*w_in(i,j,k))/(alpha*p->dt);
+						 + (CPOR3*w_in(i,j,k))/(alpha*p->dt);
 	 
-	 a->M.s[n] = -visc_ddx_m/(p->DXP[IM1]*p->DXN[IP]);
-	 a->M.n[n] = -visc_ddx_p/(p->DXP[IP]*p->DXN[IP]);
+	 a->M.s[n] = -visc_ddx_m/(p->DXP[IM1]*p->DXN[IP])*ir;
+	 a->M.n[n] = -visc_ddx_p/(p->DXP[IP]*p->DXN[IP])*ir;
 	 
-	 a->M.b[n] = -2.0*(visc_ijk+ev_ijk)/(p->DZN[KP]*p->DZP[KP]);
-	 a->M.t[n] = -2.0*(visc_i_j_kp+ev_i_j_kp)/(p->DZN[KP1]*p->DZP[KP]);
+	 a->M.b[n] = -2.0*(visc_ijk+ev_ijk)/(p->DZN[KP]*p->DZP[KP])*ir;
+	 a->M.t[n] = -2.0*(visc_i_j_kp+ev_i_j_kp)/(p->DZN[KP1]*p->DZP[KP])*ir;
      
      if(p->DF3[IJK]<0 && p->D22==1)
      {
