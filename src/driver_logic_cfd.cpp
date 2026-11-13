@@ -73,6 +73,19 @@ void driver::logic_cfd()
     removed_option(p,pgc,p->T10==12,"T 10 12: EARSM has been removed, use T 10 2 (k-omega; the EARSM stresses were not coupled to the momentum equations).");
     removed_option(p,pgc,p->F80==1 || p->F80==3,"F 80 1/3: VOF_AB and VOF_RK3 have been removed, use F 80 4 (PLIC) or the level set (F 30).");
     removed_option(p,pgc,p->F85>=51 && p->F85<=53,"F 85 51/52/53: HRIC, HRIC_mod and CICSAM have been removed.");
+
+    // VOF PLIC (F 80 4): momentum schemes that transport the volume fraction, and the interface normal
+    removed_option(p,pgc,p->F80==4 && !(p->N40==3 || p->N40==23 || p->N40==33 || p->N40==12 || p->N40==13),"F 80 4: VOF PLIC needs N 40 3, 23 (VOF in the Runge-Kutta stages), 33 (conservative momentum), 12 or 13 (VOF once per time step).");
+    removed_option(p,pgc,p->F80==4 && (p->F88<4 || p->F88>14),"F 88: unknown interface normal for VOF PLIC; use 4 (Youngs), 5 (least squares), 6 (WENO), 8 (mass centre), 9-12 (2D: ELVIRA, centred columns, mixed Youngs-centred) or 13, 14 (3D centred columns).");
+
+    // F 88 9-12 give normals in the x-z plane only (ny = 0)
+    if(p->F80==4 && p->j_dir==1 && p->F88>=9 && p->F88<=12)
+    {
+        if(p->mpirank==0)
+        cout<<"F 88 "<<p->F88<<" is a 2D interface normal (ny = 0): F 88 13 (3D centred columns) used for this 3D run"<<endl;
+
+        p->F88=13;
+    }
     
     // unknown turbulence options: no model or convection scheme would be created and the run would crash later
     const bool T10_ok = (p->T10==0 || p->T10==1 || p->T10==21 || p->T10==2 || p->T10==22 || p->T10==31 || p->T10==33 || p->T10==12);

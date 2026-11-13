@@ -775,7 +775,7 @@ void control::ini_default()
     F87=-1.0;          // double PIC output interval in seconds; <= 0: with the CFD output (P 30, P 20)
     F79=0.1;           // double PIC redistribution step (particle spacings per unit of the neighbour push)
     F85=0;             // int convection scheme VOF
-    F88=10;             // int normal calculation method for VOF PLIC,2D MYC as default
+    F88=10;             // int interface normal for VOF PLIC: 10 centred columns (2D) as default, 3D runs take 13 (driver::logic_cfd)
     F90=4;             // int vof transport scheme for VOF PLIC, 2D COSMIC as default
     F91=0.1;          // rho threshold input for FCCRK3 PLIC
     F92=2;              // PLIC density method, fine vof-based as default
