@@ -556,6 +556,7 @@ private:
     void pr_matrix(int s);
     void pr_predict(int s);
     double forced_share(int g, const int *c, int d);
+    bool cf_shut(const cfd_amr_cf&);    // D 32: the face of a patch edge closed on the fine or on the coarse grid
     void pr_correct(int s);
     void pr_apertures();                // D 1 2: the open fractions of the faces at the patch edges
     double cf_weight(const cfd_amr_cf &F);  // the share of a fine face in the velocity of its coarse face

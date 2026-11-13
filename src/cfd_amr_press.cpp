@@ -63,6 +63,35 @@ static bool cf_closed(lexer *pp, fdm *a, const cfd_amr_cf &F)
     return solid_face_closed(pp,a,F.fi[0],F.fi[1],F.fi[2],e[0],e[1],e[2]);
 }
 
+// D 32: the face of a patch edge closed on the grid of the fine cell (cf_closed) or on the coarser
+// grid (the coarse cell and the covered parent of the fine cell, as poisson_pcorr closes the coarse
+// face).  On the coarser grid pjm_corr::rhs sets a closed coarse face to 0, while its fine faces kept
+// their predictor where the fine grid saw them open: the fine rows took the flux of those faces and
+// the coarse row did not, a mass source at the patch edge in every stage.  Two ways: a solid surface
+// through the coarse centres (the wall top at z = 0.46 m on 40 mm cells, or y = 0.15 m on 20 mm
+// cells: the coarse centre inside by rounding, -5.6e-17, the upper fine cells outside), and the
+// cells around a patch inside a solid, whose solid level set is not the distance there (positive
+// deep in the solid) so that cf_closed left the face open.  The pressure moved away from the cells
+// with all faces closed (1 x = 0, their pressure kept), the gradients across the closed faces came
+// back through pr_predict: velocities and pressure grew exponentially (still water over a block:
+// 1e-3 -> 1.4 m/s in 150 steps; the lock of validation 27 on 40 mm cells: x 2.3 per step, 100 m/s
+// after 12 steps).
+// Closed on either grid, the fine faces take no flux and the coarse face, their mean, is 0 as well.
+// (The switches of level 0: the lexers of the shadows, G 40, do not carry solidread.)  D 1 2 alone:
+// cf_closed as before, the coarse face of the edge takes its open fraction from the fine faces
+// (pr_apertures).
+bool cfd_amr::cf_shut(const cfd_amr_cf &F)
+{
+    if(cf_closed(CP(F.pid)->pp,CP(F.pid)->a,F))
+    return true;
+    if(p0->D32<=0 || (p0->solidread<=0 && p0->topoforcing<=0))
+    return false;
+
+    const bool A = solid_closed_inside(p0,gfd(F.gc),F.ci[0],F.ci[1],F.ci[2]);
+    const bool B = solid_closed_inside(p0,gfd(F.gp),F.pi[0],F.pi[1],F.pi[2]);
+    return (p0->D32==1) ? (A && B) : (A || B);
+}
+
 //  The composite pressure projection of REEF3D::CFD with mesh refinement.
 //
 //  Every grid assembles its Poisson rows with its own objects (pjm_corr::amr_prepare: boundary
@@ -1806,8 +1835,8 @@ void cfd_amr::pr_predict(int s)
             v -= (1.0-Hf)*bs*p0->dt*p0->W22*fpc;
         }
 
-        // D 32: a face closed in a solid takes no flux
-        if(cf_closed(CP(F.pid)->pp,CP(F.pid)->a,F))
+        // D 32: a face closed in a solid (on the fine or the coarse grid, cf_shut) takes no flux
+        if(cf_shut(F))
         v = 0.0;
 
         F.ustar = v;
@@ -1896,7 +1925,7 @@ void cfd_amr::pr_matrix(int s)
 
         // D 32: a face closed in a solid: no coupling (Neumann on both sides, the fine row lost its
         // coupling to the cell around the patch in poisson_pcorr already)
-        if(cf_closed(pp,a,F))
+        if(cf_shut(F))
         F.kf = F.kc = 0.0;
 
         // X 49: the share of the face taken by the direct forcing is not corrected (forcing_share.h):
@@ -3333,7 +3362,7 @@ void cfd_amr::pr_level(lexer *p, ghostcell *pgc, int l, int s)
         if(CP(F.pid)->lev!=l)
         continue;
         // (D 1 2: the open fraction of the face)
-        F.kf = cf_closed(CP(F.pid)->pp,CP(F.pid)->a,F) ? 0.0 : F.ap/(F.rof*F.dist*F.dxnf);
+        F.kf = cf_shut(F) ? 0.0 : F.ap/(F.rof*F.dist*F.dxnf);
         // X 49: the open share of the face (pr_matrix)
         if(p0->X49>0)
         {
