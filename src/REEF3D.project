@@ -807,6 +807,7 @@
         <VirtualDirectory Name="FNPF">
           <File Name="fnpf_theta.h"/>
           <File Name="fnpf_RK3.h"/>
+          <File Name="fnpf_rk.h"/>
           <File Name="fnpf_RK4.h"/>
           <File Name="fnpf.h"/>
         </VirtualDirectory>
@@ -2531,6 +2532,7 @@
           <File Name="fnpf_theta.cpp"/>
           <File Name="fnpf_RK4.cpp"/>
           <File Name="fnpf_RK3.cpp"/>
+          <File Name="fnpf_rk.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="FDM">
           <File Name="fnpf_prof.cpp"/>

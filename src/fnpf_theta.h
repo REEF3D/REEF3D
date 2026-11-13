@@ -173,7 +173,7 @@ private:
     void robin_build_mg(lexer*, fdm_fnpf*, ghostcell*, solver*, slice&, slice&);
     void sz_stencil(lexer*, ghostcell*);
     
-    int gcval,gcval_u,gcval_v,gcval_w;
+    int gcval;
     int gcval_eta,gcval_fifsf;
     
     slice4 ek,fk;          // tendencies of the full free-surface conditions at t^n

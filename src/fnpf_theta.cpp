@@ -78,10 +78,6 @@ fnpf_theta::fnpf_theta(lexer *p, fdm_fnpf *c, ghostcell *pgc) : fnpf_ini(p,c,pgc
     gcval=250;
     if(p->j_dir==0)
     gcval=150;
-   
-    gcval_u=10;
-	gcval_v=11;
-	gcval_w=12;
     
     gcval_eta = 55;
     gcval_fifsf = 60;

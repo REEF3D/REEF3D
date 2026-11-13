@@ -23,47 +23,25 @@ Author: Hans Bihs
 #ifndef FNPF_RK3_H_
 #define FNPF_RK3_H_
 
-#include"fnpf.h"
-#include"fnpf_ini.h"
-#include"fnpf_sigma.h"
-#include"slice4.h"
-
-class fnpf_laplace;
-class fnpf_fsf;
-class fnpf_body;
-class fnpf_amr;
-class fnpf_laplace_cds2;
-class field;
+#include"fnpf_rk.h"
 
 using namespace std;
 
-class fnpf_RK3 final : public fnpf_ini, public fnpf_sigma
+// FNPF time step with the third-order TVD Runge-Kutta scheme (Shu-Osher), A 310 3
+class fnpf_RK3 final : public fnpf_rk
 {
 public:
 	fnpf_RK3(lexer*, fdm_fnpf*, ghostcell*);
 	virtual ~fnpf_RK3();
-    
+
     void start(lexer*, fdm_fnpf*, ghostcell*, solver*, convection*, ioflow*, reini*) override final;
-    void inidisc_step1(lexer*, fdm_fnpf*, ghostcell*, ioflow*, solver*) override final;
-    void inidisc_step2(lexer*, fdm_fnpf*, ghostcell*, ioflow*, solver*) override final;
     void ini_wetdry(lexer*, fdm_fnpf*, ghostcell*) override final;
     void attach_amr(fnpf_amr*) override final;
-    fnpf_body* body() override final {return pbody;}
-    
-private:
-    int gcval,gcval_u,gcval_v,gcval_w;
-    int gcval_eta,gcval_fifsf;
 
+private:
     slice4 erk1,erk2;
     slice4 frk1,frk2;
     slice4 ek,fk;   // stage tendencies deta/dt, dFifsf/dt
-    slice4 en;      // eta_n, for the breaking onset criterion
-
-    fnpf_laplace *plap;
-    fnpf_laplace_cds2 *plap0;
-    fnpf_amr *pamr = nullptr;
-    fnpf_fsf *pf;
-    fnpf_body *pbody;
 };
 
 #endif
