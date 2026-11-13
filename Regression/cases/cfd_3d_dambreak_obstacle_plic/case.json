@@ -1,0 +1,3 @@
+{"base": "cfd_3d_dambreak_obstacle", "ctrl_set": {"N 40": "3", "F 80": "4", "F 30": "0", "F 40": "0"},
+ "description": "as cfd_3d_dambreak_obstacle with PLIC VOF (F80=4), N40=3 and the default F 88: 3D runs take the 3D interface normal F 88 13 (driver::logic_cfd), not the 2D default F 88 10 with ny = 0 (PLIC patch 0001).",
+ "tags": ["3d", "dambreak", "plic", "mpi", "solid"], "covers": ["F80=4 in 3D: F 88 10 -> 13", "calcNormalMYC3D", "3D COSMIC advection (VOF_PLIC::symmetric_scheme3D_FCRK3)"]}

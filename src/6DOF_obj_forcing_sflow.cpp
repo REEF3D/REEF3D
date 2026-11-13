@@ -29,22 +29,19 @@ void sixdof_obj_2D::update_forcing_sflow(lexer *p, ghostcell *pgc,
                              slice &P, slice &Q, slice &w, slice &fx, slice &fy, slice &eta, int iter)
 {
     // Calculate forcing fields
-    double H, uf, vf, wf;
-    double ef,efc;
+    double H, uf, vf;
     
     SLICELOOP4
     { 
         
         uf = u_fb(0) + u_fb(4)*(p->pos_z() - c_(2)) - u_fb(5)*(p->pos_y() - c_(1));
         vf = u_fb(1) + u_fb(5)*(p->pos_x() - c_(0)) - u_fb(3)*(p->pos_z() - c_(2));
-        wf = 0.0;
-         
+
         H = Hsolidface_2D(p,0,0);
         fx(i,j) += H*(uf - P(i,j))/(alpha[iter]*p->dt);
         
         H = Hsolidface_2D(p,0,0);
         fy(i,j) += H*(vf - Q(i,j))/(alpha[iter]*p->dt);
-        
     }
     
     

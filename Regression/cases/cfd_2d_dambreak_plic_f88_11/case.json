@@ -1,0 +1,3 @@
+{"base": "cfd_2d_dambreak_plic", "ctrl_set": {"F 88": "11"},
+ "description": "as cfd_2d_dambreak_plic with the mixed Youngs / centred-columns normal F 88 11 (calcNormalMYC2D_V2): Youngs corner gradients weighted with the cell sizes (PLIC patch 0002).",
+ "tags": ["2d", "dambreak", "plic"], "covers": ["F88=11 calcNormalMYC2D_V2"]}

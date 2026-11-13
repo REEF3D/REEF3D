@@ -84,8 +84,6 @@ sflow_print_wsf::~sflow_print_wsf()
 
 void sflow_print_wsf::height_gauge(lexer *p, fdm2D *b, ghostcell *pgc, slice &f)
 {
-    double zval=0.0;
-
     for(n=0;n<gauge_num;++n)
     wsf[n]=-1.0e20;
 
@@ -98,8 +96,6 @@ void sflow_print_wsf::height_gauge(lexer *p, fdm2D *b, ghostcell *pgc, slice &f)
     for(n=0;n<gauge_num;++n)
     if(amr==nullptr ? flag[n]>0 : ap.mine[n]!=0)
     {
-    zval=0.0;
-
     i=iloc[n];
     j=jloc[n];
 

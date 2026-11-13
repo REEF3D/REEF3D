@@ -127,12 +127,6 @@ void sflow_vtp_fsf::start(lexer *p, fdm2D* b, ghostcell* pgc, ioflow *pflow, sfl
     if(p->P110==1)
         phs->start(p,pgc,b->eta,b->Hs);
 
-    // Print state restart out based on iteration
-    /*if(p->count%p->P38==0 && p->P37>0)
-    {
-        pstate_restart->write(p,b,pgc);
-    }*/
-
     // Print state out based on iteration
     if(p->P40>0 && p->P41>0 && p->count%p->P41==0 && p->P42<0.0 && (p->P46==0 || (p->count>=p->P46_is && p->count<p->P46_ie)))
     {

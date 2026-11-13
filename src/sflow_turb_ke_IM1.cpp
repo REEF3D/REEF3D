@@ -264,40 +264,7 @@ void sflow_turb_ke_IM1::clearrhs(lexer* p, fdm2D *b)
 // ****************************
 void sflow_turb_ke_IM1::wall_law_kin(lexer* p, fdm2D *b)
 {
-    double uvel,vvel;
-    double dist=0.5*p->DXM;
-    double u_abs,uplus,tau,kappa;
-    kappa=0.4;
-/*
-    n=0;
-	SLICELOOP4
-	{
-        uvel=0.5*(b->P(i,j)+b->P(i-1,j));
-
-        vvel=0.5*(b->Q(i,j)+b->Q(i,j-1));
-
-        u_abs = sqrt(uvel*uvel + vvel*vvel);
-
-		if(30.0*dist<b->ks(i,j))
-		dist=b->ks(i,j)/30.0;
-
-		uplus = (1.0/kappa)*log(30.0*(dist/b->ks(i,j)));
-
-        tau=(u_abs*u_abs)/pow((uplus>0.0?uplus:(1.0e20)),2.0);
-
-
-		WETDRY
-       if(p->flagslice4[Im1J]<0 || p->flagslice4[Ip1J]<0 || p->flagslice4[IJm1]<0 || p->flagslice4[IJp1]<0 ||
-       p->wet[Im1J]<0 || p->wet[Ip1J]<0 || p->wet[IJm1]<0 || p->wet[IJp1]<0)
-       {
-		b->M.p[n] += (pow(p->cmu,0.75)*pow(fabs(kin(i,j)),0.5)*uplus)/dist;
-         b->rhsvec.V[n] += (tau*u_abs)/dist;
-		}
-
-	++n;
-	}*/
-
-
+    // no flux of k through walls and to dry neighbours, k = 0 in dry cells
     n=0;
 	SLICELOOP4
 	{
@@ -355,16 +322,7 @@ void sflow_turb_ke_IM1::wall_law_kin(lexer* p, fdm2D *b)
 
 void sflow_turb_ke_IM1::wall_law_eps(lexer* p, fdm2D *b)
 {
-
-    double dist=0.5*p->DXM;
-/*
-    SLICELOOP4
-    WETDRY
-    if(p->flagslice4[Im1J]<0 || p->flagslice4[Ip1J]<0 || p->flagslice4[IJm1]<0 || p->flagslice4[IJp1]<0 ||
-       p->wet[Im1J]<0 || p->wet[Ip1J]<0 || p->wet[IJm1]<0 || p->wet[IJp1]<0)
-	eps(i,j) = (pow(p->cmu, 0.75)*pow((kin(i,j)>(0.0)?(kin(i,j)):(0.0)),1.5)) / (0.4*dist);*/
-
-
+    // no flux of epsilon through walls and to dry neighbours, epsilon = 0 in dry cells
     n=0;
 	SLICELOOP4
 	{

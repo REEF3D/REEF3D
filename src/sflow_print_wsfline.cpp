@@ -126,7 +126,7 @@ void sflow_print_wsfline::start(lexer *p, fdm2D *b, ghostcell *pgc, ioflow *pflo
 
 void sflow_print_wsfline::ini_location(lexer *p, fdm2D *b, ghostcell *pgc)
 {
-    int check,count;
+    int count;
     
     
     for(q=0;q<p->P52;++q)

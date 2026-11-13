@@ -184,6 +184,9 @@ VTU/state print keys (`P 20/30/40/41/42`), so runs are short and output stays sm
 | `cfd_3d_levelset_ini_shapes_mpi2` | 2 | the same in 3D on 2 ranks: pool (F 56), drop (F 58), column (F 59), air box at the wall (F 71), wedge (F 112); the foot points of the sweeping exchanged across the partition edge (26 neighbours); the level set of the start the same values as on 1 rank (sorted, bitwise) (CFD Level Set patches 0001-0002) |
 | `cfd_2d_dambreak_teno` | 1 | TENO5 weights for momentum (D 12 2) and level set + reini (F 37 2) |
 | `cfd_2d_dambreak_plic` (+ `_rk3`, `_fcc3`) | 1 | PLIC VOF (F80=4) with N40=3 / 13 / 33 |
+| `cfd_3d_dambreak_obstacle_plic` | 4 | `cfd_3d_dambreak_obstacle` with PLIC VOF (F80=4, N40=3) and the default F 88: 3D runs take the 3D interface normal F 88 13 instead of the 2D default F 88 10 with ny = 0 (PLIC patch 0001) |
+| `cfd_2d_dambreak_plic_f88_11` | 1 | `cfd_2d_dambreak_plic` with the mixed Youngs / centred-columns normal F 88 11: Youngs corner gradients weighted with the cell sizes (PLIC patch 0002) |
+| `cfd_2d_plane_plic_f100` | 1 | inclined initial free surface F 100 3 / F 101 in the closed tank: exact fractions of all cells from VforPLIC, initial volume 1.26e-3 (PLIC patch 0003) |
 | `cfd_2d_dambreak_picard`, `cfd_2d_dambreak_plic_picard_lsm` | 1 | Picard volume correction: F46=2 (once per step), F46=3 with PLIC redistancing (F92=1) |
 | `cfd_2d_compressible_box` | 1 | sealed box, piston pushes water in: isentropic air compressibility (W 32 2), closed domain without pressure pinning |
 | `cfd_2d_compressible_box_amr_sub` | 1 | the sealed box with two refined levels across the free surface and subcycling (G 7 1, W 32 2): the synchronisation takes the volume registers of the patch edges in the compressible rows and restricts its correction onto the covered cells; the air pressure +0.6 % of p0 (V0/V)^1.4 after 2.5 s (hans_dev before: +81 %, the air compressed twice) |

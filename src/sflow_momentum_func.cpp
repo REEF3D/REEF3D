@@ -1146,7 +1146,7 @@ void sflow_momentum_func::spiral_source(lexer *p, fdm2D *b, slice &WL, int comp)
         return (comp==0) ? mxx*nx + mxy*ny : mxy*nx + myy*ny;
     };
 
-    double nx,ny,len;
+    double nx,ny;
 
     SLICELOOP4
     WETDRY
