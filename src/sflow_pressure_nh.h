@@ -42,11 +42,16 @@ public:
 
     virtual void assemble(lexer*, fdm2D*, ghostcell*, slice &UH, slice &VH, slice &WL, slice &Un, slice &Vn, double alpha)=0;
     virtual void correct(lexer*, fdm2D*, slice &UH, slice &VH, slice &WH, slice &WL, double alpha)=0;
-    virtual int is_active(lexer*, fdm2D*, int, int)=0;
+    int is_active(lexer*, fdm2D*, int, int);
     virtual int gcval() const=0;
     // coefficients of the bed pressure in the u, v correction and of the w correction (G 7 1:
     // the synchronisation projection of sflow_amr)
     virtual void coef(double &cbq, double &cwq) const=0;
+
+protected:
+    // shared by sflow_pjm_lin and sflow_pjm_quad (sflow_pressure_nh.cpp)
+    int active(lexer*, fdm2D*);                     // cell (i,j) solves for the pressure: wet, deep, not breaking
+    void poisson(lexer*, fdm2D*, slice&, double);   // pressure matrix; cbed: bed coefficient (lin cb, quad cw)
 };
 
 #endif

@@ -53,7 +53,7 @@ void sflow_pjm_lin::start(lexer *p, fdm2D *b, ghostcell *pgc, solver2D *psolv, i
 	starttime=pgc->timer();
 
     rhs(p,b,WL,alpha);
-    poisson(p,b,WL,alpha);
+    poisson(p,b,WL,cb);
 
         solvtime=pgc->timer();
 
@@ -89,7 +89,7 @@ void sflow_pjm_lin::start(lexer *p, fdm2D *b, ghostcell *pgc, solver2D *psolv, i
 void sflow_pjm_lin::assemble(lexer *p, fdm2D *b, ghostcell *pgc, slice &UH, slice &VH, slice &WL, slice &Un, slice &Vn, double alpha)
 {
     rhs(p,b,WL,alpha);
-    poisson(p,b,WL,alpha);
+    poisson(p,b,WL,cb);
 }
 
 void sflow_pjm_lin::correct(lexer *p, fdm2D *b, slice &UH, slice &VH, slice &WH, slice &WL, double alpha)
@@ -97,28 +97,6 @@ void sflow_pjm_lin::correct(lexer *p, fdm2D *b, slice &UH, slice &VH, slice &WH,
     ucorr(p,b,UH,WL,alpha);
 	vcorr(p,b,VH,WL,alpha);
     wcorr(p,b,WH,WL,alpha);
-}
-
-int sflow_pjm_lin::is_active(lexer *p, fdm2D *b, int ii, int jj)
-{
-    i=ii;
-    j=jj;
-    return active(p,b);
-}
-
-int sflow_pjm_lin::active(lexer *p, fdm2D *b)
-{
-    // non-hydrostatic pressure is solved in wet, deep, non-breaking cells
-    if(p->wet[IJ]==0 || p->deep[IJ]==0 || b->breaking(i,j)>0)
-    return 0;
-    
-    if(p->wet[Im1J]==0 || p->wet[Ip1J]==0)
-    return 0;
-    
-    if(p->j_dir==1 && (p->wet[IJm1]==0 || p->wet[IJp1]==0))
-    return 0;
-    
-    return 1;
 }
 
 void sflow_pjm_lin::ucorr(lexer* p, fdm2D* b, slice &UH, slice &WL, double alpha)
@@ -248,94 +226,6 @@ void sflow_pjm_lin::rhs(lexer *p, fdm2D* b, slice &WL, double alpha)
         }
     ++n;
     }
-}
-
-void sflow_pjm_lin::poisson(lexer*p, fdm2D* b, slice &WL, double alpha)
-{
-    n=0;
-
-    // curvilinear grid: compact Laplacian of the orthogonal parts of the faces
-    if(p->geo_curv==1)
-    {
-    double cE,cW,cN,cS;
-
-	SLICELOOP4
-	{
-    sflow_curv::lapcoef(p,i,j,cE,cW,cN,cS);
-
-	b->M.p[n] = WL(i,j)*(cE + cW + cN + cS)/p->W1 + 2.0*cb/(HP*p->W1);
-   	b->M.n[n] = -WL(i,j)*cE/p->W1;
-	b->M.s[n] = -WL(i,j)*cW/p->W1;
-	b->M.w[n] = -WL(i,j)*cN/p->W1;
-	b->M.e[n] = -WL(i,j)*cS/p->W1;
-	++n;
-	}
-    }
-
-    if(p->geo_curv==0)
-    SLICELOOP4
-	{
-	b->M.p[n] =  WL(i,j)/(p->W1*p->DXP[IP]*p->DXN[IP])
-               + WL(i,j)/(p->W1*p->DXP[IM1]*p->DXN[IP])
-               + WL(i,j)/(p->W1*p->DYP[JP]*p->DYN[JP])*p->y_dir
-               + WL(i,j)/(p->W1*p->DYP[JM1]*p->DYN[JP])*p->y_dir
-               + 2.0*cb/(HP*p->W1);
-    
-   	b->M.n[n] = -WL(i,j)/(p->W1*p->DXP[IP]*p->DXN[IP]);
-	b->M.s[n] = -WL(i,j)/(p->W1*p->DXP[IM1]*p->DXN[IP]);
-	b->M.w[n] = -WL(i,j)/(p->W1*p->DYP[JP]*p->DYN[JP])*p->y_dir;
-	b->M.e[n] = -WL(i,j)/(p->W1*p->DYP[JM1]*p->DYN[JP])*p->y_dir;
-	++n;
-	}
-    
-    n=0;
-	SLICELOOP4
-	{
-        // inflow / outflow: q=0
-		if(p->flagslice4[Im1J]<0 && p->IOSL[Im1J]==1)
-		b->M.s[n] = 0.0;
-        
-        if(p->flagslice4[Ip1J]<0 && p->IOSL[Ip1J]==1)
-		b->M.n[n] = 0.0;
-        
-        // walls: dq/dn=0
-        if(p->flagslice4[Im1J]<0 && p->IOSL[Im1J]==0)
-		{
-		b->M.p[n] += b->M.s[n];
-		b->M.s[n] = 0.0;
-		}
-
-        if(p->flagslice4[Ip1J]<0 && p->IOSL[Ip1J]==0)
-		{
-		b->M.p[n] += b->M.n[n];
-		b->M.n[n] = 0.0;
-		}
-
-		if(p->flagslice4[IJm1]<0)
-		{
-		b->M.p[n] += b->M.e[n];
-		b->M.e[n] = 0.0;
-		}
-
-		if(p->flagslice4[IJp1]<0)
-		{
-		b->M.p[n] += b->M.w[n];
-		b->M.w[n] = 0.0;
-		}
-        
-        // hydrostatic cells
-        if(active(p,b)==0)
-        {
-        b->M.p[n] = 1.0;
-        b->M.n[n] = 0.0;
-        b->M.s[n] = 0.0;
-        b->M.w[n] = 0.0;
-        b->M.e[n] = 0.0;
-        b->rhsvec.V[n] = 0.0;
-        b->press(i,j) = 0.0;
-        }
-	++n;
-	}
 }
 
 void sflow_pjm_lin::upgrad(lexer*p, fdm2D* b, slice &eta)
