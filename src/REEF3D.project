@@ -256,6 +256,7 @@
             <File Name="poisson_pcorr.h"/>
             <File Name="diff_wallghost.h"/>
             <File Name="diff_walllaw.h"/>
+            <File Name="diff_dynamic.h"/>
             <File Name="bc_noflux.h"/>
             <File Name="poisson.h"/>
           </VirtualDirectory>
@@ -1969,6 +1970,7 @@
             <File Name="poisson_pcorr.cpp"/>
             <File Name="diff_wallghost.cpp"/>
             <File Name="diff_walllaw.cpp"/>
+            <File Name="diff_dynamic.cpp"/>
             <File Name="bc_noflux.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Density">

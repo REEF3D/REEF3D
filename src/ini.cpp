@@ -714,6 +714,7 @@ void control::ini_default()
 	D20=2;			// int diffusion scheme
 	D21=0;			// int print out implicit diffusion time and iterations
     D22=1;            // int diffusion wall boundary condition
+    D24=-1;           // int dynamic form (1/rho) div(mu (grad u + grad u^T)) of the implicit momentum diffusion (D 20 2): 0 kinematic, 1 arithmetic face viscosity, 2 harmonic shear viscosity; -1: 2 with W 130, else 0
     D23=2;            // int time accuracy of the implicit momentum diffusion (D 20 2): 1 first order, 2 second order
 	D30=1;			// int pressure scheme
     D32=0;          // int CFD: the faces of the projection closed inside the direct-forcing solids and the bed (solid_closed.h): 0 off (the projection solves through the solids), 1 where both cell centres lie in the solid, 2 where one of them does (thin solids of 1 cell)
