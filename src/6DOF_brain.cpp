@@ -174,8 +174,18 @@ sixdof_brain::decision sixdof_brain::decide(double t, double f, double a, double
         {
             // gliding (or just after it): the body coasts, the model of the speed does not hold; no update of
             // the estimate, the speed of the gait from the track (the velocity through the water along the axis)
-            const double uw = (y[0] - kf_x_[1])*ex(p0) + (y[1] - kf_x_[2])*ex(p1);
+            double uw = (y[0] - kf_x_[1])*ex(p0) + (y[1] - kf_x_[2])*ex(p1);
             const double u0 = ug_*kf_x_[0];
+
+            // a coasting body does not move backwards through the water: drifting back faster than the current
+            // read allows (the fish straight, no brake, the tail still), the current along the axis is at least
+            // that drift (a fish that glides in a current it underestimates learns it from its drift)
+            if(uw<0.0 && std::max(a, adec_)<0.05 && std::max(std::fabs(b), std::fabs(bdec_))<0.05)
+            {
+                kf_x_[1] += uw*ex(p0);
+                kf_x_[2] += uw*ex(p1);
+                uw = 0.0;
+            }
             ug_ = std::max(0.0, uw)/kf_x_[0];
 
             // the coasting time from the slowing down over a whole glide (gliding at both decisions), well

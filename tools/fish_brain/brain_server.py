@@ -91,6 +91,12 @@ def rules(sv, st, pr):
             # gliding: no update of the estimate, the speed of the gait from the track
             uw = (y[0] - st["kx"][1]) * ex[p0] + (y[1] - st["kx"][2]) * ex[p1]
             u0 = st["ug"] * st["kx"][0]
+            # a coasting body does not move backwards through the water: drifting back faster than the current
+            # read allows (straight, no brake, the tail still), the current along the axis is at least that drift
+            if uw < 0.0 and max(a, st["adec"]) < 0.05 and max(abs(b), abs(st["bdec"])) < 0.05:
+                st["kx"][1] += uw * ex[p0]
+                st["kx"][2] += uw * ex[p1]
+                uw = 0.0
             st["ug"] = max(0.0, uw) / st["kx"][0]
             # the coasting time from the slowing down of the glide (both decisions gliding)
             cm = math.sqrt(st["kx"][1] ** 2 + st["kx"][2] ** 2)
