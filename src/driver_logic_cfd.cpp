@@ -654,6 +654,14 @@ void driver::logic_cfd()
     preso = new reinitopo_RK3(p,"solid");
     
 // 6DOF
+    // X 49 (the forced share not corrected by the projection): a body does not leak any more and the
+    // fluid answers its acceleration with the full added mass.  The explicit coupling of the loads is
+    // then unstable for a light body (a box of density 500 in heave), which the leak of the open
+    // projection damped.  The stabilised coupling X 197 with its consistent added mass on both sides
+    // is switched on with it (not with the fluid-momentum coupling X 198)
+    if(p->X49>0 && p->X10>0 && p->X197<=0.0 && p->X198==0)
+    p->X197 = 1.0;
+
     if(p->X10==0)
     p6dof = new sixdof_void(p,pgc);
     
