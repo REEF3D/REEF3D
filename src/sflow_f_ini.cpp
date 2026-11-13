@@ -46,19 +46,7 @@ Author: Hans Bihs
 
 void sflow_f::ini(lexer *p, fdm2D* b, ghostcell* pgc)
 {
-    int gcval_eta;
-    
-    if(p->F50==1)
-	gcval_eta = 51;
-    
-    if(p->F50==2)
-	gcval_eta = 52;
-    
-    if(p->F50==3)
-	gcval_eta = 53;
-    
-    if(p->F50==4)
-	gcval_eta = 54;
+    const int gcval_eta = 50 + p->F50;     // free surface boundary condition F 50 1-4: ghost-cell labels 51-54
     
     
     p->count=0;
@@ -486,19 +474,7 @@ void sflow_f::ini_fsf(lexer *p, fdm2D* b, ghostcell* pgc)
       
 	ini_wl(p,b,pgc);
     
-    int gcval_eta;
-    
-    if(p->F50==1)
-	gcval_eta = 51;
-    
-    if(p->F50==2)
-	gcval_eta = 52;
-    
-    if(p->F50==3)
-	gcval_eta = 53;
-    
-    if(p->F50==4)
-	gcval_eta = 54;
+    const int gcval_eta = 50 + p->F50;     // free surface boundary condition F 50 1-4: ghost-cell labels 51-54
     
     pgc->gcsl_start1(p,b->hx,gcval_eta);    
 	pgc->gcsl_start2(p,b->hy,gcval_eta);  
@@ -507,19 +483,7 @@ void sflow_f::ini_fsf(lexer *p, fdm2D* b, ghostcell* pgc)
 
 void sflow_f::ini_fsf_2(lexer *p, fdm2D* b, ghostcell* pgc)
 {   
-    int gcval_eta;
-    
-    if(p->F50==1)
-	gcval_eta = 51;
-    
-    if(p->F50==2)
-	gcval_eta = 52;
-    
-    if(p->F50==3)
-	gcval_eta = 53;
-    
-    if(p->F50==4)
-	gcval_eta = 54;
+    const int gcval_eta = 50 + p->F50;     // free surface boundary condition F 50 1-4: ghost-cell labels 51-54
     
     // eta ini
 	pflow->eta_relax(p,pgc,b->eta);

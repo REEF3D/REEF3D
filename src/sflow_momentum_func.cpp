@@ -118,17 +118,7 @@ sflow_momentum_func::sflow_momentum_func(lexer *p, fdm2D *b, ghostcell *pgc, sfl
 	gcval_vh=10;
 	gcval_wh=10;
     
-    if(p->F50==1)
-	gcval_eta = 51;
-    
-    if(p->F50==2)
-	gcval_eta = 52;
-    
-    if(p->F50==3)
-	gcval_eta = 53;
-    
-    if(p->F50==4)
-	gcval_eta = 54;
+    gcval_eta = 50 + p->F50;     // free surface boundary condition F 50 1-4: ghost-cell labels 51-54
     
     inflow_flag=0;
     outflow_flag=0;

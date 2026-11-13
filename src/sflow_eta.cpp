@@ -34,17 +34,7 @@ sflow_eta::sflow_eta(lexer *p, fdm2D *b , ghostcell *pgc, patchBC_interface *ppB
 {   
     pBC = ppBC;
     
-    if(p->F50==1)
-	gcval_eta = 51;
-    
-    if(p->F50==2)
-	gcval_eta = 52;
-    
-    if(p->F50==3)
-	gcval_eta = 53;
-    
-    if(p->F50==4)
-	gcval_eta = 54;
+    gcval_eta = 50 + p->F50;     // free surface boundary condition F 50 1-4: ghost-cell labels 51-54
     
     p->phimean=p->F60;
     
