@@ -719,8 +719,10 @@ private:
     r3cplan pu_key;                     //     the coarse cell and side of the faces: the folds of the level-0
                                         //     rows (pjm_corr), the couplings of the level-0 multigrid (pr_matrix)
     vector<vector<double>> kval;        // per shadow: the sum of kc of its keys (pu_key order)
-    std::map<std::pair<int,int>,double> kc_row;     // D 32: per coarse row (grid, row) at a patch edge the sum of kc of its fine faces
-    void pr_rows_closed();              // D 32: the coarse rows at a patch edge left without a coupling: 1 x = 0
+    std::map<std::pair<int,int>,std::pair<double,double>> kc_row;     // D 32: per coarse row (grid, row) at a patch edge the sum of kc of its fine faces and the size of the couplings it folded
+    std::map<int,vector<char>> pr_cmask;            // D 32: per patch the cells with a closed face (pr_prec: no coarse correction into them)
+    bool d32_inside(int g, const int *q);  // D 32: the centre of a cell of grid g in a solid or the bed
+    void pr_rows_closed();              // D 32: the coarse rows at a patch edge left without a coupling: p x = 0
     std::map<std::tuple<int,int,int,int,int,int>,int> kidx;    // (shadow, coarse cell, d, dir) -> its key
     void sh_plans();
     void sh_run(r3cplan &X, const vector<std::function<field&(int)>> &f, bool add);

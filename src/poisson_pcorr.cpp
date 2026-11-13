@@ -175,6 +175,7 @@ void poisson_pcorr::start(lexer* p, fdm *a, field &press)
         const int dj[6] = {0,0,-1,1,0,0};
         const int dk[6] = {0,0,0,0,-1,1};
         int open=0;
+        const double pscale = a->M.p[n];
 
         for(int q=0; q<6; ++q)
         {
@@ -203,12 +204,20 @@ void poisson_pcorr::start(lexer* p, fdm *a, field &press)
             }
         }
 
-        // no open face to a cell of the domain: the row 1 x = 0, the boundary faces dropped
+        // no open face to a cell of the domain: the row 1 x = 0, the boundary faces dropped.
+        // D 32 2 on the mesh refinement (G 1 > 0): the diagonal keeps its size.  There the closed
+        // cells lie next to the fluid, and the coarser grids do not see a solid thinner than their
+        // cells: with 1 a closed row in the air (the diagonal of its neighbours 1/(rho dx^2), 1e3
+        // to 1e4) took a correction that many times theirs in the level solves of the composite
+        // preconditioner, and the composite BiCGStab diverged (two refined levels, a slab above
+        // the water: 250 iterations, 1e9 m/s in step 1).  Not without refinement and not with
+        // D 32 1 (the closed cells deep in the solid): there REEFMG needs 2.5 times the cycles
+        // with it (cfd_2d_utube_baffle_d32)
         if(open==0)
         {
         for(int q=0; q<6; ++q)
         *coef[q] = 0.0;
-        a->M.p[n] = 1.0;
+        a->M.p[n] = (p->D32==2 && p->G1>0 && pscale>0.0) ? pscale : 1.0;
         a->rhsvec.V[n] = 0.0;
         }
     ++n;
