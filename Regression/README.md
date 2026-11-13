@@ -1289,6 +1289,10 @@ run `./regression.py run ... --cases <new>`, check it, then `bless`.
   built at the turn frequency and released at the slowest): the brain cases and `cfd_2d_6dof_fish_lateralline` pass
   `check` against their references (they neither glide nor brake) and are close (1e-14) to the 0023 run made before
   a machine change; the restart pair is bitwise. `unit/brain_test.cpp` has the new check 3h.
+- Fish Swimming patches 0026, 0027 (no escape on the own turn below 0.3 L/s; the brain starts at the end of the ramp
+  of the gait, 0.125 s instead of 0.3 s in these cases): the references of `cfd_2d_6dof_fish_brain`, `_ckpt`,
+  `_restart`, `_x200` and `_x201` were re-blessed; the restart pair is bitwise; `cfd_2d_6dof_fish_lateralline` is
+  bitwise unchanged. The brain cases make no escape, so 0026 alone leaves them unchanged.
 
 ## Unit tests
 

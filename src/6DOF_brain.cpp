@@ -42,6 +42,7 @@ namespace
     const int brain_nknown = 3;            // a glide at the target: the filter updated this many times at least
     const double brain_cdrift = 0.1;       // ... and its drift over the coasting time below this [L]
     const double brain_brake = 2.5;        // braking while gliding: the body bent with this bias (0: no braking)
+    const double brain_uesc = 0.3;         // an escape: the pressures in units of q at this speed at least [L/s]
 }
 
 sixdof_brain::sixdof_brain(double U_des, double b_max, double D_vis, double th_esc, double f0, double L, double rho,
@@ -418,8 +419,11 @@ sixdof_brain::decision sixdof_brain::decide(double t, double f, double a, double
     d.on = true;
 
     // 1. escape: a C-start away from the side of the higher pressure; not while the fish coasts or brakes (the
-    // bent body of the braking gives a pressure across the head far above the -reaff b q of a swimming turn)
-    if(the_>0.0 && t>=refr_ && !(glide_ || a<0.95) && (std::fabs(dpl)>the_ || phd>the_))
+    // bent body of the braking gives a pressure across the head far above the -reaff b q of a swimming turn);
+    // the pressures against q at brain_uesc at least: at a low speed (the start, a station) the pressures of
+    // the own turns and of the start-up are large against q of that speed, and they are no stimulus
+    const double qesc = q/std::max(q, 0.5*rho_*std::pow(brain_uesc*L_, 2.0));
+    if(the_>0.0 && t>=refr_ && !(glide_ || a<0.95) && (std::fabs(dpl)*qesc>the_ || phd*qesc>the_))
     {
         const double sg = (dpl>=0.0) ? 1.0 : -1.0;
         d.f = f; d.a = 0.5; d.b = -2.5*sg; d.ts = 0.08;
