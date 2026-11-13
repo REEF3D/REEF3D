@@ -72,7 +72,6 @@ Author: Hans Bihs
 #include"nhflow_ediff.h"
 #include"nhflow_idiff.h"
 #include"nhflow_idiff_2D.h"
-#include"nhflow_scalar_iweno.h"
 #include"nhflow_scalar_ifou.h"
 #include"nhflow_scalar_void.h"
 #include"nhflow_suspended_void.h"

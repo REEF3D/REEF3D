@@ -608,7 +608,6 @@
             <File Name="nhflow_scalar_ifou.h"/>
             <File Name="nhflow_scalar_advec_CDS2.h"/>
             <File Name="nhflow_scalar_advec.h"/>
-            <File Name="nhflow_scalar_iweno.h"/>
             <File Name="nhflow_scalar_convection.h"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Signal Speed">
@@ -620,7 +619,6 @@
             <File Name="nhflow_reconstruct_hires.h"/>
           </VirtualDirectory>
           <File Name="nhflow_HLL.h"/>
-          <File Name="nhflow_convection_void.h"/>
           <File Name="nhflow_convection.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Printer">
@@ -678,9 +676,6 @@
           </VirtualDirectory>
           <VirtualDirectory Name="Reinitialization">
             <File Name="nhflow_reinidisc_fsf.h"/>
-          </VirtualDirectory>
-          <VirtualDirectory Name="Coastlline">
-            <File Name="nhflow_coastline.h"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Sigma">
             <File Name="nhflow_sigma.h"/>
@@ -1258,15 +1253,6 @@
         <File Name="6DOF_void.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Concentration">
-        <VirtualDirectory Name="NHFLOW">
-          <File Name="nhflow_concentration_IM1.h"/>
-          <VirtualDirectory Name="BC"/>
-          <VirtualDirectory Name="IO">
-            <File Name="nhflow_concentration_io.h"/>
-          </VirtualDirectory>
-          <File Name="nhflow_concentration_RK2.h"/>
-          <File Name="nhflow_concentration.h"/>
-        </VirtualDirectory>
         <VirtualDirectory Name="CFD">
           <VirtualDirectory Name="BC">
             <File Name="bc_concentration.h"/>
@@ -2276,7 +2262,6 @@
             <File Name="nhflow_scalar_void.cpp"/>
             <File Name="nhflow_scalar_ifou.cpp"/>
             <File Name="nhflow_scalar_advec_CDS2.cpp"/>
-            <File Name="nhflow_scalar_iweno.cpp"/>
           </VirtualDirectory>
           <File Name="nhflow_thinbody.cpp"/>
           <VirtualDirectory Name="Signal Speed">
@@ -2365,11 +2350,6 @@
           </VirtualDirectory>
           <VirtualDirectory Name="Reinitialization">
             <File Name="nhflow_reinidisc_fsf.cpp"/>
-          </VirtualDirectory>
-          <VirtualDirectory Name="Coastline">
-            <File Name="nhflow_coastline_reini.cpp"/>
-            <File Name="nhflow_coastline_disc.cpp"/>
-            <File Name="nhflow_coastline.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Sigma">
             <File Name="nhflow_curv.cpp"/>
@@ -3304,15 +3284,6 @@
         </VirtualDirectory>
       </VirtualDirectory>
       <VirtualDirectory Name="Concentration">
-        <VirtualDirectory Name="NHFLOW">
-          <File Name="nhflow_concentration_IM1.cpp"/>
-          <VirtualDirectory Name="IO">
-            <File Name="nhflow_concentration_ini.cpp"/>
-            <File Name="nhflow_concentration_io.cpp"/>
-          </VirtualDirectory>
-          <VirtualDirectory Name="BC"/>
-          <File Name="nhflow_concentration_RK2.cpp"/>
-        </VirtualDirectory>
         <VirtualDirectory Name="CFD">
           <VirtualDirectory Name="IO">
             <File Name="concentration_io.cpp"/>
