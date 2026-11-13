@@ -545,7 +545,6 @@ void fnpf_timestep::ini(fdm_fnpf* c, lexer* p,ghostcell* pgc)
     
    	p->dt=p->N47*cu;
     
-	//p->dt=pgc->timesync(p->dt);
     p->dt=pgc->globalmin(p->dt);
     p->dt_crit=pgc->globalmin(cu);
     

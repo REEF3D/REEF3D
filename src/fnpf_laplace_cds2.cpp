@@ -520,8 +520,6 @@ void fnpf_laplace_cds2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *pso
     }
     
     endtime=pgc->timer();
-    //if(p->mpirank==0 && (p->count%p->P12==0))
-	//cout<<"LAPLCE_time: "<<endtime-starttime<<endl;
     
     // A 430: N 44 of this solve such that |r| <= A 430 |bm| (still water: bm = 0, the solve to round-off)
     const double tol0 = p->N44;
@@ -596,7 +594,6 @@ void fnpf_laplace_cds2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *pso
 	if(p->mpirank==0 && (p->count%p->P12==0) && !solver_print_quiet())
     {
 	cout<<"Fi_iter: "<<p->poissoniter;
-    //cout<<" Final_residual: "<<p->final_res;
     cout<<"  Fi_time: "<<setprecision(3)<<p->poissontime<<endl;
     }
 }

@@ -77,8 +77,6 @@ void fnpf_print_Hs::start(lexer *p, ghostcell *pgc, slice &eta, slice &Hs)
     ETAmean(i,j)     =  ETAsum(i,j)/T_sum;
     ETA2sum(i,j)     += eta(i,j)*eta(i,j);
     
-    //cout << "T_sum " << T_sum << " wtim " << wtime <<endl;
-    //cin.get();  
     
     if(NumDT1>1)
     { 
