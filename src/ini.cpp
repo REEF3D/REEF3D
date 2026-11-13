@@ -42,7 +42,6 @@ void control::ini_default()
     A220=2;		  // int non-hydrostatic pressure scheme for SFLOW
     A221=1;		  // int non-hydrostatic pressure in very shallow regions
     A222=1.0e-5; // double SFLOW TENO5 cutoff C_T (A 213 2)
-    A223=0.5;    // double blending factor hydrostatic pressure gradient
     A224=1.159;  // double dispersion parameter alpha for A 220 3 (1: quadratic, 1.159: optimised)
     A240=1;      // int FSF algorithm SFLOW
     A242=0;          // int non-hydostatic pressure for shallow areas

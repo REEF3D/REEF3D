@@ -52,7 +52,7 @@ public:
     int A209,A210,A211,A212,A213,A214,A225,A217,A218,A219,A220,A221,A240,A242,A243,A246,A248;
     int A251,A260;
     double A261,A262,A263,A264;
-    double A222,A223,A224,A247,A249,A244,A251_val;
+    double A222,A224,A247,A249,A244,A251_val;
     double A250;
     int A226,A229;          // SFLOW semi-implicit free surface (A226: from A 210 12 / 13, A229: from A 243; not read from ctrl.txt)
     double A227,A228,A231,A232;
