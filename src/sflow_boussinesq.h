@@ -72,7 +72,6 @@ public:
     
     void mask_update(lexer*, fdm2D*, ghostcell*, slice&);
     void source(lexer*, fdm2D*, ghostcell*, slice&);
-    void invert(lexer*, fdm2D*, ghostcell*, solver2D*, slice&, slice&, slice&);
     void invert_prepare(lexer*, fdm2D*, ghostcell*, slice&, slice&, slice&);
     void invert_solve(lexer*, fdm2D*, solver2D*, ghostcell*);
     

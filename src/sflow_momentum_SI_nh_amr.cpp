@@ -30,8 +30,8 @@ Author: Hans Bihs
 //  nh_amr_faces    the face discharges of (nE, nP, nL): nF1 with the constants of the mass row, nF2 with all
 //                  constants (the constraint); the composite solve replaces those of the coarse faces next to a finer
 //                  patch by the mean of the fine faces (the divergence of the discharges the face update takes)
-//  nh_amr_row      the mass row and the constraint of a cell from the face discharges
-//  nh_amr_leaf     the leaf cells of the solve as slice indices, nh_amr_rows: nh_amr_row of all of them
+//  nh_amr_leaf     the leaf cells of the solve as slice indices
+//  nh_amr_rows     the mass rows and the constraints of the leaf cells from the face discharges
 //  nh_amr_prec_*   the preconditioner of nh_solve on the own cells of the grid (eta eliminated locally, one V-cycle
 //                  for psi, A 220 3 a second one), the cells around the grid 0 (Dirichlet)
 //  nh_amr_finish   eta^{n+1}, P^{n+1} and the non-hydrostatic face discharges qxN, qyN of the solution
@@ -183,7 +183,7 @@ void sflow_momentum_SI::nh_amr_leaf(lexer *p, const std::vector<int> &leaf)
 
 void sflow_momentum_SI::nh_amr_rows(lexer *p, bool affine, double *y)
 {
-    // the mass row y[2k] and the constraint y[2k+1] of the leaf cells of nh_amr_leaf (the rows of nh_amr_row)
+    // the mass row y[2k] and the constraint y[2k+1] of the leaf cells of nh_amr_leaf
     const double tdt = theta*p->dt;
     const bool yd = (p->j_dir==1);
     const int J = p->jmax, nl = (int)nh_lq.size();
@@ -211,29 +211,6 @@ void sflow_momentum_SI::nh_amr_rows(lexer *p, bool affine, double *y)
     else
     y[2*k+1] = d2 + W2[q]*Pp[q] + (affine ? Cs[q] : 0.0);
     }
-}
-
-void sflow_momentum_SI::nh_amr_row(lexer *p, fdm2D *b, int ii, int jj, bool affine, double &ym, double &yc)
-{
-    const double tdt = theta*p->dt;
-    const int ip = ii+marge, jp = jj+marge;
-
-    double d1 = (nF1x(ii,jj) - nF1x(ii-1,jj))/p->DXN[ip];
-    double d2 = (nF2x(ii,jj) - nF2x(ii-1,jj))/p->DXN[ip];
-
-    if(p->j_dir==1)
-    {
-    d1 += (nF1y(ii,jj) - nF1y(ii,jj-1))/p->DYN[jp];
-    d2 += (nF2y(ii,jj) - nF2y(ii,jj-1))/p->DYN[jp];
-    }
-
-    ym = nPW(ii,jj)*nE(ii,jj) + tdt*d1;
-
-    if(nA(ii,jj)<0.5)
-    yc = nP(ii,jj);
-
-    else
-    yc = d2 + nW2(ii,jj)*nP(ii,jj) + (affine ? nCs(ii,jj) : 0.0);
 }
 
 void sflow_momentum_SI::nh_amr_prec_setup(lexer *p, ghostcell *pgc, const std::function<bool(int,int)> &own)

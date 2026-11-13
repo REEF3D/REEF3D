@@ -510,15 +510,9 @@ void sflow_boussinesq::source(lexer *p, fdm2D *b, ghostcell *pgc, slice &WL)
 }
 
 // ---------------------------------------------------------------------------
-// u_a from V = H (u_a + V1'(u_a)), line-implicit per component, 
+// u_a from V = H (u_a + V1'(u_a)), line-implicit per component (invert_prepare, invert_solve),
 // tangential derivatives lagged: V1' = L(u_a) + C, C from the current u_a
 // ---------------------------------------------------------------------------
-void sflow_boussinesq::invert(lexer *p, fdm2D *b, ghostcell *pgc, solver2D *psolv, slice &Vx, slice &Vy, slice &WL)
-{
-    invert_prepare(p,b,pgc,Vx,Vy,WL);
-    invert_solve(p,b,psolv,pgc);
-}
-
 // rows of the two line systems for u_a and v_a: x-x and y-y derivatives implicit, the cross
 // derivatives (Cx, Cy) from the u_a at hand
 void sflow_boussinesq::invert_prepare(lexer *p, fdm2D *b, ghostcell *pgc, slice &Vx, slice &Vy, slice &WL)

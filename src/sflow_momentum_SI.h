@@ -364,9 +364,8 @@ private:
     void nh_amr_guess(lexer*, fdm2D*);
     void nh_amr_lap(lexer*, ghostcell*);
     void nh_amr_faces(lexer*, bool affine);
-    void nh_amr_row(lexer*, fdm2D*, int, int, bool affine, double &ym, double &yc);
     void nh_amr_leaf(lexer*, const std::vector<int> &leaf);   // the leaf cells (i, j pairs) for nh_amr_rows
-    void nh_amr_rows(lexer*, bool affine, double *y);           // nh_amr_row of all leaf cells
+    void nh_amr_rows(lexer*, bool affine, double *y);           // mass rows and constraints of all leaf cells
     void nh_amr_prec_setup(lexer*, ghostcell*, const std::function<bool(int,int)> &own);
     void nh_amr_prec(lexer*, ghostcell*, const std::function<bool(int,int)> &own);
     void nh_amr_finish(lexer*, fdm2D*, ghostcell*);
