@@ -94,7 +94,6 @@ void VOF_PLIC::reconstructPlane_alt(fdm* a, lexer* p, field& voffield)
     nx(i,j,k)=nx(i,j,k)/vecsum;
     ny(i,j,k)=ny(i,j,k)/vecsum;
     nz(i,j,k)=nz(i,j,k)/vecsum;
-  //  cout<<"nx:"<<nx(i,j,k)<<" ny:"<<ny(i,j,k)<<" nz:"<<nz(i,j,k)<<" i:"<<i<<" j:"<<j<<" k:"<<k<<endl;
     
     //scale with cellsize
     n_a=fabs(nx(i,j,k))*p->DXN[IP];
@@ -185,7 +184,6 @@ void VOF_PLIC::reconstructPlane_alt(fdm* a, lexer* p, field& voffield)
     }
     
     alpha(i,j,k)=r0*sqrt(nx(i,j,k)*nx(i,j,k)*p->DXN[IP]*p->DXN[IP]+ny(i,j,k)*ny(i,j,k)*p->DYN[JP]*p->DYN[JP]+nz(i,j,k)*nz(i,j,k)*p->DZN[KP]*p->DZN[KP]);
-   // cout<<"alpha: "<<alpha(i,j,k)<<" nx:"<<nx(i,j,k)<<" ny:"<<ny(i,j,k)<<" nz:"<<nz(i,j,k)<<endl;
    }
 }
     
@@ -196,7 +194,6 @@ double VOF_PLIC::calcAlphaFromInput(fdm* a, lexer* p, double n_x, double n_y, do
     n_x=n_x/vecsum;
     n_y=n_y/vecsum;
     n_z=n_z/vecsum;
-  //  cout<<"nx:"<<nx(i,j,k)<<" ny:"<<ny(i,j,k)<<" nz:"<<nz(i,j,k)<<" i:"<<i<<" j:"<<j<<" k:"<<k<<endl;
     
     //scale with cellsize
     n_a=fabs(n_x)*d_x;
@@ -351,7 +348,6 @@ double VOF_PLIC::return_alpha_reconstructPlane_alt(fdm* a, lexer* p, field& voff
     nx(i,j,k)=nx(i,j,k)/vecsum;
     ny(i,j,k)=ny(i,j,k)/vecsum;
     nz(i,j,k)=nz(i,j,k)/vecsum;
-  //  cout<<"nx:"<<nx(i,j,k)<<" ny:"<<ny(i,j,k)<<" nz:"<<nz(i,j,k)<<" i:"<<i<<" j:"<<j<<" k:"<<k<<endl;
     
     //scale with cellsize
     n_a=fabs(nx(i,j,k))*p->DXN[IP];
@@ -442,7 +438,6 @@ double VOF_PLIC::return_alpha_reconstructPlane_alt(fdm* a, lexer* p, field& voff
     }
     
     alpha(i,j,k)=r0*sqrt(nx(i,j,k)*nx(i,j,k)*p->DXN[IP]*p->DXN[IP]+ny(i,j,k)*ny(i,j,k)*p->DYN[JP]*p->DYN[JP]+nz(i,j,k)*nz(i,j,k)*p->DZN[KP]*p->DZN[KP]);
-   // cout<<"alpha: "<<alpha(i,j,k)<<" nx:"<<nx(i,j,k)<<" ny:"<<ny(i,j,k)<<" nz:"<<nz(i,j,k)<<endl;
    }
    
    return alpha(i,j,k);

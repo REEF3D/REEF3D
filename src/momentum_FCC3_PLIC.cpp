@@ -140,7 +140,6 @@ void momentum_FCC3_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, 
             vof_rk1(i,j,k)=1.0;
     }
     
-   // pplic->updatePlaneData(p,a,pgc,vof_rk1);
 	pflow->vof_relax(p,a,pgc,vof_rk1);
 	pgc->start4(p,vof_rk1,gcval_vof);
     
@@ -368,7 +367,6 @@ void momentum_FCC3_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, 
     
     if(p->F98==1)
     {
-        //pplic->updatePhasemarkersCompression(p,a,pgc,vof_rk1);
         pplic->updatePhasemarkersCorrection(p,a,pgc,vof_rk1);
         pgc->start4(p,vof_rk1,gcval_vof);
         LOOP
@@ -400,7 +398,6 @@ void momentum_FCC3_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, 
             vof_rk2(i,j,k)=1.0;
     }
     
-   // pplic->updatePlaneData(p,a,pgc,vof_rk2);
 	pflow->vof_relax(p,a,pgc,vof_rk2);
     pgc->start4(p,vof_rk2,gcval_vof);
     
@@ -614,7 +611,6 @@ void momentum_FCC3_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, 
     
     if(p->F98==1)
     {
-        // pplic->updatePhasemarkersCompression(p,a,pgc,vof_rk2);
         pplic->updatePhasemarkersCorrection(p,a,pgc,vof_rk2);
         pgc->start4(p,vof_rk2,gcval_vof);
         LOOP
@@ -650,7 +646,6 @@ void momentum_FCC3_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, 
             a->vof(i,j,k)=1.0;
     }
     
-   // pplic->updatePlaneData(p,a,pgc,a->vof);
 	pflow->vof_relax(p,a,pgc,a->vof);
     pgc->start4(p,a->vof,gcval_vof);
     
@@ -859,7 +854,6 @@ void momentum_FCC3_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, 
     
     if(p->F98==1)
     {
-        // pplic->updatePhasemarkersCompression(p,a,pgc,a->vof);
         pplic->updatePhasemarkersCorrection(p,a,pgc,a->vof);
         pgc->start4(p,a->vof,gcval_vof);
         if(p->F92==3||p->F92==32)
@@ -878,15 +872,6 @@ void momentum_FCC3_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, 
             a->phi(i,j,k)=(a->vof(i,j,k)-0.5)*p->DZN[KP];
     }
     pgc->start4(p,a->phi,1);
-    
-    /*double vofchecksum;
-    vofchecksum=0.0;
-    LOOP
-        vofchecksum+=a->vof(i,j,k)*p->DXN[IP]*p->DYN[JP]*p->DZN[KP];
-    vofchecksum=pgc->globalsum(vofchecksum);
-    cout<<"Total water volume:"<<vofchecksum<<endl;*/
-        
-    
 }
 
 void momentum_FCC3_PLIC::irhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &uvel, field &vvel, field &wvel, double alpha)

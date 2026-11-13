@@ -87,8 +87,6 @@ if(p->F59_r>0.0)
         if(p->pos_z()==p->F60)
             a->phi(i,j,k)=0.0;
     }
-    
-    //a->phi(i,j,k)=p->F60-p->pos_z();
 
 	p->phimean=p->F60;
 	
@@ -264,10 +262,6 @@ void VOF_PLIC::iniphi_surfarea(lexer* p, fdm *a, ghostcell* pgc)
 	}
 	
 	area = pgc->globalsum(area);
-	
-	//if(p->mpirank==0)
-	//cout<<"Surface Area: "<<area<<endl;
-
 }
 
 

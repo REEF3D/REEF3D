@@ -54,19 +54,6 @@ void VOF_PLIC::updatePhasemarkers( lexer* p, fdm* a, ghostcell* pgc,field& voffi
     }
     
     pgc->start4(p,a->phasemarker,1);
-    /*
-    LOOP
-    {
-        if(a->phasemarker(i,j,k)>-0.1 && a->phasemarker(i,j,k)<0.1)
-        {
-            if((searchMarkerAlongDims(p,a,1,6.0,i,j,k)>=2) && (searchMarkerInVicinity(p,a,1,10.0,i,j,k)>=1))
-            {
-                a->phasemarker(i,j,k)=4.0;
-            }
-        }
-    }
-    
-    pgc->start4(p,a->phasemarker,1);*/
 
 } 
 
@@ -152,20 +139,6 @@ void VOF_PLIC::updatePhasemarkersCompression( lexer* p, fdm* a, ghostcell* pgc,f
                     calcNormalMYC3D_V2(a,p,voffield);
                     break;
             }   
-            /*if(fabs(nz(i,j,k))>=fabs(nx(i,j,k)))
-            {
-                if(nz(i,j,k)>=0.0)
-                    compressvol(i,j,k-1)+=voffield(i,j,k);
-                else
-                    compressvol(i,j,k+1)+=voffield(i,j,k);
-            }
-            else
-            {
-                if(nx(i,j,k)>=0.0)
-                    compressvol(i-1,j,k)+=voffield(i,j,k);
-                else
-                    compressvol(i+1,j,k)+=voffield(i,j,k);
-            }*/
             
             if(nz(i,j,k)>=0.0)
             {
@@ -254,10 +227,7 @@ void VOF_PLIC::updatePhasemarkersCorrection( lexer* p, fdm* a, ghostcell* pgc,fi
 {
     LOOP
         a->phasemarker(i,j,k)=-1.0;
-      
-    //LOOP
-        //a->phasemarker(i,j,k)=0.0;
-        
+
     LOOP
     {
         if(voffield(i,j,k)>p->F95)
@@ -297,20 +267,7 @@ void VOF_PLIC::updatePhasemarkersCorrection( lexer* p, fdm* a, ghostcell* pgc,fi
         }
     }
     pgc->start4(p,a->phasemarker,1);
-    
-    /*LOOP
-    {
-        if(a->phasemarker(i,j,k)>-0.1 && a->phasemarker(i,j,k)<0.1)
-        {
-            if((searchMarkerAlongDims(p,a,1,6.0,i,j,k)>=2) && (searchMarkerInVicinity(p,a,1,10.0,i,j,k)>=1))
-            {
-                a->phasemarker(i,j,k)=4.0;
-            }
-        }
-    }
-    
-    pgc->start4(p,a->phasemarker,1);*/
-    
+
     LOOP
     {
         if(a->phasemarker(i,j,k)>9.9 && a->phasemarker(i,j,k)<10.1)
