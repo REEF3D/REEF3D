@@ -226,7 +226,5 @@ void sflow_momentum_SI::ho_phi_corr(lexer *p, fdm2D *b, ghostcell *pgc)
     }
 
     // The A 220 3 dispersion term g B grad(h^3 lap(eta)) keeps its compact operators: its fourth-order part as an
-    // explicit term (the fourth-order Laplacian and face difference with eta theta-extrapolated) removed the remaining
-    // phase error of A 220 3 (standing wave kh 2, 16 cells per wave length: +0.25 % -> +0.04 %, as A 220 2), but it is
-    // a stiff term: the Beji & Battjes bar blew up within 10 s at dt 0.02 s
+    // explicit term would remove the remaining phase error of A 220 3, but it is stiff (unstable at practical steps)
 }

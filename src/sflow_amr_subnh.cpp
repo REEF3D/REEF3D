@@ -42,8 +42,7 @@ Architect: Hans Bihs
 //  l+1 are fixed at the restricted pressure of level l+1 (from the last synchronisation): as in the
 //  composite solve, the cells next to the patches see the fine pressure, and the covered cells
 //  are not solved with the restricted fine velocities, which do not satisfy the coarse constraint
-//  (with them as rows the coarse pressure took up their residual in every level-0 step: the bar
-//  wave at x = 11 m 0.094 mm rms from G 7 0 instead of 0.036 mm, and more with smaller steps).
+//  (with them as rows the coarse pressure would take up their residual in every level-0 step).
 //  The cells around the level-l patches that the parent fills are fixed at the parent pressure
 //  linear in time between the start and the end of the parent step (at the time of the stage
 //  output), siblings coupled.

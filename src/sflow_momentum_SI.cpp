@@ -86,14 +86,10 @@ sflow_momentum_SI::sflow_momentum_SI(lexer *p, fdm2D *b, ghostcell *pgc, sflow_H
 
     nh_ini(p);
 
-    // the time levels of the nonlinear terms (nh_levels), every predictor: the depths of the gravity and A 220 3 terms
-    // at t^{n+1/2}, the advecting discharge at t^{n+1/2}; with the SSP-RK predictors of A 210 12/13 (before only with
-    // the non-hydrostatic pressure) also the acceleration of the step before in the later stages (stage_vel). With t^n
-    // and without that acceleration the nonlinear terms of A 210 12/13 were first order in time (hydrostatic and
-    // non-hydrostatic, SFLOW_NH_SI validation 01)
-    // (REEF3D::HYDRO, rain and point sources: A 210 12/13 as before, the time levels only with the non-hydrostatic
-    // pressure: on the rain-fed sheet flow of a tilted plane the extrapolated levels gave smaller steps and a 10 times
-    // larger volume residual, 1e-6 m3)
+    // second order in time for the nonlinear terms (nh_levels), every predictor: the depths of the gravity and A 220 3
+    // terms and the advecting discharge at t^{n+1/2}; with the SSP-RK predictors of A 210 12/13 also the acceleration of
+    // the step before in the later stages (stage_vel). Not with REEF3D::HYDRO rain and point sources (wetting): there
+    // only with the non-hydrostatic pressure (the extrapolated levels give a larger volume residual on rain-fed sheet flow)
     tl12 = !onestep && !hydro_sflow::wetting(p);
     tlev = (nh || onestep || tl12);
 
@@ -454,8 +450,8 @@ void sflow_momentum_SI::si_begin(lexer *p, fdm2D* b, ghostcell* pgc)
         qyn(f.fi,f.fj) = qy(f.fi,f.fj);
     }
 
-    // an open boundary face closed for the step (dry cell, no depth at the face) carries no old discharge: it kept
-    // the discharge of the last step it was open, which drained the cell and left uncounted
+    // an open boundary face closed for the step (dry cell, no depth at the face) carries no old discharge (it would
+    // drain the cell without being counted)
     for(const bc_face &f : bco)
     {
         if(f.cs==1 || f.cs==4)
@@ -870,9 +866,8 @@ void sflow_momentum_SI::rheo_friction(lexer *p, fdm2D *b, ghostcell *pgc)
         rlc(i,j) = alc(i,j);
     }
 
-    // the factor of a pass is at most that of the pass before (the passes of a step converge from above: with the free
-    // factor the faces near the yield threshold flipped between rest and motion from pass to pass, and the second
-    // extra pass gave a front of 1.60 m instead of 1.44 m in case 02)
+    // the factor of a pass is at most that of the pass before: the passes of a step converge from above (with a free
+    // factor the faces near the yield threshold flip between rest and motion from pass to pass)
     auto rmin = [&](double al, double al0, double f) { return rpass==0 ? f : MIN(al0>0.0 ? al/al0 : 1.0, f); };
 
     const double te = rpass==0 ? 0.0 : theta;
@@ -1164,8 +1159,8 @@ void sflow_momentum_SI::stage_vel(lexer *p, fdm2D *b, ghostcell *pgc, slice &UHs
     // stage velocities on the depth of t^n; below the depth A 232 desingularised (Kurganov and
     // Petrova 2007): u = sqrt(2) h (uh)/sqrt(h^4 + max(h^4, h_v^4)), continuous at h_v, u -> 0 with h.
     // A cell that is just wetting (h of a few mm) receives the momentum of its deep neighbours with
-    // the inflow, but its depth is that of t^n: (uh)/h gave hundreds of m/s within the stages, carried
-    // into the face predictor of the next faces (a blow-up of 57 m in the 1 km Michael hindcast)
+    // the inflow, but its depth is that of t^n: (uh)/h gives hundreds of m/s within the stages, carried
+    // into the face predictor of the next faces
     const double hv4 = p->A232*p->A232*p->A232*p->A232;
 
     SLICELOOP4
@@ -1418,7 +1413,7 @@ double sflow_momentum_SI::wall(lexer *p, int ii, int jj, int side)
 {
     // 1.0 if the side of cell (ii,jj) (1 x-, 2 x+, 3 y-, 4 y+) faces a solid or the outside of the domain and no open
     // boundary (wall_sides of the step)
-    // A 210 11, and A 210 12/13 with the second-order time levels (tl12): the wall sides; 0 otherwise (as before)
+    // A 210 11, and A 210 12/13 with the second-order time levels (tl12): the wall sides; 0 otherwise
     if(!(onestep || tl12))
     return 0.0;
 
@@ -1697,8 +1692,8 @@ void sflow_momentum_SI::si_assemble(lexer *p, fdm2D *b, ghostcell *pgc)
     // coefficients a_f = theta dt (g theta dt alpha_f H_f + K_f)/dxp
     // REEF3D::HYDRO rain and point sources (R 10, R 40, R 100 2): the face depth is that of the higher bed
     // (face_depth), and the mean is weighted by the water of each cell above that bed (face_weights): a deep
-    // channel cell next to a bank whose bed lies above the channel level gave half its momentum to the thin
-    // face of the bank, pushed water up the bank against the gravity of the thin face and set off surges
+    // channel cell next to a bank whose bed lies above the channel level would give half its momentum to the thin
+    // face of the bank and push water up the bank against the gravity of the thin face
     const bool cv = (p->geo_curv==1);
     const bool hbed = hydro_sflow::wetting(p);
     double nx,ny,wl,wr;
@@ -2114,8 +2109,7 @@ void sflow_momentum_SI::cell_update(lexer *p, fdm2D *b, ghostcell *pgc)
     // that is dry at the end of the step (eta^{n+1} + d <= A 244) does not count, as in
     // nhflow_momentum_SI: the eta of the Newton iteration is not a water level there, its row of the
     // eta system holds only the coefficient of the thin face (H_f just above A 244), and it can lie
-    // metres below the bed; its gradient gave the wet neighbour a spurious jet of tens of m/s, the
-    // flicker of the gauges near shallow banks (1 km Michael hindcast, validation/09_michael)
+    // metres below the bed; its gradient would give the wet neighbour a spurious jet of tens of m/s
     const double dt = p->dt;
     double we,ww,gn,gn1,wsum;
 
@@ -2134,7 +2128,7 @@ void sflow_momentum_SI::cell_update(lexer *p, fdm2D *b, ghostcell *pgc)
         ww = (Hx(i-1,j)>0.0 && wn(i-1,j)) ? 1.0 : 0.0;
         wsum = MAX(we+ww,1.0);
 
-        // a wall face (every predictor; A 210 12/13 since the second-order time levels, before A 210 11 only) counts in
+        // a wall face (A 210 11, and A 210 12/13 with the second-order time levels) counts in
         // the mean with the term that keeps the face discharge zero there: g H d_n eta
         // = the sources of the predictor normal to the wall (wind, Coriolis, atmospheric pressure; FSx, FSy of
         // stage_rhs), zero in free waves (the mirrored level). With zero also under wind a wall cell of a closed basin
@@ -2304,8 +2298,8 @@ void sflow_momentum_SI::cell_update(lexer *p, fdm2D *b, ghostcell *pgc)
 
     // rheology core (W 120): a cell next to a face at rest (below the yield threshold, alpha_f = 0) takes the mean of
     // its new face discharges. Its own momentum otherwise lives on between the faces that carry the mass: the face
-    // predictor (the mean of the cells) kept the next face just above the threshold, and the cell held a velocity of
-    // 2 cm/s in the arrested Carbopol deposit of case 02 while no mass moved
+    // predictor (the mean of the cells) would keep the next face just above the threshold, and an arrested deposit
+    // would keep a cell velocity while no mass moves
     if(prheo->si_friction())
     SLICELOOP4
     if(p->wet[IJ]==1)

@@ -127,7 +127,7 @@ public:
         fd("momentum_SI_WLk",'S',WLk.V); fd("momentum_SI_etaB",'S',etaB.V);
 
         // the state of the step before of the time levels (A 220 2/3, A 210 11: nh_levels) and of the coupled eta-P
-        // system (A 220 2/3): without them a restart was not the continuation of the run
+        // system (A 220 2/3), so that a restart continues the run
         fd("momentum_SI_qxN",'S',qxN.V); fd("momentum_SI_qyN",'S',qyN.V); fd("momentum_SI_Hxo",'S',Hxo.V);
         fd("momentum_SI_Hyo",'S',Hyo.V); fd("momentum_SI_qxo",'S',qxo.V); fd("momentum_SI_qyo",'S',qyo.V);
         fd("momentum_SI_WLo",'S',WLo.V); fd("momentum_SI_Unm1",'S',Unm1.V); fd("momentum_SI_Vnm1",'S',Vnm1.V);
@@ -280,7 +280,7 @@ private:
     // wet deep cells (WL > 10 A 244, fluid cells of the grid or of the neighbouring ranks) the face depth Hx, Hy is the
     // mean of the two cell depths (mfx, mfy = 1), so that g H_f (eta_R - eta_L) is a difference of g h^2/2 over a flat
     // bed and the momentum is conserved across a bore; the cell takes the mean of H_f times the face gradient of these
-    // faces. (The BCG face depth of NHFLOW's mass flux was tried: Stoker 0.21 -> 0.51 % at u dt/dx 0.4, not taken)
+    // faces
     slice1 mfx;
     slice2 mfy;
     void mlflux_faces(lexer*, fdm2D*, ghostcell*);

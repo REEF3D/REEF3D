@@ -605,9 +605,9 @@ void sflow_amr::si_nh_solve(lexer *p, ghostcell *pgc, rsi_result &res)
 
 // the cells around the patches that the coarser grid fills (kind 1, on this rank): quadratic interpolation of the
 // coarse values instead of the linear one of rsi_fill / the flow fills. The second differences of the linear
-// prolongation jump between the parent cells, so that h^3 lap(eta) of the A 220 3 term next to the patch edges was
-// wrong by O(1) (0.5 eta'' with the refinement 2): pressure spikes at the patch edges, with patches moving with the
-// waves (G 2 4) the Beji & Battjes bar blew up. Cells from another rank keep the linear value. wetonly: only where
+// prolongation jump between the parent cells, so that h^3 lap(eta) of the A 220 3 term next to the patch edges would
+// be wrong by O(1) (0.5 eta'' with the refinement 2): pressure spikes at the patch edges. Cells from another rank
+// keep the linear value. wetonly: only where
 // the parent and its neighbours are wet (the surface of the flow fills at a shoreline stays as it is)
 void sflow_amr::si_nh_quad(const std::function<slice&(int)> &F, bool wetonly)
 {

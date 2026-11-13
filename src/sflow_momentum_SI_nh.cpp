@@ -35,8 +35,8 @@ Author: Hans Bihs
 //  mass  eta_i + theta dt div(q) = WL^n - d - (1-theta) dt div(q^n)                    (the row of si_eta2D)
 //  incompressibility (new velocities)
 //        div(q) + U* (2 d_x - H_x) + V* (2 d_y - H_y) + 2 W = 0,  W = (WH* + dt (cw P + H phi/4))/H,
-//        U*, V*: the cell velocities extrapolated to t^{n+1} (the slope term implicit, with the face velocities,
-//        needed about 100 Krylov iterations on the Beji & Battjes bar instead of 4, the errors there the same)
+//        U*, V*: the cell velocities extrapolated to t^{n+1} (an implicit slope term, with the face velocities,
+//        needs about 25 times the Krylov iterations for the same errors)
 //
 // compact face differences throughout (no checkerboard mode, the dispersion of the staggered grid). The cell
 // discharges take the mean of the non-hydrostatic face terms (as the gravity term, cell_update). phi, the bed
@@ -133,8 +133,7 @@ void sflow_momentum_SI::nh_ini(lexer *p)
 void sflow_momentum_SI::nh_levels(lexer *p, fdm2D *b, ghostcell *pgc)
 {
     // time levels of the nonlinear terms (the non-hydrostatic pressure and A 210 11), extrapolated from t^n and
-    // t^{n-1}: with the depth of t^n the waves on the Beji & Battjes bar lagged in proportion to dt (0.05 s at dt
-    // 0.02 s after the bar crest) and the released harmonics grew by 5 %:
+    // t^{n-1} (with the depth of t^n the waves over a bar lag in proportion to dt):
     //  - face and cell depth of the gravity and A 220 3 terms at t^{n+1/2} (theta 1/2)
     //  - depth of the pressure terms and of the constraint at t^{n+1} (P^{n+1} and the velocities of t^{n+1}); A 210 11:
     //    the pressure terms at t^{n+1/2}, as the gravity term (nh_assemble)
@@ -277,8 +276,8 @@ void sflow_momentum_SI::nh_predictor(lexer *p, fdm2D *b, ghostcell *pgc)
 
     exchange4(p,pgc,Lc0);
 
-    // W^n advected upwind with q^n (conservative), Adams-Bashforth 2 in time (the forward step gave 1.5 % too large
-    // harmonics on the lee side of a bar, dt 0.02 s)
+    // W^n advected upwind with q^n (conservative), Adams-Bashforth 2 in time (the forward step overestimates the
+    // harmonics on the lee side of a bar)
     auto Wn = [&](int a, int c) { return (in(a,c) && WL0(a,c)>p->A244) ? b->WH(a,c)/WL0(a,c) : 0.0; };
     auto fWx = [&](int a, int c) { const double q = qxn(a,c); return q>=0.0 ? q*Wn(a,c) : q*Wn(a+1,c); };
     auto fWy = [&](int a, int c) { const double q = qyn(a,c); return q>=0.0 ? q*Wn(a,c) : q*Wn(a,c+1); };
@@ -313,8 +312,7 @@ void sflow_momentum_SI::nh_predictor(lexer *p, fdm2D *b, ghostcell *pgc)
 
     // U^n, V^n of the cells; the acceleration of the previous step, (U^n - U^{n-1})/dt, gives phi: the estimate of
     // U^{n+1} with the explicit terms of the step (sflow_pjm_quad, P^n) is not balanced by the pressure for large
-    // time steps, the h^3 lap(eta) term of A 220 3 then drives a grid mode on a sloping bed (Beji & Battjes bar,
-    // dt 0.005-0.02 s); solving again with phi from U^{n+1} changed nothing there
+    // time steps, the h^3 lap(eta) term of A 220 3 then drives a grid mode on a sloping bed
     SLICELOOP4
     {
     const bool w = (p->wet[IJ]==1 && WL0(i,j)>p->A244);
@@ -484,8 +482,8 @@ void sflow_momentum_SI::nh_assemble(lexer *p, fdm2D *b, ghostcell *pgc)
 
         const double dd = b->depth(a1,c1) - b->depth(a,c);
         // the depth of the pressure terms: t^{n+1/2}, as the gravity term (the pressure acts over the step; with t^{n+1}
-        // the nonlinear standing wave lost second order below T/320, the constraint stays at t^{n+1}); every predictor
-        // (REEF3D::HYDRO with A 210 12/13: t^{n+1}, as before)
+        // the nonlinear standing wave loses second order, the constraint stays at t^{n+1}); every predictor
+        // (REEF3D::HYDRO with A 210 12/13: t^{n+1})
         const double HL = (onestep || tl12) ? WLh(a,c) : WLq(a,c), HR = (onestep || tl12) ? WLh(a1,c1) : WLq(a1,c1);
         const double s = dt*alf/dxp;
 
@@ -694,9 +692,8 @@ void sflow_momentum_SI::nh_solve(lexer *p, fdm2D *b, ghostcell *pgc)
         }
     h3[n] = a ? WLh(i,j)*WLh(i,j)*WLh(i,j) : 0.0;
 
-    // constraint: 2 dt cw/H P, and the affine terms (W predictor, phi, slope term with U^{n+1} extrapolated:
-    // implicit, the preconditioner below misses it - about 100 iterations on the Beji & Battjes bar instead of
-    // 4, the errors on the bar the same)
+    // constraint: 2 dt cw/H P, and the affine terms (W predictor, phi, slope term with U^{n+1} extrapolated: an
+    // implicit slope term is missed by the preconditioner below)
     const double H = WLq(i,j);
     w2[n] = 2.0*dt*cwn/H;
     cst[n] = 2.0*(WHp(i,j) + dt*0.25*H*phiN(i,j))/H + nsx(i,j)*nUs(i,j) + (yd ? nsy(i,j)*nVs(i,j) : 0.0);
@@ -1195,7 +1192,7 @@ void sflow_momentum_SI::nh_solve(lexer *p, fdm2D *b, ghostcell *pgc)
         };
 
         const int m = 30, maxit = 300;
-        // relative tolerance: 1e-6 and 1e-8 gave the same gauge records (8 digits) on the 2D shoal case
+        // relative tolerance (1e-8 gives the same gauge records)
         const double tol = 1.0e-6;
 
         S.workspace(m,2*N);

@@ -130,10 +130,8 @@ void sflow_eta::wetdry(lexer* p, fdm2D* b, ghostcell* pgc, slice &WL)
     
     pgc->gcsl_start4Vint(p,p->wet,50);
     
-    // avoid isolated wet cells
-    // (from the flags before the pass: drying in place let a cell see the neighbours dried earlier
-    // in the same pass, so the result depended on the loop order and on where the partition and the
-    // patches cut the domain)
+    // avoid isolated wet cells, from the flags before the pass (independent of the loop order and of where
+    // the partition and the patches cut the domain)
     // HYDRO (R 10, R 40): not used, wet cells are wet by their own depth (a puddle that rain fills, the
     // first ring of cells a point source wets, whose neighbours across are still dry)
     if(p->A243>0 && !hwet)

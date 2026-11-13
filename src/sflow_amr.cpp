@@ -107,10 +107,9 @@ sflow_amr::sflow_amr(lexer *p, fdm2D *b, ghostcell *pgc, patchBC_interface *ppBC
     q.keep = MIN(MAX(p->G5,0),250);
 
     // A 210 12/13 with A 220 2/3: a new patch starts from the coarse solution where it did not overlap an old one; the
-    // fine grid answers that state with short waves that the semi-implicit step does not damp (the explicit step does,
-    // HLL), and with tiles that come and go every few regrids (G 5 4, G 2 4, G 20 0.002) the Beji & Battjes bar blew
-    // up after 30 s. Tiles kept for at least 20 regrids: stable there (G 5 10 was not); with more cells flagged
-    // (G 20 0.001) it still blew up (open)
+    // fine grid answers that state with short waves that the semi-implicit step does not damp (the explicit HLL step
+    // does), which is unstable with tiles that come and go every few regrids: tiles kept for at least 20 regrids
+    // (open: still unstable with many flagged cells, G 20 0.001 on the Beji & Battjes bar)
     if(p->A226==1 && (p->A220==2 || p->A220==3) && p->G2>0 && q.keep<20)
     {
     q.keep = 20;
@@ -1188,7 +1187,7 @@ void sflow_amr::ini_block(sflow_amr_patch &c, int bi, int bj, const double *pv)
 
     // shoreline: a wet parent some of whose children fall dry (the parent's surface below their bed): the children
     // take one water surface that holds the parent's volume, the dry ones the film A 244 (shore_fit); the
-    // parent's surface alone gave them another volume.  The momentum of the parent goes to the wet children by
+    // parent's surface alone would give them another volume.  The momentum of the parent goes to the wet children by
     // their depth.  Not in the initial hierarchy: its children start from the surface (a lake at rest)
     if(nw<nch && (int)w[0]==1 && pv[0]==2.0 && !dryfill)
     shore_fit(c,i0,j0,pv);

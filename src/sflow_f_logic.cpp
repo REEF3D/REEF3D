@@ -100,7 +100,7 @@ void sflow_f::logic(lexer *p, fdm2D* b, ghostcell* pgc)
     if(p->A220>=5 && p->mpirank==0)
     cout<<"A 220 "<<p->A220<<" not available with the HLL scheme, using A 220 1"<<endl;
 
-    // diffusion
+    // turbulence
 	if(p->A260==0)
 	pturb =  new sflow_turb_void(p);
     

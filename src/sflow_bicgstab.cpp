@@ -27,10 +27,7 @@ Author: Hans Bihs
 
 sflow_bicgstab::sflow_bicgstab(lexer *p, ghostcell *pgc)
 {
-    //  Every access this class makes is in-plane - IJ and its four
-    //  neighbours - so the arrays are 2D.  The old imax*jmax*kmax sizing cost
-    //  a factor of kmax for nothing: on a 133x200x10 FNPF box that was
-    //  38.4 MiB held against 2.4 MiB of need.
+    // every access is in-plane (IJ and its four neighbours): 2D arrays
     sj.resize(p->imax*p->jmax);
     rj.resize(p->imax*p->jmax);
     r0.resize(p->imax*p->jmax);

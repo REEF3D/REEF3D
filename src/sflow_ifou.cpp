@@ -75,7 +75,7 @@ void sflow_ifou::aij(lexer* p,fdm2D* b,slice& f,int ipol, slice& uvel, slice& vv
     vr=1.0;
 
 	 
-    // control-volume widths (were the mean spacing DXM, wrong on stretched grids)
+    // control-volume widths (stretched grids)
     const double dx = (ipol==1) ? p->DXP[IP] : p->DXN[IP];
     const double dy = (ipol==2) ? p->DYP[JP] : p->DYN[JP];
 	 
