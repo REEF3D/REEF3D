@@ -1,0 +1,17 @@
+{
+ "base": "cfd_2d_dambreak_pic2",
+ "ctrl_set": {
+  "F 76": "0"
+ },
+ "tags": [
+  "quick",
+  "2d",
+  "dambreak",
+  "pic"
+ ],
+ "description": "cfd_2d_dambreak_pic2 with the particles moved once per step (F 76 0), as before PICFSF patch 0014: its reference is that of cfd_2d_dambreak_pic2 before 0014",
+ "covers": [
+  "pic_f::move, pic_f::start without the stages (F 76 0)"
+ ],
+ "architect": "Hans Bihs"
+}
