@@ -79,6 +79,33 @@ void lexer::lexer_read(ghostcell *pgc)
     A510 -= 10;
     }
 
+    // CFD: W 130 > 0 the rheology core; inside REEF3D W90 > 0 selects the rheology fluid update, density and
+    // pressure classes of the CFD logic (W 90 itself stays the legacy model when W 130 is 0)
+    if(mpirank==0 && A10==6 && W130>0)
+    {
+        if(W90>0)
+        cout<<"W 130 "<<W130<<" replaces W 90 "<<W90<<endl;
+        
+    W90 = 1;
+    W110 = 1;
+    
+    // the implicit momentum diffusion with viscosity contrasts of 1e4 - 1e7 needs many more solver iterations than
+    // the default cap: with N 46 250 the u, v, w systems stop unconverged and the yield surfaces oscillate
+        if(N46<2000)
+        {
+        cout<<"W 130: N 46 "<<N46<<" -> 2000 (solver iterations of the implicit momentum diffusion with the rheology)"<<endl;
+        N46 = 2000;
+        }
+    }
+    
+    // CFD: the legacy rheology source terms W 110 2 - 7 are retired (inconsistent units and directions, only with the
+    // void inflow): the viscosity form W 110 1, or the rheology core W 130
+    if(mpirank==0 && A10==6 && W90>0 && W110>=2)
+    {
+    cout<<"!!! ctrl.txt: W 110 "<<W110<<" is retired: the rheology acts through the viscosity (W 110 1), see the rheology core W 130 !!!"<<endl;
+    exit(1);
+    }
+    
     // NHFLOW: A 519 not given in ctrl.txt -> bed friction (log law in the bottom layer) with a turbulence model (A 560)
     // or sediment transport (S 10): without it the flow slips over the bed, the velocity profile of an open channel
     // stays a plug and the bed shear stress of the sediment is too high; no bed friction otherwise (the previous default)

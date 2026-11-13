@@ -25,6 +25,7 @@ Author: Hans Bihs
 #include"fdm.h"
 #include"ghostcell.h"
 #include"rheology_f.h"
+#include"rheology_cfd_core.h"
 
 multiphase_fluid_update_rheology::multiphase_fluid_update_rheology(lexer *p) :
                                                 visc3(p->W7),visc2(p->W4),visc1(p->W2),ro3(p->W6),ro2(p->W3),ro1(p->W1)
@@ -36,6 +37,11 @@ multiphase_fluid_update_rheology::multiphase_fluid_update_rheology(lexer *p) :
 	eps13 = p->F322;
 	eps23 = p->F323;
     
+    // rheology core (W 130), else the legacy model (W 90)
+    if(p->W130>0)
+    prheo = new rheology_cfd_core(p);
+    
+    else
     prheo = new rheology_f(p);
 }
 
