@@ -65,8 +65,6 @@ private:
     field3 wn,wnn;
 	
 	double veg_sk(lexer*, fdm*);   // vegetation k source 1/2 Cd a |u|^3 at the cell centre
-	double Apor(double,double,double,double);
-	double Bpor(double,double,double);
 	
 	int count;
     

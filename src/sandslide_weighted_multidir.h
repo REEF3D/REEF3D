@@ -43,7 +43,6 @@ public:
     slice* amr_fh() override { return &fh; }
 
 private:
-    void slide(lexer*,ghostcell*,sediment_fdm*);
 
     slice4 fh;
     

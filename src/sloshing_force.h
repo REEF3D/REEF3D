@@ -45,7 +45,6 @@ public:
 
 
 private:
-    void write(lexer*, fdm*, ghostcell*);
     
     double Fx_l,Fx_r,Fz,M;
 

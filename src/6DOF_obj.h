@@ -203,7 +203,6 @@ protected:
     
     void objects_create(lexer*, ghostcell*);
     void piston(lexer*, ghostcell*,int,double);
-    void flap(lexer*, ghostcell*,int);
     void flap_double(lexer*, ghostcell*,int,double);
    
     void ini_parallel(lexer*, ghostcell*);
@@ -218,8 +217,6 @@ protected:
     
     
     void iniPosition_RBM(lexer*, ghostcell*);
-    void motionext_trans(lexer*, ghostcell*, Eigen::Vector3d&, Eigen::Vector3d&);
-    void motionext_rot(lexer*, Eigen::Vector3d&, Eigen::Vector3d&, Eigen::Vector4d&);
     
 
     // right-hand side of the rigid-body equations incl. prescribed motions (sixdof_motionext)
@@ -336,7 +333,6 @@ protected:
     // Parallel	
 	double *xstart, *xend, *ystart, *yend, *zstart, *zend;
    
-    double kernel(const double&);
 
     // Print
     double curr_time;

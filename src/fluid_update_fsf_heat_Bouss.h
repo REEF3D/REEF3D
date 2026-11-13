@@ -42,8 +42,6 @@ public:
 	void start(lexer*, fdm*, ghostcell*, field&, field&, field&) override final;
 
 private:
-    void material(lexer*, fdm*, ghostcell*);
-    double material_ipol(double**,int,double);
 
     static int iocheck,iter;
     int gcval_ro,gcval_visc;

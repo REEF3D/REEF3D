@@ -107,7 +107,6 @@ public:
 	driver(int&,char**);
 	virtual ~driver();
     
-    void start();
     
     void cfd_driver();
     void nhflow_driver();
@@ -123,7 +122,6 @@ public:
 	void logic_cfd();
     void logic_fnpf();
     void logic_nhflow();
-    void logic_sflow();
     
     void patchBC_logic();
     

@@ -87,7 +87,6 @@ private:
 
     void statistics(lexer*, int n, stats&) const;
     double seq_live(double KC, double Ucw, double DL) const;
-    void write(lexer*, int n, const stats&, double a, double b);
     double depth_from_volume(double V, double R, double S0) const;
 
     const int type;

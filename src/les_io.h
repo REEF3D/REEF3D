@@ -64,7 +64,6 @@ public:
     field3 wprime;
 
 private:
-    void tau_calc(fdm*, lexer*, double*);
 
 	float ffn;
 	int n,iin;

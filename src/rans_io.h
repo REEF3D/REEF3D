@@ -71,7 +71,6 @@ public:
 
 private:
     void tau_calc(fdm*, lexer*, double);
-    void kepsini_default(lexer*,fdm*,ghostcell*);
 
 	float ffn;
 	int q,iin;

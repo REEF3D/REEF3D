@@ -122,7 +122,6 @@ private:
     void ini_nhflow(lexer*, ghostcell*);
 
     // time step
-    void step(lexer*, ghostcell*);
     void set_loads(lexer*, ghostcell*);
     void sync(lexer*, ghostcell*);
     void deactivate(lexer*);

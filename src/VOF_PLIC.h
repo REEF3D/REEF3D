@@ -66,8 +66,6 @@ private:
     void iniphi_surfarea(lexer*,fdm*,ghostcell*);
     int conv(double);
 	
-	void reconstructPlane(fdm*, lexer*);
-	double calcAlpha(fdm*, double&,  double&,  double&);
 
 	void ininorVecLS(lexer*);
 	void calcNormalFO(fdm*, lexer*, field&);

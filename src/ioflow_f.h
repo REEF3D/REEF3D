@@ -140,7 +140,6 @@ public:
     void pressure_inlet(lexer*,fdm*,ghostcell*);
 
     double r1(lexer*,double);
-	double r3(double,double);
 
     void velini(lexer*,fdm*,ghostcell*);
 

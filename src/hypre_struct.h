@@ -100,7 +100,6 @@ public:
 
     void fillbackvec7(lexer*,double*,int);
     void fillbackvec8(lexer*,double*,int);
-    void fillbackvec9(lexer*,double*,int);
 
     void create_solver1234(lexer*,ghostcell*);
     void delete_solver1234(lexer*,ghostcell*);

@@ -52,7 +52,6 @@ public:
     void wpgrad(lexer*,fdm*,slice&,slice&) override final;
 
 private:    
-    void debug(lexer*,fdm*,ghostcell*,field&,field&,field&,double);
 	double starttime,endtime;
 	int count, gcval_press;
 	int gcval_u, gcval_v, gcval_w;

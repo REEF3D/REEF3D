@@ -47,7 +47,6 @@ private:
 	void gage_fixed(lexer*,fdm*,ghostcell*);
     void gage_fsf(lexer*,fdm*,ghostcell*);
     void fsf_normalize(lexer*,fdm*,ghostcell*);
-    void atmosphere(lexer*,fdm*,ghostcell*);
     
     double gageval;
 	
