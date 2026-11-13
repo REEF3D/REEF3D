@@ -1,0 +1,16 @@
+{
+ "description": "cfd_2d_cylinder_singlephase with the cylinder (S 32) as a wall of the pressure projection (D 1 2): open fractions of the faces on a curved surface, single phase (F 30 0), explicit diffusion (D 20 1), the force on the cylinder (P 81) with the pressure of the closed cells extended from the fluid (solid_press_extend).",
+ "np": 1,
+ "steps": 60,
+ "tags": [
+  "quick",
+  "2d",
+  "singlephase",
+  "inflow",
+  "solid"
+ ],
+ "covers": [
+  "solid_aperture.h D 1 2",
+  "solid_press_extend"
+ ]
+}

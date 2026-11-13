@@ -1,0 +1,16 @@
+{
+ "np": 1,
+ "steps": 150,
+ "description": "Still water (0.10 m) in a closed tank 0.6 x 0.6 m (dx 10 mm) with a solid block through the free surface (S 10, x 0.20-0.45 m, top at z = 0.15625 m, 5/8 of a cell), the solid as a wall of the pressure projection (D 1 2), N 40 5 with N 59 2: the faces of the cells at the top of the block 37.5 % open, the edges of the block closed. The water stays at rest (1.2e-5 m/s, the volume to 1e-7; direct forcing 4e-3 m/s and 4e-3 of the volume).",
+ "tags": [
+  "quick",
+  "2d",
+  "levelset",
+  "solid",
+  "closed"
+ ],
+ "covers": [
+  "solid_aperture.h D 1 2",
+  "solid_press_extend"
+ ]
+}

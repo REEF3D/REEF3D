@@ -1,0 +1,26 @@
+{
+ "base": "sflow_2d_si_towed_x10_2",
+ "ctrl_set": {
+  "X 210": null
+ },
+ "ctrl_add": [
+  "X 240 1"
+ ],
+ "files": [
+  "6DOF_motion.dat"
+ ],
+ "np": 1,
+ "steps": 100,
+ "description": "sflow_2d_si_towed_x10_2 (semi-implicit A 210 12, one body step per step) towed from the motion file of sflow_2d_towed_motionfile: the velocity and the position at the end of the step.",
+ "tags": [
+  "2d",
+  "sflow",
+  "6dof",
+  "semi_implicit",
+  "motionfile"
+ ],
+ "covers": [
+  "sixdof_obj::solve_eqmotion_oneway_onestep with a motion file"
+ ],
+ "architect": "Hans Bihs"
+}

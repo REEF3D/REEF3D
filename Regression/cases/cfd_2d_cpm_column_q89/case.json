@@ -1,0 +1,7 @@
+{
+ "description": "A dry 2-D granular column (L0 = H0 = 0.1 m, a = 1, 5 mm, single phase with the properties of air) collapsing with the implicit friction of the packed bed on the grid (Q 67 1, Q 88 1e-4) and the volume of the packed bed kept below a dilation of 0.85 theta_0 (Q 89 0.85, patch 0061)",
+ "covers": ["CPM Q 89 (CPM_shear_implicit.cpp): vertical velocity of the packed grains from the horizontal divergence of the column, integrated up from the floor, faces to open cells outflow only, weight from the packing",
+            "CPM Q 88 on a collapsing column: the friction solve, the sliding test and the jam with a free face"],
+ "np": 1, "steps": 100,
+ "tags": ["quick", "2d", "cpm"]
+}

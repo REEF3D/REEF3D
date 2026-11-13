@@ -1,0 +1,17 @@
+{
+ "np": 1,
+ "steps": 150,
+ "description": "cfd_2d_still_d32_amr_edge with the solid as a wall of the pressure projection (D 1 2): the edge of the refined patch crosses the top of the block (5/8 of a coarse cell). The face of the patch edge there is closed in its lower fine half and 75 % open in the upper one; the coarse face takes the open fraction of its fine faces (37.5 %) and their flux (cfd_amr::pr_apertures), the coarse value at the height of the fine cells leaves out the cells of the block, and the pressure of the closed cells is hydrostatic from the fluid on both levels. Still water stays still: 1.2e-6 m/s in the air after 300 steps, as with the patch away from the block.",
+ "tags": [
+  "quick",
+  "2d",
+  "levelset",
+  "solid",
+  "closed",
+  "amr"
+ ],
+ "covers": [
+  "solid_aperture.h D 1 2",
+  "cfd_amr::pr_apertures"
+ ]
+}

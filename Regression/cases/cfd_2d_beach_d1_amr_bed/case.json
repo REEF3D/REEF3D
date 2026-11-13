@@ -1,0 +1,17 @@
+{
+ "np": 1,
+ "steps": 60,
+ "description": "cfd_2d_beach_d32_amr_bed with D 1 2: a beach 1:5 under two refined levels, the edges of both patches through the bed (level 1 from the bottom of the domain, level 2 starts in the bed), N 40 6: the open fractions of every level from the distance to the wedge at its own resolution, the faces of the patch edges on the grid of the fine cells.",
+ "tags": [
+  "quick",
+  "2d",
+  "levelset",
+  "solid",
+  "closed",
+  "amr"
+ ],
+ "covers": [
+  "solid_aperture.h D 1 2",
+  "cfd_amr::pr_apertures"
+ ]
+}

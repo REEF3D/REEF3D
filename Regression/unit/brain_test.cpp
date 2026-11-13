@@ -39,7 +39,7 @@ struct swimmer
 {
     double x = 1.6, z = 3.0, h = 0.0, Ug = 0.0;
     double g[3] = {1.0, 1.0, 0.0}, gr[3] = {0.0, 0.0, 0.0}, gt[3] = {1.0, 1.0, 0.0}, ts[3] = {0.25, 0.25, 0.25};
-    double s_true = 0.48, k_true = 1.3, tau_true = 0.8, tau_down = 0.0, tau_glide = 2.5, C_brake = 0.0, nb_true = 0.0, cx = 0.0, cz = 0.0;
+    double s_true = 0.48, k_true = 1.3, tau_true = 0.8, tau_down = 0.0, tau_glide = 2.5, C_brake = 0.0, nb_true = 0.0, rest_tc = 0.0, cx = 0.0, cz = 0.0;
     double stim_t = -1.0;      // a pressure pulse across the head at this time (a startle stimulus)
     bool second = false;
     sixdof_brain::decision pend;
@@ -79,19 +79,23 @@ struct swimmer
             // the speed rises with tau_true; it falls with tau_glide when gliding, with tau_down (0: tau_true)
             // when the gait only slows down
             const double gt_ = g[0]*g[1]*1.0;
-            // (nb_true > 0: swimming, it follows the gait over nb_true tail beats, the time nb_true/f)
+            // (nb_true > 0: swimming, it follows the gait over nb_true tail beats, the time nb_true/f, the gait
+            // ramping up over 1 s, as the 2D swimmer of REEF3D, validation 23)
             if(nb_true>0.0 && g[1]>=0.5)
-            Ug += dt*std::max(g[0], 0.1)/nb_true*(gt_ - Ug);
+            Ug += dt*std::max(g[0], 0.1)/nb_true*(gt_*std::min(1.0, t/1.0) - Ug);
             else
             Ug += dt/(g[1]<0.5 ? tau_glide : ((gt_<Ug && tau_down>0.0) ? tau_down : tau_true))*(gt_ - Ug);
             // the bent body brakes the glide like a quadratic drag, dU/dt = -C_brake (|b|/2.5) U^2 (validation 18)
             if(g[1]<0.5)
             Ug -= dt*C_brake*std::min(1.0, std::fabs(g[2])/2.5)*s_true*Ug*std::fabs(Ug);
-            const double Uw = s_true*Ug*std::min(1.0, t/1.0);
+            const double Uw = s_true*Ug*(nb_true>0.0 ? 1.0 : std::min(1.0, t/1.0));
             h += dt*k_true*g[2]*Uw/1.0;
             const Eigen::Vector3d ex(std::cos(h), 0.0, std::sin(h)), el(-std::sin(h), 0.0, std::cos(h));
-            x += dt*(Uw*ex(0) + cx);
-            z += dt*(Uw*ex(2) + cz);
+            // (rest_tc > 0: the body at rest over the ground at t = 0 in the current, as REEF3D starts it: the water
+            // passing it, -c along the axis, decays with rest_tc)
+            const double Er = (rest_tc>0.0) ? std::exp(-t/rest_tc) : 0.0, ce = cx*ex(0) + cz*ex(2);
+            x += dt*(Uw*ex(0) + cx - Er*ce*ex(0));
+            z += dt*(Uw*ex(2) + cz - Er*ce*ex(2));
             t += dt;
             track.push_back({t, x, z, h});
 
@@ -411,6 +415,26 @@ int main()
         check(ds<0.02 && std::fabs(B.last().cx - 0.3)<0.02, "X 203 0.05: the stride within "+std::to_string(ds)+" of 0.52, current "+std::to_string(B.last().cx)+" m/s (0.3)");
     }
 
+    // 3l. the start in a current (validation 25): the body at rest over the ground at t = 0, 0.4 m below its station
+    // and facing it in 0.2 m/s, the water passing it decaying with 2 s, its speed following the gait over 0.8 tail
+    // beats; with X 202 the brain models the start (the speed from rest over the ramp, the water passing the body)
+    // and reads at least 0.15 m/s by 4 s; from the track of the first interval (X 201, no current assumed) less
+    // than 0.1
+    {
+        double c4[2];
+        for(int k=0; k<2; ++k)
+        {
+            swimmer S; S.cx = 0.2; S.x = 3.9; S.h = 3.14159265358979323846; S.nb_true = 0.8; S.s_true = 0.52; S.rest_tc = 2.0;
+            // the brain from the end of the ramp (1 s, as REEF3D starts it since patch 0027)
+            sixdof_brain B(0.5, 1.0, 0.0, 1.5, 1.0, 1.0, 1000.0, 1.0, 2, {{0.0, 3.5, 0.0, 3.0}}, 0.52, 0.0, 0.0, 0.0,
+                           k==0 ? 0.8 : 0.0, k==0 ? 0.8 : 0.0, 0.05);
+            double t = 0.0;
+            S.run(B, t, 4.0);
+            c4[k] = B.last().cx;
+        }
+        check(c4[0]>0.15 && c4[0]<0.23 && c4[1]<0.1, "the start at rest in 0.2 m/s: current at 4 s "+std::to_string(c4[0])+" m/s with X 202 ("+std::to_string(c4[1])+" from the first interval)");
+    }
+
     // 4. a moving target at 0.25 m/s across, after the fish reached it
     {
         swimmer S;
@@ -454,6 +478,26 @@ int main()
         for(size_t k=0; same && k<S.log.size(); ++k)
         same = S.log[k].f==S2.log[k].f && S.log[k].b==S2.log[k].b && S.log[k].t==S2.log[k].t;
         check(same && S.x==S2.x && S.z==S2.z, "restart: the same decisions and track, bitwise ("+std::to_string(S.log.size())+" decisions)");
+    }
+
+    // 6c. restart in the start with X 202 (the water that passed the body at the start still felt)
+    {
+        swimmer S; S.cx = 0.2; S.x = 3.9; S.h = 3.14159265358979323846; S.nb_true = 0.8; S.rest_tc = 2.0;
+        sixdof_brain B = brain(0.5, 1.5, {{0.0, 3.5, 0.0, 3.0}}, 0.0, 0.0, 1.0, 0.0, 0.0, 0.8, 0.05);
+        double t = 0.0;
+        S.run(B, t, 2.7);
+        std::vector<double> v;
+        B.ckpt_state(v);
+        swimmer S2 = S;
+        sixdof_brain B2 = brain(0.5, 1.5, {{0.0, 3.5, 0.0, 3.0}}, 0.0, 0.0, 1.0, 0.0, 0.0, 0.8, 0.05);
+        check(B2.ckpt_restore(v), "restart in the start (X 202): the checkpoint of the brain is read");
+        double t2 = t;
+        S.run(B, t, 10.0);
+        S2.run(B2, t2, 10.0);
+        bool same = S.log.size()==S2.log.size();
+        for(size_t k=0; same && k<S.log.size(); ++k)
+        same = S.log[k].f==S2.log[k].f && S.log[k].b==S2.log[k].b && S.log[k].t==S2.log[k].t;
+        check(same && S.x==S2.x && S.z==S2.z, "restart in the start (X 202): the same decisions and track, bitwise");
     }
 
     // 6b. restart while gliding at a station in still water (the coasting time, the burst)

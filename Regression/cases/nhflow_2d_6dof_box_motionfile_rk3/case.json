@@ -1,0 +1,17 @@
+{
+ "base": "nhflow_2d_6dof_box_motionfile",
+ "ctrl_add": [
+  "A 510 3"
+ ],
+ "description": "nhflow_2d_6dof_box_motionfile (heave from the motion file, z = 0.01 sin 2 pi t, in waves) with RK3 (A 510 3): the velocity and the position of the body at the time each stage ends (t+dt, t+dt/2, t+dt).",
+ "tags": [
+  "2d",
+  "nhflow",
+  "6dof",
+  "motionfile"
+ ],
+ "covers": [
+  "sixdof_obj::motion_stage_begin / motion_stage_end (NHFLOW rk3)"
+ ],
+ "architect": "Hans Bihs"
+}

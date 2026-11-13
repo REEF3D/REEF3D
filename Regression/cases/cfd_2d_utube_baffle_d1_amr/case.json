@@ -1,0 +1,18 @@
+{
+ "np": 1,
+ "steps": 200,
+ "description": "cfd_2d_utube_baffle_d1 (the baffle 0.3 cells off the grid lines, D 1 2) with the right half refined (G 1 1, G 15 x 0.30-0.60 m): the baffle inside the patch, at half the cell size 0.6 fine cells off the lines; the head is held, the water columns as cfd_2d_utube_baffle_d32_amr to 0.1 %.",
+ "tags": [
+  "quick",
+  "2d",
+  "levelset",
+  "solid",
+  "closed",
+  "compressible",
+  "amr"
+ ],
+ "covers": [
+  "solid_aperture.h D 1 2",
+  "cfd_amr::pr_apertures"
+ ]
+}

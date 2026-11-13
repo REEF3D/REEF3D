@@ -1,0 +1,6 @@
+{
+ "description": "The dry 2-D granular column of cfd_2d_cpm_column_q89 (Q 67 1, Q 88 1e-4, Q 89 0.85, patch 0061) on 2 ranks",
+ "covers": ["CPM Q 89 with a domain decomposition: the ghost cells of the volume velocity and of the grid velocities across the subdomains"],
+ "np": 2, "steps": 100,
+ "tags": ["quick", "2d", "cpm"]
+}
