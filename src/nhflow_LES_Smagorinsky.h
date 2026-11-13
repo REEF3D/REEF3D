@@ -38,10 +38,7 @@ public:
 	void timesource(lexer*,fdm_nhf*,double*);
 
 private:
-    int gcval_kin, gcval_eps;
-    int count,q;
     double c_sgs;
-    double aii;
 };
 
 #endif

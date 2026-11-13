@@ -71,11 +71,9 @@ private:
     void wetdry_y(lexer*, slice&, slice&, slice&);
     double slope_wd(lexer*, double, double, double, double, double, int, int);
 
-    double ivel1,ivel2,jvel1,jvel2;
-    double val,denom;
-    double dfdx_min, dfdx_plus, dfdy_min, dfdy_plus, dfdz_min, dfdz_plus;
-    int qq;
-    double r, phi,minphi;
+    double val;
+    double dfdz_min, dfdz_plus;
+    double r, phi;
     
     double *DFDX;
     

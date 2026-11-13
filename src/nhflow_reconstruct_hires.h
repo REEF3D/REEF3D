@@ -56,11 +56,9 @@ public:
 private:
     inline double limiter(double, double);
 
-    double ivel1,ivel2,jvel1,jvel2;
     double val,denom;
     double dfdx_min, dfdx_plus, dfdy_min, dfdy_plus, dfdz_min, dfdz_plus;
-    int qq;
-    double r, phi,minphi;
+    double r, phi;
     
     patchBC_interface *pBC;
 };

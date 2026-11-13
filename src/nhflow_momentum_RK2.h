@@ -73,7 +73,6 @@ private:
     int gcval_uh, gcval_vh, gcval_wh;
 	double starttime;
     
-    nhflow_convection *pweno;
     sixdof *p6dof;
     nhflow_forcing *pnhfdf;
     wind *pwind;

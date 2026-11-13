@@ -68,7 +68,7 @@ private:
     double acc[2];
     unsigned long long ckid;
     
-    int count,q;
+    int count;
 };
 
 #endif

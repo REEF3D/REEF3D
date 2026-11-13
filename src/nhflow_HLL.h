@@ -51,12 +51,7 @@ private:
     void aij_W(lexer*&, fdm_nhf*&, int);
     void aij_E(lexer*&, fdm_nhf*&, int);
     
-	double dx,dy,dz;
-	double udir,vdir,wdir;
-	double L;
-    double denom;
 
-    double ivel1,ivel2,jvel1,jvel2,kvel1,kvel2;
     
     int hllc;   // A 511 2: contact-resolving (HLLC) flux for the tangential momentum components
 

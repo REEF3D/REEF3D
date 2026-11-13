@@ -48,8 +48,6 @@ private:
 	double *x,*y;
 	int gauge_num;
 
-    int *iloc,*jloc,*flag;
-    double *wsf;
     int n;
     ofstream wsfout;
 
