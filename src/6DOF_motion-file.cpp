@@ -28,9 +28,7 @@ Authors: Hans Bihs
 sixdof_motionext_file::sixdof_motionext_file(lexer *p, ghostcell *pgc, int nb) : id(nb)
 {
     ini(p,pgc);
-    
-    //cout<<"6DOF MOTION START"<<endl;
-    
+
     // number of file columns: X 240 1 is the translation format t, x, y, z (user guide); the
     // columns 1-3 are read by motionext_trans (colnum 3 rejected every 4-column file and read
     // the z column out of range)
@@ -50,7 +48,6 @@ sixdof_motionext_file::sixdof_motionext_file(lexer *p, ghostcell *pgc, int nb) :
 	timecount=1;
     
     // read file
-    //if(p->mpirank==0)
     read_format_1(p,pgc);
 }
 

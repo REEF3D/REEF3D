@@ -124,7 +124,6 @@ void sediment_f::ini_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
 void sediment_f::ini_sflow(lexer *p, fdm2D *b, ghostcell *pgc)
 {
-    //relax(p,b,pgc);
     SLICELOOP4
     {
     s->ks(i,j) = p->S21*p->S20;

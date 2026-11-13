@@ -59,7 +59,6 @@ void driver::stop(lexer *p, fdm *a, ghostcell *pgc)
 
      pprint->print_stop(p,a,pgc,pturb,pheat,pflow,pdata,pconc,pmp,psed);
      
-     //pgc->final(true);
     }
     }
         

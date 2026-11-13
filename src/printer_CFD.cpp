@@ -146,9 +146,6 @@ printer_CFD::printer_CFD(lexer* p, fdm *a, ghostcell *pgc)
             pforce[n] = new force(p,a,pgc,n);
     }
 
-    // if(p->P37>0)
-    //     pstate_restart = new cfd_state(p,a,pgc,0);
-
     if(p->P40>0)
         pstate = new cfd_state(p,a,pgc,0);
 
@@ -336,13 +333,6 @@ void printer_CFD::start(lexer* p, fdm* a, ghostcell* pgc, turbulence *pturb, hea
 
         p->stateprinttime+=p->P42;
     }
-
-    /* // Print state restart out based on iteration
-    if(p->count%p->P38==0 && p->P37>0)
-    {
-    pstate_restart->write(p,a,pgc,pturb,psed);
-    }*/
-
 }
 
 void printer_CFD::print_stop(lexer* p, fdm* a, ghostcell* pgc, turbulence *pturb, heat *pheat, ioflow *pflow, expdata *pdata, concentration *pconc, multiphase *pmp, sediment *psed)

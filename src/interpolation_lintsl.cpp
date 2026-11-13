@@ -247,8 +247,6 @@ double interpolation::lintsl4_2D(slice& f, int& i,int& j, double wa, double wb)
     
     if(c1==0 && c3==1)
     value = v3;
-    
-    //cout<<"value: "<<value<<" v1: "<<v1<<" v3: "<<v3<<" c1: "<<c1<<" c3: "<<c3<<" j: "<<j<<endl;
 
     return value;
 }

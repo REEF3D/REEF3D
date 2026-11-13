@@ -152,8 +152,6 @@ void grid_helper::fill_dgc3(lexer* p)
 
     p->dgc3_count = count;
 
-    //cout<<p->mpirank<<"  DGC3_count: "<<count<<endl;
-
     count=0;
     WLOOP
     {

@@ -80,11 +80,8 @@ void sixdof_obj_cfd::triangulation(lexer *p,fdm* a, ghostcell *pgc, field& f)
     ++countM;
     }
     
-    //cout<<"countM_final: "<<countM<<endl;
     numtri = 6*countM;
     numvert = countM;
-    
-    //cout<<p->mpirank<<" numtri: "<<numtri<<" numvert: "<<numvert<<" countM: "<<countM<<endl;
 
     numtri_mem = numtri;
     numvert_mem = numvert;

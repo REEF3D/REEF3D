@@ -47,8 +47,6 @@ void force::force_calc(lexer* p, fdm *a, ghostcell *pgc)
     A_tot = pgc->globalsum(F[3]);
     const double Px = pgc->globalsum(F[6]);
     
-    //if(p->mpirank==0)
-    //cout<<"Ax : "<<Ax<<" Ay: "<<Ay<<" A_tot: "<<A_tot<<endl;
 }
 
 // the pieces of this grid: F = Fx, Fy, Fz, area, Ax, Ay, Px (added)

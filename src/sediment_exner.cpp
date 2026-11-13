@@ -202,7 +202,6 @@ void sediment_exner::start_RK(lexer* p, ghostcell* pgc, sediment_fdm *s)
     timestep(p,pgc,s);
 
     //SEDSLICELOOP
-    //s->dh(i,j) = p->dtsed*s->vz(i,j);
 }
 
 

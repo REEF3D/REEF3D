@@ -153,8 +153,6 @@ void grid_helper::fill_dgc4(lexer* p)
 
     p->dgc4_count = count;
 
-    //cout<<p->mpirank<<"  DGC4_count: "<<count<<endl;
-
     count=0;
     LOOP
     {

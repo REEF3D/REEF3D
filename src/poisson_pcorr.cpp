@@ -258,36 +258,7 @@ void poisson_pcorr::start(lexer* p, fdm *a, field &press)
 		a->rhsvec.V[n] -= a->M.s[n]*press(i-1,j,k);
 		a->M.s[n] = 0.0;
 		}
-        
-        /*
-        if(p->flag4[Im1JK]<0 &&  p->IO[Im1JK]==1)
-		{
-        pval=(p->fsfin - p->pos_z())*a->ro(i,j,k)*fabs(p->W22);
-        //cout<<"FSFIN: "<<p->fsfin<<endl;
-		a->rhsvec.V[n] -= a->M.s[n]*(-a->press(i,j,k)+pval);
-		a->M.s[n] = 0.0;
-		}*/
-        
-        // AWA inflow
-        /*if(p->flag4[Ip1JK]<0 && (i+p->origin_i<p->gknox-1 || p->periodic1==0) && (p->IO[Ip1JK]==2 && p->B90==1 && p->B99>2))
-        {
-        pval=(p->fsfout - p->pos_z())*a->ro(i,j,k)*fabs(p->W22);
-        
-        a->rhsvec.V[n] += a->M.s[n]*(-a->press(i,j,k)+pval);
-        
-        a->M.s[n] = 0.0;
-        }*/
-        
-        /*
-        if(p->flag4[Im1JK]<0 && (i+p->origin_i>0 || p->periodic1==0) && p->IO[Im1JK]==1)
-		{
-             pval=a->press(i,j,k);
-             
-		//a->rhsvec.V[n] -= a->M.s[n]*(-a->press(i,j,k)+pval);
-        a->rhsvec.V[n] -= a->M.s[n]*press(i-1,j,k);
-		a->M.s[n] = 0.0;
-		}*/
-		
+
         // outflow (IO 2): as for the patch outlets, the Dirichlet value of the correction is
         // outflow_pressure() - cell pressure, so that the pressure next to the outflow relaxes to the
         // outflow pressure (B 77 1: hydrostatic from F 60 / F 62). The boundary face velocity is not

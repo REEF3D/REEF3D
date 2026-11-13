@@ -42,9 +42,6 @@ public:
 	virtual ~LES_filter_f1();
     
 	void start(lexer*, fdm*, ghostcell*,field&,field&,field&, int) override final;
-    
-//    int veleval(lexer*,int);
-
 
 private:
     field1 ubar,etta_u1,etta_u2;

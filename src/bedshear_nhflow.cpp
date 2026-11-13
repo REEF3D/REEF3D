@@ -198,17 +198,11 @@ void bedshear::taubed(lexer *p, fdm_nhf*d, ghostcell *pgc, sediment_fdm *s)
         
         u_abs = sqrt(U*U + V*V);
 
-        //Cval=18.0*log10((12.0*wh)/s->ks_eff(i,j));	
-        //tau_eff = density*pow(sqrt(9.81)*(u_abs/Cval),2.0);
-        
         manning = pow(s->ks(i,j),1.0/6.0)/(8.1*sqrt(9.81));   // Strickler: 1/n = 8.1 sqrt(g)/ks^(1/6) = 25.4/ks^(1/6)
         cf = pow(manning,2.0)/pow(MAX(d->WL(i,j),1.0e-6),1.0/3.0);
-        
-        //cf = sqrt(9.81)/log(12.0*d->WL(i,j)/(s->ks(i,j)));
-    
+
         tau_eff = p->W1*9.81*cf*u_abs*u_abs; 
         
-        //cout<<"u_abs: "<<u_abs<<" cf: "<<cf<<" count: "<<cellcount<<" tau_eff: "<<tau_eff<<endl;
         }
         
         // tau_i for Ti

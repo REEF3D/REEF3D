@@ -37,9 +37,6 @@ LES_filter_box::~LES_filter_box()
 
 void LES_filter_box::start(lexer *p, fdm *a, ghostcell *pgc, field &uprime, field &vprime, field &wprime, int gcval)
 {
-	//    vel_label=veleval(p,gcv);
-
-
 	if(gcval==10)
 	{
         

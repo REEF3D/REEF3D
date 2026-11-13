@@ -123,10 +123,6 @@ void hypre_struct::create_solver5(lexer* p, ghostcell* pgc)
         HYPRE_StructPFMGSetMaxIter(solver, p->N46);
         HYPRE_StructPFMGSetTol(solver, 1e-6);
         HYPRE_StructPFMGSetNonZeroGuess(solver);
-        //HYPRE_StructPFMGSetRAPType(solver, 0);
-        //HYPRE_StructPFMGSetRelaxType(solver, 1);
-        //HYPRE_StructPFMGSetNumPreRelax(solver, 1);
-        //HYPRE_StructPFMGSetNumPostRelax(solver, 1);
         HYPRE_StructPFMGSetSkipRelax(solver, 0);
         HYPRE_StructPFMGSetPrintLevel(solver, 0);
         HYPRE_StructPFMGSetLogging(solver, 0);

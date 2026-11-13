@@ -24,14 +24,6 @@ Author: Hans Bihs
 
 void ghostcell::gcpartnum(int sendnum[6], int recvnum[6])
 {
-    /*const void* send_ptrs[6] = {&(sendnum[0]), &(sendnum[1]), &(sendnum[2]), &(sendnum[3]), &(sendnum[4]), &(sendnum[5])};
-    void* recv_ptrs[6] = {&(recvnum[0]), &(recvnum[1]), &(recvnum[2]), &(recvnum[3]), &(recvnum[4]), &(recvnum[5])};
-
-    int counts[6] = {1,1,1,1,1,1};
-
-    Sendrecv(send_ptrs, counts, recv_ptrs, counts, MPI_INT);*/
-    
-    
     //  SEND / RECEIVE
     for(int qn=0;qn<6;++qn)
 	{

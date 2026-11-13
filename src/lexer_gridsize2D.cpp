@@ -61,5 +61,4 @@ void lexer::grid2Dsize()
     
     vec2Dlength = 2*slicenum + gcbnum*4  + gcparanum*4;    
 
-    //cout<<mpirank<<" SLICENUM: "<<slicenum<<" gcbnum: "<<gcbnum<<" gcparanum: "<<gcparanum<<endl;
 }

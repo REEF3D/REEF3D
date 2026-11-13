@@ -135,7 +135,6 @@ void ghostcell::extend(lexer *p,field& f,double dist,int gcv, int bc, int cs)
 	for(q=0;q<margin;++q)
 	f(i,j,k-q-1)=y[orderext+q];
 	
-	//cout<<" LSM: "<<f(i,j,k+1)<<" "<<f(i,j,k)<<" "<<y[2]<<" "<<y[3]<<" "<<y[4]<<endl;
 	}
 
 	//top

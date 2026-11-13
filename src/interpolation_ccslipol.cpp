@@ -139,9 +139,6 @@ double interpolation::ccslipol4(slice& f, double xp, double yp)
 		
     // wa
     wa = (p->XP[IP1]-xp)/p->DXP[IP];
-    
-    //if(wa<0.0 || wa>1.0)
-    //cout<<"WA: "<<wa<<" xp: "<<xp<<" XP[IP]: "<<p->XP[IP]<<" XP[IP1]: "<<p->XP[IP1]<<" i: "<<i<<endl;
 
     // wb
     wb = (p->YP[JP1]-yp)/p->DYP[JP];

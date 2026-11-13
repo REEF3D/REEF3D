@@ -101,7 +101,6 @@ void ghostcell::dirichlet_para_reflect(lexer *p,field& f,double dist,int gcv, in
 			for(n=0;n<orderdir;++n)
 			{
 			if(m==n && q+m==2)
-//			weight*=(x[q]-pos[n])/(pos[m]-pos[n]+1.0e-20);
 			weight = -1.0;
 			}
 		y[orderdir+q+1]+=weight*y[m];

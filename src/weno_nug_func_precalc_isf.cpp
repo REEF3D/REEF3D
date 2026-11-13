@@ -456,11 +456,6 @@ void weno_nug_func::precalc_isf(lexer* p)
                             *(p->ZN[KP2]+p->ZN[KP1]-p->ZN[KP]-p->ZN[KM1]))
 
                       / pow(p->ZN[KP2]-p->ZN[KP], 2.0));
-                      
-    /*cout<<" is1: "<<isfz[KP][0][3][0]<<" "<<isfz[KP][0][3][1]<<" "<<isfz[KP][0][3][2]<<endl;
-    cout<<" is2: "<<isfz[KP][0][4][0]<<" "<<isfz[KP][0][4][1]<<" "<<isfz[KP][0][4][2]<<endl;
-    cout<<" is3: "<<isfz[KP][0][5][0]<<" "<<isfz[KP][0][5][1]<<" "<<isfz[KP][0][5][2]<<endl;*/
-    
     }
     
 // ---------------------------------------------------------------------
@@ -559,7 +554,6 @@ void weno_nug_func::precalc_isf(lexer* p)
                             *(p->XP[IP4]+p->XP[IP3]-p->XP[IP2]-p->XP[IP1]))
 
                       / pow(p->XP[IP3]-p->XP[IP1], 2.0));
-     //cout<<" is1: "<<isfx[IP][0][0][0]<<" "<<isfx[IP][0][0][1]<<" "<<isfx[IP][0][0][2]<<endl;
                  
     // is2
     fac = 4.0*pow((p->XP[IP2]-p->XP[IP1])/(p->XP[IP3]-p->XP[IP]), 2.0);
@@ -581,9 +575,7 @@ void weno_nug_func::precalc_isf(lexer* p)
                          + (p->XP[IP1]-p->XP[IP])*(p->XP[IP2]-p->XP[IP]))
 
                       / pow(p->XP[IP3]-p->XP[IP1], 2.0));
-      
-    //cout<<" is2: "<<isfx[IP][0][1][0]<<" "<<isfx[IP][0][1][1]<<" "<<isfx[IP][0][1][2]<<endl;     
-              
+
     // is3
     fac = 4.0*pow((p->XP[IP2]-p->XP[IP1])/(p->XP[IP2]-p->XP[IM1]), 2.0);
     
@@ -606,7 +598,6 @@ void weno_nug_func::precalc_isf(lexer* p)
 
                       / pow(p->XP[IP2]-p->XP[IP], 2.0));
                       
-    //cout<<" is3: "<<isfx[IP][0][2][0]<<" "<<isfx[IP][0][2][1]<<" "<<isfx[IP][0][2][2]<<endl;   
     }
     
     

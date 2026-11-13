@@ -35,9 +35,7 @@ void pressure_reference::reference_ini(lexer*p, fdm* a, ghostcell *pgc)
     
     gcinglobal=pgc->globalisum(p->gcin_count);
     gcoutglobal=pgc->globalisum(p->gcout_count);
-    
-    //cout<<p->mpirank<<" gcinglobal: "<<gcinglobal<<endl;
-    
+
     // ini gage location
     if(((p->B32==0 && p->B30==1) || p->B30==2 || p->B30==3))// && p->B99<3)
     {

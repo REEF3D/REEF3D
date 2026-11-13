@@ -218,7 +218,6 @@ public:
     void dgcslini2(lexer*);
 	void dgcslini4(lexer*);
     
-    void dgcslpol(lexer*, slice&, int**,int, int);
     void dgcslpol1(lexer*, slice&);
     void dgcslpol2(lexer*, slice&);
     void dgcslpol4(lexer*, slice&);

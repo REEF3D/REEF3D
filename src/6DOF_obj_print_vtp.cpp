@@ -55,7 +55,6 @@ lagoon_bodies *lagoon_body_writer(lexer *p)
 void sixdof_obj::print_vtp(lexer *p, ghostcell *pgc)
 {
     // print normals
-    // print_normals_vtp(p,pgc);
 
     bool printflag=false;
     

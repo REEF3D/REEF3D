@@ -113,9 +113,6 @@ void suspended_IM1::suspsource(lexer* p,fdm* a,field& conc, sediment_fdm *s)
         
         a->rhsvec.V[count]  += (-s->ws)*(-s->cbe(i,j))/zdist;
         a->M.p[count] += (s->ws)/zdist;
-        
-        
-        //a->rhsvec.V[count]  += s->ws*s->cbe(i,j)/(zdist);
         }
 	++count;
     }
@@ -298,8 +295,6 @@ double suspended_IM1::Rouse_formula(lexer* p, fdm *a, sediment_fdm *s, double Cc
     Ca = Cc * pow( ((p->WL[IJ]-za)/za) / ((p->WL[IJ]-zc)/zc), P);
     
     Ca = MIN(Ca,0.1);
-    
-    //cout<<"Cc: "<<Cc<<" Ca: "<<Ca<<" | P: "<<P<<" "<<s->shearvel_eff(i,j)<<endl;
 
     return Ca;
 }

@@ -123,9 +123,7 @@ int position::posf_j(double ys)
         if(ys<p->YP[0+marge])
         {
             jj = -1;
-            
-            //cout<<"EXIT 0m"<<endl;
-   
+
          stop=1;
          break;   
         }
@@ -136,9 +134,7 @@ int position::posf_j(double ys)
         if(ys>p->YP[p->knoy-p->vlast+marge])
         {
             jj = p->vlast==1 ? p->knoy-1 : p->knoy;
-            
-            //cout<<"EXIT 0p  "<<p->YP[p->knoy-1]<<endl;
-   
+
          stop=1;
          break;   
         }
@@ -147,9 +143,7 @@ int position::posf_j(double ys)
         if(ys<p->YP[jloc+marge] && ys>=p->YP[jloc-1+marge])
         {
             jj = jloc-1;
-            
-            //cout<<"EXIT 1"<<endl;
-            
+
          stop=1;
          break;   
         }
@@ -157,9 +151,7 @@ int position::posf_j(double ys)
         if(ys>=p->YP[jloc+marge] && ys<p->YP[jloc+1+marge])
         {
             jj = jloc;
-            
-            //cout<<"EXIT 2"<<endl;
-   
+
          stop=1;
          break;   
         }

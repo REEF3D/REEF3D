@@ -53,7 +53,6 @@ void flux_HJ_CDS2_vrans::u_flux(fdm* a,int ipol, field& uvel, double &uflux1, do
 	if(ipol==4)
 	{
 	uflux1 = 0.5*(uvel(i,j,k) + uvel(i-1,j,k))*(1.0/a->porosity(i,j,k));
-    //uflux1 = (1.0/16.0)*(-uvel(i-2,j,k) + 9.0*uvel(i-1,j,k) + 9.0*uvel(i,j,k) - uvel(i,j,k+1))*(1.0/a->porosity(i,j,k));
 	}
 }
 

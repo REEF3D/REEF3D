@@ -116,9 +116,7 @@ int position::posc_j(double ys)
         if(ys<p->YN[0+marge])
         {
             jj = -1;
-            
-            //cout<<"EXIT 0m"<<endl;
-   
+
          stop=1;
          break;   
         }
@@ -127,9 +125,7 @@ int position::posc_j(double ys)
         if(ys>p->YN[p->knoy+marge])
         {
             jj = p->knoy+1;
-            
-            //cout<<"EXIT 0p"<<endl;
-   
+
          stop=1;
          break;   
         }
@@ -147,9 +143,7 @@ int position::posc_j(double ys)
         if(ys>=p->YN[jloc+marge] && ys<p->YN[jloc+1+marge] && stop==0)
         {
             jj = jloc;
-            
-            //cout<<"EXIT 2"<<endl;
-   
+
          stop=1;
          break;   
         }
@@ -195,9 +189,7 @@ int position::posc_k(double zs)
         if(zs<p->ZN[0+marge])
         {
             kk = -1;
-            
-            //cout<<"EXIT 0m"<<endl;
-   
+
          stop=1;
          break;   
         }
@@ -206,9 +198,7 @@ int position::posc_k(double zs)
         if(zs>p->ZN[p->knoz+marge])
         {
             kk = p->knoz+1;
-            
-            //cout<<"EXIT 0p"<<endl;
-   
+
          stop=1;
          break;   
         }
@@ -225,9 +215,7 @@ int position::posc_k(double zs)
         if(zs>=p->ZN[kloc+marge] && zs<p->ZN[kloc+1+marge] && stop==0)
         {
             kk = kloc;
-            
-            //cout<<"EXIT 2"<<endl;
-   
+
          stop=1;
          break;   
         }

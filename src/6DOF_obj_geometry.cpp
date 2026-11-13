@@ -120,9 +120,7 @@ void sixdof_obj_cfd::geometry_ls(lexer *p, fdm *a, ghostcell *pgc)
             rx=p->pos_x()-xorig;
             ry=p->pos_y()-yorig;
             rz=p->pos_z()-zorig;
-            
-            //cout<<p->mpirank<<" CG: "<<rx<<" "<<ry<<" "<<rz<<" . "<<a->fb(i,j,k)<<endl;
-            
+
             H = Hsolidface(p,a,0,0,0);
 
 		    Vol = H*p->DXN[IP]*p->DYN[JP]*p->DZN[KP];
@@ -280,9 +278,7 @@ void sixdof_obj_nhflow::geometry_ls_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
             rx=p->pos_x()-xorig;
             ry=p->pos_y()-yorig;
             rz=p->pos_z()-zorig;
-            
-            //cout<<p->mpirank<<" CG: "<<rx<<" "<<ry<<" "<<rz<<" . "<<a->fb(i,j,k)<<endl;
-            
+
             H = Hsolidface_nhflow(p,d,0,0,0);
 
 		    Vol = (p->geo_curv==1) ? H*p->AREA2D[IJ]*p->DZN[KP]*d->WL(i,j) : H*p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*d->WL(i,j);

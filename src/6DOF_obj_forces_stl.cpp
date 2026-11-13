@@ -330,9 +330,7 @@ void sixdof_obj_cfd::forces_stl(lexer* p, fdm *a, ghostcell *pgc,field& uvel, fi
             
             if(q->X38==4)
             {
-            //zval = s->bedzh(i,j) + 0.5*q->DZN[KP];
             
-            //tau=density*pturb->ccipol_a_kinval(p,pgc,xip,yip,zval)*0.3;
             }
 
 

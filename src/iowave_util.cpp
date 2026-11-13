@@ -64,13 +64,7 @@ void iowave::gcio_update_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
             exit(1);
         }
     }
-    
-    
 
-    //if(p->I10==1)
-    //velini(p,a,pgc);
-	    
-    
     ioflow_gcio_marks(p,p->DF,pBC);
 }
 
@@ -190,7 +184,6 @@ void iowave::awa_ini(lexer *p, fdm *a, ghostcell *pgc)
 	gcawa3_count=count3;
 	gcawa4_count=count4;
 	
-	//cout<<p->mpirank<<" GCAWA_COUNT: "<<gcawa4_count<<endl;	
 }
 
 void iowave::gen_ini(lexer *p, fdm *a, ghostcell *pgc)
@@ -297,7 +290,6 @@ void iowave::gen_ini(lexer *p, fdm *a, ghostcell *pgc)
 				}
         }
     }
-	//cout<<p->mpirank<<" GCGEN_COUNT: "<<gcgen4_count<<endl;	
 }
 
 void iowave::inflow_walldist(lexer *p, fdm *a, ghostcell *pgc, convection *pconvec, reini *preini, ioflow *pflow)

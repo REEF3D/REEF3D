@@ -30,9 +30,7 @@ void sixdof_obj_cfd::forces_lsm(lexer* p, fdm *a, ghostcell *pgc,field& uvel, fi
 {
     triangulation(p,a,pgc,a->fb);
 	reconstruct(p,a,a->fb);
-    
-    //print_vtp(p,a,pgc);
-    
+
     forces_lsm_calc(p,a,pgc,iter,finalize);
     
     
@@ -79,9 +77,7 @@ void sixdof_obj_cfd::forces_lsm_calc(lexer* p, fdm *a, ghostcell *pgc, int iter,
 	polygon_sum=0;
 	for(n=0;n<polygon_num;++n)
 	polygon_sum+=numpt[n];
-	
-	//cout<<p->mpirank<<" polygon_num: "<<polygon_num<<endl;
-    
+
 	vertice_num = ccptcount;
 
     for(n=0;n<polygon_num;++n)
@@ -284,8 +280,6 @@ void sixdof_obj_cfd::forces_lsm_calc(lexer* p, fdm *a, ghostcell *pgc, int iter,
             Fp_x = -(pval)*A*nx;
             Fp_y = -(pval)*A*ny;
             Fp_z = -(pval)*A*nz;
-            
-            //cout<<"nx: "<<nx<<" ny: "<<ny<<" nz: "<<nz<<endl;
 
             Fv_x = density*viscosity*A*du;
             Fv_y = density*viscosity*A*dv;

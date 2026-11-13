@@ -39,10 +39,7 @@ void lexer::vecsize(ghostcell *pgc)
 	gcb_sediment_est = gcb4_count*margin;	
     
     gcb_floating_est=0;
-    
-    //cout<<mpirank<<" solid_gcb_est_max: "<<solid_gcb_est_max<<" topo_gcb_est_max: "<<topo_gcb_est_max<<endl;
-    
-    
+
 // gcbextra
     gcbextra=gcextra_max*margin;
     
@@ -77,10 +74,7 @@ void lexer::vecsize(ghostcell *pgc)
     
 
     veclength = cellnum + gcbnum*1 + gcpara_sum*1;
-    
-    //cout<<mpirank<<" CELLNUM: "<<cellnum<<" veclength: "<<veclength<<" gcextra: "<<gcbextra<<" tot_gcbextra_est: "<<tot_gcbextra_est<<endl;
-      
-    
+
     // 2D
      slicenum= 0;
     for(i=0; i<knox; ++i)

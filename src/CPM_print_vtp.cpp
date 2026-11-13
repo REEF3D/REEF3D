@@ -374,7 +374,6 @@ void CPM::print_vtp(lexer* p, sediment_fdm *s)
     for(n=0;n<P.index;++n)
         if(P.Flag[n]>0)
         {
-            //ffn=float(p->ccslipol4(s->bedch,P.X[n],P.Y[n]));
             ffn=float(p->ccslipol4(s->bedzh,P.X[n],P.Y[n])-p->ccslipol4(s->bedzh0,P.X[n],P.Y[n]));
             std::memcpy(&buffer[m],&ffn,sizeof(float));
             m+=sizeof(float);
