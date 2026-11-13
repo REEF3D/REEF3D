@@ -94,7 +94,7 @@ void driver::stop(lexer *p, fdm *a, ghostcell *pgc)
     if(p->solver_error>=1)
     {
         if(p->mpirank==0)
-        cout<<endl<<"!!! EMERGENCY STOP  --  HYPRE solver broke down!  !!!     "<<p->solver_error<<endl<<endl;
+        cout<<endl<<"!!! EMERGENCY STOP  --  linear solver broke down (NaN in the system or the solution)!  !!!     "<<p->solver_error<<endl<<endl;
         
         if(p->A10==3)
         pprint->print_stop(p,c,pgc);
