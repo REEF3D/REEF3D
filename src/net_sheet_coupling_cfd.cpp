@@ -24,6 +24,7 @@ Author: Tobias Martin
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
+#include<vector>
 
 void net_sheet::coupling_dlm_cfd(lexer *p, fdm *a, ghostcell *pgc)
 {
@@ -57,11 +58,17 @@ void net_sheet::coupling_dlm_cfd(lexer *p, fdm *a, ghostcell *pgc)
         }
     }   
     
+    // the force of a point is on the rank that holds it, zero on the others: one reduction for all
+    // points (it was three for each point: some 13 000 per stage for the 25 nets of OF1)
+    std::vector<double> fsum(3*nK);
     for (int pI = 0; pI < nK; pI++)
-    {
-        Eigen::Vector3d& forceI = lagrangeForces[pI];
-        forceI << pgc->globalsum(forceI(0)), pgc->globalsum(forceI(1)), pgc->globalsum(forceI(2));
-    }
+    for (int q = 0; q < 3; q++)
+    fsum[3*pI+q] = lagrangeForces[pI](q);
+    
+    pgc->globalsum(fsum.data(),3*nK);
+    
+    for (int pI = 0; pI < nK; pI++)
+    lagrangeForces[pI] << fsum[3*pI], fsum[3*pI+1], fsum[3*pI+2];
 
 }
 
