@@ -227,6 +227,10 @@ protected:
     void rk3(lexer*, ghostcell*,int);
     void rkls3(lexer*, ghostcell*,int);
     void rkmid(lexer*, ghostcell*,int);
+    
+    // prescribed motion (motion file): the stage of the integrator ends at p->simtime + cend*p->dt
+    void motion_stage_begin(lexer*, double cend);
+    void motion_stage_end(lexer*);
 
    
    // ray cast 3D: geometry core kernels

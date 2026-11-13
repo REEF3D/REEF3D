@@ -172,7 +172,7 @@ void sixdof_motionext_file::motionext_rot(lexer *p, Eigen::Vector3d& dh_, Eigen:
     de_ = 0.5*G_.transpose()*omega_;
 }
 
-// The velocity of column col of the file at the time t (CFD, the end of a stage of the body integrator):
+// The velocity of column col of the file at the time t (the end of a stage of the body integrator):
 // the velocity at a sample from the samples before and after it (central difference, one-sided at the
 // ends of the file), linear in time between the samples.
 //
@@ -210,34 +210,51 @@ double sixdof_motionext_file::stage_vel(int col, double t)
     return (1.0-w)*node(kstage) + w*node(kstage+1);
 }
 
-// The position of the prescribed translations at the time the stage ends, from the file (linear between
-// the samples), relative to the first sample: the body starts where X 110 / the STL put it.  The pose
-// integrated from the velocity at the end of the stage runs ahead of the file by up to dt/2 times the
-// change of the velocity (2.5 mm of 30 mm at 80 steps per period); the velocity is the target of the
-// forcing, the position is taken from the file.  Not with the ramp of the velocity (X 206)
-void sixdof_motionext_file::stage_position(lexer *p, Eigen::Vector3d &c_)
+// The position of column col of the file at the time t, linear between the samples (the interval
+// kstage of stage_vel)
+double sixdof_motionext_file::stage_pos(int col, double t)
 {
-    const int n = int(data.size());
-
-    if(tstage<-1.0e19 || n<2 || tstage<ts || tstage>te || p->X206==1)
-    return;
-
-    stage_vel(1,tstage);    // the interval kstage
+    stage_vel(col,t);
 
     const double t0 = data[kstage][0], t1 = data[kstage+1][0];
-    const double w = (t1>t0) ? MAX(0.0,MIN(1.0,(tstage-t0)/(t1-t0))) : 0.0;
+    const double w = (t1>t0) ? MAX(0.0,MIN(1.0,(t-t0)/(t1-t0))) : 0.0;
+
+    return (1.0-w)*data[kstage][col] + w*data[kstage+1][col];
+}
+
+// The stage of the body integrator begins: the time it ends (tstage), and at the first stage the offset of
+// the body to the file, c0 = the position at the start of the stage - the file at that time (before the
+// first sample: at the first sample, the body is at rest until then).  The body starts where X 110 / the
+// STL put it.  Taken before the stage: after it the body has already moved by dt times the velocity of
+// the stage (the offset of the file at the end of the stage was off by that).  The same offset after a
+// restart (P 48 / I 45) as long as the body followed the file.
+void sixdof_motionext_file::stage_begin(lexer *p, double t, const Eigen::Vector3d &c_)
+{
+    tstage = t;
+
+    if(c0set || int(data.size())<2 || p->simtime>te)
+    return;
+
+    const double ta = MAX(p->simtime,ts);
+
+    for(int q=0; q<3; ++q)
+    c0[q] = c_(q) - stage_pos(q+1,ta);
+
+    c0set = true;
+}
+
+// The position of the prescribed translations at the time the stage ends, from the file, with the offset
+// of stage_begin.  The pose integrated from the velocity at the end of the stage runs ahead of the file by
+// up to dt/2 times the change of the velocity (2.5 mm of 30 mm at 80 steps per period); the velocity is the
+// target of the forcing, the position is taken from the file.  Not with the ramp of the velocity (X 206)
+void sixdof_motionext_file::stage_position(lexer *p, Eigen::Vector3d &c_)
+{
+    if(!c0set || tstage<-1.0e19 || int(data.size())<2 || tstage<ts || tstage>te || p->X206==1)
+    return;
 
     for(int q=0; q<3; ++q)
     if(dof[q]==2)
-    {
-        if(!c0set[q])
-        {
-        c0[q] = c_(q) - data[0][q+1];
-        c0set[q] = true;
-        }
-
-        c_(q) = c0[q] + (1.0-w)*data[kstage][q+1] + w*data[kstage+1][q+1];
-    }
+    c_(q) = c0[q] + stage_pos(q+1,tstage);
 }
 
 double sixdof_motionext_file::ramp_vel(lexer *p)

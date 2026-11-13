@@ -52,9 +52,10 @@ public:
     // DOF modes of the body (X 11, X 111 for single bodies): 2 is prescribed by this motion
     void set_dof(const int *d) { for(int n=0; n<6; ++n) dof[n]=d[n]; }
 
-    // CFD: the time at the end of the stage of the body integrator (sixdof_obj_cfd::solve_eqmotion_cfd).
-    // A motion file takes its velocity there; not set: at p->simtime, the start of the step
-    void set_stage_time(double t) { tstage = t; }
+    // the stage of the body integrator (sixdof_obj::motion_stage_begin, CFD, NHFLOW, SFLOW and FNPF): the
+    // time it ends, with the position of the body at its start.  A motion file takes its velocity at that
+    // time; not set: at p->simtime, the start of the step
+    virtual void stage_begin(lexer*, double t, const Eigen::Vector3d&) { tstage = t; }
     // the prescribed translations at that time into the position of the body (motion file)
     virtual void stage_position(lexer*, Eigen::Vector3d&) {}
 
