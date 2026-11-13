@@ -1031,6 +1031,8 @@ void control::ctrlrecv()
     dd++;
     B57 = dctrl[dd];
     dd++;
+    B58 = ictrl[ii];
+    ii++;
     B60 = ictrl[ii];
     ii++;
     B61 = ictrl[ii];

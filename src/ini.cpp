@@ -489,6 +489,7 @@ void control::ini_default()
 	B55=-1.0;		// double global wall roughness ks
 	B56=-1.0;		// double global wall roughness ks
     B57=0.0001;       // double global side wall roughness
+    B58=0;            // int bed roughness map: 1 ks per cell from ./ks-map.dat (raster, bilinear; outside: B 50)
 	B60=0;            // int ioflow discharge
 	B61=2;            // int plain or logarithmic inflow profile
     B62=0;            // int SFLOW/NHFLOW discharge inflow across the face: 0 as B 61, 1 by conveyance (depth average u ~ h^(2/3))

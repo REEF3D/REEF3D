@@ -24,6 +24,7 @@ Author: Hans Bihs
 #include"ghostcell.h"
 #include"lexer.h"
 #include"nhflow_amr.h"
+#include"ks_map.h"
 #include"fdm_nhf.h"
 #include"freesurface_header.h"
 #include"turbulence_header.h"
@@ -119,6 +120,14 @@ void driver::driver_ini_nhflow()
     if(p->S10>0 && p->S28==2)
     SLICELOOP4
     d->ks(i,j) = p->B50;
+
+    // B 58 1: the bed roughness from the map ./ks-map.dat (ks_map.h) where B 50 holds, at the cell centroids
+    if(p->B58==1 && (p->S10==0 || p->S28==2))
+    {
+    const ks_map &km = ks_map::get(p);
+    SLICELOOP4
+    d->ks(i,j) = km.at(p->XC2D[IJ],p->YC2D[IJ],p->B50);
+    }
     
     pgc->gcsl_start4(p,d->ks,50);
     
