@@ -36,7 +36,7 @@ double vrans_nhflow_f::porpsi(lexer *p, fdm_nhf *d)
 
 double vrans_nhflow_f::Hporface(lexer *p, fdm_nhf *d, int aa, int bb, int cc)
 {
-    double psi, H, phival_sf,dirac;
+    double psi, H, phival_sf;
     
     psi = porpsi(p,d);
 

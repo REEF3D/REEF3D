@@ -102,7 +102,7 @@ void sixdof_obj_nhflow::force_calc_stl(lexer* p, fdm_nhf *d, ghostcell *pgc, sli
     // and the moment (lever arm x pressure) are integrated exactly, independent of STL resolution.
     // Moment arms are the quadrature points, not the centroid of the unclipped triangle.
     
-    double Fx,Fy,Fz,Fv_x,Fv_y,Fv_z;
+    double Fv_x,Fv_y,Fv_z;
     double Xe_p,Ye_p,Ze_p,Xe_v,Ye_v,Ze_v;
     double A;
     double vx[3],vy[3],vz[3];
@@ -396,10 +396,6 @@ void sixdof_obj_nhflow::force_calc_stl(lexer* p, fdm_nhf *d, ghostcell *pgc, sli
         Ye = Ke = Ne = 0.0;
         Ye_p = Ye_v = 0.0;
     }
-    
-    Fx = Xe;
-    Fy = Ye;
-    Fz = Ze;
     
 	// Add gravity force
 	Xe += p->W20*Mass_fb;

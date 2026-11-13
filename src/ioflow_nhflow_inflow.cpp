@@ -110,9 +110,8 @@ void ioflow_f::inflow_log_nhflow(lexer *p, fdm_nhf *d,ghostcell *pgc, double *U,
     
     double zcoor;
 
-    double depth, ks, H, B, M, I;
-    double tau, shearvel;
-    const double visc = p->W2;
+    double ks, H, B, M, I;
+    double shearvel;
     double ratio=1.0;
 
     // water depth
@@ -140,7 +139,6 @@ void ioflow_f::inflow_log_nhflow(lexer *p, fdm_nhf *d,ghostcell *pgc, double *U,
         H=B=hmax;
         M=26.0/pow(ks,(1.0/6.0));
         I=pow(p->Ui/(M*pow(H,(2.0/3.0))),2.0);
-        tau=(9.81*H*I*1000.0);
 		
 		if(p->mpirank==0 && p->count==0)
 		cout<<"I   "<<I<<endl;

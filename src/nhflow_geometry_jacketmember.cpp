@@ -27,16 +27,11 @@ Author: Hans Bihs
 void nhflow_geometry::jacketmember(lexer *p, ghostcell *pgc, int id)
 {
     double U,ds,eta;
-	double rmax;
 	int snum;
-	int vertice_mem, center1_num,center2_num;
     double alpha,beta,gamma;
-    double dX,dY,dZ,ddX,ddY,ddZ;
+    double dX,dY,dZ;
     double length;
-    double xvec1,yvec1,zvec1;
-    double alpha1,beta1,gamma1;
     double x1,y1,z1;
-    double x2,y2,z2;
     double a1,b1,c1;
     double a2,b2,c2;
     double xm1,ym1,zm1,r1,xm2,ym2,zm2,r2;
@@ -115,8 +110,6 @@ void nhflow_geometry::jacketmember(lexer *p, ghostcell *pgc, int id)
     cout<<"x1: "<<x1<<" y1: "<<y1<<" z1: "<<z1<<endl;
     cout<<"length: "<<length<<endl<<endl;
     }
-
-	rmax = MAX(p->A585_r1[id],p->A585_r2[id]);
 
 	U = 2.0*PI*r1;
 	ds = 0.5*(DSM);

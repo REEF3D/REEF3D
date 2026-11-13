@@ -1335,7 +1335,6 @@ void nhflow_hullbody::loads_cut(lexer *p, fdm_nhf *d, slice &WL, const std::func
         // g (e^2/2 + e h) per layer fraction (nhflow_thinbody::cut_faces), the non-hydrostatic pressure on the open surface
         // (ox, oy); vertically the pressure on the open fractions of the bottom and the top face
         const double eh = tb->head(p,d,i,j,k), pn = tb->pcell(p,P,i,j,k);
-        const double pc = rg*eh + pn;
         const double hh = rg*(0.5*eh*eh + eh*d->depth(i,j));
         
         const double fx = -hh*ax*p->DYN[JP]*p->DZN[KP] - pn*ox;

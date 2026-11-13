@@ -124,7 +124,7 @@ void nhflow_print_wsfline::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *p
 
 void nhflow_print_wsfline::ini_location(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
-    int check,count;
+    int count;
     
     
     for(q=0;q<p->P52;++q)

@@ -56,13 +56,10 @@ void net_barDyn::coupling_dlm_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
     
     //- Save Lagrangian coordinates and forces
      
-    double xc,yc,zc,x0,x1,x2,y0,y1,y2,z0,z1,z2,nx,ny,nz,mag,area; 
+    double xc,yc,zc,x0,x1,x2,y0,y1,y2,z0,z1,z2,mag,area;
    
     lagrangePoints.resize(tend);
     lagrangeForces.resize(tend);
-    
-    int index = 0;
-    int indexSide = 0;
     
     Vector3d side1, side2, normalVec;
     Vector3d v_rel, n_d, n_s, n_l;

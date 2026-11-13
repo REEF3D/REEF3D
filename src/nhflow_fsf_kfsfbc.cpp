@@ -29,7 +29,7 @@ Author: Hans Bihs
 
 void nhflow_fsf_f::kinematic_fsf(lexer *p, fdm_nhf *d, double *U, double *V, double *W, slice &eta)
 {
-    double wval,w_n;
+    double wval;
     double Pval,Qval;
     
     GC4LOOP

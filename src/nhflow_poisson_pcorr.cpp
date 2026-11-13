@@ -47,7 +47,6 @@ nhflow_poisson_pcorr::~nhflow_poisson_pcorr()
 
 void nhflow_poisson_pcorr::start(lexer* p, fdm_nhf *d, double *P)
 {	
-    double ab,denom;
     double cP,cN,cS,cW,cE,cT,cB;
     
     // sigma cross terms: A 529 implicit / explicit, A 530 in porous cells (nhflow_poisson_cross.h)

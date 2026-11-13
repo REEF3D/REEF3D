@@ -33,9 +33,6 @@ Author: Hans Bihs
 
 void nhflow_sigma::omega_update(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL, double *U, double *V, double *W)
 { 
-    double wval,Pval,Qval,Rval,fac;
-    
-
     FLOOP
     d->omegaF[FIJK] = 0.0;
         

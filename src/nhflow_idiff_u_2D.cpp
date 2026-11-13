@@ -50,7 +50,7 @@ void nhflow_idiff_2D::diff_u(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow
 {
 	starttime=pgc->timer();
     
-    double visc_IP,visc_IM1,visc_IP1,visc_JM1,visc_JP1,visc_KM1,visc_KP1;
+    double visc_IP,visc_IM1,visc_IP1,visc_KM1,visc_KP1;
     double visc_IPh,visc_KM1h,visc_KP1h,cvt,cvb;
     
     // HLES split (A 561): horizontal stresses (xx, yy, xy) with nu_h = EVH, stresses with a z index with nu_v = EV

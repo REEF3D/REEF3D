@@ -28,8 +28,6 @@ Author: Hans Bihs
 
 void nhflow_force::triangulation(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
-	int negcount, poscount;
-    
     is = p->posc_i(p->P81_xs[ID]);
     ie = p->posc_i(p->P81_xe[ID]);
     

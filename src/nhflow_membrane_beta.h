@@ -109,7 +109,6 @@ inline bool nhflow_membrane_active(lexer *p, fdm_nhf *d, int i, int j, int k)
 inline double nhflow_membrane_gradx(lexer *p, fdm_nhf *d, const double *P, int i, int j, int k)
 {
     const int marge = increment::marge;
-    const double *B = d->MBETA;
     
     const nhflow_thinbody *tb = d->thinbody;
     const double Pc = tb!=nullptr ? tb->pcell(p,P,i,j,k)   : 0.5*(P[FIJK]+P[FIJKp1]);
@@ -124,7 +123,6 @@ inline double nhflow_membrane_gradx(lexer *p, fdm_nhf *d, const double *P, int i
 inline double nhflow_membrane_grady(lexer *p, fdm_nhf *d, const double *P, int i, int j, int k)
 {
     const int marge = increment::marge;
-    const double *B = d->MBETA;
     
     const nhflow_thinbody *tb = d->thinbody;
     const double Pc = tb!=nullptr ? tb->pcell(p,P,i,j,k)   : 0.5*(P[FIJK]+P[FIJKp1]);
@@ -334,7 +332,6 @@ inline void nhflow_membrane_rc_store(lexer *p, fdm_nhf *d, ghostcell *pgc, const
 {
     int i,j,k;
     const int marge = increment::marge;
-    const double *B = d->MBETA;
     
     LOOP
     {

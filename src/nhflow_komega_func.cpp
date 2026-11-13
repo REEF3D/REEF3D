@@ -221,7 +221,6 @@ void nhflow_komega_func::kinsource(lexer *p, fdm_nhf *d, vrans_nhflow* pvrans)
 void nhflow_komega_func::epssource(lexer *p, fdm_nhf *d, vrans_nhflow* pvrans)
 {
     count=0;
-    double dirac;
 
         LOOP
         {

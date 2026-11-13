@@ -27,7 +27,7 @@ Author: Hans Bihs
 
 void iowave::nhflow_active_wavegen(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V, double *W, double *UH, double *VH, double *WH, slice &WL)
 {
-    double eta_R,Uc,Un,Vc,Wc,eta_T,eta_M,wsf;
+    double eta_R,Uc,eta_T,eta_M;
         
         double etaval=0.0;
         

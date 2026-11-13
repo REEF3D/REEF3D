@@ -404,8 +404,6 @@ void nhflow_suspended_IM1::inflow_conc(lexer *p, fdm_nhf *d, sediment_fdm *s)
 
 void nhflow_suspended_IM1::bcsusp_start(lexer *p, fdm_nhf *d, ghostcell *pgc, sediment_fdm *s, double *CONC)
 {
-    double cval;
-    
         n=0;
         LOOP
         {

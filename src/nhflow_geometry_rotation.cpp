@@ -26,8 +26,6 @@ Author: Hans Bihs
 
 void nhflow_geometry::rotate_triangle(lexer* p, int ts, int te)
 {
-    double beta,xval,yval;
-
 	for(int qr=ts;qr<te;++qr)
 	{
 		rotation(tri_x[qr][0],tri_y[qr][0],tri_z[qr][0],phi,theta,psi);
@@ -78,12 +76,11 @@ void nhflow_geometry::rotation(double &xvec,double &yvec,double &zvec,double phi
 
 void nhflow_geometry::angle_calc(double dX, double dY, double dZ, double &alpha, double &beta, double &gamma)
 {
-    double ddX,ddY,ddZ;
+    double ddX,ddY;
     double eps = 1.0e-10;
 
     ddX = fabs(dX)>eps?dX:1.0e20;
     ddY = fabs(dY)>eps?dY:1.0e20;
-    ddZ = fabs(dZ)>eps?dZ:1.0e20;
 
     // alpha
     if(dY>eps && dZ>eps)

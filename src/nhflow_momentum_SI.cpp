@@ -553,7 +553,6 @@ void nhflow_momentum_SI::step_single(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflo
 void nhflow_momentum_SI::si_corrector(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
     // the second pass of tl2: the face discharges back to t^n, the transport of the estimate (Tx, Ty) stays
-    const int N = p->imax*p->jmax*(p->kmax+2);
 
     layer_loop(p,[&](size_t q){ Qx[q] = Qxn[q]; Qy[q] = Qyn[q]; });
 
@@ -1351,7 +1350,6 @@ void nhflow_momentum_SI::bc_setup(lexer *p, fdm_nhf *d, ghostcell *pgc)
     //  Flather edge (B 520 4): q_in = h (u_n,g + sqrt(g/h) eta^n) - sqrt(g h) eta^{n+1}
     //  radiating faces distribute q over the layers with the profile of the upwind side
     //  the ghost state is that of the start of the step (one step behind the background)
-    const double dt = p->dt;
     const int K = p->knoz;
     double eu,df;
 
@@ -1815,7 +1813,6 @@ void nhflow_momentum_SI::advection(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_
     // step, velocities upwind of the flux (reconstructed, A 514); no gravity wave speed in the
     // dissipation: the Courant number of the flow alone limits the time step; the vertical
     // advection (omega) is implicit in the column operator
-    const int N = p->imax*p->jmax*(p->kmax+2);
 
     // A 510 11: the cells the BCG slopes may use (wet fluid cells; MPI: from the neighbouring ranks, flagslice4 marks
     // only the first ghost column of a rank boundary)
@@ -2757,7 +2754,6 @@ void nhflow_momentum_SI::face_update(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
     // Q_k^{n+1} = r_k ( Q^_k - dt g H_f (theta G^{n+1} + (1-theta) G^n) ) - K_f G^{n+1}
     const double dt = p->dt;
-    const int N = p->imax*p->jmax*(p->kmax+2);
     double G1,G;
 
     SLICELOOP1

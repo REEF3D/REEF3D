@@ -132,8 +132,6 @@ void nhflow_momentum_SI::nh_begin(lexer *p, fdm_nhf *d, ghostcell *pgc)
     //  - omega (the vertical advection of the column operator) at t^{n+1/2}
     // The advecting transport of the predictor is that of the estimate pass of step_single (tl2)
     const double r = p->dt/MAX(p->dt_old,1.0e-20);
-    const size_t ns = (size_t)p->imax*p->jmax;
-
 
     // the face depth of the mass flux (hMx, hMy; si_assemble) between two wet non-shoreline cells, second order in
     // space (BCG): WL of the upwind cell extrapolated to the face and to t^{n+1/2}, WL_f = WL_up + a (1 - a c) g dx/2,

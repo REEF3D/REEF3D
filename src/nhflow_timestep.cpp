@@ -41,8 +41,6 @@ nhflow_timestep::~nhflow_timestep()
 void nhflow_timestep::start(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
     double depthmax=0.0;
-    double posx,posy,posz;
-    int posi,posj,posk;
 
     p->umax=p->vmax=p->wmax=p->viscmax=irsm=jrsm=krsm=p->omegamax=0.0;
     p->epsmax=p->kinmax=p->pressmax=0.0;

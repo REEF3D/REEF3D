@@ -31,7 +31,6 @@ void nhflow_force_ale::force_ale_force(lexer* p, fdm_nhf *d, ghostcell *pgc)
     double ztot=0; // check for strip total
     
     double uvel,vvel,wvel;
-    double axrk;
 
 	Fx=Fy=0;
 	

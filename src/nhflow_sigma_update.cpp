@@ -35,9 +35,6 @@ Author: Hans Bihs
 
 void nhflow_sigma::sigma_update(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL)
 {
-    double wl,sigval;
-    double bx,by,ex,ey;
-    
     SLICELOOP4
     ef(i,j) = d->eta(i,j);
     

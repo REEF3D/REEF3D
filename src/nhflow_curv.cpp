@@ -190,8 +190,6 @@ void nhflow_curv::pgrad_layer(lexer *p, const double *P, int ii, int jj, int kk,
 double nhflow_curv::divh_level(lexer *p, fdm_nhf *d, const double *U, const double *V, int ii, int jj, int kk)
 {
     auto C = [&](int a, int b, int c) { return (a-p->imin)*p->jmax*p->kmax + (b-p->jmin)*p->kmax + c-p->kmin; };
-    auto xc = [&](int a, int b) { return p->XC2D[(a-p->imin)*p->jmax + (b-p->jmin)]; };
-    auto yc = [&](int a, int b) { return p->YC2D[(a-p->imin)*p->jmax + (b-p->jmin)]; };
 
     double faci = p->DZN[kk-1+marge]/(p->DZN[kk+marge]+p->DZN[kk-1+marge]);
     double facj = faci;

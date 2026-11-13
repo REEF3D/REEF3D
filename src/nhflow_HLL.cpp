@@ -535,7 +535,6 @@ void nhflow_HLL::aij_W(lexer *&p,fdm_nhf *&d, int ipol)
     // X 15 6, 7: body faces as reflective walls (mirror state; kn normal, kt tangential momentum; Cartesian grid)
     const double *fbm = ((p->X15==3 || p->X15==6 || p->X15==7) && p->X10>0) ? d->FB : nullptr;
     const bool mir = (p->X15==6 || p->X15==7) && p->X10>0 && p->geo_curv==0;
-    const int kn = mir ? 1 : -1;
     const int kt = mir ? 2 : -1;
 
     // HLL flux 
