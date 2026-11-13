@@ -47,6 +47,7 @@ Architect: Hans Bihs
 #include<algorithm>
 #include<limits>
 #include"definitions.h"
+#include"forcing_share.h"
 
 using PRS = amr_phase<cfd_amr::PR_NPART>;
 
@@ -1516,6 +1517,10 @@ double cfd_amr::forced_share(int g, const int *c, int d)
     fdm *f = gfd(g);
     const int e[3] = {d==0 ? 1 : 0, d==1 ? 1 : 0, d==2 ? 1 : 0};
     const int i0 = c[0], j0 = c[1], k0 = c[2];
+
+    // X 46 1: the share continuous across the surface, one definition for all grids (forcing_share.h)
+    if(q->X46==1)
+    return forcing_share_face(q,f,i0,j0,k0,d);
     const int i1 = i0+e[0], j1 = j0+e[1], k1 = k0+e[2];
 
     // |n_d| of the level set ls at cell c (central differences, as the forcing)

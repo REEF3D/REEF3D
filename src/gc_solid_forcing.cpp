@@ -23,6 +23,7 @@ Authors: Hans Bihs, Tobias Martin, Ahmet Soydan
 #include"ghostcell.h"
 #include"lexer.h"
 #include"fdm.h"
+#include"forcing_share.h"
 
 void ghostcell::solid_forcing(lexer *p, fdm *a, double alpha, field& uvel, field &vvel, field& wvel,
                               field& fx, field &fy, field &fz)
@@ -159,10 +160,14 @@ void ghostcell::solid_forcing(lexer *p, fdm *a, double alpha, field& uvel, field
         
 
 		// Construct the field around the solid body to adjust the tangential velocity and calculate forcing
-		if(phival_sf<0.0)
+		// X 46 1: the share continuous across the surface (forcing_share.h)
+		if(p->X46==1)
+		fx(i,j,k) += forcing_weight_smooth(H,fabs(nx),phival_sf,forcing_psi(p,i,j,k))*(uf - uvel(i,j,k))/(alpha*p->dt);
+
+		if(p->X46!=1 && phival_sf<0.0)
 		fx(i,j,k) += H*(uf - uvel(i,j,k))/(alpha*p->dt); 
 
-		if(phival_sf>=0.0)
+		if(p->X46!=1 && phival_sf>=0.0)
 		fx(i,j,k) +=   fabs(nx)*H*(uf - uvel(i,j,k))/(alpha*p->dt);
 
 
@@ -203,10 +208,14 @@ void ghostcell::solid_forcing(lexer *p, fdm *a, double alpha, field& uvel, field
 		phival_sf = sf_phi(0.5*(a->solid(i,j,k) + a->solid(i,j+1,k)), 0.5*(a->topo(i,j,k) + a->topo(i,j+1,k)));
 	  
 		//Construct the field around the solid body to adjust the tangential velocity and calculate forcing
-	    if(phival_sf<0.0)
+		// X 46 1: the share continuous across the surface (forcing_share.h)
+		if(p->X46==1)
+		fy(i,j,k) += forcing_weight_smooth(H,fabs(ny),phival_sf,forcing_psi(p,i,j,k))*(vf - vvel(i,j,k))/(alpha*p->dt);
+
+		if(p->X46!=1 && phival_sf<0.0)
 		fy(i,j,k) += H*(vf - vvel(i,j,k))/(alpha*p->dt); 
 
-		if(phival_sf>=0.0)
+		if(p->X46!=1 && phival_sf>=0.0)
 		fy(i,j,k) +=   fabs(ny)*H*(vf - vvel(i,j,k))/(alpha*p->dt);
 
 	  
@@ -248,10 +257,14 @@ void ghostcell::solid_forcing(lexer *p, fdm *a, double alpha, field& uvel, field
 		
 		// Construct the field around the solid body to adjust the tangential velocity and calculate forcing
 
-		if(phival_sf<0.0)
+		// X 46 1: the share continuous across the surface (forcing_share.h)
+		if(p->X46==1)
+		fz(i,j,k) += forcing_weight_smooth(H,fabs(nz),phival_sf,forcing_psi(p,i,j,k))*(wf - wvel(i,j,k))/(alpha*p->dt);
+
+		if(p->X46!=1 && phival_sf<0.0)
 		fz(i,j,k) += H*(wf - wvel(i,j,k))/(alpha*p->dt); 
 
-		if(phival_sf>=0.0)
+		if(p->X46!=1 && phival_sf>=0.0)
 		fz(i,j,k) +=   fabs(nz)*H*(wf - wvel(i,j,k))/(alpha*p->dt);
 	
     

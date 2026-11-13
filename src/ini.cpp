@@ -1626,7 +1626,7 @@ void control::ini_default()
 	X43=1.0;    // double distance for shear stress evaluation
 	X44=0.0;    // double viscosity in body
     X45=0;      // int type of lsm convection disc at fb
-    X46=0;      // int 
+    X46=0;      // int direct forcing, tangential mode (B 21 1, X 14 > 0): 1 the share of a face continuous across the surface of the solid or body (forcing_share.h; 0: the switch from the normal component outside to all of it inside at the level set 0)
     X48=2;      // int solid forcing level set: 1 copied into the flagged solids (G 505 1), 2 extrapolated into the solids of the direct forcing, 3 as 2 and into the 6DOF bodies (X 10)
     X49=0;
     X50=1;      // int type of print out format for 6DOF structure
