@@ -479,21 +479,7 @@ void sflow_pjm_quad::poisson(lexer*p, fdm2D* b, slice &WL, double alpha)
 
 void sflow_pjm_quad::upgrad(lexer*p, fdm2D* b, slice &eta)
 {
-    if(p->geo_curv==1)
-    sflow_curv::pgrad(p,b,eta,b->F,1);
-
-    if(p->geo_curv==0)
-    SLICELOOP4
-    WETDRY
-    {
-    // X 402 1: g zeta d(d+ps)/dx with zeta = eta - ps and the face pressure head ps
-    if(p->X10==3 && p->X402==1)
-    b->F(i,j) += fabs(p->W22)*(eta(i,j) - b->pbh(i,j))
-               *(b->dfx(i,j) + 0.5*(b->pbh(i,j)+b->pbh(i+1,j)) - b->dfx(i-1,j) - 0.5*(b->pbh(i-1,j)+b->pbh(i,j)))/p->DXN[IP];
-    
-    else
-    b->F(i,j) += fabs(p->W22)*eta(i,j)*(b->dfx(i,j) - b->dfx(i-1,j))/p->DXN[IP];
-    }
+    bedslope_x(p,b,eta);
     
     // dispersion correction (A 220 3): B g grad(h^3 div(grad(eta)))
     // all derivatives central: the collocated projection only acts through central
@@ -576,20 +562,7 @@ void sflow_pjm_quad::upgrad(lexer*p, fdm2D* b, slice &eta)
 
 void sflow_pjm_quad::vpgrad(lexer*p, fdm2D* b, slice &eta)
 {
-    if(p->geo_curv==1)
-    sflow_curv::pgrad(p,b,eta,b->G,2);
-
-    if(p->geo_curv==0)
-    SLICELOOP4
-    WETDRY
-    {
-    if(p->X10==3 && p->X402==1)
-    b->G(i,j) += fabs(p->W22)*(eta(i,j) - b->pbh(i,j))
-               *(b->dfy(i,j) + 0.5*(b->pbh(i,j)+b->pbh(i,j+1)) - b->dfy(i,j-1) - 0.5*(b->pbh(i,j-1)+b->pbh(i,j)))/p->DYN[JP];
-    
-    else
-    b->G(i,j) += fabs(p->W22)*eta(i,j)*(b->dfy(i,j) - b->dfy(i,j-1))/p->DYN[JP];
-    }
+    bedslope_y(p,b,eta);
     
     // dispersion correction (A 220 3), Ld from upgrad
     if(Bdisp>0.0 && p->geo_curv==1)

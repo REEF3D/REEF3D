@@ -49,7 +49,7 @@ using namespace std;
 //      projection), explicit: dt <= 1.2 dx^2/sqrt(g B h^3), see sflow_etimestep
 //   linear dispersion: omega^2 = g h k^2 (1 + B k^2 h^2) / (1 + a k^2 h^2/3)
 
-class sflow_pjm_quad final : public sflow_pressure_nh, public increment
+class sflow_pjm_quad final : public sflow_pressure_nh
 {
 public:
 

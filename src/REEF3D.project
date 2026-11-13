@@ -2125,6 +2125,7 @@
           <File Name="sflow_pjm_quad.cpp"/>
           <File Name="sflow_pjm_lin.cpp"/>
           <File Name="sflow_hydrostatic.cpp"/>
+          <File Name="sflow_pressure.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Momentum">
           <File Name="sflow_momentum_SI_nh.cpp"/>

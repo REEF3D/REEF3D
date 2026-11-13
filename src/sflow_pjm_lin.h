@@ -36,7 +36,7 @@ using namespace std;
 //   constraint: h div(u) + 2(w + u.grad(d)) = 0
 // linear dispersion: omega^2 = g h k^2 / (1 + k^2 h^2/4)
 
-class sflow_pjm_lin final : public sflow_pressure_nh, public increment
+class sflow_pjm_lin final : public sflow_pressure_nh
 {
 public:
     sflow_pjm_lin(lexer*, fdm2D*,patchBC_interface*);

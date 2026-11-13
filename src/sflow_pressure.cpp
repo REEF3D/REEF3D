@@ -1,0 +1,68 @@
+/*--------------------------------------------------------------------
+REEF3D
+Copyright 2008-2026 Hans Bihs
+
+This file is part of REEF3D.
+
+REEF3D is free software; you can redistribute it and/or modify it
+under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
+for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, see <http://www.gnu.org/licenses/>.
+--------------------------------------------------------------------
+Author: Hans Bihs
+--------------------------------------------------------------------*/
+
+#include"sflow_pressure.h"
+#include"lexer.h"
+#include"fdm2D.h"
+#include"slice.h"
+#include"sflow_curv.h"
+
+void sflow_pressure::bedslope_x(lexer *p, fdm2D *b, slice &eta)
+{
+    if(p->geo_curv==1)
+    {
+    sflow_curv::pgrad(p,b,eta,b->F,1);
+    return;
+    }
+
+    SLICELOOP4
+    WETDRY
+    {
+    // X 402 1: g zeta d(d+ps)/dx with zeta = eta - ps and the face pressure head ps
+    if(p->X10==3 && p->X402==1)
+    b->F(i,j) += fabs(p->W22)*(eta(i,j) - b->pbh(i,j))
+               *(b->dfx(i,j) + 0.5*(b->pbh(i,j)+b->pbh(i+1,j)) - b->dfx(i-1,j) - 0.5*(b->pbh(i-1,j)+b->pbh(i,j)))/p->DXN[IP];
+
+    else
+    b->F(i,j) += fabs(p->W22)*eta(i,j)*(b->dfx(i,j) - b->dfx(i-1,j))/p->DXN[IP];
+    }
+}
+
+void sflow_pressure::bedslope_y(lexer *p, fdm2D *b, slice &eta)
+{
+    if(p->geo_curv==1)
+    {
+    sflow_curv::pgrad(p,b,eta,b->G,2);
+    return;
+    }
+
+    SLICELOOP4
+    WETDRY
+    {
+    if(p->X10==3 && p->X402==1)
+    b->G(i,j) += fabs(p->W22)*(eta(i,j) - b->pbh(i,j))
+               *(b->dfy(i,j) + 0.5*(b->pbh(i,j)+b->pbh(i,j+1)) - b->dfy(i,j-1) - 0.5*(b->pbh(i,j-1)+b->pbh(i,j)))/p->DYN[JP];
+
+    else
+    b->G(i,j) += fabs(p->W22)*eta(i,j)*(b->dfy(i,j) - b->dfy(i,j-1))/p->DYN[JP];
+    }
+}
