@@ -477,7 +477,7 @@ void momentum_FC3_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, s
         LOOP
             a->vof(i,j,k)=vof_rk2(i,j,k);
         pgc->start4(p,a->vof,gcval_vof);
-        pgc->start4(p,vof_rk1,gcval_vof);
+        pgc->start4(p,vof_rk2,gcval_vof);
     
         if(p->F92==3||p->F92==32)
             pplic->calculateSubFractions(p,a,pgc,a->vof);
@@ -653,7 +653,7 @@ void momentum_FC3_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, s
         pplic->updatePhasemarkersCorrection(p,a,pgc,a->vof);
         pgc->start4(p,a->vof,gcval_vof);
         
-        if(p->F92==3||p->F92==33)
+        if(p->F92==3||p->F92==32)
             pplic->calculateSubFractions(p,a,pgc,a->vof);
         pupdate->start(p,a,pgc,a->u,a->v,a->w);
         pgc->start4(p,a->ro,gcval_ro);
