@@ -351,6 +351,30 @@ int main()
         check(mdall<0.6 && mxall<0.7, "still water station, 3 starts x 3 distances: largest mean distance after 12 s "+std::to_string(mdall)+" m, largest "+std::to_string(mxall)+" m");
     }
 
+    // 3i. a current that starts while the fish glides at its station in still water (validation 22): a coasting
+    // body does not move backwards through the water, so the drift is a current at least as large; the brain
+    // reads it while it still glides (before: the glide stopped the estimate, it read none)
+    {
+        swimmer S;
+        sixdof_brain B = brain(0.5, 1.5, {{0.0, 3.5, 0.0, 3.0}});
+        double t = 0.0;
+        S.run(B, t, 15.0);
+        S.cx = -0.1*std::cos(S.h);          // against the heading of the gliding fish
+        S.cz = -0.1*std::sin(S.h);
+        double cg = 0.0;
+        bool glided = false;
+        while(t<20.0 - 1.0e-9)
+        {
+            S.run(B, t, t + 0.5);
+            if(B.last().mode==5 && S.log.back().a==0.0)
+            {
+                glided = true;
+                cg = std::max(cg, -(B.last().cx*std::cos(S.h) + B.last().cz*std::sin(S.h)));
+            }
+        }
+        check(glided && cg>0.05, "current from the drift of a glide: "+std::to_string(cg)+" m/s read against the heading while gliding (true 0.1)");
+    }
+
     // 4. a moving target at 0.25 m/s across, after the fish reached it
     {
         swimmer S;

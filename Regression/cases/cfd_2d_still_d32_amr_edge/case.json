@@ -1,0 +1,16 @@
+{
+ "np": 1,
+ "steps": 150,
+ "description": "Still water (0.10 m) in a closed tank 0.6 x 0.6 m (dx 10 mm) with a solid block (S 10, x 0.20-0.45 m, up to z = 0.15625 m) whose left part lies under the edge of a refined patch (G 1 1, G 15 x 0.30-0.60 m), the faces of the projection closed in the solid (D 32 1), N 40 5 with the inputs of the lock of Ship Hydrodynamics validation 27 (N 59 2, N 57 1, N 54 1, N 63 3, G 8 1, G 29 1). At the patch edge the coarse grid closes its face (both coarse centres inside the block: the cells under the block top, and all cells deep in the block) where the fine grid leaves it open (the fine cells above the top at z = 0.1575 m; the cells around the patch carry no valid solid distance deep in the block): pjm_corr::rhs set the coarse face to 0 and the fine faces kept their flux, a mass source at the patch edge. Before Ship Hydrodynamics patch 0065 the air over the block accelerated without bound (largest velocity 0.30 m/s after 15 steps, 1.37 m/s after 150 steps, growing by 1 % per step); with cfd_amr::cf_shut (closed on either grid) the water stays at rest (below 1e-3 m/s).",
+ "tags": [
+  "quick",
+  "2d",
+  "levelset",
+  "solid",
+  "closed",
+  "amr"
+ ],
+ "covers": [
+  "cfd_amr_press.cpp cf_shut: pr_predict, pr_matrix, pr_level (the face of a patch edge closed on the coarse grid)"
+ ]
+}
