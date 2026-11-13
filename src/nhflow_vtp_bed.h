@@ -52,7 +52,6 @@ public:
 private:
     void print2D(lexer*,fdm_nhf*,ghostcell*,sediment*);
     void pvtp(lexer*,sediment*,int);
-    static std::vector<std::pair<const char*,slice*>> scour_fields(scour_core*);
 
     char name[200];
     int n,iin,offset[200];

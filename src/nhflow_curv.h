@@ -89,9 +89,6 @@ public:
     // rule), and of the four horizontal neighbour values
     static void grad5(lexer*, int i, int j, double fE, double fW, double fN, double fS, double &fx, double &fy);
 
-    // gradient from limited index derivatives f_xi, f_eta (per index) of cell (i,j)
-    static void grad_idx(lexer*, int i, int j, double fxi, double feta, double &fx, double &fy);
-
     // limited gradient (the limiter of nhflow_gradient, A 524 2): the limited derivatives along the
     // i- and j-lines of the cell centres, the gradient that has them as directional derivatives
     // (identical to the Cartesian one on Cartesian nodes); fE..fS the neighbours of fC

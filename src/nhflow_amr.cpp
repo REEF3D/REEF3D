@@ -1472,13 +1472,6 @@ void nhflow_amr::pweights(lexer *q, int ic, int jc, int ox, int oy, double *w, i
     }
 }
 
-double nhflow_amr::pq(slice &f, lexer *q, int ic, int jc, int ox, int oy, int mode)
-{
-    double w[25];
-    pweights(q,ic,jc,ox,oy,w,mode);
-    return pqw(f,q,ic,jc,w);
-}
-
 // with the weights w of pweights
 double nhflow_amr::pqw(slice &f, lexer *q, int ic, int jc, const double *w)
 {
@@ -1491,14 +1484,6 @@ double nhflow_amr::pqw(slice &f, lexer *q, int ic, int jc, const double *w)
         r += c*f(ic+di,jc+dj);
     }
     return r;
-}
-
-// layer kk of a cell-layout array (cl true) or node kk of an F-layout array
-double nhflow_amr::pq3(const double *f, lexer *q, int ic, int jc, int ox, int oy, int kk, bool cl, int mode)
-{
-    double w[25];
-    pweights(q,ic,jc,ox,oy,w,mode);
-    return pq3w(f,q,ic,jc,kk,cl,w);
 }
 
 double nhflow_amr::pq3w(const double *f, lexer *q, int ic, int jc, int kk, bool cl, const double *w)

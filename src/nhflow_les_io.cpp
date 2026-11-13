@@ -157,10 +157,6 @@ void nhflow_les_io::inflow(lexer* p, fdm_nhf *d, ghostcell* pgc)
 {
 }
 
-void nhflow_les_io::tau_calc(fdm_nhf *d, lexer* p, double maxwdist)
-{
-}
-
 void nhflow_les_io::isource(lexer *p, fdm_nhf *d)
 {
 	LOOP

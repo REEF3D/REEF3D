@@ -313,14 +313,6 @@ void nhflow_pjm::rhs(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V,
     d->thinbody->projection_rhs(p,d,U,V,W,alpha);
 }
 
-void nhflow_pjm::bedbc(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V, double *W,double alpha)
-{
-}
-
-void nhflow_pjm::vel_setup(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V, double *W,double alpha)
-{
-}
-
 void nhflow_pjm::upgrad(lexer*p, fdm_nhf *d, slice &WL)
 {
     // curvilinear grid: g eta sum(d_face S_face)/A (nhflow_curv.h)

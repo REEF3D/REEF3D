@@ -37,12 +37,6 @@ nhflow_komega_func::~nhflow_komega_func()
 {
 }
 
-void  nhflow_komega_func::clearfield(lexer *p, fdm_nhf *d, double *F)
-{
-	LOOP
-	F[IJK]=0.0;
-}
-
 // curvilinear grid (G 50): horizontal derivative along the sigma layer by the chain rule
 static inline double curv_kx(lexer *p, double *f, int i, int j, int k, int comp)
 {

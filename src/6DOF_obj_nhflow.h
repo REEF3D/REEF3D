@@ -126,14 +126,12 @@ public:
 
 private:
     
-    void hydrodynamic_forces_nhflow_volume(lexer*, fdm_nhf*, ghostcell*, double*, double*, double*, slice&, int, bool);
     void externalForces_nhflow(lexer*, fdm_nhf*, ghostcell*, double, bool);
     void netForces_nhflow(lexer*, fdm_nhf*, ghostcell*, double, bool);
     void geometry_parameters_nhflow(lexer*, fdm_nhf*, ghostcell*);
     void geometry_ls_nhflow(lexer*, fdm_nhf*, ghostcell*);
     void update_trimesh_nhflow(lexer*, fdm_nhf*, ghostcell*, bool);
     void ray_cast(lexer*, fdm_nhf*, ghostcell*);
-    int  clip_facet_poly(lexer*,double,double,double,double,double,double,double,double,double, double,double*,double*,double*);
     void nhflow_reini_RK2(lexer*, fdm_nhf*, ghostcell*, double*);
     void allocate(lexer*,fdm_nhf*,ghostcell*);
     void deallocate(lexer*,fdm_nhf*,ghostcell*);
@@ -147,8 +145,6 @@ private:
     void addpoint(lexer*,fdm_nhf*,int,int);
     void finalize(lexer*,fdm_nhf*);
     double triangle_area(lexer*,double,double,double,double,double,double,double,double,double);
-    double clip_edge_vol(double,double,double);
-    void buoyancy_nhflow(lexer*, fdm_nhf*, ghostcell*, double, double&, double&, double&, double&);
     
     nhflow_reinidisc_fsf *pnhfrdisc;
     int *IO,*CR,*CL;

@@ -104,8 +104,6 @@ public:
     
 private:
 	
-    // hires gradient
-    double limiter(double v1, double v2);
     double starttime;
     
     double denom,val,r,phival;

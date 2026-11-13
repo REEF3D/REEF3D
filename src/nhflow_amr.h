@@ -371,8 +371,6 @@ private:
     // (G 30) selects the coarse cells the stencil may use: 0 fluid, 1 wet (surface, velocities),
     // 2 wet and deep (pressure)
     void pweights(lexer*, int, int, int, int, double*, int=0);
-    double pq(slice&, lexer*, int, int, int, int, int=0);
-    double pq3(const double*, lexer*, int, int, int, int, int, bool, int=0);
     double pqw(slice&, lexer*, int, int, const double*);
     double pq3w(const double*, lexer*, int, int, int, bool, const double*);
     double plin(slice&, lexer*, int, int, int, int);

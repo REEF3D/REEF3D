@@ -111,13 +111,3 @@ void sixdof_nhflow::jsource2D(lexer *p, fdm2D *b, ghostcell *pgc)
 {
 }
 
-double sixdof_nhflow::limiter(double v1, double v2)
-{
-    r=v2/(fabs(v1)>1.0e-10?v1:1.0e20);
-    
-    phival = (r*r + r)/(r*r+1.0);
-    
-    val = 0.5*phival*(v1+v2);
-
-    return val;	
-}

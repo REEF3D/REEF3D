@@ -558,30 +558,6 @@ void nhflow_suspended_IM1::fillconc(lexer* p, fdm_nhf *d, ghostcell *pgc, sedime
     pgc->gcsl_start4(p,s->qbs,1);
 }
 
-double nhflow_suspended_IM1::Rouse_formula(lexer* p, fdm_nhf *d, sediment_fdm *s, double Cc)
-{
-    double Ca;    
-    double za,zc,P;
-    
-    za = 2.0*p->S20;
-    
-    zc = 0.5*p->DZN[KP]*p->WL[IJ];
-    
-    P = s->ws/(0.4* (s->shearvel_eff(i,j)>0.0?s->shearvel_eff(i,j):1.0e-6) );
-    
-    P = MAX(P,0.8);
-    P = MIN(P,2.5);
-    
-    
-    Ca = Cc * pow( ((p->WL[IJ]-za)/za) / ((p->WL[IJ]-zc)/zc), P);
-    
-    Ca = MIN(Ca,0.1);
-    
-    //cout<<"Cc: "<<Cc<<" Ca: "<<Ca<<" | P: "<<P<<" "<<s->shearvel_eff(i,j)<<endl;
-
-    return Ca;
-}
-
 void nhflow_suspended_IM1::clearrhs(lexer* p, fdm_nhf *d)
 {
     n=0;

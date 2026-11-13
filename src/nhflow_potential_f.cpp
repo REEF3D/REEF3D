@@ -244,16 +244,6 @@ void nhflow_potential_f::wcalc(lexer *p, fdm_nhf *d)
     }
 }
 
-void nhflow_potential_f::rhs(lexer *p, fdm_nhf *d)
-{
-    count=0;
-    LOOP
-    {
-    d->rhsvec.V[count] = 0.0;
-    count++;
-    }
-}
-
 void nhflow_potential_f::laplace(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
     n=0;

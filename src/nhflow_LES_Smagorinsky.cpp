@@ -72,14 +72,7 @@ void nhflow_LES_Smagorinsky::etimesave(lexer *p, fdm_nhf* d, ghostcell *pgc)
 {
 }
 
-void nhflow_LES_Smagorinsky::kinupdate(lexer *p, fdm_nhf* d, ghostcell *pgc)
-{
-}
-
 void nhflow_LES_Smagorinsky::timesource(lexer* p, fdm_nhf* d, double *FN)
 {
 }
 
-void nhflow_LES_Smagorinsky::clearrhs(lexer* p, fdm_nhf *d)
-{
-}

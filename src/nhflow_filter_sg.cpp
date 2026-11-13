@@ -78,29 +78,6 @@ void nhflow_filter::filter_sg(lexer *p, ghostcell *pgc, slice &f)
 }
 
 // ---------------------------------------------------------------------
-// Filter "in" into "out" (distinct slices). Single pass, no buffer.
-// ---------------------------------------------------------------------
-void nhflow_filter::filter_sg(lexer *p, ghostcell *pgc, slice &in, slice &out)
-{
-    pgc->gcsl_start4(p, in, 1);
-
-    SLICELOOP4
-    {
-        double val=0.0;
-        int k=0;
-        for(int dv=-hw; dv<=hw; ++dv)
-        for(int du=-hw; du<=hw; ++du)
-        {
-            val += kernel[k]*in(i+du, j+dv);
-            ++k;
-        }
-        out(i,j) = val;
-    }
-
-    pgc->gcsl_start4(p, out, 1);
-}
-
-// ---------------------------------------------------------------------
 // Precompute the smoothing kernel from the 2D least-squares normal
 // equations. The fitted value at the window centre equals the constant
 // term of the polynomial, so the kernel weight for each window point k is

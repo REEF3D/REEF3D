@@ -41,13 +41,6 @@ public:
     // Savitzky-Golay filter smooth f in place; iterations>1 applies the filter repeatedly
     void filter_sg(lexer*, ghostcell*, slice& f);
 
-    // Savitzky-Golay filter smooth "in" into a separate output slice "out" (single pass)
-    void filter_sg(lexer*, ghostcell*, slice& in, slice& out);
-    
-    // linear filter with predictor corrector step
-
-    // dump the convolution kernel (rank 0) for inspection
-
 private:
     void build_coeffs(lexer*);
     void invert(std::vector<std::vector<double> > M,

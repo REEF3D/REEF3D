@@ -37,15 +37,6 @@ namespace
 lagoon_surface *lagoon_bed = nullptr;  // P 18
 }
 
-// the point data of the scour option (P 187) in the order of the file
-std::vector<std::pair<const char*,slice*>> nhflow_vtp_bed::scour_fields(scour_core *s)
-{
-    std::vector<std::pair<const char*,slice*>> f;
-    for(int q=0; q<scour_core::NQ; ++q)
-    f.push_back({scour_core::name(q),s->field(q)});
-    return f;
-}
-
 nhflow_vtp_bed::nhflow_vtp_bed(lexer *p)
 {
     if(p->I40==0)

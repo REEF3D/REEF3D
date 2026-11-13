@@ -67,7 +67,6 @@ private:
     slice4 ED,RT;
     double acc[2];
     unsigned long long ckid;
-    double Rouse_formula(lexer*,fdm_nhf*,sediment_fdm*,double); 
     
     int count,q;
 };

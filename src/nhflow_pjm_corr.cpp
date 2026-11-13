@@ -253,14 +253,6 @@ void nhflow_pjm_corr::rhs(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, doubl
     d->thinbody->projection_rhs(p,d,U,V,W,alpha);
 }
 
-void nhflow_pjm_corr::bedbc(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V, double *W,double alpha)
-{
-}
-
-void nhflow_pjm_corr::vel_setup(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V, double *W,double alpha)
-{
-}
-
 void nhflow_pjm_corr::ucorr(lexer* p, fdm_nhf *d, slice &WL, double *UH, double *PCORR, double alpha)
 {
     const bool ho = nhflow_pjm_ho::active(p,d);
@@ -408,13 +400,3 @@ void nhflow_pjm_corr::wpgrad(lexer*p, fdm_nhf *d, slice &WL)
     d->H[IJK] -= (d->thinbody!=nullptr && d->MBETA!=nullptr ? MBETAVAL : 1.0)*(1.0/p->W1)*((d->P[FIJKp1]-d->P[FIJK])/(p->DZN[KP]));
 }
 
-double nhflow_pjm_corr::limiter(double v1, double v2)
-{
-    denom = fabs(v1) + fabs(v2);
-    
-    denom = fabs(denom)>1.0e-10?denom:1.0e10;
-    
-    val =  (v1*fabs(v2) + fabs(v1)*v2)/denom;
-
-    return val;	
-}

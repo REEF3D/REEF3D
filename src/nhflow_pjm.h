@@ -52,8 +52,6 @@ public:
     void wpgrad(lexer*,fdm_nhf*,slice&) override final;
     
     void rhs(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,double);
-	void vel_setup(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,double);
-    void bedbc(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,double);
 
 private:
     

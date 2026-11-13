@@ -54,11 +54,8 @@ public:
     void presscorr(lexer*p,fdm_nhf*,ghostcell*,slice&,double*,double*,double);
     
     void rhs(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,double);
-	void vel_setup(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,double);
-    void bedbc(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,double);
 
 private:
-    double limiter(double,double);
     
 	double starttime,endtime;
     int check;
