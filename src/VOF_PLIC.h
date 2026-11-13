@@ -50,21 +50,12 @@ public:
     void start(fdm*,lexer*, convection*, solver*, ghostcell*,ioflow*, reini*, field&) override final;
     void RKcalcL(fdm*,lexer*,ghostcell*, field&, field&, field&);
     void RK_redistance(fdm*,lexer*,ghostcell*);
-    void updatePhasemarkers(lexer*,fdm*,ghostcell*,field&);
-    void updatePhasemarkersCompression(lexer*,fdm*,ghostcell*,field&);
     void updatePhasemarkersCorrection(lexer*,fdm*,ghostcell*,field&);
     void calculateSubFractions(lexer*,fdm*,ghostcell*,field&);
     void surface_tension2D(lexer*,fdm*,ghostcell*,int);
-    void updatePlaneData(lexer*,fdm*,ghostcell*,field&);
-    double return_alpha_reconstructPlane_alt(fdm*, lexer*,field&,int,int,int);
     
 	
 private:	
-    void iniphi(fdm*, lexer*,ghostcell*);
-	void iniphi_io(fdm*, lexer*,ghostcell*);
-    void iniphi_box(lexer*,fdm*,ghostcell*);
-    void iniphi_surfarea(lexer*,fdm*,ghostcell*);
-    int conv(double);
 	
 
 	void ininorVecLS(lexer*);
@@ -99,7 +90,6 @@ private:
     void calcNormalMYC2D_V2(fdm*,lexer*, field&);
     void calcNormalMYC2D_V3(fdm*,lexer*, field&);
     int searchMarkerInVicinity(lexer*,fdm*,int,double,int,int,int);
-    int searchMarkerAlongDims(lexer*,fdm*,int,double,int,int,int);
     void markerNear(lexer*,fdm*,double,int,std::vector<char>&);
     std::vector<char> nearmask;
     double twoStepVel(lexer*,fdm*,double,double,double);

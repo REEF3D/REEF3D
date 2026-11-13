@@ -2021,7 +2021,6 @@
             <File Name="VOF_void.cpp"/>
             <VirtualDirectory Name="FCRK3_functions">
               <File Name="VOF_PLIC_COSMIC3D_fieldloops.cpp"/>
-              <File Name="VOF_PLIC_updatePlaneData.cpp"/>
               <File Name="VOF_PLIC_surfaceTension.cpp"/>
               <File Name="VOF_PLIC_calculateSubFracions.cpp"/>
               <File Name="VOF_PLIC_updatePhasemarkers.cpp"/>
@@ -2033,7 +2032,6 @@
             </VirtualDirectory>
             <File Name="VOF_PLIC_redistance_Bonn.cpp"/>
             <File Name="VOF_PLIC_reconstruction_alt.cpp"/>
-            <File Name="VOF_PLIC_inilsVOF.cpp"/>
             <File Name="VOF_PLIC_normalVector.cpp"/>
             <File Name="VOF_PLIC.cpp"/>
           </VirtualDirectory>

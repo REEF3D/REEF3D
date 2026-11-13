@@ -911,18 +911,6 @@ void momentum_FCC3_PLIC::krhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field 
 }
 
 
-void momentum_FCC3_PLIC::utimesave(lexer *p, fdm *a, ghostcell *pgc)
-{
-}
-
-void momentum_FCC3_PLIC::vtimesave(lexer *p, fdm *a, ghostcell *pgc)
-{
-}
-
-void momentum_FCC3_PLIC::wtimesave(lexer *p, fdm *a, ghostcell *pgc)
-{
-}
-
 void momentum_FCC3_PLIC::clear_FGH(lexer *p, fdm *a)
 {
     ULOOP
