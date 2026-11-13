@@ -170,7 +170,7 @@ def run(case):
     nets = [list(c) for c in case.get("nets", [])]
     fl = case.get("flow", {"type": "uniform", "u": [0.0, 0.0, 0.0]})
     flow = UniformFlow3(fl["u"]) if fl["type"] == "uniform" else Reef3dFlow3(fl["run"], fl.get("t0"), fl.get("t1"))
-    t_start = case.get("t_start", 1.0 + 1.0 / f0)
+    t_start = case.get("t_start", max(1.0, 0.5 / f0))              # the brain starts at the end of the ramp
 
     fish = []
     spec = case["fish"]

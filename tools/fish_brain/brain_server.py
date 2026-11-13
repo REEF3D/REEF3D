@@ -80,6 +80,7 @@ def rules(sv, st, pr):
         st["ug"], st["tdec"], st["pdec"], st["bdec"], st["Tprev"], st["vT"] = -1.0, t, list(c), b, None, [0.0, 0.0, 0.0]
         st["adec"] = a
         st["tauc"] = TAUC0
+        st["refr"] = max(st.get("refr", -1.0), t + 1.0 / f0)   # no escape in the first tail beat (the start-up)
     dt = t - st["tdec"]
     if dt > 0.0:
         y = [(c[p0] - st["pdec"][p0]) / dt, (c[p1] - st["pdec"][p1]) / dt]

@@ -268,9 +268,12 @@ void sixdof_obj::brain_setup(lexer *p)
     taud = p->X201_d[n];
     }
     
+    // the brain starts at the end of the ramp of the gait (X 195), after half a tail beat at least (until patch
+    // 0027 a tail beat later: a fish started below its station in a current was carried past it by the start-up
+    // gait and had to turn round, validations 18, 19, 21)
     delete brain_;
     brain_ = new sixdof_brain(p->X193_U[nb], p->X193_b[nb], p->X193_D[nb], p->X193_the[nb], f0, fish_->length(), p->W1,
-                              tramp + 1.0/f0, fish_->lateral(), tp, s0, kturn, tauu, taud);
+                              std::max(tramp, 0.5/f0), fish_->lateral(), tp, s0, kturn, tauu, taud);
     
     // the largest frequency of the brain fixes the step of the recoil quadrature
     fish_->set_fcap(brain_->fmax());
@@ -297,7 +300,7 @@ void sixdof_obj::brain_setup(lexer *p)
         
         char hello[1024];
         snprintf(hello,sizeof(hello),"{\"hello\":1,\"body\":%d,\"L\":%.17g,\"f0\":%.17g,\"rho\":%.17g,\"U_des\":%.17g,\"b_max\":%.17g,\"D\":%.17g,\"th_esc\":%.17g,\"t_start\":%.17g,\"twoD\":%d,\"s0\":%.17g,\"k_turn\":%.17g,\"tau_u\":%.17g,\"tau_d\":%.17g}",
-                 n6DOF, fish_->length(), f0, p->W1, p->X193_U[nb], p->X193_b[nb], p->X193_D[nb], p->X193_the[nb], tramp + 1.0/f0, fish_->lateral()==2 ? 1 : 0,
+                 n6DOF, fish_->length(), f0, p->W1, p->X193_U[nb], p->X193_b[nb], p->X193_D[nb], p->X193_the[nb], std::max(tramp, 0.5/f0), fish_->lateral()==2 ? 1 : 0,
                  brain_->stride_prior(), brain_->turn_rate(), brain_->speed_time_up(), brain_->speed_time_down());
         
         if(!brain_link_->exchange(hello, in, 60.0))

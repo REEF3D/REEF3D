@@ -153,6 +153,9 @@ sixdof_brain::decision sixdof_brain::decide(double t, double f, double a, double
         tauc_ = brain_tauc0;
         nkf_ = 0;
         kf_on_ = true;
+        // no escape in the first tail beat: the pressures of the start-up (the gait still ramping up) are no
+        // stimulus
+        refr_ = std::max(refr_, t + 1.0/f0_);
     }
 
     const double dt = t - tdec_;
