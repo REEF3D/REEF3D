@@ -24,6 +24,7 @@ Author: Hans Bihs
 #include"pic_gfm.h"
 #include"solid_closed.h"
 #include"forcing_share.h"
+#include"solid_aperture.h"
 #include"lexer.h"
 #include"fdm.h" 
 #include"ghostcell.h"
@@ -128,6 +129,10 @@ void pjm_corr::amr_prepare(lexer *p, fdm *a, poisson *ppois, ghostcell *pgc, fie
     pn(i,j,k) = a->press(i,j,k);
 
 	vel_setup(p,a,pgc,uvel,vvel,wvel,alpha);	
+
+    // D 1 2: the open fractions of the faces at the solids and the bed
+    solid_aperture_update(p,a,pgc);
+
     rhs(p,a,pgc,uvel,vvel,wvel,alpha);
     
     ppois->start(p,a,pcorr);
@@ -145,6 +150,9 @@ void pjm_corr::amr_finish(lexer *p, fdm *a, ghostcell *pgc, field &uvel, field &
     if(!gfm_single(p))
     reference_start(p,a,pgc);
 	pgc->start4(p,a->press,gcval_press);
+
+    // D 1 2: the pressure of the cells inside the solids from the fluid
+    solid_press_extend(p,a,pgc,a->press,gcval_press);
     
 	ucorr(p,a,uvel,alpha);
 	vcorr(p,a,vvel,alpha);
@@ -265,7 +273,7 @@ void pjm_corr::rhs(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, field &
     // D 32: the faces closed in the solids (solid_closed.h) take no flux.  The forcing left the
     // share 1-H of the velocity there (H < 1 within the smoothing width of the solid surface) and
     // the next predictor would add the pressure gradient across the closed face: set to 0
-    if(p->D32>0)
+    if(solid_walls(p))
     LOOP
     {
         if(p->flag4[Ip1JK]>0 && solid_face_closed(p,a,i,j,k,1,0,0))
@@ -287,6 +295,28 @@ void pjm_corr::rhs(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, field &
         w(i,j,k-1) = 0.0;
     }
 
+    // D 1 2: the fluxes through the open fractions of the faces (solid_aperture.h); the faces at the
+    // edges of the domain are whole
+    if(p->D1==2 && solid_walls(p))
+    {
+    count=0;
+    LOOP
+    {
+    const double Ae = p->flag4[Ip1JK]>0 ? a->apx(i,j,k) : 1.0;
+    const double Aw = p->flag4[Im1JK]>0 ? a->apx(i-1,j,k) : 1.0;
+    const double An = (p->j_dir==1 && p->flag4[IJp1K]>0) ? a->apy(i,j,k) : 1.0;
+    const double As = (p->j_dir==1 && p->flag4[IJm1K]>0) ? a->apy(i,j-1,k) : 1.0;
+    const double At = p->flag4[IJKp1]>0 ? a->apz(i,j,k) : 1.0;
+    const double Ab = p->flag4[IJKm1]>0 ? a->apz(i,j,k-1) : 1.0;
+
+    a->rhsvec.V[count] =  -(Ae*u.V[IJK] - Aw*u.V[Im1JK])/(alpha*p->dt*p->DXN[IP])
+                          -(An*v.V[IJK] - As*v.V[IJm1K])/(alpha*p->dt*p->DYN[JP])*p->y_dir
+                          -(At*w.V[IJK] - Ab*w.V[IJKm1])/(alpha*p->dt*p->DZN[KP]);
+    ++count;
+    }
+    }
+    else
+    {
     count=0;
     LOOP
     {
@@ -295,6 +325,7 @@ void pjm_corr::rhs(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, field &
                           -(w.V[IJK] - w.V[IJKm1])/(alpha*p->dt*p->DZN[KP]);
                            
     ++count;
+    }
     }
     
     // CPM two-way coupling: mixture continuity, div(u) = -div(theta u_p)

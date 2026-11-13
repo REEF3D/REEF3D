@@ -29,6 +29,7 @@ Architect: Hans Bihs
 #include"lexer.h"
 #include"fdm.h"
 #include"solid_closed.h"
+#include"solid_aperture.h"
 #include"ghostcell.h"
 #include"heaviside.h"
 #include"interface_width.h"
@@ -55,7 +56,7 @@ using PRS = amr_phase<cfd_amr::PR_NPART>;
 // fine cell and the cell around the patch across the face
 static bool cf_closed(lexer *pp, fdm *a, const cfd_amr_cf &F)
 {
-    if(pp->D32<=0)
+    if(pp->D32<=0 && pp->D1!=2)
     return false;
     int e[3] = {0,0,0};
     e[F.d] = F.dir;
@@ -454,6 +455,7 @@ void cfd_amr::pr_setup()
                     F.area /= double(rr[e]);
 
                     F.ustar = F.kf = F.kc = 0.0;
+                    F.ap = 1.0;
                     F.gs = F.gf = 1.0;
                     F.fw = F.cw = true;
                     cf.push_back(F);
@@ -1140,6 +1142,10 @@ void cfd_amr::pr_level_solve(int l, int kr, int kz, int kc)
 // and its leaf neighbours in the transverse directions (pr_weights)
 void cfd_amr::pr_stencils()
 {
+    // D 1 2: the open fractions of the faces (the cells of the solids below)
+    pr_apertures();
+    const bool walls = p0->D1==2 && (p0->solidread>0 || p0->topoforcing>0);
+
     for(cfd_amr_cf &F : cf)
     {
         const int lc = CP(F.pid)->lev-1;
@@ -1182,9 +1188,22 @@ void cfd_amr::pr_stencils()
             int cm[3] = {F.ci[0],F.ci[1],F.ci[2]}, cp[3] = {F.ci[0],F.ci[1],F.ci[2]};
             cm[t] -= 1;
             cp[t] += 1;
-            if(leaf(cm))
+            // D 1 2: not a cell of a solid (all faces closed: its pressure is not one of the flow,
+            // and the coarse value at the height of a fine cell next to the surface of a solid took
+            // it: an air flow of 4e-3 m/s over a block under a patch edge in still water), and not
+            // a cell behind a closed face
+            auto fluid = [&](int *cl, int dir) -> bool
+            {
+                if(!walls)
+                return true;
+                int e[3] = {0,0,0};
+                e[t] = dir;
+                fdm *fc = gfd(F.gc);
+                return !solid_cell_closed(qc,fc,cl[0],cl[1],cl[2]) && !solid_face_closed(qc,fc,F.ci[0],F.ci[1],F.ci[2],e[0],e[1],e[2]);
+            };
+            if(leaf(cm) && fluid(cm,-1))
             F.tq[t][0] = cell_index(qc,cm[0],cm[1],cm[2]);
-            if(leaf(cp))
+            if(leaf(cp) && fluid(cp,1))
             F.tq[t][1] = cell_index(qc,cp[0],cp[1],cp[2]);
         }
     }
@@ -1536,7 +1555,8 @@ double cfd_amr::forced_share(int g, const int *c, int d)
     };
 
     double H = 0.0;
-    if(q->G505==0 && (q->solidread>0 || q->topoforcing>0))
+    // (D 1 2: no forcing at the solids and the bed, they are walls of the projection)
+    if(q->G505==0 && q->D1!=2 && (q->solidread>0 || q->topoforcing>0))
     {
         const double phs = 0.5*(f->solid(i0,j0,k0)+f->solid(i1,j1,k1));
         const double pht = 0.5*(f->topo(i0,j0,k0)+f->topo(i1,j1,k1));
@@ -1569,6 +1589,99 @@ double cfd_amr::forced_share(int g, const int *c, int d)
     return MAX(0.0,MIN(1.0,H));
 }
 
+// D 1 2: the open fractions of the faces at the patch edges (solid_aperture.h).
+//
+// Every grid has the open fractions of its own faces, from the distance to the solids at its own
+// resolution.  A face of a patch edge is one face of the composite grid, on the grid of the fine
+// cell: the fine row and the coarse row take its flux A_f u_f and its coupling A_f/(rho d) (kf, kc
+// of pr_matrix).  The coarse face of the edge is the sum of its fine faces: its open fraction is
+// their area-weighted mean (set on the coarse grid here, instead of the one the coarse grid cuts
+// itself: the right-hand side of the coarse cell reads it), its velocity the flux of the fine
+// faces over that (cf_weight), so that both sides of the edge see the same flux and the composite
+// operator is conservative across it.  A coarse face whose fine faces are all closed is closed.
+void cfd_amr::pr_apertures()
+{
+    if(p0->D1!=2 || (p0->solidread<=0 && p0->topoforcing<=0))
+    return;
+
+    solid_aperture_update(p0,a0,pgc0);
+    for(int id=0; id<npat; ++id)
+    {
+        cfd_amr_patch *c = CP(id);
+        cfd_amr_scope ps(pgc0,c->a,a0);
+        solid_aperture_update(c->pp,c->a,pgc0);
+    }
+
+    auto apf = [](fdm *f, int d) -> field& { return (d==0) ? (field&)f->apx : (d==1 ? (field&)f->apy : (field&)f->apz); };
+
+    for(cfd_amr_cf &F : cf)
+    {
+        cfd_amr_patch *c = CP(F.pid);
+        F.ap = apf(c->a,F.d)(F.ff[0],F.ff[1],F.ff[2]);
+
+        apf(gfd(F.gface),F.d)(F.cf[0],F.cf[1],F.cf[2]) = 0.0;
+        if(F.dir>0 && F.gc!=F.gface)
+        {
+            int cc[3] = {F.ci[0],F.ci[1],F.ci[2]};
+            cc[F.d] -= 1;
+            apf(gfd(F.gc),F.d)(cc[0],cc[1],cc[2]) = 0.0;
+        }
+    }
+    for(cfd_amr_cf &F : cf)
+    {
+        apf(gfd(F.gface),F.d)(F.cf[0],F.cf[1],F.cf[2]) += F.area*F.ap;
+        if(F.dir>0 && F.gc!=F.gface)
+        {
+            int cc[3] = {F.ci[0],F.ci[1],F.ci[2]};
+            cc[F.d] -= 1;
+            apf(gfd(F.gc),F.d)(cc[0],cc[1],cc[2]) += F.area*F.ap;
+        }
+    }
+}
+
+// the share of the fine face F in the velocity of its coarse face: its area; D 1 2: its open area
+// over the open area of the coarse face (pr_apertures)
+double cfd_amr::cf_weight(const cfd_amr_cf &F)
+{
+    if(p0->D1!=2 || (p0->solidread<=0 && p0->topoforcing<=0))
+    return F.area;
+
+    fdm *f = gfd(F.gface);
+    const double Ac = (F.d==0) ? f->apx(F.cf[0],F.cf[1],F.cf[2]) : (F.d==1 ? f->apy(F.cf[0],F.cf[1],F.cf[2]) : f->apz(F.cf[0],F.cf[1],F.cf[2]));
+
+    return (Ac>0.0) ? F.area*F.ap/Ac : 0.0;
+}
+
+// D 1 2: the coarse faces at the patch edges from the velocities of their fine faces (after the
+// restriction, which takes their mean: the flux through the open fractions instead)
+void cfd_amr::cf_coarse_faces(int s)
+{
+    if(p0->D1!=2 || (p0->solidread<=0 && p0->topoforcing<=0))
+    return;
+
+    for(cfd_amr_cf &F : cf)
+    {
+        gmom(F.gface)->amr_velout(gfd(F.gface),F.d,s)(F.cf[0],F.cf[1],F.cf[2]) = 0.0;
+        if(F.dir>0 && F.gc!=F.gface)
+        {
+            int c[3] = {F.ci[0],F.ci[1],F.ci[2]};
+            c[F.d] -= 1;
+            gmom(F.gc)->amr_velout(gfd(F.gc),F.d,s)(c[0],c[1],c[2]) = 0.0;
+        }
+    }
+    for(cfd_amr_cf &F : cf)
+    {
+        const double v = cf_weight(F)*CP(F.pid)->pmom->amr_velout(CP(F.pid)->a,F.d,s)(F.ff[0],F.ff[1],F.ff[2]);
+        gmom(F.gface)->amr_velout(gfd(F.gface),F.d,s)(F.cf[0],F.cf[1],F.cf[2]) += v;
+        if(F.dir>0 && F.gc!=F.gface)
+        {
+            int c[3] = {F.ci[0],F.ci[1],F.ci[2]};
+            c[F.d] -= 1;
+            gmom(F.gc)->amr_velout(gfd(F.gc),F.d,s)(c[0],c[1],c[2]) += v;
+        }
+    }
+}
+
 // the stage predictor at the faces of the patch edges: the coarse face velocity, linear in the
 // transverse directions
 void cfd_amr::pr_predict(int s)
@@ -1586,6 +1699,7 @@ void cfd_amr::pr_predict(int s)
         sh_down_f(f);
     }
 
+    pr_apertures();
     pr_weights();
     pr_hydro();
 
@@ -1717,12 +1831,12 @@ void cfd_amr::pr_predict(int s)
     }
     for(cfd_amr_cf &F : cf)
     {
-        gmom(F.gface)->amr_velout(gfd(F.gface),F.d,s)(F.cf[0],F.cf[1],F.cf[2]) += F.area*F.ustar;
+        gmom(F.gface)->amr_velout(gfd(F.gface),F.d,s)(F.cf[0],F.cf[1],F.cf[2]) += cf_weight(F)*F.ustar;
         if(F.dir>0 && F.gc!=F.gface)
         {
             int c[3] = {F.ci[0],F.ci[1],F.ci[2]};
             c[F.d] -= 1;
-            gmom(F.gc)->amr_velout(gfd(F.gc),F.d,s)(c[0],c[1],c[2]) += F.area*F.ustar;
+            gmom(F.gc)->amr_velout(gfd(F.gc),F.d,s)(c[0],c[1],c[2]) += cf_weight(F)*F.ustar;
         }
     }
 
@@ -1800,6 +1914,10 @@ void cfd_amr::pr_matrix(int s)
             F.kc *= o;
         }
 
+        // D 1 2: the open fraction of the face (1 otherwise)
+        F.kf *= F.ap;
+        F.kc *= F.ap;
+
         // the couplings across the face are in pr_apply (the fine row to the coarse value at its
         // position, the coarse row to the fluxes of its fine faces); the diagonal of the fine row
         // keeps its part
@@ -1818,7 +1936,7 @@ void cfd_amr::pr_matrix(int s)
         double &ccn = mcoef(Mc,F.nc,F.d,-F.dir);
         Mc.p[F.nc] += ccn;
         ccn = 0.0;
-        if(p0->D32>0 || p0->X49>0)
+        if(p0->D32>0 || p0->X49>0 || p0->D1==2)
         kc_row[std::make_pair(F.gc,F.nc)] += F.kc;
     }
     if(place)
@@ -1894,7 +2012,7 @@ void cfd_amr::pr_matrix(int s)
 // faces closed; its right-hand side has no open face either
 void cfd_amr::pr_rows_closed()
 {
-    if(p0->D32<=0 && p0->X49<=0)
+    if(p0->D32<=0 && p0->X49<=0 && p0->D1!=2)
     return;
 
     for(const auto &kv : kc_row)
@@ -2920,7 +3038,7 @@ void cfd_amr::pr_correct(int s)
         ff(F.ff[0],F.ff[1],F.ff[2]) = F.ustar;
         continue;
         }
-        const double rof = 1.0/(F.kf*F.dist*F.dxnf);
+        const double rof = F.ap/(F.kf*F.dist*F.dxnf);
         // (F 41: the ghost fluid method across the face, gs and gf of pr_weights)
         ff(F.ff[0],F.ff[1],F.ff[2]) = F.ustar - double(F.dir)*alpha*p0->dt*(F.gs*xc-F.gf*xf)/(F.dist*rof);
     }
@@ -3055,6 +3173,7 @@ void cfd_amr::pr_project(lexer *p, ghostcell *pgc, int s)
     single_extend(pgc,s);
 
     restrict_vel(s);
+    cf_coarse_faces(s);
 
     // all projections of the step (the driver prints the sum and resets it)
     p->poissontime += MPI_Wtime()-t0;
@@ -3145,6 +3264,7 @@ void cfd_amr::pr_level(lexer *p, ghostcell *pgc, int l, int s)
         sh_down_f(f);
     }
 
+    pr_apertures();
     pr_weights();
     pr_hydro(l);
     for(cfd_amr_cf &F : cf)
@@ -3187,6 +3307,10 @@ void cfd_amr::pr_level(lexer *p, ghostcell *pgc, int l, int s)
         if(F.hok && F.d==2)
         v -= (1.0-Hf)*alpha*pp->dt*p0->W22*fpc;
 
+        // D 1 2: a closed face takes no flux
+        if(p0->D1==2 && F.ap==0.0)
+        v = 0.0;
+
         F.ustar = v;
         c->pmom->amr_velout(c->a,F.d,s)(F.ff[0],F.ff[1],F.ff[2]) = v;
     }
@@ -3208,7 +3332,8 @@ void cfd_amr::pr_level(lexer *p, ghostcell *pgc, int l, int s)
     {
         if(CP(F.pid)->lev!=l)
         continue;
-        F.kf = cf_closed(CP(F.pid)->pp,CP(F.pid)->a,F) ? 0.0 : 1.0/(F.rof*F.dist*F.dxnf);
+        // (D 1 2: the open fraction of the face)
+        F.kf = cf_closed(CP(F.pid)->pp,CP(F.pid)->a,F) ? 0.0 : F.ap/(F.rof*F.dist*F.dxnf);
         // X 49: the open share of the face (pr_matrix)
         if(p0->X49>0)
         {
@@ -3366,6 +3491,9 @@ void cfd_amr::pr_level(lexer *p, ghostcell *pgc, int l, int s)
         continue;
         const double xf = pvec(F.pid,-1)[F.qf];
         F.ufin = F.ustar + double(F.dir)*alpha*c->pp->dt*xf/(F.dist*F.rof);
+        // D 1 2: a closed face is not corrected
+        if(p0->D1==2 && F.ap==0.0)
+        F.ufin = F.ustar;
     }
     vel_after();
     for(const cfd_amr_cf &F : cf)
@@ -3418,6 +3546,7 @@ void cfd_amr::pr_sync_project(lexer *p, ghostcell *pgc)
         vector<std::function<field&(int)>> f(1,[this](int g) -> field& { return gfd(g)->phi; });
         sh_down_f(f);
     }
+    pr_apertures();
     pr_weights();
 
     // the predictor at the faces of the patch edges: their own value; the coarse faces their mean
@@ -3438,12 +3567,12 @@ void cfd_amr::pr_sync_project(lexer *p, ghostcell *pgc)
     }
     for(cfd_amr_cf &F : cf)
     {
-        gmom(F.gface)->amr_velout(gfd(F.gface),F.d,s)(F.cf[0],F.cf[1],F.cf[2]) += F.area*F.ustar;
+        gmom(F.gface)->amr_velout(gfd(F.gface),F.d,s)(F.cf[0],F.cf[1],F.cf[2]) += cf_weight(F)*F.ustar;
         if(F.dir>0 && F.gc!=F.gface)
         {
             int c[3] = {F.ci[0],F.ci[1],F.ci[2]};
             c[F.d] -= 1;
-            gmom(F.gc)->amr_velout(gfd(F.gc),F.d,s)(c[0],c[1],c[2]) += F.area*F.ustar;
+            gmom(F.gc)->amr_velout(gfd(F.gc),F.d,s)(c[0],c[1],c[2]) += cf_weight(F)*F.ustar;
         }
     }
     if(place)
@@ -3566,7 +3695,7 @@ void cfd_amr::pr_sync_project(lexer *p, ghostcell *pgc)
         ff(F.ff[0],F.ff[1],F.ff[2]) = F.ustar;
         continue;
         }
-        const double rof = 1.0/(F.kf*F.dist*F.dxnf);
+        const double rof = F.ap/(F.kf*F.dist*F.dxnf);
         ff(F.ff[0],F.ff[1],F.ff[2]) = F.ustar - double(F.dir)*alpha*p->dt*(xc-xf)/(F.dist*rof);
     }
 
@@ -3581,6 +3710,7 @@ void cfd_amr::pr_sync_project(lexer *p, ghostcell *pgc)
     }
 
     restrict_vel(s);
+    cf_coarse_faces(s);
 
     for(int id=0; id<npat; ++id)
     CP(id)->pp->dt = dts[id];

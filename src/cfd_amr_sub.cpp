@@ -1034,9 +1034,9 @@ void cfd_amr::vr_record(int l, double dt)
         const cfd_amr_cf &F = cf[n];
         const int lf = glevel(F.pid);
         if(lf==l && l>=1)
-        vr_f[n] += dt*F.area*CP(F.pid)->pmom->amr_velout(CP(F.pid)->a,F.d,s)(F.ff[0],F.ff[1],F.ff[2]);
+        vr_f[n] += dt*F.area*F.ap*CP(F.pid)->pmom->amr_velout(CP(F.pid)->a,F.d,s)(F.ff[0],F.ff[1],F.ff[2]);
         if(lf==l+1)
-        vr_c[n] += dt*F.area*gmom(F.gface)->amr_velout(gfd(F.gface),F.d,s)(F.cf[0],F.cf[1],F.cf[2]);
+        vr_c[n] += dt*F.area*F.ap*gmom(F.gface)->amr_velout(gfd(F.gface),F.d,s)(F.cf[0],F.cf[1],F.cf[2]);
     }
 }
 

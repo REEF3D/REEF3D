@@ -165,7 +165,7 @@ void poisson_pcorr::start(lexer* p, fdm *a, field &press)
     // the correction (the coupling dropped from the diagonal and the neighbour), the face velocity 0
     // (pjm_corr::rhs) and not corrected.  A cell with all its faces closed (deep in a solid): the
     // correction 0
-    if(p->D32>0)
+    if(solid_walls(p))
     {
     n=0;
     LOOP
@@ -191,7 +191,16 @@ void poisson_pcorr::start(lexer* p, fdm *a, field &press)
             *coef[q] = 0.0;
             }
             else
+            {
+            // D 1 2: the open fraction of the face
+            if(p->D1==2)
+            {
+            const double A = solid_face_aperture(p,a,i,j,k,di[q],dj[q],dk[q]);
+            a->M.p[n] += (1.0-A)*(*coef[q]);
+            *coef[q] *= A;
+            }
             ++open;
+            }
         }
 
         // no open face to a cell of the domain: the row 1 x = 0, the boundary faces dropped

@@ -21,6 +21,8 @@ Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"levelset_solid_extend.h"
+#include"solid_closed.h"
+#include"solid_aperture.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
@@ -115,6 +117,9 @@ void levelset_solid_extend(lexer *p, fdm *a, ghostcell *pgc, field &f, int gcval
     const int jd = p->j_dir==1 ? 1 : 0;
     const unsigned char outside = 255;
 
+    // D 1 2: the open fractions of the faces (before the first projection as well)
+    solid_aperture_update(p,a,pgc);
+
     // the layers, on the cells of the partition and its ghost cells across a partition edge or a
     // periodic edge (the fluid there within the ghost cells); fluid 0.  The ghost cells beyond the
     // edges of the domain are left out (outside): the level set there is the boundary condition.
@@ -133,7 +138,9 @@ void levelset_solid_extend(lexer *p, fdm *a, ghostcell *pgc, field &f, int gcval
         if(jd && ((j<0 && !ym) || (j>=p->knoy && !yp)))
         continue;
 
-        if(!((solids && a->solid(i,j,k)<0.0) || (bodies && a->fb(i,j,k)<0.0)))
+        // (D 1 2: the cells of a solid with an open face take part in the flow, their level set is
+        // transported; the solid is its cells with all faces closed, solid_aperture.h)
+        if(!((solids && a->solid(i,j,k)<0.0 && (p->D1!=2 || solid_cell_closed(p,a,i,j,k))) || (bodies && a->fb(i,j,k)<0.0)))
         layer[IJK]=0;
         else
         solid.push_back(IJK);

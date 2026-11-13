@@ -812,6 +812,30 @@ void driver::logic_cfd()
     // the free surface over F 45 of its own cells, so a coarse and a fine cell at the same distance
     // from the free surface have different densities (at the patch edges across the free surface
     // and under the patches)
+    // D 1: the static solids and the bed, 1 direct forcing, 2 cut cells (solid_aperture.h).  The cut
+    // cells with the mesh refinement on every grid, the faces of the patch edges on the grid of the
+    // fine cell (cfd_amr::pr_apertures); not with the patches placed on other ranks (G 40: the coarse
+    // faces of the shadows), and the particle bed (S 10 1 with Q 10) moves inside its top cell every
+    // step: direct forcing there
+    if(p->D1!=1 && p->D1!=2)
+    {
+        if(p->mpirank==0)
+        cout<<"D 1 "<<p->D1<<": 1 direct forcing or 2 cut cells; D 1 1 used"<<endl;
+        p->D1=1;
+    }
+    if(p->D1==2 && p->G1>0 && p->G40>0)
+    {
+        if(p->mpirank==0)
+        cout<<"D 1 2 (cut cells) is not built for the placement of the patches (G 40) yet: the direct forcing (D 1 1) used"<<endl;
+        p->D1=1;
+    }
+    if(p->D1==2 && p->S10==1 && p->Q10>0)
+    {
+        if(p->mpirank==0)
+        cout<<"D 1 2 (cut cells) is not tested with the particle bed (S 10 1 with Q 10): the direct forcing (D 1 1) used"<<endl;
+        p->D1=1;
+    }
+
     p->psi_rho=0.0;
     if(p->G28!=0)
     {

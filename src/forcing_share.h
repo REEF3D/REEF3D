@@ -125,8 +125,8 @@ inline double forcing_share_face(lexer *p, fdm *a, int i0, int j0, int k0, int d
 
     double w = 0.0;
 
-    // solids and bed
-    if(solids && p->G505==0 && (p->solidread>0 || p->topoforcing>0))
+    // solids and bed (D 1 2: cut cells, walls of the projection without forcing, solid_aperture.h)
+    if(solids && p->G505==0 && p->D1!=2 && (p->solidread>0 || p->topoforcing>0))
     {
         const double phs = 0.5*(a->solid(i0,j0,k0) + a->solid(i1,j1,k1));
         const double pht = 0.5*(a->topo(i0,j0,k0) + a->topo(i1,j1,k1));

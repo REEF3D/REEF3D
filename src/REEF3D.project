@@ -250,6 +250,7 @@
           <File Name="pjm_corr.h"/>
           <File Name="solid_closed.h"/>
           <File Name="forcing_share.h"/>
+          <File Name="solid_aperture.h"/>
           <VirtualDirectory Name="Reference">
             <File Name="pressure_reference.h"/>
           </VirtualDirectory>
@@ -3576,6 +3577,7 @@
         </VirtualDirectory>
         <VirtualDirectory Name="Solid">
           <File Name="solid.cpp"/>
+          <File Name="solid_aperture.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Decomp">
           <File Name="dmpart_build.cpp"/>
