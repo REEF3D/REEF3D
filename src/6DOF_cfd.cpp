@@ -170,6 +170,13 @@ void sixdof_cfd::start_cfd(lexer* p, fdm* a, ghostcell* pgc, int iter, field &uv
     pgc->gcdf_update(p,a);
 }
 
+// X 14 11: the added mass of the hull on the grid (one body, driver_logic_cfd)
+void sixdof_cfd::added_mass_cfd(lexer *p, fdm *a, ghostcell *pgc, solver *psolv)
+{
+    if(number6DOF==1 && !amr_predict)
+    fb_obj[0]->added_mass_cfd(p,a,pgc,psolv);
+}
+
 // CFD mesh refinement (cfd_amr): the forces of the nets (X 320) of all bodies, as of their last
 // stage on level 0, onto the grid of a patch
 void sixdof_cfd::amr_net_forces(lexer *p, fdm *a, int fmax, const std::function<void(const double*,int*)> &width)

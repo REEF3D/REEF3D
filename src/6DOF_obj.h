@@ -409,7 +409,11 @@ protected:
     double am_cfd_ = 0.0;
     Eigen::Matrix<double,6,1> am_prev_ = Eigen::Matrix<double,6,1>::Zero();
     void cfd_added_mass(lexer*);
-    void lagged_added_mass(lexer*, const Eigen::Matrix<double,6,6>&);     // NHFLOW X 15 11
+    void lagged_added_mass(lexer*, const Eigen::Matrix<double,6,6>&);     // NHFLOW X 15 11, CFD X 14 11
+    // CFD X 14 11: the added mass of the hull on the grid (sixdof_obj_cfd::added_mass_cfd), inertial frame,
+    // moments about the centre of gravity; it replaces the artificial one of cfd_added_mass once it is there
+    Eigen::Matrix<double,6,6> Acfd_ = Eigen::Matrix<double,6,6>::Zero();
+    bool acfd_on_ = false;
     
     // X 197: A from the added mass of the equivalent ellipsoid of the hull (2D: elliptic cylinder),
     // body frame, about the CoG (am_ell_: the ellipsoid in the box of the hull, its centre off the

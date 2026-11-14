@@ -22,6 +22,10 @@ Author: Tobias Martin
 
 #include"6DOF_obj.h"
 #include"6DOF_obj_cfd.h"
+#include"field1.h"
+#include"field2.h"
+#include"field3.h"
+#include"field4.h"
 #include"lexer.h"
 #include"momentum.h"
 #include"fdm.h"
@@ -44,6 +48,12 @@ sixdof_obj_cfd::sixdof_obj_cfd(lexer *p, ghostcell *pgc, int number) : sixdof_ob
 
 sixdof_obj_cfd::~sixdof_obj_cfd()
 {
+    delete am_u_;
+    delete am_v_;
+    delete am_w_;
+    
+    for(int q=0; q<6; ++q)
+    delete am_p_[q];
 }
 
 

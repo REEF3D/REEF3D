@@ -1388,6 +1388,10 @@ void momentum_rk::projection(lexer *p, fdm *a, ghostcell *pgc, field &u, field &
     pflow->pressure_io(p,a,pgc);
 	ppress->start(a,p,ppois,ppoissonsolv,pgc,pflow,u,v,w,weight);
 
+    // X 14 11: the added mass of the hull on the grid, with the matrix of this projection
+    if(p->X14==11 && p->X10>0 && p->G1==0 && p6dof!=nullptr)
+    p6dof->added_mass_cfd(p,a,pgc,ppoissonsolv);
+
     amr_project_after(p,a,pgc,u,v,w);
 }
 

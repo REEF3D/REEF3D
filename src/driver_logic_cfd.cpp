@@ -674,6 +674,18 @@ void driver::logic_cfd()
     // 20 and 10 % too high, they keep the open projection
     // Not with the subcycled mesh refinement (G 1 with G 7 1): there the heave of a box differed
     // from the run with one time step for all levels (9 mm after 0.6 s), not understood yet
+    // X 14 11: the forcing of X 14 1 with the added mass of the hull on the grid in the coupling (one Poisson solve
+    // per free degree of freedom with the matrix of the closed projection, 6DOF_obj_cfd_addedmass.cpp) instead of
+    // the artificial one of X 197. One body, the one-step scheme, the loads on the triangles, the closed
+    // projection, no mesh refinement; else X 14 1
+    if(p->X14==11 && !(p->X10>0 && p->X20==1 && p->N40==5 && p->X60==1 && p->X198==0 && p->G1==0 && p->X49!=0))
+    {
+        if(p->mpirank==0)
+        cout<<"!!! X 14 11 (added mass of the hull on the grid) needs one body (X 20 1), N 40 5, X 60 1, the closed projection X 49 1, no X 198 and no mesh refinement (G 1): X 14 1 instead"<<endl;
+        
+        p->X14 = 1;
+    }
+    
     if(p->X49<0)
     p->X49 = (p->X10>0 && p->N40==5 && p->X60==1 && p->X198==0 && !(p->G1>0 && p->G7!=0)) ? 1 : 0;
 

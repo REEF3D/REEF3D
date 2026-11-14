@@ -27,6 +27,11 @@ Authors: Hans Bihs, Tobias Martin
 #include"amr_grid_lookup.h"
 
 class reinidisc_f;
+class solver;
+class field1;
+class field2;
+class field3;
+class field4;
 
 //  Fluid access of the load models (ship module) in REEF3D::CFD: velocity interpolated from the
 //  staggered velocity fields
@@ -61,6 +66,10 @@ public:
     field *sfh[3] = {nullptr,nullptr,nullptr};
     void hydrodynamic_forces_cfd(lexer*, fdm*, ghostcell*,field&,field&,field&,int,bool);
     void update_position_3D(lexer*, fdm*, ghostcell*, bool);
+    
+    // X 14 11: the added mass of the hull on the grid, after the projection of the step with its matrix
+    // (6DOF_obj_cfd_addedmass.cpp)
+    void added_mass_cfd(lexer*, fdm*, ghostcell*, solver*);
     
     // lateral line (X 194): pressure and velocity relative to the hull at the probes, printed with
     // the body output
@@ -115,6 +124,15 @@ public:
     void amr_net_forces(lexer*, fdm*, int, const std::function<void(const double*,int*)>&);
 
 private:
+    
+    // X 14 11: the loads of the pressure of a unit acceleration, the face velocities of the unit motion, the
+    // pressures of the last solves and the log
+    void added_mass_loads(lexer*, fdm*, ghostcell*, field&, int, double*);
+    field1 *am_u_ = nullptr;
+    field2 *am_v_ = nullptr;
+    field3 *am_w_ = nullptr;
+    field4 *am_p_[6] = {nullptr,nullptr,nullptr,nullptr,nullptr,nullptr};
+    ofstream amout_;
     
     void externalForces_cfd(lexer*, fdm*, ghostcell*, double, bool);
     void netForces_cfd(lexer*, fdm*, ghostcell*, double, bool);

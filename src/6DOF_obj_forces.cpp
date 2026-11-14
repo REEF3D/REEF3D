@@ -112,6 +112,8 @@ void sixdof_obj::update_forces(lexer *p)
     // FNPF: instantaneous added mass (and implicit PTO terms, X 500 2) on the left-hand side
     if(am_on_ || am_load || (pto_on_ && pto_implicit_))
     apply_added_mass(p, am_load ? &A_load : nullptr);
+    else if(acfd_on_)
+    lagged_added_mass(p,Acfd_);
     else if(am_cfd_>0.0)
     cfd_added_mass(p);
 }
@@ -180,7 +182,7 @@ void sixdof_obj::cfd_added_mass(lexer *p)
 }
 
 // the coupling with a given added mass A (inertial frame, moments about the centre of gravity) on both sides,
-// (M + A) a = F + A a_prev, as cfd_added_mass (NHFLOW X 15 11: A the added mass of the hull on the grid)
+// (M + A) a = F + A a_prev, as cfd_added_mass (NHFLOW X 15 11, CFD X 14 11: A the added mass of the hull on the grid)
 void sixdof_obj::lagged_added_mass(lexer *p, const Eigen::Matrix<double,6,6> &A)
 {
     const Eigen::Matrix3d II = R_*I_*R_.transpose();
