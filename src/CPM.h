@@ -126,6 +126,22 @@ private:
                         
     void nearbed_velocity(lexer*, fdm*, double, double, double, double);
     double seed_diameter(lexer*, int);
+    
+    // graded sediment (S 51), see CPM_mixture.cpp
+    int mx_nf=0;                       // fractions of the mixture; 0: one grain size S 20
+    double mx_La=0.0;                  // surface layer of the bed composition (S 52; else 2 d90 of the seeded mixture)
+    std::vector<double> mx_d;          // diameters of the fractions (S 51)
+    std::vector<int> mx_ord;           // the fractions from fine to coarse
+    // per bed column ((i+1)(knoy+2) + j+1): composition of the surface layer as volume shares (nf per column),
+    // its grain sizes and its parcel volume
+    std::vector<double> mx_F,mx_d50,mx_dm,mx_d90,mx_V;
+    void mixture_ini(lexer*);
+    int mixture_fraction(double) const;
+    void mixture_sizes(const double*, double&, double&, double&) const;
+    void mixture_column(lexer*, size_t, std::vector<std::pair<double,int>>::iterator, std::vector<std::pair<double,int>>::iterator, double);
+    void mixture_log(lexer*, ghostcell*);
+    ofstream mixout;
+    int mixlogini=0;
     // two-way coupling
 public:
     void coupling_update(lexer*, fdm*, ghostcell*, sediment_fdm*);

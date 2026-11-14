@@ -527,6 +527,15 @@ void CPM::exposure_update(lexer *p, fdm *a)
     
     const int nj = p->knoy+2;
     const size_t nc = size_t(p->knox+2)*nj;
+    
+    if(mx_nf>0)
+    {
+        mx_F.assign(nc*mx_nf, 0.0);
+        mx_d50.assign(nc, 0.0);
+        mx_dm.assign(nc, 0.0);
+        mx_d90.assign(nc, 0.0);
+        mx_V.assign(nc, 0.0);
+    }
     const double vpar = P.ParcelFactor*Vp;
     
     // the bed parcels of each column (flat lists, in the order of the parcels), then sorted from the top
@@ -571,6 +580,10 @@ void CPM::exposure_update(lexer *p, fdm *a)
         continue;
         
         std::sort(b, e, [](const std::pair<double,int> &a1, const std::pair<double,int> &a2){return a1.first>a2.first;});
+        
+        // graded sediment (S 51): composition of the surface layer of the column
+        if(mx_nf>0)
+        mixture_column(p,c,b,e,p->DXN[IP]*p->DYN[JP]);
         
         double Ve = theta_0*p->S20*p->DXN[IP]*p->DYN[JP];
         

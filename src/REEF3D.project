@@ -2759,6 +2759,7 @@
           <File Name="CPM_seed.cpp"/>
           <File Name="CPM_seepage.cpp"/>
           <File Name="CPM_suspension.cpp"/>
+          <File Name="CPM_mixture.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="FDM">
           <File Name="CPM_timestep.cpp"/>

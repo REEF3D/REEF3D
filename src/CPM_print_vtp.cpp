@@ -79,7 +79,7 @@ bool CPM::print_lagoon(lexer *p, sediment_fdm *s)
     for(int q=0;q<P.index;++q)
     if(P.Flag[q]>0)
     {
-        const double row[NF] = {P.X[q],P.Y[q],P.Z[q], P.U[q],P.V[q],P.W[q], P.Uf[q],P.Vf[q],P.Wf[q], 0.5*P.d50, P.Wt[q],
+        const double row[NF] = {P.X[q],P.Y[q],P.Z[q], P.U[q],P.V[q],P.W[q], P.Uf[q],P.Vf[q],P.Wf[q], 0.5*P.D[q], P.Wt[q],
                                 p->ccslipol4(s->bedzh,P.X[q],P.Y[q])-p->ccslipol4(s->bedzh0,P.X[q],P.Y[q]),
                                 double(P.Hop[q]>0.0 ? MOVING : P.Flag[q]), P.ID[q]};
         mine.insert(mine.end(),row,row+NF);
@@ -156,11 +156,36 @@ void CPM::print_bed(lexer* p, sediment_fdm *s)
     snprintf(name,sizeof(name),"./REEF3D_CFD_CPM_Particle/REEF3D-CFD-CPM-Bed-%08i-%06i.dat",printcount,p->mpirank+1);
     
     ofstream out(name);
-    out<<"# time "<<p->simtime<<"\n# x y z_bed tau_x tau_y\n";
+    out<<"# time "<<p->simtime<<"\n# x y z_bed tau_x tau_y";
+    
+    // graded sediment (S 51): grain sizes and composition (volume shares) of the surface layer of the column
+    if(mx_nf>0)
+    {
+        out<<" d50 dm d90";
+        for(int q=0;q<mx_nf;++q)
+        out<<" F_"<<q+1;
+    }
+    
+    out<<"\n";
+    
+    const size_t nj = size_t(p->knoy+2);
     
     for(i=0;i<p->knox;++i)
     for(j=0;j<p->knoy;++j)
-    out<<p->XP[IP]<<" "<<p->YP[JP]<<" "<<zbl(s,i,j)<<" "<<blTx(i,j)<<" "<<blTy(i,j)<<"\n";
+    {
+        out<<p->XP[IP]<<" "<<p->YP[JP]<<" "<<zbl(s,i,j)<<" "<<blTx(i,j)<<" "<<blTy(i,j);
+        
+        const size_t c = size_t(i+1)*nj + j+1;
+        
+        if(mx_nf>0 && c<mx_dm.size())
+        {
+            out<<" "<<mx_d50[c]<<" "<<mx_dm[c]<<" "<<mx_d90[c];
+            for(int q=0;q<mx_nf;++q)
+            out<<" "<<mx_F[c*mx_nf+q];
+        }
+        
+        out<<"\n";
+    }
     
     out.close();
 }
@@ -327,7 +352,7 @@ void CPM::print_vtp(lexer* p, sediment_fdm *s)
     for(n=0;n<P.index;++n)
         if(P.Flag[n]>0)
         {
-            ffn=float(P.d50/2);
+            ffn=float(0.5*P.D[n]);
             std::memcpy(&buffer[m],&ffn,sizeof(float));
             m+=sizeof(float);
         }

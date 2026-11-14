@@ -101,6 +101,8 @@ CPM::CPM(lexer *p, ghostcell *pgc) : P(p,pgc), bedch(p), tauGf(p), blTx(p), blTy
     I0 = p->Q38;
     
     Vp = (1.0/6.0)*PI*pow(p->S20,3.0);
+    
+    mixture_ini(p);
 
     if(p->mpirank==0 && p->Q11==2)
     {
