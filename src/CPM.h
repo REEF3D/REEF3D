@@ -125,7 +125,7 @@ private:
                         double&, double&, double&, double);
                         
     void nearbed_velocity(lexer*, fdm*, double, double, double, double);
-    double seed_diameter(lexer*, int);
+    double seed_diameter(lexer*, double);
     
     // graded sediment (S 51), see CPM_mixture.cpp
     int mx_nf=0;                       // fractions of the mixture; 0: one grain size S 20
@@ -140,6 +140,13 @@ private:
     void mixture_sizes(const double*, double&, double&, double&) const;
     void mixture_column(lexer*, size_t, std::vector<std::pair<double,int>>::iterator, std::vector<std::pair<double,int>>::iterator, double);
     void mixture_log(lexer*, ghostcell*);
+    double mixture_hiding(lexer*, int, int, double);
+    double mixture_ks(lexer*, int, int);
+    double deposit_depth(double);
+    std::vector<double> mx_F0;         // seeded composition of the surface, for columns without a bed
+    double mx_d50_0=0.0, mx_dm_0=0.0, mx_d90_0=0.0;
+    // accounts of the exchange with the suspension per fraction and bed column (as blCs for one grain size)
+    std::vector<slice4*> mxCs;
     ofstream mixout;
     int mixlogini=0;
     // two-way coupling

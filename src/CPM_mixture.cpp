@@ -45,6 +45,17 @@ centres, log-linear interpolation, as the Eulerian mixture sediment_mixture::gra
 holds a few parcels in L_a (L_a/h Q 24 on a 2D grid), so F_q of a single column is coarse; the log
 gives the mean over the columns.
 
+The composition of the surface acts on the bedload layer (Q 58, S 10 1) as in the Eulerian mixture:
+  - pickup: the exposed parcels are those of the surface layer, a fraction takes its volume share F_q
+    of the bed area (exposure_update), so its pickup rate is F_q V_m*(d_q) u_b(d_q)/L(d_q)
+  - hiding and exposure (S 54 1, S 55): theta_c,q = Q 60 ((1-p_h)/p_h)^(-m),  p_h = sum_r F_r d_r/(d_q+d_r)
+    (Wu, Wang & Jia 2000); S 54 0: theta_c,q = Q 60
+  - grain roughness of the bed shear stress (S 56): ks = S 21 times S 20, or d50, dm, d90 of the surface
+  - release into the resolved suspension (Q 58 2): per fraction with its settling velocity, its onset of
+    suspension, its threshold and c_a,q = F_q c_a(d_q); the moving parcels of that fraction are released
+  - deposition: at random within the surface layer (well mixed), see deposit_depth
+  - seeding: fa in the surface layer, fs below it
+
 Output: REEF3D-CFD-CPM-Mixture.dat (surface grain sizes, surface share and volume per fraction),
 the columns d50 dm d90 F_q of the bed files, the radius of the parcels.
 --------------------------------------------------------------------*/
@@ -79,6 +90,22 @@ void CPM::mixture_ini(lexer *p)
     mx_La = p->S52>0.0 ? p->S52 : 2.0*d90;
     mx_La = MAX(mx_La, mx_d[mx_ord[mx_nf-1]]);
     
+    mx_F0 = F;
+    mx_d50_0 = d50;
+    mx_dm_0 = dm;
+    mx_d90_0 = d90;
+    
+    // accounts of the exchange with the suspension per fraction (Q 58 2 and higher)
+    if(p->Q58>=2)
+    for(int q=0;q<mx_nf;++q)
+    {
+        mxCs.push_back(new slice4(p));
+        
+        for(int ii=-1;ii<p->knox+1;++ii)
+        for(int jj=-1;jj<p->knoy+1;++jj)
+        (*mxCs[q])(ii,jj) = 0.0;
+    }
+    
     if(p->mpirank==0)
     {
         cout<<"CPM graded sediment: "<<mx_nf<<" fractions, d50 "<<d50<<" dm "<<dm<<" d90 "<<d90<<" m, surface layer "<<mx_La<<" m"<<endl;
@@ -86,9 +113,70 @@ void CPM::mixture_ini(lexer *p)
         for(int q=0;q<mx_nf;++q)
         cout<<"  fraction "<<q+1<<"  d = "<<mx_d[q]<<" m   share = "<<F[q]<<endl;
         
+        cout<<"  hiding/exposure: "<<(p->S54==1?"Wu, Wang & Jia (2000), m = ":"off")<<(p->S54==1?p->S55:0.0)
+            <<"   roughness ks = S 21 x "<<(p->S56==1?"d50":(p->S56==2?"dm":(p->S56==3?"d90":"S 20")))<<(p->S56>0?" of the bed surface":"")<<endl;
+        
         if(fabs(d50-p->S20) > 0.05*p->S20)
         cout<<"CPM warning: S 20 "<<p->S20<<" m is not the d50 of the S 51 mixture ("<<d50<<" m)"<<endl;
     }
+}
+
+// hiding and exposure factor of the critical Shields number of a grain d in the bed column (ic,jc):
+// Wu, Wang & Jia (2000) with the composition of the surface layer of the column, as the Eulerian mixture
+// (sediment_mixture::hiding); S 54 0: none
+double CPM::mixture_hiding(lexer *p, int ic, int jc, double d)
+{
+    if(p->S54==0)
+    return 1.0;
+    
+    const size_t c = size_t(ic+1)*size_t(p->knoy+2) + jc+1;
+    const double *F = (c<mx_V.size() && mx_V[c]>0.0) ? &mx_F[c*mx_nf] : mx_F0.data();
+    
+    double ph=0.0;
+    
+    for(int r=0;r<mx_nf;++r)
+    ph += F[r]*mx_d[r]/(d+mx_d[r]);
+    
+    ph = MIN(MAX(ph,1.0e-6),1.0-1.0e-6);
+    
+    return pow((1.0-ph)/ph, -p->S55);
+}
+
+// grain roughness of the bed column (ic,jc): S 21 times the grain size S 56 of its surface layer
+// (0: S 20, 1: d50, 2: dm, 3: d90), as the Eulerian mixture
+double CPM::mixture_ks(lexer *p, int ic, int jc)
+{
+    if(p->S56<=0)
+    return p->S21*p->S20;
+    
+    ic = MAX(0, MIN(p->knox-1, ic));
+    jc = MAX(0, MIN(p->knoy-1, jc));
+    
+    const size_t c = size_t(ic+1)*size_t(p->knoy+2) + jc+1;
+    const bool ok = c<mx_V.size() && mx_V[c]>0.0;
+    
+    if(p->S56==1)
+    return p->S21*(ok ? mx_d50[c] : mx_d50_0);
+    
+    if(p->S56==2)
+    return p->S21*(ok ? mx_dm[c] : mx_dm_0);
+    
+    return p->S21*(ok ? mx_d90[c] : mx_d90_0);
+}
+
+// depth below the bed level at which a grain of the bedload layer is deposited: half a grain; graded sediment:
+// at random within the surface layer L_a, which is taken as well mixed (Hirano 1971). With half a grain the
+// fine grains came to rest above the coarse ones, and the ranking of the surface layer by height found a
+// surface finer than the bed it was fed from (the 1 mm share of a 0.25/0.5/1 mm bed went from 0.30 to 0.21
+// in 40 s of transport at theta = 0.2 in a periodic flume)
+double CPM::deposit_depth(double d)
+{
+    if(mx_nf<=0)
+    return 0.5*d;
+    
+    std::uniform_real_distribution<double> uni(0.0,1.0);
+    
+    return mx_La*uni(rng);
 }
 
 // fraction of a grain size: the nearest S 51 diameter

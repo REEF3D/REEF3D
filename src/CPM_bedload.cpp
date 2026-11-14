@@ -43,6 +43,8 @@ grading, slopes and exchange with the suspension follow from the parcels):
       tau_b       : bed shear stress, log law at the first fluid cell at least 0.5 h above the bed
                     (distance from the bed level set, ks = S 21 d50); Q 68 1: at least 0.3 rho k
       theta_c,d   : Q 60 (d/d50)^(-0.8)  (hiding of the small grains, equal mobility tendency)
+                    graded sediment (S 51): Q 60 times the hiding and exposure factor of Wu, Wang & Jia
+                    (2000) with the composition of the surface of the column (S 54, S 55)
       mu_s        : static friction Q 36
       the slope term is limited to tan(beta) = 0.9 mu_s: without flow the layer stays at rest,
       slopes beyond the angle of repose avalanche through the packed-bed stress
@@ -113,8 +115,6 @@ void CPM::bedload_column(lexer *p, double x, double y, int &ic, int &jc, int q)
 //   interpolation towards the solid cells below must not be used
 void CPM::bedload_columns(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
 {
-    const double ks = MAX(p->S21*p->S20, 1.0e-6);
-
     // the bed shear stress of the column, shared with the Eulerian bed shear stress S 16 10 (bedshear::column_tau):
     // log law at the first cell centre at least half a cell above the bed level set, or Q 66 cells above the bed,
     // the distance measured from the face under the first fluid cell (Q 79 1: the wall of the fluid's k-omega wall
@@ -124,6 +124,9 @@ void CPM::bedload_columns(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
     {
         double tx=0.0, ty=0.0, hc=0.0;
         bool rest=false;
+        
+        // roughness: S 21 d50; graded sediment: the grain size S 56 of the surface of the column
+        const double ks = MAX(mx_nf>0 ? mixture_ks(p,i,j) : p->S21*p->S20, 1.0e-6);
         
         // CPM on the mesh refinement: where the fluid comes from a coarser grid, the velocity and k at least at its
         // first cell. k is taken at the reference height only where that first cell sets it (above Q 66): with a
@@ -199,7 +202,8 @@ bool CPM::bedload_grain(lexer *p, int ic, int jc, double d, double &ub, double &
     d = MAX(d,1.0e-9);
 
     double rg = (p->S22 - p->W1)*gmag*d;
-    double tc = p->Q60*pow(d/p->S20,-0.8);
+    // graded sediment: hiding and exposure with the composition of the surface of the column (S 54)
+    double tc = mx_nf>0 ? p->Q60*mixture_hiding(p,ic,jc,d) : p->Q60*pow(d/p->S20,-0.8);
 
     // bed slope, at most 0.9 mu_s: beyond the angle of repose the packed bed avalanches by itself,
     // the layer only adds the slope effect to the transport by the flow
@@ -670,8 +674,65 @@ void CPM::bedload_exchange(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, do
             }
         }
 
+        // release into the suspension, graded sediment: per fraction with its grain size, its threshold and its
+        // share F_q of the bed surface, c_a,q = F_q c_a(d_q); the moving parcels of the fraction are released
+        if(p->Q58==2 && mx_nf>0)
+        {
+            const double tm = sqrt(blTx(i,j)*blTx(i,j) + blTy(i,j)*blTy(i,j));
+            const double ustar = sqrt(tm/p->W1);
+            const double ha = 0.5*blH(i,j);
+            auto &mn = mov[c];
+            
+            for(int qf=0;qf<mx_nf;++qf)
+            {
+                slice4 &Cs = *mxCs[qf];
+                const double d = mx_d[qf];
+                const double wsq = settling_velocity(p,d);
+                const double Dsq = d*pow(R*gmag/(p->W2*p->W2), 1.0/3.0);
+                const double T = tm/((p->S22-p->W1)*gmag*d*p->Q60*mixture_hiding(p,i,j,d)) - 1.0;
+                const double ucs = (Dsq<=10.0 ? 4.0/MAX(Dsq,1.0) : 0.4)*wsq;
+                
+                if(ustar>ucs && T>0.0)
+                {
+                    double ca = MIN(0.05, 0.015*d*pow(T,1.5)/(ha*pow(Dsq,0.3)));
+                    
+                    Cs(i,j) += p->Q65*mx_F[size_t(c)*mx_nf+qf]*wsq*ca*p->DXN[IP]*p->DYN[JP]*dt;
+                    
+                    while(Cs(i,j)>=vpar)
+                    {
+                        // the moving parcels of the fraction
+                        std::vector<size_t> mq;
+                        
+                        for(size_t q=0;q<mn.size();++q)
+                        if(mixture_fraction(P.D[mn[q]])==qf)
+                        mq.push_back(q);
+                        
+                        if(mq.empty())
+                        break;
+                        
+                        size_t q = mq[MIN(mq.size()-1, size_t(uni(rng)*mq.size()))];
+                        n = mn[q];
+                        
+                        double zr = zbl(s,i,j) + ha;
+                        
+                        P.Hop[n] = -1.0;   // in the flow, deposited when it settles back onto the bed
+                        P.Z[n] = bedload_place(p,a,P.X[n],P.Y[n],P.Z[n],i,j,zr,P.D[n],P.Wt[n]);
+                        P.U[n] = p->ccipol1c(a->u,P.X[n],P.Y[n],zr);
+                        P.V[n] = p->j_dir==1 ? p->ccipol2c(a->v,P.X[n],P.Y[n],zr) : 0.0;
+                        P.W[n] = 0.0;
+                        ++bl_nsus;
+                        
+                        mn.erase(mn.begin()+q);
+                        Cs(i,j) -= vpar*P.Wt[n];
+                    }
+                    
+                    Cs(i,j) = MIN(Cs(i,j), vpar);
+                }
+            }
+        }
+        
         // release into the suspension
-        if(p->Q58==2)
+        if(p->Q58==2 && mx_nf==0)
         {
             double tm = sqrt(blTx(i,j)*blTx(i,j) + blTy(i,j)*blTy(i,j));
             double ustar = sqrt(tm/p->W1);
@@ -763,7 +824,7 @@ void CPM::bedload_move(lexer *p, fdm *a, sediment_fdm *s, int q, double dt)
     if(dep)
     {
         // deposited on the bed, just inside the bed surface (or the first cell above with room)
-        double zl = zb - 0.5*P.D[q];
+        double zl = zb - deposit_depth(P.D[q]);
 
         if(p->nb5<0)
         zl = MAX(zl, p->ZN[0+marge] + 0.5*P.D[q]);
@@ -813,7 +874,7 @@ bool CPM::bedload_settle(lexer *p, fdm *a, sediment_fdm *s, int q)
     if(p->solidread>0 && p->ccipol4_b(a->solid,P.XRK1[q],P.YRK1[q],zb+0.5*P.D[q]) < 0.5*P.D[q])
     return false;
     
-    double zl = zb - 0.5*P.D[q];
+    double zl = zb - deposit_depth(P.D[q]);
     
     if(p->nb5<0)
     zl = MAX(zl, p->ZN[0+marge] + 0.5*P.D[q]);

@@ -140,7 +140,7 @@ void CPM::susp_cbe(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
         zs = MIN(zs, p->global_zmax);   // lid (free surface above the domain)
         double h = zs>zb ? zs-zb : 1.0e20;
         
-        double adist = MAX(p->S21*p->S20, 2.0*p->S20);
+        double adist = MAX(mx_nf>0 ? mixture_ks(p,i,j) : p->S21*p->S20, 2.0*p->S20);
         adist = MAX(adist, h<1.0e19 ? 0.01*h : 0.0);
         adist = MIN(adist, 0.5*h);
         

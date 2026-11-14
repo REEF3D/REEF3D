@@ -163,7 +163,7 @@ void CPM::seed_particles(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
                 P.Z[n] = zs;
                 P.U[n] = P.V[n] = P.W[n] = 0.0;
 
-                P.D[n] = seed_diameter(p,n);
+                P.D[n] = seed_diameter(p,-p->ccipol4_b(a->topo,xs,ys,zs));
                 P.RO[n] = p->S22;
 
                 P.Flag[n] = ACTIVE;
@@ -186,7 +186,7 @@ void CPM::seed_particles(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
             P.Z[n] = p->ZN[KP] + p->DZN[KP]*double(rand() % irand)/drand;
             P.U[n] = P.V[n] = P.W[n] = 0.0;
 
-            P.D[n] = seed_diameter(p,n);
+            P.D[n] = seed_diameter(p,-p->ccipol4_b(a->topo,P.X[n],P.Y[n],P.Z[n]));
             P.RO[n] = p->S22;
 
             P.Flag[n] = ACTIVE;
@@ -260,19 +260,33 @@ void CPM::ini_fields(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
 }
 
 // parcel diameter: S 20, or for a mixture (S 51 d fa fs) a fraction drawn with the volume
-// fractions fa of the bed; all parcels have the same volume, so the number of parcels of a
-// fraction follows its volume fraction. A golden ratio sequence gives an even mixture.
-double CPM::seed_diameter(lexer *p, int nn)
+// fractions of the bed: fa in the surface layer L_a (depth below the initial bed up to L_a, and
+// the seed boxes Q 110), fs below it (fa where no fs is given); all parcels have the same volume,
+// so the number of parcels of a fraction follows its volume fraction. A golden ratio sequence
+// gives an even mixture.
+double CPM::seed_diameter(lexer *p, double depth)
 {
-    if(p->S51<=0)
+    if(mx_nf<=0)
     return p->S20;
     
+    const double *fr = p->S51_fa;
     double sum=0.0;
-    for(int q=0;q<p->S51;++q)
-    sum += MAX(p->S51_fa[q],0.0);
     
-    if(sum<=0.0)
-    return p->S20;
+    if(depth>mx_La)
+    {
+        for(int q=0;q<p->S51;++q)
+        sum += MAX(p->S51_fs[q],0.0);
+        
+        if(sum>0.0)
+        fr = p->S51_fs;
+    }
+    
+    if(fr==p->S51_fa)
+    {
+        sum=0.0;
+        for(int q=0;q<p->S51;++q)
+        sum += MAX(p->S51_fa[q],0.0);
+    }
     
     static long seq=0;
     double u = fmod(0.6180339887498949*double(seq + 7919*p->mpirank) + 0.5, 1.0);
@@ -281,7 +295,7 @@ double CPM::seed_diameter(lexer *p, int nn)
     double cum=0.0;
     for(int q=0;q<p->S51;++q)
     {
-        cum += MAX(p->S51_fa[q],0.0)/sum;
+        cum += MAX(fr[q],0.0)/sum;
         
         if(u<cum)
         return p->S51_d[q];
