@@ -161,7 +161,21 @@ void sixdof_obj::cfd_added_mass(lexer *p)
     Eigen::Matrix<double,6,1> r;
     r.head<3>() = Ffb_;
     r.tail<3>() = Mfb_ - gyro;
-    r += A*am_prev_;
+    // The acceleration the added mass takes on the right-hand side.  With the acceleration of the last
+    // step alone the two sides differ by A (a - a_prev) = A dt da/dt: for a body oscillating at omega a
+    // force A dt omega^2 times its velocity, in the direction of the velocity.  The motion gains energy,
+    // the more the larger A (heave decay of a box, 100 steps per period: the swings of 28 mm grew to
+    // 156 mm in 5 s with X 197 4; a ship in a lock with X 197 1: the heave from 0.7 to 3 mm in 6 s, then
+    // the run stopped).  One-step scheme N 40 5: the acceleration extrapolated linearly in time from the
+    // last two steps; the two sides then differ by A dt^2 d2a/dt2, a change of the mass by A (omega dt)^2
+    // without a force along the velocity.  The alternating mode of the explicit coupling stays damped
+    // up to an added mass of the fluid of M + 4 A (M + 2 A before)
+    Eigen::Matrix<double,6,1> aext = am_prev_;
+
+    if(p->N40==5 && am_n_>=2 && am_dt_>0.0)
+    aext += MIN(p->dt/am_dt_,2.0)*(am_prev_ - am_prev2_);
+
+    r += A*aext;
 
     bool fixed[6];
     for(int n=0; n<6; ++n)
@@ -177,7 +191,10 @@ void sixdof_obj::cfd_added_mass(lexer *p)
     }
 
     const Eigen::Matrix<double,6,1> acc = L.partialPivLu().solve(r);
+    am_prev2_ = am_prev_;
     am_prev_ = acc;
+    am_dt_ = p->dt;
+    ++am_n_;
     finish_added_mass(acc,II,gyro,fixed);
 }
 

@@ -94,6 +94,9 @@ public:
     bool ext_on_amr_ = false;
     Eigen::Vector3d ext_v_amr_ = Eigen::Vector3d::Zero(), ext_w_amr_ = Eigen::Vector3d::Zero();
     Eigen::Matrix<double,6,1> am_prev_amr_ = Eigen::Matrix<double,6,1>::Zero();     // am_prev_ of the predicted copy (G 7 1)
+    Eigen::Matrix<double,6,1> am_prev2_amr_ = Eigen::Matrix<double,6,1>::Zero();
+    double am_dt_amr_ = 0.0;
+    int am_n_amr_ = 0;
     
     // surface geometry: hull triangles and pose transformation (solver independent)
     sixdof_geometry geom;
@@ -408,6 +411,11 @@ protected:
     // acceleration of the last stage; 0 off (set by cfd_amr)
     double am_cfd_ = 0.0;
     Eigen::Matrix<double,6,1> am_prev_ = Eigen::Matrix<double,6,1>::Zero();
+    // N 40 5: the acceleration before that, the time step of the last one and the number of steps
+    // taken, for the linear extrapolation of the acceleration in time (cfd_added_mass)
+    Eigen::Matrix<double,6,1> am_prev2_ = Eigen::Matrix<double,6,1>::Zero();
+    double am_dt_ = 0.0;
+    int am_n_ = 0;
     void cfd_added_mass(lexer*);
     void lagged_added_mass(lexer*, const Eigen::Matrix<double,6,6>&);     // NHFLOW X 15 11, CFD X 14 11
     // CFD X 14 11: the added mass of the hull on the grid (sixdof_obj_cfd::added_mass_cfd), inertial frame,
