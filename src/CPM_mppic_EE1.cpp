@@ -131,6 +131,9 @@ void CPM::mppic_EE1(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, turbulenc
     
     nsub = qs;
     dtsub = p->dt/double(MAX(qs,1));
+    
+    // graded sediment: the composition of the bed surface for the erosion of the next concentration step
+    mixture_keep(p);
 }
 
 // explicit Euler, point implicit drag and friction, grid quantities from grid_update

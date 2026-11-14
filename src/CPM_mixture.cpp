@@ -53,6 +53,7 @@ The composition of the surface acts on the bedload layer (Q 58, S 10 1) as in th
   - grain roughness of the bed shear stress (S 56): ks = S 21 times S 20, or d50, dm, d90 of the surface
   - release into the resolved suspension (Q 58 2): per fraction with its settling velocity, its onset of
     suspension, its threshold and c_a,q = F_q c_a(d_q); the moving parcels of that fraction are released
+  - hybrid suspension (Q 58 3 and 4): a concentration per fraction, see CPM_suspension.cpp
   - deposition: at random within the surface layer (well mixed), see deposit_depth
   - seeding: fa in the surface layer, fs below it
 
@@ -94,6 +95,42 @@ void CPM::mixture_ini(lexer *p)
     mx_d50_0 = d50;
     mx_dm_0 = dm;
     mx_d90_0 = d90;
+    
+    // hybrid suspension (Q 58 3 and 4): concentration per fraction
+    if(p->Q58>=3 && p->S10==1)
+    for(int q=0;q<mx_nf;++q)
+    {
+        const double gmag = sqrt(p->W20*p->W20 + p->W21*p->W21 + p->W22*p->W22);
+        const double R = (p->S22 - p->W1)/p->W1;
+        const double d = mx_d[q];
+        
+        // settling velocity, Ferguson & Church (2004) as settling_velocity
+        mx_ws.push_back(R*gmag*d*d/(18.0*p->W2 + sqrt(0.75*0.4*R*gmag*d*d*d)));
+        
+        if(q==0)
+        for(int r=0;r<=mx_nf;++r)
+        {
+            mxFs.push_back(new slice4(p));
+            
+            for(int ii=-1;ii<p->knox+1;++ii)
+            for(int jj=-1;jj<p->knoy+1;++jj)
+            (*mxFs[r])(ii,jj) = 0.0;
+        }
+        
+        mxC.push_back(new field4a(p));
+        mxCbe.push_back(new slice4(p));
+        mxSr.push_back(new slice4(p));
+        mxMc.push_back(new slice4(p));
+        
+        const long long N = (long long)p->imax*p->jmax*p->kmax;
+        
+        for(long long m=0;m<N;++m)
+        mxC[q]->V[m] = 0.0;
+        
+        for(int ii=-1;ii<p->knox+1;++ii)
+        for(int jj=-1;jj<p->knoy+1;++jj)
+        (*mxCbe[q])(ii,jj) = (*mxSr[q])(ii,jj) = (*mxMc[q])(ii,jj) = 0.0;
+    }
     
     // accounts of the exchange with the suspension per fraction (Q 58 2 and higher)
     if(p->Q58>=2)
@@ -278,7 +315,19 @@ void CPM::mixture_log(lexer *p, ghostcell *pgc)
     const double vpar = P.ParcelFactor*Vp;
     const size_t nj = size_t(p->knoy+2);
     
-    std::vector<double> Fs(mx_nf,0.0), V(mx_nf,0.0), Vb(mx_nf,0.0);
+    std::vector<double> Fs(mx_nf,0.0), V(mx_nf,0.0), Vb(mx_nf,0.0), Vs(mx_nf,0.0);
+    
+    // hybrid suspension: sediment volume of the fraction in its concentration
+    if(!mxC.empty() && afdm!=nullptr)
+    for(int q=0;q<mx_nf;++q)
+    {
+        for(i=0;i<p->knox;++i)
+        for(j=0;j<p->knoy;++j)
+        Vs[q] += susp_column(p,afdm,*mxC[q],i,j);
+        
+        Vs[q] = pgc->globalsum(Vs[q]);
+    }
+
     double vs=0.0;
     
     if(mx_V.size()==size_t(p->knox+2)*nj)
@@ -339,6 +388,10 @@ void CPM::mixture_log(lexer *p, ghostcell *pgc)
             for(int q=0;q<mx_nf;++q)
             mixout<<"\tbedload_volume_"<<q+1<<"[m3]";
             
+            if(!mxC.empty())
+            for(int q=0;q<mx_nf;++q)
+            mixout<<"\tsuspended_volume_"<<q+1<<"[m3]";
+            
             mixout<<endl;
         }
         
@@ -356,5 +409,60 @@ void CPM::mixture_log(lexer *p, ghostcell *pgc)
     for(int q=0;q<mx_nf;++q)
     mixout<<"\t"<<Vb[q];
     
+    if(!mxC.empty())
+    for(int q=0;q<mx_nf;++q)
+    mixout<<"\t"<<Vs[q];
+    
     mixout<<endl;
+}
+
+// hybrid suspension: the composition of the surface after the parcel step in slices of the grid, read back
+// for the erosion of the next concentration step. A restart from a checkpoint finds it there: the composition
+// from the parcels of the checkpoint is that after their last move, not the one the erosion used
+void CPM::mixture_keep(lexer *p)
+{
+    if(mxFs.empty() || mx_V.empty())
+    return;
+    
+    const size_t nj = size_t(p->knoy+2);
+    
+    for(i=0;i<p->knox;++i)
+    for(j=0;j<p->knoy;++j)
+    {
+        const size_t c = size_t(i+1)*nj + j+1;
+        
+        for(int q=0;q<mx_nf;++q)
+        (*mxFs[q])(i,j) = mx_F[c*mx_nf+q];
+        
+        (*mxFs[mx_nf])(i,j) = mx_V[c];
+    }
+}
+
+void CPM::mixture_restore(lexer *p)
+{
+    if(mxFs.empty())
+    return;
+    
+    const size_t nj = size_t(p->knoy+2);
+    const size_t nc = size_t(p->knox+2)*nj;
+    
+    mx_F.assign(nc*mx_nf, 0.0);
+    mx_d50.assign(nc, 0.0);
+    mx_dm.assign(nc, 0.0);
+    mx_d90.assign(nc, 0.0);
+    mx_V.assign(nc, 0.0);
+    
+    for(i=0;i<p->knox;++i)
+    for(j=0;j<p->knoy;++j)
+    {
+        const size_t c = size_t(i+1)*nj + j+1;
+        
+        for(int q=0;q<mx_nf;++q)
+        mx_F[c*mx_nf+q] = (*mxFs[q])(i,j);
+        
+        mx_V[c] = (*mxFs[mx_nf])(i,j);
+        
+        if(mx_V[c]>0.0)
+        mixture_sizes(&mx_F[c*mx_nf],mx_d50[c],mx_dm[c],mx_d90[c]);
+    }
 }

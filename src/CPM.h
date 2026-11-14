@@ -147,6 +147,22 @@ private:
     double mx_d50_0=0.0, mx_dm_0=0.0, mx_d90_0=0.0;
     // accounts of the exchange with the suspension per fraction and bed column (as blCs for one grain size)
     std::vector<slice4*> mxCs;
+    // hybrid suspension (Q 58 3 and 4) of a mixture: concentration, near-bed concentration of the erosion,
+    // net exchange rate and column mass per fraction; the concentration of the fluid is their sum
+    std::vector<field4a*> mxC;
+    std::vector<slice4*> mxCbe,mxSr,mxMc;
+    std::vector<double> mx_ws;
+    // the composition of the surface as slices (shares per fraction, volume of the layer), for a restart from a
+    // checkpoint: the erosion of the first step needs the composition of the step before
+    std::vector<slice4*> mxFs;
+    void mixture_keep(lexer*);
+    void mixture_restore(lexer*);
+public:
+    int susp_fractions() const { return int(mxC.size()); }
+    void susp_load(lexer*, fdm*, ghostcell*, sediment_fdm*, int);
+    void susp_store(lexer*, fdm*, ghostcell*, sediment_fdm*, int);
+    void susp_total(lexer*, fdm*, ghostcell*);
+private:
     ofstream mixout;
     int mixlogini=0;
     // two-way coupling
@@ -414,8 +430,10 @@ private:
     int blMc_ok=0;
     int susp_cell(lexer*, fdm*, int, int);
     double susp_column(lexer*, fdm*, int, int);
+    double susp_column(lexer*, fdm*, field&, int, int);
 public:
     void susp_cbe(lexer*, fdm*, ghostcell*, sediment_fdm*);
+    void susp_cbe_mixture(lexer*, fdm*, ghostcell*, sediment_fdm*);
     void susp_flux(lexer*, fdm*, ghostcell*, sediment_fdm*);
     double susp_volume(lexer*, fdm*, ghostcell*);
     fdm *afdm=nullptr;   // fluid data for the log (suspended volume)
