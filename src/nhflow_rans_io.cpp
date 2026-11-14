@@ -362,16 +362,19 @@ void nhflow_rans_io::wetting_ini(lexer *p, fdm_nhf *d, double *KN, double *EN, b
     }
 }
 
-// length-scale limit (A 564 >= 1): the turbulence length scale l = cmu^0.75 k^1.5/eps does not exceed kappa h
+// length-scale limit: the turbulence length scale l = cmu^0.75 k^1.5/eps does not exceed kappa h
 // (h the local water depth): eps >= cmu^0.75 k^1.5/(kappa h), omega >= k^0.5/(cmu^0.25 kappa h), i.e.
 // nu_t <= cmu^0.25 k^0.5 kappa h. In open-channel equilibrium l stays below 0.16 h, so the limit only acts
 // where eps/omega -> 0+ with k > 0 (newly wetted and very shallow cells, still water with residual k).
+// For every A 564, also 0 (was A 564 >= 1 only): a run without a discharge inflow (B 60 0: waves, still water)
+// starts from k = eps/omega = 0, and nu_t = k/omega (cmu k^2/eps) is singular where omega (eps) is still ~ 0 and k
+// has started to grow. With A 564 0 nothing bounded it: a regular wave in a 2D flume gave nu_t = 1.7e6 m2/s in the
+// second time step (k = 2e-14 m2/s2) and velocities of 6 m/s; k-epsilon failed the same way within 50 steps.
 // Also updates WETN for wetting_ini.
 void nhflow_rans_io::length_limit(lexer *p, fdm_nhf *d, bool komega)
 {
     const double kappa = 0.4;
     
-    if(p->A564>=1)
     LOOP
     if(p->wet[IJ]==1 && p->DF[IJK]>0 && KIN[IJK]>0.0 && d->WL(i,j)>1.0e-6)
     {

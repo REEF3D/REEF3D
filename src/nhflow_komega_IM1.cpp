@@ -103,7 +103,7 @@ void nhflow_komega_IM1::start_part(lexer* p, fdm_nhf* d, ghostcell* pgc, nhflow_
     }
 
 	epsfsf(p,d,pgc);
-    length_limit(p,d,true);   // l <= kappa h (A 564 >= 1)
+    length_limit(p,d,true);   // l <= kappa h
 	pgc->start30V(p,EPS,gcval_eps);
 	p->epstime=pgc->timer()-starttime;
 	p->epsiter=p->solveriter;

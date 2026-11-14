@@ -287,7 +287,7 @@ void control::ini_default()
     A558=0.0;    // double NHFLOW semi-implicit with A 520 > 0: breaking limiter of the vertical velocity |w| <= A 558 sqrt(g H) (Popinet 2020, 0.1 there), 0 off
     
     A560=0;      // int turbulence model
-    A564=1;      // int eddyv limiter (NHFLOW: 1 realizability, 2 SST; >= 1 also the length-scale limit l <= kappa h)
+    A564=1;      // int eddyv limiter (NHFLOW: 0 none, 1 realizability, 2 SST; the length-scale limit l <= kappa h always)
     A565=0;      // int stabilization
     A566=0;      // int buoyancy
     A567=0;      // int fsf eps

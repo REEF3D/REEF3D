@@ -105,7 +105,7 @@ void nhflow_kepsilon_IM1::start_part(lexer* p, fdm_nhf* d, ghostcell* pgc, nhflo
     }
 
 	epsfsf(p,d,pgc);
-    length_limit(p,d,false);   // l <= kappa h (A 564 >= 1)
+    length_limit(p,d,false);   // l <= kappa h
     strat_limit(p,d);          // A 623: l <= c_lim sqrt(2k)/N
 	pgc->start30V(p,EPS,gcval_eps);
 	p->epstime=pgc->timer()-starttime;
