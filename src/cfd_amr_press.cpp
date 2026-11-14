@@ -289,7 +289,7 @@ enum { NR=REEFAMR_NR, NRH=REEFAMR_NRH, NPV=REEFAMR_NPV, NVV=REEFAMR_NVV, NS=REEF
 bool cfd_amr::d32_inside(int g, const int *q)
 {
     fdm *a = gfd(g);
-    return (p0->solidread>0 && a->solid(q[0],q[1],q[2])<0.0) || (p0->topoforcing>0 && a->topo(q[0],q[1],q[2])<0.0);
+    return (p0->solidread>0 && a->solid(q[0],q[1],q[2])<-1.0e-9) || (p0->topoforcing>0 && a->topo(q[0],q[1],q[2])<-1.0e-9);
 }
 
 field& cfd_amr::pfield(int g, int k)
