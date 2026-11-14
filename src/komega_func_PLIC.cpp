@@ -246,14 +246,12 @@ void komega_func_PLIC::epssource(lexer *p, fdm* a, vrans* pvrans, field &kin)
         {
 		a->M.p[count] += kw_beta * MAX(eps(i,j,k),0.0);
 
-        // alpha omega/k P(nu_t0), bounded by alpha S^2 where the 1e-4 nu floor is active (as in komega_func)
-        const double ratio = MAX(eps(i,j,k),0.0)/(kin(i,j,k)>(1.0e-10)?(fabs(kin(i,j,k))):(1.0e20));
+        // production of omega alpha S^2, S^2 = 2 Sij Sij: the form with the unlimited nu_t = k/omega
+        // (Wilcox 1988; Menter's SST). With the limited eddy viscosity, alpha omega/k nu_t0 S^2, the production
+        // was proportional to omega wherever the limiter T 34 was active (omega < S/T31): omega could not grow
+        // from a small value, k had no dissipation and grew at the rate T31 S (free surface, start from rest)
         const double pk0 = pk(p,a,eddyv0);
 
-        if(ratio*eddyv0(i,j,k)<=1.0)
-        a->rhsvec.V[count] +=  kw_alpha * ratio * pk0;
-
-        if(ratio*eddyv0(i,j,k)>1.0)
         a->rhsvec.V[count] +=  kw_alpha * pk0/eddyv0(i,j,k);
         ++count;
         }
