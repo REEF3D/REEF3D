@@ -238,6 +238,10 @@ void nhflow_momentum_func::phase_P(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_
     else
 	S.ppress->start(p,d,S.ppoissonsolv,pgc,S.pflow,stage_WL(d,s),stage_UH(d,s,0),stage_UH(d,s,1),stage_UH(d,s,2),stage_alpha(s));
     
+    // direct forcing with the body in the projection (X 15 11): the added mass of the hull with the matrix of the stage
+    if(pm6dof!=nullptr && p->X15==11 && p->X10==1 && p->A520>0)
+    pm6dof->added_mass_nhflow(p,d,pgc,S.ppoissonsolv,stage_WL(d,s),s);
+    
     phase_P2(p,d,pgc,S,s);
 }
 

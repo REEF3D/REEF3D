@@ -43,6 +43,8 @@ private:
 //  forcing, hull pressure and viscous loads, membranes (X 330), porous bodies (X 16) and
 //  the wavemaker objects (X 10 4). The ship-wave mode (X 10 3) uses the 2D pressure patch.
 
+class solver;
+
 class sixdof_obj_nhflow : public sixdof_obj_2D
 {
 public:
@@ -65,6 +67,29 @@ public:
     void fbnormal_curv(lexer*, fdm_nhf*, double&, double&);   // curvilinear grid: horizontal part of -grad(FB)
     void forcing_kernel_nhflow(lexer*, fdm_nhf*, ghostcell*, double*, double*, double*, double*, double*, double*, slice&, int, bool);
     void target_velocity(lexer*, bool, double&, double&, double&);
+    // X 15 11: direct forcing with cell and face fractions, the body in the projection (6DOF_obj_forcing_nhflow.cpp)
+    void forcing_kernel_fraction(lexer*, fdm_nhf*, ghostcell*, double*, double*, double*, double*, double*, double*, slice&, int, bool);
+    double cellfraction_nhflow(lexer*, fdm_nhf*, slice&, double&, double&, double&);
+    double linkfraction_nhflow(double, double, double, double, double, double);
+    double *FNX=nullptr,*FNY=nullptr,*FNZ=nullptr;     // unit normal of the hull at the cells (X 15 11)
+    void fraction_ini(lexer*, fdm_nhf*);
+    bool fraction_reforce = false;      // after the projection: fractions only, no forcing
+    // X 15 11, loads: sample distance of the pressure, the water layer between hull and sample points (G), the
+    // pressure field of the loads if not d->P
+    double sample_dist_nhflow(lexer*, slice&, double, double, double, double, double, double);
+    Eigen::Matrix<double,6,6> Gdf_ = Eigen::Matrix<double,6,6>::Zero();
+    double *load_P = nullptr;
+    // X 15 11, coupling: the added mass of the hull on the grid from unit accelerations of the free degrees of
+    // freedom (6DOF_obj_nhflow_addedmass.cpp), (M + A) a = F + A a_prev
+    void added_mass_nhflow(lexer*, fdm_nhf*, ghostcell*, solver*, slice&);
+    void fraction_stabilisation(lexer*);
+    Eigen::Matrix<double,6,6> Adf_ = Eigen::Matrix<double,6,6>::Zero();
+    bool adf_on_ = false;
+    double *UA=nullptr,*VA=nullptr,*WA=nullptr,*PA=nullptr,*UBA=nullptr,*VBA=nullptr,*WBA=nullptr;
+    ofstream amout;
+    // acceleration of the body from its velocities at the start of the last two time steps (prescribed motions)
+    Eigen::Matrix<double,6,1> afd_ = Eigen::Matrix<double,6,1>::Zero(), ufd_ = Eigen::Matrix<double,6,1>::Zero();
+    double tfd_ = -1.0;
     void membrane_forcing_nhflow(lexer*,fdm_nhf*,ghostcell*,double,double*,double*,double*,slice&);
     void membrane_reaction_nhflow(lexer*,fdm_nhf*,ghostcell*,double,slice&,bool);
     bool membrane_iterated();

@@ -26,6 +26,7 @@ Author: Hans Bihs
 #include"fdm_nhf.h"
 #include"nhflow_membrane_beta.h"
 #include"nhflow_thinbody.h"
+#include"nhflow_bodyflux.h"
 #include"ghostcell.h"
 #include"nhflow_poisson.h"
 #include"nhflow_pjm_ho.h"
@@ -306,6 +307,10 @@ void nhflow_pjm::rhs(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V,
     // sharp thin bodies (X 330 'mobility sharp'): wall velocity at the blocked links
     if(d->thinbody!=nullptr)
     d->thinbody->projection_rhs(p,d,U,V,W,alpha);
+    
+    // direct forcing with the body in the projection (X 15 11): the flux of the body through the closed part of its faces
+    if(nhflow_bodyflux::active(p,d))
+    nhflow_bodyflux::rhs(p,d,U,V,W,d->FBUX,d->FBUY,d->FBWZ,alpha*p->dt,true);
 }
 
 void nhflow_pjm::upgrad(lexer*p, fdm_nhf *d, slice &WL)

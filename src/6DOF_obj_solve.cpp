@@ -110,6 +110,10 @@ void sixdof_obj_nhflow::solve_eqmotion_nhflow(lexer *p, fdm_nhf *d, ghostcell *p
     if((p->X15==8 || p->X15==10) && d->hullbody!=nullptr)
     hull_stabilisation(p,iter);
     
+    // direct forcing with the body in the projection (X 15 11): the added mass of the hull on the grid on both sides
+    if(p->X15==11 && p->X16==0)
+    fraction_stabilisation(p);
+    
     // porous floating body: linearly implicit drag
     if(p->X16==1)
     porous_damping_nhflow(p,iter);

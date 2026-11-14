@@ -245,6 +245,16 @@ void driver::logic_nhflow()
         p->A520=1;
     }
 
+    // direct forcing with the body in the projection (X 15 11): needs the projection, on the uniform grid; else the
+    // forcing of X 15 4
+    if(p->X15==11 && p->X10>0 && (p->A520==0 || p->G1>0 || p->geo_curv==1))
+    {
+        if(p->mpirank==0)
+        cout<<"X 15 11 is not available "<<(p->A520==0 ? "without the pressure projection (A 520 0)" : (p->G1>0 ? "on the mesh refinement hierarchy (G 1)" : "on the curvilinear grid (G 50)"))<<" yet: X 15 4"<<endl;
+
+        p->X15=4;
+    }
+
     if(p->A520==0)
 	pnhpress = new nhflow_pjm_hs(p,d,pBC);
     

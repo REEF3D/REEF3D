@@ -409,6 +409,7 @@ protected:
     double am_cfd_ = 0.0;
     Eigen::Matrix<double,6,1> am_prev_ = Eigen::Matrix<double,6,1>::Zero();
     void cfd_added_mass(lexer*);
+    void lagged_added_mass(lexer*, const Eigen::Matrix<double,6,6>&);     // NHFLOW X 15 11
     
     // X 197: A from the added mass of the equivalent ellipsoid of the hull (2D: elliptic cylinder),
     // body frame, about the CoG (am_ell_: the ellipsoid in the box of the hull, its centre off the

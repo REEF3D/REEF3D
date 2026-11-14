@@ -36,6 +36,7 @@ Author: Hans Bihs
 #include"vrans.h"
 #include"vrans_definitions.h"
 #include"nhflow_thinbody.h"
+#include"nhflow_bodyflux.h"
 
 #define WLVL (fabs(WL(i,j))>(p->A544)?WL(i,j):1.0e20)
 
@@ -119,7 +120,7 @@ void nhflow_pjm_corr::start(lexer *p, fdm_nhf *d, solver* psolv, ghostcell* pgc,
     // (upgrad, vpgrad, wpgrad), so the cell velocities carry the face-mobility gradient of the total pressure and the
     // Rhie-Chow faces are stored with it
     if(d->MBETA!=nullptr)
-    nhflow_membrane_rc_store(p,d,pgc,d->thinbody!=nullptr ? d->P : PCORR,alpha*p->dt);
+    nhflow_membrane_rc_store(p,d,pgc,(d->thinbody!=nullptr || (p->X15==11 && p->X10>0)) ? d->P : PCORR,alpha*p->dt);
 
     p->poissoniter=p->solveriter;
 
@@ -244,6 +245,10 @@ void nhflow_pjm_corr::rhs(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, doubl
     // sharp thin bodies: wall velocity at the blocked links (as nhflow_pjm::rhs)
     if(d->thinbody!=nullptr)
     d->thinbody->projection_rhs(p,d,U,V,W,alpha);
+    
+    // direct forcing with the body in the projection (X 15 11): the flux of the body through the closed part of its faces
+    if(nhflow_bodyflux::active(p,d))
+    nhflow_bodyflux::rhs(p,d,U,V,W,d->FBUX,d->FBUY,d->FBWZ,alpha*p->dt,true);
 }
 
 void nhflow_pjm_corr::ucorr(lexer* p, fdm_nhf *d, slice &WL, double *UH, double *PCORR, double alpha)
@@ -333,7 +338,7 @@ void nhflow_pjm_corr::upgrad(lexer*p, fdm_nhf *d, slice &WL)
     dPdx = (0.5*(d->P[FIp1JKp1]+d->P[FIp1JK])-0.5*(d->P[FIm1JKp1]+d->P[FIm1JK]))/(p->DXP[IP]+p->DXP[IM1]);
     
     // sharp thin bodies: the old pressure with the link mobilities, as the correction (no pressure across the hull)
-    const bool tb = d->thinbody!=nullptr && d->MBETA!=nullptr;
+    const bool tb = (d->thinbody!=nullptr || (p->X15==11 && p->X10>0)) && d->MBETA!=nullptr;   // X 15 11: the open fractions of the links
     
     if(tb)
     dPdx = nhflow_membrane_gradx(p,d,d->P,i,j,k);
@@ -372,7 +377,7 @@ void nhflow_pjm_corr::vpgrad(lexer*p, fdm_nhf *d, slice &WL)
     else
     dPdy = (0.5*(d->P[FIJp1Kp1]+d->P[FIJp1K])-0.5*(d->P[FIJm1Kp1]+d->P[FIJm1K]))/(p->DYP[JP]+p->DYP[JM1]);
     
-    const bool tb = d->thinbody!=nullptr && d->MBETA!=nullptr;
+    const bool tb = (d->thinbody!=nullptr || (p->X15==11 && p->X10>0)) && d->MBETA!=nullptr;   // X 15 11: the open fractions of the links
     
     if(tb)
     dPdy = nhflow_membrane_grady(p,d,d->P,i,j,k);
@@ -390,6 +395,6 @@ void nhflow_pjm_corr::wpgrad(lexer*p, fdm_nhf *d, slice &WL)
 {
     LOOP
     WETDRYDEEP
-    d->H[IJK] -= (d->thinbody!=nullptr && d->MBETA!=nullptr ? MBETAVAL : 1.0)*(1.0/p->W1)*((d->P[FIJKp1]-d->P[FIJK])/(p->DZN[KP]));
+    d->H[IJK] -= ((d->thinbody!=nullptr || (p->X15==11 && p->X10>0)) && d->MBETA!=nullptr ? MBETAVAL : 1.0)*(1.0/p->W1)*((d->P[FIJKp1]-d->P[FIJK])/(p->DZN[KP]));
 }
 

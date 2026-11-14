@@ -179,6 +179,43 @@ void sixdof_obj::cfd_added_mass(lexer *p)
     finish_added_mass(acc,II,gyro,fixed);
 }
 
+// the coupling with a given added mass A (inertial frame, moments about the centre of gravity) on both sides,
+// (M + A) a = F + A a_prev, as cfd_added_mass (NHFLOW X 15 11: A the added mass of the hull on the grid)
+void sixdof_obj::lagged_added_mass(lexer *p, const Eigen::Matrix<double,6,6> &A)
+{
+    const Eigen::Matrix3d II = R_*I_*R_.transpose();
+    const Eigen::Vector3d w = omega_I;
+    const Eigen::Vector3d gyro = w.cross(II*w);
+    
+    Eigen::Matrix<double,6,6> L = A;
+    L.block<3,3>(0,0) += Mass_fb*Eigen::Matrix3d::Identity();
+    L.block<3,3>(3,3) += II;
+
+    Eigen::Matrix<double,6,1> r;
+    r.head<3>() = Ffb_;
+    r.tail<3>() = Mfb_ - gyro;
+    r += A*am_prev_;
+
+    bool fixed[6];
+    
+    for(int n=0; n<6; ++n)
+    {
+        fixed[n] = p_fixed_dof(p,n);
+        
+        if(fixed[n])
+        {
+            L.row(n).setZero();
+            L.col(n).setZero();
+            L(n,n) = 1.0;
+            r(n) = 0.0;
+        }
+    }
+
+    const Eigen::Matrix<double,6,1> acc = L.partialPivLu().solve(r);
+    am_prev_ = acc;
+    finish_added_mass(acc,II,gyro,fixed);
+}
+
 void sixdof_obj::added_mass_ellipsoid(lexer *p)
 {
     // half extents of the hull in the body frame (relative to the CoG): the semi-axes a, b, c of

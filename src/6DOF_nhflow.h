@@ -89,6 +89,7 @@ public:
     // the bodies, for the NHFLOW mesh refinement (nhflow_amr)
     int objects() const {return number6DOF;}
     sixdof_obj_nhflow* object(int nb) {return fb_obj[nb];}
+    void added_mass_nhflow(lexer*,fdm_nhf*,ghostcell*,solver*,slice&,int) override;
     
     // subcycling (G 7 1): level 0 steps with a predicted copy of the bodies (X 10 1/2): the RK
     // stages with the loads frozen, the trimesh, ray cast and forcing; no loads, no output

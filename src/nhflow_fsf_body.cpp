@@ -70,7 +70,8 @@ Author: Hans Bihs
 
 nhflow_fsf_body::nhflow_fsf_body(lexer *p) : Hb(p), Hbold(p), etaext(p), ratio(p), phitop(p)
 {
-    mode = (p->X13==1 && (p->X10==1 || p->X10==2) && p->X16==0) ? 1 : 0;
+    // X 15 11 (direct forcing with the body in the projection) always with the level of the pierced columns
+    mode = ((p->X13==1 || p->X15==11) && (p->X10==1 || p->X10==2) && p->X16==0) ? 1 : 0;
     patch = false;
     told = false;
 
@@ -168,7 +169,9 @@ void nhflow_fsf_body::level(lexer *p, fdm_nhf *d, ghostcell *pgc, sixdof *p6dof,
 
             // ramp over half the forcing width: the first column inside the hull is (nearly) fully treated,
             // also where the top cell centre is less than a forcing width above the keel
-            const double dr = 0.5*psi;
+            // X 15 11: a column belongs to the body where the centre of its top cell is inside the hull, fully from
+            // half a cell inside (the top cell is all body: no water in the column above the hull)
+            const double dr = p->X15==11 ? 0.5*psi/p->A526 : 0.5*psi;
             const double phi = -phitop(i,j);
 
             if(phi >= dr)
@@ -226,7 +229,7 @@ void nhflow_fsf_body::level(lexer *p, fdm_nhf *d, ghostcell *pgc, sixdof *p6dof,
         dVcore += (e1 - e0)*dA;
 
         else
-        dVe += (e1 - e0)*dA;
+        dVe += (e1 - e0)*dA*(p->X15==11 ? 1.0 - Hb(i,j) : 1.0);    // X 15 11: the part of the column top that is water
 
         set_level(p,d,WL,e1,alpha);
     }

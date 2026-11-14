@@ -120,6 +120,21 @@ void sixdof_obj_nhflow::force_calc_stl(lexer* p, fdm_nhf *d, ghostcell *pgc, sli
     const double pfac = (p->X16==1) ? (1.0 - p->X16_n) : 1.0;
     Xe_p=Ye_p=Ze_p=Xe_v=Ye_v=Ze_v=0.0;
     
+    // X 15 11: the pressure sampled in the water, one and two cells off the hull (X 42 cells, if given), and brought
+    // to the hull with a parabola through the two samples with the normal pressure gradient of the wall,
+    // dp/dn = -rho a_b.n:  p_wall = (4 p1 - p2)/3 + (2/3) rho doff a_b.n. The last term is the load -G a_b, G the
+    // mass of 2/3 of the water layer between hull and first sample points in the normal direction (kept in Gdf_).
+    // The cells cut by the hull and the cells of the body hold no pressure of the water. With one sample and the
+    // gradient of the wall the heave added mass of a box grew with the sample distance (the acceleration of the
+    // water falls off from the hull): 1.10, 1.13, 1.17, 1.22 of the displaced mass for 0.5, 1, 1.5, 2 cells.
+    // load_P: the loads of the pressure field load_P alone (added mass, 6DOF_obj_nhflow_addedmass.cpp)
+    const bool frac = (p->X15==11);
+    double Gl[6][6];
+    
+    for(int qa=0; qa<6; ++qa)
+    for(int qb=0; qb<6; ++qb)
+    Gl[qa][qb] = 0.0;
+    
     // Set new time
     // the loads of the last stage belong to the end of the step (simtime is advanced after it)
     curr_time = finalize ? p->simtime + p->dt : p->simtime;
@@ -201,7 +216,22 @@ void sixdof_obj_nhflow::force_calc_stl(lexer* p, fdm_nhf *d, ghostcell *pgc, sli
             ny = 0.0;
         }
         
-        const double fsf_z = p->wd + pl->ccslipol4(dl->eta,xc,yc);
+        // X 15 11: the water level at the hull from the water side, as the pressure: at one and two cells off the hull
+        // along the horizontal part of the normal, (4 eta1 - eta2)/3. At the hull itself the interpolation takes in
+        // the level of the columns covered by the body, the surface extended from all around the body, which at a
+        // side of the hull in waves is not the level of the water at that side. Below the keel (vertical normal)
+        // it is the level of the column.
+        auto eta_hull = [&](double x, double y, double z)
+        {
+            if(!frac)
+            return pl->ccslipol4(dl->eta,x,y);
+            
+            const double off = sample_dist_nhflow(pl,*WLl,x,y,z,nx,ny,nz);
+            
+            return (4.0*pl->ccslipol4(dl->eta,x + nx*off,y + ny*off) - pl->ccslipol4(dl->eta,x + 2.0*nx*off,y + 2.0*ny*off))/3.0;
+        };
+        
+        const double fsf_z = p->wd + eta_hull(xc,yc,(vz[0] + vz[1] + vz[2])/3.0);
         
         // Clip the triangle to the wetted side z <= fsf_z
         int np=0;
@@ -294,11 +324,29 @@ void sixdof_obj_nhflow::force_calc_stl(lexer* p, fdm_nhf *d, ghostcell *pgc, sli
             for(int q=0; q<3; ++q)
             {
                 // non-hydrostatic pressure, optionally sampled X42 mean cell sizes off the wall
-                const double pval = pl->ccipol7V(dl->P, *WLl, dl->bed, mx[q] + p->X42*nx*dsm, 
-                                                                    my[q] + p->X42*ny*dsm, 
-                                                                    mz[q] + p->X42*nz*dsm);
+                const double doff = frac ? sample_dist_nhflow(pl,*WLl,mx[q],my[q],mz[q],nx,ny,nz) : p->X42*dsm;
+                
+                double pval = pl->ccipol7V(load_P!=nullptr ? load_P : dl->P, *WLl, dl->bed, mx[q] + nx*doff, 
+                                                                    my[q] + ny*doff, 
+                                                                    mz[q] + nz*doff);
+                
+                // X 15 11: second sample at twice the distance, p_wall = (4 p1 - p2)/3 - (2/3) doff dp/dn
+                if(frac)
+                pval = (4.0*pval - pl->ccipol7V(load_P!=nullptr ? load_P : dl->P, *WLl, dl->bed, mx[q] + 2.0*nx*doff, 
+                                                                    my[q] + 2.0*ny*doff, 
+                                                                    mz[q] + 2.0*nz*doff))/3.0;
                 // hydrostatic pressure at the quadrature point
-                const double hsp = MAX(0.0, (p->wd + pl->ccslipol4(dl->eta,mx[q],my[q]) - mz[q])*p->W1*fabs(p->W22));
+                const double hsp = load_P!=nullptr ? 0.0 : MAX(0.0, (p->wd + eta_hull(mx[q],my[q],mz[q]) - mz[q])*p->W1*fabs(p->W22));
+                
+                if(frac)
+                {
+                    const double rgx = mx[q] - c_(0), rgy = my[q] - c_(1), rgz = mz[q] - c_(2);
+                    const double N[6] = {nx, ny, nz, rgy*nz - rgz*ny, rgz*nx - rgx*nz, rgx*ny - rgy*nx};
+                    
+                    for(int qa=0; qa<6; ++qa)
+                    for(int qb=0; qb<6; ++qb)
+                    Gl[qa][qb] += p->W1*(2.0/3.0)*doff*(A_sub/3.0)*N[qa]*N[qb];
+                }
                 
                 const double w  = A_sub/3.0;
                 pq[q] = pfac*(pval + hsp);
@@ -332,7 +380,7 @@ void sixdof_obj_nhflow::force_calc_stl(lexer* p, fdm_nhf *d, ghostcell *pgc, sli
             
             // Viscous forces at the sub-triangle centroid
             // (not for a porous body: the envelope is not a wall, the volume drag replaces it)
-            if(p->X16==1)
+            if(p->X16==1 || load_P!=nullptr)
             continue;
             
             const double gx = (ax + bx + cx)/3.0;
@@ -371,6 +419,44 @@ void sixdof_obj_nhflow::force_calc_stl(lexer* p, fdm_nhf *d, ghostcell *pgc, sli
 	Xe_v = pgc->globalsum(Xe_v);
 	Ye_v = pgc->globalsum(Ye_v);
 	Ze_v = pgc->globalsum(Ze_v);
+    
+    // X 15 11: the layer of water between the hull and the sample points
+    if(frac)
+    {
+        for(int qa=0; qa<6; ++qa)
+        for(int qb=0; qb<6; ++qb)
+        Gdf_(qa,qb) = pgc->globalsum(Gl[qa][qb]);
+        
+        // the loads of a pressure field alone: no layer, no weight, no output
+        if(load_P!=nullptr)
+        {
+            if(p->j_dir==0)
+            Ye = Ke = Ne = 0.0;
+            
+            return;
+        }
+        
+        // the acceleration of the body in the projection of this stage (the one of its last RK stage)
+        // (prescribed degrees of freedom: from the velocities of the last two time steps)
+        Eigen::Matrix<double,6,1> ab = am_prev_;
+        
+        for(int qa=0; qa<6; ++qa)
+        if(rb.fixed(qa))
+        ab(qa) = afd_(qa);
+        
+        const Eigen::Matrix<double,6,1> Fg = -Gdf_*ab;
+        
+        Xe += Fg(0);
+        Ye += Fg(1);
+        Ze += Fg(2);
+        Ke += Fg(3);
+        Me += Fg(4);
+        Ne += Fg(5);
+        
+        Xe_p += Fg(0);
+        Ye_p += Fg(1);
+        Ze_p += Fg(2);
+    }
     
     // porous body: add the Darcy-Forchheimer drag reaction (already global sums).
     // It is written to the viscous columns of the force file.
@@ -430,4 +516,21 @@ void sixdof_obj_nhflow::amr_point_nhflow(lexer *p, double x, double y, lexer *pl
     pl = plc;
     dl = dlc;
     WLl = WLc;
+}
+
+// X 15 11: distance of the pressure sample point from the hull at (x,y,z) with the outward normal n: X 42 cells
+// (1 if not given) in the direction of the normal, the cell of the point with its height in the water column
+double sixdof_obj_nhflow::sample_dist_nhflow(lexer *pl, slice &WLl, double x, double y, double z, double nx, double ny, double nz)
+{
+    const int marge = increment::marge;
+    const double c = pl->X42>0.0 ? pl->X42 : 1.0;
+    
+    if(pl->geo_curv==1)
+    return c*DSM;
+    
+    const int ii = MAX(0, MIN(pl->knox-1, pl->posc_i(x)));
+    const int jj = (pl->j_dir==1) ? MAX(0, MIN(pl->knoy-1, pl->posc_j(y))) : 0;
+    const int kk = MAX(0, MIN(pl->knoz-1, pl->posc_sig(ii,jj,z)));
+    
+    return c*(fabs(nx)*pl->DXN[ii+marge] + (pl->j_dir==1 ? fabs(ny)*pl->DYN[jj+marge] : 0.0) + fabs(nz)*pl->DZN[kk+marge]*MAX(WLl(ii,jj),1.0e-6));
 }

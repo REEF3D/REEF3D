@@ -33,6 +33,7 @@ class fdm2D;
 class ghostcell;
 class field;
 class slice;
+class solver;
 
 using namespace std;
 
@@ -49,6 +50,9 @@ public:
     virtual void start_sflow(lexer*,fdm2D*,ghostcell*,int,slice&,slice&,slice&,slice&,slice&,slice&,slice&,bool)=0;
     
     virtual void reforce_nhflow(lexer*,fdm_nhf*,ghostcell*,int,double*,double*,double*,double*,double*,double*,slice&,slice&,bool)=0;
+    // NHFLOW direct forcing with the body in the projection (X 15 11): the added mass of the hulls on the grid, after
+    // the projection of stage s with its matrix (6DOF_obj_nhflow_addedmass.cpp)
+    virtual void added_mass_nhflow(lexer*,fdm_nhf*,ghostcell*,solver*,slice&,int) {};
     
     // impermeable membranes (X 330): implicit forcing before the projection, loads after it
     virtual void membrane_forcing_nhflow(lexer*,fdm_nhf*,ghostcell*,double,double*,double*,double*,slice&) {};
