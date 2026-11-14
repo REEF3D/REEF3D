@@ -52,9 +52,16 @@ inline bool solid_walls(lexer *p)
     return (p->D32>0 || p->D1==2) && (p->solidread>0 || p->topoforcing>0);
 }
 
+// A cell centre counts as inside when it lies deeper than 1e-9 m in the solid.  With < 0 a centre
+// on the surface of a solid (a cap beam of the pier with its face at x = 19.065 m on a grid with
+// centres at 7.515 + 0.03 k; a girder between y = 1.185 and 1.215 m) was inside or outside by the
+// rounding of its distance (+-1e-17), cell by cell along the face and differently on every level
+// of the mesh refinement: closed faces in a random pattern, the levels at odds, and the composite
+// pressure solve of the refinement took 41-53 iterations per step instead of 11-14 (60 mm), at
+// 30 mm 31, 99 and more instead of 13-30 (185 on 12 ranks)
 inline bool solid_closed_inside(lexer *p, fdm *a, int ii, int jj, int kk)
 {
-    return (p->solidread>0 && a->solid(ii,jj,kk)<0.0) || (p->topoforcing>0 && a->topo(ii,jj,kk)<0.0);
+    return (p->solidread>0 && a->solid(ii,jj,kk)<-1.0e-9) || (p->topoforcing>0 && a->topo(ii,jj,kk)<-1.0e-9);
 }
 
 // the face between cell (ii,jj,kk) and cell (ii+di,jj+dj,kk+dk)
