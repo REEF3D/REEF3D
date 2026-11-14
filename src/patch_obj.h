@@ -34,9 +34,13 @@ public:
 	patch_obj(lexer*,int);
 	virtual ~patch_obj();
     
-    // velocity vector (u,v,w) with the component normal to the face (+axis direction) Un,
+    // velocity vector (u,v,w) whose component normal to the face, positive into the domain, is Un,
     // along the patch flow direction (B 415, B 416, B 417; default: normal to the face)
     void velocity(int cs, double Un, double &uval, double &vval, double &wval) const;
+    
+    // +1 for the faces on the - side of a cell (cs 1, 3, 5), -1 for the + side (cs 2, 4, 6):
+    // the axis velocity times inward() is the velocity into the domain
+    static double inward(int cs) { return (cs==1 || cs==3 || cs==5) ? 1.0 : -1.0; }
     
     int ID;
     int kind;            // PATCH_INLET or PATCH_OUTLET

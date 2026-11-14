@@ -24,6 +24,7 @@ Author: Hans Bihs
 #include"patchBC_codes.h"
 #include"sflow_momentum_func.h"
 #include"gcsl_yskip.h"
+#include"gcsl_side.h"
 #include"sflow_amr.h"
 #include"lexer.h"
 #include"fdm2D.h"
@@ -200,9 +201,10 @@ void sflow_momentum_func::inflow(lexer *p, fdm2D *b, ghostcell *pgc, ioflow *pfl
     {
     i=p->gcslin[n][0];
     j=p->gcslin[n][1];
+    const gcsl_side sd(p->gcslin[n][3]);
     
         for(q=1;q<=3;++q)
-        b->W(i-q,j) = b->ws(i-q,j);
+        b->W(sd.gi(i,q),sd.gj(j,q)) = b->ws(sd.gi(i,q),sd.gj(j,q));
     }
     
     if(p->B60>=1 && p->B98<3)
@@ -210,9 +212,10 @@ void sflow_momentum_func::inflow(lexer *p, fdm2D *b, ghostcell *pgc, ioflow *pfl
     {
     i=p->gcslin[n][0];
     j=p->gcslin[n][1];
+    const gcsl_side sd(p->gcslin[n][3]);
     
         for(q=1;q<=3;++q)
-        b->W(i-q,j) = 0.0;
+        b->W(sd.gi(i,q),sd.gj(j,q)) = 0.0;
     }
     
     // Boussinesq: reference level velocity at the inflow
@@ -221,11 +224,12 @@ void sflow_momentum_func::inflow(lexer *p, fdm2D *b, ghostcell *pgc, ioflow *pfl
     {
     i=p->gcslin[n][0];
     j=p->gcslin[n][1];
+    const gcsl_side sd(p->gcslin[n][3]);
     
         for(q=1;q<=3;++q)
         {
-        b->UA(i-q,j) = b->U(i-q,j);
-        b->VA(i-q,j) = b->V(i-q,j);
+        b->UA(sd.gi(i,q),sd.gj(j,q)) = b->U(sd.gi(i,q),sd.gj(j,q));
+        b->VA(sd.gi(i,q),sd.gj(j,q)) = b->V(sd.gi(i,q),sd.gj(j,q));
         }
     }
     
@@ -235,11 +239,12 @@ void sflow_momentum_func::inflow(lexer *p, fdm2D *b, ghostcell *pgc, ioflow *pfl
     {
     i=p->gcslout[n][0];
     j=p->gcslout[n][1];
+    const gcsl_side sd(p->gcslout[n][3]);
     
         for(q=1;q<=3;++q)
         {
-        b->UA(i+q,j) = b->U(i+q,j);
-        b->VA(i+q,j) = b->V(i+q,j);
+        b->UA(sd.gi(i,q),sd.gj(j,q)) = b->U(sd.gi(i,q),sd.gj(j,q));
+        b->VA(sd.gi(i,q),sd.gj(j,q)) = b->V(sd.gi(i,q),sd.gj(j,q));
         }
     }
     
@@ -779,8 +784,12 @@ void sflow_momentum_func::vel_bc(lexer *p, fdm2D *b, ghostcell *pgc, slice &u, s
         continue;
         }
         
+        // in- and outflow sides: on a Cartesian grid any side (ioflow, gcsl_side), on a curvilinear grid the i sides
+        const bool ioside_in = (cs==1 || p->geo_curv==0);
+        const bool ioside_out = (cs==4 || p->geo_curv==0);
+        
         // inflow side
-        if(cs==1 && (bc==1 || bc==6))
+        if(ioside_in && (bc==1 || bc==6))
         {
             if(inflow_flag==0)
             {
@@ -801,7 +810,7 @@ void sflow_momentum_func::vel_bc(lexer *p, fdm2D *b, ghostcell *pgc, slice &u, s
         }
         
         // outflow side
-        if(cs==4 && (bc==2 || bc==7 || bc==8))
+        if(ioside_out && (bc==2 || bc==7 || bc==8))
         {
             // active wave absorption (outflow_flag==1): ghost cells are set by ioflow
             
@@ -810,7 +819,7 @@ void sflow_momentum_func::vel_bc(lexer *p, fdm2D *b, ghostcell *pgc, slice &u, s
             neumann(p,u,cs);
             neumann(p,v,cs);
             neumann(p,w,cs);
-            outflow_clip(p,u,v);
+            outflow_clip(p,u,v,cs);
             }
             
             if(outflow_flag==0)
@@ -944,19 +953,25 @@ void sflow_momentum_func::mirror(lexer *p, slice &f, int cs, double sgn)
 // outflow with a water level (B 60 1, F 62; the open face G 54 b 2 of a block): the ghost velocities are zero-gradient
 // while the flow leaves; where it would enter, their normal component is zero (a wall for the backflow). An eddy or a
 // separation that reaches the outlet otherwise draws water and momentum in through it without bound
-void sflow_momentum_func::outflow_clip(lexer *p, slice &u, slice &v)
+void sflow_momentum_func::outflow_clip(lexer *p, slice &u, slice &v, int cs)
 {
-    double nx=1.0, ny=0.0, len;
+    // the outward normal of the side (curvilinear grid: of the face)
+    const gcsl_side sd(cs);
+    double nx = sd.xdir() ? 1.0 : 0.0, ny = sd.xdir() ? 0.0 : 1.0, len;
     if(p->geo_curv==1)
-    sflow_curv::normal(p,1,i,j,nx,ny,len);
+    sflow_curv::normal(p,sd.xdir()?1:2,sd.fi(i),sd.fj(j),nx,ny,len);
+    
+    nx *= -sd.inward();
+    ny *= -sd.inward();
 
     for(q=1;q<=gd;++q)
     {
-        const double un = u(i+q,j)*nx + v(i+q,j)*ny;
+        const int a = sd.gi(i,q), c = sd.gj(j,q);
+        const double un = u(a,c)*nx + v(a,c)*ny;
         if(un<0.0)
         {
-        u(i+q,j) -= un*nx;
-        v(i+q,j) -= un*ny;
+        u(a,c) -= un*nx;
+        v(a,c) -= un*ny;
         }
     }
 }
@@ -999,40 +1014,45 @@ void sflow_momentum_func::face_velocities(lexer *p, fdm2D *b, ghostcell *pgc, sl
     
     pgc->gcsl_start1(p,b->P,gcval_u);
     
-    // in- and outflow faces (discharge diagnostics Qin2D, Qout2D)
-    // (the j faces of a block of a multi-block grid: the y edges, side 3 -j, 2 +j)
-    for(n=0;n<p->gcslin_count;n++)
+    // in- and outflow faces (discharge diagnostics Qin2D, Qout2D) on the side of the boundary cell:
+    // x-faces P on x-/x+ (sides 1, 4), y-faces Q on y-/y+ (sides 3, 2); before the ghost cells of Q (the ghost faces
+    // of the y edges of a multi-block grid follow them) and again after them (the boundary face itself)
+    auto io_faces = [&]()
     {
-    i=p->gcslin[n][0];
-    j=p->gcslin[n][1];
+        for(n=0;n<p->gcslin_count;n++)
+        {
+        i=p->gcslin[n][0];
+        j=p->gcslin[n][1];
+        
+        const gcsl_side sd(p->gcslin[n][3]);
+        
+        if(sd.xdir())
+        b->P(sd.fi(i),j) = b->U(sd.gi(i),j);
+        
+        else
+        b->Q(i,sd.fj(j)) = b->V(i,sd.gj(j));
+        }
+        
+        for(n=0;n<p->gcslout_count;n++)
+        {
+        i=p->gcslout[n][0];
+        j=p->gcslout[n][1];
+        
+        const gcsl_side sd(p->gcslout[n][3]);
+        
+        if(sd.xdir())
+        b->P(sd.fi(i),j) = (p->wet[IJ]==1)?0.5*(b->U(i,j) + b->U(sd.gi(i),j)):0.0;
+        
+        else
+        b->Q(i,sd.fj(j)) = (p->wet[IJ]==1)?0.5*(b->V(i,j) + b->V(i,sd.gj(j))):0.0;
+        }
+    };
     
-    if(p->gcslin[n][3]==3 || p->gcslin[n][3]==2)
-    continue;
+    io_faces();
     
-    b->P(i-1,j) = b->U(i-1,j);
-    }
-    
-    for(n=0;n<p->gcslout_count;n++)
-    {
-    i=p->gcslout[n][0];
-    j=p->gcslout[n][1];
-    
-    if(p->gcslout[n][3]==3)
-    {
-    b->Q(i,j-1) = (p->wet[IJ]==1)?0.5*(b->V(i,j) + b->V(i,j-1)):0.0;
-    continue;
-    }
-    
-    if(p->gcslout[n][3]==2)
-    {
-    b->Q(i,j) = (p->wet[IJ]==1)?0.5*(b->V(i,j) + b->V(i,j+1)):0.0;
-    continue;
-    }
-    
-    b->P(i,j) = (p->wet[IJ]==1)?0.5*(b->U(i,j) + b->U(i+1,j)):0.0;
-    }
-
 	pgc->gcsl_start2(p,b->Q,gcval_v);
+    
+    io_faces();
 
     // patch in- and outlets (B 440): the normal velocity of the boundary face from the cell and its ghost cell
     // (the ghost cells of the inlets set by patchBC, of the outlets zero gradient); the wall treatment of

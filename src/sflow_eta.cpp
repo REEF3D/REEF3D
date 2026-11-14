@@ -61,12 +61,13 @@ void sflow_eta::update(lexer *p, fdm2D *b, ghostcell *pgc, ioflow *pflow, slice 
 {
     starttime=pgc->timer();
     
-    // REEF3D::HYDRO: positivity of the stage, the outflow of a cell is at most its water above the film A 244 at
-    // the start of the stage plus its rain and sources (donor-cell limiter of the face mass fluxes, conservative).
-    // Sheet flow on steep beds and at steps drained cells below zero, and the clip of WL to 0 and the film of
-    // wetdry made water.
-    if(b->hydro!=nullptr)
-    hydro_limit(p,b,pgc,WLs);
+    // positivity of the stage with wetting and drying (A 243 > 0) and with REEF3D::HYDRO: the outflow of a cell is at
+    // most its water above the film A 244 at the start of the stage plus its rain and sources (donor-cell limiter of
+    // the face mass fluxes, conservative). Sheet flow on steep beds and at steps, and the thin layers left on the
+    // floodplains after a flood, drained cells below the film: the clip of WL to 0 and the film of wetdry made water
+    // (a draining floodplain fed the river with a second discharge for many hours)
+    if(b->hydro!=nullptr || p->A243>0)
+    positivity_limit(p,b,pgc,WLs);
     
     // continuity: dWL/dt = -div(FE)
     SLICELOOP4
@@ -142,7 +143,7 @@ void sflow_eta::update(lexer *p, fdm2D *b, ghostcell *pgc, ioflow *pflow, slice 
     p->lsmtime+=pgc->timer()-starttime;
 }
 
-void sflow_eta::hydro_limit(lexer *p, fdm2D *b, ghostcell *pgc, slice &WLs)
+void sflow_eta::positivity_limit(lexer *p, fdm2D *b, ghostcell *pgc, slice &WLs)
 {
     const double dt = p->dt;
     double out;
@@ -159,7 +160,7 @@ void sflow_eta::hydro_limit(lexer *p, fdm2D *b, ghostcell *pgc, slice &WLs)
             + (MAX(b->FEy(i,j),0.0) + MAX(-b->FEy(i,j-1),0.0))/p->DYN[JP]*p->y_dir;
 
         // the film A 244 stays: wetdry gives a cell that drains below it the film again (water from nothing)
-        const double avail = MAX(WLs(i,j)-wd_criterion,0.0) + dt*b->hydro->S(i,j);
+        const double avail = MAX(WLs(i,j)-wd_criterion,0.0) + (b->hydro!=nullptr ? dt*b->hydro->S(i,j) : 0.0);
 
         K(i,j) = (dt*out>avail && out>0.0) ? avail/(dt*out) : 1.0;
     }

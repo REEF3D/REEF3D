@@ -26,6 +26,7 @@ Author: Hans Bihs
 #include"slice.h"
 #include"fdm2D.h"
 #include"patchBC_interface.h"
+#include"gcsl_side.h"
 
 void ioflow_f::waterlevel2D(lexer *p, fdm2D *b, ghostcell* pgc, slice &eta)
 {
@@ -57,17 +58,19 @@ void ioflow_f::waterlevel2D(lexer *p, fdm2D *b, ghostcell* pgc, slice &eta)
         i=p->gcslout[n][0];
         j=p->gcslout[n][1];
         
+            // the boundary cell and its ghost cells across the side of the outflow (x+, x-, y+, y-)
             if(p->wet[IJ]==1)
             {
+            const gcsl_side sd(p->gcslout[n][3]);
+            
             eta(i,j)   = wsfout-p->wd;
-            eta(i+1,j) = wsfout-p->wd;
-            eta(i+2,j) = wsfout-p->wd;
-            eta(i+3,j) = wsfout-p->wd;
-
-            b->hp(i,j)   = MAX(eta(i+1,j) + p->wd - b->bed(i,j),0.0);
-            b->hp(i+1,j) = MAX(eta(i+1,j) + p->wd - b->bed(i,j),0.0);
-            b->hp(i+2,j) = MAX(eta(i+2,j) + p->wd - b->bed(i,j),0.0);
-            b->hp(i+3,j) = MAX(eta(i+3,j) + p->wd - b->bed(i,j),0.0);
+            b->hp(i,j) = MAX(wsfout - b->bed(i,j),0.0);
+            
+                for(int q=1;q<=3;++q)
+                {
+                eta(sd.gi(i,q),sd.gj(j,q))   = wsfout-p->wd;
+                b->hp(sd.gi(i,q),sd.gj(j,q)) = MAX(wsfout - b->bed(i,j),0.0);
+                }
             }
         }
 

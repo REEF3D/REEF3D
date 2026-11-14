@@ -31,6 +31,7 @@ Author: Hans Bihs
 #include"sflow_amr.h"
 #include"seastate_sflow.h"
 #include"sflow_curv.h"
+#include"gcsl_side.h"
 
 sflow_HLL::sflow_HLL(lexer *p, ghostcell *ppgc, patchBC_interface *ppBC) 
 {
@@ -403,119 +404,73 @@ void sflow_HLL::flux_bc(lexer *p, fdm2D *b, int ipol)
         }
     }
     
-    // inflow: ghost state from the ghost velocity and water level
-    double wl;
-    
-    if(inflow==1)
-    for(n=0;n<p->gcslin_count;n++)
-    {
-    i=p->gcslin[n][0]-1;
-    j=p->gcslin[n][1];
-    
-    wl = MAX(b->eta(i,j) + b->depth(i,j), 0.0);
-    
-        if(ipol==1)
-        Fx(i,j) = wl*b->U(i,j)*b->U(i,j) + hsf(b->eta(i,j),b->pbh(i,j),0.5*(b->pbh(i,j)+b->pbh(i+1,j)),b->dfx(i,j));
-        
-        if(ipol==2)
-        Fx(i,j) = wl*b->V(i,j)*b->U(i,j);
-        
-        if(ipol==3)
-        Fx(i,j) = wl*b->W(i,j)*b->U(i,j);
-        
-        if(ipol==4)
-        Fx(i,j) = wl*b->U(i,j);
-    }
-    
-    // patch boundaries: physical flux of the ghost state
+    // inflow, outflow and patch boundaries: physical flux of the ghost state across the face of the side cs of the
+    // boundary cell (i,j) (1 x-, 4 x+: x-face; 3 y-, 2 y+: y-face)
     int cs;
-    double eg,ug,vg,wg;
+    double eg,wl,ug,vg,wg;
     
-    GCSL4LOOP
-    if(patch_bc(p->gcbsl4[n][4]))
+    auto side_flux = [&](int ci, int cj, int side)
     {
-    i  = p->gcbsl4[n][0];
-    j  = p->gcbsl4[n][1];
-    cs = p->gcbsl4[n][3];
+    const gcsl_side sd(side);
+    const int ig = sd.gi(ci), jg = sd.gj(cj);
     
-    int ii=0,jj=0;
-    
-    if(cs==1)
-    ii=-1;
-    
-    if(cs==4)
-    ii=1;
-    
-    if(cs==2)
-    jj=1;
-    
-    if(cs==3)
-    jj=-1;
-    
-    eg = b->eta(i+ii,j+jj);
-    wl = MAX(eg + b->depth(i+ii,j+jj), 0.0);
-    ug = b->U(i+ii,j+jj);
-    vg = b->V(i+ii,j+jj);
-    wg = b->W(i+ii,j+jj);
+    eg = b->eta(ig,jg);
+    wl = MAX(eg + b->depth(ig,jg), 0.0);
+    ug = b->U(ig,jg);
+    vg = b->V(ig,jg);
+    wg = b->W(ig,jg);
     
         // x-face
-        if(cs==1 || cs==4)
+        if(sd.xdir())
         {
-        int fi = (cs==1)?i-1:i;
+        const int fi = sd.fi(ci);
         
         if(ipol==1)
-        Fx(fi,j) = wl*ug*ug + hsf(eg,b->pbh(i+ii,j+jj),0.5*(b->pbh(fi,j)+b->pbh(fi+1,j)),b->dfx(fi,j));
+        Fx(fi,cj) = wl*ug*ug + hsf(eg,b->pbh(ig,jg),0.5*(b->pbh(fi,cj)+b->pbh(fi+1,cj)),b->dfx(fi,cj));
         
         if(ipol==2)
-        Fx(fi,j) = wl*vg*ug;
+        Fx(fi,cj) = wl*vg*ug;
         
         if(ipol==3)
-        Fx(fi,j) = wl*wg*ug;
+        Fx(fi,cj) = wl*wg*ug;
         
         if(ipol==4)
-        Fx(fi,j) = wl*ug;
+        Fx(fi,cj) = wl*ug;
         }
         
         // y-face
-        if((cs==2 || cs==3) && p->j_dir==1)
+        if(!sd.xdir() && p->j_dir==1)
         {
-        int fj = (cs==3)?j-1:j;
+        const int fj = sd.fj(cj);
         
         if(ipol==1)
-        Fy(i,fj) = wl*ug*vg;
+        Fy(ci,fj) = wl*ug*vg;
         
         if(ipol==2)
-        Fy(i,fj) = wl*vg*vg + hsf(eg,b->pbh(i+ii,j+jj),0.5*(b->pbh(i,fj)+b->pbh(i,fj+1)),b->dfy(i,fj));
+        Fy(ci,fj) = wl*vg*vg + hsf(eg,b->pbh(ig,jg),0.5*(b->pbh(ci,fj)+b->pbh(ci,fj+1)),b->dfy(ci,fj));
         
         if(ipol==3)
-        Fy(i,fj) = wl*wg*vg;
+        Fy(ci,fj) = wl*wg*vg;
         
         if(ipol==4)
-        Fy(i,fj) = wl*vg;
+        Fy(ci,fj) = wl*vg;
         }
-    }
+    };
+    
+    // inflow: ghost state from the ghost velocity and water level
+    if(inflow==1)
+    for(n=0;n<p->gcslin_count;n++)
+    side_flux(p->gcslin[n][0],p->gcslin[n][1],p->gcslin[n][3]);
+    
+    // patch boundaries: physical flux of the ghost state
+    GCSL4LOOP
+    if(patch_bc(p->gcbsl4[n][4]))
+    side_flux(p->gcbsl4[n][0],p->gcbsl4[n][1],p->gcbsl4[n][3]);
     
     // outflow
     if(outflow==1)
     for(n=0;n<p->gcslout_count;n++)
-    {
-    i=p->gcslout[n][0];
-    j=p->gcslout[n][1];
-    
-    wl = MAX(b->eta(i+1,j) + b->depth(i+1,j), 0.0);
-    
-        if(ipol==1)
-        Fx(i,j) = wl*b->U(i+1,j)*b->U(i+1,j) + hsf(b->eta(i+1,j),b->pbh(i+1,j),0.5*(b->pbh(i,j)+b->pbh(i+1,j)),b->dfx(i,j));
-        
-        if(ipol==2)
-        Fx(i,j) = wl*b->V(i+1,j)*b->U(i+1,j);
-        
-        if(ipol==3)
-        Fx(i,j) = wl*b->W(i+1,j)*b->U(i+1,j);
-        
-        if(ipol==4)
-        Fx(i,j) = wl*b->U(i+1,j);
-    }
+    side_flux(p->gcslout[n][0],p->gcslout[n][1],p->gcslout[n][3]);
     
     // REEF3D::SEASTATE surfbeat: long-wave boundary at x-, physical flux of the ghost state (A 770 1)
     if(b->wave!=nullptr)
@@ -526,54 +481,9 @@ void sflow_HLL::flux_bc(lexer *p, fdm2D *b, int ipol)
     if(p->open_xm==1 || p->open_xp==1 || p->open_ym==1 || p->open_yp==1)
     GCSL4LOOP
     {
-    i  = p->gcbsl4[n][0];
-    j  = p->gcbsl4[n][1];
     cs = p->gcbsl4[n][3];
     
-    if(!((cs==1 && p->open_xm==1) || (cs==4 && p->open_xp==1) || (cs==3 && p->open_ym==1) || (cs==2 && p->open_yp==1)))
-    continue;
-    
-    const int ii = cs==1 ? -1 : cs==4 ? 1 : 0;
-    const int jj = cs==3 ? -1 : cs==2 ? 1 : 0;
-    
-    eg = b->eta(i+ii,j+jj);
-    wl = MAX(eg + b->depth(i+ii,j+jj), 0.0);
-    ug = b->U(i+ii,j+jj);
-    vg = b->V(i+ii,j+jj);
-    wg = b->W(i+ii,j+jj);
-    
-        if(cs==1 || cs==4)
-        {
-        const int fi = (cs==1)?i-1:i;
-        
-        if(ipol==1)
-        Fx(fi,j) = wl*ug*ug + hsf(eg,b->pbh(i+ii,j+jj),0.5*(b->pbh(fi,j)+b->pbh(fi+1,j)),b->dfx(fi,j));
-        
-        if(ipol==2)
-        Fx(fi,j) = wl*vg*ug;
-        
-        if(ipol==3)
-        Fx(fi,j) = wl*wg*ug;
-        
-        if(ipol==4)
-        Fx(fi,j) = wl*ug;
-        }
-        
-        if((cs==2 || cs==3) && p->j_dir==1)
-        {
-        const int fj = (cs==3)?j-1:j;
-        
-        if(ipol==1)
-        Fy(i,fj) = wl*ug*vg;
-        
-        if(ipol==2)
-        Fy(i,fj) = wl*vg*vg + hsf(eg,b->pbh(i+ii,j+jj),0.5*(b->pbh(i,fj)+b->pbh(i,fj+1)),b->dfy(i,fj));
-        
-        if(ipol==3)
-        Fy(i,fj) = wl*wg*vg;
-        
-        if(ipol==4)
-        Fy(i,fj) = wl*vg;
-        }
+    if((cs==1 && p->open_xm==1) || (cs==4 && p->open_xp==1) || (cs==3 && p->open_ym==1) || (cs==2 && p->open_yp==1))
+    side_flux(p->gcbsl4[n][0],p->gcbsl4[n][1],cs);
     }
 }

@@ -1,0 +1,11 @@
+{
+ "description": "SFLOW explicit (A 210 3): river flow along y, discharge inflow through the y- side (C 13 1, B 60 1, W 10 40) and water level outflow through the y+ side (C 12 2, F 50 2): 1 km, slope 1e-3 (S 62), n 0.03, normal depth 1.4686 m, 2 ranks split along y. ioflow on a Cartesian y side (gcsl_side): the inflow ghost velocities V into the domain, the discharge diagnostics with DXN and Q, the outflow level in the y+ ghost cells, the HLL fluxes of the y faces; on f74df90aa the inflow side was a wall and the channel drained.",
+ "solver": "sflow",
+ "np": 2,
+ "steps": 300,
+ "tags": ["quick", "2d", "sflow", "mpi"],
+ "covers": [
+  "ioflow_f::Qin2D, Qout2D, inflow2D, waterlevel2D on y sides",
+  "sflow_HLL side_flux, sflow_momentum_func::vel_bc and outflow_clip on y sides"
+ ]
+}

@@ -1,0 +1,10 @@
+{
+ "base": "sflow_2d_ioflow_yside_ex",
+ "ctrl_set": {"A 210": "11", "A 228": "20.0"},
+ "description": "sflow_2d_ioflow_yside_ex with the semi-implicit step (A 210 11): the flux and level boundary faces of bc_setup from the ghost cells of the y sides.",
+ "solver": "sflow",
+ "np": 2,
+ "steps": 150,
+ "tags": ["quick", "2d", "sflow", "semi_implicit", "mpi"],
+ "covers": ["sflow_momentum_SI::bc_setup on y sides"]
+}

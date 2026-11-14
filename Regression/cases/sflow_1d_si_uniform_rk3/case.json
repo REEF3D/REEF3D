@@ -1,0 +1,10 @@
+{
+ "base": "sflow_1d_si_uniform_rk2",
+ "ctrl_set": {"A 210": "13"},
+ "description": "sflow_1d_si_uniform_rk2 with the SSP-RK3 predictor (A 210 13): the third stage at t^{n+1/2}.",
+ "solver": "sflow",
+ "np": 1,
+ "steps": 600,
+ "tags": ["quick", "1d", "sflow", "semi_implicit"],
+ "covers": ["sflow_momentum_SI::stage_accel, stage_discharge (A 210 13, stage 3)"]
+}

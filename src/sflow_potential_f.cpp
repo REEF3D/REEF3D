@@ -20,6 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#include"gcsl_side.h"
 #include"sflow_potential_f.h"
 #include"solver2D.h"
 #include"ghostcell.h"
@@ -309,7 +310,7 @@ void sflow_potential_f::Qin2D(lexer *p, fdm2D* b, ghostcell* pgc)
     
         if(p->wet[IJ]==1)
         {
-        area = p->DYN[JP]*b->hp(i,j);
+        area = (gcsl_side(p->gcslin[n][3]).xdir() ? p->DYN[JP] : p->DXN[IP])*b->hp(i,j);
         
         Ai+=area;
         Qi_pf+=area*p->Ui;
@@ -333,7 +334,7 @@ void sflow_potential_f::Qout2D(lexer *p, fdm2D* b, ghostcell* pgc)
         
         if(p->wet[IJ]==1)
         {
-        area = p->DYN[JP]*b->hp(i,j);
+        area = (gcsl_side(p->gcslout[n][3]).xdir() ? p->DYN[JP] : p->DXN[IP])*b->hp(i,j);
         
         Ao+=area;
         Qo_pf+=area*p->Uo;

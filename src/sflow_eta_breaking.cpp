@@ -20,6 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#include"gcsl_side.h"
 #include"sflow_eta.h"
 #include"lexer.h"
 #include"fdm2D.h"
@@ -146,8 +147,9 @@ void sflow_eta::breaking(lexer* p, fdm2D* b, ghostcell* pgc, slice &eta, slice &
     {
 		i=p->gcslout[n][0];
 		j=p->gcslout[n][1];
+        const gcsl_side sd(p->gcslout[n][3]);
         
-        b->breaking(i-1,j)=1;
+        b->breaking(i-sd.di,j-sd.dj)=1;
         b->breaking(i,j)=1;
     }
     

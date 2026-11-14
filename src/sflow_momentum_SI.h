@@ -92,10 +92,13 @@ using namespace std;
 // that neither the gravity nor the dispersive wave speed limits the time step; 1D and 2D, MPI, one Cartesian grid,
 // without wetting and drying iteration (A 243 0).
 //
+// Patch boundary conditions (B 411-422 on B 440-442) on one grid: the patch faces as open boundaries of bc_setup
+// (inlet: discharge, outlet with a water level: Dirichlet, outlet: free outflow).
+//
 // Not yet (stops in check()): Boussinesq (A 220 4); the non-hydrostatic pressure on curvilinear, multi-block and
 // refined grids and with the wetting and drying iteration,
-// patch boundary conditions (B 411-422), 6DOF / direct forcing, subcycling of the refinement (G 7 1), SEASTATE
-// surfbeat.
+// patch boundary conditions with mesh refinement and on multi-block grids, 6DOF / direct forcing, subcycling of the
+// refinement (G 7 1), SEASTATE surfbeat.
 // ---------------------------------------------------------------------------
 
 class sflow_momentum_SI final : public sflow_momentum_func
@@ -285,12 +288,23 @@ private:
     slice2 mfy;
     void mlflux_faces(lexer*, fdm2D*, ghostcell*);
 
-    // second-order time levels of the SSP-RK predictors (A 210 12/13), as NHFLOW A 505 1 without its estimate pass:
-    // the velocities of a later stage carry the acceleration of the implicit part of the step before (acU, acV:
-    // gravity, the non-hydrostatic pressure, the bed friction of cell_update) up to the time of the stage, on the depth
-    // of that time (RK2 stage 2, RK3 stage 2: t^{n+1}, WLq; RK3 stage 3: t^{n+1/2}, WLh); stc the time of the stage in dt
+    // time levels of the SSP-RK predictors (A 210 12/13): the velocities of a later stage carry the acceleration of
+    // the gravity term at t^n (acU, acV: H^n times the source term of the BCG face values of A 210 11, stage_accel) up
+    // to the time of the stage, on the depth of that time (RK2 stage 2, RK3 stage 2: t^{n+1}, WLq; RK3 stage 3:
+    // t^{n+1/2}, WLh); the stages advect with q^n; stc the time of the stage in dt
     slice4 acU, acV;
     double stc = 0.0;
+    void stage_accel(lexer*, fdm2D*, ghostcell*);
+
+    // the source term of the BCG face values (A 210 11) and of the stage acceleration (A 210 12/13) at t^n:
+    // src_setup (the cells the slopes may use, bcA; the open sides, wall_sides; eta^n and the non-hydrostatic increment
+    // of the neighbouring ranks), then src_cell
+    void src_setup(lexer*, ghostcell*);
+    bool src_ok(int, int);
+    double src_lev(int, int);
+    double src_nh(lexer*, int, int, int);
+    double src_nlev(lexer*, int, int, int);
+    double src_cell(lexer*, int, int, int);
     bool tl12 = false;      // A 210 12/13 with the second-order time levels (not with REEF3D::HYDRO)
 
     // fourth-order horizontal operators on one uniform Cartesian grid (sflow_momentum_SI_ho.cpp, as NHFLOW v15 / 0004):

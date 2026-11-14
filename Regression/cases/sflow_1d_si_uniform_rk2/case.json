@@ -1,0 +1,16 @@
+{
+ "description": "SFLOW semi-implicit (A 210 12, theta 0.55, SSP-RK2 predictor): steady uniform flow in a 2 km channel, slope 1e-3 (S 61), Manning n 0.03, q 2 m2/s in (B 60 1), the normal depth 1.4686 m out (F 50 2): C1 of the SFLOW / TELEMAC-2D / HEC-RAS 2D benchmark. On f74df90aa a standing oscillation of +-0.1 m stayed in the lower half (the lagged acceleration of the implicit part and the extrapolated advecting discharge of the stages); now steady within 1 mm of the normal depth.",
+ "solver": "sflow",
+ "np": 1,
+ "steps": 600,
+ "tags": [
+  "quick",
+  "1d",
+  "sflow",
+  "semi_implicit"
+ ],
+ "covers": [
+  "sflow_momentum_SI::stage_accel, stage_discharge (A 210 12/13)",
+  "discharge inflow as flux boundary, water level outflow as Dirichlet boundary"
+ ]
+}
