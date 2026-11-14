@@ -306,7 +306,8 @@ void CPM::mixture_column(lexer *p, size_t c, std::vector<std::pair<double,int>>:
 }
 
 // log of the mixture: grain sizes of the bed surface (mean over the bed columns, weighted with the volume of
-// their surface layer), and per fraction its share of the surface, its volume and its volume in the bedload layer
+// their surface layer), and per fraction its share of the surface, its volume, its volume in the bedload layer
+// and its transport rate in the layer
 void CPM::mixture_log(lexer *p, ghostcell *pgc)
 {
     if(mx_nf<=0)
@@ -315,7 +316,7 @@ void CPM::mixture_log(lexer *p, ghostcell *pgc)
     const double vpar = P.ParcelFactor*Vp;
     const size_t nj = size_t(p->knoy+2);
     
-    std::vector<double> Fs(mx_nf,0.0), V(mx_nf,0.0), Vb(mx_nf,0.0), Vs(mx_nf,0.0);
+    std::vector<double> Fs(mx_nf,0.0), V(mx_nf,0.0), Vb(mx_nf,0.0), Vs(mx_nf,0.0), Qb(mx_nf,0.0);
     
     // hybrid suspension: sediment volume of the fraction in its concentration
     if(!mxC.empty() && afdm!=nullptr)
@@ -350,7 +351,10 @@ void CPM::mixture_log(lexer *p, ghostcell *pgc)
         V[q] += vpar*P.Wt[n];
         
         if(P.Hop[n]>0.0)
-        Vb[q] += vpar*P.Wt[n];
+        {
+            Vb[q] += vpar*P.Wt[n];
+            Qb[q] += vpar*P.Wt[n]*P.U[n];
+        }
     }
     
     vs = pgc->globalsum(vs);
@@ -360,6 +364,7 @@ void CPM::mixture_log(lexer *p, ghostcell *pgc)
         Fs[q] = pgc->globalsum(Fs[q])/MAX(vs,1.0e-300);
         V[q] = pgc->globalsum(V[q]);
         Vb[q] = pgc->globalsum(Vb[q]);
+        Qb[q] = pgc->globalsum(Qb[q]);
     }
     
     if(p->mpirank!=0)
@@ -388,6 +393,9 @@ void CPM::mixture_log(lexer *p, ghostcell *pgc)
             for(int q=0;q<mx_nf;++q)
             mixout<<"\tbedload_volume_"<<q+1<<"[m3]";
             
+            for(int q=0;q<mx_nf;++q)
+            mixout<<"\tqx_bedload_"<<q+1<<"[m2/s]";
+            
             if(!mxC.empty())
             for(int q=0;q<mx_nf;++q)
             mixout<<"\tsuspended_volume_"<<q+1<<"[m3]";
@@ -408,6 +416,13 @@ void CPM::mixture_log(lexer *p, ghostcell *pgc)
     
     for(int q=0;q<mx_nf;++q)
     mixout<<"\t"<<Vb[q];
+    
+    // transport rate of the fraction in the bedload layer per unit width, as qx_bedload of the CPM log
+    const double Lx = p->global_xmax-p->global_xmin;
+    const double Ly = p->j_dir==1 ? p->global_ymax-p->global_ymin : p->DYN[marge];
+    
+    for(int q=0;q<mx_nf;++q)
+    mixout<<"\t"<<Qb[q]/(Lx*Ly);
     
     if(!mxC.empty())
     for(int q=0;q<mx_nf;++q)
