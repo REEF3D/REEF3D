@@ -178,9 +178,10 @@ private:
     field4a *shU=nullptr,*shV=nullptr,*shW=nullptr,*shF=nullptr,*shJ=nullptr,*shE=nullptr;
     field4a *shC=nullptr,*shR=nullptr,*shZ=nullptr,*shP=nullptr,*shA=nullptr,*shX=nullptr;
     field4a *shUo=nullptr,*shVo=nullptr,*shI=nullptr,*shS=nullptr;
+    field4a *shWc=nullptr,*shWt=nullptr;   // Q 89: vertical velocity that keeps the volume of the packed bed (cell, top face)
     bool sh_alloc=false;
     std::vector<double> sh_hj,sh_fi;   // per parcel in the sub-step: jam weight Hjam (-1 bedload layer, 2 sleeping), 1 + dt D (drag)
-    int sh_nact=0, sh_iter=0;
+    int sh_nact=0, sh_iter=0, sh_ndil=0;
     field4a T0e,Tiso;
     
     void stress_gradient(lexer*, fdm*, ghostcell*, sediment_fdm*);

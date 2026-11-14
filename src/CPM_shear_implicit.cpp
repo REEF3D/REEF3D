@@ -63,6 +63,19 @@ Per sub-step, after the parcel velocities (drag, forces, normal contact):
      rigid cells of their own column; the vertical velocity times 1 - Hjam, 1 in a sliding part), those of rigid
      cells stay at rest;
      the parcels of the open cells keep the friction on their substrate.
+
+Q 89 > 0 (with Q 88): the packed bed keeps its volume (validation 39). Without it a packed column that spreads
+sideways (a collapsing column, the back of a failing slope) does not settle: the jam and the overburden Pov, which
+carries every cell above theta_bed however loose, hold its grains at their height, so the column dilates in place
+down to a gap at its foot, and only then its top falls (a hollow behind the deposit, a crater on the axis in 3-D).
+With Q 89 the packed bed may dilate down to theta_d = Q 89 theta_0; below it the vertical velocity of its grains is
+the one that keeps the volume of the column,
+    w(top of cell k) = w(bottom of cell k) - h_k div_h(U)_k,
+integrated up each packed run from its base (floor, wall, rigid cell: w = 0; a run resting on an open cell starts
+with the velocity of its lowest cell), with the horizontal velocity U of the friction solve: faces to packed
+neighbours the mean of the two cells, to rigid cells and walls no flux, to open cells outflow only. The weight
+of this velocity rises from 0 at theta_d to 1 at theta_d - 0.1 theta_0 (cv); the rest keeps the vertical velocity
+of 4. (the jam). A bed at rest has no divergence and keeps w = 0.
 --------------------------------------------------------------------*/
 
 void CPM::shear_alloc(lexer *p)
@@ -75,6 +88,11 @@ void CPM::shear_alloc(lexer *p)
     shC = new field4a(p); shR = new field4a(p); shZ = new field4a(p);
     shP = new field4a(p); shA = new field4a(p); shX = new field4a(p);
     shUo = new field4a(p); shVo = new field4a(p); shI = new field4a(p); shS = new field4a(p);
+    
+    if(p->Q89>0.0)
+    {
+    shWc = new field4a(p); shWt = new field4a(p);
+    }
 
     sh_alloc = true;
 }
@@ -496,6 +514,98 @@ void CPM::shear_implicit(lexer *p, fdm *a, ghostcell *pgc, double dt)
     pgc->start4a(p,Vg,1);
     pgc->start4a(p,Wg,1);
     
+    // 3d. Q 89: the vertical velocity that keeps the volume of the packed bed, from the base of each packed run up
+    const bool keepvol = p->Q89>0.0;
+    
+    if(keepvol)
+    {
+        field4a &Wc = *shWc, &Wt = *shWt;
+        
+        // horizontal velocity on the face towards the neighbour (di,dj): packed neighbour the mean, rigid or wall
+        // none, open cell outflow only
+        auto uface = [&](field4a &F, int di, int dj) -> double
+        {
+            const double cn = cls(i+di,j+dj,k);
+            const double u0 = F(i,j,k);
+            
+            if(cn>0.5)
+            return 0.5*(u0 + F(i+di,j+dj,k));
+            
+            if(cn<-0.5)
+            return 0.0;
+            
+            return (di+dj)>0 ? MAX(u0,0.0) : MIN(u0,0.0);
+        };
+        
+        int itermax = zsplit==1 ? 1000 : 1;
+        
+        for(int qn=0; qn<itermax; ++qn)
+        {
+            double change = 0.0;
+            
+            ILOOP
+            JLOOP
+            {
+                // below the first cell of the subdomain: the floor, or the cell below in the subdomain below
+                double wb = 0.0;
+                double cb = -1.0;
+                
+                if(zsplit==1 && p->nb5>=0)
+                {
+                    wb = Wt(i,j,-1);
+                    cb = Cl(i,j,-1);
+                }
+                
+                for(k=0; k<p->knoz; ++k)
+                {
+                    const double old = Wt(i,j,k);
+                    
+                    if(Cl(i,j,k)>0.5)
+                    {
+                        // base of a packed run: at rest on the floor, a wall or a rigid cell; on an open cell with
+                        // the velocity of its lowest cell
+                        if(cb<0.5)
+                        wb = (cb==0.0 && !wallcell(p,i,j,k-1)) ? Wg(i,j,k) : 0.0;
+                        
+                        double div = (uface(Ug,1,0) - uface(Ug,-1,0))/p->DXN[IP];
+                        
+                        if(p->j_dir==1)
+                        div += (uface(Vg,0,1) - uface(Vg,0,-1))/p->DYN[JP];
+                        
+                        const double wt = wb - p->DZN[KP]*div;
+                        
+                        Wc(i,j,k) = 0.5*(wb + wt);
+                        Wt(i,j,k) = wt;
+                        wb = wt;
+                    }
+                    
+                    else
+                    {
+                        Wc(i,j,k) = Wt(i,j,k) = 0.0;
+                        wb = 0.0;
+                    }
+                    
+                    cb = wallcell(p,i,j,k) ? -1.0 : Cl(i,j,k);
+                    change = MAX(change, fabs(Wt(i,j,k)-old));
+                }
+            }
+            
+            pgc->start4a(p,Wc,1);
+            pgc->start4a(p,Wt,1);
+            
+            if(zsplit==0 || pgc->globalmax(change)<1.0e-12)
+            break;
+        }
+        
+        int ndil = 0;
+        
+        BASELOOP
+        if(Cl(i,j,k)>0.5 && Ts(i,j,k)<p->Q89*theta_0)
+        ++ndil;
+        
+        sh_ndil = pgc->globalisum(ndil);
+    }
+    
     // 4. the grains of the packed cells move with the grid (PIC): those of the active cells with the new velocity,
     //    those of the rigid cells stay; the grains of the open cells keep their friction (friction())
     const double gy = p->j_dir==1 ? 1.0 : 0.0;
@@ -512,6 +622,9 @@ void CPM::shear_implicit(lexer *p, fdm *a, ghostcell *pgc, double dt)
         
         double f = 1.0 - sh_hj[n]*(1.0-Sl(i,j,k));
         double un=0.0, vn=0.0, wn=0.0;
+        
+        // Q 89: weight of the velocity that keeps the volume of the bed, from the packing of the cell
+        const double cv = keepvol ? MAX(0.0, MIN(1.0, (p->Q89*theta_0 - Ts(i,j,k))/(0.1*theta_0))) : 0.0;
         
         if(Cl(i,j,k)>0.5)
         {
@@ -542,21 +655,27 @@ void CPM::shear_implicit(lexer *p, fdm *a, ghostcell *pgc, double dt)
                 
                 un += w*Ug(i1,j1,k1);
                 vn += w*Vg(i1,j1,k1);
+                
+                if(keepvol)
+                wn += w*(cv*(*shWc)(i1,j1,k1) + (1.0-cv)*f*Wg(i1,j1,k1));
+                
+                else
                 wn += w*Wg(i1,j1,k1);
             }
             
-            // the jam holds the vertical motion only (f = 1 - Hjam)
+            // the jam holds the vertical motion only (f = 1 - Hjam); with Q 89 below the dilation limit the
+            // vertical velocity that keeps the volume of the bed
             if(ws>1.0e-12)
             {
                 un *= 1.0/ws;
                 vn *= gy/ws;
-                wn *= f/ws;
+                wn *= (keepvol ? 1.0 : f)/ws;
             }
             else
             {
                 un = Ug(i,j,k);
                 vn = gy*Vg(i,j,k);
-                wn = f*Wg(i,j,k);
+                wn = keepvol ? cv*(*shWc)(i,j,k) + (1.0-cv)*f*Wg(i,j,k) : f*Wg(i,j,k);
             }
         }
         

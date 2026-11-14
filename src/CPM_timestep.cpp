@@ -90,6 +90,9 @@ void CPM::timestep(lexer *p, ghostcell *pgc)
         if(p->Q11==2 && p->Q88>0.0)
         cout<<"CPM friction on the grid (Q 88, last sub-step): active cells "<<sh_nact<<"  CG iterations "<<sh_iter<<" (0: tridiagonal)"<<endl;
         
+        if(p->Q11==2 && p->Q88>0.0 && p->Q89>0.0)
+        cout<<"CPM volume of the packed bed (Q 89, last sub-step): dilation limit "<<setprecision(4)<<p->Q89*theta_0<<"  packed cells below it "<<sh_ndil<<endl;
+        
         cout<<"Up_max: "<<setprecision(4)<<maxVelU<<"  Vp_max: "<<maxVelV<<"  Wp_max: "<<maxVelW<<endl;
         cout<<defaultfloat;
     }

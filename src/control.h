@@ -585,6 +585,7 @@ public:
     int Q86;
     int Q87;
     double Q88;
+    double Q89;
     double Q85_xs,Q85_xe,Q85_ys,Q85_ye,Q85_zs,Q85_ze;
     double Q41;
     int Q61,*Q61_i;
