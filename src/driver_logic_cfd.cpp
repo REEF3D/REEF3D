@@ -851,10 +851,10 @@ void driver::logic_cfd()
     p->psi_rho=0.0;
     if(p->G28!=0)
     {
-        if(p->G28<0 || p->G28>2 || p->F30<=0 || p->F80>0 || !cfd_amr::scope(p,pgc))
+        if(p->G28<0 || p->G28>3 || p->F30<=0 || p->F80>0 || !cfd_amr::scope(p,pgc))
         {
             if(p->mpirank==0)
-            cout<<"G 28 "<<p->G28<<" (one interface width on all levels: 1 that of level 0, 2 that of the finest level) needs the CFD mesh refinement (G 1) with the level set (F 30): not used"<<endl;
+            cout<<"G 28 "<<p->G28<<" (one interface width on all levels: 1 that of level 0, 2 that of the finest level, 3 the mean of the levels) needs the CFD mesh refinement (G 1) with the level set (F 30): not used"<<endl;
             p->G28=0;
         }
         else
@@ -863,6 +863,16 @@ void driver::logic_cfd()
             p->psi_rho = p->F45*h0;
             if(p->G28==2)
             p->psi_rho /= pow(2.0,p->G1);
+
+            // G 28 3: the arithmetic mean of the cell sizes of the levels 0 to G 1 (h0/2^l), kept
+            // for the whole run
+            if(p->G28==3)
+            {
+                double hm = 0.0;
+                for(int l=0; l<=p->G1; ++l)
+                hm += h0/pow(2.0,l);
+                p->psi_rho = p->F45*hm/double(p->G1+1);
+            }
 
             if(p->mpirank==0)
             cout<<"G 28 "<<p->G28<<": the density and the viscosity with one interface half width on all levels, "<<p->psi_rho
