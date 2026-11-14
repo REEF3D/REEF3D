@@ -86,7 +86,8 @@ reefmg::reefmg(lexer *p, ghostcell *pgc, int solve_input, int precon_input)
     //  the coarsest-level sweeps, each a halo exchange, by one all-gather per
     //  V-cycle, which may pay at high rank counts.  The CFD pressure of a
     //  closed domain has no Dirichlet surface (start_solver5): there it takes
-    //  out the growth of the iterations with the ranks.  Must precede setup().
+    //  out the growth of the iterations with the ranks, and it is on unless
+    //  N 15 0 is given (lexer_read).  Must precede setup().
     mg.set_agglomeration(p->N15==1 ? 1 : 0);
 
     //  N 16: the V-cycle on a device - 1 the Apple Silicon GPU (Metal, in
@@ -916,7 +917,8 @@ void reefmg::fillbackvec8(lexer *p, double *f)
 //  up for it; on several ranks it costs iterations (2D wave tank, 1600 x 80
 //  cells: 4.0, 6.2, 8.9 and 14.4 iterations per solve on 1, 4, 8 and 16
 //  ranks).  The agglomerated coarse solve, N 15 1, takes that back (4.0, 4.7,
-//  5.3 and 6.0); the solve runs on the time-stepping hierarchy either way.
+//  5.3 and 6.0) and is the default for CFD (lexer_read); the solve runs on
+//  the time-stepping hierarchy either way.
 //
 //  Two things differ from FNPF:
 //   - the active cells come from flag4, which changes with moving bodies

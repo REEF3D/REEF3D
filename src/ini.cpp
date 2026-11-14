@@ -956,7 +956,7 @@ void control::ini_default()
     N12=0;         //  int REEFMG solver mode
     N13=0;         //  int REEFMG max number of coarse levels, 0: automatic
     N14=32;         //  int REEFMG V-cycle precision: 32 single, otherwise double
-    N15=0;         //  int REEFMG coarse-grid agglomeration: 1 on (several ranks; the CFD pressure of a closed domain then keeps the iterations of one rank; also the level-0 multigrid of the CFD mesh refinement, G 1)
+    N15=-1;        //  int REEFMG coarse-grid agglomeration on several ranks: 0 off, 1 on (-1: not set, becomes 1 for CFD and 0 otherwise, lexer_read; the CFD pressure then keeps the iterations of one rank, also the level-0 multigrid of the CFD mesh refinement, G 1)
     N16=0;         //  int REEFMG device: 0 CPU, 1 Metal GPU (macOS), 2 Metal with the Krylov solve on the GPU, 3 reference device, 4 reference with the Krylov solve
     N17=0;         //  int REEFMG device: V-cycles per preconditioner application, 0: 2 (N 16 2, 4: in the device solve, 0: 1)
     N18=1;         //   int permuting axes for hypre

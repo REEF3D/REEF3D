@@ -64,6 +64,14 @@ void lexer::lexer_read(ghostcell *pgc)
     if(mpirank==0 && N47<0.0)
     N47 = (A10==2 && A226==1 && A210==1) ? 0.5 : 0.3;
 
+    // N 15 not given in ctrl.txt -> 1 for CFD, 0 otherwise.  The CFD pressure correction is Neumann at every face with a
+    // prescribed normal velocity (poisson_pcorr), its smooth modes are left to the coarsest level of REEFMG, and that
+    // level grows with the ranks: without the agglomerated coarse solve the iterations grow with them (2D wave tank,
+    // 1600 x 80 cells, 1 / 4 / 8 / 16 ranks: 4.0 / 6.2 / 8.9 / 14.4 iterations per solve, with it 4.0 / 4.7 / 5.3 / 6.0;
+    // reefmg::start_solver5, cfd_amr::pr_setup).  FNPF and NHFLOW have the Dirichlet free surface and do not need it
+    if(mpirank==0 && N15<0)
+    N15 = (A10==6) ? 1 : 0;
+
     // SFLOW: wetting and drying is A 243 for both schemes; the semi-implicit step (A 210 12/13) runs its Newton
     // iteration on the wet pattern (Casulli 2009) for A 243 > 0 (inside REEF3D: A229 = 1; A 229 itself is no longer a
     // ctrl.txt key)
