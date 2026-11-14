@@ -84,7 +84,9 @@ reefmg::reefmg(lexer *p, ghostcell *pgc, int solve_input, int precon_input)
     //  serial full-depth hierarchy.  Not needed for convergence when the free
     //  surface is Dirichlet - FNPF and the NHFLOW pressure - but it replaces
     //  the coarsest-level sweeps, each a halo exchange, by one all-gather per
-    //  V-cycle, which may pay at high rank counts.  Must precede setup().
+    //  V-cycle, which may pay at high rank counts.  The CFD pressure of a
+    //  closed domain has no Dirichlet surface (start_solver5): there it takes
+    //  out the growth of the iterations with the ranks.  Must precede setup().
     mg.set_agglomeration(p->N15==1 ? 1 : 0);
 
     //  N 16: the V-cycle on a device - 1 the Apple Silicon GPU (Metal, in
@@ -900,14 +902,21 @@ void reefmg::fillbackvec8(lexer *p, double *f)
 //  ---------------------------------------------------------------------------
 //  REEF3D::CFD pressure Poisson equation, start(...,5)
 //
-//  The operator is poisson_f / poisson_pcorr: a 7-point stencil in 1/rho on
-//  the cell-centred Cartesian grid, rows in LOOP order (flag4>0).  Couplings
-//  to flag4<0 neighbours - walls, the bed, embedded solids, the global edge -
-//  have been moved to the right-hand side with the ghost values, while the
-//  diagonal keeps them.  Every row next to such a cell is therefore strictly
-//  diagonally dominant and the system is nonsingular, just like the FNPF
-//  Laplace equation with its Dirichlet free surface: the solve runs on the
-//  time-stepping hierarchy, no agglomeration needed.
+//  The operator is poisson_pcorr: a 7-point stencil in 1/rho on the
+//  cell-centred Cartesian grid, rows in LOOP order (flag4>0).  A face where
+//  the normal velocity is prescribed - walls, the lid, the bed, embedded
+//  solids, inflow and wave generation - is Neumann for the pressure
+//  correction: its coupling is taken out of the row and out of the diagonal.
+//  Only open boundaries (outflow, patch outlets) keep a fixed value on the
+//  diagonal.  A closed domain is therefore the Neumann problem with one
+//  pinned face, unlike the FNPF Laplace equation with its Dirichlet free
+//  surface: nearly singular, and its smooth modes are left to the coarsest
+//  level.  That level stops at 4-7 columns per rank, so it grows with the
+//  ranks and its 16 sweeps do not resolve them.  On one rank BiCGStab makes
+//  up for it; on several ranks it costs iterations (2D wave tank, 1600 x 80
+//  cells: 4.0, 6.2, 8.9 and 14.4 iterations per solve on 1, 4, 8 and 16
+//  ranks).  The agglomerated coarse solve, N 15 1, takes that back (4.0, 4.7,
+//  5.3 and 6.0); the solve runs on the time-stepping hierarchy either way.
 //
 //  Two things differ from FNPF:
 //   - the active cells come from flag4, which changes with moving bodies

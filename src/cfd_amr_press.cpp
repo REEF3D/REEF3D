@@ -541,6 +541,14 @@ void cfd_amr::pr_setup()
     mg0 = new reefmg_core;
     mg0->set_precision(p0->N14==32 ? 32 : 64);
     mg0->set_fine_operator(&pr_fineop_none);
+    // N 15 1: the coarsest level of the level-0 multigrid gathered onto every rank and solved by a
+    // serial hierarchy, as the uniform solver (reefmg.cpp).  The level-0 problem of a closed domain
+    // is the Neumann problem with one pinned face (poisson_pcorr): its smooth modes are left to the
+    // coarsest level, which stops at 4-7 columns per rank and grows with the ranks (2D wave tank,
+    // level 0 1600 x 80 cells with a refined band at the free surface: 11.3 and 17.0 iterations per
+    // projection on 8 and 16 ranks, with N 15 1 9.3 and 10.7).  Not with periodic boundaries
+    // (reefmg_core::setup)
+    mg0->set_agglomeration(p0->N15==1 ? 1 : 0);
     // N 16: the level-0 V-cycle on a device (the Apple GPU), as the uniform solver (reefmg.cpp);
     // the patch and level multigrids stay on the CPU
     mg0->set_device(reefmg_core::vcycle_device(p0->N16));   // N 16 2, 4: the V-cycle device
@@ -555,6 +563,14 @@ void cfd_amr::pr_setup()
     }
     if(p0->mpirank==0 && p0->N16>0)
     cout<<"CFD AMR: level-0 multigrid: "<<mg0->device_status()<<endl;
+    if(p0->mpirank==0 && p0->N15==1 && p0->M10>1 && !mg0->on_device())
+    {
+        if(mg0->agglomerated())
+        cout<<"CFD AMR: level-0 multigrid: coarse-grid agglomeration, "<<mg0->agglomerated_cells()<<" cells gathered on every rank"<<endl;
+        else
+        cout<<"CFD AMR: level-0 multigrid: coarse-grid agglomeration (N 15) not used"
+            <<((p0->periodic1>0 || p0->periodic2>0) ? " with periodic boundaries" : ": the gathered problem is too large to hold on every rank")<<endl;
+    }
     }
 
     // the joint multigrids of the levels (the patches of a rank next to each other), then the overlap

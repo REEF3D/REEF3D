@@ -115,6 +115,7 @@ VTU/state print keys (`P 20/30/40/41/42`), so runs are short and output stays sm
 |---|---|---|
 | `cfd_2d_nwt` | 1 | default N40=3 (FC3), relaxation waves, level set, implicit diffusion, gauges/probes |
 | `cfd_2d_nwt_mpi3_n15` | 3 | `cfd_2d_nwt` on 3 ranks with N 15 1: the CFD pressure of a closed domain (Neumann with one pinned face) with the agglomerated coarse solve of REEFMG, the coarsest level gathered onto every rank and solved by a serial hierarchy |
+| `cfd_2d_nwt_mpi3_n15_0` | 3 | `cfd_2d_nwt` on 3 ranks with N 15 0: the CFD pressure without the coarse-grid agglomeration of REEFMG (N 15 1 is the default for CFD with patch REEFMG/0013), the sweeps on the distributed coarsest level |
 | `cfd_2d_nwt_n54` | 1 | gravity out of the acceleration term of the time step, the gravity-wave limit (N 54 1) |
 | `cfd_2d_nwt_onestep` (+ `_n54`) | 1 | the one-step scheme (N 40 5): Godunov convection of the momentum and the level set, one projection, the level set after the projection; with N 54 1 |
 | `cfd_2d_dambreak_onestep` | 1 | the one-step scheme (N 40 5) in the closed tank |
