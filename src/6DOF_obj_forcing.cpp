@@ -91,6 +91,7 @@ void sixdof_obj_cfd::update_forcing(lexer *p, fdm *a, ghostcell *pgc,field& uvel
         cout<<"H "<<uf<<endl;
        
         fx(i,j,k) += H*(uf - uvel(i,j,k))/(alpha[iter]*p->dt);   
+        a->fbw1(i,j,k) = min(a->fbw1(i,j,k) + H, 1.0);
         a->fbh1(i,j,k) = min(a->fbh1(i,j,k) + H, 1.0); 
     }
     VLOOP
@@ -114,6 +115,7 @@ void sixdof_obj_cfd::update_forcing(lexer *p, fdm *a, ghostcell *pgc,field& uvel
         cout<<"H "<<uf<<endl;
        
         fy(i,j,k) += H*(vf - vvel(i,j,k))/(alpha[iter]*p->dt);
+        a->fbw2(i,j,k) = min(a->fbw2(i,j,k) + H, 1.0);
         a->fbh2(i,j,k) = min(a->fbh2(i,j,k) + H, 1.0); 
     }
     WLOOP
@@ -137,6 +139,7 @@ void sixdof_obj_cfd::update_forcing(lexer *p, fdm *a, ghostcell *pgc,field& uvel
         cout<<"H "<<uf<<endl;
 
         fz(i,j,k) += H*(wf - wvel(i,j,k))/(alpha[iter]*p->dt);
+        a->fbw3(i,j,k) = min(a->fbw3(i,j,k) + H, 1.0);
         a->fbh3(i,j,k) = min(a->fbh3(i,j,k) + H, 1.0); 
     }
     LOOP
@@ -213,14 +216,19 @@ void sixdof_obj_cfd::update_forcing(lexer *p, fdm *a, ghostcell *pgc,field& uvel
 		
 		// Construct the field around the solid body to adjust the tangential velocity and calculate forcing
 		// X 46 1: the share continuous across the surface (forcing_share.h)
-		if(p->X46>=1)
-		fx(i,j,k) += forcing_weight_smooth(H,fabs(nx),phival_fb,forcing_psi(p,i,j,k))*(uf - uvel(i,j,k))/(alpha[iter]*p->dt);
+		{
+		// the share of the face taken by this body (X 46: continuous across the surface, forcing_share.h)
+		double wgt = H;
 
-		if(p->X46<1 && phival_fb<=0.0)
-		fx(i,j,k) += H*(uf - uvel(i,j,k))/(alpha[iter]*p->dt); 
+		if(p->X46>=1)
+		wgt = forcing_weight_smooth(H,fabs(nx),phival_fb,forcing_psi(p,i,j,k));
 
 		if(p->X46<1 && phival_fb>0.0)
-		fx(i,j,k) +=   fabs(nx)*H*(uf - uvel(i,j,k))/(alpha[iter]*p->dt);
+		wgt = fabs(nx)*H;
+
+		fx(i,j,k) += wgt*(uf - uvel(i,j,k))/(alpha[iter]*p->dt);
+		a->fbw1(i,j,k) = min(a->fbw1(i,j,k) + wgt, 1.0);
+		}
             
 
         a->fbh1(i,j,k) = min(a->fbh1(i,j,k) + H, 1.0); 
@@ -265,14 +273,19 @@ void sixdof_obj_cfd::update_forcing(lexer *p, fdm *a, ghostcell *pgc,field& uvel
 	  
 		//Construct the field around the solid body to adjust the tangential velocity and calculate forcing
 		// X 46 1: the share continuous across the surface (forcing_share.h)
-		if(p->X46>=1)
-		fy(i,j,k) += forcing_weight_smooth(H,fabs(ny),phival_fb,forcing_psi(p,i,j,k))*(vf - vvel(i,j,k))/(alpha[iter]*p->dt);
+		{
+		// the share of the face taken by this body (X 46: continuous across the surface, forcing_share.h)
+		double wgt = H;
 
-		if(p->X46<1 && phival_fb<=0.0)
-		fy(i,j,k) += H*(vf - vvel(i,j,k))/(alpha[iter]*p->dt); 
+		if(p->X46>=1)
+		wgt = forcing_weight_smooth(H,fabs(ny),phival_fb,forcing_psi(p,i,j,k));
 
 		if(p->X46<1 && phival_fb>0.0)
-		fy(i,j,k) +=   fabs(ny)*H*(vf - vvel(i,j,k))/(alpha[iter]*p->dt);
+		wgt = fabs(ny)*H;
+
+		fy(i,j,k) += wgt*(vf - vvel(i,j,k))/(alpha[iter]*p->dt);
+		a->fbw2(i,j,k) = min(a->fbw2(i,j,k) + wgt, 1.0);
+		}
 
 
         a->fbh2(i,j,k) = min(a->fbh2(i,j,k) + H , 1.0); 
@@ -317,14 +330,19 @@ void sixdof_obj_cfd::update_forcing(lexer *p, fdm *a, ghostcell *pgc,field& uvel
 		// Construct the field around the solid body to adjust the tangential velocity and calculate forcing
 
 		// X 46 1: the share continuous across the surface (forcing_share.h)
-		if(p->X46>=1)
-		fz(i,j,k) += forcing_weight_smooth(H,fabs(nz),phival_fb,forcing_psi(p,i,j,k))*(wf - wvel(i,j,k))/(alpha[iter]*p->dt);
+		{
+		// the share of the face taken by this body (X 46: continuous across the surface, forcing_share.h)
+		double wgt = H;
 
-		if(p->X46<1 && phival_fb<=0.0)
-		fz(i,j,k) += H*(wf - wvel(i,j,k))/(alpha[iter]*p->dt); 
+		if(p->X46>=1)
+		wgt = forcing_weight_smooth(H,fabs(nz),phival_fb,forcing_psi(p,i,j,k));
 
 		if(p->X46<1 && phival_fb>0.0)
-		fz(i,j,k) +=   fabs(nz)*H*(wf - wvel(i,j,k))/(alpha[iter]*p->dt);
+		wgt = fabs(nz)*H;
+
+		fz(i,j,k) += wgt*(wf - wvel(i,j,k))/(alpha[iter]*p->dt);
+		a->fbw3(i,j,k) = min(a->fbw3(i,j,k) + wgt, 1.0);
+		}
 
 
         a->fbh3(i,j,k) = min(a->fbh3(i,j,k) + H , 1.0); 
@@ -369,6 +387,10 @@ void sixdof_obj_cfd::update_forcing(lexer *p, fdm *a, ghostcell *pgc,field& uvel
     pgc->start2(p,a->fbh2,11);
     pgc->start3(p,a->fbh3,12);
     pgc->start4(p,a->fbh4,40);
+
+    pgc->start1(p,a->fbw1,10);
+    pgc->start2(p,a->fbw2,11);
+    pgc->start3(p,a->fbw3,12);
 
     pgc->start1(p,fx,10);
     pgc->start2(p,fy,11);

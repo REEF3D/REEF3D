@@ -150,24 +150,16 @@ inline double forcing_share_face(lexer *p, fdm *a, int i0, int j0, int k0, int d
         w += Hs;
     }
 
-    // 6DOF bodies
+    // 6DOF bodies: the share the bodies took in their forcing of the stage (fbw1-3, summed over the
+    // bodies).  Each body takes its share from its own level set; where two bodies meet (the leaves
+    // of a mitre gate) the sum of their Heavisides is 1 but the sum of their shares is not, and the
+    // level set of all bodies does not give the shares back.  Recomputed from it, a face in the
+    // contact counted as closed while it was forced in part only: neither forced to the body
+    // velocity nor corrected by the pressure (800 m/s within five steps at the gates of a lock)
     if(p->X10>0)
     {
-        field &fbh = (d==0) ? (field&)a->fbh1 : (d==1 ? (field&)a->fbh2 : (field&)a->fbh3);
-        double Hb = fbh(i0,j0,k0);
-
-        if(p->X14!=0 && Hb>0.0)
-        {
-            const double ph = 0.5*(a->fb(i0,j0,k0) + a->fb(i1,j1,k1));
-
-            if(p->X46>=1)
-            Hb = forcing_weight_smooth(Hb,forcing_absn(p,a->fb,i0,j0,k0,d,p->X14==2),ph,psi);
-
-            else if(ph>0.0)
-            Hb *= forcing_absn(p,a->fb,i0,j0,k0,d,p->X14==2);
-        }
-
-        w += Hb;
+        field &fbw = (d==0) ? (field&)a->fbw1 : (d==1 ? (field&)a->fbw2 : (field&)a->fbw3);
+        w += fbw(i0,j0,k0);
     }
 
     return MAX(0.0,MIN(1.0,w));

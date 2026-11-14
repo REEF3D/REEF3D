@@ -1,0 +1,12 @@
+{
+ "base": "cfd_2d_6dof_fish_brain",
+ "np": 2,
+ "steps": 440,
+ "ctrl_add": [
+  "X 202 0 0.8 0.65",
+  "X 204 0 10.0"
+ ],
+ "description": "cfd_2d_6dof_fish_brain_x202 with the coasting time of the body for the brain (X 204 id tau_c): the prior of the coasting time 10 s instead of 2 s, with which the start model of X 202 lets the water that passed the body at rest decay; the brain log of the decisions and the estimates. Fish Swimming patch 0032.",
+ "tags": ["2d", "6dof", "floating", "deform", "singlephase", "mpi"],
+ "covers": ["sixdof_brain (the prior of the coasting time)", "sixdof_obj::brain_setup (X 204)", "control: X 204 read, sent, received"]
+}

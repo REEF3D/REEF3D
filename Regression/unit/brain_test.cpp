@@ -435,6 +435,24 @@ int main()
         check(c4[0]>0.15 && c4[0]<0.23 && c4[1]<0.1, "the start at rest in 0.2 m/s: current at 4 s "+std::to_string(c4[0])+" m/s with X 202 ("+std::to_string(c4[1])+" from the first interval)");
     }
 
+    // 3m. a body that coasts long (10 s, as the 3D salmon at L/80, validation 26), at rest over the ground at t = 0 in
+    // 0.2 m/s, 0.4 m below its station: with its coasting time (X 204 10) the start model of X 202 lets the water that
+    // passed the body decay as slowly as it does, and reads more of the current by 4 s than with the prior of 2 s
+    // (the kinematic swimmer turns and glides at the start, so only the difference is checked)
+    {
+        double c4[2];
+        for(int k=0; k<2; ++k)
+        {
+            swimmer S; S.cx = 0.2; S.x = 3.9; S.h = 3.14159265358979323846; S.nb_true = 0.8; S.s_true = 0.52; S.rest_tc = 10.0;
+            sixdof_brain B(0.5, 1.0, 0.0, 1.5, 1.0, 1.0, 1000.0, 1.0, 2, {{0.0, 3.5, 0.0, 3.0}}, 0.52, 0.0, 0.0, 0.0,
+                           0.8, 0.8, 0.05, k==0 ? 10.0 : 0.0);
+            double t = 0.0;
+            S.run(B, t, 4.0);
+            c4[k] = B.last().cx;
+        }
+        check(c4[0]>c4[1] + 0.03, "a long coast (10 s) at rest in 0.2 m/s: current at 4 s "+std::to_string(c4[0])+" m/s with X 204 10 ("+std::to_string(c4[1])+" with the prior of 2 s)");
+    }
+
     // 4. a moving target at 0.25 m/s across, after the fish reached it
     {
         swimmer S;
