@@ -1,0 +1,24 @@
+{
+ "base": "cfd_2d_beach_b107_plic",
+ "ctrl_set": {
+  "B 107": null,
+  "B 96": "2.0 0.0"
+ },
+ "ctrl_add": [
+  "B 520 2 2 1",
+  "B 521 2 2 0.0 0.0 4.0"
+ ],
+ "description": "cfd_2d_beach_b107_plic with the beach as a B 520 zone (method 2, 4 m at x+) and neither B 99 nor B 107: vof_relax relaxes the free surface in it as the velocities (IOWAVE patch 0064; before only B 99 1 / 2, the zone damped the velocities alone).",
+ "tags": [
+  "2d",
+  "waves",
+  "vof",
+  "plic",
+  "iowave",
+  "beach",
+  "bc_zone"
+ ],
+ "covers": [
+  "iowave::vof_relax beach of a B 520 zone (beach_relax)"
+ ]
+}
