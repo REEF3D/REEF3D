@@ -39,8 +39,9 @@ layer, and mu(I) of the friction. This is the Mohr-Coulomb yield on horizontal p
 yield ratio Yr of Q 67 and of the friction of the parcels inside the bed (contact normal = gravity), but implicit
 and continuous through the column: below yield eta is large and the bed shears at about gamma_r at most, above
 yield the stress is mu(I) P and the bed flows. The horizontal motion of the bed is then held by this friction, not
-by the jam. The jam (Q 64, Q 67) still holds the vertical motion of the bed below the surface layer, and the
-sleeping grains stay at rest.
+by the jam. The jam (Q 64, Q 67) still holds the vertical motion of the bed below the surface layer, except in
+the part of a column that slides on a yielded cell below it (shear rate above 10 gamma_r, stress 0.995 of the
+yield stress), so that a failing slope comes down; the sleeping grains stay at rest.
 
 Only the stress on horizontal planes: a column is not held sideways by its neighbours (sand has no tensile
 strength, compression is taken by the isotropic stress Tau), and the vertical velocity stays with the isotropic
@@ -57,8 +58,10 @@ Per sub-step, after the parcel velocities (drag, forces, normal contact):
          (theta rho_s (1 + dt D)/dt) (U - U*) = d/dz(eta dU/dz)
      with the point-implicit drag D of the parcels (U* = (U + dt F)/(1 + dt D)), so that the friction balances the
      full force F at rest. Tridiagonal per column, with a vertical domain decomposition conjugate gradients;
+     the sliding part of each column from the same shear rates;
   4. the parcels of the packed cells take the grid velocity (PIC: interpolated from the active cells and from the
-     rigid cells of their own column; the vertical velocity times 1 - Hjam), those of rigid cells stay at rest;
+     rigid cells of their own column; the vertical velocity times 1 - Hjam, 1 in a sliding part), those of rigid
+     cells stay at rest;
      the parcels of the open cells keep the friction on their substrate.
 --------------------------------------------------------------------*/
 
@@ -71,7 +74,7 @@ void CPM::shear_alloc(lexer *p)
     shF = new field4a(p); shJ = new field4a(p); shE = new field4a(p);
     shC = new field4a(p); shR = new field4a(p); shZ = new field4a(p);
     shP = new field4a(p); shA = new field4a(p); shX = new field4a(p);
-    shUo = new field4a(p); shVo = new field4a(p); shI = new field4a(p);
+    shUo = new field4a(p); shVo = new field4a(p); shI = new field4a(p); shS = new field4a(p);
 
     sh_alloc = true;
 }
@@ -81,7 +84,7 @@ void CPM::shear_implicit(lexer *p, fdm *a, ghostcell *pgc, double dt)
     shear_alloc(p);
 
     field4a &Ug = *shU, &Vg = *shV, &Wg = *shW, &Wf = *shF, &Wj = *shJ, &Eta = *shE, &Cl = *shC, &Fi = *shI;
-    field4a &Uo = *shUo, &Vo = *shVo;
+    field4a &Uo = *shUo, &Vo = *shVo, &Sl = *shS, &Gs = *shA;
 
     const double gmag = sqrt(p->W20*p->W20 + p->W21*p->W21 + p->W22*p->W22);
     const double rog = (p->S22 - p->W1)*gmag;
@@ -117,7 +120,6 @@ void CPM::shear_implicit(lexer *p, fdm *a, ghostcell *pgc, double dt)
         Fi(i,j,k) += w*sh_fi[n];
         Ug(i,j,k) += w*P.URK1[n];
         Vg(i,j,k) += w*P.VRK1[n];
-        Wg(i,j,k) += w*P.WRK1[n];
         
         // the velocity at the start of the sub-step, for the viscosity
         Uo(i,j,k) += w*P.U[n];
@@ -133,14 +135,13 @@ void CPM::shear_implicit(lexer *p, fdm *a, ghostcell *pgc, double dt)
         {
             Ug(i,j,k) /= wt;
             Vg(i,j,k) /= wt;
-            Wg(i,j,k) /= wt;
             Fi(i,j,k) /= wt;
             Uo(i,j,k) /= wt;
             Vo(i,j,k) /= wt;
         }
         else
         {
-            Ug(i,j,k) = Vg(i,j,k) = Wg(i,j,k) = Uo(i,j,k) = Vo(i,j,k) = 0.0;
+            Ug(i,j,k) = Vg(i,j,k) = Uo(i,j,k) = Vo(i,j,k) = 0.0;
             Fi(i,j,k) = 1.0;
         }
 
@@ -157,7 +158,6 @@ void CPM::shear_implicit(lexer *p, fdm *a, ghostcell *pgc, double dt)
 
     pgc->start4a(p,Ug,1);
     pgc->start4a(p,Vg,1);
-    pgc->start4a(p,Wg,1);
     pgc->start4a(p,Uo,1);
     pgc->start4a(p,Vo,1);
     pgc->start4a(p,Cl,1);
@@ -197,7 +197,7 @@ void CPM::shear_implicit(lexer *p, fdm *a, ghostcell *pgc, double dt)
     
     BASELOOP
     {
-        Eta(i,j,k) = 0.0;
+        Eta(i,j,k) = Gs(i,j,k) = 0.0;
         
         if(Cl(i,j,k)<0.5)
         continue;
@@ -213,9 +213,75 @@ void CPM::shear_implicit(lexer *p, fdm *a, ghostcell *pgc, double dt)
         double mu = mu_s + (mu_2-mu_s)/(I0/MAX(I,1.0e-10) + 1.0);
         
         Eta(i,j,k) = mu*P/sqrt(gamma*gamma + gr*gr);
+        Gs(i,j,k) = gamma;
     }
     
     pgc->start4a(p,Eta,1);
+    
+    // 3c. sliding: the cells of a column above its lowest yielded cell. A cell has yielded when its shear rate
+    //     is above 10 gamma_r, where the stress is 0.995 of the yield stress. There the jam does not hold the
+    //     vertical motion, so that a failing slope can come down; below it, and in a column at rest or creeping,
+    //     the jam holds it as without Q 88. Rigid cells end a sliding part; with a vertical domain decomposition
+    //     the state from the subdomain below is iterated in.
+    {
+        const double gc = 10.0*gr;
+        
+        int itermax = zsplit==1 ? 1000 : 1;
+        
+        for(int qn=0; qn<itermax; ++qn)
+        {
+            double change = 0.0;
+            
+            ILOOP
+            JLOOP
+            {
+                bool sl = zsplit==1 && p->nb5>=0 && Sl(i,j,-1)>0.5;
+                
+                for(k=0; k<p->knoz; ++k)
+                {
+                    double old = Sl(i,j,k);
+                    
+                    if(Cl(i,j,k)>0.5 && Gs(i,j,k)>gc)
+                    sl = true;
+                    
+                    else if(Cl(i,j,k)<-0.5)
+                    sl = false;
+                    
+                    Sl(i,j,k) = sl ? 1.0 : 0.0;
+                    change = MAX(change, fabs(Sl(i,j,k)-old));
+                }
+            }
+            
+            pgc->start4a(p,Sl,1);
+            
+            if(zsplit==1 && pgc->globalmax(change)<0.5)
+            break;
+        }
+    }
+    
+    // the vertical velocity of the cells (the jammed grains at rest below a sliding plane)
+    for(n=0;n<P.index;++n)
+    if(P.Flag[n]==ACTIVE && n<int(sh_hj.size()) && sh_hj[n]>=0.0)
+    {
+        i = pci(p,n,P.X[n]);
+        j = pcj(p,n,P.Y[n]);
+        k = pck(p,n,P.Z[n]);
+        
+        if(Ts(i,j,k)<theta_bed)
+        continue;
+        
+        double hj = sh_hj[n]>1.5 ? 1.0 : sh_hj[n]*(1.0-Sl(i,j,k));
+        
+        Wg(i,j,k) += P.ParcelFactor*Vp*P.Wt[n]*P.WRK1[n]*(1.0-hj);
+    }
+    
+    BASELOOP
+    {
+        double wt = Wf(i,j,k) + Wj(i,j,k);
+        Wg(i,j,k) = wt>1.0e-14 ? Wg(i,j,k)/wt : 0.0;
+    }
+    
+    pgc->start4a(p,Wg,1);
     
     nact = pgc->globalisum(nact);
     sh_nact = nact;
@@ -444,7 +510,7 @@ void CPM::shear_implicit(lexer *p, fdm *a, ghostcell *pgc, double dt)
         if(Ts(i,j,k)<theta_bed)
         continue;
         
-        double f = 1.0-sh_hj[n];
+        double f = 1.0 - sh_hj[n]*(1.0-Sl(i,j,k));
         double un=0.0, vn=0.0, wn=0.0;
         
         if(Cl(i,j,k)>0.5)

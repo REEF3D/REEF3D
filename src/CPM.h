@@ -177,7 +177,7 @@ private:
     void shear_implicit(lexer*, fdm*, ghostcell*, double);
     field4a *shU=nullptr,*shV=nullptr,*shW=nullptr,*shF=nullptr,*shJ=nullptr,*shE=nullptr;
     field4a *shC=nullptr,*shR=nullptr,*shZ=nullptr,*shP=nullptr,*shA=nullptr,*shX=nullptr;
-    field4a *shUo=nullptr,*shVo=nullptr,*shI=nullptr;
+    field4a *shUo=nullptr,*shVo=nullptr,*shI=nullptr,*shS=nullptr;
     bool sh_alloc=false;
     std::vector<double> sh_hj,sh_fi;   // per parcel in the sub-step: jam weight Hjam (-1 bedload layer, 2 sleeping), 1 + dt D (drag)
     int sh_nact=0, sh_iter=0;
