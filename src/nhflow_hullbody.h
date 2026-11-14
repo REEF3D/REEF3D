@@ -87,6 +87,10 @@ private:
     double *side0N;             // node sides of the last stage
     double *solidC;             // X 15 10: 1 for a cell with no open face (moves with the body)
     double *kapC;               // X 15 10: water fraction of the cells
+    double *slx,*sly,*slz;      // X 15 10: the momentum taken from the slivers in the stage (sliver), as a load on the body
+    double sl_t=-1.0e20;        // time of the step of the last stage (stage count)
+    int sl_s=0;                 // stage of the step
+    void sliver(lexer*, fdm_nhf*, ghostcell*, double*, double*, double*, slice&);
     void solid_velocity(lexer*, fdm_nhf*, ghostcell*, double*, double*, double*, slice&);
     void stage_cut(lexer*, fdm_nhf*, ghostcell*, double, double*, double*, double*, slice&);
     double cut_lam(lexer*, int, int, int) const;

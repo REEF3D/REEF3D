@@ -120,6 +120,11 @@ Architect: Hans Bihs
 //   momentum    the momentum of a cut cell is that of its water kap V: its right-hand side and its velocity correction
 //               are divided by max(kap, kap0) (the links of the Poisson matrix with it); with the whole cell the water
 //               of the cut layer was too heavy (added mass of the hemisphere +20 %, now +9 %)
+//   slivers     a cell with less water than 0.1 moves with the body: its predicted velocity relaxes towards the
+//               body velocity with the weight 1 - kap/0.1 in every stage, the momentum taken from it a load on the
+//               body (sliver); without it the slivers at the bow and the side of a ship hull ran away at dx 0.15 m
+//   footprint   in the ship frame with a current the level of a column the body covers relaxes towards the outer level
+//               (footprint_level, weighted with 1 - atop, 0.1 s); without it the bow columns filled up
 //   wall part   (1 - a) of a face moves with the body: the wall velocity is the body velocity at the face centre (the
 //               open parts then see the swept volume of the true surface, -u_b . sum a n A)
 //   service     nhflow_thinbody in cut mode: fluxes a F + (1 - a) F(wall), the projection with the apertures as link
@@ -160,6 +165,9 @@ nhflow_hullbody::nhflow_hullbody(lexer *p, fdm_nhf *d, ghostcell *pgc, sixdof_ob
     cut = (p->X15==10);
     p->Darray(solidC,ncell);
     p->Darray(kapC,ncell);
+    p->Darray(slx,ncell);
+    p->Darray(sly,ncell);
+    p->Darray(slz,ncell);
 
     for(int q=0; q<p->imax*p->jmax; ++q)
     zk0[q] = 1.0e20;
@@ -229,7 +237,7 @@ nhflow_hullbody::nhflow_hullbody(lexer *p, fdm_nhf *d, ghostcell *pgc, sixdof_ob
     if(fabs(p->B514_U[n]) + fabs(p->B514_V[n])>0.0)
     current = true;
     fp_on = plain_horizontal && current;
-    fp_tau = 0.5;
+    fp_tau = cut ? 0.1 : 0.5;
 
     // the lid correction of the lower region drains through its outflow edges (ship frame with a current)
     tb->lid_outflow = fp_on;
@@ -251,6 +259,9 @@ nhflow_hullbody::~nhflow_hullbody()
     delete [] zk0;
     delete [] solidC;
     delete [] kapC;
+    delete [] slx;
+    delete [] sly;
+    delete [] slz;
 
     if(out.is_open())
     out.close();
@@ -325,6 +336,10 @@ void nhflow_hullbody::stage(lexer *p, fdm_nhf *d, ghostcell *pgc, double alpha, 
     
     if(cut)
     {
+    // the free surface of the columns the body covers, in the ship frame with a current (footprint_level)
+    if(fp_on && marked)
+    footprint_level(p,d,pgc,WL,alpha*p->dt);
+    
     stage_cut(p,d,pgc,alpha,UH,VH,WH,WL);
     tstage += pgc->timer() - starttime;
     return;
@@ -521,6 +536,11 @@ void nhflow_hullbody::enclosed_water(lexer *p, fdm_nhf *d, ghostcell *pgc, doubl
 // several m/s and the time step fell to a third. Only with a current (B 514): at zero speed the level of the enclosed
 // water gives the radiation of the heaving hull (2D box, forced heave at 3.5 rad/s: A/m 0.922, B 63.0 per span, Frank
 // 0.975, 63.6; with the relaxation 0.986, 78.1). Ship Hydrodynamics validation 30.
+// X 15 10 (cut faces): the columns whose top the body covers in part or in whole (atop < 1), with the weight 1 - atop and
+// fp_tau = 0.1 s. Their head is atop eta + (1 - atop) eta_L, so that the column's own level hardly acts on its water: the
+// column at the bow stem of the KVLCC2-like hull filled up to +0.33 m (dx 0.15 m, 0.8 s; +0.55 m on the refined patch with
+// subcycling, where it broke down), the columns at the bow flare to +0.54 m in 3 s; with the relaxation +0.03 m, the
+// stagnation level (Ship Hydrodynamics validation 45)
 void nhflow_hullbody::footprint_level(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL, double a)
 {
     const double r = MIN(a/fp_tau, 1.0);
@@ -538,7 +558,11 @@ void nhflow_hullbody::footprint_level(lexer *p, fdm_nhf *d, ghostcell *pgc, slic
 
             const double dz = (zk<1.0e19 && zk0[q]<1.0e19) ? zk - zk0[q] : 0.0;
 
-            d->eta(i,j) += (tb->etaL_at(i,j) + dz - d->eta(i,j))*r;
+            // X 15 10: weighted with the covered part of the column top, 1 - atop (the head of the column weights its
+            // own level with atop, nhflow_thinbody::head)
+            const double wr = cut ? 1.0 - MAX(MIN(tb->atop_(i,j),1.0),0.0) : 1.0;
+            
+            d->eta(i,j) += (tb->etaL_at(i,j) + dz - d->eta(i,j))*r*wr;
             WL(i,j) = d->eta(i,j) + d->depth(i,j);
         }
         else
@@ -999,6 +1023,69 @@ double nhflow_hullbody::cut_zlink(lexer *p, int i, int j, int k) const
     return (1.0-lam)*a1 + lam*a0;
 }
 
+// X 15 10: the slivers, cells with less water than kap_s = 0.1, move with the body: their predicted velocity relaxes
+// towards the rigid-body velocity with the weight 1 - kap/kap_s in every stage, before the projection. A sliver has its
+// faces closed to a fraction kap/kap0 of their aperture and a weak link in the projection; its momentum, divided by
+// max(kap, kap0), took the sources of the whole cell. In the cells at the bow stem and along the flat side of the
+// KVLCC2-like hull in the ship frame (dx 0.15 m, below the waterline and in the bow wave above it) the velocity then
+// grew to 15-18 m/s within a second and the run broke down; on dx 0.3 m it stayed at 2-3 m/s in the same cells
+// (Ship Hydrodynamics validation 45). The momentum taken from the water is a load on the body (loads_cut): in the
+// weights of the Runge-Kutta scheme by which a stage enters the step (RK3 1/6, 2/3, 1; RK2 1/2, 1), divided by the
+// weight of the printed stage loads (1/6, 1/6, 2/3; 1/2, 1/2), so that the loads and the momentum of the water stay
+// one force
+void nhflow_hullbody::sliver(lexer *p, fdm_nhf *d, ghostcell *pgc, double *UH, double *VH, double *WH, slice &WL)
+{
+    const double kap_s = 0.1;
+    const int ncell = p->imax*p->jmax*(p->kmax+2);
+    
+    for(int q=0; q<ncell; ++q)
+    slx[q] = sly[q] = slz[q] = 0.0;
+    
+    // the stage of the step
+    if(p->simtime!=sl_t)
+    {
+    sl_t = p->simtime;
+    sl_s = 0;
+    }
+    else
+    ++sl_s;
+    
+    if(!marked)
+    return;
+    
+    const int ns = p->A534==1 ? 1 : (p->A510==3 ? 3 : (p->A510==2 ? 2 : 1));
+    const double c3[3] = {1.0, 4.0, 1.5}, c2[2] = {1.0, 2.0};
+    const int s = MIN(sl_s,ns-1);
+    const double c = ns==3 ? c3[s] : (ns==2 ? c2[s] : 1.0);
+    const double fc = c*p->W1/MAX(p->dt,1.0e-20);
+    
+    LOOP
+    if(p->wet[IJ]==1 && solidC[IJK]<0.5 && kapC[IJK]<kap_s)
+    {
+        double u,v,w;
+        body_velocity(p->XP[IP],p->YP[JP],p->ZSP[IJK],u,v,w);
+        
+        const double f = MAX(kapC[IJK],0.0)/kap_s;
+        const double un = u + (d->U[IJK]-u)*f, vn = v + (d->V[IJK]-v)*f, wn = w + (d->W[IJK]-w)*f;
+        const double m = fc*MAX(kapC[IJK],0.0)*p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*WL(i,j);
+        
+        slx[IJK] = m*(d->U[IJK] - un);
+        sly[IJK] = m*(d->V[IJK] - vn);
+        slz[IJK] = m*(d->W[IJK] - wn);
+        
+        d->U[IJK] = un;
+        d->V[IJK] = vn;
+        d->W[IJK] = wn;
+        UH[IJK] = un*WL(i,j);
+        VH[IJK] = vn*WL(i,j);
+        WH[IJK] = wn*WL(i,j);
+    }
+    
+    pgc->start4V(p,d->U,10);
+    pgc->start4V(p,d->V,11);
+    pgc->start4V(p,d->W,12);
+}
+
 void nhflow_hullbody::stage_cut(lexer *p, fdm_nhf *d, ghostcell *pgc, double alpha, double *UH, double *VH, double *WH, slice &WL)
 {
     const int ncell = p->imax*p->jmax*(p->kmax+2);
@@ -1012,6 +1099,9 @@ void nhflow_hullbody::stage_cut(lexer *p, fdm_nhf *d, ghostcell *pgc, double alp
     }
     
     tb->begin(p);
+    
+    // the slivers move with the body (kap of the last stage)
+    sliver(p,d,pgc,UH,VH,WH,WL);
     
     // level set at the cell corners: (x_ii+1/2, y_jj+1/2) at the level of the cell centres kk (vC) or of node kk (vN)
     // a corner on the surface within rounding (a body face that coincides with a grid face) counts as body, on every
@@ -1348,6 +1438,27 @@ void nhflow_hullbody::loads_cut(lexer *p, fdm_nhf *d, slice &WL, const std::func
         Mx += (y - yc)*fz - (z - zc)*fy;
         My += (z - zc)*fx - (x - xc)*fz;
         Mz += (x - xc)*fy - (y - yc)*fx;
+    }
+    }
+    
+    // the momentum taken from the slivers in the stage (sliver)
+    if(marked)
+    {
+    const double xc = obj->amr_c(0), yc = obj->amr_c(1), zc = obj->amr_c(2);
+    
+    LOOP
+    if(p->wet[IJ]==1 && (slx[IJK]!=0.0 || sly[IJK]!=0.0 || slz[IJK]!=0.0))
+    {
+        if(keep!=nullptr && !(*keep)(p->XP[IP],p->YP[JP]))
+        continue;
+        
+        const double x = p->XP[IP], y = p->YP[JP], z = p->ZSP[IJK];
+        Fx += slx[IJK];
+        Fy += sly[IJK];
+        Fz += slz[IJK];
+        Mx += (y - yc)*slz[IJK] - (z - zc)*sly[IJK];
+        My += (z - zc)*slx[IJK] - (x - xc)*slz[IJK];
+        Mz += (x - xc)*sly[IJK] - (y - yc)*slx[IJK];
     }
     }
     
