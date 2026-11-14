@@ -271,6 +271,16 @@ void nhflow_amr::turb_free(nhflow_amr_patch &c)
     {
         pp->del_Iarray(r->WALLF,n7);
         pp->del_Iarray(r->WETN,pp->imax*pp->jmax);
+        // the arrays of nhflow_strain and the SST wall distance (were never freed: three to twelve arrays of the
+        // patch leaked with every patch a regrid removed)
+        double **sa[] = {&r->PK,&r->PK0,&r->PK_b,&r->GBS,&r->GBS0,&r->N2S,
+                         &r->TQ11,&r->TQ22,&r->TQ33,&r->TQ12,&r->TQ13,&r->TQ23,&r->WDH};
+        for(double **a : sa)
+        if(*a!=nullptr)
+        {
+            pp->del_Darray(*a,n7);
+            *a = nullptr;
+        }
     }
     delete c.ptconv;
     delete c.ptdiff;
