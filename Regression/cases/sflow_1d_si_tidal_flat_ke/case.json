@@ -1,0 +1,18 @@
+{
+ "base": "sflow_1d_si_tidal_flat",
+ "ctrl_add": [
+  "A 260 1"
+ ],
+ "description": "sflow_1d_si_tidal_flat (semi-implicit A 210 13, time steps far above the turbulence time scale, a wetting and drying front) with the depth-averaged k-epsilon model (A 260 1): k and the eddy viscosity stay at the equilibrium of the bed sources (k up to 0.011 m2/s2, eddy viscosity up to 0.024 m2/s at step 400; before: k between -2.6 and 5.8 m2/s2, eddy viscosity up to 0.5 m2/s, and a different flow).",
+ "tags": [
+  "1d",
+  "sflow",
+  "semi_implicit",
+  "wetdry",
+  "turbulence"
+ ],
+ "covers": [
+  "sflow_turb_ke_IM1: fresh_cells (wetting cells start from the bed equilibrium), source terms for dt eps/k >> 1"
+ ],
+ "architect": "Hans Bihs"
+}

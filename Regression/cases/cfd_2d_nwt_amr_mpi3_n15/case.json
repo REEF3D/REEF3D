@@ -1,0 +1,21 @@
+{
+ "base": "cfd_2d_nwt_amr",
+ "np": 3,
+ "steps": 60,
+ "ctrl_add": [
+  "N 15 1"
+ ],
+ "description": "cfd_2d_nwt_amr on 3 ranks with N 15 1: the level-0 multigrid of the composite projection with the agglomerated coarse solve; the refined band cut at the rank edges.",
+ "tags": [
+  "quick",
+  "2d",
+  "waves",
+  "levelset",
+  "amr",
+  "mpi",
+  "reefmg"
+ ],
+ "covers": [
+  "cfd_amr::pr_setup: mg0 with N 15 (patch REEFMG/0012)"
+ ]
+}

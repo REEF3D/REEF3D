@@ -1,0 +1,17 @@
+{
+ "base": "sflow_1d_slope_kw",
+ "ctrl_set": {
+  "A 260": "1"
+ },
+ "description": "sflow_1d_slope_kw with the depth-averaged k-epsilon model (A 260 1): implicit upwind convection (sflow_ifou) as the k-omega model; k follows the solution of the model equations along x within 4 %.",
+ "tags": [
+  "quick",
+  "1d",
+  "sflow",
+  "turbulence"
+ ],
+ "covers": [
+  "sflow_turb_ke_IM1: sflow_ifou convection, the same eps/k in both equations, two passes"
+ ],
+ "architect": "Hans Bihs"
+}

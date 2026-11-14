@@ -432,6 +432,14 @@ void sixdof_obj_cfd::momentum_refit_set(lexer *p, ghostcell *pgc)
 void sixdof_obj_cfd::ckpt_coupling(std::vector<double> &s) const
 {
     s = {mf_first_ ? 1.0 : 0.0, mf_start_ ? 1.0 : 0.0, mf_c1_, mf_c2_, mf_tn_};
+    
+    // X 14 11: the added mass of the hull on the grid (6DOF_obj_cfd_addedmass.cpp), so that the first step
+    // after a restart does not fall back to the coupling of X 197
+    s.push_back(acfd_on_ ? 1.0 : 0.0);
+    
+    for(int qn=0; qn<6; ++qn)
+    for(int qm=0; qm<6; ++qm)
+    s.push_back(Acfd_(qn,qm));
 }
 
 void sixdof_obj_cfd::ckpt_coupling_restore(const std::vector<double> &s)
@@ -444,4 +452,13 @@ void sixdof_obj_cfd::ckpt_coupling_restore(const std::vector<double> &s)
     mf_c1_ = s[2];
     mf_c2_ = s[3];
     mf_tn_ = s[4];
+    
+    if(s.size()<42)
+    return;
+    
+    acfd_on_ = (s[5]!=0.0);
+    
+    for(int qn=0; qn<6; ++qn)
+    for(int qm=0; qm<6; ++qm)
+    Acfd_(qn,qm) = s[6+6*qn+qm];
 }

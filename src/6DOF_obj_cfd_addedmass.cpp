@@ -60,7 +60,7 @@ Architect: Hans Bihs
 // of the last one.
 //
 // One body, the one-step scheme N 40 5, no mesh refinement (driver_logic_cfd). Until the first added mass is there
-// (the first step, a start from a checkpoint) and after a failed solve the coupling is that of X 197.
+// (the first step) and after a failed solve the coupling is that of X 197. A is in the checkpoint (ckpt_coupling).
 //
 // Log: REEF3D_CFD_6DOF/REEF3D_6DOF_addedmass_<n>.dat, the time, the diagonal of A, A15, A24 and the mass
 

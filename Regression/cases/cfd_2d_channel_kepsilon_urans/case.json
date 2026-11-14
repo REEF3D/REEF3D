@@ -1,0 +1,4 @@
+{"base": "cfd_2d_channel_kepsilon", "ctrl_set": {"T 10": "21", "T 23": "0.5"},
+ "description": "as cfd_2d_channel_kepsilon with the URANS limit T 10 21: nu_t <= C3 cmu delta sqrt(k) with the local cell size and C3 = T 23 (as T 10 22 in k-omega).",
+ "tags": ["2d", "inflow", "turbulence"],
+ "covers": ["kepsilon_func::eddyvisc T 10 21, T 23"]}
