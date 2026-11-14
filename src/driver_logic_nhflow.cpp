@@ -284,6 +284,15 @@ void driver::logic_nhflow()
     cout<<"NOTE A 519 0: no bed friction in the momentum equations, the flow slips over the bed; A 519 1 (the default "
         <<"with a turbulence model A 560 or sediment transport S 10) for open-channel flow"<<endl;
     
+    // k-epsilon and k-omega without the stabilisation of Larsen & Fuhrman (2018, A 565 1) in waves: the strain of the
+    // (nearly) potential wave motion produces k in the whole water column with nothing to dissipate it, and nu_t
+    // grows without bound. Regular wave H 0.06 m, T 1.5 s in 0.5 m of water, 30 m flume, 10 layers: after 200
+    // periods nu_t = 5e-3 m2/s in the whole column and the wave height at 23 m down to 45 % (k-epsilon and k-omega,
+    // A 564 1); with A 565 1 nu_t stays at 3e-6 m2/s outside the bed layer and the wave height at 99 %
+    if(p->B90>0 && p->A565==0 && (p->A560==1 || p->A560==21 || p->A560==2 || p->A560==22) && p->mpirank==0)
+    cout<<"NOTE A 565 0 with waves (B 90): the eddy viscosity of k-epsilon / k-omega grows without bound under "
+        <<"non-breaking waves and damps them; A 565 1 (stabilisation of Larsen & Fuhrman 2018) for wave runs"<<endl;
+    
     // bed of the velocity (A 518): 1 the wall-function bed, mirrored ghost cells, zero gradient in the diffusion and
     // the bed shear from the log-law friction A 519; 2 the resolved no-slip bed, u = 0 on the bed face in the
     // ghost cells and in the diffusion, the bed shear from the diffusion (gc_startV.cpp, nhflow_idiff, nhflow_bcmom)
