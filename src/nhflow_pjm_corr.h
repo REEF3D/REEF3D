@@ -56,6 +56,7 @@ public:
     void rhs(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,double);
 
 private:
+    void cut_pressure(lexer*, fdm_nhf*, ghostcell*);
     
 	double starttime,endtime;
     int check;
@@ -64,6 +65,7 @@ private:
     double val, denom;
     double gamma;
     double *PCORR;
+    double *PB;                 // cut faces (X 15 10): the pressure before the increment (cut_pressure)
     
     double dPdx,dPdy,dPdz;
     double dfdx_plus,dfdx_min;

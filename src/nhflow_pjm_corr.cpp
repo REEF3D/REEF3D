@@ -49,6 +49,7 @@ nhflow_pjm_corr::nhflow_pjm_corr(lexer* p, fdm_nhf *d, ghostcell *pgc, patchBC_i
     ppois = new nhflow_poisson_pcorr(p);
     
     p->Darray(PCORR,p->imax*p->jmax*(p->kmax+2));
+    p->Darray(PB,p->imax*p->jmax*(p->kmax+2));
     
     gcval_press=540;
     
@@ -60,6 +61,7 @@ nhflow_pjm_corr::~nhflow_pjm_corr()
     delete pd;
     delete ppois;
     delete [] PCORR;
+    delete [] PB;
 }
 
 void nhflow_pjm_corr::start(lexer *p, fdm_nhf *d, solver* psolv, ghostcell* pgc, ioflow *pflow, slice &WL,
@@ -83,11 +85,19 @@ void nhflow_pjm_corr::start(lexer *p, fdm_nhf *d, solver* psolv, ghostcell* pgc,
 
         endtime=pgc->timer();
         
+    const bool cut = d->thinbody!=nullptr && d->thinbody->cutmode;
+    
+    if(cut)
+    FLOOP
+    PB[FIJK] = d->P[FIJK];
     
     presscorr(p,d,pgc,WL,d->P,PCORR,alpha);
     
     pgc->start7P(p,d->P,gcval_press);
     pgc->start7P(p,PCORR,gcval_press);
+    
+    if(cut)
+    cut_pressure(p,d,pgc);
     
 	ucorr(p,d,WL,UH,PCORR,alpha);
 	vcorr(p,d,WL,VH,PCORR,alpha);
@@ -101,9 +111,14 @@ void nhflow_pjm_corr::start(lexer *p, fdm_nhf *d, solver* psolv, ghostcell* pgc,
         rhs(p,d,pgc,d->U,d->V,d->W,alpha);
         ppois->start(p,d,PCORR);
         psolv->startF(p,pgc,PCORR,d->rhsvec,d->M,8);
+        if(cut)
+        FLOOP
+        PB[FIJK] = d->P[FIJK];
         presscorr(p,d,pgc,WL,d->P,PCORR,alpha);
         pgc->start7P(p,d->P,gcval_press);
         pgc->start7P(p,PCORR,gcval_press);
+        if(cut)
+        cut_pressure(p,d,pgc);
         ucorr(p,d,WL,UH,PCORR,alpha);
         vcorr(p,d,WL,VH,PCORR,alpha);
         wcorr(p,d,WL,WH,PCORR,alpha);
@@ -150,6 +165,19 @@ void nhflow_pjm_corr::amr_finish(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL
 	ucorr(p,d,WL,UH,PCORR,alpha);
 	vcorr(p,d,WL,VH,PCORR,alpha);
 	wcorr(p,d,WL,WH,PCORR,alpha);
+}
+
+// cut faces (X 15 10): the pressure of the nodes without water from their neighbours (nhflow_thinbody::extend_pressure,
+// as nhflow_pjm), applied to the new pressure; the increment of the corrections is then the difference to the pressure
+// before, so that the predictor of the next step and the corrections see the same extended pressure
+void nhflow_pjm_corr::cut_pressure(lexer *p, fdm_nhf *d, ghostcell *pgc)
+{
+    d->thinbody->extend_pressure(p,d,pgc,d->P);
+    
+    FLOOP
+    PCORR[FIJK] = d->P[FIJK] - PB[FIJK];
+    
+    pgc->start7P(p,PCORR,gcval_press);
 }
 
 void nhflow_pjm_corr::presscorr(lexer* p, fdm_nhf *d, ghostcell *pgc, slice &WL, double *P, double *PCORR, double alpha)
@@ -255,10 +283,17 @@ void nhflow_pjm_corr::ucorr(lexer* p, fdm_nhf *d, slice &WL, double *UH, double 
 {
     const bool ho = nhflow_pjm_ho::active(p,d);
     
+    // cut faces (X 15 10): the horizontal pressure force of the cells as finite volumes (nhflow_cut_gx, sigma faces
+    // included), the correction of a cut cell per its water (nhflow_thinbody::ik), as nhflow_pjm
+    const bool cut = d->thinbody!=nullptr && d->thinbody->cutmode;
+    
 	LOOP
     WETDRYDEEP
     {
     // membranes (X 330): face mobilities in the horizontal gradient, see nhflow_membrane_beta.h
+    if(cut)
+    dPdx = nhflow_cut_gx(p,d,WL,PCORR,i,j,k);
+    else
     if(d->MBETA!=nullptr)
     dPdx = nhflow_membrane_gradx(p,d,PCORR,i,j,k);
     else
@@ -271,22 +306,26 @@ void nhflow_pjm_corr::ucorr(lexer* p, fdm_nhf *d, slice &WL, double *UH, double 
     if(ho && nhflow_pjm_ho::x(p,d,i,j,k))
     dPdx = nhflow_pjm_ho::gradx(p,PCORR,i,j,k);
     
-	UH[IJK] -= alpha*p->dt*CPORNH*WL(i,j)*(1.0/p->W1)*
+	UH[IJK] -= alpha*p->dt*CPORNH*WL(i,j)*(1.0/p->W1)*(cut ? d->thinbody->ik(IJK) : 1.0)*
     
                 (dPdx
                 
-                + MBETAVAL*0.5*(p->sigx[FIJK]+p->sigx[FIJKp1])*((PCORR[FIJKp1]-PCORR[FIJK])/p->DZN[KP]));
+                + (cut ? 0.0 : MBETAVAL*0.5*(p->sigx[FIJK]+p->sigx[FIJKp1])*((PCORR[FIJKp1]-PCORR[FIJK])/p->DZN[KP])));
     }
 }
 
 void nhflow_pjm_corr::vcorr(lexer* p, fdm_nhf *d, slice &WL, double *VH, double *PCORR, double alpha)
 {
     const bool ho = nhflow_pjm_ho::active(p,d);
+    const bool cut = d->thinbody!=nullptr && d->thinbody->cutmode;
     
     if(p->j_dir==1)
     LOOP
     WETDRYDEEP
     {
+    if(cut)
+    dPdy = nhflow_cut_gy(p,d,WL,PCORR,i,j,k);
+    else
     if(d->MBETA!=nullptr)
     dPdy = nhflow_membrane_grady(p,d,PCORR,i,j,k);
     else
@@ -298,11 +337,11 @@ void nhflow_pjm_corr::vcorr(lexer* p, fdm_nhf *d, slice &WL, double *VH, double 
     if(ho && nhflow_pjm_ho::y(p,d,i,j,k))
     dPdy = nhflow_pjm_ho::grady(p,PCORR,i,j,k);
     
-    VH[IJK] -= alpha*p->dt*CPORNH*WL(i,j)*(1.0/p->W1)*
+    VH[IJK] -= alpha*p->dt*CPORNH*WL(i,j)*(1.0/p->W1)*(cut ? d->thinbody->ik(IJK) : 1.0)*
     
                 (dPdy
                 
-                + MBETAVAL*0.5*(p->sigy[FIJK]+p->sigy[FIJKp1])*((PCORR[FIJKp1]-PCORR[FIJK])/p->DZN[KP]));
+                + (cut ? 0.0 : MBETAVAL*0.5*(p->sigy[FIJK]+p->sigy[FIJKp1])*((PCORR[FIJKp1]-PCORR[FIJK])/p->DZN[KP])));
     }
 }
 
@@ -310,7 +349,7 @@ void nhflow_pjm_corr::wcorr(lexer* p, fdm_nhf *d, slice &WL, double *WH, double 
 {
     LOOP
     WETDRYDEEP
-	WH[IJK] -= MBETAVAL*alpha*p->dt*CPORNH*(1.0/p->W1)*((PCORR[FIJKp1]-PCORR[FIJK])/(p->DZN[KP]));
+	WH[IJK] -= MBETAVAL*alpha*p->dt*CPORNH*(1.0/p->W1)*(d->thinbody!=nullptr && d->thinbody->cutmode ? d->thinbody->ik(IJK) : 1.0)*((PCORR[FIJKp1]-PCORR[FIJK])/(p->DZN[KP]));
 }
 
 void nhflow_pjm_corr::upgrad(lexer*p, fdm_nhf *d, slice &WL)
@@ -339,7 +378,13 @@ void nhflow_pjm_corr::upgrad(lexer*p, fdm_nhf *d, slice &WL)
     
     // sharp thin bodies: the old pressure with the link mobilities, as the correction (no pressure across the hull)
     const bool tb = (d->thinbody!=nullptr || (p->X15==11 && p->X10>0)) && d->MBETA!=nullptr;   // X 15 11: the open fractions of the links
+    const bool cut = d->thinbody!=nullptr && d->thinbody->cutmode;
     
+    // cut faces (X 15 10): the finite-volume force of the cell (sigma faces included), as the correction; the cut cell
+    // per its water through scale_rhs of the momentum stage
+    if(cut)
+    dPdx = nhflow_cut_gx(p,d,WL,d->P,i,j,k);
+    else
     if(tb)
     dPdx = nhflow_membrane_gradx(p,d,d->P,i,j,k);
     
@@ -349,7 +394,7 @@ void nhflow_pjm_corr::upgrad(lexer*p, fdm_nhf *d, slice &WL)
     
     d->F[IJK] -= (1.0/p->W1)*WL(i,j)*
                 (dPdx
-                + (tb ? MBETAVAL : 1.0)*0.5*(p->sigx[FIJK]+p->sigx[FIJKp1])*((d->P[FIJKp1]-d->P[FIJK])/p->DZN[KP]));
+                + (cut ? 0.0 : (tb ? MBETAVAL : 1.0))*0.5*(p->sigx[FIJK]+p->sigx[FIJKp1])*((d->P[FIJKp1]-d->P[FIJK])/p->DZN[KP]));
     }
 }
 
@@ -378,7 +423,13 @@ void nhflow_pjm_corr::vpgrad(lexer*p, fdm_nhf *d, slice &WL)
     dPdy = (0.5*(d->P[FIJp1Kp1]+d->P[FIJp1K])-0.5*(d->P[FIJm1Kp1]+d->P[FIJm1K]))/(p->DYP[JP]+p->DYP[JM1]);
     
     const bool tb = (d->thinbody!=nullptr || (p->X15==11 && p->X10>0)) && d->MBETA!=nullptr;   // X 15 11: the open fractions of the links
+    const bool cut = d->thinbody!=nullptr && d->thinbody->cutmode;
     
+    // cut faces (X 15 10): the finite-volume force of the cell (sigma faces included), as the correction; the cut cell
+    // per its water through scale_rhs of the momentum stage
+    if(cut)
+    dPdy = nhflow_cut_gy(p,d,WL,d->P,i,j,k);
+    else
     if(tb)
     dPdy = nhflow_membrane_grady(p,d,d->P,i,j,k);
     
@@ -387,7 +438,7 @@ void nhflow_pjm_corr::vpgrad(lexer*p, fdm_nhf *d, slice &WL)
     
 	d->G[IJK] -= (1.0/p->W1)*WL(i,j)*
                 (dPdy
-                + (tb ? MBETAVAL : 1.0)*0.5*(p->sigy[FIJK]+p->sigy[FIJKp1])*((d->P[FIJKp1]-d->P[FIJK])/p->DZN[KP]));
+                + (cut ? 0.0 : (tb ? MBETAVAL : 1.0))*0.5*(p->sigy[FIJK]+p->sigy[FIJKp1])*((d->P[FIJKp1]-d->P[FIJK])/p->DZN[KP]));
     }
 }
 

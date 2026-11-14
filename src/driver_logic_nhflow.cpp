@@ -235,12 +235,14 @@ void driver::logic_nhflow()
         p->A520=1;
     }
     
-    // the body as a solid with cut faces (X 15 10): the cut faces are in the full projection only (nhflow_pjm: the
-    // divergence of the wall parts, the pressure extension)
-    if(p->X15==10 && p->X10>0 && p->A520==2)
+    // the body as a solid with cut faces (X 15 10) keeps the incremental projection too (nhflow_pjm_corr: the
+    // finite-volume pressure force of the cut cells in the predictor and the correction, the pressure extension into
+    // the nodes without water; Ship Hydrodynamics validation 43). On the mesh refinement hierarchy it needs the full
+    // projection (nhflow_amr::keys_ok).
+    if(p->X15==10 && p->X10>0 && p->A520==2 && p->G1>0)
     {
         if(p->mpirank==0)
-        cout<<"X 15 10: pressure scheme A 520 2 -> A 520 1 (full projection)"<<endl;
+        cout<<"X 15 10 on the mesh refinement hierarchy (G 1): pressure scheme A 520 2 -> A 520 1 (full projection)"<<endl;
 
         p->A520=1;
     }
