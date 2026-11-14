@@ -10,6 +10,8 @@
 #     the uniform flow
 #   * 3D (fish_agents3d.py): 20 fish circling a cage in a current stay inside its net and follow their targets;
 #     a 3D VTU of a uniform flow gives the same tracks as the uniform flow
+#   * 3D school: 40 fish following their neighbours and a wish to circle stay inside the net, mill, keep their
+#     spacing and touch far less than fish on blind orbits; without the wish to circle they do not mill
 #   python3 fish_agents_check.py        exit 1 on a failure
 # Architect: Hans Bihs
 import json, math, os, struct, sys, tempfile
@@ -133,6 +135,32 @@ with tempfile.TemporaryDirectory() as d:
     fish6, rows6 = f3.run(case6)
 diff6 = float(np.max(np.abs(np.array(rows6, float)[:, 2:5] - R5[:, 2:5])))
 check(diff6 < 1e-5, "3D REEF3D flow (uniform 0.1 m/s in a VTU) against the uniform flow: largest difference of the tracks %.2e m" % diff6)
+
+# 7. 3D school (fish_agents3d.py "school"): 40 fish in a cage of 8 m in 0.05 m/s, each following its neighbours
+# (spacing, alignment) and a wish to circle. After 40 s: every fish inside the net, a mill, the spacing kept, far
+# fewer contacts than the same fish on their own orbits (blind to each other), and no mill without the wish to circle
+case7 = {"T": 120.0, "dt": 0.02, "out_dt": 0.5, "seed": 2,
+         "body": {"s": 0.17, "n_up": 3.0, "n_down": 4.3, "tau_coast": 9.0, "C_brake": 3.5, "r_fish": 0.15, "at_rest": 1},
+         "brain": {"U_des": 0.2, "b_max": 1.0, "D": 1.5, "s0": 0.17, "n_u": 3.0, "n_d": 4.3, "s_sd": 0.1, "tau_c": 9.0},
+         "flow": {"type": "uniform", "u": [0.05, 0.0, 0.0]}, "box": [0, 16, 0, 12, 0, 6], "walls": [0, 0, 1, 1],
+         "nets": [[8.0, 6.0, 4.0, 1.5, 5.5]]}
+sp7 = {"c": [8.0, 6.0], "r": [1.5, 3.3], "z": [2.0, 5.0], "U": 0.15, "dir": 1}
+m7 = {}
+for kind, spec in (("school", sp7), ("orbit", sp7), ("nopath", dict(sp7, w_path=0.0))):
+    fish7, rows7 = f3.run(dict(case7, fish={"n": 40, ("orbit" if kind == "orbit" else "school"): spec}))
+    m7[kind] = f3.school_metrics(rows7, net=case7["nets"][0], t0=40.0, r_fish=0.15)
+    if kind == "school":
+        R7 = np.array(rows7)
+        rr7 = np.hypot(R7[:, 2] - 8.0, R7[:, 3] - 6.0)
+s7, o7, n7 = m7["school"], m7["orbit"], m7["nopath"]
+check(rr7.max() < 4.0 and R7[:, 4].min() >= 1.5 and R7[:, 4].max() <= 5.5,
+      "3D school: every fish stays inside the net (largest radius %.2f m of 4, depth %.2f-%.2f m)" % (rr7.max(), R7[:, 4].min(), R7[:, 4].max()))
+check(s7["milling"] > 0.6, "3D school: the school mills round the cage (milling %.2f, above 0.6)" % s7["milling"])
+check(s7["nnd_p10"] > 0.5 and s7["nnd_p10"] > o7["nnd_p10"] + 0.15,
+      "3D school: the spacing is kept (nearest neighbour, 10 %%: %.2f m; blind orbits %.2f m)" % (s7["nnd_p10"], o7["nnd_p10"]))
+check(s7["contacts_per_fish_min"] < 0.25 * o7["contacts_per_fish_min"],
+      "3D school: contacts %.2f per fish and minute, against %.2f on blind orbits" % (s7["contacts_per_fish_min"], o7["contacts_per_fish_min"]))
+check(n7["milling"] < 0.3, "3D school without the wish to circle: no mill (milling %.2f, below 0.3)" % n7["milling"])
 
 print("%d passed, %d failed" % (npass, nfail))
 sys.exit(1 if nfail else 0)
