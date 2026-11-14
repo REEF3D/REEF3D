@@ -964,7 +964,9 @@ void ghostcell::start20V(lexer *p, double *f, int gcv) //KIN
             }
         }
 
-        if(p->flag4[Ip1JK]<0 && outflow==2)
+        // outflow 1 (active wave absorption, B 99 >= 3): zero gradient as the eddy viscosity (start24V); the ghost
+        // cells were never written and stayed 0
+        if(p->flag4[Ip1JK]<0 && outflow>=1)
         {
             f[Ip1JK] = f[IJK];
             f[Ip2JK] = f[IJK];
@@ -1169,7 +1171,9 @@ void ghostcell::start30V(lexer *p, double *f, int gcv) // EPS
             f[Ip3JK] = f[IJK];
         }
 
-        if(p->flag4[Ip1JK]<0 && outflow==2)
+        // outflow 1 (active wave absorption, B 99 >= 3): zero gradient as the eddy viscosity (start24V); the ghost
+        // cells were never written and stayed 0
+        if(p->flag4[Ip1JK]<0 && outflow>=1)
         {
             f[Ip1JK] = f[IJK];
             f[Ip2JK] = f[IJK];
