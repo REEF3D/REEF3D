@@ -155,13 +155,10 @@ void komega_func_PLIC::eddyvisc(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans)
         if(i>=p->knox || p->flag4[IJK]<0)   // stay inside the local subdomain and the fluid
         continue;
 
+		// no eddy viscosity in the air next to the boundary; the water keeps the value from above (it was
+        // set back to the T 34 1 value here, without the URANS factor T 10 22 and the stabilization T 41)
 		if(a->phi(i,j,k)<0.0)
 		a->eddyv(i,j,k)=MIN(a->eddyv(i,j,k),1.0e-4);
-        
-        if(a->phi(i,j,k)>=0.0)
-		a->eddyv(i,j,k) = MAX(MIN(MAX(kin(i,j,k)
-						  /((eps(i,j,k))>(1.0e-20)?(eps(i,j,k)):(1.0e20)),0.0),fabs(p->T31*kin(i,j,k))/(strainterm(p,a)+1.0e-20)),
-						  0.0001*a->visc(i,j,k));
 		}
     }
     

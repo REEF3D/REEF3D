@@ -73,15 +73,28 @@ void  kepsilon_func::eddyvisc(fdm* a, lexer* p, ghostcell* pgc, vrans* pvrans)
 	double H;
 	double factor,epsi;
 	
+    // T 34 0: no limiter (as komega_func; the limiter was always on in k-epsilon)
+    if(p->T34==0)
+	LOOP
+    a->eddyv(i,j,k) = MAX(p->cmu*MAX(kin(i,j,k)*kin(i,j,k)
+					  /((eps(i,j,k))>(1.0e-20)?(eps(i,j,k)):(1.0e20)),0.0),
+					  0.0001*a->visc(i,j,k));
+    
+    if(p->T34!=0)
 	LOOP
     a->eddyv(i,j,k) = MAX(MIN(p->cmu*MAX(kin(i,j,k)*kin(i,j,k)
 					  /((eps(i,j,k))>(1.0e-20)?(eps(i,j,k)):(1.0e20)),0.0),fabs(p->T31*kin(i,j,k))/(strainterm(p,a)+1.0e-20)),
 					  0.0001*a->visc(i,j,k));
 
-	
+	// URANS (T 10 21): nu_t <= C3 cmu delta sqrt(k), i.e. the factor min(1, C3 delta/L_t) of komega_func (T 10 22),
+    // with the local cell size and C3 = T 23 (it used the mean cell size DXM of the grid and C3 = 1)
 	if(p->T10==21)
 	LOOP
-	a->eddyv(i,j,k) = MIN(a->eddyv(i,j,k), p->DXM*p->cmu*pow((kin(i,j,k)>(1.0e-20)?(kin(i,j,k)):(1.0e20)),0.5));
+    {
+    const double dxm = (p->j_dir==0) ? pow(p->DXN[IP]*p->DZN[KP], (1.0/2.0)) : pow(p->DXN[IP]*p->DYN[JP]*p->DZN[KP], (1.0/3.0));
+    
+	a->eddyv(i,j,k) = MIN(a->eddyv(i,j,k), p->T23*dxm*p->cmu*pow((kin(i,j,k)>(1.0e-20)?(kin(i,j,k)):(1.0e20)),0.5));
+    }
     
     // active wave generation / absorption: no eddy viscosity in the air next to the boundary (as komega_func)
     if(p->B98==3||p->B98==4||p->B99==3||p->B99==4||p->B99==5)
