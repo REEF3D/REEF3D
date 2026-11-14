@@ -35,6 +35,9 @@ LES_filter_f1::~LES_filter_f1()
 {
 }
 
+// (1,2,1)/4 filter in x, y and z, u' = u - G u. In 2D (j_dir 0) there is no y pass: the y ghost cells are not
+// set in 2D (ghostcell::start1-4 skip the faces 2 and 3), so the y pass halved the filtered field and u' kept
+// half of the unfiltered velocity
 void LES_filter_f1::start(lexer *p, fdm *a, ghostcell *pgc, field &uprime, field &vprime, field &wprime, int gcval)
 {
 	if(gcval==10)
@@ -49,7 +52,7 @@ void LES_filter_f1::start(lexer *p, fdm *a, ghostcell *pgc, field &uprime, field
         pgc->start1(p,etta_u1,gcval);
         
         ULOOP
-        etta_u2(i,j,k) = -0.5*(p->DYP[JM1]*(etta_u1(i,j+1,k) - etta_u1(i,j,k)) - p->DYP[JP]*(etta_u1(i,j,k) - etta_u1(i,j-1,k)))/(p->DYP[JP]+p->DYP[JM1]);
+        etta_u2(i,j,k) = (p->j_dir==0) ? 0.0 : -0.5*(p->DYP[JM1]*(etta_u1(i,j+1,k) - etta_u1(i,j,k)) - p->DYP[JP]*(etta_u1(i,j,k) - etta_u1(i,j-1,k)))/(p->DYP[JP]+p->DYP[JM1]);
                 
         ULOOP
         etta_u2(i,j,k) = etta_u1(i,j,k) - etta_u2(i,j,k);
@@ -84,7 +87,7 @@ void LES_filter_f1::start(lexer *p, fdm *a, ghostcell *pgc, field &uprime, field
         pgc->start2(p,etta_v1,gcval);
         
         VLOOP
-        etta_v2(i,j,k) = -0.5*(p->DYN[JP]*(etta_v1(i,j+1,k) - etta_v1(i,j,k)) - p->DYN[JP1]*(etta_v1(i,j,k) - etta_v1(i,j-1,k)))/(p->DYN[JP]+p->DYN[JP1]);
+        etta_v2(i,j,k) = (p->j_dir==0) ? 0.0 : -0.5*(p->DYN[JP]*(etta_v1(i,j+1,k) - etta_v1(i,j,k)) - p->DYN[JP1]*(etta_v1(i,j,k) - etta_v1(i,j-1,k)))/(p->DYN[JP]+p->DYN[JP1]);
                 
         VLOOP
         etta_v2(i,j,k) = etta_v1(i,j,k) - etta_v2(i,j,k);
@@ -119,7 +122,7 @@ void LES_filter_f1::start(lexer *p, fdm *a, ghostcell *pgc, field &uprime, field
         pgc->start3(p,etta_w1,gcval);
         
         WLOOP
-        etta_w2(i,j,k) = -0.5*(p->DYP[JM1]*(etta_w1(i,j+1,k) - etta_w1(i,j,k)) - p->DYP[JP]*(etta_w1(i,j,k) - etta_w1(i,j-1,k)))/(p->DYP[JP]+p->DYP[JM1]);
+        etta_w2(i,j,k) = (p->j_dir==0) ? 0.0 : -0.5*(p->DYP[JM1]*(etta_w1(i,j+1,k) - etta_w1(i,j,k)) - p->DYP[JP]*(etta_w1(i,j,k) - etta_w1(i,j-1,k)))/(p->DYP[JP]+p->DYP[JM1]);
                 
         WLOOP
         etta_w2(i,j,k) = etta_w1(i,j,k) - etta_w2(i,j,k);

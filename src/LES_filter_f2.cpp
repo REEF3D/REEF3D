@@ -95,7 +95,7 @@ void LES_filter_f2::start(lexer *p, fdm *a, ghostcell *pgc, field &uprime, field
 	}
 }
 
-// the stencils are those of LES_filter_f1 (x, then y, then z), applied to the field f
+// the stencils are those of LES_filter_f1 (x, then y, then z; no y pass in 2D), applied to the field f
 void LES_filter_f2::filter_u(lexer *p, ghostcell *pgc, field &f, field &out, int gcval)
 {
     ULOOP
@@ -104,7 +104,7 @@ void LES_filter_f2::filter_u(lexer *p, ghostcell *pgc, field &f, field &out, int
     pgc->start1(p,ut1,gcval);
     
     ULOOP
-    ut2(i,j,k) = ut1(i,j,k) + 0.5*(p->DYP[JM1]*(ut1(i,j+1,k) - ut1(i,j,k)) - p->DYP[JP]*(ut1(i,j,k) - ut1(i,j-1,k)))/(p->DYP[JP]+p->DYP[JM1]);
+    ut2(i,j,k) = ut1(i,j,k) + ((p->j_dir==0) ? 0.0 : 0.5*(p->DYP[JM1]*(ut1(i,j+1,k) - ut1(i,j,k)) - p->DYP[JP]*(ut1(i,j,k) - ut1(i,j-1,k)))/(p->DYP[JP]+p->DYP[JM1]));
     
     pgc->start1(p,ut2,gcval);
     
@@ -122,7 +122,7 @@ void LES_filter_f2::filter_v(lexer *p, ghostcell *pgc, field &f, field &out, int
     pgc->start2(p,vt1,gcval);
     
     VLOOP
-    vt2(i,j,k) = vt1(i,j,k) + 0.5*(p->DYN[JP]*(vt1(i,j+1,k) - vt1(i,j,k)) - p->DYN[JP1]*(vt1(i,j,k) - vt1(i,j-1,k)))/(p->DYN[JP]+p->DYN[JP1]);
+    vt2(i,j,k) = vt1(i,j,k) + ((p->j_dir==0) ? 0.0 : 0.5*(p->DYN[JP]*(vt1(i,j+1,k) - vt1(i,j,k)) - p->DYN[JP1]*(vt1(i,j,k) - vt1(i,j-1,k)))/(p->DYN[JP]+p->DYN[JP1]));
     
     pgc->start2(p,vt2,gcval);
     
@@ -140,7 +140,7 @@ void LES_filter_f2::filter_w(lexer *p, ghostcell *pgc, field &f, field &out, int
     pgc->start3(p,wt1,gcval);
     
     WLOOP
-    wt2(i,j,k) = wt1(i,j,k) + 0.5*(p->DYP[JM1]*(wt1(i,j+1,k) - wt1(i,j,k)) - p->DYP[JP]*(wt1(i,j,k) - wt1(i,j-1,k)))/(p->DYP[JP]+p->DYP[JM1]);
+    wt2(i,j,k) = wt1(i,j,k) + ((p->j_dir==0) ? 0.0 : 0.5*(p->DYP[JM1]*(wt1(i,j+1,k) - wt1(i,j,k)) - p->DYP[JP]*(wt1(i,j,k) - wt1(i,j-1,k)))/(p->DYP[JP]+p->DYP[JM1]));
     
     pgc->start3(p,wt2,gcval);
     
