@@ -112,6 +112,7 @@
       <File Name="reef3d_mpmd.h"/>
       <File Name="reefcouple.h"/>
       <File Name="gcsl_yskip.h"/>
+      <File Name="gcsl_side.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="Hydrodynamics">
       <VirtualDirectory Name="SEASTATE">
@@ -574,6 +575,7 @@
         </VirtualDirectory>
         <VirtualDirectory Name="Forcing">
           <File Name="nhflow_forcing.h"/>
+          <File Name="nhflow_bodyflux.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Turbulence">
           <VirtualDirectory Name="Kepsilon">
@@ -743,6 +745,7 @@
         </VirtualDirectory>
         <VirtualDirectory Name="Breaking">
           <File Name="fnpf_breaking.h"/>
+          <File Name="fnpf_wave_period.h"/>
           <File Name="breaking_crest3d.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Update">
@@ -2321,6 +2324,7 @@
             <File Name="nhflow_vtp_bed.cpp"/>
             <File Name="nhflow_scour.cpp"/>
             <File Name="ks_map.cpp"/>
+            <File Name="ks_map.h"/>
           </VirtualDirectory>
           <VirtualDirectory Name="VTP FSF">
             <File Name="nhflow_vtp_fsf_pvtp.cpp"/>
@@ -3138,6 +3142,7 @@
             <File Name="6DOF_obj_forcing_2D.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Forces NHFLOW">
+            <File Name="6DOF_obj_nhflow_addedmass.cpp"/>
             <File Name="6DOF_obj_nhflow_amr.cpp"/>
             <File Name="6DOF_obj_nhflow_keel.cpp"/>
             <File Name="6DOF_obj_forcing_nhflow_porous.cpp"/>
