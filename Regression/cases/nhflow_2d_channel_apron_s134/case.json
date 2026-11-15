@@ -1,0 +1,23 @@
+{
+ "base": "nhflow_2d_channel_suspended",
+ "ctrl_set": {
+  "S 11": "3",
+  "S 134": "1"
+ },
+ "control_add": [
+  "S 10 4.0 5.0 0.0 1.0 -0.1 0.01"
+ ],
+ "np": 1,
+ "steps": 1500,
+ "description": "nhflow_2d_channel_suspended with bed load (S 11 3) and a rigid apron: a DIVEMesh solid box 1 cm high (x 4-5 m), lower than the bottom cell, with S 134 1 (the solids are not erodible, sediment_f::active_solid_nhflow). The apron keeps its top at 0.0100 m (sediment deposits on it), the sand downstream of it is scoured to -3.5 mm in 1500 steps. With S 134 0 the apron was eroded as sand, to 0.0071-0.0097 m.",
+ "tags": [
+  "2d",
+  "nhflow",
+  "sediment",
+  "suspended"
+ ],
+ "covers": [
+  "sediment_f::active_solid_nhflow, no_pickup (S 134 1)",
+  "SLIDE_DONOR with S 134 1"
+ ]
+}

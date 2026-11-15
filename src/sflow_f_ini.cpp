@@ -124,6 +124,30 @@ void sflow_f::ini(lexer *p, fdm2D* b, ghostcell* pgc)
     pgc->gcsl_start4(p,b->bed,50);
     }
     
+    // sediment transport (S 10): the bed of the flow is the bed of the sediment, max(erodible bed, solids)
+    // (sediment_f::ini_sflow, update_sflow). It is set here, before the water depth, the wet cells and the
+    // inflow are initialised with it, and the erodible bed takes the sweeps A 209 of the flow bed. Before,
+    // the sediment replaced the smoothed bed by the unsmoothed one after the water depth was set: the still
+    // water surface started with the difference of the two beds.
+    if(p->S10>0)
+    {
+        for(int qn=0; qn<p->A209;++qn)
+        {
+        SLICELOOP4
+        {
+        const int js = (p->j_dir==1) ? j-1 : j, jn = (p->j_dir==1) ? j+1 : j;
+        b->topobed(i,j) = 0.5*b->topobed(i,j) + 0.125*(b->topobed(i-1,j) + b->topobed(i+1,j) + b->topobed(i,js) + b->topobed(i,jn));
+        }
+        
+        pgc->gcsl_start4(p,b->topobed,50);
+        }
+        
+        SLICELOOP4
+        b->bed(i,j) = b->bed0(i,j) = MAX(b->topobed(i,j),b->solidbed(i,j));
+        
+        pgc->gcsl_start4(p,b->bed,50);
+    }
+    
 
     // FSF ini
     ini_fsf(p,b,pgc);
