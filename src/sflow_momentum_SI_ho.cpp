@@ -103,6 +103,13 @@ void sflow_momentum_SI::ho_begin(lexer *p, fdm2D *b, ghostcell *pgc)
     const double kh = PI*h/dxm;
     const double D = nh ? (1.0 + Bdisp*kh*kh)/(1.0 + (Bdisp + 1.0/3.0)*kh*kh) : 1.0;
     f = sqrt(g*h*D)*p->dt <= dxm;
+
+    // A 220 3 on a grid with more than one cell in y: second order above a Courant number of 0.7 of the long wave.
+    // Waves along a channel with walls (h 10 m, dx 2 m, T 6 s): steady at sqrt(g h) dt/dx 0.69; at 0.79 A 210 12
+    // stops after 28 s; at the automatic step (0.89) A 210 11 stops after 24 s and A 210 12 after 38 s; with A 220 2
+    // steady at 0.89
+    if(f && nh && Bdisp>0.0 && p->j_dir==1)
+    f = sqrt(g*h)*p->dt <= 0.7*dxm;
     }
 
     if(p->j_dir==1)
