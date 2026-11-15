@@ -1,0 +1,16 @@
+{
+ "description": "NHFLOW explicit (A 510 2, A 520 2, A 509 0): two basins 4 m deep joined by a gap one cell wide (4 m) in a wall of dry land (T 10, 2 m above the water), the water of the west basin 0.5 m higher. The cells of the gap have dry cells on both sides in y and stay wet, the water runs through (gauges in the gap at x = 58 and 62 m and behind it). 'avoid isolated wetdry' of nhflow_fsf_f::wetdry dried such cells before: no water passed.",
+ "solver": "nhflow",
+ "np": 1,
+ "steps": 150,
+ "tags": [
+  "quick",
+  "3d",
+  "nhflow",
+  "wetdry"
+ ],
+ "covers": [
+  "nhflow_fsf_f::wetdry: a wet cell is dried when it is closed in x and in y"
+ ],
+ "architect": "Hans Bihs"
+}

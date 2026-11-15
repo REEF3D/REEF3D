@@ -1,0 +1,25 @@
+{
+ "base": "nhflow_3d_wetdry_island",
+ "ctrl_set": {
+  "A 510": "11"
+ },
+ "ctrl_add": [
+  "A 535 0.5",
+  "A 536 0.6",
+  "A 537 1"
+ ],
+ "steps": 60,
+ "description": "nhflow_3d_wetdry_island with the semi-implicit step (A 510 11, A 520 2, theta 0.5, dt 0.6 s, A 537 1): the gauge pairs (x,y), (y,x) read the same (3 cells in y in the band of the deep flags gave 4.6e-2 m at 2 m cells).",
+ "tags": [
+  "quick",
+  "3d",
+  "nhflow",
+  "wetdry",
+  "nonhydrostatic",
+  "semi_implicit"
+ ],
+ "covers": [
+  "nhflow_momentum_SI with the deep flags of nhflow_fsf_f::wetdry, symmetric in x and y"
+ ],
+ "architect": "Hans Bihs"
+}
