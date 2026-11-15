@@ -29,17 +29,18 @@ Author: Hans Bihs
 bicgstab_ijk_2D::bicgstab_ijk_2D(lexer* p, fdm *a, ghostcell *pgc):epsi(1e-19)
 {
 
-    p->Darray(sj,p->imax*p->jmax*p->kmax);
-    p->Darray(rj,p->imax*p->jmax*p->kmax);
-    p->Darray(r0,p->imax*p->jmax*p->kmax);
-    p->Darray(vj,p->imax*p->jmax*p->kmax);
-    p->Darray(tj,p->imax*p->jmax*p->kmax);
-    p->Darray(pj,p->imax*p->jmax*p->kmax); 
-    p->Darray(ph,p->imax*p->jmax*p->kmax);
-    p->Darray(sh,p->imax*p->jmax*p->kmax);
-    p->Darray(aii,p->imax*p->jmax*p->kmax);
-    p->Darray(x,p->imax*p->jmax*p->kmax);
-    p->Darray(rhs,p->imax*p->jmax*p->kmax);
+    // calloc (Darray_lazy: no memory while a run does not call the solver), as bicgstab_ijk
+    p->Darray_lazy(sj,p->imax*p->jmax*p->kmax);
+    p->Darray_lazy(rj,p->imax*p->jmax*p->kmax);
+    p->Darray_lazy(r0,p->imax*p->jmax*p->kmax);
+    p->Darray_lazy(vj,p->imax*p->jmax*p->kmax);
+    p->Darray_lazy(tj,p->imax*p->jmax*p->kmax);
+    p->Darray_lazy(pj,p->imax*p->jmax*p->kmax); 
+    p->Darray_lazy(ph,p->imax*p->jmax*p->kmax);
+    p->Darray_lazy(sh,p->imax*p->jmax*p->kmax);
+    p->Darray_lazy(aii,p->imax*p->jmax*p->kmax);
+    p->Darray_lazy(x,p->imax*p->jmax*p->kmax);
+    p->Darray_lazy(rhs,p->imax*p->jmax*p->kmax);
 
     // checkpoints (P 48, I 45): the ghost cells of the work arrays carry over from one solve to the next
     for(double *w : {sj,rj,r0,vj,tj,pj,ph,sh,aii,x,rhs})
@@ -53,8 +54,8 @@ bicgstab_ijk_2D::~bicgstab_ijk_2D()
     // for the whole run), as bicgstab_ijk
     for(auto id : ckids)
     ckpt_registry::remove(id);
-    delete [] sj; delete [] rj; delete [] r0; delete [] vj; delete [] tj; delete [] pj;
-    delete [] ph; delete [] sh; delete [] aii; delete [] x; delete [] rhs;
+    free(sj); free(rj); free(r0); free(vj); free(tj); free(pj);
+    free(ph); free(sh); free(aii); free(x); free(rhs);
 }
 
 void bicgstab_ijk_2D::start(lexer* p,fdm* a, ghostcell* pgc, field &f, vec& rhsvec, int var)

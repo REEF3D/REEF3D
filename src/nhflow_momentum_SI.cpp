@@ -759,8 +759,8 @@ void nhflow_momentum_SI::si_begin(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_s
     // tracers: the initial values before the first step
     if(ptrc!=nullptr)
     ptrc->ensure_ini(p,d);
-    pfsf->kinematic_fsf(p,d,d->U,d->V,d->W,d->eta);
-    pfsf->kinematic_bed(p,d,d->U,d->V,d->W);
+    // (no kinematic_fsf / kinematic_bed: they set the vertical face states Wb, Wt of the HLL fluxes of the explicit
+    // step, which the semi-implicit step does not read)
 
     // 1. face depths
     face_depth(p,d,pgc);

@@ -190,6 +190,10 @@ void nhflow_momentum_func::velcalc(lexer *p, fdm_nhf *d, ghostcell *pgc, double 
 
 void nhflow_momentum_func::irhs(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
+    // no external sources (nhflow_memory.h: nhflow_ext_fields)
+    if(d->Fext==nullptr)
+    return;
+
 	LOOP
 	{
 	d->F[IJK] = (d->F[IJK] + d->Fext[IJK]);
@@ -199,6 +203,9 @@ void nhflow_momentum_func::irhs(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
 void nhflow_momentum_func::jrhs(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
+    if(d->Gext==nullptr)
+    return;
+
     LOOP
 	{
 	d->G[IJK] = (d->G[IJK] + d->Gext[IJK]);
@@ -208,6 +215,9 @@ void nhflow_momentum_func::jrhs(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
 void nhflow_momentum_func::krhs(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
+    if(d->Hext==nullptr)
+    return;
+
     LOOP
 	{
 	d->H[IJK] = (d->H[IJK] + d->Hext[IJK]);

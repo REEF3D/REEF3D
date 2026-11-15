@@ -29,7 +29,8 @@ Author: Hans Bihs
 nhflow_reconstruct_weno::nhflow_reconstruct_weno(lexer* p, patchBC_interface *ppBC) : weno_nug_func(p), dfdx(p), dfdy(p)
 {
     pBC = ppBC;
-    p->Darray(DFDX,p->imax*p->jmax*(p->kmax+2));
+    // calloc (Darray_lazy): no memory while a run does not reconstruct with WENO (the semi-implicit step)
+    p->Darray_lazy(DFDX,p->imax*p->jmax*(p->kmax+2));
     
     uf=vf=wf=0;
     
@@ -39,7 +40,7 @@ nhflow_reconstruct_weno::nhflow_reconstruct_weno(lexer* p, patchBC_interface *pp
 
 nhflow_reconstruct_weno::~nhflow_reconstruct_weno()
 {
-    delete [] DFDX;
+    free(DFDX);
 }
 
 void nhflow_reconstruct_weno::reconstruct_2D_x(lexer* p, ghostcell *pgc, fdm_nhf*, slice& f, slice &fs, slice &fn)

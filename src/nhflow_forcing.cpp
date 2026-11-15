@@ -35,9 +35,10 @@ Author: Hans Bihs
 nhflow_forcing::nhflow_forcing(lexer *p, fdm_nhf *d, ghostcell *pgc) : nhflow_geometry(p,d,pgc), fe(p)
 {
     
-    p->Darray(FX,p->imax*p->jmax*(p->kmax+2));
-    p->Darray(FY,p->imax*p->jmax*(p->kmax+2));
-    p->Darray(FZ,p->imax*p->jmax*(p->kmax+2));
+    // calloc (Darray_lazy): no memory while a run has no forcing
+    p->Darray_lazy(FX,p->imax*p->jmax*(p->kmax+2));
+    p->Darray_lazy(FY,p->imax*p->jmax*(p->kmax+2));
+    p->Darray_lazy(FZ,p->imax*p->jmax*(p->kmax+2));
     
     if(dlm_flag==1)
     dlm_forcing_ini(p,pgc);
@@ -81,9 +82,9 @@ nhflow_forcing::~nhflow_forcing()
 {
     delete prodtree;
     delete pfem;
-    delete [] FX;
-    delete [] FY;
-    delete [] FZ;
+    free(FX);
+    free(FY);
+    free(FZ);
 }
 
 void nhflow_forcing::forcing(lexer *p, fdm_nhf *d, ghostcell *pgc, sixdof *p6dof, 
