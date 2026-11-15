@@ -241,6 +241,31 @@ void seastate_swan_spc::to_grid(const seastate_grid &g, std::vector<float> &N) c
     if(nf==0 || nd==0)
     return;
 
+    // spectra on a direction sector (SWAN CGRID SECTOR, the nesting output of a run with A 717): the directions of the
+    // file leave one gap, wider than 1.5 times every other spacing. No interpolation across it: the directions of the
+    // gap within half a bin of an end of the sector take the value of that end, the others hold no energy (the periodic
+    // bracket spread the energy at the ends of the sector over all the directions of the gap)
+    int gap = -1;               // the gap lies between direction gap and the next one (periodic), -1: none
+    double gap_lo = 0.0, gap_hi = 0.0;      // half the spacing below the lower end and above the upper end of the gap
+    if(nd>=3)
+    {
+    auto spacing = [&](size_t m) {return (m+1<nd) ? dir[m+1]-dir[m] : dir[0]+360.0-dir[nd-1];};
+    size_t mg = 0;
+    for(size_t m=1; m<nd; ++m)
+    if(spacing(m)>spacing(mg))
+    mg = m;
+    double second = 0.0;
+    for(size_t m=0; m<nd; ++m)
+    if(m!=mg)
+    second = std::max(second,spacing(m));
+        if(spacing(mg)>1.5*second)
+        {
+        gap = int(mg);
+        gap_lo = 0.5*spacing((mg+nd-1)%nd);
+        gap_hi = 0.5*spacing((mg+1)%nd);
+        }
+    }
+
     for(int l=0; l<g.nsig; ++l)
     {
     const double fl = g.f[l];
@@ -248,9 +273,11 @@ void seastate_swan_spc::to_grid(const seastate_grid &g, std::vector<float> &N) c
         if(fl<f.front() || fl>f.back())
         continue;
 
+    // (one frequency in the file: that frequency alone, no bracket)
     size_t a = std::upper_bound(f.begin(),f.end(),fl) - f.begin();
-    a = std::min(std::max(a,size_t(1)),nf-1);
-    const double wf = (nf>1) ? (fl-f[a-1])/(f[a]-f[a-1]) : 0.0;
+    a = (nf>1) ? std::min(std::max(a,size_t(1)),nf-1) : size_t(0);
+    const size_t a0 = (nf>1) ? a-1 : size_t(0);
+    const double wf = (nf>1) ? (fl-f[a0])/(f[a]-f[a0]) : 0.0;
 
         for(int m=0; m<g.ndir; ++m)
         {
@@ -268,8 +295,16 @@ void seastate_swan_spc::to_grid(const seastate_grid &g, std::vector<float> &N) c
         if(d2<th) d2 += 360.0;
         const double wd = (d2>d1) ? (th-d1)/(d2-d1) : 0.0;
 
-        const double e1 = (1.0-wd)*E[(a-1)*nd+m1] + wd*E[(a-1)*nd+m2];
-        const double e2 = (1.0-wd)*E[a*nd+m1]     + wd*E[a*nd+m2];
+        // weights of the two directions; in the gap of a sector the nearer end within half a bin, else none
+        double w1 = 1.0-wd, w2 = wd;
+        if(gap>=0 && int(m1)==gap)
+        {
+        w1 = (th-d1<=gap_lo) ? 1.0 : 0.0;
+        w2 = (w1==0.0 && d2-th<=gap_hi) ? 1.0 : 0.0;
+        }
+
+        const double e1 = w1*E[a0*nd+m1] + w2*E[a0*nd+m2];
+        const double e2 = w1*E[a*nd+m1]  + w2*E[a*nd+m2];
         const double Ef = (1.0-wf)*e1 + wf*e2;          // m2/Hz/degr
 
         N[g.bin(l,m)] = float(Ef*180.0/pi/(2.0*pi)/g.sig[l]);
