@@ -49,8 +49,9 @@ nhflow_pjm_corr::nhflow_pjm_corr(lexer* p, fdm_nhf *d, ghostcell *pgc, patchBC_i
 
     ppois = new nhflow_poisson_pcorr(p);
     
-    p->Darray(PCORR,p->imax*p->jmax*(p->kmax+2));
-    p->Darray(PB,p->imax*p->jmax*(p->kmax+2));
+    // calloc (Darray_lazy): no memory while the projection is not used (the semi-implicit step)
+    p->Darray_lazy(PCORR,p->imax*p->jmax*(p->kmax+2));
+    p->Darray_lazy(PB,p->imax*p->jmax*(p->kmax+2));
     
     gcval_press=540;
     
@@ -61,8 +62,8 @@ nhflow_pjm_corr::~nhflow_pjm_corr()
 {
     delete pd;
     delete ppois;
-    delete [] PCORR;
-    delete [] PB;
+    free(PCORR);
+    free(PB);
 }
 
 void nhflow_pjm_corr::start(lexer *p, fdm_nhf *d, solver* psolv, ghostcell* pgc, ioflow *pflow, slice &WL,

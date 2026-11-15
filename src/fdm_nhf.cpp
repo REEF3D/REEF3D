@@ -72,9 +72,14 @@ fdm_nhf::fdm_nhf(lexer *p) :  eta(p),etaloc(p),
     p->Darray_lazy(H,p->imax*p->jmax*(p->kmax+2));
     p->Darray_lazy(L,p->imax*p->jmax*(p->kmax+2));
     
+    if(nhflow_ext_fields(p))
+    {
     p->Darray_lazy(Fext,p->imax*p->jmax*(p->kmax+2));
     p->Darray_lazy(Gext,p->imax*p->jmax*(p->kmax+2));
     p->Darray_lazy(Hext,p->imax*p->jmax*(p->kmax+2));
+    }
+    else
+    Fext = Gext = Hext = nullptr;
     
     p->Darray_lazy(POR,p->imax*p->jmax*(p->kmax+2));
     // the fields of some options only (nhflow_memory.h), nullptr otherwise

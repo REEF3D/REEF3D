@@ -456,7 +456,7 @@ void nhflow_momentum_SI::nh_residual(lexer *p, fdm_nhf *d, ghostcell *pgc, const
     }
 
     exchange4(p,pgc,etaI);
-    exchangeC(p,pgc,PEXT(PHI));
+    pexchC(p,pgc,PHI);
 
     // x = 0: phi = 0, the phi faces zero (nh_faces gives 0 on every face, and so the exchange)
     if(zero)
@@ -468,8 +468,8 @@ void nhflow_momentum_SI::nh_residual(lexer *p, fdm_nhf *d, ghostcell *pgc, const
     else
     {
     nh_faces(p,d);
-    exchangeF(p,pgc,PEXT(NQx));
-    exchangeF(p,pgc,PEXT(NQy));
+    pexchF(p,pgc,NQx);
+    pexchF(p,pgc,NQy);
     }
 
     if(ho)
@@ -1767,8 +1767,8 @@ void nhflow_momentum_SI::ho_phi_corr(lexer *p, fdm_nhf *d, ghostcell *pgc)
         NQ[PIJK] = 0.0;
     }
 
-    exchangeF(p,pgc,PEXT(NQcx));
-    exchangeF(p,pgc,PEXT(NQcy));
+    pexchF(p,pgc,NQcx);
+    pexchF(p,pgc,NQcy);
 }
 
 // the phi face terms of the step with their explicit part (nh_residual, after nh_faces and its exchange)
