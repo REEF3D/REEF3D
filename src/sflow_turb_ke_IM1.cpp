@@ -30,7 +30,7 @@ Author: Hans Bihs
 
 #define HP (fabs(b->hp(i,j))>(p->A244)?b->hp(i,j):1.0e20)
 
-sflow_turb_ke_IM1::sflow_turb_ke_IM1(lexer* p) : sflow_turb_io(p), kn(p), en(p), Pk(p), S(p), ustar(p), cf(p),
+sflow_turb_ke_IM1::sflow_turb_ke_IM1(lexer* p) : sflow_turb_io(p), kn(p), en(p), Pk(p), S(p), ustar(p), cf(p), rk(p),
                                                  wallf(p),ce1(1.44),ce2(1.92),sigk(1.0),sige(1.3),ceg(p->A264)
 {
     gcval_kin=20;
@@ -52,36 +52,47 @@ void sflow_turb_ke_IM1::start(lexer *p, fdm2D *b, ghostcell *pgc, sflow_convecti
 {
     Pk_update(p,b,pgc);
     ustar_update(p,b,pgc);
+    fresh_cells(p,b);
 
-//kin
-    starttime=pgc->timer();
-	clearrhs(p,b);
-    pconvec->start(p,b,kin,4,b->P,b->Q);
-    pdiff->diff_scalar(p,b,pgc,psolv,kin,sigk,1.0);
-	kin_source(p,b);
-	timesource(p,b,kn);
-    wall_bc(p,b,kin);
-    psolv->start(p,pgc,kin,b->M,b->xvec,b->rhsvec,4);
-    pgc->gcsl_start4(p,kin,gcval_kin);
-	p->kintime=pgc->timer()-starttime;
-	p->kiniter=p->solveriter;
-	if(p->mpirank==0 && (p->count%p->P12==0))
-	cout<<"kin_iter: "<<p->kiniter<<"  kin_time: "<<setprecision(3)<<p->kintime<<endl;
+    // Two passes per step over the lagged coefficients eps/k of the sinks. Both equations of a pass use the same
+    // eps/k (turbulence_rate): where the sources dominate (dt eps/k >> 1, the time steps of the semi-implicit
+    // momentum) k = P_k k_old/eps_old and eps = P_eps k_old/(ce2 eps_old) reach the equilibrium in two passes
+    // from any state, while the eps equation with the k of the same pass (Gauss-Seidel) diverges there, each
+    // pass 1.6 times further from the equilibrium than the last.
+    for(int pass=0; pass<2; ++pass)
+    {
+    turbulence_rate(p);
 
-//eps
-    starttime=pgc->timer();
-	clearrhs(p,b);
-    pconvec->start(p,b,eps,4,b->P,b->Q);
-    pdiff->diff_scalar(p,b,pgc,psolv,eps,sige,1.0);
-	eps_source(p,b);
-	timesource(p,b,en);
-    wall_bc(p,b,eps);
-	psolv->start(p,pgc,eps,b->M,b->xvec,b->rhsvec,4);
-    pgc->gcsl_start4(p,eps,gcval_eps);
-	p->epstime=pgc->timer()-starttime;
-	p->epsiter=p->solveriter;
-	if(p->mpirank==0 && (p->count%p->P12==0))
-	cout<<"eps_iter: "<<p->epsiter<<"  eps_time: "<<setprecision(3)<<p->epstime<<endl;
+    //kin
+        starttime=pgc->timer();
+    	clearrhs(p,b);
+        pconvec->start(p,b,kin,4,b->P,b->Q);
+        pdiff->diff_scalar(p,b,pgc,psolv,kin,sigk,1.0);
+    	kin_source(p,b);
+    	timesource(p,b,kn);
+        wall_bc(p,b,kin);
+        psolv->start(p,pgc,kin,b->M,b->xvec,b->rhsvec,4);
+        pgc->gcsl_start4(p,kin,gcval_kin);
+    	p->kintime=pgc->timer()-starttime;
+    	p->kiniter=p->solveriter;
+    	if(p->mpirank==0 && pass==1 && (p->count%p->P12==0))
+    	cout<<"kin_iter: "<<p->kiniter<<"  kin_time: "<<setprecision(3)<<p->kintime<<endl;
+
+    //eps
+        starttime=pgc->timer();
+    	clearrhs(p,b);
+        pconvec->start(p,b,eps,4,b->P,b->Q);
+        pdiff->diff_scalar(p,b,pgc,psolv,eps,sige,1.0);
+    	eps_source(p,b);
+    	timesource(p,b,en);
+        wall_bc(p,b,eps);
+    	psolv->start(p,pgc,eps,b->M,b->xvec,b->rhsvec,4);
+        pgc->gcsl_start4(p,eps,gcval_eps);
+    	p->epstime=pgc->timer()-starttime;
+    	p->epsiter=p->solveriter;
+    	if(p->mpirank==0 && pass==1 && (p->count%p->P12==0))
+    	cout<<"eps_iter: "<<p->epsiter<<"  eps_time: "<<setprecision(3)<<p->epstime<<endl;
+    }
 
 	eddyvisc(p,b,pgc);
 
@@ -122,13 +133,20 @@ void sflow_turb_ke_IM1::eddyvisc(lexer* p, fdm2D *b, ghostcell *pgc)
 	pgc->gcsl_start4(p,b->eddyv,24);
 }
 
+// eps/k of the sinks and of the production of epsilon, for both equations of a pass
+void sflow_turb_ke_IM1::turbulence_rate(lexer* p)
+{
+    SLICELOOP4
+    rk(i,j) = MAX(eps(i,j),0.0)/(kin(i,j)>(1.0e-10)?(fabs(kin(i,j))):(1.0e20));
+}
+
 void sflow_turb_ke_IM1::kin_source(lexer* p, fdm2D *b)
 {
     count=0;
     SLICELOOP4
     {
     // dissipation implicit as (eps/k)*k, keeps k positive (as in kepsilon_func::kinsource)
-    b->M.p[count] += MAX(eps(i,j),0.0)/(kin(i,j)>(1.0e-10)?(fabs(kin(i,j))):(1.0e20));
+    b->M.p[count] += rk(i,j);
     
 	b->rhsvec.V[count]  += Pk(i,j)
 
@@ -142,9 +160,9 @@ void sflow_turb_ke_IM1::eps_source(lexer* p, fdm2D *b)
     count=0;
     SLICELOOP4
     {
-    b->M.p[count] += ce2 * MAX(eps(i,j),0.0)/(kin(i,j)>(1.0e-10)?(fabs(kin(i,j))):(1.0e20)) ;
+    b->M.p[count] += ce2 * rk(i,j);
 
-    b->rhsvec.V[count] += ce1 * MAX(eps(i,j),0.0)/(kin(i,j)>(1.0e-10)?(fabs(kin(i,j))):(1.0e20))*Pk(i,j)
+    b->rhsvec.V[count] += ce1 * rk(i,j)*Pk(i,j)
 
                        + (ceg*ce2/pow((fabs(cf(i,j))>1.0e-20?cf(i,j):1.0e20),0.75))*pow(p->cmu,0.5)*pow(ustar(i,j),4.0)/(HP*HP);
     ++count;
@@ -224,6 +242,20 @@ void sflow_turb_ke_IM1::ustar_update(lexer* p, fdm2D *b, ghostcell *pgc)
     WETDRY
     if(p->wet[Im1J]<0 || p->wet[Ip1J]<0 || p->wet[IJm1]<0 || p->wet[IJp1]<0)
     wallf(i,j)=1;
+}
+
+// Cells without turbulence from the last step (fallen wet, or the start of the run) take the local equilibrium of
+// the bed sources (Rastogi and Rodi): eps = P_kv, k = u*^2/(ceg sqrt(cmu) cf^(1/4)). From k = eps = 0 the sinks
+// eps/k are zero in the first step and k = dt P_kv, far above the equilibrium for the time steps of the
+// semi-implicit momentum (the cell at a wetting front).
+void sflow_turb_ke_IM1::fresh_cells(lexer* p, fdm2D *b)
+{
+    SLICELOOP4
+    if(p->wet[IJ]==1 && kn(i,j)<=0.0 && en(i,j)<=0.0 && ustar(i,j)>0.0 && cf(i,j)>1.0e-20)
+    {
+    kin(i,j) = kn(i,j) = pow(ustar(i,j),2.0)/(ceg*sqrt(p->cmu)*pow(cf(i,j),0.25));
+    eps(i,j) = en(i,j) = pow(ustar(i,j),3.0)/(HP*sqrt(cf(i,j)));
+    }
 }
 
 void sflow_turb_ke_IM1::clearrhs(lexer* p, fdm2D *b)

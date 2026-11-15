@@ -55,12 +55,14 @@ public:
 private:
     void Pk_update(lexer*, fdm2D*, ghostcell*);
     void ustar_update(lexer*, fdm2D*, ghostcell*);
+    void fresh_cells(lexer*, fdm2D*);
+    void turbulence_rate(lexer*);
 	void kin_source(lexer*, fdm2D*);
 	void eps_source(lexer*, fdm2D*);
     void eddyvisc(lexer*, fdm2D*, ghostcell*);
     void clearrhs(lexer*, fdm2D*);
 
-    slice4 kn, en, Pk, S, ustar, cf;
+    slice4 kn, en, Pk, S, ustar, cf, rk;
     sliceint4 wallf;
     double const ce1,ce2,sigk,sige,ceg;
     

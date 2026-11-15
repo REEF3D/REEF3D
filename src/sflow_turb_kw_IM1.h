@@ -54,6 +54,7 @@ public:
 private:
     void Pk_update(lexer*, fdm2D*, ghostcell*);
     void ustar_update(lexer*, fdm2D*, ghostcell*);
+    void fresh_cells(lexer*, fdm2D*);
 	void kin_source(lexer*, fdm2D*);
 	void omega_source(lexer*, fdm2D*);
     void eddyvisc(lexer*, fdm2D*, ghostcell*);
