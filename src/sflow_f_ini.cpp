@@ -106,11 +106,19 @@ void sflow_f::ini(lexer *p, fdm2D* b, ghostcell* pgc)
     
 	for(int qn=0; qn<p->A209;++qn)
     {
+    // the sweep from the old values (a copy with the ghost cells): in place the bed depended on the direction of the
+    // loops and on the ranks (1 against 2 ranks: eta differed by 1e-4 m after 30 s in a basin with beach and island)
+    slice4 bs(p);
+
+    for(int ii=p->imin; ii<p->imin+p->imax; ++ii)
+    for(int jj=p->jmin; jj<p->jmin+p->jmax; ++jj)
+    bs(ii,jj) = b->bed(ii,jj);
+
 	SLICELOOP4
     {
     // (one cell in y: the y neighbours are the cell itself, the value of its Neumann ghost cells)
     const int js = (p->j_dir==1) ? j-1 : j, jn = (p->j_dir==1) ? j+1 : j;
-	b->bed(i,j) = b->bed0(i,j) = 0.5*b->bed(i,j) + 0.125*(b->bed(i-1,j) +b->bed(i+1,j) +b->bed(i,js) +b->bed(i,jn) );
+	b->bed(i,j) = b->bed0(i,j) = 0.5*bs(i,j) + 0.125*(bs(i-1,j) + bs(i+1,j) + bs(i,js) + bs(i,jn));
     }
     
     pgc->gcsl_start4(p,b->bed,50);
