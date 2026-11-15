@@ -301,6 +301,7 @@ private:
     void deposit_sum(lexer*, ghostcell*, field&);
     void edge_fold(lexer*, ghostcell*, field&);
     int xsplit=0, ysplit=0;
+    int zsplit_grid=0;   // vertical decomposition of this run (zsplit is in the checkpoints)
     std::vector<double> ef_send[6], ef_recv[6];
 public:
     void periodic_flags(lexer*);

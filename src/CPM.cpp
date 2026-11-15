@@ -71,6 +71,7 @@ CPM::CPM(lexer *p, ghostcell *pgc) : P(p,pgc), bedch(p), tauGf(p), blTx(p), blTy
     
     // vertical domain decomposition
     zsplit = pgc->globalimax((p->nb5>=0 || p->nb6>=0) ? 1 : 0);
+    zsplit_grid = zsplit;
     xsplit = pgc->globalimax((p->nb1>=0 || p->nb4>=0) ? 1 : 0);
     ysplit = pgc->globalimax((p->j_dir==1 && (p->nb2>=0 || p->nb3>=0)) ? 1 : 0);
     epsi=p->psi;
@@ -116,6 +117,13 @@ CPM::CPM(lexer *p, ghostcell *pgc) : P(p,pgc), bedch(p), tauGf(p), blTx(p), blTy
             
         if(theta_0>=theta_max)
         cout<<"CPM warning: 1-S 24 < theta_max is required, check Q 32 and S 24"<<endl;
+        
+        // the bedload layer works on whole bed columns
+        if(p->Q58>0 && p->S10==1 && zsplit==1)
+        cout<<"CPM warning: bedload layer Q 58 with a domain decomposition split in z: the bed level of the columns, their bed"<<endl
+            <<"             shear stress and the layer need whole columns in one subdomain. The fluid sees the iso-surface of the"<<endl
+            <<"             solid fraction instead and the transport differs from that of whole columns. Use a decomposition"<<endl
+            <<"             without a split in z (DIVEMesh: M 20 3 with M 30 nx ny 1)."<<endl;
     }
 }
 
@@ -187,6 +195,11 @@ bool CPM::ckpt_rank_restore(lexer *p, ghostcell *pgc, const std::vector<std::vec
     size_t k=0;
     if(!head(pieces[me],k,true))
     return false;
+    
+    // the vertical decomposition is that of this run: a restart on another decomposition took the one of the
+    // checkpoint (packed-bed stress, friction on the grid and bed level without or with the passes over the
+    // subdomains in z of a decomposition that was not there)
+    zsplit = zsplit_grid;
 
     if(same)
     return P.ckpt_restore(p,pieces[0],k);
