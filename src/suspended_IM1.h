@@ -25,6 +25,8 @@ Author: Hans Bihs
 
 #include"suspended.h"
 #include"increment.h"
+#include"field1.h"
+#include"field2.h"
 #include"field3.h"
 #include"field4.h"
 
@@ -54,6 +56,13 @@ private:
     double starttime;
     void fill_wvel(lexer*,fdm*,ghostcell*,sediment_fdm*); 
     field3 wvel;
+    
+    // closed faces of the concentration (bed, solid bodies, air, walls): the face velocities of the convection
+    // (a->u, a->v, w - w_s) with zero at these faces
+    bool closed(lexer*,fdm*,int,int,int);
+    void fill_facevel(lexer*,fdm*);
+    field1 uvel;
+    field2 vvel;
     
     int count;
 
