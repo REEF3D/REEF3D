@@ -525,6 +525,15 @@ void sflow_momentum_SI::stage_accel(lexer *p, fdm2D *b, ghostcell *pgc)
     const bool dp = p->wet[IJ]==1 && p->deep[IJ]==1 && WL0(i,j)>10.0*p->A244;
     acU(i,j) = dp ? WL0(i,j)*src_cell(p,1,i,j) : 0.0;
     acV(i,j) = (dp && p->j_dir==1) ? WL0(i,j)*src_cell(p,2,i,j) : 0.0;
+
+        // with the bed friction of the cell (A 218 1, implicit: alc = 1/(1 + dt gamma), friction): in a river the
+        // gravity term is balanced by the friction, and the gravity term alone accelerates the stage velocities by
+        // g S dt per step
+        if(dp && p->A218==1)
+        {
+        acU(i,j) = (alc(i,j)*(UH0(i,j) + p->dt*acU(i,j)) - UH0(i,j))/p->dt;
+        acV(i,j) = (alc(i,j)*(VH0(i,j) + p->dt*acV(i,j)) - VH0(i,j))/p->dt;
+        }
     }
 
     exchange4(p,pgc,acU);
