@@ -43,6 +43,29 @@ class met_forcing;
 using namespace std;
 
 // ---------------------------------------------------------------------------
+// Layout of the SI-private 3D arrays (the work arrays of the step: Qx .. dVH, the non-hydrostatic NQx .. NSY, PHI,
+// NQcx/NQcy, the time levels accU .. FSy, nUZx/nUZy, hoPS): cell (i, j, k) at lso + i lsi + j lsj + k (layout_ini).
+// The full layout (lsi = jmax kmax, lsj = kmax, lso = -(imin lsi + jmin lsj + kmin)) is that of IJK: the same index.
+// The shared fields of fdm_nhf (U, UH, F, ...) and the other arrays keep IJK. P-macros index the private arrays;
+// PEXT(a) hands a private array to code that indexes it with IJK (ghost cells, the open boundaries, the outputs).
+// Environment REEF3D_SI_LSHIFT (test): the private arrays are shifted by lshift entries, so that an access with IJK
+// instead of a P-macro reads another cell (the regression then differs from the unshifted run).
+// ---------------------------------------------------------------------------
+#define PIJK (lso + i*lsi + j*lsj + k)
+#define PIp1JK (PIJK + lsi)
+#define PIm1JK (PIJK - lsi)
+#define PIp2JK (PIJK + 2*lsi)
+#define PIm2JK (PIJK - 2*lsi)
+#define PIJp1K (PIJK + lsj)
+#define PIJm1K (PIJK - lsj)
+#define PIJp2K (PIJK + 2*lsj)
+#define PIJm2K (PIJK - 2*lsj)
+#define PIJKp1 (PIJK + 1)
+#define PIJKm1 (PIJK - 1)
+#define PIX(a,b,c) (lso + (a)*lsi + (b)*lsj + (c))
+#define PEXT(x) ((x) + lshift)
+
+// ---------------------------------------------------------------------------
 // NHFLOW hydrostatic semi-implicit free surface (A 510 11/12/13), theta method (A 535).
 //
 // For long simulations (tide, river, coastal ocean): the gravity wave speed sqrt(gh) does not
@@ -181,6 +204,8 @@ public:
     // checkpoints (P 48, I 45): the face discharges and the state of the step
     void ckpt_fields(const std::function<void(const char*, char, double*)> &fd, const std::function<void(const char*, char, int*)> &fi) override
     {
+        // the private arrays in the layout of IJK (px, nhflow_momentum_SI.h)
+        auto px = [&](double *a) { return a!=nullptr ? a + lshift : nullptr; };
         fsfbody_ckpt_fields(fd);
         fd("si_qx",'S',qx.V); fd("si_qxn",'S',qxn.V); fd("si_qxE",'S',qxE.V); fd("si_Hx",'S',Hx.V);
         fd("si_alx",'S',alx.V); fd("si_gmx",'S',gmx.V); fd("si_ax",'S',ax.V); fd("si_kx",'S',kx.V);
@@ -189,16 +214,16 @@ public:
         fd("si_ay",'S',ay.V); fd("si_ky",'S',ky.V); fd("si_gy0",'S',gy0.V); fd("si_cy0",'S',cy0.V);
         fd("si_eta0",'S',eta0.V); fd("si_WL0",'S',WL0.V); fd("si_etaI",'S',etaI.V); fd("si_gmc",'S',gmc.V);
         fd("si_rhsW",'S',rhsW.V); fd("si_bdiag",'S',bdiag.V); fd("si_tS",'S',tS.V); fd("si_tE",'S',tE.V);
-        fd("si_WLk",'S',WLk.V); fd("si_etaB",'S',etaB.V); fd("si_WLb",'S',WLb.V); fd("si_Qx",'C',Qx);
-        fd("si_Qy",'C',Qy); fd("si_Qxn",'C',Qxn); fd("si_Qyn",'C',Qyn); fd("si_Tx",'C',Tx);
-        fd("si_Ty",'C',Ty); fd("si_QAx",'C',QAx); fd("si_QAy",'C',QAy); fd("si_Rx",'C',Rx);
-        fd("si_Ry",'C',Ry); fd("si_UH0",'C',UH0); fd("si_VH0",'C',VH0); fd("si_WH0",'C',WH0);
-        fd("si_UHa",'C',UHa); fd("si_VHa",'C',VHa); fd("si_WHa",'C',WHa); fd("si_UHb",'C',UHb);
-        fd("si_VHb",'C',VHb); fd("si_WHb",'C',WHb); fd("si_UHp",'C',UHp); fd("si_VHp",'C',VHp);
-        fd("si_WHp",'C',WHp); fd("si_UHD",'C',UHD); fd("si_VHD",'C',VHD); fd("si_WHD",'C',WHD);
-        fd("si_dUH",'C',dUH); fd("si_dVH",'C',dVH);
+        fd("si_WLk",'S',WLk.V); fd("si_etaB",'S',etaB.V); fd("si_WLb",'S',WLb.V); fd("si_Qx",'C',px(Qx));
+        fd("si_Qy",'C',px(Qy)); fd("si_Qxn",'C',px(Qxn)); fd("si_Qyn",'C',px(Qyn)); fd("si_Tx",'C',px(Tx));
+        fd("si_Ty",'C',px(Ty)); fd("si_QAx",'C',px(QAx)); fd("si_QAy",'C',px(QAy)); fd("si_Rx",'C',px(Rx));
+        fd("si_Ry",'C',px(Ry)); fd("si_UH0",'C',px(UH0)); fd("si_VH0",'C',px(VH0)); fd("si_WH0",'C',px(WH0));
+        fd("si_UHa",'C',px(UHa)); fd("si_VHa",'C',px(VHa)); fd("si_WHa",'C',px(WHa)); fd("si_UHb",'C',px(UHb));
+        fd("si_VHb",'C',px(VHb)); fd("si_WHb",'C',px(WHb)); fd("si_UHp",'C',px(UHp)); fd("si_VHp",'C',px(VHp));
+        fd("si_WHp",'C',px(WHp)); fd("si_UHD",'C',px(UHD)); fd("si_VHD",'C',px(VHD)); fd("si_WHD",'C',px(WHD));
+        fd("si_dUH",'C',px(dUH)); fd("si_dVH",'C',px(dVH));
         // the time levels of the step before (second order in time, tl2; nh_begin, nh_levels)
-        fd("si_accU",'C',accU); fd("si_accV",'C',accV); fd("si_accW",'C',accW);
+        fd("si_accU",'C',px(accU)); fd("si_accV",'C',px(accV)); fd("si_accW",'C',px(accW));
         fd("si_Bx",'C',Bx); fd("si_By",'C',By); fd("si_BFx",'C',BFx); fd("si_BFy",'C',BFy);
         fd("si_nOmP",'F',nOmP.data()); fd("si_nHxo",'S',nHxo.data()); fd("si_nHyo",'S',nHyo.data());
         if(!nWLo.empty()) fd("si_nWLo",'S',nWLo.data());
@@ -292,6 +317,7 @@ private:
     double dissipation(lexer*, double, double, double);
     double div(lexer*, slice&, slice&);
     double layer_div(lexer*, double*, double*);
+    double layer_div_p(lexer*, double*, double*);   // of the private arrays
 
     void exchange1(lexer*, ghostcell*, slice&);
     void exchange2(lexer*, ghostcell*, slice&);
@@ -408,6 +434,10 @@ private:
 
     // layer face discharges: prognostic Q^{n+1}, Q^n, layer transport of the step (theta weighted),
     // column parts Q~ = A^-1 (I - dt L_v) Q^ and r = A^-1 1
+    // layout of the private arrays (see the top of the file): strides, offset, shift (test), number of entries
+    int lsi = 0, lsj = 0, lso = 0, lshift = 0;
+    size_t lN = 0;
+    void layout_ini(lexer*, bool);
     double *Qx, *Qy, *Qxn, *Qyn, *Tx, *Ty, *QAx, *QAy, *Rx, *Ry;
 
     // layer state: t^n, RK stages, predictor, implicit diffusion
