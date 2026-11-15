@@ -28,6 +28,7 @@ Author: Hans Bihs
 #include"sflow_amr.h"
 #include"lexer.h"
 #include"fdm2D.h"
+#include"hydro_sflow.h"
 #include"ghostcell.h"
 #include"seastate_sflow.h"
 #include"met_forcing.h"
@@ -577,7 +578,14 @@ void sflow_momentum_func::reconstruct(lexer *p, fdm2D *b, ghostcell *pgc, slice 
 void sflow_momentum_func::velcalc(lexer *p, fdm2D *b, ghostcell *pgc, slice &UH, slice &VH, slice &WH, slice &WL, int mode)
 {
     // mode 0: interior cells, 1: + ghost cells, 2: + ghost cells + staggered diagnostics
+    // Froude number limiter: A 531 in every wet cell; with in- and outflow (B 60) 0.1 A 531 in the thin water (below
+    // A 232) next to a dry cell, the wetting and drying edge of a river. In deep water next to a dry cell (a steep
+    // bank, a wall of dry cells, a narrow channel) the flow is not limited there: with A 531 3 it stayed at Fr 0.3,
+    // and a river steeper than that lost the discharge of its bank cells (a channel two cells wide at Fr 0.77 ran at
+    // 1.9 times the normal depth). REEF3D::HYDRO rain and point sources (R 10, R 40): at every depth as before (sheet
+    // flow down steep dry banks)
     const double g = fabs(p->W22);
+    const bool hwet = hydro_sflow::wetting(p);
     double lim,fac;
     
     // Boussinesq: UH,VH hold V; u_a from V (after the momentum update), then M and U=M/H
@@ -602,7 +610,7 @@ void sflow_momentum_func::velcalc(lexer *p, fdm2D *b, ghostcell *pgc, slice &UH,
             {
             lim = p->A531*WL(i,j)*sqrt(g*WL(i,j));
             
-            if(p->B60>=1)
+            if(p->B60>=1 && (WL(i,j)<p->A232 || hwet))
             if(p->wet[Ip1J]==0 || p->wet[Im1J]==0 || p->wet[IJp1]==0 || p->wet[IJm1]==0)
             lim *= 0.1;
             
@@ -664,7 +672,7 @@ void sflow_momentum_func::velcalc(lexer *p, fdm2D *b, ghostcell *pgc, slice &UH,
             {
             lim = p->A531*WL(i,j)*sqrt(g*WL(i,j));
             
-            if(p->B60>=1)
+            if(p->B60>=1 && (WL(i,j)<p->A232 || hwet))
             if(p->wet[Ip1J]==0 || p->wet[Im1J]==0 || p->wet[IJp1]==0 || p->wet[IJm1]==0)
             lim *= 0.1;
             
@@ -692,7 +700,7 @@ void sflow_momentum_func::velcalc(lexer *p, fdm2D *b, ghostcell *pgc, slice &UH,
         WH(i,j) = MAX(MIN(WH(i,j), lim), -lim);
         }
         
-        if(p->B60>=1)
+        if(p->B60>=1 && (WL(i,j)<p->A232 || hwet))
         if(p->wet[Ip1J]==0 || p->wet[Im1J]==0 || p->wet[IJp1]==0 || p->wet[IJm1]==0)
         {
         lim = 0.1*p->A531*WL(i,j)*sqrt(g*WL(i,j));

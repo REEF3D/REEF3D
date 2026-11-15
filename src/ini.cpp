@@ -56,7 +56,7 @@ void control::ini_default()
     A227=0.55;   // double SFLOW semi-implicit: implicitness theta of the free surface
     A228=0.0;    // double SFLOW semi-implicit: maximum time step (s), 0 no cap
     A229=1;      // int SFLOW semi-implicit: wetting and drying iteration (Casulli 2009), 0 off (set from A 243, lexer_read)
-    A232=0.05;   // double SFLOW semi-implicit: depth below which the cell velocities of the momentum predictor are desingularised
+    A232=0.05;   // double SFLOW thin water depth: semi-implicit, below it the cell velocities of the momentum predictor are desingularised; with B 60, below it the Froude number next to a dry cell is limited to 0.1 A 531
     A231=0.0;    // double SFLOW semi-implicit: mass flux dissipation for transcritical flow, 0 off
     A251=0;    // double fsf-slope in x-dir
     A260=0;      // int turbulence model
