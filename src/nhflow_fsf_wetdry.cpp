@@ -230,8 +230,9 @@ void nhflow_fsf_f::wetdry(lexer* p, fdm_nhf* d, ghostcell* pgc, double *UH, doub
     p->deep[IJ]=0;
     
     
+    // (2 cells in y as in x: with 3 cells in y the solution of a case that is symmetric about x = y was not)
     if(p->j_dir==1)
-    if(p->wet[IJp1]==0 || p->wet[IJp2]==0 || p->wet[IJp3]==0 || p->wet[IJm1]==0 || p->wet[IJm2]==0 || p->wet[IJm3]==0)
+    if(p->wet[IJp1]==0 || p->wet[IJp2]==0 || p->wet[IJm1]==0 || p->wet[IJm2]==0)
     p->deep[IJ]=0;
     
     if(p->j_dir==1)

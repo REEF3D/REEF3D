@@ -44,7 +44,7 @@ Architect: Hans Bihs
 namespace nhflow_drywall
 {
 // the column keeps its non-hydrostatic pressure next to dry cells: deep enough, and every dry column in the band
-// of nhflow_fsf_f::wetdry (2 cells in x, 3 in y, the diagonals) is land above its water level
+// of nhflow_fsf_f::wetdry (2 cells in x and y, the diagonals) is land above its water level
 inline bool cliff(lexer *p, fdm_nhf *d, int i, int j, double WL)
 {
     const int marge = increment::marge;
@@ -64,7 +64,7 @@ inline bool cliff(lexer *p, fdm_nhf *d, int i, int j, double WL)
     return false;
 
     if(p->j_dir==1)
-    if(reach(0,1) || reach(0,2) || reach(0,3) || reach(0,-1) || reach(0,-2) || reach(0,-3)
+    if(reach(0,1) || reach(0,2) || reach(0,-1) || reach(0,-2)
     || reach(1,1) || reach(1,-1) || reach(-1,1) || reach(-1,-1))
     return false;
 
