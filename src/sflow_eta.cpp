@@ -202,7 +202,8 @@ void sflow_eta::depth_update(lexer *p, fdm2D *b , ghostcell *pgc, slice &WL)
     double wsfout=p->phimean;
     double f=1.0;
     
-    if(p->F62>1.0e-20)
+    // F 62 given (unset -1.0e20): also a level at or below the datum z = 0
+    if(p->F62>-1.0e20)
     {
         if(p->F64==0)
         wsfout=p->F62;
