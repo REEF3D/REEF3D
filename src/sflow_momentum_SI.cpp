@@ -801,7 +801,21 @@ void sflow_momentum_SI::friction(lexer *p, fdm2D *b)
 {
     // implicit Manning friction (A 218 1): d(UH)/dt = -gamma UH,  gamma = c_f |u|/H,
     // c_f = g n^2/H^(1/3), n = ks^(1/6)/20 (as sflow_rough_manning);  alpha = 1/(1 + dt gamma)
+    // The depth H of a face between two wet deep cells (WL above 10 A 244, as mlflux_faces) is the mean depth of the
+    // two cells. The depth of face_depth, eta upwind plus the mean still water depth of the face, is deeper than the
+    // cells by half the bed step between them where the flow runs down a slope (S dx/2): the friction of the face
+    // drops, and uniform flow settles below the normal depth by up to 0.7 S dx/(2 h) where the friction dominates the
+    // step (dt gamma >> 1: thin flow on floodplains, steep rivers, large time steps). Shoreline faces and
+    // REEF3D::HYDRO (the depth of the higher bed) keep the depth of face_depth
     double manning,cf,u,v,h;
+    const double hd = 10.0*p->A244;
+    const bool hbed = hydro_sflow::wetting(p);
+
+    auto deep = [&](int a, int c)
+    {
+        const int q = (a-p->imin)*p->jmax + c-p->jmin;
+        return p->flagslice4[q]>0 && p->wet[q]==1 && WL0(a,c)>hd;
+    };
 
     SLICELOOP1
     alx(i,j) = 1.0;
@@ -818,7 +832,7 @@ void sflow_momentum_SI::friction(lexer *p, fdm2D *b)
     SLICELOOP1
     if(Hx(i,j)>0.0)
     {
-    h = Hx(i,j);
+    h = (!hbed && deep(i,j) && deep(i+1,j)) ? 0.5*(WL0(i,j) + WL0(i+1,j)) : Hx(i,j);
     manning = pow(0.5*(b->ks(i,j) + b->ks(i+1,j)),1.0/6.0)/20.0;
     cf = manning*manning*g/pow(h,1.0/3.0);
     u = qx(i,j)/h;
@@ -839,7 +853,7 @@ void sflow_momentum_SI::friction(lexer *p, fdm2D *b)
     SLICELOOP2
     if(Hy(i,j)>0.0)
     {
-    h = Hy(i,j);
+    h = (!hbed && deep(i,j) && deep(i,j+1)) ? 0.5*(WL0(i,j) + WL0(i,j+1)) : Hy(i,j);
     manning = pow(0.5*(b->ks(i,j) + b->ks(i,j+1)),1.0/6.0)/20.0;
     cf = manning*manning*g/pow(h,1.0/3.0);
     u = 0.5*(b->U(i,j) + b->U(i,j+1));
