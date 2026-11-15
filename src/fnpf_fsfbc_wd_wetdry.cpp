@@ -45,6 +45,17 @@ void fnpf_fsfbc_wd::wetdry(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, sl
         if(p->wd - c->bed(i,j) < c->wd_criterion)
         p->wet[IJ]=0;
 
+        // A 338: the wet areas that the coastline initialisation found cut off from the main water body
+        // (coastline < 0) stay dry. This start runs a second time after fsfdisc_ini has set all cells wet,
+        // and the coastline is only initialised in the first
+        if((p->A343==1 || p->A343==3) && p->A338==1 && coastline_count>0)
+        SLICELOOP4
+        if(c->coastline(i,j)<0.0)
+        {
+            wetcoast(i,j)=0;
+            p->wet[IJ]=0;
+        }
+
         SLICELOOP4
         c->WL(i,j) = MAX(c->wd_criterion, eta(i,j) + p->wd - c->bed(i,j));
 
