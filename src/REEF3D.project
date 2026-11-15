@@ -558,6 +558,7 @@
             <File Name="sflow_diffusion_flux.h"/>
             <File Name="sflow_diffusion_void.h"/>
             <File Name="sflow_diffusion.h"/>
+            <File Name="sflow_drywall.h"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Convection">
             <File Name="sflow_ifou.h"/>

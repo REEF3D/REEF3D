@@ -34,6 +34,7 @@ Author: Hans Bihs
 #include"patchBC_interface.h"
 #include"sflow_amr.h"
 #include"sflow_curv.h"
+#include"sflow_drywall.h"
 
 #define HP (WL(i,j)>1.0e-20?WL(i,j):1.0e20)
 
@@ -385,6 +386,31 @@ void sflow_pjm_quad::upgrad(lexer*p, fdm2D* b, slice &eta)
         for(i=p->imin; i<p->imin+p->imax; ++i)
         for(j=p->jmin; j<p->jmin+p->jmax; ++j)
         Ld(i,j) = eta(i,j) - psw*b->pbh(i,j);
+
+        // a dry cell holds its bed level as eta: the mean level of the wet cells next to it in its place (as on the
+        // Cartesian grid below)
+        for(i=p->imin+1; i<p->imin+p->imax-1; ++i)
+        for(j=p->jmin+1; j<p->jmin+p->jmax-1; ++j)
+        if(sflow_drywall::dry(p,i,j))
+        {
+        double s=0.0;
+        int nw=0;
+
+            for(int qd=0; qd<4; ++qd)
+            {
+            const int a = i + (qd==0 ? 1 : (qd==1 ? -1 : 0)), c = j + (qd==2 ? 1 : (qd==3 ? -1 : 0));
+            const int q = (a-p->imin)*p->jmax + (c-p->jmin);
+
+                if(p->flagslice4[q]>0 && p->wet[q]==1)
+                {
+                s += eta(a,c) - psw*b->pbh(a,c);
+                ++nw;
+                }
+            }
+
+        if(nw>0)
+        Ld(i,j) = s/double(nw);
+        }
         
         SLICELOOP4
         sflow_curv::grad(p,Ld,i,j,Gx(i,j),Gy(i,j));
@@ -422,8 +448,15 @@ void sflow_pjm_quad::upgrad(lexer*p, fdm2D* b, slice &eta)
         {
         // X 402 1: the long-wave acceleration -g grad(zeta) includes the hull pressure head
         const double ps = (p->X10==3 && p->X402==1)?1.0:0.0;
-        Gx(i,j) = (eta(i+1,j) - ps*b->pbh(i+1,j) - eta(i-1,j) + ps*b->pbh(i-1,j))/(p->DXP[IP] + p->DXP[IM1]);
-        Gy(i,j) = ysk ? 0.0 : (eta(i,j+1) - ps*b->pbh(i,j+1) - eta(i,j-1) + ps*b->pbh(i,j-1))/(p->DYP[JP] + p->DYP[JM1])*p->y_dir;
+        // a dry cell holds its bed level as eta: the level of the cell itself in its place (no slope towards the land;
+        // with the bed level of dry land 2 m above the water in front of 10 m deep water the term raised the water
+        // at rest by 0.7 m at the land)
+        const bool de = sflow_drywall::dry(p,i+1,j), dw = sflow_drywall::dry(p,i-1,j);
+        const bool dn = sflow_drywall::dry(p,i,j+1), ds = sflow_drywall::dry(p,i,j-1);
+        const int ie = de ? i : i+1, iw = dw ? i : i-1, jn = dn ? j : j+1, js = ds ? j : j-1;
+
+        Gx(i,j) = (eta(ie,j) - ps*b->pbh(ie,j) - eta(iw,j) + ps*b->pbh(iw,j))/(p->DXP[IP] + p->DXP[IM1]);
+        Gy(i,j) = ysk ? 0.0 : (eta(i,jn) - ps*b->pbh(i,jn) - eta(i,js) + ps*b->pbh(i,js))/(p->DYP[JP] + p->DYP[JM1])*p->y_dir;
         }
         
         pgc->gcsl_start4(p,Gx,1);
