@@ -34,7 +34,6 @@ Author: Hans Bihs
 #include"patchBC_interface.h"
 #include"sflow_amr.h"
 #include"sflow_curv.h"
-#include"sflow_drywall.h"
 
 #define HP (WL(i,j)>1.0e-20?WL(i,j):1.0e20)
 
@@ -146,12 +145,12 @@ void sflow_pjm_quad::quad_calc(lexer *p, fdm2D *b, ghostcell *pgc, slice &UH, sl
     dx = p->DXP[IP] + p->DXP[IM1];
     dy = p->DYP[JP] + p->DYP[JM1];
     
-    Uest(i,j) = (UH(i,j) - alpha*p->dt*(1.0/p->W1)*((WL(i+1,j)*b->press(i+1,j) - WL(i-1,j)*b->press(i-1,j))/dx
-                                               - cb*b->press(i,j)*(b->depth(i+1,j) - b->depth(i-1,j))/dx))/HP;
+    Uest(i,j) = (UH(i,j) - alpha*p->dt*(1.0/p->W1)*((hqx(p,b,WL,1) - hqx(p,b,WL,-1))/dx
+                                               - cb*b->press(i,j)*(nbx(p,b->depth,1) - nbx(p,b->depth,-1))/dx))/HP;
     
     if(p->j_dir==1)
-    Vest(i,j) = (VH(i,j) - alpha*p->dt*(1.0/p->W1)*((WL(i,j+1)*b->press(i,j+1) - WL(i,j-1)*b->press(i,j-1))/dy
-                                               - cb*b->press(i,j)*(b->depth(i,j+1) - b->depth(i,j-1))/dy))/HP;
+    Vest(i,j) = (VH(i,j) - alpha*p->dt*(1.0/p->W1)*((hqy(p,b,WL,1) - hqy(p,b,WL,-1))/dy
+                                               - cb*b->press(i,j)*(nby(p,b->depth,1) - nby(p,b->depth,-1))/dy))/HP;
     }
     
     // ghost cells: boundary velocities
@@ -202,28 +201,29 @@ void sflow_pjm_quad::quad_calc(lexer *p, fdm2D *b, ghostcell *pgc, slice &UH, sl
         dx = p->DXP[IP] + p->DXP[IM1];
         dy = p->DYP[JP] + p->DYP[JM1];
         
-        dddx  = (b->depth(i+1,j) - b->depth(i-1,j))/dx;
-        dddxx = ((b->depth(i+1,j) - b->depth(i,j))/p->DXP[IP] - (b->depth(i,j) - b->depth(i-1,j))/p->DXP[IM1])/p->DXN[IP];
+        dddx  = (nbx(p,b->depth,1) - nbx(p,b->depth,-1))/dx;
+        dddxx = ((nbx(p,b->depth,1) - b->depth(i,j))/p->DXP[IP] - (b->depth(i,j) - nbx(p,b->depth,-1))/p->DXP[IM1])/p->DXN[IP];
         
         dudt = (Uest(i,j) - Un(i,j))/(alpha*p->dt)
-             + Uest(i,j)*(Uest(i+1,j) - Uest(i-1,j))/dx
-             + (ysk ? 0.0 : Vest(i,j)*(Uest(i,j+1) - Uest(i,j-1))/dy*p->y_dir);
+             + Uest(i,j)*(nbx(p,Uest,1,-1.0) - nbx(p,Uest,-1,-1.0))/dx
+             + (ysk ? 0.0 : Vest(i,j)*(nby(p,Uest,1) - nby(p,Uest,-1))/dy*p->y_dir);
         
         phi(i,j) = -dudt*dddx - Uest(i,j)*Uest(i,j)*dddxx;
         
             if(p->j_dir==1)
             {
-            dddy  = (b->depth(i,j+1) - b->depth(i,j-1))/dy;
-            dddyy = ((b->depth(i,j+1) - b->depth(i,j))/p->DYP[JP] - (b->depth(i,j) - b->depth(i,j-1))/p->DYP[JM1])/p->DYN[JP];
+            dddy  = (nby(p,b->depth,1) - nby(p,b->depth,-1))/dy;
+            dddyy = ((nby(p,b->depth,1) - b->depth(i,j))/p->DYP[JP] - (b->depth(i,j) - nby(p,b->depth,-1))/p->DYP[JM1])/p->DYN[JP];
             
             dddxy = 0.0;
             
             if(p->flagslice4[Ip1Jp1]>0 && p->flagslice4[Ip1Jm1]>0 && p->flagslice4[Im1Jp1]>0 && p->flagslice4[Im1Jm1]>0)
+            if(!(sflow_drywall::wall(p,i+1,j+1) || sflow_drywall::wall(p,i+1,j-1) || sflow_drywall::wall(p,i-1,j+1) || sflow_drywall::wall(p,i-1,j-1)))
             dddxy = (b->depth(i+1,j+1) - b->depth(i+1,j-1) - b->depth(i-1,j+1) + b->depth(i-1,j-1))/(dx*dy);
             
             dvdt = (Vest(i,j) - Vn(i,j))/(alpha*p->dt)
-                 + Uest(i,j)*(Vest(i+1,j) - Vest(i-1,j))/dx
-                 + Vest(i,j)*(Vest(i,j+1) - Vest(i,j-1))/dy;
+                 + Uest(i,j)*(nbx(p,Vest,1) - nbx(p,Vest,-1))/dx
+                 + Vest(i,j)*(nby(p,Vest,1,-1.0) - nby(p,Vest,-1,-1.0))/dy;
             
             phi(i,j) += -dvdt*dddy - Vest(i,j)*Vest(i,j)*dddyy - 2.0*Uest(i,j)*Vest(i,j)*dddxy;
             }
@@ -260,8 +260,8 @@ void sflow_pjm_quad::ucorr(lexer* p, fdm2D* b, slice &UH, slice &WL, double alph
     
     qb = cb*b->press(i,j) + adisp*0.25*p->W1*WL(i,j)*phi(i,j);
     
-	UH(i,j) -= alpha*p->dt*(1.0/p->W1)*((WL(i+1,j)*b->press(i+1,j) - WL(i-1,j)*b->press(i-1,j))/dx
-                                    - qb*(b->depth(i+1,j) - b->depth(i-1,j))/dx);
+	UH(i,j) -= alpha*p->dt*(1.0/p->W1)*((hqx(p,b,WL,1) - hqx(p,b,WL,-1))/dx
+                                    - qb*(nbx(p,b->depth,1) - nbx(p,b->depth,-1))/dx);
     }
 }
 
@@ -295,8 +295,8 @@ void sflow_pjm_quad::vcorr(lexer* p, fdm2D* b, slice &VH, slice &WL, double alph
     
     qb = cb*b->press(i,j) + adisp*0.25*p->W1*WL(i,j)*phi(i,j);
     
-	VH(i,j) -= alpha*p->dt*(1.0/p->W1)*((WL(i,j+1)*b->press(i,j+1) - WL(i,j-1)*b->press(i,j-1))/dy
-                                    - qb*(b->depth(i,j+1) - b->depth(i,j-1))/dy);
+	VH(i,j) -= alpha*p->dt*(1.0/p->W1)*((hqy(p,b,WL,1) - hqy(p,b,WL,-1))/dy
+                                    - qb*(nby(p,b->depth,1) - nby(p,b->depth,-1))/dy);
     }
 }
 
@@ -354,11 +354,11 @@ void sflow_pjm_quad::rhs(lexer *p, fdm2D* b, slice &WL, double alpha)
         dx = p->DXP[IP] + p->DXP[IM1];
         dy = p->DYP[JP] + p->DYP[JM1];
         
-        dudx = (b->U(i+1,j) - b->U(i-1,j))/dx;
-        dvdy = ysk ? 0.0 : (b->V(i,j+1) - b->V(i,j-1))/dy*p->y_dir;
+        dudx = (nbx(p,b->U,1,-1.0) - nbx(p,b->U,-1,-1.0))/dx;
+        dvdy = ysk ? 0.0 : (nby(p,b->V,1,-1.0) - nby(p,b->V,-1,-1.0))/dy*p->y_dir;
         
-        dddx = (b->depth(i+1,j) - b->depth(i-1,j))/dx;
-        dddy = ysk ? 0.0 : (b->depth(i,j+1) - b->depth(i,j-1))/dy*p->y_dir;
+        dddx = (nbx(p,b->depth,1) - nbx(p,b->depth,-1))/dx;
+        dddy = ysk ? 0.0 : (nby(p,b->depth,1) - nby(p,b->depth,-1))/dy*p->y_dir;
         
         b->rhsvec.V[n] = -(WL(i,j)*(dudx + dvdy) 
                           + 2.0*(b->W(i,j) + b->U(i,j)*dddx + b->V(i,j)*dddy))/(alpha*p->dt)
@@ -470,8 +470,12 @@ void sflow_pjm_quad::upgrad(lexer*p, fdm2D* b, slice &eta)
             {
             h = MAX(eta(i,j) + b->depth(i,j),0.0);
             
-            Ld(i,j) = h*h*h*((Gx(i+1,j) - Gx(i-1,j))/(p->DXP[IP] + p->DXP[IM1])
-                           + (ysk ? 0.0 : (Gy(i,j+1) - Gy(i,j-1))/(p->DYP[JP] + p->DYP[JM1])*p->y_dir));
+            // the slope normal to a wall of dry land is odd about it (A 221 2)
+            auto wx = [&](int a) { return sflow_drywall::wall(p,i+a,j); };
+            auto wy = [&](int a) { return sflow_drywall::wall(p,i,j+a); };
+
+            Ld(i,j) = h*h*h*(((wx(1) ? -Gx(i,j) : Gx(i+1,j)) - (wx(-1) ? -Gx(i,j) : Gx(i-1,j)))/(p->DXP[IP] + p->DXP[IM1])
+                           + (ysk ? 0.0 : ((wy(1) ? -Gy(i,j) : Gy(i,j+1)) - (wy(-1) ? -Gy(i,j) : Gy(i,j-1)))/(p->DYP[JP] + p->DYP[JM1])*p->y_dir));
             }
         }
         
@@ -479,7 +483,7 @@ void sflow_pjm_quad::upgrad(lexer*p, fdm2D* b, slice &eta)
         
         SLICELOOP4
         if(active(p,b)==1)
-        b->F(i,j) += Bdisp*fabs(p->W22)*(Ld(i+1,j) - Ld(i-1,j))/(p->DXP[IP] + p->DXP[IM1]);
+        b->F(i,j) += Bdisp*fabs(p->W22)*(nbx(p,Ld,1) - nbx(p,Ld,-1))/(p->DXP[IP] + p->DXP[IM1]);
     }
 }
 
@@ -499,7 +503,7 @@ void sflow_pjm_quad::vpgrad(lexer*p, fdm2D* b, slice &eta)
     if(Bdisp>0.0 && p->j_dir==1)
     SLICELOOP4
     if(active(p,b)==1)
-    b->G(i,j) += Bdisp*fabs(p->W22)*(Ld(i,j+1) - Ld(i,j-1))/(p->DYP[JP] + p->DYP[JM1]);
+    b->G(i,j) += Bdisp*fabs(p->W22)*(nby(p,Ld,1) - nby(p,Ld,-1))/(p->DYP[JP] + p->DYP[JM1]);
 }
 
 void sflow_pjm_quad::wpgrad(lexer*p, fdm2D* b, slice &eta)

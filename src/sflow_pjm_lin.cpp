@@ -124,8 +124,8 @@ void sflow_pjm_lin::ucorr(lexer* p, fdm2D* b, slice &UH, slice &WL, double alpha
     {
     dx = p->DXP[IP] + p->DXP[IM1];
     
-	UH(i,j) -= alpha*p->dt*(1.0/p->W1)*((WL(i+1,j)*b->press(i+1,j) - WL(i-1,j)*b->press(i-1,j))/dx
-                                    - cb*b->press(i,j)*(b->depth(i+1,j) - b->depth(i-1,j))/dx);
+	UH(i,j) -= alpha*p->dt*(1.0/p->W1)*((hqx(p,b,WL,1) - hqx(p,b,WL,-1))/dx
+                                    - cb*b->press(i,j)*(nbx(p,b->depth,1) - nbx(p,b->depth,-1))/dx);
     }
 }
 
@@ -155,8 +155,8 @@ void sflow_pjm_lin::vcorr(lexer* p, fdm2D* b, slice &VH, slice &WL, double alpha
     {
     dy = p->DYP[JP] + p->DYP[JM1];
     
-	VH(i,j) -= alpha*p->dt*(1.0/p->W1)*((WL(i,j+1)*b->press(i,j+1) - WL(i,j-1)*b->press(i,j-1))/dy
-                                    - cb*b->press(i,j)*(b->depth(i,j+1) - b->depth(i,j-1))/dy);
+	VH(i,j) -= alpha*p->dt*(1.0/p->W1)*((hqy(p,b,WL,1) - hqy(p,b,WL,-1))/dy
+                                    - cb*b->press(i,j)*(nby(p,b->depth,1) - nby(p,b->depth,-1))/dy);
     }
 }
 
@@ -214,12 +214,12 @@ void sflow_pjm_lin::rhs(lexer *p, fdm2D* b, slice &WL, double alpha)
         dx = p->DXP[IP] + p->DXP[IM1];
         dy = p->DYP[JP] + p->DYP[JM1];
         
-        dudx = (b->U(i+1,j) - b->U(i-1,j))/dx;
+        dudx = (nbx(p,b->U,1,-1.0) - nbx(p,b->U,-1,-1.0))/dx;
         // (one cell in y: the y derivatives are 0, as from the ghost cells; gcsl_yskip leaves those unset)
-        dvdy = ysk ? 0.0 : (b->V(i,j+1) - b->V(i,j-1))/dy*p->y_dir;
+        dvdy = ysk ? 0.0 : (nby(p,b->V,1,-1.0) - nby(p,b->V,-1,-1.0))/dy*p->y_dir;
         
-        dddx = (b->depth(i+1,j) - b->depth(i-1,j))/dx;
-        dddy = ysk ? 0.0 : (b->depth(i,j+1) - b->depth(i,j-1))/dy*p->y_dir;
+        dddx = (nbx(p,b->depth,1) - nbx(p,b->depth,-1))/dx;
+        dddy = ysk ? 0.0 : (nby(p,b->depth,1) - nby(p,b->depth,-1))/dy*p->y_dir;
         
         b->rhsvec.V[n] = -(WL(i,j)*(dudx + dvdy) 
                           + 2.0*(b->W(i,j) + b->U(i,j)*dddx + b->V(i,j)*dddy))/(alpha*p->dt);

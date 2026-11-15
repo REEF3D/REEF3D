@@ -21,6 +21,7 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"sflow_momentum_SI.h"
+#include"sflow_drywall.h"
 #include"si_eta2D.h"
 #include"bc_zone.h"
 #include"geo_mesh.h"
@@ -53,7 +54,7 @@ sflow_momentum_SI::sflow_momentum_SI(lexer *p, fdm2D *b, ghostcell *pgc, sflow_H
                                       aly(p),ay(p),ky(p),gy0(p),fxU(p),fxV(p),fyU(p),fyV(p),eta0(p),WL0(p),UH0(p),
                                       VH0(p),UHa(p),VHa(p),UHb(p),VHb(p),UHp(p),VHp(p),WHz(p),dUH(p),dVH(p),etaI(p),
                                       alc(p),rhs(p),rhsW(p),bdiag(p),wsrc(p),hsrc(p),tU(p),tV(p),tUH(p),tVH(p),WLk(p),
-                                      etaB(p),bcA(p),bcS(p),FSx(p),FSy(p),dNx(p),dNy(p),mfx(p),mfy(p),acU(p),acV(p),
+                                      etaB(p),bcA(p),bcS(p),dwC(p),FSx(p),FSy(p),dNx(p),dNy(p),mfx(p),mfy(p),acU(p),acV(p),
                                       hoC(p),hoEx(p),hoEo(p),cx0(p),cy0(p),qxN(p),Hxo(p),qxo(p),qxa(p),nxR(p),nxL(p),
                                       nxB(p),nx0(p),kxEL(p),kxER(p),kxPL(p),kxPR(p),kx1(p),kx2(p),qyN(p),Hyo(p),
                                       qyo(p),qya(p),nyR(p),nyL(p),nyB(p),ny0(p),kyEL(p),kyER(p),kyPL(p),kyPR(p),
@@ -472,6 +473,46 @@ void sflow_momentum_SI::si_begin(lexer *p, fdm2D* b, ghostcell* pgc)
 
         else
         qyn(f.fi,f.fj) = 0.0;
+    }
+
+    // A 221 2: the cells with dry land as a wall, from the state of t^n
+    drywall_cells(p,b,pgc);
+}
+
+void sflow_momentum_SI::drywall_cells(lexer *p, fdm2D* b, ghostcell* pgc)
+{
+    // A 221 2 (sflow_drywall.h): a wet cell deeper than its cell size whose dry neighbours are land above its water
+    // level keeps the non-hydrostatic pressure (nh_active), and the dry cells next to it are walls (wall(): the means
+    // of the face terms of the cell, the source term of the predictor; the Laplacian of eta, the bed acceleration and
+    // the slope term of the constraint in sflow_momentum_SI_nh.cpp)
+    SLICELOOP4
+    dwC(i,j) = (p->wet[IJ]==1 && sflow_drywall::cliff(p,b->eta,b->depth,i,j)) ? 1.0 : 0.0;
+
+    exchange4(p,pgc,dwC);
+
+    // A 220 3 without A 221 2: the cell next to dry land is hydrostatic, and the term g B grad(h^3 lap(eta)) ends at
+    // the face to it. With deep water in front of the land the step is not stable there (B (h/dx)^2 of 1.3 and more:
+    // the level at a wall of dry land grew from round-off within 15 s; 0.7 and less: stable)
+    if(!dw_told && nh && Bdisp>0.0 && !sflow_drywall::on(p))
+    {
+    dw_told = true;
+    int nd=0;
+
+        SLICELOOP4
+        if(p->wet[IJ]==1 && (sflow_drywall::dry(p,i-1,j) || sflow_drywall::dry(p,i+1,j)
+           || (p->j_dir==1 && (sflow_drywall::dry(p,i,j-1) || sflow_drywall::dry(p,i,j+1)))))
+        {
+        const double r = (b->eta(i,j) + b->depth(i,j))/p->DXN[IP];
+
+        if(Bdisp*r*r>0.7)
+        ++nd;
+        }
+
+    nd = pgc->globalisum(nd);
+
+    if(nd>0 && p->mpirank==0)
+    cout<<"!!! SFLOW A 210 11/12/13 with A 220 3: "<<nd<<" cells next to dry land are deeper than "<<setprecision(3)<<sqrt(0.7/Bdisp)
+        <<" cell sizes; the step is not stable there, set A 221 2 (dry land next to deep water as a wall) or A 220 2 !!!"<<endl;
     }
 }
 
@@ -1500,6 +1541,10 @@ double sflow_momentum_SI::wall(lexer *p, int ii, int jj, int side)
     const int ai = side==1 ? ii-1 : (side==2 ? ii+1 : ii);
     const int aj = side==3 ? jj-1 : (side==4 ? jj+1 : jj);
     const int bit = side==1 ? 1 : (side==2 ? 2 : (side==3 ? 4 : 8));
+
+    // A 221 2: dry land next to a deep cell (drywall_cells)
+    if(dwC(ii,jj)>0.5 && sflow_drywall::dry(p,ai,aj))
+    return 1.0;
 
     if(p->flagslice4[(ai-p->imin)*p->jmax + (aj-p->jmin)]>=0)
     return 0.0;

@@ -21,6 +21,7 @@ Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"sflow_momentum_SI.h"
+#include"sflow_drywall.h"
 #include"lexer.h"
 #include"fdm2D.h"
 #include"ghostcell.h"
@@ -80,7 +81,8 @@ void sflow_momentum_SI::ho_begin(lexer *p, fdm2D *b, ghostcell *pgc)
     // steep fronts and supercritical flow keep the second-order operators: there is no limiter, and across the bore of
     // the Stoker dam break the fourth-order operators raised the error from 0.15 to 0.8 % (0.21 % with the Froude
     // number alone: the foot of the bore). And a Courant number of the shortest wave below 1 (below)
-    auto jump = [&](int a, int c) { return p->flagslice4[(a-p->imin)*p->jmax + (c-p->jmin)]>0 ? fabs(WL0(a,c) - WL0(i,j)) : 0.0; };
+    // (A 221 2: dry land that is a wall for the cell, drywall_cells, as the walls of the grid)
+    auto jump = [&](int a, int c) { return (p->flagslice4[(a-p->imin)*p->jmax + (c-p->jmin)]>0 && !(dwC(i,j)>0.5 && sflow_drywall::dry(p,a,c))) ? fabs(WL0(a,c) - WL0(i,j)) : 0.0; };
 
     SLICELOOP4
     {

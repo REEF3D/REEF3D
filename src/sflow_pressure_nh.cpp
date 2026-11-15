@@ -25,6 +25,7 @@ Author: Hans Bihs
 #include"fdm2D.h"
 #include"slice.h"
 #include"sflow_curv.h"
+#include"sflow_drywall.h"
 
 #define HP (WL(i,j)>1.0e-20?WL(i,j):1.0e20)
 
@@ -41,11 +42,12 @@ int sflow_pressure_nh::active(lexer *p, fdm2D *b)
     if(p->wet[IJ]==0 || p->deep[IJ]==0 || b->breaking(i,j)>0)
     return 0;
     
+    // next to a dry cell: hydrostatic; A 221 2: dry land above the water of a deep cell is a wall (sflow_drywall.h)
     if(p->wet[Im1J]==0 || p->wet[Ip1J]==0)
-    return 0;
+    return sflow_drywall::cliff(p,b->eta,b->depth,i,j) ? 1 : 0;
     
     if(p->j_dir==1 && (p->wet[IJm1]==0 || p->wet[IJp1]==0))
-    return 0;
+    return sflow_drywall::cliff(p,b->eta,b->depth,i,j) ? 1 : 0;
     
     return 1;
 }
@@ -122,6 +124,34 @@ void sflow_pressure_nh::poisson(lexer*p, fdm2D* b, slice &WL, double cbed)
 		b->M.p[n] += b->M.w[n];
 		b->M.w[n] = 0.0;
 		}
+        
+        // A 221 2: dry land next to a non-hydrostatic cell is a wall, dq/dn=0
+        if(sflow_drywall::on(p) && active(p,b)==1)
+        {
+            if(sflow_drywall::dry(p,i-1,j))
+            {
+            b->M.p[n] += b->M.s[n];
+            b->M.s[n] = 0.0;
+            }
+
+            if(sflow_drywall::dry(p,i+1,j))
+            {
+            b->M.p[n] += b->M.n[n];
+            b->M.n[n] = 0.0;
+            }
+
+            if(p->j_dir==1 && sflow_drywall::dry(p,i,j-1))
+            {
+            b->M.p[n] += b->M.e[n];
+            b->M.e[n] = 0.0;
+            }
+
+            if(p->j_dir==1 && sflow_drywall::dry(p,i,j+1))
+            {
+            b->M.p[n] += b->M.w[n];
+            b->M.w[n] = 0.0;
+            }
+        }
         
         // hydrostatic cells
         if(active(p,b)==0)

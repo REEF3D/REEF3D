@@ -100,6 +100,10 @@ void sflow_f::logic(lexer *p, fdm2D* b, ghostcell* pgc)
     if(p->A220>=5 && p->mpirank==0)
     cout<<"A 220 "<<p->A220<<" not available with the HLL scheme, using A 220 1"<<endl;
 
+    // A 221 2 (sflow_drywall.h): one Cartesian grid
+    if(p->A221==2 && (p->geo_curv==1 || p->geo_mb>0 || p->G1>0) && p->mpirank==0)
+    cout<<"SFLOW A 221 2 (dry land next to deep water as a wall): on one Cartesian grid only, here as A 221 1"<<endl;
+
     // turbulence
 	if(p->A260==0)
 	pturb =  new sflow_turb_void(p);

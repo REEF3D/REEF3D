@@ -272,6 +272,10 @@ private:
     // open sides; FSx, FSy: the sources of the predictor stage (wind, Coriolis, atmospheric pressure, ...) per unit
     // area, as F, G
     slice4 bcS;
+    // A 221 2 (sflow_drywall.h): the cells for which dry land next to them is a wall (drywall_cells, every step)
+    slice4 dwC;
+    bool dw_told = false;
+    void drywall_cells(lexer*, fdm2D*, ghostcell*);
     slice4 FSx, FSy;
     // A 210 11 with A 220 2/3: the non-hydrostatic increment of the cell momentum of the step before (nh_cell), the
     // NH part of the BCG source term

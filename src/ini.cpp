@@ -40,7 +40,7 @@ void control::ini_default()
     A218=0;      // int turn on roughness
     A219=1;      // int additional courant number constraint
     A220=2;		  // int non-hydrostatic pressure scheme for SFLOW
-    A221=1;		  // int non-hydrostatic pressure in very shallow regions
+    A221=1;		  // int SFLOW non-hydrostatic pressure at the shoreline: 0 off within two cells of a dry cell, 1 off in the cells next to a dry cell, 2 as 1 and dry land above the water of a cell deeper than its cell size is a wall (sflow_drywall.h)
     A222=1.0e-5; // double SFLOW TENO5 cutoff C_T (A 213 2)
     A224=1.159;  // double dispersion parameter alpha for A 220 3 (1: quadratic, 1.159: optimised)
     A240=1;      // int FSF algorithm SFLOW
