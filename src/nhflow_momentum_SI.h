@@ -46,11 +46,17 @@ using namespace std;
 // Layout of the SI-private 3D arrays (the work arrays of the step: Qx .. dVH, the non-hydrostatic NQx .. NSY, PHI,
 // NQcx/NQcy, the time levels accU .. FSy, nUZx/nUZy, hoPS): cell (i, j, k) at lso + i lsi + j lsj + k (layout_ini).
 // The full layout (lsi = jmax kmax, lsj = kmax, lso = -(imin lsi + jmin lsj + kmin)) is that of IJK: the same index.
+// The compact layout (one Cartesian grid, not a block, no curvilinear or refined grid): the cells i in [-3, knox+3),
+// j in [-3, knoy+3) (one row j = 0 with j_dir 0) and k in [0, knoz] (the cells and the top face), about 2/5 of the
+// entries in 3D and 1/15 in 1D. Environment REEF3D_SI_LAYOUT=full keeps the full layout.
 // The shared fields of fdm_nhf (U, UH, F, ...) and the other arrays keep IJK. P-macros index the private arrays;
-// PEXT(a) hands a private array to code that indexes it with IJK (ghost cells, the open boundaries, the outputs).
-// Environment REEF3D_SI_LSHIFT (test): the private arrays are shifted by lshift entries, so that an access with IJK
-// instead of a P-macro reads another cell (the regression then differs from the unshifted run).
+// code that indexes a private array with IJK (ghost cells, the open boundaries, MPI exchange, checkpoints, tracers)
+// gets it through lfull / lback (a copy in the full layout with the compact layout), lset / lget (from / to a full
+// array). Environment REEF3D_SI_LSHIFT (test, full layout): the private arrays are shifted by lshift entries, so that
+// an access with IJK instead of a P-macro reads another cell. Compiled with -DSI_LCHECK: every P-macro index is
+// checked against the layout (lchk).
 // ---------------------------------------------------------------------------
+#ifndef SI_LCHECK
 #define PIJK (lso + i*lsi + j*lsj + k)
 #define PIp1JK (PIJK + lsi)
 #define PIm1JK (PIJK - lsi)
@@ -63,6 +69,20 @@ using namespace std;
 #define PIJKp1 (PIJK + 1)
 #define PIJKm1 (PIJK - 1)
 #define PIX(a,b,c) (lso + (a)*lsi + (b)*lsj + (c))
+#else
+#define PIJK lchk(i,j,k,__FILE__,__LINE__)
+#define PIp1JK lchk(i+1,j,k,__FILE__,__LINE__)
+#define PIm1JK lchk(i-1,j,k,__FILE__,__LINE__)
+#define PIp2JK lchk(i+2,j,k,__FILE__,__LINE__)
+#define PIm2JK lchk(i-2,j,k,__FILE__,__LINE__)
+#define PIJp1K lchk(i,j+1,k,__FILE__,__LINE__)
+#define PIJm1K lchk(i,j-1,k,__FILE__,__LINE__)
+#define PIJp2K lchk(i,j+2,k,__FILE__,__LINE__)
+#define PIJm2K lchk(i,j-2,k,__FILE__,__LINE__)
+#define PIJKp1 lchk(i,j,k+1,__FILE__,__LINE__)
+#define PIJKm1 lchk(i,j,k-1,__FILE__,__LINE__)
+#define PIX(a,b,c) lchk((a),(b),(c),__FILE__,__LINE__)
+#endif
 #define PEXT(x) ((x) + lshift)
 
 // ---------------------------------------------------------------------------
@@ -205,7 +225,14 @@ public:
     void ckpt_fields(const std::function<void(const char*, char, double*)> &fd, const std::function<void(const char*, char, int*)> &fi) override
     {
         // the private arrays in the layout of IJK (px, nhflow_momentum_SI.h)
-        auto px = [&](double *a) { return a!=nullptr ? a + lshift : nullptr; };
+        // compact layout: each private array through a full copy (gather, write or read, scatter)
+        auto px = [&](const char *n, double *a)
+        {
+            if(a==nullptr) return;
+            double *F = lfull(nullptr,a,0);
+            fd(n,'C',F);
+            lback(nullptr,a,0);
+        };
         fsfbody_ckpt_fields(fd);
         fd("si_qx",'S',qx.V); fd("si_qxn",'S',qxn.V); fd("si_qxE",'S',qxE.V); fd("si_Hx",'S',Hx.V);
         fd("si_alx",'S',alx.V); fd("si_gmx",'S',gmx.V); fd("si_ax",'S',ax.V); fd("si_kx",'S',kx.V);
@@ -214,16 +241,16 @@ public:
         fd("si_ay",'S',ay.V); fd("si_ky",'S',ky.V); fd("si_gy0",'S',gy0.V); fd("si_cy0",'S',cy0.V);
         fd("si_eta0",'S',eta0.V); fd("si_WL0",'S',WL0.V); fd("si_etaI",'S',etaI.V); fd("si_gmc",'S',gmc.V);
         fd("si_rhsW",'S',rhsW.V); fd("si_bdiag",'S',bdiag.V); fd("si_tS",'S',tS.V); fd("si_tE",'S',tE.V);
-        fd("si_WLk",'S',WLk.V); fd("si_etaB",'S',etaB.V); fd("si_WLb",'S',WLb.V); fd("si_Qx",'C',px(Qx));
-        fd("si_Qy",'C',px(Qy)); fd("si_Qxn",'C',px(Qxn)); fd("si_Qyn",'C',px(Qyn)); fd("si_Tx",'C',px(Tx));
-        fd("si_Ty",'C',px(Ty)); fd("si_QAx",'C',px(QAx)); fd("si_QAy",'C',px(QAy)); fd("si_Rx",'C',px(Rx));
-        fd("si_Ry",'C',px(Ry)); fd("si_UH0",'C',px(UH0)); fd("si_VH0",'C',px(VH0)); fd("si_WH0",'C',px(WH0));
-        fd("si_UHa",'C',px(UHa)); fd("si_VHa",'C',px(VHa)); fd("si_WHa",'C',px(WHa)); fd("si_UHb",'C',px(UHb));
-        fd("si_VHb",'C',px(VHb)); fd("si_WHb",'C',px(WHb)); fd("si_UHp",'C',px(UHp)); fd("si_VHp",'C',px(VHp));
-        fd("si_WHp",'C',px(WHp)); fd("si_UHD",'C',px(UHD)); fd("si_VHD",'C',px(VHD)); fd("si_WHD",'C',px(WHD));
-        fd("si_dUH",'C',px(dUH)); fd("si_dVH",'C',px(dVH));
+        fd("si_WLk",'S',WLk.V); fd("si_etaB",'S',etaB.V); fd("si_WLb",'S',WLb.V); px("si_Qx",Qx);
+        px("si_Qy",Qy); px("si_Qxn",Qxn); px("si_Qyn",Qyn); px("si_Tx",Tx);
+        px("si_Ty",Ty); px("si_QAx",QAx); px("si_QAy",QAy); px("si_Rx",Rx);
+        px("si_Ry",Ry); px("si_UH0",UH0); px("si_VH0",VH0); px("si_WH0",WH0);
+        px("si_UHa",UHa); px("si_VHa",VHa); px("si_WHa",WHa); px("si_UHb",UHb);
+        px("si_VHb",VHb); px("si_WHb",WHb); px("si_UHp",UHp); px("si_VHp",VHp);
+        px("si_WHp",WHp); px("si_UHD",UHD); px("si_VHD",VHD); px("si_WHD",WHD);
+        px("si_dUH",dUH); px("si_dVH",dVH);
         // the time levels of the step before (second order in time, tl2; nh_begin, nh_levels)
-        fd("si_accU",'C',px(accU)); fd("si_accV",'C',px(accV)); fd("si_accW",'C',px(accW));
+        px("si_accU",accU); px("si_accV",accV); px("si_accW",accW);
         fd("si_Bx",'C',Bx); fd("si_By",'C',By); fd("si_BFx",'C',BFx); fd("si_BFy",'C',BFy);
         fd("si_nOmP",'F',nOmP.data()); fd("si_nHxo",'S',nHxo.data()); fd("si_nHyo",'S',nHyo.data());
         if(!nWLo.empty()) fd("si_nWLo",'S',nWLo.data());
@@ -324,6 +351,8 @@ private:
     void exchange4(lexer*, ghostcell*, slice&);
     void exchangeF(lexer*, ghostcell*, double*);
     void exchangeC(lexer*, ghostcell*, double*);
+    void pexchF(lexer*, ghostcell*, double*);    // a private array (lfull)
+    void pexchC(lexer*, ghostcell*, double*);
 
     // non-hydrostatic pressure (A 520 > 0) coupled with eta^{n+1}, after the multilayer solver of Popinet 2020
     // (nhflow_momentum_SI_nh.cpp): phi = p/rho on the layer interfaces (PHI, k: the lower interface of layer k), the
@@ -438,6 +467,24 @@ private:
     int lsi = 0, lsj = 0, lso = 0, lshift = 0;
     size_t lN = 0;
     void layout_ini(lexer*, bool);
+    bool lcomp = false;                 // compact layout
+    int lmx = 0, lmy = 0, lnk = 0;      // compact: ghost cells in i, j, the entries of a column (knoz+1)
+    int lki = 0, lkj = 0;               // compact: the cells in i, j incl. ghost cells
+    int lrng[4] = {0,0,0,0};            // the columns of the layout: i in [lrng[0], lrng[1]), j in [lrng[2], lrng[3])
+    size_t fN = 0;                      // entries of a full array (IJK)
+    int fim = 0, fjm = 0, fkm = 0, fjx = 0, fkx = 0;    // the full layout: imin, jmin, kmin, jmax, kmax
+    double *lscr[3] = {nullptr,nullptr,nullptr};   // compact: full copies of private arrays (lfull)
+    void lgather(lexer*, const double *P, double *F) const;     // compact -> full (the cells of the layout)
+    void lscatter(lexer*, const double *F, double *P) const;    // full -> compact
+public:
+    double* lfull(lexer*, double *P, int s);    // the array in the layout of IJK: P itself (full) or scratch s (compact)
+    void lback(lexer*, double *P, int s);       // compact: scratch s (changed by IJK code) back to P
+    void lset(lexer*, double *P, const double *F);          // P = F (F a full array)
+    void lget(lexer*, const double *P, double *F);          // F = P (F a full array; compact: the cells of the layout)
+private:
+#ifdef SI_LCHECK
+    int lchk(int a, int b, int c, const char *file, int line) const;
+#endif
     double *Qx, *Qy, *Qxn, *Qyn, *Tx, *Ty, *QAx, *QAy, *Rx, *Ry;
 
     // layer state: t^n, RK stages, predictor, implicit diffusion

@@ -33,6 +33,7 @@ Author: Hans Bihs
 #include"ghostcell.h"
 #include"ioflow.h"
 #include<limits>
+#include<cstring>
 #include"reefckpt.h"
 #include"nhflow_reconstruct.h"
 #include"nhflow_curv.h"
@@ -73,12 +74,13 @@ template<class F> inline void layer_loop(lexer *p, F &&fn)
     }
 }
 
-// the same for the private arrays of the step (their layout: lsi, lsj, lso, nhflow_momentum_SI.h)
-template<class F> inline void player_loop(lexer *p, int lsi, int lsj, int lso, F &&fn)
+// the same for the private arrays of the step (their layout: lsi, lsj, lso and the columns lr: i from lr[0] to lr[1],
+// j from lr[2] to lr[3], nhflow_momentum_SI.h)
+template<class F> inline void player_loop(lexer *p, int lsi, int lsj, int lso, const int *lr, F &&fn)
 {
     const int K = p->knoz;
-    for(int a=p->imin; a<p->imin+p->imax; ++a)
-    for(int c=p->jmin; c<p->jmin+p->jmax; ++c)
+    for(int a=lr[0]; a<lr[1]; ++a)
+    for(int c=lr[2]; c<lr[3]; ++c)
     {
     const size_t q0 = (size_t)(lso + a*lsi + c*lsj);
     for(int m=0; m<K; ++m)
@@ -135,21 +137,22 @@ nhflow_momentum_SI::nhflow_momentum_SI(lexer *p, fdm_nhf *d, ghostcell *pgc, six
 
     if(p->A620>0)
     {
+    // full layout (IJK)
     double **ba[] = {&Bx,&By,&BFx,&BFy};
     for(double **a : ba)
-    p->Darray_lazy(*a,N);
+    p->Darray_lazy(*a,fN);
     }
 
     // A 623 with the algebraic eddy viscosity A 547: its stability functions
     if(p->A623>0 && p->A560==0 && (p->A547_c>0.0 || p->A547_nu0>0.0))
     {
-    p->Darray_lazy(KV,N);
-    p->Darray_lazy(N2,N);
+    p->Darray_lazy(KV,fN);
+    p->Darray_lazy(N2,fN);
     }
 
     // A 627 + A 623 with a turbulence model: the floor damped by f_m(Ri)
     if(p->A627_c>0.0 && p->A623>0 && p->A560>0)
-    p->Darray_lazy(N2,N);
+    p->Darray_lazy(N2,fN);
 
     // the 2D solver of the eta system: created with the first solve of one grid (new_solver2D); the
     // multi-block grid solves the eta system of all blocks together (nhflow_amr_si.cpp)
@@ -174,9 +177,9 @@ nhflow_momentum_SI::nhflow_momentum_SI(lexer *p, fdm_nhf *d, ghostcell *pgc, six
     if(elm_mode(p)==1)
     {
     rk = 1;
-    p->Darray_lazy(ELU,N);
-    p->Darray_lazy(ELV,N);
-    p->Darray_lazy(ELW,N);
+    p->Darray_lazy(ELU,fN);
+    p->Darray_lazy(ELV,fN);
+    p->Darray_lazy(ELW,fN);
     }
     qini = false;
     wd_iter = 0;
@@ -282,22 +285,136 @@ nhflow_momentum_SI::nhflow_momentum_SI(lexer *p, fdm_nhf *d, ghostcell *pgc, six
 
 void nhflow_momentum_SI::layout_ini(lexer *p, bool block)
 {
-    // the private arrays in the full layout (the index of IJK); REEF3D_SI_LSHIFT (test, one Cartesian grid): shifted
+    fim = p->imin;
+    fjm = p->jmin;
+    fkm = p->kmin;
+    fjx = p->jmax;
+    fkx = p->kmax;
+    fN = (size_t)p->imax*p->jmax*(p->kmax+2);
+
+    // compact on one Cartesian grid (nhflow_momentum_SI.h); REEF3D_SI_LAYOUT=full: the full layout
+    const char *e = getenv("REEF3D_SI_LAYOUT");
+    const bool want_full = e!=nullptr && strcmp(e,"full")==0;
+
+    lshift = 0;
+    lcomp = !want_full && !block && p->geo_curv==0 && p->geo_mb==0 && p->G1==0;
+
+    if(lcomp)
+    {
+    lmx = 3;
+    lmy = p->j_dir==1 ? 3 : 0;
+    lnk = p->knoz+1;
+    lki = p->knox+2*lmx;
+    lkj = p->knoy+2*lmy;
+    lsj = lnk;
+    lsi = lkj*lnk;
+    lso = lmx*lsi + lmy*lsj;
+    lN = (size_t)lki*lkj*lnk;
+    lrng[0] = -lmx; lrng[1] = lki-lmx; lrng[2] = -lmy; lrng[3] = lkj-lmy;
+    return;
+    }
+
+    // the full layout (the index of IJK); REEF3D_SI_LSHIFT (test, one Cartesian grid): shifted
     lsi = p->jmax*p->kmax;
     lsj = p->kmax;
-    lshift = 0;
 
-    const char *e = getenv("REEF3D_SI_LSHIFT");
+    e = getenv("REEF3D_SI_LSHIFT");
 
     if(e!=nullptr && atoi(e)!=0 && !block && p->geo_curv==0 && p->geo_mb==0 && p->G1==0)
     lshift = 3*lsi + 2*lsj + 5;
 
     lso = -(p->imin*lsi + p->jmin*lsj + p->kmin) + lshift;
-    lN = (size_t)p->imax*p->jmax*(p->kmax+2) + lshift;
+    lN = fN + lshift;
+    lrng[0] = p->imin; lrng[1] = p->imin+p->imax; lrng[2] = p->jmin; lrng[3] = p->jmin+p->jmax;
 
     if(lshift>0 && p->mpirank==0)
     cout<<"NHFLOW semi-implicit: the private arrays shifted by "<<lshift<<" entries (REEF3D_SI_LSHIFT, test)"<<endl;
 }
+
+void nhflow_momentum_SI::lgather(lexer*, const double *P, double *F) const
+{
+    // the cells of the compact layout into the full array F (the other entries of F unchanged)
+    for(int a=-lmx; a<lki-lmx; ++a)
+    for(int b=-lmy; b<lkj-lmy; ++b)
+    {
+    const double *s = P + lso + a*lsi + b*lsj;
+    double *t = F + (size_t)(a-fim)*fjx*fkx + (size_t)(b-fjm)*fkx - fkm;
+    memcpy(t,s,lnk*sizeof(double));
+    }
+}
+
+void nhflow_momentum_SI::lscatter(lexer*, const double *F, double *P) const
+{
+    for(int a=-lmx; a<lki-lmx; ++a)
+    for(int b=-lmy; b<lkj-lmy; ++b)
+    {
+    double *t = P + lso + a*lsi + b*lsj;
+    const double *s = F + (size_t)(a-fim)*fjx*fkx + (size_t)(b-fjm)*fkx - fkm;
+    memcpy(t,s,lnk*sizeof(double));
+    }
+}
+
+double* nhflow_momentum_SI::lfull(lexer *p, double *P, int s)
+{
+    if(!lcomp)
+    return P + lshift;
+
+    if(lscr[s]==nullptr)
+    lscr[s] = (double*)calloc(fN,sizeof(double));
+
+    lgather(p,P,lscr[s]);
+    return lscr[s];
+}
+
+void nhflow_momentum_SI::lback(lexer *p, double *P, int s)
+{
+    if(lcomp)
+    lscatter(p,lscr[s],P);
+}
+
+void nhflow_momentum_SI::lset(lexer *p, double *P, const double *F)
+{
+    if(!lcomp)
+    memcpy(P+lshift,F,fN*sizeof(double));
+
+    else
+    lscatter(p,F,P);
+}
+
+void nhflow_momentum_SI::lget(lexer *p, const double *P, double *F)
+{
+    if(!lcomp)
+    memcpy(F,P+lshift,fN*sizeof(double));
+
+    else
+    lgather(p,P,F);
+}
+
+#ifdef SI_LCHECK
+int nhflow_momentum_SI::lchk(int a, int b, int c, const char *file, int line) const
+{
+    // the index range of the layout: compact as layout_ini, full the cells of IJK (and the slack of kmax+2)
+    bool ok;
+
+    if(lcomp)
+    ok = a>=-lmx && a<lki-lmx && b>=-lmy && b<lkj-lmy && c>=0 && c<lnk;
+
+    else
+    ok = a>=fim && b>=fjm && b<fjm+fjx && c>=fkm && c<fkm+fkx;
+
+    if(!ok)
+    {
+    static int nrep = 0;
+
+    if(nrep<50)
+    fprintf(stderr,"SI_LCHECK %s:%d  (%d, %d, %d)  %s\n",file,line,a,b,c,lcomp?"compact":"full");
+
+    ++nrep;
+    }
+
+    return lso + a*lsi + b*lsj + c;
+}
+#endif
 
 nhflow_momentum_SI::~nhflow_momentum_SI()
 {
@@ -310,7 +427,7 @@ nhflow_momentum_SI::~nhflow_momentum_SI()
 
     delete psi;
     delete ptrc;
-    for(double *a : {Bx,By,BFx,BFy,KV,N2,ELU,ELV,ELW,accU,accV,accW,FSx,FSy})
+    for(double *a : {Bx,By,BFx,BFy,KV,N2,ELU,ELV,ELW,accU,accV,accW,FSx,FSy,lscr[0],lscr[1],lscr[2]})
     free(a);
 
     nh_free();
@@ -585,7 +702,7 @@ void nhflow_momentum_SI::si_corrector(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
     // the second pass of tl2: the face discharges back to t^n, the transport of the estimate (Tx, Ty) stays
 
-    player_loop(p,lsi,lsj,lso,[&](size_t q){ Qx[q] = Qxn[q]; Qy[q] = Qyn[q]; });
+    player_loop(p,lsi,lsj,lso,lrng,[&](size_t q){ Qx[q] = Qxn[q]; Qy[q] = Qyn[q]; });
 
     for(i=p->imin; i<p->imin+p->imax; ++i)
     for(j=p->jmin; j<p->jmin+p->jmax; ++j)
@@ -723,11 +840,11 @@ void nhflow_momentum_SI::si_begin(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_s
     pflow->inflow_nhflow(p,d,pgc,d->U,d->V,d->W,d->UH,d->VH,d->WH,d->WL);
 
     // state at t^n (all cells incl. ghost cells)
-    memcpy(PEXT(UH0),d->UH,N*sizeof(double));
-    memcpy(PEXT(WH0),d->WH,N*sizeof(double));
+    lset(p,UH0,d->UH);
+    lset(p,WH0,d->WH);
 
     if(p->j_dir==1)
-    memcpy(PEXT(VH0),d->VH,N*sizeof(double));
+    lset(p,VH0,d->VH);
 
     else
     std::fill(VH0,VH0+lN,0.0);
@@ -803,8 +920,8 @@ void nhflow_momentum_SI::si_begin(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_s
 
     exchange1(p,pgc,qx);
     exchange2(p,pgc,qy);
-    exchangeF(p,pgc,PEXT(Qx));
-    exchangeF(p,pgc,PEXT(Qy));
+    pexchF(p,pgc,Qx);
+    pexchF(p,pgc,Qy);
 
     // face depths upwind of the new discharges
     face_depth(p,d,pgc);
@@ -817,12 +934,12 @@ void nhflow_momentum_SI::si_begin(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_s
     bc_setup(p,d,pgc);
 
     if(!qini)
-    player_loop(p,lsi,lsj,lso,[&](size_t q){ Tx[q] = Qx[q]; Ty[q] = Qy[q]; });
+    player_loop(p,lsi,lsj,lso,lrng,[&](size_t q){ Tx[q] = Qx[q]; Ty[q] = Qy[q]; });
 
     qini = true;
 
     // Q^n, q^n
-    player_loop(p,lsi,lsj,lso,[&](size_t q){ Qxn[q] = Qx[q]; Qyn[q] = Qy[q]; });
+    player_loop(p,lsi,lsj,lso,lrng,[&](size_t q){ Qxn[q] = Qx[q]; Qyn[q] = Qy[q]; });
 
     for(i=p->imin; i<p->imin+p->imax; ++i)
     for(j=p->jmin; j<p->jmin+p->jmax; ++j)
@@ -832,8 +949,10 @@ void nhflow_momentum_SI::si_begin(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_s
     }
 
     // the inflow ghost cells of the stage arrays from those of t^n
-    S.pflow->rkinflow_nhflow(p,d,pgc,d->U,d->V,d->W,PEXT(UHa),PEXT(VHa),PEXT(WHa),WL0);
-    S.pflow->rkinflow_nhflow(p,d,pgc,d->U,d->V,d->W,PEXT(UHb),PEXT(VHb),PEXT(WHb),WL0);
+    S.pflow->rkinflow_nhflow(p,d,pgc,d->U,d->V,d->W,lfull(p,UHa,0),lfull(p,VHa,1),lfull(p,WHa,2),WL0);
+    lback(p,UHa,0); lback(p,VHa,1); lback(p,WHa,2);
+    S.pflow->rkinflow_nhflow(p,d,pgc,d->U,d->V,d->W,lfull(p,UHb,0),lfull(p,VHb,1),lfull(p,WHb,2),WL0);
+    lback(p,UHb,0); lback(p,VHb,1); lback(p,WHb,2);
 
     // the face depths of the gravity term and of the mass flux
     mlflux_faces(p,d,pgc);
@@ -1694,10 +1813,17 @@ void nhflow_momentum_SI::si_stage_vel(lexer *p, fdm_nhf *d, ghostcell *pgc, nhfl
     // has them from the first pass in the second one (tl2)
     if(!(s==0 && si_pass>0))
     {
-    pgc->start4V(p,PEXT(UHs),gcval_uh);
+    pgc->start4V(p,lfull(p,UHs,0),gcval_uh);
+    lback(p,UHs,0);
+
     if(p->j_dir==1)     // one row of cells: V, VH stay 0 (their ghost cells too)
-    pgc->start4V(p,PEXT(VHs),gcval_vh);
-    pgc->start4V(p,PEXT(WHs),gcval_wh);
+    {
+    pgc->start4V(p,lfull(p,VHs,0),gcval_vh);
+    lback(p,VHs,0);
+    }
+
+    pgc->start4V(p,lfull(p,WHs,0),gcval_wh);
+    lback(p,WHs,0);
     }
 
     // below the depth A 546 desingularised (Kurganov and Petrova 2007), as sflow_momentum_SI::rk_stage:
@@ -1771,7 +1897,7 @@ void nhflow_momentum_SI::si_stage_rhs(lexer *p, fdm_nhf *d, ghostcell *pgc, nhfl
     pflow->isource_nhflow(p,d,pgc,pvrans,WL0);
     pwind->wind_forcing_nhf_x(p,d,pgc,d->U,d->V,d->F,WL0,d->eta);
     if(pmet!=nullptr)
-    pmet->source_nhflow(p,pgc,d->F,0,WL0,PEXT(UHs),PEXT(VHs));
+    pmet->source_nhflow(p,pgc,d->F,0,WL0,lfull(p,UHs,0),lfull(p,VHs,1));   // read only
     if(d->wave!=nullptr)
     d->wave->u_source(p,d);
     irhs(p,d,pgc);
@@ -1784,7 +1910,7 @@ void nhflow_momentum_SI::si_stage_rhs(lexer *p, fdm_nhf *d, ghostcell *pgc, nhfl
     pflow->jsource_nhflow(p,d,pgc,pvrans,WL0);
     pwind->wind_forcing_nhf_y(p,d,pgc,d->U,d->V,d->G,WL0,d->eta);
     if(pmet!=nullptr)
-    pmet->source_nhflow(p,pgc,d->G,1,WL0,PEXT(UHs),PEXT(VHs));
+    pmet->source_nhflow(p,pgc,d->G,1,WL0,lfull(p,UHs,0),lfull(p,VHs,1));   // read only
     if(d->wave!=nullptr)
     d->wave->v_source(p,d);
     jrhs(p,d,pgc);
@@ -2378,8 +2504,8 @@ void nhflow_momentum_SI::si_predictor_end(lexer *p, fdm_nhf *d, ghostcell *pgc)
     VHD[PIJK] = (p->wet[IJ]==1 && p->j_dir==1) ? VHp[PIJK] : 0.0;
     }
 
-    exchangeC(p,pgc,PEXT(UHD));
-    exchangeC(p,pgc,PEXT(VHD));
+    pexchC(p,pgc,UHD);
+    pexchC(p,pgc,VHD);
 
 }
 
@@ -2723,8 +2849,8 @@ void nhflow_momentum_SI::si_old_closed(lexer *p, ghostcell *pgc)
 
     exchange1(p,pgc,qxn);
     exchange2(p,pgc,qyn);
-    exchangeF(p,pgc,PEXT(Qxn));
-    exchangeF(p,pgc,PEXT(Qyn));
+    pexchF(p,pgc,Qxn);
+    pexchF(p,pgc,Qyn);
 
     for(const bc_face &f : bcf)
     if(f.type==bc_level && (f.cs==1 || f.cs==4 ? Hx(f.fi,f.fj) : Hy(f.fi,f.fj))<=0.0)
@@ -2900,11 +3026,11 @@ void nhflow_momentum_SI::face_update(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
     exchange1(p,pgc,qx);
     exchange2(p,pgc,qy);
-    exchangeF(p,pgc,PEXT(Qx));
-    exchangeF(p,pgc,PEXT(Qy));
+    pexchF(p,pgc,Qx);
+    pexchF(p,pgc,Qy);
 
     // layer transport of the step
-    player_loop(p,lsi,lsj,lso,[&](size_t q)
+    player_loop(p,lsi,lsj,lso,lrng,[&](size_t q)
     {
     Tx[q] = theta*Qx[q] + (1.0-theta)*Qxn[q];
     Ty[q] = theta*Qy[q] + (1.0-theta)*Qyn[q];
@@ -3124,8 +3250,8 @@ void nhflow_momentum_SI::cell_update(lexer *p, fdm_nhf *d, ghostcell *pgc)
     // fourth order: the phi face terms two faces away, also those of the neighbouring ranks (nh_cell_faces)
     if(nh && ho)
     {
-    exchangeC(p,pgc,PEXT(NQx));
-    exchangeC(p,pgc,PEXT(NQy));
+    pexchC(p,pgc,NQx);
+    pexchC(p,pgc,NQy);
     }
 
     SLICELOOP4
@@ -3363,8 +3489,8 @@ void nhflow_momentum_SI::relax(lexer *p, fdm_nhf *d, ghostcell *pgc)
     if(p->B95!=0.0)
     pflow->wavegen_stage_nhflow(p,d,pgc,p->simtime+p->dt);
 
-    memcpy(PEXT(dUH),d->UH,N*sizeof(double));
-    memcpy(PEXT(dVH),d->VH,N*sizeof(double));
+    lset(p,dUH,d->UH);
+    lset(p,dVH,d->VH);
 
     SLICELOOP4
     tS(i,j) = d->WL(i,j);
@@ -3402,8 +3528,8 @@ void nhflow_momentum_SI::relax(lexer *p, fdm_nhf *d, ghostcell *pgc)
     dVH[PIJK] = (d->VH[IJK] - dVH[PIJK])*p->y_dir;
     }
 
-    exchangeC(p,pgc,PEXT(dUH));
-    exchangeC(p,pgc,PEXT(dVH));
+    pexchC(p,pgc,dUH);
+    pexchC(p,pgc,dVH);
 
     double nx,ny;
 
@@ -3436,8 +3562,8 @@ void nhflow_momentum_SI::relax(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
     exchange1(p,pgc,qx);
     exchange2(p,pgc,qy);
-    exchangeF(p,pgc,PEXT(Qx));
-    exchangeF(p,pgc,PEXT(Qy));
+    pexchF(p,pgc,Qx);
+    pexchF(p,pgc,Qy);
 
     exchange4(p,pgc,d->WL);
     exchange4(p,pgc,d->eta);
@@ -3471,9 +3597,9 @@ void nhflow_momentum_SI::finish(lexer *p, fdm_nhf *d, ghostcell *pgc)
             accU[PIJK] = accV[PIJK] = accW[PIJK] = 0.0;
         }
 
-        exchangeC(p,pgc,PEXT(accU));
-        exchangeC(p,pgc,PEXT(accV));
-        exchangeC(p,pgc,PEXT(accW));
+        pexchC(p,pgc,accU);
+        pexchC(p,pgc,accV);
+        pexchC(p,pgc,accW);
     }
 
     // velocities (Froude limiter A 531), ghost cells
@@ -3485,8 +3611,8 @@ void nhflow_momentum_SI::finish(lexer *p, fdm_nhf *d, ghostcell *pgc)
     pgc->start4V(p,d->WH,gcval_wh);
 
     // the layer transport of the step is the continuity flux: omega, and the advection of the next step
-    memcpy(d->FEx,PEXT(Tx),N*sizeof(double));
-    memcpy(d->FEy,PEXT(Ty),N*sizeof(double));
+    lget(p,Tx,d->FEx);
+    lget(p,Ty,d->FEy);
 
     omega_update(p,d,pgc,d->WL,d->U,d->V,d->W);
 
@@ -3702,6 +3828,25 @@ void nhflow_momentum_SI::exchangeF(lexer *p, ghostcell *pgc, double *f)
     {
     pgc->gcparaxV1(p,f,14);
     pgc->gcparacoxV1(p,f,14);
+    }
+}
+
+void nhflow_momentum_SI::pexchF(lexer *p, ghostcell *pgc, double *P)
+{
+    // a private array (nhflow_momentum_SI.h), MPI only
+    if(p->mpi_size>1)
+    {
+    exchangeF(p,pgc,lfull(p,P,0));
+    lback(p,P,0);
+    }
+}
+
+void nhflow_momentum_SI::pexchC(lexer *p, ghostcell *pgc, double *P)
+{
+    if(p->mpi_size>1)
+    {
+    exchangeC(p,pgc,lfull(p,P,0));
+    lback(p,P,0);
     }
 }
 
