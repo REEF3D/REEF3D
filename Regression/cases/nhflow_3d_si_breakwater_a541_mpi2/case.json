@@ -1,0 +1,20 @@
+{
+ "description": "nhflow_3d_breakwater_a541_mpi2 with the semi-implicit step (A 510 11, A 520 2, theta 0.5, dt 0.4 s, B 95 0.05) on 2 ranks: the columns along the breakwater and around its tip in the coupled eta-phi system, the multigrid of the coupled solve with dry columns next to non-hydrostatic ones.",
+ "solver": "nhflow",
+ "np": 2,
+ "steps": 80,
+ "tags": [
+  "quick",
+  "3d",
+  "nhflow",
+  "waves",
+  "wetdry",
+  "nonhydrostatic",
+  "semi_implicit",
+  "mpi"
+ ],
+ "covers": [
+  "nhflow_momentum_SI::nh_prepare with A 541 in 3D (NSY one-sided), nhflow_si_nhmg with walls of dry columns"
+ ],
+ "architect": "Hans Bihs"
+}

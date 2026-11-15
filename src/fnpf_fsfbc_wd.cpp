@@ -226,6 +226,45 @@ void fnpf_fsfbc_wd::fsfdisc(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, s
         }
     }, pconvec, pddx, pdx);
 
+    // The bed slope and curvature of a wet cell at the coast, from the wet side only: the dry cell next
+    // to it is a wall for the Laplace equation (fnpf_laplace_cds2), and its bed is not the bed of the water
+    // column. Across a steep shore (quay wall, breakwater, cliff) the curvature over the dry cell is the
+    // height of the shore over dx^2 and the slope of the 4th-order stencil (A 312 3) a part of it over dx:
+    // through the sigma metrics the column at the wall then takes up and gives off water.
+    // Bxx = Byy = 0 there (as Exx, Eyy at the front, A 336); A 312 3: the slope as A 312 2 (the limited
+    // one-sided slopes, which is the wet-side slope or zero at a cliff).
+    {
+        const bool wide = (p->A312==3);
+        
+        auto limited = [](double v1, double v2)
+        {
+            double denom = fabs(v1) + fabs(v2);
+            denom = fabs(denom)>1.0e-10?denom:1.0e10;
+            return (v1*fabs(v2) + fabs(v1)*v2)/denom;
+        };
+        
+        SLICELOOP4
+        if(p->wet[IJ]==1)
+        {
+            if(p->wet[Im1J]==0 || p->wet[Ip1J]==0 || (wide && (p->wet[Im2J]==0 || p->wet[Ip2J]==0)))
+            {
+                c->Bxx(i,j) = 0.0;
+                
+                if(wide)
+                c->Bx(i,j) = limited((c->depth(i+1,j)-c->depth(i,j))/p->DXP[IP], (c->depth(i,j)-c->depth(i-1,j))/p->DXP[IM1]);
+            }
+            
+            if(p->j_dir==1)
+            if(p->wet[IJm1]==0 || p->wet[IJp1]==0 || (wide && (p->wet[IJm2]==0 || p->wet[IJp2]==0)))
+            {
+                c->Byy(i,j) = 0.0;
+                
+                if(wide)
+                c->By(i,j) = limited((c->depth(i,j+1)-c->depth(i,j))/p->DYP[JP], (c->depth(i,j)-c->depth(i,j-1))/p->DYP[JM1]);
+            }
+        }
+    }
+
     // A343 2/3, A336 1: at the wet-dry front (dry cell inside the +-3 stencil)
     // the eta gradients are taken from wet cells only and Exx=Eyy=0. The eta WENO has no
     // wet-dry check and would otherwise read the film level of dry cells

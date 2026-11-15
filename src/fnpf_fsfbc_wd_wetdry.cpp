@@ -45,6 +45,17 @@ void fnpf_fsfbc_wd::wetdry(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, sl
         if(p->wd - c->bed(i,j) < c->wd_criterion)
         p->wet[IJ]=0;
 
+        // A 338: the wet areas that the coastline initialisation found cut off from the main water body
+        // (coastline < 0) stay dry. This start runs a second time after fsfdisc_ini has set all cells wet,
+        // and the coastline is only initialised in the first
+        if((p->A343==1 || p->A343==3) && p->A338==1 && coastline_count>0)
+        SLICELOOP4
+        if(c->coastline(i,j)<0.0)
+        {
+            wetcoast(i,j)=0;
+            p->wet[IJ]=0;
+        }
+
         SLICELOOP4
         c->WL(i,j) = MAX(c->wd_criterion, eta(i,j) + p->wd - c->bed(i,j));
 
@@ -117,14 +128,26 @@ void fnpf_fsfbc_wd::wetdry(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, sl
             SLICELOOP4
             wd_dvol(i,j) = 0.0;
 
+            // the averages of all clamped cells from the values before the clamp (ef: clamped, df: its
+            // average): written in place, a clamped cell next to another one took its new or its old
+            // value depending on the loop direction and on the rank boundaries
             SLICELOOP4
-            if(c->WL(i,j)<=c->wd_criterion && wetcoast(i,j)==1)
             {
-                const double etaw = 1.1*c->wd_criterion - c->depth(i,j);
-                wd_dvol(i,j) = etaw - eta(i,j);
-                eta(i,j) = etaw;
-                Fifsf(i,j) = wet_nb_average(p,Fifsf);
+                ef(i,j) = 0.0;
+                
+                if(c->WL(i,j)<=c->wd_criterion && wetcoast(i,j)==1)
+                {
+                    const double etaw = 1.1*c->wd_criterion - c->depth(i,j);
+                    wd_dvol(i,j) = etaw - eta(i,j);
+                    eta(i,j) = etaw;
+                    df(i,j) = wet_nb_average(p,Fifsf);
+                    ef(i,j) = 1.0;
+                }
             }
+            
+            SLICELOOP4
+            if(ef(i,j)>0.5)
+            Fifsf(i,j) = df(i,j);
 
             if(p->A334==1)
             wd_redistribute(p,c,pgc,eta,false);
@@ -302,6 +325,14 @@ void fnpf_fsfbc_wd::wetdry_dynamic(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice 
                     if(&Fifsf != &c->Fifsf)
                     c->Fifsf(i,j) = Fifsf(i,j);
 
+                    // the column of the new cell still holds the potential of the step it dried in
+                    // (0 on land): the explicit cross-derivatives of the wet columns next to it and
+                    // their bed boundary condition read it before the next solve
+                    for(k=-3; k<=p->knoz+3; ++k)
+                    c->Fi[FIJK] = Fifsf(i,j);
+
+                    k=0;
+
                     if(&eta != &c->eta)
                     c->eta(i,j) = eta(i,j);
                     ++nrewet;
@@ -375,6 +406,11 @@ void fnpf_fsfbc_wd::wetdry_dynamic(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice 
     // mesh refinement: the fixed cells exchange no volume (wd_redistribute)
     const bool hasfix = (p->wetfix!=nullptr);
 
+    // ef: clamped wet cell, df: its average over the wet neighbours from the values before the clamp
+    // (in place the result depends on the loop direction and on the rank boundaries)
+    SLICELOOP4
+    ef(i,j) = 0.0;
+    
     SLICELOOP4
     if(wetcoast(i,j)==1 || (hasfix && p->wetfix[IJ]>=0))
     {
@@ -398,9 +434,14 @@ void fnpf_fsfbc_wd::wetdry_dynamic(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice 
             if(!(hasfix && p->wetfix[IJ]>=0))
             wd_dvol(i,j) = etaw - eta(i,j);
             eta(i,j) = etaw;
-            Fifsf(i,j) = wet_nb_average(p,Fifsf);
+            df(i,j) = wet_nb_average(p,Fifsf);
+            ef(i,j) = 1.0;
         }
     }
+    
+    SLICELOOP4
+    if(ef(i,j)>0.5)
+    Fifsf(i,j) = df(i,j);
 
     // ---------------------------------------------------------------
     // 3. volume redistribution to the wet face neighbours

@@ -1,0 +1,19 @@
+{
+ "description": "FNPF 2D, regular waves (H 0.5 m, T 6 s, 10 m depth) against a vertical shore made of land: a block 500 < x < 600 m, 3 m above still water (S 10), static coastline (A 343 1), RK3, no bed smoothing (A 309 0). The dry cell behind the last wet column is a wall for the Laplace equation: the bed curvature of that column from the wet side (Bxx = 0, not the height of the block over dx^2), its bed boundary condition and sigma cross-derivatives with the mirror value. 700 steps (t = 70 s, the reflected wave back at the first gauge). With the patches the run agrees with the same waves against the wall of the domain at x = 500 m to 1.2 % of the amplitude after 150 s, before by 69 % (validation FNPF Coast/01).",
+ "solver": "fnpf",
+ "np": 1,
+ "steps": 700,
+ "tags": [
+  "quick",
+  "2d",
+  "fnpf",
+  "waves",
+  "wetdry",
+  "coastline"
+ ],
+ "covers": [
+  "fnpf_fsfbc_wd::fsfdisc: Bxx of a wet cell next to a dry cell",
+  "fnpf_laplace_cds2: cross-derivatives next to a dry column",
+  "fnpf_bed_update::bedbc_sig next to a dry column"
+ ]
+}

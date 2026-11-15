@@ -75,6 +75,15 @@ Architect: Hans Bihs
 //  the fluid below took part and only 8 layers of level 0 were extended; X 48 4 was this as an
 //  option, now the same as 3.)
 //
+//  Along the gravity the level set of a free surface at rest grows with the depth.  The step of the
+//  extension along z is limited to that side (from 0 to the height of the cell downwards): the water
+//  next to a body between two water levels (the foot of a lock gate on its sill) has the distance to
+//  the air behind the body, which grows with z; continued linearly it fell with the depth and put a
+//  zero crossing into the sill below the water.  The reinitialisation then took the water over the
+//  sill for the distance to that crossing, the extension followed, and the crossing rose to the top
+//  of the sill and spread along the bed (3 cm/s in the lock of validation 27): a layer of part-air
+//  density under the water, which rose in plumes of 1 m/s.
+//
 //  X 48 2 (the default); X 48 0 keeps the level set inside the solids as it is, X 48 1 is the copy
 //  into the ghost cells of the flagged solids (G 505 1, ghostcell::solid_forcing_lsm).
 //
@@ -95,10 +104,12 @@ inline bool towards(unsigned char l1, unsigned char l2)
 }
 
 // linear from the two neighbours towards the fluid (f1 the next at the distance h1, f2 the one after,
-// h2 from f1), the change limited to the distance h1
-inline double extrapolate(double f1, double f2, double h1, double h2)
+// h2 from f1), the change limited to the distance h1 and to the side of the free surface at rest
+// (lo, hi: 0 to h1 downwards, -h1 to 0 upwards): below water the level set of the solid does not
+// fall with the depth
+inline double extrapolate(double f1, double f2, double h1, double h2, double lo, double hi)
 {
-    return f1 + std::max(-h1, std::min(h1, (f1-f2)*h1/h2));
+    return f1 + std::max(lo*h1, std::min(hi*h1, (f1-f2)*h1/h2));
 }
 }
 
@@ -123,9 +134,26 @@ void levelset_solid_extend(lexer *p, fdm *a, ghostcell *pgc, field &f, int gcval
     // the layers, on the cells of the partition and its ghost cells across a partition edge or a
     // periodic edge (the fluid there within the ghost cells); fluid 0.  The ghost cells beyond the
     // edges of the domain are left out (outside): the level set there is the boundary condition.
-    const bool xm = p->nb1>=0 || p->periodic1==1, xp = p->nb4>=0 || p->periodic1==1;
-    const bool ym = p->nb3>=0 || p->periodic2==1, yp = p->nb2>=0 || p->periodic2==1;
-    const bool zm = p->nb5>=0 || p->periodic3==1, zp = p->nb6>=0 || p->periodic3==1;
+    bool xm = p->nb1>=0 || p->periodic1==1, xp = p->nb4>=0 || p->periodic1==1;
+    bool ym = p->nb3>=0 || p->periodic2==1, yp = p->nb2>=0 || p->periodic2==1;
+    bool zm = p->nb5>=0 || p->periodic3==1, zp = p->nb6>=0 || p->periodic3==1;
+
+    // a patch of the mesh refinement (cfd_amr): the cells around it inside the domain hold the level
+    // set of the patch next to it or of the coarser level (cfd_amr::fill_phi_out) and the level sets of
+    // the solids and the bodies.  They take part as the ghost cells across a partition edge: the fluid
+    // there starts the layers, the solid cells there pass their values on.  Without them a body cut
+    // by the edge between two patches took the level set of the fluid of its own patch alone (a lock
+    // gate: on the patch of the high side the water up to the edge, on the other the air), a step in
+    // the level set at the edge, on the face of the gate, and a film of 1.3 m/s down that face
+    if(p->amr_patch==1)
+    {
+        xm = p->origin_i>0;
+        xp = p->origin_i+p->knox<p->gknox;
+        ym = p->origin_j>0;
+        yp = p->origin_j+p->knoy<p->gknoy;
+        zm = p->origin_k>0;
+        zp = p->origin_k+p->knoz<p->gknoz;
+    }
     const int n = p->imax*p->jmax*p->kmax;
     std::vector<unsigned char> layer(n,outside);
     std::vector<int> solid;
@@ -147,6 +175,11 @@ void levelset_solid_extend(lexer *p, fdm *a, ghostcell *pgc, field &f, int gcval
     }
 
     const int si = p->jmax*p->kmax, sj = p->kmax, sk = 1;
+
+    // the side of the step along z (in units of the cell height): down along the gravity the level set
+    // does not fall, up it does not rise; without gravity along z both
+    const double dn_lo = p->W22<0.0 ? 0.0 : -1.0, dn_hi = p->W22>0.0 ? 0.0 : 1.0;
+    const double up_lo = p->W22>0.0 ? 0.0 : -1.0, up_hi = p->W22<0.0 ? 0.0 : 1.0;
 
     // the depth of the layers: through the whole solid, as many layers as the marks hold (254, the
     // mark 255 is outside).  On a patch of the mesh refinement (cfd_amr) the solid cells at the edge of
@@ -294,12 +327,12 @@ void levelset_solid_extend(lexer *p, fdm *a, ghostcell *pgc, field &f, int gcval
             }
             if(layer[q+sk]<l)
             {
-                sum += towards(layer[q+sk],layer[q+2*sk]) ? extrapolate(f(i,j,k+1),f(i,j,k+2),p->DZP[KP],p->DZP[KP1]) : f(i,j,k+1);
+                sum += towards(layer[q+sk],layer[q+2*sk]) ? extrapolate(f(i,j,k+1),f(i,j,k+2),p->DZP[KP],p->DZP[KP1],dn_lo,dn_hi) : f(i,j,k+1);
                 ++count;
             }
             if(layer[q-sk]<l && !(layer[q-sk]==0 && (belowok.empty() || !belowok[q])))
             {
-                sum += towards(layer[q-sk],layer[q-2*sk]) ? extrapolate(f(i,j,k-1),f(i,j,k-2),p->DZP[KM1],p->DZP[KM2]) : f(i,j,k-1);
+                sum += towards(layer[q-sk],layer[q-2*sk]) ? extrapolate(f(i,j,k-1),f(i,j,k-2),p->DZP[KM1],p->DZP[KM2],up_lo,up_hi) : f(i,j,k-1);
                 ++count;
             }
 

@@ -994,7 +994,9 @@ void seastate_st4::wind(const float *N, const double *row, const float *k, const
     const double zorb = aorb/z0noz;
     const double delabm1 = double(iab)/(abmax-abmin);
     const double xi = (std::log10(std::max(zorb,3.0)) - abmin)*delabm1;
-    const int ind = std::min(iab-1,int(xi));
+    // (a spectrum that is not finite gives xi = NaN, whose cast to int is undefined: the first entry, so that the run
+    // ends with the emergency stop of the NaN in Hs and not with a read outside the table)
+    const int ind = (xi>=0.0) ? std::min(iab-1,int(std::min(xi,double(iab)))) : 0;
     const double deli1 = std::min(1.0,xi-double(ind)), deli2 = 1.0-deli1;
     const double fww = swellft[ind]*deli2 + swellft[ind+1]*deli1;
     sw_temp2 = fww*uorbt;

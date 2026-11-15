@@ -119,8 +119,10 @@ void fnpf_rk::stage_surface(lexer *p, fdm_fnpf *c, ghostcell *pgc, ioflow *pflow
     {fnpf_prof::scope ps_(fnpf_prof::relax); pflow->wavegen_stage_fnpf(p,c,pgc,t,w);}
     {fnpf_prof::scope ps_(fnpf_prof::relax); pflow->eta_relax(p,pgc,e);}
     {fnpf_prof::scope ps_(fnpf_prof::wetdry); pf->wetdry(p,c,pgc,e,f);}
-    {fnpf_prof::scope ps_(fnpf_prof::gc2d); pgc->gcsl_start4(p,e,gcval_eta);}
+    // the halo of eta after the coastline relaxation (fsfdisc reads it): exchanged before it, the cells of
+    // the coastline band (A 341, A 342) next to a rank boundary were read unrelaxed by the neighbour rank
     {fnpf_prof::scope ps_(fnpf_prof::coastline); pf->coastline_eta(p,c,pgc,e);}
+    {fnpf_prof::scope ps_(fnpf_prof::gc2d); pgc->gcsl_start4(p,e,gcval_eta);}
     {fnpf_prof::scope ps_(fnpf_prof::coastline); pf->coastline_fi(p,c,pgc,f);}
     {fnpf_prof::scope ps_(fnpf_prof::relax); pflow->fifsf_relax(p,pgc,f);}
     {fnpf_prof::scope ps_(fnpf_prof::gc2d); pgc->gcsl_start4(p,f,gcval_fifsf);}

@@ -1,0 +1,19 @@
+{
+ "description": "nhflow_2d_wall_dryland_a541 with the semi-implicit step (A 510 11, A 520 2, theta 0.5, dt 0.2 s): the column in front of the dry land stays in the coupled eta-phi system (nAct), its dry face carries no discharge, the slopes of its layer interfaces are one-sided. Without A 541 that column is hydrostatic and the wave at the land comes out at 0.56 of its height.",
+ "solver": "nhflow",
+ "np": 1,
+ "steps": 250,
+ "tags": [
+  "quick",
+  "2d",
+  "nhflow",
+  "waves",
+  "wetdry",
+  "nonhydrostatic",
+  "semi_implicit"
+ ],
+ "covers": [
+  "nhflow_momentum_SI::nh_prepare: nAct of a column next to dry cells (nhflow_drywall::cliff), one-sided NSX"
+ ],
+ "architect": "Hans Bihs"
+}

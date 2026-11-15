@@ -1,0 +1,25 @@
+{
+ "description": "FNPF 3D coast from geodat (geo.dat, G 10 1, 600 x 400 m, dx 5 m): a curved shore with a 1:15 beach, an island (1:3 flanks), a headland and a lagoon below still water behind the shore, regular waves from the west (B 93 1.0 7.0, 12 m depth), static coastline with a 0.5 m wetting depth and a 25 m coastline band (A 343 1, A 344 0.5, A 342 25), RK3, 2 ranks, 160 steps (t = 73 s, the waves at the shore). Covers the coastline start: the lagoon is cut off from the sea (A 338) and stays dry in the second start, the bed smoothing A 309 from the old values, and the wet columns next to dry ones (bed curvature, bed boundary condition, cross-derivatives, Fifsf of clamped cells).",
+ "solver": "fnpf",
+ "np": 2,
+ "steps": 160,
+ "files": [
+  "geo.dat"
+ ],
+ "tags": [
+  "quick",
+  "3d",
+  "fnpf",
+  "waves",
+  "wetdry",
+  "coastline",
+  "geodat",
+  "mpi"
+ ],
+ "covers": [
+  "fnpf_sigma::sigma_ini bed smoothing",
+  "fnpf_coastline::isolated and the wet flags of the second start",
+  "fnpf_fsfbc_wd::wetdry static clamp (A 337 1)",
+  "fnpf_fsfbc_wd::fsfdisc Bxx, Byy at the coast"
+ ]
+}

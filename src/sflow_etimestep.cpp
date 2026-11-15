@@ -134,7 +134,8 @@ void sflow_etimestep::start(lexer *p, fdm2D* b, ghostcell* pgc)
     cmin = MIN(cmin, dtd/(2.0*cfl));
     }
     
-    // explicit horizontal diffusion (A 212 1): dt <= 0.5/(nu_eff (1/dx^2 + 1/dy^2)),
+    // explicit horizontal diffusion (A 212 1): dt <= 0.2/(nu_eff (1/dx^2 + 1/dy^2)); the normal stress
+    // d/dx (2 nu du/dx) diffuses with 2 nu: largest eigenvalue 8 nu (1/dx^2 + 1/dy^2), the limit of RK2 0.25/(...),
     // nu_eff = nu + nu_t (+ A 250 in breaking cells with A 246 2), as in sflow_ediff::viscosity
     if(p->A212==1)
     {
@@ -154,7 +155,7 @@ void sflow_etimestep::start(lexer *p, fdm2D* b, ghostcell* pgc)
         
         p->viscmax = MAX(p->viscmax,visc);
         
-        dtv = MIN(dtv, 0.5/(visc*(1.0/(p->DXN[IP]*p->DXN[IP]) + p->y_dir/(p->DYN[JP]*p->DYN[JP])) + 1.0e-20));
+        dtv = MIN(dtv, 0.2/(visc*(1.0/(p->DXN[IP]*p->DXN[IP]) + p->y_dir/(p->DYN[JP]*p->DYN[JP])) + 1.0e-20));
         }
         
     dtv = pgc->globalmin(dtv);

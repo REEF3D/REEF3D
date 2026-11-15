@@ -53,6 +53,14 @@ void fnpf_bed_update::bedbc_sig(lexer *p, fdm_fnpf *c, ghostcell *pgc, double *F
     {
     // tangential gradient of the potential the ghost cells are set for (the body potentials of
     // fnpf_6DOF are passed as Fi)
+    // a dry column next to a wet one is a wall (fnpf_laplace_cds2): the mirror value, the potential of
+    // this column, and not the potential of the dry column (0 on land, the value of the last wet step
+    // after drying)
+    if(p->wet[IJ]==1)
+    bcval =   (c->Bx(i,j)*((p->wet[Ip1J]==1 ? Fi[FIp1JK] : Fi[FIJK]) - (p->wet[Im1J]==1 ? Fi[FIm1JK] : Fi[FIJK]))/(p->DXP[IP] + p->DXP[IM1])
+    
+            +  c->By(i,j)*((p->wet[IJp1]==1 ? Fi[FIJp1K] : Fi[FIJK]) - (p->wet[IJm1]==1 ? Fi[FIJm1K] : Fi[FIJK]))/(p->DYP[JP] + p->DYP[JM1]));
+    else
     bcval =   (c->Bx(i,j)*(Fi[FIp1JK]-Fi[FIm1JK])/(p->DXP[IP] + p->DXP[IM1])
     
             +  c->By(i,j)*(Fi[FIJp1K]-Fi[FIJm1K])/(p->DYP[JP] + p->DYP[JM1]));

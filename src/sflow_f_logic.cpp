@@ -134,6 +134,10 @@ void sflow_f::logic(lexer *p, fdm2D* b, ghostcell* pgc)
     exit(1);
     }
     
+    // S 16 4: the bed shear stress 0.3 rho k needs the k of A 260 1/2 (zero otherwise: no sediment transport)
+    if(p->S10>0 && p->S16==4 && p->A260!=1 && p->A260!=2 && p->mpirank==0)
+    cout<<"SFLOW warning: S 16 4 (bed shear stress from k) without the k-epsilon or k-omega model (A 260 1/2): k is zero, no bed shear stress"<<endl;
+
     // Sediment
     if(p->S10==0)
     psed = new sediment_void();

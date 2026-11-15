@@ -276,9 +276,18 @@ void fnpf_laplace_cds2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *pso
             double sbm_row=0.0;      // A 430: the part of rv that a constant fm in the potential takes away
             double cnt=0.0,cnb=0.0,cst=0.0,csb=0.0,cwt=0.0,cwb=0.0,cet=0.0,ceb=0.0;
             
+            // a dry column next to this one is a wall (its coupling goes to the diagonal below): the
+            // cross-derivative takes the mirror value there, the potential of this column, and not the
+            // potential of the dry column (0 on land, the value of the last wet step after drying),
+            // which would enter as a jump of the size of Fi
+            const int oN = wN==1 ? sI : 0;
+            const int oS = wS==1 ? sI : 0;
+            const int oW = wW==1 ? sJ : 0;
+            const int oE = wE==1 ? sJ : 0;
+            
             if(!mix)
-            rv = 2.0*sx*(f[q+sI+1] - f[q-sI+1] - f[q+sI-1] + f[q-sI-1])/(dxc*dzc)
-               + 2.0*sy*(f[q+sJ+1] - f[q-sJ+1] - f[q+sJ-1] + f[q-sJ-1])/(dyc*dzc)*ydir;
+            rv = 2.0*sx*(f[q+oN+1] - f[q-oS+1] - f[q+oN-1] + f[q-oS-1])/(dxc*dzc)
+               + 2.0*sy*(f[q+oW+1] - f[q-oE+1] - f[q+oW-1] + f[q-oE-1])/(dyc*dzc)*ydir;
             
             else
             {
@@ -293,28 +302,28 @@ void fnpf_laplace_cds2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *pso
             auto unk = [&](int qq, int kn, int wc) {return kn>=0 && kn<p->knoz && flag7[qq]>0 && wc==1;};
             
             // top neighbours: unknown or surface/wall (explicit)
-            if(unk(q+sI+1,kt,wN)) cnt = -cx; else rv += cx*f[q+sI+1];
-            if(unk(q-sI+1,kt,wS)) cst =  cx; else rv -= cx*f[q-sI+1];
-            if(unk(q+sJ+1,kt,wW)) cwt = -cy; else rv += cy*f[q+sJ+1];
-            if(unk(q-sJ+1,kt,wE)) cet =  cy; else rv -= cy*f[q-sJ+1];
+            if(unk(q+sI+1,kt,wN)) cnt = -cx; else rv += cx*f[q+oN+1];
+            if(unk(q-sI+1,kt,wS)) cst =  cx; else rv -= cx*f[q-oS+1];
+            if(unk(q+sJ+1,kt,wW)) cwt = -cy; else rv += cy*f[q+oW+1];
+            if(unk(q-sJ+1,kt,wE)) cet =  cy; else rv -= cy*f[q-oE+1];
             
             // bottom neighbours; at k=0 the bed ghost is f(k=0) of that column
             // plus the slope part, so f(k=0) goes into the n/s/w/e coupling
             if(unk(q+sI-1,kb,wN)) cnb =  cx;
             else if(k==0 && unk(q+sI,k,wN)) {mn += cx; rv -= cx*(f[q+sI-1]-f[q+sI]);}
-            else rv -= cx*f[q+sI-1];
+            else rv -= cx*f[q+oN-1];
             
             if(unk(q-sI-1,kb,wS)) csb = -cx;
             else if(k==0 && unk(q-sI,k,wS)) {ms -= cx; rv += cx*(f[q-sI-1]-f[q-sI]);}
-            else rv += cx*f[q-sI-1];
+            else rv += cx*f[q-oS-1];
             
             if(unk(q+sJ-1,kb,wW)) cwb =  cy;
             else if(k==0 && unk(q+sJ,k,wW)) {mw += cy; rv -= cy*(f[q+sJ-1]-f[q+sJ]);}
-            else rv -= cy*f[q+sJ-1];
+            else rv -= cy*f[q+oW-1];
             
             if(unk(q-sJ-1,kb,wE)) ceb = -cy;
             else if(k==0 && unk(q-sJ,k,wE)) {me -= cy; rv += cy*(f[q-sJ-1]-f[q-sJ]);}
-            else rv += cy*f[q-sJ-1];
+            else rv += cy*f[q-oE-1];
             }
             
             // KBEDBC

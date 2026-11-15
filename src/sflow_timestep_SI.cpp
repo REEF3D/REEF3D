@@ -129,7 +129,8 @@ double sflow_timestep_SI::advective(lexer *p, fdm2D* b, ghostcell* pgc, double &
 
     const double lam = (p->geo_curv==1) ? sflow_curv::inv2(p,i,j) : 1.0/(p->DXN[IP]*p->DXN[IP]) + p->y_dir/(p->DYN[JP]*p->DYN[JP]);
 
-    cmin = MIN(cmin, 0.5/(visc*lam + 1.0e-20)/(2.0*cfl));
+    // the normal stress d/dx (2 nu du/dx) diffuses with 2 nu: dt <= 0.2/(nu (1/dx^2 + 1/dy^2)), as sflow_etimestep
+    cmin = MIN(cmin, 0.2/(visc*lam + 1.0e-20)/(2.0*cfl));
     }
 
     // X 10 3: the moving pressure travels at most about one cell per step (the predictor takes it explicitly); X 10 2:
