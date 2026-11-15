@@ -1,0 +1,37 @@
+{
+ "base": "nhflow_2d_beach_suspended_mpi2",
+ "control_set": {
+  "C 11": "21"
+ },
+ "ctrl_set": {
+  "B 90": null,
+  "B 92": null,
+  "B 93": null,
+  "B 96": null,
+  "B 98": null,
+  "S 71": null,
+  "S 72": null,
+  "N 41": "1.0e9",
+  "F 72": "0.0 2.0 0.0 0.05 0.5",
+  "A 560": "1",
+  "A 519": "1",
+  "S 43": "1"
+ },
+ "np": 2,
+ "steps": 1000,
+ "description": "Closed flume of nhflow_2d_beach_suspended_mpi2 (1:12 sand beach, walls on both ends) with a dam break from the deep end (F 72), k-epsilon with bed friction, Engelund-Fredsoe bed load and van Rijn suspended load from the first step: the diffusion of the suspended load as the divergence of face fluxes on the sigma grid (nhflow_suspended_IM1::diffusion). The sediment balance of the log stays at 1e-6 of the suspended volume; with the chain-rule form of nhflow_idiff it drifted by 0.3 % in 2500 steps.",
+ "tags": [
+  "2d",
+  "nhflow",
+  "sediment",
+  "suspended",
+  "closed",
+  "mpi",
+  "kepsilon"
+ ],
+ "covers": [
+  "nhflow_suspended_IM1::diffusion",
+  "nhflow_suspended_IM1::settling_fit sigma face",
+  "suspended solve with the stopping criterion 1e-12"
+ ]
+}

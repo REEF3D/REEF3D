@@ -1,0 +1,9 @@
+{
+ "base": "cfd_2d_cpm_bedload_layer",
+ "control_set": {"B 10": "0.0 0.1 0.0 0.02 0.0 0.05"},
+ "ctrl_set": {"Q 58": "3", "W 20": "10.0", "Q 65": "20.0"},
+ "np": 1, "steps": 150,
+ "tags": ["quick", "3d", "cpm"],
+ "description": "cfd_2d_cpm_bedload_layer_hyb in 3D (4 cells in y): the hybrid suspension (Q 58 3) with the 3D face flux D 11 2, which has no vertical flux next to the bed. The concentration takes no flux through the closed faces (suspended_IM1::fill_facevel), so the exchange with the bed is erosion w_s c_be and deposition w_s c_1 only (before: the deposition stayed in the water in 3D, the suspended volume grew to 2.5 times that of the 2D case and the bed gained parcels). Checked through the CPM log: parcels, sediment volume and suspended volume",
+ "covers": ["suspended_IM1::fill_facevel and bcsusp_start in 3D (D 11 2)", "CPM hybrid suspension in 3D: accounts of the columns in x and y"]
+}

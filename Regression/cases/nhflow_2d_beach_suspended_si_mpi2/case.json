@@ -1,0 +1,23 @@
+{
+ "base": "nhflow_2d_beach_suspended_mpi2",
+ "ctrl_set": {
+  "A 510": "12"
+ },
+ "np": 2,
+ "steps": 1200,
+ "description": "nhflow_2d_beach_suspended_mpi2 with the semi-implicit momentum (A 510 12), 1200 steps: columns flagged wet with a water depth of zero or below the film A 544 are dry for the suspended load (nhflow_suspended_IM1::wet_columns, nhflow_scalar_ifou::wet_mask). Before, a wet column of zero depth gave inf and NaN coefficients, bicgstab returned the old concentration of the whole domain and the bed took the exchange of the step anyway.",
+ "tags": [
+  "2d",
+  "nhflow",
+  "sediment",
+  "suspended",
+  "waves",
+  "mpi",
+  "si"
+ ],
+ "covers": [
+  "nhflow_suspended_IM1::wet_columns",
+  "nhflow_scalar_ifou::wet_mask",
+  "sediment with nhflow_momentum_SI and wetting and drying"
+ ]
+}

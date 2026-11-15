@@ -1,0 +1,16 @@
+{
+ "base": "sflow_1d_susp_flume",
+ "ctrl_set": {
+  "S 11": "2",
+  "S 20": "0.0005",
+  "S 35": "1.0",
+  "S 120": "0"
+ },
+ "ctrl_add": [
+  "S 129 1",
+  "S 130 2.0e-5"
+ ],
+  "description": "sflow_1d_susp_flume with MPM bed load (d50 0.5 mm), bed change (S 35 1), no suspended load and a constant bed load supply at the inflow (S 129 1, S 130 2e-5 m^2/s) with the default Exner form S 31 2: the first cell rises by (S 130 - qb) dt/((1-n) dx). Before patch SFLOW Sediment Check/0004 the supply had no effect: the flux vector of the inflow ghost cells was that of the first cell, and the inflow cell was held (S 78).",
+ "tags": ["quick", "1d", "sflow", "sediment", "inflow"],
+ "covers": ["sediment_exner::qb_inflow_vec (S 129 with S 31 2)", "sediment_f::ini_guard with S 129"]
+}

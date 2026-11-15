@@ -1,0 +1,24 @@
+{
+ "base": "cfd_2d_sediment_flume_susp",
+ "control_set": {
+  "B 10": "0.0 2.0 0.0 0.08 -0.1 0.2"
+ },
+ "ctrl_set": {
+  "W 10": "0.006"
+ },
+ "np": 1,
+ "steps": 150,
+ "tags": [
+  "3d",
+  "cfd",
+  "sediment",
+  "suspended",
+  "structure",
+  "inflow"
+ ],
+ "description": "cfd_2d_sediment_flume_susp in 3D (4 cells in y, the discharge W 10 four times that of the 2D case): the Eulerian suspended load with the 3D face flux D 11 2, which has no vertical flux next to the bed and the block. The concentration takes no flux through the closed faces (suspended_IM1::fill_facevel); before, the settling flux of the bed face was taken out of the diagonal a second time in 3D and the deposition w_s c_1 stayed in the water while the bed received it. The suspended concentration is not in the regression dump; it is checked through the bed (topo).",
+ "covers": [
+  "suspended_IM1::fill_facevel and bcsusp_start in 3D (D 11 2)",
+  "sediment_exner susp_ED in 3D"
+ ]
+}

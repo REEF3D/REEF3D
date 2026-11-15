@@ -80,10 +80,10 @@
   },
   "CONC": {
    "n": 4000,
-   "sum": 0.39429089281336543,
-   "l1": 0.39429089281336543,
-   "l2": 0.023822753233978124,
-   "linf": 0.0022393607149191475
+   "sum": 0.3941363797462393,
+   "l1": 0.3941363797462393,
+   "l2": 0.023821758070515005,
+   "linf": 0.0022393437353053452
   },
   "bed": {
    "n": 200,
@@ -2097,7 +2097,7 @@
   0.03371318122435148,
   0.033709801942545775
  ],
- "blessed_from": "/tmp/claude-0/-home-claude/9e02e9df-0ec2-5875-a62a-b9f9bd43a080/scratchpad/reef_fix/bin/REEF3D",
- "date": "2026-11-11",
- "note": "hans_dev 6e0d3373e + Exner Review patches 0022-0030 + NHFLOW ML patches 0003, 0004"
+ "blessed_from": "/home/claude/work/bin/REEF3D_fix2",
+ "date": "2026-11-15",
+ "note": ""
 }
