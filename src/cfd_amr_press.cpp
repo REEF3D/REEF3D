@@ -3160,6 +3160,21 @@ struct pr_space
     void op_x(double alp, double om) { a->pr_x(alp,om); }
 };
 
+// a composite solve that did not converge: the iteration limit N 46 reached above the tolerance,
+// or a residual that is not a number (reefamr_bicgstab leaves its loop on NaN as on convergence: a
+// breakdown of the recurrence or a NaN in the matrix or the right-hand side went on without a
+// word, the first sign the velocities some steps later).  As the uniform solver (reefmg.cpp) and
+// the refinement of NHFLOW and FNPF do
+void pr_warn(lexer *p, const char *what, int it, double tol, double bn, double rn)
+{
+    if(p->mpirank!=0)
+    return;
+    if(!std::isfinite(rn) || !std::isfinite(bn))
+    cout<<"CFD AMR WARNING - "<<what<<": the residual is not a number after "<<it<<" iterations (step "<<p->count<<")"<<endl;
+    else if(it>=p->N46 && bn>0.0 && rn/bn>tol)
+    cout<<"CFD AMR WARNING - "<<what<<": iteration limit N 46 = "<<p->N46<<" reached, res "<<rn/bn<<" (step "<<p->count<<")"<<endl;
+}
+
 }
 
 // the faces at the patch edges after the solve: corrected with the flux of the composite rows
@@ -3274,6 +3289,7 @@ void cfd_amr::pr_project(lexer *p, ghostcell *pgc, int s)
         it = reefamr_bicgstab(sp,p->N44,p->N46,bn,rn,&tm[5],&tm[6],nullptr,0.0,nullptr,p->G48==2);
     }
 
+    pr_warn(p,"composite projection",it,p->N44,bn,rn);
     pr_it_last = it;
     pr_it_total += it;
     ++pr_solves;
@@ -3579,6 +3595,7 @@ void cfd_amr::pr_level(lexer *p, ghostcell *pgc, int l, int s)
         it = reefamr_bicgstab(sp,p->N44,p->N46,bn,rn,&tm[5],&tm[6],nullptr,0.0,nullptr,p->G48==2);
     }
     PRS pf_(prc,PR_FINISH);
+    pr_warn(p,"level projection",it,p->N44,bn,rn);
     pr_it_last = it;
     pr_it_total += it;
     ++pr_solves;
@@ -3786,6 +3803,7 @@ void cfd_amr::pr_sync_project(lexer *p, ghostcell *pgc)
         it = reefamr_bicgstab(sp,tol,p->N46,bn,rn,&tm[5],&tm[6]);
     }
     PRS pf_(prc,PR_FINISH);
+    pr_warn(p,"synchronisation projection",it,tol,bn,rn);
     pr_it_sync = it;
 
     sync_x.assign(npat+1,vector<double>());
