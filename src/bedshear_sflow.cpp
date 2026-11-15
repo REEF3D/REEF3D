@@ -51,7 +51,10 @@ void bedshear::taubed(lexer *p, fdm2D *b, ghostcell *pgc, sediment_fdm *s)
 
     uabs = sqrt(U*U + V*V);
 
-    manning = pow(s->ks(i,j),1.0/6.0)/20.0;
+    // S 16 1: Manning-Strickler with the grain roughness ks = S 21 d50, 1/n = 8.1 sqrt(g)/ks^(1/6) = 25.4/ks^(1/6)
+    // (as NHFLOW S 16 6). With n = ks^(1/6)/20, the coefficient of the bed friction of the flow (A 218, B 50),
+    // the stress was 1.6 times that of the rough log law for the same ks (S 16 2).
+    manning = pow(s->ks(i,j),1.0/6.0)/(8.1*sqrt(9.81));
 
     if(p->S16==1)
     {
