@@ -1,0 +1,17 @@
+{
+ "description": "as sflow_2d_narrow_channel_3cells, one cell wide: the cells have no wet neighbour across the channel and stay wet (they were set dry as isolated wet cells, the water stood still).",
+ "solver": "sflow",
+ "np": 1,
+ "steps": 500,
+ "tags": [
+  "sflow",
+  "river",
+  "wetdry"
+ ],
+ "covers": [
+  "sflow_eta::wetdry isolated wet cells"
+ ],
+ "files": [
+  "geo.dat"
+ ]
+}

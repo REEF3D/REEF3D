@@ -1,0 +1,19 @@
+{
+ "base": "sflow_2d_box_channel_fr077",
+ "ctrl_set": {
+  "A 210": "11"
+ },
+ "description": "as sflow_2d_box_channel_fr077 with the semi-implicit step (A 210 11)",
+ "solver": "sflow",
+ "np": 1,
+ "steps": 150,
+ "tags": [
+  "sflow",
+  "river",
+  "wetdry",
+  "semi_implicit"
+ ],
+ "covers": [
+  "sflow_momentum_func::velcalc from sflow_momentum_SI::cell_update"
+ ]
+}

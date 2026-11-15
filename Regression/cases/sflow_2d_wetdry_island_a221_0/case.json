@@ -1,0 +1,18 @@
+{
+ "base": "sflow_2d_wetdry_island",
+ "ctrl_add": [
+  "A 221 0"
+ ],
+ "description": "sflow_2d_wetdry_island with A 221 0 (no non-hydrostatic pressure within two cells of a dry cell): the band is two cells in x and in y, the gauge pairs (x,y), (y,x) read the same (three cells in y: 2.7e-2 m apart).",
+ "tags": [
+  "quick",
+  "2d",
+  "sflow",
+  "wetdry",
+  "nonhydrostatic"
+ ],
+ "covers": [
+  "sflow_eta::wetdrydeep: band of the deep flags in x and y"
+ ],
+ "architect": "Hans Bihs"
+}

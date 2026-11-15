@@ -1,0 +1,16 @@
+{
+ "description": "SFLOW explicit (A 210 2, A 220 3, A 209 0): two basins 4 m deep joined by a gap one cell wide (4 m) in a wall of dry land (T 10, 2 m above the water), the water of the west basin 0.5 m higher. The cells of the gap have dry cells on both sides in y and stay wet, the water runs through (gauges in the gap at x = 58 and 62 m and behind it). 'avoid isolated wet cells' of sflow_eta::wetdry dried such cells before: no water passed.",
+ "solver": "sflow",
+ "np": 1,
+ "steps": 200,
+ "tags": [
+  "quick",
+  "2d",
+  "sflow",
+  "wetdry"
+ ],
+ "covers": [
+  "sflow_eta::wetdry: a wet cell is dried when it is closed in x and in y"
+ ],
+ "architect": "Hans Bihs"
+}

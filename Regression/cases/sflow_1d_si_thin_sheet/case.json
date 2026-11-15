@@ -1,0 +1,16 @@
+{
+ "description": "SFLOW semi-implicit (A 210 11): uniform sheet flow of 5.5 cm on a slope of 1e-3, Manning n 0.05, dx 20 m (S dx/(2 h) = 0.18): at the normal depth with the mean cell depth in the friction of the faces. With eta upwind plus the mean still water depth of the face it settled 11 % below.",
+ "solver": "sflow",
+ "np": 1,
+ "steps": 300,
+ "tags": [
+  "quick",
+  "1d",
+  "sflow",
+  "river",
+  "semi_implicit"
+ ],
+ "covers": [
+  "sflow_momentum_SI::friction, depth of the faces between wet deep cells"
+ ]
+}

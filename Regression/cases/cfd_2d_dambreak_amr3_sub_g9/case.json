@@ -1,0 +1,23 @@
+{
+ "base": "cfd_2d_dambreak_amr3_sub",
+ "np": 1,
+ "steps": 40,
+ "ctrl_set": {
+  "G 15": "0.0 0.3 0.0 1.0 0.1 0.44"
+ },
+ "ctrl_add": [
+  "G 9 1"
+ ],
+ "description": "cfd_2d_dambreak_amr3_sub with the box lifted (its lower edges cut the water column and the collapsing front) and G 9 1: two static levels with subcycling (G 7 1), the edge faces of the level projections and of the synchronisation (cfd_amr::pr_level, pr_sync_project) with the mean interface width of their two levels.",
+ "tags": [
+  "quick",
+  "2d",
+  "dambreak",
+  "levelset",
+  "amr"
+ ],
+ "covers": [
+  "G 9 1 with the subcycling: pr_weights in pr_level and pr_sync_project",
+  "G 9 1 on two levels"
+ ]
+}

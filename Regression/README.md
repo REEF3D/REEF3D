@@ -163,6 +163,7 @@ VTU/state print keys (`P 20/30/40/41/42`), so runs are short and output stays sm
 | `cfd_2d_nwt_amr_twoproj` | 1 | `cfd_2d_nwt_amr` with N 40 6: waves through a static patch (patch CFD AMR N40 6/0001) |
 | `cfd_3d_dambreak_amr_twoproj` | 2 | `cfd_3d_dambreak_amr` with N 40 6 on two ranks (patch CFD AMR N40 6/0001) |
 | `cfd_3d_dambreak_amr_twoproj_g29` | 2 | `cfd_3d_dambreak_amr_twoproj` with G 29 1: 3D on 2 ranks, the four children columns of a coarse cell (patch AMR/0180) |
+| `cfd_3d_dambreak_amr_twoproj_g9` | 2 | `cfd_3d_dambreak_amr_twoproj` with the box over half the width and lifted (the free surface crosses its lower and its side edge) and G 9 1: the density of the edge faces with the mean interface width of the two levels, 3D on 2 ranks (patch AMR/0183) |
 | `cfd_2d_heave_twoproj` | 1 | `cfd_2d_heave_amr` without the mesh refinement with N 40 6: a floating body (X 10 1) with the one-step scheme with two projections, the body with position Verlet (the half step with the loads of p(n), the full step with the loads of p(n+1/2); references with patch OF1/0004, before it the midpoint rule) (needs patches OF1/0001, 0004) |
 | `cfd_2d_heave_amr_twoproj` | 1 | `cfd_2d_heave_amr` with N 40 6 (G 7 0): level 0 advances the body in the half step and the full step, the patches cast the hull and force the body velocity in both (needs patch OF1/0001) |
 | `cfd_3d_6dof_net_sheet_collar_twoproj` | 2 | `cfd_3d_6dof_net_sheet_collar` (floating collar with a net sheet) with N 40 6: the net forces on the body and on the fluid in both steps (needs patch OF1/0001) |
@@ -548,6 +549,9 @@ VTU/state print keys (`P 20/30/40/41/42`), so runs are short and output stays sm
 | `cfd_2d_nwt_amr` | 1 | CFD AMR in the wave tank: refined band at the free surface between the relaxation zones (level 0 only), the free surface across the patch edges |
 | `cfd_2d_nwt_amr_mpi3_n15` | 3 | `cfd_2d_nwt_amr` on 3 ranks with N 15 1: the level-0 multigrid of the composite projection with the agglomerated coarse solve, the refined band cut at the rank edges (needs patch REEFMG/0012) |
 | `cfd_2d_nwt_amr_g29` | 1 | `cfd_2d_nwt_amr` with G 29 1: waves across the vertical edges of the refined box with the hydrostatic restriction of the pressure (patch AMR/0180) |
+| `cfd_2d_nwt_amr_g9` | 1 | `cfd_2d_nwt_amr` with G 9 1: waves across the vertical edges of the refined box, the density of the edge faces with the mean of the interface widths of the fine and the coarse level (`cfd_amr::pr_weights`) (patch AMR/0183) |
+| `cfd_2d_nwt_amr_g9_2` | 1 | `cfd_2d_nwt_amr` with G 9 2: the edge faces with the interface width of the coarse level (patch AMR/0183) |
+| `cfd_2d_dambreak_amr3_sub_g9` | 1 | `cfd_2d_dambreak_amr3_sub` with the box lifted (its lower edges cut the water column and the front) and G 9 1: two static levels with subcycling, the edge faces of the level projections and the synchronisation (patch AMR/0183) |
 | `cfd_2d_nwt_amr_zone` | 1 | the refined band over the numerical beach (B 99 2, G 7 0): the patch relaxes towards still water as level 0; the tiles at the outflow edge stay on level 0 |
 | `cfd_2d_nwt_amr_zone_sub` | 1 | the band over the wave generation zone (B 98 2) with subcycling: the patch relaxes towards the wave theory of level 0 at its cells and the time of its step |
 | `cfd_2d_nwt_amr_zone_komega_sub` | 1 | k-omega in the wave tank, the band over the generation zone (G 7 1): the patch relaxes the eddy viscosity in the zone as level 0 (iowave::turb_relax) |
@@ -557,6 +561,7 @@ VTU/state print keys (`P 20/30/40/41/42`), so runs are short and output stays sm
 | `cfd_2d_still_amr` | 1 | CFD AMR still water, the free surface across a patch edge: the hydrostatic pressure of both grids balanced at the edge |
 | `cfd_2d_still_amr_g28_1` | 1 | `cfd_2d_still_amr` with G 28 1: the density and the viscosity of every level with the interface width of level 0 (`interface_width.h`: psi_rho), the patch-edge weights and the hydrostatic columns of both grids with the same width (patch AMR/0179) |
 | `cfd_2d_still_amr_g29` | 1 | `cfd_2d_still_amr` with G 29 1: the pressure of the cells under the patch restricted relative to the discrete hydrostatic pressure of each grid (`cfd_amr::restrict_press_hydro`), the patch edge across the free surface stays at rest (patch AMR/0180) |
+| `cfd_2d_still_amr_g9` | 1 | `cfd_2d_still_amr` with G 9 1: still water with the free surface across the patch edge stays at rest (patch AMR/0183) |
 | `cfd_3d_dambreak_amr` | 2 | CFD AMR 3D dam break: 3D boxes on 2 ranks, implicit diffusion of a patch with Dirichlet values around it |
 | `cfd_2d_dambreak_amr_sub` | 1 | CFD AMR with subcycling (G 7 1): the patch takes two steps per level-0 step, the cells around it linear in time; the level projection with the coarse pressure at the patch edges, the synchronisation projection over all levels at the end of the level-0 step |
 | `cfd_2d_dambreak_amr3_sub` | 1 | CFD AMR, two levels with subcycling: a patch as the coarser level in time (its old and new state), level 2 four steps per level-0 step |
@@ -892,6 +897,15 @@ VTU/state print keys (`P 20/30/40/41/42`), so runs are short and output stays sm
 | `cfd_2d_zone_sources` | 1 | CFD 2D flume, B 520 generation zone at x- with the B 92 wave and a linear source 2 (B 524 1 1, B 524 1 2) |
 | `cfd_2d_zone_sources_b89` | 1 | CFD, two irregular sources with B 89 1; the zone selects source 2 only, so the B 92 components get space parts 0 there |
 | `sflow_2d_zone_sources` | 1 | SFLOW 2D flume, Stokes 2nd wave plus a linear source 2 in a B 520 zone (B 524): precalc over the zone columns |
+| `sflow_1d_wall_dryland_a221` | 1 | SFLOW explicit (A 210 2, A 220 3) with dry land next to deep water as a wall (A 221 2, A 209 0): regular waves (kh 1.3) normal to a block of dry cells; the cell in front of the land keeps its non-hydrostatic pressure, the dry cell is a dq/dn = 0 wall, neighbour values mirrored, the A 220 3 term does not read the bed level of the dry cell (sflow_drywall.h; needs patches 0001-0007 of SFLOW Coastal). Without them: mean level +0.69 m at the land, 0.52 of the wave height |
+| `sflow_1d_si_wall_dryland_a221` | 1 | the same with the semi-implicit step (A 210 11): the cell in front of the land in the coupled eta-P system, the dry cell counted as the walls of the grid; without A 221 2 the run does not stay stable |
+| `sflow_2d_breakwater_a221_mpi2` | 2 | SFLOW explicit with A 221 2 on 2 ranks: waves onto a breakwater of dry cells across half of the basin, walls of dry land in x and y, the corner cells of the tip, a rank boundary through the breakwater |
+| `sflow_2d_si_breakwater_a221_mpi2` | 2 | the same with the semi-implicit step (A 210 11, A 220 3, automatic time step): the coupled solve (FGMRES) with walls of dry land, the fourth-order operators next to dry land as next to the walls of the grid |
+| `sflow_2d_wetdry_island` | 1 | SFLOW explicit (A 220 3, A 209 1) with wetting and drying in a closed basin symmetric about x = y (beach, island, raised square of water): the gauge pairs (x,y), (y,x) read the same |
+| `sflow_2d_wetdry_island_mpi2` | 2 | `same_as` sflow_2d_wetdry_island within 1e-8: the bed smoothing A 209 from the old values gives the same bed on 2 ranks (in place: eta 1e-4 m apart after 30 s) |
+| `sflow_2d_wetdry_island_a221_0` | 1 | sflow_2d_wetdry_island with A 221 0: the band of the deep flags is 2 cells in x and y (3 cells in y: pairs 2.7e-2 m apart) |
+| `sflow_2d_si_wetdry_island` | 1 | sflow_2d_wetdry_island with the semi-implicit step (A 210 11, A 220 3) |
+| `sflow_2d_channel_one_cell` | 1 | SFLOW explicit: two basins joined by a gap one cell wide in a wall of dry land; the cells of the gap stay wet and the water runs through ('avoid isolated wet cells' dried them: no water passed) |
 | `sflow_2d_irregular_zone_sources` | 1 | SFLOW, two irregular sources in a B 520 zone: cached-point evaluation (wave_eta_c / wave_uvw_c) |
 | `nhflow_2d_combined_beach` | 1 | combined beach B 99 6 (default B 526 = T / 4): relaxation to the low-passed state plus the absorbing edge at x+ |
 | `nhflow_2d_combined_gen` | 1 | NHFLOW combined generation B 98 6: relaxation zone to target + low-passed deviation (B 527), Riemann edge with the waves at x-; combined beach B 99 6 |
@@ -1105,6 +1119,12 @@ VTU/state print keys (`P 20/30/40/41/42`), so runs are short and output stays sm
 | `seastate_2d_phase21b_once_composite` | 1 | `seastate_2d_phase17_windsea` (composite sweep) with A 767 1: not used there; `same_as` `seastate_2d_phase17_windsea`, bitwise |
 | `sflow_2d_bank_ediff` (+ `_idiff`) | 1 | SFLOW sloping bank (T 62) with a shoreline, constant viscosity, A212 1 / 2: free slip at the dry neighbours |
 | `sflow_2d_bank_inflow_conveyance` | 1 | as `sflow_2d_bank_ediff`, discharge across the inflow face by conveyance (B 62 1), Cartesian (needs patch 0003 of Curvilinear/patches) |
+| `sflow_1d_thin_sheet_rk2` | 1 | SFLOW explicit: uniform sheet flow of 2.1 cm, slope 1e-3, n 0.05, dx 20 m; Manning friction implicit in the stage (as an explicit source: +-2 m/s) (needs patch 0004 of SFLOW River Check/patches) |
+| `sflow_1d_si_thin_sheet` | 1 | SFLOW semi-implicit (A 210 11): uniform sheet flow of 5.5 cm at the normal depth with the mean cell depth in the friction of the faces (11 % below before) (patch 0002) |
+| `sflow_2d_box_channel_fr077` (+ `_si`) | 1 | SFLOW uniform flow at Fr 0.77 in a channel ten cells wide between banks of dry cells (geo.dat): Froude limit 0.1 A 531 next to dry cells only below A 232 (patch 0003) |
+| `sflow_2d_narrow_channel_3cells`, `_2cells` | 1 | SFLOW explicit, WENO: channels three and two cells wide between dry banks, central stencil / cell value (patch 0005) |
+| `sflow_2d_narrow_channel_1cell` (+ `_si`) | 1 | SFLOW channel one cell wide between dry banks stays wet (patch 0006) |
+| `sflow_1d_outflow_level_below_zero` (+ `_si`) | 1 | SFLOW river with the bed below the datum, outflow level F 62 -1.53 m, start from a lake at F 60 (patch 0001) |
 | `cfd_2d_channel_kepsilon_stretched_ifou` | 1 | CFD open channel on a grid stretched in x (B 101 1, B 111 2.0), k-ε with implicit first-order upwind T 12 1: per-face conservative upwind |
 | `nhflow_2d_bump_ediff` | 1 | NHFLOW 2D flow over a bump, constant viscosity, explicit momentum diffusion A 512 1: σ face metrics, A 513 wall rule (no no-slip bed from the A 518 2 ghost), viscous time-step limit |
 | `nhflow_3d_bank_kepsilon` | 1 | NHFLOW 3D channel with a sloping bank (T 62) and a shoreline along x, k-ε: zero gradient of k and ε towards dry columns |

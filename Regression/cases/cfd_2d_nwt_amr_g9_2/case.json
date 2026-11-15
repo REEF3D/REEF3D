@@ -1,0 +1,19 @@
+{
+ "base": "cfd_2d_nwt_amr",
+ "np": 1,
+ "steps": 100,
+ "ctrl_add": [
+  "G 9 2"
+ ],
+ "description": "cfd_2d_nwt_amr with G 9 2: the edge faces with the interface width of the coarse level.",
+ "tags": [
+  "quick",
+  "2d",
+  "waves",
+  "levelset",
+  "amr"
+ ],
+ "covers": [
+  "cfd_amr::pr_weights: G 9 2"
+ ]
+}
