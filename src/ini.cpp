@@ -227,6 +227,7 @@ void control::ini_default()
     A540=1;      // int NFHLOW wetdry scheme
     A505=1;      // int NHFLOW semi-implicit (A 510 11/12/13): second-order time levels of the nonlinear terms on one Cartesian grid (an estimate pass for the advecting transport, face depths and omega at t^{n+1/2}, the acceleration of the step in the advected velocities, Crank-Nicolson vertical advection), 0: the levels of t^n (one pass, first order, about 1.2 - 1.6 times faster per step)
     A507=0;      // int NHFLOW semi-implicit with A 520 > 0 (2D, MPI): 1: eta and phi solved one after the other (one block Gauss-Seidel pass over the coupled system, eta with phi of the guess, then phi with the new eta), 0: the coupled solve
+    A541=0.0;    // double NHFLOW dry land next to deep water: a column deeper than A 541 times its horizontal cell size keeps its non-hydrostatic pressure next to dry cells, which are walls for it (dp/dn = 0, mirrored normal velocity; explicit and semi-implicit); 0: every column next to dry cells is hydrostatic and the dry cells are p = 0 boundaries (the shoreline of a beach)
     A544=0.001;  // double wetting & drying criterion
     A545=10.0;   // double deep criterion
     A547_c=0.0;  // double NHFLOW semi-implicit (A 547 c nu0): algebraic eddy viscosity, nu_t = c kappa u* z (1 - z/h) + nu0 with u* from the log law of the bed layer (A 519 1); vertical in the column operator, horizontal in the predictor; 0 off (A 560 > 0: the turbulence model instead)

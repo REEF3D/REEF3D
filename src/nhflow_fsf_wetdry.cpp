@@ -24,6 +24,7 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm_nhf.h"
 #include"ghostcell.h"
+#include"nhflow_drywall.h"
 
 // Solid columns inside the grid (DIVEMesh solids as bed level, A 580 0: no slice cell) are dry. The ghost cell
 // update of the wet flags gives them the flag of the fluid cell next to them, wet. The continuity flux and the
@@ -221,6 +222,10 @@ void nhflow_fsf_f::wetdry(lexer* p, fdm_nhf* d, ghostcell* pgc, double *UH, doub
     
     SLICELOOP4
     {
+    // dry land next to deep water (A 541): the column keeps its non-hydrostatic pressure (nhflow_drywall.h)
+    if(nhflow_drywall::cliff(p,d,i,j,WL(i,j)))
+    continue;
+
     if(p->wet[Ip1J]==0 || p->wet[Ip2J]==0 || p->wet[Im1J]==0 || p->wet[Im2J]==0)
     p->deep[IJ]=0;
     

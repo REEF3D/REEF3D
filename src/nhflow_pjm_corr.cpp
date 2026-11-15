@@ -28,6 +28,7 @@ Author: Hans Bihs
 #include"ghostcell.h"
 #include"nhflow_poisson_pcorr.h"
 #include"nhflow_pjm_ho.h"
+#include"nhflow_drywall.h"
 #include"solver.h"
 #include"ioflow.h"
 #include"nhflow_poisson.h"
@@ -229,6 +230,8 @@ void nhflow_pjm_corr::rhs(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, doubl
         
         V1 = (1.0-fac)*V[IJm1K] + fac*Vb1; 
         V2 = (1.0-fac)*V[IJp1K] + fac*Vb2;
+        // dry land next to deep water (A 541): a wall, the normal velocity mirrored (nhflow_drywall.h)
+        nhflow_drywall::mirror(p,i,j,(1.0-fac)*U[IJK] + fac*Ubc,(1.0-fac)*V[IJK] + fac*Vbc,U1,U2,V1,V2);
 
         dUdz = (U[IJK] - Ubc)/p->DZP[KM1];
         dVdz = (V[IJK] - Vbc)/p->DZP[KM1];
@@ -300,7 +303,7 @@ void nhflow_pjm_corr::ucorr(lexer* p, fdm_nhf *d, slice &WL, double *UH, double 
     if(p->geo_curv==1)
     nhflow_curv::pgrad_layer(p,PCORR,i,j,k,dPdx,dPdy);
     else
-    dPdx = (0.5*(PCORR[FIp1JKp1]+PCORR[FIp1JK])-0.5*(PCORR[FIm1JKp1]+PCORR[FIm1JK]))/(p->DXP[IP]+p->DXP[IM1]);
+    dPdx = (p->A541>0.0 ? nhflow_drywall::gradx(p,PCORR,i,j,k) : (0.5*(PCORR[FIp1JKp1]+PCORR[FIp1JK])-0.5*(PCORR[FIm1JKp1]+PCORR[FIm1JK]))/(p->DXP[IP]+p->DXP[IM1]));
     
     // fourth-order horizontal gradient (nhflow_pjm_ho.h)
     if(ho && nhflow_pjm_ho::x(p,d,i,j,k))
@@ -332,7 +335,7 @@ void nhflow_pjm_corr::vcorr(lexer* p, fdm_nhf *d, slice &WL, double *VH, double 
     if(p->geo_curv==1)
     nhflow_curv::pgrad_layer(p,PCORR,i,j,k,dPdx,dPdy);
     else
-    dPdy = (0.5*(PCORR[FIJp1Kp1]+PCORR[FIJp1K])-0.5*(PCORR[FIJm1Kp1]+PCORR[FIJm1K]))/(p->DYP[JP]+p->DYP[JM1]);
+    dPdy = (p->A541>0.0 ? nhflow_drywall::grady(p,PCORR,i,j,k) : (0.5*(PCORR[FIJp1Kp1]+PCORR[FIJp1K])-0.5*(PCORR[FIJm1Kp1]+PCORR[FIJm1K]))/(p->DYP[JP]+p->DYP[JM1]));
     
     if(ho && nhflow_pjm_ho::y(p,d,i,j,k))
     dPdy = nhflow_pjm_ho::grady(p,PCORR,i,j,k);
@@ -374,7 +377,7 @@ void nhflow_pjm_corr::upgrad(lexer*p, fdm_nhf *d, slice &WL)
     if(p->geo_curv==1)
     nhflow_curv::pgrad_layer(p,d->P,i,j,k,dPdx,dPdy);
     else
-    dPdx = (0.5*(d->P[FIp1JKp1]+d->P[FIp1JK])-0.5*(d->P[FIm1JKp1]+d->P[FIm1JK]))/(p->DXP[IP]+p->DXP[IM1]);
+    dPdx = (p->A541>0.0 ? nhflow_drywall::gradx(p,d->P,i,j,k) : (0.5*(d->P[FIp1JKp1]+d->P[FIp1JK])-0.5*(d->P[FIm1JKp1]+d->P[FIm1JK]))/(p->DXP[IP]+p->DXP[IM1]));
     
     // sharp thin bodies: the old pressure with the link mobilities, as the correction (no pressure across the hull)
     const bool tb = (d->thinbody!=nullptr || (p->X15==11 && p->X10>0)) && d->MBETA!=nullptr;   // X 15 11: the open fractions of the links
@@ -420,7 +423,7 @@ void nhflow_pjm_corr::vpgrad(lexer*p, fdm_nhf *d, slice &WL)
     if(p->geo_curv==1)
     nhflow_curv::pgrad_layer(p,d->P,i,j,k,dPdx,dPdy);
     else
-    dPdy = (0.5*(d->P[FIJp1Kp1]+d->P[FIJp1K])-0.5*(d->P[FIJm1Kp1]+d->P[FIJm1K]))/(p->DYP[JP]+p->DYP[JM1]);
+    dPdy = (p->A541>0.0 ? nhflow_drywall::grady(p,d->P,i,j,k) : (0.5*(d->P[FIJp1Kp1]+d->P[FIJp1K])-0.5*(d->P[FIJm1Kp1]+d->P[FIJm1K]))/(p->DYP[JP]+p->DYP[JM1]));
     
     const bool tb = (d->thinbody!=nullptr || (p->X15==11 && p->X10>0)) && d->MBETA!=nullptr;   // X 15 11: the open fractions of the links
     const bool cut = d->thinbody!=nullptr && d->thinbody->cutmode;

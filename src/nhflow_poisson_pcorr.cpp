@@ -22,6 +22,7 @@ Author: Hans Bihs
 
 #include"nhflow_poisson_pcorr.h"
 #include"nhflow_xwall.h"
+#include"nhflow_drywall.h"
 #include"lexer.h"
 #include"nhflow_curv.h"
 #include"fdm_nhf.h"
@@ -236,6 +237,12 @@ void nhflow_poisson_pcorr::start(lexer* p, fdm_nhf *d, double *P)
             d->M.s[n] = 0.0;
             }
             
+            // dry land next to deep water (A 541, nhflow_drywall.h): a wall, dp/dn = 0
+            if(nhflow_drywall::wall(p,Im1J) && p->IO[Im1JK]==0)
+            {
+            d->M.p[n] += d->M.s[n];
+            d->M.s[n] = 0.0;
+            }
             // dry / shallow neighbour, or the side where waves along x are generated (nhflow_xwall.h): p=0
             if((p->flag7[FIm1JK]<0 || p->wet[Im1J]==0 || p->deep[Im1J]==0) && p->IO[Im1JK]==0)
             {
@@ -271,6 +278,11 @@ void nhflow_poisson_pcorr::start(lexer* p, fdm_nhf *d, double *P)
             d->M.n[n] = 0.0;
             }
             
+            if(nhflow_drywall::wall(p,Ip1J) && p->IO[Ip1JK]==0)
+            {
+            d->M.p[n] += d->M.n[n];
+            d->M.n[n] = 0.0;
+            }
             if((p->flag7[FIp1JK]<0 || p->wet[Ip1J]==0 || p->deep[Ip1J]==0) && p->IO[Ip1JK]==0)
             {
             d->M.n[n] = 0.0;
@@ -294,6 +306,11 @@ void nhflow_poisson_pcorr::start(lexer* p, fdm_nhf *d, double *P)
             d->M.e[n] = 0.0;
             }
             
+            if(nhflow_drywall::wall(p,IJm1) && p->j_dir==1)
+            {
+            d->M.p[n] += d->M.e[n];
+            d->M.e[n] = 0.0;
+            }
             if(p->wet[IJm1]==0 || p->deep[IJm1]==0)
             {
             d->M.e[n] = 0.0;
@@ -306,6 +323,11 @@ void nhflow_poisson_pcorr::start(lexer* p, fdm_nhf *d, double *P)
             d->M.w[n] = 0.0;
             }
             
+            if(nhflow_drywall::wall(p,IJp1) && p->j_dir==1)
+            {
+            d->M.p[n] += d->M.w[n];
+            d->M.w[n] = 0.0;
+            }
             if(p->wet[IJp1]==0 || p->deep[IJp1]==0)
             {
             d->M.w[n] = 0.0;

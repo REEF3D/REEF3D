@@ -90,7 +90,7 @@ public:
     int A505,A507,A534,A537,A539;          // NHFLOW hydrostatic semi-implicit free surface
     double A506,A535,A536,A538;
     int A540;
-    double A544,A545,A546;
+    double A541,A544,A545,A546;
     int A548;                    // NHFLOW semi-implicit: still water depth of a face between wet cells, 1 the smaller
     double A547_c,A547_nu0;      // NHFLOW semi-implicit: algebraic vertical eddy viscosity (A 547 c nu0)
     int A600,A602,A603,A609,A610;    // NHFLOW semi-implicit: tracers (salinity, temperature), A 600 - 610

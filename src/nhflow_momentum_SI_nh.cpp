@@ -69,6 +69,7 @@ Author: Hans Bihs
 #include"nhflow_momentum_SI.h"
 #include"sflow_curv.h"
 #include"si_eta2D.h"
+#include"nhflow_drywall.h"
 #include"lexer.h"
 #include"fdm_nhf.h"
 #include"ghostcell.h"
@@ -289,8 +290,11 @@ void nhflow_momentum_SI::nh_prepare(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
     SLICELOOP4
     {
+    // dry land next to deep water (A 541, nhflow_drywall.h): the column stays non-hydrostatic, its dry faces carry
+    // no discharge
     const bool a = p->wet[IJ]==1 && WL0(i,j)>10.0*p->A544 && p->deep[IJ]==1
-                && !dry(i-1,j) && !dry(i+1,j) && (p->j_dir==0 || (!dry(i,j-1) && !dry(i,j+1)));
+                && (nhflow_drywall::cliff(p,d,i,j,WL0(i,j))
+                    || (!dry(i-1,j) && !dry(i+1,j) && (p->j_dir==0 || (!dry(i,j-1) && !dry(i,j+1)))));
     nAct[IJ] = a ? 1 : 0;
     }
 
@@ -356,14 +360,17 @@ void nhflow_momentum_SI::nh_prepare(lexer *p, fdm_nhf *d, ghostcell *pgc)
     for(int m=0; m<=K; ++m)
     {
     k = m;
-    const int ie = in(i+1,j) ? i+1 : i, iw = in(i-1,j) ? i-1 : i;
+    // (a column in front of dry land, A 541: one-sided next to the dry cells too, their level is that of the land)
+    const bool cl = nhflow_drywall::cliff(p,d,i,j,WL0(i,j));
+    auto ok = [&](int a, int c) { return cl ? wt(a,c) : in(a,c); };
+    const int ie = ok(i+1,j) ? i+1 : i, iw = ok(i-1,j) ? i-1 : i;
     const double dx = p->XP[ie+marge] - p->XP[iw+marge];
     NSX[IJK] = dx>0.0 ? nh_lim(zif(ie,j,m) - zif(iw,j,m),dx)/dx : 0.0;
     NSY[IJK] = 0.0;
 
         if(p->j_dir==1)
         {
-        const int jn = in(i,j+1) ? j+1 : j, js = in(i,j-1) ? j-1 : j;
+        const int jn = ok(i,j+1) ? j+1 : j, js = ok(i,j-1) ? j-1 : j;
         const double dy = p->YP[jn+marge] - p->YP[js+marge];
         NSY[IJK] = dy>0.0 ? nh_lim(zif(i,jn,m) - zif(i,js,m),dy)/dy : 0.0;
         }

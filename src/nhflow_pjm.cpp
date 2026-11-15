@@ -30,6 +30,7 @@ Author: Hans Bihs
 #include"ghostcell.h"
 #include"nhflow_poisson.h"
 #include"nhflow_pjm_ho.h"
+#include"nhflow_drywall.h"
 #include"solver.h"
 #include"ioflow.h"
 #include"density_f.h"
@@ -182,7 +183,7 @@ void nhflow_pjm::ucorr(lexer* p, fdm_nhf *d, slice &WL, double *UH, double *P, d
                 (d->MBETA!=nullptr ? nhflow_membrane_gradx(p,d,d->P,i,j,k) :
                 p->geo_curv==1 ? px :
                 (ho && nhflow_pjm_ho::x(p,d,i,j,k)) ? nhflow_pjm_ho::gradx(p,d->P,i,j,k) :     // fourth order (nhflow_pjm_ho.h)
-                ((0.5*(d->P[FIp1JKp1]+d->P[FIp1JK])-0.5*(d->P[FIm1JKp1]+d->P[FIm1JK]))/(p->DXP[IP]+p->DXP[IM1])))
+                ((p->A541>0.0 ? nhflow_drywall::gradx(p,d->P,i,j,k) : (0.5*(d->P[FIp1JKp1]+d->P[FIp1JK])-0.5*(d->P[FIm1JKp1]+d->P[FIm1JK]))/(p->DXP[IP]+p->DXP[IM1]))))
                 
                 + MBETAVAL*0.5*(p->sigx[FIJK]+p->sigx[FIJKp1])*((d->P[FIJKp1]-d->P[FIJK])/p->DZN[KP]));
     }
@@ -209,7 +210,7 @@ void nhflow_pjm::vcorr(lexer* p, fdm_nhf *d, slice &WL, double *VH, double *P, d
                 (d->MBETA!=nullptr ? nhflow_membrane_grady(p,d,d->P,i,j,k) :
                 p->geo_curv==1 ? py :
                 (ho && nhflow_pjm_ho::y(p,d,i,j,k)) ? nhflow_pjm_ho::grady(p,d->P,i,j,k) :
-                ((0.5*(d->P[FIJp1Kp1]+d->P[FIJp1K])-0.5*(d->P[FIJm1Kp1]+d->P[FIJm1K]))/(p->DYP[JP]+p->DYP[JM1])))
+                ((p->A541>0.0 ? nhflow_drywall::grady(p,d->P,i,j,k) : (0.5*(d->P[FIJp1Kp1]+d->P[FIJp1K])-0.5*(d->P[FIJm1Kp1]+d->P[FIJm1K]))/(p->DYP[JP]+p->DYP[JM1]))))
                 
                 + MBETAVAL*0.5*(p->sigy[FIJK]+p->sigy[FIJKp1])*((d->P[FIJKp1]-d->P[FIJK])/p->DZN[KP]));
     }
@@ -262,6 +263,8 @@ void nhflow_pjm::rhs(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V,
         
         V1 = (1.0-fac)*V[IJm1K] + fac*Vb1; 
         V2 = (1.0-fac)*V[IJp1K] + fac*Vb2;
+        // dry land next to deep water (A 541): a wall, the normal velocity mirrored (nhflow_drywall.h)
+        nhflow_drywall::mirror(p,i,j,(1.0-fac)*U[IJK] + fac*Ubc,(1.0-fac)*V[IJK] + fac*Vbc,U1,U2,V1,V2);
 
         dUdz = (U[IJK] - Ubc)/p->DZP[KM1];
         dVdz = (V[IJK] - Vbc)/p->DZP[KM1];
