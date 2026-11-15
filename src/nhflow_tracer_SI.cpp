@@ -420,8 +420,9 @@ double nhflow_tracer_SI::prepare_step(lexer *p, fdm_nhf *d, int phase)
     // (phase 1: the predictor of the density before the momentum, A 620)
     if(phase==0)
     {
-    tx = m->Tx;
-    ty = m->Ty;
+    // the private arrays of the step in the layout of IJK (nhflow_momentum_SI.h: PEXT)
+    tx = m->Tx + m->lshift;
+    ty = m->Ty + m->lshift;
     fr0 = 0.0;
     fr1 = 1.0;
     }
@@ -436,8 +437,8 @@ double nhflow_tracer_SI::prepare_step(lexer *p, fdm_nhf *d, int phase)
 
         for(int q=0; q<N; ++q)
         {
-        tsx[q] = (1.0-th)*m->Qxn[q];
-        tsy[q] = p->j_dir==1 ? (1.0-th)*m->Qyn[q] : 0.0;
+        tsx[q] = (1.0-th)*m->Qxn[q+m->lshift];
+        tsy[q] = p->j_dir==1 ? (1.0-th)*m->Qyn[q+m->lshift] : 0.0;
         }
 
         tx = tsx;

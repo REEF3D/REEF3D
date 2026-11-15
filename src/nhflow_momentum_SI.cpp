@@ -72,6 +72,19 @@ template<class F> inline void layer_loop(lexer *p, F &&fn)
     fn(q0+m);
     }
 }
+
+// the same for the private arrays of the step (their layout: lsi, lsj, lso, nhflow_momentum_SI.h)
+template<class F> inline void player_loop(lexer *p, int lsi, int lsj, int lso, F &&fn)
+{
+    const int K = p->knoz;
+    for(int a=p->imin; a<p->imin+p->imax; ++a)
+    for(int c=p->jmin; c<p->jmin+p->jmax; ++c)
+    {
+    const size_t q0 = (size_t)(lso + a*lsi + c*lsj);
+    for(int m=0; m<K; ++m)
+    fn(q0+m);
+    }
+}
 }
 
 nhflow_momentum_SI::nhflow_momentum_SI(lexer *p, fdm_nhf *d, ghostcell *pgc, sixdof *pp6dof, vrans_nhflow *ppvrans,
@@ -84,7 +97,8 @@ nhflow_momentum_SI::nhflow_momentum_SI(lexer *p, fdm_nhf *d, ghostcell *pgc, six
 {
     check(p);
 
-    const int N = p->imax*p->jmax*(p->kmax+2);
+    layout_ini(p,block);
+    const int N = lN;
 
     double **arr[] = {&Qx,&Qy,&Qxn,&Qyn,&Tx,&Ty,&QAx,&QAy,&Rx,&Ry,&UH0,&VH0,&WH0,&UHa,&VHa,&WHa,&UHb,&VHb,&WHb,&UHp,&VHp,&WHp,
                       &UHD,&VHD,&WHD,&dUH,&dVH};
@@ -264,6 +278,25 @@ nhflow_momentum_SI::nhflow_momentum_SI(lexer *p, fdm_nhf *d, ghostcell *pgc, six
         silog<<"# count  simtime  dt  volume  Qin  Qout  relax_volume  eta_iterations  wetdry_iterations  dry_cells"<<endl;
     }
     }
+}
+
+void nhflow_momentum_SI::layout_ini(lexer *p, bool block)
+{
+    // the private arrays in the full layout (the index of IJK); REEF3D_SI_LSHIFT (test, one Cartesian grid): shifted
+    lsi = p->jmax*p->kmax;
+    lsj = p->kmax;
+    lshift = 0;
+
+    const char *e = getenv("REEF3D_SI_LSHIFT");
+
+    if(e!=nullptr && atoi(e)!=0 && !block && p->geo_curv==0 && p->geo_mb==0 && p->G1==0)
+    lshift = 3*lsi + 2*lsj + 5;
+
+    lso = -(p->imin*lsi + p->jmin*lsj + p->kmin) + lshift;
+    lN = (size_t)p->imax*p->jmax*(p->kmax+2) + lshift;
+
+    if(lshift>0 && p->mpirank==0)
+    cout<<"NHFLOW semi-implicit: the private arrays shifted by "<<lshift<<" entries (REEF3D_SI_LSHIFT, test)"<<endl;
 }
 
 nhflow_momentum_SI::~nhflow_momentum_SI()
@@ -552,7 +585,7 @@ void nhflow_momentum_SI::si_corrector(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
     // the second pass of tl2: the face discharges back to t^n, the transport of the estimate (Tx, Ty) stays
 
-    layer_loop(p,[&](size_t q){ Qx[q] = Qxn[q]; Qy[q] = Qyn[q]; });
+    player_loop(p,lsi,lsj,lso,[&](size_t q){ Qx[q] = Qxn[q]; Qy[q] = Qyn[q]; });
 
     for(i=p->imin; i<p->imin+p->imax; ++i)
     for(j=p->jmin; j<p->jmin+p->jmax; ++j)
@@ -690,14 +723,14 @@ void nhflow_momentum_SI::si_begin(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_s
     pflow->inflow_nhflow(p,d,pgc,d->U,d->V,d->W,d->UH,d->VH,d->WH,d->WL);
 
     // state at t^n (all cells incl. ghost cells)
-    memcpy(UH0,d->UH,N*sizeof(double));
-    memcpy(WH0,d->WH,N*sizeof(double));
+    memcpy(PEXT(UH0),d->UH,N*sizeof(double));
+    memcpy(PEXT(WH0),d->WH,N*sizeof(double));
 
     if(p->j_dir==1)
-    memcpy(VH0,d->VH,N*sizeof(double));
+    memcpy(PEXT(VH0),d->VH,N*sizeof(double));
 
     else
-    std::fill(VH0,VH0+N,0.0);
+    std::fill(VH0,VH0+lN,0.0);
 
     for(i=p->imin; i<p->imin+p->imax; ++i)
     for(j=p->jmin; j<p->jmin+p->jmax; ++j)
@@ -736,7 +769,7 @@ void nhflow_momentum_SI::si_begin(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_s
     // "previous step" with them
     if(!qini)
     {
-        for(int q=0;q<N;++q)
+        for(size_t q=0;q<lN;++q)
         Qx[q] = Qy[q] = 0.0;
 
         double nx,ny;
@@ -749,8 +782,8 @@ void nhflow_momentum_SI::si_begin(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_s
             if(Hx(i,j)>0.0)
             for(k=0;k<p->knoz;++k)
             {
-            Qx[IJK] = 0.5*(d->UH[IJK] + d->UH[Ip1JK])*nx + 0.5*(d->VH[IJK] + d->VH[Ip1JK])*ny*p->y_dir;
-            qx(i,j) += p->DZN[KP]*Qx[IJK];
+            Qx[PIJK] = 0.5*(d->UH[IJK] + d->UH[Ip1JK])*nx + 0.5*(d->VH[IJK] + d->VH[Ip1JK])*ny*p->y_dir;
+            qx(i,j) += p->DZN[KP]*Qx[PIJK];
             }
         }
 
@@ -763,15 +796,15 @@ void nhflow_momentum_SI::si_begin(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_s
             if(Hy(i,j)>0.0)
             for(k=0;k<p->knoz;++k)
             {
-            Qy[IJK] = 0.5*(d->UH[IJK] + d->UH[IJp1K])*nx + 0.5*(d->VH[IJK] + d->VH[IJp1K])*ny;
-            qy(i,j) += p->DZN[KP]*Qy[IJK];
+            Qy[PIJK] = 0.5*(d->UH[IJK] + d->UH[IJp1K])*nx + 0.5*(d->VH[IJK] + d->VH[IJp1K])*ny;
+            qy(i,j) += p->DZN[KP]*Qy[PIJK];
             }
         }
 
     exchange1(p,pgc,qx);
     exchange2(p,pgc,qy);
-    exchangeF(p,pgc,Qx);
-    exchangeF(p,pgc,Qy);
+    exchangeF(p,pgc,PEXT(Qx));
+    exchangeF(p,pgc,PEXT(Qy));
 
     // face depths upwind of the new discharges
     face_depth(p,d,pgc);
@@ -784,12 +817,12 @@ void nhflow_momentum_SI::si_begin(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_s
     bc_setup(p,d,pgc);
 
     if(!qini)
-    layer_loop(p,[&](size_t q){ Tx[q] = Qx[q]; Ty[q] = Qy[q]; });
+    player_loop(p,lsi,lsj,lso,[&](size_t q){ Tx[q] = Qx[q]; Ty[q] = Qy[q]; });
 
     qini = true;
 
     // Q^n, q^n
-    layer_loop(p,[&](size_t q){ Qxn[q] = Qx[q]; Qyn[q] = Qy[q]; });
+    player_loop(p,lsi,lsj,lso,[&](size_t q){ Qxn[q] = Qx[q]; Qyn[q] = Qy[q]; });
 
     for(i=p->imin; i<p->imin+p->imax; ++i)
     for(j=p->jmin; j<p->jmin+p->jmax; ++j)
@@ -799,8 +832,8 @@ void nhflow_momentum_SI::si_begin(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_s
     }
 
     // the inflow ghost cells of the stage arrays from those of t^n
-    S.pflow->rkinflow_nhflow(p,d,pgc,d->U,d->V,d->W,UHa,VHa,WHa,WL0);
-    S.pflow->rkinflow_nhflow(p,d,pgc,d->U,d->V,d->W,UHb,VHb,WHb,WL0);
+    S.pflow->rkinflow_nhflow(p,d,pgc,d->U,d->V,d->W,PEXT(UHa),PEXT(VHa),PEXT(WHa),WL0);
+    S.pflow->rkinflow_nhflow(p,d,pgc,d->U,d->V,d->W,PEXT(UHb),PEXT(VHb),PEXT(WHb),WL0);
 
     // the face depths of the gravity term and of the mass flux
     mlflux_faces(p,d,pgc);
@@ -997,7 +1030,7 @@ void nhflow_momentum_SI::friction(lexer *p, fdm_nhf *d)
     if(Hx(i,j)>0.0)
     {
     fnorm(p,1,i,j,nx,ny);
-    un = Qx[IJK]/Hx(i,j);
+    un = Qx[PIJK]/Hx(i,j);
     ut = (-ny*0.5*(d->U[IJK] + d->U[Ip1JK]) + nx*0.5*(d->V[IJK] + d->V[Ip1JK]))*p->y_dir;
 
     gmx(i,j) = bed_gamma(p,sqrt(un*un + ut*ut),ds0*Hx(i,j),0.5*(d->ks(i,j) + d->ks(i+1,j)));
@@ -1008,7 +1041,7 @@ void nhflow_momentum_SI::friction(lexer *p, fdm_nhf *d)
     if(Hy(i,j)>0.0)
     {
     fnorm(p,2,i,j,nx,ny);
-    un = Qy[IJK]/Hy(i,j);
+    un = Qy[PIJK]/Hy(i,j);
     ut = -ny*0.5*(d->U[IJK] + d->U[IJp1K]) + nx*0.5*(d->V[IJK] + d->V[IJp1K]);
 
     gmy(i,j) = bed_gamma(p,sqrt(un*un + ut*ut),ds0*Hy(i,j),0.5*(d->ks(i,j) + d->ks(i,j+1)));
@@ -1423,7 +1456,7 @@ void nhflow_momentum_SI::bc_setup(lexer *p, fdm_nhf *d, ghostcell *pgc)
         qEf(f.fi,f.fj) = 0.0;
         gf(f.fi,f.fj) = 0.0;
 
-        auto Qface = [&](int kk) -> double& { return Qf[(f.fi-p->imin)*p->jmax*p->kmax + (f.fj-p->jmin)*p->kmax + kk-p->kmin]; };
+        auto Qface = [&](int kk) -> double& { return Qf[PIX(f.fi,f.fj,kk)]; };
         auto cidx = [&](int ii, int jj, int kk) { return (ii-p->imin)*p->jmax*p->kmax + (jj-p->jmin)*p->kmax + kk-p->kmin; };
 
         // boundary type
@@ -1580,7 +1613,7 @@ void nhflow_momentum_SI::bc_setup(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
                 for(k=0;k<K;++k)
                 {
-                Qface(k) = UH0[cidx(i,j,k)]*f.nx + VH0[cidx(i,j,k)]*f.ny;
+                Qface(k) = UH0[PIX(i,j,k)]*f.nx + VH0[PIX(i,j,k)]*f.ny;
                 qf(f.fi,f.fj) += p->DZN[KP]*Qface(k);
                 }
             }
@@ -1661,10 +1694,10 @@ void nhflow_momentum_SI::si_stage_vel(lexer *p, fdm_nhf *d, ghostcell *pgc, nhfl
     // has them from the first pass in the second one (tl2)
     if(!(s==0 && si_pass>0))
     {
-    pgc->start4V(p,UHs,gcval_uh);
+    pgc->start4V(p,PEXT(UHs),gcval_uh);
     if(p->j_dir==1)     // one row of cells: V, VH stay 0 (their ghost cells too)
-    pgc->start4V(p,VHs,gcval_vh);
-    pgc->start4V(p,WHs,gcval_wh);
+    pgc->start4V(p,PEXT(VHs),gcval_vh);
+    pgc->start4V(p,PEXT(WHs),gcval_wh);
     }
 
     // below the depth A 546 desingularised (Kurganov and Petrova 2007), as sflow_momentum_SI::rk_stage:
@@ -1678,18 +1711,18 @@ void nhflow_momentum_SI::si_stage_vel(lexer *p, fdm_nhf *d, ghostcell *pgc, nhfl
         {
             if(WL0(i,j)>=p->A546)
             {
-            d->U[IJK] = UHs[IJK]/WL0(i,j);
-            d->V[IJK] = VHs[IJK]/WL0(i,j)*p->y_dir;
-            d->W[IJK] = WHs[IJK]/WL0(i,j);
+            d->U[IJK] = UHs[PIJK]/WL0(i,j);
+            d->V[IJK] = VHs[PIJK]/WL0(i,j)*p->y_dir;
+            d->W[IJK] = WHs[PIJK]/WL0(i,j);
             }
 
             else
             {
             const double h = WL0(i,j);
             const double r = sqrt(2.0)*h/sqrt(h*h*h*h + hv4);
-            d->U[IJK] = r*UHs[IJK];
-            d->V[IJK] = r*VHs[IJK]*p->y_dir;
-            d->W[IJK] = r*WHs[IJK];
+            d->U[IJK] = r*UHs[PIJK];
+            d->V[IJK] = r*VHs[PIJK]*p->y_dir;
+            d->W[IJK] = r*WHs[PIJK];
             }
         }
 
@@ -1714,9 +1747,9 @@ void nhflow_momentum_SI::si_stage_vel(lexer *p, fdm_nhf *d, ghostcell *pgc, nhfl
         LOOP
         if(p->wet[IJ]==1 && WL0(i,j)>p->A544)
         {
-        d->U[IJK] += ts*accU[IJK];
-        d->V[IJK] += ts*accV[IJK]*p->y_dir;
-        d->W[IJK] += ts*accW[IJK];
+        d->U[IJK] += ts*accU[PIJK];
+        d->V[IJK] += ts*accV[PIJK]*p->y_dir;
+        d->W[IJK] += ts*accW[PIJK];
         }
     }
 
@@ -1738,27 +1771,27 @@ void nhflow_momentum_SI::si_stage_rhs(lexer *p, fdm_nhf *d, ghostcell *pgc, nhfl
     pflow->isource_nhflow(p,d,pgc,pvrans,WL0);
     pwind->wind_forcing_nhf_x(p,d,pgc,d->U,d->V,d->F,WL0,d->eta);
     if(pmet!=nullptr)
-    pmet->source_nhflow(p,pgc,d->F,0,WL0,UHs,VHs);
+    pmet->source_nhflow(p,pgc,d->F,0,WL0,PEXT(UHs),PEXT(VHs));
     if(d->wave!=nullptr)
     d->wave->u_source(p,d);
     irhs(p,d,pgc);
 
     if(FSx!=nullptr)
     LOOP
-    FSx[IJK] = d->F[IJK];
+    FSx[PIJK] = d->F[IJK];
 
     pturb->jsource(p,d);
     pflow->jsource_nhflow(p,d,pgc,pvrans,WL0);
     pwind->wind_forcing_nhf_y(p,d,pgc,d->U,d->V,d->G,WL0,d->eta);
     if(pmet!=nullptr)
-    pmet->source_nhflow(p,pgc,d->G,1,WL0,UHs,VHs);
+    pmet->source_nhflow(p,pgc,d->G,1,WL0,PEXT(UHs),PEXT(VHs));
     if(d->wave!=nullptr)
     d->wave->v_source(p,d);
     jrhs(p,d,pgc);
 
     if(FSy!=nullptr)
     LOOP
-    FSy[IJK] = p->j_dir==1 ? d->G[IJK] : 0.0;
+    FSy[PIJK] = p->j_dir==1 ? d->G[IJK] : 0.0;
 
     pturb->ksource(p,d);
     pflow->ksource_nhflow(p,d,pgc,pvrans,WL0);
@@ -1784,23 +1817,23 @@ void nhflow_momentum_SI::si_stage_rhs(lexer *p, fdm_nhf *d, ghostcell *pgc, nhfl
         // one stage (a = 0), the velocity form on the depth of t^n: h^n u_d + dt F^n (UH^n + h^n (u_d - u^n) + dt F^n
         // also in the desingularised shallow cells); cell_update takes UH^{n+1} = h^{n+1} u^{n+1}
         const double h = WL0(i,j);
-        UHo[IJK] = UHs[IJK] + h*(ELU[IJK] - d->U[IJK]) + p->dt*d->F[IJK];
-        VHo[IJK] = p->j_dir==1 ? VHs[IJK] + h*(ELV[IJK] - d->V[IJK]) + p->dt*d->G[IJK] : 0.0;
-        WHo[IJK] = WHs[IJK] + h*(ELW[IJK] - d->W[IJK]) + p->dt*d->H[IJK];
+        UHo[PIJK] = UHs[PIJK] + h*(ELU[IJK] - d->U[IJK]) + p->dt*d->F[IJK];
+        VHo[PIJK] = p->j_dir==1 ? VHs[PIJK] + h*(ELV[IJK] - d->V[IJK]) + p->dt*d->G[IJK] : 0.0;
+        WHo[PIJK] = WHs[PIJK] + h*(ELW[IJK] - d->W[IJK]) + p->dt*d->H[IJK];
         }
 
         else if(p->wet[IJ]==1)
         {
-        UHo[IJK] = a*UH0[IJK] + alpha*(UHs[IJK] + p->dt*d->F[IJK]);
-        VHo[IJK] = p->j_dir==1 ? a*VH0[IJK] + alpha*(VHs[IJK] + p->dt*d->G[IJK]) : 0.0;
-        WHo[IJK] = a*WH0[IJK] + alpha*(WHs[IJK] + p->dt*d->H[IJK]);
+        UHo[PIJK] = a*UH0[PIJK] + alpha*(UHs[PIJK] + p->dt*d->F[IJK]);
+        VHo[PIJK] = p->j_dir==1 ? a*VH0[PIJK] + alpha*(VHs[PIJK] + p->dt*d->G[IJK]) : 0.0;
+        WHo[PIJK] = a*WH0[PIJK] + alpha*(WHs[PIJK] + p->dt*d->H[IJK]);
         }
 
         else
         {
-        UHo[IJK] = 0.0;
-        VHo[IJK] = 0.0;
-        WHo[IJK] = 0.0;
+        UHo[PIJK] = 0.0;
+        VHo[PIJK] = 0.0;
+        WHo[PIJK] = 0.0;
         }
     }
 }
@@ -1858,13 +1891,13 @@ void nhflow_momentum_SI::advection(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_
         SLICELOOP1
         if(Hx(i,j)>0.0)
         for(k=0;k<p->knoz;++k)
-        d->Fx[IJK] = Tx[IJK]>=0.0 ? Tx[IJK]*Ls[IJK] : Tx[IJK]*Ln[IJK];
+        d->Fx[IJK] = Tx[PIJK]>=0.0 ? Tx[PIJK]*Ls[IJK] : Tx[PIJK]*Ln[IJK];
 
         if(p->j_dir==1)
         SLICELOOP2
         if(Hy(i,j)>0.0)
         for(k=0;k<p->knoz;++k)
-        d->Fy[IJK] = Ty[IJK]>=0.0 ? Ty[IJK]*Le[IJK] : Ty[IJK]*Lw[IJK];
+        d->Fy[IJK] = Ty[PIJK]>=0.0 ? Ty[PIJK]*Le[IJK] : Ty[PIJK]*Lw[IJK];
         }
 
         exchangeF(p,pgc,d->Fx);
@@ -1881,7 +1914,7 @@ void nhflow_momentum_SI::advection(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_
             {
             i=f.fi;
             j=f.fj;
-            const double t = T[IJK];
+            const double t = T[PIJK];
             const bool in = f.s*t>0.0;
 
             i=f.i;
@@ -1976,14 +2009,14 @@ void nhflow_momentum_SI::advection_bcg(lexer *p, fdm_nhf *d, ghostcell *pgc, dou
     // Stokes-5 propagation: the wave 1.2 % slow at T/40 -> 0.6 % with the time levels of the column operator and of
     // the constraint)
     const double *acc = f==d->U ? accU : (f==d->V ? accV : accW);
-    auto src = [&](int a, int b, int c) -> double { return acc!=nullptr ? acc[ix(a,b,c)] : 0.0; };
+    auto src = [&](int a, int b, int c) -> double { return acc!=nullptr ? acc[PIX(a,b,c)] : 0.0; };
 
     // x-faces (i+1/2)
     SLICELOOP1
     if(Hx(i,j)>0.0)
     for(k=0;k<K;++k)
     {
-        const double t = Tx[IJK];
+        const double t = Tx[PIJK];
         const double a = t>=0.0 ? 1.0 : -1.0;
         const int iu = t>=0.0 ? i : i+1;
 
@@ -2005,7 +2038,7 @@ void nhflow_momentum_SI::advection_bcg(lexer *p, fdm_nhf *d, ghostcell *pgc, dou
 
             if(hs>p->A544)
             {
-            const double v = (Ty[ix(iu,j-1,k)] + Ty[ix(iu,j,k)])/hs;
+            const double v = (Ty[PIX(iu,j-1,k)] + Ty[PIX(iu,j,k)])/hs;
             const double gt = slope(f[ix(iu,j-1,k)],f[ix(iu,j,k)],f[ix(iu,j+1,k)],cv ? 1.0 : p->DYP[j-1+marge],cv ? 1.0 : p->DYP[j+marge],ok(iu,j-1),ok(iu,j+1));
             const double ds = cv ? 0.5*(dn(2,iu,j-1) + dn(2,iu,j)) : 1.0;
             ff -= 0.5*dt*v*gt/ds;
@@ -2021,7 +2054,7 @@ void nhflow_momentum_SI::advection_bcg(lexer *p, fdm_nhf *d, ghostcell *pgc, dou
     if(Hy(i,j)>0.0)
     for(k=0;k<K;++k)
     {
-        const double t = Ty[IJK];
+        const double t = Ty[PIJK];
         const double a = t>=0.0 ? 1.0 : -1.0;
         const int ju = t>=0.0 ? j : j+1;
 
@@ -2041,7 +2074,7 @@ void nhflow_momentum_SI::advection_bcg(lexer *p, fdm_nhf *d, ghostcell *pgc, dou
 
         if(hs>p->A544)
         {
-        const double u = (Tx[ix(i-1,ju,k)] + Tx[ix(i,ju,k)])/hs;
+        const double u = (Tx[PIX(i-1,ju,k)] + Tx[PIX(i,ju,k)])/hs;
         const double gt = slope(f[ix(i-1,ju,k)],f[ix(i,ju,k)],f[ix(i+1,ju,k)],cv ? 1.0 : p->DXP[i-1+marge],cv ? 1.0 : p->DXP[i+marge],ok(i-1,ju),ok(i+1,ju));
         const double ds = cv ? 0.5*(dn(1,i-1,ju) + dn(1,i,ju)) : 1.0;
         ff -= 0.5*dt*u*gt/ds;
@@ -2341,12 +2374,12 @@ void nhflow_momentum_SI::si_predictor_end(lexer *p, fdm_nhf *d, ghostcell *pgc)
     // the cell predictor to the faces and to the cell update (UHD, VHD)
     LOOP
     {
-    UHD[IJK] = p->wet[IJ]==1 ? UHp[IJK] : 0.0;
-    VHD[IJK] = (p->wet[IJ]==1 && p->j_dir==1) ? VHp[IJK] : 0.0;
+    UHD[PIJK] = p->wet[IJ]==1 ? UHp[PIJK] : 0.0;
+    VHD[PIJK] = (p->wet[IJ]==1 && p->j_dir==1) ? VHp[PIJK] : 0.0;
     }
 
-    exchangeC(p,pgc,UHD);
-    exchangeC(p,pgc,VHD);
+    exchangeC(p,pgc,PEXT(UHD));
+    exchangeC(p,pgc,PEXT(VHD));
 
 }
 
@@ -2441,7 +2474,7 @@ void nhflow_momentum_SI::si_assemble(lexer *p, fdm_nhf *d, ghostcell *pgc)
         fweights(hMx[IJ],i,j,i+1,j,fl,fr);
 
         for(k=0;k<p->knoz;++k)
-        wb[k] = fl*(UHD[IJK]*nx + VHD[IJK]*ny) + fr*(UHD[Ip1JK]*nx + VHD[Ip1JK]*ny);
+        wb[k] = fl*(UHD[PIJK]*nx + VHD[PIJK]*ny) + fr*(UHD[PIp1JK]*nx + VHD[PIp1JK]*ny);
 
         if(ho)
         ho_predictor(p,1,UHD,wb.data());
@@ -2449,7 +2482,7 @@ void nhflow_momentum_SI::si_assemble(lexer *p, fdm_nhf *d, ghostcell *pgc)
         if(thv<1.0)
         {
         for(k=0;k<p->knoz;++k)
-        wx[k] = fl*(UH0[IJK]*nx + VH0[IJK]*ny) + fr*(UH0[Ip1JK]*nx + VH0[Ip1JK]*ny);
+        wx[k] = fl*(UH0[PIJK]*nx + VH0[PIJK]*ny) + fr*(UH0[PIp1JK]*nx + VH0[PIp1JK]*ny);
 
         if(ho)
         ho_predictor(p,1,UH0,wx.data());
@@ -2467,7 +2500,7 @@ void nhflow_momentum_SI::si_assemble(lexer *p, fdm_nhf *d, ghostcell *pgc)
         qh = 0.0;
         for(k=0;k<p->knoz;++k)
         {
-        QAx[IJK] = wr[k];
+        QAx[PIJK] = wr[k];
         qh += p->DZN[KP]*wr[k];
         wb[k] = 1.0;
         }
@@ -2477,7 +2510,7 @@ void nhflow_momentum_SI::si_assemble(lexer *p, fdm_nhf *d, ghostcell *pgc)
         alx(i,j) = 0.0;
         for(k=0;k<p->knoz;++k)
         {
-        Rx[IJK] = wr[k];
+        Rx[PIJK] = wr[k];
         alx(i,j) += p->DZN[KP]*wr[k];
         }
 
@@ -2519,7 +2552,7 @@ void nhflow_momentum_SI::si_assemble(lexer *p, fdm_nhf *d, ghostcell *pgc)
         fweights(hMy[IJ],i,j,i,j+1,fl,fr);
 
         for(k=0;k<p->knoz;++k)
-        wb[k] = fl*(UHD[IJK]*nx + VHD[IJK]*ny) + fr*(UHD[IJp1K]*nx + VHD[IJp1K]*ny);
+        wb[k] = fl*(UHD[PIJK]*nx + VHD[PIJK]*ny) + fr*(UHD[PIJp1K]*nx + VHD[PIJp1K]*ny);
 
         if(ho)
         ho_predictor(p,2,VHD,wb.data());
@@ -2527,7 +2560,7 @@ void nhflow_momentum_SI::si_assemble(lexer *p, fdm_nhf *d, ghostcell *pgc)
         if(thv<1.0)
         {
         for(k=0;k<p->knoz;++k)
-        wx[k] = fl*(UH0[IJK]*nx + VH0[IJK]*ny) + fr*(UH0[IJp1K]*nx + VH0[IJp1K]*ny);
+        wx[k] = fl*(UH0[PIJK]*nx + VH0[PIJK]*ny) + fr*(UH0[PIJp1K]*nx + VH0[PIJp1K]*ny);
 
         if(ho)
         ho_predictor(p,2,VH0,wx.data());
@@ -2544,7 +2577,7 @@ void nhflow_momentum_SI::si_assemble(lexer *p, fdm_nhf *d, ghostcell *pgc)
         qh = 0.0;
         for(k=0;k<p->knoz;++k)
         {
-        QAy[IJK] = wr[k];
+        QAy[PIJK] = wr[k];
         qh += p->DZN[KP]*wr[k];
         wb[k] = 1.0;
         }
@@ -2554,7 +2587,7 @@ void nhflow_momentum_SI::si_assemble(lexer *p, fdm_nhf *d, ghostcell *pgc)
         aly(i,j) = 0.0;
         for(k=0;k<p->knoz;++k)
         {
-        Ry[IJK] = wr[k];
+        Ry[PIJK] = wr[k];
         aly(i,j) += p->DZN[KP]*wr[k];
         }
 
@@ -2614,12 +2647,12 @@ void nhflow_momentum_SI::si_assemble(lexer *p, fdm_nhf *d, ghostcell *pgc)
         col_coef(p,d,Hf(f.fi,f.fj),i,j,i,j,wnu.data(),wcu.data(),wcl.data(),wcd.data());
 
         for(k=0;k<p->knoz;++k)
-        wb[k] = UHD[IJK]*f.nx + VHD[IJK]*f.ny;
+        wb[k] = UHD[PIJK]*f.nx + VHD[PIJK]*f.ny;
 
         if(thv<1.0)
         {
         for(k=0;k<p->knoz;++k)
-        wx[k] = UH0[IJK]*f.nx + VH0[IJK]*f.ny;
+        wx[k] = UH0[PIJK]*f.nx + VH0[PIJK]*f.ny;
         col_adv_rhs(p,wx.data(),wb.data());
         }
 
@@ -2631,7 +2664,7 @@ void nhflow_momentum_SI::si_assemble(lexer *p, fdm_nhf *d, ghostcell *pgc)
         qh = 0.0;
         for(k=0;k<p->knoz;++k)
         {
-        QA[fidx(k)] = wr[k];
+        QA[PIX(fi,fj,k)] = wr[k];
         qh += p->DZN[KP]*wr[k];
         wb[k] = 1.0;
         }
@@ -2641,7 +2674,7 @@ void nhflow_momentum_SI::si_assemble(lexer *p, fdm_nhf *d, ghostcell *pgc)
         alf(f.fi,f.fj) = 0.0;
         for(k=0;k<p->knoz;++k)
         {
-        R[fidx(k)] = wr[k];
+        R[PIX(fi,fj,k)] = wr[k];
         alf(f.fi,f.fj) += p->DZN[KP]*wr[k];
         }
 
@@ -2675,7 +2708,7 @@ void nhflow_momentum_SI::si_old_closed(lexer *p, ghostcell *pgc)
     qxn(i,j) = 0.0;
 
     for(k=0;k<p->knoz;++k)
-    Qxn[IJK] = 0.0;
+    Qxn[PIJK] = 0.0;
     }
 
     if(p->j_dir==1)
@@ -2685,13 +2718,13 @@ void nhflow_momentum_SI::si_old_closed(lexer *p, ghostcell *pgc)
     qyn(i,j) = 0.0;
 
     for(k=0;k<p->knoz;++k)
-    Qyn[IJK] = 0.0;
+    Qyn[PIJK] = 0.0;
     }
 
     exchange1(p,pgc,qxn);
     exchange2(p,pgc,qyn);
-    exchangeF(p,pgc,Qxn);
-    exchangeF(p,pgc,Qyn);
+    exchangeF(p,pgc,PEXT(Qxn));
+    exchangeF(p,pgc,PEXT(Qyn));
 
     for(const bc_face &f : bcf)
     if(f.type==bc_level && (f.cs==1 || f.cs==4 ? Hx(f.fi,f.fj) : Hy(f.fi,f.fj))<=0.0)
@@ -2708,7 +2741,7 @@ void nhflow_momentum_SI::si_old_closed(lexer *p, ghostcell *pgc)
         i=f.fi;
         j=f.fj;
         for(k=0;k<p->knoz;++k)
-        Qn[IJK] = 0.0;
+        Qn[PIJK] = 0.0;
     }
 }
 
@@ -2765,19 +2798,19 @@ void nhflow_momentum_SI::face_update(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
             for(k=0;k<p->knoz;++k)
             {
-            Qx[IJK] = QAx[IJK] - G*Rx[IJK] - kx(i,j)*G1;
+            Qx[PIJK] = QAx[PIJK] - G*Rx[PIJK] - kx(i,j)*G1;
 
             // the non-hydrostatic pressure of the face (A 520 > 0, nh_faces)
             if(nh)
-            Qx[IJK] += NQx[IJK];
+            Qx[PIJK] += NQx[PIJK];
 
-            qx(i,j) += p->DZN[KP]*Qx[IJK];
+            qx(i,j) += p->DZN[KP]*Qx[PIJK];
             }
         }
 
         else
         for(k=0;k<p->knoz;++k)
-        Qx[IJK] = 0.0;
+        Qx[PIJK] = 0.0;
     }
 
     if(p->j_dir==1)
@@ -2792,18 +2825,18 @@ void nhflow_momentum_SI::face_update(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
             for(k=0;k<p->knoz;++k)
             {
-            Qy[IJK] = QAy[IJK] - G*Ry[IJK] - ky(i,j)*G1;
+            Qy[PIJK] = QAy[PIJK] - G*Ry[PIJK] - ky(i,j)*G1;
 
             if(nh)
-            Qy[IJK] += NQy[IJK];
+            Qy[PIJK] += NQy[PIJK];
 
-            qy(i,j) += p->DZN[KP]*Qy[IJK];
+            qy(i,j) += p->DZN[KP]*Qy[PIJK];
             }
         }
 
         else
         for(k=0;k<p->knoz;++k)
-        Qy[IJK] = 0.0;
+        Qy[PIJK] = 0.0;
     }
 
     // open boundary faces
@@ -2831,7 +2864,7 @@ void nhflow_momentum_SI::face_update(lexer *p, fdm_nhf *d, ghostcell *pgc)
             i=f.fi;
             j=f.fj;
             for(k=0;k<K;++k)
-            lay[k] = QA[IJK] - G*R[IJK];
+            lay[k] = QA[PIJK] - G*R[PIJK];
             }
 
             else
@@ -2860,22 +2893,36 @@ void nhflow_momentum_SI::face_update(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
         for(k=0;k<K;++k)
         {
-        Qf[IJK] = lay[k];
+        Qf[PIJK] = lay[k];
         qf(i,j) += p->DZN[KP]*lay[k];
         }
     }
 
     exchange1(p,pgc,qx);
     exchange2(p,pgc,qy);
-    exchangeF(p,pgc,Qx);
-    exchangeF(p,pgc,Qy);
+    exchangeF(p,pgc,PEXT(Qx));
+    exchangeF(p,pgc,PEXT(Qy));
 
     // layer transport of the step
-    layer_loop(p,[&](size_t q)
+    player_loop(p,lsi,lsj,lso,[&](size_t q)
     {
     Tx[q] = theta*Qx[q] + (1.0-theta)*Qxn[q];
     Ty[q] = theta*Qy[q] + (1.0-theta)*Qyn[q];
     });
+}
+
+double nhflow_momentum_SI::layer_div_p(lexer *p, double *fx, double *fy)
+{
+    // layer_div of private arrays (Tx/Ty, Qx/Qy)
+    if(p->geo_curv==1)
+    return nhflow_curv::divh(p,PEXT(fx),PEXT(fy),i,j,k);
+
+    double s = (fx[PIJK] - fx[PIm1JK])/p->DXN[IP];
+
+    if(p->j_dir==1)
+    s += (fy[PIJK] - fy[PIJm1K])/p->DYN[JP];
+
+    return s;
 }
 
 double nhflow_momentum_SI::layer_div(lexer *p, double *fx, double *fy)
@@ -2903,7 +2950,7 @@ void nhflow_momentum_SI::eta_update(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow
     double s=0.0;
 
     for(k=0;k<p->knoz;++k)
-    s += p->DZN[KP]*layer_div(p,Tx,Ty);
+    s += p->DZN[KP]*layer_div_p(p,Tx,Ty);
 
     double w = WL0(i,j) - p->dt*s;
 
@@ -2927,7 +2974,7 @@ void nhflow_momentum_SI::eta_update(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow
         i=f.fi;
         j=f.fj;
         for(k=0;k<p->knoz;++k)
-        q += p->DZN[KP]*T[IJK];
+        q += p->DZN[KP]*T[PIJK];
 
         q *= f.s*f.ds;
 
@@ -3067,7 +3114,7 @@ void nhflow_momentum_SI::cell_update(lexer *p, fdm_nhf *d, ghostcell *pgc)
     {
         double s=0.0;
         for(k=0;k<p->knoz;++k)
-        s += p->DZN[KP]*dt*(F[IJK] - (B!=nullptr ? WL0(i,j)*B[IJK] : 0.0));
+        s += p->DZN[KP]*dt*(F[PIJK] - (B!=nullptr ? WL0(i,j)*B[IJK] : 0.0));
         return s;
     };
 
@@ -3077,8 +3124,8 @@ void nhflow_momentum_SI::cell_update(lexer *p, fdm_nhf *d, ghostcell *pgc)
     // fourth order: the phi face terms two faces away, also those of the neighbouring ranks (nh_cell_faces)
     if(nh && ho)
     {
-    exchangeC(p,pgc,NQx);
-    exchangeC(p,pgc,NQy);
+    exchangeC(p,pgc,PEXT(NQx));
+    exchangeC(p,pgc,PEXT(NQy));
     }
 
     SLICELOOP4
@@ -3217,12 +3264,12 @@ void nhflow_momentum_SI::cell_update(lexer *p, fdm_nhf *d, ghostcell *pgc)
         nh_cell_faces(p,d,wnx.data(),wny.data());
 
         for(k=0;k<p->knoz;++k)
-        wb[k] = UHD[IJK] - (Bx!=nullptr ? dt*WL0(i,j)*Bx[IJK] : 0.0) + (nhc ? wnx[k] : 0.0);
+        wb[k] = UHD[PIJK] - (Bx!=nullptr ? dt*WL0(i,j)*Bx[IJK] : 0.0) + (nhc ? wnx[k] : 0.0);
 
         if(thv<1.0)
         {
         for(k=0;k<p->knoz;++k)
-        wx[k] = UH0[IJK];
+        wx[k] = UH0[PIJK];
         col_adv_rhs(p,wx.data(),wb.data());
         }
 
@@ -3237,12 +3284,12 @@ void nhflow_momentum_SI::cell_update(lexer *p, fdm_nhf *d, ghostcell *pgc)
             if(p->j_dir==1)
             {
             for(k=0;k<p->knoz;++k)
-            wb[k] = VHD[IJK] - (By!=nullptr ? dt*WL0(i,j)*By[IJK] : 0.0) + (nhc ? wny[k] : 0.0);
+            wb[k] = VHD[PIJK] - (By!=nullptr ? dt*WL0(i,j)*By[IJK] : 0.0) + (nhc ? wny[k] : 0.0);
 
             if(thv<1.0)
             {
             for(k=0;k<p->knoz;++k)
-            wx[k] = VH0[IJK];
+            wx[k] = VH0[PIJK];
             col_adv_rhs(p,wx.data(),wb.data());
             }
 
@@ -3256,7 +3303,7 @@ void nhflow_momentum_SI::cell_update(lexer *p, fdm_nhf *d, ghostcell *pgc)
         for(k=0;k<p->knoz;++k)
         {
         wnu[k] = 0.0;
-        wb[k] = WHp[IJK];
+        wb[k] = WHp[PIJK];
         }
 
         col_coef(p,d,WL0(i,j),i,j,i,j,wnu.data(),wcu.data(),wcl.data(),wcd.data());
@@ -3264,7 +3311,7 @@ void nhflow_momentum_SI::cell_update(lexer *p, fdm_nhf *d, ghostcell *pgc)
         if(thv<1.0)
         {
         for(k=0;k<p->knoz;++k)
-        wx[k] = WH0[IJK];
+        wx[k] = WH0[PIJK];
         col_adv_rhs(p,wx.data(),wb.data());
         }
 
@@ -3316,8 +3363,8 @@ void nhflow_momentum_SI::relax(lexer *p, fdm_nhf *d, ghostcell *pgc)
     if(p->B95!=0.0)
     pflow->wavegen_stage_nhflow(p,d,pgc,p->simtime+p->dt);
 
-    memcpy(dUH,d->UH,N*sizeof(double));
-    memcpy(dVH,d->VH,N*sizeof(double));
+    memcpy(PEXT(dUH),d->UH,N*sizeof(double));
+    memcpy(PEXT(dVH),d->VH,N*sizeof(double));
 
     SLICELOOP4
     tS(i,j) = d->WL(i,j);
@@ -3351,12 +3398,12 @@ void nhflow_momentum_SI::relax(lexer *p, fdm_nhf *d, ghostcell *pgc)
     // the layer face discharges follow the change of the cell discharges
     LOOP
     {
-    dUH[IJK] = d->UH[IJK] - dUH[IJK];
-    dVH[IJK] = (d->VH[IJK] - dVH[IJK])*p->y_dir;
+    dUH[PIJK] = d->UH[IJK] - dUH[PIJK];
+    dVH[PIJK] = (d->VH[IJK] - dVH[PIJK])*p->y_dir;
     }
 
-    exchangeC(p,pgc,dUH);
-    exchangeC(p,pgc,dVH);
+    exchangeC(p,pgc,PEXT(dUH));
+    exchangeC(p,pgc,PEXT(dVH));
 
     double nx,ny;
 
@@ -3368,8 +3415,8 @@ void nhflow_momentum_SI::relax(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
         for(k=0;k<p->knoz;++k)
         {
-        Qx[IJK] += 0.5*(dUH[IJK] + dUH[Ip1JK])*nx + 0.5*(dVH[IJK] + dVH[Ip1JK])*ny;
-        qx(i,j) += p->DZN[KP]*Qx[IJK];
+        Qx[PIJK] += 0.5*(dUH[PIJK] + dUH[PIp1JK])*nx + 0.5*(dVH[PIJK] + dVH[PIp1JK])*ny;
+        qx(i,j) += p->DZN[KP]*Qx[PIJK];
         }
     }
 
@@ -3382,15 +3429,15 @@ void nhflow_momentum_SI::relax(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
         for(k=0;k<p->knoz;++k)
         {
-        Qy[IJK] += 0.5*(dUH[IJK] + dUH[IJp1K])*nx + 0.5*(dVH[IJK] + dVH[IJp1K])*ny;
-        qy(i,j) += p->DZN[KP]*Qy[IJK];
+        Qy[PIJK] += 0.5*(dUH[PIJK] + dUH[PIJp1K])*nx + 0.5*(dVH[PIJK] + dVH[PIJp1K])*ny;
+        qy(i,j) += p->DZN[KP]*Qy[PIJK];
         }
     }
 
     exchange1(p,pgc,qx);
     exchange2(p,pgc,qy);
-    exchangeF(p,pgc,Qx);
-    exchangeF(p,pgc,Qy);
+    exchangeF(p,pgc,PEXT(Qx));
+    exchangeF(p,pgc,PEXT(Qy));
 
     exchange4(p,pgc,d->WL);
     exchange4(p,pgc,d->eta);
@@ -3415,18 +3462,18 @@ void nhflow_momentum_SI::finish(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
             if(p->wet[IJ]==1 && h1>10.0*p->A544 && h0>10.0*p->A544)
             {
-            accU[IJK] = (d->UH[IJK]/h1 - UHp[IJK]/h0)/p->dt;
-            accV[IJK] = p->j_dir==1 ? (d->VH[IJK]/h1 - VHp[IJK]/h0)/p->dt : 0.0;
-            accW[IJK] = (d->WH[IJK]/h1 - WHp[IJK]/h0)/p->dt;
+            accU[PIJK] = (d->UH[IJK]/h1 - UHp[PIJK]/h0)/p->dt;
+            accV[PIJK] = p->j_dir==1 ? (d->VH[IJK]/h1 - VHp[PIJK]/h0)/p->dt : 0.0;
+            accW[PIJK] = (d->WH[IJK]/h1 - WHp[PIJK]/h0)/p->dt;
             }
 
             else
-            accU[IJK] = accV[IJK] = accW[IJK] = 0.0;
+            accU[PIJK] = accV[PIJK] = accW[PIJK] = 0.0;
         }
 
-        exchangeC(p,pgc,accU);
-        exchangeC(p,pgc,accV);
-        exchangeC(p,pgc,accW);
+        exchangeC(p,pgc,PEXT(accU));
+        exchangeC(p,pgc,PEXT(accV));
+        exchangeC(p,pgc,PEXT(accW));
     }
 
     // velocities (Froude limiter A 531), ghost cells
@@ -3438,8 +3485,8 @@ void nhflow_momentum_SI::finish(lexer *p, fdm_nhf *d, ghostcell *pgc)
     pgc->start4V(p,d->WH,gcval_wh);
 
     // the layer transport of the step is the continuity flux: omega, and the advection of the next step
-    memcpy(d->FEx,Tx,N*sizeof(double));
-    memcpy(d->FEy,Ty,N*sizeof(double));
+    memcpy(d->FEx,PEXT(Tx),N*sizeof(double));
+    memcpy(d->FEy,PEXT(Ty),N*sizeof(double));
 
     omega_update(p,d,pgc,d->WL,d->U,d->V,d->W);
 
