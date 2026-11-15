@@ -172,6 +172,18 @@ void sflow_f::logic(lexer *p, fdm2D* b, ghostcell* pgc)
 	if(p->B90>=1)
 	pflow= new iowave(p,pgc,pBC);
 
+    // B 60 3/4: the outflow hydrograph is read and printed (Qo_ipol) but not applied: the outflow of SFLOW is the
+    // water level F 62 (F 50 2/3) or free; B 60 3 has no inflow either (W 10 with B 60 1, hydrograph.dat with B 60 2/4)
+    if(p->B60>=3 && p->B90==0 && p->mpirank==0)
+    cout<<"SFLOW warning: B 60 "<<p->B60<<": the outflow hydrograph is not applied in SFLOW (the outflow is the water level F 62 with F 50 2)"
+        <<(p->B60==3 ? ", and B 60 3 has no inflow (B 60 1: W 10, B 60 2: hydrograph.dat)" : "")<<endl;
+
+    // B 60 with the explicit integrators and no water level at the outflow: the ghost cells are zero gradient in the
+    // level and the velocity, nothing sets the level of a subcritical river (a channel with the normal depth
+    // 1.47 m filled to 4.8 m); the semi-implicit step has a free outflow there (Riemann invariant)
+    if(p->B60>=1 && p->B90==0 && p->A226==0 && p->F50!=2 && p->F50!=3 && p->B440==0 && p->B441==0 && p->B442==0 && p->B520==0 && p->mpirank==0)
+    cout<<"SFLOW warning: B 60 "<<p->B60<<" with A 210 "<<p->A210<<" (explicit) and F 50 "<<p->F50<<": no water level at the outflow, the level of a subcritical flow is not determined (set F 50 2 and F 62, or A 210 11 for a free outflow)"<<endl;
+
 	
 	// printer
 	pprint = new sflow_vtp_fsf(p,b,pgc);
