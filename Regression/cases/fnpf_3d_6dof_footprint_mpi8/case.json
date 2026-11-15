@@ -1,0 +1,15 @@
+{
+ "description": "FNPF: a box barge (1.2 x 0.4 x 0.2 m, half the water density) released 0.03 m above its floating position in still water, heave free, on a 16 x 8 x 6 grid on 8 ranks (4 x 2, local boxes of 4 x 4 columns): the footprint of the hull (12 x 4 columns) is cut by three rank boundaries in x and one in y. The harmonic extension of eta and Fifsf over the footprint (fnpf_6DOF::footprint) is a red-black over-relaxed Gauss-Seidel iteration with a ghost cell exchange after each colour, the same iteration for every partition. With the lexicographic sweep and one exchange per sweep before patch 0068 (Jacobi across the rank boundaries, over-relaxed with 1.6) the iteration diverges here and the case stops with NaN in the first step.",
+ "solver": "fnpf",
+ "np": 8,
+ "steps": 10,
+ "tags": [
+  "3d",
+  "fnpf",
+  "6dof",
+  "mpi"
+ ],
+ "covers": [
+  "fnpf_6DOF::footprint: red-black SOR of the footprint extension, footprint cut by many ranks"
+ ]
+}

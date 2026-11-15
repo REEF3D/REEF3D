@@ -302,6 +302,14 @@ void fnpf_fsfbc_wd::wetdry_dynamic(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice 
                     if(&Fifsf != &c->Fifsf)
                     c->Fifsf(i,j) = Fifsf(i,j);
 
+                    // the column of the new cell still holds the potential of the step it dried in
+                    // (0 on land): the explicit cross-derivatives of the wet columns next to it and
+                    // their bed boundary condition read it before the next solve
+                    for(k=-3; k<=p->knoz+3; ++k)
+                    c->Fi[FIJK] = Fifsf(i,j);
+
+                    k=0;
+
                     if(&eta != &c->eta)
                     c->eta(i,j) = eta(i,j);
                     ++nrewet;
