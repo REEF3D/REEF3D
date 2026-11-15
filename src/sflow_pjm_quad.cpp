@@ -470,9 +470,10 @@ void sflow_pjm_quad::upgrad(lexer*p, fdm2D* b, slice &eta)
             {
             h = MAX(eta(i,j) + b->depth(i,j),0.0);
             
-            // the slope normal to a wall of dry land is odd about it (A 221 2)
-            auto wx = [&](int a) { return sflow_drywall::wall(p,i+a,j); };
-            auto wy = [&](int a) { return sflow_drywall::wall(p,i,j+a); };
+            // the slope normal to a wall is odd about it: the walls of the grid and of solids (the ghost cells of Gx, Gy
+            // are even), and a wall of dry land (A 221 2)
+            auto wx = [&](int a) { const int q = (i+a-p->imin)*p->jmax + (j-p->jmin); return (p->flagslice4[q]<0 && p->IOSL[q]==0) || sflow_drywall::wall(p,i+a,j); };
+            auto wy = [&](int a) { const int q = (i-p->imin)*p->jmax + (j+a-p->jmin); return p->flagslice4[q]<0 || sflow_drywall::wall(p,i,j+a); };
 
             Ld(i,j) = h*h*h*(((wx(1) ? -Gx(i,j) : Gx(i+1,j)) - (wx(-1) ? -Gx(i,j) : Gx(i-1,j)))/(p->DXP[IP] + p->DXP[IM1])
                            + (ysk ? 0.0 : ((wy(1) ? -Gy(i,j) : Gy(i,j+1)) - (wy(-1) ? -Gy(i,j) : Gy(i,j-1)))/(p->DYP[JP] + p->DYP[JM1])*p->y_dir));
