@@ -2799,6 +2799,35 @@ void sflow_amr::timestep(lexer *p, fdm2D *b, ghostcell *pgc)
         }
     }
 
+    // explicit horizontal diffusion (A 212 1) of the patches, as sflow_etimestep (G 7 1: per level)
+    if(p->A212==1)
+    {
+        for(auto q : P)
+        {
+            sflow_amr_patch *c = SP(q);
+            lexer *pp = c->pp;
+            fdm2D *pb = c->b;
+            for(int ii=EXT; ii<EXT+c->nx; ++ii)
+            for(int jj=EY; jj<EY+c->ny; ++jj)
+            if(pp->wet[lij(pp,ii,jj)]==1 && pp->flagslice4[lij(pp,ii,jj)]>0)
+            {
+                double visc = p->W2 + pb->eddyv(ii,jj);
+
+                if(p->A246==2 && pb->breaking(ii,jj)==1)
+                visc += p->A250;
+
+                if(p->A246==4)
+                visc += pb->vb(ii,jj);
+
+                double dx = pp->DXN[ii+marge], dy = pp->DYN[jj+marge];
+                const double i2 = (pp->geo_curv==1) ? sflow_curv::inv2(pp,ii,jj) : 1.0/(dx*dx) + p->y_dir/(dy*dy);
+                const double dv = 0.2/(visc*i2 + 1.0e-20);
+                dtd = MIN(dtd, dv);
+                dl[c->lev] = MIN(dl[c->lev], dv);
+            }
+        }
+    }
+
     // Boussinesq (A 220 4): Courant number 0.5 at most, as sflow_etimestep
     const double cfl = (p->A220==4) ? MIN(p->N47,0.25) : p->N47;
 
