@@ -64,6 +64,33 @@ void CPM::seed_particles(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
         if(a->topo(i,j,k)<=0.0)
         return true;
         
+        // a cell with its centre above the bed and its lower part below it: seeded as well, the parcels above the
+        // bed are removed below. Such a cell was left empty, and a bed level in the lower half of a cell began at
+        // the face below it (bed at 0.48 cells above a face: 0.48 cells of sand missing; a sloping bed began as
+        // steps of up to half a cell). The bed level in the cell from the bottom face: its corners and its centre
+        // (a bed level on the face itself is no part of the cell)
+        {
+            const double zb = p->ZN[KP];
+            const double x0 = p->XN[IP], x1 = p->XN[IP1], y0 = p->YN[JP], y1 = p->YN[JP1];
+            const double tol = -1.0e-6*p->DZN[KP];
+            
+            if(k>0 || p->nb5>=0)
+            {
+                if(p->ccipol4_b(a->topo,p->XP[IP],p->YP[JP],zb) < tol)
+                return true;
+                
+                if(p->j_dir==0)
+                {
+                    if(p->ccipol4_b(a->topo,x0,p->YP[JP],zb) < tol || p->ccipol4_b(a->topo,x1,p->YP[JP],zb) < tol)
+                    return true;
+                }
+                
+                else if(p->ccipol4_b(a->topo,x0,y0,zb) < tol || p->ccipol4_b(a->topo,x1,y0,zb) < tol
+                     || p->ccipol4_b(a->topo,x0,y1,zb) < tol || p->ccipol4_b(a->topo,x1,y1,zb) < tol)
+                return true;
+            }
+        }
+        
         for(int qn=0;qn<p->Q110;++qn)
         if(p->XP[IP]>=p->Q110_xs[qn] && p->XP[IP]<p->Q110_xe[qn]
         && (p->j_dir==0 || (p->YP[JP]>=p->Q110_ys[qn] && p->YP[JP]<p->Q110_ye[qn]))
