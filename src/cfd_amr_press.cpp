@@ -2853,8 +2853,28 @@ void cfd_amr::pr_prec(int kr, int kz)
         level_solve(l,(l==maxlev) ? kr : KT);
     }
 
-    // level 0
+    // level 0.  Without the down sweep z is still zero here: the composite residual is r itself,
+    // restricted under the patches (pr_residual without the operator and the halo fills of z = 0:
+    // r - 0, the same values bit by bit).  One composite operator less per cycle, of 2 + G 1 with
+    // the one of BiCGStab (wave tank, level 0 800 x 40 with a refined band, one rank: 3 % of the
+    // time of the projections)
+    if(place)
     pr_residual(kr,kz,KT,0);
+    else
+    {
+        for(int g=-1; g<(int)P.size(); ++g)
+        {
+            const double *r = pvec(g,kr);
+            double *t = pvec(g,KT);
+            for(int qq : lq[g+1])
+            t[qq] = r[qq];
+        }
+        vector<std::function<field&(int)>> cells, none;
+        cells.push_back([this,KT](int g) -> field& { return pfield(g,KT); });
+        PRS rs_(prc,PR_RESTRICT);
+        for(int l=maxlev; l>0; --l)
+        restrict_level(l,cells,none);
+    }
     {
         PRS p0_(prc,PR_L0CYCLE);
         sc_level &L = mg0->fine();
