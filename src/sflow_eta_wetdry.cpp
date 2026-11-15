@@ -131,7 +131,10 @@ void sflow_eta::wetdry(lexer* p, fdm2D* b, ghostcell* pgc, slice &WL)
     pgc->gcsl_start4Vint(p,p->wet,50);
     
     // avoid isolated wet cells, from the flags before the pass (independent of the loop order and of where
-    // the partition and the patches cut the domain)
+    // the partition and the patches cut the domain): a wet cell without a wet neighbour, in x and in y (one cell in
+    // y: in x). A cell with wet neighbours in one direction only stays wet: a channel one cell wide between dry banks
+    // (a side channel, a ditch, a river on a coarse grid) was set dry along its whole length, and its water stood
+    // still (explicit) or was lost (semi-implicit)
     // HYDRO (R 10, R 40): not used, wet cells are wet by their own depth (a puddle that rain fills, the
     // first ring of cells a point source wets, whose neighbours across are still dry)
     if(p->A243>0 && !hwet)
@@ -142,22 +145,14 @@ void sflow_eta::wetdry(lexer* p, fdm2D* b, ghostcell* pgc, slice &WL)
         SLICELOOP4
         if(p->wet[IJ]==1)
         {
-        if(p->wet[Im1J]==0 && p->flagslice4[Ip1J]<0)
-        temp[IJ]=0;
+        // no wet neighbour in x: dry on both sides, or dry on one side and a wall or solid on the other
+        const bool isox = (p->wet[Im1J]==0 && p->flagslice4[Ip1J]<0) || (p->wet[Ip1J]==0 && p->flagslice4[Im1J]<0)
+                       || (p->wet[Im1J]==0 && p->wet[Ip1J]==0);
         
-        if(p->wet[Ip1J]==0 && p->flagslice4[Im1J]<0)
-        temp[IJ]=0;
+        const bool isoy = (p->wet[IJm1]==0 && p->flagslice4[IJp1]<0) || (p->wet[IJp1]==0 && p->flagslice4[IJm1]<0)
+                       || (p->wet[IJm1]==0 && p->wet[IJp1]==0);
         
-        if(p->wet[IJm1]==0 && p->flagslice4[IJp1]<0 && p->j_dir==1)
-        temp[IJ]=0;
-        
-        if(p->wet[IJp1]==0 && p->flagslice4[IJm1]<0 && p->j_dir==1)
-        temp[IJ]=0;
-        
-        if(p->wet[Im1J]==0 && p->wet[Ip1J]==0)
-        temp[IJ]=0;
-        
-        if(p->wet[IJm1]==0 && p->wet[IJp1]==0 && p->j_dir==1)
+        if(isox && (isoy || p->j_dir==0))
         temp[IJ]=0;
         }
         
