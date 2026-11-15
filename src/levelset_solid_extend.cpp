@@ -134,9 +134,26 @@ void levelset_solid_extend(lexer *p, fdm *a, ghostcell *pgc, field &f, int gcval
     // the layers, on the cells of the partition and its ghost cells across a partition edge or a
     // periodic edge (the fluid there within the ghost cells); fluid 0.  The ghost cells beyond the
     // edges of the domain are left out (outside): the level set there is the boundary condition.
-    const bool xm = p->nb1>=0 || p->periodic1==1, xp = p->nb4>=0 || p->periodic1==1;
-    const bool ym = p->nb3>=0 || p->periodic2==1, yp = p->nb2>=0 || p->periodic2==1;
-    const bool zm = p->nb5>=0 || p->periodic3==1, zp = p->nb6>=0 || p->periodic3==1;
+    bool xm = p->nb1>=0 || p->periodic1==1, xp = p->nb4>=0 || p->periodic1==1;
+    bool ym = p->nb3>=0 || p->periodic2==1, yp = p->nb2>=0 || p->periodic2==1;
+    bool zm = p->nb5>=0 || p->periodic3==1, zp = p->nb6>=0 || p->periodic3==1;
+
+    // a patch of the mesh refinement (cfd_amr): the cells around it inside the domain hold the level
+    // set of the patch next to it or of the coarser level (cfd_amr::fill_phi_out) and the level sets of
+    // the solids and the bodies.  They take part as the ghost cells across a partition edge: the fluid
+    // there starts the layers, the solid cells there pass their values on.  Without them a body cut
+    // by the edge between two patches took the level set of the fluid of its own patch alone (a lock
+    // gate: on the patch of the high side the water up to the edge, on the other the air), a step in
+    // the level set at the edge, on the face of the gate, and a film of 1.3 m/s down that face
+    if(p->amr_patch==1)
+    {
+        xm = p->origin_i>0;
+        xp = p->origin_i+p->knox<p->gknox;
+        ym = p->origin_j>0;
+        yp = p->origin_j+p->knoy<p->gknoy;
+        zm = p->origin_k>0;
+        zp = p->origin_k+p->knoz<p->gknoz;
+    }
     const int n = p->imax*p->jmax*p->kmax;
     std::vector<unsigned char> layer(n,outside);
     std::vector<int> solid;
