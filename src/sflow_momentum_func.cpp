@@ -475,6 +475,9 @@ void sflow_momentum_func::reconstruct(lexer *p, fdm2D *b, ghostcell *pgc, slice 
 {
     starttime=pgc->timer();
     
+    // the wet and dry cells of the stage for the reconstruction
+    precon->prepare(p);
+    
     // eta and face water depth
     if(wbpatch==0)
     {

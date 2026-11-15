@@ -29,6 +29,7 @@ Author: Hans Bihs
 sflow_reconstruct_weno::sflow_reconstruct_weno(lexer* p, patchBC_interface *ppBC) : weno_nug_func(p)
 {
     pBC = ppBC;
+    drs = false;
 
     uf=vf=wf=0;
 
@@ -39,6 +40,7 @@ sflow_reconstruct_weno::sflow_reconstruct_weno(lexer* p, patchBC_interface *ppBC
 sflow_reconstruct_weno::sflow_reconstruct_weno(lexer* p, patchBC_interface *ppBC, int own) : weno_nug_func(p,own)
 {
     pBC = ppBC;
+    drs = false;
 
     uf=vf=wf=0;
 
@@ -58,8 +60,22 @@ void sflow_reconstruct_weno::reconstruct_x(lexer* p, ghostcell *pgc, fdm2D*, sli
     
     SLICELOOP1
     {
+    // dry cells in the stencils of the two cells of the face (prepare)
+    const int cl = drs ? drx[IJ] : 0;
+    const int cr = drs ? drx[IJ + p->jmax] : 0;
+    
     // left
 	iqmin(p,f);
+    
+    if(cl==1)
+    fs(i,j) = q3;
+    
+    else
+    if(cl==2)
+    fs(i,j) = q3 + qfx[IP][uf][1][0]*(q4-q3) - qfx[IP][uf][1][1]*(q2-q3);
+    
+    else
+    {
 	is_min_x();
 	weight_min_x();
 
@@ -68,9 +84,20 @@ void sflow_reconstruct_weno::reconstruct_x(lexer* p, ghostcell *pgc, fdm2D*, sli
             + w2x*(q3 + qfx[IP][uf][1][0]*(q4-q3) - qfx[IP][uf][1][1]*(q2-q3))
           
             + w3x*(q2 + qfx[IP][uf][2][0]*(q1-q2) + qfx[IP][uf][2][1]*(q3-q2));
+    }
 	
     // right
 	iqmax(p,f);
+    
+    if(cr==1)
+    fn(i,j) = q3;
+    
+    else
+    if(cr==2)
+    fn(i,j) = q3 + qfx[IP][uf][4][0]*(q2-q3) - qfx[IP][uf][4][1]*(q4-q3);
+    
+    else
+    {
 	is_max_x();
 	weight_max_x();
     
@@ -79,6 +106,7 @@ void sflow_reconstruct_weno::reconstruct_x(lexer* p, ghostcell *pgc, fdm2D*, sli
             + w2x*(q3 + qfx[IP][uf][4][0]*(q2-q3) - qfx[IP][uf][4][1]*(q4-q3))
           
             + w3x*(q2 + qfx[IP][uf][5][0]*(q3-q2) - qfx[IP][uf][5][1]*(q1-q2));
+    }
 	}
 }
 
@@ -91,7 +119,20 @@ void sflow_reconstruct_weno::reconstruct_y(lexer* p, ghostcell *pgc, fdm2D*, sli
     if(p->j_dir==1)
     SLICELOOP2
 	{
+    const int cl = drs ? dry[IJ] : 0;
+    const int cr = drs ? dry[IJ + 1] : 0;
+    
 	jqmin(p,f);
+    
+    if(cl==1)
+    fe(i,j) = q3;
+    
+    else
+    if(cl==2)
+    fe(i,j) = q3 + qfy[JP][vf][1][0]*(q4-q3) - qfy[JP][vf][1][1]*(q2-q3);
+    
+    else
+    {
 	is_min_y();
 	weight_min_y();
 	
@@ -100,8 +141,19 @@ void sflow_reconstruct_weno::reconstruct_y(lexer* p, ghostcell *pgc, fdm2D*, sli
             + w2y*(q3 + qfy[JP][vf][1][0]*(q4-q3) - qfy[JP][vf][1][1]*(q2-q3))
           
             + w3y*(q2 + qfy[JP][vf][2][0]*(q1-q2) + qfy[JP][vf][2][1]*(q3-q2));
+    }
 
 	jqmax(p,f);
+    
+    if(cr==1)
+    fw(i,j) = q3;
+    
+    else
+    if(cr==2)
+    fw(i,j) = q3 + qfy[JP][vf][4][0]*(q2-q3) - qfy[JP][vf][4][1]*(q4-q3);
+    
+    else
+    {
 	is_max_y();
 	weight_max_y();
 	
@@ -110,7 +162,92 @@ void sflow_reconstruct_weno::reconstruct_y(lexer* p, ghostcell *pgc, fdm2D*, sli
             + w2y*(q3 + qfy[JP][vf][4][0]*(q2-q3) - qfy[JP][vf][4][1]*(q4-q3))
           
             + w3y*(q2 + qfy[JP][vf][5][0]*(q3-q2) - qfy[JP][vf][5][1]*(q1-q2));
+    }
 	}
+}
+
+// Dry cells in the WENO stencil of a wet cell (wetting and drying A 243 > 0), per direction.
+// The values of a dry cell are no data of the flow: its eta is its bed level plus the film A 244, its velocity zero.
+// Next to a shoreline the nonlinear weights give the stencils across it no weight, as long as one of the three
+// candidate stencils of the cell is wet. Two cases are left, a channel or a passage three cells wide or narrower
+// between dry cells:
+//  1: every candidate stencil holds a dry cell (dry cells within two cells on both sides, one of them the neighbour):
+//     the cell value (first order)
+//  2: both outer stencils hold a dry cell and the central one is wet (the middle cell of a channel three cells wide):
+//     the central stencil alone. WENO-Z (A 213 1, the default) measures the smoothness with |IS1 - IS3|, which vanishes
+//     for the same jump on both sides: the linear fifth-order stencil then ran across both banks (a bank 6 m above the
+//     water: 0.1 m in the face levels; the channel had lateral level differences of 0.3 m and no steady state)
+// All other cells are unchanged. Solids hold the wet flag of their fluid neighbour (gcsl_start4Vint) and mirrored
+// values: not dry.
+void sflow_reconstruct_weno::prepare(lexer *p)
+{
+    drs = false;
+    
+    if(p->A243==0)
+    return;
+    
+    const int ni = p->imax, nj = p->jmax;
+    
+    if(int(drx.size())!=ni*nj)
+    {
+    drx.assign(ni*nj,0);
+    dry.assign(ni*nj,0);
+    }
+    
+    auto isdry = [&](int q) { return p->wet[q]==0 && p->flagslice4[q]>0; };
+    
+    int any = 0;
+    
+    for(int a=2; a<ni-2; ++a)
+    for(int c=0; c<nj; ++c)
+    {
+    const int q = a*nj + c;
+    unsigned char code = 0;
+    
+        if(p->wet[q]==1)
+        {
+        const bool m1 = isdry(q-nj), m2 = isdry(q-2*nj), p1 = isdry(q+nj), p2 = isdry(q+2*nj);
+        
+        // candidates (c-2,c-1,c), (c-1,c,c+1), (c,c+1,c+2)
+        const bool d3 = m1 || m2, d2 = m1 || p1, d1 = p1 || p2;
+        
+        if(d1 && d2 && d3)
+        code = 1;
+        
+        else
+        if(d1 && d3)
+        code = 2;
+        }
+    
+    drx[q] = code;
+    any |= code;
+    }
+    
+    if(p->j_dir==1)
+    for(int a=0; a<ni; ++a)
+    for(int c=2; c<nj-2; ++c)
+    {
+    const int q = a*nj + c;
+    unsigned char code = 0;
+    
+        if(p->wet[q]==1)
+        {
+        const bool m1 = isdry(q-1), m2 = isdry(q-2), p1 = isdry(q+1), p2 = isdry(q+2);
+        const bool d3 = m1 || m2, d2 = m1 || p1, d1 = p1 || p2;
+        
+        if(d1 && d2 && d3)
+        code = 1;
+        
+        else
+        if(d1 && d3)
+        code = 2;
+        }
+    
+    dry[q] = code;
+    any |= code;
+    }
+    
+    drs = any!=0;
 }
 
 void sflow_reconstruct_weno::reconstruct_WL(lexer* p, ghostcell *pgc, fdm2D *b)

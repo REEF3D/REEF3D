@@ -26,6 +26,7 @@ Author: Hans Bihs
 #include"sflow_reconstruct.h"
 #include"weno_nug_func.h"
 #include"slice4.h"
+#include<vector>
 
 class lexer;
 class ghostcell;
@@ -45,6 +46,7 @@ public:
     void reconstruct_x(lexer*,ghostcell*,fdm2D*,slice&,slice&,slice&) override final;
     void reconstruct_y(lexer*,ghostcell*,fdm2D*,slice&,slice&,slice&) override final;
     void reconstruct_WL(lexer*,ghostcell*,fdm2D*) override final;
+    void prepare(lexer*) override final;
     
 
 private:
@@ -54,6 +56,10 @@ private:
     inline void jqmax(lexer*, slice&);
 
     int qq;
+    
+    // dry cells in the stencil of a wet cell (prepare), per direction: 0 WENO, 1 the cell value, 2 the central stencil
+    std::vector<unsigned char> drx,dry;
+    bool drs;
     
     patchBC_interface *pBC;
 };
