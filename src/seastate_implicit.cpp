@@ -275,31 +275,34 @@ void seastate_implicit::sweep(lexer *p, fdm_seastate *e, int q, const seastate_s
     const int ia = ranged ? ri0 : 0, ib = ranged ? ri1 : p->knox-1;
     const int ja = ranged ? rj0 : 0, jb = ranged ? rj1 : p->knoy-1;
 
+    // the cell in ci, cj and not in i, j of increment: those are static, one pair for all solvers and threads, and the
+    // patches of a refinement level are swept by several threads at the same time (A 798, seastate_amr::
+    // sweep_level_threads), each through this loop: a thread took the cell of another thread, of another patch
     for(int ii=ia; ii<=ib; ++ii)
     for(int jj=ja; jj<=jb; ++jj)
     {
-    i = idown ? ia+ib-ii : ii;
-    j = jdown ? ja+jb-jj : jj;
+    const int ci = idown ? ia+ib-ii : ii;
+    const int cj = jdown ? ja+jb-jj : jj;
 
-        if(skp!=nullptr && (*skp)(i,j)==1)
+        if(skp!=nullptr && (*skp)(ci,cj)==1)
         {
             // composite sweep (mesh refinement): the finer cells under this one, in its place
             if(vis!=nullptr)
-            {
-            const int si = i, sj = j;
-            (*vis)(si,sj);
-            i = si;
-            j = sj;
-            }
+            (*vis)(ci,cj);
         continue;
         }
 
-        if(e->wet(i,j)==1)
+        if(e->wet(ci,cj)==1)
         {
             if(second)
+            {
+            // surfbeat (never in threads): cell_surfbeat takes its cell from i, j
+            i = ci;
+            j = cj;
             cell_surfbeat(p,e,q,N0,rdt,Nb,side,refraction);
+            }
             else
-            cellw(p,e,q,i,j,N0!=nullptr ? N0->spec(i,j) : nullptr,rdt,Nb,side,refraction,fshift);
+            cellw(p,e,q,ci,cj,N0!=nullptr ? N0->spec(ci,cj) : nullptr,rdt,Nb,side,refraction,fshift);
         }
     }
 }
@@ -916,14 +919,14 @@ void seastate_implicit::solve(lexer *p, fdm_seastate *e, int q, int ci, int cj, 
     if(m1[q]<m0[q])
     return;
 
-    i = ci;
-    j = cj;
-
     // the composite sweep: the source terms evaluated in every sweep (A 767 is for the sweeps of a whole grid)
     suse = false;
 
-    if(e->wet(i,j)==1)
-    cellw(p,e,q,i,j,N0!=nullptr ? N0->spec(i,j) : nullptr,rdt,Nb,side,refraction,fshift);
+    // (the cell by ci, cj and not through i, j of increment: those are static, one pair for all solvers and threads;
+    // with the threads of the composite sweep, A 797 1 and A 798 > 1, a thread could take the cell of another thread
+    // between the assignment and the call, a cell of another patch, even outside this one)
+    if(e->wet(ci,cj)==1)
+    cellw(p,e,q,ci,cj,N0!=nullptr ? N0->spec(ci,cj) : nullptr,rdt,Nb,side,refraction,fshift);
 }
 
 // Phase 18: the solve of a cell, its time added into the work field
