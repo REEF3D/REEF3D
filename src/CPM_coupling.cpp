@@ -205,15 +205,10 @@ void CPM::coupling_update(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
         }
     }
     
-    pfold(p,Kc);
-    
-    pgc->start4a_sum(p,Kc,1);
-    pfold(p,KUx);
-    pgc->start4a_sum(p,KUx,1);
-    pfold(p,KUy);
-    pgc->start4a_sum(p,KUy,1);
-    pfold(p,KUz);
-    pgc->start4a_sum(p,KUz,1);
+    deposit_sum(p,pgc,Kc);
+    deposit_sum(p,pgc,KUx);
+    deposit_sum(p,pgc,KUy);
+    deposit_sum(p,pgc,KUz);
     
     BASELOOP
     {

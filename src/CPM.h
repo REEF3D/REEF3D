@@ -296,6 +296,12 @@ private:
     //   2 parallel: the neighbour exchange sums the deposits, the parcels are wrapped on receipt
     int perx, pery;
     void pfold(lexer*, field&);
+    // sum of the deposits in the ghost cells into their cells: periodic fold, the ghost cells at the edges and corners
+    // of the subdomain (decompositions with two or three directions split), the faces (start4a_sum)
+    void deposit_sum(lexer*, ghostcell*, field&);
+    void edge_fold(lexer*, ghostcell*, field&);
+    int xsplit=0, ysplit=0;
+    std::vector<double> ef_send[6], ef_recv[6];
 public:
     void periodic_flags(lexer*);
 private:

@@ -165,15 +165,10 @@ void CPM::volfrac_update(lexer *p, ghostcell *pgc, sediment_fdm *s, double *PX, 
         }
     }
     
-    pfold(p,cellSum);
-    
-    pgc->start4a_sum(p,cellSum,1);
-    pfold(p,Us);
-    pgc->start4a_sum(p,Us,1);
-    pfold(p,Vs);
-    pgc->start4a_sum(p,Vs,1);
-    pfold(p,Ws);
-    pgc->start4a_sum(p,Ws,1);
+    deposit_sum(p,pgc,cellSum);
+    deposit_sum(p,pgc,Us);
+    deposit_sum(p,pgc,Vs);
+    deposit_sum(p,pgc,Ws);
     
     BASELOOP
     {

@@ -71,6 +71,8 @@ CPM::CPM(lexer *p, ghostcell *pgc) : P(p,pgc), bedch(p), tauGf(p), blTx(p), blTy
     
     // vertical domain decomposition
     zsplit = pgc->globalimax((p->nb5>=0 || p->nb6>=0) ? 1 : 0);
+    xsplit = pgc->globalimax((p->nb1>=0 || p->nb4>=0) ? 1 : 0);
+    ysplit = pgc->globalimax((p->j_dir==1 && (p->nb2>=0 || p->nb3>=0)) ? 1 : 0);
     epsi=p->psi;
     
     // periodic sides are neither open nor walls
