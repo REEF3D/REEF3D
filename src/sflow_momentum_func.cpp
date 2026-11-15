@@ -55,7 +55,7 @@ sflow_momentum_func::sflow_momentum_func(lexer *p, fdm2D *b, ghostcell *pgc, sfl
                                          sflow_reconstruct *pprecon, sflow_diffusion *ppdiff, sflow_pressure *pppress, 
                                          solver2D *ppsolv, solver2D *pppoissonsolv, ioflow *ppflow, sflow_fsf *ppfsf, 
                                          sflow_forcing *ppsfdf, sixdof *pp6dof)
-                                        : UHDIFF(p),VHDIFF(p),WHDIFF(p),Un(p),Vn(p),etaS(p),zeta(p)
+                                        : UHDIFF(p),VHDIFF(p),WHDIFF(p),Un(p),Vn(p),etaS(p),zeta(p),fric(p)
 {
     phll = pphll;
     pss = ppss;
@@ -288,7 +288,6 @@ void sflow_momentum_func::stage(lexer *p, fdm2D *b, ghostcell *pgc,
 	starttime=pgc->timer();
     phll->start(p,b,1);
 	ppress->upgrad(p,b,b->eta);
-    prough->u_source(p,b,b->U,b->V,WLs);
     prheo->u_source(p,b,b->U,b->V,WLs);
     p6dof->isource2D(p,b,pgc);
     if(b->wave!=nullptr)
@@ -307,7 +306,6 @@ void sflow_momentum_func::stage(lexer *p, fdm2D *b, ghostcell *pgc,
     {
     phll->start(p,b,2);
 	ppress->vpgrad(p,b,b->eta);
-    prough->v_source(p,b,b->U,b->V,WLs);
     prheo->v_source(p,b,b->U,b->V,WLs);
     p6dof->jsource2D(p,b,pgc);
     if(b->wave!=nullptr)
@@ -339,7 +337,20 @@ void sflow_momentum_func::stage(lexer *p, fdm2D *b, ghostcell *pgc,
     pfsf->update(p,b,pgc,pflow,WLo,b->WL,WLs,a);
     pfsf->breaking(p,b,pgc,b->eta,etaS,alpha);
     
-    // update momentum
+    // update momentum; the bed friction (A 218 1) implicit in the Euler step of the stage: fric = 1/(1 + dt gamma)
+    // from the stage state (1 without friction)
+    if(p->A218==1)
+    {
+    prough->factor(p,b,fric,b->U,b->V,WLs);
+    
+    SLICELOOP4
+    {
+	UHo(i,j) = a*b->UH(i,j) + alpha*fric(i,j)*(UHDIFF(i,j) + p->dt*b->F(i,j));
+    VHo(i,j) = (a*b->VH(i,j) + alpha*fric(i,j)*(VHDIFF(i,j) + p->dt*b->G(i,j)))*p->y_dir;
+    }
+    }
+    
+    else
     SLICELOOP4
     {
 	UHo(i,j) = a*b->UH(i,j) + alpha*(UHDIFF(i,j) + p->dt*b->F(i,j));

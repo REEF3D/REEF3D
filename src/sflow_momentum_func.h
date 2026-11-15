@@ -121,6 +121,9 @@ protected:
     slice4 UHDIFF,VHDIFF,WHDIFF;
     slice4 Un,Vn,etaS;
     slice4 zeta;
+    
+    // bed friction factor of the stage (A 218 1), 1/(1 + dt gamma)
+    slice4 fric;
     int wbpatch;
     
 private:
