@@ -870,34 +870,43 @@ void fnpf_6DOF::footprint(fnpf_6DOF_grid &G, ghostcell *pgc, slice &eta, slice &
         {
             double dmax=0.0;
             
-            for(size_t n=0; n<fl.size(); n+=2)
+            // red-black over-relaxed Gauss-Seidel, the colour from the global index and a ghost
+            // cell exchange after each colour: the iteration is the same for every partition.
+            // (A lexicographic sweep with one exchange per sweep is Jacobi across the rank
+            // boundaries, and over-relaxed it diverges when the footprint spans many ranks.)
+            for(int colour=0; colour<2; ++colour)
             {
-                i = fl[n];
-                j = fl[n+1];
-                
-                double se = eta(i-1,j) + eta(i+1,j);
-                double sf = Fifsf(i-1,j) + Fifsf(i+1,j);
-                double nn = 2.0;
-                
-                if(p->j_dir==1)
+                for(size_t n=0; n<fl.size(); n+=2)
                 {
-                se += eta(i,j-1) + eta(i,j+1);
-                sf += Fifsf(i,j-1) + Fifsf(i,j+1);
-                nn += 2.0;
+                    i = fl[n];
+                    j = fl[n+1];
+                    
+                    if(((i+p->origin_i + j+p->origin_j)&1)!=colour)
+                    continue;
+                    
+                    double se = eta(i-1,j) + eta(i+1,j);
+                    double sf = Fifsf(i-1,j) + Fifsf(i+1,j);
+                    double nn = 2.0;
+                    
+                    if(p->j_dir==1)
+                    {
+                    se += eta(i,j-1) + eta(i,j+1);
+                    sf += Fifsf(i,j-1) + Fifsf(i,j+1);
+                    nn += 2.0;
+                    }
+                    
+                    const double de = 1.6*(se/nn - eta(i,j));
+                    const double df = 1.6*(sf/nn - Fifsf(i,j));
+                    
+                    eta(i,j)   += de;
+                    Fifsf(i,j) += df;
+                    
+                    dmax = MAX(dmax,fabs(de));
                 }
                 
-                // over-relaxed Gauss-Seidel
-                const double de = 1.6*(se/nn - eta(i,j));
-                const double df = 1.6*(sf/nn - Fifsf(i,j));
-                
-                eta(i,j)   += de;
-                Fifsf(i,j) += df;
-                
-                dmax = MAX(dmax,fabs(de));
+                pgc->gcsl_start4(p,eta,gcval_eta);
+                pgc->gcsl_start4(p,Fifsf,gcval_fifsf);
             }
-            
-            pgc->gcsl_start4(p,eta,gcval_eta);
-            pgc->gcsl_start4(p,Fifsf,gcval_fifsf);
             
             if(G.l0)
             dmax = pgc->globalmax(dmax);
