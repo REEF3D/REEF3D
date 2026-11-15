@@ -183,6 +183,11 @@ void ioflow_f::Qout2D(lexer *p, fdm2D* b, ghostcell* pgc)
     if(p->I10==1 && p->count<=1)
 	p->Uo=p->W10/(Ao>1.0e-20?Ao:1.0e20);
     
+    // potential flow initialisation (I 11 1) from still water: the outflow of the Laplace problem is the
+    // discharge W 10 (as CFD and NHFLOW); with Uo = Qo/Ao = 0 the pure Neumann problem had an inflow only
+    if(p->I11==1 && p->count==0 && p->B60==1)
+	p->Uo=p->W10/(Ao>1.0e-20?Ao:1.0e20);
+    
 	if(p->B60==2)
 	p->Uo=p->Qo/(Ao>1.0e-20?Ao:1.0e20);
 	
