@@ -26,7 +26,7 @@ Author: Hans Bihs
 #include"ghostcell.h"
 #include"sflow_idiff.h"
 #include"solver2D.h"
-#include"sflow_iweno_hj.h"
+#include"sflow_ifou.h"
 
 #define HP (fabs(b->hp(i,j))>(p->A244)?b->hp(i,j):1.0e20)
 
@@ -36,9 +36,10 @@ sflow_turb_ke_IM1::sflow_turb_ke_IM1(lexer* p) : sflow_turb_io(p), kn(p), en(p),
     gcval_kin=20;
 	gcval_eps=30;
 
-    pconvec = new sflow_iweno_hj(p);
-    
-    //pconvec = new sflow_ifou(p);
+    // implicit first-order upwind, as the k-omega model: k and epsilon stay positive at any Courant number. The
+    // WENO-HJ stencil is not monotone and takes its outer points explicitly (unstable above a Courant number of
+    // about one, A 210 11-13): epsilon falls to zero in single cells, k loses its sink there and grows without bound
+    pconvec = new sflow_ifou(p);
     
     pdiff = new sflow_idiff(p);
 }
