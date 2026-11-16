@@ -3475,6 +3475,8 @@ void control::ctrlsend()
     ii++;
     ictrl[ii] = X203;
     ii++;
+    ictrl[ii] = X204;
+    ii++;
     ictrl[ii] = X194;
     ii++;
     ictrl[ii] = X199;
@@ -5596,6 +5598,14 @@ void control::ctrlsend()
         ictrl[ii] = X203_id[n];
         ii++;
         dctrl[dd] = X203_s[n];
+        dd++;
+    }
+    
+    for(n=0;n<X204;++n)
+    {
+        ictrl[ii] = X204_id[n];
+        ii++;
+        dctrl[dd] = X204_t[n];
         dd++;
     }
     

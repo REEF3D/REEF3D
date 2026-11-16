@@ -47,12 +47,12 @@ namespace
 
 sixdof_brain::sixdof_brain(double U_des, double b_max, double D_vis, double th_esc, double f0, double L, double rho,
                            double t_start, int lateral, const std::vector<target_point> &tp, double s0, double k_turn,
-                           double tau_u, double tau_d, double n_u, double n_d, double s_sd)
+                           double tau_u, double tau_d, double n_u, double n_d, double s_sd, double tau_c)
              : Udes_(U_des), bmax_(b_max>0.0 ? b_max : 1.0), Dvis_(D_vis), the_(th_esc), f0_(f0), L_(L), rho_(rho),
                tstart_(t_start), s0_(s0>0.0 ? s0 : brain_s0), kturn_(k_turn!=0.0 ? k_turn : brain_kturn),
                tauu_(tau_u>0.0 ? tau_u : brain_tauu), taud_(tau_d>0.0 ? tau_d : brain_tauu),
                nu_(std::max(0.0, n_u)), nd_(n_d>0.0 ? n_d : std::max(0.0, n_u)),
-               ssd_(std::max(0.0, s_sd)), lat_(lateral), tp_(tp)
+               ssd_(std::max(0.0, s_sd)), tc0_(tau_c>0.0 ? tau_c : brain_tauc0), lat_(lateral), tp_(tp)
 {
     std::stable_sort(tp_.begin(), tp_.end(), [](const target_point &a, const target_point &b) {return a.t<b.t;});
     t_start_ = tstart_;
@@ -148,7 +148,7 @@ sixdof_brain::decision sixdof_brain::decide(double t, double f, double a, double
         // still be accelerating), not yet known
         ug_ = -1.0;
         E0_ = 0.0;
-        tauc_ = brain_tauc0;
+        tauc_ = tc0_;
 
         // with the speed in tail beats (X 202): the body at rest over the ground at t = 0 (as REEF3D starts it),
         // the speed of its gait from rest over the ramp of the gait (to the start of the brain, at f0), and the

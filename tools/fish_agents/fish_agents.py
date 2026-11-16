@@ -35,7 +35,7 @@
 #    "body": {"L": 1.0, "f0": 1.0, "s": 0.49, "k": 1.3, "k_brake": 1.77, "tau_up": 0.58, "tau_down": 0.58,
 #             "tau_coast": 11.0, "C_brake": 3.5, "r_fish": 0.15, "D_fish": 0.0},
 #    "brain": {"U_des": 0.5, "b_max": 1.0, "D": 1.5, "s0": 0.5, "k_turn": 1.3, "tau_u": 0.8, "tau_d": 0.8,
-#              "n_u": 0.0, "n_d": 0.0, "s_sd": 0.0},
+#              "n_u": 0.0, "n_d": 0.0, "s_sd": 0.0, "tau_c": 0.0},
 #    "flow": {"type": "uniform", "u": [0.2, 0.0]}  or  {"type": "reef3d", "run": "<dir>", "t0": 20, "t1": 40},
 #    "box": [0, 8, 0, 6], "walls": [0, 0, 1, 1], "cylinders": [[4.0, 3.0, 0.4]],
 #    "shelter": {"R": 1.5, "step": 0.3, "every": 10, "measure": 5, "v": 0.05, "gain": 0, "forget": 0,
@@ -202,7 +202,8 @@ class Fish:
                    "b_max": brain["b_max"], "D": brain["D"], "th_esc": 0.0, "t_start": t_start, "twoD": 1,
                    "s0": brain.get("s0", 0.0), "k_turn": brain.get("k_turn", 0.0),
                    "tau_u": brain.get("tau_u", 0.0), "tau_d": brain.get("tau_d", 0.0),
-                   "n_u": brain.get("n_u", 0.0), "n_d": brain.get("n_d", 0.0), "s_sd": brain.get("s_sd", 0.0)}
+                   "n_u": brain.get("n_u", 0.0), "n_d": brain.get("n_d", 0.0), "s_sd": brain.get("s_sd", 0.0),
+                   "tau_c": brain.get("tau_c", 0.0)}
         self.acc_U = 0.0; self.acc_n = 0
         self.mode = -1
         # sheltering: the offset of the target from the station, its direction, the effort (mean tail-beat

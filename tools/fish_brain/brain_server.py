@@ -6,7 +6,7 @@
 # REEF3D (rank 0) connects to 127.0.0.1:port and sends one line of JSON per decision (once per half
 # tail beat); the server answers with one line of JSON:
 #
-#   hello  {"hello":1,"body":0,"L":..,"f0":..,"rho":..,"U_des":..,"b_max":..,"D":..,"th_esc":..,"t_start":..,"twoD":1,"s0":..,"k_turn":..,"tau_u":..,"tau_d":..,"n_u":..,"n_d":..,"s_sd":..}
+#   hello  {"hello":1,"body":0,"L":..,"f0":..,"rho":..,"U_des":..,"b_max":..,"D":..,"th_esc":..,"t_start":..,"twoD":1,"s0":..,"k_turn":..,"tau_u":..,"tau_d":..,"n_u":..,"n_d":..,"s_sd":..,"tau_c":..}
 #          -> {"ok":1,"policy":"rules"}
 #   senses {"t":..,"f":..,"a":..,"b":..,            the time of the decision, the gait now
 #           "pos":[x,y,z],"axis":[..],"lat":[..],   the CoG, the mean body axis and lateral axis in the plane
@@ -84,7 +84,7 @@ def rules(sv, st, pr):
         st["ssd"] = ssd
         st["ug"], st["tdec"], st["pdec"], st["bdec"], st["Tprev"], st["vT"] = -1.0, t, list(c), b, None, [0.0, 0.0, 0.0]
         st["adec"] = a
-        st["tauc"] = TAUC0
+        st["tauc"] = pr.get("tau_c", 0.0) or TAUC0          # X 204: the prior of the coasting time
         st["refr"] = max(st.get("refr", -1.0), t + 1.0 / f0)   # no escape in the first tail beat (the start-up)
         st["E0"] = 0.0
         if nu > 0.0:
