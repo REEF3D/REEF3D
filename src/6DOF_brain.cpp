@@ -54,6 +54,11 @@ namespace
     const double brain_tT = 1.0;           // the velocity of the target seen: smoothed over this time [1/f0]
     const double brain_cstart[4] = {0.08, 0.15, 0.2, 0.4};   // the C-start: the bend in, the bend held, the release, the next decision [1/f0]
     const double brain_refr = 2.0;         // ... no new escape for this time [1/f0]
+    const double brain_tesc[2] = {0.1, 0.5};   // the escape: the head signals over these windows, every time step [1/f0]:
+                                               // the short one above 2 th_esc (a brief strong stimulus), the long one
+                                               // above th_esc (as the mean over half a tail beat at the decisions before)
+    const double brain_cd = 0.1;           // ... not while the bias is more than this off the target of the last decision
+                                           // (the own bending: the corollary discharge, validation 28)
 }
 
 sixdof_brain::sixdof_brain(double U_des, double b_max, double D_vis, double th_esc, double f0, double L, double rho,
@@ -118,7 +123,151 @@ void sixdof_brain::sense(double dt, const Eigen::Vector3d &ax, const Eigen::Vect
         llT_ += dt;
         lls_ = ll_s;
         llside_ = ll_side;
+        llnow_ = *ll_p;
     }
+    else
+    llnow_.clear();
+
+    dtl_ = dt;
+    axn_ = ax;
+    Un_ = U;
+}
+
+bool sixdof_brain::head_signals(const std::vector<double> &p, double q, double b, double &dpl, double &phd) const
+{
+    // the lateral line at the head: the pressure difference across (p+ - p-) and the excess of the head pressure over
+    // the mean of all probes, in units of q through the water; the signal of the own turn (-reaff b q) removed
+    dpl = phd = 0.0;
+
+    if(p.empty() || p.size()!=lls_.size() || p.size()!=llside_.size())
+    return false;
+
+    double dsum = 0.0, hsum = 0.0, asum = 0.0;
+    int nd = 0, nh = 0;
+
+    for(size_t k=0; k<p.size(); ++k)
+    {
+        asum += p[k];
+
+        if(lls_[k]<brain_front)
+        {
+            dsum += llside_[k]*p[k];
+            hsum += p[k];
+            ++nh;
+
+            if(llside_[k]>0)
+            ++nd;
+        }
+    }
+
+    if(nd==0 || nh==0)
+    return false;
+
+    dpl = (dsum/nd)/q + brain_reaff*b;
+    phd = (hsum/nh - asum/double(p.size()))/q;
+    return true;
+}
+
+sixdof_brain::decision sixdof_brain::reflex(double t, double f, double a, double b)
+{
+    // the escape, every time step on the head signals of the last 0.1 T (above 2 th_esc) and of the last 0.5 T (above
+    // th_esc) (patch 0036; before, at the decisions on the mean over half a tail beat: up to 0.5 s late, and a short
+    // stimulus diluted). Not while the body bends
+    // on its own: the bias more than brain_cd off the target of the last decision, gliding, braking or in a C-start
+    // (the pressures of the own bending, added mass included, are far above the stimulus; the window starts again)
+    decision d;
+    d.t = t;
+
+    // q through the water now: the speed along the axis over the ground less the current read
+    const int nrm = (lat_==1) ? 2 : 1, p1 = (nrm==1) ? 2 : 1;
+    Eigen::Vector3d e = axn_;
+    e(nrm) = 0.0;
+    const double en = e.norm();
+    const double uw = (en>0.0) ? (Un_.dot(e) - (kf_x_[1]*e(0) + kf_x_[2]*e(p1)))/en : 0.0;
+    const double q = 0.5*rho_*std::pow(std::max(uw, 0.1*uf_), 2.0);
+    double dpl, phd;
+
+    if(the_<=0.0 || !kf_on_ || !head_signals(llnow_, q, b, dpl, phd))
+    return d;
+
+    if(std::fabs(b - bdec_)>brain_cd || a<0.95 || adec_<0.95 || glide_)
+    {
+        esc_.clear();
+        return d;
+    }
+
+    esc_.push_back(dtl_);
+    esc_.push_back(dpl);
+    esc_.push_back(phd);
+
+    // the windows: the last brain_tesc T, the newest steps first (the oldest steps dropped while the rest still covers
+    // the long window)
+    const double tws = brain_tesc[0]*tf_, twl = brain_tesc[1]*tf_;
+    double T = 0.0;
+    for(size_t k=0; k<esc_.size(); k+=3)
+    T += esc_[k];
+    while(esc_.size()>3 && T - esc_[0]>=twl*(1.0 - 1.0e-9))
+    {
+        T -= esc_[0];
+        esc_.erase(esc_.begin(), esc_.begin()+3);
+    }
+
+    if(t<refr_)
+    return d;
+
+    // the pressures against q at brain_uesc at least: at a low speed (the start, a station) the pressures of the
+    // own turns and of the start-up are large against q of that speed, and they are no stimulus
+    const double qesc = q/std::max(q, 0.5*rho_*std::pow(brain_uesc*uf_, 2.0));
+
+    double dm = 0.0, hm = 0.0, Tw = 0.0;
+    bool fire = false;
+    for(size_t k=esc_.size(); k>=3; k-=3)
+    {
+        Tw += esc_[k-3];
+        dm += esc_[k-3]*esc_[k-2];
+        hm += esc_[k-3]*esc_[k-1];
+
+        // the short window (2 th_esc), then the long one (th_esc)
+        const bool shrt = Tw>=tws*(1.0 - 1.0e-9) && Tw - esc_[k-3]<tws*(1.0 - 1.0e-9);
+        const bool lng = Tw>=twl*(1.0 - 1.0e-9);
+        if(shrt || lng)
+        {
+            const double th = shrt ? 2.0*the_ : the_;
+            if(std::fabs(dm/Tw)*qesc>th || hm/Tw*qesc>th)
+            {
+                fire = true;
+                break;
+            }
+        }
+        if(lng)
+        break;
+    }
+
+    if(!fire)
+    return d;
+
+    dm /= Tw;
+    hm /= Tw;
+
+    // a C-start away from the side of the higher pressure, out of the cycle of the decisions
+    const double fmx = fmax();
+    const double sg = (dm>=0.0) ? 1.0 : -1.0;
+    d.on = true;
+    d.f = f; d.a = 0.5; d.b = -2.5*sg; d.ts = brain_cstart[0]*tf_;
+    d.second = true;
+    d.t2 = t + brain_cstart[1]*tf_; d.f2 = std::min(1.5*f, fmx); d.a2 = 1.0; d.b2 = 0.0; d.ts2 = brain_cstart[2]*tf_;
+    refr_ = t + brain_refr*tf_;
+    next_ = t + brain_cstart[3]*tf_;
+    bdec_ = d.b;
+    adec_ = d.a;
+    glide_ = false;
+    bside_ = 0.0;
+    esc_.clear();
+
+    const Eigen::Vector3d T3 = target(t);
+    rec_.t = t; rec_.tx = T3(0); rec_.ty = T3(1); rec_.tz = T3(2);
+    rec_.Ff = d.f2; rec_.Fa = d.a; rec_.Fb = d.b; rec_.dpl = dm; rec_.phd = hm; rec_.mode = 2;
+    return d;
 }
 
 sixdof_brain::decision sixdof_brain::decide(double t, double f, double a, double b, const std::vector<double> *vis)
@@ -315,37 +464,16 @@ sixdof_brain::decision sixdof_brain::decide(double t, double f, double a, double
 
     bt = std::max(-bmax_, std::min(bmax_, bt));
 
-    // the lateral line at the head: the pressure difference across (p+ - p-) and the excess of the
-    // head pressure over the mean of all probes, in units of q through the water; the signal of the
-    // own turn (-reaff b q) removed
+    // the lateral line at the head over the time since the last decision (for the log; the escape is a reflex,
+    // every time step)
     double dpl = 0.0, phd = 0.0;
 
     if(llT_>0.0 && !llp_.empty())
     {
-        double dsum = 0.0, hsum = 0.0, asum = 0.0;
-        int nd = 0, nh = 0;
-
+        std::vector<double> pm(llp_.size());
         for(size_t k=0; k<llp_.size(); ++k)
-        {
-            const double pk = llp_[k]/llT_;
-            asum += pk;
-
-            if(lls_[k]<brain_front)
-            {
-                dsum += llside_[k]*pk;
-                hsum += pk;
-                ++nh;
-
-                if(llside_[k]>0)
-                ++nd;
-            }
-        }
-
-        if(nd>0 && nh>0)
-        {
-            dpl = (dsum/nd)/q + brain_reaff*0.5*(b + bdec_);
-            phd = (hsum/nh - asum/double(llp_.size()))/q;
-        }
+        pm[k] = llp_[k]/llT_;
+        head_signals(pm, q, 0.5*(b + bdec_), dpl, phd);
     }
 
     // vision: the closest ray, the free space on both sides
@@ -472,26 +600,7 @@ sixdof_brain::decision sixdof_brain::decide(double t, double f, double a, double
     adec_ = at;
     d.on = true;
 
-    // 1. escape: a C-start away from the side of the higher pressure; not while the fish coasts or brakes (the
-    // bent body of the braking gives a pressure across the head far above the -reaff b q of a swimming turn);
-    // the pressures against q at brain_uesc at least: at a low speed (the start, a station) the pressures of
-    // the own turns and of the start-up are large against q of that speed, and they are no stimulus
-    const double qesc = q/std::max(q, 0.5*rho_*std::pow(brain_uesc*uf_, 2.0));
-    if(the_>0.0 && t>=refr_ && !(glide_ || a<0.95) && (std::fabs(dpl)*qesc>the_ || phd*qesc>the_))
-    {
-        const double sg = (dpl>=0.0) ? 1.0 : -1.0;
-        d.f = f; d.a = 0.5; d.b = -2.5*sg; d.ts = brain_cstart[0]*tf_;
-        d.second = true;
-        d.t2 = t + brain_cstart[1]*tf_; d.f2 = std::min(1.5*f, fmx); d.a2 = 1.0; d.b2 = 0.0; d.ts2 = brain_cstart[2]*tf_;
-        refr_ = t + brain_refr*tf_;
-        next_ = t + brain_cstart[3]*tf_;
-        bdec_ = d.b;
-        adec_ = d.a;
-        glide_ = false;
-        bside_ = 0.0;
-        rec_.Ff = d.f2; rec_.Fa = d.a; rec_.Fb = d.b; rec_.mode = 2;
-        return d;
-    }
+    // (1. the escape: a reflex, every time step, sixdof_brain::reflex)
 
     // 2. avoidance: a turn to the free side, blended in with the threat, slower; the bias that turns the body to
     // that side has the sign of its turn rate k (X 200; a body that turns away from its bias has k < 0, and
@@ -542,7 +651,7 @@ void sixdof_brain::kf_update(const double H[2][3], const double y[2], double R, 
 
 void sixdof_brain::ckpt_state(std::vector<double> &v) const
 {
-    v.push_back(6.0);      // version
+    v.push_back(7.0);      // version
     for(double x : {T_, Uax_, llT_, t_start_, next_, refr_, side_, kf_on_ ? 1.0 : 0.0, ug_, tdec_, bdec_, Tset_ ? 1.0 : 0.0, glide_ ? 1.0 : 0.0, adec_, tauc_, tburst_, bside_, double(nkf_), E0_})
     v.push_back(x);
     for(int k=0; k<3; ++k)
@@ -559,14 +668,18 @@ void sixdof_brain::ckpt_state(std::vector<double> &v) const
     }
     v.push_back(double(llp_.size()));
     v.insert(v.end(), llp_.begin(), llp_.end());
+    // version 7 (patch 0036): the window of the escape
+    v.push_back(double(esc_.size()));
+    v.insert(v.end(), esc_.begin(), esc_.end());
 }
 
 bool sixdof_brain::ckpt_restore(const std::vector<double> &v)
 {
     // version 4 (patches 0016-0022): without the count of the updates (taken as learnt); version 5 (0023-0030)
-    // without the water that passed the body at the start (0)
+    // without the water that passed the body at the start (0); version 6 (0031-0035) without the window of the
+    // escape (empty)
     const int ver = v.empty() ? 0 : int(v[0]);
-    if(v.size()<55 || ver<4 || ver>6)
+    if(v.size()<55 || ver<4 || ver>7)
     return false;
 
     size_t k = 1;
@@ -597,6 +710,17 @@ bool sixdof_brain::ckpt_restore(const std::vector<double> &v)
     if(v.size()<k+n)
     return false;
     llp_.assign(v.begin()+k, v.begin()+k+n);
+    k += n;
+    esc_.clear();
+    if(ver>=7)
+    {
+        if(v.size()<k+1)
+        return false;
+        const size_t ne = size_t(v[k++]);
+        if(v.size()<k+ne)
+        return false;
+        esc_.assign(v.begin()+k, v.begin()+k+ne);
+    }
     return true;
 }
 

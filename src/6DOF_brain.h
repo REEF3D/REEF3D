@@ -57,13 +57,18 @@ Architect: Hans Bihs
 //  U_g follows from the track.
 //
 //  Behaviours, by priority:
-//   1. escape (th_esc > 0): a strong pressure signal at the head, |p+ - p-| or the excess of the head
+//   1. escape (th_esc > 0): a reflex, tested every time step (patch 0036) on the means over the last 0.1 T
+//      (above 2 th_esc: a brief strong stimulus) and the last 0.5 T (above th_esc) of a
+//      strong pressure signal at the head, |p+ - p-| or the excess of the head
 //      pressure over the body mean, above th_esc q (q = rho U_w^2/2, through the water): a C-start away
 //      from the side of the higher pressure (a 0.5, b -+2.5 in 0.08 T, after 0.15 T back to b = 0 at
 //      1.5 times the frequency), then 2 T without a new escape (T = 1/f0). The signal of the own turn,
 //      -0.5 b q at the head (validation 11), is taken off p+ - p- first. The flank lateral line senses
 //      a wall only within ~0.1 L, so th_esc ~ 1.5: a startle at contact or a strong stimulus. Not while
-//      the fish glides or brakes (the pressure of the bent body is far above that of a swimming turn)
+//      the fish glides or brakes (the pressure of the bent body is far above that of a swimming turn), and
+//      not while its bias is still more than 0.1 off the target of the last decision: the own bending
+//      (added mass) gives the head 5-50 q for a moment (validation 28); the fish knows its own movement
+//      (the corollary discharge of real fish). The C-start takes its own decision out of the cycle.
 //   2. avoidance (D > 0): the threat w = (1 - d/D)^2 of the closest ray; a turn to the side with the
 //      longer rays (kept while the threat lasts), the bias blended from the target's to +-b_max (with the
 //      sign of the turn rate k, so that a body that turns away from its bias also turns away) with
@@ -119,6 +124,9 @@ public:
     struct decision {bool on = false; double t, f, a, b, ts; bool second = false; double t2, f2, a2, b2, ts2;};
     bool due(double t) const {return t>=t_start_ && t>=next_;}
     decision decide(double t, double f, double a, double b, const std::vector<double> *vis);
+
+    // the escape, every time step after the senses (gait now: f, a, b): a C-start out of the cycle of the decisions
+    decision reflex(double t, double f, double a, double b);
     
     // vision: its range [m] (0: none) and the angles of the rays to the body axis [rad]
     double vision_range() const {return Dvis_*L_;}
@@ -164,6 +172,7 @@ public:
 private:
 
     Eigen::Vector3d target(double t) const;
+    bool head_signals(const std::vector<double> &p, double q, double b, double &dpl, double &phd) const;
 
     const double Udes_, bmax_, Dvis_, the_, f0_, L_, rho_, tstart_, s0_, kturn_, tauu_, taud_, nu_, nd_, ssd_, tc0_;
     const double tf_, uf_;      // the units of the constants: the time 1/f0, the speed L f0
@@ -195,6 +204,12 @@ private:
 
     std::vector<double> lls_;
     std::vector<int> llside_;
+
+    // the escape: the pressures, the axis and the velocity of the last step and its time step, the window of the
+    // head signals (dt, dp+-/q, p_head/q per step; q through the water now)
+    std::vector<double> llnow_, esc_;
+    double dtl_ = 0.0;
+    Eigen::Vector3d axn_ = Eigen::Vector3d::Zero(), Un_ = Eigen::Vector3d::Zero();
 };
 
 #endif

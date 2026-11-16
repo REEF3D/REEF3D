@@ -23,7 +23,8 @@
 #   bye    {"bye":1}
 #
 # Policies: "own" answers the decision of the own brain (a test of the link: the run is the run of X 193);
-# "rules" is the rule brain of REEF3D (6DOF_brain.cpp) in Python, to start from (the same decisions); a file defines
+# "rules" is the rule brain of REEF3D (6DOF_brain.cpp) in Python, to start from (the same decisions; the escape is a
+# reflex of REEF3D every time step, patch 0036, and never comes here); a file defines
 # decide(senses, state, params) -> dict (state: a dict kept between the decisions of the body).
 #
 # Architect: Hans Bihs
@@ -265,17 +266,9 @@ def rules(sv, st, pr):
     st["tdec"], st["pdec"], st["bdec"], st["adec"] = t, list(c), bt, at
     st["est"] = (s, cur[0], cur[1], cur[2], Uw, st["tauc"])
 
-    # 1. escape: a C-start away from the side of the higher pressure (not while coasting or braking)
-    # (the pressures against q at UESC at least: at a low speed the own turns and the start-up are no stimulus)
-    qesc = q / max(q, 0.5 * rho * (UESC * uf) ** 2)
-    if the > 0.0 and t >= st["refr"] and not (st["glide"] or a < 0.95) and (abs(dpl) * qesc > the or phd * qesc > the):
-        sg = 1.0 if dpl >= 0.0 else -1.0
-        st["refr"] = t + REFR * tf
-        st["bdec"] = -2.5 * sg
-        st["adec"] = 0.5
-        st["glide"], st["bside"] = False, 0.0
-        return {"f": f, "a": 0.5, "b": -2.5 * sg, "ts": CSTART[0] * tf,
-                "t2": t + CSTART[1] * tf, "f2": min(1.5 * f, fmx), "a2": 1.0, "b2": 0.0, "ts2": CSTART[2] * tf, "next": CSTART[3] * tf, "mode": 2}
+    # 1. the escape is a reflex of REEF3D (sixdof_brain::reflex, every time step on the head signals of the last
+    # 0.1 T, patch 0036): an external brain sees it as the mode 2 of the own brain; here the head signals of the
+    # interval only for the log (dpl, phd)
 
     # 2. avoidance: a turn to the free side, slower; the bias with the sign of the turn rate k
     if threat > 0.0:

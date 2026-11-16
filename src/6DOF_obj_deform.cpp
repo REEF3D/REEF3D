@@ -368,18 +368,25 @@ void sixdof_obj::brain_update(lexer *p, ghostcell *pgc, const std::vector<double
     const Eigen::Vector3d U(p->ufbi, p->vfbi, p->wfbi);
     brain_->sense(p->dt, ax, lat, c_, U, pr, ll_s_, ll_side_);
     
-    // a decision for the next step
     const double tn = p->simtime + p->dt;
     
-    if(!brain_->due(tn))
+    // the escape: a reflex of the own brain, every step (also with an external brain), out of the cycle of the
+    // decisions (the gait of the body as it stands after this step)
+    sixdof_brain::decision d = brain_->reflex(tn, fish_->frequency(), fish_->amp_factor(), fish_->bias());
+    const bool esc = d.on;
+    
+    // a decision for the next step
+    if(!esc && !brain_->due(tn))
     return;
     
     fish_->set_time(tn);
-    sixdof_brain::decision d = brain_->decide(tn, fish_->frequency(), fish_->amp_factor(), fish_->bias(), vis);
+    
+    if(!esc)
+    d = brain_->decide(tn, fish_->frequency(), fish_->amp_factor(), fish_->bias(), vis);
     
     // an external brain (X 191): the senses and the decision of the own brain out, its decision back
     // (rank 0), to all ranks by a sum with zeros elsewhere (exact)
-    if(p->X191>0 && d.on)
+    if(p->X191>0 && d.on && !esc)
     {
         double v[12] = {0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0};
         
