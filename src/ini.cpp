@@ -853,6 +853,7 @@ void control::ini_default()
     G21=0.0;    // double FNPF and NHFLOW mesh refinement: second difference of the surface along x or y that flags a cell (0: off)
     G22=0;      // int SFLOW, FNPF and NHFLOW mesh refinement: flag the shoreline (SFLOW: >0 on; NHFLOW and FNPF with G 30 1: the cells within this many cells (1-3) of the shoreline); 0 off
     G23=0;      // int NHFLOW mesh refinement with A 550 1, FNPF with A 350 1: 1 flags the breaking cells (the breaking zone on the finest grid)
+    G9=0;       // int CFD mesh refinement with the level set: the interface width of the density of the faces between a fine and a coarse cell at a patch edge (the predictor, the matrix and the correction of these faces): 0 (default) that of the fine level, 1 the mean of the widths of the fine and the coarse level, 2 that of the coarse level. The pressure across such a face is that of the coarse cell, in the interface width of its level; with 0 a face in the air next to a coarse cell inside its band is accelerated by the pressure of a mixture
     G24=0.0;    // double CFD mesh refinement: flag the cells with |phi| below this many interface thicknesses (psi of the flagging level); 0 off
     G25=0;      // int CFD mesh refinement: flag the cells within this many cells of a solid, the topography or a floating body; 0 off
     G26=0.0;    // double CFD mesh refinement: flag the cells with a vorticity above this value [1/s]; 0 off

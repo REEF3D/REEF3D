@@ -1325,7 +1325,19 @@ void cfd_amr::pr_weights()
         cfd_amr_patch *c = CP(F.pid);
         int o[3] = {0,0,0};
         o[F.d] = F.dir;
-        const double w = interface_width_face(c->pp,c->a->phi,F.fi[0],F.fi[1],F.fi[2],o[0],o[1],o[2]);
+        double w = interface_width_face(c->pp,c->a->phi,F.fi[0],F.fi[1],F.fi[2],o[0],o[1],o[2]);
+
+        // G 9: the face lies between a fine and a coarse cell, and the pressure across it is that
+        // of the coarse cell, which belongs to the density in the interface width of the coarse
+        // grid. With the width of the fine grid alone (G 9 0) the face is air where the coarse
+        // cell is still inside its band: a pressure difference of a mixture on a face of air,
+        // 10 m/s in a step at the edge of a patch (2D weir, validation CFD AMR speed/17).
+        // 1: the mean of the fine and the coarse width, 2: the coarse width
+        if(p0->G9>0)
+        {
+            const double wc = interface_width(glex(F.gc),gfd(F.gc)->phi,F.ci[0],F.ci[1],F.ci[2]);
+            w = p0->G9==1 ? 0.5*(w+wc) : wc;
+        }
         const double H = heaviside(0.5*(c->a->phi.V[F.qf] + c->a->phi.V[F.qm]),w);
         F.rof = rmix(c->pp,H,0.5*(sval(F.pid,F.qf) + sval(F.pid,F.qm)));
 

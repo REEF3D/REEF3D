@@ -880,6 +880,21 @@ void driver::logic_cfd()
         }
     }
 
+    // G 9: the density of the faces of a patch edge with the interface width of both levels
+    // (cfd_amr::pr_weights): two-phase level set
+    if(p->G9!=0 && (p->G9<0 || p->G9>2 || p->F30<=0 || p->F80>0 || p->F41>0 || !cfd_amr::scope(p,pgc)))
+    {
+        if(p->mpirank==0)
+        cout<<"G 9 "<<p->G9<<" (the density of the faces of a patch edge with the interface width of both levels: 1 the mean, 2 that of the coarse level) needs the CFD mesh refinement (G 1) with the two-phase level set (F 30, not F 41): not used"<<endl;
+        p->G9=0;
+    }
+    if(p->G9!=0 && p->G28!=0)
+    {
+        if(p->mpirank==0)
+        cout<<"G 9: with one interface width on all levels (G 28 "<<p->G28<<") the two widths are the same: not used"<<endl;
+        p->G9=0;
+    }
+
     // G 29: the pressure under the patches restricted relative to the hydrostatic pressure of each
     // grid (cfd_amr::restrict_press_hydro): two-phase level set, gravity along z
     if(p->G29!=0 && (p->G29!=1 || p->F30<=0 || p->F80>0 || p->F41>0 || p->W20!=0.0 || p->W21!=0.0 || p->W22==0.0 || !cfd_amr::scope(p,pgc)))
