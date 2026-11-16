@@ -1,0 +1,16 @@
+{
+ "description": "CFD 2D wave tank with PLIC VOF (F 80 4) on a domain from z = -0.5 to 0.5, still water level F 60 0.0 (wave theory depth B 94 0.5), relaxation zone (2 m) and beach (B 99 2, 4 m). Before IOWAVE patch 0065 vof_relax took the column's water depth above z_min (0.5 m) as the height of its surface, against the target eta + 0.0: the zones filled towards z = 0.5.",
+ "np": 1,
+ "steps": 300,
+ "tags": [
+  "2d",
+  "waves",
+  "vof",
+  "plic",
+  "iowave"
+ ],
+ "covers": [
+  "iowave::vof_relax column height (absolute z)",
+  "momentum_FC3_PLIC"
+ ]
+}

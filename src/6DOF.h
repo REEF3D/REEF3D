@@ -33,6 +33,7 @@ class fdm2D;
 class ghostcell;
 class field;
 class slice;
+class solver;
 
 using namespace std;
 
@@ -45,10 +46,16 @@ public:
     // X 198 2: the bodies fitted again to the projected velocity of the stage and the fluid of their hulls forced
     // again (u += alpha dt f); the caller projects once more
     virtual void refit_cfd(lexer*,fdm*,ghostcell*,int,field&,field&,field&,field&,field&,field&,double) {}
+    // CFD X 14 11: the added mass of the hull on the grid, after the projection of the step with its matrix
+    // (6DOF_obj_cfd_addedmass.cpp)
+    virtual void added_mass_cfd(lexer*,fdm*,ghostcell*,solver*) {}
     virtual void start_nhflow(lexer*,fdm_nhf*,ghostcell*,int,double*,double*,double*,double*,double*,double*,slice&,slice&,bool)=0;
     virtual void start_sflow(lexer*,fdm2D*,ghostcell*,int,slice&,slice&,slice&,slice&,slice&,slice&,slice&,bool)=0;
     
     virtual void reforce_nhflow(lexer*,fdm_nhf*,ghostcell*,int,double*,double*,double*,double*,double*,double*,slice&,slice&,bool)=0;
+    // NHFLOW direct forcing with the body in the projection (X 15 11): the added mass of the hulls on the grid, after
+    // the projection of stage s with its matrix (6DOF_obj_nhflow_addedmass.cpp)
+    virtual void added_mass_nhflow(lexer*,fdm_nhf*,ghostcell*,solver*,slice&,int) {};
     
     // impermeable membranes (X 330): implicit forcing before the projection, loads after it
     virtual void membrane_forcing_nhflow(lexer*,fdm_nhf*,ghostcell*,double,double*,double*,double*,slice&) {};

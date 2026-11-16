@@ -62,7 +62,7 @@ void fem_coupling::sc_fluid(lexer *p, fdm_nhf *d, bool save)
 
     double *a3[] = {d->U,d->V,d->W,d->omegaF,d->UH,d->VH,d->WH,d->P,d->RO,d->VISC,d->EV,
                     p->sig,p->sigx,p->sigy,p->sigt,p->sigxx};
-    slice *s2[] = {&d->eta,&d->eta_n,&d->WL,&d->detadt,&d->detadt_n,&d->un,&d->vn,&d->dudt,
+    slice *s2[] = {&d->eta,&d->eta_n,&d->WL,&d->detadt,&d->detadt_n,
                    &d->bed,&d->depth,&d->K,&d->fs,&d->Hs,&d->breaking_print,&d->hx,&d->hy};
     sliceint *i2[] = {&d->etaloc,&d->wet_n,&d->breaking,&d->breaklog,&d->bc,&d->nodeval2D};
 

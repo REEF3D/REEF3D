@@ -126,11 +126,15 @@ void patch_obj::velocity(int cs, double Un, double &uval, double &vval, double &
     dz = dirz;
     }
     
-    // along the flow direction, scaled so that the component normal to the face is Un
-    // (|dir . e| >= 0.1 is checked at the initialisation)
-    double dn = dx*ex + dy*ey + dz*ez;
+    // along the flow direction, scaled so that the component normal to the face is Un into the domain
+    // (|dir . e| >= 0.1 is checked at the initialisation); the sign of the direction does not matter
+    double dn = fabs(dx*ex + dy*ey + dz*ez);
+    double sn = inward(cs);
     
-    uval = Un*dx/dn;
-    vval = Un*dy/dn;
-    wval = Un*dz/dn;
+    // tangential components keep their sign relative to the inward normal
+    double dsgn = (dx*ex + dy*ey + dz*ez)>=0.0 ? 1.0 : -1.0;
+    
+    uval = (ex>0.0 ? sn*Un : sn*dsgn*Un*dx/dn);
+    vval = (ey>0.0 ? sn*Un : sn*dsgn*Un*dy/dn);
+    wval = (ez>0.0 ? sn*Un : sn*dsgn*Un*dz/dn);
 }

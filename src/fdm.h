@@ -97,6 +97,18 @@ public:
     field3 fbh3;
     field4 fbh4;
     field4 fbh5;
+    // the share of each velocity face that the direct forcing of the 6DOF bodies took to the body
+    // velocity in the stage (sixdof_obj_cfd::update_forcing), summed over the bodies (forcing_share.h)
+    field1 fbw1;
+    field2 fbw2;
+    field3 fbw3;
+
+    // D 1 2: the open fraction of the cell faces at the static solids and the bed (solid_aperture.h)
+    field1 apx;
+    field2 apy;
+    field3 apz;
+    bool ap_done;
+    unsigned long long ap_sum;
     
     //PLIC
     field4 nX,nY,nZ,Alpha;

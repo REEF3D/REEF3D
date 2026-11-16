@@ -36,7 +36,7 @@ using namespace std;
 //   constraint: h div(u) + 2(w + u.grad(d)) = 0
 // linear dispersion: omega^2 = g h k^2 / (1 + k^2 h^2/4)
 
-class sflow_pjm_lin final : public sflow_pressure_nh, public increment
+class sflow_pjm_lin final : public sflow_pressure_nh
 {
 public:
     sflow_pjm_lin(lexer*, fdm2D*,patchBC_interface*);
@@ -51,17 +51,14 @@ public:
     // solver; the patch instances assemble their rows and apply the correction
     void assemble(lexer*, fdm2D*, ghostcell*, slice&, slice&, slice&, slice&, slice&, double) override final;
     void correct(lexer*, fdm2D*, slice&, slice&, slice&, slice&, double) override final;
-    int is_active(lexer*, fdm2D*, int, int) override final;
     int gcval() const override final {return gcval_press;}
     void coef(double &cbq, double &cwq) const override final {cbq=cb; cwq=cb;}
 
 private:
     void rhs(lexer*, fdm2D*, slice&, double);
-    void poisson(lexer*, fdm2D*, slice&, double);
     void ucorr(lexer*, fdm2D*, slice&, slice&, double);
 	void vcorr(lexer*, fdm2D*, slice&, slice&, double);
 	void wcorr(lexer*, fdm2D*, slice&, slice&, double);
-    int active(lexer*, fdm2D*);
     void grad_q(lexer*, fdm2D*, slice&, double&, double&);
     
 	double starttime;

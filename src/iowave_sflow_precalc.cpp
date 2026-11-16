@@ -44,8 +44,7 @@ void iowave::wavegen_2D_precalc(lexer *p, fdm2D *b, ghostcell *pgc)
     double deltaz;
     
     // generation-zone columns, registered for the cached evaluation (iowave_dist.cpp); only these
-    // are evaluated (before, the depth-averaged velocities were computed for every column of the
-    // domain and kept only in the zone). Zone sources (B 524) per column.
+    // are evaluated. Zone sources (B 524) per column.
     if(!gen_built) genzone4_build(p,pgc);
     
     // the same time on the same grid and bed as the last evaluation: the values are still those

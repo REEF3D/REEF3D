@@ -30,8 +30,6 @@ void concentration_io::ini(lexer* p, fdm *a, ghostcell* pgc,concentration *pconc
 {
 	pupdate = new fluid_update_fsf_concentration(p,a,pgc,pconcentration);
 
-	
-	double dx=p->DXM;
 	double r;
 	int qn;
 

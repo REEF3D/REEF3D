@@ -177,6 +177,7 @@ private:
     // WL^n, WL^{n+1} (face Courant numbers at the fraction [fr0, fr1] of the step); the saved tracers
     const double *tx = nullptr, *ty = nullptr;
     double *tsx = nullptr, *tsy = nullptr;
+    double *tcx = nullptr, *tcy = nullptr;     // the compact layout of the step: Tx, Ty in the layout of IJK
     slice4 wn0, wn1;
     double fr0 = 0.0, fr1 = 1.0;
     vector<double> sav[2];

@@ -33,18 +33,23 @@ Architect: Hans Bihs
 //  Senses (means over the time since the last decision, weighted with dt):
 //   - the body axis and the lateral axis in the plane of the undulation (3D: x-y, 2D: x-z), the speed
 //     along the axis, the position of the CoG (vision of the surroundings, over ground)
-//   - the lateral line (X 194): pressure on both flanks per station
+//   - the lateral line (X 194): pressure on both flanks per station, without its hydrostatic part (patch 0037)
 //   - vision (D > 0): 7 rays from the head in the plane of the undulation (0, +-25, +-50, +-75 deg to
 //     the axis), the distance to the walls of the domain and to the solids (their level set) up to D,
 //     at the decision times
 //
 //  The current and the stride: the fish knows its gait and sees its track over the ground. The speed of
 //  the gait U_g follows f a L with the time tau_u when the gait is faster and tau_d when it is slower
-//  (X 201, default 0.8 s; the 3D salmon keeps its speed for seconds after its frequency drops: tau_d about
-//  4.5 s, validation 17), from the speed on the track over the first interval
+//  (X 201, default 0.8 T; the 3D salmon keeps its speed for seconds after its frequency drops: tau_d about
+//  4.5 s, validation 17), or, with X 202 n_u n_d, in tail beats: the time n/f at the frequency f of the gait,
+//  fast at a fast gait, slow at a slow one (the 2D swimmer: 0.8 beats up, 0.65 down at 0.3-1 Hz, with one
+//  stride of 0.52-0.58 L, validation 23); from the speed on the track over the first interval, or with X 202 from
+//  rest over the ramp of the gait, the body at rest over the ground at t = 0 (the water that passed it, -c along
+//  the axis, decays with the coasting time; validation 25). The coasting time starts from 2 s or X 204 tau_c and
+//  is learnt from the glides
 //  between decisions (a body may still be accelerating; no update then); the ground velocity is
 //  s U_g ex + c. A Kalman filter
-//  on the stride s (prior s0 L per beat, X 200, default 0.5; standard deviation 0.3 s0, kept within
+//  on the stride s (prior s0 L per beat, X 200, default 0.5; standard deviation 0.3 s0 or X 203 sd s0, kept within
 //  0.5-1.6 s0) and the current c in the plane estimates both from the CoG at
 //  the decisions (validation 11, 2D swimmer: s = 0.46, the current 0.17-0.26 m/s for the imposed 0.2 m/s,
 //  in still water at most 0.08 m/s, mean 0.04 m/s). U_w = s U_g is the speed through the water. While the
@@ -52,30 +57,36 @@ Architect: Hans Bihs
 //  U_g follows from the track.
 //
 //  Behaviours, by priority:
-//   1. escape (th_esc > 0): a strong pressure signal at the head, |p+ - p-| or the excess of the head
+//   1. escape (th_esc > 0): a reflex, tested every time step (patch 0036) on the means over the last 0.1 T
+//      (above 2 th_esc: a brief strong stimulus) and the last 0.5 T (above th_esc) of a
+//      strong pressure signal at the head, |p+ - p-| or the excess of the head
 //      pressure over the body mean, above th_esc q (q = rho U_w^2/2, through the water): a C-start away
-//      from the side of the higher pressure (a 0.5, b -+2.5 in 0.08 s, after 0.15 s back to b = 0 at
-//      1.5 times the frequency), then 2 s without a new escape. The signal of the own turn,
+//      from the side of the higher pressure (a 0.5, b -+2.5 in 0.08 T, after 0.15 T back to b = 0 at
+//      1.5 times the frequency), then 2 T without a new escape (T = 1/f0). The signal of the own turn,
 //      -0.5 b q at the head (validation 11), is taken off p+ - p- first. The flank lateral line senses
 //      a wall only within ~0.1 L, so th_esc ~ 1.5: a startle at contact or a strong stimulus. Not while
-//      the fish glides or brakes (the pressure of the bent body is far above that of a swimming turn)
+//      the fish glides or brakes (the pressure of the bent body is far above that of a swimming turn), and
+//      not while its bias is still more than 0.1 off the target of the last decision: the own bending
+//      (added mass) gives the head 5-50 q for a moment (validation 28); the fish knows its own movement
+//      (the corollary discharge of real fish). The C-start takes its own decision out of the cycle.
 //   2. avoidance (D > 0): the threat w = (1 - d/D)^2 of the closest ray; a turn to the side with the
-//      longer rays (kept while the threat lasts), the bias blended from the target's to +-b_max with
+//      longer rays (kept while the threat lasts), the bias blended from the target's to +-b_max (with the
+//      sign of the turn rate k, so that a body that turns away from its bias also turns away) with
 //      min(1, w/0.25), the frequency times 1 - 0.3 min(1, w/0.25)
 //   3. the target (X 192 id t x y z, linear in t): the wanted velocity over the ground is U_des towards
 //      the target (slower within 1.5 L; beyond, U_des/cos of the angle between axis and target up to
 //      60 deg, the closing speed on a detour) plus the velocity of the target as seen; the fish swims
-//      w = wanted - c through the water. The heading: along w, the turn rate psi/tau (tau = 1.5 s,
+//      w = wanted - c through the water. The heading: along w, the turn rate psi/tau (tau = 1.5 T,
 //      psi the angle of w to the axis), the bias from omega = k b U_w/L (k: X 200, default 1.3, the 2D eel;
 //      negative for a body that turns away from its bias, as the 3D salmon with the uniform bias). The frequency: |w|/(s a L),
-//      no integrator; with w more than 1 rad off the axis at least the speed for the turn in 2.5 s at
+//      no integrator; with w more than 1 rad off the axis at least the speed for the turn in 2.5 T at
 //      b_max. Within 0.25 L: at the target. In a current the fish faces it and holds station.
 //   4. glide: in a current and with a target slower than its slowest swimming speed through the water
 //      (0.3 f0 s L) and seeing nothing within D, the fish stops beating its tail and coasts (amplitude
 //      factor 0, no bias): early, when the target is ahead (within 30 deg of the axis) and the distance
-//      the coast carries it (U_w times the coasting time, prior 2 s, learnt from the slowing down of its
+//      the coast carries it (U_w times the coasting time, prior 2 T or X 204, learnt from the slowing down of its
 //      glides) reaches the target (within 0.25 L), the current known (its standard deviation below
-//      0.2 L/s, its drift over the coasting time below 0.1 L); or at the target (0.25 L), needing less
+//      0.2 L f0, its drift over the coasting time below 0.1 L); or at the target (0.25 L), needing less
 //      than that speed. It beats again beyond 0.5 L of the target when the target is behind or the coast
 //      no longer reaches it, for at least a tail beat: burst and coast at a station in still water or in
 //      a slow current. While gliding, if the coast would carry the fish past the target (or carries it
@@ -84,8 +95,13 @@ Architect: Hans Bihs
 //      body straight
 //  Without a target the fish keeps its frequency and swims straight.
 //
-//  The decisions: every half tail beat, at most 0.5 s apart. The brain is a function of the senses at
+//  The decisions: every half tail beat, at most 0.5 T apart. The brain is a function of the senses at
 //  the decision times; its state and decisions go into the checkpoint, so a restart continues it exactly.
+//
+//  Units (patch 0035): the constants of the brain are in tail beats of its gait, T = 1/f0, and in L f0 (the
+//  filter: the prior spread of the current 0.3 L f0, the noise of an interval 0.07 L f0), so that a body of
+//  another size and frequency makes the same decisions in its own units; for L = 1 m and f0 = 1 Hz they are the
+//  seconds and m/s of before, bitwise. The settings of X 201 and X 204 stay in seconds.
 
 class sixdof_brain
 {
@@ -95,7 +111,8 @@ public:
 
     sixdof_brain(double U_des, double b_max, double D_vis, double th_esc, double f0, double L, double rho,
                  double t_start, int lateral, const std::vector<target_point>&, double s0 = 0.0, double k_turn = 0.0,
-                 double tau_u = 0.0, double tau_d = 0.0);
+                 double tau_u = 0.0, double tau_d = 0.0, double n_u = 0.0, double n_d = 0.0, double s_sd = 0.0,
+                 double tau_c = 0.0);
 
     // the senses of one time step: dt, the body axis and the lateral axis (inertial frame), the CoG,
     // the CoG velocity; the lateral line (per probe: s/L, side, pressure) when the body has one
@@ -107,6 +124,9 @@ public:
     struct decision {bool on = false; double t, f, a, b, ts; bool second = false; double t2, f2, a2, b2, ts2;};
     bool due(double t) const {return t>=t_start_ && t>=next_;}
     decision decide(double t, double f, double a, double b, const std::vector<double> *vis);
+
+    // the escape, every time step after the senses (gait now: f, a, b): a C-start out of the cycle of the decisions
+    decision reflex(double t, double f, double a, double b);
     
     // vision: its range [m] (0: none) and the angles of the rays to the body axis [rad]
     double vision_range() const {return Dvis_*L_;}
@@ -138,16 +158,24 @@ public:
     bool ckpt_restore(const std::vector<double>&);
 
     double fmax() const {return 2.0*f0_;}
+    double f0() const {return f0_;}
+    double decision_cap() const {return 0.5*tf_;}     // the decisions at most this apart [s]: 0.5 T
     double stride_prior() const {return s0_;}
     double turn_rate() const {return kturn_;}
     double speed_time_up() const {return tauu_;}
     double speed_time_down() const {return taud_;}
+    double speed_beats_up() const {return nu_;}
+    double speed_beats_down() const {return nd_;}
+    double stride_spread() const {return ssd_;}
+    double coast_prior() const {return tc0_;}
 
 private:
 
     Eigen::Vector3d target(double t) const;
+    bool head_signals(const std::vector<double> &p, double q, double b, double &dpl, double &phd) const;
 
-    const double Udes_, bmax_, Dvis_, the_, f0_, L_, rho_, tstart_, s0_, kturn_, tauu_, taud_;
+    const double Udes_, bmax_, Dvis_, the_, f0_, L_, rho_, tstart_, s0_, kturn_, tauu_, taud_, nu_, nd_, ssd_, tc0_;
+    const double tf_, uf_;      // the units of the constants: the time 1/f0, the speed L f0
     const int lat_;
     std::vector<target_point> tp_;
 
@@ -167,7 +195,7 @@ private:
     double kf_x_[3] = {0.0, 0.0, 0.0}, kf_P_[3][3] = {{0.0,0.0,0.0},{0.0,0.0,0.0},{0.0,0.0,0.0}};
     double ug_ = 0.0, tdec_ = 0.0, bdec_ = 0.0, adec_ = 1.0;
     // the coasting time (learnt from the glides), the end of the last burst, the side of the braking
-    double tauc_ = 0.0, tburst_ = -1.0, bside_ = 0.0;
+    double tauc_ = 0.0, tburst_ = -1.0, bside_ = 0.0, E0_ = 0.0;
     // the updates of the filter since the start
     int nkf_ = 0;
     Eigen::Vector3d pdec_ = Eigen::Vector3d::Zero(), Tprev_ = Eigen::Vector3d::Zero(), vT_ = Eigen::Vector3d::Zero();
@@ -176,6 +204,12 @@ private:
 
     std::vector<double> lls_;
     std::vector<int> llside_;
+
+    // the escape: the pressures, the axis and the velocity of the last step and its time step, the window of the
+    // head signals (dt, dp+-/q, p_head/q per step; q through the water now)
+    std::vector<double> llnow_, esc_;
+    double dtl_ = 0.0;
+    Eigen::Vector3d axn_ = Eigen::Vector3d::Zero(), Un_ = Eigen::Vector3d::Zero();
 };
 
 #endif

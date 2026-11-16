@@ -109,7 +109,6 @@ inline bool nhflow_membrane_active(lexer *p, fdm_nhf *d, int i, int j, int k)
 inline double nhflow_membrane_gradx(lexer *p, fdm_nhf *d, const double *P, int i, int j, int k)
 {
     const int marge = increment::marge;
-    const double *B = d->MBETA;
     
     const nhflow_thinbody *tb = d->thinbody;
     const double Pc = tb!=nullptr ? tb->pcell(p,P,i,j,k)   : 0.5*(P[FIJK]+P[FIJKp1]);
@@ -124,7 +123,6 @@ inline double nhflow_membrane_gradx(lexer *p, fdm_nhf *d, const double *P, int i
 inline double nhflow_membrane_grady(lexer *p, fdm_nhf *d, const double *P, int i, int j, int k)
 {
     const int marge = increment::marge;
-    const double *B = d->MBETA;
     
     const nhflow_thinbody *tb = d->thinbody;
     const double Pc = tb!=nullptr ? tb->pcell(p,P,i,j,k)   : 0.5*(P[FIJK]+P[FIJKp1]);
@@ -299,6 +297,17 @@ inline void nhflow_membrane_row(lexer *p, fdm_nhf *d, int i, int j, int k, int n
     if(bn==1.0 && bs==1.0 && bw==1.0 && be==1.0 && bt==1.0 && bb==1.0)
     return;
     
+    // direct forcing with the body in the projection (X 15 11): a node without an open link lies inside the body, it
+    // holds no pressure. Its row with the smallest fractions alone leaves its pressure open: the solver returns
+    // values of any size there, which then act on the water through the closed links.
+    if(p->X15==11 && p->X10>0 && d->FBUX!=nullptr && d->thinbody==nullptr && d->MBX!=nullptr && MAX(MAX(MAX(bn,bs),MAX(bw,be)),MAX(bt,bb))<=2.0e-4)
+    {
+        d->M.p[n] = 1.0;
+        d->M.n[n] = d->M.s[n] = d->M.w[n] = d->M.e[n] = d->M.t[n] = d->M.b[n] = 0.0;
+        d->rhsvec.V[n] = 0.0;
+        return;
+    }
+    
     d->M.n[n] *= bn;
     d->M.s[n] *= bs;
     d->M.w[n] *= bw;
@@ -334,7 +343,6 @@ inline void nhflow_membrane_rc_store(lexer *p, fdm_nhf *d, ghostcell *pgc, const
 {
     int i,j,k;
     const int marge = increment::marge;
-    const double *B = d->MBETA;
     
     LOOP
     {

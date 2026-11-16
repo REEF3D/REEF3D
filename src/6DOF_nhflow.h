@@ -89,6 +89,7 @@ public:
     // the bodies, for the NHFLOW mesh refinement (nhflow_amr)
     int objects() const {return number6DOF;}
     sixdof_obj_nhflow* object(int nb) {return fb_obj[nb];}
+    void added_mass_nhflow(lexer*,fdm_nhf*,ghostcell*,solver*,slice&,int) override;
     
     // subcycling (G 7 1): level 0 steps with a predicted copy of the bodies (X 10 1/2): the RK
     // stages with the loads frozen, the trimesh, ray cast and forcing; no loads, no output
@@ -96,7 +97,7 @@ public:
     
     // X 13: the top-cell distance of the pierced-column level at the pose of the stage. The body
     // is then advanced at the start of the stage (advance_stage, from the loads of the last
-    // stage, as before), not in phase_P1, so the footprint and the loads see the same hull.
+    // stage), not in phase_P1, so the footprint and the loads see the same hull.
     bool top_phi_nhflow(lexer*,fdm_nhf*,ghostcell*,int,slice&,slice&) override final;
     
     // X 13 2: the keel of the hull at the pose of the stage (advance_stage as for X 13 1)
@@ -104,8 +105,6 @@ public:
     
 private:
 	
-    // hires gradient
-    double limiter(double v1, double v2);
     double starttime;
     
     double denom,val,r,phival;

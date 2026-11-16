@@ -46,6 +46,14 @@ public:
     virtual void ini(lexer*, fdm2D*, ghostcell*) {}
     virtual void implicit(lexer*, fdm2D*, ghostcell*, slice&, slice&, slice&, double, bool) {}
 
+    // semi-implicit SFLOW (A 210 11/12/13): the basal friction as a factor on the momentum of the step,
+    // s/Ustar of the backward-Euler friction step for the frictionless estimate Ustar of the new speed
+    // (args: cell i, j; dir 0 the cell, 1 its face i+1/2, 2 its face j+1/2; depth, Ustar, dt), and the end
+    // of the step (pore pressure; args UH, VH, WL of t^{n+1})
+    virtual bool si_friction() const { return false; }
+    virtual double si_factor(lexer*, fdm2D*, int, int, int, double, double, double) { return 1.0; }
+    virtual void si_end(lexer*, fdm2D*, ghostcell*, slice&, slice&, slice&) {}
+
 };
 
 #endif

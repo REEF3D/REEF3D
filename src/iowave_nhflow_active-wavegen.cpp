@@ -27,7 +27,7 @@ Author: Hans Bihs
 
 void iowave::nhflow_active_wavegen(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V, double *W, double *UH, double *VH, double *WH, slice &WL)
 {
-    double eta_R,Uc,Un,Vc,Wc,eta_T,eta_M,wsf;
+    double eta_R,Uc,eta_T,eta_M;
         
         double etaval=0.0;
         
@@ -64,10 +64,6 @@ void iowave::nhflow_active_wavegen(lexer *p, fdm_nhf *d, ghostcell *pgc, double 
             if(p->A515==2 || p->A515==4)
             {
             etaval = d->eta(i,j);
-            /*
-            WL(i-1,j) = WL(i,j);
-            WL(i-2,j) = WL(i,j);
-            WL(i-3,j) = WL(i,j);*/
             }
             
             if(p->A515==3)
@@ -97,10 +93,6 @@ void iowave::nhflow_active_wavegen(lexer *p, fdm_nhf *d, ghostcell *pgc, double 
             if(p->A515==2 || p->A515==4)
             {
             etaval = d->eta(i,j);
-            /*
-            WL(i-1,j) = WL(i,j);
-            WL(i-2,j) = WL(i,j);
-            WL(i-3,j) = WL(i,j);*/
             }
             
             if(p->A515==3)
@@ -161,8 +153,7 @@ void iowave::nhflow_active_wavegen(lexer *p, fdm_nhf *d, ghostcell *pgc, double 
             
                 
                 // fsf deviation
-                // target at this column, ramped like the velocities (it was evaluated at the x of
-                // the last precalc cell and y = 0, without the ramp)
+                // target at this column, ramped like the velocities
                 eta_T = ramp(p)*wave_eta(p,pgc,xgen(p),ygen(p));
                 
                 // B 536 1: piston wavemaker against the linear surface elevation of the paddle signal at this

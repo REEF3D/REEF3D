@@ -33,6 +33,7 @@ Author: Hans Bihs
 //  (cfd_amr_cpm.cpp).
 
 #include"cfd_amr.h"
+#include"cell_index.h"
 #include"reef3d_mpmd.h"
 #include"lexer.h"
 #include"reefckpt.h"
@@ -48,12 +49,6 @@ using namespace std;
 
 namespace
 {
-// index of a cell in the arrays of lexer q (field layout)
-inline int cix(const lexer *q, int i, int j, int k)
-{
-    return (i-q->imin)*q->jmax*q->kmax + (j-q->jmin)*q->kmax + k-q->kmin;
-}
-
 struct ckpatch
 {
     int shadow, lev, lo[3], hi[3];
@@ -496,7 +491,7 @@ void cfd_amr::lmap_step(lexer *p)
     for(int i=0; i<p0->knox; ++i)
     for(int j=0; j<p0->knoy; ++j)
     for(int k=0; k<p0->knoz; ++k)
-    if(p0->flag4[cix(p0,i,j,k)]>0)
+    if(p0->flag4[cell_index(p0,i,j,k)]>0)
     ++act;
     lm_n0 += double(act);
     for(int qi=0; qi<npat; ++qi)

@@ -29,8 +29,8 @@ Authors: Hans Bihs, Tobias Martin
 #include"flux_HJ_CDS2_2D.h"
 #include"flux_HJ_CDS2_vrans_2D.h"
 
-weno_hj_df_nug::weno_hj_df_nug(lexer* p):weno_nug_func(p),tttw(13.0/12.0),fourth(1.0/4.0),third(1.0/3.0),
-			sevsix(7.0/6.0),elvsix(11.0/6.0),sixth(1.0/6.0),fivsix(5.0/6.0),tenth(1.0/10.0),
+weno_hj_df_nug::weno_hj_df_nug(lexer* p):weno_nug_func(p),tttw(13.0/12.0),fourth(1.0/4.0),
+			tenth(1.0/10.0),
 			sixten(6.0/10.0),treten(3.0/10.0),epsilon(0.000001)
 {
     if(p->j_dir==0)

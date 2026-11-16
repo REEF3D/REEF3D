@@ -29,12 +29,24 @@ class lexer;
 class fdm;
 class field;
 
-// PIC single phase (F 81 1, PICIN): the pressure only in the water (phi >= 0), p = 0 at the free
+// PIC single phase (F 81 1, PICIN): the pressure only in the water (pic_gfm_water), p = 0 at the free
 // surface by the ghost fluid method (Gibou et al. 2002): across a face to a cell in the air the
 // pressure of the ghost is p_i (theta - 1)/theta, theta = phi_i/(phi_i - phi_air) the distance
-// to the surface in the spacing, at least PIC_GFM_THETA
+// to the surface in the spacing, at least PIC_GFM_THETA (the single-phase level set, F 41 1, 2,
+// and the composite projection of the mesh refinement, pic_gfm_theta)
 
 const double PIC_GFM_THETA = 0.05;
+
+// F 81 1: a cell in the water for phi >= PIC_GFM_WET h (h the mean spacing). A cell with the
+// surface just above its centre counts as air, and the surface is placed beyond it from the cell
+// below (theta from about PIC_GFM_WET to 1 + PIC_GFM_WET): the position of the surface is then
+// continuous when phi of a cell changes sign. With the cells in the water at phi >= 0 and theta at
+// least 0.05 (patch 0009), still water whose surface lay at the centres of the cells (phi = 0 within
+// the noise of the particles) flipped between two surfaces 0.05 h apart, column by column, and moved
+// at 2-4 cm/s. The single-phase level set (F 41 1, 2): phi >= 0, as before
+const double PIC_GFM_WET = 0.01;
+
+bool pic_gfm_water(lexer*, fdm*, int, int, int);
 
 // the single phase with p = 0 at the free surface by the ghost fluid method: PIC single phase (F 81 1)
 // or the single-phase level set (F 41 1, cfd_singlephase.h)

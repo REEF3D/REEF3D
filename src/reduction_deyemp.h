@@ -41,9 +41,6 @@ public:
 	void start(lexer*,ghostcell*,sediment_fdm*) override final;
 
 private:
-    double u_abs,u_plus,dist;
-    double uvel, vvel;
-    double beta;
 };
 
 #endif

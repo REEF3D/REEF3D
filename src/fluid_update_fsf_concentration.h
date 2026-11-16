@@ -45,10 +45,7 @@ private:
 
     static int iocheck,iter;
     int gcval_ro,gcval_visc;
-	const double dx;
-    double epsi;
 	double visc_air,visc_water,ro_air,ro_water;
-	double ro_conc, visc_conc;
 
 	concentration *pconcentration;
 

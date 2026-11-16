@@ -134,11 +134,6 @@ void sediment_curv::cellvel(lexer *p, sediment_fdm *s, int ii, int jj, double &u
     v = a1*g1y + a2*g2y;
 }
 
-double sediment_curv::face_sign(lexer *p, sediment_fdm *s, int dir, int ii, int jj)
-{
-    return face_sign(p,s,dir,ii,jj,0.0);
-}
-
 double sediment_curv::face_sign(lexer *p, sediment_fdm *s, int dir, int ii, int jj, double td)
 {
     double nx,ny,len;

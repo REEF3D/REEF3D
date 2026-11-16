@@ -24,7 +24,6 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm_nhf.h"
 #include"ghostcell.h"
-#include"nhflow_coastline.h"
 
 void nhflow_fsf_f::coastline_eta(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &f) 
 {

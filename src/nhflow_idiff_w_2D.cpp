@@ -35,7 +35,7 @@ void nhflow_idiff_2D::diff_w(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow
 {
 	starttime=pgc->timer();
     
-    double visc_IP,visc_IM1,visc_IP1,visc_JM1,visc_JP1,visc_KM1,visc_KP1;
+    double visc_IP,visc_IM1,visc_IP1,visc_KM1,visc_KP1;
     
     LOOP
     WHdiff[IJK] = WHin[IJK];

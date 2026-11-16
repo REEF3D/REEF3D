@@ -1,0 +1,8 @@
+{
+ "description": "The dry 2-D granular column of cfd_2d_cpm_column_q89 (Q 67 1, Q 88 1e-4, Q 89 0.85, patch 0061) on 2 ranks split in z (M 20 3, M 30 1 1 2; BiCGStab pressure solver N 10 3, REEFMG needs whole columns)",
+ "note": "covers the code paths only: with this split some parcels are thrown up at the subdomain boundary, also without Q 88 and Q 89 (validation 39)",
+ "covers": ["CPM Q 89 with a vertical domain decomposition: the volume velocity iterated up through the subdomains",
+            "CPM Q 88 with a vertical domain decomposition: conjugate gradients, the sliding test iterated through the subdomains"],
+ "np": 2, "steps": 100,
+ "tags": ["quick", "2d", "cpm"]
+}

@@ -30,7 +30,7 @@ Author: Hans Bihs
 #include"solver.h"
 #include"sediment_fdm.h"
 
-suspended_IM1::suspended_IM1(lexer* p) : concn(p),wvel(p)
+suspended_IM1::suspended_IM1(lexer* p) : concn(p),wvel(p),uvel(p),vvel(p)
 {
 	gcval_susp=60;
 }
@@ -44,7 +44,8 @@ void suspended_IM1::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdif
     starttime=pgc->timer();
     clearrhs(p,a);
     fill_wvel(p,a,pgc,s);
-    pconvec->start(p,a,a->conc,4,a->u,a->v,wvel);
+    fill_facevel(p,a);
+    pconvec->start(p,a,a->conc,4,uvel,vvel,wvel);
 	pdiff->idiff_scalar(p,a,pgc,psolv,a->conc,a->eddyv,1.0,1.0);
 	suspsource(p,a,a->conc,s);
 	timesource(p,a,a->conc);
@@ -62,7 +63,6 @@ void suspended_IM1::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdif
 void suspended_IM1::timesource(lexer* p, fdm* a, field& fn)
 {
     int count=0;
-    int q;
 
     LOOP
     {
@@ -97,6 +97,58 @@ void suspended_IM1::fill_wvel(lexer *p, fdm* a, ghostcell *pgc, sediment_fdm *s)
     pgc->start3(p,wvel,12);
 }
 
+// a face of a flow cell to the cell (ii,jj,kk) is closed for the concentration
+bool suspended_IM1::closed(lexer *p, fdm *a, int ii, int jj, int kk)
+{
+    // walls at the bottom, top and the y sides of the domain (in- and outflow in x stay open)
+    if((kk<0 && p->nb5<0 && p->periodic3==0) || (kk>=p->knoz && p->nb6<0 && p->periodic3==0))
+    return true;
+    
+    if(p->j_dir==1 && ((jj<0 && p->nb3<0 && p->periodic2==0) || (jj>=p->knoy && p->nb2<0 && p->periodic2==0)))
+    return true;
+    
+    // bed, solid bodies, air above the free surface
+    return a->topo(ii,jj,kk)<0.0 || (p->solidread>0 && a->solid(ii,jj,kk)<0.0) || a->phi(ii,jj,kk)<0.0;
+}
+
+// face velocities of the convection: a->u, a->v and w - w_s (fill_wvel), zero at the closed faces.
+// The convection then has no flux through a closed face, whatever its face flux is: the 3D face flux
+// D 11 2 (flux_face_CDS2) has no vertical flux next to a solid or the bed, the 2D one and D 11 1 have.
+// bcsusp_start took the settling flux of the bed face out of the diagonal as if it were always there:
+// in 3D with D 11 2 it was taken out twice, the deposition w_s c_1 of the first cell above the bed
+// stayed in the water while the bed received it (Exner, CPM hybrid Q 58 3 and 4), and sediment was made.
+void suspended_IM1::fill_facevel(lexer *p, fdm *a)
+{
+    const long long N = (long long)p->imax*p->jmax*p->kmax;
+    
+    for(long long m=0;m<N;++m)
+    {
+        uvel.V[m] = a->u.V[m];
+        vvel.V[m] = a->v.V[m];
+    }
+    
+    LOOP
+    {
+        if(closed(p,a,i-1,j,k))
+        uvel(i-1,j,k) = 0.0;
+        
+        if(closed(p,a,i+1,j,k))
+        uvel(i,j,k) = 0.0;
+        
+        if(p->j_dir==1 && closed(p,a,i,j-1,k))
+        vvel(i,j-1,k) = 0.0;
+        
+        if(p->j_dir==1 && closed(p,a,i,j+1,k))
+        vvel(i,j,k) = 0.0;
+        
+        if(closed(p,a,i,j,k-1))
+        wvel(i,j,k-1) = 0.0;
+        
+        if(closed(p,a,i,j,k+1))
+        wvel(i,j,k) = 0.0;
+    }
+}
+
 void suspended_IM1::suspsource(lexer* p,fdm* a,field& conc, sediment_fdm *s)
 {    
     double zdist;
@@ -113,9 +165,6 @@ void suspended_IM1::suspsource(lexer* p,fdm* a,field& conc, sediment_fdm *s)
         
         a->rhsvec.V[count]  += (-s->ws)*(-s->cbe(i,j))/zdist;
         a->M.p[count] += (s->ws)/zdist;
-        
-        
-        //a->rhsvec.V[count]  += s->ws*s->cbe(i,j)/(zdist);
         }
 	++count;
     }
@@ -123,78 +172,54 @@ void suspended_IM1::suspsource(lexer* p,fdm* a,field& conc, sediment_fdm *s)
 
 void suspended_IM1::bcsusp_start(lexer* p, fdm* a,ghostcell *pgc, sediment_fdm *s, field& conc)
 {
-    double cval;
     
     // The bed exchanges with the concentration only through suspsource (erosion w_s c_be, deposition
     // w_s c_1), which the Exner equation (susp_ED) and the CPM hybrid (Q 58 3, 4) apply to the bed.
     // The faces to the cells of the bed (topo < 0), of solid bodies, to the air and to the walls of the
-    // domain are closed: no settling, convective or diffusive flux (the outflow and diffusion terms of
-    // the face are taken out of the diagonal); in- and outflow boundaries stay open. With the bed face
-    // open, the deposition left the water a second time by settling through the face, and the bed never
-    // received it: most of the sand eroded into suspension was lost (pipeline scour: 73-91 %).
-    // Above a fixed, non-erodible bed (no exchange) the sand stays in suspension.
-    
-    auto closed = [&](int ii, int jj, int kk)
-    {
-        // walls at the bottom, top and the y sides of the domain (in- and outflow in x stay open)
-        if((kk<0 && p->nb5<0 && p->periodic3==0) || (kk>=p->knoz && p->nb6<0 && p->periodic3==0))
-        return true;
-        
-        if(p->j_dir==1 && ((jj<0 && p->nb3<0 && p->periodic2==0) || (jj>=p->knoy && p->nb2<0 && p->periodic2==0)))
-        return true;
-        
-        // bed, solid bodies, air above the free surface
-        return a->topo(ii,jj,kk)<0.0 || (p->solidread>0 && a->solid(ii,jj,kk)<0.0) || a->phi(ii,jj,kk)<0.0;
-    };
+    // domain are closed: no settling, convective or diffusive flux; in- and outflow boundaries stay open.
+    // With the bed face open, the deposition left the water a second time by settling through the face,
+    // and the bed never received it: most of the sand eroded into suspension was lost (pipeline scour:
+    // 73-91 %). Above a fixed, non-erodible bed (no exchange) the sand stays in suspension.
+    // The convection has no flux through a closed face (fill_facevel: zero face velocity), here the
+    // diffusion term of the face is taken out of the diagonal.
     
         n=0;
         LOOP
         {
+            if(closed(p,a,i-1,j,k))
             {
-            const double dx=p->DXN[IP], dy=p->DYN[JP], dz=p->DZN[KP];
-            double vel;
-            
-            if(closed(i-1,j,k))
-            {
-            vel = a->u(i-1,j,k);
-            a->M.p[n] += (a->M.s[n] + MAX(vel,0.0)/dx) + MIN(vel,0.0)/dx;
+            a->M.p[n] += a->M.s[n];
             a->M.s[n] = 0.0;
             }
             
-            if(closed(i+1,j,k))
+            if(closed(p,a,i+1,j,k))
             {
-            vel = a->u(i,j,k);
-            a->M.p[n] += (a->M.n[n] - MIN(vel,0.0)/dx) - MAX(vel,0.0)/dx;
+            a->M.p[n] += a->M.n[n];
             a->M.n[n] = 0.0;
             }
             
-            if(p->j_dir==1 && closed(i,j-1,k))
+            if(p->j_dir==1 && closed(p,a,i,j-1,k))
             {
-            vel = a->v(i,j-1,k);
-            a->M.p[n] += (a->M.e[n] + MAX(vel,0.0)/dy) + MIN(vel,0.0)/dy;
+            a->M.p[n] += a->M.e[n];
             a->M.e[n] = 0.0;
             }
             
-            if(p->j_dir==1 && closed(i,j+1,k))
+            if(p->j_dir==1 && closed(p,a,i,j+1,k))
             {
-            vel = a->v(i,j,k);
-            a->M.p[n] += (a->M.w[n] - MIN(vel,0.0)/dy) - MAX(vel,0.0)/dy;
+            a->M.p[n] += a->M.w[n];
             a->M.w[n] = 0.0;
             }
             
-            if(closed(i,j,k-1))
+            if(closed(p,a,i,j,k-1))
             {
-            vel = wvel(i,j,k-1);
-            a->M.p[n] += (a->M.b[n] + MAX(vel,0.0)/dz) + MIN(vel,0.0)/dz;
+            a->M.p[n] += a->M.b[n];
             a->M.b[n] = 0.0;
             }
             
-            if(closed(i,j,k+1))
+            if(closed(p,a,i,j,k+1))
             {
-            vel = wvel(i,j,k);
-            a->M.p[n] += (a->M.t[n] - MIN(vel,0.0)/dz) - MAX(vel,0.0)/dz;
+            a->M.p[n] += a->M.t[n];
             a->M.t[n] = 0.0;
-            }
             }
             
             if(p->flag4[Im1JK]<0 || (p->flagsf4[IJK]>0 && p->flagsf4[Im1JK]<0))
@@ -278,30 +303,6 @@ void suspended_IM1::fillconc(lexer* p, fdm* a, ghostcell *pgc, sediment_fdm *s)
     }
     
     pgc->gcsl_start4(p,s->cb,1);
-}
-
-double suspended_IM1::Rouse_formula(lexer* p, fdm *a, sediment_fdm *s, double Cc)
-{
-    double Ca;    
-    double za,zc,P;
-    
-    za = 2.0*p->S20;
-    
-    zc = 0.5*p->DZN[KP]*p->WL[IJ];
-    
-    P = s->ws/(0.4* (s->shearvel_eff(i,j)>0.0?s->shearvel_eff(i,j):1.0e-6) );
-    
-    P = MAX(P,0.8);
-    P = MIN(P,2.5);
-    
-    
-    Ca = Cc * pow( ((p->WL[IJ]-za)/za) / ((p->WL[IJ]-zc)/zc), P);
-    
-    Ca = MIN(Ca,0.1);
-    
-    //cout<<"Cc: "<<Cc<<" Ca: "<<Ca<<" | P: "<<P<<" "<<s->shearvel_eff(i,j)<<endl;
-
-    return Ca;
 }
 
 void suspended_IM1::sedfsf(lexer* p,fdm* a,field& conc)

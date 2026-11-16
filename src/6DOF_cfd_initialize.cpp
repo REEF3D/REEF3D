@@ -78,4 +78,12 @@ void sixdof_cfd::setup(lexer *p, fdm *a, ghostcell *pgc)
     pgc->start2(p,a->fbh2,11);
     pgc->start3(p,a->fbh3,12);
     pgc->start4(p,a->fbh4,40);
+
+    // the forced shares of the faces, summed by the bodies of the stage (update_forcing)
+    {
+    const int nw = p->imax*p->jmax*p->kmax;
+    std::fill(a->fbw1.V, a->fbw1.V+nw, 0.0);
+    std::fill(a->fbw2.V, a->fbw2.V+nw, 0.0);
+    std::fill(a->fbw3.V, a->fbw3.V+nw, 0.0);
+    }
 }

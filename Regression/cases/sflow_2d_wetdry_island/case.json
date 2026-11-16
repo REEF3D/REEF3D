@@ -1,0 +1,22 @@
+{
+ "description": "SFLOW explicit (A 210 2, A 220 3, bed smoothing A 209 1) with wetting and drying in a closed square basin that is symmetric about the diagonal x = y: a beach 1:8.3 rising along the diagonal to dry land, an island on the diagonal (1.5 m above the water), a square of water raised by 0.5 m in the near corner. The gauges come in pairs (x,y), (y,x), which read the same; the 2-rank run sflow_2d_wetdry_island_mpi2 gives the same solution (the bed smoothing from the old values).",
+ "solver": "sflow",
+ "np": 1,
+ "steps": 150,
+ "tags": [
+  "quick",
+  "2d",
+  "sflow",
+  "wetdry",
+  "nonhydrostatic"
+ ],
+ "covers": [
+  "sflow_f::ini: bed smoothing A 209 from the old values",
+  "sflow_eta::wetdry: a wet cell is dried when it is closed in x and in y",
+  "sflow_pjm_quad::upgrad (A 220 3) next to dry cells"
+ ],
+ "files": [
+  "geo.dat"
+ ],
+ "architect": "Hans Bihs"
+}

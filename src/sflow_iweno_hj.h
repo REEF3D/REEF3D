@@ -65,23 +65,20 @@ private:
 	void weight_calc();
 
 
-	double L,grad;
+	double L;
 	const double tttw,fourth,third,sevsix,elvsix,sixth,fivsix,tenth;
 	const double sixten,treten;
 	const double epsilon;
 	double is1,is2,is3;
 	double alpha1,alpha2,alpha3;
 	double w1,w2,w3;
-	double q1,q2,q3,q4,q5;
-	double gradx, grady, gradz;
-	double fu1,fv1,fu2,fv2;
 
 	void is(slice&);
 	void alpha();
 	void weight();
     
     sflow_flux *pflux;
-    double ivel1,ivel2,jvel1,jvel2;
+    double ivel2,jvel2;
     double iadvec,jadvec;
     
     const double deltin;

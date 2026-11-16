@@ -1,0 +1,20 @@
+{
+ "base": "cfd_2d_nwt",
+ "np": 3,
+ "steps": 100,
+ "ctrl_add": [
+  "N 15 1"
+ ],
+ "description": "cfd_2d_nwt on 3 ranks with the coarse-grid agglomeration of REEFMG (N 15 1): the CFD pressure of a closed domain (Neumann with one pinned face), the coarsest level gathered onto every rank and solved by a serial hierarchy.",
+ "tags": [
+  "quick",
+  "2d",
+  "waves",
+  "levelset",
+  "mpi",
+  "reefmg"
+ ],
+ "covers": [
+  "reefmg start_solver5 with reefmg_core::setup_agglomeration, gather_coarse_matrix, coarse_solve_agg"
+ ]
+}

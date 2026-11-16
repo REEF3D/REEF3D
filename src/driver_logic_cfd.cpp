@@ -76,12 +76,26 @@ void driver::logic_cfd()
     removed_option(p,pgc,p->T10==12,"T 10 12: EARSM has been removed, use T 10 2 (k-omega; the EARSM stresses were not coupled to the momentum equations).");
     removed_option(p,pgc,p->F80==1 || p->F80==3,"F 80 1/3: VOF_AB and VOF_RK3 have been removed, use F 80 4 (PLIC) or the level set (F 30).");
     removed_option(p,pgc,p->F85>=51 && p->F85<=53,"F 85 51/52/53: HRIC, HRIC_mod and CICSAM have been removed.");
+
+    // VOF PLIC (F 80 4): momentum schemes that transport the volume fraction, and the interface normal
+    removed_option(p,pgc,p->F80==4 && !(p->N40==3 || p->N40==23 || p->N40==33 || p->N40==12 || p->N40==13),"F 80 4: VOF PLIC needs N 40 3, 23 (VOF in the Runge-Kutta stages), 33 (conservative momentum), 12 or 13 (VOF once per time step).");
+    removed_option(p,pgc,p->F80==4 && (p->F88<4 || p->F88>14),"F 88: unknown interface normal for VOF PLIC; use 4 (Youngs), 5 (least squares), 6 (WENO), 8 (mass centre), 9-12 (2D: ELVIRA, centred columns, mixed Youngs-centred) or 13, 14 (3D centred columns).");
+
+    // F 88 9-12 give normals in the x-z plane only (ny = 0)
+    if(p->F80==4 && p->j_dir==1 && p->F88>=9 && p->F88<=12)
+    {
+        if(p->mpirank==0)
+        cout<<"F 88 "<<p->F88<<" is a 2D interface normal (ny = 0): F 88 13 (3D centred columns) used for this 3D run"<<endl;
+
+        p->F88=13;
+    }
     
     // unknown turbulence options: no model or convection scheme would be created and the run would crash later
     const bool T10_ok = (p->T10==0 || p->T10==1 || p->T10==21 || p->T10==2 || p->T10==22 || p->T10==31 || p->T10==33 || p->T10==12);
     removed_option(p,pgc,!T10_ok,"T 10: unknown turbulence model; use 0 (laminar), 1/21 (k-epsilon), 2/22 (k-omega), 31 (LES Smagorinsky) or 33 (LES WALE).");
     removed_option(p,pgc,p->T10>0 && p->T12!=0 && p->T12!=1 && p->T12!=5 && p->T12!=55,"T 12: unknown convection scheme for k, epsilon/omega; use 0, 1 (first-order upwind), 5 or 55 (WENO).");
     removed_option(p,pgc,(p->T10==31 || p->T10==33) && p->T21!=0 && p->T21!=1 && p->T21!=2,"T 21: unknown LES filter; use 0, 1 or 2.");
+    removed_option(p,pgc,p->T46_I>0.0 && p->T46_L<=0.0,"T 46 I L: give the turbulence length scale L > 0.");
 
 
 // time stepping
@@ -667,6 +681,38 @@ void driver::logic_cfd()
     preso = new reinitopo_RK3(p,"solid");
     
 // 6DOF
+    // X 49 and X 46 not set in the control file: on for the 6DOF bodies with the one-step scheme N 40 5
+    // and the loads on the triangles of the hull (X 60 1), not with the fluid-momentum coupling X 198.
+    // There the closed projection gave the added mass of the fine grid (a square oscillating in a
+    // closed box: 54.3 kg/m at dx 0.02, 53.2 at dx 0.01); with the stages of N 40 3 and N 40 6 it is
+    // 20 and 10 % too high, they keep the open projection
+    // Not with the subcycled mesh refinement (G 1 with G 7 1): there the heave of a box differed
+    // from the run with one time step for all levels (9 mm after 0.6 s), not understood yet
+    // X 14 11: the forcing of X 14 1 with the added mass of the hull on the grid in the coupling (one Poisson solve
+    // per free degree of freedom with the matrix of the closed projection, 6DOF_obj_cfd_addedmass.cpp) instead of
+    // the artificial one of X 197. One body, the one-step scheme, the loads on the triangles, the closed
+    // projection, no mesh refinement; else X 14 1
+    if(p->X14==11 && !(p->X10>0 && p->X20==1 && p->N40==5 && p->X60==1 && p->X198==0 && p->G1==0 && p->X49!=0))
+    {
+        if(p->mpirank==0)
+        cout<<"!!! X 14 11 (added mass of the hull on the grid) needs one body (X 20 1), N 40 5, X 60 1, the closed projection X 49 1, no X 198 and no mesh refinement (G 1): X 14 1 instead"<<endl;
+        
+        p->X14 = 1;
+    }
+    
+    if(p->X49<0)
+    p->X49 = (p->X10>0 && p->N40==5 && p->X60==1 && p->X198==0 && !(p->G1>0 && p->G7!=0)) ? 1 : 0;
+
+    if(p->X46<0)
+    p->X46 = (p->X49>0) ? 1 : 0;
+
+    // X 49: a body does not leak any more and the fluid answers its acceleration with the full added
+    // mass.  The explicit coupling of the loads is then unstable for a light body (a box of density
+    // 500 in heave), which the leak of the open projection damped.  The stabilised coupling X 197
+    // with its consistent added mass on both sides is switched on with it (not with X 198)
+    if(p->X49>0 && p->X10>0 && p->X197<=0.0 && p->X198==0)
+    p->X197 = 1.0;
+
     if(p->X10==0)
     p6dof = new sixdof_void(p,pgc);
     
@@ -690,6 +736,7 @@ void driver::logic_cfd()
     removed_option(p,pgc,p->F81>0 && p->G1>0,"F 81: PIC is not available with the mesh refinement (G 1) yet.");
     removed_option(p,pgc,p->F81>0 && p->F83<1,"F 83: PIC needs at least 1 particle per cell and direction.");
     removed_option(p,pgc,picfsf && p->B90>0 && ((p->B98!=0 && p->B98!=2) || (p->B99!=0 && p->B99!=1 && p->B99!=2)),"F 81 1/2: waves only with the relaxation zones (B 98 2, B 99 1 or 2) with the free surface from the particles yet; the Dirichlet wave generation and the active absorption bring no particles in.");
+    removed_option(p,pgc,picfsf && p->F76!=0 && p->F76!=1,"F 76: the particles of F 81 1, 2 move in the stages of the SSP-RK3 step (1, the default) or once per step (0).");
     removed_option(p,pgc,picfsf && (p->F77<0 || p->F77>2),"F 77: the velocity transfer of the particles is 0 (FLIP/PIC, F 82), 1 (APIC) or 2 (FLIP/PIC with the affine velocities of APIC).");
     removed_option(p,pgc,picfsf && (p->N40==0 || p->N40==33),"F 81 1/2: the momentum of the particles needs the non-conservative Runge-Kutta momentum (N 40 2, 3, 4, 12, 13, 22, 23, 24, 44).");
     removed_option(p,pgc,p->F81==1 && (p->D30<1 || p->D30>3 || p->W32>0),"F 81 1: the single phase (p = 0 at the free surface) needs the incompressible projection (D 30 1, 2, 3, no W 32).");
@@ -791,13 +838,37 @@ void driver::logic_cfd()
     // the free surface over F 45 of its own cells, so a coarse and a fine cell at the same distance
     // from the free surface have different densities (at the patch edges across the free surface
     // and under the patches)
+    // D 1: the static solids and the bed, 1 direct forcing, 2 cut cells (solid_aperture.h).  The cut
+    // cells with the mesh refinement on every grid, the faces of the patch edges on the grid of the
+    // fine cell (cfd_amr::pr_apertures); not with the patches placed on other ranks (G 40: the coarse
+    // faces of the shadows), and the particle bed (S 10 1 with Q 10) moves inside its top cell every
+    // step: direct forcing there
+    if(p->D1!=1 && p->D1!=2)
+    {
+        if(p->mpirank==0)
+        cout<<"D 1 "<<p->D1<<": 1 direct forcing or 2 cut cells; D 1 1 used"<<endl;
+        p->D1=1;
+    }
+    if(p->D1==2 && p->G1>0 && p->G40>0)
+    {
+        if(p->mpirank==0)
+        cout<<"D 1 2 (cut cells) is not built for the placement of the patches (G 40) yet: the direct forcing (D 1 1) used"<<endl;
+        p->D1=1;
+    }
+    if(p->D1==2 && p->S10==1 && p->Q10>0)
+    {
+        if(p->mpirank==0)
+        cout<<"D 1 2 (cut cells) is not tested with the particle bed (S 10 1 with Q 10): the direct forcing (D 1 1) used"<<endl;
+        p->D1=1;
+    }
+
     p->psi_rho=0.0;
     if(p->G28!=0)
     {
-        if(p->G28<0 || p->G28>2 || p->F30<=0 || p->F80>0 || !cfd_amr::scope(p,pgc))
+        if(p->G28<0 || p->G28>3 || p->F30<=0 || p->F80>0 || !cfd_amr::scope(p,pgc))
         {
             if(p->mpirank==0)
-            cout<<"G 28 "<<p->G28<<" (one interface width on all levels: 1 that of level 0, 2 that of the finest level) needs the CFD mesh refinement (G 1) with the level set (F 30): not used"<<endl;
+            cout<<"G 28 "<<p->G28<<" (one interface width on all levels: 1 that of level 0, 2 that of the finest level, 3 the mean of the levels) needs the CFD mesh refinement (G 1) with the level set (F 30): not used"<<endl;
             p->G28=0;
         }
         else
@@ -807,10 +878,35 @@ void driver::logic_cfd()
             if(p->G28==2)
             p->psi_rho /= pow(2.0,p->G1);
 
+            // G 28 3: the arithmetic mean of the cell sizes of the levels 0 to G 1 (h0/2^l), kept
+            // for the whole run
+            if(p->G28==3)
+            {
+                double hm = 0.0;
+                for(int l=0; l<=p->G1; ++l)
+                hm += h0/pow(2.0,l);
+                p->psi_rho = p->F45*hm/double(p->G1+1);
+            }
+
             if(p->mpirank==0)
             cout<<"G 28 "<<p->G28<<": the density and the viscosity with one interface half width on all levels, "<<p->psi_rho
                 <<" m ("<<p->psi_rho/h0<<" cells of level 0, "<<p->psi_rho/(h0/pow(2.0,p->G1))<<" cells of level "<<p->G1<<")"<<endl;
         }
+    }
+
+    // G 9: the density of the faces of a patch edge with the interface width of both levels
+    // (cfd_amr::pr_weights): two-phase level set
+    if(p->G9!=0 && (p->G9<0 || p->G9>2 || p->F30<=0 || p->F80>0 || p->F41>0 || !cfd_amr::scope(p,pgc)))
+    {
+        if(p->mpirank==0)
+        cout<<"G 9 "<<p->G9<<" (the density of the faces of a patch edge with the interface width of both levels: 1 the mean, 2 that of the coarse level) needs the CFD mesh refinement (G 1) with the two-phase level set (F 30, not F 41): not used"<<endl;
+        p->G9=0;
+    }
+    if(p->G9!=0 && p->G28!=0)
+    {
+        if(p->mpirank==0)
+        cout<<"G 9: with one interface width on all levels (G 28 "<<p->G28<<") the two widths are the same: not used"<<endl;
+        p->G9=0;
     }
 
     // G 29: the pressure under the patches restricted relative to the hydrostatic pressure of each

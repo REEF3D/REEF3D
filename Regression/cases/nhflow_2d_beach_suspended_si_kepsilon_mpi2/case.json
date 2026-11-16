@@ -1,0 +1,26 @@
+{
+ "base": "nhflow_2d_beach_suspended_mpi2",
+ "ctrl_set": {
+  "A 510": "12",
+  "A 560": "1",
+  "A 519": "1"
+ },
+ "np": 2,
+ "steps": 1200,
+ "description": "nhflow_2d_beach_suspended_mpi2 with the semi-implicit momentum (A 510 12) and k-epsilon (A 560 1, wall functions A 519 1), 1200 steps. The semi-implicit momentum leaves columns without water (dry, or flagged wet with a depth of zero): the wall value of epsilon had dist = 0 there (inf, 0/0), bicgstab returned the old k and epsilon of the whole domain from step 874 on. Now the columns not deeper than the film A 544 are dry for k and epsilon as for the suspended load (nhflow_scalar_wet.h) and the wall law skips dist = 0.",
+ "tags": [
+  "2d",
+  "nhflow",
+  "sediment",
+  "suspended",
+  "turbulence",
+  "waves",
+  "mpi",
+  "si"
+ ],
+ "covers": [
+  "nhflow_scalar_wet (k-epsilon, suspended load)",
+  "nhflow_kepsilon_bc::wall_law_epsilon with columns without water",
+  "nhflow_rans_io::wetting_ini, length_limit"
+ ]
+}

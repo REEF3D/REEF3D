@@ -1,0 +1,7 @@
+{
+ "base": "cfd_2d_channel_komega_mpi2",
+ "ctrl_add": ["T 46 0.05 0.02"],
+ "description": "cfd_2d_channel_komega_mpi2 (free surface, 2 ranks in x) with T 46 I L: uniform k, omega over the wet inflow, air cells keep zero gradient.",
+ "tags": ["2d", "inflow", "turbulence", "mpi"],
+ "covers": ["rans_io::inflow_turb T 46 with a free surface"]
+}

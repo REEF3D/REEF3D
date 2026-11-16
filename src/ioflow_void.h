@@ -121,7 +121,6 @@ private:
     void velocity_inlet(lexer*,fdm*,ghostcell*,field&,field&,field&);
 	int count;
     
-    double Apor,Bpor,porval,partval;
     
     rheology *prheo;
     patchBC_interface *pBC;

@@ -71,7 +71,6 @@ private:
 	int count, gcval_press;
 	int gcval_u, gcval_v, gcval_w;
 	
-	void debug(lexer*,fdm*);
     
     density *pd;
 };

@@ -109,12 +109,6 @@ void nhflow_curv::grad5(lexer *p, int ii, int jj, double fE, double fW, double f
     sflow_curv::grad5(p,ii,jj,fE,fW,fN,fS,fx,fy);
 }
 
-void nhflow_curv::grad_idx(lexer *p, int ii, int jj, double fxi, double feta, double &fx, double &fy)
-{
-    // grad5 takes differences over two cells
-    sflow_curv::grad5(p,ii,jj,2.0*fxi,0.0,2.0*feta,0.0,fx,fy);
-}
-
 void nhflow_curv::grad_lim(lexer *p, int ii, int jj, double fC, double fE, double fW, double fN, double fS, double &fx, double &fy)
 {
     auto X = [&](int a, int b) { return p->XC2D[(a-p->imin)*p->jmax + (b-p->jmin)]; };
@@ -196,8 +190,6 @@ void nhflow_curv::pgrad_layer(lexer *p, const double *P, int ii, int jj, int kk,
 double nhflow_curv::divh_level(lexer *p, fdm_nhf *d, const double *U, const double *V, int ii, int jj, int kk)
 {
     auto C = [&](int a, int b, int c) { return (a-p->imin)*p->jmax*p->kmax + (b-p->jmin)*p->kmax + c-p->kmin; };
-    auto xc = [&](int a, int b) { return p->XC2D[(a-p->imin)*p->jmax + (b-p->jmin)]; };
-    auto yc = [&](int a, int b) { return p->YC2D[(a-p->imin)*p->jmax + (b-p->jmin)]; };
 
     double faci = p->DZN[kk-1+marge]/(p->DZN[kk+marge]+p->DZN[kk-1+marge]);
     double facj = faci;

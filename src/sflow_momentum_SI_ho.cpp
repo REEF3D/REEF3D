@@ -21,6 +21,7 @@ Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"sflow_momentum_SI.h"
+#include"sflow_drywall.h"
 #include"lexer.h"
 #include"fdm2D.h"
 #include"ghostcell.h"
@@ -80,7 +81,8 @@ void sflow_momentum_SI::ho_begin(lexer *p, fdm2D *b, ghostcell *pgc)
     // steep fronts and supercritical flow keep the second-order operators: there is no limiter, and across the bore of
     // the Stoker dam break the fourth-order operators raised the error from 0.15 to 0.8 % (0.21 % with the Froude
     // number alone: the foot of the bore). And a Courant number of the shortest wave below 1 (below)
-    auto jump = [&](int a, int c) { return p->flagslice4[(a-p->imin)*p->jmax + (c-p->jmin)]>0 ? fabs(WL0(a,c) - WL0(i,j)) : 0.0; };
+    // (A 221 2: dry land that is a wall for the cell, drywall_cells, as the walls of the grid)
+    auto jump = [&](int a, int c) { return (p->flagslice4[(a-p->imin)*p->jmax + (c-p->jmin)]>0 && !(dwC(i,j)>0.5 && sflow_drywall::dry(p,a,c))) ? fabs(WL0(a,c) - WL0(i,j)) : 0.0; };
 
     SLICELOOP4
     {
@@ -101,6 +103,13 @@ void sflow_momentum_SI::ho_begin(lexer *p, fdm2D *b, ghostcell *pgc)
     const double kh = PI*h/dxm;
     const double D = nh ? (1.0 + Bdisp*kh*kh)/(1.0 + (Bdisp + 1.0/3.0)*kh*kh) : 1.0;
     f = sqrt(g*h*D)*p->dt <= dxm;
+
+    // A 220 3 on a grid with more than one cell in y: second order above a Courant number of 0.7 of the long wave.
+    // Waves along a channel with walls (h 10 m, dx 2 m, T 6 s): steady at sqrt(g h) dt/dx 0.69; at 0.79 A 210 12
+    // stops after 28 s; at the automatic step (0.89) A 210 11 stops after 24 s and A 210 12 after 38 s; with A 220 2
+    // steady at 0.89
+    if(f && nh && Bdisp>0.0 && p->j_dir==1)
+    f = sqrt(g*h)*p->dt <= 0.7*dxm;
     }
 
     if(p->j_dir==1)
@@ -226,7 +235,5 @@ void sflow_momentum_SI::ho_phi_corr(lexer *p, fdm2D *b, ghostcell *pgc)
     }
 
     // The A 220 3 dispersion term g B grad(h^3 lap(eta)) keeps its compact operators: its fourth-order part as an
-    // explicit term (the fourth-order Laplacian and face difference with eta theta-extrapolated) removed the remaining
-    // phase error of A 220 3 (standing wave kh 2, 16 cells per wave length: +0.25 % -> +0.04 %, as A 220 2), but it is
-    // a stiff term: the Beji & Battjes bar blew up within 10 s at dt 0.02 s
+    // explicit term would remove the remaining phase error of A 220 3, but it is stiff (unstable at practical steps)
 }

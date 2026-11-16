@@ -668,7 +668,8 @@ void ioflow_v::jsource2D(lexer *p, fdm2D* b, ghostcell* pgc)
 
 void ioflow_v::ini(lexer *p, fdm* a, ghostcell* pgc)
 {
-    if(p->W90>0)
+    // legacy source terms (W 90 with W 110 1: none; the rheology core W 130 acts through the viscosity only)
+    if(p->W90>0 && p->W130==0)
     prheo = new rheology_f(p);
     
     else

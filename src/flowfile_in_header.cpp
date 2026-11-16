@@ -88,9 +88,6 @@ void flowfile_in::header_read(lexer *p, ghostcell *pgc)
     headerfile.read((char*)&iin, sizeof (int));
     Nk=iin;
 
-
-//cout<<p->mpirank<<" Ni: "<<Ni<<" Nj: "<<Nj<<" Nk: "<<Nk<<endl;
-
     while(!headerfile.eof())
 	{
     headerfile.read((char*)&iin, sizeof (int));
@@ -99,7 +96,6 @@ void flowfile_in::header_read(lexer *p, ghostcell *pgc)
     headerfile.read((char*)&ddn, sizeof (double));
     simtime[q] = double(ddn);
     
-    //cout<<p->mpirank<<" IT: "<<iter[q]<<" time: "<<simtime[q]<<endl;
     ++q;
     }
     headerfile.close();

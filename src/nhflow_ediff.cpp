@@ -65,8 +65,8 @@ nhflow_ediff::~nhflow_ediff()
 }
 
 // explicit momentum diffusion (A 512 1), the same operator as nhflow_idiff: backward differences with the
-// backward spacing (was DXP[IP] on both sides), face metrics, the sigxx term, factor 2 only on the normal
-// stress (in w only on sigz^2), and the v equation uses VH in its sigma cross terms (it used UH)
+// backward spacing, face metrics, the sigxx term, factor 2 only on the normal stress (in w only on sigz^2),
+// VH in the sigma cross terms of the v equation
 void nhflow_ediff::diff_u(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow, solver *psolv, double *UHdiff, double *UHin, double *UH, double *VH, double *WH, slice &WL, double alpha)
 {
     LOOP

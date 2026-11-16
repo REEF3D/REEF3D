@@ -25,6 +25,7 @@ Author: Hans Bihs
 #include"fdm2D.h"
 #include"ghostcell.h"
 #include"patchBC_interface.h"
+#include"gcsl_side.h"
 
 void ioflow_f::discharge2D(lexer *p, fdm2D* b, ghostcell* pgc)
 {
@@ -81,14 +82,19 @@ void ioflow_f::Qin2D(lexer *p, fdm2D* b, ghostcell* pgc)
         continue;
         }
         
+        // Cartesian grid: the face of the side (x-face P on x-/x+, y-face Q on y-/y+), discharge into the domain
         if(p->wet[IJ]==1)
         {
+        const gcsl_side sd(p->gcslin[n][3]);
+        const int gi = sd.gi(i), gj = sd.gj(j);
+        const double dl = sd.xdir() ? p->DYN[JP] : p->DXN[IP];
+        const double un = sd.inward()*(sd.xdir() ? b->P(sd.fi(i),j) : b->Q(i,sd.fj(j)));
     
-        area = p->DYN[JP]*b->hp(i-1,j);
+        area = dl*b->hp(gi,gj);
         
         Ai+=area;
-        Ki+=p->DYN[JP]*pow(MAX(b->hp(i-1,j),0.0),5.0/3.0);
-        p->Qi+=area*b->P(i-1,j);
+        Ki+=dl*pow(MAX(b->hp(gi,gj),0.0),5.0/3.0);
+        p->Qi+=area*un;
         hval += b->hp(i,j);
         ++hcount;
         }
@@ -147,13 +153,17 @@ void ioflow_f::Qout2D(lexer *p, fdm2D* b, ghostcell* pgc)
         continue;
         }
         
+        // Cartesian grid: the face of the side, discharge out of the domain
         if(p->wet[IJ]==1)
         {
+        const gcsl_side sd(p->gcslout[n][3]);
+        const double dl = sd.xdir() ? p->DYN[JP] : p->DXN[IP];
+        const double un = -sd.inward()*(sd.xdir() ? b->P(sd.fi(i),j) : b->Q(i,sd.fj(j)));
     
-        area = p->DYN[JP]*b->hp(i,j);
+        area = dl*b->hp(i,j);
         
         Ao+=area;
-        p->Qo+=area*b->P(i,j);
+        p->Qo+=area*un;
         
         hval += b->hp(i,j);
         ++hcount;
@@ -171,6 +181,11 @@ void ioflow_f::Qout2D(lexer *p, fdm2D* b, ghostcell* pgc)
 	p->Uo=p->Qo/(Ao>1.0e-20?Ao:1.0e20);
 	
     if(p->I10==1 && p->count<=1)
+	p->Uo=p->W10/(Ao>1.0e-20?Ao:1.0e20);
+    
+    // potential flow initialisation (I 11 1) from still water: the outflow of the Laplace problem is the
+    // discharge W 10 (as CFD and NHFLOW); with Uo = Qo/Ao = 0 the pure Neumann problem had an inflow only
+    if(p->I11==1 && p->count==0 && p->B60==1)
 	p->Uo=p->W10/(Ao>1.0e-20?Ao:1.0e20);
     
 	if(p->B60==2)

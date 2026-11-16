@@ -180,6 +180,85 @@ void CPM::dilatancy(lexer *p, ghostcell *pgc)
     pgc->start4a(p,T0e,1);
 }
 
+/*--------------------------------------------------------------------
+Q 87: diagnostics of the packed bed (output only, no change to the physics)
+
+  Gd   deviatoric shear rate of the parcels' grid velocity, sqrt(2 D':D'), D' = D - tr(D)/3 I; derivatives
+       only between cells with solids (theta >= theta_bed/2), one-sided at the bed surface and at walls, zero
+       outside the bed
+  In   inertial number I = d Gd / sqrt(P/rho_s), P the overburden stress, at least the weight of one grain
+       layer (as the dilatancy Q 55)
+  Yr   the yield ratio of the column (Q 67): the lateral load of the column above over mu_s times the overburden
+       stress, also computed without Q 67
+The shear rate and the inertial number say where and how fast the bed deforms, the yield ratio where a
+Mohr-Coulomb bed would fail (Yr > 1): the basis of a deviatoric stress on the grid.
+--------------------------------------------------------------------*/
+void CPM::bed_diagnostics(lexer *p, ghostcell *pgc)
+{
+    const double tgap = 0.5*theta_bed;
+    const double rog = (p->S22 - p->W1)*sqrt(p->W20*p->W20 + p->W21*p->W21 + p->W22*p->W22);
+    
+    auto solid = [&](int ii, int jj, int kk) { return !wallcell(p,ii,jj,kk) && Ts(ii,jj,kk)>=tgap; };
+    
+    auto der = [&](field &f, int di, int dj, int dk, double h)
+    {
+        bool okm = solid(i-di,j-dj,k-dk);
+        bool okp = solid(i+di,j+dj,k+dk);
+        
+        if(okm && okp)
+        return (f(i+di,j+dj,k+dk)-f(i-di,j-dj,k-dk))/(2.0*h);
+        
+        if(okp)
+        return (f(i+di,j+dj,k+dk)-f(i,j,k))/h;
+        
+        if(okm)
+        return (f(i,j,k)-f(i-di,j-dj,k-dk))/h;
+        
+        return 0.0;
+    };
+    
+    BASELOOP
+    {
+        Gd(i,j,k) = In(i,j,k) = 0.0;
+        
+        if(Ts(i,j,k)<tgap)
+        continue;
+        
+        double hx = p->DXN[IP], hy = p->DYN[JP], hz = p->DZN[KP];
+        
+        double dudx = der(Us,1,0,0,hx), dudz = der(Us,0,0,1,hz);
+        double dwdx = der(Ws,1,0,0,hx), dwdz = der(Ws,0,0,1,hz);
+        double dudy=0.0, dvdx=0.0, dvdy=0.0, dvdz=0.0, dwdy=0.0;
+        
+        if(p->j_dir==1)
+        {
+        dudy = der(Us,0,1,0,hy);
+        dvdx = der(Vs,1,0,0,hx);
+        dvdy = der(Vs,0,1,0,hy);
+        dvdz = der(Vs,0,0,1,hz);
+        dwdy = der(Ws,0,1,0,hy);
+        }
+        
+        double tr = (dudx + dvdy + dwdz)/3.0;
+        double dxx = dudx-tr, dyy = dvdy-tr, dzz = dwdz-tr;
+        
+        double gamma = sqrt(2.0*(dxx*dxx + dyy*dyy + dzz*dzz)
+                     + (dudz+dwdx)*(dudz+dwdx) + (dudy+dvdx)*(dudy+dvdx) + (dvdz+dwdy)*(dvdz+dwdy));
+        
+        double P = MAX(Pov(i,j,k), rog*MAX(Ts(i,j,k),theta_bed)*p->S20);
+        
+        Gd(i,j,k) = gamma;
+        In(i,j,k) = p->S20*gamma/sqrt(P/p->S22);
+    }
+    
+    pgc->start4a(p,Gd,1);
+    pgc->start4a(p,In,1);
+    
+    // the yield ratio of the columns, computed here when Q 67 does not (Yr is used only with Q 67)
+    if(!(p->Q67>0 && p->Q58>0 && p->S10==1))
+    stress_yield(p,pgc);
+}
+
 void CPM::stress_packedbed(lexer *p, ghostcell *pgc, sediment_fdm *s)
 {
     stress_overburden(p,pgc,s);
@@ -566,6 +645,19 @@ void CPM::friction(lexer *p, fdm *a, double xp, double yp, double zp, double &up
     sz -= sn*ez;
     
     double smag = sqrt(sx*sx + sy*sy + sz*sz);
+    
+    // Q 88: in a packed cell the friction comes from the shear stress on the grid (shear_implicit); only the normal
+    // contact stays (a slow grain does not move into a packed substrate)
+    if(p->Q88>0.0 && Ts(i,j,k)>=theta_bed)
+    {
+        if(packed && sn>0.0 && smag <= fac*dt*mu_s*aN)
+        {
+            up -= sn*ex;
+            vp -= sn*ey;
+            wp -= sn*ez;
+        }
+        return;
+    }
     
     // static friction: stick
     if(smag <= fac*dt*mu_s*aN)

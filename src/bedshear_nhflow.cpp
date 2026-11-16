@@ -179,7 +179,6 @@ void bedshear::taubed(lexer *p, fdm_nhf*d, ghostcell *pgc, sediment_fdm *s)
         if(p->S16==6)
         {
         double wh;
-        double bedlevel,waterlevel;
         double cellcount=0.0;
         U=V=wh=0.0;
         KLOOP
@@ -198,17 +197,11 @@ void bedshear::taubed(lexer *p, fdm_nhf*d, ghostcell *pgc, sediment_fdm *s)
         
         u_abs = sqrt(U*U + V*V);
 
-        //Cval=18.0*log10((12.0*wh)/s->ks_eff(i,j));	
-        //tau_eff = density*pow(sqrt(9.81)*(u_abs/Cval),2.0);
-        
         manning = pow(s->ks(i,j),1.0/6.0)/(8.1*sqrt(9.81));   // Strickler: 1/n = 8.1 sqrt(g)/ks^(1/6) = 25.4/ks^(1/6)
         cf = pow(manning,2.0)/pow(MAX(d->WL(i,j),1.0e-6),1.0/3.0);
-        
-        //cf = sqrt(9.81)/log(12.0*d->WL(i,j)/(s->ks(i,j)));
-    
+
         tau_eff = p->W1*9.81*cf*u_abs*u_abs; 
         
-        //cout<<"u_abs: "<<u_abs<<" cf: "<<cf<<" count: "<<cellcount<<" tau_eff: "<<tau_eff<<endl;
         }
         
         // tau_i for Ti
@@ -229,7 +222,6 @@ void bedshear::taubed(lexer *p, fdm_nhf*d, ghostcell *pgc, sediment_fdm *s)
         if(p->S38==1 && d->WL(i,j)<p->S39*p->A544)
         {
             double fac,wh;
-            double bedlevel,waterlevel;
             U=V=wh=0.0;
             KLOOP
             {
@@ -269,8 +261,6 @@ void bedshear::taubed(lexer *p, fdm_nhf*d, ghostcell *pgc, sediment_fdm *s)
         // grain with rho cm (pi/6) d^3 du/dt, over its area share d^2/cn a stress rho cm cv cn d50 du/dt in the
         // direction of the acceleration (bed_acceleration: signed, both components). It is added to the shear stress
         // as a vector, |tau e_u + tau_acc|: more stress while the flow accelerates, less while it decelerates
-        // (the term was the magnitude of the acceleration times S 21 d50: it raised the stress in both phases,
-        // and only the RK2 momentum solver filled it)
         if(p->S37==1)
         {
             const double cm = 1.5;

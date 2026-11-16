@@ -98,6 +98,8 @@ void sediment_f::active_ini_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
     SLICEBASELOOP
     s->active(i,j)=1;
     
+    active_solid_nhflow(p);
+    
     active_zone(p,pgc);
     
     pgc->gcsl_start4int(p,s->active,1);
@@ -122,6 +124,8 @@ void sediment_f::active_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
     SLICEBASELOOP
     s->active(i,j)=1;
     
+    active_solid_nhflow(p);
+    
     active_zone(p,pgc);
     
     pgc->gcsl_start4int(p,s->active,1);
@@ -139,6 +143,34 @@ void sediment_f::active_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
     }
     
     dfbed_comms(p,pgc);
+}
+
+// S 134 1: the solids of the grid are not erodible. NHFLOW (A 580 0) takes the solids of DIVEMesh into its bed
+// (lexer_grid_solids: bed = max(solid, topography)), and the sediment bed starts from it: a solid lower than the bottom
+// cell (an apron, a sill) was eroded as sand; with S 134 0 it still is (the beach of a flume is often a solid). With
+// S 134 1 a column whose bed has come down to the solid surface p->solidbed is not active, as in active_sflow: no bed
+// load (bedload_*), no pick-up (sediment_algorithm_nhflow: no_pickup) and no sand slide from it (SLIDE_DONOR). Sand on
+// top of the solid is active and erodible down to it. With A 580 1 the solids are immersed and not part of the bed.
+void sediment_f::active_solid_nhflow(lexer *p)
+{
+    if(p->S134!=1 || p->A580==1)
+    return;
+    
+    SLICEBASELOOP
+    if(p->solidbed[IJ]>=s->bedzh(i,j))
+    s->active(i,j)=0;
+}
+
+// S 134 1: no pick-up of suspended load where the bed is at the solid surface (the equilibrium concentration zero:
+// deposition only)
+void sediment_f::no_pickup(lexer *p)
+{
+    if(p->S134!=1 || p->A580==1)
+    return;
+    
+    SEDSLICELOOP
+    if(s->active(i,j)==0)
+    s->cbe(i,j)=0.0;
 }
 
 void sediment_f::active_sflow(lexer *p, fdm2D *b, ghostcell *pgc)

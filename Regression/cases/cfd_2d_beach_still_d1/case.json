@@ -1,0 +1,15 @@
+{
+ "np": 1,
+ "steps": 100,
+ "description": "cfd_2d_beach_still with the solid as a wall of the pressure projection (D 1 2) instead of the direct forcing: the open fractions of the cell faces along the beach 1:8.6 (S 61) from the exact distance to the wedge, no forcing; the cells of the wedge with an open face take part in the flow, the level set is extended into its closed cells only (X 48 2). Still water stays still: 2.5e-6 m/s in the air after 600 steps (direct forcing 5.8e-2 m/s, D 32 2 5.2e-3 m/s).",
+ "tags": [
+  "quick",
+  "2d",
+  "levelset",
+  "solid",
+  "closed"
+ ],
+ "covers": [
+  "solid_aperture.h D 1 2"
+ ]
+}

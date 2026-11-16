@@ -1,0 +1,20 @@
+{
+ "base": "sflow_1d_outflow_level_below_zero",
+ "ctrl_set": {
+  "A 210": "11"
+ },
+ "description": "as sflow_1d_outflow_level_below_zero with the semi-implicit step (A 210 11)",
+ "solver": "sflow",
+ "np": 1,
+ "steps": 300,
+ "tags": [
+  "quick",
+  "1d",
+  "sflow",
+  "river",
+  "semi_implicit"
+ ],
+ "covers": [
+  "ioflow_f::waterlevel2D from sflow_momentum_SI::bc_setup: F 62 <= 0"
+ ]
+}

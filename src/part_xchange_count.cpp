@@ -74,12 +74,49 @@ void part::xchange_count(lexer *p, ghostcell *pgc, int mode)
             xki[n]=i;  xkj[n]=j;  xkk[n]=k;
         }
 
-        int f = p->flag5[IJK];
+        // the flag of the cell: -1 ... -6 in the ghost cells of a face to a neighbour subdomain
+        const bool stored = i>=p->imin && i<p->imin+p->imax && j>=p->jmin && j<p->jmin+p->jmax && k>=p->kmin && k<p->kmin+p->kmax;
+        int f = stored ? p->flag5[IJK] : 0;
         
         if(f<=-1 && f>=-6)
         {
             xdest[n] = -f;
             ++sendnum[-f-1];
+        }
+        
+        // a parcel beyond an edge or a corner of the subdomain (a diagonal move: a hop of the bedload layer, a move
+        // the grid-limited step does not limit), or further out than the ghost cells: no cell of a face. It goes to
+        // the neighbour of a side it is beyond, x first; xchange repeats the exchange, so that it reaches its
+        // subdomain through that neighbour. Without it the parcel stayed on its rank outside the subdomain for good
+        // (2 x 2 subdomains in x and y, bedload layer: thousands of such parcels after 120 steps, their volume missing in the
+        // solid fraction, their fields read beyond the ghost cells).
+        else
+        {
+            int side = 0;
+            
+            if(i<0 && p->nb1>=0)
+            side = 1;
+            
+            else if(i>=p->knox && p->nb4>=0)
+            side = 4;
+            
+            else if(p->j_dir==1 && j<0 && p->nb3>=0)
+            side = 3;
+            
+            else if(p->j_dir==1 && j>=p->knoy && p->nb2>=0)
+            side = 2;
+            
+            else if(k<0 && p->nb5>=0)
+            side = 5;
+            
+            else if(k>=p->knoz && p->nb6>=0)
+            side = 6;
+            
+            if(side>0)
+            {
+                xdest[n] = side;
+                ++sendnum[side-1];
+            }
         }
     }
 }

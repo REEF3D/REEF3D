@@ -55,7 +55,6 @@ void nhflow_fsf_f::ini(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, doub
     if(p->F68==1)
     {
         int iloc,jloc;
-        int maxiter = MAX(p->knox,p->knoy);
         sliceint4 sea(p);
         
         SLICELOOP4
@@ -106,7 +105,7 @@ void nhflow_fsf_f::ini(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, doub
     // FSF Box
     if(p->F72>0)
     {
-    int istart, iend, jstart, jend, kstart, kend;
+    int istart, iend, jstart, jend;
     
         for(int qn=0;qn<p->F72;++qn)
         {

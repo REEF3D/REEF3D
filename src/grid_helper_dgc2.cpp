@@ -153,8 +153,6 @@ void grid_helper::fill_dgc2(lexer* p)
 
     p->dgc2_count = count;
 
-    //cout<<p->mpirank<<"  DGC2_count: "<<count<<endl;
-
     count=0;
     VLOOP
     {

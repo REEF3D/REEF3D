@@ -29,6 +29,7 @@ Author: Hans Bihs
 
 class diff_wallghost;
 class diff_walllaw;
+class diff_dynamic;
 
 using namespace std;
 
@@ -67,6 +68,7 @@ private:
 	std::vector<int> noflux;
 	diff_wallghost *pwall;
 	diff_walllaw *pwl;
+	diff_dynamic *pdyn;    // D 24: dynamic form of the momentum diffusion
 	
 };
 #endif

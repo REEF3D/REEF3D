@@ -1,0 +1,4 @@
+{"base": "nhflow_2d_6dof_box", "ctrl_add": ["X 15 11", "X 19 1"],
+ "description": "as nhflow_2d_6dof_box with X 15 11: the box free in surge, heave and pitch in waves; cells and faces cut by the rotating hull, the added mass of the three free degrees of freedom (three Poisson solves per time step), the water level of the columns covered by the hull from the surrounding free surface.",
+ "tags": ["2d", "nhflow", "6dof", "floating"],
+ "covers": ["X 15 11 with surge, heave and pitch", "the added-mass matrix with the coupling terms"]}

@@ -112,6 +112,8 @@ void sixdof_obj::update_forces(lexer *p)
     // FNPF: instantaneous added mass (and implicit PTO terms, X 500 2) on the left-hand side
     if(am_on_ || am_load || (pto_on_ && pto_implicit_))
     apply_added_mass(p, am_load ? &A_load : nullptr);
+    else if(acfd_on_)
+    lagged_added_mass(p,Acfd_);
     else if(am_cfd_>0.0)
     cfd_added_mass(p);
 }
@@ -159,12 +161,66 @@ void sixdof_obj::cfd_added_mass(lexer *p)
     Eigen::Matrix<double,6,1> r;
     r.head<3>() = Ffb_;
     r.tail<3>() = Mfb_ - gyro;
-    r += A*am_prev_;
+    // The acceleration the added mass takes on the right-hand side.  With the acceleration of the last
+    // step alone the two sides differ by A (a - a_prev) = A dt da/dt: for a body oscillating at omega a
+    // force A dt omega^2 times its velocity, in the direction of the velocity.  The motion gains energy,
+    // the more the larger A (heave decay of a box, 100 steps per period: the swings of 28 mm grew to
+    // 156 mm in 5 s with X 197 4; a ship in a lock with X 197 1: the heave from 0.7 to 3 mm in 6 s, then
+    // the run stopped).  One-step scheme N 40 5: the acceleration extrapolated linearly in time from the
+    // last two steps; the two sides then differ by A dt^2 d2a/dt2, a change of the mass by A (omega dt)^2
+    // without a force along the velocity.  The alternating mode of the explicit coupling stays damped
+    // up to an added mass of the fluid of M + 4 A (M + 2 A before)
+    Eigen::Matrix<double,6,1> aext = am_prev_;
+
+    if(p->N40==5 && am_n_>=2 && am_dt_>0.0)
+    aext += MIN(p->dt/am_dt_,2.0)*(am_prev_ - am_prev2_);
+
+    r += A*aext;
 
     bool fixed[6];
     for(int n=0; n<6; ++n)
     {
         fixed[n] = p_fixed_dof(p,n);
+        if(fixed[n])
+        {
+            L.row(n).setZero();
+            L.col(n).setZero();
+            L(n,n) = 1.0;
+            r(n) = 0.0;
+        }
+    }
+
+    const Eigen::Matrix<double,6,1> acc = L.partialPivLu().solve(r);
+    am_prev2_ = am_prev_;
+    am_prev_ = acc;
+    am_dt_ = p->dt;
+    ++am_n_;
+    finish_added_mass(acc,II,gyro,fixed);
+}
+
+// the coupling with a given added mass A (inertial frame, moments about the centre of gravity) on both sides,
+// (M + A) a = F + A a_prev, as cfd_added_mass (NHFLOW X 15 11, CFD X 14 11: A the added mass of the hull on the grid)
+void sixdof_obj::lagged_added_mass(lexer *p, const Eigen::Matrix<double,6,6> &A)
+{
+    const Eigen::Matrix3d II = R_*I_*R_.transpose();
+    const Eigen::Vector3d w = omega_I;
+    const Eigen::Vector3d gyro = w.cross(II*w);
+    
+    Eigen::Matrix<double,6,6> L = A;
+    L.block<3,3>(0,0) += Mass_fb*Eigen::Matrix3d::Identity();
+    L.block<3,3>(3,3) += II;
+
+    Eigen::Matrix<double,6,1> r;
+    r.head<3>() = Ffb_;
+    r.tail<3>() = Mfb_ - gyro;
+    r += A*am_prev_;
+
+    bool fixed[6];
+    
+    for(int n=0; n<6; ++n)
+    {
+        fixed[n] = p_fixed_dof(p,n);
+        
         if(fixed[n])
         {
             L.row(n).setZero();

@@ -1,0 +1,21 @@
+{
+ "description": "NHFLOW explicit (A 510 2, A 520 2) with A 541 1 in 3D on 2 ranks: a breakwater of dry cells (T 10, 8 m thick, from the side wall to y = 100 m) across regular waves (T 6 s, 10 m deep, 4 m cells, 4 layers): walls in x and in y, the tip of the breakwater with a wall on one side only, gauges in front of it, at the tip and in its lee.",
+ "solver": "nhflow",
+ "np": 2,
+ "steps": 150,
+ "tags": [
+  "quick",
+  "3d",
+  "nhflow",
+  "waves",
+  "wetdry",
+  "nonhydrostatic",
+  "mpi"
+ ],
+ "covers": [
+  "nhflow_drywall.h: grady, mirror in y, walls at a corner",
+  "nhflow_poisson_pcorr: walls in y",
+  "nhflow_pjm_corr::vcorr, vpgrad with a wall"
+ ],
+ "architect": "Hans Bihs"
+}

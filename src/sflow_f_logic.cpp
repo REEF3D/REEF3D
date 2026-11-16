@@ -70,9 +70,6 @@ void sflow_f::logic(lexer *p, fdm2D* b, ghostcell* pgc)
     if(p->A211>=4)
     pconvec = new sflow_weno_flux(p);
 
-    // filter
-    pfilter = new sflow_filter(p);
-	
 	// free surface
 	if(p->A240>=1)
 	pfsf = new sflow_eta(p,b,pgc,pBC);
@@ -103,7 +100,11 @@ void sflow_f::logic(lexer *p, fdm2D* b, ghostcell* pgc)
     if(p->A220>=5 && p->mpirank==0)
     cout<<"A 220 "<<p->A220<<" not available with the HLL scheme, using A 220 1"<<endl;
 
-    // diffusion
+    // A 221 2 (sflow_drywall.h): one Cartesian grid
+    if(p->A221==2 && (p->geo_curv==1 || p->geo_mb>0 || p->G1>0) && p->mpirank==0)
+    cout<<"SFLOW A 221 2 (dry land next to deep water as a wall): on one Cartesian grid only, here as A 221 1"<<endl;
+
+    // turbulence
 	if(p->A260==0)
 	pturb =  new sflow_turb_void(p);
     
@@ -137,12 +138,16 @@ void sflow_f::logic(lexer *p, fdm2D* b, ghostcell* pgc)
     exit(1);
     }
     
+    // S 16 4: the bed shear stress 0.3 rho k needs the k of A 260 1/2 (zero otherwise: no sediment transport)
+    if(p->S10>0 && p->S16==4 && p->A260!=1 && p->A260!=2 && p->mpirank==0)
+    cout<<"SFLOW warning: S 16 4 (bed shear stress from k) without the k-epsilon or k-omega model (A 260 1/2): k is zero, no bed shear stress"<<endl;
+
     // Sediment
     if(p->S10==0)
     psed = new sediment_void();
 
     if(p->S10>0)
-    psed = new sediment_f(p,pgc,pturbcfd,pBC);
+    psed = new sediment_f(p,pgc,nullptr,pBC);     // no CFD turbulence model in SFLOW
 	
 	// solver
     //  N 10 1: REEFMG, the same multigrid as for FNPF, NHFLOW and CFD, run
@@ -170,6 +175,18 @@ void sflow_f::logic(lexer *p, fdm2D* b, ghostcell* pgc)
 
 	if(p->B90>=1)
 	pflow= new iowave(p,pgc,pBC);
+
+    // B 60 3/4: the outflow hydrograph is read and printed (Qo_ipol) but not applied: the outflow of SFLOW is the
+    // water level F 62 (F 50 2/3) or free; B 60 3 has no inflow either (W 10 with B 60 1, hydrograph.dat with B 60 2/4)
+    if(p->B60>=3 && p->B90==0 && p->mpirank==0)
+    cout<<"SFLOW warning: B 60 "<<p->B60<<": the outflow hydrograph is not applied in SFLOW (the outflow is the water level F 62 with F 50 2)"
+        <<(p->B60==3 ? ", and B 60 3 has no inflow (B 60 1: W 10, B 60 2: hydrograph.dat)" : "")<<endl;
+
+    // B 60 with the explicit integrators and no water level at the outflow: the ghost cells are zero gradient in the
+    // level and the velocity, nothing sets the level of a subcritical river (a channel with the normal depth
+    // 1.47 m filled to 4.8 m); the semi-implicit step has a free outflow there (Riemann invariant)
+    if(p->B60>=1 && p->B90==0 && p->A226==0 && p->F50!=2 && p->F50!=3 && p->B440==0 && p->B441==0 && p->B442==0 && p->B520==0 && p->mpirank==0)
+    cout<<"SFLOW warning: B 60 "<<p->B60<<" with A 210 "<<p->A210<<" (explicit) and F 50 "<<p->F50<<": no water level at the outflow, the level of a subcritical flow is not determined (set F 50 2 and F 62, or A 210 11 for a free outflow)"<<endl;
 
 	
 	// printer

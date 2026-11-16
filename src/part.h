@@ -53,7 +53,6 @@ public:
 
     // remove
     void remove(int);
-    void erase_all();
 
     // parallel
     void xchange(lexer*, ghostcell*,slice&,int);

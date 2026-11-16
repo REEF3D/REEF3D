@@ -121,6 +121,9 @@ protected:
     slice4 UHDIFF,VHDIFF,WHDIFF;
     slice4 Un,Vn,etaS;
     slice4 zeta;
+    
+    // bed friction factor of the stage (A 218 1), 1/(1 + dt gamma)
+    slice4 fric;
     int wbpatch;
     
 private:
@@ -137,7 +140,7 @@ private:
     void mirror(lexer*, slice&, int, double);
     void wall_bc(lexer*, slice&, slice&, slice&, int);   // free-slip wall of boundary cell (i,j), side cs
     void neumann(lexer*, slice&, int);
-    void outflow_clip(lexer*, slice&, slice&);         // outflow ghost cells of boundary cell (i,j): no backflow
+    void outflow_clip(lexer*, slice&, slice&, int);    // outflow ghost cells of boundary cell (i,j), side cs: no backflow
     void spiral_source(lexer*, fdm2D*, slice&, int);   // S 98: dispersion of the main-flow momentum by the spiral flow
 };
 

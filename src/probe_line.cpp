@@ -436,10 +436,7 @@ void probe_line::ini_location(lexer *p, fdm *a, ghostcell *pgc)
             
             if(p->j_dir==1)
 			check=boundcheck(p,iiloc,jjloc,kkloc,1);
-            
-            //if(n==3 && p->mpirank==3)
-            //cout<<p->mpirank<<" n: "<<n<<" i: "<<iiloc<<" j: "<<jjloc<<" k: "<<kkloc<<" check: "<<check<<" p->originx: "<<p->originx<<" p->endx: "<<p->endx<<endl;
-			
+
             iloc[n][q] = iiloc;
             kloc[n][q] = p->mpirank;
             
@@ -452,10 +449,6 @@ void probe_line::ini_location(lexer *p, fdm *a, ghostcell *pgc)
 		t+=1.0;
 		}
 	}
-    
-    
-
-    //cout<<p->mpirank<<"  POSC_I: "<<p->posc_i(22.0)<<" XN_0: "<<p->XN[0+marge]<<"  "<<p->XN[p->knox+marge]<<" p->originx: "<<p->originx<<" p->endx: "<<p->endx<<endl;
 }
 
 int probe_line::conv(double a)

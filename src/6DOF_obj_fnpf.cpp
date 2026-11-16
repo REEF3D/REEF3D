@@ -298,8 +298,6 @@ void sixdof_obj_fnpf::update_position_fnpf(lexer *p, ghostcell *pgc, bool finali
     rb.update_omega();
     
     update_fbvel(p,pgc);
-    
-    // the pose and velocity: in the 6DOF log files (REEF3D_*_6DOF), no longer on the terminal
 }
 
 void sixdof_obj_fnpf::print_fnpf(lexer *p, ghostcell *pgc, int iter)
@@ -312,8 +310,8 @@ void sixdof_obj_fnpf::print_fnpf(lexer *p, ghostcell *pgc, int iter)
     if(p->X50==2)
     print_stl(p,pgc);
     
-    // the state at the end of the step, before the driver advances simtime: labelled t^n+1, as the fluid output (patch
-    // 0017) and NHFLOW; with t^n the motion led the waves and the loads by one step (validation 10)
+    // the state at the end of the step, before the driver advances simtime: labelled t^n+1, as the fluid output
+    // and NHFLOW
     print_parameter(p,pgc,p->simtime+p->dt);
 }
 

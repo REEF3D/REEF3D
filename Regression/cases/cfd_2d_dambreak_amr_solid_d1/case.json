@@ -1,0 +1,18 @@
+{
+ "np": 1,
+ "steps": 100,
+ "description": "cfd_2d_dambreak_amr_solid with D 1 2: adaptive refinement around a cylinder (S 32), the open fractions of new patches at every regrid.",
+ "tags": [
+  "quick",
+  "2d",
+  "dambreak",
+  "levelset",
+  "amr",
+  "adaptive",
+  "solid"
+ ],
+ "covers": [
+  "solid_aperture.h D 1 2",
+  "cfd_amr::pr_apertures"
+ ]
+}

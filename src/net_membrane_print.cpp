@@ -25,6 +25,7 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm_nhf.h"
 #include"ghostcell.h"
+#include"lagoon_membranes.h"
 #include<fstream>
 #include<iomanip>
 #include<cstdio>
@@ -159,11 +160,6 @@ void net_membrane::print_vtp(lexer *p)
     const int np = x_.size();
     const int nt = tri_.size();
     
-    char name[400];
-    snprintf(name,sizeof(name),"%s/REEF3D-NHFLOW-Membrane-%i-%06i.vtp",vtpdir.c_str(),nMem,printcount);
-    
-    ofstream result(name, ios::binary);
-    
     // tension per triangle: mean E t strain of its edges (flexible), compression as 0
     vector<float> tens(nt,0.0f);
     if(prm.structure==2)
@@ -178,6 +174,52 @@ void net_membrane::print_vtp(lexer *p)
         }
         tens[t] = float(T/3.0);
     }
+    
+    // P 18: the membrane in the LAGOON store as well (lagoon_membranes); P 18 1: instead of the .vtp file
+    {
+        lagoon_membranes::panels m;
+        m.xyz.resize(3*np);
+        m.velocity.resize(3*np);
+        m.displacement.resize(3*np);
+        m.load.resize(3*np);
+        for(int q=0; q<np; ++q)
+        {
+            const Eigen::Vector3d f = Eigen::Vector3d(nf_[3*q+0],nf_[3*q+1],nf_[3*q+2])/MAX(an_[q],1.0e-20);
+            for(int c=0; c<3; ++c)
+            {
+                m.xyz[3*q+c] = float(x_[q](c));
+                m.velocity[3*q+c] = float(xdot_[q](c));
+                m.displacement[3*q+c] = float(x_[q](c) - x0_[q](c));
+                m.load[3*q+c] = float(f(c));
+            }
+        }
+        m.triangles.resize(3*nt);
+        m.dp.resize(nt);
+        m.force.resize(3*nt);
+        m.tag.resize(nt);
+        for(int t=0; t<nt; ++t)
+        {
+            for(int q=0; q<3; ++q)
+            {
+                m.triangles[3*t+q] = tri_[t][q];
+                m.force[3*t+q] = float(tf_[3*t+q]);
+            }
+            m.dp[t] = float(Eigen::Vector3d(tf_[3*t+0],tf_[3*t+1],tf_[3*t+2]).dot(tn_[t])/ta_[t]);
+            m.tag[t] = ttag_[t];
+        }
+        m.tension = tens;
+        
+        if(lagoon_membranes::output(p, nMem, printcount, std::move(m)) && p->P18==1)
+        {
+            ++printcount;
+            return;
+        }
+    }
+    
+    char name[400];
+    snprintf(name,sizeof(name),"%s/REEF3D-NHFLOW-Membrane-%i-%06i.vtp",vtpdir.c_str(),nMem,printcount);
+    
+    ofstream result(name, ios::binary);
     
     int offset[20];
     int n=0;
@@ -306,13 +348,14 @@ void net_membrane::print_vtp(lexer *p)
     
     // collection file for the time series in ParaView
     pvdtime_.push_back(p->simtime);
+    pvdnum_.push_back(printcount);
     
     ofstream pvd((vtpdir+"/REEF3D-NHFLOW-Membrane-"+to_string(nMem)+".pvd").c_str());
     pvd<<"<?xml version=\"1.0\"?>\n<VTKFile type=\"Collection\" version=\"0.1\" byte_order=\"LittleEndian\">\n<Collection>\n";
     for(size_t q=0; q<pvdtime_.size(); ++q)
     {
         char fn[100];
-        snprintf(fn,sizeof(fn),"REEF3D-NHFLOW-Membrane-%i-%06i.vtp",nMem,(int)q);
+        snprintf(fn,sizeof(fn),"REEF3D-NHFLOW-Membrane-%i-%06i.vtp",nMem,pvdnum_[q]);
         pvd<<"<DataSet timestep=\""<<setprecision(10)<<pvdtime_[q]<<"\" group=\"\" part=\"0\" file=\""<<fn<<"\"/>\n";
     }
     pvd<<"</Collection>\n</VTKFile>\n";

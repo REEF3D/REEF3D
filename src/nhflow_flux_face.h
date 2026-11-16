@@ -32,9 +32,8 @@ Author: Hans Bihs
 // The face functions are noinline on purpose: g++ contracts a*b+c into FMA
 // across inlined expressions (-ffp-contract=fast is its C++ default), so
 // inlining them into the HLL formula would change the last bits of the
-// fluxes. As separate calls they round exactly as the stored face fluxes
-// of the former flux build did, and the fused HLL sweep stays bitwise identical. (Measured:
-// no speed difference between inline and noinline.)
+// fluxes. As separate calls they round as stored face fluxes would (no
+// speed difference between inline and noinline).
 
 #include"lexer.h"
 #include"fdm_nhf.h"

@@ -26,6 +26,7 @@ Authors: Hans Bihs, Alexander Hanke
 #include"fdm.h"
 #include"ghostcell.h"
 #include"rheology_f.h"
+#include"rheology_cfd_core.h"
 #include"heaviside.h"
 
 fluid_update_rheology::fluid_update_rheology(lexer *p) : ro1(p->W1), ro2(p->W3), visc2(p->W4)
@@ -33,6 +34,11 @@ fluid_update_rheology::fluid_update_rheology(lexer *p) : ro1(p->W1), ro2(p->W3),
     iter=0;
     iocheck = true;
     
+    // rheology core (W 130), else the legacy model (W 90)
+    if(p->W130>0)
+    prheo = new rheology_cfd_core(p);
+    
+    else
     prheo = new rheology_f(p);
 
 }
@@ -66,6 +72,10 @@ void fluid_update_rheology::start(lexer *p, fdm* a, ghostcell* pgc, field &u, fi
 
         visc1 = prheo->viscosity(p,a,pgc,u,v,w);
         a->visc(i,j,k) = visc1*H_phi + visc2*(1.0-H_phi);
+        
+        // dynamic form of the diffusion (D 24): rho nu is the blend of the dynamic viscosities
+        if(p->D24>0)
+        a->visc(i,j,k) = (ro1*visc1*H_phi + ro2*visc2*(1.0-H_phi))/a->ro(i,j,k);
 
         if(p->flagsf4[IJK]>0)
         {

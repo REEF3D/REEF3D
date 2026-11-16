@@ -54,12 +54,12 @@ private:
 	char name[100];
 
     int *iloc,*jloc,*kloc,*flag;
-    int n,q;
+    int n;
 	const int probenum;
     ofstream *pout;
     double *val;
 	
-	double uval,vval,wval,pval,kval,eval,edval,etaval;
+	double uval,vval,wval,etaval;
     
     
     

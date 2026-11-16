@@ -27,7 +27,6 @@ Author: Hans Bihs
 #include"ghostcell.h"
 #include"nhflow_geometry.h"
 #include"6DOF.h"
-#include"nhflow_reinidisc_fsf.h"
 #include"vrans.h"
 #include"dem.h"
 

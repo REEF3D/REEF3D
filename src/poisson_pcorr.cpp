@@ -41,6 +41,7 @@ Author: Hans Bihs
 #include"density_cav.h"
 #include"pic_gfm.h"
 #include"solid_closed.h"
+#include"forcing_share.h"
 
 poisson_pcorr::poisson_pcorr(lexer *p, heat *&pheat, concentration *&pconc) 
 {
@@ -115,11 +116,60 @@ void poisson_pcorr::start(lexer* p, fdm *a, field &press)
 	}
     
 
+    // X 49: the share of a face that the direct forcing took to its target velocity (solids, bed,
+    // 6DOF bodies) is not corrected (forcing_share.h): the coefficient of the face times the open
+    // share 1-w, the same factor in the correction (pjm_corr::ucorr).  A cell without an open face
+    // to a cell of the domain (inside a body or a solid): the correction 0
+    if(p->X49>0)
+    {
+    n=0;
+    LOOP
+    {
+        double *coef[6] = {&a->M.s[n],&a->M.n[n],&a->M.e[n],&a->M.w[n],&a->M.b[n],&a->M.t[n]};
+        const int di[6] = {-1,1,0,0,0,0};
+        const int dj[6] = {0,0,-1,1,0,0};
+        const int dk[6] = {0,0,0,0,-1,1};
+        int open=0, shared=0;
+
+        for(int q=0; q<6; ++q)
+        {
+            if(*coef[q]==0.0)
+            continue;
+
+            // a neighbour in the domain (the boundary faces are set below)
+            if(p->flag4[(i+di[q]-p->imin)*p->jmax*p->kmax + (j+dj[q]-p->jmin)*p->kmax + k+dk[q]-p->kmin]<=0)
+            continue;
+
+            const double o = forcing_open(p,a,i,j,k,di[q],dj[q],dk[q]);
+
+            if(o<1.0)
+            {
+            a->M.p[n] += (1.0-o)*(*coef[q]);
+            *coef[q] *= o;
+            ++shared;
+            }
+
+            if(o>0.0)
+            ++open;
+        }
+
+        // no open face to a cell of the domain: the row 1 x = 0, the boundary faces dropped
+        if(open==0 && shared>0)
+        {
+        for(int q=0; q<6; ++q)
+        *coef[q] = 0.0;
+        a->M.p[n] = 1.0;
+        a->rhsvec.V[n] = 0.0;
+        }
+    ++n;
+    }
+    }
+
     // D 32: the faces inside the direct-forcing solids and the bed closed (solid_closed.h): Neumann for
     // the correction (the coupling dropped from the diagonal and the neighbour), the face velocity 0
     // (pjm_corr::rhs) and not corrected.  A cell with all its faces closed (deep in a solid): the
     // correction 0
-    if(p->D32>0)
+    if(solid_walls(p))
     {
     n=0;
     LOOP
@@ -129,6 +179,7 @@ void poisson_pcorr::start(lexer* p, fdm *a, field &press)
         const int dj[6] = {0,0,-1,1,0,0};
         const int dk[6] = {0,0,0,0,-1,1};
         int open=0;
+        const double pscale = a->M.p[n];
 
         for(int q=0; q<6; ++q)
         {
@@ -145,15 +196,32 @@ void poisson_pcorr::start(lexer* p, fdm *a, field &press)
             *coef[q] = 0.0;
             }
             else
+            {
+            // D 1 2: the open fraction of the face
+            if(p->D1==2)
+            {
+            const double A = solid_face_aperture(p,a,i,j,k,di[q],dj[q],dk[q]);
+            a->M.p[n] += (1.0-A)*(*coef[q]);
+            *coef[q] *= A;
+            }
             ++open;
+            }
         }
 
-        // no open face to a cell of the domain: the row 1 x = 0, the boundary faces dropped
+        // no open face to a cell of the domain: the row 1 x = 0, the boundary faces dropped.
+        // D 32 2 on the mesh refinement (G 1 > 0): the diagonal keeps its size.  There the closed
+        // cells lie next to the fluid, and the coarser grids do not see a solid thinner than their
+        // cells: with 1 a closed row in the air (the diagonal of its neighbours 1/(rho dx^2), 1e3
+        // to 1e4) took a correction that many times theirs in the level solves of the composite
+        // preconditioner, and the composite BiCGStab diverged (two refined levels, a slab above
+        // the water: 250 iterations, 1e9 m/s in step 1).  Not without refinement and not with
+        // D 32 1 (the closed cells deep in the solid): there REEFMG needs 2.5 times the cycles
+        // with it (cfd_2d_utube_baffle_d32)
         if(open==0)
         {
         for(int q=0; q<6; ++q)
         *coef[q] = 0.0;
-        a->M.p[n] = 1.0;
+        a->M.p[n] = (p->D32==2 && p->G1>0 && pscale>0.0) ? pscale : 1.0;
         a->rhsvec.V[n] = 0.0;
         }
     ++n;
@@ -262,36 +330,7 @@ void poisson_pcorr::start(lexer* p, fdm *a, field &press)
 		a->rhsvec.V[n] -= a->M.s[n]*press(i-1,j,k);
 		a->M.s[n] = 0.0;
 		}
-        
-        /*
-        if(p->flag4[Im1JK]<0 &&  p->IO[Im1JK]==1)
-		{
-        pval=(p->fsfin - p->pos_z())*a->ro(i,j,k)*fabs(p->W22);
-        //cout<<"FSFIN: "<<p->fsfin<<endl;
-		a->rhsvec.V[n] -= a->M.s[n]*(-a->press(i,j,k)+pval);
-		a->M.s[n] = 0.0;
-		}*/
-        
-        // AWA inflow
-        /*if(p->flag4[Ip1JK]<0 && (i+p->origin_i<p->gknox-1 || p->periodic1==0) && (p->IO[Ip1JK]==2 && p->B90==1 && p->B99>2))
-        {
-        pval=(p->fsfout - p->pos_z())*a->ro(i,j,k)*fabs(p->W22);
-        
-        a->rhsvec.V[n] += a->M.s[n]*(-a->press(i,j,k)+pval);
-        
-        a->M.s[n] = 0.0;
-        }*/
-        
-        /*
-        if(p->flag4[Im1JK]<0 && (i+p->origin_i>0 || p->periodic1==0) && p->IO[Im1JK]==1)
-		{
-             pval=a->press(i,j,k);
-             
-		//a->rhsvec.V[n] -= a->M.s[n]*(-a->press(i,j,k)+pval);
-        a->rhsvec.V[n] -= a->M.s[n]*press(i-1,j,k);
-		a->M.s[n] = 0.0;
-		}*/
-		
+
         // outflow (IO 2): as for the patch outlets, the Dirichlet value of the correction is
         // outflow_pressure() - cell pressure, so that the pressure next to the outflow relaxes to the
         // outflow pressure (B 77 1: hydrostatic from F 60 / F 62). The boundary face velocity is not

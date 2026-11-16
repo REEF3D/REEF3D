@@ -47,9 +47,6 @@ void fnpf_runup::ini(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     // Open files
     print_ini(p,c,pgc);
 
-    // Ini arrays
-	//p->Darray(un, p->knoz);
-	//p->Darray(vn, p->knoz);
 
     // Ini eta
 	etan = p->wd;

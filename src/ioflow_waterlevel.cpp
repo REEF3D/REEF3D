@@ -106,7 +106,6 @@ void ioflow_f::fsfinflow(lexer *p, fdm *a, ghostcell *pgc)
     }
     
     // set outflow fsf: F 62, ramped from F 60 over F 64 iterations
-    // (was F62 > 1.0e-20: an outflow level F 62 <= 0 fell back to the inflow level phimean)
     double wsfout=p->phimean;
     double f;
     

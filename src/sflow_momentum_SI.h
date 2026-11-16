@@ -53,7 +53,8 @@ using namespace std;
 // One time step:
 //  1. face depth H_f = eta_up + d_f (eta upwind of q^n, max(eta) for q = 0; d_f the mean
 //     still water depth, the smaller one next to a dry cell), open faces H_f > A 244,
-//     implicit bed friction alpha = 1/(1 + dt gamma), gamma = c_f |u| / H (Manning, A 218 1)
+//     implicit bed friction alpha = 1/(1 + dt gamma), gamma = c_f |u| / H (Manning, A 218 1);
+//     the basal friction of the rheology core (W 120) multiplies alpha in step 5 (rheo_friction)
 //  2. open boundaries from the ghost cells of ioflow / iowave (bc_setup):
 //     discharge (flux given), water level (Dirichlet), radiating (Riemann, Flather, free
 //     outflow: q_in = A - B eta^{n+1}, implicit)
@@ -91,10 +92,13 @@ using namespace std;
 // that neither the gravity nor the dispersive wave speed limits the time step; 1D and 2D, MPI, one Cartesian grid,
 // without wetting and drying iteration (A 243 0).
 //
+// Patch boundary conditions (B 411-422 on B 440-442) on one grid: the patch faces as open boundaries of bc_setup
+// (inlet: discharge, outlet with a water level: Dirichlet, outlet: free outflow).
+//
 // Not yet (stops in check()): Boussinesq (A 220 4); the non-hydrostatic pressure on curvilinear, multi-block and
 // refined grids and with the wetting and drying iteration,
-// patch boundary conditions (B 411-422), 6DOF / direct forcing, subcycling of the refinement (G 7 1), SEASTATE
-// surfbeat.
+// patch boundary conditions with mesh refinement and on multi-block grids, 6DOF / direct forcing, subcycling of the
+// refinement (G 7 1), SEASTATE surfbeat.
 // ---------------------------------------------------------------------------
 
 class sflow_momentum_SI final : public sflow_momentum_func
@@ -126,7 +130,7 @@ public:
         fd("momentum_SI_WLk",'S',WLk.V); fd("momentum_SI_etaB",'S',etaB.V);
 
         // the state of the step before of the time levels (A 220 2/3, A 210 11: nh_levels) and of the coupled eta-P
-        // system (A 220 2/3): without them a restart was not the continuation of the run
+        // system (A 220 2/3), so that a restart continues the run
         fd("momentum_SI_qxN",'S',qxN.V); fd("momentum_SI_qyN",'S',qyN.V); fd("momentum_SI_Hxo",'S',Hxo.V);
         fd("momentum_SI_Hyo",'S',Hyo.V); fd("momentum_SI_qxo",'S',qxo.V); fd("momentum_SI_qyo",'S',qyo.V);
         fd("momentum_SI_WLo",'S',WLo.V); fd("momentum_SI_Unm1",'S',Unm1.V); fd("momentum_SI_Vnm1",'S',Vnm1.V);
@@ -200,6 +204,8 @@ private:
     bool dry_source(lexer*, fdm2D*, int, int);
     void face_weights(lexer*, fdm2D*, int, int, int, double&, double&);    // REEF3D::HYDRO: the cell weights of the face predictor
     void friction(lexer*, fdm2D*);
+    void rheo_friction(lexer*, fdm2D*, ghostcell*);
+    int rheo_passes(lexer*) const;
     void bc_setup(lexer*, fdm2D*, ghostcell*);
     void bc_method(lexer*);
     void stage_vel(lexer*, fdm2D*, ghostcell*, slice&, slice&);
@@ -266,6 +272,10 @@ private:
     // open sides; FSx, FSy: the sources of the predictor stage (wind, Coriolis, atmospheric pressure, ...) per unit
     // area, as F, G
     slice4 bcS;
+    // A 221 2 (sflow_drywall.h): the cells for which dry land next to them is a wall (drywall_cells, every step)
+    slice4 dwC;
+    bool dw_told = false;
+    void drywall_cells(lexer*, fdm2D*, ghostcell*);
     slice4 FSx, FSy;
     // A 210 11 with A 220 2/3: the non-hydrostatic increment of the cell momentum of the step before (nh_cell), the
     // NH part of the BCG source term
@@ -277,17 +287,28 @@ private:
     // wet deep cells (WL > 10 A 244, fluid cells of the grid or of the neighbouring ranks) the face depth Hx, Hy is the
     // mean of the two cell depths (mfx, mfy = 1), so that g H_f (eta_R - eta_L) is a difference of g h^2/2 over a flat
     // bed and the momentum is conserved across a bore; the cell takes the mean of H_f times the face gradient of these
-    // faces. (The BCG face depth of NHFLOW's mass flux was tried: Stoker 0.21 -> 0.51 % at u dt/dx 0.4, not taken)
+    // faces
     slice1 mfx;
     slice2 mfy;
     void mlflux_faces(lexer*, fdm2D*, ghostcell*);
 
-    // second-order time levels of the SSP-RK predictors (A 210 12/13), as NHFLOW A 505 1 without its estimate pass:
-    // the velocities of a later stage carry the acceleration of the implicit part of the step before (acU, acV:
-    // gravity, the non-hydrostatic pressure, the bed friction of cell_update) up to the time of the stage, on the depth
-    // of that time (RK2 stage 2, RK3 stage 2: t^{n+1}, WLq; RK3 stage 3: t^{n+1/2}, WLh); stc the time of the stage in dt
+    // time levels of the SSP-RK predictors (A 210 12/13): the velocities of a later stage carry the acceleration of
+    // the gravity term at t^n (acU, acV: H^n times the source term of the BCG face values of A 210 11, stage_accel) up
+    // to the time of the stage, on the depth of that time (RK2 stage 2, RK3 stage 2: t^{n+1}, WLq; RK3 stage 3:
+    // t^{n+1/2}, WLh); the stages advect with q^n; stc the time of the stage in dt
     slice4 acU, acV;
     double stc = 0.0;
+    void stage_accel(lexer*, fdm2D*, ghostcell*);
+
+    // the source term of the BCG face values (A 210 11) and of the stage acceleration (A 210 12/13) at t^n:
+    // src_setup (the cells the slopes may use, bcA; the open sides, wall_sides; eta^n and the non-hydrostatic increment
+    // of the neighbouring ranks), then src_cell
+    void src_setup(lexer*, ghostcell*);
+    bool src_ok(int, int);
+    double src_lev(int, int);
+    double src_nh(lexer*, int, int, int);
+    double src_nlev(lexer*, int, int, int);
+    double src_cell(lexer*, int, int, int);
     bool tl12 = false;      // A 210 12/13 with the second-order time levels (not with REEF3D::HYDRO)
 
     // fourth-order horizontal operators on one uniform Cartesian grid (sflow_momentum_SI_ho.cpp, as NHFLOW v15 / 0004):
@@ -361,13 +382,20 @@ private:
     void nh_amr_guess(lexer*, fdm2D*);
     void nh_amr_lap(lexer*, ghostcell*);
     void nh_amr_faces(lexer*, bool affine);
-    void nh_amr_row(lexer*, fdm2D*, int, int, bool affine, double &ym, double &yc);
     void nh_amr_leaf(lexer*, const std::vector<int> &leaf);   // the leaf cells (i, j pairs) for nh_amr_rows
-    void nh_amr_rows(lexer*, bool affine, double *y);           // nh_amr_row of all leaf cells
+    void nh_amr_rows(lexer*, bool affine, double *y);           // mass rows and constraints of all leaf cells
     void nh_amr_prec_setup(lexer*, ghostcell*, const std::function<bool(int,int)> &own);
     void nh_amr_prec(lexer*, ghostcell*, const std::function<bool(int,int)> &own);
     void nh_amr_finish(lexer*, fdm2D*, ghostcell*);
     int nh_amr_wetdry(lexer*, fdm2D*, const std::function<bool(int,int)> &leaf);
+
+    // rheology core (W 120, rheo_friction): the frictionless estimate of the new cell momentum, UH* - dt g H G(eta),
+    // the factors of friction() (Manning) of the step; rpass: the pass of the step (0: eta^n, then eta^{n+1} of the
+    // pass before)
+    slice4 rUH, rVH, rlc;
+    slice1 rlx;
+    slice2 rly;
+    int rpass = 0;
 };
 
 #endif

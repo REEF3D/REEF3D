@@ -21,12 +21,14 @@ Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"pic_f.h"
+#include"cell_index.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
 #include"field1.h"
 #include"field2.h"
 #include"field3.h"
+#include"pic_gfm.h"
 #include<vector>
 
 // The velocity of the water for the particles (F 81 1, 2; Kelly et al. 2015, section 3.3):
@@ -41,14 +43,6 @@ Architect: Hans Bihs
 // marks of the faces of the ghost cells come from the neighbours, so the layers do not depend on the
 // decomposition (marked from phi in the ghost cells alone, the third layer at a subdomain boundary
 // lacked the cells beyond the margin).
-
-namespace
-{
-inline int fid(lexer *p, int i, int j, int k)
-{
-    return (i-p->imin)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin;
-}
-}
 
 void pic_f::water_velocity(lexer *p, fdm *a, ghostcell *pgc)
 {
@@ -110,8 +104,11 @@ void pic_f::extend(lexer *p, fdm *a, ghostcell *pgc, field &src, field &dst, int
     {
         const double f0 = a->phi(i,j,k), f1 = a->phi(i+di,j+dj,k+dk);
 
-        if(zero ? (f0>=0.0 || f1>=0.0) : (0.5*(f0+f1) >= 0.0))
-        known[fid(p,i,j,k)] = 1;
+        // single phase: the cells in the water as for the pressure (pic_gfm_water)
+        const double wet = PIC_GFM_WET*p->DXM;
+
+        if(zero ? (f0>=wet || f1>=wet) : (0.5*(f0+f1) >= 0.0))
+        known[cell_index(p,i,j,k)] = 1;
     }
 
     field &km = c==0 ? static_cast<field&>(*km1) : (c==1 ? static_cast<field&>(*km2) : static_cast<field&>(*km3));
@@ -125,7 +122,7 @@ void pic_f::extend(lexer *p, fdm *a, ghostcell *pgc, field &src, field &dst, int
         for(int j=0; j<p->knoy; ++j)
         for(int k=0; k<p->knoz; ++k)
         {
-            const int f = fid(p,i,j,k);
+            const int f = cell_index(p,i,j,k);
 
             if(known[f])
             continue;
@@ -136,7 +133,7 @@ void pic_f::extend(lexer *p, fdm *a, ghostcell *pgc, field &src, field &dst, int
             // from the neighbour in a direction: linear from the two faces there, else its value
             auto add = [&](int si, int sj, int sk)
             {
-                const int g1 = fid(p,i+si,j+sj,k+sk);
+                const int g1 = cell_index(p,i+si,j+sj,k+sk);
 
                 if(!known[g1])
                 return;
@@ -145,8 +142,8 @@ void pic_f::extend(lexer *p, fdm *a, ghostcell *pgc, field &src, field &dst, int
                 const bool inside = i2>=-fm && i2<p->knox+fm && k2>=-fm && k2<p->knoz+fm
                                  && (p->j_dir==0 || (j2>=jlo && j2<=jhi));
 
-                if(!zero && inside && known[fid(p,i2,j2,k2)])
-                sum += 2.0*dst.V[g1] - dst.V[fid(p,i2,j2,k2)];
+                if(!zero && inside && known[cell_index(p,i2,j2,k2)])
+                sum += 2.0*dst.V[g1] - dst.V[cell_index(p,i2,j2,k2)];
                 else
                 sum += dst.V[g1];
 
@@ -192,8 +189,8 @@ void pic_f::extend(lexer *p, fdm *a, ghostcell *pgc, field &src, field &dst, int
         for(int i=0; i<p->knox; ++i)
         for(int j=0; j<p->knoy; ++j)
         for(int k=0; k<p->knoz; ++k)
-        if(!known[fid(p,i,j,k)])
-        dst.V[fid(p,i,j,k)] = 0.0;
+        if(!known[cell_index(p,i,j,k)])
+        dst.V[cell_index(p,i,j,k)] = 0.0;
 
         if(c==0)
         pgc->start1(p,dst,10);

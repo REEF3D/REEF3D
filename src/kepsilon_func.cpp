@@ -36,12 +36,6 @@ kepsilon_func::~kepsilon_func()
 {
 }
 
-void  kepsilon_func::clearfield(lexer *p, fdm*  a, field& b)
-{
-	LOOP
-	b(i,j,k)=0.0;
-}
-
 void kepsilon_func::isource(lexer *p, fdm* a)
 {
     if(p->T33==0)
@@ -80,15 +74,28 @@ void  kepsilon_func::eddyvisc(fdm* a, lexer* p, ghostcell* pgc, vrans* pvrans)
 	double H;
 	double factor,epsi;
 	
+    // T 34 0: no limiter (as komega_func; the limiter was always on in k-epsilon)
+    if(p->T34==0)
+	LOOP
+    a->eddyv(i,j,k) = MAX(p->cmu*MAX(kin(i,j,k)*kin(i,j,k)
+					  /((eps(i,j,k))>(1.0e-20)?(eps(i,j,k)):(1.0e20)),0.0),
+					  0.0001*a->visc(i,j,k));
+    
+    if(p->T34!=0)
 	LOOP
     a->eddyv(i,j,k) = MAX(MIN(p->cmu*MAX(kin(i,j,k)*kin(i,j,k)
 					  /((eps(i,j,k))>(1.0e-20)?(eps(i,j,k)):(1.0e20)),0.0),fabs(p->T31*kin(i,j,k))/(strainterm(p,a)+1.0e-20)),
 					  0.0001*a->visc(i,j,k));
 
-	
+	// URANS (T 10 21): nu_t <= C3 cmu delta sqrt(k), i.e. the factor min(1, C3 delta/L_t) of komega_func (T 10 22),
+    // with the local cell size and C3 = T 23 (it used the mean cell size DXM of the grid and C3 = 1)
 	if(p->T10==21)
 	LOOP
-	a->eddyv(i,j,k) = MIN(a->eddyv(i,j,k), p->DXM*p->cmu*pow((kin(i,j,k)>(1.0e-20)?(kin(i,j,k)):(1.0e20)),0.5));
+    {
+    const double dxm = (p->j_dir==0) ? pow(p->DXN[IP]*p->DZN[KP], (1.0/2.0)) : pow(p->DXN[IP]*p->DYN[JP]*p->DZN[KP], (1.0/3.0));
+    
+	a->eddyv(i,j,k) = MIN(a->eddyv(i,j,k), p->T23*dxm*p->cmu*pow((kin(i,j,k)>(1.0e-20)?(kin(i,j,k)):(1.0e20)),0.5));
+    }
     
     // active wave generation / absorption: no eddy viscosity in the air next to the boundary (as komega_func)
     if(p->B98==3||p->B98==4||p->B99==3||p->B99==4||p->B99==5)
@@ -189,16 +196,13 @@ void  kepsilon_func::epssource(lexer *p, fdm* a, vrans* pvrans)
 	{
     a->M.p[count] += ke_c_2e * MAX((eps(i,j,k))/(fabs(kin(i,j,k))>(1.0e-10)?(fabs(kin(i,j,k))):(1.0e20)),0.0);
 
-    // c1 eps/k P with eps >= 0: a negative eps would turn this into a sink scaled by 1/k and grow without bound;
-    // bounded by c1 cmu k S^2 where the 1e-4 nu floor makes eddyv > cmu k^2/eps (as nhflow_kepsilon_func)
-    const double ratio = MAX(eps(i,j,k),0.0)/(fabs(kin(i,j,k))>(1.0e-10)?(fabs(kin(i,j,k))):(1.0e20));
+    // production of eps c1 cmu k S^2, S^2 = 2 Sij Sij: the form with the unlimited nu_t = cmu k^2/eps. With the
+    // limited eddy viscosity, c1 eps/k nu_t S^2, the production was proportional to eps wherever the limiter T 34
+    // was active: eps could not grow from a small value, and k had no dissipation (as komega_func)
     const double kpos  = MAX(kin(i,j,k),0.0);
     const double pk_ev = pk(p,a,a->eddyv);
 
-    if(ratio*a->eddyv(i,j,k)<=p->cmu*kpos || a->eddyv(i,j,k)<=1.0e-20)
-	a->rhsvec.V[count] += ke_c_1e * ratio * pk_ev;
-    
-    else
+    if(a->eddyv(i,j,k)>1.0e-20)
 	a->rhsvec.V[count] += ke_c_1e * p->cmu*kpos * pk_ev/a->eddyv(i,j,k);
 
     ++count;

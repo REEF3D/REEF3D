@@ -42,11 +42,9 @@ public:
 private:
     rheology *prheo;
     int iter;
-    int n;
     const double ro1,ro2;
     const double visc2;
     double visc1;
-    double epsi;
 
     int iocheck;
 

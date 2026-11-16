@@ -42,7 +42,7 @@ Architect: Hans Bihs
 //  grid (Euler in the first step of a patch), the Robin rows of the free surface eliminated into the top Laplace
 //  rows, and the corrector passes with N at t^n+1/2 trapezoidal.  The patches have no relaxation zones (B 96),
 //  coastline (fnpf_amr: the patches stay off it) or bodies (refused by fnpf_theta with G 1), so their Robin rows are
-//  those of level 0 with r = 1, T = 0.  Breaking (A 350 1-3) as on level 0 (patch 0022): the damping with the
+//  those of level 0 with r = 1, T = 0.  Breaking (A 350 1-3) as on level 0: the damping with the
 //  breaking viscosity at the start of the step, level by level (theta_damping), the detection and the filters at its
 //  end (theta_breaking; an edit there: the consistency solve of fnpf_theta).  The rows of all grids are solved together (lap_core): the
 //  in-column couplings of the sz stencils of 5 and 7 points (xcol) are in the operator (lap_apply) and lumped into
@@ -507,7 +507,7 @@ void fnpf_amr::theta_end(lexer *p0p, ghostcell *pgc)
 }
 
 // A 350 1-3: the damping of eta and Fifsf with the breaking viscosity at the start of the step, as fnpf_theta on level 0
-// (patch 0022: a source of the step, no solve after it), level by level: the cells around the patches of a level hold
+// (a source of the step, no solve after it), level by level: the cells around the patches of a level hold
 // the damped values of the coarser grid (level_damping), then all grids consistent and the derivatives of the patches
 bool fnpf_amr::theta_damping(lexer *p, ghostcell *pgc)
 {

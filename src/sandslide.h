@@ -47,7 +47,9 @@ using namespace std;
 
 // mesh refinement and multi-block grids (nhflow_amr, sflow_amr): only the cells with amr_donor > 0.5 give
 // material (the cells of the grid; not the cells around it, the ring of a native grid, the covered cells)
-#define SLIDE_DONOR if(amr_donor==nullptr || (*amr_donor)(i,j)>0.5)
+// NHFLOW with S 134 1 (sediment_f::active_solid_nhflow): a column whose bed has come down to the solid surface gives
+// no material either
+#define SLIDE_DONOR if((amr_donor==nullptr || (*amr_donor)(i,j)>0.5) && (p->S134!=1 || p->A10!=5 || p->A580==1 || p->solidbed[IJ]<s->bedzh(i,j)))
 
 class sandslide  
 {

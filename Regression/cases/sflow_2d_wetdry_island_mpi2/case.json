@@ -1,0 +1,19 @@
+{
+ "base": "sflow_2d_wetdry_island",
+ "np": 2,
+ "description": "sflow_2d_wetdry_island on 2 ranks: the same solution as on 1 rank. The bed smoothing A 209 changed the bed in place and gave another bed on 2 ranks (eta 1e-4 m apart after 30 s).",
+ "tags": [
+  "quick",
+  "2d",
+  "sflow",
+  "wetdry",
+  "mpi"
+ ],
+ "covers": [
+  "A 209 independent of the ranks",
+  "wetting and drying across a rank boundary"
+ ],
+ "same_as": "sflow_2d_wetdry_island",
+ "same_as_rtol": 1e-08,
+ "architect": "Hans Bihs"
+}

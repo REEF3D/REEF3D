@@ -120,7 +120,6 @@ void suspended_RK3::suspsource(lexer* p,fdm* a,field& conc, sediment_fdm *s)
     zdist = p->DZN[KP];
     
 	a->rhsvec.V[count]  += (-s->ws)*(s->cb(i,j)-s->cbe(i,j))/zdist;
-    //a->rhsvec.V[count]  += s->ws*s->cbe(i,j)/(zdist);
     }
 	
 	++count;
@@ -141,44 +140,10 @@ void suspended_RK3::bcsusp_start(lexer* p, fdm* a,ghostcell *pgc, sediment_fdm *
             j=p->gcdf4[n][1];
             k=p->gcdf4[n][2];
             
-            //conc(i,j,k) =    s->cb(i,j);
             conc(i,j,k-1) =  conc(i,j,k);
             conc(i,j,k-2) =  conc(i,j,k);
             conc(i,j,k-3) =  conc(i,j,k);
         }
-    
-    
-    // Inflow
-    /*double cval;
-    double zdist =1.0;
-    double zcoor;
-    double adist;
-    
-    for(n=0;n<p->gcin_count;++n)
-    if(p->gcin[n][3]>0)
-    {
-    i=p->gcin[n][0];
-    j=p->gcin[n][1];
-    k=p->gcin[n][2];
-    
-    adist=0.05*s->waterlevel(i,j);
-    
-    zcoor = a->topo(i,j,k) + 0.000001;
-    
-    cval=0.0;
-    
-    if(a->topo(i,j,k)>0.0 && a->phi(i,j,k)>0.0)
-    {
-    cval = 0.001*pow(((s->waterlevel(i,j)-zcoor)/zcoor)*(adist/(s->waterlevel(i,j)-adist + 0.000001)),1.0);
-    
-    //cout<<"cval: "<<setprecision(6)<<cval<<" zwl: "<<setprecision(6)<<s->waterlevel(i,j)<<" zcoor: "<<setprecision(6)<<zcoor<<endl;
-    }
-    
-    conc(i-1,j,k) = cval;
-    conc(i-2,j,k) = cval;
-    conc(i-3,j,k) = cval;
-    }*/
-    
 }
 
 void suspended_RK3::fillconc(lexer* p, fdm* a, sediment_fdm *s)
@@ -199,13 +164,6 @@ void suspended_RK3::fillconc(lexer* p, fdm* a, sediment_fdm *s)
         k=p->gcb4[n][2];
         
         s->conc(i,j) = a->conc(i,j,k);
-        
-        //dist = 0.5*p->DZN[KP]-adist;
-        
-        //s->conc(i,j) = (s->cbe(i,j)*(dist-deltab+adist) + a->conc(i,j,k+1)*(deltab-adist))/(dist);
-
-        //if(s->conc(i,j)>s->cbe(i,j))
-        //cout<<"conc: "<<s->conc(i,j)<<" cbe: "<<s->cbe(i,j)<<endl;
     }
     
     if(p->S34==1)
@@ -216,13 +174,6 @@ void suspended_RK3::fillconc(lexer* p, fdm* a, sediment_fdm *s)
         k=p->gcdf4[n][2];
         
         s->conc(i,j) = a->conc(i,j,k);
-        
-        //dist = p->ZP[KP1]-s->bedzh(i,j)-adist;
-        
-        //s->conc(i,j) = (s->cbe(i,j)*(dist-deltab+adist) + a->conc(i,j,k+1)*(deltab-adist))/(dist);
-        
-        //if(s->conc(i,j)>s->cbe(i,j))
-        //cout<<"conc: "<<s->conc(i,j)<<" cbe: "<<s->cbe(i,j)<<endl;
     }
 
     

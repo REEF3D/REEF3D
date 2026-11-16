@@ -25,6 +25,7 @@ Authors: Tobias Martin, Ahmet Soydan, Hans Bihs
 #include"fdm.h"
 #include"ghostcell.h"
 #include"heaviside.h"
+#include"forcing_share.h"
 
 // the weight H of a face of the body, at most what the solids (hs) and the bodies before it (hb)
 // leave of 1: the forcing terms of a face add up to a weight of 1 at most (overlaps)
@@ -90,6 +91,7 @@ void sixdof_obj_cfd::update_forcing(lexer *p, fdm *a, ghostcell *pgc,field& uvel
         cout<<"H "<<uf<<endl;
        
         fx(i,j,k) += H*(uf - uvel(i,j,k))/(alpha[iter]*p->dt);   
+        a->fbw1(i,j,k) = min(a->fbw1(i,j,k) + H, 1.0);
         a->fbh1(i,j,k) = min(a->fbh1(i,j,k) + H, 1.0); 
     }
     VLOOP
@@ -113,6 +115,7 @@ void sixdof_obj_cfd::update_forcing(lexer *p, fdm *a, ghostcell *pgc,field& uvel
         cout<<"H "<<uf<<endl;
        
         fy(i,j,k) += H*(vf - vvel(i,j,k))/(alpha[iter]*p->dt);
+        a->fbw2(i,j,k) = min(a->fbw2(i,j,k) + H, 1.0);
         a->fbh2(i,j,k) = min(a->fbh2(i,j,k) + H, 1.0); 
     }
     WLOOP
@@ -136,6 +139,7 @@ void sixdof_obj_cfd::update_forcing(lexer *p, fdm *a, ghostcell *pgc,field& uvel
         cout<<"H "<<uf<<endl;
 
         fz(i,j,k) += H*(wf - wvel(i,j,k))/(alpha[iter]*p->dt);
+        a->fbw3(i,j,k) = min(a->fbw3(i,j,k) + H, 1.0);
         a->fbh3(i,j,k) = min(a->fbh3(i,j,k) + H, 1.0); 
     }
     LOOP
@@ -211,11 +215,20 @@ void sixdof_obj_cfd::update_forcing(lexer *p, fdm *a, ghostcell *pgc,field& uvel
 		phival_fb = 0.5*(a->fb(i,j,k) + a->fb(i+1,j,k));	
 		
 		// Construct the field around the solid body to adjust the tangential velocity and calculate forcing
-		if(phival_fb<=0.0)
-		fx(i,j,k) += H*(uf - uvel(i,j,k))/(alpha[iter]*p->dt); 
+		// X 46 1: the share continuous across the surface (forcing_share.h)
+		{
+		// the share of the face taken by this body (X 46: continuous across the surface, forcing_share.h)
+		double wgt = H;
 
-		if(phival_fb>0.0)
-		fx(i,j,k) +=   fabs(nx)*H*(uf - uvel(i,j,k))/(alpha[iter]*p->dt);
+		if(p->X46>=1)
+		wgt = forcing_weight_smooth(H,fabs(nx),phival_fb,forcing_psi(p,i,j,k));
+
+		if(p->X46<1 && phival_fb>0.0)
+		wgt = fabs(nx)*H;
+
+		fx(i,j,k) += wgt*(uf - uvel(i,j,k))/(alpha[iter]*p->dt);
+		a->fbw1(i,j,k) = min(a->fbw1(i,j,k) + wgt, 1.0);
+		}
             
 
         a->fbh1(i,j,k) = min(a->fbh1(i,j,k) + H, 1.0); 
@@ -259,11 +272,20 @@ void sixdof_obj_cfd::update_forcing(lexer *p, fdm *a, ghostcell *pgc,field& uvel
 		phival_fb = 0.5*(a->fb(i,j,k) + a->fb(i,j+1,k));
 	  
 		//Construct the field around the solid body to adjust the tangential velocity and calculate forcing
-	    if(phival_fb<=0.0)
-		fy(i,j,k) += H*(vf - vvel(i,j,k))/(alpha[iter]*p->dt); 
+		// X 46 1: the share continuous across the surface (forcing_share.h)
+		{
+		// the share of the face taken by this body (X 46: continuous across the surface, forcing_share.h)
+		double wgt = H;
 
-		if(phival_fb>0.0)
-		fy(i,j,k) +=   fabs(ny)*H*(vf - vvel(i,j,k))/(alpha[iter]*p->dt);
+		if(p->X46>=1)
+		wgt = forcing_weight_smooth(H,fabs(ny),phival_fb,forcing_psi(p,i,j,k));
+
+		if(p->X46<1 && phival_fb>0.0)
+		wgt = fabs(ny)*H;
+
+		fy(i,j,k) += wgt*(vf - vvel(i,j,k))/(alpha[iter]*p->dt);
+		a->fbw2(i,j,k) = min(a->fbw2(i,j,k) + wgt, 1.0);
+		}
 
 
         a->fbh2(i,j,k) = min(a->fbh2(i,j,k) + H , 1.0); 
@@ -307,11 +329,20 @@ void sixdof_obj_cfd::update_forcing(lexer *p, fdm *a, ghostcell *pgc,field& uvel
 		
 		// Construct the field around the solid body to adjust the tangential velocity and calculate forcing
 
-		if(phival_fb<=0.0)
-		fz(i,j,k) += H*(wf - wvel(i,j,k))/(alpha[iter]*p->dt); 
+		// X 46 1: the share continuous across the surface (forcing_share.h)
+		{
+		// the share of the face taken by this body (X 46: continuous across the surface, forcing_share.h)
+		double wgt = H;
 
-		if(phival_fb>0.0)
-		fz(i,j,k) +=   fabs(nz)*H*(wf - wvel(i,j,k))/(alpha[iter]*p->dt);
+		if(p->X46>=1)
+		wgt = forcing_weight_smooth(H,fabs(nz),phival_fb,forcing_psi(p,i,j,k));
+
+		if(p->X46<1 && phival_fb>0.0)
+		wgt = fabs(nz)*H;
+
+		fz(i,j,k) += wgt*(wf - wvel(i,j,k))/(alpha[iter]*p->dt);
+		a->fbw3(i,j,k) = min(a->fbw3(i,j,k) + wgt, 1.0);
+		}
 
 
         a->fbh3(i,j,k) = min(a->fbh3(i,j,k) + H , 1.0); 
@@ -357,6 +388,10 @@ void sixdof_obj_cfd::update_forcing(lexer *p, fdm *a, ghostcell *pgc,field& uvel
     pgc->start3(p,a->fbh3,12);
     pgc->start4(p,a->fbh4,40);
 
+    pgc->start1(p,a->fbw1,10);
+    pgc->start2(p,a->fbw2,11);
+    pgc->start3(p,a->fbw3,12);
+
     pgc->start1(p,fx,10);
     pgc->start2(p,fy,11);
     pgc->start3(p,fz,12);         
@@ -364,7 +399,7 @@ void sixdof_obj_cfd::update_forcing(lexer *p, fdm *a, ghostcell *pgc,field& uvel
 
 double sixdof_obj_cfd::Hsolidface(lexer *p, fdm *a, int aa, int bb, int cc)
 {
-    double psi, H, phival_fb,dirac;
+    double psi, H, phival_fb;
 	
     psi = p->X41*(1.0/3.0)*(p->DXN[IP]+p->DYN[JP]+p->DZN[KP]);
 
@@ -382,7 +417,7 @@ double sixdof_obj_cfd::Hsolidface(lexer *p, fdm *a, int aa, int bb, int cc)
 
 double sixdof_obj_cfd::Hsolidface_t(lexer *p, fdm *a, int aa, int bb, int cc)
 {
-    double psi, H, phival_fb,dirac;
+    double psi, H, phival_fb;
 	
 
     if(p->j_dir==0)

@@ -21,6 +21,7 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"interface_width.h"
+#include"cell_index.h"
 #include"initialize.h"
 #include"fdm.h"
 #include"lexer.h"
@@ -51,11 +52,6 @@ const double no_water = -1.0e20;
 // before was a distance there: F 60, F 62/F 63, F 72), sharp elsewhere (+1/-1 before); (i,j,k) of the
 // partition and its ghost cells
 std::vector<char> smooth;
-
-inline int cell(lexer *p, int i, int j, int k)
-{
-    return (i-p->imin)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin;
-}
 
 // signed distance to the interval [x0,x1], positive outside (an empty interval x1 < x0: outside everywhere)
 inline double outside1(double x, double x0, double x1)
@@ -198,7 +194,7 @@ void initialize::iniphi(lexer* p, fdm* a, ghostcell* pgc)
         LOOP
         {
         a->phi(i,j,k)=p->F60-p->pos_z();
-        smooth[cell(p,i,j,k)]=1;
+        smooth[cell_index(p,i,j,k)]=1;
         }
 
         p->phimean=p->F60;
@@ -216,7 +212,7 @@ void initialize::iniphi(lexer* p, fdm* a, ghostcell* pgc)
         if(p->pos_x() > p->F63)
         {
         a->phi(i,j,k)=(slope*(p->pos_x()-p->F63) + p->phimean - p->pos_z())/sqrt(1.0+slope*slope);
-        smooth[cell(p,i,j,k)]=1;
+        smooth[cell_index(p,i,j,k)]=1;
         }
     }
 
@@ -239,7 +235,7 @@ void initialize::iniphi(lexer* p, fdm* a, ghostcell* pgc)
 	BASELOOP
 	{
         const double f = a->phi(i,j,k);
-        const double s = smooth[cell(p,i,j,k)] ? f : (f>0.0 ? 1.0 : (f<0.0 ? -1.0 : 0.0));
+        const double s = smooth[cell_index(p,i,j,k)] ? f : (f>0.0 ? 1.0 : (f<0.0 ? -1.0 : 0.0));
 		H = heaviside(s,interface_width(p,a->phi,i,j,k));
 
 		a->ro(i,j,k)=p->W1*H + p->W3*(1.0-H);
@@ -318,7 +314,7 @@ void initialize::iniphi_box(lexer* p, fdm *a, ghostcell* pgc)
         add(a->phi(i,j,k), d);
 
         if(d>0.0)
-        smooth[cell(p,i,j,k)]=0;
+        smooth[cell_index(p,i,j,k)]=0;
         }
     }
 	
@@ -337,7 +333,7 @@ void initialize::iniphi_box(lexer* p, fdm *a, ghostcell* pgc)
         cut(a->phi(i,j,k), d);
 
         if(d>0.0)
-        smooth[cell(p,i,j,k)]=0;
+        smooth[cell_index(p,i,j,k)]=0;
         }
     }
 	
@@ -358,7 +354,7 @@ void initialize::iniphi_box(lexer* p, fdm *a, ghostcell* pgc)
         a->phi(i,j,k) = std::max(std::min(a->phi(i,j,k),-dc), std::min(dc,p->F72_h[qn]-p->pos_z()));
 
         if(dc>0.0)
-        smooth[cell(p,i,j,k)]=1;
+        smooth[cell_index(p,i,j,k)]=1;
         }
 	}
 }
@@ -393,7 +389,7 @@ static void iniphi_wedge_add(lexer *p, fdm *a, double xs, double xe, double ys, 
     add(a->phi(i,j,k), d);
 
     if(d>0.0)
-    smooth[cell(p,i,j,k)]=0;
+    smooth[cell_index(p,i,j,k)]=0;
     }
 }
 
@@ -410,33 +406,4 @@ void initialize::iniphi_wedge(lexer* p, fdm *a, ghostcell* pgc)
 
     for(int qn=0; qn<p->F115; ++qn)
     iniphi_wedge_add(p,a,p->F115_xs[qn],p->F115_xe[qn],p->F115_ys[qn],p->F115_ye[qn],p->F115_zs[qn],p->F115_ze[qn],1,false);
-}
-
-void initialize::iniphi_surfarea(lexer* p, fdm *a, ghostcell* pgc)
-{
-	double dx,dy,dz,dnorm,dirac;
-	double area=0.0;
-	double epsi = 1.6*p->DXM;
-	
-    LOOP
-	{
-    epsi = (1.6/3.0)*(p->DXN[IP]+p->DYN[JP]+p->DZN[KP]);
-        
-	dx = (a->phi(i+1,j,k)-a->phi(i-1,j,k))/(p->DXP[IM1]+p->DXP[IP]);
-	dy = (a->phi(i,j+1,k)-a->phi(i,j-1,k))/(p->DYP[JM1]+p->DYP[JP]);
-	dz = (a->phi(i,j,k+1)-a->phi(i,j,k-1))/(p->DZP[KM1]+p->DZP[KP]);
-	
-	dnorm = sqrt(p->DXN[IP]*p->DXN[IP] + p->DYN[JP]*p->DYN[JP] + p->DZN[KP]*p->DZN[KP]);
-	
-
-	dirac=0.0;
-	
-	if(fabs(a->phi(i,j,k))<epsi)
-	dirac = (0.5/epsi)*(1.0 + cos((PI*a->phi(i,j,k))/epsi));
-	
-	area +=  pow(p->DXM,3.0) * dirac *dnorm;
-	}
-	
-	area = pgc->globalsum(area);
-	
 }

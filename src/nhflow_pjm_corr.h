@@ -54,11 +54,9 @@ public:
     void presscorr(lexer*p,fdm_nhf*,ghostcell*,slice&,double*,double*,double);
     
     void rhs(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,double);
-	void vel_setup(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,double);
-    void bedbc(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,double);
 
 private:
-    double limiter(double,double);
+    void cut_pressure(lexer*, fdm_nhf*, ghostcell*);
     
 	double starttime,endtime;
     int check;
@@ -67,6 +65,7 @@ private:
     double val, denom;
     double gamma;
     double *PCORR;
+    double *PB;                 // cut faces (X 15 10): the pressure before the increment (cut_pressure)
     
     double dPdx,dPdy,dPdz;
     double dfdx_plus,dfdx_min;

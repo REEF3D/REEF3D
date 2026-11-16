@@ -96,8 +96,7 @@ private:
     Eigen::Vector3d gravity_vec;
     bool thinStrip;
 
-    // Cached quantities for setVariableLoads (previously recomputed in every
-    // RHS evaluation of the beam solver, i.e. ~n_dim times per FD Jacobian)
+    // Cached quantities for setVariableLoads (constant over the RHS evaluations of the beam solver)
     Eigen::VectorXd m_el_c;              // element fluid mass      (constant)
     Matrix3Xd s0_c;                      // static moment           (constant)
     vector<Eigen::Matrix3d> J0_c;        // quaternionic inertia    (constant)

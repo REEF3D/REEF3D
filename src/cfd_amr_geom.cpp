@@ -95,6 +95,55 @@ void geo_range(const double *XP, int lo, int hi, double x0, double x1, int &s, i
     e = a;
 }
 
+// the cell of [lo,hi) whose centre is nearest to x (XP ascending)
+int geo_cell(const double *XP, int lo, int hi, double x)
+{
+    const int m = increment::marge;
+    int a = lo, b = hi-1;
+    while(a<b)
+    {
+        const int c = a + (b-a)/2;
+        if(0.5*(XP[c+m]+XP[c+1+m])<x)
+        a = c+1;
+        else
+        b = c;
+    }
+    return a;
+}
+
+// the point of the triangle ABC nearest to P (as geo_raycast::dist2_tri)
+void near_tri(const double *P, const double *A, const double *B, const double *C, double *Q)
+{
+    double ab[3], ac[3], ap[3], bp[3], cp[3];
+    for(int d=0; d<3; ++d)
+    {
+        ab[d] = B[d]-A[d]; ac[d] = C[d]-A[d];
+        ap[d] = P[d]-A[d]; bp[d] = P[d]-B[d]; cp[d] = P[d]-C[d];
+    }
+    auto dot = [](const double *a, const double *b) { return a[0]*b[0] + a[1]*b[1] + a[2]*b[2]; };
+    auto set = [&](double v, double w) { for(int d=0; d<3; ++d) Q[d] = A[d] + v*ab[d] + w*ac[d]; };
+
+    const double d1 = dot(ab,ap), d2 = dot(ac,ap);
+    if(d1<=0.0 && d2<=0.0) { set(0.0,0.0); return; }
+    const double d3 = dot(ab,bp), d4 = dot(ac,bp);
+    if(d3>=0.0 && d4<=d3) { set(1.0,0.0); return; }
+    const double vc = d1*d4 - d3*d2;
+    if(vc<=0.0 && d1>=0.0 && d3<=0.0) { set(d1/((d1-d3)!=0.0 ? (d1-d3) : 1.0e-20),0.0); return; }
+    const double d5 = dot(ab,cp), d6 = dot(ac,cp);
+    if(d6>=0.0 && d5<=d6) { set(0.0,1.0); return; }
+    const double vb = d5*d2 - d1*d6;
+    if(vb<=0.0 && d2>=0.0 && d6<=0.0) { set(0.0,d2/((d2-d6)!=0.0 ? (d2-d6) : 1.0e-20)); return; }
+    const double va = d3*d6 - d5*d4;
+    if(va<=0.0 && (d4-d3)>=0.0 && (d5-d6)>=0.0)
+    {
+        const double w = (d4-d3)/(((d4-d3)+(d5-d6))!=0.0 ? ((d4-d3)+(d5-d6)) : 1.0e-20);
+        set(1.0-w,w);
+        return;
+    }
+    const double den = (va+vb+vc)!=0.0 ? 1.0/(va+vb+vc) : 0.0;
+    set(vb*den,vc*den);
+}
+
 // squared distance of (px,pz) to the segment (ax,az)-(bx,bz)
 double dist2_seg(double px, double pz, double ax, double az, double bx, double bz)
 {
@@ -172,6 +221,7 @@ void cfd_amr::patch_geometry(int id)
 
     // the interior of the patch
     geo_cart g = geo_raycast::extended(pp,(G.dxm>0.0) ? G.dxm : p0->DXM);
+    const geo_cart gx = g;      // with the cells around the patch
     g.is = 0; g.ie = pp->knox;
     g.js = 0; g.je = pp->knoy;
     g.ks = 0; g.ke = pp->knoz;
@@ -200,7 +250,7 @@ void cfd_amr::patch_geometry(int id)
     };
 
     const int roles[2] = {geo_mesh::role_solid, geo_mesh::role_topo};
-    vector<int> IO;
+    vector<int> IO, IOx;
     vector<double> dmin, phi;
     const double big = 1.0e30;     // no surface within the band
 
@@ -212,6 +262,41 @@ void cfd_amr::patch_geometry(int id)
         const bool obj = geo_grid_solids_io(pp,roles[r],g,IO);
         if(!obj && geo_bed[r]==0)
         continue;
+
+        // inside/outside on the cells around the patch as well, for the faces between two entities
+        if(obj)
+        geo_grid_solids_io(pp,roles[r],gx,IOx);
+
+        // A face (or the part of one) where two entities of the role lie against each other is no
+        // surface of the solid: two S 10 boxes side by side, a wall made of several boxes.  Level 0
+        // leaves the crossings between two solid cells out of its distance (geo_raycast::cart_dist);
+        // here the distance to such a face made the wall a surface along the joint: the distance 0 in
+        // the cells with their centre on it, half the forcing there (Hsolidface), and the water of
+        // the high side of a lock ran along the joints inside the walls (0.5 m/s, 0.7 l/s).
+        // For a cell inside the solid the nearest point Q of a triangle counts only if the solid ends
+        // there: the cell one spacing beyond Q, seen from the cell (on the joint itself: on both
+        // sides along the normal), is not inside.  Cells beyond the cells around the patch: kept.
+        auto inside_at = [&](double x, double y, double z)
+        {
+            const int i = geo_cell(pp->XP,gx.is,gx.ie,x);
+            const int j = d2 ? 0 : geo_cell(pp->YP,gx.js,gx.je,y);
+            const int k = geo_cell(pp->ZP,gx.ks,gx.ke,z);
+            if(fabs(pp->XP[i+m]-x)>h || fabs(pp->ZP[k+m]-z)>h || (!d2 && fabs(pp->YP[j+m]-y)>h))
+            return false;
+            return IOx[cq(i,j,k)]==-1;
+        };
+        auto joint = [&](const double *P, const double *Q, const double *nrm)
+        {
+            double e[3] = {Q[0]-P[0],Q[1]-P[1],Q[2]-P[2]};
+            const double dl = sqrt(e[0]*e[0] + e[1]*e[1] + e[2]*e[2]);
+            if(dl>1.0e-6*h)
+            return inside_at(Q[0]+h*e[0]/dl,Q[1]+h*e[1]/dl,Q[2]+h*e[2]/dl);
+            const double nl = sqrt(nrm[0]*nrm[0] + nrm[1]*nrm[1] + nrm[2]*nrm[2]);
+            if(nl<=0.0)
+            return false;
+            return inside_at(Q[0]+h*nrm[0]/nl,Q[1]+h*nrm[1]/nl,Q[2]+h*nrm[2]/nl)
+                && inside_at(Q[0]-h*nrm[0]/nl,Q[1]-h*nrm[1]/nl,Q[2]-h*nrm[2]/nl);
+        };
 
         // the signed distance within the band of the patch cells (+-big outside it): the entities,
         // united with the bed
@@ -265,11 +350,28 @@ void cfd_amr::patch_geometry(int id)
                 for(int k=ks; k<ke; ++k)
                 {
                     const double px = pp->XP[i+m], pz = pp->ZP[k+m];
+                    int e0 = 0, e1 = 1;
                     double dd = dist2_seg(px,pz,sx[0],sz[0],sx[1],sz[1]);
                     if(ns==3)
                     {
-                        dd = MIN(dd,dist2_seg(px,pz,sx[1],sz[1],sx[2],sz[2]));
-                        dd = MIN(dd,dist2_seg(px,pz,sx[0],sz[0],sx[2],sz[2]));
+                        const double db = dist2_seg(px,pz,sx[1],sz[1],sx[2],sz[2]);
+                        const double dc = dist2_seg(px,pz,sx[0],sz[0],sx[2],sz[2]);
+                        if(db<dd) { dd = db; e0 = 1; e1 = 2; }
+                        if(dc<dd) { dd = dc; e0 = 0; e1 = 2; }
+                    }
+                    if(dd>=dmin[cq(i,0,k)])
+                    continue;
+
+                    // inside the solid: the nearest point of the segment, no joint of two entities
+                    if(IO[cq(i,0,k)]==-1)
+                    {
+                        const double ux = sx[e1]-sx[e0], uz = sz[e1]-sz[e0];
+                        const double L2 = ux*ux + uz*uz;
+                        double t = (L2>0.0) ? ((px-sx[e0])*ux + (pz-sz[e0])*uz)/L2 : 0.0;
+                        t = (t<0.0) ? 0.0 : (t>1.0 ? 1.0 : t);
+                        const double P[3] = {px,y,pz}, Q[3] = {sx[e0]+t*ux,y,sz[e0]+t*uz}, nrm[3] = {-uz,0.0,ux};
+                        if(joint(P,Q,nrm))
+                        continue;
                     }
                     for(int j=0; j<pp->knoy; ++j)
                     {
@@ -291,7 +393,23 @@ void cfd_amr::patch_geometry(int id)
                 const double dd = geo_raycast::dist2_tri(pp->XP[i+m],pp->YP[j+m],pp->ZP[k+m],
                                                          tx[0],ty[0],tz[0],tx[1],ty[1],tz[1],tx[2],ty[2],tz[2]);
                 double &v = dmin[cq(i,j,k)];
-                v = MIN(v,dd);
+                if(dd>=v)
+                continue;
+
+                // inside the solid: the nearest point of the triangle, no joint of two entities
+                if(IO[cq(i,j,k)]==-1)
+                {
+                    const double P[3] = {pp->XP[i+m],pp->YP[j+m],pp->ZP[k+m]};
+                    const double A[3] = {tx[0],ty[0],tz[0]}, B[3] = {tx[1],ty[1],tz[1]}, C[3] = {tx[2],ty[2],tz[2]};
+                    double Q[3];
+                    near_tri(P,A,B,C,Q);
+                    const double nrm[3] = {(B[1]-A[1])*(C[2]-A[2]) - (B[2]-A[2])*(C[1]-A[1]),
+                                           (B[2]-A[2])*(C[0]-A[0]) - (B[0]-A[0])*(C[2]-A[2]),
+                                           (B[0]-A[0])*(C[1]-A[1]) - (B[1]-A[1])*(C[0]-A[0])};
+                    if(joint(P,Q,nrm))
+                    continue;
+                }
+                v = dd;
             }
         }
 

@@ -1,0 +1,15 @@
+{
+ "np": 1,
+ "steps": 100,
+ "description": "Two water levels (0.18 and 0.38 m) in a basin 2.4 x 0.2 m, held apart by a cross wall 0.08 m thick, next to a side wall 0.2 m wide along the whole basin; both walls end at 0.46 m, 1.5 cells under the top of the domain (0.52 m, cells of 0.04 m), with the settings of the lock runs (N 40 5, N 54, N 57, N 59 2, N 63 3). The topology of a lock chamber at its upper head (validation 49_cfd_mini_lock): the air over the crest of the side wall connects the two levels. The level set inside the solids was continued from all fluid next to them, also from the air over the crest; that air takes its level set from the wall under it (the reinitialisation), so the two followed each other and nothing tied them to the free surface. hans_dev bfb9ec8ea: the level phi + z in the side wall and in the air over it is 0.09 to 0.17 m on the low side after 1 s (the water is at 0.18 m), cell by cell; in the lock it crept from the upper head along the wall tops and the level set over the walls reached zero during the filling (water density in the air there, 3.6 m/s). With the solids and the fluid that does not see the free surface taking the level of the nearest fluid that does (patch Ship Hydrodynamics/0070): 0.17 to 0.18 m on the low side, 0.36 to 0.37 m on the high side, the step at the cross wall, and it stays there.",
+ "tags": [
+  "quick",
+  "3d",
+  "levelset",
+  "solid"
+ ],
+ "covers": [
+  "levelset_solid_extend: the level of the nearest fluid that sees the free surface (W 22 < 0)",
+  "levelset_solid_extend: the air over the dry top of a solid between two water levels"
+ ]
+}

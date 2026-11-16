@@ -28,9 +28,8 @@ Author: Hans Bihs
 
 void nhflow_fsf_f::kinematic_bed(lexer *p, fdm_nhf *d, double *U, double *V, double *W)
 {
-    double wval,w_n;
+    double wval;
     double Pval,Qval;
-    double fac;
   
     // Kinematic Bed BC
     GC4LOOP

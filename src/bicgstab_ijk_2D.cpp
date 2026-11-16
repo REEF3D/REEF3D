@@ -29,17 +29,18 @@ Author: Hans Bihs
 bicgstab_ijk_2D::bicgstab_ijk_2D(lexer* p, fdm *a, ghostcell *pgc):epsi(1e-19)
 {
 
-    p->Darray(sj,p->imax*p->jmax*p->kmax);
-    p->Darray(rj,p->imax*p->jmax*p->kmax);
-    p->Darray(r0,p->imax*p->jmax*p->kmax);
-    p->Darray(vj,p->imax*p->jmax*p->kmax);
-    p->Darray(tj,p->imax*p->jmax*p->kmax);
-    p->Darray(pj,p->imax*p->jmax*p->kmax); 
-    p->Darray(ph,p->imax*p->jmax*p->kmax);
-    p->Darray(sh,p->imax*p->jmax*p->kmax);
-    p->Darray(aii,p->imax*p->jmax*p->kmax);
-    p->Darray(x,p->imax*p->jmax*p->kmax);
-    p->Darray(rhs,p->imax*p->jmax*p->kmax);
+    // calloc (Darray_lazy: no memory while a run does not call the solver), as bicgstab_ijk
+    p->Darray_lazy(sj,p->imax*p->jmax*p->kmax);
+    p->Darray_lazy(rj,p->imax*p->jmax*p->kmax);
+    p->Darray_lazy(r0,p->imax*p->jmax*p->kmax);
+    p->Darray_lazy(vj,p->imax*p->jmax*p->kmax);
+    p->Darray_lazy(tj,p->imax*p->jmax*p->kmax);
+    p->Darray_lazy(pj,p->imax*p->jmax*p->kmax); 
+    p->Darray_lazy(ph,p->imax*p->jmax*p->kmax);
+    p->Darray_lazy(sh,p->imax*p->jmax*p->kmax);
+    p->Darray_lazy(aii,p->imax*p->jmax*p->kmax);
+    p->Darray_lazy(x,p->imax*p->jmax*p->kmax);
+    p->Darray_lazy(rhs,p->imax*p->jmax*p->kmax);
 
     // checkpoints (P 48, I 45): the ghost cells of the work arrays carry over from one solve to the next
     for(double *w : {sj,rj,r0,vj,tj,pj,ph,sh,aii,x,rhs})
@@ -53,8 +54,8 @@ bicgstab_ijk_2D::~bicgstab_ijk_2D()
     // for the whole run), as bicgstab_ijk
     for(auto id : ckids)
     ckpt_registry::remove(id);
-    delete [] sj; delete [] rj; delete [] r0; delete [] vj; delete [] tj; delete [] pj;
-    delete [] ph; delete [] sh; delete [] aii; delete [] x; delete [] rhs;
+    free(sj); free(rj); free(r0); free(vj); free(tj); free(pj);
+    free(ph); free(sh); free(aii); free(x); free(rhs);
 }
 
 void bicgstab_ijk_2D::start(lexer* p,fdm* a, ghostcell* pgc, field &f, vec& rhsvec, int var)
@@ -294,6 +295,17 @@ void bicgstab_ijk_2D::solve(lexer* p, ghostcell* pgc, vec& rhsvec, matrix_diag &
 	}while((residual>=stop_crit) && (solveriter<maxiter));
 
     } 
+
+    // a residual that is not a number (non-finite entries of the matrix or of the right-hand side) ends the loop
+    // above at once and the solution is returned as it was: say so (three times per solver object)
+    if(residual!=residual && nan_warn<3)
+    {
+    ++nan_warn;
+    
+    if(p->mpirank==0)
+    cout<<"!!! bicgstab (variable "<<var<<"): the residual is not a number, the matrix or the right-hand side has "
+        <<"non-finite entries; the solution of this solve is left unchanged !!!"<<endl;
+    }
 		
 	LOOP
 	{

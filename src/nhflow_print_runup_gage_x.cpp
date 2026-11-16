@@ -82,9 +82,6 @@ nhflow_print_runup_gage_x::~nhflow_print_runup_gage_x()
 
 void nhflow_print_runup_gage_x::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow, slice &f)
 {
-    double zval=0.0;
-    int check;
-
     //-------------------
 
     for(q=0;q<p->P133;++q)
@@ -111,8 +108,6 @@ void nhflow_print_runup_gage_x::start(lexer *p, fdm_nhf *d, ghostcell *pgc, iofl
             {
             xloc[q] = p->XN[IP1];
             zloc[q] = 0.5*(f(i,j)+f(i+1,j))+p->phimean;
-
-            //cout<<p->mpirank<<" xloc[q]: "<<xloc[q]<<" zloc[q]: "<<zloc[q]<<endl;
             }
         }
     }
@@ -130,8 +125,6 @@ void nhflow_print_runup_gage_x::start(lexer *p, fdm_nhf *d, ghostcell *pgc, iofl
         for(q=0;q<p->P133;++q)
         for(n=0;n<p->M10;++n)
         {
-        //cout<<p->mpirank<<" xloc_all[q]: "<<xloc_all[q][n]<<endl;
-
         if(xloc_all[q][n]>xloc[q])
         {
         xloc[q] = xloc_all[q][n];
@@ -153,7 +146,7 @@ void nhflow_print_runup_gage_x::start(lexer *p, fdm_nhf *d, ghostcell *pgc, iofl
 
 void nhflow_print_runup_gage_x::ini_location(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
-    int check,count;
+    int count;
     
     
     for(q=0;q<p->P133;++q)

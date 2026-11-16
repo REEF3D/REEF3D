@@ -202,7 +202,6 @@ void sediment_exner::start_RK(lexer* p, ghostcell* pgc, sediment_fdm *s)
     timestep(p,pgc,s);
 
     //SEDSLICELOOP
-    //s->dh(i,j) = p->dtsed*s->vz(i,j);
 }
 
 
@@ -407,6 +406,51 @@ void sediment_exner::qb_inflow(lexer *p, sediment_fdm *s, int frac, slice4 &qf)
     for(i=0; i<p->knox; ++i)
     if(p->flagslice4[(i-p->imin)*p->jmax + (p->knoy-1-p->jmin)]>0 && s->Q(i,p->knoy-1)<0.0)
     qf(i,p->knoy) = qf(i,p->knoy+1) = qf(i,p->knoy+2) = qin;
+}
+
+// S 31 2: the Exner fluxes are taken from the flux vector qbx, qby of the cells, whose inflow ghost cells
+// held the vector of the first cell (zero gradient): the supply of S 129 set in s->qb (qb_inflow) never
+// entered the domain. The supply enters normal to the edge.
+void sediment_exner::qb_inflow_vec(lexer *p, sediment_fdm *s)
+{
+    if(s->pinflow==nullptr || !s->pinflow->bedload_on() || s->pinflow->qb(p)<0.0)
+    return;
+    
+    if(p->origin_i==0)
+    for(j=0; j<p->knoy; ++j)
+    if(p->flagslice4[(0-p->imin)*p->jmax + (j-p->jmin)]>0 && s->P(-1,j)>0.0)
+    for(int q=1; q<=3; ++q)
+    {
+    qbx(-q,j) = s->qb(-1,j);
+    qby(-q,j) = 0.0;
+    }
+    
+    if(p->origin_i+p->knox==p->gknox)
+    for(j=0; j<p->knoy; ++j)
+    if(p->flagslice4[(p->knox-1-p->imin)*p->jmax + (j-p->jmin)]>0 && s->P(p->knox-1,j)<0.0)
+    for(int q=0; q<3; ++q)
+    {
+    qbx(p->knox+q,j) = -s->qb(p->knox,j);
+    qby(p->knox+q,j) = 0.0;
+    }
+    
+    if(p->j_dir==1 && p->origin_j==0)
+    for(i=0; i<p->knox; ++i)
+    if(p->flagslice4[(i-p->imin)*p->jmax + (0-p->jmin)]>0 && s->Q(i,-1)>0.0)
+    for(int q=1; q<=3; ++q)
+    {
+    qbx(i,-q) = 0.0;
+    qby(i,-q) = s->qb(i,-1);
+    }
+    
+    if(p->j_dir==1 && p->origin_j+p->knoy==p->gknoy)
+    for(i=0; i<p->knox; ++i)
+    if(p->flagslice4[(i-p->imin)*p->jmax + (p->knoy-1-p->jmin)]>0 && s->Q(i,p->knoy-1)<0.0)
+    for(int q=0; q<3; ++q)
+    {
+    qbx(i,p->knoy+q) = 0.0;
+    qby(i,p->knoy+q) = -s->qb(i,p->knoy);
+    }
 }
 
 void sediment_exner::dry_deposit(lexer *p, sediment_fdm *s)

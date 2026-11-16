@@ -54,6 +54,8 @@ using namespace std;
 // positive definite after scaling with the cell area; the 5-point operator with the
 // reaction term 1 is the screened form reefmg2D is built for.
 
+#include<vector>
+
 class si_eta2D : public increment
 {
 public:
@@ -86,7 +88,14 @@ public:
     void build(lexer*, slice &ax, slice &ay, slice &rhs, slice &eta, slice &r);
     void wd_start(lexer*);
     void wd_rows(lexer*, slice &rhsW, slice &depth, slice &bdiag);
-    int wd_update(lexer*, slice &ax, slice &ay, slice &bdiag, slice &eta, slice &depth);
+    // islands: the search for dry islands (wd_islands); off for the composite system with refined patches, where a
+    // grid alone does not see the couplings through the patches (rsi_couple) and its covered cells
+    int wd_update(lexer*, slice &ax, slice &ay, slice &bdiag, slice &eta, slice &depth, bool islands=true);
+    // dry islands (no reaction, no boundary, open faces only to each other) back to wet; returns their number
+    int wd_islands(lexer*, slice &ax, slice &ay, slice &bdiag);
+    int wd_nisl = 0, wd_nisl_cells = 0;   // islands of the last wd_update made wet and their cells
+    int wd_nisl_empty = 0;                // islands left dry (no water, or made wet before in the step)
+    double wd_film = 1.0e-3;              // mean water depth (m) below which an island counts as empty
     const matrix2D& mat() const { return M; }
     const vec2D& rhsv() const { return rhsvec; }
     slice& wd_react() { return react; }
@@ -104,7 +113,9 @@ private:
     vec2D xvec, rhsvec;
     
     // wet pattern, reaction term and right-hand side of the wetting and drying iteration
-    slice4 pw, react, rhs;
+    slice4 pw, pw0, pr, rW, react, rhs;   // pattern, pattern of the pass before, made wet as an island in this step,
+                                          // right-hand side of the volume equation
+    std::vector<int> wdmark;
 };
 
 #endif

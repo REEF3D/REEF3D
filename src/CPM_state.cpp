@@ -289,4 +289,7 @@ void CPM::sedlog(lexer *p, ghostcell *pgc)
         
         logout<<p->simtime<<"\t"<<np<<"\t"<<vol<<"\t"<<vout<<"\t"<<vmov<<"\t"<<qx/(Lx*Ly)<<"\t"<<qy/(Lx*Ly)<<"\t"<<vbl<<"\t"<<npick<<"\t"<<ndep<<"\t"<<nsus<<"\t"<<tb<<"\t"<<qbx/(Lx*Ly)<<"\t"<<vsus<<"\t"<<nset<<endl;
     }
+    
+    // graded sediment (S 51): composition of the bed and of its surface layer
+    mixture_log(p,pgc);
 }

@@ -21,12 +21,14 @@ Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"pic_f.h"
+#include"cell_index.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
 #include"field1.h"
 #include"field2.h"
 #include"field3.h"
+#include"pic_gfm.h"
 #include<vector>
 
 // Phase 2 (F 81 1, 2): the momentum of the water from the particles (F 81 2: the air Eulerian).
@@ -57,14 +59,6 @@ Architect: Hans Bihs
 // the water flies on under gravity (pic_f::g2p).
 // In the relaxation zones of the waves the update is the same as elsewhere: the PIC update there
 // (patch 0005) damped the waves of the generation by 8 %.
-
-namespace
-{
-inline int fid(lexer *p, int i, int j, int k)
-{
-    return (i-p->imin)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin;
-}
-}
 
 void pic_f::step_begin(lexer *p, fdm *a, ghostcell *pgc)
 {
@@ -98,7 +92,7 @@ void pic_f::step_begin(lexer *p, fdm *a, ghostcell *pgc)
 
             for(int m=0; m<n; ++m)
             {
-                const int g = fid(p,ii[m],jj[m],kk[m]);
+                const int g = cell_index(p,ii[m],jj[m],kk[m]);
                 double v = val;
 
                 if(apic)
@@ -123,7 +117,7 @@ void pic_f::step_begin(lexer *p, fdm *a, ghostcell *pgc)
         for(int j=0; j<p->knoy; ++j)
         for(int k=0; k<p->knoz; ++k)
         {
-            const int g = fid(p,i,j,k);
+            const int g = cell_index(p,i,j,k);
 
             if(flag[g]<=0 || sw[g]<=1.0e-12)
             continue;
@@ -133,7 +127,9 @@ void pic_f::step_begin(lexer *p, fdm *a, ghostcell *pgc)
             // the extension (pic_f::air_velocity)
             const double f0 = a->phi(i,j,k), f1 = a->phi(i+di,j+dj,k+dk);
 
-            if(single ? (f0<0.0 && f1<0.0) : (0.5*(f0+f1) < 0.0))
+            const double wet = PIC_GFM_WET*p->DXM;
+
+            if(single ? (f0<wet && f1<wet) : (0.5*(f0+f1) < 0.0))
             continue;
 
             f(i,j,k) = sv[g]/sw[g];
@@ -232,7 +228,7 @@ void pic_f::mask_convection(lexer *p, fdm *a, int c, const double *before, field
     for(int k=0; k<p->knoz; ++k)
     if(0.5*(a->phi(i,j,k) + a->phi(i+di,j+dj,k+dk)) >= 0.0)
     {
-        const int g = fid(p,i,j,k);
+        const int g = cell_index(p,i,j,k);
         F.V[g] = before[g];
     }
 }

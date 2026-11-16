@@ -1,0 +1,8 @@
+{
+ "description": "SFLOW semi-implicit (A 210 12): river flow towards x-, discharge inflow through the x+ side (C 14 1) and water level outflow through the x- side (C 11 2); 1 km, slope 1e-3, n 0.03. ioflow on the x+ / x- sides (gcsl_side): inflow into the domain is -U on x+.",
+ "solver": "sflow",
+ "np": 1,
+ "steps": 300,
+ "tags": ["quick", "2d", "sflow", "semi_implicit"],
+ "covers": ["ioflow_f::inflow2D on x+, waterlevel2D on x-", "sflow_momentum_SI::bc_setup cs 4 inflow, cs 1 level"]
+}

@@ -45,8 +45,6 @@ double interpolation::lint1(field& b, int& i,int& j, int& k, double wa, double w
     v7=b(i+1,j,k+1);
     if(p->flag1[Ip1Jp1Kp1]>TOPO_FLAG)
     v8=b(i+1,j+1,k+1);
-    
-    //cout<<" v1: "<<v1<<" v3: "<<v3<<" ";
 
     x1 = wa*v1 + (1.0-wa)*v3;
     x2 = wa*v2 + (1.0-wa)*v4;
@@ -259,8 +257,6 @@ double interpolation::lint4(field& f, int& i,int& j, int& k, double wa, double w
     v7=f(i+1,j,k+1);
     if(p->flag4[Ip1Jp1Kp1]>TOPO_FLAG)
     v8=f(i+1,j+1,k+1);
-    
-    //cout<<" v1: "<<v1<<" v3: "<<v3<<" ";
 
     x1 = wa*v1 + (1.0-wa)*v3;
     x2 = wa*v2 + (1.0-wa)*v4;

@@ -23,14 +23,12 @@ Author: Hans Bihs
 #include"sflow_amr.h"
 #include"sflow_fsf.h"
 #include"sediment_f.h"
-#include"sediment_fdm.h"
 #include"sediment_exner.h"
 #include"lexer.h"
 #include"fdm2D.h"
 #include"ghostcell.h"
 #include"reefamr_sed.h"
 #include"slice4.h"
-#include"sflow_momentum_RK3.h"
 #include<memory>
 #include<cstdlib>
 #include<cstring>

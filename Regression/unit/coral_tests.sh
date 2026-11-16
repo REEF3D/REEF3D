@@ -21,7 +21,7 @@ done | xargs -P "$JOBS" -I{} sh -c 'o="$0/$(basename {} .cpp).o"; '"$CXX $FLAGS"
 $CC -shared -fPIC -O2 coral_pto_user_example.c -o "$OBJ/coral_pto_user_example.so" || fail=1
 for t in coral_test coral_hydro_test coral_pto_test coral_mooring_test coral_io_test coral_beam_test coral_linear_test \
          coral_superelement_test coral_soil_test coral_offshore_test coral_fluid_test coral_wind_test coral_aero_test coral_rotor_test coral_control_test coral_floater_test coral_unsteady_aero_test \
-         coral_moordyn_test coral_wec_test coral_slender_test; do
+         coral_moordyn_test coral_wec_test coral_slender_test coral_slam_test; do
     if ! $CXX $FLAGS $t.cpp "$OBJ"/*.o $LIBS -o "$OBJ/$t"; then echo "$t: build failed"; fail=1; continue; fi
     if [ "$t" = coral_wec_test ]; then res=$("$OBJ/$t" "$OBJ/coral_pto_user_example.so" | tail -1); else res=$("$OBJ/$t" | tail -1); fi
     echo "$t: $res"

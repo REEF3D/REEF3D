@@ -25,6 +25,7 @@ Authors: Tobias Martin, Hans Bihs
 #include"fdm.h"
 #include"fdm_nhf.h"
 #include"ghostcell.h"
+#include<vector>
 
 void net_barDyn::coupling_dlm_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
@@ -55,13 +56,10 @@ void net_barDyn::coupling_dlm_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
     
     //- Save Lagrangian coordinates and forces
      
-    double xc,yc,zc,x0,x1,x2,y0,y1,y2,z0,z1,z2,nx,ny,nz,mag,area; 
+    double xc,yc,zc,x0,x1,x2,y0,y1,y2,z0,z1,z2,mag,area;
    
     lagrangePoints.resize(tend);
     lagrangeForces.resize(tend);
-    
-    int index = 0;
-    int indexSide = 0;
     
     Vector3d side1, side2, normalVec;
     Vector3d v_rel, n_d, n_s, n_l;
@@ -171,8 +169,6 @@ void net_barDyn::coupling_dlm_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
             // Save directional forces at lagrangian points (w/o density since multiplied later)
 
             lagrangeForces[i] = 0.5*area*pow(v_mag_corr,2.0)*(cd*n_d + cl*n_l);
-
-            //lagrangeForces[i] << tri_forces[i][0], tri_forces[i][1], tri_forces[i][2];
         }
         else
         {
@@ -180,11 +176,17 @@ void net_barDyn::coupling_dlm_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
         }
     }    
     
+    // the force of a point is on the rank that holds it, zero on the others: one reduction for all
+    // points
+    std::vector<double> fsum(3*tend);
     for (int pI = 0; pI < tend; pI++)
-    {
-        Eigen::Vector3d& forceI = lagrangeForces[pI];
-        forceI << pgc->globalsum(forceI(0)), pgc->globalsum(forceI(1)), pgc->globalsum(forceI(2));
-    }
+    for (int q = 0; q < 3; q++)
+    fsum[3*pI+q] = lagrangeForces[pI](q);
+    
+    pgc->globalsum(fsum.data(),3*tend);
+    
+    for (int pI = 0; pI < tend; pI++)
+    lagrangeForces[pI] << fsum[3*pI], fsum[3*pI+1], fsum[3*pI+2];
 
 }
 

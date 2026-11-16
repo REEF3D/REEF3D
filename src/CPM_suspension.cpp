@@ -86,6 +86,13 @@ void CPM::susp_cbe(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
     s->ws = ws;
     afdm = a;
     
+    // graded sediment: per fraction, see below
+    if(!mxC.empty())
+    {
+        susp_cbe_mixture(p,a,pgc,s);
+        return;
+    }
+    
     if(getenv("CPM_SUSPDBG")!=nullptr)
     dbg_v0 = susp_volume(p,a,pgc);
     
@@ -140,7 +147,7 @@ void CPM::susp_cbe(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
         zs = MIN(zs, p->global_zmax);   // lid (free surface above the domain)
         double h = zs>zb ? zs-zb : 1.0e20;
         
-        double adist = MAX(p->S21*p->S20, 2.0*p->S20);
+        double adist = MAX(mx_nf>0 ? mixture_ks(p,i,j) : p->S21*p->S20, 2.0*p->S20);
         adist = MAX(adist, h<1.0e19 ? 0.01*h : 0.0);
         adist = MIN(adist, 0.5*h);
         
@@ -242,4 +249,164 @@ double CPM::susp_volume(lexer *p, fdm *a, ghostcell *pgc)
     vol += MAX(a->conc(i,j,k),0.0)*p->DXN[IP]*p->DYN[JP]*p->DZN[KP];
     
     return pgc->globalsum(vol);
+}
+
+// sediment volume of a concentration field in suspension in the column (i,j)
+double CPM::susp_column(lexer *p, fdm *a, field &c, int ii, int jj)
+{
+    double vol=0.0;
+    
+    for(int kk=0; kk<p->knoz; ++kk)
+    {
+        int ijk = (ii-p->imin)*p->jmax*p->kmax + (jj-p->jmin)*p->kmax + kk-p->kmin;
+        
+        if(p->flag4[ijk]>0 && a->phi(ii,jj,kk)>=0.0 && a->topo(ii,jj,kk)>0.0)
+        vol += MAX(c(ii,jj,kk),0.0)*p->DXN[ii+marge]*p->DYN[jj+marge]*p->DZN[kk+marge];
+    }
+    
+    return vol;
+}
+
+/*--------------------------------------------------------------------
+hybrid suspension of a graded bed (S 51): each fraction has its concentration C_q, with its settling
+velocity w_s(d_q), and exchanges with the bed as above:
+    erosion     E_q = w_s,q c_be,q,   c_be,q = F_q c_a(d_q) (van Rijn 1984 with d_q, D*,q, the threshold
+                                      Q 60 times the hiding factor of the fraction and the share F_q of the
+                                      fraction in the surface of the column), Rouse transfer with w_s,q;
+                                      onset of suspension per fraction (Q 58 3)
+    deposition  D_q = w_s,q c_1,q
+The account of a fraction (mxCs) takes parcels of that fraction out of the layer and deposits parcels
+of its grain size, so the sediment volume of every fraction is conserved over parcels + concentration
++ accounts. The concentration steps use the solver of the fluid's concentration one after the other
+(susp_load, susp_store); a->conc is the sum of the fractions afterwards (output, susp_total).
+--------------------------------------------------------------------*/
+void CPM::susp_cbe_mixture(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
+{
+    const double gmag = sqrt(p->W20*p->W20 + p->W21*p->W21 + p->W22*p->W22);
+    const double R = (p->S22 - p->W1)/p->W1;
+    const size_t nj = size_t(p->knoy+2);
+    
+    // the composition of the surface of the last parcel step (the same after a restart)
+    mixture_restore(p);
+    
+    for(int q=0;q<mx_nf;++q)
+    {
+        const double d = mx_d[q];
+        const double Dst = d*pow(R*gmag/(p->W2*p->W2), 1.0/3.0);
+        const double ws = mx_ws[q];
+        const double ucs = (Dst<=10.0 ? 4.0/MAX(Dst,1.0) : 0.4)*ws;
+        slice4 &cbe = *mxCbe[q];
+        
+        // cells that changed between the bed and the flow since the last concentration step
+        if(blMc_ok==1)
+        for(i=0;i<p->knox;++i)
+        for(j=0;j<p->knoy;++j)
+        (*mxCs[q])(i,j) += p->Q65*(susp_column(p,a,*mxC[q],i,j) - (*mxMc[q])(i,j));
+        
+        SLICELOOP4
+        cbe(i,j) = 0.0;
+        
+        for(i=0;i<p->knox;++i)
+        for(j=0;j<p->knoy;++j)
+        {
+            int k1 = susp_cell(p,a,i,j);
+            const size_t c = size_t(i+1)*nj + j+1;
+            
+            // columns without erodible parcels, and without the fraction in the surface, do not erode
+            if(k1<0 || blNc(i,j)<=0.0 || c>=mx_V.size() || mx_V[c]<=0.0 || mx_F[c*mx_nf+q]<=0.0)
+            continue;
+            
+            double tm = sqrt(blTx(i,j)*blTx(i,j) + blTy(i,j)*blTy(i,j));
+            double ustar = sqrt(tm/p->W1);
+            double T = tm/((p->S22-p->W1)*gmag*d*p->Q60*mixture_hiding(p,i,j,d)) - 1.0;
+            
+            if((p->Q58==3 && ustar<=ucs) || T<=0.0)
+            continue;
+            
+            // water depth above the bed: free surface of the column (top cell in water + phi)
+            double zb = p->ZP[k1+marge] - a->topo(i,j,k1);
+            double zs = -1.0e20;
+            
+            for(k=k1; k<p->knoz; ++k)
+            if(a->phi(i,j,k)>=0.0)
+            zs = p->ZP[KP] + a->phi(i,j,k);
+            
+            zs = MIN(zs, p->global_zmax);
+            double h = zs>zb ? zs-zb : 1.0e20;
+            
+            double adist = MAX(mixture_ks(p,i,j), 2.0*p->S20);
+            adist = MAX(adist, h<1.0e19 ? 0.01*h : 0.0);
+            adist = MIN(adist, 0.5*h);
+            
+            double ca = mx_F[c*mx_nf+q]*MIN(0.05, 0.015*d*pow(T,1.5)/(adist*pow(Dst,0.3)));
+            
+            // Rouse transfer from z = a to the first cell centre
+            double z1 = MAX(a->topo(i,j,k1), adist);
+            z1 = MIN(z1, 0.99*h);
+            double Pr = MIN(ws/(0.4*MAX(ustar,1.0e-6)), 5.0);
+            double ratio = h<1.0e19 ? (adist/(h-adist))*((h-z1)/z1) : adist/z1;
+            
+            cbe(i,j) = ca*pow(ratio, Pr);
+        }
+        
+        pgc->gcsl_start4(p,cbe,1);
+    }
+}
+
+// the concentration, settling velocity and erosion concentration of fraction q for its concentration step
+void CPM::susp_load(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, int q)
+{
+    const long long N = (long long)p->imax*p->jmax*p->kmax;
+    
+    for(long long m=0;m<N;++m)
+    a->conc.V[m] = mxC[q]->V[m];
+    
+    s->ws = mx_ws[q];
+    
+    for(int ii=-1;ii<p->knox+1;++ii)
+    for(int jj=-1;jj<p->knoy+1;++jj)
+    s->cbe(ii,jj) = (*mxCbe[q])(ii,jj);
+}
+
+// after the concentration step of fraction q: its concentration, net exchange rate of its account, column mass
+void CPM::susp_store(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, int q)
+{
+    const long long N = (long long)p->imax*p->jmax*p->kmax;
+    
+    for(long long m=0;m<N;++m)
+    mxC[q]->V[m] = a->conc.V[m];
+    
+    slice4 &Sr = *mxSr[q];
+    
+    SLICELOOP4
+    Sr(i,j) = 0.0;
+    
+    for(i=0;i<p->knox;++i)
+    for(j=0;j<p->knoy;++j)
+    {
+        int k1 = susp_cell(p,a,i,j);
+        
+        if(k1>=0)
+        Sr(i,j) = p->Q65*mx_ws[q]*((*mxCbe[q])(i,j) - MAX(a->conc(i,j,k1), 0.0))*p->DXN[IP]*p->DYN[JP];
+        
+        (*mxMc[q])(i,j) = susp_column(p,a,*mxC[q],i,j);
+    }
+}
+
+// the concentration of the fluid: the sum of the fractions
+void CPM::susp_total(lexer *p, fdm *a, ghostcell *pgc)
+{
+    const long long N = (long long)p->imax*p->jmax*p->kmax;
+    
+    for(long long m=0;m<N;++m)
+    {
+        double c=0.0;
+        
+        for(size_t q=0;q<mxC.size();++q)
+        c += mxC[q]->V[m];
+        
+        a->conc.V[m] = c;
+    }
+    
+    blMc_ok=1;
 }

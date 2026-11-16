@@ -61,7 +61,7 @@ using namespace nhflow_amr_detail;
 // A fresh patch of a regrid takes its fields from an old patch of the same level where there was one, else linear
 // from its parent.
 //
-// Subcycling (G 7 1, turb_level, turb_sync): level 0 makes its step in the driver as before; every step of a level
+// Subcycling (G 7 1, turb_level, turb_sync): level 0 makes its step in the driver; every step of a level
 // l >= 1 (sub_level, with the time step of the level) starts with the turbulence step of its patches, the cells
 // around them from a patch of the level or linear from the parent as it is then (the parent has made its own
 // turbulence step at the start of its step: its fields are those of the end of that step, not interpolated in
@@ -271,6 +271,16 @@ void nhflow_amr::turb_free(nhflow_amr_patch &c)
     {
         pp->del_Iarray(r->WALLF,n7);
         pp->del_Iarray(r->WETN,pp->imax*pp->jmax);
+        // the arrays of nhflow_strain and the SST wall distance (were never freed: three to twelve arrays of the
+        // patch leaked with every patch a regrid removed)
+        double **sa[] = {&r->PK,&r->PK0,&r->PK_b,&r->GBS,&r->GBS0,&r->N2S,
+                         &r->TQ11,&r->TQ22,&r->TQ33,&r->TQ12,&r->TQ13,&r->TQ23,&r->WDH};
+        for(double **a : sa)
+        if(*a!=nullptr)
+        {
+            pp->del_Darray(*a,n7);
+            *a = nullptr;
+        }
     }
     delete c.ptconv;
     delete c.ptdiff;

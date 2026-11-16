@@ -28,6 +28,7 @@ Authors: Tobias Martin, Hans Bihs
 #include"fdm.h"
 #include"fdm_nhf.h"
 #include"ghostcell.h"
+#include"6DOF_motionext.h"
 
 void sixdof_obj_cfd::solve_eqmotion_cfd(lexer *p, fdm *a, ghostcell *pgc, int iter, bool finalize)
 {
@@ -64,6 +65,8 @@ void sixdof_obj_cfd::solve_eqmotion_cfd(lexer *p, fdm *a, ghostcell *pgc, int it
     // pose with the new momenta)
     if(p->N40==5)
     {
+    motion_stage_begin(p,1.0);
+    
     get_trans(p,pgc);    
     get_rot(p);
     
@@ -77,6 +80,8 @@ void sixdof_obj_cfd::solve_eqmotion_cfd(lexer *p, fdm *a, ghostcell *pgc, int it
     }
     
     rb.step_symplectic(p->dt);
+    
+    motion_stage_end(p);
     }
 }
 
@@ -104,6 +109,10 @@ void sixdof_obj_nhflow::solve_eqmotion_nhflow(lexer *p, fdm_nhf *d, ghostcell *p
     // partitioned coupling
     if((p->X15==8 || p->X15==10) && d->hullbody!=nullptr)
     hull_stabilisation(p,iter);
+    
+    // direct forcing with the body in the projection (X 15 11): the added mass of the hull on the grid on both sides
+    if(p->X15==11 && p->X16==0)
+    fraction_stabilisation(p);
     
     // porous floating body: linearly implicit drag
     if(p->X16==1)
@@ -147,18 +156,28 @@ void sixdof_obj_2D::solve_eqmotion_oneway_sflow(lexer *p, ghostcell *pgc, int it
     
 void sixdof_obj::rk2(lexer *p, ghostcell *pgc, int iter)
 {   
+    // SSP-RK2: both stages end at t+dt
+    motion_stage_begin(p,1.0);
+    
     get_trans(p,pgc);    
     get_rot(p);
     
     rb.stage_rk2(iter,p->dt);
+    
+    motion_stage_end(p);
 }
 
 void sixdof_obj::rk3(lexer *p, ghostcell *pgc, int iter)
 {   
+    // SSP-RK3 (Shu-Osher): the stages end at t+dt, t+dt/2, t+dt
+    motion_stage_begin(p, iter==1 ? 0.5 : 1.0);
+    
     get_trans(p,pgc);    
     get_rot(p);
     
     rb.stage_rk3(iter,p->dt);
+    
+    motion_stage_end(p);
 }
 
 // The body with the one-step scheme with two projections (CFD N 40 6): position Verlet
@@ -172,6 +191,9 @@ void sixdof_obj::rk3(lexer *p, ghostcell *pgc, int iter)
 void sixdof_obj::rkmid(lexer *p, ghostcell *pgc, int iter)
 {
     const double dt = p->dt;
+    
+    // the half step ends at t+dt/2, the full step at t+dt
+    motion_stage_begin(p, iter==0 ? 0.5 : 1.0);
     
     get_trans(p,pgc);    
     get_rot(p);
@@ -188,6 +210,8 @@ void sixdof_obj::rkmid(lexer *p, ghostcell *pgc, int iter)
         
         rb.p = rb.pk + 0.5*dt*rb.dp;
         rb.h = rb.hk + 0.5*dt*rb.dh;
+        
+        motion_stage_end(p);
         return;
     }
     
@@ -199,30 +223,63 @@ void sixdof_obj::rkmid(lexer *p, ghostcell *pgc, int iter)
     
     rb.c = rb.c + 0.5*dt*rb.dc;
     rb.e = (rb.e + 0.5*dt*rb.de).normalized();
+    
+    motion_stage_end(p);
 }
 
 void sixdof_obj::rkls3(lexer *p, ghostcell *pgc, int iter)
 {
+    // low-storage RK3 (Williamson): the stages end at t+8/15 dt, t+2/3 dt, t+dt
+    motion_stage_begin(p, iter==0 ? 8.0/15.0 : (iter==1 ? 2.0/3.0 : 1.0));
+    
     get_trans(p,pgc);    
     get_rot(p);
     
     rb.stage_rkls3(iter,gamma[iter],zeta[iter],p->dt);
+    
+    motion_stage_end(p);
 }
 
 void sixdof_obj::solve_eqmotion_oneway_onestep(lexer *p, ghostcell *pgc, bool finalize)
 {
+    // one step to t+dt (the SFLOW semi-implicit step sflow_momentum_SI, the ship waves X 10 3)
+    motion_stage_begin(p,1.0);
+    
     get_trans(p,pgc);    
     get_rot(p);
     
     rb.step_onestep(p->dt);
+    
+    motion_stage_end(p);
 }
 
 void sixdof_obj::rk4(lexer *p, ghostcell *pgc, int iter)
 {
-    // classical RK4, stage-synchronous with fnpf_RK4
+    // classical RK4, stage-synchronous with fnpf_RK4: the stages end at t+dt/2, t+dt/2, t+dt, t+dt
+    motion_stage_begin(p, iter<2 ? 0.5 : 1.0);
+    
     get_trans(p,pgc);    
     get_rot(p);
     
     rb.stage_rk4(iter,p->dt);
+    
+    motion_stage_end(p);
+}
+
+// Prescribed motion from a file (X 240 1): the velocity and the position of the body at the time the stage of
+// its integrator ends, the time of the fluid state that sees the body next.  The body moves before the fluid
+// stage (CFD, NHFLOW, SFLOW: the forcing of the stage; FNPF: the body boundary of the next Laplace solve).
+// The velocity of the file interval at p->simtime, the start of the step, in every stage was a step function
+// in time and the same target for stages that end at different times.  Other motions ignore the time.
+void sixdof_obj::motion_stage_begin(lexer *p, double cend)
+{
+    if(pmotion!=nullptr)
+    pmotion->stage_begin(p, p->simtime + cend*p->dt, rb.c);
+}
+
+void sixdof_obj::motion_stage_end(lexer *p)
+{
+    if(pmotion!=nullptr)
+    pmotion->stage_position(p,rb.c);
 }
 

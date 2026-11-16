@@ -40,7 +40,8 @@ void net_interface::netForces_cfd(lexer *p, fdm *a, ghostcell *pgc, double alpha
     {
         pnet[n]->start_cfd(p, a, pgc, alpha, quatRotMat, finalize);
         
-        dlm_cfd(p, a, pgc, n);
+        // the forces of the net onto the faces; the ghost cells of all nets after the loop
+        dlm_cfd_spread(p, a, n);
         
         // Forces on rigid body
         pnet[n]->netForces(p,Xne[n],Yne[n],Zne[n],Kne[n],Mne[n],Nne[n]);
@@ -52,5 +53,13 @@ void net_interface::netForces_cfd(lexer *p, fdm *a, ghostcell *pgc, double alpha
         pgc->bcast_double(&Kne[n],1);
         pgc->bcast_double(&Mne[n],1);
         pgc->bcast_double(&Nne[n],1);
+    }
+    
+    // one exchange of the net forces for all nets (dlm_cfd: three for each net)
+    if(p->net_count>0)
+    {
+    pgc->start1(p,a->Fext,10); 
+    pgc->start2(p,a->Gext,11); 
+    pgc->start3(p,a->Hext,12); 
     }
 }

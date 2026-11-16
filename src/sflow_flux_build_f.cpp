@@ -24,7 +24,6 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"ghostcell.h"
 #include"fdm2D.h"
-#include"slice.h"
 #include"patchBC_interface.h"
 #include"sflow_curv.h"
 

@@ -63,8 +63,6 @@ void control::ctrlsend()
     ii++;
     dctrl[dd] = A222;
     dd++;
-    dctrl[dd] = A223;
-    dd++;
     dctrl[dd] = A224;
     dd++;
     ictrl[ii] = A240;
@@ -206,6 +204,8 @@ void control::ctrlsend()
     ictrl[ii] = G7;
     ii++;
     ictrl[ii] = G8;
+    ii++;
+    ictrl[ii] = G9;
     ii++;
 
     dctrl[dd] = A305;
@@ -622,6 +622,8 @@ void control::ctrlsend()
     dd++;
     dctrl[dd] = A545;
     dd++;
+    dctrl[dd] = A541;
+    dd++;
     ictrl[ii] = A550;
     ii++;
     ictrl[ii] = A551;
@@ -1035,6 +1037,8 @@ void control::ctrlsend()
     dd++;
     dctrl[dd] = B57;
     dd++;
+    ictrl[ii] = B58;
+    ii++;
     ictrl[ii] = B60;
     ii++;
     ictrl[ii] = B61;
@@ -1526,9 +1530,13 @@ void control::ctrlsend()
     ii++;
     ictrl[ii] = D23;
     ii++;
+    ictrl[ii] = D24;
+    ii++;
     ictrl[ii] = D30;
     ii++;
     ictrl[ii] = D32;
+    ii++;
+    ictrl[ii] = D1;
     ii++;
 
     ictrl[ii] = F30;
@@ -1626,6 +1634,8 @@ void control::ctrlsend()
     ictrl[ii] = F71;
     ii++;
     ictrl[ii] = F72;
+    ii++;
+    ictrl[ii] = F76;
     ii++;
     ictrl[ii] = F77;
     ii++;
@@ -2484,6 +2494,12 @@ void control::ctrlsend()
     dd++;
     ictrl[ii] = Q86;
     ii++;
+    ictrl[ii] = Q87;
+    ii++;
+    dctrl[dd] = Q88;
+    dd++;
+    dctrl[dd] = Q89;
+    dd++;
     ictrl[ii] = Q50;
     ii++;
     ictrl[ii] = Q72;
@@ -2730,6 +2746,8 @@ void control::ctrlsend()
     dd++;
     ictrl[ii] = S129;
     ii++;
+    ictrl[ii] = S134;
+    ii++;
     dctrl[dd] = S130;
     dd++;
     dctrl[dd] = S131;
@@ -2837,6 +2855,10 @@ void control::ctrlsend()
     dd++;
     ictrl[ii] = T45;
     ii++;
+    dctrl[dd] = T46_I;
+    dd++;
+    dctrl[dd] = T46_L;
+    dd++;
 
     dctrl[dd] = W1;
     dd++;
@@ -3080,6 +3102,20 @@ void control::ctrlsend()
     dd++;
     ictrl[ii] = W128;
     ii++;
+    ictrl[ii] = W129;
+    ii++;
+    ictrl[ii] = W130;
+    ii++;
+    ictrl[ii] = W131;
+    ii++;
+    dctrl[dd] = W132;
+    dd++;
+    dctrl[dd] = W133_min;
+    dd++;
+    dctrl[dd] = W133_max;
+    dd++;
+    dctrl[dd] = W134;
+    dd++;
     ictrl[ii] = W200;
     ii++;
     dctrl[dd] = W201_u;
@@ -3492,6 +3528,12 @@ void control::ctrlsend()
     ictrl[ii] = X200;
     ii++;
     ictrl[ii] = X201;
+    ii++;
+    ictrl[ii] = X202;
+    ii++;
+    ictrl[ii] = X203;
+    ii++;
+    ictrl[ii] = X204;
     ii++;
     ictrl[ii] = X194;
     ii++;
@@ -5596,6 +5638,33 @@ void control::ctrlsend()
         dctrl[dd] = x;
         dd++;
         }
+    }
+    
+    for(n=0;n<X202;++n)
+    {
+        ictrl[ii] = X202_id[n];
+        ii++;
+        for(double x : {X202_u[n], X202_d[n]})
+        {
+        dctrl[dd] = x;
+        dd++;
+        }
+    }
+    
+    for(n=0;n<X203;++n)
+    {
+        ictrl[ii] = X203_id[n];
+        ii++;
+        dctrl[dd] = X203_s[n];
+        dd++;
+    }
+    
+    for(n=0;n<X204;++n)
+    {
+        ictrl[ii] = X204_id[n];
+        ii++;
+        dctrl[dd] = X204_t[n];
+        dd++;
     }
     
     for(n=0;n<X194;++n)

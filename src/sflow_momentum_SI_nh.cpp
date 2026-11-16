@@ -35,8 +35,8 @@ Author: Hans Bihs
 //  mass  eta_i + theta dt div(q) = WL^n - d - (1-theta) dt div(q^n)                    (the row of si_eta2D)
 //  incompressibility (new velocities)
 //        div(q) + U* (2 d_x - H_x) + V* (2 d_y - H_y) + 2 W = 0,  W = (WH* + dt (cw P + H phi/4))/H,
-//        U*, V*: the cell velocities extrapolated to t^{n+1} (the slope term implicit, with the face velocities,
-//        needed about 100 Krylov iterations on the Beji & Battjes bar instead of 4, the errors there the same)
+//        U*, V*: the cell velocities extrapolated to t^{n+1} (an implicit slope term, with the face velocities,
+//        needs about 25 times the Krylov iterations for the same errors)
 //
 // compact face differences throughout (no checkerboard mode, the dispersion of the staggered grid). The cell
 // discharges take the mean of the non-hydrostatic face terms (as the gravity term, cell_update). phi, the bed
@@ -76,13 +76,12 @@ Author: Hans Bihs
 // ---------------------------------------------------------------------------
 
 #include"sflow_momentum_SI.h"
+#include"sflow_drywall.h"
 #include"lexer.h"
 #include"fdm2D.h"
 #include"ghostcell.h"
-#include"ioflow.h"
 #include"si_eta2D.h"
 #include"sflow_fsf.h"
-#include"solver2D.h"
 #include"reefmg2D.h"
 #include"matrix2D.h"
 #include"vec2D.h"
@@ -110,6 +109,7 @@ void sflow_momentum_SI::nh_ini(lexer *p)
     Unm1(i,j) = 0.0;
     Vnm1(i,j) = 0.0;
     WLo(i,j) = -1.0;
+    dwC(i,j) = 0.0;
     }
 
     SLICELOOP1
@@ -133,8 +133,7 @@ void sflow_momentum_SI::nh_ini(lexer *p)
 void sflow_momentum_SI::nh_levels(lexer *p, fdm2D *b, ghostcell *pgc)
 {
     // time levels of the nonlinear terms (the non-hydrostatic pressure and A 210 11), extrapolated from t^n and
-    // t^{n-1}: with the depth of t^n the waves on the Beji & Battjes bar lagged in proportion to dt (0.05 s at dt
-    // 0.02 s after the bar crest) and the released harmonics grew by 5 %:
+    // t^{n-1} (with the depth of t^n the waves over a bar lag in proportion to dt):
     //  - face and cell depth of the gravity and A 220 3 terms at t^{n+1/2} (theta 1/2)
     //  - depth of the pressure terms and of the constraint at t^{n+1} (P^{n+1} and the velocities of t^{n+1}); A 210 11:
     //    the pressure terms at t^{n+1/2}, as the gravity term (nh_assemble)
@@ -224,11 +223,12 @@ int sflow_momentum_SI::nh_active(lexer *p, fdm2D *b, int ii, int jj)
     if(p->deep[id(ii,jj)]==0)
     return 0;
 
+    // next to a dry cell: hydrostatic; A 221 2: dry land above the water of a deep cell is a wall (drywall_cells)
     if(dry(ii-1,jj) || dry(ii+1,jj))
-    return 0;
+    return dwC(ii,jj)>0.5 ? 1 : 0;
 
     if(p->j_dir==1 && (dry(ii,jj-1) || dry(ii,jj+1)))
-    return 0;
+    return dwC(ii,jj)>0.5 ? 1 : 0;
 
     return 1;
 }
@@ -242,7 +242,10 @@ void sflow_momentum_SI::nh_predictor(lexer *p, fdm2D *b, ghostcell *pgc)
     auto id = [&](int a, int c) { return (a-p->imin)*p->jmax + (c-p->jmin); };
     auto in = [&](int a, int c) { return p->flagslice4[id(a,c)]>0; };
 
-    // L = h^3 lap(eta), compact, mirrored at the domain edges (b->eta: eta^n with the halo of the last step)
+    // L = h^3 lap(eta), compact, mirrored at the domain edges (b->eta: eta^n with the halo of the last step) and at a
+    // wall of dry land (A 221 2)
+    auto lo = [&](int a, int c) { return in(a,c) && !sflow_drywall::wall(p,a,c); };
+
     SLICELOOP4
     {
     Lc0(i,j) = 0.0;
@@ -257,18 +260,18 @@ void sflow_momentum_SI::nh_predictor(lexer *p, fdm2D *b, ghostcell *pgc)
             // curvilinear grid: the compact Laplacian of the orthogonal parts of the faces, L/(A dn)
             double cE,cW,cN,cS;
             sflow_curv::lapcoef(p,i,j,cE,cW,cN,cS);
-            lap = (in(i+1,j) ? cE*(b->eta(i+1,j) - b->eta(i,j)) : 0.0) - (in(i-1,j) ? cW*(b->eta(i,j) - b->eta(i-1,j)) : 0.0)
-                + (in(i,j+1) ? cN*(b->eta(i,j+1) - b->eta(i,j)) : 0.0) - (in(i,j-1) ? cS*(b->eta(i,j) - b->eta(i,j-1)) : 0.0);
+            lap = (lo(i+1,j) ? cE*(b->eta(i+1,j) - b->eta(i,j)) : 0.0) - (lo(i-1,j) ? cW*(b->eta(i,j) - b->eta(i-1,j)) : 0.0)
+                + (lo(i,j+1) ? cN*(b->eta(i,j+1) - b->eta(i,j)) : 0.0) - (lo(i,j-1) ? cS*(b->eta(i,j) - b->eta(i,j-1)) : 0.0);
             }
 
             else
             {
-            lap = ((in(i+1,j) ? (b->eta(i+1,j) - b->eta(i,j))/p->DXP[IP] : 0.0)
-                 - (in(i-1,j) ? (b->eta(i,j) - b->eta(i-1,j))/p->DXP[IM1] : 0.0))/p->DXN[IP];
+            lap = ((lo(i+1,j) ? (b->eta(i+1,j) - b->eta(i,j))/p->DXP[IP] : 0.0)
+                 - (lo(i-1,j) ? (b->eta(i,j) - b->eta(i-1,j))/p->DXP[IM1] : 0.0))/p->DXN[IP];
 
             if(yd)
-            lap += ((in(i,j+1) ? (b->eta(i,j+1) - b->eta(i,j))/p->DYP[JP] : 0.0)
-                  - (in(i,j-1) ? (b->eta(i,j) - b->eta(i,j-1))/p->DYP[JM1] : 0.0))/p->DYN[JP];
+            lap += ((lo(i,j+1) ? (b->eta(i,j+1) - b->eta(i,j))/p->DYP[JP] : 0.0)
+                  - (lo(i,j-1) ? (b->eta(i,j) - b->eta(i,j-1))/p->DYP[JM1] : 0.0))/p->DYN[JP];
             }
 
         Lc0(i,j) = h*h*h*lap;
@@ -277,8 +280,8 @@ void sflow_momentum_SI::nh_predictor(lexer *p, fdm2D *b, ghostcell *pgc)
 
     exchange4(p,pgc,Lc0);
 
-    // W^n advected upwind with q^n (conservative), Adams-Bashforth 2 in time (the forward step gave 1.5 % too large
-    // harmonics on the lee side of a bar, dt 0.02 s)
+    // W^n advected upwind with q^n (conservative), Adams-Bashforth 2 in time (the forward step overestimates the
+    // harmonics on the lee side of a bar)
     auto Wn = [&](int a, int c) { return (in(a,c) && WL0(a,c)>p->A244) ? b->WH(a,c)/WL0(a,c) : 0.0; };
     auto fWx = [&](int a, int c) { const double q = qxn(a,c); return q>=0.0 ? q*Wn(a,c) : q*Wn(a+1,c); };
     auto fWy = [&](int a, int c) { const double q = qyn(a,c); return q>=0.0 ? q*Wn(a,c) : q*Wn(a,c+1); };
@@ -313,8 +316,7 @@ void sflow_momentum_SI::nh_predictor(lexer *p, fdm2D *b, ghostcell *pgc)
 
     // U^n, V^n of the cells; the acceleration of the previous step, (U^n - U^{n-1})/dt, gives phi: the estimate of
     // U^{n+1} with the explicit terms of the step (sflow_pjm_quad, P^n) is not balanced by the pressure for large
-    // time steps, the h^3 lap(eta) term of A 220 3 then drives a grid mode on a sloping bed (Beji & Battjes bar,
-    // dt 0.005-0.02 s); solving again with phi from U^{n+1} changed nothing there
+    // time steps, the h^3 lap(eta) term of A 220 3 then drives a grid mode on a sloping bed
     SLICELOOP4
     {
     const bool w = (p->wet[IJ]==1 && WL0(i,j)>p->A244);
@@ -336,7 +338,11 @@ void sflow_momentum_SI::nh_predictor(lexer *p, fdm2D *b, ghostcell *pgc)
     // bed acceleration phi = Dw_b/Dt, w_b = -u.grad(d) (sflow_pjm_quad::quad_calc)
     auto Ue = [&](int a, int c) { return in(a,c) ? nU(a,c) : b->U(a,c); };
     auto Ve = [&](int a, int c) { return in(a,c) ? nV(a,c) : b->V(a,c)*p->y_dir; };
-    auto dep = [&](int a, int c, int a0, int c0) { return in(a,c) ? b->depth(a,c) : b->depth(a0,c0); };
+    auto dep = [&](int a, int c, int a0, int c0) { return (in(a,c) && !sflow_drywall::wall(p,a,c)) ? b->depth(a,c) : b->depth(a0,c0); };
+    // A 221 2: U and V of the neighbour in x (dir 1) or y (dir 2) across a wall of dry land, the normal one reversed
+    auto Uw = [&](int a, int c, int dir) { return sflow_drywall::wall(p,a,c) ? (dir==1 ? -nU(i,j) : nU(i,j)) : Ue(a,c); };
+    auto Vw = [&](int a, int c, int dir) { return sflow_drywall::wall(p,a,c) ? (dir==2 ? -nV(i,j) : nV(i,j)) : Ve(a,c); };
+    auto dwd = [&]() { return sflow_drywall::wall(p,i+1,j+1) || sflow_drywall::wall(p,i+1,j-1) || sflow_drywall::wall(p,i-1,j+1) || sflow_drywall::wall(p,i-1,j-1); };
 
     // curvilinear grid: central gradients by the chain rule (sflow_curv::grad5, as sflow_pjm_quad::quad_calc_curv),
     // the second derivatives of the bed as the gradients of its gradient; values outside the domain mirrored
@@ -390,7 +396,7 @@ void sflow_momentum_SI::nh_predictor(lexer *p, fdm2D *b, ghostcell *pgc)
         const double dddxx = ((dE - dC)/p->DXP[IP] - (dC - dW)/p->DXP[IM1])/p->DXN[IP];
 
         const double u = nU(i,j), v = nV(i,j);
-        double dudt = (u - Unm1(i,j))/p->dt_old + u*(Ue(i+1,j) - Ue(i-1,j))/dx;
+        double dudt = (u - Unm1(i,j))/p->dt_old + u*(Uw(i+1,j,1) - Uw(i-1,j,1))/dx;
 
             if(yd)
             {
@@ -400,11 +406,11 @@ void sflow_momentum_SI::nh_predictor(lexer *p, fdm2D *b, ghostcell *pgc)
             const double dddyy = ((dN - dC)/p->DYP[JP] - (dC - dS)/p->DYP[JM1])/p->DYN[JP];
 
             double dddxy = 0.0;
-            if(in(i+1,j+1) && in(i+1,j-1) && in(i-1,j+1) && in(i-1,j-1))
+            if(in(i+1,j+1) && in(i+1,j-1) && in(i-1,j+1) && in(i-1,j-1) && !dwd())
             dddxy = (b->depth(i+1,j+1) - b->depth(i+1,j-1) - b->depth(i-1,j+1) + b->depth(i-1,j-1))/(dx*dy);
 
-            dudt += v*(Ue(i,j+1) - Ue(i,j-1))/dy;
-            const double dvdt = (v - Vnm1(i,j))/p->dt_old + u*(Ve(i+1,j) - Ve(i-1,j))/dx + v*(Ve(i,j+1) - Ve(i,j-1))/dy;
+            dudt += v*(Uw(i,j+1,2) - Uw(i,j-1,2))/dy;
+            const double dvdt = (v - Vnm1(i,j))/p->dt_old + u*(Vw(i+1,j,1) - Vw(i-1,j,1))/dx + v*(Vw(i,j+1,2) - Vw(i,j-1,2))/dy;
 
             phiN(i,j) = -dvdt*dddy - v*v*dddyy - 2.0*u*v*dddxy;
             }
@@ -484,8 +490,8 @@ void sflow_momentum_SI::nh_assemble(lexer *p, fdm2D *b, ghostcell *pgc)
 
         const double dd = b->depth(a1,c1) - b->depth(a,c);
         // the depth of the pressure terms: t^{n+1/2}, as the gravity term (the pressure acts over the step; with t^{n+1}
-        // the nonlinear standing wave lost second order below T/320, the constraint stays at t^{n+1}); every predictor
-        // (REEF3D::HYDRO with A 210 12/13: t^{n+1}, as before)
+        // the nonlinear standing wave loses second order, the constraint stays at t^{n+1}); every predictor
+        // (REEF3D::HYDRO with A 210 12/13: t^{n+1})
         const double HL = (onestep || tl12) ? WLh(a,c) : WLq(a,c), HR = (onestep || tl12) ? WLh(a1,c1) : WLq(a1,c1);
         const double s = dt*alf/dxp;
 
@@ -532,17 +538,19 @@ void sflow_momentum_SI::nh_assemble(lexer *p, fdm2D *b, ghostcell *pgc)
     else
     SLICELOOP4
     {
+    // (A 221 2: mirrored at a wall of dry land, as at the domain edges)
+    auto io = [&](int a, int c) { return in(a,c) && !sflow_drywall::wall(p,a,c); };
     const double H = WLq(i,j);
     const double dx = p->DXP[IP] + p->DXP[IM1];
-    nsx(i,j) = (2.0*((in(i+1,j) ? b->depth(i+1,j) : b->depth(i,j)) - (in(i-1,j) ? b->depth(i-1,j) : b->depth(i,j)))
-                    - ((in(i+1,j) ? WLq(i+1,j) : H) - (in(i-1,j) ? WLq(i-1,j) : H)))/dx;
+    nsx(i,j) = (2.0*((io(i+1,j) ? b->depth(i+1,j) : b->depth(i,j)) - (io(i-1,j) ? b->depth(i-1,j) : b->depth(i,j)))
+                    - ((io(i+1,j) ? WLq(i+1,j) : H) - (io(i-1,j) ? WLq(i-1,j) : H)))/dx;
     nsy(i,j) = 0.0;
 
         if(yd)
         {
         const double dy = p->DYP[JP] + p->DYP[JM1];
-        nsy(i,j) = (2.0*((in(i,j+1) ? b->depth(i,j+1) : b->depth(i,j)) - (in(i,j-1) ? b->depth(i,j-1) : b->depth(i,j)))
-                        - ((in(i,j+1) ? WLq(i,j+1) : H) - (in(i,j-1) ? WLq(i,j-1) : H)))/dy;
+        nsy(i,j) = (2.0*((io(i,j+1) ? b->depth(i,j+1) : b->depth(i,j)) - (io(i,j-1) ? b->depth(i,j-1) : b->depth(i,j)))
+                        - ((io(i,j+1) ? WLq(i,j+1) : H) - (io(i,j-1) ? WLq(i,j-1) : H)))/dy;
         }
     }
 
@@ -672,10 +680,11 @@ void sflow_momentum_SI::nh_solve(lexer *p, fdm2D *b, ghostcell *pgc)
 
     // h^3 lap of the A 220 3 term (non-hydrostatic cells, mirrored at the domain edges)
     const bool a = nA(i,j)>0.5 && bd;
-    lxe[n] = (a && in(i+1,j)) ? 1.0/(p->DXP[IP]*p->DXN[IP]) : 0.0;
-    lxw[n] = (a && in(i-1,j)) ? 1.0/(p->DXP[IM1]*p->DXN[IP]) : 0.0;
-    lyn[n] = (a && yd && in(i,j+1)) ? 1.0/(p->DYP[JP]*p->DYN[JP]) : 0.0;
-    lys[n] = (a && yd && in(i,j-1)) ? 1.0/(p->DYP[JM1]*p->DYN[JP]) : 0.0;
+    auto lo = [&](int a_, int c_) { return in(a_,c_) && !sflow_drywall::wall(p,a_,c_); };      // A 221 2: a wall of dry land
+    lxe[n] = (a && lo(i+1,j)) ? 1.0/(p->DXP[IP]*p->DXN[IP]) : 0.0;
+    lxw[n] = (a && lo(i-1,j)) ? 1.0/(p->DXP[IM1]*p->DXN[IP]) : 0.0;
+    lyn[n] = (a && yd && lo(i,j+1)) ? 1.0/(p->DYP[JP]*p->DYN[JP]) : 0.0;
+    lys[n] = (a && yd && lo(i,j-1)) ? 1.0/(p->DYP[JM1]*p->DYN[JP]) : 0.0;
 
         if(cv)
         {
@@ -694,9 +703,8 @@ void sflow_momentum_SI::nh_solve(lexer *p, fdm2D *b, ghostcell *pgc)
         }
     h3[n] = a ? WLh(i,j)*WLh(i,j)*WLh(i,j) : 0.0;
 
-    // constraint: 2 dt cw/H P, and the affine terms (W predictor, phi, slope term with U^{n+1} extrapolated:
-    // implicit, the preconditioner below misses it - about 100 iterations on the Beji & Battjes bar instead of
-    // 4, the errors on the bar the same)
+    // constraint: 2 dt cw/H P, and the affine terms (W predictor, phi, slope term with U^{n+1} extrapolated: an
+    // implicit slope term is missed by the preconditioner below)
     const double H = WLq(i,j);
     w2[n] = 2.0*dt*cwn/H;
     cst[n] = 2.0*(WHp(i,j) + dt*0.25*H*phiN(i,j))/H + nsx(i,j)*nUs(i,j) + (yd ? nsy(i,j)*nVs(i,j) : 0.0);
@@ -1195,7 +1203,7 @@ void sflow_momentum_SI::nh_solve(lexer *p, fdm2D *b, ghostcell *pgc)
         };
 
         const int m = 30, maxit = 300;
-        // relative tolerance: 1e-6 and 1e-8 gave the same gauge records (8 digits) on the 2D shoal case
+        // relative tolerance (1e-8 gives the same gauge records)
         const double tol = 1.0e-6;
 
         S.workspace(m,2*N);

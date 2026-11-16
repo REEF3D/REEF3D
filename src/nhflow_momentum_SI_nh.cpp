@@ -59,8 +59,7 @@ Author: Hans Bihs
 //
 // Solution (nh_solve): the operator is the residual F(x) of the full step with x = (eta, phi_0 .. phi_{K-1}) per
 // column; A x = F(x) - F(0), A assembled directly from the derivatives of the face discharges (nh_dfaces, nh_assemble;
-// probing F with three or five colours, as before, took about half of the time of an NH step and gives the same
-// entries to round-off, environment NHCHECK). One cell in y on one rank: band LU of the interleaved unknowns (bandwidth
+// checked against probing F with three or five colours with the environment variable NHCHECK). One cell in y on one rank: band LU of the interleaved unknowns (bandwidth
 // 2 (K+1)). Otherwise (2D, MPI): FGMRES(30) preconditioned with the multigrid of nhflow_si_nhmg, whose relaxation
 // solves the K+1 unknowns of a column at once, as in Popinet 2020; the coarse levels by aggregation,
 // K-cycle (grid-independent iteration counts: 10 - 13 for 16^2 .. 64^2 columns at |r| <= 1e-6 |b|; one pre- and
@@ -70,6 +69,7 @@ Author: Hans Bihs
 #include"nhflow_momentum_SI.h"
 #include"sflow_curv.h"
 #include"si_eta2D.h"
+#include"nhflow_drywall.h"
 #include"lexer.h"
 #include"fdm_nhf.h"
 #include"ghostcell.h"
@@ -101,7 +101,7 @@ void nhflow_momentum_SI::nh_ini(lexer *p)
 
     nh_brk = p->A558;   // A 558: the breaking limiter |w| <= A 558 sqrt(g H) of Popinet 2020 (nh_cell)
 
-    const int N = p->imax*p->jmax*(p->kmax+2);
+    const int N = lN;
     double **arr[] = {&NQx,&NQy,&WHS,&PHI,&PHIo,&NSX,&NSY};
     for(double **a : arr)
     p->Darray_lazy(*a,N);
@@ -132,8 +132,6 @@ void nhflow_momentum_SI::nh_begin(lexer *p, fdm_nhf *d, ghostcell *pgc)
     //  - omega (the vertical advection of the column operator) at t^{n+1/2}
     // The advecting transport of the predictor is that of the estimate pass of step_single (tl2)
     const double r = p->dt/MAX(p->dt_old,1.0e-20);
-    const size_t ns = (size_t)p->imax*p->jmax;
-
 
     // the face depth of the mass flux (hMx, hMy; si_assemble) between two wet non-shoreline cells, second order in
     // space (BCG): WL of the upwind cell extrapolated to the face and to t^{n+1/2}, WL_f = WL_up + a (1 - a c) g dx/2,
@@ -292,8 +290,11 @@ void nhflow_momentum_SI::nh_prepare(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
     SLICELOOP4
     {
+    // dry land next to deep water (A 541, nhflow_drywall.h): the column stays non-hydrostatic, its dry faces carry
+    // no discharge
     const bool a = p->wet[IJ]==1 && WL0(i,j)>10.0*p->A544 && p->deep[IJ]==1
-                && !dry(i-1,j) && !dry(i+1,j) && (p->j_dir==0 || (!dry(i,j-1) && !dry(i,j+1)));
+                && (nhflow_drywall::cliff(p,d,i,j,WL0(i,j))
+                    || (!dry(i-1,j) && !dry(i+1,j) && (p->j_dir==0 || (!dry(i,j-1) && !dry(i,j+1)))));
     nAct[IJ] = a ? 1 : 0;
     }
 
@@ -305,7 +306,7 @@ void nhflow_momentum_SI::nh_prepare(lexer *p, fdm_nhf *d, ghostcell *pgc)
         for(k=0;k<K;++k)
         {
         wnu[k] = 0.0;
-        wb[k] = WHp[IJK];
+        wb[k] = WHp[PIJK];
         }
 
         col_coef(p,d,WL0(i,j),i,j,i,j,wnu.data(),wcu.data(),wcl.data(),wcd.data());
@@ -313,19 +314,19 @@ void nhflow_momentum_SI::nh_prepare(lexer *p, fdm_nhf *d, ghostcell *pgc)
         if(thv<1.0)
         {
         for(k=0;k<K;++k)
-        wx[k] = WH0[IJK];
+        wx[k] = WH0[PIJK];
         col_adv_rhs(p,wx.data(),wb.data());
         }
 
         col_solve(p,wcu.data(),wcl.data(),wcd.data(),0.0,wb.data(),wx.data());
 
         for(k=0;k<K;++k)
-        WHS[IJK] = wx[k];
+        WHS[PIJK] = wx[k];
         }
 
         else
         for(k=0;k<K;++k)
-        WHS[IJK] = 0.0;
+        WHS[PIJK] = 0.0;
     }
 
     // tl2: the velocities of [u . grad z] and of the bed condition at t^{n+1}, as the constraint holds for them: the cell
@@ -334,9 +335,8 @@ void nhflow_momentum_SI::nh_prepare(lexer *p, fdm_nhf *d, ghostcell *pgc)
     // order (standing wave a/h 0.1, A 510 11: order 1.35 at T/1280, the error of the first quarter period halved with dt)
     if(tl2)
     {
-    const int N = p->imax*p->jmax*(p->kmax+2);
-    nUZx.assign(N,0.0);
-    nUZy.assign(N,0.0);
+    nUZx.assign(lN,0.0);
+    nUZy.assign(lN,0.0);
 
         SLICELOOP4
         if(p->wet[IJ]==1)
@@ -344,8 +344,8 @@ void nhflow_momentum_SI::nh_prepare(lexer *p, fdm_nhf *d, ghostcell *pgc)
         const double H1 = nh_wl1(p,i,j);
             for(k=0;k<K;++k)
             {
-            nUZx[IJK] = UHD[IJK] + p->dt*H1*accU[IJK];
-            nUZy[IJK] = VHD[IJK] + p->dt*H1*accV[IJK];
+            nUZx[PIJK] = UHD[PIJK] + p->dt*H1*accU[PIJK];
+            nUZy[PIJK] = VHD[PIJK] + p->dt*H1*accV[PIJK];
             }
         }
     }
@@ -359,16 +359,19 @@ void nhflow_momentum_SI::nh_prepare(lexer *p, fdm_nhf *d, ghostcell *pgc)
     for(int m=0; m<=K; ++m)
     {
     k = m;
-    const int ie = in(i+1,j) ? i+1 : i, iw = in(i-1,j) ? i-1 : i;
+    // (a column in front of dry land, A 541: one-sided next to the dry cells too, their level is that of the land)
+    const bool cl = nhflow_drywall::cliff(p,d,i,j,WL0(i,j));
+    auto ok = [&](int a, int c) { return cl ? wt(a,c) : in(a,c); };
+    const int ie = ok(i+1,j) ? i+1 : i, iw = ok(i-1,j) ? i-1 : i;
     const double dx = p->XP[ie+marge] - p->XP[iw+marge];
-    NSX[IJK] = dx>0.0 ? nh_lim(zif(ie,j,m) - zif(iw,j,m),dx)/dx : 0.0;
-    NSY[IJK] = 0.0;
+    NSX[PIJK] = dx>0.0 ? nh_lim(zif(ie,j,m) - zif(iw,j,m),dx)/dx : 0.0;
+    NSY[PIJK] = 0.0;
 
         if(p->j_dir==1)
         {
-        const int jn = in(i,j+1) ? j+1 : j, js = in(i,j-1) ? j-1 : j;
+        const int jn = ok(i,j+1) ? j+1 : j, js = ok(i,j-1) ? j-1 : j;
         const double dy = p->YP[jn+marge] - p->YP[js+marge];
-        NSY[IJK] = dy>0.0 ? nh_lim(zif(i,jn,m) - zif(i,js,m),dy)/dy : 0.0;
+        NSY[PIJK] = dy>0.0 ? nh_lim(zif(i,jn,m) - zif(i,js,m),dy)/dy : 0.0;
         }
     }
 }
@@ -390,7 +393,7 @@ void nhflow_momentum_SI::nh_faces(lexer *p, fdm_nhf *d)
         if(!(in(iL,jL) && in(iR,jR)) || Hf<=0.0)
         {
         for(k=0;k<K;++k)
-        NQ[IJK] = 0.0;
+        NQ[PIJK] = 0.0;
         return;
         }
 
@@ -404,15 +407,15 @@ void nhflow_momentum_SI::nh_faces(lexer *p, fdm_nhf *d)
         const double su = nh_lim(zif(iR,jR,k+1) - zif(iL,jL,k+1),dx);
 
         i=iL; j=jL;
-        const double fL = PHI[IJK], uL = (k<K-1) ? PHI[IJKp1] : 0.0;
+        const double fL = PHI[PIJK], uL = (k<K-1) ? PHI[PIJKp1] : 0.0;
         i=iR; j=jR;
-        const double fR = PHI[IJK], uR = (k<K-1) ? PHI[IJKp1] : 0.0;
+        const double fR = PHI[PIJK], uR = (k<K-1) ? PHI[PIJKp1] : 0.0;
         i=il; j=jl;
 
         // (h_L - s_l) phi_L - (h_R + s_l) phi_R + (h_L + s_u) phi_L^up - (h_R - s_u) phi_R^up, the layer h = WL dsig
         const double br = (s*hL - sl)*fL - (s*hR + sl)*fR + (s*hL + su)*uL - (s*hR - su)*uR;
 
-        NQ[IJK] = dt*br*c/s;
+        NQ[PIJK] = dt*br*c/s;
         }
     };
 
@@ -430,7 +433,7 @@ void nhflow_momentum_SI::nh_faces(lexer *p, fdm_nhf *d)
     j=f.fj;
     double *NQ = (f.cs==1 || f.cs==4) ? NQx : NQy;
         for(k=0;k<K;++k)
-        NQ[IJK] = 0.0;
+        NQ[PIJK] = 0.0;
     }
 }
 
@@ -448,26 +451,25 @@ void nhflow_momentum_SI::nh_residual(lexer *p, fdm_nhf *d, ghostcell *pgc, const
     etaI(i,j) = x[(size_t)B*n];
 
         for(k=0;k<K;++k)
-        PHI[IJK] = nAct[IJ] ? x[(size_t)B*n+1+k] : 0.0;
+        PHI[PIJK] = nAct[IJ] ? x[(size_t)B*n+1+k] : 0.0;
     ++n;
     }
 
     exchange4(p,pgc,etaI);
-    exchangeC(p,pgc,PHI);
+    pexchC(p,pgc,PHI);
 
     // x = 0: phi = 0, the phi faces zero (nh_faces gives 0 on every face, and so the exchange)
     if(zero)
     {
-    const int NF = p->imax*p->jmax*(p->kmax+2);
-    std::fill(NQx,NQx+NF,0.0);
-    std::fill(NQy,NQy+NF,0.0);
+    std::fill(NQx,NQx+lN,0.0);
+    std::fill(NQy,NQy+lN,0.0);
     }
 
     else
     {
     nh_faces(p,d);
-    exchangeF(p,pgc,NQx);
-    exchangeF(p,pgc,NQy);
+    pexchF(p,pgc,NQx);
+    pexchF(p,pgc,NQy);
     }
 
     if(ho)
@@ -485,7 +487,7 @@ void nhflow_momentum_SI::nh_residual(lexer *p, fdm_nhf *d, ghostcell *pgc, const
     double s=0.0;
 
     for(k=0;k<K;++k)
-    s += p->DZN[KP]*layer_div(p,Tx,Ty);
+    s += p->DZN[KP]*layer_div_p(p,Tx,Ty);
 
     double w = WL0(i,j) - dt*s;
 
@@ -509,34 +511,34 @@ void nhflow_momentum_SI::nh_residual(lexer *p, fdm_nhf *d, ghostcell *pgc, const
         // the bed: w_b = u_0 . grad(z_b)
         k=0;
         const double *UU = tl2 ? nUZx.data() : UHD, *VV = tl2 ? nUZy.data() : VHD;
-        double wlo = UU[IJK]*iH0*NSX[IJK] + (yd ? VV[IJK]*iH0*NSY[IJK] : 0.0);
+        double wlo = UU[PIJK]*iH0*NSX[PIJK] + (yd ? VV[PIJK]*iH0*NSY[PIJK] : 0.0);
 
         for(k=0;k<K;++k)
         {
         const double ds = p->DZN[KP];
         const double h = Hh*ds;
-        const double ph_up = (k<K-1) ? PHI[IJKp1] : 0.0;
+        const double ph_up = (k<K-1) ? PHI[PIJKp1] : 0.0;
 
         // divergence of the layer discharges of t^{n+1}
-        double D = ds*layer_div(p,Qx,Qy);
+        double D = ds*layer_div_p(p,Qx,Qy);
 
         // [u . grad z]_k: u_k on the upper interface (k+1), u_{k-1} on the lower one, u_0 on the bed
-        const double uk = UU[IJK]*iH0, vk = yd ? VV[IJK]*iH0 : 0.0;
-        double uz = uk*NSX[IJKp1] + vk*NSY[IJKp1];
+        const double uk = UU[PIJK]*iH0, vk = yd ? VV[PIJK]*iH0 : 0.0;
+        double uz = uk*NSX[PIJKp1] + vk*NSY[PIJKp1];
 
             if(k>0)
             {
-            const double um = UU[IJKm1]*iH0, vm = yd ? VV[IJKm1]*iH0 : 0.0;
-            uz -= um*NSX[IJK] + vm*NSY[IJK];
+            const double um = UU[PIJKm1]*iH0, vm = yd ? VV[PIJKm1]*iH0 : 0.0;
+            uz -= um*NSX[PIJK] + vm*NSY[PIJK];
             }
 
             else
-            uz -= uk*NSX[IJK] + vk*NSY[IJK];
+            uz -= uk*NSX[PIJK] + vk*NSY[PIJK];
 
         D -= uz;
 
         // [w]_k, Keller box, with w^{n+1}
-        const double wk = WHS[IJK]*iH0 - dt*(ph_up - PHI[IJK])/h;
+        const double wk = WHS[PIJK]*iH0 - dt*(ph_up - PHI[PIJK])/h;
         const double wup = 2.0*wk - wlo;
         D += wup - wlo;
         wlo = wup;
@@ -608,7 +610,7 @@ void nhflow_momentum_SI::nh_dfaces(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
         for(k=0;k<K;++k)
         {
-        const double a = (dt*g*Hf*theta*R[IJK] + Kf)/dn;
+        const double a = (dt*g*Hf*theta*R[PIJK] + Kf)/dn;
         dL[ci()] = a;
         dR[ci()] = -a;
         }
@@ -665,7 +667,7 @@ void nhflow_momentum_SI::nh_dfaces(lexer *p, fdm_nhf *d, ghostcell *pgc)
         double a = 0.0;
 
             if(f.type==bc_level && Hf>0.0)
-            a = -dt*g*Hf*theta*f.s/f.dxp*R[IJK];
+            a = -dt*g*Hf*theta*f.s/f.dxp*R[PIJK];
 
             if(f.type==bc_riemann || f.type==bc_flather)
             {
@@ -843,8 +845,8 @@ void nhflow_momentum_SI::nh_solve(lexer *p, fdm_nhf *d, ghostcell *pgc)
     // this step (its eta solve iterates the pattern as well, si_eta2D::solve_wetdry): from all wet, a step with a dry
     // column next to a wet one took a second pass (conical island: 1.6 passes per step, 0.04 from the estimate; 4 layers
     // 531 s -> 406 s, A 537 0: 419 s, the same solution). A further pass then starts FGMRES from the solution of the pass
-    // before and keeps the preconditioner (some mass rows changed); where the pattern still changes after 4 passes, the
-    // passes start again from all wet, the start of Casulli's iteration. Without tl2: from all wet, every pass from the
+    // before (the preconditioner rebuilt for the changed mass rows, nh_solve_mg); where the pattern still changes after
+    // 4 passes, the passes start again from all wet, the start of Casulli's iteration. Without tl2: from all wet, every pass from the
     // guess of the step, the preconditioner rebuilt for a new pattern
     const int itwd = p->A537==1 ? 20 : 1;
     const bool est = itwd>1 && tl2;
@@ -1050,7 +1052,7 @@ void nhflow_momentum_SI::nh_solve(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
     SLICELOOP4
     for(k=0;k<K;++k)
-    d->P[FIJK] = p->W1*PHI[IJK];
+    d->P[FIJK] = p->W1*PHI[PIJK];
 
     nh_fixed = false;
     nh_time = pgc->timer() - starttime_nh;
@@ -1081,16 +1083,16 @@ void nhflow_momentum_SI::nh_cell_faces(lexer *p, fdm_nhf *d, double *cx, double 
 
     for(k=0;k<K;++k)
     {
-    cx[k] = h4x ? (9.0*(NQx[Im1JK] + NQx[IJK]) - NQx[Im2JK] - NQx[Ip1JK])/16.0 : (ww*NQx[Im1JK] + we*NQx[IJK])/wsx;
+    cx[k] = h4x ? (9.0*(NQx[PIm1JK] + NQx[PIJK]) - NQx[PIm2JK] - NQx[PIp1JK])/16.0 : (ww*NQx[PIm1JK] + we*NQx[PIJK])/wsx;
 
     cy[k] = 0.0;
 
     if(h4y)
-    cy[k] = (9.0*(NQy[IJm1K] + NQy[IJK]) - NQy[IJm2K] - NQy[IJp1K])/16.0;
+    cy[k] = (9.0*(NQy[PIJm1K] + NQy[PIJK]) - NQy[PIJm2K] - NQy[PIJp1K])/16.0;
 
     else
     if(p->j_dir==1)
-    cy[k] = (vw*NQy[IJm1K] + ve*NQy[IJK])/wsy;
+    cy[k] = (vw*NQy[PIJm1K] + ve*NQy[PIJK])/wsy;
     }
 }
 
@@ -1108,8 +1110,8 @@ void nhflow_momentum_SI::nh_cell(lexer *p, fdm_nhf *d, ghostcell *pgc)
         {
             if(nAct[IJ])
             {
-            const double ph_up = (k<K-1) ? PHI[IJKp1] : 0.0;
-            d->WH[IJK] -= dt*(ph_up - PHI[IJK])/p->DZN[KP];
+            const double ph_up = (k<K-1) ? PHI[PIJKp1] : 0.0;
+            d->WH[IJK] -= dt*(ph_up - PHI[PIJK])/p->DZN[KP];
             }
 
             // the breaking parameter of Popinet 2020: |w| <= b sqrt(g H)
@@ -1121,6 +1123,27 @@ void nhflow_momentum_SI::nh_cell(lexer *p, fdm_nhf *d, ghostcell *pgc)
             }
         }
     }
+}
+
+std::vector<char> nhflow_momentum_SI::nh_mask(int B, bool yd)
+{
+    // the entries of the blocks of the coupled system that nh_assemble can set (the multigrid stores only these): the
+    // column in full; a neighbour: the mass row every unknown (the discharges of all layers of the face), the constraint
+    // row of layer k eta, phi_k and phi_k+1 (addf); no y neighbours with one cell in y
+    std::vector<char> mk((size_t)5*B*B,0);
+
+    for(int dd=0; dd<5; ++dd)
+    {
+        if(!yd && dd>2)
+        continue;
+
+        for(int r=0; r<B; ++r)
+        for(int c=0; c<B; ++c)
+        if(dd==0 || r==0 || c==0 || c==r || c==r+1)
+        mk[(size_t)dd*B*B + r*B + c] = 1;
+    }
+
+    return mk;
 }
 
 void nhflow_momentum_SI::nh_solve_mg(lexer *p, fdm_nhf *d, ghostcell *pgc, const std::vector<double> &F0, std::vector<double> &xr)
@@ -1142,7 +1165,8 @@ void nhflow_momentum_SI::nh_solve_mg(lexer *p, fdm_nhf *d, ghostcell *pgc, const
     if(!nhmg)
     {
     nhmg = std::make_shared<nhflow_si_nhmg>();
-    nhmg->setup(pgc->mpi_comm,B,nx,ny,nbr);
+    const std::vector<char> mk = nh_mask(B,yd);
+    nhmg->setup(pgc->mpi_comm,B,nx,ny,nbr,&mk);
 
         if(p->mpirank==0)
         cout<<"NHFLOW semi-implicit non-hydrostatic: multigrid of the coupled system with "<<nhmg->levels()<<" levels, "<<B<<" unknowns per column"<<endl;
@@ -1227,7 +1251,7 @@ void nhflow_momentum_SI::nh_solve_mg(lexer *p, fdm_nhf *d, ghostcell *pgc, const
         for(int dd=0; dd<5; ++dd)
         for(int q=0; q<B*B; ++q)
         {
-        const double a = M.block(ii,jj,dd)[q], b = Dg[(((size_t)ii*ny + jj)*5 + dd)*B*B + q];
+        const double a = M.get(ii,jj,dd,q), b = Dg[(((size_t)ii*ny + jj)*5 + dd)*B*B + q];
         mx = MAX(mx,fabs(a));
         dm = MAX(dm,fabs(a-b));
         }
@@ -1259,10 +1283,7 @@ void nhflow_momentum_SI::nh_solve_mg(lexer *p, fdm_nhf *d, ghostcell *pgc, const
         if(!yd && dd>2)
         continue;
 
-        double *a = M.block(i,j,dd);
-            for(int tr=1; tr<B; ++tr)
-            for(int t=0; t<B; ++t)
-            a[tr*B+t] *= rs;
+        M.scale_rows(i,j,dd,1,rs);
         }
     }
 
@@ -1290,7 +1311,7 @@ void nhflow_momentum_SI::nh_solve_mg(lexer *p, fdm_nhf *d, ghostcell *pgc, const
     // initial guess: eta^n and phi of the step before, both extrapolated in time (r = dt/dt_old)
     x[q] = eta0(i,j);
         for(k=0;k<K;++k)
-        x[q+1+k] = nAct[IJ] ? PHI[IJK] : 0.0;
+        x[q+1+k] = nAct[IJ] ? PHI[PIJK] : 0.0;
 
         if(guess && hist)
         {
@@ -1298,7 +1319,7 @@ void nhflow_momentum_SI::nh_solve_mg(lexer *p, fdm_nhf *d, ghostcell *pgc, const
         x[q] += r*(eta0(i,j) - nEtaP[IJ]);
             for(k=0;k<K;++k)
             if(nAct[IJ])
-            x[q+1+k] += r*(PHI[IJK] - nPhiP[IJK]);
+            x[q+1+k] += r*(PHI[PIJK] - nPhiP[IJK]);
         }
     }
 
@@ -1313,7 +1334,7 @@ void nhflow_momentum_SI::nh_solve_mg(lexer *p, fdm_nhf *d, ghostcell *pgc, const
     {
     nEtaP[IJ] = eta0(i,j);
         for(k=0;k<K;++k)
-        nPhiP[IJK] = PHI[IJK];
+        nPhiP[IJK] = PHI[PIJK];
     }
     }
 
@@ -1326,7 +1347,8 @@ void nhflow_momentum_SI::nh_solve_mg(lexer *p, fdm_nhf *d, ghostcell *pgc, const
     // its starting residual times the reduction the max-norm still needs; the max-norm is checked on the true residual
     // of every restart. 2D standing wave 64 x 64 x 4, T/40 .. T/1280, error against T/5120: 1e-4 within 1.5 % of the
     // converged solve, 6.0 iterations (|b| test 1e-5: 8.0); 1e-3 up to 27 % at T/1280, 5.0 iterations
-    struct fg_result { int it=0, cyc=0; double r0max=0.0, rmax=0.0, tolmax=0.0; };
+    // reb, itreb: the preconditioner rebuilt inside the solve (stall, below) and the iterations before that
+    struct fg_result { int it=0, cyc=0, reb=0, itreb=0; double r0max=0.0, rmax=0.0, tolmax=0.0; };
 
     // tabs > 0: at most this stopping residual (a further pass of the wet pattern: that of the first pass, or A 506 of its
     // own starting residual where that is smaller)
@@ -1358,6 +1380,7 @@ void nhflow_momentum_SI::nh_solve_mg(lexer *p, fdm_nhf *d, ghostcell *pgc, const
         auto need = [&](std::vector<double> &v) { if(v.size()!=n) v.assign(n,0.0); };
         need(V[0]);
         std::vector<double> H((m+1)*m,0.0), cs(m,0.0), sn(m,0.0), g(m+1,0.0), hv(m+2);
+        std::vector<std::pair<int,double>> hst;     // iterations and max |r| at every restart (stall test)
         wv.resize(n);
 
         while(true)
@@ -1385,6 +1408,27 @@ void nhflow_momentum_SI::nh_solve_mg(lexer *p, fdm_nhf *d, ghostcell *pgc, const
 
             if(R.rmax<=R.tolmax || R.it>=maxit || beta<=0.0)
             break;
+
+            // stall: the max-norm residual not reduced tenfold over the last 2 m iterations (two restart cycles; a
+            // solve takes about 5): the preconditioner of an earlier step no longer fits this operator, rebuilt from
+            // it, once per solve. Measured against the residual 2 m iterations back, not r0: the stalls of the stale
+            // preconditioner reduce r0 1e4 times in a few iterations and then stay at 2-7 mm (harbour smoke test)
+            hst.push_back({R.it,R.rmax});
+
+            if(!R.reb && R.it>=2*m)
+            {
+            double rb = -1.0;
+            for(const auto &h : hst)
+            if(h.first<=R.it-2*m)
+            rb = h.second;
+
+                if(rb>0.0 && R.rmax>0.1*rb)
+                {
+                MM.finalize(true);
+                R.reb = 1;
+                R.itreb = R.it;
+                }
+            }
 
             ++R.cyc;
             const double target = 0.9*beta*R.tolmax/R.rmax;
@@ -1496,10 +1540,27 @@ void nhflow_momentum_SI::nh_solve_mg(lexer *p, fdm_nhf *d, ghostcell *pgc, const
 
     // ---- the preconditioner of an earlier step: rebuilt after lagmax steps, when dt changed by more than
     // 10 %, when the active columns changed, or when the iterations of the first pass grew by more than one over those of
-    // the rebuild. A further pass of the wet pattern from the solution of the pass before (nh_warm) keeps it, and its
-    // iterations set no rebuild either; one from the guess of the step rebuilds it
+    // the rebuild. The iterations of a further pass of the wet pattern from the solution of the pass before (nh_warm)
+    // set no rebuild; a further pass from the guess of the step rebuilds it.
+    // Also rebuilt when a column changed its wet pattern (pw of the mass row, A 537 1) or became active or inactive since
+    // the rebuild, a further pass of the pattern included: a dry mass row (pw = 0) has only the face terms, about
+    // dt^2 g A 544/dx^2 of a wet one (2e-5 at dt 0.31 s, dx 10 m, A 544 0.01), so a preconditioner of the other pattern
+    // inverts that row 1e5 times too large or too small (harbour 10 m, 7 columns re-wetted under a preconditioner two
+    // steps old: 300 iterations instead of 4)
+    const size_t ncol = (size_t)p->imax*p->jmax;
+    auto colpat = [&](int q) { return (char)((nPw[q]>0.5 ? 1 : 0) + (nAct[q] ? 2 : 0)); };
+    int pchg = nh_lagpat.size()!=ncol ? 1 : 0;
+
+    if(pchg==0)
+    SLICELOOP4
+    if(nh_lagpat[IJ]!=colpat(IJ))
+    ++pchg;
+
+    pchg = pgc->globalisum(pchg);
+
     const bool refresh = lagmax<=1 || nh_lagc+1>=lagmax || fabs(p->dt/MAX(nh_lagdt,1.0e-20) - 1.0)>0.1
-                         || pgc->globalisum(nact)!=nh_lagnact || nh_iter1>nh_lagit+1 || (nh_wdpass && !nh_warm);
+                         || pgc->globalisum(nact)!=nh_lagnact || nh_iter1>nh_lagit+1 || (nh_wdpass && !nh_warm)
+                         || pchg>0;
 
     const int nsplit = p->A507;
     fg_result R, R2;
@@ -1522,7 +1583,14 @@ void nhflow_momentum_SI::nh_solve_mg(lexer *p, fdm_nhf *d, ghostcell *pgc, const
     nhme = std::make_shared<nhflow_si_nhmg>();
     nhme->setup(pgc->mpi_comm,1,nx,ny,nbr);
     nhmp = std::make_shared<nhflow_si_nhmg>();
-    nhmp->setup(pgc->mpi_comm,K,nx,ny,nbr);
+    // the phi system: the constraint rows and phi of the mask of the coupled one
+    const std::vector<char> mk = nh_mask(B,yd);
+    std::vector<char> mkp((size_t)5*K*K,0);
+    for(int dd=0; dd<5; ++dd)
+    for(int r=1; r<B; ++r)
+    for(int c=1; c<B; ++c)
+    mkp[(size_t)dd*K*K + (r-1)*K + c-1] = mk[(size_t)dd*B*B + r*B + c];
+    nhmp->setup(pgc->mpi_comm,K,nx,ny,nbr,&mkp);
     }
 
     nhflow_si_nhmg &Me = *nhme, &Mp = *nhmp;
@@ -1533,15 +1601,13 @@ void nhflow_momentum_SI::nh_solve_mg(lexer *p, fdm_nhf *d, ghostcell *pgc, const
     for(int jj=0; jj<ny; ++jj)
     for(int dd=0; dd<5; ++dd)
     {
-        const double *a = M.block(ii,jj,dd);
-
-        if(a[0]!=0.0)
-        Me.set(ii,jj,dd,0,0,a[0]);
+        if(M.get(ii,jj,dd,0)!=0.0)
+        Me.set(ii,jj,dd,0,0,M.get(ii,jj,dd,0));
 
         for(int r=1; r<B; ++r)
         for(int c=1; c<B; ++c)
-        if(a[r*B+c]!=0.0)
-        Mp.set(ii,jj,dd,r-1,c-1,a[r*B+c]);
+        if(M.get(ii,jj,dd,r*B+c)!=0.0)
+        Mp.set(ii,jj,dd,r-1,c-1,M.get(ii,jj,dd,r*B+c));
     }
 
     M.pattern();
@@ -1591,12 +1657,24 @@ void nhflow_momentum_SI::nh_solve_mg(lexer *p, fdm_nhf *d, ghostcell *pgc, const
     }
     }
 
-    if(refresh && !warm)
+    // the preconditioner now in use: rebuilt at the start (refresh) or inside FGMRES (stall); the iterations of the
+    // rebuild those after it
+    nh_reb = R.reb + R2.reb;
+    const bool rebuilt = refresh || nh_reb>0;
+
+    if(rebuilt)
+    {
+    nh_lagpat.resize(ncol);
+    for(size_t q=0; q<ncol; ++q)
+    nh_lagpat[q] = colpat((int)q);
+    }
+
+    if(rebuilt && !warm)
     {
     nh_lagc = 0;
     nh_lagdt = p->dt;
     nh_lagnact = pgc->globalisum(nact);
-    nh_lagit = R.it + R2.it;
+    nh_lagit = R.it - R.itreb + R2.it - R2.itreb;
     }
 
     else if(!warm)
@@ -1618,7 +1696,8 @@ void nhflow_momentum_SI::nh_solve_mg(lexer *p, fdm_nhf *d, ghostcell *pgc, const
 
         if(p->mpirank==0)
         cout<<"NHLOG "<<p->count<<" it "<<R.it<<" + "<<R2.it<<" cycles "<<R.cyc<<" r0 "<<R.r0max<<" r "<<R.rmax<<" target "<<R.tolmax
-            <<" coupled r "<<rc<<(refresh ? " refresh" : "")<<endl;
+            <<" coupled r "<<rc<<(refresh ? " refresh" : "")<<(pchg>0 ? " pattern "+std::to_string(pchg) : "")
+            <<(nh_reb>0 ? " stall-rebuild at "+std::to_string(R.itreb+R2.itreb) : "")<<endl;
     }
 
     if((R.rmax>R.tolmax || R2.rmax>R2.tolmax) && p->mpirank==0)
@@ -1642,7 +1721,7 @@ void nhflow_momentum_SI::ho_phi_corr(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
     const double dt = p->dt;
     const int K = p->knoz;
-    const int N = p->imax*p->jmax*(p->kmax+2);
+    const int N = lN;
 
     if(NQcx==nullptr)
     {
@@ -1668,7 +1747,7 @@ void nhflow_momentum_SI::ho_phi_corr(lexer *p, fdm_nhf *d, ghostcell *pgc)
     auto zif = [&](int a, int c, int m) { return d->bed(a,c) + p->ZN[m+marge]*hh(a,c); };
     auto ps = [&](int a, int c, int kk)
     {
-        return kk<K ? hoPS[(a-p->imin)*p->jmax*p->kmax + (c-p->jmin)*p->kmax + kk-p->kmin] : 0.0;
+        return kk<K ? hoPS[PIX(a,c,kk)] : 0.0;
     };
 
     // face of the cells (iL,jL) - (iR,jR) along (di,dj)
@@ -1689,7 +1768,7 @@ void nhflow_momentum_SI::ho_phi_corr(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
         const double br = (s*hL - sl)*fL - (s*hR + sl)*fR + (s*hL + su)*uL - (s*hR - su)*uR;
 
-        NQ[IJK] = dt*br*c/s;
+        NQ[PIJK] = dt*br*c/s;
         }
     };
 
@@ -1709,17 +1788,17 @@ void nhflow_momentum_SI::ho_phi_corr(lexer *p, fdm_nhf *d, ghostcell *pgc)
     j=f.fj;
     double *NQ = (f.cs==1 || f.cs==4) ? NQcx : NQcy;
         for(k=0;k<K;++k)
-        NQ[IJK] = 0.0;
+        NQ[PIJK] = 0.0;
     }
 
-    exchangeF(p,pgc,NQcx);
-    exchangeF(p,pgc,NQcy);
+    pexchF(p,pgc,NQcx);
+    pexchF(p,pgc,NQcy);
 }
 
 // the phi face terms of the step with their explicit part (nh_residual, after nh_faces and its exchange)
 void nhflow_momentum_SI::ho_phi_add(lexer *p)
 {
-    const int N = p->imax*p->jmax*(p->kmax+2);
+    const int N = lN;
 
     for(int q=0; q<N; ++q)
     {

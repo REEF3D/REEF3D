@@ -138,6 +138,8 @@ nhflow_tracer_SI::~nhflow_tracer_SI()
     delete [] mask;
     delete [] tsx;
     delete [] tsy;
+    delete [] tcx;
+    delete [] tcy;
 }
 
 double* nhflow_tracer_SI::field(fdm_nhf *d, int mm)
@@ -420,8 +422,26 @@ double nhflow_tracer_SI::prepare_step(lexer *p, fdm_nhf *d, int phase)
     // (phase 1: the predictor of the density before the momentum, A 620)
     if(phase==0)
     {
-    tx = m->Tx;
-    ty = m->Ty;
+    // the private arrays of the step in the layout of IJK (nhflow_momentum_SI.h: lfull)
+    if(!m->lcomp)
+    {
+    tx = m->Tx + m->lshift;
+    ty = m->Ty + m->lshift;
+    }
+
+    else
+    {
+        if(tcx==nullptr)
+        {
+        tcx = new double[N]();
+        tcy = new double[N]();
+        }
+
+    m->lget(p,m->Tx,tcx);
+    m->lget(p,m->Ty,tcy);
+    tx = tcx;
+    ty = tcy;
+    }
     fr0 = 0.0;
     fr1 = 1.0;
     }
@@ -430,14 +450,20 @@ double nhflow_tracer_SI::prepare_step(lexer *p, fdm_nhf *d, int phase)
     {
         if(tsx==nullptr)
         {
-        tsx = new double[N];
-        tsy = new double[N];
+        tsx = new double[N]();
+        tsy = new double[N]();
         }
+
+        // (1-theta) Q^n in the layout of IJK
+        m->lget(p,m->Qxn,tsx);
+
+        if(p->j_dir==1)
+        m->lget(p,m->Qyn,tsy);
 
         for(int q=0; q<N; ++q)
         {
-        tsx[q] = (1.0-th)*m->Qxn[q];
-        tsy[q] = p->j_dir==1 ? (1.0-th)*m->Qyn[q] : 0.0;
+        tsx[q] = (1.0-th)*tsx[q];
+        tsy[q] = p->j_dir==1 ? (1.0-th)*tsy[q] : 0.0;
         }
 
         tx = tsx;

@@ -52,7 +52,7 @@ private:
 	char name[100];
 
     int *iloc,*jloc,*kloc,*flag;
-    int n,q;
+    int n;
 	const int probenum;
     ofstream *pout;
     double *val;

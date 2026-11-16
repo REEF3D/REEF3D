@@ -1,0 +1,6 @@
+{
+ "description": "The periodic sand channel of cfd_2d_cpm_bedload_layer (W 20 5, bedload layer Q 58 1, sleeping grains) with the implicit Coulomb friction of the packed bed on the grid (Q 88 1e-4, patch 0059)",
+ "covers": ["CPM implicit friction on the grid (Q 88) with the sub-grid bedload layer: hopping parcels left out, sleeping grains as rigid cells, drag in the mass term"],
+ "np": 1, "steps": 150,
+ "tags": ["quick", "2d", "cpm"]
+}

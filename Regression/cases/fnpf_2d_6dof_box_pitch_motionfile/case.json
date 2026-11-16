@@ -1,0 +1,28 @@
+{
+ "base": "fnpf_2d_6dof_box",
+ "ctrl_set": {
+  "X 11": "0 0 0 0 2 0",
+  "B 90": "0",
+  "B 92": null,
+  "B 93": null
+ },
+ "ctrl_add": [
+  "X 240 1"
+ ],
+ "files": [
+  "6DOF_motion.dat"
+ ],
+ "np": 1,
+ "steps": 200,
+ "description": "fnpf_2d_6dof_box in still water in forced pitch from the motion file of nhflow_2d_6dof_box_pitch_motionfile (X 240 1, 0.05 rad sin(2 pi t / 1.2)), A 310 3: the orientation from the file at the end of each RK3 stage.",
+ "tags": [
+  "2d",
+  "fnpf",
+  "6dof",
+  "motionfile"
+ ],
+ "covers": [
+  "sixdof_motionext::stage_position orientation from the file, table_omega (6DOF_motionext_table.cpp) (FNPF rk3)"
+ ],
+ "architect": "Hans Bihs"
+}

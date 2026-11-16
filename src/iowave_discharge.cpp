@@ -89,7 +89,6 @@ void iowave::Qin(lexer *p, fdm* a, ghostcell* pgc)
     Ai=pgc->globalsum(Ai);
     p->Qi=pgc->globalsum(p->Qi);
     
-    //if(p->B60==1)
     p->Ui=p->W10/(Ai>1.0e-20?Ai:1.0e20); 
     
     if(p->B60==2 || p->B60==4)
@@ -141,7 +140,6 @@ void iowave::Qout(lexer *p, fdm* a, ghostcell* pgc)
     Ao=pgc->globalsum(Ao);
     p->Qo=pgc->globalsum(p->Qo);
 	
-	//if(p->B60==1)
 	p->Uo=p->Qo/(Ao>1.0e-20?Ao:1.0e20);
     
     if(p->count==0 && p->I11==1)
@@ -156,5 +154,4 @@ void iowave::Qout(lexer *p, fdm* a, ghostcell* pgc)
 	if(p->mpirank==0 && (p->B60==3 || p->B60==4))
     cout<<"Qo_ipol: "<<hydrograph_ipol(p,pgc,hydro_out,hydro_out_count)<<endl;
 	
-	//cout<<"area_o: "<<Ao<<endl;
 }

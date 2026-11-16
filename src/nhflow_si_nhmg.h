@@ -25,6 +25,7 @@ Author: Hans Bihs
 
 #include<vector>
 #include<memory>
+#include<utility>
 #include<mpi.h>
 
 // Multigrid for the coupled eta-phi system of the semi-implicit non-hydrostatic NHFLOW (nhflow_momentum_SI_nh.cpp),
@@ -36,6 +37,9 @@ Author: Hans Bihs
 // precision by default, nhflow_si_nhmg_core) has its own copy of level 0 and the coarse levels, which aggregate 2 x 2
 // columns (2 x 1 with one cell in y) of a rank and take the Galerkin operator R A P with the piecewise constant
 // prolongation P and R = P^T (summed in double), which keeps the block 5-point structure.
+// Storage: the blocks of the neighbours by the pattern the caller gives (setup: mask; the rows of the coupled system:
+// the mass row couples every unknown of the neighbour, a constraint row only eta, phi_k and phi_k+1), the diagonal block
+// in full; without a mask, or when an entry outside it is set, every block in full (make_dense).
 // Smoother: block Gauss-Seidel in red-black order (the inverses of the diagonal blocks, LU with pivoting in double).
 // Cycle: the K-cycle of Notay (AGMG): below the finest level each coarse correction is two GCR steps preconditioned
 // with the cycle of the level; with the piecewise constant aggregation the plain V-cycle needed 14 / 32 / 66 FGMRES
@@ -44,18 +48,44 @@ Author: Hans Bihs
 // level by sweeps.
 template<class T> class nhflow_si_nhmg_core;
 
+// an entry of the pattern of a block row: its column c and its place o in the stored block
+struct nhmg_pent { int c, o; };
+
 class nhflow_si_nhmg
 {
 public:
     // the level-0 box of the rank: nx x ny columns, B unknowns per column; nb: the ranks in -x, +x, -y, +y (< 0 none)
-    void setup(MPI_Comm comm, int B, int nx, int ny, const int nb[4]);
+    // mask (5 B^2, optional): the entries (d, r, c) that can be nonzero; the diagonal block (d = 0) is always stored in full
+    void setup(MPI_Comm comm, int B, int nx, int ny, const int nb[4], const std::vector<char> *mask=nullptr);
 
-    // block d (0 the cell, 1 +x, 2 -x, 3 +y, 4 -y) of the row of column (ix,iy) on level 0, B x B row-major; set(): an
-    // entry and its place in the pattern of the products (entries written through block() only: mark_all())
-    double* block(int ix, int iy, int d) { return &A0[((size_t)(ix*ny0 + iy)*5 + d)*BB]; }
-    void set(int ix, int iy, int d, int r, int c, double v) { block(ix,iy,d)[r*B+c] = v; nz0[(size_t)d*BB + r*B + c] = 1; }
+    // block d (0 the cell, 1 +x, 2 -x, 3 +y, 4 -y) of the row of column (ix,iy) on level 0; set(): an entry (row r, column
+    // c) and its place in the pattern of the products; get(): entry e = r B + c (0 where not stored); scale_rows(): the
+    // rows r0 .. B-1 of a block times s; block(): B x B row-major, the full storage only (mark_all(): every block in full,
+    // the entries written through block() and all in the pattern)
+    void set(int ix, int iy, int d, int r, int c, double v)
+    {
+        const int sl = slot[(size_t)d*BB + r*B + c];
+        if(sl<0) { if(v==0.0) return; make_dense(); set(ix,iy,d,r,c,v); return; }
+        A0[(size_t)(ix*ny0 + iy)*CS + offs[d] + sl] = v;
+        nz0[(size_t)d*BB + r*B + c] = 1;
+    }
+    double get(int ix, int iy, int d, int e) const
+    {
+        const int sl = slot[(size_t)d*BB + e];
+        return sl<0 ? 0.0 : A0[(size_t)(ix*ny0 + iy)*CS + offs[d] + sl];
+    }
+    void scale_rows(int ix, int iy, int d, int r0, double s);
+    double* block(int ix, int iy, int d) { return &A0[(size_t)(ix*ny0 + iy)*CS + offs[d]]; }
     void mark_all();
     void zero();
+    void make_dense();
+
+    // the storage of the blocks (the cores of the preconditioner use the same): entry (d, r, c) at offs[d] + slot[d B^2 +
+    // r B + c] of the column (-1: not stored), CS entries per column; sl[d]: the stored entries (r B + c, place)
+    std::vector<int> slot;
+    int offs[5] = {0,0,0,0,0};
+    int CS = 0;
+    std::vector<std::vector<std::pair<int,int>>> sl;
 
     // the pattern of level 0 (the products skip the entries that are zero in every column); refresh: the preconditioner
     // from the current level-0 blocks (without: the one of an earlier step, FGMRES is flexible)
@@ -86,7 +116,9 @@ private:
     bool alone = true;      // no neighbouring rank: no halo exchange
     std::vector<double> A0, xh0, sbuf, rbuf;
     std::vector<char> nz0;
-    std::vector<std::vector<int>> pat0;
+    std::vector<std::vector<nhmg_pent>> pat0;
+    bool dense = false;
+    void layout(const std::vector<char> *mask);
     std::shared_ptr<nhflow_si_nhmg_core<float>> cf;
     std::shared_ptr<nhflow_si_nhmg_core<double>> cd;
 };

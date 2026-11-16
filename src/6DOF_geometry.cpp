@@ -61,21 +61,21 @@ void sixdof_geometry::allocate(lexer *p)
     // cylinder_x   
     r=p->X131_rad;
 	U = 2.0 * PI * r;
-	ds = 0.75*p->dx;      // segment length 0.75 dx (was 0.75*U*dx, i.e. 1/(0.75 dx) segments for any radius)
+	ds = 0.75*p->dx;      // segment length 0.75 dx
 	snum = MAX(int(U/ds),8);
 	trisum+=5*(snum+1)*p->X131;
     
     // cylinder_y
     r=p->X132_rad;
 	U = 2.0 * PI * r;
-	ds = 0.75*p->dx;      // segment length 0.75 dx (was 0.75*U*dx, i.e. 1/(0.75 dx) segments for any radius)
+	ds = 0.75*p->dx;      // segment length 0.75 dx
 	snum = MAX(int(U/ds),8);
 	trisum+=5*(snum+1)*p->X132;
     
     // cylinder_z
     r=p->X133_rad;
 	U = 2.0 * PI * r;
-	ds = 0.75*p->dx;      // segment length 0.75 dx (was 0.75*U*dx, i.e. 1/(0.75 dx) segments for any radius)
+	ds = 0.75*p->dx;      // segment length 0.75 dx
 	snum = MAX(int(U/ds),8);
     trisum+=5*(snum+1)*p->X133;
     
@@ -187,7 +187,7 @@ void sixdof_geometry::box(lexer *p, int qn)
 
 void sixdof_geometry::cylinder_x(lexer *p, int qn)
 {
-    // segment length 0.75 dx (was 0.75*U*dx, i.e. 1/(0.75 dx) segments for any radius)
+    // segment length 0.75 dx
 	const int snum = geo_primitive::segments(p->X131_rad,0.75*p->dx,8);
 	tstart[entity_count]=tricount;
 	geo_primitive::cylinder_x(tri_x,tri_y,tri_z,tricount,p->X131_yc,p->X131_zc,p->X131_xc-0.5*p->X131_h,p->X131_xc+0.5*p->X131_h,p->X131_rad,snum);

@@ -68,8 +68,6 @@ void sixdof_obj_nhflow::ray_cast_nhflow_grid(lexer *p, fdm_nhf *d, ghostcell *pg
         }
     }
     
-    int nband=0;
-
     // cell centres on the surface (distance at round-off level, e.g. a box face through a row of
     // cell centres) get FB = 0 exactly: the parity test perturbs the ray position in a fixed
     // direction, so such cells would come out inside on one side of the body and outside on the

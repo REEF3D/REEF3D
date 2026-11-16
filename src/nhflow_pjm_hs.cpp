@@ -66,14 +66,6 @@ void nhflow_pjm_hs::wcorr(lexer* p, fdm_nhf *d, slice &WL, double *W, double *P,
 {
 }
  
-void nhflow_pjm_hs::rhs(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V, double *W, double alpha)
-{
-}
-
-void nhflow_pjm_hs::vel_setup(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V, double *W, double alpha)
-{
-}
-
 void nhflow_pjm_hs::upgrad(lexer*p, fdm_nhf *d, slice &WL)
 {
     // curvilinear grid: g eta sum(d_face S_face)/A (nhflow_curv.h)

@@ -1,0 +1,7 @@
+{
+ "description": "Upper head of the CEMT Va lock (validation 27_cfd_lock_cemt_va, make_head_test.py closed --amr: level 0 0.02 m, leaves 0.04 m, one refined level around them) with the settings of the lock runs (N 40 5, N 54, N 57, N 59 2, N 63 3, B 77 3, G 8, G 28 3, G 29) on 2 ranks with G 40 1: the refined box is placed as two patches, their common edge at x = 1.36 m runs through both closed mitre leaves, which hold a head of 0.20 m. On a patch the level set was extended into a body (X 48 3) from the fluid of that patch alone: on the patch of the high side the water up to the patch edge, on the other the air, a step of the level set at the chamber face of the leaves. hans_dev 3f04f37b1: a film of 1.2 m/s runs down that face and 1.0 m/s over the sill after 0.25 s, the time step falls to half. With the cells around a patch taking part in the extension (patch Ship Hydrodynamics/0067) the gate is tight (0.00 m/s at the face).",
+ "np": 2, "steps": 40,
+ "files": ["floating.stl", "floating-1.stl", "6DOF_motion-0.dat", "6DOF_motion-1.dat"],
+ "tags": ["3d", "6dof", "levelset", "amr", "mpi"],
+ "covers": ["levelset_solid_extend: the cells around a patch of the mesh refinement", "cfd_amr: a 6DOF body cut by the edge between two patches of a level on two ranks (G 40 1)"]
+}

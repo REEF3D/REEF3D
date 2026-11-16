@@ -57,8 +57,11 @@ private:
     double starttime;
     void fill_wvel(lexer*,fdm_nhf*,ghostcell*,sediment_fdm*);
     void settling_fit(lexer*,fdm_nhf*,sediment_fdm*); 
+    void diffusion(lexer*,fdm_nhf*);
     double *WVEL;
     double *WLN;    // water depth belonging to the stored concentration (end of the last solve)
+    int *WETS;      // columns of the solve: wet and deeper than the film (wet_columns)
+    void wet_columns(lexer*, fdm_nhf*);
     int wl_ini;
     
     // exchange with the bed since the last bed update: ED = sum ws (cbe - c_0) dt [m], its mean rate RT,
@@ -67,9 +70,8 @@ private:
     slice4 ED,RT;
     double acc[2];
     unsigned long long ckid;
-    double Rouse_formula(lexer*,fdm_nhf*,sediment_fdm*,double); 
     
-    int count,q;
+    int count;
 };
 
 #endif

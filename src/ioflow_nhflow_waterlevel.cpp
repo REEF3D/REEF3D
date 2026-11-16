@@ -98,8 +98,6 @@ void ioflow_f::fsfinflow_nhflow(lexer *p, fdm_nhf* d, ghostcell* pgc, slice &WL)
         WL(i-2,j) = p->Hi - d->bed(i,j);
         WL(i-3,j) = p->Hi - d->bed(i,j);
         
-        //cout<<"WL(i-1,j): "<<WL(i-1,j)<<endl;
-        
         d->eta(i-1,j) = WL(i-1,j) - d->depth(i,j);
         d->eta(i-2,j) = WL(i-2,j) - d->depth(i,j);
         d->eta(i-3,j) = WL(i-3,j) - d->depth(i,j);
@@ -125,11 +123,8 @@ void ioflow_f::fsfinflow_nhflow(lexer *p, fdm_nhf* d, ghostcell* pgc, slice &WL)
         f = 1.0;
         
         wsfout = f*p->F62 + (1.0-f)*p->F60;
-        //cout<<"wsfout: "<<wsfout<<" f: "<<f<<endl;
         }
     }
-    
-    //cout<<"wsfout: "<<wsfout<<" phiout: "<< p->phiout<<endl;
     
     for(n=0;n<p->gcslout_count;n++)
     {
@@ -139,8 +134,6 @@ void ioflow_f::fsfinflow_nhflow(lexer *p, fdm_nhf* d, ghostcell* pgc, slice &WL)
         if(p->F50==2 || p->F50==4)
         if(p->wet[IJ]==1)
         {
-        
-    //cout<<"wsfout: "<<wsfout<<" phiout: "<< wsfout-d->bed(i,j)<<endl;
         WL(i,j)   = wsfout - d->bed(i,j);
         WL(i+1,j) = wsfout - d->bed(i,j);
         WL(i+2,j) = wsfout - d->bed(i,j);

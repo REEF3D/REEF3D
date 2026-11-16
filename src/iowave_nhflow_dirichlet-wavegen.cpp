@@ -45,10 +45,6 @@ void iowave::nhflow_dirichlet_wavegen(lexer *p, fdm_nhf *d, ghostcell *pgc, doub
             if(p->A515==2 || p->A515==4)
             {
             etaval = d->eta(i,j);
-            /*
-            WL(i-1,j) = WL(i,j);
-            WL(i-2,j) = WL(i,j);
-            WL(i-3,j) = WL(i,j);*/
             }
             
             if(p->A515==3)
@@ -78,10 +74,6 @@ void iowave::nhflow_dirichlet_wavegen(lexer *p, fdm_nhf *d, ghostcell *pgc, doub
             if(p->A515==2 || p->A515==4)
             {
             etaval = d->eta(i,j);
-            /*
-            WL(i-1,j) = WL(i,j);
-            WL(i-2,j) = WL(i,j);
-            WL(i-3,j) = WL(i,j);*/
             }
             
             if(p->A515==3)
@@ -104,9 +96,6 @@ void iowave::nhflow_dirichlet_wavegen(lexer *p, fdm_nhf *d, ghostcell *pgc, doub
 		j=p->gcin[n][1];
 		k=p->gcin[n][2];
         
-
-            //WETDRYDEEP
-            //{
             // U, V, W
             uvel = uval[count];
             vvel = vval[count];
@@ -149,7 +138,6 @@ void iowave::nhflow_dirichlet_wavegen(lexer *p, fdm_nhf *d, ghostcell *pgc, doub
                 WH[Im1JK]=whvel;
                 WH[Im2JK]=whvel;
                 WH[Im3JK]=whvel;
-            //}
             
         ++count;
         }

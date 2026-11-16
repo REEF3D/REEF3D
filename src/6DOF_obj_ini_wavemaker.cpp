@@ -62,7 +62,6 @@ void sixdof_obj_nhflow::initialize_wavemaker(lexer *p, fdm_nhf *d, ghostcell *pg
     
     // Recalculate distances
 	ray_cast(p,d,pgc);
-	nhflow_reini_RK2(p,d,pgc,d->FB);
     
     // Print initial body 
     if(p->X50==1)

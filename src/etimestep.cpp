@@ -212,11 +212,10 @@ void etimestep::start(fdm *a, lexer *p, ghostcell *pgc, turbulence *pturb)
     
     cu = MIN3(cu,cv,cw);
 
-    // minimum over all ranks (was the value of rank 0, i.e. of its cells only)
+    // minimum over all ranks
     cu = pgc->globalmin(cu);
 
 	p->dt=p->N47*cu;
-   // p->dt = MIN(p->dt,10.0*p->dt_old);
 
     // N 54: the gravity-wave limit (the acceleration term is without gravity then)
     if(p->N54>0.0)

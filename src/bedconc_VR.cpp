@@ -117,9 +117,6 @@ void bedconc_VR::start(lexer* p, ghostcell *pgc, sediment_fdm *s)
 
     s->cbe(i,j) = ca*R;
     s->rbe(i,j) = 1.0;
-    
-    
-    //cout<<"adist: "<<adist<<" ca: "<<ca<<" cbe: "<<s->cbe(i,j)<<endl;
     }
 }
 

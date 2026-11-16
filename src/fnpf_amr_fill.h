@@ -122,11 +122,9 @@ inline void fnpf_amr::fill_col(int l, int tag, SEL sel, bool d1)
 // restriction of point values to the coarse cell centre between the 2x2 children (i0..i0+1,
 // j0..j0+1): cubic in x and y on the 4x4 fine cells around them (4th order), the plain
 // average next to solids and in the outermost blocks of the patch (bi, bj): there the 4x4
-// stencil reached into the cells around the patch, which are filled after the restriction
-// from the coarse values it gives.  The restricted columns then depended on the previous
-// fill, and the composite Laplace operator was no fixed linear map of the leaf unknowns:
-// the recursive BiCGStab residual converged while the true residual at the patch edges
-// stayed orders of magnitude larger, and the psi solves stalled at N 46
+// stencil would reach into the cells around the patch, which are filled after the restriction
+// from the coarse values it gives, and the composite Laplace operator would be no fixed linear
+// map of the leaf unknowns
 inline bool fnpf_amr::rcubic(lexer *pp, int i0, int j0)
 {
     if(rorder<4)

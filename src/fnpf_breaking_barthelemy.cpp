@@ -54,14 +54,14 @@ Architect: Hans Bihs
 //
 // Surf zone settings: A352 0 and a coastline band A341 ~10 (A343 1). The A352 filter (A354 0.6) flattens
 // the fronts before B reaches the threshold, and the breaking point is that of A350 1 again; without the
-// filter and with the default band A341 2 the swash zone of Ting & Kirby goes unstable after 20-36 s.
+// filter and with the default band A341 2 the swash zone can go unstable.
 
 // A 350 5: A 350 4 with the breaker scales, strength, duration and energy of steepness-limited breaking from the
 // literature (Derakhti, Banner & Kirby 2018, JFM 848, "D18"; Romero et al. 2012; Rapp & Melville 1990; Tian et al.
 // 2010) and an energy-matched absorbing surface pressure (Mohanlal et al. 2023), in deep and intermediate water (crests with C^2/(g h) < 0.6 and 2 pi h/L > 1.4,
 // ramps to 0.9 and 0.8); bores in shallow water as A 350 4.
 //   onset      B > A 359 - A 369/sqrt(N) as A 350 4, but the resolution correction fades out between N = 120 and
-//              200 cells per crest wavelength (it was calibrated at N = 30-120; B = 0.85 holds on fine grids)
+//              200 cells per crest wavelength (calibrated at N = 30-120; B = 0.85 holds on fine grids)
 //   scales     at onset: L_b (trough to trough), H_b, k_b = 2 pi/L_b, c_b = (g tanh(k_b h)/k_b)^1/2 (linear, D18 app. A:
 //              not the tracked crest speed, which is 0.7-0.9 c_b at onset), T_b = L_b/c_b
 //   strength   eps = b c_b^5/g per unit crest length and density (D18 eq. 1.1), b <= A 407 (0.068, the largest b of
@@ -89,9 +89,7 @@ Architect: Hans Bihs
 //              trough ahead, sin^2 ramps) in the dynamic FSBC (Guignard & Grilli 2001, Mohanlal et al. 2023),
 //              nua = eps / int S eta_t^2 ds with eta_t of the step, nua <= c_b and <= 0.25 dx/dt (explicit term);
 //              The pressure alone does not keep the front face of a breaking potential-flow
-//              crest regular: in the 8.6 km JONSWAP run (dx 1.5 m) front-face slopes reached 2 and the run stopped at
-//              t = 4431 s; the viscosity damps the sharp front (rate 2 nu k^2 per FSBC). Packets at L/40 (loss against
-//              the LES, TP1/TP2/TP3/RS1/RP1/RP2): A 412 1 mean |error| 3.7 points (RP2 -8.1), 2: 3.5, 3: 3.2.
+//              crest regular; the viscosity damps the sharp front (rate 2 nu k^2 per FSBC).
 //   log        P 59 1 appends Gamma nwin c_b T_b L_b H_b mech nua dpa (mech 1: deep-water breaker (A 412), 0: bore)
 
 #include"fnpf_breaking.h"
@@ -123,9 +121,8 @@ void fnpf_breaking::breaking_zones(lexer *p, ioflow *pflow)
 
     // A 405 < 1: only the outer fraction A 405 of each zone (from its end at the domain boundary) stays free of crest
     // points. The target weight 1 - (exp(x^3.5) - 1)/(e - 1) of the relaxation is below 5 % over the inner half of
-    // a zone (x < 0.5), and a steep sea develops there as in the free domain: in a 2D JONSWAP sea (Hs 15.6 m, Tp 15 s,
-    // 900 m generation zone) crests grew to 20 m with front slopes of 3 in the last 80 m of the zone, where A 350 4
-    // did not act, and blew up at its end (patch 0035)
+    // a zone (x < 0.5), and a steep sea develops there as in the free domain; without crest tracking there it can
+    // blow up at the end of the zone
     if(p->A405<1.0)
     {
         const double fr = MAX(p->A405,0.0);
@@ -341,7 +338,7 @@ void fnpf_breaking::breaking_barthelemy(lexer *p, fdm_fnpf *c, ghostcell *pgc, s
 // A352 > 0: filter eta and Fifsf in the cells of the breaking zones (as A350 1 with A352 3).
 // With A351 1/3 also the cells of the depth-induced criterion of A350 1 (eta_t > A354 sqrt(g h), +-2 cells),
 // but only shoreward of the deepest breaking onset so far (still-water depth < bt_db, not with A352 5): in the surf and swash
-// zone the filter keeps the FNPF surface stable (Ting & Kirby stops at t = 20-36 s without it), offshore of
+// zone the filter keeps the FNPF surface stable, offshore of
 // the break point it would flatten the crests before B reaches the onset threshold.
 void fnpf_breaking::bt_filter(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, slice &eta_n, slice &Fifsf, double alpha)
 {

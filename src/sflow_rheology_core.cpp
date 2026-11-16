@@ -99,6 +99,62 @@ double sflow_rheology_core::gn(lexer *p, fdm2D *b)
     return g;
 }
 
+double sflow_rheology_core::gn_at(lexer *p, fdm2D *b, int ii, int jj)
+{
+    const int si = i, sj = j;
+    i = ii;
+    j = jj;
+    const double r = gn(p,b);
+    i = si;
+    j = sj;
+    return r;
+}
+
+double sflow_rheology_core::lambda_mid(lexer *p, double lam, double h)
+{
+    // pore pressure ratio of the friction: constant (W 126 1), or the advected ratio at the middle of the time step
+    // (W 126 2; lambda is updated once per step)
+    if(p->W126==1)
+    return lam;
+    
+    if(p->W126==2)
+    return rheo::pore_relax(lam,p->W127_lambdah,p->W127_D,h,0.5*p->dt);
+    
+    return 0.0;
+}
+
+double sflow_rheology_core::si_factor(lexer *p, fdm2D *b, int ii, int jj, int dir, double h, double Ustar, double dt)
+{
+    // semi-implicit step: the speed s of the backward-Euler friction step s + dt tau_b(s)/(rho h) = Ustar, as the
+    // factor s/Ustar = 1/(1 + dt tau_b(s)/(rho h s)) on the momentum of the cell or the face (with the implicit
+    // gravity term); 0 when the driving force of the step is below the static threshold. At a face the normal gravity
+    // and the pore pressure ratio are the means of the two cells
+    if(h<=p->A244)
+    return 1.0;
+    
+    if(Ustar<=0.0)
+    return 0.0;
+    
+    const int i2 = dir==1 ? ii+1 : ii;
+    const int j2 = dir==2 ? jj+1 : jj;
+    
+    rheo::basal_state s;
+    s.rho = p->W1;
+    s.g = sqrt(p->W20*p->W20 + p->W21*p->W21 + p->W22*p->W22);
+    s.h = h;
+    s.gn = dir==0 ? gn_at(p,b,ii,jj) : 0.5*(gn_at(p,b,ii,jj) + gn_at(p,b,i2,j2));
+    s.sigma_n = s.rho*s.gn*h;
+    s.lambda = lambda_mid(p,dir==0 ? lambda(ii,jj) : 0.5*(lambda(ii,jj) + lambda(i2,j2)),h);
+    
+    return rheo::implicit_speed(q,s,Ustar,dt)/Ustar;
+}
+
+void sflow_rheology_core::si_end(lexer *p, fdm2D *b, ghostcell *pgc, slice &UH, slice &VH, slice &WL)
+{
+    if(p->W126==2)
+    pore_update(p,b,pgc,UH,VH,WL);
+}
+
 void sflow_rheology_core::implicit(lexer *p, fdm2D *b, ghostcell *pgc, slice &UH, slice &VH, slice &WL, double alpha, bool finalize)
 {
     const double dt = alpha*p->dt;
@@ -123,14 +179,7 @@ void sflow_rheology_core::implicit(lexer *p, fdm2D *b, ghostcell *pgc, slice &UH
         s.h = h;
         s.gn = gn(p,b);
         s.sigma_n = s.rho*s.gn*h;
-        s.lambda = 0.0;
-        
-        if(p->W126==1)
-        s.lambda = lambda(i,j);
-        
-        // advected ratio: at the middle of the time step (lambda is updated once per step)
-        if(p->W126==2)
-        s.lambda = rheo::pore_relax(lambda(i,j),p->W127_lambdah,p->W127_D,h,0.5*p->dt);
+        s.lambda = lambda_mid(p,lambda(i,j),h);
         
         const double sp = rheo::implicit_speed(q,s,Ustar,dt);
         const double f = sp/Ustar;

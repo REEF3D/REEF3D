@@ -42,9 +42,7 @@ public:
 
 private:
 
-    double u_abs,u_plus,dist;
-    double uvel, vvel;
-    double tetaval, alphaval, phival, tanphi, beta;
+    double tetaval, alphaval, phival, tanphi;
     double eta;
 };
 

@@ -170,100 +170,6 @@ void VOF_PLIC::start(fdm* a,lexer* p, convection* pconvec,solver* psolv, ghostce
 	a->L(i,j,k)=0.0;
     VoF(i,j,k)=a->vof(i,j,k);
     }
-/*
-	RKcalcL(a,p,pgc,a->u,a->v,a->w);
-	
-	LOOP
-    {
-        vof_rk1(i,j,k) = VoF(i,j,k) + a->L(i,j,k);
-        
-        if(vof_rk1(i,j,k)<0.0)
-            vof_rk1(i,j,k)=0.0;
-        if(vof_rk1(i,j,k)>1.0)
-            vof_rk1(i,j,k)=1.0;
-    }
-    
-    pgc->start4(p,vof_rk1,gcval_vof);
-    updatePlaneData(p,a,pgc,vof_rk1);
-	pflow->vof_relax(p,a,pgc,vof_rk1);
-	pgc->start4(p,vof_rk1,gcval_vof);
-    
-    LOOP
-    {
-     a->vof(i,j,k) = vof_rk1(i,j,k);
-     a->L(i,j,k)=0.0;
-    }
-    pgc->start4(p,a->vof,gcval_vof); 
-    
-    //!no update yet -> update after diffusion!
-    
-    if(p->F92==1)
-    {
-        RK_redistance(a,p,pgc);
-        pgc->start4(p,a->phi,gcval_phi);
-        
-        p->reini_iter=3;
-        if(p->count>0) // at count 0 reini_RK3 corrects the volume itself
-        ppicard->volcalc(p,a,pgc,a->phi);
-        preini->start(a,p,a->phi, pgc, pflow);
-        ppicard->correct_ls(p,a,pgc,a->phi);
-    }
-    
-    //-------------------------------------------
-    
-    updatePhasemarkersCompression(p,a,pgc,vof_rk1);
-    pgc->start4(p,vof_rk1,gcval_vof);
-//********************************************************
-//Step 2
-//********************************************************
-
-    //-------------------------------------------
-    // FSF
-    
-   RKcalcL(a,p,pgc,a->u,a->v,a->w);
-	
-	LOOP
-    {
-        vof_rk2(i,j,k) = 0.75*VoF(i,j,k) + 0.25*vof_rk1(i,j,k)+0.25*a->L(i,j,k);
-        
-        if(vof_rk2(i,j,k)<0.0)
-            vof_rk2(i,j,k)=0.0;
-        if(vof_rk2(i,j,k)>1.0)
-            vof_rk2(i,j,k)=1.0;
-    }
-    
-    updatePlaneData(p,a,pgc,vof_rk2);
-	pflow->vof_relax(p,a,pgc,vof_rk2);
-    pgc->start4(p,vof_rk2,gcval_vof);
-    
-    LOOP
-    {
-        a->vof(i,j,k) = vof_rk2(i,j,k);
-        a->L(i,j,k)=0.0;
-    }
-    pgc->start4(p,a->vof,gcval_vof);
-    
-     if(p->F92==1)
-    {
-        RK_redistance(a,p,pgc);
-        pgc->start4(p,a->phi,gcval_phi);
-        
-        p->reini_iter=3;
-        if(p->count>0) // at count 0 reini_RK3 corrects the volume itself
-        ppicard->volcalc(p,a,pgc,a->phi);
-        preini->start(a,p,a->phi, pgc, pflow);
-        ppicard->correct_ls(p,a,pgc,a->phi);
-    }
-    
-    updatePhasemarkersCompression(p,a,pgc,vof_rk2);
-    pgc->start4(p,vof_rk2,gcval_vof);
-    
-//********************************************************
-//Step 3
-//********************************************************
-    //-------------------------------------------
-    // FSF
-    */
     RKcalcL(a,p,pgc,a->u,a->v,a->w);
 	
 	LOOP
@@ -276,7 +182,6 @@ void VOF_PLIC::start(fdm* a,lexer* p, convection* pconvec,solver* psolv, ghostce
             a->vof(i,j,k)=1.0;
     }
     
-    //updatePlaneData(p,a,pgc,a->vof);
     pflow->vof_relax(p,a,pgc,a->vof);
     pgc->start4(p,a->vof,gcval_vof);
     
@@ -303,7 +208,6 @@ void VOF_PLIC::start(fdm* a,lexer* p, convection* pconvec,solver* psolv, ghostce
     {
         updatePhasemarkersCorrection(p,a,pgc,a->vof);
         pgc->start4(p,a->vof,gcval_vof);
-    //updatePlaneData(p,a,pgc,a->vof);
     }
     
     if(p->F92==3||p->F92==32)

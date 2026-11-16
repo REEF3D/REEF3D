@@ -150,11 +150,11 @@ void nhflow_momentum_SI::ho_predictor(lexer *p, int dir, const double *UHc, doub
 
     if(dir==1)
     for(k=0;k<p->knoz;++k)
-    w[k] = (9.0*(c1*UHc[IJK] + c2*UHc[Ip1JK]) - c0*UHc[Im1JK] - c3*UHc[Ip2JK])/16.0;
+    w[k] = (9.0*(c1*UHc[PIJK] + c2*UHc[PIp1JK]) - c0*UHc[PIm1JK] - c3*UHc[PIp2JK])/16.0;
 
     else
     for(k=0;k<p->knoz;++k)
-    w[k] = (9.0*(c1*UHc[IJK] + c2*UHc[IJp1K]) - c0*UHc[IJm1K] - c3*UHc[IJp2K])/16.0;
+    w[k] = (9.0*(c1*UHc[PIJK] + c2*UHc[PIJp1K]) - c0*UHc[PIJm1K] - c3*UHc[PIJp2K])/16.0;
 }
 
 // the gravity term of the cell (i,j) (cell_update): dt g times (-1, 9, 9, -1)/16 of H_f times the face gradient

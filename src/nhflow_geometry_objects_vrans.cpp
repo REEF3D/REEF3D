@@ -97,7 +97,7 @@ void nhflow_geometry::objects_create_vrans(lexer *p, ghostcell *pgc)
 
 void nhflow_geometry::objects_allocate_vrans(lexer *p, ghostcell *pgc)
 {
-    double U,ds,phi,r,snum,trisum;
+    double U,ds,r,snum,trisum;
     
     entity_sum = p->B210 + p->B212 + p->B213 + p->B214 + p->B215 + p->B217 + p->B218 + p->B219;
 	tricount=0;

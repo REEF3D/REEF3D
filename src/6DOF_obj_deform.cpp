@@ -268,9 +268,33 @@ void sixdof_obj::brain_setup(lexer *p)
     taud = p->X201_d[n];
     }
     
+    // how its speed follows the gait in tail beats (X 202 id n_u n_d; replaces X 201)
+    double nu = 0.0, nd = 0.0;
+    for(int n=0; n<p->X202; ++n)
+    if(p->X202_id[n]==n6DOF)
+    {
+    nu = p->X202_u[n];
+    nd = p->X202_d[n];
+    }
+    
+    // how well it knows its stride (X 203 id sd)
+    double ssd = 0.0;
+    for(int n=0; n<p->X203; ++n)
+    if(p->X203_id[n]==n6DOF)
+    ssd = p->X203_s[n];
+    
+    // its coasting time (X 204 id tau_c)
+    double tc = 0.0;
+    for(int n=0; n<p->X204; ++n)
+    if(p->X204_id[n]==n6DOF)
+    tc = p->X204_t[n];
+    
+    // the brain starts at the end of the ramp of the gait (X 195), after half a tail beat at least (until patch
+    // 0027 a tail beat later: a fish started below its station in a current was carried past it by the start-up
+    // gait and had to turn round, validations 18, 19, 21)
     delete brain_;
     brain_ = new sixdof_brain(p->X193_U[nb], p->X193_b[nb], p->X193_D[nb], p->X193_the[nb], f0, fish_->length(), p->W1,
-                              tramp + 1.0/f0, fish_->lateral(), tp, s0, kturn, tauu, taud);
+                              std::max(tramp, 0.5/f0), fish_->lateral(), tp, s0, kturn, tauu, taud, nu, nd, ssd, tc);
     
     // the largest frequency of the brain fixes the step of the recoil quadrature
     fish_->set_fcap(brain_->fmax());
@@ -296,9 +320,11 @@ void sixdof_obj::brain_setup(lexer *p)
         }
         
         char hello[1024];
-        snprintf(hello,sizeof(hello),"{\"hello\":1,\"body\":%d,\"L\":%.17g,\"f0\":%.17g,\"rho\":%.17g,\"U_des\":%.17g,\"b_max\":%.17g,\"D\":%.17g,\"th_esc\":%.17g,\"t_start\":%.17g,\"twoD\":%d,\"s0\":%.17g,\"k_turn\":%.17g,\"tau_u\":%.17g,\"tau_d\":%.17g}",
-                 n6DOF, fish_->length(), f0, p->W1, p->X193_U[nb], p->X193_b[nb], p->X193_D[nb], p->X193_the[nb], tramp + 1.0/f0, fish_->lateral()==2 ? 1 : 0,
-                 brain_->stride_prior(), brain_->turn_rate(), brain_->speed_time_up(), brain_->speed_time_down());
+        snprintf(hello,sizeof(hello),"{\"hello\":1,\"body\":%d,\"L\":%.17g,\"f0\":%.17g,\"rho\":%.17g,\"U_des\":%.17g,\"b_max\":%.17g,\"D\":%.17g,\"th_esc\":%.17g,\"t_start\":%.17g,\"twoD\":%d,\"s0\":%.17g,\"k_turn\":%.17g,\"tau_u\":%.17g,\"tau_d\":%.17g,\"n_u\":%.17g,\"n_d\":%.17g,\"s_sd\":%.17g,\"tau_c\":%.17g}",
+                 n6DOF, fish_->length(), f0, p->W1, p->X193_U[nb], p->X193_b[nb], p->X193_D[nb], p->X193_the[nb], std::max(tramp, 0.5/f0), fish_->lateral()==2 ? 1 : 0,
+                 brain_->stride_prior(), brain_->turn_rate(), brain_->speed_time_up(), brain_->speed_time_down(),
+                 brain_->speed_beats_up(), brain_->speed_beats_down(), brain_->stride_spread(),
+                 brain_->coast_prior());
         
         if(!brain_link_->exchange(hello, in, 60.0))
         {
@@ -342,18 +368,25 @@ void sixdof_obj::brain_update(lexer *p, ghostcell *pgc, const std::vector<double
     const Eigen::Vector3d U(p->ufbi, p->vfbi, p->wfbi);
     brain_->sense(p->dt, ax, lat, c_, U, pr, ll_s_, ll_side_);
     
-    // a decision for the next step
     const double tn = p->simtime + p->dt;
     
-    if(!brain_->due(tn))
+    // the escape: a reflex of the own brain, every step (also with an external brain), out of the cycle of the
+    // decisions (the gait of the body as it stands after this step)
+    sixdof_brain::decision d = brain_->reflex(tn, fish_->frequency(), fish_->amp_factor(), fish_->bias());
+    const bool esc = d.on;
+    
+    // a decision for the next step
+    if(!esc && !brain_->due(tn))
     return;
     
     fish_->set_time(tn);
-    sixdof_brain::decision d = brain_->decide(tn, fish_->frequency(), fish_->amp_factor(), fish_->bias(), vis);
+    
+    if(!esc)
+    d = brain_->decide(tn, fish_->frequency(), fish_->amp_factor(), fish_->bias(), vis);
     
     // an external brain (X 191): the senses and the decision of the own brain out, its decision back
     // (rank 0), to all ranks by a sum with zeros elsewhere (exact)
-    if(p->X191>0 && d.on)
+    if(p->X191>0 && d.on && !esc)
     {
         double v[12] = {0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0};
         
@@ -431,7 +464,7 @@ void sixdof_obj::brain_update(lexer *p, ghostcell *pgc, const std::vector<double
         }
         
         const double fn = d.second ? d.f2 : d.f;
-        brain_->external(d, tn + (v[10]>0.0 ? v[10] : std::min(0.5/std::max(fn,1.0e-3), 0.5)));
+        brain_->external(d, tn + (v[10]>0.0 ? v[10] : std::min(0.5/std::max(fn,1.0e-3), brain_->decision_cap())));
     }
     
     if(d.on)

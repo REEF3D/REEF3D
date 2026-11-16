@@ -244,16 +244,6 @@ void nhflow_potential_f::wcalc(lexer *p, fdm_nhf *d)
     }
 }
 
-void nhflow_potential_f::rhs(lexer *p, fdm_nhf *d)
-{
-    count=0;
-    LOOP
-    {
-    d->rhsvec.V[count] = 0.0;
-    count++;
-    }
-}
-
 void nhflow_potential_f::laplace(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
     n=0;
@@ -490,32 +480,6 @@ void nhflow_potential_f::laplace(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
 	++n;
 	}
-    
-    
-    
-    /*
-    count=0;
-    if(p->mpirank==2)
-	for(int q=0;q<p->gcpara4_count;++q)
-	{
-    i=p->gcpara4[q][0];
-    j=p->gcpara4[q][1];
-    k=p->gcpara4[q][2];
-        
-        cout<<"DF2: "<<p->DF[Ip1JK]<<" "<<p->DF[Ip2JK]<<endl;
-	}
-    
-    
-    count=0;
-    if(p->mpirank==3)
-	for(int q=0;q<p->gcpara1_count;++q)
-	{
-    i=p->gcpara1[q][0];
-    j=p->gcpara1[q][1];
-    k=p->gcpara1[q][2];
-        
-        cout<<"DF3: "<<p->DF[IJK]<<" "<<p->DF[Ip1JK]<<endl;
-	}*/
 }
 
 void nhflow_potential_f::ini_bc(lexer *p, fdm_nhf *d, ghostcell *pgc)

@@ -414,6 +414,84 @@ static void test_swan_spc()
 
     seastate_swan_spc bad;
     check(!bad.read("no_such_file.spc",err),"missing file reported");
+
+    // a file on a direction sector (SWAN CGRID SECTOR, the nesting output of a run with A 717), 270 to 90 deg through 0,
+    // with energy up to its end at 90 deg (cos^2 around 60 deg): no energy in the directions of the gap beyond half a
+    // bin from its ends, the directions inside as from the file of the full circle
+    {
+        auto write = [&](const char *file, bool sector)
+        {
+            std::ofstream o(file);
+            o<<"SWAN   1\nLOCATIONS\n     1\n   0.0   0.0\nAFREQ\n    10\n";
+            for(int l=0;l<10;++l) o<<0.05+0.03*l<<"\n";
+            std::vector<double> d;
+            if(sector) for(int a=-90;a<=90;a+=10) d.push_back(a<0 ? a+360.0 : double(a));
+            else       for(int a=0;a<360;a+=10)   d.push_back(double(a));
+            o<<"CDIR\n"<<d.size()<<"\n";
+            for(double a : d) o<<a<<"\n";
+            o<<"QUANT\n     1\nVaDens\nm2/Hz/degr\n   -0.9900E+02\nFACTOR\n1.0e-4\n";
+            for(int l=0;l<10;++l)
+            {
+                for(double a : d)
+                {
+                    const double dd=std::fmod(a-60.0+540.0,360.0)-180.0;
+                    const double D=std::fabs(dd)<90.0 ? std::pow(std::cos(dd*pi/180.0),2) : 0.0;
+                    o<<" "<<int(10000.0*std::exp(-std::pow((l-3)/1.5,2))*D);
+                }
+                o<<"\n";
+            }
+        };
+        write("seastate_test_tmp.spc",true);
+        seastate_swan_spc sec, full;
+        const bool ok1=sec.read("seastate_test_tmp.spc",err);
+        write("seastate_test_tmp.spc",false);
+        const bool ok2=full.read("seastate_test_tmp.spc",err);
+        std::remove("seastate_test_tmp.spc");
+        check(ok1 && ok2 && sec.dir.size()==19 && full.dir.size()==36,"sector file: read 19 of 36 directions");
+
+        std::vector<float> Ns, Nf;
+        sec.to_grid(sg,Ns);
+        full.to_grid(sg,Nf);
+        double eout=0.0, ein=0.0, dmax=0.0, nmax=0.0;
+        for(int l=0;l<sg.nsig;++l)
+        for(int m=0;m<sg.ndir;++m)
+        {
+            const double th=sg.theta[m]*180.0/pi, e=double(Ns[sg.bin(l,m)]);
+            nmax=std::max(nmax,double(Nf[sg.bin(l,m)]));
+            if(th>95.0+1.0e-9 && th<265.0-1.0e-9)
+            eout+=e;
+            else if(th<90.0+1.0e-9 || th>270.0-1.0e-9)
+            {
+            ein+=e;
+            dmax=std::max(dmax,std::fabs(e-double(Nf[sg.bin(l,m)])));
+            }
+        }
+        std::cout<<"        sector file: action in the gap "<<eout<<", inside "<<ein<<", max. difference to the full circle inside "<<dmax/nmax<<std::endl;
+        check(ein>0.0 && eout==0.0,"sector file: no energy in the directions of the gap (no interpolation across it)");
+        check(dmax<=1.0e-6*nmax,"sector file: the directions of the sector as from the file of the full circle");
+        sp.compute(sg,Ns.data());
+        check(sp.dir>40.0 && sp.dir<60.0,"sector file: the mean direction stays inside the sector");
+    }
+
+    // one frequency in the file: taken at that frequency alone (no bracket below the first frequency)
+    {
+        std::ofstream o("seastate_test_tmp.spc");
+        o<<"SWAN   1\nLOCATIONS\n     1\n   0.0   0.0\nAFREQ\n     1\n"<<sg.f[5]<<"\nCDIR\n     4\n0\n90\n180\n270\n";
+        o<<"QUANT\n     1\nVaDens\nm2/Hz/degr\n   -0.9900E+02\nFACTOR\n1.0\n 4 3 2 1\n";
+        o.close();
+        seastate_swan_spc one;
+        const bool ok=one.read("seastate_test_tmp.spc",err);
+        std::remove("seastate_test_tmp.spc");
+        // the file holds the frequency with 6 digits: a grid whose frequency 5 is exactly the value read
+        seastate_grid s1(2,ok ? one.f[0] : 0.1,1.0,36);
+        std::vector<float> N1;
+        one.to_grid(s1,N1);
+        const double expect=4.0*180.0/pi/(2.0*pi)/s1.sig[0];
+        bool rest=true;
+        for(int m=0;m<s1.ndir;++m)
+        rest = rest && N1[s1.bin(1,m)]==0.0f;
+        check(ok && one.f.size()==1 && close(double(N1[s1.bin(0,0)]),expect,1.0e-6) && rest,"file with one frequency: its values at that frequency, zero elsewhere");
+    }
 }
 
 // ---------------------------------------------------------------------------------------------

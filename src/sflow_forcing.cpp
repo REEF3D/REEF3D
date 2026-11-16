@@ -25,7 +25,6 @@ Author: Hans Bihs
 #include"fdm2D.h"
 #include"ghostcell.h"
 #include"6DOF.h"
-#include"nhflow_reinidisc_fsf.h"
 
 sflow_forcing::sflow_forcing(lexer *p) : fx(p), fy(p), fz(p)
 {

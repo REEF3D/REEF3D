@@ -21,6 +21,7 @@ Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"cfd_pocket.h"
+#include"cell_index.h"
 #include"cfd_singlephase.h"
 #include"cfd_amr.h"
 #include"momentum_rk.h"
@@ -57,11 +58,6 @@ std::ofstream plog;
 // the labels of the cells: >= 0 a cell in the air (its component), WATER a leaf cell in the water,
 // -1 none (not a leaf cell of the grid: covered, solid, outside)
 const double WATER = -3.0;
-
-inline int fid(lexer *p, int i, int j, int k)
-{
-    return (i-p->imin)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin;
-}
 
 struct dsu
 {
@@ -113,7 +109,7 @@ void cfd_pocket_update(lexer *p, fdm *a, ghostcell *pgc, momentum *pmom, cfd_amr
     for(int i=0; i<p->knox; ++i)
     for(int j=0; j<p->knoy; ++j)
     for(int k=0; k<p->knoz; ++k)
-    if(p->flag4[fid(p,i,j,k)]>0)
+    if(p->flag4[cell_index(p,i,j,k)]>0)
     G[0].cells.push_back({i,j,k});
 
     const std::vector<cfd_pocket_edge> E;
@@ -166,7 +162,7 @@ void cfd_pocket_core(lexer *p0, std::vector<cfd_pocket_grid> &G, const std::vect
         node[g].assign((size_t)p->imax*p->jmax*p->kmax,-1);
         for(const auto &c : G[g].cells)
         if(G[g].a->phi(c[0],c[1],c[2])<0.0)
-        node[g][fid(p,c[0],c[1],c[2])] = nn++;
+        node[g][cell_index(p,c[0],c[1],c[2])] = nn++;
     }
 
     dsu D(nn);
@@ -175,14 +171,14 @@ void cfd_pocket_core(lexer *p0, std::vector<cfd_pocket_grid> &G, const std::vect
         lexer *p = G[g].p;
         for(const auto &c : G[g].cells)
         {
-            const int n = node[g][fid(p,c[0],c[1],c[2])];
+            const int n = node[g][cell_index(p,c[0],c[1],c[2])];
             if(n<0)
             continue;
             for(int s=0; s<6; s+=2)
             {
                 if(s==2 && jd==0)
                 continue;
-                const int m = node[g][fid(p,c[0]+nb[s][0],c[1]+nb[s][1],c[2]+nb[s][2])];
+                const int m = node[g][cell_index(p,c[0]+nb[s][0],c[1]+nb[s][1],c[2]+nb[s][2])];
                 if(m>=0)
                 D.join(n,m);
             }
@@ -190,8 +186,8 @@ void cfd_pocket_core(lexer *p0, std::vector<cfd_pocket_grid> &G, const std::vect
     }
     for(const cfd_pocket_edge &e : E)
     {
-        const int n1 = node[e.g1][fid(G[e.g1].p,e.c1[0],e.c1[1],e.c1[2])];
-        const int n2 = node[e.g2][fid(G[e.g2].p,e.c2[0],e.c2[1],e.c2[2])];
+        const int n1 = node[e.g1][cell_index(G[e.g1].p,e.c1[0],e.c1[1],e.c1[2])];
+        const int n2 = node[e.g2][cell_index(G[e.g2].p,e.c2[0],e.c2[1],e.c2[2])];
         if(n1>=0 && n2>=0)
         D.join(n1,n2);
     }
@@ -216,7 +212,7 @@ void cfd_pocket_core(lexer *p0, std::vector<cfd_pocket_grid> &G, const std::vect
         L.V[q] = -1.0;
         for(const auto &c : G[g].cells)
         {
-            const int n = node[g][fid(p,c[0],c[1],c[2])];
+            const int n = node[g][cell_index(p,c[0],c[1],c[2])];
             L(c[0],c[1],c[2]) = (n>=0) ? double(off + cidx[D.find(n)]) : WATER;
         }
     }

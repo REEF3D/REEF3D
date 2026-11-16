@@ -107,11 +107,9 @@ void fnpf_fsfbc_wd::damping(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &f, int
         }
         
         
-        // walls: zero gradient of the new value (the diagonal takes the coupling). Before, the coupling went to the
-        // right-hand side with the old value f(i,j), which damped the change of the cells next to a wall less: in a
-        // Ting & Kirby flume 4 cells across, the surf zone kept 7 % more wave height than in 2D. Dry neighbours keep
-        // the lagged form, and so does mesh refinement (G 1): with the implicit wall, fnpf_3d_amr_break_romero (A 350 3
-        // on patches near the coast) went unstable at t = 6.6 s
+        // walls: zero gradient of the new value (the diagonal takes the coupling). Dry neighbours keep the lagged
+        // form (the coupling on the right-hand side with the old value f(i,j)), and so does mesh refinement (G 1),
+        // where the implicit wall is unstable on patches near the coast
         const bool implicit_wall = (p->G1==0 && p->amr_patch==0);
         
         n=0;
@@ -194,9 +192,8 @@ void fnpf_fsfbc_wd::damping(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &f, int
 // dry cell takes its right-hand side. BiCGStab iterated over all columns of the domain for the few rows of
 // the breaking zones and the coastline band; here the diagonal rows are set directly and the coupled rows
 // are solved by Jacobi iterations (the rows are diagonally dominant by 1/(alpha dt): convergence factor
-// kappa/(1+kappa), kappa = 4 vb alpha dt/dx^2) until the residual is 1e-10 of the initial one. (The test of
-// BiCGStab, |r|_2/cellnumtot2D < N 44, is met by the old f on large grids; BiCGStab still does one
-// iteration, which nearly solves this system. Jacobi with that test would do none.)
+// kappa/(1+kappa), kappa = 4 vb alpha dt/dx^2) until the residual is 1e-10 of the initial one (not the
+// N 44 test of BiCGStab, which the old f already meets on large grids).
 // As in BiCGStab the iterate is a separate vector with the halo exchange of the parallel boundaries, and f
 // gets the solution in its interior cells. Without convergence after N 46 iterations f is not changed
 // and the caller solves with BiCGStab.

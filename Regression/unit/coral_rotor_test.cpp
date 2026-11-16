@@ -6,11 +6,15 @@
 // its natural frequency; yawed inflow with the skewed wake (yaw angle, larger induction downwind); tower potential
 // flow; mass and inertia of hub and blades (flexible: the table's integral, also with stations inside the
 // elements); ElastoDyn's blade file (with and without PitchAxis); the keyword with its
-// channels.
+// channels; the gyroscopic whirl of the spinning rotor on a nacelle with tilt and yaw springs (analytic frequencies,
+// no energy drift); the idling rotor at rest, feathered (starts, the element load continuous through Vy = 0).
 // Architect: Hans Bihs
 #include"coral/aero/coral_rotor.h"
 #include"coral/core/coral_model.h"
 #include"coral/core/coral_timeint.h"
+#include"coral/core/coral_force.h"
+#include"coral/core/coral_rotation.h"
+#include"coral/structure/coral_linear6.h"
 #include"coral/io/coral_input.h"
 #include"coral/wind/coral_wind.h"
 #include"coral/linear/coral_modes.h"
@@ -528,6 +532,116 @@ static void test_input()
     }
 }
 
+
+// gyroscopics of the spinning rotor: the rotor (hub and the blades' masses, no air) turns at Omega on a nacelle held by
+// rotational springs k about its pitch and yaw axes; a moment pulse starts the tilt and yaw whirl. With the polar
+// inertia J and the nacelle's total transverse inertia I about the spring point (the rotor's transverse inertia and its
+// mass at the hub offset included): I th'' + J Omega x th' + k th = 0, whirl frequencies
+// w = sqrt(k/I + (J Omega/2I)^2) -+ J Omega/2I; no damping: the amplitude stays (the integrator neither adds nor takes energy)
+static void test_gyroscopic()
+{
+    std::cout<<"gyroscopic whirl of the spinning rotor on a nacelle with tilt and yaw springs"<<std::endl;
+    for(double Om : {0.0, OM})
+    {
+        model m;
+        m.gravity = Vec3::Zero();
+        const Vec3 P(0, 0, 90.0);
+        rigid_body nac;
+        nac.name = "nac"; nac.mass = 2.0e4; nac.inertia = 1.0e5*Mat3::Identity(); nac.x = P;
+        const int nb = m.add_body(nac);
+        const double k = 2.0e8;
+        Mat6 K = Mat6::Zero(), C = Mat6::Zero();
+        for(int i=0; i<3; ++i) {K(i,i) = 1.0e11; K(i+3,i+3) = k;}
+        m.add_load(std::make_unique<linear6>(m, nb, P, K, C));
+        auto kick = std::make_unique<point_force>(m, nb, P, Vec3::Zero(), Vec3(0, 2.0e6, 0));
+        kick->until = 0.2;
+        m.add_load(std::move(kick));
+        rotor_spec sp = design(15);
+        sp.hub = P - Vec3(5.0, 0, 0);
+        sp.nacelle = nb;
+        sp.omega0 = Om;
+        sp.aero.rho = 1.0e-12;
+        auto w = std::make_shared<wind_field>(U0, 90.0);
+        rotor_handles h = build_rotor(m, w, sp);
+        // the rotor's polar and transverse inertia (planar blades: half the polar) and its mass at the hub offset
+        const double J = h.J, I = 1.0e5 + 0.5*h.J + h.mass*25.0, a = J*Om/(2.0*I);
+        const double wb = std::sqrt(k/I + a*a) - a, wf = std::sqrt(k/I + a*a) + a;
+        timeint ti;
+        ti.initialize(m, 0.0);
+        const double dt = 0.005;
+        std::vector<double> t, p, y;
+        for(int i=0; i<12000; ++i)
+        {
+            ti.step(m, i*dt, dt);
+            const Vec3 e = euler_from_matrix(m.bodies[nb].R);
+            t.push_back((i + 1)*dt); p.push_back(e(1)); y.push_back(e(2));
+        }
+        // the tilt's spectrum (two whirl frequencies when spinning), the amplitude early and late
+        auto peakf = [&](double lo, double hi)
+        {
+            double best = 0.0, fb = 0.0;
+            for(double f=lo; f<=hi; f+=1.0e-4)
+            {
+                double c = 0.0, s = 0.0;
+                for(size_t i=0; i<t.size(); ++i) if(t[i] > 0.3) {c += p[i]*std::cos(2*M_PI*f*t[i]); s += p[i]*std::sin(2*M_PI*f*t[i]);}
+                if(c*c + s*s > best) {best = c*c + s*s; fb = f;}
+            }
+            return fb;
+        };
+        auto amp = [&](double t0, double t1)
+        {
+            double mx = 0.0;
+            for(size_t i=0; i<t.size(); ++i) if(t[i] >= t0 && t[i] < t1) mx = std::max(mx, std::hypot(p[i], y[i]));
+            return mx;
+        };
+        const double fb = wb/(2*M_PI), ff = wf/(2*M_PI);
+        const double gb = peakf(0.9*fb, 1.1*fb);
+        const double gf = Om > 0.0 ? peakf(0.9*ff, 1.1*ff) : gb;
+        const double a0 = amp(1.0, 11.0), a1 = amp(49.0, 59.0);
+        check(std::fabs(gb/fb - 1.0) < 3e-3 && std::fabs(gf/ff - 1.0) < 3e-3 && std::fabs(a1/a0 - 1.0) < 2e-3,
+              Om > 0.0 ? fmt("Omega %.2f rad/s: whirl %.4f / %.4f Hz", Om, gb, gf) + fmt(" (analytic %.4f / %.4f), amplitude after 50 s x %.4f", fb, ff, a1/a0)
+                       : fmt("at rest: tilt %.4f Hz (analytic %.4f), amplitude after 50 s x %.4f", gb, fb, a1/a0));
+    }
+}
+
+// the idling rotor: at rest, pitched to feather (90 deg) in 11 m/s, it must start turning (the inductions fade out
+// towards Vy = 0, where the element switches to no induction; before: the first time step failed), and the element
+// loads stay continuous as the rotation (Vy) passes zero
+static void test_idle()
+{
+    std::cout<<"idling rotor at rest, feathered"<<std::endl;
+    rotor_spec sp = design(15);
+    sp.omega0 = 0.0;
+    sp.pitch = 90.0*deg;
+    model m;
+    m.gravity = Vec3::Zero();
+    auto w = std::make_shared<wind_field>(11.0, 90.0);
+    rotor_handles h = build_rotor(m, w, sp);
+    timeint ti;
+    ti.initialize(m, 0.0);
+    bool ok = true;
+    for(int i=0; i<400 && ok; ++i) ok = ti.step(m, i*0.05, 0.05);
+    check(ok && std::isfinite(h.drive->omega_rotor(m)), fmt("20 s from rest: the steps converge, rotor at %.4f rad/s", h.drive->omega_rotor(m)));
+    // one element: Vx = 11 m/s, Vy from -0.2 to 0.2 m/s
+    bem_element e;
+    e.r = 10.0; e.chord = 3.0; e.theta = 90.0*deg + sp.stations[3].twist; e.R = R; e.R_hub = 2.0; e.B = 3; e.af = &sp.airfoils[0];
+    bem_options o;
+    double jmp = 0.0, scale = 0.0, prev = 0.0;
+    for(int j=-200; j<=200; ++j)
+    {
+        const bem_result r = bem_solve(e, 11.0, 0.001*j, 1.225, o);
+        if(j > -200) jmp = std::max(jmp, std::fabs(r.fn - prev));
+        scale = std::max(scale, std::fabs(r.fn));
+        prev = r.fn;
+    }
+    check(jmp < 0.02*scale, fmt("Vx 11 m/s, Vy -0.2 .. 0.2 m/s: the normal load continuous (largest step %.2f %% of %.1f N/m)", 100*jmp/scale, scale));
+    // an operating element (local speed ratio 1) is not touched by the fade
+    bem_options of = o; of.induction_fade = 0.0;
+    e.theta = sp.stations[8].twist;
+    const bem_result r1 = bem_solve(e, 10.0, 10.0, 1.225, o), r0 = bem_solve(e, 10.0, 10.0, 1.225, of);
+    check(r1.a == r0.a && r1.ap == r0.ap && r1.a > 0.05, fmt("operating element (Vy/Vx = 1): the inductions unchanged (a %.4f)", r1.a));
+}
+
 int main()
 {
     test_steady();
@@ -537,6 +651,8 @@ int main()
     test_yaw_tower();
     test_pitch();
     test_flexible();
+    test_gyroscopic();
+    test_idle();
     test_input();
     std::cout<<(nfail ? "FAILED: " : "all passed")<<(nfail ? std::to_string(nfail) : "")<<std::endl;
     return nfail ? 1 : 0;

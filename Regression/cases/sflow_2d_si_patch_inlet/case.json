@@ -1,0 +1,8 @@
+{
+ "description": "SFLOW semi-implicit (A 210 11): river 1 km x 40 m (80 m3/s in at x-, level out at x+) with a lateral patch inlet of 10 m3/s through the y+ wall (B 440 face 2, B 411 1 10.0: positive into the domain). The patch faces as flux boundaries of bc_setup (on f74df90aa the SI step refused patch boundary conditions); patch_obj::inward.",
+ "solver": "sflow",
+ "np": 1,
+ "steps": 300,
+ "tags": ["quick", "2d", "sflow", "semi_implicit", "patchbc"],
+ "covers": ["sflow_momentum_SI::bc_setup patch inlet (bc_flux)", "patch_obj::velocity inward on a + face"]
+}

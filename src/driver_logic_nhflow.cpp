@@ -235,14 +235,26 @@ void driver::logic_nhflow()
         p->A520=1;
     }
     
-    // the body as a solid with cut faces (X 15 10): the cut faces are in the full projection only (nhflow_pjm: the
-    // divergence of the wall parts, the pressure extension)
-    if(p->X15==10 && p->X10>0 && p->A520==2)
+    // the body as a solid with cut faces (X 15 10) keeps the incremental projection too (nhflow_pjm_corr: the
+    // finite-volume pressure force of the cut cells in the predictor and the correction, the pressure extension into
+    // the nodes without water; Ship Hydrodynamics validation 43). On the mesh refinement hierarchy it needs the full
+    // projection (nhflow_amr::keys_ok).
+    if(p->X15==10 && p->X10>0 && p->A520==2 && p->G1>0)
     {
         if(p->mpirank==0)
-        cout<<"X 15 10: pressure scheme A 520 2 -> A 520 1 (full projection)"<<endl;
+        cout<<"X 15 10 on the mesh refinement hierarchy (G 1): pressure scheme A 520 2 -> A 520 1 (full projection)"<<endl;
 
         p->A520=1;
+    }
+
+    // direct forcing with the body in the projection (X 15 11): needs the projection, on the uniform grid; else the
+    // forcing of X 15 4
+    if(p->X15==11 && p->X10>0 && (p->A520==0 || p->G1>0 || p->geo_curv==1))
+    {
+        if(p->mpirank==0)
+        cout<<"X 15 11 is not available "<<(p->A520==0 ? "without the pressure projection (A 520 0)" : (p->G1>0 ? "on the mesh refinement hierarchy (G 1)" : "on the curvilinear grid (G 50)"))<<" yet: X 15 4"<<endl;
+
+        p->X15=4;
     }
 
     if(p->A520==0)
@@ -271,6 +283,15 @@ void driver::logic_nhflow()
     if(p->A519==0 && p->A518!=2 && (p->A560==1 || p->A560==21 || p->A560==2 || p->A560==22 || p->S10>0) && p->mpirank==0)
     cout<<"NOTE A 519 0: no bed friction in the momentum equations, the flow slips over the bed; A 519 1 (the default "
         <<"with a turbulence model A 560 or sediment transport S 10) for open-channel flow"<<endl;
+    
+    // k-epsilon and k-omega without the stabilisation of Larsen & Fuhrman (2018, A 565 1) in waves: the strain of the
+    // (nearly) potential wave motion produces k in the whole water column with nothing to dissipate it, and nu_t
+    // grows without bound. Regular wave H 0.06 m, T 1.5 s in 0.5 m of water, 30 m flume, 10 layers: after 200
+    // periods nu_t = 5e-3 m2/s in the whole column and the wave height at 23 m down to 45 % (k-epsilon and k-omega,
+    // A 564 1); with A 565 1 nu_t stays at 3e-6 m2/s outside the bed layer and the wave height at 99 %
+    if(p->B90>0 && p->A565==0 && (p->A560==1 || p->A560==21 || p->A560==2 || p->A560==22) && p->mpirank==0)
+    cout<<"NOTE A 565 0 with waves (B 90): the eddy viscosity of k-epsilon / k-omega grows without bound under "
+        <<"non-breaking waves and damps them; A 565 1 (stabilisation of Larsen & Fuhrman 2018) for wave runs"<<endl;
     
     // bed of the velocity (A 518): 1 the wall-function bed, mirrored ghost cells, zero gradient in the diffusion and
     // the bed shear from the log-law friction A 519; 2 the resolved no-slip bed, u = 0 on the bed face in the
@@ -461,6 +482,56 @@ void driver::logic_nhflow()
     pnhfdf->pdem = pdem;
     
 // Sediment
+    // S 10 for NHFLOW: 1 the sediment step every S 44 flow steps (every momentum solver), 12 the bed advanced in both
+    // stages of the SSP-RK2 momentum (A 510 2 only: no other momentum solver calls its stages, the bed never moved and
+    // nothing was said); any other S 10 left the sediment object uninitialised. S 12 0 or 1; the bed shear stress
+    // formulations of bedshear_nhflow (any other S 16 returned zero shear stress without a message)
+    {
+    int stop=0;
+    
+        if(p->S10!=0 && p->S10!=1 && p->S10!=12)
+        {
+        if(p->mpirank==0)
+        cout<<endl<<"!!! S 10 "<<p->S10<<": NHFLOW has S 10 1 (sediment step every S 44 flow steps) and S 10 12 (bed in both stages of the RK2 momentum, A 510 2) !!!"<<endl<<endl;
+        stop=1;
+        }
+        
+        if(p->S10==12 && (p->A510!=2 || p->A534==1))
+        {
+        if(p->mpirank==0)
+        cout<<endl<<"!!! S 10 12 (bed advanced in both stages of the RK2 momentum) needs A 510 2; use S 10 1 with "
+            <<(p->A534==1 ? "the semi-implicit momentum (A 510 11, 12, 13)" : "A 510 3")<<" !!!"<<endl<<endl;
+        stop=1;
+        }
+        
+        if(p->S10>0 && p->S12!=0 && p->S12!=1)
+        {
+        if(p->mpirank==0)
+        cout<<endl<<"!!! S 12 "<<p->S12<<": suspended load is S 12 0 (off) or 1 (van Rijn reference concentration) !!!"<<endl<<endl;
+        stop=1;
+        }
+        
+        if(p->S10>0 && !(p->S16==1 || p->S16==2 || p->S16==3 || p->S16==4 || p->S16==6 || p->S16==9 || p->S16==10 || p->S16==11))
+        {
+        if(p->mpirank==0)
+        cout<<endl<<"!!! S 16 "<<p->S16<<": the bed shear stress of NHFLOW is S 16 1, 2, 3, 4, 6, 9, 10 or 11 !!!"<<endl<<endl;
+        stop=1;
+        }
+        
+        if(stop==1)
+        pgc->final(true);
+    
+    // S 50 (fixed bed at the inflow / outflow) acts on the CFD bed (sediment_exner, the reinitialisation of the topography)
+    if(p->S10>0 && p->S50!=4 && p->mpirank==0)
+    cout<<"NOTE S 50 "<<p->S50<<": the bed boundary condition S 50 is CFD only; the edges of the NHFLOW bed are set by the "
+        <<"inflow guard S 78 and the sediment inflow S 129 / S 130 (fixed bed zones: S 76, no erosion: S 74, S 134 1 for solids)"<<endl;
+    
+    // S 12 without a turbulence model: the diffusivity of the suspended load is the molecular viscosity
+    if(p->S10>0 && p->S12>0 && p->A560==0 && p->mpirank==0)
+    cout<<"NOTE S 12 with A 560 0: without a turbulence model the suspended load has no eddy diffusivity (molecular "
+        <<"viscosity only), the sediment stays in the bottom layer; A 560 1, 2 for the mixing over the depth"<<endl;
+    }
+    
     if(p->S10==0)
     psed = new sediment_void();
 

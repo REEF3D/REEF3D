@@ -27,7 +27,6 @@ Author: Hans Bihs
 
 void sixdof_obj_nhflow::triangulation(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
-	int negcount, poscount;
     double eps;
     
     NDBASELOOP

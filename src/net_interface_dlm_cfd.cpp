@@ -176,41 +176,48 @@ void net_interface::dlm_cfd_spread(lexer *p, fdm *a, int nNet)
             const int j0 = MAX(jj - 2, p->jmin), j1 = MIN(jj + 2, p->jmin + p->jmax - 1);
             const int k0 = MAX(kk - 2, p->kmin), k1 = MIN(kk + 2, p->kmin + p->kmax - 1);
 
+            // the kernel per direction at the faces (n) and at the centres (p) of the at most 5 x 5 x 5
+            // cells: 30 kernel values per knot instead of 1125 (the products as before, to the bit)
+            double wxn[5], wxp[5], wyn[5], wyp[5], wzn[5], wzp[5];
+            
+            for (int i_it = i0; i_it <= i1; i_it++)
+            {
+                dist = sqrt(pow(p->XN[i_it + 1 + marge] - coordI(0), 2.0))/dx;
+                wxn[i_it-i0] = kernel_peskin(dist);
+                dist = sqrt(pow(p->XP[i_it + marge] - coordI(0), 2.0))/dx;
+                wxp[i_it-i0] = kernel_peskin(dist);
+            }
+            
+            for (int j_it = j0; j_it <= j1; j_it++)
+            {
+                dist = sqrt(pow(p->YN[j_it + 1 + marge] - coordI(1), 2.0))/dy;
+                wyn[j_it-j0] = kernel_peskin(dist);
+                dist = sqrt(pow(p->YP[j_it + marge] - coordI(1), 2.0))/dy;
+                wyp[j_it-j0] = kernel_peskin(dist);
+            }
+            
+            for (int k_it = k0; k_it <= k1; k_it++)
+            {
+                dist = sqrt(pow(p->ZN[k_it + 1 + marge] - coordI(2), 2.0))/dz;
+                wzn[k_it-k0] = kernel_peskin(dist);
+                dist = sqrt(pow(p->ZP[k_it + marge] - coordI(2), 2.0))/dz;
+                wzp[k_it-k0] = kernel_peskin(dist);
+            }
+
             for (int i_it = i0; i_it <= i1; i_it++)
             {
                 for (int j_it = j0; j_it <= j1; j_it++)
                 {
                     for (int k_it = k0; k_it <= k1; k_it++)
                     {
-                        dist = sqrt(pow(p->XN[i_it + 1 + marge] - coordI(0), 2.0))/dx;
-                        D = kernel_peskin(dist);
-                        dist = sqrt(pow(p->YP[j_it + marge] - coordI(1), 2.0))/dy;
-                        D *= kernel_peskin(dist);
-                        dist = sqrt(pow(p->ZP[k_it + marge] - coordI(2), 2.0))/dz;
-                        D *= kernel_peskin(dist);
-                        
+                        D = wxn[i_it-i0]*wyp[j_it-j0]*wzp[k_it-k0];
                         a->Fext(i_it,j_it,k_it) -= forcesI(0)*D/(dx*dy*dz);
                         
-                        
-                        dist = sqrt(pow(p->XP[i_it + marge] - coordI(0), 2.0))/dx;
-                        D = kernel_peskin(dist);
-                        dist = sqrt(pow(p->YN[j_it + 1 + marge] - coordI(1), 2.0))/dy;
-                        D *= kernel_peskin(dist);
-                        dist = sqrt(pow(p->ZP[k_it + marge] - coordI(2), 2.0))/dz;
-                        D *= kernel_peskin(dist);
-                            
+                        D = wxp[i_it-i0]*wyn[j_it-j0]*wzp[k_it-k0];
                         a->Gext(i_it,j_it,k_it) -= forcesI(1)*D/(dx*dy*dz);
                         
-                        
-                        dist = sqrt(pow(p->XP[i_it + marge] - coordI(0), 2.0))/dx;
-                        D = kernel_peskin(dist);
-                        dist = sqrt(pow(p->YP[j_it + marge] - coordI(1), 2.0))/dy;
-                        D *= kernel_peskin(dist);
-                        dist = sqrt(pow(p->ZN[k_it + 1 + marge] - coordI(2), 2.0))/dz;
-                        D *= kernel_peskin(dist);
-                         
+                        D = wxp[i_it-i0]*wyp[j_it-j0]*wzn[k_it-k0];
                         a->Hext(i_it,j_it,k_it) -= forcesI(2)*D/(dx*dy*dz);
-                        
                     }
                 }
             }

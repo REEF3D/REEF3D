@@ -62,7 +62,7 @@ void sixdof_obj_2D::updateForcing_stl(lexer *p, ghostcell *pgc, slice &press, sl
 {
     // Calculate pressure field for stl geometry based on draft
     double H,etaval,fbval;
-    double dfdx,dfdy,dnorm,nx,nz,xc,yc;
+    double dfdx,dfdy,dnorm,nx,xc,yc;
 
 	SLICELOOP4
     {

@@ -44,7 +44,6 @@ public:
 private:
 
     void solid_topo(lexer*,fdm*,ghostcell*);
-    int conv(double);
 
     int istart, iend, jstart, jend, kstart, kend;
     int qn;

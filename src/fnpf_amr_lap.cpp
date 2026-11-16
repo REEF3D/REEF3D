@@ -100,14 +100,11 @@ enum { NR=REEFAMR_NR, NRH=REEFAMR_NRH, NPV=REEFAMR_NPV, NVV=REEFAMR_NVV, NS=REEF
 const int LPASS = 1;
 
 // smoothing sweeps (pre and post) of the patch-local V-cycles of the FAC sweep.  With the pre-
-// smoothing one sweep is enough (moored box, 700 steps: max 4 iterations, 8 % less Laplace time
-// than two sweeps)
+// smoothing one sweep is enough
 const int PSWEEP = 1;
 
 // safety net: a solve that stagnates again after a BiCGStab restart stops if its relative
-// residual is below STAGTOL*N 44 (0: run to N 46).  With the coarse-first FAC sweep of the
-// first version about 2 % of the psi solves of a moored box stagnated at 1e-8..3e-7 relative;
-// with the pre-smoothing neither the restart nor the stop has triggered
+// residual is below STAGTOL*N 44 (0: run to N 46)
 const double STAGTOL = 100.0;
 
 inline long ijk4(const lexer *q, int ii, int jj, int kk)
@@ -500,9 +497,8 @@ bool fnpf_amr::lap_same(ghostcell *pgc, int wkey)
 // a 2D grid: the exact factorisation of a grid is kept for the other solves of the step (key: the
 // layout, the window and the step of the factorisation).  The coefficients follow the free
 // surface: the factorisation of the first solve of the step is the preconditioner for its other
-// solves (2D flume, two levels: 0.3 % more iterations, 14 % less time; kept for 4 steps: 1.7 %
-// more iterations and no further gain).  With a body (fixed rows) refactorised when the rows
-// change (lap_same keeps it for the solves of a stage)
+// solves.  With a body (fixed rows) refactorised when the rows change (lap_same keeps it for the
+// solves of a stage)
 bool fnpf_amr::xz_keep(long *key, bool on, int wkey)
 {
     if(!on || body!=nullptr)
@@ -607,9 +603,8 @@ void fnpf_amr::lap_start()
         }
         
         // the composite residual of the preconditioner: the restriction to level 0 reads entries
-        // the residual of this solve does not write (they held those of an earlier solve, e.g. one
-        // of another level window of the subcycling): the solve did not depend on its own data only,
-        // and a restart from a checkpoint (P 48, I 45) did not continue bitwise.  (X 36: a window
+        // the residual of this solve does not write; they are cleared so that the solve depends on
+        // its own data only (a restart from a checkpoint continues bitwise).  (X 36: a window
         // without level 0 restricts and reads neither level 0 nor the patches outside it)
         if((g<0 && lap_nol0) || (g>=0 && skipped(g)))
         continue;
@@ -738,9 +733,7 @@ void fnpf_amr::lap_l0solve()
 //  4. coarse to fine: the increment of the coarser grid since its pre-smoothing interpolated
 //     into the patch interiors and added, the columns around the patches filled, then
 //     post-smoothing with patch-local V-cycles on r - A z
-//  Without step 1 (coarse correction first) the residual restricted next to a resolved body
-//  carried the unsmoothed fine error at the hull into the level-0 correction, and the roll and
-//  pitch unit-mode psi solves stagnated (1e-8..3e-7 relative, up to N 46 iterations)
+//  Step 1 keeps the unsmoothed fine error at a resolved hull out of the level-0 correction
 void fnpf_amr::lap_prec(int kr, int kz)
 {
     if(wlo>0)

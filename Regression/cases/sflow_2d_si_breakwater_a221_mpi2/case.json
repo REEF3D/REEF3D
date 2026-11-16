@@ -1,0 +1,21 @@
+{
+ "description": "sflow_2d_breakwater_a221_mpi2 with the semi-implicit step (A 210 11, A 220 3, theta 0.5, B 95, automatic time step) on 2 ranks: the cells along the breakwater and around its tip in the coupled eta-P system (FGMRES with the two V-cycles), the fourth-order operators next to dry land as next to the walls of the grid.",
+ "solver": "sflow",
+ "np": 2,
+ "steps": 120,
+ "tags": [
+  "quick",
+  "2d",
+  "sflow",
+  "waves",
+  "wetdry",
+  "nonhydrostatic",
+  "semi_implicit",
+  "mpi"
+ ],
+ "covers": [
+  "sflow_momentum_SI with A 221 2 in 2D: wall() in x and y, drywall_cells across ranks",
+  "sflow_momentum_SI::ho_begin: dry land as a wall"
+ ],
+ "architect": "Hans Bihs"
+}

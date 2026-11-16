@@ -40,7 +40,6 @@ void hypre_sstruct::create_solver1234(lexer* p,ghostcell* pgc)
     HYPRE_SStructSysPFMGSetMaxIter(precond, 1);
     HYPRE_SStructSysPFMGSetTol(precond, 0.0);
     HYPRE_SStructSysPFMGSetZeroGuess(precond);
-    //HYPRE_SStructSysPFMGSetRAPType(precond, 0);
     HYPRE_SStructSysPFMGSetRelaxType(precond, 1);
     HYPRE_SStructSysPFMGSetNumPreRelax(precond, 1);
     HYPRE_SStructSysPFMGSetNumPostRelax(precond, 1);
@@ -102,7 +101,6 @@ void hypre_sstruct::create_solver5(lexer* p, ghostcell* pgc)
         HYPRE_SStructSysPFMGSetMaxIter(solver, p->N46);
         HYPRE_SStructSysPFMGSetTol(solver, p->N44);
         HYPRE_SStructSysPFMGSetZeroGuess(solver);
-        //HYPRE_SStructSysPFMGSetRAPType(solver, 0);
         HYPRE_SStructSysPFMGSetRelaxType(solver, 1);
         HYPRE_SStructSysPFMGSetNumPreRelax(solver, 1);
         HYPRE_SStructSysPFMGSetNumPostRelax(solver, 1);
@@ -117,7 +115,6 @@ void hypre_sstruct::create_solver5(lexer* p, ghostcell* pgc)
         HYPRE_SStructSysPFMGSetMaxIter(precond, 1);
         HYPRE_SStructSysPFMGSetTol(precond, 0.0);
         HYPRE_SStructSysPFMGSetZeroGuess(precond);
-        //HYPRE_SStructSysPFMGSetRAPType(precond, 0);
         HYPRE_SStructSysPFMGSetRelaxType(precond, 3);
         HYPRE_SStructSysPFMGSetNumPreRelax(precond, 1);
         HYPRE_SStructSysPFMGSetNumPostRelax(precond, 1);
@@ -131,7 +128,6 @@ void hypre_sstruct::create_solver5(lexer* p, ghostcell* pgc)
         HYPRE_SStructSplitSetMaxIter(precond, 1);
         HYPRE_SStructSplitSetTol(precond, 0.0);
         HYPRE_SStructSplitSetZeroGuess(precond);
-        //HYPRE_SStructSplitSetRAPType(precond, 0);
         HYPRE_SStructSplitSetStructSolver(precond, HYPRE_PFMG);
     }
     else if(p->N11==33)

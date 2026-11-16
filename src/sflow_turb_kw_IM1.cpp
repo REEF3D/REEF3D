@@ -26,14 +26,12 @@ Author: Hans Bihs
 #include"ghostcell.h"
 #include"sflow_idiff.h"
 #include"solver2D.h"
-#include"sflow_iweno_hj.h"
 #include"sflow_ifou.h"
 
 
 #define HP (fabs(b->hp(i,j))>(p->A244)?b->hp(i,j):1.0e20)
 
-sflow_turb_kw_IM1::sflow_turb_kw_IM1(lexer* p) : sflow_turb_io(p), kn(p), wn(p), Pk(p), S(p), ustar(p), cf(p),
-                                                 Vw(p), Qw(p),
+sflow_turb_kw_IM1::sflow_turb_kw_IM1(lexer* p) : sflow_turb_io(p), kn(p), wn(p), Pk(p), S(p), Vw(p), Qw(p), ustar(p), cf(p),
                                                  kw_alpha(5.0/9.0), kw_beta(3.0/40.0),kw_sigma_k(2.0),kw_sigma_w(2.0)
 {
     gcval_kin=20;
@@ -52,36 +50,43 @@ void sflow_turb_kw_IM1::start(lexer *p, fdm2D *b, ghostcell *pgc, sflow_convecti
 {
     Pk_update(p,b,pgc);
     ustar_update(p,b,pgc);
+    fresh_cells(p,b);
 
-//kin
-    starttime=pgc->timer();
-	clearrhs(p,b);
-    pconvec->start(p,b,kin,4,b->P,b->Q);
-    pdiff->diff_scalar(p,b,pgc,psolv,kin,kw_sigma_k,1.0);
-	kin_source(p,b);
-	timesource(p,b,kn);
-    wall_law_kin(p,b);
-    psolv->start(p,pgc,kin,b->M,b->xvec,b->rhsvec,4);
-    pgc->gcsl_start4(p,kin,gcval_kin);
-	p->kintime=pgc->timer()-starttime;
-	p->kiniter=p->solveriter;
-	if(p->mpirank==0 && (p->count%p->P12==0))
-	cout<<"kin_iter: "<<p->kiniter<<"  kin_time: "<<setprecision(3)<<p->kintime<<endl;
+    // omega before k: the sink of k, cmu omega k, with the omega of the new time level. Two passes per step: the
+    // second with the sink of omega linearised around the omega of the first (two Newton steps where the sources
+    // dominate, the time steps of the semi-implicit momentum)
+    for(int pass=0; pass<2; ++pass)
+    {
+    //omega
+        starttime=pgc->timer();
+    	clearrhs(p,b);
+        pconvec->start(p,b,eps,4,b->P,b->Q);
+        pdiff->diff_scalar(p,b,pgc,psolv,eps,kw_sigma_w,1.0);
+    	omega_source(p,b);
+    	timesource(p,b,wn);
+        wall_bc(p,b,eps);
+    	psolv->start(p,pgc,eps,b->M,b->xvec,b->rhsvec,4);
+        pgc->gcsl_start4(p,eps,gcval_eps);
+    	p->epstime=pgc->timer()-starttime;
+    	p->epsiter=p->solveriter;
+    	if(p->mpirank==0 && pass==1 && (p->count%p->P12==0))
+    	cout<<"omega_iter: "<<p->epsiter<<"  omega_time: "<<setprecision(3)<<p->epstime<<endl;
 
-//omega
-    starttime=pgc->timer();
-	clearrhs(p,b);
-    pconvec->start(p,b,eps,4,b->P,b->Q);
-    pdiff->diff_scalar(p,b,pgc,psolv,eps,kw_sigma_w,1.0);
-	omega_source(p,b);
-	timesource(p,b,wn);
-    wall_law_omega(p,b);
-	psolv->start(p,pgc,eps,b->M,b->xvec,b->rhsvec,4);
-    pgc->gcsl_start4(p,eps,gcval_eps);
-	p->epstime=pgc->timer()-starttime;
-	p->epsiter=p->solveriter;
-	if(p->mpirank==0 && (p->count%p->P12==0))
-	cout<<"omega_iter: "<<p->epsiter<<"  omega_time: "<<setprecision(3)<<p->epstime<<endl;
+    //kin
+        starttime=pgc->timer();
+    	clearrhs(p,b);
+        pconvec->start(p,b,kin,4,b->P,b->Q);
+        pdiff->diff_scalar(p,b,pgc,psolv,kin,kw_sigma_k,1.0);
+    	kin_source(p,b);
+    	timesource(p,b,kn);
+        wall_bc(p,b,kin);
+        psolv->start(p,pgc,kin,b->M,b->xvec,b->rhsvec,4);
+        pgc->gcsl_start4(p,kin,gcval_kin);
+    	p->kintime=pgc->timer()-starttime;
+    	p->kiniter=p->solveriter;
+    	if(p->mpirank==0 && pass==1 && (p->count%p->P12==0))
+    	cout<<"kin_iter: "<<p->kiniter<<"  kin_time: "<<setprecision(3)<<p->kintime<<endl;
+    }
 
 	eddyvisc(p,b,pgc);
     
@@ -141,9 +146,16 @@ void sflow_turb_kw_IM1::omega_source(lexer* p, fdm2D *b)
     count=0;
     SLICELOOP4
     {
-    b->M.p[count] += kw_beta * MAX(eps(i,j),0.0);
+    // the sink beta omega^2 linearised around the last omega (Newton): 2 beta omega_old omega - beta omega_old^2.
+    // With beta omega_old omega the large time steps of the semi-implicit momentum give omega = omega_eq^2/omega_old,
+    // which swings around the equilibrium wherever the flow changes within a step
+    const double wo = MAX(eps(i,j),0.0);
 
-    b->rhsvec.V[count] +=   kw_alpha * (MAX(eps(i,j),0.0)/(kin(i,j)>(1.0e-10)?(fabs(kin(i,j))):(1.0e20)))*Pk(i,j)
+    b->M.p[count] += 2.0*kw_beta*wo;
+
+    b->rhsvec.V[count] +=   kw_beta*wo*wo
+
+                       +    kw_alpha * (MAX(eps(i,j),0.0)/(kin(i,j)>(1.0e-10)?(fabs(kin(i,j))):(1.0e20)))*Pk(i,j)
     
                        // depth-averaged bed source P_wv = beta*omega_eq^2 = ceg^2*beta/(cmu*sqrt(cf)) * u*^2/h^2,
                        // from the Rastogi-Rodi equilibrium (ceg = A264, as in sflow_turb_ke_IM1) with omega = eps/(cmu k)
@@ -210,16 +222,18 @@ void sflow_turb_kw_IM1::ustar_update(lexer* p, fdm2D *b, ghostcell *pgc)
     
 }
 
-void sflow_turb_kw_IM1::timesource(lexer* p, fdm2D *b, slice &fn)
+// Cells without turbulence from the last step (fallen wet, or the start of the run) take the local equilibrium of
+// the bed sources: k = u*^2/(ceg sqrt(cmu) cf^(1/4)), omega = ceg u*/(h sqrt(cmu) cf^(1/4)) (ceg = A 264, as
+// sflow_turb_ke_IM1::fresh_cells). From k = omega = 0 the sinks are zero in the first step and k = dt P_kv.
+void sflow_turb_kw_IM1::fresh_cells(lexer* p, fdm2D *b)
 {
-    count=0;
     SLICELOOP4
+    if(p->wet[IJ]==1 && kn(i,j)<=0.0 && wn(i,j)<=0.0 && ustar(i,j)>0.0 && cf(i,j)>1.0e-20)
     {
-        b->M.p[count] += 1.0/p->dt;
+    const double c4 = p->A264*sqrt(p->cmu)*pow(cf(i,j),0.25);
 
-        b->rhsvec.V[count] += b->L(i,j) + fn(i,j)/p->dt;
-		
-	++count;
+    kin(i,j) = kn(i,j) = pow(ustar(i,j),2.0)/c4;
+    eps(i,j) = wn(i,j) = p->A264*p->A264*ustar(i,j)/(HP*c4);
     }
 }
 
@@ -233,130 +247,4 @@ void sflow_turb_kw_IM1::clearrhs(lexer* p, fdm2D *b)
 	++count;
     }
 }
-
-// ****************************
-// WALL KIN
-// ****************************
-void sflow_turb_kw_IM1::wall_law_kin(lexer* p, fdm2D *b)
-{
-    // SFLOW side walls are free-slip in the momentum equations (sflow_momentum_func), so they get
-    // zero-gradient k and omega without wall functions, as in sflow_turb_ke_IM1
-    
-    
-    n=0;
-	SLICELOOP4
-	{
-        if(p->wet[IJ]==1)
-        {
-		if(p->flagslice4[Im1J]<0 || p->wet[Im1J]==0)
-		{
-        b->rhsvec.V[n] -= b->M.s[n]*kin(i,j);
-		b->M.s[n] = 0.0;
-		}
-        
-        if(p->flagslice4[Ip1J]<0 || p->wet[Ip1J]==0)
-		{
-        b->rhsvec.V[n] -= b->M.n[n]*kin(i,j);
-		b->M.n[n] = 0.0;
-		}
-        
-        if(p->flagslice4[IJm1]<0 || p->wet[IJm1]==0)
-		{
-        b->rhsvec.V[n] -= b->M.e[n]*kin(i,j);
-		b->M.e[n] = 0.0;
-		}
-        
-        if(p->flagslice4[IJp1]<0 || p->wet[IJp1]==0)
-		{
-        b->rhsvec.V[n] -= b->M.w[n]*kin(i,j);
-		b->M.w[n] = 0.0;
-		}
-        }
-		
-	++n;
-	}
-    
-    // dry cells: identity rows
-    n=0;
-    SLICELOOP4
-	{
-        if(p->wet[IJ]==0)
-        {
-        b->M.p[n] = 1.0;
-        b->M.n[n] = 0.0;
-        b->M.s[n] = 0.0;
-        b->M.w[n] = 0.0;
-        b->M.e[n] = 0.0;
-        b->rhsvec.V[n] = 0.0;
-        }
-	++n;
-	}
-
-}
-
-void sflow_turb_kw_IM1::wall_law_omega(lexer* p, fdm2D *b)
-{
-
-    
-    
-    n=0;
-	SLICELOOP4
-	{
-        if(p->wet[IJ]==1)
-        {
-		if(p->flagslice4[Im1J]<0 || p->wet[Im1J]==0)
-		{
-        b->rhsvec.V[n] -= b->M.s[n]*eps(i,j);
-		b->M.s[n] = 0.0;
-		}
-        
-        if(p->flagslice4[Ip1J]<0 || p->wet[Ip1J]==0)
-		{
-        b->rhsvec.V[n] -= b->M.n[n]*eps(i,j);
-		b->M.n[n] = 0.0;
-		}
-        
-        if(p->flagslice4[IJm1]<0 || p->wet[IJm1]==0)
-		{
-        b->rhsvec.V[n] -= b->M.e[n]*eps(i,j);
-		b->M.e[n] = 0.0;
-		}
-        
-        if(p->flagslice4[IJp1]<0 || p->wet[IJp1]==0)
-		{
-        b->rhsvec.V[n] -= b->M.w[n]*eps(i,j);
-		b->M.w[n] = 0.0;
-		}
-        }
-		
-	++n;
-	}
-    
-    // dry cells: identity rows
-    n=0;
-    SLICELOOP4
-	{
-        if(p->wet[IJ]==0)
-        {
-        b->M.p[n] = 1.0;
-        b->M.n[n] = 0.0;
-        b->M.s[n] = 0.0;
-        b->M.w[n] = 0.0;
-        b->M.e[n] = 0.0;
-        b->rhsvec.V[n] = 0.0;
-        }
-	++n;
-	}
-}
-
-
-
-
-
-
-
-
-
-
-
 

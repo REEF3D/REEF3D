@@ -48,12 +48,10 @@ class sflow_HLL;
 class sflow_signal_speed;
 class sflow_reconstruct;
 class sflow_diffusion;
-class sflow_filter;
 class sflow_turbulence;
 class sflow_forcing;
 class hydro_couple;
 class sediment;
-class turbulence;
 class patchBC_interface;
 class sixdof;
 class sflow_amr;
@@ -81,7 +79,11 @@ private:
 	
 	void maxcoor(lexer*, fdm2D*, ghostcell*);
 	
-	void print_debug(lexer*, fdm2D*, ghostcell*);
+	// main loop: screen output, breaking cells, timers, emergency stop (sflow_f.cpp)
+	void screen_step(lexer*);
+	void breaking_count(lexer*, fdm2D*, ghostcell*);
+	void screen_timing(lexer*, ghostcell*, double);
+	void emergency_stop(lexer*, fdm2D*, ghostcell*);
     
     // checkpoints (P 48, I 45) and the rebalance (G 46): the hooks of SFLOW (sflow_f_ckpt.cpp) for
     // the run part (reefrun_ckpt.h)
@@ -107,14 +109,10 @@ private:
     sflow_signal_speed *pss;
     sflow_reconstruct *precon;
 	sflow_diffusion *pdiff;
-    sflow_filter *pfilter;
     sflow_turbulence *pturb;
     sediment *psed;
     sflow_potential *potflow;
-    
-    fdm *aa;
-    turbulence *pturbcfd;
-    
+
     patchBC_interface *pBC;
     
     sixdof *p6dof;

@@ -44,8 +44,6 @@ public:
 
 
 private:
-    double USx,DSx,USy,DSy;
-    double Cs,Cn,Ce,Cw;
 
 };
 

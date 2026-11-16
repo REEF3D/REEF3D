@@ -27,7 +27,6 @@ Author: Hans Bihs
 
 void force::triangulation(lexer *p,fdm* a, ghostcell *pgc, field& f)
 {
-	int negcount, poscount;
     
     NDBASELOOP
     eta(i,j,k) = 0.125*(a->solid(i,j,k) + a->solid(i+1,j,k) + a->solid(i,j+1,k) + a->solid(i+1,j+1,k)

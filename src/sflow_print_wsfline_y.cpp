@@ -27,7 +27,6 @@ Author: Hans Bihs
 #include"fdm2D.h"
 #include"ghostcell.h"
 #include"ioflow.h"
-#include"wave_interface.h"
 #include<sys/stat.h>
 #include<sys/types.h>
 #include"wsfline_ipol.h"
@@ -120,7 +119,7 @@ void sflow_print_wsfline_y::start(lexer *p, fdm2D *b, ghostcell *pgc, ioflow *pf
 
 void sflow_print_wsfline_y::ini_location(lexer *p, fdm2D *b, ghostcell *pgc)
 {
-    int check,count;
+    int count;
     
     
     for(q=0;q<p->P56;++q)

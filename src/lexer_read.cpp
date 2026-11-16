@@ -64,6 +64,14 @@ void lexer::lexer_read(ghostcell *pgc)
     if(mpirank==0 && N47<0.0)
     N47 = (A10==2 && A226==1 && A210==1) ? 0.5 : 0.3;
 
+    // N 15 not given in ctrl.txt -> 1 for CFD, 0 otherwise.  The CFD pressure correction is Neumann at every face with a
+    // prescribed normal velocity (poisson_pcorr), its smooth modes are left to the coarsest level of REEFMG, and that
+    // level grows with the ranks: without the agglomerated coarse solve the iterations grow with them (2D wave tank,
+    // 1600 x 80 cells, 1 / 4 / 8 / 16 ranks: 4.0 / 6.2 / 8.9 / 14.4 iterations per solve, with it 4.0 / 4.7 / 5.3 / 6.0;
+    // reefmg::start_solver5, cfd_amr::pr_setup).  FNPF and NHFLOW have the Dirichlet free surface and do not need it
+    if(mpirank==0 && N15<0)
+    N15 = (A10==6) ? 1 : 0;
+
     // SFLOW: wetting and drying is A 243 for both schemes; the semi-implicit step (A 210 12/13) runs its Newton
     // iteration on the wet pattern (Casulli 2009) for A 243 > 0 (inside REEF3D: A229 = 1; A 229 itself is no longer a
     // ctrl.txt key)
@@ -79,6 +87,59 @@ void lexer::lexer_read(ghostcell *pgc)
     A510 -= 10;
     }
 
+    // CFD: W 130 > 0 the rheology core; inside REEF3D W90 > 0 selects the rheology fluid update, density and
+    // pressure classes of the CFD logic (W 90 itself stays the legacy model when W 130 is 0)
+    if(mpirank==0 && A10==6 && W130>0)
+    {
+        if(W90>0)
+        cout<<"W 130 "<<W130<<" replaces W 90 "<<W90<<endl;
+        
+    W90 = 1;
+    W110 = 1;
+    
+    // the implicit momentum diffusion with viscosity contrasts of 1e4 - 1e7 needs many more solver iterations than
+    // the default cap: with N 46 250 the u, v, w systems stop unconverged and the yield surfaces oscillate
+        if(N46<2000)
+        {
+        cout<<"W 130: N 46 "<<N46<<" -> 2000 (solver iterations of the implicit momentum diffusion with the rheology)"<<endl;
+        N46 = 2000;
+        }
+
+    // the wall boundary of the implicit diffusion: D 22 1 folds the wall ghost cells into the diagonal (zero
+    // gradient), which leaves the wall stress to the log law of bcmom; a viscous or viscoplastic material has no wall
+    // law and slipped freely along the walls (viscous gravity current, case 09 of Validation/rheology: front 0.31 m at
+    // 1 s against 0.14 m of Huppert 1982). D 22 2 takes the ghost cells of the boundary conditions (no slip)
+        if(D22==1)
+        {
+        cout<<"W 130: D 22 1 -> 2 (no-slip walls in the implicit momentum diffusion; D 22 1 is free slip for viscous flows)"<<endl;
+        D22 = 2;
+        }
+    }
+    
+    // CFD: the dynamic form of the implicit momentum diffusion (D 24) for the rheology core: across the density jump
+    // between a viscous material and air or water the kinematic form div(nu (grad u + grad u^T)) gets the stress wrong
+    // by the density ratio. Harmonic shear viscosities (D 24 2): the HB film under air within 1.1 % of the exact profile
+    // (arithmetic 2.2 %, kinematic 92 %, Validation/rheology 11), and the explicit cross terms of the air next to a
+    // viscous material stay small (arithmetic: mu of the material / rho of the air)
+    if(mpirank==0 && D24<0)
+    {
+    D24 = (A10==6 && W130>0) ? 2 : 0;
+
+        if(D24>0)
+        cout<<"W 130: D 24 2 (dynamic form of the implicit momentum diffusion, harmonic shear viscosities)"<<endl;
+    }
+
+    if(mpirank==0 && A10==6 && D24>0 && D20!=2)
+    cout<<"D 24 "<<D24<<" acts in the implicit momentum diffusion D 20 2 only (D 20 "<<D20<<")"<<endl;
+
+    // CFD: the legacy rheology source terms W 110 2 - 7 are retired (inconsistent units and directions, only with the
+    // void inflow): the viscosity form W 110 1, or the rheology core W 130
+    if(mpirank==0 && A10==6 && W90>0 && W110>=2)
+    {
+    cout<<"!!! ctrl.txt: W 110 "<<W110<<" is retired: the rheology acts through the viscosity (W 110 1), see the rheology core W 130 !!!"<<endl;
+    exit(1);
+    }
+    
     // NHFLOW: A 519 not given in ctrl.txt -> bed friction (log law in the bottom layer) with a turbulence model (A 560)
     // or sediment transport (S 10): without it the flow slips over the bed, the velocity profile of an open channel
     // stays a plug and the bed shear stress of the sediment is too high; no bed friction otherwise (the previous default)

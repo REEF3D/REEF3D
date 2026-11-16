@@ -45,8 +45,6 @@ void ghostcell::dirichlet_ortho_reflect(lexer *p,field& f,double dist,int gcv, i
 	ys=1;
     if(dist>p->DXM*(1.0-1.0e-6) && dist<p->DXM*(1.0+1.0e-6))
     ys=0;
-    
-    //cout<<" dist: "<<dist<<endl;
 
 //fill pos[]
 	for(m=0;m<=orderdir-3;m++)
@@ -104,7 +102,6 @@ void ghostcell::dirichlet_ortho_reflect(lexer *p,field& f,double dist,int gcv, i
 			for(n=0;n<orderdir;++n)
 			{
 			if(ys==0 && m==n && q+m==1)
-//			weight*=(x[q]-pos[n])/(pos[m]-pos[n]+1.0e-20);
 			weight = -1.0;
 			else if(ys==1 && m==n && q+m==2)
 			weight = -1.0;

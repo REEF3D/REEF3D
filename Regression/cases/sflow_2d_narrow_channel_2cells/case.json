@@ -1,0 +1,17 @@
+{
+ "description": "as sflow_2d_narrow_channel_3cells, two cells wide: every WENO stencil of the two cells holds a dry cell, the cell value is taken (uniform flow was 7-10 % too deep).",
+ "solver": "sflow",
+ "np": 1,
+ "steps": 500,
+ "tags": [
+  "sflow",
+  "river",
+  "wetdry"
+ ],
+ "covers": [
+  "sflow_reconstruct_weno::prepare code 1"
+ ],
+ "files": [
+  "geo.dat"
+ ]
+}

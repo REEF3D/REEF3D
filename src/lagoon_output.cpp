@@ -22,6 +22,7 @@ Architect: Hans Bihs
 
 #include"lagoon_output.h"
 #include"lagoon_nets.h"
+#include"lagoon_membranes.h"
 #include"lexer.h"
 #include"ghostcell.h"
 #include"runlog.h"
@@ -171,6 +172,7 @@ std::vector<lagoon_output*> &lagoon_output::all()
 void lagoon_output::finish_all(lexer *p, ghostcell *pgc)
 {
     lagoon_nets::finish(p);  // the nets' last output (rank 0)
+    lagoon_membranes::finish(p);  // the membranes' last output (rank 0)
     for(lagoon_output *writer : all())
         writer->finish(p, pgc);
     lagoon_surface::finish_all(p, pgc);

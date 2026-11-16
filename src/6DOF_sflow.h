@@ -91,8 +91,8 @@ private:
     // hires gradient
     double starttime;
     
-    double denom,val,r,phival;
-    double dfdx_plus,dfdx_min,dfdy_plus,dfdy_min,dfdx,dfdy;
+    double val,r;
+    double dfdx,dfdy;
 
 
     int number6DOF;

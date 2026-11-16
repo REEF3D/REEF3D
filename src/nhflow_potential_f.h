@@ -43,7 +43,6 @@ public:
 
 
 private:
-    void rhs(lexer*,fdm_nhf*);
 	void ucalc(lexer*,fdm_nhf*);
 	void vcalc(lexer*,fdm_nhf*);
 	void wcalc(lexer*,fdm_nhf*);

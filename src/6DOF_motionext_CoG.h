@@ -58,7 +58,6 @@ private:
     double ramp_vel(lexer*);
     
     void read_format_1(lexer*,ghostcell*);
-    void read_format_2(lexer*,ghostcell*);
     
     Eigen::Vector3d omega_;
     

@@ -51,7 +51,6 @@ public:
 private:
     void ini_location(lexer*, fdm*, ghostcell*);
     void amr_gauge(lexer*, int);
-    void write(lexer*, fdm*, ghostcell*);
 	
 	double *x,*y;
 	int gauge_num;

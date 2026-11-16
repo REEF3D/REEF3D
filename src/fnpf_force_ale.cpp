@@ -49,15 +49,11 @@ void fnpf_force_ale::ini(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 
     // Ini arrays
 	p->Darray(un, p->knoz);
-	//p->Darray(u2n, p->knoz);
 	p->Darray(vn, p->knoz);
 
     // Ini eta
 	etan=0.0;
-	//eta2n=p->wd;
 
-    // Ini time
-    //dtn=0;
 
     // Ini processor boundaries
 	xstart = p->originx;

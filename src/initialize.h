@@ -46,7 +46,6 @@ public:
     void droplet_ini(lexer*,fdm*,ghostcell*);
 	void hydrostatic(lexer*,fdm*,ghostcell*);
 	void iniphi_io(fdm*, lexer*,ghostcell*);
-	void iniphi_surfarea(lexer*,fdm*,ghostcell*);
 	void stateini(lexer*,fdm*,ghostcell*,turbulence*,sediment*);
     void inipsi(lexer*,fdm*,ghostcell*);
 

@@ -371,6 +371,10 @@ void momentum_rk::step_ssp(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixd
         if(levelset)
         amr_ls_finish(p,a,pgc,s,true,-1);
 
+        // PIC (F 81 1, 2, F 76 1): the particles and their surface to the time of the stage
+        if(ppic!=nullptr && stages==3 && s>0)
+        ppic->stage(p,a,pgc,s,vel(a,0,s-1),vel(a,1,s-1),vel(a,2,s-1));
+
         amr_momentum(p,a,pgc,pvrans,p6dof,s,1);
 
         projection(p,a,pgc,velout(a,0,s),velout(a,1,s),velout(a,2,s),ssp_b[s]);
@@ -384,6 +388,10 @@ void momentum_rk::step_ssp(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixd
 
         amr_stage_end(p,a,pgc,s);
     }
+
+    // PIC (F 76 1): the particles to the end of the step with the input velocity of the last stage
+    if(ppic!=nullptr && stages==3)
+    ppic->stage(p,a,pgc,3,vel(a,0,2),vel(a,1,2),vel(a,2,2));
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -1263,7 +1271,7 @@ void momentum_rk::component_lowstorage(lexer *p, fdm *a, ghostcell *pgc, vrans *
 // common parts of a stage
 // ---------------------------------------------------------------------------------------------
 
-// ust: the velocity component c of the stage, used by the explicit wall shear (was u(n) in every stage)
+// ust: the velocity component c of the stage, used by the explicit wall shear
 void momentum_rk::sources(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, int c, field &ust)
 {
     if(c==0)
@@ -1383,6 +1391,10 @@ void momentum_rk::projection(lexer *p, fdm *a, ghostcell *pgc, field &u, field &
 {
     pflow->pressure_io(p,a,pgc);
 	ppress->start(a,p,ppois,ppoissonsolv,pgc,pflow,u,v,w,weight);
+
+    // X 14 11: the added mass of the hull on the grid, with the matrix of this projection
+    if(p->X14==11 && p->X10>0 && p->G1==0 && p6dof!=nullptr)
+    p6dof->added_mass_cfd(p,a,pgc,ppoissonsolv);
 
     amr_project_after(p,a,pgc,u,v,w);
 }

@@ -44,7 +44,6 @@ private:
     void wenoloop3(lexer*,fdm*,field&,int,field&,field&,field&);
     void wenoloop4(lexer*,fdm*,field&,int,field&,field&,field&);
 
-	void aij(fdm*, field&,field&,field&,field&);
 	void aij_south(lexer*,fdm*,field&, field&);
 	void aij_north(lexer*,fdm*,field&, field&);
 	void aij_east(lexer*,fdm*,field&, field&);

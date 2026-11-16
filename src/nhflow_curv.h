@@ -47,7 +47,7 @@ using namespace std;
 // Horizontal derivatives (sigma metrics, pressure gradient, divergence of the Poisson right-hand
 // side) by the chain rule with the cell centres (sflow_curv::grad5); the Laplacians compact with the
 // face lengths and the centre distances along the face normals, the non-orthogonal part deferred.
-// The Cartesian kernels are not touched: every curvilinear path is a branch on p->geo_curv.
+// Every curvilinear path is a branch on p->geo_curv next to the Cartesian kernel.
 
 class nhflow_curv : public increment
 {
@@ -88,9 +88,6 @@ public:
     // gradient of a cell-centred 3D field at cell (i,j,k) along the sigma layer (index space chain
     // rule), and of the four horizontal neighbour values
     static void grad5(lexer*, int i, int j, double fE, double fW, double fN, double fS, double &fx, double &fy);
-
-    // gradient from limited index derivatives f_xi, f_eta (per index) of cell (i,j)
-    static void grad_idx(lexer*, int i, int j, double fxi, double feta, double &fx, double &fy);
 
     // limited gradient (the limiter of nhflow_gradient, A 524 2): the limited derivatives along the
     // i- and j-lines of the cell centres, the gradient that has them as directional derivatives

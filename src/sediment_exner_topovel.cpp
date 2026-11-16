@@ -141,6 +141,8 @@ void sediment_exner::topovel2(lexer* p, ghostcell *pgc, sediment_fdm *s)
     pgc->gcsl_start4(p,qbx,1);
     pgc->gcsl_start4(p,qby,1);
     
+    // bed load supply at the inflow (S 129): the flux vector of the inflow ghost cells
+    qb_inflow_vec(p,s);
 	
 
     SEDSLICELOOP

@@ -279,6 +279,17 @@ void bicgstab_ijk::solve(lexer* p, ghostcell* pgc, vec& rhsvec, matrix_diag &M, 
 	}while((residual>=stop_crit) && (solveriter<maxiter));
 
     } 
+
+    // a residual that is not a number (non-finite entries of the matrix or of the right-hand side) ends the loop
+    // above at once and the solution is returned as it was: say so (three times per solver object)
+    if(residual!=residual && nan_warn<3)
+    {
+    ++nan_warn;
+    
+    if(p->mpirank==0)
+    cout<<"!!! bicgstab (variable "<<var<<"): the residual is not a number, the matrix or the right-hand side has "
+        <<"non-finite entries; the solution of this solve is left unchanged !!!"<<endl;
+    }
 		
 	
 	LOOP

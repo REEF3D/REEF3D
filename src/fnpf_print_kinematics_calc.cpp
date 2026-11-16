@@ -68,7 +68,6 @@ double fnpf_print_kinematics::dndt(lexer *p, fdm_fnpf *c, ghostcell *pgc) // to 
 double fnpf_print_kinematics::dudsig(lexer *p, fdm_fnpf *c, ghostcell *pgc) 	// getting dudsig for ax2 and 3
 {
     double dudsig_ = 0;
-	double dudsig2_ = 0;
     
     if(k<p->knoz)
     {

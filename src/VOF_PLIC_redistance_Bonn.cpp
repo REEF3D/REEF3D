@@ -96,9 +96,6 @@ void VOF_PLIC::redistancePhiByPlane_Bonn
                                             else
                                             {
                                                 cout<<"no nearest phase pint found"<<endl;
-                                                /*phitemp=phistep(ip,jp,kp);
-                                                if(fabs(phitemp)<fabs(phiaux(ip,jp,kp)))
-                                                    phiaux(ip,jp,kp)=copysign(phitemp,a->vof(ip,jp,kp)-0.5);*/
                                             }
                                         }
                                     }

@@ -89,10 +89,6 @@ void iowave::active_beach(lexer *p, fdm* a, ghostcell* pgc, field &u, field &v, 
         
         if(p->B99==3)
         Uc = eta_R*sqrt(9.81/p->wd);
-				
-        
-        
-        //cout<<p->mpirank<<" eta_R: "<<eta_R<<" eta_M: "<<eta_M<<"   wsf: "<<wsf<<"   Uc: "<<Uc<<endl;
 
 			if(wsf>-1.0e19)
 			KLOOP 
@@ -364,9 +360,7 @@ void iowave::active_beach(lexer *p, fdm* a, ghostcell* pgc, field &u, field &v, 
              a->press(i+1*aa,j+1*bb,k) = H*pval + (1.0-H)*a->press(i,j,k);
 			a->press(i+2*aa,j+2*bb,k) = H*pval + (1.0-H)*a->press(i,j,k);
 			a->press(i+3*aa,j+3*bb,k) = H*pval + (1.0-H)*a->press(i,j,k);
-            
-            //cout<<"PVAL: "<<pval<<" WSF: "<<wsf<<" PHI: "<<a->phi(i+1,j,k)<<" PRESS: "<<a->press(i+1,j,k)<<endl;
-            
+
 			w(i+1*aa,j+1*bb,k)=0.0;
 			w(i+2*aa,j+2*bb,k)=0.0;
 			w(i+3*aa,j+3*bb,k)=0.0;

@@ -42,8 +42,6 @@ void sixdof_obj_nhflow::update_position_nhflow(lexer *p, fdm_nhf *d, ghostcell *
     fsglobal(i,j) = d->FB[IJK];
     
     pgc->gcsl_start4(p,fsglobal,50);
-    
-    // the pose and velocity: in the 6DOF log files (REEF3D_*_6DOF), no longer on the terminal
 }
 
 void sixdof_obj_nhflow::update_trimesh_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, bool finalize)
@@ -53,7 +51,6 @@ void sixdof_obj_nhflow::update_trimesh_nhflow(lexer *p, fdm_nhf *d, ghostcell *p
     
     // Update floating level set function
 	ray_cast(p,d,pgc);
-	nhflow_reini_RK2(p,d,pgc,d->FB);
 }
 
 void sixdof_obj_nhflow::update_wavemaker_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &fsglobal, int iter, bool finalize)
@@ -80,6 +77,5 @@ void sixdof_obj_nhflow::update_wavemaker_nhflow(lexer *p, fdm_nhf *d, ghostcell 
     
     // Update floating level set function
 	ray_cast(p,d,pgc);
-	nhflow_reini_RK2(p,d,pgc,d->FB);
 
 }

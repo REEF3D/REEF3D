@@ -502,7 +502,7 @@ void reefmg_core::coarsen_t()
             //  then rebuild with the coarse width and centre distance.  A
             //  ragged agglomerate simply has a smaller H, and a stretched
             //  grid a varying one; neither needs a special case.
-            double volsum=0.0, tsum=0.0, bsum=0.0, xsum=0.0;
+            double volsum=0.0, tsum=0.0, bsum=0.0, xsum=0.0, psum=0.0;
             double an=0.0,as=0.0,aw=0.0,ae=0.0;
             double wn=0.0,ws=0.0,ww_=0.0,we=0.0;
             int na=0, ihi=rx*I, jhi=ry*J;
@@ -527,6 +527,7 @@ void reefmg_core::coarsen_t()
                 tsum  +=ft*vol;
                 bsum  +=fb*vol;
                 xsum  +=(fp+fn+fs+fw+fe+ft+fb)*vol;
+                psum  +=fabs(fp)*vol;
 
                 if(i==ihi)
                 {
@@ -577,7 +578,30 @@ void reefmg_core::coarsen_t()
             if(k==C.nz-1)   ct=0.0;
 
             const double excess=xsum/volsum;
-            const double cp=excess-(cn+cs+cw+ce+ct+cb);
+            double cp=excess-(cn+cs+cw+ce+ct+cb);
+
+            //  A vanishing coarse diagonal: an agglomerate whose active fine
+            //  rows have no reaction (row sum zero) and are coupled only to
+            //  each other - an island of a pure-Neumann block, e.g. a few
+            //  nearly dry cells of the semi-implicit eta system in the
+            //  wetting and drying iteration (si_eta2D) - would give the line
+            //  solver a zero pivot and the V-cycle NaN.  With couplings left
+            //  the diagonal is set to their sum (weak diagonal dominance, the
+            //  row sum of an M-matrix row that has lost its excess to
+            //  round-off); without any it gets no coarse correction (identity
+            //  row), the smoother of the finer level treats it.
+            const double off=fabs(cn)+fabs(cs)+fabs(cw)+fabs(ce)+fabs(ct)+fabs(cb);
+            if(!(cp>1.0e-6*psum/volsum))
+            {
+                if(off>0.0)
+                cp=off;
+                else
+                {
+                    C.act[qc]=0;
+                    CV.p[qc]=T(1);
+                    continue;
+                }
+            }
 
             CV.p[qc]=T(cp); CV.n[qc]=T(cn); CV.s[qc]=T(cs); CV.w[qc]=T(cw);
             CV.e[qc]=T(ce); CV.t[qc]=T(ct); CV.b[qc]=T(cb);
@@ -634,7 +658,9 @@ void reefmg_core::factor_lines_t(int l0, int l1)
             L.colact[(long)i*L.ny+j]=any;
             if(any) L.zcol[(i+j)&1].push_back(col);
 
-            double inv=1.0/double(V.p[col]);
+            //  (a zero pivot - only an identity column could have one, and
+            //  it carries no correction - must not turn into inf)
+            double inv=double(V.p[col])!=0.0 ? 1.0/double(V.p[col]) : 0.0;
             double tcp=double(V.t[col])*inv;
             M.ti[col]=T(inv);
             M.tc[col]=T(tcp);
@@ -642,7 +668,8 @@ void reefmg_core::factor_lines_t(int l0, int l1)
             for(int k=1;k<nz;++k)
             {
                 const long q=col+k;
-                inv=1.0/(double(V.p[q])-double(V.b[q])*tcp);
+                const double piv=double(V.p[q])-double(V.b[q])*tcp;
+                inv=piv!=0.0 ? 1.0/piv : 0.0;
                 tcp=double(V.t[q])*inv;
                 M.ti[q]=T(inv);
                 M.tc[q]=T(tcp);

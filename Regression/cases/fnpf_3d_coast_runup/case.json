@@ -1,0 +1,23 @@
+{
+ "description": "The coast of fnpf_3d_coast_features_mpi2 with dynamic wetting and drying (A 343 2: run-up and run-down on the beach, the island and the headland), 1 rank, 160 steps. Covers the rewetted cells: the column of a rewetted cell takes the surface potential (before it held the potential of the step it dried in, 0 on land, which the cross-derivatives and the bed boundary condition of the wet columns next to it read), and the clamp of wet cells below the criterion from the values before the clamp.",
+ "solver": "fnpf",
+ "np": 1,
+ "steps": 160,
+ "files": [
+  "geo.dat"
+ ],
+ "tags": [
+  "quick",
+  "3d",
+  "fnpf",
+  "waves",
+  "wetdry",
+  "coastline",
+  "geodat",
+  "runup"
+ ],
+ "covers": [
+  "fnpf_fsfbc_wd::wetdry_dynamic: column of a rewetted cell, clamp averages",
+  "fnpf_laplace_cds2: cross-derivatives next to a dry column"
+ ]
+}

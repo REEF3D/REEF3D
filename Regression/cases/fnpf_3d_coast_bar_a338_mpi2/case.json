@@ -1,0 +1,22 @@
+{
+ "description": "The coast of fnpf_3d_coast_features_mpi2 with a bar across the whole domain at x = 300 m (crest 2 m above still water): 8 m of water on the wave side, 12 m behind the bar, so the deepest cell is on the side without the wave generation. A 338 keeps the water at the edge of the domain: both sides stay wet and the waves run up to the bar (before the patch the 4544 cells of the wave side were set dry and the run went on with waves in the generation zone only). 2 ranks, 120 steps.",
+ "solver": "fnpf",
+ "np": 2,
+ "steps": 120,
+ "files": [
+  "geo.dat"
+ ],
+ "tags": [
+  "quick",
+  "3d",
+  "fnpf",
+  "waves",
+  "wetdry",
+  "coastline",
+  "geodat",
+  "mpi"
+ ],
+ "covers": [
+  "fnpf_coastline::isolated: seeds at the edge of the domain"
+ ]
+}

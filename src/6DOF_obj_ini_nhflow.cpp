@@ -33,21 +33,14 @@ Author: Tobias Martin
 #include"mooring_Spring.h"
 #include"mooring_dynamic.h"
 #include"net_interface.h"
-#include"nhflow_reinidisc_fsf.h"
 
 sixdof_obj_nhflow::sixdof_obj_nhflow(lexer *p, ghostcell *pgc, int number) : sixdof_obj_2D(p,pgc,number)
 {
     if(p->A10==5)
     {
-    pnhfrdisc = new nhflow_reinidisc_fsf(p);
-    
     p->Iarray(IO,p->imax*p->jmax*(p->kmax+2));
     p->Iarray(CL,p->imax*p->jmax*(p->kmax+2));
     p->Iarray(CR,p->imax*p->jmax*(p->kmax+2));
-    
-    p->Darray(FRK1,p->imax*p->jmax*(p->kmax+2));
-    p->Darray(DTT,p->imax*p->jmax*(p->kmax+2));
-    p->Darray(LL,p->imax*p->jmax*(p->kmax+2));
     
     p->Darray(fsf,p->imax*p->jmax*(p->kmax+2));
     p->Iarray(vert,p->imax*p->jmax*(p->kmax+2));
@@ -91,7 +84,6 @@ void sixdof_obj_nhflow::initialize_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
     
     // Level Set for floating body
     ray_cast(p,d,pgc);
-	nhflow_reini_RK2(p,d,pgc,d->FB);
     
     // Calculate geometrical properties
     geometry_parameters_nhflow(p,d,pgc);
@@ -101,7 +93,6 @@ void sixdof_obj_nhflow::initialize_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
 	
 	// Recalculate distances
 	ray_cast(p,d,pgc);
-	nhflow_reini_RK2(p,d,pgc,d->FB);
     
     // Initialise global variables
 	update_fbvel(p,pgc);

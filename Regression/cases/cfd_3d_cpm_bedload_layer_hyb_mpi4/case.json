@@ -1,0 +1,37 @@
+{
+ "base": "cfd_2d_cpm_bedload_layer",
+ "control_set": {
+  "B 10": "0.0 0.1 0.0 0.1 0.0 0.05",
+  "C 12": "21",
+  "C 13": "21"
+ },
+ "control_add": [
+  "C 22 1",
+  "M 20 3",
+  "M 30 2 2 1"
+ ],
+ "ctrl_set": {
+  "Q 58": "3",
+  "W 20": "8.0",
+  "Q 65": "20.0",
+  "Q 24": "8"
+ },
+ "ctrl_add": [
+  "W 21 6.0"
+ ],
+ "np": 4,
+ "steps": 100,
+ "tags": [
+  "3d",
+  "cpm",
+  "mpi"
+ ],
+ "description": "CPM bedload layer with the hybrid suspension (Q 58 3) in a 3D channel, periodic in x and y, with the flow across the grid (W 20 8, W 21 6), on 2 x 2 subdomains in x and y (M 20 3, M 30 2 2 1). The hops of the layer cross the edges where four subdomains meet: these parcels go to their subdomain through a face neighbour (part::xchange_count, xchange in passes; before they stayed on their rank outside the subdomain and the parcel velocities ran away). The deposits of the parcels in the edge ghost cells reach the subdomain across the edge (CPM::edge_fold)",
+ "covers": [
+  "part::xchange_count: parcels beyond an edge or corner of the subdomain",
+  "part::xchange: repeated exchange",
+  "CPM::deposit_sum, edge_fold: deposits in the edge ghost cells",
+  "CPM periodic parcels in x and y on several ranks",
+  "CPM hybrid suspension in 3D on several ranks"
+ ]
+}

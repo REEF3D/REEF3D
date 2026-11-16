@@ -28,8 +28,7 @@ Authors: Hans Bihs
 void sixdof_obj::read_format_piston(lexer *p, ghostcell *pgc)
 {
     char name[100];
-	double val,val0,val1;
-    double sign,beta,s;
+	double val0,val1;
 	int count,qn;
     
     colnum = 2;
@@ -88,7 +87,7 @@ void sixdof_obj::read_format_flap(lexer *p, ghostcell* pgc)
 void sixdof_obj::read_format_flap_double(lexer *p, ghostcell* pgc)
 {
 	char name[100];
-	double val,val0,val1,val2;
+	double val0,val1,val2;
     double sign1,sign2;
     double beta,s,sign;
 	int count;
@@ -155,12 +154,4 @@ void sixdof_obj::read_format_flap_double(lexer *p, ghostcell* pgc)
     s = 2.0*(p->X172_ze-p->X172_z2)*sin(0.5*beta);
     kinematics[qn][4] = sign*sqrt(pow(s,2.0) - pow(kinematics[qn][2],2.0));
     }
-    
-    /*
-    cout<<"flap kinematics"<<endl;
-    if(p->mpirank==0)
-    for(int qn=0; qn<ptnum; ++qn)
-    cout<<kinematics[qn][1]<<" "<<kinematics[qn][2]<<" | "<<kinematics[qn][3]<<" "<<kinematics[qn][4]<<endl;
-    */
-	    
 }

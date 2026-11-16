@@ -36,8 +36,7 @@ public:
     sflow_rough_manning(lexer*);
 	virtual ~sflow_rough_manning();
     
-	void u_source(lexer*, fdm2D*, slice&, slice&, slice&) override final;
-    void v_source(lexer*, fdm2D*, slice&, slice&, slice&) override final;
+    void factor(lexer*, fdm2D*, slice&, slice&, slice&, slice&) override final;
 
 private:
     

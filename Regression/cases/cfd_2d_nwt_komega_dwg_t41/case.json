@@ -1,0 +1,4 @@
+{"base": "cfd_2d_nwt", "ctrl_set": {"T 10": "2", "T 36": "2", "T 41": "1", "B 98": "3"},
+ "description": "as cfd_2d_nwt with Dirichlet wave generation (B 98 3), k-omega, T 36 2 and the stabilization T 41 1: the water next to the wave boundary keeps the stabilized eddy viscosity (komega_func::eddyvisc set it back to the T 34 1 value in the first five cells).",
+ "tags": ["2d", "waves", "turbulence"],
+ "covers": ["komega_func::eddyvisc wave boundary block with T 41"]}

@@ -43,13 +43,58 @@ class met_forcing;
 using namespace std;
 
 // ---------------------------------------------------------------------------
+// Layout of the SI-private 3D arrays (the work arrays of the step: Qx .. dVH, the non-hydrostatic NQx .. NSY, PHI,
+// NQcx/NQcy, the time levels accU .. FSy, nUZx/nUZy, hoPS): cell (i, j, k) at lso + i lsi + j lsj + k (layout_ini).
+// The full layout (lsi = jmax kmax, lsj = kmax, lso = -(imin lsi + jmin lsj + kmin)) is that of IJK: the same index.
+// The compact layout (one Cartesian grid, not a block, no curvilinear or refined grid): the cells i in [-3, knox+3),
+// j in [-3, knoy+3) (one row j = 0 with j_dir 0) and k in [0, knoz] (the cells and the top face), about 2/5 of the
+// entries in 3D and 1/15 in 1D. Environment REEF3D_SI_LAYOUT=full keeps the full layout.
+// The shared fields of fdm_nhf (U, UH, F, ...) and the other arrays keep IJK. P-macros index the private arrays;
+// code that indexes a private array with IJK (ghost cells, the open boundaries, MPI exchange, checkpoints, tracers)
+// gets it through lfull / lback (a copy in the full layout with the compact layout), lset / lget (from / to a full
+// array). Environment REEF3D_SI_LSHIFT (test, full layout): the private arrays are shifted by lshift entries, so that
+// an access with IJK instead of a P-macro reads another cell. Compiled with -DSI_LCHECK: every P-macro index is
+// checked against the layout (lchk).
+// ---------------------------------------------------------------------------
+#ifndef SI_LCHECK
+#define PIJK (lso + i*lsi + j*lsj + k)
+#define PIp1JK (PIJK + lsi)
+#define PIm1JK (PIJK - lsi)
+#define PIp2JK (PIJK + 2*lsi)
+#define PIm2JK (PIJK - 2*lsi)
+#define PIJp1K (PIJK + lsj)
+#define PIJm1K (PIJK - lsj)
+#define PIJp2K (PIJK + 2*lsj)
+#define PIJm2K (PIJK - 2*lsj)
+#define PIJKp1 (PIJK + 1)
+#define PIJKm1 (PIJK - 1)
+#define PIX(a,b,c) (lso + (a)*lsi + (b)*lsj + (c))
+#else
+#define PIJK lchk(i,j,k,__FILE__,__LINE__)
+#define PIp1JK lchk(i+1,j,k,__FILE__,__LINE__)
+#define PIm1JK lchk(i-1,j,k,__FILE__,__LINE__)
+#define PIp2JK lchk(i+2,j,k,__FILE__,__LINE__)
+#define PIm2JK lchk(i-2,j,k,__FILE__,__LINE__)
+#define PIJp1K lchk(i,j+1,k,__FILE__,__LINE__)
+#define PIJm1K lchk(i,j-1,k,__FILE__,__LINE__)
+#define PIJp2K lchk(i,j+2,k,__FILE__,__LINE__)
+#define PIJm2K lchk(i,j-2,k,__FILE__,__LINE__)
+#define PIJKp1 lchk(i,j,k+1,__FILE__,__LINE__)
+#define PIJKm1 lchk(i,j,k-1,__FILE__,__LINE__)
+#define PIX(a,b,c) lchk((a),(b),(c),__FILE__,__LINE__)
+#endif
+#define PEXT(x) ((x) + lshift)
+
+// ---------------------------------------------------------------------------
 // NHFLOW hydrostatic semi-implicit free surface (A 510 11/12/13), theta method (A 535).
 //
-// For long simulations (tide, river, coastal ocean): the gravity wave speed sqrt(gh) no longer
-// limits the time step, only advection does (nhflow_timestep_SI, cap A 536).
-// Hydrostatic only (A 520 0). Separate from the explicit integrators (nhflow_momentum_RK2/RK3),
-// which are not touched; the shared parts of nhflow_momentum_func (sigma metrics, omega,
-// velocities, bed friction) and the 2D eta system of the semi-implicit SFLOW (si_eta2D) are used.
+// For long simulations (tide, river, coastal ocean): the gravity wave speed sqrt(gh) does not
+// limit the time step, only advection does (nhflow_timestep_SI, cap A 536).
+// Separate from the explicit integrators (nhflow_momentum_RK2/RK3); the shared parts of
+// nhflow_momentum_func (sigma metrics, omega, velocities, bed friction) and the 2D eta system of
+// the semi-implicit SFLOW (si_eta2D) are used. The description below is the hydrostatic step;
+// with A 520 > 0 the non-hydrostatic pressure joins eta in one coupled eta-phi system
+// (nhflow_momentum_SI_nh.cpp, Cartesian, one grid).
 //
 // Prognostic: WL, UH, VH, WH per sigma layer (cell centres) and the layer face discharges
 // Qx, Qy (per unit sigma and unit face width, as d->FEx/FEy), which carry the mass flux.
@@ -102,9 +147,9 @@ using namespace std;
 // first where the coarse faces next to a patch take the fine fluxes (advection, discharges), and one eta system over
 // the leaf cells of all grids (reefamr_si.cpp); not with subcycling (G 7 1), vertical refinement (G 6 1) or tracers.
 //
-// Not yet (stops in check()): non-hydrostatic pressure (A 520 > 0), VRANS,
-// 6DOF / floating bodies, SEASTATE, side-wall friction A 519 2, membranes, FEM coupling, patch
-// boundary conditions.
+// Not available (stops in check()): VRANS, 6DOF / floating bodies / direct forcing, side-wall
+// friction A 519 2, membranes, FEM coupling, patch boundary conditions, SEASTATE surfbeat (A 770 1);
+// the non-hydrostatic pressure and wave breaking on one Cartesian grid only.
 // ---------------------------------------------------------------------------
 
 class nhflow_breaking;
@@ -179,6 +224,15 @@ public:
     // checkpoints (P 48, I 45): the face discharges and the state of the step
     void ckpt_fields(const std::function<void(const char*, char, double*)> &fd, const std::function<void(const char*, char, int*)> &fi) override
     {
+        // the private arrays in the layout of IJK (px, nhflow_momentum_SI.h)
+        // compact layout: each private array through a full copy (gather, write or read, scatter)
+        auto px = [&](const char *n, double *a)
+        {
+            if(a==nullptr) return;
+            double *F = lfull(nullptr,a,0);
+            fd(n,'C',F);
+            lback(nullptr,a,0);
+        };
         fsfbody_ckpt_fields(fd);
         fd("si_qx",'S',qx.V); fd("si_qxn",'S',qxn.V); fd("si_qxE",'S',qxE.V); fd("si_Hx",'S',Hx.V);
         fd("si_alx",'S',alx.V); fd("si_gmx",'S',gmx.V); fd("si_ax",'S',ax.V); fd("si_kx",'S',kx.V);
@@ -187,16 +241,16 @@ public:
         fd("si_ay",'S',ay.V); fd("si_ky",'S',ky.V); fd("si_gy0",'S',gy0.V); fd("si_cy0",'S',cy0.V);
         fd("si_eta0",'S',eta0.V); fd("si_WL0",'S',WL0.V); fd("si_etaI",'S',etaI.V); fd("si_gmc",'S',gmc.V);
         fd("si_rhsW",'S',rhsW.V); fd("si_bdiag",'S',bdiag.V); fd("si_tS",'S',tS.V); fd("si_tE",'S',tE.V);
-        fd("si_WLk",'S',WLk.V); fd("si_etaB",'S',etaB.V); fd("si_WLb",'S',WLb.V); fd("si_Qx",'C',Qx);
-        fd("si_Qy",'C',Qy); fd("si_Qxn",'C',Qxn); fd("si_Qyn",'C',Qyn); fd("si_Tx",'C',Tx);
-        fd("si_Ty",'C',Ty); fd("si_QAx",'C',QAx); fd("si_QAy",'C',QAy); fd("si_Rx",'C',Rx);
-        fd("si_Ry",'C',Ry); fd("si_UH0",'C',UH0); fd("si_VH0",'C',VH0); fd("si_WH0",'C',WH0);
-        fd("si_UHa",'C',UHa); fd("si_VHa",'C',VHa); fd("si_WHa",'C',WHa); fd("si_UHb",'C',UHb);
-        fd("si_VHb",'C',VHb); fd("si_WHb",'C',WHb); fd("si_UHp",'C',UHp); fd("si_VHp",'C',VHp);
-        fd("si_WHp",'C',WHp); fd("si_UHD",'C',UHD); fd("si_VHD",'C',VHD); fd("si_WHD",'C',WHD);
-        fd("si_dUH",'C',dUH); fd("si_dVH",'C',dVH);
+        fd("si_WLk",'S',WLk.V); fd("si_etaB",'S',etaB.V); fd("si_WLb",'S',WLb.V); px("si_Qx",Qx);
+        px("si_Qy",Qy); px("si_Qxn",Qxn); px("si_Qyn",Qyn); px("si_Tx",Tx);
+        px("si_Ty",Ty); px("si_QAx",QAx); px("si_QAy",QAy); px("si_Rx",Rx);
+        px("si_Ry",Ry); px("si_UH0",UH0); px("si_VH0",VH0); px("si_WH0",WH0);
+        px("si_UHa",UHa); px("si_VHa",VHa); px("si_WHa",WHa); px("si_UHb",UHb);
+        px("si_VHb",VHb); px("si_WHb",WHb); px("si_UHp",UHp); px("si_VHp",VHp);
+        px("si_WHp",WHp); px("si_UHD",UHD); px("si_VHD",VHD); px("si_WHD",WHD);
+        px("si_dUH",dUH); px("si_dVH",dVH);
         // the time levels of the step before (second order in time, tl2; nh_begin, nh_levels)
-        fd("si_accU",'C',accU); fd("si_accV",'C',accV); fd("si_accW",'C',accW);
+        px("si_accU",accU); px("si_accV",accV); px("si_accW",accW);
         fd("si_Bx",'C',Bx); fd("si_By",'C',By); fd("si_BFx",'C',BFx); fd("si_BFy",'C',BFy);
         fd("si_nOmP",'F',nOmP.data()); fd("si_nHxo",'S',nHxo.data()); fd("si_nHyo",'S',nHyo.data());
         if(!nWLo.empty()) fd("si_nWLo",'S',nWLo.data());
@@ -254,6 +308,7 @@ private:
     void advection(lexer*, fdm_nhf*, ghostcell*, nhflow_reconstruct*);
     void si_corrector(lexer*, fdm_nhf*, ghostcell*);
     void advection_bcg(lexer*, fdm_nhf*, ghostcell*, double*, double*, double*);
+    std::vector<double> bcgF;     // advection_bcg: the half-step field f + dt/2 S (full layout)
     void hdiffusion(lexer*, fdm_nhf*, ghostcell*);
     void hdiffusion_brk(lexer*, fdm_nhf*, ghostcell*);
     std::vector<double> hdU, hdV, hdW, hdN;
@@ -290,12 +345,15 @@ private:
     double dissipation(lexer*, double, double, double);
     double div(lexer*, slice&, slice&);
     double layer_div(lexer*, double*, double*);
+    double layer_div_p(lexer*, double*, double*);   // of the private arrays
 
     void exchange1(lexer*, ghostcell*, slice&);
     void exchange2(lexer*, ghostcell*, slice&);
     void exchange4(lexer*, ghostcell*, slice&);
     void exchangeF(lexer*, ghostcell*, double*);
     void exchangeC(lexer*, ghostcell*, double*);
+    void pexchF(lexer*, ghostcell*, double*);    // a private array (lfull)
+    void pexchC(lexer*, ghostcell*, double*);
 
     // non-hydrostatic pressure (A 520 > 0) coupled with eta^{n+1}, after the multilayer solver of Popinet 2020
     // (nhflow_momentum_SI_nh.cpp): phi = p/rho on the layer interfaces (PHI, k: the lower interface of layer k), the
@@ -325,9 +383,12 @@ private:
     std::vector<char> nAct;
     std::shared_ptr<sflow_si_nh_lu> nhlu;
     std::shared_ptr<nhflow_si_nhmg> nhmg;
+    static std::vector<char> nh_mask(int B, bool yd);    // the stored entries of the blocks (nh_assemble)
     std::shared_ptr<nhflow_si_nhmg> nhme, nhmp;     // A 507 1: the eta system (one unknown per column) and the phi system (K)
     int nh_lagc = 0, nh_lagit = 0, nh_lagnact = -1; // the preconditioner kept for some steps: steps since its refresh, the
     double nh_lagdt = 0.0;                          // iterations of that step, the active columns and dt then
+    std::vector<char> nh_lagpat;                    // the wet pattern (pw) and active columns of the preconditioner
+    int nh_reb = 0;                                 // the preconditioner rebuilt inside FGMRES (stall) in this solve
     int nh_iter = 0, nh_iter1 = 0;   // the iterations of the last solve and of the first pass of the step
     double nh_time = 0.0, nh_res = 0.0, nh_brk = 0.0;
     // wetting and drying of the coupled solve (A 537 1): pw of the mass rows, the iterations of the pattern and the dry
@@ -404,6 +465,28 @@ private:
 
     // layer face discharges: prognostic Q^{n+1}, Q^n, layer transport of the step (theta weighted),
     // column parts Q~ = A^-1 (I - dt L_v) Q^ and r = A^-1 1
+    // layout of the private arrays (see the top of the file): strides, offset, shift (test), number of entries
+    int lsi = 0, lsj = 0, lso = 0, lshift = 0;
+    size_t lN = 0;
+    void layout_ini(lexer*, bool);
+    bool lcomp = false;                 // compact layout
+    int lmx = 0, lmy = 0, lnk = 0;      // compact: ghost cells in i, j, the entries of a column (knoz+1)
+    int lki = 0, lkj = 0;               // compact: the cells in i, j incl. ghost cells
+    int lrng[4] = {0,0,0,0};            // the columns of the layout: i in [lrng[0], lrng[1]), j in [lrng[2], lrng[3])
+    size_t fN = 0;                      // entries of a full array (IJK)
+    int fim = 0, fjm = 0, fkm = 0, fjx = 0, fkx = 0;    // the full layout: imin, jmin, kmin, jmax, kmax
+    double *lscr[3] = {nullptr,nullptr,nullptr};   // compact: full copies of private arrays (lfull)
+    void lgather(lexer*, const double *P, double *F) const;     // compact -> full (the cells of the layout)
+    void lscatter(lexer*, const double *F, double *P) const;    // full -> compact
+public:
+    double* lfull(lexer*, double *P, int s);    // the array in the layout of IJK: P itself (full) or scratch s (compact)
+    void lback(lexer*, double *P, int s);       // compact: scratch s (changed by IJK code) back to P
+    void lset(lexer*, double *P, const double *F);          // P = F (F a full array)
+    void lget(lexer*, const double *P, double *F);          // F = P (F a full array; compact: the cells of the layout)
+private:
+#ifdef SI_LCHECK
+    int lchk(int a, int b, int c, const char *file, int line) const;
+#endif
     double *Qx, *Qy, *Qxn, *Qyn, *Tx, *Ty, *QAx, *QAy, *Rx, *Ry;
 
     // layer state: t^n, RK stages, predictor, implicit diffusion

@@ -34,7 +34,8 @@ Author: Hans Bihs
 //   the plane, W 22 its normal gravity); with W 20 = W 21 = 0 the bed slope drives the flow as usual
 // - basal friction with the depth-integrated closures of the core, as a backward-Euler step on the
 //   stage momenta after the explicit update (yield criterion: the layer stops when the driving force
-//   of the stage is below the static threshold)
+//   of the stage is below the static threshold); in the semi-implicit step (A 210 11/12/13) the same
+//   step as a factor on the momentum of the cells and faces (si_factor, sflow_momentum_SI::rheo_friction)
 // - basal pore pressure ratio lambda (W 126): constant, or advected with the flow and relaxing to
 //   W 127 lambda_h on the diffusion time scale 4 h^2/(pi^2 D)
 
@@ -50,10 +51,16 @@ public:
     void ini(lexer*, fdm2D*, ghostcell*) override final;
     void implicit(lexer*, fdm2D*, ghostcell*, slice&, slice&, slice&, double, bool) override final;
     
+    bool si_friction() const override final { return true; }
+    double si_factor(lexer*, fdm2D*, int, int, int, double, double, double) override final;
+    void si_end(lexer*, fdm2D*, ghostcell*, slice&, slice&, slice&) override final;
+    
     slice4 lambda;
     
 private:
     double gn(lexer*, fdm2D*);
+    double gn_at(lexer*, fdm2D*, int, int);
+    double lambda_mid(lexer*, double, double);
     void pore_update(lexer*, fdm2D*, ghostcell*, slice&, slice&, slice&);
     
     rheo::basal_params q;

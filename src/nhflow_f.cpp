@@ -107,8 +107,7 @@ void nhflow_f::ini(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow, nhflow_f
     
     for(int qn=0; qn<p->A509;++qn)
     {
-    // G 52 1 (multi-block grids): the sweep from the old values, independent of the index directions
-    if(p->G52==1)
+    // the sweep from the old values, independent of the index directions and of the ranks
     {
     slice4 b0(p);
     SLICELOOP4
@@ -117,9 +116,6 @@ void nhflow_f::ini(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow, nhflow_f
     SLICELOOP4
 	d->bed(i,j) = 0.5*b0(i,j) + 0.125*(b0(i-1,j) + b0(i+1,j) + b0(i,j-1) + b0(i,j+1));
     }
-    else
-	SLICELOOP4
-	d->bed(i,j) = 0.5*d->bed(i,j) + 0.125*(d->bed(i-1,j) +d->bed(i+1,j) +d->bed(i,j-1) +d->bed(i,j+1) );
     
     pgc->gcsl_start4(p,d->bed,50);
     }

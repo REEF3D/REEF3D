@@ -41,8 +41,7 @@ void nhflow_signal_speed::signal_speed_update(lexer* p, ghostcell *pgc, fdm_nhf 
                                         double *Us, double *Un, double *Ve, double *Vw, 
                                         slice &Ds,slice &Dn, slice &De, slice &Dw)
 {
-    // Same expressions as before; the celerities sqrt(9.81*D) depend only on
-    // the column and are evaluated once per (i,j) instead of 4-6 times per cell.
+    // the celerities sqrt(9.81*D) depend only on the column: evaluated once per (i,j)
     
     const bool porous = (p->B200==1 && p->B206==1);
     

@@ -36,7 +36,7 @@ reduction_FD_gamma::~reduction_FD_gamma()
 void reduction_FD_gamma::start(lexer *p, ghostcell *pgc, sediment_fdm *s)
 {
     double r=1.0;
-    double u0,v0,uvel,vvel,uabs,fx,fy;
+    double uvel,vvel,uabs,fx,fy;
     
     SEDSLICELOOP
     {

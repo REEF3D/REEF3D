@@ -21,6 +21,7 @@ Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"pic_f.h"
+#include<utility>
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
@@ -74,6 +75,8 @@ pic_f::pic_f(lexer *p, fdm *a, ghostcell *pgc, reini *ppreini, ioflow *ppflow, h
     surface = (p->F81==1 || p->F81==2);
     flipmode = (p->F81==1 || p->F81==2);
     single = (p->F81==1);
+    rkstages = flipmode && p->F76==1;
+    staged = false;
     apic = flipmode && (p->F77==1 || p->F77==2);
     relaxzones = surface && p->B90>0 && (p->B98==2 || p->B99==1 || p->B99==2);
     inflowsrc = surface && p->B60>0;
@@ -184,16 +187,43 @@ void pic_f::ini(lexer *p, fdm *a, ghostcell *pgc)
 
 void pic_f::start(lexer *p, fdm *a, ghostcell *pgc)
 {
+
     // F 81 1, 2: the particles move with the velocity of the water
     if(surface)
     water_velocity(p,a,pgc);
 
-    // F 81 1, 2: the particles take the velocity (APIC) or its change (FLIP) of the water
+    // F 81 1, 2: the particles take the velocity (APIC) or its change (FLIP) of the water, at
+    // their position at the start of the step: the momentum step gives the velocity of the water
+    // that was at the faces then (no convection on the grid)
+    if(flipmode && staged)
+    {
+        for(auto &q : P)
+        {
+        std::swap(q.x,q.xn[0]);
+        std::swap(q.y,q.xn[1]);
+        std::swap(q.z,q.xn[2]);
+        }
+
+        g2p(p,a);
+
+        for(auto &q : P)
+        {
+        std::swap(q.x,q.xn[0]);
+        std::swap(q.y,q.xn[1]);
+        std::swap(q.z,q.xn[2]);
+        }
+    }
+    else
     if(flipmode)
     g2p(p,a);
 
+    // F 76 1: they moved in the stages of the step already (pic_f::stage)
+    if(!staged)
+    {
     move(p,a,pgc);
     xchange(p,pgc);
+    }
+    staged = false;
 
     // F 78: the redistribution against the rows and gaps of the particles
     if(surface && p->F78>0 && p->count%p->F78==0)

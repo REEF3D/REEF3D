@@ -48,7 +48,6 @@ public:
 private:
 
 
-    int n;
     ofstream wsfout;
 
 };

@@ -1,0 +1,20 @@
+{
+ "description": "sflow_1d_wall_dryland_a221 with the semi-implicit step (A 210 11, A 220 3, theta 0.5, B 95): the cell in front of the land in the coupled eta-P system, the dry cell a wall for the means of the face terms, the source term of the predictor and the Laplacian of eta. Without A 221 2 this run does not stay stable (the hydrostatic cell at the land, 5 cells deep, with the A 220 3 term).",
+ "solver": "sflow",
+ "np": 1,
+ "steps": 400,
+ "tags": [
+  "quick",
+  "1d",
+  "sflow",
+  "waves",
+  "wetdry",
+  "nonhydrostatic",
+  "semi_implicit"
+ ],
+ "covers": [
+  "sflow_momentum_SI::drywall_cells, wall() with dry land",
+  "sflow_momentum_SI::nh_active, nh_predictor, nh_assemble, nh_solve with A 221 2"
+ ],
+ "architect": "Hans Bihs"
+}

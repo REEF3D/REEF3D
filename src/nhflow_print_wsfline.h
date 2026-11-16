@@ -48,7 +48,7 @@ public:
 private:
     void ini_location(lexer*, fdm_nhf*, ghostcell*);
     int *jloc;
-    int n,q;
+    int q;
     ofstream wsfout;
 
 	

@@ -40,7 +40,6 @@ public:
     void suspsource(lexer*,fdm*,field&,sediment_fdm*);
     void bcsusp_start(lexer*,fdm*,ghostcell*,sediment_fdm*,field&);
 	void sedfsf(lexer*,fdm*,field&);
-	void clearrhs(lexer*,fdm*);
     void fillconc(lexer*,fdm*,sediment_fdm*);
 
 	int gcval_susp;
@@ -55,5 +54,3 @@ private:
 };
 
 #endif
-
-

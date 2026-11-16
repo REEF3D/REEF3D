@@ -441,6 +441,5 @@ void nhflow_momentum_RK2::phase_E(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_s
     {
     psed->RK2_step2_nhflow(p,d,pgc,pflow);
     S.pfsf->depth_update(p,d,pgc,pflow);
-    bed_acceleration(p,d,pgc,d->WL,d->U,d->V,d->W);
     }
 }

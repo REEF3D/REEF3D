@@ -45,8 +45,7 @@ nhflow_rans_io::~nhflow_rans_io()
 }
 
 // 2D output (bed mode 0, free surface mode 1): eddyv, kin, eps/omega of the bottom or top sigma layer at the
-// slice vertices, 3 arrays of pointnum2D as offset_ParaView_2D and name_vtp declare (was: a first eddyv array of
-// pointnum 3D values, the second eddyv array not written and the layer index left at 0/1). Not called at present.
+// slice vertices, 3 arrays of pointnum2D as offset_ParaView_2D and name_vtp declare. Not called at present.
 void nhflow_rans_io::print_2D(lexer* p, fdm_nhf *d, ghostcell *pgc, std::ostream &result, int mode)
 {
     const int kk = (mode==1) ? p->knoz-1 : 0;
@@ -177,16 +176,12 @@ double nhflow_rans_io::ccipol_kinval(lexer *p, ghostcell *pgc, double xp, double
 {
     double val=0.0;
 
-    //val=p->ccipol4( kin, xp, yp, zp);
-
     return val;
 }
 
 double nhflow_rans_io::ccipol_epsval(lexer *p, ghostcell *pgc, double xp, double yp, double zp)
 {
     double val=0.0;
-
-    //val=p->ccipol4( eps, xp, yp, zp);
 
     return val;
 }
@@ -195,16 +190,12 @@ double nhflow_rans_io::ccipol_a_kinval(lexer *p, ghostcell *pgc, double xp, doub
 {
     double val=0.0;
 
-    //val=p->ccipol4a( kin, xp, yp, zp);
-
     return val;
 }
 
 double nhflow_rans_io::ccipol_a_epsval(lexer *p, ghostcell *pgc, double xp, double yp, double zp)
 {
     double val=0.0;
-
-    //val=p->ccipol4a( eps, xp, yp, zp);
 
     return val;
 }
@@ -213,16 +204,12 @@ double nhflow_rans_io::kinval(int ii, int jj, int kk)
 {
     double val=0.0;
 
-    //val=kin(ii,jj,kk);
-
     return val;
 }
 
 double nhflow_rans_io::epsval(int ii, int jj, int kk)
 {
     double val=0.0;
-
-    //val=eps(ii,jj,kk);
 
     return val;
 }
@@ -375,16 +362,19 @@ void nhflow_rans_io::wetting_ini(lexer *p, fdm_nhf *d, double *KN, double *EN, b
     }
 }
 
-// length-scale limit (A 564 >= 1): the turbulence length scale l = cmu^0.75 k^1.5/eps does not exceed kappa h
+// length-scale limit: the turbulence length scale l = cmu^0.75 k^1.5/eps does not exceed kappa h
 // (h the local water depth): eps >= cmu^0.75 k^1.5/(kappa h), omega >= k^0.5/(cmu^0.25 kappa h), i.e.
 // nu_t <= cmu^0.25 k^0.5 kappa h. In open-channel equilibrium l stays below 0.16 h, so the limit only acts
 // where eps/omega -> 0+ with k > 0 (newly wetted and very shallow cells, still water with residual k).
+// For every A 564, also 0 (was A 564 >= 1 only): a run without a discharge inflow (B 60 0: waves, still water)
+// starts from k = eps/omega = 0, and nu_t = k/omega (cmu k^2/eps) is singular where omega (eps) is still ~ 0 and k
+// has started to grow. With A 564 0 nothing bounded it: a regular wave in a 2D flume gave nu_t = 1.7e6 m2/s in the
+// second time step (k = 2e-14 m2/s2) and velocities of 6 m/s; k-epsilon failed the same way within 50 steps.
 // Also updates WETN for wetting_ini.
 void nhflow_rans_io::length_limit(lexer *p, fdm_nhf *d, bool komega)
 {
     const double kappa = 0.4;
     
-    if(p->A564>=1)
     LOOP
     if(p->wet[IJ]==1 && p->DF[IJK]>0 && KIN[IJK]>0.0 && d->WL(i,j)>1.0e-6)
     {

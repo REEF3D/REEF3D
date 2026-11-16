@@ -1,0 +1,18 @@
+{
+ "description": "NHFLOW 2D wave flume from rest (k = omega = 0, no discharge inflow), 5th-order Stokes wave, relaxation zones, k-omega without the eddy viscosity limiter (A 564 0): the length-scale limit l <= kappa h bounds nu_t = k/omega while omega is still ~ 0. Before the limit held with A 564 0, nu_t was 1.7e6 m2/s in the second step.",
+ "solver": "nhflow",
+ "np": 1,
+ "steps": 300,
+ "tags": [
+  "2d",
+  "nhflow",
+  "waves",
+  "turbulence",
+  "quick"
+ ],
+ "covers": [
+  "nhflow_rans_io::length_limit with A 564 0",
+  "nhflow_komega_func::eddyvisc A 564 0",
+  "start of k-omega from k = omega = 0"
+ ]
+}

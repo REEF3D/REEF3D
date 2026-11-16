@@ -187,8 +187,7 @@ void sixdof_obj_fnpf::chi_mean(lexer *p, ghostcell *pgc, slice &D, slice &foot)
     // of the exact chi = d phi/dt following a body point is zero. Next to a moving
     // surface-piercing hull the free-surface data psi_D + V.grad(phi) are not: columns entering
     // and leaving the footprint leave a mean residual near the waterline, which biases the hull
-    // pressure (in a steady turn it gives a drift-yaw interaction of about a third of the Munk
-    // moment, validation 11). The running mean of chi is kept on a body-frame grid around the
+    // pressure (in a steady turn a spurious drift-yaw interaction). The running mean of chi is kept on a body-frame grid around the
     // body (horizontal extent of the body plus 5 cells) and removed from the free-surface data
     // there. The mean is a second-order low-pass (two exponential stages with time constant
     // tau each): the oscillating part (waves, heave and pitch) is kept, at a frequency w the mean
@@ -585,7 +584,6 @@ void sixdof_obj_fnpf::forces_fnpf_set(lexer *p, ghostcell *pgc, fnpf_force_sum &
         am_on_ = true;
     }
     
-    // the loads and the added mass: in the 6DOF log files (REEF3D_FNPF_6DOF), no longer on the terminal
     (void)Atot;
 }
 

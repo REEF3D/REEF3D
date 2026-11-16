@@ -1,0 +1,22 @@
+{
+ "description": "NHFLOW explicit (A 510 2, A 520 2) with wetting and drying in a closed square basin that is symmetric about the diagonal x = y: a beach 1:8.3 rising along the diagonal to dry land, an island on the diagonal (1.5 m above the water), a square of water raised by 0.5 m in the near corner, bed smoothing A 509 1. The gauges come in pairs (x,y), (y,x): the two of a pair read the same to 1e-7 m since the band of the deep flags is 2 cells in y as in x (3 cells in y gave 1.6e-2 m). ",
+ "solver": "nhflow",
+ "np": 1,
+ "steps": 120,
+ "tags": [
+  "quick",
+  "3d",
+  "nhflow",
+  "wetdry",
+  "nonhydrostatic"
+ ],
+ "covers": [
+  "nhflow_fsf_f::wetdry: band of the deep flags in x and y",
+  "avoid isolated wetdry from a copy of the flags",
+  "nhflow_f::ini: bed smoothing from the old values (A 509)"
+ ],
+ "architect": "Hans Bihs",
+ "files": [
+  "geo.dat"
+ ]
+}

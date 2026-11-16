@@ -185,7 +185,6 @@ void potential_water::laplace(lexer *p, fdm *a, field &phi)
         if((p->flag4[Ip1JK]<0 || a->phi(i+1,j,k)<eps) && bc(i+1,j,k)==2)
 		{
         a->rhsvec.V[n] -= a->M.n[n]*p->Uo*p->DXP[IP1];
-		//a->M.p[n] += a->M.n[n];
 		a->M.n[n] = 0.0;
 		}
 		

@@ -35,6 +35,10 @@ public:
     virtual ~nhflow_scalar_convection(){}
 	virtual void start(lexer*,fdm_nhf*,double*,int,double*,double*,double*)=0;
     
+    // columns of the scalar (conservative form of nhflow_scalar_ifou): 1 in the columns that carry the scalar, on the
+    // layout of p->wet; without it the wet columns p->wet (nhflow_suspended_IM1: wet columns deeper than the film)
+    virtual void wet_mask(const int*){}
+    
 };
 
 #endif

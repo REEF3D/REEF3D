@@ -23,7 +23,6 @@ Architect: Hans Bihs
 #include"sflow_amr.h"
 #include"sflow_momentum_SI.h"
 #include"sflow_timestep_SI.h"
-#include"sflow_momentum_RK3.h"
 #include"sflow_curv.h"
 #include"sflow_amr_ship.h"
 #include"sflow_fsf.h"
@@ -31,7 +30,6 @@ Architect: Hans Bihs
 #include"lexer.h"
 #include"fdm2D.h"
 #include"ghostcell.h"
-#include"slice4.h"
 #include<cmath>
 #include<mpi.h>
 #include<iomanip>
@@ -688,7 +686,7 @@ void sflow_amr::si_timestep(lexer *p, ghostcell *pgc)
             const double lam = (pp->geo_curv==1) ? sflow_curv::inv2(pp,ii,jj)
                              : 1.0/(pp->DXN[ii+marge]*pp->DXN[ii+marge]) + p->y_dir/(pp->DYN[jj+marge]*pp->DYN[jj+marge]);
 
-            cmin = MIN(cmin, 0.5/(visc*lam + 1.0e-20)/(2.0*cfl));
+            cmin = MIN(cmin, 0.2/(visc*lam + 1.0e-20)/(2.0*cfl));
             }
         }
     }

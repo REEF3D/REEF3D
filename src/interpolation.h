@@ -71,7 +71,6 @@ public:
     double ipol4_a_sliceint(sliceint&);
 
     
-    double lint(field&,int&,int&,int&,double,double,double);
     double lint1(field&,int&,int&,int&,double,double,double);
     double lint1c(field&,int&,int&,int&,double,double,double);
     double lint2(field&,int&,int&,int&,double,double,double);

@@ -45,8 +45,7 @@ public:
 
 private:
 
-	double pval;
-	int count,n,q;
+	int n;
 
     std::vector<int> noflux;   // per cell: bit (cs-1) set for a no-flux face on side cs (bc_noflux.h)
     std::vector<int> outlet;   // per cell: bit (cs-1) set for a patch outlet face on side cs

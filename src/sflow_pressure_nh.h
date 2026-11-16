@@ -24,6 +24,8 @@ Author: Hans Bihs
 #define SFLOW_PRESSURE_NH_H_
 
 #include"sflow_pressure.h"
+#include"sflow_drywall.h"
+#include"fdm2D.h"
 
 class sflow_amr;
 
@@ -42,11 +44,23 @@ public:
 
     virtual void assemble(lexer*, fdm2D*, ghostcell*, slice &UH, slice &VH, slice &WL, slice &Un, slice &Vn, double alpha)=0;
     virtual void correct(lexer*, fdm2D*, slice &UH, slice &VH, slice &WH, slice &WL, double alpha)=0;
-    virtual int is_active(lexer*, fdm2D*, int, int)=0;
+    int is_active(lexer*, fdm2D*, int, int);
     virtual int gcval() const=0;
     // coefficients of the bed pressure in the u, v correction and of the w correction (G 7 1:
     // the synchronisation projection of sflow_amr)
     virtual void coef(double &cbq, double &cwq) const=0;
+
+protected:
+    // shared by sflow_pjm_lin and sflow_pjm_quad (sflow_pressure_nh.cpp)
+    int active(lexer*, fdm2D*);                     // cell (i,j) solves for the pressure: wet, deep, not breaking
+    void poisson(lexer*, fdm2D*, slice&, double);   // pressure matrix; cbed: bed coefficient (lin cb, quad cw)
+
+    // A 221 2 (sflow_drywall.h): the value of the neighbour of cell (i,j) in x (a = -1, 1) or y, mirrored across a wall
+    // of dry land (s = 1 even, s = -1 odd: the velocity normal to the wall); hqx, hqy: h q of the neighbour
+    double nbx(lexer *p, slice &f, int a, double s=1.0) { return sflow_drywall::wall(p,i+a,j) ? s*f(i,j) : f(i+a,j); }
+    double nby(lexer *p, slice &f, int a, double s=1.0) { return sflow_drywall::wall(p,i,j+a) ? s*f(i,j) : f(i,j+a); }
+    double hqx(lexer *p, fdm2D *b, slice &WL, int a) { return sflow_drywall::wall(p,i+a,j) ? WL(i,j)*b->press(i,j) : WL(i+a,j)*b->press(i+a,j); }
+    double hqy(lexer *p, fdm2D *b, slice &WL, int a) { return sflow_drywall::wall(p,i,j+a) ? WL(i,j)*b->press(i,j) : WL(i,j+a)*b->press(i,j+a); }
 };
 
 #endif

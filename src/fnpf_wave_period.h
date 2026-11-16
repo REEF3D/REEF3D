@@ -36,8 +36,8 @@ Architect: Hans Bihs
 // period of reconstructed waves). Reconstructed waves (B 92 51-53,
 // waverecon.dat "A omega phase [direction]") have no wTp (other code takes wTp as the input of a spectrum, so it
 // stays 0 there); their period is the peak of the component spectrum S_n = A_n^2/(2 dw_n), smoothed as
-// Fp = sum(w S^4)/sum(S^4) (Young 1995), dw_n half the distance of the neighbouring frequencies (patch 0033).
-// Mase & Kirby: 0.988 s (nominal peak 1 s); Tian tp1: 0.937 s (largest component 1.0 s). 0 without wave input.
+// Fp = sum(w S^4)/sum(S^4) (Young 1995), dw_n half the distance of the neighbouring frequencies. 0 without wave
+// input.
 
 inline double fnpf_recon_period()
 {

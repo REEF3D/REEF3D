@@ -1,0 +1,21 @@
+{
+ "description": "SFLOW channel 10 m x 2 m (walls at the sides) over a sand mound on the axis, discharge 0.6 m3/s, 0.5 m deep, potential flow start (I 11 1), no bed smoothing (A 209 0), MPM, default Exner (S 31 2, first-order upwind): the upwind face flux of S 31 2 by flux splitting (sediment_fou), the bed stays symmetric about the axis (1e-7 m) and is the same on 1 and 2 ranks (1e-12 m). Before patch SFLOW Sediment Check/0003 the face took the whole flux of one of its two cells by the sign of a face velocity of round-off size (asymmetry and rank dependence of 1 % of the bed change). I 11 1: the outflow of the Laplace problem is the discharge (patch 0001; before, the 2D start velocities were +-6.6 m/s).",
+ "solver": "sflow",
+ "np": 1,
+ "steps": 600,
+ "files": [
+  "geo.dat"
+ ],
+ "tags": [
+  "quick",
+  "2d",
+  "sflow",
+  "sediment",
+  "exner"
+ ],
+ "covers": [
+  "sediment_fou S 31 2 flux splitting",
+  "sflow_potential_f with the outflow discharge (I 11 1)",
+  "ioflow_f::Qout2D"
+ ]
+}

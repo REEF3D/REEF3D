@@ -36,8 +36,6 @@ Author: Hans Bihs
 #include <optional>
 #include <variant>
 
-class fnpf_laplace;
-class field;
 class solver2D;
 class wind;
 

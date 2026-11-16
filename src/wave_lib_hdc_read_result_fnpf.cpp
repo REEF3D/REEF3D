@@ -36,9 +36,6 @@ void wave_lib_hdc::read_result_fnpf(lexer *p, ghostcell *pgc, double **E0, doubl
     result.read((char*)&iin, sizeof (int));
     file_iter=iin;
     
-    //if(p->mpirank==0)
-    //cout<<p->mpirank<<"HDC file_iter: "<<file_iter<<endl;
-    //cout<<p->mpirank<<" Nx: "<<Nx<<" Ny: "<<Ny<<endl;
     
     // read
     for(i=0; i<Nx; ++i)
@@ -47,8 +44,6 @@ void wave_lib_hdc::read_result_fnpf(lexer *p, ghostcell *pgc, double **E0, doubl
         result.read((char*)&ffn, sizeof (float)); 
         E0[i][j]=double(ffn);
         
-        //if(i==0 && j==0)
-        //cout<<p->mpirank<<" E0[i][j]: "<<E0[i][j]<<" "<<ffn<<endl;
     } 
     
     // read
@@ -57,7 +52,6 @@ void wave_lib_hdc::read_result_fnpf(lexer *p, ghostcell *pgc, double **E0, doubl
     {
         result.read((char*)&ffn, sizeof (float)); 
         F0[i][j]=double(ffn);
-        //cout<<p->mpirank<<" F0[i][j]: "<<F0[i][j]<<" "<<ffn<<endl;
     } 
     
         // close

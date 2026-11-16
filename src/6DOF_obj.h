@@ -56,7 +56,6 @@ class fdm_nhf;
 class fdm_fnpf;
 class ghostcell;
 class reinidisc;
-class nhflow_reinidisc_fsf;
 class mooring;
 class net_interface;
 class sixdof_motionext;
@@ -95,6 +94,9 @@ public:
     bool ext_on_amr_ = false;
     Eigen::Vector3d ext_v_amr_ = Eigen::Vector3d::Zero(), ext_w_amr_ = Eigen::Vector3d::Zero();
     Eigen::Matrix<double,6,1> am_prev_amr_ = Eigen::Matrix<double,6,1>::Zero();     // am_prev_ of the predicted copy (G 7 1)
+    Eigen::Matrix<double,6,1> am_prev2_amr_ = Eigen::Matrix<double,6,1>::Zero();
+    double am_dt_amr_ = 0.0;
+    int am_n_amr_ = 0;
     
     // surface geometry: hull triangles and pose transformation (solver independent)
     sixdof_geometry geom;
@@ -203,7 +205,6 @@ protected:
     
     void objects_create(lexer*, ghostcell*);
     void piston(lexer*, ghostcell*,int,double);
-    void flap(lexer*, ghostcell*,int);
     void flap_double(lexer*, ghostcell*,int,double);
    
     void ini_parallel(lexer*, ghostcell*);
@@ -218,8 +219,6 @@ protected:
     
     
     void iniPosition_RBM(lexer*, ghostcell*);
-    void motionext_trans(lexer*, ghostcell*, Eigen::Vector3d&, Eigen::Vector3d&);
-    void motionext_rot(lexer*, Eigen::Vector3d&, Eigen::Vector3d&, Eigen::Vector4d&);
     
 
     // right-hand side of the rigid-body equations incl. prescribed motions (sixdof_motionext)
@@ -231,6 +230,10 @@ protected:
     void rk3(lexer*, ghostcell*,int);
     void rkls3(lexer*, ghostcell*,int);
     void rkmid(lexer*, ghostcell*,int);
+    
+    // prescribed motion (motion file): the stage of the integrator ends at p->simtime + cend*p->dt
+    void motion_stage_begin(lexer*, double cend);
+    void motion_stage_end(lexer*);
 
    
    // ray cast 3D: geometry core kernels
@@ -336,7 +339,6 @@ protected:
     // Parallel	
 	double *xstart, *xend, *ystart, *yend, *zstart, *zend;
    
-    double kernel(const double&);
 
     // Print
     double curr_time;
@@ -409,7 +411,17 @@ protected:
     // acceleration of the last stage; 0 off (set by cfd_amr)
     double am_cfd_ = 0.0;
     Eigen::Matrix<double,6,1> am_prev_ = Eigen::Matrix<double,6,1>::Zero();
+    // N 40 5: the acceleration before that, the time step of the last one and the number of steps
+    // taken, for the linear extrapolation of the acceleration in time (cfd_added_mass)
+    Eigen::Matrix<double,6,1> am_prev2_ = Eigen::Matrix<double,6,1>::Zero();
+    double am_dt_ = 0.0;
+    int am_n_ = 0;
     void cfd_added_mass(lexer*);
+    void lagged_added_mass(lexer*, const Eigen::Matrix<double,6,6>&);     // NHFLOW X 15 11, CFD X 14 11
+    // CFD X 14 11: the added mass of the hull on the grid (sixdof_obj_cfd::added_mass_cfd), inertial frame,
+    // moments about the centre of gravity; it replaces the artificial one of cfd_added_mass once it is there
+    Eigen::Matrix<double,6,6> Acfd_ = Eigen::Matrix<double,6,6>::Zero();
+    bool acfd_on_ = false;
     
     // X 197: A from the added mass of the equivalent ellipsoid of the hull (2D: elliptic cylinder),
     // body frame, about the CoG (am_ell_: the ellipsoid in the box of the hull, its centre off the
@@ -467,6 +479,12 @@ protected:
     sixdof_deform *fish_ = nullptr;
     double fish_t_amr_ = 0.0;
     double fish_power_ = 0.0;
+
+    // X 34 2: the acceleration of the body from its velocities u_fb of the last two time steps (the
+    // loads take the pressure of the probe points to the hull with it, forces_stl)
+    Eigen::Matrix<double,6,1> x34_acc_ = Eigen::Matrix<double,6,1>::Zero();
+    Eigen::Matrix<double,6,1> x34_uprev_ = Eigen::Matrix<double,6,1>::Zero();
+    double x34_time_ = -1.0e20;
     void deform_setup(lexer*, ghostcell*);
     void deform_time(double);
     Eigen::Vector3d deform_vel(double, double, double) const;

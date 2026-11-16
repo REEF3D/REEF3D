@@ -59,12 +59,6 @@ void sixdof_obj::flap_double(lexer *p, ghostcell *pgc, int id, double t)
     wwm[k] = 0.0;
     }
 
-    //cout<<"xs: "<<xs<<" xe: "<<xe<<" ys: "<<ys<<" ye: "<<ye<<"zs: "<<zs<<" ze: "<<ze<<endl;
-    //cout<<"xe2: "<<xe2<<" xe3: "<<xe3<<" z1: "<<z1<<" z2: "<<z2<<endl;
-    
-    //if(p->mpirank==0)
-    //cout<<"xe2: "<<xe2<<" xe3: "<<xe3<<endl;
-	
 // Lower part 5
 	// 3
         // Tri 1

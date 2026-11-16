@@ -473,9 +473,8 @@ void nhflow_breaking::breaking_detect(lexer *p, fdm_nhf *d, ghostcell *pgc, slic
     // depth induced breaking
     if((p->A551==1 || p->A551==3) && p->count>1)
     {
-    // deta/dt of the stage from the continuity (nhflow_fsf rk2/rk3 steps). (eta - eta_n)/(alpha dt) was right
-    // only in the first stage: eta_n is the level of the previous stage, so in the RK2 corrector it was about
-    // dt d2eta/dt2 and the test did not fire
+    // deta/dt of the stage from the continuity (nhflow_fsf rk2/rk3 steps); (eta - eta_n)/(alpha dt) is right
+    // only in the first stage (eta_n is the level of the previous stage)
     const double g = fabs(p->W22);
     
     SLICELOOP4
@@ -549,36 +548,6 @@ void nhflow_breaking::breaking_flags(lexer *p, fdm_nhf *d, ghostcell *pgc)
 void nhflow_breaking::breaking_vb(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL)
 {
     // ------------------------
-    // fill flag
-    // ------------------------
-    /*if(p->j_dir==0)
-    SLICELOOP4
-    {   
-        if(brkflag(i,j)>0 || brkflag(i-1,j)>0 || brkflag(i+1,j)>0)
-        d->breaking(i,j) = 1;
-            
-        if(brkflag(i,j)==0 && 
-        (brkflag(i-1,j)>0 || brkflag(i+1,j)>0 || brkflag(i-2,j)>0 || brkflag(i+2,j)>0))
-        d->breaking(i,j) = 1;
-    }
-
-    if(p->j_dir==1)
-    SLICELOOP4
-    {   
-        if(brkflag(i,j)>0 || brkflag(i-1,j)>0 || brkflag(i+1,j)>0 || brkflag(i,j-1)>0 || brkflag(i,j+1)>0)
-        d->breaking(i,j) = 1;
-            
-        if(brkflag(i,j)==0 && 
-        (brkflag(i-1,j-1)>0 || brkflag(i-1,j+1)>0 || brkflag(i+1,j-1)>0 || brkflag(i+1,j+1)>0
-        || brkflag(i-2,j)>0 || brkflag(i+2,j)>0 || brkflag(i,j-2)>0 || brkflag(i,j+2)>0))
-        d->breaking(i,j) = 1;
-    }
-    */
-    
-    
-    
-    
-    // ------------------------
     // fill breaking viscosity
     // ------------------------
     
@@ -635,22 +604,6 @@ void nhflow_breaking::breaking_vb(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &W
         {
          filter(p,d,pgc,WL);
         }   
-        
-        // coastline filter
-        /*SLICELOOP4
-        {
-            
-            if(d->coastline(i,j)>=0.0)
-            {
-                db = d->coastline(i,j);
-                
-                if(db<dist3)
-                {
-                filter(p,d,pgc,eta);
-                filter(p,d,pgc,Fifsf);
-                }
-            }
-        }*/
         
     // the flags for the output (VTP 'breaking') and the breaking count of the log
     SLICELOOP4

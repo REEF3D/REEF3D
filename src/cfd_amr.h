@@ -266,6 +266,7 @@ struct cfd_amr_cf
     double dxnf, dxnc;  // cell widths along d
     double ustar;       // predictor of the stage
     double kf, kc;      // flux coefficients of the fine and the coarse row
+    double ap;          // D 1 2: the open fraction of the fine face (solid_aperture.h); 1 otherwise
     double rof;         // face density of the stage (pr_weights)
     double gs, gf;      // F 41 1, the ghost fluid method across the face (pr_weights): the gradient
                         // (gs x_coarse - gf x_fine)/dist (1, 1: no surface between; 0, 1/theta: the
@@ -365,15 +366,13 @@ public:
     double wtp = 0.0;               // the loops over the patches of this rank (their work without the fills)
 
     // the parts of the composite projections (pr_project, pr_level, pr_sync_project), exclusive
-    // clocks with their MPI time (amr_phase_clock.h); reported every P 12 steps as max/mean over the
-    // ranks (pr_report) and per rank with G 43.  PR_WAIT: with G 43 a timed barrier before the halo
+    // clocks with their MPI time (amr_phase_clock.h); reported per rank with G 43.  PR_WAIT: with G 43 a timed barrier before the halo
     // exchanges, the dot products and the level-0 V-cycle, so that the ranks that arrive early wait
     // there and not inside the exchanges (the results do not change)
     enum { PR_ASSEMBLY, PR_OPERATOR, PR_HALO, PR_SHADOW, PR_RESTRICT, PR_PROLONG, PR_CFILL, PR_OVFILL,
            PR_LCYCLE, PR_L0CYCLE, PR_PREC, PR_KRYLOV, PR_WAIT, PR_FINISH, PR_NPART };
     static const char* pr_part_name(int k);
     amr_phase_clock<PR_NPART> prc;
-    void pr_report(lexer*);         // collective, every P 12 steps
     void pr_wait();                 // G 43: the timed barrier (PR_WAIT)
 
 protected:
@@ -563,7 +562,11 @@ private:
     void pr_matrix(int s);
     void pr_predict(int s);
     double forced_share(int g, const int *c, int d);
+    bool cf_shut(const cfd_amr_cf&);    // D 32: the face of a patch edge closed on the fine or on the coarse grid
     void pr_correct(int s);
+    void pr_apertures();                // D 1 2: the open fractions of the faces at the patch edges
+    double cf_weight(const cfd_amr_cf &F);  // the share of a fine face in the velocity of its coarse face
+    void cf_coarse_faces(int s);        // D 1 2: the coarse faces at the patch edges from their fine faces
     void pr_project(lexer*, ghostcell*, int s);
     void pr_sync(int k, int lmin=0, bool sh1=false);     // sh1: the shadows only where the operator reads them (pr_apply)
     void pr_covered_coef();                              // the coarse couplings under the finer patches from the fine faces
@@ -722,6 +725,10 @@ private:
     r3cplan pu_key;                     //     the coarse cell and side of the faces: the folds of the level-0
                                         //     rows (pjm_corr), the couplings of the level-0 multigrid (pr_matrix)
     vector<vector<double>> kval;        // per shadow: the sum of kc of its keys (pu_key order)
+    std::map<std::pair<int,int>,std::pair<double,double>> kc_row;     // D 32: per coarse row (grid, row) at a patch edge the sum of kc of its fine faces and the size of the couplings it folded
+    std::map<int,vector<char>> pr_cmask;            // D 32: per patch the cells with a closed face (pr_prec: no coarse correction into them)
+    bool d32_inside(int g, const int *q);  // D 32: the centre of a cell of grid g in a solid or the bed
+    void pr_rows_closed();              // D 32: the coarse rows at a patch edge left without a coupling: p x = 0
     std::map<std::tuple<int,int,int,int,int,int>,int> kidx;    // (shadow, coarse cell, d, dir) -> its key
     void sh_plans();
     void sh_run(r3cplan &X, const vector<std::function<field&(int)>> &f, bool add);
@@ -771,11 +778,21 @@ private:
     void sc_reflux(int l);              // the flux registers of the patch edges of level l onto level l-1
     void sc_reset(int lfine);
     void sc_record_shadows(double w, bool diff);    // G 40: the coarse fluxes of level 0 at the level-1 edges
-    double sc_total(double &smin, double &smax);
 
     // the output of the patches in the time windows P 35 (cfd_amr_print.cpp): the next output time of
     // every window, as printer_CFD::printtime_wT
     vector<double> p35_next;
+};
+
+// a patch kernel: ghostcell without MPI exchange, rank-local reductions and the fdm a of the patch;
+// the end of the scope restores the fdm a0 and the previous modes
+struct cfd_amr_scope
+{
+    ghostcell *g;
+    fdm *back;
+    bool oldc, oldl;
+    cfd_amr_scope(ghostcell*, fdm *a, fdm *a0);
+    ~cfd_amr_scope();
 };
 
 #endif

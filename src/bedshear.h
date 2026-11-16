@@ -48,7 +48,6 @@ public:
     int* ckpt_tw_count() {return &tw_count;}
 
 	void taubed(lexer*, fdm*,ghostcell*,sediment_fdm*);
-    void taubed_curv(lexer *p, fdm2D *b, ghostcell *pgc, sediment_fdm *s);     // curvilinear grid (G 50)
 	void taucritbed(lexer*, fdm*,ghostcell*,sediment_fdm*);
     
     void taubed(lexer*, fdm_nhf*, ghostcell*, sediment_fdm*);

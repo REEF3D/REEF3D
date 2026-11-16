@@ -1,0 +1,9 @@
+{
+ "base": "cfd_2d_cpm_bedload_layer",
+ "ctrl_add": ["S 51 0.00025 0.3 0.3", "S 51 0.0005 0.4 0.4", "S 51 0.001 0.3 0.3"],
+ "ctrl_set": {"W 20": "10.0"},
+ "steps": 200,
+ "tags": ["quick", "2d", "cpm"],
+ "description": "as cfd_2d_cpm_bedload_layer (W 20 10) with a graded bed (S 51: 0.25, 0.5 and 1 mm with the shares 0.3, 0.4, 0.3; d50 = S 20)",
+ "covers": ["CPM graded sediment: parcels seeded with the grain sizes of the fractions, composition and grain sizes of the bed surface per column, mixture log (REEF3D-CFD-CPM-Mixture.dat) and bed files"]
+}

@@ -1,0 +1,4 @@
+{"base": "nhflow_2d_x15_10_box_heave", "ctrl_set": {"X 15": "11"},
+ "description": "2D box B 1 m, T 0.4 m in forced heave (0.01 m at 3.5 rad/s from 6DOF_motion.dat, X 240 1) with the direct forcing with the body in the projection (X 15 11), dx 0.1 m: the set-up of nhflow_2d_x15_10_box_heave. Frank A/m 0.975, B 64 per 0.1 m span; X 15 11 1.11, 65 over 4-8 s (dx 0.05 m: 1.04, 67), X 15 1 1.51, 82 (NHFLOW Floating validation 01).",
+ "tags": ["2d", "nhflow", "6dof", "motionfile"],
+ "covers": ["sixdof_obj_nhflow::forcing_kernel_fraction", "nhflow_bodyflux (rhs, continuity_flux, rcx)", "hll_sweep_x with open fractions", "force_calc_stl with two pressure samples", "nhflow_fsf_body with X 15 11", "the loads of a prescribed motion (afd_)"]}

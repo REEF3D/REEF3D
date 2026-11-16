@@ -1,0 +1,26 @@
+{
+ "base": "cfd_2d_heave_onestep",
+ "ctrl_set": {
+  "X 11": "0 0 0 0 2 0"
+ },
+ "ctrl_add": [
+  "X 240 1"
+ ],
+ "files": [
+  "6DOF_motion.dat"
+ ],
+ "np": 1,
+ "steps": 60,
+ "description": "cfd_2d_heave_onestep (box, N 40 5) in forced pitch from a motion file (X 240 1, pitch in column 2: 0.08 rad sin(2 pi t / 0.8)): the orientation of the body from the angle of the file at the end of the stage, the angular velocity from its rate.",
+ "tags": [
+  "2d",
+  "cfd",
+  "6dof",
+  "motionfile",
+  "onestep"
+ ],
+ "covers": [
+  "sixdof_motionext::stage_position orientation from the file, table_omega (6DOF_motionext_table.cpp) (CFD N 40 5)"
+ ],
+ "architect": "Hans Bihs"
+}

@@ -14,7 +14,9 @@
 # of the 2D swimmer of REEF3D (L = 1 m, 1 Hz): k 1.3 (validation 08), tau_coast 11 s (validation 13), C_brake
 # 3.5 1/m (the bent body, b = 2.5, validation 16; calibrate.py --brake), s 0.49, tau_up = tau_down 0.58 s and
 # k_brake 1.77 fitted to its station run with the brain of patch 0020 (validation 17, calibrate.py). The brain's
-# own model of the speed (X 201 tau_u tau_d) is set apart from the body in "brain".
+# own model of the speed (X 201 tau_u tau_d, X 202 n_u n_d) and how well it knows its stride (X 203 s_sd) are set
+# apart from the body in "brain". With "n_up" > 0
+# the speed of the body follows the gait over n_up, n_down tail beats instead of tau_up, tau_down.
 #
 # Sheltering (experimental, "shelter"): the target walks within R of the station towards less effort (the mean
 # tail-beat frequency) or less current (the estimate of the brain), a biased random walk (shelter()). In the
@@ -32,7 +34,8 @@
 #   {"T": 30, "dt": 0.01, "out_dt": 0.1, "seed": 1,
 #    "body": {"L": 1.0, "f0": 1.0, "s": 0.49, "k": 1.3, "k_brake": 1.77, "tau_up": 0.58, "tau_down": 0.58,
 #             "tau_coast": 11.0, "C_brake": 3.5, "r_fish": 0.15, "D_fish": 0.0},
-#    "brain": {"U_des": 0.5, "b_max": 1.0, "D": 1.5, "s0": 0.5, "k_turn": 1.3, "tau_u": 0.8, "tau_d": 0.8},
+#    "brain": {"U_des": 0.5, "b_max": 1.0, "D": 1.5, "s0": 0.5, "k_turn": 1.3, "tau_u": 0.8, "tau_d": 0.8,
+#              "n_u": 0.0, "n_d": 0.0, "s_sd": 0.0, "tau_c": 0.0},
 #    "flow": {"type": "uniform", "u": [0.2, 0.0]}  or  {"type": "reef3d", "run": "<dir>", "t0": 20, "t1": 40},
 #    "box": [0, 8, 0, 6], "walls": [0, 0, 1, 1], "cylinders": [[4.0, 3.0, 0.4]],
 #    "shelter": {"R": 1.5, "step": 0.3, "every": 10, "measure": 5, "v": 0.05, "gain": 0, "forget": 0,
@@ -175,7 +178,13 @@ def body_step(Ug, fg, ag, bg, t, dt, body):
         # braking: the bent body slows with a quadratic drag, dU/dt = -C_brake U^2 (2D CFD, b = 2.5: from
         # 0.53 m/s to 0.12 m/s in 2 s and 0.09 m/s in 3 s)
         return Ug - dt * body["C_brake"] * body["s"] * Ug * Ug, body["k_brake"]
-    tau = body["tau_coast"] if ag < 0.5 else (body["tau_up"] if target >= Ug else body["tau_down"])
+    if ag < 0.5:
+        tau = body["tau_coast"]
+    elif body.get("n_up", 0.0) > 0.0:
+        # the speed follows the gait over n tail beats (the 2D swimmer: 0.8 up, 0.65 down, validation 23)
+        tau = (body["n_up"] if target >= Ug else body.get("n_down", body["n_up"])) / max(fg, 0.1 * body["f0"])
+    else:
+        tau = body["tau_up"] if target >= Ug else body["tau_down"]
     return Ug + dt / tau * (target - Ug), (body["k_brake"] if ag < 0.5 else body["k"])
 
 
@@ -192,7 +201,9 @@ class Fish:
         self.pr = {"hello": 1, "body": i, "L": body["L"], "f0": body["f0"], "rho": 1000.0, "U_des": brain["U_des"],
                    "b_max": brain["b_max"], "D": brain["D"], "th_esc": 0.0, "t_start": t_start, "twoD": 1,
                    "s0": brain.get("s0", 0.0), "k_turn": brain.get("k_turn", 0.0),
-                   "tau_u": brain.get("tau_u", 0.0), "tau_d": brain.get("tau_d", 0.0)}
+                   "tau_u": brain.get("tau_u", 0.0), "tau_d": brain.get("tau_d", 0.0),
+                   "n_u": brain.get("n_u", 0.0), "n_d": brain.get("n_d", 0.0), "s_sd": brain.get("s_sd", 0.0),
+                   "tau_c": brain.get("tau_c", 0.0)}
         self.acc_U = 0.0; self.acc_n = 0
         self.mode = -1
         # sheltering: the offset of the target from the station, its direction, the effort (mean tail-beat
@@ -259,7 +270,7 @@ def run(case):
     cyl = np.array(case.get("cylinders", []), float).reshape(-1, 3)
     fl = case.get("flow", {"type": "uniform", "u": [0.0, 0.0]})
     flow = UniformFlow(fl["u"]) if fl["type"] == "uniform" else Reef3dFlow(fl["run"], fl.get("t0"), fl.get("t1"))
-    t_start = case.get("t_start", 1.0 + 1.0 / f0)                    # the brain starts after the ramp and a beat
+    t_start = case.get("t_start", max(1.0, 0.5 / f0))                # the brain starts at the end of the ramp (1 s)
     sh = case.get("shelter")                                          # {"R": 1.5, "step": 0.3, "every": 5, "wait": 10}
     rsh = random.Random(case.get("seed", 1) + 7)
 
@@ -360,7 +371,7 @@ def run(case):
             for key in "fab":
                 f.g[key][2] = d[key]; f.g[key][3] = ts
             f.second = (d["t2"], d["f2"], d["a2"], d["b2"], d["ts2"]) if "t2" in d else None
-            f.next = t + d.get("next", min(0.5 / d["f"], 0.5))
+            f.next = t + d.get("next", min(0.5 / d["f"], 0.5 / f.pr["f0"]))
             f.mode = d.get("mode", 0)
             f.acc_U = 0.0; f.acc_n = 0
         if t >= t_out - 1e-9:

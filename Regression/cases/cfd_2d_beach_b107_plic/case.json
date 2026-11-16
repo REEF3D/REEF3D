@@ -1,0 +1,17 @@
+{
+ "description": "CFD 2D wave tank (10 m, 2nd-order Stokes H 0.04 m, L 3 m) with PLIC VOF (F 80 4); the beach is a B 107 zone (4 m at x+) without B 99. Before IOWAVE patch 0064 the beach damped the velocities but vof_relax left the free surface alone (only B 99 1 / 2): the gauges at 7 and 9 m in the beach.",
+ "np": 1,
+ "steps": 300,
+ "tags": [
+  "2d",
+  "waves",
+  "vof",
+  "plic",
+  "iowave",
+  "beach"
+ ],
+ "covers": [
+  "iowave::vof_relax beach of B 107 (beach_relax)",
+  "momentum_FC3_PLIC"
+ ]
+}

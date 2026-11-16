@@ -37,6 +37,7 @@ public:
 	virtual ~nhflow_scalar_ifou();
 
 	void start(lexer*,fdm_nhf*,double*,int,double*,double*,double*) override final;
+    void wet_mask(const int *m) override final {wmask=m;}
 
 private:
     void start_advective(lexer*,fdm_nhf*,double*,int,double*,double*,double*);
@@ -52,6 +53,7 @@ private:
     double udir,vdir,wdir;
     
     nhflow_scalar_advec *padvec;
+    const int *wmask=nullptr;
     
 };
 

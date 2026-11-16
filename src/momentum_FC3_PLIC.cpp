@@ -133,7 +133,6 @@ void momentum_FC3_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, s
     }
     
      pgc->start4(p,vof_rk1,gcval_vof);
-   // pplic->updatePlaneData(p,a,pgc,vof_rk1);
 	pflow->vof_relax(p,a,pgc,vof_rk1);
 	pgc->start4(p,vof_rk1,gcval_vof);
     
@@ -326,7 +325,6 @@ void momentum_FC3_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, s
             vof_rk2(i,j,k)=1.0;
     }
     
-   // pplic->updatePlaneData(p,a,pgc,vof_rk2);
 	pflow->vof_relax(p,a,pgc,vof_rk2);
     pgc->start4(p,vof_rk2,gcval_vof);
     
@@ -479,7 +477,7 @@ void momentum_FC3_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, s
         LOOP
             a->vof(i,j,k)=vof_rk2(i,j,k);
         pgc->start4(p,a->vof,gcval_vof);
-        pgc->start4(p,vof_rk1,gcval_vof);
+        pgc->start4(p,vof_rk2,gcval_vof);
     
         if(p->F92==3||p->F92==32)
             pplic->calculateSubFractions(p,a,pgc,a->vof);
@@ -508,7 +506,6 @@ void momentum_FC3_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, s
             a->vof(i,j,k)=1.0;
     }
     
-  //  pplic->updatePlaneData(p,a,pgc,a->vof);
     pflow->vof_relax(p,a,pgc,a->vof);
     pgc->start4(p,a->vof,gcval_vof);
     
@@ -656,7 +653,7 @@ void momentum_FC3_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, s
         pplic->updatePhasemarkersCorrection(p,a,pgc,a->vof);
         pgc->start4(p,a->vof,gcval_vof);
         
-        if(p->F92==3||p->F92==33)
+        if(p->F92==3||p->F92==32)
             pplic->calculateSubFractions(p,a,pgc,a->vof);
         pupdate->start(p,a,pgc,a->u,a->v,a->w);
         pgc->start4(p,a->ro,gcval_ro);
@@ -672,16 +669,6 @@ void momentum_FC3_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, s
             a->phi(i,j,k)=(a->vof(i,j,k)-0.5)*p->DZN[KP];
     }
     pgc->start4(p,a->phi,1);
-    
-    
-    /*double vofchecksum;
-    vofchecksum=0.0;
-    LOOP
-        vofchecksum+=a->vof(i,j,k)*p->DXN[IP]*p->DYN[JP]*p->DZN[KP];
-    vofchecksum=pgc->globalsum(vofchecksum);
-    cout<<"Total water volume:"<<vofchecksum<<endl;*/
-        
-    
 }
 
 void momentum_FC3_PLIC::irhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &uvel, field &vvel, field &wvel, double alpha)

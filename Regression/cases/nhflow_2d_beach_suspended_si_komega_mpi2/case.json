@@ -1,0 +1,25 @@
+{
+ "base": "nhflow_2d_beach_suspended_mpi2",
+ "ctrl_set": {
+  "A 510": "11",
+  "A 560": "2",
+  "A 519": "1"
+ },
+ "np": 2,
+ "steps": 1200,
+ "description": "nhflow_2d_beach_suspended_mpi2 with the semi-implicit momentum (A 510 11) and k-omega (A 560 2, wall functions A 519 1), 1200 steps: as nhflow_2d_beach_suspended_si_kepsilon_mpi2 for the wall value of omega (nhflow_komega_bc::wall_law_omega) and the dry columns of k and omega (nhflow_scalar_wet.h).",
+ "tags": [
+  "2d",
+  "nhflow",
+  "sediment",
+  "suspended",
+  "turbulence",
+  "waves",
+  "mpi",
+  "si"
+ ],
+ "covers": [
+  "nhflow_scalar_wet (k-omega)",
+  "nhflow_komega_bc::wall_law_omega with columns without water"
+ ]
+}

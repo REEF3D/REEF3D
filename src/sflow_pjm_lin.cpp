@@ -53,7 +53,7 @@ void sflow_pjm_lin::start(lexer *p, fdm2D *b, ghostcell *pgc, solver2D *psolv, i
 	starttime=pgc->timer();
 
     rhs(p,b,WL,alpha);
-    poisson(p,b,WL,alpha);
+    poisson(p,b,WL,cb);
 
         solvtime=pgc->timer();
 
@@ -89,7 +89,7 @@ void sflow_pjm_lin::start(lexer *p, fdm2D *b, ghostcell *pgc, solver2D *psolv, i
 void sflow_pjm_lin::assemble(lexer *p, fdm2D *b, ghostcell *pgc, slice &UH, slice &VH, slice &WL, slice &Un, slice &Vn, double alpha)
 {
     rhs(p,b,WL,alpha);
-    poisson(p,b,WL,alpha);
+    poisson(p,b,WL,cb);
 }
 
 void sflow_pjm_lin::correct(lexer *p, fdm2D *b, slice &UH, slice &VH, slice &WH, slice &WL, double alpha)
@@ -97,28 +97,6 @@ void sflow_pjm_lin::correct(lexer *p, fdm2D *b, slice &UH, slice &VH, slice &WH,
     ucorr(p,b,UH,WL,alpha);
 	vcorr(p,b,VH,WL,alpha);
     wcorr(p,b,WH,WL,alpha);
-}
-
-int sflow_pjm_lin::is_active(lexer *p, fdm2D *b, int ii, int jj)
-{
-    i=ii;
-    j=jj;
-    return active(p,b);
-}
-
-int sflow_pjm_lin::active(lexer *p, fdm2D *b)
-{
-    // non-hydrostatic pressure is solved in wet, deep, non-breaking cells
-    if(p->wet[IJ]==0 || p->deep[IJ]==0 || b->breaking(i,j)>0)
-    return 0;
-    
-    if(p->wet[Im1J]==0 || p->wet[Ip1J]==0)
-    return 0;
-    
-    if(p->j_dir==1 && (p->wet[IJm1]==0 || p->wet[IJp1]==0))
-    return 0;
-    
-    return 1;
 }
 
 void sflow_pjm_lin::ucorr(lexer* p, fdm2D* b, slice &UH, slice &WL, double alpha)
@@ -146,8 +124,8 @@ void sflow_pjm_lin::ucorr(lexer* p, fdm2D* b, slice &UH, slice &WL, double alpha
     {
     dx = p->DXP[IP] + p->DXP[IM1];
     
-	UH(i,j) -= alpha*p->dt*(1.0/p->W1)*((WL(i+1,j)*b->press(i+1,j) - WL(i-1,j)*b->press(i-1,j))/dx
-                                    - cb*b->press(i,j)*(b->depth(i+1,j) - b->depth(i-1,j))/dx);
+	UH(i,j) -= alpha*p->dt*(1.0/p->W1)*((hqx(p,b,WL,1) - hqx(p,b,WL,-1))/dx
+                                    - cb*b->press(i,j)*(nbx(p,b->depth,1) - nbx(p,b->depth,-1))/dx);
     }
 }
 
@@ -177,8 +155,8 @@ void sflow_pjm_lin::vcorr(lexer* p, fdm2D* b, slice &VH, slice &WL, double alpha
     {
     dy = p->DYP[JP] + p->DYP[JM1];
     
-	VH(i,j) -= alpha*p->dt*(1.0/p->W1)*((WL(i,j+1)*b->press(i,j+1) - WL(i,j-1)*b->press(i,j-1))/dy
-                                    - cb*b->press(i,j)*(b->depth(i,j+1) - b->depth(i,j-1))/dy);
+	VH(i,j) -= alpha*p->dt*(1.0/p->W1)*((hqy(p,b,WL,1) - hqy(p,b,WL,-1))/dy
+                                    - cb*b->press(i,j)*(nby(p,b->depth,1) - nby(p,b->depth,-1))/dy);
     }
 }
 
@@ -236,12 +214,12 @@ void sflow_pjm_lin::rhs(lexer *p, fdm2D* b, slice &WL, double alpha)
         dx = p->DXP[IP] + p->DXP[IM1];
         dy = p->DYP[JP] + p->DYP[JM1];
         
-        dudx = (b->U(i+1,j) - b->U(i-1,j))/dx;
+        dudx = (nbx(p,b->U,1,-1.0) - nbx(p,b->U,-1,-1.0))/dx;
         // (one cell in y: the y derivatives are 0, as from the ghost cells; gcsl_yskip leaves those unset)
-        dvdy = ysk ? 0.0 : (b->V(i,j+1) - b->V(i,j-1))/dy*p->y_dir;
+        dvdy = ysk ? 0.0 : (nby(p,b->V,1,-1.0) - nby(p,b->V,-1,-1.0))/dy*p->y_dir;
         
-        dddx = (b->depth(i+1,j) - b->depth(i-1,j))/dx;
-        dddy = ysk ? 0.0 : (b->depth(i,j+1) - b->depth(i,j-1))/dy*p->y_dir;
+        dddx = (nbx(p,b->depth,1) - nbx(p,b->depth,-1))/dx;
+        dddy = ysk ? 0.0 : (nby(p,b->depth,1) - nby(p,b->depth,-1))/dy*p->y_dir;
         
         b->rhsvec.V[n] = -(WL(i,j)*(dudx + dvdy) 
                           + 2.0*(b->W(i,j) + b->U(i,j)*dddx + b->V(i,j)*dddy))/(alpha*p->dt);
@@ -250,129 +228,14 @@ void sflow_pjm_lin::rhs(lexer *p, fdm2D* b, slice &WL, double alpha)
     }
 }
 
-void sflow_pjm_lin::poisson(lexer*p, fdm2D* b, slice &WL, double alpha)
-{
-    n=0;
-
-    // curvilinear grid: compact Laplacian of the orthogonal parts of the faces
-    if(p->geo_curv==1)
-    {
-    double cE,cW,cN,cS;
-
-	SLICELOOP4
-	{
-    sflow_curv::lapcoef(p,i,j,cE,cW,cN,cS);
-
-	b->M.p[n] = WL(i,j)*(cE + cW + cN + cS)/p->W1 + 2.0*cb/(HP*p->W1);
-   	b->M.n[n] = -WL(i,j)*cE/p->W1;
-	b->M.s[n] = -WL(i,j)*cW/p->W1;
-	b->M.w[n] = -WL(i,j)*cN/p->W1;
-	b->M.e[n] = -WL(i,j)*cS/p->W1;
-	++n;
-	}
-    }
-
-    if(p->geo_curv==0)
-    SLICELOOP4
-	{
-	b->M.p[n] =  WL(i,j)/(p->W1*p->DXP[IP]*p->DXN[IP])
-               + WL(i,j)/(p->W1*p->DXP[IM1]*p->DXN[IP])
-               + WL(i,j)/(p->W1*p->DYP[JP]*p->DYN[JP])*p->y_dir
-               + WL(i,j)/(p->W1*p->DYP[JM1]*p->DYN[JP])*p->y_dir
-               + 2.0*cb/(HP*p->W1);
-    
-   	b->M.n[n] = -WL(i,j)/(p->W1*p->DXP[IP]*p->DXN[IP]);
-	b->M.s[n] = -WL(i,j)/(p->W1*p->DXP[IM1]*p->DXN[IP]);
-	b->M.w[n] = -WL(i,j)/(p->W1*p->DYP[JP]*p->DYN[JP])*p->y_dir;
-	b->M.e[n] = -WL(i,j)/(p->W1*p->DYP[JM1]*p->DYN[JP])*p->y_dir;
-	++n;
-	}
-    
-    n=0;
-	SLICELOOP4
-	{
-        // inflow / outflow: q=0
-		if(p->flagslice4[Im1J]<0 && p->IOSL[Im1J]==1)
-		b->M.s[n] = 0.0;
-        
-        if(p->flagslice4[Ip1J]<0 && p->IOSL[Ip1J]==1)
-		b->M.n[n] = 0.0;
-        
-        // walls: dq/dn=0
-        if(p->flagslice4[Im1J]<0 && p->IOSL[Im1J]==0)
-		{
-		b->M.p[n] += b->M.s[n];
-		b->M.s[n] = 0.0;
-		}
-
-        if(p->flagslice4[Ip1J]<0 && p->IOSL[Ip1J]==0)
-		{
-		b->M.p[n] += b->M.n[n];
-		b->M.n[n] = 0.0;
-		}
-
-		if(p->flagslice4[IJm1]<0)
-		{
-		b->M.p[n] += b->M.e[n];
-		b->M.e[n] = 0.0;
-		}
-
-		if(p->flagslice4[IJp1]<0)
-		{
-		b->M.p[n] += b->M.w[n];
-		b->M.w[n] = 0.0;
-		}
-        
-        // hydrostatic cells
-        if(active(p,b)==0)
-        {
-        b->M.p[n] = 1.0;
-        b->M.n[n] = 0.0;
-        b->M.s[n] = 0.0;
-        b->M.w[n] = 0.0;
-        b->M.e[n] = 0.0;
-        b->rhsvec.V[n] = 0.0;
-        b->press(i,j) = 0.0;
-        }
-	++n;
-	}
-}
-
 void sflow_pjm_lin::upgrad(lexer*p, fdm2D* b, slice &eta)
 {
-    if(p->geo_curv==1)
-    sflow_curv::pgrad(p,b,eta,b->F,1);
-
-    if(p->geo_curv==0)
-    SLICELOOP4
-    WETDRY
-    {
-    // X 402 1: g zeta d(d+ps)/dx with zeta = eta - ps and the face pressure head ps
-    if(p->X10==3 && p->X402==1)
-    b->F(i,j) += fabs(p->W22)*(eta(i,j) - b->pbh(i,j))
-               *(b->dfx(i,j) + 0.5*(b->pbh(i,j)+b->pbh(i+1,j)) - b->dfx(i-1,j) - 0.5*(b->pbh(i-1,j)+b->pbh(i,j)))/p->DXN[IP];
-    
-    else
-    b->F(i,j) += fabs(p->W22)*eta(i,j)*(b->dfx(i,j) - b->dfx(i-1,j))/p->DXN[IP];
-    }
+    bedslope_x(p,b,eta);
 }
 
 void sflow_pjm_lin::vpgrad(lexer*p, fdm2D* b, slice &eta)
 {
-    if(p->geo_curv==1)
-    sflow_curv::pgrad(p,b,eta,b->G,2);
-
-    if(p->geo_curv==0)
-    SLICELOOP4
-    WETDRY
-    {
-    if(p->X10==3 && p->X402==1)
-    b->G(i,j) += fabs(p->W22)*(eta(i,j) - b->pbh(i,j))
-               *(b->dfy(i,j) + 0.5*(b->pbh(i,j)+b->pbh(i,j+1)) - b->dfy(i,j-1) - 0.5*(b->pbh(i,j-1)+b->pbh(i,j)))/p->DYN[JP];
-    
-    else
-    b->G(i,j) += fabs(p->W22)*eta(i,j)*(b->dfy(i,j) - b->dfy(i,j-1))/p->DYN[JP];
-    }
+    bedslope_y(p,b,eta);
 }
 
 void sflow_pjm_lin::wpgrad(lexer*p, fdm2D* b, slice &eta)

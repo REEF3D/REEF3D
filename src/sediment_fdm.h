@@ -42,6 +42,10 @@ public:
     sediment_fdm(lexer*);
 	virtual ~sediment_fdm();
     
+    // the sediment transport has started (S 41: S 43 flow steps, S 45 seconds or S 47 wave periods): the bed takes
+    // the exchange with the suspended load from here on (sediment_exner::susp_ED, nhflow_suspended_IM1::exchange_sum)
+    static bool started(lexer*);
+    
     slice1 P;
     slice2 Q;
     

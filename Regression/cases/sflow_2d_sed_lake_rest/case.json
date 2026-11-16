@@ -1,0 +1,20 @@
+{
+ "description": "SFLOW still water over a sand mound (0.15 m high, geo.dat) in a closed basin 10 m x 2 m with the sediment module on (S 10 1, MPM): the flow and the sediment start from the same bed (the erodible bed with the sweeps A 209, sflow_f::ini), the water stays at rest (velocities and eta of round-off size). Before patch SFLOW Sediment Check/0002 the sediment replaced the smoothed bed of the flow by the unsmoothed one after the water depth was set: 3.7 mm of surface elevation over the mound at the start, 1.5 mm/s.",
+ "solver": "sflow",
+ "np": 1,
+ "steps": 100,
+ "files": [
+  "geo.dat"
+ ],
+ "tags": [
+  "quick",
+  "2d",
+  "sflow",
+  "sediment",
+  "wellbalanced"
+ ],
+ "covers": [
+  "sflow_f::ini bed of the flow with S 10 > 0",
+  "sediment_f::ini_sflow"
+ ]
+}
