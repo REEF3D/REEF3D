@@ -181,6 +181,11 @@ void ghostcell::gc_ini(lexer* p)
         gclabel_lsm_in=0;
     }
 
+    // B 100 1: relaxation wave generation (B 98 2) with the wave flux through the inlet face
+    // (iowave::relax_inlet_flux sets the face, no wall there)
+    if(p->B98==2 && p->B100==1 && p->A10==6 && p->W10<=0.0)
+        gclabel_u_in=0;
+
     // pressure bc labels
     gclabel_press=4;
     gclabel_press_in=gclabel_press;
