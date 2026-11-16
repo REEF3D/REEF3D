@@ -17,7 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Hans Bihs
+Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
 #ifndef OUTFLOW_PRESSURE_H_
@@ -53,12 +53,26 @@ Author: Hans Bihs
 //    the column above it a positive one, some 20 Pa): a still tank with an outflow at its own level
 //    drew the air in at 0.5 m/s and the water at 0.1 m/s.  Deep in the water and in the air both
 //    are the same.
+// 4  controlled outflow in the water only: the pressure of 3 in the water below the interface band of
+//    the outflow level, the pressure of the cell in the band and the air, p = H p_3 + (1-H) p with H the
+//    Heaviside of F62 - z - e (half width e: 1 from 2 e below the outflow level down, 0 from the level
+//    up).  With 1 and 3 the pressure the boundary sets in the band and the air is off the pressure the
+//    discrete projection builds through the smoothed interface inside by a fraction of a pascal to a
+//    few pascals; nothing at the boundary stops the light fluid there, the air left at the top and the
+//    band was pulled in under it: a circulation at the boundary that grew without bound.  Still tank
+//    1.0 x 0.52 m, 0.38 m water, outflow at its own level, 2D, 20 mm, N 40 5: the largest velocity
+//    after 20 s 1.58 m/s with 3 (4.8 m/s at 46 s), 0.03-0.06 m/s with 4 (0.17 m/s at 52 s); the
+//    weight H(F62 - z) instead (the band half prescribed) 0.08 m/s at 20 s, 0.84 m/s at 60 s.  The
+//    upper boundary of the lock of validation 27 (an outflow boundary used as the upstream reservoir):
+//    0.08, 0.26, 0.44 m/s in the band at 10, 15, 18.8 s with 3 (the air out at the top, the band in),
+//    6-9 m/s of air with 1.  The water below the band keeps the hydrostatic pressure of the outflow
+//    level: the boundary still feeds or drains the domain as a reservoir.
 // 10  free stream: zero pressure in the liquid, the cell value in the gas, (1-H) p
 inline double outflow_pressure(lexer *p, fdm *a, int i, int j, int k)
 {
     const int marge = increment::marge;
 
-    if(p->B77==3 && (p->F50==2 || p->F50==3) && !(p->B90>0 && (p->B99==1 || p->B99==2)))
+    if((p->B77==3 || p->B77==4) && (p->F50==2 || p->F50==3) && !(p->B90>0 && (p->B99==1 || p->B99==2)))
     {
         const double z = (p->G502==1) ? p->ZSP[IJK] : p->ZP[KP];
         const double e = interface_width(p,a->phi,i,j,k);
@@ -70,7 +84,15 @@ inline double outflow_pressure(lexer *p, fdm *a, int i, int j, int k)
         else if(phi>-e)
         I = 0.5*(phi + e) + (phi*phi - e*e)/(4.0*e) - (e/(2.0*PI*PI))*(cos(PI*phi/e) + 1.0);
 
-        return fabs(p->W22)*(p->W3*phi + (p->W1 - p->W3)*I);
+        const double p3 = fabs(p->W22)*(p->W3*phi + (p->W1 - p->W3)*I);
+
+        if(p->B77==3)
+        return p3;
+
+        // B 77 4: the water below the band, the pressure of the cell above it
+        const double H = heaviside(phi-e,e);
+
+        return H*p3 + (1.0-H)*a->press(i,j,k);
     }
 
     if(p->B77==1 && (p->F50==2 || p->F50==3) && !(p->B90>0 && (p->B99==1 || p->B99==2)))
