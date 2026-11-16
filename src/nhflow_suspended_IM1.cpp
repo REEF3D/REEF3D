@@ -68,7 +68,18 @@ void nhflow_suspended_IM1::start(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_sc
 	suspsource(p,d,d->CONC,s);
 	timesource(p,d,d->CONC);
     bcsusp_start(p,d,pgc,s,d->CONC);
+    
+    // stopping criterion of the solve: N 43 (1e-5) is an absolute residual in 1/s per cell, far above the
+    // concentrations of a suspended load (1e-5 to 1e-2); with it the solve stops after one iteration and leaves
+    // an error of 1e-4 of the suspended volume per 100 steps in the sediment balance (thin water: more)
+    {
+    const double n43 = p->N43;
+    p->N43 = MIN(n43, 1.0e-12);
+    
     psolv->startV(p,pgc,d->CONC,d->rhsvec,d->M,4);
+    
+    p->N43 = n43;
+    }
 	pgc->start60V(p,d->CONC,gcval_susp);
     fillconc(p,d,pgc,s);
     
