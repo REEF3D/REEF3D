@@ -109,17 +109,20 @@ void nhflow_suspended_IM1::start(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_sc
     {
     double vol=0.0, bed=0.0, dry=0.0, pend=0.0;
     
+    // the plan area of a column: on a curvilinear grid (G 50) AREA2D (DXN, DYN are the spacings of the index grid)
+    auto area = [&](int a, int b) { const int q = (a-p->imin)*p->jmax + (b-p->jmin); return p->geo_curv==1 ? p->AREA2D[q] : p->DXN[a+marge]*p->DYN[b+marge]; };
+    
     SLICELOOP4
-    pend += ED(i,j)*p->DXN[IP]*p->DYN[JP];
+    pend += ED(i,j)*area(i,j);
     
     LOOP
     if(p->DF[IJK]>0 && WETS[IJ]==1)
-    vol += MAX(d->CONC[IJK],0.0)*p->DZN[KP]*MAX(d->WL(i,j),0.0)*p->DXN[IP]*p->DYN[JP];
+    vol += MAX(d->CONC[IJK],0.0)*p->DZN[KP]*MAX(d->WL(i,j),0.0)*area(i,j);
     
     SEDSLICELOOP
     {
-    bed += (1.0-p->S24)*(s->bedzh(i,j)-s->bedzh0(i,j))*p->DXN[IP]*p->DYN[JP];
-    dry += s->dryd(i,j)*p->DXN[IP]*p->DYN[JP];
+    bed += (1.0-p->S24)*(s->bedzh(i,j)-s->bedzh0(i,j))*area(i,j);
+    dry += s->dryd(i,j)*area(i,j);
     }
     
     vol = pgc->globalsum(vol);
