@@ -193,6 +193,11 @@ void sediment_RK2::RK2_step2_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow
     s->dryd(i,j) = 0.0;
     }
     
+    // the bed has taken the exchange of the suspended solve of this flow step (both stages, susp_ED): the sum of
+    // nhflow_suspended_IM1::exchange_sum starts again (it was never cleared with S 10 12: the pending exchange and
+    // the balance of the log grew with every step)
+    pnhfsusp->bed_done(p,s);
+    
     // sandslide ********
     if(p->sediter%p->S94==0)
     pslide->start(p,pgc,s);

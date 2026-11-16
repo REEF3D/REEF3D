@@ -482,6 +482,51 @@ void driver::logic_nhflow()
     pnhfdf->pdem = pdem;
     
 // Sediment
+    // S 10 for NHFLOW: 1 the sediment step every S 44 flow steps (every momentum solver), 12 the bed advanced in both
+    // stages of the SSP-RK2 momentum (A 510 2 only: no other momentum solver calls its stages, the bed never moved and
+    // nothing was said); any other S 10 left the sediment object uninitialised. S 12 0 or 1; the bed shear stress
+    // formulations of bedshear_nhflow (any other S 16 returned zero shear stress without a message)
+    {
+    int stop=0;
+    
+        if(p->S10!=0 && p->S10!=1 && p->S10!=12)
+        {
+        if(p->mpirank==0)
+        cout<<endl<<"!!! S 10 "<<p->S10<<": NHFLOW has S 10 1 (sediment step every S 44 flow steps) and S 10 12 (bed in both stages of the RK2 momentum, A 510 2) !!!"<<endl<<endl;
+        stop=1;
+        }
+        
+        if(p->S10==12 && (p->A510!=2 || p->A534==1))
+        {
+        if(p->mpirank==0)
+        cout<<endl<<"!!! S 10 12 (bed advanced in both stages of the RK2 momentum) needs A 510 2; use S 10 1 with "
+            <<(p->A534==1 ? "the semi-implicit momentum (A 510 11, 12, 13)" : "A 510 3")<<" !!!"<<endl<<endl;
+        stop=1;
+        }
+        
+        if(p->S10>0 && p->S12!=0 && p->S12!=1)
+        {
+        if(p->mpirank==0)
+        cout<<endl<<"!!! S 12 "<<p->S12<<": suspended load is S 12 0 (off) or 1 (van Rijn reference concentration) !!!"<<endl<<endl;
+        stop=1;
+        }
+        
+        if(p->S10>0 && !(p->S16==1 || p->S16==2 || p->S16==3 || p->S16==4 || p->S16==6 || p->S16==9 || p->S16==10 || p->S16==11))
+        {
+        if(p->mpirank==0)
+        cout<<endl<<"!!! S 16 "<<p->S16<<": the bed shear stress of NHFLOW is S 16 1, 2, 3, 4, 6, 9, 10 or 11 !!!"<<endl<<endl;
+        stop=1;
+        }
+        
+        if(stop==1)
+        pgc->final(true);
+    
+    // S 12 without a turbulence model: the diffusivity of the suspended load is the molecular viscosity
+    if(p->S10>0 && p->S12>0 && p->A560==0 && p->mpirank==0)
+    cout<<"NOTE S 12 with A 560 0: without a turbulence model the suspended load has no eddy diffusivity (molecular "
+        <<"viscosity only), the sediment stays in the bottom layer; A 560 1, 2 for the mixing over the depth"<<endl;
+    }
+    
     if(p->S10==0)
     psed = new sediment_void();
 
