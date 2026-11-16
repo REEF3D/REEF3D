@@ -19,6 +19,13 @@
 # the net at its lower edge).
 # Targets: a fixed point, or a point that circles the cage ("orbit"): the fish swim round the cage as farmed
 # salmon do, each on its own radius and depth, at the speed U over the ground.
+# A school ("school"): no fish has its own orbit. Each fish follows its intention, a point that moves at the
+# speed U over the ground in the direction the fish wants: round the cage (dir) within a band of radius and depth,
+# away from neighbours closer than d_sep (separation), along the swimming direction of its neighbours within d_ali
+# (alignment), towards neighbours within d_coh when it has few (cohesion); the fish see each other all round,
+# within the distances. The point is held within leash of the fish, lead ahead of it at the start. Validation 27.
+# A body "at_rest": 1 starts at rest over the ground (the flow it does not follow yet decays with tau_coast), as a
+# resolved body does in REEF3D and as the start model of the brain (X 202, n_u) assumes.
 #
 # case.json:
 #   {"T": 120, "dt": 0.02, "out_dt": 0.5, "seed": 1,
@@ -29,9 +36,12 @@
 #    "box": [x0, x1, y0, y1, z0, z1], "walls": [0, 0, 1, 1],
 #    "cylinders": [[cx, cy, r, z_bottom, z_top]], "nets": [[cx, cy, r, z_bottom, z_top]],
 #    "fish": [{"x": .., "y": .., "z": .., "h": deg, "target": [x, y, z]}, ...]
-#         or {"n": 60, "orbit": {"c": [cx, cy], "r": [r0, r1], "z": [z0, z1], "U": 0.15, "dir": 1}}}
+#         or {"n": 60, "orbit": {"c": [cx, cy], "r": [r0, r1], "z": [z0, z1], "U": 0.15, "dir": 1}}
+#         or {"n": 60, "school": {"c": [cx, cy], "r": [r0, r1], "z": [z0, z1], "U": 0.15, "dir": 1,
+#                                 "d_sep": 0.7, "d_ali": 2.0, "d_coh": 3.0, "w_path": 1.0, "w_band": 1.0,
+#                                 "w_sep": 1.5, "w_ali": 1.0, "w_coh": 0.5, "lead": 1.5, "leash": 2.5}}}
 # Output: the tracks (t id x y z heading_deg U f a b mode) every out_dt; the summary per fish (distance to its
-# target, mean frequency).
+# target, mean frequency); for a school also school_metrics() (spacing, polarisation, milling, the net, contacts).
 #
 # Architect: Hans Bihs
 import argparse, glob, json, math, os, random, re, sys
@@ -153,6 +163,92 @@ class Fish3:
                    "tau_c": brain.get("tau_c", 0.0)}
         self.acc_U = 0.0; self.acc_n = 0
         self.mode = -1
+        self.vx = self.vy = self.vz = 0.0     # the velocity over the ground of the last step
+        self.contacts = 0
+
+
+SCHOOL = {"U": 0.15, "dir": 1, "d_sep": 0.7, "d_ali": 2.0, "d_coh": 3.0, "w_path": 1.0, "w_band": 1.0,
+          "w_sep": 1.5, "w_ali": 1.0, "w_coh": 0.5, "lead": 1.5, "leash": 2.5}
+
+
+def school_step(fish, sc, dt):
+    """move the intention points of a school: each at the speed U over the ground in the wanted direction
+    (round the cage within the band, separation, alignment, cohesion with the neighbours seen), held within leash
+    of its fish"""
+    P = np.array([[f.x, f.y, f.z] for f in fish]); V = np.array([[f.vx, f.vy, f.vz] for f in fish])
+    D = P[None, :, :] - P[:, None, :]                         # D[i, j] = p_j - p_i
+    dd = np.linalg.norm(D, axis=2); np.fill_diagonal(dd, np.inf)
+    cx, cy = sc["c"]
+    for i, f in enumerate(fish):
+        q = np.array(f.goal)
+        # the path: round the cage at the radius and depth band (springs only outside the band)
+        rx, ry = q[0] - cx, q[1] - cy
+        rr = max(math.hypot(rx, ry), 1e-6)
+        e_t = np.array([-ry, rx, 0.0]) / rr * sc["dir"]
+        e_r = np.array([rx, ry, 0.0]) / rr
+        band = np.zeros(3)
+        if rr < sc["r"][0]:
+            band += e_r * (sc["r"][0] - rr)
+        elif rr > sc["r"][1]:
+            band -= e_r * (rr - sc["r"][1])
+        if q[2] < sc["z"][0]:
+            band[2] += sc["z"][0] - q[2]
+        elif q[2] > sc["z"][1]:
+            band[2] -= q[2] - sc["z"][1]
+        w = sc["w_path"] * e_t + sc["w_band"] * band
+        # the neighbours
+        d_i = dd[i]
+        ns = d_i < sc["d_sep"]
+        if ns.any():
+            sep = -(D[i, ns] / (d_i[ns, None] ** 2)).sum(axis=0) * sc["d_sep"]
+            w += sc["w_sep"] * sep
+        na = d_i < sc["d_ali"]
+        if na.any() and sc["w_ali"] > 0.0:
+            vm = V[na].mean(axis=0); nv = np.linalg.norm(vm)
+            if nv > 1e-6:
+                w += sc["w_ali"] * vm / nv
+        nc = d_i < sc["d_coh"]
+        if nc.sum() < 3 and sc["w_coh"] > 0.0:                    # few neighbours: towards those seen
+            nc2 = d_i < 2.0 * sc["d_coh"]
+            if nc2.any():
+                dc = D[i, nc2].mean(axis=0); nd = np.linalg.norm(dc)
+                if nd > 1e-6:
+                    w += sc["w_coh"] * dc / nd
+        nw = np.linalg.norm(w)
+        e = w / nw if nw > 1e-9 else e_t
+        q = q + dt * sc["U"] * e
+        # held within leash of the fish
+        p = P[i]; dq = q - p; ndq = np.linalg.norm(dq)
+        if ndq > sc["leash"]:
+            q = p + dq * sc["leash"] / ndq
+        f.goal = list(q)
+
+
+def school_metrics(rows, net=None, t0=60.0, r_fish=0.15):
+    """the school after t0: nearest-neighbour distance, polarisation |mean e|, milling (mean tangential unit
+    velocity round the cage centre), radius and depth, the share within 0.5 m of the net, contacts (pairs closer
+    than 2 r_fish per fish and minute)"""
+    R = np.array(rows)
+    ts = np.unique(R[:, 0]); ts = ts[ts > t0]
+    nnd, pol, mil, rad, dep, near, cont = [], [], [], [], [], [], 0
+    for t in ts:
+        m = R[:, 0] == t
+        P = R[m][:, 2:5]; h = np.radians(R[m][:, 5])
+        D = np.linalg.norm(P[:, None, :] - P[None, :, :], axis=2); np.fill_diagonal(D, np.inf)
+        nnd.extend(D.min(axis=1)); cont += int((D < 2 * r_fish).sum() // 2)
+        e = np.stack([np.cos(h), np.sin(h)], axis=1)
+        pol.append(np.linalg.norm(e.mean(axis=0)))
+        if net is not None:
+            rx, ry = P[:, 0] - net[0], P[:, 1] - net[1]; rr = np.hypot(rx, ry)
+            mil.append(np.mean((-ry * e[:, 0] + rx * e[:, 1]) / np.maximum(rr, 1e-9)))
+            rad.extend(rr); near.extend(rr > net[2] - 0.5)
+        dep.extend(P[:, 2])
+    nf = len(np.unique(R[:, 1])); dur = (ts[-1] - ts[0]) if len(ts) > 1 else 1.0
+    return {"nnd_mean": float(np.mean(nnd)), "nnd_p10": float(np.percentile(nnd, 10)), "nnd_p90": float(np.percentile(nnd, 90)),
+            "polarisation": float(np.mean(pol)), "milling": float(np.mean(mil)) if mil else None,
+            "radius_mean": float(np.mean(rad)) if rad else None, "radius_p10": float(np.percentile(rad, 10)) if rad else None,
+            "radius_p90": float(np.percentile(rad, 90)) if rad else None, "depth_mean": float(np.mean(dep)),
+            "near_net": float(np.mean(near)) if near else None, "contacts_per_fish_min": float(cont / nf / (dur / 60.0))}
 
 
 def orbit_target(c, r, z, w, ph):
@@ -176,7 +272,17 @@ def run(case):
 
     fish = []
     spec = case["fish"]
-    if isinstance(spec, dict):
+    if isinstance(spec, dict) and "school" in spec:
+        sc = dict(SCHOOL, **spec["school"])
+        for i in range(spec["n"]):
+            r = rnd.uniform(*sc["r"]); z = rnd.uniform(*sc["z"]); ph = rnd.uniform(0.0, 2.0 * math.pi)
+            x0, y0 = sc["c"][0] + r * math.cos(ph), sc["c"][1] + r * math.sin(ph)
+            h = ph + sc["dir"] * 0.5 * math.pi + rnd.uniform(-0.5, 0.5)
+            f = Fish3(i, x0, y0, z, h, None, body, brain, t_start + rnd.uniform(0, 0.5 / f0))
+            f.goal = [x0 + sc["lead"] * math.cos(h), y0 + sc["lead"] * math.sin(h), z]
+            f.target = (lambda t, f=f: tuple(f.goal))
+            fish.append(f)
+    elif isinstance(spec, dict):
         o = spec["orbit"]
         w_dir = o.get("dir", 1)
         for i in range(spec["n"]):
@@ -194,7 +300,11 @@ def run(case):
     rows = []
     t, t_out = 0.0, 0.0
     n = len(fish)
+    school = dict(SCHOOL, **spec["school"]) if isinstance(spec, dict) and "school" in spec else None
+    at_rest = body.get("at_rest", 0)
     while t < T - 1e-9:
+        if school is not None:
+            school_step(fish, school, dt)
         X = np.array([f.x for f in fish]); Y = np.array([f.y for f in fish]); Z = np.array([f.z for f in fish])
         uf, vf, wf = flow(t, X, Y, Z)
         for k, f in enumerate(fish):
@@ -213,7 +323,9 @@ def run(case):
             f.h += dt * kt * bg * Uw / L
             ex, ey = math.cos(f.h), math.sin(f.h)
             wz = max(-depth["w_max"], min(depth["w_max"], (f.target(t)[2] - f.z) / depth["tau"]))
-            nx, ny, nz = f.x + dt * (Uw * ex + uf[k]), f.y + dt * (Uw * ey + vf[k]), f.z + dt * (wz + wf[k])
+            # (at rest over the ground at t = 0: the flow it does not follow yet decays with tau_coast)
+            fr = 1.0 - math.exp(-t / body["tau_coast"]) if at_rest else 1.0
+            nx, ny, nz = f.x + dt * (Uw * ex + fr * uf[k]), f.y + dt * (Uw * ey + fr * vf[k]), f.z + dt * (wz + fr * wf[k])
             # held in the box, outside the solids, inside the net of its cage
             nx = min(max(nx, box[0] + 0.05), box[1] - 0.05); ny = min(max(ny, box[2] + 0.05), box[3] - 0.05)
             nz = min(max(nz, box[4] + 0.05), box[5] - 0.05)
@@ -228,6 +340,7 @@ def run(case):
                         s_ = (c[2] - 0.1) / dd; nx, ny = c[0] + (nx - c[0]) * s_, c[1] + (ny - c[1]) * s_
                     nz = min(max(nz, c[3] + 0.1), c[4] - 0.1)
             f.acc_U += ((nx - f.x) * ex + (ny - f.y) * ey) / dt; f.acc_n += 1
+            f.vx, f.vy, f.vz = (nx - f.x) / dt, (ny - f.y) / dt, (nz - f.z) / dt
             f.x, f.y, f.z = nx, ny, nz
         if n > 1 and body["r_fish"] > 0.0:
             P = np.array([[f.x, f.y, f.z] for f in fish])
@@ -290,6 +403,20 @@ def main():
         fo.write("t id x y z heading U f a b mode\n")
         for r in rows:
             fo.write("%.3f %d %.4f %.4f %.4f %.3f %.5f %.4f %.4f %.4f %d\n" % r)
+    spec = case["fish"]
+    if isinstance(spec, dict) and "school" in spec:
+        net = case["nets"][0] if case.get("nets") else None
+        m = school_metrics(rows, net, a.after, dict(fa.BODY, **case.get("body", {}))["r_fish"])
+        R = np.array(rows); fm = float(R[R[:, 0] > a.after, 7].mean())
+        m["f_mean"] = fm
+        if a.summary:
+            json.dump(m, open(a.summary, "w"), indent=1)
+        print("%d fish, %.1f s, after %.0f s: nearest neighbour %.2f m (10-90 %%: %.2f-%.2f), polarisation %.2f, milling %s, "
+              "radius %s m, depth %.2f m, near the net %s, contacts %.2f per fish and minute, mean frequency %.2f Hz" %
+              (len(fish), case.get("T", 60.0), a.after, m["nnd_mean"], m["nnd_p10"], m["nnd_p90"], m["polarisation"],
+               "%.2f" % m["milling"] if m["milling"] is not None else "-", "%.2f" % m["radius_mean"] if m["radius_mean"] else "-",
+               m["depth_mean"], "%.0f %%" % (100 * m["near_net"]) if m["near_net"] is not None else "-", m["contacts_per_fish_min"], fm))
+        return
     s = summarise(fish, rows, a.after)
     if a.summary:
         json.dump(s, open(a.summary, "w"), indent=1)
