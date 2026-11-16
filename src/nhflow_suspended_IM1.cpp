@@ -38,6 +38,7 @@ nhflow_suspended_IM1::nhflow_suspended_IM1(lexer* p) : ED(p),RT(p)
 
     p->Darray(WVEL,p->imax*p->jmax*(p->kmax+2));
     p->Darray(WLN,p->imax*p->jmax);
+    p->Iarray(WETS,p->imax*p->jmax);
     wl_ini=0;
     
     SLICEBASELOOP
@@ -55,6 +56,8 @@ nhflow_suspended_IM1::~nhflow_suspended_IM1()
 void nhflow_suspended_IM1::start(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_scalar_convection *pconvec, nhflow_diffusion *pdiff, solver *psolv, ioflow *pflow, sediment_fdm *s)
 {
     starttime=pgc->timer();
+    wet_columns(p,d);
+    pconvec->wet_mask(WETS);
     drysave(p,d,s);
     clearrhs(p,d);
     fill_wvel(p,d,pgc,s);
@@ -94,7 +97,7 @@ void nhflow_suspended_IM1::start(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_sc
     pend += ED(i,j)*p->DXN[IP]*p->DYN[JP];
     
     LOOP
-    if(p->DF[IJK]>0 && p->wet[IJ]==1)
+    if(p->DF[IJK]>0 && WETS[IJ]==1)
     vol += MAX(d->CONC[IJK],0.0)*p->DZN[KP]*MAX(d->WL(i,j),0.0)*p->DXN[IP]*p->DYN[JP];
     
     SEDSLICELOOP
@@ -112,6 +115,25 @@ void nhflow_suspended_IM1::start(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_sc
     cout<<"suspended load (S 12): volume "<<setprecision(8)<<vol<<" m^3, bed change "<<bed<<" m^3, dried columns "<<dry
         <<" m^3, pending exchange "<<-pend<<" m^3, balance "<<vol+bed+dry-pend<<" m^3"<<endl;
     }
+}
+
+/*--------------------------------------------------------------------
+The columns of the solve. The explicit momentum (A 510 2, 3) holds its dry columns at the film A 544 and a wet column
+is deeper than that: the wet columns, as before. The semi-implicit momentum (A 510 11, 12, 13) keeps the volume of
+every column: a column can be flagged wet (a wet neighbour stands higher) with a water depth of zero or of a fraction
+of the film. With a depth of zero the bed exchange ws c/dz and the coefficients of the conservative form (1/D) were
+inf and NaN; the linear solver then left the concentration of the whole domain as it was (NaN residual, one
+iteration, no message), while the exchange of the step was booked and taken by the bed.
+Columns not deeper than the film are dry for the suspended load: no fluxes through their faces, their sediment goes
+to the bed (drysave), as for the dry columns of the explicit momentum.
+--------------------------------------------------------------------*/
+void nhflow_suspended_IM1::wet_columns(lexer *p, fdm_nhf *d)
+{
+    const double hmin = p->A534==1 ? p->A544 : 0.0;
+    
+    for(i=p->imin; i<p->imin+p->imax; ++i)
+    for(j=p->jmin; j<p->jmin+p->jmax; ++j)
+    WETS[IJ] = (p->wet[IJ]==1 && d->WL(i,j)>hmin) ? 1 : 0;
 }
 
 void nhflow_suspended_IM1::timesource(lexer* p, fdm_nhf *d, double *FN)
@@ -147,7 +169,7 @@ void nhflow_suspended_IM1::drysave(lexer *p, fdm_nhf *d, sediment_fdm *s)
     return;
     
     SLICELOOP4
-    if(p->wet[IJ]==0)
+    if(WETS[IJ]==0)
     {
         KLOOP
         PCHECK
@@ -172,7 +194,7 @@ void nhflow_suspended_IM1::fill_wvel(lexer *p, fdm_nhf *d, ghostcell *pgc, sedim
     {
     WVEL[FIJK] = 0.0;
 
-        if(k>0 && k<p->knoz && p->DF[IJK]>0 && p->wet[IJ]==1)
+        if(k>0 && k<p->knoz && p->DF[IJK]>0 && WETS[IJ]==1)
         {
         cface = 0.5*(d->CONC[IJK] + d->CONC[IJKm1]);
         ws_eff = s->ws;
@@ -225,7 +247,7 @@ void nhflow_suspended_IM1::settling_fit(lexer *p, fdm_nhf *d, sediment_fdm *s)
     n=0;
     LOOP
     {
-        if(p->DF[IJK]>0 && p->wet[IJ]==1)
+        if(p->DF[IJK]>0 && WETS[IJ]==1)
         {
         const double epsP = d->VISC[IJK] + d->EV0[IJK];
         const double sz2 = p->sigz[IJ]*p->sigz[IJ];
@@ -294,6 +316,11 @@ void nhflow_suspended_IM1::suspsource(lexer* p, fdm_nhf *d, double *CONC, sedime
     const double Re_p = s->ws*p->S20/p->W2;
     const double nval = (4.7 + 0.41*pow(Re_p,0.75))/(1 + 0.175*pow(Re_p,0.75));
     
+    // no exchange velocity where the water column has no exchange with the bed in this solve (dry columns, columns
+    // not deeper than the film, solids): the Exner step takes wsx (cbn - cb) (sediment_exner::susp_ED)
+    SLICELOOP4
+    s->wsx(i,j) = 0.0;
+    
     count=0;
     LOOP
     {   
@@ -304,7 +331,7 @@ void nhflow_suspended_IM1::suspsource(lexer* p, fdm_nhf *d, double *CONC, sedime
         // (bedconc_VR: cbe = rbe c_a is the cell mean). The equilibrium c_0 = cbe is that of ws (cbe - c_0); away
         // from it the exchange does not slow down with the thickness of the bottom cell (rbe << 1 in a thick
         // cell). S 127 1: the fall velocity hindered with the concentration of the cell, as at the faces above.
-        if(k==0 && p->DF[IJK]>0 && p->wet[IJ]==1 && p->DFBED[IJ]>0 && p->XP[IP]>=p->S71 && p->XP[IP]<=p->S72)
+        if(k==0 && p->DF[IJK]>0 && WETS[IJ]==1 && p->DFBED[IJ]>0 && p->XP[IP]>=p->S71 && p->XP[IP]<=p->S72)
         {
         zdist = p->DZN[KP]*d->WL(i,j);
         
@@ -406,7 +433,7 @@ void nhflow_suspended_IM1::bcsusp_start(lexer *p, fdm_nhf *d, ghostcell *pgc, se
         n=0;
         LOOP
         {
-            if(p->DF[IJK]>0 && p->wet[IJ]==1)
+            if(p->DF[IJK]>0 && WETS[IJ]==1)
             {
             // closed faces (walls, domain edges, solid and dry neighbours, bed, free surface):
             // implicit zero gradient, the off-diagonal is folded into the diagonal, so the
@@ -436,27 +463,27 @@ void nhflow_suspended_IM1::bcsusp_start(lexer *p, fdm_nhf *d, ghostcell *pgc, se
             d->M.w[n] = 0.0;
             }
             
-            if(p->flag4[Im1JK]<0 || p->DF[Im1JK]<0 || p->wet[Im1J]==0)
+            if(p->flag4[Im1JK]<0 || p->DF[Im1JK]<0 || WETS[Im1J]==0)
             {
             d->M.p[n] += d->M.s[n];
             d->M.s[n] = 0.0;
             }
             
-            if(p->flag4[Ip1JK]<0 || p->DF[Ip1JK]<0 || p->wet[Ip1J]==0)
+            if(p->flag4[Ip1JK]<0 || p->DF[Ip1JK]<0 || WETS[Ip1J]==0)
             {
             d->M.p[n] += d->M.n[n];
             d->M.n[n] = 0.0;
             }
             
             if(p->j_dir==1)
-            if(p->flag4[IJm1K]<0 || p->DF[IJm1K]<0 || p->wet[IJm1]==0)
+            if(p->flag4[IJm1K]<0 || p->DF[IJm1K]<0 || WETS[IJm1]==0)
             {
             d->M.p[n] += d->M.e[n];
             d->M.e[n] = 0.0;
             }
             
             if(p->j_dir==1)
-            if(p->flag4[IJp1K]<0 || p->DF[IJp1K]<0 || p->wet[IJp1]==0)
+            if(p->flag4[IJp1K]<0 || p->DF[IJp1K]<0 || WETS[IJp1]==0)
             {
             d->M.p[n] += d->M.w[n];
             d->M.w[n] = 0.0;
@@ -497,7 +524,7 @@ void nhflow_suspended_IM1::bcsusp_start(lexer *p, fdm_nhf *d, ghostcell *pgc, se
         n=0;
         LOOP
         {
-            if(p->DF[IJK]<0 || p->wet[IJ]==0)
+            if(p->DF[IJK]<0 || WETS[IJ]==0)
             {
             d->M.p[n] = 1.0;
 
@@ -521,10 +548,10 @@ void nhflow_suspended_IM1::fillconc(lexer* p, fdm_nhf *d, ghostcell *pgc, sedime
     k=0;
     SLICELOOP4
     {
-    if(p->DF[IJK]<0 || p->wet[IJ]==0)
+    if(p->DF[IJK]<0 || WETS[IJ]==0)
     s->cb(i,j) = 0.0;
     
-        if(p->DF[IJK]>0 && p->wet[IJ]==1)
+        if(p->DF[IJK]>0 && WETS[IJ]==1)
         {
             // cell value at the level of cbe (bedconc_VR gives cbe at the first cell centre); no upper
             // cap, the bed exchange in suspsource() uses the unclipped concentration
@@ -582,7 +609,7 @@ void nhflow_suspended_IM1::exchange_sum(lexer *p, fdm_nhf *d, sediment_fdm *s)
     
     k=0;
     SLICELOOP4
-    if(p->DF[IJK]>0 && p->wet[IJ]==1 && p->DFBED[IJ]>0 && p->XP[IP]>=p->S71 && p->XP[IP]<=p->S72)
+    if(p->DF[IJK]>0 && WETS[IJ]==1 && p->DFBED[IJ]>0 && p->XP[IP]>=p->S71 && p->XP[IP]<=p->S72)
     ED(i,j) += s->wsx(i,j)*(s->cbe(i,j) - d->CONC[IJK])*p->dt;
     
     acc[0] += p->dt;
