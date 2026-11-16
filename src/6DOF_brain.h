@@ -33,7 +33,7 @@ Architect: Hans Bihs
 //  Senses (means over the time since the last decision, weighted with dt):
 //   - the body axis and the lateral axis in the plane of the undulation (3D: x-y, 2D: x-z), the speed
 //     along the axis, the position of the CoG (vision of the surroundings, over ground)
-//   - the lateral line (X 194): pressure on both flanks per station
+//   - the lateral line (X 194): pressure on both flanks per station, without its hydrostatic part (patch 0037)
 //   - vision (D > 0): 7 rays from the head in the plane of the undulation (0, +-25, +-50, +-75 deg to
 //     the axis), the distance to the walls of the domain and to the solids (their level set) up to D,
 //     at the decision times

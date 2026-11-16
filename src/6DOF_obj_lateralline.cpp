@@ -183,7 +183,7 @@ void sixdof_obj_cfd::lateral_line(lexer *p, fdm *a, ghostcell *pgc)
     }
     
     const int n = int(ll_pts_.size());
-    std::vector<double> val(4*n, 0.0);
+    std::vector<double> val(4*n, 0.0), hyd(n, 0.0);
     std::vector<Eigen::Vector3d> X(n);
     const Eigen::Vector3d U(p->ufbi, p->vfbi, p->wfbi), W(p->pfbi, p->qfbi, p->rfbi);
     
@@ -210,6 +210,8 @@ void sixdof_obj_cfd::lateral_line(lexer *p, fdm *a, ghostcell *pgc)
                 ub += deform_vel(x,y,z);
                 
                 val[4*q]   += p->ccipol4(a->press, x, y, z)/9.0;
+                // the hydrostatic part of the pressure at the point, rho_w g.X (+ a constant), for the brain
+                hyd[q]     += p->W1*(a->gi*x + a->gj*y + a->gk*z)/9.0;
                 val[4*q+1] += (p->ccipol1(a->u, x, y, z) - ub(0))/9.0;
                 val[4*q+2] += (p->ccipol2(a->v, x, y, z) - ub(1))/9.0;
                 val[4*q+3] += (p->ccipol3(a->w, x, y, z) - ub(2))/9.0;
@@ -220,10 +222,16 @@ void sixdof_obj_cfd::lateral_line(lexer *p, fdm *a, ghostcell *pgc)
     for(int q=0; q<4*n; ++q)
     val[q] = pgc->globalsum(val[q]);
     
-    // the brain: the pressures of the probes
+    for(int q=0; q<n; ++q)
+    hyd[q] = pgc->globalsum(hyd[q]);
+    
+    // the brain: the pressures of the probes without their hydrostatic part (patch 0037): with gravity (W 20-22)
+    // the pressure across the flanks and along a tilted body differs by rho g times the distance, many times q
+    // (the 2D swimmer in the x-z plane: about 8 q across the body at 0.5 m/s), and the brain would read it as a
+    // stimulus; waves and a free surface add only their dynamic part. The log of the lateral line keeps the pressure
     std::vector<double> pr(n);
     for(int q=0; q<n; ++q)
-    pr[q] = val[4*q];
+    pr[q] = val[4*q] - hyd[q];
     
     brain_update(p,pgc,&pr,pv);
     
