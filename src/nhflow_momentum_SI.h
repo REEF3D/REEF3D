@@ -308,6 +308,7 @@ private:
     void advection(lexer*, fdm_nhf*, ghostcell*, nhflow_reconstruct*);
     void si_corrector(lexer*, fdm_nhf*, ghostcell*);
     void advection_bcg(lexer*, fdm_nhf*, ghostcell*, double*, double*, double*);
+    std::vector<double> bcgF;     // advection_bcg: the half-step field f + dt/2 S (full layout)
     void hdiffusion(lexer*, fdm_nhf*, ghostcell*);
     void hdiffusion_brk(lexer*, fdm_nhf*, ghostcell*);
     std::vector<double> hdU, hdV, hdW, hdN;

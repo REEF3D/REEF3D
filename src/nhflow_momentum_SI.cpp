@@ -2128,14 +2128,30 @@ void nhflow_momentum_SI::advection_bcg(lexer *p, fdm_nhf *d, ghostcell *pgc, dou
         return sl>0.0 ? m : -m;
     };
 
-    // the source term of the face value, dt/2 S of the upwind cell (the BCG scheme with its source, Bell, Colella &
-    // Glaz 1989): S = the acceleration of the implicit part of the step before (finish(): gravity, the non-hydrostatic
-    // pressure, the column operator, relaxation). Without it the advected velocity misses the acceleration of the step
-    // and the nonlinear terms are first order in time (standing wave, hydrostatic: self-convergence order 1.3 -> 1.94;
-    // Stokes-5 propagation: the wave 1.2 % slow at T/40 -> 0.6 % with the time levels of the column operator and of
-    // the constraint)
+    // the source of the face values (the BCG scheme with its source, Bell, Colella & Glaz 1989): S = the acceleration of
+    // the implicit part of the step before (finish(): gravity, the non-hydrostatic pressure, the column operator,
+    // relaxation). Without it the advected velocity misses the acceleration of the step and the nonlinear terms are
+    // first order in time (standing wave, hydrostatic: self-convergence order 1.3 -> 1.94; Stokes-5 propagation: the wave
+    // 1.2 % slow at T/40 -> 0.6 % with the time levels of the column operator and of the constraint). dt/2 S goes into the
+    // cell values before the limited slopes (the field of t^{n+1/2}, as the stage velocities of SSP-RK, A 510 12), not
+    // onto the limited face value of the upwind cell: there the correction of the non-hydrostatic projection of the step
+    // before (in S, and in U and W together) reached the faces wherever the limiter cut the slope, and damped short
+    // steep waves; the deep-water packet TN of Tian et al. (2010), 1.0 - 2.4 Hz, lost 21 % of its energy over 7 m
+    // (explicit NHFLOW 4 %, 2.7 % now)
     const double *acc = f==d->U ? accU : (f==d->V ? accV : accW);
-    auto src = [&](int a, int b, int c) -> double { return acc!=nullptr ? acc[PIX(a,b,c)] : 0.0; };
+
+    if(acc!=nullptr)
+    {
+        bcgF.assign(f,f+fN);
+
+        for(int a=lrng[0]; a<lrng[1]; ++a)
+        for(int b=lrng[2]; b<lrng[3]; ++b)
+        if(ok(a,b))
+        for(int c=0; c<K; ++c)
+        bcgF[ix(a,b,c)] = f[ix(a,b,c)] + 0.5*dt*acc[PIX(a,b,c)];
+
+        f = bcgF.data();
+    }
 
     // x-faces (i+1/2)
     SLICELOOP1
@@ -2156,7 +2172,7 @@ void nhflow_momentum_SI::advection_bcg(lexer *p, fdm_nhf *d, ghostcell *pgc, dou
         const double c = MIN(fabs(uface(1,i,j,k))*dt/(cv ? dn(1,i,j) : dx),1.0);
         const double g = slope(f[ix(iu-1,j,k)],f[ix(iu,j,k)],f[ix(iu+1,j,k)],cv ? 1.0 : p->DXP[iu-1+marge],cv ? 1.0 : p->DXP[iu+marge],ok(iu-1,j),ok(iu+1,j));
 
-        double ff = f[ix(iu,j,k)] + a*(1.0 - c)*g*0.5*dx + 0.5*dt*src(iu,j,k);
+        double ff = f[ix(iu,j,k)] + a*(1.0 - c)*g*0.5*dx;
 
         if(yd)
         {
@@ -2194,7 +2210,7 @@ void nhflow_momentum_SI::advection_bcg(lexer *p, fdm_nhf *d, ghostcell *pgc, dou
         const double c = MIN(fabs(uface(2,i,j,k))*dt/(cv ? dn(2,i,j) : dy),1.0);
         const double g = slope(f[ix(i,ju-1,k)],f[ix(i,ju,k)],f[ix(i,ju+1,k)],cv ? 1.0 : p->DYP[ju-1+marge],cv ? 1.0 : p->DYP[ju+marge],ok(i,ju-1),ok(i,ju+1));
 
-        double ff = f[ix(i,ju,k)] + a*(1.0 - c)*g*0.5*dy + 0.5*dt*src(i,ju,k);
+        double ff = f[ix(i,ju,k)] + a*(1.0 - c)*g*0.5*dy;
 
         const double hs = Hx(i-1,ju) + Hx(i,ju);
 
