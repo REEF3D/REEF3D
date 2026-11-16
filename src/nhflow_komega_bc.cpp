@@ -79,7 +79,12 @@ void nhflow_komega_bc::wall_law_omega(lexer *p, fdm_nhf *d, double *KIN, double 
     count=0;
     LOOP
     {
-        if(nhflow_turb_wall(p,d,i,j,k,dist,ks,ut)==1)
+        // dist > 0: the semi-implicit momentum (A 510 11-13) keeps the volume of every column, a column can hold
+        // no water at all (dry, or flagged wet with a depth of zero): dist = DZN*WL/2 = 0 gave inf (k > 0) or 0/0
+        // (k = 0) here, and bicgstab left k and omega of the whole domain as they were. Such a cell keeps the
+        // row of bcomega_matrix (identity in a dry column). The explicit momentum holds every column at the film
+        // A 544 or deeper: dist > 0 there.
+        if(nhflow_turb_wall(p,d,i,j,k,dist,ks,ut)==1 && dist>0.0)
         {
         eps_star = pow(MAX(KIN[IJK],0.0),0.5) / (kappa*dist*pow(p->cmu, 0.25));
         
