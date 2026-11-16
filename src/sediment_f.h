@@ -125,6 +125,8 @@ public:
     void fill_PQ_nhflow(lexer*,fdm_nhf*,ghostcell*);
     void active_nhflow(lexer*, fdm_nhf*, ghostcell*);
     void active_ini_nhflow(lexer*, fdm_nhf*, ghostcell*);
+    void active_solid_nhflow(lexer*);
+    void no_pickup(lexer*);
     
     // SFLOW interface
     void start_sflow(lexer*, fdm2D*, ghostcell*, ioflow*, slice&, slice&) override;

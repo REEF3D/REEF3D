@@ -521,6 +521,11 @@ void driver::logic_nhflow()
         if(stop==1)
         pgc->final(true);
     
+    // S 50 (fixed bed at the inflow / outflow) acts on the CFD bed (sediment_exner, the reinitialisation of the topography)
+    if(p->S10>0 && p->S50!=4 && p->mpirank==0)
+    cout<<"NOTE S 50 "<<p->S50<<": the bed boundary condition S 50 is CFD only; the edges of the NHFLOW bed are set by the "
+        <<"inflow guard S 78 and the sediment inflow S 129 / S 130 (fixed bed zones: S 76, no erosion: S 74, S 134 1 for solids)"<<endl;
+    
     // S 12 without a turbulence model: the diffusivity of the suspended load is the molecular viscosity
     if(p->S10>0 && p->S12>0 && p->A560==0 && p->mpirank==0)
     cout<<"NOTE S 12 with A 560 0: without a turbulence model the suspended load has no eddy diffusivity (molecular "

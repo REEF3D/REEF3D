@@ -1395,6 +1395,7 @@ void control::ini_default()
     S131=0.0;              // double NHFLOW thin water: bed load at most S131 h |u| (sediment volume per water volume of the flow), 0: off
     S132=0.0;              // double NHFLOW thin water: depth [m] below which there is no bed load and no pick-up, full transport from 2 S132, 0: off
     S133=0.0;              // double NHFLOW: upper limit of the Shields number of the bed shear stress, 0: off
+    S134=0;                // int NHFLOW: the solids of the grid (DIVEMesh, A 580 0) are part of the sediment bed: 0 erodible as sediment (as before), 1 not erodible: where the bed has come down to the solid surface no bed load, no pick-up and no sand slide from the column (as SFLOW); a rigid apron or sill
     S140=51.0;             // double S 37 2: phase lead of the near-bed velocity in deg (Nielsen 2006)
     S141=0.0;              // double S 37 2: wave period of the phase lead [s], <=0: S 58, else the period of the wave generation
 
