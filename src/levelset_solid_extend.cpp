@@ -27,10 +27,12 @@ Architect: Hans Bihs
 #include"fdm.h"
 #include"ghostcell.h"
 #include"field.h"
+#include"field4.h"
 #include"increment.h"
 #include<algorithm>
 #include<cmath>
 #include<vector>
+#include<utility>
 
 //  The level set inside the solids of the direct forcing.
 //
@@ -94,6 +96,11 @@ Architect: Hans Bihs
 //  above, the level set loses it), 0.12 m in 7 s at 0.32 m head (validation 26_cfd_ship_lock).  The
 //  layers of the body follow the level set of their own side; with fewer than about four cells across
 //  the body the two sides meet in the middle.
+//
+//  With the gravity along -z (W 22 < 0) the solids take the level of the nearest fluid that sees the
+//  free surface (in levelset_solid_extend below, 2026-11): fluid that reaches the free surface only
+//  around a solid (the air over a dry top, the water under a roof) no longer feeds the solid next to
+//  it.  The layers above remain for the other directions of the gravity.
 
 namespace
 {
@@ -193,6 +200,313 @@ void levelset_solid_extend(lexer *p, fdm *a, ghostcell *pgc, field &f, int gcval
     std::vector<char> insolid(n,0);
     for(int q : solid)
     insolid[q]=1;
+
+    // Gravity along -z: the level of the nearest fluid that sees the free surface.
+    //
+    // A fluid cell sees the free surface when its own column leads to it: water with air over it
+    // before any solid, air with water under it before any solid.  The other fluid reaches the free
+    // surface only around a solid: the water in a culvert and under a hull, the air over the crest
+    // of a wall, over a deck, over a dry sill or bed.  Its level set is what the reinitialisation
+    // makes of the level set of the solid next to it (the larger value for air, the smaller one for
+    // water: the way to the free surface).  Taken back into the solid, as until 2026-11, the two
+    // follow each other and nothing ties them to the free surface: over the walls of a lock (1.5
+    // cells of air under the top of the domain) the level of the upper head crept along the wall
+    // tops into the chamber part (0.18 m off after 4 s of still water), every transient added to
+    // it, and during the filling the level set over the walls reached zero: water density in the
+    // air there, 3.6 m/s (validation 49).  The water of a culvert and the wall over it did the same.
+    //
+    // So the solid cells and the fluid cells that do not see the free surface take the level
+    // eta = f + z of the nearest fluid that does, in layers by their distance in cells from it: the
+    // mean over the neighbours of a lower layer, f the same across and f + dz one cell down (the
+    // plane of the free surface at rest; |grad f| = 1).  Only the solid cells are written, the
+    // fluid keeps its level set and carries the level: the crest of a wall takes the level of the
+    // chamber through the air over it, a dry sill in front of a gate the level in front of it and
+    // not the one behind the gate, the wall of a culvert the level of the chamber through the ports.
+    // What no such fluid reaches (a pocket closed all around) takes the fluid next to it.
+    if(p->W22<0.0)
+    {
+        const int si = p->jmax*p->kmax, sj = p->kmax, sk = 1;
+        const int unreached = 1<<30;
+        field4 g(p);
+
+        // sees 1: the fluid cells that see the free surface, air 1: the fluid cells with f < 0
+        // (the end of the partition or of a patch in a column counts as open)
+        std::vector<char> sees(n,0), air(n,0);
+        for(i=p->imin; i<p->imin+p->imax; ++i)
+        for(j=p->jmin; j<p->jmin+p->jmax; ++j)
+        {
+            char open = 1;
+            for(k=p->kmin+p->kmax-1; k>=p->kmin; --k)
+            {
+                const int q = IJK;
+                if(layer[q]!=0)
+                {
+                open = 0;
+                continue;
+                }
+
+                if(f(i,j,k)<0.0)
+                {
+                air[q] = 1;
+                open = 1;
+                }
+                else
+                sees[q] = open;
+            }
+
+            open = 1;
+            for(k=p->kmin; k<p->kmin+p->kmax; ++k)
+            {
+                const int q = IJK;
+                if(layer[q]!=0)
+                {
+                open = 0;
+                continue;
+                }
+
+                if(air[q])
+                sees[q] = open;
+                else
+                open = 1;
+            }
+        }
+
+        // lay 0: the fluid that sees the free surface; the cells to do (med): the other fluid, then
+        // the solid.  Around a patch of the mesh refinement the fluid that does not see the free
+        // surface is a source with its own level set (the level it carries on the coarser level is
+        // not known on the patch; its level set follows the solids there, which are tied to the free
+        // surface).  Across a partition edge the level comes with the exchange.
+        std::vector<int> lay(n,unreached);
+        std::vector<char> med(n,0);
+        for(i=p->imin; i<p->imin+p->imax; ++i)
+        for(j=p->jmin; j<p->jmin+p->jmax; ++j)
+        for(k=p->kmin; k<p->kmin+p->kmax; ++k)
+        {
+            const int q = IJK;
+            g(i,j,k) = f(i,j,k);
+
+            if(layer[q]==0)
+            {
+                if(sees[q])
+                lay[q] = 0;
+                else if(p->amr_patch==0 || (i>=0 && i<p->knox && j>=0 && j<p->knoy && k>=0 && k<p->knoz))
+                med[q] = 1;
+                else
+                lay[q] = 0;
+            }
+        }
+
+        // the layers of the cells med from the cells src next to them
+        std::vector<std::vector<int> > band(1);
+        std::vector<char> src(n,0);
+        auto layers = [&](const bool phase)
+        {
+            const int l0 = int(band.size());
+            band.push_back(std::vector<int>());
+            for(int q=0; q<n; ++q)
+            if(med[q] && lay[q]==unreached)
+            {
+                const int ii = q/si, jj = (q/sj)%p->jmax, kk = q%p->kmax;
+                auto from = [&](int r) { return src[r] && (!phase || air[r]==air[q]); };
+                if((ii>0 && from(q-si)) || (ii<p->imax-1 && from(q+si))
+                || (jd && jj>0 && from(q-sj)) || (jd && jj<p->jmax-1 && from(q+sj))
+                || (kk>0 && from(q-sk)) || (kk<p->kmax-1 && from(q+sk)))
+                band[l0].push_back(q);
+            }
+            for(int q : band[l0])
+            lay[q] = l0;
+
+            for(int l=l0+1; !band[l-1].empty(); ++l)
+            {
+                band.push_back(std::vector<int>());
+                for(int r : band[l-1])
+                {
+                    const int ii = r/si, jj = (r/sj)%p->jmax, kk = r%p->kmax;
+                    auto add = [&](int q)
+                    {
+                        if(med[q] && lay[q]==unreached && (!phase || air[q]==air[r]))
+                        {
+                        lay[q]=l;
+                        band[l].push_back(q);
+                        }
+                    };
+                    if(ii<p->imax-1) add(r+si);
+                    if(ii>0) add(r-si);
+                    if(jd && jj<p->jmax-1) add(r+sj);
+                    if(jd && jj>0) add(r-sj);
+                    if(kk<p->kmax-1) add(r+sk);
+                    if(kk>0) add(r-sk);
+                }
+            }
+            band.pop_back();
+        };
+
+        // 1. the fluid that does not see the free surface, through the fluid of its own phase from
+        // the one that does: the air over a dry sill in front of a gate takes the level in front of
+        // the gate through the air, however near the water behind the gate is (through the leaf, or
+        // in the gap at its heel)
+        for(int q=0; q<n; ++q)
+        src[q] = lay[q]==0;
+        layers(true);
+
+        // 2. the solid, from the fluid next to it: the level the fluid carries (its own level set in
+        // a pocket no fluid that sees the free surface reaches)
+        for(int q=0; q<n; ++q)
+        {
+            if(layer[q]==0 && lay[q]==unreached)
+            lay[q] = 0;
+
+            src[q] = layer[q]==0;
+            med[q] = insolid[q];
+        }
+        layers(false);
+
+        // (every rank takes part in the ghost cell exchange)
+        for(int pass=0; pass<2; ++pass)
+        {
+            for(size_t l=1; l<band.size(); ++l)
+            for(int q : band[l])
+            {
+                i = q/si + p->imin;
+                j = (q/sj)%p->jmax + p->jmin;
+                k = q%p->kmax + p->kmin;
+
+                if(i<0 || i>=p->knox || j<0 || j>=p->knoy || k<0 || k>=p->knoz)
+                continue;
+
+                const int ll = int(l);
+                double sum = 0.0;
+                int count = 0;
+
+                const bool fl = layer[q]==0;
+                auto from = [&](int r) { return lay[r]<ll && (!fl || air[r]==air[q]); };
+
+                if(from(q+si)) { sum += g(i+1,j,k); ++count; }
+                if(from(q-si)) { sum += g(i-1,j,k); ++count; }
+                if(jd && from(q+sj)) { sum += g(i,j+1,k); ++count; }
+                if(jd && from(q-sj)) { sum += g(i,j-1,k); ++count; }
+                if(from(q+sk)) { sum += g(i,j,k+1) + p->DZP[KP]; ++count; }
+                if(from(q-sk)) { sum += g(i,j,k-1) - p->DZP[KM1]; ++count; }
+
+                if(count>0)
+                g(i,j,k) = sum/double(count);
+            }
+
+            pgc->start4(p,g,gcval);
+        }
+
+        for(int q : solid)
+        if(lay[q]!=unreached)
+        {
+            i = q/si + p->imin;
+            j = (q/sj)%p->jmax + p->jmin;
+            k = q%p->kmax + p->kmin;
+
+            if(i<0 || i>=p->knox || j<0 || j>=p->knoy || k<0 || k>=p->knoz)
+            continue;
+
+            f(i,j,k) = g(i,j,k);
+        }
+
+        // The solid next to the fluid.  The reinitialisation takes a fluid cell from the solid cell
+        // next to it where that is nearer to the free surface.  Where the solid holds another level
+        // than the fluid at its face, it puts a free surface there, and the fluid takes the distance
+        // to the face: a film of the other density on it (a dry bed ahead of a dam break, where the
+        // bed holds the level of the front; a pipe under pressure above the level outside).  So
+        // within three cells of the fluid along the gravity and two across, the solid does not lie
+        // nearer to the free surface than the fluid continued into it (across: its value, along the
+        // gravity: the plane through it).  With the solid on that plane the fluid follows the level
+        // of the solid, which is tied to the free surface: the air over a dry sill comes back to the
+        // level in front of it after a disturbance.  Where the solid is more than one cell beyond the
+        // plane, the solid cell takes the value of the fluid cell (blended over a second cell): the
+        // fluid then has no way to the free surface through the solid, and the air over a dry bed
+        // ahead of a front keeps its distance to the front.  The cells with fluid as near on the other
+        // side (a thin wall between two levels) keep their value.
+        {
+            std::vector<std::pair<int,double> > lim;
+            const int st[6] = {sk,-sk,si,-si,sj,-sj};
+
+            for(int q : solid)
+            {
+                i = q/si + p->imin;
+                j = (q/sj)%p->jmax + p->jmin;
+                k = q%p->kmax + p->kmin;
+
+                if(i<0 || i>=p->knox || j<0 || j>=p->knoy || k<0 || k>=p->knoz)
+                continue;
+
+                const double s0 = f(i,j,k);
+                double best = 0.0, val = s0;
+
+                for(int d=0; d<6; ++d)
+                {
+                    if(!jd && d>=4)
+                    continue;
+
+                    const int mmax = d<2 ? 3 : 2;
+
+                    // the fluid cell m cells away, solid in between
+                    int m = 0;
+                    for(int r=1; r<=mmax; ++r)
+                    {
+                        if(layer[q+r*st[d]]==0)
+                        {
+                        m = r;
+                        break;
+                        }
+                        if(!insolid[q+r*st[d]])
+                        break;
+                    }
+                    if(m==0)
+                    continue;
+
+                    const int qf = q+m*st[d];
+                    const int fi = qf/si + p->imin, fj = (qf/sj)%p->jmax + p->jmin, fk = qf%p->kmax + p->kmin;
+
+                    // fluid as near on the other side (a thin wall): the cell belongs to that side
+                    bool other = false;
+                    for(int r=1; r<=m; ++r)
+                    {
+                        const int qo = q-r*st[d];
+                        if(layer[qo]==0)
+                        {
+                        other = true;
+                        break;
+                        }
+                        if(!insolid[qo])
+                        break;
+                    }
+                    if(other)
+                    continue;
+
+                    const double ff = f(fi,fj,fk);
+                    const double c = ff + (d<2 ? p->ZP[fk+marge]-p->ZP[KP] : 0.0);
+                    const double h = d<2 ? p->DZN[KP] : (d<4 ? p->DXN[IP] : p->DYN[JP]);
+                    const double ex = (air[qf] ? s0-c : c-s0)/h;
+
+                    if(ex>best)
+                    {
+                    best = ex;
+                    val = c + std::max(0.0,std::min(1.0,ex-1.0))*(ff-c);
+                    }
+                }
+
+                if(best>0.0)
+                lim.push_back(std::make_pair(q,val));
+            }
+
+            for(const auto &c : lim)
+            {
+                i = c.first/si + p->imin;
+                j = (c.first/sj)%p->jmax + p->jmin;
+                k = c.first%p->kmax + p->kmin;
+                f(i,j,k) = c.second;
+            }
+        }
+
+        pgc->start4(p,f,gcval);
+        return;
+    }
 
     std::vector<std::vector<int> > band(nband+1);
     for(int q : solid)
