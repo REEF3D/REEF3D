@@ -457,7 +457,7 @@ void sixdof_obj::brain_update(lexer *p, ghostcell *pgc, const std::vector<double
         }
         
         const double fn = d.second ? d.f2 : d.f;
-        brain_->external(d, tn + (v[10]>0.0 ? v[10] : std::min(0.5/std::max(fn,1.0e-3), 0.5)));
+        brain_->external(d, tn + (v[10]>0.0 ? v[10] : std::min(0.5/std::max(fn,1.0e-3), brain_->decision_cap())));
     }
     
     if(d.on)

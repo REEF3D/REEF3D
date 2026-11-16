@@ -19,7 +19,7 @@
 #          -> {"f":..,"a":..,"b":..,"ts":..}       the gait targets from now: frequency [Hz], amplitude
 #                                                   factor, curvature bias, settling time [s] (0: half a beat)
 #             optional "t2","f2","a2","b2","ts2":  a second target at time t2 (e.g. the end of a C-start)
-#             optional "next":                     seconds to the next decision (default min(0.5/f, 0.5))
+#             optional "next":                     seconds to the next decision (default min(0.5/f, 0.5/f0))
 #   bye    {"bye":1}
 #
 # Policies: "own" answers the decision of the own brain (a test of the link: the run is the run of X 193);
@@ -32,20 +32,23 @@ import argparse, json, math, socketserver, sys, threading, importlib.util
 LOCK = threading.Lock()
 
 
-# the constants of the rule brain (6DOF_brain.cpp)
+# the constants of the rule brain (6DOF_brain.cpp); times in tail beats T = 1/f0, speeds in L f0 (patch 0035)
 TAU, KTURN, SLOW, ARRIVE, FRONT = 1.5, 1.3, 1.5, 0.25, 0.35
 TAUU, S0, TFLOOR, PSIFLOOR, REAFF, BURST, TAUC0 = 0.8, 0.5, 2.5, 1.0, 0.5, 0.5, 2.0
 CKNOWN, CDRIFT, BRAKE, NKNOWN = 0.2, 0.1, 2.5, 3
-UESC = 0.3                     # an escape: the pressures in units of q at this speed at least [L/s]
+UESC = 0.3                     # an escape: the pressures in units of q at this speed at least [L f0]
+C0, NOISE, CWALK, SWALK = 0.3, 0.07, 2.5e-3, 1.0e-4   # the filter: prior spread, noise [L f0], random walks
+TDEC, TT, REFR = 0.5, 1.0, 2.0                          # decisions at most TDEC apart, target velocity over TT, escape refractory [T]
+CSTART = (0.08, 0.15, 0.2, 0.4)                         # the C-start: bend in, held, release, next decision [T]
 
 
 def _kf_update(st, H, y, R, dt):
     """The Kalman filter on [s, c_p0, c_p1] (sixdof_brain::kf_update)."""
     x, P = st["kx"], st["kP"]
-    ssd = st.get("ssd", 0.0)
-    P[0][0] += 1.0e-4 * dt * ssd * ssd / 0.09 if ssd > 0.0 else 1.0e-4 * dt
-    P[1][1] += 2.5e-3 * dt
-    P[2][2] += 2.5e-3 * dt
+    ssd, f0, uf = st.get("ssd", 0.0), st["f0"], st["uf"]
+    P[0][0] += SWALK * f0 * dt * ssd * ssd / 0.09 if ssd > 0.0 else SWALK * f0 * dt
+    P[1][1] += CWALK * uf * uf * f0 * dt
+    P[2][2] += CWALK * uf * uf * f0 * dt
     for m in range(2):
         Ph = [P[i][0] * H[m][0] + P[i][1] * H[m][1] + P[i][2] * H[m][2] for i in range(3)]
         S = H[m][0] * Ph[0] + H[m][1] * Ph[1] + H[m][2] * Ph[2] + R
@@ -63,11 +66,12 @@ def rules(sv, st, pr):
     """The rule brain of REEF3D (sixdof_brain::decide after the senses), with its own state: the estimate of
     the stride and the current from the gait and the track, the velocity through the water for the target."""
     L, f0, rho = pr["L"], pr["f0"], pr["rho"]
+    tf, uf = 1.0 / f0, L * f0                   # the units of the constants: T = 1/f0, L f0
     Udes, bmax, Dvis, the = pr["U_des"], (pr["b_max"] if pr["b_max"] > 0 else 1.0), pr["D"], pr["th_esc"]
     s0 = pr.get("s0", 0.0) or S0                 # X 200: the prior of the stride and the turn rate of the bias
     kturn = pr.get("k_turn", 0.0) or KTURN
-    tauu = pr.get("tau_u", 0.0) or TAUU         # X 201: how fast the speed follows a faster and a slower gait
-    taud = pr.get("tau_d", 0.0) or TAUU
+    tauu = pr.get("tau_u", 0.0) or TAUU / f0    # X 201: how fast the speed follows a faster and a slower gait
+    taud = pr.get("tau_d", 0.0) or TAUU / f0
     nu = max(0.0, pr.get("n_u", 0.0) or 0.0)     # X 202: the speed follows the gait in tail beats (replaces X 201)
     nd = (pr.get("n_d", 0.0) or 0.0) or nu
     ssd = max(0.0, pr.get("s_sd", 0.0) or 0.0)    # X 203: the spread of the stride about s0 (0: 0.3)
@@ -80,17 +84,18 @@ def rules(sv, st, pr):
     # 1. the speed of the gait since the last decision; the estimate of the stride and the current
     if "kx" not in st:
         st["kx"], st["s0"] = [s0, 0.0, 0.0], s0
-        st["kP"] = [[(ssd * ssd * s0 * s0 if ssd > 0.0 else 0.09 * s0 * s0), 0.0, 0.0], [0.0, 0.3 * 0.3, 0.0], [0.0, 0.0, 0.3 * 0.3]]
-        st["ssd"] = ssd
+        st["kP"] = [[(ssd * ssd * s0 * s0 if ssd > 0.0 else 0.09 * s0 * s0), 0.0, 0.0], [0.0, (C0 * uf) * (C0 * uf), 0.0],
+                    [0.0, 0.0, (C0 * uf) * (C0 * uf)]]
+        st["ssd"], st["f0"], st["uf"] = ssd, f0, uf
         st["ug"], st["tdec"], st["pdec"], st["bdec"], st["Tprev"], st["vT"] = -1.0, t, list(c), b, None, [0.0, 0.0, 0.0]
         st["adec"] = a
-        st["tauc"] = pr.get("tau_c", 0.0) or TAUC0          # X 204: the prior of the coasting time
+        st["tauc"] = pr.get("tau_c", 0.0) or TAUC0 / f0     # X 204: the prior of the coasting time
         st["refr"] = max(st.get("refr", -1.0), t + 1.0 / f0)   # no escape in the first tail beat (the start-up)
         st["E0"] = 0.0
         if nu > 0.0:
             # X 202: the body at rest over the ground at t = 0; the speed of the gait from rest over the ramp, the
             # water that passed the body at rest decaying with the coasting time (sixdof_brain::decide)
-            n = max(1, int(math.ceil(t / 0.01))); h = t / n; u = 0.0
+            n = max(1, int(math.ceil(t / (0.01 * tf)))); h = t / n; u = 0.0
             for i in range(n):
                 u += h * f0 / nu * (f0 * L * min(1.0, (i + 0.5) * h / max(t, 1.0e-9)) - u)
             st["ug"], st["E0"] = u, math.exp(-t / st["tauc"])
@@ -116,8 +121,8 @@ def rules(sv, st, pr):
             st["ug"] = max(0.0, uw) / st["kx"][0]
             # the coasting time from the slowing down of the glide (both decisions gliding)
             cm = math.sqrt(st["kx"][1] ** 2 + st["kx"][2] ** 2)
-            if max(a, st["adec"]) < 0.05 and max(abs(b), abs(st["bdec"])) < 0.05 and uw > 3.0 * cm + 0.05 * L and uw < u0:
-                tm = min(30.0, max(0.5, dt / math.log(u0 / uw)))
+            if max(a, st["adec"]) < 0.05 and max(abs(b), abs(st["bdec"])) < 0.05 and uw > 3.0 * cm + 0.05 * uf and uw < u0:
+                tm = min(30.0 * tf, max(0.5 * tf, dt / math.log(u0 / uw)))
                 st["tauc"] = 0.7 * st["tauc"] + 0.3 * tm
         else:
             fal = f * a * L
@@ -130,7 +135,7 @@ def rules(sv, st, pr):
             ugm = fal + (st["ug"] - fal) * (tu / dt) * (1.0 - e)
             st["ug"] = ug1
             bm = 0.5 * (b + st["bdec"])
-            R = 0.07 * 0.07 * (1.0 + 4.0 * bm * bm)
+            R = (NOISE * uf) * (NOISE * uf) * (1.0 + 4.0 * bm * bm)
             E0 = st.get("E0", 0.0)                                 # the water that passed the body at the start
             Em = E0 * st["tauc"] / dt * (1.0 - math.exp(-dt / st["tauc"])) if E0 > 0.0 else 0.0
             st["E0"] = E0 * math.exp(-dt / st["tauc"])
@@ -141,7 +146,7 @@ def rules(sv, st, pr):
     s = st["kx"][0]
     cur = [0.0, 0.0, 0.0]
     cur[p0], cur[p1] = st["kx"][1], st["kx"][2]
-    Uw = max(sv["U"] if st["ug"] < 0.0 else st["ug"] * s, 0.1 * L)
+    Uw = max(sv["U"] if st["ug"] < 0.0 else st["ug"] * s, 0.1 * uf)
     q = 0.5 * rho * Uw * Uw
 
     # 2. the target: the wanted velocity over the ground, the velocity through the water that gives it
@@ -151,7 +156,7 @@ def rules(sv, st, pr):
     r[nrm] = 0.0
     dist = math.sqrt(r[0] * r[0] + r[1] * r[1] + r[2] * r[2]) if has_t else 0.0
     if has_t and st["Tprev"] is not None and dt > 0.0:
-        al = min(1.0, dt / 1.0)
+        al = min(1.0, dt / (TT * tf))
         st["vT"] = [(1.0 - al) * st["vT"][k] + al * (T[k] - st["Tprev"][k]) / dt for k in range(3)]
     st["Tprev"] = list(T) if has_t else None
     vw = [0.0, 0.0, 0.0]
@@ -165,15 +170,15 @@ def rules(sv, st, pr):
     w = [vw[k] - cur[k] for k in range(3)]
     w[nrm] = 0.0
     Ureq = math.sqrt(w[0] * w[0] + w[1] * w[1] + w[2] * w[2])
-    psi = math.atan2(w[0] * el[0] + w[1] * el[1] + w[2] * el[2], w[0] * ex[0] + w[1] * ex[1] + w[2] * ex[2]) if Ureq > 0.02 * L else 0.0
+    psi = math.atan2(w[0] * el[0] + w[1] * el[1] + w[2] * el[2], w[0] * ex[0] + w[1] * ex[1] + w[2] * ex[2]) if Ureq > 0.02 * uf else 0.0
 
     # 3. the frequency from the speed through the water, at least what a turn-around needs; the bias
     ft, bt, mode = max(0.3 * f0, min(fmx, f)), 0.0, 0
     if has_t:
-        Uturn = min(abs(psi) / TFLOOR * L / (abs(kturn) * bmax), fmx * s * L) if abs(psi) > PSIFLOOR else 0.0
+        Uturn = min(abs(psi) / (TFLOOR * tf) * L / (abs(kturn) * bmax), fmx * s * L) if abs(psi) > PSIFLOOR else 0.0
         Ucmd = max(Ureq, Uturn)
         ft = max(0.3 * f0, min(fmx, Ucmd / (s * L)))
-        bt = (psi / TAU) * L / (kturn * Uw)
+        bt = (psi / (TAU * tf)) * L / (kturn * Uw)
         mode = 3 if dist < ARRIVE * L else 0
     bt = max(-bmax, min(bmax, bt))
 
@@ -226,7 +231,7 @@ def rules(sv, st, pr):
     calm = cm < Umin and math.sqrt(sum(v * v for v in st["vT"])) < Umin
     # an early glide needs the current known and its drift over the coasting time small
     # at the target: the current learnt over NKNOWN updates (a glide stops the estimate)
-    cvar = st["kP"][1][1] + st["kP"][2][2] < (CKNOWN * L) ** 2
+    cvar = st["kP"][1][1] + st["kP"][2][2] < (CKNOWN * uf) ** 2
     known = cvar and cm * st["tauc"] < CDRIFT * L
     learnt = cvar and st.get("nkf", 0) >= NKNOWN
     if not has_t or threat > 0.0 or not calm:
@@ -262,15 +267,15 @@ def rules(sv, st, pr):
 
     # 1. escape: a C-start away from the side of the higher pressure (not while coasting or braking)
     # (the pressures against q at UESC at least: at a low speed the own turns and the start-up are no stimulus)
-    qesc = q / max(q, 0.5 * rho * (UESC * L) ** 2)
+    qesc = q / max(q, 0.5 * rho * (UESC * uf) ** 2)
     if the > 0.0 and t >= st["refr"] and not (st["glide"] or a < 0.95) and (abs(dpl) * qesc > the or phd * qesc > the):
         sg = 1.0 if dpl >= 0.0 else -1.0
-        st["refr"] = t + 2.0
+        st["refr"] = t + REFR * tf
         st["bdec"] = -2.5 * sg
         st["adec"] = 0.5
         st["glide"], st["bside"] = False, 0.0
-        return {"f": f, "a": 0.5, "b": -2.5 * sg, "ts": 0.08,
-                "t2": t + 0.15, "f2": min(1.5 * f, fmx), "a2": 1.0, "b2": 0.0, "ts2": 0.2, "next": 0.4, "mode": 2}
+        return {"f": f, "a": 0.5, "b": -2.5 * sg, "ts": CSTART[0] * tf,
+                "t2": t + CSTART[1] * tf, "f2": min(1.5 * f, fmx), "a2": 1.0, "b2": 0.0, "ts2": CSTART[2] * tf, "next": CSTART[3] * tf, "mode": 2}
 
     # 2. avoidance: a turn to the free side, slower; the bias with the sign of the turn rate k
     if threat > 0.0:
@@ -281,7 +286,7 @@ def rules(sv, st, pr):
         if wv > 0.2:
             mode = 1
 
-    return {"f": ft, "a": at, "b": bt, "ts": 0.0, "next": min(0.5 / ft, 0.5), "mode": mode}
+    return {"f": ft, "a": at, "b": bt, "ts": 0.0, "next": min(0.5 / ft, TDEC * tf), "mode": mode}
 
 
 def own(sv, st, pr):
@@ -290,7 +295,7 @@ def own(sv, st, pr):
     d = {"f": o["f"], "a": o["a"], "b": o["b"], "ts": o["ts"]}
     if o["second"]:
         d.update({"t2": o["t2"], "f2": o["f2"], "a2": o["a2"], "b2": o["b2"], "ts2": o["ts2"]})
-    d["next"] = 0.4 if o["mode"] == 2 else min(0.5 / o["f"], 0.5)
+    d["next"] = CSTART[3] / pr["f0"] if o["mode"] == 2 else min(0.5 / o["f"], TDEC / pr["f0"])
     d["mode"] = o["mode"]
     return d
 

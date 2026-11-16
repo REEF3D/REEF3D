@@ -368,7 +368,7 @@ def run(case):
             for key in "fab":
                 f.g[key][2] = d[key]; f.g[key][3] = ts
             f.second = (d["t2"], d["f2"], d["a2"], d["b2"], d["ts2"]) if "t2" in d else None
-            f.next = t + d.get("next", min(0.5 / d["f"], 0.5))
+            f.next = t + d.get("next", min(0.5 / d["f"], 0.5 / f.pr["f0"]))
             f.mode = d.get("mode", 0)
             f.acc_U = 0.0; f.acc_n = 0
         if t >= t_out - 1e-9:
