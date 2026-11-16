@@ -40,6 +40,13 @@ Architect: Hans Bihs
 //    is fourth order. This part is explicit, so the matrices of the eta system and of the coupled eta-phi system keep
 //    their compact stencil: for eta^{n+1} it takes eta of the estimate pass (A 505 1; eta^n in the estimate pass and
 //    with A 505 0), for phi the pressure of the two steps before extrapolated to this one.
+// The (-1, 9, 9, -1)/16 means are limited (ho_interp): the mean of the two cells (faces) minus the curvature/8. Where the
+// curvatures of the two three-point stencils are small against the difference of the two cells (a smooth profile, up
+// to (k dx)^2 = 1/4) the curvature is their mean, (-1, 9, 9, -1)/16; where they are large (kinks, fronts, crests; from
+// 1/2, blended in between) their harmonic mean, 0 where they differ in sign: second order at kinks and fronts, where the cubic overshoot of the plain means let the Stoker
+// dam break (theta 1, dt 0.02 - 0.03 s, dx 0.05 m) go unstable at the tail of the rarefaction (EMERGENCY STOP at 3.4 s,
+// at dt 0.03 s at 1.5 s); a linear wave of 20 cells per wavelength keeps its speed (c/c_theory 0.9999 -> 0.9995, second
+// order 0.9835).
 // A face or a cell whose stencil leaves the wet deep fluid cells (walls, open boundaries, the shoreline) keeps the
 // second-order terms. The advection of the predictor and the nonlinear face depths are unchanged.
 // ---------------------------------------------------------------------------------------------------------------------
@@ -66,6 +73,21 @@ void nhflow_momentum_SI::ho_begin(lexer *p, fdm_nhf *d, ghostcell *pgc)
     {
     const int q = (ii-p->imin)*p->jmax + (jj-p->jmin);
     hoC(ii,jj) = (p->flagslice4[q]>0 && p->wet[q]==1 && p->deep[q]==1) ? 1.0 : 0.0;
+    }
+
+    // and the cells of subcritical flow, Froude number of the layers below 0.8 (t^n): at the critical point of a dam break
+    // (the tail of the rarefaction, u = c) the fourth-order terms grew a two-cell wave at gravity Courant numbers above 1
+    // (Stoker dam break, theta 1, dx 0.05 m: EMERGENCY STOP at dt 0.03 s even with the limited means of ho_interp);
+    // waves (Froude number of the orbital velocity well below 0.5) and rivers keep them
+    const double frl = 0.8;
+
+    LOOP
+    if(hoC(i,j)>0.5 && WL0(i,j)>p->A544)
+    {
+    const double v = p->j_dir==1 ? d->V[IJK] : 0.0;
+
+        if(d->U[IJK]*d->U[IJK] + v*v > frl*frl*g*WL0(i,j))
+        hoC(i,j) = 0.0;
     }
 
     exchange4(p,pgc,hoC);
@@ -150,11 +172,11 @@ void nhflow_momentum_SI::ho_predictor(lexer *p, int dir, const double *UHc, doub
 
     if(dir==1)
     for(k=0;k<p->knoz;++k)
-    w[k] = (9.0*(c1*UHc[PIJK] + c2*UHc[PIp1JK]) - c0*UHc[PIm1JK] - c3*UHc[PIp2JK])/16.0;
+    w[k] = ho_interp(c0*UHc[PIm1JK],c1*UHc[PIJK],c2*UHc[PIp1JK],c3*UHc[PIp2JK]);
 
     else
     for(k=0;k<p->knoz;++k)
-    w[k] = (9.0*(c1*UHc[PIJK] + c2*UHc[PIJp1K]) - c0*UHc[PIJm1K] - c3*UHc[PIJp2K])/16.0;
+    w[k] = ho_interp(c0*UHc[PIJm1K],c1*UHc[PIJK],c2*UHc[PIJp1K],c3*UHc[PIJp2K]);
 }
 
 // the gravity term of the cell (i,j) (cell_update): dt g times (-1, 9, 9, -1)/16 of H_f times the face gradient
@@ -170,7 +192,7 @@ void nhflow_momentum_SI::ho_cell_gravity(lexer *p, fdm_nhf *d, double &gu, doubl
         return Hx(f,j)*(theta*((etaI(f+1,j) - etaI(f,j))/p->DXP[f+marge] + cx0(f,j)) + (1.0-theta)*gx0(f,j));
     };
 
-    gu = dt*g*(9.0*(aF(i-1) + aF(i)) - aF(i-2) - aF(i+1))/16.0;
+    gu = dt*g*ho_interp(aF(i-2),aF(i-1),aF(i),aF(i+1));
     }
 
     if(p->j_dir==1 && ho_cell(p,d,2,i,j))
@@ -180,6 +202,6 @@ void nhflow_momentum_SI::ho_cell_gravity(lexer *p, fdm_nhf *d, double &gu, doubl
         return Hy(i,f)*(theta*((etaI(i,f+1) - etaI(i,f))/p->DYP[f+marge] + cy0(i,f)) + (1.0-theta)*gy0(i,f));
     };
 
-    gv = dt*g*(9.0*(aF(j-1) + aF(j)) - aF(j-2) - aF(j+1))/16.0;
+    gv = dt*g*ho_interp(aF(j-2),aF(j-1),aF(j),aF(j+1));
     }
 }

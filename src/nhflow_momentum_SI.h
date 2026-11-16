@@ -373,6 +373,17 @@ private:
     void ho_begin(lexer*,fdm_nhf*,ghostcell*);
     void ho_estimate(lexer*,ghostcell*);
     bool ho_face(lexer*,int,int,int);
+    // the value at the face between q1 and q2 of four values (fourth order, limited: nhflow_momentum_SI_ho.cpp)
+    static double ho_interp(double q0, double q1, double q2, double q3)
+    {
+        const double dl = q0 - 2.0*q1 + q2, dr = q1 - 2.0*q2 + q3;
+        const double cm = 0.5*(dl + dr);
+        const double ch = dl*dr>0.0 ? 2.0*dl*dr/(dl + dr) : 0.0;
+        const double dm = fabs(dl)>fabs(dr) ? fabs(dl) : fabs(dr);
+        const double sl = fabs(q2 - q1);
+        const double w = dm<=0.25*sl ? 0.0 : (dm>=0.5*sl ? 1.0 : (dm - 0.25*sl)/(0.25*sl));
+        return 0.5*(q1 + q2) - 0.125*((1.0 - w)*cm + w*ch);
+    }
     bool ho_cell(lexer*,fdm_nhf*,int,int,int);
     void ho_gradient(lexer*,fdm_nhf*,int,double&,double&);
     void ho_predictor(lexer*,int,const double*,double*);
