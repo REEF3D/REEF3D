@@ -1125,6 +1125,27 @@ void nhflow_momentum_SI::nh_cell(lexer *p, fdm_nhf *d, ghostcell *pgc)
     }
 }
 
+std::vector<char> nhflow_momentum_SI::nh_mask(int B, bool yd)
+{
+    // the entries of the blocks of the coupled system that nh_assemble can set (the multigrid stores only these): the
+    // column in full; a neighbour: the mass row every unknown (the discharges of all layers of the face), the constraint
+    // row of layer k eta, phi_k and phi_k+1 (addf); no y neighbours with one cell in y
+    std::vector<char> mk((size_t)5*B*B,0);
+
+    for(int dd=0; dd<5; ++dd)
+    {
+        if(!yd && dd>2)
+        continue;
+
+        for(int r=0; r<B; ++r)
+        for(int c=0; c<B; ++c)
+        if(dd==0 || r==0 || c==0 || c==r || c==r+1)
+        mk[(size_t)dd*B*B + r*B + c] = 1;
+    }
+
+    return mk;
+}
+
 void nhflow_momentum_SI::nh_solve_mg(lexer *p, fdm_nhf *d, ghostcell *pgc, const std::vector<double> &F0, std::vector<double> &xr)
 {
     // the coupled system A x = -F(0): A assembled from the face derivatives (block 5-point over the columns),
@@ -1144,7 +1165,8 @@ void nhflow_momentum_SI::nh_solve_mg(lexer *p, fdm_nhf *d, ghostcell *pgc, const
     if(!nhmg)
     {
     nhmg = std::make_shared<nhflow_si_nhmg>();
-    nhmg->setup(pgc->mpi_comm,B,nx,ny,nbr);
+    const std::vector<char> mk = nh_mask(B,yd);
+    nhmg->setup(pgc->mpi_comm,B,nx,ny,nbr,&mk);
 
         if(p->mpirank==0)
         cout<<"NHFLOW semi-implicit non-hydrostatic: multigrid of the coupled system with "<<nhmg->levels()<<" levels, "<<B<<" unknowns per column"<<endl;
@@ -1229,7 +1251,7 @@ void nhflow_momentum_SI::nh_solve_mg(lexer *p, fdm_nhf *d, ghostcell *pgc, const
         for(int dd=0; dd<5; ++dd)
         for(int q=0; q<B*B; ++q)
         {
-        const double a = M.block(ii,jj,dd)[q], b = Dg[(((size_t)ii*ny + jj)*5 + dd)*B*B + q];
+        const double a = M.get(ii,jj,dd,q), b = Dg[(((size_t)ii*ny + jj)*5 + dd)*B*B + q];
         mx = MAX(mx,fabs(a));
         dm = MAX(dm,fabs(a-b));
         }
@@ -1261,10 +1283,7 @@ void nhflow_momentum_SI::nh_solve_mg(lexer *p, fdm_nhf *d, ghostcell *pgc, const
         if(!yd && dd>2)
         continue;
 
-        double *a = M.block(i,j,dd);
-            for(int tr=1; tr<B; ++tr)
-            for(int t=0; t<B; ++t)
-            a[tr*B+t] *= rs;
+        M.scale_rows(i,j,dd,1,rs);
         }
     }
 
@@ -1564,7 +1583,14 @@ void nhflow_momentum_SI::nh_solve_mg(lexer *p, fdm_nhf *d, ghostcell *pgc, const
     nhme = std::make_shared<nhflow_si_nhmg>();
     nhme->setup(pgc->mpi_comm,1,nx,ny,nbr);
     nhmp = std::make_shared<nhflow_si_nhmg>();
-    nhmp->setup(pgc->mpi_comm,K,nx,ny,nbr);
+    // the phi system: the constraint rows and phi of the mask of the coupled one
+    const std::vector<char> mk = nh_mask(B,yd);
+    std::vector<char> mkp((size_t)5*K*K,0);
+    for(int dd=0; dd<5; ++dd)
+    for(int r=1; r<B; ++r)
+    for(int c=1; c<B; ++c)
+    mkp[(size_t)dd*K*K + (r-1)*K + c-1] = mk[(size_t)dd*B*B + r*B + c];
+    nhmp->setup(pgc->mpi_comm,K,nx,ny,nbr,&mkp);
     }
 
     nhflow_si_nhmg &Me = *nhme, &Mp = *nhmp;
@@ -1575,15 +1601,13 @@ void nhflow_momentum_SI::nh_solve_mg(lexer *p, fdm_nhf *d, ghostcell *pgc, const
     for(int jj=0; jj<ny; ++jj)
     for(int dd=0; dd<5; ++dd)
     {
-        const double *a = M.block(ii,jj,dd);
-
-        if(a[0]!=0.0)
-        Me.set(ii,jj,dd,0,0,a[0]);
+        if(M.get(ii,jj,dd,0)!=0.0)
+        Me.set(ii,jj,dd,0,0,M.get(ii,jj,dd,0));
 
         for(int r=1; r<B; ++r)
         for(int c=1; c<B; ++c)
-        if(a[r*B+c]!=0.0)
-        Mp.set(ii,jj,dd,r-1,c-1,a[r*B+c]);
+        if(M.get(ii,jj,dd,r*B+c)!=0.0)
+        Mp.set(ii,jj,dd,r-1,c-1,M.get(ii,jj,dd,r*B+c));
     }
 
     M.pattern();

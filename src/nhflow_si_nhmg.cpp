@@ -84,14 +84,14 @@ template<class T> void halo(MPI_Comm comm, const int nb[4], bool alone, int B, i
     }
 }
 
-// y[r] += sign sum_c a[r B + c] x[c] over the nonzero pattern pat[r] of a block
-template<class T, class U> inline void block_mul(int B, const std::vector<int> *pat, const T *a, const U *x, U *y, U sign)
+// y[r] += sign sum_c a_rc x[c] over the nonzero pattern pat[r] of a block (a_rc stored at a[o])
+template<class T, class U> inline void block_mul(int B, const std::vector<nhmg_pent> *pat, const T *a, const U *x, U *y, U sign)
 {
     for(int r=0; r<B; ++r)
     {
         U t = 0;
-        for(int c : pat[r])
-        t += (U)a[r*B+c]*x[c];
+        for(const nhmg_pent &e : pat[r])
+        t += (U)a[e.o]*x[e.c];
         y[r] += sign*t;
     }
 }
@@ -170,24 +170,27 @@ public:
     struct level
     {
         int nx=0, ny=0;
-        std::vector<T> A;       // 5 blocks per column
+        std::vector<T> A;       // 5 blocks per column (CS entries, the storage of level 0)
         std::vector<T> Di;      // the inverse of the diagonal block
         std::vector<T> x, b, r;     // with the halo of one column
         std::vector<T> kb, v1, w1, v2, w2;     // K-cycle
-        std::vector<std::vector<int>> pat;      // the columns c of row r of block d that can be nonzero: pat[d*B + r]
+        std::vector<std::vector<nhmg_pent>> pat;      // the columns c of row r of block d that can be nonzero: pat[d*B + r]
     };
 
     MPI_Comm comm;
-    int B=0, BB=0;
+    int B=0, BB=0, CS=0;
+    int offs[5];
     int nb[4];
     bool alone = true;
     std::vector<level> L;
     std::vector<T> sbuf, rbuf, tmp, tmp2;
     const nhflow_si_nhmg *o = nullptr;     // the options
 
-    void setup(MPI_Comm cm, int b, int nx, int ny, const int n[4], bool aln)
+    void setup(MPI_Comm cm, int b, int nx, int ny, const int n[4], bool aln, const nhflow_si_nhmg *par)
     {
-        comm = cm; B = b; BB = B*B; alone = aln;
+        comm = cm; B = b; BB = B*B; alone = aln; o = par;
+        CS = o->CS;
+        for(int q=0; q<5; ++q) offs[q] = o->offs[q];
         for(int q=0; q<4; ++q) nb[q] = n[q];
 
         int nl = 1, ax = nx, ay = ny;
@@ -209,7 +212,7 @@ public:
         level &v = L[l];
         v.nx = ax;
         v.ny = ay;
-        v.A.assign((size_t)ax*ay*5*BB,T(0));
+        v.A.assign((size_t)ax*ay*CS,T(0));
         v.Di.assign((size_t)ax*ay*BB,T(0));
         v.x.assign((size_t)(ax+2)*(ay+2)*B,T(0));
         v.b = v.x;
@@ -228,7 +231,7 @@ public:
 
     // the levels from the level-0 blocks (double) and their pattern: the Galerkin sums in double, the blocks and the
     // inverses of the diagonal blocks stored in T
-    void build(const std::vector<double> &A0, const std::vector<std::vector<int>> &pat0)
+    void build(const std::vector<double> &A0, const std::vector<std::vector<nhmg_pent>> &pat0)
     {
         // fine: level 0 (A0) and then the double sums of the coarse levels (fd, cd)
         std::vector<double> fd, cdv, inv(BB), sc(BB+B);
@@ -241,12 +244,13 @@ public:
             level &f = L[l];
             const size_t nc = (size_t)f.nx*f.ny;
 
-            for(size_t q=0; q<nc*5*BB; ++q)
+            for(size_t q=0; q<nc*CS; ++q)
             f.A[q] = (T)fine[q];
 
+            // the diagonal block: in full at the start of the column
             for(size_t q=0; q<nc; ++q)
             {
-            invert(B,&fine[q*5*BB],inv.data(),sc.data(),pv.data());
+            invert(B,&fine[q*CS],inv.data(),sc.data(),pv.data());
             for(int e=0; e<BB; ++e)
             f.Di[q*BB+e] = (T)inv[e];
             }
@@ -258,7 +262,7 @@ public:
             // into its diagonal block; its pattern: block d (> 0) of the fine one, the diagonal block the union
             level &c = L[l+1];
             std::vector<double> &coarse = cdv;
-            coarse.assign((size_t)c.nx*c.ny*5*BB,0.0);
+            coarse.assign((size_t)c.nx*c.ny*CS,0.0);
 
             for(int ix=0; ix<f.nx; ++ix)
             for(int iy=0; iy<f.ny; ++iy)
@@ -267,7 +271,7 @@ public:
 
                 for(int d=0; d<5; ++d)
                 {
-                    const double *a = &fine[((size_t)(ix*f.ny + iy)*5 + d)*BB];
+                    const double *a = &fine[(size_t)(ix*f.ny + iy)*CS + offs[d]];
                     const int jx = ix + dix[d], jy = iy + diy[d];
                     int dc;
 
@@ -284,9 +288,15 @@ public:
                     if(Jy==Iy-1) dc = 4;
                     }
 
-                    double *t = &coarse[((size_t)(Ix*c.ny + Iy)*5 + dc)*BB];
-                    for(int q=0; q<BB; ++q)
-                    t[q] += a[q];
+                    // the stored entries (r B + c, place) of block d; into the full diagonal block or the same place of
+                    // block d (the same pattern)
+                    double *t = &coarse[(size_t)(Ix*c.ny + Iy)*CS + offs[dc]];
+                    if(dc==0)
+                    for(const auto &e : o->sl[d])
+                    t[e.first] += a[e.second];
+                    else
+                    for(const auto &e : o->sl[d])
+                    t[e.second] += a[e.second];
                 }
             }
 
@@ -295,13 +305,13 @@ public:
             {
                 std::vector<char> u(B,0);
                 for(int d=0; d<5; ++d)
-                for(int cc : f.pat[(size_t)d*B + r])
-                u[cc] = 1;
+                for(const nhmg_pent &e : f.pat[(size_t)d*B + r])
+                u[e.c] = 1;
 
-                std::vector<int> &p0 = c.pat[r];
+                std::vector<nhmg_pent> &p0 = c.pat[r];
                 p0.clear();
                 for(int cc=0; cc<B; ++cc)
-                if(u[cc]) p0.push_back(cc);
+                if(u[cc]) p0.push_back({cc,r*B+cc});
             }
 
             fd.swap(cdv);
@@ -339,7 +349,7 @@ public:
                 if(!first)
                 for(int d=1; d<5; ++d)
                 {
-                    const T *a = &v.A[(q*5 + d)*BB];
+                    const T *a = &v.A[q*CS + offs[d]];
                     const T *xx = &v.x[(size_t)hix(v.ny,ix+dix[d],iy+diy[d])*B];
                     block_mul<T,T>(B,&v.pat[(size_t)d*B],a,xx,tmp.data(),T(-1));
                 }
@@ -383,7 +393,7 @@ public:
 
             for(int d=0; d<5; ++d)
             {
-                const T *a = &v.A[(q*5 + d)*BB];
+                const T *a = &v.A[q*CS + offs[d]];
                 const T *xx = &v.x[(size_t)hix(v.ny,ix+dix[d],iy+diy[d])*B];
                 block_mul<T,T>(B,&v.pat[(size_t)d*B],a,xx,rr,T(-1));
             }
@@ -448,7 +458,7 @@ public:
 
             for(int d=0; d<5; ++d)
             {
-                const T *a = &v.A[(q*5 + d)*BB];
+                const T *a = &v.A[q*CS + offs[d]];
                 const T *xx = &x[(size_t)hix(v.ny,ix+dix[d],iy+diy[d])*B];
                 block_mul<T,T>(B,&v.pat[(size_t)d*B],a,xx,yy,T(1));
             }
@@ -559,7 +569,7 @@ template class nhflow_si_nhmg_core<float>;
 template class nhflow_si_nhmg_core<double>;
 
 // ---- level 0 and the interface
-void nhflow_si_nhmg::setup(MPI_Comm cm, int b, int nx, int ny, const int n[4])
+void nhflow_si_nhmg::setup(MPI_Comm cm, int b, int nx, int ny, const int n[4], const std::vector<char> *mask)
 {
     comm = cm;
     B = b;
@@ -601,7 +611,8 @@ void nhflow_si_nhmg::setup(MPI_Comm cm, int b, int nx, int ny, const int n[4])
     }
     }
 
-    A0.assign((size_t)nx*ny*5*BB,0.0);
+    layout(mask);
+    A0.assign((size_t)nx*ny*CS,0.0);
     xh0.assign((size_t)(nx+2)*(ny+2)*B,0.0);
     nz0.assign((size_t)5*BB,0);
     cf.reset();
@@ -632,18 +643,82 @@ void nhflow_si_nhmg::zero()
 
 void nhflow_si_nhmg::mark_all()
 {
+    make_dense();
     std::fill(nz0.begin(),nz0.end(),1);
+}
+
+void nhflow_si_nhmg::layout(const std::vector<char> *mask)
+{
+    // the diagonal block in full, the others by the mask (all without one); the entries of a block in row-major order
+    dense = (mask==nullptr);
+    slot.assign((size_t)5*BB,-1);
+    sl.assign(5,std::vector<std::pair<int,int>>());
+    CS = 0;
+
+    for(int d=0; d<5; ++d)
+    {
+        offs[d] = CS;
+        int n = 0;
+
+        for(int e=0; e<BB; ++e)
+        if(d==0 || dense || (*mask)[(size_t)d*BB + e])
+        {
+        slot[(size_t)d*BB + e] = n;
+        sl[d].push_back({e,n});
+        ++n;
+        }
+
+        CS += n;
+    }
+}
+
+void nhflow_si_nhmg::make_dense()
+{
+    // an entry outside the mask (or block() wanted): every block in full, the values kept; the preconditioner new
+    if(dense)
+    return;
+
+    const std::vector<double> old = A0;
+    const std::vector<int> os = slot;
+    const int ocs = CS;
+    int ooffs[5];
+    for(int d=0; d<5; ++d) ooffs[d] = offs[d];
+
+    layout(nullptr);
+    A0.assign((size_t)nx0*ny0*CS,0.0);
+
+    for(size_t q=0; q<(size_t)nx0*ny0; ++q)
+    for(int d=0; d<5; ++d)
+    for(int e=0; e<BB; ++e)
+    if(os[(size_t)d*BB + e]>=0)
+    A0[q*CS + offs[d] + slot[(size_t)d*BB + e]] = old[q*ocs + ooffs[d] + os[(size_t)d*BB + e]];
+
+    cf.reset();
+    cd.reset();
+}
+
+void nhflow_si_nhmg::scale_rows(int ix, int iy, int d, int r0, double s)
+{
+    double *a = &A0[(size_t)(ix*ny0 + iy)*CS + offs[d]];
+
+    for(int r=r0; r<B; ++r)
+    for(int c=0; c<B; ++c)
+    {
+    const int sl0 = slot[(size_t)d*BB + r*B + c];
+    if(sl0>=0)
+    a[sl0] *= s;
+    }
 }
 
 void nhflow_si_nhmg::pattern()
 {
-    pat0.assign((size_t)5*B,std::vector<int>());
+    pat0.assign((size_t)5*B,std::vector<nhmg_pent>());
 
     for(int d=0; d<5; ++d)
     for(int r=0; r<B; ++r)
     for(int c=0; c<B; ++c)
     if(nz0[(size_t)d*BB + r*B + c])
-    pat0[(size_t)d*B + r].push_back(c);
+    pat0[(size_t)d*B + r].push_back({c,slot[(size_t)d*BB + r*B + c]});
 }
 
 void nhflow_si_nhmg::finalize(bool refresh)
@@ -653,14 +728,14 @@ void nhflow_si_nhmg::finalize(bool refresh)
     if(single && !cf)
     {
     cf = std::make_shared<nhflow_si_nhmg_core<float>>();
-    cf->setup(comm,B,nx0,ny0,nb,alone);
+    cf->setup(comm,B,nx0,ny0,nb,alone,this);
     refresh = true;
     }
 
     if(!single && !cd)
     {
     cd = std::make_shared<nhflow_si_nhmg_core<double>>();
-    cd->setup(comm,B,nx0,ny0,nb,alone);
+    cd->setup(comm,B,nx0,ny0,nb,alone,this);
     refresh = true;
     }
 
@@ -693,7 +768,7 @@ void nhflow_si_nhmg::matvec(const double *x, double *y)
 
         for(int d=0; d<5; ++d)
         {
-            const double *a = &A0[((size_t)(ix*ny0 + iy)*5 + d)*BB];
+            const double *a = &A0[(size_t)(ix*ny0 + iy)*CS + offs[d]];
             const double *xx = &xh0[(size_t)hix(ny0,ix+dix[d],iy+diy[d])*B];
             block_mul<double,double>(B,&pat0[(size_t)d*B],a,xx,yy,1.0);
         }

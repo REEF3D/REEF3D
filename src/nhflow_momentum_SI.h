@@ -382,6 +382,7 @@ private:
     std::vector<char> nAct;
     std::shared_ptr<sflow_si_nh_lu> nhlu;
     std::shared_ptr<nhflow_si_nhmg> nhmg;
+    static std::vector<char> nh_mask(int B, bool yd);    // the stored entries of the blocks (nh_assemble)
     std::shared_ptr<nhflow_si_nhmg> nhme, nhmp;     // A 507 1: the eta system (one unknown per column) and the phi system (K)
     int nh_lagc = 0, nh_lagit = 0, nh_lagnact = -1; // the preconditioner kept for some steps: steps since its refresh, the
     double nh_lagdt = 0.0;                          // iterations of that step, the active columns and dt then
