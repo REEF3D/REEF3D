@@ -576,8 +576,8 @@ void nhflow_suspended_IM1::clearrhs(lexer* p, fdm_nhf *d)
 void nhflow_suspended_IM1::exchange_sum(lexer *p, fdm_nhf *d, sediment_fdm *s)
 {
     // the implicit exchange of the solve, wsx (cbe - c_0) on the cells of suspsource; the bed takes it from the
-    // sediment step on (susp_ED: count > S 43)
-    if(p->S62!=1 || p->count<=p->S43)
+    // start of the sediment transport on (susp_ED: sediment_fdm::started)
+    if(p->S62!=1 || !sediment_fdm::started(p))
     return;
     
     k=0;

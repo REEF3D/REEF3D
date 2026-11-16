@@ -52,14 +52,17 @@ sediment_fdm::~sediment_fdm()
 {
 }
 
-
-
-
-
-
-
-
-
-
-
-
+// S 41 1: after the sediment step of flow step S 43 (the suspended solve of that step ran before it, without a
+// reference concentration); S 41 2, 3: the start criteria of sediment_f::start_cfd / start_nhflow.
+// The exchange was gated with S 43 for every S 41: with S 41 2 or 3 and S 43 at its default (1000) the water
+// column picked up sediment from the first sediment step on and the bed gave none until flow step 1000.
+bool sediment_fdm::started(lexer *p)
+{
+    if(p->S41==2)
+    return p->simtime>=p->S45;
+    
+    if(p->S41==3)
+    return p->simtime/p->wT>=p->S47 && p->count>0;
+    
+    return p->count>p->S43;
+}
