@@ -496,7 +496,7 @@ void control::ini_default()
 	B71=0;       // double distance for use relaxation method for fixed water level ini
 	B75=1;		 // int type of outflow boundary conditions
     B76=1;      // int type of pressure inlet boundary condition
-	B77=1;           // int outflow pressure controlled or free stream
+	B77=1;           // int outflow pressure: 0 zero gradient, 1 hydrostatic from F 62, 2 free surface condition (F 62, F 64), 3 as 1 with the density of the smoothed interface integrated, 4 as 3 in the water, the cell value in the air (outflow_pressure.h), 10 free stream
 	B81=0;		 // int focussed wave parameter
     B81_1=B81_2=0.0;   // double focused wave: focus location x, focus time
     B81_3=0.0;    // double unidirectional focused wave y is condisered 0

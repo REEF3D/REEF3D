@@ -1,0 +1,14 @@
+{
+ "np": 1,
+ "steps": 600,
+ "description": "Still water (0.38 m) in a tank 1.0 x 0.52 m (2D, dx 20 mm), wall at x = 0, outflow boundary at x = 1.0 at the same level (F 50 2, F 62 0.38), the inputs of the lock of Ship Hydrodynamics validation 27 (N 40 5, N 54 1, N 57 1, N 58 0.9, N 59 2, N 63 3). B 77 4: the hydrostatic pressure of the outflow level in the water below the interface band, the pressure of the cell in the band and the air. With B 77 3 (and 1) the pressure the boundary sets in the band and the air is off the pressure of the discrete projection inside, the air leaves at the top and the band is pulled in under it: a circulation that grows without bound (largest velocity 0.85 m/s after the 600 steps, 15 s; 1.58 m/s after 20 s). With B 77 4 it stays at a few cm/s (0.06 m/s after 600 steps, at most 0.10 m/s).",
+ "tags": [
+  "quick",
+  "2d",
+  "levelset",
+  "outflow"
+ ],
+ "covers": [
+  "outflow_pressure.h B 77 4 (ghostcell::gcdf_update pressout_lable, gc_epol4 level set at the outflow)"
+ ]
+}
