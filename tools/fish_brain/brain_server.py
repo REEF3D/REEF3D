@@ -272,10 +272,10 @@ def rules(sv, st, pr):
         return {"f": f, "a": 0.5, "b": -2.5 * sg, "ts": 0.08,
                 "t2": t + 0.15, "f2": min(1.5 * f, fmx), "a2": 1.0, "b2": 0.0, "ts2": 0.2, "next": 0.4, "mode": 2}
 
-    # 2. avoidance: a turn to the free side, slower
+    # 2. avoidance: a turn to the free side, slower; the bias with the sign of the turn rate k
     if threat > 0.0:
         wv = min(1.0, threat / 0.25)
-        bt = (1.0 - wv) * bt + wv * side * bmax
+        bt = (1.0 - wv) * bt + wv * side * (1.0 if kturn >= 0.0 else -1.0) * bmax   # the sign of k (0034)
         ft = max(0.3 * f0, ft * (1.0 - 0.3 * wv))
         st["bdec"] = bt
         if wv > 0.2:

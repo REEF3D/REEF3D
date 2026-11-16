@@ -65,7 +65,8 @@ Architect: Hans Bihs
 //      a wall only within ~0.1 L, so th_esc ~ 1.5: a startle at contact or a strong stimulus. Not while
 //      the fish glides or brakes (the pressure of the bent body is far above that of a swimming turn)
 //   2. avoidance (D > 0): the threat w = (1 - d/D)^2 of the closest ray; a turn to the side with the
-//      longer rays (kept while the threat lasts), the bias blended from the target's to +-b_max with
+//      longer rays (kept while the threat lasts), the bias blended from the target's to +-b_max (with the
+//      sign of the turn rate k, so that a body that turns away from its bias also turns away) with
 //      min(1, w/0.25), the frequency times 1 - 0.3 min(1, w/0.25)
 //   3. the target (X 192 id t x y z, linear in t): the wanted velocity over the ground is U_des towards
 //      the target (slower within 1.5 L; beyond, U_des/cos of the angle between axis and target up to

@@ -481,11 +481,13 @@ sixdof_brain::decision sixdof_brain::decide(double t, double f, double a, double
         return d;
     }
 
-    // 2. avoidance: a turn to the free side, blended in with the threat, slower
+    // 2. avoidance: a turn to the free side, blended in with the threat, slower; the bias that turns the body to
+    // that side has the sign of its turn rate k (X 200; a body that turns away from its bias has k < 0, and
+    // before patch 0034 it turned into the obstacle)
     if(threat>0.0)
     {
         const double wv = std::min(1.0, threat/0.25);
-        bt = (1.0 - wv)*bt + wv*side*bmax_;
+        bt = (1.0 - wv)*bt + wv*side*(kturn_>=0.0 ? 1.0 : -1.0)*bmax_;
         ft = std::max(0.3*f0_, ft*(1.0 - 0.3*wv));
         bdec_ = bt;
 
