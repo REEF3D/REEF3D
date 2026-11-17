@@ -525,6 +525,7 @@ void control::ini_default()
 	B97=0;          // int NHFLOW numerical beach (B 99 1|2) relaxes to the inflow current (waves on a current)
 	B98=0;          // int type of wave generation
 	B99=0;			// int type of numerical beach
+	B100=0;         // int CFD relaxation wave generation (B 98 2): 0 wall at the inlet face as before; 1 the wave flux through the inlet face in the water, balanced by the air (net flux 0): no pressure of the order rho u L/dt at the inlet
 	B101=-1;       // int ramp function wave generation: 0 off, 1 over B102 wave periods, 2 over B102 s; not given (-1): FNPF (A 10 3) starting from rest (no I 12, I 30, I 40, I 45) with wave generation (B 90 > 0) ramps over B102 wave periods as 1, otherwise 0
 	B102=1.0;        // double factor ramp function wave generation
     B105=0;            // int wave generation origin changed

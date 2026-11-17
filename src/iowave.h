@@ -60,6 +60,7 @@ public:
 	void discharge(lexer*,fdm*,ghostcell*) override final;
 	void inflow(lexer*,fdm*,ghostcell*,field&,field&,field&) override final;
     void inflow_plain(lexer*,fdm*,ghostcell*,field&,field&,field&);
+    void relax_inlet_flux(lexer*,fdm*,ghostcell*,field&);
 	void rkinflow(lexer*,fdm*,ghostcell*,field&,field&,field&) override final;
 	void fsfrkin(lexer*,fdm*,ghostcell*,field&) override final;
 	void fsfrkout(lexer*,fdm*,ghostcell*,field&) override final;

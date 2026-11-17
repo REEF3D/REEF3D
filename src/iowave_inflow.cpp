@@ -26,6 +26,7 @@ Author: Hans Bihs
 #include"ghostcell.h"
 #include"turbulence.h"
 #include"patchBC_interface.h"
+#include<vector>
 
 void iowave::inflow(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v, field& w)
 {
@@ -35,6 +36,10 @@ void iowave::inflow(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v, field&
     inflow_plain(p,a,pgc,u,v,w);
 
     
+    // B 100 1: the relaxation method with the wave flux through the inlet face
+    if(p->B98==2 && p->B100==1 && p->W10<=0.0)
+    relax_inlet_flux(p,a,pgc,u);
+
 	if(p->B98==3)
 	dirichlet_wavegen(p,a,pgc,u,v,w);
 	
@@ -105,4 +110,69 @@ void iowave::flowfile(lexer *p, fdm* a, ghostcell* pgc, turbulence *pturb)
 {
     if(p->gcin_count>0 && p->I230>0)
     flowfile_start(p,a,pgc,pturb);
+}
+
+// B 100 1, relaxation wave generation (B 98 2): the inlet face is no wall.
+// With a wall there, the relaxed velocity of the first cells (the wave theory) has the divergence
+// u_wave/dx in the first column of cells, in every step again. The projection removes it with a
+// pressure of the order rho u_wave L/dt at the inlet (L about the water depth): this pressure
+// grows as the time step falls and is not part of the wave.
+// Here the inlet face in the water takes the velocity of the wave theory at the face (the same
+// Heaviside function as u_relax). The face in the air takes the uniform velocity that balances the
+// water flux, so that the net flux through the inlet is 0 in every step: the domain stays closed
+// for the projection (no reference pressure drift, no compression of the air with W 32).
+void iowave::relax_inlet_flux(lexer *p, fdm *a, ghostcell *pgc, field &u)
+{
+    const int nin = p->gcin_count;
+    std::vector<double> uw(nin,0.0), ha(nin,0.0);
+    double Qw=0.0, Aa=0.0;
+
+    for(n=0;n<nin;n++)
+    {
+    i=p->gcin[n][0];
+    j=p->gcin[n][1];
+    k=p->gcin[n][2];
+
+        phival = a->phi(i,j,k);
+
+        if(phival>=-psi)
+        H=1.0;
+
+        if(phival<-epsi)
+        H=0.0;
+
+        if(phival>=-epsi && phival<-psi)
+        H=0.5*(1.0 + phival/epsi + (1.0/PI)*sin((PI*phival)/epsi));
+
+        const double zloc = p->pos_z();
+        const double fsfloc = eta(i,j) + p->phimean;
+
+        z = (zloc<=fsfloc) ? zloc-p->phimean : eta(i,j);
+
+        double uwave = 0.0;
+        if(zloc<=fsfloc+epsi)
+        uwave = wave_u(p,pgc,xgen(p)-0.5*p->DXN[IP],ygen(p),z) + p->Ui;
+
+        const double dA = p->DYN[JP]*p->DZN[KP];
+
+        uw[n] = ramp(p)*uwave*H;
+        ha[n] = 1.0-H;
+
+        Qw += uw[n]*dA;
+        Aa += ha[n]*dA;
+    }
+
+    Qw = pgc->globalsum(Qw);
+    Aa = pgc->globalsum(Aa);
+
+    const double ua = Aa>1.0e-12 ? -Qw/Aa : 0.0;
+
+    for(n=0;n<nin;n++)
+    {
+    i=p->gcin[n][0];
+    j=p->gcin[n][1];
+    k=p->gcin[n][2];
+
+        u(i-1,j,k) = u(i-2,j,k) = u(i-3,j,k) = uw[n] + ha[n]*ua;
+    }
 }

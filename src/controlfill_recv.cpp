@@ -1109,6 +1109,8 @@ void control::ctrlrecv()
     ii++;
     B99 = ictrl[ii];
     ii++;
+    B100 = ictrl[ii];
+    ii++;
     B101 = ictrl[ii];
     ii++;
     B102 = dctrl[dd];
