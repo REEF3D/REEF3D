@@ -27,10 +27,12 @@ Author: Hans Bihs
 #include"fieldint5.h"
 #include"field5.h"
 #include"vtp3D.h"
+#include<memory>
 
 class lexer;
 class fdm;
 class ghostcell;
+class plic_distance;
 
 using namespace std;
 
@@ -60,6 +62,7 @@ private:
     double epsi;
 
     fieldint5 vertice, nodeflag;
+    std::shared_ptr<plic_distance> pplicd;  // VOF-PLIC (F 80 4): the surface of the PLIC planes
     field5 eta;
 
     void print(lexer*,fdm*);

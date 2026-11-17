@@ -291,6 +291,7 @@
           <File Name="freesurface.h"/>
           <VirtualDirectory Name="VOF PLIC">
             <File Name="VOF_void.h"/>
+            <File Name="plic_distance.h"/>
             <File Name="VOF_PLIC.h"/>
           </VirtualDirectory>
           <VirtualDirectory Name="VOF Algebraic"/>
@@ -2024,6 +2025,7 @@
             <File Name="VOF_PLIC_redistance_Bonn.cpp"/>
             <File Name="VOF_PLIC_reconstruction_alt.cpp"/>
             <File Name="VOF_PLIC_normalVector.cpp"/>
+            <File Name="plic_distance.cpp"/>
             <File Name="VOF_PLIC.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="VOF Algebraic"/>
