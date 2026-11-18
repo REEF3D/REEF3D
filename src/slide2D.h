@@ -117,6 +117,7 @@ private:
     slice4 FhY, FxY, FyLY, FyRY;     // y faces j+1/2
     slice4 hE, hW, zE, zW, hN, hS, zN, zS;     // reconstructed depth and bed at the faces of each cell
     slice4 lnew;
+    slice4 hstep;           // the slide depth at the start of the water step
     slice4 gr;              // the reduced gravity g' of the cells (the water state of the step)
 
     double g, rhos, rhow, r, Cd, dsub, cfl, hmin;

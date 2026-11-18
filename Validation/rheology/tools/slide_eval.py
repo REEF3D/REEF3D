@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # Architect: Hans Bihs
-"""Evaluation of the two-layer landslide cases (Validation/rheology 16-18), SFLOW slide layer W 150.
+"""Evaluation of the two-layer landslide cases (Validation/rheology 16-19), SFLOW slide layer W 150.
 
   slide_eval.py mangeney <run slide> <run single layer or -> <out dir>   16: slide alone, Coulomb dam break vs Mangeney et al. (2000)
   slide_eval.py arrest <run slide> <run single layer or -> <out dir>     16: slide alone, viscoplastic arrest vs h^2 profile

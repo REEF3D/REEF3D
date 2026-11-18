@@ -21,6 +21,7 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"sflow_momentum_SI.h"
+#include"slide2D.h"
 #include"sflow_drywall.h"
 #include"si_eta2D.h"
 #include"bc_zone.h"
@@ -1369,6 +1370,8 @@ void sflow_momentum_SI::stage_rhs(lexer *p, fdm2D *b, ghostcell *pgc, slice &UHs
     // sources and diffusion (as the explicit stage, without gravity and bed friction; the ship pressure X 10 3 with
     // the gravity term, si_assemble and cell_update)
     prheo->u_source(p,b,b->U,b->V,WL0);
+    if(b->slide!=nullptr)
+    b->slide->u_source(p,b,b->U,b->V,WL0);
     if(pmet!=nullptr)
     pmet->source_sflow(p,pgc,b->F,0,WL0,UHs,VHs);
     if(b->wave!=nullptr)
@@ -1383,6 +1386,8 @@ void sflow_momentum_SI::stage_rhs(lexer *p, fdm2D *b, ghostcell *pgc, slice &UHs
     if(p->j_dir==1)
     {
     prheo->v_source(p,b,b->U,b->V,WL0);
+    if(b->slide!=nullptr)
+    b->slide->v_source(p,b,b->U,b->V,WL0);
     if(pmet!=nullptr)
     pmet->source_sflow(p,pgc,b->G,1,WL0,UHs,VHs);
     if(b->wave!=nullptr)

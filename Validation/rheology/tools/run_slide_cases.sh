@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Architect: Hans Bihs
 # run_slide_cases.sh <REEF3D binary> <DiveMESH binary> <run dir> [out dir]
-# Runs the two-layer landslide cases 16-18 (SFLOW slide layer W 150) on both grids, with the single-layer
+# Runs the two-layer landslide cases 16-19 (SFLOW slide layer W 150) on both grids, with the single-layer
 # cases 01 and 02 for the comparison, and evaluates them with slide_eval.py (figures and JSON in <out dir>).
 set -euo pipefail
 BIN="$1"; DM="$2"; RUN="$3"; OUT="${4:-$RUN/results}"
@@ -63,6 +63,17 @@ run $C/18_slide_submarine/cases/slope35 slope35
 fine $C/18_slide_submarine/cases/dambreak $RUN/_c/dambreak_fine; run $RUN/_c/dambreak_fine dambreak_fine
 fine $C/18_slide_submarine/cases/slope35 $RUN/_c/slope35_fine;   run $RUN/_c/slope35_fine slope35_fine
 
+# 19: the same with the semi-implicit water (A 210 11)
+S=$C/19_slide_semi_implicit/cases
+run $S/rest si_rest "$MPI"
+run $S/subaerial si_subaerial "$MPI"
+run $S/dambreak si_dambreak
+run $S/slope35 si_slope35
+fine $S/rest $RUN/_c/si_rest_fine;           run $RUN/_c/si_rest_fine si_rest_fine "$MPI"
+fine $S/subaerial $RUN/_c/si_subaerial_fine; run $RUN/_c/si_subaerial_fine si_subaerial_fine "$MPI"
+fine $S/dambreak $RUN/_c/si_dambreak_fine;   run $RUN/_c/si_dambreak_fine si_dambreak_fine
+fine $S/slope35 $RUN/_c/si_slope35_fine;     run $RUN/_c/si_slope35_fine si_slope35_fine
+
 E="python3 $HERE/slide_eval.py"
 for g in "" _fine; do
     mkdir -p "$OUT/grid$g"
@@ -72,5 +83,10 @@ for g in "" _fine; do
     $E subaerial $RUN/subaerial$g  $OUT/grid$g > $OUT/grid$g/17_subaerial.json
     $E dambreak  $RUN/dambreak$g   $OUT/grid$g > $OUT/grid$g/18_dambreak.json
     $E slope35   $RUN/slope35$g    $OUT/grid$g > $OUT/grid$g/18_slope35.json
+    mkdir -p "$OUT/grid$g/19_si"
+    $E rest      $RUN/si_rest$g       $OUT/grid$g/19_si > $OUT/grid$g/19_si/17_rest.json
+    $E subaerial $RUN/si_subaerial$g  $OUT/grid$g/19_si > $OUT/grid$g/19_si/17_subaerial.json
+    $E dambreak  $RUN/si_dambreak$g   $OUT/grid$g/19_si > $OUT/grid$g/19_si/18_dambreak.json
+    $E slope35   $RUN/si_slope35$g    $OUT/grid$g/19_si > $OUT/grid$g/19_si/18_slope35.json
 done
 echo "results in $OUT"

@@ -33,7 +33,7 @@ Author: Hans Bihs
 slide2D::slide2D(lexer *p, fdm2D *b, ghostcell *pgc) : h(p), qx(p), qy(p), lambda(p), zb(p),
                                                     h0(p), qx0(p), qy0(p), h1(p), qx1(p), qy1(p), Rh(p), Rx(p), Ry(p),
                                                     FhX(p), FxLX(p), FxRX(p), FyX(p), FhY(p), FxY(p), FyLY(p), FyRY(p),
-                                                    hE(p), hW(p), zE(p), zW(p), hN(p), hS(p), zN(p), zS(p), lnew(p), gr(p)
+                                                    hE(p), hW(p), zE(p), zW(p), hN(p), hS(p), zN(p), zS(p), lnew(p), gr(p), hstep(p)
 {
     using namespace rheo;
 
@@ -178,10 +178,14 @@ void slide2D::start(lexer *p, fdm2D *b, ghostcell *pgc)
     }
 
     const double dts = p->dt/double(nsub);
-    // the reduced gravity with the water state of the end of the water step, ghost cells included
+    // the reduced gravity with the water state of the end of the water step, ghost cells included; the slide depth of
+    // the start of the step (the water surface over the sub-steps, sources)
     for(i=-1; i<=p->knox; ++i)
     for(j=-1; j<=p->knoy; ++j)
+    {
     gr(i,j) = gred(p,b,i,j);
+    hstep(i,j) = h(i,j);
+    }
 
     for(int s=0; s<nsub; ++s)
     {

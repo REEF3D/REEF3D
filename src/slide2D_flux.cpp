@@ -352,6 +352,8 @@ void slide2D::flux_y(lexer *p, slice &H, slice &QX, slice &QY)
 
 void slide2D::sources(lexer *p, fdm2D *b, slice &H, slice &QX, slice &QY)
 {
+    auto etaw = [&](int ii, int jj){ return b->eta(ii,jj) + H(ii,jj) - hstep(ii,jj); };
+
     auto wet = [p,b](int ii, int jj){ return p->wet[(ii-p->imin)*p->jmax + (jj-p->jmin)]==1 && b->WL(ii,jj)>p->A244
                                           && p->flagslice4[(ii-p->imin)*p->jmax + (jj-p->jmin)]>0; };
 
@@ -366,34 +368,37 @@ void slide2D::sources(lexer *p, fdm2D *b, slice &H, slice &QX, slice &QY)
         Rx(i,j) += p->W20*hh;
         Ry(i,j) += p->W21*hh*p->y_dir;
 
-        // the water pressure on the slide surface: - r sub g h grad(eta_w); one-sided next to dry cells
+        // the water pressure on the slide surface: - r sub g h grad(eta_w); one-sided next to dry cells. The water column
+        // is held over the sub-steps (the water moves in its own step): eta_w = eta^n + h_s - h_s^n, so a slide that thickens
+        // lifts the water above it within the step (otherwise the frozen surface slope drove a two-layer mode unstable in
+        // the long semi-implicit steps)
         const double sb = sub_cell(p,b,i,j);
 
         if(sb<=0.0)
         continue;
 
-        const double ec = b->eta(i,j);
+        const double ec = etaw(i,j);
         double gx = 0.0, gy = 0.0;
 
         const bool we = wet(i+1,j), ww = wet(i-1,j);
 
         if(we && ww)
-        gx = (b->eta(i+1,j) - b->eta(i-1,j))/(p->DXP[IP] + p->DXP[IM1]);
+        gx = (etaw(i+1,j) - etaw(i-1,j))/(p->DXP[IP] + p->DXP[IM1]);
         else if(we)
-        gx = (b->eta(i+1,j) - ec)/p->DXP[IP];
+        gx = (etaw(i+1,j) - ec)/p->DXP[IP];
         else if(ww)
-        gx = (ec - b->eta(i-1,j))/p->DXP[IM1];
+        gx = (ec - etaw(i-1,j))/p->DXP[IM1];
 
         if(p->j_dir==1)
         {
         const bool wn = wet(i,j+1), ws = wet(i,j-1);
 
         if(wn && ws)
-        gy = (b->eta(i,j+1) - b->eta(i,j-1))/(p->DYP[JP] + p->DYP[JM1]);
+        gy = (etaw(i,j+1) - etaw(i,j-1))/(p->DYP[JP] + p->DYP[JM1]);
         else if(wn)
-        gy = (b->eta(i,j+1) - ec)/p->DYP[JP];
+        gy = (etaw(i,j+1) - ec)/p->DYP[JP];
         else if(ws)
-        gy = (ec - b->eta(i,j-1))/p->DYP[JM1];
+        gy = (ec - etaw(i,j-1))/p->DYP[JM1];
         }
 
         Rx(i,j) -= r*sb*g*hh*gx;

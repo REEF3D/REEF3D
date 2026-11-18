@@ -265,16 +265,15 @@ void sflow_f::logic(lexer *p, fdm2D* b, ghostcell* pgc)
     if(p->G1>0 && !amr_given && p->geo_mb==0 && p->mpirank==0)
     cout<<"SFLOW AMR (G 1): no refinement box (G 10), flag (G 20-23) or body zone (G 12) given -- refinement switched off"<<endl;
     
-    // two-layer landslide (W 150, slide2D): the explicit HLL integrators (A 210 2/3) on one Cartesian grid
+    // two-layer landslide (W 150, slide2D): the explicit HLL (A 210 2/3) and the semi-implicit (A 210 11/12/13)
+    // water on one Cartesian grid; the semi-implicit step keeps the water column of the end of the step before
+    // (si_restore) and takes the moved bed through depth_update, as with sediment
     if(p->W150>0)
     {
         string why;
 
         if(p->S10>0)
         why = "sediment transport (S 10): both move the bed";
-
-        if(p->A226==1)
-        why = "the semi-implicit free surface (A 210 11/12/13) does not move the bed yet";
 
         if(p->geo_curv==1)
         why = "curvilinear grids (G 50)";

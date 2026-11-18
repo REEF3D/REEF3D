@@ -1,13 +1,13 @@
 # Rheology validation (rheology core: SFLOW W 120, CFD W 130)
 
-These cases check the rheology core (`src/rheology_core.{h,cpp}`), its two adapters and the two-layer slide layer (cases 16-18, below):
+These cases check the rheology core (`src/rheology_core.{h,cpp}`), its two adapters and the two-layer slide layer (cases 16-19, below):
 
 - SFLOW (`src/sflow_rheology_core.{h,cpp}`, W 120 - W 129), cases 01-05 (explicit) and 10 (semi-implicit). They compare against analytical solutions, an ODE reference with the same closure, and the Carbopol experiments of Cochard & Ancey (2009).
 - CFD (`src/rheology_cfd_core.{h,cpp}`, W 130 - W 134), cases 06-09; the dynamic form of the momentum diffusion (D 24), case 11; the three-phase slide model (`src/rheology_cfd_3phase.{h,cpp}`, W 140 - W 149), cases 12-15. They compare against exact steady film profiles, the runout of granular column collapses, the arrested viscoplastic deposit of case 02, and (09, Newtonian) the viscous gravity current of Huppert (1982), which checks the no-slip wall.
 
 All cases write the LAGOON store and the VTU/VTP files (`P 18 2`); the evaluation scripts read the VTU/VTP files.
 
-- **Repo:** REEF3D `hans_dev` (SFLOW cases: 1e67465d + the rheology core patch; CFD cases: 9e2e40abe + both rheology patches; slide cases 16-18 and the reruns of 01, 02: 360cc5e9e + the slide-layer patch), DIVEMesh `hans_dev` 2ee2a7e.
+- **Repo:** REEF3D `hans_dev` (SFLOW cases: 1e67465d + the rheology core patch; CFD cases: 9e2e40abe + both rheology patches; slide cases 16-19 and the reruns of 01, 02: 360cc5e9e + the slide-layer patch), DIVEMesh `hans_dev` 2ee2a7e.
 - **Build:** Linux sandbox, g++ 13, `make release LTO=0` (`-O3 -march=native`), no HYPRE, Open MPI.
 - **Unit test of the core:** `Regression/unit/rheology_core_test.cpp`. All checks pass.
 
@@ -641,7 +641,7 @@ With `D 22 1` the bed acts as free slip, so the current runs off like an invisci
 
 ![](26_gjerdrum_2020/results/26_series_maps.png)
 
-## Two-layer landslide: slide layer under the SFLOW water (W 150), cases 16-18
+## Two-layer landslide: slide layer under the SFLOW water (W 150), cases 16-19
 
 A depth-averaged slide layer (h_s, h_s u_s) under the water (`src/slide2D.{h,cpp}`, `src/slide2D_flux.cpp`). The water
 is the SFLOW water and sees the bed z_b + h_s; the slide sees the water pressure and the drag of the water.
@@ -662,10 +662,17 @@ is the SFLOW water and sees the bed z_b + h_s; the slide sees the water pressure
   inside the water step (the water step from SFLOW, at most W 159 slide steps per water step). No transport across a face
   between two cells at rest (held by the friction or dry): the HLL dissipation moved material out of a deposit at rest
   (the front of 16 arrest crept to 1.60 m instead of 1.46 m). Walls at the domain boundaries and solids.
+- **Water surface over the sub-steps:** the water column is held (the water moves in its own step), so the surface seen by
+  the slide is η_w = η^n + h_s − h_s^n: a slide that thickens lifts the water above it within the step. With the surface
+  itself frozen over the step, the long semi-implicit steps (19 dambreak, 25 slide steps per water step) drove a grid-scale
+  two-layer mode unstable (L1 7 % at 4 s on the fine grid, growing); the explicit results change by less than 0.1 % L1.
 - **Order per water step:** the water step with the bed of t^n (and the drag on the water with the slide of t^n), then the
   slide over the step with the water of t^{n+1} (η, h_w, u_w), then the bed z_b + h_s(t^{n+1}) and depth_update.
-- **Available with:** the explicit HLL water (A 210 2/3), hydrostatic (A 220 0), one Cartesian grid, 1D and 2D, MPI.
-  It stops with a message with S 10, A 210 11/12/13, curvilinear, refined and multi-block grids and A 220 > 0 (see below).
+- **Available with:** the explicit HLL water (A 210 2/3) and the semi-implicit water (A 210 11/12/13, case 19), hydrostatic
+  (A 220 0), one Cartesian grid, 1D and 2D, MPI. The semi-implicit step keeps the water column of the end of the step before
+  (`si_restore`) and takes the moved bed through `depth_update`, as with sediment; the drag on the water enters with the
+  other sources of its stage. It stops with a message with S 10, curvilinear, refined and multi-block grids and A 220 > 0
+  (see below).
 - **Output:** `slide_h`, `slide_velocity`, `slide_lambda` in the SFLOW FSF VTP / LAGOON store (P 18); the bed VTP shows
   z_b + h_s; the log `REEF3D_SFLOW_Log/REEF3D_SFLOW_slide.dat` (time, dt, sub-steps, volumes of slide and water, h_max, |u|_max, extent);
   the slide state is in the checkpoints (P 48).
@@ -729,12 +736,12 @@ Basin 20 m × 4 m, flat bed with a 1:4 slope from x = 12 m and a wedge across y 
 
 | | dx 10 cm (8000 cells) | dx 5 cm (32 000 cells) |
 |---|---|---|
-| rest: max \|u\| water / slide | 4.9e-6 / 1.2e-7 m/s | 5.5e-5 / 1.1e-6 m/s |
+| rest: max \|u\| water / slide | 4.8e-6 / 1.1e-7 m/s | 5.5e-5 / 1.1e-6 m/s |
 | rest: max \|η − η0\| | 6.0e-8 m | 4.6e-7 m |
 | rest: volume error slide / water | 3e-14 / 0 | 4e-14 / 0 |
 | subaerial: volume error slide / water | 9e-15 / 1.4e-5 | 3e-14 / 1.3e-5 |
-| subaerial: η max / min, slide max \|u\| | 0.31 / −0.12 m, 2.11 m/s | 0.33 / −0.13 m, 2.23 m/s |
-| run time rest / subaerial | 25 / 23 s | 191 / 185 s |
+| subaerial: η max / min, slide max \|u\| | 0.31 / −0.12 m, 2.11 m/s | 0.33 / −0.13 m, 2.22 m/s |
+| run time rest / subaerial | 25 / 23 s | 184 / 167 s |
 
 - **rest:** the water velocities are those of SFLOW alone over the same bed (no slide layer, dx 10 cm: 4.4e-6 m/s, η 5.8e-8 m):
   the spurious velocities of the shorelines on the slope. The slide picks up 1e-7 m/s from them; no friction holds it.
@@ -758,13 +765,13 @@ Basin 20 m × 4 m, flat bed with a 1:4 slope from x = 12 m and a wedge across y 
 
 | | dx 5 cm / 2.5 mm | dx 2.5 cm / 1.25 mm |
 |---|---|---|
-| dambreak: L1(h) against Ritter at 1 / 2 / 3 / 4 s | 1.0 / 0.46 / 0.36 / 0.33 % | 0.50 / 0.32 / 0.30 / 0.30 % |
-| dambreak: front h > 1 mm at 4 s (Ritter 27.74 m) | 25.60 m | 25.90 m |
+| dambreak: L1(h) against Ritter at 1 / 2 / 3 / 4 s | 1.1 / 0.50 / 0.36 / 0.33 % | 0.55 / 0.33 / 0.30 / 0.30 % |
+| dambreak: front h > 1 mm at 4 s (Ritter 27.74 m) | 25.55 m | 25.88 m |
 | dambreak: volume error slide / water | 4e-15 / 0 | 5e-15 / 0 |
-| slope35: gauge max (cm) x = 1 / 2 / 3 / 4 m | 0.63 / 0.65 / 0.66 / 0.66 | 0.66 / 0.68 / 0.65 / 0.66 |
+| slope35: gauge max (cm) x = 1 / 2 / 3 / 4 m | 0.63 / 0.63 / 0.65 / 0.65 | 0.65 / 0.67 / 0.65 / 0.66 |
 | slope35: gauge min (cm) | −0.42 / −0.41 / −0.41 / −0.41 | −0.43 / −0.41 / −0.41 / −0.42 |
 | slope35: runout, slide max \|u\| | 1.29 m, 1.26 m/s | 1.29 m, 1.28 m/s |
-| run time dambreak / slope35 | 7 / 13 s | 29 / 51 s |
+| run time dambreak / slope35 | 7 / 11 s | 28 / 48 s |
 
 - **dambreak:** the slide follows the reduced-gravity solution to 0.3 %; the thin tail lags as in 01 (wet/dry front). The water
   above moves the surface by ±1.3 cm (the volume the slide shifts, carried away at √(g h_w)); the residual
@@ -774,6 +781,36 @@ Basin 20 m × 4 m, flat bed with a 1:4 slope from x = 12 m and a wedge across y 
 
 ![](18_slide_submarine/results/18_dambreak.png)
 ![](18_slide_submarine/results/18_slope35.png)
+
+### 19 Semi-implicit water (A 210 11): the cases 17 and 18 again
+
+The controls of 17 and 18 with `A 210 11` (one-step predictor, θ 0.55, N 47 0.5 by default) and `A 232` about 1 % of the
+water depth (1 cm, 18 dambreak 5 cm, 18 slope35 3 mm). The slide sub-steps (W 159 100) carry the slide CFL; the water step
+is that of the semi-implicit SFLOW. Figures in the results folder of `run_slide_cases.sh` (`grid*/19_si`).
+
+| | explicit (17, 18) | semi-implicit, dx as 17/18 | semi-implicit, fine |
+|---|---|---|---|
+| water steps rest / subaerial / dambreak / slope35 | 2622 / 2473 / 2804 / 4623 | 263 / 487 / 114 / 908 | 525 / 1103 / 226 / 1816 |
+| run time rest / subaerial / dambreak / slope35 | 25 / 23 / 6.9 / 11 s | 2.8 / 3.9 / 0.4 / 2.3 s | 25 / 32 / 1.5 / 8.6 s |
+| rest: max \|u\| water / slide, max \|η − η0\| | 4.8e-6 / 1.1e-7 m/s, 6e-8 m | 3e-16 / 2e-15 m/s, 2e-16 m | 2e-15 / 3e-15 m/s, 2e-16 m |
+| subaerial: η max / min, slide max \|u\| | 0.31 / −0.12 m, 2.11 m/s | 0.34 / −0.12 m, 2.10 m/s | 0.34 / −0.13 m, 2.21 m/s |
+| subaerial: water volume | 9e-7 (wet/dry film) | 2e-10 | 0 |
+| dambreak: L1(h) against Ritter at 1 / 2 / 3 / 4 s | 1.1 / 0.50 / 0.36 / 0.33 % | 1.5 / 0.70 / 0.47 / 0.38 % | 0.78 / 0.41 / 0.33 / 0.31 % |
+| slope35: gauge max (cm) x = 1 / 2 / 3 / 4 m | 0.63 / 0.63 / 0.65 / 0.65 | 0.62 / 0.60 / 0.58 / 0.56 | 0.64 / 0.62 / 0.61 / 0.59 |
+| slope35: runout | 1.29 m | 1.29 m | 1.29 m |
+
+- **Volumes and rest:** the slide to 1e-14; the water exact (no wet/dry film losses: the semi-implicit step keeps the
+  water column); the lake at rest over the slide at rest stays at rest to round-off, better than the explicit HLL.
+- **Steps:** 5-25 times fewer water steps; the slide keeps its own CFL (up to 4 sub-steps per water step here, 25 in
+  dambreak).
+- **Waves:** the semi-implicit step damps the short leading crests of slope35 with distance (θ = 0.55 at gravity Courant
+  numbers of 5-10: 0.56 against 0.65 cm at 4 m); the subaerial impact wave is 10 % higher than explicit on both grids.
+  For the wave field near the slide the explicit step stays the reference; for long runs (fjords, deposits) the
+  semi-implicit one.
+
+![](19_slide_semi_implicit/results/19_si_dambreak.png)
+![](19_slide_semi_implicit/results/19_si_slope35.png)
+![](19_slide_semi_implicit/results/19_si_subaerial.png)
 
 ## Not covered yet
 
@@ -798,5 +835,5 @@ Basin 20 m × 4 m, flat bed with a 1:4 slope from x = 12 m and a wedge across y 
     pressure smoothed (4-64 passes), w_b = ∂z_b/∂t + u·∇z_b and the bed acceleration in the constraint, the slide step
     before the water step, the non-hydrostatic bottom pressure in the force on the slide. Needs the bed change handed to
     the surface filtered over the water depth (Kajiura) or the bed velocity in a coupled step.
-- Slide layer (W 150): the semi-implicit water (A 210 11/12/13, stage 4.2), NHFLOW (stage 4.3), sediment (S 10) together
-  with the slide, curvilinear and refined grids; the dilatancy source of the pore pressure.
+- Slide layer (W 150): NHFLOW (stage 4.3), sediment (S 10) together with the slide, curvilinear and refined grids; the
+  dilatancy source of the pore pressure.
