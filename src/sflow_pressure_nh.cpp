@@ -49,6 +49,26 @@ int sflow_pressure_nh::active(lexer *p, fdm2D *b)
     if(p->j_dir==1 && (p->wet[IJm1]==0 || p->wet[IJp1]==0))
     return sflow_drywall::cliff(p,b->eta,b->depth,i,j) ? 1 : 0;
     
+    // the slide layer (W 150): hydrostatic next to a bed steeper than 1:2 (26.6 degrees); the bed terms of the
+    // quadratic pressure are unstable over a step (the front of the slide) and grew over the 35 degree slope of
+    // case 28 (NTHMP benchmark 4) after the slide had passed
+    if(p->W150>0)
+    {
+        const double sl = 0.5;
+        
+        if(p->flagslice4[Ip1J]>0 && fabs(b->depth(i+1,j)-b->depth(i,j))>sl*p->DXP[IP])
+        return 0;
+        
+        if(p->flagslice4[Im1J]>0 && fabs(b->depth(i,j)-b->depth(i-1,j))>sl*p->DXP[IM1])
+        return 0;
+        
+        if(p->j_dir==1 && p->flagslice4[IJp1]>0 && fabs(b->depth(i,j+1)-b->depth(i,j))>sl*p->DYP[JP])
+        return 0;
+        
+        if(p->j_dir==1 && p->flagslice4[IJm1]>0 && fabs(b->depth(i,j)-b->depth(i,j-1))>sl*p->DYP[JM1])
+        return 0;
+    }
+    
     return 1;
 }
 

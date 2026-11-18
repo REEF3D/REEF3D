@@ -2,7 +2,8 @@
 # Architect: Hans Bihs
 # run_slide_cases.sh <REEF3D binary> <DiveMESH binary> <run dir> [out dir]
 # Runs the two-layer landslide cases 16-19 (SFLOW slide layer W 150) on both grids, with the single-layer
-# cases 01 and 02 for the comparison, and evaluates them with slide_eval.py (figures and JSON in <out dir>).
+# cases 01 and 02 for the comparison, and evaluates them with slide_eval.py (figures and JSON in <out dir>);
+# then 18 with the non-hydrostatic water and case 28 (NTHMP benchmark 4) against the measurements (bm4_eval.py).
 set -euo pipefail
 BIN="$1"; DM="$2"; RUN="$3"; OUT="${4:-$RUN/results}"
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"; V="$(cd "$HERE/.." && pwd)"
@@ -74,6 +75,15 @@ fine $S/subaerial $RUN/_c/si_subaerial_fine; run $RUN/_c/si_subaerial_fine si_su
 fine $S/dambreak $RUN/_c/si_dambreak_fine;   run $RUN/_c/si_dambreak_fine si_dambreak_fine
 fine $S/slope35 $RUN/_c/si_slope35_fine;     run $RUN/_c/si_slope35_fine si_slope35_fine
 
+# 18 with the non-hydrostatic water (A 220 2, W 162), one grid
+run $C/18_slide_submarine/cases/dambreak_nh nh_dambreak
+run $C/18_slide_submarine/cases/slope35_nh nh_slope35
+
+# 28: NTHMP benchmark 4, and the non-hydrostatic case on the fine grid
+B4=$C/28_slide_nthmp_bm4/cases
+for c in hydro si nh nh_w128; do run $B4/$c bm4_$c; done
+fine $B4/nh $RUN/_c/bm4_nh_fine; run $RUN/_c/bm4_nh_fine bm4_nh_fine
+
 E="python3 $HERE/slide_eval.py"
 for g in "" _fine; do
     mkdir -p "$OUT/grid$g"
@@ -89,4 +99,11 @@ for g in "" _fine; do
     $E dambreak  $RUN/si_dambreak$g   $OUT/grid$g/19_si > $OUT/grid$g/19_si/18_dambreak.json
     $E slope35   $RUN/si_slope35$g    $OUT/grid$g/19_si > $OUT/grid$g/19_si/18_slope35.json
 done
+mkdir -p "$OUT/nh" "$OUT/28" "$OUT/28_grid"
+$E dambreak  $RUN/nh_dambreak  $OUT/nh > $OUT/nh/18_dambreak.json
+$E slope35   $RUN/nh_slope35   $OUT/nh > $OUT/nh/18_slope35.json
+M=$C/28_slide_nthmp_bm4/test17_48-68s.txt
+python3 $HERE/bm4_eval.py $M $OUT/28 hydrostatic=$RUN/bm4_hydro semi-implicit=$RUN/bm4_si "NH, W 162 0.02"=$RUN/bm4_nh \
+        "NH, W 162 0.02, W 128 1"=$RUN/bm4_nh_w128 > $OUT/28/28_bm4.json
+python3 $HERE/bm4_eval.py $M $OUT/28_grid "NH dx 5 mm"=$RUN/bm4_nh "NH dx 2.5 mm"=$RUN/bm4_nh_fine > $OUT/28_grid/28_bm4.json
 echo "results in $OUT"

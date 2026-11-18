@@ -281,10 +281,12 @@ void sflow_f::logic(lexer *p, fdm2D* b, ghostcell* pgc)
         if(pamr!=nullptr || p->geo_mb>0)
         why = "mesh refinement and multi-block grids (G 1, G 50 1)";
 
-        // the non-hydrostatic pressures and Boussinesq take the bed curvature of the steep slide front and blew
-        // up within the first second even over a flat bed (with and without dz_b/dt in the bed condition)
-        if(p->A220>0)
-        why = "the non-hydrostatic pressure or Boussinesq (A 220 "+to_string(p->A220)+"): hydrostatic water only (A 220 0) for now";
+        // the quadratic non-hydrostatic pressure (A 220 2) takes the moving bed in its bed condition; the others not
+        if(p->A220>0 && p->A220!=2)
+        why = "the non-hydrostatic pressure or Boussinesq A 220 "+to_string(p->A220)+": A 220 0 or 2";
+        
+        if(p->A220==2 && p->A226==1)
+        why = "the non-hydrostatic pressure A 220 2 and the semi-implicit water A 210 "+to_string(10+p->A210)+" together (not tested)";
 
         if(!why.empty())
         {

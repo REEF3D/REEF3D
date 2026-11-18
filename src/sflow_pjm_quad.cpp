@@ -34,6 +34,7 @@ Author: Hans Bihs
 #include"patchBC_interface.h"
 #include"sflow_amr.h"
 #include"sflow_curv.h"
+#include"slide2D.h"
 
 #define HP (WL(i,j)>1.0e-20?WL(i,j):1.0e20)
 
@@ -360,8 +361,11 @@ void sflow_pjm_quad::rhs(lexer *p, fdm2D* b, slice &WL, double alpha)
         dddx = (nbx(p,b->depth,1) - nbx(p,b->depth,-1))/dx;
         dddy = ysk ? 0.0 : (nby(p,b->depth,1) - nby(p,b->depth,-1))/dy*p->y_dir;
         
+        // the moving bed of the slide layer (W 150): w_b = dz_b/dt - u.grad(d)
+        const double wbt = b->slide!=nullptr ? b->slide->wb(i,j) : 0.0;
+        
         b->rhsvec.V[n] = -(WL(i,j)*(dudx + dvdy) 
-                          + 2.0*(b->W(i,j) + b->U(i,j)*dddx + b->V(i,j)*dddy))/(alpha*p->dt)
+                          + 2.0*(b->W(i,j) + b->U(i,j)*dddx + b->V(i,j)*dddy - wbt))/(alpha*p->dt)
                          - 0.5*phi(i,j);
         }
     ++n;

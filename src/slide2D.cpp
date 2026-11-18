@@ -26,6 +26,7 @@ Author: Hans Bihs
 #include"fdm2D.h"
 #include"ghostcell.h"
 #include"gcsl_yskip.h"
+#include"sflow_bicgstab.h"
 #include<cmath>
 #include<iomanip>
 #include<sys/stat.h>
@@ -34,7 +35,7 @@ Author: Hans Bihs
 slide2D::slide2D(lexer *p, fdm2D *b, ghostcell *pgc) : h(p), qx(p), qy(p), lambda(p), zb(p),
                                                     h0(p), qx0(p), qy0(p), h1(p), qx1(p), qy1(p), Rh(p), Rx(p), Ry(p),
                                                     FhX(p), FxLX(p), FxRX(p), FyX(p), FhY(p), FxY(p), FyLY(p), FyRY(p),
-                                                    hE(p), hW(p), zE(p), zW(p), hN(p), hS(p), zN(p), zS(p), lnew(p), gr(p), hstep(p)
+                                                    hE(p), hW(p), zE(p), zW(p), hN(p), hS(p), zN(p), zS(p), lnew(p), gr(p), hstep(p), hf(p), dfil(p), wb(p)
 {
     using namespace rheo;
 
@@ -156,6 +157,23 @@ void slide2D::ini(lexer *p, fdm2D *b, ghostcell *pgc)
     pgc->gcsl_start4(p,zb,50);
     ghosts(p,pgc,h,qx,qy);
     pgc->gcsl_start4(p,lambda,50);
+
+    // W 162: the diffusivity of the filtered transfer from the still water depth over the bed
+    if(p->W162>0.0)
+    {
+        // the still water level: F 60 (F 62); p->wd is set later (sflow_f::ini_fsf)
+        const double wl = p->F60>-1.0e19 ? p->F60 : (p->F62>-1.0e19 ? p->F62 : p->wd);
+        
+        SLICELOOP4
+        {
+        const double d = MAX(wl - zb(i,j), 0.0);
+        dfil(i,j) = p->W162*d*d;
+        hf(i,j) = h(i,j);
+        }
+        
+        pgc->gcsl_start4(p,dfil,50);
+        pfilt = new sflow_bicgstab(p,pgc);
+    }
 
     bed_update(p,b,pgc);
 
@@ -342,10 +360,67 @@ void slide2D::ghosts(lexer *p, ghostcell *pgc, slice &H, slice &QX, slice &QY)
 
 void slide2D::bed_update(lexer *p, fdm2D *b, ghostcell *pgc)
 {
+    // the bed of the step before: wb for the bed condition of the non-hydrostatic water
+    SLICELOOP4
+    wb(i,j) = b->bed(i,j);
+    
+    if(p->W162>0.0)
+    {
+        filter(p,b,pgc);
+        
+        SLICELOOP4
+        b->bed(i,j) = zb(i,j) + hf(i,j);
+    }
+    
+    else
     SLICELOOP4
     b->bed(i,j) = zb(i,j) + h(i,j);
+    
+    SLICELOOP4
+    wb(i,j) = p->dt>0.0 && p->count>0 ? (b->bed(i,j) - wb(i,j))/p->dt : 0.0;
 
     pgc->gcsl_start4(p,b->bed,50);
+}
+
+// W 162: h_f - div(D grad h_f) = h, D at the faces the smaller of the two cells (no filter across a shoreline),
+// no flux through walls and the outer boundaries; conservative (the faces are symmetric)
+void slide2D::filter(lexer *p, fdm2D *b, ghostcell *pgc)
+{
+    int n=0;
+    
+    SLICELOOP4
+    {
+        const double ce = p->flagslice4[Ip1J]>0 ? MIN(dfil(i,j),dfil(i+1,j))/(p->DXP[IP]*p->DXN[IP]) : 0.0;
+        const double cw = p->flagslice4[Im1J]>0 ? MIN(dfil(i,j),dfil(i-1,j))/(p->DXP[IM1]*p->DXN[IP]) : 0.0;
+        const double cn = p->y_dir==1 && p->flagslice4[IJp1]>0 ? MIN(dfil(i,j),dfil(i,j+1))/(p->DYP[JP]*p->DYN[JP]) : 0.0;
+        const double cs = p->y_dir==1 && p->flagslice4[IJm1]>0 ? MIN(dfil(i,j),dfil(i,j-1))/(p->DYP[JM1]*p->DYN[JP]) : 0.0;
+        
+        b->M.p[n] = 1.0 + ce + cw + cn + cs;
+        b->M.n[n] = -ce;
+        b->M.s[n] = -cw;
+        b->M.w[n] = -cn;
+        b->M.e[n] = -cs;
+        b->rhsvec.V[n] = h(i,j);
+        ++n;
+    }
+    
+    // the filter is stiff in deep water (D/dx^2 up to 1e5): more iterations than the pressure (N 46), from the
+    // filtered slide of the step before
+    const int it = p->solveriter;
+    const int n46 = p->N46;
+    p->N46 = MAX(n46,20000);
+    pfilt->start(p,pgc,hf,b->M,b->xvec,b->rhsvec,4);
+    
+    if(p->solveriter>=p->N46 && p->mpirank==0)
+    cout<<"SFLOW slide layer W 162: the filter did not converge in "<<p->N46<<" iterations"<<endl;
+    
+    p->N46 = n46;
+    p->solveriter = it;
+    
+    SLICELOOP4
+    hf(i,j) = MAX(hf(i,j),0.0);
+    
+    pgc->gcsl_start4(p,hf,50);
 }
 
 // ---------------------------------------------------------------------------------------------

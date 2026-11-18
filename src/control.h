@@ -698,7 +698,7 @@ public:
     double *W151_xs,*W151_xe,*W151_ys,*W151_ye,*W151_z;
     double *W152_xs,*W152_xe,*W152_ys,*W152_ye,*W152_d;
     double *W153_xc,*W153_yc,*W153_Lx,*W153_Ly,*W153_T;
-    double W154,W155,W156,W157,W158,W160_u,W160_v;
+    double W154,W155,W156,W157,W158,W160_u,W160_v,W162;
     // atmospheric forcing (met_provider, met_forcing)
     int W200,W205,W207,W208,W210,W211,W215,W218,W219,W220_n,W220_v,W222,W223,W225,W226,W227,W229;
     double W201_u,W201_dir,W202,W203,W204,W205_lon,W205_lat,W205_rot,W206_x,W206_y,W209,W212,W213,W214,W216,W217,W228;

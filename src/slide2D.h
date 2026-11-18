@@ -34,6 +34,7 @@ class lexer;
 class fdm2D;
 class ghostcell;
 class slice;
+class solver2D;
 
 // Two-layer landslide model (W 150 1): a depth-averaged slide layer (h_s, h_s u_s) under the SFLOW water.
 //
@@ -46,6 +47,9 @@ class slice;
 // - interface drag tau_i = rho_w C_d |u_w - u_s| (u_w - u_s) (W 155), equal and opposite in the water
 // - the water sees the bed z_b + h: b->bed, then sflow_eta::depth_update keeps the water column WL and moves the
 //   surface with the bed (the water volume is unchanged by the moving bed)
+// - W 162 a > 0: the water sees z_b + h_f instead, h_f - div(D grad h_f) = h, D = a d^2 (d the still water depth
+//   over z_b, F 60): a conservative low-pass filter of the slide under the water, response 1/(1 + a (k d)^2) against
+//   1/cosh(k d) of the potential-flow transfer (Kajiura 1963; a = 0.5 matches for small k d); no filter where dry
 //
 // Numerics: finite volumes on the SFLOW slice, MUSCL (minmod) with the hydrostatic reconstruction of Audusse et
 // al. (2004), HLL fluxes, SSP-RK2 sub-steps with their own CFL (W 157) inside the water step; friction and
@@ -86,6 +90,7 @@ public:
     slice4 h, qx, qy;       // the slide depth and discharges
     slice4 lambda;          // basal pore pressure ratio
     slice4 zb;              // the bed under the slide
+    slice4 wb;              // the velocity of the bed seen by the water, (bed^{n+1} - bed^n)/dt (non-hydrostatic water)
 
 private:
     void ghosts(lexer*, ghostcell*, slice&, slice&, slice&);
@@ -119,6 +124,10 @@ private:
     slice4 lnew;
     slice4 hstep;           // the slide depth at the start of the water step
     slice4 gr;              // the reduced gravity g' of the cells (the water state of the step)
+    slice4 hf, dfil;        // W 162: the filtered slide seen by the water, the filter diffusivity
+    solver2D *pfilt=nullptr;
+
+    void filter(lexer*, fdm2D*, ghostcell*);
 
     double g, rhos, rhow, r, Cd, dsub, cfl, hmin;
     int nsub, nsub_max;

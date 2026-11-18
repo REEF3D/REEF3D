@@ -643,7 +643,7 @@ With `D 22 1` the bed acts as free slip, so the current runs off like an invisci
 
 ![](26_gjerdrum_2020/results/26_series_maps.png)
 
-## Two-layer landslide: slide layer under the SFLOW water (W 150), cases 16-19
+## Two-layer landslide: slide layer under the SFLOW water (W 150), cases 16-19 and 28
 
 A depth-averaged slide layer (h_s, h_s u_s) under the water (`src/slide2D.{h,cpp}`, `src/slide2D_flux.cpp`). The water
 is the SFLOW water and sees the bed z_b + h_s; the slide sees the water pressure and the drag of the water.
@@ -670,11 +670,21 @@ is the SFLOW water and sees the bed z_b + h_s; the slide sees the water pressure
   two-layer mode unstable (L1 7 % at 4 s on the fine grid, growing); the explicit results change by less than 0.1 % L1.
 - **Order per water step:** the water step with the bed of t^n (and the drag on the water with the slide of t^n), then the
   slide over the step with the water of t^{n+1} (η, h_w, u_w), then the bed z_b + h_s(t^{n+1}) and depth_update.
+- **Filtered transfer (W 162 a > 0):** the water sees z_b + h_f instead of z_b + h_s, with h_f − ∇·(D∇h_f) = h_s and
+  D = a d² (d the still water depth over z_b, F 60): a conservative low-pass filter of the slide under the water with the
+  response 1/(1 + a(kd)²), against 1/cosh(kd) of the potential-flow transfer from a moving bed to the surface (Kajiura
+  1963; a = 0.5 matches for small kd). D at a face is the smaller of the two cells (no filter across a shoreline, none
+  where dry). Solved with the SFLOW BiCGStab from h_f of the step before (up to 20000 iterations: D/dx² reaches 1e5 in
+  deep water).
+- **Non-hydrostatic water (A 220 2):** the bed condition of the quadratic pressure takes the moving bed,
+  w_b = ∂z_b/∂t − u·∇d with ∂z_b/∂t = (bed^{n+1} − bed^n)/Δt of the water step; the pressure is off (hydrostatic) in the
+  cells next to a face with a bed slope above 1:2. Use it with W 162: 0.02 when the slide is about as long as the water is
+  deep (case 28), 0.5 in deep water (18 dambreak, the slide 10 m long under 20 m).
 - **Available with:** the explicit HLL water (A 210 2/3) and the semi-implicit water (A 210 11/12/13, case 19), hydrostatic
-  (A 220 0), one Cartesian grid, 1D and 2D, MPI. The semi-implicit step keeps the water column of the end of the step before
-  (`si_restore`) and takes the moved bed through `depth_update`, as with sediment; the drag on the water enters with the
-  other sources of its stage. It stops with a message with S 10, curvilinear, refined and multi-block grids and A 220 > 0
-  (see below).
+  (A 220 0) or with the quadratic non-hydrostatic pressure (A 220 2, explicit water, case 28), one Cartesian grid, 1D and
+  2D, MPI. The semi-implicit step keeps the water column of the end of the step before (`si_restore`) and takes the moved
+  bed through `depth_update`, as with sediment; the drag on the water enters with the other sources of its stage. It stops
+  with a message with S 10, curvilinear, refined and multi-block grids and A 220 1, 3, 4 and above.
 - **Output:** `slide_h`, `slide_velocity`, `slide_lambda` in the SFLOW FSF VTP / LAGOON store (P 18); the bed VTP shows
   z_b + h_s; the log `REEF3D_SFLOW_Log/REEF3D_SFLOW_slide.dat` (time, dt, sub-steps, volumes of slide and water, h_max, |u|_max, extent);
   the slide state is in the checkpoints (P 48).
@@ -692,6 +702,7 @@ is the SFLOW water and sees the bed z_b + h_s; the slide sees the water pressure
 | W 158 | double | slide depth threshold [m], dry below (1e-5) |
 | W 159 | int | at most this many slide steps per water step; 1: the water step limited by the slide (100) |
 | W 160 | 2 × double | initial slide velocity u v [m/s] (0 0) |
+| W 162 | double | filtered transfer of the slide to the water bed, D = a d² (0 off; 0.02 - 0.5 with A 220 2, see above) |
 
 The basal law is W 120 - W 128 (with W 150 they act on the slide, not on the water; W 90 likewise). The 1D cases set y
 ranges of the boxes that cover the grid.
@@ -776,9 +787,8 @@ Basin 20 m × 4 m, flat bed with a 1:4 slope from x = 12 m and a wedge across y 
   Reference: the Ritter solution with the reduced gravity g' = (1 − r) g = 4.914 m/s² (exact in the limit of deep water).
 - **slope35:** a granular slide on a 35° slope into 0.33 m of water (similar to the IRPHE experiments of Grilli et al. 2017,
   NTHMP benchmark 4: glass beads, ρ_s = 1951 kg/m³, a triangle of 0.1 m × 0.07 m, 5 cm under the surface), Pouliquen-Forterre
-  (W 123 6 17 12 0.136 0.007, the angles of Macías et al. 2021), gauges at x = 1, 2, 3, 4 m, 5 s. The measured gauge records and
-  the exact geometry of the benchmark could not be downloaded in this environment: compare when they are in
-  Dropbox/Claude/Rheology/data.
+  (W 123 6 17 12 0.136 0.007, the angles of Macías et al. 2021), gauges at x = 1, 2, 3, 4 m, 5 s. The benchmark itself, with
+  its geometry and the measured gauges, is case 28.
 
 | | dx 5 cm / 2.5 mm | dx 2.5 cm / 1.25 mm |
 |---|---|---|
@@ -793,8 +803,13 @@ Basin 20 m × 4 m, flat bed with a 1:4 slope from x = 12 m and a wedge across y 
 - **dambreak:** the slide follows the reduced-gravity solution to 0.3 %; the thin tail lags as in 01 (wet/dry front). The water
   above moves the surface by ±1.3 cm (the volume the slide shifts, carried away at √(g h_w)); the residual
   departure from Ritter is the coupling to the finite water depth. 1 and 2 ranks give bitwise the same result.
-- **slope35:** the hydrostatic water makes shock-like leading crests (no dispersion); the dispersive and steep-front
-  physics needs the non-hydrostatic water (open, see below).
+- **slope35:** the hydrostatic water makes shock-like leading crests (no dispersion); with the non-hydrostatic water
+  (A 220 2, W 162 0.02) 0.29 / 0.32 / 0.29 / 0.28 cm and −0.48 / −0.39 / −0.30 / −0.25 cm, a dispersive train (case 28).
+- **dambreak, non-hydrostatic water:** with A 220 2 and W 162 0.5 the slide follows Ritter as hydrostatic (L1 1.1 / 0.48 /
+  0.30 / 0.28 %) and the surface moves by ±5 mm (hydrostatic ±1.3 cm: the deep water does not see the short slide);
+  163 s against 7 s (the filter in 20 m of water on 5 cm cells). Cases `dambreak_nh` and `slope35_nh`. With W 162 0.02 the surface
+  is noisy at ±3-8 cm and L1 grows to 4.5 % at 4 s: the grid-scale part of the slide front reaches the one-layer pressure,
+  which cannot spread it in kd ≫ 1.
 
 ![](18_slide_submarine/results/18_dambreak.png)
 ![](18_slide_submarine/results/18_slope35.png)
@@ -829,6 +844,26 @@ is that of the semi-implicit SFLOW. Figures in the results folder of `run_slide_
 ![](19_slide_semi_implicit/results/19_si_slope35.png)
 ![](19_slide_semi_implicit/results/19_si_subaerial.png)
 
+### 28 NTHMP benchmark 4: submarine granular slide on 35° (IRPHE test 17, Grilli et al. 2017)
+
+Glass beads (ρ_s 1951 kg/m³, 0.00505 m³/m) released from behind a vertical gate on a 35° slope into 0.33 m of water;
+the measured gauges WG1-WG4 at 0.6 / 1.6 / 2.6 / 3.6 m from the gate (`test17_48-68s.txt`). Geometry from the benchmark
+script `read_test.m`; details, the data source and all runs in 28_slide_nthmp_bm4/README.md. Times aligned on the first
+crest at WG1 (the release time is not in the record). Gauge max / min (cm) up to the wave reflected at the end wall:
+
+| | WG1 | WG2 | WG3 | WG4 |
+|---|---|---|---|---|
+| measured | 0.55 / −0.96 | 0.54 / −0.63 | 0.43 / −0.48 | 0.43 / −0.40 |
+| hydrostatic (explicit; semi-implicit within 0.05 cm) | 0.90 / −0.57 | 0.89 / −0.56 | 0.91 / −0.56 | 0.84 / −0.56 |
+| non-hydrostatic, A 220 2, W 162 0.02 | 0.42 / −0.44 | 0.43 / −0.56 | 0.40 / −0.44 | 0.40 / −0.37 |
+| as above, W 128 1 | 0.54 / −0.40 | 0.46 / −0.62 | 0.43 / −0.49 | 0.43 / −0.41 |
+
+- The hydrostatic water makes a bore of twice the measured crest and no dispersive train; the non-hydrostatic water gives
+  the leading crest, the trough and the first waves of the train at WG2-WG4 (same on the 2.5 mm grid); the later waves of
+  the train are too long. At WG1, over the slide, the measured trough is twice that of the model.
+
+![](28_slide_nthmp_bm4/results/28_bm4_gauges.png)
+
 ## Not covered yet
 
 - Mesh refinement (G 1): the friction step runs in every level's stage. The pore pressure is advected per level and not exchanged between levels.
@@ -841,16 +876,8 @@ is that of the semi-implicit SFLOW. Figures in the results folder of `run_slide_
 - CFD 3D: the axisymmetric collapse (25) runs 25–35 % short of Lube et al. (2004) on coarse grids (r0/12.5 – r0/25); a finer grid is the next run.
 - CFD: the multiphase level set (F 300 3) uses the adapter, but no case runs it.
 - The effective pressure W 131 1 (lithostatic from φ) is only right under flat surfaces.
-- Slide layer (W 150): the non-hydrostatic SFLOW water (A 220 1-4); W 150 with A 220 > 0 stops with a message. Two problems:
-  - The quadratic pressure (A 220 2) is unstable over a steep bed step even without the slide: a fixed 1 m vertical step in
-    20 m of water (DIVEMesh box, dx 5 cm) grows from round-off by a factor of about 10 per step. Switching the
-    non-hydrostatic pressure off in the cells next to a face with a bed slope above 1 makes it stable (tested, not in the code).
-  - With a moving slide, stable or not, the non-hydrostatic water is wrong: 18 dambreak (the slide driven alone, the water
-    only reacting) gives ±0.3-0.4 m at the slide front against ±1.5 cm hydrostatic. Each slide step lifts the surface with
-    the bed in the cells it changes (the depth-averaged continuity); in 20 m of water this is a grid-scale bump that the
-    non-hydrostatic pressure holds in place instead of spreading it, and the bumps add up. Not cured by: the bed of the
-    pressure smoothed (4-64 passes), w_b = ∂z_b/∂t + u·∇z_b and the bed acceleration in the constraint, the slide step
-    before the water step, the non-hydrostatic bottom pressure in the force on the slide. Needs the bed change handed to
-    the surface filtered over the water depth (Kajiura) or the bed velocity in a coupled step.
+- Slide layer (W 150): the non-hydrostatic water with the slide is the one-layer quadratic pressure (A 220 2) only, explicit
+  water only, with the filter W 162 chosen by hand (0.02 for case 28, 0.5 in deep water); the near field over the slide
+  (WG1 of case 28) is underpredicted by half. A 220 1, 3, 4 stop with a message.
 - Slide layer (W 150): NHFLOW (stage 4.3), sediment (S 10) together with the slide, curvilinear and refined grids; the
   dilatancy source of the pore pressure.
