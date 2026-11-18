@@ -1632,6 +1632,8 @@ void control::ctrlrecv()
     ii++;
     F72 = ictrl[ii];
     ii++;
+    F73 = ictrl[ii];
+    ii++;
     F76 = ictrl[ii];
     ii++;
     F77 = ictrl[ii];
@@ -3052,6 +3054,64 @@ void control::ctrlrecv()
     W133_max = dctrl[dd];
     dd++;
     W134 = dctrl[dd];
+    dd++;
+    W135_dw = dctrl[dd];
+    dd++;
+    W135_b = dctrl[dd];
+    dd++;
+    W140 = ictrl[ii];
+    ii++;
+    W141 = dctrl[dd];
+    dd++;
+    W142 = dctrl[dd];
+    dd++;
+    W143 = ictrl[ii];
+    ii++;
+    W144_lambda = dctrl[dd];
+    dd++;
+    W144_k = dctrl[dd];
+    dd++;
+    W144_beta = dctrl[dd];
+    dd++;
+    W145_phi0 = dctrl[dd];
+    dd++;
+    W145_K3 = dctrl[dd];
+    dd++;
+    W145_phic = dctrl[dd];
+    dd++;
+    W146_J0 = dctrl[dd];
+    dd++;
+    W146_aK = dctrl[dd];
+    dd++;
+    W147 = ictrl[ii];
+    ii++;
+    W148 = ictrl[ii];
+    ii++;
+    W149 = ictrl[ii];
+    ii++;
+    W150 = ictrl[ii];
+    ii++;
+    W151 = ictrl[ii];
+    ii++;
+    W152 = ictrl[ii];
+    ii++;
+    W153 = ictrl[ii];
+    ii++;
+    W154 = dctrl[dd];
+    dd++;
+    W155 = dctrl[dd];
+    dd++;
+    W156 = dctrl[dd];
+    dd++;
+    W157 = dctrl[dd];
+    dd++;
+    W158 = dctrl[dd];
+    dd++;
+    W159 = ictrl[ii];
+    ii++;
+    W160_u = dctrl[dd];
+    dd++;
+    W160_v = dctrl[dd];
     dd++;
     W200 = ictrl[ii];
     ii++;
@@ -4915,6 +4975,53 @@ void control::ctrlrecv()
         Darray(W41_ze,W41);
         Darray(W41_vel,W41);
         Darray(W41_beta,W41);
+    }
+
+    if(W147>0)
+    {
+        Darray(W147_xs,W147);
+        Darray(W147_xe,W147);
+        Darray(W147_ys,W147);
+        Darray(W147_ye,W147);
+        Darray(W147_zs,W147);
+        Darray(W147_ze,W147);
+    }
+
+    if(W148>0)
+    {
+        Darray(W148_x1,W148);
+        Darray(W148_z1,W148);
+        Darray(W148_x2,W148);
+        Darray(W148_z2,W148);
+        Darray(W148_x3,W148);
+        Darray(W148_z3,W148);
+    }
+
+    if(W151>0)
+    {
+        Darray(W151_xs,W151);
+        Darray(W151_xe,W151);
+        Darray(W151_ys,W151);
+        Darray(W151_ye,W151);
+        Darray(W151_z,W151);
+    }
+
+    if(W152>0)
+    {
+        Darray(W152_xs,W152);
+        Darray(W152_xe,W152);
+        Darray(W152_ys,W152);
+        Darray(W152_ye,W152);
+        Darray(W152_d,W152);
+    }
+
+    if(W153>0)
+    {
+        Darray(W153_xc,W153);
+        Darray(W153_yc,W153);
+        Darray(W153_Lx,W153);
+        Darray(W153_Ly,W153);
+        Darray(W153_T,W153);
     }
 
     if(X102>0)
@@ -6984,6 +7091,80 @@ void control::ctrlrecv()
         W41_vel[n] = dctrl[dd];
         dd++;
         W41_beta[n] = dctrl[dd];
+        dd++;
+    }
+
+    for(n=0;n<W147;++n)
+    {
+        W147_xs[n] = dctrl[dd];
+        dd++;
+        W147_xe[n] = dctrl[dd];
+        dd++;
+        W147_ys[n] = dctrl[dd];
+        dd++;
+        W147_ye[n] = dctrl[dd];
+        dd++;
+        W147_zs[n] = dctrl[dd];
+        dd++;
+        W147_ze[n] = dctrl[dd];
+        dd++;
+    }
+
+    for(n=0;n<W148;++n)
+    {
+        W148_x1[n] = dctrl[dd];
+        dd++;
+        W148_z1[n] = dctrl[dd];
+        dd++;
+        W148_x2[n] = dctrl[dd];
+        dd++;
+        W148_z2[n] = dctrl[dd];
+        dd++;
+        W148_x3[n] = dctrl[dd];
+        dd++;
+        W148_z3[n] = dctrl[dd];
+        dd++;
+    }
+
+    for(n=0;n<W151;++n)
+    {
+        W151_xs[n] = dctrl[dd];
+        dd++;
+        W151_xe[n] = dctrl[dd];
+        dd++;
+        W151_ys[n] = dctrl[dd];
+        dd++;
+        W151_ye[n] = dctrl[dd];
+        dd++;
+        W151_z[n] = dctrl[dd];
+        dd++;
+    }
+
+    for(n=0;n<W152;++n)
+    {
+        W152_xs[n] = dctrl[dd];
+        dd++;
+        W152_xe[n] = dctrl[dd];
+        dd++;
+        W152_ys[n] = dctrl[dd];
+        dd++;
+        W152_ye[n] = dctrl[dd];
+        dd++;
+        W152_d[n] = dctrl[dd];
+        dd++;
+    }
+
+    for(n=0;n<W153;++n)
+    {
+        W153_xc[n] = dctrl[dd];
+        dd++;
+        W153_yc[n] = dctrl[dd];
+        dd++;
+        W153_Lx[n] = dctrl[dd];
+        dd++;
+        W153_Ly[n] = dctrl[dd];
+        dd++;
+        W153_T[n] = dctrl[dd];
         dd++;
     }
 

@@ -61,6 +61,7 @@ Author: Hans Bihs
 #include"density_heat.h"
 #include"density_vof.h"
 #include"density_rheo.h"
+#include"rheology_cfd_wall.h"
 
 // loop over the cells of velocity component c (0 u, 1 v, 2 w); cpor is the porosity factor CPOR1/2/3
 #define MOMRK_LOOP(c, ...) \
@@ -229,6 +230,10 @@ momentum_rk::momentum_rk(lexer *p, fdm *a, ghostcell *pgc, convection *pconvecti
     // F 41 1, 2: the single-phase level set
     if((p->F41==1 || p->F41==2) && p->F30>0 && p->F81==0)
     psingle = new cfd_singlephase(p);
+
+    // W 135: side-wall friction of the rheological phase in a channel the grid does not resolve
+    if(p->W130>0 && p->W135_dw>0.0 && p->W135_b>0.0)
+    pwall = new rheology_cfd_wall(p);
     phiold_valid = 0.0;
     ckid_phiold = phiold ? ckpt_registry::add_raw(p,&phiold_valid,1) : 0;
 
@@ -287,6 +292,7 @@ momentum_rk::momentum_rk(lexer *p, fdm *a, ghostcell *pgc, convection *pconvecti
 momentum_rk::~momentum_rk()
 {
     delete psingle;
+    delete pwall;
     ckpt_registry::remove(ckid_imex);
     if(phiold)
     ckpt_registry::remove(ckid_phiold);
@@ -535,6 +541,8 @@ void momentum_rk::component_onestep(lexer *p, fdm *a, ghostcell *pgc, vrans *pvr
 
     // VRANS resistance, point-implicit with the weight of the step (B 268 1)
     pvrans->implicit_drag(p,a,c,w,out,U,V,W);
+    if(pwall!=nullptr)
+    pwall->implicit(p,a,c,w,out,U,V,W);
 
     MOMRK_LOOP(c, F(i,j,k) = 0.0; )
 
@@ -966,6 +974,8 @@ void momentum_rk::component_ssp(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans,
 
     // VRANS resistance, point-implicit with the stage weight (B 268 1)
     pvrans->implicit_drag(p,a,c,bs,out,U,V,W);
+    if(pwall!=nullptr)
+    pwall->implicit(p,a,c,bs,out,U,V,W);
 
     MOMRK_LOOP(c, F(i,j,k) = 0.0; )
 
@@ -1243,6 +1253,8 @@ void momentum_rk::component_lowstorage(lexer *p, fdm *a, ghostcell *pgc, vrans *
 
     // VRANS resistance, point-implicit with the source weight 2 alpha_s (B 268 1)
     pvrans->implicit_drag(p,a,c,al2,uk,a->u,a->v,a->w);
+    if(pwall!=nullptr)
+    pwall->implicit(p,a,c,al2,uk,a->u,a->v,a->w);
 
     MOMRK_LOOP(c, C(i,j,k) = F(i,j,k); )
 

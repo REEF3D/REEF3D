@@ -27,6 +27,60 @@ Author: Hans Bihs
 namespace rheo
 {
 
+// root of the increasing function f in [lo, hi] (f(lo) <= 0 <= f(hi)): Illinois (modified regula falsi), relative
+// tolerance tol; 10 - 20 evaluations where the bisection took 45 - 200 (the friction of the semi-implicit SFLOW calls
+// the solves in sub-steps at every cell and face)
+template<class F> static double root_inc(F f, double lo, double hi, double tol)
+{
+    double flo = f(lo), fhi = f(hi);
+
+    if(flo>=0.0)
+    return lo;
+
+    if(fhi<=0.0)
+    return hi;
+
+    int side = 0;
+
+    for(int it=0; it<100; ++it)
+    {
+        double m = (lo*fhi - hi*flo)/(fhi - flo);
+
+        if(!(m>lo && m<hi))
+        m = 0.5*(lo + hi);
+
+        const double fm = f(m);
+
+        if(fm<0.0)
+        {
+            lo = m;
+            flo = fm;
+
+            if(side==-1)
+            fhi *= 0.5;
+
+            side = -1;
+        }
+
+        else
+        {
+            hi = m;
+            fhi = fm;
+
+            if(side==1)
+            flo *= 0.5;
+
+            side = 1;
+        }
+
+        if(hi - lo <= tol*std::max(std::fabs(hi),1.0e-300) || fm==0.0)
+        return fm==0.0 ? m : 0.5*(lo + hi);
+    }
+
+    return 0.5*(lo + hi);
+}
+
+
 // ---------------------------------------------------------------------------------------------
 // 1. local laws
 // ---------------------------------------------------------------------------------------------
@@ -142,7 +196,7 @@ double yield_stress(const law3D_params &q, double p_eff)
     if(q.law==LAW_HBC)
     return std::max(0.0,q.tauy + q.tanphi*std::max(p_eff,0.0));
 
-    if(q.law==LAW_MUI)
+    if(q.law==LAW_MUI || q.law==LAW_MUJ)
     return q.mus*std::max(p_eff,0.0);
 
     if(q.law==LAW_COULOMB_VP)
@@ -198,10 +252,93 @@ double viscosity(const law3D_params &q, double gamma, double p_eff)
     if(q.law==LAW_COULOMB_VP)
     mu = q.mu_min + yield_stress(q,p_eff)*papanastasiou(q.m,gamma);
 
+    if(q.law==LAW_MUJ)
+    {
+        const double pp = std::max(p_eff,0.0);
+
+        if(gamma>1.0e-300)
+        {
+            // p' = 0: the contact stress vanishes, J p'/gamma -> eta_f (the fluid viscosity), J^1/2 p'/gamma -> 0
+            if(pp>0.0)
+            {
+                const double J = viscous_number(gamma,pp,q.eta_f);
+                const double I = inertial_number(gamma,pp,q.d,q.rho_s);
+                mu = q.mu_min + mu_J(q,J,I)*pp/gamma;
+            }
+            else
+            mu = q.mu_min + q.eta_f;
+        }
+        else
+        mu = q.mu_max;
+    }
+
     if(!(mu==mu))
     mu = q.mu_max;
 
     return std::min(std::max(mu,q.mu_min),q.mu_max);
+}
+
+double viscosity(const law3D_params &q, double gamma, double p_eff, double tanpsi)
+{
+    if(tanpsi==0.0 || (q.law!=LAW_MUI && q.law!=LAW_MUJ))
+    return viscosity(q,gamma,p_eff);
+
+    gamma = std::fabs(gamma);
+    const double pp = std::max(p_eff,0.0);
+
+    if(gamma<=1.0e-300)
+    return q.mu_max;
+
+    double mu = q.mu_min;
+
+    if(q.law==LAW_MUI)
+    mu += std::max(mu_I(q,inertial_number(gamma,pp,q.d,q.rho_s)) + tanpsi,0.0)*pp/gamma;
+
+    if(q.law==LAW_MUJ)
+    {
+        if(pp>0.0)
+        {
+            const double J = viscous_number(gamma,pp,q.eta_f);
+            const double I = inertial_number(gamma,pp,q.d,q.rho_s);
+            mu += std::max(mu_J(q,J,I) + tanpsi,0.0)*pp/gamma;
+        }
+        else
+        mu += q.eta_f;
+    }
+
+    if(!(mu==mu))
+    mu = q.mu_max;
+
+    return std::min(std::max(mu,q.mu_min),q.mu_max);
+}
+
+double viscous_number(double gamma, double p_eff, double eta_f)
+{
+    const double pp = std::max(p_eff,1.0e-12);
+    return std::fabs(gamma)*eta_f/pp;
+}
+
+double mu_J(const law3D_params &q, double J, double I)
+{
+    J = std::max(J,0.0);
+    const double K = J + q.aK*I*I;
+
+    double mu = q.mus + J + 2.5*q.phic*std::sqrt(J);
+
+    if(K>0.0)
+    mu += (q.mu2 - q.mus)/(1.0 + q.J0/K);
+
+    return mu;
+}
+
+double phi_eq(double phic, double J)
+{
+    return phic/(1.0 + std::sqrt(std::max(J,0.0)));
+}
+
+double tan_psi(double K3, double phi, double phic, double J)
+{
+    return K3*(phi - phi_eq(phic,J));
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -258,19 +395,7 @@ double hb_basal_stress(double U, double tauy, double K, double n, double h)
     while(hb_mean_speed(hi,tauy,K,n,h)<U)
     hi = tauy + 2.0*(hi - tauy);
 
-    for(int it=0; it<200; ++it)
-    {
-        const double m = 0.5*(lo + hi);
-
-        if(hb_mean_speed(m,tauy,K,n,h)<U)
-        lo = m;
-        else
-        hi = m;
-
-        if(hi - lo < 1.0e-13*hi)
-        break;
-    }
-    return 0.5*(lo + hi);
+    return root_inc([&](double t) { return hb_mean_speed(t,tauy,K,n,h) - U; },lo,hi,1.0e-13);
 }
 
 static double hb_tauy(const basal_params &q, const basal_state &s)
@@ -377,39 +502,40 @@ double implicit_speed(const basal_params &q, const basal_state &s, double Ustar,
     {
         // in the stress: U_hb(tau) + c tau = Ustar, monotone in tau
         const double ty = hb_tauy(q,s);
-        double lo = ty, hi = ty + Ustar/c;
-
-        for(int it=0; it<200; ++it)
-        {
-            const double m = 0.5*(lo + hi);
-
-            if(hb_mean_speed(m,ty,q.K,q.n,s.h) + c*m < Ustar)
-            lo = m;
-            else
-            hi = m;
-
-            if(hi - lo < 1.0e-14*hi)
-            break;
-        }
-        return std::max(0.0,Ustar - c*0.5*(lo + hi));
+        const double t = root_inc([&](double m) { return hb_mean_speed(m,ty,q.K,q.n,s.h) + c*m - Ustar; },ty,ty + Ustar/c,1.0e-14);
+        return std::max(0.0,Ustar - c*t);
     }
 
-    // general closure: bisection in the speed, f(s) = s + c tau(s) - Ustar
-    double lo = 0.0, hi = Ustar;
+    // general closure: root in the speed, f(s) = s + c tau(s) - Ustar
+    return root_inc([&](double m) { return m + c*basal_stress(q,s,m) - Ustar; },0.0,Ustar,1.0e-14);
+}
 
-    for(int it=0; it<200; ++it)
-    {
-        const double m = 0.5*(lo + hi);
+double implicit_speed_sub(const basal_params &q, const basal_state &s, double U0, double Ustar, double dt, int nmax)
+{
+    const double s1 = implicit_speed(q,s,Ustar,dt);
 
-        if(m + c*basal_stress(q,s,m) < Ustar)
-        lo = m;
-        else
-        hi = m;
+    if(q.law==BASAL_OFF || q.law==BASAL_COULOMB || nmax<=1 || s1<=0.0)
+    return s1;
 
-        if(hi - lo < 1.0e-14*Ustar)
-        break;
-    }
-    return 0.5*(lo + hi);
+    // at the speed of the start (within 1e-3): the driving of the step balances the friction there, the speed stays
+    if(std::fabs(s1 - U0)<=1.0e-3*std::max(s1,U0))
+    return s1;
+
+    // friction rate at the speed of the single step
+    const double g1 = basal_stress(q,s,s1)/(s.rho*s.h*s1);
+    const int n = std::min(nmax,(int)std::ceil(5.0*dt*g1));
+
+    if(n<=1)
+    return s1;
+
+    const double h = dt/double(n);
+    const double a = (Ustar - U0)/dt;
+    double u = std::max(U0,0.0);
+
+    for(int k=0; k<n; ++k)
+    u = implicit_speed(q,s,u + h*a,h);
+
+    return u;
 }
 
 // ---------------------------------------------------------------------------------------------

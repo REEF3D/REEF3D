@@ -34,6 +34,7 @@ Authors: Hans Bihs, Alexander Hanke
 #include"sediment.h"
 #include"print_averaging.h"
 #include"runlog.h"
+#include"rheology_cfd_3phase.h"
 
 void printer_CFD::parallel(lexer* p, fdm* a, ghostcell* pgc, turbulence *pturb, heat *pheat, expdata *pdata, concentration *pconc, multiphase *pmp, sediment *psed, int num)
 {
@@ -67,6 +68,9 @@ void printer_CFD::parallel(lexer* p, fdm* a, ghostcell* pgc, turbulence *pturb, 
     pdata->name_ParaView_parallel(p,result);
 
     pconc->name_ParaView_parallel(p,result);
+
+    if(rheology_cfd_3phase::self!=nullptr)
+    rheology_cfd_3phase::self->name_pvtu(p,result);
 
     if(p->P24==1 && p->F300==0)
     result<<"<PDataArray type=\"Float32\" Name=\"rho\"/>\n";

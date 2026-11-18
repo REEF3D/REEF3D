@@ -28,13 +28,17 @@ void ghostcell::gc_periodic(lexer *p, field& f, int gcv, int cs)
 {
     double val1,val2,val3;
 
+    // the rows run over the ghost cells of the other two directions as well (after the wall ghost cells of start1-4):
+    // a corner ghost cell (periodic in y, k = -1 under the bed) kept a value of the interior, and the cross terms of the
+    // 3D momentum diffusion (w(i,j+1,k-1) in the v equation at the periodic face) read it: a spurious v of 3e-3 m/s in a
+    // y-uniform viscous column (Validation/rheology 07) and 1.7e-2 m/s with water
     // every row: the check of the cell flag (PCHECK) read the cell of the index left from before the
     // loop (i in the x rows, j in the y rows, k in the z rows), not one of the row; with the mesh
     // refinement that index was often one of a patch, beyond level 0, and a level-0 row could be
     // skipped (its ghost cells kept zero: the pressure of the composite solve across the edge)
     if(cs==1)
-    JLOOP
-    KLOOP
+    for(j=-3; j<p->knoy+3; ++j)
+    for(k=-3; k<p->knoz+3; ++k)
     {
         // 4 to 1 coupling
         i=p->knox-1;
@@ -64,8 +68,8 @@ void ghostcell::gc_periodic(lexer *p, field& f, int gcv, int cs)
     }
 
     if(cs==2)
-    ILOOP
-    KLOOP
+    for(i=-3; i<p->knox+3; ++i)
+    for(k=-3; k<p->knoz+3; ++k)
     {
         // 2 to 3 coupling
         j=p->knoy-1;
@@ -95,8 +99,8 @@ void ghostcell::gc_periodic(lexer *p, field& f, int gcv, int cs)
     }
 
     if(cs==3)
-    ILOOP
-    JLOOP
+    for(i=-3; i<p->knox+3; ++i)
+    for(j=-3; j<p->knoy+3; ++j)
     {
         // 6 to 5 coupling
         k=p->knoz-1;
@@ -174,4 +178,17 @@ void ghostcell::gc_periodic_ijk(lexer *p, double *f)
         k=0;
         f[g] = f[IJK];
     }
+}
+
+// the periodic copy of the serial periodic directions with the ghost cells of the other directions (corners)
+void ghostcell::gc_periodic_corners(lexer *p, field &f, int gcv)
+{
+    if(p->periodic1==1)
+    gc_periodic(p,f,gcv,1);
+
+    if(p->periodic2==1)
+    gc_periodic(p,f,gcv,2);
+
+    if(p->periodic3==1)
+    gc_periodic(p,f,gcv,3);
 }

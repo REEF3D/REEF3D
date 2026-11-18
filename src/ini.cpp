@@ -715,7 +715,7 @@ void control::ini_default()
 	D20=2;			// int diffusion scheme
 	D21=0;			// int print out implicit diffusion time and iterations
     D22=1;            // int diffusion wall boundary condition
-    D24=-1;           // int dynamic form (1/rho) div(mu (grad u + grad u^T)) of the implicit momentum diffusion (D 20 2): 0 kinematic, 1 arithmetic face viscosity, 2 harmonic shear viscosity; -1: 2 with W 130, else 0
+    D24=-1;           // int dynamic form (1/rho) div(mu (grad u + grad u^T)) of the implicit momentum diffusion (D 20 2): 0 kinematic, 1 arithmetic face viscosity, 2 harmonic shear viscosity; -1: 2 with W 130 or W 140, else 0
     D23=2;            // int time accuracy of the implicit momentum diffusion (D 20 2): 1 first order, 2 second order
 	D30=1;			// int pressure scheme
     D1=1;           // int CFD: the static solids (S) and the bed: 1 direct forcing, 2 cut cells (impermeable walls of the pressure projection with the open fractions of the cell faces, solid_aperture.h); the moving bodies: direct forcing with both
@@ -767,6 +767,7 @@ void control::ini_default()
 	F70=0;             // int number of phi 1 ini boxes
 	F71=0;             // int number of phi 2 ini boxes
 	F72=0;             // int number of phi 1 ini regions
+    F73=0;             // int SFLOW: initial free-surface level from the file sflow-level.dat (regular grid: nx ny x0 y0 dx dy, then nx*ny levels, i fastest; < -9000: no data), where it lies above the bed
 	F80=0;             // int time scheme VOF
     F81=0;             // int PIC free surface flow: 1 single phase (water particles, p = 0 at the surface), 2 water particles with Eulerian air, 10 passive particles
     F82=0.96;          // double PIC FLIP share of the particle velocity update (F 81 1, 2), 1 - F82 PIC
@@ -1542,13 +1543,42 @@ void control::ini_default()
     W127_lambdah=0.0;// double hydrostatic pore pressure ratio the excess decays to
     W127_D=0.0;      // double hydraulic diffusivity [m^2/s]
     W128=0;          // int bed-normal gravity cos^2(theta) from the bed slope in the basal normal stress
-    W129=1;          // int SFLOW semi-implicit with the rheology core: extra solves of the eta system with the friction of the new level (W 120)
+    W129=0;          // int SFLOW semi-implicit with the rheology core: extra solves of the eta system with the friction of the new level (W 120)
     W130=0;          // int local rheology (CFD): 1 Herschel-Bulkley, 2 Herschel-Bulkley-Coulomb, 3 mu(I), 4 Coulomb-viscoplastic
-    W131=2;          // int effective pressure: 2 solved pressure, 1 lithostatic from the level set (rho (g.n) phi: only for surfaces without steep flanks)
+    W131=2;          // int effective pressure: 2 solved pressure, 3 solved pressure and the interface band (p' at least the hydrostatic pressure of the band, the material viscosity over the band), 1 lithostatic from the level set (rho (g.n) phi: only for surfaces without steep flanks)
     W132=1000.0;     // double Papanastasiou regularisation m [s]
     W133_min=-1.0;   // double minimum effective dynamic viscosity [Pa s] (< 0: W 1 W 2)
     W133_max=1.0e4;  // double maximum effective dynamic viscosity [Pa s]
     W134=1.9;        // double mu(I) partial regularisation alpha (<= 0: no regularisation)
+    W135_dw=0.0;     // double side-wall friction angle [deg] of an unresolved channel (CFD rheology, 2D x-z), 0: off
+    W135_b=0.0;      // double channel width [m] of the side-wall friction W 135
+    W140=0;          // int three-phase slide model (CFD): slide fraction alpha_s (conservative transport), water/air level set
+    W141=2000.0;     // double bulk density of the slide [kg/m^3]
+    W142=2650.0;     // double grain density [kg/m^3] (mu(I), mu(J) inertial number of the three-phase model)
+    W143=1;          // int pore pressure in the slide: 0 none (p' = p), 1 drained hydrostatic, 2 hydrostatic + excess pore pressure field
+    W144_lambda=0.0; // double initial excess pore pressure ratio p_e/(p - p_hyd)
+    W144_k=-1.0;     // double permeability [m^2] (<= 0: Carman-Kozeny from W 124 d and phi)
+    W144_beta=1.0e-6;// double compressibility of the slide [1/Pa]
+    W145_phi0=-1.0;  // double initial solid volume fraction (<= 0: no dilatancy)
+    W145_K3=4.09;    // double dilatancy constant tan(psi) = K3 (phi - phi_eq(J))
+    W145_phic=0.585; // double critical volume fraction, phi_eq = phi_c/(1 + sqrt(J))
+    W146_J0=0.005;   // double mu(J) J0 (Boyer et al. 2011)
+    W146_aK=0.0;     // double mixed number K = J + aK I^2 (Trulsson et al. 2012; 0: J)
+    W147=0;          // int number of slide boxes
+    W148=0;          // int number of slide triangles (x-z, extruded in y)
+    W149=1;          // int mixture viscosity of slide and fluid: 1 arithmetic, 2 harmonic
+    W150=0;          // int two-layer landslide (SFLOW): depth-averaged slide layer under the water, basal law W 120 - W 128
+    W151=0;          // int slide boxes: material between the bed and z_top (xs xe ys ye z_top)
+    W152=0;          // int slide boxes: layer of the thickness d over the bed (xs xe ys ye d)
+    W153=0;          // int slide mounds: semi-ellipsoid (xc yc Lx Ly T)
+    W154=2000.0;     // double bulk density of the slide [kg/m^3]
+    W155=0.0;        // double interface drag coefficient C_d water/slide
+    W156=0.01;       // double water depth [m] over which the slide becomes fully submerged (buoyancy, water pressure)
+    W157=0.4;        // double CFL of the slide sub-steps
+    W158=1.0e-5;     // double slide depth threshold [m] (dry below)
+    W160_u=0.0;      // double initial slide velocity u [m/s]
+    W160_v=0.0;      // double initial slide velocity v [m/s]
+    W159=100;        // int maximum slide sub-steps per water step (the water step is limited to W 159 slide steps)
     W200=0;          // int atmospheric forcing (SFLOW, NHFLOW): 0 off, 1 uniform (W 201, W 202), 2 met file met-forcing.r3m, 3 vortex, 4 blend
     W201_u=0.0;      // double uniform wind speed U10 [m/s]
     W201_dir=0.0;    // double uniform wind direction [deg], counter-clockwise from the x axis, the direction the wind blows to

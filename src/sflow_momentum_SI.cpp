@@ -949,8 +949,8 @@ void sflow_momentum_SI::rheo_friction(lexer *p, fdm2D *b, ghostcell *pgc)
     //   cells  UH* - dt g H G_c(eta)   (G_c the mean of the open face gradients, as cell_update)
     //   faces  avg(UH*) - dt g H_f grad_f eta along the face, the tangential part the mean of the two cells,
     // Ustar = |.|/H, with eta = eta^n in the first pass (rpass 0) and theta eta^{n+1} + (1 - theta) eta^n of the pass
-    // before in the passes after it (step_single: the eta system solved again with the factors of the new level; the
-// factor of a pass at most that of the pass before).
+    // before in the passes after it (W 129 > 0, step_single: the eta system solved again with the factors of the new
+    // level, damped).
     // Below the static threshold (the driving force of the step, gravity, the along-slope gravity W 20/W 21 and the
     // sources of the predictor, cannot overcome the static friction) the factor is 0 and the face and the cell stay at
     // rest, also with the implicit gravity term (it carries alpha_f); above it the factor 1/(1 + dt tau_b(s)/(rho h s))
@@ -974,9 +974,11 @@ void sflow_momentum_SI::rheo_friction(lexer *p, fdm2D *b, ghostcell *pgc)
         rlc(i,j) = alc(i,j);
     }
 
-    // the factor of a pass is at most that of the pass before: the passes of a step converge from above (with a free
-    // factor the faces near the yield threshold flip between rest and motion from pass to pass)
-    auto rmin = [&](double al, double al0, double f) { return rpass==0 ? f : MIN(al0>0.0 ? al/al0 : 1.0, f); };
+    // the factor of a pass is the mean of its own and that of the pass before (damped Picard iteration): with the
+    // free factor the faces near the yield threshold flipped between rest and motion from pass to pass; with the
+    // smaller of the two a face once at rest could not move again in the step, and in a uniform Herschel-Bulkley-Coulomb
+    // layer the faces next to the static zones at the walls froze one after the other (case 05 at Courant number 10)
+    auto rmin = [&](double al, double al0, double f) { return rpass==0 ? f : 0.5*(f + (al0>0.0 ? al/al0 : 1.0)); };
 
     const double te = rpass==0 ? 0.0 : theta;
     auto lev = [&](int ii, int jj) { return te*etaI(ii,jj) + (1.0-te)*b->eta(ii,jj); };
@@ -1012,7 +1014,9 @@ void sflow_momentum_SI::rheo_friction(lexer *p, fdm2D *b, ghostcell *pgc)
     {
     const double qn = 0.5*(UHp(i,j) + UHp(i+1,j)) - dt*g*Hx(i,j)*gxf(i,j);
     const double qt = 0.5*(rVH(i,j) + rVH(i+1,j));
-    alx(i,j) = rlx(i,j)*rmin(alx(i,j),rlx(i,j),prheo->si_factor(p,b,i,j,1,Hx(i,j),sqrt(qn*qn + qt*qt)/Hx(i,j),dt));
+    const double qa = sqrt(qn*qn + qt*qt);
+    const double u0 = qa>0.0 ? (qxn(i,j)*qn + 0.5*(b->VH(i,j) + b->VH(i+1,j))*p->y_dir*qt)/qa : 0.0;
+    alx(i,j) = rlx(i,j)*rmin(alx(i,j),rlx(i,j),prheo->si_factor(p,b,i,j,1,Hx(i,j),MAX(u0,0.0)/Hx(i,j),qa/Hx(i,j),dt));
     }
 
     if(p->j_dir==1)
@@ -1021,7 +1025,9 @@ void sflow_momentum_SI::rheo_friction(lexer *p, fdm2D *b, ghostcell *pgc)
     {
     const double qn = 0.5*(VHp(i,j) + VHp(i,j+1)) - dt*g*Hy(i,j)*gyf(i,j);
     const double qt = 0.5*(rUH(i,j) + rUH(i,j+1));
-    aly(i,j) = rly(i,j)*rmin(aly(i,j),rly(i,j),prheo->si_factor(p,b,i,j,2,Hy(i,j),sqrt(qn*qn + qt*qt)/Hy(i,j),dt));
+    const double qa = sqrt(qn*qn + qt*qt);
+    const double u0 = qa>0.0 ? (qyn(i,j)*qn + 0.5*(b->UH(i,j) + b->UH(i,j+1))*qt)/qa : 0.0;
+    aly(i,j) = rly(i,j)*rmin(aly(i,j),rly(i,j),prheo->si_factor(p,b,i,j,2,Hy(i,j),MAX(u0,0.0)/Hy(i,j),qa/Hy(i,j),dt));
     }
 
     exchange1(p,pgc,alx);
@@ -1035,7 +1041,9 @@ void sflow_momentum_SI::rheo_friction(lexer *p, fdm2D *b, ghostcell *pgc)
         if(p->wet[IJ]==0 || h<=p->A244)
         continue;
 
-        alc(i,j) = rlc(i,j)*rmin(alc(i,j),rlc(i,j),prheo->si_factor(p,b,i,j,0,h,sqrt(rUH(i,j)*rUH(i,j) + rVH(i,j)*rVH(i,j))/h,dt));
+        const double ua = sqrt(rUH(i,j)*rUH(i,j) + rVH(i,j)*rVH(i,j));
+        const double u0 = ua>0.0 ? (UH0(i,j)*rUH(i,j) + VH0(i,j)*rVH(i,j))/ua : 0.0;
+        alc(i,j) = rlc(i,j)*rmin(alc(i,j),rlc(i,j),prheo->si_factor(p,b,i,j,0,h,MAX(u0,0.0)/h,ua/h,dt));
     }
 }
 

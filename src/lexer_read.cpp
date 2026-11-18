@@ -72,6 +72,16 @@ void lexer::lexer_read(ghostcell *pgc)
     if(mpirank==0 && N15<0)
     N15 = (A10==6) ? 1 : 0;
 
+    // SFLOW semi-implicit with the rheology core (W 120): the gravity wave Courant number 2 when A 228 is not given (10
+    // otherwise). The friction factor of the step comes from eta^n; at Courant number 10 the slope relaxes within the
+    // step and the yield stress no longer holds the material (the Carbopol deposit of Validation/rheology 02 ran 25 %
+    // too far), at 2 the deposit, the arrest and the accelerations equal the explicit runs (case 10)
+    if(mpirank==0 && A10==2 && A226==1 && W120>0 && A228==0.0)
+    {
+    A228 = -2.0;
+    cout<<"SFLOW A 210 11/12/13 with W 120: A 228 -2 (gravity wave Courant number 2 for the friction of the step)"<<endl;
+    }
+
     // SFLOW: wetting and drying is A 243 for both schemes; the semi-implicit step (A 210 12/13) runs its Newton
     // iteration on the wet pattern (Casulli 2009) for A 243 > 0 (inside REEF3D: A229 = 1; A 229 itself is no longer a
     // ctrl.txt key)
@@ -116,17 +126,25 @@ void lexer::lexer_read(ghostcell *pgc)
         }
     }
     
-    // CFD: the dynamic form of the implicit momentum diffusion (D 24) for the rheology core: across the density jump
-    // between a viscous material and air or water the kinematic form div(nu (grad u + grad u^T)) gets the stress wrong
-    // by the density ratio. Harmonic shear viscosities (D 24 2): the HB film under air within 1.1 % of the exact profile
-    // (arithmetic 2.2 %, kinematic 92 %, Validation/rheology 11), and the explicit cross terms of the air next to a
-    // viscous material stay small (arithmetic: mu of the material / rho of the air)
+    // CFD three-phase slide model (W 140): the slide phase takes its rheology from the core (W 130)
+    if(mpirank==0 && A10==6 && W140>0 && W130<=0)
+    {
+    cout<<"!!! ctrl.txt: W 140 (three-phase slide) needs the rheology of the slide, W 130 1 - 5 (W 130 1 with W 125 0 K 1 is Newtonian) !!!"<<endl;
+    exit(1);
+    }
+
+    // CFD: the dynamic form of the implicit momentum diffusion (D 24) for the rheology core and the three-phase
+    // model: across the density jump between a viscous material and air or water the kinematic form
+    // div(nu (grad u + grad u^T)) gets the stress wrong by the density ratio
     if(mpirank==0 && D24<0)
     {
-    D24 = (A10==6 && W130>0) ? 2 : 0;
+    // harmonic shear viscosities (D 24 2): the HB film under air within 1.1 % of the exact profile (arithmetic 2.2 %,
+    // kinematic 92 %, Validation/rheology 11), and the explicit cross terms of the air next to a viscous material
+    // stay small (arithmetic: mu of the material / rho of the air)
+    D24 = (A10==6 && (W130>0 || W140>0)) ? 2 : 0;
 
         if(D24>0)
-        cout<<"W 130: D 24 2 (dynamic form of the implicit momentum diffusion, harmonic shear viscosities)"<<endl;
+        cout<<"W 130/W 140: D 24 2 (dynamic form of the implicit momentum diffusion, harmonic shear viscosities)"<<endl;
     }
 
     if(mpirank==0 && A10==6 && D24>0 && D20!=2)

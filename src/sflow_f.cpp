@@ -48,6 +48,7 @@ Author: Hans Bihs
 #include"reefrun_ckpt.h"
 #include"hydro_core.h"
 #include"hydro_couple.h"
+#include"slide2D.h"
 
 sflow_f::sflow_f(lexer *p, fdm2D *b, ghostcell* pgc, patchBC_interface *ppBC)
 {
@@ -151,6 +152,11 @@ void sflow_f::start(lexer *p, fdm2D* b, ghostcell* pgc)
 
         // sediment transport
         psed->start_sflow(p,b,pgc,pflow,b->P,b->Q);
+
+        // two-layer landslide (W 150): the slide over the step, the bed of the water z_b + h_s
+        if(b->slide!=nullptr)
+        b->slide->start(p,b,pgc);
+
         pfsf->depth_update(p,b,pgc,b->WL);
 
         // timesave
@@ -166,6 +172,10 @@ void sflow_f::start(lexer *p, fdm2D* b, ghostcell* pgc)
         // time step of the next step
         ptime->start(p,b,pgc);
 
+        // two-layer landslide (W 150): at most W 159 slide sub-steps per water step
+        if(b->slide!=nullptr && p->N48>0)
+        p->dt = MIN(p->dt, b->slide->dt_cap(p,pgc));
+        
         if(pamr!=nullptr)
         pamr->timestep(p,b,pgc);
 

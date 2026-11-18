@@ -41,6 +41,7 @@ Authors: Hans Bihs, Alexander Hanke
 #include"ioflow.h"
 #include"expdata.h"
 #include"concentration.h"
+#include"rheology_cfd_3phase.h"
 #include"gage_discharge_x.h"
 #include"gage_discharge_window_x.h"
 #include"fsf_vtp.h"
@@ -429,6 +430,9 @@ void printer_CFD::print3D(lexer* p, fdm* a, ghostcell* pgc, turbulence *pturb, h
             pdata->offset_ParaView(p,offset,n);
             // concentration
             pconc->offset_ParaView(p,offset,n);
+            // three-phase slide model (W 140)
+            if(rheology_cfd_3phase::self!=nullptr)
+            rheology_cfd_3phase::self->offset_vtu(p,offset,n);
             // rho
             if(p->P24==1 && p->F300==0)
             {
@@ -551,6 +555,9 @@ void printer_CFD::print3D(lexer* p, fdm* a, ghostcell* pgc, turbulence *pturb, h
         pdata->name_ParaView(p,result,offset,n);
 
         pconc->name_ParaView(p,result,offset,n);
+
+        if(rheology_cfd_3phase::self!=nullptr)
+        rheology_cfd_3phase::self->name_vtu(p,result,offset,n);
 
         if(p->P24==1 && p->F300==0)
         {
@@ -713,6 +720,9 @@ void printer_CFD::print3D(lexer* p, fdm* a, ghostcell* pgc, turbulence *pturb, h
 
         //  Concentration
         pconc->print_3D(p,a,pgc,buffer,file_offset);
+
+        if(rheology_cfd_3phase::self!=nullptr)
+        rheology_cfd_3phase::self->print_vtu(p,a,pgc,buffer,file_offset);
 
         //  density
         if(p->P24==1 && p->F300==0)

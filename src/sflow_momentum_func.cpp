@@ -23,6 +23,7 @@ Author: Hans Bihs
 #include"sflow_curv.h"
 #include"patchBC_codes.h"
 #include"sflow_momentum_func.h"
+#include"slide2D.h"
 #include"gcsl_yskip.h"
 #include"gcsl_side.h"
 #include"sflow_amr.h"
@@ -78,8 +79,9 @@ sflow_momentum_func::sflow_momentum_func(lexer *p, fdm2D *b, ghostcell *pgc, sfl
     if(p->A218==1)
     prough = new sflow_rough_manning(p);
     
-    // rheology core (W 120), else the legacy Bingham source (W 90 1)
-    if(p->W120>0)
+    // rheology core (W 120), else the legacy Bingham source (W 90 1); with the slide layer (W 150) the basal law
+    // acts on the slide (slide2D), not on the water
+    if(p->W120>0 && p->W150==0)
     {
     prheo = new sflow_rheology_core(p);
     
@@ -87,7 +89,7 @@ sflow_momentum_func::sflow_momentum_func(lexer *p, fdm2D *b, ghostcell *pgc, sfl
     cout<<"SFLOW: W 120 "<<p->W120<<" replaces W 90 "<<p->W90<<endl;
     }
     
-    else if(p->W90==1)
+    else if(p->W90==1 && p->W150==0)
     prheo = new sflow_rheology_f(p);
     
     else
@@ -289,6 +291,8 @@ void sflow_momentum_func::stage(lexer *p, fdm2D *b, ghostcell *pgc,
     phll->start(p,b,1);
 	ppress->upgrad(p,b,b->eta);
     prheo->u_source(p,b,b->U,b->V,WLs);
+    if(b->slide!=nullptr)
+    b->slide->u_source(p,b,b->U,b->V,WLs);
     p6dof->isource2D(p,b,pgc);
     if(b->wave!=nullptr)
     b->wave->u_source(p,b);
@@ -307,6 +311,8 @@ void sflow_momentum_func::stage(lexer *p, fdm2D *b, ghostcell *pgc,
     phll->start(p,b,2);
 	ppress->vpgrad(p,b,b->eta);
     prheo->v_source(p,b,b->U,b->V,WLs);
+    if(b->slide!=nullptr)
+    b->slide->v_source(p,b,b->U,b->V,WLs);
     p6dof->jsource2D(p,b,pgc);
     if(b->wave!=nullptr)
     b->wave->v_source(p,b);

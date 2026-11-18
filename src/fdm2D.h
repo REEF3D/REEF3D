@@ -41,6 +41,7 @@ class lexer;
 class seastate_sflow;
 class met_forcing;
 class hydro_sflow;
+class slide2D;
 
 using namespace std;
 
@@ -146,6 +147,9 @@ public:
 
     // REEF3D::HYDRO (R 10, R 20, R 30, R 40, R 50) of level 0, nullptr otherwise
     hydro_sflow *hydro = nullptr;
+
+    // two-layer landslide (W 150): the slide layer under the water, nullptr otherwise
+    slide2D *slide = nullptr;
 
 	matrix2D M;
 

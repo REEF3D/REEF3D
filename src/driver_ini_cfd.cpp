@@ -42,6 +42,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"6DOF_cfd.h"
 #include"6DOF_obj.h"
 #include"soil_stress.h"
+#include"rheology_cfd_3phase.h"
 #include<sys/stat.h>
 #include<sys/types.h>
 
@@ -234,6 +235,17 @@ void driver::driver_ini_cfd()
     // soil stress model below the bed (S 200)
     if(p->S200>0)
     psoil = new soil_stress(p,a,pgc);
+
+    // three-phase slide model (W 140): the slide fraction, then density and viscosity of the mixture
+    if(p->W140>0)
+    {
+    p3ph = new rheology_cfd_3phase(p,a,pgc);
+    p3ph->ini(p,a,pgc);
+    pfsf->update(p,a,pgc,a->phi);
+
+        if(pcfdamr!=nullptr && p->mpirank==0)
+        cout<<"!!! W 140: the three-phase slide model runs on the base grid only, not with the mesh refinement !!!"<<endl;
+    }
     
     // PIC particles (F 81): seeded in the water, the free surface from them (F 81 1, 2), first output
     ppic->ini(p,a,pgc);

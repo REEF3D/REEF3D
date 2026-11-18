@@ -22,6 +22,7 @@ Author: Hans Bihs
 
 #include"gcsl_side.h"
 #include"sflow_f.h"
+#include"sflow_level_file.h"
 #include"lexer.h"
 #include"driver.h"
 #include"fdm2D.h"
@@ -41,6 +42,7 @@ Author: Hans Bihs
 #include"sflow_amr.h"
 #include"hydro_sflow.h"
 #include"hydro_couple.h"
+#include"slide2D.h"
 #include"reefrun_ckpt.h"
 
 void sflow_f::ini(lexer *p, fdm2D* b, ghostcell* pgc)
@@ -148,6 +150,16 @@ void sflow_f::ini(lexer *p, fdm2D* b, ghostcell* pgc)
         pgc->gcsl_start4(p,b->bed,50);
     }
     
+
+    // two-layer landslide (W 150): the initial slide on the bed, the bed of the water z_b + h_s
+    if(p->W150>0)
+    {
+    b->slide = new slide2D(p,b,pgc);
+    b->slide->ini(p,b,pgc);
+
+    if(p->N48>0)
+    p->dt = MIN(p->dt, b->slide->dt_cap(p,pgc));
+    }
 
     // FSF ini
     ini_fsf(p,b,pgc);
@@ -338,6 +350,10 @@ void sflow_f::ini_fsf(lexer *p, fdm2D* b, ghostcell* pgc)
         b->eta(i,j) = p->F72_h[qn]-p->wd;
 	}
     
+    // F 73: the initial level from a file (a slide mass or lake from a terrain difference)
+    if(p->F73>0)
+    sflow_level_file().start(p,b,pgc);
+
     // river free-surface initialisation along the i-direction (F 65)
     ini_river(p,b,pgc,0);
     

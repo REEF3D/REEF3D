@@ -353,6 +353,7 @@ public:
     int F71;
     double *F71_xs, *F71_xe, *F71_ys, *F71_ye, *F71_zs, *F71_ze;
     int F72;
+    int F73;
     double *F72_xs, *F72_xe, *F72_ys, *F72_ye, *F72_h;
     int F76,F77,F78,F80,F81,F83,F85,F86;
     double F79,F82,F87;
@@ -679,6 +680,25 @@ public:
     double W132;
     double W133_min,W133_max;
     double W134;
+    double W135_dw,W135_b;
+    // three-phase slide model (CFD): slide fraction alpha_s, water/air level set, pore pressure
+    int W140;
+    double W141,W142;
+    int W143;
+    double W144_lambda,W144_k,W144_beta;
+    double W145_phi0,W145_K3,W145_phic;
+    double W146_J0,W146_aK;
+    int W147;
+    double *W147_xs,*W147_xe,*W147_ys,*W147_ye,*W147_zs,*W147_ze;
+    int W148;
+    double *W148_x1,*W148_z1,*W148_x2,*W148_z2,*W148_x3,*W148_z3;
+    int W149;
+    // two-layer landslide: depth-averaged slide layer under the water (SFLOW, slide2D)
+    int W150,W151,W152,W153,W159;
+    double *W151_xs,*W151_xe,*W151_ys,*W151_ye,*W151_z;
+    double *W152_xs,*W152_xe,*W152_ys,*W152_ye,*W152_d;
+    double *W153_xc,*W153_yc,*W153_Lx,*W153_Ly,*W153_T;
+    double W154,W155,W156,W157,W158,W160_u,W160_v;
     // atmospheric forcing (met_provider, met_forcing)
     int W200,W205,W207,W208,W210,W211,W215,W218,W219,W220_n,W220_v,W222,W223,W225,W226,W227,W229;
     double W201_u,W201_dir,W202,W203,W204,W205_lon,W205_lat,W205_rot,W206_x,W206_y,W209,W212,W213,W214,W216,W217,W228;

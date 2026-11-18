@@ -52,7 +52,7 @@ public:
     void implicit(lexer*, fdm2D*, ghostcell*, slice&, slice&, slice&, double, bool) override final;
     
     bool si_friction() const override final { return true; }
-    double si_factor(lexer*, fdm2D*, int, int, int, double, double, double) override final;
+    double si_factor(lexer*, fdm2D*, int, int, int, double, double, double, double) override final;
     void si_end(lexer*, fdm2D*, ghostcell*, slice&, slice&, slice&) override final;
     
     slice4 lambda;

@@ -25,6 +25,7 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm.h"
 #include"heaviside.h"
+#include"rheology_cfd_3phase.h"
 
 density_rheo::density_rheo(lexer* p) 
 {
@@ -41,6 +42,10 @@ double density_rheo::roface(lexer *p, fdm *a, int aa, int bb, int cc)
     H = heaviside_face(p,a->phi,phival,i,j,k,aa,bb,cc);
     
     roval = p->W1*H + p->W3*(1.0-H);
+    
+    // three-phase slide model (W 140): the mixture with the slide fraction of the face
+    if(rheology_cfd_3phase::self!=nullptr)
+    roval = rheology_cfd_3phase::self->rho_face(p,aa,bb,cc,H);
 
     return roval;          
 

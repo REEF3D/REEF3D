@@ -60,6 +60,12 @@ void ghostcell::start1(lexer *p, field& f, int gcv)
 
     if(do_comms)
         gcparacox(p,f,gcv);
+
+    // the periodic copy once more after the corner exchange: gcparacox set the corner ghost cells of a serial periodic
+    // direction (periodic in y, under the bed) from the neighbouring ghost cell, not from the periodic partner (a w of
+    // 0.06 m/s under the bed at the periodic face, read by the 3D momentum diffusion: a spurious v in y-uniform flows)
+    if(p->periodic1==1 || p->periodic2==1 || p->periodic3==1)
+    gc_periodic_corners(p,f,1);
 }
 
 void ghostcell::start2(lexer *p, field& f, int gcv)
@@ -101,6 +107,12 @@ void ghostcell::start2(lexer *p, field& f, int gcv)
 
     if(do_comms)
         gcparacox(p,f,gcv);
+
+    // the periodic copy once more after the corner exchange: gcparacox set the corner ghost cells of a serial periodic
+    // direction (periodic in y, under the bed) from the neighbouring ghost cell, not from the periodic partner (a w of
+    // 0.06 m/s under the bed at the periodic face, read by the 3D momentum diffusion: a spurious v in y-uniform flows)
+    if(p->periodic1==1 || p->periodic2==1 || p->periodic3==1)
+    gc_periodic_corners(p,f,2);
 }
 
 void ghostcell::start3(lexer *p, field& f, int gcv)
@@ -138,6 +150,12 @@ void ghostcell::start3(lexer *p, field& f, int gcv)
 
     if(do_comms)
         gcparacox(p,f,gcv);
+
+    // the periodic copy once more after the corner exchange: gcparacox set the corner ghost cells of a serial periodic
+    // direction (periodic in y, under the bed) from the neighbouring ghost cell, not from the periodic partner (a w of
+    // 0.06 m/s under the bed at the periodic face, read by the 3D momentum diffusion: a spurious v in y-uniform flows)
+    if(p->periodic1==1 || p->periodic2==1 || p->periodic3==1)
+    gc_periodic_corners(p,f,3);
 }
 
 void ghostcell::start4(lexer *p, field &f, int gcv)
@@ -175,6 +193,12 @@ void ghostcell::start4(lexer *p, field &f, int gcv)
 
     if(do_comms)
         gcparacox(p,f,gcv);
+
+    // the periodic copy once more after the corner exchange: gcparacox set the corner ghost cells of a serial periodic
+    // direction (periodic in y, under the bed) from the neighbouring ghost cell, not from the periodic partner (a w of
+    // 0.06 m/s under the bed at the periodic face, read by the 3D momentum diffusion: a spurious v in y-uniform flows)
+    if(p->periodic1==1 || p->periodic2==1 || p->periodic3==1)
+    gc_periodic_corners(p,f,4);
 }
 
 void ghostcell::start4a(lexer *p, field& f, int gcv)

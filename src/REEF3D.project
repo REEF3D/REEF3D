@@ -537,6 +537,7 @@
             <File Name="sflow_rheology_f.h"/>
             <File Name="sflow_rheology.h"/>
             <File Name="sflow_rheology_core.h"/>
+            <File Name="slide2D.h"/>
           </VirtualDirectory>
           <File Name="fdm2D.h"/>
           <VirtualDirectory Name="Time">
@@ -1286,6 +1287,9 @@
         <File Name="rheology_f.h"/>
         <File Name="rheology_core.h"/>
         <File Name="rheology_cfd_core.h"/>
+        <File Name="rheology_cfd_wall.h"/>
+        <File Name="rheology_cfd_3phase.h"/>
+        <File Name="sflow_level_file.h"/>
         <File Name="rheology_v.h"/>
       </VirtualDirectory>
     </VirtualDirectory>
@@ -2174,6 +2178,8 @@
             <File Name="sflow_rheology_v.cpp"/>
             <File Name="sflow_rheology_f.cpp"/>
             <File Name="sflow_rheology_core.cpp"/>
+            <File Name="slide2D.cpp"/>
+            <File Name="slide2D_flux.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Time">
             <File Name="sflow_fixtimestep.cpp"/>
@@ -3344,6 +3350,9 @@
         <File Name="rheology_f.cpp"/>
         <File Name="rheology_core.cpp"/>
         <File Name="rheology_cfd_core.cpp"/>
+        <File Name="rheology_cfd_wall.cpp"/>
+        <File Name="rheology_cfd_3phase.cpp"/>
+        <File Name="sflow_level_file.cpp"/>
         <File Name="rheology_v.cpp"/>
         <File Name="rheology_velsource.cpp"/>
       </VirtualDirectory>

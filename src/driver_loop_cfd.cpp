@@ -49,6 +49,7 @@ Author: Hans Bihs
 #include"reefcouple.h"
 #include"wave_lib_fnpf_couple.h"
 #include"soil_stress.h"
+#include"rheology_cfd_3phase.h"
 
 
 namespace
@@ -124,6 +125,10 @@ void driver::loop_cfd(fdm* a)
         pflow->wavegen_precalc(p,pgc);
 
 		    
+            // three-phase slide model (W 140): the slide fraction and the pore pressure over the step
+            if(p3ph!=nullptr)
+            p3ph->start(p,a,pgc,psolv);
+
             pfsf->start(a,p, pfsfdisc,psolv,pgc,pflow,preini,a->phi);
             pturb->start(a,p,pturbdisc,pturbdiff,psolv,pgc,pflow,pvrans);
             // with the mesh refinement it transports heat and concentration on all grids
