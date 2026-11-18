@@ -55,6 +55,7 @@ class probe_vel_theory;
 class exportfile;
 class flowfile_out;
 class print_averaging;
+class plic_distance;
 class lagoon_output;
 
 using namespace std;
@@ -118,6 +119,7 @@ private:
     probe_vel *pvel;
     probe_vel_theory *pveltheo;
     lagoon_output *plagoon = nullptr;  // P 18: LAGOON store of the volume
+    plic_distance *pplicd = nullptr;   // VOF-PLIC (F 80 4): the printed phi, the distance to the PLIC planes
 };
 
 #endif

@@ -21,6 +21,7 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"fsf_vtp.h"
+#include"plic_distance.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
@@ -35,6 +36,9 @@ fsf_vtp::fsf_vtp(lexer* p, fdm *a, ghostcell *pgc):vertice(p),nodeflag(p),eta(p)
 	mkdir("./REEF3D_CFD_FSF",0777);
 	
 	fsfprintcount=0;
+
+    if(p->F80==4)
+    pplicd = std::make_shared<plic_distance>(p);
 }
 
 fsf_vtp::~fsf_vtp()
@@ -43,8 +47,11 @@ fsf_vtp::~fsf_vtp()
 
 void fsf_vtp::start(lexer *p, fdm *a, ghostcell *pgc)
 {	
-	triangulation(p,a,pgc,a->phi);
-	reconstruct(p,a,a->phi);
+	// VOF-PLIC: phi is a phase marker; the surface is cut from the distance to the PLIC planes
+    field &ls = pplicd ? static_cast<field&>(pplicd->start(p,pgc,a->vof)) : static_cast<field&>(a->phi);
+
+	triangulation(p,a,pgc,ls);
+	reconstruct(p,a,ls);
 	
 	print(p,a);
 	++fsfprintcount;

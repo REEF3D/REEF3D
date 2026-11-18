@@ -21,6 +21,7 @@ Authors: Hans Bihs, Alexander Hanke
 --------------------------------------------------------------------*/
 
 #include"printer_CFD.h"
+#include"plic_distance.h"
 #include"lagoon_output.h"
 #include"lexer.h"
 #include"fdm.h"
@@ -169,6 +170,9 @@ printer_CFD::printer_CFD(lexer* p, fdm *a, ghostcell *pgc)
 
     if(p->P18>0 && (p->P10==vtk3D::type::vtu || p->P10==vtk3D::type::vts))
         plagoon = new lagoon_output(p,pgc,"CFD");
+
+    if(p->F80==4)
+        pplicd = new plic_distance(p);
 }
 
 void printer_CFD::start(lexer* p, fdm* a, ghostcell* pgc, turbulence *pturb, heat *pheat, ioflow *pflow, expdata *pdata, concentration *pconc, multiphase *pmp, sediment *psed)
@@ -695,13 +699,15 @@ void printer_CFD::print3D(lexer* p, fdm* a, ghostcell* pgc, turbulence *pturb, h
             file_offset+=sizeof(float);
         }
 
-        //  phi
+        //  phi; VOF-PLIC (F 80 4): the signed distance to the PLIC planes instead of the
+        //  solver's phase marker (+1 / -1, whose zero lies at the cell centres)
+        field &phiout = pplicd ? static_cast<field&>(pplicd->start(p,pgc,a->vof)) : static_cast<field&>(a->phi);
         iin=sizeof(float)*p->pointnum;
         memcpy(&buffer[file_offset],&iin,sizeof(int));
         file_offset+=sizeof(int);
         TPLOOP
         {
-            ffn=float(p->ipol4phi(a,a->phi));
+            ffn=float(p->ipol4phi(a,phiout));
             memcpy(&buffer[file_offset],&ffn,sizeof(float));
             file_offset+=sizeof(float);
         }
