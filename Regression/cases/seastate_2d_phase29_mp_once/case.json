@@ -1,0 +1,15 @@
+{
+ "base": "seastate_2d_phase26_mp_komen_dt900",
+ "ctrl_add": [
+  "A 767 1"
+ ],
+ "description": "seastate_2d_phase26_mp_komen_dt900 (Komen, A 769 2, growth from rest at 15 m/s, 16 steps of 900 s, 2 iterations per step) with the source terms once per iteration (A 767 1, Phase 29): the conservative DIA of a cell for all its bins in the sweep of the first quadrant; the ratios of its second pass predicted from the source terms (N*) and the factor N/N* of the last evaluation of the cell (the transport), 1 once the iterations have converged; P and D with the gains and the loss rates kept for the other quadrants. Validation in Dropbox SEASTATE/validation/85_performance.",
+ "tags": [
+  "quick",
+  "2d",
+  "seastate"
+ ],
+ "covers": [
+  "seastate_implicit::cell: A 769 2 with A 767 1 (the DIA once per iteration)"
+ ]
+}

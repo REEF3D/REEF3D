@@ -1,0 +1,15 @@
+{
+ "base": "seastate_2d_phase29_settled",
+ "np": 2,
+ "same_as": "seastate_2d_phase29_settled",
+ "description": "seastate_2d_phase29_settled on 2 ranks: the marks of the changed cells exchanged across the rank boundary, bitwise the result of one rank.",
+ "tags": [
+  "quick",
+  "2d",
+  "seastate",
+  "mpi"
+ ],
+ "covers": [
+  "A 782 on 2 ranks (the marks in the halo)"
+ ]
+}

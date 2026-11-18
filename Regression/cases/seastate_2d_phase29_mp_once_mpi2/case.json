@@ -1,0 +1,15 @@
+{
+ "base": "seastate_2d_phase29_mp_once",
+ "np": 2,
+ "same_as": "seastate_2d_phase29_mp_once",
+ "description": "seastate_2d_phase29_mp_once on 2 ranks: bitwise the result of one rank.",
+ "tags": [
+  "quick",
+  "2d",
+  "seastate",
+  "mpi"
+ ],
+ "covers": [
+  "A 769 2 with A 767 1 on 2 ranks"
+ ]
+}

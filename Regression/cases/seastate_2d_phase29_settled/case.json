@@ -1,0 +1,18 @@
+{
+ "base": "seastate_2d_phase26_mp_komen_dt900",
+ "ctrl_set": {
+  "A 707": "8"
+ },
+ "ctrl_add": [
+  "A 782 0.01"
+ ],
+ "description": "seastate_2d_phase26_mp_komen_dt900 with 8 iterations per step (A 707 8) and the settled cells left out (A 782 0.01, Phase 29): from the second iteration of a step a cell is solved only if its spectrum or that of a neighbour changed by more than 0.01 of its energy in the iteration before; 52 % of the cell solves remain (the share at the end of the run log). Validation in Dropbox SEASTATE/validation/85_performance.",
+ "tags": [
+  "quick",
+  "2d",
+  "seastate"
+ ],
+ "covers": [
+  "seastate_implicit: active_set, active_begin, active_end, cellw (A 782)"
+ ]
+}
