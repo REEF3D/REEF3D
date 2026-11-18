@@ -1599,6 +1599,51 @@ static void test_st4()
     }
 }
 
+// ---------------------------------------------------------------------------------------------
+// Phase 29: the rates of the first pass of dia_mp kept for the second
+// ---------------------------------------------------------------------------------------------
+static void test_phase29()
+{
+    std::cout<<"Phase 29: second pass of dia_mp with the rates of the first"<<std::endl;
+
+    seastate_grid sg(32,0.04,1.0,36);
+    const int nb=sg.nbin;
+    const double d=60.0;
+    cell_kin ck(sg,d);
+    std::vector<float> N=make_spectrum(sg,2.5,8.0,3.3,0.6,4.0);
+
+    // the second pass (gains only) with the rates kept from the first pass against a second pass that computes them
+    // itself, for the full circle and for a window of the sweep
+    for(int win=0; win<2; ++win)
+    {
+        seastate_source_param a; a.dia=true; a.dia_mp=true;
+        seastate_source s1(sg,a), s2(sg,a);
+        std::vector<double> P(nb), D(nb), G(nb), L(nb), Gk(nb), Gn(nb), Ln(nb), r1(nb,1.0), r(nb);
+        for(int x=0;x<nb;++x) r[x]=0.5+0.01*double(x%97);
+        const int ma=win ? 9 : 0, mb=win ? 17 : -1;
+        s1.compute(N.data(),d,ck.k.data(),ck.cg.data(),P.data(),D.data(),ma,mb);
+        s1.dia_mp(N.data(),r1.data(),G.data(),L.data());
+        s1.dia_mp(N.data(),r.data(),Gk.data(),L.data(),true);
+        s2.compute(N.data(),d,ck.k.data(),ck.cg.data(),P.data(),D.data(),ma,mb);
+        s2.dia_mp(N.data(),r.data(),Gn.data(),Ln.data(),true);
+        double e=0.0, gm=0.0;
+        for(int x=0;x<nb;++x) {e=std::max(e,std::fabs(Gk[x]-Gn[x])); gm=std::max(gm,Gn[x]);}
+        check(gm>0.0 && e==0.0,std::string("dia_mp: the second pass with the kept rates gives the same gains, bitwise (")+(win ? "window" : "full circle")+")");
+
+        // a new compute drops the kept rates: the second pass after it belongs to the new spectrum
+        std::vector<float> N2(N);
+        for(float &v : N2) v*=1.5f;
+        s1.compute(N2.data(),d,ck.k.data(),ck.cg.data(),P.data(),D.data(),ma,mb);
+        s1.dia_mp(N2.data(),r.data(),Gk.data(),L.data(),true);
+        s2.compute(N2.data(),d,ck.k.data(),ck.cg.data(),P.data(),D.data(),ma,mb);
+        s2.dia_mp(N2.data(),r1.data(),G.data(),Ln.data());
+        s2.dia_mp(N2.data(),r.data(),Gn.data(),Ln.data(),true);
+        e=0.0;
+        for(int x=0;x<nb;++x) e=std::max(e,std::fabs(Gk[x]-Gn[x]));
+        check(e==0.0,std::string("dia_mp: the rates of an earlier compute are not taken (")+(win ? "window" : "full circle")+")");
+    }
+}
+
 int main()
 {
     test_grid();
@@ -1617,6 +1662,7 @@ int main()
     test_memory();
     test_st4();
     test_limiter_free();
+    test_phase29();
 
     std::cout<<std::endl<<(nfail ? "FAILED: " : "all passed")<<(nfail ? std::to_string(nfail) : std::string())<<std::endl;
     return nfail ? 1 : 0;

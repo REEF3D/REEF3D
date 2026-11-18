@@ -1,0 +1,11 @@
+{
+ "base": "cfd_2d_6dof_fish_brain",
+ "np": 2,
+ "steps": 320,
+ "ctrl_add": [
+  "X 208 0 0.0"
+ ],
+ "description": "cfd_2d_6dof_fish_brain with the speed through the water from the head probes of the lateral line switched off (X 208 id kappa, kappa 0): the brain estimates the stride and the current from the track and the model of the speed alone, as before patch 0039 (the case itself, with kappa 1 by default, uses the probes ahead of 0.1 L); the brain log of the decisions and the estimates. Fish Swimming patch 0039.",
+ "tags": ["2d", "6dof", "floating", "deform", "singlephase", "mpi"],
+ "covers": ["sixdof_brain (the filter without the probes: stride and current)", "sixdof_obj::brain_setup (X 208)", "control: X 208 read, sent, received"]
+}

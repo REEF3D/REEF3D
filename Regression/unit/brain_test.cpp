@@ -43,6 +43,11 @@ struct swimmer
     double s_true = 0.48, k_true = 1.3, tau_true = 0.8, tau_down = 0.0, tau_glide = 2.5, C_brake = 0.0, nb_true = 0.0, rest_tc = 0.0, cx = 0.0, cz = 0.0;
     double stim_t = -1.0, stim_w = 0.5, stim_a = 3.0;      // a pressure pulse across the head at this time for stim_w (a startle stimulus)
     double Ls = 1.0, fs = 1.0;                // the length and the base frequency of the swimmer (1 m, 1 Hz)
+    // B1: the probes also give the flow along the axis relative to the hull (the head ones, s/L < 0.1, the speed
+    // through the water, those behind 0.6 of it as in a boundary layer); the body slips across its axis at slip_true
+    // times its speed through the water
+    bool probes = false;
+    double slip_true = 0.0;
     // a straight wall through (wx, wz) with the normal (wnx, wnz) pointing away from the fish (wnx = wnz = 0: none),
     // seen by the vision of the brain (rays from the head, 0.5 L ahead of the CoG)
     double wx = 0.0, wz = 0.0, wnx = 0.0, wnz = 0.0, wmin = 1.0e9;
@@ -99,8 +104,8 @@ struct swimmer
             // (rest_tc > 0: the body at rest over the ground at t = 0 in the current, as REEF3D starts it: the water
             // passing it, -c along the axis, decays with rest_tc)
             const double Er = (rest_tc>0.0) ? std::exp(-t/rest_tc) : 0.0, ce = cx*ex(0) + cz*ex(2);
-            x += dt*(Uw*ex(0) + cx - Er*ce*ex(0));
-            z += dt*(Uw*ex(2) + cz - Er*ce*ex(2));
+            x += dt*(Uw*ex(0) + cx - Er*ce*ex(0) + slip_true*Uw*el(0));
+            z += dt*(Uw*ex(2) + cz - Er*ce*ex(2) + slip_true*Uw*el(2));
             t += dt;
             track.push_back({t, x, z, h});
 
@@ -108,7 +113,7 @@ struct swimmer
             // (-0.5 b q_w across) and the stimulus
             const double q = 0.5*rho*std::max(Uw, 0.1*Ls*fs)*std::max(Uw, 0.1*Ls*fs);
             const double dp = -0.5*g[2]*q + ((stim_t>0.0 && t>stim_t - 0.5*stim_w && t<=stim_t + 0.5*stim_w) ? stim_a*q : 0.0);
-            std::vector<double> llp, lls;
+            std::vector<double> llp, lls, lua;
             std::vector<int> lsd;
             for(int s=0; s<10; ++s)
             for(int sd : {1, -1})
@@ -116,9 +121,11 @@ struct swimmer
                 lls.push_back((s + 0.5)/10.0);
                 lsd.push_back(sd);
                 llp.push_back((s + 0.5)/10.0<0.35 ? 0.5*sd*dp : 0.0);
+                lua.push_back(-(Uw - Er*ce)*((s + 0.5)/10.0<0.1 ? 1.0 : 0.6));
             }
             const Eigen::Vector3d c(x, 0.0, z), U = Uw*ex + Eigen::Vector3d(cx, 0.0, cz);
-            B.sense(dt, ex, el, c, U, &llp, lls, lsd);
+            const Eigen::Vector3d U2 = U + slip_true*Uw*el;
+            B.sense(dt, ex, el, c, slip_true!=0.0 ? U2 : U, &llp, lls, lsd, probes ? &lua : nullptr);
 
             // the wall: the closest approach of the body (head and tail) to it
             std::vector<double> vis;
@@ -520,6 +527,73 @@ int main()
               "units: a body of 0.2 m at 4 Hz against 1 m at 1 Hz in a current of 0.2 L f0: largest difference of the tracks "+std::to_string(dmax)+" L, mean distance to the station "+std::to_string(mdl[1])+" L ("+std::to_string(mdl[0])+" L)");
     }
 
+    // 3o. B1 (patch 0039): the speed through the water from the head probes of the lateral line. (i) The body of 3k
+    // (stride 0.52 L, its speed following the gait over 0.8 tail beats) at its station in 0.3 m/s, with the default
+    // prior of the stride (0.5, spread 0.3 s0) and no X 203: with the probes the brain finds the stride within 0.02
+    // and the current within 0.02 from 10 s; without them it trades the stride for the current (validation 24).
+    {
+        double ds[2], dc[2];
+        for(int k=0; k<2; ++k)
+        {
+            swimmer S; S.cx = 0.3; S.nb_true = 0.8; S.s_true = 0.52; S.probes = (k==0);
+            sixdof_brain B = brain(0.5, 1.5, {{0.0, 3.5, 0.0, 3.0}}, 0.0, 0.0, 1.0, 0.0, 0.0, 0.8);
+            double t = 0.0;
+            ds[k] = dc[k] = 0.0;
+            for(double te=2.5; te<=30.0; te+=0.5)
+            {
+                S.run(B, t, te);
+                if(te>=10.0)
+                {
+                    ds[k] = std::max(ds[k], std::fabs(B.last().s - 0.52));
+                    dc[k] = std::max(dc[k], std::fabs(B.last().cx - 0.3));
+                }
+            }
+        }
+        check(ds[0]<0.02 && dc[0]<0.005 && dc[1]>2.0*dc[0], "B1 stride without X 203: with the probes within "+std::to_string(ds[0])+" of 0.52, current within "+std::to_string(dc[0])+" m/s (without: "+std::to_string(ds[1])+", "+std::to_string(dc[1])+")");
+    }
+    // (ii) a body that slips across its axis at 0.1 of its speed through the water (as the 2D swimmer, validation 28),
+    // in still water after a target that circles at 0.3 m/s on a radius of 1.5 m (the body turns all the time): with
+    // the probes the brain learns the slip and reads less current than without them, where it reads the slip as one
+    {
+        double cm[2], beta = 0.0;
+        std::vector<sixdof_brain::target_point> tp;
+        for(int k=0; k<=40; ++k)
+        {
+            const double ph = 0.2*k;
+            tp.push_back({double(k), 5.0 + 1.5*std::cos(ph), 0.0, 3.0 + 1.5*std::sin(ph)});
+        }
+        for(int k=0; k<2; ++k)
+        {
+            swimmer S; S.slip_true = -0.1; S.probes = (k==0);
+            sixdof_brain B = brain(0.5, 1.5, tp);
+            double t = 0.0, sum = 0.0;
+            int n = 0;
+            for(double te=2.5; te<=40.0; te+=0.5)
+            {
+                S.run(B, t, te);
+                if(te>=15.0)
+                {
+                    sum += std::hypot(B.last().cx, B.last().cz);
+                    ++n;
+                }
+            }
+            cm[k] = sum/n;
+            if(k==0)
+            beta = B.perceived().slip;
+        }
+        check(cm[0]<0.5*cm[1] && std::fabs(beta + 0.1)<0.03, "B1 slip -0.1 in still water, turning: mean current read after 15 s "+std::to_string(cm[0])+" m/s with the probes (slip learnt "+std::to_string(beta)+"), "+std::to_string(cm[1])+" without");
+    }
+    // (iii) the start at rest in 0.2 m/s of 3l (the water passing the body decaying with 2 s) without X 202: the probes
+    // feel the water passing from the start, and the brain reads at least 0.15 m/s by 4 s (from the track alone, 3l:
+    // less than 0.1)
+    {
+        swimmer S; S.cx = 0.2; S.x = 3.9; S.h = 3.14159265358979323846; S.nb_true = 0.8; S.s_true = 0.52; S.rest_tc = 2.0; S.probes = true;
+        sixdof_brain B(0.5, 1.0, 0.0, 1.5, 1.0, 1.0, 1000.0, 1.0, 2, {{0.0, 3.5, 0.0, 3.0}}, 0.52, 0.0, 0.0, 0.0, 0.0, 0.0, 0.05);
+        double t = 0.0;
+        S.run(B, t, 4.0);
+        check(B.last().cx>0.15 && B.last().cx<0.25, "B1 the start at rest in 0.2 m/s without X 202: current at 4 s "+std::to_string(B.last().cx)+" m/s");
+    }
+
     // 4. a moving target at 0.25 m/s across, after the fish reached it
     {
         swimmer S;
@@ -584,18 +658,30 @@ int main()
         for(size_t k=0; same && k<S.log.size(); ++k)
         same = S.log[k].f==S2.log[k].f && S.log[k].b==S2.log[k].b && S.log[k].t==S2.log[k].t;
         check(same && S.x==S2.x && S.z==S2.z, "restart: the same decisions and track, bitwise ("+std::to_string(S.log.size())+" decisions)");
-        // a checkpoint of version 6 (patches 0031-0035: without the window of the escape) is still read: version 7 ends
-        // with the number of entries of the window and the entries
-        std::vector<double> v6;
-        for(size_t m=v.size(); m-->56; )
-        if(v[m]>=0.0 && v[m]==std::floor(v[m]) && m + 1 + size_t(v[m])==v.size())
+        // a checkpoint of version 6 (patches 0031-0035) is still read: version 8 ends with the slip (wset, beta, 7
+        // covariances) and the probe flows (their number, the values), version 7 before it with the window of the escape
+        // (its number, the entries)
+        auto tail = [](const std::vector<double> &w) -> size_t
         {
-            v6.assign(v.begin(), v.begin()+m);
-            v6[0] = 6.0;
-            break;
+            for(size_t m=w.size(); m-->56; )
+            if(w[m]>=0.0 && w[m]==std::floor(w[m]) && m + 1 + size_t(w[m])==w.size())
+            return m;
+            return 0;
+        };
+        std::vector<double> v6;
+        const size_t m8 = tail(v);
+        if(m8>9)
+        {
+            std::vector<double> v7(v.begin(), v.begin()+m8-9);
+            const size_t m7 = tail(v7);
+            if(m7>0)
+            {
+                v6.assign(v7.begin(), v7.begin()+m7);
+                v6[0] = 6.0;
+            }
         }
         sixdof_brain B3 = brain(0.5, 1.5, {{0.0, 3.5, 0.0, 3.0}});
-        check(v.front()==7.0 && v6.size()<v.size() && B3.ckpt_restore(v6), "restart: a checkpoint of version 6 is still read (version 7 now)");
+        check(v.front()==8.0 && !v6.empty() && B3.ckpt_restore(v6), "restart: a checkpoint of version 6 is still read (version 8 now)");
     }
 
     // 6c. restart in the start with X 202 (the water that passed the body at the start still felt)
