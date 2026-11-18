@@ -3109,6 +3109,8 @@ void control::ctrlrecv()
     dd++;
     W159 = ictrl[ii];
     ii++;
+    W161 = ictrl[ii];
+    ii++;
     W160_u = dctrl[dd];
     dd++;
     W160_v = dctrl[dd];

@@ -21,6 +21,7 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"slide2D.h"
+#include"sflow_level_file.h"
 #include"lexer.h"
 #include"fdm2D.h"
 #include"ghostcell.h"
@@ -99,12 +100,27 @@ void slide2D::ini(lexer *p, fdm2D *b, ghostcell *pgc)
     lambda(i,j) = p->W126>0 ? p->W127_lambda : 0.0;
     }
 
+    // W 161: the top of the initial slide from slide-level.dat (the format of sflow-level.dat, F 73), e.g. the
+    // pre-event terrain over the sliding surface of a real slide
+    level_grid lev;
+    
+    if(p->W161>0)
+    lev.read(p,pgc,"slide-level.dat","W 161");
+    
     SLICELOOP4
     {
         const double x = p->XP[IP];
         const double y = p->YP[JP];
         const bool oneD = (p->j_dir==0);
         double hs = 0.0;
+        
+        if(p->W161>0)
+        {
+        const double zt = lev.value(x,y);
+        
+            if(zt>-9000.0)
+            hs = MAX(hs, zt - zb(i,j));
+        }
 
         // W 151: the material between the bed and the level z_top in a box
         for(int n=0; n<p->W151; ++n)

@@ -12,6 +12,8 @@
   rheo_eval.py cfdarrest <run cfd> <run sflow> <out dir>   08: CFD viscoplastic arrest vs h^2 profile and SFLOW (02)
   rheo_eval.py terrainslide <run> <case> <out> <name>     26: real landslide on DEMs (slide_terrain.py) vs the DEM deposit
   rheo_eval.py terrainseries <case> <out> <name>:<value>:<run> ...   26: a parameter series of terrainslide runs
+  rheo_eval.py tsunamirunup <run> <case> <runup.csv> <out> <name> [radius]   27: landslide tsunami runup vs a survey
+  rheo_eval.py tsunamiseries <case> <runup.csv> <out> <name>:<run> ...       27: a series of tsunamirunup runs
 
 Reads the SFLOW free-surface VTP files (REEF3D_SFLOW_VTP_FSF); needs numpy and matplotlib.
 """
@@ -930,6 +932,140 @@ def terrainseries(case, out, runs, xlabel="yield stress tau_y (Pa)"):
     fig.tight_layout(); fig.savefig(os.path.join(out, "26_series_measures.png")); plt.close(fig)
     return {lab: r for lab, val, r in res}
 
+def _sflow_max_cells(run, nx, ny, dx):
+    """REEF3D_SFLOW_MAX (P 112) on the cell grid: max_eta, max_depth, max_speed, time_max_eta and inundation of each
+    cell (the two triangles of a cell, merged pieces); NaN where never wet"""
+    files = sorted(glob.glob(os.path.join(run, "REEF3D_SFLOW_MAX", "REEF3D-SFLOW-MAX-*.vtp")))
+    out = {k: np.full((ny, nx), np.nan) for k in ("max_eta", "max_depth", "max_speed", "time_max_eta", "inundation")}
+    for fn in files:
+        d = read_vtk(fn)
+        tri = d["connectivity"].reshape(-1, 3)
+        c = d["points"][tri].mean(axis=1)
+        i = np.clip((c[:, 0]/dx).astype(int), 0, nx - 1); j = np.clip((c[:, 1]/dx).astype(int), 0, ny - 1)
+        for k in out:
+            v = d[k].astype(float)
+            ok = np.isfinite(v)
+            a = out[k]
+            cur = a[j[ok], i[ok]]
+            a[j[ok], i[ok]] = np.where(np.isnan(cur), v[ok], np.maximum(cur, v[ok]))
+    return out
+
+def tsunamirunup(run, case, obs_csv, out, name, radius=100.0, slidepad=300.0):
+    """27: landslide tsunami (two-layer W 150, P 112 maxima) against a runup survey: for every observed runup (csv with
+    x, y in the coordinates of the DEM, flow_elev, type, location) the highest water level max_eta of the cells wet at
+    any time within radius of the point (the water reaching up the slope near the mark); points inside the slide area
+    (+ slidepad) are left out. Aida K = exp(mean ln(obs/model)) and kappa = exp(std ln(obs/model)) (K ~ 1 and
+    kappa < 1.45: good agreement for tsunami runup) over the full runups the wave reached (model above 0.5 m)"""
+    import csv
+    plt = style()
+    R = np.load(os.path.join(case, "reference.npz"))
+    rel = R["release"]; dx = float(R["dx"]); x0, y0 = (float(v) for v in R["origin"]); ny, nx = rel.shape
+    pre = R["pre"]
+    M = _sflow_max_cells(run, nx, ny, dx)
+    X, Y = np.meshgrid(dx*(np.arange(nx) + 0.5), dx*(np.arange(ny) + 0.5))
+    xr, yr = X[rel].mean(), Y[rel].mean()
+    dist_rel = np.full(rel.shape, np.inf)
+    ry, rx = np.where(rel)
+    rows = [r for r in csv.DictReader(open(obs_csv))]
+    obs = []
+    for r in rows:
+        if not r["type"].startswith("Runup") or r["type"] == "Runup_questionable" or not r["flow_elev"].strip():
+            continue
+        x, y = float(r["x"]) - x0, float(r["y"]) - y0
+        if not (0 <= x < nx*dx and 0 <= y < ny*dx):
+            continue
+        if np.min(np.hypot(X[rel] - x, Y[rel] - y)) < slidepad:
+            continue
+        obs.append((x, y, float(r["flow_elev"]), r["type"], r["location"]))
+    wet = np.isfinite(M["max_eta"])
+    res = []
+    for x, y, z, ty, loc in obs:
+        i0, i1 = int((x - radius)/dx), int((x + radius)/dx) + 1
+        j0, j1 = int((y - radius)/dx), int((y + radius)/dx) + 1
+        sl = (slice(max(j0, 0), min(j1 + 1, ny)), slice(max(i0, 0), min(i1 + 1, nx)))
+        near = (np.hypot(X[sl] - x, Y[sl] - y) <= radius) & wet[sl]
+        zm = float(np.max(M["max_eta"][sl][near])) if near.any() else 0.0
+        res.append((x, y, z, zm, ty, loc, float(np.hypot(x - xr, y - yr))))
+    A = np.array([(q[2], q[3], q[6]) for q in res])
+    full = np.array([q[4] == "Runup" for q in res])
+    o, m = A[:, 0], np.maximum(A[:, 1], 0.1)
+    reached = A[:, 1] > 0.5               # the wave came within the radius above 0.5 m (else not reached in the run)
+    lr = np.log(o[full & reached]/m[full & reached])
+    r_out = {"points": len(res), "points_runup": int(full.sum()), "points_runup_min": int((~full).sum()),
+             "obs_max_m": float(o.max()), "model_max_near_obs_m": float(A[:, 1].max()),
+             "model_max_eta_m": float(np.nanmax(M["max_eta"][~rel])),
+             "points_not_reached": int((~reached).sum()),
+             "Aida_K": float(np.exp(lr.mean())), "Aida_kappa": float(np.exp(lr.std())),
+             "within_factor_1.5": float(np.mean(np.abs(lr) < np.log(1.5))),
+             "runup_min_exceeded": float(np.mean(A[~full, 1] >= A[~full, 0])) if (~full).any() else None,
+             "flooded_area_km2": float(np.sum((M["inundation"] == 2) & (pre > 0))*dx*dx/1e6),
+             "radius_m": radius}
+    locs = {}
+    for q, f_ in zip(res, full):
+        if f_:
+            locs.setdefault(q[5], []).append((q[2], q[3]))
+    r_out["by_location_max_obs_model"] = {k: [round(max(a for a, b in v), 1), round(max(b for a, b in v), 1)] for k, v in locs.items()}
+    fig = plt.figure(figsize=(14, 9))
+    gs = fig.add_gridspec(2, 2, width_ratios=[1.15, 1])
+    ax = fig.add_subplot(gs[:, 0])
+    from matplotlib.colors import LightSource
+    hs = LightSource(azdeg=315, altdeg=45).hillshade(np.nan_to_num(pre[::-1]), vert_exag=1, dx=dx, dy=dx)[::-1]
+    ext = [x0, x0 + nx*dx, y0, y0 + ny*dx]
+    ax.imshow(hs, origin="lower", extent=ext, cmap="gray", vmin=-0.2, vmax=1.3)
+    me = np.where((M["inundation"] == 2) & (pre > 0), M["max_eta"], np.nan)
+    im = ax.imshow(me, origin="lower", extent=ext, cmap="viridis", vmin=0, vmax=200)
+    ax.contour(X + x0, Y + y0, rel.astype(float), levels=[0.5], colors="white", linewidths=0.8)
+    sc = ax.scatter(A[:, 0]*0 + np.array([q[0] for q in res]) + x0, np.array([q[1] for q in res]) + y0, c=o, s=10,
+                    cmap="viridis", vmin=0, vmax=200, edgecolors="k", linewidths=0.3)
+    ax.set_title("model: highest water level on flooded land (m); dots: survey", fontsize=10)
+    ax.set_aspect("equal"); ax.ticklabel_format(useOffset=False, style="plain"); ax.tick_params(labelsize=7)
+    fig.colorbar(im, ax=ax, shrink=0.6, label="elevation (m)")
+    ax = fig.add_subplot(gs[0, 1])
+    ax.plot(A[full, 2]/1000, o[full], "o", ms=3, color=ORANGE, label="survey runup")
+    ax.plot(A[~full, 2]/1000, o[~full], "^", ms=3, mfc="none", color=ORANGE, label="survey runup (minimum)")
+    ax.plot(A[:, 2]/1000, A[:, 1], "s", ms=2.5, color=BLUE, label="model (wet within %.0f m)" % radius)
+    ax.set_xlabel("distance from the slide (km)"); ax.set_ylabel("runup (m)"); ax.set_yscale("log"); ax.set_ylim(1, 300)
+    ax.legend(fontsize=8)
+    ax = fig.add_subplot(gs[1, 1])
+    ax.loglog(o[full], m[full], "o", ms=3, color=BLUE, label="runup")
+    ax.loglog(o[~full], m[~full], "^", ms=3, mfc="none", color=GREY, label="runup (minimum)")
+    ax.plot([1, 300], [1, 300], "k-", lw=0.8); ax.plot([1, 300], [1.5, 450], "k:", lw=0.6); ax.plot([1, 300], [1/1.5, 200], "k:", lw=0.6)
+    ax.set_xlim(1, 300); ax.set_ylim(1, 300); ax.set_xlabel("survey (m)"); ax.set_ylabel("model (m)")
+    ax.set_title("Aida K %.2f, kappa %.2f, within x1.5: %.0f %% (%d runup points reached)" % (r_out["Aida_K"], r_out["Aida_kappa"],
+                 100*r_out["within_factor_1.5"], int((full & reached).sum())), fontsize=9)
+    ax.legend(fontsize=8)
+    fig.tight_layout(); os.makedirs(out, exist_ok=True)
+    fig.savefig(os.path.join(out, "27_%s.png" % name)); plt.close(fig)
+    np.savez_compressed(os.path.join(out, "27_%s_points.npz" % name), pts=A, full=full)
+    return r_out
+
+def tsunamiseries(case, obs_csv, out, runs, radius=100.0):
+    """27: a series of tsunamirunup runs (e.g. the basal friction): runup against the distance from the slide for every
+    run with the survey, and the highest runup per location; runs = [(label, run dir), ...]"""
+    plt = style()
+    res = [(lab, tsunamirunup(run, case, obs_csv, out, lab, radius),
+            np.load(os.path.join(out, "27_%s_points.npz" % lab))) for lab, run in runs]
+    fig, axs = plt.subplots(1, 2, figsize=(14, 4.8), gridspec_kw={"width_ratios": [1.3, 1]})
+    P0 = res[0][2]; A0, f0 = P0["pts"], P0["full"]
+    axs[0].plot(A0[f0, 2]/1000, A0[f0, 0], "o", ms=3.5, color=ORANGE, label="survey runup", zorder=3)
+    axs[0].plot(A0[~f0, 2]/1000, A0[~f0, 0], "^", ms=3.5, mfc="none", color=ORANGE, label="survey runup (minimum)", zorder=3)
+    cols = [BLUE, GREEN, LBLUE, GREY]
+    for c, (lab, r, P) in zip(cols, res):
+        A = P["pts"]; o = np.argsort(A[:, 2])
+        axs[0].plot(A[o, 2]/1000, A[o, 1], "s", ms=2, color=c, alpha=0.8,
+                    label="%s: K %.2f, kappa %.2f" % (lab, r["Aida_K"], r["Aida_kappa"]))
+    axs[0].set_yscale("log"); axs[0].set_ylim(1, 300); axs[0].set_xlabel("distance from the slide (km)"); axs[0].set_ylabel("runup (m)")
+    axs[0].legend(fontsize=8)
+    locs = sorted(res[0][1]["by_location_max_obs_model"], key=lambda k: -res[0][1]["by_location_max_obs_model"][k][0])
+    xx = np.arange(len(locs)); w = 0.8/(len(res) + 1)
+    axs[1].bar(xx - 0.4 + w/2, [res[0][1]["by_location_max_obs_model"][k][0] for k in locs], w, color=ORANGE, label="survey")
+    for n, (c, (lab, r, P)) in enumerate(zip(cols, res)):
+        axs[1].bar(xx - 0.4 + w*(n + 1.5), [r["by_location_max_obs_model"][k][1] for k in locs], w, color=c, label=lab)
+    axs[1].set_xticks(xx); axs[1].set_xticklabels(locs, rotation=35, ha="right", fontsize=8); axs[1].set_ylabel("highest runup (m)")
+    axs[1].legend(fontsize=8)
+    fig.tight_layout(); fig.savefig(os.path.join(out, "27_series.png")); plt.close(fig)
+    return {lab: r for lab, r, P in res}
+
 if __name__ == "__main__":
     cmd = sys.argv[1]
     if cmd == "mangeney":
@@ -955,6 +1091,10 @@ if __name__ == "__main__":
         r = huang(sys.argv[2:-2], sys.argv[-2], sys.argv[-1])
     elif cmd == "terrainseries":
         r = terrainseries(sys.argv[2], sys.argv[3], [(a.split(":")[0], float(a.split(":")[1]), a.split(":")[2]) for a in sys.argv[4:]])
+    elif cmd == "tsunamiseries":
+        r = tsunamiseries(sys.argv[2], sys.argv[3], sys.argv[4], [tuple(a.split(":", 1)) for a in sys.argv[5:]])
+    elif cmd == "tsunamirunup":
+        r = tsunamirunup(sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5], sys.argv[6], *(float(a) for a in sys.argv[7:8]))
     elif cmd == "terrainslide":
         # terrainslide <run> <case dir with reference.npz> <out> <name>
         r = terrainslide(sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5])

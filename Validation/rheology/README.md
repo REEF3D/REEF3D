@@ -160,6 +160,8 @@ python3 tools/rheo_eval.py terrainslide <run> <case> <out> <name>
 python3 tools/fetch_hoydedata.py 4241 pre.tif --bbox 611000 6658000 615500 6662500 --res 5   # 26: Kartverket project DTMs (--list: the projects of a box)
 tools/run_case.sh <REEF3D> <DiveMESH> 26_gjerdrum_2020 <run>/g_tau500 "mpirun -np 2"   # after slide_terrain.py (26_gjerdrum_2020/README.md); W 125 250 / 500 / 1000 / 2000 15 0.35
 python3 tools/rheo_eval.py terrainseries 26_gjerdrum_2020 26_gjerdrum_2020/results tau250:250:<run>/g_tau250 tau500:500:<run>/g_tau500 tau1000:1000:<run>/g_tau1000 tau2000:2000:<run>/g_tau2000
+tools/run_case.sh <REEF3D> <DiveMESH> 27_taan_fiord_2015 <run>/t_mu010 "mpirun -np 2"   # after the set-up of 27_taan_fiord_2015/README.md; W 121 5.7 / 8.5 / 11.3
+python3 tools/rheo_eval.py tsunamiseries 27_taan_fiord_2015 27_taan_fiord_2015/runup_albers.csv 27_taan_fiord_2015/results mu0.10:<run>/t_mu010 mu0.15:<run>/t_mu015 mu0.20:<run>/t_mu020
 ```
 
 CFD cases 11–15 (`tools/rheo3_eval.py`; 11, 13: one rank, the others two ranks):
@@ -702,6 +704,21 @@ tools/run_slide_cases.sh <REEF3D> <DiveMESH> <run> <run>/results     # REEF3D_MP
 ```
 
 Run times below: Linux sandbox, 2 cores, the 2D cases on 2 ranks.
+
+### 27 SFLOW two-layer slide: Taan Fiord landslide tsunami 2015
+
+The 72.6 Mm³ rock slide at Tyndall Glacier on the Cannon et al. (2017) terrain (IFSAR, pre-event bathymetry, inferred
+slip surface; new key W 161 1: the initial slide top from slide-level.dat). 30 m cells, 670 × 747, hydrostatic water,
+Voellmy ξ 500, 900 s. Compared with the runup survey of Lynett et al. (2025, 294 points):
+
+- μ 0.10: 193 m at the 193 m mark, Aida K 1.03, κ 1.32, 87 % within a factor 1.5.
+- μ 0.15: K 1.12, κ 1.32.
+- μ 0.20: K 1.22, κ 1.33.
+- The peaks along the upper fjord (60 - 110 m) stay at 35 - 50 m at every friction.
+
+Details in 27_taan_fiord_2015/README.md.
+
+![](27_taan_fiord_2015/results/27_series.png)
 
 ### 16 Slide alone: the single-layer cases 01 and 02 through the slide layer
 

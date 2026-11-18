@@ -25,6 +25,7 @@ Author: Hans Bihs
 #define SFLOW_LEVEL_FILE_H_
 
 #include"increment.h"
+#include<vector>
 
 class lexer;
 class fdm2D;
@@ -41,6 +42,21 @@ class sflow_level_file : public increment
 {
 public:
     void start(lexer*, fdm2D*, ghostcell*);
+};
+
+// the regular grid of levels of such a file, shared by F 73 (sflow-level.dat) and W 161 (slide-level.dat, the top of the
+// initial slide of the two-layer model); stops the run with a message when the file is missing or short
+class level_grid
+{
+public:
+    void read(lexer*, ghostcell*, const char *file, const char *key);
+    double value(double x, double y) const;     // < -9000: no level there
+    
+    int nx=0, ny=0;
+    double x0=0.0, y0=0.0, dx=1.0, dy=1.0;
+    
+private:
+    std::vector<double> L;
 };
 
 #endif

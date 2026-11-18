@@ -1578,6 +1578,7 @@ void control::ini_default()
     W158=1.0e-5;     // double slide depth threshold [m] (dry below)
     W160_u=0.0;      // double initial slide velocity u [m/s]
     W160_v=0.0;      // double initial slide velocity v [m/s]
+    W161=0;          // int slide top level from the file slide-level.dat (1; format of sflow-level.dat, F 73)
     W159=100;        // int maximum slide sub-steps per water step (the water step is limited to W 159 slide steps)
     W200=0;          // int atmospheric forcing (SFLOW, NHFLOW): 0 off, 1 uniform (W 201, W 202), 2 met file met-forcing.r3m, 3 vortex, 4 blend
     W201_u=0.0;      // double uniform wind speed U10 [m/s]

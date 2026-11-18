@@ -3118,6 +3118,8 @@ void control::ctrlsend()
     dd++;
     ictrl[ii] = W159;
     ii++;
+    ictrl[ii] = W161;
+    ii++;
     dctrl[dd] = W160_u;
     dd++;
     dctrl[dd] = W160_v;

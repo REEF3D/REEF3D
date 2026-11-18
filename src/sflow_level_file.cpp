@@ -29,22 +29,21 @@ Author: Hans Bihs
 #include<vector>
 #include<cmath>
 
-void sflow_level_file::start(lexer *p, fdm2D *b, ghostcell *pgc)
+void level_grid::read(lexer *p, ghostcell *pgc, const char *file, const char *key)
 {
-    std::ifstream f("sflow-level.dat");
+    std::ifstream f(file);
     
     if(!f)
     {
     if(p->mpirank==0)
-    cout<<"F 73: sflow-level.dat not found"<<endl;
+    cout<<key<<": "<<file<<" not found"<<endl;
     pgc->final(EXIT_FAILURE);
     }
     
-    int nx=0, ny=0;
-    double x0=0.0, y0=0.0, dx=1.0, dy=1.0;
     f>>nx>>ny>>x0>>y0>>dx>>dy;
     
-    std::vector<double> L((size_t)nx*ny,-9999.0);
+    if(nx>0 && ny>0)
+    L.assign((size_t)nx*ny,-9999.0);
     
     for(size_t n=0; n<L.size(); ++n)
     f>>L[n];
@@ -52,11 +51,38 @@ void sflow_level_file::start(lexer *p, fdm2D *b, ghostcell *pgc)
     if(!f || nx<2 || ny<2 || dx<=0.0 || dy<=0.0)
     {
     if(p->mpirank==0)
-    cout<<"F 73: sflow-level.dat could not be read (header nx ny x0 y0 dx dy, then nx*ny levels)"<<endl;
+    cout<<key<<": "<<file<<" could not be read (header nx ny x0 y0 dx dy, then nx*ny levels)"<<endl;
     pgc->final(EXIT_FAILURE);
     }
+}
+
+double level_grid::value(double x, double y) const
+{
+    const double fi = (x - x0)/dx, fj = (y - y0)/dy;
+    
+    if(fi<-1.0 || fj<-1.0 || fi>nx || fj>ny)
+    return -9999.0;
     
     auto val = [&](int ii, int jj) { return L[(size_t)jj*nx + ii]; };
+    
+    const int i0 = std::max(0,std::min(nx-2,(int)floor(fi)));
+    const int j0 = std::max(0,std::min(ny-2,(int)floor(fj)));
+    const double s = std::max(0.0,std::min(1.0,fi-i0)), t = std::max(0.0,std::min(1.0,fj-j0));
+    
+    const double v00=val(i0,j0), v10=val(i0+1,j0), v01=val(i0,j0+1), v11=val(i0+1,j0+1);
+    
+    if(v00>-9000.0 && v10>-9000.0 && v01>-9000.0 && v11>-9000.0)
+    return (1.0-s)*(1.0-t)*v00 + s*(1.0-t)*v10 + (1.0-s)*t*v01 + s*t*v11;
+    
+    const int in = std::max(0,std::min(nx-1,(int)lround(fi)));
+    const int jn = std::max(0,std::min(ny-1,(int)lround(fj)));
+    return val(in,jn);
+}
+
+void sflow_level_file::start(lexer *p, fdm2D *b, ghostcell *pgc)
+{
+    level_grid G;
+    G.read(p,pgc,"sflow-level.dat","F 73");
     
     int count = 0;
     double vol = 0.0;
@@ -66,27 +92,7 @@ void sflow_level_file::start(lexer *p, fdm2D *b, ghostcell *pgc)
         const double x = p->geo_curv==1 ? p->XC2D[IJ] : p->XP[IP];
         const double y = p->geo_curv==1 ? p->YC2D[IJ] : p->YP[JP];
         
-        const double fi = (x - x0)/dx, fj = (y - y0)/dy;
-        
-        if(fi<-1.0 || fj<-1.0 || fi>nx || fj>ny)
-        continue;
-        
-        const int i0 = std::max(0,std::min(nx-2,(int)floor(fi)));
-        const int j0 = std::max(0,std::min(ny-2,(int)floor(fj)));
-        const double s = std::max(0.0,std::min(1.0,fi-i0)), t = std::max(0.0,std::min(1.0,fj-j0));
-        
-        const double v00=val(i0,j0), v10=val(i0+1,j0), v01=val(i0,j0+1), v11=val(i0+1,j0+1);
-        double level;
-        
-        if(v00>-9000.0 && v10>-9000.0 && v01>-9000.0 && v11>-9000.0)
-        level = (1.0-s)*(1.0-t)*v00 + s*(1.0-t)*v10 + (1.0-s)*t*v01 + s*t*v11;
-        
-        else
-        {
-            const int in = std::max(0,std::min(nx-1,(int)lround(fi)));
-            const int jn = std::max(0,std::min(ny-1,(int)lround(fj)));
-            level = val(in,jn);
-        }
+        const double level = G.value(x,y);
         
         if(level<-9000.0 || level<=b->bed(i,j))
         continue;
@@ -100,5 +106,5 @@ void sflow_level_file::start(lexer *p, fdm2D *b, ghostcell *pgc)
     vol = pgc->globalsum(vol);
     
     if(p->mpirank==0)
-    cout<<"F 73: initial level from sflow-level.dat ("<<nx<<" x "<<ny<<", spacing "<<dx<<" x "<<dy<<" m) in "<<count<<" cells, volume above the bed "<<vol<<" m3"<<endl;
+    cout<<"F 73: initial level from sflow-level.dat ("<<G.nx<<" x "<<G.ny<<", spacing "<<G.dx<<" x "<<G.dy<<" m) in "<<count<<" cells, volume above the bed "<<vol<<" m3"<<endl;
 }
