@@ -37,13 +37,13 @@ nhflow_timestep_SI::~nhflow_timestep_SI()
 {
 }
 
-void nhflow_timestep_SI::start(lexer *p, fdm_nhf *d, ghostcell *pgc)
+double nhflow_timestep_SI::limit(lexer *p, fdm_nhf *d, ghostcell *pgc, double &dxm, double &hmax)
 {
     const double g = fabs(p->W22);
-    double hmax=0.0, cmin=1.0e20;
+    double cmin=1.0e20;
+    hmax=0.0;
 
     p->umax=p->vmax=p->wmax=p->viscmax=p->omegamax=0.0;
-	p->dt_old=p->dt;
 
     LOOP
     WETDRY
@@ -83,7 +83,7 @@ void nhflow_timestep_SI::start(lexer *p, fdm_nhf *d, ghostcell *pgc)
     }
 
     // multi-block grid (G 50 1): the cells of the blocks
-    double dxm = p->DXM;
+    dxm = p->DXM;
 
     if(phook!=nullptr)
     {
@@ -111,11 +111,18 @@ void nhflow_timestep_SI::start(lexer *p, fdm_nhf *d, ghostcell *pgc)
     // cap: A 536, without it the explicit gravity wave limit
     const double cap = p->A536>0.0 ? p->A536 : cfl*dxm/sqrt(g*MAX(hmax,p->A544));
 
-    p->dt = MIN(cfl*2.0*cmin, cap);
+    return MIN(cfl*2.0*cmin, cap);
+}
 
-    // the time step grows by at most 20 % per step: the turbulence model (A 560) and the open
-    // boundaries start from the explicit initial time step
-    p->dt = MIN(p->dt, 1.2*p->dt_old);
+void nhflow_timestep_SI::start(lexer *p, fdm_nhf *d, ghostcell *pgc)
+{
+    const double g = fabs(p->W22);
+    double dxm, hmax;
+
+	p->dt_old=p->dt;
+
+    // the time step grows by at most 20 % per step
+    p->dt = MIN(limit(p,d,pgc,dxm,hmax), 1.2*p->dt_old);
 
 	p->dt=pgc->timesync(p->dt);
 
@@ -151,4 +158,67 @@ void nhflow_timestep_SI::ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
 	p->dt=pgc->timesync(p->dt);
 	p->dt_old=p->dt;
+}
+
+void nhflow_timestep_SI::ini_end(lexer *p, fdm_nhf *d, ghostcell *pgc)
+{
+    // the first step at the limit of the semi-implicit scheme, which has no gravity wave limit, instead of the explicit
+    // initial time step (ini: the flow speed + 10 m/s plus the gravity wave speed), from which the time step needed
+    // 20 to 30 steps at 20 % per step to reach A 536. All initial fields are set here (initial and potential flow,
+    // inflow, wave generation zones): the advective limit sees their velocities and, as a margin, twice the inflow
+    // and outflow velocities and the surface orbital velocity of the generated waves (the relaxation zones impose
+    // their velocities during the first step). The turbulence model (A 560) and a fixed time step (N 48 0) keep the
+    // explicit initial time step.
+    if(p->A560!=0 || p->N48==0)
+    return;
+
+    double dxm, hmax;
+    const double dtl = limit(p,d,pgc,dxm,hmax);
+
+    double us = MAX(fabs(p->Ui),fabs(p->Uo));
+
+    if(p->wA>0.0 && p->ww>0.0 && p->wk>0.0 && p->wd>0.0)
+    us = MAX(us, p->wA*p->ww/tanh(MIN(p->wk*p->wd,20.0)));
+
+    us = pgc->globalmax(us);
+
+    p->dt = us>1.0e-10 ? MIN(dtl, cfl*dxm/(2.0*us)) : dtl;
+
+    // jumps of the initial free surface (a dam break): the flow that the surface slope accelerates during the first
+    // step stays within the Courant number, g (deta/dx) dt^2/dx <= N47, deta the jump between two wet cells or the
+    // water depth of a wet cell next to a dry one; after the first step the advective limit sees that flow
+    const double g = fabs(p->W22);
+    double dtj = 1.0e20;
+
+    auto jump = [&](int wn, double en, double dxf)
+    {
+        const double de = wn==1 ? fabs(d->eta(i,j) - en) : d->WL(i,j);
+
+        if(de>1.0e-12)
+        dtj = MIN(dtj, dxf*sqrt(cfl/(g*de)));
+    };
+
+    SLICELOOP4
+    if(p->wet[IJ]==1)
+    {
+        if(p->flagslice4[Ip1J]>0)
+        jump(p->wet[Ip1J],d->eta(i+1,j),p->DXP[IP]);
+
+        if(p->flagslice4[Im1J]>0 && p->wet[Im1J]==0)
+        jump(0,0.0,p->DXP[IM1]);
+
+        if(p->j_dir==1 && p->flagslice4[IJp1]>0)
+        jump(p->wet[IJp1],d->eta(i,j+1),p->DYP[JP]);
+
+        if(p->j_dir==1 && p->flagslice4[IJm1]>0 && p->wet[IJm1]==0)
+        jump(0,0.0,p->DYP[JM1]);
+    }
+
+    p->dt = MIN(p->dt, pgc->globalmin(dtj));
+
+	p->dt=pgc->timesync(p->dt);
+	p->dt_old=p->dt;
+
+    if(p->mpirank==0)
+    cout<<"NHFLOW semi-implicit: first time step "<<setprecision(4)<<p->dt<<" s"<<endl;
 }

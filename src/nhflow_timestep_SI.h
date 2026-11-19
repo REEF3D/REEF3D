@@ -30,7 +30,8 @@ using namespace std;
 // time step of the hydrostatic semi-implicit NHFLOW (A 510 11/12/13): the advective Courant number
 //   dt = 2 N47 / max( |u|/dx + |v|/dy + |omega|/(dsig WL) ),
 // the limit of the explicit horizontal diffusion, capped by A 536 (s); without A 536 the time step stays
-// at the explicit gravity wave limit
+// at the explicit gravity wave limit. The first step starts at this limit (ini_end, after all initial fields),
+// after that the time step grows by at most 20 % per step
 class nhflow_timestep_SI final : public nhflow_timestep
 {
 public:
@@ -38,8 +39,11 @@ public:
 	virtual ~nhflow_timestep_SI();
 	void start(lexer*,fdm_nhf*,ghostcell*) override;
 	void ini(lexer*,fdm_nhf*,ghostcell*) override;
+	void ini_end(lexer*,fdm_nhf*,ghostcell*) override;
 
 private:
+    double limit(lexer*,fdm_nhf*,ghostcell*,double&,double&);
+
     const double cfl;
 };
 

@@ -242,6 +242,9 @@ void driver::driver_ini_nhflow()
     pnhfturb->etimesave(p,d,pgc);
     }
 
+    // the time step of the first step from the initial fields (A 510 11/12/13)
+    pnhfstep->ini_end(p,d,pgc);
+
     // restart from the latest checkpoint (I 45), on any decomposition
     if(p->I45==1)
     ckpt_read();
