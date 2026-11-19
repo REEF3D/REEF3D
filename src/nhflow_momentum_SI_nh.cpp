@@ -356,6 +356,16 @@ void nhflow_momentum_SI::nh_prepare(lexer *p, fdm_nhf *d, ghostcell *pgc)
     // (with t^{n+1/2} the Stokes-5 wave ran 0.15 % slower)
     auto zif = [&](int a, int c, int m) { return d->bed(a,c) + p->ZN[m+marge]*nh_wl1(p,a,c); };
 
+    // a side with an open boundary face (inflow, outflow, open edge): centred as in the interior, the ghost column
+    // with the boundary state of the step (WLb of bc_faces: the inflow level, the outflow level, the open edge) on the
+    // bed of the boundary cell. One-sided, the slope of the boundary column was twice that of its faces (the face
+    // towards the ghost has the level of the boundary, as the face discharge): [u . grad z] of the constraint drove a
+    // downward w in the column behind a fixed-discharge inflow, which the phi of the step held up as a steady jump of
+    // the level at the inflow (abutment flume, 16 l/s, dx 1 cm: +21 mm in the first column, a lee wave behind it)
+    wall_sides(p);
+
+    auto zob = [&](int a, int c, int m) { return d->bed(i,j) + p->ZN[m+marge]*MAX(WLb(a,c),0.0); };
+
     SLICELOOP4
     for(int m=0; m<=K; ++m)
     {
@@ -363,16 +373,22 @@ void nhflow_momentum_SI::nh_prepare(lexer *p, fdm_nhf *d, ghostcell *pgc)
     // (a column in front of dry land, A 541: one-sided next to the dry cells too, their level is that of the land)
     const bool cl = nhflow_drywall::cliff(p,d,i,j,WL0(i,j));
     auto ok = [&](int a, int c) { return cl ? wt(a,c) : in(a,c); };
-    const int ie = ok(i+1,j) ? i+1 : i, iw = ok(i-1,j) ? i-1 : i;
+    const unsigned char ws = wSide[(i-p->imin)*p->jmax + (j-p->jmin)];
+
+    const bool oe = !ok(i+1,j) && (ws&2), ow = !ok(i-1,j) && (ws&1);
+    const int ie = (ok(i+1,j) || oe) ? i+1 : i, iw = (ok(i-1,j) || ow) ? i-1 : i;
     const double dx = p->XP[ie+marge] - p->XP[iw+marge];
-    NSX[PIJK] = dx>0.0 ? nh_lim(zif(ie,j,m) - zif(iw,j,m),dx)/dx : 0.0;
+    const double ze = oe ? zob(ie,j,m) : zif(ie,j,m), zw = ow ? zob(iw,j,m) : zif(iw,j,m);
+    NSX[PIJK] = dx>0.0 ? nh_lim(ze - zw,dx)/dx : 0.0;
     NSY[PIJK] = 0.0;
 
         if(p->j_dir==1)
         {
-        const int jn = ok(i,j+1) ? j+1 : j, js = ok(i,j-1) ? j-1 : j;
+        const bool on = !ok(i,j+1) && (ws&8), os = !ok(i,j-1) && (ws&4);
+        const int jn = (ok(i,j+1) || on) ? j+1 : j, js = (ok(i,j-1) || os) ? j-1 : j;
         const double dy = p->YP[jn+marge] - p->YP[js+marge];
-        NSY[PIJK] = dy>0.0 ? nh_lim(zif(i,jn,m) - zif(i,js,m),dy)/dy : 0.0;
+        const double zn = on ? zob(i,jn,m) : zif(i,jn,m), zs = os ? zob(i,js,m) : zif(i,js,m);
+        NSY[PIJK] = dy>0.0 ? nh_lim(zn - zs,dy)/dy : 0.0;
         }
     }
 }
