@@ -964,6 +964,12 @@ protected:
     int regrids;
     int regrids_skipped = 0;        // regrids with an unchanged layout (par.lazy)
     long cells_total;
+    // profile of a run (REEF3D_AMR_PROFILE=1 prints it): time in the parts of the regrid [s] (0 the hierarchy before it,
+    // 1 flags, tile maps, layout and the objects of the new patches, 2 their time-independent data, 3 the plans,
+    // 4 their state, 5 the levels consistent again), patches made new and kept
+    bool prof = false;
+    double rgt[6] = {0.0,0.0,0.0,0.0,0.0,0.0};
+    long rg_fresh = 0, rg_kept = 0;
     long cells_local = 0;           // refined columns of the patches on this rank
 
     // rank boxes of level 0 (global cell indices), all ranks

@@ -60,7 +60,10 @@ void reefamr::regrid(lexer *p, ghostcell *pgc, bool initial)
     const int old_total = patches_total;
 
     // current hierarchy: final state with filled ghost cells
+    double rt0 = MPI_Wtime();
     regrid_prepare(pgc);
+    rgt[0] += MPI_Wtime()-rt0;
+    rt0 = MPI_Wtime();
 
     // ---- tile maps, finest first: flags of the next coarser level, the refinement boxes
     //      and the footprint of the finer level grown by the nesting width
@@ -301,6 +304,7 @@ void reefamr::regrid(lexer *p, ghostcell *pgc, bool initial)
         if(same)
         {
             ++regrids_skipped;
+            rgt[1] += MPI_Wtime()-rt0;
             return;
         }
     }
@@ -432,13 +436,29 @@ void reefamr::regrid(lexer *p, ghostcell *pgc, bool initial)
     build_gtable();
 
     // ---- time-independent data of the new patches (bed)
+    rgt[1] += MPI_Wtime()-rt0;
+    rt0 = MPI_Wtime();
     regrid_static(pgc);
+    rgt[2] += MPI_Wtime()-rt0;
 
     // ---- fill, restriction and flux matching plans of the new hierarchy
+    rt0 = MPI_Wtime();
     build_plans(pgc);
+    rgt[3] += MPI_Wtime()-rt0;
 
     // ---- state of the new patches, coarse to fine
+    rt0 = MPI_Wtime();
     regrid_state(pgc,oldP);
+    rgt[4] += MPI_Wtime()-rt0;
+
+    for(auto c : P)
+    if(c->lev>=1)
+    {
+        if(c->fresh)
+        ++rg_fresh;
+        else
+        ++rg_kept;
+    }
 
     for(auto c : gone)
     free_patch(c);
@@ -464,7 +484,9 @@ void reefamr::regrid(lexer *p, ghostcell *pgc, bool initial)
     cells_local = cells;
 
     // ---- level 0 consistent with the patches
+    rt0 = MPI_Wtime();
     regrid_finish(pgc,old_total);
+    rgt[5] += MPI_Wtime()-rt0;
 
     ++regrids;
     lmap_dirty = true;      // load map (G 45): a new layout

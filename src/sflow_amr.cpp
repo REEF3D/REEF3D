@@ -216,6 +216,16 @@ sflow_amr::sflow_amr(lexer *p, fdm2D *b, ghostcell *pgc, patchBC_interface *ppBC
     for(int k=0; k<10; ++k)
     tm[k]=0.0;
 
+    prof = (std::getenv("REEF3D_AMR_PROFILE")!=nullptr);
+    for(int k=0; k<8; ++k)
+    tp[k]=0.0;
+    for(int l=0; l<NPL; ++l)
+    {
+        tlv[l]=0.0;
+        for(int k=0; k<6; ++k)
+        cu[l][k]=0.0;
+    }
+
     pflow_void = new ioflow_v(p,pgc,pBC);
 
     phll0->amr = this;
@@ -770,6 +780,8 @@ void sflow_amr::regrid_state(ghostcell *pgc, vector<reefamr_patch*> &oldP)
 // level 0 consistent with the patches
 void sflow_amr::regrid_finish(ghostcell *pgc, int old_total)
 {
+    profile_layout();
+
     restrict_levels(p0,2);
 
     if(patches_total>0 || old_total>0)
@@ -1990,14 +2002,18 @@ void sflow_amr::store_fill(sflow_amr_patch *c, int n, int ii, int jj, const doub
 // cells of the level-l patches outside their interior, then the wall conditions
 void sflow_amr::fill_level(ghostcell *pgc, int l, int s)
 {
+    double t0 = MPI_Wtime();
     fill_run(l,NV,7100+l,
              [&](const reefamr_fill &f, double *v) { eval_fill(f,v); },
              [&](reefamr_patch *c, int n, const reefamr_fill &f, const double *w) { store_fill(SP(c),n,f.di,f.dj,w); });
+    tp[1] += MPI_Wtime()-t0;
 
     comms_off guard(pgc);
 
+    t0 = MPI_Wtime();
     for(int n : lev[l])
     apply_bc(pgc,*SP(n),s);
+    tp[2] += MPI_Wtime()-t0;
 }
 
 // wall ghost cells of a patch from its (filled) fluid cells, as at the end of a level-0 stage
@@ -2278,6 +2294,16 @@ void sflow_amr::step_begin(lexer *p, fdm2D *b, ghostcell *pgc)
 
 void sflow_amr::stage_begin(lexer *p, fdm2D *b, ghostcell *pgc, int s)
 {
+    stage_begin_run(p,b,pgc,s);
+
+    // profile: level 0 runs its stage until stage_end
+    if(active())
+    profile_count();
+    t_l0 = MPI_Wtime();
+}
+
+void sflow_amr::stage_begin_run(lexer *p, fdm2D *b, ghostcell *pgc, int s)
+{
     // multi-block: the blocks and the ring of level 0 filled from the stage input, the patches
     // (finest first) and the blocks run their stages, level 0 follows
     if(nblk>0)
@@ -2332,6 +2358,7 @@ void sflow_amr::stage_begin(lexer *p, fdm2D *b, ghostcell *pgc, int s)
 
     double t0 = MPI_Wtime();
     cache_stage(s);
+    tp[3] += MPI_Wtime()-t0;
 
     for(int l=1; l<=maxlev; ++l)
     fill_level(pgc,l,s);
@@ -2350,6 +2377,8 @@ void sflow_amr::stage_begin(lexer *p, fdm2D *b, ghostcell *pgc, int s)
         SP(n)->pmom->rk_stage(SP(n)->pp,SP(n)->b,pgc,s);
         }
         tm[1] += MPI_Wtime()-t0;
+        if(l<NPL)
+        tlv[l] += MPI_Wtime()-t0;
 
         t0 = MPI_Wtime();
         exchange_fluxes(l);
@@ -2359,6 +2388,9 @@ void sflow_amr::stage_begin(lexer *p, fdm2D *b, ghostcell *pgc, int s)
 
 void sflow_amr::stage_end(lexer *p, fdm2D *b, ghostcell *pgc, int s)
 {
+    if(active())
+    tp[0] += MPI_Wtime()-t_l0;
+
     // G 7 1: level 0 alone, its covered cells at a shoreline keep the restricted surface
     if(maxlev>=1 && patches_total>0 && sub==1)
     {
@@ -2401,9 +2433,11 @@ void sflow_amr::step_end(lexer *p, fdm2D *b, ghostcell *pgc)
         for(int l=1; l<=maxlev; ++l)
         fill_level(pgc,l,0);
         tm[0] += MPI_Wtime()-t0;
+        tp[4] += MPI_Wtime()-t0;
     }
 
     comms_off guard(pgc);
+    const double te0 = MPI_Wtime();
     for(auto q : P)
     {
         sflow_amr_patch *c = SP(q);
@@ -2417,6 +2451,7 @@ void sflow_amr::step_end(lexer *p, fdm2D *b, ghostcell *pgc)
 
         c->pfsf->depth_update(pp,c->b,pgc,c->b->WL);
     }
+    tp[5] += MPI_Wtime()-te0;
     }
 
 
@@ -2449,11 +2484,13 @@ void sflow_amr::step_end(lexer *p, fdm2D *b, ghostcell *pgc)
     if(nblk==0 && patches_total>0)
     {
     comms_off guard(pgc);
+    const double tf0 = MPI_Wtime();
     for(auto q : P)
     {
         sflow_amr_patch *c = SP(q);
         c->pmom->face_velocities(c->pp,c->b,pgc,c->b->WL);
     }
+    tp[6] += MPI_Wtime()-tf0;
     }
 
     // load statistics of the ranks (G 43)
@@ -2868,10 +2905,80 @@ double sflow_amr::mass(lexer *p, fdm2D *b, ghostcell *pgc)
     return pgc->globalsum(m);
 }
 
+// profile: the filled cells of every level by their source, after a regrid
+void sflow_amr::profile_layout()
+{
+    fkc.assign(maxlev+1,vector<long>(3,0));
+    for(int l=1; l<=maxlev; ++l)
+    for(int n : lev[l])
+    for(auto &f : P[n]->fill)
+    ++fkc[l][f.kind==0 ? 0 : (f.kind==2 ? 2 : 1)];
+}
+
+// profile: the cells of a stage (called once per stage of level 0)
+void sflow_amr::profile_count()
+{
+    ++pstages;
+    cu[0][0] += double(p0->knox)*double(p0->knoy);
+
+    for(int l=1; l<=maxlev && l<NPL; ++l)
+    {
+        for(int n : lev[l])
+        {
+            reefamr_patch *c = P[n];
+            cu[l][0] += double(c->nx)*double(c->ny);
+            cu[l][1] += double(c->nx+2*EXT)*double(c->ny+2*EY);
+            cu[l][2] += double(c->pp->imax)*double(c->pp->jmax);
+        }
+        if(l<(int)fkc.size())
+        for(int k=0; k<3; ++k)
+        cu[l][3+k] += double(fkc[l][k]);
+    }
+}
+
+// profile (REEF3D_AMR_PROFILE=1): the sums over the ranks.  Without subcycling a level takes a stage per stage of
+// level 0; with G 7 1 the cells are counted per stage of level 0 only (the levels take 2^l times more)
+void sflow_amr::profile_print(lexer *p, ghostcell *pgc)
+{
+    double g[8+NPL+6*NPL+6+10], l[8+NPL+6*NPL+6+10];
+    int n=0;
+    for(int k=0; k<8; ++k) l[n++] = tp[k];
+    for(int k=0; k<NPL; ++k) l[n++] = tlv[k];
+    for(int k=0; k<NPL; ++k)
+    for(int m=0; m<6; ++m) l[n++] = cu[k][m];
+    for(int k=0; k<6; ++k) l[n++] = rgt[k];
+    for(int k=0; k<10; ++k) l[n++] = tm[k];
+    for(int k=0; k<n; ++k)
+    g[k] = pgc->globalsum(l[k]);
+    const double gf = pgc->globalsum(double(rg_fresh));
+    const double gk = pgc->globalsum(double(rg_kept));
+
+    if(p->mpirank!=0)
+    return;
+
+    const double *gt=g, *gl=g+8, *gc=g+8+NPL, *gr=g+8+NPL+6*NPL, *gm=gr+6;
+    cout<<setprecision(6)<<"SFLOW AMR profile: step "<<p->count<<" stages "<<pstages<<" regrids "<<regrids<<" skipped "<<regrids_skipped
+        <<" patches new "<<gf<<" kept "<<gk<<endl;
+    cout<<"SFLOW AMR profile: time [s, sum of the ranks] level-0 stages "<<gt[0]<<" patch stages "<<gm[1];
+    for(int k=1; k<=maxlev && k<NPL; ++k)
+    cout<<" L"<<k<<" "<<gl[k];
+    cout<<" fill "<<gm[0]<<" (cells "<<gt[1]<<" walls "<<gt[2]<<" stage arrays "<<gt[3]<<" of it at the step end "<<gt[4]<<")"
+        <<" flux exchange "<<gm[2]<<" restriction "<<gm[3]<<" step end "<<gt[5]<<" face velocities "<<gt[6]
+        <<" regrid "<<gm[4]<<" (before "<<gr[0]<<" layout "<<gr[1]<<" static "<<gr[2]<<" plans "<<gr[3]<<" state "<<gr[4]<<" after "<<gr[5]<<")"
+        <<" print "<<gt[7]<<endl;
+    cout<<setprecision(10)<<"SFLOW AMR profile: cell stages L0 "<<gc[0];
+    for(int k=1; k<=maxlev && k<NPL; ++k)
+    cout<<" L"<<k<<" box "<<gc[6*k]<<" computed "<<gc[6*k+1]<<" arrays "<<gc[6*k+2]<<" filled: copied "<<gc[6*k+3]<<" prolonged "<<gc[6*k+4]<<" received "<<gc[6*k+5];
+    cout<<endl;
+}
+
 void sflow_amr::print(lexer *p, fdm2D *b, ghostcell *pgc)
 {
     if(!active())
     return;
+
+    const double tpr0 = MPI_Wtime();
+    struct ptimer { double &t; double t0; ~ptimer() { t += MPI_Wtime()-t0; } } ptm{tp[7],tpr0};
 
     dump_grids(p);
 
@@ -2907,6 +3014,9 @@ void sflow_amr::print(lexer *p, fdm2D *b, ghostcell *pgc)
     cout<<" (level solves "<<(sub_lv_n>0 ? double(sub_lv_it)/sub_lv_n : 0.0)<<", synchronisation "<<(sub_sy_n>0 ? double(sub_sy_it)/sub_sy_n : 0.0)<<")";
     if(p->mpirank==0 && doprint)
     cout<<endl;
+
+    if(prof && (doprint || p->count%100==0))
+    profile_print(p,pgc);
 
     if(!doprint)
     return;

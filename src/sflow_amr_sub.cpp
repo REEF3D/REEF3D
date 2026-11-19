@@ -254,6 +254,8 @@ void sflow_amr::sub_level(lexer *p, ghostcell *pgc, int l, int k, double t, doub
         sfc_stage(l);
         }
         tm[1] += MPI_Wtime()-t0;
+        if(l<NPL)
+        tlv[l] += MPI_Wtime()-t0;
 
         // A 220 1-3: the pressure of the stage, one solve over the level (sflow_amr_subnh.cpp);
         // A 220 4: u_a (sflow_amr_bous.cpp)

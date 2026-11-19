@@ -1,0 +1,19 @@
+{
+ "description": "sflow_2d_amr_dambreak with G 14 1: the patches are the largest rectangles of the marked tiles instead of one strip per tile row; the same refined cells, the gauges and the mass of sflow_2d_amr_dambreak bitwise.",
+ "solver": "sflow",
+ "np": 1,
+ "steps": 60,
+ "tags": [
+  "2d",
+  "sflow",
+  "amr",
+  "adaptive"
+ ],
+ "covers": [
+  "reefamr_regrid tile_rects mode 1 (G 14 1)"
+ ],
+ "base": "sflow_2d_amr_dambreak",
+ "ctrl_add": [
+  "G 14 1"
+ ]
+}

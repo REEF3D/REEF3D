@@ -1,0 +1,22 @@
+{
+ "description": "sflow_2d_amr_dambreak_place2 with G 14 1: the largest rectangles of the marked tiles over the whole domain, split and placed on two ranks (G 40 2).",
+ "solver": "sflow",
+ "np": 2,
+ "steps": 60,
+ "tags": [
+  "2d",
+  "sflow",
+  "amr",
+  "adaptive",
+  "mpi",
+  "place"
+ ],
+ "covers": [
+  "reefamr::place_patches with tile_rects mode 1 (G 14 1)"
+ ],
+ "base": "sflow_2d_amr_dambreak",
+ "ctrl_add": [
+  "G 40 2",
+  "G 14 1"
+ ]
+}
