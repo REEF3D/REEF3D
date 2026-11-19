@@ -1893,7 +1893,17 @@ void cfd_amr::pr_predict(int s)
             // replaced on the share 1-H only.  Replaced on the whole face, a face deep in a solid
             // took dt (Gc-Gf) with the densities of the level set extended into the solid (X 48 2,
             // 3), in the air above the free surface there 1000 times the velocity of water
-            const double Hf = MAX(forced_share(F.gface,F.cf,F.d),forced_share(F.pid,F.ff,F.d));
+            const double Hcs = forced_share(F.gface,F.cf,F.d);
+            const double Hf = MAX(Hcs,forced_share(F.pid,F.ff,F.d));
+
+            // The fine face lies deeper in a solid than the coarse face (its share is larger): the
+            // coarse stage velocity holds the share 1-Hcs of its own terms, the fine face takes 1-Hf
+            // of them.  Without this the share Hf-Hcs of the coarse pressure gradient stayed in
+            // the fine face: under a patch the pressure of a coarse cell at the surface of a solid
+            // is the mean of fine cells in the solid and in the fluid, in the air its gradient is
+            // some m/s per stage.  (The solids and the bed, target velocity 0; not with bodies.)
+            if(!bodies && Hf>Hcs)
+            v *= (1.0-Hf)/(1.0-Hcs);
 
             v += (1.0-Hf)*bs*p0->dt*(Gc-Gf);
 
@@ -3470,7 +3480,12 @@ void cfd_amr::pr_level(lexer *p, ghostcell *pgc, int l, int s)
         const double Gf = double(F.dir)*(pCs-pf)/(F.dist*F.rof);
 
         // the share of the direct forcing alone (pr_predict)
-        const double Hf = MAX(forced_share(F.gface,F.cf,F.d),forced_share(F.pid,F.ff,F.d));
+        const double Hcs = forced_share(F.gface,F.cf,F.d);
+        const double Hf = MAX(Hcs,forced_share(F.pid,F.ff,F.d));
+        // the fine face deeper in a solid than the coarse face: the share 1-Hf of the coarse stage
+        // velocity (pr_predict)
+        if(!bodies && Hf>Hcs)
+        v *= (1.0-Hf)/(1.0-Hcs);
         v += (1.0-Hf)*alpha*pp->dt*(Gc-Gf);
         if(F.hok && F.d==2)
         v -= (1.0-Hf)*alpha*pp->dt*p0->W22*fpc;
