@@ -368,12 +368,18 @@ void sixdof_obj::brain_setup(lexer *p)
     if(p->X204_id[n]==n6DOF)
     tc = p->X204_t[n];
     
+    // the factor of the speed through the water at the head probes of the lateral line (X 208 id kappa; 1, 0: off)
+    double kap = 1.0;
+    for(int n=0; n<p->X208; ++n)
+    if(p->X208_id[n]==n6DOF)
+    kap = p->X208_k[n];
+    
     // the brain starts at the end of the ramp of the gait (X 195), after half a tail beat at least (until patch
     // 0027 a tail beat later: a fish started below its station in a current was carried past it by the start-up
     // gait and had to turn round, validations 18, 19, 21)
     delete brain_;
     brain_ = new sixdof_brain(p->X193_U[nb], p->X193_b[nb], p->X193_D[nb], p->X193_the[nb], f0, fish_->length(), p->W1,
-                              std::max(tramp, 0.5/f0), fish_->lateral(), tp, s0, kturn, tauu, taud, nu, nd, ssd, tc);
+                              std::max(tramp, 0.5/f0), fish_->lateral(), tp, s0, kturn, tauu, taud, nu, nd, ssd, tc, kap);
     
     // the largest frequency of the brain fixes the step of the recoil quadrature
     fish_->set_fcap(brain_->fmax());
@@ -399,11 +405,11 @@ void sixdof_obj::brain_setup(lexer *p)
         }
         
         char hello[1024];
-        snprintf(hello,sizeof(hello),"{\"hello\":1,\"body\":%d,\"L\":%.17g,\"f0\":%.17g,\"rho\":%.17g,\"U_des\":%.17g,\"b_max\":%.17g,\"D\":%.17g,\"th_esc\":%.17g,\"t_start\":%.17g,\"twoD\":%d,\"s0\":%.17g,\"k_turn\":%.17g,\"tau_u\":%.17g,\"tau_d\":%.17g,\"n_u\":%.17g,\"n_d\":%.17g,\"s_sd\":%.17g,\"tau_c\":%.17g}",
+        snprintf(hello,sizeof(hello),"{\"hello\":1,\"body\":%d,\"L\":%.17g,\"f0\":%.17g,\"rho\":%.17g,\"U_des\":%.17g,\"b_max\":%.17g,\"D\":%.17g,\"th_esc\":%.17g,\"t_start\":%.17g,\"twoD\":%d,\"s0\":%.17g,\"k_turn\":%.17g,\"tau_u\":%.17g,\"tau_d\":%.17g,\"n_u\":%.17g,\"n_d\":%.17g,\"s_sd\":%.17g,\"tau_c\":%.17g,\"kappa\":%.17g}",
                  n6DOF, fish_->length(), f0, p->W1, p->X193_U[nb], p->X193_b[nb], p->X193_D[nb], p->X193_the[nb], std::max(tramp, 0.5/f0), fish_->lateral()==2 ? 1 : 0,
                  brain_->stride_prior(), brain_->turn_rate(), brain_->speed_time_up(), brain_->speed_time_down(),
                  brain_->speed_beats_up(), brain_->speed_beats_down(), brain_->stride_spread(),
-                 brain_->coast_prior());
+                 brain_->coast_prior(), brain_->probe_factor());
         
         if(!brain_link_->exchange(hello, in, 60.0))
         {
@@ -427,7 +433,8 @@ void sixdof_obj::brain_setup(lexer *p)
         if(reefckpt_open(printbrain,str,p->I45))
         printbrain<<"time \t target_x \t target_y \t target_z \t dist [m] \t bearing [deg] \t U [m/s] \t f [Hz] \t a \t b"
                   <<" \t dp_head/q \t p_head/q \t d_vision/L \t mode (0 target, 1 avoid, 2 escape, 3 at target, 4 external, 5 glide, 6 brake)"
-                  <<" \t stride [L] \t current_x \t current_y \t current_z [m/s] \t U_water [m/s]"<<endl;
+                  <<" \t stride [L] \t current_x \t current_y \t current_z [m/s] \t U_water [m/s]"
+                  <<" \t U_probe [m/s] (the head probes, B1; 0: none) \t slip"<<endl;
     }
 }
 
@@ -436,7 +443,8 @@ bool sixdof_obj::brain_due(lexer *p) const
     return brain_!=nullptr && brain_->due(p->simtime + p->dt);
 }
 
-void sixdof_obj::brain_update(lexer *p, ghostcell *pgc, const std::vector<double> *pr, const std::vector<double> *vis)
+void sixdof_obj::brain_update(lexer *p, ghostcell *pgc, const std::vector<double> *pr, const std::vector<double> *vis,
+                              const std::vector<double> *ua)
 {
     if(brain_==nullptr)
     return;
@@ -445,7 +453,7 @@ void sixdof_obj::brain_update(lexer *p, ghostcell *pgc, const std::vector<double
     const int la = fish_->lateral();
     const Eigen::Vector3d ax = R_.col(0), lat = R_.col(la);
     const Eigen::Vector3d U(p->ufbi, p->vfbi, p->wfbi);
-    brain_->sense(p->dt, ax, lat, c_, U, pr, ll_s_, ll_side_);
+    brain_->sense(p->dt, ax, lat, c_, U, pr, ll_s_, ll_side_, ua);
     
     const double tn = p->simtime + p->dt;
     
@@ -494,6 +502,7 @@ void sixdof_obj::brain_update(lexer *p, ghostcell *pgc, const std::vector<double
             vec("rays",q.rays.data(),q.rays.size());
             vec("ray_angles",sixdof_brain::rays().data(),sixdof_brain::rays().size());
             vec("ll_p",q.llp.data(),q.llp.size());
+            vec("ll_ua",q.llua.data(),q.llua.size());
             vec("ll_s",brain_->ll_s().data(),brain_->ll_s().size());
             std::vector<double> sd(brain_->ll_side().begin(), brain_->ll_side().end());
             vec("ll_side",sd.data(),sd.size());
@@ -563,6 +572,6 @@ void sixdof_obj::brain_update(lexer *p, ghostcell *pgc, const std::vector<double
         const sixdof_brain::record &r = brain_->last();
         printbrain<<r.t<<" \t "<<r.tx<<" \t "<<r.ty<<" \t "<<r.tz<<" \t "<<r.dist<<" \t "<<r.psi*(180.0/PI)<<" \t "<<r.U
                   <<" \t "<<r.Ff<<" \t "<<r.Fa<<" \t "<<r.Fb<<" \t "<<r.dpl<<" \t "<<r.phd<<" \t "<<r.dvis<<" \t "<<r.mode
-                  <<" \t "<<r.s<<" \t "<<r.cx<<" \t "<<r.cy<<" \t "<<r.cz<<" \t "<<r.Uw<<endl;
+                  <<" \t "<<r.s<<" \t "<<r.cx<<" \t "<<r.cy<<" \t "<<r.cz<<" \t "<<r.Uw<<" \t "<<r.wa<<" \t "<<r.slip<<endl;
     }
 }

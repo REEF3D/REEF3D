@@ -780,6 +780,8 @@ public:
     double *X203_s;
     int X204,*X204_id;
     double *X204_t;
+    int X208,*X208_id;
+    double *X208_k;
     int X194;
     int *X194_id,*X194_n;
     double *X194_d;

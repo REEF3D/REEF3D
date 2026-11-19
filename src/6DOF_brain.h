@@ -56,6 +56,17 @@ Architect: Hans Bihs
 //  fish glides (amplitude factor below 0.95 now or at the last decision) the estimate is not updated, and
 //  U_g follows from the track.
 //
+//  The speed through the water from the lateral line (B1, patch 0039): with probes of the lateral line ahead of
+//  0.1 L (X 194 with 6 stations or more) the flow along the axis relative to the hull there is the speed of the body
+//  through the water w_a (times kappa, X 208, default 1: the 2D swimmer reads 0.98-1.03 of it 1 cell off the hull,
+//  validation 29; the probes further back are in the boundary layer, 0.4-0.9). The filter then has a fourth state,
+//  the slip beta (the body moves through the water across its mean axis at beta w_a: the 2D swimmer -0.1, the source
+//  of the false current in still water, validation 28), and three measurements per interval: the current along the
+//  axis, the ground velocity along it less w_a (whatever the model of the speed); the ground velocity across the axis,
+//  c.el + beta w_a (with more noise); and w_a = s U_g for the stride (with the error of the model of the speed, 10 %).
+//  So the current no longer rests on the model of the speed (X 201, X 202) or on the prior of the stride; while gliding
+//  straight it is read the same way.
+//
 //  Behaviours, by priority:
 //   1. escape (th_esc > 0): a reflex, tested every time step (patch 0036) on the means over the last 0.1 T
 //      (above 2 th_esc: a brief strong stimulus) and the last 0.5 T (above th_esc) of a
@@ -112,13 +123,13 @@ public:
     sixdof_brain(double U_des, double b_max, double D_vis, double th_esc, double f0, double L, double rho,
                  double t_start, int lateral, const std::vector<target_point>&, double s0 = 0.0, double k_turn = 0.0,
                  double tau_u = 0.0, double tau_d = 0.0, double n_u = 0.0, double n_d = 0.0, double s_sd = 0.0,
-                 double tau_c = 0.0);
+                 double tau_c = 0.0, double kappa = 1.0);
 
     // the senses of one time step: dt, the body axis and the lateral axis (inertial frame), the CoG,
     // the CoG velocity; the lateral line (per probe: s/L, side, pressure) when the body has one
     void sense(double dt, const Eigen::Vector3d &ax, const Eigen::Vector3d &lat, const Eigen::Vector3d &c,
                const Eigen::Vector3d &U, const std::vector<double> *ll_p, const std::vector<double> &ll_s,
-               const std::vector<int> &ll_side);
+               const std::vector<int> &ll_side, const std::vector<double> *ll_ua = nullptr);
 
     // a decision at time t (current gait: frequency f, amplitude factor a, bias b): new targets
     struct decision {bool on = false; double t, f, a, b, ts; bool second = false; double t2, f2, a2, b2, ts2;};
@@ -133,7 +144,7 @@ public:
     static const std::vector<double> &rays();
 
     // the log line of the last decision
-    struct record {double t, tx, ty, tz, dist, psi, U, Ff, Fa, Fb, dpl, phd, dvis, s, cx, cy, cz, Uw; int mode;};
+    struct record {double t, tx, ty, tz, dist, psi, U, Ff, Fa, Fb, dpl, phd, dvis, s, cx, cy, cz, Uw; int mode; double wa = 0.0, slip = 0.0;};
     const record &last() const {return rec_;}
     
     // what the brain perceived at the last decision (for an external brain, X 191): the mean axes in
@@ -144,7 +155,8 @@ public:
         Eigen::Vector3d ex, el, c, T;
         double U = 0.0, stride = 0.0;
         bool target = false;
-        std::vector<double> llp, rays;
+        std::vector<double> llp, rays, llua;
+        double wa = 0.0, slip = 0.0;    // B1: the speed through the water from the probes, the slip
     };
     const perception &perceived() const {return perc_;}
     const std::vector<double> &ll_s() const {return lls_;}
@@ -168,6 +180,7 @@ public:
     double speed_beats_down() const {return nd_;}
     double stride_spread() const {return ssd_;}
     double coast_prior() const {return tc0_;}
+    double probe_factor() const {return kap_;}
 
 private:
 
@@ -176,13 +189,14 @@ private:
 
     const double Udes_, bmax_, Dvis_, the_, f0_, L_, rho_, tstart_, s0_, kturn_, tauu_, taud_, nu_, nd_, ssd_, tc0_;
     const double tf_, uf_;      // the units of the constants: the time 1/f0, the speed L f0
+    const double kap_;          // the probes at the head read kappa times the speed through the water (X 208; 0: not used)
     const int lat_;
     std::vector<target_point> tp_;
 
     // accumulated senses since the last decision
     double T_ = 0.0, Uax_ = 0.0;
     Eigen::Vector3d ax_ = Eigen::Vector3d::Zero(), lt_ = Eigen::Vector3d::Zero(), c_ = Eigen::Vector3d::Zero();
-    std::vector<double> llp_;
+    std::vector<double> llp_, llua_;
     double llT_ = 0.0;
 
     // state
@@ -192,7 +206,11 @@ private:
     // gait, the time, CoG and bias of the last decision, the target seen and its velocity
     void kf_update(const double H[2][3], const double y[2], double R, double dt);
     bool kf_on_ = false, Tset_ = false, glide_ = false;
-    double kf_x_[3] = {0.0, 0.0, 0.0}, kf_P_[3][3] = {{0.0,0.0,0.0},{0.0,0.0,0.0},{0.0,0.0,0.0}};
+    // (with the probes of the lateral line, B1: the fourth state is the slip beta)
+    double kf_x_[4] = {0.0, 0.0, 0.0, 0.0}, kf_P_[4][4] = {{0.0,0.0,0.0,0.0},{0.0,0.0,0.0,0.0},{0.0,0.0,0.0,0.0},{0.0,0.0,0.0,0.0}};
+    void kf_walk(double dt);
+    void kf_row(const double H[4], double y, double R);
+    bool wset_ = false;
     double ug_ = 0.0, tdec_ = 0.0, bdec_ = 0.0, adec_ = 1.0;
     // the coasting time (learnt from the glides), the end of the last burst, the side of the braking
     double tauc_ = 0.0, tburst_ = -1.0, bside_ = 0.0, E0_ = 0.0;

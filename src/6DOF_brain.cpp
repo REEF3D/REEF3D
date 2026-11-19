@@ -54,6 +54,12 @@ namespace
     const double brain_tT = 1.0;           // the velocity of the target seen: smoothed over this time [1/f0]
     const double brain_cstart[4] = {0.08, 0.15, 0.2, 0.4};   // the C-start: the bend in, the bend held, the release, the next decision [1/f0]
     const double brain_refr = 2.0;         // ... no new escape for this time [1/f0]
+    const double brain_snout = 0.1;        // the speed through the water from the probes of the lateral line ahead of this [L]
+    const double brain_pnoise = 0.03;      // ... their noise over an interval [L f0]
+    const double brain_slip = 0.06;        // ... with them: the noise of the ground velocity across the axis (the sideslip) [L f0]
+    const double brain_smodel = 0.1;       // ... the error of the model of the speed of the gait, relative, for the stride
+    const double brain_beta0 = 0.2;        // ... the prior spread of the slip beta (velocity across over along the axis)
+    const double brain_bwalk = 1.0e-3;     // ... its random walk [f0]
     const double brain_tesc[2] = {0.1, 0.5};   // the escape: the head signals over these windows, every time step [1/f0]:
                                                // the short one above 2 th_esc (a brief strong stimulus), the long one
                                                // above th_esc (as the mean over half a tail beat at the decisions before)
@@ -63,13 +69,13 @@ namespace
 
 sixdof_brain::sixdof_brain(double U_des, double b_max, double D_vis, double th_esc, double f0, double L, double rho,
                            double t_start, int lateral, const std::vector<target_point> &tp, double s0, double k_turn,
-                           double tau_u, double tau_d, double n_u, double n_d, double s_sd, double tau_c)
+                           double tau_u, double tau_d, double n_u, double n_d, double s_sd, double tau_c, double kappa)
              : Udes_(U_des), bmax_(b_max>0.0 ? b_max : 1.0), Dvis_(D_vis), the_(th_esc), f0_(f0), L_(L), rho_(rho),
                tstart_(t_start), s0_(s0>0.0 ? s0 : brain_s0), kturn_(k_turn!=0.0 ? k_turn : brain_kturn),
                tauu_(tau_u>0.0 ? tau_u : brain_tauu/f0), taud_(tau_d>0.0 ? tau_d : brain_tauu/f0),
                nu_(std::max(0.0, n_u)), nd_(n_d>0.0 ? n_d : std::max(0.0, n_u)),
                ssd_(std::max(0.0, s_sd)), tc0_(tau_c>0.0 ? tau_c : brain_tauc0/f0), tf_(1.0/f0), uf_(L*f0),
-               lat_(lateral), tp_(tp)
+               kap_(kappa), lat_(lateral), tp_(tp)
 {
     std::stable_sort(tp_.begin(), tp_.end(), [](const target_point &a, const target_point &b) {return a.t<b.t;});
     t_start_ = tstart_;
@@ -104,7 +110,7 @@ Eigen::Vector3d sixdof_brain::target(double t) const
 
 void sixdof_brain::sense(double dt, const Eigen::Vector3d &ax, const Eigen::Vector3d &lat, const Eigen::Vector3d &c,
                          const Eigen::Vector3d &U, const std::vector<double> *ll_p, const std::vector<double> &ll_s,
-                         const std::vector<int> &ll_side)
+                         const std::vector<int> &ll_side, const std::vector<double> *ll_ua)
 {
     T_ += dt;
     ax_ += dt*ax;
@@ -119,6 +125,15 @@ void sixdof_brain::sense(double dt, const Eigen::Vector3d &ax, const Eigen::Vect
 
         for(size_t q=0; q<ll_p->size(); ++q)
         llp_[q] += dt*(*ll_p)[q];
+
+        // the fluid velocity along the axis relative to the hull at the probes (B1, patch 0039)
+        if(ll_ua!=nullptr && ll_ua->size()==ll_p->size())
+        {
+            if(llua_.size()!=ll_ua->size())
+            llua_.assign(ll_ua->size(),0.0);
+            for(size_t q=0; q<ll_ua->size(); ++q)
+            llua_[q] += dt*(*ll_ua)[q];
+        }
 
         llT_ += dt;
         lls_ = ll_s;
@@ -340,15 +355,71 @@ sixdof_brain::decision sixdof_brain::decide(double t, double f, double a, double
 
     const double dt = t - tdec_;
 
+    // B1 (patch 0039): the speed through the water along the axis from the head probes of the lateral line (s/L below
+    // brain_snout, 1 cell off the hull: kappa = 1 for the 2D swimmer, validation 29); with it the filter also has the
+    // slip beta (the velocity across the axis through the water over the speed along it) and takes the ground velocity
+    // along and across the axis apart
+    double wa = 0.0;
+    bool hasw = false;
+    if(kap_>0.0 && llT_>0.0 && !llua_.empty() && llua_.size()==lls_.size())
+    {
+        double sw = 0.0;
+        int nw = 0;
+        for(size_t k=0; k<llua_.size(); ++k)
+        if(lls_[k]<brain_snout)
+        {
+            sw -= llua_[k]/llT_;
+            ++nw;
+        }
+        if(nw>0)
+        {
+            wa = sw/(nw*kap_);
+            hasw = true;
+        }
+    }
+    if(hasw && !wset_)
+    {
+        // the slip: from 0 with its prior spread, not correlated with the rest
+        kf_x_[3] = 0.0;
+        for(int i=0; i<4; ++i)
+        kf_P_[i][3] = kf_P_[3][i] = 0.0;
+        kf_P_[3][3] = brain_beta0*brain_beta0;
+        wset_ = true;
+    }
+
     if(dt>0.0)
     {
         const double y[2] = {(c_(p0) - pdec_(p0))/dt, (c_(p1) - pdec_(p1))/dt};
+        const double ya = y[0]*ex(p0) + y[1]*ex(p1), yl = y[0]*el(p0) + y[1]*el(p1);
 
         if(ug_<0.0)
         {
-            // the first interval: the speed of the gait from the track (no current assumed), no update
-            const double uw = y[0]*ex(p0) + y[1]*ex(p1);
+            // the first interval: the speed of the gait from the track (no current assumed), no update; with the
+            // probes from them
+            const double uw = hasw ? wa : ya;
             ug_ = std::min(f*a*L_, std::max(0.0, uw)/kf_x_[0]);
+        }
+        else if(hasw && std::min(a, adec_)<0.95)
+        {
+            // gliding with the probes: the speed of the gait from them; the current along the axis from the track
+            // less the speed through the water while the body is straight (not for a bent, braking body)
+            const double Em = (E0_>0.0) ? E0_*tauc_/dt*(1.0 - std::exp(-dt/tauc_)) : 0.0;
+            E0_ *= std::exp(-dt/tauc_);
+            const double u0 = ug_*kf_x_[0];
+            const bool straight = std::max(std::fabs(b), std::fabs(bdec_))<0.05;
+            if(straight)
+            {
+                kf_walk(dt);
+                const double R = (brain_noise*uf_)*(brain_noise*uf_) + (brain_pnoise*uf_)*(brain_pnoise*uf_);
+                const double H[4] = {0.0, ex(p0), ex(p1), 0.0};
+                kf_row(H, ya - wa, R);
+            }
+            ug_ = std::max(0.0, wa)/kf_x_[0];
+
+            // the coasting time from the slowing down over a whole glide, as without the probes
+            const double cm = std::sqrt(kf_x_[1]*kf_x_[1] + kf_x_[2]*kf_x_[2]);
+            if(std::max(a, adec_)<0.05 && straight && wa>3.0*cm + 0.05*uf_ && wa<u0)
+            tauc_ = 0.7*tauc_ + 0.3*std::min(30.0*tf_, std::max(0.5*tf_, dt/std::log(u0/wa)));
         }
         else if(std::min(a, adec_)<0.95)
         {
@@ -396,7 +467,23 @@ sixdof_brain::decision sixdof_brain::decide(double t, double f, double a, double
             const double H0[2][3] = {{ugm*ex(p0), 1.0, 0.0}, {ugm*ex(p1), 0.0, 1.0}};
             const double H1[2][3] = {{ugm*ex(p0), 1.0 - Em*ex(p0)*ex(p0), -Em*ex(p1)*ex(p0)},
                                      {ugm*ex(p1), -Em*ex(p0)*ex(p1), 1.0 - Em*ex(p1)*ex(p1)}};
+            if(!hasw)
             kf_update(Em>0.0 ? H1 : H0, y, R, dt);
+            else
+            {
+                // with the probes: the current along the axis is the ground velocity along it less the speed through the
+                // water w_a (whatever the model of the speed), across it the ground velocity is c.el + beta w_a (the
+                // slip), and the stride from w_a = s U_g - E c.ex, with the error of the model of the speed (10 %)
+                kf_walk(dt);
+                const double Hc[4] = {0.0, ex(p0), ex(p1), 0.0};
+                const double Hl[4] = {0.0, el(p0), el(p1), wa};
+                const double Hw[4] = {ugm, -Em*ex(p0), -Em*ex(p1), 0.0};
+                const double Rp = (brain_pnoise*uf_)*(brain_pnoise*uf_);
+                kf_row(Hc, ya - wa, R + Rp);
+                kf_row(Hl, yl, R + (brain_slip*uf_)*(brain_slip*uf_));
+                kf_row(Hw, wa, Rp + (brain_smodel*wa)*(brain_smodel*wa));
+                kf_x_[0] = std::min(1.6*s0_, std::max(0.5*s0_, kf_x_[0]));
+            }
             ++nkf_;
         }
     }
@@ -575,6 +662,8 @@ sixdof_brain::decision sixdof_brain::decide(double t, double f, double a, double
     }
 
     rec_ = {t, T(0), T(1), T(2), dist, psi, U, f, a, b, dpl, phd, dvis, s, cur(0), cur(1), cur(2), Uw, 0};
+    rec_.wa = hasw ? wa : 0.0;
+    rec_.slip = hasw ? kf_x_[3] : 0.0;
     
     perc_.ex = ex;
     perc_.el = el;
@@ -587,12 +676,18 @@ sixdof_brain::decision sixdof_brain::decide(double t, double f, double a, double
     for(size_t k=0; k<llp_.size() && llT_>0.0; ++k)
     perc_.llp[k] = llp_[k]/llT_;
     perc_.rays = (vis!=nullptr) ? *vis : std::vector<double>();
+    perc_.llua.assign(llua_.size(), 0.0);
+    for(size_t k=0; k<llua_.size() && llT_>0.0; ++k)
+    perc_.llua[k] = llua_[k]/llT_;
+    perc_.wa = hasw ? wa : 0.0;
+    perc_.slip = hasw ? kf_x_[3] : 0.0;
 
     // reset the senses
     T_ = Uax_ = llT_ = 0.0;
     ax_.setZero();
     lt_.setZero();
     std::fill(llp_.begin(), llp_.end(), 0.0);
+    std::fill(llua_.begin(), llua_.end(), 0.0);
 
     tdec_ = t;
     pdec_ = c_;
@@ -649,9 +744,35 @@ void sixdof_brain::kf_update(const double H[2][3], const double y[2], double R, 
     kf_x_[0] = std::min(1.6*s0_, std::max(0.5*s0_, kf_x_[0]));
 }
 
+void sixdof_brain::kf_walk(double dt)
+{
+    // the random walks over an interval (with the probes, B1: also the slip)
+    kf_P_[0][0] += (ssd_>0.0) ? brain_swalk*f0_*dt*ssd_*ssd_/0.09 : brain_swalk*f0_*dt;
+    kf_P_[1][1] += brain_cwalk*uf_*uf_*f0_*dt;
+    kf_P_[2][2] += brain_cwalk*uf_*uf_*f0_*dt;
+    kf_P_[3][3] += brain_bwalk*f0_*dt;
+}
+
+void sixdof_brain::kf_row(const double H[4], double y, double R)
+{
+    // one scalar measurement y = H x + noise (R) of the state s, c_p0, c_p1, beta
+    double Ph[4], K[4];
+    for(int i=0; i<4; ++i)
+    Ph[i] = kf_P_[i][0]*H[0] + kf_P_[i][1]*H[1] + kf_P_[i][2]*H[2] + kf_P_[i][3]*H[3];
+    const double S = H[0]*Ph[0] + H[1]*Ph[1] + H[2]*Ph[2] + H[3]*Ph[3] + R;
+    for(int i=0; i<4; ++i)
+    K[i] = Ph[i]/S;
+    const double e = y - (H[0]*kf_x_[0] + H[1]*kf_x_[1] + H[2]*kf_x_[2] + H[3]*kf_x_[3]);
+    for(int i=0; i<4; ++i)
+    kf_x_[i] += K[i]*e;
+    for(int i=0; i<4; ++i)
+    for(int j=0; j<4; ++j)
+    kf_P_[i][j] -= K[i]*Ph[j];
+}
+
 void sixdof_brain::ckpt_state(std::vector<double> &v) const
 {
-    v.push_back(7.0);      // version
+    v.push_back(8.0);      // version
     for(double x : {T_, Uax_, llT_, t_start_, next_, refr_, side_, kf_on_ ? 1.0 : 0.0, ug_, tdec_, bdec_, Tset_ ? 1.0 : 0.0, glide_ ? 1.0 : 0.0, adec_, tauc_, tburst_, bside_, double(nkf_), E0_})
     v.push_back(x);
     for(int k=0; k<3; ++k)
@@ -671,15 +792,24 @@ void sixdof_brain::ckpt_state(std::vector<double> &v) const
     // version 7 (patch 0036): the window of the escape
     v.push_back(double(esc_.size()));
     v.insert(v.end(), esc_.begin(), esc_.end());
+    // version 8 (patch 0039): the slip and its covariances, the flow along the axis at the probes
+    v.push_back(wset_ ? 1.0 : 0.0);
+    v.push_back(kf_x_[3]);
+    for(int i=0; i<4; ++i)
+    v.push_back(kf_P_[i][3]);
+    for(int j=0; j<3; ++j)
+    v.push_back(kf_P_[3][j]);
+    v.push_back(double(llua_.size()));
+    v.insert(v.end(), llua_.begin(), llua_.end());
 }
 
 bool sixdof_brain::ckpt_restore(const std::vector<double> &v)
 {
     // version 4 (patches 0016-0022): without the count of the updates (taken as learnt); version 5 (0023-0030)
     // without the water that passed the body at the start (0); version 6 (0031-0035) without the window of the
-    // escape (empty)
+    // escape (empty); version 7 (0036-0038) without the slip of B1 and the flow at the probes
     const int ver = v.empty() ? 0 : int(v[0]);
-    if(v.size()<55 || ver<4 || ver>7)
+    if(v.size()<55 || ver<4 || ver>8)
     return false;
 
     size_t k = 1;
@@ -720,6 +850,28 @@ bool sixdof_brain::ckpt_restore(const std::vector<double> &v)
         if(v.size()<k+ne)
         return false;
         esc_.assign(v.begin()+k, v.begin()+k+ne);
+        k += ne;
+    }
+    // version 8: the slip (before: none; it starts with the probes at the next decision)
+    wset_ = false;
+    kf_x_[3] = 0.0;
+    for(int i=0; i<4; ++i)
+    kf_P_[i][3] = kf_P_[3][i] = 0.0;
+    llua_.clear();
+    if(ver>=8)
+    {
+        if(v.size()<k+10)
+        return false;
+        wset_ = (v[k++]!=0.0);
+        kf_x_[3] = v[k++];
+        for(int i=0; i<4; ++i)
+        kf_P_[i][3] = v[k++];
+        for(int j=0; j<3; ++j)
+        kf_P_[3][j] = v[k++];
+        const size_t nu = size_t(v[k++]);
+        if(v.size()<k+nu)
+        return false;
+        llua_.assign(v.begin()+k, v.begin()+k+nu);
     }
     return true;
 }
