@@ -42,6 +42,7 @@ double nhflow_timestep_SI::limit(lexer *p, fdm_nhf *d, ghostcell *pgc, double &d
     const double g = fabs(p->W22);
     double cmin=1.0e20;
     hmax=0.0;
+    const bool hdi = nhflow_momentum_SI::hdiff_implicit(p) && (p->A512>0 || p->A560>0 || p->A547_c>0.0 || p->A547_nu0>0.0);
 
     p->umax=p->vmax=p->wmax=p->viscmax=p->omegamax=0.0;
 
@@ -71,7 +72,11 @@ double nhflow_timestep_SI::limit(lexer *p, fdm_nhf *d, ghostcell *pgc, double &d
     hmax = MAX(hmax,d->WL(i,j));
 
         // the horizontal diffusion of the predictor is explicit (the vertical one implicit):
-        // dt <= 0.25/(nu_h (1/dx^2 + 1/dy^2))
+        // dt <= 0.25/(nu_h (1/dx^2 + 1/dy^2)); A 512 2 on one grid: implicit, no limit (viscmax for the log only)
+        if(hdi)
+        p->viscmax = MAX(p->viscmax, d->VISC[IJK] + (p->A561>0 ? d->EVH[IJK] : d->EV[IJK]));
+
+        else
         if(p->A512>0 || p->A560>0 || p->A547_c>0.0 || p->A547_nu0>0.0)
         {
         const double visc = d->VISC[IJK] + (p->A561>0 ? d->EVH[IJK] : d->EV[IJK]);

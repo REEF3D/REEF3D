@@ -107,9 +107,9 @@ using namespace std;
 // change and omega does not limit the time step), gamma the implicit log-law bed friction of the bottom
 // layer (A 519 1). The hydrostatic pressure
 // gradient -g WL grad(eta) is the same in every layer, so the column reduces to one 2D Helmholtz
-// problem for eta^{n+1} (Casulli and Cattani 1994). The horizontal diffusion is explicit in the
-// predictor (along the sigma layers, compact Laplacian); the diffusion is active as nhflow_idiff
-// would be (A 512 > 0 or A 560 > 0). Vertical diffusion, bed friction and the pressure gradient act
+// problem for eta^{n+1} (Casulli and Cattani 1994). The horizontal diffusion (along the sigma layers, compact
+// Laplacian) is explicit in the predictor, with A 512 2 on one grid implicit after the predictor
+// (nhflow_momentum_SI_hdiff.cpp); the diffusion is active as nhflow_idiff would be (A 512 > 0 or A 560 > 0). Vertical diffusion, bed friction and the pressure gradient act
 // together in one implicit column step, so that the steady state does not depend on dt.
 //
 // Grids: Cartesian and curvilinear (G 50 2, nhflow_curv: face lengths and normals, the normal
@@ -201,6 +201,8 @@ public:
     // density from the tracers and its pressure gradient (A 620, nhflow_momentum_SI_density.cpp)
     static double eos(lexer*, double S, double T);
     static double internal_speed(lexer*, fdm_nhf*, int, int);
+    // A 512 2 on one grid without wave breaking: the horizontal diffusion is implicit (no time step limit of it)
+    static bool hdiff_implicit(lexer*);
     // the advective time step limit of a cell (cmin of dt = 2 cfl cmin), A 549 0 and 1
     static double adv_cmin(lexer*, double u, double v, double ci, int i, int j, double cfl);
     static int elm_mode(lexer *p) { return p->A549; }      // A 549 m C: the mode and the Courant number
@@ -314,6 +316,14 @@ private:
     std::vector<double> bcgF;     // advection_bcg: the half-step field f + dt/2 S (full layout)
     void hdiffusion(lexer*, fdm_nhf*, ghostcell*);
     void hdiffusion_brk(lexer*, fdm_nhf*, ghostcell*);
+    // implicit horizontal diffusion (nhflow_momentum_SI_hdiff.cpp): (I - dt L_h) u = u* per layer and velocity
+    // component after the predictor, the 2D systems with si_eta2D
+    void hdiffusion_implicit(lexer*, fdm_nhf*, ghostcell*);
+    bool hdimp = false;
+    si_eta2D *phd = nullptr;
+    solver2D *psolvHD = nullptr;
+    int hd_iter = 0;
+    double hd_time = 0.0;
     std::vector<double> hdU, hdV, hdW, hdN;
     void face_update(lexer*, fdm_nhf*, ghostcell*);
     void eta_update(lexer*, fdm_nhf*, ghostcell*, nhflow_fsf*);
@@ -464,6 +474,11 @@ private:
 
     // SEASTATE vortex force (A 751 2): the Stokes mass source -div(M) of the step [m/s], in rhsW and eta_update
     slice4 wsrc;
+
+    // implicit horizontal diffusion: face coefficients dt nu_f/dn_f, the velocity of a layer and the right-hand side
+    slice1 hdax;
+    slice2 hday;
+    slice4 hdx, hdr;
     bool mass_source = false;
 
     // direct forcing of fixed solids (A 580 1 grid solids, A 581-590), as the explicit NHFLOW: the forcing of
