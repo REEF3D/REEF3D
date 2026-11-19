@@ -21,6 +21,7 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"nhflow_filter.h"
+#include"gcsl_yskip.h"
 #include"lexer.h"
 #include"ghostcell.h"
 #include"slice.h"
@@ -49,6 +50,10 @@ void nhflow_filter::filter_sg(lexer *p, ghostcell *pgc, slice &f)
     // one at the end of the iteration before: the same values)
     pgc->gcsl_start4(p, f, 1);
 
+    // one cell in y (gcsl_yskip: the y ghost rows not kept): the rows of the window read from the cell row, which is
+    // what their Neumann ghost cells held
+    const int ym = gcsl_yskip(p) ? 0 : 1;
+
     for(int it=0; it<iterations; ++it)
     {
         buffer.clear();
@@ -60,7 +65,7 @@ void nhflow_filter::filter_sg(lexer *p, ghostcell *pgc, slice &f)
             for(int dv=-hw; dv<=hw; ++dv)
             for(int du=-hw; du<=hw; ++du)
             {
-                val += kernel[k]*f(i+du, j+dv);
+                val += kernel[k]*f(i+du, j+ym*dv);
                 ++k;
             }
             buffer.push_back(val);

@@ -21,6 +21,7 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"nhflow_stratification.h"
+#include"gcsl_yskip.h"
 #include"nhflow_momentum_SI.h"
 #include"lexer.h"
 #include"fdm_nhf.h"
@@ -41,7 +42,7 @@ void nhflow_n2(lexer *p, fdm_nhf *d, double *N2)
     for(int a=p->imin; a<p->imin+p->imax; ++a)
     for(int b=p->jmin; b<p->jmin+p->jmax; ++b)
     {
-        const double h = d->WL(a,b);
+        const double h = d->WL(a,gcsl_yrow(p,b));   // (gcsl_yskip: the y ghost rows from the cell row)
 
         if(K<2 || K>1024 || !(h>p->A544))
         {
@@ -56,7 +57,7 @@ void nhflow_n2(lexer *p, fdm_nhf *d, double *N2)
             const double S = d->SALT!=nullptr ? d->SALT[c] : p->A621_s0;
             const double T = d->TEMP!=nullptr ? d->TEMP[c] : p->A621_t0;
             r[k] = nhflow_momentum_SI::eos(p,S,T);
-            z[k] = d->bed(a,b) + p->ZP[k+mg]*h;
+            z[k] = d->bed(a,gcsl_yrow(p,b)) + p->ZP[k+mg]*h;
         }
 
         for(int k=0; k<K; ++k)
@@ -71,7 +72,7 @@ double nhflow_ri(lexer *p, fdm_nhf *d, const double *N2, int a, int b, int k)
 {
     const int K = p->knoz;
     const int mg = increment::marge;
-    const double h = d->WL(a,b);
+    const double h = d->WL(a,gcsl_yrow(p,b));
     const double n2 = N2[sc3(p,a,b,k)];
 
     if(K<2 || !(h>p->A544) || n2<=0.0)

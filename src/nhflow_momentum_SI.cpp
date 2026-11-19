@@ -21,6 +21,7 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"nhflow_momentum_SI.h"
+#include"gcsl_yskip.h"
 #include"nhflow_breaking.h"
 #include"nhflow_breaking_profile.h"
 #include"nhflow_stratification.h"
@@ -1206,7 +1207,7 @@ void nhflow_momentum_SI::eddy_algebraic(lexer *p, fdm_nhf *d)
     for(i=p->imin; i<p->imin+p->imax; ++i)
     for(j=p->jmin; j<p->jmin+p->jmax; ++j)
     {
-        const double h = d->WL(i,j);
+        const double h = d->WL(i,gcsl_yrow(p,j));   // (gcsl_yskip: the y ghost rows from the cell row)
         const double ustar = col_ustar(p,d,h);
 
         double zs = 0.0;
@@ -1243,7 +1244,8 @@ double nhflow_momentum_SI::col_ustar(lexer *p, fdm_nhf *d, double h)
         const int kk=k;
         k=0;
         const double dn = p->DZN[KP]*h;
-        double ks = d->ks(i,j);
+        const int jr = gcsl_yrow(p,j);    // (gcsl_yskip: the y ghost rows from the cell row)
+        double ks = d->ks(i,jr);
         if(ks<=0.0)
         ks = 0.0001;
         double z0 = 0.5*dn;
@@ -1255,7 +1257,7 @@ double nhflow_momentum_SI::col_ustar(lexer *p, fdm_nhf *d, double h)
         k=kk;
 
         if(pmet!=nullptr && pmet->wind)
-        ustar += sqrt(sqrt(pmet->Tx(i,j)*pmet->Tx(i,j) + pmet->Ty(i,j)*pmet->Ty(i,j)));
+        ustar += sqrt(sqrt(pmet->Tx(i,jr)*pmet->Tx(i,jr) + pmet->Ty(i,jr)*pmet->Ty(i,jr)));
     }
 
     return ustar;
@@ -1283,7 +1285,7 @@ void nhflow_momentum_SI::eddy_floor(lexer *p, fdm_nhf *d)
     for(i=p->imin; i<p->imin+p->imax; ++i)
     for(j=p->jmin; j<p->jmin+p->jmax; ++j)
     {
-        const double h = d->WL(i,j);
+        const double h = d->WL(i,gcsl_yrow(p,j));   // (gcsl_yskip: the y ghost rows from the cell row)
         const double ustar = col_ustar(p,d,h);
 
         if(ustar<=0.0)
@@ -2153,11 +2155,17 @@ void nhflow_momentum_SI::advection_bcg(lexer *p, fdm_nhf *d, ghostcell *pgc, dou
     {
         // the cells of the layers of every column (the horizontal scheme reads no other entries of the column): before,
         // the whole array with its vertical ghost cells, 8 % of the instructions of a 1D run (64 x 2 cells)
+        // (one cell in y: the x faces of the cell row read only that row)
         bcgF.resize(fN);
+        const int b0 = yd ? p->jmin : 0, b1 = yd ? p->jmin+p->jmax : p->knoy;
 
         for(int a=p->imin; a<p->imin+p->imax; ++a)
-        for(int b=p->jmin; b<p->jmin+p->jmax; ++b)
-        std::copy(f+ix(a,b,0),f+ix(a,b,0)+K,bcgF.data()+ix(a,b,0));
+        for(int b=b0; b<b1; ++b)
+        {
+        const int q = ix(a,b,0);
+        for(int c=0; c<K; ++c)
+        bcgF[q+c] = f[q+c];
+        }
 
         for(int a=lrng[0]; a<lrng[1]; ++a)
         for(int b=lrng[2]; b<lrng[3]; ++b)

@@ -67,6 +67,7 @@ Author: Hans Bihs
 // ---------------------------------------------------------------------------
 
 #include"nhflow_momentum_SI.h"
+#include"gcsl_yskip.h"
 #include"sflow_curv.h"
 #include"si_eta2D.h"
 #include"nhflow_drywall.h"
@@ -272,7 +273,7 @@ void nhflow_momentum_SI::nh_prepare(lexer *p, fdm_nhf *d, ghostcell *pgc)
     for(int ii=p->imin; ii<p->imin+p->imax; ++ii)
     for(int jj=p->jmin; jj<p->jmin+p->jmax; ++jj)
     if(!in(ii,jj))
-    nWLh[(ii-p->imin)*p->jmax + (jj-p->jmin)] = MAX(d->WL(ii,jj),0.0);
+    nWLh[(ii-p->imin)*p->jmax + (jj-p->jmin)] = MAX(d->WL(ii,gcsl_yrow(p,jj)),0.0);
 
     // MPI: nWLh of the columns of the neighbouring ranks (nh_faces, the slopes)
     if(p->mpi_size>1)

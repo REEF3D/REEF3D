@@ -30,6 +30,7 @@ Author: Hans Bihs
 #include"nhflow_curv.h"
 #include"sflow_curv.h"
 #include"nhflow_fsf_hull.h"
+#include"gcsl_yskip.h"
 
 #define WLVL (fabs(WL(i,j))>p->A544?WL(i,j):p->A544)
 
@@ -57,12 +58,22 @@ void nhflow_sigma::sigma_update(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL)
     const size_t ns = (size_t)p->imax*p->jmax;
     int same = (dprev.size()==ns && dprev_bed==p->gcsldfbed4_count) ? 1 : 0;
     
+        // (one cell in y, gcsl_yskip: the y ghost rows are not kept, the cell row and its x ghost cells compared)
+        const bool ysk = gcsl_yskip(p);
+
         if(same==1)
         for(size_t q=0; q<ns; ++q)
+        {
+        const int jq = int(q%size_t(p->jmax)) + p->jmin;
+
+        if(ysk && (jq<0 || jq>=p->knoy))
+        continue;
+
         if(dprev[q]!=df.V[q])
         {
         same = 0;
         break;
+        }
         }
     
     same = pgc->globalimin(same);

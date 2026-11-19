@@ -21,6 +21,7 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"nhflow_tracer_SI.h"
+#include"gcsl_yskip.h"
 #include"nhflow_momentum_SI.h"
 #include"reef3d_mpmd.h"
 #include"reefckpt.h"
@@ -477,8 +478,10 @@ double nhflow_tracer_SI::prepare_step(lexer *p, fdm_nhf *d, int phase)
     for(int ii=p->imin; ii<p->imin+p->imax; ++ii)
     for(int jj=p->jmin; jj<p->jmin+p->jmax; ++jj)
     {
-    wn0(ii,jj) = wl0(ii,jj) = m->WL0(ii,jj);
-    wn1(ii,jj) = d->WL(ii,jj);
+    // (gcsl_yskip: the y ghost rows from the cell row, as their Neumann ghost cells)
+    const int jr = gcsl_yrow(p,jj);
+    wn0(ii,jj) = wl0(ii,jj) = m->WL0(ii,jr);
+    wn1(ii,jj) = d->WL(ii,jr);
     wl1(ii,jj) = phase==1 ? wn0(ii,jj) + fr1*(wn1(ii,jj) - wn0(ii,jj)) : wn1(ii,jj);
     }
 

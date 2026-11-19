@@ -107,7 +107,7 @@ void ghostcell::gcsl_start1(lexer *p, slice &f, int gcv)
 
     // (labels 4 and 5 inline, the others through gcsldistro1)
     gcsl_labels L;
-    const bool ysk = gcsl_yskip(p);     // (SFLOW, one cell in y: the y sides skipped, gcsl_yskip.h)
+    const bool ysk = gcsl_yskip(p);     // (one cell in y: the y sides skipped, gcsl_yskip.h)
     QQGCSL1LOOP
     {
     const int ii = p->gcbsl1[qq][0], jj = p->gcbsl1[qq][1], bc = p->gcbsl1[qq][4], cs = p->gcbsl1[qq][3];
@@ -194,7 +194,8 @@ void ghostcell::gcsl_start4(lexer *p, slice &f, int gcv)
     starttime=timer();
     // (labels 4, 14 and 5 inline, the others through gcsldistro4)
     gcsl_labels L;
-    const bool ysk = gcsl_yskip(p);     // (SFLOW, one cell in y: the y sides skipped, gcsl_yskip.h)
+    // (one cell in y: the y sides skipped, gcsl_yskip.h; NHFLOW: in the time loop, the initialisation fills them)
+    const bool ysk = gcsl_yskip(p) && (p->A10!=5 || p->count>0);
     QQGCSL4LOOP
     {
     const int ii = p->gcbsl4[qq][0], jj = p->gcbsl4[qq][1], bc = p->gcbsl4[qq][4], cs = p->gcbsl4[qq][3];
@@ -297,11 +298,16 @@ void ghostcell::gcsl_start4Vint(lexer *p, int *f, int gcv)
 {
     const int m0 = margin;
     starttime=timer();
+    // (one cell in y, the semi-implicit NHFLOW in the time loop: the y sides and the corners, all in the y ghost rows,
+    // skipped as in gcsl_start4, gcsl_yskip.h)
+    const bool ysk = p->A10==5 && gcsl_yskip(p) && p->count>0;
     QQGCSL4LOOP
+    if(!ysk || (p->gcbsl4[qq][3]!=2 && p->gcbsl4[qq][3]!=3))
     gcsl_neumann_at(f + (p->gcbsl4[qq][0]-p->imin)*p->jmax + (p->gcbsl4[qq][1]-p->jmin),p->jmax,p->gcbsl4[qq][3],gcsl_depth(p->gcbsl4[qq][2],m0));
     endtime=timer();
     p->gctime+=endtime-starttime;
 
+    if(!ysk)
     SLICELOOP4
     {
         if(p->flagslice4[Im1Jm1]<0 && p->flagslice4[Im1J]<0 && p->flagslice4[IJm1]<0)

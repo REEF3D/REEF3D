@@ -34,7 +34,13 @@ Architect: Hans Bihs
 //  rows copied from row 0 first (gcsl_yrows), which is what their Neumann ghost cells held.  Found
 //  with a run that filled the skipped ghost cells with signalling NaN and trapped the first read;
 //  all SFLOW and SEASTATE SFLOW cases bit for bit.
-inline bool gcsl_yskip(const lexer *p) { return p->j_dir==0 && p->A10==2; }
+//  The semi-implicit NHFLOW (A 10 5, A 534 1) on one Cartesian grid the same for its 2D slices in the time loop
+//  (gcsl_start4, gcsl_start4Vint; the initialisation fills them): 16 slice fills per step, 10 % of the instructions of
+//  a 1D run. The readers of the y ghost rows read the cell row (gcsl_yrow: nhflow_filter::filter_sg, the eddy
+//  viscosity of the ghost columns, nhflow_n2, the depths of nh_prepare and of the tracers). Found as for SFLOW (the
+//  skipped cells signalling NaN, FE_INVALID trapped, the 57 NHFLOW cases with one cell in y); all 124 semi-implicit
+//  NHFLOW cases bit for bit.
+inline bool gcsl_yskip(const lexer *p) { return p->j_dir==0 && (p->A10==2 || (p->A10==5 && p->A534==1 && p->G1==0 && p->geo_curv==0 && p->geo_mb==0)); }
 
 // gcsl_yskip: the y ghost rows of f copied from the cell row, as the Neumann ghost cells, for a reader
 // of them
@@ -46,6 +52,15 @@ inline void gcsl_yrows(const lexer *p, slice &f)
     for(int jj=p->jmin; jj<p->jmin+p->jmax; ++jj)
     if(jj<0 || jj>=p->knoy)
     f(ii,jj) = f(ii,(jj<0) ? 0 : p->knoy-1);
+}
+
+// gcsl_yskip: the row a reader of the y ghost row jj takes instead (the cell row next to it, which its Neumann ghost cells
+// held); jj itself otherwise
+inline int gcsl_yrow(const lexer *p, int jj)
+{
+    if(!gcsl_yskip(p))
+    return jj;
+    return jj<0 ? 0 : (jj>=p->knoy ? p->knoy-1 : jj);
 }
 
 #endif
