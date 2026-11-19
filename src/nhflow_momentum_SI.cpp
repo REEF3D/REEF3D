@@ -97,7 +97,7 @@ nhflow_momentum_SI::nhflow_momentum_SI(lexer *p, fdm_nhf *d, ghostcell *pgc, six
                                       qx(p),qxn(p),qxE(p),Hx(p),alx(p),gmx(p),ax(p),kx(p),gx0(p),cx0(p),
                                       qy(p),qyn(p),qyE(p),Hy(p),aly(p),gmy(p),ay(p),ky(p),gy0(p),cy0(p),
                                       eta0(p),WL0(p),etaI(p),gmc(p),rhsW(p),bdiag(p),tS(p),tE(p),tA(p),hoC(p),hoE(p),
-                                      WLk(p),etaB(p),WLb(p),wsrc(p),dfWL(p),dfEta(p)
+                                      WLk(p),etaB(p),WLb(p),wsrc(p),dfWL(p),dfEta(p),hdax(p),hday(p),hdx(p),hdr(p)
 {
     check(p);
 
@@ -198,6 +198,9 @@ nhflow_momentum_SI::nhflow_momentum_SI(lexer *p, fdm_nhf *d, ghostcell *pgc, six
     pbrk = new nhflow_breaking(p,d,pgc);
     visc = true;
     }
+
+    // A 512 2 on one grid: the horizontal diffusion implicit after the predictor (nhflow_momentum_SI_hdiff.cpp)
+    hdimp = visc && hdiff_implicit(p) && !block;
 
     // non-hydrostatic pressure (A 520 > 0): the coupled eta-phi system (nhflow_momentum_SI_nh.cpp)
     nh_ini(p);
@@ -436,6 +439,8 @@ nhflow_momentum_SI::~nhflow_momentum_SI()
 
     if(psolv2D!=nullptr)
     delete psolv2D;
+    delete phd;
+    delete psolvHD;
     delete pwind;
     delete pmet;
 }
@@ -543,6 +548,9 @@ void nhflow_momentum_SI::check(lexer *p)
 
     if(p->A512==1 && p->mpirank==0)
     cout<<"NHFLOW A 510 11/12/13: explicit diffusion (A 512 1) limits the time step, use A 512 2 (implicit)"<<endl;
+
+    if(p->A512==2 && !hdiff_implicit(p) && p->mpirank==0)
+    cout<<"NHFLOW A 510 11/12/13: the horizontal diffusion stays explicit (A 512 2 implicit on one grid without wave breaking only)"<<endl;
 }
 
 void nhflow_momentum_SI::bc_method(lexer *p)
@@ -1037,6 +1045,9 @@ void nhflow_momentum_SI::si_end_cells(lexer *p, fdm_nhf *d, ghostcell *pgc, nhfl
     cout<<"  wetdry iterations "<<wd_iter<<"  dry cells "<<wd_cells;
 
     cout<<endl;
+
+    if(hdimp)
+    cout<<"SI horizontal diffusion (implicit): iter "<<hd_iter<<"  time "<<setprecision(3)<<hd_time<<endl;
     }
 }
 
@@ -1961,9 +1972,9 @@ void nhflow_momentum_SI::si_stage_rhs(lexer *p, fdm_nhf *d, ghostcell *pgc, nhfl
     else
     elm_departure(p,d);
 
-    // horizontal diffusion along the sigma layers (explicit); the vertical diffusion is implicit in
-    // the column operator
-    if(visc)
+    // horizontal diffusion along the sigma layers (explicit; A 512 2 on one grid: implicit after the predictor,
+    // si_predictor_end); the vertical diffusion is implicit in the column operator
+    if(visc && !hdimp)
     hdiffusion(p,d,pgc);
 
     LOOP
@@ -2554,6 +2565,10 @@ double nhflow_momentum_SI::dissipation(lexer *p, double q, double h, double dxp)
 void nhflow_momentum_SI::si_predictor_end(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
     clearrhs(p,d,pgc);
+
+    // A 512 2: the implicit horizontal diffusion of the predictor
+    if(hdimp)
+    hdiffusion_implicit(p,d,pgc);
 
     // the cell predictor to the faces and to the cell update (UHD, VHD)
     LOOP
