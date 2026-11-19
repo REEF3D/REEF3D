@@ -28,6 +28,7 @@ Author: Hans Bihs
 #include"nhflow_curv.h"
 #include"sflow_curv.h"
 #include"fdm_nhf.h"
+#include"slide2D.h"
 #include"ghostcell.h"
 
 nhflow_timestep::nhflow_timestep(lexer* p):epsi(1.0e-3),maxtimestep(p->N49),c0_orig(p->N47)
@@ -231,6 +232,10 @@ void nhflow_timestep::start(lexer *p, fdm_nhf *d, ghostcell *pgc)
     else
 	p->dt=MIN(p->dt,maxtimestep);
     
+    // two-layer landslide (W 150): at most W 159 slide steps per water step
+    if(d->slide!=nullptr)
+    p->dt=MIN(p->dt,d->slide->dt_cap(p,pgc));
+    
     
     
     
@@ -367,6 +372,10 @@ void nhflow_timestep::ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
     
     else
 	p->dt=MIN(p->dt,maxtimestep);
+    
+    // two-layer landslide (W 150): at most W 159 slide steps per water step
+    if(d->slide!=nullptr)
+    p->dt=MIN(p->dt,d->slide->dt_cap(p,pgc));
     
     // reini
     p->recontime=0.0;

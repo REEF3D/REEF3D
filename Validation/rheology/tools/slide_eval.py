@@ -8,6 +8,7 @@
   slide_eval.py subaerial <run> <out dir>                                17: subaerial slide into a lake (2D), volumes
   slide_eval.py dambreak <run> <out dir>                                 18: submarine dam break vs Ritter with g' = (1-r) g
   slide_eval.py slope35 <run> <out dir>                                  18: submarine granular slide on 35 deg, gauges
+  slide_eval.py rest_nhflow <run> <out dir>                              29: a layer held on the slope under water at rest
 
 Reads the SFLOW free-surface VTP files (REEF3D_SFLOW_VTP_FSF, P 18 2), the slide log
 (REEF3D_SFLOW_Log/REEF3D_SFLOW_slide.dat) and the wave gauges (P 51). Needs numpy and matplotlib.
@@ -18,7 +19,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", "turbulen
 from r3read import read_vtk
 
 BLUE, LBLUE, ORANGE, GREEN, GREY = "#2B4C7E", "#4F8FCF", "#E07B39", "#3A9A5B", "#6B6B6B"
-KEYS = ("points", "velocity", "waterlevel", "eta", "wetdry", "slide_h", "slide_velocity", "slide_lambda")
+KEYS = ("points", "velocity", "waterlevel", "WL", "eta", "wetdry", "slide_h", "slide_velocity", "slide_lambda")
 
 
 def style():
@@ -32,8 +33,14 @@ def style():
     return plt
 
 
+def model(run):
+    """SFLOW or NHFLOW (the slide layer W 150 runs under both)"""
+    return "NHFLOW" if os.path.isdir(os.path.join(run, "REEF3D_NHFLOW_Log")) else "SFLOW"
+
+
 def frames(run):
-    files = sorted(glob.glob(os.path.join(run, "REEF3D_SFLOW_VTP_FSF", "REEF3D-SFLOW-FSF-*.vtp")))
+    M = model(run)
+    files = sorted(glob.glob(os.path.join(run, f"REEF3D_{M}_VTP_FSF", f"REEF3D-{M}-FSF-*.vtp")))
     byn = {}
     for f in files:
         m = re.search(r"FSF-(\d+)-(\d+)\.vtp$", f)
@@ -72,11 +79,13 @@ def front(x, h, thr):
 
 
 def slide_log(run):
-    return np.loadtxt(os.path.join(run, "REEF3D_SFLOW_Log", "REEF3D_SFLOW_slide.dat"), comments="#")
+    M = model(run)
+    return np.loadtxt(os.path.join(run, f"REEF3D_{M}_Log", f"REEF3D_{M}_slide.dat"), comments="#")
 
 
 def gauges(run):
-    f = os.path.join(run, "REEF3D_SFLOW_WSF", "REEF3D-SFLOW-WSF-HG.dat")
+    M = model(run)
+    f = os.path.join(run, f"REEF3D_{M}_WSF", f"REEF3D-{M}-WSF-HG.dat")
     rows, xs = [], []
     for ln in open(f):
         s = ln.split()
@@ -298,10 +307,20 @@ def slope35(run, out, run_b=None, label_a="hydrostatic", label_b=None):
                 slide_umax=float(np.max(L[:, 7])), runout=float(np.max(L[:, 9])))
 
 
+def rest_nhflow(run, out):
+    """29 rest_slope: a layer held by its friction on the slope and the floor under water at rest"""
+    L = slide_log(run)
+    xs, G = gauges(run)
+    return dict(slide_umax=float(np.max(L[:, 7])), slide_hmax_change=float(np.max(L[:, 6]) - L[0, 6]),
+                eta_max=float(np.max(abs(G[:, 1:]))), slide_rel_volume_error=float(np.max(abs(L[:, 4]))),
+                water_rel_volume_error=float(np.max(abs(L[1:, 5] - L[1, 5]))/L[1, 5]))
+
+
 if __name__ == "__main__":
     cmd = sys.argv[1]
     if cmd in ("mangeney", "arrest"):
         r = {"mangeney": mangeney, "arrest": arrest}[cmd](sys.argv[2], sys.argv[3], sys.argv[4])
     else:
-        r = {"rest": rest, "subaerial": subaerial, "dambreak": dambreak, "slope35": slope35}[cmd](sys.argv[2], sys.argv[3])
+        r = {"rest": rest, "subaerial": subaerial, "dambreak": dambreak, "slope35": slope35,
+             "rest_nhflow": rest_nhflow}[cmd](sys.argv[2], sys.argv[3])
     print(json.dumps(r, indent=1))

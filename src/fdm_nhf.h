@@ -40,6 +40,7 @@ class nhflow_fsf_hull;
 class nhflow_hullbody;
 class seastate_nhflow;
 class met_forcing;
+class slide2D;
 
 using namespace std;
 
@@ -154,6 +155,7 @@ public:
 
     // REEF3D atmospheric forcing (W 200) of this grid, owned by the momentum class (output)
     met_forcing *met = nullptr;
+    slide2D *slide = nullptr;   // two-layer landslide: the slide layer under the water (W 150)
 };
 
 #endif

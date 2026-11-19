@@ -32,6 +32,9 @@ Author: Hans Bihs
 
 class lexer;
 class fdm2D;
+class fdm_nhf;
+class matrix2D;
+class vec2D;
 class ghostcell;
 class slice;
 class solver2D;
@@ -59,13 +62,16 @@ class slide2D final : public increment
 {
 public:
     slide2D(lexer*, fdm2D*, ghostcell*);
+    slide2D(lexer*, fdm_nhf*, ghostcell*);     // NHFLOW (W 150 with A 10 5)
     ~slide2D() = default;
 
     // the initial slide (W 151 - W 153) on the bed of the grid; sets the bed of the water to z_b + h
     void ini(lexer*, fdm2D*, ghostcell*);
+    void ini(lexer*, fdm_nhf*, ghostcell*);
 
     // one water step: the slide over p->dt in sub-steps, with the water state of the end of the step
     void start(lexer*, fdm2D*, ghostcell*);
+    void start(lexer*, fdm_nhf*, ghostcell*);
 
     // the largest water step: W 159 slide steps (no water: the slide alone sets the step)
     double dt_cap(lexer*, ghostcell*);
@@ -85,7 +91,7 @@ public:
 
     // the volumes of the slide and of the water [m^3] (global)
     double volume_slide(lexer*, ghostcell*);
-    double volume_water(lexer*, fdm2D*, ghostcell*);
+    double volume_water(lexer*, ghostcell*);
 
     slice4 h, qx, qy;       // the slide depth and discharges
     slice4 lambda;          // basal pore pressure ratio
@@ -94,20 +100,20 @@ public:
 
 private:
     void ghosts(lexer*, ghostcell*, slice&, slice&, slice&);
-    void rhs(lexer*, fdm2D*, slice&, slice&, slice&);
+    void rhs(lexer*, slice&, slice&, slice&);
     void flux_x(lexer*, slice&, slice&, slice&);
     void flux_y(lexer*, slice&, slice&, slice&);
-    void sources(lexer*, fdm2D*, slice&, slice&, slice&);
-    void friction(lexer*, fdm2D*, slice&, slice&, slice&, double);
+    void sources(lexer*, slice&, slice&, slice&);
+    void friction(lexer*, slice&, slice&, slice&, double);
     void positivity(lexer*, slice&, slice&, slice&);
     void pore_update(lexer*, ghostcell*);
-    void bed_update(lexer*, fdm2D*, ghostcell*);
+    void bed_update(lexer*, ghostcell*);
     double timestep(lexer*, ghostcell*);
-    void log(lexer*, fdm2D*, ghostcell*, int);
+    void log(lexer*, ghostcell*, int);
 
     double gn_cell(lexer*);
-    double sub_cell(lexer*, fdm2D*, int, int);
-    double gred(lexer*, fdm2D*, int, int);
+    double sub_cell(lexer*, int, int);
+    double gred(lexer*, int, int);
     double vel(slice&, slice&, int, int);
 
     static double minmod(double, double);
@@ -127,11 +133,25 @@ private:
     slice4 hf, dfil;        // W 162: the filtered slide seen by the water, the filter diffusivity
     solver2D *pfilt=nullptr;
 
-    void filter(lexer*, fdm2D*, ghostcell*);
+    void filter(lexer*, ghostcell*);
+    matrix2D *Mf=nullptr;
+    vec2D *xf=nullptr, *rf=nullptr;
+
+    // the water: SFLOW or NHFLOW
+    void bind(lexer*, fdm2D*);
+    void bind(lexer*, fdm_nhf*);
+    void ini_common(lexer*, ghostcell*);
+    void step(lexer*, ghostcell*);
+    slice *wbed=nullptr, *weta=nullptr, *wWL=nullptr, *wU=nullptr, *wV=nullptr;
+    slice4 uwb, vwb;        // NHFLOW: the velocity of the bottom layer
+    double wdry=0.0;        // dry below this water depth (A 244 SFLOW, A 544 NHFLOW)
+    bool nhf=false;
 
     double g, rhos, rhow, r, Cd, dsub, cfl, hmin;
     int nsub, nsub_max;
     double vol0;
+    double p_W162=0.0;     // W 162 of the run (checkpoint fields)
+    bool logfresh=true;     // the log starts new (not continued from a checkpoint)
 
     std::ofstream logout;
 };

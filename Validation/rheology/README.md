@@ -643,7 +643,7 @@ With `D 22 1` the bed acts as free slip, so the current runs off like an invisci
 
 ![](26_gjerdrum_2020/results/26_series_maps.png)
 
-## Two-layer landslide: slide layer under the SFLOW water (W 150), cases 16-19 and 28
+## Two-layer landslide: slide layer under the SFLOW and NHFLOW water (W 150), cases 16-19, 28 and 29
 
 A depth-averaged slide layer (h_s, h_s u_s) under the water (`src/slide2D.{h,cpp}`, `src/slide2D_flux.cpp`). The water
 is the SFLOW water and sees the bed z_b + h_s; the slide sees the water pressure and the drag of the water.
@@ -680,6 +680,16 @@ is the SFLOW water and sees the bed z_b + h_s; the slide sees the water pressure
   w_b = ∂z_b/∂t − u·∇d with ∂z_b/∂t = (bed^{n+1} − bed^n)/Δt of the water step; the pressure is off (hydrostatic) in the
   cells next to a face with a bed slope above 1:2. Use it with W 162: 0.02 when the slide is about as long as the water is
   deep (case 28), 0.5 in deep water (18 dambreak, the slide 10 m long under 20 m).
+- **NHFLOW (A 10 5, case 29):** the same slide layer under the σ-grid water. Per water step: the slide over the step with
+  the water of t^n (the surface η, the velocity of the bottom layer), then the bed z_b + h_s (or z_b + h_f with W 162),
+  depth = wd − bed and η = WL − depth (the water column kept, the σ grid follows at the next sigma update); then the
+  NHFLOW step. The bed moves with w_b = ∂z_b/∂t: in the kinematic bed condition of the fluxes (w_b = −u·∇d + ∂z_b/∂t)
+  and in the continuity of the bed node of the pressure projection (A 520 1, 2). The slide sees the hydrostatic water
+  pressure −r·sub·g h_s∇η. Without w_b in the projection the multi-layer pressure holds each lift of the surface in
+  place (benchmark 4: WG1 3.4 / −1.6 cm). The explicit NHFLOW (A 510 2/3), A 520 0, 1, 2, one Cartesian grid, MPI;
+  stops with a message with the semi-implicit NHFLOW, S 10, curvilinear, refined and multi-block grids and W 155 > 0
+  (the drag on the water layers is not there yet). Log `REEF3D_NHFLOW_Log/REEF3D_NHFLOW_slide.dat`, the slide fields
+  in the NHFLOW FSF VTP and the LAGOON store.
 - **Available with:** the explicit HLL water (A 210 2/3) and the semi-implicit water (A 210 11/12/13, case 19), hydrostatic
   (A 220 0) or with the quadratic non-hydrostatic pressure (A 220 2, explicit water, case 28), one Cartesian grid, 1D and
   2D, MPI. The semi-implicit step keeps the water column of the end of the step before (`si_restore`) and takes the moved
@@ -864,6 +874,43 @@ crest at WG1 (the release time is not in the record). Gauge max / min (cm) up to
 
 ![](28_slide_nthmp_bm4/results/28_bm4_gauges.png)
 
+### 29 Slide layer under NHFLOW (A 10 5): 18 dambreak and benchmark 4 again
+
+1D x-z, explicit NHFLOW (A 510 2), σ grid with 10 layers; the controls of 18 dambreak (dx 5 cm, 20 m of water) and of
+case 28 (dx 5 mm, the 35° slope with its shoreline), hydrostatic (A 520 0) and non-hydrostatic (A 520 2), and a layer at
+rest. 1 rank (2 ranks for benchmark 4: within 1.5e-9 m of 1 rank).
+
+| | hydrostatic | non-hydrostatic |
+|---|---|---|
+| dambreak: L1(h) against Ritter at 1 / 2 / 3 / 4 s | 1.1 / 0.51 / 0.36 / 0.33 % | 1.1 / 0.50 / 0.32 / 0.24 % (W 162 0.05) |
+| dambreak: surface min / max | −1.2 / +1.4 cm | −0.85 / +0.45 cm |
+| dambreak: run time | 30 s | 112 s |
+| benchmark 4, WG1 max / min (cm) (measured 0.55 / −0.96) | 0.89 / −0.61 | 0.32 / −0.74 |
+| WG2 (measured 0.54 / −0.63) | 0.87 / −0.61 | 0.50 / −0.60 |
+| WG3 (measured 0.43 / −0.48) | 0.84 / −0.61 | 0.49 / −0.48 |
+| WG4 (measured 0.43 / −0.40) | 0.83 / −0.61 | 0.48 / −0.40 |
+| RMS difference / measured range WG1 - WG4 | 0.13 / 0.20 / 0.28 / 0.34 | 0.12 / 0.13 / 0.08 / 0.04 |
+| benchmark 4: run time | 81 s | 177 s (W 162 0.02) |
+
+- **Hydrostatic NHFLOW** is the hydrostatic SFLOW again (dambreak L1 within 0.01 %, the benchmark 4 bore of 0.9 cm).
+- **Non-hydrostatic NHFLOW, benchmark 4:** the leading crest, the trough and the dispersive train at WG3 and WG4 in
+  phase with the measurement (RMS 4-8 % of the range, SFLOW with the one-layer pressure 7-17 %); at WG1, over the slide,
+  the trough −0.74 cm against −0.96 cm (SFLOW −0.44). Layers and filter (WG1 min, RMS WG1 / WG4): 5 layers −0.72, 0.13 /
+  0.03; 10 layers −0.85, 0.19 / 0.04; 20 layers −0.81, 0.23 / 0.02; 10 layers with W 162 0.02 −0.74, 0.12 / 0.04. Without
+  the filter short waves (period about 0.3 s) leave the slide and grow with the number of layers (WG1 up to 1.1 cm with
+  20 layers); W 162 0.02 removes them.
+- **Non-hydrostatic NHFLOW, dambreak:** without the filter the surface over the slide carries grid-scale waves of
+  ±0.5 cm and the slide departs from Ritter by 2.2 / 1.0 / 0.72 / 0.56 %; W 162 0.05 makes both smooth (the table).
+- **w_b in the projection:** without it benchmark 4 gives WG1 3.4 / −1.6 cm and the dambreak surface ±3 cm.
+- **Checkpoints:** the slide state (and h_f of W 162) is in the NHFLOW checkpoints; benchmark 4 to 2 s restarted from
+  step 1000 (I 45 1000) gives the slide log and the gauges of the uninterrupted run bitwise. The slide log is continued
+  from its size at the checkpoint (SFLOW and NHFLOW).
+- **rest_slope:** a 2 cm layer over the slope and the floor (Coulomb 45°) under 0.33 m of water: it settles at the
+  shoreline in the first 0.06 s (|u| up to 1.6 cm/s, h +1.2 mm), then rests; the surface within 0.05 mm, volumes exact.
+
+![](29_slide_nhflow/results/29_bm4_gauges.png)
+![](29_slide_nhflow/results/29_dambreak_nh.png)
+
 ## Not covered yet
 
 - Mesh refinement (G 1): the friction step runs in every level's stage. The pore pressure is advected per level and not exchanged between levels.
@@ -879,5 +926,7 @@ crest at WG1 (the release time is not in the record). Gauge max / min (cm) up to
 - Slide layer (W 150): the non-hydrostatic water with the slide is the one-layer quadratic pressure (A 220 2) only, explicit
   water only, with the filter W 162 chosen by hand (0.02 for case 28, 0.5 in deep water); the near field over the slide
   (WG1 of case 28) is underpredicted by half. A 220 1, 3, 4 stop with a message.
-- Slide layer (W 150): NHFLOW (stage 4.3), sediment (S 10) together with the slide, curvilinear and refined grids; the
-  dilatancy source of the pore pressure.
+- Slide layer (W 150) under NHFLOW: explicit NHFLOW only (not the semi-implicit A 510 11-13), no interface drag on the
+  water layers (W 155), the slide sees the hydrostatic water pressure only (not the non-hydrostatic bottom pressure).
+- Slide layer (W 150): sediment (S 10) together with the slide, curvilinear and refined grids; the dilatancy source of
+  the pore pressure.

@@ -24,18 +24,26 @@ Author: Hans Bihs
 #include"sflow_level_file.h"
 #include"lexer.h"
 #include"fdm2D.h"
+#include"fdm_nhf.h"
+#include"matrix2D.h"
+#include"vec2D.h"
 #include"ghostcell.h"
 #include"gcsl_yskip.h"
 #include"sflow_bicgstab.h"
+#include"reefckpt.h"
 #include<cmath>
 #include<iomanip>
 #include<sys/stat.h>
 #include<sys/types.h>
 
+slide2D::slide2D(lexer *p, fdm_nhf *d, ghostcell *pgc) : slide2D(p,(fdm2D*)nullptr,pgc)
+{
+}
+
 slide2D::slide2D(lexer *p, fdm2D *b, ghostcell *pgc) : h(p), qx(p), qy(p), lambda(p), zb(p),
                                                     h0(p), qx0(p), qy0(p), h1(p), qx1(p), qy1(p), Rh(p), Rx(p), Ry(p),
                                                     FhX(p), FxLX(p), FxRX(p), FyX(p), FhY(p), FxY(p), FyLY(p), FyRY(p),
-                                                    hE(p), hW(p), zE(p), zW(p), hN(p), hS(p), zN(p), zS(p), lnew(p), gr(p), hstep(p), hf(p), dfil(p), wb(p)
+                                                    hE(p), hW(p), zE(p), zW(p), hN(p), hS(p), zN(p), zS(p), lnew(p), gr(p), hstep(p), hf(p), dfil(p), wb(p), uwb(p), vwb(p)
 {
     using namespace rheo;
 
@@ -68,6 +76,7 @@ slide2D::slide2D(lexer *p, fdm2D *b, ghostcell *pgc) : h(p), qx(p), qy(p), lambd
     nsub = 1;
     nsub_max = 100000;
     vol0 = 0.0;
+    p_W162 = p->W162;
 
     if(r>=1.0)
     {
@@ -79,7 +88,7 @@ slide2D::slide2D(lexer *p, fdm2D *b, ghostcell *pgc) : h(p), qx(p), qy(p), lambd
     if(p->mpirank==0)
     {
     const char *name[7] = {"off","Coulomb","Voellmy","Pouliquen-Forterre","mu(I)","Herschel-Bulkley","Herschel-Bulkley-Coulomb"};
-    cout<<"SFLOW slide layer (W 150): rho_s "<<rhos<<", rho_w "<<rhow<<", basal law "<<name[q.law>=0 && q.law<=6 ? q.law : 0];
+    cout<<"slide layer (W 150): rho_s "<<rhos<<", rho_w "<<rhow<<", basal law "<<name[q.law>=0 && q.law<=6 ? q.law : 0];
     if(p->W126>0)
     cout<<", pore pressure "<<(p->W126==1 ? "constant" : "advected/dissipating");
     cout<<", C_d "<<Cd<<", CFL "<<cfl<<endl;
@@ -90,11 +99,76 @@ slide2D::slide2D(lexer *p, fdm2D *b, ghostcell *pgc) : h(p), qx(p), qy(p), lambd
 // initial slide
 // ---------------------------------------------------------------------------------------------
 
+// the water: SFLOW (fdm2D) or NHFLOW (fdm_nhf, the velocity of the bottom layer for the drag)
+void slide2D::bind(lexer *p, fdm2D *b)
+{
+    wbed = &b->bed;
+    weta = &b->eta;
+    wWL = &b->WL;
+    wU = &b->U;
+    wV = &b->V;
+    wdry = p->A244;
+    nhf = false;
+}
+
+void slide2D::bind(lexer *p, fdm_nhf *d)
+{
+    wbed = &d->bed;
+    weta = &d->eta;
+    wWL = &d->WL;
+    
+    k = 0;
+    SLICELOOP4
+    {
+    uwb(i,j) = d->U[IJK];
+    vwb(i,j) = p->j_dir==1 ? d->V[IJK] : 0.0;
+    }
+    
+    wU = &uwb;
+    wV = &vwb;
+    wdry = p->A544;
+    nhf = true;
+}
+
 void slide2D::ini(lexer *p, fdm2D *b, ghostcell *pgc)
+{
+    bind(p,b);
+    ini_common(p,pgc);
+}
+
+void slide2D::ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
+{
+    bind(p,d);
+    ini_common(p,pgc);
+}
+
+void slide2D::start(lexer *p, fdm2D *b, ghostcell *pgc)
+{
+    bind(p,b);
+    step(p,pgc);
+}
+
+// NHFLOW: the water column is kept, the surface moves with the bed (as sflow_eta::depth_update does for SFLOW)
+void slide2D::start(lexer *p, fdm_nhf *d, ghostcell *pgc)
+{
+    bind(p,d);
+    step(p,pgc);
+    
+    SLICELOOP4
+    {
+    d->depth(i,j) = p->wd - d->bed(i,j);
+    d->eta(i,j) = d->WL(i,j) - d->depth(i,j);
+    }
+    
+    pgc->gcsl_start4(p,d->depth,50);
+    pgc->gcsl_start4(p,d->eta,50);
+}
+
+void slide2D::ini_common(lexer *p, ghostcell *pgc)
 {
     SLICELOOP4
     {
-    zb(i,j) = b->bed(i,j);
+    zb(i,j) = (*wbed)(i,j);
     h(i,j) = 0.0;
     qx(i,j) = 0.0;
     qy(i,j) = 0.0;
@@ -173,31 +247,37 @@ void slide2D::ini(lexer *p, fdm2D *b, ghostcell *pgc)
         
         pgc->gcsl_start4(p,dfil,50);
         pfilt = new sflow_bicgstab(p,pgc);
+        Mf = new matrix2D(p);
+        xf = new vec2D(p);
+        rf = new vec2D(p);
     }
 
-    bed_update(p,b,pgc);
+    bed_update(p,pgc);
 
     vol0 = volume_slide(p,pgc);
 
     if(p->mpirank==0)
     {
-    cout<<"SFLOW slide layer: initial volume "<<setprecision(8)<<vol0<<" m^3"<<(p->j_dir==0 ? " (per m width)" : "")<<endl;
+    cout<<"slide layer: initial volume "<<setprecision(8)<<vol0<<" m^3"<<(p->j_dir==0 ? " (per m width)" : "")<<endl;
 
-    mkdir("./REEF3D_SFLOW_Log",0777);
-    // a continued run (I 45 1) appends
-    logout.open("./REEF3D_SFLOW_Log/REEF3D_SFLOW_slide.dat", p->I45==1 ? std::ios::app : std::ios::out);
-    if(p->I45!=1)
+    mkdir(nhf ? "./REEF3D_NHFLOW_Log" : "./REEF3D_SFLOW_Log",0777);
+    // a restart from a checkpoint (I 45) continues the log from its size at the checkpoint
+    logfresh = reefckpt_open(logout, nhf ? "./REEF3D_NHFLOW_Log/REEF3D_NHFLOW_slide.dat" : "./REEF3D_SFLOW_Log/REEF3D_SFLOW_slide.dat", p->I45);
+    if(logfresh)
     logout<<"# time  dt  substeps  V_slide  dV_slide/V0  V_water  h_max  |u|_max  x_min  x_max  y_min  y_max  (front: h > max(10 W 158, 1 mm))"<<endl;
     }
 
-    log(p,b,pgc,0);
+    logfresh = pgc->globalimax((p->mpirank==0 && logfresh) ? 1 : 0)==1;
+    
+    if(logfresh)
+    log(p,pgc,0);
 }
 
 // ---------------------------------------------------------------------------------------------
 // one water step
 // ---------------------------------------------------------------------------------------------
 
-void slide2D::start(lexer *p, fdm2D *b, ghostcell *pgc)
+void slide2D::step(lexer *p, ghostcell *pgc)
 {
     // sub-steps: the slide CFL inside the water step
     const double dts_max = timestep(p,pgc);
@@ -207,7 +287,7 @@ void slide2D::start(lexer *p, fdm2D *b, ghostcell *pgc)
     if(nsub>nsub_max)
     {
         if(p->mpirank==0)
-        cout<<"SFLOW slide layer: "<<nsub<<" sub-steps needed, limited to "<<nsub_max<<endl;
+        cout<<"slide layer: "<<nsub<<" sub-steps needed, limited to "<<nsub_max<<endl;
         nsub = nsub_max;
     }
 
@@ -217,7 +297,7 @@ void slide2D::start(lexer *p, fdm2D *b, ghostcell *pgc)
     for(i=-1; i<=p->knox; ++i)
     for(j=-1; j<=p->knoy; ++j)
     {
-    gr(i,j) = gred(p,b,i,j);
+    gr(i,j) = gred(p,i,j);
     hstep(i,j) = h(i,j);
     }
 
@@ -231,7 +311,7 @@ void slide2D::start(lexer *p, fdm2D *b, ghostcell *pgc)
         qy0(i,j) = qy(i,j);
         }
 
-        rhs(p,b,h,qx,qy);
+        rhs(p,h,qx,qy);
 
         SLICELOOP4
         {
@@ -241,11 +321,11 @@ void slide2D::start(lexer *p, fdm2D *b, ghostcell *pgc)
         }
 
         positivity(p,h1,qx1,qy1);
-        friction(p,b,h1,qx1,qy1,dts);
+        friction(p,h1,qx1,qy1,dts);
         ghosts(p,pgc,h1,qx1,qy1);
 
         // stage 2
-        rhs(p,b,h1,qx1,qy1);
+        rhs(p,h1,qx1,qy1);
 
         SLICELOOP4
         {
@@ -255,7 +335,7 @@ void slide2D::start(lexer *p, fdm2D *b, ghostcell *pgc)
         }
 
         positivity(p,h,qx,qy);
-        friction(p,b,h,qx,qy,0.5*dts);
+        friction(p,h,qx,qy,0.5*dts);
         ghosts(p,pgc,h,qx,qy);
     }
 
@@ -263,8 +343,8 @@ void slide2D::start(lexer *p, fdm2D *b, ghostcell *pgc)
     pore_update(p,pgc);
 
     // the bed of the water: z_b + h (sflow_eta::depth_update then moves the surface with the bed)
-    bed_update(p,b,pgc);
-    log(p,b,pgc,1);
+    bed_update(p,pgc);
+    log(p,pgc,1);
 }
 
 double slide2D::dt_cap(lexer *p, ghostcell *pgc)
@@ -358,33 +438,33 @@ void slide2D::ghosts(lexer *p, ghostcell *pgc, slice &H, slice &QX, slice &QY)
 // the bed of the water
 // ---------------------------------------------------------------------------------------------
 
-void slide2D::bed_update(lexer *p, fdm2D *b, ghostcell *pgc)
+void slide2D::bed_update(lexer *p, ghostcell *pgc)
 {
     // the bed of the step before: wb for the bed condition of the non-hydrostatic water
     SLICELOOP4
-    wb(i,j) = b->bed(i,j);
+    wb(i,j) = (*wbed)(i,j);
     
     if(p->W162>0.0)
     {
-        filter(p,b,pgc);
+        filter(p,pgc);
         
         SLICELOOP4
-        b->bed(i,j) = zb(i,j) + hf(i,j);
+        (*wbed)(i,j) = zb(i,j) + hf(i,j);
     }
     
     else
     SLICELOOP4
-    b->bed(i,j) = zb(i,j) + h(i,j);
+    (*wbed)(i,j) = zb(i,j) + h(i,j);
     
     SLICELOOP4
-    wb(i,j) = p->dt>0.0 && p->count>0 ? (b->bed(i,j) - wb(i,j))/p->dt : 0.0;
+    wb(i,j) = p->dt>0.0 && p->count>0 ? ((*wbed)(i,j) - wb(i,j))/p->dt : 0.0;
 
-    pgc->gcsl_start4(p,b->bed,50);
+    pgc->gcsl_start4(p,(*wbed),50);
 }
 
 // W 162: h_f - div(D grad h_f) = h, D at the faces the smaller of the two cells (no filter across a shoreline),
 // no flux through walls and the outer boundaries; conservative (the faces are symmetric)
-void slide2D::filter(lexer *p, fdm2D *b, ghostcell *pgc)
+void slide2D::filter(lexer *p, ghostcell *pgc)
 {
     int n=0;
     
@@ -395,12 +475,12 @@ void slide2D::filter(lexer *p, fdm2D *b, ghostcell *pgc)
         const double cn = p->y_dir==1 && p->flagslice4[IJp1]>0 ? MIN(dfil(i,j),dfil(i,j+1))/(p->DYP[JP]*p->DYN[JP]) : 0.0;
         const double cs = p->y_dir==1 && p->flagslice4[IJm1]>0 ? MIN(dfil(i,j),dfil(i,j-1))/(p->DYP[JM1]*p->DYN[JP]) : 0.0;
         
-        b->M.p[n] = 1.0 + ce + cw + cn + cs;
-        b->M.n[n] = -ce;
-        b->M.s[n] = -cw;
-        b->M.w[n] = -cn;
-        b->M.e[n] = -cs;
-        b->rhsvec.V[n] = h(i,j);
+        Mf->p[n] = 1.0 + ce + cw + cn + cs;
+        Mf->n[n] = -ce;
+        Mf->s[n] = -cw;
+        Mf->w[n] = -cn;
+        Mf->e[n] = -cs;
+        (*rf).V[n] = h(i,j);
         ++n;
     }
     
@@ -409,10 +489,10 @@ void slide2D::filter(lexer *p, fdm2D *b, ghostcell *pgc)
     const int it = p->solveriter;
     const int n46 = p->N46;
     p->N46 = MAX(n46,20000);
-    pfilt->start(p,pgc,hf,b->M,b->xvec,b->rhsvec,4);
+    pfilt->start(p,pgc,hf,*Mf,*xf,*rf,4);
     
     if(p->solveriter>=p->N46 && p->mpirank==0)
-    cout<<"SFLOW slide layer W 162: the filter did not converge in "<<p->N46<<" iterations"<<endl;
+    cout<<"slide layer W 162: the filter did not converge in "<<p->N46<<" iterations"<<endl;
     
     p->N46 = n46;
     p->solveriter = it;
@@ -442,23 +522,23 @@ double slide2D::gn_cell(lexer *p)
     return gg;
 }
 
-double slide2D::sub_cell(lexer *p, fdm2D *b, int ii, int jj)
+double slide2D::sub_cell(lexer *p, int ii, int jj)
 {
     // the submerged fraction: 0 subaerial, 1 under more than W 156 of water
-    const double wl = b->WL(ii,jj);
+    const double wl = (*wWL)(ii,jj);
 
-    if(p->wet[(ii-p->imin)*p->jmax + (jj-p->jmin)]==0 || wl<=p->A244)
+    if(p->wet[(ii-p->imin)*p->jmax + (jj-p->jmin)]==0 || wl<=wdry)
     return 0.0;
 
     return MIN(wl/dsub,1.0);
 }
 
-double slide2D::gred(lexer *p, fdm2D *b, int ii, int jj)
+double slide2D::gred(lexer *p, int ii, int jj)
 {
-    return g*(1.0 - r*sub_cell(p,b,ii,jj));
+    return g*(1.0 - r*sub_cell(p,ii,jj));
 }
 
-void slide2D::friction(lexer *p, fdm2D *b, slice &H, slice &QX, slice &QY, double dt)
+void slide2D::friction(lexer *p, slice &H, slice &QX, slice &QY, double dt)
 {
     rheo::basal_state s;
     s.rho = rhos;
@@ -477,17 +557,17 @@ void slide2D::friction(lexer *p, fdm2D *b, slice &H, slice &QX, slice &QY, doubl
 
         double u = QX(i,j)/hh;
         double v = p->j_dir==1 ? QY(i,j)/hh : 0.0;
-        const double sb = sub_cell(p,b,i,j);
+        const double sb = sub_cell(p,i,j);
 
         // interface drag: relaxation to the water velocity, rho_w C_d |du| / (rho_s h)
         if(Cd>0.0 && sb>0.0)
         {
-        const double du = b->U(i,j) - u;
-        const double dv = p->j_dir==1 ? b->V(i,j) - v : 0.0;
+        const double du = (*wU)(i,j) - u;
+        const double dv = p->j_dir==1 ? (*wV)(i,j) - v : 0.0;
         const double k = sb*r*Cd*sqrt(du*du + dv*dv)/hh;
 
-        u = (u + dt*k*b->U(i,j))/(1.0 + dt*k);
-        v = p->j_dir==1 ? (v + dt*k*b->V(i,j))/(1.0 + dt*k) : 0.0;
+        u = (u + dt*k*(*wU)(i,j))/(1.0 + dt*k);
+        v = p->j_dir==1 ? (v + dt*k*(*wV)(i,j))/(1.0 + dt*k) : 0.0;
         }
 
         const double Ustar = sqrt(u*u + v*v);
@@ -590,7 +670,7 @@ void slide2D::u_source(lexer *p, fdm2D *b, slice &U, slice &V, slice &WL)
     const double vs = p->j_dir==1 ? qy(i,j)/h(i,j) : 0.0;
     const double du = U(i,j) - us;
     const double dv = p->j_dir==1 ? V(i,j) - vs : 0.0;
-    const double c = sub_cell(p,b,i,j)*Cd*sqrt(du*du + dv*dv);
+    const double c = sub_cell(p,i,j)*Cd*sqrt(du*du + dv*dv);
 
     b->F(i,j) -= c*du/(1.0 + p->dt*c/WL(i,j));
     }
@@ -608,7 +688,7 @@ void slide2D::v_source(lexer *p, fdm2D *b, slice &U, slice &V, slice &WL)
     const double vs = qy(i,j)/h(i,j);
     const double du = U(i,j) - us;
     const double dv = V(i,j) - vs;
-    const double c = sub_cell(p,b,i,j)*Cd*sqrt(du*du + dv*dv);
+    const double c = sub_cell(p,i,j)*Cd*sqrt(du*du + dv*dv);
 
     b->G(i,j) -= c*dv/(1.0 + p->dt*c/WL(i,j));
     }
@@ -628,20 +708,20 @@ double slide2D::volume_slide(lexer *p, ghostcell *pgc)
     return pgc->globalsum(v);
 }
 
-double slide2D::volume_water(lexer *p, fdm2D *b, ghostcell *pgc)
+double slide2D::volume_water(lexer *p, ghostcell *pgc)
 {
     double v = 0.0;
 
     SLICELOOP4
-    v += b->WL(i,j)*p->DXN[IP]*(p->j_dir==1 ? p->DYN[JP] : 1.0);
+    v += (*wWL)(i,j)*p->DXN[IP]*(p->j_dir==1 ? p->DYN[JP] : 1.0);
 
     return pgc->globalsum(v);
 }
 
-void slide2D::log(lexer *p, fdm2D *b, ghostcell *pgc, int mode)
+void slide2D::log(lexer *p, ghostcell *pgc, int mode)
 {
     const double vs = volume_slide(p,pgc);
-    const double vw = volume_water(p,b,pgc);
+    const double vw = volume_water(p,pgc);
     const double hf = MAX(10.0*hmin,1.0e-3);
 
     double hmax=0.0, umax=0.0;
@@ -763,4 +843,8 @@ void slide2D::ckpt_fields(const std::function<void(const char*, char, double*)> 
     fd("slide_qy",'S',qy.V);
     fd("slide_lambda",'S',lambda.V);
     fd("slide_zb",'S',zb.V);
+    
+    // W 162: the filtered slide (the start of the filter solve of the next step)
+    if(p_W162>0.0)
+    fd("slide_hf",'S',hf.V);
 }
