@@ -45,7 +45,6 @@ public:
     void signal_speed_update(lexer*,ghostcell*,fdm2D*,slice&, slice&, slice&, slice&,slice&, slice&, slice&, slice&);
 
 private:
-    double USx,DSx,USy,DSy;
 };
 
 #endif

@@ -39,82 +39,117 @@ void sflow_signal_speed::signal_speed_update(lexer* p, ghostcell *pgc, fdm2D *b,
                                         slice &Ds, slice &Dn, slice &De, slice &Dw)
 {
     const double g = fabs(p->W22);
+    const int nj = p->jmax;
+    const int *const wet = p->wet;
     
-    // signal speed x-dir
-    SLICELOOP1
+    // signal speed x-dir; the two wave speeds of a face are taken once (the same values as before)
     {
-    USx = 0.5*(Us(i,j)+Un(i,j)) + sqrt(g*Ds(i,j)) - sqrt(g*Dn(i,j));
-    DSx = 0.5*(sqrt(g*Ds(i,j)) + sqrt(g*Dn(i,j))) + 0.25*(Us(i,j) - Un(i,j));
+    const int *const flag = p->flagslice1;
+    const double *const us = Us.V, *const un = Un.V, *const ds = Ds.V, *const dn = Dn.V;
+    double *const Ss = b->Ss.V, *const Sn = b->Sn.V, *const SSx = b->SSx.V;
+    const int ie = p->knox - p->ulast;
     
-    if(p->wet[IJ]==1 && p->wet[Ip1J]==1)
+    for(int ii=0; ii<ie; ++ii)
     {
-    b->Ss(i,j) = MIN(Us(i,j) - sqrt(g*Ds(i,j)), USx - DSx);
-    b->Sn(i,j) = MAX(Un(i,j) + sqrt(g*Dn(i,j)), USx + DSx);
-    b->SSx(i,j) = USx;
-    }
+    const int q0 = (ii - p->imin)*nj - p->jmin;
     
-    else
-    if(p->wet[IJ]==0 && p->wet[Ip1J]==1) // left dry
-    {
-    b->Ss(i,j) = Un(i,j) - 2.0*sqrt(g*Dn(i,j));
-    b->Sn(i,j) = Un(i,j) + sqrt(g*Dn(i,j));
-    b->SSx(i,j) = b->Ss(i,j);
-    }
-    
-    else
-    if(p->wet[IJ]==1 && p->wet[Ip1J]==0)// right dry
-    {
-    b->Ss(i,j) = Us(i,j) - sqrt(g*Ds(i,j));
-    b->Sn(i,j) = Us(i,j) + 2.0*sqrt(g*Ds(i,j));
-    b->SSx(i,j) = b->Sn(i,j);
-    }
-    
-    else
-    if(p->wet[IJ]==0 && p->wet[Ip1J]==0) 
-    {
-    b->Ss(i,j) = 0.0;
-    b->Sn(i,j) = 0.0;
-    b->SSx(i,j) = 0.0;
+        for(int q=q0; q<q0+p->knoy; ++q)
+        if(flag[q]>0)
+        {
+        const double uL = us[q], uR = un[q];
+        const double cL = sqrt(g*ds[q]), cR = sqrt(g*dn[q]);
+        const int wL = wet[q], wR = wet[q+nj];
+        
+        if(wL==1 && wR==1)
+        {
+        const double US = 0.5*(uL+uR) + cL - cR;
+        const double DS = 0.5*(cL + cR) + 0.25*(uL - uR);
+        
+        Ss[q] = MIN(uL - cL, US - DS);
+        Sn[q] = MAX(uR + cR, US + DS);
+        SSx[q] = US;
+        }
+        
+        else
+        if(wL==0 && wR==1) // left dry
+        {
+        Ss[q] = uR - 2.0*cR;
+        Sn[q] = uR + cR;
+        SSx[q] = Ss[q];
+        }
+        
+        else
+        if(wL==1 && wR==0) // right dry
+        {
+        Ss[q] = uL - cL;
+        Sn[q] = uL + 2.0*cL;
+        SSx[q] = Sn[q];
+        }
+        
+        else
+        if(wL==0 && wR==0)
+        {
+        Ss[q] = 0.0;
+        Sn[q] = 0.0;
+        SSx[q] = 0.0;
+        }
+        }
     }
     }
     
     // signal speed y-dir
     if(p->j_dir==1)
-    SLICELOOP2
     {
-    USy = 0.5*(Ve(i,j)+Vw(i,j)) + sqrt(g*De(i,j)) - sqrt(g*Dw(i,j));
-    DSy = 0.5*(sqrt(g*De(i,j)) + sqrt(g*Dw(i,j))) + 0.25*(Ve(i,j) - Vw(i,j));
+    const int *const flag = p->flagslice2;
+    const double *const ve = Ve.V, *const vw = Vw.V, *const de = De.V, *const dw = Dw.V;
+    double *const Se = b->Se.V, *const Sw = b->Sw.V, *const SSy = b->SSy.V;
+    const int je = p->knoy - p->vlast;
     
-    if(p->wet[IJ]==1 && p->wet[IJp1]==1)
+    for(int ii=0; ii<p->knox; ++ii)
     {
-    b->Se(i,j) = MIN(Ve(i,j) - sqrt(g*De(i,j)), USy - DSy);
-    b->Sw(i,j) = MAX(Vw(i,j) + sqrt(g*Dw(i,j)), USy + DSy);
-    b->SSy(i,j) = USy;
-    }
-
-    else
-    if(p->wet[IJ]==0 && p->wet[IJp1]==1)
-    {
-    b->Se(i,j) = Vw(i,j) - 2.0*sqrt(g*Dw(i,j));
-    b->Sw(i,j) = Vw(i,j) + sqrt(g*Dw(i,j));
-    b->SSy(i,j) = b->Se(i,j);
-    }
+    const int q0 = (ii - p->imin)*nj - p->jmin;
     
-    else
-    if(p->wet[IJ]==1 && p->wet[IJp1]==0)
-    {
-    b->Se(i,j) = Ve(i,j) - sqrt(g*De(i,j));
-    b->Sw(i,j) = Ve(i,j) + 2.0*sqrt(g*De(i,j));
-    b->SSy(i,j) = b->Sw(i,j);
+        for(int q=q0; q<q0+je; ++q)
+        if(flag[q]>0)
+        {
+        const double uL = ve[q], uR = vw[q];
+        const double cL = sqrt(g*de[q]), cR = sqrt(g*dw[q]);
+        const int wL = wet[q], wR = wet[q+1];
+        
+        if(wL==1 && wR==1)
+        {
+        const double US = 0.5*(uL+uR) + cL - cR;
+        const double DS = 0.5*(cL + cR) + 0.25*(uL - uR);
+        
+        Se[q] = MIN(uL - cL, US - DS);
+        Sw[q] = MAX(uR + cR, US + DS);
+        SSy[q] = US;
+        }
+        
+        else
+        if(wL==0 && wR==1)
+        {
+        Se[q] = uR - 2.0*cR;
+        Sw[q] = uR + cR;
+        SSy[q] = Se[q];
+        }
+        
+        else
+        if(wL==1 && wR==0)
+        {
+        Se[q] = uL - cL;
+        Sw[q] = uL + 2.0*cL;
+        SSy[q] = Sw[q];
+        }
+        
+        else
+        if(wL==0 && wR==0)
+        {
+        Se[q] = 0.0;
+        Sw[q] = 0.0;
+        SSy[q] = 0.0;
+        }
+        }
     }
-    
-    else
-    if(p->wet[IJ]==0 && p->wet[IJp1]==0)
-    {
-    b->Se(i,j) = 0.0;
-    b->Sw(i,j) = 0.0;
-    b->SSy(i,j) = 0.0;
-    }
-    
     }
 }
