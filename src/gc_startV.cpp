@@ -506,8 +506,8 @@ static inline void nhflow_bed_ghost(lexer *p, double *f, int i, int j, int k)
     const double f2 = above>=2 ? f[IJKp2] : f1;
     
     f[IJKm1] = sg*f0;
-    f[IJKm2] = sg*f1;
-    f[IJKm3] = sg*f2;
+    if(k-2>=p->kmin) f[IJKm2] = sg*f1;
+    if(k-3>=p->kmin) f[IJKm3] = sg*f2;
 }
 
 void ghostcell::start4V_par(lexer *p, double *f, int gcv)
@@ -670,22 +670,22 @@ void ghostcell::start4V(lexer *p, double *f, int gcv)
         if(p->flag4[IJKp1]<0 && (gcv==14))
         {
             f[IJKp1] = 0.0;
-            f[IJKp2] = 0.0;
-            f[IJKp3] = 0.0;
+            if(k+2<p->kmin+p->kmax) f[IJKp2] = 0.0;
+            if(k+3<p->kmin+p->kmax) f[IJKp3] = 0.0;
         }
 
         if(p->flag4[IJKp1]<0 && (gcv==10||gcv==11||gcv==14||gcv==15))
         {
             f[IJKp1] = f[IJK];
-            f[IJKp2] = f[IJK];
-            f[IJKp3] = f[IJK];
+            if(k+2<p->kmin+p->kmax) f[IJKp2] = f[IJK];
+            if(k+3<p->kmin+p->kmax) f[IJKp3] = f[IJK];
         }
 
         if(p->flag4[IJKp1]<0 && gcv==12)
         {
             f[IJKp1] = f[IJK];
-            f[IJKp2] = f[IJK];
-            f[IJKp3] = f[IJK];
+            if(k+2<p->kmin+p->kmax) f[IJKp2] = f[IJK];
+            if(k+3<p->kmin+p->kmax) f[IJKp3] = f[IJK];
         }
 
         // bed: A 518 (nhflow_bed_ghost)
@@ -697,22 +697,22 @@ void ghostcell::start4V(lexer *p, double *f, int gcv)
         if(p->flag4[IJKp1]<0 && (gcv==14))
         {
             f[IJKp1] = 0.0;
-            f[IJKp2] = 0.0;
-            f[IJKp3] = 0.0;
+            if(k+2<p->kmin+p->kmax) f[IJKp2] = 0.0;
+            if(k+3<p->kmin+p->kmax) f[IJKp3] = 0.0;
         }
 
         if(p->flag4[IJKp1]<0 && (gcv==10||gcv==11||gcv==14||gcv==15))
         {
             f[IJKp1] = f[IJK];
-            f[IJKp2] = f[IJK];
-            f[IJKp3] = f[IJK];
+            if(k+2<p->kmin+p->kmax) f[IJKp2] = f[IJK];
+            if(k+3<p->kmin+p->kmax) f[IJKp3] = f[IJK];
         }
 
         if(p->flag4[IJKp1]<0 && gcv==12)
         {
             f[IJKp1] = f[IJK];
-            f[IJKp2] = f[IJK];
-            f[IJKp3] = f[IJK];
+            if(k+2<p->kmin+p->kmax) f[IJKp2] = f[IJK];
+            if(k+3<p->kmin+p->kmax) f[IJKp3] = f[IJK];
         }
 
         // bed: A 518 (nhflow_bed_ghost)
@@ -790,16 +790,16 @@ void ghostcell::start5V(lexer *p, double *f, int gcv)
         if(p->flag4[IJKm1]<0)
         {
         f[IJKm1] = f[IJK];
-        f[IJKm2] = f[IJK];
-        f[IJKm3] = f[IJK];
+        if(k-2>=p->kmin) f[IJKm2] = f[IJK];
+        if(k-3>=p->kmin) f[IJKm3] = f[IJK];
         }
 
         //
         if(p->flag4[IJKp1]<0)
         {
         f[IJKp1] = f[IJK];
-        f[IJKp2] = f[IJK];
-        f[IJKp3] = f[IJK];
+        if(k+2<p->kmin+p->kmax) f[IJKp2] = f[IJK];
+        if(k+3<p->kmin+p->kmax) f[IJKp3] = f[IJK];
         }
     }
     else
@@ -807,16 +807,16 @@ void ghostcell::start5V(lexer *p, double *f, int gcv)
         if(p->flag4[IJKm1]<0)
         {
         f[IJKm1] = f[IJK];
-        f[IJKm2] = f[IJK];
-        f[IJKm3] = f[IJK];
+        if(k-2>=p->kmin) f[IJKm2] = f[IJK];
+        if(k-3>=p->kmin) f[IJKm3] = f[IJK];
         }
 
         //
         if(p->flag4[IJKp1]<0)
         {
         f[IJKp1] = f[IJK];
-        f[IJKp2] = f[IJK];
-        f[IJKp3] = f[IJK];
+        if(k+2<p->kmin+p->kmax) f[IJKp2] = f[IJK];
+        if(k+3<p->kmin+p->kmax) f[IJKp3] = f[IJK];
         }
     
     }
@@ -880,16 +880,16 @@ void ghostcell::start5Vfull(lexer *p, double *f, int gcv)
         if(p->flag4[IJKm1]<0)
         {
         f[IJKm1] = f[IJK];
-        f[IJKm2] = f[IJK];
-        f[IJKm3] = f[IJK];
+        if(k-2>=p->kmin) f[IJKm2] = f[IJK];
+        if(k-3>=p->kmin) f[IJKm3] = f[IJK];
         }
 
         
         if(p->flag4[IJKp1]<0)
         {
         f[IJKp1] = f[IJK];
-        f[IJKp2] = f[IJK];
-        f[IJKp3] = f[IJK];
+        if(k+2<p->kmin+p->kmax) f[IJKp2] = f[IJK];
+        if(k+3<p->kmin+p->kmax) f[IJKp3] = f[IJK];
         }
     }
 
@@ -1011,8 +1011,8 @@ void ghostcell::start20V(lexer *p, double *f, int gcv) //KIN
         {
 
                 f[IJKp1] = f[IJK];
-                f[IJKp2] = f[IJK];
-                f[IJKp3] = f[IJK];
+                if(k+2<p->kmin+p->kmax) f[IJKp2] = f[IJK];
+                if(k+3<p->kmin+p->kmax) f[IJKp3] = f[IJK];
         }
 
         // bed
@@ -1021,14 +1021,14 @@ void ghostcell::start20V(lexer *p, double *f, int gcv) //KIN
             if(p->B11==1)
             {
                 f[IJKm1] = f[IJK];
-                f[IJKm2] = f[IJK];
-                f[IJKm3] = f[IJK];
+                if(k-2>=p->kmin) f[IJKm2] = f[IJK];
+                if(k-3>=p->kmin) f[IJKm3] = f[IJK];
             }
             else if(p->B11==0)
             {
                 f[IJKm1] = 0.0;
-                f[IJKm2] = 0.0;
-                f[IJKm3] = 0.0;
+                if(k-2>=p->kmin) f[IJKm2] = 0.0;
+                if(k-3>=p->kmin) f[IJKm3] = 0.0;
             }
         }
     }
@@ -1112,16 +1112,16 @@ void ghostcell::start24V(lexer *p, double *f, int gcv) //EDDYV
         if(p->flag4[IJKp1]<0 || k==p->knoz-1)
         {
             f[IJKp1] = f[IJK];
-            f[IJKp2] = f[IJK];
-            f[IJKp3] = f[IJK];
+            if(k+2<p->kmin+p->kmax) f[IJKp2] = f[IJK];
+            if(k+3<p->kmin+p->kmax) f[IJKp3] = f[IJK];
         }
 
         // bed
         if(p->flag4[IJKm1]<0)
         {
             f[IJKm1] = f[IJK];
-            f[IJKm2] = f[IJK];
-            f[IJKm3] = f[IJK];
+            if(k-2>=p->kmin) f[IJKm2] = f[IJK];
+            if(k-3>=p->kmin) f[IJKm3] = f[IJK];
         }
     }
 
@@ -1199,16 +1199,16 @@ void ghostcell::start30V(lexer *p, double *f, int gcv) // EPS
         if(p->flag4[IJKp1]<0  || (p->DF[IJKp1]<0) || k==p->knoz-1)
         {
             f[IJKp1] = f[IJK];
-            f[IJKp2] = f[IJK];
-            f[IJKp3] = f[IJK];
+            if(k+2<p->kmin+p->kmax) f[IJKp2] = f[IJK];
+            if(k+3<p->kmin+p->kmax) f[IJKp3] = f[IJK];
         }
 
         // bed
         if(p->flag4[IJKm1]<0  || (p->DF[IJKm1]<0) || k==0)
         {
             f[IJKm1] = f[IJK];
-            f[IJKm2] = f[IJK];
-            f[IJKm3] = f[IJK];
+            if(k-2>=p->kmin) f[IJKm2] = f[IJK];
+            if(k-3>=p->kmin) f[IJKm3] = f[IJK];
         }
     }
 
@@ -1312,16 +1312,16 @@ void ghostcell::start60V(lexer *p, double *f, int gcv) // EPS
         if(p->flag4[IJKp1]<0  || p->DF[IJKp1]<0 || k==p->knoz-1)
         {
             f[IJKp1] = 0.0;
-            f[IJKp2] = 0.0;
-            f[IJKp3] = 0.0;
+            if(k+2<p->kmin+p->kmax) f[IJKp2] = 0.0;
+            if(k+3<p->kmin+p->kmax) f[IJKp3] = 0.0;
         }
 
         // bed
         if(p->flag4[IJKm1]<0  || p->DF[IJKm1]<0 || k==0)
         {
             f[IJKm1] = f[IJK];
-            f[IJKm2] = f[IJK];
-            f[IJKm3] = f[IJK];
+            if(k-2>=p->kmin) f[IJKm2] = f[IJK];
+            if(k-3>=p->kmin) f[IJKm3] = f[IJK];
         }
     }
 

@@ -80,8 +80,8 @@ void nhflow_sigma::omega_update(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL,
         k+=1;
         d->omegaF[FIJK] =  0.0;
         d->omegaF[FIJKp1] =  0.0;
-        d->omegaF[FIJKp2] =  0.0;
-        d->omegaF[FIJKp3] =  0.0;
+        if(k+2<p->kmin+p->kmaxF) d->omegaF[FIJKp2] =  0.0;
+        if(k+3<p->kmin+p->kmaxF) d->omegaF[FIJKp3] =  0.0;
     }
     
     GC4LOOP
@@ -93,8 +93,8 @@ void nhflow_sigma::omega_update(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL,
         
         d->omegaF[FIJK] =  0.0;
         d->omegaF[FIJKm1] =  0.0;
-        d->omegaF[FIJKm2] =  0.0;
-        d->omegaF[FIJKm3] =  0.0;
+        if(k-2>=p->kmin) d->omegaF[FIJKm2] =  0.0;
+        if(k-3>=p->kmin) d->omegaF[FIJKm3] =  0.0;
     }
     
 
@@ -119,14 +119,14 @@ void nhflow_sigma::omega_update(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL,
         k=0;
 
             p->ZSN[FIJKm1] = p->ZN[KM1]*WL(i,j) + d->bed(i,j);
-            p->ZSN[FIJKm2] = p->ZN[KM2]*WL(i,j) + d->bed(i,j);
-            p->ZSN[FIJKm3] = p->ZN[KM3]*WL(i,j) + d->bed(i,j);
+            if(k-2>=p->kmin) p->ZSN[FIJKm2] = p->ZN[KM2]*WL(i,j) + d->bed(i,j);
+            if(k-3>=p->kmin) p->ZSN[FIJKm3] = p->ZN[KM3]*WL(i,j) + d->bed(i,j);
         
         k=p->knoz;
 
             p->ZSN[FIJKp1] = p->ZN[KP1]*WL(i,j) + d->bed(i,j);
-            p->ZSN[FIJKp2] = p->ZN[KP2]*WL(i,j) + d->bed(i,j);
-            p->ZSN[FIJKp3] = p->ZN[KP3]*WL(i,j) + d->bed(i,j);
+            if(k+2<p->kmin+p->kmaxF) p->ZSN[FIJKp2] = p->ZN[KP2]*WL(i,j) + d->bed(i,j);
+            if(k+3<p->kmin+p->kmaxF) p->ZSN[FIJKp3] = p->ZN[KP3]*WL(i,j) + d->bed(i,j);
     }
     
     
@@ -135,14 +135,14 @@ void nhflow_sigma::omega_update(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL,
         k=0;
 
             p->ZSP[IJKm1] = p->ZP[KM1]*WL(i,j) + d->bed(i,j);
-            p->ZSP[IJKm2] = p->ZP[KM2]*WL(i,j) + d->bed(i,j);
-            p->ZSP[IJKm3] = p->ZP[KM3]*WL(i,j) + d->bed(i,j);
+            if(k-2>=p->kmin) p->ZSP[IJKm2] = p->ZP[KM2]*WL(i,j) + d->bed(i,j);
+            if(k-3>=p->kmin) p->ZSP[IJKm3] = p->ZP[KM3]*WL(i,j) + d->bed(i,j);
         
         k=p->knoz-1;
 
             p->ZSP[IJKp1] = p->ZP[KP1]*WL(i,j) + d->bed(i,j);
-            p->ZSP[IJKp2] = p->ZP[KP2]*WL(i,j) + d->bed(i,j);
-            p->ZSP[IJKp3] = p->ZP[KP3]*WL(i,j) + d->bed(i,j);
+            if(k+2<p->kmin+p->kmax) p->ZSP[IJKp2] = p->ZP[KP2]*WL(i,j) + d->bed(i,j);
+            if(k+3<p->kmin+p->kmax) p->ZSP[IJKp3] = p->ZP[KP3]*WL(i,j) + d->bed(i,j);
     }
     
 }

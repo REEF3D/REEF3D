@@ -69,6 +69,9 @@ public:
 
     int knox,knoy,knoz;
     const int margin = 3;
+    // the vertical margin of the 3D arrays (kmin = -kmargin): margin, 1 for the semi-implicit NHFLOW on one Cartesian
+    // grid (lexer::read_grid), whose kernels reach one cell beyond the layers
+    int kmargin = 3;
 
     double originx,originy,originz;
     double endx,endy,endz;

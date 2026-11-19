@@ -81,12 +81,12 @@ void nhflow_fsf_f::kinematic_bed(lexer *p, fdm_nhf *d, double *U, double *V, dou
     wval=0.0;
 
         d->Wb[IJKm1] = wval;
-        d->Wb[IJKm2] = wval;
-        d->Wb[IJKm3] = wval;
+        if(k-2>=p->kmin) d->Wb[IJKm2] = wval;
+        if(k-3>=p->kmin) d->Wb[IJKm3] = wval;
 
         d->Wt[IJKm1] = wval;
-        d->Wt[IJKm2] = wval;
-        d->Wt[IJKm3] = wval;
+        if(k-2>=p->kmin) d->Wt[IJKm2] = wval;
+        if(k-3>=p->kmin) d->Wt[IJKm3] = wval;
         
     }
 }
