@@ -307,20 +307,39 @@ void ghostcell::gcsl_start4Vint(lexer *p, int *f, int gcv)
     endtime=timer();
     p->gctime+=endtime-starttime;
 
+    // corner ghost cells: only next to a cell with an inactive neighbour in x and one in y
     if(!ysk)
-    SLICELOOP4
     {
-        if(p->flagslice4[Im1Jm1]<0 && p->flagslice4[Im1J]<0 && p->flagslice4[IJm1]<0)
-        f[Im1Jm1] = f[IJ];
+    const int nj = p->jmax;
+    const int *const flag = p->flagslice4;
+    
+    for(int ii=0; ii<p->knox; ++ii)
+    {
+    const int q0 = (ii - p->imin)*nj - p->jmin;
+    
+        for(int q=q0; q<q0+p->knoy; ++q)
+        if(flag[q]>0)
+        {
+        const bool xm = flag[q-nj]<0, xp = flag[q+nj]<0;
+        
+        if(!xm && !xp)
+        continue;
+        
+        const bool ym = flag[q-1]<0, yp = flag[q+1]<0;
+        
+        if(xm && ym && flag[q-nj-1]<0)
+        f[q-nj-1] = f[q];
 
-        if(p->flagslice4[Im1Jp1]<0 && p->flagslice4[Im1J]<0 && p->flagslice4[IJp1]<0)
-        f[Im1Jp1] = f[IJ];
+        if(xm && yp && flag[q-nj+1]<0)
+        f[q-nj+1] = f[q];
 
-        if(p->flagslice4[Ip1Jm1]<0 && p->flagslice4[Ip1J]<0 && p->flagslice4[IJm1]<0)
-        f[Ip1Jm1] = f[IJ];
+        if(xp && ym && flag[q+nj-1]<0)
+        f[q+nj-1] = f[q];
 
-        if(p->flagslice4[Ip1Jp1]<0 && p->flagslice4[Ip1J]<0 && p->flagslice4[IJp1]<0)
-        f[Ip1Jp1] = f[IJ];
+        if(xp && yp && flag[q+nj+1]<0)
+        f[q+nj+1] = f[q];
+        }
+    }
     }
 
     //  MPI Boundary Swap
