@@ -29,6 +29,7 @@ class slice : public slice_base<double>
 {
 public:
     slice(lexer* p) : slice_base<double>(p) {};
+    slice(lexer* p, bool on) : slice_base<double>(p,on) {};
     virtual ~slice() = default;
 };
 

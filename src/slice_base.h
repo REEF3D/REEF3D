@@ -36,6 +36,13 @@ public:
         V = new T[imax*jmax] {};
         ckid = ckpt_registry::add(p,'S',std::is_same<T,int>::value,V);
     }
+    // on = false: the slice of an option that is not used; no array (V = nullptr), not in the checkpoints
+    slice_base(lexer* p, bool on) : imin(p->imin), imax(p->imax), jmin(p->jmin), jmax(p->jmax)
+    {
+        V = on ? new T[imax*jmax] {} : nullptr;
+        if(on)
+        ckid = ckpt_registry::add(p,'S',std::is_same<T,int>::value,V);
+    }
     virtual ~slice_base()
     {
         ckpt_registry::remove(ckid);

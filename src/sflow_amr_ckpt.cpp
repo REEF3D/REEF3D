@@ -79,7 +79,8 @@ void lexer_scalars(lexer *q, F &&f)
 void patch_fields(sflow_amr_patch *c, const reefamr::ckpt_visit &v)
 {
     std::set<const void*> listed;
-    auto fd = [&](const char *n, char k, double *V){ listed.insert(V); v(n,k,V,nullptr); };
+    // a slice without an array (sflow_memory.h) is not kept
+    auto fd = [&](const char *n, char k, double *V){ if(V==nullptr) return; listed.insert(V); v(n,k,V,nullptr); };
     auto fi = [&](const char *n, char k, int *V){ listed.insert(V); v(n,k,nullptr,V); };
     sflow_ckpt_fields(c->pp,c->b,fd,fi);
     // REEF3D::HYDRO: the cumulative infiltration and rain

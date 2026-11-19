@@ -59,8 +59,9 @@ public:
     slice1 Fx,Fs,Fn,FEx;
     slice2 Fy,Fe,Fw,FEy;
     
-    slice1 Ss,Sn,SSx;
-    slice2 Se,Sw,SSy;
+    slice1 Ss,Sn;
+    slice2 Se,Sw;
+    // face states: Vn..Uw, Wn..Ww, WHn..WHw and QUn..QVw only with the options that read them (sflow_memory.h)
     
     slice1 Un,Us;
     slice2 Ue,Uw;

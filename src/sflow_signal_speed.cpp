@@ -46,7 +46,7 @@ void sflow_signal_speed::signal_speed_update(lexer* p, ghostcell *pgc, fdm2D *b,
     {
     const int *const flag = p->flagslice1;
     const double *const us = Us.V, *const un = Un.V, *const ds = Ds.V, *const dn = Dn.V;
-    double *const Ss = b->Ss.V, *const Sn = b->Sn.V, *const SSx = b->SSx.V;
+    double *const Ss = b->Ss.V, *const Sn = b->Sn.V;
     const int ie = p->knox - p->ulast;
     
     for(int ii=0; ii<ie; ++ii)
@@ -67,7 +67,6 @@ void sflow_signal_speed::signal_speed_update(lexer* p, ghostcell *pgc, fdm2D *b,
         
         Ss[q] = MIN(uL - cL, US - DS);
         Sn[q] = MAX(uR + cR, US + DS);
-        SSx[q] = US;
         }
         
         else
@@ -75,7 +74,6 @@ void sflow_signal_speed::signal_speed_update(lexer* p, ghostcell *pgc, fdm2D *b,
         {
         Ss[q] = uR - 2.0*cR;
         Sn[q] = uR + cR;
-        SSx[q] = Ss[q];
         }
         
         else
@@ -83,7 +81,6 @@ void sflow_signal_speed::signal_speed_update(lexer* p, ghostcell *pgc, fdm2D *b,
         {
         Ss[q] = uL - cL;
         Sn[q] = uL + 2.0*cL;
-        SSx[q] = Sn[q];
         }
         
         else
@@ -91,7 +88,6 @@ void sflow_signal_speed::signal_speed_update(lexer* p, ghostcell *pgc, fdm2D *b,
         {
         Ss[q] = 0.0;
         Sn[q] = 0.0;
-        SSx[q] = 0.0;
         }
         }
     }
@@ -102,7 +98,7 @@ void sflow_signal_speed::signal_speed_update(lexer* p, ghostcell *pgc, fdm2D *b,
     {
     const int *const flag = p->flagslice2;
     const double *const ve = Ve.V, *const vw = Vw.V, *const de = De.V, *const dw = Dw.V;
-    double *const Se = b->Se.V, *const Sw = b->Sw.V, *const SSy = b->SSy.V;
+    double *const Se = b->Se.V, *const Sw = b->Sw.V;
     const int je = p->knoy - p->vlast;
     
     for(int ii=0; ii<p->knox; ++ii)
@@ -123,7 +119,6 @@ void sflow_signal_speed::signal_speed_update(lexer* p, ghostcell *pgc, fdm2D *b,
         
         Se[q] = MIN(uL - cL, US - DS);
         Sw[q] = MAX(uR + cR, US + DS);
-        SSy[q] = US;
         }
         
         else
@@ -131,7 +126,6 @@ void sflow_signal_speed::signal_speed_update(lexer* p, ghostcell *pgc, fdm2D *b,
         {
         Se[q] = uR - 2.0*cR;
         Sw[q] = uR + cR;
-        SSy[q] = Se[q];
         }
         
         else
@@ -139,7 +133,6 @@ void sflow_signal_speed::signal_speed_update(lexer* p, ghostcell *pgc, fdm2D *b,
         {
         Se[q] = uL - cL;
         Sw[q] = uL + 2.0*cL;
-        SSy[q] = Sw[q];
         }
         
         else
@@ -147,7 +140,6 @@ void sflow_signal_speed::signal_speed_update(lexer* p, ghostcell *pgc, fdm2D *b,
         {
         Se[q] = 0.0;
         Sw[q] = 0.0;
-        SSy[q] = 0.0;
         }
         }
     }
