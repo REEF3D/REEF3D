@@ -26,6 +26,7 @@ Author: Ahmet Soydan
 namespace nhflow_srchull
 {
     std::vector<double> q;
+    std::vector<double> cv1, cv2, cv3;
     double x13_mx = 0.0, x13_mz = 0.0, x13_adt = 1.0, x13_dv = 0.0;
     
     bool active()
@@ -62,6 +63,12 @@ namespace nhflow_srchull
     {
         static const bool w = getenv("NHF_SRC")!=nullptr && getenv("NHF_SRC_WATER")!=nullptr && atoi(getenv("NHF_SRC_WATER"))>0;
         return w;
+    }
+    
+    bool mirror()
+    {
+        static const bool m = getenv("NHF_SRC")!=nullptr && getenv("NHF_SRC_FORCE")!=nullptr && atoi(getenv("NHF_SRC_FORCE"))==3;
+        return m;
     }
     
     double qv()

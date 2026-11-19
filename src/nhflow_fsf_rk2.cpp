@@ -76,6 +76,7 @@ void nhflow_fsf_f::rk2_step1(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow
     if(p->geo_curv==1)
     K(i,j) += -p->DZN[KP]*nhflow_curv::divh(p,d->FEx,d->FEy,i,j,k);
     else
+    if(!nhflow_srchull::mirror() || d->FB[IJK]>=0.0)   // EXPERIMENT NHF_SRC_FORCE=3: the ghost cells inside the hull are no water
     K(i,j) += -p->DZN[KP]*((d->FEx[IJK] - d->FEx[Im1JK])/p->DXN[IP]  + (d->FEy[IJK] - d->FEy[IJm1K])/p->DYN[JP]*p->y_dir);
     }
     
@@ -142,6 +143,7 @@ void nhflow_fsf_f::rk2_step2(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow
     if(p->geo_curv==1)
     K(i,j) += -p->DZN[KP]*nhflow_curv::divh(p,d->FEx,d->FEy,i,j,k);
     else
+    if(!nhflow_srchull::mirror() || d->FB[IJK]>=0.0)   // EXPERIMENT NHF_SRC_FORCE=3: the ghost cells inside the hull are no water
     K(i,j) += -p->DZN[KP]*((d->FEx[IJK] - d->FEx[Im1JK])/p->DXN[IP]  + (d->FEy[IJK] - d->FEy[IJm1K])/p->DYN[JP]*p->y_dir);
     }
     

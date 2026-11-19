@@ -213,7 +213,13 @@ void sixdof_obj_nhflow::forcing_kernel_nhflow(lexer *p, fdm_nhf *d, ghostcell *p
         // (weighted with the horizontal part of the normal; A 526 (dx + dy)/2 where the hull faces down), instead of
         // A 526 (dx + dy)/2 everywhere. On a grid stretched to the centre line (dy << dx) the sides of the hull are then as
         // sharp as dy allows. chi is one field, chi(x) = H(-FB(x)/psi(x)), for the sources and the forcing.
-        static const bool aniso = getenv("NHF_SRC_ANISO")!=nullptr && atoi(getenv("NHF_SRC_ANISO"))>0;
+        // NHF_SRC_ANISO=2: also with the vertical part of the normal and the thickness of the layer,
+        // psi = A 526 (|n_x| dx + |n_y| dy + |n_z| dz). With psi from dx, dy only the band below the hull (and above and below
+        // a submerged body) is thinner than one layer wherever the layers are thicker than the horizontal cells (Wigley
+        // L/112: psi 0.039 m, layers of 0.06-0.08 m at the keel): the forced cells (FB < -psi) then touch the cells of the
+        // sources, which cannot diverge (as with NHF_SRC_FORCE=1). The 2D tests have square cells.
+        static const int anisomode = getenv("NHF_SRC_ANISO")!=nullptr ? atoi(getenv("NHF_SRC_ANISO")) : 0;
+        static const bool aniso = anisomode>0;
         
         auto IDX = [&](int ii, int jj, int kk)
         {
@@ -235,6 +241,9 @@ void sixdof_obj_nhflow::forcing_kernel_nhflow(lexer *p, fdm_nhf *d, ghostcell *p
             const double gh = sqrt(gx*gx + gy*gy);
             const double g2 = gh*gh + gz*gz;
             
+            if(anisomode>=2)
+            return (g2<1.0e-20) ? piso : p->A526*(fabs(gx)*p->DXN[ii+marge] + fabs(gy)*p->DYN[jj+marge] + fabs(gz)*p->DZN[kk+marge]*WL(ii,jj))/sqrt(g2);
+            
             if(g2<1.0e-20 || gh<1.0e-10)
             return piso;
             
@@ -247,6 +256,18 @@ void sixdof_obj_nhflow::forcing_kernel_nhflow(lexer *p, fdm_nhf *d, ghostcell *p
         auto chiAt = [&](int ii, int jj, int kk)
         {
             const double ps = psiAt(ii,jj,kk);
+            const double fbv = -d->FB[IDX(ii,jj,kk)];
+            
+            return fbv>ps ? 1.0 : (fbv<-ps ? 0.0 : 0.5*(1.0 + fbv/ps + (1.0/PI)*sin(PI*fbv/ps)));
+        };
+        
+        // NHF_SRC_ANISO=3: as 2, but d(chi)/dx of the sources with the band width of the cell itself for its neighbours.
+        // chi = H(-FB/psi(x)) with psi changing along the hull (normal, layer thickness, water depth) has a second part
+        // in its derivative, -H' FB d(1/psi)/dx: sources of opposite sign on the two sides of the hull surface that are no
+        // part of U n_x. They grow with A 526 (submerged Wigley double body, NHF_SRC_ANISO=2: C_wp 0.199 / 0.281 / 0.375e-3
+        // for A 526 1.1 / 1.6 / 2.1, plain sources without any forcing 0.234, linear theory 0.30).
+        auto chiP = [&](int ii, int jj, int kk, double ps)
+        {
             const double fbv = -d->FB[IDX(ii,jj,kk)];
             
             return fbv>ps ? 1.0 : (fbv<-ps ? 0.0 : 0.5*(1.0 + fbv/ps + (1.0/PI)*sin(PI*fbv/ps)));
@@ -634,6 +655,256 @@ void sixdof_obj_nhflow::forcing_kernel_nhflow(lexer *p, fdm_nhf *d, ghostcell *p
             }
         }
         
+        // NHF_SRC_VMATCH=3: tangent stream. The field inside the hull is the stream spread over the local beam,
+        //      V = Us (1, eta b_x + c_x, 0),   eta = (y - c)/b,
+        // b(x,z) the half beam and c(x,z) the centre of the hull in the row of cells (x, layer) (in 2D: the half height and
+        // the centre in the column, V = Us (1, 0, eta b_x + c_x)). V is tangent to the hull, V.n = 0 at eta = +-1: the
+        // sources q = div(chi V) = chi Us b_x/b + V.grad(chi) are spread over the beam (in every row 2 Us b_x, the thin-ship
+        // strength) and the band holds none: the normal velocity is continuous across the hull, 0 on both sides. With
+        // the uniform stream (NHF_SRC_FORCE=2 alone) it jumps by Us n_x over the two cells of the band, and what the
+        // flux scheme dissipates there is taken from the water that moves along the hull (loss of head at the hull,
+        // 30-45 % of the wave energy missing; Cases/NOTES_gece_2026-11-19.md).
+        // Rows that the hull crosses more than once (and rows next to such rows only) keep the uniform stream: there
+        // q = Us d(chi)/dx as before. b not below NHF_SRC_TBMIN cells (0.5), |V_y| <= NHF_SRC_TVMAX Us (1.0). Fixed hull.
+        // The pressure projection takes the difference u - chi V (nhflow_srchull::cv1..3, nhflow_pjm::rhs): it is free of
+        // divergence in the discrete form of the projection itself, and 0 where the cells are forced.
+        static const bool vtan = vmode==3;
+        static const double tbmin = getenv("NHF_SRC_TBMIN")!=nullptr ? atof(getenv("NHF_SRC_TBMIN")) : 0.5;
+        static const double tvmax = getenv("NHF_SRC_TVMAX")!=nullptr ? atof(getenv("NHF_SRC_TVMAX")) : 1.0;
+        const bool vfield = vmir || vtan;
+        
+        if(vtan)
+        {
+            const int nn3 = p->imax*p->jmax*(p->kmax+2);
+            
+            if(int(VM1.size())!=nn3)
+            {
+            VM1.assign(nn3,fk*nhflow_srchull::stream());
+            VM2.assign(nn3,0.0);
+            VM3.assign(nn3,0.0);
+            }
+            
+            const bool tz = (p->j_dir==0);              // across the hull: z in 2D, y in 3D
+            const int nrow = tz ? nxg : nxg*nzl;
+            std::vector<double> acc(4*nrow,0.0);        // per row: sum of the points into the hull, their number, out of it, number
+            
+            auto zcc = [&](int ii, int jj, int kk)
+            {
+                return p->ZP[kk+marge]*WL(ii,jj) + d->bed(ii,jj);
+            };
+            
+            LOOP
+            if(p->wet[IJ]==1)
+            {
+                if(tz && k==p->knoz-1)
+                continue;
+                
+                const double f0 = d->FB[IJK];
+                const double f1 = tz ? d->FB[IJKp1] : d->FB[IJp1K];
+                
+                if((f0>=0.0)==(f1>=0.0))
+                continue;
+                
+                const double c0 = tz ? zcc(i,j,k) : p->YP[JP];
+                const double c1 = tz ? zcc(i,j,k+1) : p->YP[JP1];
+                const double cc = c0 + (c1-c0)*f0/(f0-f1);
+                const int n = tz ? (i+p->origin_i) : (i+p->origin_i)*nzl + k;
+                
+                if(f0>=0.0)
+                {acc[4*n] += cc; acc[4*n+1] += 1.0;}
+                else
+                {acc[4*n+2] += cc; acc[4*n+3] += 1.0;}
+            }
+            
+            pgc->globalsum(acc.data(),4*nrow);
+            
+            // 0: no hull in the row, 1: one stretch of hull, 2: anything else
+            auto rstate = [&](int ig, int kk)
+            {
+                if(ig<0 || ig>=nxg)
+                return 0;
+                
+                const int n = tz ? ig : ig*nzl + kk;
+                const int ne = int(acc[4*n+1]+0.5);
+                const int nx = int(acc[4*n+3]+0.5);
+                
+                if(ne==0 && nx==0)
+                return 0;
+                
+                if(ne==1 && nx==1 && acc[4*n+2]>acc[4*n])
+                return 1;
+                
+                return 2;
+            };
+            
+            auto rowb = [&](int ig, int kk) {const int n = tz ? ig : ig*nzl + kk; return 0.5*(acc[4*n+2] - acc[4*n]);};
+            auto rowc = [&](int ig, int kk) {const int n = tz ? ig : ig*nzl + kk; return 0.5*(acc[4*n+2] + acc[4*n]);};
+            
+            const double us = fk*nhflow_srchull::stream();
+            
+            LOOP
+            {
+                double t2 = 0.0;
+                const int ig = i+p->origin_i;
+                
+                if(d->FB[IJK]<1.5*psiAt(i,j,k) && p->wet[IJ]==1 && rstate(ig,k)==1)
+                {
+                    const int sm = rstate(ig-1,k);
+                    const int sp = rstate(ig+1,k);
+                    
+                    if(sm!=2 || sp!=2)
+                    {
+                        const double b0 = rowb(ig,k);
+                        const double c0 = rowc(ig,k);
+                        
+                        const double bm = (sm==2) ? b0 : (sm==1 ? rowb(ig-1,k) : 0.0);
+                        const double cm = (sm==1) ? rowc(ig-1,k) : c0;
+                        const double xm = (sm==2) ? p->XP[IP] : p->XP[IM1];
+                        const double bp = (sp==2) ? b0 : (sp==1 ? rowb(ig+1,k) : 0.0);
+                        const double cp = (sp==1) ? rowc(ig+1,k) : c0;
+                        const double xp = (sp==2) ? p->XP[IP] : p->XP[IP1];
+                        
+                        const double bx = (bp-bm)/(xp-xm);
+                        const double cx = (cp-cm)/(xp-xm);
+                        const double dl = tz ? p->DZN[KP]*WL(i,j) : p->DYN[JP];
+                        const double eta = MIN(MAX(((tz ? zcc(i,j,k) : p->YP[JP]) - c0)/MAX(b0,tbmin*dl),-1.3),1.3);
+                        
+                        t2 = MIN(MAX(us*(eta*bx + cx),-tvmax*fabs(us)),tvmax*fabs(us));
+                    }
+                }
+                
+                VM1[IJK] = us;
+                VM2[IJK] = tz ? 0.0 : t2;
+                VM3[IJK] = tz ? t2 : 0.0;
+            }
+            
+            // NHF_SRC_VFLUX=1: the stream inside the hull follows the water level inside it. In the columns that the hull
+            // pierces the level eta is that of the waves along the hull, and a horizontal stream (U,0,0) below a
+            // sloping level is no steady flow: the continuity of the column makes up for U d(eta)/dx with a flow
+            // through the hull bottom and the band (Wigley, Fn 0.316: level slope 0.05, 5 % of U; the sources of the
+            // bow are 11-30 % above those of the still hull at Fn 0.25-0.41, the sinks of the stern are not, the
+            // rest leaves the hull along its length). The hull then yields to its own waves. Here, with z_b the hull
+            // bottom of the column, T0 its still draft and d = T0 + eta the depth of the stream,
+            //      V_x = Us T0/d,     V_z = (V_x eta_x + V_y eta_y)(z - z_b)/d
+            // the stream carries the flux Us T0 of the still hull whatever the level and is tangent to the level:
+            // the sources of every column are those of the still hull, their sum 0. Columns of the band beside the
+            // hull take T0 and z_b of the nearest pierced column (two cells around).
+            static const bool vflux = getenv("NHF_SRC_VFLUX")!=nullptr && atoi(getenv("NHF_SRC_VFLUX"))>0;
+            static std::vector<double> SF,SB;
+            
+            if(vflux && !tz)
+            {
+                if(int(SF.size())!=nn3)
+                {
+                SF.assign(nn3,0.0);
+                SB.assign(nn3,0.0);
+                }
+                
+                const int kt = p->knoz-1;
+                
+                SLICELOOP4
+                {
+                    double sc = 0.0;
+                    double zb = 0.0;
+                    
+                    if(p->wet[IJ]==1 && d->FB[IDX(i,j,kt)]<0.0)
+                    {
+                        int kb = kt;
+                        
+                        while(kb>0 && d->FB[IDX(i,j,kb-1)]<0.0)
+                        --kb;
+                        
+                        if(kb>0)
+                        {
+                            const double f0 = d->FB[IDX(i,j,kb-1)];
+                            const double f1 = d->FB[IDX(i,j,kb)];
+                            zb = zcc(i,j,kb-1) + (zcc(i,j,kb) - zcc(i,j,kb-1))*f0/(f0-f1);
+                            
+                            const double dd = d->bed(i,j) + WL(i,j) - zb;
+                            const double t0 = dd - d->eta(i,j);
+                            
+                            if(dd>1.0e-6 && t0>0.0)
+                            sc = MIN(MAX(t0/dd,0.5),2.0);
+                        }
+                    }
+                    
+                    for(int kk=0; kk<p->knoz; ++kk)
+                    {
+                    SF[IDX(i,j,kk)] = sc;
+                    SB[IDX(i,j,kk)] = zb;
+                    }
+                }
+                
+                pgc->start4V(p,SF.data(),1);
+                pgc->start4V(p,SB.data(),1);
+                
+                LOOP
+                if(p->wet[IJ]==1 && d->FB[IJK]<1.5*psiAt(i,j,k))
+                {
+                    double sc = SF[IDX(i,j,kt)];
+                    double zb = SB[IDX(i,j,kt)];
+                    
+                    if(sc<=0.0)
+                    {
+                        double best = 1.0e20;
+                        
+                        for(int di=-2; di<=2; ++di)
+                        for(int dj=-2; dj<=2; ++dj)
+                        {
+                            const double sn = SF[IDX(i+di,j+dj,kt)];
+                            const double r2 = double(di*di + dj*dj);
+                            
+                            if(sn>0.0 && r2<best)
+                            {
+                            best = r2;
+                            sc = sn;
+                            zb = SB[IDX(i+di,j+dj,kt)];
+                            }
+                        }
+                    }
+                    
+                    if(sc>0.0)
+                    {
+                        const double dd = MAX(d->bed(i,j) + WL(i,j) - zb,1.0e-6);
+                        const double ex = (d->eta(i+1,j) - d->eta(i-1,j))/(p->DXP[IP] + p->DXP[IM1]);
+                        const double ey = (d->eta(i,j+1) - d->eta(i,j-1))/(p->DYP[JP] + p->DYP[JM1]);
+                        const double zr = MIN(MAX((zcc(i,j,k) - zb)/dd,0.0),1.2);
+                        
+                        VM1[IJK] *= sc;
+                        VM2[IJK] *= sc;
+                        VM3[IJK] = (VM1[IJK]*ex + VM2[IJK]*ey)*zr;
+                    }
+                }
+            }
+            
+            pgc->start4V(p,VM1.data(),1);
+            pgc->start4V(p,VM2.data(),1);
+            pgc->start4V(p,VM3.data(),1);
+            
+            std::vector<double> &c1 = nhflow_srchull::cv1;
+            std::vector<double> &c2 = nhflow_srchull::cv2;
+            std::vector<double> &c3 = nhflow_srchull::cv3;
+            
+            if(int(c1.size())!=nn3)
+            {
+            c1.assign(nn3,0.0);
+            c2.assign(nn3,0.0);
+            c3.assign(nn3,0.0);
+            }
+            
+            LOOP
+            {
+                const double ch = (p->wet[IJ]==1) ? ramp*chiAt(i,j,k) : 0.0;
+                c1[IJK] = ch*VM1[IJK];
+                c2[IJK] = ch*VM2[IJK];
+                c3[IJK] = ch*VM3[IJK];
+            }
+            
+            pgc->start4V(p,c1.data(),1);
+            pgc->start4V(p,c2.data(),1);
+            pgc->start4V(p,c3.data(),1);
+        }
+        
         auto Vin = [&](int ii, int kk)
         {
             if(!vmatch)
@@ -659,13 +930,13 @@ void sixdof_obj_nhflow::forcing_kernel_nhflow(lexer *p, fdm_nhf *d, ghostcell *p
                 
                 // any uniform velocity V inside gives no flow through the hull if the sources are -V n_x: (1 + k1) Us for
                 // both (NHF_SRC_K). k1 then only sets the slip between inside and outside, not the boundary condition
-                FX[IJK] += chi*((vmir ? VM1[IJK] : Vin(i,k)) - U[IJK])/(alpha[iter]*p->dt);
-                FY[IJK] += chi*((vmir ? VM2[IJK] : 0.0) - V[IJK])/(alpha[iter]*p->dt);
-                FZ[IJK] += chi*((vmir ? VM3[IJK] : 0.0) - W[IJK])/(alpha[iter]*p->dt);
+                FX[IJK] += chi*((vfield ? VM1[IJK] : Vin(i,k)) - U[IJK])/(alpha[iter]*p->dt);
+                FY[IJK] += chi*((vfield ? VM2[IJK] : 0.0) - V[IJK])/(alpha[iter]*p->dt);
+                FZ[IJK] += chi*((vfield ? VM3[IJK] : 0.0) - W[IJK])/(alpha[iter]*p->dt);
                 
                 // force of the forcing on the water (momentum budget)
-                Ffx += p->W1*chi*(Vin(i,k) - U[IJK])/(alpha[iter]*p->dt)*p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*WL(i,j);
-                Ffz += p->W1*chi*(0.0 - W[IJK])/(alpha[iter]*p->dt)*p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*WL(i,j);
+                Ffx += p->W1*chi*((vfield ? VM1[IJK] : Vin(i,k)) - U[IJK])/(alpha[iter]*p->dt)*p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*WL(i,j);
+                Ffz += p->W1*chi*((vfield ? VM3[IJK] : 0.0) - W[IJK])/(alpha[iter]*p->dt)*p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*WL(i,j);
             }
             
             if(keep)
@@ -697,7 +968,12 @@ void sixdof_obj_nhflow::forcing_kernel_nhflow(lexer *p, fdm_nhf *d, ghostcell *p
             // the metric term the hull bottom gets sources Us d(chi)/dz times the slope of the layer: on Wigley the
             // sources and the sinks both grew by 17 % while the waves developed (0.1123 -> 0.132 m^3/s), on KCS by 20 %.
             // NHF_SRC_NOMETRIC=1: without it (all runs before 18 Nov 15:20)
-            const double dcdx = aniso ?
+            const double ps0 = (anisomode==3) ? psiAt(i,j,k) : 0.0;
+            const double dcdx = (anisomode==3) ?
+                                (chiP(i+1,j,k,ps0) - chiP(i-1,j,k,ps0))/(p->DXP[IP] + p->DXP[IM1])
+                              + (nometric ? 0.0 : 0.5*(p->sigx[FIJK]+p->sigx[FIJKp1])*(chiP(i,j,MIN(k+1,p->knoz-1),ps0) - chiP(i,j,MAX(k-1,0),ps0))/(p->DZP[KP] + p->DZP[KM1]))
+                              :
+                                aniso ?
                                 (chiAt(i+1,j,k) - chiAt(i-1,j,k))/(p->DXP[IP] + p->DXP[IM1])
                               + (nometric ? 0.0 : 0.5*(p->sigx[FIJK]+p->sigx[FIJKp1])*(chiAt(i,j,MIN(k+1,p->knoz-1)) - chiAt(i,j,MAX(k-1,0)))/(p->DZP[KP] + p->DZP[KM1]))
                               :
@@ -719,8 +995,8 @@ void sixdof_obj_nhflow::forcing_kernel_nhflow(lexer *p, fdm_nhf *d, ghostcell *p
                 qv = ramp*(dcv - u_fb(0)*dcdx);
             }
             
-            // NHF_SRC_VMATCH=2: q = div(chi V) at constant z
-            if(vmir)
+            // NHF_SRC_VMATCH=2, 3: q = div(chi V) at constant z
+            if(vfield)
             {
                 const int kp = MIN(k+1,p->knoz-1);
                 const int km = MAX(k-1,0);

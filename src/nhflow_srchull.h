@@ -69,6 +69,9 @@ Author: Ahmet Soydan
 //                              probe point outside, tangential part unchanged, normal part reflected), see
 //                              6DOF_obj_forcing_nhflow.cpp; NHF_SRC_PROBE (cells, 1.5), NHF_SRC_MDEPTH (cells, 2.6)
 //      NHF_SRC_ANISO = 1       band half width from the grid spacing normal to the hull (grids stretched to the hull)
+//      NHF_SRC_ANISO = 2       the same with the vertical part of the normal and the layer thickness (band below the hull)
+//      NHF_SRC_ANISO = 3       as 2, the derivative of chi in the sources with the band width of the cell itself (no sources from
+//                              the change of the band width along the hull); uniform stream inside only (not NHF_SRC_VMATCH)
 //      NHF_SRC_WATER = 1       the cells of the hull stay water for the solver (DF = 1 instead of -2): the usual wave speeds
 //                              of the HLL flux at and inside the hull (with DF < 0: the left state inside, dry-bed speeds at
 //                              the faces to the water) and no mirrored no-slip wall in the diffusion
@@ -78,6 +81,11 @@ Author: Ahmet Soydan
 //      NHF_SRC_VMATCH = 2      the field inside is the tangential extension of the outer flow (probe NHF_SRC_PROBE cells outside
 //                              the hull, normal part linear through zero at the hull), sources q = div(chi V): no band of
 //                              sources with a jump of the normal velocity (see 6DOF_obj_forcing_nhflow.cpp)
+//      NHF_SRC_VMATCH = 3      tangent stream: V = Us (1, eta b_x + c_x, 0) with the half beam b and the centre c of the hull in the row
+//                              of cells (2D: in the column), tangent to the hull; sources q = div(chi V) spread over the beam, none in
+//                              the band; the projection takes u - chi V (see 6DOF_obj_forcing_nhflow.cpp); NHF_SRC_TBMIN, NHF_SRC_TVMAX
+//      NHF_SRC_VFLUX = 1       with NHF_SRC_VMATCH=3: the stream inside follows the water level inside the hull, V_x = Us T0/(T0 + eta),
+//                              tangent to the level: the flux and the sources of the still hull whatever the waves along the hull
 //      NHF_SRC_RAMP = T        the sources grow from 0 over the first T seconds (soft start, see 6DOF_obj_forcing_nhflow.cpp)
 //      NHF_SRC_QV = theta      momentum of the source water: theta V + (1 - theta) u per mass, V = ((1 + k1) Us, 0, 0) the
 //                              stream inside the hull, u the velocity of the cell (default theta = 0). With the transparent
@@ -94,10 +102,16 @@ namespace nhflow_srchull
     double k1();
     bool water();                       // NHF_SRC_WATER=1: the body cells are water for the solver (DF = 1)
     double qv();                        // NHF_SRC_QV = theta: the source water carries theta V + (1 - theta) u, V the stream inside
+    bool mirror();                      // NHF_SRC_FORCE=3: mirror hull, the cells inside the hull (FB < 0) are ghost cells and no water:
+                                        // out of the pressure projection (rhs 0 at the nodes inside), the water level and the sigma velocity
     int feedback();                     // NHF_SRC_FB: 1 strength from the local flow (no k1), 2 without the w term, +10 every stage
     int opt();                          // NHF_SRC_OPT, tests: 1 no momentum term, 2 no sigma velocity term, 4 no water level term
     
     extern std::vector<double> q;       // source of the cells [1/s], index IJK; empty until the first stage
+    
+    // NHF_SRC_VMATCH=3: chi V, the field inside the hull times the hull indicator (index IJK, with ghost cells; empty: not used).
+    // The pressure projection then takes u - chi V instead of u and no q (nhflow_pjm::rhs, nhflow_pjm_corr::rhs)
+    extern std::vector<double> cv1, cv2, cv3;
     
     // momentum budget of the hull representation (REEF3D_srchull.dat): x and z momentum that the level reset of the pierced
     // columns (X 13 1, nhflow_fsf_body) gave to the water in its last stage [kg m/s] of this rank, and alpha dt of that stage

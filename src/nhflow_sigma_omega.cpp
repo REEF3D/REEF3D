@@ -50,7 +50,9 @@ void nhflow_sigma::omega_update(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL,
                             
                         - p->DZN[KP]*(d->detadt(i,j) 
                             
-                        + (d->FEx[IJK] - d->FEx[Im1JK])/p->DXN[IP]  + (d->FEy[IJK] - d->FEy[IJm1K])/p->DYN[JP]*p->y_dir)
+                        // EXPERIMENT NHF_SRC_FORCE=3: the ghost cells inside the hull are no water (nhflow_srchull.h)
+                        + ((nhflow_srchull::mirror() && d->FB[IJK]<0.0) ? 0.0 :
+                          (d->FEx[IJK] - d->FEx[Im1JK])/p->DXN[IP]  + (d->FEy[IJK] - d->FEy[IJm1K])/p->DYN[JP]*p->y_dir))
                         
                         // EXPERIMENT NHF_SRC: the source of the layer (nhflow_srchull.h)
                         + ((nhflow_srchull::opt()&2)==0 ? p->DZN[KP]*nhflow_srchull::at(IJK)*WL(i,j) : 0.0);

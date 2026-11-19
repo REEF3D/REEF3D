@@ -237,6 +237,25 @@ void nhflow_pjm::rhs(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V,
     ++n;
     }
 
+    // EXPERIMENT NHF_SRC_VMATCH=3 (nhflow_srchull.h): the divergence of u - chi V, V the field inside the hull
+    static std::vector<double> usv,vsv,wsv;
+    const bool srcdiff = !nhflow_srchull::cv1.empty();
+    
+    if(srcdiff)
+    {
+        const size_t nsv = nhflow_srchull::cv1.size();
+        usv.resize(nsv); vsv.resize(nsv); wsv.resize(nsv);
+        
+        for(size_t qn=0; qn<nsv; ++qn)
+        {
+        usv[qn] = U[qn] - nhflow_srchull::cv1[qn];
+        vsv[qn] = V[qn] - nhflow_srchull::cv2[qn];
+        wsv[qn] = W[qn] - nhflow_srchull::cv3[qn];
+        }
+        
+        U = usv.data(); V = vsv.data(); W = wsv.data();
+    }
+    
     const bool ho = nhflow_pjm_ho::active(p,d);
     
     n=0;
@@ -305,8 +324,13 @@ void nhflow_pjm::rhs(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V,
                                 
         
         // EXPERIMENT NHF_SRC: div u = q (nhflow_srchull.h)
-        if(nhflow_srchull::active())
+        if(nhflow_srchull::active() && !srcdiff)
         d->rhsvec.V[n] += ((1.0-fac)*nhflow_srchull::at(IJK) + (bednode ? 0.0 : fac*nhflow_srchull::at(IJKm1)))/(alpha*p->dt);
+        
+        // EXPERIMENT NHF_SRC_FORCE=3 (mirror hull): the ghost cells inside the hull are no water, their divergence is no
+        // error of the flow. Node inside the hull (the cells above and below it are ghost cells): no source of pressure
+        if(nhflow_srchull::mirror() && d->FB[IJK]<0.0 && (bednode || d->FB[IJKm1]<0.0))
+        d->rhsvec.V[n] = 0.0;
         }
                             
     ++n;
