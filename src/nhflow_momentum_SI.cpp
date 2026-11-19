@@ -1331,7 +1331,8 @@ double nhflow_momentum_SI::vb_layer(lexer *p, fdm_nhf *d, int a, int b, int kk)
 
 void nhflow_momentum_SI::col_nu(lexer *p, fdm_nhf *d, int i1, int j1, int i2, int j2, double *nu)
 {
-    // layer viscosities of the column (i1,j1), or the mean of two columns (a face)
+    // layer viscosities of the column (i1,j1), or the mean of two columns (a face), for the vertical diffusion:
+    // the breaking viscosity with its vertical share A 556 (the horizontal diffusion takes vb_layer in full)
     const int ii=i, jj=j, kk=k;
 
     for(k=0;k<p->knoz;++k)
@@ -1342,9 +1343,9 @@ void nhflow_momentum_SI::col_nu(lexer *p, fdm_nhf *d, int i1, int j1, int i2, in
         else
         {
         i=i1; j=j1;
-        const double n1 = d->VISC[IJK] + d->EV[IJK] + vb_layer(p,d,i1,j1,k);
+        const double n1 = d->VISC[IJK] + d->EV[IJK] + nhflow_vbv(p)*vb_layer(p,d,i1,j1,k);
         i=i2; j=j2;
-        const double n2 = d->VISC[IJK] + d->EV[IJK] + vb_layer(p,d,i2,j2,k);
+        const double n2 = d->VISC[IJK] + d->EV[IJK] + nhflow_vbv(p)*vb_layer(p,d,i2,j2,k);
         nu[k] = 0.5*(n1 + n2);
         }
     }

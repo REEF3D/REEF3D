@@ -47,4 +47,15 @@ inline double nhflow_vbz(lexer *p, fdm_nhf *d, int ii, int jj, double sig)
     return v*(exp(kh*(sig-1.0)) + exp(-kh*(sig+1.0)))/(1.0 + exp(-2.0*kh));
 }
 
+// A 556: share of the breaking viscosity on the faces between the sigma layers (vertical stress), uniform over the
+// depth. The Kennedy et al. (2000) viscosity is the one of a depth-integrated model; in full on the vertical faces
+// it makes the undertow depth-uniform and weak and smooths the wave bottom boundary layer (Cox et al. 1996: undertow
+// -6.4 cm/s at L4, measured -11.6; with A 556 0.1: -8.1 and sheared). With no vertical share (and with a share that
+// goes to 0 at the bed) the bore front grows grid-scale noise: the mixed sigma terms of the horizontal viscosity,
+// 2 sigx d2u/dx dsigma, are explicit and rely on the implicit vertical part for their stability.
+inline double nhflow_vbv(lexer *p)
+{
+    return MAX(0.0, MIN(1.0, p->A556));
+}
+
 #endif
