@@ -792,7 +792,7 @@ void control::read_control(lexer* p)
                 case 552: control>>A552;
                          clear(c,numint);
                          break;
-                case 553: retired_key(control,p,c,numint);
+                case 553: control>>A553;
                          clear(c,numint);
                          break;
                 case 554: control>>A554;

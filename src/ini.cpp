@@ -283,6 +283,7 @@ void control::ini_default()
     A551=3;      // int type of breaking detection (deep / shallow)
     A552=0;      // int additional filtering to viscosity based breaking
 
+    A553=0.0;    // double NHFLOW breaking viscosity (A 550) in thin water: none below the depth A 553 [m], linear to the full value at 2 A 553 (swash, run-up), 0: off
     A554=0.6;    // double breaking parameter alpha (A 550 3: start of breaking, deta/dt > A 554 sqrt(g h); Kennedy et al. 2000: 0.35-0.65)
     A555=1.25;   // double breaking parameter slope alpha
     A556=1.0;    // double NHFLOW breaking viscosity (A 550): its share on the faces between the layers (vertical stress), 1: in full; below 1 the undertow keeps its vertical shear (Cox et al. 1996, A 550 3: 0.1); not below about 0.05: the explicit mixed sigma terms of the horizontal breaking viscosity need the implicit vertical part (A 556 0 is unstable at a bore front)
