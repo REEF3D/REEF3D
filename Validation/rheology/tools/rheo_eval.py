@@ -971,6 +971,8 @@ def tsunamirunup(run, case, obs_csv, out, name, radius=100.0, slidepad=300.0):
     for r in rows:
         if not r["type"].startswith("Runup") or r["type"] == "Runup_questionable" or not r["flow_elev"].strip():
             continue
+        if float(r["flow_elev"]) < 0.5:        # marks at or below the sea level (e.g. trimline points of a DEM)
+            continue
         x, y = float(r["x"]) - x0, float(r["y"]) - y0
         if not (0 <= x < nx*dx and 0 <= y < ny*dx):
             continue
@@ -1035,24 +1037,26 @@ def tsunamirunup(run, case, obs_csv, out, name, radius=100.0, slidepad=300.0):
                  100*r_out["within_factor_1.5"], int((full & reached).sum())), fontsize=9)
     ax.legend(fontsize=8)
     fig.tight_layout(); os.makedirs(out, exist_ok=True)
-    fig.savefig(os.path.join(out, "27_%s.png" % name)); plt.close(fig)
-    np.savez_compressed(os.path.join(out, "27_%s_points.npz" % name), pts=A, full=full)
+    stem = name if re.match(r"^\d+_", name) else "27_" + name       # a name with a case number keeps it (28_...)
+    fig.savefig(os.path.join(out, stem + ".png")); plt.close(fig)
+    np.savez_compressed(os.path.join(out, stem + "_points.npz"), pts=A, full=full)
     return r_out
 
 def tsunamiseries(case, obs_csv, out, runs, radius=100.0):
     """27: a series of tsunamirunup runs (e.g. the basal friction): runup against the distance from the slide for every
     run with the survey, and the highest runup per location; runs = [(label, run dir), ...]"""
     plt = style()
+    stem = lambda lab: lab if re.match(r"^\d+_", lab) else "27_" + lab
     res = [(lab, tsunamirunup(run, case, obs_csv, out, lab, radius),
-            np.load(os.path.join(out, "27_%s_points.npz" % lab))) for lab, run in runs]
+            np.load(os.path.join(out, stem(lab) + "_points.npz"))) for lab, run in runs]
     fig, axs = plt.subplots(1, 2, figsize=(14, 4.8), gridspec_kw={"width_ratios": [1.3, 1]})
     P0 = res[0][2]; A0, f0 = P0["pts"], P0["full"]
-    axs[0].plot(A0[f0, 2]/1000, A0[f0, 0], "o", ms=3.5, color=ORANGE, label="survey runup", zorder=3)
-    axs[0].plot(A0[~f0, 2]/1000, A0[~f0, 0], "^", ms=3.5, mfc="none", color=ORANGE, label="survey runup (minimum)", zorder=3)
+    axs[0].plot(A0[f0, 2]/1000, A0[f0, 0], "o", ms=3.5, color=ORANGE, alpha=0.6, label="survey runup", zorder=1)
+    axs[0].plot(A0[~f0, 2]/1000, A0[~f0, 0], "^", ms=3.5, mfc="none", color=ORANGE, label="survey runup (minimum)", zorder=1)
     cols = [BLUE, GREEN, LBLUE, GREY]
     for c, (lab, r, P) in zip(cols, res):
         A = P["pts"]; o = np.argsort(A[:, 2])
-        axs[0].plot(A[o, 2]/1000, A[o, 1], "s", ms=2, color=c, alpha=0.8,
+        axs[0].plot(A[o, 2]/1000, A[o, 1], "s", ms=2, color=c, alpha=0.8, zorder=3,
                     label="%s: K %.2f, kappa %.2f" % (lab, r["Aida_K"], r["Aida_kappa"]))
     axs[0].set_yscale("log"); axs[0].set_ylim(1, 300); axs[0].set_xlabel("distance from the slide (km)"); axs[0].set_ylabel("runup (m)")
     axs[0].legend(fontsize=8)
@@ -1063,7 +1067,7 @@ def tsunamiseries(case, obs_csv, out, runs, radius=100.0):
         axs[1].bar(xx - 0.4 + w*(n + 1.5), [r["by_location_max_obs_model"][k][1] for k in locs], w, color=c, label=lab)
     axs[1].set_xticks(xx); axs[1].set_xticklabels(locs, rotation=35, ha="right", fontsize=8); axs[1].set_ylabel("highest runup (m)")
     axs[1].legend(fontsize=8)
-    fig.tight_layout(); fig.savefig(os.path.join(out, "27_series.png")); plt.close(fig)
+    fig.tight_layout(); fig.savefig(os.path.join(out, (re.match(r"^(\d+)_", runs[0][0]).group(1) if re.match(r"^\d+_", runs[0][0]) else "27") + "_series.png")); plt.close(fig)
     return {lab: r for lab, r, P in res}
 
 if __name__ == "__main__":

@@ -52,6 +52,7 @@ Author: Hans Bihs
 #include"reefrun_ckpt.h"
 #include"fnpf_ckpt_fields.h"
 #include"nhflow_ckpt_fields.h"
+#include"slide2D.h"
 #include"fdm_nhf.h"
 #include"nhflow_amr.h"
 #include"nhflow_turbulence.h"
@@ -121,6 +122,8 @@ reefrun_ckpt& driver::ckpt()
             nhflow_ckpt_fields(p,d,wd,wi);
             pnhfturb->ckpt_fields(wd,wi);
             pnhfmom->ckpt_fields(wd,wi);
+            if(d->slide!=nullptr)
+            d->slide->ckpt_fields(wd,wi);
             wd("dem_ALPHAV",'C',pdem->ckpt_alpha());
             if(pnhfamr!=nullptr)
             pnhfamr->ckpt_write(ck);
@@ -220,6 +223,8 @@ reefrun_ckpt& driver::ckpt()
                 nhflow_ckpt_fields(p,d,rd,ri);
                 pnhfturb->ckpt_fields(rd,ri);
                 pnhfmom->ckpt_fields(rd,ri);
+                if(d->slide!=nullptr)
+                d->slide->ckpt_fields(rd,ri);
                 rd("dem_ALPHAV",'C',pdem->ckpt_alpha());
             }
         };

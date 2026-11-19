@@ -30,6 +30,7 @@ Author: Hans Bihs
 #include<sys/stat.h>
 #include<sys/types.h>
 #include"lagoon_output.h"
+#include"slide2D.h"
 #include"vtp_piece_buffer.h"
 #include<sstream>
 
@@ -283,6 +284,10 @@ void nhflow_vtp_fsf::print2D(lexer *p, fdm_nhf *d, ghostcell* pgc, sediment *pse
     if(d->met!=nullptr)
         d->met->offset_vtp(p,offset,n);
 
+    // slide layer (W 150)
+    if(d->slide!=nullptr)
+        d->slide->offset_vtp(p,offset,n);
+
     // eddyv, kin, epsilon/omega of the top layer (k-epsilon, k-omega; none otherwise)
     pnhfturb->offset_ParaView_2D(p,offset,n);
 
@@ -339,6 +344,8 @@ void nhflow_vtp_fsf::print2D(lexer *p, fdm_nhf *d, ghostcell* pgc, sediment *pse
     }
     if(d->met!=nullptr)
         d->met->name_vtp(result,offset,n);
+    if(d->slide!=nullptr)
+        d->slide->name_vtp(result,offset,n);
 
     pnhfturb->name_vtp(p,d,pgc,result,offset,n);
     result<<"</PointData>\n";
@@ -506,6 +513,10 @@ void nhflow_vtp_fsf::print2D(lexer *p, fdm_nhf *d, ghostcell* pgc, sediment *pse
     //  wind10, air_pressure, wind_stress (W 200)
     if(d->met!=nullptr)
         {std::ostringstream part(std::ios::out | std::ios::binary); d->met->print_vtp(p,part); bin.s += part.str();}
+
+    //  slide_h, slide_velocity, slide_lambda (W 150)
+    if(d->slide!=nullptr)
+        {std::ostringstream part(std::ios::out | std::ios::binary); d->slide->print_vtp(p,part); bin.s += part.str();}
 
     //  eddyv, kin, epsilon/omega of the top layer
     {std::ostringstream part(std::ios::out | std::ios::binary); pnhfturb->print_2D(p,d,pgc,part,1); bin.s += part.str();}

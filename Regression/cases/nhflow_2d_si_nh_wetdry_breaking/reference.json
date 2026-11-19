@@ -45,10 +45,10 @@
   },
   "P": {
    "n": 12640,
-   "sum": -115.45056534077501,
-   "l1": 9281.924602978168,
-   "l2": 301.6242179366662,
-   "linf": 39.51749640155086
+   "sum": 252.56408378447327,
+   "l1": 10176.535168376922,
+   "l2": 287.6455906994063,
+   "linf": 17.447504157737487
   },
   "eta": {
    "n": 1580,
@@ -622,7 +622,7 @@
   0.05,
   0.05
  ],
- "blessed_from": "/home/claude/nb/hd/buildJ/REEF3D_v26",
- "date": "2026-11-18",
- "note": "v26: first SI step at the semi-implicit limit"
+ "blessed_from": "/home/claude/nb/hd/buildM/REEF3D_v29",
+ "date": "2026-11-19",
+ "note": "v29: one vertical ghost layer; P read by the dump with IJK, stored with FIJK"
 }

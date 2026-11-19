@@ -74,7 +74,7 @@ The rheological material is phase 1 of the level set; air is phase 2. The adapte
 | key | type | meaning (default) |
 |---|---|---|
 | W 130 | int | local law: 1 Herschel-Bulkley (W 125), 2 Herschel-Bulkley-Coulomb (W 125 c K n, W 121 φ), 3 μ(I) (W 124; grain density W 1/φ_s), 4 Coulomb-viscoplastic (W 121 δ) (0) |
-| W 131 | int | effective pressure: 2 solved, 3 solved with the interface band (see above), 1 lithostatic from the level set (2) |
+| W 131 | int | effective pressure: 2 solved, 3 solved with the interface band (see above), 1 lithostatic from the level set (−1: 3 with the three-phase model W 140, else 2) |
 | W 132 | double | Papanastasiou m [s] (1000) |
 | W 133 | 2 × double | μ_min, μ_max [Pa s] (μ_min < 0: W 1 W 2; μ_max 1e4) |
 | W 134 | double | μ(I) partial regularisation α (≤ 0: none) (1.9) |
@@ -96,6 +96,7 @@ Slide, water and air (`rheology_cfd_3phase`). Water and air keep the level set; 
 - **Transport:** split in the directions (x y z, the next step z y x), flux form with the face velocities of the staggered grid, THINC face values (β = 3.5) and the divergence correction of Weymouth & Yue (2010); sub-steps above Courant number 0.4 per direction. The slide volume is conserved to 1e-11–1e-15 and α_s stays in [0, 1] without clipping (cases 12–15). All boundaries are closed for the slide.
 - **Mixture:** ρ = α ρ_s + (1−α)(H ρ_w + (1−H) ρ_a), μ = α μ_s + (1−α) μ_f (W 149 1; W 149 2 harmonic), μ_f = H ρ_w ν_w + (1−H) ρ_a ν_a, μ_s from the core. For ρ and μ α is smoothed by two passes of (¼ ½ ¼) in each direction (a band of about ±2 cells, as the level set). With the sharp α the density jump slide/air in one cell drove interface currents of 1 m/s at the front of the viscous current of case 12.
 - **Effective pressure** p' = p − p_hyd − p_e: W 143 1, the drained hydrostatic pore pressure ρ_w g (η_w − z) below the water surface η_w of the column (the highest water cell outside the slide, z + φ). W 143 2 adds the excess pore pressure p_e, advected with the slide and solved implicitly, β (∂p_e/∂t + u·∇p_e) = ∇·(k/η_w ∇p_e) − γ̇ tan ψ, p_e = 0 outside the slide (drained surface), no flux through walls, p_e ≤ p − p_hyd (no tension of the skeleton). Initial p_e = λ₀ (p − p_hyd) after the first step.
+- **Interface band** (`W 131 3`, the default with W 140, as W 131 3 of the two-phase model): over the smoothed band (10⁻³ < α_s < 1 after smoothing) p' is at least the buoyant weight of the band above the cell, g Σ (ρ_s − ρ_f) α_s dz, and a slide with a yield stress (μ(I), μ(J), HBC, Coulomb-viscoplastic, HB with τ_y > 0) has its full viscosity there, max(μ_s, μ_f), instead of α μ_s + (1 − α) μ_f. With the share α the light band cells on an inclined surface were weaker than their weight: they flowed down the surface, drove a jet of air along the bed ahead of the toe and carried the thin tail with them (case 31: a wedge below the friction angle advanced 70 mm in 2 s). Not for a Newtonian or power-law slide: it has no deposit to hold, and its full viscosity in the light outer band cells (ρ ≈ 3 kg/m³) made the explicit cross terms of the diffusion blow up. The floor is not applied below the band (α_s = 1): there it held a loose slide at its lithostatic p' against the pore pressure.
 - **Dilatancy** (W 145 φ₀ > 0): φ advected with the slide; tan ψ = K₃ (φ − φ_c/(1 + J^½)) (Pailha & Pouliquen 2009, φ_eq of Boyer et al. 2011) is the source of p_e and extra friction of μ(I) or μ(J); dφ/dt = −φ D_v with the dilation D_v = ∇·(k/η_w ∇p_e) the pore fluid that flows in. J takes p' of at least the buoyant weight of one cell (at the slide surface p' → 0 and J → ∞); |tan ψ| ≤ 0.6.
 
 | key | type | meaning (default) |
@@ -162,6 +163,8 @@ tools/run_case.sh <REEF3D> <DiveMESH> 26_gjerdrum_2020 <run>/g_tau500 "mpirun -n
 python3 tools/rheo_eval.py terrainseries 26_gjerdrum_2020 26_gjerdrum_2020/results tau250:250:<run>/g_tau250 tau500:500:<run>/g_tau500 tau1000:1000:<run>/g_tau1000 tau2000:2000:<run>/g_tau2000
 tools/run_case.sh <REEF3D> <DiveMESH> 27_taan_fiord_2015 <run>/t_mu010 "mpirun -np 2"   # after the set-up of 27_taan_fiord_2015/README.md; W 121 5.7 / 8.5 / 11.3
 python3 tools/rheo_eval.py tsunamiseries 27_taan_fiord_2015 27_taan_fiord_2015/runup_albers.csv 27_taan_fiord_2015/results mu0.10:<run>/t_mu010 mu0.15:<run>/t_mu015 mu0.20:<run>/t_mu020
+tools/run_case.sh <REEF3D> <DiveMESH> 30_tracy_arm_2025 <run>/ta_mu015 "mpirun -np 2"   # after slide_mound.py (30_tracy_arm_2025/README.md); W 121 8.5 / 2.9
+python3 tools/rheo_eval.py tsunamirunup <run>/ta_mu015 30_tracy_arm_2025 30_tracy_arm_2025/runup_survey.csv 30_tracy_arm_2025/results 30_mu015_survey   # also runup_trimline.csv
 ```
 
 CFD cases 11–15 (`tools/rheo3_eval.py`; 11, 13: one rank, the others two ranks):
@@ -179,7 +182,11 @@ tools/run_case.sh <REEF3D> <DiveMESH> 14_cfd_collapse_in_fluid/cases/loose <run>
 python3 tools/rheo3_eval.py rondon <run>/r_loose <run>/r_dense 14_cfd_collapse_in_fluid/results
 tools/run_case.sh <REEF3D> <DiveMESH> 15_cfd_collapse_into_water/cases/dx10 <run>/rs_10 "mpirun -np 2"   # also dx05
 python3 tools/rheo3_eval.py robbe <run>/rs_10 <run>/rs_05 15_cfd_collapse_into_water/results
+for c in air_w131_2 air_w131_3 water_w131_2 water_w131_3; do tools/run_case.sh <REEF3D> <DiveMESH> 31_cfd_wedge_at_rest/cases/$c <run>/w_$c "mpirun -np 2"; done
+python3 tools/rheo3_eval.py wedge "air, W 131 2=<run>/w_air_w131_2" "air, W 131 3=<run>/w_air_w131_3" "water, W 131 2=<run>/w_water_w131_2" "water, W 131 3=<run>/w_water_w131_3" 31_cfd_wedge_at_rest/results
 ```
+
+Case 12 `collapse` with `W 131 2` for the comparison: add the line `W 131 2` to its ctrl.txt.
 
 `rheo_eval.py` reads the free-surface VTP files with `../turbulence/tools/r3read.py` (Python 3, numpy, matplotlib).
 
@@ -421,13 +428,14 @@ With `D 22 1` the bed acts as free slip, so the current runs off like an invisci
 | viscous current: max deviation from Huppert, t ≥ 1 s | 7 % | 8 % | |
 | slide volume, max relative change | 4e-12 (current), 2e-14 (collapse) | 1 % (level set, F 46 3) | |
 | μ(I) collapse a = 0.5: front at 0.5 s | 0.725 L0 | 0.725 L0 | Lube et al. 0.6 L0 |
-| μ(I) collapse: front at 1.5 s | 0.90 L0 (creeping) | 0.725 L0 (at rest from 0.45 s) | |
+| μ(I) collapse: front at 1.5 s | 0.725 L0, at rest from 0.5 s (`W 131 2`: 0.90 L0, creeping) | 0.725 L0 (at rest from 0.45 s) | |
+| μ(I) collapse: h(0)/H0 at 1.5 s, max \|u\| in the slide | 0.995, 1e-3 m/s (`W 131 2`: 0.94, 0.13 m/s) | 0.97 | |
 | quasi-3D collapse (2 cells in y) at 0.6 s | front, h(0), max \|u\| as 2D to the printed digits, \|v\| < 1e-6 m/s | | |
 
 - **Transport:** α_s stays in [0, 1] without clipping; the volume is conserved to round-off and the solver tolerance of the projection.
-- **The thin tail creeps.** The bulk deposit of the collapse equals the two-phase one up to x = 1.5 L0, but the tail thinner than about 4 cells moves on at 0.1–0.2 L0/s after the collapse has stopped. Cause: interface currents in the air at the toe. A wall jet of 0.6 m/s runs along the bed ahead of the toe, driven by an overpressure of about 10 Pa in the band where the smoothed slide density meets the air: the pressure gradient that the yield stress holds inside the slide acts on the light band cells. The two-phase level set has the same jet (0.5 m/s), and its deposit stops; the conservative α_s is carried by it.
+- **The thin tail crept with `W 131 2`** (fixed by the band treatment, `W 131 3`, the default with W 140; case 31). The bulk deposit of the collapse equals the two-phase one up to x = 1.5 L0, but the tail thinner than about 4 cells moves on at 0.1–0.2 L0/s after the collapse has stopped. Cause: interface currents in the air at the toe. A wall jet of 0.6 m/s runs along the bed ahead of the toe, driven by an overpressure of about 10 Pa in the band where the smoothed slide density meets the air: the pressure gradient that the yield stress holds inside the slide acts on the light band cells. The two-phase level set has the same jet (0.5 m/s), and its deposit stops; the conservative α_s is carried by it. With `W 131 3` the deposit is at rest from 0.5 s (1e-3 m/s), the tail does not move, and the air at the toe slows down to 0.09 m/s at 1.5 s.
 - **Interface currents:** 0.4–0.9 m/s in the air next to the slide surface, up to 0.1 m/s in interface cells of the slide (the current itself moves at 5 mm/s at 10 s); level set 0.2–0.5 m/s. A flat slide layer at rest (case 13) stays at rest (2e-8 m/s).
-- Ruled out as the cause of the currents: the arithmetic shear viscosity (harmonic D 24 2 is the default now; arithmetic 2.6 m/s at 0.3 s, harmonic 2.0), the sharpness of α (smoothing over ±2 cells: 1.1 → 0.88 m/s at 0.3 s, kept). Still open: a balanced-force treatment of gravity in the band (p − ρ g·x as in interFoam's p_rgh).
+- Ruled out as the cause of the currents (W 131 2): the arithmetic shear viscosity (harmonic D 24 2 is the default now; arithmetic 2.6 m/s at 0.3 s, harmonic 2.0), the sharpness of α (smoothing over ±2 cells: 1.1 → 0.88 m/s at 0.3 s, kept). A balanced-force gravity (p − ρ g·x as in interFoam's p_rgh) does not help here: on the staggered grid with the face density the mean of its two cells it is the same discretisation. The cause is the strength of the band (case 31).
 
 ![](12_cfd_three_phase_slide/results/12a_viscous_current_3phase.png)
 ![](12_cfd_three_phase_slide/results/12b_collapse_3phase.png)
@@ -439,7 +447,7 @@ With `D 22 1` the bed acts as free slip, so the current runs off like an invisci
 
 | dz | p − p_hyd, max error | p_e at z = 10 mm, t = T (series 144.5 Pa) | max \|p_e − series\| / p₀ |
 |---|---|---|---|
-| 5 mm | 0.14 % | 149.9 Pa | 1.2 % |
+| 5 mm | 0.14 % (`W 131 3`: 0.56 %, the floor in the band at the surface) | 149.9 Pa | 1.2 % |
 | 2.5 mm | 0.10 % | 147.4 Pa | 0.61 % |
 
 - The drained boundary p_e = 0 sits at the first cell outside the slide, half a cell above the surface: the run lies between the series for h and for h + dz/2 and converges with first order.
@@ -452,16 +460,20 @@ With `D 22 1` the bed acts as free slip, so the current runs off like an invisci
 - **Set-up:** glass beads d = 0.225 mm, ρ_p = 2500, in a water-Ucon mixture (ρ = 1000, ν = 1.2e-5 m²/s), as Rauter (2021): loose φ₀ = 0.55, L0 = 6 cm, H0 = 4.8 cm (ρ_s = 1825); dense φ₀ = 0.60, H0 = 4.2 cm (ρ_s = 1900). Fluid to 9 cm, air above, 25 × 10.6 cm, dx = 2 mm, 2 ranks, 30 s. μ(J) W 130 5 with μ₁ = 0.34, μ₂ = 0.74, J₀ = 0.005 (Rauter 2021), φ_c = 0.585, K₃ = 4.09, k Carman-Kozeny (5e-11 m²), β = 1e-7 1/Pa (quasi-static drainage), W 143 2, λ₀ = 0.
 - **Reference:** Rondon et al. (abstract and figures, no tables): the loose column flows fast with positive pore pressure below it; the dense one flows more slowly, with negative pore pressure, and runs out about half as far; the dense collapse takes more than 30 s (Rauter 2021, whose two-phase model gives about 10 s for dense).
 
+`W 131 3` (the default with W 140), and in brackets `W 131 2`:
+
 | | loose φ₀ = 0.55 | dense φ₀ = 0.60 |
 |---|---|---|
-| p_e at the bed, x = 2 cm | +176 Pa (0.25–2.5 s), then 0 | −185 Pa, back to 0 at about 20 s |
-| end of the collapse (h(0) constant) | about 2.5 s, front 0.066 m beyond L0 (1.1 L0) | not reached at 30 s |
-| front − L0 at 6 s / 30 s | 0.094 m / 0.134 m | 0.034 m / 0.110 m |
-| h(0)/H0 at 30 s | 0.52 | 0.70 |
-| max speed in the slide (outputs every 0.5 / 1 s) | 0.07 m/s | 0.04 m/s |
+| p_e at the bed, x = 2 cm | +176 Pa (0.25–2.5 s), then 0 (+176 Pa) | −105 Pa, −10 Pa at 30 s (−185 Pa) |
+| 95 % of the final runout reached | 4.5 s | 16 s |
+| front − L0 at 30 s | 0.094 m = 1.57 L0, at rest (0.134 m, creeping) | 0.054 m = 0.90 L0 (0.110 m, creeping) |
+| runout dense / loose | 0.57 (0.82) | |
+| h(0)/H0 at 30 s | 0.63 (0.52) | 0.94 (0.70) |
+| max speed in the slide (outputs every 0.5 / 1 s) | 0.08 m/s | 0.013 m/s |
 
-- **Right:** the sign of the excess pore pressure (contracting loose, dilating dense), its magnitude (loose: about the buoyant overburden at the sensor, a fluidised base), the time scales (loose about 2.5 s, dense tens of seconds, set by the drainage), and the lower final height of the loose column.
-- **Not right:** both deposits keep creeping at the toe after the collapse (the tail creep of case 12): the loose front moves from 0.066 m beyond L0 at the end of its collapse to 0.134 m at 30 s. At 30 s the dense runout is 0.82 of the loose one instead of about 0.5.
+- **Right:** the sign of the excess pore pressure (contracting loose, dilating dense), its magnitude (loose: about the buoyant overburden at the sensor, a fluidised base), the time scales (loose a few seconds, dense tens of seconds, set by the drainage), the runout of the dense column about half that of the loose one (0.57), and its much higher deposit.
+- With `W 131 2` both deposits crept at the toe after the collapse (the tail creep of case 12) and the runout ratio was 0.82.
+- Not compared: the front against time and the deposit shapes of the experiment (figures only). The dense collapse of the experiment takes more than 30 s; here 95 % of the runout is reached at 16 s, with p_e still −10 Pa at 30 s.
 - Without the floor of p' in J (one cell of buoyant weight) the dilation of the surface cells (p' → 0, J → ∞) sucked the loose column to −2400 Pa; without the cap p_e ≤ p − p_hyd the contraction drove p_e to five times the overburden.
 
 ![](14_cfd_collapse_in_fluid/results/14_rondon_loose_dense.png)
@@ -471,20 +483,39 @@ With `D 22 1` the bed acts as free slip, so the current runs off like an invisci
 - **Set-up:** dry 5 mm glass beads (φ = 0.64, ρ_s = 1600, μ(I) of 07 with d = 5 mm), column H0 = 41 cm, L0 = 16.5 cm (a = 2.5, V = 10.2 dm³ over 15 cm width) on a step of h0 = 5 cm, released at once into water 5 cm deep; 2D, 1.8 m long (closed end), dx = 10 and 5 mm, W 143 1, 1.5 s, 2 ranks.
 - **Reference:** Robbe-Saule et al. (2021) JFM: A_m ≈ 2.15 (V − 0.15)^0.58 = 8.25 cm at a = 2.5 (5 mm beads), the peak of A(t) at about 0.64 s, the leading wave separates from the granular front at about 0.5 s, wave speed 1.15 m/s ≈ √(g(h0 + A_m)), collapse over by about 1 s.
 
+`W 131 3` (the default with W 140), in brackets `W 131 2`:
+
 | | dx 10 mm | dx 5 mm | experiment |
 |---|---|---|---|
-| max amplitude ahead of the slide | 13.2 cm at 0.36 s | 13.2 cm at 0.36 s | 8.25 cm at 0.64 s |
-| amplitude at 0.64 s | 8.7 cm | 10.2 cm | 8.25 cm |
-| crest speed 0.5–1 s | 1.18 m/s | 1.31 m/s | 1.15 m/s |
-| granular front (h > 5 mm) at 1 s | 0.95 m | 1.13 m | (deposit within the wave generation zone) |
-| slide volume, max relative change | 9e-14 | 4e-14 | |
+| max amplitude ahead of the slide | 11.6 cm at 0.40 s (13.2 cm at 0.36 s) | 12.6 cm at 0.50 s (13.2 cm at 0.36 s) | 8.25 cm at 0.64 s |
+| amplitude at 0.64 s | 7.7 cm (8.7 cm) | 10.6 cm (10.2 cm) | 8.25 cm |
+| crest speed 0.5–1 s | 1.21 m/s (1.18) | 1.12 m/s (1.31) | 1.15 m/s |
+| granular front (h > 5 mm) at 1 s | 0.51 m (0.95 m) | 0.74 m (1.13 m) | (deposit within the wave generation zone) |
+| slide volume, max relative change | 3e-14 | 4e-13 | |
 
-- The crest speed agrees; the amplitude is 60 % too high and peaks too early, on both grids.
+- The crest speed agrees; the maximum amplitude is 40–50 % too high and comes too early, on both grids. With the band treatment the slide runs out less far under water (0.5–0.7 m at 1 s instead of 1 m) and the amplitude falls by 5–12 %.
 - The slide displaces water with its bulk volume (grains and pores), and its pores stay dry: in the experiment water fills the pores of the beads during the collapse (an imbibition front, with trapped air), so the grains displace about φ = 0.64 of the bulk volume. With A ∝ V^0.58 that alone accounts for a factor 1.3. The gate is lifted in the experiment and released at once here.
-- The slide runs out too far under water (1 m at 1 s): the dry bulk density 1600 below water and no added friction from the pore water.
+- The slide still runs out far under water: the dry bulk density 1600 below water and no added friction from the pore water.
 - Not done: the submarine slide of Heinrich (1992); the data are available only in figures of the paper.
 
 ![](15_cfd_collapse_into_water/results/15_robbe_saule_wave.png)
+### 31 CFD three-phase: a granular wedge at rest (the interface band, W 131)
+
+- **Set-up:** a μ(I) wedge (glass beads as 07, ρ_s = 1500, W 142 2500) with a 15° surface, 0.3 m long and 80 mm high (triangle W 148), on a horizontal bed in air, and the same under water (surface at 0.13 m, W 143 1); 0.4 × 0.15 m, dx 2.5 mm, 2 s, 2 ranks. `W 131 2` and `W 131 3`.
+- **Reference:** the surface is below the friction angle of the beads (20.9°): the wedge must stay at rest.
+
+| | max \|u\| fluid, 1–2 s | max \|u\| slide (α_s > 0.5), 1–2 s | toe moved in 2 s | slide volume |
+|---|---|---|---|---|
+| air, `W 131 2` | 0.81 m/s | 0.20 m/s | 70 mm | 1e-14 |
+| air, `W 131 3` | 0.050 m/s | 8e-4 m/s | 0 | 5e-15 |
+| water, `W 131 2` | 0.11 m/s | 0.043 m/s | 17.5 mm | 1e-14 |
+| water, `W 131 3` | 0.005 m/s | 3e-4 m/s | 0 | 7e-15 |
+
+- With `W 131 2` the band on the inclined surface flows down as a thin gravity current and drives a jet along the bed ahead of the toe (in air 0.6–0.8 m/s, as in cases 12 and 14). With `W 131 3` the wedge stays at rest.
+- Tried and not enough: the p' floor alone (the toe moved 68 mm), the full viscosity only where α_s > 0.1 (23 mm), the full viscosity only where the band's stress is below its yield stress (68 mm: the slumping band cells flow, so they stay weak). The full viscosity over the whole band is needed; for a slide without a yield stress it is not applied (see the model section).
+
+![](31_cfd_wedge_at_rest/results/31_wedge_at_rest.png)
+
 ### 20 CFD: quickness test of sensitive clay (Fornes et al., IAHR 2017)
 
 - **Set-up:** the quickness test of Thakur & Degago (2012) as simulated by Fornes et al. (2017): a cylinder of remoulded Heimdal clay (c_ur = 0.2 kPa), H 120 mm, D 100 mm, released at once on a smooth plane (and lifted, below). Herschel-Bulkley with the best-estimate parameters of the paper (from the correlations of Grue 2015, no viscometer test of the sample): τ_y = 200 Pa, K = 15 Pa sⁿ, n = 0.35, ρ = 2000 kg/m³ (`W 130 1`, `W 125 200 15 0.35`). 3D quarter domain 0.2 × 0.2 × 0.15 m with two symmetry planes (`C 11 3`, `C 13 3`), level-set cylinder `F 59`, no-slip bed, dynamic diffusion (`D 24 2`, the default with W 130), 2 ranks. dx = 4 mm (4 min) and 2.5 mm (15 min to 0.3 s).
@@ -643,7 +674,7 @@ With `D 22 1` the bed acts as free slip, so the current runs off like an invisci
 
 ![](26_gjerdrum_2020/results/26_series_maps.png)
 
-## Two-layer landslide: slide layer under the SFLOW water (W 150), cases 16-19 and 28
+## Two-layer landslide: slide layer under the SFLOW and NHFLOW water (W 150), cases 16-19, 28 and 29
 
 A depth-averaged slide layer (h_s, h_s u_s) under the water (`src/slide2D.{h,cpp}`, `src/slide2D_flux.cpp`). The water
 is the SFLOW water and sees the bed z_b + h_s; the slide sees the water pressure and the drag of the water.
@@ -680,6 +711,16 @@ is the SFLOW water and sees the bed z_b + h_s; the slide sees the water pressure
   w_b = ∂z_b/∂t − u·∇d with ∂z_b/∂t = (bed^{n+1} − bed^n)/Δt of the water step; the pressure is off (hydrostatic) in the
   cells next to a face with a bed slope above 1:2. Use it with W 162: 0.02 when the slide is about as long as the water is
   deep (case 28), 0.5 in deep water (18 dambreak, the slide 10 m long under 20 m).
+- **NHFLOW (A 10 5, case 29):** the same slide layer under the σ-grid water. Per water step: the slide over the step with
+  the water of t^n (the surface η, the velocity of the bottom layer), then the bed z_b + h_s (or z_b + h_f with W 162),
+  depth = wd − bed and η = WL − depth (the water column kept, the σ grid follows at the next sigma update); then the
+  NHFLOW step. The bed moves with w_b = ∂z_b/∂t: in the kinematic bed condition of the fluxes (w_b = −u·∇d + ∂z_b/∂t)
+  and in the continuity of the bed node of the pressure projection (A 520 1, 2). The slide sees the hydrostatic water
+  pressure −r·sub·g h_s∇η. Without w_b in the projection the multi-layer pressure holds each lift of the surface in
+  place (benchmark 4: WG1 3.4 / −1.6 cm). The explicit NHFLOW (A 510 2/3), A 520 0, 1, 2, one Cartesian grid, MPI;
+  stops with a message with the semi-implicit NHFLOW, S 10, curvilinear, refined and multi-block grids and W 155 > 0
+  (the drag on the water layers is not there yet). Log `REEF3D_NHFLOW_Log/REEF3D_NHFLOW_slide.dat`, the slide fields
+  in the NHFLOW FSF VTP and the LAGOON store.
 - **Available with:** the explicit HLL water (A 210 2/3) and the semi-implicit water (A 210 11/12/13, case 19), hydrostatic
   (A 220 0) or with the quadratic non-hydrostatic pressure (A 220 2, explicit water, case 28), one Cartesian grid, 1D and
   2D, MPI. The semi-implicit step keeps the water column of the end of the step before (`si_restore`) and takes the moved
@@ -730,6 +771,20 @@ Voellmy ξ 500, 900 s. Compared with the runup survey of Lynett et al. (2025, 29
 Details in 27_taan_fiord_2015/README.md.
 
 ![](27_taan_fiord_2015/results/27_series.png)
+
+### 30 SFLOW two-layer slide: Tracy Arm landslide tsunami 2025
+
+The paper's tsunami source (Shugar et al. 2026: a 65 Mm³ super-Gaussian mound, 195 m thick, new tools/slide_mound.py)
+on the 2025 topo-bathy DEM, 25 m cells, hydrostatic water, Voellmy ξ 500, 400 s.
+
+- Field survey along Tracy Arm (147 points): Aida K 1.03 - 1.07, κ 1.22 - 1.23.
+- Trimline (3591 points): K 0.89 - 0.94, κ 1.67 - 1.68.
+- Opposite the slide: 294 - 336 m against 471 m (10 m cells: 329 m). The depth-averaged mound collapses at once, and
+  about a third of it spreads over the glacier front instead of into the fjord.
+
+Details in 30_tracy_arm_2025/README.md.
+
+![](30_tracy_arm_2025/results/30_series.png)
 
 ### 16 Slide alone: the single-layer cases 01 and 02 through the slide layer
 
@@ -864,12 +919,49 @@ crest at WG1 (the release time is not in the record). Gauge max / min (cm) up to
 
 ![](28_slide_nthmp_bm4/results/28_bm4_gauges.png)
 
+### 29 Slide layer under NHFLOW (A 10 5): 18 dambreak and benchmark 4 again
+
+1D x-z, explicit NHFLOW (A 510 2), σ grid with 10 layers; the controls of 18 dambreak (dx 5 cm, 20 m of water) and of
+case 28 (dx 5 mm, the 35° slope with its shoreline), hydrostatic (A 520 0) and non-hydrostatic (A 520 2), and a layer at
+rest. 1 rank (2 ranks for benchmark 4: within 1.5e-9 m of 1 rank).
+
+| | hydrostatic | non-hydrostatic |
+|---|---|---|
+| dambreak: L1(h) against Ritter at 1 / 2 / 3 / 4 s | 1.1 / 0.51 / 0.36 / 0.33 % | 1.1 / 0.50 / 0.32 / 0.24 % (W 162 0.05) |
+| dambreak: surface min / max | −1.2 / +1.4 cm | −0.85 / +0.45 cm |
+| dambreak: run time | 30 s | 112 s |
+| benchmark 4, WG1 max / min (cm) (measured 0.55 / −0.96) | 0.89 / −0.61 | 0.32 / −0.74 |
+| WG2 (measured 0.54 / −0.63) | 0.87 / −0.61 | 0.50 / −0.60 |
+| WG3 (measured 0.43 / −0.48) | 0.84 / −0.61 | 0.49 / −0.48 |
+| WG4 (measured 0.43 / −0.40) | 0.83 / −0.61 | 0.48 / −0.40 |
+| RMS difference / measured range WG1 - WG4 | 0.13 / 0.20 / 0.28 / 0.34 | 0.12 / 0.13 / 0.08 / 0.04 |
+| benchmark 4: run time | 81 s | 177 s (W 162 0.02) |
+
+- **Hydrostatic NHFLOW** is the hydrostatic SFLOW again (dambreak L1 within 0.01 %, the benchmark 4 bore of 0.9 cm).
+- **Non-hydrostatic NHFLOW, benchmark 4:** the leading crest, the trough and the dispersive train at WG3 and WG4 in
+  phase with the measurement (RMS 4-8 % of the range, SFLOW with the one-layer pressure 7-17 %); at WG1, over the slide,
+  the trough −0.74 cm against −0.96 cm (SFLOW −0.44). Layers and filter (WG1 min, RMS WG1 / WG4): 5 layers −0.72, 0.13 /
+  0.03; 10 layers −0.85, 0.19 / 0.04; 20 layers −0.81, 0.23 / 0.02; 10 layers with W 162 0.02 −0.74, 0.12 / 0.04. Without
+  the filter short waves (period about 0.3 s) leave the slide and grow with the number of layers (WG1 up to 1.1 cm with
+  20 layers); W 162 0.02 removes them.
+- **Non-hydrostatic NHFLOW, dambreak:** without the filter the surface over the slide carries grid-scale waves of
+  ±0.5 cm and the slide departs from Ritter by 2.2 / 1.0 / 0.72 / 0.56 %; W 162 0.05 makes both smooth (the table).
+- **w_b in the projection:** without it benchmark 4 gives WG1 3.4 / −1.6 cm and the dambreak surface ±3 cm.
+- **Checkpoints:** the slide state (and h_f of W 162) is in the NHFLOW checkpoints; benchmark 4 to 2 s restarted from
+  step 1000 (I 45 1000) gives the slide log and the gauges of the uninterrupted run bitwise. The slide log is continued
+  from its size at the checkpoint (SFLOW and NHFLOW).
+- **rest_slope:** a 2 cm layer over the slope and the floor (Coulomb 45°) under 0.33 m of water: it settles at the
+  shoreline in the first 0.06 s (|u| up to 1.6 cm/s, h +1.2 mm), then rests; the surface within 0.05 mm, volumes exact.
+
+![](29_slide_nhflow/results/29_bm4_gauges.png)
+![](29_slide_nhflow/results/29_dambreak_nh.png)
+
 ## Not covered yet
 
 - Mesh refinement (G 1): the friction step runs in every level's stage. The pore pressure is advected per level and not exchanged between levels.
 - Semi-implicit SFLOW on curvilinear grids: the rheology core stops with a message. `A 232` has to be set by hand (about 1 % of the flow depth).
 - Restart from checkpoints: the pore pressure ratio is not in the checkpoints yet and starts again from W 127.
-- CFD three-phase (W 140): interface currents at the slide surface and toe (0.4–0.9 m/s in air) let thin tails creep (12, 14); water filling the pores of a dry slide (imbibition) is not modelled (15); no inflow or outflow of slide material; base grid only (not with the mesh refinement G 1); p_e, φ and α_s are not in the checkpoints yet; one quasi-3D check (12) only.
+- CFD three-phase (W 140): interface currents of 0.05–0.1 m/s remain in the air next to a deposit at rest (31, 12); the flowing band of a slide without a yield stress keeps the share α of its viscosity; water filling the pores of a dry slide (imbibition) is not modelled (15); no inflow or outflow of slide material; base grid only (not with the mesh refinement G 1); p_e, φ and α_s are not in the checkpoints yet; one quasi-3D check (12) only.
 - CFD: the μ(I) column collapse (07) matches the 2D reference of Lagrée et al. (2011); against the quasi-2D channel experiments the side-wall friction `W 135` (case 23) is now available but not yet run for 07.
 - CFD: the arrested deposits slump with `W 131 2` (default): the smoothed interface band flows down the inclined surface (case 07). `W 131 3` stops it, but shortens the runout of the a = 0.5 collapse by 8 %; not the default yet.
 - CFD: the side-wall friction only in `momentum_rk`. A body that is lifted through a closed top of the domain traps air (cases 20, 21).
@@ -879,5 +971,7 @@ crest at WG1 (the release time is not in the record). Gauge max / min (cm) up to
 - Slide layer (W 150): the non-hydrostatic water with the slide is the one-layer quadratic pressure (A 220 2) only, explicit
   water only, with the filter W 162 chosen by hand (0.02 for case 28, 0.5 in deep water); the near field over the slide
   (WG1 of case 28) is underpredicted by half. A 220 1, 3, 4 stop with a message.
-- Slide layer (W 150): NHFLOW (stage 4.3), sediment (S 10) together with the slide, curvilinear and refined grids; the
-  dilatancy source of the pore pressure.
+- Slide layer (W 150) under NHFLOW: explicit NHFLOW only (not the semi-implicit A 510 11-13), no interface drag on the
+  water layers (W 155), the slide sees the hydrostatic water pressure only (not the non-hydrostatic bottom pressure).
+- Slide layer (W 150): sediment (S 10) together with the slide, curvilinear and refined grids; the dilatancy source of
+  the pore pressure.

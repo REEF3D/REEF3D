@@ -25,6 +25,7 @@ Author: Hans Bihs
 #include"nhflow_por_ghost.h"
 #include"lexer.h"
 #include"fdm_nhf.h"
+#include"slide2D.h"
 #include"ghostcell.h"
 #include"vrans.h"
 #include"nhflow_fsf.h"
@@ -121,6 +122,13 @@ void nhflow_f::ini(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow, nhflow_f
     }
     
     pgc->gcsl_start4(p,d->bed,50);
+    
+    // two-layer landslide (W 150): the slide layer on the bed, the water sees z_b + h_s
+    if(p->W150>0)
+    {
+    d->slide = new slide2D(p,d,pgc);
+    d->slide->ini(p,d,pgc);
+    }
     
     pnhfsf->depth_update(p,d,pgc,pflow);
     

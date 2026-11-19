@@ -70,6 +70,12 @@ Effective pressure p' = p - p_gage - p_hyd - p_e in the slide
   advected with the slide, tan(psi) = K3 (phi - phi_c/(1 + J^1/2)) as the source of p_e and as extra
   friction of mu(I) / mu(J), and dphi/dt = -phi D_v with the dilation D_v = div(k/eta_w grad p_e), the
   inflow of pore fluid (the volume change the drainage allows).
+
+Interface band (W 131 3, as in the two-phase model): the smoothed band (alpha_s > 1e-3 after smoothing) gets the full
+viscosity of the slide, max(mu_s, mu_f), instead of alpha mu_s + (1 - alpha) mu_f, and p' at least the buoyant weight
+of the band above the cell, g sum (rho_s - rho_f) alpha dz over the band cells (alpha_s < 1) of the column. With the share alpha mu_s
+the light band cells on the inclined surface of a deposit at rest were weaker than their weight: they flowed down the
+surface, drove a jet of air along the bed at the toe (0.5 - 0.9 m/s) and carried the thin tail with them.
 --------------------------------------------------------------------*/
 
 class rheology_cfd_3phase final : public strain
@@ -102,6 +108,7 @@ public:
 
     field4 alpha;
     field4 alphas;   // alpha smoothed over about two cells: density and viscosity of the mixture
+    field4 pband;    // W 131 3: the weight of the smoothed band above the cell, the floor of p'
     double rho_s, rho_w, rho_a, eta_w;
     double volume;
 
@@ -116,6 +123,7 @@ private:
     void diagnostics(lexer*, fdm*, ghostcell*, double clipped, int nsub);
     void bc(lexer*, ghostcell*, field&);
     void smooth(lexer*, ghostcell*);
+    void band(lexer*, fdm*, ghostcell*);
     int nvtu(lexer*) const;
 
     field4 alpha0;   // alpha at the start of the step (the divergence correction)

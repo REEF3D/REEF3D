@@ -24,6 +24,7 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"nhflow_curv.h"
 #include"fdm_nhf.h"
+#include"slide2D.h"
 #include"ghostcell.h"
 
 void nhflow_fsf_f::kinematic_bed(lexer *p, fdm_nhf *d, double *U, double *V, double *W)
@@ -71,17 +72,21 @@ void nhflow_fsf_f::kinematic_bed(lexer *p, fdm_nhf *d, double *U, double *V, dou
         wval = - Pval*detadx
 
                - Qval*detady;
+        
+        // the slide layer (W 150): the bed moves
+        if(d->slide!=nullptr)
+        wval += d->slide->wb(i,j);
     
     if(p->wet[IJ]==0)
     wval=0.0;
 
         d->Wb[IJKm1] = wval;
-        d->Wb[IJKm2] = wval;
-        d->Wb[IJKm3] = wval;
+        if(k-2>=p->kmin) d->Wb[IJKm2] = wval;
+        if(k-3>=p->kmin) d->Wb[IJKm3] = wval;
 
         d->Wt[IJKm1] = wval;
-        d->Wt[IJKm2] = wval;
-        d->Wt[IJKm3] = wval;
+        if(k-2>=p->kmin) d->Wt[IJKm2] = wval;
+        if(k-3>=p->kmin) d->Wt[IJKm3] = wval;
         
     }
 }

@@ -31,12 +31,12 @@ void grid::assign_margin()
 {
     imax=knox+2*margin;
     jmax=knoy+2*margin;
-    kmax=knoz+2*margin;
-    kmaxF=knoz+1+2*margin;
+    kmax=knoz+2*kmargin;
+    kmaxF=knoz+1+2*kmargin;
 
     imin=-margin;
     jmin=-margin;
-    kmin=-margin;
+    kmin=-kmargin;
     
 }
 

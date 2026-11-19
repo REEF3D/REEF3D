@@ -50,7 +50,7 @@ double slide2D::vel(slice &H, slice &Q, int ii, int jj)
     return H(ii,jj)>hmin ? Q(ii,jj)/H(ii,jj) : 0.0;
 }
 
-void slide2D::rhs(lexer *p, fdm2D *b, slice &H, slice &QX, slice &QY)
+void slide2D::rhs(lexer *p, slice &H, slice &QX, slice &QY)
 {
     flux_x(p,H,QX,QY);
 
@@ -77,7 +77,7 @@ void slide2D::rhs(lexer *p, fdm2D *b, slice &H, slice &QX, slice &QY)
         }
     }
 
-    sources(p,b,H,QX,QY);
+    sources(p,H,QX,QY);
 }
 
 void slide2D::flux_x(lexer *p, slice &H, slice &QX, slice &QY)
@@ -350,11 +350,11 @@ void slide2D::flux_y(lexer *p, slice &H, slice &QX, slice &QY)
     }
 }
 
-void slide2D::sources(lexer *p, fdm2D *b, slice &H, slice &QX, slice &QY)
+void slide2D::sources(lexer *p, slice &H, slice &QX, slice &QY)
 {
-    auto etaw = [&](int ii, int jj){ return b->eta(ii,jj) + H(ii,jj) - hstep(ii,jj); };
+    auto etaw = [&](int ii, int jj){ return (*weta)(ii,jj) + H(ii,jj) - hstep(ii,jj); };
 
-    auto wet = [p,b](int ii, int jj){ return p->wet[(ii-p->imin)*p->jmax + (jj-p->jmin)]==1 && b->WL(ii,jj)>p->A244
+    auto wet = [p,this](int ii, int jj){ return p->wet[(ii-p->imin)*p->jmax + (jj-p->jmin)]==1 && (*wWL)(ii,jj)>wdry
                                           && p->flagslice4[(ii-p->imin)*p->jmax + (jj-p->jmin)]>0; };
 
     SLICELOOP4
@@ -372,7 +372,7 @@ void slide2D::sources(lexer *p, fdm2D *b, slice &H, slice &QX, slice &QY)
         // is held over the sub-steps (the water moves in its own step): eta_w = eta^n + h_s - h_s^n, so a slide that thickens
         // lifts the water above it within the step (otherwise the frozen surface slope drove a two-layer mode unstable in
         // the long semi-implicit steps)
-        const double sb = sub_cell(p,b,i,j);
+        const double sb = sub_cell(p,i,j);
 
         if(sb<=0.0)
         continue;

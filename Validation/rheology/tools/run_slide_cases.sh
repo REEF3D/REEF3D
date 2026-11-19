@@ -3,7 +3,8 @@
 # run_slide_cases.sh <REEF3D binary> <DiveMESH binary> <run dir> [out dir]
 # Runs the two-layer landslide cases 16-19 (SFLOW slide layer W 150) on both grids, with the single-layer
 # cases 01 and 02 for the comparison, and evaluates them with slide_eval.py (figures and JSON in <out dir>);
-# then 18 with the non-hydrostatic water and case 28 (NTHMP benchmark 4) against the measurements (bm4_eval.py).
+# then 18 with the non-hydrostatic water and case 28 (NTHMP benchmark 4) against the measurements (bm4_eval.py);
+# then case 29 (the slide layer under NHFLOW).
 set -euo pipefail
 BIN="$1"; DM="$2"; RUN="$3"; OUT="${4:-$RUN/results}"
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"; V="$(cd "$HERE/.." && pwd)"
@@ -84,6 +85,10 @@ B4=$C/28_slide_nthmp_bm4/cases
 for c in hydro si nh nh_w128; do run $B4/$c bm4_$c; done
 fine $B4/nh $RUN/_c/bm4_nh_fine; run $RUN/_c/bm4_nh_fine bm4_nh_fine
 
+# 29: under NHFLOW
+N4=$C/29_slide_nhflow/cases
+for c in dambreak_h dambreak_nh bm4_h bm4_nh rest_slope; do run $N4/$c nhf_$c; done
+
 E="python3 $HERE/slide_eval.py"
 for g in "" _fine; do
     mkdir -p "$OUT/grid$g"
@@ -106,4 +111,11 @@ M=$C/28_slide_nthmp_bm4/test17_48-68s.txt
 python3 $HERE/bm4_eval.py $M $OUT/28 hydrostatic=$RUN/bm4_hydro semi-implicit=$RUN/bm4_si "NH, W 162 0.02"=$RUN/bm4_nh \
         "NH, W 162 0.02, W 128 1"=$RUN/bm4_nh_w128 > $OUT/28/28_bm4.json
 python3 $HERE/bm4_eval.py $M $OUT/28_grid "NH dx 5 mm"=$RUN/bm4_nh "NH dx 2.5 mm"=$RUN/bm4_nh_fine > $OUT/28_grid/28_bm4.json
+mkdir -p "$OUT/29"
+$E dambreak    $RUN/nhf_dambreak_h  $OUT/29 > $OUT/29/dambreak_h.json;  mv $OUT/29/18_dambreak.png $OUT/29/29_dambreak_h.png
+$E dambreak    $RUN/nhf_dambreak_nh $OUT/29 > $OUT/29/dambreak_nh.json; mv $OUT/29/18_dambreak.png $OUT/29/29_dambreak_nh.png
+$E rest_nhflow $RUN/nhf_rest_slope  $OUT/29 > $OUT/29/rest_slope.json
+python3 $HERE/bm4_eval.py $M $OUT/29 "NHFLOW hydrostatic"=$RUN/nhf_bm4_h "NHFLOW NH, 10 layers, W 162 0.02"=$RUN/nhf_bm4_nh \
+        "SFLOW NH, W 162 0.02 (case 28)"=$RUN/bm4_nh > $OUT/29/29_bm4.json
+mv $OUT/29/28_bm4_gauges.png $OUT/29/29_bm4_gauges.png
 echo "results in $OUT"

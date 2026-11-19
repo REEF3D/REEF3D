@@ -79,6 +79,34 @@ void driver::logic_nhflow()
     
     p->phimean = p->wd = p->F60;
     
+    // two-layer landslide (W 150, slide2D): the explicit NHFLOW (A 510 2/3) on one Cartesian grid
+    if(p->W150>0)
+    {
+        std::string why;
+        
+        if(p->A510>=11)
+        why = "the semi-implicit NHFLOW (A 510 "+std::to_string(p->A510)+")";
+        
+        if(p->S10>0)
+        why = "sediment transport (S 10): both move the bed";
+        
+        if(p->geo_curv==1)
+        why = "curvilinear grids (G 50)";
+        
+        if(p->G1>0 || p->geo_mb>0)
+        why = "mesh refinement and multi-block grids (G 1, G 50 1)";
+        
+        if(p->W155>0.0)
+        why = "the interface drag W 155 (not on the NHFLOW water yet)";
+        
+        if(!why.empty())
+        {
+            if(p->mpirank==0)
+            cout<<"!!! NHFLOW slide layer (W 150): not available with "<<why<<" !!!"<<endl;
+            pgc->final(true);
+        }
+    }
+    
     // river free-surface initialisation (F 65): reference level at the outflow when F 60 is not given
     if(p->F65>0 && p->F60<-1.0e19 && p->F62>-1.0e19)
     p->phimean = p->wd = p->F62;

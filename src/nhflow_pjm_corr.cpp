@@ -24,6 +24,7 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"nhflow_curv.h"
 #include"fdm_nhf.h"
+#include"slide2D.h"
 #include"nhflow_membrane_beta.h"
 #include"ghostcell.h"
 #include"nhflow_poisson_pcorr.h"
@@ -236,7 +237,9 @@ void nhflow_pjm_corr::rhs(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, doubl
 
         dUdz = (U[IJK] - Ubc)/p->DZP[KM1];
         dVdz = (V[IJK] - Vbc)/p->DZP[KM1];
-        dWdz = p->sigz[IJ]*(W[IJK]-W[IJKm1])/p->DZP[KM1];
+        // the slide layer (W 150): the bed moves with dz_b/dt at the bed node
+        const double wbt = (bednode && d->slide!=nullptr) ? d->slide->wb(i,j) : 0.0;
+        dWdz = p->sigz[IJ]*(W[IJK]-W[IJKm1]-wbt)/p->DZP[KM1];
          
         // curvilinear grid: the horizontal divergence by the chain rule (nhflow_curv.h)
         if(p->geo_curv==1)
