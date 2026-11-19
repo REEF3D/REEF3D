@@ -208,6 +208,14 @@ void seastate_f::start(lexer *p, ghostcell *pgc)
     if(kba)
     pipeline_report(p,pgc);
 
+    // Phase 29 (A 782): the share of the cell solves that the settled cells saved
+    if(p->A782>0.0 && pamr==nullptr)
+    {
+    const double ns = pgc->globalsum(psolv->active_solved()), nc = pgc->globalsum(psolv->active_cells());
+    if(p->mpirank==0 && nc>0.0)
+    cout<<"SEASTATE settled cells (A 782 "<<p->A782<<"): "<<setprecision(4)<<100.0*ns/nc<<" % of the cells solved over all iterations"<<endl;
+    }
+
     // online collocation (A 787 1): a stationary run takes the final field; the statistics
     colloc_end(p,pgc);
 

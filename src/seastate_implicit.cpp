@@ -215,6 +215,10 @@ void seastate_implicit::iterate(lexer *p, ghostcell *pgc, fdm_seastate *e, seast
 {
     kex = pex;
 
+    // Phase 29 (A 782): the changes of this iteration
+    if(sact->on)
+    active_begin();
+
     for(int q=0; q<4; ++q)
     {
     sweep(p,e,q,N0,rdt,Nb,side,refraction,fshift);
@@ -228,6 +232,83 @@ void seastate_implicit::iterate(lexer *p, ghostcell *pgc, fdm_seastate *e, seast
         kst.exch += std::chrono::duration<double>(kclk::now()-t0).count();
         }
     }
+
+    // Phase 29 (A 782): the cells to solve in the next iteration
+    if(sact->on)
+    active_end(p,pgc,e);
+}
+
+void seastate_implicit::active_set(double tol, lexer *p)
+{
+    shared_active &A = *sact;
+    A.on = (tol>0.0);
+    A.tol = tol;
+    A.use = false;
+    if(!A.on)
+    return;
+    A.ni = p->imax; A.nj = p->jmax; A.imin = p->imin; A.jmin = p->jmin;
+    const size_t n = size_t(A.ni)*A.nj;
+    A.dE.assign(n,0.0f);
+    A.Ea.assign(n,0.0f);
+    A.Et.assign(n,0.0f);
+    A.flag.assign(n,uint8_t(0));
+    A.need.assign(n,uint8_t(1));
+}
+
+void seastate_implicit::active_begin()
+{
+    shared_active &A = *sact;
+    std::fill(A.dE.begin(),A.dE.end(),0.0f);
+    std::fill(A.Ea.begin(),A.Ea.end(),0.0f);
+}
+
+void seastate_implicit::active_end(lexer *p, ghostcell *pgc, fdm_seastate *e)
+{
+    shared_active &A = *sact;
+    auto at = [&](int ci, int cj) {return size_t(ci-A.imin)*A.nj + (cj-A.jmin);};
+
+    // the energy of the cells solved in this iteration, the largest energy of the grid
+    double emax = 0.0, ns = 0.0, nc = 0.0;
+    for(int ci=0; ci<p->knox; ++ci)
+    for(int cj=0; cj<p->knoy; ++cj)
+    if(e->wet(ci,cj)==1)
+    {
+    const size_t c = at(ci,cj);
+    nc += 1.0;
+        if(!A.use || A.need[c])
+        {
+        A.Et[c] = A.Ea[c];
+        ns += 1.0;
+        }
+    emax = std::max(emax,double(A.Et[c]));
+    }
+    A.nsolved += ns;
+    A.ncells += nc;
+    emax = pgc->globalmax(emax);
+    const double efloor = 1.0e-4*emax;
+
+    std::fill(A.flag.begin(),A.flag.end(),uint8_t(0));
+    for(int ci=0; ci<p->knox; ++ci)
+    for(int cj=0; cj<p->knoy; ++cj)
+    if(e->wet(ci,cj)==1)
+    {
+    const size_t c = at(ci,cj);
+    if(double(A.dE[c])>A.tol*std::max(double(A.Et[c]),efloor))
+    A.flag[c] = 1;
+    }
+
+    // the marks of the cells across the rank boundaries
+    if(p->M10>1)
+    seastate_halo1(p,pgc,1,960,[&](int, int ci, int cj, double *v) {v[0] = double(A.flag[at(ci,cj)]);},
+                   [&](int, int ci, int cj, const double *v) {A.flag[at(ci,cj)] = (v[0]>0.5) ? 1 : 0;});
+
+    for(int ci=0; ci<p->knox; ++ci)
+    for(int cj=0; cj<p->knoy; ++cj)
+    {
+    const size_t c = at(ci,cj);
+    A.need[c] = (A.flag[c] || A.flag[at(ci-1,cj)] || A.flag[at(ci+1,cj)] || A.flag[at(ci,cj-1)] || A.flag[at(ci,cj+1)]) ? 1 : 0;
+    }
+    A.use = true;
 }
 
 void seastate_implicit::sweep(lexer *p, fdm_seastate *e, int q, const seastate_store *N0, double rdt,
@@ -833,6 +914,7 @@ void seastate_implicit::copy_config(const seastate_implicit &o)
     nthreads = o.nthreads;
     thread_min = o.thread_min;
     sr = o.sr;
+    sact = o.sact;
     slag = o.slag;
     lagon = o.lagon;
     sonce = o.sonce;
@@ -891,6 +973,8 @@ void seastate_implicit::scache_alloc(lexer *p, fdm_seastate *e)
     c.tail.assign(ns,int16_t(nsig));
     c.hj.assign(ns,0.0f);
     c.gen.assign(ns,-1);
+    if(src!=nullptr && src->param().dia_mp)
+    c.ns.assign(size_t(ns)*size_t(nsig)*ndir,-1.0f);
     c.ready = true;
 }
 
@@ -933,6 +1017,46 @@ void seastate_implicit::solve(lexer *p, fdm_seastate *e, int q, int ci, int cj, 
 void seastate_implicit::cellw(lexer *p, fdm_seastate *e, int q, int ci, int cj, const float *N0c, double rdt,
                               const vector<float> &Nb, const int side[4], bool refraction, bool fshift)
 {
+    // Phase 29 (A 782): a settled cell is not solved; else the change of its spectrum in this solve and its energy
+    if(sact->on)
+    {
+    shared_active &A = *sact;
+    const size_t c = size_t(ci-A.imin)*A.nj + (cj-A.jmin);
+    if(A.use && !A.need[c])
+    return;
+
+    const seastate_grid &g = *e->grid;
+    const int ma = m0[q], nq = m1[q]-m0[q]+1;
+    float *N = e->N->spec(ci,cj);
+    actN.resize(size_t(nsig)*nq);
+    for(int l=0; l<nsig; ++l)
+    std::copy(N+g.bin(l,ma),N+g.bin(l,ma)+nq,&actN[size_t(l)*nq]);
+
+    const auto t0 = std::chrono::steady_clock::now();
+    cell(p,e,q,ci,cj,N0c,rdt,Nb,side,refraction,fshift);
+    if(wfld!=nullptr)
+    (*wfld)(ci,cj) += std::chrono::duration<double>(std::chrono::steady_clock::now()-t0).count();
+
+    double dsum = 0.0, esum = 0.0;
+        for(int l=0; l<nsig; ++l)
+        {
+        const float *Nl = N+g.bin(l,ma), *Ol = &actN[size_t(l)*nq];
+        const double *wq = g.wth.data()+ma;
+        double a = 0.0, b = 0.0;
+            for(int n=0; n<nq; ++n)
+            {
+            a += std::fabs(double(Nl[n])-double(Ol[n]))*wq[n];
+            b += double(Nl[n])*wq[n];
+            }
+        const double w = g.sig[l]*g.dsig[l];
+        dsum += a*w;
+        esum += b*w;
+        }
+    A.dE[c] += float(dsum);
+    A.Ea[c] += float(esum);
+    return;
+    }
+
     if(wfld==nullptr)
     {
     cell(p,e,q,ci,cj,N0c,rdt,Nb,side,refraction,fshift);
@@ -1674,7 +1798,7 @@ void seastate_implicit::cell(lexer *p, fdm_seastate *e, int q, int ci, int cj, c
     // Phase 21b (A 767 1): the first evaluation in a cell either evaluates the terms for the iteration (the sweep of
     // qfill: sfill) or takes them (the other quadrants: skept, if the sweep of qfill evaluated them in this iteration)
     int cslot = -1;
-    bool sfill = false, skept = false;
+    bool sfill = false, skept = false, mponce = false;
     double setot = 0.0;
     bool stri = false;
 
@@ -1741,6 +1865,7 @@ void seastate_implicit::cell(lexer *p, fdm_seastate *e, int q, int ci, int cj, c
         src->take_tail(c.tail[cslot]);
         setot = c.etot[cslot];
         stri = (c.tri[cslot]!=0);
+        mponce = true;          // A 769 2: the kept terms hold the conservative DIA of the evaluation
         }
         else
         {
@@ -1753,6 +1878,51 @@ void seastate_implicit::cell(lexer *p, fdm_seastate *e, int q, int ci, int cj, c
             lag_start(p,ic,jc);
             src->compute(N,d,kc,cgc,P.data(),D.data(),c.wa,c.wb,0,nsig-1);
             lag_end(p,ic,jc);
+
+                // Phase 29 (A 769 2 with A 767 1): the conservative DIA of the cell once per iteration, for all its
+                // bins. The first pass gives the loss rates L and the gains G of the ratios 1 (as below). The ratios
+                // N_new/N of the second pass cannot come from the solve (it is by quadrant, three of them later):
+                // they are predicted. N* = (N_old/dt + P + G)/(1/dt + D + L) is the spectrum the source terms alone
+                // would give; the factor N/N* of the last evaluation of the cell (the spectrum its solves gave over
+                // the N* predicted then: the transport) corrects it, r = (N/N*_last) N*/N. Once the iterations have
+                // converged N*_last = N* and r = 1: the solution of the two passes per solve. P and D with the gains
+                // of the second pass and the loss rates are solved with this quadrant and kept for the others.
+                // (validation 85: without the factor the converged Hs of a fetch-limited sea was 1.3 % high; without
+                // a second pass, ratios 1, the field case was 8 % high at 4 iterations per step)
+                if(src->param().dia_mp && src->Etot>0.0 && !c.ns.empty())
+                {
+                const float *No = (N0!=nullptr) ? N0 : N;
+                float *nsl = &c.ns[size_t(cslot)*g.nbin];
+                mpN.assign(N,N+g.nbin);
+                mpR.assign(g.nbin,1.0);
+                mpG.resize(g.nbin);
+                mpG2.resize(g.nbin);
+                mpL.resize(g.nbin);
+                src->dia_mp(mpN.data(),mpR.data(),mpG.data(),mpL.data());
+                    for(int l=0; l<nsig; ++l)
+                    for(int m=c.wa; m<=c.wb; ++m)
+                    {
+                    const int b = g.bin(l,m);
+                    const double den = rdt + D[b] + mpL[b];
+                    const double nstar = (den>0.0) ? (rdt*double(No[b]) + P[b] + mpG[b])/den : double(mpN[b]);
+                        if(mpN[b]>0.0f)
+                        {
+                        // the factor of the transport, within 1/4 .. 4 (1 without an earlier evaluation)
+                        const double cf = (nsl[b]>0.0f) ? std::min(std::max(double(mpN[b])/double(nsl[b]),0.25),4.0) : 1.0;
+                        mpR[b] = cf*nstar/double(mpN[b]);
+                        }
+                    nsl[b] = float(nstar);
+                    }
+                src->dia_mp(mpN.data(),mpR.data(),mpG2.data(),mpL.data(),true);
+                    for(int l=0; l<nsig; ++l)
+                    for(int m=c.wa; m<=c.wb; ++m)
+                    {
+                    const int b = g.bin(l,m);
+                    P[b] += mpG2[b];
+                    D[b] += mpL[b];
+                    }
+                }
+            mponce = true;
 
             const size_t w = size_t(c.width);
             float *cP = &c.PD[size_t(cslot)*2*nsig*w], *cD = cP + size_t(nsig)*w;
@@ -2199,7 +2369,7 @@ void seastate_implicit::cell(lexer *p, fdm_seastate *e, int q, int ci, int cj, c
     // A 769 2 (Phase 25): the DIA as a conservative production-destruction system (seastate_source::dia_mp), first with
     // the ratios r = 1: the loss rates of the donors in D, the gains in P; after the solve a second pass with the
     // ratios N_new/N of the solve (below)
-    const bool dmp = (src!=nullptr && src->param().dia_mp && setot>0.0);
+    const bool dmp = (src!=nullptr && src->param().dia_mp && setot>0.0 && !mponce);
     if(dmp)
     {
     mpN.assign(N,N+g.nbin);

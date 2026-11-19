@@ -151,6 +151,9 @@ void seastate_f::transport(lexer *p, ghostcell *pgc)
 
     const bool stationary = (p->A700==2);
 
+    // Phase 29 (A 782): the first iteration of a step solves all cells (new old time level, wind, boundary spectra)
+    psolv->active_reset();
+
     // stationary: 1/dt = 0; with the deep-water physics pseudo time step A 706 (the wind-sea
     // source terms are lagged by one iteration, the pseudo time step damps the iteration)
     const double rdt = stationary ? ((psrc!=nullptr && psrc->param().komen) ? 1.0/p->A706 : 0.0) : 1.0/dtw;
