@@ -25,6 +25,7 @@ Author: Hans Bihs
 #include"fdm2D.h"
 #include"ghostcell.h"
 #include"hydro_sflow.h"
+#include"sflow_memory.h"
 
 void sflow_eta::wetdry(lexer* p, fdm2D* b, ghostcell* pgc, slice &WL)
 {
@@ -213,6 +214,9 @@ void sflow_eta::wetdry_fluxes(lexer* p, fdm2D* b, ghostcell* pgc, slice &WL)
     if(p->A243==0)
     return;
     
+    // the face states of the vertical momentum and of the Boussinesq model only where they are stored (sflow_memory.h)
+    const bool whf = sflow_wh_faces(p), bsf = sflow_bous_faces(p);
+    
     // x-faces
     SLICELOOP1
     {
@@ -252,12 +256,19 @@ void sflow_eta::wetdry_fluxes(lexer* p, fdm2D* b, ghostcell* pgc, slice &WL)
         b->UHn(i,j) = 0.0;
         b->VHs(i,j) = 0.0;
         b->VHn(i,j) = 0.0;
-        b->WHs(i,j) = 0.0;
-        b->WHn(i,j) = 0.0;
-        b->QUs(i,j) = 0.0;
-        b->QUn(i,j) = 0.0;
-        b->QVs(i,j) = 0.0;
-        b->QVn(i,j) = 0.0;
+            if(whf)
+            {
+            b->WHs(i,j) = 0.0;
+            b->WHn(i,j) = 0.0;
+            }
+            
+            if(bsf)
+            {
+            b->QUs(i,j) = 0.0;
+            b->QUn(i,j) = 0.0;
+            b->QVs(i,j) = 0.0;
+            b->QVn(i,j) = 0.0;
+            }
         }
     }
     
@@ -301,12 +312,19 @@ void sflow_eta::wetdry_fluxes(lexer* p, fdm2D* b, ghostcell* pgc, slice &WL)
         b->UHw(i,j) = 0.0;
         b->VHe(i,j) = 0.0;
         b->VHw(i,j) = 0.0;
-        b->WHe(i,j) = 0.0;
-        b->WHw(i,j) = 0.0;
-        b->QUe(i,j) = 0.0;
-        b->QUw(i,j) = 0.0;
-        b->QVe(i,j) = 0.0;
-        b->QVw(i,j) = 0.0;
+            if(whf)
+            {
+            b->WHe(i,j) = 0.0;
+            b->WHw(i,j) = 0.0;
+            }
+            
+            if(bsf)
+            {
+            b->QUe(i,j) = 0.0;
+            b->QUw(i,j) = 0.0;
+            b->QVe(i,j) = 0.0;
+            b->QVw(i,j) = 0.0;
+            }
         }
     }
     

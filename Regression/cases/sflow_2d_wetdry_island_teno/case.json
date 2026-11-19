@@ -1,0 +1,19 @@
+{
+ "base": "sflow_2d_wetdry_island",
+ "ctrl_add": [
+  "A 213 2"
+ ],
+ "description": "sflow_2d_wetdry_island with the TENO5 weights of the WENO reconstruction (A 213 2, cutoff A 222; default WENO-Z).",
+ "tags": [
+  "quick",
+  "2d",
+  "sflow",
+  "wetdry",
+  "nonhydrostatic",
+  "teno"
+ ],
+ "covers": [
+  "sflow_reconstruct_weno::reconstruct_x/_y with TENO5 (sflow_weno5<2>)"
+ ],
+ "architect": "Hans Bihs"
+}

@@ -22,23 +22,24 @@ Author: Hans Bihs
 
 #include"fdm2D.h"
 #include"lexer.h"
+#include"sflow_memory.h"
 
 fdm2D::fdm2D(lexer *p)
 			: U(p),V(p),W(p),UH(p),VH(p),WH(p),UA(p),VA(p),MX(p),MY(p),
             Fx(p),Fs(p),Fn(p),FEx(p),
             Fy(p),Fe(p),Fw(p),FEy(p),
     
-            Ss(p),Sn(p),SSx(p),
-            Se(p),Sw(p),SSy(p),
+            Ss(p),Sn(p),
+            Se(p),Sw(p),
     
             Un(p),Us(p),
-            Ue(p),Uw(p),
+            Ue(p,sflow_tangential_faces(p)),Uw(p,sflow_tangential_faces(p)),
     
-            Vn(p),Vs(p),
+            Vn(p,sflow_tangential_faces(p)),Vs(p,sflow_tangential_faces(p)),
             Ve(p),Vw(p),
     
-            Wn(p),Ws(p),
-            We(p),Ww(p),
+            Wn(p,sflow_w_faces(p)),Ws(p,sflow_w_faces(p)),
+            We(p,sflow_w_faces(p)),Ww(p,sflow_w_faces(p)),
     
             UHn(p),UHs(p),
             UHe(p),UHw(p),
@@ -46,13 +47,13 @@ fdm2D::fdm2D(lexer *p)
             VHn(p),VHs(p),
             VHe(p),VHw(p),
     
-            WHn(p),WHs(p),
-            WHe(p),WHw(p), 
+            WHn(p,sflow_wh_faces(p)),WHs(p,sflow_wh_faces(p)),
+            WHe(p,sflow_wh_faces(p)),WHw(p,sflow_wh_faces(p)), 
             
-            QUn(p),QUs(p),
-            QUe(p),QUw(p),
-            QVn(p),QVs(p),
-            QVe(p),QVw(p),
+            QUn(p,sflow_bous_faces(p)),QUs(p,sflow_bous_faces(p)),
+            QUe(p,sflow_bous_faces(p)),QUw(p,sflow_bous_faces(p)),
+            QVn(p,sflow_bous_faces(p)),QVs(p,sflow_bous_faces(p)),
+            QVe(p,sflow_bous_faces(p)),QVw(p,sflow_bous_faces(p)),
             
             WL(p),
             ETAs(p),ETAn(p),

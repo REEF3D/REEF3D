@@ -60,6 +60,7 @@
         <File Name="fnpf_ckpt_fields.h"/>
         <File Name="nhflow_ckpt_fields.h"/>
         <File Name="sflow_ckpt_fields.h"/>
+        <File Name="sflow_memory.h"/>
         <File Name="fnpf_amr_fill.h"/>
         <File Name="fnpf_amr.h"/>
       </VirtualDirectory>

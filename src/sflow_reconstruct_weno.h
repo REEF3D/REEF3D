@@ -55,7 +55,12 @@ private:
     inline void jqmin(lexer*, slice&);
     inline void jqmax(lexer*, slice&);
 
+    void ytab_fill(lexer*);
+
     int qq;
+
+    // one row of left and right face values; the WENO coefficients of the y-faces, flat (ytab_fill)
+    std::vector<double> rowL,rowR,ytab;
     
     // dry cells in the stencil of a wet cell (prepare), per direction: 0 WENO, 1 the cell value, 2 the central stencil
     std::vector<unsigned char> drx,dry;

@@ -186,43 +186,77 @@ void sflow_HLL::divergence(lexer *p, fdm2D *b, slice &f)
 
 void sflow_HLL::HLL(lexer *p, fdm2D *b, slice &Qs, slice &Qn, slice &Qe, slice &Qw, slice &Fx, slice &Fy)
 {    
+    const int nj = p->jmax;
+    
     // HLL flux x-dir
-    SLICELOOP1
     {
-        if(b->Ss(i,j)>=0.0)
-        Fx(i,j) = b->Fs(i,j);
+    const int *const flag = p->flagslice1;
+    const double *const Ss = b->Ss.V, *const Sn = b->Sn.V, *const Fs = b->Fs.V, *const Fn = b->Fn.V;
+    const double *const qs = Qs.V, *const qn = Qn.V;
+    double *const F = Fx.V;
+    const int ie = p->knox - p->ulast;
+    
+    for(int ii=0; ii<ie; ++ii)
+    {
+    const int q0 = (ii - p->imin)*nj - p->jmin;
+    
+        for(int q=q0; q<q0+p->knoy; ++q)
+        if(flag[q]>0)
+        {
+        const double sl = Ss[q], sr = Sn[q];
+        
+        if(sl>=0.0)
+        F[q] = Fs[q];
         
         else
-        if(b->Sn(i,j)<=0.0)
-        Fx(i,j) = b->Fn(i,j);
+        if(sr<=0.0)
+        F[q] = Fn[q];
         
         else
         {
-        denom = b->Sn(i,j)-b->Ss(i,j);
-        denom = fabs(denom)>1.0e-10?denom:1.0e10;
+        double den = sr-sl;
+        den = fabs(den)>1.0e-10?den:1.0e10;
         
-        Fx(i,j) = (b->Sn(i,j)*b->Fs(i,j) - b->Ss(i,j)*b->Fn(i,j) + b->Sn(i,j)*b->Ss(i,j)*(Qn(i,j) - Qs(i,j)))/denom;
+        F[q] = (sr*Fs[q] - sl*Fn[q] + sr*sl*(qn[q] - qs[q]))/den;
         }
+        }
+    }
     }
     
     // HLL flux y-dir
     if(p->j_dir==1)
-    SLICELOOP2
     {
-        if(b->Se(i,j)>=0.0)
-        Fy(i,j) = b->Fe(i,j);
+    const int *const flag = p->flagslice2;
+    const double *const Se = b->Se.V, *const Sw = b->Sw.V, *const Fe = b->Fe.V, *const Fw = b->Fw.V;
+    const double *const qe = Qe.V, *const qw = Qw.V;
+    double *const F = Fy.V;
+    const int je = p->knoy - p->vlast;
+    
+    for(int ii=0; ii<p->knox; ++ii)
+    {
+    const int q0 = (ii - p->imin)*nj - p->jmin;
+    
+        for(int q=q0; q<q0+je; ++q)
+        if(flag[q]>0)
+        {
+        const double sl = Se[q], sr = Sw[q];
+        
+        if(sl>=0.0)
+        F[q] = Fe[q];
         
         else
-        if(b->Sw(i,j)<=0.0)
-        Fy(i,j) = b->Fw(i,j);
+        if(sr<=0.0)
+        F[q] = Fw[q];
         
         else
         {
-        denom = b->Sw(i,j)-b->Se(i,j);
-        denom = fabs(denom)>1.0e-10?denom:1.0e10;
+        double den = sr-sl;
+        den = fabs(den)>1.0e-10?den:1.0e10;
         
-        Fy(i,j) = (b->Sw(i,j)*b->Fe(i,j) - b->Se(i,j)*b->Fw(i,j) + b->Sw(i,j)*b->Se(i,j)*(Qw(i,j) - Qe(i,j)))/denom;
+        F[q] = (sr*Fe[q] - sl*Fw[q] + sr*sl*(qw[q] - qe[q]))/den;
         }
+        }
+    }
     }
 }
 

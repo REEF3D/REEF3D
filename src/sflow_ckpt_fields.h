@@ -38,8 +38,8 @@ void sflow_ckpt_fields(lexer *p, fdm2D *b, FD &&fd, FI &&fi)
     fd("WH",'S',b->WH.V); fd("UA",'S',b->UA.V); fd("VA",'S',b->VA.V); fd("MX",'S',b->MX.V);
     fd("MY",'S',b->MY.V); fd("Fx",'S',b->Fx.V); fd("Fs",'S',b->Fs.V); fd("Fn",'S',b->Fn.V);
     fd("FEx",'S',b->FEx.V); fd("Fy",'S',b->Fy.V); fd("Fe",'S',b->Fe.V); fd("Fw",'S',b->Fw.V);
-    fd("FEy",'S',b->FEy.V); fd("Ss",'S',b->Ss.V); fd("Sn",'S',b->Sn.V); fd("SSx",'S',b->SSx.V);
-    fd("Se",'S',b->Se.V); fd("Sw",'S',b->Sw.V); fd("SSy",'S',b->SSy.V); fd("Un",'S',b->Un.V);
+    fd("FEy",'S',b->FEy.V); fd("Ss",'S',b->Ss.V); fd("Sn",'S',b->Sn.V);
+    fd("Se",'S',b->Se.V); fd("Sw",'S',b->Sw.V); fd("Un",'S',b->Un.V);
     fd("Us",'S',b->Us.V); fd("Ue",'S',b->Ue.V); fd("Uw",'S',b->Uw.V); fd("Vn",'S',b->Vn.V);
     fd("Vs",'S',b->Vs.V); fd("Ve",'S',b->Ve.V); fd("Vw",'S',b->Vw.V); fd("Wn",'S',b->Wn.V);
     fd("Ws",'S',b->Ws.V); fd("We",'S',b->We.V); fd("Ww",'S',b->Ww.V); fd("UHn",'S',b->UHn.V);
