@@ -209,7 +209,7 @@ void seastate_f::start(lexer *p, ghostcell *pgc)
     pipeline_report(p,pgc);
 
     // Phase 29 (A 782): the share of the cell solves that the settled cells saved
-    if(p->A782>0.0 && pamr==nullptr)
+    if(active)
     {
     const double ns = pgc->globalsum(psolv->active_solved()), nc = pgc->globalsum(psolv->active_cells());
     if(p->mpirank==0 && nc>0.0)

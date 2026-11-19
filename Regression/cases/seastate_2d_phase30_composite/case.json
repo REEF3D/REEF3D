@@ -1,0 +1,18 @@
+{
+ "base": "seastate_2d_phase17_composite_ns",
+ "ctrl_set": {
+  "A 707": "8"
+ },
+ "ctrl_add": [
+  "A 782 0.01"
+ ],
+ "description": "the nonstationary island case with refinement and the composite sweep (seastate_2d_phase17_composite_ns) with 8 iterations per step and the settled cells left out (A 782 0.01, Phase 30): the cells under a covered cell are solved only if marked; 66 % of the cell solves remain. Validation in Dropbox SEASTATE/validation/85_performance.",
+ "tags": [
+  "2d",
+  "seastate",
+  "amr"
+ ],
+ "covers": [
+  "A 782 in the composite sweep (seastate_amr::descend, seastate_implicit::solve)"
+ ]
+}
