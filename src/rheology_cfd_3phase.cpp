@@ -26,6 +26,8 @@ Author: Hans Bihs
 #include"fdm.h"
 #include"ghostcell.h"
 #include"solver.h"
+#include"heaviside.h"
+#include"interface_width.h"
 #include<cmath>
 #include<cstring>
 #include<algorithm>
@@ -54,7 +56,7 @@ inline bool in_triangle(double x, double z, double x1, double z1, double x2, dou
 }
 
 rheology_cfd_3phase::rheology_cfd_3phase(lexer *p, fdm *a, ghostcell *pgc) : strain(p),
-    alpha(p), alphas(p), alpha0(p), flux(p), phyd(p),
+    alpha(p), alphas(p), pband(p,p->W131==3), alpha0(p), flux(p), phyd(p),
     pe(p,p->W143==2), phis(p,p->W143==2 && p->W145_phi0>0.0), tpsi(p,p->W143==2 && p->W145_phi0>0.0),
     qpe(p,p->W143==2), qphi(p,p->W143==2 && p->W145_phi0>0.0),
     fpe(p,p->W143==2), fphi(p,p->W143==2 && p->W145_phi0>0.0),
@@ -142,6 +144,56 @@ void rheology_cfd_3phase::smooth(lexer *p, ghostcell *pgc)
     }
 }
 
+void rheology_cfd_3phase::band(lexer *p, fdm *a, ghostcell *pgc)
+{
+    if(p->W131!=3)
+    return;
+
+    // the buoyant weight of the smoothed band above the cell: from the top of the column of the rank down,
+    // sum of (rho_s - rho_f) alpha_s dz over the contiguous band cells (1e-3 < alpha_s < 1 - 1e-3), half of the
+    // own cell; none below the band (the solved pressure is larger there), as rho_1 (g.n) int H ds of the
+    // two-phase W 131 3. The band is 4 - 5 cells thick: a rank
+    // boundary inside it starts the sum again (the floor is then lower, not wrong in sign)
+    const double g = std::fabs(p->W22);
+    const double eps = 1.0e-3;
+
+    for(i=0; i<p->knox; ++i)
+    for(j=0; j<p->knoy; ++j)
+    {
+        double sum = 0.0;
+
+        for(k=p->knoz-1; k>=0; --k)
+        {
+            pband(i,j,k) = 0.0;
+
+            if(p->flag4[IJK]<=0)
+            {
+            sum = 0.0;
+            continue;
+            }
+
+            const double al = alphas(i,j,k);
+
+            // only the band: below it (alpha_s = 1) the solved pressure carries the overburden, and a floor there
+            // would hold p' at the lithostatic value where the pore pressure fluidises the slide
+            if(al<=eps || al>=1.0-eps)
+            {
+            sum = 0.0;
+            continue;
+            }
+
+            const double H = heaviside(a->phi(i,j,k),interface_width(p,a->phi,i,j,k));
+            const double drho = MAX(rho_s - (H*rho_w + (1.0-H)*rho_a),0.0);
+            const double w = drho*g*al*p->DZN[KP];
+
+            pband(i,j,k) = sum + 0.5*w;
+            sum += w;
+        }
+    }
+
+    bc(p,pgc,pband);
+}
+
 void rheology_cfd_3phase::ini(lexer *p, fdm *a, ghostcell *pgc)
 {
     // sub-cell sampling of the boxes and triangles: the initial volume to about 1/ns^2 of a cell at the edges
@@ -180,6 +232,7 @@ void rheology_cfd_3phase::ini(lexer *p, fdm *a, ghostcell *pgc)
 
     bc(p,pgc,alpha);
     smooth(p,pgc);
+    band(p,a,pgc);
 
     if(pore==2)
     {
@@ -461,6 +514,7 @@ void rheology_cfd_3phase::start(lexer *p, fdm *a, ghostcell *pgc, solver *psolv)
     double clipped = pgc->globalsum(clipsum);
 
     smooth(p,pgc);
+    band(p,a,pgc);
 
     hydrostatic(p,a,pgc);
 
@@ -667,6 +721,10 @@ double rheology_cfd_3phase::peff(lexer *p, fdm *a)
 
     if(pore==2)
     pp -= pe(i,j,k);
+
+    // W 131 3: at least the weight of the interface band above the cell
+    if(p->W131==3)
+    pp = MAX(pp,pband(i,j,k));
 
     return pp;
 }

@@ -126,6 +126,12 @@ void lexer::lexer_read(ghostcell *pgc)
         }
     }
     
+    // CFD rheology: the effective pressure W 131, by default 3 (the interface band holds) with the three-phase model:
+    // with W 131 2 a mu(I) wedge at 15 deg (friction angle 20.9 deg) did not stay at rest, its band flowed down the
+    // surface, the toe advanced 70 mm in 2 s and drove a jet of air at 0.8 m/s (W 131 3: 0, 0.05 m/s); 2 otherwise
+    if(mpirank==0 && W131<0)
+    W131 = (A10==6 && W140>0) ? 3 : 2;
+
     // CFD three-phase slide model (W 140): the slide phase takes its rheology from the core (W 130)
     if(mpirank==0 && A10==6 && W140>0 && W130<=0)
     {

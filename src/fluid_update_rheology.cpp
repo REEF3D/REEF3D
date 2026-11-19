@@ -131,6 +131,7 @@ void fluid_update_rheology::start_3phase(lexer *p, fdm* a, ghostcell* pgc, field
     const double rhow = p->W1, rhoa = p->W3;
     const double muw = p->W1*p->W2, mua = p->W3*p->W4;
     const double rhos = s3->rho_s;
+    const bool plastic = pcore->plastic(p,a);
     
     p->volume1=0.0;
     p->volume2=0.0;
@@ -156,6 +157,14 @@ void fluid_update_rheology::start_3phase(lexer *p, fdm* a, ghostcell* pgc, field
             
             else
             mu = al*mus + (1.0-al)*muf;
+            
+            // W 131 3: the full viscosity of the slide over the smoothed band for a material with a yield stress
+            // (rheology_cfd_3phase.h). Not for a Newtonian or power-law slide: it has no deposit to hold, and with
+            // its full viscosity (75 Pa s) in the light outer band cells (rho 3 kg/m3) the explicit cross terms of
+            // the diffusion blew up. The criterion must not be the state (stress below the yield stress): the
+            // slumping band cells flow, so they stayed weak
+            if(p->W131==3 && al>1.0e-3 && plastic)
+            mu = MAX(mus,muf);
         }
         
         a->visc(i,j,k) = mu/a->ro(i,j,k);

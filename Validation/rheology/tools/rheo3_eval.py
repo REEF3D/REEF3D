@@ -4,10 +4,11 @@
 
   rheo3_eval.py filmair <run D24 0> <run D24 1> <run D24 2> <run no air> <out>   11: HB film under air, kinematic vs dynamic
   rheo3_eval.py current <run> <out>                       12a: viscous gravity current of 09 as a three-phase slide
-  rheo3_eval.py collapse <run base> <run D24 1> <run 3phase> <out>   12b: mu(I) collapse a = 0.5 of 07: two-phase, dynamic, three-phase
+  rheo3_eval.py collapse <run 2phase> <run 3phase W 131 2> <run 3phase W 131 3> <out>   12b: mu(I) collapse a = 0.5 of 07
   rheo3_eval.py pelayer <run> [<run fine>] <out>          13: excess pore pressure of a layer at rest vs the series solution
   rheo3_eval.py rondon <run loose> <run dense> <out>      14: granular collapse in a viscous fluid, loose and dense (Rondon et al. 2011)
   rheo3_eval.py robbe <run 10 mm> <run 5 mm> <out>        15: granular column collapse into water (Robbe-Saule et al. 2021)
+  rheo3_eval.py wedge <label=run> ... <out>               31: granular wedge at rest below the friction angle (interface band, W 131)
 
 Reads the CFD VTU files (P 18 2) with ../../turbulence/tools/r3read.py and the slide volume of reef3d.log.
 """
@@ -186,7 +187,7 @@ def collapse(rbase, rdyn, r3, out):
     L0, a = 0.1, 0.5
     fig, ax = plt.subplots(1, 2, figsize=(10, 3.4))
     rows = {}
-    for run, lab, col in ((rbase, "two-phase, kinematic (07)", GREY), (rdyn, "two-phase, D 24 2", BLUE), (r3, "three-phase W 140", ORANGE)):
+    for run, lab, col in ((rbase, "two-phase level set (07)", GREY), (rdyn, "three-phase, W 131 2", BLUE), (r3, "three-phase, W 131 3", ORANGE)):
         if run is None or not os.path.isdir(run):
             continue
         F = frames(run, keys=("points", "velocity", "phi", "alpha_s"))
@@ -363,6 +364,37 @@ def robbe(runs, out):
     return rows
 
 
+def wedge(runs, out):
+    """a mu(I) wedge at 15 deg (below the friction angle 20.9 deg) in air or under water must stay at rest:
+    the spurious velocities in the fluid and the slide, the toe and the height at x = 0.1 m over time"""
+    plt = R.style()
+    fig, ax = plt.subplots(1, 3, figsize=(13, 3.5))
+    rows = {}
+    cols = (GREY, BLUE, ORANGE, GREEN, LBLUE)
+    for k, (lab, run) in enumerate(runs):
+        F = frames(run, keys=("points", "velocity", "alpha_s"))
+        ts, uf, us, xt, h1 = [], [], [], [], []
+        for t, d in F:
+            U = np.linalg.norm(d["velocity"], axis=1); a = d["alpha_s"]
+            x, h = slide_height(d)
+            ts.append(t); uf.append(float(U[a < 0.01].max())); us.append(float(U[a > 0.5].max()))
+            xt.append(front(x, h, 0.001)); h1.append(float(np.interp(0.1, x, h)))
+        ts = np.array(ts); V = log_volume(run)
+        rows[lab] = dict(t_end=round(float(ts[-1]), 2), fluid_umax_late=round(float(max(uf[len(uf)//2:])), 4),
+                         slide_umax_late=round(float(max(us[len(us)//2:])), 5), toe_shift_mm=round(1000*(xt[-1] - xt[0]), 1),
+                         h01_change_mm=round(1000*(h1[-1] - h1[0]), 2), wall_s=wall(run),
+                         volume_rel_change_max=float("%.2e" % np.max(abs(V[:, 1]))) if len(V) else None)
+        c = cols[k % len(cols)]
+        ax[0].semilogy(ts[1:], uf[1:], color=c, lw=1.5, label=lab)
+        ax[1].semilogy(ts[1:], us[1:], color=c, lw=1.5, label=lab)
+        ax[2].plot(ts, 1000*(np.array(xt) - xt[0]), color=c, lw=1.5, label=lab)
+    ax[0].set_xlabel("t (s)"); ax[0].set_ylabel("max |u| in the fluid (m/s)"); ax[0].legend(fontsize=8)
+    ax[1].set_xlabel("t (s)"); ax[1].set_ylabel(r"max |u| in the slide, $\alpha_s > 0.5$ (m/s)")
+    ax[2].set_xlabel("t (s)"); ax[2].set_ylabel("toe shift (mm)")
+    fig.tight_layout(); fig.savefig(os.path.join(out, "31_wedge_at_rest.png"))
+    return rows
+
+
 if __name__ == "__main__":
     cmd = sys.argv[1]
     a = [None if s == "-" else s for s in sys.argv[2:]]
@@ -376,6 +408,8 @@ if __name__ == "__main__":
         r = pelayer([s for s in a[:-1] if s], a[-1])
     elif cmd == "rondon":
         r = rondon(a[0], a[1], a[-1])
+    elif cmd == "wedge":
+        r = wedge([tuple(x.split("=", 1)) for x in a[:-1]], a[-1])
     elif cmd == "robbe":
         r = robbe(a[:-1], a[-1])
     print(json.dumps(r, indent=1))

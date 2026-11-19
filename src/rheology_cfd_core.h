@@ -54,6 +54,9 @@ public:
 
     // dynamic viscosity [Pa s] of the material in cell (i,j,k)
     double mu_eff(lexer*,fdm*, field&, field&, field&);
+
+    // the material in cell (i,j,k) has a yield stress (three-phase model: the interface band, W 131 3)
+    bool plastic(lexer*,fdm*);
     
     void u_source(lexer*,fdm*) override final {}
     void v_source(lexer*,fdm*) override final {}

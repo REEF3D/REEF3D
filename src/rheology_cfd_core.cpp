@@ -200,6 +200,13 @@ double rheology_cfd_core::viscosity(lexer *p, fdm *a, ghostcell *pgc, field &u, 
     return nu;
 }
 
+bool rheology_cfd_core::plastic(lexer *p, fdm *a)
+{
+    // the yield stress at a unit effective pressure: mu_s (mu(I), mu(J)), tan(phi) (HBC, Coulomb-viscoplastic),
+    // tau_y (HB); zero for a Newtonian or power-law material
+    return rheo::yield_stress(q,1.0)>0.0;
+}
+
 double rheology_cfd_core::mu_eff(lexer *p, fdm *a, field &u, field &v, field &w)
 {
     const double gamma = strainterm(p,u,v,w);
