@@ -167,11 +167,11 @@ void seastate_f::ini_common(lexer *p, ghostcell *pgc, bool coupled_)
     if(p->A700==2)
     psolv->source_iterations(p->A738,p->A739);
     psolv->source_once(p->A767==1);
-    // Phase 29 (A 782, default 0.001): the settled cells, in nonstationary runs on uniform grids. Off by itself in
-    // stationary runs (with the pseudo time step of the wind sea a cell changes little per iteration long before it has
-    // converged, and no new step solves it again), with the mesh refinement, the surfbeat model, the spectral sparsity
-    // and the FAS correction (their sweeps do not keep the marks)
-    active = (p->A782>0.0 && p->A700==1 && g1<1 && p->A770!=1 && !(p->A795>0.0) && p->A758_n<=0);
+    // Phase 29 (A 782, default 0.001): the settled cells, in nonstationary runs; Phase 30: also on refined grids (G 1,
+    // seastate_amr::active_set). Off by itself in stationary runs (with the pseudo time step of the wind sea a cell
+    // changes little per iteration long before it has converged, and no new step solves it again), with the surfbeat
+    // model, the spectral sparsity and the FAS correction (their sweeps do not keep the marks)
+    active = (p->A782>0.0 && p->A700==1 && p->A770!=1 && !(p->A795>0.0) && p->A758_n<=0);
     psolv->active_set(active ? p->A782 : 0.0,p);
     psolv->lagging(seastate_implicit::lag_wanted(p->A700,p->A730,p->A732,p->A768,p->A770),p);
 
@@ -296,6 +296,8 @@ void seastate_f::ini_common(lexer *p, ghostcell *pgc, bool coupled_)
     pamr = new seastate_amr(p,pgc);
     seastate_amr::level0 l0 = {e,psolv,pex,psrc,N0,bathy,wmet,tref,pobs,vegr};
     pamr->ini(p,pgc,l0);
+    if(active)
+    pamr->active_set(p->A782);
 
         if(wk0!=nullptr)
         pamr->work_fields();
@@ -863,7 +865,7 @@ void seastate_f::storage(lexer *p, ghostcell *pgc)
     cout<<endl;
     }
     if(p->A782>0.0 && !active)
-    cout<<"SEASTATE solver (Phase 29): the settled cells (A 782) are off in stationary runs (A 700 2) and with G 1, A 770 1, A 795 or A 758: every cell is solved in every iteration"<<endl;
+    cout<<"SEASTATE solver (Phase 29): the settled cells (A 782) are off in stationary runs (A 700 2) and with A 770 1, A 795 or A 758: every cell is solved in every iteration"<<endl;
     if(active)
     cout<<"SEASTATE solver (Phase 29): settled cells are not solved again within a step (A 782 "<<defaultfloat<<setprecision(6)<<p->A782<<" of the energy of a cell)"<<endl;
     if(p->A767==1)

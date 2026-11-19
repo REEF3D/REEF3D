@@ -1649,7 +1649,7 @@ void seastate_amr::descend(int g, int I, int J, int q, double rdt, bool refracti
 
         if((*c->cov)(fi,fj)==1)
         descend(id,fi,fj,q,rdt,refraction,fshift,t);
-        else if(c->e->wet(fi,fj)==1)
+        else if(c->e->wet(fi,fj)==1 && !c->solv->active_settled(fi,fj))
         {
         ghost_fill(c,id,fi,fj);
         solver_of(id,t)->solve(c->pp,c->e,q,fi,fj,c->N0,rdt,none,side0,refraction,fshift);
@@ -1742,6 +1742,118 @@ void seastate_amr::composite_sweep(lexer *p, ghostcell *pgc, int q, const seasta
     ++sweeps;
 }
 
+// --------------------------------------------------------------------- settled cells (A 782), Phase 30
+seastate_implicit* seastate_amr::gsolv(int g)
+{
+    return g<0 ? L0.solv : SP(g)->solv;
+}
+
+void seastate_amr::active_set(double tol)
+{
+    act = (tol>0.0);
+    for(int id=0; id<(int)P.size(); ++id)
+    SP(id)->solv->active_set(tol,SP(id)->pp);
+}
+
+void seastate_amr::active_reset()
+{
+    if(!act)
+    return;
+    L0.solv->active_reset();
+    for(int id=0; id<(int)P.size(); ++id)
+    SP(id)->solv->active_reset();
+}
+
+void seastate_amr::active_counts(double &solved, double &cells)
+{
+    solved = L0.solv->active_solved();
+    cells = L0.solv->active_cells();
+    for(int id=0; id<(int)P.size(); ++id)
+    {
+    solved += SP(id)->solv->active_solved();
+    cells += SP(id)->solv->active_cells();
+    }
+}
+
+void seastate_amr::active_begin()
+{
+    L0.solv->active_begin();
+    for(int id=0; id<(int)P.size(); ++id)
+    SP(id)->solv->active_begin();
+}
+
+void seastate_amr::active_end(lexer *p, ghostcell *pgc)
+{
+    // the marks of every grid, with the energy floor of all grids
+    double emax = L0.solv->active_energy(p,L0.e);
+    for(int id=0; id<(int)P.size(); ++id)
+    emax = std::max(emax,SP(id)->solv->active_energy(SP(id)->pp,SP(id)->e));
+    emax = pgc->globalmax(emax);
+    const double efloor = 1.0e-4*emax;
+
+    L0.solv->active_flags(p,L0.e,efloor);
+    for(int id=0; id<(int)P.size(); ++id)
+    SP(id)->solv->active_flags(SP(id)->pp,SP(id)->e,efloor);
+
+    // a covered cell is marked if one of its four children is (finest level first, as the restriction)
+    auto children = [&](seastate_amr_patch *c, int k)
+    {
+        const int bi = k/(c->ny/2), bj = k%(c->ny/2);
+        bool any = false;
+        for(int a=0; a<2; ++a)
+        for(int d=0; d<2; ++d)
+        any = any || c->solv->active_flag(EXT+2*bi+a,EXT+2*bj+d)!=0;
+        return any;
+    };
+    for(int l=maxlev; l>=1; --l)
+    {
+        if(remote_blocks)
+        block_up(l,1,7850+l,
+            [&](reefamr_patch *q, int, int k, double *v) {v[0] = children(SP(q),k) ? 1.0 : 0.0;},
+            [&](const reefamr_block &B, int, const double *v) {if(v[0]>0.5) gsolv(B.g)->active_flag(B.ic,B.jc) = 1;});
+        else
+        for(int id : lev[l])
+        {
+        seastate_amr_patch *c = SP(id);
+            for(size_t k=0; k<c->rgrid.size(); ++k)
+            if(c->rgrid[k]>=-1 && children(c,int(k)))
+            gsolv(c->rgrid[k])->active_flag(c->ric[k],c->rjc[k]) = 1;
+        }
+    }
+
+    // the halo of level 0, the ring cells of the patches: the marks of their source cells
+    L0.solv->active_halo(p,pgc);
+
+    for(int l=1; l<=maxlev; ++l)
+    {
+        for(int id : lev[l])
+        {
+        seastate_amr_patch *c = SP(id);
+            for(const vector<int> *R : {&c->ring,&c->ring2})
+            for(int k : *R)
+            {
+            const reefamr_fill &f = c->fill[k];
+            c->solv->active_flag(f.di,f.dj) = (f.kind==0 || f.kind==1) ? gsolv(f.g)->active_flag(f.si,f.sj) : uint8_t(0);
+            }
+        }
+
+        const reefamr_xplan &X = gplan[l];
+        if(X.speer.empty() && X.rpeer.empty())
+        continue;
+
+        fill_run_sub(l,1,7800+l,
+            [&](const reefamr_fill &f, double *v) {v[0] = (f.kind==0 || f.kind==1) ? double(gsolv(f.g)->active_flag(f.si,f.sj)) : 0.0;},
+            [&](reefamr_patch *q, int, const reefamr_fill &f, const double *v) {SP(q)->solv->active_flag(f.di,f.dj) = (v[0]>0.5) ? 1 : 0;},
+            [&](reefamr_patch *q) -> const vector<int>* {return &SP(q)->ringsel;});
+    }
+
+    // the cells of the next iteration
+    L0.solv->active_need(p);
+    for(int id=0; id<(int)P.size(); ++id)
+    SP(id)->solv->active_need(SP(id)->pp);
+}
+
+// --------------------------------------------------------------------- composite sweep (A 797 1)
 void seastate_amr::step_begin()
 {
     for(auto q : P)
@@ -1954,10 +2066,16 @@ void seastate_amr::sweep_level(int l, int q, double rdt, bool refraction, bool f
 void seastate_amr::iterate(lexer *p, ghostcell *pgc, const seastate_store *N0, double rdt, const vector<float> &Nb,
                            const int side[4], bool refraction, bool fshift)
 {
+    // Phase 30 (A 782): the changes of this iteration
+    if(act)
+    active_begin();
+
     if(p->A797==1 && !remote_blocks)
     {
     for(int q=0; q<4; ++q)
     composite_sweep(p,pgc,q,N0,rdt,Nb,side,refraction,fshift);
+    if(act)
+    active_end(p,pgc);
     return;
     }
 
@@ -2029,6 +2147,9 @@ void seastate_amr::iterate(lexer *p, ghostcell *pgc, const seastate_store *N0, d
 
         ++sweeps;
     }
+
+    if(act)
+    active_end(p,pgc);
 }
 
 // --------------------------------------------------------------------- FAS (A 758)

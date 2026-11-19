@@ -249,7 +249,7 @@ void seastate_implicit::active_set(double tol, lexer *p)
     A.ni = p->imax; A.nj = p->jmax; A.imin = p->imin; A.jmin = p->jmin;
     const size_t n = size_t(A.ni)*A.nj;
     A.dE.assign(n,0.0f);
-    A.Ea.assign(n,0.0f);
+    A.Ea.assign(4*n,0.0f);
     A.Et.assign(n,0.0f);
     A.flag.assign(n,uint8_t(0));
     A.need.assign(n,uint8_t(1));
@@ -262,53 +262,78 @@ void seastate_implicit::active_begin()
     std::fill(A.Ea.begin(),A.Ea.end(),0.0f);
 }
 
-void seastate_implicit::active_end(lexer *p, ghostcell *pgc, fdm_seastate *e)
+// the cells this solver solves: the grid, or (mesh refinement) the interior of its patch
+#define ACTIVE_CELLS const int ia = ranged ? ri0 : 0, ib = ranged ? ri1 : p->knox-1, ja = ranged ? rj0 : 0, jb = ranged ? rj1 : p->knoy-1; \
+                     for(int ci=ia; ci<=ib; ++ci) for(int cj=ja; cj<=jb; ++cj)
+
+// the energy of the cells solved in this iteration (the sum of the four quadrants); returns the largest energy of the grid
+double seastate_implicit::active_energy(lexer *p, fdm_seastate *e)
 {
     shared_active &A = *sact;
-    auto at = [&](int ci, int cj) {return size_t(ci-A.imin)*A.nj + (cj-A.jmin);};
-
-    // the energy of the cells solved in this iteration, the largest energy of the grid
     double emax = 0.0, ns = 0.0, nc = 0.0;
-    for(int ci=0; ci<p->knox; ++ci)
-    for(int cj=0; cj<p->knoy; ++cj)
-    if(e->wet(ci,cj)==1)
+    ACTIVE_CELLS
+    if(e->wet(ci,cj)==1 && (skp==nullptr || (*skp)(ci,cj)==0))
     {
-    const size_t c = at(ci,cj);
+    const size_t c = size_t(ci-A.imin)*A.nj + (cj-A.jmin);
     nc += 1.0;
         if(!A.use || A.need[c])
         {
-        A.Et[c] = A.Ea[c];
+        float s = 0.0f;
+        for(int q=0; q<4; ++q)
+        s += A.Ea[c*4+q];
+        A.Et[c] = s;
         ns += 1.0;
         }
     emax = std::max(emax,double(A.Et[c]));
     }
     A.nsolved += ns;
     A.ncells += nc;
-    emax = pgc->globalmax(emax);
-    const double efloor = 1.0e-4*emax;
+    return emax;
+}
 
+// the marks: the cells whose spectrum changed by more than A 782 of their energy (at least efloor)
+void seastate_implicit::active_flags(lexer *p, fdm_seastate *e, double efloor)
+{
+    shared_active &A = *sact;
     std::fill(A.flag.begin(),A.flag.end(),uint8_t(0));
-    for(int ci=0; ci<p->knox; ++ci)
-    for(int cj=0; cj<p->knoy; ++cj)
+    ACTIVE_CELLS
     if(e->wet(ci,cj)==1)
     {
-    const size_t c = at(ci,cj);
+    const size_t c = size_t(ci-A.imin)*A.nj + (cj-A.jmin);
     if(double(A.dE[c])>A.tol*std::max(double(A.Et[c]),efloor))
     A.flag[c] = 1;
     }
+}
 
-    // the marks of the cells across the rank boundaries
+// the marks of the cells across the rank boundaries (level 0)
+void seastate_implicit::active_halo(lexer *p, ghostcell *pgc)
+{
+    shared_active &A = *sact;
+    auto at = [&](int ci, int cj) {return size_t(ci-A.imin)*A.nj + (cj-A.jmin);};
     if(p->M10>1)
     seastate_halo1(p,pgc,1,960,[&](int, int ci, int cj, double *v) {v[0] = double(A.flag[at(ci,cj)]);},
                    [&](int, int ci, int cj, const double *v) {A.flag[at(ci,cj)] = (v[0]>0.5) ? 1 : 0;});
+}
 
-    for(int ci=0; ci<p->knox; ++ci)
-    for(int cj=0; cj<p->knoy; ++cj)
+// the cells to solve in the next iteration: marked, or next to a marked cell
+void seastate_implicit::active_need(lexer *p)
+{
+    shared_active &A = *sact;
+    auto at = [&](int ci, int cj) {return size_t(ci-A.imin)*A.nj + (cj-A.jmin);};
+    ACTIVE_CELLS
     {
     const size_t c = at(ci,cj);
     A.need[c] = (A.flag[c] || A.flag[at(ci-1,cj)] || A.flag[at(ci+1,cj)] || A.flag[at(ci,cj-1)] || A.flag[at(ci,cj+1)]) ? 1 : 0;
     }
     A.use = true;
+}
+
+void seastate_implicit::active_end(lexer *p, ghostcell *pgc, fdm_seastate *e)
+{
+    const double emax = pgc->globalmax(active_energy(p,e));
+    active_flags(p,e,1.0e-4*emax);
+    active_halo(p,pgc);
+    active_need(p);
 }
 
 void seastate_implicit::sweep(lexer *p, fdm_seastate *e, int q, const seastate_store *N0, double rdt,
@@ -1053,7 +1078,7 @@ void seastate_implicit::cellw(lexer *p, fdm_seastate *e, int q, int ci, int cj, 
         esum += b*w;
         }
     A.dE[c] += float(dsum);
-    A.Ea[c] += float(esum);
+    A.Ea[c*4+q] = float(esum);
     return;
     }
 

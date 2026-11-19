@@ -211,7 +211,11 @@ void seastate_f::start(lexer *p, ghostcell *pgc)
     // Phase 29 (A 782): the share of the cell solves that the settled cells saved
     if(active)
     {
-    const double ns = pgc->globalsum(psolv->active_solved()), nc = pgc->globalsum(psolv->active_cells());
+    double ns = psolv->active_solved(), nc = psolv->active_cells();
+    if(pamr!=nullptr)
+    pamr->active_counts(ns,nc);
+    ns = pgc->globalsum(ns);
+    nc = pgc->globalsum(nc);
     if(p->mpirank==0 && nc>0.0)
     cout<<"SEASTATE settled cells (A 782 "<<p->A782<<"): "<<setprecision(4)<<100.0*ns/nc<<" % of the cells solved over all iterations"<<endl;
     }

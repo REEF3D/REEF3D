@@ -379,6 +379,19 @@ public:
     // spectra). Uniform grids, not the surfbeat model
     void active_set(double tol, lexer *p);
     void active_reset() {sact->use = false;}
+    // Phase 30: the steps of active_end one by one, for the grids of the mesh refinement (seastate_amr::active_end): the
+    // changes of an iteration zeroed; the energies of the cells solved (returns the largest); the marks with the floor
+    // of all grids; the marks of level 0 across the ranks; the cells to solve next. active_flag: the mark of a cell (a
+    // covered cell takes those of its children, a ring cell that of its source); active_settled: not solved now
+    void active_begin();
+    double active_energy(lexer*, fdm_seastate*);
+    void active_flags(lexer*, fdm_seastate*, double efloor);
+    void active_halo(lexer*, ghostcell*);
+    void active_need(lexer*);
+    bool active_on() const {return sact->on;}
+    uint8_t &active_flag(int ci, int cj) {return sact->flag[size_t(ci-sact->imin)*sact->nj + (cj-sact->jmin)];}
+    bool active_settled(int ci, int cj) const
+    {return sact->on && sact->use && !sact->need[size_t(ci-sact->imin)*sact->nj + (cj-sact->jmin)];}
     // the cells solved and the cells of all iterations so far (this rank)
     double active_solved() const {return sact->nsolved;}
     double active_cells() const {return sact->ncells;}
@@ -415,12 +428,11 @@ private:
     bool on = false, use = false;
     double tol = 0.0, nsolved = 0.0, ncells = 0.0;
     int ni = 0, nj = 0, imin = 0, jmin = 0;
-    std::vector<float> dE, Ea, Et;      // change and energy of the iteration, the energy of the last solve
+    std::vector<float> dE, Ea, Et;      // change of the iteration, its energy per quadrant (4 per cell), the energy of the last solve
     std::vector<uint8_t> flag, need;    // changed in the last iteration (halo included); to be solved in the next
     };
     std::shared_ptr<shared_active> sact = std::make_shared<shared_active>();
     vector<float> actN;                 // the bins of the quadrant before the solve
-    void active_begin();
     void active_end(lexer*, ghostcell*, fdm_seastate*);
 
     void sweep_threads(lexer*, fdm_seastate*, int q, const seastate_store *N0, double rdt,

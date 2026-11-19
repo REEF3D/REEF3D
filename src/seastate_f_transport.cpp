@@ -392,6 +392,7 @@ void seastate_f::transport_amr(lexer *p, ghostcell *pgc)
         N0->copy_from(*e->N);
 
         pamr->step_begin();
+        pamr->active_reset();       // Phase 30 (A 782): the first iteration of a step solves all cells
 
         for(int it=0; it<iter_max; ++it)
         {

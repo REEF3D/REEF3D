@@ -251,6 +251,15 @@ public:
     // nonstationary step start: N0 of the patches
     void step_begin();
 
+    // Phase 30 (A 782 on refined grids): the settled cells of level 0 and of the patches (seastate_implicit::active_set).
+    // After the sweeps of an iteration every grid marks its changed cells with the energy floor of all grids; a covered
+    // cell takes the marks of its children (finest level first), the halo of level 0 and the ring cells of the patches
+    // take those of their source cells (other ranks: the exchange plans of the fills); then every grid sets the cells
+    // of its next iteration. active_reset: the next iteration solves all cells (the first of a step)
+    void active_set(double tol);
+    void active_reset();
+    void active_counts(double &solved, double &cells);
+
     // one composite iteration (four quadrant sweeps on all grids)
     void iterate(lexer*, ghostcell*, const seastate_store *N0, double rdt, const vector<float> &Nb,
                  const int side[4], bool refraction, bool fshift);
@@ -337,6 +346,10 @@ private:
     void covered();
     void restrict_all();
     void restrict_level(int l);
+    bool act = false;                       // Phase 30: A 782 in use
+    seastate_implicit* gsolv(int g);
+    void active_begin();
+    void active_end(lexer*, ghostcell*);
     void fill_level(int l);
     void fill_local(seastate_amr_patch*, int id);
     vector<vector<int>> order[4];           // [q][l]: patches of level l in the downstream order of quadrant q
