@@ -54,6 +54,7 @@ Author: Hans Bihs
 #include"wind_v.h"
 #include"met_forcing.h"
 #include"nhflow_tracer_SI.h"
+#include"nhflow_forcing.h"
 #include<cstring>
 #include<sys/stat.h>
 #include<sys/types.h>
@@ -96,7 +97,7 @@ nhflow_momentum_SI::nhflow_momentum_SI(lexer *p, fdm_nhf *d, ghostcell *pgc, six
                                       qx(p),qxn(p),qxE(p),Hx(p),alx(p),gmx(p),ax(p),kx(p),gx0(p),cx0(p),
                                       qy(p),qyn(p),qyE(p),Hy(p),aly(p),gmy(p),ay(p),ky(p),gy0(p),cy0(p),
                                       eta0(p),WL0(p),etaI(p),gmc(p),rhsW(p),bdiag(p),tS(p),tE(p),tA(p),hoC(p),hoE(p),
-                                      WLk(p),etaB(p),WLb(p),wsrc(p)
+                                      WLk(p),etaB(p),WLb(p),wsrc(p),dfWL(p),dfEta(p)
 {
     check(p);
 
@@ -509,7 +510,15 @@ void nhflow_momentum_SI::check(lexer *p)
     msg("VRANS (B 200) is");
 
     if(p->X10>0 || p->X13>0)
-    msg("6DOF, floating bodies and direct forcing (X 10, X 13) are");
+    msg("6DOF and floating bodies (X 10, X 13) are");
+
+    // fixed solids with direct forcing (A 580 1, A 581-590): one grid (the forcing of the cells in si_predictor_end and
+    // si_end_cells of the one object)
+    const bool dfs = p->A580==1 || p->A581>0 || p->A583>0 || p->A584>0 || p->A585>0 || p->A586>0 || p->A587>0
+                     || p->A588>0 || p->A589>0 || p->A590>0;
+
+    if(dfs && (p->geo_mb>0 || p->G1>0))
+    msg("direct forcing of solids (A 580 1, A 581-590) on multi-block or refined grids is");
 
     if(p->X330>0)
     msg("membranes (X 330) are");
@@ -686,7 +695,10 @@ void nhflow_momentum_SI::step_single(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflo
 
         // the estimate: the face discharges of t^{n+1} and with them the transport of the step (Tx, Ty)
         if(estimate)
+        {
         face_update(p,d,pgc);
+        df_faces(p,d,pgc);
+        }
 
         if(estimate && ho)
         ho_estimate(p,pgc);
@@ -979,6 +991,9 @@ void nhflow_momentum_SI::si_end_faces(lexer *p, fdm_nhf *d, ghostcell *pgc)
     // 7. layer face discharges (the coupled non-hydrostatic solve has them: the same inputs)
     if(!faces_set)
     face_update(p,d,pgc);
+
+    // fixed solids (A 580 1, A 581-590): the layer faces of the solid cells closed
+    df_faces(p,d,pgc);
 }
 
 void nhflow_momentum_SI::si_end_cells(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_stage_obj &S)
@@ -988,6 +1003,9 @@ void nhflow_momentum_SI::si_end_cells(lexer *p, fdm_nhf *d, ghostcell *pgc, nhfl
 
     // 9.-10. cell momentum, relaxation zones, velocities, omega
     cell_update(p,d,pgc);
+
+    // fixed solids (A 580 1, A 581-590): the cells forced again after the implicit part
+    df_reforce(p,d,pgc);
 
     relax(p,d,pgc);
     finish(p,d,pgc);
@@ -2547,6 +2565,8 @@ void nhflow_momentum_SI::si_predictor_end(lexer *p, fdm_nhf *d, ghostcell *pgc)
     pexchC(p,pgc,UHD);
     pexchC(p,pgc,VHD);
 
+    // fixed solids (A 580 1, A 581-590): the direct forcing of the cell predictor
+    df_predictor(p,d,pgc);
 }
 
 void nhflow_momentum_SI::mlflux_faces(lexer *p, fdm_nhf *d, ghostcell *pgc)
@@ -3512,6 +3532,162 @@ void nhflow_momentum_SI::cell_update(lexer *p, fdm_nhf *d, ghostcell *pgc)
     // the non-hydrostatic pressure (A 520 > 0): the vertical momentum (its face terms are in the column solve above)
     if(nh)
     nh_cell(p,d,pgc);
+}
+
+// ---------------------------------------------------------------------------
+// direct forcing of fixed solids (A 580 1, A 581-590)
+// ---------------------------------------------------------------------------
+// As the explicit NHFLOW (nhflow_momentum_RK2/3: forcing before the pressure projection, reforcing after it): the
+// forcing of nhflow_forcing (solid_forcing: A 517, the Heaviside A 526 of the level set d->SOLID) on the cell predictor
+// (UHp, VHp, WHp, UHD, VHD on the depth of t^n) and on the cells at the end of the step (UH, VH, WH on WL^{n+1}). The
+// layer face discharges are not forced: the gravity and non-hydrostatic terms of the implicit part act on the faces in
+// the solid, the cells of the solid are forced back once per step. The solids are cast once per step on the sigma grid
+// of t^n.
+bool nhflow_momentum_SI::df_on() const
+{
+    return pnhfdf!=nullptr && pnhfdf->solid_flag==1;
+}
+
+// the forcing of the momentum fu, fv, fw (layout of IJK) with the depth WL: the velocities of the forcing in d->U, V, W;
+// d->eta and WL keep their ghost cells (the forcing sets them by its boundary conditions, a copy WL here)
+void nhflow_momentum_SI::df_apply(lexer *p, fdm_nhf *d, ghostcell *pgc, double *fu, double *fv, double *fw, slice &WL,
+                                  bool fin)
+{
+    LOOP
+    {
+        if(p->wet[IJ]==1 && fabs(WL(i,j))>p->A544)
+        {
+        d->U[IJK] = fu[IJK]/WL(i,j);
+        d->V[IJK] = fv[IJK]/WL(i,j);
+        d->W[IJK] = fw[IJK]/WL(i,j);
+        }
+
+        else
+        d->U[IJK] = d->V[IJK] = d->W[IJK] = 0.0;
+    }
+
+    for(i=p->imin; i<p->imin+p->imax; ++i)
+    for(j=p->jmin; j<p->jmin+p->jmax; ++j)
+    {
+    dfEta(i,j) = d->eta(i,j);
+    dfWL(i,j) = WL(i,j);
+    }
+
+    pnhfdf->reforcing(p,d,pgc,p6dof,0,1.0,fu,fv,fw,dfWL,fin);
+
+    for(i=p->imin; i<p->imin+p->imax; ++i)
+    for(j=p->jmin; j<p->jmin+p->jmax; ++j)
+    d->eta(i,j) = dfEta(i,j);
+}
+
+void nhflow_momentum_SI::df_predictor(lexer *p, fdm_nhf *d, ghostcell *pgc)
+{
+    if(!df_on())
+    return;
+
+    const size_t N = (size_t)p->imax*p->jmax*(p->kmax+2);
+
+    // the solids on the sigma grid of t^n, once per step (the estimate of tl2); DF as nhflow_forcing::forcing
+    if(si_pass==0)
+    {
+    pnhfdf->ray_cast(p,d,pgc,d->SOLID);
+
+    LOOP
+    p->DF[IJK] = d->SOLID[IJK]<0.0 ? -1 : 1;
+
+    pgc->startintV(p,p->DF,1);
+    }
+
+    dfU.resize(N);
+    dfV.resize(N);
+    dfW.resize(N);
+    dfSU.assign(d->U,d->U+N);
+    dfSV.assign(d->V,d->V+N);
+    dfSW.assign(d->W,d->W+N);
+
+    lget(p,UHD,dfU.data());
+    lget(p,VHD,dfV.data());
+    lget(p,WHp,dfW.data());
+
+    df_apply(p,d,pgc,dfU.data(),dfV.data(),dfW.data(),WL0,false);
+
+    // the forced predictor: UHp, VHp, WHp (the cell update, the acceleration of tl2) and UHD, VHD (faces, cells)
+    LOOP
+    {
+    UHD[PIJK] = dfU[IJK];
+    VHD[PIJK] = p->j_dir==1 ? dfV[IJK] : 0.0;
+    WHp[PIJK] = dfW[IJK];
+
+        if(p->wet[IJ]==1)
+        {
+        UHp[PIJK] = UHD[PIJK];
+        VHp[PIJK] = VHD[PIJK];
+        }
+    }
+
+    pexchC(p,pgc,UHD);
+    pexchC(p,pgc,VHD);
+    pexchC(p,pgc,WHp);
+
+    // the velocities of t^n stay (the forcing set them from the predictor)
+    std::copy(dfSU.begin(),dfSU.end(),d->U);
+    std::copy(dfSV.begin(),dfSV.end(),d->V);
+    std::copy(dfSW.begin(),dfSW.end(),d->W);
+}
+
+// the layer face discharges of t^{n+1} with a solid cell (DF < 0) on either side set to zero, as the continuity fluxes of
+// the explicit NHFLOW (d->solid_flux 2: wall states at the faces of the forcing cells); the transport of the step with
+// them, so that WL of eta_update (from its divergence) takes no volume through the solid
+void nhflow_momentum_SI::df_faces(lexer *p, fdm_nhf *d, ghostcell *pgc)
+{
+    if(!df_on())
+    return;
+
+    SLICELOOP1
+    {
+    qx(i,j) = 0.0;
+
+        for(k=0;k<p->knoz;++k)
+        {
+        if(p->DF[IJK]<0 || p->DF[Ip1JK]<0)
+        Qx[PIJK] = 0.0;
+
+        qx(i,j) += p->DZN[KP]*Qx[PIJK];
+        }
+    }
+
+    if(p->j_dir==1)
+    SLICELOOP2
+    {
+    qy(i,j) = 0.0;
+
+        for(k=0;k<p->knoz;++k)
+        {
+        if(p->DF[IJK]<0 || p->DF[IJp1K]<0)
+        Qy[PIJK] = 0.0;
+
+        qy(i,j) += p->DZN[KP]*Qy[PIJK];
+        }
+    }
+
+    exchange1(p,pgc,qx);
+    exchange2(p,pgc,qy);
+    pexchF(p,pgc,Qx);
+    pexchF(p,pgc,Qy);
+
+    player_loop(p,lsi,lsj,lso,lrng,[&](size_t q)
+    {
+    Tx[q] = theta*Qx[q] + (1.0-theta)*Qxn[q];
+    Ty[q] = theta*Qy[q] + (1.0-theta)*Qyn[q];
+    });
+}
+
+void nhflow_momentum_SI::df_reforce(lexer *p, fdm_nhf *d, ghostcell *pgc)
+{
+    if(!df_on())
+    return;
+
+    df_apply(p,d,pgc,d->UH,d->VH,d->WH,d->WL,true);
 }
 
 void nhflow_momentum_SI::relax(lexer *p, fdm_nhf *d, ghostcell *pgc)

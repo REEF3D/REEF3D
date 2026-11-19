@@ -147,7 +147,10 @@ using namespace std;
 // first where the coarse faces next to a patch take the fine fluxes (advection, discharges), and one eta system over
 // the leaf cells of all grids (reefamr_si.cpp); not with subcycling (G 7 1), vertical refinement (G 6 1) or tracers.
 //
-// Not available (stops in check()): VRANS, 6DOF / floating bodies / direct forcing, side-wall
+// Fixed solids with direct forcing (A 580 1, A 581-590; one grid): the explicit forcing of nhflow_forcing on the
+// cell predictor and on the cells at the end of the step (df_*); the layer face discharges are not forced.
+//
+// Not available (stops in check()): VRANS, 6DOF / floating bodies, side-wall
 // friction A 519 2, membranes, FEM coupling, patch boundary conditions, SEASTATE surfbeat (A 770 1);
 // the non-hydrostatic pressure and wave breaking on one Cartesian grid only.
 // ---------------------------------------------------------------------------
@@ -462,6 +465,17 @@ private:
     // SEASTATE vortex force (A 751 2): the Stokes mass source -div(M) of the step [m/s], in rhsW and eta_update
     slice4 wsrc;
     bool mass_source = false;
+
+    // direct forcing of fixed solids (A 580 1 grid solids, A 581-590), as the explicit NHFLOW: the forcing of
+    // nhflow_forcing on the cell predictor (phase_P1 of RK) and on the cells at the end of the step (phase_P2);
+    // the layer face discharges are not forced (df_*, nhflow_momentum_SI.cpp)
+    bool df_on() const;
+    void df_predictor(lexer*, fdm_nhf*, ghostcell*);
+    void df_reforce(lexer*, fdm_nhf*, ghostcell*);
+    void df_faces(lexer*, fdm_nhf*, ghostcell*);
+    void df_apply(lexer*, fdm_nhf*, ghostcell*, double*, double*, double*, slice&, bool);
+    std::vector<double> dfU, dfV, dfW, dfSU, dfSV, dfSW;
+    slice4 dfWL, dfEta;
 
     // layer face discharges: prognostic Q^{n+1}, Q^n, layer transport of the step (theta weighted),
     // column parts Q~ = A^-1 (I - dt L_v) Q^ and r = A^-1 1

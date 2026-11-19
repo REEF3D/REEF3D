@@ -1,0 +1,16 @@
+{
+ "base": "seastate_2d_phase26_mp_komen_dt900",
+ "ctrl_set": {
+  "A 707": "20",
+  "P 48": "10"
+ },
+ "description": "seastate_2d_phase26_mp_komen_dt900 (Komen, A 769 2, growth from rest, 16 steps of 900 s) with 20 iterations per step and no A 782 in the ctrl file: the default A 782 0.001 (Phase 29, 0069) leaves the settled cells out; 62 % of the cell solves remain; checkpoint after step 10 for seastate_2d_phase29_default_restart_mpi2. Validation in Dropbox SEASTATE/validation/85_performance.",
+ "tags": [
+  "quick",
+  "2d",
+  "seastate"
+ ],
+ "covers": [
+  "the default A 782 0.001 (ini.cpp), seastate_f_ini: active"
+ ]
+}
