@@ -20,6 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#include"nhflow_srchull.h"
 #include"nhflow_forcing.h"
 #include"lexer.h"
 #include"fdm_nhf.h"
@@ -57,7 +58,7 @@ void nhflow_forcing::forcing_ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
     p->DF[IJK]=-1;
 
     // a porous floating body (X 16) is fluid for the solver, not a solid
-    if(floating_flag==1 && p->X16==0)
+    if(floating_flag==1 && p->X16==0 && !nhflow_srchull::water())   // EXPERIMENT NHF_SRC_WATER (nhflow_srchull.h)
     LOOP
     if(d->FB[IJK]<0.0)
     p->DF[IJK]=-1;

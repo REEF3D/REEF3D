@@ -20,6 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#include"nhflow_srchull.h"
 #include"nhflow_fsf_f.h"
 #include"lexer.h"
 #include"nhflow_curv.h"
@@ -86,6 +87,12 @@ void nhflow_fsf_f::rk2_step1(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow
     K(i,j) /= PORSURFNH;
     }
     
+    // EXPERIMENT NHF_SRC: the sources of the column (nhflow_srchull.h)
+    if(nhflow_srchull::active() && (nhflow_srchull::opt()&4)==0)
+    LOOP
+    WETDRY
+    K(i,j) += p->DZN[KP]*nhflow_srchull::at(IJK)*d->WL(i,j);
+    
     // REEF3D::SEASTATE: Stokes transport in the continuity (A 751 2)
     if(d->wave!=nullptr)
     d->wave->mass_source(p,d,K);
@@ -145,6 +152,12 @@ void nhflow_fsf_f::rk2_step2(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow
     k = p->knoz-1;
     K(i,j) /= PORSURFNH;
     }
+    
+    // EXPERIMENT NHF_SRC: the sources of the column (nhflow_srchull.h)
+    if(nhflow_srchull::active() && (nhflow_srchull::opt()&4)==0)
+    LOOP
+    WETDRY
+    K(i,j) += p->DZN[KP]*nhflow_srchull::at(IJK)*WLRK1(i,j);
     
     // REEF3D::SEASTATE: Stokes transport in the continuity (A 751 2)
     if(d->wave!=nullptr)

@@ -26,6 +26,10 @@ Author: Hans Bihs
 #include"ghostcell.h"
 #include"vrans_definitions.h"
 #include"nhflow_bodyflux.h"
+#include"nhflow_srchull.h"
+#include<fstream>
+#include<vector>
+#include<cmath>
 
 void sixdof_obj_nhflow::update_forcing_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, 
                              double *U, double *V, double *W, double *FX, double *FY, double *FZ, slice &WL, slice &fe, int iter)
@@ -71,6 +75,825 @@ void sixdof_obj_nhflow::forcing_kernel_nhflow(lexer *p, fdm_nhf *d, ghostcell *p
     // X 15 8: the hull is a sharp thin body (blocked links), no direct forcing
     if(d->hull!=nullptr || d->hullbody!=nullptr)
     return;
+    
+    // EXPERIMENT NHF_SRC (nhflow_srchull.h): the hull as mass sources, q = (1 + k1) Us d(chi)/dx, no forcing
+    if(nhflow_srchull::active() && !wavemaker)
+    {
+        const int nn = p->imax*p->jmax*(p->kmax+2);
+        
+        if(int(nhflow_srchull::q.size())!=nn)
+        nhflow_srchull::q.assign(nn,0.0);
+        
+        const double Us = nhflow_srchull::stream() - u_fb(0);
+        const double fk = 1.0 + nhflow_srchull::k1();
+        double Fx=0.0, Qp=0.0, Qn=0.0, Ffx=0.0, Ffz=0.0, Fqz=0.0;
+        
+        // NHF_SRC_FB = 1: feedback strength, 2: without the vertical term w d(chi)/dz; updated once per time step
+        const bool fbk = nhflow_srchull::feedback()>0 && (iter==0 || nhflow_srchull::feedback()>=10);
+        const double fbz = (nhflow_srchull::feedback()%10==2) ? 0.0 : 1.0;
+        bool keep = nhflow_srchull::feedback()>0 && !fbk;
+        static const double fbw = getenv("NHF_SRC_FBW")!=nullptr ? atof(getenv("NHF_SRC_FBW")) : 0.1;
+        static const double wlf = getenv("NHF_SRC_WL")!=nullptr ? atof(getenv("NHF_SRC_WL")) : 0.0;
+        static const bool nometric = getenv("NHF_SRC_NOMETRIC")!=nullptr && atoi(getenv("NHF_SRC_NOMETRIC"))>0;
+        
+        // NHF_SRC_RAMP = T [s]: the sources grow smoothly from 0 to their strength over the first T seconds. With the
+        // transparent interior (cells inside forced to the stream) the hull then appears gradually out of the undisturbed
+        // stream instead of at once: no impulsive start, much weaker sloshing of the tank (period 4 s in the Wigley tank)
+        static const double tramp = getenv("NHF_SRC_RAMP")!=nullptr ? atof(getenv("NHF_SRC_RAMP")) : 0.0;
+        const double ramp = (tramp>0.0 && p->simtime<tramp) ? 0.5*(1.0 - cos(PI*p->simtime/tramp)) : 1.0;
+        static bool first = true;
+        
+        // NHF_SRC_STL = file: the sources from the hull geometry instead of the level set (Cases/WIGLEY/srcpts.py).
+        // Lines "x y z a type": type 0 a hull facet, a = -n_x dA [m^2], source Us a in the cell that holds the point,
+        // if the point is below the free surface of the column; type 1 a piece of the water line, a = n_x^3 dl/|n_h|
+        // [m], source (Us^3/g) a in the top layer (the water line term, factor NHF_SRC_WL). Bilinear in x and y over
+        // the four nearest columns; uniform Cartesian grid, fixed body. The smoothed level set of a thin stem gives
+        // the wrong normal there, and the sources of the level set converge slowly (Wigley, Cases/WIGLEY).
+        static const char *ptsfile = getenv("NHF_SRC_STL");
+        static const bool totop = getenv("NHF_SRC_TOP")!=nullptr && atoi(getenv("NHF_SRC_TOP"))>0;
+        
+        if(ptsfile!=nullptr)
+        {
+            static std::vector<double> px,py,pz,pa;
+            static std::vector<int> pt;
+            static bool read = false;
+            
+            if(!read)
+            {
+                read = true;
+                std::ifstream in(ptsfile);
+                double a0,a1,a2,a3; int a4;
+                
+                while(in>>a0>>a1>>a2>>a3>>a4)
+                {px.push_back(a0); py.push_back(a1); pz.push_back(a2); pa.push_back(a3); pt.push_back(a4);}
+                
+                if(p->mpirank==0)
+                cout<<"NHF_SRC_STL: "<<px.size()<<" source points from "<<ptsfile<<endl;
+            }
+            
+            LOOP
+            nhflow_srchull::q[IJK] = 0.0;
+            
+            const double dxu = p->DXN[0+marge];
+            const double dyu = p->DYN[0+marge];
+            const double g = fabs(p->W22);
+            
+            for(size_t n=0;n<px.size();++n)
+            {
+                const double fx = (px[n] - p->XP[0+marge])/dxu;
+                const double fy = (p->j_dir==0) ? 0.0 : (py[n] - p->YP[0+marge])/dyu;
+                const int i0 = int(floor(fx));
+                const int j0 = int(floor(fy));
+                
+                if(i0<-1 || i0>=p->knox || j0<-1 || j0>=p->knoy)
+                continue;
+                
+                const double m = (pt[n]==0) ? fk*Us*pa[n] : wlf*fk*(Us*Us*Us/g)*pa[n];
+                
+                if(m==0.0)
+                continue;
+                
+                for(int qi=0;qi<2;++qi)
+                for(int qj=0;qj<((p->j_dir==0)?1:2);++qj)
+                {
+                    i = i0 + qi;
+                    j = j0 + qj;
+                    
+                    if(i<0 || i>=p->knox || j<0 || j>=p->knoy)
+                    continue;
+                    
+                    if(p->wet[IJ]!=1)
+                    continue;
+                    
+                    const double w = (qi==0 ? 1.0-(fx-i0) : fx-i0)*((p->j_dir==0) ? 1.0 : (qj==0 ? 1.0-(fy-j0) : fy-j0));
+                    
+                    if(pt[n]==1)
+                    k = p->knoz-1;
+                    else
+                    {
+                        const double sg = (pz[n] - d->bed(i,j))/WL(i,j);
+                        
+                        // NHF_SRC_TOP=1: a facet above the free surface of the column (a wave trough at the hull) keeps
+                        // its source, in the top layer; with the facets up to the still water line only (srcpts.py
+                        // still) the sources then always sum to zero, as in the linear theory. Without it the wetted
+                        // facets only: the bow wave wets freeboard facets, a trough dries facets, and the sources
+                        // of -Us n_x no longer sum to zero (Wigley Fr 0.267: + 0.111 / - 0.103 m^3/s)
+                        if(sg<p->ZN[0+marge])
+                        continue;
+                        
+                        if(sg>=p->ZN[p->knoz+marge] && !totop)
+                        continue;
+                        
+                        for(k=0;k<p->knoz-1;++k)
+                        if(sg<p->ZN[KP1])
+                        break;
+                    }
+                    
+                    nhflow_srchull::q[IJK] += w*m/(p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*WL(i,j));
+                }
+            }
+            
+            keep = true;
+        }
+        
+        // NHF_SRC_FORCE=1: transparent interior. The cells of the hull are forced to the undisturbed stream (NHF_SRC, 0, 0)
+        // with the weight chi, instead of to the body velocity. The source sheet jumps the normal velocity by
+        // sigma = -Us n_x, the water inside moves with the stream, u_n = Us n_x, so the water outside has u_n = 0:
+        // no flow through the hull, by mass conservation, for any hull shape (no k1). Discretely: the blended field
+        // u = u_e + chi (Us e_x - u_e) has div u = Us d(chi)/dx - u_e.grad(chi) = q exactly when u_e is tangent to
+        // the hull. The velocity is continuous across the hull up to the perturbation of the stream (a no-slip body
+        // has the jump Us there, and the reconstruction turns it into a numerical boundary layer and a wake).
+        // NHF_SRC_FORCE=2: only the cells inside the source band (FB < -psi) are forced, fully. With the weight chi (1) the
+        // direct forcing of every stage pins the whole band to the stream after a few steps, the sources then sit in
+        // cells that cannot diverge, and the wake is back (2D ellipse: C_Dw 0.35, plain sources 0.00).
+        static const int tfmode = getenv("NHF_SRC_FORCE")!=nullptr ? atoi(getenv("NHF_SRC_FORCE")) : 0;
+        static const bool tforce = tfmode>0;
+        
+        // NHF_SRC_ANISO=1: the half width of the band from the grid spacing normal to the hull, psi = A 526 (|n_x| dx + |n_y| dy)
+        // (weighted with the horizontal part of the normal; A 526 (dx + dy)/2 where the hull faces down), instead of
+        // A 526 (dx + dy)/2 everywhere. On a grid stretched to the centre line (dy << dx) the sides of the hull are then as
+        // sharp as dy allows. chi is one field, chi(x) = H(-FB(x)/psi(x)), for the sources and the forcing.
+        static const bool aniso = getenv("NHF_SRC_ANISO")!=nullptr && atoi(getenv("NHF_SRC_ANISO"))>0;
+        
+        auto IDX = [&](int ii, int jj, int kk)
+        {
+            return (ii-p->imin)*p->jmax*p->kmax + (jj-p->jmin)*p->kmax + kk-p->kmin;
+        };
+        
+        auto psiAt = [&](int ii, int jj, int kk)
+        {
+            const double piso = (p->j_dir==0) ? p->A526*p->DXN[ii+marge] : p->A526*0.5*(p->DXN[ii+marge] + p->DYN[jj+marge]);
+            
+            if(!aniso)
+            return piso;
+            
+            const int kp = MIN(kk+1,p->knoz-1);
+            const int km = MAX(kk-1,0);
+            const double gx = (d->FB[IDX(ii+1,jj,kk)] - d->FB[IDX(ii-1,jj,kk)])/(p->DXP[ii+marge] + p->DXP[ii-1+marge]);
+            const double gy = (p->j_dir==0) ? 0.0 : (d->FB[IDX(ii,jj+1,kk)] - d->FB[IDX(ii,jj-1,kk)])/(p->DYP[jj+marge] + p->DYP[jj-1+marge]);
+            const double gz = (kp>km) ? (d->FB[IDX(ii,jj,kp)] - d->FB[IDX(ii,jj,km)])/((p->ZP[kp+marge] - p->ZP[km+marge])*WL(ii,jj)) : 0.0;
+            const double gh = sqrt(gx*gx + gy*gy);
+            const double g2 = gh*gh + gz*gz;
+            
+            if(g2<1.0e-20 || gh<1.0e-10)
+            return piso;
+            
+            const double ph = p->A526*(fabs(gx)*p->DXN[ii+marge] + fabs(gy)*p->DYN[jj+marge])/gh;
+            const double w = gh*gh/g2;
+            
+            return w*ph + (1.0-w)*piso;
+        };
+        
+        auto chiAt = [&](int ii, int jj, int kk)
+        {
+            const double ps = psiAt(ii,jj,kk);
+            const double fbv = -d->FB[IDX(ii,jj,kk)];
+            
+            return fbv>ps ? 1.0 : (fbv<-ps ? 0.0 : 0.5*(1.0 + fbv/ps + (1.0/PI)*sin(PI*fbv/ps)));
+        };
+        
+        // NOT WORKING YET (19 Nov 2026, 2D tests Cases/forcing_tests mr_ellipse, mr_cyl): unstable with the full update;
+        // relaxed (NHF_SRC_MREL 0.1-0.3) it runs, but the ellipse then leaks (speed over the crest 1.00 U, exact 1.23)
+        // and the wave of the cylinder is unsteady and wrong. The divergence of the ghost field is not taken out of the
+        // pressure projection (the sources of the other modes do that); kept as a starting point only.
+        // NHF_SRC_FORCE=3: mirror hull, no sources. The cells inside the hull (FB < 0) are ghost cells of a free-slip
+        // wall: the velocity at a probe point outside, X = X_cell + (d + d_p) n (d the distance of the cell to the hull,
+        // d_p = max(d, NHF_SRC_PROBE cells), n the outward normal of the level set), is extended into the cell with its
+        // tangential part unchanged and its normal part linear through zero at the hull:
+        //      V = u_p - (1 + d/d_p) (u_p.n) n
+        // The velocity is then continuous across the hull, with no flow through it by symmetry: no source band with
+        // its jump U n_x of the normal velocity (which the HLL flux turns into a numerical boundary layer: the stern
+        // wave system of the Wigley hull is then only 20-50 % effective and the hump of the wave resistance is 30-40 %
+        // too low). Cells deeper than NHF_SRC_MDEPTH cells (default 2.6) get the stream. Fixed hull. With
+        // NHF_SRC_WATER=1 (the ghost cells are water for the fluxes) and X 13 1 (level of the pierced columns).
+        if(tfmode==3)
+        {
+            static const double mdepth = getenv("NHF_SRC_MDEPTH")!=nullptr ? atof(getenv("NHF_SRC_MDEPTH")) : 2.6;
+            static const double mprobe = getenv("NHF_SRC_PROBE")!=nullptr ? atof(getenv("NHF_SRC_PROBE")) : 1.5;
+            static const double mrel = getenv("NHF_SRC_MREL")!=nullptr ? atof(getenv("NHF_SRC_MREL")) : 0.3;
+            
+            pgc->start4V(p,U,10);
+            pgc->start4V(p,V,11);
+            pgc->start4V(p,W,12);
+            
+            auto zcc = [&](int ii, int jj, int kk)
+            {
+                return p->ZP[kk+marge]*WL(ii,jj) + d->bed(ii,jj);
+            };
+            
+            // value of F at the height zq in the column (ii,jj): linear between the cell centres, constant beyond them
+            auto colval = [&](double *F, int ii, int jj, double zq)
+            {
+                int k0 = 0;
+                
+                while(k0<p->knoz-2 && zcc(ii,jj,k0+1)<zq)
+                ++k0;
+                
+                const double z0 = zcc(ii,jj,k0);
+                const double z1 = zcc(ii,jj,k0+1);
+                const double wz = (z1>z0) ? MIN(MAX((zq-z0)/(z1-z0),0.0),1.0) : 0.0;
+                
+                return (1.0-wz)*F[IDX(ii,jj,k0)] + wz*F[IDX(ii,jj,k0+1)];
+            };
+            
+            double Ffx3=0.0;
+            
+            LOOP
+            {
+                nhflow_srchull::q[IJK] = 0.0;
+                
+                const double fb = d->FB[IJK];
+                
+                if(fb>=0.0 || p->wet[IJ]!=1)
+                continue;
+                
+                d->FHB[IJK] = 1.0;
+                
+                const double dl = (p->j_dir==0) ? p->DXN[IP] : 0.5*(p->DXN[IP] + p->DYN[JP]);
+                const double dist = -fb;
+                
+                double ut = fk*nhflow_srchull::stream();
+                double vt = 0.0;
+                double wt = 0.0;
+                
+                if(dist<mdepth*dl)
+                {
+                    const double dfs = (d->FB[IJKp1] - d->FB[IJKm1])/(p->DZP[KP] + p->DZP[KM1]);
+                    double gx = (d->FB[Ip1JK] - d->FB[Im1JK])/(p->DXP[IP] + p->DXP[IM1]) + 0.5*(p->sigx[FIJK]+p->sigx[FIJKp1])*dfs;
+                    double gy = (p->j_dir==0) ? 0.0 : (d->FB[IJp1K] - d->FB[IJm1K])/(p->DYP[JP] + p->DYP[JM1]) + 0.5*(p->sigy[FIJK]+p->sigy[FIJKp1])*dfs;
+                    double gz = dfs/WL(i,j);
+                    const double gn = sqrt(gx*gx + gy*gy + gz*gz);
+                    
+                    if(gn>1.0e-10)
+                    {
+                        gx /= gn; gy /= gn; gz /= gn;
+                        
+                        const double dp = MAX(dist,mprobe*dl);
+                        const double xq = p->XP[IP] + (dist+dp)*gx;
+                        const double yq = p->YP[JP] + (dist+dp)*gy;
+                        const double zq = zcc(i,j,k) + (dist+dp)*gz;
+                        
+                        int i0 = i;
+                        while(i0<i+6 && p->XP[i0+1+marge]<=xq) ++i0;
+                        while(i0>i-6 && p->XP[i0+marge]>xq) --i0;
+                        
+                        int j0 = j;
+                        if(p->j_dir==1)
+                        {
+                        while(j0<j+6 && p->YP[j0+1+marge]<=yq) ++j0;
+                        while(j0>j-6 && p->YP[j0+marge]>yq) --j0;
+                        }
+                        
+                        const bool ok = i0>=-2 && i0+1<=p->knox+1 && (p->j_dir==0 || (j0>=-2 && j0+1<=p->knoy+1));
+                        
+                        if(ok)
+                        {
+                            const double wx = MIN(MAX((xq - p->XP[i0+marge])/(p->XP[i0+1+marge] - p->XP[i0+marge]),0.0),1.0);
+                            const double wy = (p->j_dir==0) ? 0.0 : MIN(MAX((yq - p->YP[j0+marge])/(p->YP[j0+1+marge] - p->YP[j0+marge]),0.0),1.0);
+                            
+                            auto at = [&](double *F)
+                            {
+                                double v = (1.0-wx)*(1.0-wy)*colval(F,i0,j0,zq) + wx*(1.0-wy)*colval(F,i0+1,j0,zq);
+                                
+                                if(p->j_dir==1)
+                                v += (1.0-wx)*wy*colval(F,i0,j0+1,zq) + wx*wy*colval(F,i0+1,j0+1,zq);
+                                
+                                return v;
+                            };
+                            
+                            const double up = at(U);
+                            const double vp = at(V);
+                            const double wp = at(W);
+                            const double un = up*gx + vp*gy + wp*gz;
+                            const double fac = 1.0 + dist/dp;
+                            
+                            ut = up - fac*un*gx;
+                            vt = vp - fac*un*gy;
+                            wt = wp - fac*un*gz;
+                        }
+                    }
+                }
+                
+                // the ghost values depend on the flow, the flow (through the pressure projection) on the ghost values:
+                // the full update every stage is unstable (first test, 2D ellipse and cylinder: velocities of 100 m/s
+                // after 0.3 s); relaxed by NHF_SRC_MREL (default 0.3)
+                FX[IJK] += mrel*(ut - U[IJK])/(alpha[iter]*p->dt);
+                FY[IJK] += mrel*(vt - V[IJK])/(alpha[iter]*p->dt);
+                FZ[IJK] += mrel*(wt - W[IJK])/(alpha[iter]*p->dt);
+                
+                Ffx3 += p->W1*(ut - U[IJK])/(alpha[iter]*p->dt)*p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*WL(i,j);
+            }
+            
+            return;
+        }
+        
+        // NHF_SRC_VMATCH=1: the stream inside the hull follows the outer flow. With a uniform stream inside, the water
+        // beside the hull (faster amidships, slower at the ends, +-10 % under the waves of the hull itself) slips along
+        // it, and the mixing in the band is a numerical boundary layer: a wake of 10 N behind the Wigley hull, five
+        // times its wave resistance. No flow through the hull holds for ANY velocity field V inside, with the sources
+        // q = div(chi V) (blended field u = u_e + chi (V - u_e), div u = div(chi V) when u_e is tangent). Here
+        // V = (V_x(x, layer), 0, 0), V_x the mean x-velocity of the water in the shell 1.5 psi < FB < 3 psi of the same
+        // station and sigma layer (2D: of the station), relaxed in time (NHF_SRC_VREL per step, default 0.02) and
+        // smoothed over three stations; q = d(chi V_x)/dx at constant z, of which chi dV_x/dx are sources inside.
+        static const int vmode = getenv("NHF_SRC_VMATCH")!=nullptr ? atoi(getenv("NHF_SRC_VMATCH")) : 0;
+        static const bool vmatch = vmode==1;
+        
+        // NOT WORKING YET (19 Nov 2026, 2D tests Cases/forcing_tests v2_ellipse, v2_cyl): stable for the ellipse but with a
+        // wake (u_min/U 0.86-0.92, uniform stream inside: 0.95-0.98); for the cylinder no proper flow around it (speed
+        // over the crest 1.26 U, wave 1.3 mm instead of 11.7) and bursts of 30 U. The forcing inside is 1000 times larger
+        // than with the uniform stream: the divergence of V as the pressure projection takes it (node based) is not the
+        // q = div(chi V) of the central differences here, where V is not smooth (jump to the stream at NHF_SRC_MDEPTH,
+        // medial axis). Kept as a starting point only.
+        // NHF_SRC_VMATCH=2: the field inside is the tangential extension of the outer flow. For every cell of the hull and
+        // of the band (FB < psi) the velocity u_p at the probe point on its normal, at the distance d_p = NHF_SRC_PROBE
+        // cells (1.5) outside the hull, gives the target
+        //      V = u_p - (1 + d/d_p) (u_p.n) n          (d = -FB: > 0 inside, < 0 in the outer half of the band)
+        // tangential part as at the probe, normal part linear through zero AT the hull. V is relaxed in time (NHF_SRC_VREL
+        // per step), the cells inside the band (FB < -psi) are forced to V, and the sources are q = div(chi V) at
+        // constant z, so that the pressure projection takes the field inside as it is and the blended-field argument
+        // (no flow through the hull for any V) holds. V is nearly tangent to the hull: q is small (chi div V), there
+        // is no band of sources with a jump U n_x of the normal velocity. Cells deeper than NHF_SRC_MDEPTH cells (2.6)
+        // and cells where the level set has no clear normal (|grad FB| < 0.7: thin ends) keep the stream (U,0,0): there
+        // q = U d(chi)/dx as before. Fixed hull.
+        static const bool vmir = vmode==2;
+        static std::vector<double> VM1,VM2,VM3;
+        static const double mdepth2 = getenv("NHF_SRC_MDEPTH")!=nullptr ? atof(getenv("NHF_SRC_MDEPTH")) : 2.6;
+        static const double mprobe2 = getenv("NHF_SRC_PROBE")!=nullptr ? atof(getenv("NHF_SRC_PROBE")) : 1.5;
+        static const double vrel = getenv("NHF_SRC_VREL")!=nullptr ? atof(getenv("NHF_SRC_VREL")) : 0.02;
+        static std::vector<double> Vst;
+        static long vstep = -1;
+        static int vcall = 0;
+        const int nxg = p->gknox;
+        const int nzl = p->knoz;
+        
+        if(vmatch)
+        {
+            if(int(Vst.size())!=nxg*nzl)
+            Vst.assign(nxg*nzl,fk*nhflow_srchull::stream());
+            
+            if(long(p->count)!=vstep)
+            {
+            vstep = long(p->count);
+            vcall = 0;
+            }
+            
+            ++vcall;
+            
+            // second call of the step: the reforcing of the first stage, velocities after the pressure projection
+            if(vcall==2)
+            {
+                std::vector<double> acc(2*nxg*nzl,0.0);
+                
+                LOOP
+                if(p->wet[IJ]==1)
+                {
+                    const double ps = psiAt(i,j,k);
+                    const double fb = d->FB[IJK];
+                    
+                    if(fb>1.5*ps && fb<3.0*ps)
+                    {
+                    const int n = (i+p->origin_i)*nzl + k;
+                    const double w = p->DYN[JP]*p->DZN[KP]*WL(i,j);
+                    acc[2*n] += w*U[IJK];
+                    acc[2*n+1] += w;
+                    }
+                }
+                
+                pgc->globalsum(acc.data(),2*nxg*nzl);
+                
+                std::vector<double> tg(nxg*nzl,fk*nhflow_srchull::stream());
+                
+                for(int ig=0; ig<nxg; ++ig)
+                {
+                    if(p->j_dir==0)
+                    {
+                        double sa=0.0, sw=0.0;
+                        for(int kk=0; kk<nzl; ++kk)
+                        {sa += acc[2*(ig*nzl+kk)]; sw += acc[2*(ig*nzl+kk)+1];}
+                        
+                        if(sw>0.0)
+                        for(int kk=0; kk<nzl; ++kk)
+                        tg[ig*nzl+kk] = sa/sw;
+                    }
+                    
+                    else
+                    for(int kk=0; kk<nzl; ++kk)
+                    if(acc[2*(ig*nzl+kk)+1]>0.0)
+                    tg[ig*nzl+kk] = acc[2*(ig*nzl+kk)]/acc[2*(ig*nzl+kk)+1];
+                }
+                
+                const double vlo = 0.5*fk*fabs(nhflow_srchull::stream());
+                const double vhi = 1.5*fk*fabs(nhflow_srchull::stream());
+                
+                for(int ig=0; ig<nxg; ++ig)
+                for(int kk=0; kk<nzl; ++kk)
+                {
+                    const int im = MAX(ig-1,0);
+                    const int ip = MIN(ig+1,nxg-1);
+                    double t = 0.25*tg[im*nzl+kk] + 0.5*tg[ig*nzl+kk] + 0.25*tg[ip*nzl+kk];
+                    t = (nhflow_srchull::stream()>=0.0) ? MIN(MAX(t,vlo),vhi) : MAX(MIN(t,-vlo),-vhi);
+                    Vst[ig*nzl+kk] += vrel*(t - Vst[ig*nzl+kk]);
+                }
+            }
+        }
+        
+        if(vmir)
+        {
+            const int nn3 = p->imax*p->jmax*(p->kmax+2);
+            
+            if(int(VM1.size())!=nn3)
+            {
+            VM1.assign(nn3,fk*nhflow_srchull::stream());
+            VM2.assign(nn3,0.0);
+            VM3.assign(nn3,0.0);
+            }
+            
+            static long vstep2 = -1;
+            static int vcall2 = 0;
+            
+            if(long(p->count)!=vstep2)
+            {
+            vstep2 = long(p->count);
+            vcall2 = 0;
+            }
+            
+            ++vcall2;
+            
+            if(vcall2==2)
+            {
+                pgc->start4V(p,U,10);
+                pgc->start4V(p,V,11);
+                pgc->start4V(p,W,12);
+                
+                auto zcc = [&](int ii, int jj, int kk)
+                {
+                    return p->ZP[kk+marge]*WL(ii,jj) + d->bed(ii,jj);
+                };
+                
+                auto colval = [&](double *F, int ii, int jj, double zq)
+                {
+                    int k0 = 0;
+                    
+                    while(k0<p->knoz-2 && zcc(ii,jj,k0+1)<zq)
+                    ++k0;
+                    
+                    const double z0 = zcc(ii,jj,k0);
+                    const double z1 = zcc(ii,jj,k0+1);
+                    const double wz = (z1>z0) ? MIN(MAX((zq-z0)/(z1-z0),0.0),1.0) : 0.0;
+                    
+                    return (1.0-wz)*F[IDX(ii,jj,k0)] + wz*F[IDX(ii,jj,k0+1)];
+                };
+                
+                LOOP
+                {
+                    const double ps = psiAt(i,j,k);
+                    const double fb = d->FB[IJK];
+                    
+                    double t1 = fk*nhflow_srchull::stream();
+                    double t2 = 0.0;
+                    double t3 = 0.0;
+                    
+                    if(fb<1.2*ps && p->wet[IJ]==1)
+                    {
+                        const double dl = (p->j_dir==0) ? p->DXN[IP] : 0.5*(p->DXN[IP] + p->DYN[JP]);
+                        const double dist = -fb;
+                        
+                        if(dist<mdepth2*dl)
+                        {
+                            const int kp = MIN(k+1,p->knoz-1);
+                            const int km = MAX(k-1,0);
+                            const double dfs = (kp>km) ? (d->FB[IDX(i,j,kp)] - d->FB[IDX(i,j,km)])/(p->ZP[kp+marge] - p->ZP[km+marge]) : 0.0;
+                            double gx = (d->FB[Ip1JK] - d->FB[Im1JK])/(p->DXP[IP] + p->DXP[IM1]) + 0.5*(p->sigx[FIJK]+p->sigx[FIJKp1])*dfs;
+                            double gy = (p->j_dir==0) ? 0.0 : (d->FB[IJp1K] - d->FB[IJm1K])/(p->DYP[JP] + p->DYP[JM1]) + 0.5*(p->sigy[FIJK]+p->sigy[FIJKp1])*dfs;
+                            double gz = dfs/WL(i,j);
+                            const double gn = sqrt(gx*gx + gy*gy + gz*gz);
+                            
+                            if(gn>0.7)
+                            {
+                                gx /= gn; gy /= gn; gz /= gn;
+                                
+                                const double dp = mprobe2*dl;
+                                const double xq = p->XP[IP] + (dist+dp)*gx;
+                                const double yq = p->YP[JP] + (dist+dp)*gy;
+                                const double zq = zcc(i,j,k) + (dist+dp)*gz;
+                                
+                                int i0 = i;
+                                while(i0<i+6 && p->XP[i0+1+marge]<=xq) ++i0;
+                                while(i0>i-6 && p->XP[i0+marge]>xq) --i0;
+                                
+                                int j0 = j;
+                                if(p->j_dir==1)
+                                {
+                                while(j0<j+6 && p->YP[j0+1+marge]<=yq) ++j0;
+                                while(j0>j-6 && p->YP[j0+marge]>yq) --j0;
+                                }
+                                
+                                const bool ok = i0>=-2 && i0+1<=p->knox+1 && (p->j_dir==0 || (j0>=-2 && j0+1<=p->knoy+1));
+                                
+                                if(ok)
+                                {
+                                    const double wx = MIN(MAX((xq - p->XP[i0+marge])/(p->XP[i0+1+marge] - p->XP[i0+marge]),0.0),1.0);
+                                    const double wy = (p->j_dir==0) ? 0.0 : MIN(MAX((yq - p->YP[j0+marge])/(p->YP[j0+1+marge] - p->YP[j0+marge]),0.0),1.0);
+                                    
+                                    auto at = [&](double *F)
+                                    {
+                                        double v = (1.0-wx)*(1.0-wy)*colval(F,i0,j0,zq) + wx*(1.0-wy)*colval(F,i0+1,j0,zq);
+                                        
+                                        if(p->j_dir==1)
+                                        v += (1.0-wx)*wy*colval(F,i0,j0+1,zq) + wx*wy*colval(F,i0+1,j0+1,zq);
+                                        
+                                        return v;
+                                    };
+                                    
+                                    // the probe must lie in the water (thin ends, concave corners)
+                                    if(at(d->FB)>0.5*dp)
+                                    {
+                                    const double up = at(U);
+                                    const double vp = at(V);
+                                    const double wp = at(W);
+                                    const double un = up*gx + vp*gy + wp*gz;
+                                    const double fac = 1.0 + dist/dp;
+                                    
+                                    t1 = up - fac*un*gx;
+                                    t2 = vp - fac*un*gy;
+                                    t3 = wp - fac*un*gz;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    
+                    VM1[IJK] += vrel*(t1 - VM1[IJK]);
+                    VM2[IJK] += vrel*(t2 - VM2[IJK]);
+                    VM3[IJK] += vrel*(t3 - VM3[IJK]);
+                }
+                
+                pgc->start4V(p,VM1.data(),1);
+                pgc->start4V(p,VM2.data(),1);
+                pgc->start4V(p,VM3.data(),1);
+            }
+        }
+        
+        auto Vin = [&](int ii, int kk)
+        {
+            if(!vmatch)
+            return fk*nhflow_srchull::stream();
+            
+            const int ig = MIN(MAX(ii+p->origin_i,0),nxg-1);
+            
+            return Vst[ig*nzl + MIN(MAX(kk,0),nzl-1)];
+        };
+        
+        LOOP
+        {
+            if(tforce)
+            {
+                const double psf = psiAt(i,j,k);
+                const double fbv = -d->FB[IJK];
+                double chi = fbv>psf ? 1.0 : (fbv<-psf ? 0.0 : 0.5*(1.0 + fbv/psf + (1.0/PI)*sin(PI*fbv/psf)));
+                
+                d->FHB[IJK] = MIN(d->FHB[IJK] + chi, 1.0);
+                
+                if(tfmode==2)
+                chi = fbv>psf ? 1.0 : 0.0;
+                
+                // any uniform velocity V inside gives no flow through the hull if the sources are -V n_x: (1 + k1) Us for
+                // both (NHF_SRC_K). k1 then only sets the slip between inside and outside, not the boundary condition
+                FX[IJK] += chi*((vmir ? VM1[IJK] : Vin(i,k)) - U[IJK])/(alpha[iter]*p->dt);
+                FY[IJK] += chi*((vmir ? VM2[IJK] : 0.0) - V[IJK])/(alpha[iter]*p->dt);
+                FZ[IJK] += chi*((vmir ? VM3[IJK] : 0.0) - W[IJK])/(alpha[iter]*p->dt);
+                
+                // force of the forcing on the water (momentum budget)
+                Ffx += p->W1*chi*(Vin(i,k) - U[IJK])/(alpha[iter]*p->dt)*p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*WL(i,j);
+                Ffz += p->W1*chi*(0.0 - W[IJK])/(alpha[iter]*p->dt)*p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*WL(i,j);
+            }
+            
+            if(keep)
+            {
+                const double qv = nhflow_srchull::q[IJK];
+                const double dV = p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*WL(i,j);
+                Fx -= p->W1*qv*((1.0-nhflow_srchull::qv())*U[IJK] + nhflow_srchull::qv()*fk*nhflow_srchull::stream())*dV;
+                Qp += MAX(qv,0.0)*dV;
+                Qn += MIN(qv,0.0)*dV;
+                continue;
+            }
+            
+            const double psi = (p->j_dir==0) ? p->A526*p->DXN[IP] : p->A526*0.5*(p->DXN[IP] + p->DYN[JP]);
+            
+            auto Hs = [&](double fb)
+            {
+                if(-fb>psi)
+                return 1.0;
+                
+                if(-fb<-psi)
+                return 0.0;
+                
+                return 0.5*(1.0 + (-fb)/psi + (1.0/PI)*sin((PI*(-fb))/psi));
+            };
+            
+            // sigma = -Us n_x on the hull (n outward) and grad(chi) = -n delta: q = +Us d(chi)/dx, sources at the bow
+            // d(chi)/dx at constant z: the neighbours i-1, i+1 of a sigma layer are at other heights where the free
+            // surface is inclined, d/dx|z = d/dx|sigma + sig_x d/dsigma (as the normal of the direct forcing). Without
+            // the metric term the hull bottom gets sources Us d(chi)/dz times the slope of the layer: on Wigley the
+            // sources and the sinks both grew by 17 % while the waves developed (0.1123 -> 0.132 m^3/s), on KCS by 20 %.
+            // NHF_SRC_NOMETRIC=1: without it (all runs before 18 Nov 15:20)
+            const double dcdx = aniso ?
+                                (chiAt(i+1,j,k) - chiAt(i-1,j,k))/(p->DXP[IP] + p->DXP[IM1])
+                              + (nometric ? 0.0 : 0.5*(p->sigx[FIJK]+p->sigx[FIJKp1])*(chiAt(i,j,MIN(k+1,p->knoz-1)) - chiAt(i,j,MAX(k-1,0)))/(p->DZP[KP] + p->DZP[KM1]))
+                              :
+                                (Hs(d->FB[Ip1JK]) - Hs(d->FB[Im1JK]))/(p->DXP[IP] + p->DXP[IM1])
+                              + (nometric ? 0.0 : 0.5*(p->sigx[FIJK]+p->sigx[FIJKp1])*(Hs(d->FB[IJKp1]) - Hs(d->FB[IJKm1]))/(p->DZP[KP] + p->DZP[KM1]));
+            double qv = ramp*fk*Us*dcdx;
+            
+            // NHF_SRC_VMATCH: q = d(chi V_x)/dx at constant z (fixed hull; a moving one: - u_body d(chi)/dx)
+            if(vmatch)
+            {
+                const double cip = aniso ? chiAt(i+1,j,k) : Hs(d->FB[Ip1JK]);
+                const double cim = aniso ? chiAt(i-1,j,k) : Hs(d->FB[Im1JK]);
+                const double ckp = aniso ? chiAt(i,j,MIN(k+1,p->knoz-1)) : Hs(d->FB[IJKp1]);
+                const double ckm = aniso ? chiAt(i,j,MAX(k-1,0)) : Hs(d->FB[IJKm1]);
+                
+                const double dcv = (cip*Vin(i+1,k) - cim*Vin(i-1,k))/(p->DXP[IP] + p->DXP[IM1])
+                                 + (nometric ? 0.0 : 0.5*(p->sigx[FIJK]+p->sigx[FIJKp1])*(ckp*Vin(i,k+1) - ckm*Vin(i,k-1))/(p->DZP[KP] + p->DZP[KM1]));
+                
+                qv = ramp*(dcv - u_fb(0)*dcdx);
+            }
+            
+            // NHF_SRC_VMATCH=2: q = div(chi V) at constant z
+            if(vmir)
+            {
+                const int kp = MIN(k+1,p->knoz-1);
+                const int km = MAX(k-1,0);
+                const double dsg = (kp>km) ? (p->ZP[kp+marge] - p->ZP[km+marge]) : 1.0;
+                
+                auto cv = [&](int ii, int jj, int kk, std::vector<double> &F)
+                {
+                    return chiAt(ii,jj,kk)*F[IDX(ii,jj,kk)];
+                };
+                
+                const double d1s = (cv(i,j,kp,VM1) - cv(i,j,km,VM1))/dsg;
+                const double d2s = (cv(i,j,kp,VM2) - cv(i,j,km,VM2))/dsg;
+                const double d3s = (cv(i,j,kp,VM3) - cv(i,j,km,VM3))/dsg;
+                
+                double dv = (cv(i+1,j,k,VM1) - cv(i-1,j,k,VM1))/(p->DXP[IP] + p->DXP[IM1]) + 0.5*(p->sigx[FIJK]+p->sigx[FIJKp1])*d1s
+                          + d3s/WL(i,j);
+                
+                if(p->j_dir==1)
+                dv += (cv(i,j+1,k,VM2) - cv(i,j-1,k,VM2))/(p->DYP[JP] + p->DYP[JM1]) + 0.5*(p->sigy[FIJK]+p->sigy[FIJKp1])*d2s;
+                
+                qv = ramp*dv;
+            }
+            
+            // NHF_SRC_WL (factor, 1: on): the water line term of the Neumann-Kelvin representation of a surface piercing
+            // hull, 4 pi phi = int_S sigma G dS - (Us^2/g) oint_WL sigma n_x G dy (Brard 1972). The sources alone are a
+            // hull with a free surface inside (the water flows through it); the line sources -(Us^2/g) sigma n_x t_y on
+            // the water line (sinks at the bow, sources at the stern) make up for it in the linear theory (Wigley,
+            // Fr 0.267: C_w 1.14e-3 -> 0.83e-3, experiment 0.85e-3; Cases/WIGLEY/nk_line.py). With sigma = -Us n_x,
+            // t_y = n_x/|n_h| and grad(chi) = -n delta the flux per horizontal area of the column is
+            //      -(Us^3/g) (d(chi)/dx)^3 / |grad(chi)|^2        in the top layer
+            if(wlf!=0.0 && k==p->knoz-1)
+            {
+                const double cy = (p->j_dir==0) ? 0.0 : (Hs(d->FB[IJp1K]) - Hs(d->FB[IJm1K]))/(p->DYP[JP] + p->DYP[JM1]);
+                const double cz = (Hs(d->FB[IJK]) - Hs(d->FB[IJKm1]))/(p->DZP[KM1]*WL(i,j));
+                const double g2 = dcdx*dcdx + cy*cy + cz*cz;
+                
+                if(g2>1.0e-12)
+                qv -= wlf*fk*(Us*Us*Us/fabs(p->W22))*dcdx*dcdx*dcdx/g2/(p->DZN[KP]*WL(i,j));
+            }
+            
+            // NHF_SRC_FB: the strength from the flow itself. Across the sheet the normal velocity jumps by sigma,
+            // u_n(d) = u_e,n - sigma chi(d); no flow through the hull, u_e,n = 0, needs sigma = -u_n/chi. Relaxed
+            // (stable for every chi, error halved per update for a flat sheet), with q = sigma |grad chi| and
+            // u_n |grad chi| = -u.grad(chi):
+            //      q <- (1 - chi) q + (u - u_body).grad(chi)
+            // First update from q = 0: Hogner, q = u.grad(chi). Fixed point: div u = u.grad(ln chi), the water
+            // outside does not cross the hull whatever the flow inside; no k1.
+            if(fbk)
+            {
+                const double chi = Hs(d->FB[IJK]);
+                double uf,vf,wf;
+                target_velocity(p,false,uf,vf,wf);
+                
+                const double dcdy = (p->j_dir==0) ? 0.0 : (Hs(d->FB[IJp1K]) - Hs(d->FB[IJm1K]))/(p->DYP[JP] + p->DYP[JM1]);
+                
+                double dcdz;
+                if(k==0)
+                dcdz = (Hs(d->FB[IJKp1]) - chi)/(p->DZP[KP]*WL(i,j));
+                else
+                if(k==p->knoz-1)
+                dcdz = (chi - Hs(d->FB[IJKm1]))/(p->DZP[KM1]*WL(i,j));
+                else
+                dcdz = (Hs(d->FB[IJKp1]) - Hs(d->FB[IJKm1]))/((p->DZP[KP] + p->DZP[KM1])*WL(i,j));
+                
+                // under-relaxed (NHF_SRC_FBW, default 0.1): with the full update the cells at the outer edge of the band
+                // (chi -> 0) are neutrally stable and the strength grows on the collocated grid (2D ellipse: in 0.2 s)
+                const double qn = (1.0-chi)*nhflow_srchull::q[IJK] + (U[IJK]-uf)*dcdx + (V[IJK]-vf)*dcdy + fbz*(W[IJK]-wf)*dcdz;
+                
+                qv = first ? fk*Us*dcdx : (1.0-fbw)*nhflow_srchull::q[IJK] + fbw*qn;
+            }
+            
+            if(p->wet[IJ]!=1)
+            qv = 0.0;
+            
+            nhflow_srchull::q[IJK] = qv;
+            
+            const double dV = p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*WL(i,j);
+            
+            Fx -= p->W1*qv*((1.0-nhflow_srchull::qv())*U[IJK] + nhflow_srchull::qv()*fk*nhflow_srchull::stream())*dV;
+            Qp += MAX(qv,0.0)*dV;
+            Qn += MIN(qv,0.0)*dV;
+        }
+        
+        first = false;
+        
+        // NHF_SRC_DUMP: the sources of the first stage as text (x y z q dV), one file per rank, for checks
+        static bool dumped = getenv("NHF_SRC_DUMP")==nullptr;
+        
+        if(!dumped)
+        {
+            dumped = true;
+            
+            char name[200];
+            snprintf(name,200,"./REEF3D_NHFLOW_6DOF/REEF3D_srchull_q_%i.dat",p->mpirank);
+            std::ofstream dump(name);
+            dump.precision(10);
+            
+            LOOP
+            if(fabs(nhflow_srchull::q[IJK])>1.0e-12)
+            dump<<p->pos_x()<<" "<<p->pos_y()<<" "<<p->pos_z()<<" "<<nhflow_srchull::q[IJK]<<" "<<p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*WL(i,j)<<" "<<d->FB[IJK]<<endl;
+        }
+        
+        {
+            Fx = pgc->globalsum(Fx);
+            Qp = pgc->globalsum(Qp);
+            Qn = pgc->globalsum(Qn);
+            Ffx = pgc->globalsum(Ffx);
+            Ffz = pgc->globalsum(Ffz);
+            
+            // momentum budget: the water gets the forcing, the momentum of the source water (+q u, -Fx here) and the
+            // momentum of the level reset of the pierced columns (X 13 1). In a steady flow the opposite of their sum
+            // is the momentum the flow has lost at the hull: the resistance R_x, whatever happens to the waves further
+            // away. R_z: the vertical force on the hull without the buoyancy at rest is not in this budget.
+            // The kernel runs twice per stage, for the forcing before and the reforcing after the pressure projection:
+            // both forcings count, the source and the level terms once per stage. Every stage counts with its weight in
+            // the step: the forcing F_s adds alpha_s dt F_s to the output of stage s, of which the step keeps
+            // 1/2, 1/2 (SSP-RK2) or 1/6, 1/6, 2/3 (SSP-RK3) of dt F_s. (The first stage alone is not the mean: forcing
+            // and level reset of the two stages trade places from step to step, Wigley with X 13 1.)
+            // One line per time step, written when the next step begins.
+            // (x13_adt is set only on the ranks with pierced columns: alpha dt of the stage here)
+            const double Fx13 = pgc->globalsum(nhflow_srchull::x13_mx)/(alpha[iter]*p->dt);
+            const double Q13 = pgc->globalsum(nhflow_srchull::x13_dv)/(alpha[iter]*p->dt);
+            
+            static long step_last = -1;
+            static int stage_last = -1;
+            static double t_acc=0.0, Fx_acc=0.0, Qp_acc=0.0, Qn_acc=0.0, Ff_acc=0.0, F13_acc=0.0, Q13_acc=0.0, Ffs_acc[3]={0.0,0.0,0.0};
+            const bool newstep = (long(p->count)!=step_last);
+            const bool newstage = newstep || iter!=stage_last;
+            const bool write = newstep && step_last>=0;
+            const double t_w=t_acc, Fx_w=Fx_acc, Qp_w=Qp_acc, Qn_w=Qn_acc, Ff_w=Ff_acc, F13_w=F13_acc, Q13_w=Q13_acc;
+            const double Ffs_w[3]={Ffs_acc[0],Ffs_acc[1],Ffs_acc[2]};
+            
+            const double wrk2[3]={0.5,0.5,0.0};
+            const double wrk3[3]={1.0/6.0,1.0/6.0,2.0/3.0};
+            const double ws = (p->A510==3) ? wrk3[MIN(iter,2)] : wrk2[MIN(iter,2)];
+            
+            if(newstep)
+            {
+                step_last = long(p->count);
+                t_acc = p->simtime; Qp_acc = Qp; Qn_acc = Qn; Fx_acc = 0.0; Ff_acc = 0.0; F13_acc = 0.0; Q13_acc = 0.0;
+                Ffs_acc[0] = Ffs_acc[1] = Ffs_acc[2] = 0.0;
+            }
+            
+            if(newstage)
+            {
+                stage_last = iter;
+                Fx_acc += ws*Fx;
+                F13_acc += ws*Fx13;
+                Q13_acc += ws*Q13;
+            }
+            
+            Ff_acc += ws*Ffx;
+            Ffs_acc[MIN(iter,2)] += Ffx;
+            
+            const double Rx = -(Ff_w - Fx_w + F13_w);
+            
+            if(p->mpirank==0)
+            {
+                static std::ofstream out;
+                
+                if(!out.is_open())
+                {
+                    out.open("./REEF3D_NHFLOW_6DOF/REEF3D_srchull.dat");
+                    out<<"time \t Fx_Lagally \t Q_sources \t Q_sinks \t F_forcing_x \t F_level_x \t R_x \t F_forcing_stage1 \t F_forcing_stage2 \t Q_level"<<endl;
+                }
+                
+                if(write)
+                out<<t_w<<" \t "<<Fx_w<<" \t "<<Qp_w<<" \t "<<Qn_w<<" \t "<<Ff_w<<" \t "<<F13_w<<" \t "<<Rx<<" \t "<<Ffs_w[0]<<" \t "<<Ffs_w[1]<<" \t "<<Q13_w<<endl;
+            }
+        }
+        
+        return;
+    }
     
     // X 15 11: direct forcing with cell and face fractions and the body in the pressure projection
     // (the wavemaker, X 10 4, with the forcing of X 15 4)
@@ -542,7 +1365,26 @@ void sixdof_obj_nhflow::forcing_kernel_fraction(lexer *p, fdm_nhf *d, ghostcell 
         
         const double tau = 2.0*kap - 1.0;
         const double fac = 1.0/(alpha[iter]*p->dt*CPORNH);
-        
+
+        // EXPERIMENT (ahmet_dev_ship, environment variable NHF_SLIP, not an input parameter yet): the cut cells
+        // with their centre inside the hull (0.5 < kap < 1) hold water that slides along the hull. Forcing all
+        // components towards the body velocity takes its tangential momentum (a no-slip wall for an inviscid
+        // flow: a wake behind the body). 1: only the normal component is forced, 2: the cut cells are not forced
+        static const int slip = getenv("NHF_SLIP")!=nullptr ? atoi(getenv("NHF_SLIP")) : 0;
+
+        if(slip>=1 && kap<1.0)
+        {
+            if(slip==2)
+            continue;
+
+            const double dn = du*ex + dv*ey + dw*ez;
+
+            FX[IJK] += fac*tau*dn*ex;
+            FY[IJK] += fac*tau*dn*ey;
+            FZ[IJK] += fac*tau*dn*ez;
+            continue;
+        }
+
         FX[IJK] += fac*tau*du;
         FY[IJK] += fac*tau*dv;
         FZ[IJK] += fac*tau*dw;

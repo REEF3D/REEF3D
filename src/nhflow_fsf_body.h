@@ -73,6 +73,7 @@ private:
     vector<int> fi,fj;              // interior columns with Hb > 0 on this rank
     vector<int> ri,rj;              // free columns around the footprint (volume of the transition columns)
     double aring;                   // their area on this rank
+    double alpha_last;              // alpha of the stage of the last level() (momentum budget, nhflow_srchull.h)
     double dVcomp;                  // volume returned to the ring, summed over the run (global)
     ioflow *pflow_ = nullptr;
 

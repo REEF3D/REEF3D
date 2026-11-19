@@ -20,6 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#include"nhflow_srchull.h"
 #include"nhflow_sigma.h"
 #include"lexer.h"
 #include"nhflow_curv.h"
@@ -49,7 +50,10 @@ void nhflow_sigma::omega_update(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL,
                             
                         - p->DZN[KP]*(d->detadt(i,j) 
                             
-                        + (d->FEx[IJK] - d->FEx[Im1JK])/p->DXN[IP]  + (d->FEy[IJK] - d->FEy[IJm1K])/p->DYN[JP]*p->y_dir);
+                        + (d->FEx[IJK] - d->FEx[Im1JK])/p->DXN[IP]  + (d->FEy[IJK] - d->FEy[IJm1K])/p->DYN[JP]*p->y_dir)
+                        
+                        // EXPERIMENT NHF_SRC: the source of the layer (nhflow_srchull.h)
+                        + ((nhflow_srchull::opt()&2)==0 ? p->DZN[KP]*nhflow_srchull::at(IJK)*WL(i,j) : 0.0);
     }
     
     // VRANS (B 200 1, B 221 1): the sigma faces move with the free surface (z_t = sigma D_t) through the

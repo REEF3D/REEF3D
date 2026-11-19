@@ -21,6 +21,7 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"nhflow_fsf_body.h"
+#include"nhflow_srchull.h"
 #include"reefckpt.h"
 #include"lexer.h"
 #include"fdm_nhf.h"
@@ -128,12 +129,14 @@ void nhflow_fsf_body::level(lexer *p, fdm_nhf *d, ghostcell *pgc, sixdof *p6dof,
     }
 
     pending = false;
+    nhflow_srchull::x13_dv = 0.0;
 
     if(mode==0)
     return;
 
     starttime = pgc->timer();
     pflow_ = pflow;
+    alpha_last = alpha;
 
     // distance of the top cell centre to the hull at the pose of this stage (the body is advanced
     // first); without it (nets, membranes, ship loads) the level set of the last ray cast
@@ -278,6 +281,9 @@ void nhflow_fsf_body::set_level(lexer *p, fdm_nhf *d, slice &WL, double e1, doub
 
     d->eta(i,j) = e1;
     WL(i,j) = wl1;
+    
+    // volume of the level reset of this stage (budget of the hull representation, nhflow_srchull.h)
+    nhflow_srchull::x13_dv += (e1 - e0)*p->DXN[IP]*p->DYN[JP];
 
     ratio(i,j) = (wl0>p->A544 && wl1>p->A544) ? wl1/wl0 : 1.0;
 
@@ -348,6 +354,12 @@ void nhflow_fsf_body::solve(lexer *p, fdm_nhf *d, ghostcell *pgc)
     const double N = (p->j_dir==1) ? sqrt(double(nfoot)) : double(nfoot);
     omega = 2.0/(1.0 + sin(PI/(N + 1.0)));
     omega = MIN(MAX(omega,1.0),1.9);
+
+    // footprint on several ranks: the halo values are those of the last sweep (Jacobi across the rank faces), and the
+    // over-relaxed sweeps then diverge for a long thin footprint (Wigley hull, 75 x 5 columns on 3 ranks, omega 1.73:
+    // 1e22 after 500 sweeps, emergency stop in the first step). Gauss-Seidel without over-relaxation converges.
+    if(nrank>1)
+    omega = 1.0;
 
     auto add = [&](int ii, int jj, double w, double &s, double &ws)
     {
@@ -425,8 +437,12 @@ void nhflow_fsf_body::solve(lexer *p, fdm_nhf *d, ghostcell *pgc)
 void nhflow_fsf_body::momentum(lexer *p, double *UH, double *VH, double *WH)
 {
     // velocities of the columns whose depth level() changed (footprint and ring) stay as they are
+    nhflow_srchull::x13_mx = nhflow_srchull::x13_mz = 0.0;
+
     if(mode==0 || !pending)
     return;
+
+    double dmx=0.0, dmz=0.0;
 
     auto scale = [&](const vector<int> &ci, const vector<int> &cj)
     {
@@ -442,6 +458,10 @@ void nhflow_fsf_body::momentum(lexer *p, double *UH, double *VH, double *WH)
             if(r!=1.0)
             KLOOP
             {
+            // momentum budget of the hull representation (nhflow_srchull.h): the water added with the level carries momentum
+            dmx += p->W1*UH[IJK]*(r - 1.0)*p->DXN[IP]*p->DYN[JP]*p->DZN[KP];
+            dmz += p->W1*WH[IJK]*(r - 1.0)*p->DXN[IP]*p->DYN[JP]*p->DZN[KP];
+            
             UH[IJK] *= r;
             VH[IJK] *= r;
             WH[IJK] *= r;
@@ -451,6 +471,10 @@ void nhflow_fsf_body::momentum(lexer *p, double *UH, double *VH, double *WH)
 
     scale(fi,fj);
     scale(ri,rj);
+
+    nhflow_srchull::x13_mx = dmx;
+    nhflow_srchull::x13_mz = dmz;
+    nhflow_srchull::x13_adt = alpha_last*p->dt;
 
     pending = false;
 }

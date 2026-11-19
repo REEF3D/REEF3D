@@ -20,6 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#include"nhflow_srchull.h"
 #include"nhflow_pjm_corr.h"
 #include"lexer.h"
 #include"nhflow_curv.h"
@@ -269,6 +270,10 @@ void nhflow_pjm_corr::rhs(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, doubl
 
                                 + dWdz)/(alpha*p->dt);
         }
+        
+        // EXPERIMENT NHF_SRC: div u = q (nhflow_srchull.h)
+        if(nhflow_srchull::active())
+        d->rhsvec.V[n] += ((1.0-fac)*nhflow_srchull::at(IJK) + (bednode ? 0.0 : fac*nhflow_srchull::at(IJKm1)))/(alpha*p->dt);
         }
                             
     ++n;

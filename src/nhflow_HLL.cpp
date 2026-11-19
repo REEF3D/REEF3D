@@ -33,7 +33,10 @@ Author: Hans Bihs
 #include"nhflow_signal_speed.h"
 #include"vrans.h"
 #include"nhflow_flux_face.h"
+#include"nhflow_srchull.h"
 #include"nhflow_curv.h"
+#include<vector>
+#include<cstdlib>
 
 nhflow_HLL::nhflow_HLL (lexer *p, ghostcell *ppgc, patchBC_interface *ppBC) 
 {
@@ -141,9 +144,47 @@ inline double mirror_flux(lexer *p, int kind, bool fluid_left, double Ff, double
 }
 
 template<class FL, class FR, class DQ>
-inline void hll_sweep_x(lexer *p, fdm_nhf *d, double *F, FL fl, FR fr, DQ dq, const double *fb=nullptr, int kind=-1, const double *phic=nullptr)
+inline void hll_sweep_x(lexer *p, fdm_nhf *d, double *F, FL fl, FR fr, DQ dq_in, const double *fb=nullptr, int kind=-1, const double *phic=nullptr, int split=0)
 {
     int i,j,k;
+    
+    // EXPERIMENT NHF_HLLD = factor on the jump term of the HLL flux (default 1). The jump term is a dissipation with the
+    // celerity sqrt(g D) of the whole depth; deep-water waves (k D >> 1) travel much slower, and at 18 cells per wave
+    // length they lose 2 % of their amplitude per wave length (Cases/forcing_tests, ls_*).
+    static const double hlld = getenv("NHF_HLLD")!=nullptr ? atof(getenv("NHF_HLLD")) : 1.0;
+    
+    // EXPERIMENT (ahmet_dev_ship, environment variable NHF_BSPLIT = theta_min >= 0, not an input parameter yet):
+    // the jump term of the HLL flux of the normal momentum, SL SR/(SR-SL) dq ~ -c/2 dq with c = sqrt(g D) of the whole
+    // water column, acts in every layer: a viscosity c dx/2 on the layer velocities wherever the reconstruction is
+    // not smooth (next to a body), although only the depth mean of the flow travels with c. The jump is split into
+    // its depth mean (kept, the gravity wave) and the deviation of the layer from it, which is only advected and is
+    // scaled with theta = min(1, theta_min + |u|/c).
+    static const double thmin = getenv("NHF_BSPLIT")!=nullptr ? atof(getenv("NHF_BSPLIT")) : -1.0;
+    const bool bs = (split==1 && thmin>=0.0);
+    static std::vector<double> bar;
+    
+    if(bs)
+    {
+        const int marge = increment::marge;
+        
+        bar.assign(p->imax*p->jmax,0.0);
+        
+        ULOOP
+        bar[IJ] += dq_in(i,j,k)*p->DZN[KP];
+    }
+    
+    auto dq = [&](int i, int j, int k)
+    {
+        const double v = dq_in(i,j,k);
+        
+        if(!bs)
+        return v;
+        
+        const double c = MAX(0.5*(d->Sn[IJK] - d->Ss[IJK]),1.0e-10);
+        const double th = MIN(1.0, thmin + 0.5*fabs(d->Sn[IJK] + d->Ss[IJK])/c);
+        
+        return bar[IJ] + th*(v - bar[IJ]);
+    };
     
     // X 15 11: the faces of the body with their open fractions, F = b F_HLL + (1 - b) F_wall, the wall the
     // reflective wall of X 15 6 with the normal velocity of the body at the face (nhflow_bodyflux.h)
@@ -223,15 +264,46 @@ inline void hll_sweep_x(lexer *p, fdm_nhf *d, double *F, FL fl, FR fr, DQ dq, co
         double denom = SR-SL;
         denom = fabs(denom)>1.0e-10?denom:1.0e10;
         
-        F[IJK] = (SR*fl(i,j,k) - SL*fr(i,j,k) + SR*SL*dq(i,j,k))/denom;
+        F[IJK] = (SR*fl(i,j,k) - SL*fr(i,j,k) + hlld*SR*SL*dq(i,j,k))/denom;
         }
     }
 }
 
 template<class FL, class FR, class DQ>
-inline void hll_sweep_y(lexer *p, fdm_nhf *d, double *F, FL fl, FR fr, DQ dq, const double *fb=nullptr, int kind=-1, const double *phic=nullptr)
+inline void hll_sweep_y(lexer *p, fdm_nhf *d, double *F, FL fl, FR fr, DQ dq_in, const double *fb=nullptr, int kind=-1, const double *phic=nullptr, int split=0)
 {
     int i,j,k;
+    
+    // EXPERIMENT NHF_HLLD: as hll_sweep_x
+    static const double hlld = getenv("NHF_HLLD")!=nullptr ? atof(getenv("NHF_HLLD")) : 1.0;
+    
+    // EXPERIMENT NHF_BSPLIT: as hll_sweep_x
+    static const double thmin = getenv("NHF_BSPLIT")!=nullptr ? atof(getenv("NHF_BSPLIT")) : -1.0;
+    const bool bs = (split==1 && thmin>=0.0);
+    static std::vector<double> bar;
+    
+    if(bs)
+    {
+        const int marge = increment::marge;
+        
+        bar.assign(p->imax*p->jmax,0.0);
+        
+        VLOOP
+        bar[IJ] += dq_in(i,j,k)*p->DZN[KP];
+    }
+    
+    auto dq = [&](int i, int j, int k)
+    {
+        const double v = dq_in(i,j,k);
+        
+        if(!bs)
+        return v;
+        
+        const double c = MAX(0.5*(d->Sw[IJK] - d->Se[IJK]),1.0e-10);
+        const double th = MIN(1.0, thmin + 0.5*fabs(d->Sw[IJK] + d->Se[IJK])/c);
+        
+        return bar[IJ] + th*(v - bar[IJ]);
+    };
     
     // X 15 11: as hll_sweep_x
     const double *ap = (fb!=nullptr && kind>=0 && nhflow_bodyflux::active(p,d)) ? d->MBY : nullptr;
@@ -304,7 +376,7 @@ inline void hll_sweep_y(lexer *p, fdm_nhf *d, double *F, FL fl, FR fr, DQ dq, co
         double denom = SR-SL;
         denom = fabs(denom)>1.0e-10?denom:1.0e10;
         
-        F[IJK] = (SR*fl(i,j,k) - SL*fr(i,j,k) + SR*SL*dq(i,j,k))/denom;
+        F[IJK] = (SR*fl(i,j,k) - SL*fr(i,j,k) + hlld*SR*SL*dq(i,j,k))/denom;
         }
     }
 }
@@ -494,7 +566,7 @@ void nhflow_HLL::aij_U(lexer *&p,fdm_nhf *&d, int ipol)
         hll_sweep_x(p, d, d->Fx,
                     [p,d](int i, int j, int k){return nhflow_face::U_s(p,d,i,j,k);},
                     [p,d](int i, int j, int k){return nhflow_face::U_n(p,d,i,j,k);},
-                    [p,d](int i, int j, int k){return (d->UHn[IJK] - d->UHs[IJK])*nhflow_face::jinv_x(p,d,i,j,k);}, fbm, kn);
+                    [p,d](int i, int j, int k){return (d->UHn[IJK] - d->UHs[IJK])*nhflow_face::jinv_x(p,d,i,j,k);}, fbm, kn, nullptr, 1);
         
         if(p->j_dir==1 && hllc==1)
         hllc_sweep_y(p, d, d->Fy,
@@ -537,6 +609,12 @@ void nhflow_HLL::aij_U(lexer *&p,fdm_nhf *&d, int ipol)
                 + (d->Fy[IJK] - d->Fy[IJm1K])/p->DYN[JP]*p->y_dir
                 + (d->Fz[IJK] - d->Fz[IJKm1])/p->DZN[KP]);
     }
+    
+    // EXPERIMENT NHF_SRC: the water of the sources enters with the velocity of the cell (nhflow_srchull.h)
+    if(nhflow_srchull::active() && (nhflow_srchull::opt()&1)==0)
+    LOOP
+    WETDRY
+    d->F[IJK] += nhflow_srchull::at(IJK)*d->WL(i,j)*((1.0-nhflow_srchull::qv())*d->U[IJK] + nhflow_srchull::qv()*(1.0+nhflow_srchull::k1())*nhflow_srchull::stream());
     
     // VRANS (B 221 2): grid-motion part of the vertical flux not scaled by the inertia factor
     if(p->B200==1 && p->B221>=2)
@@ -588,7 +666,7 @@ void nhflow_HLL::aij_V(lexer *&p, fdm_nhf *&d, int ipol)
         hll_sweep_y(p, d, d->Fy,
                     [p,d](int i, int j, int k){return nhflow_face::V_e(p,d,i,j,k);},
                     [p,d](int i, int j, int k){return nhflow_face::V_w(p,d,i,j,k);},
-                    [p,d](int i, int j, int k){return (d->VHw[IJK] - d->VHe[IJK])*nhflow_face::jinv_y(p,d,i,j,k);}, fbm, kn);
+                    [p,d](int i, int j, int k){return (d->VHw[IJK] - d->VHe[IJK])*nhflow_face::jinv_y(p,d,i,j,k);}, fbm, kn, nullptr, 1);
     }
     
     nhflow_face::zflux(p,d,d->Vb,d->Vt);
@@ -617,6 +695,12 @@ void nhflow_HLL::aij_V(lexer *&p, fdm_nhf *&d, int ipol)
                 + (d->Fy[IJK] - d->Fy[IJm1K])/p->DYN[JP]*p->y_dir
                 + (d->Fz[IJK] - d->Fz[IJKm1])/p->DZN[KP]);
     }
+    
+    // EXPERIMENT NHF_SRC: the water of the sources enters with the velocity of the cell (nhflow_srchull.h)
+    if(nhflow_srchull::active() && (nhflow_srchull::opt()&1)==0)
+    LOOP
+    WETDRY
+    d->G[IJK] += nhflow_srchull::at(IJK)*d->WL(i,j)*(1.0-nhflow_srchull::qv())*d->V[IJK];
     
     // VRANS (B 221 2): grid-motion part of the vertical flux not scaled by the inertia factor
     if(p->B200==1 && p->B221>=2)
@@ -707,6 +791,12 @@ void nhflow_HLL::aij_W(lexer *&p,fdm_nhf *&d, int ipol)
                 + (d->Fy[IJK] - d->Fy[IJm1K])/p->DYN[JP]*p->y_dir
                 + (d->Fz[IJK] - d->Fz[IJKm1])/p->DZN[KP]);
     }
+    
+    // EXPERIMENT NHF_SRC: the water of the sources enters with the velocity of the cell (nhflow_srchull.h)
+    if(nhflow_srchull::active() && (nhflow_srchull::opt()&1)==0)
+    LOOP
+    WETDRY
+    d->H[IJK] += nhflow_srchull::at(IJK)*d->WL(i,j)*(1.0-nhflow_srchull::qv())*d->W[IJK];
     
     // VRANS (B 221 2): grid-motion part of the vertical flux not scaled by the inertia factor
     if(p->B200==1 && p->B221>=2)
