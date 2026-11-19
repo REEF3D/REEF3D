@@ -93,9 +93,10 @@ void lexer::flagini()
 	makeflag(flag2);
 	makeflag(flag3);
 
+    // (the arrays have kmargin ghost cells in z: grid.h)
     for(i=-margin; i<knox+margin; ++i)
     for(j=-margin; j<knoy+margin; ++j)
-    for(k=-margin; k<knoz+margin; ++k)
+    for(k=-kmargin; k<knoz+kmargin; ++k)
     IO[(i-imin)*jmax*kmax + (j-jmin)*kmax + k-kmin] = 0;
 
     for(i=-margin; i<knox+margin; ++i)
@@ -104,7 +105,7 @@ void lexer::flagini()
 
     for(i=-margin; i<knox+margin; ++i)
     for(j=-margin; j<knoy+margin; ++j)
-    for(k=-margin; k<knoz+margin; ++k)
+    for(k=-kmargin; k<knoz+kmargin; ++k)
     DF[(i-imin)*jmax*kmax + (j-jmin)*kmax + k-kmin] = 1;
 
 	x_dir=y_dir=z_dir=1.0;
