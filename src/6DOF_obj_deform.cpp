@@ -86,7 +86,86 @@ void sixdof_obj::deform_setup(lexer *p, ghostcell *pgc)
         if(reefckpt_open(printfish,str,p->I45))
         printfish<<"time \t U_swim [m/s] \t U_lat [m/s] \t heading [deg] \t tail [m] \t ramp \t P_def [W] \t St \t Re"
                  <<(fish_->gait_on() ? " \t f [Hz] \t a \t b" : "")<<endl;
+        
+        snprintf(str,sizeof(str),"%s/REEF3D_6DOF_fish_beats_%i.dat",sixdof_output_dir(p),n6DOF);
+        
+        if(reefckpt_open(printbeats,str,p->I45))
+        printbeats<<"# the tail beats of body "<<n6DOF<<" (one line per beat, the phase of the undulation through a multiple of 2 pi):"
+                  <<" the mean frequency and amplitude factor of the gait, the speed along the axis and over the ground, the"
+                  <<" tail amplitude (half its excursion over the beat), the mean power of the deformation into the water, the"
+                  <<" energy of the beat, the cost of transport P/(m U), St = 2 f A/U, Re = U L/nu, Sw = 2 pi f A L/nu (U over"
+                  <<" the ground; m the mass of the body, in 2D per its thickness)"<<endl
+                  <<"beat \t t_start \t t_end \t f [Hz] \t a \t U_axis [m/s] \t U_ground [m/s] \t A_tail [m] \t P_def [W]"
+                  <<" \t E_beat [J] \t CoT [J/(kg m)] \t St \t Re \t Sw"<<endl;
     }
+}
+
+void sixdof_obj::fish_beats(lexer *p, double t)
+{
+    // every step on every rank (the state goes into the checkpoint); rank 0 writes a line at the end of a beat
+    if(fish_==nullptr || p->dt<=0.0)
+    return;
+    
+    const double k = std::floor(fish_->phase()/(2.0*PI));
+    double dxt, dlt;
+    fish_->displacement(fish_->xtail(),0.0,dxt,dlt);
+    
+    if(fb_on_ && k>fb_k_ && fb_T_>0.0)
+    {
+        // the beat ends: its means
+        const double T = fb_T_, f = fb_f_/T, a = fb_a_/T, Ux = fb_Ux_/T, P = fb_E_/T;
+        const double Ug = (c_ - fb_c0_).norm()/T, A = 0.5*(fb_tmax_ - fb_tmin_);
+        const double m = Mass_fb, L = fish_->length(), nu = p->W2;
+        const double cot = (m>0.0 && Ug>1.0e-12) ? P/(m*Ug) : 0.0;
+        const double St = (Ug>1.0e-12) ? 2.0*f*A/Ug : 0.0;
+        
+        if(p->mpirank==0 && printbeats.is_open())
+        printbeats<<fb_n_+1<<" \t "<<fb_t0_<<" \t "<<t<<" \t "<<f<<" \t "<<a<<" \t "<<Ux<<" \t "<<Ug<<" \t "<<A<<" \t "<<P
+                  <<" \t "<<fb_E_<<" \t "<<cot<<" \t "<<St<<" \t "<<Ug*L/nu<<" \t "<<2.0*PI*f*A*L/nu<<endl;
+        ++fb_n_;
+        fb_on_ = false;
+    }
+    
+    if(!fb_on_)
+    {
+        // a new beat: from this step
+        fb_on_ = true;
+        fb_k_ = k;
+        fb_t0_ = t;
+        fb_T_ = fb_E_ = fb_Ux_ = fb_f_ = fb_a_ = 0.0;
+        fb_tmin_ = fb_tmax_ = dlt;
+        fb_c0_ = c_;
+        return;
+    }
+    
+    // the step: the power of the deformation, the speed along the axis, the gait, the tail
+    const double dt = p->dt;
+    const Eigen::Vector3d U(p->ufbi, p->vfbi, p->wfbi);
+    fb_T_ += dt;
+    fb_E_ += dt*fish_power_;
+    fb_Ux_ += dt*U.dot(R_.col(0));
+    fb_f_ += dt*fish_->frequency();
+    fb_a_ += dt*fish_->amp_factor();
+    fb_tmin_ = std::min(fb_tmin_, dlt);
+    fb_tmax_ = std::max(fb_tmax_, dlt);
+}
+
+void sixdof_obj::fish_beats_state(std::vector<double> &s) const
+{
+    for(double x : {double(fb_n_), fb_on_ ? 1.0 : 0.0, fb_k_, fb_t0_, fb_T_, fb_E_, fb_Ux_, fb_f_, fb_a_, fb_tmin_, fb_tmax_,
+                    fb_c0_(0), fb_c0_(1), fb_c0_(2)})
+    s.push_back(x);
+}
+
+void sixdof_obj::fish_beats_restore(const std::vector<double> &s)
+{
+    if(s.size()<14)
+    return;
+    size_t j = 0;
+    fb_n_ = int(s[j++]); fb_on_ = (s[j++]!=0.0); fb_k_ = s[j++]; fb_t0_ = s[j++]; fb_T_ = s[j++]; fb_E_ = s[j++];
+    fb_Ux_ = s[j++]; fb_f_ = s[j++]; fb_a_ = s[j++]; fb_tmin_ = s[j++]; fb_tmax_ = s[j++];
+    for(int q=0; q<3; ++q)
+    fb_c0_(q) = s[j++];
 }
 
 void sixdof_obj::deform_time(double t)

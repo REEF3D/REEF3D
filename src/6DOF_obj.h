@@ -491,6 +491,19 @@ protected:
     void print_fish(lexer*, double);
     ofstream printfish;
     
+    // the tail beats of a deforming body (patch 0038): each step the energy the deformation puts into the water, the
+    // speed, the gait and the tail; at the end of a tail beat (the phase of the undulation through a multiple of 2 pi)
+    // one line of REEF3D_6DOF_fish_beats: the power, the cost of transport, the Strouhal and swimming numbers
+    void fish_beats(lexer*, double);
+    void fish_beats_state(std::vector<double>&) const;
+    void fish_beats_restore(const std::vector<double>&);
+    ofstream printbeats;
+    int fb_n_ = 0;                              // the beats written
+    bool fb_on_ = false;                        // a beat started
+    double fb_k_ = 0.0, fb_t0_ = 0.0, fb_T_ = 0.0, fb_E_ = 0.0, fb_Ux_ = 0.0, fb_f_ = 0.0, fb_a_ = 0.0;
+    double fb_tmin_ = 0.0, fb_tmax_ = 0.0;
+    Eigen::Vector3d fb_c0_ = Eigen::Vector3d::Zero();
+    
     // lateral line (X 194 id n d): probes a distance d outside the hull on both sides of n stations
     // along the body axis, as material points of the body frame (axial x, lateral l, third axis v),
     // and the station (s/L from the head) and side; the CFD coupling samples the fluid there
