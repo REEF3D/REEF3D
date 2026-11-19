@@ -563,6 +563,22 @@ private:
 
     double m0, printtime_amr;
     double tm[10];
+    // profile of a run (REEF3D_AMR_PROFILE=1 prints it with the timings, sflow_amr::profile_print):
+    // tp [s]: 0 the stages of level 0, 1 the fills (fill_run), 2 the wall conditions after them, 3 cache_stage,
+    //         4 the fill at the end of the step (part of tm[0]), 5 end of the step on the patches (rk_finish,
+    //         depth_update), 6 their face velocities, 7 print (mass, gauges, files)
+    // tlv [s]: the stages of the patches of a level
+    // cu: cells times stages of a level: 0 the boxes of the patches (level 0: its cells), 1 the cells a patch
+    //     computes (box and EXT cells), 2 its arrays with the ghost cells, 3 the filled cells copied from a
+    //     grid of the level, 4 prolonged, 5 received from another rank
+    static const int NPL = 8;
+    double tp[8], tlv[NPL], cu[NPL][6], t_l0 = 0.0;
+    long pstages = 0;
+    vector<vector<long>> fkc;       // [l][kind]: fill entries of the level (profile_layout, after a regrid)
+    void profile_layout();
+    void profile_count();
+    void profile_print(lexer*, ghostcell*);
+    void stage_begin_run(lexer*, fdm2D*, ghostcell*, int);
     int printcount_amr;
     ofstream logout;
     const double eps;
