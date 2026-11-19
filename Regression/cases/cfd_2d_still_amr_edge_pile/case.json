@@ -1,0 +1,15 @@
+{
+ "np": 1,
+ "steps": 120,
+ "description": "Still water (0.30 m) in a closed tank 0.6 x 0.6 m (dx 1 cm) with a wall through the surface (S 10, x 0.273-0.327 m, from the bed to z = 0.45 m), direct forcing with the projection through the solid (D 32 0). One refined level over the right part of the tank (G 15 from x = 0.30 m; the patch starts at 0.28 m), so the vertical patch edge runs through the wall and across its top in the air. The coarse value at the position of a fine cell of the edge is not taken from a coarse cell in the wall for a coarse cell in the fluid (cfd_amr::pr_weights): before, 1.4e-3 m/s in and out of the fine faces over the top of the wall, with it 2e-6 m/s after 1 s.",
+ "tags": [
+  "quick",
+  "2d",
+  "levelset",
+  "solid",
+  "amr"
+ ],
+ "covers": [
+  "cfd_amr::pr_weights: no coarse cell in a solid as support of the coarse value of a fluid cell (D 32 0, 1)"
+ ]
+}
