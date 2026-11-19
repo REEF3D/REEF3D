@@ -52,6 +52,8 @@ public:
 	virtual ~nhflow_timestep();
 	virtual void start(lexer*,fdm_nhf*,ghostcell*);
 	virtual void ini(lexer*,fdm_nhf*,ghostcell*);
+    // the time step of the first step, once all initial fields are set (driver_ini_nhflow)
+	virtual void ini_end(lexer*,fdm_nhf*,ghostcell*) {}
     
     nhflow_timestep_hook *phook = nullptr;
 

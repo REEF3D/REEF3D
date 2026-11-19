@@ -1083,12 +1083,12 @@ void nhflow_momentum_SI::nh_cell_faces(lexer *p, fdm_nhf *d, double *cx, double 
 
     for(k=0;k<K;++k)
     {
-    cx[k] = h4x ? ho_interp(NQx[PIm2JK],NQx[PIm1JK],NQx[PIJK],NQx[PIp1JK]) : (ww*NQx[PIm1JK] + we*NQx[PIJK])/wsx;
+    cx[k] = h4x ? (9.0*(NQx[PIm1JK] + NQx[PIJK]) - NQx[PIm2JK] - NQx[PIp1JK])/16.0 : (ww*NQx[PIm1JK] + we*NQx[PIJK])/wsx;
 
     cy[k] = 0.0;
 
     if(h4y)
-    cy[k] = ho_interp(NQy[PIJm2K],NQy[PIJm1K],NQy[PIJK],NQy[PIJp1K]);
+    cy[k] = (9.0*(NQy[PIJm1K] + NQy[PIJK]) - NQy[PIJm2K] - NQy[PIJp1K])/16.0;
 
     else
     if(p->j_dir==1)
