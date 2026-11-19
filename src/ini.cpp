@@ -343,7 +343,7 @@ void control::ini_default()
     A706=60.0;        // double time step [s]
     A707=0;           // int iterations per time step (0: 1 nonstationary, 50 stationary)
     A708=0.001;       // double stationary convergence: max. relative change of Hs per iteration
-    A709=100.0;       // double stationary convergence: percentage of the active cells that must meet A 708 (SWAN npnts, e.g. 99.5)
+    A709=100.0;       // double convergence: percentage of the active cells that must meet A 708 (stationary) or A 779 (nonstationary, Phase 28) (SWAN npnts, e.g. 99.5)
     A710=0;           // int initial spectrum: 0 zero, 1 parametric (B 85 spectrum, B 93 Hs Tp, B 88 gamma, B 130/131/134 spreading)
     A711=0;           // int boundary spectrum: 0 none, 1 parametric (as A 710 1), 2 SWAN 2D spectrum file seastate-boundary.spc, 3 time series of spectra at many locations (seastate-boundary.spc)
     A712_xm=1;        // int side x-: 0 open (no incoming waves), 1 boundary spectrum, 2 zero gradient
@@ -434,10 +434,11 @@ void control::ini_default()
     A739=1.0e-4;      // double ... until the estimated distance of the energy of the cell to its balance is below this fraction
     A798=1;           // int threads per MPI rank: the tiles of the sweeps, the patches of a refinement level, the loops over the cells
     A781=1;           // int MPI: 1 the sweeps pipelined across the ranks (the result of one rank; grids without refinement or with the composite sweep A 797 1), 0 each rank from the halo of the last exchange
-    A767=0;           // int 1 the source terms of a cell evaluated once per iteration, in the sweep of the first quadrant, and kept for the others (wind sea; Phase 21b)
+    A767=0;           // int 1 the source terms of a cell evaluated once per iteration, in the sweep of the first quadrant, and kept for the others (wind sea; Phase 21b); with A 769 2 the conservative DIA once per iteration without its second pass (Phase 29)
     A769=0;           // int the source-term limiter (A 735 > 0): 0 SWAN (Ris 1997), 1 Hersbach and Janssen (1999), as ecWAM (nonstationary; Phase 25), 2 none with A 732 1, 2: the DIA conservative in action (modified Patankar, two passes per solve), the whitecapping linearised with its degree in N, with A 732 2 the upper bound of ecWAM (FLMAX, 0.031)
     A776=0;           // int GSE closure (Phase 25): 0 off, 1 the flux inside a bin as a diffusion D = t_a Sigma over each step (nonstationary) with the age t_a = A 777, 2 with t_a the model time (a field released at t = 0, the test of the closure)
     A777=0.0;         // double the age t_a [s] of A 776 1
+    A782=0.0;         // double the settled cells of an iteration are not solved again (Phase 29): a cell is solved in an iteration only if its spectrum or that of a neighbour changed by more than A 782 of its energy in the iteration before (0 off: every cell in every iteration); the first iteration of a step solves all cells
     A779=0.0;         // double nonstationary: iterations of a step until the largest relative change of Hs is below A 779 (0 off)
     A778=2;           // int GSE closure: Gauss-Seidel iterations of the diffusion per step
     A799=0;           // int stationary convergence test: 0 change of Hs per iteration (A 708), 1 estimated distance of Hs to the solution

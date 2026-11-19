@@ -151,6 +151,9 @@ void seastate_f::transport(lexer *p, ghostcell *pgc)
 
     const bool stationary = (p->A700==2);
 
+    // Phase 29 (A 782): the first iteration of a step solves all cells (new old time level, wind, boundary spectra)
+    psolv->active_reset();
+
     // stationary: 1/dt = 0; with the deep-water physics pseudo time step A 706 (the wind-sea
     // source terms are lagged by one iteration, the pseudo time step damps the iteration)
     const double rdt = stationary ? ((psrc!=nullptr && psrc->param().komen) ? 1.0/p->A706 : 0.0) : 1.0/dtw;
@@ -170,8 +173,12 @@ void seastate_f::transport(lexer *p, ghostcell *pgc)
         age_start(p);
 
         // Phase 27 (A 779): iterate until the largest relative change of Hs between two iterations is below A 779
-        // (after the first: the change over the step, so a step that changes Hs little takes one iteration)
+        // (after the first: the change over the step, so a step that changes Hs little takes one iteration);
+        // with A 709 < 100 (Phase 28, as SWAN npnts) also when that percentage of the wet cells change less than
+        // A 779, so a few cells that go back and forth (depth-limited breaking at the coast) do not hold the step
         const bool settle = (p->A779>0.0);
+        const bool share = settle && p->A709<100.0;
+        double percent = 100.0;
         const int nth = psolv->thread_count();
         std::vector<double> hs;
         if(settle)
@@ -193,16 +200,28 @@ void seastate_f::transport(lexer *p, ghostcell *pgc)
             {
             double hmax = pgc->globalmax(hs_cells(p,e,*e->grid,hs,nth));
             const double floor = std::max(0.01*hmax,1.0e-6);
-            double cmax = 0.0;
+            double cmax = 0.0, nok = 0.0, nall = 0.0;
                 SLICELOOP4
                 if(e->wet(i,j)==1)
                 {
                 const size_t n = size_t(i)*p->knoy+j;
-                cmax = std::max(cmax,std::fabs(hs[n]-hs_old[n])/std::max(hs[n],floor));
+                const double c = std::fabs(hs[n]-hs_old[n])/std::max(hs[n],floor);
+                cmax = std::max(cmax,c);
+                nall += 1.0;
+                if(c<p->A779)
+                nok += 1.0;
                 }
             conv = pgc->globalmax(cmax);
             hs_old.swap(hs);
+            if(share)
+            {
+            nok = pgc->globalsum(nok);
+            nall = pgc->globalsum(nall);
+            percent = nall>0.0 ? 100.0*nok/nall : 100.0;
+            }
             if(conv<p->A779)
+            break;
+            if(share && percent>=p->A709)
             break;
             }
 
@@ -218,9 +237,13 @@ void seastate_f::transport(lexer *p, ghostcell *pgc)
             {
             mkdir("./REEF3D_SEASTATE_Log",0777);
             if(reefckpt_open(convlog,"./REEF3D_SEASTATE_Log/REEF3D_SEASTATE_convergence.dat",restart ? 1 : 0))
-            convlog<<"# count \t iterations of the step \t max. relative change of Hs in the last iteration (A 779)"<<endl;
+            convlog<<"# count \t iterations of the step \t max. relative change of Hs in the last iteration (A 779)"
+                   <<(share ? " \t percentage of the wet cells within A 779 (A 709)" : "")<<endl;
             }
-        convlog<<p->count<<" \t "<<iter_done<<" \t "<<setprecision(6)<<conv<<endl;
+        convlog<<p->count<<" \t "<<iter_done<<" \t "<<setprecision(6)<<conv;
+        if(share)
+        convlog<<" \t "<<percent;
+        convlog<<endl;
         }
 
         // A 776 3 (Phase 26): the age transported with the spectra

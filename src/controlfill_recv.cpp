@@ -808,6 +808,8 @@ void control::ctrlrecv()
     dd++;
     A779 = dctrl[dd];
     dd++;
+    A782 = dctrl[dd];
+    dd++;
     A730 = ictrl[ii];
     ii++;
     A729 = ictrl[ii];

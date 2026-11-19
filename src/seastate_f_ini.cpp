@@ -167,6 +167,7 @@ void seastate_f::ini_common(lexer *p, ghostcell *pgc, bool coupled_)
     if(p->A700==2)
     psolv->source_iterations(p->A738,p->A739);
     psolv->source_once(p->A767==1);
+    psolv->active_set(p->A782,p);
     psolv->lagging(seastate_implicit::lag_wanted(p->A700,p->A730,p->A732,p->A768,p->A770),p);
 
     if(sb!=nullptr)
@@ -449,8 +450,12 @@ void seastate_f::check_keys(lexer *p, ghostcell *pgc)
     msg = "A 769 2: the limiter-free integration is for the Komen and van der Westhuysen physics with the DIA (A 732 1, 2; A 733 1)";
     else if(p->A769==2 && p->A700!=1)
     msg = "A 769 2: the limiter-free integration needs a nonstationary run (A 700 1); stationary runs keep the limiter";
-    else if(p->A769==2 && (p->A795>0.0 || p->A767==1))
-    msg = "A 769 2: not with the spectral sparsity (A 795) or the source terms once per iteration (A 767 1)";
+    else if(p->A769==2 && p->A795>0.0)
+    msg = "A 769 2: not with the spectral sparsity (A 795)";
+    else if(p->A782<0.0 || p->A782>=1.0)
+    msg = "A 782: the tolerance of the settled cells must be >= 0 (off) and below 1";
+    else if(p->A782>0.0 && (g1>0 || p->A770==1 || p->A795>0.0 || p->A758_n>0))
+    msg = "A 782: the settled cells are for uniform grids (no G 1), not with the surfbeat model (A 770 1), the spectral sparsity (A 795) or the FAS correction (A 758)";
     else if(p->A769==2 && (p->A716_w>0.0 || p->A715_k>1))
     msg = "A 769 2: not with the non-uniform direction grids (A 715, A 716)";
     else if(p->A769==1 && p->A700!=1)
@@ -832,7 +837,8 @@ void seastate_f::storage(lexer *p, ghostcell *pgc)
     else
     cout<<"SEASTATE mode: "<<(p->A700==2 ? "stationary" : "nonstationary")<<", time step "<<p->A706<<" s, refraction "<<p->A713<<", frequency shift "<<p->A714<<endl;
     if(p->A700==1 && p->A779>0.0)
-    cout<<"SEASTATE iterations of a step (A 779): until the largest relative change of Hs is below "<<fmt(p->A779)<<", at most "<<(p->A707>0 ? p->A707 : 10)<<" (A 707)"<<endl;
+    cout<<"SEASTATE iterations of a step (A 779): until the largest relative change of Hs is below "<<fmt(p->A779)
+        <<(p->A709<100.0 ? ", or that of "+fmt(p->A709)+" % of the wet cells (A 709)" : std::string(""))<<", at most "<<(p->A707>0 ? p->A707 : 10)<<" (A 707)"<<endl;
     if(p->A776>0)
     cout<<"SEASTATE GSE closure (A 776 "<<p->A776<<"): the flux inside a bin as a diffusion D = t_a Sigma over each step, t_a "
         <<(p->A776==2 ? std::string("the model time") : p->A776==3 ? std::string("transported per bin, reset in the wind sea (1.7 U10 cos > c), initial and boundary age ")+std::to_string(p->A777)+" s" : std::to_string(p->A777)+" s")<<", "<<p->A778<<" Gauss-Seidel iterations (A 778)"<<endl;
@@ -852,6 +858,8 @@ void seastate_f::storage(lexer *p, ghostcell *pgc)
     if(p->A700==2 && p->A799==1) cout<<(p->A798>1 || p->A738>1 ? "," : "")<<" convergence test on the estimated distance to the solution (A 799 1)";
     cout<<endl;
     }
+    if(p->A782>0.0)
+    cout<<"SEASTATE solver (Phase 29): settled cells are not solved again within a step (A 782 "<<defaultfloat<<setprecision(6)<<p->A782<<" of the energy of a cell)"<<endl;
     if(p->A767==1)
     {
     const bool ws = (p->A730==1 || p->A730==2 || (p->A732>=1 && p->A733==1));
@@ -1010,7 +1018,7 @@ void seastate_f::sources(lexer *p, ghostcell *pgc)
     if(sp.dia)
     cout<<" quadruplets (DIA),";
     if(sp.dia_mp)
-    cout<<" no limiter: the DIA conservative in action (modified Patankar, two passes), the whitecapping linearised"<<(sp.flmax>0.0 ? ", the upper bound FLMAX (alpha 0.031)" : "")<<" (A 769 2),";
+    cout<<" no limiter: the DIA conservative in action ("<<(p->A767==1 ? "Patankar, once per iteration with A 767 1" : "modified Patankar, two passes")<<"), the whitecapping linearised"<<(sp.flmax>0.0 ? ", the upper bound FLMAX (alpha 0.031)" : "")<<" (A 769 2),";
     else if(sp.komen && sp.limiter>0.0 && sp.limiter_type==1)
     cout<<" limiter of Hersbach and Janssen (A 769 1, dt "<<sp.limiter_dt<<" s),";
     else if(sp.komen)
