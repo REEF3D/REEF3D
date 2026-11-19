@@ -248,7 +248,22 @@ void nhflow_komega_func::epsfsf(lexer *p, fdm_nhf *d, ghostcell *pgc)
     // free-surface value in the top sigma layer (A 567 > 0), turbulence length scale y' (Celik & Rodi 1984):
     //   A567 1: y' = T37 (legacy k-omega meaning),  2: y' = T37,  3: y' = T37 h (h local water depth)
     //   (2 and 3 mean the same in k-eps and k-omega, as T 36 1 and 3 in CFD)
+    //   A567 4: in every layer with y = T37 + the distance of the cell centre below the surface, (1 - sigma) h: the
+    //           length scale near the surface is bounded by kappa y over a depth that does not depend on the layers
+    //           (A567 1-3 act on the top layer only, whose thickness changes with the number of layers)
     // applied as a lower bound, so the free-surface value only ever lowers nu_t (as CFD T 36)
+    if(p->A567==4)
+    {
+    LOOP
+    if(p->DF[IJK]>0)
+    {
+    const double y = p->T37 + (1.0-p->ZP[KP])*MAX(d->WL(i,j),0.0);
+    
+	EPS[IJK] = MAX(EPS[IJK], 2.5*pow(p->cmu,-0.25)*pow(fabs(KIN[IJK]),0.5)/(y>1.0e-20?y:1.0e-20));
+    }
+    return;
+    }
+    
     k=p->knoz-1;
     
 	if(p->A567>=1 && p->A567<=3)

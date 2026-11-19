@@ -61,6 +61,9 @@ public:
 
     void filter(lexer*, fdm_nhf*, ghostcell*, slice&);
     
+    // A 553: no breaking viscosity in thin water (h < A 553, full from 2 A 553)
+    void swash_taper(lexer*, fdm_nhf*, slice&);
+    
     // A 550 3: eddy viscosity of Kennedy et al. (2000)
     void breaking_kennedy(lexer*,fdm_nhf*,ghostcell*,slice&);
     // its parts (multi-block grid: nhflow_amr::breaking_level0 runs them on all blocks): 0 the ages of the last step,

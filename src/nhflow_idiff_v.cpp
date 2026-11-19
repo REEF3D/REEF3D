@@ -82,6 +82,8 @@ void nhflow_idiff::diff_v(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow, s
             //  A 550 3: in all layers on all faces, the eddy viscosity of Kennedy et al. (2000) as a turbulent viscosity of
             //           the column (with the horizontal faces only, the surf zone depended on the number of layers)
             //  A 550 4: as A 550 3 with the depth profile of the orbital velocity (nhflow_breaking_profile.h)
+            //  A 556: share of vb on the faces between the layers (the vertical stress), 1 in full (nhflow_vbv); the
+            //         sigx, sigy parts of those faces belong to the horizontal stresses and keep vb in full
             if(p->A550>=3 || k==p->knoz-1)
             {
             visc_IP +=  nhflow_vbz(p,d,i,j,p->ZP[KP]);
@@ -94,22 +96,22 @@ void nhflow_idiff::diff_v(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow, s
 
             if(p->A550<3 && k==p->knoz-1)
             {
-            visc_KM1 += 0.5*d->vb(i,j);
-            visc_KP1 += d->vb(i,j);
+            visc_KM1 += 0.5*nhflow_vbv(p)*d->vb(i,j);
+            visc_KP1 += nhflow_vbv(p)*d->vb(i,j);
             visc_KM1h += 0.5*d->vb(i,j);
             visc_KP1h += d->vb(i,j);
             }
 
             if(p->A550<3 && k==p->knoz-2)
             {
-            visc_KP1 += 0.5*d->vb(i,j);
+            visc_KP1 += 0.5*nhflow_vbv(p)*d->vb(i,j);
             visc_KP1h += 0.5*d->vb(i,j);
             }
 
             if(p->A550>=3)
             {
-            visc_KM1 += nhflow_vbz(p,d,i,j,p->ZN[KP]);
-            visc_KP1 += nhflow_vbz(p,d,i,j,p->ZN[KP1]);
+            visc_KM1 += nhflow_vbv(p)*nhflow_vbz(p,d,i,j,p->ZN[KP]);
+            visc_KP1 += nhflow_vbv(p)*nhflow_vbz(p,d,i,j,p->ZN[KP1]);
             visc_KM1h += nhflow_vbz(p,d,i,j,p->ZN[KP]);
             visc_KP1h += nhflow_vbz(p,d,i,j,p->ZN[KP1]);
             }
@@ -121,7 +123,7 @@ void nhflow_idiff::diff_v(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow, s
             
             // vertical faces: the sigx, sigy parts belong to the horizontal stresses (nu_h), the sigz part to the
             // vertical one (nu_v); identical to visc*sigxyz2 without the split
-            if(p->A561>0)
+            if(p->A561>0 || nhflow_vbv(p)<1.0)
             {
             cvt = visc_KP1h*(pow(p->sigx[FIJKp1],2.0) + pow(p->sigy[FIJKp1],2.0)) + visc_KP1*pow(p->sigz[IJ],2.0);
             cvb = visc_KM1h*(pow(p->sigx[FIJK],2.0) + pow(p->sigy[FIJK],2.0)) + visc_KM1*pow(p->sigz[IJ],2.0);

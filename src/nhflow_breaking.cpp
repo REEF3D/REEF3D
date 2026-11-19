@@ -328,9 +328,24 @@ void nhflow_breaking::kennedy_part(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &
     SLICELOOP4
     d->breaking(i,j) = brkflag(i,j);
     
+    swash_taper(p,d,WL);
+    
     pgc->gcsl_start4(p,d->vb,1);
     pgc->gcsl_start4(p,d->vbk,1);
     pgc->gcsl_start4int(p,d->breaking,50);
+}
+
+// A 553: no breaking viscosity in thin water, h < A 553, linear to the full value at 2 A 553 (as S 132 for the
+// sediment). The swash and the run-up tongue have a rising level (deta/dt > 0) and a threshold that goes to zero
+// with the depth (A 554 sqrt(g h)), so every wetting front counts as breaking; A 550 1 then puts the full A 557
+// into a layer of a few mm. The flags (output, breaking count) are kept.
+void nhflow_breaking::swash_taper(lexer *p, fdm_nhf *d, slice &WL)
+{
+    if(p->A553<=0.0)
+    return;
+    
+    SLICELOOP4
+    d->vb(i,j) *= MAX(0.0, MIN(1.0, MAX(WL(i,j),0.0)/p->A553 - 1.0));
 }
 
 // the relaxation zones of the wave generation and the numerical beach (ioflow::relax_boxes): deta/dt of the
@@ -608,6 +623,8 @@ void nhflow_breaking::breaking_vb(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &W
     // the flags for the output (VTP 'breaking') and the breaking count of the log
     SLICELOOP4
     d->breaking(i,j) = brkflag(i,j);
+    
+    swash_taper(p,d,WL);
     
     pgc->gcsl_start4(p,d->vb,1);
     pgc->gcsl_start4int(p,d->breaking,50);
