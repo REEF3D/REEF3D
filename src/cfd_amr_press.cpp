@@ -1398,6 +1398,25 @@ void cfd_amr::pr_weights()
                     (sd<0 ? qm : qp) = -1;
                 }
             }
+            // The direct forcing (D 32 0, 1): not a cell in a solid or the bed for a coarse cell in
+            // the fluid (D 32 1 above keeps it: its face is open).  The pressure in a solid is not that
+            // of the fluid column (the forcing holds its faces, the hydrostatic balance is not kept
+            // there), and the coarse value at the height of a fine cell next to the surface took it:
+            // in still water 1-2 mm/s in and out of the fine faces of a patch edge at the surface of
+            // a body (in the air over a pile 0.007 Pa are 3 mm/s).
+            if(p0->D32!=2 && p0->D1!=2 && p0->G505==0 && (p0->solidread>0 || p0->topoforcing>0))
+            {
+                if(!d32_inside(F.gc,F.ci))
+                for(int sd=-1; sd<=1; sd+=2)
+                {
+                    if((sd<0 ? qm : qp)<0)
+                    continue;
+                    int cn[3] = {F.ci[0],F.ci[1],F.ci[2]};
+                    cn[t] += sd;
+                    if(d32_inside(F.gc,cn))
+                    (sd<0 ? qm : qp) = -1;
+                }
+            }
             double phs = phf;
             if(p0->G8==1)
             {
