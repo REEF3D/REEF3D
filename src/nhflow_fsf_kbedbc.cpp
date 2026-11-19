@@ -28,6 +28,10 @@ Author: Hans Bihs
 
 void nhflow_fsf_f::kinematic_bed(lexer *p, fdm_nhf *d, double *U, double *V, double *W)
 {
+    // the vertical face states of the HLL fluxes only (not stored for the semi-implicit momentum, nhflow_memory.h)
+    if(d->Wb==nullptr)
+    return;
+
     double wval;
     double Pval,Qval;
   

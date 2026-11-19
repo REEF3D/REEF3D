@@ -21,6 +21,7 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"nhflow_fsf_f.h"
+#include"nhflow_memory.h"
 #include"lexer.h"
 #include"fdm_nhf.h"
 #include"ghostcell.h"
@@ -201,6 +202,8 @@ void nhflow_fsf_f::wetdry(lexer* p, fdm_nhf* d, ghostcell* pgc, double *UH, doub
     
         
     // --------------------------
+    // the face states of the HLL fluxes at the wet-dry faces (nhflow_memory.h: not read by the semi-implicit momentum)
+    if(nhflow_hll_faces(p))
     wetdry_fluxes(p,d,pgc,WL,d->U,d->V,d->W,UH,VH,WH);
     // --------------------------
     

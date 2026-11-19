@@ -75,4 +75,13 @@ inline bool nhflow_tangential_faces(lexer *p)
     return p->A511==2 || p->geo_curv==1 || p->A534==1;
 }
 
+// The vertical face states Ub, Vb, Wb, Wt and the face states of the wet-dry faces (wetdry_fluxes: ETAs..ETAw,
+// Ds..Dw, dfx, dfy): read only by the HLL/HLLC fluxes of the explicit NHFLOW, set by its kinematic conditions
+// (kinematic_fsf, kinematic_bed) and by wetdry_fluxes. The semi-implicit momentum (A 534 1) reads none of them on
+// one Cartesian grid; mesh refinement (G 1), multi-block and curvilinear grids keep them.
+inline bool nhflow_hll_faces(lexer *p)
+{
+    return !(p->A534==1 && p->G1==0 && p->geo_mb==0 && p->geo_curv==0);
+}
+
 #endif

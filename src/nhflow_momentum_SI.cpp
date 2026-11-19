@@ -948,11 +948,20 @@ void nhflow_momentum_SI::si_begin(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_s
     qyn(i,j) = qy(i,j);
     }
 
-    // the inflow ghost cells of the stage arrays from those of t^n
+    // the inflow ghost cells of the stage arrays from those of t^n: the input of stage 1 (UHa, SSP-RK2 and 3) and of
+    // stage 2 (UHb, SSP-RK3); the one-step predictor (A 510 11, rk 1) reads neither (stage_arrays), they stay
+    // unallocated
+    if(rk>=2)
+    {
     S.pflow->rkinflow_nhflow(p,d,pgc,d->U,d->V,d->W,lfull(p,UHa,0),lfull(p,VHa,1),lfull(p,WHa,2),WL0);
     lback(p,UHa,0); lback(p,VHa,1); lback(p,WHa,2);
+    }
+
+    if(rk>=3)
+    {
     S.pflow->rkinflow_nhflow(p,d,pgc,d->U,d->V,d->W,lfull(p,UHb,0),lfull(p,VHb,1),lfull(p,WHb,2),WL0);
     lback(p,UHb,0); lback(p,VHb,1); lback(p,WHb,2);
+    }
 
     // the face depths of the gravity term and of the mass flux
     mlflux_faces(p,d,pgc);
@@ -2142,7 +2151,13 @@ void nhflow_momentum_SI::advection_bcg(lexer *p, fdm_nhf *d, ghostcell *pgc, dou
 
     if(acc!=nullptr)
     {
-        bcgF.assign(f,f+fN);
+        // the cells of the layers of every column (the horizontal scheme reads no other entries of the column): before,
+        // the whole array with its vertical ghost cells, 8 % of the instructions of a 1D run (64 x 2 cells)
+        bcgF.resize(fN);
+
+        for(int a=p->imin; a<p->imin+p->imax; ++a)
+        for(int b=p->jmin; b<p->jmin+p->jmax; ++b)
+        std::copy(f+ix(a,b,0),f+ix(a,b,0)+K,bcgF.data()+ix(a,b,0));
 
         for(int a=lrng[0]; a<lrng[1]; ++a)
         for(int b=lrng[2]; b<lrng[3]; ++b)

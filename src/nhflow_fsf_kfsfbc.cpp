@@ -29,6 +29,10 @@ Author: Hans Bihs
 
 void nhflow_fsf_f::kinematic_fsf(lexer *p, fdm_nhf *d, double *U, double *V, double *W, slice &eta)
 {
+    // the vertical face states of the HLL fluxes only (not stored for the semi-implicit momentum, nhflow_memory.h)
+    if(d->Wb==nullptr)
+    return;
+
     double wval;
     double Pval,Qval;
     
