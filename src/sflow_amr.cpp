@@ -185,6 +185,9 @@ sflow_amr::sflow_amr(lexer *p, fdm2D *b, ghostcell *pgc, patchBC_interface *ppBC
     }
     q.ioband = 4;
 
+    // G 14 1: the largest rectangles of marked tiles as patches (reefamr_regrid.cpp, tile_rects)
+    q.rects = (p->G14==1) ? 1 : 0;
+
     // no refinement in the relaxation zones of the wave generation and the numerical beach (B 98 2,
     // B 99 1/2, B 107, B 108, B 520): the patches run without the in- and outflow (pflow_of), so their
     // cells are not relaxed, and the restriction would replace the relaxed level-0 cells by them

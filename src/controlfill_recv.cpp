@@ -203,6 +203,8 @@ void control::ctrlrecv()
     ii++;
     G9 = ictrl[ii];
     ii++;
+    G14 = ictrl[ii];
+    ii++;
 
     A305 = dctrl[dd];
     dd++;

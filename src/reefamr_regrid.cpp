@@ -20,6 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#include<array>
 #include"reefamr.h"
 #include"lexer.h"
 #include"ghostcell.h"
@@ -41,6 +42,120 @@ inline int fsh(int a, int l) { return (a>=0) ? (a>>l) : -(((-a)-1)>>l)-1; }
 //  refined region does not depend on the domain decomposition.  Marked tiles are merged into
 //  rectangles and cut at the partition edges.  A patch with the same box as before is kept
 //  with its state.
+
+// rectangles of the marked tiles of a level in the tile range [t0i,t1i] x [t0j,t1j] (ta, tb, tj0, tj1), which cover every
+// marked tile once
+//  mode 0: row by row.  The run of marked tiles of a row continues the rectangle of the row before only when it starts and
+//          ends at the same tiles, so a front that runs at an angle to the grid gives one strip per tile row
+//  mode 1: the largest rectangle of marked tiles first, then the largest of what is left, until none is left (on a tie the
+//          one with the shorter edge, then the first found).  Fewer and more compact patches: fewer of the cells a patch
+//          computes around its box
+static void tile_rects(const vector<unsigned char> &M, int gty, int t0i, int t1i, int t0j, int t1j, int mode, vector<std::array<int,4>> &done)
+{
+    done.clear();
+
+    if(mode==0)
+    {
+        struct R { int ta,tb,tj0,tj1; };
+        vector<R> open;
+
+        for(int tj=t0j; tj<=t1j; ++tj)
+        {
+            vector<R> next;
+            int ti=t0i;
+            while(ti<=t1i)
+            {
+                if(!M[(size_t)ti*gty+tj]) { ++ti; continue; }
+                int ta=ti;
+                while(ti<=t1i && M[(size_t)ti*gty+tj]) ++ti;
+                int tb=ti-1;
+
+                bool ext=false;
+                for(auto &o : open)
+                if(o.ta==ta && o.tb==tb && o.tj1==tj-1)
+                {
+                    o.tj1=tj;
+                    next.push_back(o);
+                    o.ta=-1;
+                    ext=true;
+                    break;
+                }
+                if(!ext)
+                next.push_back({ta,tb,tj,tj});
+            }
+            for(auto &o : open)
+            if(o.ta>=0)
+            done.push_back({o.ta,o.tb,o.tj0,o.tj1});
+            open = next;
+        }
+        for(auto &o : open)
+        done.push_back({o.ta,o.tb,o.tj0,o.tj1});
+        return;
+    }
+
+    const int nx = t1i-t0i+1, ny = t1j-t0j+1;
+    if(nx<=0 || ny<=0)
+    return;
+
+    vector<unsigned char> A((size_t)nx*ny,0);
+    int ilo=nx, ihi=-1, jlo=ny, jhi=-1;
+    for(int a=0; a<nx; ++a)
+    for(int d=0; d<ny; ++d)
+    if(M[(size_t)(t0i+a)*gty+t0j+d])
+    {
+        A[(size_t)a*ny+d]=1;
+        ilo=MIN(ilo,a); ihi=MAX(ihi,a); jlo=MIN(jlo,d); jhi=MAX(jhi,d);
+    }
+
+    vector<int> h(nx), st(nx+1);
+    while(ihi>=ilo)
+    {
+        // the largest rectangle below every row: the histogram of the heights of the marked columns
+        long best=0;
+        int ba=0, bb=0, bc=0, bd=0, bedge=0;
+        std::fill(h.begin(),h.end(),0);
+        for(int d=jlo; d<=jhi; ++d)
+        {
+            int sp=0;
+            for(int a=ilo; a<=ihi+1; ++a)
+            {
+                const int ha = (a<=ihi && A[(size_t)a*ny+d]) ? h[a]+1 : 0;
+                if(a<=ihi)
+                h[a]=ha;
+                while(sp>0 && h[st[sp-1]]>=ha)
+                {
+                    const int hh = h[st[--sp]];
+                    const int left = (sp>0) ? st[sp-1]+1 : ilo;
+                    const int w = a-left;
+                    const long ar = (long)hh*w;
+                    const int edge = MIN(hh,w);
+                    if(ar>best || (ar==best && ar>0 && edge>bedge))
+                    {
+                        best=ar; ba=left; bb=a-1; bc=d-hh+1; bd=d; bedge=edge;
+                    }
+                }
+                st[sp++]=a;
+            }
+        }
+        if(best==0)
+        break;
+
+        done.push_back({t0i+ba,t0i+bb,t0j+bc,t0j+bd});
+        for(int a=ba; a<=bb; ++a)
+        for(int d=bc; d<=bd; ++d)
+        A[(size_t)a*ny+d]=0;
+
+        // the range of what is left
+        int nilo=nx, nihi=-1, njlo=ny, njhi=-1;
+        for(int a=ilo; a<=ihi; ++a)
+        for(int d=jlo; d<=jhi; ++d)
+        if(A[(size_t)a*ny+d])
+        {
+            nilo=MIN(nilo,a); nihi=MAX(nihi,a); njlo=MIN(njlo,d); njhi=MAX(njhi,d);
+        }
+        ilo=nilo; ihi=nihi; jlo=njlo; jhi=njhi;
+    }
+}
 
 void reefamr::regrid(lexer *p, ghostcell *pgc, bool initial)
 {
@@ -334,46 +449,13 @@ void reefamr::regrid(lexer *p, ghostcell *pgc, bool initial)
         // the marked tiles of the tile range, rectangles clipped to the cell box [cx0,cx1]x[cy0,cy1]
         auto merge = [&](int cx0, int cx1, int cy0, int cy1, int b)
         {
-            struct R { int ta,tb,tj0,tj1; };
-            vector<R> open, done;
-            int t0i=cx0/T, t1i=cx1/T, t0j=cy0/T, t1j=cy1/T;
-
-            for(int tj=t0j; tj<=t1j; ++tj)
-            {
-                vector<R> next;
-                int ti=t0i;
-                while(ti<=t1i)
-                {
-                    if(!M[l][(size_t)ti*gtny[l]+tj]) { ++ti; continue; }
-                    int ta=ti;
-                    while(ti<=t1i && M[l][(size_t)ti*gtny[l]+tj]) ++ti;
-                    int tb=ti-1;
-
-                    bool ext=false;
-                    for(auto &o : open)
-                    if(o.ta==ta && o.tb==tb && o.tj1==tj-1)
-                    {
-                        o.tj1=tj;
-                        next.push_back(o);
-                        o.ta=-1;
-                        ext=true;
-                        break;
-                    }
-                    if(!ext)
-                    next.push_back({ta,tb,tj,tj});
-                }
-                for(auto &o : open)
-                if(o.ta>=0)
-                done.push_back(o);
-                open = next;
-            }
-            for(auto &o : open)
-            done.push_back(o);
+            vector<std::array<int,4>> done;
+            tile_rects(M[l],gtny[l],cx0/T,cx1/T,cy0/T,cy1/T,par.rects,done);
 
             for(auto &o : done)
             {
-                int I0 = MAX(o.ta*T,cx0), I1 = MIN((o.tb+1)*T-1,cx1);
-                int J0 = MAX(o.tj0*T,cy0), J1 = MIN((o.tj1+1)*T-1,cy1);
+                int I0 = MAX(o[0]*T,cx0), I1 = MIN((o[1]+1)*T-1,cx1);
+                int J0 = MAX(o[2]*T,cy0), J1 = MIN((o[3]+1)*T-1,cy1);
 
                 // only solid cells: no patch
                 int fluid=0;
@@ -1017,52 +1099,20 @@ void reefamr::place_patches(lexer *p, ghostcell *pgc, vector<vector<unsigned cha
     {
         gtile[l] = M[l];
 
-        struct R { int ta,tb,tj0,tj1; };
-        vector<R> open, done;
-
-        for(int tj=0; tj<gtny[l]; ++tj)
-        {
-            vector<R> next;
-            int ti=0;
-            while(ti<gtnx[l])
-            {
-                if(!M[l][(size_t)ti*gtny[l]+tj]) { ++ti; continue; }
-                int ta=ti;
-                while(ti<gtnx[l] && M[l][(size_t)ti*gtny[l]+tj]) ++ti;
-                int tb=ti-1;
-
-                bool ext=false;
-                for(auto &o : open)
-                if(o.ta==ta && o.tb==tb && o.tj1==tj-1)
-                {
-                    o.tj1=tj;
-                    next.push_back(o);
-                    o.ta=-1;
-                    ext=true;
-                    break;
-                }
-                if(!ext)
-                next.push_back({ta,tb,tj,tj});
-            }
-            for(auto &o : open)
-            if(o.ta>=0)
-            done.push_back(o);
-            open = next;
-        }
-        for(auto &o : open)
-        done.push_back(o);
+        vector<std::array<int,4>> done;
+        tile_rects(M[l],gtny[l],0,gtnx[l]-1,0,gtny[l]-1,par.rects,done);
 
         // tile ranges for now; multi-block: one piece per block the rectangle reaches, clipped to it
         for(auto &o : done)
         if(nblk==0)
-        pcs.push_back({l,o.ta,o.tb,o.tj0,o.tj1,0.0,-1,0,(GNX<<l)-1,0,(GNY<<ysh(l))-1,0});
+        pcs.push_back({l,o[0],o[1],o[2],o[3],0.0,-1,0,(GNX<<l)-1,0,(GNY<<ysh(l))-1,0});
         else
         for(int b=0; b<nblk; ++b)
         {
             int X0,X1,Y0,Y1;
             block_region(l,b,X0,X1,Y0,Y1);
-            const int ta = MAX(o.ta,X0/T), tb = MIN(o.tb,X1/T);
-            const int tc = MAX(o.tj0,Y0/T), td = MIN(o.tj1,Y1/T);
+            const int ta = MAX(o[0],X0/T), tb = MIN(o[1],X1/T);
+            const int tc = MAX(o[2],Y0/T), td = MIN(o[3],Y1/T);
             if(ta<=tb && tc<=td)
             pcs.push_back({l,ta,tb,tc,td,0.0,-1,X0,X1,Y0,Y1,b});
         }

@@ -409,6 +409,7 @@ public:
     double *G10_xs,*G10_xe,*G10_ys,*G10_ye;
     int G15,G25;
     int G8;                      // CFD mesh refinement: the coarse value at a fine cell of a patch edge from the level set of the coarse column
+    int G14;                     // SFLOW mesh refinement: the rectangles of the marked tiles (0 row by row, 1 the largest rectangle first)
     int G9;                      // CFD mesh refinement: the density of the faces of a patch edge with the interface width of both levels (1 the mean, 2 that of the coarse level)
     int G28;                     // CFD mesh refinement: one interface width of the fluid properties on all levels (1 that of level 0, 2 that of the finest level, 3 the mean of the levels)
     int G29;                     // CFD mesh refinement: 1 the pressure under the patches restricted relative to the discrete hydrostatic pressure of each grid
