@@ -1,0 +1,18 @@
+{
+ "description": "NHFLOW semi-implicit non-hydrostatic (A 510 12, A 520 2): 2D vertical flume, h = 0.109 m, q = 0.0457 m2/s (B 60 1, log inflow B 61 2), dx = 1 cm, 10 sigma layers, k-omega. The interface slopes of the constraint in the column behind the open faces are centred with the boundary state (WLb), as in the interior: one-sided (twice the slope of its faces) they gave a steady +21 mm jump of the level in the first column and a lee wave behind it. Now the level at the inflow is within 0.1 mm of the explicit NHFLOW.",
+ "solver": "nhflow",
+ "np": 1,
+ "steps": 400,
+ "tags": [
+  "2d",
+  "nhflow",
+  "semi_implicit",
+  "non_hydrostatic",
+  "turbulence"
+ ],
+ "covers": [
+  "flux inflow face (B 60) with the non-hydrostatic pressure",
+  "level outflow face (F 50 2) with the non-hydrostatic pressure",
+  "interface slopes of the constraint next to open boundary faces (nh_prepare)"
+ ]
+}
