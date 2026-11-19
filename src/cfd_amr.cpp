@@ -1643,11 +1643,36 @@ void cfd_amr::timestep(lexer *p, fdm *a, ghostcell *pgc)
     const bool airband = (p->N57>0.0 && p->F30>0);
     double dta = 1.0e10;
 
+    // A patch made at the last regrid has not taken a step: its acceleration terms are zero, and its
+    // criterion was that of the velocity alone (a step up to twice too large after a regrid with all
+    // patches of the finest level new).  It takes the largest terms of the patches that have stepped,
+    // and when there are none (all patches new) those of the step before.
+    {
+        double acc[3] = {0.0,0.0,0.0};
+        for(int id=0; id<npat; ++id)
+        {
+            fdm *fa = CP(id)->a;
+            acc[0] = MAX(acc[0],fabs(fa->maxF));
+            acc[1] = MAX(acc[1],fabs(fa->maxG));
+            acc[2] = MAX(acc[2],fabs(fa->maxH));
+        }
+        MPI_Allreduce(MPI_IN_PLACE,acc,3,MPI_DOUBLE,MPI_MAX,reef3d_comm());
+        if(acc[0]>0.0 || acc[1]>0.0 || acc[2]>0.0)
+        for(int d=0; d<3; ++d)
+        ts_acc[d] = acc[d];
+    }
+
     for(int id=0; id<npat; ++id)
     {
         cfd_amr_patch *c = CP(id);
         lexer *pp = c->pp;
         fdm *fa = c->a;
+        if(fa->maxF==0.0 && fa->maxG==0.0 && fa->maxH==0.0)
+        {
+            fa->maxF = ts_acc[0];
+            fa->maxG = ts_acc[1];
+            fa->maxH = ts_acc[2];
+        }
         double umax=0.0, vmax=0.0, wmax=0.0;
         double cp = 1.0e10;
 

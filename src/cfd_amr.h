@@ -314,6 +314,9 @@ public:
     int finest_id(double, double, double) const;
     void step(lexer*, fdm*, ghostcell*, vrans*, sixdof*);
     void timestep(lexer*, fdm*, ghostcell*);
+    // the acceleration terms (maxF, maxG, maxH) of the last step over all patches: a patch made at a
+    // regrid has none of its own for its first step
+    double ts_acc[3] = {0.0,0.0,0.0};
     void velmax(lexer*);    // the largest |u|, |v|, |w| over the finest grids (timestep: printed, into umax, vmax, wmax)
     void print(lexer*, ghostcell*, bool after=false);
     bool print_lagoon(lexer*, ghostcell*, int num);    // P 18: the blocks into the LAGOON store

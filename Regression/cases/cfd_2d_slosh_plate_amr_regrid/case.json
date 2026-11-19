@@ -1,0 +1,15 @@
+{
+ "np": 1,
+ "steps": 220,
+ "description": "A closed tank 0.6 x 0.6 m (dx 1 cm) with a plate through the free surface (S 10, x 0.273-0.327 m, z 0.153-0.45 m, open below, the air free above); the surface starts tilted (F 57) and the water sloshes under the plate. Two refined levels on the interface band alone (G 1 2, G 24 1.0, no G 25), so the patches of both levels are rebuilt as the surface moves and their edges meet the plate. Around step 212 all patches of a regrid are new: before the patch a new patch had no acceleration term (maxF, maxG, maxH) in its first time step criterion, the step doubled and the air at the plate reached 3.6 m/s (0.17 m/s before and after).",
+ "tags": [
+  "quick",
+  "2d",
+  "levelset",
+  "solid",
+  "amr"
+ ],
+ "covers": [
+  "cfd_amr::timestep: the acceleration terms of a patch made at a regrid (ts_acc)"
+ ]
+}
