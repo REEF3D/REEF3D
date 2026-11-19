@@ -342,7 +342,7 @@ void control::ini_default()
     A706=60.0;        // double time step [s]
     A707=0;           // int iterations per time step (0: 1 nonstationary, 50 stationary)
     A708=0.001;       // double stationary convergence: max. relative change of Hs per iteration
-    A709=100.0;       // double stationary convergence: percentage of the active cells that must meet A 708 (SWAN npnts, e.g. 99.5)
+    A709=100.0;       // double convergence: percentage of the active cells that must meet A 708 (stationary) or A 779 (nonstationary, Phase 28) (SWAN npnts, e.g. 99.5)
     A710=0;           // int initial spectrum: 0 zero, 1 parametric (B 85 spectrum, B 93 Hs Tp, B 88 gamma, B 130/131/134 spreading)
     A711=0;           // int boundary spectrum: 0 none, 1 parametric (as A 710 1), 2 SWAN 2D spectrum file seastate-boundary.spc, 3 time series of spectra at many locations (seastate-boundary.spc)
     A712_xm=1;        // int side x-: 0 open (no incoming waves), 1 boundary spectrum, 2 zero gradient

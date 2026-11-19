@@ -832,7 +832,8 @@ void seastate_f::storage(lexer *p, ghostcell *pgc)
     else
     cout<<"SEASTATE mode: "<<(p->A700==2 ? "stationary" : "nonstationary")<<", time step "<<p->A706<<" s, refraction "<<p->A713<<", frequency shift "<<p->A714<<endl;
     if(p->A700==1 && p->A779>0.0)
-    cout<<"SEASTATE iterations of a step (A 779): until the largest relative change of Hs is below "<<fmt(p->A779)<<", at most "<<(p->A707>0 ? p->A707 : 10)<<" (A 707)"<<endl;
+    cout<<"SEASTATE iterations of a step (A 779): until the largest relative change of Hs is below "<<fmt(p->A779)
+        <<(p->A709<100.0 ? ", or that of "+fmt(p->A709)+" % of the wet cells (A 709)" : std::string(""))<<", at most "<<(p->A707>0 ? p->A707 : 10)<<" (A 707)"<<endl;
     if(p->A776>0)
     cout<<"SEASTATE GSE closure (A 776 "<<p->A776<<"): the flux inside a bin as a diffusion D = t_a Sigma over each step, t_a "
         <<(p->A776==2 ? std::string("the model time") : p->A776==3 ? std::string("transported per bin, reset in the wind sea (1.7 U10 cos > c), initial and boundary age ")+std::to_string(p->A777)+" s" : std::to_string(p->A777)+" s")<<", "<<p->A778<<" Gauss-Seidel iterations (A 778)"<<endl;
