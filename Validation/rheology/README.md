@@ -162,6 +162,8 @@ tools/run_case.sh <REEF3D> <DiveMESH> 26_gjerdrum_2020 <run>/g_tau500 "mpirun -n
 python3 tools/rheo_eval.py terrainseries 26_gjerdrum_2020 26_gjerdrum_2020/results tau250:250:<run>/g_tau250 tau500:500:<run>/g_tau500 tau1000:1000:<run>/g_tau1000 tau2000:2000:<run>/g_tau2000
 tools/run_case.sh <REEF3D> <DiveMESH> 27_taan_fiord_2015 <run>/t_mu010 "mpirun -np 2"   # after the set-up of 27_taan_fiord_2015/README.md; W 121 5.7 / 8.5 / 11.3
 python3 tools/rheo_eval.py tsunamiseries 27_taan_fiord_2015 27_taan_fiord_2015/runup_albers.csv 27_taan_fiord_2015/results mu0.10:<run>/t_mu010 mu0.15:<run>/t_mu015 mu0.20:<run>/t_mu020
+tools/run_case.sh <REEF3D> <DiveMESH> 30_tracy_arm_2025 <run>/ta_mu015 "mpirun -np 2"   # after slide_mound.py (30_tracy_arm_2025/README.md); W 121 8.5 / 2.9
+python3 tools/rheo_eval.py tsunamirunup <run>/ta_mu015 30_tracy_arm_2025 30_tracy_arm_2025/runup_survey.csv 30_tracy_arm_2025/results 30_mu015_survey   # also runup_trimline.csv
 ```
 
 CFD cases 11–15 (`tools/rheo3_eval.py`; 11, 13: one rank, the others two ranks):
@@ -740,6 +742,20 @@ Voellmy ξ 500, 900 s. Compared with the runup survey of Lynett et al. (2025, 29
 Details in 27_taan_fiord_2015/README.md.
 
 ![](27_taan_fiord_2015/results/27_series.png)
+
+### 30 SFLOW two-layer slide: Tracy Arm landslide tsunami 2025
+
+The paper's tsunami source (Shugar et al. 2026: a 65 Mm³ super-Gaussian mound, 195 m thick, new tools/slide_mound.py)
+on the 2025 topo-bathy DEM, 25 m cells, hydrostatic water, Voellmy ξ 500, 400 s.
+
+- Field survey along Tracy Arm (147 points): Aida K 1.03 - 1.07, κ 1.22 - 1.23.
+- Trimline (3591 points): K 0.89 - 0.94, κ 1.67 - 1.68.
+- Opposite the slide: 294 - 336 m against 471 m (10 m cells: 329 m). The depth-averaged mound collapses at once, and
+  about a third of it spreads over the glacier front instead of into the fjord.
+
+Details in 30_tracy_arm_2025/README.md.
+
+![](30_tracy_arm_2025/results/30_series.png)
 
 ### 16 Slide alone: the single-layer cases 01 and 02 through the slide layer
 
