@@ -23,8 +23,13 @@ Architect: Hans Bihs
 #ifndef NHFLOW_PJM_HO_H_
 #define NHFLOW_PJM_HO_H_
 
-// Fourth-order horizontal operators of the explicit NHFLOW projection (A 510 2 / 3, A 520 1 / 2),
-// shared by nhflow_pjm and nhflow_pjm_corr.
+// Fourth-order horizontal operators of the explicit NHFLOW projection (A 508 1 with A 510 2 / 3, A 520 1 / 2),
+// shared by nhflow_pjm and nhflow_pjm_corr. Option, default off (A 508 0: second order).
+//
+// Off by default since they were made the default in e8fd50ad8 ('nhflow ml 04'): in breaking waves without a
+// breaking model (Cox et al. 1996, 1:35 slope, dx 1 cm, 31 layers, k-omega, A 550 0) the fourth-order divergence
+// and gradient with the compact second-order Poisson matrix grew grid-scale noise at the bore fronts from
+// t ~ 15 s that filled the surf zone and ran offshore; with the second-order operators the same case stays smooth.
 //
 // The divergence at the pressure nodes and the gradient of the non-hydrostatic pressure at the cell centres are
 // central differences over 2 dx on the collocated grid: (f_{i+1} - f_{i-1})/(2 dx). Their product has the symbol
@@ -51,7 +56,7 @@ namespace nhflow_pjm_ho
 
 inline bool active(lexer *p, fdm_nhf *d)
 {
-    return p->geo_curv==0 && p->G1==0 && p->geo_mb==0 && p->X10==0 && d->MBETA==nullptr && d->thinbody==nullptr;
+    return p->A508==1 && p->geo_curv==0 && p->G1==0 && p->geo_mb==0 && p->X10==0 && d->MBETA==nullptr && d->thinbody==nullptr;
 }
 
 inline bool column(lexer *p, int a, int b)
