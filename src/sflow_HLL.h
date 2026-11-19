@@ -67,6 +67,7 @@ private:
     void aij_E(lexer*, fdm2D*);
 
     void HLL(lexer*, fdm2D*, slice&, slice&, slice&, slice&, slice&, slice&);
+    void flux_HLL(lexer*, fdm2D*, int, slice&, slice&);
     void HLLC_x(lexer*, fdm2D*, slice&, slice&, slice&);
     void HLLC_y(lexer*, fdm2D*, slice&, slice&, slice&);
     void flux_bc(lexer*, fdm2D*, int);
@@ -74,7 +75,7 @@ private:
 
     double denom;
     int inflow, outflow;
-    int hllc;
+    int hllc,fused;
 
     ghostcell *pgc;
     patchBC_interface *pBC;

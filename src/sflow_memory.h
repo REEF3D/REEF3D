@@ -58,4 +58,12 @@ inline bool sflow_w_faces(lexer *p)
     return p->A225==2 && sflow_wh_faces(p);
 }
 
+// Fs, Fn, Fe, Fw, the physical fluxes of the two states of a face: stored for the HLLC flux (A 225 2), which
+// reads them after the HLL flux, and on the curvilinear grid (sflow_curv::flux). The HLL flux of the Cartesian
+// grid takes them on the fly (sflow_HLL::flux_HLL).
+inline bool sflow_face_fluxes(lexer *p)
+{
+    return p->A225==2 || p->geo_curv==1;
+}
+
 #endif

@@ -1,0 +1,18 @@
+{
+ "base": "sflow_2d_amr_bowl_flag",
+ "same_as": "sflow_2d_amr_bowl_flag",
+ "ctrl_add": [
+  "G 17 1"
+ ],
+ "description": "sflow_2d_amr_bowl_flag with G 17 1: patches from the second difference of the surface next to a moving shoreline. The patches with a dry or shallow cell in their arrays compute their EXT cells as before, the others their boxes only, changing from stage to stage; regression.py ranks: bitwise sflow_2d_amr_bowl_flag.",
+ "tags": [
+  "2d",
+  "sflow",
+  "amr",
+  "wetdry"
+ ],
+ "covers": [
+  "sflow_amr::lean_set: the wet and deep test of every stage next to a moving shoreline"
+ ],
+ "architect": "Hans Bihs"
+}

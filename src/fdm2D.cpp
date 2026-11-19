@@ -26,8 +26,8 @@ Author: Hans Bihs
 
 fdm2D::fdm2D(lexer *p)
 			: U(p),V(p),W(p),UH(p),VH(p),WH(p),UA(p),VA(p),MX(p),MY(p),
-            Fx(p),Fs(p),Fn(p),FEx(p),
-            Fy(p),Fe(p),Fw(p),FEy(p),
+            Fx(p),Fs(p,sflow_face_fluxes(p)),Fn(p,sflow_face_fluxes(p)),FEx(p),
+            Fy(p),Fe(p,sflow_face_fluxes(p)),Fw(p,sflow_face_fluxes(p)),FEy(p),
     
             Ss(p),Sn(p),
             Se(p),Sw(p),

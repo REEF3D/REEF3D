@@ -1,0 +1,21 @@
+{
+ "base": "sflow_2d_amr_dambreak",
+ "same_as": "sflow_2d_amr_dambreak_g14_place2",
+ "ctrl_add": [
+  "G 40 2",
+  "G 14 1",
+  "G 17 1"
+ ],
+ "description": "sflow_2d_amr_dambreak_g14_place2 with G 17 1 (two ranks, G 40 2, G 14 1): placed patches with remote fills compute their boxes only; regression.py ranks: bitwise sflow_2d_amr_dambreak_g14_place2.",
+ "tags": [
+  "2d",
+  "sflow",
+  "amr",
+  "adaptive"
+ ],
+ "covers": [
+  "sflow_amr::lean_set with placed patches (G 40 2) on two ranks"
+ ],
+ "architect": "Hans Bihs",
+ "np": 2
+}

@@ -1,0 +1,19 @@
+{
+ "base": "sflow_2d_amr_dambreak",
+ "same_as": "sflow_2d_amr_dambreak",
+ "ctrl_add": [
+  "G 17 1"
+ ],
+ "description": "sflow_2d_amr_dambreak with G 17 1: the patches (all wet and deep) compute their boxes only, the 2 EXT cells around them are switched off; regression.py ranks: the final state and the text outputs bitwise those of sflow_2d_amr_dambreak.",
+ "tags": [
+  "2d",
+  "sflow",
+  "amr",
+  "adaptive"
+ ],
+ "covers": [
+  "sflow_amr::lean_set / lean_reset (G 17 1)",
+  "sflow_eta::positivity_limit with sflow_fsf::positivity_cells"
+ ],
+ "architect": "Hans Bihs"
+}

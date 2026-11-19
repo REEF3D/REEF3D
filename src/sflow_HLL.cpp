@@ -28,6 +28,7 @@ Author: Hans Bihs
 #include"slice.h"
 #include"patchBC_interface.h"
 #include"sflow_flux_build_f.h"
+#include"sflow_memory.h"
 #include"sflow_amr.h"
 #include"seastate_sflow.h"
 #include"sflow_curv.h"
@@ -53,6 +54,10 @@ sflow_HLL::sflow_HLL(lexer *p, ghostcell *ppgc, patchBC_interface *ppBC)
     
     // A 225 2: HLLC for the tangential momentum components (HLLC_x/HLLC_y), not on the curvilinear grid
     hllc = (p->A225==2 && p->geo_curv!=1) ? 1 : 0;
+    
+    // Cartesian grid with the HLL flux: the physical and the HLL fluxes in one sweep (flux_HLL); the HLLC flux and
+    // the curvilinear grid read the stored physical fluxes Fs, Fn, Fe, Fw (sflow_memory.h)
+    fused = sflow_face_fluxes(p) ? 0 : 1;
 }
 
 sflow_HLL::~sflow_HLL()
@@ -77,6 +82,11 @@ void sflow_HLL::start(lexer *p, fdm2D *b, int ipol)
 
 void sflow_HLL::aij_U(lexer *p, fdm2D *b)
 {
+    if(fused==1)
+    flux_HLL(p,b,1,b->Fx,b->Fy);
+    
+    else
+    {
     pflux->start_U(p,b,pgc);
     
     // Boussinesq: fluxes from the volume flux M, dissipation from the conserved V
@@ -85,6 +95,7 @@ void sflow_HLL::aij_U(lexer *p, fdm2D *b)
     
     else
     HLL(p,b,b->UHs,b->UHn,b->UHe,b->UHw,b->Fx,b->Fy);
+    }
     
     // HLLC: U is tangential to the y-faces
     if(hllc==1 && p->j_dir==1)
@@ -100,6 +111,11 @@ void sflow_HLL::aij_U(lexer *p, fdm2D *b)
 
 void sflow_HLL::aij_V(lexer *p, fdm2D *b)
 {
+    if(fused==1)
+    flux_HLL(p,b,2,b->Fx,b->Fy);
+    
+    else
+    {
     pflux->start_V(p,b,pgc);
     
     if(p->A220==4)
@@ -107,6 +123,7 @@ void sflow_HLL::aij_V(lexer *p, fdm2D *b)
     
     else
     HLL(p,b,b->VHs,b->VHn,b->VHe,b->VHw,b->Fx,b->Fy);
+    }
     
     // HLLC: V is tangential to the x-faces
     if(hllc==1)
@@ -122,8 +139,14 @@ void sflow_HLL::aij_V(lexer *p, fdm2D *b)
 
 void sflow_HLL::aij_W(lexer *p, fdm2D *b)
 {
+    if(fused==1)
+    flux_HLL(p,b,3,b->Fx,b->Fy);
+    
+    else
+    {
     pflux->start_W(p,b,pgc);
     HLL(p,b,b->WHs,b->WHn,b->WHe,b->WHw,b->Fx,b->Fy);
+    }
     
     // HLLC: W is tangential to both face directions
     if(hllc==1)
@@ -144,8 +167,14 @@ void sflow_HLL::aij_W(lexer *p, fdm2D *b)
 
 void sflow_HLL::aij_E(lexer *p, fdm2D *b)
 {
+    if(fused==1)
+    flux_HLL(p,b,4,b->FEx,b->FEy);
+    
+    else
+    {
     pflux->start_E(p,b,pgc);
     HLL(p,b,b->Ds,b->Dn,b->De,b->Dw,b->FEx,b->FEy);
+    }
     
     // no mass flux into or out of dry cells
     SLICELOOP4
@@ -178,10 +207,181 @@ void sflow_HLL::divergence(lexer *p, fdm2D *b, slice &f)
     return;
     }
     
-    SLICELOOP4
-    WETDRY
-    f(i,j) -= (b->Fx(i,j) - b->Fx(i-1,j))/p->DXN[IP] 
-            + (b->Fy(i,j) - b->Fy(i,j-1))/p->DYN[JP]*p->y_dir;
+    const int nj = p->jmax;
+    const int *const flag = p->flagslice4, *const wet = p->wet;
+    const double *const Fx = b->Fx.V, *const Fy = b->Fy.V;
+    double *const fv = f.V;
+    
+    for(int ii=0; ii<p->knox; ++ii)
+    {
+    const int q0 = (ii - p->imin)*nj - p->jmin;
+    const double dxn = p->DXN[ii+marge];
+    
+        for(int jj=0; jj<p->knoy; ++jj)
+        {
+        const int q = q0 + jj;
+        
+        if(flag[q]>0 && wet[q]==1)
+        fv[q] -= (Fx[q] - Fx[q-nj])/dxn
+               + (Fy[q] - Fy[q-1])/p->DYN[jj+marge]*p->y_dir;
+        }
+    }
+}
+
+// The HLL flux of a face from the signal speeds sl, sr, the physical fluxes fl, fr and the conserved variable
+// ql, qr of its two states (as sflow_HLL::HLL)
+static inline __attribute__((always_inline)) double sflow_hll_face(const double sl, const double sr, const double fl,
+                                               const double fr, const double ql, const double qr)
+{
+    if(sl>=0.0)
+    return fl;
+    
+    if(sr<=0.0)
+    return fr;
+    
+    double den = sr-sl;
+    den = fabs(den)>1.0e-10?den:1.0e10;
+    
+    return (sr*fl - sl*fr + sr*sl*(qr - ql))/den;
+}
+
+// Cartesian grid with the HLL flux (A 225 1): the physical fluxes of the two states of a face
+// (sflow_flux_build_f::start_U/_V/_W/_E) and its HLL flux in one sweep. The physical fluxes are read by nothing
+// else there and are not stored (fdm2D: Fs, Fn, Fe, Fw only with the HLLC flux or a curvilinear grid,
+// sflow_memory.h). The same operations in the same order as sflow_flux_build_f and HLL.
+// ipol 1: U momentum, 2: V momentum, 3: W momentum, 4: mass
+void sflow_HLL::flux_HLL(lexer *p, fdm2D *b, int ipol, slice &Fx, slice &Fy)
+{
+    const int nj = p->jmax;
+    const double g = fabs(p->W22);
+    const bool wb = (p->X10==3 && p->X402==1);
+    const bool bq = (p->A220==4);
+    const double *const pbh = b->pbh.V;
+    
+    // x-faces
+    if(ipol!=2 || p->j_dir==1)
+    {
+    const int *const flag = p->flagslice1;
+    const double *const Ss = b->Ss.V, *const Sn = b->Sn.V;
+    const double *const Us = b->Us.V, *const Un = b->Un.V;
+    const double *const UHs = b->UHs.V, *const UHn = b->UHn.V;
+    double *const F = Fx.V;
+    const int ie = p->knox - p->ulast;
+    const int ny = p->knoy;
+    
+    for(int ii=0; ii<ie; ++ii)
+    {
+    const int q0 = (ii - p->imin)*nj - p->jmin;
+    
+        if(ipol==1)
+        {
+        const double *const es = b->ETAs.V, *const en = b->ETAn.V, *const dfx = b->dfx.V;
+        // Boussinesq: fluxes from the volume flux M, dissipation from the conserved V
+        const double *const qs = bq ? b->QUs.V : UHs, *const qn = bq ? b->QUn.V : UHn;
+        
+        for(int q=q0; q<q0+ny; ++q)
+        if(flag[q]>0)
+        {
+        // X 402 1: pre-balanced form with the pressure-head surface zeta = eta - ps and the
+        // depth below it d + ps (ps = 0 without a pressure patch: the original form)
+        const double ps = wb ? 0.5*(pbh[q] + pbh[q+nj]) : 0.0;
+        const double zs = es[q] - ps;
+        const double zn = en[q] - ps;
+        
+        const double fl = UHs[q]*Us[q]
+                        + 0.5*g*zs*zs
+                        + g*zs*(dfx[q] + ps);
+        
+        const double fr = UHn[q]*Un[q]
+                        + 0.5*g*zn*zn
+                        + g*zn*(dfx[q] + ps);
+        
+        F[q] = sflow_hll_face(Ss[q],Sn[q],fl,fr,qs[q],qn[q]);
+        }
+        }
+        
+        else
+        if(ipol==4)
+        {
+        const double *const Ds = b->Ds.V, *const Dn = b->Dn.V;
+        
+        for(int q=q0; q<q0+ny; ++q)
+        if(flag[q]>0)
+        F[q] = sflow_hll_face(Ss[q],Sn[q],UHs[q],UHn[q],Ds[q],Dn[q]);
+        }
+        
+        else
+        {
+        // the momentum tangential to the face, carried by the normal velocity
+        const double *const ts = ipol==2 ? b->VHs.V : b->WHs.V, *const tn = ipol==2 ? b->VHn.V : b->WHn.V;
+        const double *const qs = (ipol==2 && bq) ? b->QVs.V : ts, *const qn = (ipol==2 && bq) ? b->QVn.V : tn;
+        
+        for(int q=q0; q<q0+ny; ++q)
+        if(flag[q]>0)
+        F[q] = sflow_hll_face(Ss[q],Sn[q],Us[q]*ts[q],Un[q]*tn[q],qs[q],qn[q]);
+        }
+    }
+    }
+    
+    // y-faces
+    if(p->j_dir==1)
+    {
+    const int *const flag = p->flagslice2;
+    const double *const Se = b->Se.V, *const Sw = b->Sw.V;
+    const double *const Ve = b->Ve.V, *const Vw = b->Vw.V;
+    const double *const VHe = b->VHe.V, *const VHw = b->VHw.V;
+    double *const F = Fy.V;
+    const int je = p->knoy - p->vlast;
+    
+    for(int ii=0; ii<p->knox; ++ii)
+    {
+    const int q0 = (ii - p->imin)*nj - p->jmin;
+    
+        if(ipol==2)
+        {
+        const double *const ee = b->ETAe.V, *const ew = b->ETAw.V, *const dfy = b->dfy.V;
+        const double *const qe = bq ? b->QVe.V : VHe, *const qw = bq ? b->QVw.V : VHw;
+        
+        for(int q=q0; q<q0+je; ++q)
+        if(flag[q]>0)
+        {
+        const double ps = wb ? 0.5*(pbh[q] + pbh[q+1]) : 0.0;
+        const double ze = ee[q] - ps;
+        const double zw = ew[q] - ps;
+        
+        const double fl = VHe[q]*Ve[q]
+                        + 0.5*g*ze*ze
+                        + g*ze*(dfy[q] + ps);
+        
+        const double fr = VHw[q]*Vw[q]
+                        + 0.5*g*zw*zw
+                        + g*zw*(dfy[q] + ps);
+        
+        F[q] = sflow_hll_face(Se[q],Sw[q],fl,fr,qe[q],qw[q]);
+        }
+        }
+        
+        else
+        if(ipol==4)
+        {
+        const double *const De = b->De.V, *const Dw = b->Dw.V;
+        
+        for(int q=q0; q<q0+je; ++q)
+        if(flag[q]>0)
+        F[q] = sflow_hll_face(Se[q],Sw[q],VHe[q],VHw[q],De[q],Dw[q]);
+        }
+        
+        else
+        {
+        const double *const te = ipol==1 ? b->UHe.V : b->WHe.V, *const tw = ipol==1 ? b->UHw.V : b->WHw.V;
+        const double *const qe = (ipol==1 && bq) ? b->QUe.V : te, *const qw = (ipol==1 && bq) ? b->QUw.V : tw;
+        
+        for(int q=q0; q<q0+je; ++q)
+        if(flag[q]>0)
+        F[q] = sflow_hll_face(Se[q],Sw[q],Ve[q]*te[q],Vw[q]*tw[q],qe[q],qw[q]);
+        }
+    }
+    }
 }
 
 void sflow_HLL::HLL(lexer *p, fdm2D *b, slice &Qs, slice &Qn, slice &Qe, slice &Qw, slice &Fx, slice &Fy)
@@ -372,7 +572,9 @@ void sflow_HLL::flux_bc(lexer *p, fdm2D *b, int ipol)
     
     //  walls: HLL flux with the mirrored ghost state, F = F_i -/+ s q_i
     //  (s = |u| + sqrt(gH)); the normal momentum of the wall cell is coupled to the wall
+    // (only the cells next to a wall are visited)
     SLICELOOP4
+    if(p->flagslice4[Im1J]<0 || p->flagslice4[Ip1J]<0 || p->flagslice4[IJm1]<0 || p->flagslice4[IJp1]<0)
     {
     wc = MAX(b->eta(i,j) + b->depth(i,j), 0.0);
     
