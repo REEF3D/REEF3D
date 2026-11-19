@@ -266,16 +266,28 @@ void sflow_momentum_func::stage(lexer *p, fdm2D *b, ghostcell *pgc,
     
     // stage state; Un,Vn: velocity the RK update starts from, a*u_n + (1-a)*u_s
     // (used for Du/Dt in the quadratic pressure)
-    double wln;
-    
-    SLICELOOP4
     {
-    wln = b->WL(i,j)>p->A244?b->WL(i,j):1.0e20;
+    const int *const flag = p->flagslice4;
+    const double *const wl = b->WL.V, *const uh = b->UH.V, *const vh = b->VH.V, *const u = b->U.V, *const v = b->V.V;
+    const double *const eta = b->eta.V;
+    double *const un = Un.V, *const vn = Vn.V, *const es = etaS.V;
+    const double a244 = p->A244;
     
-    Un(i,j) = a*b->UH(i,j)/wln + alpha*b->U(i,j);
-    Vn(i,j) = a*b->VH(i,j)/wln + alpha*b->V(i,j);
-    etaS(i,j) = b->eta(i,j);
+    for(int ii=0; ii<p->knox; ++ii)
+    {
+    const int q0 = (ii - p->imin)*p->jmax - p->jmin;
+    
+        for(int q=q0; q<q0+p->knoy; ++q)
+        if(flag[q]>0)
+        {
+        const double wln = wl[q]>a244?wl[q]:1.0e20;
+        un[q] = a*uh[q]/wln + alpha*u[q];
+        vn[q] = a*vh[q]/wln + alpha*v[q];
+        es[q] = eta[q];
+        }
     }
+    }
+    
     
     reconstruct(p,b,pgc,WLs,UHs,VHs,WHs);
     
@@ -346,30 +358,45 @@ void sflow_momentum_func::stage(lexer *p, fdm2D *b, ghostcell *pgc,
     // update momentum; the bed friction (A 218 1) implicit in the Euler step of the stage: fric = 1/(1 + dt gamma)
     // from the stage state (1 without friction)
     if(p->A218==1)
-    {
     prough->factor(p,b,fric,b->U,b->V,WLs);
     
-    SLICELOOP4
     {
-	UHo(i,j) = a*b->UH(i,j) + alpha*fric(i,j)*(UHDIFF(i,j) + p->dt*b->F(i,j));
-    VHo(i,j) = (a*b->VH(i,j) + alpha*fric(i,j)*(VHDIFF(i,j) + p->dt*b->G(i,j)))*p->y_dir;
-    }
-    }
+    const int *const flag = p->flagslice4;
+    const double *const uh = b->UH.V, *const vh = b->VH.V, *const wh = b->WH.V;
+    const double *const F = b->F.V, *const G = b->G.V, *const H = b->H.V;
+    const double *const ud = UHDIFF.V, *const vd = VHDIFF.V, *const wd = WHDIFF.V, *const fr = fric.V;
+    double *const uo = UHo.V, *const vo = VHo.V, *const wo = WHo.V;
+    const double dt = p->dt;
+    const bool rough = (p->A218==1);
     
-    else
-    SLICELOOP4
+    for(int ii=0; ii<p->knox; ++ii)
     {
-	UHo(i,j) = a*b->UH(i,j) + alpha*(UHDIFF(i,j) + p->dt*b->F(i,j));
-    VHo(i,j) = (a*b->VH(i,j) + alpha*(VHDIFF(i,j) + p->dt*b->G(i,j)))*p->y_dir;
+    const int q0 = (ii - p->imin)*p->jmax - p->jmin;
+    
+        for(int q=q0; q<q0+p->knoy; ++q)
+        if(flag[q]>0)
+        {
+            if(rough)
+            {
+            uo[q] = a*uh[q] + alpha*fr[q]*(ud[q] + dt*F[q]);
+            vo[q] = (a*vh[q] + alpha*fr[q]*(vd[q] + dt*G[q]))*p->y_dir;
+            }
+            
+            else
+            {
+            uo[q] = a*uh[q] + alpha*(ud[q] + dt*F[q]);
+            vo[q] = (a*vh[q] + alpha*(vd[q] + dt*G[q]))*p->y_dir;
+            }
+            
+            if(nhp==1)
+            wo[q] = a*wh[q] + alpha*(wd[q] + dt*H[q]);
+            
+            else
+            wo[q] = 0.0;
+        }
+    }
     }
     
-    if(nhp==1)
-    SLICELOOP4
-    WHo(i,j) = a*b->WH(i,j) + alpha*(WHDIFF(i,j) + p->dt*b->H(i,j));
-    
-    if(nhp==0)
-    SLICELOOP4
-    WHo(i,j) = 0.0;
     
     // rheology core: implicit basal friction on the stage momenta
     prheo->implicit(p,b,pgc,UHo,VHo,WLo,alpha,finalize);
@@ -681,6 +708,71 @@ void sflow_momentum_func::velcalc(lexer *p, fdm2D *b, ghostcell *pgc, slice &UH,
     return;
     }
     
+    // Cartesian grid: the limiter per component, over the arrays of the slices
+    if(p->geo_curv!=1)
+    {
+    const int nj = p->jmax;
+    const int *const flag = p->flagslice4, *const wet = p->wet;
+    const double *const wl = WL.V;
+    double *const uh = UH.V, *const vh = VH.V, *const wh = WH.V;
+    double *const U = b->U.V, *const V = b->V.V, *const W = b->W.V;
+    const double a531 = p->A531, a232 = p->A232, a244 = p->A244;
+    const bool edge = (p->B60>=1);
+    
+    for(int ii=0; ii<p->knox; ++ii)
+    {
+    const int q0 = (ii - p->imin)*nj - p->jmin;
+    
+        for(int q=q0; q<q0+p->knoy; ++q)
+        if(flag[q]>0)
+        {
+        const double h = wl[q];
+        const int w = wet[q];
+        
+        if(w==1)
+        {
+        lim = a531*h*sqrt(g*h);
+        
+        uh[q] = MAX(MIN(uh[q], lim), -lim);
+        vh[q] = MAX(MIN(vh[q], lim), -lim);
+        wh[q] = MAX(MIN(wh[q], lim), -lim);
+        }
+        
+        if(edge && (h<a232 || hwet))
+        if(wet[q+nj]==0 || wet[q-nj]==0 || wet[q+1]==0 || wet[q-1]==0)
+        {
+        lim = 0.1*a531*h*sqrt(g*h);
+        
+        uh[q] = MAX(MIN(uh[q], lim), -lim);
+        vh[q] = MAX(MIN(vh[q], lim), -lim);
+        wh[q] = MAX(MIN(wh[q], lim), -lim);
+        }
+        
+        // velocities
+        if(w==1)
+        {
+        const double hv = fabs(h)>a244?h:1.0e20;
+        
+        U[q] = uh[q]/hv;
+        V[q] = vh[q]/hv*p->y_dir;
+        W[q] = wh[q]/hv;
+        }
+        
+        if(w==0)
+        {
+        uh[q] = 0.0;
+        vh[q] = 0.0;
+        wh[q] = 0.0;
+        
+        U[q] = 0.0;
+        V[q] = 0.0;
+        W[q] = 0.0;
+        }
+        }
+    }
+    }
+    
+    else
     SLICELOOP4
     {
         // Froude number limiter
@@ -1015,30 +1107,38 @@ void sflow_momentum_func::neumann(lexer *p, slice &f, int cs)
 void sflow_momentum_func::face_velocities(lexer *p, fdm2D *b, ghostcell *pgc, slice &WL)
 {
     // staggered diagnostics for the sediment, turbulence, printing and ioflow modules
-    SLICELOOP1
     {
-    if(p->wet[IJ]==1 && p->wet[Ip1J]==1)
-    b->P(i,j) = 0.5*(b->U(i,j) + b->U(i+1,j));
+    const int nj = p->jmax;
+    const int *const wet = p->wet, *const flag1 = p->flagslice1, *const flag2 = p->flagslice2, *const flag4 = p->flagslice4;
+    const double *const U = b->U.V, *const V = b->V.V, *const W = b->W.V, *const wl = WL.V;
+    double *const P = b->P.V, *const Q = b->Q.V, *const hx = b->hx.V, *const hy = b->hy.V, *const ws = b->ws.V;
+    const int ie = p->knox - p->ulast;
+    const int je = p->knoy - p->vlast;
     
-    else
-    b->P(i,j) = 0.0;
-    
-    b->hx(i,j) = MAX(0.5*(WL(i,j) + WL(i+1,j)), 0.0);
-    }
-    
-    SLICELOOP2
+    for(int ii=0; ii<p->knox; ++ii)
     {
-    if(p->wet[IJ]==1 && p->wet[IJp1]==1)
-    b->Q(i,j) = 0.5*(b->V(i,j) + b->V(i,j+1));
+    const int q0 = (ii - p->imin)*nj - p->jmin;
     
-    else
-    b->Q(i,j) = 0.0;
-    
-    b->hy(i,j) = MAX(0.5*(WL(i,j) + WL(i,j+1)), 0.0);
+        if(ii<ie)
+        for(int q=q0; q<q0+p->knoy; ++q)
+        if(flag1[q]>0)
+        {
+        P[q] = (wet[q]==1 && wet[q+nj]==1) ? 0.5*(U[q] + U[q+nj]) : 0.0;
+        hx[q] = MAX(0.5*(wl[q] + wl[q+nj]), 0.0);
+        }
+        
+        for(int q=q0; q<q0+je; ++q)
+        if(flag2[q]>0)
+        {
+        Q[q] = (wet[q]==1 && wet[q+1]==1) ? 0.5*(V[q] + V[q+1]) : 0.0;
+        hy[q] = MAX(0.5*(wl[q] + wl[q+1]), 0.0);
+        }
+        
+        for(int q=q0; q<q0+p->knoy; ++q)
+        if(flag4[q]>0)
+        ws[q] = W[q];
     }
-    
-    SLICELOOP4
-    b->ws(i,j) = b->W(i,j);
+    }
     
     pgc->gcsl_start1(p,b->P,gcval_u);
     

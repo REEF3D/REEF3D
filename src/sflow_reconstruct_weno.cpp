@@ -470,26 +470,69 @@ void sflow_reconstruct_weno::prepare(lexer *p)
 void sflow_reconstruct_weno::reconstruct_WL(lexer* p, ghostcell *pgc, fdm2D *b)
 {
     // water level  
-    SLICELOOP1
-    b->dfx(i,j) = 0.5*(b->depth(i+1,j)+b->depth(i,j));
+    const int nj = p->jmax;
+    const double *const depth = b->depth.V;
+    const double a244 = p->A244;
+    const int *const flag1 = p->flagslice1, *const flag2 = p->flagslice2;
+    const int ie = p->knox - p->ulast;
+    const int je = p->knoy - p->vlast;
+    double *const dfx = b->dfx.V, *const dfy = b->dfy.V;
     
-    SLICELOOP2
-    b->dfy(i,j) = 0.5*(b->depth(i,j+1)+b->depth(i,j));
+    // face depths below the still water level
+    for(int ii=0; ii<ie; ++ii)
+    {
+    const int q0 = (ii - p->imin)*nj - p->jmin;
+    
+        for(int q=q0; q<q0+p->knoy; ++q)
+        if(flag1[q]>0)
+        dfx[q] = 0.5*(depth[q+nj]+depth[q]);
+    }
+    
+    for(int ii=0; ii<p->knox; ++ii)
+    {
+    const int q0 = (ii - p->imin)*nj - p->jmin;
+    
+        for(int q=q0; q<q0+je; ++q)
+        if(flag2[q]>0)
+        dfy[q] = 0.5*(depth[q+1]+depth[q]);
+    }
     
     pgc->gcsl_start1(p,b->dfx,1);
     pgc->gcsl_start2(p,b->dfy,1);
-
     
-    SLICELOOP1
+    // face water depths
     {
-    b->Ds(i,j) = MAX(b->ETAs(i,j) + b->dfx(i,j), p->A244);
-    b->Dn(i,j) = MAX(b->ETAn(i,j) + b->dfx(i,j), p->A244);
+    const double *const es = b->ETAs.V, *const en = b->ETAn.V;
+    double *const Ds = b->Ds.V, *const Dn = b->Dn.V;
+    
+    for(int ii=0; ii<ie; ++ii)
+    {
+    const int q0 = (ii - p->imin)*nj - p->jmin;
+    
+        for(int q=q0; q<q0+p->knoy; ++q)
+        if(flag1[q]>0)
+        {
+        Ds[q] = MAX(es[q] + dfx[q], a244);
+        Dn[q] = MAX(en[q] + dfx[q], a244);
+        }
+    }
     }
     
-    SLICELOOP2
     {
-    b->De(i,j) = MAX(b->ETAe(i,j) + b->dfy(i,j), p->A244);
-    b->Dw(i,j) = MAX(b->ETAw(i,j) + b->dfy(i,j), p->A244);
+    const double *const ee = b->ETAe.V, *const ew = b->ETAw.V;
+    double *const De = b->De.V, *const Dw = b->Dw.V;
+    
+    for(int ii=0; ii<p->knox; ++ii)
+    {
+    const int q0 = (ii - p->imin)*nj - p->jmin;
+    
+        for(int q=q0; q<q0+je; ++q)
+        if(flag2[q]>0)
+        {
+        De[q] = MAX(ee[q] + dfy[q], a244);
+        Dw[q] = MAX(ew[q] + dfy[q], a244);
+        }
+    }
     }
 }
 
