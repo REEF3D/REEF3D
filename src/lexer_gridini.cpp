@@ -264,3 +264,25 @@ void lexer::flagfree_fnpf()
     del_Iarray(DF3,n3);
     del_Iarray(DFF,nF);
 }
+
+// The semi-implicit NHFLOW with the one-step predictor (A 510 11) on one Cartesian grid reads the cell flags flag4 and
+// flag7, IO, DF, DFF and flagsf4 in its time steps. The flags of the CFD velocity components (flag1-3), flag5 and the
+// solid forcing flags flagsf1-3, DF1-3 are read by the grid set-up only and are given back after the initialisation
+// (driver::nhflow_driver says when), as for FNPF: 10 int arrays of the 3D grid. Any later access fails at once (nullptr).
+void lexer::flagfree_nhflow_si()
+{
+    const int n3 = imax*jmax*kmax;
+
+    del_Iarray(flag1,n3);
+    del_Iarray(flag2,n3);
+    del_Iarray(flag3,n3);
+    del_Iarray(flag5,n3);
+
+    del_Iarray(flagsf1,n3);
+    del_Iarray(flagsf2,n3);
+    del_Iarray(flagsf3,n3);
+
+    del_Iarray(DF1,n3);
+    del_Iarray(DF2,n3);
+    del_Iarray(DF3,n3);
+}

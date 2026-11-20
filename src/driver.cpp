@@ -21,6 +21,7 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"driver.h"
+#include"nhflow_memory.h"
 #include"regression_dump.h"
 #include"ghostcell.h"
 #include"fdm.h"
@@ -276,6 +277,18 @@ void driver::nhflow_driver()
     preg->nhflow_ini(p,d,pgc);
 
     coral_ini();
+
+    // the semi-implicit NHFLOW (A 510 11-13) after the initialisation: with the one-step predictor (A 510 11) on one
+    // Cartesian grid, without mesh refinement, CORAL, floating bodies, sediment and DEM, the 3D flags only the grid
+    // set-up reads are given back (lexer::flagfree_nhflow_si); always the zero pages of the fields (nhflow_memory.h)
+    if(p->A534==1)
+    {
+        if(p->A510==1 && !nhflow_hll_faces(p) && pnhfamr==nullptr && pcoral==nullptr && p->X10==0 && p->S10==0
+        && p->E10==0)
+        p->flagfree_nhflow_si();
+
+        nhflow_memory_trim(p,d,pgc);
+    }
 
     // Start MAINLOOP
     loop_nhflow();

@@ -27,7 +27,7 @@ Author: Hans Bihs
 #include"matrix2D.h"
 #include"vec2D.h"
 
-si_tridiag2D::si_tridiag2D(lexer *p, ghostcell *pgc, solver2D *fallback) : fb(fallback)
+si_tridiag2D::si_tridiag2D(lexer *p, ghostcell *pgc, std::function<solver2D*()> fallback) : make_fb(fallback)
 {
 }
 
@@ -60,6 +60,8 @@ void si_tridiag2D::start(lexer *p, ghostcell *pgc, slice &f, matrix2D &M, vec2D 
 
     if(!tri)
     {
+    if(fb==nullptr)
+    fb = make_fb();
     fb->start(p,pgc,f,M,xvec,rhsvec,var);
     return;
     }

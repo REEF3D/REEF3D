@@ -26,6 +26,8 @@ Author: Alexander Hanke
 #include "lexer.h"
 #include "ckpt_registry.h"
 #include <type_traits>
+#include <cstdlib>
+#include <new>
 #ifdef NHF_KCHECK
 #include"nhf_kcheck.h"
 #endif
@@ -34,22 +36,24 @@ template<typename T>
 class slice_base
 {
 public:
+    // the zeros of a new slice from calloc: its pages take memory only when written (a slice an option never uses
+    // costs nothing)
     slice_base(lexer* p) : imin(p->imin), imax(p->imax), jmin(p->jmin), jmax(p->jmax)
     {
-        V = new T[imax*jmax] {};
+        V = zeros();
         ckid = ckpt_registry::add(p,'S',std::is_same<T,int>::value,V);
     }
     // on = false: the slice of an option that is not used; no array (V = nullptr), not in the checkpoints
     slice_base(lexer* p, bool on) : imin(p->imin), imax(p->imax), jmin(p->jmin), jmax(p->jmax)
     {
-        V = on ? new T[imax*jmax] {} : nullptr;
+        V = on ? zeros() : nullptr;
         if(on)
         ckid = ckpt_registry::add(p,'S',std::is_same<T,int>::value,V);
     }
     virtual ~slice_base()
     {
         ckpt_registry::remove(ckid);
-        delete [] V;
+        free(V);
         V = nullptr;
     }
 
@@ -73,6 +77,14 @@ public:
 
     T *V;
 protected:
+    T* zeros() const
+    {
+        T *v = static_cast<T*>(calloc(size_t(imax)*size_t(jmax),sizeof(T)));
+        if(v==nullptr)
+        throw std::bad_alloc();
+        return v;
+    }
+
     const int imin,imax,jmin,jmax;
     unsigned long long ckid = 0;    // checkpoints (ckpt_registry.h)
 };

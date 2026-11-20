@@ -84,4 +84,11 @@ inline bool nhflow_hll_faces(lexer *p)
     return !(p->A534==1 && p->G1==0 && p->geo_mb==0 && p->geo_curv==0);
 }
 
+class fdm_nhf;
+class ghostcell;
+
+// The semi-implicit NHFLOW after its initialisation (driver::nhflow_driver): the pages of the 3D fields, slices and
+// solver arrays that hold zeros only are given back to the system; they read as zeros again (nhflow_memory.cpp).
+void nhflow_memory_trim(lexer*, fdm_nhf*, ghostcell*);
+
 #endif

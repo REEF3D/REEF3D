@@ -820,7 +820,7 @@ solver2D* nhflow_momentum_SI::new_solver2D(lexer *p, ghostcell *pgc)
     // one row of cells on one rank: tridiagonal, direct (si_tridiag2D; Stoker dam break, 800 cells: REEFMG2D was 14 %
     // of the step)
     if(p->j_dir==0 && p->mpi_size==1 && p->geo_curv==0)
-    return new si_tridiag2D(p,pgc,new reefmg2D(p,pgc));
+    return new si_tridiag2D(p,pgc,[p,pgc]{ return (solver2D*)new reefmg2D(p,pgc); });
 
     return new reefmg2D(p,pgc);
 }
