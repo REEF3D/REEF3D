@@ -102,6 +102,10 @@ struct sflow_si_nh_lu
     std::vector<double> h3c;    // h^3 of the cells (the A 220 3 preconditioner)
     std::vector<int> fxs, fys;  // the faces of the cells, each once
     std::vector<double> FX1, FX2, FY1, FY2;   // their discharges in the operator
+    // work vectors of sflow_momentum_SI::nh_solve, kept from step to step (no allocation per step)
+    std::vector<double> xv, yv, rv, zv, wv[13];
+    std::vector<int> cq;
+    std::vector<char> mk;
 
     void workspace(int m, int n2)
     {

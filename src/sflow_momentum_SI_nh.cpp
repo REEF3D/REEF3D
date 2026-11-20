@@ -701,7 +701,9 @@ void sflow_momentum_SI::nh_solve(lexer *p, fdm2D *b, ghostcell *pgc)
     ++N;
 
     // ---- the operator: x (eta, P) -> y (mass row, constraint row); with c the affine terms
-    std::vector<double> xv(2*N), yv(2*N);
+    // (the work vectors of the solve are kept from step to step in nhlu: every entry is set below before it is read)
+    std::vector<double> &xv = S.xv, &yv = S.yv;
+    xv.resize(2*N); yv.resize(2*N);
 
     const bool bd = (Bdisp>0.0);
 
@@ -709,10 +711,14 @@ void sflow_momentum_SI::nh_solve(lexer *p, fdm2D *b, ghostcell *pgc)
     // its index, the west face q-J, the north face q, the south face q-1
     const int J = p->jmax;
     const bool cv = (p->geo_curv==1);
-    std::vector<int> cq(N);
-    std::vector<double> idx(N), idy(N), lxe(N), lxw(N), lyn(N), lys(N), h3(N), w2(N), cst(N);
+    std::vector<int> &cq = S.cq;
+    std::vector<double> &idx = S.wv[0], &idy = S.wv[1], &lxe = S.wv[2], &lxw = S.wv[3], &lyn = S.wv[4], &lys = S.wv[5],
+                        &h3 = S.wv[6], &w2 = S.wv[7], &cst = S.wv[8];
+    cq.resize(N);
+    for(int a=0; a<9; ++a)
+    S.wv[a].resize(N);
     // curvilinear grid: the divergence weights L/A of the east, west, north and south face of the cells
-    std::vector<double> dxe, dxw, dyn_, dys;
+    std::vector<double> &dxe = S.wv[9], &dxw = S.wv[10], &dyn_ = S.wv[11], &dys = S.wv[12];
     if(cv)
     {
     dxe.resize(N); dxw.resize(N); dyn_.resize(N); dys.resize(N);
@@ -778,7 +784,8 @@ void sflow_momentum_SI::nh_solve(lexer *p, fdm2D *b, ghostcell *pgc)
     // of the mass row and of the constraint, the mass row of a cell takes the difference of its two faces
     std::vector<int> &fxs = S.fxs, &fys = S.fys;
     {
-    std::vector<char> mk((size_t)p->imax*p->jmax*2+2*J+2,0);
+    std::vector<char> &mk = S.mk;
+    mk.assign((size_t)p->imax*p->jmax*2+2*J+2,0);
     const int o = J+1;
     fxs.clear(); fys.clear();
     for(int n=0; n<N; ++n)
@@ -914,7 +921,8 @@ void sflow_momentum_SI::nh_solve(lexer *p, fdm2D *b, ghostcell *pgc)
     nh_x0 = true;
     }
 
-    std::vector<double> rv(2*N), zv(2*N);
+    std::vector<double> &rv = S.rv, &zv = S.zv;
+    rv.resize(2*N); zv.resize(2*N);
     nh_wd_iter = 0;
     nh_wd_dry = 0;
 
