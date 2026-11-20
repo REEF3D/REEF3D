@@ -317,6 +317,19 @@ void sflow_amr::ini(lexer *p, fdm2D *b, ghostcell *pgc)
     // (sflow_amr_ship.cpp)
     sub = (p->G7==1) ? 1 : 0;
 
+    // subcycling with waves from a relaxation zone (B 98 2): level 0 takes larger steps than the finest level, and the
+    // relaxation of B 95 0 depends on the number of steps.  The step-size consistent relaxation with the reference
+    // step of the finest level (B 95 -1) is taken unless a reference step B 95 > 0 is given.  The finest level takes
+    // sub_nfine() steps per step of level 0, not always 2^G1 (sub_choose): its step is set as the reference step at
+    // the start of every level-0 step (sub_begin)
+    if(sub==1 && p->B98==2 && p->B95<=0.0)
+    {
+        if(p->B95==0.0 && p->mpirank==0)
+        cout<<"SFLOW AMR: G 7 1 with a wave relaxation zone (B 98 2): B 95 -1 (step-size consistent relaxation)"<<endl;
+        p->B95 = -1.0;
+        b95_fine = true;
+    }
+
     // hierarchy: rank boxes, tiles, level-0 flags, no-refinement cells
     setup(p,pgc);
 
@@ -376,7 +389,7 @@ void sflow_amr::ini(lexer *p, fdm2D *b, ghostcell *pgc)
         if(regrid_int>0 && sub==1)
         cout<<", regrid every "<<MAX(regrid_int>>maxlev,1)<<" level-0 steps";
         if(sub==1)
-        cout<<", subcycled (G 7 1: level l takes 2^l steps per level-0 step)";
+        cout<<", subcycled (G 7 1: every level at its own step, two per step of the next coarser level or as its CFL number needs)";
         cout<<endl;
         if(shipmode>0)
         cout<<"SFLOW AMR: moving body X 10 "<<shipmode<<" on the patches"<<(p->G12>0?", refinement around the body (G 12)":"")<<endl;
@@ -2466,6 +2479,11 @@ void sflow_amr::step_begin(lexer *p, fdm2D *b, ghostcell *pgc)
     // G 7 1: level 0 steps alone, the patches follow in step_end
     if(sub==1)
     {
+        // B 95 -1: the step of the finest level in this level-0 step as the reference step of the relaxation
+        // (without patches 2^G1 steps, as iowave::relax_stage_factor)
+        if(b95_fine)
+        p->B95 = p->dt/double((maxlev>=1 && patches_total>0) ? sub_nfine() : (1<<p->G1));
+
         if(maxlev>=1 && patches_total>0)
         {
             // shoreline: the covered cells of level 0 start the step with the restricted surface (depth_update
@@ -2657,11 +2675,22 @@ void sflow_amr::step_end(lexer *p, fdm2D *b, ghostcell *pgc)
     }
 
 
-    // G 7 1: G 2 counts steps of the finest level, as without subcycling (a level-0 step is 2^G1 of them)
-    const int rint = (sub==1) ? MAX(regrid_int>>maxlev,1) : regrid_int;
+    // G 7 1: G 2 counts steps of the finest level, as without subcycling.  A level-0 step is sub_nfine() of them
+    // (2^G1 with two steps on every level: then every MAX(G2 >> G1, 1) level-0 steps, as before)
+    bool due;
+    if(sub==1)
+    {
+        const long need = long(MAX(regrid_int>>maxlev,1))<<maxlev;
+        sub_acc += sub_nfine();
+        due = (regrid_int>0 && sub_acc>=need);
+        if(due)
+        sub_acc = 0;
+    }
+    else
+    due = (regrid_int>0 && p->count%regrid_int==0);
 
     // (replace_due: G 41 0 with a static refinement, the placement once more with the measured model)
-    if(maxlev>=1 && ((regrid_int>0 && p->count%rint==0) || replace_due(p)))
+    if(maxlev>=1 && (due || replace_due(p)))
     {
     double t0 = MPI_Wtime();
     regrid(p,pgc,false);
@@ -3072,18 +3101,106 @@ void sflow_amr::timestep(lexer *p, fdm2D *b, ghostcell *pgc)
 
     double dtp = MIN(cfl*2.0*cmin, dtd);
 
-    // G 7 1: level l takes 2^l steps per step of level 0
+    // G 7 1: every level at its own step (sub_choose)
     if(sub==1)
     {
-        dtp = 1.0e20;
+        vector<double> a(maxlev+1,1.0e20);
         for(int l=1; l<=maxlev; ++l)
-        dtp = MIN(dtp, MIN(cfl*2.0*cl[l], dl[l])*double(1<<l));
+        a[l] = pgc->globalmin(MIN(cfl*2.0*cl[l], dl[l]));
+        sub_choose(p,pgc,a,cfl);
+        return;
     }
 
     dtp = pgc->globalmin(dtp);
 
     if(p->N48>=1)
     p->dt = MIN(p->dt,dtp);
+}
+
+// G 7 1: the step of level 0 and the steps of every level in the step of its parent, from the largest step a[l]
+// of each level l >= 1 (its CFL number, dispersion and diffusion limits; the minimum over the ranks) and the step
+// p->dt of level 0 alone.
+//
+// Level l takes msub[l] = 1 ... 4 steps per step of level l-1, n_l = msub[1] ... msub[l] per step of level 0, and
+// the step of level 0 is the largest that all levels allow: min(p->dt, n_l a[l]).  Of all these the one with the
+// fewest cell updates per time is taken (the cells of level 0 and of the boxes of every level times n_l, over the
+// step of level 0).
+//
+// Two steps on every level (the step of level 0 at most 2^l a[l], as before) stay unless another choice saves at
+// least 2 %: that is the case where level 0 or a coarse level limits the step (deep water there, the patches in
+// shallow water), and the finer levels then take the steps their own CFL number needs instead of 2^l.
+// With a fixed step (N 48 0): two steps on every level.
+void sflow_amr::sub_choose(lexer *p, ghostcell *pgc, const vector<double> &a, double cfl)
+{
+    for(int l=1; l<8; ++l)
+    msub[l] = 2;
+
+    if(p->N48<1)
+    return;
+
+    double capA = 1.0e20;
+    for(int l=1; l<=maxlev; ++l)
+    capA = MIN(capA, a[l]*double(1<<l));
+    const double dtA = MIN(p->dt,capA);
+
+    if(maxlev>5 || patches_total==0)
+    {
+        p->dt = dtA;
+        return;
+    }
+
+    // the cells of the boxes of every level
+    vector<double> w(maxlev+1,0.0);
+    for(auto c : P)
+    if(c->lev>=1 && c->lev<=maxlev)
+    w[c->lev] += double(c->nx)*double(c->ny);
+    for(int l=1; l<=maxlev; ++l)
+    w[l] = pgc->globalsum(w[l]);
+    w[0] = double(p->cellnumtot2D);
+
+    double costA = w[0];
+    for(int l=1; l<=maxlev; ++l)
+    costA += w[l]*double(1<<l);
+    costA /= dtA;
+
+    // all choices of 1 ... 4 steps per level
+    const int MM = 4;
+    int m[8] = {1,1,1,1,1,1,1,1}, best[8] = {1,2,2,2,2,2,2,2};
+    double cbest = costA, dtbest = dtA;
+    bool other = false;
+    for(;;)
+    {
+        double dt0 = p->dt, cost = w[0];
+        int n = 1;
+        for(int l=1; l<=maxlev; ++l)
+        {
+            n *= m[l];
+            dt0 = MIN(dt0, double(n)*a[l]);
+            cost += w[l]*double(n);
+        }
+        cost /= dt0;
+        if(cost<0.98*costA && cost<cbest)
+        {
+            cbest = cost;
+            dtbest = dt0;
+            other = true;
+            for(int l=1; l<=maxlev; ++l)
+            best[l] = m[l];
+        }
+
+        int l=1;
+        while(l<=maxlev && m[l]==MM)
+        m[l++] = 1;
+        if(l>maxlev)
+        break;
+        ++m[l];
+    }
+
+    if(other)
+    for(int l=1; l<=maxlev; ++l)
+    msub[l] = best[l];
+
+    p->dt = dtbest;
 }
 
 // --------------------------------------------------------------------- output
@@ -3160,7 +3277,14 @@ void sflow_amr::profile_print(lexer *p, ghostcell *pgc)
 
     const double *gt=g, *gl=g+8, *gc=g+8+NPL, *gr=g+8+NPL+6*NPL, *gm=gr+6;
     cout<<setprecision(6)<<"SFLOW AMR profile: step "<<p->count<<" stages "<<pstages<<" regrids "<<regrids<<" skipped "<<regrids_skipped
-        <<" patches new "<<gf<<" kept "<<gk<<endl;
+        <<" patches new "<<gf<<" kept "<<gk;
+    if(sub==1)
+    {
+        cout<<" steps (G 7 1) L0 "<<sub_steps[0];
+        for(int k=1; k<=maxlev && k<8; ++k)
+        cout<<" L"<<k<<" "<<sub_steps[k];
+    }
+    cout<<endl;
     cout<<"SFLOW AMR profile: time [s, sum of the ranks] level-0 stages "<<gt[0]<<" patch stages "<<gm[1];
     for(int k=1; k<=maxlev && k<NPL; ++k)
     cout<<" L"<<k<<" "<<gl[k];

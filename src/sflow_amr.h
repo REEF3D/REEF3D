@@ -562,6 +562,13 @@ private:
     void sub_sync(lexer*, ghostcell*, int, int, double);
     void sub_reflux(int);
     long sub_steps[8] = {0,0,0,0,0,0,0,0};
+    // steps of level l per step of level l-1 (msub[l], l >= 1).  2 on every level, or, where that costs less, as many
+    // as the CFL number of the level needs with level 0 at its own step (sflow_amr::timestep, sub_choose)
+    int msub[8] = {1,2,2,2,2,2,2,2};
+    bool b95_fine = false;          // B 95 -1 with G 7 1: the reference step of the relaxation is the step of the finest level
+    long sub_acc = 0;               // steps of the finest level since the last regrid (G 2 counts them)
+    int sub_nfine() const { int n=1; for(int l=1; l<=maxlev && l<8; ++l) n *= msub[l]; return n; }
+    void sub_choose(lexer*, ghostcell*, const vector<double>&, double);
     // A 220 1-3 (sflow_amr_subnh.cpp): level solves, synchronisation projection
     void nh_level(lexer*, ghostcell*, int, int, int);
     void nh_project(lexer*, ghostcell*, int, double);

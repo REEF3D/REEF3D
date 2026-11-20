@@ -143,6 +143,14 @@ void sflow_amr::ckpt_write(reefckpt &ck)
     // the output counters (the same on all ranks)
     ck.blob("sflow_amr_print",vector<double>{printtime_amr,double(printcount_amr)});
 
+    // G 7 1: the steps per level of the next level-0 step and the steps of the finest level since the last regrid
+    {
+        vector<double> sb{double(sub_acc)};
+        for(int l=0; l<8; ++l)
+        sb.push_back(double(msub[l]));
+        ck.blob("sflow_amr_sub",sb);
+    }
+
     // the scalars of every patch of this rank: level, box, the code of its arrays, the run scalars of its
     // lexer, the length and the values of sediment_f::ckpt_state (S 10)
     vector<double> b;
@@ -200,6 +208,17 @@ bool sflow_amr::ckpt_read(reefckpt &ck, string &msg)
     for(auto q : P)
     if(SP(q)->psim!=nullptr)
     SP(q)->psim->ckpt_restored();
+
+    if(ck.has("sflow_amr_sub"))
+    {
+        const vector<double> sb = ck.get_blob("sflow_amr_sub");
+        if(sb.size()==9)
+        {
+            sub_acc = long(sb[0]);
+            for(int l=0; l<8; ++l)
+            msub[l] = int(sb[1+l]);
+        }
+    }
 
     if(ck.has("sflow_amr_print"))
     {

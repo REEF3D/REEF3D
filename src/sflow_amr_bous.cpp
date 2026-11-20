@@ -471,7 +471,7 @@ void sflow_amr::bous_level(lexer *p, ghostcell *pgc, int l, int k, int s)
 {
     // times of the RK3 stage outputs in the step
     static const double rko[3] = {1.0, 0.5, 1.0};
-    bous_window(pgc,l,0.5*(double(k)+rko[s]));
+    bous_window(pgc,l,(double(k)+rko[s])/double(msub[l]));
 
     const double t1 = MPI_Wtime();
     comms_off guard(pgc);
@@ -506,7 +506,7 @@ void sflow_amr::bous_sync(lexer *p, ghostcell *pgc, int l, int k)
     }
     }
 
-    bous_window(pgc,l,0.5*double(k+1));
+    bous_window(pgc,l,double(k+1)/double(msub[l]));
 
     comms_off guard(pgc);
     for(int n : lev[l])
