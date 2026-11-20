@@ -57,6 +57,17 @@ Author: Hans Bihs
 // Non-hydrostatic cells: wet, deeper than 10 A 544, p->deep, wet neighbours; phi = 0 elsewhere. Open boundary faces
 // carry no pressure term.
 //
+// [u . grad z]_k with the interface slopes of the geometry of t^{n+1} from the solve itself: z_m = z_b + sig_m (WL^n +
+// eta^{n+1} - eta^n), centred (nh_prepare: the part of t^n, NSX/NSY, and the cells whose eta enters; nh_residual,
+// nh_assemble: the change of eta, implicit). Before, the geometry was extrapolated to t^{n+1} (2 WLh - WL^n): in a
+// current the waves of 5 - 6 cells grew by 6 - 8 % per step from a gravity Courant number of about 1 (2D flume, h 0.109
+// m, U 0.42 m/s, dx 1 cm, dt 0.012 s; one layer or ten). A linear (von Neumann) analysis of the one-layer step (Keller
+// box, the two passes of tl2, the multilayer flux, theta) gives the same growth and locates it in this term: the
+// extrapolation of an oscillation of omega_abs dt ~ 1 over a step. With eta^{n+1} the step is stable there up to the
+// advective limit of the predictor (Courant 0.6 with SSP-RK2 and WENO5, 0.84 with SSP-RK3 tested), for theta 0.55
+// and 0.5. A slope that already exceeds the limit at t^n (tan 30 deg, nh_lim) stays at the limit, without eta^{n+1}, so
+// that the rows stay linear.
+//
 // Solution (nh_solve): the operator is the residual F(x) of the full step with x = (eta, phi_0 .. phi_{K-1}) per
 // column; A x = F(x) - F(0), A assembled directly from the derivatives of the face discharges (nh_dfaces, nh_assemble;
 // checked against probing F with three or five colours with the environment variable NHCHECK). One cell in y on one rank: band LU of the interleaved unknowns (bandwidth
@@ -100,6 +111,9 @@ void nhflow_momentum_SI::nh_ini(lexer *p)
     if(!nh)
     return;
 
+    p->Darray_lazy(NSFx,lN);
+    p->Darray_lazy(NSFy,lN);
+
     nh_brk = p->A558;   // A 558: the breaking limiter |w| <= A 558 sqrt(g H) of Popinet 2020 (nh_cell)
 
     const int N = lN;
@@ -115,7 +129,7 @@ void nhflow_momentum_SI::nh_ini(lexer *p)
 
 void nhflow_momentum_SI::nh_free()
 {
-    double **arr[] = {&NQx,&NQy,&WHS,&PHI,&PHIo,&NSX,&NSY};
+    double **arr[] = {&NQx,&NQy,&WHS,&PHI,&PHIo,&NSX,&NSY,&NSFx,&NSFy};
     for(double **a : arr)
     if(*a!=nullptr)
     {
@@ -351,10 +365,17 @@ void nhflow_momentum_SI::nh_prepare(lexer *p, fdm_nhf *d, ghostcell *pgc)
         }
     }
 
-    // interface heights z_m = z_b + sig_m WL1, m = 0 .. K; centred slopes of the cells (one-sided next to solids). The
-    // constraint holds at t^{n+1}, so its geometry is that of t^{n+1}: WL1 = WL^n + r (WL^n - WL^{n-1}) = 2 WLh - WL^n
-    // (with t^{n+1/2} the Stokes-5 wave ran 0.15 % slower)
-    auto zif = [&](int a, int c, int m) { return d->bed(a,c) + p->ZN[m+marge]*nh_wl1(p,a,c); };
+    // interface heights z_m = z_b + sig_m WL, m = 0 .. K; centred slopes of the cells (one-sided next to solids). The
+    // constraint holds at t^{n+1}, so its geometry is that of t^{n+1}: WL^n + (eta^{n+1} - eta^n), the change of eta
+    // from the solve (nh_residual, nh_assemble; see the top of the file). Here the part of t^n (NSX, NSY) and the
+    // cells whose eta enters (nSx, nSy: the east and west, north and south cell, -9 none: an open boundary ghost or the
+    // column itself one-sided on both sides; NSFx, NSFy 0 where the slope stays at its limit)
+    auto zif = [&](int a, int c, int m) { return d->bed(a,c) + p->ZN[m+marge]*WL0(a,c); };
+
+    nSx.assign((size_t)2*p->imax*p->jmax,-9);
+    nSy.assign((size_t)2*p->imax*p->jmax,-9);
+    nSdx.assign((size_t)p->imax*p->jmax,0.0);
+    nSdy.assign((size_t)p->imax*p->jmax,0.0);
 
     // a side with an open boundary face (inflow, outflow, open edge): centred as in the interior, the ghost column
     // with the boundary state of the step (WLb of bc_faces: the inflow level, the outflow level, the open edge) on the
@@ -380,7 +401,17 @@ void nhflow_momentum_SI::nh_prepare(lexer *p, fdm_nhf *d, ghostcell *pgc)
     const double dx = p->XP[ie+marge] - p->XP[iw+marge];
     const double ze = oe ? zob(ie,j,m) : zif(ie,j,m), zw = ow ? zob(iw,j,m) : zif(iw,j,m);
     NSX[PIJK] = dx>0.0 ? nh_lim(ze - zw,dx)/dx : 0.0;
+    NSFx[PIJK] = (dx>0.0 && fabs(ze - zw)<nh_max_slope*dx) ? 1.0 : 0.0;
     NSY[PIJK] = 0.0;
+    NSFy[PIJK] = 0.0;
+
+        if(m==0)
+        {
+        const size_t q = (size_t)((i-p->imin)*p->jmax + (j-p->jmin));
+        nSx[2*q]   = oe ? -9 : ie-i;
+        nSx[2*q+1] = ow ? -9 : iw-i;
+        nSdx[q] = dx;
+        }
 
         if(p->j_dir==1)
         {
@@ -389,6 +420,15 @@ void nhflow_momentum_SI::nh_prepare(lexer *p, fdm_nhf *d, ghostcell *pgc)
         const double dy = p->YP[jn+marge] - p->YP[js+marge];
         const double zn = on ? zob(i,jn,m) : zif(i,jn,m), zs = os ? zob(i,js,m) : zif(i,js,m);
         NSY[PIJK] = dy>0.0 ? nh_lim(zn - zs,dy)/dy : 0.0;
+        NSFy[PIJK] = (dy>0.0 && fabs(zn - zs)<nh_max_slope*dy) ? 1.0 : 0.0;
+
+            if(m==0)
+            {
+            const size_t q = (size_t)((i-p->imin)*p->jmax + (j-p->jmin));
+            nSy[2*q]   = on ? -9 : jn-j;
+            nSy[2*q+1] = os ? -9 : js-j;
+            nSdy[q] = dy;
+            }
         }
     }
 }
@@ -525,10 +565,19 @@ void nhflow_momentum_SI::nh_residual(lexer *p, fdm_nhf *d, ghostcell *pgc, const
         const double H0 = nh_wl1(p,i,j), Hh = H0;
         const double iH0 = 1.0/H0;
 
+        // the interface slopes of the geometry of t^{n+1}: NSX + sig_m (de_e - de_w)/dx, de = eta^{n+1} - eta^n
+        const size_t qc = (size_t)((i-p->imin)*p->jmax + (j-p->jmin));
+        auto de = [&](int di, int dj) { return etaI(i+di,j+dj) - eta0(i+di,j+dj); };
+        const double gx = nSdx[qc]>0.0 ? ((nSx[2*qc]>-9 ? de(nSx[2*qc],0) : 0.0) - (nSx[2*qc+1]>-9 ? de(nSx[2*qc+1],0) : 0.0))/nSdx[qc] : 0.0;
+        const double gy = (yd && nSdy[qc]>0.0) ? ((nSy[2*qc]>-9 ? de(0,nSy[2*qc]) : 0.0) - (nSy[2*qc+1]>-9 ? de(0,nSy[2*qc+1]) : 0.0))/nSdy[qc] : 0.0;
+        auto SX = [&](int m) { k=m; return NSX[PIJK] + NSFx[PIJK]*p->ZN[m+marge]*gx; };
+        auto SY = [&](int m) { k=m; return NSY[PIJK] + NSFy[PIJK]*p->ZN[m+marge]*gy; };
+
         // the bed: w_b = u_0 . grad(z_b)
         k=0;
         const double *UU = tl2 ? nUZx.data() : UHD, *VV = tl2 ? nUZy.data() : VHD;
-        double wlo = UU[PIJK]*iH0*NSX[PIJK] + (yd ? VV[PIJK]*iH0*NSY[PIJK] : 0.0);
+        double wlo = UU[PIJK]*iH0*SX(0) + (yd ? VV[PIJK]*iH0*SY(0) : 0.0);
+        k=0;
 
         for(k=0;k<K;++k)
         {
@@ -540,17 +589,12 @@ void nhflow_momentum_SI::nh_residual(lexer *p, fdm_nhf *d, ghostcell *pgc, const
         double D = ds*layer_div_p(p,Qx,Qy);
 
         // [u . grad z]_k: u_k on the upper interface (k+1), u_{k-1} on the lower one, u_0 on the bed
+        const int kc = k;
         const double uk = UU[PIJK]*iH0, vk = yd ? VV[PIJK]*iH0 : 0.0;
-        double uz = uk*NSX[PIJKp1] + vk*NSY[PIJKp1];
-
-            if(k>0)
-            {
-            const double um = UU[PIJKm1]*iH0, vm = yd ? VV[PIJKm1]*iH0 : 0.0;
-            uz -= um*NSX[PIJK] + vm*NSY[PIJK];
-            }
-
-            else
-            uz -= uk*NSX[PIJK] + vk*NSY[PIJK];
+        const double um = kc>0 ? UU[PIJKm1]*iH0 : uk, vm = kc>0 ? (yd ? VV[PIJKm1]*iH0 : 0.0) : vk;
+        double uz = uk*SX(kc+1) + (yd ? vk*SY(kc+1) : 0.0);
+        uz -= um*SX(kc) + (yd ? vm*SY(kc) : 0.0);
+        k=kc;
 
         D -= uz;
 
@@ -797,6 +841,37 @@ void nhflow_momentum_SI::nh_assemble(lexer *p, const std::function<void(int,int,
             const double sc = 2.0*h/dt;
 
             adddiv(1+kk,sc*ds,kk);
+
+                // -[u . grad z]_k: the change of eta of the cells of the interface slopes (implicit geometry of t^{n+1})
+                {
+                const double *UU = tl2 ? nUZx.data() : UHD, *VV = tl2 ? nUZy.data() : VHD;
+                const double iH = 1.0/H1;
+                const size_t qc = (size_t)((i-p->imin)*p->jmax + (j-p->jmin));
+                k=kk;
+                const double uk = UU[PIJK]*iH, vk = yd ? VV[PIJK]*iH : 0.0;
+                const double um = kk>0 ? UU[PIJKm1]*iH : uk, vm = kk>0 ? (yd ? VV[PIJKm1]*iH : 0.0) : vk;
+                const double su = p->ZN[kk+1+marge], sl = p->ZN[kk+marge];
+                auto blk = [&](int dir, int off) { return off==0 ? 0 : (dir==1 ? (off>0 ? 1 : 2) : (off>0 ? 3 : 4)); };
+
+                    if(nSdx[qc]>0.0)
+                    {
+                    k=kk+1; const double fu = NSFx[PIJK];
+                    k=kk;   const double fl = NSFx[PIJK];
+                    const double cx = (uk*su*fu - um*sl*fl)/nSdx[qc];
+                    if(nSx[2*qc]>-9)   at(blk(1,nSx[2*qc]),1+kk,0)   -= sc*cx;
+                    if(nSx[2*qc+1]>-9) at(blk(1,nSx[2*qc+1]),1+kk,0) += sc*cx;
+                    }
+
+                    if(yd && nSdy[qc]>0.0)
+                    {
+                    k=kk+1; const double fu = NSFy[PIJK];
+                    k=kk;   const double fl = NSFy[PIJK];
+                    const double cy = (vk*su*fu - vm*sl*fl)/nSdy[qc];
+                    if(nSy[2*qc]>-9)   at(blk(2,nSy[2*qc]),1+kk,0)   -= sc*cy;
+                    if(nSy[2*qc+1]>-9) at(blk(2,nSy[2*qc+1]),1+kk,0) += sc*cy;
+                    }
+                k=kk;
+                }
 
             std::fill(wc.begin(),wc.end(),0.0);
             wc[kk] += dt/h;

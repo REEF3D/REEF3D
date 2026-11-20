@@ -1,0 +1,19 @@
+{
+ "description": "nhflow_1d_si_nh_bump_current_dt four cells wide on two ranks (200 x 4 x 10 cells, M 10 2), fixed dt 0.0143 s, 420 steps: the [u grad z] terms with the interface slopes of t^{n+1} in the coupled system solved by FGMRES with the multigrid of nhflow_si_nhmg; with the extrapolated geometry the run stopped at t = 4.4 s (N 61).",
+ "solver": "nhflow",
+ "np": 2,
+ "steps": 420,
+ "tags": [
+  "2d",
+  "nhflow",
+  "semi_implicit",
+  "nonhydrostatic",
+  "current",
+  "mpi"
+ ],
+ "covers": [
+  "nhflow_momentum_SI::nh_residual / nh_assemble: d/d eta of the [u grad z] terms in the x and y blocks of the multigrid",
+  "the neighbouring eta of the slopes across the rank boundary"
+ ],
+ "architect": "Hans Bihs"
+}

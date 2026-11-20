@@ -376,6 +376,12 @@ private:
     double *NQx = nullptr, *NQy = nullptr, *WHS = nullptr, *PHI = nullptr, *PHIo = nullptr, *NSX = nullptr, *NSY = nullptr;
     // hMx, hMy: the face depths of the mass flux of the predictor (mlflux_faces, nh_begin)
     std::vector<double> nWLh, nWLo, nHxo, nHyo, hMx, hMy;
+    // [u . grad z] with the geometry of t^{n+1} from the solve (nh_prepare, nh_residual, nh_assemble): the cells of the
+    // centred interface slopes (offsets east, west / north, south; -9 none) and their distance; NSFx, NSFy: 1 where
+    // the slope takes the change of eta (not at its limit)
+    std::vector<signed char> nSx, nSy;
+    std::vector<double> nSdx, nSdy;
+    double *NSFx = nullptr, *NSFy = nullptr;
     std::vector<double> nUZx, nUZy;
 
     // fourth-order horizontal operators (nhflow_momentum_SI_ho.cpp): hoC the fluid cells of the stencils (with
