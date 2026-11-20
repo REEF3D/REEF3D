@@ -37,6 +37,11 @@ Author: Hans Bihs
 //        div(q) + U* (2 d_x - H_x) + V* (2 d_y - H_y) + 2 W = 0,  W = (WH* + dt (cw P + H phi/4))/H,
 //        U*, V*: the cell velocities extrapolated to t^{n+1} (an implicit slope term, with the face velocities,
 //        needs about 25 times the Krylov iterations for the same errors)
+//        H of the slope term: the depth of t^{n+1} from the solve, H = WL^n + eta^{n+1} - eta^n (eta^{n+1} implicit,
+//        nh_sz). With H extrapolated to t^{n+1} ((1 + r) WL^n - r WL^{n-1}) short waves in a current grew from a
+//        gravity-wave Courant number of about 1 (2 m flume, h 0.109 m, U 0.42 m/s, dx 1 cm: the run stopped at dt
+//        0.012 s and was noisy with the automatic step, 0.0115 s; with WL^n or WL^{n+1/2} worse, as NHFLOW A 520 2 /
+//        NHFLOW ML v34); with eta^{n+1} stable up to the advective limit of the AB2 W advection (u dt/dx 0.5)
 //
 // compact face differences throughout (no checkerboard mode, the dispersion of the staggered grid). The cell
 // discharges take the mean of the non-hydrostatic face terms (as the gravity term, cell_update). phi, the bed
@@ -231,6 +236,13 @@ int sflow_momentum_SI::nh_active(lexer *p, fdm2D *b, int ii, int jj)
     return dwC(ii,jj)>0.5 ? 1 : 0;
 
     return 1;
+}
+
+double sflow_momentum_SI::nh_slope(lexer *p, int ii, int jj, slice &f)
+{
+    // the slope term of nh_sz applied to a cell field f (the affine part of eta^n)
+    const double *z = &nh_sz[5*(size_t)((ii-p->imin)*p->jmax + (jj-p->jmin))];
+    return z[0]*f(ii,jj) + z[1]*f(ii+1,jj) + z[2]*f(ii-1,jj) + (p->j_dir==1 ? z[3]*f(ii,jj+1) + z[4]*f(ii,jj-1) : 0.0);
 }
 
 void sflow_momentum_SI::nh_predictor(lexer *p, fdm2D *b, ghostcell *pgc)
@@ -529,8 +541,8 @@ void sflow_momentum_SI::nh_assemble(lexer *p, fdm2D *b, ghostcell *pgc)
     {
         SLICELOOP4
         {
-        const double H = WLq(i,j);
-        auto sl = [&](int a, int c) { return in(a,c) ? 2.0*b->depth(a,c) - WLq(a,c) : 2.0*b->depth(i,j) - H; };
+        const double H = WL0(i,j);
+        auto sl = [&](int a, int c) { return in(a,c) ? 2.0*b->depth(a,c) - WL0(a,c) : 2.0*b->depth(i,j) - H; };
         sflow_curv::grad5(p,i,j,sl(i+1,j),sl(i-1,j),sl(i,j+1),sl(i,j-1),nsx(i,j),nsy(i,j));
         }
     }
@@ -540,18 +552,55 @@ void sflow_momentum_SI::nh_assemble(lexer *p, fdm2D *b, ghostcell *pgc)
     {
     // (A 221 2: mirrored at a wall of dry land, as at the domain edges)
     auto io = [&](int a, int c) { return in(a,c) && !sflow_drywall::wall(p,a,c); };
-    const double H = WLq(i,j);
+    const double H = WL0(i,j);
     const double dx = p->DXP[IP] + p->DXP[IM1];
     nsx(i,j) = (2.0*((io(i+1,j) ? b->depth(i+1,j) : b->depth(i,j)) - (io(i-1,j) ? b->depth(i-1,j) : b->depth(i,j)))
-                    - ((io(i+1,j) ? WLq(i+1,j) : H) - (io(i-1,j) ? WLq(i-1,j) : H)))/dx;
+                    - ((io(i+1,j) ? WL0(i+1,j) : H) - (io(i-1,j) ? WL0(i-1,j) : H)))/dx;
     nsy(i,j) = 0.0;
 
         if(yd)
         {
         const double dy = p->DYP[JP] + p->DYP[JM1];
         nsy(i,j) = (2.0*((io(i,j+1) ? b->depth(i,j+1) : b->depth(i,j)) - (io(i,j-1) ? b->depth(i,j-1) : b->depth(i,j)))
-                        - ((io(i,j+1) ? WLq(i,j+1) : H) - (io(i,j-1) ? WLq(i,j-1) : H)))/dy;
+                        - ((io(i,j+1) ? WL0(i,j+1) : H) - (io(i,j-1) ? WL0(i,j-1) : H)))/dy;
         }
+    }
+
+    // the slope of the change of eta over the step, implicit (nh_sz): - (U* d/dx + V* d/dy)(eta^{n+1} - eta^n) with the
+    // gradients above (neighbours outside the domain and, Cartesian, walls of dry land mirrored: the cell itself)
+    nh_sz.assign(5*(size_t)p->imax*p->jmax,0.0);
+
+    SLICELOOP4
+    if(nA(i,j)>0.5)
+    {
+    auto io = [&](int a, int c) { return cv ? in(a,c) : (in(a,c) && !sflow_drywall::wall(p,a,c)); };
+    const bool oE = io(i+1,j), oW = io(i-1,j), oN = yd && io(i,j+1), oS = yd && io(i,j-1);
+    double gxE, gxW, gxN, gxS, gyE, gyW, gyN, gyS;
+
+        if(cv)
+        {
+        sflow_curv::grad5(p,i,j,1.0,0.0,0.0,0.0,gxE,gyE);
+        sflow_curv::grad5(p,i,j,0.0,1.0,0.0,0.0,gxW,gyW);
+        sflow_curv::grad5(p,i,j,0.0,0.0,1.0,0.0,gxN,gyN);
+        sflow_curv::grad5(p,i,j,0.0,0.0,0.0,1.0,gxS,gyS);
+        }
+
+        else
+        {
+        const double dx = p->DXP[IP] + p->DXP[IM1];
+        const double dy = yd ? p->DYP[JP] + p->DYP[JM1] : 1.0;
+        gxE = 1.0/dx; gxW = -1.0/dx; gxN = gxS = 0.0;
+        gyE = gyW = 0.0; gyN = yd ? 1.0/dy : 0.0; gyS = yd ? -1.0/dy : 0.0;
+        }
+
+    const double us = nUs(i,j), vs = yd ? nVs(i,j) : 0.0;
+    const double cE = -(us*gxE + vs*gyE), cW = -(us*gxW + vs*gyW), cN = -(us*gxN + vs*gyN), cS = -(us*gxS + vs*gyS);
+    double *z = &nh_sz[5*(size_t)(IJ)];
+    z[1] = oE ? cE : 0.0;
+    z[2] = oW ? cW : 0.0;
+    z[3] = oN ? cN : 0.0;
+    z[4] = oS ? cS : 0.0;
+    z[0] = (oE ? 0.0 : cE) + (oW ? 0.0 : cW) + (oN ? 0.0 : cN) + (oS ? 0.0 : cS);
     }
 
 
@@ -707,7 +756,8 @@ void sflow_momentum_SI::nh_solve(lexer *p, fdm2D *b, ghostcell *pgc)
     // implicit slope term is missed by the preconditioner below)
     const double H = WLq(i,j);
     w2[n] = 2.0*dt*cwn/H;
-    cst[n] = 2.0*(WHp(i,j) + dt*0.25*H*phiN(i,j))/H + nsx(i,j)*nUs(i,j) + (yd ? nsy(i,j)*nVs(i,j) : 0.0);
+    cst[n] = 2.0*(WHp(i,j) + dt*0.25*H*phiN(i,j))/H + nsx(i,j)*nUs(i,j) + (yd ? nsy(i,j)*nVs(i,j) : 0.0)
+           - nh_slope(p,i,j,eta0);
     ++n;
     }
     }
@@ -835,6 +885,10 @@ void sflow_momentum_SI::nh_solve(lexer *p, fdm2D *b, ghostcell *pgc)
             }
 
             cc += w2[n]*Pp[q];
+
+            // the slope of the change of eta (nh_sz)
+            const double *z = &nh_sz[5*(size_t)q];
+            cc += z[0]*E[q] + z[1]*E[q+J] + z[2]*E[q-J] + (yd ? z[3]*E[q+1] + z[4]*E[q-1] : 0.0);
 
             if(affine)
             cc += cst[n];

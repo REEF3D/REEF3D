@@ -1,0 +1,18 @@
+{
+ "description": "sflow_1d_si_nh_bump_current_dt four cells wide on two ranks (200 x 4 cells), 400 steps (t = 4.8 s): the implicit slope term in the operator of the FGMRES solve (the preconditioner without it: 5.5 iterations per step, 13 with the extrapolated H before the run stopped at t = 1.9 s).",
+ "solver": "sflow",
+ "np": 2,
+ "steps": 400,
+ "tags": [
+  "2d",
+  "sflow",
+  "semi_implicit",
+  "nonhydrostatic",
+  "current",
+  "mpi"
+ ],
+ "covers": [
+  "sflow_momentum_SI::nh_solve: FGMRES, the slope coupling of eta in the matrix-free operator across the rank boundary"
+ ],
+ "architect": "Hans Bihs"
+}

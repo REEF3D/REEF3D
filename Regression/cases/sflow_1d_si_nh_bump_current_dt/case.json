@@ -1,0 +1,18 @@
+{
+ "description": "SFLOW semi-implicit step with the non-hydrostatic pressure (A 210 12, A 220 2) at a large time step in a current: 2 m flume over a 3 mm step of the bed (dx 0.01 m), q 0.046 m^2/s on h 0.109 m (U 0.42 m/s), theta 0.55, fixed dt 0.012 s (A 228, N 47 1: flow Courant number 0.5 at the AB2 limit of the W advection, gravity-wave Courant number 1.24). The slope term of the constraint, U* (2 d_x - H_x), with H of t^{n+1} from the solve (WL^n + eta^{n+1} - eta^n, eta^{n+1} implicit): with H extrapolated to t^{n+1} the short waves behind the step grew and the run stopped at t = 1.75 s (N 61); 200 cells, 500 steps (t = 6 s).",
+ "solver": "sflow",
+ "np": 1,
+ "steps": 500,
+ "tags": [
+  "1d",
+  "sflow",
+  "semi_implicit",
+  "nonhydrostatic",
+  "current"
+ ],
+ "covers": [
+  "sflow_momentum_SI::nh_assemble: the slope of the constraint with WL^n and the implicit change of eta (nh_sz)",
+  "sflow_momentum_SI::nh_solve: band LU of the operator with the slope coupling"
+ ],
+ "architect": "Hans Bihs"
+}
