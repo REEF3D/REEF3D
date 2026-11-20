@@ -1,0 +1,20 @@
+{
+ "base": "sflow_2d_si_tide_oblique",
+ "ctrl_add": [
+  "A 233 1"
+ ],
+ "description": "sflow_2d_si_tide_oblique with A 233 1: the eta system of the semi-implicit step solved with V(2,2) cycles of REEFMG instead of BiCGStab, started from the level extrapolated from the last two steps.",
+ "tags": [
+  "quick",
+  "2d",
+  "sflow",
+  "semi_implicit",
+  "tide",
+  "solver"
+ ],
+ "covers": [
+  "sflow_momentum_SI::eta_guess",
+  "reefmg2D::set_cycles (reefmg_core::solve_auto, mode 2)"
+ ],
+ "architect": "Hans Bihs"
+}

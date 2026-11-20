@@ -21,7 +21,6 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"sflow_amr.h"
-#include<cstdlib>
 #include"lexer.h"
 #include"fdm2D.h"
 #include"ghostcell.h"
@@ -61,7 +60,9 @@ Author: Hans Bihs
 //  fills and the patch multigrids of those levels only; with wlo > 0 the cells around the level-wlo
 //  patches that the parent fills are fixed (the parent pressure of a level solve, 0 for the
 //  correction of a synchronisation projection), and the preconditioner restricts the residual down
-//  to level 0 for its V-cycle there (as nhflow_amr 0023).
+//  to level 0 for its V-cycle there (as nhflow_amr 0023), or is the patch-local part alone, whichever
+//  costs less for the level (nh_coarse, sflow_amr_subnh.cpp).  The Krylov vectors, the products and
+//  the rows of a solve are those of the grids of its window only (nh_gw).
 
 namespace
 {
@@ -115,10 +116,14 @@ void sflow_amr::nh_prepare(ghostcell *pgc, bool assemble)
         nhmg0 = new reefmg2D(p0,pgc0);
         nhr0 = new vec2D(p0,p0->imax*p0->jmax);
         nhmg0->set_exact_line(sy==0 && nblk==0);     // 2D grid: the exact line solve
+        // the level-0 rows are copied into the multigrid when they changed (nh_rebuild0), not in
+        // every V-cycle of a solve
+        nhmg0->set_keep_matrix(true);
     }
 
-    // the level-0 multigrid: rebuilt from the level-0 rows of this solve; a level solve (G 7 1,
-    // wlo > 0) uses the rows of the last level-0 solve, rebuilt once after they changed
+    // the level-0 multigrid: set up from the level-0 rows of this solve in its first V-cycle; a
+    // window above level 0 (G 7 1, wlo > 0) uses the rows of the last level-0 solve, set up once
+    // after they changed
     if(sub==0 || wlo==0 || nh_m0_new)
     nh_rebuild0 = true;
     if(wlo>0)
@@ -199,6 +204,14 @@ void sflow_amr::nh_prepare(ghostcell *pgc, bool assemble)
     rows(-1,0,NX0-1,0,NY0-1,0);
     for(int n=0; n<(int)P.size(); ++n)
     rows(n,EXT,EXT+P[n]->nx-1,EY,EY+P[n]->ny-1,P[n]->lev);
+
+    // the grids with rows in this solve
+    nh_gw.clear();
+    if(wlo==0)
+    nh_gw.push_back(-1);
+    for(int n=0; n<(int)P.size(); ++n)
+    if(P[n]->lev>=wlo && P[n]->lev<=wtop())
+    nh_gw.push_back(n);
 
     // patch multigrids: the patch rows with q = 0 at the patch edge
     for(int n=0; n<(int)P.size(); ++n)
@@ -426,7 +439,7 @@ void sflow_amr::nh_apply(int kx, int ky)
              [&](reefamr_match &m, const double *v) { m.val[5] = v[0]; });
 
     // rows
-    for(int g=-1; g<(int)P.size(); ++g)
+    for(int g : nh_gw)
     {
         nhg G = nh_grid(g);
         lexer *q = G.q;
@@ -437,20 +450,28 @@ void sflow_amr::nh_apply(int kx, int ky)
         if(g<0) { i0=0; i1=NX0-1; j0=0; j1=NY0-1; }
         else    { i0=EXT; i1=EXT+P[g]->nx-1; j0=EY; j1=EY+P[g]->ny-1; }
 
+        {
+        const signed char *act = G.act->data();
+        const int *row = G.row->data();
+        const double *xv = x.V;
+        double *yv = y.V;
+        const int nj = q->jmax;
+
         for(int ii=i0; ii<=i1; ++ii)
         for(int jj=j0; jj<=j1; ++jj)
         {
-            int c = lij(q,ii,jj);
-            int a = (*G.act)[c];
+            const int c = lij(q,ii,jj);
+            const int a = act[c];
             if(a<-1)
             continue;
             if(a==-1)
             {
-                y(ii,jj) = 0.0;
+                yv[c] = 0.0;
                 continue;
             }
-            int r = (*G.row)[c];
-            y(ii,jj) = M.p[r]*x(ii,jj) + M.n[r]*x(ii+1,jj) + M.s[r]*x(ii-1,jj) + M.w[r]*x(ii,jj+1) + M.e[r]*x(ii,jj-1);
+            const int r = row[c];
+            yv[c] = M.p[r]*xv[c] + M.n[r]*xv[c+nj] + M.s[r]*xv[c-nj] + M.w[r]*xv[c+1] + M.e[r]*xv[c-1];
+        }
         }
 
         // coarse faces next to finer patches: the fine face gradients replace the coarse one
@@ -495,7 +516,7 @@ void sflow_amr::nh_apply(int kx, int ky)
 double sflow_amr::nh_dot(int ka, int kb)
 {
     double s=0.0;
-    for(int g=-1; g<(int)P.size(); ++g)
+    for(int g : nh_gw)
     {
         nhg G = nh_grid(g);
         lexer *q = G.q;
@@ -505,10 +526,16 @@ double sflow_amr::nh_dot(int ka, int kb)
         if(g<0) { i0=0; i1=NX0-1; j0=0; j1=NY0-1; }
         else    { i0=EXT; i1=EXT+P[g]->nx-1; j0=EY; j1=EY+P[g]->ny-1; }
 
+        const signed char *act = G.act->data();
+        const double *av = a.V, *bw = bv.V;
+
         for(int ii=i0; ii<=i1; ++ii)
         for(int jj=j0; jj<=j1; ++jj)
-        if((*G.act)[lij(q,ii,jj)]>=0)
-        s += a(ii,jj)*bv(ii,jj);
+        {
+            const int c = lij(q,ii,jj);
+            if(act[c]>=0)
+            s += av[c]*bw[c];
+        }
     }
     return pgc0->globalsum(s);
 }
@@ -553,12 +580,15 @@ void sflow_amr::nh_prolong(int l, int kz)
 // z = M^-1 r: one FAC sweep
 void sflow_amr::nh_prec(int kr, int kz)
 {
-    // G 7 1, a level solve (wlo > 0): its residual restricted through the levels below down to
-    // level 0 (in the vectors of the grids below the window, which have no rows in this solve:
-    // scratch, 0 outside the covered cells), one level-0 V-cycle, the correction interpolated back
-    // up into the patch interiors of level wlo; then the patch-local passes (as nhflow_amr 0023)
+    // G 7 1, a window above level 0 (wlo > 0) with the level-0 part (nh_coarse): its residual
+    // restricted through the levels below down to level 0 (in the vectors of the grids below the
+    // window, which have no rows in this solve: scratch, 0 outside the covered cells), one level-0
+    // V-cycle, the correction interpolated back up into the patch interiors of level wlo; then the
+    // patch-local passes (as nhflow_amr 0023).  Without it the patch-local passes of level wlo
+    // start from 0.
     const int wl = wlo;
-    if(wl>0)
+    const bool c0 = (wl==0 || nh_coarse);
+    if(wl>0 && c0)
     {
         for(int g=-1; g<(int)P.size(); ++g)
         {
@@ -579,6 +609,7 @@ void sflow_amr::nh_prec(int kr, int kz)
     nh_restrict_vec(kr);
 
     // level 0: one V-cycle on the whole rank grid
+    if(c0)
     {
         slice &r = nh_vec(-1,kr);
         for(int ii=0; ii<NX0; ++ii)
@@ -600,7 +631,7 @@ void sflow_amr::nh_prec(int kr, int kz)
     }
 
     // G 7 1: up to the level of the window
-    if(wl>0)
+    if(wl>0 && c0)
     {
         for(int l=1; l<wl; ++l)
         {
@@ -613,7 +644,17 @@ void sflow_amr::nh_prec(int kr, int kz)
     for(int l=MAX(wlo,1); l<=wtop(); ++l)
     {
         // coarse correction interpolated into the patch interior, then the cells around it
+        if(c0 || l>wl)
         nh_prolong(l,kz);
+        else
+        for(int n : lev[l])
+        {
+            sflow_amr_patch *c = SP(n);
+            slice &z = nh_vec(n,kz);
+            for(int ii=EXT; ii<EXT+c->nx; ++ii)
+            for(int jj=EY; jj<EY+c->ny; ++jj)
+            z(ii,jj) = 0.0;
+        }
 
         nh_qfill(l,kz);
 
@@ -669,7 +710,7 @@ void sflow_amr::nh_prec(int kr, int kz)
     }
 
     // q = 0 rows
-    for(int g=-1; g<(int)P.size(); ++g)
+    for(int g : nh_gw)
     {
         nhg G = nh_grid(g);
         lexer *q = G.q;
@@ -691,11 +732,11 @@ void sflow_amr::nh_prec(int kr, int kz)
     }
 }
 
-// fn(g, grid, ii, jj, cell) on the rows of all grids (leaf and covered cells)
+// fn(g, grid, ii, jj, cell) on the rows of the grids of the solve (leaf and covered cells)
 template<class F>
 void sflow_amr::nh_each(F fn)
 {
-    for(int g=-1; g<(int)P.size(); ++g)
+    for(int g : nh_gw)
     {
         nhg G = nh_grid(g);
         lexer *q = G.q;
@@ -713,43 +754,71 @@ void sflow_amr::nh_each(F fn)
     }
 }
 
+// fn(activity, v, pressure, cell) on the same rows: v[k] the arrays of the Krylov vectors of the grid
+template<class F>
+void sflow_amr::nh_rows(F fn)
+{
+    for(int g : nh_gw)
+    {
+        nhg G = nh_grid(g);
+        lexer *q = G.q;
+        int i0,i1,j0,j1;
+        if(g<0) { i0=0; i1=NX0-1; j0=0; j1=NY0-1; }
+        else    { i0=EXT; i1=EXT+P[g]->nx-1; j0=EY; j1=EY+P[g]->ny-1; }
+
+        double *v[NVEC];
+        for(int k=0; k<NVEC; ++k)
+        v[k] = nh_vec(g,k).V;
+        double *pr = nh_vec(g,-1).V;
+        const signed char *act = G.act->data();
+
+        for(int ii=i0; ii<=i1; ++ii)
+        for(int jj=j0; jj<=j1; ++jj)
+        {
+            const int c = lij(q,ii,jj);
+            if(act[c]>=-1)
+            fn(act[c],v,pr,c);
+        }
+    }
+}
+
 // vector space of reefamr_bicgstab
 void sflow_amr::op_start()
 {
-    nh_each([&](int g, nhg &G, int ii, int jj, int c)
+    nh_rows([&](int a, double **v, double *pr, int c)
     {
-        double r = ((*G.act)[c]>=0) ? nh_vec(g,NS)(ii,jj) - nh_vec(g,NVV)(ii,jj) : 0.0;
-        nh_vec(g,NR)(ii,jj) = r;
-        nh_vec(g,NRH)(ii,jj) = r;
-        nh_vec(g,NPV)(ii,jj) = 0.0;
-        nh_vec(g,NVV)(ii,jj) = 0.0;
+        double r = (a>=0) ? v[NS][c] - v[NVV][c] : 0.0;
+        v[NR][c] = r;
+        v[NRH][c] = r;
+        v[NPV][c] = 0.0;
+        v[NVV][c] = 0.0;
     });
 }
 
 void sflow_amr::op_p(double beta, double om)
 {
-    nh_each([&](int g, nhg &G, int ii, int jj, int c)
+    nh_rows([&](int a, double **v, double *pr, int c)
     {
-        nh_vec(g,NPV)(ii,jj) = nh_vec(g,NR)(ii,jj) + beta*(nh_vec(g,NPV)(ii,jj) - om*nh_vec(g,NVV)(ii,jj));
+        v[NPV][c] = v[NR][c] + beta*(v[NPV][c] - om*v[NVV][c]);
     });
 }
 
 void sflow_amr::op_s(double alp)
 {
-    nh_each([&](int g, nhg &G, int ii, int jj, int c)
+    nh_rows([&](int a, double **v, double *pr, int c)
     {
-        nh_vec(g,NS)(ii,jj) = nh_vec(g,NR)(ii,jj) - alp*nh_vec(g,NVV)(ii,jj);
+        v[NS][c] = v[NR][c] - alp*v[NVV][c];
     });
 }
 
 void sflow_amr::op_x(double alp, double om)
 {
-    nh_each([&](int g, nhg &G, int ii, int jj, int c)
+    nh_rows([&](int a, double **v, double *pr, int c)
     {
-        if((*G.act)[c]<0)
+        if(a<0)
         return;
-        nh_vec(g,-1)(ii,jj) += alp*nh_vec(g,NPH)(ii,jj) + om*nh_vec(g,NSH)(ii,jj);
-        nh_vec(g,NR)(ii,jj) = nh_vec(g,NS)(ii,jj) - om*nh_vec(g,NT)(ii,jj);
+        pr[c] += alp*v[NPH][c] + om*v[NSH][c];
+        v[NR][c] = v[NS][c] - om*v[NT][c];
     });
 }
 
@@ -810,7 +879,7 @@ void sflow_amr::nh_core(lexer *p)
     // the Krylov vectors start at 0 on every grid (the cells outside the rows of this solve and the
     // grids outside its window included): the solve does not depend on the vectors of earlier solves,
     // so a restart from a checkpoint (P 48, I 45) continues it bitwise
-    for(int g=-1; g<(int)P.size(); ++g)
+    for(int g : nh_gw)
     {
         const int nv = (g<0) ? (int)nh0_v.size() : (int)SP(g)->nv.size();
         lexer *q = glex(g);

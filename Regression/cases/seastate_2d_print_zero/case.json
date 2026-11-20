@@ -1,0 +1,17 @@
+{
+ "base": "seastate_2d_phase28_share",
+ "ctrl_set": {
+  "P 181": "0",
+  "P 12": "0"
+ },
+ "same_as": "seastate_2d_phase28_share",
+ "description": "seastate_2d_phase28_share with P 181 0 and P 12 0 (patch 0072): no division by zero in seastate_vtp::start (P 181) and in the terminal prints of seastate_f and seastate_coupling (P 12); the result bitwise that of seastate_2d_phase28_share.",
+ "tags": [
+  "quick",
+  "2d",
+  "seastate"
+ ],
+ "covers": [
+  "seastate_vtp::start and the terminal prints with P 181 0 and P 12 0"
+ ]
+}

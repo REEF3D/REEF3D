@@ -393,6 +393,7 @@ private:
     void nh_qfill(int, int);
     double nh_eval(const reefamr_fill&, int);
     template<class F> void nh_each(F);
+    template<class F> void nh_rows(F);
     vector<signed char> nh0_act;
     vector<int> nh0_row;
     vector<slice*> nh0_v;
@@ -405,6 +406,16 @@ private:
     int wlo = 0, whi = -1;
     int wtop() const { return whi<0 ? maxlev : whi; }
     bool nh_edge = false;
+    vector<int> nh_gw;              // grids with rows in the solve (-1 level 0)
+    // G 7 1: the level-0 part of the preconditioner in the solves of a window above level 0 (nh_coarse), chosen
+    // per level from the iterations of its level solves with and without it (nh_level, nh_c0_choose): nh_c0[l]
+    // the choice, nh_cn[l] the level solves of the cycle, nh_ci[l] the iterations of its first solves without
+    // ([0]) and with ([1]) the choice
+    bool nh_coarse = true;
+    int nh_c0[8] = {1,1,1,1,1,1,1,1};
+    int nh_cn[8] = {0,0,0,0,0,0,0,0};
+    int nh_ci[8][2] = {{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0}};
+    void nh_c0_choose(ghostcell*, int);
     bool nh_m0_new = true;          // level-0 rows changed since the last level-0 multigrid setup
     long sub_lv_it = 0, sub_lv_n = 0, sub_sy_it = 0, sub_sy_n = 0;
     vector<double> nh0_rend;

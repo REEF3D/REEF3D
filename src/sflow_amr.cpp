@@ -3337,7 +3337,12 @@ void sflow_amr::print(lexer *p, fdm2D *b, ghostcell *pgc)
     if(p->mpirank==0 && doprint && nh==1)
     cout<<"; pressure "<<tm[5]<<" s (preconditioner "<<tm[6]<<" s, operator "<<tm[7]<<" s), mean iterations "<<(nh_solves>0 ? double(nh_it_total)/nh_solves : 0.0);
     if(p->mpirank==0 && doprint && nh==1 && sub==1)
-    cout<<" (level solves "<<(sub_lv_n>0 ? double(sub_lv_it)/sub_lv_n : 0.0)<<", synchronisation "<<(sub_sy_n>0 ? double(sub_sy_it)/sub_sy_n : 0.0)<<")";
+    {
+        cout<<" (level solves "<<(sub_lv_n>0 ? double(sub_lv_it)/sub_lv_n : 0.0)<<", synchronisation "<<(sub_sy_n>0 ? double(sub_sy_it)/sub_sy_n : 0.0)<<"; level-0 part in the level solves:";
+        for(int l=1; l<=maxlev && l<8; ++l)
+        cout<<" L"<<l<<" "<<(nh_c0[l]==1 ? "on" : "off");
+        cout<<")";
+    }
     if(p->mpirank==0 && doprint)
     cout<<endl;
 
