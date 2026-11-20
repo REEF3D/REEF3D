@@ -76,7 +76,8 @@ void sflow_momentum_SI::nh_amr_cells(lexer *p, fdm2D *b)
         c[2] = (yd && in(i,j+1)) ? 1.0/(p->DYP[JP]*p->DYN[JP]) : 0.0;
         c[3] = (yd && in(i,j-1)) ? 1.0/(p->DYP[JM1]*p->DYN[JP]) : 0.0;
         }
-    nCs(i,j) = 2.0*(WHp(i,j) + dt*0.25*H*phiN(i,j))/H + nsx(i,j)*nUs(i,j) + (yd ? nsy(i,j)*nVs(i,j) : 0.0);
+    nCs(i,j) = 2.0*(WHp(i,j) + dt*0.25*H*phiN(i,j))/H + nsx(i,j)*nUs(i,j) + (yd ? nsy(i,j)*nVs(i,j) : 0.0)
+             - nh_slope(p,i,j,eta0);
     nPW(i,j) = 1.0;
     }
 }
@@ -209,7 +210,12 @@ void sflow_momentum_SI::nh_amr_rows(lexer *p, bool affine, double *y)
     y[2*k+1] = Pp[q];
 
     else
-    y[2*k+1] = d2 + W2[q]*Pp[q] + (affine ? Cs[q] : 0.0);
+    {
+    // the slope of the change of eta (nh_sz of nh_assemble)
+    const double *z = &nh_sz[5*(size_t)q];
+    const double sz = z[0]*E[q] + z[1]*E[q+J] + z[2]*E[q-J] + (yd ? z[3]*E[q+1] + z[4]*E[q-1] : 0.0);
+    y[2*k+1] = d2 + W2[q]*Pp[q] + sz + (affine ? Cs[q] : 0.0);
+    }
     }
 }
 

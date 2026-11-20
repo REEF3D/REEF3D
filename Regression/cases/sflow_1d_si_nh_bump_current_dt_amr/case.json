@@ -1,0 +1,18 @@
+{
+ "description": "sflow_1d_si_nh_bump_current_dt on dx 0.02 m with a static refined box over 0.1 < x < 1.5 m (G 1 1, G 10; dx 0.01 m on the patch), 500 steps (t = 6 s): the implicit slope term in the rows of the composite system (nh_amr_rows). With H extrapolated the solver broke down at t = 1.75 s.",
+ "solver": "sflow",
+ "np": 1,
+ "steps": 500,
+ "tags": [
+  "1d",
+  "sflow",
+  "semi_implicit",
+  "nonhydrostatic",
+  "current",
+  "amr"
+ ],
+ "covers": [
+  "sflow_momentum_SI::nh_amr_cells / nh_amr_rows: the slope coupling of eta on the leaf cells of the patch"
+ ],
+ "architect": "Hans Bihs"
+}

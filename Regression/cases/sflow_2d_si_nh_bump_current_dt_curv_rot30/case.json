@@ -1,0 +1,21 @@
+{
+ "description": "sflow_2d_si_nh_bump_current_dt_mpi2 on a curvilinear grid (G 50 2): the Cartesian grid of 200 x 4 cells rotated by 30 deg, the step of the bed in the node levels of curvgrid.dat, river initialisation (F 65 2), one rank, 500 steps (t = 6 s): the implicit slope term with the chain-rule gradients (sflow_curv::grad5). With H extrapolated the velocities grew (u 1.5 m/s after 500 steps, the time step cut to 0.004 s by the advective limit; at a fixed 0.012 s the run stopped at t = 5.2 s).",
+ "solver": "sflow",
+ "np": 1,
+ "steps": 500,
+ "tags": [
+  "2d",
+  "sflow",
+  "semi_implicit",
+  "nonhydrostatic",
+  "current",
+  "curvilinear"
+ ],
+ "covers": [
+  "sflow_momentum_SI::nh_assemble: nh_sz on the curvilinear grid"
+ ],
+ "architect": "Hans Bihs",
+ "files": [
+  "curvgrid.dat"
+ ]
+}
