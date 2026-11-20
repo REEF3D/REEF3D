@@ -15,5 +15,8 @@
  ],
  "covers": [
   "met_forcing::source_nhflow (SI, x and y)"
- ]
+ ],
+ "ctrl_set": {
+  "A 510": "11"
+ }
 }

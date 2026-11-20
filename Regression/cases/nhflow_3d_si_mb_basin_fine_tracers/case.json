@@ -18,5 +18,8 @@
  ],
  "covers": [
   "nhflow_amr::si_tracer: the substeps in lockstep, the fills of the tracers, the mask and the flushed values; the block output of the tracers"
- ]
+ ],
+ "ctrl_set": {
+  "A 510": "11"
+ }
 }

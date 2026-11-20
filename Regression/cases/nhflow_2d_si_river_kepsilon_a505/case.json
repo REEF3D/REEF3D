@@ -13,5 +13,8 @@
  ],
  "covers": [
   "nhflow_momentum_SI::step_single with one pass on a Cartesian grid (A 505 0)"
- ]
+ ],
+ "ctrl_set": {
+  "A 510": "12"
+ }
 }

@@ -4,5 +4,8 @@
  "steps": 60,
  "files": [
   "blocks.dat"
- ]
+ ],
+ "ctrl_set": {
+  "A 510": "12"
+ }
 }
