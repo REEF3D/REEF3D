@@ -320,9 +320,10 @@ private:
     // component after the predictor, the 2D systems with si_eta2D
     void hdiffusion_implicit(lexer*, fdm_nhf*, ghostcell*);
     bool hdimp = false;
-    si_eta2D *phd = nullptr;
-    solver2D *psolvHD = nullptr;
-    int hd_iter = 0;
+    // the work arrays of the implicit horizontal diffusion (full layout, IJK): face coefficients x, y, diagonal; per
+    // component the solution, residual, search direction and A p
+    std::vector<double> hiF[3], hdX[3], hdR[3], hdP[3], hdA[3];
+    int hd_iter = 0, hd_sys = 0;
     double hd_time = 0.0;
     std::vector<double> hdU, hdV, hdW, hdN;
     void face_update(lexer*, fdm_nhf*, ghostcell*);
@@ -482,9 +483,6 @@ private:
     slice4 wsrc;
 
     // implicit horizontal diffusion: face coefficients dt nu_f/dn_f, the velocity of a layer and the right-hand side
-    slice1 hdax;
-    slice2 hday;
-    slice4 hdx, hdr;
     bool mass_source = false;
 
     // direct forcing of fixed solids (A 580 1 grid solids, A 581-590), as the explicit NHFLOW: the forcing of

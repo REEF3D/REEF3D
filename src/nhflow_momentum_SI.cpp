@@ -97,7 +97,7 @@ nhflow_momentum_SI::nhflow_momentum_SI(lexer *p, fdm_nhf *d, ghostcell *pgc, six
                                       qx(p),qxn(p),qxE(p),Hx(p),alx(p),gmx(p),ax(p),kx(p),gx0(p),cx0(p),
                                       qy(p),qyn(p),qyE(p),Hy(p),aly(p),gmy(p),ay(p),ky(p),gy0(p),cy0(p),
                                       eta0(p),WL0(p),etaI(p),gmc(p),rhsW(p),bdiag(p),tS(p),tE(p),tA(p),hoC(p),hoE(p),
-                                      WLk(p),etaB(p),WLb(p),wsrc(p),dfWL(p),dfEta(p),dfC(p),hdax(p),hday(p),hdx(p),hdr(p)
+                                      WLk(p),etaB(p),WLb(p),wsrc(p),dfWL(p),dfEta(p),dfC(p)
 {
     check(p);
 
@@ -439,8 +439,6 @@ nhflow_momentum_SI::~nhflow_momentum_SI()
 
     if(psolv2D!=nullptr)
     delete psolv2D;
-    delete phd;
-    delete psolvHD;
     delete pwind;
     delete pmet;
 }
@@ -853,6 +851,10 @@ void nhflow_momentum_SI::si_begin(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_s
     psolv = S.psolv;
     nhflow_fsf *pfsf = S.pfsf;
 
+    // the implicit horizontal diffusion: iterations and time of this step
+    hd_iter = 0;
+    hd_time = 0.0;
+
     const int N = p->imax*p->jmax*(p->kmax+2);
 
     // ghost cells of the open boundaries (ioflow discharge, iowave open edges), as step_begin of
@@ -1050,7 +1052,7 @@ void nhflow_momentum_SI::si_end_cells(lexer *p, fdm_nhf *d, ghostcell *pgc, nhfl
     cout<<endl;
 
     if(hdimp)
-    cout<<"SI horizontal diffusion (implicit): iter "<<hd_iter<<"  time "<<setprecision(3)<<hd_time<<endl;
+    cout<<"SI horizontal diffusion (implicit, "<<hd_sys<<" systems): iter "<<hd_iter<<"  time "<<setprecision(3)<<hd_time<<endl;
     }
 }
 
