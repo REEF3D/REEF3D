@@ -51,7 +51,12 @@ size_t release_zero_pages(const void *ptr, size_t bytes)
 
     // only the pages in memory: the others are given back already (or were never touched)
     const size_t np = (e - a0)/ps;
+    // mincore takes char* on macOS and unsigned char* on Linux
+#if defined(__APPLE__)
+    std::vector<char> res(np);
+#else
     std::vector<unsigned char> res(np);
+#endif
     if(mincore((void*)a0, e - a0, res.data())!=0)
     return 0;
 
