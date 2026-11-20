@@ -1,0 +1,17 @@
+{
+ "base": "sflow_2d_amr_bar_sub",
+ "ctrl_set": {
+  "G 10": "17.2 18.8 -1 1"
+ },
+ "description": "sflow_2d_amr_bar_sub with the two levels on the flat crest of the bar only (0.1 m of water, 0.4 m on level 0): level 0 limits the step, so the levels do not take 2 and 4 steps per level-0 step but the steps their own CFL number needs (sflow_amr::sub_choose: 1 and 2). B 95 -1 is set by G 7 1.",
+ "tags": [
+  "2d",
+  "sflow",
+  "amr",
+  "subcycling"
+ ],
+ "covers": [
+  "sflow_amr::sub_choose: steps per level other than two (msub), time weights of the fills, regrid count in steps of the finest level"
+ ],
+ "architect": "Hans Bihs"
+}

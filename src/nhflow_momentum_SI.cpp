@@ -97,7 +97,7 @@ nhflow_momentum_SI::nhflow_momentum_SI(lexer *p, fdm_nhf *d, ghostcell *pgc, six
                                       qx(p),qxn(p),qxE(p),Hx(p),alx(p),gmx(p),ax(p),kx(p),gx0(p),cx0(p),
                                       qy(p),qyn(p),qyE(p),Hy(p),aly(p),gmy(p),ay(p),ky(p),gy0(p),cy0(p),
                                       eta0(p),WL0(p),etaI(p),gmc(p),rhsW(p),bdiag(p),tS(p),tE(p),tA(p),hoC(p),hoE(p),
-                                      WLk(p),etaB(p),WLb(p),wsrc(p),dfWL(p),dfEta(p),hdax(p),hday(p),hdx(p),hdr(p)
+                                      WLk(p),etaB(p),WLb(p),wsrc(p),dfWL(p),dfEta(p),dfC(p),hdax(p),hday(p),hdx(p),hdr(p)
 {
     check(p);
 
@@ -900,6 +900,9 @@ void nhflow_momentum_SI::si_begin(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_s
     // (no kinematic_fsf / kinematic_bed: they set the vertical face states Wb, Wt of the HLL fluxes of the explicit
     // step, which the semi-implicit step does not read)
 
+    // fixed solids over the whole water depth (A 580 1, A 581-590): walls of the solve
+    df_columns(p,d,pgc);
+
     // 1. face depths
     face_depth(p,d,pgc);
 
@@ -1137,6 +1140,19 @@ void nhflow_momentum_SI::face_depth(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
         Hy(i,j) = h>p->A544 ? h : 0.0;
         }
+    }
+
+    // the faces of a column inside a solid over the whole depth are walls (df_columns)
+    if(dfcols)
+    {
+        SLICELOOP1
+        if(df_col(p,i,j) || df_col(p,i+1,j))
+        Hx(i,j) = 0.0;
+
+        if(p->j_dir==1)
+        SLICELOOP2
+        if(df_col(p,i,j) || df_col(p,i,j+1))
+        Hy(i,j) = 0.0;
     }
 
     exchange1(p,pgc,Hx);
@@ -3275,13 +3291,14 @@ void nhflow_momentum_SI::wall_sides(lexer *p)
 
 double nhflow_momentum_SI::wall(lexer *p, int ii, int jj, int side)
 {
-    // 1.0 if side (1 x-, 2 x+, 3 y-, 4 y+) of cell (ii,jj) faces a solid or the outside of the domain and no open
-    // boundary face (wall_sides of the step); a dry neighbour is no wall
+    // 1.0 if side (1 x-, 2 x+, 3 y-, 4 y+) of cell (ii,jj) faces a solid (a column inside a direct forcing solid over
+    // the whole depth too, df_columns) or the outside of the domain and no open boundary face (wall_sides of the
+    // step); a dry neighbour is no wall
     const int ai = side==1 ? ii-1 : (side==2 ? ii+1 : ii);
     const int aj = side==3 ? jj-1 : (side==4 ? jj+1 : jj);
     const unsigned char bit = side==1 ? 1 : (side==2 ? 2 : (side==3 ? 4 : 8));
 
-    if(p->flagslice4[(ai-p->imin)*p->jmax + (aj-p->jmin)]>0)
+    if(p->flagslice4[(ai-p->imin)*p->jmax + (aj-p->jmin)]>0 && !df_col(p,ai,aj))
     return 0.0;
 
     return (wSide[(ii-p->imin)*p->jmax + (jj-p->jmin)] & bit) ? 0.0 : 1.0;
@@ -3695,6 +3712,49 @@ void nhflow_momentum_SI::df_faces(lexer *p, fdm_nhf *d, ghostcell *pgc)
     Tx[q] = theta*Qx[q] + (1.0-theta)*Qxn[q];
     Ty[q] = theta*Qy[q] + (1.0-theta)*Qyn[q];
     });
+}
+
+// the columns inside a solid over the whole water depth: DF < 0 in every layer (the solids cast on the sigma grid of
+// the step before; the first step: forcing_ini). They are walls of the implicit step, as the dry columns of a
+// DIVEMesh solid (A 580 0): their faces closed in face_depth (eta system, coupled eta-phi system, layer discharges),
+// wall sides in the gravity and phi face terms (wall), hydrostatic (nAct), outside the fourth-order stencils (hoC).
+// Faces of solids that cover part of the depth only are closed after the solve (df_faces).
+void nhflow_momentum_SI::df_columns(lexer *p, fdm_nhf *d, ghostcell *pgc)
+{
+    dfcols = false;
+
+    if(!df_on())
+    return;
+
+    int n=0;
+
+    for(int ii=p->imin; ii<p->imin+p->imax; ++ii)
+    for(int jj=p->jmin; jj<p->jmin+p->jmax; ++jj)
+    dfC(ii,jj) = 0.0;
+
+    SLICELOOP4
+    {
+    bool all = p->knoz>0;
+
+        for(k=0;k<p->knoz;++k)
+        if(p->DF[IJK]>=0)
+        all = false;
+
+        if(all)
+        {
+        dfC(i,j) = 1.0;
+        ++n;
+        }
+    }
+
+    exchange4(p,pgc,dfC);
+
+    dfcols = pgc->globalisum(n)>0;
+}
+
+bool nhflow_momentum_SI::df_col(lexer *p, int ii, int jj)
+{
+    return dfcols && dfC(ii,jj)>0.5;
 }
 
 void nhflow_momentum_SI::df_reforce(lexer *p, fdm_nhf *d, ghostcell *pgc)

@@ -1,0 +1,9 @@
+{
+ "description": "nhflow_3d_cylinder_kepsilon_mpi2 in the semi-implicit step with the non-hydrostatic pressure (A 510 11, A 520 2, A 536 0.25): the vertical cylinder (A 580 1, A 584) over the whole depth, 2 ranks split in y.",
+ "solver": "nhflow",
+ "np": 2,
+ "steps": 100,
+ "tags": ["3d", "nhflow", "semi_implicit", "nonhydrostatic", "turbulence", "mpi", "forcing"],
+ "covers": ["nhflow_momentum_SI::df_columns (full-depth solid columns: faces closed in face_depth, wall sides, hydrostatic, outside hoC)", "df_predictor, df_faces, df_reforce with MPI"],
+ "architect": "Hans Bihs"
+}

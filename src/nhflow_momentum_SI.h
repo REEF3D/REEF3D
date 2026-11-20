@@ -488,9 +488,14 @@ private:
     void df_predictor(lexer*, fdm_nhf*, ghostcell*);
     void df_reforce(lexer*, fdm_nhf*, ghostcell*);
     void df_faces(lexer*, fdm_nhf*, ghostcell*);
+    // columns inside a solid over the whole water depth (DF < 0 in every layer): walls of the implicit solve (their
+    // faces closed in face_depth, wall sides of the gravity and phi face terms, hydrostatic, no fourth-order stencil)
+    void df_columns(lexer*, fdm_nhf*, ghostcell*);
+    bool df_col(lexer*, int, int);
+    bool dfcols = false;
     void df_apply(lexer*, fdm_nhf*, ghostcell*, double*, double*, double*, slice&, bool);
     std::vector<double> dfU, dfV, dfW, dfSU, dfSV, dfSW;
-    slice4 dfWL, dfEta;
+    slice4 dfWL, dfEta, dfC;
 
     // layer face discharges: prognostic Q^{n+1}, Q^n, layer transport of the step (theta weighted),
     // column parts Q~ = A^-1 (I - dt L_v) Q^ and r = A^-1 1

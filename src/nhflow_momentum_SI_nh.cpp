@@ -296,7 +296,7 @@ void nhflow_momentum_SI::nh_prepare(lexer *p, fdm_nhf *d, ghostcell *pgc)
     const bool a = p->wet[IJ]==1 && WL0(i,j)>10.0*p->A544 && p->deep[IJ]==1
                 && (nhflow_drywall::cliff(p,d,i,j,WL0(i,j))
                     || (!dry(i-1,j) && !dry(i+1,j) && (p->j_dir==0 || (!dry(i,j-1) && !dry(i,j+1)))));
-    nAct[IJ] = a ? 1 : 0;
+    nAct[IJ] = (a && !df_col(p,i,j)) ? 1 : 0;
     }
 
     // w*: the vertical advection of the step (column operator without viscosity), as cell_update

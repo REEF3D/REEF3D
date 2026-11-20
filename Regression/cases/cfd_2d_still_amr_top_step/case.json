@@ -1,0 +1,17 @@
+{
+ "np": 1,
+ "steps": 150,
+ "description": "Still water (0.32 m) in a closed tank 1.6 x 0.72 m (dx 40 mm) under two refined boxes side by side with their tops at different heights (G 1 1, G 15: x 0.16-0.64 m up to z = 0.40 m, x 0.64-1.44 m up to z = 0.48 m; they make one patch up to 0.40 m and a patch stacked on its right part, as around the stern of the rising ship in the mini lock of Ship Hydrodynamics validation 49), the free surface 0.08 m under the lower top: closer than the interface thickness of level 0 (0.084 m), further than that of the patch (0.042 m). N 40 5 with the inputs of the lock (N 59 2, N 57 1, N 54 1, N 63 3, G 8 1, G 29 1). The coarse cell under the top of the lower patch lies in the interface band of level 0; the hydrostatic columns of the coarse grid (cfd_amr::pr_hydro, restrict_press_hydro) then start from the cell above the top and cross the face in that plane with the face density. From half the coarse cell under the top with its own density (the band of the coarse grid, which no pressure carries under the patch) the columns of the lower patch lay 3.6 Pa off, and the air at the end of the lower top took 2.6 m/s within 5 s (patch AMR/0184). Still water stays still: 5e-5 m/s after 150 steps.",
+ "tags": [
+  "quick",
+  "2d",
+  "levelset",
+  "closed",
+  "amr"
+ ],
+ "covers": [
+  "cfd_amr::pr_hydro: the column of the coarser grid from the cell above the plane (the free surface under the top of a patch, closer than the interface thickness)",
+  "cfd_amr::restrict_press_hydro: the same column",
+  "two patches of a level with their tops at different heights"
+ ]
+}
