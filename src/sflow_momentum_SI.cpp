@@ -21,6 +21,7 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"sflow_momentum_SI.h"
+#include"reefmg2D.h"
 #include"slide2D.h"
 #include"sflow_drywall.h"
 #include"si_eta2D.h"
@@ -63,9 +64,17 @@ sflow_momentum_SI::sflow_momentum_SI(lexer *p, fdm2D *b, ghostcell *pgc, sflow_H
                                       nPW(p),nEb(p),nEo(p),nPo(p),nU(p),nV(p),nUs(p),nVs(p),nA(p),nsx(p),nsy(p),nE(p),
                                       nP(p),nL(p),nZ(p),nAE(p),nAP(p),nBE(p),nBP(p),nGx(p),nGy(p),sps(p),nF1x(p),
                                       nF2x(p),nF1y(p),nF2y(p),nH3(p),nW2(p),nCs(p),nRm(p),nRc(p),nZE(p),nZP(p),rUH(p),
-                                      rVH(p),rlc(p),rlx(p),rly(p)
+                                      rVH(p),rlc(p),rlx(p),rly(p),etaP(p,p->A233==1)
 {
     check(p);
+
+    // A 233 1: the eta system with V(2,2) cycles instead of BiCGStab (REEFMG; another solver keeps its own iteration)
+    etaP_ok = false;
+    etaP_time = etaP_dt = 0.0;
+
+    if(p->A233==1)
+    if(reefmg2D *mg = dynamic_cast<reefmg2D*>(ppoissonsolv))
+    mg->set_cycles(2,2);
 
     psi = new si_eta2D(p);
 
@@ -2196,6 +2205,41 @@ void sflow_momentum_SI::si_rhs(lexer *p, fdm2D *b, ghostcell *pgc)
     // Newton iteration on WL = max(eta + d, 0) (Casulli 2009), converging from above
     SLICELOOP4
     etaI(i,j) = eta0(i,j);
+
+    if(p->A233==1)
+    eta_guess(p);
+}
+
+// A 233 1: the eta solve starts from the level extrapolated from the last two steps, eta^n + (dt/dt_old)(eta^n - eta^{n-1}),
+// in the wet cells deeper than A 232. Only the start value of the linear solve: the solution is the one of the system
+// within N 44, the wet pattern starts from all wet as before. Not on the first step of a run, of a restart or of a new
+// refinement patch (no level of the step before), and not for a second solve of the same time (the rheology passes,
+// the ship iteration): there from eta^n.
+void sflow_momentum_SI::eta_guess(lexer *p)
+{
+    const double told = etaP_time, dtold = etaP_dt;
+    const bool use = etaP_ok && dtold>0.0 && fabs(p->simtime - (told + dtold))<=1.0e-9*MAX(dtold,p->dt)
+                     && p->dt<5.0*dtold && p->dt>0.2*dtold;
+
+    if(use)
+    {
+    const double r = p->dt/dtold;
+
+    SLICELOOP4
+    if(p->wet[IJ]==1 && WL0(i,j)>p->A232)
+    etaI(i,j) = eta0(i,j) + r*(eta0(i,j) - etaP(i,j));
+    }
+
+    // the level of this step for the next one (once per time)
+    if(!etaP_ok || p->simtime!=told)
+    {
+    SLICELOOP4
+    etaP(i,j) = eta0(i,j);
+
+    etaP_time = p->simtime;
+    etaP_dt = p->dt;
+    etaP_ok = true;
+    }
 }
 
 void sflow_momentum_SI::face_update(lexer *p, fdm2D *b, ghostcell *pgc)

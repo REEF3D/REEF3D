@@ -84,6 +84,9 @@ public:
     //  (fill_rhs: the values of the decoupled rows and their Dirichlet data; the SI-NH preconditioner, whose
     //  matrices are fixed during a solve)
     void set_keep_matrix(bool on) { keep_matrix = on; }
+    // start(): mode 1 BiCGStab with one V(sweeps,sweeps) cycle as preconditioner (default, one sweep), 2 V-cycles and
+    // BiCGStab only where they stall (reefmg_core::solve_auto)
+    void set_cycles(int mode, int sweeps) { solve_mode = mode; presweep = postsweep = sweeps; }
 
     //  sweeps of the coarsest level of vcycle() (default 16)
     void set_coarse_sweeps(int n) { mg.set_coarse_sweeps(n); }

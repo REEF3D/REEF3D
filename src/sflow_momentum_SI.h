@@ -248,6 +248,11 @@ private:
 
     // interior copies kept through the ghost cell update (thin solids, see rk_stage)
     slice4 tU, tV, tUH, tVH;
+    // A 233 1: eta^n of the step before and its time, for the start value of the eta solve (eta_guess)
+    slice4 etaP;
+    double etaP_time, etaP_dt;
+    bool etaP_ok;
+    void eta_guess(lexer*);
 
     // water depth at the end of the step, the start of the next step (see start);
     // eta with the boundary values of ioflow / iowave (bc_setup)
