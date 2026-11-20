@@ -148,6 +148,14 @@ void sflow_amr::ckpt_write(reefckpt &ck)
         vector<double> sb{double(sub_acc)};
         for(int l=0; l<8; ++l)
         sb.push_back(double(msub[l]));
+        // A 220 1-3: the choice of the level-0 part of the preconditioner of the level solves and its counters
+        for(int l=0; l<8; ++l)
+        {
+            sb.push_back(double(nh_c0[l]));
+            sb.push_back(double(nh_cn[l]));
+            sb.push_back(double(nh_ci[l][0]));
+            sb.push_back(double(nh_ci[l][1]));
+        }
         ck.blob("sflow_amr_sub",sb);
     }
 
@@ -212,11 +220,19 @@ bool sflow_amr::ckpt_read(reefckpt &ck, string &msg)
     if(ck.has("sflow_amr_sub"))
     {
         const vector<double> sb = ck.get_blob("sflow_amr_sub");
-        if(sb.size()==9)
+        if(sb.size()>=9)
         {
             sub_acc = long(sb[0]);
             for(int l=0; l<8; ++l)
             msub[l] = int(sb[1+l]);
+        }
+        if(sb.size()==41)
+        for(int l=0; l<8; ++l)
+        {
+            nh_c0[l] = int(sb[9+4*l]);
+            nh_cn[l] = int(sb[10+4*l]);
+            nh_ci[l][0] = int(sb[11+4*l]);
+            nh_ci[l][1] = int(sb[12+4*l]);
         }
     }
 

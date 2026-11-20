@@ -21,6 +21,7 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"sflow_momentum_SI.h"
+#include"reefmg2D.h"
 #include"slide2D.h"
 #include"sflow_drywall.h"
 #include"si_eta2D.h"
@@ -63,9 +64,17 @@ sflow_momentum_SI::sflow_momentum_SI(lexer *p, fdm2D *b, ghostcell *pgc, sflow_H
                                       nPW(p),nEb(p),nEo(p),nPo(p),nU(p),nV(p),nUs(p),nVs(p),nA(p),nsx(p),nsy(p),nE(p),
                                       nP(p),nL(p),nZ(p),nAE(p),nAP(p),nBE(p),nBP(p),nGx(p),nGy(p),sps(p),nF1x(p),
                                       nF2x(p),nF1y(p),nF2y(p),nH3(p),nW2(p),nCs(p),nRm(p),nRc(p),nZE(p),nZP(p),rUH(p),
-                                      rVH(p),rlc(p),rlx(p),rly(p)
+                                      rVH(p),rlc(p),rlx(p),rly(p),etaP(p,p->A233==1)
 {
     check(p);
+
+    // A 233 1: the eta system with V(2,2) cycles instead of BiCGStab (REEFMG; another solver keeps its own iteration)
+    etaP_ok = false;
+    etaP_time = etaP_dt = 0.0;
+
+    if(p->A233==1)
+    if(reefmg2D *mg = dynamic_cast<reefmg2D*>(ppoissonsolv))
+    mg->set_cycles(2,2);
 
     psi = new si_eta2D(p);
 
@@ -1289,65 +1298,95 @@ void sflow_momentum_SI::stage_vel(lexer *p, fdm2D *b, ghostcell *pgc, slice &UHs
     // into the face predictor of the next faces
     const double hv4 = p->A232*p->A232*p->A232*p->A232;
 
-    SLICELOOP4
+    // (the sweeps of this function run over the arrays of the slices, in the order of SLICELOOP4)
+    const int nj = p->jmax;
+    const int *const flag = p->flagslice4, *const wet = p->wet;
+    double *const U = b->U.V, *const V = b->V.V, *const W = b->W.V;
+    double *const uhs = UHs.V, *const vhs = VHs.V;
+    const double *const wl0 = WL0.V, *const wlq = WLq.V, *const wlh = WLh.V, *const au = acU.V, *const av = acV.V;
+    const double a232 = p->A232, a244 = p->A244, dt = p->dt;
+    
+    for(int ii=0; ii<p->knox; ++ii)
     {
-        if(p->wet[IJ]==1 && WL0(i,j)>p->A244)
+    const int q0 = (ii - p->imin)*nj - p->jmin;
+    
+        for(int q=q0; q<q0+p->knoy; ++q)
+        if(flag[q]>0)
         {
-            // a later stage of A 210 12/13 (stc > 0): the momentum with the acceleration of the gravity term at t^n
-            // (stage_accel) up to the time of the stage, on the depth of that time; thin water (the depth of the stage
-            // or of t^n below A 232) as before
-            if(stc>0.0 && WL0(i,j)>=p->A232 && (stc>0.75 ? WLq(i,j) : WLh(i,j))>=p->A232)
+            if(wet[q]==1 && wl0[q]>a244)
             {
-            const double hs = stc>0.75 ? WLq(i,j) : WLh(i,j);
-            b->U(i,j) = (UHs(i,j) + stc*p->dt*acU(i,j))/hs;
-            b->V(i,j) = (VHs(i,j) + stc*p->dt*acV(i,j))/hs*p->y_dir;
+                // a later stage of A 210 12/13 (stc > 0): the momentum with the acceleration of the gravity term at t^n
+                // (stage_accel) up to the time of the stage, on the depth of that time; thin water (the depth of the stage
+                // or of t^n below A 232) as before
+                if(stc>0.0 && wl0[q]>=a232 && (stc>0.75 ? wlq[q] : wlh[q])>=a232)
+                {
+                const double hs = stc>0.75 ? wlq[q] : wlh[q];
+                U[q] = (uhs[q] + stc*dt*au[q])/hs;
+                V[q] = (vhs[q] + stc*dt*av[q])/hs*p->y_dir;
+                }
+                
+                else
+                if(wl0[q]>=a232)
+                {
+                U[q] = uhs[q]/wl0[q];
+                V[q] = vhs[q]/wl0[q]*p->y_dir;
+                }
+                
+                else
+                {
+                const double h = wl0[q];
+                const double r = sqrt(2.0)*h/sqrt(h*h*h*h + hv4);
+                U[q] = r*uhs[q];
+                V[q] = r*vhs[q]*p->y_dir;
+                }
             }
-
+            
             else
-            if(WL0(i,j)>=p->A232)
             {
-            b->U(i,j) = UHs(i,j)/WL0(i,j);
-            b->V(i,j) = VHs(i,j)/WL0(i,j)*p->y_dir;
+            U[q] = 0.0;
+            V[q] = 0.0;
             }
-
-            else
-            {
-            const double h = WL0(i,j);
-            const double r = sqrt(2.0)*h/sqrt(h*h*h*h + hv4);
-            b->U(i,j) = r*UHs(i,j);
-            b->V(i,j) = r*VHs(i,j)*p->y_dir;
-            }
+        
+        W[q] = 0.0;
         }
-
-        else
-        {
-        b->U(i,j) = 0.0;
-        b->V(i,j) = 0.0;
-        }
-
-    b->W(i,j) = 0.0;
     }
 
     // MPI and boundary ghost cells of U, V and UH, VH
     // the interior is kept: the ghost cells of a wall reach three cells into a solid
     // (sflow_momentum_func::mirror, ::ghostcells), into the fluid behind a thin solid
-    SLICELOOP4
+    double *const tu = tU.V, *const tv = tV.V, *const tuh = tUH.V, *const tvh = tVH.V;
+    
+    for(int ii=0; ii<p->knox; ++ii)
     {
-    tU(i,j) = b->U(i,j);
-    tV(i,j) = b->V(i,j);
-    tUH(i,j) = UHs(i,j);
-    tVH(i,j) = VHs(i,j);
+    const int q0 = (ii - p->imin)*nj - p->jmin;
+    
+        for(int q=q0; q<q0+p->knoy; ++q)
+        if(flag[q]>0)
+        {
+        tu[q] = U[q];
+        tv[q] = V[q];
+        tuh[q] = uhs[q];
+        tvh[q] = vhs[q];
+        }
     }
 
     ghostcells(p,b,pgc,UHs,VHs,WHz,b->WL);
 
-    SLICELOOP4
+    double *const wl = b->WL.V;
+    
+    for(int ii=0; ii<p->knox; ++ii)
     {
-    b->U(i,j) = tU(i,j);
-    b->V(i,j) = tV(i,j);
-    UHs(i,j) = tUH(i,j);
-    VHs(i,j) = tVH(i,j);
-    b->WL(i,j) = WL0(i,j);
+    const int q0 = (ii - p->imin)*nj - p->jmin;
+    
+        for(int q=q0; q<q0+p->knoy; ++q)
+        if(flag[q]>0)
+        {
+        U[q] = tu[q];
+        V[q] = tv[q];
+        uhs[q] = tuh[q];
+        vhs[q] = tvh[q];
+        wl[q] = wl0[q];
+        }
     }
 }
 
@@ -1403,19 +1442,34 @@ void sflow_momentum_SI::stage_rhs(lexer *p, fdm2D *b, ghostcell *pgc, slice &UHs
     FSy(i,j) = 0.0;
     pdiff->diff_v(p,b,pgc,psolv,VHDIFF,VHs,b->U,b->V,WL0,alpha);
 
-    SLICELOOP4
     {
-        if(p->wet[IJ]==1)
+    const int nj = p->jmax;
+    const int *const flag = p->flagslice4, *const wet = p->wet;
+    const double *const uh0 = UH0.V, *const vh0 = VH0.V, *const ud = UHDIFF.V, *const vd = VHDIFF.V;
+    const double *const F = b->F.V, *const G = b->G.V;
+    double *const uo = UHo.V, *const vo = VHo.V;
+    const double dt = p->dt;
+    
+    for(int ii=0; ii<p->knox; ++ii)
+    {
+    const int q0 = (ii - p->imin)*nj - p->jmin;
+    
+        for(int q=q0; q<q0+p->knoy; ++q)
+        if(flag[q]>0)
         {
-        UHo(i,j) = a*UH0(i,j) + alpha*(UHDIFF(i,j) + p->dt*b->F(i,j));
-        VHo(i,j) = (a*VH0(i,j) + alpha*(VHDIFF(i,j) + p->dt*b->G(i,j)))*p->y_dir;
+            if(wet[q]==1)
+            {
+            uo[q] = a*uh0[q] + alpha*(ud[q] + dt*F[q]);
+            vo[q] = (a*vh0[q] + alpha*(vd[q] + dt*G[q]))*p->y_dir;
+            }
+            
+            else
+            {
+            uo[q] = 0.0;
+            vo[q] = 0.0;
+            }
         }
-
-        else
-        {
-        UHo(i,j) = 0.0;
-        VHo(i,j) = 0.0;
-        }
+    }
     }
 }
 
@@ -1445,20 +1499,41 @@ void sflow_momentum_SI::advection(lexer *p, fdm2D *b, ghostcell *pgc)
         precon->reconstruct_y(p, pgc, b, b->V, b->Ve, b->Vw);
         }
 
-        SLICELOOP1
         {
-        fxU(i,j) = qa(i,j)>=0.0 ? qa(i,j)*b->Us(i,j) : qa(i,j)*b->Un(i,j);
-        fxV(i,j) = 0.0;
-
-        if(p->j_dir==1)
-        fxV(i,j) = qa(i,j)>=0.0 ? qa(i,j)*b->Vs(i,j) : qa(i,j)*b->Vn(i,j);
+        const int nj = p->jmax;
+        const bool jd = (p->j_dir==1);
+        const int *const flag1 = p->flagslice1, *const flag2 = p->flagslice2;
+        const double *const qx = qa.V, *const qy = qb.V;
+        const double *const Us = b->Us.V, *const Un = b->Un.V, *const Vs = b->Vs.V, *const Vn = b->Vn.V;
+        const double *const Ue = b->Ue.V, *const Uw = b->Uw.V, *const Ve = b->Ve.V, *const Vw = b->Vw.V;
+        double *const fxu = fxU.V, *const fxv = fxV.V, *const fyu = fyU.V, *const fyv = fyV.V;
+        const int ie = p->knox - p->ulast;
+        const int je = p->knoy - p->vlast;
+        
+        for(int ii=0; ii<p->knox; ++ii)
+        {
+        const int q0 = (ii - p->imin)*nj - p->jmin;
+        
+            if(ii<ie)
+            for(int q=q0; q<q0+p->knoy; ++q)
+            if(flag1[q]>0)
+            {
+            const double qf = qx[q];
+            
+            fxu[q] = qf>=0.0 ? qf*Us[q] : qf*Un[q];
+            fxv[q] = jd ? (qf>=0.0 ? qf*Vs[q] : qf*Vn[q]) : 0.0;
+            }
+            
+            if(jd)
+            for(int q=q0; q<q0+je; ++q)
+            if(flag2[q]>0)
+            {
+            const double qf = qy[q];
+            
+            fyu[q] = qf>=0.0 ? qf*Ue[q] : qf*Uw[q];
+            fyv[q] = qf>=0.0 ? qf*Ve[q] : qf*Vw[q];
+            }
         }
-
-        if(p->j_dir==1)
-        SLICELOOP2
-        {
-        fyU(i,j) = qb(i,j)>=0.0 ? qb(i,j)*b->Ue(i,j) : qb(i,j)*b->Uw(i,j);
-        fyV(i,j) = qb(i,j)>=0.0 ? qb(i,j)*b->Ve(i,j) : qb(i,j)*b->Vw(i,j);
         }
     }
 
@@ -1507,18 +1582,38 @@ void sflow_momentum_SI::advection(lexer *p, fdm2D *b, ghostcell *pgc)
         return;
     }
 
-    SLICELOOP4
-    WETDRY
     {
-    b->F(i,j) -= (fxU(i,j) - fxU(i-1,j))/p->DXN[IP];
-
-        if(p->j_dir==1)
+    const int nj = p->jmax;
+    const bool jd = (p->j_dir==1);
+    const int *const flag = p->flagslice4, *const wet = p->wet;
+    const double *const fxu = fxU.V, *const fxv = fxV.V, *const fyu = fyU.V, *const fyv = fyV.V;
+    double *const F = b->F.V, *const G = b->G.V;
+    
+    for(int ii=0; ii<p->knox; ++ii)
+    {
+    const int q0 = (ii - p->imin)*nj - p->jmin;
+    const double dxn = p->DXN[ii+marge];
+    
+        for(int jj=0; jj<p->knoy; ++jj)
         {
-        b->F(i,j) -= (fyU(i,j) - fyU(i,j-1))/p->DYN[JP];
-
-        b->G(i,j) -= (fxV(i,j) - fxV(i-1,j))/p->DXN[IP]
-                   + (fyV(i,j) - fyV(i,j-1))/p->DYN[JP];
+        const int q = q0 + jj;
+        
+        if(flag[q]>0 && wet[q]==1)
+        {
+        F[q] -= (fxu[q] - fxu[q-nj])/dxn;
+        
+            if(jd)
+            {
+            const double dyn = p->DYN[jj+marge];
+            
+            F[q] -= (fyu[q] - fyu[q-1])/dyn;
+            
+            G[q] -= (fxv[q] - fxv[q-nj])/dxn
+                  + (fyv[q] - fyv[q-1])/dyn;
+            }
         }
+        }
+    }
     }
 }
 
@@ -2110,6 +2205,41 @@ void sflow_momentum_SI::si_rhs(lexer *p, fdm2D *b, ghostcell *pgc)
     // Newton iteration on WL = max(eta + d, 0) (Casulli 2009), converging from above
     SLICELOOP4
     etaI(i,j) = eta0(i,j);
+
+    if(p->A233==1)
+    eta_guess(p);
+}
+
+// A 233 1: the eta solve starts from the level extrapolated from the last two steps, eta^n + (dt/dt_old)(eta^n - eta^{n-1}),
+// in the wet cells deeper than A 232. Only the start value of the linear solve: the solution is the one of the system
+// within N 44, the wet pattern starts from all wet as before. Not on the first step of a run, of a restart or of a new
+// refinement patch (no level of the step before), and not for a second solve of the same time (the rheology passes,
+// the ship iteration): there from eta^n.
+void sflow_momentum_SI::eta_guess(lexer *p)
+{
+    const double told = etaP_time, dtold = etaP_dt;
+    const bool use = etaP_ok && dtold>0.0 && fabs(p->simtime - (told + dtold))<=1.0e-9*MAX(dtold,p->dt)
+                     && p->dt<5.0*dtold && p->dt>0.2*dtold;
+
+    if(use)
+    {
+    const double r = p->dt/dtold;
+
+    SLICELOOP4
+    if(p->wet[IJ]==1 && WL0(i,j)>p->A232)
+    etaI(i,j) = eta0(i,j) + r*(eta0(i,j) - etaP(i,j));
+    }
+
+    // the level of this step for the next one (once per time)
+    if(!etaP_ok || p->simtime!=told)
+    {
+    SLICELOOP4
+    etaP(i,j) = eta0(i,j);
+
+    etaP_time = p->simtime;
+    etaP_dt = p->dt;
+    etaP_ok = true;
+    }
 }
 
 void sflow_momentum_SI::face_update(lexer *p, fdm2D *b, ghostcell *pgc)

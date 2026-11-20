@@ -1,0 +1,20 @@
+{
+ "base": "sflow_1d_si_tidal_flat",
+ "ctrl_add": [
+  "A 233 1"
+ ],
+ "description": "sflow_1d_si_tidal_flat with A 233 1: the extrapolated start level with wetting and drying (the wet cells deeper than A 232 only), the wet pattern iteration from all wet as before.",
+ "tags": [
+  "quick",
+  "1d",
+  "sflow",
+  "semi_implicit",
+  "wetdry",
+  "solver"
+ ],
+ "covers": [
+  "sflow_momentum_SI::eta_guess next to dry cells",
+  "si_eta2D::solve_wetdry with V-cycles"
+ ],
+ "architect": "Hans Bihs"
+}

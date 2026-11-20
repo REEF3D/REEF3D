@@ -1,0 +1,22 @@
+{
+ "base": "sflow_2d_amr_bar_nh_sub",
+ "ctrl_set": {
+  "G 10": "6.5 8.1 -1 1",
+  "P 182": "-1",
+  "P 181": "20"
+ },
+ "steps": 40,
+ "description": "sflow_2d_amr_bar_nh_sub with the two levels in a box behind the wave generation zone (one patch per level, waves from the first steps): the level solves of the non-hydrostatic pressure measure the level-0 part of their preconditioner against the patch-local part alone and switch it off (the choice is printed with the SFLOW AMR line every 20 steps).",
+ "tags": [
+  "2d",
+  "sflow",
+  "amr",
+  "nh",
+  "subcycling"
+ ],
+ "covers": [
+  "sflow_amr::nh_level / nh_c0_choose: the level-0 part of the preconditioner of the level solves, measured and switched off",
+  "sflow_amr_nh: solve on the grids of the level window (nh_gw), patch-local preconditioner alone, level-0 multigrid matrix kept within a solve"
+ ],
+ "architect": "Hans Bihs"
+}

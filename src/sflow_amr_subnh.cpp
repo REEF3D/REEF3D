@@ -45,6 +45,17 @@ Architect: Hans Bihs
 //  linear in time between the start and the end of the parent step (at the time of the stage
 //  output), siblings coupled.
 //
+//  The preconditioner of a level solve is the patch-local part of sflow_amr_nh.cpp, with or without the
+//  level-0 part before it (the residual restricted down to level 0, one V-cycle there, the correction
+//  interpolated back up).  The level-0 part saves iterations where the patches of the level form
+//  a wide block and the pressure reaches far (deep water for the cell size), and costs a V-cycle of
+//  the whole level-0 grid in every application; which of the two is cheaper depends on the case
+//  and changes with the patches.  Every level measures it: of every NHCYC level solves the first
+//  NHPRB run the other way, the next NHPRB the chosen way, and the choice changes where the other
+//  way needs less work (iterations times the cells an iteration works on, nh_c0_choose).  The choice
+//  and the counters are part of the checkpoint; the synchronisation projection of the levels l..L
+//  (l > 0) has the level-0 part where one of its levels chose it.
+//
 //  After the two steps of level l+1, refluxing and restriction (sflow_amr_sub.cpp), the
 //  synchronisation projection over the levels l..L (nh_project): one composite correction solve
 //  for the change of the constraint residual (-(WL div u + 2 (w + u.grad d))/dt, the linear part of
@@ -62,6 +73,10 @@ typedef reefamr_comms_off comms_off;
 
 // times of the RK3 stage outputs in the step (SSP RK3: t+dt, t+dt/2, t+dt)
 const double rko[3] = {1.0, 0.5, 1.0};
+
+// level solves per cycle of the choice of the level-0 part, and the solves measured each way (the
+// three stages of a step)
+const int NHCYC = 96, NHPRB = 3;
 }
 
 // the pressure of the level-l stage s of step k (0, 1)
@@ -76,6 +91,11 @@ void sflow_amr::nh_level(lexer *p, ghostcell *pgc, int l, int k, int s)
              [&](const reefamr_fill &f, double *v) { v[0] = nh_eval_t(f,th,4); },
              [&](reefamr_patch *c, int n, const reefamr_fill &f, const double *w) { nh_vec(n,-1)(f.di,f.dj) = w[0]; });
 
+    // the level-0 part of the preconditioner: the choice of the level, the other way in the first
+    // solves of a cycle
+    const int cyc = nh_cn[l];
+    nh_coarse = ((cyc<NHPRB ? 1-nh_c0[l] : nh_c0[l])==1);
+
     wlo = whi = l;
     nh_edge = true;
     nh_prepare(pgc,true);
@@ -83,8 +103,17 @@ void sflow_amr::nh_level(lexer *p, ghostcell *pgc, int l, int k, int s)
     nh_edge = false;
     wlo = 0;
     whi = -1;
+    nh_coarse = true;
     sub_lv_it += nh_it_last;
     ++sub_lv_n;
+
+    if(cyc<2*NHPRB)
+    nh_ci[l][cyc<NHPRB ? 0 : 1] += nh_it_last;
+    ++nh_cn[l];
+    if(nh_cn[l]==2*NHPRB)
+    nh_c0_choose(pgc,l);
+    if(nh_cn[l]>=NHCYC)
+    nh_cn[l] = nh_ci[l][0] = nh_ci[l][1] = 0;
 
     // velocity correction and the rest of the stage
     {
@@ -100,6 +129,33 @@ void sflow_amr::nh_level(lexer *p, ghostcell *pgc, int l, int k, int s)
     }
 
     tm[5] += MPI_Wtime()-t0;
+}
+
+// the level-0 part in the preconditioner of the level-l solves: the work of a solve is its iterations
+// times the cells an application of the preconditioner works on, the cells of the level-l patches
+// in the patch-local passes and the rest of the iteration, and with the level-0 part the cells of
+// level 0 and of the levels between (their V-cycle, restriction and interpolation: 1.5 per cell,
+// measured against a patch-local pass)
+void sflow_amr::nh_c0_choose(ghostcell *pgc, int l)
+{
+    vector<double> w(l+1,0.0);
+    for(auto c : P)
+    if(c->lev>=1 && c->lev<=l)
+    w[c->lev] += double(c->nx)*double(c->ny);
+    for(int k=1; k<=l; ++k)
+    w[k] = pgc->globalsum(w[k]);
+    w[0] = double(p0->cellnumtot2D);
+
+    const double own = w[l]*double((nlevg[l]>1 ? 4 : 1) + 1);
+    double below = 0.0;
+    for(int k=0; k<l; ++k)
+    below += 1.5*w[k];
+
+    const double f[2] = {own, own+below};
+    const int cur = nh_c0[l], oth = 1-cur;
+
+    if(double(nh_ci[l][0])*f[oth] < 0.95*double(nh_ci[l][1])*f[cur])
+    nh_c0[l] = oth;
 }
 
 // constraint residual WL div u + 2 (w + u.grad d) of the cells of grid g with a non-hydrostatic row
@@ -221,8 +277,13 @@ void sflow_amr::nh_project(lexer *p, ghostcell *pgc, int l, double dt)
     wlo = l;
     whi = -1;
     nh_edge = (l>0);
+    nh_coarse = false;
+    for(int m=MAX(l,1); l>0 && m<=maxlev && m<8; ++m)
+    if(nh_c0[m]==1)
+    nh_coarse = true;
     nh_prepare(pgc,false);
     nh_core(p);
+    nh_coarse = true;
     nh_edge = false;
     wlo = 0;
     whi = -1;

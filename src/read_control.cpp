@@ -157,6 +157,9 @@ void control::read_control(lexer* p)
                          cout<<"ctrl.txt: A 229 1 is no longer used and is ignored (the semi-implicit SFLOW wets and dries with A 243 > 0)"<<endl;
                          clear(c,numint);
                          break;
+                case 233: control>>A233;
+                         clear(c,numint);
+                         break;
                 case 232: control>>A232;
                          clear(c,numint);
                          break;
