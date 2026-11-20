@@ -68,6 +68,8 @@ Author: Ahmet Soydan
 //      NHF_SRC_FORCE = 3       mirror hull, NO sources: the cells inside the hull are ghost cells of a free-slip wall (velocity of a
 //                              probe point outside, tangential part unchanged, normal part reflected), see
 //                              6DOF_obj_forcing_nhflow.cpp; NHF_SRC_PROBE (cells, 1.5), NHF_SRC_MDEPTH (cells, 2.6)
+//      NHF_SRC_PSI = psi [m]   the same band half width everywhere instead of A 526 x cell size (grids refined to the hull: >= 2 cells
+//                              normal to the hull, small against the half beam)
 //      NHF_SRC_ANISO = 1       band half width from the grid spacing normal to the hull (grids stretched to the hull)
 //      NHF_SRC_ANISO = 2       the same with the vertical part of the normal and the layer thickness (band below the hull)
 //      NHF_SRC_ANISO = 3       as 2, the derivative of chi in the sources with the band width of the cell itself (no sources from
@@ -86,7 +88,21 @@ Author: Ahmet Soydan
 //                              the band; the projection takes u - chi V (see 6DOF_obj_forcing_nhflow.cpp); NHF_SRC_TBMIN, NHF_SRC_TVMAX
 //      NHF_SRC_VFLUX = 1       with NHF_SRC_VMATCH=3: the stream inside follows the water level inside the hull, V_x = Us T0/(T0 + eta),
 //                              tangent to the level: the flux and the sources of the still hull whatever the waves along the hull
-//      NHF_SRC_RAMP = T        the sources grow from 0 over the first T seconds (soft start, see 6DOF_obj_forcing_nhflow.cpp)
+//      NHF_SRC_RAMP = T        the sources grow from 0 over the first T seconds (soft start, see 6DOF_obj_forcing_nhflow.cpp); with
+//                              NHF_SRC_VMATCH=3 the stream the interior is held at grows with them, U0 + ramp (V - U0)
+//      NHF_SRC_LOCAL = 1|2|3   with NHF_SRC_VMATCH=3 (experiment, 20 Nov): rows of cells where the hull is thinner than the band
+//                              (no forced cell: ends, keel) take the local flow as the stream, V = (u_r, ., w_r) with the
+//                              chi-weighted mean velocity of the row (1: u and w, 2: u only, 3: w only), relaxed over
+//                              NHF_SRC_LTAU [s] (0.2); their sources then follow the local velocity, 2 (u_r b_x + w_r b_z)
+//                              RESULT (Wigley, Fn 0.289): C_wp 1.428e-3 -> 1.620e-3, wrong direction. div(chi V) keeps the flux of the
+//                              row: what the sources of the tip lose reappears where the row meets the cored rows (blunter bow)
+//      NHF_SRC_THIN = 1        with NHF_SRC_FORCE=2 and NHF_SRC_VMATCH=3 (experiment, 20 Nov): rows of cells where the hull is thinner
+//                              than the band (no forced cell) get a core: the cells inside the hull next to the centre plane of the
+//                              row are forced to the stream in x and z (v free)
+//                              RESULT (Wigley, Fn 0.289): C_wp -3 % (psi 0.043) / -5 % (0.060), band dependence halved, but a
+//                              numerical wake (u/U 0.94-0.97 behind the stern, C 0.55e-3): the level-following stream
+//                              (NHF_SRC_VFLUX) has not the total head of the outer flow, forced up to the stern end it leaves
+//                              the hull with a deficit. Do not use as it is
 //      NHF_SRC_QV = theta      momentum of the source water: theta V + (1 - theta) u per mass, V = ((1 + k1) Us, 0, 0) the
 //                              stream inside the hull, u the velocity of the cell (default theta = 0). With the transparent
 //                              interior the sources make the water of the stream inside and the sinks take it away again:

@@ -226,8 +226,18 @@ void sixdof_obj_nhflow::forcing_kernel_nhflow(lexer *p, fdm_nhf *d, ghostcell *p
             return (ii-p->imin)*p->jmax*p->kmax + (jj-p->jmin)*p->kmax + kk-p->kmin;
         };
         
+        // NHF_SRC_PSI = psi [m]: the same band half width everywhere, for grids refined to the hull. The band of the cell
+        // size (A 526 (dx + dy)/2, and the NHF_SRC_ANISO variants) changes from cell to cell on a stretched grid; the
+        // surfaces chi = const are then not parallel to the hull, and the water outside is held tangent to those surfaces,
+        // not to the hull (the "sources" of a changing band width, NHF_SRC_ANISO=2). Choose psi >= 2 cells normal to the
+        // hull (2 dy at the sides, 2 dz at the bottom) and small against the half beam.
+        static const double psifix = getenv("NHF_SRC_PSI")!=nullptr ? atof(getenv("NHF_SRC_PSI")) : 0.0;
+        
         auto psiAt = [&](int ii, int jj, int kk)
         {
+            if(psifix>0.0)
+            return psifix;
+            
             const double piso = (p->j_dir==0) ? p->A526*p->DXN[ii+marge] : p->A526*0.5*(p->DXN[ii+marge] + p->DYN[jj+marge]);
             
             if(!aniso)
@@ -438,6 +448,7 @@ void sixdof_obj_nhflow::forcing_kernel_nhflow(lexer *p, fdm_nhf *d, ghostcell *p
         // q = U d(chi)/dx as before. Fixed hull.
         static const bool vmir = vmode==2;
         static std::vector<double> VM1,VM2,VM3;
+        static std::vector<double> THW;                // NHF_SRC_THIN: weight of the forcing in x and z, centre cells of the rows without a core
         static const double mdepth2 = getenv("NHF_SRC_MDEPTH")!=nullptr ? atof(getenv("NHF_SRC_MDEPTH")) : 2.6;
         static const double mprobe2 = getenv("NHF_SRC_PROBE")!=nullptr ? atof(getenv("NHF_SRC_PROBE")) : 1.5;
         static const double vrel = getenv("NHF_SRC_VREL")!=nullptr ? atof(getenv("NHF_SRC_VREL")) : 0.02;
@@ -742,10 +753,105 @@ void sixdof_obj_nhflow::forcing_kernel_nhflow(lexer *p, fdm_nhf *d, ghostcell *p
             
             const double us = fk*nhflow_srchull::stream();
             
+            // NHF_SRC_LOCAL (1: u and w, 2: u only, 3: w only): rows without a forced core take the local flow as the stream.
+            // Where the hull is thinner than the band (half beam b < psi: the ends, the keel; on the Wigley grid of
+            // 19 Nov 31 % of the sources) no cell is forced, the water passes through and the sources are those of
+            // the thin ship, Us b_x per side, whatever the flow does there. The hull needs v = u b_x + w b_z with the
+            // local velocity: less where the flow is slow (bow, stern), and less where it rises or dives past the sloping
+            // bottom (the hull is no longer transparent to the vertical motion of its own waves). With V = (u_r, ., w_r),
+            // u_r, w_r the chi-weighted mean velocity of the row (relaxed over NHF_SRC_LTAU, 0.2 s), the sources of the
+            // row are div(chi V): 2 (u_r b_x + w_r b_z) + 2 b div(u_r, w_r). Rows with a core keep Us (there the
+            // forcing makes the flow tangent whatever V is); linear change over one cell of half beam.
+            // Found on Wigley, Fn 0.289: C_wp 1.428e-3 with psi 0.043 m, 1.503e-3 with 0.060 m (experiment 0.98e-3).
+            static const int lmode = getenv("NHF_SRC_LOCAL")!=nullptr ? atoi(getenv("NHF_SRC_LOCAL")) : 0;
+            static const double ltau = getenv("NHF_SRC_LTAU")!=nullptr ? atof(getenv("NHF_SRC_LTAU")) : 0.2;
+            static std::vector<double> rowU,rowW,OMv;
+            const bool lrow = lmode>0 && !tz;
+            
+            // NHF_SRC_THIN=1 (20 Nov): rows without a forced core get one. Where the half beam is below psi (+ one cell) no cell
+            // lies deeper than psi inside the hull, nothing is forced, and the water inside is not the stream V that the sources
+            // div(chi V) are made for: through the hull surface then flows (u_in - V).n (bow: out of the hull, stern: into it,
+            // where the water at the centre plane is slower than Us). The cells of such a row next to its centre plane
+            // (inside the hull, |y - c| < 0.75 dy) are forced to V in x and z; v stays free, so that the cells can take the
+            // divergence the projection asks for (chi < 1 there). Weight: 1 for b <= psi, 0 from b = psi + dy on.
+            static const bool thin = getenv("NHF_SRC_THIN")!=nullptr && atoi(getenv("NHF_SRC_THIN"))>0;
+            
+            if(thin && !tz && int(THW.size())!=nn3)
+            THW.assign(nn3,0.0);
+            
+            if(lrow)
+            {
+                std::vector<double> lac(3*nrow,0.0);
+                
+                LOOP
+                if(p->wet[IJ]==1)
+                {
+                    const double ch = chiAt(i,j,k);
+                    
+                    if(ch>0.02)
+                    {
+                        const int n = (i+p->origin_i)*nzl + k;
+                        lac[3*n] += ch;
+                        lac[3*n+1] += ch*U[IJK];
+                        lac[3*n+2] += ch*W[IJK];
+                    }
+                }
+                
+                pgc->globalsum(lac.data(),3*nrow);
+                
+                if(int(rowU.size())!=nrow)
+                {
+                rowU.assign(nrow,us);
+                rowW.assign(nrow,0.0);
+                }
+                
+                if(int(OMv.size())!=nn3)
+                OMv.assign(nn3,0.0);
+                
+                const double al = MIN(1.0,p->dt/MAX(ltau,1.0e-6));
+                
+                for(int n=0; n<nrow; ++n)
+                if(lac[3*n]>1.0e-12)
+                {
+                    if(lmode!=3)
+                    rowU[n] += al*(lac[3*n+1]/lac[3*n] - rowU[n]);
+                    
+                    if(lmode!=2)
+                    rowW[n] += al*(lac[3*n+2]/lac[3*n] - rowW[n]);
+                }
+            }
+            
             LOOP
             {
                 double t2 = 0.0;
                 const int ig = i+p->origin_i;
+                
+                double v1 = us;
+                double v3 = 0.0;
+                
+                if(lrow)
+                {
+                    double om = 0.0;
+                    
+                    if(p->wet[IJ]==1)
+                    {
+                        om = (rstate(ig,k)!=1) ? 1.0 : MIN(MAX((psiAt(i,j,k) + p->DYN[JP] - rowb(ig,k))/p->DYN[JP],0.0),1.0);
+                        v1 = us + om*(rowU[ig*nzl+k] - us);
+                        v3 = om*rowW[ig*nzl+k];
+                    }
+                    
+                    OMv[IJK] = om;
+                }
+                
+                if(thin && !tz)
+                {
+                    double tw = 0.0;
+                    
+                    if(p->wet[IJ]==1 && d->FB[IJK]<0.0 && rstate(ig,k)==1 && fabs(p->YP[JP]-rowc(ig,k))<0.75*p->DYN[JP])
+                    tw = MIN(MAX((psiAt(i,j,k) + p->DYN[JP] - rowb(ig,k))/p->DYN[JP],0.0),1.0);
+                    
+                    THW[IJK] = tw;
+                }
                 
                 if(d->FB[IJK]<1.5*psiAt(i,j,k) && p->wet[IJ]==1 && rstate(ig,k)==1)
                 {
@@ -769,13 +875,13 @@ void sixdof_obj_nhflow::forcing_kernel_nhflow(lexer *p, fdm_nhf *d, ghostcell *p
                         const double dl = tz ? p->DZN[KP]*WL(i,j) : p->DYN[JP];
                         const double eta = MIN(MAX(((tz ? zcc(i,j,k) : p->YP[JP]) - c0)/MAX(b0,tbmin*dl),-1.3),1.3);
                         
-                        t2 = MIN(MAX(us*(eta*bx + cx),-tvmax*fabs(us)),tvmax*fabs(us));
+                        t2 = MIN(MAX(v1*(eta*bx + cx),-tvmax*fabs(us)),tvmax*fabs(us));
                     }
                 }
                 
-                VM1[IJK] = us;
+                VM1[IJK] = v1;
                 VM2[IJK] = tz ? 0.0 : t2;
-                VM3[IJK] = tz ? t2 : 0.0;
+                VM3[IJK] = tz ? t2 : v3;
             }
             
             // NHF_SRC_VFLUX=1: the stream inside the hull follows the water level inside it. In the columns that the hull
@@ -788,7 +894,7 @@ void sixdof_obj_nhflow::forcing_kernel_nhflow(lexer *p, fdm_nhf *d, ghostcell *p
             //      V_x = Us T0/d,     V_z = (V_x eta_x + V_y eta_y)(z - z_b)/d
             // the stream carries the flux Us T0 of the still hull whatever the level and is tangent to the level:
             // the sources of every column are those of the still hull, their sum 0. Columns of the band beside the
-            // hull take T0 and z_b of the nearest pierced column (two cells around).
+            // hull take T0 and z_b of the nearest pierced column (three cells around).
             static const bool vflux = getenv("NHF_SRC_VFLUX")!=nullptr && atoi(getenv("NHF_SRC_VFLUX"))>0;
             static std::vector<double> SF,SB;
             
@@ -848,8 +954,8 @@ void sixdof_obj_nhflow::forcing_kernel_nhflow(lexer *p, fdm_nhf *d, ghostcell *p
                     {
                         double best = 1.0e20;
                         
-                        for(int di=-2; di<=2; ++di)
-                        for(int dj=-2; dj<=2; ++dj)
+                        for(int di=-3; di<=3; ++di)
+                        for(int dj=-3; dj<=3; ++dj)
                         {
                             const double sn = SF[IDX(i+di,j+dj,kt)];
                             const double r2 = double(di*di + dj*dj);
@@ -870,9 +976,13 @@ void sixdof_obj_nhflow::forcing_kernel_nhflow(lexer *p, fdm_nhf *d, ghostcell *p
                         const double ey = (d->eta(i,j+1) - d->eta(i,j-1))/(p->DYP[JP] + p->DYP[JM1]);
                         const double zr = MIN(MAX((zcc(i,j,k) - zb)/dd,0.0),1.2);
                         
-                        VM1[IJK] *= sc;
-                        VM2[IJK] *= sc;
-                        VM3[IJK] = (VM1[IJK]*ex + VM2[IJK]*ey)*zr;
+                        // rows of the local stream (NHF_SRC_LOCAL) keep their own velocity
+                        const double om = lrow ? OMv[IJK] : 0.0;
+                        const double s1 = (om>0.0) ? 1.0 + (1.0-om)*(sc-1.0) : sc;
+                        
+                        VM1[IJK] *= s1;
+                        VM2[IJK] *= s1;
+                        VM3[IJK] = (om>0.0) ? (1.0-om)*(VM1[IJK]*ex + VM2[IJK]*ey)*zr + om*VM3[IJK] : (VM1[IJK]*ex + VM2[IJK]*ey)*zr;
                     }
                 }
             }
@@ -928,15 +1038,25 @@ void sixdof_obj_nhflow::forcing_kernel_nhflow(lexer *p, fdm_nhf *d, ghostcell *p
                 if(tfmode==2)
                 chi = fbv>psf ? 1.0 : 0.0;
                 
+                // NHF_SRC_THIN: x and z in the centre cells of the rows without a core
+                const double chit = (tfmode==2 && !THW.empty()) ? MAX(chi,THW[IJK]) : chi;
+                
                 // any uniform velocity V inside gives no flow through the hull if the sources are -V n_x: (1 + k1) Us for
                 // both (NHF_SRC_K). k1 then only sets the slip between inside and outside, not the boundary condition
-                FX[IJK] += chi*((vfield ? VM1[IJK] : Vin(i,k)) - U[IJK])/(alpha[iter]*p->dt);
-                FY[IJK] += chi*((vfield ? VM2[IJK] : 0.0) - V[IJK])/(alpha[iter]*p->dt);
-                FZ[IJK] += chi*((vfield ? VM3[IJK] : 0.0) - W[IJK])/(alpha[iter]*p->dt);
-                
+                // during the start-up ramp (NHF_SRC_RAMP) the sources are ramp div(chi V): the stream the interior is held at
+                // must have the divergence ramp div V, i.e. U0 + ramp (V - U0) with the uniform stream U0 (no hull at ramp 0)
+                const double us0 = fk*nhflow_srchull::stream();
+                const double vtx = vfield ? (ramp<1.0 ? us0 + ramp*(VM1[IJK]-us0) : VM1[IJK]) : Vin(i,k);
+                const double vty = vfield ? (ramp<1.0 ? ramp*VM2[IJK] : VM2[IJK]) : 0.0;
+                const double vtz = vfield ? (ramp<1.0 ? ramp*VM3[IJK] : VM3[IJK]) : 0.0;
+
+                FX[IJK] += chit*(vtx - U[IJK])/(alpha[iter]*p->dt);
+                FY[IJK] += chi*(vty - V[IJK])/(alpha[iter]*p->dt);
+                FZ[IJK] += chit*(vtz - W[IJK])/(alpha[iter]*p->dt);
+
                 // force of the forcing on the water (momentum budget)
-                Ffx += p->W1*chi*((vfield ? VM1[IJK] : Vin(i,k)) - U[IJK])/(alpha[iter]*p->dt)*p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*WL(i,j);
-                Ffz += p->W1*chi*((vfield ? VM3[IJK] : 0.0) - W[IJK])/(alpha[iter]*p->dt)*p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*WL(i,j);
+                Ffx += p->W1*chit*(vtx - U[IJK])/(alpha[iter]*p->dt)*p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*WL(i,j);
+                Ffz += p->W1*chit*(vtz - W[IJK])/(alpha[iter]*p->dt)*p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*WL(i,j);
             }
             
             if(keep)
@@ -949,7 +1069,7 @@ void sixdof_obj_nhflow::forcing_kernel_nhflow(lexer *p, fdm_nhf *d, ghostcell *p
                 continue;
             }
             
-            const double psi = (p->j_dir==0) ? p->A526*p->DXN[IP] : p->A526*0.5*(p->DXN[IP] + p->DYN[JP]);
+            const double psi = (psifix>0.0) ? psifix : ((p->j_dir==0) ? p->A526*p->DXN[IP] : p->A526*0.5*(p->DXN[IP] + p->DYN[JP]));
             
             auto Hs = [&](double fb)
             {
