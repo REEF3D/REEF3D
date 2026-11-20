@@ -227,6 +227,13 @@ nhflow_momentum_SI::nhflow_momentum_SI(lexer *p, fdm_nhf *d, ghostcell *pgc, six
     // and refined grids, A 549 1 and A 505 0 keep the time levels of the step before (first order in time for the
     // nonlinear terms, one pass)
     tl2 = elm_mode(p)==0 && p->geo_curv==0 && p->geo_mb==0 && p->G1==0 && !patch && p->A505==1;
+    // the estimate pass of the advecting transport also where tl2 is not available (curvilinear, multi-block and refined
+    // grids, A 505 1, not A 549 1): advected with the transport of the step before (one pass) the short waves in a
+    // current grew from about theta - 1/2 < Fr (flume, h 0.109 m, U 0.42 m/s, theta 0.55, 0.5 - 4 % per step from flow
+    // Courant numbers 0.25 on, curvilinear grid 4 - 29 mm noise; linear analysis of the hydrostatic step: the lag of
+    // the transport); with the transport of the estimate, theta Q^{n+1} + (1 - theta) Q^n, stable. The other nonlinear
+    // terms keep the time levels of the step before. Each step about 1.3 - 1.9 times the time of one pass
+    tp2 = !tl2 && elm_mode(p)==0 && p->A505==1;
 
     // A 510 11 without tl2 (curvilinear, multi-block and refined grids, A 505 0): Crank-Nicolson vertical advection with
     // omega at t^{n+1/2} (nh_begin), as with tl2
@@ -268,6 +275,12 @@ nhflow_momentum_SI::nhflow_momentum_SI(lexer *p, fdm_nhf *d, ghostcell *pgc, six
 
     if(tl2)
     cout<<", second-order time levels (A 505 1)";
+
+    if(tp2)
+    cout<<", estimate pass for the advecting transport (A 505 1)";
+
+    if(p->A505==0 && elm_mode(p)==0)
+    cout<<", one pass (A 505 0: in a current short waves grow for theta below about 1/2 + Fr, theta 0.7 recommended)";
 
     if(p->A537==1)
     cout<<", wetting and drying iteration";
@@ -642,8 +655,9 @@ void nhflow_momentum_SI::step_single(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflo
     // transport of this step, theta Q^{n+1} + (1-theta) Q^n, to O(dt^2). The second advects with that transport (the
     // momentum moves with the discharges that move the mass) and solves the full system. An extrapolation of the
     // transport to t^{n+1/2} instead was second order as well but let an odd-even mode live in a draining river
-    // (nhflow_2d_si_river_kepsilon: the steady level 0.1 m off, never settled)
-    const int npass = tl2 ? 2 : 1;
+    // (nhflow_2d_si_river_kepsilon: the steady level 0.1 m off, never settled). tp2: the same two passes on curvilinear
+    // grids (the multi-block grid and the refined grids: nhflow_amr::si_step)
+    const int npass = (tl2 || tp2) ? 2 : 1;
 
     faces_set = false;
 
@@ -719,7 +733,7 @@ void nhflow_momentum_SI::step_single(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflo
 
 void nhflow_momentum_SI::si_corrector(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
-    // the second pass of tl2: the face discharges back to t^n, the transport of the estimate (Tx, Ty) stays
+    // the second pass of tl2 (tp2): the face discharges back to t^n, the transport of the estimate (Tx, Ty) stays
 
     player_loop(p,lsi,lsj,lso,lrng,[&](size_t q){ Qx[q] = Qxn[q]; Qy[q] = Qyn[q]; });
 
