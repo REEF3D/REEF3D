@@ -45,10 +45,10 @@
   },
   "P": {
    "n": 3000,
-   "sum": 0.0,
-   "l1": 0.0,
-   "l2": 0.0,
-   "linf": 0.0
+   "sum": -413.57694154779256,
+   "l1": 1670.4310017717087,
+   "l2": 206.3857744705211,
+   "linf": 96.34827055127012
   },
   "eta": {
    "n": 1500,
@@ -434,7 +434,7 @@
   0.02,
   0.02
  ],
- "blessed_from": "/home/claude/nb/hd/buildJ/REEF3D_v26",
- "date": "2026-11-18",
- "note": "v26: first SI step at the semi-implicit limit"
+ "blessed_from": "/home/claude/nb/hd/buildPC/REEF3D_pc (non-LTO; P only)",
+ "date": "2026-11-20",
+ "note": "v33: one y ghost row with one cell in y; P read by the dump with IJK, stored with FIJK"
 }

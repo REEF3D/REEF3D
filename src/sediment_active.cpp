@@ -215,7 +215,7 @@ void sediment_f::active_ini_sflow(lexer *p, fdm2D *b, ghostcell *pgc)
     p->Iarray(p->DFBED,p->imax*p->jmax);
     
     for(i=-p->margin; i<p->knox+p->margin; ++i)
-    for(j=-p->margin; j<p->knoy+p->margin; ++j)
+    for(j=-p->jmargin; j<p->knoy+p->jmargin; ++j)
     p->DFBED[(i-p->imin)*p->jmax + j-p->jmin] = 1;
     }
     

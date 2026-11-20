@@ -49,7 +49,7 @@ Authors: Hans Bihs, Alexander Hanke
 #define KBLOOP for(k=-1; k<p->knoz+1; ++k)
 
 #define IMALOOP for(i=-p->margin; i<p->knox+p->margin; ++i)
-#define JMALOOP for(j=-p->margin; j<p->knoy+p->margin; ++j)
+#define JMALOOP for(j=-p->jmargin; j<p->knoy+p->jmargin; ++j)
 #define KMALOOP for(k=-p->kmargin; k<p->knoz+p->kmargin; ++k)
 
 #define IFLEXLOOP for(i=0; i<p->knox-ulast; ++i)

@@ -85,7 +85,7 @@ void lexer::flagini()
     Iarray(DFBED,imax*jmax);
 
     for(i=-margin; i<knox+margin; ++i)
-    for(j=-margin; j<knoy+margin; ++j)
+    for(j=-jmargin; j<knoy+jmargin; ++j)
     DFBED[(i-imin)*jmax + j-jmin] = 1;
 
     // flag
@@ -93,18 +93,18 @@ void lexer::flagini()
 	makeflag(flag2);
 	makeflag(flag3);
 
-    // (the arrays have kmargin ghost cells in z: grid.h)
+    // (the arrays have kmargin, jmargin ghost cells in z, y: grid.h)
     for(i=-margin; i<knox+margin; ++i)
-    for(j=-margin; j<knoy+margin; ++j)
+    for(j=-jmargin; j<knoy+jmargin; ++j)
     for(k=-kmargin; k<knoz+kmargin; ++k)
     IO[(i-imin)*jmax*kmax + (j-jmin)*kmax + k-kmin] = 0;
 
     for(i=-margin; i<knox+margin; ++i)
-    for(j=-margin; j<knoy+margin; ++j)
+    for(j=-jmargin; j<knoy+jmargin; ++j)
     IOSL[(i-imin)*jmax + j-jmin] = 0;
 
     for(i=-margin; i<knox+margin; ++i)
-    for(j=-margin; j<knoy+margin; ++j)
+    for(j=-jmargin; j<knoy+jmargin; ++j)
     for(k=-kmargin; k<knoz+kmargin; ++k)
     DF[(i-imin)*jmax*kmax + (j-jmin)*kmax + k-kmin] = 1;
 

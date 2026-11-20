@@ -72,6 +72,8 @@ public:
     // the vertical margin of the 3D arrays (kmin = -kmargin): margin, 1 for the semi-implicit NHFLOW on one Cartesian
     // grid (lexer::read_grid), whose kernels reach one cell beyond the layers
     int kmargin = 3;
+    // the margin in y (jmin = -jmargin): margin, 1 for the semi-implicit NHFLOW with one cell in y (lexer::read_grid)
+    int jmargin = 3;
 
     double originx,originy,originz;
     double endx,endy,endz;

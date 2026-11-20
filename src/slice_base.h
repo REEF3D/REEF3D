@@ -26,6 +26,9 @@ Author: Alexander Hanke
 #include "lexer.h"
 #include "ckpt_registry.h"
 #include <type_traits>
+#ifdef NHF_KCHECK
+#include"nhf_kcheck.h"
+#endif
 
 template<typename T>
 class slice_base
@@ -55,7 +58,17 @@ public:
     slice_base(slice_base&&) = delete;
     slice_base& operator=(slice_base&&) = delete;
 
+#ifdef NHF_KCHECK
+    // check build (nhf_kcheck.h): a row outside the slice is reported with the address of the caller
+    __attribute__((noinline)) T& operator()(int ii, int jj) noexcept
+    {
+        if(jmin>-3 && (jj<jmin || jj>=jmin+jmax))
+        nhf_jslice(__builtin_return_address(0),jj,jmin,jmax);
+        return V[(ii-imin)*jmax + (jj-jmin)];
+    }
+#else
     inline T& operator()(int ii, int jj) noexcept {return V[(ii-imin)*jmax + (jj-jmin)];};
+#endif
     inline T& operator[](int n) noexcept {return V[n];};
 
     T *V;

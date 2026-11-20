@@ -35,6 +35,13 @@ static inline int gcsl_depth(int d, int m0)
     return (d>0 && d<m0) ? d : m0;
 }
 
+// the y sides (cs 2, 3) at most jmargin deep (grid.h: one ghost row for the semi-implicit NHFLOW with one cell in y)
+static inline int gcsl_depth(const lexer *p, int d, int m0, int cs)
+{
+    const int m = gcsl_depth(d,m0);
+    return (cs==2 || cs==3) && p->jmargin<m ? p->jmargin : m;
+}
+
 namespace
 {
 // the label of an entry (gcsleval*) depends on gcv, its bc and side cs and the settings of the run,
@@ -113,7 +120,7 @@ void ghostcell::gcsl_start1(lexer *p, slice &f, int gcv)
     const int ii = p->gcbsl1[qq][0], jj = p->gcbsl1[qq][1], bc = p->gcbsl1[qq][4], cs = p->gcbsl1[qq][3];
     if(ysk && (cs==2 || cs==3))
     continue;
-    const int mg = gcsl_depth(p->gcbsl1[qq][2],m0);
+    const int mg = gcsl_depth(p,p->gcbsl1[qq][2],m0,cs);
     const int lab = L.get(bc,cs,[&]{ return gcsleval1(p,gcv,bc,cs); });
     if(lab==4)
     gcsl_neumann_at(&f(ii,jj),p->jmax,cs,mg);
@@ -156,7 +163,7 @@ void ghostcell::gcsl_start2(lexer *p, slice &f, int gcv)
     QQGCSL2LOOP
     {
     const int ii = p->gcbsl2[qq][0], jj = p->gcbsl2[qq][1], bc = p->gcbsl2[qq][4], cs = p->gcbsl2[qq][3];
-    const int mg = gcsl_depth(p->gcbsl2[qq][2],m0);
+    const int mg = gcsl_depth(p,p->gcbsl2[qq][2],m0,cs);
     const int lab = L.get(bc,cs,[&]{ return gcsleval2(p,gcv,bc,cs); });
     if(lab==4)
     gcsl_neumann_at(&f(ii,jj),p->jmax,cs,mg);
@@ -201,7 +208,7 @@ void ghostcell::gcsl_start4(lexer *p, slice &f, int gcv)
     const int ii = p->gcbsl4[qq][0], jj = p->gcbsl4[qq][1], bc = p->gcbsl4[qq][4], cs = p->gcbsl4[qq][3];
     if(ysk && (cs==2 || cs==3))
     continue;
-    const int mg = gcsl_depth(p->gcbsl4[qq][2],m0);
+    const int mg = gcsl_depth(p,p->gcbsl4[qq][2],m0,cs);
     const int lab = L.get(bc,cs,[&]{ return gcsleval4(p,gcv,bc,cs); });
     if(lab==4 || (lab==14 && (cs==1 || cs==4)))
     gcsl_neumann_at(&f(ii,jj),p->jmax,cs,mg);
@@ -239,7 +246,7 @@ void ghostcell::gcsl_start1int(lexer *p, sliceint &f, int gcv)
     const int m0 = margin;
     starttime=timer();
     QQGCSL1LOOP
-    gcsl_neumann_at(&f(p->gcbsl1[qq][0],p->gcbsl1[qq][1]),p->jmax,p->gcbsl1[qq][3],gcsl_depth(p->gcbsl1[qq][2],m0));
+    gcsl_neumann_at(&f(p->gcbsl1[qq][0],p->gcbsl1[qq][1]),p->jmax,p->gcbsl1[qq][3],gcsl_depth(p,p->gcbsl1[qq][2],m0,p->gcbsl1[qq][3]));
     endtime=timer();
     p->gctime+=endtime-starttime;
 
@@ -259,7 +266,7 @@ void ghostcell::gcsl_start2int(lexer *p, sliceint &f, int gcv)
     const int m0 = margin;
     starttime=timer();
     QQGCSL2LOOP
-    gcsl_neumann_at(&f(p->gcbsl2[qq][0],p->gcbsl2[qq][1]),p->jmax,p->gcbsl2[qq][3],gcsl_depth(p->gcbsl2[qq][2],m0));
+    gcsl_neumann_at(&f(p->gcbsl2[qq][0],p->gcbsl2[qq][1]),p->jmax,p->gcbsl2[qq][3],gcsl_depth(p,p->gcbsl2[qq][2],m0,p->gcbsl2[qq][3]));
     endtime=timer();
     p->gctime+=endtime-starttime;
 
@@ -279,7 +286,7 @@ void ghostcell::gcsl_start4int(lexer *p, sliceint &f, int gcv)
     const int m0 = margin;
     starttime=timer();
     QQGCSL4LOOP
-    gcsl_neumann_at(&f(p->gcbsl4[qq][0],p->gcbsl4[qq][1]),p->jmax,p->gcbsl4[qq][3],gcsl_depth(p->gcbsl4[qq][2],m0));
+    gcsl_neumann_at(&f(p->gcbsl4[qq][0],p->gcbsl4[qq][1]),p->jmax,p->gcbsl4[qq][3],gcsl_depth(p,p->gcbsl4[qq][2],m0,p->gcbsl4[qq][3]));
     endtime=timer();
     p->gctime+=endtime-starttime;
 
@@ -303,7 +310,7 @@ void ghostcell::gcsl_start4Vint(lexer *p, int *f, int gcv)
     const bool ysk = p->A10==5 && gcsl_yskip(p) && p->count>0;
     QQGCSL4LOOP
     if(!ysk || (p->gcbsl4[qq][3]!=2 && p->gcbsl4[qq][3]!=3))
-    gcsl_neumann_at(f + (p->gcbsl4[qq][0]-p->imin)*p->jmax + (p->gcbsl4[qq][1]-p->jmin),p->jmax,p->gcbsl4[qq][3],gcsl_depth(p->gcbsl4[qq][2],m0));
+    gcsl_neumann_at(f + (p->gcbsl4[qq][0]-p->imin)*p->jmax + (p->gcbsl4[qq][1]-p->jmin),p->jmax,p->gcbsl4[qq][3],gcsl_depth(p,p->gcbsl4[qq][2],m0,p->gcbsl4[qq][3]));
     endtime=timer();
     p->gctime+=endtime-starttime;
 

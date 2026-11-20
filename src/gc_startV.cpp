@@ -641,29 +641,29 @@ void ghostcell::start4V(lexer *p, double *f, int gcv)
         if(p->flag4[IJm1K]<0 && p->j_dir==1 && (gcv==11 || gcv==15) && (p->open_ym==0 || p->origin_j+j>0))
         {
             f[IJm1K] = -f[IJK];
-            f[IJm2K] = -f[IJp1K];
-            f[IJm3K] = -f[IJp2K];
+            if(j-2>=p->jmin) f[IJm2K] = -f[IJp1K];
+            if(j-3>=p->jmin) f[IJm3K] = -f[IJp2K];
         }
 
         if(p->flag4[IJm1K]<0 && p->j_dir==1 && (gcv!=11 && gcv!=15) && (p->open_ym==0 || p->origin_j+j>0))
         {
             f[IJm1K] = f[IJK];
-            f[IJm2K] = f[IJp1K];
-            f[IJm3K] = f[IJp2K];
+            if(j-2>=p->jmin) f[IJm2K] = f[IJp1K];
+            if(j-3>=p->jmin) f[IJm3K] = f[IJp2K];
         }
 
         if(p->flag4[IJp1K]<0 && p->j_dir==1 && (gcv==11 || gcv==15) && (p->open_yp==0 || p->origin_j+j<p->gknoy-1))
         {
             f[IJp1K] = -f[IJK];
-            f[IJp2K] = -f[IJm1K];
-            f[IJp3K] = -f[IJm2K];
+            if(j+2<p->jmin+p->jmax) f[IJp2K] = -f[IJm1K];
+            if(j+3<p->jmin+p->jmax) f[IJp3K] = -f[IJm2K];
         }
 
         if(p->flag4[IJp1K]<0 && p->j_dir==1 && (gcv!=11 && gcv!=15) && (p->open_yp==0 || p->origin_j+j<p->gknoy-1))
         {
             f[IJp1K] = f[IJK];
-            f[IJp2K] = f[IJm1K];
-            f[IJp3K] = f[IJm2K];
+            if(j+2<p->jmin+p->jmax) f[IJp2K] = f[IJm1K];
+            if(j+3<p->jmin+p->jmax) f[IJp3K] = f[IJm2K];
         }
 
         // zzzzz
@@ -774,16 +774,16 @@ void ghostcell::start5V(lexer *p, double *f, int gcv)
         if(p->flag4[IJm1K]<0 && p->j_dir==1)
         {
         f[IJm1K] = f[IJK];
-        f[IJm2K] = f[IJK];
-        f[IJm3K] = f[IJK];
+        if(j-2>=p->jmin) f[IJm2K] = f[IJK];
+        if(j-3>=p->jmin) f[IJm3K] = f[IJK];
         }
         
         //
         if(p->flag4[IJp1K]<0 && p->j_dir==1)
         {
         f[IJp1K] = f[IJK];
-        f[IJp2K] = f[IJK];
-        f[IJp3K] = f[IJK];
+        if(j+2<p->jmin+p->jmax) f[IJp2K] = f[IJK];
+        if(j+3<p->jmin+p->jmax) f[IJp3K] = f[IJK];
         }
 
         //
@@ -835,12 +835,12 @@ void ghostcell::start5Vfull(lexer *p, double *f, int gcv)
     {
         
         f[IJm1K] = f[IJK];
-        f[IJm2K] = f[IJK];
-        f[IJm3K] = f[IJK];
+        if(j-2>=p->jmin) f[IJm2K] = f[IJK];
+        if(j-3>=p->jmin) f[IJm3K] = f[IJK];
         
         f[IJp1K] = f[IJK];
-        f[IJp2K] = f[IJK];
-        f[IJp3K] = f[IJK];
+        if(j+2<p->jmin+p->jmax) f[IJp2K] = f[IJK];
+        if(j+3<p->jmin+p->jmax) f[IJp3K] = f[IJK];
     }
         
     LOOP
@@ -864,16 +864,16 @@ void ghostcell::start5Vfull(lexer *p, double *f, int gcv)
         if(p->flag4[IJm1K]<0 && p->j_dir==1)
         {
         f[IJm1K] = f[IJK];
-        f[IJm2K] = f[IJK];
-        f[IJm3K] = f[IJK];
+        if(j-2>=p->jmin) f[IJm2K] = f[IJK];
+        if(j-3>=p->jmin) f[IJm3K] = f[IJK];
         }
         
         
         if(p->flag4[IJp1K]<0 && p->j_dir==1)
         {
         f[IJp1K] = f[IJK];
-        f[IJp2K] = f[IJK];
-        f[IJp3K] = f[IJK];
+        if(j+2<p->jmin+p->jmax) f[IJp2K] = f[IJK];
+        if(j+3<p->jmin+p->jmax) f[IJp3K] = f[IJK];
         }
 
         
@@ -979,14 +979,14 @@ void ghostcell::start20V(lexer *p, double *f, int gcv) //KIN
             if(p->B11==1)
             {
                 f[IJm1K] = f[IJK];
-                f[IJm2K] = f[IJK];
-                f[IJm3K] = f[IJK];
+                if(j-2>=p->jmin) f[IJm2K] = f[IJK];
+                if(j-3>=p->jmin) f[IJm3K] = f[IJK];
             }
             else if(p->B11==0)
             {
                 f[IJm1K] = 0.0;
-                f[IJm2K] = 0.0;
-                f[IJm3K] = 0.0;
+                if(j-2>=p->jmin) f[IJm2K] = 0.0;
+                if(j-3>=p->jmin) f[IJm3K] = 0.0;
             }
         }
 
@@ -995,14 +995,14 @@ void ghostcell::start20V(lexer *p, double *f, int gcv) //KIN
             if(p->B11==1)
             {
                 f[IJp1K] = f[IJK];
-                f[IJp2K] = f[IJK];
-                f[IJp3K] = f[IJK];
+                if(j+2<p->jmin+p->jmax) f[IJp2K] = f[IJK];
+                if(j+3<p->jmin+p->jmax) f[IJp3K] = f[IJK];
             }
             else if(p->B11==0)
             {
                 f[IJp1K] = 0.0;
-                f[IJp2K] = 0.0;
-                f[IJp3K] = 0.0;
+                if(j+2<p->jmin+p->jmax) f[IJp2K] = 0.0;
+                if(j+3<p->jmin+p->jmax) f[IJp3K] = 0.0;
             }
         }
 
@@ -1097,15 +1097,15 @@ void ghostcell::start24V(lexer *p, double *f, int gcv) //EDDYV
         if(p->flag4[IJm1K]<0 && p->j_dir==1)
         {
             f[IJm1K] = f[IJK];
-            f[IJm2K] = f[IJK];
-            f[IJm3K] = f[IJK];
+            if(j-2>=p->jmin) f[IJm2K] = f[IJK];
+            if(j-3>=p->jmin) f[IJm3K] = f[IJK];
         }
 
         if(p->flag4[IJp1K]<0 && p->j_dir==1)
         {
             f[IJp1K] = f[IJK];
-            f[IJp2K] = f[IJK];
-            f[IJp3K] = f[IJK];
+            if(j+2<p->jmin+p->jmax) f[IJp2K] = f[IJK];
+            if(j+3<p->jmin+p->jmax) f[IJp3K] = f[IJK];
         }
 
         // zzzzz
@@ -1184,15 +1184,15 @@ void ghostcell::start30V(lexer *p, double *f, int gcv) // EPS
         if((p->flag4[IJm1K]<0  || (p->DF[IJm1K]<0)) && p->j_dir==1)
         {
             f[IJm1K] = f[IJK];
-            f[IJm2K] = f[IJK];
-            f[IJm3K] = f[IJK];
+            if(j-2>=p->jmin) f[IJm2K] = f[IJK];
+            if(j-3>=p->jmin) f[IJm3K] = f[IJK];
         }
 
         if((p->flag4[IJp1K]<0  || (p->DF[IJp1K]<0)) && p->j_dir==1)
         {
             f[IJp1K] = f[IJK];
-            f[IJp2K] = f[IJK];
-            f[IJp3K] = f[IJK];
+            if(j+2<p->jmin+p->jmax) f[IJp2K] = f[IJK];
+            if(j+3<p->jmin+p->jmax) f[IJp3K] = f[IJK];
         }
 
         // zzzzz
@@ -1297,15 +1297,15 @@ void ghostcell::start60V(lexer *p, double *f, int gcv) // EPS
         if((p->flag4[IJm1K]<0  || (p->DF[IJm1K]<0)) && p->j_dir==1)
         {
             f[IJm1K] = f[IJK];
-            f[IJm2K] = f[IJK];
-            f[IJm3K] = f[IJK];
+            if(j-2>=p->jmin) f[IJm2K] = f[IJK];
+            if(j-3>=p->jmin) f[IJm3K] = f[IJK];
         }
 
         if((p->flag4[IJp1K]<0  || (p->DF[IJp1K]<0)) && p->j_dir==1)
         {
             f[IJp1K] = f[IJK];
-            f[IJp2K] = f[IJK];
-            f[IJp3K] = f[IJK];
+            if(j+2<p->jmin+p->jmax) f[IJp2K] = f[IJK];
+            if(j+3<p->jmin+p->jmax) f[IJp3K] = f[IJK];
         }
 
         // zzzzz

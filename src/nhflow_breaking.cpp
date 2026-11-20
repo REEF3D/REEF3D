@@ -528,10 +528,12 @@ void nhflow_breaking::breaking_flags(lexer *p, fdm_nhf *d, ghostcell *pgc)
     if(bx(i,j)==20 || bx(i-1,j)==20 || bx(i-2,j)==20 || bx(i+1,j)==20)
     brkflag(i,j)=1;
     
-    // y
+    // y (by is zero with one cell in y)
+    if(p->j_dir==1)
     if(by(i,j)==10 || by(i,j-1)==10 || by(i,j+1)==10 || by(i,j+2)==10)
     brkflag(i,j)=1;
     
+    if(p->j_dir==1)
     if(by(i,j)==20 || by(i,j-1)==20 || by(i,j-2)==20 || by(i,j+1)==20)
     brkflag(i,j)=1;
         

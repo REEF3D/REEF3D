@@ -45,10 +45,10 @@
   },
   "P": {
    "n": 2048,
-   "sum": 136.76494366970613,
-   "l1": 30541.786851947876,
-   "l2": 3995.1466342608646,
-   "linf": 757.1995638984068
+   "sum": 1348.275929617594,
+   "l1": 102794.67916159834,
+   "l2": 6414.905349346032,
+   "linf": 757.1995638984628
   },
   "eta": {
    "n": 512,
@@ -1615,7 +1615,7 @@
   0.0197108,
   0.0197108
  ],
- "blessed_from": "/home/claude/nb/hd/buildM/REEF3D_v29",
- "date": "2026-11-19",
- "note": "v29: one vertical ghost layer; P read by the dump with IJK, stored with FIJK"
+ "blessed_from": "/home/claude/nb/hd/buildPC/REEF3D_pc (non-LTO; P only)",
+ "date": "2026-11-20",
+ "note": "v33: one y ghost row with one cell in y; P read by the dump with IJK, stored with FIJK"
 }
