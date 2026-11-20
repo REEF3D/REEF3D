@@ -421,6 +421,15 @@ std::string lagoon_store::run_id(const std::string &json)
     return end==std::string::npos ? "" : json.substr(at + key.size(), end - at - key.size());
 }
 
+namespace
+{
+    // NHFLOW's direct forcing solids of this run (set_forcing_solids) and the NHFLOW stores begun in it: the solids
+    // are made after the printers began their stores (the forcing initialisation comes later)
+    std::vector<double> forcing_points;
+    std::vector<int32_t> forcing_triangles;
+    std::vector<std::string> nhflow_stores;
+}
+
 std::string lagoon_store::begin_run(const std::string &solver, const std::string &run_json)
 {
     // the stores begun in this run: the first writer moves an earlier run's store
@@ -463,7 +472,37 @@ std::string lagoon_store::begin_run(const std::string &solver, const std::string
     }
     create_root(solver, run_json);
     write_solids();
+    if(solver=="NHFLOW")
+    {
+        nhflow_stores.push_back(path);
+        write_forcing();
+    }
     return aside;
+}
+
+void lagoon_store::set_forcing_solids(std::vector<double> points, std::vector<int32_t> triangles)
+{
+    forcing_points.swap(points);
+    forcing_triangles.swap(triangles);
+
+    // the NHFLOW stores this run began already (their printers come before the forcing initialisation)
+    for(const std::string &store : nhflow_stores)
+        lagoon_store(store).write_forcing();
+}
+
+int lagoon_store::write_forcing() const
+{
+    if(forcing_triangles.empty())
+        return 0;
+    const std::string dir = path + "/forcing";
+    make_dirs(dir);
+    write_file(dir + "/zarr.json",
+               "{\"zarr_format\": 3, \"node_type\": \"group\", \"attributes\": {\"lagoon\": "
+               "{\"role\": \"forcing\", \"source\": \"REEF3D_NHFLOW_FORCING_VTP/REEF3D-NHFLOW-FORCING.vtp\"}}}");
+    const size_t np = forcing_points.size()/3, nt = forcing_triangles.size()/3;
+    write_plain_rows(dir + "/points", forcing_points.data(), np, 3, "float64", 8, "point", "xyz");
+    write_plain_rows(dir + "/triangles", forcing_triangles.data(), nt, 3, "int32", 4, "triangle", "corner");
+    return int(nt);
 }
 
 bool lagoon_store::read_solid_vtp(const std::string &file, std::vector<double> &points,

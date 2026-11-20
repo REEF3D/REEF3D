@@ -78,6 +78,15 @@ public:
     // copied elsewhere shows its structures. Returns the triangles written (0: none).
     int write_solids(const std::string &paraview="./DIVEMesh_Paraview") const;
 
+    // NHFLOW's direct forcing solids (A 581 - A 590; SPEC 12, group "forcing", role
+    // "forcing"): rank 0 hands them over where it makes them, before the first output
+    // (nhflow_geometry::objects_create_forcing; the grid file's solids of A 580 1 are
+    // DIVEMesh's, in "solids"), points (np, 3) and triangles (nt, 3) as point numbers.
+    // They go into the NHFLOW stores this run began (begin_run, before or after), so a
+    // store copied elsewhere shows them.
+    static void set_forcing_solids(std::vector<double> points, std::vector<int32_t> triangles);
+    int write_forcing() const;
+
     // DIVEMesh's REEF3D_Solid.vtp (raw appended Float64 or Float32 points, Int32
     // connectivity and offsets of triangles) read: false if it is not such a file
     static bool read_solid_vtp(const std::string &file, std::vector<double> &points,
