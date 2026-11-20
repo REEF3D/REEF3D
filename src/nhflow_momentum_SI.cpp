@@ -432,7 +432,7 @@ nhflow_momentum_SI::~nhflow_momentum_SI()
 
     delete psi;
     delete ptrc;
-    for(double *a : {Bx,By,BFx,BFy,KV,N2,ELU,ELV,ELW,accU,accV,accW,FSx,FSy,lscr[0],lscr[1],lscr[2]})
+    for(double *a : {Bx,By,BFx,BFy,KV,N2,ELU,ELV,ELW,accU,accV,accW,FSx,FSy,lscr[0],lscr[1],lscr[2],DFx,DFy})
     free(a);
 
     nh_free();
@@ -705,7 +705,7 @@ void nhflow_momentum_SI::step_single(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflo
         if(estimate)
         {
         face_update(p,d,pgc);
-        df_faces(p,d,pgc);
+        df_faces(p,d,pgc,false);
         }
 
         if(estimate && ho)
@@ -1003,8 +1003,8 @@ void nhflow_momentum_SI::si_end_faces(lexer *p, fdm_nhf *d, ghostcell *pgc)
     if(!faces_set)
     face_update(p,d,pgc);
 
-    // fixed solids (A 580 1, A 581-590): the layer faces of the solid cells closed
-    df_faces(p,d,pgc);
+    // fixed solids (A 580 1, A 581-590): the layer faces of the solid cells closed, their force corrected
+    df_faces(p,d,pgc,true);
 }
 
 void nhflow_momentum_SI::si_end_cells(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_stage_obj &S)
@@ -2712,6 +2712,11 @@ void nhflow_momentum_SI::si_assemble(lexer *p, fdm_nhf *d, ghostcell *pgc)
         for(k=0;k<p->knoz;++k)
         wb[k] -= dt*Hx(i,j)*BFx[IJK];
 
+        // fixed solids: the force of the faces in the solid (incremental direct forcing, df_faces)
+        if(DFx!=nullptr)
+        for(k=0;k<p->knoz;++k)
+        wb[k] += dt*DFx[PIJK];
+
         col_solve(p,wcu.data(),wcl.data(),wcd.data(),dt*gmx(i,j),wb.data(),wr.data());
 
         qh = 0.0;
@@ -2788,6 +2793,10 @@ void nhflow_momentum_SI::si_assemble(lexer *p, fdm_nhf *d, ghostcell *pgc)
         if(BFy!=nullptr)
         for(k=0;k<p->knoz;++k)
         wb[k] -= dt*Hy(i,j)*BFy[IJK];
+
+        if(DFy!=nullptr)
+        for(k=0;k<p->knoz;++k)
+        wb[k] += dt*DFy[PIJK];
 
         col_solve(p,wcu.data(),wcl.data(),wcd.data(),dt*gmy(i,j),wb.data(),wr.data());
 
@@ -3669,11 +3678,25 @@ void nhflow_momentum_SI::df_predictor(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
 // the layer face discharges of t^{n+1} with a solid cell (DF < 0) on either side set to zero, as the continuity fluxes of
 // the explicit NHFLOW (d->solid_flux 2: wall states at the faces of the forcing cells); the transport of the step with
-// them, so that WL of eta_update (from its divergence) takes no volume through the solid
-void nhflow_momentum_SI::df_faces(lexer *p, fdm_nhf *d, ghostcell *pgc)
+// them, so that WL of eta_update (from its divergence) takes no volume through the solid.
+// Incremental direct forcing, as an incremental pressure correction: the force F of such a face (DFx, DFy, per unit
+// sigma and width, m^2/s^2) enters the face predictor of the next step (si_assemble: Q^ += dt F), so that the eta and
+// eta-phi solves see the face held back; the discharge Q the solve still leaves in the face is the correction,
+// F -= Q/dt (final: not in the estimate pass of tl2). In a steady flow F balances the pressure gradient of the face and
+// the solve leaves no discharge to remove. Faces closed in the solve (Hx 0: full-depth solid columns, df_columns) and
+// faces out of the solid carry no force.
+void nhflow_momentum_SI::df_faces(lexer *p, fdm_nhf *d, ghostcell *pgc, bool final)
 {
     if(!df_on())
     return;
+
+    if(DFx==nullptr)
+    {
+    p->Darray_lazy(DFx,lN);
+    p->Darray_lazy(DFy,lN);
+    }
+
+    const double dt = p->dt;
 
     SLICELOOP1
     {
@@ -3681,8 +3704,17 @@ void nhflow_momentum_SI::df_faces(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
         for(k=0;k<p->knoz;++k)
         {
-        if(p->DF[IJK]<0 || p->DF[Ip1JK]<0)
-        Qx[PIJK] = 0.0;
+            if(p->DF[IJK]<0 || p->DF[Ip1JK]<0)
+            {
+                if(final)
+                DFx[PIJK] = Hx(i,j)>0.0 ? DFx[PIJK] - Qx[PIJK]/dt : 0.0;
+
+            Qx[PIJK] = 0.0;
+            }
+
+            else
+            if(final)
+            DFx[PIJK] = 0.0;
 
         qx(i,j) += p->DZN[KP]*Qx[PIJK];
         }
@@ -3695,8 +3727,17 @@ void nhflow_momentum_SI::df_faces(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
         for(k=0;k<p->knoz;++k)
         {
-        if(p->DF[IJK]<0 || p->DF[IJp1K]<0)
-        Qy[PIJK] = 0.0;
+            if(p->DF[IJK]<0 || p->DF[IJp1K]<0)
+            {
+                if(final)
+                DFy[PIJK] = Hy(i,j)>0.0 ? DFy[PIJK] - Qy[PIJK]/dt : 0.0;
+
+            Qy[PIJK] = 0.0;
+            }
+
+            else
+            if(final)
+            DFy[PIJK] = 0.0;
 
         qy(i,j) += p->DZN[KP]*Qy[PIJK];
         }

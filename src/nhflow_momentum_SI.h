@@ -487,7 +487,10 @@ private:
     bool df_on() const;
     void df_predictor(lexer*, fdm_nhf*, ghostcell*);
     void df_reforce(lexer*, fdm_nhf*, ghostcell*);
-    void df_faces(lexer*, fdm_nhf*, ghostcell*);
+    void df_faces(lexer*, fdm_nhf*, ghostcell*, bool);
+    // the incremental force of the layer faces in a solid (private layout as Qx, Qy): added to the face predictor of
+    // the next step, corrected by the discharge the solve leaves in the face (df_faces)
+    double *DFx = nullptr, *DFy = nullptr;
     // columns inside a solid over the whole water depth (DF < 0 in every layer): walls of the implicit solve (their
     // faces closed in face_depth, wall sides of the gravity and phi face terms, hydrostatic, no fourth-order stencil)
     void df_columns(lexer*, fdm_nhf*, ghostcell*);
