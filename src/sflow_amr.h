@@ -197,6 +197,13 @@ struct sflow_amr_patch : public reefamr_patch
 
     // G 7 1, A 220 1-3: constraint residual at the end of the patch's own step (synchronisation)
     vector<double> rend;
+
+    // the filled cells of the patch that are copies of cells of a grid of its level (sflow_amr::fill_bulk): runs of
+    // cells in a row of the arrays (source grid, first source cell, first cell, length), and the other entries of fill
+    struct frun { int g, sq, dq, n; };
+    vector<frun> fcopy;
+    vector<int> fother;
+    long fgen = -1;
 };
 
 class sflow_amr : public reefamr, public amr_column_lookup, public sediment_grids
@@ -496,6 +503,30 @@ private:
     void prolong(int, int, int, int, int, double, double*);
     static const int NPR = 10;      // values of prolong_parts
     void prolong_parts(int, int, int, int, int, double*);
+    // the parent part of a prolongation and its children (prolong_parts)
+    struct pcent
+    {
+        int g = -2, ic = 0, jc = 0, indep = 1;
+        double r[NPR], q[4], s[8], c0[4], mx[4], my[4];
+        bool full = false;
+    };
+    static const int PCN = 1024;
+    vector<pcent> pcache = vector<pcent>(PCN);
+    bool pc_on = false;
+    void prolong_parent(int, int, int, pcent&);
+    // the arrays of the source grid (eval_fill) and of the patch (store_fill) of the last filled cell
+    struct fptr
+    {
+        int g = -99, imin = 0, jmin = 0, jmax = 0;
+        double *WL = nullptr, *UH = nullptr, *VH = nullptr, *WH = nullptr, *eta = nullptr, *U = nullptr, *V = nullptr, *W = nullptr,
+               *hp = nullptr, *UA = nullptr, *VA = nullptr, *MX = nullptr, *MY = nullptr, *gsf = nullptr, *sfcw = nullptr;
+        const double *sfc = nullptr;
+        int *wet = nullptr, *deep = nullptr;
+    };
+    fptr fsrc, fdst;
+    void fill_plan(sflow_amr_patch&);
+    void fill_bulk(sflow_amr_patch&, int);
+    void prolong_child(const pcent&, int, int, double*);
     void prolong_finish(const double*, double, double*);
 
     // shoreline (well balanced at rest): the restricted water surface of the covered cells at a shoreline (sfc, as

@@ -965,6 +965,7 @@ protected:
     int regrids;
     int regrids_skipped = 0;        // regrids with an unchanged layout (par.lazy)
     long cells_total;
+    long plan_gen = 0;              // counts the builds of the fill plans (build_plans, the plans of the blocks)
     // profile of a run (REEF3D_AMR_PROFILE=1 prints it): time in the parts of the regrid [s] (0 the hierarchy before it,
     // 1 flags, tile maps, layout and the objects of the new patches, 2 their time-independent data, 3 the plans,
     // 4 their state, 5 the levels consistent again), patches made new and kept

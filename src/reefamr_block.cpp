@@ -968,6 +968,7 @@ void reefamr::blocks_propagate(int l, vector<unsigned char> &M, bool back)
 // fill plans of level 0: the cells around the blocks and the ring of the native grid
 void reefamr::blocks_plans(ghostcell *pgc)
 {
+    ++plan_gen;
     const int me = p0->mpirank;
     const int np = p0->mpi_size;
 

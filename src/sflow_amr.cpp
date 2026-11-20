@@ -783,6 +783,7 @@ void sflow_amr::regrid_state(ghostcell *pgc, vector<reefamr_patch*> &oldP)
 // level 0 consistent with the patches
 void sflow_amr::regrid_finish(ghostcell *pgc, int old_total)
 {
+    fsrc.g = fdst.g = -99;
     profile_layout();
 
     restrict_levels(p0,2);
@@ -1541,6 +1542,7 @@ void sflow_amr::blocks_ini(lexer *p, ghostcell *pgc)
 // the cells around the blocks and the ring of level 0, from the stage input of their holders
 void sflow_amr::fill_level0(ghostcell *pgc, int s)
 {
+    fsrc.g = fdst.g = -99;
     fill_run0(NV,7099,
               [&](const reefamr_fill &f, double *v) { eval_fill(f,v); },
               [&](reefamr_patch *c, int n, const reefamr_fill &f, const double *w) { store_fill(SP(c),n,f.di,f.dj,w); },
@@ -1584,6 +1586,9 @@ void sflow_amr::store_native(int ii, int jj, const double *w)
 // --------------------------------------------------------------------- stage data
 void sflow_amr::cache_stage(int s)
 {
+    // the arrays of the stage change: none kept (eval_fill, store_fill)
+    fsrc.g = fdst.g = -99;
+
     sWL.assign(P.size()+1,nullptr);
     sUH.assign(P.size()+1,nullptr);
     sVH.assign(P.size()+1,nullptr);
@@ -1670,6 +1675,30 @@ void sflow_amr::prolong(int g, int ic, int jc, int ox, int oy, double depthf, do
 // parent stay dry: its mass is what it is)
 void sflow_amr::prolong_parts(int g, int ic, int jc, int ox, int oy, double *r)
 {
+    // the parts that belong to the parent cell (its values, its limited slopes) are the same for its four children:
+    // within one fill of a level (pc_on, fill_level) they are kept and a child takes them from there
+    pcent local;
+    pcent *E = &local;
+    if(pc_on)
+    {
+        E = &pcache[(unsigned(ic)*73856093u ^ unsigned(jc)*19349663u ^ unsigned(g+1)*83492791u) & (PCN-1)];
+        if(E->g==g && E->ic==ic && E->jc==jc)
+        {
+            prolong_child(*E,ox,oy,r);
+            return;
+        }
+        E->g = g; E->ic = ic; E->jc = jc;
+    }
+    prolong_parent(g,ic,jc,*E);
+    prolong_child(*E,ox,oy,r);
+}
+
+// the parent part of prolong_parts: E.indep 1: the values r of all its children (dry or shallow parent), 0: the
+// values and limited slopes of the parent (E.q: e, u, v, w; E.s: their slopes in x and y; Boussinesq E.c0, E.mx, E.my)
+void sflow_amr::prolong_parent(int g, int ic, int jc, pcent &E)
+{
+    double *r = E.r;
+    E.indep = 1;
     gh G = grid(g);
     fdm2D *pb = G.b;
     lexer *q = G.q;
@@ -1747,6 +1776,18 @@ void sflow_amr::prolong_parts(int g, int ic, int jc, int ox, int oy, double *r)
         getb(ic+1,jc,cE); getb(ic-1,jc,cW); getb(ic,jc+1,cN); getb(ic,jc-1,cS);
         for(int k=0; k<4; ++k)
         r[5+k] = c0[k] + sx*mmod(cE[k]-c0[k],c0[k]-cW[k]) + sy*mmod(cN[k]-c0[k],c0[k]-cS[k]);
+    };
+    // the same terms kept for the children
+    auto partb_keep = [&]()
+    {
+        double cE[4],cW[4],cN[4],cS[4];
+        getb(ic,jc,E.c0);
+        getb(ic+1,jc,cE); getb(ic-1,jc,cW); getb(ic,jc+1,cN); getb(ic,jc-1,cS);
+        for(int k=0; k<4; ++k)
+        {
+            E.mx[k] = mmod(cE[k]-E.c0[k],E.c0[k]-cW[k]);
+            E.my[k] = mmod(cN[k]-E.c0[k],E.c0[k]-cS[k]);
+        }
     };
 
     double e0,u0,v0,w0v; int w0;
@@ -1830,19 +1871,43 @@ void sflow_amr::prolong_parts(int g, int ic, int jc, int ox, int oy, double *r)
         sxw = mmod(wEv-w0v,w0v-wWv); syw = mmod(wNv-w0v,w0v-wSv);
     }
 
+    E.indep = 0;
+    E.q[0] = e0; E.q[1] = u0; E.q[2] = v0; E.q[3] = w0v;
+    E.s[0] = sxe; E.s[1] = sye; E.s[2] = sxu; E.s[3] = syu; E.s[4] = sxv; E.s[5] = syv; E.s[6] = sxw; E.s[7] = syw;
+    E.full = nbs;
+
+    if(bous==1)
+    partb_keep();
+}
+
+// the child (ox, oy) of a parent
+void sflow_amr::prolong_child(const pcent &E, int ox, int oy, double *r)
+{
+    if(E.indep==1)
+    {
+        for(int m=0; m<NPR; ++m)
+        r[m] = E.r[m];
+        return;
+    }
+
+    for(int m=0; m<NPR; ++m)
+    r[m] = 0.0;
+
     const double fx = 0.25*ox, fy = 0.25*oy;
     r[0] = 2.0;
-    r[1] = e0 + sxe*fx + sye*fy;
-    r[2] = u0 + sxu*fx + syu*fy;
-    r[3] = v0 + sxv*fx + syv*fy;
-    r[4] = w0v + sxw*fx + syw*fy;
+    r[1] = E.q[0] + E.s[0]*fx + E.s[1]*fy;
+    r[2] = E.q[1] + E.s[2]*fx + E.s[3]*fy;
+    r[3] = E.q[2] + E.s[4]*fx + E.s[5]*fy;
+    r[4] = E.q[3] + E.s[6]*fx + E.s[7]*fy;
 
     if(bous==1)
     {
-        const bool full = nbs;
-        partb(full ? fx : 0.0, full ? fy : 0.0);
+        const double bx = E.full ? fx : 0.0, by = E.full ? fy : 0.0;
+        for(int k=0; k<4; ++k)
+        r[5+k] = E.c0[k] + bx*E.mx[k] + by*E.my[k];
     }
 }
+
 
 void sflow_amr::prolong_finish(const double *r, double depthf, double *v)
 {
@@ -1942,28 +2007,41 @@ void sflow_amr::eval_fill(const reefamr_fill &f, double *v)
 
     if(f.kind==0)
     {
-        gh G = grid(f.g);
-        v[0] = (*sWL[f.g+1])(f.si,f.sj);
-        v[1] = (*sUH[f.g+1])(f.si,f.sj);
-        v[2] = (*sVH[f.g+1])(f.si,f.sj);
-        v[3] = G.b->eta(f.si,f.sj);
-        v[4] = G.b->U(f.si,f.sj);
-        v[5] = G.b->V(f.si,f.sj);
-        v[6] = G.q->wet[lij(G.q,f.si,f.sj)];
-        v[7] = G.q->deep[lij(G.q,f.si,f.sj)];
-        v[8] = (*sWH[f.g+1])(f.si,f.sj);
-        v[9] = G.b->W(f.si,f.sj);
+        // the arrays of the source grid, kept from one filled cell to the next (fill_level starts with none)
+        fptr &S = fsrc;
+        if(S.g!=f.g)
+        {
+            gh G = grid(f.g);
+            S.g = f.g;
+            S.imin = G.q->imin; S.jmin = G.q->jmin; S.jmax = G.q->jmax;
+            S.WL = sWL[f.g+1]->V; S.UH = sUH[f.g+1]->V; S.VH = sVH[f.g+1]->V; S.WH = sWH[f.g+1]->V;
+            S.eta = G.b->eta.V; S.U = G.b->U.V; S.V = G.b->V.V; S.W = G.b->W.V;
+            S.UA = G.b->UA.V; S.VA = G.b->VA.V; S.MX = G.b->MX.V; S.MY = G.b->MY.V;
+            S.wet = G.q->wet; S.deep = G.q->deep;
+            S.sfc = sfc_of(f.g);
+        }
+        const int q = (f.si-S.imin)*S.jmax + (f.sj-S.jmin);
+        v[0] = S.WL[q];
+        v[1] = S.UH[q];
+        v[2] = S.VH[q];
+        v[3] = S.eta[q];
+        v[4] = S.U[q];
+        v[5] = S.V[q];
+        v[6] = S.wet[q];
+        v[7] = S.deep[q];
+        v[8] = S.WH[q];
+        v[9] = S.W[q];
         if(bous==1)
         {
-        v[10] = G.b->UA(f.si,f.sj);
-        v[11] = G.b->VA(f.si,f.sj);
-        v[12] = G.b->MX(f.si,f.sj);
-        v[13] = G.b->MY(f.si,f.sj);
+        v[10] = S.UA[q];
+        v[11] = S.VA[q];
+        v[12] = S.MX[q];
+        v[13] = S.MY[q];
         }
         v[ISF] = NAN;
         // shoreline: the offset of a covered cell (restriction), so that the prolongation from this grid
         // sees the same surface around its box as the grid that holds the cell
-        v[ISC] = sfc_of(f.g)[lij(G.q,f.si,f.sj)];
+        v[ISC] = S.sfc[q];
         return;
     }
 
@@ -1978,37 +2056,142 @@ void sflow_amr::eval_fill(const reefamr_fill &f, double *v)
 // values of a filled cell into patch c (grid id n)
 void sflow_amr::store_fill(sflow_amr_patch *c, int n, int ii, int jj, const double *w)
 {
-    lexer *pp = c->pp;
-    fdm2D *b = c->b;
-    (*sWL[n+1])(ii,jj) = w[0];
-    (*sUH[n+1])(ii,jj) = w[1];
-    (*sVH[n+1])(ii,jj) = w[2];
-    b->eta(ii,jj) = w[3];
-    b->U(ii,jj) = w[4];
-    b->V(ii,jj) = w[5];
-    b->hp(ii,jj) = w[0];
-    pp->wet[lij(pp,ii,jj)] = (int)w[6];
-    pp->deep[lij(pp,ii,jj)] = (int)w[7];
-    (*sWH[n+1])(ii,jj) = w[8];
-    b->W(ii,jj) = w[9];
+    // the arrays of the patch, kept from one filled cell to the next (fill_level starts with none)
+    fptr &D = fdst;
+    if(D.g!=n)
+    {
+        lexer *pp = c->pp;
+        fdm2D *b = c->b;
+        D.g = n;
+        D.imin = pp->imin; D.jmin = pp->jmin; D.jmax = pp->jmax;
+        D.WL = sWL[n+1]->V; D.UH = sUH[n+1]->V; D.VH = sVH[n+1]->V; D.WH = sWH[n+1]->V;
+        D.eta = b->eta.V; D.U = b->U.V; D.V = b->V.V; D.W = b->W.V; D.hp = b->hp.V;
+        D.UA = b->UA.V; D.VA = b->VA.V; D.MX = b->MX.V; D.MY = b->MY.V;
+        D.wet = pp->wet; D.deep = pp->deep;
+        D.gsf = c->gsf.data(); D.sfcw = c->sfc.data();
+    }
+    const int q = (ii-D.imin)*D.jmax + (jj-D.jmin);
+    D.WL[q] = w[0];
+    D.UH[q] = w[1];
+    D.VH[q] = w[2];
+    D.eta[q] = w[3];
+    D.U[q] = w[4];
+    D.V[q] = w[5];
+    D.hp[q] = w[0];
+    D.wet[q] = (int)w[6];
+    D.deep[q] = (int)w[7];
+    D.WH[q] = w[8];
+    D.W[q] = w[9];
     if(bous==1)
     {
-    b->UA(ii,jj) = w[10];
-    b->VA(ii,jj) = w[11];
-    b->MX(ii,jj) = w[12];
-    b->MY(ii,jj) = w[13];
+    D.UA[q] = w[10];
+    D.VA[q] = w[11];
+    D.MX[q] = w[12];
+    D.MY[q] = w[13];
     }
-    c->gsf[lij(pp,ii,jj)] = w[ISF];
-    c->sfc[lij(pp,ii,jj)] = w[ISC];
+    D.gsf[q] = w[ISF];
+    D.sfcw[q] = w[ISC];
+}
+
+// the fill entries of a patch sorted: the copies (kind 0) as runs along a row of the arrays, the others by index
+void sflow_amr::fill_plan(sflow_amr_patch &c)
+{
+    c.fgen = plan_gen;
+    c.fcopy.clear();
+    c.fother.clear();
+
+    lexer *pp = c.pp;
+    for(size_t e=0; e<c.fill.size(); ++e)
+    {
+        const reefamr_fill &f = c.fill[e];
+        if(f.kind!=0)
+        {
+            c.fother.push_back((int)e);
+            continue;
+        }
+        gh G = grid(f.g);
+        const int sq = lij(G.q,f.si,f.sj), dq = lij(pp,f.di,f.dj);
+        if(!c.fcopy.empty())
+        {
+            sflow_amr_patch::frun &r = c.fcopy.back();
+            if(r.g==f.g && sq==r.sq+r.n && dq==r.dq+r.n)
+            {
+                ++r.n;
+                continue;
+            }
+        }
+        c.fcopy.push_back(sflow_amr_patch::frun{f.g,sq,dq,1});
+    }
+}
+
+// the copies of a patch (the values eval_fill and store_fill pass for kind 0)
+void sflow_amr::fill_bulk(sflow_amr_patch &c, int n)
+{
+    if(c.fcopy.empty())
+    return;
+
+    lexer *pp = c.pp;
+    fdm2D *b = c.b;
+    double *const dWL = sWL[n+1]->V, *const dUH = sUH[n+1]->V, *const dVH = sVH[n+1]->V, *const dWH = sWH[n+1]->V;
+    double *const gsf = c.gsf.data(), *const dsf = c.sfc.data();
+
+    for(const sflow_amr_patch::frun &r : c.fcopy)
+    {
+        gh G = grid(r.g);
+        fdm2D *sb = G.b;
+        const int m = r.n;
+        auto cp = [&](double *d, const double *s) { d += r.dq; s += r.sq; for(int k=0; k<m; ++k) d[k] = s[k]; };
+        auto ci = [&](int *d, const int *s) { d += r.dq; s += r.sq; for(int k=0; k<m; ++k) d[k] = s[k]; };
+
+        const double *const sw = sWL[r.g+1]->V;
+        cp(dWL,sw);
+        cp(dUH,sUH[r.g+1]->V);
+        cp(dVH,sVH[r.g+1]->V);
+        cp(b->eta.V,sb->eta.V);
+        cp(b->U.V,sb->U.V);
+        cp(b->V.V,sb->V.V);
+        cp(b->hp.V,sw);
+        ci(pp->wet,G.q->wet);
+        ci(pp->deep,G.q->deep);
+        cp(dWH,sWH[r.g+1]->V);
+        cp(b->W.V,sb->W.V);
+        if(bous==1)
+        {
+        cp(b->UA.V,sb->UA.V);
+        cp(b->VA.V,sb->VA.V);
+        cp(b->MX.V,sb->MX.V);
+        cp(b->MY.V,sb->MY.V);
+        }
+        for(int k=0; k<m; ++k)
+        gsf[r.dq+k] = NAN;
+        cp(dsf,sfc_of(r.g));
+    }
 }
 
 // cells of the level-l patches outside their interior, then the wall conditions
 void sflow_amr::fill_level(ghostcell *pgc, int l, int s)
 {
     double t0 = MPI_Wtime();
-    fill_run(l,NV,7100+l,
+    // the parent parts of the prolongation are kept during the fill of the level (prolong_parts): the grids they are
+    // read from, the coarser level and the state at the start of its step, do not change in it
+    for(auto &e : pcache)
+    e.g = -2;
+    pc_on = true;
+    fsrc.g = fdst.g = -99;
+    // the copies from the grids of the level array by array (fill_bulk), the other cells one by one
+    for(int n : lev[l])
+    if(SP(n)->fgen!=plan_gen)
+    fill_plan(*SP(n));
+
+    fill_run_sub(l,NV,7100+l,
              [&](const reefamr_fill &f, double *v) { eval_fill(f,v); },
-             [&](reefamr_patch *c, int n, const reefamr_fill &f, const double *w) { store_fill(SP(c),n,f.di,f.dj,w); });
+             [&](reefamr_patch *c, int n, const reefamr_fill &f, const double *w) { store_fill(SP(c),n,f.di,f.dj,w); },
+             [&](reefamr_patch *c) { return &SP(c)->fother; });
+    pc_on = false;
+
+    for(int n : lev[l])
+    if(!skipped(n))
+    fill_bulk(*SP(n),n);
     tp[1] += MPI_Wtime()-t0;
 
     comms_off guard(pgc);
@@ -2053,15 +2236,26 @@ void sflow_amr::restrict_level(lexer *p, int l, int s)
     // shoreline: the surface of the wet children (v[nv]); the parents of other cells hold none
     sfc_reset(l-1);
 
+    reefamr_patch *rq = nullptr;
+    slice *rWLo = nullptr, *rUHo = nullptr, *rVHo = nullptr, *rWHo = nullptr;
+    int pg = -99;
+    gh pG;
+    slice *pWLo = nullptr, *pUHo = nullptr, *pVHo = nullptr, *pWHo = nullptr;
+
     block_up(l,nv+2,7020+l,
              [&](reefamr_patch *q, int id, int k, double *v)
              {
                  sflow_amr_patch &c = *SP(q);
                  fdm2D *b = c.b;
-                 slice *WLi,*UHi,*VHi,*WLo,*UHo,*VHo;
-                 c.pmom->stage_io(s,b,WLi,UHi,VHi,WLo,UHo,VHo);
-                 slice *WHi,*WHo;
-                 c.pmom->stage_io_w(s,b,WHi,WHo);
+                 // the output arrays of the stage, asked once per patch
+                 if(q!=rq)
+                 {
+                 slice *WLi,*UHi,*VHi,*WHi;
+                 c.pmom->stage_io(s,b,WLi,UHi,VHi,rWLo,rUHo,rVHo);
+                 c.pmom->stage_io_w(s,b,WHi,rWHo);
+                 rq = q;
+                 }
+                 slice *const WLo = rWLo, *const UHo = rUHo, *const VHo = rVHo, *const WHo = rWHo;
 
                  const int nby = c.ny>>sy;
                  const int i0 = EXT+2*(k/nby), j0 = EY+ychild(k%nby);
@@ -2145,11 +2339,16 @@ void sflow_amr::restrict_level(lexer *p, int l, int s)
              },
              [&](const reefamr_block &B, int key, const double *v)
              {
-                 gh G = grid(B.g);
-                 slice *pWLi,*pUHi,*pVHi,*pWLo,*pUHo,*pVHo;
-                 G.m->stage_io(s,G.b,pWLi,pUHi,pVHi,pWLo,pUHo,pVHo);
-                 slice *pWHi,*pWHo;
-                 G.m->stage_io_w(s,G.b,pWHi,pWHo);
+                 // the parent grid and its output arrays, asked once per grid
+                 if(B.g!=pg)
+                 {
+                 pG = grid(B.g);
+                 slice *pWLi,*pUHi,*pVHi,*pWHi;
+                 pG.m->stage_io(s,pG.b,pWLi,pUHi,pVHi,pWLo,pUHo,pVHo);
+                 pG.m->stage_io_w(s,pG.b,pWHi,pWHo);
+                 pg = B.g;
+                 }
+                 const gh &G = pG;
 
                  const int ic = B.ic, jc = B.jc;
                  const double wl = v[0], uh = v[1], vh = v[2], wh = v[3];

@@ -584,6 +584,7 @@ void reefamr::regrid(lexer *p, ghostcell *pgc, bool initial)
 // --------------------------------------------------------------------- plans
 void reefamr::build_plans(ghostcell *pgc)
 {
+    ++plan_gen;
     const int me = p0->mpirank;
     const int np = p0->mpi_size;
 
