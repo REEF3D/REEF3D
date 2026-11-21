@@ -30,7 +30,7 @@ Author: Hans Bihs
 
 nhflow_breaking::nhflow_breaking(lexer* p, fdm_nhf *d, ghostcell *pgc) : bx(p), by(p), bd(p), brkflag(p), brkzone(p),
                                                                             brkage(p), brkage_n(p), brkvb(p), bt_us(p), bt_vs(p), bt_vbs(p), brkseed(p),
-                                                                            brkkseed(p), brkk(p), brkk_n(p), brkr(p), brkr_n(p), bt_vbd(p), bt_kwd(p), bt_pa(p), count_n(-1)
+                                                                            brkkseed(p), brkk(p), brkk_n(p), brkr(p), brkr_n(p), brkh(p), brkh_n(p), plk_n(p), plh_n(p), bt_vbd(p), bt_kwd(p), bt_pa(p), count_n(-1)
 {
     SLICELOOP4
     {
@@ -45,6 +45,12 @@ nhflow_breaking::nhflow_breaking(lexer* p, fdm_nhf *d, ghostcell *pgc) : bx(p), 
     brkk_n(i,j)=0.0;
     brkr(i,j)=0.0;
     brkr_n(i,j)=0.0;
+    brkh(i,j)=0.0;
+    brkh_n(i,j)=0.0;
+    plk_n(i,j)=0.0;
+    plh_n(i,j)=0.0;
+    d->plk(i,j)=0.0;
+    d->plh(i,j)=0.0;
     bt_vbd(i,j)=0.0;
     bt_kwd(i,j)=0.0;
     bt_pa(i,j)=0.0;
@@ -148,6 +154,15 @@ void nhflow_breaking::breaking_kennedy(lexer *p, fdm_nhf *d, ghostcell *pgc, sli
     
     if(p->mpirank==0 && (p->count%p->P12==0))
     cout<<"breaking: "<<count<<endl;
+    
+    if(p->S137>0.0)
+    {
+    const int npl = pgc->globalisum(pl_count);
+    const double xpl = pgc->globalsum(pl_xsum);
+    
+    if(p->mpirank==0 && npl>0)
+    cout<<"plunge: "<<npl<<" columns at x = "<<xpl/double(npl)<<" t = "<<p->simtime<<endl;
+    }
 }
 
 // the parts of breaking_kennedy: 0 the ages of the last step, 1 the viscosity of the columns (kn_count) and the width
@@ -166,11 +181,21 @@ void nhflow_breaking::kennedy_part(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &
     brkage_n(i,j) = brkage(i,j);
     brkk_n(i,j) = brkk(i,j);
     brkr_n(i,j) = brkr(i,j);
+    brkh_n(i,j) = brkh(i,j);
+    
+    // S 142: the impact turbulence decays over the time S 142 sqrt(H_b/g) (0: only in the impact window)
+    const double td = p->S142*sqrt(MAX(d->plh(i,j),0.0)/g);
+    plk_n(i,j) = (td>0.0 && d->plk(i,j)>0.0) ? d->plk(i,j)*exp(-p->dt/td) : 0.0;
+    plh_n(i,j) = plk_n(i,j)>1.0e-8 ? d->plh(i,j) : 0.0;
+    
+    if(plk_n(i,j)<=1.0e-8)
+    plk_n(i,j) = 0.0;
     }
     
     pgc->gcsl_start4(p,brkage_n,1);
     pgc->gcsl_start4(p,brkk_n,1);
     pgc->gcsl_start4(p,brkr_n,1);
+    pgc->gcsl_start4(p,brkh_n,1);
     
     count_n=p->count;
     }
@@ -181,14 +206,19 @@ void nhflow_breaking::kennedy_part(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &
     {
     const bool seeded = (p->A550==4 || p->A550==5);
     kn_count=0;
+    pl_count=0;
+    pl_xsum=0.0;
     
     SLICELOOP4
     {
     brkage(i,j) = 0.0;
     brkk(i,j) = 0.0;
     brkr(i,j) = 0.0;
+    brkh(i,j) = 0.0;
     brkflag(i,j) = 0;
     d->vb(i,j) = 0.0;
+    d->plk(i,j) = p->wet[IJ]==1 ? plk_n(i,j) : 0.0;
+    d->plh(i,j) = p->wet[IJ]==1 ? plh_n(i,j) : 0.0;
     
         if(p->wet[IJ]==1 && brkzone(i,j)==0 && p->count>1)
         {
@@ -199,8 +229,9 @@ void nhflow_breaking::kennedy_part(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &
         double age = brkage_n(i,j);
         double kw = brkk_n(i,j);
         double r0 = brkr_n(i,j);
+        double hb = brkh_n(i,j);
         
-        auto take = [&](int ii, int jj) { if(brkage_n(ii,jj)>age) { age = brkage_n(ii,jj); kw = brkk_n(ii,jj); r0 = brkr_n(ii,jj); } };
+        auto take = [&](int ii, int jj) { if(brkage_n(ii,jj)>age) { age = brkage_n(ii,jj); kw = brkk_n(ii,jj); r0 = brkr_n(ii,jj); hb = brkh_n(ii,jj); } };
         take(i-1,j);
         take(i+1,j);
         
@@ -239,6 +270,18 @@ void nhflow_breaking::kennedy_part(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &
         
         const double ets = (age>0.0 && tstar>0.0) ? etI + MIN(age/tstar,1.0)*(etF - etI) : etI;
         
+        // S 137: the breaker height of a new event from its crest, H_b = eta_c/0.75 (crest of a breaker about 3/4 of
+        // its height above the still water level); carried with the front as the age
+        // no plunge of an event that starts in the swash or on a shoal shallower than H_b/2 (still-water depth WL - eta):
+        // a wetting front has deta/dt > 0 and counts as breaking, but it is no plunging breaker (hb < 0 marks it)
+        if(age<=0.0 || hb==0.0)
+        {
+        hb = MAX(d->eta(i,j),0.0)/0.75;
+        
+        if(WL(i,j) - d->eta(i,j) < 0.5*hb)
+        hb = -1.0;
+        }
+        
             if(et>ets && ets>0.0)
             {
             const double B = (et>=2.0*ets) ? 1.0 : et/ets - 1.0;
@@ -247,8 +290,11 @@ void nhflow_breaking::kennedy_part(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &
             brkage(i,j) = age + p->dt;
             brkk(i,j) = kw;
             brkr(i,j) = r0;
+            brkh(i,j) = hb;
             brkflag(i,j) = 1;
             ++kn_count;
+            
+            plunge(p,d,i,j,age + p->dt,hb,kw,c);
             }
             
             // A 550 4: the event of a seeded column ages also below the threshold, so the threshold relaxes from
@@ -259,6 +305,7 @@ void nhflow_breaking::kennedy_part(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &
             brkage(i,j) = age + p->dt;
             brkk(i,j) = kw;
             brkr(i,j) = r0;
+            brkh(i,j) = hb;
             }
         }
     }
@@ -333,6 +380,68 @@ void nhflow_breaking::kennedy_part(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &
     pgc->gcsl_start4(p,d->vb,1);
     pgc->gcsl_start4(p,d->vbk,1);
     pgc->gcsl_start4int(p,d->breaking,50);
+    
+    if(p->S137>0.0)
+    {
+    pgc->gcsl_start4(p,d->plk,1);
+    pgc->gcsl_start4(p,d->plh,1);
+    }
+}
+
+/*--------------------------------------------------------------------
+S 137: impact of the plunging jet (A 550 3, 4, 5). A single-valued surface turns the plunging jet into a bore, and
+the breaking viscosity is spread over a band behind the front, so nothing marks the point where the jet hits the
+water and drives the turbulence down to the bed (the trough under a plunging breaker, Baldock et al. 2011). The
+jet lands a plunge distance l_p = S 138 H_b shoreward of the onset (Galvin 1969, Smith & Kraus 1991: 1.5 - 4 H_b).
+The front travels with the event of the breaking model: its age t_b is the time since the onset, so the front is
+at the impact point when t_b = l_p/c, and it crosses a footprint of width H_b in H_b/c. In that window the column
+carries the impact turbulence at the surface,
+    k_p = S 137 c^2        (the jet falls with about the crest speed c; S 137 its share as turbulent energy),
+decaying with the depth below the surface as exp(-d/(S 139 H_b)), and H_b of the event (d->plk, d->plh). With
+S 142 > 0 the impact turbulence stays in the column after the window and decays over S 142 sqrt(H_b/g). The bed
+shear (bedshear_nhflow, u_eff^2 = u^2 + 1.45 k_b) and the suspended-load diffusivity (nhflow_suspended_IM1,
+sqrt(k) 0.1 H_b) take it. H_b = eta_c/0.75 from the crest at the onset; no plunge for an event that starts where the
+still-water depth is below H_b/2 (swash, wetting fronts), and no impact where the still-water depth is below H_b/4.
+Breaker type: with the wavenumber k of the crest (A 550 4, 5) only plunging breakers, Iribarren number
+xi_b = tan(beta)/sqrt(H_b/L_0) >= 0.4 (Battjes 1974), L_0 = 2 pi/(k tanh(k h)); A 550 3 has no k: every event.
+--------------------------------------------------------------------*/
+void nhflow_breaking::plunge(lexer *p, fdm_nhf *d, int ii, int jj, double age, double hb, double kw, double c)
+{
+    if(p->S137<=0.0 || hb<=1.0e-4 || c<=0.0)
+    return;   // hb < 0: an event of the swash (no plunge)
+    
+    const double tp = p->S138*hb/c;
+    const double tw = hb/c;
+    
+    if(age<tp || age>=tp+tw)
+    return;
+    
+    const int i0=i, j0=j;
+    i=ii; j=jj;
+    
+    // the jet lands in water: still-water depth at the impact at least H_b/4 (not in the swash)
+    bool plunging = d->WL(i,j) - d->eta(i,j) >= 0.25*hb;
+    
+    if(plunging && kw>0.0)
+    {
+    const double h = MAX(d->WL(i,j),1.0e-6);
+    double sx = (d->bed(i+1,j)-d->bed(i-1,j))/(p->DXP[IP]+p->DXP[IM1]);
+    double sy = p->j_dir==1 ? (d->bed(i,j+1)-d->bed(i,j-1))/(p->DYP[JP]+p->DYP[JM1]) : 0.0;
+    const double L0 = 6.283185307179586/(kw*tanh(kw*h));
+    const double xi = sqrt(sx*sx + sy*sy)/sqrt(hb/L0);
+    
+    plunging = xi>=0.4;
+    }
+    
+    if(plunging && p->S137*c*c>d->plk(i,j))
+    {
+    d->plk(i,j) = p->S137*c*c;
+    d->plh(i,j) = hb;
+    ++pl_count;
+    pl_xsum += p->XP[IP];
+    }
+    
+    i=i0; j=j0;
 }
 
 // A 553: no breaking viscosity in thin water, h < A 553, linear to the full value at 2 A 553 (as S 132 for the

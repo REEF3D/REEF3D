@@ -68,6 +68,7 @@ public:
     slice4 PORS;                // VRANS: porosity at the free surface n(eta), storage of the continuity
     slice4 vb;
     slice4 vbk;     // A 550 4: wavenumber of the breaking crest for the depth profile of vb
+    slice4 plk,plh; // S 137: turbulent kinetic energy of the plunging jet at the surface and the breaker height of the impact
     slice4 test2D;
     slice4 fs;
     

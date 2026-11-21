@@ -321,6 +321,19 @@ void bedshear::taubed(lexer *p, fdm_nhf*d, ghostcell *pgc, sediment_fdm *s)
             }
         }
         
+        // S 137: impact of the plunging jet (nhflow_breaking::plunge): k_p at the surface, exp(-h/(S 139 H_b)) at the bed,
+        // u_eff^2 = u_b^2 + 1.45 k_b as S 136
+        if(p->S137>0.0 && d->plk(i,j)>0.0 && d->plh(i,j)>0.0)
+        {
+        const double h = MAX(d->WL(i,j),0.0);
+        const double kbed = d->plk(i,j)*exp(-h/(MAX(p->S139,1.0e-6)*d->plh(i,j)));
+        const double up = uplus(0.5*p->DZN[KP]*h, s->ks_eff(i,j));
+        const double dtau = density*1.45*kbed/(up*up);
+        
+        tau_eff += dtau;
+        tau_i += dtau;
+        }
+        
         // S 133: upper limit of the Shields number (swash and wetting fronts: the friction coefficient of a thin
         // layer is of order 0.1 and the velocities of the front are the least reliable ones)
         if(p->S133>0.0)

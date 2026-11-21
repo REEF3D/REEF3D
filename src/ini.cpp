@@ -1405,6 +1405,10 @@ void control::ini_default()
     S132=0.0;              // double NHFLOW thin water: depth [m] below which there is no bed load and no pick-up, full transport from 2 S132, 0: off
     S135=0.0;              // double NHFLOW suspended load: the breaking viscosity (A 550) in the sediment diffusivity, along the layers in full and on the sigma faces (vertical mixing) with the share S 135 (e.g. 0.03-0.1); 0: off (the breaking stirs no sediment)
     S136=0.0;              // double NHFLOW bed shear: stirring by the breaking turbulence (A 550), XBeach-type u_eff^2 = u^2 + 1.45 k_b, k_b = S 136 (D_b/rho)^(2/3) with the dissipation D_b of the breaking viscosity in the column; S 136 the share reaching the bed (about 0.4 in a saturated surf zone); 0: off
+    S137=0.0;              // double NHFLOW: impact of the plunging jet (A 550 3/4/5, nhflow_breaking::plunge): turbulent kinetic energy S 137 c^2 at the surface where the front of a breaking event is a plunge distance S 138 H_b past the onset, into the bed shear and the suspended-load diffusivity; 0: off
+    S138=2.0;              // double NHFLOW S 137: plunge distance l_p / H_b (1.5-4, Galvin 1969, Smith & Kraus 1991)
+    S139=1.0;              // double NHFLOW S 137: decay depth of the impact turbulence below the surface / H_b
+    S142=0.0;              // double NHFLOW S 137: decay time of the impact turbulence after the impact, S 142 sqrt(H_b/g); 0: only while the front crosses the impact point
     S133=0.0;              // double NHFLOW: upper limit of the Shields number of the bed shear stress, 0: off
     S134=0;                // int NHFLOW: the solids of the grid (DIVEMesh, A 580 0) are part of the sediment bed: 0 erodible as sediment (as before), 1 not erodible: where the bed has come down to the solid surface no bed load, no pick-up and no sand slide from the column (as SFLOW); a rigid apron or sill
     S140=51.0;             // double S 37 2: phase lead of the near-bed velocity in deg (Nielsen 2006)

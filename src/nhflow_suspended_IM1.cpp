@@ -274,8 +274,19 @@ void nhflow_suspended_IM1::diffusion(lexer *p, fdm_nhf *d)
     // depend on how much of it the momentum (which has the k-omega viscosity as well) needs
     const double fb = (p->S135>0.0 && p->A550>0) ? p->S135 : 0.0;
     auto vbl = [&](int a, int b, int c) { return (fb>0.0 && c>=0 && c<p->knoz) ? nhflow_vb_layer(p,d,a,b,c) : 0.0; };
-    auto epsh = [&](int a, int b, int c) { return eps(a,b,c) + vbl(a,b,c); };
-    auto epsv = [&](int a, int b, int c) { return eps(a,b,c) + fb*vbl(a,b,c); };
+    // S 137: the turbulence of the plunging jet, sqrt(k) 0.1 H_b with k = k_p exp(-d/(S 139 H_b)), d the depth of the
+    // cell below the surface (nhflow_breaking::plunge), in all directions
+    auto epl = [&](int a, int b, int c)
+    {
+        if(p->S137<=0.0 || c<0 || c>=p->knoz || d->plk(a,b)<=0.0 || d->plh(a,b)<=0.0)
+        return 0.0;
+        
+        const double ds = (1.0-p->ZP[c+marge])*MAX(d->WL(a,b),0.0);
+        
+        return 0.1*d->plh(a,b)*sqrt(d->plk(a,b)*exp(-ds/(MAX(p->S139,1.0e-6)*d->plh(a,b))));
+    };
+    auto epsh = [&](int a, int b, int c) { return eps(a,b,c) + vbl(a,b,c) + epl(a,b,c); };
+    auto epsv = [&](int a, int b, int c) { return eps(a,b,c) + fb*vbl(a,b,c) + epl(a,b,c); };
     auto wl  = [&](int a, int b) { return MAX(d->WL(a,b),1.0e-20); };
     
     // sigma slopes at the cell centre
@@ -453,7 +464,17 @@ void nhflow_suspended_IM1::settling_fit(lexer *p, fdm_nhf *d, sediment_fdm *s)
     
     // S 135: the share of the breaking viscosity on the sigma faces (as diffusion())
     const double fb = (p->S135>0.0 && p->A550>0) ? p->S135 : 0.0;
-    auto vbv2 = [&](int kk1, int kk2) { return fb>0.0 ? fb*0.5*(nhflow_vb_layer(p,d,i,j,kk1) + nhflow_vb_layer(p,d,i,j,kk2)) : 0.0; };
+    // S 137: the plunging jet (as diffusion())
+    auto epl2 = [&](int kk)
+    {
+        if(p->S137<=0.0 || kk<0 || kk>=p->knoz || d->plk(i,j)<=0.0 || d->plh(i,j)<=0.0)
+        return 0.0;
+        
+        const double ds = (1.0-p->ZP[kk+marge])*MAX(d->WL(i,j),0.0);
+        
+        return 0.1*d->plh(i,j)*sqrt(d->plk(i,j)*exp(-ds/(MAX(p->S139,1.0e-6)*d->plh(i,j))));
+    };
+    auto vbv2 = [&](int kk1, int kk2) { return (fb>0.0 ? fb*0.5*(nhflow_vb_layer(p,d,i,j,kk1) + nhflow_vb_layer(p,d,i,j,kk2)) : 0.0) + 0.5*(epl2(kk1) + epl2(kk2)); };
     
     n=0;
     LOOP
