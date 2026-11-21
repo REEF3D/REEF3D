@@ -136,7 +136,6 @@ void fluid_update_rheology::start_3phase(lexer *p, fdm* a, ghostcell* pgc, field
     const int gcval_visc = 1;
     const double rhow = p->W1, rhoa = p->W3;
     const double muw = p->W1*p->W2, mua = p->W3*p->W4;
-    const double rhos = s3->rho_s;
     const bool plastic = pcore->plastic(p,a);
     
     p->volume1=0.0;
@@ -150,7 +149,7 @@ void fluid_update_rheology::start_3phase(lexer *p, fdm* a, ghostcell* pgc, field
         const double rof = rhow*H + rhoa*(1.0-H);
         const double muf = muw*H + mua*(1.0-H);
         
-        a->ro(i,j,k) = al*rhos + (1.0-al)*rof;
+        a->ro(i,j,k) = al*s3->rho_slide(i,j,k) + (1.0-al)*rof;
         
         double mu = muf;
         

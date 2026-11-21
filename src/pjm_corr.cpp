@@ -44,6 +44,7 @@ Author: Hans Bihs
 #include"density_rheo.h"
 #include"density_pst.h"
 #include"CPM.h"
+#include"rheology_cfd_3phase.h"
  
 pjm_corr::pjm_corr(lexer* p, fdm *a, ghostcell *pgc, heat *&pheat, concentration *&pconc) : pcorr(p), pn(p), pressure_reference(p)
 {
@@ -335,6 +336,18 @@ void pjm_corr::rhs(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, field &
         LOOP
         {
         a->rhsvec.V[count] += CPM::coupled->Dsrc(i,j,k)/(alpha*p->dt);
+        ++count;
+        }
+    }
+    
+    // three-phase slide with imbibition (W 136): div(u) = dsrc, the water that fills the pores of the slide leaves the
+    // water next to it, the pore air joins the air
+    if(rheology_cfd_3phase::self!=nullptr && rheology_cfd_3phase::self->imb)
+    {
+        count=0;
+        LOOP
+        {
+        a->rhsvec.V[count] += rheology_cfd_3phase::self->dsrc(i,j,k)/(alpha*p->dt);
         ++count;
         }
     }

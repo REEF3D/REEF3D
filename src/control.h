@@ -683,6 +683,7 @@ public:
     double W133_min,W133_max;
     double W134;
     double W135_dw,W135_b;
+    double W136_S0,W136_v;
     // three-phase slide model (CFD): slide fraction alpha_s, water/air level set, pore pressure
     int W140;
     double W141,W142;

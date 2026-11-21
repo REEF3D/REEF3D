@@ -1566,6 +1566,8 @@ void control::ini_default()
     W134=1.9;        // double mu(I) partial regularisation alpha (<= 0: no regularisation)
     W135_dw=0.0;     // double side-wall friction angle [deg] of an unresolved channel (CFD rheology, 2D x-z), 0: off
     W135_b=0.0;      // double channel width [m] of the side-wall friction W 135
+    W136_S0=1.0;     // double three-phase slide (W 140): initial pore saturation (1: saturated, the bulk density W 141 stays; < 1: water fills the pores below the water surface)
+    W136_v=0.0;      // double speed of the imbibition front [m/s] (<= 0: a submerged cell in contact with water saturates at once)
     W140=0;          // int three-phase slide model (CFD): slide fraction alpha_s (conservative transport), water/air level set
     W141=2000.0;     // double bulk density of the slide [kg/m^3]
     W142=2650.0;     // double grain density [kg/m^3] (mu(I), mu(J) inertial number of the three-phase model)

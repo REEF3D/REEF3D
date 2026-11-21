@@ -95,8 +95,9 @@ Slide, water and air (`rheology_cfd_3phase`). Water and air keep the level set; 
 
 - **Transport:** split in the directions (x y z, the next step z y x), flux form with the face velocities of the staggered grid, THINC face values (β = 3.5) and the divergence correction of Weymouth & Yue (2010); sub-steps above Courant number 0.4 per direction. The slide volume is conserved to 1e-11–1e-15 and α_s stays in [0, 1] without clipping (cases 12–15). All boundaries are closed for the slide.
 - **Mixture:** ρ = α ρ_s + (1−α)(H ρ_w + (1−H) ρ_a), μ = α μ_s + (1−α) μ_f (W 149 1; W 149 2 harmonic), μ_f = H ρ_w ν_w + (1−H) ρ_a ν_a, μ_s from the core. For ρ and μ α is smoothed by two passes of (¼ ½ ¼) in each direction (a band of about ±2 cells, as the level set). With the sharp α the density jump slide/air in one cell drove interface currents of 1 m/s at the front of the viscous current of case 12.
-- **Effective pressure** p' = p − p_hyd − p_e: W 143 1, the drained hydrostatic pore pressure ρ_w g (η_w − z) below the water surface η_w of the column (the highest water cell outside the slide, z + φ). W 143 2 adds the excess pore pressure p_e, advected with the slide and solved implicitly, β (∂p_e/∂t + u·∇p_e) = ∇·(k/η_w ∇p_e) − γ̇ tan ψ, p_e = 0 outside the slide (drained surface), no flux through walls, p_e ≤ p − p_hyd (no tension of the skeleton). Initial p_e = λ₀ (p − p_hyd) after the first step.
+- **Effective pressure** p' = p − p_hyd − p_e: W 143 1, the drained hydrostatic pore pressure ρ_w g (η_w − z) below the water surface η_w of the column (the highest water cell outside the slide and above the slide of the column, z + φ; a column the slide fills, or with water only under the slide, takes the surface of the next column with open water). Before, the water film a slide rode on gave its column a surface at the bed, and the slide in a column it filled counted as dry. W 143 2 adds the excess pore pressure p_e, advected with the slide and solved implicitly, β (∂p_e/∂t + u·∇p_e) = ∇·(k/η_w ∇p_e) − γ̇ tan ψ, p_e = 0 outside the slide (drained surface), no flux through walls, p_e ≤ p − p_hyd (no tension of the skeleton). Initial p_e = λ₀ (p − p_hyd) after the first step.
 - **Interface band** (`W 131 3`, the default with W 140, as W 131 3 of the two-phase model): over the smoothed band (10⁻³ < α_s < 1 after smoothing) p' is at least the buoyant weight of the band above the cell, g Σ (ρ_s − ρ_f) α_s dz, and a slide with a yield stress (μ(I), μ(J), HBC, Coulomb-viscoplastic, HB with τ_y > 0) has its full viscosity there, max(μ_s, μ_f), instead of α μ_s + (1 − α) μ_f. With the share α the light band cells on an inclined surface were weaker than their weight: they flowed down the surface, drove a jet of air along the bed ahead of the toe and carried the thin tail with them (case 31: a wedge below the friction angle advanced 70 mm in 2 s). Not for a Newtonian or power-law slide: it has no deposit to hold, and its full viscosity in the light outer band cells (ρ ≈ 3 kg/m³) made the explicit cross terms of the diffusion blow up. The floor is not applied below the band (α_s = 1): there it held a loose slide at its lithostatic p' against the pore pressure.
+- **Imbibition** (`W 136 S₀ v`, S₀ < 1): the pores of a slide that starts dry or partly saturated fill with water below the water surface. A submerged slide cell next to water or to a full slide cell (S ≥ 0.99) takes up water, dS = v dt/h (v ≤ 0: at once). Its bulk density grows by (S − S₀) n ρ_w (n = 1 − φ_s of W 124; W 141 is the bulk density at S₀), S is carried with the slide, and the water it takes leaves the water next to it: a sink div(u) = −q in its water neighbours (else in all water cells next to the slide), balanced by a source in all air cells (the pore air that escapes), in the projection (`pjm_corr`). The volume of water taken up is printed (`Slide pore water taken up`). Needs W 143 ≥ 1 (the water surface of the columns).
 - **Dilatancy** (W 145 φ₀ > 0): φ advected with the slide; tan ψ = K₃ (φ − φ_c/(1 + J^½)) (Pailha & Pouliquen 2009, φ_eq of Boyer et al. 2011) is the source of p_e and extra friction of μ(I) or μ(J); dφ/dt = −φ D_v with the dilation D_v = ∇·(k/η_w ∇p_e) the pore fluid that flows in. J takes p' of at least the buoyant weight of one cell (at the slide surface p' → 0 and J → ∞); |tan ψ| ≤ 0.6.
 
 | key | type | meaning (default) |
@@ -111,6 +112,7 @@ Slide, water and air (`rheology_cfd_3phase`). Water and air keep the level set; 
 | W 147 | 6 × double | slide box xs xe ys ye zs ze (repeatable) |
 | W 148 | 6 × double | slide triangle x₁ z₁ x₂ z₂ x₃ z₃, extruded in y (repeatable) |
 | W 149 | int | mixture viscosity: 1 arithmetic, 2 harmonic (1) |
+| W 136 | 2 × double | imbibition: initial pore saturation S₀ (1: saturated, no imbibition), front speed v [m/s] (≤ 0: at once) (1, 0) |
 
 Water is W 1/W 2, air W 3/W 4. Output (VTU and LAGOON store): alpha_s, p_eff, p_hyd, p_e, phi_s. The log prints the slide volume, its relative change, min/max of α_s and the clipped volume.
 
@@ -169,7 +171,7 @@ tools/run_case.sh <REEF3D> <DiveMESH> 30_tracy_arm_2025 <run>/ta_mu015 "mpirun -
 python3 tools/rheo_eval.py tsunamirunup <run>/ta_mu015 30_tracy_arm_2025 30_tracy_arm_2025/runup_survey.csv 30_tracy_arm_2025/results 30_mu015_survey   # also runup_trimline.csv
 ```
 
-CFD cases 11–15 (`tools/rheo3_eval.py`; 11, 13: one rank, the others two ranks):
+CFD cases 11–15, 31, 33 (`tools/rheo3_eval.py`; 11, 13, 33: one rank, the others two ranks):
 
 ```bash
 for m in 0 1 2; do tools/run_case.sh <REEF3D> <DiveMESH> 11_cfd_film_air/cases/d24_$m <run>/fa_$m; done
@@ -184,6 +186,10 @@ tools/run_case.sh <REEF3D> <DiveMESH> 14_cfd_collapse_in_fluid/cases/loose <run>
 python3 tools/rheo3_eval.py rondon <run>/r_loose <run>/r_dense 14_cfd_collapse_in_fluid/results
 tools/run_case.sh <REEF3D> <DiveMESH> 15_cfd_collapse_into_water/cases/dx10 <run>/rs_10 "mpirun -np 2"   # also dx05
 python3 tools/rheo3_eval.py robbe <run>/rs_10 <run>/rs_05 15_cfd_collapse_into_water/results
+tools/run_case.sh <REEF3D> <DiveMESH> 15_cfd_collapse_into_water/cases/dx10_imb <run>/rs_10_imb "mpirun -np 2"   # also dx05_imb, dx10_imb_once
+python3 tools/rheo3_eval.py robbe "no imbibition=<run>/rs_05" "imbibition 0.15 m/s=<run>/rs_05_imb" 15_cfd_collapse_into_water/results   # label=run pairs
+for c in layer layer_front; do tools/run_case.sh <REEF3D> <DiveMESH> 33_cfd_imbibition_layer/cases/$c <run>/imb_$c; done
+python3 tools/rheo3_eval.py imblayer <run>/imb_layer <run>/imb_layer_front 33_cfd_imbibition_layer/results
 for c in air_w131_2 air_w131_3 water_w131_2 water_w131_3; do tools/run_case.sh <REEF3D> <DiveMESH> 31_cfd_wedge_at_rest/cases/$c <run>/w_$c "mpirun -np 2"; done
 python3 tools/rheo3_eval.py wedge "air, W 131 2=<run>/w_air_w131_2" "air, W 131 3=<run>/w_air_w131_3" "water, W 131 2=<run>/w_water_w131_2" "water, W 131 3=<run>/w_water_w131_3" 31_cfd_wedge_at_rest/results
 ```
@@ -507,18 +513,21 @@ With `D 22 1` the bed acts as free slip, so the current runs off like an invisci
 - **Set-up:** dry 5 mm glass beads (φ = 0.64, ρ_s = 1600, μ(I) of 07 with d = 5 mm), column H0 = 41 cm, L0 = 16.5 cm (a = 2.5, V = 10.2 dm³ over 15 cm width) on a step of h0 = 5 cm, released at once into water 5 cm deep; 2D, 1.8 m long (closed end), dx = 10 and 5 mm, W 143 1, 1.5 s, 2 ranks.
 - **Reference:** Robbe-Saule et al. (2021) JFM: A_m ≈ 2.15 (V − 0.15)^0.58 = 8.25 cm at a = 2.5 (5 mm beads), the peak of A(t) at about 0.64 s, the leading wave separates from the granular front at about 0.5 s, wave speed 1.15 m/s ≈ √(g(h0 + A_m)), collapse over by about 1 s.
 
-`W 131 3` (the default with W 140), in brackets `W 131 2`:
+`W 131 3` (the default with W 140); dry pores (`dx10`, `dx05`) and imbibition `W 136 0 0.15` (`dx10_imb`, `dx05_imb`):
 
-| | dx 10 mm | dx 5 mm | experiment |
-|---|---|---|---|
-| max amplitude ahead of the slide | 11.6 cm at 0.40 s (13.2 cm at 0.36 s) | 12.6 cm at 0.50 s (13.2 cm at 0.36 s) | 8.25 cm at 0.64 s |
-| amplitude at 0.64 s | 7.7 cm (8.7 cm) | 10.6 cm (10.2 cm) | 8.25 cm |
-| crest speed 0.5–1 s | 1.21 m/s (1.18) | 1.12 m/s (1.31) | 1.15 m/s |
-| granular front (h > 5 mm) at 1 s | 0.51 m (0.95 m) | 0.74 m (1.13 m) | (deposit within the wave generation zone) |
-| slide volume, max relative change | 3e-14 | 4e-13 | |
+| | dx 10 mm | dx 5 mm | dx 10 mm, imbibition | dx 5 mm, imbibition | experiment |
+|---|---|---|---|---|---|
+| max amplitude ahead of the slide (t < 0.8 s) | 13.2 cm at 0.54 s | 14.8 cm at 0.48 s | 12.8 cm at 0.52 s | 14.1 cm at 0.46 s | 8.25 cm at 0.64 s |
+| amplitude at 0.64 s | 12.3 cm | 13.1 cm | 11.7 cm | 13.1 cm | 8.25 cm |
+| crest speed 0.5–1 s | 1.06 m/s | 1.29 m/s | 1.10 m/s | 1.26 m/s | 1.15 m/s |
+| granular front (h > 5 mm) at 1 s | 0.73 m | 0.89 m | 0.69 m | 0.82 m | (deposit within the wave generation zone) |
+| pore water taken up at 1.5 s (pore volume 2.44e-4 m³) | | | 1.14e-4 m³ | 0.88e-4 m³ | |
+| slide volume, max relative change | 8e-14 | 7e-13 | 2e-12 | 6e-13 | |
 
-- The crest speed agrees; the maximum amplitude is 40–50 % too high and comes too early, on both grids. With the band treatment the slide runs out less far under water (0.5–0.7 m at 1 s instead of 1 m) and the amplitude falls by 5–12 %.
-- The slide displaces water with its bulk volume (grains and pores), and its pores stay dry: in the experiment water fills the pores of the beads during the collapse (an imbibition front, with trapped air), so the grains displace about φ = 0.64 of the bulk volume. With A ∝ V^0.58 that alone accounts for a factor 1.3. The gate is lifted in the experiment and released at once here.
+- The crest speed agrees; the maximum amplitude is 60–80 % too high and comes too early, on both grids.
+- The water surface of a column (W 143) is now taken from the water above the slide: before, the thin water film under the slide where the column stands out of the water gave the surface at the bed, and the submerged part of the slide had no pore pressure there. With the pore pressure the slide is more mobile and the amplitude rose from 11.6 / 12.6 cm (dx 10 / 5 mm) to 13.2 / 14.8 cm.
+- Imbibition at 0.15 m/s (front speed estimated, about a third of the pore volume is filled in the collapse) lowers the amplitude by 3–5 % and shortens the runout by 5–8 %: the slide becomes heavier, so p' grows under water. On the fine grid the wave steepens over the deposit after 0.9 s (a second maximum, 14 cm at 1.06 s, figure). With the pores filled at once (`dx10_imb_once`, `W 136 0 0`) the sink in the water at the front is a shock (6.6 cm, only 2.4e-5 m³ taken up): not recommended.
+- In the experiment water fills the pores of the beads during the collapse, so the grains displace about φ = 0.64 of the bulk volume (A ∝ V^0.58: a factor 1.3). Here the slide displaces water with its bulk volume first and takes up the water by the front only; the air that leaves the pores goes to the air at once. The gate is lifted in the experiment and released at once here.
 - The slide still runs out far under water: the dry bulk density 1600 below water and no added friction from the pore water.
 - Not done: the submarine slide of Heinrich (1992); the data are available only in figures of the paper.
 
@@ -539,6 +548,21 @@ With `D 22 1` the bed acts as free slip, so the current runs off like an invisci
 - Tried and not enough: the p' floor alone (the toe moved 68 mm), the full viscosity only where α_s > 0.1 (23 mm), the full viscosity only where the band's stress is below its yield stress (68 mm: the slumping band cells flow, so they stay weak). The full viscosity over the whole band is needed; for a slide without a yield stress it is not applied (see the model section).
 
 ![](31_cfd_wedge_at_rest/results/31_wedge_at_rest.png)
+
+### 33 CFD three-phase: imbibition of a dry layer under water (W 136, verification)
+
+- **Set-up:** a dry layer of glass beads (φ_s = 0.64, n = 0.36, bulk density 1600 dry, μ(I)/Coulomb W 130 2) 0.1 m thick on the bed of a column 0.02 × 0.2 m, water to 0.15 m, 1D (cells 5 mm), W 143 1, 2 s, one rank (2 s wall). `layer`: `W 136 0 0` (pores fill at once); `layer_front`: `W 136 0 0.02` (front speed 0.02 m/s, checkpoint every 100 steps, `P 48 100`).
+- **Reference:** the water that fills the pores leaves the column above: the surface falls by n h S̄, to 0.15 − 0.36·0.1 = 0.114 m with the pores full. With the front speed v the mean saturation is v t / h = 0.4 at 2 s (surface 0.1356 m).
+
+| | water surface at 2 s | expected | mean saturation at 2 s | pore water taken up | slide volume |
+|---|---|---|---|---|---|
+| at once | 0.1144 m | 0.114 m | 1.00 | 3.60e-6 m³ (= n V) | 4e-11 |
+| front 0.02 m/s | 0.1359 m | 0.1356 m | 0.399 (0.4) | 1.43e-6 m³ | 1e-11 |
+
+- The water surface follows the pore water taken up, and the slide keeps its volume; the slide does not move.
+- A restart from the checkpoint (`I 45`) at step 300 gives the same fields as the run without restart (bitwise), with the saturation and the pore water count.
+
+![](33_cfd_imbibition_layer/results/33_imbibition_layer.png)
 
 ### 20 CFD: quickness test of sensitive clay (Fornes et al., IAHR 2017)
 
@@ -1025,7 +1049,7 @@ Gauge max / min (cm) up to the wave reflected at the end wall, and the RMS diffe
 - Mesh refinement (G 1): the friction step runs in every level's stage. The pore pressure is advected per level and not exchanged between levels.
 - Semi-implicit SFLOW on curvilinear grids: the rheology core stops with a message. `A 232` has to be set by hand (about 1 % of the flow depth).
 - Restart from checkpoints: the pore pressure ratio is not in the checkpoints yet and starts again from W 127.
-- CFD three-phase (W 140): interface currents of 0.05–0.1 m/s remain in the air next to a deposit at rest (31, 12); the flowing band of a slide without a yield stress keeps the share α of its viscosity; water filling the pores of a dry slide (imbibition) is not modelled (15); no inflow or outflow of slide material; base grid only (not with the mesh refinement G 1); p_e, φ and α_s are not in the checkpoints yet; one quasi-3D check (12) only.
+- CFD three-phase (W 140): interface currents of 0.05–0.1 m/s remain in the air next to a deposit at rest (31, 12); the flowing band of a slide without a yield stress keeps the share α of its viscosity; imbibition (W 136) is a front model, its sink lies in the water cells next to the slide on the rank; the level set loses about 6 % of the water in the splash of case 15 (the volume correction F 46 3 is not for W 140: it corrects the level-set volume, which includes the slide); no inflow or outflow of slide material; base grid only (not with the mesh refinement G 1); one quasi-3D check (12) only. The fields and the scalars of the model are in the checkpoints (a restart of the imbibition layer from step 300 equals the run without the restart).
 - CFD: the μ(I) column collapse (07) with the side-wall friction of the channel experiments runs 15 % longer than Lube et al. at a = 2 (without walls 46 %); the a^⅔ regime (a > 3) is not checked.
 - CFD: the side-wall friction only in `momentum_rk`. A body that is lifted through a closed top of the domain traps air (cases 20, 21).
 - CFD 3D: the axisymmetric collapse (25) runs 25–35 % short of Lube et al. (2004) on coarse grids (r0/12.5 – r0/25); a finer grid is the next run.

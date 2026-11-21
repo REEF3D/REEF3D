@@ -71,6 +71,14 @@ Effective pressure p' = p - p_gage - p_hyd - p_e in the slide
   friction of mu(I) / mu(J), and dphi/dt = -phi D_v with the dilation D_v = div(k/eta_w grad p_e), the
   inflow of pore fluid (the volume change the drainage allows).
 
+Imbibition (W 136 S0 < 1): the pores of a slide that starts dry or partly saturated (saturation S0, bulk density
+W 141 at S0) fill with water below the water surface: a submerged slide cell next to water or to a full slide cell
+takes up water, at once (W 136 v <= 0) or with a front speed v (dS = v dt/dx). Its bulk density grows by
+(S - S0) n rho_w (porosity n = 1 - phi_s of W 124), the saturation is carried with the slide, and the water it takes up
+leaves the water next to it: a sink div(u) = -q in the water cells around the cell (in all water cells next to the slide
+when the cell has no water neighbour on its rank), balanced by a source in all air cells (the pore air that escapes).
+Without it the dry slide displaced its whole bulk volume of water (the pores stayed dry).
+
 Interface band (W 131 3, as in the two-phase model): the smoothed band (alpha_s > 1e-3 after smoothing) gets the full
 viscosity of the slide, max(mu_s, mu_f), instead of alpha mu_s + (1 - alpha) mu_f, and p' at least the buoyant weight
 of the band above the cell, g sum (rho_s - rho_f) alpha dz over the band cells (alpha_s < 1) of the column. With the share alpha mu_s
@@ -96,6 +104,12 @@ public:
     // mixture density of the face between (i,j,k) and (i+aa,j+bb,k+cc) for the Heaviside H of the face
     double rho_face(lexer*, int aa, int bb, int cc, double H);
 
+    // the pore water taken up so far [m3] (W 136)
+    double imbibed_total() const { return imbibed; }
+
+    // bulk density of the slide in cell (ii,jj,kk): W 141, plus the pore water taken up since the start (W 136)
+    double rho_slide(int ii, int jj, int kk) { return imb ? rho_s + (sat(ii,jj,kk) - S0)*nporo*rho_w : rho_s; }
+
     // effective pressure p' and the dilatancy tan(psi) in cell (i,j,k)
     double peff(lexer*, fdm*);
     double tanpsi() { return dil ? tpsi(i,j,k) : 0.0; }
@@ -109,6 +123,9 @@ public:
     field4 alpha;
     field4 alphas;   // alpha smoothed over about two cells: density and viscosity of the mixture
     field4 pband;    // W 131 3: the weight of the smoothed band above the cell, the floor of p'
+    field4 sat;      // W 136: pore saturation of the slide
+    field4 dsrc;     // W 136: the divergence of the step, div(u) = dsrc (pjm_corr): the water that fills the pores
+    const bool imb;  // W 136 S0 < 1: imbibition
     double rho_s, rho_w, rho_a, eta_w;
     double volume;
 
@@ -124,6 +141,7 @@ private:
     void bc(lexer*, ghostcell*, field&);
     void smooth(lexer*, ghostcell*);
     void band(lexer*, fdm*, ghostcell*);
+    void imbibe(lexer*, fdm*, ghostcell*);
     int nvtu(lexer*) const;
 
     field4 alpha0;   // alpha at the start of the step (the divergence correction)
@@ -134,6 +152,7 @@ private:
     field4 tpsi;     // tan(psi) of the step
     field4 qpe, qphi;// alpha p_e, alpha phi during the transport
     field4 fpe, fphi;// their fluxes
+    field4 qsat, fsat;// alpha S during the transport and its flux
 
     const int pore;  // W 143
     const bool dil;  // W 145 phi_0 > 0
@@ -142,6 +161,11 @@ private:
     bool pe_ini;
     int sweeps;
     double volume0;
+    double S0, vimb, nporo, imbibed;
+    // the scalars of the checkpoints (the fields are in them through their construction): the order of the
+    // sweeps, p_e set, the initial volume, the pore water taken up
+    double ckstate[4];
+    unsigned long long ckid;
     double clipsum;
     std::vector<double> eta;   // water surface of the columns (global i, j)
 };
