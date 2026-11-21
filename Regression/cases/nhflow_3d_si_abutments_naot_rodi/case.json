@@ -1,5 +1,5 @@
 {
- "description": "NHFLOW semi-implicit non-hydrostatic (A 510 12, A 520 2) with k-omega and the free-surface value of Naot & Rodi 1982 (A 567 5): omega_s = cmu^-1/4 k^1/2/kappa (1/y' + 1/y*), y' = 0.07 h, y* the distance to the nearest side wall. 3D flume, h = 0.109 m, 16 l/s, dx = 2 cm, two abutments as DIVEMesh solids (dry columns, A 541 1): y* comes from the flume walls and from the dry land of the abutments; the cells at the abutments have the turbulence wall function (nhflow_turb_solid).",
+ "description": "NHFLOW semi-implicit non-hydrostatic (A 510 11, A 520 2) with k-omega and the free-surface value of Naot & Rodi 1982 (A 567 5): omega_s = cmu^-1/4 k^1/2/kappa (1/y' + 1/y*), y' = 0.07 h, y* the distance to the nearest side wall. 3D flume, h = 0.109 m, 16 l/s, dx = 2 cm, two abutments as DIVEMesh solids (dry columns, A 541 1): y* comes from the flume walls and from the dry land of the abutments; the cells at the abutments have the turbulence wall function (nhflow_turb_solid).",
  "solver": "nhflow",
  "np": 1,
  "steps": 300,

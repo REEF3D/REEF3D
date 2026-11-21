@@ -256,6 +256,7 @@ public:
         px("si_dUH",dUH); px("si_dVH",dVH);
         // the time levels of the step before (second order in time, tl2; nh_begin, nh_levels)
         px("si_accU",accU); px("si_accV",accV); px("si_accW",accW);
+        px("si_vaU",vaU); px("si_vaV",vaV); px("si_vaW",vaW);
         fd("si_Bx",'C',Bx); fd("si_By",'C',By); fd("si_BFx",'C',BFx); fd("si_BFy",'C',BFy);
         fd("si_nOmP",'F',nOmP.data()); fd("si_nHxo",'S',nHxo.data()); fd("si_nHyo",'S',nHyo.data());
         if(!nWLo.empty()) fd("si_nWLo",'S',nWLo.data());
@@ -545,10 +546,13 @@ private:
     bool tp2 = false;          // the estimate pass for the advecting transport without tl2 (curvilinear, multi-block and
                                // refined grids): the passes of tl2 with the other time levels of the step before
     double *accU = nullptr, *accV = nullptr, *accW = nullptr;    // tl2: the implicit acceleration of the step before
+    double *vaU = nullptr, *vaV = nullptr, *vaW = nullptr;       // A 510 11 with tl2: its vertical-advection part (col_va)
     double *FSx = nullptr, *FSy = nullptr;    // tl2: the sources of the last predictor stage (wind, Coriolis, ...; the wall sides)
     double thv = 1.0;                          // time level of the vertical advection in the column operator (1: implicit Euler)
     std::vector<double> vau, val, vad;         // its coefficients (unscaled), for the explicit part
     void col_adv_rhs(lexer*, const double*, double*);      // A 510 11: one stage, BCG advection, the nonlinear terms at t^{n+1/2}
+    void col_va(lexer*, const double*, const double*, double, double*);   // the vertical advection of a cell column over the step
+    vector<double> wv0, wv1, wva;              // its columns (knoz)
     bool qini;
     // the pass of step_single (tl2: 0 the estimate, 1 the final pass); faces_set: face_update of the step done by the
     // coupled non-hydrostatic solve (nh_solve), si_end_faces skips it

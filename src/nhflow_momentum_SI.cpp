@@ -216,6 +216,9 @@ nhflow_momentum_SI::nhflow_momentum_SI(lexer *p, fdm_nhf *d, ghostcell *pgc, six
     wr.assign(p->knoz,0.0);
     wx.assign(p->knoz,0.0);
     vau.assign(p->knoz,0.0);
+    wv0.assign(p->knoz,0.0);
+    wv1.assign(p->knoz,0.0);
+    wva.assign(p->knoz,0.0);
     val.assign(p->knoz,0.0);
     vad.assign(p->knoz,0.0);
     // A 510 11, and every predictor with the non-hydrostatic pressure: the vertical advection of the column operator
@@ -249,6 +252,14 @@ nhflow_momentum_SI::nhflow_momentum_SI(lexer *p, fdm_nhf *d, ghostcell *pgc, six
     p->Darray_lazy(accW,N);
     p->Darray_lazy(FSx,N);
     p->Darray_lazy(FSy,N);
+    }
+
+    // A 510 11 with tl2: the vertical-advection part of the acceleration (cell_update, col_va), taken out of the BCG source
+    if(tl2 && onestep)
+    {
+    p->Darray_lazy(vaU,N);
+    p->Darray_lazy(vaV,N);
+    p->Darray_lazy(vaW,N);
     }
 
     // the time levels of the step before (nh_begin, nh_levels; in the checkpoints): -1 no level yet (the first
@@ -443,7 +454,7 @@ nhflow_momentum_SI::~nhflow_momentum_SI()
 
     delete psi;
     delete ptrc;
-    for(double *a : {Bx,By,BFx,BFy,KV,N2,ELU,ELV,ELW,accU,accV,accW,FSx,FSy,lscr[0],lscr[1],lscr[2],DFx,DFy})
+    for(double *a : {Bx,By,BFx,BFy,KV,N2,ELU,ELV,ELW,accU,accV,accW,vaU,vaV,vaW,FSx,FSy,lscr[0],lscr[1],lscr[2],DFx,DFy})
     free(a);
 
     nh_free();
@@ -1532,6 +1543,26 @@ void nhflow_momentum_SI::col_adv_rhs(lexer *p, const double *x0, double *b)
     }
 }
 
+void nhflow_momentum_SI::col_va(lexer *p, const double *x1, const double *x0, double h, double *out)
+{
+    // A 510 11 (tl2): the vertical advection of the step in a cell column, -(thv V x1 + (1 - thv) V x0), with x the layer
+    // momentum per unit sigma (x1 of t^{n+1}, x0 of t^n) and the coefficients of the last col_coef; per unit time and
+    // depth, i.e. as an acceleration (finish: acc, of which it is a part)
+    const int K = p->knoz;
+    const double s = 1.0/(MAX(h,p->A544)*p->dt);
+
+    auto V = [&](const double *x, int q)
+    {
+        double v = (vau[q] + val[q] + vad[q])*x[q];
+        if(q<K-1) v -= vau[q]*x[q+1];
+        if(q>0) v -= val[q]*x[q-1];
+        return v;
+    };
+
+    for(int q=0;q<K;++q)
+    out[q] = -(thv*V(x1,q) + (1.0-thv)*V(x0,q))*s;
+}
+
 void nhflow_momentum_SI::col_solve(lexer *p, const double *cu, const double *cl, const double *cd, double dtgam, const double *b, double *x)
 {
     // A x = b, A = I - dt L_v + dt V_omega + dt gamma e_0 e_0^T: tridiagonal, upper -cu, lower -cl,
@@ -2208,6 +2239,13 @@ void nhflow_momentum_SI::advection_bcg(lexer *p, fdm_nhf *d, ghostcell *pgc, dou
     // (explicit NHFLOW 4 %, 2.7 % now)
     const double *acc = f==d->U ? accU : (f==d->V ? accV : accW);
 
+    // the vertical-advection part of that acceleration (cell_update, col_va): left out of the source; the vertical
+    // advection enters the face values as the transverse term of the vertical direction instead, at the time of the step
+    // (below). In the source it came one step late: a short wave sheared over the depth (5 cells, mid-depth maximum, W in
+    // phase with U) behind a 3 mm bed step grew by about 1 % per step in a current at Courant number 0.6
+    // (nhflow_1d/2d_si_nh_bump_current_dt; hydrostatic too), and the 2D case diverged
+    const double *va = f==d->U ? vaU : (f==d->V ? vaV : vaW);
+
     if(acc!=nullptr)
     {
         // the cells of the layers of every column (the horizontal scheme reads no other entries of the column): before,
@@ -2228,10 +2266,28 @@ void nhflow_momentum_SI::advection_bcg(lexer *p, fdm_nhf *d, ghostcell *pgc, dou
         for(int b=lrng[2]; b<lrng[3]; ++b)
         if(ok(a,b))
         for(int c=0; c<K; ++c)
-        bcgF[ix(a,b,c)] = f[ix(a,b,c)] + 0.5*dt*acc[PIX(a,b,c)];
+        bcgF[ix(a,b,c)] = f[ix(a,b,c)] + 0.5*dt*(acc[PIX(a,b,c)] - (va!=nullptr ? va[PIX(a,b,c)] : 0.0));
 
         f = bcgF.data();
     }
+
+    // the transverse term of the vertical direction (with va, A 510 11 and tl2): -dt/2 (omega/h) df/dsigma of the
+    // upwind cell, omega the sigma velocity of the cell centre (the mean of its two interfaces, at t^{n+1/2}: nh_begin),
+    // the slope limited as the horizontal ones, none at the bed and the surface layer edges
+    auto fxo = [&](int a, int b, int c) { return (a-p->imin)*p->jmax*p->kmaxF + (b-p->jmin)*p->kmaxF + c-p->kmin; };
+
+    auto vtrans = [&](int a, int b, int c) -> double
+    {
+        const double h = WL0(a,b);
+
+        if(va==nullptr || h<=10.0*p->A544)
+        return 0.0;
+
+        const double w = 0.5*(d->omegaF[fxo(a,b,c)] + d->omegaF[fxo(a,b,c+1)]);
+        const double dm = c>0 ? p->DZP[c-1+marge]*h : 1.0, dp = c<K-1 ? p->DZP[c+marge]*h : 1.0;
+        const double gz = slope(c>0 ? f[ix(a,b,c-1)] : 0.0,f[ix(a,b,c)],c<K-1 ? f[ix(a,b,c+1)] : 0.0,dm,dp,c>0,c<K-1);
+        return -0.5*dt*w*gz;
+    };
 
     // x-faces (i+1/2)
     SLICELOOP1
@@ -2252,7 +2308,7 @@ void nhflow_momentum_SI::advection_bcg(lexer *p, fdm_nhf *d, ghostcell *pgc, dou
         const double c = MIN(fabs(uface(1,i,j,k))*dt/(cv ? dn(1,i,j) : dx),1.0);
         const double g = slope(f[ix(iu-1,j,k)],f[ix(iu,j,k)],f[ix(iu+1,j,k)],cv ? 1.0 : p->DXP[iu-1+marge],cv ? 1.0 : p->DXP[iu+marge],ok(iu-1,j),ok(iu+1,j));
 
-        double ff = f[ix(iu,j,k)] + a*(1.0 - c)*g*0.5*dx;
+        double ff = f[ix(iu,j,k)] + a*(1.0 - c)*g*0.5*dx + vtrans(iu,j,k);
 
         if(yd)
         {
@@ -2290,7 +2346,7 @@ void nhflow_momentum_SI::advection_bcg(lexer *p, fdm_nhf *d, ghostcell *pgc, dou
         const double c = MIN(fabs(uface(2,i,j,k))*dt/(cv ? dn(2,i,j) : dy),1.0);
         const double g = slope(f[ix(i,ju-1,k)],f[ix(i,ju,k)],f[ix(i,ju+1,k)],cv ? 1.0 : p->DYP[ju-1+marge],cv ? 1.0 : p->DYP[ju+marge],ok(i,ju-1),ok(i,ju+1));
 
-        double ff = f[ix(i,ju,k)] + a*(1.0 - c)*g*0.5*dy;
+        double ff = f[ix(i,ju,k)] + a*(1.0 - c)*g*0.5*dy + vtrans(i,ju,k);
 
         const double hs = Hx(i-1,ju) + Hx(i,ju);
 
@@ -3519,6 +3575,22 @@ void nhflow_momentum_SI::cell_update(lexer *p, fdm_nhf *d, ghostcell *pgc)
             d->VH[IJK] = 0.0;
             }
 
+            // A 510 11: the vertical advection of the step in the acceleration (the BCG source leaves it out)
+            if(vaU!=nullptr)
+            {
+            for(k=0;k<p->knoz;++k)
+            {
+            wv1[k] = d->UH[IJK];
+            wv0[k] = UH0[PIJK];
+            vaV[PIJK] = 0.0;
+            }
+
+            col_va(p,wv1.data(),wv0.data(),WL0(i,j),wva.data());
+
+            for(k=0;k<p->knoz;++k)
+            vaU[PIJK] = wva[k];
+            }
+
             if(p->j_dir==1)
             {
             for(k=0;k<p->knoz;++k)
@@ -3535,6 +3607,20 @@ void nhflow_momentum_SI::cell_update(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
             for(k=0;k<p->knoz;++k)
             d->VH[IJK] = wx[k] - gv*wr[k];
+
+                if(vaV!=nullptr)
+                {
+                for(k=0;k<p->knoz;++k)
+                {
+                wv1[k] = d->VH[IJK];
+                wv0[k] = VH0[PIJK];
+                }
+
+                col_va(p,wv1.data(),wv0.data(),WL0(i,j),wva.data());
+
+                for(k=0;k<p->knoz;++k)
+                vaV[PIJK] = wva[k];
+                }
             }
 
         // WH: the vertical advection alone
@@ -3558,6 +3644,17 @@ void nhflow_momentum_SI::cell_update(lexer *p, fdm_nhf *d, ghostcell *pgc)
         for(k=0;k<p->knoz;++k)
         d->WH[IJK] = wx[k];
 
+            if(vaW!=nullptr)
+            {
+            for(k=0;k<p->knoz;++k)
+            wv0[k] = WH0[PIJK];
+
+            col_va(p,wx.data(),wv0.data(),WL0(i,j),wva.data());
+
+            for(k=0;k<p->knoz;++k)
+            vaW[PIJK] = wva[k];
+            }
+
             // A 549 1: the velocity form of the step on the depth of t^n, the momentum on that of t^{n+1}
             if(elm_mode(p)==1 && WL0(i,j)>p->A544)
             {
@@ -3578,6 +3675,9 @@ void nhflow_momentum_SI::cell_update(lexer *p, fdm_nhf *d, ghostcell *pgc)
         d->UH[IJK] = 0.0;
         d->VH[IJK] = 0.0;
         d->WH[IJK] = 0.0;
+
+            if(vaU!=nullptr)
+            vaU[PIJK] = vaV[PIJK] = vaW[PIJK] = 0.0;
         }
     }
 
@@ -3937,12 +4037,24 @@ void nhflow_momentum_SI::finish(lexer *p, fdm_nhf *d, ghostcell *pgc)
             }
 
             else
+            {
             accU[PIJK] = accV[PIJK] = accW[PIJK] = 0.0;
+
+                if(vaU!=nullptr)
+                vaU[PIJK] = vaV[PIJK] = vaW[PIJK] = 0.0;
+            }
         }
 
         pexchC(p,pgc,accU);
         pexchC(p,pgc,accV);
         pexchC(p,pgc,accW);
+
+        if(vaU!=nullptr)
+        {
+        pexchC(p,pgc,vaU);
+        pexchC(p,pgc,vaV);
+        pexchC(p,pgc,vaW);
+        }
     }
 
     // velocities (Froude limiter A 531), ghost cells
