@@ -71,6 +71,9 @@ void fluid_update_rheology::start(lexer *p, fdm* a, ghostcell* pgc, field &u, fi
     return;
     }
 
+    // W 131 3: the band treatment, for a material with a yield stress
+    const bool band = (pcore!=nullptr && p->W131==3 && pcore->plastic(p,a));
+    
     // density, viscosity & volumes
     LOOP
     {  
@@ -84,9 +87,12 @@ void fluid_update_rheology::start(lexer *p, fdm* a, ghostcell* pgc, field &u, fi
         // carried the level set and let the deposit slump. With the full viscosity and the pressure of the band
         // (rheology_cfd_core: W 131 3) the strength is mu_s p' against the weight: the band holds below the
         // friction angle. At phi = -eps the material's viscosity is mu_min (p' = 0)
+        // Only for a material with a yield stress (as in the three-phase model): a Newtonian or power-law material
+        // has no deposit to hold, and its full viscosity in the light outer band cells made the explicit cross terms
+        // of the diffusion unstable (case 12)
         double Hv = H_phi;
         
-        if(p->W130>0 && p->W131==3 && a->phi(i,j,k)>-eps)
+        if(band && a->phi(i,j,k)>-eps)
         Hv = 1.0;
 
         a->ro(i,j,k) = ro1*H_phi + ro2*(1.0-H_phi);

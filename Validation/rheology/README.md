@@ -60,8 +60,8 @@ The rheological material is phase 1 of the level set; air is phase 2. The adapte
 
 - γ̇ = √(2 D:D) from the velocities passed to the fluid update (the stage velocities).
 - The effective pressure p' = (1 − λ) p, with λ from `W 126 1` / `W 127`.
-  - `W 131 2` (default): p is the solved pressure minus the gauge pressure.
-  - `W 131 3`: as 2, at least the hydrostatic pressure of the smoothed interface band, ρ₁ (g·n) ∫_{−e}^{φ} H ds, and the material's viscosity over the whole band (φ > −e) instead of the share H (case 07: stops the slump of arrested deposits).
+  - `W 131 2`: p is the solved pressure minus the gauge pressure (the default before 20.11.2026; the cases 06–25 that were run with it set it).
+  - `W 131 3` (default with W 130 and W 140): as 2, at least the hydrostatic pressure of the smoothed interface band, ρ₁ (g·n) ∫_{−e}^{φ} H ds, and the material's viscosity over the whole band (φ > −e) instead of the share H (case 07: stops the slump of arrested deposits, and with the side-wall friction the deposit slopes reach the angle of repose). The band viscosity only for a material with a yield stress (not Newtonian or power law, which have no deposit to hold).
   - `W 131 1`: lithostatic ρ₁ (g·n) φ, with n the unit normal of the level set. This is correct only under a flat surface. Next to a steep flank (a column, a slide front) φ is the horizontal distance to the flank, not the overburden, so p is far too low. In the a = 0.5 collapse it gave a runout of 1.08 L0 against 0.85 L0 with the solved pressure.
 - The stress acts through the implicit momentum diffusion (`D 20 2`), which has the full 2μD stress with the transpose terms. The only source term is the optional side-wall friction (`W 135`).
 - Side-wall friction (`W 135 δ_w b`): two smooth walls at the distance b that the grid does not resolve (2D x–z, or a quasi-2D slice), each with the Coulomb stress tan δ_w p' (Jop, Forterre & Pouliquen 2005). Per unit mass −2 tan δ_w p'/(ρ₁ b) against the in-plane velocity (u, w), in phase 1 only. It is applied after the explicit update of each Runge-Kutta stage as a Coulomb step, u* ← u* max(0, 1 − w Δt F/|u*|): it stops the material instead of reversing it, and holds it where the friction exceeds the driving force. Only in the Runge-Kutta momentum `momentum_rk` (`N 40` 2–6, 12, 13, 22–24, 33, 44; not with PLIC, F 80 4).
@@ -74,7 +74,7 @@ The rheological material is phase 1 of the level set; air is phase 2. The adapte
 | key | type | meaning (default) |
 |---|---|---|
 | W 130 | int | local law: 1 Herschel-Bulkley (W 125), 2 Herschel-Bulkley-Coulomb (W 125 c K n, W 121 φ), 3 μ(I) (W 124; grain density W 1/φ_s), 4 Coulomb-viscoplastic (W 121 δ) (0) |
-| W 131 | int | effective pressure: 2 solved, 3 solved with the interface band (see above), 1 lithostatic from the level set (−1: 3 with the three-phase model W 140, else 2) |
+| W 131 | int | effective pressure: 2 solved, 3 solved with the interface band (see above), 1 lithostatic from the level set (−1: 3 with W 130 or the three-phase model W 140, else 2) |
 | W 132 | double | Papanastasiou m [s] (1000) |
 | W 133 | 2 × double | μ_min, μ_max [Pa s] (μ_min < 0: W 1 W 2; μ_max 1e4) |
 | W 134 | double | μ(I) partial regularisation α (≤ 0: none) (1.9) |
@@ -140,6 +140,8 @@ tools/run_case.sh <REEF3D> <DiveMESH> 07_cfd_column_collapse/cases/a05 <run>/c_a
 python3 tools/rheo_eval.py collapse <run>/c_ 07_cfd_column_collapse/results
 tools/run_case.sh <REEF3D> <DiveMESH> 07_cfd_column_collapse/cases/lagree_a05 <run>/l_lagree_a05 "mpirun -np 2"   # also lagree_a142
 python3 tools/rheo_eval.py lagree <run>/l_ 07_cfd_column_collapse/results
+tools/run_case.sh <REEF3D> <DiveMESH> 07_cfd_column_collapse/cases/lajeunesse_a2 <run>/lj_a2 "mpirun -np 2"   # also lajeunesse_a05; variants: delete W 135, add W 131 2
+python3 tools/rheo_eval.py channel 07_cfd_column_collapse/results "<run>/lj_a05:0.5:a = 0.5" "<run>/lj_a2:2:a = 2"
 tools/run_case.sh <REEF3D> <DiveMESH> 08_cfd_viscoplastic_arrest/cases/hb <run>/a_hb "mpirun -np 2"
 python3 tools/rheo_eval.py cfdarrest <run>/a_hb <run>/hb_core 08_cfd_viscoplastic_arrest/results   # <run>/hb_core: case 02
 tools/run_case.sh <REEF3D> <DiveMESH> 09_cfd_viscous_current/cases/newt <run>/v_newt "mpirun -np 2"   # add "D 22 1" for the default wall
@@ -315,7 +317,7 @@ Grid series at a = 0.5 (deposit at rest from about 0.35 s):
 | a = 2 | 2.5 mm | 3.7 | 2.4 | 2.0 |
 
 - **Grid convergence:** the front (h > 5 mm), the height at the wall and the deposit slope are converged from dx = 2.5 mm (H0/20). Only the tail thinner than about 2 mm (4 grain diameters) still creeps forward with refinement.
-- **Against the experiments:** the runout is 20 % (a = 0.5) and 55 % (a = 2) longer than Lube et al., and the deposit slope (15.6°) is below the friction angle δ_s = 20.9°. Not the cause: the μ(I) regularisation (W 134 0), the cap μ_max (1e3–1e6 Pa s), the solver tolerance, the time step, F 45. The cause is the missing side-wall friction of the quasi-2D channels: the model reproduces the 2D benchmark of Lagrée et al. (2011) below, and their 2D contact dynamics (no side walls either) also run out about twice as far as the channel experiments (2.5a against Lube's 1.2a). Martin et al. (2017) find the side-wall friction important on slopes from about 10° and of less effect on a horizontal bed.
+- **Against the experiments:** the runout is 20 % (a = 0.5) and 55 % (a = 2) longer than Lube et al., and the deposit slope (15.6°) is below the friction angle δ_s = 20.9°. Not the cause: the μ(I) regularisation (W 134 0), the cap μ_max (1e3–1e6 Pa s), the solver tolerance, the time step, F 45. The cause is the missing side-wall friction of the quasi-2D channels: the model reproduces the 2D benchmark of Lagrée et al. (2011) below, and their 2D contact dynamics (no side walls either) also run out about twice as far as the channel experiments (2.5a against Lube's 1.2a). Martin et al. (2017) find the side-wall friction important on slopes from about 10° and of less effect on a horizontal bed. Confirmed with the measured wall friction of the channel experiments (`W 135`, below): +15 % at a = 2, slopes up to the angle of repose. These cases (`a05`, `a20`, `a05_fine`) keep `W 131 2`.
 
 **2D benchmark: Lagrée, Staron & Popinet (2011)** (`lagree_a05`, `lagree_a142`). Their parameters: μ_s = 0.32, Δμ = 0.28, I0 = 0.4 (`W 124 17.745 30.964 0.4 0.00122 1.0`), d = L0/82 (estimated from their contact-dynamics column of 3407 grains at a = 0.5, packing 0.8; the paper gives no d), a slip wall behind the column (`C 11 3`), no-slip bed, L0 = 0.1 m, dx = 2.5 mm (L0/40; theirs L0/32), 1.5 s, 2 ranks (3–5 min). References: their 2D Navier-Stokes μ(I) runs (VOF, Gerris) fit (L∞ − L0)/L0 = 2.2a and H∞/L0 = a (a ≤ 0.5), 0.67a^0.4 (0.5 < a < 6); their contact dynamics 2.5a. Their front is the edge of the material, here the tail h > dx/2.
 
@@ -337,8 +339,30 @@ Grid series at a = 0.5 (deposit at rest from about 0.35 s):
 
 ![](07_cfd_column_collapse/results/07_cfd_collapse_lagree.png)
 
-- **Effective pressure:** the lithostatic pressure (W 131 1) gives 1.08 at 2.5 mm, because φ under the flank is not the overburden. W 131 2 is the default.
+- **Effective pressure:** the lithostatic pressure (W 131 1) gives 1.08 at 2.5 mm, because φ under the flank is not the overburden. The runs above use `W 131 2`; the default is now `W 131 3` (channel experiments below).
 - **Interface currents:** 0.1–0.35 m/s remain in the interface cells and in the air near the toe, not in the bulk.
+
+**Channel experiments: side-wall friction and the interface band** (`lajeunesse_a05`, `lajeunesse_a2`). The quasi-2D experiments ran between glass walls, which the 2D model did not have. Lajeunesse, Monnier & Homsy (2005) measured them: glass beads d = 1.15 mm, angle of repose 22°, wall friction on glass 11°, gap 45 mm. The cases use their beads (`W 124 22 33.5 0.279 0.00115 0.62`, ρ = 1550) and walls (`W 135 11 0.045`), L0 = 0.1 m, dx = 2.5 mm, 1 s, 2 ranks (2–6 min each).
+- **References:** Lube et al. (2005): (L∞ − L0)/L0 = 1.2 a (a < 2.3), 1.9 a^⅔ (a > 2.3), duration 3 (2H0/g)^½. Lajeunesse et al. (2005): linear in a for a ≲ 3, prefactor about 1 (narrower gap than Lube). 2D contact dynamics without walls (Staron & Hinch 2005): 2.5 a, H∞/L0 = a (a < 1), 0.65 a^0.35. Deposit slopes: Balmforth & Kerswell (2005) 18–23° in their wide slot (between the wall and the internal friction angle), the internal friction angle in their narrow slot.
+
+| a | walls `W 135` | `W 131` | (L∞ − L0)/L0, h > 2 / 5 mm | Lube 1.2a | H∞/L0 | slope | at rest |
+|---|---|---|---|---|---|---|---|
+| 0.5 | no | 2 | 0.70 / 0.65 | 0.60 | 0.515 | 16.8° | 0.3 s |
+| 0.5 | 11° | 2 | 0.65 / 0.60 | | 0.521 | 17.8° | |
+| 0.5 | no | 3 | 0.65 / 0.60 | | 0.504 | 18.6° | |
+| 0.5 | 11° | 3 | **0.575 / 0.525** | | 0.505 | **20.8°** | 0.2 s |
+| 2 | no | 2 | 3.50 / 3.40 | 2.40 | 0.971 | 12.1° | 0.5 s |
+| 2 | 11° | 2 | 2.93 / 2.80 | | 1.131 | 17.5° | |
+| 2 | no | 3 | 3.48 / 3.40 | | 0.991 | 12.4° | |
+| 2 | 11° | 3 | **2.75 / 2.70** | | 1.152 | **17.6°** | 0.4 s |
+
+- **Runout:** the side walls bring a = 2 from +46 % to +15 % of Lube et al. and a = 0.5 from +17 % to −4 % (h > 2 mm; Lajeunesse's narrower gap: about a, i.e. +15 % and +37 %). Without walls the model runs out like 2D contact dynamics in shape but at 1.4–1.75 a, below its 2.5 a. The remaining excess at a = 2 is within the spread of the experiments (Lube 1.2 a, Lajeunesse about a for the same beads in different gaps); the a^⅔ regime is not reached at a = 2.
+- **Deposit slope:** the side walls steepen the flank most (a = 2: 12° → 17.5°); `W 131 3` adds the rest at a = 0.5 (17.8° → 20.8°, the angle of repose of the beads is 22°). Without both the band slumps (`W 131 2`: H∞ at the wall falls after the arrest, 0.1152 → 0.1131 m from 0.6 to 1.0 s at a = 2; with `W 131 3` 0.1158 → 0.1152 m). The low slopes of the earlier runs (15.6° against 20.9°) came from the missing walls and the slumping band, not from μ(I).
+- **Height:** with walls H∞/L0 = 1.15 at a = 2, above the 2D contact dynamics without walls (0.83) and the model without walls (0.97–0.99): the walls hold the column back. Lajeunesse et al. give H∞ ∝ a^⅓ without a prefactor.
+- **Duration:** the front stops after 2–2.5 (2H0/g)^½ (Lube: 3).
+- **Decision:** `W 131 3` is the default with W 130 from 20.11.2026 (band viscosity only with a yield stress). It holds deposits (case 07 a = 0.5: H∞ constant, bulk 13 times slower; case 31 wedge at rest), gives the measured slopes with the walls, and keeps the Lagrée runout at a = 1.42 (−2 %); at a = 0.5 it shortens the Lagrée runout by 8 %.
+
+![](07_cfd_column_collapse/results/07_cfd_collapse_channel.png)
 
 **Wall boundary and 3D implicit diffusion.** Two problems of the REEF3D CFD diffusion turned up here; neither is in the rheology. Both are fixed:
 
@@ -1002,8 +1026,7 @@ Gauge max / min (cm) up to the wave reflected at the end wall, and the RMS diffe
 - Semi-implicit SFLOW on curvilinear grids: the rheology core stops with a message. `A 232` has to be set by hand (about 1 % of the flow depth).
 - Restart from checkpoints: the pore pressure ratio is not in the checkpoints yet and starts again from W 127.
 - CFD three-phase (W 140): interface currents of 0.05–0.1 m/s remain in the air next to a deposit at rest (31, 12); the flowing band of a slide without a yield stress keeps the share α of its viscosity; water filling the pores of a dry slide (imbibition) is not modelled (15); no inflow or outflow of slide material; base grid only (not with the mesh refinement G 1); p_e, φ and α_s are not in the checkpoints yet; one quasi-3D check (12) only.
-- CFD: the μ(I) column collapse (07) matches the 2D reference of Lagrée et al. (2011); against the quasi-2D channel experiments the side-wall friction `W 135` (case 23) is now available but not yet run for 07.
-- CFD: the arrested deposits slump with `W 131 2` (default): the smoothed interface band flows down the inclined surface (case 07). `W 131 3` stops it, but shortens the runout of the a = 0.5 collapse by 8 %; not the default yet.
+- CFD: the μ(I) column collapse (07) with the side-wall friction of the channel experiments runs 15 % longer than Lube et al. at a = 2 (without walls 46 %); the a^⅔ regime (a > 3) is not checked.
 - CFD: the side-wall friction only in `momentum_rk`. A body that is lifted through a closed top of the domain traps air (cases 20, 21).
 - CFD 3D: the axisymmetric collapse (25) runs 25–35 % short of Lube et al. (2004) on coarse grids (r0/12.5 – r0/25); a finer grid is the next run.
 - CFD: the multiphase level set (F 300 3) uses the adapter, but no case runs it.
