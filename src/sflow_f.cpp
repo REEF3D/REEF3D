@@ -49,6 +49,7 @@ Author: Hans Bihs
 #include"hydro_core.h"
 #include"hydro_couple.h"
 #include"slide2D.h"
+#include"sflow_memory.h"
 
 sflow_f::sflow_f(lexer *p, fdm2D *b, ghostcell* pgc, patchBC_interface *ppBC)
 {
@@ -88,6 +89,9 @@ void sflow_f::start(lexer *p, fdm2D* b, ghostcell* pgc)
 	
 	regression_dump rdump(p);
 	rdump.sflow_ini(p,b,pgc);
+
+    // the memory the set-up has freed back to the system (sflow_memory.h)
+    sflow_malloc_trim();
 	
 	// Mainloop
     if(p->mpirank==0)

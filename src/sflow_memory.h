@@ -24,6 +24,9 @@ Architect: Hans Bihs
 #define SFLOW_MEMORY_H_
 
 #include"lexer.h"
+#if defined(__GLIBC__)
+#include<malloc.h>
+#endif
 
 // Which face states of SFLOW (fdm2D) are stored. Each of these is reconstructed and read only with the options
 // named; without them the slice has no array (V = nullptr, slice_base) - 8 bytes per cell each. The checkpoints
@@ -64,6 +67,17 @@ inline bool sflow_w_faces(lexer *p)
 inline bool sflow_face_fluxes(lexer *p)
 {
     return p->A225==2 || p->geo_curv==1;
+}
+
+// The set-up of a run (the grid file, the decomposition, the first fields) allocates arrays that are freed again
+// before the time loop. glibc keeps most of that memory in its heap, where it counts as memory of the run although
+// nothing uses it: 60 to 125 MB of a run with 250,000 cells. Called once before the time loop, this gives it back to
+// the system; the arrays of the run stay where they are. Other C libraries (macOS): nothing.
+inline void sflow_malloc_trim()
+{
+#if defined(__GLIBC__)
+    malloc_trim(0);
+#endif
 }
 
 #endif
