@@ -25,6 +25,7 @@ Architect: Hans Bihs
 
 #include"lexer.h"
 #include"fdm_nhf.h"
+#include"increment.h"
 #include<cmath>
 
 // breaking viscosity vb of column (ii,jj) at the relative height sig (0 bed, 1 surface).
@@ -66,6 +67,16 @@ inline double nhflow_vbv(lexer *p)
 inline bool nhflow_vbsig(lexer *p)
 {
     return nhflow_vbv(p)<1.0;
+}
+
+// the breaking viscosity of layer kk of column (ii,jj) as the momentum sees it: A 550 1 in the top layer, A 550 3/4/5
+// in all layers (A 550 4/5 with the depth profile of nhflow_vbz)
+inline double nhflow_vb_layer(lexer *p, fdm_nhf *d, int ii, int jj, int kk)
+{
+    if(p->A550>=3)
+    return nhflow_vbz(p,d,ii,jj,p->ZP[kk+increment::marge]);
+
+    return (p->A550>=1 && kk==p->knoz-1) ? d->vb(ii,jj) : 0.0;
 }
 
 #endif
