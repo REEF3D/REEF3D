@@ -1,0 +1,21 @@
+{
+ "description": "FNPF 3D short-crested waves from a SWAN spectral file (B 85 12), double summation of the bins without the weakest ones.",
+ "solver": "fnpf",
+ "np": 2,
+ "steps": 60,
+ "tags": [
+  "3d",
+  "fnpf",
+  "waves",
+  "iowave",
+  "irregular",
+  "mpi"
+ ],
+ "covers": [
+  "SWAN spectral file B 85 12",
+  "double summation B 143 0, energy cut B 144"
+ ],
+ "files": [
+  "SWAN.SPC"
+ ]
+}

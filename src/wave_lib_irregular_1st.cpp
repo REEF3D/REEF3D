@@ -81,10 +81,16 @@ wave_lib_irregular_1st::wave_lib_irregular_1st(lexer *p, ghostcell *pgc) : wave_
 	wavepackets_parameters(p);
 
     // Print components based on spectrum type
-    if(p->B85==11)
+    if(p->B85==11 || p->B85==12)
         print_components_2d(p);
     else
+    {
         print_components(p);
+
+        // with directional spreading also the directions, in the format of the 2D spectra
+        if(p->B130>0)
+        print_components_2d(p);
+    }
     
     
     if(p->mpirank==0)

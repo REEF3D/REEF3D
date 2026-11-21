@@ -116,6 +116,7 @@ void wave_lib_spectrum::spectrum_file_2d_read(lexer *p)
 	{
 		if(p->mpirank==0)
 			cout<<endl<<("no 'spectrum-file-2d.dat' file found")<<endl<<endl;
+		exit(1);
 	}
 
 	// Read header line to determine number of directions
