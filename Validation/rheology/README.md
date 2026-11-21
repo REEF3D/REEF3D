@@ -674,7 +674,7 @@ With `D 22 1` the bed acts as free slip, so the current runs off like an invisci
 
 ![](26_gjerdrum_2020/results/26_series_maps.png)
 
-## Two-layer landslide: slide layer under the SFLOW and NHFLOW water (W 150), cases 16-19, 28 and 29
+## Two-layer landslide: slide layer under the SFLOW and NHFLOW water (W 150), cases 16-19, 28, 29 and 32
 
 A depth-averaged slide layer (h_s, h_s u_s) under the water (`src/slide2D.{h,cpp}`, `src/slide2D_flux.cpp`). The water
 is the SFLOW water and sees the bed z_b + h_s; the slide sees the water pressure and the drag of the water.
@@ -718,9 +718,10 @@ is the SFLOW water and sees the bed z_b + h_s; the slide sees the water pressure
   and in the continuity of the bed node of the pressure projection (A 520 1, 2). The slide sees the hydrostatic water
   pressure −r·sub·g h_s∇η. Without w_b in the projection the multi-layer pressure holds each lift of the surface in
   place (benchmark 4: WG1 3.4 / −1.6 cm). The explicit NHFLOW (A 510 2/3), A 520 0, 1, 2, one Cartesian grid, MPI;
-  stops with a message with the semi-implicit NHFLOW, S 10, curvilinear, refined and multi-block grids and W 155 > 0
-  (the drag on the water layers is not there yet). Log `REEF3D_NHFLOW_Log/REEF3D_NHFLOW_slide.dat`, the slide fields
-  in the NHFLOW FSF VTP and the LAGOON store.
+  stops with a message with the semi-implicit NHFLOW, S 10, curvilinear, refined and multi-block grids. The interface
+  drag W 155 acts on the bottom layer of the water (thickness Δσ_0 h_w), point-implicit as the bed friction
+  (`nhflow_bcmom`), with the velocity of that layer on the slide side. Log `REEF3D_NHFLOW_Log/REEF3D_NHFLOW_slide.dat`,
+  the slide fields in the NHFLOW FSF VTP and the LAGOON store.
 - **Available with:** the explicit HLL water (A 210 2/3) and the semi-implicit water (A 210 11/12/13, case 19), hydrostatic
   (A 220 0) or with the quadratic non-hydrostatic pressure (A 220 2, explicit water, case 28), one Cartesian grid, 1D and
   2D, MPI. The semi-implicit step keeps the water column of the end of the step before (`si_restore`) and takes the moved
@@ -737,7 +738,7 @@ is the SFLOW water and sees the bed z_b + h_s; the slide sees the water pressure
 | W 152 | 5 × double, several | box xs xe ys ye d: a layer of the thickness d over the bed |
 | W 153 | 5 × double, several | semi-ellipsoid xc yc Lx Ly T: thickness T √(1 − r²), Lx, Ly the horizontal axes |
 | W 154 | double | bulk density of the slide ρ_s [kg/m³] (2000); must be larger than W 1 |
-| W 155 | double | interface drag coefficient C_d (0) |
+| W 155 | double | interface drag coefficient C_d (0); SFLOW and NHFLOW (the bottom water layer) |
 | W 156 | double | water depth [m] over which the slide becomes fully submerged (0.01) |
 | W 157 | double | CFL of the slide sub-steps (0.4) |
 | W 158 | double | slide depth threshold [m], dry below (1e-5) |
@@ -956,6 +957,45 @@ rest. 1 rank (2 ranks for benchmark 4: within 1.5e-9 m of 1 rank).
 ![](29_slide_nhflow/results/29_bm4_gauges.png)
 ![](29_slide_nhflow/results/29_dambreak_nh.png)
 
+### 32 NTHMP benchmark 5: subaerial granular slide on 45° (Viroulet et al. 2014)
+
+Dry glass beads behind a vertical gate on a 45° slope, the front face at the water line, released into 0.148 / 0.15 m of
+water; gauges WG1-WG4 at 0.45 / 0.75 / 1.05 / 1.35 m from the gate (IRPHE flume, 2.2 m). Case 1: beads of 1.5 mm, a
+triangle of L = 0.11 m; case 2: 10 mm, L = 0.135 m. Bulk density 1500 kg/m³ (packing 0.6, dry), Coulomb 24°, the
+interface drag W 155 0.02. SFLOW hydrostatic and non-hydrostatic (A 220 2, W 162 0.1), NHFLOW non-hydrostatic (10
+layers, W 162 0.02), dx 2.5 mm, 2.5 s. Times aligned on the first crest at WG1 (the record starts at the release; the
+lead of each run in the table). Details in 32_slide_nthmp_bm5/README.md.
+
+Gauge max / min (cm) up to the wave reflected at the end wall, and the RMS difference / measured range:
+
+| case 1 | WG1 | WG2 | WG3 | WG4 | lead | runout |
+|---|---|---|---|---|---|---|
+| measured | 1.73 / −1.32 | 1.42 / −1.20 | 1.23 / −1.04 | 1.14 / −0.85 | | |
+| SFLOW hydrostatic | 3.15 / −0.91, 0.30 | 3.19 / −0.91, 0.28 | 3.06 / −0.91, 0.28 | 2.77 / −0.90, 0.30 | 0.34 s | 0.94 m |
+| SFLOW NH | 1.88 / −1.28, 0.19 | 1.59 / −1.13, 0.27 | 1.48 / −0.96, 0.22 | 1.39 / −0.58, 0.10 | 0.16 s | 1.05 m |
+| NHFLOW NH | 1.74 / −0.89, 0.19 | 1.72 / −0.82, 0.22 | 1.56 / −0.84, 0.19 | 1.46 / −0.58, 0.13 | 0.20 s | 1.04 m |
+
+| case 2 | WG1 | WG2 | WG3 | WG4 | lead | runout |
+|---|---|---|---|---|---|---|
+| measured | 2.27 / −1.38 | 1.92 / −1.48 | 1.69 / −1.42 | 1.54 / −1.24 | | |
+| SFLOW hydrostatic | 3.85 / −1.00, 0.26 | 3.86 / −1.01, 0.23 | 3.86 / −1.01, 0.25 | 3.53 / −1.01, 0.27 | 0.30 s | 1.04 m |
+| SFLOW NH | 2.58 / −1.49, 0.11 | 2.13 / −1.45, 0.13 | 2.06 / −1.19, 0.14 | 1.99 / −0.53, 0.16 | 0.12 s | 1.21 m |
+| NHFLOW NH | 2.27 / −1.03, 0.12 | 2.37 / −0.95, 0.12 | 2.25 / −0.86, 0.12 | 2.13 / −0.52, 0.15 | 0.16 s | 1.20 m |
+
+- The hydrostatic water makes a bore of twice the measured crest. Both non-hydrostatic waters give the leading crest at
+  WG1 within 15 % (NHFLOW case 1: 1.74 against 1.73 cm, case 2: 2.27 against 2.27 cm) and its shape at all gauges; the
+  crest is 10-40 % high at WG2-WG4 in case 2. The first trough is 20-40 % shallow in NHFLOW, closer in SFLOW.
+- The waves come 0.12-0.2 s early: the gate of the experiment takes time to open, the model releases the triangle at once.
+- **W 155:** without the interface drag the slide runs 1.7 m (case 1) and 2.1 m (case 2, up to the end wall) and the crests
+  are 15 % low; with W 155 0.02 the slide stops about 1 m from the gate and WG1 matches; 0.05 makes the crests 10 % high.
+  W 155 on NHFLOW is new with this case (the bottom water layer, `nhflow_bcmom`).
+- **SFLOW NH:** W 162 0.02 lets the shoreline on the 45° slope oscillate (WG1 ±3 cm late in the run); 0.1 is stable.
+- Grid: dx 1.25 mm changes the gauges by at most 0.06 cm (case 1, both models). Run times (2 cores): SFLOW hydrostatic
+  7 s, SFLOW NH 18-20 s, NHFLOW NH 67-74 s; dx 1.25 mm 86 / 318 s.
+
+![](32_slide_nthmp_bm5/results/32_bm5_case1_gauges.png)
+![](32_slide_nthmp_bm5/results/32_bm5_case2_gauges.png)
+
 ## Not covered yet
 
 - Mesh refinement (G 1): the friction step runs in every level's stage. The pore pressure is advected per level and not exchanged between levels.
@@ -971,7 +1011,9 @@ rest. 1 rank (2 ranks for benchmark 4: within 1.5e-9 m of 1 rank).
 - Slide layer (W 150): the non-hydrostatic water with the slide is the one-layer quadratic pressure (A 220 2) only, explicit
   water only, with the filter W 162 chosen by hand (0.02 for case 28, 0.5 in deep water); the near field over the slide
   (WG1 of case 28) is underpredicted by half. A 220 1, 3, 4 stop with a message.
-- Slide layer (W 150) under NHFLOW: explicit NHFLOW only (not the semi-implicit A 510 11-13), no interface drag on the
-  water layers (W 155), the slide sees the hydrostatic water pressure only (not the non-hydrostatic bottom pressure).
+- Slide layer (W 150) under NHFLOW: explicit NHFLOW only (not the semi-implicit A 510 11-13), the slide sees the
+  hydrostatic water pressure only (not the non-hydrostatic bottom pressure).
+- Subaerial slides (case 32): the gate is removed at once, the waves come 0.12-0.2 s early (non-hydrostatic); the first
+  trough behind the leading crest is 20-40 % too shallow; the interface drag W 155 is chosen by hand (0.02).
 - Slide layer (W 150): sediment (S 10) together with the slide, curvilinear and refined grids; the dilatancy source of
   the pore pressure.

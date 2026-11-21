@@ -79,6 +79,8 @@ public:
     // drag of the slide on the water: the rhs of the water momentum (b->F, b->G), called in the water stages
     void u_source(lexer*, fdm2D*, slice&, slice&, slice&);
     void v_source(lexer*, fdm2D*, slice&, slice&, slice&);
+    // NHFLOW: the drag on the bottom water layer (comp 0: U into F, 1: V into G), called with the bed friction
+    void drag_nhflow(lexer*, fdm_nhf*, int, double*, double*, slice&);
 
     // output (SFLOW FSF VTP and the LAGOON store, P 18)
     void offset_vtp(lexer*, int*, int&);

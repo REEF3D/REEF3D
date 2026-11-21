@@ -96,9 +96,6 @@ void driver::logic_nhflow()
         if(p->G1>0 || p->geo_mb>0)
         why = "mesh refinement and multi-block grids (G 1, G 50 1)";
         
-        if(p->W155>0.0)
-        why = "the interface drag W 155 (not on the NHFLOW water yet)";
-        
         if(!why.empty())
         {
             if(p->mpirank==0)

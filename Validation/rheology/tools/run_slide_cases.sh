@@ -4,7 +4,7 @@
 # Runs the two-layer landslide cases 16-19 (SFLOW slide layer W 150) on both grids, with the single-layer
 # cases 01 and 02 for the comparison, and evaluates them with slide_eval.py (figures and JSON in <out dir>);
 # then 18 with the non-hydrostatic water and case 28 (NTHMP benchmark 4) against the measurements (bm4_eval.py);
-# then case 29 (the slide layer under NHFLOW).
+# then case 29 (the slide layer under NHFLOW) and case 32 (NTHMP benchmark 5, subaerial).
 set -euo pipefail
 BIN="$1"; DM="$2"; RUN="$3"; OUT="${4:-$RUN/results}"
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"; V="$(cd "$HERE/.." && pwd)"
@@ -89,6 +89,10 @@ fine $B4/nh $RUN/_c/bm4_nh_fine; run $RUN/_c/bm4_nh_fine bm4_nh_fine
 N4=$C/29_slide_nhflow/cases
 for c in dambreak_h dambreak_nh bm4_h bm4_nh rest_slope; do run $N4/$c nhf_$c; done
 
+# 32: NTHMP benchmark 5
+B5=$C/32_slide_nthmp_bm5/cases
+for c in case1_sflow_h case1_sflow_nh case1_nhflow_nh case2_sflow_h case2_sflow_nh case2_nhflow_nh; do run $B5/$c bm5_$c; done
+
 E="python3 $HERE/slide_eval.py"
 for g in "" _fine; do
     mkdir -p "$OUT/grid$g"
@@ -118,4 +122,11 @@ $E rest_nhflow $RUN/nhf_rest_slope  $OUT/29 > $OUT/29/rest_slope.json
 python3 $HERE/bm4_eval.py $M $OUT/29 "NHFLOW hydrostatic"=$RUN/nhf_bm4_h "NHFLOW NH, 10 layers, W 162 0.02"=$RUN/nhf_bm4_nh \
         "SFLOW NH, W 162 0.02 (case 28)"=$RUN/bm4_nh > $OUT/29/29_bm4.json
 mv $OUT/29/28_bm4_gauges.png $OUT/29/29_bm4_gauges.png
+mkdir -p "$OUT/32"
+for n in 1 2; do
+    h=0.148; f=bm5_case1_d1.5mm.txt; if [ $n = 2 ]; then h=0.15; f=bm5_case2_d10mm.txt; fi
+    python3 $HERE/bm4_eval.py --bench 5 --h $h --align crest --name 32_bm5_case$n $C/32_slide_nthmp_bm5/$f $OUT/32 \
+            "SFLOW hydrostatic"=$RUN/bm5_case${n}_sflow_h "SFLOW NH, W 162 0.1"=$RUN/bm5_case${n}_sflow_nh \
+            "NHFLOW NH, 10 layers"=$RUN/bm5_case${n}_nhflow_nh > $OUT/32/32_bm5_case$n.json
+done
 echo "results in $OUT"
