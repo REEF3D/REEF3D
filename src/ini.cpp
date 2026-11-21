@@ -287,7 +287,7 @@ void control::ini_default()
     A553=0.0;    // double NHFLOW breaking viscosity (A 550) in thin water: none below the depth A 553 [m], linear to the full value at 2 A 553 (swash, run-up), 0: off
     A554=0.6;    // double breaking parameter alpha (A 550 3: start of breaking, deta/dt > A 554 sqrt(g h); Kennedy et al. 2000: 0.35-0.65)
     A555=1.25;   // double breaking parameter slope alpha
-    A556=1.0;    // double NHFLOW breaking viscosity (A 550): its share on the faces between the layers (vertical stress), 1: in full; below 1 the undertow keeps its vertical shear (Cox et al. 1996, A 550 3: 0.1); not below about 0.05: the explicit mixed sigma terms of the horizontal breaking viscosity need the implicit vertical part (A 556 0 is unstable at a bore front)
+    A556=1.0;    // double NHFLOW breaking viscosity (A 550): its share on the faces between the layers (vertical stress), 1: in full on all faces (as before); below 1 the horizontal part acts along the sigma layers (no mixed sigma terms) and the undertow keeps its vertical shear; 0: vertical mixing by the turbulence model only (Cox et al. 1996, A 550 3: undertow -11.9 / -9.4 cm/s at L3 / L4, measured -11.6 at L4)
     A557=1.86;   // double viscosity breaking wave
     A558=0.0;    // double NHFLOW semi-implicit with A 520 > 0: breaking limiter of the vertical velocity |w| <= A 558 sqrt(g H) (Popinet 2020, 0.1 there), 0 off
     

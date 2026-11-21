@@ -68,9 +68,11 @@ void nhflow_idiff::diff_w(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow, s
             //  A 550 3: in all layers on all faces, the eddy viscosity of Kennedy et al. (2000) as a turbulent viscosity of
             //           the column (with the horizontal faces only, the surf zone depended on the number of layers)
             //  A 550 4: as A 550 3 with the depth profile of the orbital velocity (nhflow_breaking_profile.h)
-            //  A 556: share of vb on the faces between the layers (the vertical stress), 1 in full (nhflow_vbv)
+            //  A 556: share of vb on the faces between the layers (the vertical stress), 1 in full (nhflow_vbv); with
+            //         A 556 < 1 vb acts along the sigma layers: the explicit mixed terms do not take it (nhflow_vbsig)
             if(p->A550>=3 || k==p->knoz-1)
             {
+            if(!nhflow_vbsig(p))
             visc_IP +=  nhflow_vbz(p,d,i,j,p->ZP[KP]);
             visc_IM1 += 0.5*(nhflow_vbz(p,d,i,j,p->ZP[KP]) + nhflow_vbz(p,d,i-1,j,p->ZP[KP]));
             visc_IP1 += 0.5*(nhflow_vbz(p,d,i,j,p->ZP[KP]) + nhflow_vbz(p,d,i+1,j,p->ZP[KP]));

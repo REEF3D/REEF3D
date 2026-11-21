@@ -58,4 +58,14 @@ inline double nhflow_vbv(lexer *p)
     return MAX(0.0, MIN(1.0, p->A556));
 }
 
+// A 556 < 1: the horizontal part of vb acts along the sigma layers (Kennedy et al. 2000 diffuse along the layer of a
+// depth-integrated model): on the horizontal faces only, without the sigx, sigy parts of the sigma faces, the sigxx
+// terms and the explicit mixed terms 2 sigx d2u/dx dsigma. Those mixed terms are explicit and need an implicit
+// vertical part of the same viscosity for their stability; with the full vb in them A 556 0 grew grid-scale noise at
+// the bore front.
+inline bool nhflow_vbsig(lexer *p)
+{
+    return nhflow_vbv(p)<1.0;
+}
+
 #endif
