@@ -447,7 +447,7 @@ private:
     void nh_cell(lexer*, fdm_nhf*, ghostcell*);
     void nh_cell_faces(lexer*, fdm_nhf*, double*, double*);
 
-    // A 505 1: a cell side towards a wall (a solid or the outside of the domain, no open boundary face) counts in the
+    // a cell side towards a wall (a solid or the outside of the domain, no open boundary face) counts in the
     // cell momentum with its zero face term (cell_update, nh_cell); wSide: the sides of the cells with an open boundary
     // face (bits 1 x-, 2 x+, 4 y-, 8 y+), from bcf (wall_sides)
     std::vector<unsigned char> wSide;
@@ -543,7 +543,7 @@ private:
     bool onestep = false;
     bool tl2 = false;          // second-order time levels of the nonlinear terms (one Cartesian grid, no A 549 1)
     bool tp2 = false;          // the estimate pass for the advecting transport without tl2 (curvilinear, multi-block and
-                               // refined grids, A 505 1): the passes of tl2 with the other time levels of the step before
+                               // refined grids): the passes of tl2 with the other time levels of the step before
     double *accU = nullptr, *accV = nullptr, *accW = nullptr;    // tl2: the implicit acceleration of the step before
     double *FSx = nullptr, *FSy = nullptr;    // tl2: the sources of the last predictor stage (wind, Coriolis, ...; the wall sides)
     double thv = 1.0;                          // time level of the vertical advection in the column operator (1: implicit Euler)
