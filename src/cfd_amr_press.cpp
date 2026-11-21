@@ -1340,6 +1340,7 @@ void cfd_amr::pr_weights()
         }
         const double H = heaviside(0.5*(c->a->phi.V[F.qf] + c->a->phi.V[F.qm]),w);
         F.rof = rmix(c->pp,H,0.5*(sval(F.pid,F.qf) + sval(F.pid,F.qm)));
+        F.rog = F.rof;      // the density of the face without the porosity factor (G 17)
 
         // porous structures: the face density divided by the porosity factor of the face (all
         // the fluxes of the face, kf, kc and the corrections, carry it as pjm_corr / poisson_pcorr)
@@ -1519,6 +1520,42 @@ void cfd_amr::pr_hydro(int lsub)
     };
     std::unordered_map<unsigned long long,hcol> cols;
 
+    // G 17: where the two columns start.  Both start at the plane on top of the patch, each with half
+    // of its first cell and the density at the centre of that cell.  With the free surface near that
+    // plane the two half cells do not weigh the same: the coarse one reaches twice as far down and has
+    // the interface width of the coarse grid, and the value of the coarse cell above the plane, one
+    // coarse face up from there, came out several Pa off (3.6 Pa on a face in the air, with the
+    // surface 1.5 cm below the plane).  At rest that is the same along the edge and the pressure of
+    // the patch takes it up; under a surface that is not level it changes along the edge, and the fine
+    // row below the edge took a pressure gradient in the air (2.7 m/s against 0.3 m/s on one grid, a
+    // sloshing surface through the top of a band).
+    // G 17 1: the coarse column of a patch starts at the coarse cell above the plane, whose value is
+    // that of the fine cell below it less the weight between the two centres with the density of the
+    // face between them (the face of the patch edge then has the gravity of its own density, as any
+    // face of a grid); the mean over the fine columns under the coarse one.  Down from there the
+    // columns are as before.  With one phase at the plane both are the same (kept to the last digit).
+    std::unordered_map<unsigned long long,std::pair<double,int>> anch;
+    auto akey = [&](int gg, int i, int j, int k) -> unsigned long long
+    {
+        int og[3];
+        goff(gg,og);
+        return ((unsigned long long)(glevel(gg)+1)<<56) | ((unsigned long long)(i+og[0]+64)<<38) | ((unsigned long long)(j+og[1]+64)<<20) | (unsigned long long)(k+og[2]+64);
+    };
+    if(p0->G17==1 && zgrav && rr[2]==2)
+    for(cfd_amr_cf &F : cf)
+    if(F.d==2 && F.dir>0)
+    {
+        lexer *pp = CP(F.pid)->pp;
+        field &pf = lsf(F.pid);
+        const int i = F.fi[0], j = F.fi[1], kt = F.fi[2];
+        if(kt!=pp->knoz-1)
+        continue;
+        const double Hf = heaviside(pf(i,j,kt),interface_width(pp,pf,i,j,kt));
+        auto &a = anch[akey(F.gc,F.ci[0],F.ci[1],F.ci[2])];
+        a.first += g*(pp->W1*Hf + pp->W3*(1.0-Hf))*0.5*pp->DZN[kt+marge] - g*F.rog*F.dist;
+        a.second += 1;
+    }
+
     auto column = [&](int gg, int i, int j, int ktop, int kc, double &val) -> bool
     {
         lexer *q = glex(gg);
@@ -1541,6 +1578,40 @@ void cfd_amr::pr_hydro(int lsub)
             c.kdone = ktop-1;
             c.bad = false;
             c.h = g*rho(phi(i,j,ktop-1),interface_width(q,phi,i,j,ktop-1))*0.5*q->DZN[ktop-1+marge];   // cell ktop-1
+            if(p0->G17==1)
+            {
+                // G 17: from the coarse cell above the plane (its value: the anchor), one face down
+                const double hold = c.h;
+                auto start = [&](int ii, int jj, double &h0, double &h1) -> bool
+                {
+                    auto ia = anch.find(akey(gg,ii,jj,ktop));
+                    if(ia==anch.end())
+                    return false;
+                    h0 = g*rho(phi(ii,jj,ktop-1),interface_width(q,phi,ii,jj,ktop-1))*0.5*q->DZN[ktop-1+marge];
+                    h1 = ia->second.first/double(ia->second.second)
+                       + g*rho(0.5*(phi(ii,jj,ktop-1)+phi(ii,jj,ktop)),interface_width_face(q,phi,ii,jj,ktop-1,0,0,1))*q->DZP[ktop-1+marge];
+                    return true;
+                };
+                double h0,h1;
+                if(start(i,j,h0,h1))
+                c.h = h1;
+                else
+                {
+                    // a column beside the patch (the neighbour of a face at a corner of the patch):
+                    // the shift of the column next to it under the patch
+                    bool found = false;
+                    for(int di=-1; di<=1 && !found; ++di)
+                    for(int dj=-1; dj<=1 && !found; ++dj)
+                    if((di!=0 || dj!=0) && i+di>=-m && i+di<=q->knox+m-1 && j+dj>=-m && j+dj<=q->knoy+m-1 && start(i+di,j+dj,h0,h1))
+                    {
+                        c.h = hold + (h1-h0);
+                        found = true;
+                    }
+                }
+                // one phase at the plane: the same value, kept as it was
+                if(fabs(c.h-hold)<=1.0e-12*(fabs(hold)+1.0e-30))
+                c.h = hold;
+            }
             c.hk.push_back(c.h);
             it = cols.emplace(key,std::move(c)).first;
         }

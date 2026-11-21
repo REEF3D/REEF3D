@@ -21,6 +21,7 @@ Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include<cstring>
+#include<unordered_map>
 #include"cfd_airband_dt.h"
 #include"cell_index.h"
 #include"cfd_amr.h"
@@ -2017,6 +2018,13 @@ void cfd_amr::restrict_press_hydro(int l)
         const int nch = rr[0]*rr[1];
         vector<double> hf(nch), phf(nch), wf(nch);
 
+        // G 17 (pr_hydro): the faces on top of the patch, by their fine cell
+        std::unordered_map<long long,const cfd_amr_cf*> topf;
+        if(p0->G17==1)
+        for(const cfd_amr_cf &F : cf)
+        if(F.pid==id && F.d==2 && F.dir>0)
+        topf[(long long)F.fi[0]*1048576 + F.fi[1]] = &F;
+
         int P[3];
         for(P[0]=Plo[0]; P[0]<=Phi[0]; ++P[0])
         for(P[1]=Plo[1]; P[1]<=Phi[1]; ++P[1])
@@ -2047,7 +2055,38 @@ void cfd_amr::restrict_press_hydro(int l)
                 const double w = interface_width(q,ac->phi,i,j,k);
                 const double dz = q->DZN[k+marge];
                 if(P[2]==Phi[2])
-                hc = g*rho(q,ph,w)*0.5*dz;
+                {
+                    hc = g*rho(q,ph,w)*0.5*dz;
+                    // G 17: the coarse column from the coarse cell above the plane, as pr_hydro (the
+                    // density of the faces of the patch edge of the last projection)
+                    if(p0->G17==1)
+                    {
+                        const double hold = hc;
+                        double A = 0.0;
+                        int na = 0;
+                        const cfd_amr_cf *F0 = nullptr;
+                        for(int a=0; a<rr[0]; ++a)
+                        for(int b=0; b<rr[1]; ++b)
+                        {
+                            const int fi = P[0]*rr[0]+a-c->lo[0], fj = P[1]*rr[1]+b-c->lo[1], fk = pp->knoz-1;
+                            auto it = topf.find((long long)fi*1048576 + fj);
+                            if(it==topf.end())
+                            continue;
+                            F0 = it->second;
+                            A += g*rho(pp,af->phi(fi,fj,fk),interface_width(pp,af->phi,fi,fj,fk))*0.5*pp->DZN[fk+marge] - g*F0->rog*F0->dist;
+                            ++na;
+                        }
+                        if(na==nch && F0!=nullptr)
+                        {
+                            lexer *qa = glex(F0->gc);
+                            fdm *aa = gfd(F0->gc);
+                            const int *ci = F0->ci;
+                            hc = A/double(na) + g*rho(qa,0.5*(aa->phi(ci[0],ci[1],ci[2]-1)+aa->phi(ci[0],ci[1],ci[2])),interface_width_face(qa,aa->phi,ci[0],ci[1],ci[2]-1,0,0,1))*qa->DZP[ci[2]-1+marge];
+                            if(fabs(hc-hold)<=1.0e-12*(fabs(hold)+1.0e-30))
+                            hc = hold;
+                        }
+                    }
+                }
                 else
                 hc += g*rho(q,0.5*(ph+phc),0.5*(w+wc))*0.5*(dz+dzc);
                 phc = ph;

@@ -266,6 +266,7 @@ struct cfd_amr_cf
     double kf, kc;      // flux coefficients of the fine and the coarse row
     double ap;          // D 1 2: the open fraction of the fine face (solid_aperture.h); 1 otherwise
     double rof;         // face density of the stage (pr_weights)
+    double rog;         // the same without the porosity factor (the weight of the face, G 17)
     double gs, gf;      // F 41 1, the ghost fluid method across the face (pr_weights): the gradient
                         // (gs x_coarse - gf x_fine)/dist (1, 1: no surface between; 0, 1/theta: the
                         // fine cell in the water, p = 0 at the surface; 1/theta, 0: the other way)
