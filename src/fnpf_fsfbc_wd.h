@@ -41,8 +41,6 @@ Author: Hans Bihs
 #include <variant>
 #include <vector>
 
-class fnpf_laplace;
-class field;
 class fnpf_coastline;
 class solver2D;
 class wind;
@@ -93,7 +91,6 @@ private:
 
     sliceint4 wetcoast;
     slice4 ef,df;
-    slice4 eqxm,eqxp,eqym,eqyp; // A315 3: left/right-biased eta gradients for the Godunov kinematic FSBC
 
     // dynamic wetting-drying (A343 2: runup and rundown, A343 3: rundown only)
     void wetdry_dynamic(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&);
@@ -131,7 +128,7 @@ private:
     solver2D *psolv;
     wind *pwind;
 
-    double ivel,jvel,kvel;
+    double ivel,jvel;
 
     double dist3,dist4,dist5,expinverse,db;
 
@@ -142,8 +139,6 @@ private:
 
     int count_n;
     int coastline_count;
-
-    static constexpr double eps = 1.0e-6;
 };
 
 #endif

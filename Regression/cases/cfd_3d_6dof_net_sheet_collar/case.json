@@ -1,0 +1,21 @@
+{
+ "description": "3D floating thin-walled collar (STL torus shell, 1 cm wall on a 5 cm grid) with a net sheet hanging below it (X 320 4, net_sheet, OceanFarm cylinder with bottom, X 321/X 322), surge, heave and pitch free, 2 MPI ranks. The remeshed surface (X 185 4 default, X 186 2) loses 38 % of the volume and is rejected, the input triangles are split as with X 185 1 (6DOF_geometry_remesh, patch Aquaculture CFD/0001); net load moments r x F and the gravity force of the twines (net_sheet::netForces, inertiaForce, patch Aquaculture CFD/0002).",
+ "np": 2,
+ "steps": 15,
+ "files": [
+  "floating.stl"
+ ],
+ "tags": [
+  "3d",
+  "6dof",
+  "floating",
+  "net",
+  "mpi"
+ ],
+ "covers": [
+  "sixdof_geometry::geometry_remesh volume check and fallback to geometry_refinement",
+  "net_sheet::netForces moments",
+  "net_sheet gravity + inertia force",
+  "net_interface::netForces_cfd with a floating body"
+ ]
+}

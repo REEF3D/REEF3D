@@ -1,0 +1,4 @@
+{"base": "cfd_2d_towed_plate_b10", "ctrl_set": {"T 10": "2"},
+ "description": "as cfd_2d_towed_plate_b10 with k-omega: the wall law of k at the faces of the towed plate uses the velocity relative to the body (komega_bc::wall_law_kin, body faces).",
+ "tags": ["2d", "6dof", "turbulence", "walls"],
+ "covers": ["komega_bc::wall_law_kin relative velocity at gcdf faces"]}

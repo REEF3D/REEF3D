@@ -31,8 +31,10 @@ Author: Hans Bihs
 
 
 bedshear::bedshear(lexer *p, turbulence *ppturb) : norm_vec(p), kappa(0.4), uw_mean(p), vw_mean(p), uw_old(p), vw_old(p), uw_hat(p),
-                                                    uw_dt(p), vw_dt(p)
+                                                    uw_dt(p), vw_dt(p), ua_old(p), va_old(p), ua_dt(p), va_dt(p)
 {
+    ta_old=0.0;
+    ta_count=0;
     tau=0.0;
     tauc=0.0;
     pturb=ppturb;
@@ -144,7 +146,7 @@ double bedshear::tau_wave(lexer *p, double uvel, double vvel, double ks, double 
 double bedshear::tau_wave_current(lexer *p, double uvel, double vvel, double ks, double density, double zs)
 {
     // updates the running mean, the oscillatory part and fw (once per bed column and step)
-    double tw = tau_wave(p,uvel,vvel,ks,density);
+    tau_wave(p,uvel,vvel,ks,density);
     
     double T = p->S58>0.0 ? p->S58 : p->wT;
     
@@ -201,7 +203,7 @@ bedshear::~bedshear()
 void bedshear::taubed(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
 {
 	int count;
-	double zval,fac,topoval,taukin,tauvel,density;
+	double zval,taukin,tauvel,density;
     double tau_eff,tau_i;
     
     if(p->S16==9)
@@ -326,7 +328,6 @@ void bedshear::taubed(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
     if(p->S16==6)
     {
         double Cval,wh;
-        double bedlevel,waterlevel;
         count=0;
         uvel=vvel=wh=0.0;
         KLOOP
@@ -378,7 +379,7 @@ void bedshear::taubed(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
     
     if(p->S16==8)
     {
-    double E,B,dB,ustar,y_plus,visc,ks_plus,tau0;
+    double ustar,y_plus,visc,ks_plus,tau0;
     double v_d,v_t;
     
     visc=p->W2;
@@ -503,8 +504,9 @@ bed shear stress of a bed column from the flow above the bed level set (S 16 10 
             in its cell (validation 26)
 --------------------------------------------------------------------*/
 bool bedshear::column_tau(lexer *p, fdm *a, turbulence *pt, int i, int j, double zbed, double ks, double href, int kmode,
-                          double rho, double &tx, double &ty, double &hcell, bool &rest, int wall)
+                          double rho, double &tx, double &ty, double &hcell, bool &rest, int wall, int kref)
 {
+    double kin_ref = -1.0;      // kref 1: k at the reference height
     int kb = MAX(0,MIN(p->knoz-1, p->posc_k(zbed)));
     double ur=0.0, vr=0.0, zr=0.0;
     bool found=false;
@@ -584,16 +586,20 @@ bool bedshear::column_tau(lexer *p, fdm *a, turbulence *pt, int i, int j, double
         
         zref = MAX(zref, zb + zr);
         
-        // linear between the cell centres around zref
+        // linear between the cell centres around zref (also between the first two: href between half a cell
+        // and one and a half cells, as the first cell of a coarser grid on the CPM grid of the mesh refinement)
         int kr = k0;
         while(kr+1<p->knoz && p->ZP[kr+1+marge]<=zref)
         ++kr;
         
-        if(kr>k0 && kr+1<p->knoz && !(p->solidread>0 && a->solid(i,j,kr+1)<0.0))
+        if((kr>k0 || zref>p->ZP[k0+marge]) && kr+1<p->knoz && !(p->solidread>0 && a->solid(i,j,kr+1)<0.0))
         {
             double f = (zref - p->ZP[kr+marge])/(p->ZP[kr+1+marge] - p->ZP[kr+marge]);
             double u0 = 0.5*(a->u(i-1,j,kr) + a->u(i,j,kr)), u1 = 0.5*(a->u(i-1,j,kr+1) + a->u(i,j,kr+1));
             ur = (1.0-f)*u0 + f*u1;
+            
+            if(kref==1 && pt!=nullptr)
+            kin_ref = (1.0-f)*pt->kinval(i,j,kr) + f*pt->kinval(i,j,kr+1);
             
             if(p->j_dir==1)
             {
@@ -608,13 +614,16 @@ bool bedshear::column_tau(lexer *p, fdm *a, turbulence *pt, int i, int j, double
             ur = 0.5*(a->u(i-1,j,kr) + a->u(i,j,kr));
             vr = p->j_dir==1 ? 0.5*(a->v(i,j-1,kr) + a->v(i,j,kr)) : 0.0;
             zr = p->ZP[kr+marge] - zb;
+            
+            if(kref==1 && pt!=nullptr)
+            kin_ref = pt->kinval(i,j,kr);
         }
     }
 
     double um = sqrt(ur*ur + vr*vr);
     
     int km = (pt!=nullptr && !rest) ? kmode : 0;
-    double tau = tau_logk(um, zr, ks, km>0 ? pt->kinval(i,j,k) : 0.0, km, rho);
+    double tau = tau_logk(um, zr, ks, km>0 ? (kin_ref>=0.0 ? kin_ref : pt->kinval(i,j,k)) : 0.0, km, rho);
 
     tx = um>1.0e-12 ? tau*ur/um : 0.0;
     ty = um>1.0e-12 ? tau*vr/um : 0.0;

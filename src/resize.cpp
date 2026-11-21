@@ -21,6 +21,8 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"resize.h"
+#include<cstdlib>
+#include<new>
 
 void resize_class::Darray(double*& field, int numi)
 {
@@ -28,6 +30,25 @@ void resize_class::Darray(double*& field, int numi)
     {
         field = new double[numi] {0.0};
     }
+}
+
+void resize_class::Darray_lazy(double*& field, int numi)
+{
+    field = nullptr;
+
+    if(numi > 0)
+    {
+        field = static_cast<double*>(calloc((size_t)numi,sizeof(double)));
+
+        if(field==nullptr)
+        throw std::bad_alloc();
+    }
+}
+
+void resize_class::del_Darray_lazy(double*& field)
+{
+    free(field);
+    field = nullptr;
 }
 
 void resize_class::Darray(double**& field, int numi, int numj)

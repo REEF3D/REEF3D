@@ -1,0 +1,18 @@
+{
+ "base": "nhflow_2d_awa",
+ "same_as": "nhflow_2d_awa",
+ "ctrl_set": {
+  "N 48": "2"
+ },
+ "description": "as nhflow_2d_awa with N 48 2: the stability step of the grid is an FNPF rule (N 51 2 until November 2026), NHFLOW (explicit) takes N 48 2 as N 48 1; regression.py ranks: bitwise nhflow_2d_awa (FNPF_time_integration/0005).",
+ "tags": [
+  "quick",
+  "2d",
+  "nhflow",
+  "waves",
+  "iowave"
+ ],
+ "covers": [
+  "N 48 2 outside FNPF"
+ ]
+}

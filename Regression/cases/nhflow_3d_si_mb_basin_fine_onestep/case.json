@@ -1,0 +1,19 @@
+{
+ "base": "nhflow_3d_si_mb_basin_fine",
+ "ctrl_set": {
+  "A 510": "11"
+ },
+ "description": "nhflow_3d_si_mb_basin_fine with the one-step predictor (A 510 11): the BCG advection on wavy curvilinear blocks (slopes per index, the normal velocity of the face, the transverse term over the centre distance), the face depths and omega of every block at t^{n+1/2} (nh_begin), Crank-Nicolson vertical advection.",
+ "tags": [
+  "3d",
+  "nhflow",
+  "semi_implicit",
+  "multiblock",
+  "curvilinear"
+ ],
+ "covers": [
+  "nhflow_momentum_SI::advection_bcg on curvilinear blocks",
+  "nhflow_amr::si_step: nh_begin on every grid"
+ ],
+ "architect": "Hans Bihs"
+}

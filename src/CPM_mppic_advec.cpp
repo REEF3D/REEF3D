@@ -319,7 +319,7 @@ void CPM::nearbed_velocity(lexer *p, fdm *a, double xp, double yp, double zp, do
         double vr = p->j_dir==1 ? p->ccipol2c(a->v,xr,yr,zr) : 0.0;
         double wr = p->ccipol3c(a->w,xr,yr,zr);
         
-        double ks = MAX(p->S21*p->S20, 1.0e-6);
+        double ks = MAX(mx_nf>0 ? mixture_ks(p,pci(p,-1,xp),p->j_dir==1?pcj(p,-1,yp):0) : p->S21*p->S20, 1.0e-6);
         // velocity at the top of the grain dp in the log layer of the bed roughness ks = S 21 d50:
         // small grains of a mixture lie lower in the roughness and are hidden (WP6)
         double fac = log(MAX(30.0*dp/ks,1.0+1.0e-6))/log(MAX(30.0*zref/ks,1.0+1.0e-6));
@@ -388,11 +388,10 @@ void CPM::bagnold_update(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
     tauB.assign((p->knox+2)*nj, 0.0);
     
     // bed shear stress per column: log law at 0.5 h above the bed level
-    const double ks = MAX(p->S21*p->S20, 1.0e-6);
-    
     for(i=0;i<p->knox;++i)
     for(j=0;j<p->knoy;++j)
     {
+        const double ks = MAX(mx_nf>0 ? mixture_ks(p,i,j) : p->S21*p->S20, 1.0e-6);
         k = MAX(0,MIN(p->knoz-1, p->posc_k(s->bedzh(i,j))));
         double h = p->DZN[KP];
         double zr = s->bedzh(i,j) + 0.5*h;
@@ -514,6 +513,11 @@ grain layer
 
 are exposed, the last one with the remaining fraction. The exposed volume per bed area is
 theta_0 d for any cell size and parcel factor.
+
+Graded sediment (S 51): the layer is the surface layer L_a of the mixture (CPM_mixture.cpp),
+V_e = theta_0 L_a A, and a parcel of the grain size d is exposed with its share of the layer
+times d/L_a. The bed area of a parcel, expo V_parcel/(theta_0 d), is then its volume share of
+the surface layer times A: the fractions share the bed area with their volume shares F_q.
 --------------------------------------------------------------------*/
 void CPM::exposure_update(lexer *p, fdm *a)
 {
@@ -527,6 +531,15 @@ void CPM::exposure_update(lexer *p, fdm *a)
     
     const int nj = p->knoy+2;
     const size_t nc = size_t(p->knox+2)*nj;
+    
+    if(mx_nf>0)
+    {
+        mx_F.assign(nc*mx_nf, 0.0);
+        mx_d50.assign(nc, 0.0);
+        mx_dm.assign(nc, 0.0);
+        mx_d90.assign(nc, 0.0);
+        mx_V.assign(nc, 0.0);
+    }
     const double vpar = P.ParcelFactor*Vp;
     
     // the bed parcels of each column (flat lists, in the order of the parcels), then sorted from the top
@@ -572,7 +585,13 @@ void CPM::exposure_update(lexer *p, fdm *a)
         
         std::sort(b, e, [](const std::pair<double,int> &a1, const std::pair<double,int> &a2){return a1.first>a2.first;});
         
-        double Ve = theta_0*p->S20*p->DXN[IP]*p->DYN[JP];
+        // graded sediment (S 51): composition of the surface layer of the column
+        if(mx_nf>0)
+        mixture_column(p,c,b,e,p->DXN[IP]*p->DYN[JP]);
+        
+        // graded sediment: the surface layer L_a takes the place of the grain layer, a grain d of it
+        // is exposed with d/L_a, so that the exposed parcels of the column cover its bed area
+        double Ve = theta_0*(mx_nf>0 ? mx_La : p->S20)*p->DXN[IP]*p->DYN[JP];
         
         for(auto q=b; q!=e && Ve>0.0; ++q)
         {
@@ -581,7 +600,7 @@ void CPM::exposure_update(lexer *p, fdm *a)
             double f = MIN(1.0, Ve/vp);
             
             // exposure weight: share of the parcel in the top grain layer
-            expo[nn] = f;
+            expo[nn] = mx_nf>0 ? f*MIN(1.0, P.D[nn]/mx_La) : f;
             Ve -= f*vp;
         }
     }

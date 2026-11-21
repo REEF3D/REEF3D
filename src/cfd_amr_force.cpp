@@ -45,25 +45,6 @@ Architect: Hans Bihs
 
 namespace
 {
-struct pscope5
-{
-    ghostcell *g;
-    fdm *back;
-    bool oldc, oldl;
-    pscope5(ghostcell *gg, fdm *a, fdm *a0) : g(gg), back(a0)
-    {
-        oldc = g->set_comms(false);
-        oldl = g->set_local(true);
-        g->fdm_update(a);
-    }
-    ~pscope5()
-    {
-        g->fdm_update(back);
-        g->set_comms(oldc);
-        g->set_local(oldl);
-    }
-};
-
 // the cell of [0,n) whose nodes hold x (N with the margin offset), -1 outside
 int node_cell(const vector<double> &N, int n, int m, double x)
 {
@@ -165,7 +146,7 @@ void cfd_amr::patch_forces(int ID, double *F)
         if(ID>=(int)c->forces.size() || c->forces[ID]==nullptr)
         continue;
 
-        pscope5 ps(pgc0,c->a,a0);
+        cfd_amr_scope ps(pgc0,c->a,a0);
 
         // the triangulation of the surface of the patch (its solid field is static)
         if(c->forces_tri[ID]==0)

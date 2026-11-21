@@ -28,7 +28,7 @@ Author: Hans Bihs
 void vrans_veg::initialize_cfd(lexer *p, fdm *a, ghostcell *pgc)
 {
 	int qn;
-    double zmin,zmax,slope;
+    double zmin,slope;
     double xs,xe,ys,ye;
 	
 	

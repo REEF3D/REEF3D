@@ -703,3 +703,37 @@ void regression_dump::seastate_final(lexer *p, fdm_seastate *e, ghostcell *pgc)
     steplog.flush();
     seastate_state(p,e);
 }
+
+// ---------------------------------------------------------------------
+// a model with its own fields (REEF3D::HYDRO catchment model)
+// ---------------------------------------------------------------------
+
+void regression_dump::model_ini(lexer *p, const std::string &header)
+{
+    if(!is_active)
+    return;
+
+    steplog<<"# count simtime dt  "<<header<<"  (rank-local, hexfloat)"<<std::endl;
+}
+
+void regression_dump::model_step(lexer *p, const std::vector<double> &sums)
+{
+    if(!is_active)
+    return;
+
+    steplog<<p->count<<" "<<p->simtime<<" "<<p->dt<<" ";
+    for(double s : sums)
+    steplog<<" "<<s;
+    steplog<<"\n";
+}
+
+void regression_dump::model_state(lexer *p, const std::vector<std::string> &n, const std::vector<std::vector<double>> &d)
+{
+    if(!is_active || last_written==p->count)
+    return;
+
+    steplog.flush();
+    names=n;
+    data=d;
+    write_state(p);
+}

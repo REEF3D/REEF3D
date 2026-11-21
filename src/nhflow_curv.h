@@ -47,7 +47,7 @@ using namespace std;
 // Horizontal derivatives (sigma metrics, pressure gradient, divergence of the Poisson right-hand
 // side) by the chain rule with the cell centres (sflow_curv::grad5); the Laplacians compact with the
 // face lengths and the centre distances along the face normals, the non-orthogonal part deferred.
-// The Cartesian kernels are not touched: every curvilinear path is a branch on p->geo_curv.
+// Every curvilinear path is a branch on p->geo_curv next to the Cartesian kernel.
 
 class nhflow_curv : public increment
 {
@@ -89,9 +89,6 @@ public:
     // rule), and of the four horizontal neighbour values
     static void grad5(lexer*, int i, int j, double fE, double fW, double fN, double fS, double &fx, double &fy);
 
-    // gradient from limited index derivatives f_xi, f_eta (per index) of cell (i,j)
-    static void grad_idx(lexer*, int i, int j, double fxi, double feta, double &fx, double &fy);
-
     // limited gradient (the limiter of nhflow_gradient, A 524 2): the limited derivatives along the
     // i- and j-lines of the cell centres, the gradient that has them as directional derivatives
     // (identical to the Cartesian one on Cartesian nodes); fE..fS the neighbours of fC
@@ -123,7 +120,7 @@ public:
     static void pgrad_layer(lexer*, const double *P, int i, int j, int k, double &px, double &py);
     // horizontal divergence of (U,V) at sigma level k (between cells k-1 and k) of column (i,j), as
     // the Poisson right-hand sides: the layers interpolated to the level, next to the bed (k==0) the
-    // lower cell weighted down with the bed slope along the index direction (A 522)
+    // velocity below the bed 0 (the half cell of the bed node)
     static double divh_level(lexer*, fdm_nhf*, const double *U, const double *V, int i, int j, int k);
     // 2 (sigx d/dx + sigy d/dy) dP/dsigma at level k (the cross terms of the sigma Laplacian)
     static double sigma_cross(lexer*, const double *P, int i, int j, int k);

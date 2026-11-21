@@ -1,0 +1,19 @@
+{
+ "description": "NHFLOW closed basin 1.5 x 1.5 m in still water (h 0.5 m, 30 x 30 x 4 cells) with a 45 deg sand cone (height 0.25 m, geo.dat): no flow, only the sand slide S 90 1 (S 91 5, phi = S 81 35 deg, S 82 0). sandslide_f transfers S 92/6 (S 92/12 on the diagonals) of the excess over the angle of repose: the flank ends at tan(35 deg) = 0.700 in x, y and on the diagonals, the volume at round-off. Before, it transferred that share of the whole height difference and the flank ended at 28-34.6 deg (mean 30.8 deg).",
+ "solver": "nhflow",
+ "np": 1,
+ "steps": 400,
+ "files": [
+  "geo.dat"
+ ],
+ "tags": [
+  "3d",
+  "nhflow",
+  "sediment",
+  "sandslide",
+  "closed"
+ ],
+ "covers": [
+  "sandslide_f::slide excess transfer"
+ ]
+}

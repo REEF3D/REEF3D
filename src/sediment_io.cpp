@@ -175,6 +175,7 @@ void sediment_f::fill_PQ_sflow(lexer *p, fdm2D *b,ghostcell *pgc,slice &P, slice
     }
     
     sediment_curv::face_normals(p,pgc,s,1);
+    inflow_PQ(p);
     
     SLICELOOP4
     s->waterlevel(i,j) = b->hp(i,j);
@@ -215,6 +216,52 @@ void sediment_f::fill_PQ_sflow(lexer *p, fdm2D *b,ghostcell *pgc,slice &P, slice
     if(p->j_dir==1 && p->origin_j+p->knoy==p->gknoy)
     for(i=0; i<p->knox; ++i)
     s->Q(i,p->knoy-1) = Q(i,p->knoy-1);
+}
+
+void sediment_f::inflow_PQ(lexer *p)
+{
+    // SFLOW on a curvilinear grid (the Cartesian grid takes the face velocities of the flow at the domain edges,
+    // fill_PQ_sflow): the face velocities of the sediment at the inflow faces (gcslin; the ghost faces are not filled
+    // by the boundary conditions of P, Q and stayed 0): the velocity of the first cell, so that its bed shear, bed load and
+    // transport direction are those of the flow (with 0 the first row had half the velocity and a fraction of the
+    // bed load, the second row eroded twice as fast).  The faces stay closed for the sediment (dfbed_inflow).
+    if(p->geo_curv!=1)
+    return;
+
+    double nx,ny,len;
+
+    for(int n=0; n<p->gcslin_count; ++n)
+    {
+        const int ii = p->gcslin[n][0], jj = p->gcslin[n][1], cs = p->gcslin[n][3];
+        const int dir = (cs==1 || cs==4) ? 1 : 2;
+        const int fi = (cs==1) ? ii-1 : ii;
+        const int fj = (cs==3) ? jj-1 : jj;
+
+        {
+            // the cells beyond the face take the velocity of the first cell: the tangential part of the face and the
+            // curvature of the streamlines there (the ghost velocities of the native inflow and of the open face of a
+            // block differ)
+            const int di = (cs==1) ? -1 : (cs==4 ? 1 : 0);
+            const int dj = (cs==3) ? -1 : (cs==2 ? 1 : 0);
+            for(int q=1; q<=p->margin; ++q)
+            {
+            const int ia = ii + q*di, ja = jj + q*dj;
+                if(ia>=p->imin && ia<p->imin+p->imax && ja>=p->jmin && ja<p->jmin+p->jmax)
+                {
+                s->ub(ia,ja) = s->ub(ii,jj);
+                s->vb(ia,ja) = s->vb(ii,jj);
+                }
+            }
+
+            sediment_curv::normal(p,dir,fi,fj,nx,ny,len);
+            const double un = (p->wet[(ii-p->imin)*p->jmax + (jj-p->jmin)]==0) ? 0.0 : s->ub(ii,jj)*nx + s->vb(ii,jj)*ny;
+
+            if(dir==1)
+            s->P(fi,fj) = un;
+            else
+            s->Q(fi,fj) = un;
+        }
+    }
 }
 
 double sediment_f::qbeval(int ii, int jj)

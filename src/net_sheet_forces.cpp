@@ -39,10 +39,10 @@ void net_sheet::inertiaForce(lexer *p)
 {   
     for (int knotI = 0; knotI < nK; knotI++)
     {
-        // Assign inertia force to knot
-        forces_knot(knotI,0) = 2.0*weight_knot(knotI)*fluidAcc_(knotI,0);
-        forces_knot(knotI,1) = 2.0*weight_knot(knotI)*fluidAcc_(knotI,1);
-        forces_knot(knotI,2) = 2.0*weight_knot(knotI)*fluidAcc_(knotI,2);   
+        // Add inertia force to knot (on top of the gravity force)
+        forces_knot(knotI,0) += 2.0*weight_knot(knotI)*fluidAcc_(knotI,0);
+        forces_knot(knotI,1) += 2.0*weight_knot(knotI)*fluidAcc_(knotI,1);
+        forces_knot(knotI,2) += 2.0*weight_knot(knotI)*fluidAcc_(knotI,2);   
     }
 }
 
@@ -236,9 +236,9 @@ void net_sheet::netForces(lexer *p, double& Xne, double& Yne, double& Zne, doubl
         Yne += FyI;
         Zne += FzI;
 
-        // Add moment distribution
-        Kne += (x_(knotI,1) - p->yg)*FyI - (x_(knotI,2) - p->zg)*FzI;
-        Mne += (x_(knotI,2) - p->zg)*FzI - (x_(knotI,0) - p->xg)*FxI;
-        Nne += (x_(knotI,0) - p->xg)*FxI - (x_(knotI,1) - p->yg)*FyI;
+        // Add moment distribution: r x F about the centre of gravity
+        Kne += (x_(knotI,1) - p->yg)*FzI - (x_(knotI,2) - p->zg)*FyI;
+        Mne += (x_(knotI,2) - p->zg)*FxI - (x_(knotI,0) - p->xg)*FzI;
+        Nne += (x_(knotI,0) - p->xg)*FyI - (x_(knotI,1) - p->yg)*FxI;
     } 
 }

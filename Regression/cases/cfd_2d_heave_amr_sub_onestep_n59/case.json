@@ -1,0 +1,19 @@
+{
+ "base": "cfd_2d_heave_amr_sub_onestep",
+ "ctrl_add": [
+  "N 59 1"
+ ],
+ "description": "cfd_2d_heave_amr_sub_onestep (floating box, subcycling G 7 1, N 40 5) with N 59 1.",
+ "tags": [
+  "quick",
+  "2d",
+  "6dof",
+  "floating",
+  "levelset",
+  "amr"
+ ],
+ "covers": [
+  "driver logic_cfd: N 59 with X 10 1",
+  "cfd_amr::patch_step_onestep with bodies and N 59"
+ ]
+}

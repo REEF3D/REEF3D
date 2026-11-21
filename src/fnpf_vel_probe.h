@@ -31,7 +31,6 @@ Author: Hans Bihs
 class lexer;
 class fdm_fnpf;
 class ghostcell;
-class slice;
 
 using namespace std;
 

@@ -1,0 +1,19 @@
+{
+ "base": "nhflow_2d_si_tide_riemann",
+ "description": "nhflow_2d_si_tide_riemann with the semi-Lagrangian momentum advection (A 549 1 2.0): the tracks that leave through the Riemann edges take the inflow velocities of the ghost cells (bc_face ug); at the same dt (10 s) within 0.6 mm/s and 0.3 mm of the flux form.",
+ "ctrl_add": [
+  "A 549 1 2.0"
+ ],
+ "tags": [
+  "2d",
+  "elm",
+  "iowave",
+  "nhflow",
+  "quick",
+  "semi_implicit",
+  "tide"
+ ],
+ "covers": [
+  "nhflow_momentum_SI::elm_departure at open boundary faces"
+ ]
+}

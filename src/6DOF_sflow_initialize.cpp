@@ -34,6 +34,22 @@ void sixdof_sflow::initialize(lexer *p, fdm2D *b, ghostcell *pgc)
 {
     for (int nb = 0; nb < number6DOF; nb++)
     fb_obj[nb]->initialize_shipwave(p, pgc,b->eta,b->WL);
+    
+    // X 402 1: the pressure of the initial position is active from the first step
+    if(p->X10==3 && p->X402==1)
+    {
+    update_press(p,pgc,b->eta);
+    pressure_head(p,b,pgc);
+    
+    // no draft ramp (X 207 0): start from the equilibrium depression of the applied pressure,
+    // eta = pbh, for all hull types (X 400 2, 3: the analytic pressure, not the STL draft)
+    if(p->X207==0)
+    SLICELOOP4
+    {
+    b->eta(i,j) = b->pbh(i,j);
+    b->WL(i,j) = MAX(b->eta(i,j) + p->wd - p->bed[IJ],0.0);
+    }
+    }
 }
 
 void sixdof_sflow::initialize(lexer *p, fdm *a, ghostcell *pgc)

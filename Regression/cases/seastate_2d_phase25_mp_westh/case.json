@@ -1,0 +1,18 @@
+{
+ "base": "seastate_2d_phase14_windsea",
+ "ctrl_set": {
+  "A 732": "2"
+ },
+ "ctrl_add": [
+  "A 769 2"
+ ],
+ "description": "seastate_2d_phase14_windsea with A 732 2 (van der Westhuysen: Yan input, saturation-based whitecapping) and A 769 2 (Phase 25, 0059): no limiter, the conservative DIA in two passes, the whitecapping linearised with the slope of its breaking switch, the upper bound of ecWAM (FLMAX, alpha_p,max 0.031). Validation in Dropbox SEASTATE/validation/78_limiter.",
+ "tags": [
+  "quick",
+  "2d",
+  "seastate"
+ ],
+ "covers": [
+  "A 769 2 with A 732 2: wc_newton of the saturation-based whitecapping, flmax"
+ ]
+}

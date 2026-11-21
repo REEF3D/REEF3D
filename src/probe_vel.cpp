@@ -52,8 +52,6 @@ probe_vel::probe_vel(lexer *p, fdm *a) : probenum(p->P65)
 		sprintf(name,"./REEF3D_CFD_ProbePoint/REEF3D-CFD-Vel-Probe-%i.dat",n+1);
 		
 		pout[n].open(name);
-        
-        //cout<<pout[n].is_open()<<" "<<n+1<<endl;
 
 	    pout[n]<<"Vel Probe ID:  "<<n<<endl<<endl;
 		pout[n]<<"x_coord     y_coord     z_coord"<<endl;
@@ -125,7 +123,6 @@ void probe_vel::ini_location(lexer *p, fdm *a)
 	kloc[n]=p->posc_k(p->P65_z[n]);
 
     check=boundcheck(p,iloc[n],jloc[n],kloc[n],0);
-    //cout<<p->mpirank<<" PROBE check: "<<check<<" i: "<<iloc[n]<<" j: "<<jloc[n]<<" k: "<<kloc[n]<<" ZSN: "<<p->ZSN[10+marge]<<endl;
     if(check==1)
     flag[n]=1;
     }

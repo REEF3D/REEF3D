@@ -1,0 +1,8 @@
+{
+ "base": "cfd_2d_cpm_bedload_layer_mix",
+ "ctrl_set": {"Q 58": "3", "W 20": "10.0", "Q 65": "20.0"},
+ "steps": 200,
+ "tags": ["quick", "2d", "cpm"],
+ "description": "as cfd_2d_cpm_bedload_layer_mix with the hybrid suspension (Q 58 3): a concentration per fraction over the graded parcel bed, MORFAC Q 65 20",
+ "covers": ["CPM graded sediment: hybrid suspension per fraction (concentration step per fraction with its settling velocity, van Rijn erosion with the share of the fraction in the surface, parcels of the fraction through its account), suspended volume per fraction in the mixture log"]
+}

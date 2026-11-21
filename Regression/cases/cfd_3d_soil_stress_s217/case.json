@@ -1,0 +1,18 @@
+{
+ "description": "cfd_2d_soil_stress_s217 in 3D: 3 cells in y, roller side walls (S 211 1): uy, the xy and yz shear edges; the solution is uniform in y",
+ "solver": "cfd",
+ "np": 1,
+ "steps": 60,
+ "tags": [
+  "quick",
+  "3d",
+  "cfd",
+  "sediment",
+  "soil",
+  "periodic"
+ ],
+ "covers": [
+  "soil_stress 3D operator"
+ ],
+ "architect": "Hans Bihs"
+}

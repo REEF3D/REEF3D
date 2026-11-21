@@ -38,10 +38,6 @@ void CPM::relax_ini(lexer *p)
     tan_betaQ73[qn] = tan(betaQ73[qn]);
 }
 
-void CPM::relax(lexer *p, ghostcell *pgc, sediment_fdm *s)
-{
-}
-
 double CPM::rf(lexer *p, double x1, double y1)
 {
     double relax,distot,distcount;

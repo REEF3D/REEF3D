@@ -1,0 +1,19 @@
+{
+ "base": "cfd_2d_compressible_box",
+ "np": 1,
+ "steps": 100,
+ "ctrl_set": {
+  "N 40": "6"
+ },
+ "description": "cfd_2d_compressible_box (sealed box, piston, W 32 2) with N 40 6: both projections take the compressibility terms with p(n) of the start of the step as the reference, the half step over dt/2, the full step over dt.",
+ "tags": [
+  "quick",
+  "2d",
+  "levelset",
+  "compressible"
+ ],
+ "covers": [
+  "pjm_corr::amr_prepare: pn at the half step of N 40 6",
+  "pjm_corr::comp_terms: cstage 1/2 for the half step of N 40 6"
+ ]
+}

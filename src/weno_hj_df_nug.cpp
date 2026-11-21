@@ -21,6 +21,7 @@ Authors: Hans Bihs, Tobias Martin
 --------------------------------------------------------------------*/
 
 #include"weno_hj_df_nug.h"
+#include"levelset_band.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"flux_HJ_CDS2.h"
@@ -28,8 +29,8 @@ Authors: Hans Bihs, Tobias Martin
 #include"flux_HJ_CDS2_2D.h"
 #include"flux_HJ_CDS2_vrans_2D.h"
 
-weno_hj_df_nug::weno_hj_df_nug(lexer* p):weno_nug_func(p),tttw(13.0/12.0),fourth(1.0/4.0),third(1.0/3.0),
-			sevsix(7.0/6.0),elvsix(11.0/6.0),sixth(1.0/6.0),fivsix(5.0/6.0),tenth(1.0/10.0),
+weno_hj_df_nug::weno_hj_df_nug(lexer* p):weno_nug_func(p),tttw(13.0/12.0),fourth(1.0/4.0),
+			tenth(1.0/10.0),
 			sixten(6.0/10.0),treten(3.0/10.0),epsilon(0.000001)
 {
     if(p->j_dir==0)
@@ -81,6 +82,15 @@ void weno_hj_df_nug::start(lexer* p, fdm* a, field& b, int ipol, field& uvel, fi
     a->H(i,j,k)+=aij(p,a,b,3,uvel,vvel,wvel,p->DXP,p->DYP,p->DZN);
     }
 
+    // F 48: the level set in its narrow band only (levelset_band.h)
+    if(ipol==4 && levelset_band_active!=nullptr)
+    {
+    const unsigned char *m = levelset_band_active;
+    LOOP
+    if(m[IJK])
+    a->L(i,j,k)+=aij(p,a,b,4,uvel,vvel,wvel,p->DXP,p->DYP,p->DZP);
+    }
+    else
     if(ipol==4)
     LOOP
     a->L(i,j,k)+=aij(p,a,b,4,uvel,vvel,wvel,p->DXP,p->DYP,p->DZP);

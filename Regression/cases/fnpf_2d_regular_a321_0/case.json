@@ -1,0 +1,21 @@
+{
+ "base": "fnpf_2d_regular",
+ "ctrl_set": {
+  "A 321": "0"
+ },
+ "description": "FNPF 2D regular waves of fnpf_2d_regular (RK3) with A 321 0: the stage solves of the Laplace equation start from the solution of the solve before them and REEFMG builds its coarse levels in every solve, as before 11 November 2026. fnpf_2d_regular itself runs with the default A 321 2 (start values extrapolated in time, kinds 1, 3, 2 of fnpf_laplace_cds2::start_value; coarse levels of the first solve of a step kept). The two solutions agree within the tolerance of the solves (N 44).",
+ "tags": [
+  "quick",
+  "2d",
+  "fnpf",
+  "waves",
+  "iowave",
+  "solver"
+ ],
+ "covers": [
+  "A 321 0 (RK3)",
+  "A 321 2 against A 321 0"
+ ],
+ "same_as": "fnpf_2d_regular",
+ "same_as_rtol": 1e-06
+}

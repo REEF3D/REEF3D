@@ -54,19 +54,17 @@ public:
 private:
     void Pk_update(lexer*, fdm2D*, ghostcell*);
     void ustar_update(lexer*, fdm2D*, ghostcell*);
+    void fresh_cells(lexer*, fdm2D*);
 	void kin_source(lexer*, fdm2D*);
 	void omega_source(lexer*, fdm2D*);
-    void timesource(lexer*, fdm2D*, slice&);
     void eddyvisc(lexer*, fdm2D*, ghostcell*);
     void clearrhs(lexer*, fdm2D*);
-    void wall_law_kin(lexer*, fdm2D*);
-    void wall_law_omega(lexer*, fdm2D*);
     
     slice4 kn, wn, Pk, S, Vw, Qw, ustar, cf;
     
     double const kw_alpha, kw_beta,kw_sigma_k,kw_sigma_w;
     
-    int gcval_kin, gcval_omega;
+    int gcval_kin;
     int count;
     double starttime;
     

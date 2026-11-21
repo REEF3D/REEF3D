@@ -1,0 +1,19 @@
+{
+ "base": "cfd_2d_heave_amr",
+ "ctrl_add": [
+  "N 66 2"
+ ],
+ "same_as": "cfd_2d_heave_amr",
+ "description": "cfd_2d_heave_amr with N 66 2 (patch 0178): a floating body, so the repeat of a time step is not used (a message at the first step) and the run is cfd_2d_heave_amr bit for bit.",
+ "tags": [
+  "2d",
+  "6dof",
+  "floating",
+  "levelset",
+  "amr",
+  "steprepeat"
+ ],
+ "covers": [
+  "driver::loop_cfd: N 66 refused with X 10"
+ ]
+}

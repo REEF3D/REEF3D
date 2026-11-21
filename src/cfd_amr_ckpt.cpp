@@ -29,14 +29,18 @@ Author: Hans Bihs
 //  lexer of the patch) with its box (rank blob cfd_amr_patches).  A patch of the same box takes them
 //  as they are (bitwise); another one (a changed decomposition, G 40 units cut anew) takes its cells
 //  from the patches of its level in the checkpoint that hold them, the solver arrays start again.
+//  CPM on the refinement: the grid of CPM the same way with its pieces, its sediment objects and parcels
+//  (cfd_amr_cpm.cpp).
 
 #include"cfd_amr.h"
+#include"cell_index.h"
 #include"reef3d_mpmd.h"
 #include"lexer.h"
 #include"reefckpt.h"
 #include"ckpt_registry.h"
 #include"amr_load.h"
 #include<cstring>
+#include<algorithm>
 #include<fstream>
 #include<iomanip>
 #include<sys/stat.h>
@@ -45,12 +49,6 @@ using namespace std;
 
 namespace
 {
-// index of a cell in the arrays of lexer q (field layout)
-inline int cix(const lexer *q, int i, int j, int k)
-{
-    return (i-q->imin)*q->jmax*q->kmax + (j-q->jmin)*q->kmax + k-q->kmin;
-}
-
 struct ckpatch
 {
     int shadow, lev, lo[3], hi[3];
@@ -159,6 +157,9 @@ void cfd_amr::ckpt_write(reefckpt &ck)
         S.insert(S.end(),x.begin(),x.end());
     }
     ck.rank_blob("cfd_amr_sync",S);
+
+    // CPM on the refinement: its grid, its sediment objects and parcels (cfd_amr_cpm.cpp)
+    cpm_ckpt_write(ck);
 }
 
 bool cfd_amr::ckpt_read(reefckpt &ck, string &msg)
@@ -352,17 +353,33 @@ bool cfd_amr::ckpt_read(reefckpt &ck, string &msg)
         continue;
 
         // another box: the cells (I,J,K) of the level from the patches of the checkpoint that hold them,
-        // the interior of a patch first
+        // the interior of a patch first.  The arrays of a patch of the checkpoint fit as far as both have
+        // them in the same order: a patch next to one of another rank has the matrix rows of the overlap
+        // (kc7, pr_overlap) after its other arrays, which a patch without such a neighbour lacks (a change
+        // of the decomposition, e.g. 2 ranks to 1)
+        vector<char> fits(cp.size(),0);
+        for(size_t t=0; t<cp.size(); ++t)
+        {
+            const ckpatch &o = cp[t];
+            if(o.shadow || o.lev!=c->lev)
+            continue;
+            bool f = true;
+            const size_t nc = std::min(o.code.size(),e.size());
+            for(size_t r=0; r<nc && f; ++r)
+            if(o.code[r]!=int(code_of(e[r])))
+            f = false;
+            fits[t] = f ? 1 : 0;
+        }
         const int jk = q->jmax*q->kmax;
         for(size_t r=0; r<e.size(); ++r)
         {
             // the scalars of the objects (the same on all patches of the level): from one of them
             if(e[r].kind=='R' && !e[r].local)
             {
-                for(const auto &o : cp)
-                if(!o.shadow && o.lev==c->lev && o.code.size()==e.size() && o.code[r]==int(code_of(e[r])) && (long long)o.data[r].size()==e[r].n)
+                for(size_t t=0; t<cp.size(); ++t)
+                if(fits[t] && r<cp[t].code.size() && (long long)cp[t].data[r].size()==e[r].n)
                 {
-                    std::copy(o.data[r].begin(),o.data[r].end(),(double*)e[r].V);
+                    std::copy(cp[t].data[r].begin(),cp[t].data[r].end(),(double*)e[r].V);
                     break;
                 }
                 continue;
@@ -379,9 +396,10 @@ bool cfd_amr::ckpt_read(reefckpt &ck, string &msg)
 
                 const ckpatch *src = nullptr;
                 int best = 2;
-                for(const auto &o : cp)
+                for(size_t t=0; t<cp.size(); ++t)
                 {
-                    if(o.shadow || o.lev!=c->lev || o.code.size()!=e.size() || o.code[r]!=int(code_of(e[r])))
+                    const ckpatch &o = cp[t];
+                    if(!fits[t] || r>=o.code.size())
                     continue;
                     const int oi = I-o.lo[0], oj = J-o.lo[1], ok = K-o.lo[2];
                     if(oi<o.imin || oi>=o.imin+o.imax || oj<o.jmin || oj>=o.jmin+o.jmax)
@@ -446,7 +464,8 @@ bool cfd_amr::ckpt_read(reefckpt &ck, string &msg)
     if(p0->mpirank==0 && verbose)
     cout<<"CFD AMR: restart from the checkpoint, "<<exact<<" patches as they were, "<<mapped<<" mapped (rank 0)"<<endl;
 
-    return true;
+    // CPM on the refinement: its grid, its sediment objects and parcels, its bed onto the grids
+    return cpm_ckpt_read(ck,msg);
 }
 
 // the load map (G 45, G 46): per step of the window of G 46 the patch cells over every level-0 cell
@@ -472,7 +491,7 @@ void cfd_amr::lmap_step(lexer *p)
     for(int i=0; i<p0->knox; ++i)
     for(int j=0; j<p0->knoy; ++j)
     for(int k=0; k<p0->knoz; ++k)
-    if(p0->flag4[cix(p0,i,j,k)]>0)
+    if(p0->flag4[cell_index(p0,i,j,k)]>0)
     ++act;
     lm_n0 += double(act);
     for(int qi=0; qi<npat; ++qi)

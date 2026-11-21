@@ -225,6 +225,9 @@ void nhflow_scalar_ifou::start_conservative(lexer* p, fdm_nhf *d, double *F, int
     double hp;
     double dxc,dyc,dzc;
     
+    // the columns that carry the scalar (wet_mask), the wet columns otherwise
+    const int *wet = wmask!=nullptr ? wmask : p->wet;
+    
     count=0;
     LOOP
     {
@@ -241,16 +244,16 @@ void nhflow_scalar_ifou::start_conservative(lexer* p, fdm_nhf *d, double *F, int
     qz1 = kvel1;
     qz2 = kvel2;
     
-    if(p->wet[Im1J]==0 || p->DF[Im1JK]<0)
+    if(wet[Im1J]==0 || p->DF[Im1JK]<0)
     qx1 = 0.0;
     
-    if(p->wet[Ip1J]==0 || p->DF[Ip1JK]<0)
+    if(wet[Ip1J]==0 || p->DF[Ip1JK]<0)
     qx2 = 0.0;
     
-    if(p->wet[IJm1]==0 || p->DF[IJm1K]<0)
+    if(wet[IJm1]==0 || p->DF[IJm1K]<0)
     qy1 = 0.0;
     
-    if(p->wet[IJp1]==0 || p->DF[IJp1K]<0)
+    if(wet[IJp1]==0 || p->DF[IJp1K]<0)
     qy2 = 0.0;
     
     if(k==0)

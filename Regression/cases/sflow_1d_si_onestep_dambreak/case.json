@@ -1,0 +1,19 @@
+{
+ "description": "SFLOW semi-implicit step with the one-step predictor (A 210 11, theta 0.5), hydrostatic: Stoker dam break on a flat frictionless bed (h_l 0.5 m, h_r 0.05 m, dam at x = 20 m, dx 0.05 m). The bore with the BCG advection and the advective limit of A 210 11 (flow Courant number at most 0.8 N 47); A 210 12/13 miss this bore by 5 - 17 %.",
+ "solver": "sflow",
+ "np": 1,
+ "steps": 400,
+ "tags": [
+  "quick",
+  "1d",
+  "sflow",
+  "semi_implicit",
+  "dambreak"
+ ],
+ "covers": [
+  "sflow_momentum_SI::advection_bcg at a bore",
+  "sflow_timestep_SI: advective limit of A 210 11 (2.5)",
+  "A 210 11 hydrostatic time levels"
+ ],
+ "architect": "Hans Bihs"
+}

@@ -1,0 +1,23 @@
+{
+ "base": "cfd_2d_dambreak_amr_adapt",
+ "np": 2,
+ "steps": 48,
+ "ctrl_add": [
+  "G 40 1",
+  "G 48 2"
+ ],
+ "description": "cfd_2d_dambreak_amr_adapt on 2 ranks with the placement (G 40 1) and the cycle G 48 2 of the composite preconditioner: the solution of level 0 in the shadows, the coarse values of the level-1 edges from them.",
+ "tags": [
+  "quick",
+  "2d",
+  "dambreak",
+  "levelset",
+  "amr",
+  "adaptive",
+  "mpi",
+  "place"
+ ],
+ "covers": [
+  "cfd_amr::pr_prec with G 48 2 and G 40 1 (shadows, the overlap of the patch multigrids)"
+ ]
+}

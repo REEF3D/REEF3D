@@ -71,6 +71,11 @@ seastate_f::~seastate_f()
     delete pex;
     delete psolv;
     delete N0;
+    delete gNs;
+    delete gM;
+    delete gM0;
+    delete gMs;
+    delete pasolv;
     delete psrc;
     delete proll;
     delete bser;
@@ -101,6 +106,10 @@ void seastate_f::start(lexer *p, ghostcell *pgc)
     rck->read();
     if(ss_resume>0)
     --p->count;
+
+    // the online collocation from the model time of the checkpoint (Phase 25; it started at model time 0 before)
+    if(p->A787==1)
+    colloc_ini(p,pgc);
     }
     t_ini = pgc->timer()-t0;
 

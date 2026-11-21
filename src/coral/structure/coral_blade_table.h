@@ -22,7 +22,8 @@ Architect: Hans Bihs
 // REEF3D::CORAL: distributed structural properties of a blade along its span (from the root to the tip): fraction of
 // the blade length, pitch axis (fraction of the chord from the leading edge), structural twist, mass per length,
 // flapwise and edgewise bending stiffness. Readers: ElastoDyn's blade file (NBlInpSt rows BlFract PitchAxis StrcTwst
-// BMassDen FlpStff EdgStff, the factors AdjBlMs, AdjFlSt, AdjEdSt applied) or a plain table of these six columns.
+// BMassDen FlpStff EdgStff, the factors AdjBlMs, AdjFlSt, AdjEdSt applied; the columns by the header's names, PitchAxis
+// 0.25 where it is left out as in the files of OpenFAST 3.5 and later) or a plain table of these six columns.
 
 #ifndef CORAL_BLADE_TABLE_H_
 #define CORAL_BLADE_TABLE_H_

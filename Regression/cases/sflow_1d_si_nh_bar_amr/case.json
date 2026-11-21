@@ -1,0 +1,21 @@
+{
+ "base": "sflow_1d_si_nh_bar",
+ "ctrl_add": [
+  "G 1 1",
+  "G 2 0",
+  "G 10 10 28 -1.0 1.0"
+ ],
+ "description": "sflow_1d_si_nh_bar with a static refined box (G 1 1, G 10) over the bar, dx 2 cm on the patch: the composite coupled system over the leaf cells of both grids.",
+ "tags": [
+  "1d",
+  "sflow",
+  "semi_implicit",
+  "nonhydrostatic",
+  "amr"
+ ],
+ "covers": [
+  "sflow_amr::si_nh_solve (sflow_amr_sinh.cpp)",
+  "sflow_momentum_SI_nh_amr: patch rows, faces, two-level preconditioner"
+ ],
+ "architect": "Hans Bihs"
+}

@@ -1,0 +1,19 @@
+{
+ "base": "cfd_2d_still_amr",
+ "np": 1,
+ "steps": 60,
+ "ctrl_add": [
+  "G 9 1"
+ ],
+ "description": "cfd_2d_still_amr with G 9 1: the density of the faces of the patch edge with the mean of the interface widths of the fine and the coarse level (cfd_amr::pr_weights). Still water with the free surface across the patch edge stays at rest as with G 9 0.",
+ "tags": [
+  "quick",
+  "2d",
+  "levelset",
+  "amr"
+ ],
+ "covers": [
+  "cfd_amr::pr_weights: G 9 1",
+  "driver_logic_cfd: G 9"
+ ]
+}

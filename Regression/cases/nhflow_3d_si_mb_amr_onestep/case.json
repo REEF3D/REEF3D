@@ -1,0 +1,18 @@
+{
+ "base": "nhflow_3d_si_mb_amr",
+ "ctrl_set": {
+  "A 510": "11"
+ },
+ "description": "nhflow_3d_si_mb_amr with A 510 11: blocks and a patch across the block vertex.",
+ "tags": [
+  "3d",
+  "nhflow",
+  "semi_implicit",
+  "multiblock",
+  "amr"
+ ],
+ "covers": [
+  "A 510 11 on blocks with a patch"
+ ],
+ "architect": "Hans Bihs"
+}

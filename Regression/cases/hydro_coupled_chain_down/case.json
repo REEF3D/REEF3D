@@ -1,0 +1,25 @@
+{
+ "description": "REEF3D::HYDRO catchment model coupled with SFLOW (R 100 2): a 2000 m valley of 20 hydrology cells of 100 m (DIVEMesh W 10, flow paths in hydro_grid.dat version 2), SFLOW semi-implicit on the lower 1000 m (10 m cells, free outfall), 36 mm/h for 1 h through pass-through HBV; the runoff of the cells under SFLOW and the discharge of the upstream chain enter SFLOW every 60 s, the outflow leaves the catchment. REEF3D-HYDRO-Coupled.dat, the budgets and the gauges as text (validation HYDRO/validation/08_coupling: the coupling closes to 1e-10 m3).",
+ "solver": "sflow",
+ "np": 1,
+ "steps": 400,
+ "files": [
+  "catchment_dem.asc",
+  "geo.dat",
+  "hydro_forcing.dat",
+  "hydro_param.dat"
+ ],
+ "tags": [
+  "quick",
+  "hydro",
+  "catchment",
+  "coupled",
+  "semi_implicit"
+ ],
+ "covers": [
+  "hydro_couple: overlap, entry points, sources C, cut steps, coupled budget",
+  "hydro_sflow::C, qcpl",
+  "hydro_core: share, enter, Vto",
+  "sflow_momentum_SI: closed open boundary faces without old discharge"
+ ]
+}

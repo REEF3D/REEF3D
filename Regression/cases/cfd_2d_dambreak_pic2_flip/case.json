@@ -1,0 +1,17 @@
+{
+ "base": "cfd_2d_dambreak_pic2",
+ "ctrl_set": {
+  "F 77": "0"
+ },
+ "tags": [
+  "quick",
+  "2d",
+  "dambreak",
+  "pic"
+ ],
+ "description": "as cfd_2d_dambreak_pic2 with the FLIP/PIC update of the particle velocities (F 77 0, F 82 0.96) instead of APIC (the default since PICFSF patch 0007): the reference of cfd_2d_dambreak_pic2 of patch 0006",
+ "covers": [
+  "pic_f::g2p and pic_f::step_begin without the affine velocities"
+ ],
+ "architect": "Hans Bihs"
+}

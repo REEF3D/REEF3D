@@ -1,0 +1,24 @@
+{
+ "base": "sflow_2d_si_curv_amr_lake_island",
+ "np": 1,
+ "steps": 60,
+ "ctrl_add": [
+  "R 10 1",
+  "R 11 360.0",
+  "R 90 1.0"
+ ],
+ "description": "sflow_2d_si_curv_amr_lake_island (curvilinear grid, static patch through the island) with rain 360 mm/h.",
+ "tags": [
+  "quick",
+  "2d",
+  "sflow",
+  "hydro",
+  "amr",
+  "curvilinear",
+  "semi_implicit",
+  "wetdry"
+ ],
+ "covers": [
+  "hydro_sflow on a curvilinear patch (cell areas and centres of the patch)"
+ ]
+}

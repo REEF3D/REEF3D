@@ -1,0 +1,22 @@
+{
+ "base": "cfd_2d_cpm_bedload_layer",
+ "control_add": [
+  "S 10 0.045 0.055 -1.0 1.0 -0.1 0.03",
+  "S 10 0.07 0.1 -1.0 1.0 -0.1 0.012"
+ ],
+ "ctrl_set": {
+  "W 20": "1.0"
+ },
+ "description": "cfd_2d_cpm_bedload_layer (W 20 1.0) with solid bodies in the bed: a 1 cm block standing 1 cm out of the bed (x 0.045-0.055 m, top z 0.03 m) and a fixed floor under the downstream bed (x 0.07-0.1 m, top z 0.012 m, 8 mm of sand on it). The packed bed takes the solid cells as walls for the gradient of its stress (CPM::stress_gradient: mirrored, as at the domain walls; before, their zero stress pushed the bed into the solid), and a parcel placed in the bed at a level inside a solid goes to the first cell above it (CPM::bedload_place; before, it stayed in the solid cell without a capacity check). In 4000 steps the largest occupancy of a cell stays at the capacity 0.667 (before up to 2.0), and the moves rejected at full cells halve",
+ "covers": [
+  "CPM::stress_gradient: solid cells as walls",
+  "CPM::bedload_place: a level inside a solid lifted to the first cell above it"
+ ],
+ "np": 1,
+ "steps": 400,
+ "tags": [
+  "2d",
+  "cpm",
+  "solid"
+ ]
+}

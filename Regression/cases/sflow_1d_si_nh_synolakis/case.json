@@ -1,0 +1,20 @@
+{
+ "description": "SFLOW semi-implicit step with the coupled non-hydrostatic pressure (A 210 12, A 220 3) and wetting and drying (A 243 2, Newton iteration on the wet pattern): solitary wave H/d = 0.0185, d = 1 m, run-up on a 1:19.85 beach (Synolakis 1987), dx = 5 cm, dt = 0.05 s. 30 s: the wave climbs the beach and runs down again.",
+ "solver": "sflow",
+ "np": 1,
+ "steps": 600,
+ "tags": [
+  "quick",
+  "1d",
+  "sflow",
+  "semi_implicit",
+  "nonhydrostatic",
+  "wetdry",
+  "runup"
+ ],
+ "covers": [
+  "sflow_momentum_SI_nh with the wet-pattern Newton iteration",
+  "nh_active: shoreline cells hydrostatic (p->deep)"
+ ],
+ "architect": "Hans Bihs"
+}

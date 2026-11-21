@@ -121,9 +121,12 @@ public:
     
     void sediment_algorithm_nhflow(lexer*, fdm_nhf*, ghostcell*, ioflow*);
     void prep_nhflow(lexer*, fdm_nhf*, ghostcell*);
+    void thin_water(lexer*, ghostcell*, int);
     void fill_PQ_nhflow(lexer*,fdm_nhf*,ghostcell*);
     void active_nhflow(lexer*, fdm_nhf*, ghostcell*);
     void active_ini_nhflow(lexer*, fdm_nhf*, ghostcell*);
+    void active_solid_nhflow(lexer*);
+    void no_pickup(lexer*);
     
     // SFLOW interface
     void start_sflow(lexer*, fdm2D*, ghostcell*, ioflow*, slice&, slice&) override;
@@ -146,6 +149,8 @@ public:
     
     void active_zone(lexer*, ghostcell*);
     void dfbed_comms(lexer*, ghostcell*);
+    void dfbed_inflow(lexer*);
+    void inflow_PQ(lexer*);
     
     
     // ---
@@ -257,6 +262,14 @@ public:
     slice1 *Psave = nullptr;
     slice2 *Qsave = nullptr;
     slice4 *Vtx = nullptr, *Vty = nullptr;
+    
+    // NHFLOW, S 37 2: phase-lead near-bed velocity of Nielsen (2006), u_e = cos(phi) u + sin(phi)/omega du/dt
+    // (sediment_phase_lead.cpp): previous velocities and low-pass filtered accelerations of the faces and cells
+    void phase_lead_nhflow(lexer*,fdm_nhf*,ghostcell*);
+    slice1 *pl_P0 = nullptr, *pl_aP = nullptr;
+    slice2 *pl_Q0 = nullptr, *pl_aQ = nullptr;
+    slice4 *pl_U0 = nullptr, *pl_aU = nullptr, *pl_V0 = nullptr, *pl_aV = nullptr;
+    double pl_t0 = -1.0;
     
     double starttime;
     

@@ -1,0 +1,19 @@
+{
+ "base": "cfd_2d_nwt",
+ "np": 1,
+ "steps": 100,
+ "ctrl_set": {
+  "N 40": "5"
+ },
+ "description": "cfd_2d_nwt with the one-step scheme (N 40 5): the Godunov convection (godunov) of the momentum and the level set, one projection per step, the level set moved with the projected velocity after the projection. Over 20 s the gauges within 0.8 % of RK3 at 3 times less wall time (validation 73).",
+ "tags": [
+  "quick",
+  "2d",
+  "waves",
+  "levelset"
+ ],
+ "covers": [
+  "momentum_rk with one stage (N 40 5), the order momentum, projection, level set",
+  "godunov: momentum (ipol 1, 3) and level set (ipol 4) on a uniform grid"
+ ]
+}

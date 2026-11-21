@@ -32,9 +32,8 @@ Author: Hans Bihs
 
 void fnpf_fsf_update::velcalc_sig(lexer *p, fdm_fnpf *c, ghostcell *pgc, double *f)
 {
-    // Per-column version of the former three FLOOP sweeps (bit-identical):
-    // grid-metric denominators and the 2D wet-neighbour test are evaluated once
-    // per (i,j) column instead of once per cell.
+    // Per column: grid-metric denominators and the 2D wet-neighbour test are
+    // evaluated once per (i,j) column instead of once per cell.
     const int sI = p->jmax*p->kmaxF;
     const int sJ = p->kmaxF;
     const int knoz = p->knoz;
@@ -201,11 +200,11 @@ void fnpf_fsf_update::velcalc_sig(lexer *p, fdm_fnpf *c, ghostcell *pgc, double 
             }
         }
         
-        // former FFILOOP4
+        // surface node: w = Fz
         if(p->flagslice4[IJ]>0)
         W[c0+knoz] = c->Fz(i,j);
         
-        // former third FLOOP: wet test is 2D, clamp only near the inlet
+        // velocities zero next to dry cells (2D wet test); near the inlet limited to N 61
         const bool dryneigh = (p->wet[Im1J]==0 || p->wet[Ip1J]==0 || p->wet[IJm1]==0 || p->wet[IJp1]==0 
                             || p->wet[Im1Jm1]==0 || p->wet[Ip1Jm1]==0 || p->wet[Im1Jp1]==0 || p->wet[Ip1Jp1]==0
                             || (p->A343>=2 && p->wet[IJ]==0));

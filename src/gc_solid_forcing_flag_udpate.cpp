@@ -23,6 +23,8 @@ Authors: Hans Bihs
 #include"ghostcell.h"
 #include"lexer.h"
 #include"fdm.h"
+#include"solid_closed.h"
+#include"solid_aperture.h"
 
 void ghostcell::solid_forcing_flag_update(lexer *p, fdm *a)
 {   
@@ -46,7 +48,58 @@ void ghostcell::solid_forcing_flag_update(lexer *p, fdm *a)
     if(a->fb(i,j,k)<0.0)
     p->DF[IJK]=-1;
     
+    // D 1 2: the solids and the bed are walls of the pressure projection with the open fractions of
+    // the faces (solid_aperture.h).  A cell of a solid with an open face takes part in the flow: the
+    // solid is its cells with all faces closed, and a face is a wall where it is closed (below).
+    // With the centre of the cell as the criterion the implicit diffusion (D 22 1) set every face of
+    // a cell with its centre in the solid to 0, open or not: the fluid in the cut cells along a wall
+    // did not move, the free surface stayed behind in them (a film on a baffle, and a jet of 1.1 m/s
+    // beside it where the free surface fell with 0.5 m/s)
+    const bool walls = p->D1==2 && (p->solidread>0 || p->toporead>0);
+
+    // (a bed that is not a bed of the direct forcing keeps its flags)
+    auto other = [&](int ii, int jj, int kk) { return p->toporead>0 && p->topoforcing==0 && a->topo(ii,jj,kk)<0.0; };
+
+    if(walls)
+    {
+    solid_aperture_update(p,a,this);
+
+    LOOP
+    if(p->DF[IJK]<0 && !solid_cell_closed(p,a,i,j,k) && !(p->X10>0 && a->fb(i,j,k)<0.0) && !other(i,j,k))
+    p->DF[IJK]=1;
+    }
+
     startintV(p,p->DF,1);
+
+    // a patch of the mesh refinement (no partition neighbours): the cells around it in the domain take the
+    // flag from their own fields (filled from the next patch or the coarser level), as the direct forcing
+    // flags in gcdf_update; they kept the 1 of the patch setup, so the implicit diffusion (D 22 1) coupled
+    // the first fluid cell of a patch to a bed or solid cell around it as to a fluid cell with zero velocity:
+    // a no-slip wall the grids without refinement do not have (it slowed the flow over a patch whose lower
+    // side lies on the bed by 6-7 %)
+    auto margin = [p](int ii, int jj, int kk)
+    {
+        if(ii>=0 && ii<p->knox && jj>=0 && jj<p->knoy && kk>=0 && kk<p->knoz)
+        return false;
+        return ii+p->origin_i>=0 && ii+p->origin_i<p->gknox && jj+p->origin_j>=0 && jj+p->origin_j<p->gknoy
+            && kk+p->origin_k>=0 && kk+p->origin_k<p->gknoz;
+    };
+    auto mloop = [&](auto &&f)
+    {
+        if(!do_comms)
+        for(i=p->imin; i<p->imin+p->imax; ++i)
+        for(j=p->jmin; j<p->jmin+p->jmax; ++j)
+        for(k=p->kmin; k<p->kmin+p->kmax; ++k)
+        if(margin(i,j,k) && p->flag4[IJK]>OBJ_FLAG)
+        f();
+    };
+
+    mloop([&]()
+    {
+        const bool insolid = (p->solidread>0 && a->solid(i,j,k)<0.0) || (p->toporead>0 && a->topo(i,j,k)<0.0);
+        p->DF[IJK] = ((insolid && (!walls || other(i,j,k) || solid_cell_closed(p,a,i,j,k)))
+                  || (p->X10>0 && a->fb(i,j,k)<0.0)) ? -1 : 1;
+    });
     
     
     // 1
@@ -74,6 +127,34 @@ void ghostcell::solid_forcing_flag_update(lexer *p, fdm *a)
     p->DF3[IJK]=-1;
     
     
+    // D 1 2: a closed face is a wall
+    if(walls)
+    {
+    ULOOP
+    if(a->apx(i,j,k)==0.0)
+    p->DF1[IJK]=-1;
+
+    VLOOP
+    if(a->apy(i,j,k)==0.0)
+    p->DF2[IJK]=-1;
+
+    WLOOP
+    if(a->apz(i,j,k)==0.0)
+    p->DF3[IJK]=-1;
+    }
+
+    // the cells around a patch
+    mloop([&]()
+    {
+        p->DF1[IJK] = p->DF2[IJK] = p->DF3[IJK] = p->DF[IJK];
+        if(p->DF[IJK]>0 && i+1<p->imin+p->imax && p->DF[Ip1JK]<0)
+        p->DF1[IJK] = -1;
+        if(p->DF[IJK]>0 && j+1<p->jmin+p->jmax && p->DF[IJp1K]<0)
+        p->DF2[IJK] = -1;
+        if(p->DF[IJK]>0 && k+1<p->kmin+p->kmax && p->DF[IJKp1]<0)
+        p->DF3[IJK] = -1;
+    });
+
     // MPI exchange (not for the patches of the mesh refinement, whose work is rank local)
     if(do_comms)
     {

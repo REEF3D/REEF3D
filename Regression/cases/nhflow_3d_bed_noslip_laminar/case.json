@@ -1,0 +1,8 @@
+{
+ "description": "NHFLOW 3D laminar open channel between slip side walls, resolved no-slip bed A 518 2: the implicit bed face of u and v (nhflow_idiff_u, nhflow_idiff_v), 2 MPI ranks.",
+ "solver": "nhflow",
+ "np": 2,
+ "steps": 150,
+ "tags": ["3d", "nhflow", "diffusion", "bed", "mpi"],
+ "covers": ["nhflow_idiff_u bed face A 518 2", "nhflow_idiff_v bed face A 518 2", "gc_startV nhflow_bed_ghost V, VH"]
+}

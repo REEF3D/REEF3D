@@ -385,6 +385,36 @@ void vtr_fields(ofstream &out, lexer *q, fdm_nhf *d, int i0, int i1, int j0, int
 }
 }
 
+int nhflow_amr::cover0(int ii, int jj)
+{
+    if(ring0(ii,jj))
+    return 2;
+    return (maxlev>=1 && covered(1,2*(ii+O0i),ychild(jj+O0j))) ? 1 : 0;
+}
+
+int nhflow_amr::cover(reefamr_patch *q, int ii, int jj)
+{
+    const int I = ii-EXT+q->I0, J = jj-EY+q->J0;
+    return (q->lev<maxlev && covered(q->lev+1,2*I,ychild(J))) ? 1 : 0;
+}
+
+namespace
+{
+// curvilinear grid: which cells another grid shows (nhflow_amr::cover0, cover), as an Int32 cell array
+template<class F>
+void vtr_covered(ofstream &out, int i0, int i1, int j0, int j1, F hidden)
+{
+    out<<"<DataArray type=\"Int32\" Name=\"covered\" format=\"ascii\">\n";
+    for(int jj=j0; jj<j1; ++jj)
+    {
+        for(int ii=i0; ii<i1; ++ii)
+        out<<hidden(ii,jj)<<" ";
+        out<<"\n";
+    }
+    out<<"</DataArray>\n";
+}
+}
+
 void nhflow_amr::write_vtr0(lexer *p, fdm_nhf *d)
 {
     char name[256];
@@ -401,6 +431,8 @@ void nhflow_amr::write_vtr0(lexer *p, fdm_nhf *d)
     out<<"<DataArray type=\"Int32\" Name=\"level\" NumberOfTuples=\"1\">0</DataArray></FieldData>\n";
     out<<"<Piece Extent=\"0 "<<nx<<" 0 "<<ny<<" 0 0\">\n<CellData Scalars=\"eta\">\n";
     vtr_fields(out,p,d,0,nx,0,ny,shore);
+    if(cv)
+    vtr_covered(out,0,nx,0,ny,[&](int ii, int jj) { return cover0(ii,jj); });
     if(cv)
     {
     out<<"</CellData>\n<Points>\n<DataArray type=\"Float64\" NumberOfComponents=\"3\" format=\"ascii\">\n";
@@ -438,6 +470,8 @@ void nhflow_amr::write_vtr(lexer *p, nhflow_amr_patch &c, int id)
     out<<"<CellData Scalars=\"eta\">\n";
     vtr_fields(out,pp,c.d,EXT,EXT+c.nx,EY,EY+c.ny,shore);
     if(cv)
+    vtr_covered(out,EXT,EXT+c.nx,EY,EY+c.ny,[&](int ii, int jj) { return cover(&c,ii,jj); });
+    if(cv)
     {
     out<<"</CellData>\n<Points>\n<DataArray type=\"Float64\" NumberOfComponents=\"3\" format=\"ascii\">\n";
     for(int jj=EY; jj<=EY+c.ny; ++jj)
@@ -464,16 +498,33 @@ bool nhflow_amr::print_lagoon(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
     static lagoon_amr_output *writer = nullptr;
     const int m = marge;
+    // curvilinear grid (G 50; with blocks: G 50 1, DIVEMesh R 20 1): the x and y of every node, and
+    // which cells another grid shows (covered: 1 where a finer patch covers the cell, 2 in the ring
+    // of block 0, whose cells the blocks 1.. have; 0 the leaf cells, as mass() counts them)
+    const bool cv = p->geo_curv==1;
     vector<lagoon_amr::grid> grids;
     vector<lagoon_amr::field> fields;
-    auto take = [&](lexer *q, fdm_nhf *dd, int i0, int j0, int nx, int ny, int level)
+    auto take = [&](lexer *q, fdm_nhf *dd, int i0, int j0, int nx, int ny, int level, auto hidden)
     {
         lagoon_amr::grid g;
         g.level = level;
         g.nx = nx;
         g.ny = ny;
-        for(int ii=i0; ii<=i0+nx; ++ii) g.x.push_back(q->XN[ii+m]);
-        for(int jj=j0; jj<=j0+ny; ++jj) g.y.push_back(q->YN[jj+m]);
+        g.curvilinear = cv;
+        if(cv)
+        {
+            for(int jj=j0; jj<=j0+ny; ++jj)
+            for(int ii=i0; ii<=i0+nx; ++ii)
+            {
+                g.x.push_back(q->XN2D[q->nij(ii,jj)]);
+                g.y.push_back(q->YN2D[q->nij(ii,jj)]);
+            }
+        }
+        else
+        {
+            for(int ii=i0; ii<=i0+nx; ++ii) g.x.push_back(q->XN[ii+m]);
+            for(int jj=j0; jj<=j0+ny; ++jj) g.y.push_back(q->YN[jj+m]);
+        }
         fields.clear();
         amr_fields(q,dd,shore,[&](const char *nm, auto f)
         {
@@ -482,11 +533,21 @@ bool nhflow_amr::print_lagoon(lexer *p, fdm_nhf *d, ghostcell *pgc)
             for(int ii=i0; ii<i0+nx; ++ii)
             g.values.push_back(f(ii,jj));
         });
+        if(cv)
+        {
+            fields.push_back({"covered",true});
+            for(int jj=j0; jj<j0+ny; ++jj)
+            for(int ii=i0; ii<i0+nx; ++ii)
+            g.values.push_back(double(hidden(ii,jj)));
+        }
         grids.push_back(std::move(g));
     };
-    take(p,d,0,0,p->knox,p->knoy,0);
+    take(p,d,0,0,p->knox,p->knoy,0,[&](int ii, int jj) { return cover0(ii,jj); });
     for(int n=0; n<(int)P.size(); ++n)
-    take(NP(n)->pp,NP(n)->d,EXT,EY,NP(n)->nx,NP(n)->ny,NP(n)->lev);
+    {
+        reefamr_patch *q = P[n];
+        take(NP(n)->pp,NP(n)->d,EXT,EY,NP(n)->nx,NP(n)->ny,NP(n)->lev,[&](int ii, int jj) { return cover(q,ii,jj); });
+    }
 
     if(writer==nullptr)
     writer = new lagoon_amr_output("NHFLOW",fields);

@@ -42,7 +42,9 @@ Architect: Hans Bihs
 // generator load), the losses of the drive train (loss: damper and Coulomb friction marked as loss,
 // e.g. belt, bearing and seal friction, X 510) and the stops (end-stops, latch). The losses act on
 // the body like the generator, but they are not scaled or limited with it and their power is not
-// absorbed power (P) but dissipated (P_loss).
+// absorbed power (P) but dissipated (P_loss). A useful element that is not scaled (the hydraulic
+// PTO, coral_pto_hydraulic.h: its force comes from its own pressures) adds to the absorbed power
+// without the gain and the limits of the generator.
 //
 // The Jacobians of stiff elements (end-stops, latch) let the 6DOF step treat them linearly
 // implicit together with the added mass (X 500 2).
@@ -66,6 +68,7 @@ struct pto_output
     double P_loss=0.0;  // power -F qd dissipated in the loss elements (drive-train friction)
     double dFdq_s=0.0;  // part of the Jacobians from stiff elements (implicit with X 500 2)
     double dFdqd_s=0.0;
+    double F_gen=0.0;   // composite: force of the generator part after gain and limits
 };
 
 class pto_base
@@ -89,6 +92,18 @@ public:
 
     // contributes to the absorbed power (end-stops, latch and the loss elements do not)
     virtual bool useful() const {return !loss();}
+
+    // part of the generator, scaled by the gain and limited by Fmax, Pmax of the composite (the useful
+    // elements unless they say otherwise)
+    virtual bool scaled() const {return useful();}
+
+    // the initial state (t0, q, qd) before the first step: elements with internal states start there
+    virtual void start(const pto_state&) {}
+
+    // output channels of elements with internal states: names once (after the prefix), values of the
+    // last force() call
+    virtual void channel_names(const std::string&, std::vector<std::string>&) const {}
+    virtual void channel_values(std::vector<double>&) const {}
 
     // stiff element: its Jacobians go into the linearly implicit step (X 500 2); the others
     // stay explicit, where the RK3/RK4 step is exact to its order
@@ -117,6 +132,8 @@ public:
     pto_output force(const pto_state &s) override
     {
         pto_output out, gen;
+        double P_direct = 0.0;      // useful elements outside the generator scaling
+        bool direct = false;
 
         for(auto &e : elem)
         {
@@ -124,7 +141,7 @@ public:
 
             e->F_last = o.F;
 
-            if(e->useful())
+            if(e->useful() && e->scaled())
             {
             gen.F     += o.F;
             gen.dFdq  += o.dFdq;
@@ -139,6 +156,12 @@ public:
 
             if(e->loss())
             out.P_loss += o.P;
+
+            else if(e->useful())
+            {
+            P_direct += o.P;
+            direct = true;
+            }
             }
 
             if(e->stiff())
@@ -175,13 +198,17 @@ public:
         const double r = (gen.F!=0.0) ? F/gen.F : 0.0;
 
         for(auto &e : elem)
-        if(e->useful())
+        if(e->useful() && e->scaled())
         e->F_last *= r;
 
         out.F     += F;
         out.dFdq  += dFdq;
         out.dFdqd += dFdqd;
         out.P      = -F*s.qd;
+        out.F_gen  = F;
+
+        if(direct)
+        out.P += P_direct;
 
         F_last = out.F;
 
@@ -192,6 +219,24 @@ public:
     {
         for(auto &e : elem)
         e->accept(s,dt);
+    }
+
+    void start(const pto_state &s) override
+    {
+        for(auto &e : elem)
+        e->start(s);
+    }
+
+    void channel_names(const std::string &prefix, std::vector<std::string> &c) const override
+    {
+        for(const auto &e : elem)
+        e->channel_names(prefix,c);
+    }
+
+    void channel_values(std::vector<double> &v) const override
+    {
+        for(const auto &e : elem)
+        e->channel_values(v);
     }
 
     void set_param(const std::string &key, double val) override

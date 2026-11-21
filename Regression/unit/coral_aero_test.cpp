@@ -1,7 +1,7 @@
 // REEF3D::CORAL unit test of the aerodynamics (coral/aero): airfoil polars (AeroDyn's airfoil file with two tables
 // and the unsteady parameters, plain tables, interpolation in alpha and log(Re), wrap-around of a -180 .. 180 table);
 // blade element momentum (Ning's method): the momentum balance of thrust and torque at the converged element, Buhl's
-// high-induction thrust, 2000 random elements converged with a zero residual and the inflow angle relation, no load at the tip, the skew correction; the Glauert
+// high-induction thrust, 2000 random elements converged with a zero residual and the inflow angle relation, a = 1 at the tip, the state at phi = eps where the windmill root passes phi = 0 (continuous), the skew correction; the Glauert
 // optimum rotor (BEM's induction = the optimum, Cp = Glauert's Cp_max at the tip speed ratio); rotor thrust, torque,
 // power; AeroDyn's blade file.
 // Architect: Hans Bihs
@@ -136,6 +136,7 @@ static void test_element()
         double tr = std::fabs(std::sin(s.phi)*vy*(1 + s.ap) - std::cos(s.phi)*Vx*(1 - s.a));
         // the tan(phi) relation holds except in the propeller brake with k <= 1 (a = 0 there, Ning)
         if(s.region==2 && s.a==0.0) tr = 0.0;
+        if(s.region==4) continue;     // the a = 1 limit (no root)
         if(rr > 1e-7 || tr > 1e-6*(1 + std::fabs(vy*(1 + s.ap)) + std::fabs(Vx*(1 - s.a))))
             ++bad;
     }
@@ -144,7 +145,30 @@ static void test_element()
     bem_element t = e;
     t.r = t.R;
     const bem_result tr = bem_solve(t, Vx, Vy, rho);
-    check(tr.fn==0.0 && tr.ft==0.0 && tr.F==0.0, "no load at the tip with the tip loss");
+    {
+        // a = 1, a' = 0 as AeroDyn: phi = 0, W = Vy, the load of the element without axial inflow
+        const airfoil_coef ct = t.af->coefficients(-t.theta);
+        const double q0 = 0.5*rho*Vy*Vy*t.chord;
+        check(tr.F==0.0 && tr.a==1.0 && tr.ap==0.0 && tr.phi==0.0 && std::fabs(tr.fn - q0*ct.cl) < 1e-9*q0 && std::fabs(tr.ft + q0*ct.cd) < 1e-9*q0,
+              fmt("at the tip with the tip loss: a = 1, a' = 0 as AeroDyn, the load without axial inflow (fn %.1f N/m)", tr.fn));
+    }
+    {
+        // the windmill root passing phi = 0 (a -> 1) as Vx falls: the state at phi = eps, the load continuous
+        bem_element w = e;
+        w.r = 0.98*w.R; w.chord = 1.5; w.theta = -3.0*deg;
+        double fprev = 0.0, jump = 0.0, scale = 0.0;
+        int n4 = 0;
+        for(int i=0; i<=400; ++i)
+        {
+            const double vx = 8.0*(1.0 - 0.9975*i/400.0);
+            const bem_result b = bem_solve(w, vx, 80.0, rho);
+            if(b.region==4) ++n4;
+            if(i > 0) jump = std::max(jump, std::fabs(b.fn - fprev));
+            scale = std::max(scale, std::fabs(b.fn));
+            fprev = b.fn;
+        }
+        check(n4 > 0 && jump < 0.02*scale, fmt("high induction near the tip, Vx falling to 0: the state at phi = eps reached (%.0f of 401), the normal load continuous (largest step %.2f %%)", n4, 100*jump/scale));
+    }
     const bem_result sk = bem_solve(e, Vx, Vy, rho, bem_options(), 0.2);
     check(std::fabs(sk.a - 1.2*r.a) < 1e-12 && std::fabs(std::tan(sk.phi) - Vx*(1 - sk.a)/(Vy*(1 + sk.ap))) < 1e-12, "skewed wake: a (1 + skew), phi from it");
     bem_options o;

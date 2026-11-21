@@ -36,8 +36,8 @@ Architect: Hans Bihs
 // - top: a solid cell above (e.g. under a fixed structure), not the free surface.
 //
 // Momentum (nhflow_bcmom): A519 1 bed friction; A519 2 friction at every wall face.
-// Turbulence: the bed always has a wall function (bed shear from A519 1/2 or from the no-slip bed in the
-// diffusion). Side and top walls only with A519 2; otherwise they are slip walls in the momentum
+// Turbulence: the bed always has a wall function (bed shear from A519 1/2 at the wall-function bed A518 1, or
+// from the diffusion at the resolved no-slip bed A518 2, which has no bed friction). Side and top walls only with A519 2; otherwise they are slip walls in the momentum
 // equations and the turbulence sees them with zero gradient, without a wall function.
 // B11 0 switches the turbulence wall functions off (and with them the wall cells in WALLF).
 // Sharp thin bodies (nhflow_thinbody, X 330 'mobility sharp'): the faces at the body are walls with a wall

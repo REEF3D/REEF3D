@@ -1,0 +1,17 @@
+{
+ "np": 2,
+ "steps": 200,
+ "description": "cfd_2d_utube_baffle_d1 on 2 ranks: the open fractions of the faces at the partition edge from the rank of the lower cell, the pressure of the closed cells extended across the edge.",
+ "tags": [
+  "quick",
+  "2d",
+  "levelset",
+  "solid",
+  "closed",
+  "compressible",
+  "mpi"
+ ],
+ "covers": [
+  "solid_aperture.h D 1 2"
+ ]
+}

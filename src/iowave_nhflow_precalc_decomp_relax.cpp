@@ -68,9 +68,6 @@ void iowave::nhflow_wavegen_precalc_decomp_relax(lexer *p, fdm_nhf *d, ghostcell
     }
     pgc->gcsl_start4(p,eta,50);
 
-    
-    int dbcount=0;
-    
 // U
     count=0;
     ZLOOP

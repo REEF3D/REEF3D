@@ -64,6 +64,33 @@ void CPM::seed_particles(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
         if(a->topo(i,j,k)<=0.0)
         return true;
         
+        // a cell with its centre above the bed and its lower part below it: seeded as well, the parcels above the
+        // bed are removed below. Such a cell was left empty, and a bed level in the lower half of a cell began at
+        // the face below it (bed at 0.48 cells above a face: 0.48 cells of sand missing; a sloping bed began as
+        // steps of up to half a cell). The bed level in the cell from the bottom face: its corners and its centre
+        // (a bed level on the face itself is no part of the cell)
+        {
+            const double zb = p->ZN[KP];
+            const double x0 = p->XN[IP], x1 = p->XN[IP1], y0 = p->YN[JP], y1 = p->YN[JP1];
+            const double tol = -1.0e-6*p->DZN[KP];
+            
+            if(k>0 || p->nb5>=0)
+            {
+                if(p->ccipol4_b(a->topo,p->XP[IP],p->YP[JP],zb) < tol)
+                return true;
+                
+                if(p->j_dir==0)
+                {
+                    if(p->ccipol4_b(a->topo,x0,p->YP[JP],zb) < tol || p->ccipol4_b(a->topo,x1,p->YP[JP],zb) < tol)
+                    return true;
+                }
+                
+                else if(p->ccipol4_b(a->topo,x0,y0,zb) < tol || p->ccipol4_b(a->topo,x1,y0,zb) < tol
+                     || p->ccipol4_b(a->topo,x0,y1,zb) < tol || p->ccipol4_b(a->topo,x1,y1,zb) < tol)
+                return true;
+            }
+        }
+        
         for(int qn=0;qn<p->Q110;++qn)
         if(p->XP[IP]>=p->Q110_xs[qn] && p->XP[IP]<p->Q110_xe[qn]
         && (p->j_dir==0 || (p->YP[JP]>=p->Q110_ys[qn] && p->YP[JP]<p->Q110_ye[qn]))
@@ -163,7 +190,7 @@ void CPM::seed_particles(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
                 P.Z[n] = zs;
                 P.U[n] = P.V[n] = P.W[n] = 0.0;
 
-                P.D[n] = seed_diameter(p,n);
+                P.D[n] = seed_diameter(p,-p->ccipol4_b(a->topo,xs,ys,zs));
                 P.RO[n] = p->S22;
 
                 P.Flag[n] = ACTIVE;
@@ -186,7 +213,7 @@ void CPM::seed_particles(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
             P.Z[n] = p->ZN[KP] + p->DZN[KP]*double(rand() % irand)/drand;
             P.U[n] = P.V[n] = P.W[n] = 0.0;
 
-            P.D[n] = seed_diameter(p,n);
+            P.D[n] = seed_diameter(p,-p->ccipol4_b(a->topo,P.X[n],P.Y[n],P.Z[n]));
             P.RO[n] = p->S22;
 
             P.Flag[n] = ACTIVE;
@@ -260,19 +287,33 @@ void CPM::ini_fields(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
 }
 
 // parcel diameter: S 20, or for a mixture (S 51 d fa fs) a fraction drawn with the volume
-// fractions fa of the bed; all parcels have the same volume, so the number of parcels of a
-// fraction follows its volume fraction. A golden ratio sequence gives an even mixture.
-double CPM::seed_diameter(lexer *p, int nn)
+// fractions of the bed: fa in the surface layer L_a (depth below the initial bed up to L_a, and
+// the seed boxes Q 110), fs below it (fa where no fs is given); all parcels have the same volume,
+// so the number of parcels of a fraction follows its volume fraction. A golden ratio sequence
+// gives an even mixture.
+double CPM::seed_diameter(lexer *p, double depth)
 {
-    if(p->S51<=0)
+    if(mx_nf<=0)
     return p->S20;
     
+    const double *fr = p->S51_fa;
     double sum=0.0;
-    for(int q=0;q<p->S51;++q)
-    sum += MAX(p->S51_fa[q],0.0);
     
-    if(sum<=0.0)
-    return p->S20;
+    if(depth>mx_La)
+    {
+        for(int q=0;q<p->S51;++q)
+        sum += MAX(p->S51_fs[q],0.0);
+        
+        if(sum>0.0)
+        fr = p->S51_fs;
+    }
+    
+    if(fr==p->S51_fa)
+    {
+        sum=0.0;
+        for(int q=0;q<p->S51;++q)
+        sum += MAX(p->S51_fa[q],0.0);
+    }
     
     static long seq=0;
     double u = fmod(0.6180339887498949*double(seq + 7919*p->mpirank) + 0.5, 1.0);
@@ -281,7 +322,7 @@ double CPM::seed_diameter(lexer *p, int nn)
     double cum=0.0;
     for(int q=0;q<p->S51;++q)
     {
-        cum += MAX(p->S51_fa[q],0.0)/sum;
+        cum += MAX(fr[q],0.0)/sum;
         
         if(u<cum)
         return p->S51_d[q];

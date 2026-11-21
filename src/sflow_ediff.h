@@ -55,12 +55,11 @@ public:
     static void algebraic_eddyv(lexer*, fdm2D*, slice &U, slice &V, slice &WL);
 
 private:
-    double viscosity(lexer*, fdm2D*);
     // curvilinear grids: the depth-integrated stress through the faces of the cells, comp 1 x (to F), 2 y (to G)
     void curv_stress(lexer*, fdm2D*, slice &U, slice &V, slice &WL, int comp);
-    double dxx(lexer*, slice&);
-    double dyy(lexer*, slice&);
-    double dxy(lexer*, slice&);
+    // the Cartesian operators in flux form (sflow_diffusion_flux.h)
+    double fxx(lexer*, fdm2D*, slice&, slice&);
+    double fyy(lexer*, fdm2D*, slice&, slice&);
 };
 
 #endif

@@ -1,0 +1,18 @@
+{
+ "base": "seastate_2d_phase24_st4_once_ns_mpi2",
+ "np": 2,
+ "same_as": "seastate_2d_phase25_hj_st4_once",
+ "ctrl_add": [
+  "A 769 1"
+ ],
+ "description": "seastate_2d_phase24_st4_once_ns_mpi2 (2 ranks, pipelined, A 732 3, A 767 1) with A 769 1: bitwise seastate_2d_phase25_hj_st4_once (one rank). Validation in Dropbox SEASTATE/validation/78_limiter.",
+ "tags": [
+  "quick",
+  "2d",
+  "seastate",
+  "mpi"
+ ],
+ "covers": [
+  "A 769 1 on 2 ranks"
+ ]
+}

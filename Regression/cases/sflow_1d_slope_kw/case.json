@@ -1,0 +1,17 @@
+{
+ "description": "SFLOW 1D channel, 2 m2/s over a 1:20 slope from 1 m to 2 m depth (S 61), depth-averaged k-omega (A 260 2): the flow slows down over the slope (div(u) < 0). The convection of k and omega in advective form (sflow_ifou): k follows the solution of the model equations along x (u dk/dx = sources) within 5 % (dx 2 m, first-order upwind); with the flux form d(uk)/dx it was 13 % above it, on any grid.",
+ "solver": "sflow",
+ "np": 1,
+ "steps": 6000,
+ "tags": [
+  "quick",
+  "1d",
+  "sflow",
+  "turbulence"
+ ],
+ "covers": [
+  "sflow_ifou: advective form (rows sum to zero) where the depth-averaged velocity has a divergence",
+  "sflow_turb_kw_IM1: omega before k, Newton sink, two passes"
+ ],
+ "architect": "Hans Bihs"
+}

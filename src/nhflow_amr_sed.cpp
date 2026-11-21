@@ -406,6 +406,7 @@ void nhflow_amr::sediment_step_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, iofl
     double vzmax = s0->exner()->amr_vzmax(p,s0->s,mask[0].get());
     double dxmin = 1.0e20;
     double brate = s0->exner()->bend_rate;
+    double ccmax = 0.0, ccdx = 0.0, cumax = 0.0;
 
     for(int id=0; id<ng; ++id)
     {
@@ -415,6 +416,8 @@ void nhflow_amr::sediment_step_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, iofl
         vzmax = MAX(vzmax,c->sed->exner()->amr_vzmax(c->pp,c->sed->s,mask[id+1].get()));
         dxmin = MIN(dxmin,c->sed->exner()->amr_dx(c->pp));
         brate = MAX(brate,c->sed->exner()->bend_rate);
+        // the bed celerity of the patches and blocks (their own cells): S 103, S 104 and c/U of the log
+        c->sed->exner()->celerity(c->pp,c->sed->s,mask[id+1].get(),ccmax,ccdx,cumax);
     }
 
     // level 0: no bed change in the covered cells (their bed is the restriction)
@@ -429,7 +432,11 @@ void nhflow_amr::sediment_step_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, iofl
     s0->exner()->amr_maxvz = vzmax;
     s0->exner()->amr_mindx = (dxmin<1.0e19) ? dxmin : 0.0;
     s0->exner()->amr_bendrate = brate;
+    s0->exner()->amr_cmax = ccmax;
+    s0->exner()->amr_cdx = ccdx;
+    s0->exner()->amr_umax = cumax;
     s0->exner()->timestep(p,pgc,s0->s);
+    s0->exner()->amr_cmax = s0->exner()->amr_cdx = s0->exner()->amr_umax = 0.0;
     s0->exner()->amr_maxvz = 0.0;
     s0->exner()->amr_mindx = 0.0;
     s0->exner()->amr_bendrate = 0.0;

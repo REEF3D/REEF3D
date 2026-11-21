@@ -199,4 +199,10 @@ double pto_bopt(double w, double m, double A, double Brad, double C, double Blos
     return std::sqrt(Bd*Bd + X*X);
 }
 
+void pto_reactive(double w, double m, double A, double Brad, double C, double Bloss, double &k, double &c)
+{
+    k = w*w*(m + A) - C;
+    c = Brad + Bloss;
+}
+
 }

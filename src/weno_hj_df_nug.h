@@ -97,10 +97,8 @@ private:
 
 	double L,grad;
 
-	double gradx, grady, gradz;
-	double fu1,fv1,fw1,fu2,fv2,fw2;
     
-    double ivel1,ivel2,jvel1,jvel2,kvel1,kvel2;
+    double ivel2,jvel2,kvel2;
     double iadvec,jadvec,kadvec;
     
     double *DX,*DY,*DZ;
@@ -116,7 +114,7 @@ private:
 	double alpha1,alpha2,alpha3;
 	double w1,w2,w3;
     
-    const double tttw,fourth,third,sevsix,elvsix,sixth,fivsix,tenth;
+    const double tttw,fourth,tenth;
 	const double sixten,treten;
 	const double epsilon;
 };

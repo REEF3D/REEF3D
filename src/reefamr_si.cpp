@@ -184,11 +184,16 @@ void reefamr::rsi_setup()
     for(int id : lev[0])
     rsig.push_back(id);
 
+    // patches in the system on any rank (nlevg: all ranks): a rank without patches takes the composite operator as
+    // well (with its own patch count the ranks ran different fills and reductions, and the solve hung with patches on
+    // one rank only: SFLOW A 210 12/13, adaptive refinement on two ranks)
     rsi_lev = false;
     for(int l=1; l<=maxlev && l<(int)lev.size(); ++l)
-    for(int id : lev[l])
     {
+        for(int id : lev[l])
         rsig.push_back(id);
+
+        if(l<(int)nlevg.size() && nlevg[l]>0)
         rsi_lev = true;
     }
 
@@ -1088,6 +1093,8 @@ void reefamr::rsi_solve(lexer *p, ghostcell *pgc, int itmax, rsi_result &res)
     for(auto c : rsg)
     c->R.e->wd_start(c->q);
 
+    int isl[3] = {0,0,0};
+
     // a coarse face next to a finer patch takes the mean coefficient a_f of its fine faces: the operator replaces its
     // flux by the fine one anyway (rsi_apply), but the coefficient decides whether the coarse cell is coupled (the
     // wetting and drying pattern of si_eta2D::wd_update, the isolated rows of si_eta2D::assemble). With the coarse
@@ -1155,10 +1162,16 @@ void reefamr::rsi_solve(lexer *p, ghostcell *pgc, int itmax, rsi_result &res)
         if(itmax==1)
         break;
 
-        // new wet pattern
+        // new wet pattern (dry islands with water and without an exit wet again, si_eta2D::wd_islands; multi-block
+        // grids without patches)
         int change=0;
         for(auto c : rsg)
-        change += c->R.e->wd_update(c->q,*c->R.ax,*c->R.ay,*c->R.bdiag,*c->R.etaI,*c->R.depth);
+        {
+        change += c->R.e->wd_update(c->q,*c->R.ax,*c->R.ay,*c->R.bdiag,*c->R.etaI,*c->R.depth,!rsi_lev);
+        isl[0] += c->R.e->wd_nisl;
+        isl[1] += c->R.e->wd_nisl_cells;
+        isl[2] += c->R.e->wd_nisl_empty;
+        }
 
         int all=0;
         MPI_Allreduce(&change,&all,1,MPI_INT,MPI_SUM,pgc->mpi_comm);
@@ -1178,6 +1191,13 @@ void reefamr::rsi_solve(lexer *p, ghostcell *pgc, int itmax, rsi_result &res)
         ++dry;
     }
     MPI_Allreduce(&dry,&alldry,1,MPI_INT,MPI_SUM,pgc->mpi_comm);
+
+    int isla[3];
+    MPI_Allreduce(isl,isla,3,MPI_INT,MPI_SUM,pgc->mpi_comm);
+
+    if((isla[0]>0 || isla[2]>0) && p->mpirank==0 && p->count%p->P12==0)
+    cout<<"semi-implicit, all grids: dry islands without an exit (over the passes): "<<isla[0]<<" with water made wet ("
+        <<isla[1]<<" cells), "<<isla[2]<<" empty left dry"<<endl;
 
     res.iter = iter;
     res.wd_iter = it_done;

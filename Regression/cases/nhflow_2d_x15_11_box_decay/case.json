@@ -1,0 +1,5 @@
+{"base": "nhflow_2d_x15_10_box_heave", "steps": 300,
+ "ctrl_set": {"X 15": "11", "X 11": "0 0 1 0 0 0", "X 110": "14.5 15.5 0.0 0.1 2.65 3.45", "X 240": null, "X 210": null},
+ "description": "the box of nhflow_2d_x15_11_box_heave released 0.05 m above its equilibrium, free in heave, X 15 11: the coupling with the added mass of the hull on the grid on both sides (one Poisson solve of the unit heave acceleration per time step, REEF3D_6DOF_addedmass_0.dat: 1.39 of the displaced mass, 1.47 exact). Period 1.83 s, amplitude ratio per cycle 0.47 (Frank's coefficients at 3.5 rad/s: 1.80 s, 0.48; X 15 1 2.03 s, 0.37; NHFLOW Floating validation 02).",
+ "tags": ["2d", "nhflow", "6dof", "floating"],
+ "covers": ["sixdof_obj_nhflow::added_mass_nhflow", "sixdof_obj::lagged_added_mass", "sixdof_nhflow::added_mass_nhflow in nhflow_momentum_func::phase_P"]}

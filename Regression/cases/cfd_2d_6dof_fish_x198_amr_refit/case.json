@@ -1,0 +1,11 @@
+{
+ "base": "cfd_2d_6dof_fish_x198_amr",
+ "np": 1,
+ "steps": 12,
+ "ctrl_set": {
+  "X 198": "2 1.0"
+ },
+ "description": "cfd_2d_6dof_fish_x198_amr with the refit after the projection (X 198 2): after the level projection of each stage of the finest level the fish takes the rigid-body motion of the projected velocity of its patches (cfd_amr::body_refit, sixdof_obj_cfd::momentum_refit_set), the patches are forced again (momentum_rk::amr_forcing) and projected again. With the SSP-RK3 of the mesh refinement X 198 1 swims 9 % slow at N 47 0.25; X 198 2 as the low-storage RK3 of the uniform grid (Fish Swimming validation 06).",
+ "tags": ["quick", "2d", "6dof", "floating", "deform", "singlephase", "amr"],
+ "covers": ["cfd_amr::body_refit", "sixdof_obj_cfd::momentum_refit_set", "a second pr_level of the finest level"]
+}

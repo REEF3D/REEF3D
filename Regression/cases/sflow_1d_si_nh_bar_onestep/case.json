@@ -1,0 +1,20 @@
+{
+ "base": "sflow_1d_si_nh_bar",
+ "ctrl_set": {
+  "A 210": "11"
+ },
+ "description": "sflow_1d_si_nh_bar with the one-step predictor (A 210 11): one stage, the BCG advection with its source term (dt/2 of -g grad(eta^n) and of the non-hydrostatic pressure of the step before), the advecting discharge at t^{n+1/2}, the pressure terms at t^{n+1/2} (second order in time also for the nonlinear terms).",
+ "tags": [
+  "quick",
+  "1d",
+  "sflow",
+  "semi_implicit",
+  "nonhydrostatic",
+  "waves"
+ ],
+ "covers": [
+  "sflow_momentum_SI::advection_bcg (1D)",
+  "A 210 11 time levels, pressure depth at t^{n+1/2}"
+ ],
+ "architect": "Hans Bihs"
+}

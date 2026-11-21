@@ -45,7 +45,6 @@ void ioflow_f::discharge_nhflow(lexer *p, fdm_nhf *d,ghostcell *pgc)
     }
     
     // patchBC
-    //pBC->patchBC_discharge(p,a,pgc);
 }
 
 void ioflow_f::Qin_nhf(lexer *p, fdm_nhf *d, ghostcell* pgc)
@@ -80,8 +79,6 @@ void ioflow_f::Qin_nhf(lexer *p, fdm_nhf *d, ghostcell* pgc)
         
         area=p->DYN[JP]*p->DZN[KP]*d->WL(i-1,j);
         
-        //cout<<"i: "<<i<<" p->DYN[JP]: "<<p->DYN[JP]<<" k: "<<k<<" p->DZN[KP]*p->sigz[IJ]: "<<p->DZN[KP]*p->sigz[IJ]<<" "<<p->sigz[IJ]<<endl;
-
         Ai+=area;
         Ki+=area*pow(MAX(d->WL(i-1,j),0.0),2.0/3.0);
                 

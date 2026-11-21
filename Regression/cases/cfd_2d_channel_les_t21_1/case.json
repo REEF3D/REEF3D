@@ -1,0 +1,4 @@
+{"base": "cfd_2d_channel_les_t21_2", "ctrl_set": {"T 21": "1"},
+ "description": "CFD 2D open channel, LES Smagorinsky (T 10 31) with the high-pass filter T 21 1, u' = (I-G) u. In 2D the filter has no y pass (the y ghost cells are not set in 2D; with it u' kept half of the unfiltered velocity).",
+ "tags": ["2d", "turbulence", "les"],
+ "covers": ["LES_filter_f1 in 2D", "LES_smagorinsky"]}

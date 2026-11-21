@@ -1,0 +1,18 @@
+{
+ "base": "sflow_2d_towed_motionfile_cog",
+ "ctrl_set": {
+  "A 210": "12"
+ },
+ "description": "sflow_2d_towed_motionfile_cog with the semi-implicit step (A 210 12): the pose at the end of the step.",
+ "tags": [
+  "2d",
+  "sflow",
+  "6dof",
+  "semi_implicit",
+  "motionfile"
+ ],
+ "covers": [
+  "sixdof_obj::solve_eqmotion_oneway_onestep with X 240 11"
+ ],
+ "architect": "Hans Bihs"
+}

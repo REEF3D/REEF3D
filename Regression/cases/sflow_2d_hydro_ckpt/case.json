@@ -1,0 +1,24 @@
+{
+ "base": "sflow_2d_hydro_losses_si",
+ "np": 1,
+ "steps": 60,
+ "ctrl_add": [
+  "R 10 1",
+  "R 11 72.0"
+ ],
+ "ctrl_set": {
+  "P 48": "30",
+  "P 49": "0"
+ },
+ "description": "sflow_2d_hydro_losses_si with rain (R 10 1) and a checkpoint every 30 steps (P 48 30): the uninterrupted run of sflow_2d_hydro_restart.",
+ "tags": [
+  "2d",
+  "sflow",
+  "hydro",
+  "semi_implicit",
+  "checkpoint"
+ ],
+ "covers": [
+  "hydro_sflow::ckpt_fields (cumulative infiltration), ckpt_state (the volume budget)"
+ ]
+}

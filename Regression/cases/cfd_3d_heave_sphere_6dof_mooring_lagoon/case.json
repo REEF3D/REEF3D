@@ -1,0 +1,8 @@
+{
+ "base": "cfd_3d_heave_sphere_6dof_mooring",
+ "ctrl_set": {"P 18": "1", "P 20": "5"},
+ "keep_keys": ["P 20"],
+ "tags": ["3d", "6dof", "floating", "mpi", "mooring", "lagoon"],
+ "description": "as cfd_3d_heave_sphere_6dof_mooring (two spring mooring lines, X 310 4), the lines written to the LAGOON store instead of their .vtk files (P 18 1) every 5 steps: REEF3D_CFD.lagoon with the particle set cfd_mooring (role mooring: the two ends of each spring with its Tension, the line number per segment); no REEF3D-Mooring .vtk file. The solution is that of the case without the store.",
+ "covers": ["lagoon_moorings (mooring_Spring::print, P 18 1)"]
+}

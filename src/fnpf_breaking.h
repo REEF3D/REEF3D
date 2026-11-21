@@ -30,13 +30,6 @@ Author: Hans Bihs
 #include<deque>
 #include<fstream>
 
-class fnpf_laplace;
-class field;
-class fnpf_convection;
-class fnpf_ddx;
-class fnpf_etadisc;
-class fnpf_coastline;
-class solver2D;
 class breaking_crest3d;
 class ioflow;
 
@@ -61,13 +54,14 @@ public:
     void breaking_barthelemy(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&,slice&,double);
     void bt_filter(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&,slice&,double);
     void breaking_zones(lexer*,ioflow*) override;
+    // A 350 5: Fi_t -= pa, pa = bt_pa eta_t on the front faces of the deep-water breakers
+    void absorb(lexer*,fdm_fnpf*,slice&,slice&) override;
 
-    
-    
     void filter(lexer*, fdm_fnpf*,ghostcell*, slice&, int, int);
     
     // coastline / wet-dry front viscosity A346 (A343 1/2/3)
     void coast_viscosity(lexer*, fdm_fnpf*, ghostcell*);
+    void zone_viscosity(lexer*, fdm_fnpf*, ghostcell*);
 
     double ivel,jvel,kvel;
     
@@ -90,10 +84,6 @@ private:
     // stage water depth eta + wd - bed (>= 0.01)
     double romero_depth(lexer*, fdm_fnpf*, slice&);
 
-    // --- Helper: Hilbert-transform-based envelope and phase ---
-    void compute_hilbert_steepness(lexer*, fdm_fnpf*, ghostcell*);
-    
-    
     double rb3(lexer*,double);
     
     double dist3,dist4,db;
@@ -119,7 +109,6 @@ private:
     double alpha_eta;   // KFSBC dissipation scaling (0 = off)
     int ini_done;       // First call flag
     
-    
     double a_coeff;       // Romero a coefficient
     double S0;            // onset threshold steepness
     double alpha_L;       // breaking zone width fraction
@@ -129,6 +118,7 @@ private:
     // A 350 4: crest tracking (breaking_crest3d), surface velocity, relaxation zones
     breaking_crest3d *bt=nullptr;
     slice4 bt_us, bt_vs;
+    slice4 bt_pa, bt_et;   // A 350 5: absorbing-pressure coefficient (m/s), eta_t of the step
     sliceint4 bt_zone;
     bool bt_zone_built=false;
     int bt_count=0;
@@ -137,7 +127,6 @@ private:
     
     int steep_method;     // steepness computation method
     int cspeed_method;    // phase speed computation method
-    
 };
 
 #endif

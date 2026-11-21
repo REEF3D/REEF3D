@@ -1,0 +1,21 @@
+{
+ "description": "SFLOW semi-implicit with the one-step predictor (A 210 11), closed basin 10 km x 5 km, h 10 m, dx 250 m: uniform wind U10 20 m/s at 30 deg (W 200 1, ramp 1800 s) and the Coriolis force f 1e-4 1/s (W 211 1, W 212). The wall sides of the cells carry the sources normal to the wall (cell_update), so the wind drives no flow into the walls: after 24 h the depth-mean speed is that of A 210 13 (7.5e-4 m/s; with the zero wall term 6.5e-3 m/s, the wall-normal velocity next to the walls 30 - 100 times that of A 210 13; Dropbox SFLOW_NH_SI/validation/06_wall_forcing).",
+ "solver": "sflow",
+ "np": 1,
+ "steps": 300,
+ "tags": [
+  "quick",
+  "2d",
+  "sflow",
+  "semi_implicit",
+  "closed",
+  "wind",
+  "met",
+  "coriolis"
+ ],
+ "covers": [
+  "sflow_momentum_SI::cell_update wall sides with sources (FSx, FSy)",
+  "met_forcing::source_sflow with A 210 11"
+ ],
+ "architect": "Hans Bihs"
+}

@@ -1,0 +1,23 @@
+{
+ "base": "sflow_1d_si_nh_bar",
+ "np": 2,
+ "control_set": {
+  "M 10": "2"
+ },
+ "ctrl_set": {
+  "M 10": "2"
+ },
+ "description": "sflow_1d_si_nh_bar on 2 ranks: the coupled system with FGMRES and the two-V-cycle preconditioner instead of the band LU.",
+ "tags": [
+  "1d",
+  "sflow",
+  "semi_implicit",
+  "nonhydrostatic",
+  "mpi"
+ ],
+ "covers": [
+  "sflow_momentum_SI_nh FGMRES(30) and the preconditioner (reefmg2D keep_matrix, fill_rhs)",
+  "exchange of the face coefficients across ranks"
+ ],
+ "architect": "Hans Bihs"
+}

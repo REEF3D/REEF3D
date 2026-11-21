@@ -1,0 +1,11 @@
+{
+ "base": "cfd_2d_6dof_fish_x198_sym",
+ "np": 1,
+ "steps": 40,
+ "ctrl_add": [
+  "X 199 0 0.02 1.5 0.8 1.0 0.05"
+ ],
+ "description": "cfd_2d_6dof_fish_x198_sym with the gait control (X 199): from t = 0.02 s the frequency goes to 1.5 Hz, the amplitude factor to 0.8 and the curvature bias to 1 (the curvature 1/L added to the angle of the midline, the lateral position from the angle), each with the critically damped dynamics of settling time 0.05 s; the phase is 2 pi int f, closed form between the target times; the inverse map of the bent body starts from the nearest station of the deformed midline. The fish log gets the columns f, a, b.",
+ "tags": ["quick", "2d", "6dof", "floating", "deform", "singlephase"],
+ "covers": ["sixdof_deform::set_gait, gait, evolve", "sixdof_deform::midline with the gait and the curvature bias", "sixdof_deform::velocity_at_raw (start for the bent body)"]
+}

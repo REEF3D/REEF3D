@@ -38,7 +38,8 @@ void sflow_eta::wetdrydeep(lexer* p, fdm2D* b, ghostcell* pgc, slice &WL)
         p->deep[IJ]=0;
         
         if(p->j_dir==1)
-        if(p->wet[IJp1]==0 || p->wet[IJp2]==0 || p->wet[IJp3]==0 || p->wet[IJm1]==0 || p->wet[IJm2]==0 || p->wet[IJm3]==0)
+        // (two cells, as in x: with three the solution was not symmetric in x and y where cells are dry)
+        if(p->wet[IJp1]==0 || p->wet[IJp2]==0 || p->wet[IJm1]==0 || p->wet[IJm2]==0)
         p->deep[IJ]=0;
         
         if(p->j_dir==1)

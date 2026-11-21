@@ -1,0 +1,20 @@
+{
+ "base": "cfd_2d_nwt_amr",
+ "np": 1,
+ "steps": 100,
+ "ctrl_add": [
+  "F 48 6.0"
+ ],
+ "description": "cfd_2d_nwt_amr (waves through a static patch, SSP-RK3) with the narrow band (F 48 6) on level 0 and on the patch.",
+ "tags": [
+  "quick",
+  "2d",
+  "waves",
+  "levelset",
+  "narrowband",
+  "amr"
+ ],
+ "covers": [
+  "the band with the free surface across the patch edges"
+ ]
+}

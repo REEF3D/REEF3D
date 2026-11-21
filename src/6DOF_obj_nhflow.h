@@ -26,7 +26,6 @@ Authors: Hans Bihs, Tobias Martin
 #include"6DOF_obj_2D.h"
 #include<array>
 
-class nhflow_reinidisc_fsf;
 
 //  Fluid access of the load models (ship module) in NHFLOW: velocity at points, MPI-summed
 class sixdof_fluid_nhflow : public sixdof_fluid
@@ -43,6 +42,8 @@ private:
 //  6DOF body coupled to REEF3D::NHFLOW: level set of the body on the sigma grid, direct
 //  forcing, hull pressure and viscous loads, membranes (X 330), porous bodies (X 16) and
 //  the wavemaker objects (X 10 4). The ship-wave mode (X 10 3) uses the 2D pressure patch.
+
+class solver;
 
 class sixdof_obj_nhflow : public sixdof_obj_2D
 {
@@ -66,6 +67,29 @@ public:
     void fbnormal_curv(lexer*, fdm_nhf*, double&, double&);   // curvilinear grid: horizontal part of -grad(FB)
     void forcing_kernel_nhflow(lexer*, fdm_nhf*, ghostcell*, double*, double*, double*, double*, double*, double*, slice&, int, bool);
     void target_velocity(lexer*, bool, double&, double&, double&);
+    // X 15 11: direct forcing with cell and face fractions, the body in the projection (6DOF_obj_forcing_nhflow.cpp)
+    void forcing_kernel_fraction(lexer*, fdm_nhf*, ghostcell*, double*, double*, double*, double*, double*, double*, slice&, int, bool);
+    double cellfraction_nhflow(lexer*, fdm_nhf*, slice&, double&, double&, double&);
+    double linkfraction_nhflow(double, double, double, double, double, double);
+    double *FNX=nullptr,*FNY=nullptr,*FNZ=nullptr;     // unit normal of the hull at the cells (X 15 11)
+    void fraction_ini(lexer*, fdm_nhf*);
+    bool fraction_reforce = false;      // after the projection: fractions only, no forcing
+    // X 15 11, loads: sample distance of the pressure, the water layer between hull and sample points (G), the
+    // pressure field of the loads if not d->P
+    double sample_dist_nhflow(lexer*, slice&, double, double, double, double, double, double);
+    Eigen::Matrix<double,6,6> Gdf_ = Eigen::Matrix<double,6,6>::Zero();
+    double *load_P = nullptr;
+    // X 15 11, coupling: the added mass of the hull on the grid from unit accelerations of the free degrees of
+    // freedom (6DOF_obj_nhflow_addedmass.cpp), (M + A) a = F + A a_prev
+    void added_mass_nhflow(lexer*, fdm_nhf*, ghostcell*, solver*, slice&);
+    void fraction_stabilisation(lexer*);
+    Eigen::Matrix<double,6,6> Adf_ = Eigen::Matrix<double,6,6>::Zero();
+    bool adf_on_ = false;
+    double *UA=nullptr,*VA=nullptr,*WA=nullptr,*PA=nullptr,*UBA=nullptr,*VBA=nullptr,*WBA=nullptr;
+    ofstream amout;
+    // acceleration of the body from its velocities at the start of the last two time steps (prescribed motions)
+    Eigen::Matrix<double,6,1> afd_ = Eigen::Matrix<double,6,1>::Zero(), ufd_ = Eigen::Matrix<double,6,1>::Zero();
+    double tfd_ = -1.0;
     void membrane_forcing_nhflow(lexer*,fdm_nhf*,ghostcell*,double,double*,double*,double*,slice&);
     void membrane_reaction_nhflow(lexer*,fdm_nhf*,ghostcell*,double,slice&,bool);
     bool membrane_iterated();
@@ -102,7 +126,7 @@ public:
     // velocity at the keel point; the loads of the footprint columns into the body (gravity added,
     // force file written)
     void keel_nhflow(lexer*, fdm_nhf*, slice&, slice&, slice&, slice&, slice&, slice&);
-    void hull_loads_nhflow(lexer*, ghostcell*, bool, double, double, double, double, double, double);
+    void hull_loads_nhflow(lexer*, ghostcell*, bool, double, double, double, double, double, double, const double* =nullptr);
     // hr: the spacing of the grid relative to level 0 for the band of the loads (0: DXM of the grid / DXM of level 0;
     // the blocks of a multi-block grid have their own logical DXM)
     struct nhflow_grid { lexer *p; fdm_nhf *d; slice *WL; double hr = 0.0; };
@@ -126,15 +150,12 @@ public:
 
 private:
     
-    void hydrodynamic_forces_nhflow_volume(lexer*, fdm_nhf*, ghostcell*, double*, double*, double*, slice&, int, bool);
     void externalForces_nhflow(lexer*, fdm_nhf*, ghostcell*, double, bool);
     void netForces_nhflow(lexer*, fdm_nhf*, ghostcell*, double, bool);
     void geometry_parameters_nhflow(lexer*, fdm_nhf*, ghostcell*);
     void geometry_ls_nhflow(lexer*, fdm_nhf*, ghostcell*);
     void update_trimesh_nhflow(lexer*, fdm_nhf*, ghostcell*, bool);
     void ray_cast(lexer*, fdm_nhf*, ghostcell*);
-    int  clip_facet_poly(lexer*,double,double,double,double,double,double,double,double,double, double,double*,double*,double*);
-    void nhflow_reini_RK2(lexer*, fdm_nhf*, ghostcell*, double*);
     void allocate(lexer*,fdm_nhf*,ghostcell*);
     void deallocate(lexer*,fdm_nhf*,ghostcell*);
     void print_force(lexer*,fdm_nhf*,ghostcell*);
@@ -147,12 +168,8 @@ private:
     void addpoint(lexer*,fdm_nhf*,int,int);
     void finalize(lexer*,fdm_nhf*);
     double triangle_area(lexer*,double,double,double,double,double,double,double,double,double);
-    double clip_edge_vol(double,double,double);
-    void buoyancy_nhflow(lexer*, fdm_nhf*, ghostcell*, double, double&, double&, double&, double&);
     
-    nhflow_reinidisc_fsf *pnhfrdisc;
     int *IO,*CR,*CL;
-    double *FRK1,*DTT,*LL;
     int *vert, *nflag;
     double *fsf;
 };

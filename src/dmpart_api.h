@@ -39,7 +39,9 @@ namespace dmpart
 bool build(const char *fname, int nranks, std::vector<std::vector<char>> &rankbuf, std::string &msg, int weighted=0,
            std::vector<int> *boxes=nullptr, bool boxes_only=false);
 // the same from a global grid file in memory (the box grid of CPM on the mesh refinement, cfd_amr_cpm.cpp)
-bool build_mem(std::vector<char> &&glob, int nranks, std::vector<std::vector<char>> &rankbuf, std::string &msg);
+// wcell: the weights of the cells, (i ny + j) nz + k: the weighted partition (M 20 5) with them
+bool build_mem(std::vector<char> &&glob, int nranks, std::vector<std::vector<char>> &rankbuf, std::string &msg,
+               const std::vector<double> *wcell=nullptr);
 }
 
 #endif

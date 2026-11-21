@@ -1,0 +1,20 @@
+{
+ "base": "cfd_2d_nwt_onestep",
+ "np": 1,
+ "steps": 100,
+ "ctrl_add": [
+  "N 63 3",
+  "F 48 6.0"
+ ],
+ "description": "cfd_2d_nwt_onestep with the level set in SSP-RK3 stages (N 63 3) and the narrow band (F 48 6): the mask of the transport from the first stage, kept for the three stages.",
+ "tags": [
+  "quick",
+  "2d",
+  "waves",
+  "levelset",
+  "narrowband"
+ ],
+ "covers": [
+  "momentum_rk::ls_rk_stage with the band"
+ ]
+}

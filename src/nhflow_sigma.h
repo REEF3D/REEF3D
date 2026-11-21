@@ -47,11 +47,15 @@ public:
     
     void omega_update(lexer*,fdm_nhf*,ghostcell*,slice&,double*,double*,double*);
     
-    void bed_acceleration(lexer*,fdm_nhf*,ghostcell*,slice&,double*,double*,double*);
     
 private:
     
     slice4 ef,df;
+
+    // the filtered depth (df) of the last call and the depth slice it came from (with its ghost cells) and the number
+    // of bed forcing cells: the filter again only when one of them changed
+    std::vector<double> dprev, dfilt;
+    int dprev_bed = -1;
     
     void disc_bed(lexer*, fdm_nhf*, ghostcell*);
     void disc_eta(lexer*, fdm_nhf*, ghostcell*);

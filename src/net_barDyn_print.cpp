@@ -25,6 +25,8 @@ Author: Tobias Martin
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
+#include"lagoon_nets.h"
+#include<vector>
 
 
 void net_barDyn::print(lexer *p)
@@ -71,6 +73,55 @@ void net_barDyn::print(lexer *p)
 	{
 		printtime += p->P30;
 
+		// the tension at each knot: the mean of its bars'
+		std::vector<double> knot_tension(nK, 0.0);
+		for (int n = 0; n < nK; ++n)
+		{
+			double output = 0.0;
+			int index = 0;
+
+			for (int i = 0; i < nf; ++i)
+			{
+				if (Pi[i]==n || Ni[i]==n)
+				{
+					output += T_(i);
+					index++;
+				}
+			}
+
+			knot_tension[n] = index > 0 ? output/index : 0.0;
+		}
+
+		// P 18: the net in the LAGOON store as well (lagoon_nets); P 18 1: instead of the .vtk file
+		lagoon_nets::knots k;
+		k.xyz.resize(3*nK);
+		k.velocity.resize(3*nK);
+		k.acceleration.resize(3*nK);
+		k.tension.resize(nK);
+		for (int n = 0; n < nK; ++n)
+		{
+			for (int c = 0; c < 3; ++c)
+			{
+				k.xyz[3*n+c] = float(x_(n,c));
+				k.velocity[3*n+c] = float(xdot_(n,c));
+				k.acceleration[3*n+c] = float(xdotdot_(n,c));
+			}
+			k.tension[n] = float(knot_tension[n]);
+		}
+		for (int i = 0; i < nf; i++)
+		{
+			k.bars.push_back(Pi[i]);
+			k.bars.push_back(Ni[i]);
+		}
+		for (int i = 0; i < nbK; i++)
+		{
+			k.bars.push_back(Pb[i]);
+			k.bars.push_back(Nb[i]);
+		}
+		const bool stored = lagoon_nets::output(p, nNet, num, std::move(k));
+
+		if(!(stored && p->P18==1))
+		{
 		sprintf(name,"./REEF3D_CFD_6DOF_Net/REEF3D-Net-%08i-%06i.vtk",nNet,num);
 
 
@@ -109,25 +160,9 @@ void net_barDyn::print(lexer *p)
 		result<<"\nPOINT_DATA " << nK <<endl;
 		result<<"SCALARS Tension float 1 \nLOOKUP_TABLE default"<<endl;
 		
-		double output;
-        int index;
-        
 		for (int n = 0; n < nK; ++n)
 		{
-			output = 0.0;
-            index = 0;
-            
-			for (int i = 0; i < nf; ++i)
-			{
-				if (Pi[i]==n || Ni[i]==n)
-				{
-					output += T_(i);
-					index++;
-				}
-			}
-            
-            output = index > 0 ? output/index : 0.0;
-            result<<output<<endl;
+            result<<knot_tension[n]<<endl;
 		}
 
 		result<<"VECTORS Velocity float"<<endl;
@@ -143,6 +178,7 @@ void net_barDyn::print(lexer *p)
 		}
 
 		result.close();
+		}
 	}
 }
 

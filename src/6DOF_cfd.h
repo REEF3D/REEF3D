@@ -43,6 +43,8 @@ public:
 	virtual ~sixdof_cfd();
 
     void start_cfd(lexer*,fdm*,ghostcell*,int,field&,field&,field&,field&,field&,field&,bool) override final;
+    void refit_cfd(lexer*,fdm*,ghostcell*,int,field&,field&,field&,field&,field&,field&,double) override final;
+    void added_mass_cfd(lexer*,fdm*,ghostcell*,solver*) override final;
     void start_nhflow(lexer*,fdm_nhf*,ghostcell*,int,double*,double*,double*,double*,double*,double*,slice&,slice&,bool) override final;
     void start_sflow(lexer*,fdm2D*,ghostcell*,int,slice&,slice&,slice&,slice&,slice&,slice&,slice&,bool) override final;
     
@@ -65,6 +67,9 @@ public:
     
     void isource2D(lexer*,fdm2D*,ghostcell*) override final;
     void jsource2D(lexer*,fdm2D*,ghostcell*) override final;
+
+    // CFD mesh refinement: the forces of the nets of the bodies onto the grid of a patch
+    void amr_net_forces(lexer*,fdm*,int,const std::function<void(const double*,int*)>&) override final;
 
     // the bodies, for the CFD mesh refinement (cfd_amr)
     int objects() const {return number6DOF;}
@@ -94,6 +99,10 @@ private:
     void fb_combine(lexer*, fdm*, int);
     void fb_finish(lexer*, fdm*, ghostcell*);
     field4a *fball = nullptr;
+    
+    // the forcing weights of the solids and the topography of the stage (a->fbh1-3 before setup resets
+    // them), for the limit of the body weights (sixdof_obj_cfd::sfh)
+    field *sf[3] = {nullptr,nullptr,nullptr};
 
 };
 

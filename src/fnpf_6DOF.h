@@ -110,6 +110,7 @@ public:
 private:
     lexer *p;
     const double n44;
+    const bool stage;    // A 430: the psi solves keep N 44 (fnpf_laplace_cds2::stage_tol off for them)
 };
 
 class fnpf_6DOF : public fnpf_body, public increment
@@ -124,6 +125,9 @@ public:
     void surface(lexer*, fdm_fnpf*, ghostcell*, slice&, slice&, int, int) override;
     void velocity(lexer*, fdm_fnpf*, ghostcell*) override;
     fnpf_laplace* laplace(fnpf_laplace*) override;
+    void solve_pre(lexer *p, fdm_fnpf *c, ghostcell *pgc) override {pre_solve(p,c,pgc);}
+    void solve_post(lexer *p, fdm_fnpf *c, ghostcell *pgc, double *f) override {post_solve(p,c,pgc,f);}
+    slice* footprint_mask() override;
     
     // mesh refinement (fnpf_amr)
     bool present() const override {return true;}

@@ -65,8 +65,6 @@ void iowave::nhflow_precalc_relax_ini(lexer *p,fdm_nhf *d, ghostcell *pgc)
 		}
     }	
     
-    //cout<<p->mpirank<<"  ept_count: "<<ept_count<<"  upt_count: "<<upt_count<<endl;
-    
     // precalc array alloc
     p->Darray(uval,upt_count);
     p->Darray(vval,upt_count);

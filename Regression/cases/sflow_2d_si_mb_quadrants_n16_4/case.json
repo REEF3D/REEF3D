@@ -1,0 +1,20 @@
+{
+ "base": "sflow_2d_si_mb_quadrants",
+ "ctrl_add": [
+  "N 16 4"
+ ],
+ "same_as": "sflow_2d_si_mb_quadrants",
+ "same_as_rtol": 1e-05,
+ "description": "sflow_2d_si_mb_quadrants with N 16 4: the eta system of the native level-0 grid (reefmg2D) by GCR in double around a single-precision BiCGStab on the reference device; the block-local V-cycles on the CPU; within 1e-5 of the CPU run",
+ "tags": [
+  "2d",
+  "sflow",
+  "semi_implicit",
+  "multiblock",
+  "solver"
+ ],
+ "covers": [
+  "REEFMG Krylov solve on the device (N 16 4): reefmg_device::krylov, reefmg_core::solve_gcr",
+  "device kernels rmg_apply, rmg_axpy3, rmg_dot2, reference device"
+ ]
+}

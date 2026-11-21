@@ -1,0 +1,20 @@
+{
+ "description": "REEF3D::HYDRO soil rasters: Green-Ampt Ks 36 mm/h on the west half and 0 on the east half (ga_ks.asc, R 33 1), sealed fraction 0.5 on the north half (sealed.asc, R 35 1), 0.2 m of water in a closed basin; the infiltration is (2500 + 0.5 x 2500) m2 times the ponded Green-Ampt F(t) to 1e-8 (validation/04_soil_rasters).",
+ "solver": "sflow",
+ "np": 1,
+ "steps": 60,
+ "tags": [
+  "quick",
+  "2d",
+  "sflow",
+  "hydro",
+  "semi_implicit"
+ ],
+ "covers": [
+  "R 33 1 Green-Ampt rasters, R 35 1 sealed fraction (hydro_sflow::grid_ini, grid_sinks)"
+ ],
+ "files": [
+  "ga_ks.asc",
+  "sealed.asc"
+ ]
+}

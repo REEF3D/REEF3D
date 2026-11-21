@@ -1,5 +1,5 @@
 {
- "description": "SFLOW semi-implicit (A 226 1): oblique progressive tide (as sflow_2d_tide_oblique) in through Riemann edges at x- and y-, out through Flather edges at x+ and y+, dt 10 s (gravity wave Courant number about 5).",
+ "description": "SFLOW semi-implicit (A 210 13): oblique progressive tide (as sflow_2d_tide_oblique) in through Riemann edges at x- and y-, out through Flather edges at x+ and y+, dt 10 s (gravity wave Courant number about 5).",
  "solver": "sflow",
  "np": 1,
  "steps": 360,

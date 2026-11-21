@@ -165,6 +165,22 @@ void seastate_f::transport(lexer *p, ghostcell *pgc)
         if(N0!=nullptr)
         N0->copy_from(*e->N);
 
+        // A 776 3 (Phase 26): the old time level of the age, M + dt N
+        if(p->A776==3)
+        age_start(p);
+
+        // Phase 27 (A 779): iterate until the largest relative change of Hs between two iterations is below A 779
+        // (after the first: the change over the step, so a step that changes Hs little takes one iteration)
+        const bool settle = (p->A779>0.0);
+        const int nth = psolv->thread_count();
+        std::vector<double> hs;
+        if(settle)
+        {
+        hs_old.assign(size_t(p->knox)*p->knoy,0.0);
+        hs.assign(hs_old.size(),0.0);
+        hs_cells(p,e,*e->grid,hs_old,nth);
+        }
+
         for(int it=0; it<iter_max; ++it)
         {
         diffraction(p,pgc);
@@ -173,10 +189,47 @@ void seastate_f::transport(lexer *p, ghostcell *pgc)
         ++iter_done;
         ++wit;
 
+            if(settle)
+            {
+            double hmax = pgc->globalmax(hs_cells(p,e,*e->grid,hs,nth));
+            const double floor = std::max(0.01*hmax,1.0e-6);
+            double cmax = 0.0;
+                SLICELOOP4
+                if(e->wet(i,j)==1)
+                {
+                const size_t n = size_t(i)*p->knoy+j;
+                cmax = std::max(cmax,std::fabs(hs[n]-hs_old[n])/std::max(hs[n],floor));
+                }
+            conv = pgc->globalmax(cmax);
+            hs_old.swap(hs);
+            if(conv<p->A779)
+            break;
+            }
+
         // Phase 12: FAS on the uniform grid (A 758), within the step but not after its last iteration
         if(pfas!=nullptr && iter_done%p->A758_n==0 && it<iter_max-1)
         pfas->correct(p,pgc,N0,rdt,Nb,side,refraction,fshift,p->A758_m);
         }
+
+        // Phase 27: the iterations of every step with A 779 (rank 0): REEF3D_SEASTATE_Log/REEF3D_SEASTATE_convergence.dat
+        if(settle && p->mpirank==0)
+        {
+            if(!convlog.is_open())
+            {
+            mkdir("./REEF3D_SEASTATE_Log",0777);
+            if(reefckpt_open(convlog,"./REEF3D_SEASTATE_Log/REEF3D_SEASTATE_convergence.dat",restart ? 1 : 0))
+            convlog<<"# count \t iterations of the step \t max. relative change of Hs in the last iteration (A 779)"<<endl;
+            }
+        convlog<<p->count<<" \t "<<iter_done<<" \t "<<setprecision(6)<<conv<<endl;
+        }
+
+        // A 776 3 (Phase 26): the age transported with the spectra
+        if(p->A776==3)
+        age_step(p,pgc);
+
+        // A 776 (Phase 25): the GSE closure over the step
+        if(p->A776>0)
+        gse_step(p,pgc);
 
         return;
     }

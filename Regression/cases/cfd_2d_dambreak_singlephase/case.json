@@ -1,0 +1,18 @@
+{
+ "base": "cfd_2d_dambreak",
+ "np": 1,
+ "steps": 80,
+ "ctrl_add": [
+  "F 41 1"
+ ],
+ "description": "cfd_2d_dambreak with the single-phase level set (F 41 1): the water only, p = 0 at the free surface by the ghost fluid method, the velocity of the water extended into the air (validation 88).",
+ "tags": [
+  "quick",
+  "2d",
+  "levelset",
+  "singlephase"
+ ],
+ "covers": [
+  "cfd_singlephase::air_velocity, gfm_single in pjm_corr and poisson_pcorr with the level set"
+ ]
+}

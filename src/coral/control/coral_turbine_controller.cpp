@@ -52,7 +52,7 @@ double turbine_controller::torque_law(double w, double pitch) const
 {
     const turbine_controller_settings &s = set;
     if(w >= s.w_rated || pitch >= s.pitch_rgn3)
-        return w > 0.0 ? s.P_rated/w : 0.0;
+        return s.T_rgn3 > 0.0 ? s.T_rgn3 : w > 0.0 ? s.P_rated/w : 0.0;
     if(w <= s.w_cutin)
         return 0.0;
     if(w < s.w_rgn2)

@@ -1,0 +1,4 @@
+{"base": "cfd_2d_channel_kepsilon", "ctrl_set": {"T 34": "0"},
+ "description": "as cfd_2d_channel_kepsilon without the eddy-viscosity limiter (T 34 0), which was always on in k-epsilon.",
+ "tags": ["2d", "inflow", "turbulence"],
+ "covers": ["kepsilon_func::eddyvisc T 34 0"]}

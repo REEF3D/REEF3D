@@ -1,0 +1,20 @@
+{
+ "base": "nhflow_2d_si_tidal_flat_density",
+ "description": "nhflow_2d_si_tidal_flat_density with the stratification in the k-epsilon model (A 623 1: buoyancy terms, k floor, Galperin length limit): wetting and drying, open boundaries, salt and temperature fronts.",
+ "ctrl_add": [
+  "A 623 1"
+ ],
+ "tags": [
+  "2d",
+  "nhflow",
+  "semi_implicit",
+  "wetdry",
+  "turbulence",
+  "tide",
+  "tracer",
+  "density"
+ ],
+ "covers": [
+  "k-epsilon with A 623 next to dry cells and open boundaries"
+ ]
+}

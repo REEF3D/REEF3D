@@ -104,6 +104,28 @@ static std::vector<lagoon_amr::grid> blocks(int t)
     return {make_block(1, 0, 1.0 + 0.5*t, 0.5, 4, 2, 3, 0.25), make_block(2, 1, 1.5 + 0.5*t, 0.75, 4, 2, 2, 0.125)};
 }
 
+// a grid of a curvilinear grid (G 50): cells i0.. of 20 round a quarter ring (r 10 to 14 m) and j0.. of 8
+// across, n times finer; the x and y of every node, eta and covered per cell
+static lagoon_amr::grid make_curved(int level, int rank, int i0, int i1, int j0, int j1, int n)
+{
+    lagoon_amr::grid g;
+    g.level = level;
+    g.rank = rank;
+    g.nx = (i1-i0)*n;
+    g.ny = (j1-j0)*n;
+    g.curvilinear = true;
+    for(int j=0; j<=g.ny; ++j)
+    for(int i=0; i<=g.nx; ++i)
+    {
+        const double a = (i0 + double(i)/n)*(0.5*M_PI/20.0), r = 10.0 + (j0 + double(j)/n)*0.5;
+        g.x.push_back(r*std::cos(a));
+        g.y.push_back(r*std::sin(a));
+    }
+    for(int c=0; c<g.nx*g.ny; ++c) g.values.push_back(level + 0.001*c);
+    for(int c=0; c<g.nx*g.ny; ++c) g.values.push_back(double(c%3==0));
+    return g;
+}
+
 int main()
 {
     std::cout<<"LAGOON AMR writer"<<std::endl;
@@ -209,6 +231,43 @@ int main()
         std::vector<lagoon_amr::grid> flat = {make_grid(1, 0, 0.0, 0.0, 4, 4, 0.25)};
         flat[0].values.resize(2*16);
         check(!bw.output(0.2, 2, flat), "a 2D grid in a set of blocks is refused");
+    }
+
+    // NHFLOW on a curvilinear grid (G 50, also the blocks of G 50 1): the x and y of every node
+    {
+        std::cout<<"LAGOON AMR writer: the grids of a curvilinear grid"<<std::endl;
+        const std::string cpath = "./lagoon_amr_curvilinear.lagoon";
+        lagoon_amr cw(cpath, "NHFLOW", "nhflow_amr", "REEF3D_NHFLOW_AMR", "{\"type\": \"run\", \"run\": \"test\"}",
+                      {{"eta", false}, {"covered", true}});
+        std::vector<lagoon_amr::grid> cg = {make_curved(0, 0, 0, 10, 0, 8, 1), make_curved(0, 1, 10, 20, 0, 8, 1),
+                                            make_curved(1, 0, 4, 8, 2, 6, 2)};
+        const bool written = cw.output(0.0, 0, cg) && cw.output(1.0, 1, cg);
+        check(written && cw.usable(), "2 outputs of 3 curvilinear grids");
+        const std::string cset = cpath + "/amr/nhflow_amr";
+        check(slurp(cset + "/zarr.json").find("\"horizontal\": \"curvilinear\"")!=std::string::npos,
+              "the set says horizontal curvilinear");
+        // 11 x 9 nodes twice and 9 x 9, per output
+        check(slurp(cset + "/x/zarr.json").find("\"shape\": [" + std::to_string(2*(2*99 + 81)) + "]")!=std::string::npos,
+              "x of every node");
+        std::vector<unsigned char> xe = inner(cset + "/grids/x_end/c/0", 0, lagoon_rows::ROWS, 8);
+        const int64_t *xend = reinterpret_cast<const int64_t*>(xe.data());
+        check(xend[0]==99 && xend[1]==198 && xend[2]==279 && xend[3]==378, "x_end counts the nodes");
+        std::vector<unsigned char> xs2 = inner(cset + "/y/c/0", 0, lagoon_rows::ROWS, 8);
+        const double *y = reinterpret_cast<const double*>(xs2.data());
+        check(std::abs(y[11] - 10.5*std::sin(0.0))<1e-12 && std::abs(y[10] - 10.0*std::sin(0.5*M_PI/2.0))<1e-9,
+              "y of the nodes read back, x fastest");
+
+        std::vector<double> buffer;
+        lagoon_amr::pack(cg, 2, buffer);
+        std::vector<lagoon_amr::grid> back;
+        bool same = lagoon_amr::unpack(buffer.data(), buffer.size(), 2, 4, back) && back.size()==3;
+        for(size_t q=0; same && q<back.size(); ++q)
+        same = back[q].curvilinear && back[q].x==cg[q].x && back[q].y==cg[q].y && back[q].values==cg[q].values;
+        check(same, "curvilinear grids packed and unpacked");
+        check(!lagoon_amr::unpack(buffer.data(), buffer.size() - 1, 2, 0, back), "a cut buffer of them is refused");
+
+        std::vector<lagoon_amr::grid> flat = {make_grid(0, 0, 0.0, 0.0, 4, 4, 1.0)};
+        check(!cw.output(2.0, 2, flat), "a rectilinear grid in a curvilinear set is refused");
     }
 
     std::cout<<(nfail==0 ? "all passed" : "FAILED")<<std::endl;

@@ -390,7 +390,7 @@ void nhflow_amr::pr_prepare(ghostcell *pgc)
             const bool l0dev = !(sy==0 && nblk==0);
             if(l0dev)
             {
-                mg0->set_device(p0->N16);
+                mg0->set_device(reefmg_core::vcycle_device(p0->N16));   // N 16 2, 4: the V-cycle device
                 mg0->set_device_cycle(p0->N17,p0->N19);
                 mg0->set_device_precision(p0->N21);
             }

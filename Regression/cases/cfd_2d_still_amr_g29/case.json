@@ -1,0 +1,19 @@
+{
+ "base": "cfd_2d_still_amr",
+ "np": 1,
+ "steps": 60,
+ "ctrl_add": [
+  "G 29 1"
+ ],
+ "description": "cfd_2d_still_amr with G 29 1: the pressure of the covered cells restricted relative to the hydrostatic pressure of each grid (cfd_amr::restrict_press_hydro). At rest the coarse cells under the patch keep the hydrostatic pressure of the coarse grid across the free surface, the patch edge stays at rest (max |u| about 1e-9 m/s instead of 1e-3 m/s after 2 s in the long run).",
+ "tags": [
+  "quick",
+  "2d",
+  "levelset",
+  "amr"
+ ],
+ "covers": [
+  "cfd_amr::restrict_press_hydro in restrict_scalars",
+  "driver_logic_cfd: G 29"
+ ]
+}

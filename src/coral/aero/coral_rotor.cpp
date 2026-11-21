@@ -126,8 +126,9 @@ rotor_handles build_rotor(model &m, std::shared_ptr<const wind_inflow> wind, con
             rigid_body pb;
             pb.name = sp.name + "_pitch" + std::to_string(k + 1);
             pb.x = sp.hub + sp.R_hub*span[k];
-            const double mb = std::max(0.01*bs.total_mass(L), 1.0);
-            pb.mass = mb;
+            // the bearing itself 1 kg: the blade's mass sits on it (its root half element, or its stations), and
+            // ElastoDyn's blade mass is the whole rotating part outside the hub
+            pb.mass = 1.0;
             // the blade's pitch inertia on the bearing (with flexible blades the beams carry about as much again in
             // their torsional inertia; a light bearing on the stiff blade root gave a fast local mode that the Newton
             // iterations hardly resolved)
@@ -183,6 +184,23 @@ rotor_handles build_rotor(model &m, std::shared_ptr<const wind_inflow> wind, con
                 ms.p2 = sp.hub + (sp.R_hub + f2*L)*span[k];
                 ms.n = 1;
                 ms.s1 = section(f1); ms.s2 = section(f2); ms.tapered = true;
+                // the element's mass from the table's integral over it (the ends' mean misses the table's stations
+                // inside the element: 3 % of the NREL 5 MW blade with 12 elements), the rotary inertias with it
+                {
+                    double mi = 0.0;
+                    std::vector<double> fs{f1};
+                    for(double fr : bs.frac) if(fr > f1 && fr < f2) fs.push_back(fr);
+                    fs.push_back(f2);
+                    for(size_t j=0; j+1<fs.size(); ++j)
+                        mi += 0.5*(bs.mass_at(fs[j]) + bs.mass_at(fs[j+1]))*(fs[j+1] - fs[j]);
+                    const double mm = mi/(f2 - f1), m0 = 0.5*(ms.s1.m + ms.s2.m);
+                    if(m0 > 0.0)
+                        for(beam_section *q : {&ms.s1, &ms.s2})
+                        {
+                            const double r = mm/m0;
+                            q->m *= r; q->rIx *= r; q->rIy *= r; q->rIz *= r;
+                        }
+                }
                 // the chord direction at the element's middle: local y (EIy flapwise, about the chord)
                 double tw;
                 {

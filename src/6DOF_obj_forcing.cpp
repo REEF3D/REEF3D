@@ -25,9 +25,38 @@ Authors: Tobias Martin, Ahmet Soydan, Hans Bihs
 #include"fdm.h"
 #include"ghostcell.h"
 #include"heaviside.h"
+#include"forcing_share.h"
+
+// the weight H of a face of the body, at most what the solids (hs) and the bodies before it (hb)
+// leave of 1: the forcing terms of a face add up to a weight of 1 at most (overlaps)
+static inline double Hlimit(double H, double hb, double hs)
+{
+    const double hm = 1.0 - hb - hs;
+    
+    if(H>hm)
+    H = (hm>0.0) ? hm : 0.0;
+    
+    return H;
+}
+
+// X 14 2: the normal of the hull at face d (0 u, 1 v, 2 w) of cell (i,j,k), the gradient of fb as the mean
+// of the central differences of the two cells of the face (X 14 1 takes that of cell (i,j,k) alone, half a
+// cell off the face: a body symmetric about a plane through faces of the grid is forced asymmetrically)
+void sixdof_obj_cfd::face_normal(lexer *p, fdm *a, int d, double &nx, double &ny, double &nz)
+{
+    const int ii = i + (d==0), jj = j + (d==1), kk = k + (d==2);
+    
+    nx = -0.5*((a->fb(i+1,j,k) - a->fb(i-1,j,k))/(2.0*p->DXN[IP]) + (a->fb(ii+1,jj,kk) - a->fb(ii-1,jj,kk))/(2.0*p->DXN[ii+marge]));
+    ny = -0.5*((a->fb(i,j+1,k) - a->fb(i,j-1,k))/(2.0*p->DYN[JP]) + (a->fb(ii,jj+1,kk) - a->fb(ii,jj-1,kk))/(2.0*p->DYN[jj+marge]));
+    nz = -0.5*((a->fb(i,j,k+1) - a->fb(i,j,k-1))/(2.0*p->DZN[KP]) + (a->fb(ii,jj,kk+1) - a->fb(ii,jj,kk-1))/(2.0*p->DZN[kk+marge]));
+}
 
 void sixdof_obj_cfd::update_forcing(lexer *p, fdm *a, ghostcell *pgc,field& uvel, field& vvel, field& wvel, field &fx, field &fy, field &fz,int iter)
 {
+    // X 198: the rates of the discrete recoil correction of a deforming body at the new pose
+    if(dc_on_ && amr_loads==nullptr)
+    momentum_deform(p,a,pgc);
+
     
 // Calculate forcing fields
     double H,Ht, uf, vf, wf;
@@ -53,10 +82,16 @@ void sixdof_obj_cfd::update_forcing(lexer *p, fdm *a, ghostcell *pgc,field& uvel
         
         H = Hsolidface(p,a,1,0,0);
         
+        // deforming body (X 195): velocity of the deformation (where the body forces the face)
+        if(fish_!=nullptr && H>0.0)
+        uf += deform_vel(p->pos1_x(),p->pos1_y(),p->pos1_z())(0);
+        H = Hlimit(H,a->fbh1(i,j,k),sfh[0]!=nullptr ? (*sfh[0])(i,j,k) : 0.0);
+        
         if(H!=H)
         cout<<"H "<<uf<<endl;
        
         fx(i,j,k) += H*(uf - uvel(i,j,k))/(alpha[iter]*p->dt);   
+        a->fbw1(i,j,k) = min(a->fbw1(i,j,k) + H, 1.0);
         a->fbh1(i,j,k) = min(a->fbh1(i,j,k) + H, 1.0); 
     }
     VLOOP
@@ -71,10 +106,16 @@ void sixdof_obj_cfd::update_forcing(lexer *p, fdm *a, ghostcell *pgc,field& uvel
         
         H = Hsolidface(p,a,0,1,0);
         
+        // deforming body (X 195): velocity of the deformation (where the body forces the face)
+        if(fish_!=nullptr && H>0.0)
+        vf += deform_vel(p->pos2_x(),p->pos2_y(),p->pos2_z())(1);
+        H = Hlimit(H,a->fbh2(i,j,k),sfh[1]!=nullptr ? (*sfh[1])(i,j,k) : 0.0);
+        
         if(H!=H)
         cout<<"H "<<uf<<endl;
        
         fy(i,j,k) += H*(vf - vvel(i,j,k))/(alpha[iter]*p->dt);
+        a->fbw2(i,j,k) = min(a->fbw2(i,j,k) + H, 1.0);
         a->fbh2(i,j,k) = min(a->fbh2(i,j,k) + H, 1.0); 
     }
     WLOOP
@@ -89,10 +130,16 @@ void sixdof_obj_cfd::update_forcing(lexer *p, fdm *a, ghostcell *pgc,field& uvel
         
         H = Hsolidface(p,a,0,0,1);
         
+        // deforming body (X 195): velocity of the deformation (where the body forces the face)
+        if(fish_!=nullptr && H>0.0)
+        wf += deform_vel(p->pos3_x(),p->pos3_y(),p->pos3_z())(2);
+        H = Hlimit(H,a->fbh3(i,j,k),sfh[2]!=nullptr ? (*sfh[2])(i,j,k) : 0.0);
+        
         if(H!=H)
         cout<<"H "<<uf<<endl;
 
         fz(i,j,k) += H*(wf - wvel(i,j,k))/(alpha[iter]*p->dt);
+        a->fbw3(i,j,k) = min(a->fbw3(i,j,k) + H, 1.0);
         a->fbh3(i,j,k) = min(a->fbh3(i,j,k) + H, 1.0); 
     }
     LOOP
@@ -141,10 +188,12 @@ void sixdof_obj_cfd::update_forcing(lexer *p, fdm *a, ghostcell *pgc,field& uvel
         if(uf!=uf)
         cout<<"UF "<<uf<<endl;
         
-		// Normal vectors calculation 
+		// Normal vectors calculation (X 14 2: at the face, the mean of the cells on both sides)
 		nx = -(a->fb(i+1,j,k) - a->fb(i-1,j,k))/(2.0*p->DXN[IP]);
 		ny = -(a->fb(i,j+1,k) - a->fb(i,j-1,k))/(2.0*p->DYN[JP]);
 		nz = -(a->fb(i,j,k+1) - a->fb(i,j,k-1))/(2.0*p->DZN[KP]);
+        if(p->X14==2)
+        face_normal(p,a,0,nx,ny,nz);
 
 		norm = sqrt(nx*nx + ny*ny + nz*nz);
                 
@@ -154,6 +203,11 @@ void sixdof_obj_cfd::update_forcing(lexer *p, fdm *a, ghostcell *pgc,field& uvel
 
 
 		H = Hsolidface(p,a,1,0,0);
+        
+        // deforming body (X 195): velocity of the deformation (where the body forces the face)
+        if(fish_!=nullptr && H>0.0)
+        uf += deform_vel(p->pos1_x(),p->pos1_y(),p->pos1_z())(0);
+        H = Hlimit(H,a->fbh1(i,j,k),sfh[0]!=nullptr ? (*sfh[0])(i,j,k) : 0.0);
 	    Ht = Hsolidface_t(p,a,1,0,0);
 	
     
@@ -161,11 +215,20 @@ void sixdof_obj_cfd::update_forcing(lexer *p, fdm *a, ghostcell *pgc,field& uvel
 		phival_fb = 0.5*(a->fb(i,j,k) + a->fb(i+1,j,k));	
 		
 		// Construct the field around the solid body to adjust the tangential velocity and calculate forcing
-		if(phival_fb<=0.0)
-		fx(i,j,k) += H*(uf - uvel(i,j,k))/(alpha[iter]*p->dt); 
+		// X 46 1: the share continuous across the surface (forcing_share.h)
+		{
+		// the share of the face taken by this body (X 46: continuous across the surface, forcing_share.h)
+		double wgt = H;
 
-		if(phival_fb>0.0)
-		fx(i,j,k) +=   fabs(nx)*H*(uf - uvel(i,j,k))/(alpha[iter]*p->dt);
+		if(p->X46>=1)
+		wgt = forcing_weight_smooth(H,fabs(nx),phival_fb,forcing_psi(p,i,j,k));
+
+		if(p->X46<1 && phival_fb>0.0)
+		wgt = fabs(nx)*H;
+
+		fx(i,j,k) += wgt*(uf - uvel(i,j,k))/(alpha[iter]*p->dt);
+		a->fbw1(i,j,k) = min(a->fbw1(i,j,k) + wgt, 1.0);
+		}
             
 
         a->fbh1(i,j,k) = min(a->fbh1(i,j,k) + H, 1.0); 
@@ -182,10 +245,12 @@ void sixdof_obj_cfd::update_forcing(lexer *p, fdm *a, ghostcell *pgc,field& uvel
         if(vf!=vf)
         cout<<"VF "<<vf<<endl;
     
-		// Normal vectors calculation 
+		// Normal vectors calculation (X 14 2: at the face, the mean of the cells on both sides)
 		nx = -(a->fb(i+1,j,k) - a->fb(i-1,j,k))/(2.0*p->DXN[IP]);
 		ny = -(a->fb(i,j+1,k) - a->fb(i,j-1,k))/(2.0*p->DYN[JP]);
 		nz = -(a->fb(i,j,k+1) - a->fb(i,j,k-1))/(2.0*p->DZN[KP]);
+        if(p->X14==2)
+        face_normal(p,a,1,nx,ny,nz);
 
 		norm = sqrt(nx*nx + ny*ny + nz*nz);
                 
@@ -195,6 +260,11 @@ void sixdof_obj_cfd::update_forcing(lexer *p, fdm *a, ghostcell *pgc,field& uvel
 
         
          H = Hsolidface(p,a,0,1,0);
+        
+        // deforming body (X 195): velocity of the deformation (where the body forces the face)
+        if(fish_!=nullptr && H>0.0)
+        vf += deform_vel(p->pos2_x(),p->pos2_y(),p->pos2_z())(1);
+        H = Hlimit(H,a->fbh2(i,j,k),sfh[1]!=nullptr ? (*sfh[1])(i,j,k) : 0.0);
 		Ht = Hsolidface_t(p,a,0,1,0);
 		
       
@@ -202,11 +272,20 @@ void sixdof_obj_cfd::update_forcing(lexer *p, fdm *a, ghostcell *pgc,field& uvel
 		phival_fb = 0.5*(a->fb(i,j,k) + a->fb(i,j+1,k));
 	  
 		//Construct the field around the solid body to adjust the tangential velocity and calculate forcing
-	    if(phival_fb<=0.0)
-		fy(i,j,k) += H*(vf - vvel(i,j,k))/(alpha[iter]*p->dt); 
+		// X 46 1: the share continuous across the surface (forcing_share.h)
+		{
+		// the share of the face taken by this body (X 46: continuous across the surface, forcing_share.h)
+		double wgt = H;
 
-		if(phival_fb>0.0)
-		fy(i,j,k) +=   fabs(ny)*H*(vf - vvel(i,j,k))/(alpha[iter]*p->dt);
+		if(p->X46>=1)
+		wgt = forcing_weight_smooth(H,fabs(ny),phival_fb,forcing_psi(p,i,j,k));
+
+		if(p->X46<1 && phival_fb>0.0)
+		wgt = fabs(ny)*H;
+
+		fy(i,j,k) += wgt*(vf - vvel(i,j,k))/(alpha[iter]*p->dt);
+		a->fbw2(i,j,k) = min(a->fbw2(i,j,k) + wgt, 1.0);
+		}
 
 
         a->fbh2(i,j,k) = min(a->fbh2(i,j,k) + H , 1.0); 
@@ -222,10 +301,12 @@ void sixdof_obj_cfd::update_forcing(lexer *p, fdm *a, ghostcell *pgc,field& uvel
         if(wf!=wf)
         cout<<"WF "<<wf<<endl;
         
-		// Normal vectors calculation 
+		// Normal vectors calculation (X 14 2: at the face, the mean of the cells on both sides)
 		nx = -(a->fb(i+1,j,k) - a->fb(i-1,j,k))/(2.0*p->DXN[IP]);
 		ny = -(a->fb(i,j+1,k) - a->fb(i,j-1,k))/(2.0*p->DYN[JP]);
 		nz = -(a->fb(i,j,k+1) - a->fb(i,j,k-1))/(2.0*p->DZN[KP]);
+        if(p->X14==2)
+        face_normal(p,a,2,nx,ny,nz);
 
 		norm = sqrt(nx*nx + ny*ny + nz*nz);
                 
@@ -235,6 +316,11 @@ void sixdof_obj_cfd::update_forcing(lexer *p, fdm *a, ghostcell *pgc,field& uvel
 
         
          H = Hsolidface(p,a,0,0,1);
+        
+        // deforming body (X 195): velocity of the deformation (where the body forces the face)
+        if(fish_!=nullptr && H>0.0)
+        wf += deform_vel(p->pos3_x(),p->pos3_y(),p->pos3_z())(2);
+        H = Hlimit(H,a->fbh3(i,j,k),sfh[2]!=nullptr ? (*sfh[2])(i,j,k) : 0.0);
 		Ht = Hsolidface_t(p,a,0,0,1);
 
 
@@ -243,11 +329,20 @@ void sixdof_obj_cfd::update_forcing(lexer *p, fdm *a, ghostcell *pgc,field& uvel
 		
 		// Construct the field around the solid body to adjust the tangential velocity and calculate forcing
 
-		if(phival_fb<=0.0)
-		fz(i,j,k) += H*(wf - wvel(i,j,k))/(alpha[iter]*p->dt); 
+		// X 46 1: the share continuous across the surface (forcing_share.h)
+		{
+		// the share of the face taken by this body (X 46: continuous across the surface, forcing_share.h)
+		double wgt = H;
 
-		if(phival_fb>0.0)
-		fz(i,j,k) +=   fabs(nz)*H*(wf - wvel(i,j,k))/(alpha[iter]*p->dt);
+		if(p->X46>=1)
+		wgt = forcing_weight_smooth(H,fabs(nz),phival_fb,forcing_psi(p,i,j,k));
+
+		if(p->X46<1 && phival_fb>0.0)
+		wgt = fabs(nz)*H;
+
+		fz(i,j,k) += wgt*(wf - wvel(i,j,k))/(alpha[iter]*p->dt);
+		a->fbw3(i,j,k) = min(a->fbw3(i,j,k) + wgt, 1.0);
+		}
 
 
         a->fbh3(i,j,k) = min(a->fbh3(i,j,k) + H , 1.0); 
@@ -293,6 +388,10 @@ void sixdof_obj_cfd::update_forcing(lexer *p, fdm *a, ghostcell *pgc,field& uvel
     pgc->start3(p,a->fbh3,12);
     pgc->start4(p,a->fbh4,40);
 
+    pgc->start1(p,a->fbw1,10);
+    pgc->start2(p,a->fbw2,11);
+    pgc->start3(p,a->fbw3,12);
+
     pgc->start1(p,fx,10);
     pgc->start2(p,fy,11);
     pgc->start3(p,fz,12);         
@@ -300,7 +399,7 @@ void sixdof_obj_cfd::update_forcing(lexer *p, fdm *a, ghostcell *pgc,field& uvel
 
 double sixdof_obj_cfd::Hsolidface(lexer *p, fdm *a, int aa, int bb, int cc)
 {
-    double psi, H, phival_fb,dirac;
+    double psi, H, phival_fb;
 	
     psi = p->X41*(1.0/3.0)*(p->DXN[IP]+p->DYN[JP]+p->DZN[KP]);
 
@@ -318,7 +417,7 @@ double sixdof_obj_cfd::Hsolidface(lexer *p, fdm *a, int aa, int bb, int cc)
 
 double sixdof_obj_cfd::Hsolidface_t(lexer *p, fdm *a, int aa, int bb, int cc)
 {
-    double psi, H, phival_fb,dirac;
+    double psi, H, phival_fb;
 	
 
     if(p->j_dir==0)

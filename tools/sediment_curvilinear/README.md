@@ -101,6 +101,7 @@ the mesh refinement and multi-block grids; `sediment_exner_lag.cpp`):
 | `S 97` | factor of `L_a` | 1.0 |
 | `S 64 f_s` | suspended part of the transport (0..1): the formula (`S 11`) gives the capacity `q_e`; `(1-f_s) q_e` is bed load (equilibrium, or `S 33`), `f_s q_e` suspended load that relaxes over `L_s = h |U|/(S65 w_s)` (Galappatti & Vreugdenhil 1985, depth-averaged; `w_s` the fall velocity, `S 23`/`S 25`) | 0 |
 | `S 65` | `c_a/c_mean`, the near-bed over the depth-averaged concentration of the suspension: shortens `L_s`.  For a Rouse profile with `Z = w_s/(kappa u*)` and `a = 0.05 h`: 2.3 (Z 0.3), 4.2 (Z 0.57, t7), 8.8 (Z 1) | 1.0 |
+| `S 98` | P8c, SFLOW: `beta_c` of the dispersion of the main-flow momentum by the spiral flow (the secondary flow of Delft3D-FLOW; needs `S 95`, below) | 0 (off) |
 
 - First-order upwind along `s` (curvilinear: the contravariant components of `s`), solved in every sediment step to
   convergence by Gauss-Seidel with alternating sweep directions (as the non-equilibrium bed load `S 33`: at most
@@ -127,6 +128,25 @@ the mesh refinement and multi-block grids; `sediment_exner_lag.cpp`):
 - P8b: `S 76 xs xe ys ye` holds the bed of the cells in a box (any number of boxes, physical cell centres) while
   their load is computed and carried downstream: the sediment supply of an inflow reach on grids where the x
   window `S 71` does not fit (the Nidelva, `../harbour_multiblock/README.md`).
+- P8c, the SFLOW inflow (native `B 60 1` and the `-i` face of a block with `G 54`; since the rebase onto hans_dev
+  1ab594b curvilinear grids without a sediment supply `S 129` only: the Cartesian grid takes the face velocities of
+  the flow at the domain edges (`fill_PQ_sflow`) and keeps the inflow faces open for the supply of `S 129`
+  (`sediment_exner::qb_inflow`); there `S 78` still reads `gcin`):
+  - the inflow guard `S 78` (on by default) holds the bed of the inflow cells; SFLOW took them from the 3D list
+    `gcin`, which SFLOW does not fill: its zero entries held the cell (0, 0) only, the inflow corner (the 1.2e-2 m
+    of sand there in t9 without `S 71`).  Now the 2D list `gcslin`: the first row holds its bed, its load is the
+    supply of the reach (as `S 71`/`S 76` did by hand)
+  - the face velocity of the sediment at the inflow faces was left 0 (the boundary conditions of `P`, `Q` do not
+    fill those ghost faces): the first row had half the velocity, a fraction of the bed load, and the second row
+    eroded about three times as fast as the rows after it.  Now the velocity of the first cell (`inflow_PQ`; the
+    cells beyond the face take the cell velocity, also for the tangential part and the streamline curvature)
+  - no sediment enters through the inflow face: the cells beyond it are no sediment cells (`DFBED` -1,
+    `dfbed_inflow`; before, the zero face velocity closed it), on the native grid and the blocks alike
+  - three blocks against one block (t9, below): the cells around a block beyond its walls are sediment cells as the
+    ghost cells of the native grid (bed gradient and bend terms at the walls); after the bed update the blocks
+    take the depth and the surface as the native grid (`sflow_eta::depth_update`: the surface held at the
+    water-level face, which lagged one step on the blocks), and the cells beyond the water-level face the surface
+    of the face
 - Refused with a message: `S 64` with NHFLOW (it resolves the suspended load, `S 12`), with the multi-fraction bed
   (`S 51`) and with `S 31 3`.
 
@@ -145,8 +165,8 @@ Binaries: `REEF3D_BIN`, `DIVEMESH_BIN` (DIVEMesh with `R 20`).  Runs go to `./ru
 | `t7_talmon_bend.py` | P6c: run 3 of Talmon & de Graaff (1989) in the curved flume of the LFM, TU Delft (`data/talmon1989_run3.json`: 180 deg, R 4.10 m, W 0.5 m, Q 5 l/s, a0 0.051 m, C 19.2, D50 90 um, 75 % suspended): SFLOW, Engelund-Hansen total load as bed load, `S 86`, `S 95` with `E_spir 1`, the measured a/a0 of 48 sections x 9 positions against the depth of the model averaged over the last 300 s (the bed forms and the migrating bars are averaged out in the measurements); `KS`, `DS`, `MF`, `ESPIR`, `TAVG`, `PNG` | `DS=0.05` (10 cells across, 900 s flow, MF 100): the second half of the bend (sections 25-45) within 0.09 a0 rms, outer - inner 0.59 a0 (measured 0.56); the overshoot after the entrance too weak and too early (0.78 a0 at 23 deg against 1.45 a0 at 50 deg: the spiral flow follows the curvature at once, no adaptation length).  `DS=0.025` (20 cells): a second transverse mode (a trough 0.1 m from the inner bank), outer - inner only 0.27 a0: the result depends on the grid; missing physics are the lag of the suspended load (adaptation length h u/ws about 1.3 m, 25 a0) and of the spiral flow; P7 adds them (below) |
 | `t7_compare.py [--grids] [--runs] [--labels] [--png]` | P7: the t7 runs (`runs/t7_talmon<grid><run>/t7.npz`) against the measurements and each other: rms, outer - inner, the deepest point, the difference of the grids; a figure of the outer bank, outer - inner and the inner bank along the sections | see below |
 | `t8_bend_lags.py equiv\|profile [steps]` | P7: the LFM bend of t6 (`DS 0.1`): `equiv` `S 95 2` with `S 97 0` against `S 95 1` after 3000 steps with the bed moving; `profile` the bed held, the spiral intensity `ST_spiral` on the centre line with `S 97 1` against the relaxation of `I_e` (the run with `S 97 0`) by the scheme of the model and by the exact solution (`PNG`) | `equiv`: bed 1.8e-11 (change 0.07 m), the face velocities 1.6e-10 (round-off of `alpha h U K_c/U` against `alpha h K_c`); `profile`: `L_a` 1.48 m (C 26.4, h 0.2 m), model = upwind scheme to 0.4 % of `I_e` max, = exact relaxation to 0.4 %; 63 % of the build-up 2.04 m after the bend entrance (model, scheme, exact; `I_e` itself rises over 1 m), of the decay 2.05 m after the exit (exact 1.95) |
-| `t9_bend_blocks.py [steps]` | P7: the LFM bend as one block and as two blocks along the flow (block 1 the inflow reach with `G 54 1 1 Q`, block 0 the bend and the outflow reach), bed and water level per cell after 1500 steps (500 sediment steps, MF 100): `S 95 1`, `S 95 2`, `S 95 2` + `S 64 0.5`; `CASES`, `NA` | the flow (bed held) 5e-16 m in the water level; `S 95 1` 8e-9 m in the bed (bed change 0.054 m), `S 95 2` with `S 97 0` and `0.1` the same (8e-9), with `S 97 1` 4.6e-6, `S 95 2` + `S 64 0.5` 1.6e-6, 2-4 passes per step; the curvature `I_e` of the first cell at the inflow differs between the native inflow and the open face `G 54` of a block (their ghost velocities), the lag carries it downstream: with `I_e` set to 0 in the first metre (a test build) 9.5e-9 and 2.2e-8.  The bed volume change of both the same to 1e-9.  (Sediment leaves the domain only through the native outflow: an open face `G 54` of a block is closed for the sediment, three blocks with the outflow on block 2 fill its end with sand) |
-| `t9_bend_blocks.py` P8a (`LAYOUT=three`: block 1 the inflow reach `G 54 1 1 Q`, block 0 the bend, block 2 the outflow reach `G 54 2 2 h`; `NOGUARD`, `MF`, `PERTURB`, the cases `eh*` with Engelund-Hansen, `*noneq` with `S 33`) | the sediment through the open face of block 2 | before P8a three blocks differed from one by 0.2 m (the end of block 2 silted up, the face closed for the sediment); now 1.7e-4 m with MF 100 and 1.6e-6 m with MF 10 (bed change 0.05 and 0.013 m), the flux through the outflow face and the bed of the outflow reach equal to one block to 1e-12 over the first 150 sediment steps; the remaining difference starts at the interface of blocks 0 and 2 next to the outer wall, where the bed changes fastest after the bend, and grows with the morphology (two blocks with the interface in the straight inflow reach: 8e-9).  `S 33 1` across the interfaces (`ehnoneq`, MF 10): two blocks 2.0e-9, three blocks 2.9e-7.  Without `S 71` the one-block run puts 1.2e-2 m of sand into the cell at its inflow corner next to the wall (j = 0 only), the block not: the native inflow corner |
+| `t9_bend_blocks.py [steps]` (`XCASES`, `SAVE`) | P7: the LFM bend as one block and as two blocks along the flow (block 1 the inflow reach with `G 54 1 1 Q`, block 0 the bend and the outflow reach), bed and water level per cell after 1500 steps (500 sediment steps, MF 100): `S 95 1`, `S 95 2`, `S 95 2` + `S 64 0.5`; `CASES`, `NA` | the flow (bed held) 5e-16 m in the water level; `S 95 1` 8e-9 m in the bed (bed change 0.054 m), `S 95 2` with `S 97 0` and `0.1` the same (8e-9), with `S 97 1` 4.6e-6, `S 95 2` + `S 64 0.5` 1.6e-6, 2-4 passes per step; the curvature `I_e` of the first cell at the inflow differs between the native inflow and the open face `G 54` of a block (their ghost velocities), the lag carries it downstream: with `I_e` set to 0 in the first metre (a test build) 9.5e-9 and 2.2e-8.  The bed volume change of both the same to 1e-9.  (Sediment leaves the domain only through the native outflow: an open face `G 54` of a block is closed for the sediment, three blocks with the outflow on block 2 fill its end with sand) |
+| `t9_bend_blocks.py` P8a (`LAYOUT=three`: block 1 the inflow reach `G 54 1 1 Q`, block 0 the bend, block 2 the outflow reach `G 54 2 2 h`; `NOGUARD`, `MF`, `PERTURB`, the cases `eh*` with Engelund-Hansen, `*noneq` with `S 33`) | the sediment through the open face of block 2 | before P8a three blocks differed from one by 0.2 m (the end of block 2 silted up, the face closed for the sediment); now 1.7e-4 m with MF 100 and 1.6e-6 m with MF 10 (bed change 0.05 and 0.013 m), the flux through the outflow face and the bed of the outflow reach equal to one block to 1e-12 over the first 150 sediment steps; the remaining difference starts at the interface of blocks 0 and 2 next to the outer wall, where the bed changes fastest after the bend, and grows with the morphology (two blocks with the interface in the straight inflow reach: 8e-9).  `S 33 1` across the interfaces (`ehnoneq`, MF 10): two blocks 2.0e-9, three blocks 2.9e-7.  Without `S 71` the one-block run puts 1.2e-2 m of sand into the cell at its inflow corner next to the wall (j = 0 only), the block not: the native inflow corner.  P8c (`NOGUARD=1`, the inflow guard `S 78` now holds the first row; `SAVE` writes the beds): three blocks = one block to round-off, `s951` 1e-16 m (MF 10, 1500 steps) and 6e-12 m (MF 100, 3000 steps), `eh` 5e-17; with the relaxations (tolerance 1e-6) `s952` 1.9e-10 (MF 10) and 5e-7 (MF 100), `susp` 8e-10, `ehnoneq` 6e-10; two blocks the same; the bed volumes equal.  `susp` with MF 100 differs by 7e-3 after 3000 steps: the run turns unstable at about 2100 steps (an erosion front runs up the inflow reach, 0.6 cells per step), which amplifies the tolerance of the relaxations; with the tolerance 1e-13 (a test build) the same to round-off up to 2000 steps.  P9: the instability is the morphological factor, not the lags: MF 100 (`S 15 3`, dtsed = dt) runs at `c/U` 3 - 38 and bed waves run upstream through the inflow reach in `s951`, `s952` and `susp` alike from about 1100 sediment steps; with `S 104 0.5` (effective MF about 12) the bed stays smooth and `susp` three blocks = one block to 1.2e-7 m |
 | `t5_sed_mb.py` P8a (`XCTRL "S 33 1"`, `"S 11 4;S 33 4;S 40 2"`) | `S 33` across the blocks, with a refinement box, on 2 ranks | `S 33 1` (Ls 0.1 m): four blocks = one block to 7.7e-10 (P7: 1.9e-6), with refinement 6.4e-10, 2 ranks = 1 rank; `S 33 4` with Ls 2h (0.4 m, recirculating dam break, Engelund-Hansen): 5.5e-7 (P7: 2.2e-6), with refinement 1.4e-6; with the relaxation tolerance 1e-12 (a test build) 8e-12, with refinement 1.3e-11, 2 ranks 8e-12: the coupling is exact, the rest is the tolerance 1e-6 of the sweeps.  Bed volume conserved |
 | `make_regression_cases.py` | writes the regression cases `*_sed_*` (P5b: `*_sed_*bend*`, P7: `*_sed_*lags*`, P8a: `sflow_2d_mb_sed_open_faces_noneq`, `sflow_2d_mb_sed_noneq_amr_mpi2`) | |
 
@@ -175,6 +195,41 @@ The overshoot (position, amplitude, the inner bank) is now right on both grids. 
 steep (outer - inner 0.8 against 0.56 in the second half), the measured trough at sections 25-33 is missing; `S 95 2`
 alone has the trough on 10 cells but not on 20.  The `DS=0.025` run used a build that differed from the final one only in
 the upwind rule at walls (ghost cells beyond a wall were upwind neighbours); on 10 cells the two give the same table.
+
+P8c, the second half of the bend (sections 25-45, `DS=0.05`, `t7_compare.py --runs _p8c,_A6,...`,
+`t7_talmon_p8c_variants.png`): the measured outer - inner falls from 1.45 (section 16) to 0.31 (28) and rises again to
+0.8 (40-46), a damped oscillation; the P7 model falls to 0.75 and stays there (the outer bank 1.4 a0 against 1.15 -
+1.3 measured).  The inflow fixes of P8c leave t7 unchanged (`S 71 2.0` holds the inflow reach).  Variants:
+
+| `DS=0.05`, P7 keys plus | rms all / 6-24 / 25-45 | outer - inner 12-18 / 25-45 | deepest outer | trough (outer - inner) |
+|---|---|---|---|---|
+| measured | | 1.25 / 0.56 | 16: 1.73 | 0.31 at 28 |
+| (P7) | 0.090 / 0.076 / 0.111 | 1.25 / 0.81 | 15: 1.65 | 0.75 at 28 |
+| `S 87 6`, `ESPIR=1.5` (A E_spir kept: the same equilibrium slope, a shorter bed adaptation length) | 0.092 / 0.077 / 0.115 | 1.15 / 0.82 | 17: 1.60 | 0.74 |
+| `S 87 13.5`, `ESPIR=0.667` | 0.100 / 0.094 / 0.116 | 1.26 / 0.78 | 14: 1.65 | 0.73 |
+| `S 97 3` (a three times longer spiral adaptation) | 0.099 / 0.087 / 0.120 | 1.14 / 0.83 | 15: 1.57 | 0.80 |
+| `S 95 2` alone (no suspended part) | 0.147 / 0.182 / 0.114 | 0.76 / 0.43 | 13: 1.51 | 0.26 at 24 |
+| `S 98 0.5` (below) | 0.103 / 0.114 / 0.104 | 1.21 / 0.77 | 19: 1.69 | 0.61 at 32 |
+| `S 98 0.25` | 0.113 / 0.135 / 0.108 | 1.00 / 0.77 | 22: 1.59 | 0.66 at 32 |
+
+- The slope effect (A with A E_spir constant) and the spiral adaptation length change the second half little; the
+  oscillation of the bed is damped by the suspended part (`S 64`): without it the trough is there (0.26 at 24) but
+  the overshoot and the equilibrium slope are half the measured.
+- New key `S 98 beta_c` (SFLOW with sediment and `S 95`, off by default): the spiral flow carries the faster water
+  near the surface outwards, a flux of streamwise momentum towards the outer bank, as the secondary flow of
+  Delft3D-FLOW (Kalkwijk & Booij 1986): dispersion stresses M_sn = -beta h |U| I in streamline coordinates, Cartesian
+  M_xx = 2 beta h I u v/|U| = -M_yy, M_xy = -beta h I (u^2 - v^2)/|U|, the source -div M of the momentum h u_i over the
+  cell faces (closed at walls and dry cells, `sflow_momentum_func::spiral_source`); beta = beta_c (5a - 15.6a^2 +
+  37.5a^3), a = sqrt(g)/(kappa C) <= 0.5, C from the Manning roughness; I the intensity of the sediment (`S 95 1`: h
+  |U| K_c, `S 95 2`: the lagged one; `fdm2D::spiral`, set after every bed update).  The t9 bend with the bed held
+  (`S 35 0`, 2000 steps, 31 s of flow, not yet steady; the speed in the cells next to the outer / inner bank at 90
+  deg): without `S 98` 0.45 / 0.57 m/s (the inner faster), `S 95 2` with `S 98 0.5` 0.55 / 0.42, `S 98 1` 0.63 /
+  0.33.  Use it with `S 95 2`: with `S 95 1` (the equilibrium intensity of the current cell) and `beta_c` 1 the
+  velocity oscillates from cell to cell across and along the bend (second difference across 0.21 m/s against 0.10
+  with `S 95 2`); with `S 95 2` the profile is smooth except a step in the cell next to the outer wall.  In t7 it brings the damped oscillation (the trough 0.61 at
+  32, the second rise to 0.98 at 44) but moves the overshoot downstream (19 against 16) and lowers it: better in
+  the second half, worse in the first.  None of the variants has both; the trough remains open.
+- Regression `sflow_2d_curv_sed_bend_lfm_spiralmom` (the lags case with `S 98 0.5`).
 
 P7 with `XCTRL "S 95 2;S 64 0.5;S 86 1"` (SFLOW): t1 turned by 90 deg = curvilinear to round-off (5e-16 of the change),
 curvilinear = Cartesian to 1.2e-8 of the change (the tolerance of the relaxations: the two grids stop the sweeps at
@@ -206,6 +261,11 @@ with P6c.
   another rank is 0; SFLOW `A 209` (bed smoothing) depends on the rank layout like NHFLOW `A 509`.
 - `t6` with a morphological factor of 100 runs at a bed celerity of 50-100 times the flow speed (`c/U` in the log):
   far from quasi-steady; use 10 or less.
+- P9: `S 103` and `S 104` limit dtsed by the bed celerity of all grids (`sediment_exner::celerity` of every patch and
+  block, gathered as `amr_maxvz`); before, only the grid of level 0 counted, so three blocks took another dtsed than
+  one block (t9 `susp`, MF 100, `S 104 0.5`: effective MF 26 against 9 at the same step; now the same, the beds 1.2e-7
+  m apart).  Without `S 103` / `S 104` REEF3D warns once when `c/U` exceeds 2 (the log only).  Regression
+  `sflow_2d_mb_sed_s104`.
 - On the uniform NHFLOW grid eta keeps the old beduntil the first stage after a bed update (the stage
   uses it in the kinematic condition and the convection); the mesh refinement keeps that and takes the
   water level of the cells around the patches from their sources.

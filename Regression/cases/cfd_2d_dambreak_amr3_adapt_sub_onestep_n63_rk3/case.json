@@ -1,0 +1,24 @@
+{
+ "base": "cfd_2d_dambreak_amr3_adapt_sub",
+ "np": 1,
+ "steps": 60,
+ "ctrl_set": {
+  "N 40": "5"
+ },
+ "ctrl_add": [
+  "N 59 1",
+  "N 63 3"
+ ],
+ "description": "cfd_2d_dambreak_amr3_adapt_sub_onestep_n59 with the level set in SSP-RK3 stages (N 63 3): with subcycling the cells around the patches of every stage from the coarser level at the time of the stage (0, 1, 1/2 of the step) (validation 83).",
+ "tags": [
+  "quick",
+  "2d",
+  "dambreak",
+  "levelset",
+  "amr",
+  "adaptive"
+ ],
+ "covers": [
+  "cfd_amr::patch_step_onestep with N 63 3"
+ ]
+}

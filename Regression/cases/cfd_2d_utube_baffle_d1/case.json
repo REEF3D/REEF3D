@@ -1,0 +1,16 @@
+{
+ "np": 1,
+ "steps": 200,
+ "description": "cfd_2d_utube_baffle_d32_2 with the baffle moved off the grid lines by 0.3 cells (x 0.4015-0.4215 m, lower end z 0.1515 m) and the solid as a wall of the pressure projection (D 1 2): the faces along the baffle 30 % and 70 % open, the edges of the baffle lowered (kink of the distance), compressible air of the closed chamber (W 32 2), mass-consistent momentum (N 59 2). The head between the chambers is held, the water columns as with the baffle on the grid lines (D 32 2) to 1 %.",
+ "tags": [
+  "quick",
+  "2d",
+  "levelset",
+  "solid",
+  "closed",
+  "compressible"
+ ],
+ "covers": [
+  "solid_aperture.h D 1 2"
+ ]
+}

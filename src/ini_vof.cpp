@@ -123,8 +123,6 @@ void initialize::inivof_box(lexer* p, fdm *a, ghostcell* pgc)
         kstart = conv((p->F70_zs[qn]-p->originz)/p->DXM);
         kend = conv((p->F70_ze[qn]-p->originz)/p->DXM);
 
-        //cout<<p->mpirank<<" F70: "<<p->F70<<" . "<<istart<<" "<<iend<<" "<<jstart<<" "<<jend<<" "<<kstart<<" "<<kend<<endl;
-
         LOOP
         if(i>=istart && i<iend && j>=jstart && j<jend && k>=kstart && k<kend)
         a->vof(i,j,k)=0.0;

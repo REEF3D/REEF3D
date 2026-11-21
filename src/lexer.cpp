@@ -68,6 +68,7 @@ lexer::lexer() : cmu(0.09), position(this), interpolation(this), coordinates(thi
     // free-surface levels at the in- and outflow: set by ini_phi (F 60-62), read by the outflow
     // pressure (B 77 1) also without a free surface
     fsfin=fsfout=0.0;
+    psi_rho=0.0;        // G 28, set by logic_cfd
     printcount=printcount_sixdof=0;
     maxlength=0.0;      // largest domain extent: set by initialize (CFD), makegrid_sigma (NHFLOW, FNPF), sflow_maxcoor
 

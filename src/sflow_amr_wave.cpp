@@ -23,7 +23,6 @@ Architect: Hans Bihs
 #include"sflow_amr.h"
 #include"seastate_sflow.h"
 #include"met_forcing.h"
-#include"lexer.h"
 #include"fdm2D.h"
 #include"ghostcell.h"
 #include"slice4.h"

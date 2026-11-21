@@ -1,0 +1,20 @@
+{
+ "base": "sflow_2d_hydro_amr_rain_exp",
+ "np": 1,
+ "steps": 60,
+ "ctrl_add": [
+  "G 7 1"
+ ],
+ "description": "sflow_2d_hydro_amr_rain_exp with sub-cycling (G 7 1): the patch takes two half steps per level-0 step with the sources of the level-0 step.",
+ "tags": [
+  "quick",
+  "2d",
+  "sflow",
+  "hydro",
+  "amr",
+  "wetdry"
+ ],
+ "covers": [
+  "HYDRO with Berger-Oliger sub-cycling of the patches"
+ ]
+}

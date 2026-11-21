@@ -1,0 +1,8 @@
+{
+ "base": "cfd_2d_cpm_bedload_layer_mix",
+ "ctrl_set": {"Q 58": "2", "W 20": "10.0"},
+ "steps": 200,
+ "tags": ["quick", "2d", "cpm"],
+ "description": "as cfd_2d_cpm_bedload_layer_mix with pickup into the suspension (Q 58 2)",
+ "covers": ["CPM graded sediment: release of the layer parcels into the resolved suspension per fraction (settling velocity, onset, threshold with hiding, share of the surface), accounts per fraction"]
+}

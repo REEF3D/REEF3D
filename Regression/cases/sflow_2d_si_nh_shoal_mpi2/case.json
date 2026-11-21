@@ -1,0 +1,23 @@
+{
+ "base": "sflow_2d_si_nh_shoal",
+ "np": 2,
+ "control_set": {
+  "M 10": "2"
+ },
+ "ctrl_set": {
+  "M 10": "2"
+ },
+ "description": "sflow_2d_si_nh_shoal on 2 ranks (time step, coupled system and preconditioner across the partition).",
+ "tags": [
+  "2d",
+  "sflow",
+  "semi_implicit",
+  "nonhydrostatic",
+  "mpi"
+ ],
+ "covers": [
+  "sflow_momentum_SI_nh across ranks",
+  "global minimum of the automatic time step"
+ ],
+ "architect": "Hans Bihs"
+}

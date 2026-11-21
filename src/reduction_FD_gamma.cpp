@@ -36,7 +36,7 @@ reduction_FD_gamma::~reduction_FD_gamma()
 void reduction_FD_gamma::start(lexer *p, ghostcell *pgc, sediment_fdm *s)
 {
     double r=1.0;
-    double u0,v0,uvel,vvel,uabs,fx,fy;
+    double uvel,vvel,uabs,fx,fy;
     
     SEDSLICELOOP
     {
@@ -62,7 +62,7 @@ void reduction_FD_gamma::start(lexer *p, ghostcell *pgc, sediment_fdm *s)
     
     
     r=MAX(r,0.01);
-    r=MIN(r,1.5);
+    r=MIN(r,2.0);   // adverse slope at the angle of repose: 2 cos(phi), 1.73 for phi = 30 deg (1.5 cut slopes above 27 deg)
 
 	if(p->pos_x()<p->S71)
 	r=1.0;

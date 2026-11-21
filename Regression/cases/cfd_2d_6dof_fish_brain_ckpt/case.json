@@ -1,0 +1,8 @@
+{
+ "base": "cfd_2d_6dof_fish_brain",
+ "np": 1,
+ "ctrl_set": {"P 48": "80", "P 49": "0"},
+ "description": "cfd_2d_6dof_fish_brain on 1 rank with a checkpoint every 80 steps: the uninterrupted run of cfd_2d_6dof_fish_brain_restart.",
+ "tags": ["2d", "6dof", "floating", "deform", "singlephase", "checkpoint"],
+ "covers": ["sixdof_obj::ckpt_state: the deformation (its time, the discrete recoil correction X 196 2 and its registers), the fit of X 198 and its state, the brain (its decisions and state)"]
+}

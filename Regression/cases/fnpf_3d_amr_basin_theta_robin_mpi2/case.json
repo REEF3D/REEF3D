@@ -1,0 +1,17 @@
+{
+ "base": "fnpf_3d_amr_basin_mpi2",
+ "ctrl_set": {
+  "A 310": "5"
+ },
+ "description": "fnpf_3d_amr_basin on 2 ranks (static box cut at the rank boxes) with the theta-Robin time integration (A 310 5, REEFMG) and N 48 1: the patch theta step in 3D across a partition edge.",
+ "tags": [
+  "3d",
+  "fnpf",
+  "amr",
+  "waves",
+  "mpi"
+ ],
+ "covers": [
+  "fnpf_amr_theta on 2 ranks: theta_surface fills across ranks, composite Robin solve"
+ ]
+}

@@ -1,0 +1,18 @@
+{
+ "description": "as sflow_2d_narrow_channel_1cell with the semi-implicit step (A 210 11) (the water of the channel was lost).",
+ "solver": "sflow",
+ "np": 1,
+ "steps": 150,
+ "tags": [
+  "sflow",
+  "river",
+  "wetdry",
+  "semi_implicit"
+ ],
+ "covers": [
+  "sflow_eta::wetdry isolated wet cells, sflow_momentum_SI"
+ ],
+ "files": [
+  "geo.dat"
+ ]
+}

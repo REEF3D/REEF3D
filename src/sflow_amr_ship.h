@@ -65,10 +65,16 @@ public:
     void isource2D(lexer*,fdm2D*,ghostcell*) override final;
     void jsource2D(lexer*,fdm2D*,ghostcell*) override final;
 
+    // the semi-implicit step (A 210 12/13): the pressure of the step, the mean of its start (press_n, sflow_amr::si_step)
+    // and its end, as sixdof_sflow::sflow_press_step
+    void sflow_midpoint(bool on) override final {mid = on;}
+    bool sflow_press_step(lexer*, slice&) override final;
+
     double Hsolid(lexer*, slice&);
     static double cellwidth(lexer*, int, int);
 
-    slice4 press, draft;
+    slice4 press, draft, press_n;
+    bool mid = false;
 
     // body kinematics of level 0: u_fb(0..5), centre of gravity
     double u[6], c[3];

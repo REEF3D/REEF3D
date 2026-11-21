@@ -1,0 +1,17 @@
+{
+ "description": "SFLOW explicit (A 210 2): uniform flow at Fr 0.77 (slope 5e-3, n 0.03, q 3 m2/s) in a channel ten cells wide between banks of dry cells (geo.dat): the same velocity in all ten cells. With the Froude limit 0.1 A 531 in every cell next to a dry cell the two bank cells ran at 0.41 of the velocity and the channel 8-14 % too deep.",
+ "solver": "sflow",
+ "np": 1,
+ "steps": 500,
+ "tags": [
+  "sflow",
+  "river",
+  "wetdry"
+ ],
+ "covers": [
+  "sflow_momentum_func::velcalc, Froude limit next to dry cells only below A 232"
+ ],
+ "files": [
+  "geo.dat"
+ ]
+}

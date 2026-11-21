@@ -1,0 +1,24 @@
+{
+ "base": "nhflow_3d_sediment_basin_susp",
+ "ctrl_set": {
+  "S 41": "2",
+  "S 45": "0.3",
+  "S 43": null
+ },
+ "np": 1,
+ "steps": 300,
+ "description": "nhflow_3d_sediment_basin_susp with the sediment start at a time (S 41 2, S 45 0.3 s) and S 43 at its default (1000): the bed takes the exchange with the suspended load from the sediment start on (sediment_fdm::started). Before, the exchange was switched on with count > S 43 for every S 41: 3.66e-4 m^3 in suspension after 300 steps and a bed change of zero.",
+ "tags": [
+  "quick",
+  "3d",
+  "nhflow",
+  "sediment",
+  "suspended",
+  "closed"
+ ],
+ "covers": [
+  "sediment_fdm::started",
+  "sediment_exner::susp_ED with S 41 2",
+  "nhflow_suspended_IM1::exchange_sum with S 41 2"
+ ]
+}

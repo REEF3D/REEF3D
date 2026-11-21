@@ -95,6 +95,78 @@ void sixdof_obj_2D::ray_cast_2D(lexer *p, ghostcell *pgc)
     
 	pgc->gcsl_start4(p,fs,50);
     pgc->gcsl_start4(p,draft,50);
+
+    // X 411 1: the draft continued outside the hull outline over the smoothing width of the patch
+    if(p->X411==1)
+    draft_extension(p,pgc);
+}
+
+void sixdof_obj_2D::draft_extension(lexer *p, ghostcell *pgc)
+{
+    // X 411 1 (STL draft, X 400 10): the cells outside the hull outline (fs > 0) within the smoothing width of the
+    // pressure patch (fs < psi, psi = X41 dx as in Hsolidface_2D) take the draft of their neighbour closest to the
+    // hull. The patch H(-fs,psi)*draft then goes to zero without the jump of about draft/2 at the hull side, and the
+    // smoothing adds outside what it removes inside, so the hull section stays the same on grids of different
+    // resolution (with draft = 0 outside, the section a grid sees changes by O(dx) with the position of the cell
+    // centres relative to the hull side). Cartesian grids without mesh refinement (not in sflow_amr_ship).
+    const int sweeps = int(p->X41) + 2;
+    double psi,fmin,val;
+    int changed;
+
+    for(int q=0; q<sweeps; ++q)
+    {
+        changed = 0;
+
+        SLICELOOP4
+        {
+        psi = p->X41*(1.0/2.0)*(p->DXN[IP] + p->DYN[JP]);
+
+            if(fs(i,j)>0.0 && fs(i,j)<psi && draft(i,j)<=0.0)
+            {
+            fmin = fs(i,j);
+            val = 0.0;
+
+            // the neighbour closest to the hull that has a draft
+            if(draft(i-1,j)>0.0 && fs(i-1,j)<fmin)
+            {
+            fmin = fs(i-1,j);
+            val = draft(i-1,j);
+            }
+
+            if(draft(i+1,j)>0.0 && fs(i+1,j)<fmin)
+            {
+            fmin = fs(i+1,j);
+            val = draft(i+1,j);
+            }
+
+                if(p->j_dir==1)
+                {
+                if(draft(i,j-1)>0.0 && fs(i,j-1)<fmin)
+                {
+                fmin = fs(i,j-1);
+                val = draft(i,j-1);
+                }
+
+                if(draft(i,j+1)>0.0 && fs(i,j+1)<fmin)
+                {
+                fmin = fs(i,j+1);
+                val = draft(i,j+1);
+                }
+                }
+
+                if(val>0.0)
+                {
+                draft(i,j) = val;
+                ++changed;
+                }
+            }
+        }
+
+    pgc->gcsl_start4(p,draft,50);
+
+    if(pgc->globalisum(changed)==0)
+    break;
+    }
 }
 
 

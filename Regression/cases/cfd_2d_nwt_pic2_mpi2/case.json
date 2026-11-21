@@ -1,0 +1,18 @@
+{
+ "base": "cfd_2d_nwt_pic2",
+ "np": 2,
+ "tags": [
+  "quick",
+  "2d",
+  "waves",
+  "pic",
+  "mpi"
+ ],
+ "description": "as cfd_2d_nwt_pic2 on 2 ranks split in x: the columns of the relaxation zones reduced over the ranks, the halo of the redistribution and of the signed distance in the band across the subdomain boundary (needs PICFSF patch 0005)",
+ "covers": [
+  "pic_f::zone_surface MPI_Allreduce",
+  "pic_f::redistribute with the halo",
+  "pic_f::redistance in the ghost cells"
+ ],
+ "architect": "Hans Bihs"
+}

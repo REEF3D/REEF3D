@@ -237,7 +237,7 @@
   20.0,
   20.0
  ],
- "blessed_from": "/tmp/claude-0/-home-claude/a502af18-fe2a-570f-89f7-4b69911c7e76/scratchpad/reg/P11b/REEF3D",
- "date": "2026-10-27",
- "note": "P11 rebased on 3aa5401 (P11b binary)"
+ "blessed_from": "/home/claude/nb/hd/buildN/REEF3D_v12",
+ "date": "2026-11-08",
+ "note": "v12: multilayer flux of the semi-implicit step"
 }

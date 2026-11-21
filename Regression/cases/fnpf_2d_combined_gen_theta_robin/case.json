@@ -1,0 +1,20 @@
+{
+ "base": "fnpf_2d_combined_gen",
+ "ctrl_set": {
+  "A 310": "5",
+  "A 302": "4"
+ },
+ "description": "as fnpf_2d_combined_gen (combined generation B 98 6 and beach B 99 6: relaxation zones with a low-passed state and absorbing edges) with theta-Robin (A 310 5, N 48 1): the state of the zones from the predicted field, not from the probes of the affine maps (patch fnpf_theta_robin/0037).",
+ "tags": [
+  "quick",
+  "2d",
+  "waves",
+  "iowave",
+  "awa",
+  "fnpf"
+ ],
+ "covers": [
+  "fnpf_theta with iowave::inflow_fnpf (B 98 3/4, B 99 3/4/7)",
+  "fnpf_theta::relax_affine with zones with a state (gen_dev, beach_target)"
+ ]
+}

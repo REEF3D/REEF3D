@@ -106,7 +106,6 @@ void iowave::ksource(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
 			if(p->pos3_y() > p->B240_ys[n]+ep && p->pos3_y() <= p->B240_ye[n]+ep)
 			if(p->pos3_z() > p->B240_zs[n]+ep && p->pos3_z() <= p->B240_ze[n]+ep)
             {
-            //cout<<"k: "<<k<<" pos_z: "<<p->pos3_z()<<endl;
 			porousterm=p->B240_D[n]*a->visc(i,j,k)*a->w(i,j,k) + 0.5*p->B240_C[n]*a->w(i,j,k)*fabs(a->w(i,j,k));
             }
 		}

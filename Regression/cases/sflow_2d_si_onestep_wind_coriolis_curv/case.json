@@ -1,0 +1,24 @@
+{
+ "description": "sflow_2d_si_onestep_wind_coriolis on the same grid turned by 30 deg as one curvilinear block (G 50 1, R 20 1 with blocks.dat), the wind turned with it: the wall faces carry the sources along their normals (the curvilinear cell vector of cell_update); the velocities equal those of the Cartesian case turned back to 5e-7 m/s after 24 h.",
+ "files": [
+  "blocks.dat"
+ ],
+ "solver": "sflow",
+ "np": 1,
+ "steps": 300,
+ "tags": [
+  "quick",
+  "2d",
+  "sflow",
+  "semi_implicit",
+  "closed",
+  "wind",
+  "met",
+  "coriolis",
+  "curvilinear"
+ ],
+ "covers": [
+  "sflow_momentum_SI::cell_update wall sides with sources on a curvilinear grid"
+ ],
+ "architect": "Hans Bihs"
+}

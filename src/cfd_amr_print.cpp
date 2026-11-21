@@ -35,7 +35,7 @@ Architect: Hans Bihs
 //  windows P 35), one VTK rectilinear grid
 //  (.vtr) per patch in REEF3D_CFD_AMR/, and a multiblock file (.vtm) with all patches of the output
 //  (open it next to the level-0 output).  Cell data: level set, pressure, velocity (cell centre), the
-//  level of the patch and a flag for the cells under a finer patch.
+//  level of the patch and a flag for the cells under a finer patch; with topography its level set (topo).
 //  P 18: the patches go into the LAGOON store too, as the AMR set cfd_amr of 3D blocks (rank 0
 //  gathers them, lagoon_amr_output); P 18 1: instead of the .vtr and .vtm files.
 
@@ -148,6 +148,9 @@ void cfd_amr::print(lexer *p, ghostcell *pgc, bool after)
             field &S = sfield(id);
             put(scal==1 ? "T" : "C",[&](int i, int j, int k) { return S(i,j,k); });
         }
+        // the bed (the level set of the topography; with CPM its bed)
+        if(solids && p->toporead!=0)
+        put("topo",[&](int i, int j, int k) { return a->topo(i,j,k); });
 
         size_t m=0;
         for(int k=0; k<nz; ++k)

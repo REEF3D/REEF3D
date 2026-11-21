@@ -1,0 +1,17 @@
+{
+ "np": 1,
+ "steps": 150,
+ "description": "cfd_2d_still_block_d1_amr with subcycling (G 7 1): the level projections with the open fractions at the prescribed faces of the patch edge, the synchronisation with the composite rows; 4e-6 m/s in the air after 300 steps.",
+ "tags": [
+  "quick",
+  "2d",
+  "levelset",
+  "solid",
+  "closed",
+  "amr"
+ ],
+ "covers": [
+  "solid_aperture.h D 1 2",
+  "cfd_amr::pr_apertures"
+ ]
+}

@@ -1,0 +1,11 @@
+{
+ "base": "cfd_2d_6dof_fish_gait",
+ "np": 1,
+ "steps": 40,
+ "ctrl_add": [
+  "X 200 0 0.0 0.0 1"
+ ],
+ "description": "cfd_2d_6dof_fish_gait with the bias along the envelope (X 200 id s0 k w, w = 1): the angle of the midline b int_0^s A / int_0^1 A instead of b s/L, for type 11 the curvature grows linearly towards the tail (the total bend head to tail stays b = 1); the recoil, the inverse map of the bent body and the velocity with it. Fish Swimming patch 0017.",
+ "tags": ["quick", "2d", "6dof", "floating", "deform", "singlephase"],
+ "covers": ["sixdof_deform::bias_weight", "sixdof_deform::midline with the bias along the envelope", "X 200 (read_control, controlfill)"]
+}

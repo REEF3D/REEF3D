@@ -54,7 +54,7 @@ void sixdof_obj::ini_pto(lexer *p, ghostcell *pgc)
     pto_rk_ = (p->A510==2) ? 2 : 3;
     
     else
-    pto_rk_ = (p->A310==3) ? 3 : 4;
+    pto_rk_ = (p->A310==3) ? 3 : ((p->A310==5) ? 2 : 4);     // A 310 5: Heun (sixdof_obj::rk2)
 
     if(!pto_on_)
     return;

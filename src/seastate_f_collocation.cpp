@@ -59,15 +59,31 @@ in the log every A 789 s of model time and at the end, the table in
 REEF3D_SEASTATE_Collocation/seastate-collocation-stats.dat (one numeric row per source and
 one (-1) for all).
 
-The model at a point: Hs, Tm01, Tp and the mean direction of the four
-cell centres around it (level 0; the spectra of the ghost cells of the
-neighbour ranks included), bilinear (the direction as a unit vector);
-wet only if all four cells with weight are wet.
+The model at a point: Hs, Tm01, Tp, the mean direction, Tm-1,0, the
+depth and U10 of the four cell centres around it (level 0; the spectra
+of the ghost cells of the neighbour ranks included), bilinear (the
+direction as a unit vector); wet only if all four cells with weight are
+wet. The matchups also give the regimes, the periods where observed and
+the quantiles (seastate_collocation.h) in
+REEF3D_SEASTATE_Collocation/seastate-collocation-regimes.dat, -periods.dat
+and -quantiles.dat at the end of the run (Phase 25).
 A stationary run (A 700 2) takes the final field for all observations.
 A restart (I 45 1) appends to the file of the run it continues and
 counts its matchups again; observations before the time of the restart
-are not repeated.
+are not repeated. The statistics count the values as the file gives
+them (Phase 25), so a restart gives those of the full run.
 --------------------------------------------------------------------*/
+
+// the values of a model sample: Hs, Tm01, Tp, direction, Tm-1,0, depth, U10
+static const int NV = 7;
+
+// v with d decimals as the file writes it
+static std::string to_fixed(double v, int d)
+{
+    std::ostringstream s;
+    s<<std::fixed<<std::setprecision(d)<<v;
+    return s.str();
+}
 
 void seastate_f::colloc_ini(lexer *p, ghostcell *pgc)
 {
@@ -85,7 +101,7 @@ void seastate_f::colloc_ini(lexer *p, ghostcell *pgc)
     col_ci.assign(n,-1);
     col_cj.assign(n,-1);
     col_ts.assign(n,-1.0e300);
-    col_s.assign(4*n,0.0);
+    col_s.assign(size_t(NV)*n,0.0);
     col_sw.assign(n,0);
     col_done.assign(n,0);
     col_next = 0;
@@ -146,14 +162,33 @@ void seastate_f::colloc_ini(lexer *p, ghostcell *pgc)
                 if(c[12]=="1")
                 {
                 const int src = int(std::find(pcol->sources.begin(),pcol->sources.end(),c[4]) - pcol->sources.begin());
-                pcol->count(src<int(pcol->sources.size()) ? src : -1,std::strtod(c[6].c_str(),nullptr),std::strtod(c[7].c_str(),nullptr));
+                    // a file of Phase 24 (13 columns): Hs only (empty trailing columns are not split off)
+                    if(c.size()<16)
+                    {
+                    pcol->count(src<int(pcol->sources.size()) ? src : -1,std::strtod(c[6].c_str(),nullptr),std::strtod(c[7].c_str(),nullptr));
+                    continue;
+                    }
+                auto num = [&](size_t q) {return (q>=c.size() || c[q].empty()) ? std::nan("") : std::strtod(c[q].c_str(),nullptr);};
+                seastate_matchup m;
+                m.src = (src<int(pcol->sources.size())) ? src : -1;
+                m.hs_obs = num(6);
+                m.hs = num(7);
+                m.tm01 = num(8);
+                m.tp = num(9);
+                m.tm10 = num(13);
+                m.depth = num(14);
+                m.u10 = num(15);
+                m.tp_obs = num(16);
+                m.tm01_obs = num(17);
+                m.tm10_obs = num(18);
+                pcol->count(m);
                 }
             }
         }
         else
         {
         ofstream out("./REEF3D_SEASTATE_Collocation/seastate-collocation.csv");
-        out<<"time,t,x,y,source,id,hs_obs,hs,tm01,tp,dir,wet,stat"<<endl;
+        out<<"time,t,x,y,source,id,hs_obs,hs,tm01,tp,dir,wet,stat,tm10,depth,u10,tp_obs,tm01_obs,tm10_obs"<<endl;
         }
 
     cout<<"SEASTATE collocation (A 787 1): "<<n<<" observations of seastate-collocation.csv ("<<pcol->sources.size()<<" sources), "
@@ -171,7 +206,8 @@ void seastate_f::colloc_ini(lexer *p, ghostcell *pgc)
     colloc(p,pgc,false);
 }
 
-// the model at observation k on this rank: Hs, Tm01, Tp, direction [deg]; false if a cell of the stencil is dry
+// the model at observation k on this rank: Hs, Tm01, Tp, direction [deg], Tm-1,0, depth, U10; false if a cell of the
+// stencil is dry
 bool seastate_f::colloc_sample(lexer *p, int k, double *v)
 {
     const seastate_grid &g = *e->grid;
@@ -184,7 +220,7 @@ bool seastate_f::colloc_sample(lexer *p, int k, double *v)
     const double wx = std::min(std::max((xp - p->XP[i0+marge])/(p->XP[i0+1+marge] - p->XP[i0+marge]),0.0),1.0);
     const double wy = (p->j_dir==0) ? 0.0 : std::min(std::max((yp - p->YP[j0+marge])/(p->YP[j0+1+marge] - p->YP[j0+marge]),0.0),1.0);
 
-    double hs = 0.0, tm = 0.0, tp = 0.0, dx = 0.0, dy = 0.0;
+    double hs = 0.0, tm = 0.0, tp = 0.0, dx = 0.0, dy = 0.0, t10 = 0.0, dep = 0.0, u10 = 0.0;
     bool wet = true;
     seastate_param sp;
 
@@ -204,6 +240,9 @@ bool seastate_f::colloc_sample(lexer *p, int k, double *v)
     hs += w*sp.Hs;
     tm += w*sp.Tm01;
     tp += w*sp.Tp;
+    t10 += w*sp.Tm10;
+    dep += w*e->depth(ii,jj);
+    u10 += w*(wU10!=nullptr ? (*wU10)(ii,jj) : (p->A730==1 ? p->A731_u10 : 0.0));
     dx += w*sp.Hs*std::cos(sp.dir*3.14159265358979323846/180.0);
     dy += w*sp.Hs*std::sin(sp.dir*3.14159265358979323846/180.0);
     }
@@ -213,6 +252,9 @@ bool seastate_f::colloc_sample(lexer *p, int k, double *v)
     v[2] = tp;
     double d = std::atan2(dy,dx)*180.0/3.14159265358979323846;
     v[3] = (d<0.0) ? d+360.0 : d;
+    v[4] = t10;
+    v[5] = dep;
+    v[6] = u10;
     return wet;
 }
 
@@ -238,7 +280,7 @@ void seastate_f::colloc(lexer *p, ghostcell *pgc, bool fin)
         {
             if(own)
             {
-            double v[4];
+            double v[NV];
             const bool wet = colloc_sample(p,int(k),v);
             const double ts = col_ts[k];
 
@@ -246,16 +288,17 @@ void seastate_f::colloc(lexer *p, ghostcell *pgc, bool fin)
                 if(!fin && ts>-1.0e299 && ts<o.t && tn>ts && wet && col_sw[k])
                 {
                 const double w = (o.t - ts)/(tn - ts);
-                const double *s = &col_s[4*k];
-                for(int q=0; q<3; ++q)
-                v[q] = s[q] + w*(v[q] - s[q]);
+                const double *s = &col_s[size_t(NV)*k];
+                for(int q=0; q<NV; ++q)
+                    if(q!=3)
+                    v[q] = s[q] + w*(v[q] - s[q]);
                 double dd = v[3] - s[3];
                 dd -= 360.0*std::floor((dd + 180.0)/360.0);
                 v[3] = std::fmod(s[3] + w*dd + 360.0,360.0);
                 }
 
             send.push_back(double(k));
-            for(int q=0; q<4; ++q)
+            for(int q=0; q<NV; ++q)
             send.push_back(v[q]);
             send.push_back(wet ? 1.0 : 0.0);
             }
@@ -263,11 +306,11 @@ void seastate_f::colloc(lexer *p, ghostcell *pgc, bool fin)
         }
         else if(own)
         {
-        double v[4];
+        double v[NV];
         col_sw[k] = colloc_sample(p,int(k),v) ? 1 : 0;
         col_ts[k] = tn;
-        for(int q=0; q<4; ++q)
-        col_s[4*k+q] = v[q];
+        for(int q=0; q<NV; ++q)
+        col_s[size_t(NV)*k+q] = v[q];
         }
     }
 
@@ -291,11 +334,12 @@ void seastate_f::colloc(lexer *p, ghostcell *pgc, bool fin)
     if(p->mpirank!=0)
     return;
 
-    const size_t m = all.size()/6;
+    const size_t W = size_t(NV) + 2;
+    const size_t m = all.size()/W;
     std::vector<size_t> ord(m);
     for(size_t q=0; q<m; ++q)
     ord[q] = q;
-    std::sort(ord.begin(),ord.end(),[&](size_t a, size_t b){return all[6*a]<all[6*b];});
+    std::sort(ord.begin(),ord.end(),[&](size_t a, size_t b){return all[W*a]<all[W*b];});
 
     if(m>0)
     {
@@ -303,15 +347,38 @@ void seastate_f::colloc(lexer *p, ghostcell *pgc, bool fin)
     out<<std::fixed;
         for(size_t q : ord)
         {
-        const double *r = &all[6*q];
+        const double *r = &all[W*q];
         const seastate_obs &o = pcol->obs[size_t(r[0])];
-        const bool wet = (r[5]>0.5);
+        const bool wet = (r[1+NV]>0.5);
         const bool stat = wet && (p->A700==2 || o.t>=p->A788 - 1.0e-6);
+        // the statistics count the values as written to the file (a restart counts them again from it: the same)
+        auto rd = [](double v, int d) {return std::isfinite(v) ? std::strtod(to_fixed(v,d).c_str(),nullptr) : v;};
             if(stat)
-            pcol->count(o.src,o.hs,r[1]);
+            {
+            seastate_matchup mu;
+            mu.src = o.src;
+            mu.hs_obs = rd(o.hs,3);
+            mu.hs = rd(r[1],3);
+            mu.tm01 = rd(r[2],3);
+            mu.tp = rd(r[3],3);
+            mu.tm10 = rd(r[5],3);
+            mu.depth = rd(r[6],2);
+            mu.u10 = rd(r[7],2);
+            mu.tp_obs = rd(o.tp,3);
+            mu.tm01_obs = rd(o.tm01,3);
+            mu.tm10_obs = rd(o.tm10,3);
+            pcol->count(mu);
+            }
+        auto opt = [&](double v) {if(std::isfinite(v)) out<<setprecision(3)<<v;};
         out<<seastate_collocation::stamp(tref + o.t)<<","<<setprecision(1)<<o.t<<","<<o.x<<","<<o.y<<","<<pcol->sources[o.src]<<","
            <<pcol->ids[o.id]<<","<<setprecision(3)<<o.hs<<","<<r[1]<<","<<r[2]<<","<<r[3]<<","<<setprecision(1)<<r[4]<<","
-           <<(wet ? 1 : 0)<<","<<(stat ? 1 : 0)<<"\n";
+           <<(wet ? 1 : 0)<<","<<(stat ? 1 : 0)<<","<<setprecision(3)<<r[5]<<","<<setprecision(2)<<r[6]<<","<<r[7]<<",";
+        opt(o.tp);
+        out<<",";
+        opt(o.tm01);
+        out<<",";
+        opt(o.tm10);
+        out<<"\n";
         }
     }
 
@@ -355,5 +422,23 @@ void seastate_f::colloc_end(lexer *p, ghostcell *pgc)
     out<<(k<pcol->sources.size() ? long(k) : -1L)<<" \t "<<a.n<<" \t "<<a.mean_obs()<<" \t "<<a.bias()<<" \t "<<a.rmse()<<" \t "<<a.si()<<" \t "<<a.r()<<endl;
     }
 
+    ofstream("./REEF3D_SEASTATE_Collocation/seastate-collocation-regimes.dat")<<pcol->regimes_table();
+    ofstream("./REEF3D_SEASTATE_Collocation/seastate-collocation-periods.dat")<<pcol->periods_table();
+    ofstream("./REEF3D_SEASTATE_Collocation/seastate-collocation-quantiles.dat")<<pcol->quantiles_table();
+
     cout<<"SEASTATE collocation, end of the run: Hs, model - observation [m]"<<endl<<pcol->summary();
+    // the periods where observed
+    if(pcol->has_tp || pcol->has_tm01 || pcol->has_tm10)
+    {
+    const char *pn[3] = {"Tp", "Tm01", "Tm-1,0"};
+    cout<<"SEASTATE collocation, the periods where observed: model - observation [s]"<<endl;
+        for(int q=0; q<3; ++q)
+        {
+        const seastate_colloc_stats &a = pcol->period(q,-1);
+            if(a.n>0)
+            cout<<"   "<<std::left<<std::setw(12)<<pn[q]<<std::right<<std::setw(9)<<a.n<<std::fixed<<std::setprecision(3)
+                <<std::setw(10)<<a.mean_obs()<<std::setw(10)<<a.bias()<<std::setw(10)<<a.rmse()<<std::setw(10)<<a.si()
+                <<std::setw(10)<<a.r()<<endl;
+        }
+    }
 }

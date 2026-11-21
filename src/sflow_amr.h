@@ -62,6 +62,7 @@ class solver2D;
 class sflow_turbulence;
 class sflow_turb_io;
 class seastate_sflow;
+class hydro_sflow;
 
 #include<functional>
 
@@ -146,7 +147,7 @@ struct sflow_amr_patch : public reefamr_patch
     sflow_fsf *pfsf;
     sflow_forcing *psfdf;
     sflow_momentum_RK3 *pmom;
-    sflow_momentum_SI *psim = nullptr;     // semi-implicit free surface (A 226 1): the step of the grid (sflow_amr_si.cpp)
+    sflow_momentum_SI *psim = nullptr;     // semi-implicit free surface (A 210 12/13): the step of the grid (sflow_amr_si.cpp)
 
     // boundary face values recorded by hll_hook: rec[ipol][side][fine index]
     // side 0: low x, 1: high x, 2: low y, 3: high y; ipol 0 holds dfx/dfy
@@ -217,7 +218,7 @@ public:
     // the cells around the patches that a patch of the same level fills hold its end-of-step state when the
     // outputs read them (step_end, sub_level: fill_level before the wet-dry update; the face velocities at the
     // end of step_end), so the outputs on the finest grid may interpolate across them (reefamr::finest_point),
-    // as NHFLOW (fill_out).  Not on multi-block grids, and not with the semi-implicit free surface (A 226 1:
+    // as NHFLOW (fill_out).  Not on multi-block grids, and not with the semi-implicit free surface (A 210 12/13:
     // si_step fills the cells around the patches at the start of the step)
     bool fills_current() const override { return nblk==0 && si==0; }
 
@@ -246,7 +247,7 @@ public:
     // called by sflow_HLL between flux_bc and the divergence (ipol 1-4)
     void hll_hook(lexer*, fdm2D*, int, int);
 
-    // semi-implicit free surface (A 226 1, sflow_amr_si.cpp): the level-0 object, the step of all grids with one eta
+    // semi-implicit free surface (A 210 12/13, sflow_amr_si.cpp): the level-0 object, the step of all grids with one eta
     // system over their leaf cells (reefamr_si.cpp)
     void si_attach(sflow_momentum_SI*);
     void si_step(lexer*, fdm2D*, ghostcell*);
@@ -255,6 +256,12 @@ public:
     // the step of level 0 (sflow_f::mainloop)
     void turb_attach(sflow_turbulence*);
     void turb_step(lexer*, fdm2D*, ghostcell*);
+
+    // REEF3D::HYDRO (R 10 - R 50, sflow_amr_hydro.cpp): the sources of all grids before the momentum step, the losses
+    // and the budget volumes over the leaf cells after it
+    void hydro_prepare(lexer*, fdm2D*, ghostcell*);
+    void hydro_sinks(lexer*, fdm2D*, ghostcell*);
+    double hydro_storage(lexer*, ghostcell*);
 
     // composite non-hydrostatic pressure, called by the level-0 sflow_pjm_lin after its assembly
     // (G 7 1: level 0 solves alone, the patches level by level in sflow_amr_sub.cpp)
@@ -329,6 +336,11 @@ private:
     void turb_save(ghostcell*, sflow_amr_patch&);
     void turb_regrid(ghostcell*, int, vector<reefamr_patch*>&);
 
+    // REEF3D::HYDRO (sflow_amr_hydro.cpp): the object of grid g (-1: level 0), of a patch, the fields of fresh patches
+    hydro_sflow* hy(int g);
+    void hydro_attach(int, ghostcell*);
+    void hydro_regrid(ghostcell*, int, vector<reefamr_patch*>&);
+
     // SEASTATE coupling (A 750, sflow_amr_wave.cpp): the wave force, div(M) and Hs, Tp of the patches from their
     // parents after every change on level 0 and every regrid
     int wave_seen = -1;
@@ -338,7 +350,7 @@ private:
     seastate_sflow* wv(int g);
 
     // semi-implicit free surface (sflow_amr_si.cpp)
-    int si = 0;                         // A 226 1
+    int si = 0;                         // A 210 12/13
     bool si_lv = false;                 // patches in the step
     sflow_momentum_SI *psim0 = nullptr; // level 0
     ghostcell *sipgc = nullptr;
@@ -350,6 +362,12 @@ private:
     double si_interp(lexer*, fdm2D*, slice&, int, int, int, int);
     void si_hooks(bool);
     void si_match(int);                 // 0: q^E, q^n before the right-hand sides; 1: q after the face update
+    // A 220 2/3 (sflow_amr_si.cpp): the coupled eta-P system over the leaf cells of all grids (FGMRES, the
+    // preconditioner of every grid on its own cells, the covered cells with the mean residual of their children)
+    void si_nh_solve(lexer*, ghostcell*, rsi_result&);
+    std::vector<std::vector<double>> nhV, nhZ;    // si_nh_solve: the Krylov vectors
+    void si_nh_quad(const std::function<slice&(int)> &F, bool wetonly);   // quadratic prolongation into the cells around the patches
+    void si_nh_qrestrict();            // the face discharges of the covered coarse faces: the mean of the fine faces
     void si_timestep(lexer*, ghostcell*);
     void si_log(lexer*, ghostcell*);
     static sflow_amr_patch* SP(reefamr_patch *c) { return static_cast<sflow_amr_patch*>(c); }
@@ -391,6 +409,7 @@ private:
     sixdof_sflow *ship6;
     void ship_fields(sflow_amr_patch&, bool);
     void ship_fields_curv(sflow_amr_patch&, bool);
+    void ship_pbh(sflow_amr_patch&);
     void ship_patches(bool);
     double fs0_at(sflow_amr_patch&, int, int);
     // G 40 with the body: a placed patch may lie on another rank than the level-0 cells below it.  The

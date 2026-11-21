@@ -1,0 +1,18 @@
+{
+ "base": "cfd_2d_nwt",
+ "ctrl_set": {
+  "F 81": "1"
+ },
+ "tags": [
+  "quick",
+  "2d",
+  "waves",
+  "pic"
+ ],
+ "description": "cfd_2d_nwt with the single phase of the PIC particles (F 81 1, patch 0009): the relaxation zones of the wave generation and the numerical beach (B 98 2, B 99 2) with p = 0 at the free surface (ghost fluid method), the pressure relaxed in the zones",
+ "covers": [
+  "pic_gfm with the relaxation zones (p_relax)",
+  "pic_f_relax with F 81 1"
+ ],
+ "architect": "Hans Bihs"
+}

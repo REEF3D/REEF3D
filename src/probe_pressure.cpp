@@ -39,9 +39,7 @@ probe_pressure::probe_pressure(lexer *p, fdm* a, ghostcell *pgc) : probenum(p->P
 	p->Iarray(kloc,probenum);
 	p->Iarray(flag,probenum);
     p->Darray(val,probenum*1);
-	
-    //cout<<p->mpirank<<" pressure probepoint_num: "<<probenum<<endl;
-    
+
 	// Create Folder
 	if(p->mpirank==0)
 	mkdir("./REEF3D_CFD_PressureProbe",0777);

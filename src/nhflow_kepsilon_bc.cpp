@@ -79,7 +79,12 @@ void nhflow_kepsilon_bc::wall_law_epsilon(lexer *p, fdm_nhf *d, double *KIN, dou
     count=0;
     LOOP
     {
-        if(nhflow_turb_wall(p,d,i,j,k,dist,ks,ut)==1)
+        // dist > 0: the semi-implicit momentum (A 510 11-13) keeps the volume of every column, a column can hold
+        // no water at all (dry, or flagged wet with a depth of zero): dist = DZN*WL/2 = 0 gave inf (k > 0) or 0/0
+        // (k = 0) here, and bicgstab left k and epsilon of the whole domain as they were. Such a cell keeps the
+        // row of bcepsilon_matrix (identity in a dry column). The explicit momentum holds every column at the film
+        // A 544 or deeper: dist > 0 there.
+        if(nhflow_turb_wall(p,d,i,j,k,dist,ks,ut)==1 && dist>0.0)
         {
         eps_star = (pow(p->cmu, 0.75)*pow(MAX(KIN[IJK],0.0),1.5)) / (kappa*dist);
         
@@ -104,7 +109,7 @@ void nhflow_kepsilon_bc::bckin_matrix(lexer *p, fdm_nhf *d, double *KIN, double 
             if((p->flag4[Im1JK]<0 || p->DF[Im1JK]<0))
             {
             if(TURBIN(Im1JK)) d->rhsvec.V[n] -= d->M.s[n]*KIN[Im1JK];   // discharge inflow profile (Dirichlet)
-            else d->M.p[n] += d->M.s[n];   // zero gradient, implicit (was lagged)
+            else d->M.p[n] += d->M.s[n];   // zero gradient, implicit
             d->M.s[n] = 0.0;
             }
             
@@ -216,14 +221,14 @@ void nhflow_kepsilon_bc::bcepsilon_matrix(lexer *p, fdm_nhf *d, double *KIN, dou
             if(p->flag4[Im1JK]<0)
             {
             if(TURBIN(Im1JK)) d->rhsvec.V[n] -= d->M.s[n]*EPS[Im1JK];   // discharge inflow profile (Dirichlet)
-            else d->M.p[n] += d->M.s[n];   // zero gradient, implicit (was lagged)
+            else d->M.p[n] += d->M.s[n];   // zero gradient, implicit
             d->M.s[n] = 0.0;
             }
             
             if(p->DF[Im1JK]<0)
             {
             if(TURBIN(Im1JK)) d->rhsvec.V[n] -= d->M.s[n]*EPS[Im1JK];   // discharge inflow profile (Dirichlet)
-            else d->M.p[n] += d->M.s[n];   // zero gradient, implicit (was lagged)
+            else d->M.p[n] += d->M.s[n];   // zero gradient, implicit
             d->M.s[n] = 0.0;
             }
             

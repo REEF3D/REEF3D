@@ -43,7 +43,7 @@ Author: Hans Bihs
 #include<Eigen/SparseLU>
 #include<iomanip>
 
-// Hydrostatic semi-implicit free surface (A 534 1) on the multi-block grid (G 50 1, DIVEMesh R 20 1) and with mesh
+// Hydrostatic semi-implicit free surface (A 510 12/13) on the multi-block grid (G 50 1, DIVEMesh R 20 1) and with mesh
 // refinement (G 1).
 //
 // Every grid (the native grid -1, the blocks 1.. of lev[0], the patches of the levels) has its own
@@ -540,6 +540,14 @@ void nhflow_amr::si_step(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_momentum_f
         m->si_begin(q,dd,pgc,S);
     });
 
+    // A 510 11: the face depths and omega of every grid at t^{n+1/2} (nh_begin, from the levels of t^n and of the step
+    // before of the grid itself; the cells around the grids hold the state of t^n)
+    if(gsi(-1)->onestep)
+    si_all(pgc,[&](int g, lexer *q, fdm_nhf *dd, nhflow_momentum_SI *m, nhflow_stage_obj &S)
+    {
+        m->nh_begin(q,dd,pgc);
+    });
+
     // the advection hooks (face matching with the patches)
     if(si_lv)
     si_hooks(true);
@@ -593,6 +601,25 @@ void nhflow_amr::si_step(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_momentum_f
     {
         return c==0 ? gsi(g)->UHD : gsi(g)->VHD;
     });
+
+    // A 620: the density for the pressure gradient from the predictor of the tracers with the old part of the
+    // transport (forward-backward with the step after the momentum); tracers on the level-0 grids only
+    if(p->A620>0)
+    {
+        si_each(pgc,[&](int g, lexer *q, fdm_nhf *dd, nhflow_momentum_SI *m, nhflow_stage_obj &S)
+        {
+            m->si_old_closed(q,pgc);
+            m->ptrc->save(dd);
+        });
+
+        si_tracer(p,pgc,1);
+
+        si_each(pgc,[&](int g, lexer *q, fdm_nhf *dd, nhflow_momentum_SI *m, nhflow_stage_obj &S)
+        {
+            m->si_density(q,dd);
+            m->ptrc->restore(dd);
+        });
+    }
 
     si_all(pgc,[&](int g, lexer *q, fdm_nhf *dd, nhflow_momentum_SI *m, nhflow_stage_obj &S)
     {
@@ -709,7 +736,7 @@ void nhflow_amr::si_step(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_momentum_f
 // tracers (A 600) of all blocks: the substeps of every block in lockstep (the same number on all grids
 // and ranks), the cells around the blocks and the ring filled before each; the log over the own cells,
 // the gauges P 51 from the nearest own cell centre of all grids
-void nhflow_amr::si_tracer(lexer *p, ghostcell *pgc)
+void nhflow_amr::si_tracer(lexer *p, ghostcell *pgc, int phase)
 {
     const int nt = gsi(-1)->ptrc->nt;
 
@@ -719,7 +746,7 @@ void nhflow_amr::si_tracer(lexer *p, ghostcell *pgc)
 
     si_each(pgc,[&](int g, lexer *q, fdm_nhf *dd, nhflow_momentum_SI *m, nhflow_stage_obj &S)
     {
-        r = max(r,m->ptrc->prepare(q,dd));
+        r = max(r,m->ptrc->prepare(q,dd,phase));
     });
 
     double rg;
@@ -756,6 +783,9 @@ void nhflow_amr::si_tracer(lexer *p, ghostcell *pgc)
     {
         m->ptrc->ghosts(q,dd);
     });
+
+    if(phase==1)
+    return;
 
     // the log: own cells of all grids
     nhflow_tracer_SI::stats st;
@@ -839,27 +869,15 @@ void nhflow_amr::dt_si_cmin(double cfl, double &cmin, double &hmax)
 
             hmax = MAX(hmax,dd->WL(ii,jj));
 
+            // the speed of the first internal mode (A 620)
+            const double ci = pp->A620>0 ? nhflow_momentum_SI::internal_speed(pp,dd,ii,jj) : 0.0;
+
             for(int kk=0; kk<pp->knoz; ++kk)
             {
                 const int n = cidx(pp,ii,jj,kk);
-                double sigma;
 
-                if(pp->geo_curv==1)
-                {
-                const double sp = sqrt(dd->U[n]*dd->U[n] + dd->V[n]*dd->V[n]);
-                sigma = sp/nhflow_curv::width1(pp,ii,jj) + sp/nhflow_curv::width2(pp,ii,jj);
-                }
-
-                else
-                {
-                sigma = fabs(dd->U[n])/pp->DXN[ii+marge];
-
-                if(pp->j_dir==1)
-                sigma += fabs(dd->V[n])/pp->DYN[jj+marge];
-                }
-
-                if(sigma>1.0e-20)
-                cmin = MIN(cmin,1.0/sigma);
+                // the Courant number of the flow and the internal speed; A 549 1: the flow up to A549_c
+                cmin = MIN(cmin,nhflow_momentum_SI::adv_cmin(pp,dd->U[n],dd->V[n],ci,ii,jj,cfl));
 
                 if(pp->A512>0 || pp->A560>0 || pp->A547_c>0.0 || pp->A547_nu0>0.0)
                 {

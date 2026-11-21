@@ -1,0 +1,18 @@
+{
+ "description": "NHFLOW hydrostatic semi-implicit, one water column 100 m deep (1 cell, 100 sigma layers), linear stratification N = 0.01 1/s (salinity, A 611, linear density A 620 1), uniform wind 10 m/s (W 200 1, u* = 0.0131 m/s), no rotation: the Kato-Phillips entrainment. k-epsilon (A 560 1) with the buoyancy terms of the stratification (A 623 1: G_b in k and epsilon, c3e 0 for stable stratification, k floor and Galperin length limit A 626), free-surface epsilon A 567 2 (0.5 m). The depth of the largest N^2 follows Price (1979) D = 1.05 u* sqrt(t/N) within 2 m over 30 h (14, 20, 24, 28, 32, 34, 38, 40, 43, 44 m against 15, 20, 25, 29, 32, 35, 38, 41, 43, 45 m every 3 h); without A 623 the turbulence reaches the bed within 9 h and the column is mixed (salinity range from 1.34 to 0.05 psu) by 16 h.",
+ "solver": "nhflow",
+ "np": 1,
+ "time": 108000.0,
+ "tags": [
+  "2d",
+  "nhflow",
+  "semi_implicit",
+  "tracer",
+  "density",
+  "turbulence"
+ ],
+ "covers": [
+  "nhflow_stratification: N^2 from the tracers",
+  "nhflow_strain::Pk_strat, nhflow_kepsilon_func kinsource/epssource with A 623, nhflow_rans_io::strat_kmin/strat_limit"
+ ]
+}

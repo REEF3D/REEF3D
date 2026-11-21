@@ -48,7 +48,7 @@ void kepsilon_bc::bckeps_start(fdm* a,lexer* p,field& kin,field& eps,int gcval)
 		wall_law_kin(a,p,kin,eps,p->gcb4[q][0], p->gcb4[q][1], p->gcb4[q][2], p->gcb4[q][3], p->gcb4[q][4], p->gcb4[q][5],  p->gcd4[q]);
         
         QGCDF4LOOP
-		wall_law_kin(a,p,kin,eps,p->gcdf4[q][0], p->gcdf4[q][1], p->gcdf4[q][2], p->gcdf4[q][3], p->gcdf4[q][4], p->gcdf4[q][5],  0.5*p->DXM);
+		wall_law_kin(a,p,kin,eps,p->gcdf4[q][0], p->gcdf4[q][1], p->gcdf4[q][2], p->gcdf4[q][3], p->gcdf4[q][4], p->gcdf4[q][5],  0.5*p->DXM,true);
         
         if(p->S10==2 || p->B200==1 || p->B200==2)
         vrans_wall_law_kin(p,a,kin,eps);
@@ -69,7 +69,11 @@ void kepsilon_bc::bckeps_start(fdm* a,lexer* p,field& kin,field& eps,int gcval)
 	}
 }
 
-void kepsilon_bc::wall_law_kin(fdm* a,lexer* p,field& kin,field& eps,int ii,int jj,int kk,int cs,int bc, int id, double dist)
+// body: a direct-forcing face. At the faces of a 6DOF body (X 10) the wall law acts on the velocity relative to
+// the body, as the momentum wall law does (bcmom::body_vel): the body velocity is that of the cell on the other
+// side of the face, which the direct forcing holds at the body velocity. With the absolute velocity a body moving
+// through still water produced k as a wall in a stream of its own speed, and a body moving with the flow too.
+void kepsilon_bc::wall_law_kin(fdm* a,lexer* p,field& kin,field& eps,int ii,int jj,int kk,int cs,int bc, int id, double dist, bool body)
 {
     double uvel,vvel,wvel;
     double zval;
@@ -93,7 +97,28 @@ void kepsilon_bc::wall_law_kin(fdm* a,lexer* p,field& kin,field& eps,int ii,int 
         vvel=0.5*(a->v(i,j,k)+a->v(i,j-1,k));
         wvel=0.5*(a->w(i,j,k)+a->w(i,j,k-1));
         
-        u_abs = sqrt(uvel*uvel + vvel*vvel + wvel*wvel);   // cell velocity: production tau u/y
+        // velocity of a 6DOF body behind the face
+        double ub=0.0, vb=0.0, wb=0.0;
+        
+        if(body && p->X10>0)
+        {
+        const int ib = i - (cs==1) + (cs==4);
+        const int jb = j - (cs==3) + (cs==2);
+        const int kb = k - (cs==5) + (cs==6);
+        
+            if(a->fb(ib,jb,kb)<0.0)
+            {
+            ub=0.5*(a->u(ib,jb,kb)+a->u(ib-1,jb,kb));
+            vb=0.5*(a->v(ib,jb,kb)+a->v(ib,jb-1,kb));
+            wb=0.5*(a->w(ib,jb,kb)+a->w(ib,jb,kb-1));
+            }
+        }
+        
+        uvel-=ub;
+        vvel-=vb;
+        wvel-=wb;
+        
+        u_abs = sqrt(uvel*uvel + vvel*vvel + wvel*wvel);   // cell velocity relative to the wall: production tau u/y
 
 		if(30.0*dist<ks)
 		dist=ks/30.0;

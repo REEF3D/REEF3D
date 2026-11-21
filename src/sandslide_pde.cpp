@@ -125,8 +125,6 @@ void sandslide_pde::slide(lexer *p, ghostcell *pgc, sediment_fdm *s)
     // is exchanged, d the distance of the cell centres, phi the mean of the two cells.
     // Only the excess over the angle of repose moves, so the iteration converges to phi in
     // every direction; the exchange is symmetric (conservative on non-uniform grids).
-    // (was: diffusion of the full height difference, switched on by the central-difference
-    // cell slope; it stopped at about 37 deg for phi = 35 deg, steeper on the faces and diagonals)
     // Pairs to cells without an erodible bed (structures, DFBED<0, solids, domain boundary) and
     // to cells outside the S 77 window are closed; a diagonal pair needs at least one of the two
     // cells beside it open.
@@ -196,8 +194,6 @@ void sandslide_pde::slide_curv(lexer *p, ghostcell *pgc, sediment_fdm *s)
     // is exchanged, d the distance of the cell centres, phi the mean of the two cells.
     // Only the excess over the angle of repose moves, so the iteration converges to phi in
     // every direction; the exchange is symmetric (conservative on non-uniform grids).
-    // (was: diffusion of the full height difference, switched on by the central-difference
-    // cell slope; it stopped at about 37 deg for phi = 35 deg, steeper on the faces and diagonals)
     // Pairs to cells without an erodible bed (structures, DFBED<0, solids, domain boundary) and
     // to cells outside the S 77 window are closed; a diagonal pair needs at least one of the two
     // cells beside it open.

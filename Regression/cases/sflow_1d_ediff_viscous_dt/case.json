@@ -1,0 +1,9 @@
+{
+ "description": "SFLOW 1D channel over a bump, dx 0.5 m, explicit horizontal diffusion (A 212 1) with W 2 5 m2/s, RK2 (A 210 2): the time step is set by the viscosity, dt = 0.2 dx^2/nu = 0.01 s (the normal stress diffuses with 2 nu). With the limit 0.5 dx^2/nu the run was unstable (velocities of both signs along the channel).",
+ "solver": "sflow",
+ "np": 1,
+ "steps": 2100,
+ "tags": ["quick", "1d", "sflow", "diffusion"],
+ "covers": ["sflow_etimestep: viscous time step limit of the explicit diffusion"],
+ "architect": "Hans Bihs"
+}

@@ -123,6 +123,10 @@ void sediment_exner::bend_prep(lexer *p, ghostcell *pgc, sediment_fdm *s)
 
         double ux,uy,vx,vy;
 
+        if(p->S95==1 && p->S98>0.0)
+        SLICEBASELOOP
+        Ie(i,j) = 0.0;
+
         SEDSLICELOOP
         {
             u = bu(i,j);
@@ -148,6 +152,10 @@ void sediment_exner::bend_prep(lexer *p, ghostcell *pgc, sediment_fdm *s)
             Ie(i,j) = h*U*curv;
             else
             btd(i,j) = MAX(-1.0, MIN(1.0, alpha*h*curv));
+
+            // S 98: the intensity for the dispersion of the main-flow momentum (sflow_momentum_func::spiral_source)
+            if(p->S95==1 && p->S98>0.0)
+            Ie(i,j) = h*U*curv;
         }
 
         if(p->S95==2)
@@ -292,4 +300,10 @@ double sediment_exner::bend_div(lexer *p, sediment_fdm *s, int ii, int jj)
     }
 
     return (fx2-fx1)/p->DXN[ii+marge] + (fy2-fy1)/p->DYN[jj+marge];
+}
+
+// S 98: the intensity of the spiral flow (S 95 1: the equilibrium h |U| K_c, S 95 2: the lagged one), m/s
+double sediment_exner::spiral_I(lexer *p, int ii, int jj)
+{
+    return (p->S95==2) ? Isp(ii,jj) : Ie(ii,jj);
 }

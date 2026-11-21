@@ -28,14 +28,14 @@ Architect: Hans Bihs
 #include<cmath>
 
 // breaking viscosity vb of column (ii,jj) at the relative height sig (0 bed, 1 surface).
-// A 550 4: vb cosh(k sig h)/cosh(k h), the profile of the orbital velocity with the wavenumber k of the breaking
+// A 550 4, 5: vb cosh(k sig h)/cosh(k h), the profile of the orbital velocity with the wavenumber k of the breaking
 // crest (d->vbk, 2 pi / trough-to-trough distance) and the water depth h: uniform in shallow water, exp(-k (h - z))
 // in deep water. Otherwise vb.
 inline double nhflow_vbz(lexer *p, fdm_nhf *d, int ii, int jj, double sig)
 {
     const double v = d->vb(ii,jj);
 
-    if(p->A550!=4 || v<=0.0)
+    if((p->A550!=4 && p->A550!=5) || v<=0.0)
     return v;
 
     const double kh = d->vbk(ii,jj)*MAX(d->WL(ii,jj),0.0);

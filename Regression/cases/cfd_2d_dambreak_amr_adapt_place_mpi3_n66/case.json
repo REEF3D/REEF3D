@@ -1,0 +1,21 @@
+{
+ "base": "cfd_2d_dambreak_amr_adapt_place_mpi3",
+ "ctrl_add": [
+  "N 66 1.2"
+ ],
+ "description": "cfd_2d_dambreak_amr_adapt_place_mpi3 with N 66 1.2 (patch 0178): a step is repeated with half the time step when the time step after it is below 1/1.2 of it. 4 steps are repeated; G 40, 3 ranks (a low ratio, so that the short run has repeats; 2 is the value for a run).",
+ "tags": [
+  "2d",
+  "dambreak",
+  "levelset",
+  "amr",
+  "adaptive",
+  "mpi",
+  "place",
+  "steprepeat"
+ ],
+ "covers": [
+  "step_repeat::again",
+  "the time step of a repeated step"
+ ]
+}

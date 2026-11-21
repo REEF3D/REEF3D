@@ -1,0 +1,27 @@
+{
+ "base": "cfd_2d_dambreak_amr_adapt",
+ "np": 1,
+ "steps": 120,
+ "ctrl_set": {
+  "N 40": "5"
+ },
+ "ctrl_add": [
+  "N 63 3",
+  "N 54 1",
+  "F 41 1"
+ ],
+ "description": "cfd_2d_dambreak_amr_adapt with the single-phase level set (F 41 1) and N 40 5: the reference of the placed runs (_place_mpi3_singlephase, _place3_singlephase).",
+ "tags": [
+  "quick",
+  "2d",
+  "dambreak",
+  "levelset",
+  "amr",
+  "adaptive",
+  "singlephase"
+ ],
+ "covers": [
+  "F 41 1 with one adaptive level"
+ ],
+ "architect": "Hans Bihs"
+}

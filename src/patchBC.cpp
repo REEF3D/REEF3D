@@ -161,6 +161,9 @@ void patchBC::patchBC_discharge(lexer *p, fdm *a, ghostcell *pgc)
             if(cs==6)
             un = a->w(i,j,k);
             
+            // positive into the domain
+            un *= patch_obj::inward(cs);
+            
         // wetted part of the face
         area *= wetfrac(a->phi(i,j,k),p->DZN[KP]);
         

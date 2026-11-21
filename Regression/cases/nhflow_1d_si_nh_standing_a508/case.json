@@ -1,0 +1,17 @@
+{
+ "base": "nhflow_1d_si_nh_standing",
+ "description": "nhflow_1d_si_nh_standing with the fourth-order horizontal operators: the cell predictor to the faces and the face terms to the cells with (-1, 9, 9, -1)/16, the explicit -delta^2/12 part of the gradient of eta and of the phi face terms; the two cells next to each wall keep the second-order terms. Since A 508 was retired (always fourth order on one Cartesian grid) this is the run of nhflow_1d_si_nh_standing.",
+ "tags": [
+  "quick",
+  "1d",
+  "nhflow",
+  "semi_implicit",
+  "nonhydrostatic",
+  "fourth_order"
+ ],
+ "covers": [
+  "nhflow_momentum_SI_ho: ho_begin, ho_face, ho_cell, ho_gradient, ho_predictor, ho_cell_gravity",
+  "nhflow_momentum_SI_nh: ho_phi_corr, ho_phi_add, nh_cell with four faces",
+  "band LU with the explicit phi face terms"
+ ]
+}

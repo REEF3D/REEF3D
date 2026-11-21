@@ -98,6 +98,8 @@ void sediment_f::active_ini_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
     SLICEBASELOOP
     s->active(i,j)=1;
     
+    active_solid_nhflow(p);
+    
     active_zone(p,pgc);
     
     pgc->gcsl_start4int(p,s->active,1);
@@ -122,6 +124,8 @@ void sediment_f::active_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
     SLICEBASELOOP
     s->active(i,j)=1;
     
+    active_solid_nhflow(p);
+    
     active_zone(p,pgc);
     
     pgc->gcsl_start4int(p,s->active,1);
@@ -139,6 +143,34 @@ void sediment_f::active_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
     }
     
     dfbed_comms(p,pgc);
+}
+
+// S 134 1: the solids of the grid are not erodible. NHFLOW (A 580 0) takes the solids of DIVEMesh into its bed
+// (lexer_grid_solids: bed = max(solid, topography)), and the sediment bed starts from it: a solid lower than the bottom
+// cell (an apron, a sill) was eroded as sand; with S 134 0 it still is (the beach of a flume is often a solid). With
+// S 134 1 a column whose bed has come down to the solid surface p->solidbed is not active, as in active_sflow: no bed
+// load (bedload_*), no pick-up (sediment_algorithm_nhflow: no_pickup) and no sand slide from it (SLIDE_DONOR). Sand on
+// top of the solid is active and erodible down to it. With A 580 1 the solids are immersed and not part of the bed.
+void sediment_f::active_solid_nhflow(lexer *p)
+{
+    if(p->S134!=1 || p->A580==1)
+    return;
+    
+    SLICEBASELOOP
+    if(p->solidbed[IJ]>=s->bedzh(i,j))
+    s->active(i,j)=0;
+}
+
+// S 134 1: no pick-up of suspended load where the bed is at the solid surface (the equilibrium concentration zero:
+// deposition only)
+void sediment_f::no_pickup(lexer *p)
+{
+    if(p->S134!=1 || p->A580==1)
+    return;
+    
+    SEDSLICELOOP
+    if(s->active(i,j)==0)
+    s->cbe(i,j)=0.0;
 }
 
 void sediment_f::active_sflow(lexer *p, fdm2D *b, ghostcell *pgc)
@@ -169,6 +201,8 @@ void sediment_f::active_sflow(lexer *p, fdm2D *b, ghostcell *pgc)
     
     for(int q : dfbed_open)
     p->DFBED[q]=1;
+    
+    dfbed_inflow(p);
     
     dfbed_comms(p,pgc);
 }
@@ -206,6 +240,8 @@ void sediment_f::active_ini_sflow(lexer *p, fdm2D *b, ghostcell *pgc)
     for(int q : dfbed_open)
     p->DFBED[q]=1;
     
+    dfbed_inflow(p);
+    
     dfbed_comms(p,pgc);
 }
 
@@ -217,6 +253,33 @@ void sediment_f::active_zone(lexer *p, ghostcell *pgc)
     s->active(i,j)=0;
 
 }
+void sediment_f::dfbed_inflow(lexer *p)
+{
+    // SFLOW: no sediment enters through an inflow (B 60, the -i face of a block with G 54): the cells beyond the
+    // inflow faces are no sediment cells, which closes the faces for the Exner fluxes, the slope flux and the
+    // upwind cells of the lags.  (Before, the face velocity of the sediment was left 0 there, which also halved the
+    // velocity and the bed load of the first row, see inflow_PQ.)  The inflow guard S 78 holds the bed of the
+    // first row (ini_guard): its bed load is the supply of the cells downstream.  Curvilinear grids only and without
+    // a sediment supply at the inflow (S 129 0): the Cartesian grid and S 129 > 0 keep the inflow faces open, the
+    // bed load of the ghost cells enters there (fill_PQ_sflow, sediment_exner::qb_inflow).
+    if(p->geo_curv!=1 || p->S129!=0)
+    return;
+
+    for(int n=0; n<p->gcslin_count; ++n)
+    {
+        const int ii = p->gcslin[n][0], jj = p->gcslin[n][1], cs = p->gcslin[n][3];
+        const int di = (cs==1) ? -1 : (cs==4 ? 1 : 0);
+        const int dj = (cs==3) ? -1 : (cs==2 ? 1 : 0);
+
+        for(int q=1; q<=p->margin; ++q)
+        {
+        const int ia = ii + q*di, ja = jj + q*dj;
+            if(ia>=p->imin && ia<p->imin+p->imax && ja>=p->jmin && ja<p->jmin+p->jmax)
+            p->DFBED[(ia-p->imin)*p->jmax + (ja-p->jmin)] = -1;
+        }
+    }
+}
+
 void sediment_f::dfbed_comms(lexer *p, ghostcell *pgc)
 {
     // sediment cell flag of the neighbour subdomains: the Exner face closure, the bed filter,

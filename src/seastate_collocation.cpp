@@ -176,7 +176,11 @@ bool seastate_collocation::read(const std::string &file, double tref, std::strin
     };
 
     const int ct = col("time"), cm = col("t"), cx = col("x"), cy = col("y"), ch = col("hs"), cs = col("source"), ci = col("id");
+    const int ctp = col("tp"), ct1 = col("tm01"), ct0 = col("tm10");
     model_time = (ct<0 && cm>=0);
+    has_tp = (ctp>=0);
+    has_tm01 = (ct1>=0);
+    has_tm10 = (ct0>=0);
 
     if((ct<0 && cm<0) || cx<0 || cy<0 || ch<0)
     {
@@ -225,6 +229,19 @@ bool seastate_collocation::read(const std::string &file, double tref, std::strin
         return false;
         }
 
+    // the observed periods: empty, nan or not positive -> none
+    auto period = [&](int cc) -> double
+    {
+        if(cc<0 || cc>=int(c.size()) || c[cc].empty())
+        return std::nan("");
+    char *e = nullptr;
+    const double v = std::strtod(c[cc].c_str(),&e);
+    return (e!=c[cc].c_str() && std::isfinite(v) && v>0.0) ? v : std::nan("");
+    };
+    o.tp = period(ctp);
+    o.tm01 = period(ct1);
+    o.tm10 = period(ct0);
+
     const std::string sname = (cs>=0 && !c[cs].empty()) ? c[cs] : "all";
     const std::string iname = (ci>=0) ? c[ci] : "";
         if(!smap.count(sname))
@@ -247,6 +264,10 @@ bool seastate_collocation::read(const std::string &file, double tref, std::strin
 
     per_source.assign(sources.size(),seastate_colloc_stats());
     total = seastate_colloc_stats();
+    reg.assign(size_t(reg_off(nkind))*(sources.size()+1),seastate_colloc_stats());
+    per.assign(3*(sources.size()+1),seastate_colloc_stats());
+    qo.assign(sources.size()+1,std::vector<float>());
+    qm.assign(sources.size()+1,std::vector<float>());
     return true;
 }
 
@@ -255,6 +276,228 @@ void seastate_collocation::count(int src, double o, double m)
     if(src>=0 && src<int(per_source.size()))
     per_source[src].add(o,m);
     total.add(o,m);
+}
+
+// ------------------------------------------------------------------ the regimes, the periods, the quantiles
+
+static const double hs_edges[] = {0.0, 1.0, 2.0, 4.0, 6.0, 8.0};
+static const double depth_edges[] = {0.0, 10.0, 20.0, 50.0, 100.0, 200.0};
+static const double age_edges[] = {0.0, 0.8, 1.2, 2.0};
+
+const char *seastate_collocation::kind_name(int k)
+{
+    return k==0 ? "observed Hs [m]" : (k==1 ? "model depth [m]" : "wave age cp/U10");
+}
+
+int seastate_collocation::nclass(int k)
+{
+    return k==0 ? 6 : (k==1 ? 6 : 4);
+}
+
+std::string seastate_collocation::class_name(int k, int c)
+{
+    const double *e = (k==0) ? hs_edges : (k==1 ? depth_edges : age_edges);
+    const int n = nclass(k);
+    std::ostringstream s;
+    s<<e[c];
+    if(c+1<n)
+    s<<"-"<<e[c+1];
+    else
+    s<<"+";
+    return s.str();
+}
+
+double seastate_collocation::phase_speed(double T, double d)
+{
+    const double g = 9.81, pi = 3.14159265358979323846;
+    if(!(T>0.0))
+    return 0.0;
+    const double w = 2.0*pi/T;
+    double k = w*w/g;
+    if(d>0.0)
+    {
+    // Newton on w^2 = g k tanh(k d) from the deep-water k (or the shallow-water k if larger)
+    k = std::max(k,w/std::sqrt(g*d));
+        for(int it=0; it<50; ++it)
+        {
+        const double th = std::tanh(k*d);
+        const double f = g*k*th - w*w, df = g*th + g*k*d*(1.0 - th*th);
+        const double dk = f/df;
+        k -= dk;
+            if(std::fabs(dk)<1.0e-12*k)
+            break;
+        }
+    }
+    return w/k;
+}
+
+int seastate_collocation::classify(int k, const seastate_matchup &m)
+{
+    double v;
+    if(k==0)
+    v = m.hs_obs;
+    else if(k==1)
+    v = m.depth;
+    else
+    {
+        if(!(m.u10>=1.0))
+        return nclass(2)-1;
+    v = phase_speed(m.tp,m.depth)/m.u10;
+    }
+    const double *e = (k==0) ? hs_edges : (k==1 ? depth_edges : age_edges);
+    int c = 0;
+    while(c+1<nclass(k) && v>=e[c+1])
+    ++c;
+    return c;
+}
+
+int seastate_collocation::reg_off(int k) const
+{
+    int o = 0;
+    for(int q=0; q<k; ++q)
+    o += nclass(q);
+    return o;
+}
+
+const seastate_colloc_stats &seastate_collocation::regime(int k, int c, int src) const
+{
+    const size_t ns = sources.size()+1;
+    return reg[size_t(reg_off(k)+c)*ns + size_t(src<0 ? int(sources.size()) : src)];
+}
+
+const seastate_colloc_stats &seastate_collocation::period(int q, int src) const
+{
+    const size_t ns = sources.size()+1;
+    return per[size_t(q)*ns + size_t(src<0 ? int(sources.size()) : src)];
+}
+
+void seastate_collocation::count(const seastate_matchup &m)
+{
+    count(m.src,m.hs_obs,m.hs);
+    const size_t ns = sources.size()+1;
+    if(reg.size()!=size_t(reg_off(nkind))*ns)
+    reg.assign(size_t(reg_off(nkind))*ns,seastate_colloc_stats());
+    if(per.size()!=3*ns)
+    per.assign(3*ns,seastate_colloc_stats());
+    if(qo.size()!=ns)
+    {
+    qo.assign(ns,std::vector<float>());
+    qm.assign(ns,std::vector<float>());
+    }
+
+    const bool sv = (m.src>=0 && m.src<int(sources.size()));
+    for(int k=0; k<nkind; ++k)
+    {
+    const size_t r = size_t(reg_off(k)+classify(k,m))*ns;
+        if(sv)
+        reg[r + size_t(m.src)].add(m.hs_obs,m.hs);
+    reg[r + ns-1].add(m.hs_obs,m.hs);
+    }
+
+    const double po[3] = {m.tp_obs, m.tm01_obs, m.tm10_obs}, pm[3] = {m.tp, m.tm01, m.tm10};
+    for(int q=0; q<3; ++q)
+        if(std::isfinite(po[q]) && po[q]>0.0)
+        {
+            if(sv)
+            per[size_t(q)*ns + size_t(m.src)].add(po[q],pm[q]);
+        per[size_t(q)*ns + ns-1].add(po[q],pm[q]);
+        }
+
+    if(sv)
+    {
+    qo[size_t(m.src)].push_back(float(m.hs_obs));
+    qm[size_t(m.src)].push_back(float(m.hs));
+    }
+    qo[ns-1].push_back(float(m.hs_obs));
+    qm[ns-1].push_back(float(m.hs));
+}
+
+double seastate_collocation::quantile(int src, double f, bool model) const
+{
+    const size_t s = size_t(src<0 ? int(sources.size()) : src);
+    if(s>=qo.size())
+    return 0.0;
+    std::vector<float> v = model ? qm[s] : qo[s];
+    if(v.empty())
+    return 0.0;
+    std::sort(v.begin(),v.end());
+    // linear between the order statistics (the definition of numpy.quantile, 'linear')
+    const double h = std::min(std::max(f,0.0),1.0)*double(v.size()-1);
+    const size_t a = size_t(std::floor(h));
+    const size_t b = std::min(a+1,v.size()-1);
+    return double(v[a]) + (h - double(a))*(double(v[b]) - double(v[a]));
+}
+
+static void stats_row(std::ostringstream &s, const seastate_colloc_stats &a)
+{
+    s<<" \t "<<a.n<<" \t "<<a.mean_obs()<<" \t "<<a.bias()<<" \t "<<a.rmse()<<" \t "<<a.si()<<" \t "<<a.r();
+}
+
+std::string seastate_collocation::regimes_table() const
+{
+    std::ostringstream s;
+    s<<"# REEF3D::SEASTATE online collocation (A 787 1): Hs [m] by regime, model - observation"<<"\n";
+    s<<"# kind class source: N, mean observation, bias, RMSE, scatter index, correlation; source -1 all"<<"\n";
+    for(int k=0; k<nkind; ++k)
+    {
+    s<<"#   kind "<<k<<": "<<kind_name(k)<<", classes";
+    for(int c=0; c<nclass(k); ++c)
+    s<<" "<<c<<" ("<<class_name(k,c)<<")";
+    s<<"\n";
+    }
+    for(size_t q=0; q<sources.size(); ++q)
+    s<<"#   source "<<q<<" "<<sources[q]<<"\n";
+    s<<std::setprecision(8);
+    for(int k=0; k<nkind; ++k)
+    for(int c=0; c<nclass(k); ++c)
+    for(int q=0; q<=int(sources.size()); ++q)
+    {
+    const int src = (q<int(sources.size())) ? q : -1;
+    s<<k<<" \t "<<c<<" \t "<<src;
+    stats_row(s,regime(k,c,src));
+    s<<"\n";
+    }
+    return s.str();
+}
+
+std::string seastate_collocation::periods_table() const
+{
+    std::ostringstream s;
+    s<<"# REEF3D::SEASTATE online collocation (A 787 1): periods [s] where observed, model - observation"<<"\n";
+    s<<"# period source: N, mean observation, bias, RMSE, scatter index, correlation; period 0 Tp, 1 Tm01, 2 Tm-1,0;"
+     <<" source -1 all"<<"\n";
+    s<<"#   the file has: tp "<<(has_tp ? 1 : 0)<<", tm01 "<<(has_tm01 ? 1 : 0)<<", tm10 "<<(has_tm10 ? 1 : 0)<<"\n";
+    for(size_t q=0; q<sources.size(); ++q)
+    s<<"#   source "<<q<<" "<<sources[q]<<"\n";
+    s<<std::setprecision(8);
+    for(int k=0; k<3; ++k)
+    for(int q=0; q<=int(sources.size()); ++q)
+    {
+    const int src = (q<int(sources.size())) ? q : -1;
+    s<<k<<" \t "<<src;
+    stats_row(s,period(k,src));
+    s<<"\n";
+    }
+    return s.str();
+}
+
+std::string seastate_collocation::quantiles_table() const
+{
+    static const double fq[] = {0.5, 0.9, 0.95, 0.99, 0.999, 1.0};
+    std::ostringstream s;
+    s<<"# REEF3D::SEASTATE online collocation (A 787 1): quantiles of Hs [m], the observed and the model sorted each on its own"<<"\n";
+    s<<"# source quantile: N, observed, model; quantile 1 the largest; source -1 all"<<"\n";
+    for(size_t q=0; q<sources.size(); ++q)
+    s<<"#   source "<<q<<" "<<sources[q]<<"\n";
+    s<<std::setprecision(8);
+    for(int q=0; q<=int(sources.size()); ++q)
+    {
+    const int src = (q<int(sources.size())) ? q : -1;
+    const size_t n = qo.empty() ? 0 : qo[size_t(q)].size();
+        for(double f : fq)
+        s<<src<<" \t "<<f<<" \t "<<n<<" \t "<<quantile(src,f,false)<<" \t "<<quantile(src,f,true)<<"\n";
+    }
+    return s.str();
 }
 
 std::string seastate_collocation::summary() const

@@ -75,6 +75,7 @@ private:
     int ulast,vlast,wlast;
     int *flag;
     double stop_crit;
+    int nan_warn=0;
 	
 	double alpha,beta,w1,w2,w,residual,norm_vj,norm_r0,norm_sj,norm_rj ;
     double r_j1, r_j, sigma ;

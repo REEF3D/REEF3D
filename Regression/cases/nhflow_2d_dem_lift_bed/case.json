@@ -1,0 +1,18 @@
+{
+ "np": 1,
+ "steps": 150,
+ "files": [
+  "dem.txt"
+ ],
+ "description": "NHFLOW laminar open channel (nu 1e-3, U 0.4 m/s, A 518 2) with a heavy cube grain (0.25 mm) resting on the bed: bed-grain lift from the velocity difference over the grain (E 32 2, C_L E 34 0.2), samples linear to zero between the bed and the first sigma layer; the lift force is written to the DEM state file (FLx FLy FLz). Single-grain check against the formula: Dropbox/Claude/dem_lift.",
+ "tags": [
+  "2d",
+  "nhflow",
+  "dem"
+ ],
+ "covers": [
+  "dem_f::lift_sample / lift with NHFLOW (near-bed rule)",
+  "dem_f::lift bed-grain lift",
+  "lift reaction on the fluid (feedback_nhflow)"
+ ]
+}

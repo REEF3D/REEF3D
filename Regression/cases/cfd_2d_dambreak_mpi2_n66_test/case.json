@@ -1,0 +1,19 @@
+{
+ "base": "cfd_2d_dambreak_mpi2",
+ "ctrl_add": [
+  "N 66 -3"
+ ],
+ "same_as": "cfd_2d_dambreak_mpi2",
+ "description": "cfd_2d_dambreak_mpi2 with N 66 -3, the test of the repeat of a time step (patch 0178): every third step is taken back to the state kept at its start and done again with the same time step. The run has to be cfd_2d_dambreak_mpi2 bit for bit (regression.py ranks); 2 ranks.",
+ "tags": [
+  "2d",
+  "dambreak",
+  "mpi",
+  "steprepeat"
+ ],
+ "covers": [
+  "step_repeat (N 66)",
+  "reefrun_ckpt::mem_save, mem_restore",
+  "reefckpt in memory"
+ ]
+}

@@ -25,7 +25,6 @@ Author: Hans Bihs
 
 #include"lexer.h"
 #include"fdm2D.h"
-#include"fdm.h"
 #include"ghostcell.h"
 #include"iowave.h"
 #include"ioflow_f.h"
@@ -50,12 +49,10 @@ Author: Hans Bihs
 #include"sflow_amr.h"
 #include"sflow_momentum_RK2.h"
 
-
 #include"sflow_turb_void.h"
 #include"sflow_turb_prandtl.h"
 #include"sflow_turb_parabolic.h"
 #include"sflow_turb_kw_IM1.h"
-#include"sflow_turb_kw_IM1_v1.h"
 #include"sflow_turb_ke_IM1.h"
 
 #include"sflow_hydrostatic.h"
@@ -66,7 +63,6 @@ Author: Hans Bihs
 #include"sflow_idiff.h"
 #include"sflow_pjm_lin.h"
 #include"sflow_pjm_quad.h"
-#include"sflow_filter.h"
 
 #include"sediment_f.h"
 #include"sediment_void.h"
@@ -74,11 +70,7 @@ Author: Hans Bihs
 #include"sflow_potential_f.h"
 #include"sflow_potential_v.h"
 
-#include"patchBC_void.h"
-
 #include"6DOF_void.h"
 #include"6DOF_sflow.h"
-#include"vrans_header.h"
-#include"turbulence.h"
 
 #endif

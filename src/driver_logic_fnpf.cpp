@@ -44,7 +44,9 @@ void driver::logic_fnpf()
     if(p->mpirank==0)
     cout<<"creating objects"<<endl;
     
-    p->phimean = p->F60;
+    // still-water level and depth reference: also without wave generation (B 90 0), where the wave
+    // library (wave_lib_parameters: wd = phimean) does not set wd and the water depth would be zero
+    p->phimean = p->wd = p->F60;
 
 // time stepping
 	pftstep=new fnpf_timestep(p);
@@ -102,11 +104,20 @@ void driver::logic_fnpf()
     
 //  Wave Models
 
+    // A 328 not set: the sigma cross terms implicit with RK4 (REEFMG). Lagged by a stage (A 328 0) RK4 loses
+    // wave height at its larger step; RK3 keeps the lagged terms
+    if(p->A328<0)
+    p->A328 = (p->A310==4 && p->N10==1) ? 1 : 0;
+
     if(p->A310==3)
     ppfsg = new fnpf_RK3(p,c,pgc);
         
     if(p->A310==4)
     ppfsg = new fnpf_RK4(p,c,pgc);
+    
+    // theta-Robin, prototype (2D, serial)
+    if(p->A310==5)
+    ppfsg = new fnpf_theta(p,c,pgc);
     
 //  Mesh refinement
     if(p->G1>0)

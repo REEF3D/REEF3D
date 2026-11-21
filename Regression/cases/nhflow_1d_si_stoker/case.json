@@ -1,0 +1,17 @@
+{
+ "description": "NHFLOW hydrostatic semi-implicit: Stoker dam break on a wet bed (0.5 m / 0.05 m, 400 cells x 2 layers, dt 0.01 s, theta 1, A 510 11): the multilayer flux of the face predictor (limited BCG face depth times the mean cell velocity), the gravity term with the mean depth of the two cells.",
+ "solver": "nhflow",
+ "np": 1,
+ "steps": 300,
+ "tags": [
+  "1d",
+  "nhflow",
+  "semi_implicit",
+  "quick"
+ ],
+ "covers": [
+  "nhflow_momentum_SI::mlflux_faces (face depths of the mass flux and of the gravity term)",
+  "nhflow_momentum_SI::si_assemble (face transport of the predictor)",
+  "nhflow_momentum_SI::nh_begin (limited BCG face depth)"
+ ]
+}

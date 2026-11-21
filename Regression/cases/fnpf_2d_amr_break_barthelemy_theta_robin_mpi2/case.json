@@ -1,0 +1,22 @@
+{
+ "base": "fnpf_2d_amr_break_barthelemy_theta_robin",
+ "steps": 1400,
+ "np": 2,
+ "control_set": {
+  "M 10": "2"
+ },
+ "ctrl_set": {
+  "M 10": "2"
+ },
+ "description": "fnpf_2d_amr_break_barthelemy_theta_robin on 2 ranks (the box cut at the partition edge at 15 m): the tracker across ranks, the prolongation of the viscosity.",
+ "tags": [
+  "2d",
+  "fnpf",
+  "amr",
+  "breaking",
+  "mpi"
+ ],
+ "covers": [
+  "fnpf_amr::patch_breaking with A 350 4 on 2 ranks"
+ ]
+}

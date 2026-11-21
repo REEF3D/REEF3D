@@ -1,0 +1,20 @@
+{
+ "base": "cfd_2d_dambreak_mpi2",
+ "np": 2,
+ "steps": 60,
+ "ctrl_add": [
+  "F 48 6.0"
+ ],
+ "description": "cfd_2d_dambreak_mpi2 with the narrow band (F 48 6): the mask across the partition edge (from the level set of the cells around the rank).",
+ "tags": [
+  "quick",
+  "2d",
+  "dambreak",
+  "levelset",
+  "narrowband",
+  "mpi"
+ ],
+ "covers": [
+  "levelset_band_mask on two ranks"
+ ]
+}

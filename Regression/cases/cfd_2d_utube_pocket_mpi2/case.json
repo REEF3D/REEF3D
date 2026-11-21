@@ -1,0 +1,16 @@
+{
+ "base": "cfd_2d_utube_pocket",
+ "np": 2,
+ "tags": [
+  "quick",
+  "2d",
+  "levelset",
+  "singlephase",
+  "mpi"
+ ],
+ "description": "cfd_2d_utube_pocket on 2 ranks: the air of the left chamber across the subdomain boundary is one component (the atmosphere), the labels joined over the ranks.",
+ "covers": [
+  "cfd_pocket_core: the labels of the other ranks (gcparax), the pairs and the components over all ranks"
+ ],
+ "architect": "Hans Bihs"
+}

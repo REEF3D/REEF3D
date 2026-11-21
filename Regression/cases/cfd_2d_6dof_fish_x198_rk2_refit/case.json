@@ -1,0 +1,12 @@
+{
+ "base": "cfd_2d_6dof_fish_x198_sym",
+ "np": 1,
+ "steps": 40,
+ "ctrl_set": {
+  "X 198": "2 1.0",
+  "N 40": "2"
+ },
+ "description": "cfd_2d_6dof_fish_x198_sym with the TVD RK2 (N 40 2, SSP stages on the uniform grid) and the refit after the projection (X 198 2): after each projection the fish takes the rigid-body motion of the projected velocity of its hull region (sixdof_cfd::refit_cfd, sixdof_obj_cfd::momentum_refit), the hull is forced again and projected again (momentum_rk::step_ssp). The 2D swimmer at L/50: 0.355 L/T in period 2 against 0.315 with X 198 1 and 0.365 with the low-storage RK3.",
+ "tags": ["quick", "2d", "6dof", "floating", "deform", "singlephase"],
+ "covers": ["sixdof_cfd::refit_cfd", "sixdof_obj_cfd::momentum_refit", "momentum_rk::step_ssp with X 198 2"]
+}

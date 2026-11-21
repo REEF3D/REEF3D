@@ -1,0 +1,20 @@
+{
+ "base": "cfd_2d_compressible_box_amr",
+ "np": 1,
+ "steps": 100,
+ "ctrl_set": {
+  "N 40": "6"
+ },
+ "description": "cfd_2d_compressible_box_amr (two refined levels, G 7 0, W 32 2) with N 40 6: the compressibility terms of every grid in both composite projections.",
+ "tags": [
+  "quick",
+  "2d",
+  "levelset",
+  "compressible",
+  "amr"
+ ],
+ "covers": [
+  "cfd_amr::step_comp: N 40 6 with W 32",
+  "pjm_corr::comp_terms on the patches with the half and the full step"
+ ]
+}

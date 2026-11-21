@@ -43,6 +43,7 @@ namespace coral
 struct pto_ctrl_in
 {
     double t=0.0, q=0.0, qd=0.0;
+    double F=0.0, P=0.0;    // force and absorbed power of the PTO in the accepted state (CORAL's PTO)
 };
 
 class pto_controller
@@ -55,6 +56,9 @@ public:
     // restart from a checkpoint
     virtual void save_state(std::vector<double>&) const {}
     virtual void load_state(const std::vector<double>&, size_t&) {}
+    // output channels (names after the prefix of the PTO, values of the last update)
+    virtual void channel_names(const std::string&, std::vector<std::string>&) const {}
+    virtual void channel_values(std::vector<double>&) const {}
 };
 
 // sign change of qd between successive calls (zeros of qd are skipped, not counted); the time
@@ -129,6 +133,11 @@ private:
 // optimal passive damping of a single-DOF absorber at the frequency w; with a linear drive-train
 // loss Bloss in parallel the generator power B |v|^2 is largest at sqrt((Brad + Bloss)^2 + X^2)
 double pto_bopt(double w, double m, double A, double Brad, double C, double Bloss=0.0);
+
+// reactive (complex-conjugate) control at the frequency w: the PTO impedance c - i k/w is the conjugate
+// of the intrinsic impedance Brad + Bloss + i (w (m + A) - C/w), so k = w^2 (m + A) - C (negative below
+// resonance) and c = Brad + Bloss (the loss is part of the plant the generator sees)
+void pto_reactive(double w, double m, double A, double Brad, double C, double Bloss, double &k, double &c);
 
 }
 

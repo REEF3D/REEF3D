@@ -1,0 +1,25 @@
+{
+ "description": "REEF3D::HYDRO catchment model only (R 100 1) on a synthetic mountain catchment (24 km x 16 km DEM of 200 m pixels, DIVEMesh W 10: 2 km cells, 3 elevation bands, glacier and zone rasters, outlet and two gauges): HBV with 300 mm initial snow from mid-March, hourly, two stations with lapse rates, Oudin PET, MAXBAS, kinematic wave. Gauges, budget and catchment means as text. Validated against an independent Python implementation in Dropbox HYDRO/validation/07_catchment_model.",
+ "solver": "sflow",
+ "np": 1,
+ "steps": 720,
+ "files": [
+  "catchment_dem.asc",
+  "catchment_glacier.asc",
+  "catchment_zone.asc",
+  "hydro_forcing.dat",
+  "hydro_param.dat"
+ ],
+ "tags": [
+  "quick",
+  "hydro",
+  "catchment",
+  "snow"
+ ],
+ "covers": [
+  "DIVEMesh catchment: depression filling, bands, glacier and zone rasters, gauges",
+  "hydro_core::vertical (HBV)",
+  "hydro_param.dat selectors all/zone/subcatchment",
+  "forcing interpolation and lapse rates, Oudin PET"
+ ]
+}

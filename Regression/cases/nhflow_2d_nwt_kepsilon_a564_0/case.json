@@ -1,0 +1,18 @@
+{
+ "description": "As nhflow_2d_nwt_komega_a564_0 with k-epsilon (A 560 1): start from k = eps = 0 without the eddy viscosity limiter (A 564 0), nu_t = cmu k^2/eps bounded by the length-scale limit l <= kappa h.",
+ "solver": "nhflow",
+ "np": 1,
+ "steps": 300,
+ "tags": [
+  "2d",
+  "nhflow",
+  "waves",
+  "turbulence",
+  "quick"
+ ],
+ "covers": [
+  "nhflow_rans_io::length_limit with A 564 0",
+  "nhflow_kepsilon_func::eddyvisc A 564 0",
+  "start of k-epsilon from k = eps = 0"
+ ]
+}

@@ -1,0 +1,3 @@
+{"description": "CFD 2D flat plate (2 m x 0.06 m, 6DOF body X 110) towed at 0.5 m/s through still water (X 11 2, X 210), k-eps, wall law B 10 1, D 22 2 (X 10): zero gradient at the body faces and the wall law on the velocity relative to the body (bcmom::body_vel).",
+ "solver": "cfd", "np": 1, "steps": 100, "tags": ["2d", "6dof", "turbulence", "walls"],
+ "covers": ["bcmom::body_vel", "diff_walllaw gcdf faces"]}

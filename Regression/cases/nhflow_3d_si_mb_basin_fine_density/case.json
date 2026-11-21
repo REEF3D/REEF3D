@@ -1,0 +1,26 @@
+{
+ "base": "nhflow_3d_si_mb_basin_fine",
+ "description": "nhflow_3d_si_mb_basin_fine (4 wavy blocks, sloshing from the initial step) stratified: salinity 30 at the bed level 0 to 0 at 5 m (A 611), a temperature front along the blocks (A 603), UNESCO density (A 620 2) with the pressure gradient of Shchepetkin and McWilliams across the curvilinear blocks. Closed basin: the mass of both tracers to round-off. At rest (without F 72 and A 605 0.7 0) the largest velocity stays at 1e-13 m/s over 2 h.",
+ "ctrl_add": [
+  "A 600 2",
+  "A 611 0.0 30.0",
+  "A 611 5.0 0.0",
+  "A 603 0.0 300.0 10.0 0.0 700.0 20.0",
+  "A 605 0.7 1.0e-4",
+  "A 620 2"
+ ],
+ "tags": [
+  "3d",
+  "nhflow",
+  "semi_implicit",
+  "curvilinear",
+  "multiblock",
+  "tracer",
+  "density"
+ ],
+ "covers": [
+  "nhflow_amr::si_step with A 620: si_old_closed, si_tracer phase 1, si_density per block",
+  "baroclinic_face across block faces (the outer columns from the filled tracer mask), curvilinear cell vector",
+  "UNESCO equation of state"
+ ]
+}

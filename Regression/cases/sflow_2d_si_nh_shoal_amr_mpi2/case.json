@@ -1,0 +1,23 @@
+{
+ "base": "sflow_2d_si_nh_shoal_amr",
+ "np": 2,
+ "control_set": {
+  "M 10": "2"
+ },
+ "ctrl_set": {
+  "M 10": "2"
+ },
+ "description": "sflow_2d_si_nh_shoal_amr on 2 ranks: the patch across the partition.",
+ "tags": [
+  "2d",
+  "sflow",
+  "semi_implicit",
+  "nonhydrostatic",
+  "amr",
+  "mpi"
+ ],
+ "covers": [
+  "composite coupled system across ranks (remote fills)"
+ ],
+ "architect": "Hans Bihs"
+}

@@ -90,6 +90,21 @@ void sediment_part::start_susp(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow, 
     return;
     
     pst->susp_cbe(p,a,pgc,s);
+    
+    // graded sediment (S 51): a concentration step per fraction, the concentration of the fluid is their sum
+    if(pst->susp_fractions()>0)
+    {
+        for(int q=0;q<pst->susp_fractions();++q)
+        {
+            pst->susp_load(p,a,pgc,s,q);
+            psusp->start(a,p,psuspdisc,psuspdiff,psolv,pgc,pflow,s);
+            pst->susp_store(p,a,pgc,s,q);
+        }
+        
+        pst->susp_total(p,a,pgc);
+        return;
+    }
+    
     psusp->start(a,p,psuspdisc,psuspdiff,psolv,pgc,pflow,s);
     pst->susp_flux(p,a,pgc,s);
 }

@@ -51,8 +51,6 @@ private:
 
     static int iocheck,iter;
     int gcval_ro,gcval_visc;
-	const double dx;
-    double epsi;
 	double visc_1,visc_2,ro_1,ro_2,alpha_air,alpha_water;
 	double **water_density;
 	double **water_viscosity;

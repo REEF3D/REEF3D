@@ -25,7 +25,6 @@ Author: Hans Bihs
 #include"ghostcell.h"
 #include"slice.h"
 #include"fdm2D.h"
-#include"patchBC_interface.h"
 
 void iowave::waterlevel2D(lexer *p, fdm2D *b, ghostcell *pgc, slice &eta)
 {

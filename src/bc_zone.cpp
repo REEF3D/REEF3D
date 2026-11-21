@@ -80,6 +80,34 @@ double bc_zone::line_dist(double x0, double y0) const
     return fabs((ye-ys)*x0 - (xe-xs)*y0 + xe*ys - ye*xs)/denom;
 }
 
+// sin^2 fade-in of the zone over Lt from an end of its line that lies inside the domain: the weight of a B 107 / B 108
+// zone depends only on the distance to its line, so at such an end it jumped from full relaxation to none across one
+// cell. A directional sea imposed in a generation zone that ends inside the domain then has a lateral discontinuity
+// there: a 3D harbour run (JONSWAP Hs 10.4 m, Tp 17.7 s, cos-2s spreading) stopped at the end of a generation line in
+// 14 m and in 70 m of water (validation FNPF Breaking/05)
+double bc_zone::taper(double x0, double y0) const
+{
+    if(!tap_s && !tap_e)
+    return 1.0;
+
+    const double lx = xe-xs, ly = ye-ys;
+    const double L = sqrt(lx*lx+ly*ly);
+
+    if(L<1.0e-20 || Lt<=0.0)
+    return 1.0;
+
+    const double s = ((x0-xs)*lx + (y0-ys)*ly)/L;
+    double t = 1.0;
+
+    if(tap_s && s<Lt)
+    t *= pow(sin(0.5*PI*MAX(s,0.0)/Lt),2.0);
+
+    if(tap_e && L-s<Lt)
+    t *= pow(sin(0.5*PI*MAX(L-s,0.0)/Lt),2.0);
+
+    return t;
+}
+
 void bc_zone::box(double &bxs, double &bxe, double &bys, double &bye) const
 {
     bxs = fmin(fmin(P1[0],P2[0]),fmin(P3[0],P4[0]));
@@ -149,6 +177,49 @@ bc_zone_set bc_zone_set::from_legacy(lexer *p, ghostcell *pgc)
 
     for(int n=0; n<p->B107; ++n)
     zs.beach.emplace_back(n+1,bc_method::beach,p->B107_xs[n],p->B107_ys[n],p->B107_xe[n],p->B107_ye[n],p->B107_d[n],fac);
+
+    // the ends of the lines inside the domain: an end on or beyond a domain side that crosses the line (not the side
+    // the line runs along), or outside the domain at all, is a boundary end; any other end fades the zone in over its
+    // half width d (at most half the line). 2D: every end is a boundary end, nothing changes
+    {
+        const double tol = p->DXM;
+        const double X0 = p->global_xmin, X1 = p->global_xmax, Y0 = p->global_ymin, Y1 = p->global_ymax;
+
+        auto boundary_end = [&](const bc_zone &z, double x, double y)
+        {
+            const double lx = z.xe-z.xs, ly = z.ye-z.ys;
+            const double L = sqrt(lx*lx+ly*ly);
+
+            if(L<1.0e-20 || p->j_dir==0)
+            return true;
+
+            if(x<X0-tol || x>X1+tol || y<Y0-tol || y>Y1+tol)
+            return true;
+
+            const double ux = fabs(lx/L), uy = fabs(ly/L);
+            // sides x = const run along y: count them unless the line runs along y as well
+            if((x<=X0+tol || x>=X1-tol) && uy<0.99)
+            return true;
+
+            if((y<=Y0+tol || y>=Y1-tol) && ux<0.99)
+            return true;
+
+            return false;
+        };
+
+        for(std::vector<bc_zone>* v : {&zs.relax, &zs.beach})
+        for(bc_zone &z : *v)
+        {
+            const double L = sqrt(pow(z.xe-z.xs,2.0) + pow(z.ye-z.ys,2.0));
+            z.tap_s = !boundary_end(z,z.xs,z.ys);
+            z.tap_e = !boundary_end(z,z.xe,z.ye);
+            z.Lt = MIN(z.d, 0.5*L);
+
+            if(p->mpirank==0 && (z.tap_s || z.tap_e))
+            std::cout<<(z.method==bc_method::relax ? "B 108" : "B 107")<<" zone "<<z.id<<": ends inside the domain at"
+                     <<(z.tap_s ? " (xs, ys)" : "")<<(z.tap_e ? " (xe, ye)" : "")<<", the zone fades in over "<<z.Lt<<" m there"<<std::endl;
+        }
+    }
 
     zs.read_input(p,pgc);
 
@@ -460,6 +531,29 @@ double bc_zone_set::relax_weight(double x0, double y0) const
     const double dist=1.0e20;
     int test_all=0;
 
+    // a zone fading in at an end inside the domain: the target weight 1 - r of each zone times its taper, the largest
+    bool tapered=false;
+
+    for(const bc_zone &z : relax)
+    if((z.tap_s || z.tap_e) && z.inside(x0,y0) && z.taper(x0,y0)<1.0)
+    tapered=true;
+
+    if(tapered)
+    {
+        double w=-1.0;
+
+        for(const bc_zone &z : relax)
+        if(z.inside(x0,y0))
+        {
+            xdist = MIN(z.line_dist(x0,y0),dist);
+            const double xz = MAX(1.0-xdist/z.d,0.0);
+            const double rz = 1.0 - (exp(pow(xz,3.5))-1.0)/(EE-1.0);
+            w = MAX(w, (1.0-rz)*z.taper(x0,y0));
+        }
+
+        return (w<0.0) ? 1.0 : 1.0-w;
+    }
+
     for(const bc_zone &z : relax)
     {
         if(z.inside(x0,y0))
@@ -512,7 +606,11 @@ double bc_zone_set::beach_weight(double x0, double y0) const
         x=(dist2-fabs(x))/(dist2*z.fac);
         x=MAX(x,0.0);
 
-        r += 1.0 - (exp(pow(x,3.5))-1.0)/(EE-1.0);
+        const double rz = 1.0 - (exp(pow(x,3.5))-1.0)/(EE-1.0);
+        const double tz = z.taper(x0,y0);
+
+        // a zone fading in at an end inside the domain (taper < 1): the damping 1 - r times the taper
+        r += (tz<1.0) ? 1.0 - (1.0-rz)*tz : rz;
         ++count;
     }
 

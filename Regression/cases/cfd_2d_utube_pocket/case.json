@@ -1,0 +1,18 @@
+{
+ "np": 1,
+ "steps": 150,
+ "tags": [
+  "quick",
+  "2d",
+  "levelset",
+  "singlephase",
+  "closed"
+ ],
+ "description": "A U-tube in a closed tank: a baffle (solid, direct forcing) from the lid down to 0.15 m divides the air above the water into the left chamber and the closed right chamber; the surface starts tilted, higher on the right. The single-phase level set with the closed air pockets (F 41 2): the right chamber is a pocket and holds its water column with the pressure of its expansion (about -700 Pa); with F 41 1 the levels equalise (validation 89).",
+ "covers": [
+  "cfd_pocket: labelling, the volume from the flux of the water, the adiabatic pressure",
+  "pic_gfm_grad with the pressure of the pocket at the surface, presscorr",
+  "the cells inside the solids out of the pockets"
+ ],
+ "architect": "Hans Bihs"
+}

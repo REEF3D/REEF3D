@@ -61,10 +61,6 @@ void VOF_PLIC::calculateSubFractions(lexer* p, fdm* a, ghostcell* pgc, field& vo
                 }
                 else
                 {
-                
-                    
-                    //if((nx(i,j,k)>0.0 && nz(i,j,k)<0.0) || (nx(i,j,k)<0.0 && nz(i,j,k)>0.0))
-                   // {
                         if(alpha(i,j,k)>0.0)
                             a->vof_nt(i,j,k)=1.0;
                         else
@@ -81,8 +77,6 @@ void VOF_PLIC::calculateSubFractions(lexer* p, fdm* a, ghostcell* pgc, field& vo
                 }
                 else
                 {
-                   // if((nx(i,j,k)>0.0 && nz(i,j,k)>0.0) || (nx(i,j,k)<0.0 && nx(i,j,k)<0.0))
-                   // {
                         if(alpha(i,j,k)>0.0)
                             a->vof_nb(i,j,k)=1.0;
                         else
@@ -99,8 +93,6 @@ void VOF_PLIC::calculateSubFractions(lexer* p, fdm* a, ghostcell* pgc, field& vo
                 }
                 else
                 {
-                   // if((nx(i,j,k)>0.0 && nz(i,j,k)>0.0) || (nx(i,j,k)<0.0 && nx(i,j,k)<0.0))
-                   // {
                         if(alpha(i,j,k)>0.0)
                             a->vof_st(i,j,k)=1.0;
                         else
@@ -117,8 +109,6 @@ void VOF_PLIC::calculateSubFractions(lexer* p, fdm* a, ghostcell* pgc, field& vo
                 }
                 else
                 {
-                   // if((nx(i,j,k)>0.0 && nz(i,j,k)<0.0) || (nx(i,j,k)<0.0 && nz(i,j,k)>0.0))
-                   // {
                         if(alpha(i,j,k)>0.0)
                             a->vof_sb(i,j,k)=1.0;
                         else

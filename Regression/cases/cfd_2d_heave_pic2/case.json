@@ -1,0 +1,22 @@
+{
+ "base": "cfd_2d_heave_amr",
+ "ctrl_set": {
+  "G 1": null,
+  "G 15": null,
+  "F 81": "2",
+  "X 48": "3",
+  "F 87": "0.02",
+  "P 18": "1"
+ },
+ "tags": [
+  "quick",
+  "2d",
+  "6dof",
+  "floating",
+  "pic"
+ ],
+ "description": "2D heave decay of a box (X 10 1, X 110; cfd_2d_heave_amr without the mesh refinement) with the free surface and the momentum of the water from the PIC particles (F 81 2, phase 3): the kernel sums of the fluid again at every step (the body moves), the level set continued into the body (X 48 3), particles pushed out of the body",
+ "covers": [
+  "pic_f::support with X 10, pic_f::push_out, levelset_solid_extend from pic_f_phi"
+ ]
+}

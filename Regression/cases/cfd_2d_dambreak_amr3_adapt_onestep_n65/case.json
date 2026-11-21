@@ -1,0 +1,25 @@
+{
+ "base": "cfd_2d_dambreak_amr3_adapt",
+ "np": 1,
+ "steps": 60,
+ "ctrl_set": {
+  "N 40": "5"
+ },
+ "ctrl_add": [
+  "N 59 2",
+  "N 63 3",
+  "N 57 1",
+  "N 65 1"
+ ],
+ "description": "cfd_2d_dambreak_amr3_adapt_onestep_n59_2 with N 57 1 and N 65 1 on every grid (validation 87).",
+ "tags": [
+  "quick",
+  "2d",
+  "dambreak",
+  "levelset",
+  "amr"
+ ],
+ "covers": [
+  "godunov: N 65 on the patches, cfd_amr::timestep: the reach limit of the patches"
+ ]
+}

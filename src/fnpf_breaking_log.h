@@ -40,17 +40,13 @@ public:
 	virtual ~fnpf_breaking_log();
 	void write(lexer*,fdm_fnpf*,ghostcell*);
 
-	
 private:
     void filename(lexer*,fdm_fnpf*,ghostcell*);
 
     char name[500];
     float ffn;
 	int iin;
-	double ddn;
 	int printcount;
-    int ini_token;
-    int file_version;
     ofstream result;
 };
 

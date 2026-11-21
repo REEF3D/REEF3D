@@ -30,7 +30,8 @@ Author: Hans Bihs
 // Wet cells are classified locally (wd - bed >= wd_criterion), so inland
 // depressions below the still water level become separate wet pockets with
 // their own coastline. Here only the wet area connected (through cell faces)
-// to the deepest wet cell of the domain is kept; all other wet cells are set
+// to the deepest wet cell of the domain or to a wet cell at the edge of the
+// domain is kept; all other wet cells are set
 // dry (coastline = -1, and wet = 0 when wetting-drying is on).
 // Parallel flood fill: alternating sweeps with a halo swap after each sweep,
 // until no cell changes on any rank.
@@ -64,6 +65,13 @@ void fnpf_coastline::isolated(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &f, i
     L(i,j) = 0.0;
     
     if(f(i,j)>0.0 && p->wd - c->bed(i,j) >= dmax - 1.0e-10*MAX(fabs(dmax),1.0))
+    L(i,j) = 1.0;
+    
+    // water at the edge of the domain belongs to the sea outside it: the waves are generated there
+    // (the deepest cell alone picks one side of a bar or spit that crosses the domain, and that can
+    // be the side without the wave generation)
+    if(f(i,j)>0.0 && (i+p->origin_i==0 || i+p->origin_i==p->gknox-1
+                  || (p->j_dir==1 && (j+p->origin_j==0 || j+p->origin_j==p->gknoy-1))))
     L(i,j) = 1.0;
     }
     

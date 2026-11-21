@@ -17,7 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Hans Bihs
+Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"lexer.h"
@@ -25,6 +25,7 @@ Author: Hans Bihs
 void lexer::control_calc()
 {
 	dt=dt_old=0.0;
+    dt_crit=0.0;
 	simtime=I50;
 	sedtime=0.0;
 	dtsed=0.0;

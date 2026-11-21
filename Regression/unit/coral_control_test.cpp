@@ -2,7 +2,7 @@
 // tuning (coral/aero/coral_rotor_tune): the torque law of the NREL 5 MW baseline continuous through its regions, the
 // speed filter's step response, the PI pitch loop with gain scheduling, rate limit and anti-windup, the PI gains of the
 // NREL 5 MW from its published sensitivity and inertia; the tuning of a Glauert-optimum rotor (Cp_max, K, rated
-// power held above rated); the closed loop in the multibody model: tip speed ratio lambda_opt below rated, rated speed,
+// power held above rated, or the torque with T_rgn3); the closed loop in the multibody model: tip speed ratio lambda_opt below rated, rated speed,
 // power and the tuned pitch above it; the keyword and its channels; the controller state round trip; the floating
 // compensation: the platform's part of the speed out of the pitch loop, the sensitivities, a rotor on a pitching platform.
 // Architect: Hans Bihs
@@ -104,6 +104,10 @@ static void test_torque_law()
           "region 2: K w^2; region 3: P_rated/w, also below rated speed with pitch above pitch_rgn3");
     check(std::fabs(T(s.w_rated) - s.P_rated/s.w_rated) < 1e-6 && T(s.w_rated) < s.T_max,
           fmt("rated torque %.0f N m below T_max %.0f N m", T(s.w_rated), s.T_max));
+    turbine_controller q;
+    q.set.T_rgn3 = 43093.55;
+    check(q.torque_law(130.0, 0.0)==43093.55 && q.torque_law(110.0, 0.05)==43093.55 && std::fabs(q.torque_law(100.0, 0.0) - s.K*1e4) < 1e-9,
+          "T_rgn3: constant torque in region 3 (DISCON_OC3Hywind), region 2 unchanged");
 }
 
 static void test_filter_pi()
@@ -267,6 +271,28 @@ static void test_input()
                   "controller ctrl rotor rot tune P_rated 3e6 rpm_rated 19.0986 write ctrl_test_tuning.dat KP 0.05\n", ".");
     std::ifstream tf("ctrl_test_tuning.dat");
     const bool wrote = (bool)tf;
+    // a tip-speed limited rotor: at 1.5 MW the k omega^2 curve of lambda_opt reaches the rated power below 19.1 rpm;
+    // tune then needs a K below P_rated/Omega_rated^3 (the IEA 15 and 22 MW)
+    auto tip = [](const std::string &K)
+    {
+        try
+        {
+            coral_case k;
+            k.read_string("time dt 0.02 end 1\nwind steady U 15 z_ref 90\n"
+                          "rotor rot hub 0 0 90 axis 1 0 0 R_hub 2 blade ctrl_test_blade.dat airfoils 1 ctrl_test_af.dat hub_mass 50000 hub_inertia 1e7 \\\n"
+                          "   rpm 19 gearbox 50 gen_inertia 20 pitch_joints\n"
+                          "controller ctrl rotor rot tune P_rated 1.5e6 rpm_rated 19.0986" + K + "\n", ".");
+            for(auto &l : k.m.load_list)
+                if(auto *cc = dynamic_cast<controller_load*>(l.get())) return std::to_string(cc->controller().set.K);
+            return std::string("no controller");
+        }
+        catch(const std::exception &e) {return std::string(e.what());}
+    };
+    // K on the generator side: 0.82 P_rated / Omega_hss^3 with Omega_hss = 50 x 2 rad/s
+    const double Kg = 0.82*1.5e6/1.0e6;
+    const std::string e0 = tip(""), e1 = tip(" K " + std::to_string(Kg)), e2 = tip(" K 2.0");
+    check(e0.find("give K") != std::string::npos && std::fabs(std::atof(e1.c_str()) - Kg) < 1e-6*Kg && e2.find("below P_rated") != std::string::npos,
+          "tune for a tip-speed limited rotor: without K an error, with K below P_rated/Omega_rated^3 taken, above it an error");
     std::remove("ctrl_test_af.dat"); std::remove("ctrl_test_blade.dat"); std::remove("ctrl_test_tuning.dat");
     controller_load *cl = nullptr;
     for(auto &l : c.m.load_list)

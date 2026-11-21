@@ -26,6 +26,7 @@ Author: Hans Bihs
 #include"slice.h"
 #include"fdm2D.h"
 #include"patchBC_interface.h"
+#include"gcsl_side.h"
 
 void ioflow_f::inflow2D(lexer *p, fdm2D* b, ghostcell* pgc, slice &P, slice &Q, slice &bed, slice &eta)
 {
@@ -46,24 +47,18 @@ void ioflow_f::inflow2D(lexer *p, fdm2D* b, ghostcell* pgc, slice &P, slice &Q, 
         continue;
         }
         
-        if(p->wet[IJ]==1)
-        {
-        const double ui = (p->B62==1) ? Uk*pow(MAX(b->hp(i-1,j),0.0),2.0/3.0) : p->Ui;
-        P(i-1,j)=ui;
-        P(i-2,j)=ui;
-        P(i-3,j)=ui;
-        }
+        // Cartesian grid: the velocity into the domain normal to the side, no tangential velocity
+        // (P, Q are the cell centred velocities U, V here)
+        const gcsl_side sd(p->gcslin[n][3]);
+        const double ui = (p->wet[IJ]==1) ? ((p->B62==1) ? Uk*pow(MAX(b->hp(sd.gi(i),sd.gj(j)),0.0),2.0/3.0) : p->Ui) : 0.0;
         
-        if(p->wet[IJ]==0)// || p->gcslin[n][5]==0)
+        for(int q=1;q<=3;++q)
         {
-        P(i-1,j)=0.0;
-        P(i-2,j)=0.0;
-        P(i-3,j)=0.0;
+        const int gi = sd.gi(i,q), gj = sd.gj(j,q);
+        
+        P(gi,gj) = sd.xdir() ? sd.inward()*ui : 0.0;
+        Q(gi,gj) = sd.xdir() ? 0.0 : sd.inward()*ui;
         }
-		
-		Q(i-1,j)=0.0;
-        Q(i-2,j)=0.0;
-        Q(i-3,j)=0.0;
     }
     
     pBC->patchBC_ioflow2D(p,pgc,P,Q,bed,eta);

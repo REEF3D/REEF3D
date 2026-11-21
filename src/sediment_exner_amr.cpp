@@ -160,22 +160,17 @@ void sediment_exner::amr_flux(lexer *p, ghostcell *pgc, sediment_fdm *s, slice &
         fx = 0.5*(qbx(ii,jj) + qbx(ia,ja));
         fy = 0.5*(qby(ii,jj) + qby(ia,ja));
         }
-        else
-        {
-        fx = (sg>=0.0) ? qbx(ii,jj) : qbx(ia,ja);
-        fy = (sg>=0.0) ? qby(ii,jj) : qby(ia,ja);
-        }
-
         const double open = (sg!=0.0) ? 1.0 : 0.0;
+        double nx = (dir==1) ? 1.0 : 0.0, ny = (dir==2) ? 1.0 : 0.0, len;
 
         if(curv==1)
-        {
-        double nx,ny,len;
         sediment_curv::normal(p,dir,ii,jj,nx,ny,len);
-        return (fx*nx + fy*ny)*open;
-        }
 
-        return ((dir==1) ? fx : fy)*open;
+        // upwind: flux splitting of the normal flux of the two cells (sediment_fou)
+        if(p->S32!=2)
+        return (MAX(qbx(ii,jj)*nx + qby(ii,jj)*ny,0.0) + MIN(qbx(ia,ja)*nx + qby(ia,ja)*ny,0.0))*open;
+
+        return (fx*nx + fy*ny)*open;
     };
 
     SLICEBASELOOP

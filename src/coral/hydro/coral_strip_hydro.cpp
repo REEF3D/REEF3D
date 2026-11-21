@@ -41,8 +41,8 @@ strip_hydro::strip_hydro(const model &m, int body, const std::vector<strip_membe
         const int n = std::max(1, mm.n);
         for(int i=0; i<n; ++i)
             strips_.push_back(strip{b.to_body(mm.p1 + (i + 0.5)/n*d), e, L/n, mm.D, mm.Cd, mm.Ca, mm.Cm, mm.buoyancy});
-        if(mm.end1) ends_.push_back(end{b.to_body(mm.p1), -e, mm.D, mm.Ca_end, mm.Cd_end});
-        if(mm.end2) ends_.push_back(end{b.to_body(mm.p2), e, mm.D, mm.Ca_end, mm.Cd_end});
+        if(mm.end1) ends_.push_back(end{b.to_body(mm.p1), -e, mm.D, mm.Ca_end, mm.Cd_end, mm.end_pressure});
+        if(mm.end2) ends_.push_back(end{b.to_body(mm.p2), e, mm.D, mm.Ca_end, mm.Cd_end, mm.end_pressure});
     }
     for(const strip &st : strips_) p0_.push_back(b.point(st.s));
     for(const end &q : ends_) p0_.push_back(b.point(q.s));
@@ -115,7 +115,7 @@ template<class Add> void strip_hydro::forces(const model &m, double t, Add &&add
         if(p(2) >= kk.eta)
             continue;
         const Vec3 uw = kk.u, aw = kk.du;
-        const double pr = kk.p;
+        const double pr = q.p ? kk.p : 0.0;
         const Vec3 ub = b.point_velocity(q.s), ab = b.point_acceleration(q.s);
         const double A = 0.25*M_PI*q.D*q.D, ma = q.Ca*rho_*q.D*q.D*q.D/6.0;
         const double ur = (uw + current_ - ub).dot(nrm);

@@ -31,7 +31,6 @@ void sixdof_geometry::geometry_refinement(lexer *p, ghostcell *pgc)
 	double at,bt,ct,st;
 	double nx_old,ny_old,nz_old;	
     double A_triang,A;
-    double l0,l1,l2;
     double tridist;
 
     A=0.0;
@@ -103,7 +102,6 @@ void sixdof_geometry::geometry_refinement(lexer *p, ghostcell *pgc)
 
 	for (int n = 0; n < tri_x_r.size(); n++)
 	{
-    //cout<<"n: "<<n<<" tri_x_r.size()"<<tri_x_r.size()<<endl;
         
 		x0 = tri_x_r[n][0];
 		x1 = tri_x_r[n][1];
@@ -264,7 +262,7 @@ void sixdof_geometry::create_triangle
 	const double& nx_old, const double& ny_old, const double& nz_old
 )
 {
-	double nx,ny,nz,temp;
+	double nx,ny,nz;
 	
 	vector<double> tri_x_new(3,0.0);
 	vector<double> tri_y_new(3,0.0);

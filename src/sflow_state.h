@@ -68,7 +68,6 @@ private:
     
     int is,ie,js,je;
     int is_global,ie_global,js_global,je_global;
-    int is_global_root,ie_global_root,js_global_root,je_global_root;
     int is_flag,ie_flag,js_flag,je_flag;
     int flag;
     int *flag_all;

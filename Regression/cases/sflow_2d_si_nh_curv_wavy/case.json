@@ -1,0 +1,28 @@
+{
+ "base": "sflow_2d_curv_wavy_nh",
+ "ctrl_set": {
+  "A 210": "12",
+  "A 227": "0.5",
+  "A 243": "0",
+  "A 220": "3"
+ },
+ "ctrl_add": [
+  "A 228 0.2",
+  "P 18 1"
+ ],
+ "steps": 40,
+ "description": "sflow_2d_curv_wavy_nh with the semi-implicit step and the coupled non-hydrostatic pressure (A 210 12, A 220 3, dt 0.2 s) on the wavy, skewed curvilinear grid (G 50 2): face differences along the face normals, divergence with the face lengths, the orthogonal Laplacian of the A 220 3 term, chain-rule cell gradients.",
+ "tags": [
+  "2d",
+  "sflow",
+  "semi_implicit",
+  "nonhydrostatic",
+  "curvilinear"
+ ],
+ "covers": [
+  "sflow_momentum_SI_nh curvilinear: fdn, flen/carea, sflow_curv::lapcoef, grad5",
+  "nh_cell: cell discharges from the normal terms of both index directions",
+  "cell_update curvilinear with the depth of t^{n+1/2}"
+ ],
+ "architect": "Hans Bihs"
+}

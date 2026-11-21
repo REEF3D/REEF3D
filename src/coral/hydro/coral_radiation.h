@@ -85,6 +85,8 @@ namespace coral
         static double output(const pair &q, const Eigen::VectorXcd &x) {return (q.c.cwiseProduct(x)).sum().real();}
         int nstates() const;
         int ndof() const {return ndof_;}
+        // real form of pair p: x' = A x + B u, memory force K * u = C x (two real states per complex one)
+        static void real_form(const pair&, MatX &A, VecX &B, VecX &C);
 
         std::vector<pair> pairs;
 

@@ -57,10 +57,7 @@ void iowave::distbeach_ini(lexer *p)
     l2 = fabs(l2)>1.0e-20?l2:1.0e20;
     
     dist=p->B107_d[n];
-    
-    //if(p->mpirank==0)
-    //cout<<"dist: "<<dist<<" "<<l1<<" "<<l2<<endl;
-    
+
     B1[n][0] = Bs[n][0] + (n1x/l1)*dist; 
     B1[n][1] = Bs[n][1] + (n1y/l1)*dist; 
     
@@ -74,11 +71,6 @@ void iowave::distbeach_ini(lexer *p)
     B4[n][1] = Be[n][1] + (n2y/l2)*dist; 
     }
     
-    /*
-    n=0;
-    if(p->mpirank==0)
-    cout<<" Beach Polygon  B1:"<<B1[n][0]<<" "<<B1[n][1]<<"  B2: "<<B2[n][0]<<" "<<B2[n][1]<<"  B3: "<<B3[n][0]<<" "<<B3[n][1]<<"  B4: "<<B4[n][0]<<" "<<B4[n][1]<<endl;
-    */
 }
 
 void iowave::distgen_ini(lexer *p)
@@ -114,10 +106,7 @@ void iowave::distgen_ini(lexer *p)
     l2 = fabs(l2)>1.0e-20?l2:1.0e20;
     
     dist=p->B108_d[n];
-    
-    //if(p->mpirank==0)
-    //cout<<"dist: "<<dist<<" "<<l1<<" "<<l2<<endl;
-    
+
     G1[n][0] = Gs[n][0] + (n1x/l1)*dist; 
     G1[n][1] = Gs[n][1] + (n1y/l1)*dist; 
     
@@ -131,9 +120,4 @@ void iowave::distgen_ini(lexer *p)
     G4[n][1] = Ge[n][1] + (n2y/l2)*dist; 
     }
     
-    /*
-    n=0;
-    if(p->mpirank==0)
-    cout<<" Gen Polygon  G1:"<<G1[n][0]<<" "<<G1[n][1]<<"  G2: "<<G2[n][0]<<" "<<G2[n][1]<<"  G3: "<<G3[n][0]<<" "<<G3[n][1]<<"  G4: "<<G4[n][0]<<" "<<G4[n][1]<<endl;
-    */
 }

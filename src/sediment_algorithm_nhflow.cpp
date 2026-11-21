@@ -109,6 +109,12 @@ void sediment_f::sediment_algorithm_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc,
     
     // suspended load -------
     pcbed->start(p,pgc,s);
+    
+    // thin water (S 131, S 132): limits of the bed load and the pick-up
+    thin_water(p,pgc,1);
+    
+    // S 134 1: no pick-up where the bed is at the solid surface
+    no_pickup(p);
 	
     // relax *******
 	prelax->start(p,pgc,s);

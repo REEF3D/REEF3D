@@ -1,0 +1,19 @@
+{
+ "base": "nhflow_3d_amr_hull_x15_10",
+ "np": 2,
+ "ctrl_add": [
+  "G 40 1"
+ ],
+ "description": "nhflow_3d_amr_hull_x15_10 on two ranks with the placed patches (G 40 1): the patch with the hull on one rank, the loads and the STL facets of the leaf grids of both ranks.",
+ "tags": [
+  "3d",
+  "nhflow",
+  "6dof",
+  "floating",
+  "amr",
+  "mpi"
+ ],
+ "covers": [
+  "X 15 10 on a 3D patch on several ranks"
+ ]
+}

@@ -32,7 +32,6 @@ Author: Hans Bihs
 class lexer;
 class fdm_fnpf;
 class ghostcell;
-class print;
 class ioflow;
 class reini;
 
@@ -46,21 +45,10 @@ public:
     
     void ini(lexer*, fdm_fnpf*, ghostcell*, ioflow*, reini*) override final;
     
-    
-    
 private:
-
-
     int gcval,gcval_u,gcval_v,gcval_w;
     
     char name[500];
-    
-    int iin,file_type;
-    float ffn;
-	double ddn;
-	int printcount;
-    ifstream result;
-
 };
 
 #endif

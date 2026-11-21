@@ -1,0 +1,26 @@
+{
+ "base": "nhflow_3d_si_mb_basin_tiles",
+ "same_as": "nhflow_3d_si_mb_basin_fine_density",
+ "same_as_rtol": 1e-06,
+ "description": "nhflow_3d_si_mb_basin_fine_density with the blocks cut into 2 x 2 tiles (G 55 8, G 58 1) and the coarse space G 57 4: the same to solver tolerance.",
+ "ctrl_add": [
+  "A 600 2",
+  "A 611 0.0 30.0",
+  "A 611 5.0 0.0",
+  "A 603 0.0 300.0 10.0 0.0 700.0 20.0",
+  "A 605 0.7 1.0e-4",
+  "A 620 2"
+ ],
+ "tags": [
+  "3d",
+  "nhflow",
+  "semi_implicit",
+  "curvilinear",
+  "multiblock",
+  "tracer",
+  "density"
+ ],
+ "covers": [
+  "the pressure gradient and the split tracer step across the faces between tiles"
+ ]
+}

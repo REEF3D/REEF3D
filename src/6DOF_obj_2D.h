@@ -55,6 +55,7 @@ protected:
     void geometry_parameters_2D(lexer*, ghostcell*);
     void update_trimesh_2D(lexer*, ghostcell*);
     void ray_cast_2D(lexer*, ghostcell*);
+    void draft_extension(lexer*, ghostcell*);   // X 411 1
     void ray_cast_2D_io_x(lexer*, ghostcell*,int,int);
     void ray_cast_2D_io_ycorr(lexer*, ghostcell*,int,int);
     void ray_cast_2D_x(lexer*, ghostcell*,int,int);

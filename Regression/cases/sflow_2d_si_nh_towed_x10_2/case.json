@@ -1,0 +1,18 @@
+{
+ "base": "sflow_2d_si_towed_x10_2",
+ "ctrl_set": {
+  "A 220": "3"
+ },
+ "description": "sflow_2d_si_towed_x10_2 with the coupled non-hydrostatic pressure (A 220 3).",
+ "tags": [
+  "2d",
+  "sflow",
+  "semi_implicit",
+  "nonhydrostatic",
+  "6dof"
+ ],
+ "covers": [
+  "X 10 2 with the coupled eta-P system"
+ ],
+ "architect": "Hans Bihs"
+}

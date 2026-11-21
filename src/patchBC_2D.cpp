@@ -152,6 +152,7 @@ void patchBC_2D::patchBC_discharge2D(lexer *p, fdm2D *b, ghostcell *pgc, slice &
         // face width, water depth of the cell, normal velocity at the boundary face
         double dl = (cs==1 || cs==4) ? p->DYN[JP] : p->DXN[IP];
         double un = (cs==1 || cs==4) ? 0.5*(b->U(i,j)+b->U(ii,jj)) : 0.5*(b->V(i,j)+b->V(ii,jj));
+        un *= patch_obj::inward(cs);   // positive into the domain
         
         A  += dl*b->hp(i,j);
         Qm += dl*b->hp(i,j)*un;

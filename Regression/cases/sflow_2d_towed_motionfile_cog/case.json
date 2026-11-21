@@ -1,0 +1,28 @@
+{
+ "base": "sflow_2d_si_towed_x10_2",
+ "ctrl_set": {
+  "A 210": "3",
+  "A 228": null,
+  "X 210": null,
+  "X 11": "2 2 0 0 0 2"
+ },
+ "ctrl_add": [
+  "X 240 11"
+ ],
+ "files": [
+  "6DOF_motion.dat"
+ ],
+ "np": 1,
+ "steps": 100,
+ "description": "the towed body of sflow_2d_si_towed_x10_2 with RK3 (A 210 3) on a path from a CoG motion file (X 240 11: t, x, y, yaw in degrees; 0.1 m/s^2 to 0.25 m/s, a sway of 5 cm, the yaw from 0 to 20 deg between 1 and 3 s): the velocities and the pose at the time each stage ends.",
+ "tags": [
+  "2d",
+  "sflow",
+  "6dof",
+  "motionfile"
+ ],
+ "covers": [
+  "sixdof_motionext_file_CoG at the stage end, its yaw from the file"
+ ],
+ "architect": "Hans Bihs"
+}

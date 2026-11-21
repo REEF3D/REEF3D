@@ -1,0 +1,15 @@
+{
+ "base": "seastate_2d_phase28_share",
+ "np": 2,
+ "same_as": "seastate_2d_phase28_share",
+ "description": "seastate_2d_phase28_share on 2 ranks: the percentage of the wet cells within A 779 (A 709) summed over the ranks, the same iterations per step and bitwise the result of one rank. Validation in Dropbox SEASTATE/validation/84_vartdalsfjord.",
+ "tags": [
+  "quick",
+  "2d",
+  "seastate",
+  "mpi"
+ ],
+ "covers": [
+  "A 709 with A 779 on 2 ranks"
+ ]
+}

@@ -41,17 +41,21 @@ void sixdof_sflow::ksource(lexer *p, fdm *a, ghostcell *pgc)
 
 void sixdof_sflow::isource2D(lexer *p, fdm2D *b, ghostcell *pgc)
 {
+    // the pressure of the step (A 210 11/12/13: the mean of its start and end)
+    auto pv = [&](int a, int c) { return mid ? 0.5*(press(a,c) + press_n(a,c)) : press(a,c); };
+
     // pressure of the moving body, cell centred source of the conserved momentum
-    if(p->X10==3)
+    // (X 402 1: the pressure head is part of the HLL hydrostatic flux, see sixdof_sflow::pressure_head)
+    if(p->X10==3 && p->X402==0)
 	SLICELOOP4
     {
-    dfdx = (press(i+1,j)-press(i-1,j))/(p->DXP[IP]+p->DXP[IM1]);
+    dfdx = (pv(i+1,j)-pv(i-1,j))/(p->DXP[IP]+p->DXP[IM1]);
 
     // curvilinear grid (G 50): the physical gradient (chain rule on the cell centres)
     if(p->geo_curv==1)
     {
     double gx,gy;
-    p->geo_grad(i,j,press(i+1,j),press(i-1,j),press(i,j+1),press(i,j-1),gx,gy);
+    p->geo_grad(i,j,pv(i+1,j),pv(i-1,j),pv(i,j+1),pv(i,j-1),gx,gy);
     dfdx = gx;
     }
     
@@ -64,15 +68,17 @@ void sixdof_sflow::isource2D(lexer *p, fdm2D *b, ghostcell *pgc)
 
 void sixdof_sflow::jsource2D(lexer *p, fdm2D *b, ghostcell *pgc)
 {
-    if(p->X10==3)
+    auto pv = [&](int a, int c) { return mid ? 0.5*(press(a,c) + press_n(a,c)) : press(a,c); };
+
+    if(p->X10==3 && p->X402==0)
 	SLICELOOP4
     {
-    dfdy = (press(i,j+1)-press(i,j-1))/(p->DYP[JP]+p->DYP[JM1]);
+    dfdy = (pv(i,j+1)-pv(i,j-1))/(p->DYP[JP]+p->DYP[JM1]);
 
     if(p->geo_curv==1)
     {
     double gx,gy;
-    p->geo_grad(i,j,press(i+1,j),press(i-1,j),press(i,j+1),press(i,j-1),gx,gy);
+    p->geo_grad(i,j,pv(i+1,j),pv(i-1,j),pv(i,j+1),pv(i,j-1),gx,gy);
     dfdy = gy;
     }
     
@@ -90,4 +96,16 @@ void sixdof_sflow::jsource(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL)
 
 void sixdof_sflow::ksource(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL)
 {
+}
+
+bool sixdof_sflow::sflow_press_step(lexer *p, slice &ps)
+{
+    if(p->X10!=3)
+    return false;
+
+    for(int ii=p->imin; ii<p->imin+p->imax; ++ii)
+    for(int jj=p->jmin; jj<p->jmin+p->jmax; ++jj)
+    ps(ii,jj) = mid ? 0.5*(press(ii,jj) + press_n(ii,jj)) : press(ii,jj);
+
+    return true;
 }

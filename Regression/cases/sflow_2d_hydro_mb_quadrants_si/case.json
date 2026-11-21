@@ -1,0 +1,25 @@
+{
+ "base": "sflow_2d_si_mb_quadrants",
+ "np": 1,
+ "steps": 40,
+ "ctrl_add": [
+  "R 10 1",
+  "R 11 360.0",
+  "R 40 1 10.0 22.0 0.05",
+  "R 90 0.5"
+ ],
+ "description": "sflow_2d_si_mb_quadrants (four curvilinear blocks turned against each other) with rain 360 mm/h and a point source in a block: the HYDRO objects of the blocks, the point in a curvilinear block cell.",
+ "tags": [
+  "quick",
+  "2d",
+  "sflow",
+  "hydro",
+  "multiblock",
+  "curvilinear",
+  "semi_implicit"
+ ],
+ "covers": [
+  "hydro_sflow on the blocks of a multi-block grid",
+  "hydro_sflow::locate on a curvilinear block"
+ ]
+}

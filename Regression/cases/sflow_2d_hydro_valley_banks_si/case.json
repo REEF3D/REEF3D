@@ -1,0 +1,21 @@
+{
+ "description": "REEF3D::HYDRO rain-on-grid (R 10 1, 36 mm/h) and a point source of 1 m3/s (R 40) on a valley of 1000 m x 100 m (10 m cells, side slopes 5 %, channel slope 1 %, free outfall), semi-implicit: the channel level lies below the bed of the banks. The face predictor weights the cells by their water above the higher bed of the face (patch 0009); before, the channel pushed half its momentum through the thin bank faces and set off surges at the outlet (+-1 m3/s on 2 m3/s). 500 steps (about 40 min) cover the surges of the old scheme. Validated in Dropbox HYDRO/validation/10_sflow_surges.",
+ "solver": "sflow",
+ "np": 1,
+ "steps": 500,
+ "files": [
+  "geo.dat"
+ ],
+ "tags": [
+  "quick",
+  "2d",
+  "sflow",
+  "hydro",
+  "semi_implicit",
+  "wetdry"
+ ],
+ "covers": [
+  "sflow_momentum_SI::face_weights",
+  "sflow_momentum_SI::si_assemble (REEF3D::HYDRO face predictor)"
+ ]
+}

@@ -30,6 +30,10 @@ public:
     virtual ~resize_class() = default;
 
     void Darray(double*&,int);
+    // large arrays from calloc: zero pages that the system maps only when they are first written, so an array an option
+    // never touches costs no memory; freed with del_Darray_lazy (free), not delete []
+    void Darray_lazy(double*&,int);
+    void del_Darray_lazy(double*&);
     void Darray(double**&,int,int);
     void Darray(double***&,int,int,int);
     void Darray(double****&,int,int,int,int);

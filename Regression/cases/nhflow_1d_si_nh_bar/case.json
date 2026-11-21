@@ -1,0 +1,9 @@
+{
+ "description": "NHFLOW semi-implicit step with the non-hydrostatic pressure (A 510 12, A 520 2, Basilisk-style coupled eta-phi system): Beji & Battjes bar (Benchmark nhflow_beji_battjes_bar), 1500 cells, 2 sigma layers, dt = 0.02 s, relaxation zones with B 95. 300 steps: the waves reach the bar.",
+ "solver": "nhflow",
+ "np": 1,
+ "steps": 300,
+ "tags": ["quick", "1d", "nhflow", "semi_implicit", "nonhydrostatic", "waves"],
+ "covers": ["the bed-slope terms of the coupled system ([u grad z], w_b, hpg slopes)", "nh_begin: face depths and advecting transport at t^{n+1/2}, second-order face depth"],
+ "architect": "Hans Bihs"
+}

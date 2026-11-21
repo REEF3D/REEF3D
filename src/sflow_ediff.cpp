@@ -21,6 +21,7 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"sflow_ediff.h"
+#include"sflow_diffusion_flux.h"
 #include"sflow_curv.h"
 #include"lexer.h"
 #include"fdm2D.h"
@@ -52,7 +53,7 @@ void sflow_ediff::diff_u(lexer* p, fdm2D *b, ghostcell *pgc, solver2D *psolv, sl
     UHdiff(i,j) = UH(i,j);
     
     WETDRY
-	b->F(i,j) += WL(i,j)*viscosity(p,b)*(2.0*dxx(p,U) + dyy(p,U) + dxy(p,V));
+	b->F(i,j) += 2.0*fxx(p,b,WL,U) + fyy(p,b,WL,U) + sflow_dflux::cross(p,b,WL,V,i,j,1);
     }
 }
 
@@ -71,7 +72,7 @@ void sflow_ediff::diff_v(lexer* p, fdm2D *b, ghostcell *pgc, solver2D *psolv, sl
     VHdiff(i,j) = VH(i,j);
     
     WETDRY
-	b->G(i,j) += WL(i,j)*viscosity(p,b)*(dxx(p,V) + 2.0*dyy(p,V) + dxy(p,U))*p->y_dir;
+	b->G(i,j) += (fxx(p,b,WL,V) + 2.0*fyy(p,b,WL,V) + sflow_dflux::cross(p,b,WL,U,i,j,2))*p->y_dir;
     }
 }
 
@@ -82,7 +83,7 @@ void sflow_ediff::diff_w(lexer* p, fdm2D *b, ghostcell *pgc, solver2D *psolv, sl
     WHdiff(i,j) = WH(i,j);
     
     WETDRY
-	b->H(i,j) += WL(i,j)*viscosity(p,b)*(dxx(p,W) + dyy(p,W));
+	b->H(i,j) += fxx(p,b,WL,W) + fyy(p,b,WL,W);
     }
 }
 
@@ -90,64 +91,38 @@ void sflow_ediff::diff_scalar(lexer* p, fdm2D *b, ghostcell *pgc, solver2D *psol
 {
 }
 
-double sflow_ediff::viscosity(lexer *p, fdm2D *b)
+// flux form (sflow_diffusion_flux.h): d/dx ((h nu)_f df/dx) and d/dy ((h nu)_f df/dy) of cell (i,j), no stress
+// through a face to a dry cell, the ghost value with the cell's own h nu at a wall or an open boundary
+double sflow_ediff::fxx(lexer *p, fdm2D *b, slice &WL, slice &f)
 {
-    double visc = p->W2 + b->eddyv(i,j);
-    
-    if(p->A246==2 && b->breaking(i,j)==1)
-    visc += p->A250;
-    
-    return visc;
+    const double ce = sflow_dflux::hnu(p,b,WL,i,j,i+1,j);
+    const double cw = sflow_dflux::hnu(p,b,WL,i,j,i-1,j);
+
+    return (ce*(f(i+1,j) - f(i,j))/p->DXP[IP] - cw*(f(i,j) - f(i-1,j))/p->DXP[IM1])/p->DXN[IP];
 }
 
-// dry neighbours (inside the domain, wet 0) are free-slip, zero normal gradient: the cell's own value is
-// used instead of the dry cell's (U = 0 there would act as a no-slip wall at the shoreline); walls and
-// open boundaries keep their ghost values
-#define SFLOW_DRY(X) (p->flagslice4[X]>0 && p->wet[X]==0)
-
-double sflow_ediff::dxx(lexer *p, slice &f)
-{
-    const double fp = SFLOW_DRY(Ip1J) ? f(i,j) : f(i+1,j);
-    const double fm = SFLOW_DRY(Im1J) ? f(i,j) : f(i-1,j);
-    
-    return ((fp - f(i,j))/p->DXP[IP] - (f(i,j) - fm)/p->DXP[IM1])/p->DXN[IP];
-}
-
-double sflow_ediff::dyy(lexer *p, slice &f)
+double sflow_ediff::fyy(lexer *p, fdm2D *b, slice &WL, slice &f)
 {
     if(p->j_dir==0)
     return 0.0;
-    
-    const double fp = SFLOW_DRY(IJp1) ? f(i,j) : f(i,j+1);
-    const double fm = SFLOW_DRY(IJm1) ? f(i,j) : f(i,j-1);
-    
-    return ((fp - f(i,j))/p->DYP[JP] - (f(i,j) - fm)/p->DYP[JM1])/p->DYN[JP];
-}
 
-double sflow_ediff::dxy(lexer *p, slice &f)
-{
-    if(p->j_dir==0)
-    return 0.0;
-    
-    if(p->flagslice4[Ip1Jp1]<0 || p->flagslice4[Ip1Jm1]<0 || p->flagslice4[Im1Jp1]<0 || p->flagslice4[Im1Jm1]<0)
-    return 0.0;
-    
-    if(p->wet[Ip1Jp1]==0 || p->wet[Ip1Jm1]==0 || p->wet[Im1Jp1]==0 || p->wet[Im1Jm1]==0)   // no cross term next to dry cells
-    return 0.0;
-    
-    return (f(i+1,j+1) - f(i+1,j-1) - f(i-1,j+1) + f(i-1,j-1))/((p->DXP[IP]+p->DXP[IM1])*(p->DYP[JP]+p->DYP[JM1]));
+    const double cn = sflow_dflux::hnu(p,b,WL,i,j,i,j+1);
+    const double cs = sflow_dflux::hnu(p,b,WL,i,j,i,j-1);
+
+    return (cn*(f(i,j+1) - f(i,j))/p->DYP[JP] - cs*(f(i,j) - f(i,j-1))/p->DYP[JM1])/p->DYN[JP];
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
 // curvilinear grids (G 50): the depth-integrated stress tau = nu h (grad u + grad u^T) through the faces of a cell over
-// its area (finite volume), nu h of a face the mean of its two cells.  Per face with the face vector S (length L,
+// its area (finite volume), nu h of a face the mean of the two viscosities times the smaller depth (flux form,
+// sflow_diffusion_flux.h).  Per face with the face vector S (length L,
 // sflow_curv::normal) and the cell centres P, N:
 //   x-momentum  nu h ( du/dn L  +  k.grad u  +  u_x S_x + v_x S_y )
 // du/dn L = (u_N - u_P) L/dn (the orthogonal part, sflow_curv::lapcoef), k the non-orthogonal part of S
 // (sflow_curv::kvec) and the transposed part from the mean of the two cell gradients.  A face to a wall or a dry cell
 // carries no stress (free slip), as the dry neighbours of the Cartesian operator; the cell gradients use the cell's own
 // value for such neighbours.  On a Cartesian grid: the Laplacian of the 5-point stencil and the transposed part
-// central, nu h (2 u_xx + u_yy + v_xy) as the Cartesian operator to second order.
+// central, as the Cartesian operator of sflow_ediff::fxx, fyy to second order.
 // Both cells of a face compute the same flux: the stress is conserved across the faces of the blocks and of the
 // patches of one level (the ghost cells hold the neighbour's state).
 void sflow_ediff::curv_stress(lexer *p, fdm2D *b, slice &U, slice &V, slice &WL, int comp)
@@ -162,7 +137,8 @@ void sflow_ediff::curv_stress(lexer *p, fdm2D *b, slice &U, slice &V, slice &WL,
                                   fluid(a,d+1) ? f(a,d+1) : fc, fluid(a,d-1) ? f(a,d-1) : fc, gx, gy);
     };
 
-    auto nuh = [&](int a, int d) { return (p->W2 + b->eddyv(a,d) + ((p->A246==2 && b->breaking(a,d)==1) ? p->A250 : 0.0))*WL(a,d); };
+    // (h nu) of a face: the mean of the two viscosities times the smaller depth (sflow_diffusion_flux.h)
+    auto nuh = [&](int a, int d) { return 0.5*(sflow_dflux::nu(p,b,i,j) + sflow_dflux::nu(p,b,a,d))*MIN(MAX(WL(i,j),0.0),MAX(WL(a,d),0.0)); };
 
     slice &f = (comp==1) ? U : V;
     const int di[4]={1,-1,0,0}, dj[4]={0,0,1,-1};
@@ -202,7 +178,7 @@ void sflow_ediff::curv_stress(lexer *p, fdm2D *b, slice &U, slice &V, slice &WL,
             const double tr = (comp==1) ? 0.5*(uxP+uxN)*Sx + 0.5*(vxP+vxN)*Sy
                                         : 0.5*(uyP+uyN)*Sx + 0.5*(vyP+vyN)*Sy;
 
-            s += 0.5*(nuh(i,j) + nuh(a,e))*((f(a,e) - f(i,j))*len/dn + gx*kx + gy*ky + tr);
+            s += nuh(a,e)*((f(a,e) - f(i,j))*len/dn + gx*kx + gy*ky + tr);
         }
 
         const double A = sflow_curv::area(p,i,j);

@@ -22,19 +22,19 @@ Architect: Hans Bihs
 
 #include"sflow_amr.h"
 #include"sflow_momentum_SI.h"
-#include"sflow_momentum_RK3.h"
+#include"sflow_timestep_SI.h"
 #include"sflow_curv.h"
+#include"sflow_amr_ship.h"
 #include"sflow_fsf.h"
 #include"si_eta2D.h"
 #include"lexer.h"
 #include"fdm2D.h"
 #include"ghostcell.h"
-#include"slice4.h"
 #include<cmath>
 #include<mpi.h>
 #include<iomanip>
 
-//  Semi-implicit free surface (A 226 1) on a multi-block grid (G 50 1) and with mesh refinement (G 1).
+//  Semi-implicit free surface (A 210 12/13) on a multi-block grid (G 50 1) and with mesh refinement (G 1).
 //
 //  Every grid (the native grid -1, the blocks 1.. of lev[0], the patches of the levels) has its own
 //  sflow_momentum_SI; the level-0 object hands its step over (sflow_momentum_SI::start -> si_step).  The parts of
@@ -368,6 +368,34 @@ void sflow_amr::si_step(lexer *p, fdm2D *b, ghostcell *pgc)
     // the water column of the step before, then the state of t^n around the grids
     si_all(pgc,[&](int g, lexer *q, fdm2D *bb, sflow_momentum_SI *m) { m->si_restore(q,bb,pgc); });
 
+    // X 10 3: the ship pressure of the step, the mean of its start and end (step_single); the patches evaluate the
+    // body of level 0 before and after it moves (ship_patches, sflow_amr_ship.cpp)
+    if(shipmode==3)
+    {
+        if(si_lv)
+        {
+            ship_patches(true);
+            for(auto q : P)
+            if(q->lev>=1)
+            {
+            sflow_amr_ship *s = SP(q)->pship;
+            lexer *pp = SP(q)->pp;
+            for(int ii=pp->imin; ii<pp->imin+pp->imax; ++ii)
+            for(int jj=pp->jmin; jj<pp->jmin+pp->jmax; ++jj)
+            s->press_n(ii,jj) = s->press(ii,jj);
+            }
+        }
+
+        psim0->ship_begin(p,b,pgc,true);
+
+        if(si_lv)
+        {
+            ship_patches(true);
+            for(int l=1; l<=maxlev; ++l)
+            si_level(pgc,l,[&](int g, lexer *q, fdm2D *bb, sflow_momentum_SI *m) { m->ship_begin(q,bb,pgc,false); });
+        }
+    }
+
     cache_stage(0);
     if(nblk>0)
     fill_level0(pgc,0);
@@ -376,6 +404,20 @@ void sflow_amr::si_step(lexer *p, fdm2D *b, ghostcell *pgc)
     fill_level(pgc,l,0);
 
     si_all(pgc,[&](int g, lexer *q, fdm2D *bb, sflow_momentum_SI *m) { m->si_begin(q,bb,pgc); });
+
+    // A 220 2/3 and A 210 11: the time levels of the nonlinear terms (the depths of t^{n+1/2} and t^{n+1} around the
+    // grids)
+    const bool nhs = psim0->nh;
+
+    if(psim0->tlev)
+    {
+        si_all(pgc,[&](int g, lexer *q, fdm2D *bb, sflow_momentum_SI *m) { m->nh_levels(q,bb,pgc); });
+        si_fillS(pgc,2,8700,[&](int g, int k) -> slice& { return k==0 ? gsi(g)->WLh : gsi(g)->WLq; });
+    }
+
+    // A 210 11 with A 220 2/3: the non-hydrostatic increment of the step before around the grids (the BCG source term)
+    if(psim0->onestep && nhs)
+    si_fillS(pgc,2,8710,[&](int g, int k) -> slice& { return k==0 ? gsi(g)->dNx : gsi(g)->dNy; });
 
     // predictor: the velocities and the input of a stage around the grids before its fluxes
     if(si_lv)
@@ -425,8 +467,22 @@ void sflow_amr::si_step(lexer *p, fdm2D *b, ghostcell *pgc)
 
     si_all(pgc,[&](int g, lexer *q, fdm2D *bb, sflow_momentum_SI *m) { m->si_rhs(q,bb,pgc); });
 
-    // one eta system over the leaf cells of all grids
+    // one eta system over the leaf cells of all grids; A 220 2/3: the coupled eta-P system (sflow_amr_sinh.cpp), with
+    // the bed acceleration and the A 220 3 term of t^n of every grid around the grids
     rsi_result r;
+
+    if(nhs)
+    {
+        // A 220 3: h^3 lap(eta^n) next to the patch edges with eta of the cells around the patches to second order
+        if(psim0->Bdisp>0.0)
+        si_nh_quad([&](int g) -> slice& { return g<0 ? b0->eta : SP(g)->b->eta; },true);
+
+        si_all(pgc,[&](int g, lexer *q, fdm2D *bb, sflow_momentum_SI *m) { m->nh_predictor(q,bb,pgc); });
+        si_fillS(pgc,2,8720,[&](int g, int k) -> slice& { return k==0 ? gsi(g)->Lc0 : gsi(g)->phiN; });
+        si_nh_solve(p,pgc,r);
+    }
+
+    else
     rsi_solve(p,pgc,p->A229==1 ? 20 : 1,r);
 
     for(int g : rsi_grids())
@@ -450,6 +506,11 @@ void sflow_amr::si_step(lexer *p, fdm2D *b, ghostcell *pgc)
     if(si_lv)
     {
         restrict_levels(p,2);
+
+        // A 220 2/3: the face discharges of the covered faces from the fine faces (sflow_amr_sinh.cpp)
+        if(nhs)
+        si_nh_qrestrict();
+
         exchange_level0(p,b,pgc,2);
 
         for(int g : rsi_grids())
@@ -563,7 +624,7 @@ void sflow_amr::si_log(lexer *p, ghostcell *pgc)
 void sflow_amr::si_timestep(lexer *p, ghostcell *pgc)
 {
     const double cfl = p->N47;
-    double cmin = 1.0e20;
+    double cmin = 1.0e20, capw = 1.0e20;
 
     for(auto q : P)
     {
@@ -587,8 +648,30 @@ void sflow_amr::si_timestep(lexer *p, ghostcell *pgc)
             sigma += fabs(pb->V(ii,jj))/pp->DYN[jj+marge];
             }
 
+            // A 220 2/3: WH advected with AB2; A 210 11: 2.5 (sflow_timestep_SI)
+            if(p->A226==1 && p->A210==1)
+            sigma *= 2.5;
+
+            else
+            if(p->A220>=2)
+            sigma *= 2.0;
+
             if(sigma>1.0e-20)
             cmin = MIN(cmin,1.0/sigma);
+
+            // the wave limit without A 228 > 0 with the cells of the patch (sflow_timestep_SI::wave_cap)
+            if(p->A228<=0.0)
+            {
+            double dxc;
+
+            if(pp->geo_curv==1)
+            dxc = sqrt(2.0/MAX(sflow_curv::inv2(pp,ii,jj),1.0e-20));
+
+            else
+            dxc = (p->j_dir==1) ? MIN(pp->DXN[ii+marge],pp->DYN[jj+marge]) : pp->DXN[ii+marge];
+
+            capw = MIN(capw,sflow_timestep_SI::wave_cap(p,dxc,pb->WL(ii,jj)));
+            }
 
             if(p->A212==1)
             {
@@ -597,17 +680,31 @@ void sflow_amr::si_timestep(lexer *p, ghostcell *pgc)
             if(p->A246==2 && pb->breaking(ii,jj)==1)
             visc += p->A250;
 
+            if(p->A246==4)
+            visc += pb->vb(ii,jj);
+
             const double lam = (pp->geo_curv==1) ? sflow_curv::inv2(pp,ii,jj)
                              : 1.0/(pp->DXN[ii+marge]*pp->DXN[ii+marge]) + p->y_dir/(pp->DYN[jj+marge]*pp->DYN[jj+marge]);
 
-            cmin = MIN(cmin, 0.5/(visc*lam + 1.0e-20)/(2.0*cfl));
+            cmin = MIN(cmin, 0.2/(visc*lam + 1.0e-20)/(2.0*cfl));
             }
         }
     }
 
-    const double dtp = pgc->globalmin(cfl*2.0*cmin);
+    // X 10 3: the moving pressure travels at most about one cell of the patch per step (as sflow_timestep_SI)
+    if(p->X10==3)
+    for(auto q : P)
+    {
+        lexer *pp = SP(q)->pp;
+        const double us = fabs(p->ufbi)/pp->DXM + p->y_dir*fabs(p->vfbi)/pp->DXM;
 
-    if(p->N48==1)
+        if(us>1.0e-20)
+        cmin = MIN(cmin,1.0/us);
+    }
+
+    const double dtp = pgc->globalmin(MIN(cfl*2.0*cmin,capw));
+
+    if(p->N48>=1)
     p->dt = MIN(p->dt,dtp);
 
     p->dt = pgc->timesync(p->dt);

@@ -37,9 +37,44 @@ Author: Hans Bihs
 
 void dem_f::fluid_cfd(lexer *p, fdm *a, ghostcell *pgc)
 {
-    const int nv = 14;
+    const int nv = 14 + nlift;      // 14-22: lift samples (E 32, E 33)
     vector<double> buf(nb*nv,0.0);
     dem_vec g(p->W20,p->W21,p->W22);
+    bool dolift = liftmodel>0 || magnus>0;
+
+    // fluid velocity for the lift samples: zero inside the bed and solids, and within half a cell of
+    // them linear to zero at the wall (the interpolation across the wall would take the velocities of
+    // the cells inside the bed): the velocity half a cell from the wall along its normal, scaled
+    auto ucc = [&](const dem_vec &x) -> dem_vec
+    {
+        return dem_vec(p->ccipol1(a->u,x(0),x(1),x(2)),
+                       p->j_dir==1 ? p->ccipol2(a->v,x(0),x(1),x(2)) : 0.0,
+                       p->ccipol3(a->w,x(0),x(1),x(2)));
+    };
+    auto uat = [&](const dem_vec &x) -> dem_vec
+    {
+        // topo and solid level sets, and the wall planes of dem.txt
+        dem_vec np = upvec;
+        double phig = wallphi_cfd(p,a,x(0),x(1),x(2));
+        double phip = planephi(x,np);
+        double phi = std::min(phig,phip);
+        if(phi<=0.0)
+        return dem_vec::Zero();
+        double del = 0.5*dxs;
+        if(phi>=del)
+        return ucc(x);
+        dem_vec nw = np;
+        if(phig<phip)
+        {
+            double h = 0.25*dxs;
+            nw = dem_vec(wallphi_cfd(p,a,x(0)+h,x(1),x(2)) - wallphi_cfd(p,a,x(0)-h,x(1),x(2)),
+                         p->j_dir==1 ? wallphi_cfd(p,a,x(0),x(1)+h,x(2)) - wallphi_cfd(p,a,x(0),x(1)-h,x(2)) : 0.0,
+                         wallphi_cfd(p,a,x(0),x(1),x(2)+h) - wallphi_cfd(p,a,x(0),x(1),x(2)-h));
+            double nn = nw.norm();
+            nw = nn>1.0e-14 ? dem_vec(nw/nn) : upvec;
+        }
+        return (phi/del)*ucc(x + (del-phi)*nw);
+    };
 
     for(int n=0; n<nb; ++n)
     {
@@ -58,6 +93,9 @@ void dem_f::fluid_cfd(lexer *p, fdm *a, ghostcell *pgc)
             b[4] = p->ccipol4a(a->visc,B.x(0),B.x(1),B.x(2));
             b[5] = 1.0 - std::max(0.0,p->ccipol4a(*ALPHA,B.x(0),B.x(1),B.x(2)) - core.bodies[n].cpl.aself);
             b[6] = 1.0;
+
+            if(dolift && B.mode==0)
+            lift_sample(n,uat,&b[14]);
         }
 
         if(B.mode==0)
@@ -103,6 +141,9 @@ void dem_f::fluid_cfd(lexer *p, fdm *a, ghostcell *pgc)
         core.bodies[n].cpl.Fb = dem_vec(b[7],b[8],b[9]);
         core.bodies[n].cpl.Tb = dem_vec(b[10],b[11],b[12]);
         core.bodies[n].cpl.vsub = b[13];
+
+        if(dolift)
+        lift_store(n,&b[14],cnt);
     }
 }
 
@@ -163,7 +204,7 @@ void dem_f::feedback_cfd(lexer *p, fdm *a, ghostcell *pgc)
         if(B.ghost || !B.active || B.fixed || B.mode!=0)
         continue;
         dem_vec ap = (B.v - B.cpl.vprev)/p->dt;
-        B.cpl.Ffp = -(B.K*(B.uf - B.v) + B.madd*(B.af - ap));
+        B.cpl.Ffp = -(B.K*(B.uf - B.v) + B.madd*(B.af - ap) + B.cpl.Flift);
         for(int q=0; q<3; ++q)
         ffp[3*n+q] = B.cpl.Ffp(q);
     }

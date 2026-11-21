@@ -1,0 +1,33 @@
+{
+ "base": "sflow_2d_si_nh_shoal_amr_ckpt",
+ "same_as": "sflow_2d_si_nh_shoal_amr_ckpt",
+ "chain": [
+  {
+   "case": "sflow_2d_si_nh_shoal_amr_ckpt",
+   "copy": [
+    "REEF3D_Checkpoint",
+    "REEF3D_SFLOW_WSF",
+    "REEF3D_SFLOW_Log",
+    "REEF3D_SFLOW_ProbePoint",
+    "REEF3D_SFLOW_WSFLINE",
+    "REEF3D_SFLOW_AMR"
+   ]
+  }
+ ],
+ "ctrl_set": {
+  "I 45": "30"
+ },
+ "description": "the restart of sflow_2d_si_nh_shoal_amr_ckpt from step 30 (I 45 30): regression.py ranks: the final state bitwise that of the uninterrupted run.",
+ "tags": [
+  "2d",
+  "sflow",
+  "semi_implicit",
+  "nonhydrostatic",
+  "checkpoint",
+  "amr"
+ ],
+ "covers": [
+  "sflow_momentum_SI::ckpt_fields, ckpt_restored (the flags of the step before)"
+ ],
+ "architect": "Hans Bihs"
+}

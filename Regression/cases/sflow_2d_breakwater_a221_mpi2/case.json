@@ -1,0 +1,21 @@
+{
+ "description": "SFLOW explicit (A 210 2, A 220 3) with dry land as a wall (A 221 2, A 209 0) on 2 ranks: regular waves (T 6 s, kh 1.3, 4 m cells) onto a breakwater of dry cells (T 10, 8 m thick, 2 m above the water) across half of the basin: walls of dry land in x (front and lee side) and in y (the tip), the corner cells of the tip with two walls, a rank boundary through the breakwater. Gauges in front of it (standing wave), at the tip and in the lee.",
+ "solver": "sflow",
+ "np": 2,
+ "steps": 300,
+ "tags": [
+  "quick",
+  "2d",
+  "sflow",
+  "waves",
+  "wetdry",
+  "nonhydrostatic",
+  "mpi"
+ ],
+ "covers": [
+  "sflow_drywall.h in 2D: walls in x and y, the diagonals of cliff",
+  "sflow_pjm_quad::quad_calc: cross terms at a wall of dry land",
+  "A 221 2 across a rank boundary"
+ ],
+ "architect": "Hans Bihs"
+}

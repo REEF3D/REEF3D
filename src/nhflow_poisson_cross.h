@@ -57,8 +57,6 @@ inline bool implicit(lexer *p, fdm_nhf *d)
 // A 530: cross terms in this row (pressure node between the cells k-1 and k)
 inline bool active(lexer *p, fdm_nhf *d, int i, int j, int k)
 {
-    const int marge = increment::marge;
-    
     if(p->A530==1)
     return true;
 

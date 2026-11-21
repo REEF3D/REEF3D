@@ -24,6 +24,11 @@ Author: Hans Bihs
 #include"fnpf_6DOF.h"
 #include"lexer.h"
 
+int fnpf_body::last_stage(lexer *p)
+{
+    return (p->A310==3) ? 2 : ((p->A310==5) ? 1 : 3);
+}
+
 fnpf_body* fnpf_body::create(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 {
     if(p->X10>0)

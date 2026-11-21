@@ -96,8 +96,6 @@ void nhflow_print_wsf::height_gauge(lexer *p, fdm_nhf *d, ghostcell *pgc, slice 
 
 void nhflow_print_wsf::fill_eta(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &f)
 {
-    double zval=0.0;
-
     for(n=0;n<gauge_num;++n)
     wsf[n]=-1.0e20;
 
@@ -110,8 +108,6 @@ void nhflow_print_wsf::fill_eta(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &f)
     for(n=0;n<gauge_num;++n)
     if(amr==nullptr ? flag[n]>0 : ap.mine[n]!=0)
     {
-    zval=0.0;
-
     i=iloc[n];
     j=jloc[n];
     
@@ -123,17 +119,6 @@ void nhflow_print_wsf::fill_eta(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &f)
 	
     pgc->globalmax(wsf,gauge_num);   // one reduction for all gauges
 }
-
-void nhflow_print_wsf::fill_deta(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &f)
-{
-    
-}
-    
-void nhflow_print_wsf::fill_Uhorz(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &f)
-{
-    
-}
-
 
 void nhflow_print_wsf::ini_location(lexer *p, fdm_nhf *d)
 {

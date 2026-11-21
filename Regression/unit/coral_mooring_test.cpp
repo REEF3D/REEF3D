@@ -17,7 +17,9 @@
 // the stop of an unstable line, the start from the static equilibrium of the segments, mooring systems with
 // free points (clump weight, buoy, bridle: static balance; pendulum period; clump on the seabed), line
 // failure at a time and at a tension, restart after a failure, seabed on a slope, a grid and the bed of a
-// sampled fluid, bending stiffness (cantilever: deflection, clamping moment; frequency of a taut line).
+// sampled fluid, bending stiffness (cantilever: deflection, clamping moment; frequency of a taut line),
+// cross-flow vortex-induced vibration (a taut string in a current: lock-in, the band of the synchronization
+// model, the direction, none with Cl 0, restart).
 // Architect: Hans Bihs
 #include"coral/core/coral_model.h"
 #include"coral/core/coral_timeint.h"
@@ -1318,6 +1320,85 @@ static void test_stick_slip()
     }
 }
 
+// cross-flow VIV (Thorsen's synchronization model): a taut string of 10 m (tension 10 kN, 10 kg/m, d 0.05 m, first
+// frequency f1 1.44 Hz in water) across a uniform current U, no gravity, so the lift is the only force out of the
+// plane of the flow. At U 0.3 and 0.5 m/s (reduced velocity U/(f1 d) 4.2 and 6.9; a fixed string would shed at
+// 0.18 U/d = 1.08 and 1.80 Hz) the shedding locks in: the string vibrates near f1 at about half a diameter; beyond
+// the synchronization band (U 0.8 m/s, 2.9 Hz) hardly at all
+static void test_viv()
+{
+    std::cout<<"vortex-induced vibration"<<std::endl;
+    struct res {double A, f, yr; Vec3 r;};
+    auto run = [&](double U, double Cl, int restart, std::vector<double> *st) -> res
+    {
+        auto build = [&](model &m, std::unique_ptr<mooring_system> &s)
+        {
+            m.gravity = Vec3::Zero();
+            rigid_body bd;
+            bd.mass = 1.0;
+            bd.inertia = Mat3::Identity();
+            const int ib = m.add_body(bd);
+            m.bodies[ib].x = Vec3(10.0, 0.0, -20.0);
+            s = std::make_unique<mooring_system>(m, nullptr, Vec3(0.0, U, 0.0));
+            mooring_props q;
+            q.d = 0.05; q.mass = 10.0; q.EA = 1.0e7; q.BA = 0.0; q.Cdn = 1.2; q.Cdt = 0.0; q.Can = 1.0; q.Cat = 0.0;
+            q.Cl = Cl;
+            q.L = 10.0/(1.0 + 1.0e4/q.EA);
+            mooring_end a, b;
+            a.p = Vec3(0.0, 0.0, -20.0);
+            b.body = ib; b.p = Vec3(10.0, 0.0, -20.0);
+            s->add_line(m, "string", a, b, q, 10);
+            s->initialize(m, 0.0);
+        };
+        model m;
+        std::unique_ptr<mooring_system> s;
+        build(m, s);
+        const double h = 0.01;
+        const int n = 4000, n0 = 2000;
+        std::vector<double> z, y;
+        for(int i=1; i<=n; ++i)
+        {
+            s->commit(m, i*h, h);
+            if(i==1000 && restart==1)
+                s->save_state(*st);
+            if(i==1000 && restart==2)
+            {
+                model m2;
+                std::unique_ptr<mooring_system> s2;
+                build(m2, s2);
+                size_t k = 0;
+                s2->load_state(*st, k);
+                s = std::move(s2);
+            }
+            z.push_back(s->line_nodes(0)[5](2) + 20.0);
+            y.push_back(s->line_nodes(0)[5](1));
+        }
+        double zm = 0.0, ym = 0.0, zr = 0.0, yr = 0.0;
+        for(int i=n0; i<n; ++i) {zm += z[i]/(n - n0); ym += y[i]/(n - n0);}
+        for(int i=n0; i<n; ++i) {zr += (z[i] - zm)*(z[i] - zm)/(n - n0); yr += (y[i] - ym)*(y[i] - ym)/(n - n0);}
+        double fb = 0.0, pb = -1.0;
+        for(double f=0.5; f<3.0; f+=0.002)
+        {
+            double c = 0.0, sn = 0.0;
+            for(int i=n0; i<n; ++i) {c += (z[i] - zm)*std::cos(2.0*M_PI*f*i*h); sn += (z[i] - zm)*std::sin(2.0*M_PI*f*i*h);}
+            if(c*c + sn*sn > pb) {pb = c*c + sn*sn; fb = f;}
+        }
+        return res{std::sqrt(2.0*zr)/0.05, fb, std::sqrt(yr), s->line_nodes(0)[3]};
+    };
+    std::vector<double> st;
+    const res lo = run(0.3, 0.7, 0, &st), hi = run(0.5, 0.7, 1, &st), out = run(0.8, 0.7, 0, &st), none = run(0.5, 0.0, 0, &st);
+    const double fs_lo = 0.18*0.3/0.05, fs_hi = 0.18*0.5/0.05;
+    check(lo.A > 0.3 && lo.A < 1.0 && hi.A > 0.3 && hi.A < 1.0,
+          fmt("lock-in: cross-flow amplitude %.2f D at U 0.3 m/s, %.2f D at 0.5 m/s", lo.A, hi.A));
+    check(std::fabs(hi.f - lo.f) < 0.25*(fs_hi - fs_lo) && std::fabs(lo.f - 1.44) < 0.1*1.44 && std::fabs(hi.f - 1.44) < 0.1*1.44,
+          fmt("lock-in: vibration at %.3f and %.3f Hz (f1 1.44 Hz), the shedding of a fixed string %.2f and %.2f Hz", lo.f, hi.f, fs_lo, fs_hi));
+    check(out.A < 0.1, fmt("beyond the synchronization band (U 0.8 m/s, shedding 2.88 Hz): %.3f D", out.A));
+    check(hi.yr < 0.1*hi.A*0.05/std::sqrt(2.0), fmt("cross-flow: in-line oscillation %.2e m rms against %.2e m across", hi.yr, hi.A*0.05/std::sqrt(2.0)));
+    check(none.A == 0.0 && none.r(2) == -20.0, "Cl 0: no lift, the string stays in the plane of the flow");
+    const res rs = run(0.5, 0.7, 2, &st);
+    check(rs.r == hi.r && rs.A == hi.A, fmt("restart at 10 s: the run continues bit for bit (node 3 at z %.6f m)", hi.r(2)));
+}
+
 int main()
 {
     test_catenary();
@@ -1336,6 +1417,7 @@ int main()
     test_bending();
     test_damping_law();
     test_stick_slip();
+    test_viv();
     std::cout<<(nfail ? "FAILED: " : "all passed")<<(nfail ? std::to_string(nfail) : "")<<std::endl;
     return nfail ? 1 : 0;
 }

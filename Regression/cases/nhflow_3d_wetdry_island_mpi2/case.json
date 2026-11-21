@@ -1,0 +1,19 @@
+{
+ "base": "nhflow_3d_wetdry_island",
+ "np": 2,
+ "description": "nhflow_3d_wetdry_island on 2 ranks: the same solution as on 1 rank. The bed smoothing A 509 changed the bed in place and gave another bed on 2 ranks (eta 1e-4 m apart after 30 s).",
+ "tags": [
+  "quick",
+  "3d",
+  "nhflow",
+  "wetdry",
+  "mpi"
+ ],
+ "covers": [
+  "A 509 independent of the ranks",
+  "wetting and drying across a rank boundary"
+ ],
+ "same_as": "nhflow_3d_wetdry_island",
+ "same_as_rtol": 1e-08,
+ "architect": "Hans Bihs"
+}

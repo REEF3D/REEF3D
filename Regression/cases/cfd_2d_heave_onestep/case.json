@@ -1,0 +1,4 @@
+{"np": 1, "steps": 60,
+ "description": "2D heave decay of a floating box (X 10 1, heave free, density 500) with the one-step scheme N 40 5: the body integrated symplectic in the step (sixdof_obj::onestep_cfd: the momenta with the loads of time n, the pose with the momenta of n+1; patch 0059). Over 4 s the heave follows N 40 3 within 1 mm (period 0.855 s in both).",
+ "tags": ["quick", "2d", "6dof", "floating", "levelset", "onestep"],
+ "covers": ["sixdof_obj::onestep_cfd N 40 5 (symplectic Euler)", "6DOF stage weights alpha of N 40 5", "driver_logic_cfd: X 10 with N 40 5"]}

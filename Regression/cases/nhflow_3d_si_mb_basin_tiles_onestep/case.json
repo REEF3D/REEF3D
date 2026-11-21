@@ -1,0 +1,20 @@
+{
+ "base": "nhflow_3d_si_mb_basin_tiles",
+ "ctrl_set": {
+  "A 510": "11"
+ },
+ "same_as": "nhflow_3d_si_mb_basin_fine_onestep",
+ "same_as_rtol": 1e-06,
+ "description": "nhflow_3d_si_mb_basin_tiles with A 510 11: the blocks cut into 2 x 2 tiles equal the uncut grid (nhflow_3d_si_mb_basin_fine_onestep) to the solver tolerance.",
+ "tags": [
+  "3d",
+  "nhflow",
+  "semi_implicit",
+  "multiblock",
+  "curvilinear"
+ ],
+ "covers": [
+  "A 510 11: the BCG face values across the block and tile faces"
+ ],
+ "architect": "Hans Bihs"
+}

@@ -66,6 +66,145 @@ void CPM::pfold(lexer *p, field &f)
     }
 }
 
+/*--------------------------------------------------------------------
+deposits of the parcels in the ghost cells (kernel): solid volume, momentum, coupling terms
+
+The kernel of a parcel within half a cell of a side of the subdomain deposits into the ghost cells
+beyond that side. start4a_sum adds the ghost cells of a face to the cells of the neighbour subdomain.
+A parcel next to two sides with neighbours (an edge of the subdomain, decompositions with two or three
+directions split) also deposits into the ghost cells beyond the edge, which belong to the subdomain
+across the edge: start4a_sum does not reach them, and this share of the parcel was lost. The cells along
+such an edge (the lines where four subdomains meet) then had 1/16 too little solid volume, 6 % of the
+bed (2 x 2 subdomains in x and y: 0.06 % of the solid volume of the grid, the same share of the
+momentum and of the drag of the two-way coupling).
+
+edge_fold moves the deposits of the edge and corner ghost cells into the ghost cells of a face of a
+neighbour, from where start4a_sum takes them on:
+  x: the ghost planes i = -1 and i = knox, their cells with j or k in the ghost layer, go to the
+     x neighbour, into its cells i = 0 and i = knox-1 of the same j and k (ghost cells of its y or z faces)
+  y: the ghost planes j = -1 and j = knoy, their cells with k in the ghost layer (i within the
+     subdomain), go to the y neighbour, into its ghost cells of the z faces
+The subdomains are a tensor product (one neighbour per face), so the faces of two neighbours match.
+--------------------------------------------------------------------*/
+void CPM::deposit_sum(lexer *p, ghostcell *pgc, field &f)
+{
+    pfold(p,f);
+    
+    edge_fold(p,pgc,f);
+    
+    pgc->start4a_sum(p,f,1);
+}
+
+void CPM::edge_fold(lexer *p, ghostcell *pgc, field &f)
+{
+    const int nx = p->knox, ny = p->knoy, nz = p->knoz;
+    int sn[6], rn[6];
+    double *sb[6], *rb[6];
+    
+    auto exchange = [&](int qa, int qb, int count)
+    {
+        for(int q=0;q<6;++q)
+        {
+            const int c = (q==qa || q==qb) ? count : 0;
+            
+            sn[q] = rn[q] = c;
+            
+            if(ef_send[q].size()<size_t(c)+1)
+            {
+                ef_send[q].resize(size_t(c)+1);
+                ef_recv[q].resize(size_t(c)+1);
+            }
+            
+            sb[q] = ef_send[q].data();
+            rb[q] = ef_recv[q].data();
+        }
+    };
+    
+    // x: sides 1 (-x, buffer 0) and 4 (+x, buffer 3)
+    if(xsplit==1 && (ysplit==1 || zsplit==1))
+    {
+        const int count = (ny+2)*(nz+2) - ny*nz;
+        
+        exchange(0,3,count);
+        
+        // the frame of the ghost plane ig, added into the plane ic of the neighbour
+        auto frame = [&](int ig, int ic, double *buf, bool send)
+        {
+            int c=0;
+            
+            for(int jj=-1;jj<=ny;++jj)
+            for(int kk=-1;kk<=nz;++kk)
+            if(jj<0 || jj>=ny || kk<0 || kk>=nz)
+            {
+                if(send)
+                {
+                    buf[c] = f(ig,jj,kk);
+                    f(ig,jj,kk) = 0.0;
+                }
+                else
+                f(ic,jj,kk) += buf[c];
+                
+                ++c;
+            }
+        };
+        
+        frame(-1,0,sb[0],true);
+        frame(nx,0,sb[3],true);
+        
+        for(int c=0;c<count;++c)
+        rb[0][c] = rb[3][c] = 0.0;
+        
+        pgc->gcpartx(sn,rn,sb,rb);
+        
+        if(p->nb1>=0)
+        frame(0,0,rb[0],false);
+        
+        if(p->nb4>=0)
+        frame(0,nx-1,rb[3],false);
+    }
+    
+    // y: sides 3 (-y, buffer 2) and 2 (+y, buffer 1)
+    if(ysplit==1 && zsplit==1)
+    {
+        const int count = 2*nx;
+        
+        exchange(2,1,count);
+        
+        auto frame = [&](int jg, int jc, double *buf, bool send)
+        {
+            int c=0;
+            
+            for(int ii=0;ii<nx;++ii)
+            for(int kk=-1;kk<=nz;kk+=nz+1)
+            {
+                if(send)
+                {
+                    buf[c] = f(ii,jg,kk);
+                    f(ii,jg,kk) = 0.0;
+                }
+                else
+                f(ii,jc,kk) += buf[c];
+                
+                ++c;
+            }
+        };
+        
+        frame(-1,0,sb[2],true);
+        frame(ny,0,sb[1],true);
+        
+        for(int c=0;c<count;++c)
+        rb[2][c] = rb[1][c] = 0.0;
+        
+        pgc->gcpartx(sn,rn,sb,rb);
+        
+        if(p->nb3>=0)
+        frame(0,0,rb[2],false);
+        
+        if(p->nb2>=0)
+        frame(0,ny-1,rb[1],false);
+    }
+}
+
 // serial periodic: parcels whose new position PX1 lies beyond a periodic side are moved by the
 // period, together with their old position PX0 (the RK2 stages combine both)
 void CPM::periodic_wrap(lexer *p, double *PX0, double *PY0, double *PX1, double *PY1)

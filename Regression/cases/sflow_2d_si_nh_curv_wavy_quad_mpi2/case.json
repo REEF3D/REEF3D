@@ -1,0 +1,20 @@
+{
+ "base": "sflow_2d_si_nh_curv_wavy",
+ "np": 2,
+ "ctrl_set": {
+  "A 220": "2"
+ },
+ "description": "sflow_2d_si_nh_curv_wavy with A 220 2 on 2 ranks.",
+ "tags": [
+  "2d",
+  "sflow",
+  "semi_implicit",
+  "nonhydrostatic",
+  "curvilinear",
+  "mpi"
+ ],
+ "covers": [
+  "curvilinear coupled system across ranks"
+ ],
+ "architect": "Hans Bihs"
+}

@@ -98,7 +98,6 @@ void sixdof_nhflow::start_twoway(lexer *p, fdm_nhf *d, ghostcell *pgc, int iter,
     for (int nb=0; nb<number6DOF;++nb)
     {
         // Calculate forces
-        //fb_obj[nb]->hydrodynamic_forces_nhflow(p,d,pgc,WL,finalize);
         
         // Advance body in time (X 13: already done at the start of the stage)
         if(!advanced(p,iter))
@@ -275,27 +274,18 @@ void sixdof_nhflow::reforce_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, int ite
         fb_obj[nb]->update_forcing_nhflow_wavemaker(p,d,pgc,d->U,d->V,d->W,FX,FY,FZ,WL,fe,iter);
         
         else if(p->X16==0)
+        {
+        // X 15 11: the projected velocity is kept, only the fractions of the body are set again
+        fb_obj[nb]->fraction_reforce = (p->X15==11);
         fb_obj[nb]->update_forcing_nhflow(p,d,pgc,d->U,d->V,d->W,FX,FY,FZ,WL,fe,iter);
+        fb_obj[nb]->fraction_reforce = false;
+        }
         
         else if(p->X16==1)
         fb_obj[nb]->porosity_nhflow(p,d,pgc);
 
         // 2. load from the pressure that was just solved
         fb_obj[nb]->hydrodynamic_forces_nhflow(p,d,pgc,WL,finalize);
-
-        // 3. advance the body for the next substage
-        /*fb_obj[nb]->solve_eqmotion_nhflow(p,d,pgc,iter,finalize);
-        fb_obj[nb]->quat_matrices(p);
-        fb_obj[nb]->update_position_nhflow(p,d,pgc,d->fs,finalize);
-        fb_obj[nb]->update_fbvel(p,pgc);
-
-        if(finalize==true)
-        {
-            fb_obj[nb]->saveTimeStep(p,iter);
-            if(p->X50==1) fb_obj[nb]->print_vtp(p,pgc);
-            if(p->X50==2) fb_obj[nb]->print_stl(p,pgc);
-            fb_obj[nb]->print_parameter(p,pgc,p->simtime+p->dt);
-        }*/
     }
     
     // external solver (CORAL): with the predictor the loads of the first stage at the predicted pose
@@ -313,6 +303,24 @@ void sixdof_nhflow::reforce_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, int ite
     }
 }
 
+
+void sixdof_nhflow::added_mass_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, solver *psolv, slice &WL, int iter)
+{
+    // two-way coupled bodies with the direct forcing X 15 11, at the first stage of every X 28 th time step
+    if(p->X15!=11 || p->X10!=1 || p->X16!=0 || iter!=0 || amr_predict)
+    return;
+    
+    if(p->count%MAX(p->X28,1)!=0 && p->count>1)
+    return;
+    
+    starttime = pgc->timer();
+    
+    for (int nb=0; nb<number6DOF;++nb)
+    if(!ext_drives(nb))
+    fb_obj[nb]->added_mass_nhflow(p,d,pgc,psolv,WL);
+    
+    p->fbtime+=pgc->timer()-starttime;
+}
 
 void sixdof_nhflow::membrane_forcing_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, double alpha, 
                                             double *UH, double *VH, double *WH, slice &WL)

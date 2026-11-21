@@ -34,7 +34,7 @@ Author: Hans Bihs
 
 void sediment_f::ini_cfd(lexer *p, fdm *a,ghostcell *pgc)
 {
-	double h,h1;
+	double h;
     
     SLICELOOP4
     s->reduce(i,j) = 1.0;
@@ -124,7 +124,6 @@ void sediment_f::ini_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
 void sediment_f::ini_sflow(lexer *p, fdm2D *b, ghostcell *pgc)
 {
-    //relax(p,b,pgc);
     SLICELOOP4
     {
     s->ks(i,j) = p->S21*p->S20;
@@ -165,9 +164,6 @@ void sediment_f::ini_parameters(lexer *p, ghostcell *pgc)
     double g=9.81;
     double d50=p->S20;
     double visc=p->W2;
-    double Ls = p->S20;
-    double cd = 1.5;
-    double R = rhosed/rhowat-1.0;
     
     // van Rijn / USACE
     if(p->S25==0)
@@ -187,6 +183,10 @@ void sediment_f::ini_parameters(lexer *p, ghostcell *pgc)
     
     if(p->mpirank==0)
     cout<<"sediment fall velocity ws: "<<s->ws<<endl;
+    
+    // exchange velocity of the suspended load with the bed before the first suspended solve
+    for(int n=0; n<p->imax*p->jmax; ++n)
+    s->wsx.V[n] = s->ws;
 }
 
 void sediment_f::ini_guard(lexer *p, ghostcell *pgc)
@@ -196,6 +196,21 @@ void sediment_f::ini_guard(lexer *p, ghostcell *pgc)
     
     if(p->S78==1)
     {
+        // the inflow cells are held: their bed load is the supply of the cells downstream. SFLOW: the 2D list
+        // gcslin (the 3D list gcin is not filled for SFLOW: its zero entries held the bed of the cell (0,0), a
+        // corner of the domain, on Cartesian grids); on a curvilinear grid the inflow faces are closed as well
+        // (dfbed_inflow).  With a sediment supply at the inflow (S 129 > 0) the cells are not held: the supply
+        // enters through the open inflow faces (sediment_exner::qb_inflow) and changes the bed of the first cells.
+        if(p->S129==0 && p->A10==2)
+        for(n=0;n<p->gcslin_count;++n)
+        {
+        i=p->gcslin[n][0];
+        j=p->gcslin[n][1];
+
+        s->guard(i,j)=0.0;
+        }
+
+        if(p->S129==0 && p->A10!=2)
         for(n=0;n<p->gcin_count;++n)
         {
         i=p->gcin[n][0];

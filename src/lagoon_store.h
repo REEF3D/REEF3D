@@ -70,6 +70,19 @@ public:
     // the run id a run record or a root's zarr.json text holds, or ""
     static std::string run_id(const std::string &json);
 
+    // rank 0: the case's solids (SPEC 12, group "solids": points float64 (np, 3),
+    // triangles int32 (nt, 3)) from DIVEMesh's <paraview>/REEF3D_Solid.vtp, when that is
+    // the case's (DIVEMesh writes it only for a case with solids: a file older than
+    // its DIVEMesh_Partition.vtp or DIVEMesh_grid-preview.vts by more than an hour is
+    // left over from another case). begin_run writes them into a new store, so a store
+    // copied elsewhere shows its structures. Returns the triangles written (0: none).
+    int write_solids(const std::string &paraview="./DIVEMesh_Paraview") const;
+
+    // DIVEMesh's REEF3D_Solid.vtp (raw appended Float64 or Float32 points, Int32
+    // connectivity and offsets of triangles) read: false if it is not such a file
+    static bool read_solid_vtp(const std::string &file, std::vector<double> &points,
+                               std::vector<int32_t> &triangles);
+
     // rank 0, once per output stream: the group, its grid lines and time arrays
     // grid: "sigma" (levels: their σ, 0 at the bed, 1 at the surface), "cartesian"
     // (levels: their heights z, CFD) or "surface" (levels empty)
@@ -320,7 +333,9 @@ public:
         int rank = -1;              // the MPI rank that has it
         int nx = 0, ny = 0;         // cells
         int nz = 0;                 // cells in z: 0 for a 2D grid (a surface's), > 0 for a block of a volume (CFD)
-        std::vector<double> x, y;   // nx+1 and ny+1 node coordinates, rising
+        bool curvilinear = false;   // a 2D grid of a curvilinear grid (G 50): x and y of every node
+        std::vector<double> x, y;   // nx+1 and ny+1 node coordinates, rising; curvilinear: (nx+1)*(ny+1)
+                                    // each, the x and the y of every node, x fastest
         std::vector<double> z;      // nz+1 node coordinates of a block, rising
         std::vector<double> values; // nx*ny(*nz) per field (x fastest, then y, then z), the fields one after another
     };
@@ -337,7 +352,7 @@ public:
 
     bool usable() const { return ok; }
 
-    // grids as doubles for MPI (count, then per grid level, nx, ny, nz, x, y, z, values) and
+    // grids as doubles for MPI (count, then per grid level, nx, ny, nz, curvilinear, x, y, z, values) and
     // back; unpack appends the grids of one rank
     static void pack(const std::vector<grid> &grids, int fields, std::vector<double> &out);
     static bool unpack(const double *data, size_t n, int fields, int rank, std::vector<grid> &out);
@@ -348,6 +363,7 @@ private:
     int gzip_level;
     bool ok, started;
     int dims;                               // 2: grids of a surface, 3: blocks of a volume
+    bool curvilinear;                       // 2D grids with the x and y of every node (G 50)
     std::vector<lagoon_rows::array> table;  // level, rank, size, x_end, y_end, cell_end (, z_end)
     std::vector<lagoon_rows::array> nodes;  // x, y (, z)
     std::vector<lagoon_rows::array> cells;  // the fields

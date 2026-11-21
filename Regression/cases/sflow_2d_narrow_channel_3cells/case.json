@@ -1,0 +1,17 @@
+{
+ "description": "SFLOW explicit (A 210 2, WENO A 211 4): uniform flow in a channel three cells wide between banks of dry cells 6 m above the bed (geo.dat). The middle cell takes the central WENO stencil (both outer stencils hold a dry cell): level across the channel, normal depth. With the WENO-Z weights the linear stencil ran across both banks: lateral level differences of 0.3 m, no steady state.",
+ "solver": "sflow",
+ "np": 1,
+ "steps": 500,
+ "tags": [
+  "sflow",
+  "river",
+  "wetdry"
+ ],
+ "covers": [
+  "sflow_reconstruct_weno::prepare code 2"
+ ],
+ "files": [
+  "geo.dat"
+ ]
+}

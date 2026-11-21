@@ -1,0 +1,17 @@
+{
+ "base": "fnpf_2d_6dof_box_motionfile",
+ "ctrl_set": {
+  "A 310": "4"
+ },
+ "description": "fnpf_2d_6dof_box_motionfile with RK4 (A 310 4): the stages end at t+dt/2, t+dt/2, t+dt, t+dt.",
+ "tags": [
+  "2d",
+  "fnpf",
+  "6dof",
+  "motionfile"
+ ],
+ "covers": [
+  "sixdof_obj::motion_stage_begin / motion_stage_end (FNPF rk4)"
+ ],
+ "architect": "Hans Bihs"
+}

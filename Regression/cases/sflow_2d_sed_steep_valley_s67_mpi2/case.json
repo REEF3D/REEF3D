@@ -1,0 +1,17 @@
+{
+ "base": "sflow_2d_sed_steep_valley_s67",
+ "description": "sflow_2d_sed_steep_valley_s67 on 2 ranks: qbe scaled by the water depth of each rank, ghost cells filled after the scaling (gcsl_start4).",
+ "np": 2,
+ "tags": [
+  "2d",
+  "sflow",
+  "sediment",
+  "semi_implicit",
+  "wetdry",
+  "hydro",
+  "mpi"
+ ],
+ "covers": [
+  "sediment_f::shallow_bedload on several ranks"
+ ]
+}

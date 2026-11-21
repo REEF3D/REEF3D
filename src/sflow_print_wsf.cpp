@@ -84,8 +84,6 @@ sflow_print_wsf::~sflow_print_wsf()
 
 void sflow_print_wsf::height_gauge(lexer *p, fdm2D *b, ghostcell *pgc, slice &f)
 {
-    double zval=0.0;
-
     for(n=0;n<gauge_num;++n)
     wsf[n]=-1.0e20;
 
@@ -98,8 +96,6 @@ void sflow_print_wsf::height_gauge(lexer *p, fdm2D *b, ghostcell *pgc, slice &f)
     for(n=0;n<gauge_num;++n)
     if(amr==nullptr ? flag[n]>0 : ap.mine[n]!=0)
     {
-    zval=0.0;
-
     i=iloc[n];
     j=jloc[n];
 
@@ -123,8 +119,7 @@ void sflow_print_wsf::ini_location(lexer *p, fdm2D *b)
 {
     for(n=0;n<gauge_num;++n)
     {
-    // the cell that contains the gauge: the rank that writes it (rounding (x-x0)/dx gave the next
-    // cell for a gauge in the upper half of a cell, and assumed a uniform grid)
+    // the cell that contains the gauge (also on stretched grids): the rank that writes it
     iloc[n]=p->posc_i(x[n]);
     
     if(p->j_dir==0)

@@ -1,0 +1,18 @@
+{
+ "description": "NHFLOW 2D wave flume, relaxation wave generation (B 98 2) and active wave absorption at x+ (B 99 3), k-omega with A 565 1: the x+ ghost cells of k and omega with zero gradient (ghostcell::start20V / start30V, outflow 1; they stayed 0 before).",
+ "solver": "nhflow",
+ "np": 1,
+ "steps": 600,
+ "tags": [
+  "2d",
+  "nhflow",
+  "waves",
+  "turbulence",
+  "iowave",
+  "quick"
+ ],
+ "covers": [
+  "ghostcell::start20V / start30V with B 99 >= 3",
+  "k-omega with the active beach"
+ ]
+}

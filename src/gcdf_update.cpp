@@ -74,17 +74,7 @@ void ghostcell::gcdf_update(lexer *p, fdm *a)
     flagx(p,p->flag2);
     flagx(p,p->flag3);
     }
-    
-    /*
-    count=0;
-    LOOP
-    ++count;
-    
-    count=globalisum(count);
 
-    if(p->mpirank==0)
-    cout<<"number of active cells: "<<count<<endl;*/
-    
     // -----------------------------------------------------------
     // FLAGSF
     BASELOOP
@@ -200,9 +190,7 @@ void ghostcell::gcdf_update(lexer *p, fdm *a)
     
     p->gcdf4_count=count;
     }
-    
-    //cout<<p->mpirank<<" p->gcdf4_count: "<<p->gcdf4_count<<endl;
-    
+
     // assign gcdf entries
     count=0;
     
@@ -331,9 +319,7 @@ void ghostcell::gcdf_update(lexer *p, fdm *a)
     
     p->gcdf1_count=count;
     }
-    
-    //cout<<p->mpirank<<" p->gcdf1_count: "<<p->gcdf1_count<<endl;
-    
+
     // assign gcdf entries
     count=0;
     
@@ -432,9 +418,7 @@ void ghostcell::gcdf_update(lexer *p, fdm *a)
     
     p->gcdf2_count=count;
     }
-    
-    //cout<<p->mpirank<<" p->gcdf2_count: "<<p->gcdf2_count<<endl;
-    
+
     // assign gcdf entries
     count=0;
     
@@ -534,9 +518,7 @@ void ghostcell::gcdf_update(lexer *p, fdm *a)
     
     p->gcdf3_count=count;
     }
-    
-    //cout<<p->mpirank<<" p->gcdf3_count: "<<p->gcdf3_count<<endl;
-    
+
     // assign gcdf entries
     count=0;
     

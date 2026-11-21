@@ -20,43 +20,32 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#include"gcsl_side.h"
 #include"sflow_f.h"
 #include"lexer.h"
 #include"driver.h"
 #include"fdm2D.h"
 #include"ghostcell.h"
 #include"iowave.h"
-#include"sediment.h"
 #ifdef REEF3D_USE_HYPRE
 #include"hypre_struct2D.h"
 #endif
 #include"sflow_etimestep.h"
 #include"sflow_weno_flux.h"
 #include"sflow_eta.h"
-#include"sflow_hydrostatic.h"
 #include"sflow_potential.h"
 #include"sflow_momentum.h"
 #include"sflow_vtp_fsf.h"
 #include"sflow_vtp_bed.h"
 #include"6DOF_sflow.h"
 #include"sflow_amr.h"
+#include"hydro_sflow.h"
+#include"hydro_couple.h"
 #include"reefrun_ckpt.h"
 
 void sflow_f::ini(lexer *p, fdm2D* b, ghostcell* pgc)
 {
-    int gcval_eta;
-    
-    if(p->F50==1)
-	gcval_eta = 51;
-    
-    if(p->F50==2)
-	gcval_eta = 52;
-    
-    if(p->F50==3)
-	gcval_eta = 53;
-    
-    if(p->F50==4)
-	gcval_eta = 54;
+    const int gcval_eta = 50 + p->F50;     // free surface boundary condition F 50 1-4: ghost-cell labels 51-54
     
     
     p->count=0;
@@ -117,14 +106,46 @@ void sflow_f::ini(lexer *p, fdm2D* b, ghostcell* pgc)
     
 	for(int qn=0; qn<p->A209;++qn)
     {
+    // the sweep from the old values (a copy with the ghost cells): in place the bed depended on the direction of the
+    // loops and on the ranks (1 against 2 ranks: eta differed by 1e-4 m after 30 s in a basin with beach and island)
+    slice4 bs(p);
+
+    for(int ii=p->imin; ii<p->imin+p->imax; ++ii)
+    for(int jj=p->jmin; jj<p->jmin+p->jmax; ++jj)
+    bs(ii,jj) = b->bed(ii,jj);
+
 	SLICELOOP4
     {
     // (one cell in y: the y neighbours are the cell itself, the value of its Neumann ghost cells)
     const int js = (p->j_dir==1) ? j-1 : j, jn = (p->j_dir==1) ? j+1 : j;
-	b->bed(i,j) = b->bed0(i,j) = 0.5*b->bed(i,j) + 0.125*(b->bed(i-1,j) +b->bed(i+1,j) +b->bed(i,js) +b->bed(i,jn) );
+	b->bed(i,j) = b->bed0(i,j) = 0.5*bs(i,j) + 0.125*(bs(i-1,j) + bs(i+1,j) + bs(i,js) + bs(i,jn));
     }
     
     pgc->gcsl_start4(p,b->bed,50);
+    }
+    
+    // sediment transport (S 10): the bed of the flow is the bed of the sediment, max(erodible bed, solids)
+    // (sediment_f::ini_sflow, update_sflow). It is set here, before the water depth, the wet cells and the
+    // inflow are initialised with it, and the erodible bed takes the sweeps A 209 of the flow bed. Before,
+    // the sediment replaced the smoothed bed by the unsmoothed one after the water depth was set: the still
+    // water surface started with the difference of the two beds.
+    if(p->S10>0)
+    {
+        for(int qn=0; qn<p->A209;++qn)
+        {
+        SLICELOOP4
+        {
+        const int js = (p->j_dir==1) ? j-1 : j, jn = (p->j_dir==1) ? j+1 : j;
+        b->topobed(i,j) = 0.5*b->topobed(i,j) + 0.125*(b->topobed(i-1,j) + b->topobed(i+1,j) + b->topobed(i,js) + b->topobed(i,jn));
+        }
+        
+        pgc->gcsl_start4(p,b->topobed,50);
+        }
+        
+        SLICELOOP4
+        b->bed(i,j) = b->bed0(i,j) = MAX(b->topobed(i,j),b->solidbed(i,j));
+        
+        pgc->gcsl_start4(p,b->bed,50);
     }
     
 
@@ -170,6 +191,10 @@ void sflow_f::ini(lexer *p, fdm2D* b, ghostcell* pgc)
 
     pflow->ini2D(p,b,pgc);
     
+    // A 246 4: the breaking masks (relaxation zones, open boundaries)
+    if(pfsf!=nullptr)
+    pfsf->breaking_zones(p,pflow);
+    
     pgc->gcsl_start4(p,b->eta,gcval_eta);
     pgc->gcsl_start4(p,b->bed,50);
     
@@ -207,6 +232,27 @@ void sflow_f::ini(lexer *p, fdm2D* b, ghostcell* pgc)
 
     pgc->gcsl_start4(p,b->ks,50);
 
+    // REEF3D::HYDRO (R 10 - R 50): the level-0 object with the inputs of all grids (the patches and blocks: sflow_amr_hydro.cpp)
+    if(hydro_sflow::active(p))
+    {
+    b->hydro = new hydro_sflow(p,b,pgc);
+    b->hydro->ini(p,b,pgc);
+    }
+
+    // REEF3D::HYDRO catchment model coupled with SFLOW (R 100 2): before a restart reads its state
+    if(p->R100==2)
+    {
+        if(pamr!=nullptr)
+        {
+            if(p->mpirank==0)
+            cout<<"!!! HYDRO: R 100 2 with mesh refinement or multi-block grids is not available yet !!!"<<endl;
+            pgc->final(true);
+        }
+
+    pcpl = new hydro_couple(p,b,pgc);
+    pcpl->ini(p,b,pgc);
+    }
+
     //sediment ini
     psed->ini_sflow(p,b,pgc);
     
@@ -233,7 +279,6 @@ void sflow_f::ini(lexer *p, fdm2D* b, ghostcell* pgc)
     log_ini(p);
     if(p->I45!=1)
     {
-	print_debug(p,b,pgc);
     pprint->start(p,b,pgc,pflow,pturb,psed);
 	pprintbed->start(p,b,pgc,psed);
     }
@@ -310,14 +355,13 @@ void sflow_f::ini_fsf(lexer *p, fdm2D* b, ghostcell* pgc)
         {
         i=p->gcslin[n][0];
         j=p->gcslin[n][1];
+        const gcsl_side sd(p->gcslin[n][3]);
 
-        b->eta(i-1,j) = p->F65>0 ? b->eta(i,j) : 0.0;
-        b->eta(i-2,j) = p->F65>0 ? b->eta(i,j) : 0.0;
-        b->eta(i-3,j) = p->F65>0 ? b->eta(i,j) : 0.0;
-
-        b->hp(i-1,j) = MAX(b->eta(i-1,j) + p->wd - b->bed(i,j),0.0);
-        b->hp(i-2,j) = MAX(b->eta(i-2,j) + p->wd - b->bed(i,j),0.0);
-        b->hp(i-3,j) = MAX(b->eta(i-3,j) + p->wd - b->bed(i,j),0.0);
+            for(int q=1;q<=3;++q)
+            {
+            b->eta(sd.gi(i,q),sd.gj(j,q)) = p->F65>0 ? b->eta(i,j) : 0.0;
+            b->hp(sd.gi(i,q),sd.gj(j,q))  = MAX(b->eta(sd.gi(i,q),sd.gj(j,q)) + p->wd - b->bed(i,j),0.0);
+            }
         }
         
         // fix outflow fsf
@@ -325,14 +369,13 @@ void sflow_f::ini_fsf(lexer *p, fdm2D* b, ghostcell* pgc)
         {
         i=p->gcslout[n][0];
         j=p->gcslout[n][1];
+        const gcsl_side sd(p->gcslout[n][3]);
 
-        b->eta(i+1,j) = 0.0;
-        b->eta(i+2,j) = 0.0;
-        b->eta(i+3,j) = 0.0;
-
-        b->hp(i+1,j) = MAX(b->eta(i+1,j) + p->wd - b->bed(i,j),0.0);
-        b->hp(i+2,j) = MAX(b->eta(i+2,j) + p->wd - b->bed(i,j),0.0);
-        b->hp(i+3,j) = MAX(b->eta(i+3,j) + p->wd - b->bed(i,j),0.0);
+            for(int q=1;q<=3;++q)
+            {
+            b->eta(sd.gi(i,q),sd.gj(j,q)) = 0.0;
+            b->hp(sd.gi(i,q),sd.gj(j,q))  = MAX(p->wd - b->bed(i,j),0.0);
+            }
         }
     
 
@@ -445,34 +488,22 @@ void sflow_f::ini_fsf(lexer *p, fdm2D* b, ghostcell* pgc)
         {
         i=p->gcslout[n][0];
         j=p->gcslout[n][1];
+        const gcsl_side sd(p->gcslout[n][3]);
         
         b->eta(i,j) = p->F62-p->wd;
-        b->eta(i+1,j) = p->F62-p->wd;
-        b->eta(i+2,j) = p->F62-p->wd;
-        b->eta(i+3,j) = p->F62-p->wd;
-
-        b->hp(i,j)   = MAX(b->eta(i+1,j) + p->wd - b->bed(i,j),0.0);
-        b->hp(i+1,j) = MAX(b->eta(i+1,j) + p->wd - b->bed(i,j),0.0);
-        b->hp(i+2,j) = MAX(b->eta(i+2,j) + p->wd - b->bed(i,j),0.0);
-        b->hp(i+3,j) = MAX(b->eta(i+3,j) + p->wd - b->bed(i,j),0.0);
+        b->hp(i,j)  = MAX(p->F62 - b->bed(i,j),0.0);
+        
+            for(int q=1;q<=3;++q)
+            {
+            b->eta(sd.gi(i,q),sd.gj(j,q)) = p->F62-p->wd;
+            b->hp(sd.gi(i,q),sd.gj(j,q))  = MAX(p->F62 - b->bed(i,j),0.0);
+            }
         }
     }
       
 	ini_wl(p,b,pgc);
     
-    int gcval_eta;
-    
-    if(p->F50==1)
-	gcval_eta = 51;
-    
-    if(p->F50==2)
-	gcval_eta = 52;
-    
-    if(p->F50==3)
-	gcval_eta = 53;
-    
-    if(p->F50==4)
-	gcval_eta = 54;
+    const int gcval_eta = 50 + p->F50;     // free surface boundary condition F 50 1-4: ghost-cell labels 51-54
     
     pgc->gcsl_start1(p,b->hx,gcval_eta);    
 	pgc->gcsl_start2(p,b->hy,gcval_eta);  
@@ -481,19 +512,7 @@ void sflow_f::ini_fsf(lexer *p, fdm2D* b, ghostcell* pgc)
 
 void sflow_f::ini_fsf_2(lexer *p, fdm2D* b, ghostcell* pgc)
 {   
-    int gcval_eta;
-    
-    if(p->F50==1)
-	gcval_eta = 51;
-    
-    if(p->F50==2)
-	gcval_eta = 52;
-    
-    if(p->F50==3)
-	gcval_eta = 53;
-    
-    if(p->F50==4)
-	gcval_eta = 54;
+    const int gcval_eta = 50 + p->F50;     // free surface boundary condition F 50 1-4: ghost-cell labels 51-54
     
     // eta ini
 	pflow->eta_relax(p,pgc,b->eta);

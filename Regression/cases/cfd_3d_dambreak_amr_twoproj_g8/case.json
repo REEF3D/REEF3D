@@ -1,0 +1,23 @@
+{
+ "base": "cfd_3d_dambreak_amr",
+ "np": 2,
+ "steps": 20,
+ "ctrl_set": {
+  "N 40": "6"
+ },
+ "description": "cfd_3d_dambreak_amr_twoproj with G 8 1: two transverse directions at the patch edges, 2 ranks (validation CFD AMR speed/06).",
+ "tags": [
+  "quick",
+  "3d",
+  "dambreak",
+  "levelset",
+  "amr",
+  "mpi"
+ ],
+ "covers": [
+  "cfd_amr::pr_weights: G 8 1, the weights of the coarse value from the level set of the coarse column"
+ ],
+ "ctrl_add": [
+  "G 8 1"
+ ]
+}

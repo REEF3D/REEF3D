@@ -1,0 +1,7 @@
+{
+ "base": "fnpf_3d_lake_dry_mpi2",
+ "control_add": ["M 37 20.0 0.1"],
+ "description": "fnpf_3d_lake_dry_mpi2 decomposed by DIVEMesh with the dry columns weighted 0.1 (M 37 20.0 0.1: the geodat bed at or above 20 m, M 20 2 becomes M 20 5): the x-cut moves east, into the dry land (needs the DIVEMesh patch FNPF Dry Cells/DIVEMesh-0001)",
+ "tags": ["quick", "3d", "fnpf", "wetdry", "geodat", "mpi", "decomposition"],
+ "covers": ["DIVEMesh M 37 (decomp_partition_weighted)", "the weights of the dry columns in GHED of the global grid file"]
+}

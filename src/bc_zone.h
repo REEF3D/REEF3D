@@ -93,6 +93,11 @@ public:
     double xs,ys,xe,ye,d;   // reference line and half width
     double fac;             // beach: distance factor (2 for B 99 1)
     double P1[2],P2[2],P3[2],P4[2];
+    // taper of the weight along the line at an end inside the domain (not on a domain side across the line): the zone
+    // fades in over Lt from that end (B 107 / B 108 zones; set by from_legacy); taper() = 1 without one
+    bool tap_s=false, tap_e=false;
+    double Lt=0.0;
+    double taper(double, double) const;
 
     static int intriangle(double,double,double,double,double,double,double,double);
 };

@@ -1,0 +1,28 @@
+{
+ "base": "cfd_2d_6dof_fish_x198",
+ "np": 1,
+ "steps": 12,
+ "ctrl_add": [
+  "X 196 2",
+  "G 1 1",
+  "G 7 1",
+  "G 12 0.1",
+  "G 2 2"
+ ],
+ "description": "cfd_2d_6dof_fish_x198 with the mesh refinement around the fish (one level, zone G 12 0.1, regrid every 2 steps) and subcycling (G 7 1): the finest level predicts, the fish is fitted to the predicted velocity of all its patches (cfd_amr::body_fit) and advanced, then the patches are forced (momentum_rk::amr_forcing); the discrete recoil correction (X 196 2) from the patches.",
+ "tags": [
+  "quick",
+  "2d",
+  "6dof",
+  "floating",
+  "deform",
+  "singlephase",
+  "amr"
+ ],
+ "covers": [
+  "cfd_amr::body_fit",
+  "momentum_rk::amr_momentum forcing 3, amr_forcing",
+  "sixdof_obj_cfd::momentum_fit_begin/add/end, momentum_deform_begin/add/end on the patches",
+  "amr_save/amr_restore of the discrete recoil correction"
+ ]
+}

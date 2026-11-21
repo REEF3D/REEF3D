@@ -23,7 +23,6 @@ Author: Hans Bihs
 #include"sflow_flux_face_HJ.h"
 #include"lexer.h"
 #include"slice.h"
-#include"fdm2D.h"
 
 sflow_flux_face_HJ::sflow_flux_face_HJ(lexer *pp)
 {

@@ -1,0 +1,18 @@
+{
+ "base": "hydro_coupled_chain_mid",
+ "np": 1,
+ "steps": 200,
+ "ctrl_set": {
+  "P 48": "100",
+  "P 49": "0"
+ },
+ "description": "hydro_coupled_chain_mid with a checkpoint every 100 steps (P 48 100): the uninterrupted run of hydro_coupled_restart.",
+ "tags": [
+  "hydro",
+  "coupled",
+  "checkpoint"
+ ],
+ "covers": [
+  "hydro_couple::ckpt_state, hydro_core::ckpt_state, hydro_sflow C Bq Fp"
+ ]
+}

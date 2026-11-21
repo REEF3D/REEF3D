@@ -1,0 +1,20 @@
+{
+ "base": "cfd_2d_dambreak_amr3_adapt_onestep_n59_2",
+ "np": 1,
+ "steps": 60,
+ "ctrl_add": [
+  "G 48 2"
+ ],
+ "description": "cfd_2d_dambreak_amr3_adapt_onestep_n59_2 (N 40 5, N 59 2, two adaptive levels, regrids) with the cycle G 48 2 of the composite preconditioner.",
+ "tags": [
+  "quick",
+  "2d",
+  "dambreak",
+  "levelset",
+  "amr",
+  "adaptive"
+ ],
+ "covers": [
+  "cfd_amr::pr_prec with G 48 2 across regrids, one projection per step"
+ ]
+}

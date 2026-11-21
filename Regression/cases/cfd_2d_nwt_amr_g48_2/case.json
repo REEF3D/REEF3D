@@ -1,0 +1,19 @@
+{
+ "base": "cfd_2d_nwt_amr",
+ "np": 1,
+ "steps": 100,
+ "ctrl_add": [
+  "G 48 2"
+ ],
+ "description": "cfd_2d_nwt_amr (waves through a static patch, the free surface across the patch edges) with the cycle G 48 2 of the composite preconditioner.",
+ "tags": [
+  "quick",
+  "2d",
+  "waves",
+  "levelset",
+  "amr"
+ ],
+ "covers": [
+  "cfd_amr::pr_prec with G 48 2, the free surface across the patch edges, relaxation zones on level 0"
+ ]
+}

@@ -45,8 +45,7 @@ void nhflow_curv::check(lexer *p)
     };
 
     refuse(p->j_dir!=1, "a 2D vertical slice (j_dir 0)");
-    refuse(p->A511==2, "the HLLC flux A 511 2 (A 511 1: HLL)");
-    refuse((p->G1>0 || p->geo_mb>0) && p->P18>0, "the LAGOON output of the mesh refinement (P 18)");
+    refuse(p->A511==2 && p->A534!=1, "the HLLC flux A 511 2 (A 511 1: HLL)");
     // 6DOF (P5c): floating, prescribed and wavemaker bodies with the STL forces, the ship pressure patch and the
     // ship load models; not yet: the level-set forces, the viscous forces, the pierced columns, nets
     refuse(p->X10>0 && p->X60==2, "the level-set force integration of 6DOF bodies (X 60 2; X 60 1: STL)");
@@ -108,12 +107,6 @@ double nhflow_curv::bedslope(lexer *p, fdm_nhf *d, int comp, int ii, int jj)
 void nhflow_curv::grad5(lexer *p, int ii, int jj, double fE, double fW, double fN, double fS, double &fx, double &fy)
 {
     sflow_curv::grad5(p,ii,jj,fE,fW,fN,fS,fx,fy);
-}
-
-void nhflow_curv::grad_idx(lexer *p, int ii, int jj, double fxi, double feta, double &fx, double &fy)
-{
-    // grad5 takes differences over two cells
-    sflow_curv::grad5(p,ii,jj,2.0*fxi,0.0,2.0*feta,0.0,fx,fy);
 }
 
 void nhflow_curv::grad_lim(lexer *p, int ii, int jj, double fC, double fE, double fW, double fN, double fS, double &fx, double &fy)
@@ -197,28 +190,13 @@ void nhflow_curv::pgrad_layer(lexer *p, const double *P, int ii, int jj, int kk,
 double nhflow_curv::divh_level(lexer *p, fdm_nhf *d, const double *U, const double *V, int ii, int jj, int kk)
 {
     auto C = [&](int a, int b, int c) { return (a-p->imin)*p->jmax*p->kmax + (b-p->jmin)*p->kmax + c-p->kmin; };
-    auto xc = [&](int a, int b) { return p->XC2D[(a-p->imin)*p->jmax + (b-p->jmin)]; };
-    auto yc = [&](int a, int b) { return p->YC2D[(a-p->imin)*p->jmax + (b-p->jmin)]; };
 
     double faci = p->DZN[kk-1+marge]/(p->DZN[kk+marge]+p->DZN[kk-1+marge]);
     double facj = faci;
 
-    // next to the bed: the slope of the bed along the index directions (Cartesian: Bx, By)
-    if(kk==0)
-    {
-        double ex = xc(ii+1,jj)-xc(ii-1,jj), ey = yc(ii+1,jj)-yc(ii-1,jj);
-        double l = sqrt(ex*ex+ey*ey);
-        const double bi = (l>0.0) ? fabs(d->Bx(ii,jj)*ex + d->By(ii,jj)*ey)/l : 0.0;
-        ex = xc(ii,jj+1)-xc(ii,jj-1); ey = yc(ii,jj+1)-yc(ii,jj-1);
-        l = sqrt(ex*ex+ey*ey);
-        const double bj = (l>0.0) ? fabs(d->Bx(ii,jj)*ex + d->By(ii,jj)*ey)/l : 0.0;
-
-        faci = MAX((1.0 - p->A522*bi),0.0)*p->DZN[kk-1+marge]/(p->DZN[kk+marge]+p->DZN[kk-1+marge]);
-        facj = MAX((1.0 - p->A522*bj),0.0)*p->DZN[kk-1+marge]/(p->DZN[kk+marge]+p->DZN[kk-1+marge]);
-    }
-
-    auto li = [&](const double *f, int a, int b) { return (1.0-faci)*f[C(a,b,kk)] + faci*f[C(a,b,kk-1)]; };
-    auto lj = [&](const double *f, int a, int b) { return (1.0-facj)*f[C(a,b,kk)] + facj*f[C(a,b,kk-1)]; };
+    // bed node: the velocity below the bed 0, whatever the bed ghost cells (A 518), as nhflow_pjm::rhs
+    auto li = [&](const double *f, int a, int b) { return (1.0-faci)*f[C(a,b,kk)] + (kk==0 ? 0.0 : faci*f[C(a,b,kk-1)]); };
+    auto lj = [&](const double *f, int a, int b) { return (1.0-facj)*f[C(a,b,kk)] + (kk==0 ? 0.0 : facj*f[C(a,b,kk-1)]); };
 
     double ux,uy,vx,vy;
     grad5(p,ii,jj,li(U,ii+1,jj),li(U,ii-1,jj),lj(U,ii,jj+1),lj(U,ii,jj-1),ux,uy);
@@ -585,7 +563,9 @@ void nhflow_curv::ediff(lexer *p, fdm_nhf *d, int comp, double *F, double *UH, d
         const double s2t = pow(p->sigx[flp],2.0) + pow(p->sigy[flp],2.0) + sz2;
         
         const double fc = f[c];
-        const double fkm = nb(c,C(ii,jj,kk-1)), fkp = nb(c,C(ii,jj,kk+1));
+        // A 518 2 resolved no-slip bed: u, v = 0 on the bed face (ghost -u of the cell), as nhflow_ediff
+        const double fkm = (comp<3 && p->A518==2 && p->flag4[C(ii,jj,kk-1)]<0) ? -fc : nb(c,C(ii,jj,kk-1));
+        const double fkp = nb(c,C(ii,jj,kk+1));
         
         // compact horizontal Laplacian
         double cE,cW,cN,cS;

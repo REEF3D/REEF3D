@@ -1,0 +1,19 @@
+{
+ "base": "cfd_2d_dambreak_pic1",
+ "control_add": [
+  "S 61 0.0 0.6 0.0 0.01 0.0 0.1"
+ ],
+ "tags": [
+  "quick",
+  "2d",
+  "dambreak",
+  "pic",
+  "solid"
+ ],
+ "description": "cfd_2d_dambreak_pic1 (F 81 1) over a 1:6 slope (DIVEMesh S 61, solid with direct forcing): the redistribution of the particles (F 78) with the repulsion of the solid, the mirror image of a particle across its surface (patch 0011)",
+ "covers": [
+  "pic_f_redistribute: the repulsion of the solids",
+  "pic_f::solid_distance"
+ ],
+ "architect": "Hans Bihs"
+}

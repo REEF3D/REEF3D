@@ -44,11 +44,13 @@ static inline double ipow(double x, int n)
 void nhflow_filter::filter_sg(lexer *p, ghostcell *pgc, slice &f)
 {
     int iterations = 5;
-    
+
+    // the ghost cells once before the iterations and after each (the fill at the start of an iteration repeated the
+    // one at the end of the iteration before: the same values)
+    pgc->gcsl_start4(p, f, 1);
+
     for(int it=0; it<iterations; ++it)
     {
-        pgc->gcsl_start4(p, f, 1);
-
         buffer.clear();
 
         SLICELOOP4
@@ -73,29 +75,6 @@ void nhflow_filter::filter_sg(lexer *p, ghostcell *pgc, slice &f)
 
         pgc->gcsl_start4(p, f, 1);
     }
-}
-
-// ---------------------------------------------------------------------
-// Filter "in" into "out" (distinct slices). Single pass, no buffer.
-// ---------------------------------------------------------------------
-void nhflow_filter::filter_sg(lexer *p, ghostcell *pgc, slice &in, slice &out)
-{
-    pgc->gcsl_start4(p, in, 1);
-
-    SLICELOOP4
-    {
-        double val=0.0;
-        int k=0;
-        for(int dv=-hw; dv<=hw; ++dv)
-        for(int du=-hw; du<=hw; ++du)
-        {
-            val += kernel[k]*in(i+du, j+dv);
-            ++k;
-        }
-        out(i,j) = val;
-    }
-
-    pgc->gcsl_start4(p, out, 1);
 }
 
 // ---------------------------------------------------------------------

@@ -42,7 +42,7 @@ int ghostcell::gceval4(lexer *p, int gcv, int bc, int cs)
         if(wall||sixdof||bc==7||bc==8||bc==9||(patch && !patch_fsf(bc))) return gclabel_lsm;   // patch water level: set by patchBC
         if(bc==3)                                   return 4;
         if((bc==1||bc==6) && (gcv==52||gcv==54))    return 4;
-        if(bc==2 && (gcv==51||gcv==54||(gcv==52 && p->B77==1))) return 4;
+        if(bc==2 && (gcv==51||gcv==54||(gcv==52 && (p->B77==1 || p->B77==3)))) return 4;
         if(bc==6)                                   return gclabel_lsm_in;
         return 0;
 

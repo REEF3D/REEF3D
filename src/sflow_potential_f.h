@@ -57,7 +57,6 @@ private:
 	int gcval_pot;
     
     double Qi_pf,Qo_pf;
-    double Ui_pf,Uo_pf;
     double Ai,Ao,area;
     double fac_i,fac_o;
     

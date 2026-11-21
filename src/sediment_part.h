@@ -52,6 +52,10 @@ public:
     sediment_part(lexer*, fdm*, ghostcell*, turbulence*, patchBC_interface*);
     virtual ~sediment_part();
 
+    // CPM on the CFD mesh refinement (cfd_amr_cpm.cpp): the model and the slices of the bed
+    CPM* cpm_model() const { return pst; }
+    sediment_fdm* sed_fdm() const { return s; }
+
     // CFD interface
     void start_cfd(lexer*, fdm*, ghostcell*, ioflow*, reinitopo*, solver*) override final;
     void topo_flags_off(lexer*, fdm*, ghostcell*);

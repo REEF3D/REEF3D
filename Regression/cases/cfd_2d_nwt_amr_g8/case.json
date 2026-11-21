@@ -1,0 +1,21 @@
+{
+ "base": "cfd_2d_nwt",
+ "np": 1,
+ "steps": 100,
+ "ctrl_add": [
+  "G 1 1",
+  "G 15 4.2 11.8 0.0 1.0 0.3 0.75",
+  "G 8 1"
+ ],
+ "description": "cfd_2d_nwt_amr with G 8 1: waves, the free surface across the patch edges (validation CFD AMR speed/06).",
+ "tags": [
+  "quick",
+  "2d",
+  "waves",
+  "levelset",
+  "amr"
+ ],
+ "covers": [
+  "cfd_amr::pr_weights: G 8 1, the weights of the coarse value from the level set of the coarse column"
+ ]
+}

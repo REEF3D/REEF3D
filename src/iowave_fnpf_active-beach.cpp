@@ -70,11 +70,9 @@ void iowave::active_beach_fnpf(lexer *p, fdm_fnpf *c, ghostcell* pgc, double *Fi
 				if(p->B99==3 && !sirw_out.on)
 				Uc=eta_R*sqrt(9.81/hd);
 				
-				// was sinh(depth*depth) and the still-water depth in cosh
 				if(p->B99==4)
 				Uc=eta_R*p->ww*(cosh(p->wk*(hd+z))/sinh(p->wk*hd));
                 
-                // was the CFD position pos_z() and an uninitialised surface level
                 if(p->B99==5)
                 {
                 zabs = p->ZSN[FIJK];
@@ -117,7 +115,7 @@ void iowave::active_beach_fnpf(lexer *p, fdm_fnpf *c, ghostcell* pgc, double *Fi
         Fifsf(i+3,j) = (4.0/3.0)*Fifsf(i,j) - (1.0/3.0)*Fifsf(i-1,j) - (2.0/3.0)*Uc*(-0.5*p->XP[IM1] + 2.0*p->XP[IP] - 1.5*p->XP[IP3]);
         }
         
-        // ghost potential with the velocity of its level (was the surface velocity at all levels)
+        // ghost potential with the velocity of its level
         FKLOOP
         FPCHECK
         {

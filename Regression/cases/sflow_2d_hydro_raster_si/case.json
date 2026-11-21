@@ -1,0 +1,22 @@
+{
+ "description": "REEF3D::HYDRO rain rasters (R 10 3, rain_series.dat, ESRI ASCII grids): 36 mm/h on the west half for 300 s, then 72 mm/h on the east half.",
+ "solver": "sflow",
+ "np": 1,
+ "steps": 60,
+ "tags": [
+  "quick",
+  "2d",
+  "sflow",
+  "hydro",
+  "semi_implicit"
+ ],
+ "covers": [
+  "hydro_raster (ESRI ASCII grid)",
+  "R 10 3 raster series, R 12 0"
+ ],
+ "files": [
+  "rain_series.dat",
+  "rain_a.asc",
+  "rain_b.asc"
+ ]
+}

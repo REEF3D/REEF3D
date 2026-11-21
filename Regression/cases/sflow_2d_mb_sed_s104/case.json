@@ -1,0 +1,23 @@
+{
+ "np": 1,
+ "steps": 400,
+ "tags": [
+  "2d",
+  "sflow",
+  "multiblock",
+  "river",
+  "bend",
+  "curvilinear",
+  "sediment",
+  "lags"
+ ],
+ "description": "P9: the three-block LFM bend of sflow_2d_mb_sed_supply with the lags (S 95 2, S 64 0.5), MF 100 and the limit of the morphological acceleration S 104 0.5: the bed celerity of all blocks sets one dtsed (before P9 only block 0 counted, so three blocks took another dtsed than one block).",
+ "covers": [
+  "sediment_exner::celerity over the faces of all grids (sflow_amr_sed: amr_cmax, amr_cdx, amr_umax)",
+  "S 104 with blocks and the lags"
+ ],
+ "solver": "sflow",
+ "files": [
+  "blocks.dat"
+ ]
+}

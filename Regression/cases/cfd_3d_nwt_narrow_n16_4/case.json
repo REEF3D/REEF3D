@@ -1,0 +1,19 @@
+{
+ "base": "cfd_3d_nwt_narrow",
+ "np": 1,
+ "ctrl_add": [
+  "N 16 4"
+ ],
+ "same_as": "cfd_3d_nwt_narrow",
+ "same_as_rtol": 0.001,
+ "description": "cfd_3d_nwt_narrow with the Krylov solve on the reference device (N 16 4): the CFD pressure by GCR in double around a single-precision BiCGStab on the device; `same_as` the CPU run within 1e-3, as cfd_3d_nwt_narrow_n16_3 (v of this flume 4 cells wide is round-off noise)",
+ "tags": [
+  "3d",
+  "waves",
+  "solver"
+ ],
+ "covers": [
+  "REEFMG Krylov solve on the device (N 16 4): reefmg_device::krylov, reefmg_core::solve_gcr",
+  "device kernels rmg_apply, rmg_axpy3, rmg_dot2, reference device"
+ ]
+}

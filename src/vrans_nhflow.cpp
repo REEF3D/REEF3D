@@ -76,7 +76,6 @@ vrans_nhflow_f::~vrans_nhflow_f()
 void vrans_nhflow_f::update(lexer *p, fdm_nhf *d, ghostcell *pgc, double alpha, int val)
 {
     ray_cast(p, d, pgc, d->PORSTRUC);
-    reini_RK2(p, d, pgc, d->PORSTRUC);
     
     // porous layers (B 202): depth below the exposed surface -> layered n, d50, alpha, beta
     if(p->B202>0)

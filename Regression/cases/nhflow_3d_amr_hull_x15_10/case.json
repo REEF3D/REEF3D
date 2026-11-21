@@ -1,0 +1,17 @@
+{
+ "base": "nhflow_3d_amr_hull_x15_8",
+ "ctrl_set": {
+  "X 15": "10"
+ },
+ "description": "nhflow_3d_amr_hull_x15_8 with X 15 10: the floating hemisphere as a solid with cut faces on dx 0.1 m with one level of 0.05 m and doubled sigma layers (G 6 1) around it (G 12 0.5): the quadrilateral apertures on both grids, the loads of the cut cells and the STL facets from the patch (Ship Hydrodynamics validation 40).",
+ "tags": [
+  "3d",
+  "nhflow",
+  "6dof",
+  "floating",
+  "amr"
+ ],
+ "covers": [
+  "nhflow_hullbody (cut faces) on a 3D patch"
+ ]
+}

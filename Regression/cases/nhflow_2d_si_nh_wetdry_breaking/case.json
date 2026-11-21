@@ -1,0 +1,19 @@
+{
+ "description": "nhflow_1d_si_nh_wetdry_breaking four cells wide (y 0 - 0.8 m): the coupled eta-phi solve by multigrid and FGMRES (j_dir 1) with the wet pattern iteration (A 537 1) and the second-order time levels (A 505 1). The first pass takes the wet pattern of the hydrostatic estimate, a further pass starts FGMRES from the solution of the pass before and keeps the preconditioner.",
+ "solver": "nhflow",
+ "np": 1,
+ "steps": 500,
+ "tags": [
+  "2d",
+  "nhflow",
+  "semi_implicit",
+  "nonhydrostatic",
+  "wetdry",
+  "breaking"
+ ],
+ "covers": [
+  "nhflow_momentum_SI::nh_solve (wet pattern iteration from the pattern of the estimate, A 537 1)",
+  "nhflow_momentum_SI::nh_solve_mg (warm start of a further pass, its stopping residual, the preconditioner kept)",
+  "si_eta2D::wd_pattern"
+ ]
+}

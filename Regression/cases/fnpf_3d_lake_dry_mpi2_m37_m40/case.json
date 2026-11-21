@@ -1,0 +1,9 @@
+{
+ "base": "fnpf_3d_lake_dry_mpi2_m37",
+ "control_add": ["M 50 1"],
+ "ctrl_add": ["M 40 1"],
+ "same_as": "fnpf_3d_lake_dry_mpi2_m37",
+ "description": "fnpf_3d_lake_dry_mpi2_m37 decomposed by REEF3D from the global grid file (DIVEMesh M 50 1, M 40 1; M 37 from GHED, the geodat bed from GEOB): bitwise the run on the grid files of DIVEMesh",
+ "tags": ["quick", "3d", "fnpf", "wetdry", "geodat", "mpi", "decomposition"],
+ "covers": ["dmpart M 37 (dmpart_build, dmpart_decomp_partition_weighted)"]
+}

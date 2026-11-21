@@ -1,0 +1,24 @@
+{
+ "base": "sflow_1d_si_nh_synolakis",
+ "ctrl_set": {
+  "B 93": "0.28 10.0"
+ },
+ "ctrl_add": [
+  "A 246 4"
+ ],
+ "description": "sflow_1d_si_nh_synolakis with a breaking solitary wave, H/d = 0.28, and the breaking model A 246 4 (crest tracking, eddy viscosity after Kennedy et al. 2000) through the implicit diffusion of the predictor; the pressure stays on in the breaking cells.",
+ "tags": [
+  "1d",
+  "sflow",
+  "semi_implicit",
+  "nonhydrostatic",
+  "wetdry",
+  "runup",
+  "breaking"
+ ],
+ "covers": [
+  "sflow_eta::breaking before the predictor (A 246 4)",
+  "sflow_breaking_kb with the semi-implicit step"
+ ],
+ "architect": "Hans Bihs"
+}

@@ -1,0 +1,21 @@
+{
+ "description": "REEF3D::HYDRO tilted plane into a pool with the roughness from a Manning raster (R 50 1, manning.asc, n 0.02).",
+ "solver": "sflow",
+ "np": 1,
+ "steps": 150,
+ "tags": [
+  "quick",
+  "1d",
+  "sflow",
+  "hydro",
+  "semi_implicit",
+  "wetdry"
+ ],
+ "covers": [
+  "R 50 1 Manning raster, ks = (20 n)^6"
+ ],
+ "files": [
+  "rain.dat",
+  "manning.asc"
+ ]
+}

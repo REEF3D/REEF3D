@@ -1,0 +1,19 @@
+{
+ "base": "cfd_2d_channel_kepsilon",
+ "ctrl_set": {
+  "T 10": "0",
+  "F 81": "2"
+ },
+ "tags": [
+  "2d",
+  "inflow",
+  "pic"
+ ],
+ "description": "cfd_2d_channel_kepsilon laminar with the free surface and the momentum of the water from the PIC particles (F 81 2): discharge inflow (B 60 1) with particles in the ghost cells of the inflow, emitted in rows at the spacing of the seeding, no mirror images across the inflow; particles leaving through the outflow (needs PICFSF patch 0005)",
+ "covers": [
+  "pic_f_inflow: inflow_seed",
+  "pic_f::domain and pic_f::blocked in the ghost cells of the inflow",
+  "ioflow::fsfinflow from pic_f::phi_build"
+ ],
+ "architect": "Hans Bihs"
+}

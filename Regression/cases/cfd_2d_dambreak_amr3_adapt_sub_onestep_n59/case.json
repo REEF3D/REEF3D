@@ -1,0 +1,23 @@
+{
+ "base": "cfd_2d_dambreak_amr3_adapt_sub",
+ "np": 1,
+ "steps": 60,
+ "ctrl_set": {
+  "N 40": "5"
+ },
+ "ctrl_add": [
+  "N 59 1"
+ ],
+ "description": "cfd_2d_dambreak_amr3_adapt_sub (two adaptive levels, subcycling G 7 1) with the one-step scheme and the momentum carried with the mass flux (N 40 5, N 59 1): every level takes its own step in the order of momentum_rk::step_ssp, the momentum with u(n) and phi(n) and the projection of the level first, then the level set with the projected u(n+1) (validation 80).",
+ "tags": [
+  "quick",
+  "2d",
+  "dambreak",
+  "levelset",
+  "amr",
+  "adaptive"
+ ],
+ "covers": [
+  "cfd_amr::patch_step_onestep and the level-0 step of step_sub with N 40 5"
+ ]
+}

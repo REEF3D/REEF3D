@@ -1106,7 +1106,7 @@ double nhflow_amr::df_fine(int id, int side, int r, int K, int k, int kx)
 void nhflow_amr::df_fix(int kx, int ky, double sg)
 {
     // (multi-block grids: the coarse faces of a patch at a block face may lie in a turned block, where the
-    // velocity components of both sides differ: not matched there, as before)
+    // velocity components of both sides differ: not matched there)
     if(maxlev<1 || nblk>0)
     return;
 

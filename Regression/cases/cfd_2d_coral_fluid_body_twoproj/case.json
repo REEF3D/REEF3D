@@ -1,0 +1,17 @@
+{
+ "base": "cfd_2d_coral_fluid_body",
+ "ctrl_set": {
+  "N 40": "6"
+ },
+ "description": "cfd_2d_coral_fluid_body (REEF3D::CORAL drives a CFD body, two-way) with the one-step scheme with two projections N 40 6: CORAL gets the half step (to n+1/2) and the full step (from n to n+1) as the two stages.",
+ "tags": [
+  "2d",
+  "6dof",
+  "floating",
+  "levelset",
+  "coral"
+ ],
+ "covers": [
+  "sixdof_cfd::ext_nodes: the stage times of N 40 6"
+ ]
+}

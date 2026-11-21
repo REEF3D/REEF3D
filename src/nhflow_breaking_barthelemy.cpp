@@ -47,6 +47,19 @@ Architect: Hans Bihs
 // of every crest point and radiated short waves in Ting & Kirby; the seed keeps the onset of the tracking and the
 // smooth viscosity of A 550 3.
 // No breaking in the relaxation zones (ioflow::relax_boxes). Crest log with P 59 1.
+//
+// A 550 5: A 550 4 plus the deep-water breakers of FNPF A 350 5 (breaking_crest3d model 5, the same keys A 367, A 369,
+// A 404, A 407-A 409, A 411): crests in deep and intermediate water (C^2/(g h) < 0.6, 2 pi h/L > 1.4, ramps to 0.9 and
+// 0.8) break at B > A 359 - A 369/sqrt(N) (the correction fades out between N = 120 and 200 cells per wavelength), with
+// the breaker scales at onset (L_b, H_b, c_b, T_b), the strength eps = b c_b^5/g, b = 0.4 (S - 0.08)^2.5 of the
+// breaker slope S = k H/2 (Romero et al. 2012; A 367 2: b(Gamma) of Derakhti et al. 2018), b <= A 407, for A 408 T_b
+// and at most A 409 of g H_b^2 L_b/8. eps is dissipated by the breaking viscosity alone, nu = eps / (dissipation per
+// unit viscosity of the resolved velocities, nu f(z) on the painted interval), with the depth profile of
+// nhflow_vbz; a deep-water breaker does not seed the Kennedy viscosity. The bores of shallow water as A 550 4.
+// Energy loss of the focused packets of Rapp & Melville (L_c/100, 16 layers, explicit; A 550 4 and the LES of Derakhti &
+// Kirby 2016 in brackets): RN 0.2 % (0), RS1 15.7 % (8.0 %, 14.0 %), RP1 27.3 % (26.2 %, 28.9 %), RP2 31.3 % (30.1 %,
+// 31.7 %). The semi-implicit step loses about as much without a breaking model (RS1 10.3 %, RP1 26.5 %, RP2 29.5 %):
+// its crests do not reach the onset on RS1 (B <= 0.48) and the viscosity changes RP1 and RP2 by 1-2 points.
 
 #include"nhflow_breaking.h"
 #include"breaking_crest3d.h"
@@ -72,6 +85,30 @@ void nhflow_breaking::breaking_barthelemy(lexer *p, fdm_nhf *d, ghostcell *pgc, 
         bt->slope_end = tan(p->A360*PI/180.0);
         bt->deep = p->A367;
         bt->Tdom = (p->B90>0) ? ((p->wTp>0.0) ? p->wTp : p->wT) : 0.0;
+        
+        // A 550 5: the deep-water breakers of FNPF A 350 5 (fnpf_breaking_barthelemy.cpp, breaking_crest3d.h) with the
+        // same keys: onset A 359 - A 369/sqrt(N), b(S) of Romero et al. (2012) (A 367 1) or b(Gamma) of D18 (A 367 2),
+        // b <= A 407, duration A 408 T_b, energy <= A 409 of the breaker, limiting slope A 404, window A 411. The
+        // strength eps is dissipated by the breaking viscosity alone (A 412 is not used): NHFLOW has the velocity
+        // gradients of the roller, so the viscosity is matched to eps directly
+        if(p->A550==5)
+        {
+            bt->model = 5;
+            bt->BonN = MAX(p->A369,0.0);
+            bt->deep = (p->A367==1) ? 2 : ((p->A367==2) ? 1 : 0);
+            bt->bmax = MAX(p->A407,0.0);
+            bt->tau = MAX(p->A408,0.0);
+            bt->win = MAX(p->A411,1.0e-6);
+            bt->Slim = (p->A404>0.0) ? p->A404 : 1.0e20;
+            bt->fvisc = 1.0;
+            
+            // candidates (rays, log) below the lowest onset threshold (N = 30) and its B window
+            bt->Bcand = MIN(bt->Bcand, 0.9*(bt->Bon - bt->BonN/sqrt(30.0) - bt->win));
+            
+            if(p->mpirank==0)
+            cout<<"A 550 5: deep-water breakers of A 350 5 (b <= "<<bt->bmax<<", duration "<<bt->tau<<" T_b, energy <= "
+                <<p->A409<<"), dissipated by the breaking viscosity; bores as A 550 4"<<endl;
+        }
     }
 
     bt->Hmin = 2.0*p->A544;
@@ -118,7 +155,111 @@ void nhflow_breaking::breaking_barthelemy(lexer *p, fdm_nhf *d, ghostcell *pgc, 
         brkseed(i,j) = 0;
     }
 
+    if(p->A550!=5)
     bt->rays(p,pgc,eta_n,d->WL,t,sback,integrand,epsf,bt_vbs,brkseed.V,&brkkseed);
+    
+    // A 550 5: the deep-water breakers (mech 1) get the viscosity nu = eps / (dissipation per unit viscosity) in bt_vbd,
+    // with the depth profile of nhflow_vbz (wavenumber k of the crest); the bores (mech 0) seed the Kennedy viscosity as
+    // with A 550 4 (their viscosity bt_vbs is not used)
+    if(p->A550==5)
+    {
+        const double g = fabs(p->W22);
+        const bool si = (p->A510>=11);
+        
+        // dissipation of nu f(sig) per unit viscosity, crest length and ray length at (x, y): the column of the nearest
+        // cell, int f (|grad u|^2 + |grad v|^2 + |grad w|^2) dz (sigma layers, horizontal derivatives along the layers),
+        // the normal stresses with the factor 2 of the explicit implicit diffusion (nhflow_idiff); the semi-implicit
+        // horizontal and vertical diffusion is of the Laplacian form (factor 1)
+        const double fn = si ? 1.0 : 2.0;
+        
+        auto integrand5 = [&](const bc3_point &R, double x, double y) -> double
+        {
+            int ii = bt->cell_i(p,x), jj = bt->cell_j(p,y);
+            
+            // the nearest cell centre
+            if(ii>=0 && ii+1<p->knox && fabs(p->XP[ii+1+marge]-x)<fabs(p->XP[ii+marge]-x))
+            ++ii;
+            
+            if(p->j_dir==1 && jj>=0 && jj+1<p->knoy && fabs(p->YP[jj+1+marge]-y)<fabs(p->YP[jj+marge]-y))
+            ++jj;
+            
+            if(ii<0 || ii>=p->knox || (p->j_dir==1 && (jj<0 || jj>=p->knoy)))
+            return 0.0;
+            
+            const int jc = (p->j_dir==1) ? jj : 0;
+            
+            if(p->wet[(ii-p->imin)*p->jmax + (jc-p->jmin)]==0)
+            return 0.0;
+            
+            const double h = d->WL(ii,jc);
+            
+            if(h<=p->A544)
+            return 0.0;
+            
+            const double kh = R.kw*h;
+            const double dxx = p->XP[ii+1+marge] - p->XP[ii-1+marge];
+            const double dyy = (p->j_dir==1) ? p->YP[jc+1+marge] - p->YP[jc-1+marge] : 1.0;
+            double D = 0.0;
+            
+            for(int kk=0; kk<p->knoz; ++kk)
+            {
+                const double sg = p->ZP[kk+marge];
+                const double f = (kh>0.0) ? (exp(kh*(sg-1.0)) + exp(-kh*(sg+1.0)))/(1.0 + exp(-2.0*kh)) : 1.0;
+                const int km = MAX(kk-1,0), kp = MIN(kk+1,p->knoz-1);
+                const double dz = h*(p->ZP[kp+marge] - p->ZP[km+marge]);
+                
+                const double *F3[3] = {d->U, d->V, d->W};
+                double phi = 0.0;
+                
+                for(int c=0; c<3; ++c)
+                {
+                    if(c==1 && p->j_dir==0)
+                    continue;
+                    
+                    const double *A = F3[c];
+                    const double ax = (A[idx(ii+1,jc,kk)] - A[idx(ii-1,jc,kk)])/dxx;
+                    const double ay = (p->j_dir==1) ? (A[idx(ii,jc+1,kk)] - A[idx(ii,jc-1,kk)])/dyy : 0.0;
+                    const double az = (kp>km && dz>0.0) ? (A[idx(ii,jc,kp)] - A[idx(ii,jc,km)])/dz : 0.0;
+                    
+                    phi += ((c==0) ? fn : 1.0)*ax*ax + ((c==1) ? fn : 1.0)*ay*ay + ((c==2) ? fn : 1.0)*az*az;
+                }
+                
+                D += f*phi*h*p->DZN[kk+marge];
+            }
+            
+            return D;
+        };
+        
+        // not used (fvisc 1): breaking_crest3d decides the mechanism with a pressure integrand
+        const std::function<double(const bc3_point&, double, double)> integrand_pa = [&](const bc3_point &R, double x, double y) { return 0.0; };
+        
+        // strength per unit crest length and density: a deep-water breaker b c_b^5/g (D18) over A 408 T_b, at most
+        // A 409 of its energy g H_b^2 L_b/8; a bore (only its painted interval, the seed, is used) as FNPF
+        auto epsf5 = [&](const bc3_point &R) -> double
+        {
+            if(R.mech==1)
+            {
+                const double eps5 = R.b*pow(R.cb,5.0)/g;
+                const double ecap = p->A409*g*R.Hb*R.Hb*R.Lb/8.0/MAX(p->A408*R.Tb,1.0e-6);
+                
+                return MIN(eps5, ecap);
+            }
+            
+            return 1.0;
+        };
+        
+        SLICELOOP4
+        {
+            bt_vbd(i,j) = 0.0;
+            bt_kwd(i,j) = 0.0;
+            bt_pa(i,j) = 0.0;
+        }
+        
+        bt->rays(p,pgc,eta_n,d->WL,t,sback,integrand5,epsf5,bt_vbs,brkseed.V,&brkkseed,&integrand_pa,&bt_pa,&bt_vbd,&bt_kwd);
+        
+        pgc->gcsl_start4(p,bt_vbd,1);
+        pgc->gcsl_start4(p,bt_kwd,1);
+    }
 
     pgc->gcsl_start4int(p,brkseed,50);
     pgc->gcsl_start4(p,brkkseed,1);

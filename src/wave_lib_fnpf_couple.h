@@ -150,8 +150,6 @@ private:
     std::vector<ocol> oc;
     std::deque<std::vector<double>> fbbuf;
     std::deque<MPI_Request> fbreq;
-    
-    int nwarn=0;
 };
 
 #endif

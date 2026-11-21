@@ -20,14 +20,21 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#include"gcsl_side.h"
 #include"sflow_eta.h"
 #include"lexer.h"
 #include"fdm2D.h"
 #include"ghostcell.h"
+#include"sflow_breaking_kb.h"
 
 void sflow_eta::breaking(lexer* p, fdm2D* b, ghostcell* pgc, slice &eta, slice &eta_n, double alpha)
 {    
-    if(p->A246>=1)
+    // A 246 4: crest tracking and the eddy viscosity of NHFLOW A 550 4 (b->vb); b->breaking is not set, it would
+    // switch the non-hydrostatic pressure off
+    if(pkb!=nullptr)
+    pkb->start(p,b,pgc,eta,eta_n,alpha);
+    
+    if(p->A246>=1 && p->A246!=4)
     SLICELOOP4
     {
             if( (eta(i,j)-eta_n(i,j))/(alpha*p->dt) > p->A247*sqrt(9.81*b->hp(i,j)))
@@ -140,8 +147,9 @@ void sflow_eta::breaking(lexer* p, fdm2D* b, ghostcell* pgc, slice &eta, slice &
     {
 		i=p->gcslout[n][0];
 		j=p->gcslout[n][1];
+        const gcsl_side sd(p->gcslout[n][3]);
         
-        b->breaking(i-1,j)=1;
+        b->breaking(i-sd.di,j-sd.dj)=1;
         b->breaking(i,j)=1;
     }
     
@@ -179,6 +187,10 @@ void sflow_eta::breaking(lexer* p, fdm2D* b, ghostcell* pgc, slice &eta, slice &
 
 void sflow_eta::breaking_persist(lexer* p, fdm2D* b, ghostcell* pgc, slice &eta, slice &eta_n, double alpha)
 {    
+    // A 246 4: no persistence, the age of the event carries it (sflow_breaking_kb)
+    if(p->A246==4)
+    return;
+    
     SLICELOOP4
     b->breaking_print(i,j)=double(b->breaking(i,j));
     

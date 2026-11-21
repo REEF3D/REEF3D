@@ -27,8 +27,8 @@ Author: Hans Bihs
 #include"ghostcell.h"
 #include"heaviside.h"
 
-fluid_update_fsf::fluid_update_fsf(lexer *p, fdm* a, ghostcell* pgc) : dx(p->DXM),visc_air(p->W4),visc_water(p->W2),visc_body(p->X44),
-                                                                      ro_air(p->W3),ro_water(p->W1),visc_sed(p->W2),ro_sed(p->S22)
+fluid_update_fsf::fluid_update_fsf(lexer *p, fdm* a, ghostcell* pgc) : visc_air(p->W4),visc_water(p->W2),
+                                                                      ro_air(p->W3),ro_water(p->W1)
 {
     gcval_ro=1;
 	gcval_visc=1;
@@ -41,7 +41,6 @@ fluid_update_fsf::~fluid_update_fsf()
 void fluid_update_fsf::start(lexer *p, fdm* a, ghostcell* pgc, field &u, field &v, field &w)
 {
 	double H=0.0;
-    double H_fb=0.0;
 	p->volume1=0.0;
 	p->volume2=0.0;
     

@@ -1,0 +1,21 @@
+{
+ "description": "SFLOW semi-implicit step with the coupled non-hydrostatic pressure (A 210 12, A 220 3, alpha A 224): 1D Beji & Battjes bar, h = 0.4 m, regular waves H = 2 cm, T = 2.02 s (relaxation B 98 2), dx = 4 cm, dt = 0.02 s (gravity wave Courant number about 1, the dispersive limit of the explicit step about 4 times smaller). 15 s: the waves shoal up the front slope to the bar crest.",
+ "solver": "sflow",
+ "np": 1,
+ "steps": 750,
+ "tags": [
+  "quick",
+  "1d",
+  "sflow",
+  "semi_implicit",
+  "nonhydrostatic",
+  "waves"
+ ],
+ "covers": [
+  "sflow_momentum_SI_nh: coupled eta-P system, band LU (1D, one rank)",
+  "A 220 3 h^3 lap(eta) term",
+  "WH predictor, bed acceleration phi",
+  "relaxation zone with the semi-implicit step (B 95)"
+ ],
+ "architect": "Hans Bihs"
+}

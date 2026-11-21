@@ -24,6 +24,42 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm_nhf.h"
 #include"ghostcell.h"
+#include"nhflow_drywall.h"
+
+// Solid columns inside the grid (DIVEMesh solids as bed level, A 580 0: no slice cell) are dry. The ghost cell
+// update of the wet flags gives them the flag of the fluid cell next to them, wet. The continuity flux and the
+// face states are closed where the neighbour is dry (nhflow_HLL::aij_E, wetdry_fluxes), so that a wet solid
+// column left its faces open: water flowed into and out of a pier (a jet of 7 m/s and 2 m of water beside
+// a pier in a 0.6 m/s, 0.5 m deep channel).
+void nhflow_fsf_f::solid_dry(lexer *p)
+{
+    // the columns behind the wall faces of the slice boundary list (gcbsl4, type 21) inside the grid; the edges
+    // of the domain and the faces to other blocks or grids are not walls of this kind and keep their ghost values
+    int ii,jj,cs;
+    
+    for(int n=0; n<p->gcbsl4_count; ++n)
+    if(p->gcbsl4[n][4]==21)
+    {
+    ii = p->gcbsl4[n][0];
+    jj = p->gcbsl4[n][1];
+    cs = p->gcbsl4[n][3];
+    
+    if(cs==1)
+    --ii;
+    
+    if(cs==4)
+    ++ii;
+    
+    if(cs==3)
+    --jj;
+    
+    if(cs==2)
+    ++jj;
+    
+    if(ii+p->origin_i>=0 && ii+p->origin_i<p->gknox && jj+p->origin_j>=0 && jj+p->origin_j<p->gknoy)
+    p->wet[(ii-p->imin)*p->jmax + (jj-p->jmin)] = 0;
+    }
+}
 
 void nhflow_fsf_f::wetdry(lexer* p, fdm_nhf* d, ghostcell* pgc, double *UH, double *VH, double *WH, slice &WL)
 {
@@ -58,6 +94,7 @@ void nhflow_fsf_f::wetdry(lexer* p, fdm_nhf* d, ghostcell* pgc, double *UH, doub
     }
     
     pgc->gcsl_start4Vint(p,p->wet,50);
+    solid_dry(p);
     
     // ----------------
     // ----------------
@@ -98,6 +135,7 @@ void nhflow_fsf_f::wetdry(lexer* p, fdm_nhf* d, ghostcell* pgc, double *UH, doub
      
      pgc->gcsl_start4(p,d->eta,gcval_eta);
      pgc->gcsl_start4Vint(p,p->wet,50);
+     solid_dry(p);
     
     // ----------------
     // ----------------
@@ -121,39 +159,28 @@ void nhflow_fsf_f::wetdry(lexer* p, fdm_nhf* d, ghostcell* pgc, double *UH, doub
         }
     }
     
-    // avoid isolated wetdry
+    // avoid isolated wetdry: a wet cell closed in by dry cells or the edge of the grid on both sides.
+    // With more than one cell in y it has to be closed in x and in y: a cell with dry cells on both sides in one
+    // direction only is a channel one cell wide, and it stays wet. From the flags before the loop (temp), so that
+    // the result does not depend on the order of the cells.
+    SLICELOOP4
+    temp[IJ] = p->wet[IJ];
+
     SLICELOOP4
     if(p->wet[IJ]==1 && !fixed())
     {
-    if(p->wet[Im1J]==0 && p->flagslice4[Ip1J]<0)
-    p->wet[IJ]=0;
-    
-    if(p->wet[Ip1J]==0 && p->flagslice4[Im1J]<0)
-    p->wet[IJ]=0;
-    
-    if(p->wet[IJm1]==0 && p->flagslice4[IJp1]<0 && p->j_dir==1)
-    p->wet[IJ]=0;
-    
-    if(p->wet[IJp1]==0 && p->flagslice4[IJm1]<0 && p->j_dir==1)
-    p->wet[IJ]=0;
-    
-    
-    
-    if(p->wet[Im1J]==0 && p->wet[Ip1J]==0)
-    p->wet[IJ]=0;
-    
-    if(p->wet[Ip1J]==0 && p->wet[Im1J]==0)
-    p->wet[IJ]=0;
-    
-    if(p->wet[IJm1]==0 && p->wet[IJp1]==0 && p->j_dir==1)
-    p->wet[IJ]=0;
-    
-    if(p->wet[IJp1]==0 && p->wet[IJm1]==0 && p->j_dir==1)
-    p->wet[IJ]=0;
-        
+    const bool cx = (p->wet[Im1J]==0 && (p->wet[Ip1J]==0 || p->flagslice4[Ip1J]<0)) || (p->wet[Ip1J]==0 && p->flagslice4[Im1J]<0);
+    const bool cy = (p->wet[IJm1]==0 && (p->wet[IJp1]==0 || p->flagslice4[IJp1]<0)) || (p->wet[IJp1]==0 && p->flagslice4[IJm1]<0);
+
+    if(p->j_dir==1 ? (cx && cy) : cx)
+    temp[IJ]=0;
     }
-    
+
+    SLICELOOP4
+    p->wet[IJ] = temp[IJ];
+
     pgc->gcsl_start4Vint(p,p->wet,50);
+    solid_dry(p);
     
     //------------
     LOOP
@@ -183,12 +210,17 @@ void nhflow_fsf_f::wetdry(lexer* p, fdm_nhf* d, ghostcell* pgc, double *UH, doub
     
     SLICELOOP4
     {
+    // dry land next to deep water (A 541): the column keeps its non-hydrostatic pressure (nhflow_drywall.h)
+    if(nhflow_drywall::cliff(p,d,i,j,WL(i,j)))
+    continue;
+
     if(p->wet[Ip1J]==0 || p->wet[Ip2J]==0 || p->wet[Im1J]==0 || p->wet[Im2J]==0)
     p->deep[IJ]=0;
     
     
+    // (2 cells in y as in x: with 3 cells in y the solution of a case that is symmetric about x = y was not)
     if(p->j_dir==1)
-    if(p->wet[IJp1]==0 || p->wet[IJp2]==0 || p->wet[IJp3]==0 || p->wet[IJm1]==0 || p->wet[IJm2]==0 || p->wet[IJm3]==0)
+    if(p->wet[IJp1]==0 || p->wet[IJp2]==0 || p->wet[IJm1]==0 || p->wet[IJm2]==0)
     p->deep[IJ]=0;
     
     if(p->j_dir==1)

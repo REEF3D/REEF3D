@@ -1,0 +1,17 @@
+{
+ "description": "NHFLOW semi-implicit with wave breaking: Ting & Kirby spilling breaker, coarse (600 cells x 4 layers, dx 0.05 m, dt 0.02 s, theta 1/2, A 510 11, A 520 2, NH wetting-drying A 537 1), Kennedy viscosity with the Barthelemy seed (A 550 4). The breaking viscosity in the column operator and in the sub-stepped horizontal diffusion.",
+ "solver": "nhflow",
+ "np": 1,
+ "steps": 600,
+ "tags": [
+  "1d",
+  "nhflow",
+  "semi_implicit",
+  "breaking"
+ ],
+ "covers": [
+  "nhflow_momentum_SI::hdiffusion_brk (flux form, sub-steps)",
+  "nhflow_momentum_SI::vb_layer / col_nu (breaking viscosity of the layers)",
+  "nhflow_momentum_SI::si_end_cells (breaking zones and viscosity at the end of the step)"
+ ]
+}

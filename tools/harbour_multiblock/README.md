@@ -32,7 +32,8 @@ native in- and outflow with `B 60 1`:
   outflow (`sediment_f::dfbed_open`, kept by `active_sflow`): the bed load leaves through the outflow face with the
   upwind flux of the last cell (before P8a the face was closed for the sediment and the end of an outflow block
   filled with sand).  As on the native grid, no sediment enters through an inflow face (its face velocity of the
-  sediment is 0); hold the bed of the inflow reach with `S 71`, or (P8b) with `S 76 xs xe ys ye`: the bed of the
+  sediment is 0); the inflow guard `S 78` (default) holds the first row (P8c, `../sediment_curvilinear/README.md`), a
+  longer reach with `S 71`, or (P8b) with `S 76 xs xe ys ye`: the bed of the
   cells in the box is held (their Exner change is 0, `sediment_f::ini_guard`), their bed load is computed as
   everywhere and carried into the cells downstream: the supply of the reach at its capacity.  Any number of boxes,
   physical coordinates of the cell centres (curvilinear grids and the patches of the blocks).  As for the inflow
@@ -117,13 +118,45 @@ Sediment (`SED=1`, d50 0.5 mm, MPM, MF 50, the bed moving from 1200 s: 33 h of m
   0.2 - 0.5 m/s (Shields number near the threshold): the bed of their two banks differs by 0.25 m at most.
 - Nothing reaches the open faces in the fjord: no bed change north of y 1800 m (below 0.01 m north of 1000 m),
   speeds at the faces 0.04 m/s.  The sediment outflow through `G 54` (P8a) is not exercised by this case at the
-  mean discharge.
+  mean discharge: see the flood below.
 - `S 95 2` against `S 95 1`: the same budget; the bed differs by 0.05 m rms (bed change 0.14 m rms) over the
   corridor, up to 1.5 m in the deposit after the upstream constriction where the spiral flow builds up over
   `L_a` (up to 79 m in the river, 212 m in the harbour) instead of at once; beyond 400 m from the inflow 0.009 m rms
   (change 0.06 m rms), at most 0.16 m.  Adding `S 64 0.5`: 0.03 m rms, 0.008 m rms beyond 400 m; `L_s` up to 23 m
   (w_s 0.072 m/s).  The lags across the corridor and the two harbour blocks: 2 - 15 passes per step, mostly 3.
 - NHFLOW (`A 519 1`) was not rerun: 0.95 s per step with 5 layers on 2 cores, 6 - 7 h for the 3600 s.
+
+Flood, sediment through the open face (`Q=400 SED=1 SPIRAL=2 SEDSTART=3000 TEND=6000`; `p8b_8_flood_open_face.png`):
+the harbour block cut at y = 800 m (`BOX="-400 2300 -300 800"`, 110 x 270 cells; the face crosses the river channel
+at x 1560 - 1670 m, 1.8 m/s, and the west basin) against the P5d block to y = 2000 m.
+
+| bed volume change (m3) | face at 800 m | face at 2000 m |
+|---|---|---|
+| river | -8860 | -8904 |
+| harbour south of y 800 | +6791 | +6928 |
+| harbour north of y 800 | (outside) | +5375 |
+| total (= supply - outflow) | -2069 | +3399 |
+
+- The tall run keeps the sand: north of 800 m it builds a lobe of up to 1.9 m at y 900 m where the channel widens;
+  0.2 % of it north of 1600 m (1.3 mm at the y 2000 faces).  In the short run the same sand leaves through the
+  face: the outflow from the budgets, 3399 + 2069 = 5468 m3, against the 5375 m3 the tall run deposits north of
+  800 m (1.7 %, the bed differences elsewhere).  No sand piles up at the face (bed change there -0.4 .. +0.5 m,
+  as in the tall run at y 800).
+- The bed of the two runs: 0.001 m rms at y 400 - 700 m (change 0.086 m rms), 0.024 m rms in the last 100 m
+  before the face (the fixed level of the face against the free level of the tall run; at most 0.6 m), 0.005 m
+  rms in the harbour channel south of 400 m.  In the river 0.063 m rms of 0.55 m, at most 2.8 m in single cells of
+  the upstream constrictions: the morphology there amplifies the small differences of the flow (see `S 95 2`
+  above).
+- The flow is not steady when the bed starts moving at 3000 s: the river still fills (80 m3/s at 3000 - 4500 s,
+  21 m3/s at 4500 - 6000 s).  With the bed moving from 8000 s instead (`SEDSTART=8000 TEND=11000`, the
+  storage 5 % of the discharge then against 30 % at 3000 s; `p8b_9_flood_spinup_profile.png`), the same 3000 s of
+  bed change: the same pattern along the river, 40 % more erosion in the river (-12370 against -8860 m3), more of
+  it at the mouth, less deposit in the harbour (+5384 against +6791) and more sand through the face (net -6983
+  against -2069 m3); the bed differs by 0.22 m rms in the river (change 0.57 m rms), 0.04 m rms in the harbour
+  channel.  Start the bed once the storage has fallen below a few % of the discharge (the filling
+  decays over about 2200 s here); restarting a flow checkpoint (`P 48`) with the sediment on would save the
+  spin-up, not tried.
+- Wall time on 2 ranks: 0.089 s per step with the short harbour block, 0.169 with the tall one.
 
 ## Refinement at the shoreline (lake at rest, `Q=0 AMR=1 TEND=300`)
 

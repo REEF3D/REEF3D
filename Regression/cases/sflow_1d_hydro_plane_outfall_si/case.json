@@ -1,0 +1,22 @@
+{
+ "description": "REEF3D::HYDRO tilted plane (200 m, slope 0.02, n 0.02) under 50 mm/h (rain.dat, R 10 2) with a free outfall (F 50 2, F 62 at the bed, B 60 1): kinematic sheet flow, the outflow follows the analytical kinematic wave to 1 % (validation/02_tilted_plane).",
+ "solver": "sflow",
+ "np": 1,
+ "steps": 150,
+ "tags": [
+  "quick",
+  "1d",
+  "sflow",
+  "hydro",
+  "semi_implicit",
+  "wetdry"
+ ],
+ "covers": [
+  "R 10 2 rain time series",
+  "the face depth with the higher bed of sflow_momentum_SI::face_depth with HYDRO sources",
+  "the outflow face of an outflow cell held at a level at its bed (sflow_momentum_SI::bc_setup)"
+ ],
+ "files": [
+  "rain.dat"
+ ]
+}

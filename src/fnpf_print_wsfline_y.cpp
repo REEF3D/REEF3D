@@ -120,8 +120,7 @@ void fnpf_print_wsfline_y::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, ioflow *
 
 void fnpf_print_wsfline_y::ini_location(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 {
-    int check,count;
-    
+    int count;
     
     for(q=0;q<p->P56;++q)
     {

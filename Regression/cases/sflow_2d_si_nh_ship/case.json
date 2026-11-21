@@ -1,0 +1,20 @@
+{
+ "description": "SFLOW semi-implicit step with the coupled non-hydrostatic pressure (A 210 12, A 220 3) and a moving surface pressure (X 10 3, X 400 2: 8 x 2 m box with smooth ends, depth-Froude number 0.7, h = 1 m) in a 100 x 15 m channel with a symmetry wall at y = 0, dx = 0.5 m, dt = 0.1 s: the Kelvin wake with its dispersive transverse and divergent waves.",
+ "solver": "sflow",
+ "np": 1,
+ "steps": 200,
+ "tags": [
+  "quick",
+  "2d",
+  "sflow",
+  "semi_implicit",
+  "nonhydrostatic",
+  "ship",
+  "6dof"
+ ],
+ "covers": [
+  "X 10 3 2D with the semi-implicit coupled system",
+  "ship time step limit (one cell per step)"
+ ],
+ "architect": "Hans Bihs"
+}

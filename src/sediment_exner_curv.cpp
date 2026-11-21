@@ -32,7 +32,7 @@ void sediment_exner::topovel_curv(lexer* p, ghostcell *pgc, sediment_fdm *s, int
     // Exner on a curvilinear grid: (sum of the face fluxes times the face lengths)/area
     //   S 31 1: face flux qb_face * sg, sg = u.n/|u| the transport direction of the face
     //   S 31 2: face flux (qbx,qby)_face . n of the cell flux vector qb*u/|u|, closed faces none
-    //   S 32 1: the upwind cell of the face (by sg), S 32 2: the mean of the two cells
+    //   S 32 1: upwind (S 31 1 the upwind cell by sg, S 31 2 flux splitting), S 32 2: the mean of the two cells
     // On Cartesian nodes this is topovel1/topovel2 with sediment_fou/sediment_cds.
     double u,v,umag;
 
@@ -93,11 +93,9 @@ void sediment_exner::topovel_curv(lexer* p, ghostcell *pgc, sediment_fdm *s, int
         fy = 0.5*(qby(ii,jj) + qby(ia,ja));
         }
         
+        // upwind: flux splitting of the normal flux of the two cells (sediment_fou)
         else
-        {
-        fx = (sg>=0.0) ? qbx(ii,jj) : qbx(ia,ja);
-        fy = (sg>=0.0) ? qby(ii,jj) : qby(ia,ja);
-        }
+        return (MAX(qbx(ii,jj)*nx + qby(ii,jj)*ny,0.0) + MIN(qbx(ia,ja)*nx + qby(ia,ja)*ny,0.0))*(sg!=0.0?1.0:0.0)*len;
         
         return (fx*nx + fy*ny)*(sg!=0.0?1.0:0.0)*len;
     };

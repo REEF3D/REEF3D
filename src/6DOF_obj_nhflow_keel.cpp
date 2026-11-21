@@ -103,7 +103,7 @@ void sixdof_obj_nhflow::keel_nhflow(lexer *p, fdm_nhf *d, slice &ZETA, slice &S,
 // the loads of the footprint columns (nhflow_fsf_hull::forces, already summed over the ranks) into
 // the body, as the tail of force_calc_stl: gravity added, the force file written at the end of the step
 void sixdof_obj_nhflow::hull_loads_nhflow(lexer *p, ghostcell *pgc, bool finalize, double Fx, double Fy, double Fz,
-                                          double Mx, double My, double Mz)
+                                          double Mx, double My, double Mz, const double *Fprint)
 {
     curr_time = finalize ? p->simtime + p->dt : p->simtime;
 
@@ -127,6 +127,15 @@ void sixdof_obj_nhflow::hull_loads_nhflow(lexer *p, ghostcell *pgc, bool finaliz
 
     if(p->mpirank==0 && finalize==1)
     {
+        // Fprint: the loads to print instead (X 15 10: the stage loads in the weights of the Runge-Kutta scheme)
+        if(Fprint!=nullptr)
+        {
+        const bool two = p->j_dir==1;
+        printforce<<curr_time<<" \t "<<Fprint[0]+p->W20*Mass_fb<<" \t "<<(two?Fprint[1]:0.0)+p->W21*Mass_fb<<" \t "<<Fprint[2]+p->W22*Mass_fb<<" \t "<<(two?Fprint[3]:0.0)
+        <<" \t "<<Fprint[4]<<" \t "<<(two?Fprint[5]:0.0)<<" \t "<<Fprint[0]<<" \t "<<(two?Fprint[1]:0.0)<<" \t "<<Fprint[2]<<" \t "<<0.0<<" \t "<<0.0<<" \t "<<0.0<<endl;
+        }
+        
+        else
         printforce<<curr_time<<" \t "<<Xe<<" \t "<<Ye<<" \t "<<Ze<<" \t "<<Ke
         <<" \t "<<Me<<" \t "<<Ne<<" \t "<<Xe_p<<" \t "<<Ye_p<<" \t "<<Ze_p<<" \t "<<0.0<<" \t "<<0.0<<" \t "<<0.0<<endl;
     }

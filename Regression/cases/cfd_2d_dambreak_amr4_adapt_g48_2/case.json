@@ -1,0 +1,20 @@
+{
+ "base": "cfd_2d_dambreak_amr4_adapt",
+ "np": 1,
+ "steps": 6,
+ "ctrl_add": [
+  "G 48 2"
+ ],
+ "description": "cfd_2d_dambreak_amr4_adapt (four adaptive levels) with the cycle G 48 2 of the composite preconditioner: every level with the residual of its own rows, the solution of the coarser level prolonged into it first, and the half-step exit of BiCGStab (patch 0175, validation CFD AMR speed/02).",
+ "tags": [
+  "2d",
+  "dambreak",
+  "levelset",
+  "amr",
+  "adaptive"
+ ],
+ "covers": [
+  "cfd_amr::pr_prec with G 48 2 over five grids: the restricted right-hand side, the rows under the finer patches, the flux from the covered cell at the faces of the finer patches",
+  "reefamr_bicgstab with the half-step exit"
+ ]
+}

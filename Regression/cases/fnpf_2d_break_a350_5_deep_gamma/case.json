@@ -1,0 +1,10 @@
+{
+ "description": "fnpf_2d_break_a350_5_deep with the Gamma strength of Derakhti et al. (2018) (A 367 2): Gamma = T_b dB/dt fitted over |B - Bth| < A 411 of the crest's samples, x A 359/Bth. On this coarse grid (dx 3 m) Gamma stays below 0.3, so the breakers are tracked for 0.75 T_b with b = 0.",
+ "solver": "fnpf",
+ "np": 1,
+ "steps": 300,
+ "tags": ["2d", "fnpf", "waves", "breaking", "irregular"],
+ "covers": [
+  "breaking_crest3d::rays model 5 with the Gamma window fit (deep 1)"
+ ]
+}

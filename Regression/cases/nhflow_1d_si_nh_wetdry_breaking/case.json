@@ -1,0 +1,19 @@
+{
+ "description": "NHFLOW semi-implicit non-hydrostatic with wetting-drying and breaking: Synolakis breaking solitary wave (H/d 0.28, 1:19.85 beach), coarse (dx 0.2 m, dt 0.05 s, theta 1/2, A 510 11, A 520 2), A 537 1 (Newton iteration of the wet pattern of the pressure equation), Baquet viscosity in the top layer (A 550 1).",
+ "solver": "nhflow",
+ "np": 1,
+ "steps": 500,
+ "tags": [
+  "1d",
+  "nhflow",
+  "semi_implicit",
+  "nonhydrostatic",
+  "wetdry",
+  "breaking"
+ ],
+ "covers": [
+  "nhflow_momentum_SI::nh_solve (wet pattern iteration, A 537 1)",
+  "nhflow_momentum_SI::nh_residual / nh_assemble (mass row p_w (eta + d))",
+  "nhflow_momentum_SI::hdiffusion_brk (A 550 1)"
+ ]
+}

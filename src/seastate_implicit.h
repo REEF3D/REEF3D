@@ -442,6 +442,8 @@ private:
     vector<float> zero;                 // zero spectrum (no inflow)
     vector<double> zerod;               // zero source terms
     vector<double> tdi, tla, tup, trh, tsi, trd, tcp, tdp, tso;   // theta systems of all frequencies [l*ndir+n]
+    vector<double> mpG, mpG2, mpL, mpR, mpH;   // A 769 2: the gains of the two passes, the loss rates, r, trh before C
+    vector<float> mpN;                          // A 769 2: the spectrum of the source terms of the cell
     vector<int> tok;                    // per frequency: 0 after a vanishing pivot
     void store(float *N, int l, int ma, int nq, double dmax, bool clip);
     const double *nup = nullptr;            // ST4: upper bound of N per frequency (ecWAM FLMAX), nullptr: none
@@ -476,6 +478,7 @@ private:
     std::vector<double> etot;           // per slot: E_tot of the evaluation (threshold of the spectral sparsity)
     std::vector<uint8_t> tri;           // per slot: the triads acted
     std::vector<int16_t> tail;          // per slot: the first bin of the diagnostic tail (A 732 3, 4), nsig none
+    std::vector<float> hj;              // per slot: u* f_ref of the limiter of Hersbach and Janssen (A 769 1), 0 none
     std::vector<long> gen;              // per slot: the iteration of the evaluation (sgen), -1 none
     int slot_of(int ci, int cj) const
     {

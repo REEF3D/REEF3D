@@ -39,7 +39,6 @@ benchmark_TaylorGreen::benchmark_TaylorGreen(lexer *p, fdm *a) : gradient(p), vx
         y = p->pos1_y();
         z = p->pos1_z();
         a->u(i,j,k) = U*(sin(x/L)*cos(y/L)*cos(z/L));
-//        a->u(i,j,k) = 1.0;
 
     }   
     
@@ -49,7 +48,6 @@ benchmark_TaylorGreen::benchmark_TaylorGreen(lexer *p, fdm *a) : gradient(p), vx
         y = p->pos2_y();
         z = p->pos2_z();
         a->v(i,j,k) = -U*(cos(x/L)*sin(y/L)*cos(z/L));
-//        a->v(i,j,k) = 1.0;
 
     }
     
@@ -109,7 +107,7 @@ void benchmark_TaylorGreen::start(lexer* p, fdm *a, ghostcell *pgc, convection *
 	double x,y,z,xp,yp,zp;
 	double X1NM1P,growfactor1;
 
-	double uu, vv, ww, vmag, vmag2, velmag2, vol;
+	double uu, vv, ww, vmag2, velmag2, vol;
 
 	double vVolAvg = 0.0;
 	double velVolAvg = 0.0;
@@ -136,7 +134,7 @@ void benchmark_TaylorGreen::start(lexer* p, fdm *a, ghostcell *pgc, convection *
             vx(i,j,k) = 0.0;
             vy(i,j,k) = pudz(p,a) - pwdx(p,a);
             vz(i,j,k) = 0.0;
-            // 2D: the kinetic energy of u and w (was unset)
+            // 2D: the kinetic energy of u and w
             uu = 0.5*(a->u(i,j,k) + a->u(i-1,j,k));
             vv = 0.0;
             ww = 0.5*(a->w(i,j,k) + a->w(i,j,k-1));
@@ -180,8 +178,6 @@ void benchmark_TaylorGreen::start(lexer* p, fdm *a, ghostcell *pgc, convection *
         print.close();
     }
 	    //Growth_Ratio
-//    if(p->mpirank==0)
-//    {
             //ofstream printdata;
 			//double x,y,z;
 			// open file
@@ -211,14 +207,10 @@ void benchmark_TaylorGreen::start(lexer* p, fdm *a, ghostcell *pgc, convection *
 			printdata.open(name);
 
 			printdata<<"Data ID:  "<<1<<endl<<endl;
-//			lineout[n]<<"x_start     x_end     y_start     y_end     z_start     z_end"<<endl;
-			
-//			lineout[n]<<p->P62_xs[n]<<"\t "<<p->P62_xe[n]<<"\t "<<p->P62_ys[n]<<"\t "<<p->P62_ye[n]<<"\t "<<p->P62_zs[n]<<"\t "<<p->P62_ze[n]<<endl;
 
 			printdata<<endl<<endl;
 			
                         printdata<<"position \t GrowthRatio \t"<<endl;
-//			printdata<<"X \t Y \t Z \t U \t V \t W \t P"<<endl;
 			
 			printdata<<endl<<endl;
 
@@ -241,11 +233,6 @@ void benchmark_TaylorGreen::start(lexer* p, fdm *a, ghostcell *pgc, convection *
                         }
         
                            printdata<<X1NM1P<<" \t "<<growfactor1<<" \t "<<endl;
-
-
-//            printdata<<x<<" \t "<<y<<" \t "<<z<<" \t "<<a->w(i,j,k)<<" \t "<<endl;
-//          printdata<<p->pos1_x()<<" \t "<<p->pos1_y()<<" \t "<<p->pos1_z()<<" \t "<<a->u(i,j,k)<<" \t "<<V<<" \t "<<W;
-//			printdata<<" \t "<<P<<endl;
 			}
 			
 			printdata.close();
@@ -255,8 +242,6 @@ void benchmark_TaylorGreen::start(lexer* p, fdm *a, ghostcell *pgc, convection *
 
 
 //Vorticity_Norml
-//    if(p->mpirank==0)
-//    {
             //ofstream printdata;
 			//double x,y,z;
 			// open file
@@ -286,14 +271,10 @@ void benchmark_TaylorGreen::start(lexer* p, fdm *a, ghostcell *pgc, convection *
 			printdata.open(name);
 
 			printdata<<"Data ID:  "<<1<<endl<<endl;
-//			lineout[n]<<"x_start     x_end     y_start     y_end     z_start     z_end"<<endl;
-			
-//			lineout[n]<<p->P62_xs[n]<<"\t "<<p->P62_xe[n]<<"\t "<<p->P62_ys[n]<<"\t "<<p->P62_ye[n]<<"\t "<<p->P62_zs[n]<<"\t "<<p->P62_ze[n]<<endl;
 
 			printdata<<endl<<endl;
 			
             printdata<<"X \t Y \t Z \t Vorticity_Norml \t"<<endl;
-//			printdata<<"X \t Y \t Z \t U \t V \t W \t P"<<endl;
 			
 			printdata<<endl<<endl;
 			
@@ -326,14 +307,10 @@ void benchmark_TaylorGreen::start(lexer* p, fdm *a, ghostcell *pgc, convection *
     }
 
 //Vorticity_Normr
-//    if(p->mpirank==0)
-//    {
             //ofstream printdata;
 			//double x,y,z;
 			// open file
 	//Positions
-//    if(p->mpirank==0)
-//    {
             //ofstream printdata;
 			//double x,y,z;
 			// open file
@@ -364,14 +341,10 @@ void benchmark_TaylorGreen::start(lexer* p, fdm *a, ghostcell *pgc, convection *
 			printpos.open(name);
 
 			printpos<<"Data ID:  "<<10<<endl<<endl;
-//			lineout[n]<<"x_start     x_end     y_start     y_end     z_start     z_end"<<endl;
-			
-//			lineout[n]<<p->P62_xs[n]<<"\t "<<p->P62_xe[n]<<"\t "<<p->P62_ys[n]<<"\t "<<p->P62_ye[n]<<"\t "<<p->P62_zs[n]<<"\t "<<p->P62_ze[n]<<endl;
 
 			printpos<<endl<<endl;
 			
             printpos<<"XN \t YN \t ZN \t XP \t YP \t ZP \t"<<endl;
-//			printdata<<"X \t Y \t Z \t U \t V \t W \t P"<<endl;
 			
 			printpos<<endl<<endl;
 
@@ -434,11 +407,7 @@ void benchmark_TaylorGreen::start(lexer* p, fdm *a, ghostcell *pgc, convection *
 			}
 		
 		printpos<<endl;
-			
-//          printdata<<p->pos1_x()<<" \t "<<p->pos1_y()<<" \t "<<p->pos1_z()<<" \t "<<a->u(i,j,k)<<" \t "<<V<<" \t "<<W;
-//			printdata<<" \t "<<P<<endl;
-			
-			
+
 			printpos.close();
 			
 		    }

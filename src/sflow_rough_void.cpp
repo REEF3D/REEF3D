@@ -32,11 +32,6 @@ sflow_rough_void::~sflow_rough_void()
 {
 }
 
-void sflow_rough_void::u_source(lexer *p, fdm2D *b, slice &U, slice &V, slice &WL)
+void sflow_rough_void::factor(lexer *p, fdm2D *b, slice &fr, slice &U, slice &V, slice &WL)
 {
 }
-
-void sflow_rough_void::v_source(lexer *p, fdm2D *b, slice &U, slice &V, slice &WL)
-{  
-}
-

@@ -436,6 +436,7 @@ private:
     int printcount;
     string outdir, vtpdir;
     vector<double> pvdtime_;
+    vector<int> pvdnum_;  // the numbers of the .vtp files in the pvd collection (P 18 1: none)
 };
 
 #endif

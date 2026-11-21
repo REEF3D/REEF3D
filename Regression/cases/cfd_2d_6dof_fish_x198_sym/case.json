@@ -1,0 +1,11 @@
+{
+ "base": "cfd_2d_6dof_fish_x198_grid",
+ "np": 1,
+ "steps": 40,
+ "ctrl_add": [
+  "X 14 2"
+ ],
+ "description": "cfd_2d_6dof_fish_x198_grid with the symmetric forcing of the hull (X 14 2): the normal of the tangential-velocity forcing at the face (the mean of the gradients of fb of its two cells; X 14 1 takes that of the cell below the face) and the reinitialisation of fb with one-sided slopes below 1e-6 as zero (the upwind direction of the cells on the centreline behind the tail no longer follows the round-off of the ray cast). With both, the mirror image of the swimmer (tail amplitude -0.125 L) gives the mirrored headings.",
+ "tags": ["quick", "2d", "6dof", "floating", "deform", "singlephase"],
+ "covers": ["sixdof_obj_cfd::face_normal", "reinidisc_f tie (X 14 2)"]
+}

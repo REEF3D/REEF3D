@@ -1,0 +1,18 @@
+{
+ "base": "sflow_1d_si_nh_bar_amr",
+ "ctrl_set": {
+  "A 210": "11"
+ },
+ "description": "sflow_1d_si_nh_bar_amr with A 210 11: the BCG advection on the patch with the composite coupled system; the gauges on the patch within 0.6 - 1.2 % rms of the uniform fine grid (A 210 12: the same).",
+ "tags": [
+  "1d",
+  "nonhydrostatic",
+  "amr",
+  "sflow",
+  "semi_implicit"
+ ],
+ "covers": [
+  "sflow_amr::si_step with A 210 11: nh_levels, the NH increment dNx around the grids"
+ ],
+ "architect": "Hans Bihs"
+}

@@ -12,7 +12,8 @@
 // output vtp) build the same frame as the code and give bit for bit the same modes, the mode table
 // (kinetic energy split) and the VTP file are written; offshore keywords (superelement, soil,
 // soil_layer, pile, morison on frame and superelement members, point_mass at an offset, force, linear6
-// with full matrices) build the expected loads and the model finds its static equilibrium.
+// with full matrices) build the expected loads and the model finds its static equilibrium; initial_pose
+// turns and moves the whole model with its joints closed; output ... only selects the columns.
 // Architect: Hans Bihs
 #include"coral/core/coral_gravity.h"
 #include"coral/core/coral_constraint.h"
@@ -33,6 +34,7 @@
 #include"coral/hydro/coral_member_morison.h"
 #include<cmath>
 #include<cstdio>
+#include<algorithm>
 #include<fstream>
 #include<iostream>
 #include<memory>
@@ -393,10 +395,10 @@ static void test_mooring_sections()
     {
         c.read_string("time dt 0.05 end 1\n"
                       "line_type chain d 0.15 mass 140 EA 1.5e9 BA 1e6 Cdn 2.4 Cdt 0.4 mu 1.0 mu_axial 0.7 mu_static 1.4 ks 1e6 cs 2e5\n"
-                      "line_type poly d 0.16 mass 22 EA 2e8 BA 1e6 BA_slack\n"
+                      "line_type poly d 0.16 mass 22 EA 2e8 BA 1e6 BA_slack Cl 0.8 cF 0.17\n"
                       "body fpso mass 1e7 inertia 1e9 1e9 1e9 cog 0 0 0\n"
                       "mooring leg dynamic a ground -640 0 -200 b fpso -20 0 -10 section chain 150 15 section poly 450 30 section chain 60 6\n"
-                      "mooring opp dynamic a ground 640 0 -200 b fpso 20 0 -10 type chain L 660 nseg 40 BA 2e6 BA_slack\n", ".");
+                      "mooring opp dynamic a ground 640 0 -200 b fpso 20 0 -10 type chain L 660 nseg 40 BA 2e6 BA_slack Cl 0.6 dF 0.05 viv_tau 2\n", ".");
     }
     catch(const std::exception &e)
     {
@@ -436,6 +438,23 @@ static void test_mooring_sections()
           && leg->line_props(1).mu==0.0, "stick-slip friction from the line type (mu, mu_axial, mu_static, ks, cs)");
     check(!leg->line_props(0).BA_slack && leg->line_props(1).BA_slack && !leg->line_props(2).BA_slack && opp->line_props(0).BA_slack,
           "BA_slack from the line type (the polyester section) and from the line");
+    const mooring_props &pp = leg->line_props(1), &po = opp->line_props(0);
+    check(leg->line_props(0).Cl==0.0 && pp.Cl==0.8 && pp.cF==0.17 && pp.dF==0.08 && pp.viv_tau < 0.0
+          && po.Cl==0.6 && po.cF==0.18 && po.dF==0.05 && po.viv_tau==2.0,
+          "VIV from the line type (Cl, cF; dF, viv_tau default) and from the line (Cl, dF, viv_tau)");
+    bool bad = false;
+    try
+    {
+        coral_case c2;
+        c2.read_string("time dt 0.05 end 1\n"
+                       "body fpso mass 1e7 inertia 1e9 1e9 1e9 cog 0 0 0\n"
+                       "mooring opp dynamic a ground 640 0 -200 b fpso 20 0 -10 L 660 d 0.15 mass 140 EA 1.5e9 Cl 0.7 viv_tau 0\n", ".");
+    }
+    catch(const std::exception &e)
+    {
+        bad = std::string(e.what()).find("viv_tau") != std::string::npos;
+    }
+    check(bad, "VIV: viv_tau 0 refused");
 }
 
 // bathymetry: a grid file under a dynamic line
@@ -479,6 +498,55 @@ static void test_bathymetry_input()
     check(ok && ls.size()==2 && dmax < 0.01 && zflat < -54.99, msg);
 }
 
+// initial_pose: the whole model turned and moved after the set-up; the joints stay closed, the velocities turn
+static void test_initial_pose()
+{
+    std::cout<<"initial_pose"<<std::endl;
+    coral_case c;
+    c.read_string("time dt 0.05 end 1\ngravity 0 0 -9.81\n"
+                  "body a mass 1000 cog 0 0 -5 inertia 10 10 10\n"
+                  "body b mass 100 cog 0 0 20 inertia 1 1 1 velocity 1 0 0 omega 0 0 2\n"
+                  "joint j revolute a b point 0 0 10 axis 0 0 1\n"
+                  "initial_pose offset 5 0 0 rpy 0 30 0\n", ".");
+    const model &m = c.m;
+    const rigid_body &a = m.body(m.find_body("a")), &b = m.body(m.find_body("b"));
+    const double s = 0.5, co = std::sqrt(3.0)/2.0;
+    const Mat3 Ry = (Mat3() << co, 0, s, 0, 1, 0, -s, 0, co).finished();
+    VecX g; MatX G;
+    m.constraints(g, G);
+    const double e = (a.x - Vec3(5 - 5*s, 0, -5*co)).norm() + (b.x - Vec3(5 + 20*s, 0, 20*co)).norm()
+                   + (a.R - Ry).norm() + (b.R - Ry).norm() + (b.v - Vec3(co, 0, -s)).norm() + (b.w - Vec3(0, 0, 2)).norm();
+    char msg[160];
+    std::snprintf(msg, sizeof(msg), "initial_pose: bodies turned 30 deg about y and moved 5 m (error %.1e), joint closed (|g| %.1e)", e, g.norm());
+    check(e < 1e-12 && g.norm() < 1e-12, msg);
+}
+
+// output ... only: the columns whose names start with the given prefixes
+static void test_output_only()
+{
+    std::cout<<"output only"<<std::endl;
+    coral_case c;
+    c.read_string("time dt 0.05 end 1\noutput dt 0.1 file /tmp/coral_only.dat only a_ sp_\n"
+                  "body a mass 1 cog 0 0 0\nbody b mass 1 cog 1 0 0\nspring sp a a 0 0 0 b b 1 0 0 k 10\n", ".");
+    time_series ts;
+    ts.open("/tmp/coral_only.dat", c.m, false, c.run.out_only);
+    ts.write(c.m, 0.0);
+    ts.close();
+    std::ifstream f("/tmp/coral_only.dat");
+    std::string l1, l2, l3;
+    std::getline(f, l1); std::getline(f, l2); std::getline(f, l3);
+    std::istringstream h(l2), d(l3);
+    std::vector<std::string> names; std::string w;
+    h>>w;
+    while(h>>w) names.push_back(w);
+    int nv = 0; double x;
+    while(d>>x) ++nv;
+    bool ok = c.run.out_only.size()==2 && names.size()==ts.columns().size() && (int)names.size()==nv && names[0]=="t";
+    for(size_t i=1; i<names.size(); ++i) ok = ok && (names[i].rfind("a_", 0)==0 || names[i].rfind("sp_", 0)==0);
+    check(ok && names.size() == 13 + (size_t)std::count_if(names.begin(), names.end(), [](const std::string &n){return n.rfind("sp_", 0)==0;}),
+          "output only a_ sp_: t, the 12 columns of body a and the spring's channels; header and values agree");
+}
+
 int main()
 {
     test_full_model();
@@ -490,6 +558,8 @@ int main()
     test_mooring_points();
     test_mooring_sections();
     test_bathymetry_input();
+    test_initial_pose();
+    test_output_only();
     std::cout<<(nfail ? "FAILED: " : "all passed")<<(nfail ? std::to_string(nfail) : "")<<std::endl;
     return nfail ? 1 : 0;
 }

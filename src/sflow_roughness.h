@@ -36,9 +36,10 @@ public:
 
     virtual ~sflow_roughness() = default;
 
-    // bed friction for the conserved momenta: args U, V, WL (cell centres)
-	virtual void u_source(lexer*, fdm2D*, slice&, slice&, slice&)=0;
-    virtual void v_source(lexer*, fdm2D*, slice&, slice&, slice&)=0;
+    // bed friction of a stage of the explicit integrators, implicit in the momentum: the factor 1/(1 + dt gamma) of
+    // the Euler step of the stage, gamma = c_f |u|/h of the stage state
+    // args: factor (cell centres), U, V, WL (stage state)
+    virtual void factor(lexer*, fdm2D*, slice&, slice&, slice&, slice&)=0;
 
 };
 

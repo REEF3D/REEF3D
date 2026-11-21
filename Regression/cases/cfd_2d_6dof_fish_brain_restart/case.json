@@ -1,0 +1,9 @@
+{
+ "base": "cfd_2d_6dof_fish_brain_ckpt",
+ "same_as": "cfd_2d_6dof_fish_brain_ckpt",
+ "chain": [{"case": "cfd_2d_6dof_fish_brain_ckpt", "copy": ["REEF3D_Checkpoint", "REEF3D_CFD_6DOF"]}],
+ "ctrl_set": {"I 45": "240"},
+ "description": "the restart of cfd_2d_6dof_fish_brain_ckpt from step 240 (I 45 240), after the decisions of the brain: the deformation at the time of the checkpoint (the checkpoint is read before the time of the run), the recoil correction of the grid (X 196 2), the fit of X 198, the gait rebuilt from the decisions, the brain with its state; regression.py ranks: bitwise the uninterrupted run.",
+ "tags": ["2d", "6dof", "floating", "deform", "singlephase", "checkpoint"],
+ "covers": ["sixdof_obj::ckpt_restore of the deformation, of X 198 (sixdof_obj_cfd::ckpt_coupling_restore) and of the brain"]
+}

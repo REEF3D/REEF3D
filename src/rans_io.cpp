@@ -43,9 +43,7 @@ void rans_io::print_3D(lexer* p, fdm *a, ghostcell *pgc,  std::vector<char> &buf
     iin=4*(p->pointnum);
     std::memcpy(&buffer[m],&iin,sizeof(int));
     m+=sizeof(int);
-    
-    //gcupdate(p,a,pgc);
-    
+
     TPLOOP
 	{
 	ffn=float(p->ipol4_a(kin));

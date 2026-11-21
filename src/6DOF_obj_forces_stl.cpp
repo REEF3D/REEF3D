@@ -35,10 +35,8 @@ void sixdof_obj_cfd::forces_stl(lexer* p, fdm *a, ghostcell *pgc,field& uvel, fi
 	double at,bt,ct,st;
 	double nx,ny,nz,norm;
 	double A_triang,A;
-	double p_int,rho_int,nu_int,enu_int,u_int,v_int,w_int;
-	double du,dv,dw, dudx, dudy, dudz, dvdx, dvdy, dvdz, dwdx, dwdy, dwdz;
-	double dudxf, dudyf, dudzf, dvdxf, dvdyf, dvdzf, dwdxf, dwdyf, dwdzf;
-	double dudxb, dudyb, dudzb, dvdxb, dvdyb, dvdzb, dwdxb, dwdyb, dwdzb;
+	double p_int,rho_int,nu_int,enu_int;
+	double dudx, dudy, dudz, dvdx, dvdy, dvdz, dwdx, dwdy, dwdz;
 	double xlocvel,ylocvel,zlocvel,xlocp,ylocp,zlocp;
 	double Fx,Fy,Fz,Fp_x,Fp_y,Fp_z,Fv_x,Fv_y,Fv_z;
     double Xe_p,Ye_p,Ze_p,Xe_v,Ye_v,Ze_v;
@@ -47,11 +45,25 @@ void sixdof_obj_cfd::forces_stl(lexer* p, fdm *a, ghostcell *pgc,field& uvel, fi
     Xe=Ye=Ze=Ke=Me=Ne=0.0;
     Xe_p=Ye_p=Ze_p=Xe_v=Ye_v=Ze_v=0.0;
     
+    // deforming body (X 195): power of the deformation on the fluid, -sum F . u_def
+    double Pdef = 0.0;
+    
     // distributed loads (REEF3D::CORAL fluid_member): the hull forces binned along the member, this rank's part
     external_strips_zero();
     
     // Set new time
     curr_time = p->simtime;
+
+    // X 34 2: the acceleration of the body over the last time step, from its velocities (free,
+    // prescribed and external motion alike); once per time step, at its first stage
+    if((p->X34==2 || (p->X49>0 && p->X34==0)) && p->simtime>x34_time_)
+    {
+        if(x34_time_>-1.0e19 && p->simtime-x34_time_>1.0e-14)
+        x34_acc_ = (u_fb - x34_uprev_)/(p->simtime-x34_time_);
+
+        x34_uprev_ = u_fb;
+        x34_time_ = p->simtime;
+    }
 
     // the triangles of this rank: in its level-0 box; with the placement of the CFD patches (G 40)
     // the rank of the finest grid at the triangle
@@ -139,11 +151,41 @@ void sixdof_obj_cfd::forces_stl(lexer* p, fdm *a, ghostcell *pgc,field& uvel, fi
             ny=0.0;
             
             // Add normal stress contributions
-            xlocp = xc + q->X42*nx*q->DXP[IP];
-            ylocp = yc + q->X42*ny*q->DYP[JP];
-            zlocp = zc + q->X42*nz*q->DZP[KP];
+            // with X 49 (the pressure inside the body is not solved) the probe points lie off the hull
+            // and their pressure is taken to the hull: X 42 1.5 and X 34 2 where they are not set
+            const double x42 = (q->X49>0 && q->X42<=0.0) ? 1.5 : q->X42;
+            const int x34 = (q->X49>0 && q->X34==0) ? 2 : q->X34;
+
+            xlocp = xc + x42*nx*q->DXP[IP];
+            ylocp = yc + x42*ny*q->DYP[JP];
+            zlocp = zc + x42*nz*q->DZP[KP];
 
             p_int = q->ccipol4a(fa->press,xlocp,ylocp,zlocp) - p->pressgage;
+
+            // X 34: the pressure of the probe point (X 42 cells off the hull) taken to the hull along the
+            // normal with the pressure gradient of the fluid there, dp/dn = rho n.(g - a): 1 the fluid at
+            // rest relative to the body (g alone), 2 with the acceleration of the hull over the last time step.  With X 49 the pressure inside the body is not
+            // solved (the faces are closed) and the interpolation at the hull would reach into it
+            if(x34>0 && x42>0.0)
+            {
+                const double ddx = x42*nx*q->DXP[IP], ddy = x42*ny*q->DYP[JP], ddz = x42*nz*q->DZP[KP];
+                const double rho_m = q->ccipol4a(fa->ro,xc+0.5*ddx,yc+0.5*ddy,zc+0.5*ddz);
+                double ax = a->gi, ay = a->gj, az = a->gk;
+
+                if(x34==2)
+                {
+                    // the acceleration of the hull at the triangle: dU/dt + dw/dt x r + w x (w x r)
+                    const double rx = xc - c_(0), ry = yc - c_(1), rz = zc - c_(2);
+                    const double wx = u_fb(3), wy = u_fb(4), wz = u_fb(5);
+                    const double vx = wy*rz - wz*ry, vy = wz*rx - wx*rz, vz = wx*ry - wy*rx;
+
+                    ax -= x34_acc_(0) + x34_acc_(4)*rz - x34_acc_(5)*ry + wy*vz - wz*vy;
+                    ay -= x34_acc_(1) + x34_acc_(5)*rx - x34_acc_(3)*rz + wz*vx - wx*vz;
+                    az -= x34_acc_(2) + x34_acc_(3)*ry - x34_acc_(4)*rx + wx*vy - wy*vx;
+                }
+
+                p_int -= rho_m*(ddx*ax + ddy*ay + ddz*az);
+            }
             
             Fp_x = -nx*p_int*A_triang;
             Fp_y = -ny*p_int*A_triang;
@@ -155,11 +197,10 @@ void sixdof_obj_cfd::forces_stl(lexer* p, fdm *a, ghostcell *pgc,field& uvel, fi
 		   
     // Add viscous stress contributions
         
-            double ustar, uplus, dist, value;
-            double vstar,vplus,wstar,wplus;
+            double uplus, dist;
+            double vplus,wplus;
             double uval, vval, wval;
             double kappa = 0.4;
-            double xip, yip, zip, zval;
             double u_abs, tau, density;
             double ks;
             double dir;
@@ -327,9 +368,7 @@ void sixdof_obj_cfd::forces_stl(lexer* p, fdm *a, ghostcell *pgc,field& uvel, fi
             
             if(q->X38==4)
             {
-            //zval = s->bedzh(i,j) + 0.5*q->DZN[KP];
             
-            //tau=density*pturb->ccipol_a_kinval(p,pgc,xip,yip,zval)*0.3;
             }
 
 
@@ -343,6 +382,12 @@ void sixdof_obj_cfd::forces_stl(lexer* p, fdm *a, ghostcell *pgc,field& uvel, fi
 			Xe += Fx;
 			Ye += Fy;
 			Ze += Fz;
+            
+            if(fish_!=nullptr)
+            {
+            const Eigen::Vector3d vd = deform_vel(xc,yc,zc);
+            Pdef -= Fx*vd(0) + Fy*vd(1) + Fz*vd(2);
+            }
             
             // strips: the pressure of the triangle (constant) split at the strip boundaries, the viscous
             // force at its centre
@@ -380,6 +425,9 @@ void sixdof_obj_cfd::forces_stl(lexer* p, fdm *a, ghostcell *pgc,field& uvel, fi
 	Ke = pgc->globalsum(Ke);
 	Me = pgc->globalsum(Me);
 	Ne = pgc->globalsum(Ne);
+    
+    if(fish_!=nullptr)
+    fish_power_ = pgc->globalsum(Pdef);
 
 	Xe_p = pgc->globalsum(Xe_p);
 	Ye_p = pgc->globalsum(Ye_p);

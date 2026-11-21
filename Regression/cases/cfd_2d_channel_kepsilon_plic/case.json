@@ -1,0 +1,3 @@
+{"base": "cfd_2d_channel_kepsilon", "ctrl_set": {"F 30": "0", "F 40": "0", "F 50": "4", "F 80": "4"}, "steps": 200,
+ "description": "cfd_2d_channel_kepsilon with PLIC VOF (F 80 4): the PLIC implicit diffusion with the wall law B 10 1, zero gradient through the bed face (idiff2_PLIC_2Du, diff_walllaw).",
+ "tags": ["2d", "turbulence", "walls", "plic"], "covers": ["diff_walllaw rows (idiff2_PLIC_2Du, idiff2_PLIC_2Dw)"]}

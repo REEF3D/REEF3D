@@ -24,6 +24,7 @@ Authors: Tobias Martin, Hans Bihs
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
+#include<algorithm>
 
 void sixdof_cfd::initialize(lexer *p, fdm *a, ghostcell *pgc)
 {
@@ -51,6 +52,15 @@ void sixdof_cfd::ini(lexer *p, ghostcell *pgc)
 
 void sixdof_cfd::setup(lexer *p, fdm *a, ghostcell *pgc)
 {
+    // the weights of the solids and the topography (ghostcell::solid_forcing of this stage)
+    if(sf[0]!=nullptr)
+    {
+    const int n = p->imax*p->jmax*p->kmax;
+    std::copy(a->fbh1.V, a->fbh1.V+n, sf[0]->V);
+    std::copy(a->fbh2.V, a->fbh2.V+n, sf[1]->V);
+    std::copy(a->fbh3.V, a->fbh3.V+n, sf[2]->V);
+    }
+    
     // Reset heaviside field
     ULOOP
     a->fbh1(i,j,k) = 0.0;
@@ -68,4 +78,12 @@ void sixdof_cfd::setup(lexer *p, fdm *a, ghostcell *pgc)
     pgc->start2(p,a->fbh2,11);
     pgc->start3(p,a->fbh3,12);
     pgc->start4(p,a->fbh4,40);
+
+    // the forced shares of the faces, summed by the bodies of the stage (update_forcing)
+    {
+    const int nw = p->imax*p->jmax*p->kmax;
+    std::fill(a->fbw1.V, a->fbw1.V+nw, 0.0);
+    std::fill(a->fbw2.V, a->fbw2.V+nw, 0.0);
+    std::fill(a->fbw3.V, a->fbw3.V+nw, 0.0);
+    }
 }

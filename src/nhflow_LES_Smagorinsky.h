@@ -36,14 +36,9 @@ public:
 	void ktimesave(lexer*, fdm_nhf*, ghostcell*) override final;
 	void etimesave(lexer*, fdm_nhf*, ghostcell*) override final;
 	void timesource(lexer*,fdm_nhf*,double*);
-    void kinupdate(lexer*, fdm_nhf*, ghostcell*);
-	void clearrhs(lexer*,fdm_nhf*);
 
 private:
-    int gcval_kin, gcval_eps;
-    int count,q;
     double c_sgs;
-    double aii;
 };
 
 #endif

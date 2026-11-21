@@ -1,0 +1,18 @@
+{
+ "base": "sflow_1d_si_thacker",
+ "ctrl_set": {
+  "A 210": "11"
+ },
+ "description": "sflow_1d_si_thacker with the one-step predictor (A 210 11), hydrostatic: the time levels of the nonlinear terms (nh_levels) without the non-hydrostatic pressure, the BCG advection with wetting and drying.",
+ "tags": [
+  "quick",
+  "1d",
+  "sflow",
+  "semi_implicit"
+ ],
+ "covers": [
+  "A 210 11 hydrostatic: nh_levels time levels only",
+  "sflow_momentum_SI::advection_bcg with wetting and drying"
+ ],
+ "architect": "Hans Bihs"
+}

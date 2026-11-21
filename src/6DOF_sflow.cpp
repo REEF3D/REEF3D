@@ -27,7 +27,7 @@ Authors: Hans Bihs, Tobias Martin
 #include<cstdio>
 #include<string>
    
-sixdof_sflow::sixdof_sflow(lexer *p, ghostcell *pgc) : press(p)
+sixdof_sflow::sixdof_sflow(lexer *p, ghostcell *pgc) : press(p), press_n(p)
 {
     if(p->mpirank==0)
     cout<<"6DOF startup ..."<<endl;
@@ -50,7 +50,13 @@ void sixdof_sflow::start_sflow(lexer *p, fdm2D *b, ghostcell *pgc, int iter, sli
     start_oneway(p,pgc,iter,fsglobal,P,Q,w,fx,fy,eta,finalize);
     
     if(p->X10==3)
+    {
     start_shipwave(p,pgc,iter,fsglobal,P,Q,fx,fy,eta,finalize);
+    
+    // well-balanced pressure patch (X 402 1): the pressure head enters the HLL hydrostatic flux
+    if(finalize==1)
+    pressure_head(p,b,pgc);
+    }
     
     p->fbtime+=pgc->timer()-starttime;
 }
@@ -59,7 +65,11 @@ void sixdof_sflow::start_oneway(lexer *p, ghostcell *pgc, int iter, slice &fsglo
 {
     for (int nb=0; nb<number6DOF;++nb)
     {
-        // Advance body in time
+        // Advance body in time; the semi-implicit step (sflow_midpoint): once per step, after the step
+        if(mid)
+        fb_obj[nb]->solve_eqmotion_oneway_onestep(p,pgc,finalize);
+
+        else
         fb_obj[nb]->solve_eqmotion_oneway_sflow(p,pgc,iter,finalize);
         
         // Update transformation matrices
@@ -92,6 +102,14 @@ void sixdof_sflow::start_oneway(lexer *p, ghostcell *pgc, int iter, slice &fsglo
 
 void sixdof_sflow::start_shipwave(lexer *p, ghostcell *pgc, int iter, slice &fsglobal, slice &P, slice&Q, slice &fx, slice &fy, slice &eta, bool finalize)
 {
+    // the semi-implicit step: the pressure of the start of the step, before the body moves to its end
+    if(finalize==1 && mid)
+    {
+    SLICELOOP4
+    press_n(i,j) = press(i,j);
+    pgc->gcsl_start4(p,press_n,50);
+    }
+
     if(finalize==1)
     for (int nb=0; nb<number6DOF;++nb)
     {
@@ -184,4 +202,41 @@ void sixdof_obj_2D::ckpt_2D_fields(const char *pre, const std::function<void(con
         const std::string n = std::string(pre) + e.n;
         fi(n.c_str(),'S',e.s->V);
     }
+}
+
+void sixdof_sflow::update_press(lexer *p, ghostcell *pgc, slice &eta)
+{
+    for (int nb=0; nb<number6DOF;++nb)
+    {
+        if(p->X400==2)
+        fb_obj[nb]->updateForcing_box(p,pgc,press);
+        
+        if(p->X400==3)
+        fb_obj[nb]->updateForcing_oned(p,pgc,press);
+        
+        if(p->X400==10)
+        fb_obj[nb]->updateForcing_stl(p,pgc,press,eta);
+    }
+}
+
+void sixdof_sflow::pressure_head(lexer *p, fdm2D *b, ghostcell *pgc)
+{
+    // pressure head of the hull, press/(rho g) <= 0; with X 402 1 the momentum equation uses
+    // g h grad(eta - pbh) in the pre-balanced HLL form (flux 0.5 g zeta^2 + g zeta (d + pbh)),
+    // so the depression eta = pbh under a hull at rest is an exact discrete steady state
+    const double rg = p->W1*fabs(p->W22);
+    
+    if(p->X402==1)
+    {
+    SLICELOOP4
+    b->pbh(i,j) = press(i,j)/rg;
+    }
+    
+    else
+    {
+    SLICELOOP4
+    b->pbh(i,j) = 0.0;
+    }
+    
+    pgc->gcsl_start4(p,b->pbh,50);
 }

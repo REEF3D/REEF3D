@@ -1,0 +1,17 @@
+{
+ "base": "fnpf_2d_theta_robin_flume",
+ "ctrl_set": {
+  "N 48": "1"
+ },
+ "description": "as fnpf_2d_theta_robin_flume with the time step of an accuracy target (N 48 1): the largest step whose phase-speed error at the period of the wave input (1.6 s) is at most N 55 (default 1.5 %), here 1.25 x the RK3 step of N 48 2 at N 47 0.75 (bound 4 x).",
+ "tags": [
+  "quick",
+  "2d",
+  "fnpf",
+  "waves",
+  "iowave"
+ ],
+ "covers": [
+  "fnpf_timestep::theta_step, theta_error, theta_tref (N 48 1 with A 310 5, N 55)"
+ ]
+}

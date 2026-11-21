@@ -323,6 +323,25 @@ void write_plain_array(const std::string &dir, const std::vector<double> &values
     write_file(dir + "/c/0", bytes);
 }
 
+// a plain (one chunk, uncompressed) array of rows x cols values of a data type
+void write_plain_rows(const std::string &dir, const void *data, size_t rows, size_t cols,
+                      const char *dtype, int itemsize, const char *dim0, const char *dim1)
+{
+    make_dirs(dir + "/c/0");
+    std::ostringstream j;
+    j << "{\"zarr_format\": 3, \"node_type\": \"array\", \"shape\": [" << rows << ", " << cols << "], "
+      << "\"data_type\": \"" << dtype << "\", "
+      << "\"chunk_grid\": {\"name\": \"regular\", \"configuration\": {\"chunk_shape\": ["
+      << std::max<size_t>(rows,1) << ", " << std::max<size_t>(cols,1) << "]}}, "
+      << "\"chunk_key_encoding\": {\"name\": \"default\", \"configuration\": {\"separator\": \"/\"}}, "
+      << "\"fill_value\": 0, "
+      << "\"codecs\": [{\"name\": \"bytes\", \"configuration\": {\"endian\": \"little\"}}], "
+      << "\"dimension_names\": [\"" << dim0 << "\", \"" << dim1 << "\"], "
+      << "\"attributes\": {}}";
+    write_file(dir + "/zarr.json", j.str());
+    write_file(dir + "/c/0/0", std::string(static_cast<const char*>(data), rows*cols*size_t(itemsize)));
+}
+
 // a plain float64 array of ny rows of nx values (x fastest) in one chunk
 void write_plain_grid(const std::string &dir, const std::vector<double> &values, size_t ny, size_t nx,
                       const std::string &units)
@@ -443,7 +462,109 @@ std::string lagoon_store::begin_run(const std::string &solver, const std::string
             std::cout<<"LAGOON: the store of the earlier run is now "<<aside<<std::endl;
     }
     create_root(solver, run_json);
+    write_solids();
     return aside;
+}
+
+bool lagoon_store::read_solid_vtp(const std::string &file, std::vector<double> &points,
+                                  std::vector<int32_t> &triangles)
+{
+    std::ifstream in(file.c_str(), std::ios::binary);
+    if(!in)
+        return false;
+    std::stringstream text;
+    text << in.rdbuf();
+    const std::string data = text.str();
+    auto count = [&](const char *name) -> long long
+    {
+        const std::string key = std::string(name) + "=\"";
+        const size_t at = data.find(key);
+        return at==std::string::npos ? -1 : std::atoll(data.c_str() + at + key.size());
+    };
+    const long long np = count("NumberOfPoints"), nt = count("NumberOfPolys");
+    const size_t start = data.find("<AppendedData encoding=\"raw\">");
+    const size_t points_tag = data.find("<Points>");
+    if(np<0 || nt<0 || start==std::string::npos || points_tag==std::string::npos)
+        return false;
+    // the points: Float64 (DIVEMesh's solids) or Float32 (its topo)
+    const size_t type_at = data.find("type=\"", points_tag);
+    const bool doubles = data.compare(type_at + 6, 8, "Float64\"")==0;
+    if(!doubles && data.compare(type_at + 6, 8, "Float32\"")!=0)
+        return false;
+    size_t at = data.find('_', start);
+    if(at==std::string::npos)
+        return false;
+    ++at;
+    // a block: its size in bytes (UInt32), then the bytes
+    auto block = [&](size_t bytes, void *out) -> bool
+    {
+        if(at + 4 + bytes > data.size())
+            return false;
+        uint32_t size;
+        std::memcpy(&size, data.data() + at, 4);
+        if(size!=bytes)
+            return false;
+        std::memcpy(out, data.data() + at + 4, bytes);
+        at += 4 + bytes;
+        return true;
+    };
+    points.assign(size_t(np)*3, 0.0);
+    if(doubles)
+    {
+        if(!block(points.size()*8, points.data()))
+            return false;
+    }
+    else
+    {
+        std::vector<float> single(points.size());
+        if(!block(single.size()*4, single.data()))
+            return false;
+        std::copy(single.begin(), single.end(), points.begin());
+    }
+    std::vector<int32_t> connectivity(size_t(nt)*3);
+    std::vector<int32_t> offsets(static_cast<size_t>(nt));
+    if(!block(connectivity.size()*4, connectivity.data()) || !block(offsets.size()*4, offsets.data()))
+        return false;
+    for(long long t=0; t<nt; ++t)  // triangles only (as DIVEMesh writes them)
+        if(offsets[t]!=3*(t+1))
+            return false;
+    for(int32_t c : connectivity)
+        if(c<0 || c>=np)
+            return false;
+    triangles.swap(connectivity);
+    return true;
+}
+
+int lagoon_store::write_solids(const std::string &paraview) const
+{
+    const std::string file = paraview + "/REEF3D_Solid.vtp";
+    struct stat solid;
+    if(stat(file.c_str(), &solid)!=0)
+        return 0;
+    // left over from another case's DIVEMesh run (as LAGOON decides, divemesh.left_over)
+    for(const char *mark : {"/DIVEMesh_Partition.vtp", "/DIVEMesh_grid-preview.vts"})
+    {
+        struct stat run;
+        if(stat((paraview + mark).c_str(), &run)==0 && double(solid.st_mtime) < double(run.st_mtime) - 3600.0)
+            return 0;
+    }
+    std::vector<double> points;
+    std::vector<int32_t> triangles;
+    if(!read_solid_vtp(file, points, triangles) || triangles.empty())
+    {
+        if(!points.empty() || !triangles.empty())
+            std::cout<<"LAGOON: "<<file<<" not read: its solids are not in the store"<<std::endl;
+        return 0;
+    }
+    const std::string dir = path + "/solids";
+    make_dirs(dir);
+    write_file(dir + "/zarr.json",
+               "{\"zarr_format\": 3, \"node_type\": \"group\", \"attributes\": {\"lagoon\": "
+               "{\"role\": \"solid\", \"source\": \"DIVEMesh_Paraview/REEF3D_Solid.vtp\"}}}");
+    const size_t np = points.size()/3, nt = triangles.size()/3;
+    write_plain_rows(dir + "/points", points.data(), np, 3, "float64", 8, "point", "xyz");
+    write_plain_rows(dir + "/triangles", triangles.data(), nt, 3, "int32", 4, "triangle", "corner");
+    return int(nt);
 }
 
 void lagoon_store::create_output(const std::string &output, const std::string &grid,
@@ -1378,7 +1499,7 @@ lagoon_amr::lagoon_amr(const std::string &path_, const std::string &solver_, con
                        const std::vector<field> &fields_, int gzip_level_)
     : path(path_), solver(solver_), key(key_), source(source_), run_json(run_json_),
       dir(path_ + "/amr/" + key_), fields(fields_), gzip_level(gzip_level_), ok(true), started(false),
-      dims(2), x_end(0), y_end(0), z_end(0), cell_end(0), store(path_), rw(gzip_level_)
+      dims(2), curvilinear(false), x_end(0), y_end(0), z_end(0), cell_end(0), store(path_), rw(gzip_level_)
 {
 }
 
@@ -1400,6 +1521,7 @@ void lagoon_amr::start()
           << lagoon_store::json_string(array_name(fields[f].name)) << "}";
     j << "}, \"dataset\": " << lagoon_store::json_string(key)
       << ", \"role\": \"amr\", \"refinement\": 2" << (dims==3 ? ", \"dims\": 3" : "")
+      << (curvilinear ? ", \"horizontal\": \"curvilinear\"" : "")
       << ", \"source\": " << lagoon_store::json_string(source) << "}}}";
     write_file(dir + "/zarr.json", j.str());
 
@@ -1440,7 +1562,10 @@ bool lagoon_amr::output(double time, long long step, const std::vector<grid> &gr
     {
         const size_t nf = fields.size();
         if(!started && !grids.empty())
+        {
             dims = grids.front().nz>0 ? 3 : 2;  // the first output says what the set holds
+            curvilinear = dims==2 && grids.front().curvilinear;
+        }
         std::vector<int32_t> level, rank, size;
         std::vector<int64_t> xe, ye, ze, ce;
         std::vector<double> x, y, z;
@@ -1448,8 +1573,11 @@ bool lagoon_amr::output(double time, long long step, const std::vector<grid> &gr
         for(const grid &g : grids)
         {
             const size_t n = size_t(g.nx)*size_t(g.ny)*size_t(dims==3 ? g.nz : 1);
-            if(g.nx<1 || g.ny<1 || g.x.size()!=size_t(g.nx+1) || g.y.size()!=size_t(g.ny+1)
-               || g.values.size()!=nf*n || (dims==3) != (g.nz>0)
+            // curvilinear: the x and the y of every node; else the grid lines
+            const size_t nxs = curvilinear ? size_t(g.nx+1)*size_t(g.ny+1) : size_t(g.nx+1);
+            const size_t nys = curvilinear ? size_t(g.nx+1)*size_t(g.ny+1) : size_t(g.ny+1);
+            if(g.nx<1 || g.ny<1 || g.x.size()!=nxs || g.y.size()!=nys
+               || g.values.size()!=nf*n || (dims==3) != (g.nz>0) || g.curvilinear!=curvilinear
                || (dims==3 && g.z.size()!=size_t(g.nz+1)))
                 throw std::runtime_error("lagoon_amr: a grid's sizes do not fit");
             level.push_back(g.level);
@@ -1460,8 +1588,8 @@ bool lagoon_amr::output(double time, long long step, const std::vector<grid> &gr
                 size.push_back(g.nz);
             x.insert(x.end(), g.x.begin(), g.x.end());
             y.insert(y.end(), g.y.begin(), g.y.end());
-            x_end += g.nx + 1;
-            y_end += g.ny + 1;
+            x_end += (long long)nxs;
+            y_end += (long long)nys;
             cell_end += (long long)n;
             xe.push_back(x_end);
             ye.push_back(y_end);
@@ -1533,6 +1661,10 @@ void lagoon_amr::pack(const std::vector<grid> &grids, int nf, std::vector<double
         out.push_back(g.nx);
         out.push_back(g.ny);
         out.push_back(g.nz);
+        out.push_back(g.curvilinear ? 1.0 : 0.0);
+        const size_t nodes = g.curvilinear ? size_t(g.nx+1)*size_t(g.ny+1) : 0;
+        if(g.curvilinear && (g.nz>0 || g.x.size()!=nodes || g.y.size()!=nodes))
+            throw std::runtime_error("lagoon_amr: a curvilinear grid's nodes do not fit its size");
         out.insert(out.end(), g.x.begin(), g.x.end());
         out.insert(out.end(), g.y.begin(), g.y.end());
         if(g.nz>0)
@@ -1556,24 +1688,29 @@ bool lagoon_amr::unpack(const double *data, size_t n, int nf, int rank, std::vec
     const long long count = (long long)data[at++];
     for(long long q=0; q<count; ++q)
     {
-        if(at + 4 > n)
+        if(at + 5 > n)
             return false;
         grid g;
         g.level = int(data[at]);
         g.nx = int(data[at+1]);
         g.ny = int(data[at+2]);
         g.nz = int(data[at+3]);
+        g.curvilinear = data[at+4]!=0.0;
         g.rank = rank;
-        at += 4;
+        at += 5;
+        if(g.nx<1 || g.ny<1 || g.nz<0 || (g.curvilinear && g.nz>0))
+            return false;
         const size_t layers = size_t(g.nz>0 ? g.nz : 1);
         const size_t nv = size_t(nf)*size_t(g.nx)*size_t(g.ny)*layers;
-        const size_t need = size_t(g.nx+1) + size_t(g.ny+1) + (g.nz>0 ? size_t(g.nz+1) : 0) + nv;
-        if(g.nx<1 || g.ny<1 || g.nz<0 || at + need > n)
+        const size_t nxs = g.curvilinear ? size_t(g.nx+1)*size_t(g.ny+1) : size_t(g.nx+1);
+        const size_t nys = g.curvilinear ? size_t(g.nx+1)*size_t(g.ny+1) : size_t(g.ny+1);
+        const size_t need = nxs + nys + (g.nz>0 ? size_t(g.nz+1) : 0) + nv;
+        if(at + need > n)
             return false;
-        g.x.assign(data + at, data + at + g.nx + 1);
-        at += g.nx + 1;
-        g.y.assign(data + at, data + at + g.ny + 1);
-        at += g.ny + 1;
+        g.x.assign(data + at, data + at + nxs);
+        at += nxs;
+        g.y.assign(data + at, data + at + nys);
+        at += nys;
         if(g.nz>0)
         {
             g.z.assign(data + at, data + at + g.nz + 1);

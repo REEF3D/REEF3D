@@ -1,0 +1,18 @@
+{
+ "description": "cfd_2d_soil_stress_s217 with the soil inertia (S 200 2, dynamic u-p)",
+ "solver": "cfd",
+ "np": 1,
+ "steps": 60,
+ "tags": [
+  "quick",
+  "2d",
+  "cfd",
+  "sediment",
+  "soil",
+  "periodic"
+ ],
+ "covers": [
+  "soil_stress S 200 2 mass term"
+ ],
+ "architect": "Hans Bihs"
+}

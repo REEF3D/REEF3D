@@ -50,8 +50,6 @@ public:
 private:
     void ini_location(lexer*, fdm_nhf*);
     void fill_eta(lexer*, fdm_nhf*, ghostcell*,slice&);
-    void fill_deta(lexer*, fdm_nhf*, ghostcell*,slice&);
-    void fill_Uhorz(lexer*, fdm_nhf*, ghostcell*,slice&);
 
 	
 	double *x,*y;

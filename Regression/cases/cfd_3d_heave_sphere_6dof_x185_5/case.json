@@ -1,0 +1,17 @@
+{
+ "base": "cfd_3d_heave_sphere_6dof",
+ "ctrl_add": [
+  "X 185 5"
+ ],
+ "description": "cfd_3d_heave_sphere_6dof with X 185 5, the remeshing that approximates the surface with triangles of the target length (X 185 4 before patch OF1/0005): the sphere of 2058 triangles becomes 202, 5.4 % less volume, up to 1.6 cm off the STL. Bitwise the results of cfd_3d_heave_sphere_6dof before that change.",
+ "tags": [
+  "3d",
+  "6dof",
+  "floating",
+  "mpi"
+ ],
+ "covers": [
+  "sixdof_remesh with keep_shape false (X 185 5)",
+  "sixdof_geometry::refine: X 185 5"
+ ]
+}

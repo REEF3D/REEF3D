@@ -24,6 +24,7 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm2D.h"
 #include"met_forcing.h"
+#include"hydro_sflow.h"
 #include"ghostcell.h"
 #include"sediment.h"
 #include"sflow_print_wsf.h"
@@ -125,12 +126,6 @@ void sflow_vtp_fsf::start(lexer *p, fdm2D* b, ghostcell* pgc, ioflow *pflow, sfl
     // Hs
     if(p->P110==1)
         phs->start(p,pgc,b->eta,b->Hs);
-
-    // Print state restart out based on iteration
-    /*if(p->count%p->P38==0 && p->P37>0)
-    {
-        pstate_restart->write(p,b,pgc);
-    }*/
 
     // Print state out based on iteration
     if(p->P40>0 && p->P41>0 && p->count%p->P41==0 && p->P42<0.0 && (p->P46==0 || (p->count>=p->P46_is && p->count<p->P46_ie)))
@@ -263,6 +258,10 @@ void sflow_vtp_fsf::print2D(lexer *p, fdm2D* b, ghostcell* pgc, sflow_turbulence
     if(b->met!=nullptr)
         b->met->offset_vtp(p,offset,n);
 
+    // REEF3D::HYDRO
+    if(b->hydro!=nullptr)
+        b->hydro->offset_vtp(p,offset,n);
+
     // Cells
     offset[n]=offset[n-1] + sizeof(int)*p->polygon_sum*3+sizeof(int);
     ++n;
@@ -317,6 +316,8 @@ void sflow_vtp_fsf::print2D(lexer *p, fdm2D* b, ghostcell* pgc, sflow_turbulence
     }
     if(b->met!=nullptr)
         b->met->name_vtp(result,offset,n);
+    if(b->hydro!=nullptr)
+        b->hydro->name_vtp(result,offset,n);
     result<<"</PointData>\n";
 
     vtp3D::polys(result,offset,n);
@@ -465,6 +466,8 @@ void sflow_vtp_fsf::print2D(lexer *p, fdm2D* b, ghostcell* pgc, sflow_turbulence
     //  wind10, air_pressure, wind_stress (W 200)
     if(b->met!=nullptr)
         {std::ostringstream part(std::ios::out | std::ios::binary); b->met->print_vtp(p,part); bin.s += part.str();}
+    if(b->hydro!=nullptr)
+        {std::ostringstream part(std::ios::out | std::ios::binary); b->hydro->print_vtp(p,part); bin.s += part.str();}
 
     //  Connectivity
     iin=sizeof(int)*p->polygon_sum*3;

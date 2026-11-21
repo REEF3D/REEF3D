@@ -1,0 +1,16 @@
+{
+ "description": "NHFLOW hydrostatic semi-implicit with density: gravitational circulation in a closed 20 km x 10 m basin (200 x 20 sigma layers), salinity 0 to 12.8 psu linear in x (A 602), constant eddy viscosity 0.01 m2/s (A 547 0 0.01), free-slip bed. The vertical profile of the velocity at mid-basin minus its depth mean (a barotropic seiche from the start) matches u = g rho_x h^3/(rho0 A_z) (zeta^3/6 - zeta^2/4 + 1/24) to 0.1 % from 6 h on.",
+ "solver": "nhflow",
+ "np": 1,
+ "steps": 300,
+ "tags": [
+  "2d",
+  "nhflow",
+  "semi_implicit",
+  "tracer",
+  "density"
+ ],
+ "covers": [
+  "baroclinic pressure gradient of a horizontal density gradient, balanced by A 547 viscosity"
+ ]
+}

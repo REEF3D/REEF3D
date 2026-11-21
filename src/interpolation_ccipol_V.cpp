@@ -107,9 +107,6 @@ double interpolation::ccipol4V(double *f, slice &WL, slice &bed, double xp, doub
     
     if(p->j_dir==1)
     value = lint4V(f,i,j,k,wa,wb,wc);
-    
-    //if(value != value)
-    //cout<<i<<" 4V "<<j<<" "<<k<<"   SIG: "<<value<<" "<<wc<<" "<<(p->ZSP[IJKp1]-zp)<<" | "<<(p->ZSN[FIJKp1]-p->ZSN[FIJK])<<" | "<<(p->ZSN[FIJK]-p->ZSN[FIJKm1])<<endl;
 
     i=ii;
     j=jj;
@@ -121,8 +118,6 @@ double interpolation::ccipol4V(double *f, slice &WL, slice &bed, double xp, doub
 
 double interpolation::ccipol7V(double *f, slice &WL, slice &bed, double xp, double yp, double zp)
 {
-    double ZSN_FIp1JK,ZSN_FIJK,ZSN_FIJKp1,ZSN_FIp1JKp1;
-    double ZSN_FIp1Jp1K,ZSN_FIJp1K,ZSN_FIJp1Kp1,ZSN_FIp1Jp1Kp1;
     double WLval,bedval;
     double Z1,Z2;
     

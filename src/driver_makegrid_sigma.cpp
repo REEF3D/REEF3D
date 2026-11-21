@@ -261,8 +261,6 @@ void driver::makegrid_sigma(lexer *p, ghostcell *pgc)
     }
     
     p->gcxco7_count[2]=q;
-    
-    //cout<<p->mpirank<<" q3: "<<q<<endl;
 
     //nb4
     q=0;

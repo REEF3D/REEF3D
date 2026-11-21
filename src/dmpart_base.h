@@ -115,6 +115,7 @@ public:
     vector<int> M31v, M32v, M33v;
     double M21=0.0, M41=0.1, M45=5.0;
     int M34=0, M35=0;
+    const vector<double> *Wcell=nullptr;  // the weights of the cells given (REEF3D: the grid of CPM on the mesh refinement), (i ny + j) nz + k
     vector<double> M34v;                // 7 per box
     double *M34_xs=nullptr,*M34_xe=nullptr,*M34_ys=nullptr,*M34_ye=nullptr,*M34_zs=nullptr,*M34_ze=nullptr,*M34_f=nullptr;
     vector<double> M34c[7];

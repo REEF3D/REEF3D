@@ -1,0 +1,8 @@
+{
+ "base": "cfd_2d_cpm_bedload_layer",
+ "control_set": {"T 10": "-0.1 0.2 -0.1 0.1 -0.1 0.0224"},
+ "np": 1, "steps": 60,
+ "tags": ["quick", "2d", "cpm"],
+ "description": "cfd_2d_cpm_bedload_layer with the bed level 0.48 cells above a cell face (z = 0.0224 m, cells of 5 mm): the cells with their centre above the bed and their lower part below it are seeded as well (CPM::seed_particles; before the bed began at the face below, 0.48 cells of sand were missing). Checked through the sediment volume of the CPM log: 6.75e-6 m3 (theta_0 times the bed volume: 6.72e-6 m3)",
+ "covers": ["CPM::seed_particles: cells with the bed level in their lower half"]
+}

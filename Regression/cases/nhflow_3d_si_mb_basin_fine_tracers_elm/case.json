@@ -1,0 +1,19 @@
+{
+ "base": "nhflow_3d_si_mb_basin_fine_tracers",
+ "description": "nhflow_3d_si_mb_basin_fine_tracers with the semi-Lagrangian momentum advection (A 549 1 2.0): the time step of Courant number 2 (about 1.4 times that of the flux form here), the tracers in finite volumes with their substeps, the mass to round-off.",
+ "ctrl_add": [
+  "A 549 1 2.0"
+ ],
+ "tags": [
+  "3d",
+  "curvilinear",
+  "elm",
+  "multiblock",
+  "nhflow",
+  "semi_implicit",
+  "tracer"
+ ],
+ "covers": [
+  "A 549 1 with the tracers (A 600) on a multi-block grid"
+ ]
+}

@@ -1,0 +1,14 @@
+{
+ "base": "cfd_2d_6dof_fish_inext",
+ "np": 1,
+ "steps": 40,
+ "ctrl_set": {
+  "X 197": null
+ },
+ "ctrl_add": [
+  "X 198 1 1.0"
+ ],
+ "description": "cfd_2d_6dof_fish_inext with the fluid-momentum coupling (X 198 1) instead of the added-mass stabilisation (X 197): the rigid-body motion fitted to the predicted velocity of each stage in the hull region (weights rho (2H - 1) dV, the deformation velocity of the RK combination removed) gives the loads of the body.",
+ "tags": ["quick", "2d", "6dof", "floating", "deform", "singlephase"],
+ "covers": ["sixdof_obj_cfd::momentum_fit (normal equations of the rigid fit, the deformation velocity at t^n and t^(s-1))", "sixdof_obj_cfd::momentum_loads (TVD RK3 stage weights, the gyroscopic part of dh)", "X 198 turns the added-mass stabilisation off"]
+}

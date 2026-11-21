@@ -1,0 +1,11 @@
+{
+ "description": "fnpf_2d_break_a352_5_steep_shore with the Baquet model (A 350 1, A 365 5) and RK4 (A 310 4, N 47 0.75): A 352 5, the zone viscosity dx c/(4*0.5) in the depth-induced cells (flag 2) instead of the A 352 1-3 filters of breaking_baquet_wd. 600 steps (t = 291 s). Before patch FNPF Breaking/0017 A 352 5 was bitwise A 352 0 with A 350 1.",
+ "base": "fnpf_2d_break_a352_5_steep_shore",
+ "ctrl_set": {"A 350": "1", "A 365": "5.0", "A 310": "4", "N 47": "0.75"},
+ "np": 1,
+ "steps": 600,
+ "tags": ["2d", "fnpf", "waves", "breaking", "irregular", "coastline"],
+ "covers": [
+  "fnpf_breaking::zone_viscosity from breaking_baquet_wd (A 350 1, A 352 5)"
+ ]
+}

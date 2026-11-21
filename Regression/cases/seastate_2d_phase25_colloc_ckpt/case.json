@@ -1,0 +1,18 @@
+{
+ "base": "seastate_2d_phase25_colloc_regimes",
+ "ctrl_set": {
+  "P 48": "4"
+ },
+ "files": [
+  "seastate-collocation.csv"
+ ],
+ "description": "seastate_2d_phase25_colloc_regimes (the online collocation with the observed periods, 10 steps of 300 s, one rank) with a checkpoint every 4 steps (P 48 4): the full run of seastate_2d_phase25_colloc_restart. Validation in Dropbox SEASTATE/validation/77_collocation_regimes.",
+ "tags": [
+  "quick",
+  "2d",
+  "seastate"
+ ],
+ "covers": [
+  "seastate_f::colloc with checkpoints"
+ ]
+}

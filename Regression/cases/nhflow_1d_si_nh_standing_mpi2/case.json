@@ -1,0 +1,17 @@
+{
+ "base": "nhflow_1d_si_nh_standing",
+ "np": 2,
+ "description": "nhflow_1d_si_nh_standing on 2 ranks: with MPI the coupled system goes to the multigrid (FGMRES) instead of the band LU of one rank.",
+ "tags": [
+  "quick",
+  "1d",
+  "nhflow",
+  "semi_implicit",
+  "nonhydrostatic",
+  "mpi"
+ ],
+ "covers": [
+  "nhflow_momentum_SI_nh::nh_solve_mg with one cell in y (three colours)",
+  "nhflow_si_nhmg with 2 x 1 aggregation"
+ ]
+}

@@ -86,9 +86,13 @@ void fixtimestep::start(fdm* a, lexer* p,ghostcell* pgc, turbulence *pturb)
 
     if(p->mpirank==0 && (p->count%p->P12==0))
     {
+    // with the mesh refinement (G 1) cfd_amr::timestep prints them, over the finest grids
+    if(p->amr_cfd==0)
+    {
 	cout<<"umax: "<<setprecision(3)<<p->umax<<endl;
 	cout<<"vmax: "<<setprecision(3)<<p->vmax<<endl;
 	cout<<"wmax: "<<setprecision(3)<<p->wmax<<endl;
+    }
 	cout<<"viscmax: "<<p->viscmax<<endl;
 	cout<<"kinmax: "<<p->kinmax<<endl;
 	cout<<"epsmax: "<<p->epsmax<<endl;

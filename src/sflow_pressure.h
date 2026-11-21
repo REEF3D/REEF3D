@@ -31,11 +31,12 @@ class slice;
 class ioflow;
 class patchBC_interface;
 
+#include"increment.h"
 #include<functional>
 
 using namespace std;
 
-class sflow_pressure
+class sflow_pressure : public increment
 {
 public:
 
@@ -50,6 +51,12 @@ public:
 	virtual void upgrad(lexer*, fdm2D*, slice&)=0;
 	virtual void vpgrad(lexer*, fdm2D*, slice&)=0;
     virtual void wpgrad(lexer*, fdm2D*, slice&)=0;
+
+protected:
+    // the hydrostatic part of upgrad / vpgrad, the same for all pressure models (sflow_pressure.cpp):
+    // g eta d(depth)/dx at the faces (X 402 1: with the hull pressure head of the ship, X 10 3)
+    void bedslope_x(lexer*, fdm2D*, slice &eta);
+    void bedslope_y(lexer*, fdm2D*, slice &eta);
 };
 
 #endif

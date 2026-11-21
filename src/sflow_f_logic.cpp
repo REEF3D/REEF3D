@@ -44,11 +44,12 @@ void sflow_f::logic(lexer *p, fdm2D* b, ghostcell* pgc)
     if(p->N48==0)
 	ptime = new sflow_fixtimestep(p,b);
     
-    if(p->N48==1 && p->A226==0)
+    // N 48 2 (FNPF: stability step of the grid) as N 48 1
+    if(p->N48>=1 && p->A226==0)
 	ptime = new sflow_etimestep(p,b);
     
-    // semi-implicit free surface (A 226 1): advective time step
-    if(p->N48==1 && p->A226==1)
+    // semi-implicit free surface (A 210 11/12/13): advective time step
+    if(p->N48>=1 && p->A226==1)
 	ptime = new sflow_timestep_SI(p,b);
 	
     // HLL fluxes, signal speeds and reconstruction (A 211: 0 first-order, 1-3 limiter, 4 WENO)
@@ -69,9 +70,6 @@ void sflow_f::logic(lexer *p, fdm2D* b, ghostcell* pgc)
     if(p->A211>=4)
     pconvec = new sflow_weno_flux(p);
 
-    // filter
-    pfilter = new sflow_filter(p);
-	
 	// free surface
 	if(p->A240>=1)
 	pfsf = new sflow_eta(p,b,pgc,pBC);
@@ -102,7 +100,11 @@ void sflow_f::logic(lexer *p, fdm2D* b, ghostcell* pgc)
     if(p->A220>=5 && p->mpirank==0)
     cout<<"A 220 "<<p->A220<<" not available with the HLL scheme, using A 220 1"<<endl;
 
-    // diffusion
+    // A 221 2 (sflow_drywall.h): one Cartesian grid
+    if(p->A221==2 && (p->geo_curv==1 || p->geo_mb>0 || p->G1>0) && p->mpirank==0)
+    cout<<"SFLOW A 221 2 (dry land next to deep water as a wall): on one Cartesian grid only, here as A 221 1"<<endl;
+
+    // turbulence
 	if(p->A260==0)
 	pturb =  new sflow_turb_void(p);
     
@@ -136,12 +138,16 @@ void sflow_f::logic(lexer *p, fdm2D* b, ghostcell* pgc)
     exit(1);
     }
     
+    // S 16 4: the bed shear stress 0.3 rho k needs the k of A 260 1/2 (zero otherwise: no sediment transport)
+    if(p->S10>0 && p->S16==4 && p->A260!=1 && p->A260!=2 && p->mpirank==0)
+    cout<<"SFLOW warning: S 16 4 (bed shear stress from k) without the k-epsilon or k-omega model (A 260 1/2): k is zero, no bed shear stress"<<endl;
+
     // Sediment
     if(p->S10==0)
     psed = new sediment_void();
 
     if(p->S10>0)
-    psed = new sediment_f(p,pgc,pturbcfd,pBC);
+    psed = new sediment_f(p,pgc,nullptr,pBC);     // no CFD turbulence model in SFLOW
 	
 	// solver
     //  N 10 1: REEFMG, the same multigrid as for FNPF, NHFLOW and CFD, run
@@ -170,6 +176,18 @@ void sflow_f::logic(lexer *p, fdm2D* b, ghostcell* pgc)
 	if(p->B90>=1)
 	pflow= new iowave(p,pgc,pBC);
 
+    // B 60 3/4: the outflow hydrograph is read and printed (Qo_ipol) but not applied: the outflow of SFLOW is the
+    // water level F 62 (F 50 2/3) or free; B 60 3 has no inflow either (W 10 with B 60 1, hydrograph.dat with B 60 2/4)
+    if(p->B60>=3 && p->B90==0 && p->mpirank==0)
+    cout<<"SFLOW warning: B 60 "<<p->B60<<": the outflow hydrograph is not applied in SFLOW (the outflow is the water level F 62 with F 50 2)"
+        <<(p->B60==3 ? ", and B 60 3 has no inflow (B 60 1: W 10, B 60 2: hydrograph.dat)" : "")<<endl;
+
+    // B 60 with the explicit integrators and no water level at the outflow: the ghost cells are zero gradient in the
+    // level and the velocity, nothing sets the level of a subcritical river (a channel with the normal depth
+    // 1.47 m filled to 4.8 m); the semi-implicit step has a free outflow there (Riemann invariant)
+    if(p->B60>=1 && p->B90==0 && p->A226==0 && p->F50!=2 && p->F50!=3 && p->B440==0 && p->B441==0 && p->B442==0 && p->B520==0 && p->mpirank==0)
+    cout<<"SFLOW warning: B 60 "<<p->B60<<" with A 210 "<<p->A210<<" (explicit) and F 50 "<<p->F50<<": no water level at the outflow, the level of a subcritical flow is not determined (set F 50 2 and F 62, or A 210 11 for a free outflow)"<<endl;
+
 	
 	// printer
 	pprint = new sflow_vtp_fsf(p,b,pgc);
@@ -190,7 +208,7 @@ void sflow_f::logic(lexer *p, fdm2D* b, ghostcell* pgc)
 	if(p->A210!=2 && p->A226==0)
 	pmom = new sflow_momentum_RK3(p,b,pgc,phll,pss,precon,pdiff,ppress,psolv,ppoissonsolv,pflow,pfsf,psfdf,p6dof);
     
-    // semi-implicit free surface, theta method (A 226 1, A 227), separate from the HLL integrators
+    // semi-implicit free surface, theta method (A 210 11/12/13, A 227), separate from the HLL integrators
     if(p->A226==1)
 	pmom = new sflow_momentum_SI(p,b,pgc,phll,pss,precon,pdiff,ppress,psolv,ppoissonsolv,pflow,pfsf,psfdf,p6dof);
 
@@ -200,7 +218,7 @@ void sflow_f::logic(lexer *p, fdm2D* b, ghostcell* pgc)
     sflow_momentum_RK3 *prk3 = dynamic_cast<sflow_momentum_RK3*>(pmom);
     sflow_momentum_SI *psi = dynamic_cast<sflow_momentum_SI*>(pmom);
 
-        // semi-implicit free surface (A 226 1): the blocks and the patches have their own semi-implicit objects; an RK3
+        // semi-implicit free surface (A 210 12/13): the blocks and the patches have their own semi-implicit objects; an RK3
         // object of level 0 serves the fills and the restriction of the refinement (sflow_amr_si.cpp)
         if(psi!=nullptr)
         {
@@ -226,15 +244,15 @@ void sflow_f::logic(lexer *p, fdm2D* b, ghostcell* pgc)
         }
 
         // the refinement runs with the RK3 integrator only: say so instead of running the native grid
-        // alone (RK2 A 210 2, the semi-implicit free surface A 226 1)
+        // alone (RK2 A 210 2, the semi-implicit free surface A 210 11/12/13)
         if(prk3==nullptr && psi==nullptr && p->G1>0 && p->geo_mb==0 && p->mpirank==0)
-        cout<<"SFLOW AMR (G 1): only with A 210 3 or A 226 1 -- refinement switched off"<<endl;
+        cout<<"SFLOW AMR (G 1): only with A 210 3, 11, 12 or 13 -- refinement switched off"<<endl;
 
         // multi-block grid: the blocks 1.. run in the mesh refinement (RK3 or the semi-implicit free surface)
         if(prk3==nullptr && psi==nullptr && p->geo_mb>0)
         {
             if(p->mpirank==0)
-            cout<<"!!! SFLOW multi-block grid (G 50 1 with DIVEMesh R 20 1): only with A 210 3 or A 226 1 !!!"<<endl;
+            cout<<"!!! SFLOW multi-block grid (G 50 1 with DIVEMesh R 20 1): only with A 210 3, 11, 12 or 13 !!!"<<endl;
             exit(1);
         }
 

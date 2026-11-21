@@ -32,6 +32,14 @@ double ghostcell::globalsum(double sendsum)
     return recvsum;
 }
 
+void ghostcell::globalsum(double *vals, int num)
+{
+    if(local_red)
+    return;
+    if(num>0)
+    MPI_Allreduce(MPI_IN_PLACE,vals,num,MPI_DOUBLE,MPI_SUM,mpi_comm);
+}
+
 int ghostcell::globalisum(int sendisum)
 {
     if(local_red)

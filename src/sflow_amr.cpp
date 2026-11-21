@@ -26,6 +26,7 @@ Author: Hans Bihs
 #include"sflow_turbulence.h"
 #include"solver2D.h"
 #include"seastate_sflow.h"
+#include"hydro_sflow.h"
 #include"gcsl_yskip.h"
 #include"reefckpt.h"
 #include"sflow_boussinesq.h"
@@ -52,7 +53,6 @@ Author: Hans Bihs
 #include"6DOF_sflow.h"
 #include"reefmg_core.h"
 #include"reefmg2D.h"
-#include"vec2D.h"
 #include"ioflow_void.h"
 #include"ioflow_amr_block.h"
 #include<cmath>
@@ -104,6 +104,17 @@ sflow_amr::sflow_amr(lexer *p, fdm2D *b, ghostcell *pgc, patchBC_interface *ppBC
     q.tile += q.tile%2;
     q.nest = 3;
     q.keep = MIN(MAX(p->G5,0),250);
+
+    // A 210 12/13 with A 220 2/3: a new patch starts from the coarse solution where it did not overlap an old one; the
+    // fine grid answers that state with short waves that the semi-implicit step does not damp (the explicit HLL step
+    // does), which is unstable with tiles that come and go every few regrids: tiles kept for at least 20 regrids
+    // (open: still unstable with many flagged cells, G 20 0.001 on the Beji & Battjes bar)
+    if(p->A226==1 && (p->A220==2 || p->A220==3) && p->G2>0 && q.keep<20)
+    {
+    q.keep = 20;
+    if(p->mpirank==0)
+    cout<<"SFLOW AMR with A 210 11/12/13 and A 220 "<<p->A220<<": refined tiles kept for 20 regrids after their last flag (G 5 "<<p->G5<<" raised)"<<endl;
+    }
     // the coarse faces next to a finer patch also on the grids that compute them around their box: the
     // wet-dry update of a stage reads the new state of the cells around the box, which otherwise depended
     // on which grid holds the face (another partition, another layout of the patches)
@@ -249,8 +260,11 @@ void sflow_amr::ini(lexer *p, fdm2D *b, ghostcell *pgc)
     int ok=1;
     if(p->A220<0 || p->A220>4) ok=0;
     if(p->A210==2 && si==0) ok=0;
-    // semi-implicit free surface (A 226 1): hydrostatic, one global time step, no moving bodies (sflow_amr_si.cpp)
-    if(si==1 && (p->A220!=0 || p->G7==1 || p->X10!=0)) ok=0;
+    // semi-implicit free surface (A 210 12/13): one global time step (sflow_amr_si.cpp); the ship pressure X 10 3 on
+    // Cartesian grids, the pressure of the step on the patches (sflow_amr::si_step)
+    // A 220 2/3: the coupled eta-P system over the leaf cells (sflow_amr_sinh.cpp), Cartesian, without multi-block
+    if(si==1 && ((p->A220!=0 && !((p->A220==2 || p->A220==3) && p->geo_mb==0 && p->geo_curv==0)) || p->G7==1 || (p->X10!=0 && p->X10!=3))) ok=0;
+    if(si==1 && p->X10==3 && (p->geo_mb>0 || p->geo_curv==1)) ok=0;
     // the algebraic eddy viscosity of every grid (sflow_ediff); k-epsilon / k-omega with a model on every patch
     // (sflow_amr_turb.cpp), Cartesian without multi-block
     if(p->A260!=0 && p->A260!=3 && p->A260!=4 && turb==0) ok=0;
@@ -258,6 +272,7 @@ void sflow_amr::ini(lexer *p, fdm2D *b, ghostcell *pgc)
     if(p->S10!=0 && (p->S10!=1 || p->S51>0 || p->S31==3 || p->S32>=3)) ok=0;
     if(p->X10>3) ok=0;
     if(p->W90!=0) ok=0;
+    if(p->A246==4) ok=0;                                           // breaking with crest tracking: one grid (sflow_breaking_kb)
     if(p->j_dir!=1 && (p->geo_mb>0 || p->geo_curv==1)) ok=0;     // 2D grid (one cell in y): Cartesian
 
     // multi-block grid (G 50 1, DIVEMesh R 20 1): hydrostatic, without subcycling; moving bodies X 10 2/3 (P5c: the
@@ -270,7 +285,7 @@ void sflow_amr::ini(lexer *p, fdm2D *b, ghostcell *pgc)
         if(ok==0)
         {
             if(p->mpirank==0)
-            cout<<"!!! SFLOW multi-block grid: only for A 220 0, A 210 3 (A 226 1: A 210 2/3), A 260 0/3/4, S 10 0/1 (S 51 0, S 31 1/2, S 32 1/2), X 10 0/2/3 (A 226 1: X 10 0), W 90 0, without G 7 1 !!!"<<endl;
+            cout<<"!!! SFLOW multi-block grid: only for A 246 0-2, A 220 0, A 210 3 or 11/12/13, A 260 0/3/4, S 10 0/1 (S 51 0, S 31 1/2, S 32 1/2), X 10 0/2/3 (A 210 11/12/13: X 10 0), W 90 0, without G 7 1 !!!"<<endl;
             exit(1);
         }
     }
@@ -278,7 +293,7 @@ void sflow_amr::ini(lexer *p, fdm2D *b, ghostcell *pgc)
     if(ok==0)
     {
         if(p->mpirank==0)
-        cout<<"SFLOW AMR (G 1): only for A 220 0-4, A 210 3 (A 226 1: A 210 2/3, A 220 0, X 10 0, without G 7 1), A 260 0-4 (1/2 Cartesian), S 10 0/1 (S 51 0, S 31 1/2, S 32 1/2), X 10 0-3, W 90 0, and with one cell in y Cartesian -- refinement switched off"<<endl;
+        cout<<"SFLOW AMR (G 1): only for A 246 0-2, A 220 0-4, A 210 3 or 11/12/13 (A 210 11/12/13: A 220 0 or 2/3 Cartesian without multi-block, X 10 0 or 3 (Cartesian), without G 7 1), A 260 0-4 (1/2 Cartesian), S 10 0/1 (S 51 0, S 31 1/2, S 32 1/2), X 10 0-3, W 90 0, and with one cell in y Cartesian -- refinement switched off"<<endl;
         maxlev=0;
         return;
     }
@@ -476,7 +491,7 @@ void sflow_amr::patch_objects(reefamr_patch *q, ghostcell *pgc)
     c->pmom->nh_defer = (nh==1);
     c->pmom->bous_defer = (bous==1);
 
-    // semi-implicit free surface (A 226 1): the step of the grid (sflow_amr_si.cpp); the RK3 object of the patch serves
+    // semi-implicit free surface (A 210 12/13): the step of the grid (sflow_amr_si.cpp); the RK3 object of the patch serves
     // the fills and the restriction (its stage arrays of stage 0 in and stage 2 out are the fields of the grid). A
     // refined patch has no open boundaries (no refinement next to them)
     if(si==1)
@@ -533,6 +548,8 @@ void sflow_amr::patch_delete(reefamr_patch *q)
     }
     delete c->pturb;
     delete c->ptsolv;
+    delete c->b->hydro;
+    c->b->hydro = nullptr;
     delete c->b->wave;
     c->b->wave = nullptr;
     delete c->pmom;
@@ -731,6 +748,9 @@ void sflow_amr::regrid_state(ghostcell *pgc, vector<reefamr_patch*> &oldP)
         // A 260 1/2: k, epsilon/omega and the eddy viscosity of the fresh patches
         turb_regrid(pgc,l,oldP);
 
+        // HYDRO: the cumulative infiltration and rain of the fresh patches
+        hydro_regrid(pgc,l,oldP);
+
         {
         comms_off guard(pgc);
         for(int n : lev[l])
@@ -758,7 +778,7 @@ void sflow_amr::regrid_finish(ghostcell *pgc, int old_total)
     // non-hydrostatic pressure outside the patch interiors, as after a pressure solve: the rows
     // of the next solve take it in the computed cells beyond the patch (Uest, bed acceleration),
     // where a new patch otherwise has 0 and a kept one the values of the last solve
-    if(nh==1)
+    if(nh==1 && si==0)
     for(int l=1; l<=maxlev; ++l)
     nh_qfill(l,-1);
 }
@@ -1166,7 +1186,7 @@ void sflow_amr::ini_block(sflow_amr_patch &c, int bi, int bj, const double *pv)
 
     // shoreline: a wet parent some of whose children fall dry (the parent's surface below their bed): the children
     // take one water surface that holds the parent's volume, the dry ones the film A 244 (shore_fit); the
-    // parent's surface alone gave them another volume.  The momentum of the parent goes to the wet children by
+    // parent's surface alone would give them another volume.  The momentum of the parent goes to the wet children by
     // their depth.  Not in the initial hierarchy: its children start from the surface (a lake at rest)
     if(nw<nch && (int)w[0]==1 && pv[0]==2.0 && !dryfill)
     shore_fit(c,i0,j0,pv);
@@ -1474,16 +1494,17 @@ void sflow_amr::blocks_ini(lexer *p, ghostcell *pgc)
 
         // X 10 3 (X 207 0): the draft of the ship depresses the water level at t = 0, as on level 0
         // (sixdof_obj_2D::ini_shipwave)
+        // (X 402 1: the equilibrium depression of the applied pressure, eta = pbh, as level 0)
         if(shipmode==3 && p->X207==0)
         {
             zone_setup(p0);
-            ship_fields(*c,false);
+            ship_fields(*c,p->X402==1);
             for(int ii=pp->imin; ii<pp->imin+pp->imax; ++ii)
             for(int jj=pp->jmin; jj<pp->jmin+pp->jmax; ++jj)
             {
                 i=ii; j=jj;
                 const double H = c->pship->Hsolid(pp,pb->fs);
-                pb->eta(ii,jj) = -H*c->pship->draft(ii,jj);
+                pb->eta(ii,jj) = (p->X402==1) ? pb->pbh(ii,jj) : -H*c->pship->draft(ii,jj);
                 pb->WL(ii,jj) = MAX(pb->eta(ii,jj) + pb->depth(ii,jj),0.0);
             }
         }
@@ -2778,6 +2799,35 @@ void sflow_amr::timestep(lexer *p, fdm2D *b, ghostcell *pgc)
         }
     }
 
+    // explicit horizontal diffusion (A 212 1) of the patches, as sflow_etimestep (G 7 1: per level)
+    if(p->A212==1)
+    {
+        for(auto q : P)
+        {
+            sflow_amr_patch *c = SP(q);
+            lexer *pp = c->pp;
+            fdm2D *pb = c->b;
+            for(int ii=EXT; ii<EXT+c->nx; ++ii)
+            for(int jj=EY; jj<EY+c->ny; ++jj)
+            if(pp->wet[lij(pp,ii,jj)]==1 && pp->flagslice4[lij(pp,ii,jj)]>0)
+            {
+                double visc = p->W2 + pb->eddyv(ii,jj);
+
+                if(p->A246==2 && pb->breaking(ii,jj)==1)
+                visc += p->A250;
+
+                if(p->A246==4)
+                visc += pb->vb(ii,jj);
+
+                double dx = pp->DXN[ii+marge], dy = pp->DYN[jj+marge];
+                const double i2 = (pp->geo_curv==1) ? sflow_curv::inv2(pp,ii,jj) : 1.0/(dx*dx) + p->y_dir/(dy*dy);
+                const double dv = 0.2/(visc*i2 + 1.0e-20);
+                dtd = MIN(dtd, dv);
+                dl[c->lev] = MIN(dl[c->lev], dv);
+            }
+        }
+    }
+
     // Boussinesq (A 220 4): Courant number 0.5 at most, as sflow_etimestep
     const double cfl = (p->A220==4) ? MIN(p->N47,0.25) : p->N47;
 
@@ -2793,7 +2843,7 @@ void sflow_amr::timestep(lexer *p, fdm2D *b, ghostcell *pgc)
 
     dtp = pgc->globalmin(dtp);
 
-    if(p->N48==1)
+    if(p->N48>=1)
     p->dt = MIN(p->dt,dtp);
 }
 

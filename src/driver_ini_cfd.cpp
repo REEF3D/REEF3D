@@ -23,6 +23,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"ghostcell.h"
 #include"lexer.h"
 #include"fdm.h"
+#include"pic.h"
 #include"freesurface_header.h"
 #include"turbulence_header.h"
 #include"momentum_header.h"
@@ -40,6 +41,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"waves_header.h"
 #include"6DOF_cfd.h"
 #include"6DOF_obj.h"
+#include"soil_stress.h"
 #include<sys/stat.h>
 #include<sys/types.h>
 
@@ -178,7 +180,6 @@ void driver::driver_ini_cfd()
         pflow->phi_relax(p,pgc,a->phi);
         preini->start(a,p, a->phi, pgc, pflow);
         pfsf->update(p,a,pgc,a->phi);        
-        pini->iniphi_surfarea(p,a,pgc);
     }
 
 	pini->iniphi_io(a,p,pgc);
@@ -229,7 +230,14 @@ void driver::driver_ini_cfd()
     }
 
 	pgc->start4(p,a->press,40);
+
+    // soil stress model below the bed (S 200)
+    if(p->S200>0)
+    psoil = new soil_stress(p,a,pgc);
     
+    // PIC particles (F 81): seeded in the water, the free surface from them (F 81 1, 2), first output
+    ppic->ini(p,a,pgc);
+
     // the first output (not on a restart, I 45 1: the checkpoint is a state already printed)
     if(p->I45!=1)
     pprint->start(p,a,pgc,pturb,pheat,pflow,pdata,pconc,pmp,psed);

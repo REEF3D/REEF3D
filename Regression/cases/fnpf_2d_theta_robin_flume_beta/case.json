@@ -1,0 +1,17 @@
+{
+ "base": "fnpf_2d_theta_robin_flume",
+ "ctrl_set": {
+  "A 308": "1.0"
+ },
+ "description": "as fnpf_2d_theta_robin_flume (theta-Robin at twice the RK3 step) with the 4th-order phase A 308 1: Newmark beta of the Fifsf update max(1/12, 1/4 - 1/(c omega_max dt)^2) instead of 1/4 (Crank-Nicolson), here 0.102.",
+ "tags": [
+  "quick",
+  "2d",
+  "fnpf",
+  "waves",
+  "iowave"
+ ],
+ "covers": [
+  "fnpf_theta A 308 (Newmark beta)"
+ ]
+}

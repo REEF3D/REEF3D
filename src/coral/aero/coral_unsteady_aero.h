@@ -34,8 +34,10 @@ Architect: Hans Bihs
 //   Cl_alpha the largest slope of cl between -20 and 20 deg (or C_lalpha of the file), alpha0 the zero lift angle
 //   (or alpha0 of the file), Cl_inv = Cl_alpha (alpha - alpha0);
 //   f_st = min((2 sqrt(cl/Cl_inv) - 1)^2, 1) from alpha0 outwards, 0 beyond the first angle where 2 sqrt(cl/Cl_inv) <= 1
-//   on each side, linear between the table's angles; Cl_fs = (cl - Cl_inv f_st)/(1 - f_st) (the fully separated lift)
-//   from the interpolated f_st and the static cl at the angle, cl/2 where f_st = 1 (within 1e-3: the table's value).
+//   on each side; Cl_fs = (cl - Cl_inv f_st)/(1 - f_st) (the fully separated lift), cl/2 where f_st = 1 (within 1e-3);
+//   both at the table's angles and linear between them, as AeroDyn: at the table's angles f_st Cl_inv + (1 - f_st) Cl_fs
+//   is the static cl, between them it differs by the interpolation (the steady state of the stall models then differs
+//   from the static polar by that much; HGM against OpenFAST's UnsteadyAero (UAMod 4): the same to 1e-5).
 // Øye (model 1): df/dt = (f_st(alpha_34) - f)/T_f, T_f = T_f0 T_u (T_f0 = 6);
 //   cl = f Cl_inv(alpha_34) + (1 - f) Cl_fs(alpha_34), cd and cm static at alpha_ac.
 // Beddoes-Leishman HGM (model 2), four states:

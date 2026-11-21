@@ -1,0 +1,20 @@
+{
+ "description": "CFD 2D soil stress model (S 200 1, quasi-static Biot u-p): periodic box 2.8 m x 0.7 m, sand bed S 57 0 (S 10 1, no transport), 0.5 m of soil below the bed (fine sand k 1e-4 m/s, Sr 0.975, Ev 1.333e7 Pa, nu 1/3), still water above, the bed pressure prescribed as a progressive wave 707 cos(kx - wt) Pa, L 2.8 m, T 1.5 s (S 217). Soil probes S 216 (p, u, liquefaction potential).",
+ "solver": "cfd",
+ "np": 1,
+ "steps": 60,
+ "tags": [
+  "quick",
+  "2d",
+  "cfd",
+  "sediment",
+  "soil",
+  "periodic"
+ ],
+ "covers": [
+  "soil_stress: classification, MINRES of the coupled u-p system, BDF2, the S 217 bed pressure",
+  "S 200 - S 217 read/broadcast",
+  "REEF3D_CFD_Soil probes"
+ ],
+ "architect": "Hans Bihs"
+}

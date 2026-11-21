@@ -182,12 +182,18 @@ void nhflow_momentum_func::velcalc(lexer *p, fdm_nhf *d, ghostcell *pgc, double 
     }
     
     pgc->start4V(p,d->U,gcval_u);
+    // the semi-implicit step with one row of cells: V stays 0, its ghost cells too (nhflow_momentum_SI)
+    if(p->j_dir==1 || p->A534!=1)
     pgc->start4V(p,d->V,gcval_v);
     pgc->start4V(p,d->W,gcval_w);
 }
 
 void nhflow_momentum_func::irhs(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
+    // no external sources (nhflow_memory.h: nhflow_ext_fields)
+    if(d->Fext==nullptr)
+    return;
+
 	LOOP
 	{
 	d->F[IJK] = (d->F[IJK] + d->Fext[IJK]);
@@ -197,6 +203,9 @@ void nhflow_momentum_func::irhs(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
 void nhflow_momentum_func::jrhs(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
+    if(d->Gext==nullptr)
+    return;
+
     LOOP
 	{
 	d->G[IJK] = (d->G[IJK] + d->Gext[IJK]);
@@ -206,6 +215,9 @@ void nhflow_momentum_func::jrhs(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
 void nhflow_momentum_func::krhs(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
+    if(d->Hext==nullptr)
+    return;
+
     LOOP
 	{
 	d->H[IJK] = (d->H[IJK] + d->Hext[IJK]);
@@ -235,6 +247,10 @@ void nhflow_momentum_func::phase_P(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_
     
     else
 	S.ppress->start(p,d,S.ppoissonsolv,pgc,S.pflow,stage_WL(d,s),stage_UH(d,s,0),stage_UH(d,s,1),stage_UH(d,s,2),stage_alpha(s));
+    
+    // direct forcing with the body in the projection (X 15 11): the added mass of the hull with the matrix of the stage
+    if(pm6dof!=nullptr && p->X15==11 && p->X10==1 && p->A520>0)
+    pm6dof->added_mass_nhflow(p,d,pgc,S.ppoissonsolv,stage_WL(d,s),s);
     
     phase_P2(p,d,pgc,S,s);
 }

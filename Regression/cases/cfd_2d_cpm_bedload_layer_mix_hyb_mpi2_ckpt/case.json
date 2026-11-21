@@ -1,0 +1,9 @@
+{
+ "base": "cfd_2d_cpm_bedload_layer_mix_hyb",
+ "np": 2,
+ "steps": 200,
+ "ctrl_set": {"P 48": "50", "P 49": "0"},
+ "tags": ["2d", "cfd", "sediment", "cpm", "mpi", "checkpoint"],
+ "description": "cfd_2d_cpm_bedload_layer_mix_hyb on 2 ranks with a checkpoint every 50 steps, all kept (P 48 50, P 49 0): the uninterrupted run of cfd_2d_cpm_bedload_layer_mix_hyb_mpi2_restart",
+ "covers": ["CPM graded sediment on 2 ranks", "checkpoints: concentrations, accounts and exchange rates per fraction (fields and slices of the grid)"]
+}

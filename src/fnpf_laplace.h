@@ -25,10 +25,8 @@ Author: Hans Bihs
 
 class lexer;
 class fdm_fnpf;
-class field;
 class ghostcell;
 class solver;
-class vec;
 class fnpf_fsf;
 class slice;
 

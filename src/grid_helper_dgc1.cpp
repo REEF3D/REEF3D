@@ -155,8 +155,6 @@ void grid_helper::fill_dgc1(lexer* p)
 
     p->dgc1_count = count;
 
-    //cout<<p->mpirank<<"  DGC1_count: "<<count<<endl;
-
     count=0;
     ULOOP
     {

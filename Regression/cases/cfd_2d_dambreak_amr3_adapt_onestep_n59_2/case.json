@@ -1,0 +1,23 @@
+{
+ "base": "cfd_2d_dambreak_amr3_adapt",
+ "np": 1,
+ "steps": 60,
+ "ctrl_set": {
+  "N 40": "5"
+ },
+ "ctrl_add": [
+  "N 59 2",
+  "N 63 3"
+ ],
+ "description": "cfd_2d_dambreak_amr3_adapt_onestep_n63_rk3 with N 59 2: the face density of the mass flux from the level set at the half step on every grid; the level set before its RK stages kept on every grid (validation 84).",
+ "tags": [
+  "quick",
+  "2d",
+  "dambreak",
+  "levelset",
+  "amr"
+ ],
+ "covers": [
+  "godunov: N 59 2 on the patches, momentum_rk::ls_rk_begin: phiold with N 63 2, 3"
+ ]
+}

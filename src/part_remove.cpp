@@ -33,7 +33,3 @@ void part::remove(int n)
     Empty[index_empty] = n;
     ++index_empty;
 }
-
-void part::erase_all()
-{
-}

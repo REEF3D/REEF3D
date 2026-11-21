@@ -1,0 +1,6 @@
+{"base": "cfd_3d_mitre_gate_amr", "np": 1, "steps": 20,
+ "ctrl_set": {"N 40": "6", "N 47": "0.4"},
+ "ctrl_add": ["N 59 2", "N 57 1", "N 58 1.0", "N 54 1", "N 63 3", "N 65 1"],
+ "description": "cfd_3d_mitre_gate_amr (closed mitre gates, prescribed 6DOF leaves, X 48 3, one refined level around the leaves) with the one-step scheme with two projections N 40 6 and the CFD settings of 2026-11 (N 59 2, N 57 1, N 58 1.0, N 54 1, N 63 3, N 65 1, N 47 0.4): 6DOF bodies with N 40 6 on the mesh refinement (patch 0059). 0.5 s in 43 steps, largest velocity 0.4 m/s.",
+ "tags": ["3d", "6dof", "levelset", "amr", "solids", "twoproj"],
+ "covers": ["sixdof_obj::onestep_cfd N 40 6 with prescribed motion (X 11 2 2 0 0 0 2)", "cfd_amr N 40 6 with bodies (amr_twoproj_momentum, cfd_amr_6dof)"]}

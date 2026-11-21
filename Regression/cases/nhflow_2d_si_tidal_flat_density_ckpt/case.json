@@ -1,0 +1,22 @@
+{
+ "base": "nhflow_2d_si_tidal_flat_density",
+ "description": "nhflow_2d_si_tidal_flat_density with a checkpoint every 150 steps, all kept: the uninterrupted run of nhflow_2d_si_tidal_flat_density_restart.",
+ "ctrl_set": {
+  "P 48": "150",
+  "P 49": "0"
+ },
+ "tags": [
+  "2d",
+  "nhflow",
+  "semi_implicit",
+  "wetdry",
+  "turbulence",
+  "tide",
+  "tracer",
+  "density",
+  "checkpoint"
+ ],
+ "covers": [
+  "the checkpoint with A 620 (the density is derived from the tracers, nothing new stored)"
+ ]
+}

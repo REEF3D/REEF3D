@@ -1,0 +1,18 @@
+{
+ "base": "cfd_2d_cpm_bedload_layer_amr_q85",
+ "ctrl_set": {
+  "Q 66": "2.0",
+  "Q 68": "1"
+ },
+ "description": "cfd_2d_cpm_bedload_layer_amr_q85 with the reference height of the bed shear stress Q 66 2.0 (cells of CPM) and Q 68 1 (max of the log law and 0.3 rho k), as the pipeline runs: the first cell of level 0 (one cell of CPM above the bed) lies below Q 66, so every column takes the stress as without refinement, k of its first fluid cell (CPM::bedload_columns; before, k at the reference height in every column once a column took the fluid of a coarser grid: the adaptive pipeline scoured 0.09 D deeper than with a static box, validation 32)",
+ "covers": [
+  "CPM::bedload_columns: k at the reference height only where the first cell of a coarser grid sets it (above Q 66)"
+ ],
+ "np": 1,
+ "steps": 150,
+ "tags": [
+  "2d",
+  "cpm",
+  "amr"
+ ]
+}

@@ -1,0 +1,6 @@
+{"base": "cfd_2d_shallow_barge_amr_onestep",
+ "ctrl_set": {"G 7": "1", "G 29": "0"},
+ "steps": 60,
+ "description": "cfd_2d_shallow_barge_amr_onestep with the subcycling of the mesh refinement (G 7 1; G 29 needs G 7 0): the finest level advances the barge. hans_dev e2c75ddb0: the loads grow to 3e7 N within 80 fine steps (patch Ship Hydrodynamics/0062).",
+ "tags": ["quick", "2d", "6dof", "floating", "levelset", "amr"],
+ "covers": ["cfd_amr::patch_step_onestep: floating bodies without the artificial added mass"]}

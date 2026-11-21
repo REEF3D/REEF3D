@@ -76,13 +76,13 @@ fdm2D::fdm2D(lexer *p)
             bednode(p),
             hx(p),hy(p),hp(p),
             xvec(p),rhsvec(p),M(p),
-            dpx(p),dpy(p),test(p),Hs(p),fs(p),
+            dpx(p),dpy(p),test(p),pbh(p),Hs(p),fs(p),
             fx(p),fy(p),fz(p),
-            breaking(p),breaking_print(p),
+            breaking(p),breaking_print(p),vb(p),
             wet1(p),deep1(p),wet2(p),deep2(p),
             nodeval(p),
             cmu(0.09),
-            ks(p)
+            ks(p),spiral(p)
 {
 
 	inverse=1.0/p->DXM;

@@ -53,13 +53,11 @@ public:
     void diff_scalar(lexer*, fdm2D*, ghostcell*, solver2D*, slice&, double, double) override final;
     
 private:
-    double viscosity(lexer*, fdm2D*);
     void bc(lexer*, fdm2D*, slice&);
     
     slice4 f;
     int count;
     int gcval_u,gcval_v;
-    double visc;
     double starttime,time;
     
     double ev_ij, visc_ij,sqd;

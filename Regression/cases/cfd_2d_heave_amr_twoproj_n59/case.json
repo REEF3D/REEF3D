@@ -1,0 +1,19 @@
+{
+ "base": "cfd_2d_heave_amr_twoproj",
+ "ctrl_add": [
+  "N 59 1"
+ ],
+ "description": "cfd_2d_heave_amr_twoproj (floating box on the mesh refinement, G 7 0, N 40 6) with N 59 1: the momentum carried with the mass flux together with a floating body, on level 0 and on the patches.",
+ "tags": [
+  "quick",
+  "2d",
+  "6dof",
+  "floating",
+  "levelset",
+  "amr"
+ ],
+ "covers": [
+  "driver logic_cfd: N 59 with X 10 1",
+  "godunov consistent mass flux with the forcing of a body, on patches"
+ ]
+}

@@ -1,0 +1,20 @@
+{
+ "base": "nhflow_3d_si_mb_basin_fine_tracers_elm",
+ "same_as": "nhflow_3d_si_mb_basin_fine_tracers_elm",
+ "same_as_rtol": 1e-06,
+ "np": 2,
+ "description": "nhflow_3d_si_mb_basin_fine_tracers_elm on 2 ranks: the tracks across the partition halo; the same within 1e-6.",
+ "tags": [
+  "3d",
+  "curvilinear",
+  "elm",
+  "mpi",
+  "multiblock",
+  "nhflow",
+  "semi_implicit",
+  "tracer"
+ ],
+ "covers": [
+  "nhflow_momentum_SI::elm_departure across the MPI partition halo"
+ ]
+}

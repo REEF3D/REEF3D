@@ -1,0 +1,21 @@
+{
+ "base": "nhflow_2d_si_tidal_flat_tracers",
+ "description": "nhflow_2d_si_tidal_flat_tracers with density (A 620 1): salt and temperature fronts drive the flow, with wetting and drying, k-epsilon and the Thatcher-Harleman boundary. The tracer mass changes by the boundary inflow only (both parts of the split step add up), and the clipped mass stays at round-off.",
+ "ctrl_add": [
+  "A 620 1"
+ ],
+ "tags": [
+  "2d",
+  "nhflow",
+  "semi_implicit",
+  "wetdry",
+  "turbulence",
+  "tide",
+  "tracer",
+  "density"
+ ],
+ "covers": [
+  "the split tracer step with open boundaries and drying columns (WL* of the old transport)",
+  "the pressure gradient next to dry cells"
+ ]
+}

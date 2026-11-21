@@ -183,7 +183,7 @@ static void test_db_files()
     const double L = 2.0;
     {
         std::ofstream f1("/tmp/coral_wamit.1"), f3("/tmp/coral_wamit.3"), fh("/tmp/coral_wamit.hst");
-        f1<<"  -1.0  3  3  0.5\n   0.0  3  3  0.9\n";
+        f1<<"  -1.0  3  3  0.9\n   0.0  3  3  0.5\n";    // PER -1: zero frequency, PER 0: infinite frequency
         f3<<std::scientific;
         for(double P : {8.0, 4.0})
         {
@@ -207,7 +207,7 @@ static void test_db_files()
     ok = ok && std::abs(wd.X[0][0](2) - std::polar(rho*grav*L*L, -M_PI/6.0)) < 1.0e-6*rho*grav*L*L;
     ok = ok && std::abs(wd.X[0][0](4) - 0.1*rho*grav*std::pow(L,3)) < 1.0e-6;
     ok = ok && std::fabs(wd.C(2,2) - 3.14*rho*grav*L*L) < 1.0e-6 && std::fabs(wd.C(4,4) - 0.8*rho*grav*std::pow(L,4)) < 1.0e-6;
-    check(ok, "WAMIT .1/.3/.hst: periods, A, B, A_inf, X and C made dimensional (ULEN, rho, g)");
+    check(ok, "WAMIT .1/.3/.hst: periods, A, B, A_inf (PER 0), X and C made dimensional (ULEN, rho, g)");
 }
 
 // heave-only body in a hydrodynamic database; returns the model, waves set by the caller

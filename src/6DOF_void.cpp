@@ -81,6 +81,38 @@ sixdof_void::sixdof_void(lexer *p, ghostcell *pgc)
     zeta[1] = 0.0;
     zeta[2] = 0.0;
     }
+    
+    // CFD N 40 6 (one step, two projections): stage 0 the half step, stage 1 the full step
+    if(p->N40==6 && p->A10==6)
+    {
+    alpha[0] = 0.5;
+    alpha[1] = 1.0;
+    alpha[2] = 1.0;
+    
+    gamma[0] = 0.0;
+    gamma[1] = 0.0;
+    gamma[2] = 0.0;
+    
+    zeta[0] = 0.0;
+    zeta[1] = 0.0;
+    zeta[2] = 0.0;
+    }
+    
+    // CFD N 40 5 (one step, one projection): one stage over the step
+    if(p->N40==5 && p->A10==6)
+    {
+    alpha[0] = 1.0;
+    alpha[1] = 1.0;
+    alpha[2] = 1.0;
+    
+    gamma[0] = 0.0;
+    gamma[1] = 0.0;
+    gamma[2] = 0.0;
+    
+    zeta[0] = 0.0;
+    zeta[1] = 0.0;
+    zeta[2] = 0.0;
+    }
 }
 
 sixdof_void::~sixdof_void()
@@ -89,6 +121,11 @@ sixdof_void::~sixdof_void()
 
 void sixdof_void::ini(lexer *p, ghostcell *pgc)
 {
+}
+
+void sixdof_void::amr_net_forces(lexer *p, fdm *a, int fmax, const std::function<void(const double*,int*)> &width)
+{
+    pnetinter->dlm_cfd_amr(p,a,fmax,width);
 }
 
 void sixdof_void::start_cfd(lexer* p, fdm* a, ghostcell* pgc, int iter, field &uvel, field &vvel, field &wvel, field &fx, field &fy, field &fz, bool finalize)
@@ -101,14 +138,7 @@ void sixdof_void::start_cfd(lexer* p, fdm* a, ghostcell* pgc, int iter, field &u
     // Net
     if(p->X320>0)
     pnetinter->netForces_cfd(p,a,pgc,1.0,quatRotMat,Xne,Yne,Zne,Kne,Mne,Nne,finalize);
-    
-    int ii=0;
-    /*if( p->mpirank == 0)
-    {
-                cout<<"Xne"<< ii <<" : "<<Xne[ii]<<" Yne"<< ii <<" : "<<Yne[ii]<<" Zne"<< ii <<" : "<<Zne[ii]
-                <<" Kne"<< ii <<" : "<<Kne[ii]<<" Mne"<< ii <<" : "<<Mne[ii]<<" Nne"<< ii <<" : "<<Nne[ii]<<endl;        
-    }*/
-    
+
     // print counter
     if((((p->count%p->P20==0) && p->P30<0.0)  || (p->simtime>printtime && p->P30>0.0)   || p->count==0) && finalize==true)
     {

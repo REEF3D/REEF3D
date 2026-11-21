@@ -1,0 +1,18 @@
+{
+ "base": "seastate_2d_windsea_mpi2",
+ "np": 2,
+ "same_as": "seastate_2d_phase25_mp_komen",
+ "ctrl_add": [
+  "A 769 2"
+ ],
+ "description": "seastate_2d_windsea_mpi2 (2 ranks) with A 769 2: bitwise seastate_2d_phase25_mp_komen (one rank). Validation in Dropbox SEASTATE/validation/78_limiter.",
+ "tags": [
+  "quick",
+  "2d",
+  "seastate",
+  "mpi"
+ ],
+ "covers": [
+  "A 769 2 on 2 ranks"
+ ]
+}

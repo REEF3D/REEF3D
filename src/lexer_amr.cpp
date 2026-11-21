@@ -40,7 +40,8 @@ Architect: Hans Bihs
 //  ONCE   level 0 sets it at its initialisation, constant afterwards: the extent of the domain,
 //         time step limits.  Copied at the construction.
 //  BUILD  the start value of level 0, then the grid's own: the mean water level (SFLOW sets its
-//         own), the interface width (the CFD builder sets its own), the sediment step.  Copied at
+//         own), the interface width (the CFD builder sets its own; psi_rho of G 28 is the same on
+//         every grid), the sediment step.  Copied at
 //         the construction.
 //  OWN    the grid's own: maxima of the step, solver statistics, timers, volumes, the bodies'
 //         working values.  The defaults of lexer_ini / control_calc at the construction.
@@ -68,7 +69,7 @@ Architect: Hans Bihs
     X(RK_alpha) X(mindt) X(maxdt) X(deltax)
 #define LEXER_AMR_ONCE_I(X) X(velcorr)
 
-#define LEXER_AMR_BUILD_D(X) X(phimean) X(psi) X(psi0) X(dtsed) X(bedmax) X(bedmin) X(maxbed) X(minbed)
+#define LEXER_AMR_BUILD_D(X) X(phimean) X(psi) X(psi0) X(psi_rho) X(dtsed) X(bedmax) X(bedmin) X(maxbed) X(minbed)
 #define LEXER_AMR_BUILD_I(X) X(reini_iter)
 
 #define LEXER_AMR_TIME_D(X) X(simtime) X(dt) X(dt_old)

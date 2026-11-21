@@ -183,6 +183,28 @@ void driver::driver_ini_fnpf()
     // iowave ini - including fullini
     pflow->ini_fnpf(p,c,pgc);  
     
+    // A 301 a L: initial linear standing wave eta = a cos(2 pi (x - xmin)/L) at rest (Fi = 0), for closed tanks
+    // (walls at both ends, L/2 a divisor of the tank length) and tests of the time integration
+    if(p->A301_1>0.0)
+    {
+    const double kw = 2.0*PI/p->A301_2;
+    
+    SLICELOOP4
+    {
+    c->eta(i,j) = p->A301_1*cos(kw*(p->XP[IP] - p->global_xmin));
+    c->Fifsf(i,j) = 0.0;
+    c->WL(i,j) = MAX(c->wd_criterion, c->eta(i,j) + c->depth(i,j));
+    }
+    
+    FLOOP
+    c->Fi[FIJK] = 0.0;
+    
+    pgc->gcsl_start4(p,c->eta,50);
+    
+    if(p->mpirank==0)
+    cout<<"A 301: initial standing wave, a = "<<p->A301_1<<" m, L = "<<p->A301_2<<" m"<<endl;
+    }
+    
     // ice floes: read, place at equilibrium draft, depress eta under the footprints
     if(p->A380>0)
     {

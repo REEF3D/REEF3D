@@ -40,6 +40,9 @@ Author: Hans Bihs
 #include"nhflow_momentum_func.h"
 #include"ckpt_registry.h"
 #include"sediment_f.h"
+#include"ks_map.h"
+#include"nhflow_amr_fill.h"
+#include"fdm_nhf.h"
 
 using namespace std;
 
@@ -163,6 +166,20 @@ bool nhflow_amr::ckpt_read(reefckpt &ck, string &msg)
     for(auto q : P)
     if((q->lev>=1 || q->blk>0) && NP(q)->pmom!=nullptr)
     NP(q)->pmom->ckpt_restored();
+
+    // B 58 1: the bed roughness of the blocks and patches from the map of the case, not from the checkpoint (as at
+    // the start, nhflow_amr.cpp): the map can be changed at a restart
+    for(auto q : P)
+    {
+        lexer *pp = NP(q)->pp;
+        fdm_nhf *dd = NP(q)->d;
+        if(pp==nullptr || dd==nullptr || pp->B58!=1 || !(pp->S10==0 || pp->S28==2))
+        continue;
+        const ks_map &km = ks_map::get(pp);
+        for(int ii=pp->imin; ii<pp->imin+pp->imax; ++ii)
+        for(int jj=pp->jmin; jj<pp->jmin+pp->jmax; ++jj)
+        dd->ks(ii,jj) = km.at(nhflow_amr_detail::cxc(pp,ii,jj),nhflow_amr_detail::cyc(pp,ii,jj),pp->B50);
+    }
 
     if(ok && p0->S10>0 && !sed_read(P,ck,pgc0,msg))
     return false;

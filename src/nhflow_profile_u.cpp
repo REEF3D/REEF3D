@@ -64,10 +64,6 @@ void nhflow_profile_u::start(lexer *p, fdm_nhf *d, ghostcell *pgc)
         
         pout[n].open(name);
         
-        //cout<<pout[n].is_open()<<" "<<n+1<<endl;
-        
-        
-
         pout[n]<<"U-Profile ID:  "<<n+1<<endl<<endl;
         pout[n]<<"x_coord     y_coord"<<endl;
         pout[n]<<n+1<<"\t "<<p->Xout(p->P67_x[n],p->P67_y[n])<<"\t "<<p->Yout(p->P67_x[n],p->P67_y[n])<<"\t "<<endl;
@@ -142,7 +138,6 @@ void nhflow_profile_u::ini_location(lexer *p, fdm_nhf *d)
     if(jj>=0 && jj<p->knoy)
     check=1;
     
-    //cout<<p->mpirank<<" PROBE check: "<<check<<" i: "<<iloc[n]<<" j: "<<jloc[n]<<" ZSN: "<<p->ZSN[10+marge]<<endl;
     if(check==1)
     flag[n]=1;
     }

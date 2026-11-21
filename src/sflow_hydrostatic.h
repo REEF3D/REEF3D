@@ -28,7 +28,7 @@ Author: Hans Bihs
 
 using namespace std;
 
-class sflow_hydrostatic final : public sflow_pressure, public increment
+class sflow_hydrostatic final : public sflow_pressure
 {
 public:
     sflow_hydrostatic(lexer*, fdm2D*,patchBC_interface*);

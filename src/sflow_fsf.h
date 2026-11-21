@@ -49,6 +49,8 @@ public:
     virtual void wetdry_fluxes(lexer*, fdm2D*, ghostcell*, slice&)=0;
     virtual void breaking(lexer*, fdm2D*, ghostcell*, slice&, slice&, double)=0;
     virtual void breaking_persist(lexer*, fdm2D*, ghostcell*, slice&, slice&, double)=0;
+    // A 246 4: no breaking in the relaxation zones and next to the open boundaries (once, after ioflow::ini2D)
+    virtual void breaking_zones(lexer*, ioflow*) {}
 };
 
 #endif

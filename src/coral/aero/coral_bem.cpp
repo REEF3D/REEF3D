@@ -127,16 +127,18 @@ double bem_residual(const bem_element &e, double Vx, double Vy, double phi, cons
 bem_result bem_solve(const bem_element &e, double Vx, double Vy, double rho, const bem_options &o, double skew)
 {
     bem_result res;
-    // at the tip or the hub (to rounding: a station placed there in a rotated frame)
-    if((o.tip_loss && e.r >= e.R*(1.0 - 1.0e-12)) || (o.hub_loss && e.R_hub > 0.0 && e.r <= e.R_hub*(1.0 + 1.0e-12)))
-    {
-        res.phi = std::atan2(Vx, Vy);
-        res.alpha = res.phi - e.theta;
-        res.F = 0.0;
-        return res;
-    }
     double phi;
-    if(!o.induction || Vx <= 0.0 || Vy <= 0.0 || e.r <= 0.0)
+    // at the tip or the hub (to rounding: a station placed there in a rotated frame) with their loss, F = 0: a = 1,
+    // a' = 0 as AeroDyn (the limit of the momentum balance for F -> 0; the load of the element without axial inflow)
+    if(o.induction && ((o.tip_loss && e.r >= e.R*(1.0 - 1.0e-12)) || (o.hub_loss && e.R_hub > 0.0 && e.r <= e.R_hub*(1.0 + 1.0e-12))))
+    {
+        res.region = 4;
+        res.a = 1.0;
+        res.ap = 0.0;
+        res.F = 0.0;
+        phi = std::atan2(0.0, Vy);
+    }
+    else if(!o.induction || Vx <= 0.0 || Vy <= 0.0 || e.r <= 0.0)
     {
         phi = std::atan2(Vx, Vy);
         res.region = 0;
@@ -146,49 +148,58 @@ bem_result bem_solve(const bem_element &e, double Vx, double Vy, double rho, con
     {
         const double eps = 1.0e-6;
         auto f = [&](double p) {return bem_residual(e, Vx, Vy, p, o);};
-        double lo, hi;
-        double flo, fhi;
         bool found = false;
         const double br[3][2] = {{eps, 0.5*M_PI}, {-0.25*M_PI, -eps}, {0.5*M_PI, M_PI - eps}};
-        for(int q=0; q<3 && !found; ++q)
+        // a sign change at the ends of interval q
+        auto ends = [&](int q)
         {
-            lo = br[q][0]; hi = br[q][1];
-            flo = f(lo); fhi = f(hi);
-            if(flo*fhi < 0.0 || flo==0.0 || fhi==0.0)
-            {
-                found = true;
-                res.region = q + 1;
-                if(flo==0.0) phi = lo;
-                else if(fhi==0.0) phi = hi;
-                else phi = brent(f, lo, hi, flo, fhi, o.tol, res.converged);
-            }
-        }
-        if(!found)
+            const double lo = br[q][0], hi = br[q][1], flo = f(lo), fhi = f(hi);
+            if(!(flo*fhi < 0.0 || flo==0.0 || fhi==0.0)) return false;
+            res.region = q + 1;
+            if(flo==0.0) phi = lo;
+            else if(fhi==0.0) phi = hi;
+            else phi = brent(f, lo, hi, flo, fhi, o.tol, res.converged);
+            return true;
+        };
+        // no sign change at the ends (a pole of a' = k'/(1 - k') inside, or a polar that is not smooth): the interval
+        // in 200 parts for a sign change that is a root, not a pole
+        auto scan = [&](int q)
         {
-            // no sign change at the ends of the three intervals (a pole of a' = k'/(1 - k') inside, or a polar that
-            // is not smooth): scan them in 200 parts each for a sign change that is a root, not a pole
-            for(int q=0; q<3 && !found; ++q)
+            const int nscan = 200;
+            double p0 = br[q][0], f0 = f(p0);
+            for(int j=1; j<=nscan; ++j)
             {
-                const int nscan = 200;
-                double p0 = br[q][0], f0 = f(p0);
-                for(int j=1; j<=nscan && !found; ++j)
+                const double p1 = br[q][0] + (br[q][1] - br[q][0])*j/nscan, f1 = f(p1);
+                if(f0*f1 <= 0.0)
                 {
-                    const double p1 = br[q][0] + (br[q][1] - br[q][0])*j/nscan, f1 = f(p1);
-                    if(f0*f1 <= 0.0)
+                    bool ok;
+                    const double r = f0==0.0 ? p0 : f1==0.0 ? p1 : brent(f, p0, p1, f0, f1, o.tol, ok);
+                    if(std::fabs(f(r)) < 1.0e-6*(1.0 + std::fabs(f0) + std::fabs(f1)))
                     {
-                        bool ok;
-                        const double r = f0==0.0 ? p0 : f1==0.0 ? p1 : brent(f, p0, p1, f0, f1, o.tol, ok);
-                        if(std::fabs(f(r)) < 1.0e-6*(1.0 + std::fabs(f0) + std::fabs(f1)))
-                        {
-                            found = true;
-                            phi = r;
-                            res.region = q + 1;
-                        }
+                        phi = r;
+                        res.region = q + 1;
+                        return true;
                     }
-                    p0 = p1; f0 = f1;
                 }
+                p0 = p1; f0 = f1;
             }
+            return false;
+        };
+        found = ends(0);
+        // the windmill root has passed phi = 0 (a -> 1, the residual positive down to eps): the state at phi = eps
+        // (its inductions from the momentum balance there) instead of the propeller-brake root, whose load differs:
+        // the load stays continuous where the root leaves the interval (AeroDyn would switch to that root; an
+        // implicit time step needs a continuous load)
+        if(!found && f(eps) > 0.0 && !scan(0))
+        {
+            found = true;
+            res.region = 4;
+            phi = eps;
         }
+        for(int q=1; q<3 && !found; ++q)
+            found = ends(q);
+        for(int q=0; q<3 && !found; ++q)
+            found = scan(q);
         if(!found)
         {
             // no root: no induction
@@ -200,7 +211,7 @@ bem_result bem_solve(const bem_element &e, double Vx, double Vy, double rho, con
             bem_residual(e, Vx, Vy, phi, o, &res.a, &res.ap);
         res.F = prandtl(e, phi, o);
     }
-    if(skew != 0.0 && res.region != 0)
+    if(skew != 0.0 && res.region >= 1 && res.region <= 3)
     {
         res.a *= 1.0 + skew;
         phi = std::atan2(Vx*(1.0 - res.a), Vy*(1.0 + res.ap));

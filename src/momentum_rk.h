@@ -30,6 +30,7 @@ Author: Hans Bihs
 #include"field2.h"
 #include"field3.h"
 #include"field4.h"
+#include<vector>
 
 class convection;
 class diffusion;
@@ -60,6 +61,53 @@ momentum_rk: Runge-Kutta time stepping of the CFD momentum equations
   3     SSP-RK3                                  inside every stage (default)
   4     low-storage RK3                          inside every stage
   33    SSP-RK3, conservative form (rho u)       inside every stage
+  5     one step, Godunov convection (godunov),  after the projection, with u(n+1)
+        one projection
+  6     one step with two projections: the      with u(n+1/2), between the
+        half step u(n+1/2), p(n+1/2) projected,  two projections
+        then the full step with them
+
+N40 6 (step_twoproj), the predictor-corrector of Bell, Colella and Glaz on the staggered grid:
+  1. u* = u(n) + dt/2 [C(u(n); u(n)) + S - grad p(n)/rho(n) + g] + dt/2 D(u*)   (D: implicit)
+     projected with dt/2 and the face density of phi(n): u(n+1/2), p(n+1/2)
+  2. phi(n+1) = phi(n) + dt L(phi(n); u(n+1/2)), reinitialised; density and viscosity of
+     phi(n+1/2) = (phi(n) + phi(n+1))/2
+  3. u* = u(n) + dt [C(u(n); u(n+1/2)) + S - grad p(n+1/2)/rho(n+1/2) + g]
+         + dt/2 [D(u(n)) + D(u*)]                                    (Crank-Nicolson)
+     projected with dt and the face density of phi(n+1/2): u(n+1), p(n+1)
+  4. density and viscosity of phi(n+1)
+C(f; U): the Godunov convection of f (face states at n+1/2) with the advecting velocity U. The
+forces of the half step are projected, so that the pressure gradient over the face density
+is balanced at the interface (the half-step forces in the Godunov face states of N 40 5,
+without a projection, made air jets in the dam break).
+A prototype (validation 75): second order in time on smooth interface flows, but in violent flows
+(the 2D dam break) stable up to N 47 0.3, not at 0.45 (N 56 2 delays the growth, it does not stop
+it): the half-step velocity carries the air accelerations of the half step and convects the air
+momentum with them. N 40 5 is the robust one-step scheme.
+
+On the mesh refinement (G 7 0, cfd_amr::step_comp) N 40 6 takes the same steps on all grids, with
+the composite projection after each of the two momentum steps and the level set of all levels
+between them.
+
+Floating bodies (X 10 1, with their mooring lines X 310 and nets X 320; also on the mesh refinement):
+the forcing of the half step is stage 0 of the bodies, that of the full step stage 1. The bodies take
+position Verlet (sixdof_obj::rkmid): the pose to n+1/2 with the momenta of n and the momenta to n+1/2
+with the loads of p(n); the momenta from n to n+1 with the loads of p(n+1/2) and the pose from n+1/2 to
+n+1 with them; the hulls are cast and the body velocity forced at n+1/2 before the
+first projection and at n+1 before the second. With N 40 5 the bodies take one semi-implicit Euler step
+per step (sixdof_rigidbody::step_symplectic: the momenta with the loads of p(n), the pose with the new
+momenta), also with the subcycling of the mesh refinement (cfd_amr::patch_step_onestep). N 59 works with bodies (uniform
+grid and mesh refinement); no X 198 with N 40 5, 6 yet.
+
+With the compressible air (W 32, pjm_corr_comp.cpp) both projections take p(n) of the start of the
+step as the reference of the pressure change: the half step over dt/2, the full step over dt.
+
+N 59 1 (N 40 5, 6 with the level set, also on the mesh refinement, whose patches take the
+same Godunov convection): the convection of the momentum as rho u, moved with the mass flux of the
+Godunov convection (godunov::start, see godunov.h); the density of the step starts from the level
+set of the step (phi(n) also in the full step of N 40 6, kept in frk1). Validation 77:
+the impact pressures of the 3D dam break as RK3 without the oscillations of the one-step schemes,
+N 40 6 stable at N 47 0.45 in the 2D dam break.
 
 SSP stage s:   u(s+1) = a_s u(n) + b_s [ u(s) + dt (F + D) ]
 low storage:   u(s+1) = u(s) + 2 alpha_s dt (S + D) + gamma_s dt C(s) + zeta_s dt C(s-1)
@@ -87,6 +135,9 @@ reconstructed from rho u / rho (vel_limiter) before the sources and the
 diffusion are added.
 --------------------------------------------------------------------*/
 
+class pic;
+
+class cfd_singlephase;
 class momentum_rk final : public momentum, public momentum_forcing, public bcmom
 {
 public:
@@ -95,17 +146,33 @@ public:
 	virtual ~momentum_rk();
 	void start(lexer*, fdm*, ghostcell*, vrans*, sixdof*) override final;
 
+    // PIC (F 81 2, pic_f): the convection is left out on the faces in the water
+    static pic *ppic;
+
     // mesh refinement (cfd_amr, G 15): the SSP step in parts, called grid by grid with the fills of
     // the patches and the composite projection in between (step_ssp calls them in this order)
     int amr_stages() const {return stages;}
     bool amr_ssp() const {return scheme==SSP && !conservative;}
-    double amr_alpha(int s) const {return ssp_b[s];}
+    // N 40 6: the weight of the projection of the half step (s 0: dt/2) and of the full step (s 1: dt)
+    double amr_alpha(int s) const {return twoproj ? (s==0 ? 0.5 : 1.0) : ssp_b[s];}
+    // N 40 6 (step_twoproj) in parts, called grid by grid: the momentum of the half step (half true:
+    // u(n) -> u* in urk2) or of the full step (half false: u(n) -> u* in a->u with the advecting
+    // velocity u(n+1/2)) with the forcing (1: all, 2: solids and topography only, 0: none), and the
+    // level set, density and viscosity of the middle of the step. The stage index of the accessors
+    // (amr_vel, amr_velout, amr_alpha) is 0 for the half step, 1 for the full step; the level set
+    // of both is ls (amr_phi_in, amr_phi_out)
+    bool amr_twoproj() const {return twoproj;}
+    void amr_twoproj_momentum(lexer*, fdm*, ghostcell*, vrans*, sixdof*, bool, int);
+    void amr_twoproj_mid(lexer*, fdm*, ghostcell*);
     void amr_step_begin(lexer*, fdm*, ghostcell*);
     void amr_ls_transport(lexer*, fdm*, ghostcell*, int);
     void amr_ls_finish(lexer*, fdm*, ghostcell*, int, bool, int);
     void amr_ls_reini(lexer*, fdm*, ghostcell*, int, int);
     int amr_reini_iters(lexer*, int) const;
     void amr_momentum(lexer*, fdm*, ghostcell*, vrans*, sixdof*, int, int);
+    // forcing 3 of amr_momentum: the predictor alone, the forcing of the bodies later (X 198: the
+    // fluid-momentum coupling fits the bodies to the predicted velocity of all patches first)
+    void amr_forcing(lexer*, fdm*, ghostcell*, sixdof*, int);
     void amr_project_after(lexer*, fdm*, ghostcell*, field&, field&, field&);
     void amr_projection(lexer*, fdm*, ghostcell*, int);
     void amr_solid_forcing(lexer*, fdm*, ghostcell*, field&, field&, field&, double);
@@ -115,15 +182,33 @@ public:
     field4& amr_phi_in(int s);
     field4& amr_phi_out(int s);
 
+    // N 63 2, 3: the level set of the one-step schemes with the scheme of F 35 in SSP-RK2 or SSP-RK3
+    // stages with the velocity of the step (U, V, W fixed); the mesh refinement calls the stages grid
+    // by grid with the fills of the patches in between (cfd_amr), level 0 alone takes them in
+    // amr_ls_transport.  ls_rk_n: the number of stages (1: one forward-Euler step, N 63 0, 1)
+    int ls_rk_n() const {return lsrk_n;}
+    void ls_rk_begin(lexer*, fdm*);
+    void ls_rk_stage(lexer*, fdm*, int st, field&, field&, field&);
+    void ls_rk_ghost(lexer*, ghostcell*);
+    field& ls_vel(fdm*, int c);
+
     // the diffusion and its solver (the mesh refinement: the implicit diffusion of heat and
     // concentration on the grid of this object)
     diffusion* amr_diffusion() { return pdiff; }
     solver* amr_solver() { return psolv; }
 
+    // F 41 1, 2: the single-phase level set of this grid (nullptr: two phases); F 41 2 keeps the
+    // fields of the air pockets there (cfd_pocket.h)
+    cfd_singlephase* single() { return psingle; }
+
 private:
     enum {SSP=0, LOWSTORAGE=1};
 
     void step_ssp(lexer*, fdm*, ghostcell*, vrans*, sixdof*);
+    void step_twoproj(lexer*, fdm*, ghostcell*, vrans*, sixdof*);
+    void component_onestep(lexer*, fdm*, ghostcell*, vrans*, int, field&, field&, field&, field&, field&, double, bool);
+    void twoproj_forcing(lexer*, fdm*, ghostcell*, sixdof*, field&, field&, field&, double, bool, int);
+
     void step_lowstorage(lexer*, fdm*, ghostcell*, vrans*, sixdof*);
 
     void levelset_transport(lexer*, fdm*, ghostcell*, int);
@@ -163,8 +248,10 @@ private:
 
     int scheme;
     int stages;
+    bool twoproj;       // N 40 6: one step with two projections (step_twoproj)
     bool levelset;
     bool conservative;
+    std::vector<double> csave;   // the right-hand side before the convection (PIC, F 81 2)
 
     // SSP: u(s+1) = ssp_a[s] u(n) + ssp_b[s] (u(s) + dt F)
     double ssp_a[3], ssp_b[3];
@@ -177,8 +264,28 @@ private:
 	field2 vrk1, vrk2, fy;
 	field3 wrk1, wrk2, fz;
 
-    // level set (N40 = 2, 3, 4): ls = phi(n), frk1/frk2 = stages; low storage: frk1 = convection of the previous stage
+    // level set (N40 = 2, 3, 4): ls = phi(n), frk1/frk2 = stages; low storage: frk1 = convection of the previous stage;
+    // N 40 5 with N 59: frk1 = the level set before its last transport (phiold)
     field4 *ls, *frk1, *frk2;
+
+    // N 63 2, 3: phi(n) for the stages of the level set of the one-step schemes
+    field4 *lsrk = nullptr;
+
+    // F 48: the narrow band of the level set (levelset_band.h): the mask of the transport, made
+    // from the input of its first stage and kept for the stages of the step
+    std::vector<unsigned char> lsband, lsband_work;
+    double lsband_w = 0.0;
+    void ls_band_begin(lexer*, field&);
+    int lsrk_n = 1;
+    void ls_rk_all(lexer*, fdm*, ghostcell*, field&, field&, field&);
+
+    // N 40 5 with N 59: the mass transport of the momentum starts from the level set before its last
+    // transport (frk1), kept by amr_ls_transport; phiold_valid: kept in the last step of this grid (1),
+    // a double for the checkpoints (ckpt_registry)
+    cfd_singlephase *psingle = nullptr;   // F 41 1: the velocity of the water extended into the air after the projections
+    bool phiold;
+    double phiold_valid;
+    unsigned long long ckid_phiold;
 
     // second-order implicit diffusion: implicit weight, accumulation weight of the solved D and
     // whether the accumulated correction is added, per stage

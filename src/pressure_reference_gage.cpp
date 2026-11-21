@@ -42,9 +42,6 @@ void pressure_reference::gage_fixed(lexer*p, fdm* a, ghostcell *pgc)
     if(p->B33==2 && gageval>-0.9e20)
     LOOP
     a->press(i,j,k) -= (gageval - p->B31);
-    
-    //cout<<p->mpirank<<" gage: "<<gageval<<" x: "<<p->B32_x<<" y: "<<p->B32_y<<" z: "<<p->B32_z<<endl;
-    
 }
 
 void pressure_reference::gage_fsf(lexer*p, fdm* a, ghostcell *pgc)
@@ -61,10 +58,7 @@ void pressure_reference::gage_fsf(lexer*p, fdm* a, ghostcell *pgc)
         PCHECK
         if(a->phi(i,j,k)>=0.0 && a->phi(i,j,k+1)<0.0)
         p->B32_z = MAX(p->B32_z,-(a->phi(i,j,k)*p->DZP[KP])/(a->phi(i,j,k+1)-a->phi(i,j,k) + 1.0e-8) + p->pos_z());
-        
-        
-    //cout<<p->mpirank<<" i: "<<i<<" j: "<<j<<" k: "<<k<<" z: "<<p->B32_z<<endl;
-        
+
     gageval = p->ccipol4(a->press,p->B32_x,p->B32_y,p->B32_z);
     }
     

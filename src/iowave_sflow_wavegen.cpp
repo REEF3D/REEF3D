@@ -68,7 +68,7 @@ void iowave::wavegen2D(lexer *p, fdm2D* b, ghostcell* pgc, slice &P, slice &Q, s
         }
         vval/=double(p->B160+1);
         
-        // w (at the inflow; xg, yg were left over from the last column of the precalc loop)
+        // w at the inflow
         z=eta(i,j);
 
         wval = wave_w(p,pgc,x,y,z);

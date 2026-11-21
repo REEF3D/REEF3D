@@ -169,9 +169,6 @@ void nhflow_fsf_f::rk3_step3(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow
     d->wave->wl_ghostcells(p,d,d->WL);
     pgc->gcsl_start4(p,d->WL,gcval_eta);
     
-    //SLICELOOP4
-    //d->eta_n(i,j) = d->eta(i,j);
-
     SLICELOOP4
     d->eta(i,j) = d->WL(i,j) - d->depth(i,j);
     

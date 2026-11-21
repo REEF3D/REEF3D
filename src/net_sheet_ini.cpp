@@ -254,8 +254,10 @@ void net_sheet::ini(lexer *p, ghostcell *pgc)
     mass_knot = VectorXd::Zero(nK);
     weight_knot = VectorXd::Zero(nK);
     added_mass = VectorXd::Zero(nK);
-    lagrangePoints.resize(nK);
-    lagrangeForces.resize(nK);
+    // zero: the mesh refinement spreads the forces of the last stage onto its patches before the
+    // first stage has set them (cfd_amr::net_forces); Eigen vectors are not initialised
+    lagrangePoints.assign(nK,Eigen::Vector3d::Zero());
+    lagrangeForces.assign(nK,Eigen::Vector3d::Zero());
 
     //- Define knots as centres of triangles
     double xc,yc,zc,x0,x1,x2,y0,y1,y2,z0,z1,z2;

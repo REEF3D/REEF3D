@@ -22,11 +22,13 @@ Author: Hans Bihs
 
 #include"ediff2.h"
 #include"fdm.h"
+#include"diff_walllaw.h"
 #include"lexer.h"
 #include"ghostcell.h"
 
 ediff2::ediff2(lexer* p):gradient(p)
 {
+    pwl = new diff_walllaw;
 
     gcval_u=10;
 	gcval_v=11;
@@ -37,6 +39,7 @@ ediff2::ediff2(lexer* p):gradient(p)
 
 ediff2::~ediff2()
 {
+    delete pwl;
 }
 
 void ediff2::diff_scalar(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &b, field &visc, field &eddyv, double sig, double alpha)
@@ -82,6 +85,8 @@ void ediff2::diff_u(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &diff
     ULOOP
     diff(i,j,k) = u_in(i,j,k);
     
+    pwl->update(p,0);
+    
     ULOOP
 	{
 	u_ijk=u(i,j,k);
@@ -108,6 +113,22 @@ void ediff2::diff_u(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &diff
         + ((v(i+1,j,k)-v(i,j,k))*(visc_ddy_p/p->DXP[IP]) - (v(i+1,j-1,k)-v(i,j-1,k))*(visc_ddy_m/p->DXP[IP]))/p->DYN[JP]
 
         + ((w(i+1,j,k)-w(i,j,k))*(visc_ddz_p/p->DXP[IP]) - (w(i+1,j,k-1)-w(i,j,k-1))*(visc_ddz_m/p->DXP[IP]))/p->DZN[KP];
+    // wall-law faces (B 10): no diffusive flux through them, the wall law of bcmom is the only wall stress there
+    // (diff_walllaw.h)
+    if(pwl->active)
+    {
+    if(pwl->face(p,i,j,k,2))
+    a->F(i,j,k) -= (u(i,j+1,k)-u_ijk)*visc_ddy_p/(p->DYP[JP]*p->DYN[JP]);
+
+    if(pwl->face(p,i,j,k,3))
+    a->F(i,j,k) += (u_ijk-u(i,j-1,k))*visc_ddy_m/(p->DYP[JM1]*p->DYN[JP]);
+
+    if(pwl->face(p,i,j,k,6))
+    a->F(i,j,k) -= (u(i,j,k+1)-u_ijk)*visc_ddz_p/(p->DZP[KP]*p->DZN[KP]);
+
+    if(pwl->face(p,i,j,k,5))
+    a->F(i,j,k) += (u_ijk-u(i,j,k-1))*visc_ddz_m/(p->DZP[KM1]*p->DZN[KP]);
+    }
 	}
     
     pgc->start1(p,diff,gcval_u);
@@ -119,6 +140,8 @@ void ediff2::diff_v(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &diff
 	
     VLOOP
     diff(i,j,k) = v_in(i,j,k);
+    
+    pwl->update(p,1);
     
     VLOOP
 	{
@@ -145,6 +168,22 @@ void ediff2::diff_v(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &diff
 		+ ((u(i,j+1,k)-u(i,j,k))*(visc_ddx_p/p->DYP[JP]) - (u(i-1,j+1,k)-u(i-1,j,k))*(visc_ddx_m/p->DYP[JP]))/p->DXN[IP]
 
 		+ ((w(i,j+1,k)-w(i,j,k))*(visc_ddz_p/p->DYP[JP]) - (w(i,j+1,k-1)-w(i,j,k-1))*(visc_ddz_m/p->DYP[JP]))/p->DZN[KP];
+    // wall-law faces (B 10): no diffusive flux through them, the wall law of bcmom is the only wall stress there
+    // (diff_walllaw.h)
+    if(pwl->active)
+    {
+    if(pwl->face(p,i,j,k,4))
+    a->G(i,j,k) -= (v(i+1,j,k)-v_ijk)*visc_ddx_p/(p->DXP[IP]*p->DXN[IP]);
+
+    if(pwl->face(p,i,j,k,1))
+    a->G(i,j,k) += (v_ijk-v(i-1,j,k))*visc_ddx_m/(p->DXP[IM1]*p->DXN[IP]);
+
+    if(pwl->face(p,i,j,k,6))
+    a->G(i,j,k) -= (v(i,j,k+1)-v_ijk)*visc_ddz_p/(p->DZP[KP]*p->DZN[KP]);
+
+    if(pwl->face(p,i,j,k,5))
+    a->G(i,j,k) += (v_ijk-v(i,j,k-1))*visc_ddz_m/(p->DZP[KM1]*p->DZN[KP]);
+    }
 	}
     
     pgc->start2(p,diff,gcval_v);
@@ -156,6 +195,8 @@ void ediff2::diff_w(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &diff
 	
     WLOOP
     diff(i,j,k) = w_in(i,j,k);
+    
+    pwl->update(p,2);
     
     WLOOP
 	{
@@ -183,6 +224,22 @@ void ediff2::diff_w(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &diff
 
      	+ ((v(i,j,k+1)-v(i,j,k))*(visc_ddy_p/p->DZP[KP]) - (v(i,j-1,k+1)-v(i,j-1,k))*(visc_ddy_m/p->DZP[KP]))/p->DYN[JP];
 	
+    // wall-law faces (B 10): no diffusive flux through them, the wall law of bcmom is the only wall stress there
+    // (diff_walllaw.h)
+    if(pwl->active)
+    {
+    if(pwl->face(p,i,j,k,4))
+    a->H(i,j,k) -= (w(i+1,j,k)-w_ijk)*visc_ddx_p/(p->DXP[IP]*p->DXN[IP]);
+
+    if(pwl->face(p,i,j,k,1))
+    a->H(i,j,k) += (w_ijk-w(i-1,j,k))*visc_ddx_m/(p->DXP[IM1]*p->DXN[IP]);
+
+    if(pwl->face(p,i,j,k,2))
+    a->H(i,j,k) -= (w(i,j+1,k)-w_ijk)*visc_ddy_p/(p->DYP[JP]*p->DYN[JP]);
+
+    if(pwl->face(p,i,j,k,3))
+    a->H(i,j,k) += (w_ijk-w(i,j-1,k))*visc_ddy_m/(p->DYP[JM1]*p->DYN[JP]);
+    }
 	}
     
     pgc->start3(p,diff,gcval_w);

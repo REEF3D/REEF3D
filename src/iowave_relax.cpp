@@ -360,24 +360,54 @@ void iowave::vof_relax(lexer *p, fdm* a, ghostcell *pgc, field& f)
             }
         }
             
-        // Numerical Beach    
-        if(p->B99==1||p->B99==2)
+    }
+    
+    // Numerical Beach
+    // The column keeps its water as it is (a broken wave: jet, splash-up, entrained air) and only the
+    // difference to the relaxed height is added or taken away: added from the bed upwards into the
+    // cells with room, taken away from the top downwards. Writing the whole column anew from its height
+    // moved the water of a broken wave within one time step at the start of the beach, where the
+    // relaxation factor is 1.
+    if(p->B99==1||p->B99==2)
+    SLICELOOP4
+    {
+        db = distbeach(p);
+        
+        if(db<1.0e20)
         {
-            // Zone 2
-            if(db<1.0e20)
+        double dh = genheight(i,j) - vofheight(i,j);
+        
+            if(dh>0.0)
+            for(k=0; k<p->knoz && dh>0.0; ++k)
+            PCHECK
             {
-            if(p->pos_z()+0.5*p->DZN[KP]<=genheight(i,j))
-            f(i,j,k)=1.0;
+            const double add = MIN((1.0-f(i,j,k))*p->DZN[KP],dh);
             
-            else if(p->pos_z()-0.5*p->DZN[KP]>=genheight(i,j))
-            f(i,j,k)=0.0;
+                if(add>0.0)
+                {
+                f(i,j,k) += add/p->DZN[KP];
+                dh -= add;
+                }
+            }
             
-            else
-            f(i,j,k)=(genheight(i,j)-(p->pos_z()-0.5*p->DZN[KP]))/p->DZN[KP];
+            if(dh<0.0)
+            {
+            dh = -dh;
+            
+            for(k=p->knoz-1; k>=0 && dh>0.0; --k)
+            PCHECK
+            {
+            const double rem = MIN(f(i,j,k)*p->DZN[KP],dh);
+            
+                if(rem>0.0)
+                {
+                f(i,j,k) -= rem/p->DZN[KP];
+                dh -= rem;
+                }
+            }
             }
         }
     }
-    
     
     p->wavecalctime+=pgc->timer()-starttime;
 

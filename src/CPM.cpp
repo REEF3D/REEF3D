@@ -26,7 +26,7 @@ Author: Hans Bihs
 #include<sstream>
 
 CPM::CPM(lexer *p, ghostcell *pgc) : P(p,pgc), bedch(p), tauGf(p), blTx(p), blTy(p), blGx(p), blGy(p), blH(p), blC(p), blCs(p), blNc(p), blSr(p), blMc(p), zbf(p), blZb(p), zbt(p), Tau(p), Ts(p),
-                                               cellSum(p), Us(p), Vs(p), Ws(p), Pov(p), Fxy(p), Yr(p), Pse(p), Gsz(p), Pnos(p), Kc(p), KUx(p), KUy(p), KUz(p), Dsrc(p), dSx(p), dSy(p), dSz(p), Locc(p), Lout(p), Lin(p), Ltc(p), Lloc(p), LA(p), Lh0(p), Lh1(p), Lh2(p), Lh3(p),
+                                               cellSum(p), Us(p), Vs(p), Ws(p), Pov(p), Gd(p), In(p), Fxy(p), Yr(p), Pse(p), Gsz(p), Pnos(p), Kc(p), KUx(p), KUy(p), KUz(p), Dsrc(p), dSx(p), dSy(p), dSz(p), Locc(p), Lout(p), Lin(p), Ltc(p), Lloc(p), LA(p), Lh0(p), Lh1(p), Lh2(p), Lh3(p),
                                                dPx(p),dPy(p),dPz(p),dTx(p),dTy(p),dTz(p),
                                                Kt(p),dKx(p),dKy(p),dKz(p),T0e(p),Tiso(p),rng(20261003ULL+p->mpirank),gauss(0.0,1.0)
 {
@@ -71,6 +71,9 @@ CPM::CPM(lexer *p, ghostcell *pgc) : P(p,pgc), bedch(p), tauGf(p), blTx(p), blTy
     
     // vertical domain decomposition
     zsplit = pgc->globalimax((p->nb5>=0 || p->nb6>=0) ? 1 : 0);
+    zsplit_grid = zsplit;
+    xsplit = pgc->globalimax((p->nb1>=0 || p->nb4>=0) ? 1 : 0);
+    ysplit = pgc->globalimax((p->j_dir==1 && (p->nb2>=0 || p->nb3>=0)) ? 1 : 0);
     epsi=p->psi;
     
     // periodic sides are neither open nor walls
@@ -101,6 +104,8 @@ CPM::CPM(lexer *p, ghostcell *pgc) : P(p,pgc), bedch(p), tauGf(p), blTx(p), blTy
     I0 = p->Q38;
     
     Vp = (1.0/6.0)*PI*pow(p->S20,3.0);
+    
+    mixture_ini(p);
 
     if(p->mpirank==0 && p->Q11==2)
     {
@@ -112,6 +117,13 @@ CPM::CPM(lexer *p, ghostcell *pgc) : P(p,pgc), bedch(p), tauGf(p), blTx(p), blTy
             
         if(theta_0>=theta_max)
         cout<<"CPM warning: 1-S 24 < theta_max is required, check Q 32 and S 24"<<endl;
+        
+        // the bedload layer works on whole bed columns
+        if(p->Q58>0 && p->S10==1 && zsplit==1)
+        cout<<"CPM warning: bedload layer Q 58 with a domain decomposition split in z: the bed level of the columns, their bed"<<endl
+            <<"             shear stress and the layer need whole columns in one subdomain. The fluid sees the iso-surface of the"<<endl
+            <<"             solid fraction instead and the transport differs from that of whole columns. Use a decomposition"<<endl
+            <<"             without a split in z (DIVEMesh: M 20 3 with M 30 nx ny 1)."<<endl;
     }
 }
 
@@ -183,6 +195,11 @@ bool CPM::ckpt_rank_restore(lexer *p, ghostcell *pgc, const std::vector<std::vec
     size_t k=0;
     if(!head(pieces[me],k,true))
     return false;
+    
+    // the vertical decomposition is that of this run: a restart on another decomposition took the one of the
+    // checkpoint (packed-bed stress, friction on the grid and bed level without or with the passes over the
+    // subdomains in z of a decomposition that was not there)
+    zsplit = zsplit_grid;
 
     if(same)
     return P.ckpt_restore(p,pieces[0],k);
@@ -204,8 +221,21 @@ bool CPM::ckpt_rank_restore(lexer *p, ghostcell *pgc, const std::vector<std::vec
 
     const double gx = p->global_xmax, gy = p->global_ymax, gz = p->global_zmax;
     auto in = [](double v, double lo, double hi, double gmax){ return v>=lo && (v<hi || (hi>=gmax-1.0e-12 && v<=hi)); };
+    // periodic sides: a parcel beyond the period (on its way to the rank across, part::xchange_fillback)
+    // goes to the rank of its position within the period, moved by the period
+    const bool wx = p->periodic1>0, wy = p->periodic2>0 && p->j_dir==1;
+    auto shift = [](double v, double lo, double hi)
+    {
+        const double L = hi-lo;
+        double s = 0.0;
+        while(v+s>=hi) s -= L;
+        while(v+s<lo) s += L;
+        return s;
+    };
     auto mine = [&](double x, double y, double z)
     {
+        if(wx) x += shift(x,p->global_xmin,gx);
+        if(wy) y += shift(y,p->global_ymin,gy);
         return in(x,p->originx,p->endx,gx) && (p->j_dir==0 || in(y,p->originy,p->endy,gy)) && in(z,p->originz,p->endz,gz);
     };
     std::vector<std::vector<double>> parcels;
@@ -215,6 +245,22 @@ bool CPM::ckpt_rank_restore(lexer *p, ghostcell *pgc, const std::vector<std::vec
         if(!head(v,j,false))
         return false;
         part::ckpt_parcels(v,j,mine,parcels);
+    }
+    // (the slots: X, Y at 6, 7, their RK1 positions at 9, 10, part::ckpt_state)
+    for(std::vector<double> &s : parcels)
+    {
+        if(wx)
+        {
+            const double d = shift(s[6],p->global_xmin,gx);
+            s[6] += d;
+            s[9] += d;
+        }
+        if(wy)
+        {
+            const double d = shift(s[7],p->global_ymin,gy);
+            s[7] += d;
+            s[10] += d;
+        }
     }
     P.ckpt_set(p,parcels);
     return true;

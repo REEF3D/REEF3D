@@ -1,0 +1,20 @@
+{
+ "base": "fnpf_2d_regular",
+ "ctrl_set": {
+  "A 310": "5",
+  "N 47": "1.5",
+  "N 48": "2"
+ },
+ "description": "FNPF 2D regular waves of fnpf_2d_regular (relaxation generation and beach) with the theta-Robin time integration (A 310 5, REEFMG A 306 1, A 302 4, A 304 1e-3, A 307 1e-2) at twice the RK3 step of N 47 0.75 (N 48 2, N 47 1.5): relaxation zones in the Robin rows per time as an RK3 run with 200 steps per wave period (A 303, default -200 since fnpf_theta_robin/0032; -0.1 before).",
+ "tags": [
+  "quick",
+  "2d",
+  "fnpf",
+  "waves",
+  "iowave"
+ ],
+ "covers": [
+  "fnpf_theta with relaxation zones and REEFMG",
+  "fnpf_theta::relax_affine"
+ ]
+}

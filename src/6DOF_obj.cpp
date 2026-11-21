@@ -25,7 +25,6 @@ Authors: Tobias Martin, Hans Bihs
 #include"fdm.h"
 #include"ghostcell.h"
 #include"reinidisc_f.h"
-#include"nhflow_reinidisc_fsf.h"
 #include"6DOF_motionext_fixed.h"
 #include"6DOF_motionext_file.h"
 #include"6DOF_motionext_CoG.h"
@@ -33,6 +32,9 @@ Authors: Tobias Martin, Hans Bihs
 #include"6DOF_motionext_void.h"
 #include"net_interface.h"
 #include"ship.h"
+#include"6DOF_deform.h"
+#include"6DOF_brain.h"
+#include"6DOF_brain_link.h"
 
 sixdof_obj::sixdof_obj(lexer *p, ghostcell *pgc, int number) : ddweno_f_nug(p),
                                                                                 georay(p),n6DOF(number),
@@ -68,6 +70,36 @@ sixdof_obj::sixdof_obj(lexer *p, ghostcell *pgc, int number) : ddweno_f_nug(p),
     rb.dof[3] = p->X111_p[n];
     rb.dof[4] = p->X111_q[n];
     rb.dof[5] = p->X111_r[n];
+    }
+    
+    // prescribed deformation (X 195 id type a lambda f t_ramp): undulatory swimming, lateral axis
+    // y of the body frame in 3D, z in 2D (x-z plane)
+    for(int n=0; n<p->X195; ++n)
+    if(p->X195_id[n]==number)
+    {
+    delete fish_;
+    fish_ = new sixdof_deform(p->X195_type[n], p->X195_a[n], p->X195_lambda[n], p->X195_f[n], p->X195_tramp[n],
+                              (p->j_dir==0) ? 2 : 1, p->X196>=1);
+    
+    // the bias along the body (X 200 id s0 k w)
+    for(int m=0; m<p->X200; ++m)
+    if(p->X200_id[m]==number)
+    fish_->set_bias_shape(int(p->X200_w[m] + 0.5));
+    }
+    
+    // gait control (X 199 id t f a b t_s): targets of frequency, amplitude factor and curvature bias
+    if(fish_!=nullptr)
+    {
+        std::vector<sixdof_deform::gait_target> tg;
+        
+        for(int n=0; n<p->X199; ++n)
+        if(p->X199_id[n]==number)
+        tg.push_back({p->X199_t[n], p->X199_f[n], p->X199_a[n], p->X199_b[n], p->X199_ts[n]});
+        
+        gait_in_ = tg;
+        
+        if(!tg.empty())
+        fish_->set_gait(tg);
     }
     
     rb.twoD = (p->j_dir==0);
@@ -121,6 +153,38 @@ sixdof_obj::sixdof_obj(lexer *p, ghostcell *pgc, int number) : ddweno_f_nug(p),
     {
     alpha[0] = 1.0;
     alpha[1] = 0.5;
+    
+    gamma[0] = 0.0;
+    gamma[1] = 0.0;
+    gamma[2] = 0.0;
+    
+    zeta[0] = 0.0;
+    zeta[1] = 0.0;
+    zeta[2] = 0.0;
+    }
+    
+    // CFD N 40 6 (one step, two projections): stage 0 the half step, stage 1 the full step
+    if(p->N40==6 && p->A10==6)
+    {
+    alpha[0] = 0.5;
+    alpha[1] = 1.0;
+    alpha[2] = 1.0;
+    
+    gamma[0] = 0.0;
+    gamma[1] = 0.0;
+    gamma[2] = 0.0;
+    
+    zeta[0] = 0.0;
+    zeta[1] = 0.0;
+    zeta[2] = 0.0;
+    }
+    
+    // CFD N 40 5 (one step, one projection): one stage over the step
+    if(p->N40==5 && p->A10==6)
+    {
+    alpha[0] = 1.0;
+    alpha[1] = 1.0;
+    alpha[2] = 1.0;
     
     gamma[0] = 0.0;
     gamma[1] = 0.0;
@@ -193,6 +257,11 @@ sixdof_obj::sixdof_obj(lexer *p, ghostcell *pgc, int number) : ddweno_f_nug(p),
 
 sixdof_obj::~sixdof_obj()
 {
+    geom.deform = nullptr;
+    delete brain_;
+    delete brain_link_;
+    delete fish_;
+    
     for(size_t ql=0; ql<pload.size(); ++ql)
     delete pload[ql];
 }

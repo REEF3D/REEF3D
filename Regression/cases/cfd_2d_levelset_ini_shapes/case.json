@@ -1,0 +1,6 @@
+{
+ "description": "Level set of the start in 2D: a water layer from a plane (F 57), a water column box (F 70), a column with its own water level replacing the level set (F 72), an air box cut out of the layer (F 71), a ramp (F 112 wedge), a wedge above a sloping plane (F 114) and a drop (F 58, the circle of the cut with the plane of the cells), the faces off the cell faces. Exact signed distances combined as sets (iniphi), fast sweeping (8 neighbours, reini_fsm) and 10 iterations of the PDE (reini_RK3 at count 0); 5 steps.",
+ "np": 1, "steps": 5,
+ "tags": ["quick", "2d", "levelset"],
+ "covers": ["iniphi exact signed distances F 57, F 58 (2D cut), F 70, F 71, F 72, F 112, F 114", "reini_fsm 2D", "reini_RK3 count 0"]
+}

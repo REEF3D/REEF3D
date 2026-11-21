@@ -1,0 +1,19 @@
+{
+ "description": "SFLOW semi-implicit step (A 210 12) with a towed body (X 10 2, direct forcing of the body velocity 0.25 m/s on the cells under the hull after the step), 8 x 4 m basin, h = 0.4 m, dx = 0.1 m, dt = 0.04 s.",
+ "solver": "sflow",
+ "np": 1,
+ "steps": 100,
+ "tags": [
+  "quick",
+  "2d",
+  "sflow",
+  "semi_implicit",
+  "6dof"
+ ],
+ "covers": [
+  "sflow_momentum_SI::cell_update X 10 2 (sflow_forcing after the step)",
+  "sixdof_sflow::start_oneway once per step (sflow_midpoint)",
+  "time step limit of the body"
+ ],
+ "architect": "Hans Bihs"
+}

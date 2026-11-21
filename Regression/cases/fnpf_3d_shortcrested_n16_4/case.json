@@ -1,0 +1,20 @@
+{
+ "base": "fnpf_3d_shortcrested",
+ "np": 2,
+ "ctrl_add": [
+  "N 16 4"
+ ],
+ "same_as": "fnpf_3d_shortcrested",
+ "same_as_rtol": 1e-05,
+ "description": "fnpf_3d_shortcrested with the Krylov solve on the reference device (N 16 4): GCR in double on the 2 ranks around a single-precision BiCGStab of the whole domain on the device (reefmg_device::krylov, the shared fine level of both ranks); the free surface within 1e-5 of the CPU run (`regression.py ranks`)",
+ "tags": [
+  "3d",
+  "fnpf",
+  "solver",
+  "mpi"
+ ],
+ "covers": [
+  "REEFMG Krylov solve on the device (N 16 4): reefmg_device::krylov, reefmg_core::solve_gcr",
+  "device kernels rmg_apply, rmg_axpy3, rmg_dot2, reference device"
+ ]
+}

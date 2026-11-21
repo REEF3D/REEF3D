@@ -1,0 +1,19 @@
+{
+ "base": "cfd_2d_heave_amr_sub",
+ "ctrl_set": {
+  "N 40": "5"
+ },
+ "description": "cfd_2d_heave_amr_sub (subcycling G 7 1) with the one-step scheme N 40 5: the finest level advances the body with one semi-implicit Euler step per step of its own, level 0 steps with a predicted copy.",
+ "tags": [
+  "quick",
+  "2d",
+  "6dof",
+  "floating",
+  "levelset",
+  "amr"
+ ],
+ "covers": [
+  "cfd_amr::step_sub: N 40 5 with floating bodies (body_stage with one stage)",
+  "sixdof_rigidbody::step_symplectic with the step of the finest level"
+ ]
+}

@@ -1,0 +1,20 @@
+{
+ "base": "cfd_2d_still_amr",
+ "np": 1,
+ "steps": 60,
+ "ctrl_add": [
+  "G 28 1"
+ ],
+ "description": "cfd_2d_still_amr with G 28 1: the density and the viscosity of the patch with the interface width of level 0 (F 45 times the level-0 spacing), so that the coarse and the fine cells at the patch edge across the free surface have the same density at the same height.",
+ "tags": [
+  "quick",
+  "2d",
+  "levelset",
+  "amr"
+ ],
+ "covers": [
+  "interface_width.h: psi_rho of G 28 (interface_width, heaviside_face)",
+  "cfd_amr::pr_weights and pr_hydro with one interface width on both grids",
+  "driver_logic_cfd: G 28"
+ ]
+}

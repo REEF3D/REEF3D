@@ -1,0 +1,22 @@
+{
+ "base": "nhflow_3d_si_mb_basin_fine_tracers_mpi2",
+ "np": 2,
+ "ctrl_add": [
+  "N 16 4"
+ ],
+ "same_as": "nhflow_3d_si_mb_basin_fine_tracers_mpi2",
+ "same_as_rtol": 1e-05,
+ "description": "nhflow_3d_si_mb_basin_fine_tracers_mpi2 with N 16 4: the semi-implicit eta system of the native level-0 grid (reefmg2D over the ranks) by GCR in double around a single-precision BiCGStab on the reference device; the block-local hierarchies on the CPU; within 1e-5 of the CPU run",
+ "tags": [
+  "3d",
+  "nhflow",
+  "semi_implicit",
+  "multiblock",
+  "solver",
+  "mpi"
+ ],
+ "covers": [
+  "REEFMG Krylov solve on the device (N 16 4): reefmg_device::krylov, reefmg_core::solve_gcr",
+  "device kernels rmg_apply, rmg_axpy3, rmg_dot2, reference device"
+ ]
+}

@@ -20,7 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
-//  REEFMG device for the Apple Silicon GPU (N 16 1), in plain C++.
+//  REEFMG device for the Apple Silicon GPU (N 16 1 and 2), in plain C++.
 //
 //  Compiled into every build; active on macOS (reefmg_device.h: REEF3D_METAL,
 //  off with -DREEF3D_NO_METAL), elsewhere this file is empty.  No build
@@ -29,7 +29,7 @@ Architect: Hans Bihs
 //  precompiled header included:
 //
 //  - The Objective-C runtime (libobjc) and the Metal framework are opened
-//    with dlopen() when N 16 1 asks for the GPU, and Metal is driven through
+//    with dlopen() when N 16 1 or 2 asks for the GPU, and Metal is driven through
 //    objc_msgSend with the method names of its Objective-C API (the way
 //    Apple's metal-cpp does it).  Objects are reference counted by hand:
 //    what new.../alloc returns is released, what a command buffer hands out
@@ -172,12 +172,49 @@ kernel void k_zero(device float *a [[buffer(2)]], uint t [[thread_position_in_gr
     rmg_zero(t,a);
 }
 
+kernel void k_apply(constant rmg_lp &P [[buffer(0)]], constant int &mode [[buffer(1)]],
+                    const device float *f [[buffer(2)]], const device float *u [[buffer(3)]],
+                    device float *y [[buffer(4)]],
+                    const device float *cp [[buffer(5)]], const device float *cn [[buffer(6)]],
+                    const device float *cs [[buffer(7)]], const device float *cw [[buffer(8)]],
+                    const device float *ce [[buffer(9)]], const device float *ct [[buffer(10)]],
+                    const device float *cb [[buffer(11)]],
+                    uint3 g [[thread_position_in_grid]])
+{
+    rmg_apply(P,int(g.x),int(g.y),int(g.z),mode,f,u,y,cp,cn,cs,cw,ce,ct,cb);
+}
+
+kernel void k_axpy3(constant rmg_vp &V [[buffer(0)]], device float *w [[buffer(2)]],
+                    const device float *a [[buffer(3)]], const device float *b [[buffer(4)]],
+                    uint t [[thread_position_in_grid]])
+{
+    rmg_axpy3(V,t,w,a,b);
+}
+
+kernel void k_axpy3_dot(constant rmg_vp &V [[buffer(0)]], device float *w [[buffer(2)]],
+                        const device float *a [[buffer(3)]], const device float *b [[buffer(4)]],
+                        const device float *h [[buffer(5)]], device float *part [[buffer(6)]],
+                        uint t [[thread_position_in_grid]])
+{
+    rmg_axpy3_dot(V,t,w,a,b,h,part);
+}
+
+kernel void k_dot2(constant rmg_vp &V [[buffer(0)]],
+                   const device float *a [[buffer(2)]], const device float *b [[buffer(3)]],
+                   const device float *c [[buffer(4)]], const device float *d [[buffer(5)]],
+                   device float *part [[buffer(6)]],
+                   uint t [[thread_position_in_grid]])
+{
+    rmg_dot2(V,t,a,b,c,d,part);
+}
+
 )MSL";
 
     enum {PS_SMOOTH=0, PS_SMOOTH_H, PS_TAIL, PS_RESTRICT, PS_PROLONG, PS_COARSEN, PS_FACTOR, PS_FACTOR_H,
-          PS_WRAP, PS_ZERO, PS_N};
+          PS_WRAP, PS_ZERO, PS_APPLY, PS_AXPY3, PS_DOT2, PS_AXPY3_DOT, PS_N};
     const char *ps_names[PS_N]={"k_smooth","k_smooth_h","k_tail","k_restrict","k_prolong",
-                                "k_coarsen","k_factor","k_factor_h","k_wrap","k_zero"};
+                                "k_coarsen","k_factor","k_factor_h","k_wrap","k_zero",
+                                "k_apply","k_axpy3","k_dot2","k_axpy3_dot"};
 
     //  ------------------------------------------- Objective-C runtime, by hand
     typedef void* obj;                 // id
@@ -561,14 +598,62 @@ kernel void k_zero(device float *a [[buffer(2)]], uint t [[thread_position_in_gr
             dispatch3(e,PS_FACTOR,P.hh,2*P.nx,1);
         }
 
-        void k_wrap(int l) override
+        void k_wrap(int l,int v) override
         {
             const rmg_kern::rmg_lp P=lp(l);
             obj e=begin(PS_WRAP,l);
             bytes_at(e,&P,sizeof(P),0);
-            const int a[]={RMG_U};
+            const int a[]={v};
             bind(e,l,a,1,2);
             dispatch1(e,PS_WRAP,rmg_kern::rmg_nwrap(P));
+        }
+
+        //  the Krylov solve (reefmg_device::krylov)
+        void k_apply(int l,int f,int u,int y) override
+        {
+            const rmg_kern::rmg_lp P=lp(l);
+            const int mode=(f>=0)? 1 : 0;
+            obj e=begin(PS_APPLY,l);
+            bytes_at(e,&P,sizeof(P),0);
+            bytes_at(e,&mode,sizeof(mode),1);
+            const int v[]={(f>=0)? f : u,u,y};
+            const int c[]={RMG_P,RMG_N,RMG_S,RMG_W,RMG_E,RMG_T,RMG_B};
+            bind(e,l,v,3,2);
+            bind(e,l,c,7,5);
+            dispatch3(e,PS_APPLY,P.hh,2*P.nx,P.nz);
+        }
+
+        void k_axpy3(int l,int w,float c0,int a,float c1,int b,float c2) override
+        {
+            rmg_kern::rmg_vp V;
+            V.c0=c0; V.c1=c1; V.c2=c2; V.n=(int)(lay[l].sk*desc[l].nz); V.g=RMG_DOTG;
+            obj e=begin(PS_AXPY3,l);
+            bytes_at(e,&V,sizeof(V),0);
+            const int v[]={w,a,b};
+            bind(e,l,v,3,2);
+            dispatch1(e,PS_AXPY3,V.n);
+        }
+
+        void k_dot2(int l,int a,int b,int c,int d) override
+        {
+            rmg_kern::rmg_vp V;
+            V.c0=V.c1=V.c2=0.0f; V.n=(int)(lay[l].sk*desc[l].nz); V.g=RMG_DOTG;
+            obj e=begin(PS_DOT2,l);
+            bytes_at(e,&V,sizeof(V),0);
+            const int v[]={a,b,c,d,RMG_KD};
+            bind(e,l,v,5,2);
+            dispatch1(e,PS_DOT2,V.g);
+        }
+
+        void k_axpy3_dot(int l,int w,float c0,int a,float c1,int b,float c2,int h) override
+        {
+            rmg_kern::rmg_vp V;
+            V.c0=c0; V.c1=c1; V.c2=c2; V.n=(int)(lay[l].sk*desc[l].nz); V.g=RMG_DOTG;
+            obj e=begin(PS_AXPY3_DOT,l);
+            bytes_at(e,&V,sizeof(V),0);
+            const int v[]={w,a,b,h,RMG_KD};
+            bind(e,l,v,5,2);
+            dispatch1(e,PS_AXPY3_DOT,V.g);
         }
 
         void k_zero(int l,int v) override
@@ -631,7 +716,7 @@ kernel void k_zero(device float *a [[buffer(2)]], uint t [[thread_position_in_gr
         {
             obj b[16];
             nsuint o[16];
-            for(int m=0;m<n;++m){b[m]=buf[l]; o[m]=(nsuint)(lbase[l]+lay[l].off[a[m]]);}
+            for(int m=0;m<n;++m){b[m]=buf[l]; o[m]=(nsuint)(lbase[l]+lay[l].off[amap(l,a[m])]);}
             const ns_range r={(nsuint)first,(nsuint)n};
             msg<void>(e,RMG_SEL("setBuffers:offsets:withRange:"),(const obj*)b,(const nsuint*)o,r);
         }

@@ -93,14 +93,13 @@ void fnpf_sigma::sigma_update(lexer *p, fdm_fnpf *c, ghostcell *pgc, fnpf_fsf *p
         if(p->flagslice4[IJ]<0)
         p->sigz[IJ] = 1.0/(p->wd-p->bed[IJ]);
         
-        // ZSN (was FLOOP) and ZSP (was LOOP)
+        // ZSN and ZSP
         if(ZSN!=nullptr)
         {
             const double wl = c->WL(i,j), bd = c->bed(i,j);
             
             for(k=0; k<=knoz; ++k)
             {
-                // FLOOP already implies flag7>0, so the old FSCHECK branch was dead
                 if(p->flag7[FIJK]>0)
                 ZSN[FIJK] = p->ZN[KP]*wl + bd;
             }

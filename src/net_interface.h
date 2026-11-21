@@ -26,6 +26,7 @@ Author: Hans Bihs
 #include"6DOF.h"
 #include"6DOF_obj.h"
 #include<vector>
+#include<functional>
 
 class mooring;
 class net;
@@ -52,6 +53,7 @@ public:
     
 
     void dlm_cfd(lexer*, fdm*, ghostcell*, int);
+    void dlm_cfd_amr(lexer*, fdm*, int, const std::function<void(const double*,int*)>&);     // CFD mesh refinement: the forces of the nets onto the grid of a patch
     void dlm_nhflow(lexer*, fdm_nhf*, ghostcell*, int);
     
     void initialize_cfd(lexer*, fdm*, ghostcell*);
@@ -80,6 +82,9 @@ public:
     bool ckpt_restore(const std::vector<double>&);
 
 private:
+    void dlm_cfd_spread(lexer*, fdm*, int);
+    void dlm_cfd_spread_amr(lexer*, fdm*, int, int, const std::function<void(const double*,int*)>&);
+    
     vector<net*> pnet;
     vector<net_membrane*> pmem;
    

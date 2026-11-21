@@ -43,29 +43,21 @@ public:
     slice* amr_fh() override { return &fh; }
 
 private:
-    void slide(lexer*,ghostcell*,sediment_fdm*);
 
     slice4 fh;
     
     int gcval_topo,slidecount;
 
     double fac1, fac2;
-    double dh,maxdh,maxdhs,dh_corr;
-    double slide_dh,slide_dhs;
-	double teta, alpha, beta, gamma;
-    double phi;
     
     void compute_fh(lexer*, ghostcell*, sediment_fdm*);
     void compute_fh_curv(lexer *p, ghostcell *pgc, sediment_fdm *s);     // curvilinear grid (G 50)
-    double compute_slope(lexer* p, slice&, int i, int j, int di, int dj);
     double compute_slope_curv(lexer* p, slice & zh, int i, int j, int di, int dj);     // curvilinear grid (G 50)
     
     double tan_phi;       // Tangent of angle of repose
     double relax;         // Relaxation factor (S 92, 0 < relax <= 1)
-    int maxiter;          // Maximum iterations
     double tol;           // Convergence tolerance
 
 }; 
 
 #endif
-

@@ -1,0 +1,11 @@
+{
+ "base": "cfd_2d_6dof_fish_brain",
+ "np": 2,
+ "steps": 320,
+ "ctrl_add": [
+  "X 200 0 0.4 1.0 0"
+ ],
+ "description": "cfd_2d_6dof_fish_brain with the swimming of the body for the brain (X 200 id s0 k w): the prior of the stride 0.4 L per beat (standard deviation 0.3 s0, the estimate within 0.5-1.6 s0) and the turn rate of the bias omega = 1.0 b U_w/L (default 0.5 and 1.3); the brain log of the decisions and the estimates. Fish Swimming patch 0017.",
+ "tags": ["2d", "6dof", "floating", "deform", "singlephase"],
+ "covers": ["sixdof_brain (stride prior, turn rate)", "sixdof_obj::brain_setup (X 200)"]
+}

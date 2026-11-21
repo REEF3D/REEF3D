@@ -1,0 +1,18 @@
+{
+ "base": "cfd_2d_nwt",
+ "np": 1,
+ "steps": 100,
+ "ctrl_add": [
+  "F 41 1"
+ ],
+ "description": "cfd_2d_nwt with the single-phase level set (F 41 1): waves with p = 0 at the free surface (validation 88).",
+ "tags": [
+  "quick",
+  "2d",
+  "levelset",
+  "singlephase"
+ ],
+ "covers": [
+  "F 41 1 with the relaxation zones"
+ ]
+}

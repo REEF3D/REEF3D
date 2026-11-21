@@ -96,15 +96,9 @@ void nhflow_force::start(lexer *p, fdm_nhf *d, ghostcell *pgc)
         if(p->count==2)
         cout<<"Atot_solid: "<<A_tot<<endl;  
         
-        cout<<"Ax: "<<Ax<<" Ay: "<<Ay<<" Az: "<<Az<<endl;
-        cout<<"Atot: "<<A_tot<<endl;
-        cout<<"Fx: "<<Fx<<" Fy: "<<Fy<<" Fz: "<<Fz<<endl;
-
         print_force(p,d,pgc);
         }
         
-    //print_vtp(p,d,pgc);
-    
     deallocate(p,d,pgc);
 }
 

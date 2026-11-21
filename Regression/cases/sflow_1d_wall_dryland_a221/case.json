@@ -1,0 +1,21 @@
+{
+ "description": "SFLOW explicit (A 210 2, A 220 3) with dry land next to deep water as a wall (A 221 2, A 209 0): regular waves (T 6 s, kh 1.3, 10 m deep, 24 cells per wave length) normal to a block of dry cells (T 10, 2 m above the water) at x = 196 m. The cell in front of the land keeps its non-hydrostatic pressure, the dry cell is a dq/dn = 0 wall of the pressure equation and of the pressure gradients, the normal velocity is mirrored in the divergence, and the A 220 3 term does not read the bed level of the dry cell: the standing wave has its antinode at the land (gauge at x = 195 m), the mean water level stays at zero.",
+ "solver": "sflow",
+ "np": 1,
+ "steps": 600,
+ "tags": [
+  "quick",
+  "1d",
+  "sflow",
+  "waves",
+  "wetdry",
+  "nonhydrostatic"
+ ],
+ "covers": [
+  "sflow_drywall.h: cliff, wall, dry",
+  "sflow_pressure_nh::active and ::poisson with A 221 2",
+  "sflow_pjm_quad: rhs, ucorr, quad_calc, upgrad with a wall of dry land",
+  "sflow_pjm_quad::upgrad: the level of a dry cell is not read (A 220 3)"
+ ],
+ "architect": "Hans Bihs"
+}

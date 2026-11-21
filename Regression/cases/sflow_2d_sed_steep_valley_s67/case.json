@@ -1,0 +1,21 @@
+{
+ "description": "SFLOW bed load (MPM, d50 0.3 m) in a steep valley: 200 m x 60 m, 2 m cells, slope 10 %, side slopes 0.4 beside a 6 m channel, 150 m3/s from a point source (R 40) and rain of 30 mm/h (R 10 1) on the dry valley, free outfall, semi-implicit. S 67 1: bed load only in water deeper than the grains, scaled from 0 at 1 d50 to full at 2 d50 (patch 0010). Without S 67 the thin, fast water on the wetting banks takes the full Manning shear and the bed runs away within the 1500 steps (-8 .. +15 m at 160 s, -115 .. +65 m at 270 s); with S 67 -3.8 .. +1.0 m. Validated in Dropbox HYDRO/validation/13_sflow_steep_bedload.",
+ "solver": "sflow",
+ "np": 1,
+ "steps": 1500,
+ "files": [
+  "geo.dat"
+ ],
+ "tags": [
+  "2d",
+  "sflow",
+  "sediment",
+  "semi_implicit",
+  "wetdry",
+  "hydro"
+ ],
+ "covers": [
+  "sediment_f::shallow_bedload (S 67)",
+  "sediment_algorithm_sflow: bed load on a steep, wetting bed"
+ ]
+}

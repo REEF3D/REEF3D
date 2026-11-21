@@ -471,6 +471,8 @@ void dem_f::migrate(lexer *p, ghostcell *pgc)
             continue;
         }
         pack_body(send[k],B);
+        dem_writer w(send[k]);
+        w.v(B.cpl.Flift);
     }
 
     core.bodies.swap(keep);
@@ -483,6 +485,7 @@ void dem_f::migrate(lexer *p, ghostcell *pgc)
         {
             dem_body B;
             unpack_body(r,B);
+            B.cpl.Flift = r.v();
             B.owner = myrank;
             B.vs = B.v;
             B.ws = B.w;
@@ -879,7 +882,7 @@ void dem_f::global_stats(ghostcell *pgc, double &vmax, double &rmin)
 // gather the owned particles on rank 0 for output (sorted by global id)
 void dem_f::gather_output(ghostcell *pgc, vector<dem_body> &out)
 {
-    const int nv = 23;
+    const int nv = 26;
     vector<double> loc;
     for(auto &B : core.bodies)
     {
@@ -892,6 +895,7 @@ void dem_f::gather_output(ghostcell *pgc, vector<dem_body> &out)
         for(int q=0; q<3; ++q) loc.push_back(B.w(q));
         for(int q=0; q<3; ++q) loc.push_back(B.cpl.Fhyd(q));
         for(int q=0; q<3; ++q) loc.push_back(B.cpl.ufl(q));
+        for(int q=0; q<3; ++q) loc.push_back(B.cpl.Flift(q));
     }
 
     int nloc = loc.size();
@@ -917,7 +921,7 @@ void dem_f::gather_output(ghostcell *pgc, vector<dem_body> &out)
         dem_body B;
         B.id = r.i(); B.shape = r.i(); B.mode = r.i(); B.active = r.i()==1;
         B.x = r.v(); B.q = r.q(); B.v = r.v(); B.w = r.v();
-        B.cpl.Fhyd = r.v(); B.cpl.ufl = r.v();
+        B.cpl.Fhyd = r.v(); B.cpl.ufl = r.v(); B.cpl.Flift = r.v();
         B.R = B.q.toRotationMatrix();
         out.push_back(B);
     }

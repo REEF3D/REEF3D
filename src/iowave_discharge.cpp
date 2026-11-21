@@ -56,6 +56,10 @@ void iowave::Qin(lexer *p, fdm* a, ghostcell* pgc)
     p->Qi=0.0;
     p->Ui=0.0;
 
+    // wet area of the cells from phi (the distance to the free surface) only with a free surface (level set
+    // F 30 > 0 or VOF F 80 > 0); in single phase (F 30 0, F 80 0) phi is no distance (1.0 everywhere): full cells
+    const bool fsf = (p->F30>0 || p->F80>0);
+
     // in
     for(n=0;n<p->gcin_count;n++)
     if(p->gcin[n][3]>0)
@@ -65,15 +69,15 @@ void iowave::Qin(lexer *p, fdm* a, ghostcell* pgc)
     j=p->gcin[n][1];
     k=p->gcin[n][2];
 
-        if(a->phi(i,j,k)>-0.5*p->DZN[KP]-1.0e-20 && a->topo(i,j,k)>0.0)
+        if((!fsf || a->phi(i,j,k)>-0.5*p->DZN[KP]-1.0e-20) && a->topo(i,j,k)>0.0)
         {
-            if(a->phi(i,j,k)>=0.5*p->DZN[KP])
+            if(!fsf || a->phi(i,j,k)>=0.5*p->DZN[KP])
             area=p->DYN[JP]*p->DZN[KP];
 
-            if(a->phi(i,j,k)<0.5*p->DZN[KP] && a->phi(i,j,k)>0.0)
+            if(fsf && a->phi(i,j,k)<0.5*p->DZN[KP] && a->phi(i,j,k)>0.0)
             area=p->DYN[JP]*(p->DZN[KP]*0.5 + a->phi(i,j,k));
 			
-			if(a->phi(i,j,k)>=-0.5*p->DZN[KP] -1.0e-20 && a->phi(i,j,k)<=0.0)
+			if(fsf && a->phi(i,j,k)>=-0.5*p->DZN[KP]-1.0e-20 && a->phi(i,j,k)<=0.0)
             area=p->DYN[JP]*(p->DZN[KP]*0.5 - fabs(a->phi(i,j,k)));
 
 
@@ -85,7 +89,6 @@ void iowave::Qin(lexer *p, fdm* a, ghostcell* pgc)
     Ai=pgc->globalsum(Ai);
     p->Qi=pgc->globalsum(p->Qi);
     
-    //if(p->B60==1)
     p->Ui=p->W10/(Ai>1.0e-20?Ai:1.0e20); 
     
     if(p->B60==2 || p->B60==4)
@@ -105,6 +108,10 @@ void iowave::Qout(lexer *p, fdm* a, ghostcell* pgc)
     p->Qo=0.0;
     p->Uo=0.0;
 
+    // wet area of the cells from phi (the distance to the free surface) only with a free surface (level set
+    // F 30 > 0 or VOF F 80 > 0); in single phase (F 30 0, F 80 0) phi is no distance (1.0 everywhere): full cells
+    const bool fsf = (p->F30>0 || p->F80>0);
+
     // out
     for(n=0;n<p->gcout_count;n++)
     if(p->gcout[n][3]>0)
@@ -114,16 +121,16 @@ void iowave::Qout(lexer *p, fdm* a, ghostcell* pgc)
     j=p->gcout[n][1];
     k=p->gcout[n][2];
 
-        if(a->phi(i,j,k)>-0.5*p->DZN[KP]-1.0e-20 && a->topo(i,j,k)>0.0)
+        if((!fsf || a->phi(i,j,k)>-0.5*p->DZN[KP]-1.0e-20) && a->topo(i,j,k)>0.0)
         {
 
-            if(a->phi(i,j,k)>=0.5*p->DZN[KP])
+            if(!fsf || a->phi(i,j,k)>=0.5*p->DZN[KP])
             area=p->DYN[JP]*p->DZN[KP];
 
-            if(a->phi(i,j,k)<0.5*p->DZN[KP] && a->phi(i,j,k)>0.0)
+            if(fsf && a->phi(i,j,k)<0.5*p->DZN[KP] && a->phi(i,j,k)>0.0)
             area=p->DYN[JP]*(p->DZN[KP]*0.5 + a->phi(i+1,j,k));
 			
-			if(a->phi(i,j,k)>=-0.5*p->DZN[KP]-1.0e-20 && a->phi(i,j,k)<=0.0)
+			if(fsf && a->phi(i,j,k)>=-0.5*p->DZN[KP]-1.0e-20 && a->phi(i,j,k)<=0.0)
             area=p->DYN[JP]*(p->DZN[KP]*0.5 - fabs(a->phi(i,j,k)));
 
             Ao+=area;
@@ -133,7 +140,6 @@ void iowave::Qout(lexer *p, fdm* a, ghostcell* pgc)
     Ao=pgc->globalsum(Ao);
     p->Qo=pgc->globalsum(p->Qo);
 	
-	//if(p->B60==1)
 	p->Uo=p->Qo/(Ao>1.0e-20?Ao:1.0e20);
     
     if(p->count==0 && p->I11==1)
@@ -148,5 +154,4 @@ void iowave::Qout(lexer *p, fdm* a, ghostcell* pgc)
 	if(p->mpirank==0 && (p->B60==3 || p->B60==4))
     cout<<"Qo_ipol: "<<hydrograph_ipol(p,pgc,hydro_out,hydro_out_count)<<endl;
 	
-	//cout<<"area_o: "<<Ao<<endl;
 }

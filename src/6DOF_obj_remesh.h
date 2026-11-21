@@ -78,6 +78,22 @@ public:
                                        // patch, 2 close gaps + fill holes with a biharmonic (curvature continuous) patch
         double gap_tol = 1.0e-3;       // gap closing tolerance relative to the bounding box diagonal (additionally
                                        // limited to 0.3 x the adjacent boundary edge length)
+        bool keep_shape = true;        // the remeshed surface stays within a distance of the input surface (X 185 4):
+                                       // an edge is collapsed, an edge flipped or a vertex moved only if the new
+                                       // triangles stay within the tolerance of the input surface and the surface
+                                       // they replace within the tolerance of them.  Every triangle carries the
+                                       // distance it has used up (the changes do not add up beyond the tolerance).
+                                       // false (X 185 5): the surface is approximated with triangles of the target
+                                       // length whatever the distance (chords across curved parts, thin walls lost)
+        double dist_tol = 0.05;        // keep_shape: the tolerance in target lengths (X 179 / X 186: in fluid cells);
+                                       // 0: the shape is kept exactly, only flat faces and straight edges are remeshed
+        double shape_tol = 1.0e-6;     // keep_shape: lower bound of the tolerance, relative to the bounding box diagonal
+                                       // (the round-off of the coordinates of an STL in single precision)
+        double max_vol_keep = 0.01;    // keep_shape with a tolerance: largest change of the volume of a closed surface;
+                                       // above it the tolerance is halved (four times, then the exact shape)
+        double max_vol_change = 0.15;  // closed surface: reject the remeshed surface (keep the input) if its volume
+                                       // differs by more than this fraction from the volume of the input surface
+                                       // (walls or features thinner than the target length collapse)
     };
 
     struct stats
@@ -94,6 +110,18 @@ public:
         double frac_q05_in=0.0, frac_q05_out=0.0;            // fraction of triangles with q < 0.5
         double q_mean_metric=0.0, q_min_metric=0.0;          // quality measured in the sizing metric (grid index space)
         double Lh_mean=0.0, Lh_min=0.0, Lh_max=0.0;          // edge length / target length (metric length)
+        double vol_ref=0.0;                                  // volume of the welded (hole filled) input surface
+        bool closed=false;                                   // the surface is closed and consistently oriented
+        bool vol_rejected=false;                             // the remeshed surface was rejected: volume change
+        double dev_out=0.0, dev_in=0.0;                      // largest distance of the remeshed surface from the input
+                                                             // surface and of the input surface from the remeshed one
+                                                             // (corners, edge midpoints and centroids of the triangles)
+        bool keep_shape=true;                                // as params
+        double diag=0.0;                                     // bounding box diagonal of the input
+        double dev_rel=0.0;                                  // keep_shape: the largest distance over the local tolerance
+        double dist_tol=0.0;                                 // as params (0 after the fallback to the exact shape)
+        double tol_first=0.0;                                // the tolerance asked for (dist_tol: the one of this surface)
+        bool shape_rejected=false;                           // keep_shape: the remeshed surface was rejected: distance
         bool ok=false;
     };
 

@@ -54,6 +54,9 @@ void CPM::mppic_RK2(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, turbulenc
     
     nsub = qs;
     dtsub = p->dt/double(MAX(qs,1));
+    
+    // graded sediment: the composition of the bed surface for the erosion of the next concentration step
+    mixture_keep(p);
 }
 
 // Heun / SSP-RK2, point implicit drag and friction in each stage

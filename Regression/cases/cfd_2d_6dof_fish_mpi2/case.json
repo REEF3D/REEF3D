@@ -1,0 +1,18 @@
+{
+ "base": "cfd_2d_6dof_fish",
+ "np": 2,
+ "steps": 40,
+ "description": "cfd_2d_6dof_fish on 2 ranks split in x (the fish on both ranks): the loads and the deformation power summed over the ranks.",
+ "tags": [
+  "2d",
+  "6dof",
+  "floating",
+  "deform",
+  "singlephase",
+  "mpi"
+ ],
+ "covers": [
+  "forces_stl globalsum of the deformation power",
+  "the hull triangles on both ranks"
+ ]
+}

@@ -1,0 +1,28 @@
+{
+ "base": "hydro_coupled_ckpt",
+ "np": 1,
+ "steps": 200,
+ "same_as": "hydro_coupled_ckpt",
+ "chain": [
+  {
+   "case": "hydro_coupled_ckpt",
+   "copy": [
+    "REEF3D_Checkpoint",
+    "REEF3D_SFLOW_Log",
+    "REEF3D_HYDRO"
+   ]
+  }
+ ],
+ "ctrl_set": {
+  "I 45": "100"
+ },
+ "description": "the restart of hydro_coupled_ckpt from its checkpoint at step 100 (I 45 100): the final state and the budgets of both models bitwise those of the uninterrupted run (regression.py ranks).",
+ "tags": [
+  "hydro",
+  "coupled",
+  "checkpoint"
+ ],
+ "covers": [
+  "hydro_couple::ckpt_restore, the outputs of the catchment model continued (reefckpt_open)"
+ ]
+}

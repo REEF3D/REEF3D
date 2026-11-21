@@ -168,6 +168,7 @@ void run_scalars(lexer *p, F &&f)
     f("fsfsedprinttime",p->fsfsedprinttime); f("probeprinttime",p->probeprinttime);
     f("stateprinttime",p->stateprinttime); f("exportprinttime",p->exportprinttime); f("wavetime",p->wavetime);
     f("totaltime",p->totaltime); f("gctotaltime",p->gctotaltime); f("Xtotaltime",p->Xtotaltime);
+    f("poissontotaltime",p->poissontotaltime);
     // the in- and outflow of the last step (ioflow: the turbulence inflow profile uses Ui before the
     // momentum step sets it again), the maxima of the last step
     f("Ui",p->Ui); f("Ua",p->Ua); f("Uo",p->Uo); f("Hi",p->Hi); f("Ho",p->Ho); f("Qi",p->Qi); f("Qo",p->Qo);

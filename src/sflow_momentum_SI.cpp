@@ -21,6 +21,7 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"sflow_momentum_SI.h"
+#include"sflow_drywall.h"
 #include"si_eta2D.h"
 #include"bc_zone.h"
 #include"geo_mesh.h"
@@ -28,6 +29,7 @@ Author: Hans Bihs
 #include"fdm2D.h"
 #include"met_forcing.h"
 #include"seastate_sflow.h"
+#include"hydro_sflow.h"
 #include"ghostcell.h"
 #include"ioflow.h"
 #include"reefckpt.h"
@@ -37,6 +39,9 @@ Author: Hans Bihs
 #include"sflow_rheology.h"
 #include"sflow_curv.h"
 #include"sflow_amr.h"
+#include"6DOF.h"
+#include"sflow_forcing.h"
+#include"patchBC_codes.h"
 #include<sys/stat.h>
 #include<sys/types.h>
 
@@ -45,12 +50,19 @@ sflow_momentum_SI::sflow_momentum_SI(lexer *p, fdm2D *b, ghostcell *pgc, sflow_H
                                      solver2D *ppsolv, solver2D *pppoissonsolv, ioflow *ppflow, sflow_fsf *ppfsf,
                                      sflow_forcing *ppsfdf, sixdof *pp6dof, bool block)
                                     : sflow_momentum_func(p,b,pgc,pphll,ppss,pprecon,ppdiff,pppress,ppsolv,pppoissonsolv,ppflow,ppfsf,ppsfdf,pp6dof),
-                                      qx(p),qxn(p),qxE(p),Hx(p),alx(p),ax(p),kx(p),gx0(p),
-                                      qy(p),qyn(p),qyE(p),Hy(p),aly(p),ay(p),ky(p),gy0(p),
-                                      fxU(p),fxV(p),fyU(p),fyV(p),
-                                      eta0(p),WL0(p),UH0(p),VH0(p),UHa(p),VHa(p),UHb(p),VHb(p),UHp(p),VHp(p),
-                                      WHz(p),dUH(p),dVH(p),etaI(p),alc(p),rhs(p),rhsW(p),bdiag(p),wsrc(p),
-                                      tU(p),tV(p),tUH(p),tVH(p),WLk(p),etaB(p)
+                                      qx(p),qxn(p),qxE(p),Hx(p),alx(p),ax(p),kx(p),gx0(p),qy(p),qyn(p),qyE(p),Hy(p),
+                                      aly(p),ay(p),ky(p),gy0(p),fxU(p),fxV(p),fyU(p),fyV(p),eta0(p),WL0(p),UH0(p),
+                                      VH0(p),UHa(p),VHa(p),UHb(p),VHb(p),UHp(p),VHp(p),WHz(p),dUH(p),dVH(p),etaI(p),
+                                      alc(p),rhs(p),rhsW(p),bdiag(p),wsrc(p),hsrc(p),tU(p),tV(p),tUH(p),tVH(p),WLk(p),
+                                      etaB(p),bcA(p),bcS(p),dwC(p),FSx(p),FSy(p),dNx(p),dNy(p),mfx(p),mfy(p),acU(p),acV(p),
+                                      hoC(p),hoEx(p),hoEo(p),cx0(p),cy0(p),qxN(p),Hxo(p),qxo(p),qxa(p),nxR(p),nxL(p),
+                                      nxB(p),nx0(p),kxEL(p),kxER(p),kxPL(p),kxPR(p),kx1(p),kx2(p),qyN(p),Hyo(p),
+                                      qyo(p),qya(p),nyR(p),nyL(p),nyB(p),ny0(p),kyEL(p),kyER(p),kyPL(p),kyPR(p),
+                                      ky1(p),ky2(p),phiN(p),WHp(p),Lc0(p),Unm1(p),Vnm1(p),WLh(p),WLo(p),AWo(p),WLq(p),
+                                      nPW(p),nEb(p),nEo(p),nPo(p),nU(p),nV(p),nUs(p),nVs(p),nA(p),nsx(p),nsy(p),nE(p),
+                                      nP(p),nL(p),nZ(p),nAE(p),nAP(p),nBE(p),nBP(p),nGx(p),nGy(p),sps(p),nF1x(p),
+                                      nF2x(p),nF1y(p),nF2y(p),nH3(p),nW2(p),nCs(p),nRm(p),nRc(p),nZE(p),nZP(p),rUH(p),
+                                      rVH(p),rlc(p),rlx(p),rly(p)
 {
     check(p);
 
@@ -60,17 +72,44 @@ sflow_momentum_SI::sflow_momentum_SI(lexer *p, fdm2D *b, ghostcell *pgc, sflow_H
     g = fabs(p->W22);
     rk = (p->A210==2)?2:3;
     qini = false;
+
+    // A 210 11 (inside A210 = 1): one stage, the BCG advection with its source term (second order in time also for the
+    // nonlinear terms: the RK stages of A 210 12/13 see neither the gravity nor the non-hydrostatic pressure of the step)
+    if(p->A210==1)
+    {
+    rk = 1;
+    onestep = true;
+    }
+
     wd_iter = 0;
     wd_cells = 0;
     Qin = Qout = 0.0;
 
     bc_method(p);
 
+    nh_ini(p);
+
+    // second order in time for the nonlinear terms (nh_levels), every predictor: the depths of the gravity and A 220 3
+    // terms and the advecting discharge at t^{n+1/2}; with the SSP-RK predictors of A 210 12/13 also the acceleration of
+    // the step before in the later stages (stage_vel). Not with REEF3D::HYDRO rain and point sources (wetting): there
+    // only with the non-hydrostatic pressure (the extrapolated levels give a larger volume residual on rain-fed sheet flow)
+    tl12 = !onestep && !hydro_sflow::wetting(p);
+    tlev = (nh || onestep || tl12);
+
     patch = block;
+
+    // X 10 3: the ship pressure of the step is the mean of its start and its end (ship_level; a refined patch: its
+    // sflow_amr_ship); X 10 2: the body moves once per step (sixdof_sflow::start_oneway)
+    if(p->X10==2 || p->X10==3)
+    p6dof->sflow_midpoint(true);
 
     if(p->mpirank==0 && !patch)
     {
-    cout<<"SFLOW semi-implicit free surface (A 226 1): theta "<<theta<<", SSP-RK"<<rk<<" predictor";
+    if(onestep)
+    cout<<"SFLOW semi-implicit free surface (A 210 11): theta "<<theta<<", one-step predictor (BCG advection)";
+
+    else
+    cout<<"SFLOW semi-implicit free surface (A 210 "<<10+rk<<"): theta "<<theta<<", SSP-RK"<<rk<<" predictor";
 
     if(p->A229==1)
     cout<<", wetting and drying iteration";
@@ -80,12 +119,15 @@ sflow_momentum_SI::sflow_momentum_SI(lexer *p, fdm2D *b, ghostcell *pgc, sflow_H
 
     cout<<", thin-water velocities below "<<p->A232<<" m (A 232)";
 
+    if(nh)
+    cout<<", non-hydrostatic quadratic pressure (A 220 "<<p->A220<<") coupled implicitly, alpha "<<adisp;
+
     cout<<endl;
 
     mkdir("./REEF3D_SFLOW_Log",0777);
     if(reefckpt_open(silog,"./REEF3D_SFLOW_Log/REEF3D_SFLOW_SI.dat",p->I45))   // I 45: continued
     {
-        silog<<"# semi-implicit SFLOW (A 226 1): volume and open boundary discharges"<<endl;
+        silog<<"# semi-implicit SFLOW (A 210 11/12/13): volume and open boundary discharges"<<endl;
         silog<<"# count  simtime  dt  volume  Qin  Qout  relax_volume  eta_iterations  wetdry_iterations  dry_cells"<<endl;
     }
     }
@@ -104,29 +146,61 @@ void sflow_momentum_SI::check(lexer *p)
     auto msg = [&](const char *s)
     {
         if(p->mpirank==0)
-        cout<<"!!! SFLOW A 226 1 (semi-implicit): "<<s<<" not available yet !!!"<<endl;
+        cout<<"!!! SFLOW A 210 11/12/13 (semi-implicit): "<<s<<" not available yet !!!"<<endl;
         stop=1;
     };
 
-    // A 220 defaults to 2: the semi-implicit path needs A 220 0 in ctrl.txt
-    if(p->A220!=0)
-    msg("non-hydrostatic pressure and Boussinesq (A 220 > 0, default 2) are; set A 220 0,");
+    // A 220 defaults to 2: the quadratic non-hydrostatic pressure (A 220 2/3) is coupled into the eta system, on one
+    // Cartesian grid, without the wetting and drying iteration
+    if(p->A220!=0 && p->A220!=2 && p->A220!=3)
+    msg("Boussinesq and the linear non-hydrostatic pressure (A 220 1, 4) are; set A 220 0, 2 or 3,");
+
+    // curvilinear grid (G 50): one block without mesh refinement (the composite coupled system of sflow_amr_sinh.cpp
+    // is Cartesian)
+    if(p->A220==2 || p->A220==3)
+    {
+        if(p->geo_mb>0)
+        msg("the non-hydrostatic pressure (A 220 2/3) on multi-block grids is; set A 220 0,");
+
+        else
+        if(p->geo_curv==1 && p->G1>0)
+        msg("the non-hydrostatic pressure (A 220 2/3) on curvilinear grids with mesh refinement (G 1) is; set A 220 0,");
+
+        if(p->geo_curv==1 && p->j_dir==0)
+        msg("the non-hydrostatic pressure (A 220 2/3) on a curvilinear grid with one cell in y is");
+    }
 
     // mesh refinement (G 1) and multi-block grids (G 50 1): one eta system over the leaf cells of all grids
     // (reefamr_si.cpp), one global time step
     if(p->G1>0 && p->G7==1)
     msg("subcycling of the mesh refinement (G 7 1) is");
 
-    if(p->B411>0 || p->B412>0 || p->B413>0 || p->B414>0 || p->B415>0 || p->B416>0 || p->B417>0 || p->B418>0 || p->B421>0 || p->B422>0)
-    msg("patch boundary conditions (B 411-422) are");
 
-    if(p->X10>0)
-    msg("6DOF and direct forcing (X 10) are");
+    // patch boundary conditions (B 411-422 on B 440-442): one grid (bc_setup); curvilinear grids refuse them in
+    // sflow_curv
+    if((p->B440>0 || p->B441>0 || p->B442>0) && (p->G1>0 || p->geo_mb>0))
+    msg("patch boundary conditions (B 411-422) with mesh refinement (G 1) and on multi-block grids are");
+
+    // X 10 3: ship waves from the pressure of the moving body (sixdof_sflow, X 400), with the gravity term; X 10 2: the
+    // direct forcing of the moving body on the cells after the step (cell_update), one grid, Cartesian
+    if(p->X10>0 && p->X10!=2 && p->X10!=3)
+    msg("6DOF floating bodies (X 10 1; SFLOW has the moving body X 10 2 and the ship pressure X 10 3) are");
+
+    if(p->X10==2 && (p->G1>0 || p->G50>0 || p->geo_curv==1))
+    msg("the direct forcing of a moving body (X 10 2) with mesh refinement, curvilinear and multi-block grids is");
+
+    // X 10 3 with mesh refinement (G 1, Cartesian): the pressure of the step on the patches (sflow_amr::si_step)
+    if(p->X10==3 && (p->G50>0 || p->geo_curv==1))
+    msg("the ship pressure (X 10 3) on curvilinear and multi-block grids is");
 
     // SEASTATE coupling (A 750 1): the wave force in the predictor, the Stokes mass source (A 751 2) in the eta
     // system; surfbeat (A 770 1) needs the host's step for the wave groups and the long-wave boundary
     if(p->A750>0 && p->A770==1)
     msg("SEASTATE surfbeat (A 770 1) is");
+
+    // rheology core (W 120): the basal friction (rheo_friction) on Cartesian grids
+    if(p->W120>0 && p->geo_curv==1)
+    msg("the rheology core (W 120) on curvilinear grids is");
 
     if(stop==1)
     exit(1);
@@ -162,7 +236,7 @@ void sflow_momentum_SI::bc_method(lexer *p)
         if(method[cs]!=0 && method[cs]!=p->B520_method[qn])
         {
             if(p->mpirank==0)
-            cout<<"!!! SFLOW A 226 1 (semi-implicit): different B 520 methods on one edge (B 521 edge "<<e<<") are not available yet !!!"<<endl;
+            cout<<"!!! SFLOW A 210 11/12/13 (semi-implicit): different B 520 methods on one edge (B 521 edge "<<e<<") are not available yet !!!"<<endl;
             exit(1);
         }
 
@@ -185,7 +259,20 @@ void sflow_momentum_SI::start(lexer *p, fdm2D* b, ghostcell* pgc)
 void sflow_momentum_SI::step_single(lexer *p, fdm2D* b, ghostcell* pgc)
 {
     si_restore(p,b,pgc);
+
+    // X 10 3: the body moves to the end of the step, its pressure of the start is kept (sixdof_sflow::sflow_midpoint);
+    // the mean of the two goes with the gravity term (ship_level, si_assemble, cell_update)
+    if(p->X10==3)
+    ship_begin(p,b,pgc,true);
+
     si_begin(p,b,pgc);
+
+    // time levels of the nonlinear terms (every predictor)
+    if(tlev)
+    nh_levels(p,b,pgc);
+
+    // fourth-order horizontal operators on one uniform Cartesian grid (sflow_momentum_SI_ho.cpp)
+    ho_begin(p,b,pgc);
 
     // 3. predictor of the explicit terms
     for(int s=0; s<rk; ++s)
@@ -199,10 +286,43 @@ void sflow_momentum_SI::step_single(lexer *p, fdm2D* b, ghostcell* pgc)
     si_assemble(p,b,pgc);
     si_rhs(p,b,pgc);
 
+    // non-hydrostatic pressure (A 220 2/3): eta and P from one coupled system
+    if(nh)
+    {
+    nh_predictor(p,b,pgc);
+    nh_solve(p,b,pgc);
+    wd_iter = nh_wd_iter;
+    wd_cells = nh_wd_dry;
+    }
+
+    else
+    {
     wd_iter = psi->solve_wetdry(p,pgc,ppoissonsolv,ax,ay,rhsW,b->depth,bdiag,etaI,p->A229==1 ? 20 : 1,wd_cells);
+
+        // rheology core (W 120): the friction factors with the driving force of the new level, the eta system again
+        // (rheo_friction)
+        for(rpass=1; rpass<rheo_passes(p); ++rpass)
+        {
+        si_assemble(p,b,pgc);
+        si_rhs(p,b,pgc);
+        wd_iter = psi->solve_wetdry(p,pgc,ppoissonsolv,ax,ay,rhsW,b->depth,bdiag,etaI,p->A229==1 ? 20 : 1,wd_cells);
+        }
+
+    rpass = 0;
+    }
 
     si_end_faces(p,b,pgc);
     si_end_cells(p,b,pgc);
+}
+
+void sflow_momentum_SI::ship_begin(lexer *p, fdm2D* b, ghostcell* pgc, bool move)
+{
+    // X 10 3: the body of level 0 moves to the end of the step (move), the pressure of the step on this grid (a refined
+    // patch: from the body at the start and the end of the step, sflow_amr::si_step and sflow_amr_ship)
+    if(move)
+    psfdf->forcing(p,b,pgc,p6dof,p->count,1.0,b->UH,b->VH,b->WH,b->WL,true);
+
+    ship_level(p,b,pgc);
 }
 
 void sflow_momentum_SI::si_restore(lexer *p, fdm2D* b, ghostcell* pgc)
@@ -228,8 +348,19 @@ void sflow_momentum_SI::si_restore(lexer *p, fdm2D* b, ghostcell* pgc)
 void sflow_momentum_SI::si_begin(lexer *p, fdm2D* b, ghostcell* pgc)
 {
     // ghost cells of the open boundaries (ioflow discharge, iowave open edges), as the
-    // explicit integrators
+    // explicit integrators. B 98 4: the wave generation (iowave::wavegen2D) also sets eta of the first cell inside;
+    // here the wave stays in the ghost cells (the target of the Flather condition) and the cell keeps its level
+    std::vector<double> eta_in;
+
+    if(p->B98==4 && p->B90>0)
+    for(n=0;n<p->gcslin_count;n++)
+    eta_in.push_back(b->eta(p->gcslin[n][0],p->gcslin[n][1]));
+
     inflow(p,b,pgc,pflow);
+
+    if(p->B98==4 && p->B90>0)
+    for(n=0;n<p->gcslin_count;n++)
+    b->eta(p->gcslin[n][0],p->gcslin[n][1]) = eta_in[n];
 
     // state at t^n (one grid of several: all cells of the arrays, the cells around the grid filled)
     if(amrgrid)
@@ -246,13 +377,22 @@ void sflow_momentum_SI::si_begin(lexer *p, fdm2D* b, ghostcell* pgc)
     }
 
     else
-    SLICELOOP4
     {
-    eta0(i,j) = b->eta(i,j);
-    WL0(i,j) = b->WL(i,j);
-    UH0(i,j) = b->UH(i,j);
-    VH0(i,j) = b->VH(i,j)*p->y_dir;
-    WHz(i,j) = 0.0;
+        SLICELOOP4
+        {
+        eta0(i,j) = b->eta(i,j);
+        WL0(i,j) = b->WL(i,j);
+        UH0(i,j) = b->UH(i,j);
+        VH0(i,j) = b->VH(i,j)*p->y_dir;
+        WHz(i,j) = 0.0;
+        }
+
+    // the cells of the neighbouring ranks: the face depth of the multilayer flux (mlflux_faces) and the time levels
+    // (nh_levels) take WL0 across the partition. Without it the first face of a partition had the upwind face depth
+    // (WL0 of the neighbour 0: not deep) or, with the time levels, the mean with the depth of the step before; with the
+    // RK predictors (A 210 12/13) the start-up step left a standing drop of 0.2 m at the partition in uniform flow
+    exchange4(p,pgc,eta0);
+    exchange4(p,pgc,WL0);
     }
 
     // 1. face depths and implicit bed friction
@@ -300,6 +440,9 @@ void sflow_momentum_SI::si_begin(lexer *p, fdm2D* b, ghostcell* pgc)
     // 2. open boundaries (the first step also sets their face discharges)
     bc_setup(p,b,pgc);
 
+    // 3. the face depths of the gravity term (multilayer flux)
+    mlflux_faces(p,b,pgc);
+
     qini = true;
 
     SLICELOOP1
@@ -320,6 +463,57 @@ void sflow_momentum_SI::si_begin(lexer *p, fdm2D* b, ghostcell* pgc)
         else
         qyn(f.fi,f.fj) = qy(f.fi,f.fj);
     }
+
+    // an open boundary face closed for the step (dry cell, no depth at the face) carries no old discharge (it would
+    // drain the cell without being counted)
+    for(const bc_face &f : bco)
+    {
+        if(f.cs==1 || f.cs==4)
+        qxn(f.fi,f.fj) = 0.0;
+
+        else
+        qyn(f.fi,f.fj) = 0.0;
+    }
+
+    // A 221 2: the cells with dry land as a wall, from the state of t^n
+    drywall_cells(p,b,pgc);
+}
+
+void sflow_momentum_SI::drywall_cells(lexer *p, fdm2D* b, ghostcell* pgc)
+{
+    // A 221 2 (sflow_drywall.h): a wet cell deeper than its cell size whose dry neighbours are land above its water
+    // level keeps the non-hydrostatic pressure (nh_active), and the dry cells next to it are walls (wall(): the means
+    // of the face terms of the cell, the source term of the predictor; the Laplacian of eta, the bed acceleration and
+    // the slope term of the constraint in sflow_momentum_SI_nh.cpp)
+    SLICELOOP4
+    dwC(i,j) = (p->wet[IJ]==1 && sflow_drywall::cliff(p,b->eta,b->depth,i,j)) ? 1.0 : 0.0;
+
+    exchange4(p,pgc,dwC);
+
+    // A 220 3 without A 221 2: the cell next to dry land is hydrostatic, and the term g B grad(h^3 lap(eta)) ends at
+    // the face to it. With deep water in front of the land the step is not stable there (B (h/dx)^2 of 1.3 and more:
+    // the level at a wall of dry land grew from round-off within 15 s; 0.7 and less: stable)
+    if(!dw_told && nh && Bdisp>0.0 && !sflow_drywall::on(p))
+    {
+    dw_told = true;
+    int nd=0;
+
+        SLICELOOP4
+        if(p->wet[IJ]==1 && (sflow_drywall::dry(p,i-1,j) || sflow_drywall::dry(p,i+1,j)
+           || (p->j_dir==1 && (sflow_drywall::dry(p,i,j-1) || sflow_drywall::dry(p,i,j+1)))))
+        {
+        const double r = (b->eta(i,j) + b->depth(i,j))/p->DXN[IP];
+
+        if(Bdisp*r*r>0.7)
+        ++nd;
+        }
+
+    nd = pgc->globalisum(nd);
+
+    if(nd>0 && p->mpirank==0)
+    cout<<"!!! SFLOW A 210 11/12/13 with A 220 3: "<<nd<<" cells next to dry land are deeper than "<<setprecision(3)<<sqrt(0.7/Bdisp)
+        <<" cell sizes; the step is not stable there, set A 221 2 (dry land next to deep water as a wall) or A 220 2 !!!"<<endl;
+    }
 }
 
 void sflow_momentum_SI::stage_io_si(int s, slice *&UHs, slice *&VHs, slice *&UHo, slice *&VHo)
@@ -337,7 +531,54 @@ void sflow_momentum_SI::si_stage_vel(lexer *p, fdm2D* b, ghostcell* pgc, int s)
 {
     slice *UHs,*VHs,*UHo,*VHo;
     stage_io_si(s,UHs,VHs,UHo,VHo);
+
+    // the time of the stage: SSP-RK2 0, 1; SSP-RK3 0, 1, 1/2. Not with REEF3D::HYDRO (rain and point sources, the
+    // depth of the higher bed): on the wetting banks of a steep valley with rain the acceleration of the films drove
+    // the stages to the N 61 stop (sflow_2d_sed_steep_valley_s67; tl12)
+    stc = (!tl12 || s==0) ? 0.0 : (s==1 ? 1.0 : 0.5);
+
+    // A 210 12/13: the acceleration of the gravity term at t^n for the later stages, once per step (stage_accel)
+    if(tl12 && s==1)
+    stage_accel(p,b,pgc);
+
     stage_vel(p,b,pgc,*UHs,*VHs);
+    stc = 0.0;
+}
+
+void sflow_momentum_SI::stage_accel(lexer *p, fdm2D *b, ghostcell *pgc)
+{
+    // A 210 12/13: the acceleration of the gravity term at t^n, H^n S^n (S the source term of the BCG face values of
+    // A 210 11, src_cell: -g grad(eta^n) with the ship level and the walls mirrored, plus the non-hydrostatic increment
+    // of the step before), for the velocities of the later predictor stages at t^{n+1} (RK2, RK3 stage 2) and
+    // t^{n+1/2} (RK3 stage 3) (stage_vel); in wet deep cells (WL^n above 10 A 244, not next to the shoreline), 0 in
+    // thin water. The stages advect with q^n (advection).
+    // It replaces the acceleration of the implicit part of the step before (gravity, friction, non-hydrostatic
+    // pressure, (UH^n - UH*^{n-1})/dt): that lagged acceleration together with the discharge extrapolated to t^{n+1/2}
+    // as the advecting discharge of the stages drove a standing oscillation of +-0.1 m in steady uniform river flow
+    // with theta 0.55 (short waves of 4-5 cells running downstream, growing towards the outflow; C1 of the SFLOW,
+    // TELEMAC-2D, HEC-RAS 2D benchmark). Each change alone halved it. An advecting discharge with the explicit
+    // acceleration (the mean of the stage momenta) was unstable at the start of a channel with a 1 m drop to the
+    // outflow level (RK3, dt 20 s)
+    src_setup(p,pgc);
+
+    SLICELOOP4
+    {
+    const bool dp = p->wet[IJ]==1 && p->deep[IJ]==1 && WL0(i,j)>10.0*p->A244;
+    acU(i,j) = dp ? WL0(i,j)*src_cell(p,1,i,j) : 0.0;
+    acV(i,j) = (dp && p->j_dir==1) ? WL0(i,j)*src_cell(p,2,i,j) : 0.0;
+
+        // with the bed friction of the cell (A 218 1, implicit: alc = 1/(1 + dt gamma), friction): in a river the
+        // gravity term is balanced by the friction, and the gravity term alone accelerates the stage velocities by
+        // g S dt per step
+        if(dp && p->A218==1)
+        {
+        acU(i,j) = (alc(i,j)*(UH0(i,j) + p->dt*acU(i,j)) - UH0(i,j))/p->dt;
+        acV(i,j) = (alc(i,j)*(VH0(i,j) + p->dt*acV(i,j)) - VH0(i,j))/p->dt;
+        }
+    }
+
+    exchange4(p,pgc,acU);
+    exchange4(p,pgc,acV);
 }
 
 void sflow_momentum_SI::si_stage_rhs(lexer *p, fdm2D* b, ghostcell* pgc, int s)
@@ -366,13 +607,31 @@ void sflow_momentum_SI::si_end_faces(lexer *p, fdm2D* b, ghostcell* pgc)
     face_update(p,b,pgc);
 }
 
+void sflow_momentum_SI::water_column(lexer *p, fdm2D* b)
+{
+    // REEF3D::HYDRO: evaporation, infiltration and abstraction after the step (hydro_sflow::sinks) are part
+    // of the water column the next step starts from
+    // (the losses only: with the mesh refinement the fills and the restriction after the step change b->WL of the
+    // cells around a grid and of the covered cells, which the next step must not take)
+    if(b->hydro!=nullptr)
+    SLICELOOP4
+    WLk(i,j) -= b->hydro->L(i,j);
+}
+
 void sflow_momentum_SI::si_end_cells(lexer *p, fdm2D* b, ghostcell* pgc)
 {
     // 8. WL, eta, wetting and drying
     eta_update(p,b,pgc);
 
+    // non-hydrostatic pressure: breaking persistence (A 248 1) with eta^{n+1} and eta^n, as the explicit stages
+    if(nh && p->A248==1)
+    pfsf->breaking_persist(p,b,pgc,b->eta,eta0,1.0);
+
     // 9.-10. cell momentum, relaxation zones, velocities, ghost cells
     cell_update(p,b,pgc);
+
+    // rheology core (W 120): the pore pressure ratio, advected and relaxed with the momentum of t^{n+1}
+    prheo->si_end(p,b,pgc,b->UH,b->VH,b->WL);
 
     SLICELOOP4
     {
@@ -409,7 +668,12 @@ void sflow_momentum_SI::face_depth(lexer *p, fdm2D *b, ghostcell *pgc)
     // open between two fluid cells when this depth exceeds the wetting criterion A 244.
     // Next to a dry cell the still water depth of the face is the smaller one (the higher
     // bed): water below the bed of the dry cell does not flow into it.
+    // REEF3D::HYDRO rain and point sources (R 10, R 40): the higher bed on every face. Sheet flow on a slope
+    // is thinner than the bed step between two cells (1 cm on a slope of 0.02 with 2 m cells against 4 cm),
+    // and the mean of the still water depths adds half the step to the face depth: the friction of the face
+    // drops and the sheet drains several times too fast.
     double df,eu,h;
+    const bool hbed = hydro_sflow::wetting(p);
 
     SLICELOOP1
     {
@@ -417,25 +681,32 @@ void sflow_momentum_SI::face_depth(lexer *p, fdm2D *b, ghostcell *pgc)
 
         if(p->flagslice4[IJ]>0 && p->flagslice4[Ip1J]>0)
         {
-        if(p->wet[IJ]==1 && p->wet[Ip1J]==1)
+        if(p->wet[IJ]==1 && p->wet[Ip1J]==1 && !hbed)
         df = 0.5*(b->depth(i,j) + b->depth(i+1,j));
 
         else
         df = MIN(b->depth(i,j),b->depth(i+1,j));
 
+        int su;
         if(qini && qx(i,j)>1.0e-12)
-        eu = b->eta(i,j);
+        su = 0;
 
         else
         if(qini && qx(i,j)<-1.0e-12)
-        eu = b->eta(i+1,j);
+        su = 1;
 
         else
-        eu = MAX(b->eta(i,j),b->eta(i+1,j));
+        su = (b->eta(i+1,j)>b->eta(i,j)) ? 1 : 0;
+
+        eu = (qini && fabs(qx(i,j))>1.0e-12) ? b->eta(i+su,j) : MAX(b->eta(i,j),b->eta(i+1,j));
 
         h = eu + df;
 
         Hx(i,j) = h>p->A244 ? h : 0.0;
+
+        // a source cell with only the film of the wetting criterion gives no water (dry_source)
+        if(!hbed && dry_source(p,b,i+su,j))
+        Hx(i,j) = 0.0;
         }
     }
 
@@ -446,25 +717,31 @@ void sflow_momentum_SI::face_depth(lexer *p, fdm2D *b, ghostcell *pgc)
 
         if(p->flagslice4[IJ]>0 && p->flagslice4[IJp1]>0)
         {
-        if(p->wet[IJ]==1 && p->wet[IJp1]==1)
+        if(p->wet[IJ]==1 && p->wet[IJp1]==1 && !hbed)
         df = 0.5*(b->depth(i,j) + b->depth(i,j+1));
 
         else
         df = MIN(b->depth(i,j),b->depth(i,j+1));
 
+        int su;
         if(qini && qy(i,j)>1.0e-12)
-        eu = b->eta(i,j);
+        su = 0;
 
         else
         if(qini && qy(i,j)<-1.0e-12)
-        eu = b->eta(i,j+1);
+        su = 1;
 
         else
-        eu = MAX(b->eta(i,j),b->eta(i,j+1));
+        su = (b->eta(i,j+1)>b->eta(i,j)) ? 1 : 0;
+
+        eu = (qini && fabs(qy(i,j))>1.0e-12) ? b->eta(i,j+su) : MAX(b->eta(i,j),b->eta(i,j+1));
 
         h = eu + df;
 
         Hy(i,j) = h>p->A244 ? h : 0.0;
+
+        if(!hbed && dry_source(p,b,i,j+su))
+        Hy(i,j) = 0.0;
         }
     }
 
@@ -472,11 +749,123 @@ void sflow_momentum_SI::face_depth(lexer *p, fdm2D *b, ghostcell *pgc)
     exchange2(p,pgc,Hy);
 }
 
+// The source cell of a face (upwind of its discharge, without flow the cell with the higher surface) holds only the
+// film of the wetting criterion: the face stays closed. Between two dry cells on a slope the face depth
+// max(eta) + min(depth) equals A 244 and opened by round-off, and the film (1 mm with A 244 1e-3) drained downhill
+// with the bed slope as surface gradient; with the mesh refinement the films of the prolonged and restricted cells
+// differ from A 244 by 1e-3 relative and opened many faces: sheets of a few mm ran down the dry canal banks behind a
+// ship, up to 0.2 m above the water, at 0.5 m/s, until an eta solve set every cell dry (NOK canal, A 210 12, G 1 1).
+// Water still flows out of a wet cell into a dry one (wetting) and out of a wet cell (drying).
+bool sflow_momentum_SI::dry_source(lexer *p, fdm2D *b, int ii, int jj)
+{
+    return b->eta(ii,jj) + b->depth(ii,jj) <= 1.01*p->A244;
+}
+
+void sflow_momentum_SI::mlflux_faces(lexer *p, fdm2D *b, ghostcell *pgc)
+{
+    // the face depth of the gravity term (multilayer flux, Popinet 2020; as NHFLOW v12), after face_depth, the friction
+    // and the open boundaries: the mean depth of the two cells where both are wet and deep (WL above 10 A 244). Then
+    // g H_f (eta_R - eta_L) is a difference of g h^2/2 over a flat bed and the momentum is conserved across a bore; with
+    // the upwind face depth of face_depth the bore of a dam break runs ahead and the plateau behind it sinks. Shoreline
+    // faces keep the depth of face_depth (wetting and drying), and so do the open boundary faces (bc_setup: the ghost
+    // cells are not fluid cells) and REEF3D::HYDRO (the depth of the higher bed). mfx, mfy mark the faces (cell_update)
+    const double hd = 10.0*p->A244;
+    const bool hbed = hydro_sflow::wetting(p);
+
+    // a fluid cell of the grid or of a neighbouring rank
+    auto deep = [&](int a, int c)
+    {
+        const int q = (a-p->imin)*p->jmax + c-p->jmin;
+        return p->flagslice4[q]>0 && p->wet[q]==1 && WL0(a,c)>hd;
+    };
+
+    SLICELOOP1
+    {
+    mfx(i,j) = 0.0;
+
+        if(!hbed && Hx(i,j)>0.0 && deep(i,j) && deep(i+1,j))
+        {
+        Hx(i,j) = 0.5*(WL0(i,j) + WL0(i+1,j));
+        mfx(i,j) = 1.0;
+        }
+    }
+
+    if(p->j_dir==1)
+    SLICELOOP2
+    {
+    mfy(i,j) = 0.0;
+
+        if(!hbed && Hy(i,j)>0.0 && deep(i,j) && deep(i,j+1))
+        {
+        Hy(i,j) = 0.5*(WL0(i,j) + WL0(i,j+1));
+        mfy(i,j) = 1.0;
+        }
+    }
+
+    exchange1(p,pgc,Hx);
+    exchange1(p,pgc,mfx);
+    exchange2(p,pgc,Hy);
+    exchange2(p,pgc,mfy);
+}
+
+void sflow_momentum_SI::face_weights(lexer *p, fdm2D *b, int dir, int ii, int jj, double &wl, double &wr)
+{
+    // weights of the two cell predictors in the face predictor of face ii+1/2 (dir 1) or jj+1/2 (dir 2), REEF3D::HYDRO:
+    // w = the water of the cell above the higher bed of the face over the water depth of the cell (0..1), at t^n
+    // (eta of t^n, its ghost cells exchanged); the cell with the higher bed has w = 1, a deep channel cell below the bed
+    // of the bank w = 0, equal beds 1 and 1; the weights are normalised (wl + wr = 1: the steady sheet flow keeps the
+    // friction balance), and the mean where neither cell holds water
+    const int i2 = dir==1 ? ii+1 : ii;
+    const int j2 = dir==1 ? jj : jj+1;
+    const double df = MIN(b->depth(ii,jj),b->depth(i2,j2));
+
+    auto w = [&](int i1, int j1)
+    {
+        const double h = b->eta(i1,j1) + b->depth(i1,j1);
+
+        if(h<=p->A244)
+        return 0.0;
+
+        const double hc = b->eta(i1,j1) + df;
+        return hc<=0.0 ? 0.0 : (hc>=h ? 1.0 : hc/h);
+    };
+
+    wl = w(ii,jj);
+    wr = w(i2,j2);
+
+    if(wl+wr>0.0)
+    {
+    const double s = wl+wr;
+    wl /= s;
+    wr /= s;
+    }
+
+    else
+    {
+    wl = 0.5;
+    wr = 0.5;
+    }
+}
+
 void sflow_momentum_SI::friction(lexer *p, fdm2D *b)
 {
     // implicit Manning friction (A 218 1): d(UH)/dt = -gamma UH,  gamma = c_f |u|/H,
     // c_f = g n^2/H^(1/3), n = ks^(1/6)/20 (as sflow_rough_manning);  alpha = 1/(1 + dt gamma)
+    // The depth H of a face between two wet deep cells (WL above 10 A 244, as mlflux_faces) is the mean depth of the
+    // two cells. The depth of face_depth, eta upwind plus the mean still water depth of the face, is deeper than the
+    // cells by half the bed step between them where the flow runs down a slope (S dx/2): the friction of the face
+    // drops, and uniform flow settles below the normal depth by up to 0.7 S dx/(2 h) where the friction dominates the
+    // step (dt gamma >> 1: thin flow on floodplains, steep rivers, large time steps). Shoreline faces and
+    // REEF3D::HYDRO (the depth of the higher bed) keep the depth of face_depth
     double manning,cf,u,v,h;
+    const double hd = 10.0*p->A244;
+    const bool hbed = hydro_sflow::wetting(p);
+
+    auto deep = [&](int a, int c)
+    {
+        const int q = (a-p->imin)*p->jmax + c-p->jmin;
+        return p->flagslice4[q]>0 && p->wet[q]==1 && WL0(a,c)>hd;
+    };
 
     SLICELOOP1
     alx(i,j) = 1.0;
@@ -493,7 +882,7 @@ void sflow_momentum_SI::friction(lexer *p, fdm2D *b)
     SLICELOOP1
     if(Hx(i,j)>0.0)
     {
-    h = Hx(i,j);
+    h = (!hbed && deep(i,j) && deep(i+1,j)) ? 0.5*(WL0(i,j) + WL0(i+1,j)) : Hx(i,j);
     manning = pow(0.5*(b->ks(i,j) + b->ks(i+1,j)),1.0/6.0)/20.0;
     cf = manning*manning*g/pow(h,1.0/3.0);
     u = qx(i,j)/h;
@@ -514,7 +903,7 @@ void sflow_momentum_SI::friction(lexer *p, fdm2D *b)
     SLICELOOP2
     if(Hy(i,j)>0.0)
     {
-    h = Hy(i,j);
+    h = (!hbed && deep(i,j) && deep(i,j+1)) ? 0.5*(WL0(i,j) + WL0(i,j+1)) : Hy(i,j);
     manning = pow(0.5*(b->ks(i,j) + b->ks(i,j+1)),1.0/6.0)/20.0;
     cf = manning*manning*g/pow(h,1.0/3.0);
     u = 0.5*(b->U(i,j) + b->U(i,j+1));
@@ -544,6 +933,112 @@ void sflow_momentum_SI::friction(lexer *p, fdm2D *b)
     }
 }
 
+int sflow_momentum_SI::rheo_passes(lexer *p) const
+{
+    // rheology core (W 120): the eta system once with the friction of eta^n, W 129 times more with that of the new level
+    return prheo->si_friction() ? 1 + MAX(p->W129,0) : 1;
+}
+
+void sflow_momentum_SI::rheo_friction(lexer *p, fdm2D *b, ghostcell *pgc)
+{
+    // rheology core (W 120): the basal friction of the layer (Coulomb, Voellmy, mu(I), Herschel-Bulkley, ... with the
+    // yield criterion) as a factor on alpha_f and alpha_c, with the Manning factor of friction(). The factor is that of
+    // the backward-Euler friction step of the core, s/Ustar with s + dt tau_b(s)/(rho h) = Ustar (the same step as the
+    // explicit integrators, sflow_rheology_core::implicit), for the frictionless estimate of the new momentum: the
+    // predictor with the full gravity term,
+    //   cells  UH* - dt g H G_c(eta)   (G_c the mean of the open face gradients, as cell_update)
+    //   faces  avg(UH*) - dt g H_f grad_f eta along the face, the tangential part the mean of the two cells,
+    // Ustar = |.|/H, with eta = eta^n in the first pass (rpass 0) and theta eta^{n+1} + (1 - theta) eta^n of the pass
+    // before in the passes after it (step_single: the eta system solved again with the factors of the new level; the
+// factor of a pass at most that of the pass before).
+    // Below the static threshold (the driving force of the step, gravity, the along-slope gravity W 20/W 21 and the
+    // sources of the predictor, cannot overcome the static friction) the factor is 0 and the face and the cell stay at
+    // rest, also with the implicit gravity term (it carries alpha_f); above it the factor 1/(1 + dt tau_b(s)/(rho h s))
+    // is the friction of the speed s at the end of the step. Cartesian grids (check)
+    if(!prheo->si_friction())
+    return;
+
+    const double dt = p->dt;
+    slice &Hg = tlev ? (slice&)WLh : (slice&)WL0;
+
+    // the factors of friction() (Manning) of the step
+    if(rpass==0)
+    {
+        SLICELOOP1
+        rlx(i,j) = alx(i,j);
+
+        SLICELOOP2
+        rly(i,j) = aly(i,j);
+
+        SLICELOOP4
+        rlc(i,j) = alc(i,j);
+    }
+
+    // the factor of a pass is at most that of the pass before: the passes of a step converge from above (with a free
+    // factor the faces near the yield threshold flip between rest and motion from pass to pass)
+    auto rmin = [&](double al, double al0, double f) { return rpass==0 ? f : MIN(al0>0.0 ? al/al0 : 1.0, f); };
+
+    const double te = rpass==0 ? 0.0 : theta;
+    auto lev = [&](int ii, int jj) { return te*etaI(ii,jj) + (1.0-te)*b->eta(ii,jj); };
+    auto gxf = [&](int ii, int jj) { return Hx(ii,jj)>0.0 ? (lev(ii+1,jj) - lev(ii,jj))/p->DXP[ii+marge] : 0.0; };
+    auto gyf = [&](int ii, int jj) { return Hy(ii,jj)>0.0 ? (lev(ii,jj+1) - lev(ii,jj))/p->DYP[jj+marge] : 0.0; };
+
+    // cells: the frictionless estimate and its factor
+    SLICELOOP4
+    {
+        rUH(i,j) = 0.0;
+        rVH(i,j) = 0.0;
+
+        if(p->wet[IJ]==0)
+        continue;
+
+        const double ox = (Hx(i-1,j)>0.0 ? 1.0 : 0.0) + (Hx(i,j)>0.0 ? 1.0 : 0.0);
+        rUH(i,j) = UHp(i,j) - dt*g*Hg(i,j)*(gxf(i-1,j) + gxf(i,j))/MAX(ox,1.0);
+
+        if(p->j_dir==1)
+        {
+        const double oy = (Hy(i,j-1)>0.0 ? 1.0 : 0.0) + (Hy(i,j)>0.0 ? 1.0 : 0.0);
+        rVH(i,j) = VHp(i,j) - dt*g*Hg(i,j)*(gyf(i,j-1) + gyf(i,j))/MAX(oy,1.0);
+        }
+
+    }
+
+    exchange4(p,pgc,rUH);
+    exchange4(p,pgc,rVH);
+
+    // faces: the normal estimate, the tangential part from the cells
+    SLICELOOP1
+    if(Hx(i,j)>p->A244)
+    {
+    const double qn = 0.5*(UHp(i,j) + UHp(i+1,j)) - dt*g*Hx(i,j)*gxf(i,j);
+    const double qt = 0.5*(rVH(i,j) + rVH(i+1,j));
+    alx(i,j) = rlx(i,j)*rmin(alx(i,j),rlx(i,j),prheo->si_factor(p,b,i,j,1,Hx(i,j),sqrt(qn*qn + qt*qt)/Hx(i,j),dt));
+    }
+
+    if(p->j_dir==1)
+    SLICELOOP2
+    if(Hy(i,j)>p->A244)
+    {
+    const double qn = 0.5*(VHp(i,j) + VHp(i,j+1)) - dt*g*Hy(i,j)*gyf(i,j);
+    const double qt = 0.5*(rUH(i,j) + rUH(i,j+1));
+    aly(i,j) = rly(i,j)*rmin(aly(i,j),rly(i,j),prheo->si_factor(p,b,i,j,2,Hy(i,j),sqrt(qn*qn + qt*qt)/Hy(i,j),dt));
+    }
+
+    exchange1(p,pgc,alx);
+    exchange2(p,pgc,aly);
+
+    // cells (next to a face at rest the cell takes the mean of its face discharges after the step, cell_update)
+    SLICELOOP4
+    {
+        const double h = WL0(i,j);
+
+        if(p->wet[IJ]==0 || h<=p->A244)
+        continue;
+
+        alc(i,j) = rlc(i,j)*rmin(alc(i,j),rlc(i,j),prheo->si_factor(p,b,i,j,0,h,sqrt(rUH(i,j)*rUH(i,j) + rVH(i,j)*rVH(i,j))/h,dt));
+    }
+}
+
 void sflow_momentum_SI::bc_setup(lexer *p, fdm2D *b, ghostcell *pgc)
 {
     // open boundary faces of the domain edges, from the ghost cells set by ioflow / iowave
@@ -559,6 +1054,7 @@ void sflow_momentum_SI::bc_setup(lexer *p, fdm2D *b, ghostcell *pgc)
     double manning,cf,u,h,eu,df;
 
     bcf.clear();
+    bco.clear();
 
     // eta with the boundary values: water level outflow (ioflow), open edges (iowave)
     for(i=p->imin; i<p->imin+p->imax; ++i)
@@ -636,11 +1132,23 @@ void sflow_momentum_SI::bc_setup(lexer *p, fdm2D *b, ghostcell *pgc)
 
         else
         if((bc==1 || bc==6) && inflow_open==1)
-        f.type = bc_flux;
+        f.type = (p->B98==4 && p->B90>0) ? bc_flather : bc_flux;
 
         else
         if((bc==2 || bc==7 || bc==8) && outflow_open==1)
         f.type = ((p->F50==2 || p->F50==3) && p->B99<3) ? bc_level : bc_riemann;
+
+        // patch in- and outlets (B 411-422 on B 440-442): the ghost cells hold the patch state, as for the explicit
+        // step (patchBC_2D::patchBC_ioflow2D velocities of the inlets, patchBC_waterlevel2D water levels in etaB);
+        //  inlet (B 411, 414, 415, 421): discharge of the ghost velocity
+        //  outlet with a water level (B 413, 422): Dirichlet level
+        //  outlet without a level: free outflow (Riemann invariant of the zero-gradient ghost state)
+        else
+        if(patch_bc(bc))
+        f.type = patch_inlet(bc) ? bc_flux : (patch_fsf(bc) ? bc_level : bc_riemann);
+
+        // B 98 4: generating-absorbing inflow (Flather with the wave of the ghost cell, sflow_momentum_SI::si_begin)
+        const bool wgen = !(open_side[f.cs]==1 && method[f.cs]>0) && (bc==1 || bc==6) && inflow_open==1 && p->B98==4 && p->B90>0;
 
         // wall: the face stays closed
         if(f.type==0)
@@ -653,17 +1161,20 @@ void sflow_momentum_SI::bc_setup(lexer *p, fdm2D *b, ghostcell *pgc)
         const double hi = WL0(i,j);
         const double etai = eta0(i,j);
         const double ung = f.s*unorm(f.gi,f.gj);
-        const double hg = MAX(b->eta(f.gi,f.gj) + b->depth(f.gi,f.gj), 0.0);
+        const double hg = MAX((patch_bc(bc) ? etaB(f.gi,f.gj) : b->eta(f.gi,f.gj)) + b->depth(f.gi,f.gj), 0.0);
         const double uni = f.s*unorm(i,j);
 
         f.qin = 0.0;
         f.A = 0.0;
         f.B = 0.0;
 
-        // a dry boundary cell: only an inflowing discharge
-        if((p->wet[IJ]==0 || hi<=p->A244) && f.type!=bc_flux)
+        // a dry boundary cell: only an inflowing discharge. REEF3D::HYDRO (R 10, R 40): dry by the water column
+        // of the step; the outflow cell takes the level of the outflow in sflow_eta::depth_update, and with a level at
+        // or below the bed (a free outfall of rain-on-grid) its wet flag is that of the film, not of its water
+        if((hydro_sflow::wetting(p) ? hi<=p->A244 : (p->wet[IJ]==0 || hi<=p->A244)) && f.type!=bc_flux)
         {
         qf(f.fi,f.fj) = 0.0;
+        bco.push_back(f);
         continue;
         }
 
@@ -687,6 +1198,18 @@ void sflow_momentum_SI::bc_setup(lexer *p, fdm2D *b, ghostcell *pgc)
             qf(f.fi,f.fj) = f.s*hi*uni;
         }
 
+        if(f.type==bc_flather && wgen)
+        {
+        // q_in = q_w + c (eta_w - eta^{n+1}): the wave (eta_w, u_w depth averaged) comes in, the reflected wave leaves
+        const double etaw = b->eta(f.gi,f.gj);
+        f.B = sqrt(g*hi);
+        f.A = ung*(hg>p->A244 ? hg : hi) + f.B*etaw;
+
+            if(!qini)
+            qf(f.fi,f.fj) = f.s*hi*uni;
+        }
+
+        else
         if(f.type==bc_flather)
         {
         f.B = sqrt(g*hi);
@@ -723,6 +1246,7 @@ void sflow_momentum_SI::bc_setup(lexer *p, fdm2D *b, ghostcell *pgc)
             if(h<=p->A244)
             {
             qf(f.fi,f.fj) = 0.0;
+            bco.push_back(f);
             continue;
             }
 
@@ -752,14 +1276,25 @@ void sflow_momentum_SI::stage_vel(lexer *p, fdm2D *b, ghostcell *pgc, slice &UHs
     // stage velocities on the depth of t^n; below the depth A 232 desingularised (Kurganov and
     // Petrova 2007): u = sqrt(2) h (uh)/sqrt(h^4 + max(h^4, h_v^4)), continuous at h_v, u -> 0 with h.
     // A cell that is just wetting (h of a few mm) receives the momentum of its deep neighbours with
-    // the inflow, but its depth is that of t^n: (uh)/h gave hundreds of m/s within the stages, carried
-    // into the face predictor of the next faces (a blow-up of 57 m in the 1 km Michael hindcast)
+    // the inflow, but its depth is that of t^n: (uh)/h gives hundreds of m/s within the stages, carried
+    // into the face predictor of the next faces
     const double hv4 = p->A232*p->A232*p->A232*p->A232;
 
     SLICELOOP4
     {
         if(p->wet[IJ]==1 && WL0(i,j)>p->A244)
         {
+            // a later stage of A 210 12/13 (stc > 0): the momentum with the acceleration of the gravity term at t^n
+            // (stage_accel) up to the time of the stage, on the depth of that time; thin water (the depth of the stage
+            // or of t^n below A 232) as before
+            if(stc>0.0 && WL0(i,j)>=p->A232 && (stc>0.75 ? WLq(i,j) : WLh(i,j))>=p->A232)
+            {
+            const double hs = stc>0.75 ? WLq(i,j) : WLh(i,j);
+            b->U(i,j) = (UHs(i,j) + stc*p->dt*acU(i,j))/hs;
+            b->V(i,j) = (VHs(i,j) + stc*p->dt*acV(i,j))/hs*p->y_dir;
+            }
+
+            else
             if(WL0(i,j)>=p->A232)
             {
             b->U(i,j) = UHs(i,j)/WL0(i,j);
@@ -816,13 +1351,25 @@ void sflow_momentum_SI::stage_rhs(lexer *p, fdm2D *b, ghostcell *pgc, slice &UHs
     // advection with the face discharges of t^n
     advection(p,b,pgc);
 
-    // sources and diffusion (as the explicit stage, without gravity and bed friction)
+    // the sources of the stage (FSx, FSy) for the wall sides of cell_update (SSP-RK: those of the last stage)
+    SLICELOOP4
+    {
+    FSx(i,j) = b->F(i,j);
+    FSy(i,j) = b->G(i,j);
+    }
+
+    // sources and diffusion (as the explicit stage, without gravity and bed friction; the ship pressure X 10 3 with
+    // the gravity term, si_assemble and cell_update)
     prheo->u_source(p,b,b->U,b->V,WL0);
     if(pmet!=nullptr)
     pmet->source_sflow(p,pgc,b->F,0,WL0,UHs,VHs);
     if(b->wave!=nullptr)
     b->wave->u_source(p,b);
     irhs(p,b);
+
+    SLICELOOP4
+    FSx(i,j) = b->F(i,j) - FSx(i,j);
+
 	pdiff->diff_u(p,b,pgc,psolv,UHDIFF,UHs,b->U,b->V,WL0,alpha);
 
     if(p->j_dir==1)
@@ -833,7 +1380,14 @@ void sflow_momentum_SI::stage_rhs(lexer *p, fdm2D *b, ghostcell *pgc, slice &UHs
     if(b->wave!=nullptr)
     b->wave->v_source(p,b);
     jrhs(p,b);
+
+        SLICELOOP4
+        FSy(i,j) = b->G(i,j) - FSy(i,j);
     }
+
+    else
+    SLICELOOP4
+    FSy(i,j) = 0.0;
     pdiff->diff_v(p,b,pgc,psolv,VHDIFF,VHs,b->U,b->V,WL0,alpha);
 
     SLICELOOP4
@@ -854,32 +1408,45 @@ void sflow_momentum_SI::stage_rhs(lexer *p, fdm2D *b, ghostcell *pgc, slice &UHs
 
 void sflow_momentum_SI::advection(lexer *p, fdm2D *b, ghostcell *pgc)
 {
-    // conservative advection of UH, VH with the face discharges of t^n, velocities
-    // upwind of the face discharge (reconstructed, A 211); no gravity wave speed in the
-    // dissipation: the Courant number of the flow alone limits the time step
-    precon->reconstruct_x(p, pgc, b, b->U, b->Us, b->Un);
+    // conservative advection of UH, VH with the face discharges of t^n (the time levels of nh_levels: extrapolated to
+    // t^{n+1/2}), velocities upwind of the face discharge (reconstructed, A 211; A 210 11: the BCG face values); no
+    // gravity wave speed in the dissipation: the Courant number of the flow alone limits the time step
+    // the SSP-RK predictors of A 210 12/13: q^n in all stages (with the discharge extrapolated to t^{n+1/2}, and the
+    // lagged acceleration of the step before in the stage velocities, steady uniform river flow kept a standing
+    // oscillation of +-0.1 m with theta 0.55; stage_accel)
+    const bool qrk = (tl12 && !onestep);
+    slice &qa = (tlev && !qrk) ? (slice&)qxa : (slice&)qxn;
+    slice &qb = (tlev && !qrk) ? (slice&)qya : (slice&)qyn;
 
-    if(p->j_dir==1)
+    if(onestep)
+    advection_bcg(p,b,pgc,qa,qb);
+
+    else
     {
-    precon->reconstruct_x(p, pgc, b, b->V, b->Vs, b->Vn);
-    precon->reconstruct_y(p, pgc, b, b->U, b->Ue, b->Uw);
-    precon->reconstruct_y(p, pgc, b, b->V, b->Ve, b->Vw);
-    }
+        precon->reconstruct_x(p, pgc, b, b->U, b->Us, b->Un);
 
-    SLICELOOP1
-    {
-    fxU(i,j) = qxn(i,j)>=0.0 ? qxn(i,j)*b->Us(i,j) : qxn(i,j)*b->Un(i,j);
-    fxV(i,j) = 0.0;
+        if(p->j_dir==1)
+        {
+        precon->reconstruct_x(p, pgc, b, b->V, b->Vs, b->Vn);
+        precon->reconstruct_y(p, pgc, b, b->U, b->Ue, b->Uw);
+        precon->reconstruct_y(p, pgc, b, b->V, b->Ve, b->Vw);
+        }
 
-    if(p->j_dir==1)
-    fxV(i,j) = qxn(i,j)>=0.0 ? qxn(i,j)*b->Vs(i,j) : qxn(i,j)*b->Vn(i,j);
-    }
+        SLICELOOP1
+        {
+        fxU(i,j) = qa(i,j)>=0.0 ? qa(i,j)*b->Us(i,j) : qa(i,j)*b->Un(i,j);
+        fxV(i,j) = 0.0;
 
-    if(p->j_dir==1)
-    SLICELOOP2
-    {
-    fyU(i,j) = qyn(i,j)>=0.0 ? qyn(i,j)*b->Ue(i,j) : qyn(i,j)*b->Uw(i,j);
-    fyV(i,j) = qyn(i,j)>=0.0 ? qyn(i,j)*b->Ve(i,j) : qyn(i,j)*b->Vw(i,j);
+        if(p->j_dir==1)
+        fxV(i,j) = qa(i,j)>=0.0 ? qa(i,j)*b->Vs(i,j) : qa(i,j)*b->Vn(i,j);
+        }
+
+        if(p->j_dir==1)
+        SLICELOOP2
+        {
+        fyU(i,j) = qb(i,j)>=0.0 ? qb(i,j)*b->Ue(i,j) : qb(i,j)*b->Uw(i,j);
+        fyV(i,j) = qb(i,j)>=0.0 ? qb(i,j)*b->Ve(i,j) : qb(i,j)*b->Vw(i,j);
+        }
     }
 
     exchange1(p,pgc,fxU);
@@ -942,6 +1509,308 @@ void sflow_momentum_SI::advection(lexer *p, fdm2D *b, ghostcell *pgc)
     }
 }
 
+void sflow_momentum_SI::wall_sides(lexer *p)
+{
+    // A 210 11: the sides of the cells with an open boundary face (iowave, ioflow; also those closed for the step), as
+    // bits: 1 x-, 2 x+, 4 y-, 8 y+ (bc_face cs: 1 x-, 4 x+, 3 y-, 2 y+); wall() tells the other sides towards a solid
+    // or the outside of the domain
+    SLICELOOP4
+    bcS(i,j) = 0.0;
+
+    auto mark = [&](const bc_face &f)
+    {
+        const int bit = f.cs==1 ? 1 : (f.cs==4 ? 2 : (f.cs==3 ? 4 : 8));
+        bcS(f.i,f.j) = double(int(bcS(f.i,f.j)) | bit);
+    };
+
+    for(const bc_face &f : bcf)
+    mark(f);
+
+    for(const bc_face &f : bco)
+    mark(f);
+}
+
+double sflow_momentum_SI::wall(lexer *p, int ii, int jj, int side)
+{
+    // 1.0 if the side of cell (ii,jj) (1 x-, 2 x+, 3 y-, 4 y+) faces a solid or the outside of the domain and no open
+    // boundary (wall_sides of the step)
+    // A 210 11, and A 210 12/13 with the second-order time levels (tl12): the wall sides; 0 otherwise
+    if(!(onestep || tl12))
+    return 0.0;
+
+    const int ai = side==1 ? ii-1 : (side==2 ? ii+1 : ii);
+    const int aj = side==3 ? jj-1 : (side==4 ? jj+1 : jj);
+    const int bit = side==1 ? 1 : (side==2 ? 2 : (side==3 ? 4 : 8));
+
+    // A 221 2: dry land next to a deep cell (drywall_cells)
+    if(dwC(ii,jj)>0.5 && sflow_drywall::dry(p,ai,aj))
+    return 1.0;
+
+    if(p->flagslice4[(ai-p->imin)*p->jmax + (aj-p->jmin)]>=0)
+    return 0.0;
+
+    return (int(bcS(ii,jj)) & bit) ? 0.0 : 1.0;
+}
+
+void sflow_momentum_SI::src_setup(lexer *p, ghostcell *pgc)
+{
+    // the cells the slopes may use: wet fluid cells (MPI: from the neighbouring ranks, flagslice4 marks only the first
+    // ghost column of a rank boundary)
+    for(int ii=p->imin; ii<p->imin+p->imax; ++ii)
+    for(int jj=p->jmin; jj<p->jmin+p->jmax; ++jj)
+    {
+    const int q = (ii-p->imin)*p->jmax + (jj-p->jmin);
+    bcA(ii,jj) = (p->flagslice4[q]>0 && p->wet[q]==1 && WL0(ii,jj)>p->A244) ? 1.0 : 0.0;
+    }
+
+    exchange4(p,pgc,bcA);
+
+    // the open sides of the cells (wall)
+    wall_sides(p);
+
+    // eta^n of the source term and the non-hydrostatic increment of the step before in the cells of the neighbouring
+    // ranks (si_begin copies the interior)
+    exchange4(p,pgc,eta0);
+
+    if(nh)
+    {
+    exchange4(p,pgc,dNx);
+    exchange4(p,pgc,dNy);
+    }
+}
+
+bool sflow_momentum_SI::src_ok(int a, int c)
+{
+    return bcA(a,c)>0.5;
+}
+
+double sflow_momentum_SI::src_lev(int a, int c)
+{
+    return eta0(a,c) + (ship ? sps(a,c) : 0.0);
+}
+
+double sflow_momentum_SI::src_nh(lexer *p, int dir, int a, int c)
+{
+    // the non-hydrostatic part of the source term of the cell for U (dir 1) or V (dir 2)
+    if(!nh || WL0(a,c)<=p->A244)
+    return 0.0;
+
+    return (dir==1 ? dNx(a,c) : dNy(a,c))/(WL0(a,c)*MAX(p->dt_old,1.0e-20));
+}
+
+double sflow_momentum_SI::src_nlev(lexer *p, int a, int c, int sd)
+{
+    // the level of the neighbour of cell (a,c) on side sd (1 x-, 2 x+, 3 y-, 4 y+) for the gradient: its own if the
+    // slopes may use it, mirrored at a wall, extrapolated through the cell from the other side towards a dry cell
+    // (one-sided), the level of the cell if neither side is open
+    const int an = sd==1 ? a-1 : (sd==2 ? a+1 : a), cn = sd==3 ? c-1 : (sd==4 ? c+1 : c);
+    const int ao = sd==1 ? a+1 : (sd==2 ? a-1 : a), co = sd==3 ? c+1 : (sd==4 ? c-1 : c);
+    const int so = sd==1 ? 2 : (sd==2 ? 1 : (sd==3 ? 4 : 3));
+
+    if(src_ok(an,cn))
+    return src_lev(an,cn);
+
+    if(wall(p,a,c,sd)>0.5)
+    return src_lev(a,c);
+
+    if(src_ok(ao,co) || wall(p,a,c,so)>0.5)
+    return 2.0*src_lev(a,c) - (src_ok(ao,co) ? src_lev(ao,co) : src_lev(a,c));
+
+    return src_lev(a,c);
+}
+
+double sflow_momentum_SI::src_cell(lexer *p, int dir, int a, int c)
+{
+    // the source term of the cell for U (dir 1) or V (dir 2) at t^n: S = -g grad(eta^n) (with the ship pressure level
+    // of the step, X 10 3; a wall side with the level mirrored, one-sided next to dry cells) plus the non-hydrostatic
+    // increment of the cell momentum of the step before over H dt (after src_setup)
+    const double s = src_nh(p,dir,a,c);
+
+    if(p->geo_curv==1)
+    {
+    double gx,gy;
+    sflow_curv::grad5(p,a,c,src_nlev(p,a,c,2),src_nlev(p,a,c,1),src_nlev(p,a,c,4),src_nlev(p,a,c,3),gx,gy);
+    return s - g*(dir==1 ? gx : gy);
+    }
+
+    // a wall side counts with the mirrored level (as cell_update)
+    const double w1 = wall(p,a,c,dir==1 ? 1 : 3), w2 = wall(p,a,c,dir==1 ? 2 : 4);
+
+    if(dir==1)
+    {
+    const bool oe = src_ok(a+1,c), ow = src_ok(a-1,c), me = oe || w2>0.5, mw = ow || w1>0.5;
+    const double le = oe ? src_lev(a+1,c) : src_lev(a,c), lw = ow ? src_lev(a-1,c) : src_lev(a,c);
+    if(me && mw) return s - g*(le - lw)/(p->DXP[a-1+marge] + p->DXP[a+marge]);
+    if(oe) return s - g*(le - src_lev(a,c))/p->DXP[a+marge];
+    if(ow) return s - g*(src_lev(a,c) - lw)/p->DXP[a-1+marge];
+    return s;
+    }
+
+    const bool on = src_ok(a,c+1), os = src_ok(a,c-1), mn = on || w2>0.5, ms = os || w1>0.5;
+    const double ln = on ? src_lev(a,c+1) : src_lev(a,c), ls = os ? src_lev(a,c-1) : src_lev(a,c);
+    if(mn && ms) return s - g*(ln - ls)/(p->DYP[c-1+marge] + p->DYP[c+marge]);
+    if(on) return s - g*(ln - src_lev(a,c))/p->DYP[c+marge];
+    if(os) return s - g*(src_lev(a,c) - ls)/p->DYP[c-1+marge];
+    return s;
+}
+
+void sflow_momentum_SI::advection_bcg(lexer *p, fdm2D *b, ghostcell *pgc, slice &qa, slice &qb)
+{
+    // A 210 11: the fluxes q_f u_f of U and V with the face values of the BCG scheme (Bell, Colella & Glaz 1989), as
+    // NHFLOW A 510 11 and the multilayer advection of Popinet (2020): the upwind cell extrapolated to the face and to
+    // t^{n+1/2}, with the source term of the upwind cell,
+    //   u_f = u_up + a (1 - c) g dx/2 - dt/2 v_up g_t + dt/2 S_up,    c = |u_f| dt/dx, a = sign(q_f),
+    // q_f the discharge of the step at t^{n+1/2} (nh_levels), g the slope of the upwind cell normal to the face, g_t the
+    // one along it (2D), both the generalised minmod (theta 1.3), v_up the velocity along the face in the
+    // upwind cell (from its two faces). S = -g grad(eta^n) (with the ship pressure level of the step, X 10 3; a wall
+    // side with the level mirrored) plus the non-hydrostatic increment of the cell momentum of the step before (dNx,
+    // dNy of nh_cell) over H dt: without S the advected velocity misses the acceleration of the step and the nonlinear
+    // terms are first order in time (standing wave a/h 0.094, A 210 12: order 1.2 at T/1280). Slopes next to solids,
+    // dry cells and open boundaries: 0. Curvilinear grid (G 50): the cell velocities U, V are Cartesian, q_f the
+    // normal discharge; the slopes along the index directions (per index), dx the index step 1, c with the centre
+    // distance and the normal velocity of the face, g_t over the centre distance along the face, S by the chain rule
+    const double dt = p->dt;
+    const bool yd = (p->j_dir==1);
+    const bool cv = (p->geo_curv==1);
+
+    // the cells the slopes may use, the open sides of the cells, eta^n of the neighbouring ranks (src_setup)
+    src_setup(p,pgc);
+
+    auto ok = [&](int a, int c) { return src_ok(a,c); };
+
+    // the source term of the cell for U (dir 1) or V (dir 2) (src_cell)
+    auto src = [&](int dir, int a, int c) -> double { return src_cell(p,dir,a,c); };
+
+    // the normal velocity of the face for its Courant number: the depth-weighted mean of the cell velocities (as
+    // the face velocity of Popinet (2020); curvilinear: their component along the face normal)
+    auto uface = [&](int dir, int a, int c)
+    {
+        const int a2 = dir==1 ? a+1 : a, c2 = dir==2 ? c+1 : c;
+        const double hl = ok(a,c) ? WL0(a,c) : 0.0, hr = ok(a2,c2) ? WL0(a2,c2) : 0.0;
+
+        if((hl+hr)<=0.0)
+        return 0.0;
+
+        if(cv)
+        {
+        double nx,ny;
+        fnorm(p,dir,a,c,nx,ny);
+        return (hl*(b->U(a,c)*nx + b->V(a,c)*ny) + hr*(b->U(a2,c2)*nx + b->V(a2,c2)*ny))/(hl + hr);
+        }
+
+        slice &u = dir==1 ? (slice&)b->U : (slice&)b->V;
+        return (hl*u(a,c) + hr*u(a2,c2))/(hl + hr);
+    };
+
+    // the limited slope of a cell from the values and centre distances on its two sides (one-sided: 0)
+    auto slope = [&](double fm, double f0, double fp, double dm, double dp, bool om, bool op)
+    {
+        if(!om || !op)
+        return 0.0;
+
+        const double sl = (f0 - fm)/dm, sr = (fp - f0)/dp, sc = (fp - fm)/(dm + dp);
+
+        if(sl*sr<=0.0)
+        return 0.0;
+
+        const double th = 1.3;
+        const double m = MIN(MIN(th*fabs(sl),th*fabs(sr)),fabs(sc));
+        return sl>0.0 ? m : -m;
+    };
+
+    // x-faces (i+1/2)
+    SLICELOOP1
+    {
+    fxU(i,j) = 0.0;
+    fxV(i,j) = 0.0;
+
+        if(Hx(i,j)>0.0)
+        {
+        const double t = qa(i,j);
+        const int iu = t>=0.0 ? i : i+1;
+        double fu = b->U(iu,j);
+        double fv = (yd || cv) ? b->V(iu,j) : 0.0;
+
+            if(ok(iu,j))
+            {
+            const double a = t>=0.0 ? 1.0 : -1.0;
+            const double dx = cv ? 1.0 : p->DXN[iu+marge];
+            const double c = MIN(fabs(uface(1,i,j))*dt/(cv ? fdn(p,1,i,j) : dx),1.0);
+            const double dm = cv ? 1.0 : p->DXP[iu-1+marge], dp = cv ? 1.0 : p->DXP[iu+marge];
+            const bool om = ok(iu-1,j), op = ok(iu+1,j);
+
+            fu += a*(1.0 - c)*slope(b->U(iu-1,j),b->U(iu,j),b->U(iu+1,j),dm,dp,om,op)*0.5*dx + 0.5*dt*src(1,iu,j);
+
+                if(yd || cv)
+                fv += a*(1.0 - c)*slope(b->V(iu-1,j),b->V(iu,j),b->V(iu+1,j),dm,dp,om,op)*0.5*dx + 0.5*dt*src(2,iu,j);
+
+                // transverse term: the velocity along the face in the upwind cell from its two y-faces
+                if(yd)
+                {
+                const double hs = Hy(iu,j-1) + Hy(iu,j);
+
+                    if(hs>p->A244)
+                    {
+                    const double v = (qb(iu,j-1) + qb(iu,j))/hs;
+                    const double em = cv ? 1.0 : p->DYP[j-1+marge], ep = cv ? 1.0 : p->DYP[j+marge];
+                    const double ds = cv ? 0.5*(fdn(p,2,iu,j-1) + fdn(p,2,iu,j)) : 1.0;
+                    const bool on = ok(iu,j+1), os = ok(iu,j-1);
+                    fu -= 0.5*dt*v*slope(b->U(iu,j-1),b->U(iu,j),b->U(iu,j+1),em,ep,os,on)/ds;
+                    fv -= 0.5*dt*v*slope(b->V(iu,j-1),b->V(iu,j),b->V(iu,j+1),em,ep,os,on)/ds;
+                    }
+                }
+            }
+
+        fxU(i,j) = t*fu;
+        fxV(i,j) = t*fv;
+        }
+    }
+
+    // y-faces (j+1/2)
+    if(yd)
+    SLICELOOP2
+    {
+    fyU(i,j) = 0.0;
+    fyV(i,j) = 0.0;
+
+        if(Hy(i,j)>0.0)
+        {
+        const double t = qb(i,j);
+        const int ju = t>=0.0 ? j : j+1;
+        double fu = b->U(i,ju);
+        double fv = b->V(i,ju);
+
+            if(ok(i,ju))
+            {
+            const double a = t>=0.0 ? 1.0 : -1.0;
+            const double dy = cv ? 1.0 : p->DYN[ju+marge];
+            const double c = MIN(fabs(uface(2,i,j))*dt/(cv ? fdn(p,2,i,j) : dy),1.0);
+            const double dm = cv ? 1.0 : p->DYP[ju-1+marge], dp = cv ? 1.0 : p->DYP[ju+marge];
+            const bool om = ok(i,ju-1), op = ok(i,ju+1);
+
+            fu += a*(1.0 - c)*slope(b->U(i,ju-1),b->U(i,ju),b->U(i,ju+1),dm,dp,om,op)*0.5*dy + 0.5*dt*src(1,i,ju);
+            fv += a*(1.0 - c)*slope(b->V(i,ju-1),b->V(i,ju),b->V(i,ju+1),dm,dp,om,op)*0.5*dy + 0.5*dt*src(2,i,ju);
+
+            // transverse term: the velocity along the face in the upwind cell from its two x-faces
+            const double hs = Hx(i-1,ju) + Hx(i,ju);
+
+                if(hs>p->A244)
+                {
+                const double u = (qa(i-1,ju) + qa(i,ju))/hs;
+                const double em = cv ? 1.0 : p->DXP[i-1+marge], ep = cv ? 1.0 : p->DXP[i+marge];
+                const double ds = cv ? 0.5*(fdn(p,1,i-1,ju) + fdn(p,1,i,ju)) : 1.0;
+                const bool oe = ok(i+1,ju), ow = ok(i-1,ju);
+                fu -= 0.5*dt*u*slope(b->U(i-1,ju),b->U(i,ju),b->U(i+1,ju),em,ep,ow,oe)/ds;
+                fv -= 0.5*dt*u*slope(b->V(i-1,ju),b->V(i,ju),b->V(i+1,ju),em,ep,ow,oe)/ds;
+                }
+            }
+
+        fyU(i,j) = t*fu;
+        fyV(i,j) = t*fv;
+        }
+    }
+}
+
 double sflow_momentum_SI::dissipation(lexer *p, double q, double h, double dxp)
 {
     // optional mass flux dissipation (A 231): K = A231 (|u| + c) dx/2, the Rusanov
@@ -966,8 +1835,23 @@ void sflow_momentum_SI::si_assemble(lexer *p, fdm2D *b, ghostcell *pgc)
     // face predictor (momentum interpolation: the mean of the cell predictors, which carry
     // no gravity term of this step), explicit part of the face discharge, eta-system
     // coefficients a_f = theta dt (g theta dt alpha_f H_f + K_f)/dxp
+    // REEF3D::HYDRO rain and point sources (R 10, R 40, R 100 2): the face depth is that of the higher bed
+    // (face_depth), and the mean is weighted by the water of each cell above that bed (face_weights): a deep
+    // channel cell next to a bank whose bed lies above the channel level would give half its momentum to the thin
+    // face of the bank and push water up the bank against the gravity of the thin face
     const bool cv = (p->geo_curv==1);
-    double nx,ny;
+    const bool hbed = hydro_sflow::wetting(p);
+    double nx,ny,wl,wr;
+
+    // the explicit part of the fourth-order gradient of eta^{n+1} (ho_gradient), zero where second order
+    SLICELOOP1
+    cx0(i,j) = 0.0;
+
+    SLICELOOP2
+    cy0(i,j) = 0.0;
+
+    // rheology core (W 120): the basal friction of the layer on alpha_f, alpha_c
+    rheo_friction(p,b,pgc);
 
     SLICELOOP1
     {
@@ -977,6 +1861,13 @@ void sflow_momentum_SI::si_assemble(lexer *p, fdm2D *b, ghostcell *pgc)
         fnorm(p,1,i,j,nx,ny);
         gx0(i,j) = (b->eta(i+1,j) - b->eta(i,j))/dn;
 
+        if(hbed)
+        {
+        face_weights(p,b,1,i,j,wl,wr);
+        qxE(i,j) = alx(i,j)*(wl*(UHp(i,j)*nx + VHp(i,j)*ny) + wr*(UHp(i+1,j)*nx + VHp(i+1,j)*ny) - dt*g*Hx(i,j)*(1.0-theta)*gx0(i,j));
+        }
+
+        else
         qxE(i,j) = alx(i,j)*(0.5*(UHp(i,j) + UHp(i+1,j))*nx + 0.5*(VHp(i,j) + VHp(i+1,j))*ny - dt*g*Hx(i,j)*(1.0-theta)*gx0(i,j));
 
         K = dissipation(p,qxn(i,j),Hx(i,j),dn);
@@ -990,6 +1881,20 @@ void sflow_momentum_SI::si_assemble(lexer *p, fdm2D *b, ghostcell *pgc)
         {
         gx0(i,j) = (b->eta(i+1,j) - b->eta(i,j))/p->DXP[IP];
 
+        // fourth order (sflow_momentum_SI_ho.cpp): the gradient of eta^n and the explicit part of that of eta^{n+1}
+        ho_gradient(p,b,1,gx0(i,j),cx0(i,j));
+
+        if(hbed)
+        {
+        face_weights(p,b,1,i,j,wl,wr);
+        qxE(i,j) = alx(i,j)*(wl*UHp(i,j) + wr*UHp(i+1,j) - dt*g*Hx(i,j)*(1.0-theta)*gx0(i,j));
+        }
+
+        else
+        if(ho_face(p,1,i,j))
+        qxE(i,j) = alx(i,j)*(ho_pred(p,1,UHp) - dt*g*Hx(i,j)*((1.0-theta)*gx0(i,j) + theta*cx0(i,j)));
+
+        else
         qxE(i,j) = alx(i,j)*(0.5*(UHp(i,j) + UHp(i+1,j)) - dt*g*Hx(i,j)*(1.0-theta)*gx0(i,j));
 
         K = dissipation(p,qxn(i,j),Hx(i,j),p->DXP[IP]);
@@ -1016,6 +1921,13 @@ void sflow_momentum_SI::si_assemble(lexer *p, fdm2D *b, ghostcell *pgc)
         fnorm(p,2,i,j,nx,ny);
         gy0(i,j) = (b->eta(i,j+1) - b->eta(i,j))/dn;
 
+        if(hbed)
+        {
+        face_weights(p,b,2,i,j,wl,wr);
+        qyE(i,j) = aly(i,j)*(wl*(UHp(i,j)*nx + VHp(i,j)*ny) + wr*(UHp(i,j+1)*nx + VHp(i,j+1)*ny) - dt*g*Hy(i,j)*(1.0-theta)*gy0(i,j));
+        }
+
+        else
         qyE(i,j) = aly(i,j)*(0.5*(UHp(i,j) + UHp(i,j+1))*nx + 0.5*(VHp(i,j) + VHp(i,j+1))*ny - dt*g*Hy(i,j)*(1.0-theta)*gy0(i,j));
 
         K = dissipation(p,qyn(i,j),Hy(i,j),dn);
@@ -1029,6 +1941,19 @@ void sflow_momentum_SI::si_assemble(lexer *p, fdm2D *b, ghostcell *pgc)
         {
         gy0(i,j) = (b->eta(i,j+1) - b->eta(i,j))/p->DYP[JP];
 
+        ho_gradient(p,b,2,gy0(i,j),cy0(i,j));
+
+        if(hbed)
+        {
+        face_weights(p,b,2,i,j,wl,wr);
+        qyE(i,j) = aly(i,j)*(wl*VHp(i,j) + wr*VHp(i,j+1) - dt*g*Hy(i,j)*(1.0-theta)*gy0(i,j));
+        }
+
+        else
+        if(ho_face(p,2,i,j))
+        qyE(i,j) = aly(i,j)*(ho_pred(p,2,VHp) - dt*g*Hy(i,j)*((1.0-theta)*gy0(i,j) + theta*cy0(i,j)));
+
+        else
         qyE(i,j) = aly(i,j)*(0.5*(VHp(i,j) + VHp(i,j+1)) - dt*g*Hy(i,j)*(1.0-theta)*gy0(i,j));
 
         K = dissipation(p,qyn(i,j),Hy(i,j),p->DYP[JP]);
@@ -1046,7 +1971,23 @@ void sflow_momentum_SI::si_assemble(lexer *p, fdm2D *b, ghostcell *pgc)
         }
     }
 
+    // X 10 3: the ship pressure as the surface level it holds, -p/(rho g), its compact face gradient with the gravity
+    // term (the mean of the pressure of the start and of the end of the step)
+    if(ship)
+    {
+        SLICELOOP1
+        if(Hx(i,j)>0.0)
+        qxE(i,j) -= alx(i,j)*dt*g*Hx(i,j)*(sps(i+1,j) - sps(i,j))/p->DXP[IP];
+
+        if(p->j_dir==1)
+        SLICELOOP2
+        if(Hy(i,j)>0.0)
+        qyE(i,j) -= aly(i,j)*dt*g*Hy(i,j)*(sps(i,j+1) - sps(i,j))/p->DYP[JP];
+    }
+
     exchange1(p,pgc,gx0);
+    exchange1(p,pgc,cx0);
+    exchange2(p,pgc,cy0);
     exchange1(p,pgc,qxE);
     exchange1(p,pgc,ax);
     exchange1(p,pgc,kx);
@@ -1140,6 +2081,18 @@ void sflow_momentum_SI::si_rhs(lexer *p, fdm2D *b, ghostcell *pgc)
         rhsW(i,j) += dt*wsrc(i,j);
     }
 
+    // + dt S: REEF3D::HYDRO rain and point sources on wet and dry cells, held over the step (also in eta_update)
+    if(b->hydro!=nullptr)
+    {
+        SLICELOOP4
+        hsrc(i,j) = 0.0;
+
+    b->hydro->mass_source(p,b,hsrc);
+
+        SLICELOOP4
+        rhsW(i,j) += dt*hsrc(i,j);
+    }
+
     // initial guess eta^n; wet pattern: all wet (the linear system of P1), then the
     // Newton iteration on WL = max(eta + d, 0) (Casulli 2009), converging from above
     SLICELOOP4
@@ -1157,6 +2110,19 @@ void sflow_momentum_SI::face_update(lexer *p, fdm2D *b, ghostcell *pgc)
     if(p->j_dir==1)
     SLICELOOP2
     qy(i,j) = Hy(i,j)>0.0 ? qyE(i,j) - ay(i,j)/tdt*(etaI(i,j+1) - etaI(i,j)) : 0.0;
+
+    // non-hydrostatic part of the face discharges (A 220 2/3, interior faces)
+    if(nh)
+    {
+        SLICELOOP1
+        if(Hx(i,j)>0.0)
+        qx(i,j) += qxN(i,j);
+
+        if(p->j_dir==1)
+        SLICELOOP2
+        if(Hy(i,j)>0.0)
+        qy(i,j) += qyN(i,j);
+    }
 
     exchange1(p,pgc,qx);
     exchange2(p,pgc,qy);
@@ -1199,6 +2165,9 @@ void sflow_momentum_SI::eta_update(lexer *p, fdm2D *b, ghostcell *pgc)
     if(mass_source)
     w += p->dt*wsrc(i,j);
 
+    if(b->hydro!=nullptr)
+    w += p->dt*hsrc(i,j);
+
     b->WL(i,j) = MAX(w, 0.0);
     b->eta(i,j) = b->WL(i,j) - b->depth(i,j);
     }
@@ -1231,10 +2200,19 @@ void sflow_momentum_SI::eta_update(lexer *p, fdm2D *b, ghostcell *pgc)
 
         else
         Qout += q;
+
+        // REEF3D::HYDRO coupled (R 100 2): the outflow volume of the boundary cell, returned to the catchment model
+        if(q<0.0 && b->hydro!=nullptr && b->hydro->cpl)
+        b->hydro->Bq(f.i,f.j) -= q*p->dt;
     }
 
+    // a block or a patch of the mesh refinement: its own sum (sflow_amr::si_log sums the grids over the ranks; a global
+    // sum per patch hung the run where the ranks held different numbers of patches)
+    if(!patch)
+    {
     Qin = pgc->globalsum(Qin);
     Qout = pgc->globalsum(Qout);
+    }
 
     // ghost cells; the interior values are kept: gcsl_start4 extends a cell next to a solid
     // three cells deep (gcsl_neumann), into the fluid behind a solid one or two cells thick
@@ -1276,12 +2254,16 @@ void sflow_momentum_SI::cell_update(lexer *p, fdm2D *b, ghostcell *pgc)
     // that is dry at the end of the step (eta^{n+1} + d <= A 244) does not count, as in
     // nhflow_momentum_SI: the eta of the Newton iteration is not a water level there, its row of the
     // eta system holds only the coefficient of the thin face (H_f just above A 244), and it can lie
-    // metres below the bed; its gradient gave the wet neighbour a spurious jet of tens of m/s, the
-    // flicker of the gauges near shallow banks (1 km Michael hindcast, validation/09_michael)
+    // metres below the bed; its gradient would give the wet neighbour a spurious jet of tens of m/s
     const double dt = p->dt;
     double we,ww,gn,gn1,wsum;
 
     auto wn = [&](int a, int c) { return etaI(a,c) + b->depth(a,c) > p->A244; };
+
+    wall_sides(p);
+
+    // the depth of the gravity term (the non-hydrostatic step and A 210 11: extrapolated to t^{n+1/2}, nh_levels)
+    slice &Hg = tlev ? (slice&)WLh : (slice&)WL0;
 
     SLICELOOP4
     {
@@ -1291,10 +2273,40 @@ void sflow_momentum_SI::cell_update(lexer *p, fdm2D *b, ghostcell *pgc)
         ww = (Hx(i-1,j)>0.0 && wn(i-1,j)) ? 1.0 : 0.0;
         wsum = MAX(we+ww,1.0);
 
-        gn  = (ww*gx0(i-1,j) + we*gx0(i,j))/wsum;
-        gn1 = (ww*(etaI(i,j) - etaI(i-1,j))/p->DXP[IM1] + we*(etaI(i+1,j) - etaI(i,j))/p->DXP[IP])/wsum;
+        // a wall face (A 210 11, and A 210 12/13 with the second-order time levels) counts in
+        // the mean with the term that keeps the face discharge zero there: g H d_n eta
+        // = the sources of the predictor normal to the wall (wind, Coriolis, atmospheric pressure; FSx, FSy of
+        // stage_rhs), zero in free waves (the mirrored level). With zero also under wind a wall cell of a closed basin
+        // got half the gradient that balances the stress, and the wind drove a flow into the walls (NHFLOW A 510 11,
+        // nhflow_2d_si_wind_setup_a547: the wall cells 4 times the depth-mean velocity of the interior). Only with an
+        // open face in the direction (as NHFLOW): a cell between two walls has no gradient
+        double fw = 0.0;
 
-        b->UH(i,j) = alc(i,j)*(UHp(i,j) - dt*g*WL0(i,j)*(theta*gn1 + (1.0-theta)*gn));
+        if(we+ww>0.0)
+        {
+        const double wx = wall(p,i,j,1) + wall(p,i,j,2);
+        wsum = MAX(we + ww + wx, 1.0);
+        fw = wx*FSx(i,j);
+        }
+
+        // a face between two wet deep cells (mfx, mlflux_faces) with its own depth H_f, the mean of the two cells: the
+        // mean of g H_f d_x eta of the faces conserves the momentum across a bore (a difference of g h^2/2)
+        const double hw = mfx(i-1,j)>0.5 ? Hx(i-1,j)/Hg(i,j) : 1.0, he = mfx(i,j)>0.5 ? Hx(i,j)/Hg(i,j) : 1.0;
+
+        gn  = (ww*hw*gx0(i-1,j) + we*he*gx0(i,j))/wsum;
+        gn1 = (ww*hw*((etaI(i,j) - etaI(i-1,j))/p->DXP[IM1] + cx0(i-1,j)) + we*he*((etaI(i+1,j) - etaI(i,j))/p->DXP[IP] + cx0(i,j)))/wsum;
+
+        if(ship)
+        gn1 += (ww*hw*(sps(i,j) - sps(i-1,j))/p->DXP[IM1] + we*he*(sps(i+1,j) - sps(i,j))/p->DXP[IP])/(wsum*theta);
+
+        b->UH(i,j) = alc(i,j)*(UHp(i,j) - dt*g*Hg(i,j)*(theta*gn1 + (1.0-theta)*gn) - dt*fw/wsum);
+
+        // fourth order (sflow_momentum_SI_ho.cpp): (-1, 9, 9, -1)/16 of H_f times the face gradient of four faces
+        if(ho_cell(p,b,1,i,j))
+        {
+        auto aF = [&](int f) { return Hx(f,j)*(theta*((etaI(f+1,j) - etaI(f,j))/p->DXP[f+marge] + cx0(f,j)) + (1.0-theta)*gx0(f,j)); };
+        b->UH(i,j) = alc(i,j)*(UHp(i,j) - dt*g*(9.0*(aF(i-1) + aF(i)) - aF(i-2) - aF(i+1))/16.0);
+        }
 
         b->VH(i,j) = 0.0;
 
@@ -1304,10 +2316,30 @@ void sflow_momentum_SI::cell_update(lexer *p, fdm2D *b, ghostcell *pgc)
             ww = (Hy(i,j-1)>0.0 && wn(i,j-1)) ? 1.0 : 0.0;
             wsum = MAX(we+ww,1.0);
 
-            gn  = (ww*gy0(i,j-1) + we*gy0(i,j))/wsum;
-            gn1 = (ww*(etaI(i,j) - etaI(i,j-1))/p->DYP[JM1] + we*(etaI(i,j+1) - etaI(i,j))/p->DYP[JP])/wsum;
+            fw = 0.0;
 
-            b->VH(i,j) = alc(i,j)*(VHp(i,j) - dt*g*WL0(i,j)*(theta*gn1 + (1.0-theta)*gn));
+            if(we+ww>0.0)
+            {
+            const double wy = wall(p,i,j,3) + wall(p,i,j,4);
+            wsum = MAX(we + ww + wy, 1.0);
+            fw = wy*FSy(i,j);
+            }
+
+            const double hs = mfy(i,j-1)>0.5 ? Hy(i,j-1)/Hg(i,j) : 1.0, hn = mfy(i,j)>0.5 ? Hy(i,j)/Hg(i,j) : 1.0;
+
+            gn  = (ww*hs*gy0(i,j-1) + we*hn*gy0(i,j))/wsum;
+            gn1 = (ww*hs*((etaI(i,j) - etaI(i,j-1))/p->DYP[JM1] + cy0(i,j-1)) + we*hn*((etaI(i,j+1) - etaI(i,j))/p->DYP[JP] + cy0(i,j)))/wsum;
+
+            if(ship)
+            gn1 += (ww*hs*(sps(i,j) - sps(i,j-1))/p->DYP[JM1] + we*hn*(sps(i,j+1) - sps(i,j))/p->DYP[JP])/(wsum*theta);
+
+            b->VH(i,j) = alc(i,j)*(VHp(i,j) - dt*g*Hg(i,j)*(theta*gn1 + (1.0-theta)*gn) - dt*fw/wsum);
+
+            if(ho_cell(p,b,2,i,j))
+            {
+            auto aF = [&](int f) { return Hy(i,f)*(theta*((etaI(i,f+1) - etaI(i,f))/p->DYP[f+marge] + cy0(i,f)) + (1.0-theta)*gy0(i,f)); };
+            b->VH(i,j) = alc(i,j)*(VHp(i,j) - dt*g*(9.0*(aF(j-1) + aF(j)) - aF(j-2) - aF(j+1))/16.0);
+            }
             }
 
             // curvilinear grid: per index direction the mean normal and the mean normal gradient of the open faces,
@@ -1319,13 +2351,27 @@ void sflow_momentum_SI::cell_update(lexer *p, fdm2D *b, ghostcell *pgc)
             double ax_=0.0, ay_=0.0, ag=0.0, bx_=0.0, by_=0.0, bg=0.0;
             int na=0, nb=0;
 
+            // A 210 11: the index directions with an open face (the wall faces carry the sources only there)
+            const bool o1 = (Hx(i,j)>0.0 && wn(i+1,j)) || (Hx(i-1,j)>0.0 && wn(i-1,j));
+            const bool o2 = (Hy(i,j)>0.0 && wn(i,j+1)) || (Hy(i,j-1)>0.0 && wn(i,j-1));
+
             auto face = [&](int dir, int fi, int fj, int oi, int oj, double H, double G0, double G1)
             {
-                if(H<=0.0 || !wn(oi,oj))
+                // a wall face counts with its normal and the gradient that keeps the discharge through it
+                // zero, g H d_n eta = the sources normal to the face (as the Cartesian grid above; zero in free waves,
+                // the mirrored level)
+                const int sd = dir==1 ? (fi==i ? 2 : 1) : (fj==j ? 4 : 3);
+                const bool wf = (H<=0.0 || !wn(oi,oj)) && wall(p,i,j,sd)>0.5;
+
+                if((H<=0.0 || !wn(oi,oj)) && !wf)
                 return;
 
                 fnorm(p,dir,fi,fj,nx,ny);
-                const double G = theta*G1 + (1.0-theta)*G0;
+                const bool wo = wf && (dir==1 ? o1 : o2) && Hg(i,j)>0.0;
+                // a face between two wet deep cells with its own depth (mlflux_faces), as the Cartesian grid
+                const double mf = dir==1 ? mfx(fi,fj) : mfy(fi,fj);
+                const double hr = (!wf && mf>0.5) ? H/Hg(i,j) : 1.0;
+                const double G = wf ? (wo ? (FSx(i,j)*nx + FSy(i,j)*ny)/(g*Hg(i,j)) : 0.0) : hr*(theta*G1 + (1.0-theta)*G0);
 
                 if(dir==1)
                 {
@@ -1377,8 +2423,8 @@ void sflow_momentum_SI::cell_update(lexer *p, fdm2D *b, ghostcell *pgc)
             gy = bg*by_;
             }
 
-            b->UH(i,j) = alc(i,j)*(UHp(i,j) - dt*g*WL0(i,j)*gx);
-            b->VH(i,j) = alc(i,j)*(VHp(i,j) - dt*g*WL0(i,j)*gy);
+            b->UH(i,j) = alc(i,j)*(UHp(i,j) - dt*g*Hg(i,j)*gx);
+            b->VH(i,j) = alc(i,j)*(VHp(i,j) - dt*g*Hg(i,j)*gy);
             }
         }
 
@@ -1389,6 +2435,53 @@ void sflow_momentum_SI::cell_update(lexer *p, fdm2D *b, ghostcell *pgc)
         }
 
     b->WH(i,j) = 0.0;
+    }
+
+    // non-hydrostatic pressure (A 220 2/3): UH with the mean of the face terms, WH
+    if(nh)
+    nh_cell(p,b,pgc);
+
+    // rheology core (W 120): a cell next to a face at rest (below the yield threshold, alpha_f = 0) takes the mean of
+    // its new face discharges. Its own momentum otherwise lives on between the faces that carry the mass: the face
+    // predictor (the mean of the cells) would keep the next face just above the threshold, and an arrested deposit
+    // would keep a cell velocity while no mass moves
+    if(prheo->si_friction())
+    SLICELOOP4
+    if(p->wet[IJ]==1)
+    {
+        bool rest = (Hx(i-1,j)>p->A244 && alx(i-1,j)<=0.0) || (Hx(i,j)>p->A244 && alx(i,j)<=0.0);
+
+        if(p->j_dir==1)
+        rest = rest || (Hy(i,j-1)>p->A244 && aly(i,j-1)<=0.0) || (Hy(i,j)>p->A244 && aly(i,j)<=0.0);
+
+        if(rest)
+        {
+        b->UH(i,j) = 0.5*((Hx(i-1,j)>0.0 ? qx(i-1,j) : 0.0) + (Hx(i,j)>0.0 ? qx(i,j) : 0.0));
+        b->VH(i,j) = p->j_dir==1 ? 0.5*((Hy(i,j-1)>0.0 ? qy(i,j-1) : 0.0) + (Hy(i,j)>0.0 ? qy(i,j) : 0.0)) : 0.0;
+        }
+    }
+
+    // X 10 2: the body moves over the step, the direct forcing sets the momentum of its cells to the body velocity
+    // (sflow_forcing with the velocities of the new momentum, as the stages of the explicit step); the face discharges
+    // of the next step follow from the cells (si_assemble)
+    if(p->X10==2)
+    {
+        SLICELOOP4
+        {
+        tU(i,j) = b->U(i,j);
+        tV(i,j) = b->V(i,j);
+        const bool w = (p->wet[IJ]==1 && b->WL(i,j)>p->A244);
+        b->U(i,j) = w ? b->UH(i,j)/b->WL(i,j) : 0.0;
+        b->V(i,j) = (w && p->j_dir==1) ? b->VH(i,j)/b->WL(i,j) : 0.0;
+        }
+
+    psfdf->forcing(p,b,pgc,p6dof,0,1.0,b->UH,b->VH,b->WH,b->WL,true);
+
+        SLICELOOP4
+        {
+        b->U(i,j) = tU(i,j);
+        b->V(i,j) = tV(i,j);
+        }
     }
 
     // velocities of the interior (Froude limiter A 531)
@@ -1452,6 +2545,13 @@ void sflow_momentum_SI::relax(lexer *p, fdm2D *b, ghostcell *pgc)
     pflow->um_relax(p,pgc,b->U,b->UH,b->WL);
     pflow->vm_relax(p,pgc,b->V,b->VH,b->WL);
 
+    // non-hydrostatic pressure (A 220 2/3): W and P as the explicit stages
+    if(nh)
+    {
+    pflow->wm_relax(p,pgc,b->W,b->WH,b->WL);
+    pflow->pm_relax(p,pgc,b->press);
+    }
+
     SLICELOOP4
     vrelax += (b->WL(i,j) - rhs(i,j))*carea(p,i,j);
 
@@ -1499,6 +2599,7 @@ void sflow_momentum_SI::relax(lexer *p, fdm2D *b, ghostcell *pgc)
     exchange1(p,pgc,qx);
     exchange2(p,pgc,qy);
 
+    if(!patch)
     vrelax = pgc->globalsum(vrelax);
 }
 
@@ -1603,4 +2704,18 @@ void sflow_momentum_SI::fnorm(lexer *p, int dir, int ii, int jj, double &nx, dou
 
     nx = dir==1 ? 1.0 : 0.0;
     ny = dir==1 ? 0.0 : 1.0;
+}
+
+void sflow_momentum_SI::ship_level(lexer *p, fdm2D *b, ghostcell *pgc)
+{
+    // X 10 3: the ship pressure of the step (sixdof_sflow::sflow_press_step, the mean of its start and end) as the
+    // surface level it holds, -p/(rho g); the stored pressure is minus the pressure on the water
+    ship = p6dof->sflow_press_step(p,sps);
+
+    if(ship)
+    for(int ii=p->imin; ii<p->imin+p->imax; ++ii)
+    for(int jj=p->jmin; jj<p->jmin+p->jmax; ++jj)
+    sps(ii,jj) = -sps(ii,jj)/(p->W1*g);
+
+    exchange4(p,pgc,sps);
 }

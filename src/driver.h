@@ -85,8 +85,10 @@ class nhflow;
 class multiphase;
 class nhflow_momentum;
 class nhflow_particle;
+class pic;
 class particle_base;
 class coral_reef3d;
+class soil_stress;
 
 #include<iostream>
 #include<fstream>
@@ -105,7 +107,6 @@ public:
 	driver(int&,char**);
 	virtual ~driver();
     
-    void start();
     
     void cfd_driver();
     void nhflow_driver();
@@ -121,7 +122,6 @@ public:
 	void logic_cfd();
     void logic_fnpf();
     void logic_nhflow();
-    void logic_sflow();
     
     void patchBC_logic();
     
@@ -130,10 +130,8 @@ public:
     void driver_ini_fnpf();
     // checkpoints of FNPF and NHFLOW on any decomposition (P 48, I 45) and the rebalance (G 46):
     // the hooks of the modules (driver_ckpt.cpp) for the run part (reefrun_ckpt.h)
-    void ckpt_write();
     void ckpt_read();
     std::string ckpt_unsupported();
-    void rebalance_check();
     reefrun_ckpt& ckpt();
     reefrun_ckpt *rck = nullptr;
     
@@ -198,6 +196,7 @@ public:
     fnpf_ice *pfice = nullptr;
     fnpf_amr *pfamr = nullptr;
     coral_reef3d *pcoral = nullptr;   // REEF3D::CORAL structural solver (Z 40)
+    soil_stress *psoil = nullptr;     // REEF3D::CFD soil stress model (S 200)
     std::vector<double> coral_ckpt;   // its state from the checkpoint (I 45 1), until coral_ini
     nhflow_amr *pnhfamr = nullptr;
     nhflow_longrun *plongrun = nullptr;
@@ -223,6 +222,7 @@ public:
     vrans_nhflow *pnhfvrans;
     sixdof *p6dof;
     dem *pdem;
+    pic *ppic = nullptr;   // PIC particles of the CFD free surface flow (F 81)
     turbulence *pturbcfd;
 
 private:

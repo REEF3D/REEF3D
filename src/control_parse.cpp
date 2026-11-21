@@ -25,6 +25,22 @@ Author: Hans Bihs
 
 void control::parse(lexer* p)
 {
+    // REEF3D::HYDRO (R): SFLOW only so far
+    if(A10!=2 && (R10>0 || R20>0.0 || R30>0 || R40>0 || R50>0 || R100>0))
+    {
+        if(p->mpirank==0)
+        cout<<"!!! HYDRO keywords R 10 - R 106 work with SFLOW (A 10 2) only so far, they are ignored"<<endl;
+    R10=R30=R40=R41=R50=R100=0;
+    R20=0.0;
+    }
+
+    if(R100<0 || R100>2)
+    {
+        if(p->mpirank==0)
+        cout<<"!!! HYDRO: R 100 "<<R100<<": 1 the catchment model alone, 2 coupled with SFLOW; ignored"<<endl;
+    R100=0;
+    }
+
     // I 45 <count>: the restart from the checkpoint of that step, otherwise as I 45 1
     if(I45>1)
     {
@@ -81,6 +97,10 @@ void control::parse(lexer* p)
 
     if(T10==0)
     I13=0;
+
+    // T 46 I L: the prescribed turbulence is also the initial field, so the turbulence is initialised (as I 10 1)
+    if(T46_I>0.0 && T10>0 && I40==0)
+    I13=1;
 
     // floating bodies: low-storage RK3; with the CFD mesh refinement (G 1 > 0, SSP stages only)
     // the SSP-RK3 of the input (the bodies have its stage weights)

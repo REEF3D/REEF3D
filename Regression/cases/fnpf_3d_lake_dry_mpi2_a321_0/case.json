@@ -1,0 +1,23 @@
+{
+ "base": "fnpf_3d_lake_dry_mpi2",
+ "ctrl_set": {
+  "A 321": "0"
+ },
+ "description": "FNPF 3D lake with dry land of fnpf_3d_lake_dry_mpi2 (RK4, A 343 1, a third of the columns dry, 2 ranks) with A 321 0. fnpf_3d_lake_dry_mpi2 runs with the default A 321 2: the start values only in the wet columns, the kept coarse levels with the active columns of REEFMG, on 2 ranks. The case moves by 1e-4 between N 44 1e-8 and 1e-10, hence the tolerance.",
+ "tags": [
+  "quick",
+  "3d",
+  "fnpf",
+  "waves",
+  "wetdry",
+  "geodat",
+  "solver",
+  "mpi"
+ ],
+ "covers": [
+  "A 321 0 with dry columns on several ranks",
+  "A 321 2 against A 321 0 with dry columns"
+ ],
+ "same_as": "fnpf_3d_lake_dry_mpi2",
+ "same_as_rtol": 0.001
+}

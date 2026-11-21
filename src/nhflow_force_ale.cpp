@@ -50,7 +50,6 @@ void nhflow_force_ale::ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
     // Ini arrays
 	p->Darray(un, p->knoz);
     p->Darray(unn, p->knoz);
-	//p->Darray(u2n, p->knoz);
 	p->Darray(vn, p->knoz);
     p->Darray(vnn, p->knoz);
 
@@ -58,7 +57,6 @@ void nhflow_force_ale::ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
 	eta_n=0.0;
 
     // Ini time
-    //dtn=0;
 
     // Ini processor boundaries
 	xstart = p->originx;

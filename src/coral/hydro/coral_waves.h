@@ -66,6 +66,11 @@ namespace coral
         {kinematics(p, t, u, du, p_rho);}
         // z of the bed under point index of owner (a resolved fluid's bed); NaN: not known
         virtual double bed_at(const void*, int, const Vec3&) const {return std::numeric_limits<double>::quiet_NaN();}
+        // velocity gradient G(i,j) = du_i/dx_j and the slope of the free surface (d eta/dx, d eta/dy, 0) at any point,
+        // for the higher-order slender-body loads (Rainey, Kristiansen-Faltinsen); a source without them (a sampled
+        // fluid) returns false and the load differences its own stencil points
+        virtual bool has_gradients() const {return false;}
+        virtual void gradients(const Vec3&, double, Mat3 &G, Vec3 &slope) const {G.setZero(); slope.setZero();}
     };
 
     class wave_field : public wave_kinematics
@@ -88,6 +93,9 @@ namespace coral
         double elevation(double x, double y, double t) const override;
         // velocity u, acceleration du (local, linear), dynamic pressure / rho at the point p
         void kinematics(const Vec3 &p, double t, Vec3 &u, Vec3 &du, double &p_rho) const override;
+        // linear: the gradients of the components (at z = 0 above the still water level, like the kinematics)
+        bool has_gradients() const override {return true;}
+        void gradients(const Vec3 &p, double t, Mat3 &G, Vec3 &slope) const override;
 
         const std::vector<wave_component> &components() const {return comp_;}
         double depth() const {return depth_;}

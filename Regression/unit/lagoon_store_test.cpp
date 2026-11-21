@@ -16,6 +16,8 @@
 #include<string>
 #include<vector>
 #include<zlib.h>
+#include<ctime>
+#include<utime.h>
 
 static int nfail = 0;
 static void check(bool ok, const std::string &what)
@@ -362,6 +364,96 @@ int main()
         check(empty.begin_run("SFLOW", run_b).empty() && std::ifstream("lagoon_store_test_run3.lagoon/zarr.json").good(),
               "an empty folder: the root made in it, nothing moved");
         if(std::system("rm -rf lagoon_store_test_run*.lagoon*")!=0) std::cout<<"  (could not clear)"<<std::endl;
+    }
+
+    // the case's solids (SPEC 12) from DIVEMesh's REEF3D_Solid.vtp, as DIVEMesh writes it
+    {
+        std::cout<<"LAGOON store: the case's solids"<<std::endl;
+        const std::string paraview = "lagoon_store_test_paraview";
+        if(std::system(("rm -rf "+paraview+" lagoon_store_test_solids.lagoon && mkdir "+paraview).c_str())!=0)
+            std::cout<<"  (could not make)"<<std::endl;
+        // no control.txt (results copied without their input): the file is taken
+        const std::string control = paraview + "/control.txt";
+        const float xyz[18] = {0,0,0, 1,0,0, 0,1,0,  0,0,1, 1,0,1, 0,1,2};
+        auto vtp = [&](int per_cell)  // print_3D::write_vtp: raw appended, a size before each block
+        {
+            std::ofstream out((paraview+"/REEF3D_Solid.vtp").c_str(), std::ios::binary);
+            out<<"<?xml version=\"1.0\"?>\n<VTKFile type=\"PolyData\" version=\"0.1\" byte_order=\"LittleEndian\">\n"
+               <<"<PolyData>\n<Piece NumberOfPoints=\"6\" NumberOfPolys=\"2\">\n<Points>\n"
+               <<"<DataArray type=\"Float32\" NumberOfComponents=\"3\" format=\"appended\" offset=\"0\"/>\n</Points>\n"
+               <<"<Polys>\n<DataArray type=\"Int32\" Name=\"connectivity\" format=\"appended\" offset=\"76\"/>\n"
+               <<"<DataArray type=\"Int32\" Name=\"offsets\" format=\"appended\" offset=\"104\"/>\n</Polys>\n"
+               <<"</Piece>\n</PolyData>\n<AppendedData encoding=\"raw\">\n_";
+            int32_t n = 72;
+            out.write((const char*)&n,4);
+            out.write((const char*)xyz,72);
+            n = 24;
+            out.write((const char*)&n,4);
+            for(int32_t c=0; c<6; ++c) out.write((const char*)&c,4);
+            n = 8;
+            out.write((const char*)&n,4);
+            for(int32_t t=1; t<=2; ++t) { int32_t end = per_cell*t; out.write((const char*)&end,4); }
+            out<<"\n</AppendedData>\n</VTKFile>\n";
+        };
+        vtp(3);
+        lagoon_store store("lagoon_store_test_solids.lagoon",16,1);
+        store.create_root("CFD","");
+        check(store.write_solids(paraview, control)==2, "the 2 triangles of REEF3D_Solid.vtp written");
+        const std::string points = slurp("lagoon_store_test_solids.lagoon/solids/points/c/0/0");
+        const std::string corners = slurp("lagoon_store_test_solids.lagoon/solids/triangles/c/0/0");
+        bool same = points.size()==144;
+        for(int k=0; same && k<18; ++k) { double v; std::memcpy(&v, points.data()+8*k, 8); same = v==double(xyz[k]); }
+        check(same, "points: float64 (6, 3), as written (Float32 there)");
+        bool ok = corners.size()==24;
+        for(int c=0; ok && c<6; ++c) { int32_t v; std::memcpy(&v, corners.data()+4*c, 4); ok = v==c; }
+        check(ok, "triangles: int32 (2, 3)");
+        check(slurp("lagoon_store_test_solids.lagoon/solids/points/zarr.json").find("\"shape\": [6, 3]")!=std::string::npos
+              && slurp("lagoon_store_test_solids.lagoon/solids/zarr.json").find("\"role\": \"solid\"")!=std::string::npos,
+              "their zarr.json: shape, role");
+        vtp(4);  // not triangles: not taken
+        check(store.write_solids(paraview, control)==0, "a file of other cells is not taken");
+        vtp(3);
+        // left over: DIVEMesh has run since (its partition two hours newer) without writing it
+        std::ofstream((paraview+"/DIVEMesh_Partition.vtp").c_str())<<"x";
+        struct utimbuf old_time;
+        old_time.actime = old_time.modtime = std::time(nullptr) - 7200;
+        utime((paraview+"/REEF3D_Solid.vtp").c_str(), &old_time);
+        check(store.write_solids(paraview, control)==0, "a solid file left over from another case is not taken");
+        // DIVEMesh's solids: Float64 points
+        {
+            std::ofstream out((paraview+"/REEF3D_Solid.vtp").c_str(), std::ios::binary);
+            out<<"<VTKFile type=\"PolyData\">\n<PolyData>\n<Piece NumberOfPoints=\"3\" NumberOfPolys=\"1\">\n<Points>\n"
+               <<"<DataArray type=\"Float64\" NumberOfComponents=\"3\" format=\"appended\" offset=\"0\"/>\n</Points>\n"
+               <<"<Polys></Polys></Piece></PolyData>\n<AppendedData encoding=\"raw\">\n_";
+            const double far[9] = {500000.125, 6700000.25, -3, 500001.125, 6700000.25, -3, 500000.125, 6700001.25, 4};
+            int32_t n = 72;
+            out.write((const char*)&n,4);
+            out.write((const char*)far,72);
+            n = 12;
+            out.write((const char*)&n,4);
+            for(int32_t c=0; c<3; ++c) out.write((const char*)&c,4);
+            n = 4;
+            out.write((const char*)&n,4);
+            int32_t end = 3;
+            out.write((const char*)&end,4);
+            out<<"\n</AppendedData>\n</VTKFile>\n";
+        }
+        if(std::system(("rm -f "+paraview+"/DIVEMesh_Partition.vtp").c_str())!=0) std::cout<<"  (could not remove)"<<std::endl;
+        check(store.write_solids(paraview, control)==1, "DIVEMesh's Float64 points");
+        const std::string kept = slurp("lagoon_store_test_solids.lagoon/solids/points/c/0/0");
+        double x0 = 0.0;
+        if(kept.size()==72) std::memcpy(&x0, kept.data(), 8);
+        check(x0==500000.125, "kept to the millimetre far from the origin (float64)");
+        check(store.write_solids("lagoon_store_test_nothing", control)==0, "no DIVEMesh_Paraview: none");
+        // control.txt without solid commands: another case's file, not taken
+        std::ofstream(control.c_str())<<"B 10 0.0 8640.0 0.0 1.5 0.0 1.0\n// S 10 1 2 1 2 0 3\nM 10 12\n";
+        check(!lagoon_store::has_solid_commands(control) && store.write_solids(paraview, control)==0,
+              "control.txt without solids (S): the file left by another case is not taken");
+        std::ofstream(control.c_str())<<"B 10 0.0 8.0 0.0 4.0 0.0 1.0\nS 10 1 2 1 2 0 3\n";
+        check(lagoon_store::has_solid_commands(control) && store.write_solids(paraview, control)==1,
+              "control.txt with solids: taken");
+        if(std::system(("rm -rf "+paraview+" lagoon_store_test_solids.lagoon").c_str())!=0)
+            std::cout<<"  (could not clear)"<<std::endl;
     }
 
     std::cout<<(nfail ? "FAILED: " : "all tests passed")<<(nfail ? std::to_string(nfail) : "")<<std::endl;

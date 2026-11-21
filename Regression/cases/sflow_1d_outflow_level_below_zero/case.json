@@ -1,0 +1,15 @@
+{
+ "description": "SFLOW explicit (A 210 2): river with the bed below the datum (-3 m at the outflow), start from a lake at F 60 -0.5 m, outflow level F 62 -1.53 m (the normal depth): the outflow follows F 62. A level at or below zero was ignored in the time loop and the outflow stayed at F 60.",
+ "solver": "sflow",
+ "np": 1,
+ "steps": 600,
+ "tags": [
+  "quick",
+  "1d",
+  "sflow",
+  "river"
+ ],
+ "covers": [
+  "ioflow_f::waterlevel2D, sflow_eta::depth_update: F 62 <= 0"
+ ]
+}

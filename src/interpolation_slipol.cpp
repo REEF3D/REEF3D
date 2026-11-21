@@ -142,12 +142,6 @@ double interpolation::sl_ipol4eta(int *wet,slice &f, slice &bed)
     
     if(wet[Ip1Jp1]==0)
     v4=MIN(f(i+1,j+1),bed(i+1,j+1)-p->wd-1.0*p->DXM);
-    
-    /*
-    v1=f(i,j);
-    v2=f(i+1,j);
-    v3=f(i,j+1);
-    v4=f(i+1,j+1);*/
 
     value = 0.25*(v1+v2+v3+v4);
     
@@ -317,12 +311,6 @@ double interpolation::nhf_ipol4eta(int *wet,slice &f, slice &bed)
     
     if(wet[Ip1Jp1]==0)
     v4=MIN(f(i+1,j+1),bed(i+1,j+1)-p->wd-fac*p->DXM);
-    
-    /*
-    v1=f(i,j);
-    v2=f(i+1,j);
-    v3=f(i,j+1);
-    v4=f(i+1,j+1);*/
 
     value = 0.25*(v1+v2+v3+v4);
     
@@ -391,11 +379,6 @@ double interpolation::nhf_ipol4eta(int *wet,slice &f, slice &bed)
 
     bedvalue = 0.25*(v1+v2+v3+v4);
     }
-    
-    
-    //if(value+p->wd>bedvalue)
-    //if(value+p->wd-bedvalue<wd_criterion)
-    //value=value-1.0*wd_criterion;
     }
     
     return value;

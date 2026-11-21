@@ -1,0 +1,21 @@
+{
+ "base": "sflow_2d_si_nh_shoal_amr_mpi2",
+ "ctrl_set": {
+  "A 210": "11",
+  "M 10": "2"
+ },
+ "description": "sflow_2d_si_nh_shoal_amr_mpi2 with A 210 11: 2D BCG with the transverse terms on the patch across two ranks (1 rank: the same to 1e-7 m).",
+ "tags": [
+  "2d",
+  "nonhydrostatic",
+  "amr",
+  "mpi",
+  "sflow",
+  "semi_implicit"
+ ],
+ "covers": [
+  "advection_bcg on patches across ranks",
+  "sflow_amr::si_timestep: the advective limit of A 210 11"
+ ],
+ "architect": "Hans Bihs"
+}

@@ -1,0 +1,20 @@
+{
+ "base": "cfd_3d_dambreak_amr_twoproj",
+ "np": 2,
+ "steps": 20,
+ "ctrl_add": [
+  "G 29 1"
+ ],
+ "description": "cfd_3d_dambreak_amr_twoproj with G 29 1: 3D, 2 ranks, the four children columns of a coarse cell.",
+ "tags": [
+  "quick",
+  "3d",
+  "dambreak",
+  "levelset",
+  "amr",
+  "mpi"
+ ],
+ "covers": [
+  "G 29 in 3D on 2 ranks"
+ ]
+}

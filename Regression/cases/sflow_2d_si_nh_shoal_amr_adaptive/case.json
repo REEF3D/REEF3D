@@ -1,0 +1,24 @@
+{
+ "base": "sflow_2d_si_nh_shoal",
+ "ctrl_set": {
+  "A 228": "0.04"
+ },
+ "ctrl_add": [
+  "G 1 1",
+  "G 2 4",
+  "G 20 0.0008"
+ ],
+ "description": "sflow_2d_si_nh_shoal with adaptive refinement (G 2 4, flags from the surface gradient G 20): the patches follow the wave crests, the composite coupled system on the changing leaf cells.",
+ "tags": [
+  "2d",
+  "sflow",
+  "semi_implicit",
+  "nonhydrostatic",
+  "amr",
+  "adaptive"
+ ],
+ "covers": [
+  "sflow_amr::si_nh_solve with regridding (nhV/nhZ kept per patch)"
+ ],
+ "architect": "Hans Bihs"
+}

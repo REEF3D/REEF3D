@@ -1,0 +1,4 @@
+{"base": "nhflow_3d_x15_11_hemisphere", "np": 2,
+ "description": "nhflow_3d_x15_11_hemisphere on two ranks: the fractions, the body velocities at the faces, the columns near the body and the added-mass solve across the subdomain border.",
+ "tags": ["3d", "nhflow", "6dof", "floating", "mpi"],
+ "covers": ["X 15 11 on several ranks"]}

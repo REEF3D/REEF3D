@@ -3,7 +3,7 @@
 // rho g (sum A r^2 + V z_B) of the tilted body; the Morison inertia force on a held column in deep-water waves against the
 // integral of the linear kinematics; the dynamic pressure on the end face against linear theory; the free heave of a
 // column with its end added mass against T = 2 pi sqrt((m + Ca rho D^3/6)/(rho g A)); kinematics cached at the
-// undisplaced strips = exact on a held body; the keyword.
+// undisplaced strips = exact on a held body; the keyword; drag_only (the drag beside a potential-flow model).
 // Architect: Hans Bihs
 #include"coral/hydro/coral_strip_hydro.h"
 #include"coral/core/coral_model.h"
@@ -177,12 +177,43 @@ static void test_input()
           "strip_member: channels _Fx .. _Mz, _V; submerged volume and buoyancy");
 }
 
+// drag_only: beside a potential-flow model only the drag of the members and ends (HydroDyn's PropPot members)
+static void test_drag_only()
+{
+    std::cout<<"drag_only"<<std::endl;
+    coral_case c;
+    c.read_string("time dt 0.05 end 1\nbody f mass 1e6 cog 0 0 -5 velocity 0.5 0 -0.3\n"
+                  "strip_member col body f p1 0 0 -10 p2 0 0 5 D 6 Cd 0.8 n 15 end1 Cd_end 9.6 drag_only\n", ".");
+    load *l = nullptr;
+    for(auto &q : c.m.load_list) if(q->name()=="col") l = q.get();
+    std::vector<double> v;
+    if(l) l->channel_values(c.m, 0.0, v);
+    // still water: the normal drag of the 10 m below the surface and the axial drag of the end disc
+    const double Fx = -0.5*RHO*0.8*6.0*10.0*0.5*0.5, Fz = 0.5*RHO*9.6*0.25*M_PI*36.0*0.3*0.3;
+    check(l && std::fabs(v[0] - Fx) < 1e-6*std::fabs(Fx) && std::fabs(v[2] - Fz) < 1e-6*Fz && std::fabs(v[1]) < 1e-9,
+          fmt("drag_only in still water: Fx %.1f N (drag %.1f), Fz %.1f N (end drag %.1f), no buoyancy", l ? v[0] : 0.0, Fx, l ? v[2] : 0.0, Fz));
+    coral_case w;
+    w.read_string("time dt 0.05 end 1\nwaves regular H 2 T 8\nwaves depth 50\nbody f mass 1e6 cog 0 0 -5\n"
+                  "strip_member col body f p1 0 0 -10 p2 0 0 5 D 6 Cd 0 n 15 end1 Cd_end 0 drag_only\n", ".");
+    l = nullptr;
+    for(auto &q : w.m.load_list) if(q->name()=="col") l = q.get();
+    double e = 0.0;
+    for(double t : {0.0, 1.0, 2.0, 3.0})
+    {
+        v.clear();
+        if(l) l->channel_values(w.m, t, v);
+        for(int i=0; l && i<6; ++i) e += std::fabs(v[i]);
+    }
+    check(l && e < 1e-9, fmt("drag_only with Cd 0 in waves: no buoyancy, Froude-Krylov, added mass or end pressure (%.1e N)", e));
+}
+
 int main()
 {
     test_hydrostatics();
     test_waves();
     test_heave_decay();
     test_input();
+    test_drag_only();
     std::cout<<(nfail ? "FAILED: " : "all passed")<<(nfail ? std::to_string(nfail) : "")<<std::endl;
     return nfail ? 1 : 0;
 }

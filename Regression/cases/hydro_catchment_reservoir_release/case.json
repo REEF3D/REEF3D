@@ -1,0 +1,24 @@
+{
+ "description": "hydro_catchment_reservoir 2 m below the crest with a release of 0.5 m3/s (hydro_release_1.dat)",
+ "solver": "sflow",
+ "np": 1,
+ "steps": 720,
+ "files": [
+  "catchment_dem.asc",
+  "geo.dat",
+  "hydro_forcing.dat",
+  "hydro_param.dat",
+  "hydro_reservoir.dat",
+  "hydro_release_1.dat"
+ ],
+ "tags": [
+  "quick",
+  "hydro",
+  "catchment",
+  "reservoir"
+ ],
+ "covers": [
+  "hydro_core_reservoir.cpp",
+  "hydro_core::route with reservoirs"
+ ]
+}

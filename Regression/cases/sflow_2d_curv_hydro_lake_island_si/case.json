@@ -1,0 +1,22 @@
+{
+ "base": "sflow_2d_curv_hydro_lake_island",
+ "np": 1,
+ "steps": 60,
+ "ctrl_add": [
+  "A 210 13",
+  "A 228 1.0"
+ ],
+ "description": "sflow_2d_curv_hydro_lake_island with the semi-implicit scheme (A 210 13).",
+ "tags": [
+  "quick",
+  "2d",
+  "sflow",
+  "curvilinear",
+  "wetdry",
+  "hydro",
+  "semi_implicit"
+ ],
+ "covers": [
+  "the HYDRO sources in the eta system on the curvilinear grid"
+ ]
+}

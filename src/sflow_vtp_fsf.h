@@ -78,7 +78,6 @@ private:
     sflow_print_wsfline_y *pwsfline_y;
     sflow_print_probe_da *pprobe;
     sflow_state *pstate;
-    sflow_state *pstate_restart;
     fnpf_print_Hs *phs;
     sflow_print_max *pmax = nullptr;
 };

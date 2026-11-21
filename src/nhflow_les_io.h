@@ -66,7 +66,6 @@ public:
     void offset_ParaView_2D(lexer*, int*, int &) override final {};
 
 private:
-    void tau_calc(fdm_nhf*, lexer*, double);
     void kepsini_default(lexer*,fdm_nhf*,ghostcell*);
 
 	float ffn;

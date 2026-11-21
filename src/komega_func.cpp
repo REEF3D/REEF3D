@@ -40,12 +40,6 @@ komega_func::~komega_func()
 {
 }
 
-void  komega_func::clearfield(lexer *p, fdm*  a, field& b)
-{
-	LOOP
-	b(i,j,k)=0.0;
-}
-
 void komega_func::isource(lexer *p, fdm* a)
 {
     if(p->T33==0)
@@ -159,13 +153,10 @@ void komega_func::eddyvisc(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans)
         if(i>=p->knox || p->flag4[IJK]<0)   // stay inside the local subdomain and the fluid
         continue;
 
+		// no eddy viscosity in the air next to the boundary; the water keeps the value from above (it was
+        // set back to the T 34 1 value here, without the URANS factor T 10 22 and the stabilization T 41)
 		if(a->phi(i,j,k)<0.0)
 		a->eddyv(i,j,k)=MIN(a->eddyv(i,j,k),1.0e-4);
-        
-        if(a->phi(i,j,k)>=0.0)
-		a->eddyv(i,j,k) = MAX(MIN(MAX(kin(i,j,k)
-						  /((eps(i,j,k))>(1.0e-20)?(eps(i,j,k)):(1.0e20)),0.0),fabs(p->T31*kin(i,j,k))/(strainterm(p,a)+1.0e-20)),
-						  0.0001*a->visc(i,j,k));
 		}
     }
     
@@ -184,7 +175,7 @@ void komega_func::eddyvisc(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans)
         epsi = p->T38*(1.0/2.0)*(p->DXN[IP] + p->DZN[KP]); 
         
         
-        // dimensionless weight, 1 at the interface and 0 at the band edge (was the 1/m delta function capped at 1)
+        // dimensionless weight, 1 at the interface and 0 at the band edge
         if(fabs(a->phi(i,j,k))<epsi)
         dirac = 0.5*(1.0 + cos((PI*a->phi(i,j,k))/epsi));
             
@@ -253,15 +244,12 @@ void komega_func::epssource(lexer *p, fdm* a, vrans* pvrans, field &kin)
         {
 		a->M.p[count] += kw_beta * MAX(eps(i,j,k),0.0);
 
-        // alpha omega/k P(nu_t0): with nu_t0 = k/omega this is alpha S^2; it is bounded by alpha S^2 where
-        // nu_t0 exceeds k/omega (the lower clip 1e-4 nu when k -> 0), otherwise omega/k blows up
-        const double ratio = MAX(eps(i,j,k),0.0)/(kin(i,j,k)>(1.0e-10)?(fabs(kin(i,j,k))):(1.0e20));
+        // production of omega alpha S^2, S^2 = 2 Sij Sij: the form with the unlimited nu_t = k/omega
+        // (Wilcox 1988; Menter's SST). With the limited eddy viscosity, alpha omega/k nu_t0 S^2, the production
+        // was proportional to omega wherever the limiter T 34 was active (omega < S/T31): omega could not grow
+        // from a small value, k had no dissipation and grew at the rate T31 S (free surface, start from rest)
         const double pk0 = pk(p,a,eddyv0);
 
-        if(ratio*eddyv0(i,j,k)<=1.0)
-        a->rhsvec.V[count] +=  kw_alpha * ratio * pk0;
-
-        if(ratio*eddyv0(i,j,k)>1.0)
         a->rhsvec.V[count] +=  kw_alpha * pk0/eddyv0(i,j,k);
 
         ++count;
@@ -316,7 +304,3 @@ void komega_func::epsfsf(lexer *p, fdm* a, ghostcell *pgc, ioflow *pflow)
 	}
 	}
 }
-
-
-
-

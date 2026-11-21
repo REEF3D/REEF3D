@@ -129,15 +129,11 @@ void net_sheet::updateField_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, int cmp
 		{
 			if (count[p->mpirank] > 0)
 			{
-			//	cout<<"Processor "<<p->mpirank<<" sends "<<count[p->mpirank]<<" elements to processor "<<j<<endl;
-				
 				MPI_Isend(sendField,count[p->mpirank],MPI_DOUBLE,j,1,pgc->mpi_comm,&sreq[j]);
 			}
 			
 			if (count[j] > 0)
 			{
-			//	cout<<"Processor "<<p->mpirank<<" receives "<<count[j]<<" elements from processor "<<j<<endl;					
-		
 				MPI_Irecv(recvField[j],count[j],MPI_DOUBLE,j,1,pgc->mpi_comm,&rreq[j]);
 			}
 		}

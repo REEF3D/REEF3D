@@ -1,0 +1,22 @@
+{
+ "description": "sflow_2d_wetdry_island with the semi-implicit step (A 210 11, A 220 3, theta 0.5): wetting and drying on the beach and around the island in the coupled eta-P system.",
+ "solver": "sflow",
+ "np": 1,
+ "steps": 100,
+ "tags": [
+  "quick",
+  "2d",
+  "sflow",
+  "wetdry",
+  "nonhydrostatic",
+  "semi_implicit"
+ ],
+ "covers": [
+  "sflow_momentum_SI with the bed of A 209 from the old values",
+  "sflow_eta::wetdry: closed cells with the semi-implicit step"
+ ],
+ "files": [
+  "geo.dat"
+ ],
+ "architect": "Hans Bihs"
+}

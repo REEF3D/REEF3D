@@ -1,0 +1,18 @@
+{
+ "base": "sflow_2d_hydro_amr_source_si",
+ "np": 2,
+ "steps": 60,
+ "description": "sflow_2d_hydro_amr_source_si on 2 ranks: the patch and the point source on the ranks of the partition.",
+ "tags": [
+  "quick",
+  "2d",
+  "sflow",
+  "hydro",
+  "amr",
+  "semi_implicit",
+  "mpi"
+ ],
+ "covers": [
+  "sflow_amr::hydro_prepare and hydro_sinks across ranks"
+ ]
+}

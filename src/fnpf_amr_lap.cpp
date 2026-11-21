@@ -100,14 +100,11 @@ enum { NR=REEFAMR_NR, NRH=REEFAMR_NRH, NPV=REEFAMR_NPV, NVV=REEFAMR_NVV, NS=REEF
 const int LPASS = 1;
 
 // smoothing sweeps (pre and post) of the patch-local V-cycles of the FAC sweep.  With the pre-
-// smoothing one sweep is enough (moored box, 700 steps: max 4 iterations, 8 % less Laplace time
-// than two sweeps)
+// smoothing one sweep is enough
 const int PSWEEP = 1;
 
 // safety net: a solve that stagnates again after a BiCGStab restart stops if its relative
-// residual is below STAGTOL*N 44 (0: run to N 46).  With the coarse-first FAC sweep of the
-// first version about 2 % of the psi solves of a moored box stagnated at 1e-8..3e-7 relative;
-// with the pre-smoothing neither the restart nor the stop has triggered
+// residual is below STAGTOL*N 44 (0: run to N 46)
 const double STAGTOL = 100.0;
 
 inline long ijk4(const lexer *q, int ii, int jj, int kk)
@@ -269,7 +266,7 @@ void fnpf_amr::lap_prepare(ghostcell *pgc)
             // the patch-local cycles stay on the CPU.  A 2D grid solves level 0 exactly (xz0), no device
             if(sy!=0)
             {
-                mg0->set_device(p0->N16);
+                mg0->set_device(reefmg_core::vcycle_device(p0->N16));   // N 16 2, 4: the V-cycle device
                 mg0->set_device_cycle(p0->N17,p0->N19);
                 mg0->set_device_precision(p0->N21);
             }
@@ -317,7 +314,38 @@ void fnpf_amr::lap_prepare(ghostcell *pgc)
             L.lq.push_back(L.aq[n]);
             L.lr.push_back(L.ar[n]);
         }
+
+        // A 310 5: the leaf rows of the in-column couplings of the Robin rows (xcol)
+        L.leaf.clear();
+        if(!M.xcol.empty())
+        {
+            lexer *q = glex(g);
+            L.leaf.assign((size_t)q->imax*q->jmax*(q->kmax+2),0);
+            for(int qq : L.lq)
+            L.leaf[qq] = 1;
+        }
     }
+
+    // A 310 5: the in-column couplings xcol of the Robin rows (row knoz-1 to knoz-3, knoz-4, ... of the sz stencils
+    // of 5 and 7 points) are added to the k-1 coupling of the row in the V-cycles of the preconditioner, as in
+    // REEFMG (reefmg::fill_matrix8): the row sums, which carry the constant mode of a column, are exact; lap_apply
+    // multiplies with the couplings themselves
+    auto lump = [&](reefmg_core *mg, sc_level &L, const matrix_diag &M, int di, int dj, int nx, int ny)
+    {
+        for(const matrix_diag::colcoupling &X : M.xcol)
+        {
+            const int ii = X.i-di, jj = X.j-dj;
+            if(ii<0 || ii>=nx || jj<0 || jj>=ny)
+            continue;
+            const long lq = L.idx(ii,jj,X.k);
+            if(!L.act[lq])
+            continue;
+            if(mg->precision()==32)
+            L.bf[lq] += (float)X.v;
+            else
+            L.b[lq] += X.v;
+        }
+    };
 
     auto clear = [](sc_level &L)
     {
@@ -354,6 +382,7 @@ void fnpf_amr::lap_prepare(ghostcell *pgc)
             lap_coef(mg0,L,lq,M.p[r],M.n[r],M.s[r],M.w[r],M.e[r],M.t[r],M.b[r]);
             L.act[lq] = fixed(M,r) ? 0 : 1;
         }
+        lump(mg0,L,M,0,0,p0->knox,p0->knoy);
         // a 2D grid: level 0 is one x-z problem, solved exactly (reefamr_xzlu; several ranks: the
         // problem of all ranks on every rank)
         xz0on = false;
@@ -400,6 +429,7 @@ void fnpf_amr::lap_prepare(ghostcell *pgc)
                      (jj+1<EY+c->ny) ? M.w[r] : 0.0,(jj-1>=EY) ? M.e[r] : 0.0,M.t[r],M.b[r]);
             L.act[lq] = fixed(M,r) ? 0 : 1;
         }
+        lump(c->mg,L,M,EXT,EY,c->nx,c->ny);
         // a 2D grid: the patch-local problem is an x-z problem, solved exactly (reefamr_xzlu) instead
         // of the V-cycle
         if(sy==0)
@@ -467,9 +497,8 @@ bool fnpf_amr::lap_same(ghostcell *pgc, int wkey)
 // a 2D grid: the exact factorisation of a grid is kept for the other solves of the step (key: the
 // layout, the window and the step of the factorisation).  The coefficients follow the free
 // surface: the factorisation of the first solve of the step is the preconditioner for its other
-// solves (2D flume, two levels: 0.3 % more iterations, 14 % less time; kept for 4 steps: 1.7 %
-// more iterations and no further gain).  With a body (fixed rows) refactorised when the rows
-// change (lap_same keeps it for the solves of a stage)
+// solves.  With a body (fixed rows) refactorised when the rows change (lap_same keeps it for the
+// solves of a stage)
 bool fnpf_amr::xz_keep(long *key, bool on, int wkey)
 {
     if(!on || body!=nullptr)
@@ -535,6 +564,15 @@ void fnpf_amr::lap_apply(int kx, int ky, bool d1)
             }
         }
 
+        // A 310 5: the in-column couplings of the Robin rows (xcol: rows knoz-1, nodes knoz-3, ...) of the leaf columns
+        if(!M.xcol.empty() && !L.leaf.empty())
+        for(const matrix_diag::colcoupling &X : M.xcol)
+        {
+            const int qq = fidx(q,X.i,X.j,X.k);
+            if(L.leaf[qq])
+            y[qq] += X.v*x[fidx(q,X.i,X.j,X.kc)];
+        }
+
         for(int qq : L.cq)
         y[qq] = 0.0;
     }
@@ -565,9 +603,8 @@ void fnpf_amr::lap_start()
         }
         
         // the composite residual of the preconditioner: the restriction to level 0 reads entries
-        // the residual of this solve does not write (they held those of an earlier solve, e.g. one
-        // of another level window of the subcycling): the solve did not depend on its own data only,
-        // and a restart from a checkpoint (P 48, I 45) did not continue bitwise.  (X 36: a window
+        // the residual of this solve does not write; they are cleared so that the solve depends on
+        // its own data only (a restart from a checkpoint continues bitwise).  (X 36: a window
         // without level 0 restricts and reads neither level 0 nor the patches outside it)
         if((g<0 && lap_nol0) || (g>=0 && skipped(g)))
         continue;
@@ -696,9 +733,7 @@ void fnpf_amr::lap_l0solve()
 //  4. coarse to fine: the increment of the coarser grid since its pre-smoothing interpolated
 //     into the patch interiors and added, the columns around the patches filled, then
 //     post-smoothing with patch-local V-cycles on r - A z
-//  Without step 1 (coarse correction first) the residual restricted next to a resolved body
-//  carried the unsmoothed fine error at the hull into the level-0 correction, and the roll and
-//  pitch unit-mode psi solves stagnated (1e-8..3e-7 relative, up to N 46 iterations)
+//  Step 1 keeps the unsmoothed fine error at a resolved hull out of the level-0 correction
 void fnpf_amr::lap_prec(int kr, int kz)
 {
     if(wlo>0)
@@ -927,13 +962,33 @@ void fnpf_amr::lap_core(lexer *p, ghostcell *pgc)
 
     lap_apply(-1,NVV);
 
+    // N 44 < 0 (theta-Robin, A 307: the inexact solves of the corrector passes): the residual reduced by -N 44
+    // relative to that of the initial guess, as REEFMG
+    double tol = p->N44;
+    if(tol<0.0)
+    {
+        double sb=0.0, sr=0.0;
+        for(int g=-1; g<(int)P.size(); ++g)
+        {
+            const double *b = lvec(g,NS), *ax = lvec(g,NVV);
+            for(int qq : lg[g+1].lq)
+            {
+                sb += b[qq]*b[qq];
+                sr += (b[qq]-ax[qq])*(b[qq]-ax[qq]);
+            }
+        }
+        sb = pgc0->globalsum(sb);
+        sr = pgc0->globalsum(sr);
+        tol = (sb>0.0) ? -tol*sqrt(sr/sb) : 0.0;
+    }
+
     double bn, rn;
     lap_space sp{this};
     // the psi solves of the floating bodies (fnpf_6DOF) stop at the half step once below N 44.  The
     // phi solves keep the full steps: there an earlier stop changes the iterates within N 44, which
     // the breaking detection of the AMR breaking cases turns into differences of up to 1e-3
     const bool half = (lap_kind==1);
-    int it = reefamr_bicgstab(sp,p->N44,p->N46,bn,rn,&tm[2],&tm[3],&lap_restarts,STAGTOL*p->N44,&lap_stalls,half);
+    int it = reefamr_bicgstab(sp,tol,p->N46,bn,rn,&tm[2],&tm[3],&lap_restarts,STAGTOL*tol,&lap_stalls,half);
 
     const double res = bn>0.0 ? rn/bn : 0.0;
     lap_it_total += it;
@@ -956,7 +1011,7 @@ void fnpf_amr::lap_core(lexer *p, ghostcell *pgc)
     p->final_res = res;
 
     // the uniform REEFMG path warns at the iteration limit; a stalled composite solve was silent
-    if(it>=p->N46 && res>p->N44)
+    if(it>=p->N46 && res>tol)
     {
         ++lap_capped;
         if(p->mpirank==0)
@@ -1036,7 +1091,8 @@ void fnpf_amr::lap_solve(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, f
     // breaking (A 350 1): detection on the patch stage values, the viscosity of the cells around
     // the patches from their source grid (level 0 has detected in fnpf_RK3 before this solve,
     // after the stage values: alpha 1, 1/2, 1)
-    if(brk)
+    // (theta-Robin: at the end of the step, theta_breaking)
+    if(brk && !theta_mode)
     patch_breaking(-1,pgc,stg,(stg==1) ? 0.5 : 1.0);
 
     // the patches: free-surface derivatives, sigma grid, boundary conditions

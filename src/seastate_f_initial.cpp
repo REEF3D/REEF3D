@@ -57,13 +57,18 @@ spreading conserves the energy of S exactly.
                         used as the boundary spectrum (A 711 1) and as
                         the input spectrum of the surfbeat boundary
                         (A 770 1, multi-frequency grid A 701-703)
-  initial_parametric    the same spectrum in every active cell (A 710 1)
+  initial_parametric    the same spectrum in every active cell (A 710 1);
+                        with A 727 x0 x1 y0 y1 (x1 >= x0) only in the
+                        cells with the centre inside the box, the others
+                        empty (a swell field of finite extent, the test
+                        of the garden-sprinkler effect, Phase 25)
 --------------------------------------------------------------------*/
 
 void seastate_f::initial_parametric(lexer *p, ghostcell *pgc)
 {
     std::vector<float> N;
     parametric_spectrum(p,pgc,*e->grid,N,"A 710 1");
+    const bool box = (p->A727_x1>=p->A727_x0);
 
     // the rows shared out to the threads (A 798, Phase 13): they touch the pages of the spectra first
     const int nt = std::max(1,std::min(p->A798,p->knox+2*p->margin));
@@ -74,7 +79,12 @@ void seastate_f::initial_parametric(lexer *p, ghostcell *pgc)
         if(e->wet(ii,jj)==1)
         {
         float *s = e->N->spec(ii,jj);
-        std::copy(N.begin(),N.end(),s);
+        const bool in = !box || (p->XP[ii+marge]>=p->A727_x0 && p->XP[ii+marge]<=p->A727_x1
+                                 && p->YP[jj+marge]>=p->A727_y0 && p->YP[jj+marge]<=p->A727_y1);
+            if(in)
+            std::copy(N.begin(),N.end(),s);
+            else
+            std::fill(s,s+N.size(),0.0f);
         }
     };
     seastate_implicit::run_threads(nt,job);

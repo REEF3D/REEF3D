@@ -40,15 +40,16 @@ void sixdof_obj::print_parameter(lexer *p, ghostcell *pgc, double t)
 	if(p->mpirank==0 && p->count%p->X19==0)
     {
         ofstream print;
-        char str[1000];
-        
-        
+
         printpos<<t<<" \t "<<p->xg<<" \t "<<p->yg<<" \t "<<p->zg<<" \t "<<phi*(180/PI)<<" \t "<<theta*(180/PI)<<" \t "<<psi*(180/PI)<<endl;
 
 
         printvel<<t<<" \t "<<p->ufbi<<" \t "<<p->vfbi<<" \t "<<p->wfbi<<" \t "<<p->pfbi<<" \t "<<p->qfbi<<" \t "<<p->rfbi<<endl;
 
     }
+    
+    // deforming body (X 195)
+    print_fish(p,t);
     
     // load models (ship module)
     for(size_t ql=0; ql<pload.size(); ++ql)

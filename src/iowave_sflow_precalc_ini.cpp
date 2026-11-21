@@ -22,7 +22,6 @@ Author: Hans Bihs
 
 #include"iowave.h"
 #include"lexer.h"
-#include"fdm.h"
 #include"ghostcell.h"
 
 void iowave::wavegen_2D_precalc_ini(lexer *p, ghostcell *pgc)

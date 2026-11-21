@@ -1,0 +1,4 @@
+{"np": 1, "steps": 60,
+ "description": "A barge in shallow water (2D, 0.8 m wide, draught 0.11 m in 0.18 m of water, density 500, heave and pitch free) at rest on the CFD mesh refinement (G 1 1, a refined box around the hull, G 7 0) with the one-step scheme N 40 5 and the settings of the lock runs (N 54, N 57, N 59 2, N 63 3, X 48 3, G 8, G 29). The added mass of the water below the hull is several times the mass of the barge. The loads settle to the weight within 40 steps and the barge stays at its draught. hans_dev e2c75ddb0: the vertical load oscillates and grows (3800 N after 60 steps, the weight is 17 N), the barge leaves its draught (patch Ship Hydrodynamics/0062).",
+ "tags": ["quick", "2d", "6dof", "floating", "levelset", "amr"],
+ "covers": ["cfd_amr: no artificial added mass of the bodies with N 40 5", "sixdof_obj_cfd::solve_eqmotion_cfd: the first step of N 40 5 without loads", "driver::loop_cfd: growth of the time step with free bodies and N 40 5"]}

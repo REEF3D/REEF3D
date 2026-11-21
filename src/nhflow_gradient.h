@@ -70,10 +70,19 @@ public:
 	double grad1,grad2;
 	double grad;
 	
+    // wall-function bed (A 518 1 with bed friction A 519): the derivatives of U and V of this fdm in the bed cell
+    // from the log law, not from the ghost cells (nhflow_gradient.cpp)
+    void bedwall_set(fdm_nhf*);
     
     lexer *p;
     
 private:
+    bool bedwall(const double*);
+    double dfdsig_bed(const double*);
+    double dfdsig_c(const double*);
+    
+    fdm_nhf *bw_d=nullptr;
+    
     double dfdx_min, dfdx_plus, dfdy_min, dfdy_plus, dfdz_min, dfdz_plus;
     double denom,val;
     

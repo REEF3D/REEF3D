@@ -30,7 +30,6 @@ Author: Hans Bihs
 class lexer;
 class fdm_fnpf;
 class ghostcell;
-class field;
 class ioflow;
 
 using namespace std;
@@ -43,17 +42,12 @@ public:
 
 	void height_gauge(lexer*, fdm_fnpf*, ghostcell*,ioflow*);
 
-
 private:
-	
 	double *x,*y;
 	int gauge_num;
 
-    int *iloc,*jloc,*flag;
-    double *wsf;
     int n;
     ofstream wsfout;
-
 };
 
 #endif

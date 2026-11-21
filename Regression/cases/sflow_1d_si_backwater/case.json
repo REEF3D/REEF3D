@@ -1,5 +1,5 @@
 {
- "description": "SFLOW semi-implicit (A 226 1): 1D river 4 km, discharge 20 m3/s (B 60 1, W 10) in, water level 1.5 m out (F 50 2, F 62), Manning (B 50 0.05), slope 5e-4; the steady M1 backwater curve matches the standard-step solution to 5 mm.",
+ "description": "SFLOW semi-implicit (A 210 13): 1D river 4 km, discharge 20 m3/s (B 60 1, W 10) in, water level 1.5 m out (F 50 2, F 62), Manning (B 50 0.05), slope 5e-4; the steady M1 backwater curve matches the standard-step solution to 5 mm.",
  "solver": "sflow",
  "np": 1,
  "steps": 400,

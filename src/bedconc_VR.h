@@ -43,6 +43,8 @@ private:
 	double rhosed,rhowat;
 	double Ti,Ds;
     double adist,zdist,deltab;
+    
+    double rouse_mean(double a, double zt, double h, double P);
 
 };
 #endif

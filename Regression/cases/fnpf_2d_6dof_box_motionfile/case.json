@@ -1,0 +1,29 @@
+{
+ "base": "fnpf_2d_6dof_box",
+ "ctrl_set": {
+  "X 11": "0 0 2 0 0 0",
+  "B 90": "0",
+  "B 92": null,
+  "B 93": null
+ },
+ "ctrl_add": [
+  "X 240 1"
+ ],
+ "files": [
+  "6DOF_motion.dat"
+ ],
+ "np": 1,
+ "steps": 200,
+ "description": "fnpf_2d_6dof_box in still water in forced heave from a motion file (X 240 1, absolute CoG positions z = 0.53 + 0.02 sin 4t, samples every 0.01 s), A 310 3: the velocity and the position of the body at the time each RK3 stage ends (t+dt, t+dt/2, t+dt), the time of the next Laplace solve.",
+ "tags": [
+  "2d",
+  "fnpf",
+  "6dof",
+  "motionfile"
+ ],
+ "covers": [
+  "sixdof_obj::motion_stage_begin / motion_stage_end (FNPF rk3)",
+  "sixdof_motionext_file::stage_begin offset to an absolute file"
+ ],
+ "architect": "Hans Bihs"
+}

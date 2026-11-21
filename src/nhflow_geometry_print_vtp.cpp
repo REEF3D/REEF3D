@@ -71,7 +71,6 @@ void nhflow_geometry::print_vtp(lexer *p, int mode)
 
     //----------------------------------------------------------------------------
     int q,iin,m;
-    float ffn;
     double ddn;
 
     //  XYZ

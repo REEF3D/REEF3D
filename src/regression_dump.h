@@ -90,6 +90,12 @@ public:
     void seastate_step(lexer*, fdm_seastate*, ghostcell*);
     void seastate_final(lexer*, fdm_seastate*, ghostcell*);
 
+    // a model that collects its own fields (REEF3D::HYDRO catchment model, R 100 1): p->count and p->simtime
+    // are the step and time of that model
+    void model_ini(lexer*, const std::string &header);                  // header of the step lines
+    void model_step(lexer*, const std::vector<double> &sums);           // count simtime dt sums
+    void model_state(lexer*, const std::vector<std::string>&, const std::vector<std::vector<double>>&);
+
 private:
     void cfd_state(lexer*, fdm*, turbulence*, concentration*);
     void cfd_collect(lexer*, fdm*, turbulence*, concentration*);

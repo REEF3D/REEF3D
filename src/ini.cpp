@@ -30,7 +30,7 @@ void control::ini_default()
     
     // SFLOW
     A209=1;      // int interpolation sweeps for bed
-    A210=3;		  // int time scheme for SFLOW velocities
+    A210=3;		  // int time scheme for SFLOW velocities: 2 / 3 explicit SSP-RK2 / RK3, 11 / 12 / 13 semi-implicit with a one-step (BCG) / SSP-RK2 / RK3 predictor
     A211=4;		  // int convection scheme for SLOW velocities
     A212=-1;	  // int diffusion treatment for SFLOW velocities (-1: not set, becomes 1 with a turbulence model A 260 > 0, else 0)
     A213=1;      // int SFLOW WENO5 nonlinear weights (A 211 4): 0 WENO-JS, 1 WENO-Z (default), 2 TENO5
@@ -40,24 +40,23 @@ void control::ini_default()
     A218=0;      // int turn on roughness
     A219=1;      // int additional courant number constraint
     A220=2;		  // int non-hydrostatic pressure scheme for SFLOW
-    A221=1;		  // int non-hydrostatic pressure in very shallow regions
+    A221=1;		  // int SFLOW non-hydrostatic pressure at the shoreline: 0 off within two cells of a dry cell, 1 off in the cells next to a dry cell, 2 as 1 and dry land above the water of a cell deeper than its cell size is a wall (sflow_drywall.h)
     A222=1.0e-5; // double SFLOW TENO5 cutoff C_T (A 213 2)
-    A223=0.5;    // double blending factor hydrostatic pressure gradient
     A224=1.159;  // double dispersion parameter alpha for A 220 3 (1: quadratic, 1.159: optimised)
     A240=1;      // int FSF algorithm SFLOW
     A242=0;          // int non-hydostatic pressure for shallow areas
-    A243=2;      // int turn on wetting-drying
+    A243=2;      // int turn on wetting-drying (SFLOW explicit and semi-implicit; 0 off)
     A244=0.001; // double absolute wetting criterion value
     A246=1;      // int turn on breaking
     A247=0.6;    // double breaking parameter alpha
     A248=0;      // int turn on breaking persistence
     A249=0.3;    // double breaking persistence parameter beta
     A250=1.86;   // double viscosity breaking wave
-    A226=0;      // int SFLOW free surface: 0 explicit (HLL), 1 semi-implicit theta method
+    A226=0;      // int SFLOW free surface: 0 explicit (HLL), 1 semi-implicit theta method (set from A 210 12 / 13, lexer_read)
     A227=0.55;   // double SFLOW semi-implicit: implicitness theta of the free surface
     A228=0.0;    // double SFLOW semi-implicit: maximum time step (s), 0 no cap
-    A229=1;      // int SFLOW semi-implicit: wetting and drying iteration (Casulli 2009), 0 off
-    A232=0.05;   // double SFLOW semi-implicit: depth below which the cell velocities of the momentum predictor are desingularised
+    A229=1;      // int SFLOW semi-implicit: wetting and drying iteration (Casulli 2009), 0 off (set from A 243, lexer_read)
+    A232=0.05;   // double SFLOW thin water depth: semi-implicit, below it the cell velocities of the momentum predictor are desingularised; with B 60, below it the Froude number next to a dry cell is limited to 0.1 A 531
     A231=0.0;    // double SFLOW semi-implicit: mass flux dissipation for transcritical flow, 0 off
     A251=0;    // double fsf-slope in x-dir
     A260=0;      // int turbulence model
@@ -68,61 +67,73 @@ void control::ini_default()
 
 
     // FNPF
+    A305=0.5;    // double FNPF theta of the theta-Robin time integration (A 310 5), A 300 before fnpf_theta_robin/0012
+    A301_1=0.0;  // double FNPF initial standing wave: amplitude [m], 0 off
+    A301_2=1.0;  // double FNPF initial standing wave: wave length [m]
+    A304=1.0e-3; // double FNPF theta-Robin (A 310 5): corrector stops when the change is below A304 times the solution (0: always A302 passes)
+    A379_1=0.0;  // double FNPF theta-Robin (A 310 5), A 343 >= 1: theta + A379_1 within A379_2 [m] of the still-water coastline (0: off; patch 0034)
+    A379_2=0.0;  // double FNPF theta-Robin (A 310 5): distance [m] from the still-water coastline of A 379
+    A333=0.0;    // double FNPF theta-Robin (A 310 5), A 343 >= 1: > 0 the coastline relaxation per time as RK3 at N 47 A333 (0: as the zones, A 303)
+    A303=-200.0; // double FNPF theta-Robin (A 310 5): relaxation zones, >0: factors r^(dt/A303); 0: r per step; -1<A303<0: per time as the three RK3 stages at N 47 -A303; <=-1: as an RK3 run with -A303 steps per period of the wave input (patch 0032); per step at least as one RK3 step
+    A306=1;      // int FNPF theta-Robin (A 310 5): linear solver, 1 REEFMG (N 10 1, 2D/3D, MPI), 2 Eigen SparseLU (2D, serial)
+    A308=0.0;    // double FNPF theta-Robin (A 310 5, A 305 0.5): safety factor c of the 4th-order phase (Newmark beta = max(1/12, 1/4 - 1/(c omega_max dt)^2)); 0: Crank-Nicolson (beta 1/4)
+    A307=1.0e-2; // double FNPF theta-Robin (A 310 5), REEFMG with corrector passes: each solve reduces its residual by A307 from the warm start (0: N 44)
+    A302=4;      // int FNPF theta-Robin (A 310 5): max corrector passes (sigma grid of eta^n+1, N at t^n+1/2 trapezoidal, cross terms of the last solution)
     A309=1;      // int interpolation sweeps for bed
     A310=3;		  // int time scheme for FNPF velocities
     A311=5;		  // int convection scheme for FNPF velocities
     A312=2;      // int discretization for second-order gradient
     A313=3;      // int discretization for bed bc
     A314=2;      // int linear/non-linear
-    A315=1;      // int eta gradient treatment: 0 legacy, 1 kinematic FSBC upwinded by dH/deta_x and symmetric at zero speed, 2 as 1 plus symmetric Ex,Ey for geometry (sigma metrics, breaking, wind, dynamic FSBC), 3 as 1 with the Godunov gradient (sonic points) in the kinematic FSBC
-    A316=1;      // int wet-dry WENO5 near the shoreline: 0 legacy (zero gradient), 1 first-order fallback from wet neighbours
-    A317=1;      // int bed metrics: 0 legacy (Bxx=Byy=0, left-biased Bx without wetting-drying), 1 bed curvature on, symmetric Bx
+    A316=-1;     // int wet-dry WENO5 near the shoreline: 0 legacy (zero gradient), 1 first-order fallback from wet neighbours; -1 (not given): 1 with dynamic wetting-drying (A 343 2/3), 0 with the static coastline (A 343 0/1)
     A318=0;      // int WENO5 nonlinear weights for FNPF free-surface gradients: 0 WENO-JS, 1 WENO-Z, 2 TENO5
     A319=1.0e-5; // double TENO5 cutoff C_T for FNPF (A318 2)
     A320=1;		  // int order of Laplace equation
+    A430=0.0;    // double FNPF Laplace, RK3/RK4 stage solves (REEFMG): residual tolerance relative to the right-hand side of the potential without its mean surface value (0: N 44, relative to the full right-hand side)
+    A321=2;      // int FNPF Laplace, RK3/RK4 stage solves: 1 start value extrapolated in time from the solution of the last step (one 3D array), 2 (default) as 1 and the coarse levels of REEFMG of the first stage solve kept for the other stages of the step; 0 start value and coarse levels as before 11 November 2026
     A324=0;      // int FNPF Laplace: max Picard iterations for the explicit sigma cross-derivative terms (0 = lagged by one RK stage, legacy)
     A325=1.0e-3; // double FNPF Laplace: Picard stop when the change is below A325 times the change of the first solve (A324>0)
-    A328=0;      // int FNPF Laplace: 1 sigma cross-derivatives implicit, 15-point (2D: 9-point) operator in REEFMG's BiCGStab, 7-point V-cycle preconditioner (N 10 1 only); 0 explicit
+    A328=-1;     // int FNPF Laplace: 1 sigma cross-derivatives implicit, 15-point (2D: 9-point) operator in REEFMG's BiCGStab, 7-point V-cycle preconditioner (N 10 1 only); 0 explicit; default: 1 with RK4 (A 310 4) and REEFMG, else 0
     A326=0.0;    // double static coastline (A343 1): coastline relaxation towards the running mean of eta, Fi over this time scale (s) instead of 0; 0 = relax to 0
-    A327=1;      // int FNPF free-surface vertical velocity Fz: 0 legacy index-space one-sided stencil, 1 Fornberg weights on the sigma nodes ZN
     A329=1;      // int wave maker BC order
     
     
     A330=10;     // int dynamic wetting-drying (A343 2/3): minimum number of time steps a rewetted cell stays wet
     A331=1.0;    // double dynamic wetting-drying (A343 2/3): rewetting hysteresis margin as factor of A344
-    A332=2;      // int dynamic wetting-drying (A343 2/3): width in cells of the front viscosity band (viscosity A346, needs A350 1), 0 off
+    A332=2;      // int dynamic wetting-drying (A343 2/3): width in cells of the front viscosity band (viscosity A346 with A358 1, needs A350 1), 0 off
     A334=1;      // int dynamic wetting-drying (A343 2/3): redistribute wet-dry clamp volume to wet neighbours: 1 on, 0 off
     A335=1.0e20; // double runup (A343 2): maximum bed elevation above still water level that can become wet
     A336=1;      // int dynamic wetting-drying (A343 2/3): eta gradients at the wet-dry front from wet cells only: 1 on, 0 off
-    A337=1;      // int static coastline (A343 1): 0 legacy; 1 wet-only Fifsf clamp average, clamp volume redistribution (A334), wet-only eta gradients and Exx=0 at the coast (A336), viscosity A346 ramped inside the coastline band and in thin-film cells (WL < 10*A344); 2 as 1 but A346 only in thin-film cells (thin coastline)
+    A337=1;      // int static coastline (A343 1): 0 legacy (no coastline viscosity); 1 wet-only Fifsf clamp average, clamp volume redistribution (A334), wet-only eta gradients and Exx=0 at the coast (A336), coastline viscosity A346 (with A358 1) relaxed from 0 at the edge of the coastline band (A341, A342) to A346 at the coastline (needs A350 1, 4 or 5); 2 as 1 plus A346 in thin-film cells (WL < 10*A344); 3 as 2
     A338=1;      // int remove wet areas not connected to the main water body (coastline ini): 1 on, 0 off
     A339=1;      // int coastline initialization: 1 = fast sweeping, 0 = PDE reinitialization
     A341=0.0;    // double coastline damping distance factor for dxm
     A342=0.0;    // double coastline damping absolute distance
     A343=1;      // int wetting-drying: 0 off, 1 static coastline, 2 dynamic runup and rundown (no coastline damping), 3 dynamic rundown only
     A344=0.001; // double wetting criterion value
-    A346=1.86;    // double viscosity damping within the coastline
+    A346=1.86;   // double viscosity of the coastline viscosity, used with A358 1
     A347=1;     // int coastline relaxation for Fi and eta
     A348=1;     // int beach relaxation for Fi and eta
     A349=10.0;   // double initial coastline damping distance factor for dxm
     
     A350=0;      // int turn on breaking (which method)
     A351=3;      // int type of breaking detection (deep / shallow)
-    A352=0;      // int additional filtering to viscosity based breaking
+    A352=0;      // int additional filtering to viscosity based breaking; A 350 1: 1 shallow (flag 2), 2 deep (flag 1), 3 all; A 350 4/5: 1-3 the filter in all breaking zones; A 350 1, 4, 5: 5 instead of the filter the viscosity dx c/(4*0.5) in the depth-induced zone (A 351 1/3; c the phase speed of the 2 dx wave)
     A354=0.6;    // double breaking parameter alpha
     A355=1.25;   // double breaking parameter slope alpha
     A356=0.1;   // double breaking parameter slope beta
     A357=1;     // int breaking for Fi and eta
+    A358=0;      // int FNPF coastline viscosity A346 (needs A350 1, 4 or 5; A343 1: ramp in the coastline band A341/A342 and A337 2/3 thin-film cells; A343 2/3: front band A332): 0 off (default, as before A337), 1 on
     
     A361=5;      // int breaking filter outer iter
     A362=2;      // int breaking filter inner iter
     A365=1.86;   // double viscosity breaking wave
     A366=1.0;   // double viscosity breaking wave alpha_eta
-    A359=0.85;   // double breaking A350 4 (FNPF), A550 4 (NHFLOW): onset threshold of B = u_s/C at the crest
-    A360=8.0;    // double breaking A350 4, A550 4: termination when the largest front-face slope is below this angle (deg)
+    A359=0.85;   // double breaking A350 4/5 (FNPF), A550 4 (NHFLOW): onset threshold of B = u_s/C at the crest
+    A360=8.0;    // double breaking A350 4/5 (A350 5: bores only), A550 4: termination when the largest front-face slope is below this angle (deg)
     A364=1.0;    // double breaking A350 4: coefficient of the bore (hydraulic jump) dissipation g C H^3/(4 h_c)
-    A367=1;      // int breaking A350 4: deep-water breaking strength b(Gamma) of Derakhti et al. (2018): 1 on, 0 off
-    A369=1.64;   // double breaking A350 4: onset in deep and intermediate water at B > A359 - A369/sqrt(N), N = cells per crest wavelength (0: A359 everywhere)
+    A367=1;      // int breaking A350 4/5, A550 5: deep-water breaking strength, 0 off; A350 4: 1 b(Gamma) of Derakhti et al. (2018); A350 5: 1 b(S) = 0.4 (S - 0.08)^2.5 of Romero et al. (2012) with the breaker slope S = k H/2, 2 b(Gamma) of Derakhti et al. (2018) with Gamma fitted over |B - Bth| < A 411
+    A369=1.64;   // double breaking A350 4/5, A550 5: onset in deep and intermediate water at B > A359 - A369/sqrt(N), N = cells per crest wavelength (0: A359 everywhere); A350 5, A550 5: faded out between N = 120 and 200
     
     A370=0;      // int wind model
     A371_u=0.0;  // double wind velocity
@@ -169,6 +180,14 @@ void control::ini_default()
     A402_L=-1.0; // double ice spall length [m], <0: floe thickness
     A402_C=3.0;  // double ice spall locality: chip chord <= C*chip depth
     A402_T=1.0;  // double ice rubble lid fade-out time [s]
+    A406=3;      // int FNPF theta-Robin (A 310 5): a step whose Laplace solves fail is repeated with half the step, at most A406 times (0: off; patch 0038)
+    A404=0.44;   // double breaking A350 5 (FNPF), A550 5 (NHFLOW): limiting slope k H/2 of a breaker (Stokes 0.44): onset above 1.25 A404 whatever B, no end and the largest absorption above A404 (0: off)
+    A407=0.068;  // double breaking A350 5 (FNPF), A550 5 (NHFLOW): largest breaking strength b of the deep-water breakers (the largest b of the data of Derakhti et al. 2018; Mohanlal et al. 2023 used 0.02)
+    A408=0.75;   // double breaking A350 5, A550 5: active breaking duration of a deep-water breaker in breaker periods T_b (Derakhti et al. 2018: 0.75)
+    A409=0.25;   // double breaking A350 5, A550 5: largest energy loss of one deep-water breaker as fraction of g H_b^2 L_b / 8 (Rapp & Melville 1990, Tian et al. 2010: up to 0.25)
+    A412=3;      // int breaking A350 5 (FNPF): dissipation of the deep-water breakers, 1 eddy viscosity on the front face (as A350 4), 2 absorbing surface pressure, 3 half each (NHFLOW A550 5: the breaking viscosity alone)
+    A411=0.03;   // double breaking A350 5, A550 5: half width of the B window |B - Bth| of the fit Gamma = T_b dB/dt (Derakhti et al. 2018: 0.03)
+    A405=1.0;    // double breaking A350 4/5 (FNPF): crest points kept out of this fraction of each relaxation zone, from its outer end (1: the whole zone; 0.5: breaking in the inner half, where the target weight is below 5 %)
     A403=1.0;    // double ice lid time step factor, dt <= A403/omega_lid; <0: old limit dt*1/sqrt(1+A381)
 
     
@@ -177,19 +196,18 @@ void control::ini_default()
     
     // NHFLOW
     A509=1;      // int interpolation sweeps for bed
-    A510=2;      // int NFHLOW time scheme
-    A511=1;		// int NHFLOW HLL scheme
+    A510=2;      // int NFHLOW time scheme: 2 / 3 explicit SSP-RK2 / RK3; 11 / 12 / 13 semi-implicit theta step with a one-step (BCG advection) / SSP-RK2 / SSP-RK3 predictor
+    A511=1;		// int NHFLOW flux of the explicit step: 1 HLL, 2 HLLC (the semi-implicit A 510 11/12/13 has its own)
     A512=0;		// int NHFLOW diffusion
     A513=1;		// int NHFLOW wall diffusion
     A514=4;		// int NHFLOW reconstruction 
     A515=1;      // int Dirichlet wave BC type: 1 still-water flux, 2 actual-depth flux, 3 theoretical eta, 4 mass-conservative (still-water flux, U=UH/D, exact face flux)
     A516=1;      // int forcing WL/eta treatment
     A517=1;      // int preserve tangential velocities for forcing
-    A518=2;      // int NHFLOW bed BC
+    A518=1;      // int NHFLOW bed BC of the velocity: 1 wall-function bed (mirrored ghosts, bed shear from A 519), 2 resolved no-slip bed (u = 0 on the bed face)
     A519=-1;     // int turn on bed roughness (not given: 1 with a turbulence model A 560 or sediment S 10, else 0; lexer_read)
     A520=2;		// int NHFLOW pressure scheme: 0 hydrostatic, 1 projection, 2 incremental projection
     A521=0;		// int wetdry/forcing flux 
-    A522=5.0;    // double p_alpha
     A524=2;      // int sigma gradients
     A526=1.1;    // double direct forcing factor
     A527=0;      // int NHFLOW WENO5 nonlinear weights (A514 4,5): 0 WENO-JS, 1 WENO-Z (default), 2 TENO5
@@ -199,18 +217,22 @@ void control::ini_default()
     A531=3.0;    // double Froude number limiter
     A532=1;      // int  Froude number limiter area
     A533=0;      // int  add veritcal velocity to CFL 
-    A534=0;      // int NHFLOW hydrostatic semi-implicit free surface (theta method), 1 on
-    A535=0.55;   // double NHFLOW semi-implicit: theta
+    A534=0;      // int NHFLOW semi-implicit free surface (theta method), set from A 510 11/12/13 (lexer_read; no longer a ctrl.txt key)
+    A535=0.5;   // double NHFLOW semi-implicit: theta
     A536=0.0;    // double NHFLOW semi-implicit: maximum time step (s), 0: explicit gravity wave limit
     A537=1;      // int NHFLOW semi-implicit: wetting and drying iteration (Casulli 2009), 0 off
     A538=0.0;    // double NHFLOW semi-implicit: mass flux dissipation for transcritical flow, 0 off
+    A506=1.0e-4; // double NHFLOW semi-implicit with A 520 > 0 (2D, MPI): tolerance of the coupled eta-phi solve relative to the residual of the step's guess (FGMRES, max |r| <= A 506 max |r0|, rows in metres); the band LU of one row of columns is direct
     A539=0;      // int NHFLOW semi-implicit, curvilinear grid: non-orthogonal part of the face gradient of eta (explicit, deferred), 1 on
     A540=1;      // int NFHLOW wetdry scheme
+    A505=1;      // int NHFLOW semi-implicit (A 510 11/12/13): second-order time levels of the nonlinear terms on one Cartesian grid (an estimate pass for the advecting transport, face depths and omega at t^{n+1/2}, the acceleration of the step in the advected velocities, Crank-Nicolson vertical advection), 0: the levels of t^n (one pass, first order, about 1.2 - 1.6 times faster per step)
+    A507=0;      // int NHFLOW semi-implicit with A 520 > 0 (2D, MPI): 1: eta and phi solved one after the other (one block Gauss-Seidel pass over the coupled system, eta with phi of the guess, then phi with the new eta), 0: the coupled solve
+    A541=0.0;    // double NHFLOW dry land next to deep water: a column deeper than A 541 times its horizontal cell size keeps its non-hydrostatic pressure next to dry cells, which are walls for it (dp/dn = 0, mirrored normal velocity; explicit and semi-implicit); 0: every column next to dry cells is hydrostatic and the dry cells are p = 0 boundaries (the shoreline of a beach)
     A544=0.001;  // double wetting & drying criterion
     A545=10.0;   // double deep criterion
     A547_c=0.0;  // double NHFLOW semi-implicit (A 547 c nu0): algebraic eddy viscosity, nu_t = c kappa u* z (1 - z/h) + nu0 with u* from the log law of the bed layer (A 519 1); vertical in the column operator, horizontal in the predictor; 0 off (A 560 > 0: the turbulence model instead)
     A547_nu0=0.0;// double NHFLOW semi-implicit: A 547 c nu0, background eddy viscosity (m2/s)
-    A600=0;      // int NHFLOW semi-implicit (A 534 1): tracers, 0 off, 1 salinity, 2 salinity and temperature (nhflow_tracer_SI)
+    A600=0;      // int NHFLOW semi-implicit (A 510 11/12/13): tracers, 0 off, 1 salinity, 2 salinity and temperature (nhflow_tracer_SI)
     A601_s=0.0;  // double NHFLOW tracers: A 601 S T, initial salinity (psu) and temperature (deg C), uniform
     A601_t=15.0; // double NHFLOW tracers: A 601 S T, initial temperature
     A602=0;      // int NHFLOW tracers: A 602 x1 y1 S1 x2 y2 S2 given, initial salinity linear between two points (constant beyond them)
@@ -226,6 +248,28 @@ void control::ini_default()
     A607_t=15.0; // double NHFLOW tracers: A 607 S T, inflow temperature of the sea boundaries
     A608=0.0;    // double NHFLOW tracers: Thatcher-Harleman return time of the sea boundaries (s), 0 the sea value at once
     A609=2;      // int NHFLOW tracers: horizontal advection, 1 first-order upwind, 2 TVD van Leer, 3 TVD monotonised central
+    A611=0;      // int NHFLOW tracers: number of A 611 z S points, the initial salinity a function of z (linear between the points sorted by z, constant beyond; over A 601/602)
+    A612=0;      // int NHFLOW tracers: number of A 612 z T points, the initial temperature a function of z
+    A623=0;      // int NHFLOW density: mixing damped by the stratification (needs A 620), 0 off, 1 on: A 547 with the stability functions of A 625, k-epsilon with the buoyancy term
+    A624=0.0;    // double NHFLOW density, k-epsilon with A 623: c3e of the buoyancy term in the epsilon equation for stable stratification (G_b < 0); unstable: 1
+    A625_am=10.0;  // double NHFLOW density, A 547 with A 623: A 625 a_m p_m a_h p_h, nu = nu_n (1 + a_m Ri)^p_m (Munk and Anderson 1948)
+    A625_pm=-0.5;  // double
+    A625_ah=3.33;  // double K = nu_n/sigma_t (1 + a_h Ri)^p_h
+    A625_ph=-1.5;  // double
+    A626_kmin=1.0e-7;  // double NHFLOW density, k-epsilon with A 623: A 626 k_min c_lim, the floor of k (m2/s2)
+    A626_clim=0.53;    // double the length limit l <= c_lim sqrt(2k)/N (Galperin et al. 1988)
+    A549=0;      // int NHFLOW semi-implicit (A 510 11/12/13): A 549 m C, momentum advection, 0 flux form in the SSP-RK predictor, 1 semi-Lagrangian (one stage)
+    A549_c=2.0;  // double the Courant number of the time step with A 549 1 (0 < C <= 2.5; at most 1 with a turbulence model)
+    A627_c=0.0;  // double NHFLOW semi-implicit, turbulence model (A 560 > 0): A 627 c h, eddy viscosity >= c times the parabolic profile of A 547 (thin water), 0 off
+    A627_h=0.0;  // double in the columns with depth <= h, tapered to 0 at 2h; h <= 0: all columns
+    A613=0;      // int NHFLOW tracers: vertical advection, 1 implicit upwind, 2 implicit upwind with the explicit TVD correction (Lax-Wendroff, A 609 limiter); 0: 2 with A 620, else 1
+    A620=0;      // int NHFLOW semi-implicit: density from the tracers and its pressure gradient, 0 off (passive tracers), 1 linear equation of state, 2 UNESCO 1981 (one atmosphere)
+    A621_rho0=1025.0;    // double NHFLOW density: A 621 rho0 T0 S0 alpha beta, reference density (Boussinesq; kg/m3)
+    A621_t0=10.0;        // double NHFLOW density: reference temperature (deg C; and the temperature without A 600 2)
+    A621_s0=35.0;        // double NHFLOW density: reference salinity (psu)
+    A621_alpha=2.0e-4;   // double NHFLOW density, linear: thermal expansion (1/K)
+    A621_beta=7.6e-4;    // double NHFLOW density, linear: haline contraction (1/psu)
+    A622=1;      // int NHFLOW density: the pressure gradient on the sigma layers, 1 Shchepetkin and McWilliams (2003), 2 the two-term form (without the cubic corrections)
     A610=4;      // int NHFLOW tracers: largest number of substeps of a time step (cells beyond it: first-order outflow of the mixed content)
     A548=0;      // int NHFLOW semi-implicit: still water depth of a face between two wet cells, 0 the mean of the two cells, 1 the smaller one (the higher bed, Stelling and Duinmeijer 2003), 2 the smaller one only where one of the cells holds less than 10 A 544 (shoreline films: no flip-flop over bed steps, the conveyance of the channels kept)
     A546=0.05;   // double NHFLOW semi-implicit: depth below which the cell velocities of the momentum predictor are desingularised
@@ -234,13 +278,14 @@ void control::ini_default()
     A502=0.5;    // double breaking eddy viscosity (A 550 3): spread over a band of A 502 h around the breaking columns (the crest behind the front); A 550 4: A 502 L_k, L_k = tanh(k h)/k
     A503=5.0;    // double breaking eddy viscosity (A 550 3): transition time T* = A 503 sqrt(h/g) (Kennedy et al. 2000: 5)
     A504=1.2;    // double breaking eddy viscosity (A 550 3): mixing length coefficient delta_b (Kennedy et al. 2000: 1.2)
-    A550=0;      // int turn on breaking (1 breaking viscosity A 557, 3 eddy viscosity of Kennedy et al. 2000, 4 as 3 with the deep-water form and the onsets of the crest tracking B = u_s/C of Barthelemy et al. 2018, A 359, A 360)
+    A550=0;      // int turn on breaking (1 breaking viscosity A 557, 3 eddy viscosity of Kennedy et al. 2000, 4 as 3 with the deep-water form and the onsets of the crest tracking B = u_s/C of Barthelemy et al. 2018, A 359, A 360; 5 as 4 plus the deep-water breakers of FNPF A 350 5 with the energy-matched viscosity, A 367, A 369, A 404, A 407-A 409, A 411)
     A551=3;      // int type of breaking detection (deep / shallow)
     A552=0;      // int additional filtering to viscosity based breaking
 
     A554=0.6;    // double breaking parameter alpha (A 550 3: start of breaking, deta/dt > A 554 sqrt(g h); Kennedy et al. 2000: 0.35-0.65)
     A555=1.25;   // double breaking parameter slope alpha
     A557=1.86;   // double viscosity breaking wave
+    A558=0.0;    // double NHFLOW semi-implicit with A 520 > 0: breaking limiter of the vertical velocity |w| <= A 558 sqrt(g H) (Popinet 2020, 0.1 there), 0 off
     
     A560=0;      // int turbulence model
     A564=1;      // int eddyv limiter (NHFLOW: 1 realizability, 2 SST; >= 1 also the length-scale limit l <= kappa h)
@@ -313,6 +358,7 @@ void control::ini_default()
     A720=0;           // int prescribed current (stand-alone runs): 0 none, 1 U linear in x (A 721)
     A721_us=A721_ue=0.0; // double U at xs and at xe [m/s]
     A721_xs=A721_xe=0.0; // double xs, xe [m]
+    A727_x0=A727_y0=0.0; A727_x1=A727_y1=-1.0; // double x0 x1 y0 y1 [m]: the initial spectrum of A 710 1 only in the cells with the centre inside the box (Phase 25), off with x1 < x0
     A728=4;           // int drag law of the wind input with A 729 2, numbered as W 207: 1 Garratt, 2 Wu, 3 Smith-Banke, 4 Zijlema et al. (2012), 5 Garratt capped at W 213, 6 Zijlema with the floor W 214
     A729=0;           // int drag of the wind input: 0 Wu (1982), 1 the met drag law W 207 (W 213, W 214), 2 its own law A 728
     A730=0;           // int wind: 0 none, 1 uniform (A 731), 2 the met forcing W 200 (uniform, met-forcing.r3m, vortex, blend)
@@ -388,6 +434,11 @@ void control::ini_default()
     A798=1;           // int threads per MPI rank: the tiles of the sweeps, the patches of a refinement level, the loops over the cells
     A781=1;           // int MPI: 1 the sweeps pipelined across the ranks (the result of one rank; grids without refinement or with the composite sweep A 797 1), 0 each rank from the halo of the last exchange
     A767=0;           // int 1 the source terms of a cell evaluated once per iteration, in the sweep of the first quadrant, and kept for the others (wind sea; Phase 21b)
+    A769=0;           // int the source-term limiter (A 735 > 0): 0 SWAN (Ris 1997), 1 Hersbach and Janssen (1999), as ecWAM (nonstationary; Phase 25), 2 none with A 732 1, 2: the DIA conservative in action (modified Patankar, two passes per solve), the whitecapping linearised with its degree in N, with A 732 2 the upper bound of ecWAM (FLMAX, 0.031)
+    A776=0;           // int GSE closure (Phase 25): 0 off, 1 the flux inside a bin as a diffusion D = t_a Sigma over each step (nonstationary) with the age t_a = A 777, 2 with t_a the model time (a field released at t = 0, the test of the closure)
+    A777=0.0;         // double the age t_a [s] of A 776 1
+    A779=0.0;         // double nonstationary: iterations of a step until the largest relative change of Hs is below A 779 (0 off)
+    A778=2;           // int GSE closure: Gauss-Seidel iterations of the diffusion per step
     A799=0;           // int stationary convergence test: 0 change of Hs per iteration (A 708), 1 estimated distance of Hs to the solution
     A757_cds2=5.0e-5; // double A 732 2 (van der Westhuysen): coefficient Cds2 of the saturation-based whitecapping (SWAN cds2)
     A757_br=1.75e-3;  // double ... saturation threshold B_r (SWAN br)
@@ -438,6 +489,7 @@ void control::ini_default()
 	B55=-1.0;		// double global wall roughness ks
 	B56=-1.0;		// double global wall roughness ks
     B57=0.0001;       // double global side wall roughness
+    B58=0;            // int bed roughness map: 1 ks per cell from ./ks-map.dat (raster, bilinear; outside: B 50)
 	B60=0;            // int ioflow discharge
 	B61=2;            // int plain or logarithmic inflow profile
     B62=0;            // int SFLOW/NHFLOW discharge inflow across the face: 0 as B 61, 1 by conveyance (depth average u ~ h^(2/3))
@@ -467,13 +519,13 @@ void control::ini_default()
 	B93_2=0.0;      // double wave period
     B94=0;     // int set water depth for wave theory
     B94_wdt=0.0;    // double water depth for wave theory
-    B95=0.0;        // double SFLOW and NHFLOW relaxation zones (B 98 2): 0 as before; >0 step-size consistent, reference step [s]: targets at the time of every stage output, relaxation factor r^(dt/B95) per stage; -1 the same with the reference step of the finest level (dt/2^G1 with G 7 1, else dt)
+    B95=0.0;        // double SFLOW, NHFLOW and FNPF (RK3, RK4) relaxation zones (B 98 2): 0 as before; >0 step-size consistent, reference step [s]: targets at the time of every stage output, relaxation factor r^(dt/B95) per stage; -1 the same with the reference step of the finest level (dt/2^G1 with G 7 1, else dt)
 	B96_1=0.0;      // double dist1 for wave relax
 	B96_2=0.0;      // double dist2 for wave relax
 	B97=0;          // int NHFLOW numerical beach (B 99 1|2) relaxes to the inflow current (waves on a current)
 	B98=0;          // int type of wave generation
 	B99=0;			// int type of numerical beach
-	B101=0;        // int ramp function wave geneartion
+	B101=-1;       // int ramp function wave generation: 0 off, 1 over B102 wave periods, 2 over B102 s; not given (-1): FNPF (A 10 3) starting from rest (no I 12, I 30, I 40, I 45) with wave generation (B 90 > 0) ramps over B102 wave periods as 1, otherwise 0
 	B102=1.0;        // double factor ramp function wave generation
     B105=0;            // int wave generation origin changed
  	B105_1=0.0;        // double wave generation direction and line origin in Cartesian coordianate system
@@ -579,6 +631,7 @@ void control::ini_default()
     B203=1;             // int VRANS surface: 1 faces resting on the bed do not define the porous interface / layer depth, 0 all faces
     B204=1;             // int NHFLOW VRANS drag: 0 explicit, 1 point-implicit with the stage update
     B205=1;             // int NHFLOW VRANS projections per stage (pressure passes, as for membranes)
+    B221=2;             // int NHFLOW VRANS moving sigma grid in the porous structure: 0 off, 1 omega with the porosity of the swept volume, 2 as 1 and the grid-motion part of the vertical momentum flux not scaled by the inertia factor
     B206=1;             // int NHFLOW VRANS wave speeds of the porous equations in the HLL flux and the time step: 0 open-water speeds, 1 porous speeds
     B210=0;      // int solid box
     B212=0;      // int solid cylinder y
@@ -669,13 +722,17 @@ void control::ini_default()
 	D20=2;			// int diffusion scheme
 	D21=0;			// int print out implicit diffusion time and iterations
     D22=1;            // int diffusion wall boundary condition
+    D24=-1;           // int dynamic form (1/rho) div(mu (grad u + grad u^T)) of the implicit momentum diffusion (D 20 2): 0 kinematic, 1 arithmetic face viscosity, 2 harmonic shear viscosity; -1: 2 with W 130, else 0
     D23=2;            // int time accuracy of the implicit momentum diffusion (D 20 2): 1 first order, 2 second order
 	D30=1;			// int pressure scheme
+    D1=1;           // int CFD: the static solids (S) and the bed: 1 direct forcing, 2 cut cells (impermeable walls of the pressure projection with the open fractions of the cell faces, solid_aperture.h); the moving bodies: direct forcing with both
+    D32=0;          // int CFD: the faces of the projection closed inside the direct-forcing solids and the bed (solid_closed.h): 0 off (the projection solves through the solids), 1 where both cell centres lie in the solid, 2 where one of them does (thin solids of 1 cell)
 
     // Free Surface
 	F30=3;			    // int level set scheme
 	F35=5;			    // int convection scheme for fsf
     F37=0;              // int WENO5 nonlinear weights for level set convection (F 35 4,5; F 305 4,5) and reini (F 40 3,23): 0 WENO-JS, 1 WENO-Z, 2 TENO5
+    F41=0;              // int the level set single phase: 1 the water only (p = 0 at the free surface by the ghost fluid method, the velocity of the water extended into the air), 2 as 1 with the closed air pockets at the adiabatic pressure of their volume (W 33, W 36), 0 two phases
     F38=1.0e-5;         // double TENO5 cutoff C_T (F 37 2)
 	F40=3;			    // int reini scheme
 	F42=-1.0;		// double maxlength
@@ -684,6 +741,7 @@ void control::ini_default()
 	F45=2.1;         // factor for calculation of epsi
 	F46=0;            // int picard iteration for lsm or reini
 	F47=10;            // int number of picard iterations
+    F48=0.0;           // double CFD level set (F 30 with the reinitialisation F 40 3): the narrow band, the reinitialisation and the transport of the level set (F 35 5) only in the cells within F48 cells of the free surface and two layers around them; the level set further away keeps its value (its sign) until the band reaches it; at least F 45 + 3, G 24 F 45 + 1 and N 57 + 2 cells; 0 off (all cells)
 	F50=2;            // int bc phi, 1: inflow or 2: outflow
     F50_flag=0;       // int flag for lsm description
 	F51=-1.0e20;		    // double i-dir zero level set start
@@ -717,8 +775,17 @@ void control::ini_default()
 	F71=0;             // int number of phi 2 ini boxes
 	F72=0;             // int number of phi 1 ini regions
 	F80=0;             // int time scheme VOF
+    F81=0;             // int PIC free surface flow: 1 single phase (water particles, p = 0 at the surface), 2 water particles with Eulerian air, 10 passive particles
+    F82=0.96;          // double PIC FLIP share of the particle velocity update (F 81 1, 2), 1 - F82 PIC
+    F83=2;             // int PIC particles per cell and direction
+    F76=1;             // int PIC (F 81 1, 2): 1 the particles and their free surface move in the stages of the SSP-RK3 step (N 40 3, 13, 23), 0 once per step with u(n+1)
+    F77=1;             // int PIC velocity transfer (F 81 1, 2): 0 FLIP/PIC (F 82), 1 APIC, 2 FLIP/PIC (F 82) with the affine velocities of APIC
+    F78=30;            // int PIC redistribution of the particles every F78 steps (0: off)
+    F86=1;             // int PIC particles kept in the water every F86 steps (0: off)
+    F87=-1.0;          // double PIC output interval in seconds; <= 0: with the CFD output (P 30, P 20)
+    F79=0.1;           // double PIC redistribution step (particle spacings per unit of the neighbour push)
     F85=0;             // int convection scheme VOF
-    F88=10;             // int normal calculation method for VOF PLIC,2D MYC as default
+    F88=10;             // int interface normal for VOF PLIC: 10 centred columns (2D) as default, 3D runs take 13 (driver::logic_cfd)
     F90=4;             // int vof transport scheme for VOF PLIC, 2D COSMIC as default
     F91=0.1;          // rho threshold input for FCCRK3 PLIC
     F92=2;              // PLIC density method, fine vof-based as default
@@ -781,8 +848,10 @@ void control::ini_default()
     G5=4;       // int SFLOW, FNPF, NHFLOW and CFD mesh refinement: regrids a refined tile is kept after its last flag (hysteresis)
     G6=0;       // int FNPF and NHFLOW mesh refinement: 1 doubles the sigma layers on every refined level
     G7=0;       // int SFLOW, NHFLOW and CFD mesh refinement: 0 one time step for all levels, 1 subcycling (every level two steps per step of the next coarser one)
+    G8=0;       // int CFD mesh refinement: the coarse value at the position of a fine cell at a patch edge (the pressure, its correction and the hydrostatic pressure, linear in the density-weighted distance across the coarse cell): 1 the density of the coarse column from its own level set, interpolated to the height of the fine cell, so that the weights are those of the coarse column; 0 the level set of the fine cell at its end (the weights grow without bound where the fine cell lies closer to the free surface than the coarse column: the faces of a patch edge in the air near the free surface then oscillate and grow)
     G10=0;      // int SFLOW, FNPF and NHFLOW mesh refinement: number of static refinement boxes
     G15=0;      // int CFD mesh refinement: number of static refinement boxes xs xe ys ye zs ze
+    G16=0;      // int CFD mesh refinement: number of static refinement boxes refined up to level l: l xs xe ys ye zs ze (G 15: up to the finest level G 1)
     G11=0;      // int SFLOW, FNPF and NHFLOW mesh refinement: number of boxes without refinement
     G12=0;      // int SFLOW, FNPF, NHFLOW and CFD mesh refinement: refine around the moving body (SFLOW X 10 2/3, FNPF X 10 1, NHFLOW X 10 1/2, CFD X 10 1) and around the fixed solids (NHFLOW A 581-590)
     G12_r=0.5;  // double SFLOW, FNPF, NHFLOW and CFD mesh refinement: margin around the hull
@@ -792,9 +861,13 @@ void control::ini_default()
     G21=0.0;    // double FNPF and NHFLOW mesh refinement: second difference of the surface along x or y that flags a cell (0: off)
     G22=0;      // int SFLOW, FNPF and NHFLOW mesh refinement: flag the shoreline (SFLOW: >0 on; NHFLOW and FNPF with G 30 1: the cells within this many cells (1-3) of the shoreline); 0 off
     G23=0;      // int NHFLOW mesh refinement with A 550 1, FNPF with A 350 1: 1 flags the breaking cells (the breaking zone on the finest grid)
+    G9=0;       // int CFD mesh refinement with the level set: the interface width of the density of the faces between a fine and a coarse cell at a patch edge (the predictor, the matrix and the correction of these faces): 0 (default) that of the fine level, 1 the mean of the widths of the fine and the coarse level, 2 that of the coarse level. The pressure across such a face is that of the coarse cell, in the interface width of its level; with 0 a face in the air next to a coarse cell inside its band is accelerated by the pressure of a mixture
     G24=0.0;    // double CFD mesh refinement: flag the cells with |phi| below this many interface thicknesses (psi of the flagging level); 0 off
     G25=0;      // int CFD mesh refinement: flag the cells within this many cells of a solid, the topography or a floating body; 0 off
     G26=0.0;    // double CFD mesh refinement: flag the cells with a vorticity above this value [1/s]; 0 off
+    G27=0.0;    // double CFD mesh refinement with CPM: flag the cells near the bed where it is mobile, the bed shear stress above this many times the critical one or the bed moved by a cell of the grid of CPM; 0 off
+    G28=0;      // int CFD mesh refinement: the half width of the smoothed interface of the density and the viscosity (the Heaviside of F 45): 0 (default) F 45 times the cell size of every level, 1 one width on all levels, that of level 0 (F 45 times its spacing, as without refinement), 2 one width on all levels, that of the finest level G 1, 3 one width on all levels, F 45 times the arithmetic mean of the cell sizes of the levels 0 to G 1 (kept for the whole run)
+    G29=0;      // int CFD mesh refinement with the level set: 1 the pressure of the cells under a patch restricted relative to the discrete hydrostatic pressure of each grid (p = h_coarse + mean of p - h_fine over the children; h: the sum of g rho dz of the face densities of the grid down from the top of the patch, as pr_hydro), so that the coarse cells under a patch keep the hydrostatic pressure of the coarse grid across the free surface (every level smears the free surface over F 45 of its own cells); with G 7 0 (with G 7 1 the pressure is not restricted); 0 (default) the mean of the children
     G30=0;      // int NHFLOW and FNPF mesh refinement: 1 patches may cover dry and shallow cells (wetting and drying in the patches; FNPF: the static coastline A 343 1 or the moving one A 343 2, 3), 0 they keep 4 level-0 cells away
     G31=1;      // int NHFLOW mesh refinement with A 512 2: 1 one implicit diffusion solve over the leaf cells of all grids (composite), 0 every grid solves its own
     G52=0;      // int curvilinear NHFLOW (G 50): 1 the i-walls are slip walls as the j-walls (normal velocity mirrored, the pressure correction Neumann), so that a wall acts the same in any index direction (set on multi-block grids); 0 the Cartesian x-walls
@@ -814,7 +887,7 @@ void control::ini_default()
     G41=1.0;    // double mesh refinement on several ranks (NHFLOW, SFLOW, FNPF, CFD): the work of a patch cell against a level-0 cell in the placement of G 40 1, 2; 0 measured in the run (CFD: the timers of the ranks at every regrid, with a report of the measured load, and for the load map of a rebalance (G 46) the busy times of the ranks fitted to their level-0 and patch cells; NHFLOW, SFLOW, FNPF: the measured cost model, the busy time of the ranks fitted to their level-0 cells that are not solid, their patch cells and the parent cells they serve, at every regrid; a static refinement is placed once more at step 15)
     G45=0;      // int NHFLOW, SFLOW, FNPF and CFD mesh refinement: the load map every G 45 steps, the work per step of every level-0 column (CFD: cell, averaged over the window of G 47 steps) averaged over the run (its level-0 cells that are not solid plus the weight of a patch cell (G 41, or measured) times the patch cells over it), for the weighted partition of DIVEMesh (M 20 5, M 35 1); REEF3D_<M>_AMR/REEF3D_<M>_AMR_loadmap.dat; SEASTATE (stand-alone): the measured work of the cells per iteration of every level-0 column [microseconds], the patch cells over it included, REEF3D_SEASTATE_Log/REEF3D_SEASTATE_loadmap.dat; CFD with CPM (no refinement): a map of the cells, 1 per fluid cell plus the measured cost of the parcel updates in the cell, REEF3D_CFD_CPM_Particle/REEF3D_CFD_CPM_loadmap.dat; 0 off
     G46=0.0;    // double SFLOW, FNPF, NHFLOW, CFD, SEASTATE (stand-alone) on several ranks: rebalance when the measured load max/mean of the ranks (busy time, the MPI waits taken out; SEASTATE: the time of the solves of its cells) exceeds G 46 (SEASTATE: and the weighted partition lowers it by 10 % by its load map): checkpoint, load map, stop with exit code 3; the next start (tools/reef3d_rebalance.sh) decomposes with the weighted partition and the load map and continues (needs DIVEMesh M 50 1, 2); 0 off
-    G48=0;      // int CFD mesh refinement with G 40: the down sweep of the composite preconditioner (the levels finest first, each with its V-cycle on the composite residual, before level 0): 0 off, the default (the up sweep only, as without G 40: fewer V-cycles and residuals per iteration, more iterations, less time), 1 on
+    G48=0;      // int CFD mesh refinement: the cycle of the composite preconditioner: 0 (default) the up sweep, the composite residual of the level and all finer ones before every level solve; 1 (with G 40, otherwise as 0) as 0 with the down sweep, the levels finest first before level 0; 2 the up sweep with the residual of every level on its own rows only (the solution of the coarser level prolonged into it first, every row once per cycle) and the half-step exit of BiCGStab: fewer residuals per iteration, the same or fewer iterations
     G47=100;    // int G 46: steps between the checks of the load (and at least before the first); SEASTATE stationary: iterations of the step
     G44=0.0;    // double NHFLOW, SFLOW and FNPF mesh refinement with G 40 1: weight of the patch phase in the placement (the cost of a placement is the maximum work of the ranks plus G 44 times their maximum patch work); 0 the total work only
     // grid
@@ -897,7 +970,7 @@ void control::ini_default()
     I245=0.0;       // double FNPF coupling (B 92 62): ramp width of the I 244 box [m] (0: 1/4 of the smaller box side)
 
     // Numerics
-	N10=1;			// int linear poisson solver: 1 REEFMG; hypre (10-39) only in builds with make HYPRE=1
+	N10=1;		// int linear poisson solver: 1 REEFMG; hypre (10-39) only in builds with make HYPRE=1
 	N11=11;         // int precondioner
     N12=0;         //  int REEFMG solver mode
     N13=0;         //  int REEFMG max number of coarse levels, 0: automatic
@@ -905,24 +978,34 @@ void control::ini_default()
     N18=1;         //   int permuting axes for hypre
     N20=20;        //  int precondioner switch iter
     N22=0;         //  int precondioner switch SFLOW
-    N15=0;         //  int REEFMG coarse-grid agglomeration: 1 on
-    N16=0;         //  int REEFMG V-cycle device: 0 CPU, 1 Metal GPU (macOS), 2 reference device
-    N17=0;         //  int REEFMG device: V-cycles per preconditioner application, 0: 2
+    N15=1;         //  int REEFMG coarse-grid agglomeration: 1 on
+    N16=0;         //  int REEFMG device: 0 CPU, 1 Metal GPU (macOS), 2 Metal with the Krylov solve on the GPU, 3 reference device, 4 reference with the Krylov solve
+    N17=0;         //  int REEFMG device: V-cycles per preconditioner application, 0: 2 (N 16 2, 4: in the device solve, 0: 1)
     N19=0;         //  int REEFMG device: pre- and post-smoothing sweeps, 0: 2
     N21=0;         //  int REEFMG device: precision of the smoother coefficients, 16 (0: 16) or 32
     N23=0;         //  int precondioner switch FNPF
     N25=0;         //  int precondioner switch NHFLOW
     N26=1;         //  int precondioner switch CFD
 	N40=3;			// int time scheme
+    N56=2.0;        // double N 40 5: the momentum first-order upwind in the air further than N56 cells from the free surface (0: second order everywhere)
 	N41=1.0e+19; 	// double total time
 	N43=1.0e-5;     // double stopping criteria convection-diffusion
 	N44=1.0e-8;     // double stopping criteria pressure
 	N45=1e8;		// max outer iter
 	N46=250;		// int max number of solver iterations
-	N47=0.3;		// doubel relaxation factor for time stepping
-	N48=1;          // int adaptive timestepping
+	N47=-1.0;		// double relaxation factor for time stepping (-1: not set, becomes 0.3, SFLOW A 210 11: 0.5, lexer_read)
+	N48=1;          // int time step: 0 fixed (N 49), 1 adaptive; FNPF: 1 RK3/RK4 with sqrt(g h_max), theta-Robin (A 310 5) the step of the accuracy target N 55, 2 N 47 x the stability step of the scheme on the grid (theta-Robin: of RK3); other solvers: 2 as 1
 	N49=1.0;		// double max timestep or fixed timesteps
     N50=1;          // int adaptive timestepping method
+    N59=0;          // int CFD N 40 5, 6 with the level set: 1 the momentum per volume rho u carried with the mass flux (godunov), 2 as 1 with the face density of the mass flux from the level set at the half step of its transport, 3 as 2 with the face density above that of the upwind control volume carrying the velocity of the receiving control volume (air flowing into a face the level set makes heavier no longer gives the water its velocity), 0 the velocity
+    N63=0;          // int CFD N 40 5, 6: the convection of the level set, 0 Godunov (as the momentum), 1 the scheme of F 35 in one forward-Euler step with the projected velocity, 2 in SSP-RK2 stages, 3 in SSP-RK3 stages (the velocity held fixed)
+    N65=0;          // int CFD N 40 5, 6 with N 57: 1 the momentum of the air beyond the band of N 57 semi-Lagrangian (stable at any Courant number), the air out of the time step but for the reach of the departure point (2 cells); 0 the Godunov convection
+    N52=0.0;        // double FNPF time step accuracy cap: shortest relevant wave period T_min [s], 0 off
+    N53=40.0;       // double FNPF time step accuracy cap: time steps per T_min, dt <= N52/N53
+    N54=0.0;        // double CFD time step: 0 the acceleration term with gravity; > 0 gravity out of the acceleration term (the projection balances it) and the gravity-wave limit omega_max dt <= N54
+    N55=1.5;        // double FNPF time step of theta-Robin (A 310 5, N 48 1): phase-speed error [%] of the reference wave (N 52, or the period of the wave input)
+    N57=0.0;        // double CFD time step with the level set: 0 off; > 0 the criterion N 47 over the water and a band of N57 cells into the air, the air beyond the band with the stability limit N 58
+    N58=0.9;        // double CFD time step, N 57 > 0: Courant number of the air beyond the band, dt <= N58/max(|u|/dx + |v|/dy + |w|/dz)
 	N61=500.0;      // double stopping criteria velocities
 
     // MPI
@@ -1105,8 +1188,36 @@ void control::ini_default()
     E28=0;              // int NHFLOW: particle volume as porosity (0 off, 1 moving particles, 2 moving and fixed particles)
     E29=0;              // int NHFLOW unresolved: fixed particles exert drag on the fluid (0 off, 1 on)
     E30=1.0;            // double NHFLOW: relaxation time of the particle porosity [s] (E 28), 0 instantaneous
+    E32=0;              // int unresolved: shear lift, 0 off, 1 Saffman-Mei (fluid vorticity at the centroid), 2 bed grains (velocity difference over the grain, E 34)
+    E33=0;              // int unresolved: rotational lift (Magnus, Oesterle & Bui Dinh), 0 off, 1 on
+    E34=0.2;            // double unresolved: lift coefficient of the bed-grain lift (E 32 2)
 
     // Particles
+    R10=0;              // int HYDRO rain: 0 off, 1 constant R 11, 2 time series rain.dat, 3 raster series rain_series.dat
+    R11=0.0;            // double HYDRO constant rain rate [mm/h]
+    R12=0;              // int HYDRO rain in time: 0 piecewise constant (a value holds until the next time), 1 linear
+    R20=0.0;            // double HYDRO open-water evaporation [mm/day]
+    R30=0;              // int HYDRO infiltration: 0 off, 1 constant loss rate R 31, 2 Green-Ampt R 32
+    R31=0.0;            // double HYDRO constant infiltration (loss) rate [mm/h]
+    R32_Ks=R32_psi=R32_dth=0.0;     // double HYDRO Green-Ampt: Ks [mm/h], wetting-front suction head [m], moisture deficit [-]
+    R40=0;              // int HYDRO number of point sources (R 40 ID x y Q)
+    R41=0;              // int HYDRO number of point sources with a hydrograph file hydrograph_src_<ID>.dat (R 41 ID)
+    R33=0;              // int HYDRO infiltration parameters from rasters: R 30 1 inf_rate.asc, R 30 2 ga_ks.asc ga_psi.asc ga_dtheta.asc
+    R34=0.0;            // double HYDRO sealed fraction of every cell [0..1]
+    R35=0;              // int HYDRO sealed fraction from sealed.asc
+    R50=0;              // int HYDRO roughness raster: 1 Manning n from manning.asc
+    R90=60.0;           // double HYDRO volume budget output interval [s], <= 0: every step
+    R100=0;             // int HYDRO catchment model from hydro_grid.dat (DIVEMesh W 10): 0 off, 1 catchment model only, 2 coupled with SFLOW
+    R101=3600.0;        // double HYDRO catchment model time step [s]
+    R102=3600.0;        // double HYDRO catchment model output interval of gauges, budget and means [s], <= 0: every step
+    R103=0.0;           // double HYDRO catchment model grid output interval [s] (REEF3D_HYDRO/*.vtk), <= 0: off
+    R104=60.0;          // double HYDRO latitude [deg] for the potential evaporation (Oudin) without PET columns
+    R105=1.0;           // double HYDRO day of the year at t = 0
+    R106=1;             // int HYDRO catchment routing: 0 downstream within the step, 1 kinematic wave
+    R107=0;             // int HYDRO catchment model: write the state REEF3D_HYDRO/hydro_state.dat at the end
+    R108=0;             // int HYDRO catchment model: start from hydro_state.dat (hot start)
+    R110=0;             // int HYDRO catchment model: reservoirs from hydro_reservoir.dat
+    R109=0.0;           // double HYDRO coupled (R 100 2, R 108 1): SFLOW time of the river start state [s], 0 none
     Q10=0;              // int particle sediment model (S 10>0): 0 Eulerian bedload/exner, 1 CPM explicit Euler, 2 CPM RK2
     Q11=1;              // int particle movement model: 1 plain (empirical threshold), 2 MP-PIC
     Q12=2;              // int inter-particle stress model: 0 off, 1 Snider (2001), 2 packed bed (Johnson-Jackson contact pressure + mu(I) friction)
@@ -1147,6 +1258,12 @@ void control::ini_default()
     Q67=0;              // int bedload layer: jammed bed only within the Mohr-Coulomb yield of the column (deep slope failures), 0 off, 1 on
     Q68=1;              // int bedload layer: bed shear stress, 0 log law, 1 max(log law, 0.3 rho k) with the turbulent kinetic energy, 2 sqrt(log law * 0.3 rho k) (two velocity scales)
     Q69=0;              // int bedload layer: seepage flow in the bed (Darcy), pore pressure and its force on the contact network, 0 off, 1 on
+    Q85=0;              // int CFD mesh refinement: the region of the grid of CPM, Q 85 xs xe ys ye zs ze (the mobile bed; default the bounding box of the boxes G 15)
+    Q85_xs=Q85_xe=Q85_ys=Q85_ye=Q85_zs=Q85_ze=0.0;
+    Q86=0;              // int CFD mesh refinement, CPM bedload layer: the common reference height of the bed shear stress where a column takes the fluid of a coarser grid, 0 the centre of the first cell of that grid, 1 the centre of its second cell (velocity; k of the first fluid cell)
+    Q87=0;              // int CPM: diagnostics of the packed bed in the VTU output, 1: shear rate CPM_Gd, inertial number CPM_I and yield ratio CPM_Yr (no change to the physics)
+    Q88=0.0;            // double CPM: implicit Coulomb friction of the packed bed on the horizontal planes of the grid, regularisation shear rate [1/s] (0: off, the friction of the parcels on their substrate; 1e-4 as tested, CPM_shear_implicit.cpp)
+    Q89=0.0;            // double CPM with Q 88: the packed bed dilates down to Q 89 theta_0 at most, below it its vertical velocity keeps the volume of the column (0: off; 0.85 as tested, CPM_shear_implicit.cpp)
     Q70=0.0;            // double seepage (Q 69): excess pore pressure [Pa] at the bottom of the domain (upflow tests), 0: closed bottom
     Q72=2;              // int bedload layer: passes of a 1-2-1 filter over the columns of the bed level seen by the fluid, 0: off
     Q74=0;              // int bedload layer: 1 grains of the bed not released into the suspension see no resolved flow and no dispersion
@@ -1198,10 +1315,10 @@ void control::ini_default()
     S34=1;              // int type of suspedned load D and E calculation
     S35=1.0;            // double Exner magnification factor
     S36=0;              // int alluvial/bedform/effective roughness
-	S37=0;		        // int inertia bedshear stress
+	S37=0;		        // int inertia bedshear stress: 1 inertia stress of the grains rho cm cv cn d50 du/dt (NHFLOW: signed, added as a vector), 2 NHFLOW phase-lead velocity of Nielsen (2006) with S 140, S 141
     S38=0;              // int shallow water bedshear calculation
     S39=100.0;            // double blend factor
-    S40=0.1;            // double bedload adaptation length [m] (S33=1) or factor on water depth [-] (S33=4)
+    S40=0.1;            // double bedload adaptation length [m] (S33=1), number of saltation lengths [-] (S33=2, >= 1) or factor on water depth [-] (S33=4)
 	S41=1;				// int type of sediment start criterion
 	S42=1;				// int type of sediment interval criterion
     S43=1000;          // int number of water iteration, before sediment transport starts
@@ -1246,6 +1363,7 @@ void control::ini_default()
     S89=0.3;                // double d/h exponent C_sh of f(theta) (0.3)
     S95=0;                  // int spiral-flow correction of the bed-load direction (depth-averaged SFLOW): 1 tan(delta) = alpha_I h/R_s
     S96=1.0;                // double spiral-flow intensity factor E_spir of alpha_I = E_spir 2/kappa^2 (1 - sqrt(g)/(kappa C))
+    S98=0.0;                // double S 95 with SFLOW: beta_c of the dispersion of the main-flow momentum by the spiral flow (0 off; Delft3D-FLOW secondary flow, 0.5 typical)
     S97=1.0;                // double S 95 2: factor of the adaptation length of the spiral flow L_a = S97 (m-1) h/(2 kappa^2), m = kappa C/sqrt(g)
     S64=0.0;                // double SFLOW: suspended part f_s of the transport formula, relaxed over L_s = h|U|/(S65 ws) (0: off)
     S65=1.0;                // double S 64: ratio of the near-bed to the depth-averaged concentration in L_s
@@ -1254,11 +1372,12 @@ void control::ini_default()
     S92=1.0;                // double sandslide correction factor
     S93=0.0;				// double delta phi for sandlide correciton
     S94=1;                // int sandslide intervall
-	S100=3;					// int number of bed filter outer iterations (was hard-coded 3 in topovel2)
-    S101=5;					// int number of bed filter inner iterations (was hard-coded 5 in topovel2)
+	S100=3;					// int number of bed filter outer iterations
+    S101=5;					// int number of bed filter inner iterations
     S102=0.0;              // double filter: fraction of the centre value kept per pass (0: 2dx wave removed)
     S103=0.0;              // double bed celerity CFL number for dtsed, 0: off
     S104=0.0;              // double limit of bed celerity x morphological factor / near-bed flow speed for dtsed, 0: off
+    S105=0.0;              // double ramp time [s] of the morphological factor after the sediment start (sin^2), 0: off
     // SFLOW: waves in the sediment transport (sediment_waves)
     S110=0;                // int wave effects on the bed (SFLOW): 0 off, 1 from REEF3D::SEASTATE (A 750 1), 2 prescribed uniform waves S 111-113
     S111=0.0;              // double S 110 2: significant wave height Hs [m]
@@ -1278,10 +1397,44 @@ void control::ini_default()
     S124=-1.0;             // double inflow concentration, <0: equilibrium C_eq, >=0: prescribed (volume concentration)
     S125=2;                // int advection: 1 first-order upwind, 2 MUSCL minmod
     S126=0.05;             // double maximum equilibrium concentration (volume)
-    S127=0;                // int hindered settling (Richardson-Zaki): 0 off, 1 on
+    S127=0;                // int hindered settling (Richardson-Zaki), SFLOW S 120 and NHFLOW S 12: 0 off, 1 on
     S128=0.01;             // double minimum water depth of the suspended load [m]
     S129=0;                // int sediment inflow: 0 equilibrium, 1 constant (bed load S 130, concentration S 124), 2 time series sediment-inflow.dat
     S130=0.0;              // double bed load at the inflow for S 129 1 [m^2/s], sediment volume per width
+    S131=0.0;              // double NHFLOW thin water: bed load at most S131 h |u| (sediment volume per water volume of the flow), 0: off
+    S132=0.0;              // double NHFLOW thin water: depth [m] below which there is no bed load and no pick-up, full transport from 2 S132, 0: off
+    S133=0.0;              // double NHFLOW: upper limit of the Shields number of the bed shear stress, 0: off
+    S134=0;                // int NHFLOW: the solids of the grid (DIVEMesh, A 580 0) are part of the sediment bed: 0 erodible as sediment (as before), 1 not erodible: where the bed has come down to the solid surface no bed load, no pick-up and no sand slide from the column (as SFLOW); a rigid apron or sill
+    S140=51.0;             // double S 37 2: phase lead of the near-bed velocity in deg (Nielsen 2006)
+    S141=0.0;              // double S 37 2: wave period of the phase lead [s], <=0: S 58, else the period of the wave generation
+
+    // CFD: soil stress model (soil_stress.h), Biot u-p in the cells below the bed
+    S200=0;                // int soil stress model: 0 off, 1 quasi-static, 2 dynamic (soil inertia)
+    S201=1.333e7;          // double Young's modulus Ev (vertical) [Pa]
+    S202_hh=0.3333;        // double Poisson's ratio mu_hh (horizontal)
+    S202_vh=0.3333;        // double Poisson's ratio mu_vh (vertical-horizontal)
+    S203_O=1.0;            // double anisotropy Eh/Ev
+    S203_L=-1.0;           // double vertical shear modulus Gv/Ev, < 0: isotropic 1/(2(1+mu_vh))
+    S204_x=1.0e-2;         // double hydraulic conductivity in x [m/s]
+    S204_y=1.0e-2;         // double hydraulic conductivity in y [m/s]
+    S204_z=1.0e-2;         // double hydraulic conductivity in z [m/s]
+    S205=0.4;              // double porosity
+    S206=0.995;            // double degree of saturation
+    S207=2.2e9;            // double bulk modulus of the pore water [Pa]
+    S208=-1.0;             // double absolute pore water pressure Pw0 of the storage [Pa], < 0: atmosphere + CFD pressure
+    S209=2650.0;           // double density of the grains [kg/m^3]
+    S210=0.5;              // double coefficient of lateral earth pressure K0 (liquefaction potential)
+    S211=1;                // int lateral edges of the domain: 1 roller, 2 fixed
+    S212=1;                // int soil step every S 212 CFD steps
+    S213=0.0;              // double start time; the CFD pressure then is the reference of the bed pressure
+    S214_n=5000;           // int maximum number of MINRES iterations
+    S214_tol=1.0e-8;       // double relative tolerance of MINRES
+    S215=0;                // int VTU output of the soil, REEF3D_CFD_Soil (interval of the volume output, P 20 / P 30)
+    S216=0;                // int number of soil probes (x, y, z)
+    S217=0;                // int prescribed bed pressure p0 cos(kx - wt) instead of the CFD pressure (verification)
+    S217_p0=0.0;           // double amplitude of the bed pressure [Pa]
+    S217_L=0.0;            // double wave length [m]
+    S217_T=0.0;            // double wave period [s]
 
     // Turbulence
 	T10=0;			    // int turbulence model
@@ -1299,6 +1452,8 @@ void control::ini_default()
     T42=0.05;           // double lambda2 factor (Larsen & Fuhrman stabilization)
     T44=1.0;            // double komega_func wall BC velocity factor for DF
     T45=0;              // int buoyancy term
+    T46_I=0.0;          // double inflow turbulence intensity I (k = 1.5 (I U)^2); 0: open-channel profile
+    T46_L=0.0;          // double inflow turbulence length scale L [m] (omega = sqrt(k)/(cmu^0.25 L))
 
     // Water Properties
 	W1=998.2;		// double density water
@@ -1373,6 +1528,34 @@ void control::ini_default()
     W110=1;          // int add rheology as source term or viscosity
     W111=1;          // int which pressure for MC
     W112=2.1;        // double threshold factor for pressure blening in W111 3
+    W120=0;          // int depth-integrated basal rheology (SFLOW): 1 Coulomb, 2 Voellmy, 3 Pouliquen-Forterre, 4 mu(I), 5 Herschel-Bulkley, 6 Herschel-Bulkley-Coulomb
+    W121=30.0;       // double basal friction angle [deg]
+    W122=1000.0;     // double Voellmy turbulence coefficient xi [m/s^2]
+    W123_z1=21.0;    // double Pouliquen-Forterre zeta1 [deg]
+    W123_z2=30.7;    // double Pouliquen-Forterre zeta2 [deg]
+    W123_z3=22.2;    // double Pouliquen-Forterre zeta3 [deg]
+    W123_beta=0.136; // double Pouliquen-Forterre beta
+    W123_L=0.00065;  // double Pouliquen-Forterre L [m]
+    W124_ds=20.9;    // double mu(I) static friction angle [deg]
+    W124_d2=32.76;   // double mu(I) limiting friction angle [deg]
+    W124_I0=0.279;   // double mu(I) I0
+    W124_d=0.0005;   // double mu(I) grain diameter [m]
+    W124_phis=0.6;   // double mu(I) solids volume fraction
+    W125_tauy=0.0;   // double Herschel-Bulkley yield stress (cohesion for W 120 6) [Pa]
+    W125_K=1.0;      // double Herschel-Bulkley consistency [Pa s^n]
+    W125_n=1.0;      // double Herschel-Bulkley exponent
+    W126=0;          // int basal pore pressure: 1 constant ratio, 2 advected and dissipating
+    W127_lambda=0.0; // double pore pressure ratio p_b/(rho g h), initial or constant
+    W127_lambdah=0.0;// double hydrostatic pore pressure ratio the excess decays to
+    W127_D=0.0;      // double hydraulic diffusivity [m^2/s]
+    W128=0;          // int bed-normal gravity cos^2(theta) from the bed slope in the basal normal stress
+    W129=1;          // int SFLOW semi-implicit with the rheology core: extra solves of the eta system with the friction of the new level (W 120)
+    W130=0;          // int local rheology (CFD): 1 Herschel-Bulkley, 2 Herschel-Bulkley-Coulomb, 3 mu(I), 4 Coulomb-viscoplastic
+    W131=2;          // int effective pressure: 2 solved pressure, 1 lithostatic from the level set (rho (g.n) phi: only for surfaces without steep flanks)
+    W132=1000.0;     // double Papanastasiou regularisation m [s]
+    W133_min=-1.0;   // double minimum effective dynamic viscosity [Pa s] (< 0: W 1 W 2)
+    W133_max=1.0e4;  // double maximum effective dynamic viscosity [Pa s]
+    W134=1.9;        // double mu(I) partial regularisation alpha (<= 0: no regularisation)
     W200=0;          // int atmospheric forcing (SFLOW, NHFLOW): 0 off, 1 uniform (W 201, W 202), 2 met file met-forcing.r3m, 3 vortex, 4 blend
     W201_u=0.0;      // double uniform wind speed U10 [m/s]
     W201_dir=0.0;    // double uniform wind direction [deg], counter-clockwise from the x axis, the direction the wind blows to
@@ -1416,14 +1599,14 @@ void control::ini_default()
 	X11_u=X11_v=X11_w=X11_p=X11_q=X11_r=1;		// int turn on degrees of freedom
     X12=1;      // int turn force calculation on
     X13=0;      // int NHFLOW floating body (X 10 1/2): water level in the pierced columns from the surrounding free surface (harmonic extension, 0 off)
-    X14=1;      // int tangential velocity cfd
-    X15=1;      // int tangential velocity nhflow (0 no slip, 1 tangential kept outside the body, 2 normal projection outside, 3 as 1 with the forcing inside the body only and the momentum fluxes at body faces from the fluid side, for bodies moving at speed, 4 normal projection outside ramped over the shell of 1, rotation invariant, 5 as 1 with the sharp switch at the hull surface instead of the shell ramp, 6 as 1 with the faces between body and fluid cells as reflective walls moving with the body in the HLL fluxes (mirror state of the fluid side about the body velocity; Cartesian grid, on the curvilinear grid the fluxes of 3), for wave reflection and wave loads, 7 as 6 with the forcing of 3 (inside the body only), for bodies at speed in waves)
+    X14=1;      // int tangential velocity cfd: 1 the normal of the cell below the face, 2 the normal at the face and the reinitialisation of fb without the round-off switches of the upwind direction (a symmetric body forced symmetrically), 11 as 1 with the added mass of the hull on the grid in the coupling of the body instead of the artificial one of X 197 (one Poisson solve per free degree of freedom after the projection of every X 28 th step; one body, N 40 5, X 60 1, X 49 1, no mesh refinement; NHFLOW: X 15 11)
+    X15=1;      // int tangential velocity nhflow (0 no slip, 1 tangential kept outside the body, 2 normal projection outside, 3 as 1 with the forcing inside the body only and the momentum fluxes at body faces from the fluid side, for bodies moving at speed, 4 normal projection outside ramped over the shell of 1, rotation invariant, 5 as 1 with the sharp switch at the hull surface instead of the shell ramp, 6 as 1 with the faces between body and fluid cells as reflective walls moving with the body in the HLL fluxes (mirror state of the fluid side about the body velocity; Cartesian grid, on the curvilinear grid the fluxes of 3), for wave reflection and wave loads, 7 as 6 with the forcing of 3 (inside the body only), for bodies at speed in waves, 8 the hull as a sharp thin body, 10 the body as a solid with cut faces, 11 direct forcing with cell and face fractions of the body, the body in the pressure projection and in the fluxes at its faces, the water level of the columns it covers from the surrounding free surface (as X 13 1) and the added mass of the hull on the grid in the coupling (X 28), for floating bodies)
     X16=0;          // int porous floating body (NHFLOW)
     X16_n=0.5;      // double porosity of the floating body
     X16_d50=0.01;   // double characteristic grain / element size of the floating body
     X16_alpha=1000.0; // double linear (Darcy) resistance coefficient
     X16_beta=1.1;   // double quadratic (Forchheimer) resistance coefficient
-    X28=1;        // int FNPF: the added mass of the floating bodies (unit-mode psi solves, with several bodies the cross terms) every X28 time steps; in between the last one is used (1: every step)
+    X28=1;        // int FNPF: the added mass of the floating bodies (unit-mode psi solves, with several bodies the cross terms) every X28 time steps; in between the last one is used (1: every step); NHFLOW X 15 11, CFD X 14 11: the added mass of the hull on the grid (one Poisson solve per free degree of freedom) every X28 time steps
     X30=1.0;      // double FNPF: tolerance of the psi solves of the body loads (pressure psi_0, added-mass unit modes) as a factor on N 44 (1: as the phi solves)
     X35=0;        // int FNPF: 1: the psi solves of the body loads start from the linear extrapolation in time of the last two solutions of their kind (psi_0 of the same stage, a unit mode) instead of the last one
     X36=0;        // int FNPF with mesh refinement (G 1, the zones G 12, not G 7 1): the unit-mode psi solves of the added mass of a body on its own patches only (the patches that reach into its zone, hull box grown by G 12), psi 0 at their edge and on level 0, instead of on all grids: 1 with the calibration (at the first added mass and after a new layout of the patches, every body also on all grids once; the differences of the added mass and of the cross terms are added to the window results), 2 without; the cross added mass from the bodies inside the patches only
@@ -1447,18 +1630,18 @@ void control::ini_default()
     X31=4;        // int
     X32=1;        // int 
     X33=1;        // int 
-    X34=0;        // int 
+    X34=0;        // int CFD loads (X 60 1): the pressure of the probe point (X 42 cells off the hull) taken to the hull with the pressure gradient of the fluid at the wall: 1 hydrostatic, 2 with the acceleration of the hull over the last time step (free and prescribed motion); 1 is for bodies at rest or in steady motion
     X38=0;       // int type of viscous force calculation CFD
     X39=0;       // int type of viscous force calculation NHFLOW
     X40=3;		// int type of force calculation
 	X41=0.6;    // double eps for continuous forcing heaviside
-	X42=0.0;    // double distance for pressure force evaluation
+	X42=0.0;    // double distance for pressure force evaluation (NHFLOW X 15 11: distance of the first of the two pressure samples from the hull in cells, 0: 1 cell)
 	X43=1.0;    // double distance for shear stress evaluation
 	X44=0.0;    // double viscosity in body
     X45=0;      // int type of lsm convection disc at fb
-    X46=0;      // int 
+    X46=-1;     // int direct forcing, tangential mode (X 14 > 0, B 21 1): the share of a face continuous across the surface (forcing_share.h): 1 the 6DOF bodies, 2 the bodies and the solids and the bed (not tested yet); 0 the switch from the normal component outside to all of it inside at the level set 0. Not set: as X 49
     X48=2;      // int solid forcing level set: 1 copied into the flagged solids (G 505 1), 2 extrapolated into the solids of the direct forcing, 3 as 2 and into the 6DOF bodies (X 10)
-    X49=0;
+    X49=-1;     // int CFD projection (D 30 1): the share of a face that the direct forcing took to its target velocity is not corrected by the pressure (forcing_share.h), no flow through the body: 1 the 6DOF bodies, 2 the bodies and the solids and the bed (not tested yet); 0 off. Not set: 1 for bodies (X 10) with the one-step scheme N 40 5 and the loads X 60 1, without X 198 and without the subcycled mesh refinement (G 7 1); else 0. With X 49: X 46 1, the loads from probe points off the hull (X 42 1.5, X 34 2) and the stabilised coupling X 197 1 where these are not set
     X50=1;      // int type of print out format for 6DOF structure
     X60=1;      // int type of print of force calculation
     X100=0;        // int delta x,y,z
@@ -1495,13 +1678,29 @@ void control::ini_default()
     X182_dx=X182_dy=X182_dz=0.0;  // double translation of stl geometry
     X183=0;
     X183_x=X183_y=X183_z=X183_phi=X183_theta=X183_psi=0.0;
-    X184=1;     // int remeshing (X 185 4): close gaps and fill holes, 0 off, 1 harmonic patch, 2 biharmonic patch
-    X185=4;     // int stl refinement
+    X184=1;     // int remeshing (X 185 4, 5): close gaps and fill holes, 0 off, 1 harmonic patch, 2 biharmonic patch
+    X185=4;     // int stl refinement: 0 off, 1-3 split triangles longer than X 186 cells (1 DXM, 2 the smallest cell, 3 the cell at the triangle), 4 remeshing towards the cell size that keeps the shape of the STL (flat faces and straight edges are remeshed, curved parts and thin walls keep their triangles, split where too long; the distance to the STL is printed), 5 remeshing that approximates the surface with triangles of the target size (X 185 4 before: chords across curved parts, thin walls are lost)
+    X179=0.05;  // double remeshing (X 185 4): largest distance of the remeshed surface from the STL, in fluid cells (curved parts are coarsened only as far as the chords stay within it, walls and details larger than it are kept; halved until a closed body keeps its volume within 1 %); 0 the shape is kept exactly (only flat faces and straight edges are remeshed)
     X186=1.0;   // double refinement factor: target triangle size in fluid cells
-    X187=30.0;  // double remeshing (X 185 4): feature angle in degrees
-    X189=10;    // int remeshing (X 185 4): number of iterations
-    X190=2;     // int remeshing (X 185 4): cell size, 1 grid metric (anisotropic), 2 geometric mean of dx,dy,dz, 3 smallest spacing
+    X187=30.0;  // double remeshing (X 185 4, 5): feature angle in degrees
+    X189=10;    // int remeshing (X 185 4, 5): number of iterations
+    X190=2;     // int remeshing (X 185 4, 5): cell size, 1 grid metric (anisotropic), 2 geometric mean of dx,dy,dz, 3 smallest spacing
     X188=1;     // int ray cast algorithm
+    X195=0;     // int deforming bodies (X 195 id type a lambda f t_ramp): undulatory swimming, number of entries; type 1 linear, 2 carangiform, 3 anguilliform envelope (lateral shear of the hull), 11-13 the same on an inextensible midline
+    X196=1;     // int deforming bodies (X 195): recoil correction (no net momentum and angular momentum of the deformation), 0 off, 2 with X 198 also the discrete correction of the grid (the deformation without the rigid-body part of its velocity in the hull region of the grid, each stage)
+    X191=0;     // int external brain of a deforming body (X 191 id port), number of entries: the brain (X 193) asks a process on 127.0.0.1:port at each decision (one line of JSON each way: the senses and its own decision out, the gait targets back)
+    X192=0;     // int brain (X 193): target points (X 192 id t x y z), number of entries; the target linear in t between them
+    X193=0;     // int brain of a deforming body (X 193 id U_des b_max D th_esc), number of entries: once per half tail beat it sets the gait targets (X 199) from the senses: the target (X 192) at the speed U_des [m/s] over the ground (0: the X 195 frequency), with the current estimated from the gait and the track (station holding; in still water a glide, early enough for the coast to stop it at the target, burst and coast; the stride prior and the turn rate of the bias: X 200), with the bias up to b_max (0: 1), a turn away from the walls and solids seen within D [L] by 7 rays from the head (0: no vision), an escape (C-start) when the lateral line (X 194) at the head exceeds th_esc q (0: off), q = rho U_w^2/2 through the water
+    X200=0;     // int deforming body (X 195): its swimming (X 200 id s0 k w), number of entries: for the brain (X 193) the prior of the stride s0 [L per tail beat at full amplitude] (0: 0.5) and the turn rate k of the bias (omega = k b U/L through the water, 0: 1.3; negative when the body turns away from the bias); w the bias along the body (types 11-13): 0 uniform curvature, 1 along the envelope (the tail bends)
+    X201=0;     // int deforming body (X 195): how fast its swimming speed follows the gait, for the brain (X 193) (X 201 id tau_u tau_d), number of entries: the speed of the gait f a L that the brain expects rises to a faster gait with the time tau_u [s] and falls to a slower one with tau_d [s] (0: 0.8 s); a body that keeps its speed for seconds after its frequency drops (the 3D salmon) needs a larger tau_d, or the brain reads the excess speed as a tailwind
+    X202=0;     // int deforming body (X 195): how its swimming speed follows the gait in tail beats, for the brain (X 193) (X 202 id n_u n_d), number of entries: the speed of the gait f a L that the brain expects rises to a faster gait with n_u tail beats and falls to a slower one with n_d tail beats (the time n/f at the frequency f of the gait: slow at a slow gait; the 2D swimmer 0.8 and 0.65, validation 23); replaces the times of X 201; the brain then also models the start: the body at rest over the ground at t = 0, its speed from rest over the ramp of the gait, so that the first interval reads the current (validation 25)
+    X203=0;     // int deforming body (X 195): how well the brain (X 193) knows its stride (X 203 id sd), number of entries: the spread of the stride about the prior s0 of X 200 (sd s0, default 0.3 s0) and of its drift; a small sd (0.05) holds the stride the body has (measured: the 2D swimmer 0.52 L per beat at 0.3-0.7 Hz, validation 23), so that at a single gait the filter does not trade the stride for the current (validation 24)
+    X204=0;     // int deforming body (X 195): its coasting time, for the brain (X 193) (X 204 id tau_c), number of entries: the prior of the time [s] with which the speed of the body decays when its tail is still (default 2 s; the brain learns it from its glides); with X 202 the water that passed the body at rest at the start decays with it (the 2D swimmer about 11 s, the 3D salmon at L/80 at least 9 s, validations 13, 26)
+    X194=0;     // int lateral line of a 6DOF body (X 194 id n d), number of entries: probes d [m] (0: one cell) outside the hull on both sides of n stations along the body axis, pressure and velocity relative to the hull, CFD
+    X199=0;     // int deforming bodies (X 195): gait control (X 199 id t f a b t_s), number of entries: from time t the targets frequency f [Hz], amplitude factor a, curvature bias b (curvature times L, > 0 tail towards the lateral axis), settling time t_s [s] (0: half a tail beat)
+    X198=0;     // int CFD: fluid-momentum coupling of the bodies (X 198 1 c): the rigid-body motion fitted to the predicted velocity in the hull region gives the loads, no added-mass stabilisation (X 197) needed; neutrally buoyant or heavier bodies; c relaxation of the fluid momentum (default 1); X 198 2 c: with the SSP Runge-Kutta stages (CFD mesh refinement) the bodies are fitted again to the projected velocity after each projection, the hulls forced and projected again (one more pressure solve per stage)
+    X198_c=1.0; // double CFD: X 198 relaxation factor
+    X197=0.0;   // double CFD: stabilised body coupling (M + A) a = F + A a_prev, A = X197 times (the added mass of the equivalent ellipsoid of the hull, 2D elliptic cylinder, + the fluid inside the hull); 0: off (mesh refinement G 7: 0.5 times the displaced fluid); neutrally buoyant slender bodies (X 195 fish): about 8-32, larger on finer grids (too small: the loads oscillate and grow)
     X205=1;     // type of ramp up function
     X206=0;     // int ramp up velocity
     X206_ts=0.0;   // double ramp start
@@ -1540,6 +1739,8 @@ void control::ini_default()
     X401_cb=16.0;   // sflow external pressure term cb
     X401_a=16.0;    // sflow external pressure term a
     X410=0;         // int etaval for draft
+    X411=0;         // int STL draft (X 400 10) extended outside the hull outline over the smoothing width X 41: no pressure jump at the hull side
+    X402=1;         // int sflow pressure patch (X 10 3): 1 well-balanced, the pressure head is part of the HLL hydrostatic flux; 0 cell-centred source (before)
     X500=0;         // int PTO: 0 off, 1 explicit, 2 linearly implicit coupling
     X501=0;         // int PTO joint attachment point given
     X501_ax=X501_ay=0.0; // double PTO joint axis

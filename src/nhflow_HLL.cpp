@@ -21,6 +21,7 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"nhflow_HLL.h"
+#include"nhflow_bodyflux.h"
 #include"lexer.h"
 #include"ghostcell.h"
 #include"fdm_nhf.h"
@@ -144,8 +145,59 @@ inline void hll_sweep_x(lexer *p, fdm_nhf *d, double *F, FL fl, FR fr, DQ dq, co
 {
     int i,j,k;
     
+    // X 15 11: the faces of the body with their open fractions, F = b F_HLL + (1 - b) F_wall, the wall the
+    // reflective wall of X 15 6 with the normal velocity of the body at the face (nhflow_bodyflux.h)
+    const double *ap = (fb!=nullptr && kind>=0 && nhflow_bodyflux::active(p,d)) ? d->MBX : nullptr;
+    
+    // X 15 11, tangential momentum near the body: the continuity flux of the layer times the velocity of the cell it
+    // comes from (as the HLLC flux, A 511 2, with the cell values). The HLL flux exchanges the tangential momentum
+    // of the two cells with the gravity wave speed, a viscosity of c dx/2: across the face at the edge of the keel
+    // the water below the hull, which moves with it, drags the water beside the hull along (heave added mass of a
+    // box in forced motion 1.26 instead of 1.14 of the displaced mass, Frank 0.975); and the continuity flux near the
+    // body is the one of the projection.
+    const int *nb = (ap!=nullptr && kind==2 && phic!=nullptr) ? d->FBNEAR : nullptr;
+    
     ULOOP
     {
+        if(nb!=nullptr && (nb[IJ]==1 || nb[Ip1J]==1))
+        {
+            F[IJK] = d->FEx[IJK]*(d->FEx[IJK]>=0.0 ? phic[IJK] : phic[Ip1JK])/(PORVALNH1*PORVALNH1);
+            continue;
+        }
+        
+        if(ap!=nullptr)
+        {
+            if(ap[IJK]<1.0)
+            {
+                const double SL = d->Ss[IJK];
+                const double SR = d->Sn[IJK];
+                double Fo;
+                
+                if(SL>=0.0)
+                Fo = fl(i,j,k);
+                
+                else
+                if(SR<=0.0)
+                Fo = fr(i,j,k);
+                
+                else
+                {
+                double denom = SR-SL;
+                denom = fabs(denom)>1.0e-10?denom:1.0e10;
+                
+                Fo = (SR*fl(i,j,k) - SL*fr(i,j,k) + SR*SL*dq(i,j,k))/denom;
+                }
+                
+                const double ub = d->FBUX[IJK];
+                const double Fw = fb[IJK]>=fb[Ip1JK] ? mirror_flux(p,kind,true, kind==1?fl(i,j,k):0.0,d->UHs[IJK],d->Us[IJK],ub,d->Ds(i,j),phic!=nullptr?phic[IJK]:0.0)
+                                                     : mirror_flux(p,kind,false,kind==1?fr(i,j,k):0.0,d->UHn[IJK],d->Un[IJK],ub,d->Dn(i,j),phic!=nullptr?phic[Ip1JK]:0.0);
+                
+                F[IJK] = ap[IJK]*Fo + (1.0 - ap[IJK])*Fw;
+                continue;
+            }
+        }
+        
+        else
         if(fb!=nullptr && ((fb[IJK]<0.0) != (fb[Ip1JK]<0.0)))
         {
         if(kind>=0)
@@ -181,8 +233,52 @@ inline void hll_sweep_y(lexer *p, fdm_nhf *d, double *F, FL fl, FR fr, DQ dq, co
 {
     int i,j,k;
     
+    // X 15 11: as hll_sweep_x
+    const double *ap = (fb!=nullptr && kind>=0 && nhflow_bodyflux::active(p,d)) ? d->MBY : nullptr;
+    
+    const int *nb = (ap!=nullptr && kind==2 && phic!=nullptr) ? d->FBNEAR : nullptr;
+    
     VLOOP
     {
+        if(nb!=nullptr && (nb[IJ]==1 || nb[IJp1]==1))
+        {
+            F[IJK] = d->FEy[IJK]*(d->FEy[IJK]>=0.0 ? phic[IJK] : phic[IJp1K])/(PORVALNH2*PORVALNH2);
+            continue;
+        }
+        
+        if(ap!=nullptr)
+        {
+            if(ap[IJK]<1.0)
+            {
+                const double SL = d->Se[IJK];
+                const double SR = d->Sw[IJK];
+                double Fo;
+                
+                if(SL>=0.0)
+                Fo = fl(i,j,k);
+                
+                else
+                if(SR<=0.0)
+                Fo = fr(i,j,k);
+                
+                else
+                {
+                double denom = SR-SL;
+                denom = fabs(denom)>1.0e-10?denom:1.0e10;
+                
+                Fo = (SR*fl(i,j,k) - SL*fr(i,j,k) + SR*SL*dq(i,j,k))/denom;
+                }
+                
+                const double ub = d->FBUY[IJK];
+                const double Fw = fb[IJK]>=fb[IJp1K] ? mirror_flux(p,kind,true, kind==1?fl(i,j,k):0.0,d->VHe[IJK],d->Ve[IJK],ub,d->De(i,j),phic!=nullptr?phic[IJK]:0.0)
+                                                     : mirror_flux(p,kind,false,kind==1?fr(i,j,k):0.0,d->VHw[IJK],d->Vw[IJK],ub,d->Dw(i,j),phic!=nullptr?phic[IJp1K]:0.0);
+                
+                F[IJK] = ap[IJK]*Fo + (1.0 - ap[IJK])*Fw;
+                continue;
+            }
+        }
+        
+        else
         if(fb!=nullptr && ((fb[IJK]<0.0) != (fb[IJp1K]<0.0)))
         {
         if(kind>=0)
@@ -345,12 +441,36 @@ inline double n2x(lexer *p, int i, int j) { double nx,ny,l; nhflow_curv::normal(
 inline double n2y(lexer *p, int i, int j) { double nx,ny,l; nhflow_curv::normal(p,2,i,j,nx,ny,l); return ny; }
 }
 
+// The faces of a solid column (no cell, dry: nhflow_fsf_f::solid_dry) on its high-index sides are no faces of the
+// flux sweeps; their fluxes came from the ghost cell update of the flux arrays, extrapolated values (the pressure
+// of the wall up to a factor two off or of the wrong sign, tangential momentum through the wall). A wall: the
+// hydrostatic pressure of the fluid cell in the momentum normal to it, as on the low-index sides (wetdry_fluxes),
+// and no flux of the other components. eq 1, 2, 3: the U, V, W equation. Cartesian grids.
+static void solid_face_flux(lexer *p, fdm_nhf *d, int eq)
+{
+    if(p->geo_curv==1)
+    return;
+    
+    int i,j,k;
+    const double g = fabs(p->W22);
+    
+    LOOP
+    WETDRY
+    {
+        if(p->flag4[Im1JK]<0 && p->wet[Im1J]==0 && i+p->origin_i>0)
+        d->Fx[Im1JK] = (eq==1) ? 0.5*g*d->eta(i,j)*d->eta(i,j) + g*d->eta(i,j)*d->dfx(i-1,j) : 0.0;
+        
+        if(p->j_dir==1 && p->flag4[IJm1K]<0 && p->wet[IJm1]==0 && j+p->origin_j>0)
+        d->Fy[IJm1K] = (eq==2) ? 0.5*g*d->eta(i,j)*d->eta(i,j) + g*d->eta(i,j)*d->dfy(i,j-1) : 0.0;
+    }
+}
+
 void nhflow_HLL::aij_U(lexer *&p,fdm_nhf *&d, int ipol)
 {
     // X 15 3: momentum fluxes at body faces from the fluid side only (hll_sweep_x/y, body_zflux)
     // X 15 6, 7: body faces as reflective walls (mirror state; kn normal, kt tangential momentum; Cartesian grid)
-    const double *fbm = ((p->X15==3 || p->X15==6 || p->X15==7) && p->X10>0) ? d->FB : nullptr;
-    const bool mir = (p->X15==6 || p->X15==7) && p->X10>0 && p->geo_curv==0;
+    const double *fbm = ((p->X15==3 || p->X15==6 || p->X15==7 || nhflow_bodyflux::active(p,d)) && p->X10>0) ? d->FB : nullptr;
+    const bool mir = (p->X15==6 || p->X15==7 || nhflow_bodyflux::active(p,d)) && p->X10>0 && p->geo_curv==0;
     const int kn = mir ? 1 : -1;
     const int kt = mir ? 2 : -1;
 
@@ -400,6 +520,7 @@ void nhflow_HLL::aij_U(lexer *&p,fdm_nhf *&d, int ipol)
     if(p->geo_curv==1)
     nhflow_curv::bc_fluxes(p,d,1,d->Fx,d->Fy);
     pgc->start3V(p,d->Fz,10);
+    solid_face_flux(p,d,1);
     
     if(phook!=nullptr)
     phook->flux_hook(p,d,hook_id,1,d->Fx,d->Fy);
@@ -415,15 +536,21 @@ void nhflow_HLL::aij_U(lexer *&p,fdm_nhf *&d, int ipol)
     d->F[IJK] -= ((d->Fx[IJK] - d->Fx[Im1JK])/p->DXN[IP] 
                 + (d->Fy[IJK] - d->Fy[IJm1K])/p->DYN[JP]*p->y_dir
                 + (d->Fz[IJK] - d->Fz[IJKm1])/p->DZN[KP]);
-    }    
+    }
+    
+    // VRANS (B 221 2): grid-motion part of the vertical flux not scaled by the inertia factor
+    if(p->B200==1 && p->B221>=2)
+    LOOP
+    WETDRY
+    d->F[IJK] += nhflow_face::zgrid_corr(p,d,d->Ub,d->Ut,i,j,k);    
 }
 
 void nhflow_HLL::aij_V(lexer *&p, fdm_nhf *&d, int ipol)
 {
     // X 15 3: momentum fluxes at body faces from the fluid side only (hll_sweep_x/y, body_zflux)
     // X 15 6, 7: body faces as reflective walls (mirror state; kn normal, kt tangential momentum; Cartesian grid)
-    const double *fbm = ((p->X15==3 || p->X15==6 || p->X15==7) && p->X10>0) ? d->FB : nullptr;
-    const bool mir = (p->X15==6 || p->X15==7) && p->X10>0 && p->geo_curv==0;
+    const double *fbm = ((p->X15==3 || p->X15==6 || p->X15==7 || nhflow_bodyflux::active(p,d)) && p->X10>0) ? d->FB : nullptr;
+    const bool mir = (p->X15==6 || p->X15==7 || nhflow_bodyflux::active(p,d)) && p->X10>0 && p->geo_curv==0;
     const int kn = mir ? 1 : -1;
     const int kt = mir ? 2 : -1;
 
@@ -473,6 +600,7 @@ void nhflow_HLL::aij_V(lexer *&p, fdm_nhf *&d, int ipol)
     if(p->geo_curv==1)
     nhflow_curv::bc_fluxes(p,d,2,d->Fx,d->Fy);
     pgc->start3V(p,d->Fz,11);
+    solid_face_flux(p,d,2);
     
     if(phook!=nullptr)
     phook->flux_hook(p,d,hook_id,2,d->Fx,d->Fy);
@@ -488,16 +616,21 @@ void nhflow_HLL::aij_V(lexer *&p, fdm_nhf *&d, int ipol)
     d->G[IJK] -= ((d->Fx[IJK] - d->Fx[Im1JK])/p->DXN[IP] 
                 + (d->Fy[IJK] - d->Fy[IJm1K])/p->DYN[JP]*p->y_dir
                 + (d->Fz[IJK] - d->Fz[IJKm1])/p->DZN[KP]);
-    }    
+    }
+    
+    // VRANS (B 221 2): grid-motion part of the vertical flux not scaled by the inertia factor
+    if(p->B200==1 && p->B221>=2)
+    LOOP
+    WETDRY
+    d->G[IJK] += nhflow_face::zgrid_corr(p,d,d->Vb,d->Vt,i,j,k);    
 }
 
 void nhflow_HLL::aij_W(lexer *&p,fdm_nhf *&d, int ipol)
 {
     // X 15 3: momentum fluxes at body faces from the fluid side only (hll_sweep_x/y, body_zflux)
     // X 15 6, 7: body faces as reflective walls (mirror state; kn normal, kt tangential momentum; Cartesian grid)
-    const double *fbm = ((p->X15==3 || p->X15==6 || p->X15==7) && p->X10>0) ? d->FB : nullptr;
-    const bool mir = (p->X15==6 || p->X15==7) && p->X10>0 && p->geo_curv==0;
-    const int kn = mir ? 1 : -1;
+    const double *fbm = ((p->X15==3 || p->X15==6 || p->X15==7 || nhflow_bodyflux::active(p,d)) && p->X10>0) ? d->FB : nullptr;
+    const bool mir = (p->X15==6 || p->X15==7 || nhflow_bodyflux::active(p,d)) && p->X10>0 && p->geo_curv==0;
     const int kt = mir ? 2 : -1;
 
     // HLL flux 
@@ -557,6 +690,7 @@ void nhflow_HLL::aij_W(lexer *&p,fdm_nhf *&d, int ipol)
     if(p->geo_curv==1)
     nhflow_curv::bc_fluxes(p,d,3,d->Fx,d->Fy);
     pgc->start3V(p,d->Fz,12);
+    solid_face_flux(p,d,3);
     
     if(phook!=nullptr)
     phook->flux_hook(p,d,hook_id,3,d->Fx,d->Fy);
@@ -572,7 +706,13 @@ void nhflow_HLL::aij_W(lexer *&p,fdm_nhf *&d, int ipol)
     d->H[IJK] -= ((d->Fx[IJK] - d->Fx[Im1JK])/p->DXN[IP] 
                 + (d->Fy[IJK] - d->Fy[IJm1K])/p->DYN[JP]*p->y_dir
                 + (d->Fz[IJK] - d->Fz[IJKm1])/p->DZN[KP]);
-    }    
+    }
+    
+    // VRANS (B 221 2): grid-motion part of the vertical flux not scaled by the inertia factor
+    if(p->B200==1 && p->B221>=2)
+    LOOP
+    WETDRY
+    d->H[IJK] += nhflow_face::zgrid_corr(p,d,d->Wb,d->Wt,i,j,k);    
 }
 
 void nhflow_HLL::aij_E(lexer *&p, fdm_nhf *&d, int ipol)
@@ -595,7 +735,7 @@ void nhflow_HLL::aij_E(lexer *&p, fdm_nhf *&d, int ipol)
     else
     {
     // X 15 6, 7: no continuity flux through the faces between body and fluid cells (reflective wall)
-    const double *fbe = ((p->X15==6 || p->X15==7) && p->X10>0) ? d->FB : nullptr;
+    const double *fbe = ((p->X15==6 || p->X15==7 || nhflow_bodyflux::active(p,d)) && p->X10>0) ? d->FB : nullptr;
     
     hll_sweep_x(p, d, d->FEx,
                 [p,d](int i, int j, int k){return d->UHs[IJK];},
@@ -610,8 +750,13 @@ void nhflow_HLL::aij_E(lexer *&p, fdm_nhf *&d, int ipol)
     }
     
     // membranes (X 330): Rhie-Chow continuity flux at faces next to membrane cells, see nhflow_membrane_beta.h
-    if(d->MBETA!=nullptr)
+    if(d->MBETA!=nullptr && !nhflow_bodyflux::active(p,d))
     nhflow_membrane_rc_flux(p,d);
+    
+    // direct forcing with the body in the projection (X 15 11): the face velocities of the projection near the body,
+    // the body through the closed part of its faces
+    if(nhflow_bodyflux::active(p,d))
+    nhflow_bodyflux::continuity_flux(p,d);
     
     LOOP
     WETDRY

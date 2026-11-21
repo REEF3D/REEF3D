@@ -36,8 +36,6 @@ Author: Hans Bihs
 #include <optional>
 #include <variant>
 
-class fnpf_laplace;
-class field;
 class solver2D;
 class wind;
 
@@ -61,7 +59,6 @@ public:
 
 private:
     slice4 ef,df;
-    slice4 eqxm,eqxp,eqym,eqyp; // A315 3: left/right-biased eta gradients for the Godunov kinematic FSBC
 
     std::variant<fnpf_voiddisc, fnpf_cds2, fnpf_cds4, fnpf_weno3, fnpf_weno5, fnpf_cds6> pconvec;
     std::optional<slice4> dqF, dqE; // WENO5 face divided differences of Fifsf and eta

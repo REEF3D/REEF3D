@@ -1,0 +1,15 @@
+{
+ "description": "SFLOW explicit (A 210 2): uniform sheet flow of 2.1 cm on a slope of 1e-3, Manning n 0.05, dx 20 m (dt g n^2 |u|/h^(4/3) = 2.8): stays at the normal depth with the friction implicit in the stage. As an explicit source the friction was unstable here: velocities of +-2 m/s (uniform 0.05 m/s), depths of 0.5 m.",
+ "solver": "sflow",
+ "np": 1,
+ "steps": 400,
+ "tags": [
+  "quick",
+  "1d",
+  "sflow",
+  "river"
+ ],
+ "covers": [
+  "sflow_rough_manning::factor, sflow_momentum_func::stage (A 218 1)"
+ ]
+}

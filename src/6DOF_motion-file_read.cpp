@@ -28,9 +28,6 @@ Authors: Hans Bihs
 void sixdof_motionext_file::read_format_1(lexer *p, ghostcell *pgc)
 {
     char name[100];
-	double val,val0,val1;
-    double sign,beta,s;
-	int count;
 	
 	// the file of the body (several bodies), otherwise the common one
 	sprintf(name,"6DOF_motion-%i.dat",id);
@@ -51,10 +48,7 @@ void sixdof_motionext_file::read_format_1(lexer *p, ghostcell *pgc)
     
     ts = data[0][0];
     te = data[ptnum-1][0];
-    
-    //if(p->mpirank==0)
-    //cout<<"6DOF_motion  ts: "<<ts<<" te: "<<te<<endl;
-    
+
 // add deltas
     for(qn=0;qn<ptnum;++qn)
     data[qn][0] += p->X241;

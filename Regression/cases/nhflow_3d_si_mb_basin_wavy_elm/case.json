@@ -1,0 +1,18 @@
+{
+ "base": "nhflow_3d_si_mb_basin_wavy",
+ "description": "nhflow_3d_si_mb_basin_wavy (4 wavy curvilinear blocks, sloshing) with the semi-Lagrangian momentum advection (A 549 1 2.0): the tracks in index space with the face normals and lengths, across the block interfaces through the filled cells; at the same dt within 8 mm (of 0.78 m) of the flux form at the gauges.",
+ "ctrl_add": [
+  "A 549 1 2.0"
+ ],
+ "tags": [
+  "3d",
+  "curvilinear",
+  "elm",
+  "multiblock",
+  "nhflow",
+  "semi_implicit"
+ ],
+ "covers": [
+  "nhflow_momentum_SI::elm_departure on curvilinear multi-block grids"
+ ]
+}

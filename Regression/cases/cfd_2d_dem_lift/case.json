@@ -1,0 +1,18 @@
+{
+ "np": 1,
+ "steps": 150,
+ "files": [
+  "dem.txt"
+ ],
+ "description": "CFD closed channel (laminar, discharge B 60 1) with two heavy unresolved spheres (d 0.1 mm), one moving and spinning in the shear near the wall, one spinning near the lid: shear lift Saffman-Mei (E 32 1) and rotational lift Magnus (E 33 1); the lift force is written to the DEM state file (FLx FLy FLz). Single-sphere checks against the formulas: Dropbox/Claude/dem_lift.",
+ "tags": [
+  "2d",
+  "cfd",
+  "dem"
+ ],
+ "covers": [
+  "dem_f::lift_sample / lift with CFD (vorticity, near-wall rule)",
+  "dem_f::lift Saffman-Mei and Magnus",
+  "lift reaction on the fluid (feedback_cfd)"
+ ]
+}

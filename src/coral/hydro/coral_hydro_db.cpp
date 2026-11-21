@@ -303,8 +303,9 @@ void hydro_db::read_wamit(const std::string &root, int N, double ulen, double rh
             continue;
         const int kk = 3 + rot(i) + rot(j);
         const double Ad = a*rho*std::pow(L, kk);
-        if(P < 0.0) {Ai(i-1,j-1) = Ad; hai = true; continue;}    // infinite frequency
-        if(P == 0.0) continue;                                     // zero frequency
+        // WAMIT: PER = 0 is the zero period (infinite frequency), PER < 0 the infinite period (zero frequency)
+        if(P == 0.0) {Ai(i-1,j-1) = Ad; hai = true; continue;}
+        if(P < 0.0) continue;
         const double om = 2.0*M_PI/P;
         auto &e = per[om];
         if(e.first.size()==0) {e.first = MatX::Zero(nd, nd); e.second = MatX::Zero(nd, nd);}

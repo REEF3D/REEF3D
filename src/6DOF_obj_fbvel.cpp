@@ -91,6 +91,15 @@ void sixdof_obj::maxvel(lexer *p, ghostcell *pgc)
         vvel = p->vfbi + rx*p->rfbi - rz*p->pfbi;
         wvel = p->wfbi + ry*p->pfbi - rx*p->qfbi;
         
+        // deforming body (X 195): with the velocity of the deformation
+        if(fish_!=nullptr)
+        {
+        const Eigen::Vector3d vd = deform_vel(tri_x[n][q],tri_y[n][q],tri_z[n][q]);
+        uvel += vd(0);
+        vvel += vd(1);
+        wvel += vd(2);
+        }
+        
         p->ufbmax = MAX(p->ufbmax, fabs(uvel));
         p->vfbmax = MAX(p->vfbmax, fabs(vvel));
         p->wfbmax = MAX(p->wfbmax, fabs(wvel));

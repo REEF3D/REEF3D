@@ -47,7 +47,7 @@ public:
     double dswenox(slice&, double);
     double dswenoy(slice&, double);
 
-    // Upwinded WENO5 gradient at (i,j) from weno_nug_func::dsdiffx/dsdiffy output, bit-identical to dswenox/dswenoy.
+    // Upwinded WENO5 gradient at (i,j) from weno_nug_func::dsdiffx/dsdiffy output, as dswenox/dswenoy.
     inline double dswenox_dq(slice &dq, double uvel)
     {
         if(uvel>0.0)
@@ -112,7 +112,7 @@ public:
             return 0.0;
     }
 
-    // Wet-dry aware upwinded gradient with two options (see A315, A316):
+    // Wet-dry aware upwinded gradient with two options (see A316):
     //   zerosym  = 1: symmetric gradient at zero speed instead of 0
     //   fallback = 1: first-order gradient from wet neighbours when the WENO5
     //                 stencil is not fully wet, instead of 0

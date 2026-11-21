@@ -1,0 +1,30 @@
+{
+ "base": "seastate_2d_phase25_colloc_ckpt",
+ "np": 2,
+ "same_as": "seastate_2d_phase25_colloc_ckpt",
+ "chain": [
+  {
+   "case": "seastate_2d_phase25_colloc_ckpt",
+   "copy": [
+    "REEF3D_Checkpoint",
+    "REEF3D_SEASTATE_Collocation"
+   ]
+  }
+ ],
+ "ctrl_set": {
+  "I 45": "1"
+ },
+ "files": [
+  "seastate-collocation.csv"
+ ],
+ "description": "the restart (I 45 1) of seastate_2d_phase25_colloc_ckpt after step 8 on 2 ranks: the matchups before the restart counted again from REEF3D_SEASTATE_Collocation/seastate-collocation.csv (the values as written), the rest sampled; the statistics, the regimes, the periods and the quantiles bitwise those of the full run on one rank (Phase 25). Validation in Dropbox SEASTATE/validation/77_collocation_regimes.",
+ "tags": [
+  "quick",
+  "2d",
+  "seastate",
+  "mpi"
+ ],
+ "covers": [
+  "seastate_f::colloc_ini after a restart: the matchups of the file counted again (Phase 25 columns)"
+ ]
+}

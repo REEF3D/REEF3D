@@ -51,8 +51,6 @@ void sflow_fou::start(lexer* p, fdm2D* b, slice& f, int ipol, slice& uvel, slice
 
 double sflow_fou::aij(lexer* p,fdm2D* b,slice& f,int ipol, slice& uvel, slice& vvel)
 {
-    double q1,q2;
-    
 	ul=ur=vl=vr=dx=dy=0.0;
     
     pflux->u_flux(ipol,uvel,ivel1,ivel2);

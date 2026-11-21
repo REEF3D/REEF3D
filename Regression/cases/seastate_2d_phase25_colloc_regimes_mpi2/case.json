@@ -1,0 +1,22 @@
+{
+ "base": "seastate_2d_windsea_mpi2",
+ "ctrl_add": [
+  "A 787 1",
+  "A 788 600.0",
+  "A 789 1500.0"
+ ],
+ "files": [
+  "seastate-collocation.csv"
+ ],
+ "description": "seastate_2d_phase24_colloc_mpi2 with the observed periods tp, tm01, tm10 in seastate-collocation.csv (Phase 25, the columns in another order, empty and nan where not observed): the regimes (observed Hs, model depth, wave age cp/U10), the periods where observed and the quantiles of Hs at the end of the run; REEF3D_SEASTATE_Collocation/seastate-collocation-stats.dat, -regimes.dat, -periods.dat, -quantiles.dat compared. Two ranks: the same as one rank. Validation in Dropbox SEASTATE/validation/77_collocation_regimes.",
+ "tags": [
+  "quick",
+  "2d",
+  "seastate",
+  "mpi"
+ ],
+ "covers": [
+  "seastate_collocation: the observed periods, the regimes, the periods, the quantiles (Phase 25)",
+  "seastate_f::colloc_sample (Tm-1,0, depth, U10), colloc, colloc_end: the tables"
+ ]
+}

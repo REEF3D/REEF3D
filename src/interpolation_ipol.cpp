@@ -455,3 +455,188 @@ double interpolation::ipol4_a_sliceint(sliceint& b)
     return value;
 }
 
+// as ipol1/2/3, for the printers (VTU, LAGOON store): a face on an open boundary (inflow,
+// outflow, patch: the ghost cell next to it has IO 1-3) is not a fluid face (flag < 0) but holds
+// the boundary velocity; ipol1/2/3 leave it out, so the velocity on the in- and outflow
+// boundary showed 0. The flow solvers and probes keep ipol1/2/3.
+namespace
+{
+inline bool ipol_open(lexer *p, int a, int b)
+{
+    return (p->flag4[a]>0 && p->flag4[b]<0 && p->IO[b]>=1 && p->IO[b]<=3)
+        || (p->flag4[b]>0 && p->flag4[a]<0 && p->IO[a]>=1 && p->IO[a]<=3);
+}
+}
+
+#define F1OPEN(n) (p->flag1[n]>0 || ipol_open(p,(n),(n)+p->jmax*p->kmax))
+#define F2OPEN(n) (p->flag2[n]>0 || ipol_open(p,(n),(n)+p->kmax))
+#define F3OPEN(n) (p->flag3[n]>0 || ipol_open(p,(n),(n)+1))
+
+namespace
+{
+// the mean of the faces around a node that count (fluid faces, or an open boundary's); a
+// face beyond a wall, a symmetry plane, the bed or a solid does not count. Before, it
+// counted as 0: on those the velocity showed half (u and w on a side wall or a symmetry
+// plane, u on the bed), a seam of slow water along every wall.
+struct face_mean
+{
+    double sum=0.0;
+    int n=0;
+
+    void add(bool counts, double value)
+    {
+        if(counts)
+        {
+            sum+=value;
+            ++n;
+        }
+    }
+
+    bool any() const
+    {
+        return n>0;
+    }
+
+    double mean() const
+    {
+        return n>0 ? sum/double(n) : 0.0;
+    }
+};
+
+// a node on a processor boundary: the mean of its own layer of faces and the next one's
+// (both ranks print it alike); a layer with no face that counts is left out
+inline double layers(const face_mean &own, const face_mean &next)
+{
+    if(own.any() && next.any())
+        return 0.5*(own.mean()+next.mean());
+
+    return own.any() ? own.mean() : next.mean();
+}
+}
+
+double interpolation::ipol1_print(field& b)
+{
+    face_mean own, next;
+
+    if(p->j_dir==0)
+    {
+        if(j==-1)
+        {
+            own.add(F1OPEN(IJp1K),b(i,j+1,k));
+            own.add(F1OPEN(IJp1Kp1),b(i,j+1,k+1));
+        }
+
+        if(j==0)
+        {
+            own.add(F1OPEN(IJK),b(i,j,k));
+            own.add(F1OPEN(IJKp1),b(i,j,k+1));
+        }
+
+        value=own.mean();
+    }
+
+    if(p->j_dir==1)
+    {
+        own.add(F1OPEN(IJK),b(i,j,k));
+        own.add(F1OPEN(IJp1K),b(i,j+1,k));
+        own.add(F1OPEN(IJKp1),b(i,j,k+1));
+        own.add(F1OPEN(IJp1Kp1),b(i,j+1,k+1));
+
+        value=own.mean();
+
+        if((p->flag5[Ip1JK]==-4 || p->flag5[IJK]==-1) && !F1OPEN(IJK))
+        {
+            next.add(F1OPEN(Ip1JK),b(i+1,j,k));
+            next.add(F1OPEN(Ip1Jp1K),b(i+1,j+1,k));
+            next.add(F1OPEN(Ip1JKp1),b(i+1,j,k+1));
+            next.add(F1OPEN(Ip1Jp1Kp1),b(i+1,j+1,k+1));
+
+            value=layers(own,next);
+        }
+    }
+
+    return value;
+}
+
+double interpolation::ipol2_print(field& b)
+{
+    face_mean own, next;
+
+    own.add(F2OPEN(IJK),b(i,j,k));
+    own.add(F2OPEN(Ip1JK),b(i+1,j,k));
+    own.add(F2OPEN(IJKp1),b(i,j,k+1));
+    own.add(F2OPEN(Ip1JKp1),b(i+1,j,k+1));
+
+    value=own.mean();
+
+    if((p->flag5[IJp1K]==-2 || p->flag5[IJK]==-3) && !F2OPEN(IJK))
+    {
+        next.add(F2OPEN(IJp1K),b(i,j+1,k));
+        next.add(F2OPEN(Ip1Jp1K),b(i+1,j+1,k));
+        next.add(F2OPEN(IJp1Kp1),b(i,j+1,k+1));
+        next.add(F2OPEN(Ip1Jp1Kp1),b(i+1,j+1,k+1));
+
+        value=layers(own,next);
+    }
+
+    return value;
+}
+
+double interpolation::ipol3_print(field& b)
+{
+    face_mean own, next;
+
+    if(p->j_dir==0)
+    {
+        if(j==-1)
+        {
+            own.add(F3OPEN(IJp1K),b(i,j+1,k));
+            own.add(F3OPEN(Ip1Jp1K),b(i+1,j+1,k));
+        }
+
+        if(j==0)
+        {
+            own.add(F3OPEN(IJK),b(i,j,k));
+            own.add(F3OPEN(Ip1JK),b(i+1,j,k));
+        }
+
+        value=own.mean();
+    }
+
+    if(p->j_dir==1)
+    {
+        own.add(F3OPEN(IJK),b(i,j,k));
+        own.add(F3OPEN(IJp1K),b(i,j+1,k));
+        own.add(F3OPEN(Ip1JK),b(i+1,j,k));
+        own.add(F3OPEN(Ip1Jp1K),b(i+1,j+1,k));
+
+        value=own.mean();
+
+        if((p->flag5[IJKp1]==-6 || p->flag5[IJK]==-5) && !F3OPEN(IJK))
+        {
+            next.add(F3OPEN(IJKp1),b(i,j,k+1));
+            next.add(F3OPEN(IJp1Kp1),b(i,j+1,k+1));
+            next.add(F3OPEN(Ip1JKp1),b(i+1,j,k+1));
+            next.add(F3OPEN(Ip1Jp1Kp1),b(i+1,j+1,k+1));
+
+            value=layers(own,next);
+        }
+
+        if(p->flag5[IJKp1]==3 && !F3OPEN(IJK))
+        {
+            next=face_mean();
+            next.add(true,b(i,j,k+1));
+            next.add(true,b(i,j+1,k+1));
+            next.add(true,b(i+1,j,k+1));
+            next.add(true,b(i+1,j+1,k+1));
+
+            value=layers(own,next);
+        }
+    }
+
+    return value;
+}
+
+#undef F1OPEN
+#undef F2OPEN
+#undef F3OPEN

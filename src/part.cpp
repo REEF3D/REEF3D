@@ -31,7 +31,6 @@ part::part(lexer *p, ghostcell *pgc)
     capacity=1;
     index=1;
     index_empty=capacity;
-    //ParcelFactor = p->Q41;
     d50 = p->S20;
     rhosed = p->S22;
 

@@ -1,0 +1,21 @@
+{
+ "description": "the catchment model of hydro_coupled_chain_down alone under steady rain for 120 steps of 60 s, its state (R 107 1): the first stage of hydro_coupled_warm",
+ "solver": "sflow",
+ "np": 1,
+ "steps": 120,
+ "files": [
+  "catchment_dem.asc",
+  "geo.dat",
+  "hydro_forcing.dat",
+  "hydro_param.dat"
+ ],
+ "tags": [
+  "quick",
+  "hydro",
+  "catchment",
+  "restart"
+ ],
+ "covers": [
+  "hydro_core::write_state version 2 (qgen)"
+ ]
+}

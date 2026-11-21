@@ -62,9 +62,53 @@ void CPM::gradient(lexer *p, ghostcell *pgc, field &f, field &gx, field &gy, fie
 // gradient of the particle normal stress
 // at physical boundaries the stress is linearly extrapolated into the ghost cell,
 // the wall carries the load of the bed
+// solid bodies in the domain (solid level set < 0: a pier, a fixed floor of S 10 boxes) are walls as well: the gradient
+// took the zero stress of their cells, and the packed bed next to a solid was pushed into it (a 1 cm pier: occupancy
+// 800, parcels piled up to the top of the domain). A cell between two walls gets no gradient in that direction, a cell
+// inside a solid none at all
 void CPM::stress_gradient(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
 {
-    gradient(p,pgc,Tau,dTx,dTy,dTz);
+    if(p->solidread<=0)
+    {
+        gradient(p,pgc,Tau,dTx,dTy,dTz);
+        return;
+    }
+
+    auto wall = [&](int ii, int jj, int kk) {return wallcell(p,ii,jj,kk) || a->solid(ii,jj,kk)<0.0;};
+
+    // gradient of one direction from the neighbours m (minus) and p (plus), walls mirrored
+    auto grad = [&](bool wm, bool wp, double fc, double fm, double fp, double hm, double hp) -> double
+    {
+        if(wm && wp)
+        return 0.0;
+
+        if(wm)
+        fm = 2.0*fc - fp;
+
+        if(wp)
+        fp = 2.0*fc - fm;
+
+        return (fp-fm)/(hm+hp);
+    };
+
+    BASELOOP
+    {
+        if(a->solid(i,j,k)<0.0)
+        {
+            dTx(i,j,k) = dTy(i,j,k) = dTz(i,j,k) = 0.0;
+            continue;
+        }
+
+        dTx(i,j,k) = grad(wall(i-1,j,k),wall(i+1,j,k),Tau(i,j,k),Tau(i-1,j,k),Tau(i+1,j,k),p->DXP[IM1],p->DXP[IP]);
+
+        dTy(i,j,k) = p->j_dir==1 ? grad(wall(i,j-1,k),wall(i,j+1,k),Tau(i,j,k),Tau(i,j-1,k),Tau(i,j+1,k),p->DYP[JM1],p->DYP[JP]) : 0.0;
+
+        dTz(i,j,k) = grad(wall(i,j,k-1),wall(i,j,k+1),Tau(i,j,k),Tau(i,j,k-1),Tau(i,j,k+1),p->DZP[KM1],p->DZP[KP]);
+    }
+
+    pgc->start4a(p,dTx,1);
+    pgc->start4a(p,dTy,1);
+    pgc->start4a(p,dTz,1);
 }
 
 // fluid pressure gradient at the particles

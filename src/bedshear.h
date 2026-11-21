@@ -48,7 +48,6 @@ public:
     int* ckpt_tw_count() {return &tw_count;}
 
 	void taubed(lexer*, fdm*,ghostcell*,sediment_fdm*);
-    void taubed_curv(lexer *p, fdm2D *b, ghostcell *pgc, sediment_fdm *s);     // curvilinear grid (G 50)
 	void taucritbed(lexer*, fdm*,ghostcell*,sediment_fdm*);
     
     void taubed(lexer*, fdm_nhf*, ghostcell*, sediment_fdm*);
@@ -66,8 +65,10 @@ public:
     // first fluid cell; returns false if the column has no fluid cell above the bed.
     // wall 1: the distance of the log law is measured from the face under the first fluid cell (topo >= 0 at its
     // centre), the wall of the k-omega wall law of the fluid at the direct-forcing bed; wall 0: from the bed level set
+    // kref 1: k of the k term at the reference height href (linear as the velocity), else of the first fluid cell (the
+    // CPM grid of the mesh refinement where its fluid is interpolated from a coarser grid: the first cell of that grid)
     static bool column_tau(lexer*, fdm*, turbulence*, int i, int j, double zbed, double ks, double href, int kmode,
-                           double rho, double &tx, double &ty, double &hcell, bool &rest, int wall=0);
+                           double rho, double &tx, double &ty, double &hcell, bool &rest, int wall=0, int kref=0);
 
     // the same for the NHFLOW sigma grid (S 16 10): the first cell centre is half a cell above the bed, href > 0
     // takes the log law href cells of the first cell above the bed (at most half the water depth)
@@ -114,6 +115,12 @@ private:
     // S 59: time derivative of the oscillatory part (phase lead) and fw of the last tau_wave call
     slice4 uw_dt,vw_dt;
     double tw_fw;
+    
+    // S 37 1 (NHFLOW): acceleration of the bottom-layer velocity between two calls (bed_acceleration)
+    void bed_acceleration(lexer*, fdm_nhf*);
+    slice4 ua_old,va_old,ua_dt,va_dt;
+    double ta_old;
+    int ta_count;
 };
 
 #endif

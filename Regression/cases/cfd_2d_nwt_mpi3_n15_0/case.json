@@ -1,0 +1,20 @@
+{
+ "base": "cfd_2d_nwt",
+ "np": 3,
+ "steps": 100,
+ "ctrl_add": [
+  "N 15 0"
+ ],
+ "description": "cfd_2d_nwt on 3 ranks with N 15 0: the CFD pressure without the coarse-grid agglomeration of REEFMG (the default for CFD is N 15 1), the sweeps on the distributed coarsest level.",
+ "tags": [
+  "quick",
+  "2d",
+  "waves",
+  "levelset",
+  "mpi",
+  "reefmg"
+ ],
+ "covers": [
+  "lexer_read: N 15 given; reefmg start_solver5 without agglomeration on several ranks"
+ ]
+}

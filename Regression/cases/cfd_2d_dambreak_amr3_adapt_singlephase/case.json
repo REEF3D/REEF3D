@@ -1,0 +1,26 @@
+{
+ "base": "cfd_2d_dambreak_amr3_adapt",
+ "np": 1,
+ "steps": 60,
+ "ctrl_set": {
+  "N 40": "5"
+ },
+ "ctrl_add": [
+  "N 63 3",
+  "N 54 1",
+  "F 41 1"
+ ],
+ "description": "cfd_2d_dambreak_amr3_adapt with the single-phase level set (F 41 1) and the one-step scheme N 40 5: p = 0 at the free surface by the ghost fluid method in the composite projection, across the faces at the patch edges as well (validation 89).",
+ "tags": [
+  "quick",
+  "2d",
+  "dambreak",
+  "levelset",
+  "amr",
+  "adaptive",
+  "singlephase"
+ ],
+ "covers": [
+  "F 41 1 with the mesh refinement: cfd_amr::pr_weights (gs, gf), pr_matrix, pr_apply, pr_predict, pr_correct; pic_gfm_keep"
+ ]
+}

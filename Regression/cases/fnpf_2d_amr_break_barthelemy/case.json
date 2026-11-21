@@ -1,0 +1,20 @@
+{
+ "base": "fnpf_2d_break_barthelemy",
+ "steps": 1400,
+ "ctrl_add": [
+  "G 1 1",
+  "G 10 11.0 17.0 -1.0 1.0"
+ ],
+ "description": "fnpf_2d_break_barthelemy (Ting & Kirby, A 350 4 crest tracking, A 352 0, static coastline A 343 1) with a box at dx/2 over the breaking zone (11-17 m), RK3: the crests tracked on level 0 (covered columns from the patch), the patch takes the viscosity of its parent.",
+ "tags": [
+  "2d",
+  "fnpf",
+  "amr",
+  "breaking",
+  "coastline"
+ ],
+ "covers": [
+  "fnpf_amr::patch_breaking with A 350 4 (prolonged viscosity, breaking flags)",
+  "level_damping with the viscosity of the tracker"
+ ]
+}

@@ -25,6 +25,7 @@ Author: Hans Bihs
 
 #include"increment.h"
 #include<vector>
+#include<functional>
 
 class lexer;
 class fdm;
@@ -53,6 +54,9 @@ public:
     // DEM coupling, set by the CFD driver (shared by all momentum schemes)
     inline static dem *pdem = nullptr;
     inline static sediment *psed = nullptr;
+    // CPM on the CFD mesh refinement, two-way coupling (Q 50 1): the momentum source of the parcels on
+    // every grid of the refinement (cfd_amr_cpm.cpp; psed is the sediment of one grid)
+    inline static std::function<void(lexer*,fdm*,double,field&,field&,field&)> amr_psed;
 
 private:
 	double uplus,ks_plus,dist,ks,ustar;

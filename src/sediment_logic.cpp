@@ -72,7 +72,6 @@ Author: Hans Bihs
 #include"nhflow_ediff.h"
 #include"nhflow_idiff.h"
 #include"nhflow_idiff_2D.h"
-#include"nhflow_scalar_iweno.h"
 #include"nhflow_scalar_ifou.h"
 #include"nhflow_scalar_void.h"
 #include"nhflow_suspended_void.h"
@@ -110,6 +109,14 @@ void sediment_f::sediment_logic(lexer *p, ghostcell *pgc, turbulence *pturb)
     {
         if(p->mpirank==0)
         cout<<"!!! S 95 is 0, 1 or 2 (S 97 >= 0); S 64 (suspended part, 0 .. 1, S 65 > 0) is for SFLOW (A 10 2) with one fraction and S 31 1 or 2 !!!"<<endl;
+        exit(1);
+    }
+
+    // S 33 2: S 40 is the number of saltation lengths (the default S 40 0.1 is a length in m for S 33 1)
+    if(p->S33==2 && p->S40<1.0)
+    {
+        if(p->mpirank==0)
+        cout<<"!!! S 33 2: the adaptation length is S 40 saltation lengths of van Rijn, S 40 >= 1 (found "<<p->S40<<"); one length is 10-200 d50 !!!"<<endl;
         exit(1);
     }
 

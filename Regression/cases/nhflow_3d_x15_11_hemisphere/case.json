@@ -1,0 +1,4 @@
+{"base": "nhflow_3d_x15_10_hemisphere", "ctrl_set": {"X 15": "11"},
+ "description": "floating hemisphere R 0.5 m released 0.05 m above equilibrium, free in heave, dx 0.1 m, X 15 11 in 3D: the fractions of the cells and of the x and y faces of a curved hull, the fluxes at the y faces. Periods of the first cycles 1.45, 1.44 s (X 15 10 1.45, 1.43 s, X 15 1 1.52, 1.54 s; NHFLOW Floating validation 05).",
+ "tags": ["3d", "nhflow", "6dof", "floating"],
+ "covers": ["X 15 11 in 3D"]}

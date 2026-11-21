@@ -1,0 +1,19 @@
+{
+ "description": "NHFLOW semi-implicit step with the non-hydrostatic pressure (A 510 12, A 520 2) in 2D: sloshing mode (1,1) of a closed 1 m x 1 m basin, kh = 2, 16 x 16 columns, 3 sigma layers, dt = T/40. The coupled eta-phi system is solved by FGMRES with the column-relaxation multigrid (K-cycle) of nhflow_si_nhmg; period error 3.6e-3 against linear theory.",
+ "solver": "nhflow",
+ "np": 1,
+ "steps": 60,
+ "tags": [
+  "quick",
+  "2d",
+  "nhflow",
+  "semi_implicit",
+  "nonhydrostatic"
+ ],
+ "covers": [
+  "nhflow_momentum_SI_nh: nh_solve_mg (five-colour probing, FGMRES)",
+  "nhflow_si_nhmg: block red-black Gauss-Seidel, aggregation, K-cycle",
+  "nh_faces / [u.grad z] in y"
+ ],
+ "architect": "Hans Bihs"
+}

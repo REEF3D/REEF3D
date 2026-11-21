@@ -15,7 +15,7 @@ Keyword `controller` (`io/coral_input.h`), with `tune`: the gains for any rotor 
 * a Bladed-style DISCON interface to run ROSCO and other controller DLLs
 * yaw control, brakes, start-up, shut-down and fault events
 * structural control: tuned mass dampers
-* wave energy controllers: damping, reactive, latching, declutching, model predictive control
+* wave energy controllers are in `pto/` (they act on the elements of the PTO): passive, tuned passive and reactive, latching, declutching, gain schedule, user library, model predictive control (`pto/coral_pto_controller.h`, `pto/coral_pto_wec_control.h`)
 
 ## May include from
 

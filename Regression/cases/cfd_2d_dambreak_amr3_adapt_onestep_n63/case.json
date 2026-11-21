@@ -1,0 +1,23 @@
+{
+ "base": "cfd_2d_dambreak_amr3_adapt",
+ "np": 1,
+ "steps": 60,
+ "ctrl_set": {
+  "N 40": "5"
+ },
+ "ctrl_add": [
+  "N 59 1",
+  "N 63 1"
+ ],
+ "description": "cfd_2d_dambreak_amr3_adapt_onestep_n59 with the level set of every patch moved by the scheme of F 35 (N 63 1) (validation 82).",
+ "tags": [
+  "quick",
+  "2d",
+  "dambreak",
+  "levelset",
+  "amr"
+ ],
+ "covers": [
+  "cfd_amr: the level set of the patches with F 35 under N 63 1"
+ ]
+}

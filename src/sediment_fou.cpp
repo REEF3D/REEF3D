@@ -51,8 +51,22 @@ double sediment_fou::sx(lexer *p, slice &f, double ivel1, double ivel2)
         if(p->S31==1)
         grad = ((fu2*ivel2-fu1*ivel1)/p->DXN[IP]);
         
-        // S 31 2/3: face value of the cell-centred flux component, closed faces (zero face direction) carry none
-        if(p->S31>=2)
+        // S 31 2: f is the flux component of the cells, qb*s_x. Face flux by flux splitting,
+        // max(f_left,0) + min(f_right,0): every cell sends its own flux through the face it points to. The face
+        // direction only closes the face (0 next to structures and walls). Taking the upwind cell by the sign of
+        // the face velocity gave the whole flux of one cell or of the other where that velocity is zero up to
+        // round-off (symmetry lines, stagnation points): symmetric cases lost their symmetry and the bed
+        // depended on the number of ranks.
+        if(p->S31==2)
+        {
+        fu1 = (ivel1!=0.0) ? MAX(f(i-1,j),0.0) + MIN(f(i,j),0.0) : 0.0;
+        fu2 = (ivel2!=0.0) ? MAX(f(i,j),0.0) + MIN(f(i+1,j),0.0) : 0.0;
+        
+        grad = (fu2 - fu1)/p->DXN[IP];
+        }
+        
+        // S 31 3: upwind value of qb, closed faces (zero face direction) carry none
+        if(p->S31==3)
         grad = ((fu2*(ivel2!=0.0?1.0:0.0) - fu1*(ivel1!=0.0?1.0:0.0))/p->DXN[IP]);
         
     return grad;
@@ -75,7 +89,15 @@ double sediment_fou::sy(lexer *p, slice &f, double jvel1, double jvel2)
         if(p->S31==1)
         grad = ((fv2*jvel2-fv1*jvel1)/p->DYN[JP]);
         
-        if(p->S31>=2)
+        if(p->S31==2)
+        {
+        fv1 = (jvel1!=0.0) ? MAX(f(i,j-1),0.0) + MIN(f(i,j),0.0) : 0.0;
+        fv2 = (jvel2!=0.0) ? MAX(f(i,j),0.0) + MIN(f(i,j+1),0.0) : 0.0;
+        
+        grad = (fv2 - fv1)/p->DYN[JP];
+        }
+        
+        if(p->S31==3)
         grad = ((fv2*(jvel2!=0.0?1.0:0.0) - fv1*(jvel1!=0.0?1.0:0.0))/p->DYN[JP]);
 			  
     return grad;  

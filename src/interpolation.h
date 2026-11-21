@@ -57,6 +57,9 @@ public:
     
     
     double ipol1(field&);
+    double ipol1_print(field&);
+    double ipol2_print(field&);
+    double ipol3_print(field&);
     double ipol2(field&);
     double ipol3(field&);
     double ipol4(field&);    
@@ -68,7 +71,6 @@ public:
     double ipol4_a_sliceint(sliceint&);
 
     
-    double lint(field&,int&,int&,int&,double,double,double);
     double lint1(field&,int&,int&,int&,double,double,double);
     double lint1c(field&,int&,int&,int&,double,double,double);
     double lint2(field&,int&,int&,int&,double,double,double);

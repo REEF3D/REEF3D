@@ -1,0 +1,19 @@
+{
+ "description": "NHFLOW hydrostatic semi-implicit with density (A 620 1, linear equation of state): a stratified lake at rest over a steep ridge (10 km, 100 m deep, ridge 80 m high with slopes of 0.08, 200 x 20 sigma layers). Salinity 31 - 5 tanh((z - 50)/20) given at 41 levels (A 611), no diffusion. The pressure gradient of Shchepetkin and McWilliams (A 622 1) on the sigma layers: the spurious velocity stays below 1 mm/s over days (two-term form about 3 mm/s). The tracers are split around the momentum (forward-backward) and have the vertical TVD correction (A 613 2, the default with A 620).",
+ "solver": "nhflow",
+ "np": 1,
+ "time": 7200.0,
+ "tags": [
+  "2d",
+  "nhflow",
+  "semi_implicit",
+  "tracer",
+  "density"
+ ],
+ "covers": [
+  "nhflow_momentum_SI::density, baroclinic, baroclinic_face, baroclinic_column (A 622 1)",
+  "the split tracer step (phases 1 and 2), the vertical TVD correction (A 613 2)",
+  "A 611 profile from a list of levels",
+  "internal wave speed in the time step"
+ ]
+}

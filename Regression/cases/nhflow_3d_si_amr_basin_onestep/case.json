@@ -1,0 +1,17 @@
+{
+ "base": "nhflow_3d_si_amr_basin",
+ "ctrl_set": {
+  "A 510": "11"
+ },
+ "description": "nhflow_3d_si_amr_basin with A 510 11: the BCG advection on the patch with its ring cells, the fine advective fluxes on the coarse faces next to the patch, the time levels of every grid.",
+ "tags": [
+  "3d",
+  "nhflow",
+  "semi_implicit",
+  "amr"
+ ],
+ "covers": [
+  "A 510 11 with mesh refinement (G 1)"
+ ],
+ "architect": "Hans Bihs"
+}

@@ -1,0 +1,7 @@
+{
+ "base": "nhflow_2d_beach_suspended_mpi2",
+ "ctrl_add": ["S 131 0.02", "S 132 0.005", "S 133 5.0"],
+ "description": "nhflow_2d_beach_suspended_mpi2 with the thin-water limits of the sediment transport: bed load at most S 131 0.02 h |u|, no bed load and no pick-up below the depth S 132 0.005 m (linear to the full values at 0.01 m), Shields number at most S 133 5. Over 60 s the hole of 2.1 mm and the hump of 0.9 mm at the run-up limit of the case without limits are gone, the erosion of the lower swash stays (Dropbox/Claude/Exner Review/validation/06_nhflow_fixes_261111).",
+ "tags": ["2d", "nhflow", "sediment", "suspended", "waves", "wetdry", "mpi"],
+ "covers": ["sediment_f::thin_water (S 131, S 132)", "bedshear::taubed (NHFLOW) S 133"]
+}

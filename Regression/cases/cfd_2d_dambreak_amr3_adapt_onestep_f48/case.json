@@ -1,0 +1,22 @@
+{
+ "base": "cfd_2d_dambreak_amr3_adapt_onestep_n63_rk3",
+ "np": 1,
+ "steps": 60,
+ "ctrl_add": [
+  "F 48 6.0"
+ ],
+ "description": "cfd_2d_dambreak_amr3_adapt_onestep_n63_rk3 with F 48 6: the band is raised to G 24 F 45 + 1 = 7.3 cells (the flag of the mesh refinement reads the level set that far); the band on every grid with its own cell size, the regrids.",
+ "tags": [
+  "quick",
+  "2d",
+  "dambreak",
+  "levelset",
+  "narrowband",
+  "amr",
+  "adaptive"
+ ],
+ "covers": [
+  "driver_logic_cfd: the least width of F 48",
+  "the band on the patches of the mesh refinement, new patches"
+ ]
+}

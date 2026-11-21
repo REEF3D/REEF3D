@@ -27,12 +27,10 @@ Author: Hans Bihs
 
 void iowave::nhflow_active_beach(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V, double *W, double *UH, double *VH, double *WH)
 {
-		double eta_R,Uc,Un,Vc,Wc,eta_T,eta_M,wsf;
-		double posx,posy,posz,uvel,vvel,uabs,fx,fy,pval,fp;
-        double fxdir,fydir;
-		double x=0.0;
+		double eta_R,Uc,eta_T,eta_M,wsf;
+		double fx,fy;
 		double z=0.0;
-		double fac1,fac,multiplier;
+		double fac,multiplier;
         int aa,bb;
         
         // B 99 8: gauges and filter once per step on all ranks (global sums)
@@ -55,13 +53,6 @@ void iowave::nhflow_active_beach(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U
 		eta_R = eta_M-eta_T;
         // B 99 5: water level of the column (the linear profile above the hinge B 123 reaches it)
         wsf = p->phimean + eta_M;
-
-        
-        if(eta_R>=0.0)
-		fac1=1.0;
-		
-		if(eta_R<0.0)
-		fac1=0.0;
 
         fx=1.0;
         
@@ -129,13 +120,6 @@ void iowave::nhflow_active_beach(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U
         // B 99 5: water level of the column (the linear profile above the hinge B 123 reaches it)
         wsf = p->phimean + eta_M;
         
-        if(eta_R>=0.0)
-		fac1=1.0;
-		
-		if(eta_R<0.0)
-		fac1=0.0;
-		
-		
         aa=bb=0;
 		if(p->gcslout[n][3]==1)
 		aa=-1;

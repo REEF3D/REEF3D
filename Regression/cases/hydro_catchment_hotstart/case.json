@@ -1,0 +1,30 @@
+{
+ "description": "hydro_catchment_hbv from the state of hydro_catchment_spinup (R 108 1) for 360 more steps: the gauges are bitwise those of the uninterrupted run of 720 steps from step 361 (validation 08).",
+ "solver": "sflow",
+ "np": 1,
+ "steps": 360,
+ "files": [
+  "catchment_dem.asc",
+  "catchment_glacier.asc",
+  "catchment_zone.asc",
+  "hydro_forcing.dat",
+  "hydro_param.dat"
+ ],
+ "tags": [
+  "quick",
+  "hydro",
+  "catchment",
+  "restart"
+ ],
+ "covers": [
+  "hydro_core::read_state"
+ ],
+ "chain": [
+  {
+   "case": "hydro_catchment_spinup",
+   "files": {
+    "REEF3D_HYDRO/hydro_state.dat": "hydro_state.dat"
+   }
+  }
+ ]
+}

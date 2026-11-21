@@ -1,0 +1,10 @@
+{
+ "description": "2D JONSWAP sea (Hs 10.38 m, Tp 17.74 s, 70 m depth) over a shelf (24 m) onto a 1:2.3 steep shore with the static coastline (A 343 1, A 342 25), RK3 (A 310 3), A 350 5 with A 352 5: instead of the A 352 3 filter the breaking viscosity is raised to dx c/(4*0.5) in the cells of the depth-induced criterion (flag 2, not limited to the depth of the deepest onset) and +-2 cells around them. 600 steps (t = 236 s): the zone is active at the toe of the shore (backwash trough and incoming crest); with A 352 0 the same seed goes unstable later (validation FNPF Breaking/09).",
+ "solver": "fnpf",
+ "np": 1,
+ "steps": 600,
+ "tags": ["2d", "fnpf", "waves", "breaking", "irregular", "coastline"],
+ "covers": [
+  "fnpf_breaking::bt_filter with A 352 5 (zone viscosity, no depth limit of the flag-2 cells)"
+ ]
+}

@@ -1,0 +1,19 @@
+{
+ "base": "cfd_2d_nwt_amr",
+ "np": 1,
+ "steps": 100,
+ "ctrl_set": {
+  "N 40": "6"
+ },
+ "description": "cfd_2d_nwt_amr with N 40 6: waves through a static patch, the relaxation of the half-step velocity on level 0, the composite projections with dt/2 and dt.",
+ "tags": [
+  "quick",
+  "2d",
+  "waves",
+  "levelset",
+  "amr"
+ ],
+ "covers": [
+  "cfd_amr::step_comp: N 40 6 with relaxation zones on level 0"
+ ]
+}

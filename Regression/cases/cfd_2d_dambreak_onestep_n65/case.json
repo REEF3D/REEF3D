@@ -1,0 +1,25 @@
+{
+ "base": "cfd_2d_dambreak",
+ "np": 1,
+ "steps": 80,
+ "ctrl_set": {
+  "N 40": "5"
+ },
+ "ctrl_add": [
+  "N 59 2",
+  "N 63 3",
+  "N 57 1",
+  "N 65 1"
+ ],
+ "description": "cfd_2d_dambreak_onestep_n59_2 with N 57 1 and N 65 1: the momentum of the air beyond the band semi-Lagrangian, the air limit of the time step by the reach of the departure point (validation 87).",
+ "tags": [
+  "quick",
+  "2d",
+  "dambreak",
+  "levelset",
+  "closed"
+ ],
+ "covers": [
+  "godunov: N 65 (sl_term) on a uniform grid, cfd_airband_dt: the reach limit"
+ ]
+}

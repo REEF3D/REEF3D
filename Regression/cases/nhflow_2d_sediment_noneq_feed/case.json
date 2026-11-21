@@ -1,0 +1,24 @@
+{
+ "base": "nhflow_2d_sediment_feed",
+ "ctrl_set": {
+  "S 12": "0",
+  "S 124": "-1.0",
+  "S 130": "0.0",
+  "S 17": "20.0"
+ },
+ "ctrl_add": [
+  "S 33 1",
+  "S 40 2.0"
+ ],
+ "description": "nhflow_2d_sediment_feed without suspended load, non-equilibrium bed load S 33 1 with Ls = S 40 = 2 m and no bed load supply at the inflow (S 129 1, S 130 0): the supply is the upwind value of the non-equilibrium solve (the inflow ghost cells of qbn, sediment_exner::qb_inflow), the transport grows from zero and the erosion is spread over Ls behind the inflow. Before, the solve started from qb = qbe at the inflow and the deficit stayed in the first cells.",
+ "tags": [
+  "2d",
+  "nhflow",
+  "sediment",
+  "inflow",
+  "noneq"
+ ],
+ "covers": [
+  "sediment_exner::non_equillibrium_solve with qb_inflow(qbn)"
+ ]
+}

@@ -1,0 +1,17 @@
+{
+ "description": "REEF3D::HYDRO point source (R 40) into a dry closed basin, explicit (HLL): the first ring of wetted cells is not dried as isolated cells.",
+ "solver": "sflow",
+ "np": 1,
+ "steps": 60,
+ "tags": [
+  "quick",
+  "2d",
+  "sflow",
+  "hydro",
+  "wetdry"
+ ],
+ "covers": [
+  "the isolated-cell rule of sflow_eta::wetdry off with HYDRO sources",
+  "sflow_eta::hydro_limit at the wetting front"
+ ]
+}

@@ -1,0 +1,22 @@
+{
+ "description": "hydro_coupled_chain_down on 2 ranks: SFLOW and the hydrology cells split, entry points on one rank, the overlap and the infiltration summed over the ranks.",
+ "solver": "sflow",
+ "np": 2,
+ "steps": 400,
+ "files": [
+  "catchment_dem.asc",
+  "geo.dat",
+  "hydro_forcing.dat",
+  "hydro_param.dat"
+ ],
+ "tags": [
+  "quick",
+  "hydro",
+  "catchment",
+  "coupled",
+  "mpi"
+ ],
+ "covers": [
+  "hydro_couple on several ranks"
+ ]
+}
