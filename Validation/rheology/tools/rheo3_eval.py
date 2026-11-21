@@ -8,6 +8,8 @@
   rheo3_eval.py pelayer <run> [<run fine>] <out>          13: excess pore pressure of a layer at rest vs the series solution
   rheo3_eval.py rondon <run loose> <run dense> <out>      14: granular collapse in a viscous fluid, loose and dense (Rondon et al. 2011)
   rheo3_eval.py robbe <run 10 mm> <run 5 mm> <out>        15: granular column collapse into water (Robbe-Saule et al. 2021)
+  rheo3_eval.py robbe <label=run> ... <out>               15 with labels (imbibition W 136), the snapshots of the last run
+  rheo3_eval.py imblayer <run at once> <run front> <out>  32: dry slide layer under water: the pores fill (W 136), the water level drops
   rheo3_eval.py wedge <label=run> ... <out>               31: granular wedge at rest below the friction angle (interface band, W 131)
 
 Reads the CFD VTU files (P 18 2) with ../../turbulence/tools/r3read.py and the slide volume of reef3d.log.
@@ -320,7 +322,12 @@ def robbe(runs, out):
     h0 = 0.05
     fig, ax = plt.subplots(1, 3, figsize=(13, 3.6))
     rows = {}
-    for k, (run, lab, col) in enumerate(zip(runs, ("dx 10 mm", "dx 5 mm"), (LBLUE, BLUE))):
+    labs = ("dx 10 mm", "dx 5 mm")
+    cols = (LBLUE, BLUE, ORANGE, GREEN, GREY, "#9B59B6")
+    if any(r is not None and "=" in r for r in runs):
+        labs = [r.split("=", 1)[0] for r in runs]
+        runs = [r.split("=", 1)[1] for r in runs]
+    for k, (run, lab, col) in enumerate(zip(runs, labs, cols)):
         if run is None or not os.path.isdir(run):
             continue
         F = frames(run, keys=("points", "velocity", "phi", "alpha_s"))
@@ -340,17 +347,21 @@ def robbe(runs, out):
             ts.append(t); xg.append(xgf); snaps.append((t, x, e))
         ts = np.array(ts); Am = np.array(Am); xc = np.array(xc)
         Am = np.where(ts < 1.15, Am, np.nan)
-        im = int(np.nanargmax(Am))
+        # the generation peak (t < 0.8 s, the experiment's peak at 0.64 s); later the wave steepens and breaks over the
+        # deposit on the fine grid (a second maximum near the end of the window, shown in the figure)
+        im = int(np.nanargmax(np.where(ts < 0.8, Am, np.nan)))
         # crest speed after the wave has separated (t > 0.6 s): slope of the crest position
         m = (ts > 0.5) & (ts < 1.05) & np.isfinite(xc)
         c = float(np.polyfit(ts[m], xc[m], 1)[0]) if np.sum(m) > 3 else np.nan
         V = log_volume(run)
         rows[lab] = dict(A_max_cm=round(100*float(Am[im]), 2), t_A_max=round(float(ts[im]), 2), x_A_max=round(float(xc[im]), 3),
+                         A_064_cm=round(100*float(np.interp(0.64, ts, np.nan_to_num(Am))), 2),
+                         A_max_late_cm=round(100*float(np.nanmax(np.where(ts >= 0.8, Am, np.nan))), 2),
                          crest_speed=round(c, 3), granular_front_1s=round(float(np.interp(1.0, ts, xg)), 3), wall_s=wall(run),
                          volume_rel_change_max=float("%.2e" % np.max(abs(V[:, 1]))) if len(V) else None)
         ax[0].plot(ts, 100*Am, color=col, lw=1.6, label=lab)
         ax[1].plot(ts, xc, color=col, lw=1.6, label=lab)
-        if k == len(runs) - 1 or runs[-1] is None:
+        if k == len(runs) - 1:
             for (t, x, e), cc in zip([s for s in snaps if any(abs(s[0] - tt) < 0.011 for tt in (0.3, 0.6, 0.9, 1.2))], (GREY, GREEN, ORANGE, BLUE)):
                 ax[2].plot(x, 100*(e - h0), color=cc, lw=1.4, label="t = %.1f s" % t)
     ax[0].axhline(8.25, color=GREY, ls="--", lw=1.0, label="exp.: 2.15 (V - 0.15)^0.58")
@@ -361,6 +372,38 @@ def robbe(runs, out):
     ax[1].set_xlabel("t (s)"); ax[1].set_ylabel("crest x (m)"); ax[1].legend(fontsize=8)
     ax[2].set_xlabel("x (m)"); ax[2].set_ylabel(r"$\eta - h_0$ (cm)"); ax[2].legend(fontsize=8); ax[2].set_xlim(0, 1.6)
     fig.tight_layout(); fig.savefig(os.path.join(out, "15_robbe_saule_wave.png"))
+    return rows
+
+
+def imblayer(runs, out):
+    """a dry layer h = 0.1 m (porosity 0.36) under 5 cm of water: when its pores are full the water surface is
+    0.15 - 0.36 h = 0.114 m and the water taken up 0.36 of the slide volume"""
+    plt = R.style()
+    fig, ax = plt.subplots(1, 2, figsize=(10, 3.4))
+    rows = {}
+    for k, (lab, run, col) in enumerate((("at once", runs[0], BLUE), ("front 0.02 m/s", runs[1], ORANGE))):
+        if run is None or not os.path.isdir(run):
+            continue
+        F = frames(run, keys=("points", "velocity", "phi", "alpha_s", "saturation"))
+        ts, es, sm = [], [], []
+        for t, d in F:
+            x, e = water_surface(d)
+            a = d["alpha_s"] > 0.5
+            ts.append(t); es.append(float(np.nanmean(e[1:-1]))); sm.append(float(np.mean(d["saturation"][a])))
+        taken = None
+        for L in open(os.path.join(run, "reef3d.log"), errors="ignore"):
+            if L.startswith("Slide pore water taken up:"):
+                taken = float(L.split()[5])
+        V = log_volume(run)
+        rows[lab] = dict(eta_end=round(es[-1], 4), eta_exact=0.114, mean_saturation_end=round(sm[-1], 3),
+                         pore_water_taken_m3=taken, pore_volume_m3=0.36*0.1*0.02*0.005, wall_s=wall(run),
+                         slide_volume_rel_change_max=float("%.2e" % np.max(abs(V[:, 1]))) if len(V) else None)
+        ax[0].plot(ts, np.array(es)*1000, color=col, lw=1.6, label=lab)
+        ax[1].plot(ts, sm, color=col, lw=1.6, label=lab)
+    ax[0].axhline(114, color=GREY, ls="--", lw=1.0, label="0.15 - n h (pores full)")
+    ax[0].set_xlabel("t (s)"); ax[0].set_ylabel("water surface (mm)"); ax[0].legend(fontsize=8)
+    ax[1].set_xlabel("t (s)"); ax[1].set_ylabel("mean saturation of the slide")
+    fig.tight_layout(); fig.savefig(os.path.join(out, "33_imbibition_layer.png"))
     return rows
 
 
@@ -408,6 +451,8 @@ if __name__ == "__main__":
         r = pelayer([s for s in a[:-1] if s], a[-1])
     elif cmd == "rondon":
         r = rondon(a[0], a[1], a[-1])
+    elif cmd == "imblayer":
+        r = imblayer(a[:-1], a[-1])
     elif cmd == "wedge":
         r = wedge([tuple(x.split("=", 1)) for x in a[:-1]], a[-1])
     elif cmd == "robbe":

@@ -3087,6 +3087,10 @@ void control::ctrlrecv()
     dd++;
     W135_b = dctrl[dd];
     dd++;
+    W136_S0 = dctrl[dd];
+    dd++;
+    W136_v = dctrl[dd];
+    dd++;
     W140 = ictrl[ii];
     ii++;
     W141 = dctrl[dd];

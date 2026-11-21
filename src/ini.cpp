@@ -1559,13 +1559,15 @@ void control::ini_default()
     W128=0;          // int bed-normal gravity cos^2(theta) from the bed slope in the basal normal stress
     W129=0;          // int SFLOW semi-implicit with the rheology core: extra solves of the eta system with the friction of the new level (W 120)
     W130=0;          // int local rheology (CFD): 1 Herschel-Bulkley, 2 Herschel-Bulkley-Coulomb, 3 mu(I), 4 Coulomb-viscoplastic
-    W131=-1;         // int effective pressure (-1: 3 with the three-phase model W 140, else 2): 2 solved pressure, 3 solved pressure and the interface band (p' at least the hydrostatic pressure of the band, the material viscosity over the band), 1 lithostatic from the level set (rho (g.n) phi: only for surfaces without steep flanks)
+    W131=-1;         // int effective pressure (-1: 3 with the rheology core W 130 and the three-phase model W 140, else 2): 2 solved pressure, 3 solved pressure and the interface band (p' at least the hydrostatic pressure of the band, the material viscosity over the band), 1 lithostatic from the level set (rho (g.n) phi: only for surfaces without steep flanks)
     W132=1000.0;     // double Papanastasiou regularisation m [s]
     W133_min=-1.0;   // double minimum effective dynamic viscosity [Pa s] (< 0: W 1 W 2)
     W133_max=1.0e4;  // double maximum effective dynamic viscosity [Pa s]
     W134=1.9;        // double mu(I) partial regularisation alpha (<= 0: no regularisation)
     W135_dw=0.0;     // double side-wall friction angle [deg] of an unresolved channel (CFD rheology, 2D x-z), 0: off
     W135_b=0.0;      // double channel width [m] of the side-wall friction W 135
+    W136_S0=1.0;     // double three-phase slide (W 140): initial pore saturation (1: saturated, the bulk density W 141 stays; < 1: water fills the pores below the water surface)
+    W136_v=0.0;      // double speed of the imbibition front [m/s] (<= 0: a submerged cell in contact with water saturates at once)
     W140=0;          // int three-phase slide model (CFD): slide fraction alpha_s (conservative transport), water/air level set
     W141=2000.0;     // double bulk density of the slide [kg/m^3]
     W142=2650.0;     // double grain density [kg/m^3] (mu(I), mu(J) inertial number of the three-phase model)

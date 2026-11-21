@@ -658,6 +658,29 @@ void slide2D::pore_update(lexer *p, ghostcell *pgc)
 // drag of the slide on the water: tau_i/rho_w = - C_d |u_w - u_s| (u_w - u_s), linearised implicit factor
 // ---------------------------------------------------------------------------------------------
 
+// NHFLOW (W 155): tau_i/rho_w = C_d |u_w - u_s| (u_w - u_s) on the bottom layer of the water (thickness dz), with the
+// velocity of that layer; point-implicit as the bed friction (nhflow_bcmom)
+void slide2D::drag_nhflow(lexer *p, fdm_nhf *d, int comp, double *VEL, double *F, slice &WL)
+{
+    if(Cd<=0.0)
+    return;
+    
+    k = 0;
+    
+    SLICELOOP4
+    if(p->DF[IJK]>0 && p->wet[IJ]==1 && WL(i,j)>wdry && h(i,j)>hmin)
+    {
+    const double us = qx(i,j)/h(i,j);
+    const double vs = p->j_dir==1 ? qy(i,j)/h(i,j) : 0.0;
+    const double du = d->U[IJK] - us;
+    const double dv = p->j_dir==1 ? d->V[IJK] - vs : 0.0;
+    const double dz = p->DZN[KP]*WL(i,j);
+    const double c = sub_cell(p,i,j)*Cd*sqrt(du*du + dv*dv)/dz;
+    
+    F[IJK] -= c*(VEL[IJK] - (comp==0 ? us : vs))*WL(i,j)/(1.0 + p->dt*c);
+    }
+}
+
 void slide2D::u_source(lexer *p, fdm2D *b, slice &U, slice &V, slice &WL)
 {
     if(Cd<=0.0)

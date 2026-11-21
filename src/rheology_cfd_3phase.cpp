@@ -26,6 +26,7 @@ Author: Hans Bihs
 #include"fdm.h"
 #include"ghostcell.h"
 #include"solver.h"
+#include"ckpt_registry.h"
 #include"heaviside.h"
 #include"interface_width.h"
 #include<cmath>
@@ -56,10 +57,11 @@ inline bool in_triangle(double x, double z, double x1, double z1, double x2, dou
 }
 
 rheology_cfd_3phase::rheology_cfd_3phase(lexer *p, fdm *a, ghostcell *pgc) : strain(p),
-    alpha(p), alphas(p), pband(p,p->W131==3), alpha0(p), flux(p), phyd(p),
+    alpha(p), alphas(p), pband(p,p->W131==3), sat(p,p->W136_S0<1.0), dsrc(p,p->W136_S0<1.0), imb(p->W136_S0<1.0), alpha0(p), flux(p), phyd(p),
     pe(p,p->W143==2), phis(p,p->W143==2 && p->W145_phi0>0.0), tpsi(p,p->W143==2 && p->W145_phi0>0.0),
     qpe(p,p->W143==2), qphi(p,p->W143==2 && p->W145_phi0>0.0),
     fpe(p,p->W143==2), fphi(p,p->W143==2 && p->W145_phi0>0.0),
+    qsat(p,p->W136_S0<1.0), fsat(p,p->W136_S0<1.0),
     pore(p->W143), dil(p->W143==2 && p->W145_phi0>0.0), beta_thinc(3.5)
 {
     self = this;
@@ -78,16 +80,28 @@ rheology_cfd_3phase::rheology_cfd_3phase(lexer *p, fdm *a, ghostcell *pgc) : str
     dgrain = p->W124_d;
 
     pe_ini = (pore!=2 || lambda0==0.0);
+
+    S0 = MIN(MAX(p->W136_S0,0.0),1.0);
+    vimb = p->W136_v;
+    nporo = MAX(1.0 - p->W124_phis,0.0);
+    imbibed = 0.0;
     sweeps = 0;
     volume = volume0 = 0.0;
 
     eta.resize(size_t(MAX(p->gknox,1))*size_t(MAX(p->gknoy,1)));
+
+    ckstate[0] = ckstate[1] = ckstate[2] = ckstate[3] = 0.0;
+    ckid = ckpt_registry::add_raw(p,ckstate,4,false);
 
     if(p->mpirank==0)
     {
     cout<<"CFD three-phase slide (W 140): rho_s "<<rho_s<<", grains "<<p->W142<<" kg/m3, water "<<rho_w<<", air "<<rho_a
         <<"; mixture viscosity "<<(p->W149==2 ? "harmonic" : "arithmetic")<<"; pore pressure "
         <<(pore==0 ? "none" : (pore==1 ? "drained hydrostatic" : "hydrostatic + excess p_e"))<<endl;
+
+        if(imb)
+        cout<<"CFD three-phase slide: imbibition from saturation "<<S0<<" (porosity "<<nporo<<", saturated bulk density "
+            <<rho_s + (1.0-S0)*nporo*rho_w<<"), front "<<(vimb>0.0 ? vimb : 0.0)<<(vimb>0.0 ? " m/s" : " (at once)")<<endl;
 
         if(pore==2)
         {
@@ -102,6 +116,8 @@ rheology_cfd_3phase::rheology_cfd_3phase(lexer *p, fdm *a, ghostcell *pgc) : str
 
 rheology_cfd_3phase::~rheology_cfd_3phase()
 {
+    ckpt_registry::remove(ckid);
+
     if(self==this)
     self = nullptr;
 }
@@ -183,7 +199,7 @@ void rheology_cfd_3phase::band(lexer *p, fdm *a, ghostcell *pgc)
             }
 
             const double H = heaviside(a->phi(i,j,k),interface_width(p,a->phi,i,j,k));
-            const double drho = MAX(rho_s - (H*rho_w + (1.0-H)*rho_a),0.0);
+            const double drho = MAX(rho_slide(i,j,k) - (H*rho_w + (1.0-H)*rho_a),0.0);
             const double w = drho*g*al*p->DZN[KP];
 
             pband(i,j,k) = sum + 0.5*w;
@@ -192,6 +208,153 @@ void rheology_cfd_3phase::band(lexer *p, fdm *a, ghostcell *pgc)
     }
 
     bc(p,pgc,pband);
+}
+
+void rheology_cfd_3phase::imbibe(lexer *p, fdm *a, ghostcell *pgc)
+{
+    // a cell of the rank, water (outside the slide, below the level set surface)
+    auto inside = [&](int ii, int jj, int kk) -> bool
+    {
+        return ii>=0 && ii<p->knox && jj>=0 && jj<p->knoy && kk>=0 && kk<p->knoz;
+    };
+
+    auto fl4 = [&](int ii, int jj, int kk) -> int
+    {
+        return p->flag4[(ii-p->imin)*p->jmax*p->kmax + (jj-p->jmin)*p->kmax + kk-p->kmin];
+    };
+
+    auto water = [&](int ii, int jj, int kk) -> bool
+    {
+        return fl4(ii,jj,kk)>0 && alpha(ii,jj,kk)<0.5 && a->phi(ii,jj,kk)>0.0;
+    };
+
+    const int nb = p->j_dir==1 ? 6 : 4;
+    const int di[6] = {-1,1,0,0,0,0}, dk[6] = {0,0,-1,1,0,0}, dj[6] = {0,0,0,0,-1,1};
+
+    LOOP
+    dsrc(i,j,k) = 0.0;
+
+    // the saturation of the step: the cells that take up water and the water they take, given to their water
+    // neighbours on the rank (as a sink rate per cell volume), the rest into the pool of all contact cells
+    double Qtot = 0.0, Qpool = 0.0;
+    std::vector<double> dS(size_t(p->knox)*p->knoy*p->knoz,0.0);
+    int q = 0;
+
+    LOOP
+    {
+        q = (i*p->knoy + j)*p->knoz + k;
+
+        if(alpha(i,j,k)<=0.5 || sat(i,j,k)>=1.0 || phyd(i,j,k)<=0.0)
+        continue;
+
+        bool wet = false;
+
+        for(int n=0; n<nb && !wet; ++n)
+        {
+            const int ii=i+di[n], jj=j+dj[n], kk=k+dk[n];
+
+            if(fl4(ii,jj,kk)<=0)
+            continue;
+
+            // a full neighbour, S >= 0.99 (with S > 0.5 the front ran at twice the speed v; S = 1 exactly stalled it,
+            // the transport at the surface of the slide mixes a little S into the cells)
+            wet = water(ii,jj,kk) || (alpha(ii,jj,kk)>0.5 && sat(ii,jj,kk)>=0.99);
+        }
+
+        if(!wet)
+        continue;
+
+        double h = MIN(p->DXN[IP],p->DZN[KP]);
+        if(p->j_dir==1)
+        h = MIN(h,p->DYN[JP]);
+
+        dS[q] = vimb>0.0 ? MIN(1.0-sat(i,j,k),p->dt*vimb/h) : 1.0-sat(i,j,k);
+    }
+
+    LOOP
+    {
+        q = (i*p->knoy + j)*p->knoz + k;
+
+        if(dS[q]<=0.0)
+        continue;
+
+        const double dV = p->DXN[IP]*p->DYN[JP]*p->DZN[KP];
+        const double Q = nporo*alpha(i,j,k)*dS[q]*dV/p->dt;   // water taken up [m3/s]
+
+        sat(i,j,k) += dS[q];
+        Qtot += Q;
+
+        int nw = 0;
+        for(int n=0; n<nb; ++n)
+        if(inside(i+di[n],j+dj[n],k+dk[n]) && water(i+di[n],j+dj[n],k+dk[n]))
+        ++nw;
+
+        if(nw==0)
+        {
+        Qpool += Q;
+        continue;
+        }
+
+        for(int n=0; n<nb; ++n)
+        {
+            const int ii=i+di[n], jj=j+dj[n], kk=k+dk[n];
+
+            if(inside(ii,jj,kk) && water(ii,jj,kk))
+            dsrc(ii,jj,kk) -= Q/double(nw)/(p->DXN[ii+marge]*p->DYN[jj+marge]*p->DZN[kk+marge]);
+        }
+    }
+
+    Qtot = pgc->globalsum(Qtot);
+    Qpool = pgc->globalsum(Qpool);
+
+    // the pool: into all water cells next to the slide
+    if(Qpool>0.0)
+    {
+        double Vc = 0.0;
+
+        LOOP
+        if(water(i,j,k))
+        for(int n=0; n<nb; ++n)
+        if(fl4(i+di[n],j+dj[n],k+dk[n])>0 && alpha(i+di[n],j+dj[n],k+dk[n])>0.5)
+        {
+        Vc += p->DXN[IP]*p->DYN[JP]*p->DZN[KP];
+        break;
+        }
+
+        Vc = pgc->globalsum(Vc);
+
+        if(Vc>0.0)
+        LOOP
+        if(water(i,j,k))
+        for(int n=0; n<nb; ++n)
+        if(fl4(i+di[n],j+dj[n],k+dk[n])>0 && alpha(i+di[n],j+dj[n],k+dk[n])>0.5)
+        {
+        dsrc(i,j,k) -= Qpool/Vc;
+        break;
+        }
+    }
+
+    // the pore air that escapes: a source in all air cells
+    if(Qtot>0.0)
+    {
+        double Va = 0.0;
+
+        LOOP
+        if(alpha(i,j,k)<0.5 && a->phi(i,j,k)<0.0)
+        Va += p->DXN[IP]*p->DYN[JP]*p->DZN[KP];
+
+        Va = pgc->globalsum(Va);
+
+        if(Va>0.0)
+        LOOP
+        if(alpha(i,j,k)<0.5 && a->phi(i,j,k)<0.0)
+        dsrc(i,j,k) += Qtot/Va;
+    }
+
+    imbibed += Qtot*p->dt;
+
+    bc(p,pgc,sat);
+    bc(p,pgc,dsrc);
 }
 
 void rheology_cfd_3phase::ini(lexer *p, fdm *a, ghostcell *pgc)
@@ -231,6 +394,18 @@ void rheology_cfd_3phase::ini(lexer *p, fdm *a, ghostcell *pgc)
     }
 
     bc(p,pgc,alpha);
+
+    if(imb)
+    {
+        LOOP
+        {
+        sat(i,j,k) = S0;
+        dsrc(i,j,k) = 0.0;
+        }
+        bc(p,pgc,sat);
+        bc(p,pgc,dsrc);
+    }
+
     smooth(p,pgc);
     band(p,a,pgc);
 
@@ -321,6 +496,7 @@ void rheology_cfd_3phase::sweep(lexer *p, fdm *a, ghostcell *pgc, int dir, doubl
 {
     const bool q1 = (pore==2);
     const bool q2 = dil;
+    const bool q3 = imb;
 
     // fluxes through the faces +dir of the cells -1 .. kno-1 in dir (the faces of the rank's cells)
     const int i0 = dir==0 ? -1 : 0;
@@ -340,6 +516,9 @@ void rheology_cfd_3phase::sweep(lexer *p, fdm *a, ghostcell *pgc, int dir, doubl
 
         if(q2)
         fphi(i,j,k) = 0.0;
+
+        if(q3)
+        fsat(i,j,k) = 0.0;
 
         if(uf==0.0)
         continue;
@@ -371,8 +550,8 @@ void rheology_cfd_3phase::sweep(lexer *p, fdm *a, ghostcell *pgc, int dir, doubl
 
         flux(i,j,k) = F;
 
-        // per unit volume of slide: p_e and phi go with the slide of the upwind cell
-        if(q1 || q2)
+        // per unit volume of slide: p_e, phi and the saturation go with the slide of the upwind cell
+        if(q1 || q2 || q3)
         {
             const double au = alpha(ui,uj,uk);
 
@@ -383,6 +562,9 @@ void rheology_cfd_3phase::sweep(lexer *p, fdm *a, ghostcell *pgc, int dir, doubl
 
                 if(q2)
                 fphi(i,j,k) = F*qphi(ui,uj,uk)/au;
+
+                if(q3)
+                fsat(i,j,k) = F*qsat(ui,uj,uk)/au;
             }
         }
     }
@@ -400,10 +582,14 @@ void rheology_cfd_3phase::sweep(lexer *p, fdm *a, ghostcell *pgc, int dir, doubl
         const double aold = alpha(i,j,k);
         double an = aold - (flux(i,j,k) - flux(i-di,j-dj,k-dk))/dx + cc*du;
 
-        if(q1 || q2)
+        if(q1 || q2 || q3)
         {
             const double r1 = q1 && aold>1.0e-12 ? qpe(i,j,k)/aold : 0.0;
             const double r2 = q2 && aold>1.0e-12 ? qphi(i,j,k)/aold : 0.0;
+            const double r3 = q3 && aold>1.0e-12 ? qsat(i,j,k)/aold : 0.0;
+
+            if(q3)
+            qsat(i,j,k) += -(fsat(i,j,k) - fsat(i-di,j-dj,k-dk))/dx + cc*r3*du;
 
             if(q1)
             qpe(i,j,k) += -(fpe(i,j,k) - fpe(i-di,j-dj,k-dk))/dx + cc*r1*du;
@@ -428,6 +614,9 @@ void rheology_cfd_3phase::sweep(lexer *p, fdm *a, ghostcell *pgc, int dir, doubl
 
             if(q2)
             qphi(i,j,k) = 0.0;
+
+            if(q3)
+            qsat(i,j,k) = 0.0;
         }
     }
 
@@ -439,11 +628,21 @@ void rheology_cfd_3phase::sweep(lexer *p, fdm *a, ghostcell *pgc, int dir, doubl
     if(q2)
     bc(p,pgc,qphi);
 
+    if(q3)
+    bc(p,pgc,qsat);
+
     clipsum += clipped;
 }
 
 void rheology_cfd_3phase::start(lexer *p, fdm *a, ghostcell *pgc, solver *psolv)
 {
+    // the scalars as the last step (or the checkpoint of a restart) left them
+    sweeps = int(ckstate[0]);
+    pe_ini = pe_ini || ckstate[1]>0.5;
+    if(ckstate[2]>0.0)
+    volume0 = ckstate[2];
+    imbibed = ckstate[3];
+
     const int size = p->imax*p->jmax*p->kmax;
     const int ndir = p->j_dir==1 ? 3 : 2;
     const int order3[3] = {0,1,2};
@@ -477,11 +676,19 @@ void rheology_cfd_3phase::start(lexer *p, fdm *a, ghostcell *pgc, solver *psolv)
     for(int n=0; n<size; ++n)
     qphi.V[n] = alpha.V[n]*phis.V[n];
 
+    if(imb)
+    for(int n=0; n<size; ++n)
+    qsat.V[n] = alpha.V[n]*sat.V[n];
+
     clipsum = 0.0;
+
+    // the indicator c of the divergence correction from the start of the step, for all sub-steps: with the sources of
+    // the imbibition (div(u) != 0 in the water and the air) a cell that crossed alpha = 1/2 in a sub-step took a
+    // share of the source and the slide volume changed (1e-3 in case 15)
+    std::memcpy(alpha0.V,alpha.V,sizeof(double)*size);
 
     for(int s=0; s<nsub; ++s)
     {
-        std::memcpy(alpha0.V,alpha.V,sizeof(double)*size);
 
         for(int d=0; d<ndir; ++d)
         {
@@ -511,6 +718,13 @@ void rheology_cfd_3phase::start(lexer *p, fdm *a, ghostcell *pgc, solver *psolv)
         bc(p,pgc,phis);
     }
 
+    if(imb)
+    {
+        LOOP
+        sat(i,j,k) = alpha(i,j,k)>1.0e-12 ? MIN(MAX(qsat(i,j,k)/alpha(i,j,k),0.0),1.0) : S0;
+        bc(p,pgc,sat);
+    }
+
     double clipped = pgc->globalsum(clipsum);
 
     smooth(p,pgc);
@@ -518,10 +732,22 @@ void rheology_cfd_3phase::start(lexer *p, fdm *a, ghostcell *pgc, solver *psolv)
 
     hydrostatic(p,a,pgc);
 
+    // the pores below the water surface take up water (W 136); the band and the density of the step with it
+    if(imb)
+    {
+    imbibe(p,a,pgc);
+    band(p,a,pgc);
+    }
+
     if(pore==2)
     excess(p,a,pgc,psolv);
 
     diagnostics(p,a,pgc,clipped,nsub);
+
+    ckstate[0] = double(sweeps);
+    ckstate[1] = pe_ini ? 1.0 : 0.0;
+    ckstate[2] = volume0;
+    ckstate[3] = imbibed;
 }
 
 void rheology_cfd_3phase::hydrostatic(lexer *p, fdm *a, ghostcell *pgc)
@@ -534,19 +760,82 @@ void rheology_cfd_3phase::hydrostatic(lexer *p, fdm *a, ghostcell *pgc)
         return;
     }
 
-    // water surface of the column: the highest z + phi of a water cell outside the slide (phi <= the distance
-    // to the surface above, = it at the surface)
+    // water surface of the column: the highest z + phi of a water cell outside the slide and above the slide of
+    // the column (phi <= the distance to the surface above, = it at the surface). Water under the slide (a film
+    // the slide rides on) does not count: its phi is the distance to the slide above, and the slide over it
+    // counted as dry
     const int gny = MAX(p->gknoy,1);
     std::fill(eta.begin(),eta.end(),-1.0e30);
+
+    std::vector<double> zs(eta.size(),-1.0e30);
+
+    LOOP
+    if(alpha(i,j,k)>0.5)
+    {
+    const size_t q = size_t(i+p->origin_i)*size_t(gny) + size_t(p->j_dir==1 ? j+p->origin_j : 0);
+    zs[q] = MAX(zs[q], p->ZP[KP]);
+    }
+
+    pgc->globalmax(zs.data(),int(zs.size()));
 
     LOOP
     if(alpha(i,j,k)<0.5 && a->phi(i,j,k)>0.0)
     {
     const size_t q = size_t(i+p->origin_i)*size_t(gny) + size_t(p->j_dir==1 ? j+p->origin_j : 0);
+
+    if(p->ZP[KP]>zs[q])
     eta[q] = MAX(eta[q], p->ZP[KP] + a->phi(i,j,k));
     }
 
     pgc->globalmax(eta.data(),int(eta.size()));
+
+    // columns the slide fills (no open water left in them: a slide that has pushed the water aside) take the water
+    // surface of the next column with water, spreading through the columns with slide only: the slide below the
+    // surrounding water level is submerged (its drained pore pressure, its imbibition W 136); before, these columns
+    // had no water surface and the slide in them counted as dry
+    {
+        const int gnx = MAX(p->gknox,1);
+        std::vector<double> sc(eta.size(),0.0);
+
+        for(size_t q=0; q<sc.size(); ++q)
+        sc[q] = zs[q]>-1.0e29 ? 1.0 : 0.0;
+
+        std::vector<double> en(eta);
+        bool changed = true;
+
+        for(int it=0; it<gnx+gny && changed; ++it)
+        {
+            changed = false;
+
+            for(int ii=0; ii<gnx; ++ii)
+            for(int jj=0; jj<gny; ++jj)
+            {
+                const size_t q = size_t(ii)*size_t(gny) + size_t(jj);
+
+                if(eta[q]>-1.0e29 || sc[q]<0.5)
+                continue;
+
+                double e = -1.0e30;
+
+                if(ii>0)
+                e = MAX(e,eta[q-gny]);
+                if(ii<gnx-1)
+                e = MAX(e,eta[q+gny]);
+                if(jj>0)
+                e = MAX(e,eta[q-1]);
+                if(jj<gny-1)
+                e = MAX(e,eta[q+1]);
+
+                if(e>-1.0e29)
+                {
+                en[q] = e;
+                changed = true;
+                }
+            }
+
+            eta = en;
+        }
+    }
 
     const double g = std::fabs(p->W22);
 
@@ -733,6 +1022,10 @@ double rheology_cfd_3phase::rho_face(lexer *p, int aa, int bb, int cc, double H)
 {
     const double af = 0.5*(alphas(i,j,k) + alphas(i+aa,j+bb,k+cc));
 
+    if(imb)
+    return 0.5*(alphas(i,j,k)*rho_slide(i,j,k) + alphas(i+aa,j+bb,k+cc)*rho_slide(i+aa,j+bb,k+cc))
+           + (1.0-af)*(H*rho_w + (1.0-H)*rho_a);
+
     return af*rho_s + (1.0-af)*(H*rho_w + (1.0-H)*rho_a);
 }
 
@@ -756,12 +1049,15 @@ void rheology_cfd_3phase::diagnostics(lexer *p, fdm *a, ghostcell *pgc, double c
     {
     cout<<"Slide volume: "<<setprecision(10)<<volume<<setprecision(6)<<" (rel. change "<<(volume0>0.0 ? volume/volume0-1.0 : 0.0)
         <<"), alpha_s "<<amin<<" - "<<amax<<", clipped "<<clipped<<" m3, sub-steps "<<nsub<<endl;
+
+    if(imb)
+    cout<<"Slide pore water taken up: "<<imbibed<<" m3"<<endl;
     }
 }
 
 int rheology_cfd_3phase::nvtu(lexer *p) const
 {
-    return 2 + (pore>=1 ? 1 : 0) + (pore==2 ? 1 : 0) + (dil ? 1 : 0);
+    return 2 + (pore>=1 ? 1 : 0) + (pore==2 ? 1 : 0) + (dil ? 1 : 0) + (imb ? 1 : 0);
 }
 
 void rheology_cfd_3phase::offset_vtu(lexer *p, int *offset, int &n)
@@ -775,10 +1071,10 @@ void rheology_cfd_3phase::offset_vtu(lexer *p, int *offset, int &n)
 
 void rheology_cfd_3phase::name_vtu(lexer *p, std::ostream &result, int *offset, int &n)
 {
-    const char *names[5] = {"alpha_s","p_eff","p_hyd","p_e","phi_s"};
-    const bool on[5] = {true,true,pore>=1,pore==2,dil};
+    const char *names[6] = {"alpha_s","p_eff","p_hyd","p_e","phi_s","saturation"};
+    const bool on[6] = {true,true,pore>=1,pore==2,dil,imb};
 
-    for(int q=0; q<5; ++q)
+    for(int q=0; q<6; ++q)
     if(on[q])
     {
     result<<"<DataArray type=\"Float32\" Name=\""<<names[q]<<"\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
@@ -788,10 +1084,10 @@ void rheology_cfd_3phase::name_vtu(lexer *p, std::ostream &result, int *offset, 
 
 void rheology_cfd_3phase::name_pvtu(lexer *p, std::ostream &result)
 {
-    const char *names[5] = {"alpha_s","p_eff","p_hyd","p_e","phi_s"};
-    const bool on[5] = {true,true,pore>=1,pore==2,dil};
+    const char *names[6] = {"alpha_s","p_eff","p_hyd","p_e","phi_s","saturation"};
+    const bool on[6] = {true,true,pore>=1,pore==2,dil,imb};
 
-    for(int q=0; q<5; ++q)
+    for(int q=0; q<6; ++q)
     if(on[q])
     result<<"<PDataArray type=\"Float32\" Name=\""<<names[q]<<"\"/>\n";
 }
@@ -803,10 +1099,10 @@ void rheology_cfd_3phase::print_vtu(lexer *p, fdm *a, ghostcell *pgc, std::vecto
     flux(i,j,k) = peff(p,a);
     bc(p,pgc,flux);
 
-    field *f[5] = {&alpha,&flux,&phyd,(pore==2 ? &pe : nullptr),(dil ? &phis : nullptr)};
-    const bool on[5] = {true,true,pore>=1,pore==2,dil};
+    field *f[6] = {&alpha,&flux,&phyd,(pore==2 ? &pe : nullptr),(dil ? &phis : nullptr),(imb ? &sat : nullptr)};
+    const bool on[6] = {true,true,pore>=1,pore==2,dil,imb};
 
-    for(int q=0; q<5; ++q)
+    for(int q=0; q<6; ++q)
     if(on[q])
     {
         int iin = sizeof(float)*p->pointnum;

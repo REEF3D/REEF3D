@@ -408,6 +408,54 @@ def collapse(prefix, out):
     fig.tight_layout(); fig.savefig(os.path.join(out, "07_cfd_collapse.png"))
     return rows
 
+def _slope(xs, hs):
+    """deposit slope [deg]: the flank between 80 % and 20 % of the height at the wall"""
+    H = hs[0]
+    i8 = np.where(hs < 0.8*H)[0]; i2 = np.where(hs < 0.2*H)[0]
+    if len(i8) == 0 or len(i2) == 0:
+        return float("nan")
+    return float(np.degrees(np.arctan((0.6*H)/max(xs[i2[0]] - xs[i8[0]], 1e-9))))
+
+def channel(runs, out, L0=0.1):
+    # 07: 2D collapses against the quasi-2D channel experiments. Lajeunesse, Monnier & Homsy (2005): glass beads
+    # d = 1.15 mm, repose 22 deg, wall friction on glass 11 deg, gap W = 45 mm, (L - L0)/L0 linear in a for a < 3;
+    # Lube et al. (2005): 1.2 a (a < 2.3), 1.9 a^(2/3), t_stop = 3 (2 H0/g)^0.5; Staron & Hinch (2005), 2D contact
+    # dynamics without side walls: 2.5 a (a < 2), H/L0 = a (a < 1), 0.65 a^0.35. runs: (run, a, label)
+    plt = style()
+    fig, ax = plt.subplots(1, 2, figsize=(11, 3.6))
+    rows = {}
+    cols = (BLUE, ORANGE, GREEN, GREY, LBLUE, "#8E44AD")
+    for k, (run, a, lab) in enumerate(runs):
+        if not os.path.isdir(run):
+            continue
+        F = cfd_frames(run)
+        ts, x2 = [], []
+        for t, d in F:
+            xs, hs = deposit(d)
+            ts.append(t); x2.append(xs[np.where(hs > 0.002)[0][-1]])
+        xs, hs = deposit(F[-1][1])
+        x5 = xs[np.where(hs > 0.005)[0][-1]]
+        x2 = np.array(x2); ts = np.array(ts)
+        # the front has covered 98 % of its final runout (a retreat of the thin tip by a cell does not count)
+        t_stop = float(ts[np.argmax(x2 - L0 >= 0.98*(x2[-1] - L0))])
+        H0 = a*L0
+        rows[lab] = dict(a=a, t_end=round(float(ts[-1]), 2), runout_h2mm=round(float((x2[-1] - L0)/L0), 3),
+                         runout_h5mm=round(float((x5 - L0)/L0), 3), lube=round(1.2*a if a < 2.3 else 1.9*a**(2.0/3.0), 3),
+                         staron_hinch_2D=round(2.5*a, 3), H_L0=round(float(hs[0]/L0), 3),
+                         H_L0_staron_hinch=round(a if a < 1 else 0.65*a**0.35, 3), slope_deg=round(_slope(xs, hs), 1),
+                         t_stop=round(t_stop, 2), t_stop_lube=round(3.0*math.sqrt(2*H0/9.81), 2))
+        col = cols[k % len(cols)]
+        ls = "-" if a < 1 else "--"
+        ax[0].plot(xs/L0, hs/L0, color=col, lw=1.5, ls=ls, label=lab)
+        ax[1].plot(ts/math.sqrt(2*H0/9.81), (x2 - L0)/L0/a, color=col, lw=1.5, ls=ls, label=lab)
+    for v, txt in ((1.2, "Lube 1.2a"), (2.5, "2D DEM 2.5a")):
+        ax[1].axhline(v, color=GREY, lw=0.9, ls=":")
+        ax[1].text(0.05, v + 0.04, txt, fontsize=8, color=GREY)
+    ax[0].set_xlabel("x/L0"); ax[0].set_ylabel("z/L0"); ax[0].legend(fontsize=7); ax[0].set_aspect("equal")
+    ax[1].set_xlabel(r"$t/\sqrt{2H_0/g}$"); ax[1].set_ylabel(r"$(L-L_0)/(L_0\,a)$, h > 2 mm"); ax[1].legend(fontsize=7)
+    fig.tight_layout(); fig.savefig(os.path.join(out, "07_cfd_collapse_channel.png"))
+    return rows
+
 def cfdarrest(run, run_sflow, out):
     plt = style()
     g, rho, ty = 9.81, 1000.0, 89.0
@@ -1074,6 +1122,9 @@ if __name__ == "__main__":
     cmd = sys.argv[1]
     if cmd == "mangeney":
         r = mangeney(sys.argv[2], sys.argv[3])
+    elif cmd == "channel":
+        # channel <out> <run>:<a>:<label> ...
+        r = channel([(x.split(":")[0], float(x.split(":")[1]), x.split(":", 2)[2]) for x in sys.argv[3:]], sys.argv[2])
     elif cmd == "arrest":
         r = arrest(sys.argv[2], sys.argv[3], sys.argv[4])
     elif cmd == "cochard":

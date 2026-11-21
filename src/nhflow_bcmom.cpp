@@ -24,6 +24,7 @@ Author: Hans Bihs
 #include"nhflow_wall.h"
 #include"lexer.h"
 #include"fdm_nhf.h"
+#include"slide2D.h"
 #include"ghostcell.h"
 #include"turbulence.h"
 
@@ -163,11 +164,18 @@ void nhflow_bcmom::wall_friction(lexer *p, fdm_nhf *d, int comp, double *VEL, do
 void nhflow_bcmom::roughness_u(lexer* p, fdm_nhf *d, double *U, double *F, slice &WL)
 {
     wall_friction(p,d,0,U,F,WL);
+    
+    // the slide layer (W 150, W 155): the drag of the slide on the bottom water layer
+    if(d->slide!=nullptr)
+    d->slide->drag_nhflow(p,d,0,U,F,WL);
 }
 
 void nhflow_bcmom::roughness_v(lexer* p, fdm_nhf *d, double *V, double *G, slice &WL)
 {
     wall_friction(p,d,1,V,G,WL);
+    
+    if(d->slide!=nullptr)
+    d->slide->drag_nhflow(p,d,1,V,G,WL);
 }
 
 void nhflow_bcmom::roughness_w(lexer* p, fdm_nhf *d, double *W, double *H, slice &WL)
