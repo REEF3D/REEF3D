@@ -689,10 +689,10 @@ void control::read_control(lexer* p)
                 case 540: control>>A540;
                          clear(c,numint);
                          break;
-                case 542: retired_key(control,p,c,numint);
+                case 542: control>>A542;
                          clear(c,numint);
                          break;
-                case 543: retired_key(control,p,c,numint);
+                case 543: control>>A543;
                          clear(c,numint);
                          break;
                 case 546: control>>A546;

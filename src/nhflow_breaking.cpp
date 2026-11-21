@@ -30,7 +30,7 @@ Author: Hans Bihs
 
 nhflow_breaking::nhflow_breaking(lexer* p, fdm_nhf *d, ghostcell *pgc) : bx(p), by(p), bd(p), brkflag(p), brkzone(p),
                                                                             brkage(p), brkage_n(p), brkvb(p), bt_us(p), bt_vs(p), bt_vbs(p), brkseed(p),
-                                                                            brkkseed(p), brkk(p), brkk_n(p), brkr(p), brkr_n(p), brkh(p), brkh_n(p), plk_n(p), plh_n(p), bt_vbd(p), bt_kwd(p), bt_pa(p), count_n(-1)
+                                                                            brkkseed(p), brkk(p), brkk_n(p), brkr(p), brkr_n(p), brkh(p), brkh_n(p), plk_n(p), plh_n(p), etf(p), etf2(p), bt_vbd(p), bt_kwd(p), bt_pa(p), count_n(-1)
 {
     SLICELOOP4
     {
@@ -155,6 +155,12 @@ void nhflow_breaking::breaking_kennedy(lexer *p, fdm_nhf *d, ghostcell *pgc, sli
     if(p->mpirank==0 && (p->count%p->P12==0))
     cout<<"breaking: "<<count<<endl;
     
+    const int non = pgc->globalisum(on_count);
+    const double xon = pgc->globalsum(on_xsum);
+    
+    if(p->mpirank==0 && non>0 && (p->P12<=1 || p->count%p->P12==0 || p->A542>0.0))
+    cout<<"onset: "<<non<<" columns at x = "<<xon/double(non)<<" t = "<<p->simtime<<endl;
+    
     if(p->S137>0.0)
     {
     const int npl = pgc->globalisum(pl_count);
@@ -208,6 +214,11 @@ void nhflow_breaking::kennedy_part(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &
     kn_count=0;
     pl_count=0;
     pl_xsum=0.0;
+    on_count=0;
+    on_xsum=0.0;
+    
+    if(p->A542>0.0)
+    onset_filter(p,d,pgc,WL);
     
     SLICELOOP4
     {
@@ -223,7 +234,7 @@ void nhflow_breaking::kennedy_part(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &
         if(p->wet[IJ]==1 && brkzone(i,j)==0 && p->count>1)
         {
         const double h = MAX(WL(i,j),0.0);
-        const double et = d->detadt(i,j);
+        const double et = (p->A542>0.0) ? etf(i,j) : d->detadt(i,j);
         
         // the largest age of the column and its neighbours, and the wavenumber and initial threshold of that event (A 550 4)
         double age = brkage_n(i,j);
@@ -293,6 +304,12 @@ void nhflow_breaking::kennedy_part(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &
             brkh(i,j) = hb;
             brkflag(i,j) = 1;
             ++kn_count;
+            
+            if(age<=0.0)
+            {
+            ++on_count;
+            on_xsum += p->XP[IP];
+            }
             
             plunge(p,d,i,j,age + p->dt,hb,kw,c);
             }
@@ -385,6 +402,82 @@ void nhflow_breaking::kennedy_part(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &
     {
     pgc->gcsl_start4(p,d->plk,1);
     pgc->gcsl_start4(p,d->plh,1);
+    }
+}
+
+/*--------------------------------------------------------------------
+A 542: onset of breaking independent of the grid (A 550 3, 4, 5). The test deta/dt > eta_t* (A 554 sqrt(g h)) sees
+the front of a captured bore, which is 4-5 cells wide on every grid: deta/dt at the front grows as 1/dx, and the
+onset moved with the grid (Baldock et al. 2011: 4 m between dx 0.1 and 0.05 m; Roelvink 1989 at dx 0.1 m never
+reached A 554 0.6). The integral of deta/dt across a front, c H, does not depend on dx: deta/dt filtered over a
+physical length l = A 542 h (Gaussian of the same variance as a box of width l, as explicit diffusion passes) is the
+same on every grid finer than l. The onset test and the viscosity of breaking_kennedy use the filtered value.
+Conservative passes (the dry columns and the relaxation zones are closed), sigma^2 = l^2/12.
+--------------------------------------------------------------------*/
+void nhflow_breaking::onset_filter(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL)
+{
+    double r2max = 0.0;
+    
+    SLICELOOP4
+    {
+    etf(i,j) = (p->wet[IJ]==1 && brkzone(i,j)==0) ? d->detadt(i,j) : 0.0;
+    
+        if(p->wet[IJ]==1)
+        {
+        const double l = p->A542*MAX(WL(i,j),0.0);
+        const double dx = (p->j_dir==1) ? MIN(p->DXN[IP],p->DYN[JP]) : p->DXN[IP];
+        r2max = MAX(r2max, l*l/(dx*dx));
+        }
+    }
+    
+    r2max = pgc->globalmax(r2max);
+    
+    // passes: variance 2 a dx^2 per pass and direction, a <= 0.25 (stable in 2D), total l^2/12
+    const int np = MAX(1, int(ceil(r2max/(12.0*2.0*0.25))));
+    
+    pgc->gcsl_start4(p,etf,1);
+    
+    for(int q=0; q<np; ++q)
+    {
+        SLICELOOP4
+        {
+        etf2(i,j) = etf(i,j);
+        
+            if(p->wet[IJ]==1 && brkzone(i,j)==0)
+            {
+            const double l = p->A542*MAX(WL(i,j),0.0);
+            
+            auto coef = [&](int ii, int jj, double dx)
+            {
+                if(p->wet[(ii-p->imin)*p->jmax + (jj-p->jmin)]!=1 || brkzone(ii,jj)!=0)
+                return 0.0;
+                
+                const double ln = 0.5*(l + p->A542*MAX(WL(ii,jj),0.0));
+                
+                return MIN(0.25, ln*ln/(24.0*double(np)*dx*dx));
+            };
+            
+            double sum = 0.0;
+            
+            const double ce = coef(i+1,j,p->DXP[IP]);
+            const double cw = coef(i-1,j,p->DXP[IM1]);
+            sum += ce*(etf(i+1,j)-etf(i,j)) + cw*(etf(i-1,j)-etf(i,j));
+            
+                if(p->j_dir==1)
+                {
+                const double cn = coef(i,j+1,p->DYP[JP]);
+                const double cs = coef(i,j-1,p->DYP[JM1]);
+                sum += cn*(etf(i,j+1)-etf(i,j)) + cs*(etf(i,j-1)-etf(i,j));
+                }
+            
+            etf2(i,j) = etf(i,j) + sum;
+            }
+        }
+        
+        SLICELOOP4
+        etf(i,j) = etf2(i,j);
+        
+        pgc->gcsl_start4(p,etf,1);
     }
 }
 

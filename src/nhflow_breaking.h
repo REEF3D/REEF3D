@@ -110,6 +110,10 @@ private:
     slice4 brkr, brkr_n;        // A 550 4: initial threshold of the event / c, at the end of the stage and of the last step
     slice4 brkh, brkh_n;        // S 137: breaker height H_b of the event (from the crest at the onset), carried with the front
     slice4 plk_n, plh_n;        // S 137, S 142: impact turbulence of the last step, decayed over the step
+    slice4 etf, etf2;           // A 542: deta/dt filtered over A 542 h (onset of breaking independent of the grid)
+    int on_count = 0;           // onsets (new events) of the stage and the sum of their x (log)
+    double on_xsum = 0.0;
+    void onset_filter(lexer*, fdm_nhf*, ghostcell*, slice&);
     int pl_count = 0;           // S 137: plunge-impact columns of the stage and the sum of their x (log)
     double pl_xsum = 0.0;
     slice4 bt_vbd, bt_kwd;      // A 550 5: viscosity and wavenumber of the deep-water breakers (at t^n, for the step)

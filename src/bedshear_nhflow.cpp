@@ -218,6 +218,12 @@ void bedshear::taubed(lexer *p, fdm_nhf*d, ghostcell *pgc, sediment_fdm *s)
 
         tau_i = density*(uabs*uabs)/(u_plus*u_plus);
         
+        // A 543 with S 16 2/10/11: the turbulence that breaking puts into k stirs the bed, the pick-up (van Rijn, from
+        // tau_i) takes 0.3 rho k of the bed cell as tau_eff does; without A 543 tau_i stays the skin friction of the
+        // log law
+        if(p->A543>0.0 && (p->S16==2 || p->S16==10 || p->S16==11) && d->KIN!=nullptr)
+        tau_i = MAX(tau_i, density*0.3*d->KIN[IJK]);
+        
         
         // blend with shallow water
         if(p->S38==1 && d->WL(i,j)<p->S39*p->A544)
