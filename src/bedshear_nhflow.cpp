@@ -27,6 +27,7 @@ Author: Hans Bihs
 #include"sediment_fdm.h"
 #include"turbulence.h"
 #include"sliceint.h"
+#include"nhflow_breaking_profile.h"
 
 // NHFLOW
 void bedshear::taubed(lexer *p, fdm_nhf*d, ghostcell *pgc, sediment_fdm *s)
@@ -282,6 +283,44 @@ void bedshear::taubed(lexer *p, fdm_nhf*d, ghostcell *pgc, sediment_fdm *s)
         }
 
 
+        // S 136: stirring of the bed by the breaking turbulence (A 550), as XBeach (Reniers et al. 2004):
+        //   u_eff^2 = u_b^2 + 1.45 k_b,   k_b = S 136 (D_b/rho)^(2/3)
+        // D_b/rho = sum over the layers of vb (du/dx^2 + dv/dy^2) dz is the dissipation of the breaking viscosity in the
+        // column (its horizontal part, along the layers), (D_b/rho)^(2/3) the turbulent kinetic energy it supports
+        // at the surface, S 136 the share that reaches the bed (1/(exp(h/H) - 1), about 0.4 in a saturated surf zone).
+        // The turbulence adds 1.45 k_b / u+^2 to the bed shear stress (the friction coefficient of the bed cell).
+        if(p->S136>0.0 && p->A550>0)
+        {
+        const double h = MAX(d->WL(i,j),0.0);
+        double db = 0.0;
+        
+        const int kb=k;
+        KLOOP
+        if(p->DF[IJK]>0)
+        {
+        const double vb = nhflow_vb_layer(p,d,i,j,k);
+        
+            if(vb>0.0)
+            {
+            const double dudx = (d->U[Ip1JK]-d->U[Im1JK])/(p->DXP[IP]+p->DXP[IM1]);
+            const double dvdy = p->j_dir==1 ? (d->V[IJp1K]-d->V[IJm1K])/(p->DYP[JP]+p->DYP[JM1]) : 0.0;
+            
+            db += vb*(dudx*dudx + dvdy*dvdy)*p->DZN[KP]*h;
+            }
+        }
+        k=kb;
+        
+            if(db>0.0)
+            {
+            const double kbed = p->S136*pow(db,2.0/3.0);
+            const double up = uplus(0.5*p->DZN[KP]*h, s->ks_eff(i,j));
+            const double dtau = density*1.45*kbed/(up*up);
+            
+            tau_eff += dtau;
+            tau_i += dtau;
+            }
+        }
+        
         // S 133: upper limit of the Shields number (swash and wetting fronts: the friction coefficient of a thin
         // layer is of order 0.1 and the velocities of the front are the least reliable ones)
         if(p->S133>0.0)

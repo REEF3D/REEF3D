@@ -2765,6 +2765,8 @@ void control::ctrlrecv()
     dd++;
     S135 = dctrl[dd];
     dd++;
+    S136 = dctrl[dd];
+    dd++;
     S140 = dctrl[dd];
     dd++;
     S141 = dctrl[dd];

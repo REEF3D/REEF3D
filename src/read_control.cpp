@@ -3974,6 +3974,9 @@ void control::read_control(lexer* p)
                 case 135: control>>S135;
                          clear(c,numint);
                          break;
+                case 136: control>>S136;
+                         clear(c,numint);
+                         break;
                 case 140: control>>S140;
                          clear(c,numint);
                          break;
