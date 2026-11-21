@@ -106,30 +106,11 @@ void sflow_momentum_SI::nh_ini(lexer *p)
     cwn = cb/adisp;
     Bdisp = (adisp-1.0)/3.0;
 
+    // phiN, WHp, Lc0, Unm1, Vnm1, dwC, qxN, Hxo, qxo, qyN, Hyo, qyo start at zero as every new slice (slice_base);
+    // they are not written here, so that the ones only the non-hydrostatic pressure uses (phiN, WHp, Lc0, Unm1, Vnm1,
+    // qxN, qyN) take no memory without it
     SLICELOOP4
-    {
-    phiN(i,j) = 0.0;
-    WHp(i,j) = 0.0;
-    Lc0(i,j) = 0.0;
-    Unm1(i,j) = 0.0;
-    Vnm1(i,j) = 0.0;
     WLo(i,j) = -1.0;
-    dwC(i,j) = 0.0;
-    }
-
-    SLICELOOP1
-    {
-    qxN(i,j) = 0.0;
-    Hxo(i,j) = 0.0;
-    qxo(i,j) = 0.0;
-    }
-
-    SLICELOOP2
-    {
-    qyN(i,j) = 0.0;
-    Hyo(i,j) = 0.0;
-    qyo(i,j) = 0.0;
-    }
 
     // the Krylov solver also on a 1D grid with one rank (development: nh_krylov = true compares it with the band LU)
     nh_krylov = false;
