@@ -1,0 +1,19 @@
+{
+ "base": "sflow_2d_si_wetdry_island",
+ "ctrl_add": [
+  "A 234 8"
+ ],
+ "description": "sflow_2d_si_wetdry_island with A 234 8: the preconditioner is set up again when the non-hydrostatic cells change or a cell dries.",
+ "tags": [
+  "2d",
+  "sflow",
+  "semi_implicit",
+  "nonhydrostatic",
+  "wetdry",
+  "solver"
+ ],
+ "covers": [
+  "sflow_momentum_SI::nh_solve, A 234: set-up on a change of the non-hydrostatic cells and in the wetting and drying iteration"
+ ],
+ "architect": "Hans Bihs"
+}

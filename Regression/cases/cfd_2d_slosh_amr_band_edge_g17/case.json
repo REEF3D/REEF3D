@@ -1,0 +1,14 @@
+{
+ "np": 1,
+ "steps": 120,
+ "description": "A closed tank 0.6 x 0.6 m (dx 1 cm), no body; the free surface starts tilted from 0.27 to 0.33 m (F 57) and sloshes. A static refined band z 0.24-0.32 m over the whole length (G 15), one interface width on all levels (G 28 3): the surface runs through the top of the band. G 17 1: the hydrostatic columns of the patch edges start at the coarse cell above the patch. Without it the air under the top of the band reaches 1.1 m/s (2.7 m/s with G 9 1 instead of G 28 3), with it 0.31 m/s as on one fine grid.",
+ "tags": [
+  "quick",
+  "2d",
+  "levelset",
+  "amr"
+ ],
+ "covers": [
+  "cfd_amr::pr_hydro and restrict_press_hydro with G 17 1: the start of the coarse column of a patch"
+ ]
+}

@@ -1,0 +1,15 @@
+{
+ "np": 2,
+ "steps": 100,
+ "description": "The sloshing tank of cfd_2d_slosh_amr_band_edge_g17 with a static refined box x 0.20-0.40 m, z 0.24-0.32 m (the surface through its top and its sides), on 2 ranks: the box lies across the two ranks. G 28 3, G 17 1. The largest velocity is that of one rank (0.26 m/s after 1 s).",
+ "tags": [
+  "quick",
+  "2d",
+  "levelset",
+  "amr",
+  "mpi"
+ ],
+ "covers": [
+  "G 17 1 with the patch on two ranks: the columns beside a patch at a rank edge"
+ ]
+}

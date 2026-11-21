@@ -1,0 +1,13 @@
+{
+ "np": 1,
+ "steps": 450,
+ "description": "Still water for 2.5 s with a static refined box x 0.20-0.40 m, z 0.24-0.32 m: its top inside the interface width of level 0, its sides through the free surface. G 9 1, G 29 1 (the width of each level, G 28 0) and G 17 1. Without G 17 the water is at 1e-7 m/s for 1 s and then grows: 5e-6 m/s at 1.5 s, 4e-2 m/s at 2.5 s, 1 m/s at 3 s. With it 9e-8 m/s.",
+ "tags": [
+  "2d",
+  "levelset",
+  "amr"
+ ],
+ "covers": [
+  "G 17 1: still water over 450 steps, the growth of G 17 0 with G 28 0"
+ ]
+}

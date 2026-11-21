@@ -1,0 +1,13 @@
+{
+ "np": 1,
+ "steps": 30,
+ "description": "3D: a closed tank 0.3 x 0.16 x 0.5 m (dx 1 cm), the free surface tilted along x from 0.27 to 0.33 m, a static refined box x 0.08-0.24 m, y 0.04-0.12 m, z 0.24-0.32 m (edges on all sides, the surface through its top and its sides). G 28 3, G 17 1: a coarse column over four fine ones, the columns beside the box at its corners. To 0.5 s the largest velocity is 0.35 m/s (1.27 m/s without G 17; 0.38 m/s with the whole tank fine).",
+ "tags": [
+  "3d",
+  "levelset",
+  "amr"
+ ],
+ "covers": [
+  "G 17 1 in 3D: the mean over the four fine columns under a coarse one"
+ ]
+}

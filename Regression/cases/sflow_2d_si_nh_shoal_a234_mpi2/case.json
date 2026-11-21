@@ -1,0 +1,20 @@
+{
+ "base": "sflow_2d_si_nh_shoal_mpi2",
+ "ctrl_add": [
+  "A 234 8"
+ ],
+ "description": "sflow_2d_si_nh_shoal_mpi2 with A 234 8 on two ranks: the same decision to keep or set up the preconditioner on both ranks.",
+ "tags": [
+  "2d",
+  "sflow",
+  "semi_implicit",
+  "nonhydrostatic",
+  "mpi",
+  "solver"
+ ],
+ "covers": [
+  "sflow_momentum_SI::nh_solve with a kept preconditioner (A 234) on two ranks"
+ ],
+ "architect": "Hans Bihs",
+ "np": 2
+}

@@ -1,0 +1,15 @@
+{
+ "np": 2,
+ "steps": 100,
+ "description": "cfd_2d_slosh_amr_box_g17_mpi2 with the patches placed for the load of the ranks (G 40 1): G 17 1 where the coarser level of a patch is a shadow. The largest velocity to 1 s is that of G 40 0 (0.31 m/s; 1.15 m/s without G 17, on 3 ranks).",
+ "tags": [
+  "quick",
+  "2d",
+  "levelset",
+  "amr",
+  "mpi"
+ ],
+ "covers": [
+  "G 17 1 with G 40 1: the faces on top of a patch whose coarser level is a shadow"
+ ]
+}

@@ -1,0 +1,16 @@
+{
+ "np": 1,
+ "steps": 40,
+ "description": "cfd_2d_heave_amr (heave decay of a floating box, X 10 1) with the refined box z 0.24-0.48 m: its top lies 2 cm below the free surface and runs through the body. G 28 3, G 17 1. The heave follows the run with the body inside the patch within 1.7 mm rms of 41 mm (2.1 mm without G 17; level 0 alone 2.3 mm).",
+ "tags": [
+  "quick",
+  "2d",
+  "6dof",
+  "floating",
+  "levelset",
+  "amr"
+ ],
+ "covers": [
+  "G 17 1 with a floating body at the top of a patch"
+ ]
+}
