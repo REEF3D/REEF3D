@@ -220,22 +220,23 @@ nhflow_momentum_SI::nhflow_momentum_SI(lexer *p, fdm_nhf *d, ghostcell *pgc, six
     vad.assign(p->knoz,0.0);
     // A 510 11, and every predictor with the non-hydrostatic pressure: the vertical advection of the column operator
     // Crank-Nicolson (with omega at t^{n+1/2}, nh_begin)
-    // second-order time levels of the nonlinear terms (A 505 1, every predictor, hydrostatic or not) on one Cartesian
-    // grid: the advecting transport of the step from an estimate pass (step_single), the face depths and omega at
-    // t^{n+1/2} (nh_begin), the acceleration of the step in the advected velocities (the BCG source of A 510 11, the
-    // stage velocities of SSP-RK), Crank-Nicolson vertical advection in the column operator. Curvilinear, multi-block
-    // and refined grids, A 549 1 and A 505 0 keep the time levels of the step before (first order in time for the
-    // nonlinear terms, one pass)
-    tl2 = elm_mode(p)==0 && p->geo_curv==0 && p->geo_mb==0 && p->G1==0 && !patch && p->A505==1;
+    // second-order time levels of the nonlinear terms (every predictor, hydrostatic or not) on one Cartesian grid: the
+    // advecting transport of the step from an estimate pass (step_single), the face depths and omega at t^{n+1/2}
+    // (nh_begin), the acceleration of the step in the advected velocities (the BCG source of A 510 11, the stage
+    // velocities of SSP-RK), Crank-Nicolson vertical advection in the column operator. Curvilinear, multi-block and
+    // refined grids and A 549 1 keep the other time levels of the step before (first order in time for the nonlinear
+    // terms)
+    tl2 = elm_mode(p)==0 && p->geo_curv==0 && p->geo_mb==0 && p->G1==0 && !patch;
     // the estimate pass of the advecting transport also where tl2 is not available (curvilinear, multi-block and refined
-    // grids, A 505 1, not A 549 1): advected with the transport of the step before (one pass) the short waves in a
-    // current grew from about theta - 1/2 < Fr (flume, h 0.109 m, U 0.42 m/s, theta 0.55, 0.5 - 4 % per step from flow
-    // Courant numbers 0.25 on, curvilinear grid 4 - 29 mm noise; linear analysis of the hydrostatic step: the lag of
-    // the transport); with the transport of the estimate, theta Q^{n+1} + (1 - theta) Q^n, stable. The other nonlinear
-    // terms keep the time levels of the step before. Each step about 1.3 - 1.9 times the time of one pass
-    tp2 = !tl2 && elm_mode(p)==0 && p->A505==1;
+    // grids, not A 549 1): advected with the transport of the step before (one pass) the short waves in a current grew
+    // from about theta - 1/2 < Fr (flume, h 0.109 m, U 0.42 m/s, theta 0.55, 0.5 - 4 % per step from flow Courant
+    // numbers 0.25 on, curvilinear grid 4 - 29 mm noise; linear analysis of the hydrostatic step: the lag of the
+    // transport); with the transport of the estimate, theta Q^{n+1} + (1 - theta) Q^n, stable. The other nonlinear terms
+    // keep the time levels of the step before. Each step about 1.3 - 1.9 times the time of one pass. The one pass on
+    // every grid (A 505 0) is retired (read_control: A 505 0 stops)
+    tp2 = !tl2 && elm_mode(p)==0;
 
-    // A 510 11 without tl2 (curvilinear, multi-block and refined grids, A 505 0): Crank-Nicolson vertical advection with
+    // A 510 11 without tl2 (curvilinear, multi-block and refined grids): Crank-Nicolson vertical advection with
     // omega at t^{n+1/2} (nh_begin), as with tl2
     if(onestep)
     thv = 0.5;
@@ -274,13 +275,10 @@ nhflow_momentum_SI::nhflow_momentum_SI(lexer *p, fdm_nhf *d, ghostcell *pgc, six
     cout<<", SSP-RK"<<rk<<" predictor";
 
     if(tl2)
-    cout<<", second-order time levels (A 505 1)";
+    cout<<", second-order time levels";
 
     if(tp2)
-    cout<<", estimate pass for the advecting transport (A 505 1)";
-
-    if(p->A505==0 && elm_mode(p)==0)
-    cout<<", one pass (A 505 0: in a current short waves grow for theta below about 1/2 + Fr, theta 0.7 recommended)";
+    cout<<", estimate pass for the advecting transport";
 
     if(p->A537==1)
     cout<<", wetting and drying iteration";
@@ -488,9 +486,6 @@ void nhflow_momentum_SI::check(lexer *p)
 
     if(p->A550==2 || p->A550>5)
     msg("A 550 other than 0, 1, 3, 4 or 5 is");
-
-    if(p->A505!=0 && p->A505!=1)
-    msg("A 505 other than 0 or 1 is");
 
     if(p->A507!=0 && p->A507!=1)
     msg("A 507 (eta and phi one after the other) other than 0 or 1 is");
@@ -3342,7 +3337,7 @@ void nhflow_momentum_SI::cell_update(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
     auto wn = [&](int a, int b) { return etaI(a,b) + d->depth(a,b) > p->A544; };
 
-    // A 505 1: a wall side counts in the mean of the face terms (SFLOW A 210 11, v13): with the full gradient of its one
+    // a wall side counts in the mean of the face terms (SFLOW A 210 11, v13): with the full gradient of its one
     // open face a wall cell had twice the acceleration consistent with its faces, and a grid-scale wave whose size
     // depends on dt went out from the walls. The term of the wall face is the one that keeps the normal velocity there
     // at zero: g H d_n eta = the sources normal to the wall (wind, Coriolis, atmospheric pressure, the density gradient;

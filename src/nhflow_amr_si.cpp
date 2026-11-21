@@ -548,7 +548,7 @@ void nhflow_amr::si_step(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_momentum_f
         m->nh_begin(q,dd,pgc);
     });
 
-    // A 505 1 (tp2): two passes as step_single, the first (the estimate) gives the advecting transport of the step,
+    // tp2: two passes as step_single, the first (the estimate) gives the advecting transport of the step,
     // theta Q^{n+1} + (1 - theta) Q^n, the second advects with it and solves again (the faces back to t^n)
     const int npass = gsi(-1)->tp2 ? 2 : 1;
 

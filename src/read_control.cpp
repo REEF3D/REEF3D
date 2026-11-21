@@ -665,6 +665,16 @@ void control::read_control(lexer* p)
                          clear(c,numint);
                          break;
                 case 505: control>>A505;
+                         // retired: the semi-implicit NHFLOW always runs the estimate pass of the advecting transport
+                         if(A505==0)
+                         {
+                         cout<<"!!! ctrl.txt: A 505 0 is no longer available: the semi-implicit NHFLOW (A 510 11/12/13) always runs "
+                             <<"the estimate pass of the advecting transport (one pass was unstable in a current for theta below "
+                             <<"about 1/2 + Fr) !!!"<<endl;
+                         exit(1);
+                         }
+                         cout<<"ctrl.txt: A 505 1 is no longer used and is ignored (the semi-implicit NHFLOW always runs the estimate pass)"<<endl;
+                         A505=1;
                          clear(c,numint);
                          break;
                 case 507: control>>A507;

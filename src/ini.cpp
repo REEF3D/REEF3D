@@ -227,7 +227,7 @@ void control::ini_default()
     A539=0;      // int NHFLOW semi-implicit, curvilinear grid: non-orthogonal part of the face gradient of eta (explicit, deferred), 1 on
     A540=1;      // int NFHLOW wetdry scheme
     A508=0;      // int NHFLOW explicit (A 510 2/3, A 520 1/2): 1: fourth-order horizontal divergence and pressure gradient of the projection (nhflow_pjm_ho.h; second order next to boundaries, dry cells and solids, and on curvilinear, multi-block and refined grids, with membranes, thin bodies and 6DOF), 0: second order (default: the fourth-order projection grew grid-scale noise in breaking waves, Cox et al. 1996). No effect on the semi-implicit step (A 510 11/12/13), which uses its fourth-order operators on one Cartesian grid anyway
-    A505=1;      // int NHFLOW semi-implicit (A 510 11/12/13): second-order time levels of the nonlinear terms on one Cartesian grid (an estimate pass for the advecting transport, face depths and omega at t^{n+1/2}, the acceleration of the step in the advected velocities, Crank-Nicolson vertical advection), 0: the levels of t^n (one pass, first order, about 1.2 - 1.6 times faster per step)
+    A505=1;      // int retired (NHFLOW semi-implicit: the estimate pass of the advecting transport always; A 505 0, one pass with the levels of t^n, was unstable in a current for theta below about 1/2 + Fr and stops in read_control)
     A507=0;      // int NHFLOW semi-implicit with A 520 > 0 (2D, MPI): 1: eta and phi solved one after the other (one block Gauss-Seidel pass over the coupled system, eta with phi of the guess, then phi with the new eta), 0: the coupled solve
     A541=0.0;    // double NHFLOW dry land next to deep water: a column deeper than A 541 times its horizontal cell size keeps its non-hydrostatic pressure next to dry cells, which are walls for it (dp/dn = 0, mirrored normal velocity; explicit and semi-implicit); 0: every column next to dry cells is hydrostatic and the dry cells are p = 0 boundaries (the shoreline of a beach)
     A544=0.001;  // double wetting & drying criterion
@@ -295,7 +295,7 @@ void control::ini_default()
     A564=1;      // int eddyv limiter (NHFLOW: 1 realizability, 2 SST; >= 1 also the length-scale limit l <= kappa h)
     A565=0;      // int stabilization
     A566=0;      // int buoyancy
-    A567=0;      // int NHFLOW k-eps / k-omega free-surface value of eps / omega with the length scale y' = T 37 (1: k-omega y' = T 37, k-eps y' = T 37 h; 2: T 37; 3: T 37 h) in the top layer; 4: in every layer with y = T 37 + depth of the cell centre below the surface
+    A567=0;      // int NHFLOW k-eps / k-omega free-surface value of eps / omega with the length scale y' = T 37 (1: k-omega y' = T 37, k-eps y' = T 37 h; 2: T 37; 3: T 37 h) in the top layer; 4: in every layer with y = T 37 + depth of the cell centre below the surface; 5: Naot & Rodi 1982, y' = T 37 h and the distance to the nearest side wall, top layer
     A568=1.0;      // double URANS C3 coefficient
     A561=0;        // int horizontal/vertical eddy viscosity split (HLES): 0 off, 1 nu_h = nu_t + nu_sgs (vertical-shear production), 2 nu_h = nu_sgs
     A562_cs=0.15;  // double horizontal Smagorinsky constant for A 561

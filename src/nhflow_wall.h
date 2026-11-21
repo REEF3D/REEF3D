@@ -39,6 +39,10 @@ Architect: Hans Bihs
 // Turbulence: the bed always has a wall function (bed shear from A519 1/2 at the wall-function bed A518 1, or
 // from the diffusion at the resolved no-slip bed A518 2, which has no bed friction). Side and top walls only with A519 2; otherwise they are slip walls in the momentum
 // equations and the turbulence sees them with zero gradient, without a wall function.
+// The faces at fixed solids (direct forcing, DF < 0) and, with A 541, at dry land above the water level of a deep
+// cell (an abutment or a quay as a raised bed, A 580 0; not the shoreline of a beach) have a wall function for the turbulence whatever A519 (nhflow_turb_solid):
+// the velocity there is zero, and without the wall function the jump to it in the strain made the production
+// (double abutment, k-omega, A 519 1: k up to 0.18 m2/s2, nu_t 0.008 m2/s at the abutments).
 // B11 0 switches the turbulence wall functions off (and with them the wall cells in WALLF).
 // Sharp thin bodies (nhflow_thinbody, X 330 'mobility sharp'): the faces at the body are walls with a wall
 // function (ks = B57), and with a turbulence model (A 560 > 0) wall friction in the momentum equations.
@@ -57,6 +61,28 @@ inline void nhflow_wall_faces(lexer *p, int i, int j, int k, int *w)
     w[3] = p->j_dir==1 && (p->DF[IJp1K]<0 || (p->flag4[IJp1K]<0 && p->IO[IJp1K]==0));
     w[4] = k==0 || p->flag4[IJKm1]<0 || p->DF[IJKm1]<0;
     w[5] = k!=p->knoz-1 && (p->flag4[IJKp1]<0 || p->DF[IJKp1]<0);
+}
+
+// horizontal faces at fixed solids (DF < 0) and, with A 541, at dry land above the water level of a deep cell: walls
+// for the turbulence (face 0 x-, 1 x+, 2 y-, 3 y+)
+inline void nhflow_turb_solid(lexer *p, fdm_nhf *d, int i, int j, int k, int *w)
+{
+    const int marge = increment::marge;   // for IP, JP
+
+    // dry land is a wall for a column deep enough for A 541 (nhflow_drywall.h): not at the shoreline of a beach
+    const double level = d->bed(i,j) + d->WL(i,j);
+    const bool deep = p->A541>0.0 && d->WL(i,j) > p->A541*MAX(p->DXN[IP], p->j_dir==1 ? p->DYN[JP] : 0.0);
+
+    auto land = [&](int a, int b)
+    {
+        const int q = (i+a-p->imin)*p->jmax + (j+b-p->jmin);
+        return deep && p->flagslice4[q]>0 && p->wet[q]==0 && d->bed(i+a,j+b) > level;
+    };
+
+    w[0] = p->DF[Im1JK]<0 || land(-1,0);
+    w[1] = p->DF[Ip1JK]<0 || land(1,0);
+    w[2] = p->j_dir==1 && (p->DF[IJm1K]<0 || land(0,-1));
+    w[3] = p->j_dir==1 && (p->DF[IJp1K]<0 || land(0,1));
 }
 
 // nearest wall with a turbulence wall function: distance of the cell centre, roughness and the velocity
@@ -109,6 +135,28 @@ inline int nhflow_turb_wall(lexer *p, fdm_nhf *d, int i, int j, int k, double &d
         dist = dz;
         ks = p->B57;
         ut = sqrt(U*U + V*V);
+        found = 1;
+        }
+    }
+
+    // fixed solids and dry land above the water level: walls with a wall function whatever A519
+    {
+        int sw[4];
+        nhflow_turb_solid(p,d,i,j,k,sw);
+
+        if((sw[0] || sw[1]) && 0.5*p->DXN[IP]<dist)
+        {
+        dist = 0.5*p->DXN[IP];
+        ks = p->B57;
+        ut = sqrt(V*V + W*W);
+        found = 1;
+        }
+
+        if((sw[2] || sw[3]) && 0.5*p->DYN[JP]<dist)
+        {
+        dist = 0.5*p->DYN[JP];
+        ks = p->B57;
+        ut = sqrt(U*U + W*W);
         found = 1;
         }
     }
