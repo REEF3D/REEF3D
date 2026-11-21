@@ -2140,6 +2140,17 @@ void cfd_amr::restrict_scalars(int s)
     {
         restrict_level(l,cells,none);
         restrict_press_hydro(l);
+
+        // G 40: the pressure of G 29 from the shadows to the ranks that hold the level-0 cells.
+        // restrict_level has given the plain mean before; without this the cells of level 0 under a
+        // patch on another rank kept it, as with G 29 0 (still water, a patch edge through the free
+        // surface: 3.6e-2 m/s after 0.5 s with G 28 0, 1.3e-3 m/s with G 28 3)
+        if(place && l==1 && p0->G29==1 && rr[2]==2)
+        {
+            vector<std::function<field&(int)>> pr;
+            pr.push_back([this](int g) -> field& { return gfd(g)->press; });
+            sh_run(pu_cell,pr,false);
+        }
     }
 
     if(turb)
