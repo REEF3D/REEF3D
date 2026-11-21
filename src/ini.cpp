@@ -295,7 +295,7 @@ void control::ini_default()
     A564=1;      // int eddyv limiter (NHFLOW: 1 realizability, 2 SST; >= 1 also the length-scale limit l <= kappa h)
     A565=0;      // int stabilization
     A566=0;      // int buoyancy
-    A567=0;      // int NHFLOW k-eps / k-omega free-surface value of eps / omega with the length scale y' = T 37 (1: k-omega y' = T 37, k-eps y' = T 37 h; 2: T 37; 3: T 37 h) in the top layer; 4: in every layer with y = T 37 + depth of the cell centre below the surface
+    A567=0;      // int NHFLOW k-eps / k-omega free-surface value of eps / omega with the length scale y' = T 37 (1: k-omega y' = T 37, k-eps y' = T 37 h; 2: T 37; 3: T 37 h) in the top layer; 4: in every layer with y = T 37 + depth of the cell centre below the surface; 5: Naot & Rodi 1982, y' = T 37 h and the distance to the nearest side wall, top layer
     A568=1.0;      // double URANS C3 coefficient
     A561=0;        // int horizontal/vertical eddy viscosity split (HLES): 0 off, 1 nu_h = nu_t + nu_sgs (vertical-shear production), 2 nu_h = nu_sgs
     A562_cs=0.15;  // double horizontal Smagorinsky constant for A 561

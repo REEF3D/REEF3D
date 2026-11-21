@@ -82,12 +82,17 @@ public:
     double sst_walldist(lexer*, fdm_nhf*);
     double sst_F2(lexer*, fdm_nhf*, double, double);
     double *WDH = nullptr;   // distance to the nearest side wall with a wall function (A 519 2), walldist_h
+    
+    // free-surface value of Naot & Rodi (1982) (A 567 5): distance to the nearest side wall of any kind, walldist_s
+    void walldist_s(lexer*, fdm_nhf*, ghostcell*);
+    double *WDS = nullptr;
 	
 	double const ke_c_1e, ke_c_2e,ke_sigma_k,ke_sigma_e;
 	double const kw_alpha, kw_beta,kw_sigma_k,kw_sigma_w;
 
 private:
     void kepsini_default(lexer*,fdm_nhf*,ghostcell*);
+    void walldist_sweep(lexer*, fdm_nhf*, ghostcell*, double*);
 
 	float ffn;
 	int q,iin,ii,jj,kk;

@@ -296,7 +296,28 @@ void nhflow_kepsilon_func::epsfsf(lexer *p, fdm_nhf *d, ghostcell *pgc)
     //   (2 and 3 mean the same in k-eps and k-omega, as T 36 1 and 3 in CFD)
     //   A567 4: in every layer with y = T37 + the distance of the cell centre below the surface, (1 - sigma) h
     //           (as nhflow_komega_func::epsfsf)
+    //   A567 5: Naot & Rodi (1982), Eq. 31, in the top layer: eps_s = cmu^3/4 k^3/2/kappa (1/y' + 1/y*), y' = T37 h (0.07 h,
+    //           Hossain), y* the horizontal distance to the nearest side wall (wall boundaries, solids, dry land above the
+    //           water, whatever A 519; walldist_s): where the surface meets a side wall, the value goes over into
+    //           that of the wall
     // applied as a lower bound, so the free-surface value only ever lowers nu_t (as CFD T 36)
+    if(p->A567==5)
+    {
+    walldist_s(p,d,pgc);
+    
+    k=p->knoz-1;
+    
+	SLICELOOP4
+	if(p->DF[IJK]>0)
+	{
+    const double ly = p->T37*d->WL(i,j);
+    const double inv = (ly>1.0e-20 ? 1.0/ly : 1.0e20) + (WDS[IJK]<1.0e19 ? 1.0/MAX(WDS[IJK],1.0e-20) : 0.0);
+    
+	EPS[IJK] = MAX(EPS[IJK], 2.5*pow(p->cmu,0.75)*pow(fabs(KIN[IJK]),1.5)*inv);
+	}
+    return;
+    }
+    
     if(p->A567==4)
     {
     LOOP
