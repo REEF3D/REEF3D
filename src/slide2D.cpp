@@ -43,7 +43,7 @@ slide2D::slide2D(lexer *p, fdm_nhf *d, ghostcell *pgc) : slide2D(p,(fdm2D*)nullp
 slide2D::slide2D(lexer *p, fdm2D *b, ghostcell *pgc) : h(p), qx(p), qy(p), lambda(p), zb(p),
                                                     h0(p), qx0(p), qy0(p), h1(p), qx1(p), qy1(p), Rh(p), Rx(p), Ry(p),
                                                     FhX(p), FxLX(p), FxRX(p), FyX(p), FhY(p), FxY(p), FyLY(p), FyRY(p),
-                                                    hE(p), hW(p), zE(p), zW(p), hN(p), hS(p), zN(p), zS(p), lnew(p), gr(p), hstep(p), hf(p), dfil(p), wb(p), uwb(p), vwb(p), sgc(p), suc(p), svc(p), pnb(p)
+                                                    hE(p), hW(p), zE(p), zW(p), hN(p), hS(p), zN(p), zS(p), lnew(p), gr(p), hstep(p), hf(p), dfil(p), wb(p), uwb(p), vwb(p), sgc(p), suc(p), svc(p), pnb(p), phis(p), tpsi(p), fsx(p), fsy(p)
 {
     using namespace rheo;
 
@@ -78,6 +78,24 @@ slide2D::slide2D(lexer *p, fdm2D *b, ghostcell *pgc) : h(p), qx(p), qy(p), lambd
     vol0 = 0.0;
     p_W162 = p->W162;
 
+    // W 164: dilatancy (the parameters of the CFD three-phase slide: W 145, W 144 k, W 124 d)
+    dil = p->W164>0.0;
+    vtp_dil = dil;
+    cgam = p->W164;
+    etaf = p->W1*p->W2;
+    K3 = p->W145_K3;
+    phic = p->W145_phic;
+    phi0 = p->W145_phi0;
+    kperm = p->W144_k;
+    dgrain = p->W124_d;
+
+    if(dil && (phi0<=0.0 || (kperm<=0.0 && dgrain<=0.0)))
+    {
+        if(p->mpirank==0)
+        cout<<"!!! slide layer W 164 (dilatancy): needs the initial solid fraction W 145 phi_0 > 0 and the permeability W 144 k > 0 or the grain size W 124 d > 0 !!!"<<endl;
+        pgc->final(true);
+    }
+
     if(r>=1.0)
     {
         if(p->mpirank==0)
@@ -92,8 +110,13 @@ slide2D::slide2D(lexer *p, fdm2D *b, ghostcell *pgc) : h(p), qx(p), qy(p), lambd
     if(p->W126>0)
     cout<<", pore pressure "<<(p->W126==1 ? "constant" : "advected/dissipating");
     cout<<", C_d "<<Cd<<", CFL "<<cfl<<endl;
+    if(dil)
+    cout<<"slide layer dilatancy (W 164): shear rate "<<cgam<<" |u|/h, phi_0 "<<phi0<<", K3 "<<K3<<", phi_c "<<phic
+        <<", k "<<(kperm>0.0 ? kperm : permeability(phi0))<<" m2"<<(kperm>0.0 ? "" : " (Carman-Kozeny at phi_0)")<<", eta_f "<<etaf<<" Pa s"<<endl;
     }
 }
+
+bool slide2D::vtp_dil = false;
 
 // ---------------------------------------------------------------------------------------------
 // initial slide
@@ -198,6 +221,8 @@ void slide2D::ini_common(lexer *p, ghostcell *pgc)
     qx(i,j) = 0.0;
     qy(i,j) = 0.0;
     lambda(i,j) = p->W126>0 ? p->W127_lambda : 0.0;
+    phis(i,j) = dil ? phi0 : 0.0;
+    tpsi(i,j) = 0.0;
     }
 
     // W 161: the top of the initial slide from slide-level.dat (the format of sflow-level.dat, F 73), e.g. the
@@ -257,6 +282,16 @@ void slide2D::ini_common(lexer *p, ghostcell *pgc)
     ghosts(p,pgc,h,qx,qy);
     pgc->gcsl_start4(p,lambda,50);
 
+    // W 164: tan(psi) of the initial state at rest (J = 0)
+    if(dil)
+    {
+        SLICELOOP4
+        tpsi(i,j) = h(i,j)>hmin ? MIN(MAX(K3*(phis(i,j) - phic),-0.6),0.6) : 0.0;
+        
+        pgc->gcsl_start4(p,phis,50);
+        pgc->gcsl_start4(p,tpsi,50);
+    }
+
     // W 162: the diffusivity of the filtered transfer from the still water depth over the bed
     if(p->W162>0.0)
     {
@@ -289,7 +324,8 @@ void slide2D::ini_common(lexer *p, ghostcell *pgc)
     // a restart from a checkpoint (I 45) continues the log from its size at the checkpoint
     logfresh = reefckpt_open(logout, nhf ? "./REEF3D_NHFLOW_Log/REEF3D_NHFLOW_slide.dat" : "./REEF3D_SFLOW_Log/REEF3D_SFLOW_slide.dat", p->I45);
     if(logfresh)
-    logout<<"# time  dt  substeps  V_slide  dV_slide/V0  V_water  h_max  |u|_max  x_min  x_max  y_min  y_max  (front: h > max(10 W 158, 1 mm))"<<endl;
+    logout<<"# time  dt  substeps  V_slide  dV_slide/V0  V_water  h_max  |u|_max  x_min  x_max  y_min  y_max"<<(dil ? "  phi_min  phi_max  tanpsi_min  tanpsi_max" : "")
+          <<"  (front: h > max(10 W 158, 1 mm))"<<endl;
     }
 
     logfresh = pgc->globalimax((p->mpirank==0 && logfresh) ? 1 : 0)==1;
@@ -326,6 +362,11 @@ void slide2D::step(lexer *p, ghostcell *pgc)
     hstep(i,j) = h(i,j);
     }
 
+    if(dil)
+    for(i=-1; i<=p->knox; ++i)
+    for(j=-1; j<=p->knoy; ++j)
+    fsx(i,j) = fsy(i,j) = 0.0;
+
     for(int s=0; s<nsub; ++s)
     {
         // SSP-RK2, stage 1
@@ -337,6 +378,7 @@ void slide2D::step(lexer *p, ghostcell *pgc)
         }
 
         rhs(p,h,qx,qy);
+        flux_sum(p,0.5*dts);
 
         SLICELOOP4
         {
@@ -351,6 +393,7 @@ void slide2D::step(lexer *p, ghostcell *pgc)
 
         // stage 2
         rhs(p,h1,qx1,qy1);
+        flux_sum(p,0.5*dts);
 
         SLICELOOP4
         {
@@ -366,6 +409,9 @@ void slide2D::step(lexer *p, ghostcell *pgc)
 
     if(p->W126==2)
     pore_update(p,pgc);
+
+    if(dil)
+    dilatancy_update(p,pgc);
 
     // the bed of the water: z_b + h (sflow_eta::depth_update then moves the surface with the bed)
     bed_update(p,pgc);
@@ -617,7 +663,45 @@ void slide2D::friction(lexer *p, slice &H, slice &QX, slice &QY, double dt)
         if(p->W126==2)
         s.lambda = rheo::pore_relax(lambda(i,j),p->W127_lambdah,p->W127_D,hh,0.5*p->dt);
 
-        const double sp = rheo::implicit_speed(q,s,Ustar,dt);
+        // W 164: dilatancy. tan(psi) at the speed U0 of the start of the sub-step (h0, qx0, qy0; not the trial speed of
+        // the stage, which carries the driving of the whole step without the friction and held a dense layer at rest),
+        // consistent with the excess pore pressure p_e = - C1 tan(psi) U0 it drives; a contracting layer (tan(psi) < 0): p_e > 0 at that speed into the pore
+        // pressure ratio (sigma_n' >= 0.02 sigma_n); tan(psi) added to the friction coefficient mu_c of the law there,
+        // as the ratio 1 - (1 - lambda)(1 + tan(psi)/mu_c); a dilating layer (tan(psi) > 0): the suction - p_e is linear in
+        // the speed, the friction (mu_c + tan(psi)) C1 tan(psi) U a linear drag, backward Euler after the step of the law
+        // (together exact backward Euler for Coulomb)
+        double drag = 0.0;
+
+        if(dil)
+        {
+            double C1;
+            const double U0 = h0(i,j)>hmin ? sqrt(qx0(i,j)*qx0(i,j) + (p->j_dir==1 ? qy0(i,j)*qy0(i,j) : 0.0))/h0(i,j) : 0.0;
+            const double tp = dil_tpsi(hh,U0,sb,s.sigma_n,s.lambda,phis(i,j),C1);
+            double lt = s.lambda;
+
+            if(tp<0.0 && s.sigma_n>0.0)
+            lt = MAX(lt,MIN(lt - C1*U0*tp/s.sigma_n,0.98));
+
+            s.lambda = lt;
+            const double se = MAX(1.0 - lt,0.0)*s.sigma_n;
+
+            if(se>0.0)
+            {
+            const double muc = rheo::basal_stress(q,s,Ustar)/se;
+            const double fac = muc>0.0 ? MAX(1.0 + tp/muc,0.0) : 0.0;
+
+            s.lambda = 1.0 - (1.0 - lt)*fac;
+
+            if(tp>0.0)
+            drag = MAX(muc + tp,0.0)*C1*tp/(rhos*hh);
+            }
+        }
+
+        double sp = rheo::implicit_speed(q,s,Ustar,dt);
+
+        if(drag>0.0)
+        sp /= 1.0 + dt*drag;
+
         const double f = sp/Ustar;
 
         QX(i,j) = hh*u*f;
@@ -677,6 +761,127 @@ void slide2D::pore_update(lexer *p, ghostcell *pgc)
     lambda(i,j) = lnew(i,j);
 
     pgc->gcsl_start4(p,lambda,50);
+}
+
+// ---------------------------------------------------------------------------------------------
+// dilatancy (W 164)
+// ---------------------------------------------------------------------------------------------
+
+double slide2D::permeability(double ph) const
+{
+    if(kperm>0.0)
+    return kperm;
+
+    // Carman-Kozeny (as the CFD three-phase slide)
+    ph = MIN(MAX(ph,0.3),0.7);
+    return dgrain*dgrain*(1.0-ph)*(1.0-ph)*(1.0-ph)/(180.0*ph*ph);
+}
+
+// tan(psi) = K3 (phi - phi_c/(1 + J^1/2)) with J = sub eta_f gamma/p', gamma = W 164 U/h, and the effective stress that
+// includes the excess pore pressure it drives, p' = max((1 - lambda) sigma_n + C1 U tan(psi), 0.02 sigma_n): f(t) = t - K3
+// (phi - phi_eq(J(t))) increases with t, bisection in [-0.6, 0.6]. C1 = sub eta_f W 164 h/(2 k): the Darcy flow of the
+// dilation gamma tan(psi) through the layer, drawn in (expelled) through its top, base impermeable, p_e = - C1 U tan(psi)
+double slide2D::dil_tpsi(double hh, double U, double sb, double sig0, double lam, double ph, double &C1) const
+{
+    const double ef = sb*etaf;
+    const double gam = cgam*U/MAX(hh,1.0e-12);
+
+    C1 = ef*cgam*hh/(2.0*permeability(ph));
+
+    if(ef*gam<=0.0 || sig0<=0.0)
+    return MIN(MAX(K3*(ph - phic),-0.6),0.6);
+
+    const double C = C1*U;
+    const double s0 = MAX(1.0 - lam,0.0)*sig0;
+    const double pmin = 0.02*sig0;
+
+    auto f = [&](double t)
+    {
+        const double J = rheo::viscous_number(gam,MAX(s0 + C*t,pmin),ef);
+        return t - rheo::tan_psi(K3,ph,phic,J);
+    };
+
+    double a = -0.6, b = 0.6;
+
+    if(f(a)>=0.0)
+    return a;
+
+    if(f(b)<=0.0)
+    return b;
+
+    for(int n=0; n<60 && b-a>1.0e-9; ++n)
+    {
+    const double m = 0.5*(a + b);
+
+        if(f(m)>0.0)
+        b = m;
+        else
+        a = m;
+    }
+
+    return 0.5*(a + b);
+}
+
+// W 164: the mass fluxes of the faces over the water step, SSP-RK2 weights (the transport of the solid volume)
+void slide2D::flux_sum(lexer *p, double w)
+{
+    if(!dil)
+    return;
+
+    for(i=-1; i<p->knox; ++i)
+    for(j=0; j<p->knoy; ++j)
+    fsx(i,j) += w*FhX(i,j);
+
+    if(p->j_dir==1)
+    for(i=0; i<p->knox; ++i)
+    for(j=-1; j<p->knoy; ++j)
+    fsy(i,j) += w*FhY(i,j);
+}
+
+// the solid fraction: the solid volume phi h carried with the mass fluxes of the step (upwind phi; a uniform phi stays
+// uniform, the phi of a thin film enters a thicker cell with its volume), then d(phi)/dt = - phi gamma tan(psi) over the
+// water step (exponential), tan(psi) of the end of the step; 0.3 <= phi <= 0.75. The advective form carried the phi of
+// the thin film the layer leaves behind (dilated to 0.3) into the layer, fluidised it there and piled it up
+void slide2D::dilatancy_update(lexer *p, ghostcell *pgc)
+{
+    pgc->gcsl_start4(p,phis,50);
+
+    auto up = [&](double F, double pl, double pr){ return F>0.0 ? F*pl : F*pr; };
+
+    SLICELOOP4
+    {
+        const double hh = h(i,j);
+        lnew(i,j) = phis(i,j);
+
+        if(hh<=hmin)
+        {
+        tpsi(i,j) = 0.0;
+        continue;
+        }
+
+        double vs = phis(i,j)*hstep(i,j)
+                  - (up(fsx(i,j),phis(i,j),phis(i+1,j)) - up(fsx(i-1,j),phis(i-1,j),phis(i,j)))/p->DXN[IP];
+
+        if(p->j_dir==1)
+        vs -= (up(fsy(i,j),phis(i,j),phis(i,j+1)) - up(fsy(i,j-1),phis(i,j-1),phis(i,j)))/p->DYN[JP];
+
+        const double ph = MIN(MAX(vs/hh,0.3),0.75);
+
+        const double U = sqrt(qx(i,j)*qx(i,j) + (p->j_dir==1 ? qy(i,j)*qy(i,j) : 0.0))/hh;
+        const double sb = sub_cell(p,i,j);
+        const double sig0 = (rhos - sb*rhow)*gn_cell(p)*hh;
+        double C1;
+        const double tp = dil_tpsi(hh,U,sb,sig0,p->W126>0 ? lambda(i,j) : 0.0,ph,C1);
+
+        tpsi(i,j) = tp;
+        lnew(i,j) = MIN(MAX(ph*exp(-p->dt*cgam*U/hh*tp),0.3),0.75);
+    }
+
+    SLICELOOP4
+    phis(i,j) = lnew(i,j);
+
+    pgc->gcsl_start4(p,phis,50);
+    pgc->gcsl_start4(p,tpsi,50);
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -802,10 +1007,19 @@ void slide2D::log(lexer *p, ghostcell *pgc, int mode)
 
     double hmax=0.0, umax=0.0;
     double xmin=1.0e20, xmax=-1.0e20, ymin=1.0e20, ymax=-1.0e20;
+    double fmin=1.0e20, fmax=-1.0e20, tmin=1.0e20, tmax=-1.0e20;
 
     SLICELOOP4
     {
     hmax = MAX(hmax,h(i,j));
+
+        if(dil && h(i,j)>hf)
+        {
+        fmin = MIN(fmin,phis(i,j));
+        fmax = MAX(fmax,phis(i,j));
+        tmin = MIN(tmin,tpsi(i,j));
+        tmax = MAX(tmax,tpsi(i,j));
+        }
 
     if(h(i,j)>hmin)
     umax = MAX(umax, sqrt(qx(i,j)*qx(i,j) + qy(i,j)*qy(i,j))/h(i,j));
@@ -826,12 +1040,25 @@ void slide2D::log(lexer *p, ghostcell *pgc, int mode)
     ymin = pgc->globalmin(ymin);
     ymax = pgc->globalmax(ymax);
 
+    if(dil)
+    {
+    fmin = pgc->globalmin(fmin);
+    fmax = pgc->globalmax(fmax);
+    tmin = pgc->globalmin(tmin);
+    tmax = pgc->globalmax(tmax);
+    }
+
     if(p->mpirank==0)
     {
     const double t = (mode==0) ? p->simtime : p->simtime + p->dt;     // start: called before simtime += dt
 
     logout<<setprecision(10)<<t<<" "<<p->dt<<" "<<(mode==0 ? 0 : nsub)<<" "<<vs<<" "<<(vol0>0.0 ? (vs-vol0)/vol0 : 0.0)<<" "<<vw
-          <<" "<<hmax<<" "<<umax<<" "<<xmin<<" "<<xmax<<" "<<ymin<<" "<<ymax<<endl;
+          <<" "<<hmax<<" "<<umax<<" "<<xmin<<" "<<xmax<<" "<<ymin<<" "<<ymax;
+
+    if(dil)
+    logout<<" "<<fmin<<" "<<fmax<<" "<<tmin<<" "<<tmax;
+
+    logout<<endl;
 
     if(mode==1 && (p->count%p->P12==0))
     cout<<"slide: substeps "<<nsub<<"  V "<<setprecision(8)<<vs<<"  h_max "<<setprecision(4)<<hmax<<"  |u|_max "<<umax<<"  front "<<xmax<<endl;
@@ -844,13 +1071,20 @@ void slide2D::log(lexer *p, ghostcell *pgc, int mode)
 
 void slide2D::offset_vtp(lexer *p, int *offset, int &n)
 {
-    // slide_h, slide_velocity (3), slide_lambda
+    // slide_h, slide_velocity (3), slide_lambda; W 164: slide_phi, slide_tanpsi
     offset[n]=offset[n-1]+sizeof(float)*(p->pointnum2D)+sizeof(int);
     ++n;
     offset[n]=offset[n-1]+sizeof(float)*(p->pointnum2D)*3+sizeof(int);
     ++n;
     offset[n]=offset[n-1]+sizeof(float)*(p->pointnum2D)+sizeof(int);
     ++n;
+
+    if(dil)
+    for(int kk=0; kk<2; ++kk)
+    {
+    offset[n]=offset[n-1]+sizeof(float)*(p->pointnum2D)+sizeof(int);
+    ++n;
+    }
 }
 
 void slide2D::name_vtp(std::ostream &result, int *offset, int &n)
@@ -861,6 +1095,14 @@ void slide2D::name_vtp(std::ostream &result, int *offset, int &n)
     ++n;
     result<<"<DataArray type=\"Float32\" Name=\"slide_lambda\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
     ++n;
+
+    if(dil)
+    {
+    result<<"<DataArray type=\"Float32\" Name=\"slide_phi\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
+    ++n;
+    result<<"<DataArray type=\"Float32\" Name=\"slide_tanpsi\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
+    ++n;
+    }
 }
 
 void slide2D::name_pvtp(std::ostream &result)
@@ -868,6 +1110,12 @@ void slide2D::name_pvtp(std::ostream &result)
     result<<"<PDataArray type=\"Float32\" Name=\"slide_h\"/>\n";
     result<<"<PDataArray type=\"Float32\" Name=\"slide_velocity\" NumberOfComponents=\"3\"/>\n";
     result<<"<PDataArray type=\"Float32\" Name=\"slide_lambda\"/>\n";
+
+    if(vtp_dil)
+    {
+    result<<"<PDataArray type=\"Float32\" Name=\"slide_phi\"/>\n";
+    result<<"<PDataArray type=\"Float32\" Name=\"slide_tanpsi\"/>\n";
+    }
 }
 
 void slide2D::print_vtp(lexer *p, std::ostream &result)
@@ -910,6 +1158,25 @@ void slide2D::print_vtp(lexer *p, std::ostream &result)
     ffn=float(p->sl_ipol4(lambda));
     result.write((char*)&ffn, sizeof(float));
     }
+
+    if(dil)
+    {
+    iin=sizeof(float)*p->pointnum2D;
+    result.write((char*)&iin, sizeof(int));
+    TPSLICELOOP
+    {
+    ffn=float(p->sl_ipol4(phis));
+    result.write((char*)&ffn, sizeof(float));
+    }
+
+    iin=sizeof(float)*p->pointnum2D;
+    result.write((char*)&iin, sizeof(int));
+    TPSLICELOOP
+    {
+    ffn=float(p->sl_ipol4(tpsi));
+    result.write((char*)&ffn, sizeof(float));
+    }
+    }
 }
 
 void slide2D::ckpt_fields(const std::function<void(const char*, char, double*)> &fd, const std::function<void(const char*, char, int*)> &fi)
@@ -923,4 +1190,11 @@ void slide2D::ckpt_fields(const std::function<void(const char*, char, double*)> 
     // W 162: the filtered slide (the start of the filter solve of the next step)
     if(p_W162>0.0)
     fd("slide_hf",'S',hf.V);
+
+    // W 164: the solid fraction and tan(psi)
+    if(dil)
+    {
+    fd("slide_phi",'S',phis.V);
+    fd("slide_tanpsi",'S',tpsi.V);
+    }
 }

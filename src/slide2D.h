@@ -57,6 +57,14 @@ class solver2D;
 //   over z_b, F 60): a conservative low-pass filter of the slide under the water, response 1/(1 + a (k d)^2) against
 //   1/cosh(k d) of the potential-flow transfer (Kajiura 1963; a = 0.5 matches for small k d); no filter where dry
 //
+// - W 164 c > 0: dilatancy (Pailha & Pouliquen 2009; Iverson & George 2014): the solid fraction phi of the layer
+//   (initial W 145 phi_0) evolves as d(phi)/dt = - phi gamma tan(psi), gamma = c |u|/h the basal shear rate,
+//   tan(psi) = K3 (phi - phi_c/(1 + J^1/2)) (W 145), J = eta_f gamma/sigma_n'; the pore fluid that the dilation draws in
+//   (contraction expels) through the top of the layer gives the quasi-static Darcy excess pore pressure at the base,
+//   p_e = - sub eta_f gamma tan(psi) h^2/(2 k) (k: W 144, Carman-Kozeny from W 124 d and phi), and the basal friction
+//   becomes (mu + tan(psi)) ((1 - lambda) sigma_n - p_e): a dense layer (tan(psi) > 0) is held by the suction until it
+//   has dilated, a loose layer (tan(psi) < 0) is fluidised (sigma_n' >= 0.02 sigma_n)
+//
 // Numerics: finite volumes on the SFLOW slice, MUSCL (minmod) with the hydrostatic reconstruction of Audusse et
 // al. (2004), HLL fluxes, SSP-RK2 sub-steps with their own CFL (W 157) inside the water step; friction and
 // drag as backward-Euler steps after each stage (as the SFLOW adapter of the core); pore pressure as in W 126.
@@ -108,6 +116,7 @@ public:
     slice4 zb;              // the bed under the slide
     slice4 pnb;             // W 163: the non-hydrostatic pressure of the water at the bed / rho_w (set by the water model)
     slice4 wb;              // the velocity of the bed seen by the water, (bed^{n+1} - bed^n)/dt (non-hydrostatic water)
+    slice4 phis, tpsi;      // W 164: the solid fraction and tan(psi) of the dilatancy
 
 private:
     void ghosts(lexer*, ghostcell*, slice&, slice&, slice&);
@@ -118,6 +127,9 @@ private:
     void friction(lexer*, slice&, slice&, slice&, double);
     void positivity(lexer*, slice&, slice&, slice&);
     void pore_update(lexer*, ghostcell*);
+    void dilatancy_update(lexer*, ghostcell*);
+    double dil_tpsi(double, double, double, double, double, double, double&) const;
+    double permeability(double) const;
     void bed_update(lexer*, ghostcell*);
     double timestep(lexer*, ghostcell*);
     void log(lexer*, ghostcell*, int);
@@ -139,6 +151,8 @@ private:
     slice4 FhY, FxY, FyLY, FyRY;     // y faces j+1/2
     slice4 hE, hW, zE, zW, hN, hS, zN, zS;     // reconstructed depth and bed at the faces of each cell
     slice4 lnew;
+    slice4 fsx, fsy;        // W 164: the mass fluxes of the faces i+1/2, j+1/2 summed over the sub-steps of the water step [m^2]
+    void flux_sum(lexer*, double);
     slice4 hstep;           // the slide depth at the start of the water step
     slice4 gr;              // the reduced gravity g' of the cells (the water state of the step)
     slice4 hf, dfil;        // W 162: the filtered slide seen by the water, the filter diffusivity
@@ -163,6 +177,11 @@ private:
     double vol0;
     double p_W162=0.0;     // W 162 of the run (checkpoint fields)
     bool logfresh=true;     // the log starts new (not continued from a checkpoint)
+
+    // W 164: dilatancy
+    bool dil=false;
+    double cgam=0.0, etaf=1.0e-3, K3=4.09, phic=0.585, phi0=0.6, kperm=-1.0, dgrain=5.0e-4;
+    static bool vtp_dil;    // the VTP output carries slide_phi, slide_tanpsi (name_pvtp is static)
 
     std::ofstream logout;
 };

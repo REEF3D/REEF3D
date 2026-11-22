@@ -740,7 +740,7 @@ With `D 22 1` the bed acts as free slip, so the current runs off like an invisci
 
 ![](26_gjerdrum_2020/results/26_staged_series.png)
 
-## Two-layer landslide: slide layer under the SFLOW and NHFLOW water (W 150), cases 16-19, 28, 29 and 32
+## Two-layer landslide: slide layer under the SFLOW and NHFLOW water (W 150), cases 16-19, 28, 29, 32 and 35
 
 A depth-averaged slide layer (h_s, h_s u_s) under the water (`src/slide2D.{h,cpp}`, `src/slide2D_flux.cpp`). The water
 is the SFLOW water and sees the bed z_b + h_s; the slide sees the water pressure and the drag of the water.
@@ -796,8 +796,23 @@ is the SFLOW water and sees the bed z_b + h_s; the slide sees the water pressure
   2D, MPI. The semi-implicit step keeps the water column of the end of the step before (`si_restore`) and takes the moved
   bed through `depth_update`, as with sediment; the drag on the water enters with the other sources of its stage. It stops
   with a message with S 10, curvilinear, refined and multi-block grids and A 220 1, 3, 4 and above.
-- **Output:** `slide_h`, `slide_velocity`, `slide_lambda` in the SFLOW FSF VTP / LAGOON store (P 18); the bed VTP shows
-  z_b + h_s; the log `REEF3D_SFLOW_Log/REEF3D_SFLOW_slide.dat` (time, dt, sub-steps, volumes of slide and water, h_max, |u|_max, extent);
+- **Dilatancy (W 164 c > 0, case 35):** the solid fraction φ of the layer (initial W 145 φ₀) and tan ψ = K₃(φ −
+  φ_c/(1 + J^½)) (Pailha & Pouliquen 2009; φ_eq of Boyer et al. 2011), J = η_f γ̇/σ_n', γ̇ = c|u|/h the basal shear rate
+  (c = 3 for the parabolic profile of a viscous layer, 2 for a linear one), η_f = W 1 · W 2. The dilation γ̇ tan ψ draws
+  pore water in through the top of the layer (contraction expels it), base impermeable: the quasi-static Darcy excess
+  pore pressure at the base is p_e = −sub·η_f γ̇ tan ψ h²/(2k) (k: W 144 k, or Carman–Kozeny from W 124 d and φ). The
+  basal friction becomes (μ + tan ψ)((1 − λ)σ_n − p_e) with μ the law of W 120 at the speed (as a coefficient; exact
+  for Coulomb), σ_n' ≥ 0.02 σ_n. tan ψ and p_e are solved together per cell (p_e changes σ_n' and so J; bisection) with
+  the speed of the start of the sub-step. Dense (tan ψ > 0): the suction is linear in the speed, a drag
+  (μ + tan ψ) C₁ tan ψ/(ρ_s h) (C₁ = sub η_f c h/(2k)) backward-Euler after the step of the law (with Coulomb exactly
+  backward Euler of the whole friction); loose (tan ψ < 0): p_e of the speed of the start of the sub-step in λ. φ
+  per water step: the solid volume φh carried with the mass fluxes of the sub-steps (upwind φ), then
+  dφ/dt = −φ γ̇ tan ψ (exponential), 0.3 ≤ φ ≤ 0.75. The depth and the bulk density stay (the volume change of the
+  dilation, a few %, is not in the mass). With the pore pressure W 126 the two add (λ + p_e/σ_n). Subaerial (sub = 0):
+  tan ψ in the friction, no p_e. SFLOW and NHFLOW.
+- **Output:** `slide_h`, `slide_velocity`, `slide_lambda` (W 164: `slide_phi`, `slide_tanpsi`) in the SFLOW FSF VTP / LAGOON store (P 18); the bed VTP shows
+  z_b + h_s; the log `REEF3D_SFLOW_Log/REEF3D_SFLOW_slide.dat` (time, dt, sub-steps, volumes of slide and water, h_max, |u|_max, extent;
+  W 164: φ and tan ψ min / max over h > 1 mm);
   the slide state is in the checkpoints (P 48).
 
 | key | type | meaning (default) |
@@ -815,6 +830,7 @@ is the SFLOW water and sees the bed z_b + h_s; the slide sees the water pressure
 | W 160 | 2 × double | initial slide velocity u v [m/s] (0 0) |
 | W 163 | int | the non-hydrostatic water pressure at the bed on the slide, − r·sub·h_s∇(p_nh,b/ρ_w): 1 on, 0 off (0); see case 32 |
 | W 162 | double | filtered transfer of the slide to the water bed, D = a d² (0 off; 0.02 - 0.5 with A 220 2, see above) |
+| W 164 | double | dilatancy of the slide: the basal shear rate c|u|/h (0 off; 3 parabolic, 2 linear profile); needs W 145 φ₀ > 0 (K₃, φ_c from W 145), k from W 144 or W 124 d; see case 35 |
 
 The basal law is W 120 - W 128 (with W 150 they act on the slide, not on the water; W 90 likewise). The 1D cases set y
 ranges of the boxes that cover the grid.
@@ -1132,6 +1148,38 @@ Gauge max / min (cm) up to the wave reflected at the end wall, and the RMS diffe
 ![](32_slide_nthmp_bm5/results/32_bm5_case1_gauges.png)
 ![](32_slide_nthmp_bm5/results/32_bm5_case2_gauges.png)
 
+### 35 Slide layer: dilatancy, a loose and a dense submerged layer on an incline (W 164)
+
+A uniform layer of 5 mm on 25° under 1 m of water (inclined frame: W 20 = (1 − r) g sin θ, W 22 = −g cos θ), Coulomb
+22°, glass beads d = 0.16 mm (Carman–Kozeny, k = 2.6e-11 m² at φ = 0.598), ρ_s 1870, K₃ 4.09, φ_c 0.585, c = 3, in
+x 2-12 m of a 60 m flume (dx 5 cm). The plateau of the layer (|h − h₀| < 2 %) is a 0D problem, compared with the ODE of
+the same closure (`tools/dilatancy_eval.py`, steps of 0.2 ms):
+
+du/dt = (1 − r) g sin θ − max(μ + tan ψ, 0) max(σ₀ − p_e, 0.02 σ₀)/(ρ_s h),  dφ/dt = −φ γ̇ tan ψ.
+
+| run | onset (u > 5 cm/s) model / ODE | u model / ODE | φ model / ODE (max \|Δφ\|) |
+|---|---|---|---|
+| loose φ₀ 0.55, SFLOW | 0.10 / 0.04 s (frames 0.1 s) | 2.300 / 2.271 m/s at 12.8 s | 0.4932 / 0.4937 (0.0006) |
+| dense φ₀ 0.598, SFLOW | 7.00 / 7.00 s | 1.052 / 1.021 m/s at 15 s | 0.5202 / 0.5211 (0.0009) |
+| dense φ₀ 0.598, NHFLOW (10 layers) | 7.00 / 7.00 s | 1.035 / 1.021 m/s at 15 s | 0.5207 / 0.5211 (0.0004) |
+| Coulomb, no dilatancy | 0.20 / 0.20 s | 3.854 / 3.872 m/s at 15 s | |
+
+- **Dense:** tan ψ = 0.053 at rest; μ + tan ψ = 0.457 just below tan θ = 0.466, and the suction of the dilation holds the
+  layer at 4e-5 to 1e-3 m/s for 5 s while it dilates to φ_c; then it runs (Pailha et al. 2008: the delayed avalanche of a
+  dense layer). **Loose:** tan ψ = −0.14, the contraction fluidises the layer at once (σ_n' = 0.02 σ_n for 0.05 s, 0.2
+  m/s); afterwards φ follows φ_eq(J) of the growing speed, tan ψ stays slightly positive and its suction makes the
+  loose layer slower than the plain Coulomb layer. With Coulomb friction the layers accelerate without bound (no
+  steady state; μ(I)/μ(J) would give one).
+- Speed within 3 % at the end (the friction of the model uses φ of the water step, 7 - 15 ms), 7 % around the onset.
+- Two ranks give the same plateau to all printed digits (loose and dense).
+- The first version took tan ψ at the trial speed of the stage (the driving of the whole step without the friction:
+  0.03 m/s, J 20 times larger): tan ψ 0.10 held the dense layer at rest. The first transport of φ was advective: the
+  thin film the loose layer left behind (dilated to 0.3) was carried into the layer, fluidised there and piled it up
+  (h 4 cm at 7 s); now the solid volume φh moves with the mass fluxes.
+- Run times (1 core): SFLOW 8-12 s, NHFLOW 164 s.
+
+![](35_slide_dilatancy/results/35_dilatancy.png)
+
 ## Not covered yet
 
 - Mesh refinement (G 1): the friction step runs in every level's stage. The pore pressure is advected per level and not exchanged between levels.
@@ -1151,8 +1199,10 @@ Gauge max / min (cm) up to the wave reflected at the end wall, and the RMS diffe
   W 162 0.1; tested with A 510 11 (the predictors 12, 13 not).
 - Subaerial slides (case 32): the gate is removed at once, the waves come 0.12-0.2 s early (non-hydrostatic); the first
   trough behind the leading crest is 20-40 % too shallow; the interface drag W 155 is chosen by hand (0.02).
-- Slide layer (W 150): sediment (S 10) together with the slide, curvilinear and refined grids; the dilatancy source of
-  the pore pressure.
+- Slide layer (W 150): sediment (S 10) together with the slide, curvilinear and refined grids. Dilatancy (W 164): the
+  pore pressure is quasi-static (no diffusion time, no compressibility), the volume change of the dilation is not in
+  the depth, verified against the ODE of its own closure only (case 35), not yet against the experiments of Pailha et
+  al. (2008) or Iverson et al. (2000); thin films the layer leaves behind dilate to φ = 0.3 (γ̇ = c|u|/h grows as h → 0).
 - NHFLOW maxima (P 112): in the free-surface output (P 180 1), not in the checkpoints (a restart starts them again);
   the node value is the largest of the wet cells around the node (one cell of smear); max_speed is the speed of the
   top layer.

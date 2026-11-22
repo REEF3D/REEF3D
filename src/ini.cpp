@@ -1596,6 +1596,7 @@ void control::ini_default()
     W160_u=0.0;      // double initial slide velocity u [m/s]
     W160_v=0.0;      // double initial slide velocity v [m/s]
     W162=0.0;        // double filtered transfer of the slide to the water bed: D = W 162 d^2 (0 off; 0.5 Kajiura-like)
+    W164=0.0;        // double slide layer dilatancy: shear rate W 164 |u|/h (0 off; 3 parabolic, 2 linear profile), W 145, W 144 k
     W163=0;          // int slide layer: the non-hydrostatic water pressure at the bed on the slide (1 on, 0 off)
     W161=0;          // int slide top level from the file slide-level.dat (1; format of sflow-level.dat, F 73)
     W159=100;        // int maximum slide sub-steps per water step (the water step is limited to W 159 slide steps)

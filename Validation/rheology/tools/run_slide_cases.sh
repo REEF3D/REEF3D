@@ -4,7 +4,7 @@
 # Runs the two-layer landslide cases 16-19 (SFLOW slide layer W 150) on both grids, with the single-layer
 # cases 01 and 02 for the comparison, and evaluates them with slide_eval.py (figures and JSON in <out dir>);
 # then 18 with the non-hydrostatic water and case 28 (NTHMP benchmark 4) against the measurements (bm4_eval.py);
-# then case 29 (the slide layer under NHFLOW) and case 32 (NTHMP benchmark 5, subaerial).
+# then case 29 (the slide layer under NHFLOW), case 32 (NTHMP benchmark 5, subaerial) and case 35 (dilatancy, W 164).
 set -euo pipefail
 BIN="$1"; DM="$2"; RUN="$3"; OUT="${4:-$RUN/results}"
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"; V="$(cd "$HERE/.." && pwd)"
@@ -93,6 +93,10 @@ for c in dambreak_h dambreak_nh bm4_h bm4_nh rest_slope dambreak_h_si dambreak_n
 B5=$C/32_slide_nthmp_bm5/cases
 for c in case1_sflow_h case1_sflow_nh case1_nhflow_nh case2_sflow_h case2_sflow_nh case2_nhflow_nh case1_nhflow_nh_si case2_nhflow_nh_si case1_nhflow_nh_w163 case2_nhflow_nh_w163; do run $B5/$c bm5_$c; done
 
+# 35: dilatancy of the slide layer (W 164), a uniform submerged layer on 25 deg against the ODE of the closure
+mkdir -p "$RUN/dil"
+for c in loose dense coulomb dense_nhflow; do run $C/35_slide_dilatancy/cases/$c dil/$c; done
+
 E="python3 $HERE/slide_eval.py"
 for g in "" _fine; do
     mkdir -p "$OUT/grid$g"
@@ -133,4 +137,6 @@ for n in 1 2; do
             "NHFLOW NH, 10 layers"=$RUN/bm5_case${n}_nhflow_nh "NHFLOW NH, semi-implicit"=$RUN/bm5_case${n}_nhflow_nh_si "NHFLOW NH, W 163 1"=$RUN/bm5_case${n}_nhflow_nh_w163 \
             > $OUT/32/32_bm5_case$n.json
 done
+mkdir -p "$OUT/35"
+python3 $HERE/dilatancy_eval.py $RUN/dil $OUT/35 > /dev/null
 echo "results in $OUT"
