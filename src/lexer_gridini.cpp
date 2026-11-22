@@ -238,6 +238,29 @@ static void periodic_ghost_nodes(lexer *p, ghostcell *pgc)
     side(p->YN,p->knoy,p->origin_j,p->gknoy);
 }
 
+// SFLOW reads the boundary lists of the 3D grid (gcb1-4a: bottom and top face of every cell, six integers each, and
+// their distances gcd1-4a) and the sigma heights ZSN, ZSP in its grid set-up only (the lists of the slices gcbsl are
+// made from gcb4). They are given back before the run starts: about 590 bytes per cell, 22 % of the memory of an
+// explicit run and 15 % of a semi-implicit one. The patches of a mesh refinement never had them. Any later access
+// fails at once (nullptr; the counts stay).
+void lexer::gridfree_sflow()
+{
+    del_Iarray(gcb1,gcb1_count,6);
+    del_Iarray(gcb2,gcb2_count,6);
+    del_Iarray(gcb3,gcb3_count,6);
+    del_Iarray(gcb4,gcb4_count,6);
+    del_Iarray(gcb4a,gcb4a_count,6);
+
+    del_Darray(gcd1,gcb1_count);
+    del_Darray(gcd2,gcb2_count);
+    del_Darray(gcd3,gcb3_count);
+    del_Darray(gcd4,gcb4_count);
+    del_Darray(gcd4a,gcb4a_count);
+
+    del_Darray(ZSN,imax*jmax*(kmax+1));
+    del_Darray(ZSP,imax*jmax*kmax);
+}
+
 // FNPF reads the 3D cell flags flag4, flag5 and flag7 in its time steps (and the printers). The flags
 // of the CFD velocity components (flag1-3), of the solid forcing (flagsf1-4, DF, DF1-3, DFF) and IO
 // are read by the grid set-up only. For FNPF they are given back after the initialisation: 13 int

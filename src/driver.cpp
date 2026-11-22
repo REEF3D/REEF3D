@@ -192,6 +192,9 @@ void driver::sflow_driver()
 
     makegrid2D_cds(p,pgc,b);
 
+    // the boundary lists of the 3D grid and the sigma heights are read by the grid set-up only (lexer_gridini.cpp)
+    p->gridfree_sflow();
+
     // Start SFLOW
 	psflow->start(p,b,pgc);
 }
