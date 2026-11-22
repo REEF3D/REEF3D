@@ -70,3 +70,43 @@ ctrl.txt holds μ 0.10 (W 121 5.7), the best of the series.
 
 ![](results/27_series.png)
 ![](results/27_mu0.10.png)
+
+## NHFLOW (22.11.2026): the slide layer under the 2D-horizontal NHFLOW
+
+- **Set-up:** `nhflow/control.txt` (60 m: 335 × 373 columns, 5 σ layers) and `nhflow/ctrl.txt`: explicit NHFLOW
+  (A 510 2), non-hydrostatic (A 520 2) with the filter W 162 0.02, or hydrostatic (A 520 0); the slide as above
+  (W 161 1 from slide-level.dat, Voellmy μ 0.10, ξ 500, C_d 0.005); 900 s; `P 112 1` and `P 180 1` (the maxima in the
+  free-surface output), P 182 30, P 18 2. `nhflow/control_30m.txt`: the 30 m grid (670 × 746 × 5).
+- **NHFLOW P 112** (new): max_eta, time_max_eta, max_depth and max_speed (the top layer) of the run from P 113 on, as
+  point data of the free-surface output (each node: the largest of the cells around it that were wet; NaN where never
+  wet). Every frame has the maxima up to its time, the last one those of the run. Check on 29 dambreak_nh (1D, 41
+  frames): max_eta 4.537 mm against the highest of the frames 4.538 mm (the frames interpolate the cells to the nodes).
+- **Evaluation:** `rheo_eval.py tsunamirunup <run> . runup_albers.csv results <name>` reads the SFLOW maxima
+  (REEF3D_SFLOW_MAX) or, without them, the last NHFLOW free-surface frame (cell value: the largest of its four nodes).
+
+| run (μ 0.10) | Aida K | κ | within ×1.5 | not reached | Hoof Hill | Upper Fjord South | Mid Fjord North | Mid Fjord South | Lower Fjord North | run time |
+|---|---|---|---|---|---|---|---|---|---|---|
+| survey | | | | | 180 | 109 | 61 | 56 | 38 | |
+| SFLOW 30 m | 1.03 | 1.32 | 87 % | 15 | 199 | 47 | 37 | 52 | 26 | 57 min |
+| SFLOW 60 m | 1.04 | 1.33 | 85 % | 21 | 180 | 57 | 29 | 50 | 24 | 2.6 min |
+| NHFLOW 60 m hydrostatic | 1.06 | 1.34 | 84 % | 10 | 174 | 57 | 30 | 49 | 20 | 28 min |
+| NHFLOW 60 m non-hydrostatic | 1.05 | 1.33 | 87 % | 17 | 160 | 60 | 31 | 51 | 20 | 39 min |
+
+(2 cores each.)
+
+- The two-layer slide runs under the 2D-horizontal NHFLOW on the real terrain without problems: the slide volume is
+  exact, the wetting and drying on the 900 m relief and the steep fans is stable, the slide reaches 37 m/s at 60 s.
+- On the 60 m grid SFLOW and NHFLOW agree within 10 % at all locations but Hoof Hill. There the non-hydrostatic
+  pressure lowers the runup (160 against 174 / 180 m), as expected for the short impulse wave on the opposite shore.
+- **The low peaks of the upper fjord are not dispersion**: Upper Fjord South 57 / 57 / 60 m and Mid Fjord North
+  29 / 30 / 31 m for SFLOW / NHFLOW hydrostatic / non-hydrostatic, against 109 and 61 m surveyed. With the friction
+  ruled out before (μ 0.10-0.20), the slide source (speed and shape on entering the water; the slide reaches 67 m/s
+  at 30 m) and the resolution of the fans (60 m and 30 m cells for runup tongues of 100-200 m) remain.
+- Flooded land (wet later only, on the terrain above the sea): 10.2 km² for NHFLOW, 10.3 km² for SFLOW at 30 m,
+  4.8 km² for SFLOW at 60 m.
+
+![](results/27_taan_models.png)
+![](results/27_nhflow_nh60.png)
+
+**Next:** NHFLOW at 30 m (4 times the columns: about 5 h on 2 cores, much less on more ranks) and an upper-fjord domain
+at 15 m; a source study (the slide shape and speed, a prescribed-motion option).

@@ -62,6 +62,13 @@ private:
     int jj;
 
     int *wetmax;
+    
+    // P 112 (NHFLOW): the maxima of the run in the FSF output (max_eta, time_max_eta, max_depth, max_speed), from
+    // P 113 on; every frame has the maxima up to its time, the last one those of the run
+    void max_update(lexer*,fdm_nhf*);
+    double max_node(lexer*,const std::vector<double>&) const;   // the largest of the cells around node (i,j) that were wet
+    std::vector<double> mxeta, mxteta, mxdepth, mxspeed;
+    std::vector<int> mxwet;
     std::vector<bool> avg_started, avg_printed;
     std::vector<double> avg_time, avg_tstart, avg_tend;
     std::vector<double> uavg, vavg, wavg, zavg, wlavg, etaavg;

@@ -1099,7 +1099,7 @@ void control::ini_default()
 	P101=0;			  // int print sloshing forces
     P110=0;           // int print significant wave height
     P111=0.0;         // double start averging after transients
-    P112=0;           // int SFLOW maxima of the run (REEF3D_SFLOW_MAX)
+    P112=0;           // int SFLOW maxima of the run (REEF3D_SFLOW_MAX); NHFLOW: max_eta, time_max_eta, max_depth, max_speed in the FSF output (P 180 1)
     P113=0.0;         // double SFLOW maxima: start time (after the spin-up)
     P114=0.05;        // double SFLOW maxima: flooding depth
     P115=0;           // int SFLOW maxima at points

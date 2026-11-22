@@ -54,6 +54,13 @@ void nhflow_vtp_fsf::pvtp(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_turbulenc
         result<<"<PDataArray type=\"Float32\" Name=\"Hs\"/>\n";
     if(p->P131==1)
         result<<"<PDataArray type=\"Float32\" Name=\"wetdry_max\"/>\n";
+    if(p->P112>0)
+    {
+        result<<"<PDataArray type=\"Float32\" Name=\"max_eta\"/>\n";
+        result<<"<PDataArray type=\"Float32\" Name=\"time_max_eta\"/>\n";
+        result<<"<PDataArray type=\"Float32\" Name=\"max_depth\"/>\n";
+        result<<"<PDataArray type=\"Float32\" Name=\"max_speed\"/>\n";
+    }
     if(d->met!=nullptr)
         d->met->name_pvtp(result);
     if(d->slide!=nullptr)

@@ -844,6 +844,29 @@ Details in 27_taan_fiord_2015/README.md.
 
 ![](27_taan_fiord_2015/results/27_series.png)
 
+**NHFLOW (2D horizontal, the first field case of the slide layer under NHFLOW).** The same terrain and slide on a
+60 m grid (335 × 373 columns, 5 σ layers), explicit NHFLOW (A 510 2), non-hydrostatic (A 520 2, W 162 0.02) and
+hydrostatic (A 520 0), μ 0.10, 900 s, 2 ranks (39 / 28 min; SFLOW at 60 m: 2.6 min). The maxima of the run come
+from the new NHFLOW P 112 (max_eta, time_max_eta, max_depth, max_speed in the free-surface output, P 180 1);
+`rheo_eval.py tsunamirunup` reads them.
+
+| model, 60 m | Aida K | κ | within ×1.5 | Hoof Hill (180 m) | Upper Fjord South (109 m) | Mid Fjord North (61 m) |
+|---|---|---|---|---|---|---|
+| SFLOW 30 m (above) | 1.03 | 1.32 | 87 % | 199 | 47 | 37 |
+| SFLOW 60 m | 1.04 | 1.33 | 85 % | 180 | 57 | 29 |
+| NHFLOW hydrostatic | 1.06 | 1.34 | 84 % | 174 | 57 | 30 |
+| NHFLOW non-hydrostatic | 1.05 | 1.33 | 87 % | 160 | 60 | 31 |
+
+- The slide layer runs in 2D under NHFLOW on real terrain (wet/dry, 900 m relief, steep fans): stable, volume of the
+  slide exact (69.65 Mm³ placed).
+- On the same grid the three water models agree within 10 % along the fjord; the non-hydrostatic pressure lowers the
+  runup opposite the slide (160 against 174 m) and raises the upper fjord by 3 m. Dispersion is not the reason for
+  the low peaks along the upper fjord (60 against 109 m, 31 against 61 m): with the friction ruled out before, the
+  slide source (its speed and shape on entering the water) and the resolution of the fans are left. A 30 m and a
+  15 m upper-fjord NHFLOW run are the next step.
+
+![](27_taan_fiord_2015/results/27_taan_models.png)
+
 ### 30 SFLOW two-layer slide: Tracy Arm landslide tsunami 2025
 
 The paper's tsunami source (Shugar et al. 2026: a 65 Mm³ super-Gaussian mound, 195 m thick, new tools/slide_mound.py)
@@ -1131,6 +1154,9 @@ Gauge max / min (cm) up to the wave reflected at the end wall, and the RMS diffe
   trough behind the leading crest is 20-40 % too shallow; the interface drag W 155 is chosen by hand (0.02).
 - Slide layer (W 150): sediment (S 10) together with the slide, curvilinear and refined grids; the dilatancy source of
   the pore pressure.
+- NHFLOW maxima (P 112): in the free-surface output (P 180 1), not in the checkpoints (a restart starts them again);
+  the node value is the largest of the wet cells around the node (one cell of smear); max_speed is the speed of the
+  top layer.
 - Staged release (F 74): single-layer SFLOW on one Cartesian grid; not with the slide layer (W 150), sediment (S 10),
   mesh refinement and multi-block grids, or restarts (I 45 1). The released material has the strength of the rest
   (no remoulding, no strength history).

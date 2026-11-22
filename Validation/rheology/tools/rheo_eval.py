@@ -1024,6 +1024,47 @@ def _sflow_max_cells(run, nx, ny, dx):
             a[j[ok], i[ok]] = np.where(np.isnan(cur), v[ok], np.maximum(cur, v[ok]))
     return out
 
+def _nhflow_max_cells(run, nx, ny, dx):
+    """NHFLOW P 112: the maxima of the run (max_eta, time_max_eta, max_depth, max_speed, point data of the free-surface
+    output, the largest of the cells around each node that were wet) of the last REEF3D_NHFLOW_VTP_FSF frame on the
+    cell grid: each cell the largest of its four nodes (one cell of smear); NaN where never wet. inundation as SFLOW:
+    2 where wet at some time (the land part is taken with the terrain by the caller)"""
+    files = sorted(glob.glob(os.path.join(run, "REEF3D_NHFLOW_VTP_FSF", "REEF3D-NHFLOW-FSF-*.vtp")))
+    byn = {}
+    for fn in files:
+        m = re.search(r"FSF-(\d+)-(\d+)\.vtp$", fn)
+        byn.setdefault(int(m.group(1)), []).append(fn)
+    last = byn[max(byn)]
+    keys = ("max_eta", "max_depth", "max_speed", "time_max_eta")
+    out = {k: np.full((ny, nx), np.nan) for k in keys}
+    for fn in last:
+        d = read_vtk(fn)
+        if "max_eta" not in d:
+            raise SystemExit("%s: no max_eta (NHFLOW P 112 1 with P 180 1)" % fn)
+        P = d["points"]
+        ii = np.rint(P[:, 0]/dx).astype(int); jj = np.rint(P[:, 1]/dx).astype(int)
+        for k in keys:
+            v = d[k].astype(float); ok = np.isfinite(v)
+            for di in (-1, 0):
+                for dj in (-1, 0):
+                    i = ii[ok] + di; j = jj[ok] + dj
+                    inn = (i >= 0) & (i < nx) & (j >= 0) & (j < ny)
+                    a = out[k]; cur = a[j[inn], i[inn]]; vv = v[ok][inn]
+                    a[j[inn], i[inn]] = np.where(np.isnan(cur), vv, np.maximum(cur, vv))
+    # wet at the start (the first frame: WL above 1 cm at the nodes) -> 1, wet later only -> 2 (as SFLOW)
+    wet0 = np.zeros((ny, nx), bool)
+    for fn in byn[min(byn)]:
+        d = read_vtk(fn)
+        P = d["points"]; w = d["WL"] > 0.01
+        ii = np.rint(P[w, 0]/dx).astype(int); jj = np.rint(P[w, 1]/dx).astype(int)
+        for di in (-1, 0):
+            for dj in (-1, 0):
+                i = ii + di; j = jj + dj
+                inn = (i >= 0) & (i < nx) & (j >= 0) & (j < ny)
+                wet0[j[inn], i[inn]] = True
+    out["inundation"] = np.where(np.isfinite(out["max_eta"]), np.where(wet0, 1.0, 2.0), np.nan)
+    return out
+
 def tsunamirunup(run, case, obs_csv, out, name, radius=100.0, slidepad=300.0):
     """27: landslide tsunami (two-layer W 150, P 112 maxima) against a runup survey: for every observed runup (csv with
     x, y in the coordinates of the DEM, flow_elev, type, location) the highest water level max_eta of the cells wet at
@@ -1035,7 +1076,11 @@ def tsunamirunup(run, case, obs_csv, out, name, radius=100.0, slidepad=300.0):
     R = np.load(os.path.join(case, "reference.npz"))
     rel = R["release"]; dx = float(R["dx"]); x0, y0 = (float(v) for v in R["origin"]); ny, nx = rel.shape
     pre = R["pre"]
-    M = _sflow_max_cells(run, nx, ny, dx)
+    # SFLOW (REEF3D_SFLOW_MAX) or NHFLOW (the maxima in the last free-surface frame)
+    if glob.glob(os.path.join(run, "REEF3D_SFLOW_MAX", "*.vtp")):
+        M = _sflow_max_cells(run, nx, ny, dx)
+    else:
+        M = _nhflow_max_cells(run, nx, ny, dx)
     X, Y = np.meshgrid(dx*(np.arange(nx) + 0.5), dx*(np.arange(ny) + 0.5))
     xr, yr = X[rel].mean(), Y[rel].mean()
     dist_rel = np.full(rel.shape, np.inf)

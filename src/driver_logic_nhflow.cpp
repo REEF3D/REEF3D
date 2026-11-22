@@ -101,6 +101,10 @@ void driver::logic_nhflow()
         }
     }
     
+    // P 112: the maxima of the run are fields of the free-surface output (nhflow_vtp_fsf)
+    if(p->P112>0 && p->P180!=1 && p->mpirank==0)
+    cout<<"!!! NHFLOW P 112: the maxima are written with the free-surface output, set P 180 1 (none without it) !!!"<<endl;
+    
     // river free-surface initialisation (F 65): reference level at the outflow when F 60 is not given
     if(p->F65>0 && p->F60<-1.0e19 && p->F62>-1.0e19)
     p->phimean = p->wd = p->F62;
