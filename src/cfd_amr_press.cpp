@@ -1336,6 +1336,23 @@ void cfd_amr::pr_weights()
         if(p0->G9>0)
         {
             const double wc = interface_width(glex(F.gc),gfd(F.gc)->phi,F.ci[0],F.ci[1],F.ci[2]);
+            // Not next to a solid or the bed (the coarse cell within two of its cells of the
+            // surface): there the faces of the patch edge lie in gaps and corners, and a face in
+            // the air that carries the density of a mixture holds the air back that has to come
+            // in for the water to leave.  A level-2 box ending 15 mm behind a cap beam under a
+            // closed deck (D 32 1), water hanging in the bay behind it: the water stayed in the
+            // corner of the beam and the deck, the air came in under the beam at 25 m/s with
+            // -10 kPa (11 m/s and -0.8 kPa with G 9 0), the water under the beam rose into the
+            // jet, and with the compressible air (W 32 2) 500 m/s after 0.5 s
+            // (Regression: cfd_2d_deck_hanging_water_amr)
+            fdm *ac = gfd(F.gc);
+            lexer *qc = glex(F.gc);
+            double hc = MAX(qc->DXN[F.ci[0]+marge],qc->DZN[F.ci[2]+marge]);
+            if(qc->j_dir==1)
+            hc = MAX(hc,qc->DYN[F.ci[1]+marge]);
+            const bool wall = (p0->solidread>0 && ac->solid(F.ci[0],F.ci[1],F.ci[2])<2.0*hc)
+                           || (p0->topoforcing>0 && ac->topo(F.ci[0],F.ci[1],F.ci[2])<2.0*hc);
+            if(!wall)
             w = p0->G9==1 ? 0.5*(w+wc) : wc;
         }
         const double H = heaviside(0.5*(c->a->phi.V[F.qf] + c->a->phi.V[F.qm]),w);

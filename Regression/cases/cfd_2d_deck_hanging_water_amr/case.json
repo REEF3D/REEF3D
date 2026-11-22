@@ -1,0 +1,16 @@
+{
+ "np": 2,
+ "steps": 500,
+ "description": "Closed tank 3.0 x 0.99 m (dx 3 cm) with a closed deck (S 10 slab z 0.70-0.74 m, four cap beams 5 x 4 cm below it, D 32 1), still water at 0.60 m and water up to the soffit in the bay between the second and the third beam at the start (F 70): the hanging water comes down as the air gets in under the beams. Two refined levels, the level-2 box ends 15 mm behind the second beam (G 15 to x = 1.44 m), G 9 1, W 32 2, N 40 5. Before: the face of the patch edge in the air took the density of the wider interface (G 9) in the gap behind the beam, the water stayed in the corner of the beam and the deck, the air came in under the beam at 25 m/s with -10 kPa, and the pressure advection of W 32 2 (central, forward in time with N 40 5) let the pressure of the air pocket grow: 500 m/s at 0.52 s (step 1273). With G 9 not within two coarse cells of a solid, and the pressure advection upwind for N 40 5, 6: 12 m/s, air pressure -0.5 to 0.9 kPa, 0.55 s after 500 steps.",
+ "tags": [
+  "2d",
+  "levelset",
+  "solid",
+  "amr",
+  "compressible"
+ ],
+ "covers": [
+  "cfd_amr::pr_weights: G 9 not next to a solid or the bed",
+  "pjm_corr::comp_terms: upwind pressure advection of W 32 2 for the one-step schemes (N 40 5, 6)"
+ ]
+}
