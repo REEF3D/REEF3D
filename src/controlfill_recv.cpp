@@ -1574,6 +1574,8 @@ void control::ctrlrecv()
     ii++;
     F45 = dctrl[dd];
     dd++;
+    F66 = dctrl[dd];
+    dd++;
     F46 = ictrl[ii];
     ii++;
     F47 = ictrl[ii];

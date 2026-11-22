@@ -340,6 +340,7 @@ public:
     // Free Surface
     int F30,F35,F37,F40,F41,F44,F46,F47,F50,F150,F151;
     double F38,F42,F43,F45,F48;
+    double F66;                  // F 41 1: a cell counts as water in the ghost fluid method from phi >= F 66 times the mean spacing
     double F51,F52,F53,F54,F55,F56;
     int F50_flag;
     double F57_1,F57_2,F57_3,F57_4;

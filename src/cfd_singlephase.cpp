@@ -92,10 +92,11 @@ void cfd_singlephase::extend(lexer *p, fdm *a, ghostcell *pgc, field &dst, int c
     for(int k=-fm; k<p->knoz+fm-dk; ++k)
     {
         const double f0 = a->phi(i,j,k), f1 = a->phi(i+di,j+dj,k+dk);
+        const double wl = pic_gfm_wet41_level(p);
 
         // next to a cell of the water (a fluid cell: the level set inside a solid is extended from the
-        // water and says nothing about the face)
-        if((f0>=0.0 && p->flag4[cell_index(p,i,j,k)]>0) || (f1>=0.0 && p->flag4[cell_index(p,i+di,j+dj,k+dk)]>0))
+        // water and says nothing about the face; F 66: the cells of the ghost fluid method, pic_gfm_water)
+        if((f0>=wl && p->flag4[cell_index(p,i,j,k)]>0) || (f1>=wl && p->flag4[cell_index(p,i+di,j+dj,k+dk)]>0))
         known[cell_index(p,i,j,k)] = 1;
     }
 
@@ -202,7 +203,8 @@ void cfd_singlephase::ext_begin(lexer *p, fdm *a, int c)
         const bool inner = i>=0 && i<p->knox && j>=0 && j<p->knoy && k>=0 && k<p->knoz;
         const int q0 = cell_index(p,i,j,k), q1 = cell_index(p,i+di,j+dj,k+dk);
         const double f0 = a->phi(i,j,k), f1 = a->phi(i+di,j+dj,k+dk);
-        const bool water = (f0>=0.0 && p->flag4[q0]>0) || (f1>=0.0 && p->flag4[q1]>0);
+        const double wl = pic_gfm_wet41_level(p);
+        const bool water = (f0>=wl && p->flag4[q0]>0) || (f1>=wl && p->flag4[q1]>0);
         if(inner)
         km.V[q0] = water ? 1.0 : 0.0;
         else

@@ -1486,17 +1486,19 @@ void cfd_amr::pr_weights()
         for(int m=0; m<F.ns; ++m)
         phs += F.sw[m]*gfd(F.sg[m])->phi.V[F.sq[m]];
 
-        F.fw = phf>=0.0;
-        F.cw = gfd(F.gc)->phi.V[F.qc]>=0.0;
+        // (F 66: a cell counts as water from the level of its grid, pic_gfm_water)
+        const double wf = pic_gfm_wet41_level(CP(F.pid)->pp), wc = pic_gfm_wet41_level(glex(F.gc));
+        F.fw = phf>=wf;
+        F.cw = gfd(F.gc)->phi.V[F.qc]>=wc;
 
-        if(phf>=0.0 && phs>=0.0)
+        if(phf>=wf && phs>=wc)
         continue;
-        if(phf>=0.0)
+        if(phf>=wf)
         {
             F.gs = 0.0;
             F.gf = 1.0/pic_gfm_theta(phf,phs);
         }
-        else if(phs>=0.0)
+        else if(phs>=wc)
         {
             F.gs = 1.0/pic_gfm_theta(phs,phf);
             F.gf = 0.0;
@@ -1966,12 +1968,13 @@ void cfd_amr::pr_predict(int s)
                 const double am = (F.dir>0) ? pic_gfm_air(qp,F.pi[0],F.pi[1],F.pi[2]) : pic_gfm_air(qc,F.ci[0],F.ci[1],F.ci[2]);
                 const double al = (F.dir>0) ? pic_gfm_air(qc,F.ci[0],F.ci[1],F.ci[2]) : pic_gfm_air(qp,F.pi[0],F.pi[1],F.pi[2]);
                 const double dx = dp[F.d][Lc+marge];
+                const double wm = pic_gfm_wet41_level((F.dir>0) ? qp : qc), wl = pic_gfm_wet41_level((F.dir>0) ? qc : qp);
                 double g = 0.0;
-                if(fm>=0.0 && fl>=0.0)
+                if(fm>=wm && fl>=wl)
                 g = (pl-pm)/dx;
-                else if(fm>=0.0)
+                else if(fm>=wm)
                 g = (al-pm)/(pic_gfm_theta(fm,fl)*dx);
-                else if(fl>=0.0)
+                else if(fl>=wl)
                 g = (pl-am)/(pic_gfm_theta(fl,fm)*dx);
                 Gc = g/roc;
 

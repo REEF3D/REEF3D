@@ -43,6 +43,7 @@ Author: Hans Bihs
 #include"waves_header.h"
 #include"pic_f.h"
 #include"pic_void.h"
+#include"pic_gfm.h"
 
 // stop for input options whose code was removed
 static void removed_option(lexer *p, ghostcell *pgc, bool used, const char *msg)
@@ -748,6 +749,11 @@ void driver::logic_cfd()
     removed_option(p,pgc,p->G1>0 && p->G7!=0,"F 41 1: the single-phase level set with the mesh refinement (G 1) needs one time step for all levels (G 7 0) yet.");
     removed_option(p,pgc,p->F41==2 && p->G1>0 && p->G40!=0,"F 41 2: the closed air pockets with the mesh refinement need the patches on the ranks of their level-0 cells (G 40 0) yet.");
     removed_option(p,pgc,p->H10>0 || p->C10>0 || p->F300>0 || p->W90>0 || p->X10>0 || p->Z10>0,"F 41 1: the single-phase level set works without heat (H 10), concentration (C 10), multiphase (F 300), rheology (W 90), floating bodies (X 10) or FSI (Z 10) yet.");
+
+        // F 66: the level set from which a cell counts as water in the ghost fluid method
+        removed_option(p,pgc,p->F66<0.0 || p->F66>0.5,"F 66: the cells of the water of the single phase from phi >= F 66 h, F 66 in [0, 0.5].");
+        removed_option(p,pgc,p->F66>0.0 && p->F41!=1,"F 66 works with F 41 1 (the closed air pockets of F 41 2 not yet).");
+        pic_gfm_wet41(p->F66);
 
         // the air takes the density and viscosity of the water: the faces of the water at the surface
         // have the density of the water (the smoothed Heaviside of density_f would give them less)

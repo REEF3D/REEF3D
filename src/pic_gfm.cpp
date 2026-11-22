@@ -43,6 +43,9 @@ inline double theta(lexer *p, double fin, double fout)
 
 const std::function<bool(lexer*,int,int,int,int)> *gfm_keep = nullptr;
 
+// F 66: F 41 1, a cell counts as water from phi >= wet41 h
+double wet41 = 0.0;
+
 std::map<lexer*,field*> gfm_air;
 }
 
@@ -80,9 +83,30 @@ void pic_gfm_keep(const std::function<bool(lexer*,int,int,int,int)> *keep)
     gfm_keep = keep;
 }
 
+double pic_gfm_wet_level(lexer *p)
+{
+    return (p->F81==1 ? PIC_GFM_WET : wet41)*p->DXM;
+}
+
+void pic_gfm_wet41(double w)
+{
+    wet41 = w;
+}
+
+double pic_gfm_wet41_level(lexer *p)
+{
+    return p->F81==1 ? 0.0 : wet41*p->DXM;
+}
+
+// F 41 1 with F 66 > 0 as F 81 1: a cell with the surface just above its centre (0 <= phi < F 66 h)
+// counts as air, and its neighbour below places the surface beyond it (theta 1 to 1 + F 66). Without
+// it (F 66 0), such a cell is water with theta below 0.05, clipped to 0.05: the surface is moved up
+// to 0.05 cells away from the water, each time it passes a cell centre and always the same way. The
+// water volume drifted and waves were damped, the more the finer the grid (validation CFD AMR
+// speed/24); F 66 keeps theta at about F 66 and above without moving the surface
 bool pic_gfm_water(lexer *p, fdm *a, int i, int j, int k)
 {
-    return a->phi(i,j,k) >= (p->F81==1 ? PIC_GFM_WET*p->DXM : 0.0);
+    return a->phi(i,j,k) >= pic_gfm_wet_level(p);
 }
 
 bool gfm_single(lexer *p)

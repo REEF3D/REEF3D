@@ -740,6 +740,7 @@ void control::ini_default()
 	F44=3;		        // int number reini time step
 	F45=2.1;         // factor for calculation of epsi
 	F46=0;            // int picard iteration for lsm or reini
+    F66=0.0;          // double F 41 1 (the single-phase level set): a cell counts as water in the ghost fluid method from phi >= F 66 h (h the mean spacing), as PIC (F 81 1, 0.01). A cell with the surface just above its centre then counts as air, and the cell below places the surface beyond it (theta 1 to 1 + F 66). With 0 such a cell is water with theta below 0.05, clipped to 0.05: the surface is moved up to 0.05 cells away from the water, each time it passes a cell centre and always the same way (the water volume drifts, waves are damped, the more the finer the grid). 0.05 recommended. Default 0
 	F47=10;            // int number of picard iterations
     F48=0.0;           // double CFD level set (F 30 with the reinitialisation F 40 3): the narrow band, the reinitialisation and the transport of the level set (F 35 5) only in the cells within F48 cells of the free surface and two layers around them; the level set further away keeps its value (its sign) until the band reaches it; at least F 45 + 3, G 24 F 45 + 1 and N 57 + 2 cells; 0 off (all cells)
 	F50=2;            // int bc phi, 1: inflow or 2: outflow
