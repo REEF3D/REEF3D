@@ -34,6 +34,7 @@ Author: Hans Bihs
 #include"geo_mesh.h"
 #include"lexer.h"
 #include"fdm_nhf.h"
+#include"slide2D.h"
 #include"ghostcell.h"
 #include"ioflow.h"
 #include<limits>
@@ -2757,6 +2758,31 @@ void nhflow_momentum_SI::si_predictor_end(lexer *p, fdm_nhf *d, ghostcell *pgc)
     {
     UHD[PIJK] = p->wet[IJ]==1 ? UHp[PIJK] : 0.0;
     VHD[PIJK] = (p->wet[IJ]==1 && p->j_dir==1) ? VHp[PIJK] : 0.0;
+    }
+
+    // the slide layer (W 150) with the interface drag W 155: the bottom layer of the predictor towards the velocity of the
+    // slide, point-implicit as in the explicit NHFLOW (slide2D::drag_nhflow); the faces and the cells take it from UHD
+    if(d->slide!=nullptr && p->W155>0.0)
+    {
+    d->slide->si_drag_reset(p);
+    
+    k=0;
+    const double ds0 = p->DZN[KP];
+    
+        SLICELOOP4
+        if(p->wet[IJ]==1 && d->WL(i,j)>p->A544)
+        {
+        const double wl = d->WL(i,j);
+        const double c = d->slide->si_drag(p,i,j,UHD[PIJK]/wl,p->j_dir==1 ? VHD[PIJK]/wl : 0.0,ds0*wl);
+        
+            if(c>0.0)
+            {
+            UHD[PIJK] = (UHD[PIJK] + p->dt*c*d->slide->suc(i,j)*wl)/(1.0 + p->dt*c);
+            
+            if(p->j_dir==1)
+            VHD[PIJK] = (VHD[PIJK] + p->dt*c*d->slide->svc(i,j)*wl)/(1.0 + p->dt*c);
+            }
+        }
     }
 
     pexchC(p,pgc,UHD);

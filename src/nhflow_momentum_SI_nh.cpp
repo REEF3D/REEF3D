@@ -84,6 +84,7 @@ Author: Hans Bihs
 #include"nhflow_drywall.h"
 #include"lexer.h"
 #include"fdm_nhf.h"
+#include"slide2D.h"
 #include"ghostcell.h"
 #include"sflow_momentum_SI_nh.h"
 #include"nhflow_si_nhmg.h"
@@ -577,6 +578,10 @@ void nhflow_momentum_SI::nh_residual(lexer *p, fdm_nhf *d, ghostcell *pgc, const
         k=0;
         const double *UU = tl2 ? nUZx.data() : UHD, *VV = tl2 ? nUZy.data() : VHD;
         double wlo = UU[PIJK]*iH0*SX(0) + (yd ? VV[PIJK]*iH0*SY(0) : 0.0);
+
+        // the slide layer (W 150): the bed moves, w_b = dz_b/dt + u_0 . grad(z_b)
+        if(d->slide!=nullptr)
+        wlo += d->slide->wb(i,j);
         k=0;
 
         for(k=0;k<K;++k)

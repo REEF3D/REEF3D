@@ -81,6 +81,11 @@ public:
     void v_source(lexer*, fdm2D*, slice&, slice&, slice&);
     // NHFLOW: the drag on the bottom water layer (comp 0: U into F, 1: V into G), called with the bed friction
     void drag_nhflow(lexer*, fdm_nhf*, int, double*, double*, slice&);
+    // semi-implicit NHFLOW (W 155): the drag rate of the bottom layer of a cell (thickness dz) with the water velocity
+    // uw, vw; stores the rate and the slide velocity the water relaxes to (sgc; suc, svc)
+    double si_drag(lexer*, int, int, double, double, double);
+    void si_drag_reset(lexer*);
+    slice4 sgc, suc, svc;
 
     // output (SFLOW FSF VTP and the LAGOON store, P 18)
     void offset_vtp(lexer*, int*, int&);

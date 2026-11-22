@@ -79,13 +79,10 @@ void driver::logic_nhflow()
     
     p->phimean = p->wd = p->F60;
     
-    // two-layer landslide (W 150, slide2D): the explicit NHFLOW (A 510 2/3) on one Cartesian grid
+    // two-layer landslide (W 150, slide2D): the explicit and the semi-implicit NHFLOW on one Cartesian grid
     if(p->W150>0)
     {
         std::string why;
-        
-        if(p->A510>=11)
-        why = "the semi-implicit NHFLOW (A 510 "+std::to_string(p->A510)+")";
         
         if(p->S10>0)
         why = "sediment transport (S 10): both move the bed";

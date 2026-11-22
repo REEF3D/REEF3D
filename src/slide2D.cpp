@@ -43,7 +43,7 @@ slide2D::slide2D(lexer *p, fdm_nhf *d, ghostcell *pgc) : slide2D(p,(fdm2D*)nullp
 slide2D::slide2D(lexer *p, fdm2D *b, ghostcell *pgc) : h(p), qx(p), qy(p), lambda(p), zb(p),
                                                     h0(p), qx0(p), qy0(p), h1(p), qx1(p), qy1(p), Rh(p), Rx(p), Ry(p),
                                                     FhX(p), FxLX(p), FxRX(p), FyX(p), FhY(p), FxY(p), FyLY(p), FyRY(p),
-                                                    hE(p), hW(p), zE(p), zW(p), hN(p), hS(p), zN(p), zS(p), lnew(p), gr(p), hstep(p), hf(p), dfil(p), wb(p), uwb(p), vwb(p)
+                                                    hE(p), hW(p), zE(p), zW(p), hN(p), hS(p), zN(p), zS(p), lnew(p), gr(p), hstep(p), hf(p), dfil(p), wb(p), uwb(p), vwb(p), sgc(p), suc(p), svc(p)
 {
     using namespace rheo;
 
@@ -117,11 +117,24 @@ void slide2D::bind(lexer *p, fdm_nhf *d)
     weta = &d->eta;
     wWL = &d->WL;
     
+    // the bottom layer of the water; at a shoreline the velocity of a thin column (UH/WL) can be large (the semi-implicit
+    // NHFLOW at small time steps: 50 m/s at a cell of a few mm at the water line of case 32): at most |u| = 2 sqrt(g WL)
     k = 0;
     SLICELOOP4
     {
-    uwb(i,j) = d->U[IJK];
-    vwb(i,j) = p->j_dir==1 ? d->V[IJK] : 0.0;
+    double u = d->U[IJK];
+    double v = p->j_dir==1 ? d->V[IJK] : 0.0;
+    const double um = 2.0*sqrt(g*MAX(d->WL(i,j),0.0));
+    const double ua = sqrt(u*u + v*v);
+    
+        if(ua>um)
+        {
+        u *= um/ua;
+        v *= um/ua;
+        }
+    
+    uwb(i,j) = u;
+    vwb(i,j) = v;
     }
     
     wU = &uwb;
@@ -679,6 +692,34 @@ void slide2D::drag_nhflow(lexer *p, fdm_nhf *d, int comp, double *VEL, double *F
     
     F[IJK] -= c*(VEL[IJK] - (comp==0 ? us : vs))*WL(i,j)/(1.0 + p->dt*c);
     }
+}
+
+void slide2D::si_drag_reset(lexer *p)
+{
+    for(i=p->imin; i<p->imin+p->imax; ++i)
+    for(j=p->jmin; j<p->jmin+p->jmax; ++j)
+    sgc(i,j) = suc(i,j) = svc(i,j) = 0.0;
+}
+
+double slide2D::si_drag(lexer *p, int ii, int jj, double uw, double vw, double dz)
+{
+    // the thin edges of the slide (below max(10 W 158, 1 mm)) carry no drag: the velocity of a column of a few W 158 is
+    // not reliable, and with the drag rate of a thin water layer at the shoreline it set the water there
+    const double hdrag = MAX(10.0*hmin,1.0e-3);
+    
+    if(h(ii,jj)<=hdrag || dz<=1.0e-12)
+    return 0.0;
+    
+    const double us = qx(ii,jj)/h(ii,jj);
+    const double vs = p->j_dir==1 ? qy(ii,jj)/h(ii,jj) : 0.0;
+    const double du = uw - us, dv = (vw - vs)*p->y_dir;
+    const double c = sub_cell(p,ii,jj)*Cd*sqrt(du*du + dv*dv)/dz;
+    
+    sgc(ii,jj) = c;
+    suc(ii,jj) = us;
+    svc(ii,jj) = vs;
+    
+    return c;
 }
 
 void slide2D::u_source(lexer *p, fdm2D *b, slice &U, slice &V, slice &WL)

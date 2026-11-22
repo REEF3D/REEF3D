@@ -24,6 +24,7 @@ Author: Hans Bihs
 #include<iomanip>
 #include"lexer.h"
 #include"fdm_nhf.h"
+#include"slide2D.h"
 #include"ghostcell.h"
 #include"nhflow_curv.h"
 #include"nhflow_momentum_SI.h"
@@ -154,6 +155,10 @@ void nhflow_timestep_SI::start(lexer *p, fdm_nhf *d, ghostcell *pgc)
     // the time step grows by at most 20 % per step
     p->dt = MIN(limit(p,d,pgc,dxm,hmax), 1.2*p->dt_old);
 
+    // two-layer landslide (W 150): at most W 159 slide steps per water step
+    if(d->slide!=nullptr)
+    p->dt = MIN(p->dt, d->slide->dt_cap(p,pgc));
+
 	p->dt=pgc->timesync(p->dt);
 
     if(p->N48==0)
@@ -246,6 +251,9 @@ void nhflow_timestep_SI::ini_end(lexer *p, fdm_nhf *d, ghostcell *pgc)
     }
 
     p->dt = MIN(p->dt, pgc->globalmin(dtj));
+
+    if(d->slide!=nullptr)
+    p->dt = MIN(p->dt, d->slide->dt_cap(p,pgc));
 
 	p->dt=pgc->timesync(p->dt);
 	p->dt_old=p->dt;
