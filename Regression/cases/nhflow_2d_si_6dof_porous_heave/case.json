@@ -1,0 +1,21 @@
+{
+ "description": "nhflow_2d_si_6dof_heave_nh with a porous box (X 16 0.5 0.01 1000 1.1, skeleton density 250): fluid for the solves, the Darcy-Forchheimer resistance on the predictor, implicit over the step, its reaction in the loads (NHFLOW_SI_6DOF v48).",
+ "solver": "nhflow",
+ "np": 1,
+ "steps": 120,
+ "tags": [
+  "2d",
+  "nhflow",
+  "semi_implicit",
+  "nonhydrostatic",
+  "6dof",
+  "floating",
+  "porous"
+ ],
+ "covers": [
+  "nhflow_momentum_SI::fb_porous (sixdof_nhflow::porous_forcing_nhflow)",
+  "df_cast without body cells for X 16",
+  "porous_damping_nhflow with the SI body step"
+ ],
+ "architect": "Hans Bihs"
+}

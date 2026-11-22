@@ -1,0 +1,19 @@
+{
+ "description": "2D pressure patch (X 10 3, X 400 2, L 2 m, p0 245 Pa) ramped up and towed at 1 m/s over 0.5 m depth in the semi-implicit step (A 510 11, A 520 2, A 536 0.02), 800 x 10 cells: the ship level in the gravity term (NHFLOW_SI_6DOF v46; validation 01).",
+ "solver": "nhflow",
+ "np": 1,
+ "steps": 150,
+ "tags": [
+  "2d",
+  "nhflow",
+  "semi_implicit",
+  "nonhydrostatic",
+  "6dof",
+  "ship"
+ ],
+ "covers": [
+  "nhflow_momentum_SI::ship_step",
+  "the ship level in si_assemble, face_update, cell_update, ho_cell_gravity, the coupled eta-phi system"
+ ],
+ "architect": "Hans Bihs"
+}

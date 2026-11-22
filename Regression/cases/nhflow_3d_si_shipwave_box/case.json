@@ -1,0 +1,18 @@
+{
+ "description": "nhflow_3d_shipwave_box in the semi-implicit step (A 510 11, A 536 0.02): the moving pressure patch (X 10 3, X 400 2) moved once per step at its start, the mean of its pressure at the start and the end of the step as the level -p/(rho g) in the gravity term of the faces and cells (NHFLOW_SI_6DOF v46).",
+ "solver": "nhflow",
+ "np": 1,
+ "steps": 30,
+ "tags": [
+  "3d",
+  "nhflow",
+  "semi_implicit",
+  "6dof",
+  "ship"
+ ],
+ "covers": [
+  "nhflow_momentum_SI::ship_step (sixdof_nhflow::start_nhflow X 10 3, sixdof_nhflow::nhflow_press)",
+  "the ship level in si_assemble, face_update, cell_update, ho_cell_gravity"
+ ],
+ "architect": "Hans Bihs"
+}
