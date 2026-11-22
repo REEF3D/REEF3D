@@ -60,6 +60,11 @@ Architect: Hans Bihs
 //    stabilised coupling X 197 of CFD, (M + A) a = F + A a_prev with the added mass A of the equivalent ellipsoid of
 //    the hull and the acceleration extrapolated from the last two steps (sixdof_obj::cfd_added_mass), X 197 1 by
 //    default for the floating body with A 520 > 0 (check).
+// 7. The loads on the hull (6DOF_obj_nhflow_forces_stl.cpp) take the water level and the pressure at the sides of the
+//    hull from the water side, as X 15 11: the columns covered by the body carry a water level of their own (with the
+//    pressure of 5. it gives the pressure below the keel), which the interpolation at the hull mixed into the side
+//    pressure (floating box in waves: a mean surge force of 0.11 N with surge fixed against 0.009 N, a drift with the
+//    waves that grew with dt; towed box: 0.38 N resistance against 1.29 N, explicit 1.20 N).
 // The time step stays within the Courant number N 47 of the body velocity (nhflow_timestep_SI::limit).
 //
 // Not yet: the ship pressure X 10 3, the pierced columns X 13, X 15 6-11, porous bodies X 16, nets X 320, 6DOF on

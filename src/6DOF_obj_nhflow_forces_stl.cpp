@@ -129,6 +129,13 @@ void sixdof_obj_nhflow::force_calc_stl(lexer* p, fdm_nhf *d, ghostcell *pgc, sli
     // water falls off from the hull): 1.10, 1.13, 1.17, 1.22 of the displaced mass for 0.5, 1, 1.5, 2 cells.
     // load_P: the loads of the pressure field load_P alone (added mass, 6DOF_obj_nhflow_addedmass.cpp)
     const bool frac = (p->X15==11);
+    // the semi-implicit NHFLOW (A 510 11/12/13) samples the water level and the pressure at the sides of the hull from the
+    // water side as well (ws): its columns covered by the body carry a water level of their own (the mass of the column
+    // with the body in it) and in the cells of the body the pressure that holds the body velocity on the hull bottom
+    // (nhflow_momentum_SI::fb_wcell); the two belong together below the keel but not at the sides of the hull, where
+    // the interpolation mixed them with the water outside (floating box in waves: a mean surge force of 0.1 N against
+    // 0.002 N of the explicit step, the box drifted with the waves)
+    const bool ws = frac || p->A534==1;
     double Gl[6][6];
     
     for(int qa=0; qa<6; ++qa)
@@ -223,7 +230,7 @@ void sixdof_obj_nhflow::force_calc_stl(lexer* p, fdm_nhf *d, ghostcell *pgc, sli
         // it is the level of the column.
         auto eta_hull = [&](double x, double y, double z)
         {
-            if(!frac)
+            if(!ws)
             return pl->ccslipol4(dl->eta,x,y);
             
             const double off = sample_dist_nhflow(pl,*WLl,x,y,z,nx,ny,nz);
@@ -324,14 +331,15 @@ void sixdof_obj_nhflow::force_calc_stl(lexer* p, fdm_nhf *d, ghostcell *pgc, sli
             for(int q=0; q<3; ++q)
             {
                 // non-hydrostatic pressure, optionally sampled X42 mean cell sizes off the wall
-                const double doff = frac ? sample_dist_nhflow(pl,*WLl,mx[q],my[q],mz[q],nx,ny,nz) : p->X42*dsm;
+                const double doff = ws ? sample_dist_nhflow(pl,*WLl,mx[q],my[q],mz[q],nx,ny,nz) : p->X42*dsm;
                 
                 double pval = pl->ccipol7V(load_P!=nullptr ? load_P : dl->P, *WLl, dl->bed, mx[q] + nx*doff, 
                                                                     my[q] + ny*doff, 
                                                                     mz[q] + nz*doff);
                 
-                // X 15 11: second sample at twice the distance, p_wall = (4 p1 - p2)/3 - (2/3) doff dp/dn
-                if(frac)
+                // X 15 11 (and the semi-implicit step): second sample at twice the distance, p_wall = (4 p1 - p2)/3
+                // - (2/3) doff dp/dn
+                if(ws)
                 pval = (4.0*pval - pl->ccipol7V(load_P!=nullptr ? load_P : dl->P, *WLl, dl->bed, mx[q] + 2.0*nx*doff, 
                                                                     my[q] + 2.0*ny*doff, 
                                                                     mz[q] + 2.0*nz*doff))/3.0;
