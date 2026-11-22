@@ -1,0 +1,21 @@
+{
+ "description": "NHFLOW semi-implicit step (A 510 11, A 520 2, A 536 0.01) with a floating box in heave decay (X 10 1, heave free, density 500, released 3 cm above its equilibrium draft of 0.1 m), 400 x 20 cells: the body step at the start of the step with the semi-implicit Euler step and the stabilised coupling X 197 (default 1), the body velocity held in the cells of the body in the coupled eta-phi system (NHFLOW_SI_6DOF v43).",
+ "solver": "nhflow",
+ "np": 1,
+ "steps": 120,
+ "tags": [
+  "2d",
+  "nhflow",
+  "semi_implicit",
+  "nonhydrostatic",
+  "6dof",
+  "floating"
+ ],
+ "covers": [
+  "nhflow_momentum_SI::fb_step (sixdof_nhflow::start_nhflow once per step, DF -2, the body velocity of the cells)",
+  "sixdof_obj_nhflow::solve_eqmotion_nhflow A 534 1 (step_symplectic), sixdof_obj::cfd_added_mass with the NHFLOW SI body step",
+  "nhflow_momentum_SI::fb_blocked (si_assemble, face_update, nh_dfaces), fb_wcell (nh_residual, nh_assemble)",
+  "nhflow_timestep_SI body velocity limit"
+ ],
+ "architect": "Hans Bihs"
+}
