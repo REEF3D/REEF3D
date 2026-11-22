@@ -198,4 +198,52 @@ inline int nhflow_turb_wall(lexer *p, fdm_nhf *d, int i, int j, int k, double &d
     return found;
 }
 
+// Implicit dissipation of the wall-function k equation, cmu^3/4 k^1/2 u+/y k = cw k^1/2 k (nhflow_kepsilon_bc,
+// nhflow_komega_bc): the k^1/2 of the coefficient is not that of the last step but the root k* of the cell's own
+// equation with the neighbours at their last values,
+//     a k* + cw k*^3/2 = R,   a = M.p (the row without the wall term), R = rhs - sum_nb M.nb k_nb,
+// with the row as the solver gets it (after bckin_matrix). With k^1/2 of the last step, a cell whose k was ~0 got a
+// dissipation of ~0 against the full production tau u/y in one time step: k = (k_eq^3/2 / k_old^1/2), k_eq the
+// equilibrium value u*^2/cmu^1/2. The long steps of the semi-implicit momentum (dt 20-60 s on the tidal flat of
+// nhflow_2d_si_tidal_flat_kepsilon_elm) gave k = 10-150 m2/s2 in the bed cell of the column at the wet-dry front for
+// one step (k_old 1e-5, k_eq 0.6), and through the vertical diffusion in the whole column. With k*: k <= k_eq from
+// the wall terms alone. In a steady state k* is the k of the last step, the solution is that of the lagged form.
+// Returns k* (R <= 0: k of the last step, the row is a sink anyway).
+inline double nhflow_wall_kstar(lexer *p, fdm_nhf *d, const double *KIN, int n, int i, int j, int k, double cw)
+{
+    const int marge = increment::marge;   // for the IJK macros
+
+    const double R = d->rhsvec.V[n] - d->M.n[n]*KIN[Ip1JK] - d->M.s[n]*KIN[Im1JK]
+                                     - d->M.w[n]*KIN[IJp1K] - d->M.e[n]*KIN[IJm1K]
+                                     - d->M.t[n]*KIN[IJKp1] - d->M.b[n]*KIN[IJKm1];
+    const double a = d->M.p[n]>0.0 ? d->M.p[n] : 0.0;
+
+    if(R<=0.0 || cw<=0.0)
+    return KIN[IJK]>0.0 ? KIN[IJK] : 0.0;
+
+    // f(s) = cw s^3 + a s^2 - R, s = k^1/2: increasing and convex for s >= 0; Newton from an upper bound of the root
+    // (min of the roots of the two terms alone) converges monotonically from above
+    double s = std::cbrt(R/cw);
+
+    if(a>0.0)
+    s = std::min(s, std::sqrt(R/a));
+
+    for(int it=0; it<30; ++it)
+    {
+        const double fs = (cw*s + a)*s*s - R;
+        const double df = (3.0*cw*s + 2.0*a)*s;
+
+        if(df<=0.0)
+        break;
+
+        const double ds = fs/df;
+        s -= ds;
+
+        if(fabs(ds)<=1.0e-10*s)
+        break;
+    }
+
+    return s>0.0 ? s*s : 0.0;
+}
+
 #endif

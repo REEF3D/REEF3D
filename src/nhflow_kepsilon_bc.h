@@ -39,6 +39,7 @@ public:
     void bckin_matrix(lexer*,fdm_nhf*,double*,double*);
     void bcepsilon_matrix(lexer*,fdm_nhf*,double*,double*);
 	void wall_law_kin(lexer*,fdm_nhf*,double*,double*);
+    void wall_law_kin_diss(lexer*,fdm_nhf*,double*);
 	void wall_law_epsilon(lexer*,fdm_nhf*,double*,double*);
 
 private:
