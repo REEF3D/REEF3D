@@ -442,13 +442,20 @@ void sflow_amr::si_nh_solve(lexer *p, ghostcell *pgc, rsi_result &res)
     const int m = 30, maxit = 300;
     const double tol = 1.0e-6;
 
-    // the Krylov vectors kept from step to step (every entry is written before it is read)
-    if((int)nhV.size()!=m+1 || (int)nhV[0].size()!=N2)
+    // the Krylov vectors kept from step to step (every entry is written before it is read); a vector gets its
+    // memory when the iteration reaches it (kvec), as in sflow_momentum_SI::nh_solve
+    if((int)nhV.size()!=m+1)
     {
-    nhV.assign(m+1,std::vector<double>(N2));
-    nhZ.assign(m,std::vector<double>(N2));
+    nhV.assign(m+1,std::vector<double>());
+    nhZ.assign(m,std::vector<double>());
     }
     std::vector<std::vector<double>> &V = nhV, &Z = nhZ;
+    auto kvec = [&](std::vector<double> &v) -> std::vector<double>&
+    {
+        if((int)v.size()!=N2)
+        v.resize(N2);
+        return v;
+    };
     std::vector<double> H((m+1)*m,0.0), cs(m,0.0), sn(m,0.0), gg(m+1,0.0);
 
     res.iter = 0;
@@ -478,6 +485,7 @@ void sflow_amr::si_nh_solve(lexer *p, ghostcell *pgc, rsi_result &res)
         {
             apply(xv,yv,false);
 
+            kvec(V[0]);
             for(int k=0; k<N2; ++k)
             V[0][k] = rv[k] - yv[k];
 
@@ -495,8 +503,8 @@ void sflow_amr::si_nh_solve(lexer *p, ghostcell *pgc, rsi_result &res)
             int jj=0;
             for(; jj<m && it<maxit; ++jj, ++it)
             {
-                precond(V[jj],Z[jj]);
-                apply(Z[jj],V[jj+1],false);
+                precond(V[jj],kvec(Z[jj]));
+                apply(Z[jj],kvec(V[jj+1]),false);
 
                 for(int l=0; l<=jj; ++l)
                 {

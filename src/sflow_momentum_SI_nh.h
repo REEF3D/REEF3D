@@ -107,16 +107,28 @@ struct sflow_si_nh_lu
     std::vector<int> cq;
     std::vector<char> mk;
 
+    // the basis vectors V[k], Z[k] get their memory when the iteration reaches them (kvec): a solve takes 4 to 10 of
+    // the 30 of a restart cycle, and a vector that is allocated is written (zeros), so all 61 at once are
+    // 976 bytes per cell of resident memory
     void workspace(int m, int n2)
     {
-        if((int)V.size()!=m+1 || (V.size()>0 && (int)V[0].size()!=n2))
+        if((int)V.size()!=m+1 || kn!=n2)
         {
-        V.assign(m+1,std::vector<double>(n2));
-        Z.assign(m,std::vector<double>(n2));
+        V.assign(m+1,std::vector<double>());
+        Z.assign(m,std::vector<double>());
+        kn = n2;
         }
         H.assign((m+1)*m,0.0);
         cs.assign(m,0.0); sn.assign(m,0.0); g.assign(m+1,0.0);
     }
+
+    std::vector<double>& kvec(std::vector<double> &v)
+    {
+        if((int)v.size()!=kn)
+        v.resize(kn);
+        return v;
+    }
+    int kn=-1;
 
     // open boundary face of x-face / y-face (i,j): index into bcf, -1 none
     std::vector<int> bfx, bfy;
