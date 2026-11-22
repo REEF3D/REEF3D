@@ -28,6 +28,15 @@ Author: Hans Bihs
 
 void sflow_f::logic(lexer *p, fdm2D* b, ghostcell* pgc)
 {	
+    // the pressure schemes (A 220 0-4) and turbulence models (A 260 0-4) there are
+    if(p->A220<0 || p->A220>4 || p->A260<0 || p->A260>4)
+    {
+    if(p->mpirank==0)
+    cout<<"SFLOW: A 220 "<<p->A220<<", A 260 "<<p->A260<<": no such scheme (A 220 0 to 4, A 260 0 to 4)"<<endl;
+
+    exit(1);
+    }
+
     // curvilinear grid (G 50): options available on it
     if(p->geo_curv==1)
     sflow_curv::check(p);
@@ -63,13 +72,6 @@ void sflow_f::logic(lexer *p, fdm2D* b, ghostcell* pgc)
     if(p->A211>=4)
     precon = new sflow_reconstruct_weno(p,pBC);
     
-    // scalar convection (turbulence)
-    if(p->A211<=3)
-    pconvec = new sflow_fou(p);
-    
-    if(p->A211>=4)
-    pconvec = new sflow_weno_flux(p);
-
 	// free surface
 	if(p->A240>=1)
 	pfsf = new sflow_eta(p,b,pgc,pBC);
@@ -91,15 +93,12 @@ void sflow_f::logic(lexer *p, fdm2D* b, ghostcell* pgc)
     if(p->A220==0 || p->A220==4)
 	ppress = new sflow_hydrostatic(p,b,pBC);
     
-    if(p->A220==1 || p->A220>=5)
+    if(p->A220==1)
 	ppress = new sflow_pjm_lin(p,b,pBC);
     
     if(p->A220==2 || p->A220==3)
 	ppress = new sflow_pjm_quad(p,b,pgc,pBC);
     
-    if(p->A220>=5 && p->mpirank==0)
-    cout<<"A 220 "<<p->A220<<" not available with the HLL scheme, using A 220 1"<<endl;
-
     // A 221 2 (sflow_drywall.h): one Cartesian grid
     if(p->A221==2 && (p->geo_curv==1 || p->geo_mb>0 || p->G1>0) && p->mpirank==0)
     cout<<"SFLOW A 221 2 (dry land next to deep water as a wall): on one Cartesian grid only, here as A 221 1"<<endl;
@@ -130,14 +129,6 @@ void sflow_f::logic(lexer *p, fdm2D* b, ghostcell* pgc)
     static_cast<sflow_ediff*>(pdiff)->own_eddyv = 1;
     }
 
-    if(p->A260==5)
-    {
-    if(p->mpirank==0)
-    cout<<"SFLOW: A 260 5 (k-omega v1) is no longer available, use A 260 2 (depth-averaged k-omega)"<<endl;
-    
-    exit(1);
-    }
-    
     // S 16 4: the bed shear stress 0.3 rho k needs the k of A 260 1/2 (zero otherwise: no sediment transport)
     if(p->S10>0 && p->S16==4 && p->A260!=1 && p->A260!=2 && p->mpirank==0)
     cout<<"SFLOW warning: S 16 4 (bed shear stress from k) without the k-epsilon or k-omega model (A 260 1/2): k is zero, no bed shear stress"<<endl;

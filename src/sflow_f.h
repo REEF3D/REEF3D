@@ -44,7 +44,6 @@ class sflow_fsf;
 class sflow_release;
 class sflow_vtp_fsf;
 class sflow_vtp_bed;
-class sflow_convection;
 class sflow_HLL;
 class sflow_signal_speed;
 class sflow_reconstruct;
@@ -105,7 +104,6 @@ private:
 	sflow_fsf *pfsf;
 	sflow_vtp_fsf *pprint;
 	sflow_vtp_bed *pprintbed;
-	sflow_convection *pconvec;
 	sflow_HLL *phll;
     sflow_signal_speed *pss;
     sflow_reconstruct *precon;

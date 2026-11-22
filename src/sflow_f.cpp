@@ -147,7 +147,7 @@ void sflow_f::start(lexer *p, fdm2D* b, ghostcell* pgc)
         }
 
         // turbulence
-        pturb->start(p,b,pgc,pconvec,pdiff,psolv,pflow);
+        pturb->start(p,b,pgc,pdiff,psolv,pflow);
 
         // A 260 1/2 with mesh refinement: the models of the patches (sflow_amr_turb.cpp)
         if(pamr!=nullptr)
@@ -203,16 +203,10 @@ void sflow_f::start(lexer *p, fdm2D* b, ghostcell* pgc)
 
         screen_timing(p,pgc,mtime);
 
-        SLICELOOP1
-        b->Pn(i,j) = b->P(i,j);
-
-        SLICELOOP2
-        b->Qn(i,j) = b->Q(i,j);
-
         emergency_stop(p,b,pgc);
 
         // checkpoint on any decomposition (P 48), rebalance on the measured load (G 46): the state at the
-        // end of the step (Pn, Qn included)
+        // end of the step
         ckpt(p,b,pgc).step();
 	}
 

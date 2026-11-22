@@ -101,16 +101,16 @@ public:
     
     // ---------------------
     slice4 eta,eta_n;
-    slice1 P,Pn,F;
-    slice2 Q,Qn,G;
+    slice1 P,F;
+    slice2 Q,G;
     slice4 H,L;
     slice4 Fext,Gext,Hext;
     slice4 ws;
     slice4 press;
-    slice4 eddyv,kin,eps;
+    slice4 eddyv,kin;
 	slice1 hx;
 	slice2 hy;
-	slice4 hp,dpx,dpy;
+	slice4 hp;
     slice4 test;
     slice4 pbh;     // body pressure head press/(rho g) [m] of the X 10 3 pressure patch (<= 0)
     slice4 Hs,fs;

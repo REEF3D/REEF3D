@@ -32,7 +32,6 @@ Author: Hans Bihs
 #include"hypre_struct2D.h"
 #endif
 #include"sflow_etimestep.h"
-#include"sflow_weno_flux.h"
 #include"sflow_eta.h"
 #include"sflow_potential.h"
 #include"sflow_momentum.h"

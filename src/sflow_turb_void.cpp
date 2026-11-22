@@ -32,7 +32,7 @@ sflow_turb_void::~sflow_turb_void()
 {
 }
 
-void sflow_turb_void::start(lexer *p, fdm2D *b, ghostcell *pgc, sflow_convection *pconvec, sflow_diffusion *pdiff, solver2D *psolv, ioflow *pflow)
+void sflow_turb_void::start(lexer *p, fdm2D *b, ghostcell *pgc, sflow_diffusion *pdiff, solver2D *psolv, ioflow *pflow)
 {
 }
 

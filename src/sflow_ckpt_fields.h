@@ -51,11 +51,11 @@ void sflow_ckpt_fields(lexer *p, fdm2D *b, FD &&fd, FI &&fi)
     fd("ETAn",'S',b->ETAn.V); fd("ETAe",'S',b->ETAe.V); fd("ETAw",'S',b->ETAw.V); fd("Ds",'S',b->Ds.V);
     fd("Dn",'S',b->Dn.V); fd("De",'S',b->De.V); fd("Dw",'S',b->Dw.V); fd("dfx",'S',b->dfx.V);
     fd("dfy",'S',b->dfy.V); fd("WL",'S',b->WL.V); fd("eta",'S',b->eta.V); fd("eta_n",'S',b->eta_n.V);
-    fd("P",'S',b->P.V); fd("Pn",'S',b->Pn.V); fd("F",'S',b->F.V); fd("Q",'S',b->Q.V); fd("Qn",'S',b->Qn.V);
+    fd("P",'S',b->P.V); fd("F",'S',b->F.V); fd("Q",'S',b->Q.V);
     fd("G",'S',b->G.V); fd("H",'S',b->H.V); fd("L",'S',b->L.V); fd("Fext",'S',b->Fext.V);
     fd("Gext",'S',b->Gext.V); fd("Hext",'S',b->Hext.V); fd("ws",'S',b->ws.V); fd("press",'S',b->press.V);
-    fd("eddyv",'S',b->eddyv.V); fd("kin",'S',b->kin.V); fd("eps",'S',b->eps.V); fd("hx",'S',b->hx.V);
-    fd("hy",'S',b->hy.V); fd("hp",'S',b->hp.V); fd("dpx",'S',b->dpx.V); fd("dpy",'S',b->dpy.V);
+    fd("eddyv",'S',b->eddyv.V); fd("kin",'S',b->kin.V); fd("hx",'S',b->hx.V);
+    fd("hy",'S',b->hy.V); fd("hp",'S',b->hp.V);
     fd("test",'S',b->test.V); fd("Hs",'S',b->Hs.V); fd("fs",'S',b->fs.V); fd("fx",'S',b->fx.V);
     fd("fy",'S',b->fy.V); fd("fz",'S',b->fz.V); fd("bed",'S',b->bed.V); fd("bed0",'S',b->bed0.V);
     fd("depth",'S',b->depth.V); fd("solidbed",'S',b->solidbed.V); fd("topobed",'S',b->topobed.V);

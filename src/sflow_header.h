@@ -38,8 +38,6 @@ Author: Hans Bihs
 
 #include"sflow_etimestep.h"
 #include"sflow_fixtimestep.h"
-#include"sflow_fou.h"
-#include"sflow_weno_flux.h"
 #include"sflow_HLL.h"
 #include"sflow_signal_speed.h"
 #include"sflow_reconstruct_hires.h"

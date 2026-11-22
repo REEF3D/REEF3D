@@ -549,7 +549,6 @@
             <File Name="sflow_timestep_SI.h"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Flux">
-            <File Name="sflow_flux_face_HJ.h"/>
             <File Name="sflow_flux_face_CDS.h"/>
             <File Name="sflow_flux.h"/>
           </VirtualDirectory>
@@ -566,9 +565,6 @@
           <VirtualDirectory Name="Convection">
             <File Name="sflow_ifou.h"/>
             <File Name="sflow_convection.h"/>
-            <File Name="sflow_weno_flux.h"/>
-            <File Name="sflow_iweno_hj.h"/>
-            <File Name="sflow_fou.h"/>
           </VirtualDirectory>
         </VirtualDirectory>
         <File Name="river_ini.h"/>
@@ -2190,7 +2186,6 @@
             <File Name="sflow_timestep_SI.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Flux">
-            <File Name="sflow_flux_face_HJ.cpp"/>
             <File Name="sflow_flux_face_CDS.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Filtering">
@@ -2202,9 +2197,6 @@
           </VirtualDirectory>
           <VirtualDirectory Name="Convection">
             <File Name="sflow_ifou.cpp"/>
-            <File Name="sflow_weno_flux.cpp"/>
-            <File Name="sflow_iweno_hj.cpp"/>
-            <File Name="sflow_fou.cpp"/>
           </VirtualDirectory>
         </VirtualDirectory>
       </VirtualDirectory>
