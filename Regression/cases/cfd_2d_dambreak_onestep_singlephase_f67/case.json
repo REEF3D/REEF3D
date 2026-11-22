@@ -1,0 +1,25 @@
+{
+ "base": "cfd_2d_dambreak",
+ "np": 1,
+ "steps": 80,
+ "ctrl_set": {
+  "N 40": "5"
+ },
+ "ctrl_add": [
+  "N 63 3",
+  "N 54 1",
+  "F 41 1",
+  "F 66 0.05",
+  "F 67 2"
+ ],
+ "description": "cfd_2d_dambreak_onestep_singlephase_f66 with F 67 2: the extension into the air made free of divergence in the first two air layers (cfd_singlephase::band, level 0, one rank; validation CFD AMR speed/25).",
+ "tags": [
+  "quick",
+  "2d",
+  "levelset",
+  "singlephase"
+ ],
+ "covers": [
+  "cfd_singlephase::band on level 0: the layers, the connectivity, the red-black SOR and the correction"
+ ]
+}

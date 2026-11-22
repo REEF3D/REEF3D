@@ -1,0 +1,20 @@
+{
+ "base": "cfd_2d_nwt_singlephase",
+ "np": 1,
+ "steps": 100,
+ "ctrl_add": [
+  "F 66 0.05",
+  "F 67 2"
+ ],
+ "description": "cfd_2d_nwt_singlephase with F 66 0.05 and F 67 2: the divergence-free band under waves (validation CFD AMR speed/25).",
+ "tags": [
+  "quick",
+  "2d",
+  "levelset",
+  "singlephase"
+ ],
+ "covers": [
+  "cfd_singlephase::band in a wave flume with inflow"
+ ],
+ "architect": "Hans Bihs"
+}

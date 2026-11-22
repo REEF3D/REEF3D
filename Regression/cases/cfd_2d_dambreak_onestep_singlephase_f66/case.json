@@ -1,0 +1,24 @@
+{
+ "base": "cfd_2d_dambreak",
+ "np": 1,
+ "steps": 80,
+ "ctrl_set": {
+  "N 40": "5"
+ },
+ "ctrl_add": [
+  "N 63 3",
+  "N 54 1",
+  "F 41 1",
+  "F 66 0.05"
+ ],
+ "description": "cfd_2d_dambreak_onestep_singlephase with F 66 0.05 (validation CFD AMR speed/24).",
+ "tags": [
+  "quick",
+  "2d",
+  "levelset",
+  "singlephase"
+ ],
+ "covers": [
+  "pic_gfm_water with F 66, cfd_singlephase extension"
+ ]
+}

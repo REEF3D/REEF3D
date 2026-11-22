@@ -1,0 +1,24 @@
+{
+ "base": "cfd_2d_dambreak_amr_adapt_singlephase_f67",
+ "np": 3,
+ "steps": 48,
+ "ctrl_add": [
+  "G 40 1"
+ ],
+ "description": "cfd_2d_dambreak_amr_adapt_singlephase_f67 on 3 ranks with the placement (G 40 1): the band on level 0 across ranks (gcparax of the potential after each colour, the global residual and cap), the patches on several ranks (validation CFD AMR speed/25).",
+ "tags": [
+  "quick",
+  "2d",
+  "dambreak",
+  "levelset",
+  "amr",
+  "adaptive",
+  "mpi",
+  "place",
+  "singlephase"
+ ],
+ "covers": [
+  "cfd_singlephase::band with MPI: gcparax(bq), globalmax of the residual, globalimax of the band"
+ ],
+ "architect": "Hans Bihs"
+}
