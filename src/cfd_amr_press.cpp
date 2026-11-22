@@ -4080,6 +4080,26 @@ void cfd_amr::single_extend(ghostcell *pgc, int s)
             vector<fspec> fv(1,fb[0]);
             fill(l,fv,true);
         }
+
+        // F 67: the band of the extended velocities free of divergence, each patch alone (closed at its
+        // edges), then the faces around the patches from the siblings again
+        if(p0->F67>0)
+        {
+            for(int id : ids)
+            {
+                cfd_amr_patch *cp = CP(id);
+                momentum_rk *m = cp->pmom;
+                m->single()->band(cp->pp,cp->a,pgc,m->amr_velout(cp->a,0,s),m->amr_velout(cp->a,1,s),m->amr_velout(cp->a,2,s));
+            }
+
+            vector<fspec> fv(3);
+            for(int c=0; c<3; ++c)
+            {
+                fv[c].type = c; fv[c].mode = 2;
+                fv[c].f = [this,s,c](int g) -> field& { return gmom(g)->amr_velout(gfd(g),c,s); };
+            }
+            fill(l,fv,true);
+        }
     }
 
     // the boundary values of the patches

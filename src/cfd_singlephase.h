@@ -58,6 +58,11 @@ public:
     void ext_end(lexer*, field&, int);
     field& marks(int c) { return c==0 ? static_cast<field&>(km1) : (c==1 ? static_cast<field&>(km2) : static_cast<field&>(km3)); }
 
+    // F 67: the extended velocities of the first F 67 layers of cells in the air next to the water made
+    // free of divergence (level 0 from air_velocity, the patches from cfd_amr::single_extend after the
+    // extension of their level)
+    void band(lexer*, fdm*, ghostcell*, field&, field&, field&);
+
     // F 41 2: the closed air pockets (cfd_pocket.h). pid: the pocket of a cell in the air at the last
     // labelling (>= 0), -1 a cell of the atmosphere, -2 none (water, a covered or a solid cell); pa: the
     // pressure of the pocket of a cell in the air, 0 in the atmosphere (the value of the ghost fluid
@@ -70,6 +75,7 @@ private:
     field1 km1;
     field2 km2;
     field3 km3;
+    field4 bq;      // F 67: the potential of the band
     int fmarg;
 };
 

@@ -755,6 +755,10 @@ void driver::logic_cfd()
         removed_option(p,pgc,p->F66>0.0 && p->F41!=1,"F 66 works with F 41 1 (the closed air pockets of F 41 2 not yet).");
         pic_gfm_wet41(p->F66);
 
+        // F 67: the band of the extended velocities free of divergence
+        removed_option(p,pgc,p->F67<0 || p->F67>2,"F 67: the layers of the band free of divergence of the single phase are 0, 1 or 2.");
+        removed_option(p,pgc,p->F67>0 && p->F41!=1,"F 67 works with F 41 1 (the closed air pockets of F 41 2 not yet).");
+
         // the air takes the density and viscosity of the water: the faces of the water at the surface
         // have the density of the water (the smoothed Heaviside of density_f would give them less)
         p->W3 = p->W1;

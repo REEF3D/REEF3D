@@ -340,6 +340,7 @@ public:
     // Free Surface
     int F30,F35,F37,F40,F41,F44,F46,F47,F50,F150,F151;
     double F38,F42,F43,F45,F48;
+    int F67;                     // F 41 1: the layers of cells in the air next to the water whose extended velocities are made free of divergence
     double F66;                  // F 41 1: a cell counts as water in the ghost fluid method from phi >= F 66 times the mean spacing
     double F51,F52,F53,F54,F55,F56;
     int F50_flag;
