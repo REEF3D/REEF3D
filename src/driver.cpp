@@ -161,6 +161,7 @@ driver::driver(int& argc, char **argv)
         pgc->flagfield(p);
         makegrid_sigma(p,pgc);
         makegrid2D(p,pgc);
+        pBC->patchBC_ini(p,pgc);
 
         nhflow_driver();
     }

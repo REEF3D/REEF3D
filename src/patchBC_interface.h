@@ -28,6 +28,7 @@ Author: Hans Bihs
 class lexer;
 class fdm;
 class fdm2D;
+class fdm_nhf;
 class ghostcell;
 class field;
 class slice;
@@ -55,6 +56,11 @@ public:
     virtual void patchBC_ioflow2D(lexer*, ghostcell*, slice&, slice&, slice&, slice&)=0;
     virtual void patchBC_discharge2D(lexer*, fdm2D*, ghostcell*, slice&, slice&, slice&, slice&)=0;
     virtual void patchBC_waterlevel2D(lexer*, fdm2D*, ghostcell*, slice&)=0;
+
+    // BC update ::NHFLOW semi-implicit (A 510 11/12/13): the hydrographs, the measured discharge, area and mean
+    // velocity of the patches and the inlet velocity of a discharge (Uq); the ghost cells and the boundary faces are
+    // set by nhflow_momentum_SI (patch_ghosts, bc_setup)
+    virtual void patchBC_discharge_nhflow(lexer*, fdm_nhf*, ghostcell*) {}
     
     patch_obj **patch = nullptr;
     int obj_count = 0;

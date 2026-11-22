@@ -39,6 +39,8 @@ class nhflow_tracer_SI;
 class solver2D;
 class wind;
 class met_forcing;
+class patchBC_interface;
+class patch_obj;
 
 using namespace std;
 
@@ -191,6 +193,13 @@ public:
     int si_stages() const { return rk; }
 
     bool patch;             // a block 1.. of a multi-block grid (no log file, no global output)
+
+    // patch boundary conditions (B 411-422 on B 440-442; patchBC_2D on the slice faces gcbsl4, set by the driver): the
+    // inlets as discharge faces, the outlets with a water level as level faces, the others as free outflow (bc_setup);
+    // the ghost cells of the patch faces (patch_ghosts): the inlet velocity on all layers, zero gradient at the outlets
+    patchBC_interface *pBC = nullptr;
+    void patch_ghosts(lexer*, fdm_nhf*, double*, double*, double*, double*, double*, double*);
+    const patch_obj* patch_of(int, int, int) const;
 
     friend class nhflow_amr;
     friend class nhflow_tracer_SI;

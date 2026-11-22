@@ -21,6 +21,9 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"nhflow_momentum_SI.h"
+#include"patchBC_interface.h"
+#include"patchBC_codes.h"
+#include"patch_obj.h"
 #include"gcsl_yskip.h"
 #include"nhflow_breaking.h"
 #include"nhflow_breaking_profile.h"
@@ -490,6 +493,11 @@ void nhflow_momentum_SI::check(lexer *p)
         msg("the non-hydrostatic pressure (A 520 > 0) with the density (A 620) is");
     }
 
+    // patch boundary conditions (B 411-422 on B 440-442): one Cartesian grid (bc_setup, patch_ghosts; the wetted area
+    // of patchBC_2D with the Cartesian face widths)
+    if((p->B440>0 || p->B441>0 || p->B442>0) && (p->geo_curv==1 || p->geo_mb>0 || p->G1>0))
+    msg("patch boundary conditions (B 411-422) on curvilinear, multi-block or refined grids are");
+
     // wave breaking (A 550 1, 3, 4, 5) on one Cartesian grid
     if(p->A550>0 && (p->geo_curv==1 || p->geo_mb>0 || p->G1>0))
     msg("wave breaking (A 550) on curvilinear, multi-block or refined grids is");
@@ -553,8 +561,6 @@ void nhflow_momentum_SI::check(lexer *p)
     if(p->A750>0 && p->A770==1)
     msg("SEASTATE surfbeat (A 770 1) is");
 
-    if(p->B411>0 || p->B412>0 || p->B413>0 || p->B414>0 || p->B415>0 || p->B416>0 || p->B417>0 || p->B418>0 || p->B421>0 || p->B422>0)
-    msg("patch boundary conditions (B 411-422) are");
 
     if(stop==1)
     exit(1);
@@ -881,6 +887,13 @@ void nhflow_momentum_SI::si_begin(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_s
     pflow->discharge_nhflow(p,d,pgc);
     pflow->inflow_nhflow(p,d,pgc,d->U,d->V,d->W,d->UH,d->VH,d->WH,d->WL);
 
+    // patch boundary conditions: the hydrographs, the inlet velocity of a discharge, the ghost cells of the patch faces
+    if(pBC!=nullptr && pBC->obj_count>0)
+    {
+    pBC->patchBC_discharge_nhflow(p,d,pgc);
+    patch_ghosts(p,d,d->U,d->V,d->W,d->UH,d->VH,d->WH);
+    }
+
     // state at t^n (all cells incl. ghost cells)
     lset(p,UH0,d->UH);
     lset(p,WH0,d->WH);
@@ -998,13 +1011,17 @@ void nhflow_momentum_SI::si_begin(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_s
     // unallocated
     if(rk>=2)
     {
-    S.pflow->rkinflow_nhflow(p,d,pgc,d->U,d->V,d->W,lfull(p,UHa,0),lfull(p,VHa,1),lfull(p,WHa,2),WL0);
+    double *fu = lfull(p,UHa,0), *fv = lfull(p,VHa,1), *fw = lfull(p,WHa,2);
+    S.pflow->rkinflow_nhflow(p,d,pgc,d->U,d->V,d->W,fu,fv,fw,WL0);
+    patch_ghosts(p,d,nullptr,nullptr,nullptr,fu,fv,fw);
     lback(p,UHa,0); lback(p,VHa,1); lback(p,WHa,2);
     }
 
     if(rk>=3)
     {
-    S.pflow->rkinflow_nhflow(p,d,pgc,d->U,d->V,d->W,lfull(p,UHb,0),lfull(p,VHb,1),lfull(p,WHb,2),WL0);
+    double *fu = lfull(p,UHb,0), *fv = lfull(p,VHb,1), *fw = lfull(p,WHb,2);
+    S.pflow->rkinflow_nhflow(p,d,pgc,d->U,d->V,d->W,fu,fv,fw,WL0);
+    patch_ghosts(p,d,nullptr,nullptr,nullptr,fu,fv,fw);
     lback(p,UHb,0); lback(p,VHb,1); lback(p,WHb,2);
     }
 
@@ -1695,6 +1712,35 @@ void nhflow_momentum_SI::bc_setup(lexer *p, fdm_nhf *d, ghostcell *pgc)
         if((bc==2 || bc==7 || bc==8) && outflow_open==1)
         f.type = ((p->F50==2 || p->F50==4) && p->B99<3) ? bc_level : bc_riemann;
 
+        // patch in- and outlets (B 411-422 on B 440-442, as sflow_momentum_SI::bc_setup): the ghost cells hold the
+        // patch state (patch_ghosts: the inlet velocity on all layers, zero gradient at the outlets)
+        //  inlet (B 411, 414, 415, 421): the layer discharges of the ghost velocity, the depth of the cell
+        //  outlet with a water level (B 413, 422): Dirichlet level
+        //  outlet without a level: free outflow (Riemann invariant of the zero-gradient ghost column)
+        else
+        if(patch_bc(bc))
+        {
+        f.type = patch_inlet(bc) ? bc_flux : (patch_fsf(bc) ? bc_level : bc_riemann);
+
+            const patch_obj *pt = patch_of(f.i,f.j,f.cs);
+
+            if(f.type==bc_flux)
+            WLb(f.gi,f.gj) = WL0(f.i,f.j);
+
+            else
+            if(f.type==bc_level && pt!=nullptr)
+            {
+            etaB(f.gi,f.gj) = pt->waterlevel - p->wd;
+            WLb(f.gi,f.gj) = MAX(etaB(f.gi,f.gj) + d->depth(f.gi,f.gj), 0.0);
+            }
+
+            else
+            {
+            WLb(f.gi,f.gj) = WL0(f.i,f.j);
+            etaB(f.gi,f.gj) = eta0(f.i,f.j);
+            }
+        }
+
         // wall: the face stays closed
         if(f.type==0)
         {
@@ -1911,16 +1957,22 @@ void nhflow_momentum_SI::si_stage_vel(lexer *p, fdm_nhf *d, ghostcell *pgc, nhfl
     // has them from the first pass in the second one (tl2)
     if(!(s==0 && si_pass>0))
     {
-    pgc->start4V(p,lfull(p,UHs,0),gcval_uh);
+    double *F = lfull(p,UHs,0);
+    pgc->start4V(p,F,gcval_uh);
+    patch_ghosts(p,d,nullptr,nullptr,nullptr,F,nullptr,nullptr);
     lback(p,UHs,0);
 
     if(p->j_dir==1)     // one row of cells: V, VH stay 0 (their ghost cells too)
     {
-    pgc->start4V(p,lfull(p,VHs,0),gcval_vh);
+    F = lfull(p,VHs,0);
+    pgc->start4V(p,F,gcval_vh);
+    patch_ghosts(p,d,nullptr,nullptr,nullptr,nullptr,F,nullptr);
     lback(p,VHs,0);
     }
 
-    pgc->start4V(p,lfull(p,WHs,0),gcval_wh);
+    F = lfull(p,WHs,0);
+    pgc->start4V(p,F,gcval_wh);
+    patch_ghosts(p,d,nullptr,nullptr,nullptr,nullptr,nullptr,F);
     lback(p,WHs,0);
     }
 
@@ -1982,6 +2034,7 @@ void nhflow_momentum_SI::si_stage_vel(lexer *p, fdm_nhf *d, ghostcell *pgc, nhfl
     pgc->start4V(p,d->V,gcval_v);
     pgc->start4V(p,d->W,gcval_w);
 
+    patch_ghosts(p,d,d->U,d->V,d->W,nullptr,nullptr,nullptr);
 }
 
 void nhflow_momentum_SI::si_stage_rhs(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_stage_obj &S, int s)
@@ -4064,6 +4117,8 @@ void nhflow_momentum_SI::finish(lexer *p, fdm_nhf *d, ghostcell *pgc)
     pgc->start4V(p,d->VH,gcval_vh);
     pgc->start4V(p,d->WH,gcval_wh);
 
+    patch_ghosts(p,d,d->U,d->V,d->W,d->UH,d->VH,d->WH);
+
     // the layer transport of the step is the continuity flux: omega, and the advection of the next step
     lget(p,Tx,d->FEx);
     lget(p,Ty,d->FEy);
@@ -4309,4 +4364,94 @@ void nhflow_momentum_SI::exchangeC(lexer *p, ghostcell *pgc, double *f)
     // layer cell arrays, MPI only
     if(p->mpi_size>1)
     pgc->start4V_par(p,f,14);
+}
+
+const patch_obj* nhflow_momentum_SI::patch_of(int ii, int jj, int cs) const
+{
+    // the patch of the face (ii,jj,cs), nullptr if none
+    if(pBC==nullptr)
+    return nullptr;
+
+    for(int qq=0;qq<pBC->obj_count;++qq)
+    for(int m=0;m<pBC->patch[qq]->gcb_count;++m)
+    {
+    const int *g = pBC->patch[qq]->gcb[m];
+
+        if(g[0]==ii && g[1]==jj && g[3]==cs)
+        return pBC->patch[qq];
+    }
+
+    return nullptr;
+}
+
+void nhflow_momentum_SI::patch_ghosts(lexer *p, fdm_nhf *d, double *U, double *V, double *W, double *UH, double *VH, double *WH)
+{
+    // the ghost cells (3 per face, all layers) of the patch faces, after the ghost cell routines (which take them for
+    // walls): inlets the velocity of the patch (B 411/421 from the discharge over the wetted area, B 414 normal, B 415
+    // components, B 416/417 direction; patch_obj::velocity), W 0, the momenta with the water depth of the cell; outlets
+    // zero gradient. The arrays in the layout of IJK (nullptr: not set)
+    if(pBC==nullptr || pBC->obj_count==0)
+    return;
+
+    const int K = p->knoz;
+    auto cidx = [&](int ii, int jj, int kk) { return (ii-p->imin)*p->jmax*p->kmax + (jj-p->jmin)*p->kmax + kk-p->kmin; };
+
+    for(int qq=0;qq<pBC->obj_count;++qq)
+    {
+    const patch_obj *pt = pBC->patch[qq];
+    const bool inlet = (pt->kind==PATCH_INLET);
+    const double Un = (pt->Q_flag==1) ? pt->Uq : ((pt->Uio_flag==1) ? pt->Uio : 0.0);
+
+        for(int m=0;m<pt->gcb_count;++m)
+        {
+        const int ii = pt->gcb[m][0], jj = pt->gcb[m][1], cs = pt->gcb[m][3];
+        const int di = (cs==1) ? -1 : ((cs==4) ? 1 : 0);
+        const int dj = (cs==3) ? -1 : ((cs==2) ? 1 : 0);
+
+            if(p->j_dir==0 && dj!=0)
+            continue;
+
+        double u=0.0, v=0.0, w=0.0;
+
+            if(inlet)
+            {
+            pt->velocity(cs,Un,u,v,w);
+
+                if(pt->Q_flag==1 && p->wet[(ii-p->imin)*p->jmax + (jj-p->jmin)]==0)
+                u = v = w = 0.0;
+
+            v *= p->y_dir;
+            w = 0.0;
+            }
+
+        const double H = d->WL(ii,jj);
+
+            for(int q=1;q<=3;++q)
+            for(int kk=0;kk<K;++kk)
+            {
+            const int g = cidx(ii+q*di,jj+q*dj,kk);
+            const int c = cidx(ii,jj,kk);
+
+                if(inlet)
+                {
+                if(U!=nullptr)  U[g] = u;
+                if(V!=nullptr)  V[g] = v;
+                if(W!=nullptr)  W[g] = w;
+                if(UH!=nullptr) UH[g] = u*H;
+                if(VH!=nullptr) VH[g] = v*H;
+                if(WH!=nullptr) WH[g] = w*H;
+                }
+
+                else
+                {
+                if(U!=nullptr)  U[g] = U[c];
+                if(V!=nullptr)  V[g] = V[c];
+                if(W!=nullptr)  W[g] = W[c];
+                if(UH!=nullptr) UH[g] = UH[c];
+                if(VH!=nullptr) VH[g] = VH[c];
+                if(WH!=nullptr) WH[g] = WH[c];
+                }
+            }
+        }
+    }
 }

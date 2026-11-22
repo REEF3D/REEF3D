@@ -985,6 +985,19 @@ void driver::patchBC_logic()
     if((p->B440>0 || p->B441>0 || p->B442>0) && p->A10==6)
     pBC = new patchBC(p,pgc);
 
-    if((p->B440==0 && p->B441==0 && p->B442==0) || (p->A10!=2 && p->A10!=6))
+    // NHFLOW: the semi-implicit step (A 510 11/12/13) only, on the slice faces as SFLOW (nhflow_momentum_SI::bc_setup)
+    if((p->B440>0 || p->B441>0 || p->B442>0) && p->A10==5)
+    {
+        if(p->A534!=1)
+        {
+        if(p->mpirank==0)
+        cout<<"!!! NHFLOW: patch boundary conditions (B 411-422 on B 440-442) only with the semi-implicit step (A 510 11/12/13) !!!"<<endl;
+        exit(1);
+        }
+
+    pBC = new patchBC_2D(p,pgc);
+    }
+
+    if((p->B440==0 && p->B441==0 && p->B442==0) || (p->A10!=2 && p->A10!=5 && p->A10!=6))
     pBC = new patchBC_void(p);
 }

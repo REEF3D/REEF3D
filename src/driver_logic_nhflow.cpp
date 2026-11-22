@@ -579,7 +579,11 @@ void driver::logic_nhflow()
     
     // hydrostatic semi-implicit free surface (A 510 11/12/13, theta method)
     if(p->A534==1)
-	pnhfmom = new nhflow_momentum_SI(p,d,pgc,p6dof,pnhfvrans,pnhfdf);
+    {
+    nhflow_momentum_SI *psi = new nhflow_momentum_SI(p,d,pgc,p6dof,pnhfvrans,pnhfdf);
+    psi->pBC = pBC;
+	pnhfmom = psi;
+    }
     
 
 // mesh refinement (G 1): patches on the NHFLOW grid
