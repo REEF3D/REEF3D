@@ -49,7 +49,7 @@ void nhflow_komega_bc::bckomega_start(lexer *p, fdm_nhf *d, double *KIN, double 
 void nhflow_komega_bc::wall_law_kin(lexer *p, fdm_nhf *d, double *KIN, double *EPS)
 {
     // wall function for k at the nearest wall that has one (nhflow_wall.h): production tau*u/y and
-    // dissipation cmu^3/4 k^1/2 u+/y (implicit); y >= ks/30
+    // dissipation cmu^3/4 k^1/2 u+/y (implicit, wall_law_kin_diss); y >= ks/30
     double ut;
     
     count=0;
@@ -64,8 +64,7 @@ void nhflow_komega_bc::wall_law_kin(lexer *p, fdm_nhf *d, double *KIN, double *E
         
         tau = (ut*ut)/(uplus*uplus);
         
-        d->M.p[count] += (pow(p->cmu,0.75)*pow(fabs(KIN[IJK]),0.5)*uplus)/dist;
-        d->rhsvec.V[count] += (tau*ut)/dist;
+        d->rhsvec.V[count] += (tau*ut)/dist;   // the dissipation: wall_law_kin_diss, at the end of bckin_matrix
         }
     ++count;
     }
@@ -204,6 +203,33 @@ void nhflow_komega_bc::bckin_matrix(lexer *p, fdm_nhf *d, double *KIN, double *E
             }
             ++n;
         }
+    
+    wall_law_kin_diss(p,d,KIN);
+}
+
+void nhflow_komega_bc::wall_law_kin_diss(lexer *p, fdm_nhf *d, double *KIN)
+{
+    // the implicit dissipation of wall_law_kin, cmu^3/4 k*^1/2 u+/y, with k* from the cell's own equation as the
+    // solver gets it (nhflow_wall_kstar); not in a dry column or a solid cell (identity rows of bckin_matrix)
+    double ut;
+    
+    count=0;
+    LOOP
+    {
+        if(p->DF[IJK]>0 && p->wet[IJ]==1 && nhflow_turb_wall(p,d,i,j,k,dist,ks,ut)==1)
+        {
+        if(30.0*dist<ks)
+        dist=ks/30.0;
+        
+        uplus = (1.0/kappa)*MAX(1.0,log(30.0*(dist/ks)));
+        
+        const double cw = pow(p->cmu,0.75)*uplus/dist;
+        const double kstar = nhflow_wall_kstar(p,d,KIN,count,i,j,k,cw);
+        
+        d->M.p[count] += cw*sqrt(kstar);
+        }
+    ++count;
+    }
 }
 
 void nhflow_komega_bc::bcomega_matrix(lexer *p, fdm_nhf *d, double *KIN, double *EPS)

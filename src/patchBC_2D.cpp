@@ -25,6 +25,7 @@ Author: Hans Bihs
 #include"patch_obj.h"
 #include"lexer.h"
 #include"fdm2D.h"
+#include"fdm_nhf.h"
 #include"ghostcell.h"
 #include"slice.h"
 #include<vector>
@@ -244,6 +245,71 @@ void patchBC_2D::patchBC_waterlevel2D(lexer *p, fdm2D *b, ghostcell *pgc, slice 
         
         eta(ii,jj)   = patch[qq]->waterlevel - p->wd;
         b->hp(ii,jj) = MAX(patch[qq]->waterlevel - b->bed(i,j), 0.0);
+        }
+    }
+}
+
+void patchBC_2D::patchBC_discharge_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
+{
+    // NHFLOW semi-implicit: the wetted area (face width x water depth of the cell), the discharge through the patch
+    // (the depth-averaged normal velocity of the cell), the inlet velocity of a discharge (B 411, B 421)
+    patch_hydrograph(p);
+
+    for(int qq=0;qq<obj_count;++qq)
+    {
+    patch_obj *pt = patch[qq];
+    double A=0.0, Qm=0.0, hsum=0.0;
+    int hcount=0;
+
+        for(n=0;n<pt->gcb_count;++n)
+        {
+        i  = pt->gcb[n][0];
+        j  = pt->gcb[n][1];
+        int cs = pt->gcb[n][3];
+
+            if(p->wet[IJ]==0)
+            continue;
+
+        const bool xf = (cs==1 || cs==4);
+        double dl = xf ? p->DYN[JP] : p->DXN[IP];
+        double un = 0.0;
+
+            for(k=0;k<p->knoz;++k)
+            un += p->DZN[KP]*(xf ? d->U[IJK] : d->V[IJK]);
+
+        un *= patch_obj::inward(cs);   // positive into the domain
+
+        A  += dl*d->WL(i,j);
+        Qm += dl*d->WL(i,j)*un;
+
+        hsum += d->eta(i,j) + p->wd;
+        ++hcount;
+        }
+
+    A  = pgc->globalsum(A);
+    Qm = pgc->globalsum(Qm);
+    hsum = pgc->globalsum(hsum);
+    hcount = pgc->globalisum(hcount);
+
+    pt->A0 = A;
+    pt->Q0 = Qm;
+    pt->U0 = Qm/(A>1.0e-20?A:1.0e20);
+    pt->h0 = hcount>0 ? hsum/double(hcount) : 0.0;
+
+        if(pt->Q_flag==1)
+        pt->Uq = pt->Q/(A>1.0e-20?A:1.0e20);
+
+        if(p->mpirank==0 && (p->count%p->P12==0))
+        {
+        cout<<"patchBC ID: "<<pt->ID<<(pt->kind==PATCH_INLET?" in ":" out")<<" | Q: "<<setprecision(5)<<Qm;
+
+        if(pt->Q_flag==1)
+        cout<<" Qset: "<<pt->Q<<" Uq: "<<pt->Uq;
+
+        if(pt->waterlevel_flag==1)
+        cout<<" level set: "<<pt->waterlevel;
+
+        cout<<" U: "<<pt->U0<<" A: "<<A<<" level: "<<pt->h0<<endl;
         }
     }
 }

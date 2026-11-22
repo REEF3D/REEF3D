@@ -27,7 +27,7 @@ Author: Hans Bihs
 
 using namespace std;
 
-// patch boundary conditions ::SFLOW (cell centred velocities)
+// patch boundary conditions ::SFLOW (cell centred velocities) and ::NHFLOW semi-implicit (the faces of the columns)
 class patchBC_2D final : public patchBC_core
 {
 public:
@@ -47,6 +47,9 @@ public:
     void patchBC_ioflow2D(lexer*, ghostcell*, slice&, slice&, slice&, slice&) override final;
     void patchBC_discharge2D(lexer*, fdm2D*, ghostcell*, slice&, slice&, slice&, slice&) override final;
     void patchBC_waterlevel2D(lexer*, fdm2D*, ghostcell*, slice&) override final;
+
+    // BC update ::NHFLOW semi-implicit (the faces of gcbsl4 as for SFLOW, the layers of the columns)
+    void patchBC_discharge_nhflow(lexer*, fdm_nhf*, ghostcell*) override final;
     
 private:
     // ghost cell q (1..3) of the face (i,j,cs)

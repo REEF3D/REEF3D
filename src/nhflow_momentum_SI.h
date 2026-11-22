@@ -39,6 +39,8 @@ class nhflow_tracer_SI;
 class solver2D;
 class wind;
 class met_forcing;
+class patchBC_interface;
+class patch_obj;
 
 using namespace std;
 
@@ -150,8 +152,11 @@ using namespace std;
 // Fixed solids with direct forcing (A 580 1, A 581-590; one grid): the explicit forcing of nhflow_forcing on the
 // cell predictor and on the cells at the end of the step (df_*); the layer face discharges are not forced.
 //
-// Not available (stops in check()): VRANS, 6DOF / floating bodies, side-wall
-// friction A 519 2, membranes, FEM coupling, patch boundary conditions, SEASTATE surfbeat (A 770 1);
+// 6DOF bodies (X 10 1, 2, 4; one Cartesian grid): the direct forcing of the bodies as that of the fixed solids, the
+// body moved once per step (fb_*, nhflow_momentum_SI_6dof.cpp).
+//
+// Not available (stops in check()): VRANS, the ship pressure X 10 3, X 13, X 15 6-11, porous bodies X 16, nets,
+// side-wall friction A 519 2, membranes, FEM coupling, patch boundary conditions, SEASTATE surfbeat (A 770 1);
 // the non-hydrostatic pressure and wave breaking on one Cartesian grid only.
 // ---------------------------------------------------------------------------
 
@@ -191,6 +196,13 @@ public:
     int si_stages() const { return rk; }
 
     bool patch;             // a block 1.. of a multi-block grid (no log file, no global output)
+
+    // patch boundary conditions (B 411-422 on B 440-442; patchBC_2D on the slice faces gcbsl4, set by the driver): the
+    // inlets as discharge faces, the outlets with a water level as level faces, the others as free outflow (bc_setup);
+    // the ghost cells of the patch faces (patch_ghosts): the inlet velocity on all layers, zero gradient at the outlets
+    patchBC_interface *pBC = nullptr;
+    void patch_ghosts(lexer*, fdm_nhf*, double*, double*, double*, double*, double*, double*);
+    const patch_obj* patch_of(int, int, int) const;
 
     friend class nhflow_amr;
     friend class nhflow_tracer_SI;
@@ -256,6 +268,7 @@ public:
         px("si_dUH",dUH); px("si_dVH",dVH);
         // the time levels of the step before (second order in time, tl2; nh_begin, nh_levels)
         px("si_accU",accU); px("si_accV",accV); px("si_accW",accW);
+        px("si_vaU",vaU); px("si_vaV",vaV); px("si_vaW",vaW);
         fd("si_Bx",'C',Bx); fd("si_By",'C',By); fd("si_BFx",'C',BFx); fd("si_BFy",'C',BFy);
         fd("si_nOmP",'F',nOmP.data()); fd("si_nHxo",'S',nHxo.data()); fd("si_nHyo",'S',nHyo.data());
         if(!nWLo.empty()) fd("si_nWLo",'S',nWLo.data());
@@ -501,8 +514,33 @@ private:
     bool df_col(lexer*, int, int);
     bool dfcols = false;
     void df_apply(lexer*, fdm_nhf*, ghostcell*, double*, double*, double*, slice&, bool);
+    void df_cast(lexer*, fdm_nhf*, ghostcell*);
     std::vector<double> dfU, dfV, dfW, dfSU, dfSV, dfSW;
     slice4 dfWL, dfEta, dfC;
+
+    // 6DOF bodies (X 10 1 floating, 2 prescribed motion, 4 wavemaker; nhflow_momentum_SI_6dof.cpp) with the direct
+    // forcing of the cells (X 15 0-5) as the fixed solids: the body moves once per step at its start with the loads of
+    // t^n (sixdof_obj_nhflow::solve_eqmotion_nhflow: the semi-implicit Euler step, momenta first), the cells of the
+    // body (DF -2) are forced to its velocity in the predictor and at the end of the step, the layer faces with a body
+    // cell carry the discharge of the body motion H_f u_b.n, inside the eta and eta-phi solves (fb_blocked: si_assemble,
+    // face_update, nh_dfaces), the faces next to a body column over the whole water depth (a wavemaker) the discharge
+    // of the moving wall u_b.n WL of the water side (fb_walls_*)
+    bool fbon = false;
+    void fb_step(lexer*, fdm_nhf*, ghostcell*);
+    double fb_qface(lexer*, int);
+    bool fb_blocked(lexer*, int);
+    int fb_wcell(lexer*);
+    void fb_walls_set(lexer*, fdm_nhf*, ghostcell*);
+    void fb_walls_assemble(lexer*, ghostcell*);
+    void fb_walls_faces(lexer*);
+    // the body velocity of the cells of the bodies (layout of IJK, zero elsewhere) and the forcing fields of the body
+    // object (not used: the cells are forced by df_apply)
+    std::vector<double> fbU, fbV, fbW, fbFX, fbFY, fbFZ;
+    slice4 fbfe;
+    // the faces of the moving wall: flag (1) and layer discharges Q_b (private layout as Qx, Qy)
+    bool fbwalls = false;
+    std::vector<char> fbwx, fbwy;
+    std::vector<double> fbQx, fbQy;
 
     // layer face discharges: prognostic Q^{n+1}, Q^n, layer transport of the step (theta weighted),
     // column parts Q~ = A^-1 (I - dt L_v) Q^ and r = A^-1 1
@@ -545,10 +583,13 @@ private:
     bool tp2 = false;          // the estimate pass for the advecting transport without tl2 (curvilinear, multi-block and
                                // refined grids): the passes of tl2 with the other time levels of the step before
     double *accU = nullptr, *accV = nullptr, *accW = nullptr;    // tl2: the implicit acceleration of the step before
+    double *vaU = nullptr, *vaV = nullptr, *vaW = nullptr;       // A 510 11 with tl2: its vertical-advection part (col_va)
     double *FSx = nullptr, *FSy = nullptr;    // tl2: the sources of the last predictor stage (wind, Coriolis, ...; the wall sides)
     double thv = 1.0;                          // time level of the vertical advection in the column operator (1: implicit Euler)
     std::vector<double> vau, val, vad;         // its coefficients (unscaled), for the explicit part
     void col_adv_rhs(lexer*, const double*, double*);      // A 510 11: one stage, BCG advection, the nonlinear terms at t^{n+1/2}
+    void col_va(lexer*, const double*, const double*, double, double*);   // the vertical advection of a cell column over the step
+    vector<double> wv0, wv1, wva;              // its columns (knoz)
     bool qini;
     // the pass of step_single (tl2: 0 the estimate, 1 the final pass); faces_set: face_update of the step done by the
     // coupled non-hydrostatic solve (nh_solve), si_end_faces skips it

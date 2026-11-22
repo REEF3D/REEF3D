@@ -1,0 +1,34 @@
+{
+ "base": "nhflow_2d_si_river_kepsilon",
+ "description": "nhflow_2d_si_river_kepsilon with patches on walls (C 11 21, C 14 21) instead of B 60 / F 62: discharge inlet (B 440 1 at x-, B 411 1 1.0) and water level outlet (B 440 2 at x+, B 413 2 1.5). The patch faces as discharge and level faces of the semi-implicit step (nhflow_momentum_SI::bc_setup, patch_ghosts; patchBC_2D on the slice faces). Run to 20000 s the steady water level agrees with the B 60 / F 62 run to 0.1 mm except next to the inlet (1.8 mm: the uniform inlet profile instead of the log profile of B 61 2).",
+ "control_set": {
+  "C 11": "21",
+  "C 14": "21"
+ },
+ "ctrl_set": {
+  "B 60": null,
+  "B 61": null,
+  "F 50": null,
+  "F 62": null
+ },
+ "ctrl_add": [
+  "B 440 1 1 -1.0 1.0 -1.0 2.0",
+  "B 411 1 1.0",
+  "B 440 2 4 3999.0 4001.0 -1.0 2.0",
+  "B 413 2 1.5"
+ ],
+ "tags": [
+  "2d",
+  "nhflow",
+  "semi_implicit",
+  "river",
+  "turbulence",
+  "patchbc"
+ ],
+ "covers": [
+  "patchBC_2D on the NHFLOW slice faces (driver), patchBC_discharge_nhflow",
+  "nhflow_momentum_SI::bc_setup patch inlet (bc_flux) and level outlet (bc_level)",
+  "nhflow_momentum_SI::patch_ghosts"
+ ],
+ "architect": "Hans Bihs"
+}

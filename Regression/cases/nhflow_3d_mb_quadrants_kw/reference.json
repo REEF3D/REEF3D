@@ -66,17 +66,17 @@
   },
   "EV": {
    "n": 4704,
-   "sum": 0.00019784165225073146,
-   "l1": 0.00019784165225073146,
-   "l2": 1.0530728693612162e-05,
-   "linf": 1.2600113631198774e-06
+   "sum": 0.0001978035823439919,
+   "l1": 0.0001978035823439919,
+   "l2": 1.0528396192183597e-05,
+   "linf": 1.259572130768986e-06
   },
   "KIN": {
    "n": 4704,
-   "sum": 0.00012003100391886235,
-   "l1": 0.00012003100391886235,
-   "l2": 6.707007331283404e-06,
-   "linf": 9.65834725987553e-07
+   "sum": 0.00012000685334146947,
+   "l1": 0.00012000685334146947,
+   "l2": 6.705416609245953e-06,
+   "linf": 9.654773839046472e-07
   },
   "CONC": {
    "n": 4704,
@@ -157,7 +157,7 @@
   0.006362889130781209,
   0.006358565117572798
  ],
- "blessed_from": "/home/claude/w/regbuild/new/REEF3D",
- "date": "2026-11-11",
- "note": "A 508 and A 522 retired: fourth-order horizontal operators and the half cell of the bed node always (NHFLOW ML patches 0003, 0004 on hans_dev 6e0d3373e)"
+ "blessed_from": "/home/claude/nb/hd/buildU/REEF3D_v43a",
+ "date": "2026-11-22",
+ "note": "v43: references of HEAD a935e5210 with v43 (wall-function k dissipation from the cell's own equation) (Linux -O3 build, make all)"
 }

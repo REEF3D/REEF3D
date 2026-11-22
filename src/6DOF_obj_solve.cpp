@@ -118,6 +118,22 @@ void sixdof_obj_nhflow::solve_eqmotion_nhflow(lexer *p, fdm_nhf *d, ghostcell *p
     if(p->X16==1)
     porous_damping_nhflow(p,iter);
     
+    // the semi-implicit NHFLOW (A 510 11/12/13, nhflow_momentum_SI::fb_step): one step per time step at its start, the
+    // semi-implicit Euler step of the CFD one-step scheme (N 40 5): the momenta with the loads of t^n, the pose with
+    // the new momenta, which the fluid sees over the step
+    if(p->A534==1)
+    {
+    motion_stage_begin(p,1.0);
+    
+    get_trans(p,pgc);    
+    get_rot(p);
+    
+    rb.step_symplectic(p->dt);
+    
+    motion_stage_end(p);
+    return;
+    }
+    
     if(p->A510==2)
     rk2(p,pgc,iter);
     
@@ -138,6 +154,13 @@ void sixdof_obj_2D::solve_eqmotion_sflow(lexer *p, ghostcell *pgc, int iter, boo
 
 void sixdof_obj_nhflow::solve_eqmotion_oneway_nhflow(lexer *p, ghostcell *pgc, int iter, bool finalize)
 {
+    // the semi-implicit NHFLOW (A 510 11/12/13): one step to t^{n+1} per time step
+    if(p->A534==1)
+    {
+    solve_eqmotion_oneway_onestep(p,pgc,finalize);
+    return;
+    }
+    
     if(p->A510==2)
     rk2(p,pgc,iter);
     

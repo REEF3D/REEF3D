@@ -49,7 +49,7 @@ driver::driver(int& argc, char **argv)
 	if(p->mpirank==0)
     {
     cout<<endl<<"REEF3D (c) 2008-2026 Hans Bihs"<<endl;
-    sprintf(version,"v_261121");
+    sprintf(version,"v_261122");
     cout<<endl<<":: Open-Source Hydrodynamics" <<endl;
     cout<<endl<<version<<endl;
     cout<<endl<<"github branch: "<<BRANCH<<endl;
@@ -161,6 +161,7 @@ driver::driver(int& argc, char **argv)
         pgc->flagfield(p);
         makegrid_sigma(p,pgc);
         makegrid2D(p,pgc);
+        pBC->patchBC_ini(p,pgc);
 
         nhflow_driver();
     }

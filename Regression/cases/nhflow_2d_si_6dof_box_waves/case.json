@@ -1,0 +1,20 @@
+{
+ "description": "nhflow_2d_6dof_box in the semi-implicit step (A 510 11, A 536 0.01, B 95 0.01): floating box in regular waves, surge, heave and pitch free (X 10 1), the body moved once per step (NHFLOW_SI_6DOF v43).",
+ "solver": "nhflow",
+ "np": 1,
+ "steps": 150,
+ "tags": [
+  "2d",
+  "nhflow",
+  "semi_implicit",
+  "nonhydrostatic",
+  "waves",
+  "6dof",
+  "floating"
+ ],
+ "covers": [
+  "nhflow_momentum_SI::fb_step, df_faces with the discharge of the body motion (fb_qface)",
+  "6DOF rotations in the semi-implicit body step"
+ ],
+ "architect": "Hans Bihs"
+}

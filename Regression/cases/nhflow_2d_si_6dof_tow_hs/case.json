@@ -1,0 +1,18 @@
+{
+ "description": "NHFLOW semi-implicit hydrostatic step (A 510 11, A 520 0, A 536 0.01): a box of draft 0.1 m towed at 0.5 m/s (X 10 2, X 210), 400 x 20 cells (NHFLOW_SI_6DOF v43).",
+ "solver": "nhflow",
+ "np": 1,
+ "steps": 120,
+ "tags": [
+  "2d",
+  "nhflow",
+  "semi_implicit",
+  "6dof"
+ ],
+ "covers": [
+  "sixdof_obj_nhflow::solve_eqmotion_oneway_nhflow A 534 1 (solve_eqmotion_oneway_onestep)",
+  "nhflow_momentum_SI::fb_qface (H_f u_b.n of the moving body faces)",
+  "alpha[0] of the 6DOF forcing for A 510 11"
+ ],
+ "architect": "Hans Bihs"
+}
