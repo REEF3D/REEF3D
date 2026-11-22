@@ -443,6 +443,7 @@ private:
     // of the faces, d Q_k / d eta (the cells left and right) and d Q_k / d phi (phi_k and phi_{k+1} left and right)
     void nh_dfaces(lexer*, fdm_nhf*, ghostcell*);
     void nh_assemble(lexer*, const std::function<void(int,int,int,int,int,double)>&);
+    void nh_assemble_col(lexer*, const std::function<void(int,int,const double*)>&);
     // the layers of the columns only: index dqi
     size_t dqi(lexer *p, int a, int c, int m) const { return ((size_t)(a-p->imin)*p->jmax + (c-p->jmin))*p->knoz + m; }
     std::vector<double> dQxL, dQxR, dQyL, dQyR;                              // d Q / d eta (per layer)

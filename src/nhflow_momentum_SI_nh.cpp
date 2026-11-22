@@ -786,6 +786,25 @@ void nhflow_momentum_SI::nh_dfaces(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
 void nhflow_momentum_SI::nh_assemble(lexer *p, const std::function<void(int,int,int,int,int,double)> &sink)
 {
+    // entry by entry: the nonzero entries of the blocks of every column (nh_assemble_col)
+    const int B = p->knoz+1;
+    const int nd = (p->j_dir==1) ? 5 : 3;
+
+    nh_assemble_col(p,[&](int ii, int jj, const double *A)
+    {
+        for(int dd=0;dd<nd;++dd)
+        for(int tr=0;tr<B;++tr)
+        for(int t=0;t<B;++t)
+        {
+        const double v = A[((size_t)dd*B + tr)*B + t];
+        if(v!=0.0)
+        sink(ii,jj,dd,tr,t,v);
+        }
+    });
+}
+
+void nhflow_momentum_SI::nh_assemble_col(lexer *p, const std::function<void(int,int,const double*)> &sink)
+{
     // the rows of the coupled system of every column (as nh_residual, linear in x = (eta, phi_0 .. phi_{K-1})), as
     // blocks of the five columns: 0 the column, 1 +x, 2 -x, 3 +y, 4 -y; sink(i, j, block, row, unknown, value)
     const double dt = p->dt;
@@ -922,19 +941,7 @@ void nhflow_momentum_SI::nh_assemble(lexer *p, const std::function<void(int,int,
             }
         }
 
-        for(int dd=0;dd<5;++dd)
-        {
-        if(!yd && dd>2)
-        continue;
-
-            for(int tr=0;tr<B;++tr)
-            for(int t=0;t<B;++t)
-            {
-            const double v = at(dd,tr,t);
-            if(v!=0.0)
-            sink(i,j,dd,tr,t,v);
-            }
-        }
+    sink(i,j,A.data());
     }
 }
 
@@ -1330,10 +1337,17 @@ void nhflow_momentum_SI::nh_solve_mg(lexer *p, fdm_nhf *d, ghostcell *pgc, const
     const bool probe = getenv("NHCHECK")!=nullptr;
     std::vector<double> e(probe ? (size_t)N*B : 0), y(probe ? (size_t)N*B : 0);
 
+    // rows in metres (below): the constraint rows of an active column times rs, here with the assembly of the column
+    const double rs = 0.5*p->dt*p->dt;
+
     if(!probe)
     {
     nh_dfaces(p,d,pgc);
-    nh_assemble(p,[&](int ii, int jj, int dd, int tr, int t, double v){ M.set(ii,jj,dd,tr,t,v); });
+    nh_assemble_col(p,[&](int ii, int jj, const double *A)
+    {
+        const int qq = (ii-p->imin)*p->jmax + (jj-p->jmin);
+        M.set_column(ii,jj,nc==5 ? 5 : 3,A,1,nAct[qq] ? rs : 1.0);
+    });
     }
 
     if(probe)
@@ -1399,8 +1413,7 @@ void nhflow_momentum_SI::nh_solve_mg(lexer *p, fdm_nhf *d, ghostcell *pgc, const
     // rows in metres: the mass row is the error of eta; a constraint row k (D_k 2 h_k/dt) times dt^2/2 is D_k h_k dt, the
     // change of the layer thickness in the step that the error of the divergence makes. Block Gauss-Seidel and the
     // coarse levels do not change with the same scaling of every column; FGMRES and the stopping test measure metres
-    const double rs = 0.5*p->dt*p->dt;
-
+    if(probe)
     for(int n=0; n<N; ++n)
     {
     i = cix[n]; j = ciy[n];

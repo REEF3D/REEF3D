@@ -96,6 +96,125 @@ template<class T, class U> inline void block_mul(int B, const std::vector<nhmg_p
     }
 }
 
+
+// the blocks of the coupled system with the mask of nh_mask (layout "arrow"): the diagonal block in full (row-major),
+// a neighbour block row 0 in full (B entries) and the rows r >= 1 at c = 0, r, r+1 (3 entries, the last row 2);
+// fixed-size kernels without the pattern lists
+template<int NB, class T, class U> inline void arrow_nb(const T *a, const U *x, U *y, U sign)
+{
+    U t = 0;
+    for(int c=0; c<NB; ++c)
+    t += (U)a[c]*x[c];
+    y[0] += sign*t;
+    const T *e = a + NB;
+    for(int r=1; r<NB-1; ++r, e+=3)
+    y[r] += sign*((U)e[0]*x[0] + (U)e[1]*x[r] + (U)e[2]*x[r+1]);
+    if(NB>1)
+    y[NB-1] += sign*((U)e[0]*x[0] + (U)e[1]*x[NB-1]);
+}
+template<int NB, class T, class U> inline void dense_b(const T *a, const U *x, U *y, U sign)
+{
+    for(int r=0; r<NB; ++r)
+    {
+        U t = 0;
+        for(int c=0; c<NB; ++c)
+        t += (U)a[r*NB+c]*x[c];
+        y[r] += sign*t;
+    }
+}
+template<class T, class U> inline void arrow_nb_rt(int B, const T *a, const U *x, U *y, U sign)
+{
+    U t = 0;
+    for(int c=0; c<B; ++c)
+    t += (U)a[c]*x[c];
+    y[0] += sign*t;
+    const T *e = a + B;
+    for(int r=1; r<B-1; ++r, e+=3)
+    y[r] += sign*((U)e[0]*x[0] + (U)e[1]*x[r] + (U)e[2]*x[r+1]);
+    if(B>1)
+    y[B-1] += sign*((U)e[0]*x[0] + (U)e[1]*x[B-1]);
+}
+template<class T, class U> inline void dense_rt(int B, const T *a, const U *x, U *y, U sign)
+{
+    for(int r=0; r<B; ++r)
+    {
+        U t = 0;
+        for(int c=0; c<B; ++c)
+        t += (U)a[r*B+c]*x[c];
+        y[r] += sign*t;
+    }
+}
+// block d of a column: arrow layout by the fixed kernels, otherwise by the pattern
+template<class T, class U> inline void bmul(int B, bool arrow, int d, const std::vector<nhmg_pent> *pat, const T *a, const U *x, U *y, U sign)
+{
+    if(!arrow)
+    { block_mul<T,U>(B,pat,a,x,y,sign); return; }
+
+    if(d==0)
+    switch(B)
+    {
+    case 2: dense_b<2,T,U>(a,x,y,sign); return;
+    case 3: dense_b<3,T,U>(a,x,y,sign); return;
+    case 4: dense_b<4,T,U>(a,x,y,sign); return;
+    case 5: dense_b<5,T,U>(a,x,y,sign); return;
+    case 6: dense_b<6,T,U>(a,x,y,sign); return;
+    case 7: dense_b<7,T,U>(a,x,y,sign); return;
+    case 8: dense_b<8,T,U>(a,x,y,sign); return;
+    case 9: dense_b<9,T,U>(a,x,y,sign); return;
+    case 11: dense_b<11,T,U>(a,x,y,sign); return;
+    default: dense_rt<T,U>(B,a,x,y,sign); return;
+    }
+
+    switch(B)
+    {
+    case 2: arrow_nb<2,T,U>(a,x,y,sign); return;
+    case 3: arrow_nb<3,T,U>(a,x,y,sign); return;
+    case 4: arrow_nb<4,T,U>(a,x,y,sign); return;
+    case 5: arrow_nb<5,T,U>(a,x,y,sign); return;
+    case 6: arrow_nb<6,T,U>(a,x,y,sign); return;
+    case 7: arrow_nb<7,T,U>(a,x,y,sign); return;
+    case 8: arrow_nb<8,T,U>(a,x,y,sign); return;
+    case 9: arrow_nb<9,T,U>(a,x,y,sign); return;
+    case 11: arrow_nb<11,T,U>(a,x,y,sign); return;
+    default: arrow_nb_rt<T,U>(B,a,x,y,sign); return;
+    }
+}
+
+// bmul with the block size NB fixed at compile time (NB = 0: B at run time), for the loops of dispatchB
+template<int NB, class T, class U> inline void bmulB(int B, bool arrow, int d, const std::vector<nhmg_pent> *pat, const T *a, const U *x, U *y, U sign)
+{
+    if constexpr(NB==0)
+    bmul<T,U>(B,arrow,d,pat,a,x,y,sign);
+
+    else
+    {
+        if(!arrow)
+        block_mul<T,U>(NB,pat,a,x,y,sign);
+        else if(d==0)
+        dense_b<NB,T,U>(a,x,y,sign);
+        else
+        arrow_nb<NB,T,U>(a,x,y,sign);
+    }
+}
+
+// f.template operator()<NB>() with NB = B for the common column sizes (K = 1 .. 10 layers), otherwise NB = 0
+template<class F> inline void dispatchB(int B, F &&f)
+{
+    switch(B)
+    {
+    case 2: f.template operator()<2>(); return;
+    case 3: f.template operator()<3>(); return;
+    case 4: f.template operator()<4>(); return;
+    case 5: f.template operator()<5>(); return;
+    case 6: f.template operator()<6>(); return;
+    case 7: f.template operator()<7>(); return;
+    case 8: f.template operator()<8>(); return;
+    case 9: f.template operator()<9>(); return;
+    case 11: f.template operator()<11>(); return;
+    default: f.template operator()<0>(); return;
+    }
+}
+
 // the inverse of a B x B block (LU with partial pivoting; a zero pivot: 1, as the LU of the column solves before);
 // a: B*B + B scratch, pv: B
 void invert(int B, const double *a0, double *inv, double *a, int *pv)
@@ -325,6 +444,8 @@ public:
     {
         // zero: x = 0 on entry, the first half-sweep has no neighbour products (the same result)
         level &v = L[lev];
+        const bool ar = o->arrow;
+        T *tp = tmp.data();
 
         for(int s=0; s<sweeps; ++s)
         for(int colour=0; colour<2; ++colour)
@@ -334,36 +455,32 @@ public:
             if(!first)
             exchange(v,v.x);
 
-            for(int ix=0; ix<v.nx; ++ix)
-            for(int iy=0; iy<v.ny; ++iy)
+            // the columns of this colour only: (ix + iy) & 1 == colour
+            dispatchB(B,[&]<int NB>()
             {
-                if(((ix+iy)&1)!=colour)
-                continue;
-
+            for(int ix=0; ix<v.nx; ++ix)
+            for(int iy=((ix^colour)&1); iy<v.ny; iy+=2)
+            {
                 const size_t q = (size_t)(ix*v.ny + iy);
                 const T *bb = &v.b[(size_t)hix(v.ny,ix,iy)*B];
 
                 for(int r=0; r<B; ++r)
-                tmp[r] = bb[r];
+                tp[r] = bb[r];
 
                 if(!first)
                 for(int d=1; d<5; ++d)
                 {
                     const T *a = &v.A[q*CS + offs[d]];
                     const T *xx = &v.x[(size_t)hix(v.ny,ix+dix[d],iy+diy[d])*B];
-                    block_mul<T,T>(B,&v.pat[(size_t)d*B],a,xx,tmp.data(),T(-1));
+                    bmulB<NB,T,T>(B,ar,d,&v.pat[(size_t)d*B],a,xx,tp,T(-1));
                 }
 
-                const T *di = &v.Di[q*BB];
                 T *xx = &v.x[(size_t)hix(v.ny,ix,iy)*B];
                 for(int r=0; r<B; ++r)
-                {
-                    T t = 0;
-                    for(int c=0; c<B; ++c)
-                    t += di[r*B+c]*tmp[c];
-                    xx[r] = t;
-                }
+                xx[r] = 0;
+                bmulB<NB,T,T>(B,true,0,nullptr,&v.Di[q*BB],tp,xx,T(1));
             }
+            });
         }
     }
 
@@ -372,8 +489,11 @@ public:
     void residual(int lev, int skip=-1)
     {
         level &v = L[lev];
+        const bool ar = o->arrow;
         exchange(v,v.x);
 
+        dispatchB(B,[&]<int NB>()
+        {
         for(int ix=0; ix<v.nx; ++ix)
         for(int iy=0; iy<v.ny; ++iy)
         {
@@ -382,7 +502,8 @@ public:
 
             if(skip>=0 && ((ix+iy)&1)==skip && (alone || (ix>0 && ix<v.nx-1 && iy>0 && iy<v.ny-1)))
             {
-            std::fill(rr,rr+B,T(0));
+            for(int r=0; r<B; ++r)
+            rr[r] = T(0);
             continue;
             }
 
@@ -395,9 +516,10 @@ public:
             {
                 const T *a = &v.A[q*CS + offs[d]];
                 const T *xx = &v.x[(size_t)hix(v.ny,ix+dix[d],iy+diy[d])*B];
-                block_mul<T,T>(B,&v.pat[(size_t)d*B],a,xx,rr,T(-1));
+                bmulB<NB,T,T>(B,ar,d,&v.pat[(size_t)d*B],a,xx,rr,T(-1));
             }
         }
+        });
     }
 
     void cycle(int lev)
@@ -447,8 +569,11 @@ public:
     void apply(int lev, std::vector<T> &x, std::vector<T> &y)
     {
         level &v = L[lev];
+        const bool ar = o->arrow;
         exchange(v,x);
 
+        dispatchB(B,[&]<int NB>()
+        {
         for(int ix=0; ix<v.nx; ++ix)
         for(int iy=0; iy<v.ny; ++iy)
         {
@@ -460,9 +585,10 @@ public:
             {
                 const T *a = &v.A[q*CS + offs[d]];
                 const T *xx = &x[(size_t)hix(v.ny,ix+dix[d],iy+diy[d])*B];
-                block_mul<T,T>(B,&v.pat[(size_t)d*B],a,xx,yy,T(1));
+                bmulB<NB,T,T>(B,ar,d,&v.pat[(size_t)d*B],a,xx,yy,T(1));
             }
         }
+        });
     }
 
     void dots(int lev, const std::vector<T> *const *u, const std::vector<T> *const *w, int n, double *res)
@@ -670,6 +796,29 @@ void nhflow_si_nhmg::layout(const std::vector<char> *mask)
 
         CS += n;
     }
+
+    // the entries of the blocks outside the stored pattern (set_column)
+    offp.assign(5,std::vector<int>());
+    for(int d=0; d<5; ++d)
+    for(int e=0; e<BB; ++e)
+    if(slot[(size_t)d*BB + e]<0)
+    offp[d].push_back(e);
+
+    // the arrow layout (bmul): the neighbour blocks hold exactly row 0 and c = 0, r, r+1 of the rows r >= 1, in this order
+    // (the mask of nhflow_momentum_SI::nh_mask). The products in the same order as with the pattern lists: the same
+    // results bit for bit, 2D standing wave 64^2 x 4: the multigrid solve 1.2 s -> 0.8 s. Environment NHMG_GENERIC: the
+    // pattern lists (check)
+    arrow = !dense && getenv("NHMG_GENERIC")==nullptr;
+    for(int d=1; d<5 && arrow; ++d)
+    {
+        std::vector<std::pair<int,int>> ex;
+        int n = 0;
+        for(int r=0; r<B; ++r)
+        for(int c=0; c<B; ++c)
+        if(r==0 || c==0 || c==r || c==r+1)
+        ex.push_back({r*B+c,n++});
+        arrow = (ex==sl[d]);
+    }
 }
 
 void nhflow_si_nhmg::make_dense()
@@ -695,6 +844,41 @@ void nhflow_si_nhmg::make_dense()
 
     cf.reset();
     cd.reset();
+}
+
+void nhflow_si_nhmg::set_column(int ix, int iy, int nd, const double *A, int r0, double s)
+{
+    // an entry outside the stored pattern that is not zero: every block in full (make_dense), then as set()
+    if(!dense)
+    for(int d=0; d<nd; ++d)
+    for(const int e : offp[d])
+    if(A[(size_t)d*BB + e]!=0.0)
+    {
+    make_dense();
+    d = nd;
+    break;
+    }
+
+    double *col = &A0[(size_t)(ix*ny0 + iy)*CS];
+    char *nz = nz0.data();
+
+    for(int d=0; d<nd; ++d)
+    {
+        const double *Ad = A + (size_t)d*BB;
+        double *cd = col + offs[d];
+        char *nzd = nz + (size_t)d*BB;
+
+        for(const auto &e : sl[d])
+        {
+            const double v = Ad[e.first];
+
+            if(v!=0.0)
+            {
+            cd[e.second] = (e.first>=r0*B) ? v*s : v;
+            nzd[e.first] = 1;
+            }
+        }
+    }
 }
 
 void nhflow_si_nhmg::scale_rows(int ix, int iy, int d, int r0, double s)
@@ -760,6 +944,8 @@ void nhflow_si_nhmg::matvec(const double *x, double *y)
 
     halo<double>(comm,nb,alone,B,nx0,ny0,xh0,sbuf,rbuf);
 
+    dispatchB(B,[&]<int NB>()
+    {
     for(int ix=0; ix<nx0; ++ix)
     for(int iy=0; iy<ny0; ++iy)
     {
@@ -770,9 +956,10 @@ void nhflow_si_nhmg::matvec(const double *x, double *y)
         {
             const double *a = &A0[(size_t)(ix*ny0 + iy)*CS + offs[d]];
             const double *xx = &xh0[(size_t)hix(ny0,ix+dix[d],iy+diy[d])*B];
-            block_mul<double,double>(B,&pat0[(size_t)d*B],a,xx,yy,1.0);
+            bmulB<NB,double,double>(B,arrow,d,&pat0[(size_t)d*B],a,xx,yy,1.0);
         }
     }
+    });
 }
 
 void nhflow_si_nhmg::vcycle(const double *r, double *z)
