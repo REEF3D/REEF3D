@@ -699,6 +699,17 @@ void driver::logic_cfd()
     if(p->X49>0 && p->X10>0 && p->X197<=0.0 && p->X198==0)
     p->X197 = 1.0;
 
+    // X 10 2 (prescribed body), 3 (ship pressure) and 4 (wavemaker) are options of NHFLOW, SFLOW and FNPF; the CFD
+    // module has the body X 10 1, a prescribed motion with X 11 2 (X 210, X 211 or the motion file X 240). Any other
+    // X 10 left p6dof unset and the run stopped with a segmentation fault in driver_ini_cfd
+    if(p->X10<0 || p->X10>1)
+    {
+        if(p->mpirank==0)
+        cout<<endl<<"!!! CFD: X 10 "<<p->X10<<" is not available; a body with a prescribed motion is X 10 1 with X 11 2 (X 210, X 211 or X 240) !!!"<<endl<<endl;
+
+    pgc->final(true);
+    }
+
     if(p->X10==0)
     p6dof = new sixdof_void(p,pgc);
     
