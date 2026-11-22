@@ -172,7 +172,8 @@ void sixdof_obj::cfd_added_mass(lexer *p)
     // up to an added mass of the fluid of M + 4 A (M + 2 A before)
     Eigen::Matrix<double,6,1> aext = am_prev_;
 
-    if(p->N40==5 && am_n_>=2 && am_dt_>0.0)
+    // (the NHFLOW semi-implicit step, A 510 11/12/13: the same one-step body step, nhflow_momentum_SI::fb_step)
+    if((p->N40==5 || (p->A10==5 && p->A534==1)) && am_n_>=2 && am_dt_>0.0)
     aext += MIN(p->dt/am_dt_,2.0)*(am_prev_ - am_prev2_);
 
     r += A*aext;

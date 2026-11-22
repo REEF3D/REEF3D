@@ -152,8 +152,11 @@ using namespace std;
 // Fixed solids with direct forcing (A 580 1, A 581-590; one grid): the explicit forcing of nhflow_forcing on the
 // cell predictor and on the cells at the end of the step (df_*); the layer face discharges are not forced.
 //
-// Not available (stops in check()): VRANS, 6DOF / floating bodies, side-wall
-// friction A 519 2, membranes, FEM coupling, patch boundary conditions, SEASTATE surfbeat (A 770 1);
+// 6DOF bodies (X 10 1, 2, 4; one Cartesian grid): the direct forcing of the bodies as that of the fixed solids, the
+// body moved once per step (fb_*, nhflow_momentum_SI_6dof.cpp).
+//
+// Not available (stops in check()): VRANS, the ship pressure X 10 3, X 13, X 15 6-11, porous bodies X 16, nets,
+// side-wall friction A 519 2, membranes, FEM coupling, patch boundary conditions, SEASTATE surfbeat (A 770 1);
 // the non-hydrostatic pressure and wave breaking on one Cartesian grid only.
 // ---------------------------------------------------------------------------
 
@@ -511,8 +514,33 @@ private:
     bool df_col(lexer*, int, int);
     bool dfcols = false;
     void df_apply(lexer*, fdm_nhf*, ghostcell*, double*, double*, double*, slice&, bool);
+    void df_cast(lexer*, fdm_nhf*, ghostcell*);
     std::vector<double> dfU, dfV, dfW, dfSU, dfSV, dfSW;
     slice4 dfWL, dfEta, dfC;
+
+    // 6DOF bodies (X 10 1 floating, 2 prescribed motion, 4 wavemaker; nhflow_momentum_SI_6dof.cpp) with the direct
+    // forcing of the cells (X 15 0-5) as the fixed solids: the body moves once per step at its start with the loads of
+    // t^n (sixdof_obj_nhflow::solve_eqmotion_nhflow: the semi-implicit Euler step, momenta first), the cells of the
+    // body (DF -2) are forced to its velocity in the predictor and at the end of the step, the layer faces with a body
+    // cell carry the discharge of the body motion H_f u_b.n, inside the eta and eta-phi solves (fb_blocked: si_assemble,
+    // face_update, nh_dfaces), the faces next to a body column over the whole water depth (a wavemaker) the discharge
+    // of the moving wall u_b.n WL of the water side (fb_walls_*)
+    bool fbon = false;
+    void fb_step(lexer*, fdm_nhf*, ghostcell*);
+    double fb_qface(lexer*, int);
+    bool fb_blocked(lexer*, int);
+    int fb_wcell(lexer*);
+    void fb_walls_set(lexer*, fdm_nhf*, ghostcell*);
+    void fb_walls_assemble(lexer*, ghostcell*);
+    void fb_walls_faces(lexer*);
+    // the body velocity of the cells of the bodies (layout of IJK, zero elsewhere) and the forcing fields of the body
+    // object (not used: the cells are forced by df_apply)
+    std::vector<double> fbU, fbV, fbW, fbFX, fbFY, fbFZ;
+    slice4 fbfe;
+    // the faces of the moving wall: flag (1) and layer discharges Q_b (private layout as Qx, Qy)
+    bool fbwalls = false;
+    std::vector<char> fbwx, fbwy;
+    std::vector<double> fbQx, fbQy;
 
     // layer face discharges: prognostic Q^{n+1}, Q^n, layer transport of the step (theta weighted),
     // column parts Q~ = A^-1 (I - dt L_v) Q^ and r = A^-1 1

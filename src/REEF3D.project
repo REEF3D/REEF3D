@@ -2404,6 +2404,7 @@
           <File Name="nhflow_momentum_RK3.cpp"/>
           <File Name="nhflow_momentum_SI.cpp"/>
           <File Name="nhflow_memory.cpp"/>
+          <File Name="nhflow_momentum_SI_6dof.cpp"/>
           <File Name="nhflow_momentum_SI_density.cpp"/>
           <File Name="nhflow_momentum_SI_elm.cpp"/>
           <File Name="nhflow_momentum_SI_hdiff.cpp"/>

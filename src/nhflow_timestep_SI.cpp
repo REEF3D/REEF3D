@@ -105,6 +105,31 @@ double nhflow_timestep_SI::limit(lexer *p, fdm_nhf *d, ghostcell *pgc, double &d
 
     dxm = pgc->globalmin(dxm);
 
+    // 6DOF (X 10 1, 2, 4; nhflow_momentum_SI_6dof.cpp): the body moves at most N 47 of a cell per step, horizontally of
+    // the smallest cell size, vertically of the thinnest layer of the wet columns (the body is cast once per step)
+    if(p->X10>0)
+    {
+        double dzm = 1.0e20;
+
+        LOOP
+        WETDRY
+        if(d->WL(i,j)>p->A544)
+        dzm = MIN(dzm, p->DZN[KP]*d->WL(i,j));
+
+        dzm = pgc->globalmin(dzm);
+
+        const double uh = MAX(p->ufbmax,p->vfbmax);
+        double dtb = 1.0e20;
+
+        if(uh>1.0e-10)
+        dtb = MIN(dtb, cfl*dxm/uh);
+
+        if(p->wfbmax>1.0e-10)
+        dtb = MIN(dtb, cfl*dzm/p->wfbmax);
+
+        cmin = MIN(cmin, dtb/(2.0*cfl));
+    }
+
 	p->umax=pgc->globalmax(p->umax);
 	p->vmax=pgc->globalmax(p->vmax);
 	p->wmax=pgc->globalmax(p->wmax);
@@ -172,9 +197,10 @@ void nhflow_timestep_SI::ini_end(lexer *p, fdm_nhf *d, ghostcell *pgc)
     // 20 to 30 steps at 20 % per step to reach A 536. All initial fields are set here (initial and potential flow,
     // inflow, wave generation zones): the advective limit sees their velocities and, as a margin, twice the inflow
     // and outflow velocities and the surface orbital velocity of the generated waves (the relaxation zones impose
-    // their velocities during the first step). The turbulence model (A 560) and a fixed time step (N 48 0) keep the
-    // explicit initial time step.
-    if(p->A560!=0 || p->N48==0)
+    // their velocities during the first step). The turbulence model (A 560), a fixed time step (N 48 0) and 6DOF
+    // (X 10) keep the explicit initial time step.
+    // 6DOF (X 10): the explicit initial time step as well, the body velocity is known after the first body step
+    if(p->A560!=0 || p->N48==0 || p->X10>0)
     return;
 
     double dxm, hmax;

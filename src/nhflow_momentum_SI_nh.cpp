@@ -598,14 +598,16 @@ void nhflow_momentum_SI::nh_residual(lexer *p, fdm_nhf *d, ghostcell *pgc, const
 
         D -= uz;
 
-        // [w]_k, Keller box, with w^{n+1}
-        const double wk = WHS[PIJK]*iH0 - dt*(ph_up - PHI[PIJK])/h;
+        // [w]_k, Keller box, with w^{n+1}; 6DOF: in a cell of a body the body velocity (fb_wcell)
+        const int fbc = fbon ? fb_wcell(p) : 0;
+        const double wk = fbc>0 ? fbW[IJK] : WHS[PIJK]*iH0 - dt*(ph_up - PHI[PIJK])/h;
         const double wup = 2.0*wk - wlo;
         D += wup - wlo;
         wlo = wup;
 
-        // the scaling of the row (2 h/(theta dt) with theta 1, as Popinet 2020)
-        y[(size_t)B*n+1+k] = D*2.0*h/dt;
+        // the scaling of the row (2 h/(theta dt) with theta 1, as Popinet 2020); 6DOF: a cell of a body above another
+        // one, phi_k = phi_{k-1}
+        y[(size_t)B*n+1+k] = fbc==2 ? PHI[PIJK] - PHI[PIJKm1] : D*2.0*h/dt;
         }
         }
     ++n;
@@ -693,6 +695,16 @@ void nhflow_momentum_SI::nh_dfaces(lexer *p, fdm_nhf *d, ghostcell *pgc)
             pL1[ci()] = (k<K-1 && act(iL,jL)) ? f*(sg*hL + su) : 0.0;
             pR1[ci()] = (k<K-1 && act(iR,jR)) ? -f*(sg*hR - su) : 0.0;
             }
+        }
+
+        // 6DOF: a layer blocked by a body carries the discharge of the body motion (face_update), independent of the
+        // unknowns
+        if(fbon)
+        for(k=0;k<K;++k)
+        if(fb_blocked(p,iR!=iL ? 1 : 2))
+        {
+        dL[ci()] = dR[ci()] = 0.0;
+        pL0[ci()] = pR0[ci()] = pL1[ci()] = pR1[ci()] = 0.0;
         }
 
         i=il; j=jl;
@@ -873,15 +885,34 @@ void nhflow_momentum_SI::nh_assemble(lexer *p, const std::function<void(int,int,
                 k=kk;
                 }
 
+            // 6DOF: w of a cell of a body is the body velocity, independent of phi (fb_wcell)
+            k=kk;
+            const int fbc = fbon ? fb_wcell(p) : 0;
+
             std::fill(wc.begin(),wc.end(),0.0);
+
+            if(fbc==0)
+            {
             wc[kk] += dt/h;
             if(kk<K-1)
             wc[kk+1] -= dt/h;
+            }
 
                 for(int m=0;m<K;++m)
                 {
                 at(0,1+kk,1+m) += sc*(2.0*wc[m] - 2.0*wl[m]);
                 wl[m] = 2.0*wc[m] - wl[m];
+                }
+
+                // a cell of a body above another one: phi_k - phi_{k-1}
+                if(fbc==2)
+                {
+                for(int dd=0;dd<5;++dd)
+                for(int t=0;t<B;++t)
+                at(dd,1+kk,t) = 0.0;
+
+                at(0,1+kk,1+kk) = 1.0;
+                at(0,1+kk,kk) = -1.0;
                 }
             }
         }
