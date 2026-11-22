@@ -354,6 +354,18 @@ void slide2D::sources(lexer *p, slice &H, slice &QX, slice &QY)
 {
     auto etaw = [&](int ii, int jj){ return (*weta)(ii,jj) + H(ii,jj) - hstep(ii,jj); };
 
+    // W 163: the non-hydrostatic pressure of the water at the bed (pnb, zero with the hydrostatic water), its gradient
+    // between cells under at least 5 W 156 of water (5 cm by default) with a slide thicker than max(10 W 158, 1 mm). The
+    // pressure of the impact where a slide enters the water, under a thin water layer, threw the slide front forward
+    // (benchmark 5: 4.6 m/s against 1.5 m/s) with the cells only required to be submerged, and thin parts of the slide
+    // blew up with water as deep as the slide is thick as the criterion
+    const double hnh = MAX(10.0*hmin,1.0e-3);
+    
+    auto deep = [&](int ii, int jj){ return p->wet[(ii-p->imin)*p->jmax + (jj-p->jmin)]==1
+                                      && p->flagslice4[(ii-p->imin)*p->jmax + (jj-p->jmin)]>0
+                                      && (*wWL)(ii,jj)>=5.0*dsub && H(ii,jj)>hnh; };
+    const bool nhp = p->W163>0;
+
     auto wet = [p,this](int ii, int jj){ return p->wet[(ii-p->imin)*p->jmax + (jj-p->jmin)]==1 && (*wWL)(ii,jj)>wdry
                                           && p->flagslice4[(ii-p->imin)*p->jmax + (jj-p->jmin)]>0; };
 
@@ -399,6 +411,32 @@ void slide2D::sources(lexer *p, slice &H, slice &QX, slice &QY)
         gy = (etaw(i,j+1) - ec)/p->DYP[JP];
         else if(ws)
         gy = (ec - etaw(i,j-1))/p->DYP[JM1];
+        }
+
+        // W 163: the non-hydrostatic part, one-sided next to cells that are not fully submerged
+        if(nhp && deep(i,j))
+        {
+        const double pc = pnb(i,j);
+        const bool de = deep(i+1,j), dw = deep(i-1,j);
+
+        if(de && dw)
+        gx += (pnb(i+1,j) - pnb(i-1,j))/(g*(p->DXP[IP] + p->DXP[IM1]));
+        else if(de)
+        gx += (pnb(i+1,j) - pc)/(g*p->DXP[IP]);
+        else if(dw)
+        gx += (pc - pnb(i-1,j))/(g*p->DXP[IM1]);
+
+            if(p->j_dir==1)
+            {
+            const bool dn = deep(i,j+1), ds = deep(i,j-1);
+
+            if(dn && ds)
+            gy += (pnb(i,j+1) - pnb(i,j-1))/(g*(p->DYP[JP] + p->DYP[JM1]));
+            else if(dn)
+            gy += (pnb(i,j+1) - pc)/(g*p->DYP[JP]);
+            else if(ds)
+            gy += (pc - pnb(i,j-1))/(g*p->DYP[JM1]);
+            }
         }
 
         Rx(i,j) -= r*sb*g*hh*gx;

@@ -50,6 +50,9 @@ class solver2D;
 // - interface drag tau_i = rho_w C_d |u_w - u_s| (u_w - u_s) (W 155), equal and opposite in the water
 // - the water sees the bed z_b + h: b->bed, then sflow_eta::depth_update keeps the water column WL and moves the
 //   surface with the bed (the water volume is unchanged by the moving bed)
+// - W 163 1: the water pressure on the slide surface includes the non-hydrostatic pressure at the bed of the
+//   water, - r sub h grad(g eta_w + p_nh,b/rho_w) (NHFLOW: d->P of the bed node; SFLOW A 220 2/3: the bed pressure of the
+//   quadratic pressure); 0 (default) the hydrostatic water pressure only
 // - W 162 a > 0: the water sees z_b + h_f instead, h_f - div(D grad h_f) = h, D = a d^2 (d the still water depth
 //   over z_b, F 60): a conservative low-pass filter of the slide under the water, response 1/(1 + a (k d)^2) against
 //   1/cosh(k d) of the potential-flow transfer (Kajiura 1963; a = 0.5 matches for small k d); no filter where dry
@@ -103,6 +106,7 @@ public:
     slice4 h, qx, qy;       // the slide depth and discharges
     slice4 lambda;          // basal pore pressure ratio
     slice4 zb;              // the bed under the slide
+    slice4 pnb;             // W 163: the non-hydrostatic pressure of the water at the bed / rho_w (set by the water model)
     slice4 wb;              // the velocity of the bed seen by the water, (bed^{n+1} - bed^n)/dt (non-hydrostatic water)
 
 private:

@@ -1596,6 +1596,7 @@ void control::ini_default()
     W160_u=0.0;      // double initial slide velocity u [m/s]
     W160_v=0.0;      // double initial slide velocity v [m/s]
     W162=0.0;        // double filtered transfer of the slide to the water bed: D = W 162 d^2 (0 off; 0.5 Kajiura-like)
+    W163=0;          // int slide layer: the non-hydrostatic water pressure at the bed on the slide (1 on, 0 off)
     W161=0;          // int slide top level from the file slide-level.dat (1; format of sflow-level.dat, F 73)
     W159=100;        // int maximum slide sub-steps per water step (the water step is limited to W 159 slide steps)
     W200=0;          // int atmospheric forcing (SFLOW, NHFLOW): 0 off, 1 uniform (W 201, W 202), 2 met file met-forcing.r3m, 3 vortex, 4 blend

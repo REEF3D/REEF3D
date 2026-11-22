@@ -699,7 +699,7 @@ public:
     double *W148_x1,*W148_z1,*W148_x2,*W148_z2,*W148_x3,*W148_z3;
     int W149;
     // two-layer landslide: depth-averaged slide layer under the water (SFLOW, slide2D)
-    int W150,W151,W152,W153,W159,W161;
+    int W150,W151,W152,W153,W159,W161,W163;
     double *W151_xs,*W151_xe,*W151_ys,*W151_ye,*W151_z;
     double *W152_xs,*W152_xe,*W152_ys,*W152_ye,*W152_d;
     double *W153_xc,*W153_yc,*W153_Lx,*W153_Ly,*W153_T;

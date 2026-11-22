@@ -43,7 +43,7 @@ slide2D::slide2D(lexer *p, fdm_nhf *d, ghostcell *pgc) : slide2D(p,(fdm2D*)nullp
 slide2D::slide2D(lexer *p, fdm2D *b, ghostcell *pgc) : h(p), qx(p), qy(p), lambda(p), zb(p),
                                                     h0(p), qx0(p), qy0(p), h1(p), qx1(p), qy1(p), Rh(p), Rx(p), Ry(p),
                                                     FhX(p), FxLX(p), FxRX(p), FyX(p), FhY(p), FxY(p), FyLY(p), FyRY(p),
-                                                    hE(p), hW(p), zE(p), zW(p), hN(p), hS(p), zN(p), zS(p), lnew(p), gr(p), hstep(p), hf(p), dfil(p), wb(p), uwb(p), vwb(p), sgc(p), suc(p), svc(p)
+                                                    hE(p), hW(p), zE(p), zW(p), hN(p), hS(p), zN(p), zS(p), lnew(p), gr(p), hstep(p), hf(p), dfil(p), wb(p), uwb(p), vwb(p), sgc(p), suc(p), svc(p), pnb(p)
 {
     using namespace rheo;
 
@@ -165,6 +165,18 @@ void slide2D::start(lexer *p, fdm2D *b, ghostcell *pgc)
 void slide2D::start(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
     bind(p,d);
+    
+    // W 163: the non-hydrostatic pressure of the bed node (explicit and semi-implicit NHFLOW: d->P = rho_w phi_0) of the
+    // water step before
+    if(p->W163>0 && p->A520>0)
+    {
+        k = 0;
+        SLICELOOP4
+        pnb(i,j) = p->wet[IJ]==1 ? d->P[FIJK]/p->W1 : 0.0;
+        
+        pgc->gcsl_start4(p,pnb,50);
+    }
+    
     step(p,pgc);
     
     SLICELOOP4

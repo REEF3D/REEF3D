@@ -98,6 +98,15 @@ void sflow_pjm_quad::start(lexer *p, fdm2D *b, ghostcell *pgc, solver2D *psolv, 
 	ucorr(p,b,UH,WL,alpha);
 	vcorr(p,b,VH,WL,alpha);
     wcorr(p,b,WH,WL,alpha);
+    
+    // the slide layer (W 150, W 163): the bed pressure of the quadratic pressure, as in ucorr, for the force on the slide
+    if(b->slide!=nullptr && p->W163>0)
+    {
+        SLICELOOP4
+        b->slide->pnb(i,j) = active(p,b)==1 ? (cb*b->press(i,j) + adisp*0.25*p->W1*WL(i,j)*phi(i,j))/p->W1 : 0.0;
+        
+        pgc->gcsl_start4(p,b->slide->pnb,50);
+    }
 
     p->poissoniter=p->solveriter;
 

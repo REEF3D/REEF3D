@@ -87,11 +87,11 @@ fine $B4/nh $RUN/_c/bm4_nh_fine; run $RUN/_c/bm4_nh_fine bm4_nh_fine
 
 # 29: under NHFLOW
 N4=$C/29_slide_nhflow/cases
-for c in dambreak_h dambreak_nh bm4_h bm4_nh rest_slope dambreak_h_si dambreak_nh_si bm4_nh_si rest_slope_si; do run $N4/$c nhf_$c; done
+for c in dambreak_h dambreak_nh bm4_h bm4_nh rest_slope dambreak_h_si dambreak_nh_si bm4_nh_si rest_slope_si bm4_nh_w163; do run $N4/$c nhf_$c; done
 
 # 32: NTHMP benchmark 5
 B5=$C/32_slide_nthmp_bm5/cases
-for c in case1_sflow_h case1_sflow_nh case1_nhflow_nh case2_sflow_h case2_sflow_nh case2_nhflow_nh case1_nhflow_nh_si case2_nhflow_nh_si; do run $B5/$c bm5_$c; done
+for c in case1_sflow_h case1_sflow_nh case1_nhflow_nh case2_sflow_h case2_sflow_nh case2_nhflow_nh case1_nhflow_nh_si case2_nhflow_nh_si case1_nhflow_nh_w163 case2_nhflow_nh_w163; do run $B5/$c bm5_$c; done
 
 E="python3 $HERE/slide_eval.py"
 for g in "" _fine; do
@@ -122,7 +122,7 @@ $E rest_nhflow $RUN/nhf_rest_slope  $OUT/29 > $OUT/29/rest_slope.json
 $E dambreak    $RUN/nhf_dambreak_h_si  $OUT/29 > $OUT/29/dambreak_h_si.json;  mv $OUT/29/18_dambreak.png $OUT/29/29_dambreak_h_si.png
 $E dambreak    $RUN/nhf_dambreak_nh_si $OUT/29 > $OUT/29/dambreak_nh_si.json; mv $OUT/29/18_dambreak.png $OUT/29/29_dambreak_nh_si.png
 $E rest_nhflow $RUN/nhf_rest_slope_si  $OUT/29 > $OUT/29/rest_slope_si.json
-python3 $HERE/bm4_eval.py $M $OUT/29 "NHFLOW hydrostatic"=$RUN/nhf_bm4_h "NHFLOW NH, 10 layers, W 162 0.02"=$RUN/nhf_bm4_nh "NHFLOW NH, semi-implicit"=$RUN/nhf_bm4_nh_si \
+python3 $HERE/bm4_eval.py $M $OUT/29 "NHFLOW hydrostatic"=$RUN/nhf_bm4_h "NHFLOW NH, 10 layers, W 162 0.02"=$RUN/nhf_bm4_nh "NHFLOW NH, semi-implicit"=$RUN/nhf_bm4_nh_si "NHFLOW NH, W 163 1"=$RUN/nhf_bm4_nh_w163 \
         "SFLOW NH, W 162 0.02 (case 28)"=$RUN/bm4_nh > $OUT/29/29_bm4.json
 mv $OUT/29/28_bm4_gauges.png $OUT/29/29_bm4_gauges.png
 mkdir -p "$OUT/32"
@@ -130,7 +130,7 @@ for n in 1 2; do
     h=0.148; f=bm5_case1_d1.5mm.txt; if [ $n = 2 ]; then h=0.15; f=bm5_case2_d10mm.txt; fi
     python3 $HERE/bm4_eval.py --bench 5 --h $h --align crest --name 32_bm5_case$n $C/32_slide_nthmp_bm5/$f $OUT/32 \
             "SFLOW hydrostatic"=$RUN/bm5_case${n}_sflow_h "SFLOW NH, W 162 0.1"=$RUN/bm5_case${n}_sflow_nh \
-            "NHFLOW NH, 10 layers"=$RUN/bm5_case${n}_nhflow_nh "NHFLOW NH, semi-implicit"=$RUN/bm5_case${n}_nhflow_nh_si \
+            "NHFLOW NH, 10 layers"=$RUN/bm5_case${n}_nhflow_nh "NHFLOW NH, semi-implicit"=$RUN/bm5_case${n}_nhflow_nh_si "NHFLOW NH, W 163 1"=$RUN/bm5_case${n}_nhflow_nh_w163 \
             > $OUT/32/32_bm5_case$n.json
 done
 echo "results in $OUT"

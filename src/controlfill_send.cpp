@@ -3154,6 +3154,8 @@ void control::ctrlsend()
     ii++;
     ictrl[ii] = W161;
     ii++;
+    ictrl[ii] = W163;
+    ii++;
     dctrl[dd] = W160_u;
     dd++;
     dctrl[dd] = W160_v;

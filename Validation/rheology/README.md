@@ -814,6 +814,7 @@ is the SFLOW water and sees the bed z_b + h_s; the slide sees the water pressure
 | W 158 | double | slide depth threshold [m], dry below (1e-5) |
 | W 159 | int | at most this many slide steps per water step; 1: the water step limited by the slide (100) |
 | W 160 | 2 × double | initial slide velocity u v [m/s] (0 0) |
+| W 163 | int | the non-hydrostatic water pressure at the bed on the slide, − r·sub·h_s∇(p_nh,b/ρ_w): 1 on, 0 off (0); see case 32 |
 | W 162 | double | filtered transfer of the slide to the water bed, D = a d² (0 off; 0.02 - 0.5 with A 220 2, see above) |
 
 The basal law is W 120 - W 128 (with W 150 they act on the slide, not on the water; W 90 likewise). The 1D cases set y
@@ -1077,6 +1078,30 @@ Gauge max / min (cm) up to the wave reflected at the end wall, and the RMS diffe
   W 155 on NHFLOW is new with this case (the bottom water layer, `nhflow_bcmom`).
 - **SFLOW NH:** W 162 0.02 lets the shoreline on the 45° slope oscillate (WG1 ±3 cm late in the run); 0.1 is stable.
 - Grid: dx 1.25 mm changes the gauges by at most 0.06 cm (case 1, both models).
+- **W 163 1, the non-hydrostatic water pressure on the slide** (`caseN_nhflow_nh_w163`; 29 `bm4_nh_w163`): the water
+  pressure on the slide surface with the non-hydrostatic pressure at the bed of the water (NHFLOW: the bed node of
+  d->P, explicit and semi-implicit; SFLOW A 220 2: the bed pressure of the quadratic pressure). Its gradient is taken
+  only between cells under at least 5 W 156 of water (5 cm) with more than 1 mm of slide: where the slide enters the
+  water the impact pressure under a thin layer threw the slide front forward (4.6 m/s against 1.5 m/s with the cells only
+  required to be submerged; with "water as deep as the slide is thick" thin parts of the slide blew up). Results (max /
+  min cm, RMS / range):
+
+| | WG1 | WG2 | WG3 | WG4 | runout |
+|---|---|---|---|---|---|
+| case 1 NHFLOW, W 163 0 | 1.74 / −0.89, 0.19 | 1.72 / −0.82, 0.22 | 1.56 / −0.84, 0.19 | 1.46 / −0.58, 0.13 | 1.04 m |
+| case 1 NHFLOW, W 163 1 | 1.93 / −0.98, 0.16 | 1.70 / −0.97, 0.19 | 1.54 / −0.93, 0.16 | 1.45 / −0.59, 0.12 | 0.81 m |
+| case 2 NHFLOW, W 163 0 | 2.27 / −1.03, 0.12 | 2.37 / −0.95, 0.12 | 2.25 / −0.86, 0.12 | 2.13 / −0.52, 0.15 | 1.20 m |
+| case 2 NHFLOW, W 163 1 | 2.70 / −1.11, 0.13 | 2.47 / −1.12, 0.13 | 2.28 / −1.11, 0.12 | 2.15 / −0.66, 0.15 | 0.84 m |
+| case 1 SFLOW NH, W 163 0 / 1 | 1.88 / −1.28 → 1.83 / −1.34 | 1.59 / −1.13 → 1.62 / −1.08 | 1.48 / −0.96 → 1.50 / −0.98 | 1.39 / −0.58 → 1.41 / −0.60 | 1.05 → 0.98 m |
+| case 2 SFLOW NH, W 163 0 / 1 | 2.58 / −1.49 → 2.65 / −1.57 | 2.13 / −1.45 → 2.19 / −1.55 | 2.06 / −1.19 → 2.12 / −1.18 | 1.99 / −0.53 → 2.02 / −0.58 | 1.21 → 1.13 m |
+
+  In NHFLOW the non-hydrostatic pressure makes the troughs 8-30 % deeper (closer to the measured ones), the slide stop
+  20-30 % earlier and the crest at WG1 10-20 % higher (case 2 2.70 against 2.27 cm measured); in SFLOW the gauges change
+  by at most 0.1 cm. Benchmark 4 (29
+  `bm4_nh_w163`): the gauges change by at most 0.07 cm (WG1 0.34 / −0.78, WG2 0.57 / −0.64 cm), RMS 0.13 / 0.13 /
+  0.06 / 0.04 against 0.13 / 0.13 / 0.08 / 0.04; semi-implicit alike; 18 dambreak under NHFLOW (W 162 0.05): L1 0.89 /
+  0.43 / 0.37 / 0.39 % against 1.1 / 0.50 / 0.32 / 0.24 %. Not the default: no clear gain over the cases, and the
+  thresholds of the gradient are set by hand.
 - Semi-implicit NHFLOW (`caseN_nhflow_nh_si`, A 510 11, A 536 0.001, W 162 0.1): case 1 1.70 / −0.93, 1.69 / −0.82,
   1.55 / −0.81, 1.46 / −0.54 cm, case 2 2.34 / −1.32, 2.30 / −0.90, 2.21 / −0.80, 2.11 / −0.41 cm (explicit in the
   tables); 29 / 32 s against 67 / 74 s. Larger steps or W 162 0.02 blow up (section 29). Run times (2 cores): SFLOW hydrostatic
@@ -1099,8 +1124,8 @@ Gauge max / min (cm) up to the wave reflected at the end wall, and the RMS diffe
 - Slide layer (W 150): the non-hydrostatic water with the slide is the one-layer quadratic pressure (A 220 2) only, explicit
   water only, with the filter W 162 chosen by hand (0.02 for case 28, 0.5 in deep water); the near field over the slide
   (WG1 of case 28) is underpredicted by half. A 220 1, 3, 4 stop with a message.
-- Slide layer (W 150) under NHFLOW: the slide sees the hydrostatic water pressure only (not the non-hydrostatic bottom
-  pressure); the semi-implicit NHFLOW with a subaerial slide and W 155 needs small steps (A 536 0.001 in case 32) and
+- Slide layer (W 150): the non-hydrostatic water pressure on the slide (W 163 1) is an option with hand-set thresholds
+  (5 W 156 of water, 1 mm of slide); not the default. The semi-implicit NHFLOW with a subaerial slide and W 155 needs small steps (A 536 0.001 in case 32) and
   W 162 0.1; tested with A 510 11 (the predictors 12, 13 not).
 - Subaerial slides (case 32): the gate is removed at once, the waves come 0.12-0.2 s early (non-hydrostatic); the first
   trough behind the leading crest is 20-40 % too shallow; the interface drag W 155 is chosen by hand (0.02).
