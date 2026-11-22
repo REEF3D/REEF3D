@@ -514,8 +514,6 @@ void control::ctrlsend()
     ii++;
     ictrl[ii] = A540;
     ii++;
-    ictrl[ii] = A505;
-    ii++;
     ictrl[ii] = A507;
     ii++;
     ictrl[ii] = A508;

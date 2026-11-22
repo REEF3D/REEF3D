@@ -38,8 +38,8 @@ Architect: Hans Bihs
 //  - the face gradient of eta and the face term of phi get the part -delta^2/12 of the compact one (ho_gradient,
 //    ho_phi_corr): with the compact divergence of the faces, which stays as it is (the volume is exact), the Laplacian
 //    is fourth order. This part is explicit, so the matrices of the eta system and of the coupled eta-phi system keep
-//    their compact stencil: for eta^{n+1} it takes eta of the estimate pass (A 505 1; eta^n in the estimate pass and
-//    with A 505 0), for phi the pressure of the two steps before extrapolated to this one.
+//    their compact stencil: for eta^{n+1} it takes eta of the estimate pass (eta^n in the estimate pass), for phi the
+//    pressure of the two steps before extrapolated to this one.
 // A face or a cell whose stencil leaves the wet deep fluid cells (walls, open boundaries, the shoreline) keeps the
 // second-order terms. The advection of the predictor and the nonlinear face depths are unchanged.
 // ---------------------------------------------------------------------------------------------------------------------

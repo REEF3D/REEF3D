@@ -235,8 +235,7 @@ nhflow_momentum_SI::nhflow_momentum_SI(lexer *p, fdm_nhf *d, ghostcell *pgc, six
     // from about theta - 1/2 < Fr (flume, h 0.109 m, U 0.42 m/s, theta 0.55, 0.5 - 4 % per step from flow Courant
     // numbers 0.25 on, curvilinear grid 4 - 29 mm noise; linear analysis of the hydrostatic step: the lag of the
     // transport); with the transport of the estimate, theta Q^{n+1} + (1 - theta) Q^n, stable. The other nonlinear terms
-    // keep the time levels of the step before. Each step about 1.3 - 1.9 times the time of one pass. The one pass on
-    // every grid (A 505 0) is retired (read_control: A 505 0 stops)
+    // keep the time levels of the step before. Each step about 1.3 - 1.9 times the time of one pass
     tp2 = !tl2 && elm_mode(p)==0;
 
     // A 510 11 without tl2 (curvilinear, multi-block and refined grids): Crank-Nicolson vertical advection with

@@ -38,7 +38,7 @@ Author: Hans Bihs
 // on a flat bed only). The face term pg_k: the conservative form of -grad(h phi) + [phi grad z] with the
 // face differences of the interface heights (slopes limited to tan 30 deg, max_slope), times H_f/(mean h) of the face.
 // [u . grad(z)]_k with the interface slopes of the cell (centred) and u_k on the upper, u_{k-1} on the lower interface;
-// with A 505 1 (tl2) u^{n+1} estimated from the predictor and the acceleration of the step before (nh_prepare).
+// with tl2 u^{n+1} estimated from the predictor and the acceleration of the step before (nh_prepare).
 //
 // Time levels: phi fully implicit, it acts on the velocities over dt; the constraint holds for the velocities of
 // t^{n+1}, the layer discharges Q_k^{n+1} and w^{n+1} = w* - dt [phi]_k/h_k (Popinet 2020: those of t^{n+theta}; with them
