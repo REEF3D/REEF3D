@@ -1,0 +1,29 @@
+{
+ "base": "cfd_2d_dambreak_amr_adapt",
+ "np": 1,
+ "steps": 120,
+ "ctrl_set": {
+  "N 40": "5"
+ },
+ "ctrl_add": [
+  "N 63 3",
+  "N 54 1",
+  "F 41 1",
+  "F 66 0.05",
+  "F 67 2"
+ ],
+ "description": "cfd_2d_dambreak_amr_adapt_singlephase_f66 with F 67 2: the divergence-free band on the patches (the ring of margin cells as water or Dirichlet air, the fills after single_extend) and on level 0 (validation CFD AMR speed/25).",
+ "tags": [
+  "quick",
+  "2d",
+  "dambreak",
+  "levelset",
+  "amr",
+  "adaptive",
+  "singlephase"
+ ],
+ "covers": [
+  "cfd_singlephase::band on the patches, single_extend with F 67 (cfd_amr_press)"
+ ],
+ "architect": "Hans Bihs"
+}
