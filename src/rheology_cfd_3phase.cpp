@@ -865,7 +865,7 @@ void rheology_cfd_3phase::excess(lexer *p, fdm *a, ghostcell *pgc, solver *psolv
     if(!pe_ini && p->count>=2)
     {
         LOOP
-        pe(i,j,k) = alpha(i,j,k)>0.5 ? lambda0*MAX(a->press(i,j,k) - p->pressgage - phyd(i,j,k),0.0) : 0.0;
+        pe(i,j,k) = alpha(i,j,k)>0.5 ? lambda0*MAX(a->press(i,j,k) - p->pressgage - ppore(i,j,k),0.0) : 0.0;
         bc(p,pgc,pe);
         pe_ini = true;
 
@@ -981,7 +981,7 @@ void rheology_cfd_3phase::excess(lexer *p, fdm *a, ghostcell *pgc, solver *psolv
     // fluidised there, p' = 0); with a small beta the contraction alone drove p_e to 5 times the overburden
     LOOP
     if(alpha(i,j,k)>0.5)
-    pe(i,j,k) = MIN(pe(i,j,k),MAX(a->press(i,j,k) - p->pressgage - phyd(i,j,k),0.0));
+    pe(i,j,k) = MIN(pe(i,j,k),MAX(a->press(i,j,k) - p->pressgage - ppore(i,j,k),0.0));
 
     bc(p,pgc,pe);
 
@@ -1005,8 +1005,11 @@ double rheology_cfd_3phase::peff(lexer *p, fdm *a)
 {
     double pp = a->press(i,j,k) - p->pressgage;
 
+    // the pore water carries the hydrostatic pressure; with imbibition (W 136) only the saturated share S of the pores:
+    // the air in the dry pores of a slide that stands out of the water is open to the atmosphere, so dry grains under
+    // the water surface carry their full weight (no buoyancy until the water reaches them)
     if(pore>=1)
-    pp -= phyd(i,j,k);
+    pp -= ppore(i,j,k);
 
     if(pore==2)
     pp -= pe(i,j,k);

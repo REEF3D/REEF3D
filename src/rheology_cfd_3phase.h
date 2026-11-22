@@ -78,6 +78,9 @@ takes up water, at once (W 136 v <= 0) or with a front speed v (dS = v dt/dx). I
 leaves the water next to it: a sink div(u) = -q in the water cells around the cell (in all water cells next to the slide
 when the cell has no water neighbour on its rank), balanced by a source in all air cells (the pore air that escapes).
 Without it the dry slide displaced its whole bulk volume of water (the pores stayed dry).
+The pore water carries the hydrostatic pressure of W 143 only in the saturated share S of the pores: the pore air of
+a slide that stands out of the water is open to the atmosphere, and the dry grains under the water surface carry their
+full weight until the water reaches them.
 
 Interface band (W 131 3, as in the two-phase model): the smoothed band (alpha_s > 1e-3 after smoothing) gets the full
 viscosity of the slide, max(mu_s, mu_f), instead of alpha mu_s + (1 - alpha) mu_f, and p' at least the buoyant weight
@@ -106,6 +109,9 @@ public:
 
     // the pore water taken up so far [m3] (W 136)
     double imbibed_total() const { return imbibed; }
+
+    // hydrostatic pore pressure carried by the pore water (W 143): with imbibition (W 136) only its saturated share S
+    double ppore(int ii, int jj, int kk) { return imb ? sat(ii,jj,kk)*phyd(ii,jj,kk) : phyd(ii,jj,kk); }
 
     // bulk density of the slide in cell (ii,jj,kk): W 141, plus the pore water taken up since the start (W 136)
     double rho_slide(int ii, int jj, int kk) { return imb ? rho_s + (sat(ii,jj,kk) - S0)*nporo*rho_w : rho_s; }
