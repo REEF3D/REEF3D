@@ -25,7 +25,9 @@ Author: Hans Bihs
 #define SFLOW_LEVEL_FILE_H_
 
 #include"increment.h"
+#include"slice4.h"
 #include<vector>
+#include<fstream>
 
 class lexer;
 class fdm2D;
@@ -38,10 +40,12 @@ class ghostcell;
 // Bilinear between the four surrounding values (with no data among them: the nearest valid one, within one spacing).
 // Where the level lies above the bed the cell gets it: eta = level - wd. Applied after F 72 (an initial slide mass or
 // lake from a terrain difference, e.g. a pre-event DEM minus the sliding surface).
+class sflow_release;
+
 class sflow_level_file : public increment
 {
 public:
-    void start(lexer*, fdm2D*, ghostcell*);
+    void start(lexer*, fdm2D*, ghostcell*, sflow_release* =nullptr);
 };
 
 // the regular grid of levels of such a file, shared by F 73 (sflow-level.dat) and W 161 (slide-level.dat, the top of the
@@ -51,12 +55,36 @@ class level_grid
 public:
     void read(lexer*, ghostcell*, const char *file, const char *key);
     double value(double x, double y) const;     // < -9000: no level there
+    double nearest(double x, double y) const;   // the value of the nearest grid point (< -9000: none)
     
     int nx=0, ny=0;
     double x0=0.0, y0=0.0, dx=1.0, dy=1.0;
     
 private:
     std::vector<double> L;
+};
+
+// F 74 1: the staged (retrogressive) release of the material of F 73. The file sflow-release.dat has the format of
+// sflow-level.dat (header nx ny x0 y0 dx dy, then nx*ny values, i fastest) and holds the release time [s] of every
+// cell, the value of the nearest grid point (blocks keep sharp edges); a time <= 0 or < -9000 releases at the start.
+// Until its time the material of a cell is part of the bed (the bed is raised to the level of F 73, the cell is dry:
+// intact ground that the flow can run against or over). At its time the bed drops back by the thickness T and the
+// water column grows by T: the surface and the face discharges stay, the volume is exact.
+class sflow_release : public increment
+{
+public:
+    sflow_release(lexer*, ghostcell*);
+    
+    double time(double x, double y) const;
+    void lock(lexer*, fdm2D*, int i, int j, double level);   // from F 73: the cell is released later
+    void report_ini(lexer*, ghostcell*);
+    void step(lexer*, fdm2D*, ghostcell*);                   // before the depth update of the step
+    
+private:
+    level_grid R;
+    slice4 tr, thick;
+    int nevents=0;
+    std::ofstream logout;
 };
 
 #endif

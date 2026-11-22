@@ -980,6 +980,32 @@ def terrainseries(case, out, runs, xlabel="yield stress tau_y (Pa)"):
     fig.tight_layout(); fig.savefig(os.path.join(out, "26_series_measures.png")); plt.close(fig)
     return {lab: r for lab, val, r in res}
 
+def stagedseries(case, out, runs):
+    """26 / F 74: staged release against the instant one; runs = [(label, tau_y, delay, run dir), ...] (delay 0: instant).
+    The volumes of the branches and the runout against the delay between the blocks, one line per tau_y."""
+    plt = style()
+    res = [(lab, tau, dly, terrainslide(run, case, out, lab)) for lab, tau, dly, run in runs]
+    taus = sorted(set(q[1] for q in res))
+    regs = sorted(k for k in res[0][3] if k.startswith("region_"))
+    fig, axs = plt.subplots(1, len(regs) + 1, figsize=(4.2*(len(regs) + 1), 3.8))
+    cols = [LBLUE, BLUE, GREEN, GREY, ORANGE]
+    for c, tau in zip(cols, taus):
+        sel = sorted([q for q in res if q[1] == tau], key=lambda q: q[2])
+        d = [q[2] for q in sel]
+        for ax, k in zip(axs, regs):
+            ax.plot(d, [q[3][k]["model_m3"]/1e6 for q in sel], "o-", color=c, label="tau_y %g Pa" % tau)
+        axs[-1].plot(d, [q[3]["model_runout_m"] for q in sel], "o-", color=c, label="tau_y %g Pa" % tau)
+    for ax, k in zip(axs, regs):
+        ax.axhline(res[0][3][k]["dem_m3"]/1e6, color=ORANGE, ls="--", label="DEM")
+        ax.set_title(k[7:], fontsize=10); ax.set_ylabel("volume (Mm$^3$)")
+    axs[-1].axhline(res[0][3]["dem_runout_m"], color=ORANGE, ls="--", label="DEM")
+    axs[-1].set_title("runout from the release centre", fontsize=10); axs[-1].set_ylabel("m")
+    for ax in axs:
+        ax.set_xlabel("delay between the blocks (s), 0: instant"); ax.legend(fontsize=7, loc="best")
+    fig.tight_layout(); os.makedirs(out, exist_ok=True); fig.savefig(os.path.join(out, "26_staged_series.png")); plt.close(fig)
+    return {lab: dict(tau_y=tau, delay=dly, **{k: r[k] for k in ("IoU", "hit_rate", "model_runout_m")},
+                      **{k[7:]: r[k]["model_m3"] for k in regs}) for lab, tau, dly, r in res}
+
 def _sflow_max_cells(run, nx, ny, dx):
     """REEF3D_SFLOW_MAX (P 112) on the cell grid: max_eta, max_depth, max_speed, time_max_eta and inundation of each
     cell (the two triangles of a cell, merged pieces); NaN where never wet"""
@@ -1144,6 +1170,10 @@ if __name__ == "__main__":
         r = quickness([tuple(a.split(":", 1)) for a in sys.argv[4:]], sys.argv[3] if sys.argv[3] != "-" else None, sys.argv[2])
     elif cmd == "huang":
         r = huang(sys.argv[2:-2], sys.argv[-2], sys.argv[-1])
+    elif cmd == "stagedseries":
+        # stagedseries <case> <out> label:tau:delay:run ...
+        r = stagedseries(sys.argv[2], sys.argv[3], [(x.split(":")[0], float(x.split(":")[1]), float(x.split(":")[2]),
+                                                     x.split(":", 3)[3]) for x in sys.argv[4:]])
     elif cmd == "terrainseries":
         r = terrainseries(sys.argv[2], sys.argv[3], [(a.split(":")[0], float(a.split(":")[1]), a.split(":")[2]) for a in sys.argv[4:]])
     elif cmd == "tsunamiseries":

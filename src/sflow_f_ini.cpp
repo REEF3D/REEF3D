@@ -352,7 +352,12 @@ void sflow_f::ini_fsf(lexer *p, fdm2D* b, ghostcell* pgc)
     
     // F 73: the initial level from a file (a slide mass or lake from a terrain difference)
     if(p->F73>0)
-    sflow_level_file().start(p,b,pgc);
+    {
+    if(p->F74>0 && prelease==nullptr)
+    prelease = new sflow_release(p,pgc);
+    
+    sflow_level_file().start(p,b,pgc,prelease);
+    }
 
     // river free-surface initialisation along the i-direction (F 65)
     ini_river(p,b,pgc,0);

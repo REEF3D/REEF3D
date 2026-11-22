@@ -773,6 +773,7 @@ void control::ini_default()
 	F70=0;             // int number of phi 1 ini boxes
 	F71=0;             // int number of phi 2 ini boxes
 	F72=0;             // int number of phi 1 ini regions
+    F74=0;             // int SFLOW: staged release from the file sflow-release.dat (as sflow-level.dat; the release time [s] of every cell): the material of F 73 is part of the bed until its time
     F73=0;             // int SFLOW: initial free-surface level from the file sflow-level.dat (regular grid: nx ny x0 y0 dx dy, then nx*ny levels, i fastest; < -9000: no data), where it lies above the bed
 	F80=0;             // int time scheme VOF
     F81=0;             // int PIC free surface flow: 1 single phase (water particles, p = 0 at the surface), 2 water particles with Eulerian air, 10 passive particles

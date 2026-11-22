@@ -26,6 +26,8 @@ Author: Hans Bihs
 #include"fdm2D.h"
 #include"ghostcell.h"
 #include<fstream>
+#include<iomanip>
+#include<sys/stat.h>
 #include<vector>
 #include<cmath>
 
@@ -79,7 +81,19 @@ double level_grid::value(double x, double y) const
     return val(in,jn);
 }
 
-void sflow_level_file::start(lexer *p, fdm2D *b, ghostcell *pgc)
+double level_grid::nearest(double x, double y) const
+{
+    const double fi = (x - x0)/dx, fj = (y - y0)/dy;
+    
+    if(fi<-1.0 || fj<-1.0 || fi>nx || fj>ny)
+    return -9999.0;
+    
+    const int in = std::max(0,std::min(nx-1,(int)lround(fi)));
+    const int jn = std::max(0,std::min(ny-1,(int)lround(fj)));
+    return L[(size_t)jn*nx + in];
+}
+
+void sflow_level_file::start(lexer *p, fdm2D *b, ghostcell *pgc, sflow_release *rel)
 {
     level_grid G;
     G.read(p,pgc,"sflow-level.dat","F 73");
@@ -97,6 +111,13 @@ void sflow_level_file::start(lexer *p, fdm2D *b, ghostcell *pgc)
         if(level<-9000.0 || level<=b->bed(i,j))
         continue;
         
+        // F 74: released later, part of the bed until then
+        if(rel!=nullptr && rel->time(x,y)>0.0)
+        {
+        rel->lock(p,b,i,j,level);
+        continue;
+        }
+        
         b->eta(i,j) = level - p->wd;
         ++count;
         vol += (level - b->bed(i,j))*((p->geo_curv==1) ? p->AREA2D[IJ] : p->DXN[IP]*p->DYN[JP]);
@@ -106,5 +127,141 @@ void sflow_level_file::start(lexer *p, fdm2D *b, ghostcell *pgc)
     vol = pgc->globalsum(vol);
     
     if(p->mpirank==0)
-    cout<<"F 73: initial level from sflow-level.dat ("<<G.nx<<" x "<<G.ny<<", spacing "<<G.dx<<" x "<<G.dy<<" m) in "<<count<<" cells, volume above the bed "<<vol<<" m3"<<endl;
+    cout<<"F 73: initial level from sflow-level.dat ("<<G.nx<<" x "<<G.ny<<", spacing "<<G.dx<<" x "<<G.dy<<" m) in "<<count<<" cells, volume above the bed "<<vol<<" m3"<<(rel!=nullptr ? " (released at the start)" : "")<<endl;
+    
+    if(rel!=nullptr)
+    {
+    pgc->gcsl_start4(p,b->bed,50);
+    rel->report_ini(p,pgc);
+    }
+}
+
+// ---------------------------------------------------------------------------------------------
+// F 74: staged release
+// ---------------------------------------------------------------------------------------------
+
+sflow_release::sflow_release(lexer *p, ghostcell *pgc) : tr(p), thick(p)
+{
+    R.read(p,pgc,"sflow-release.dat","F 74");
+    
+    SLICELOOP4
+    {
+    tr(i,j) = 0.0;
+    thick(i,j) = 0.0;
+    }
+}
+
+double sflow_release::time(double x, double y) const
+{
+    const double t = R.nearest(x,y);
+    return t<-9000.0 ? 0.0 : t;
+}
+
+void sflow_release::lock(lexer *p, fdm2D *b, int i, int j, double level)
+{
+    const double x = p->geo_curv==1 ? p->XC2D[IJ] : p->XP[IP];
+    const double y = p->geo_curv==1 ? p->YC2D[IJ] : p->YP[JP];
+    
+    tr(i,j) = time(x,y);
+    thick(i,j) = level - b->bed(i,j);
+    b->bed(i,j) = level;
+}
+
+void sflow_release::report_ini(lexer *p, ghostcell *pgc)
+{
+    int count=0;
+    double vol=0.0, tmin=1.0e20, tmax=-1.0e20;
+    
+    SLICELOOP4
+    if(thick(i,j)>0.0)
+    {
+    ++count;
+    vol += thick(i,j)*((p->geo_curv==1) ? p->AREA2D[IJ] : p->DXN[IP]*p->DYN[JP]);
+    tmin = MIN(tmin,tr(i,j));
+    tmax = MAX(tmax,tr(i,j));
+    }
+    
+    count = pgc->globalisum(count);
+    vol = pgc->globalsum(vol);
+    tmin = pgc->globalmin(tmin);
+    tmax = pgc->globalmax(tmax);
+    
+    if(p->mpirank==0)
+    cout<<"F 74: staged release from sflow-release.dat: "<<count<<" cells, "<<vol<<" m3 part of the bed until their time, released between t = "<<tmin<<" and "<<tmax<<" s"<<endl;
+}
+
+void sflow_release::step(lexer *p, fdm2D *b, ghostcell *pgc)
+{
+    // the cells whose time falls within this step: at the end of the step
+    const double tend = p->simtime + p->dt;
+    
+    int count=0;
+    double vol=0.0;
+    
+    SLICELOOP4
+    if(thick(i,j)>0.0 && tr(i,j)<=tend+1.0e-12)
+    {
+        const double T = thick(i,j);
+        const bool dry = b->WL(i,j)<p->A244;
+        
+        b->bed(i,j) -= T;
+        b->WL(i,j) += T;
+        thick(i,j) = 0.0;
+        
+        // wet now: the wetting of SFLOW (A 243 2) wets a dry cell only from a higher wet neighbour
+        p->wet[IJ] = 1;
+        
+        // a dry cell starts at rest
+        if(dry)
+        {
+        b->P(i,j) = b->P(i-1,j) = 0.0;
+        b->Q(i,j) = b->Q(i,j-1) = 0.0;
+        }
+        
+        ++count;
+        vol += T*((p->geo_curv==1) ? p->AREA2D[IJ] : p->DXN[IP]*p->DYN[JP]);
+    }
+    
+    count = pgc->globalisum(count);
+    
+    if(count>0)
+    {
+    vol = pgc->globalsum(vol);
+    
+    pgc->gcsl_start4(p,b->bed,50);
+    pgc->gcsl_start4(p,b->WL,50);
+    pgc->gcsl_start4Vint(p,p->wet,50);
+    pgc->gcsl_start1(p,b->P,10);
+    pgc->gcsl_start2(p,b->Q,11);
+    
+    ++nevents;
+    
+    if(p->mpirank==0)
+    cout<<"F 74: released "<<count<<" cells, "<<vol<<" m3 at t = "<<tend<<" s"<<endl;
+    }
+    
+    // the log: the volume of the flow and the volume still in the bed (their sum is the volume of F 73)
+    double vflow=0.0, vbed=0.0;
+    
+    SLICELOOP4
+    {
+    const double A = (p->geo_curv==1) ? p->AREA2D[IJ] : p->DXN[IP]*p->DYN[JP];
+    vflow += b->WL(i,j)*A;
+    vbed += thick(i,j)*A;
+    }
+    
+    vflow = pgc->globalsum(vflow);
+    vbed = pgc->globalsum(vbed);
+    
+    if(p->mpirank==0)
+    {
+        if(!logout.is_open())
+        {
+        mkdir("./REEF3D_SFLOW_Log",0777);
+        logout.open("./REEF3D_SFLOW_Log/REEF3D_SFLOW_release.dat");
+        logout<<"# time  V_flow  V_bed (not yet released)  V_flow + V_bed  (m3; F 74)"<<endl;
+        }
+        
+        logout<<setprecision(8)<<tend<<" "<<vflow<<" "<<vbed<<" "<<vflow+vbed<<endl;
+    }
 }

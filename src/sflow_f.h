@@ -41,6 +41,7 @@ class sflow_pressure;
 class solver2D;
 class ioflow;
 class sflow_fsf;
+class sflow_release;
 class sflow_vtp_fsf;
 class sflow_vtp_bed;
 class sflow_convection;
@@ -117,6 +118,7 @@ private:
     
     sixdof *p6dof;
     sflow_amr *pamr = nullptr;
+    sflow_release *prelease = nullptr;     // F 74: staged release of the material of F 73
     hydro_couple *pcpl = nullptr;      // REEF3D::HYDRO catchment model coupled (R 100 2)
 	
 	double starttime, endtime;

@@ -722,6 +722,25 @@ With `D 22 1` the bed acts as free slip, so the current runs off like an invisci
 
 ![](26_gjerdrum_2020/results/26_series_maps.png)
 
+- **F 74 1** (SFLOW, case 34): the staged (retrogressive) release of the material of F 73 from `sflow-release.dat`
+  (the grid format of sflow-level.dat, the release time [s] of every cell, nearest value). Until its time the material
+  of a cell is part of the bed (the bed raised to the level of F 73, the cell dry: intact ground the flow can run
+  against or over). At its time the bed drops back by the thickness T and the water column grows by T. The surface and
+  the face discharges stay, the cell is set wet, and the volume is exact. Log `REEF3D_SFLOW_Log/REEF3D_SFLOW_release.dat`
+  (time, V_flow, V_bed, sum). `tools/staged_release.py` writes the file for a case of slide_terrain.py: N bands across
+  a direction (`--dir`, 90 = northwards), equal volumes or widths, block k at t0 + k·Δt.
+- **34** (a 3 m Coulomb block on a 20° plane, the back half released at 10 s): flow + bed 2407.5908 m³ just before
+  and after the release; 2407.59-2407.96 m³ over the run (the wetting film of the dry cells, as in every SFLOW run).
+- **Gjerdrum staged release** (`26_gjerdrum_2020/README.md`, domain extended east to 615500 E): the scar in 4 (or 8)
+  bands of equal volume from the southern toe to the backscarp, delays of 60 / 120 / 300 s, τ_y 0.5 / 0.75 / 1 kPa
+  (10 m screening, 900-1500 s, 2.5-4 min each on 2 cores; two 5 m runs at 0.75 kPa agree within 0.005 Mm³). The split between the branches does not change with the
+  delay: Tistilbekken 0.236 / 0.238 / 0.251 / 0.238 Mm³ at 0.5 kPa for 0 / 60 / 120 / 300 s, 0.395 / 0.393 / 0.401 /
+  0.389 Mm³ at 1 kPa (DEM 0.39); the east valley gains 0.02-0.04 Mm³ (the later blocks run over the deposit of the
+  earlier ones). The yield stress sets the split, the timing of a retrogression of one material does not. Next: a
+  strength that depends on the history of the material (remoulding: τ_y from s_u towards s_ur with the strain).
+
+![](26_gjerdrum_2020/results/26_staged_series.png)
+
 ## Two-layer landslide: slide layer under the SFLOW and NHFLOW water (W 150), cases 16-19, 28, 29 and 32
 
 A depth-averaged slide layer (h_s, h_s u_s) under the water (`src/slide2D.{h,cpp}`, `src/slide2D_flux.cpp`). The water
@@ -1087,3 +1106,6 @@ Gauge max / min (cm) up to the wave reflected at the end wall, and the RMS diffe
   trough behind the leading crest is 20-40 % too shallow; the interface drag W 155 is chosen by hand (0.02).
 - Slide layer (W 150): sediment (S 10) together with the slide, curvilinear and refined grids; the dilatancy source of
   the pore pressure.
+- Staged release (F 74): single-layer SFLOW on one Cartesian grid; not with the slide layer (W 150), sediment (S 10),
+  mesh refinement and multi-block grids, or restarts (I 45 1). The released material has the strength of the rest
+  (no remoulding, no strength history).

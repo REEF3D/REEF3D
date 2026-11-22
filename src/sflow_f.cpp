@@ -49,6 +49,7 @@ Author: Hans Bihs
 #include"hydro_core.h"
 #include"hydro_couple.h"
 #include"slide2D.h"
+#include"sflow_level_file.h"
 #include"sflow_memory.h"
 
 sflow_f::sflow_f(lexer *p, fdm2D *b, ghostcell* pgc, patchBC_interface *ppBC)
@@ -160,6 +161,10 @@ void sflow_f::start(lexer *p, fdm2D* b, ghostcell* pgc)
         // two-layer landslide (W 150): the slide over the step, the bed of the water z_b + h_s
         if(b->slide!=nullptr)
         b->slide->start(p,b,pgc);
+
+        // F 74: the blocks released in this step leave the bed and join the water column
+        if(prelease!=nullptr)
+        prelease->step(p,b,pgc);
 
         pfsf->depth_update(p,b,pgc,b->WL);
 

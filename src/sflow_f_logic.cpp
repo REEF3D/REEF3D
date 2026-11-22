@@ -297,6 +297,34 @@ void sflow_f::logic(lexer *p, fdm2D* b, ghostcell* pgc)
 
     }
 
+    // F 74: the staged release of the material of F 73 (sflow_release, sflow_level_file.cpp)
+    if(p->F74>0)
+    {
+        string why;
+
+        if(p->F73==0)
+        why = "without F 73 (the material comes from sflow-level.dat)";
+
+        if(p->W150>0)
+        why = "the slide layer (W 150)";
+
+        if(p->S10>0)
+        why = "sediment transport (S 10): both move the bed";
+
+        if(pamr!=nullptr || p->geo_mb>0)
+        why = "mesh refinement and multi-block grids (G 1, G 50 1)";
+
+        if(p->I45==1)
+        why = "a restart from a checkpoint (I 45 1): the release state is not in the checkpoints yet";
+
+        if(!why.empty())
+        {
+            if(p->mpirank==0)
+            cout<<"!!! SFLOW staged release (F 74): not available with "<<why<<" !!!"<<endl;
+            pgc->final(true);
+        }
+    }
+
     //Potential Flow Solver
     if(p->I11==0)
     potflow = new sflow_potential_v(p);
