@@ -55,6 +55,7 @@ public:
     double A222,A224,A247,A249,A244,A251_val;
     double A250;
     int A233;               // SFLOW semi-implicit: solver of the eta system (ini.cpp)
+    int A234;               // SFLOW semi-implicit, coupled eta-P solve: steps a preconditioner is kept (ini.cpp)
     int A226,A229;          // SFLOW semi-implicit free surface (A226: from A 210 12 / 13, A229: from A 243; not read from ctrl.txt)
     double A227,A228,A231,A232;
 

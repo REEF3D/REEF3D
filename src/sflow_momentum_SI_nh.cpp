@@ -1052,6 +1052,28 @@ void sflow_momentum_SI::nh_solve(lexer *p, fdm2D *b, ghostcell *pgc)
 
         matrix2D &M = *S.M1;
 
+        // A 234 n > 1: the preconditioner of an earlier step is kept (FGMRES takes any preconditioner; the system
+        // itself is that of the step), unless it is n steps old, the non-hydrostatic cells or the time step (by
+        // more than a quarter) have changed, the last solve took two iterations more than the one with the new
+        // preconditioner, or this is a pass of the wetting and drying iteration
+        bool build = true;
+
+        if(p->A234>1 && wdit==0 && S.pc_ok && (int)S.pc_pat.size()==N)
+        {
+            int changed = 0;
+            for(int n=0; n<N; ++n)
+            if((Ac[cq[n]]>0.5) != (S.pc_pat[n]==1))
+            ++changed;
+
+            changed = pgc->globalisum(changed);
+
+            build = changed>0 || S.pc_age+1>=p->A234 || S.pc_last>S.pc_it+1
+                 || dt>1.25*S.pc_dt || dt<0.8*S.pc_dt;
+        }
+
+        if(build)
+        {
+
         // contribution of the face qf between the cells qL and qR (slice indices; x face: qR = qL + J, y face:
         // qR = qL + 1, qf = qL) to the row of the cell on side self_left (true: the left cell)
         const int *FL = p->flagslice4;
@@ -1205,7 +1227,28 @@ void sflow_momentum_SI::nh_solve(lexer *p, fdm2D *b, ghostcell *pgc)
             }
         }
 
-        bool rebuild = true;
+        }
+
+        // the multigrid levels are set up in the first V-cycle after the matrices have changed
+        bool rebuild = build;
+
+        if(p->A234>1)
+        {
+            if(build)
+            {
+            S.pc_pat.resize(N);
+            for(int n=0; n<N; ++n)
+            S.pc_pat[n] = Ac[cq[n]]>0.5 ? 1 : 0;
+
+            S.pc_age = 0;
+            S.pc_dt = dt;
+            // a preconditioner of a pass with dry cells is not kept
+            S.pc_ok = (wdit==0);
+            }
+
+            else
+            ++S.pc_age;
+        }
 
         // z = M^-1 v for the coupled system
         auto precond = [&](const std::vector<double> &v, std::vector<double> &z)
@@ -1363,6 +1406,15 @@ void sflow_momentum_SI::nh_solve(lexer *p, fdm2D *b, ghostcell *pgc)
         }
 
         nh_iter = it;
+
+        if(build)
+        S.pc_it = it;
+        S.pc_last = it;
+
+        // no iteration (the start value solves the system): the multigrid levels of the new matrices were not set
+        // up, the preconditioner is not kept
+        if(build && rebuild)
+        S.pc_ok = false;
     }
 
         if(p->A229!=1)

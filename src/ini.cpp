@@ -58,6 +58,7 @@ void control::ini_default()
     A229=1;      // int SFLOW semi-implicit: wetting and drying iteration (Casulli 2009), 0 off (set from A 243, lexer_read)
     A232=0.05;   // double SFLOW thin water depth: semi-implicit, below it the cell velocities of the momentum predictor are desingularised; with B 60, below it the Froude number next to a dry cell is limited to 0.1 A 531
     A233=0;      // int SFLOW semi-implicit, hydrostatic eta system: 0 BiCGStab with one V(1,1) cycle as preconditioner, started from eta^n; 1 V(2,2) cycles (BiCGStab where they stall), started from the level extrapolated from the last two steps
+    A234=1;      // int SFLOW semi-implicit with the non-hydrostatic pressure (A 220 2/3), coupled eta-P solve: the preconditioner (its matrices and multigrid levels) is set up again after at most this many steps; 1 every step. Earlier when the non-hydrostatic cells change, the time step changes by more than a quarter, a cell dries, or the solve needs two iterations more than with the new preconditioner
     A231=0.0;    // double SFLOW semi-implicit: mass flux dissipation for transcritical flow, 0 off
     A251=0;    // double fsf-slope in x-dir
     A260=0;      // int turbulence model

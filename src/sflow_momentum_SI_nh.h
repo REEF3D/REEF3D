@@ -138,6 +138,13 @@ struct sflow_si_nh_lu
     std::unique_ptr<reefmg2D> mg1, mg2;
     std::unique_ptr<matrix2D> M1, M2;
     std::unique_ptr<vec2D> r1, r2;
+
+    // A 234 > 1: the preconditioner in use: steps since its set-up, the time step, the iterations and the
+    // non-hydrostatic cells of that step, the iterations of the last step
+    bool pc_ok=false;
+    int pc_age=0, pc_it=0, pc_last=0;
+    double pc_dt=0.0;
+    std::vector<char> pc_pat;
 };
 
 #endif
