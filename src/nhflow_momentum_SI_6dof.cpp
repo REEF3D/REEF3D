@@ -22,7 +22,7 @@ Architect: Hans Bihs
 
 // ---------------------------------------------------------------------------
 // NHFLOW semi-implicit step (A 510 11/12/13): 6DOF bodies with direct forcing (X 10 1 floating body, X 10 2 prescribed
-// motion, X 10 4 wavemaker; X 15 0-5; one Cartesian grid).
+// motion, X 10 4 wavemaker; X 15 0-8, 10, 11; one Cartesian grid), the ship pressure (X 10 3), nets (X 320).
 //
 // The bodies use the direct forcing of the fixed solids (df_*, nhflow_momentum_SI.cpp) with the forcing of the body
 // object (sixdof_obj_nhflow::update_forcing_nhflow, the same kernel as the explicit NHFLOW):
@@ -67,8 +67,13 @@ Architect: Hans Bihs
 //    waves that grew with dt; towed box: 0.38 N resistance against 1.29 N, explicit 1.20 N).
 // The time step stays within the Courant number N 47 of the body velocity (nhflow_timestep_SI::limit).
 //
-// Not yet: the ship pressure X 10 3, the pierced columns X 13, X 15 6-11, porous bodies X 16, nets X 320, 6DOF on
-// curvilinear, multi-block and refined grids.
+// 8. (v46) The ship pressure (X 10 3): the level -p/(rho g) of the pressure of the moving ship with the gravity term
+//    (ship_step). (v47) Nets (X 320): their forces on the fluid once per step, kept for all stages (net_step). (v48) The
+//    porous floating body (X 16): fluid for the solves, its resistance on the predictor (fb_porous). (v49) X 15 6/7
+//    with the cell forcing of X 15 1/3, X 15 8, 10 and 11 with that of X 15 1 (check). (v50) X 13 1: the level of the
+//    pierced columns from the surrounding free surface after eta_update (nhflow_fsf_body, si_end_cells).
+//
+// Not yet: the hull as the top of the water columns (X 13 2), 6DOF on curvilinear, multi-block and refined grids.
 // ---------------------------------------------------------------------------
 
 #include"nhflow_momentum_SI.h"
@@ -76,6 +81,7 @@ Architect: Hans Bihs
 #include"fdm_nhf.h"
 #include"ghostcell.h"
 #include"6DOF.h"
+#include"vrans_definitions.h"
 #include<cmath>
 #include<vector>
 
@@ -105,6 +111,9 @@ void nhflow_momentum_SI::fb_step(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
     // the body to t^{n+1}, its level set on the sigma grid of t^n, its velocity, log and output (finalize)
     p6dof->start_nhflow(p,d,pgc,0,d->U,d->V,d->W,fbFX.data(),fbFY.data(),fbFZ.data(),d->WL,fbfe,true);
+
+    // the body is at t^{n+1} for the step (X 13 1: the level of the pierced columns takes this pose)
+    p6dof->nhflow_mark_advanced(p,0);
 
     // DF of the step with the solids and the new body
     df_cast(p,d,pgc);
@@ -372,5 +381,145 @@ void nhflow_momentum_SI::fb_walls_faces(lexer *p)
         Qy[PIJK] = fbQy[PIJK];
         qy(i,j) += p->DZN[KP]*Qy[PIJK];
         }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// the ship pressure (X 10 3): the pressure field of the moving ship (sixdof_nhflow::start_shipwave, the box, the 1D
+// hull or the STL hull of X 400) acts on the water as the surface level it holds, eta_s = -p/(rho g) (the stored sign
+// of the pressure is minus the pressure on the water: the explicit NHFLOW adds WL dp/dx/rho to the momentum). In the
+// semi-implicit step that level goes with the gravity term: the compact face gradient of eta_s joins that of eta^n in
+// the explicit part of the face discharges (si_assemble, face_update) and of the cell momentum (cell_update,
+// ho_cell_gravity), so that a level under the ship at rest that balances the pressure, eta = -eta_s, gives no flow (a
+// cell source with the central gradient, as the explicit step, would leave a grid-scale mode under the hull). The
+// ship moves once per step at its start (to t^{n+1}, as in the last stage of the explicit step); the pressure of the
+// step is the mean of that of its start and its end (as SFLOW A 210 12/13). The first step without a checkpoint takes
+// the pressure of the end for both (the initial level under the ship, X 207 0, is set from the draft).
+// ---------------------------------------------------------------------------
+void nhflow_momentum_SI::ship_step(lexer *p, fdm_nhf *d, ghostcell *pgc)
+{
+    p6dof->nhflow_press(p,shA);
+
+    // the ship to t^{n+1} and its pressure there (the forcing arrays are not used by the ship)
+    const size_t N = (size_t)p->imax*p->jmax*(p->kmax+2);
+
+    if(fbFX.size()!=N)
+    {
+    fbFX.assign(N,0.0);
+    fbFY.assign(N,0.0);
+    fbFZ.assign(N,0.0);
+    }
+
+    p6dof->start_nhflow(p,d,pgc,0,d->U,d->V,d->W,fbFX.data(),fbFY.data(),fbFZ.data(),d->WL,fbfe,true);
+
+    p6dof->nhflow_press(p,shL);
+
+    const bool first = ship_first && p->I45!=1;
+    ship_first = false;
+
+    for(i=p->imin; i<p->imin+p->imax; ++i)
+    for(j=p->jmin; j<p->jmin+p->jmax; ++j)
+    {
+    const double ps = first ? shL(i,j) : 0.5*(shA(i,j) + shL(i,j));
+    shL(i,j) = -ps/(p->W1*g);
+    }
+
+    exchange4(p,pgc,shL);
+
+    // the face gradients; none at a face to the outside of the domain
+    SLICELOOP1
+    {
+    shx(i,j) = 0.0;
+
+    if(p->flagslice4[IJ]>0 && p->flagslice4[Ip1J]>0)
+    shx(i,j) = (shL(i+1,j) - shL(i,j))/fdn(p,1,i,j);
+    }
+
+    if(p->j_dir==1)
+    SLICELOOP2
+    {
+    shy(i,j) = 0.0;
+
+    if(p->flagslice4[IJ]>0 && p->flagslice4[IJp1]>0)
+    shy(i,j) = (shL(i,j+1) - shL(i,j))/fdn(p,2,i,j);
+    }
+
+    exchange1(p,pgc,shx);
+    exchange2(p,pgc,shy);
+}
+
+// ---------------------------------------------------------------------------
+// nets (X 320): the net elements (net_barQuasiStatic, net_barDyn, net_sheet) take the velocities of t^n at their
+// points, their forces are spread on the cells around them (net_interface::dlm_nhflow, Fext, Gext, Hext: the
+// acceleration times WL, a source of the conservative momentum, irhs). Once per step at its start: fixed nets without a
+// body (X 10 0, sixdof_void::start_nhflow) here, the nets of a floating body (X 10 1) with the body step (fb_step:
+// sixdof_obj_nhflow::externalForces_nhflow, with their loads on the body). irhs, jrhs and krhs take the forces out of
+// Fext, Gext, Hext in the first predictor stage: they are kept for the other stages (A 510 12/13) and the second pass
+// of tl2. The drag of the net is explicit in the step, as in the explicit NHFLOW.
+// ---------------------------------------------------------------------------
+void nhflow_momentum_SI::net_step(lexer *p, fdm_nhf *d, ghostcell *pgc)
+{
+    // the sigma grid of t^n for the positions of the net points in the columns
+    exchange4(p,pgc,d->WL);
+    exchange4(p,pgc,d->eta);
+
+    sigma_update(p,d,pgc,d->WL);
+
+    const size_t N = (size_t)p->imax*p->jmax*(p->kmax+2);
+
+    if(fbFX.size()!=N)
+    {
+    fbFX.assign(N,0.0);
+    fbFY.assign(N,0.0);
+    fbFZ.assign(N,0.0);
+    }
+
+    p6dof->start_nhflow(p,d,pgc,0,d->U,d->V,d->W,fbFX.data(),fbFY.data(),fbFZ.data(),d->WL,fbfe,true);
+}
+
+void nhflow_momentum_SI::net_save(lexer *p, fdm_nhf *d)
+{
+    const size_t N = (size_t)p->imax*p->jmax*(p->kmax+2);
+
+    netF.assign(d->Fext,d->Fext+N);
+    netG.assign(d->Gext,d->Gext+N);
+    netH.assign(d->Hext,d->Hext+N);
+}
+
+void nhflow_momentum_SI::net_restore(lexer *p, fdm_nhf *d)
+{
+    std::copy(netF.begin(),netF.end(),d->Fext);
+    std::copy(netG.begin(),netG.end(),d->Gext);
+    std::copy(netH.begin(),netH.end(),d->Hext);
+}
+
+// ---------------------------------------------------------------------------
+// the porous floating body (X 16): the body is fluid for the solves (df_cast: no body cells, no blocked faces). Its
+// Darcy-Forchheimer resistance f = -H K (u - u_b), K = A nu + B |u - u_b|, acts on the forced predictor, implicit over
+// the step (sixdof_obj_nhflow::update_forcing_nhflow_porous: u - u_b = (u* - u_b)/(1 + dt CPORNH K)), on UHD, VHD and
+// WHp of df_predictor, so that the faces of the eta (and eta-phi) solve see the resistance; its reaction (Xd .. Nd)
+// enters the loads of the end of the step (df_reforce: sixdof_nhflow::reforce_nhflow, the pressure on the skeleton
+// scaled by 1 - n), the body step of the next step takes them with the linearly implicit drag
+// (porous_damping_nhflow). The porous storage n deta/dt and the inertia factor of the medium (VRANS) are not in the
+// semi-implicit step.
+// ---------------------------------------------------------------------------
+void nhflow_momentum_SI::fb_porous(lexer *p, fdm_nhf *d, ghostcell *pgc)
+{
+    const size_t N = (size_t)p->imax*p->jmax*(p->kmax+2);
+
+    fbPX.assign(N,0.0);
+    fbPY.assign(N,0.0);
+    fbPZ.assign(N,0.0);
+
+    p6dof->porous_forcing_nhflow(p,d,pgc,d->U,d->V,d->W,fbPX.data(),fbPY.data(),fbPZ.data(),WL0);
+
+    LOOP
+    if(p->wet[IJ]==1)
+    {
+    const double c = p->dt*CPORNH*WL0(i,j);
+
+    dfU[IJK] += c*fbPX[IJK];
+    dfV[IJK] += p->j_dir==1 ? c*fbPY[IJK] : 0.0;
+    dfW[IJK] += c*fbPZ[IJK];
     }
 }

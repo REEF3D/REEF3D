@@ -543,6 +543,29 @@ private:
     std::vector<char> fbwx, fbwy;
     std::vector<double> fbQx, fbQy;
 
+    // the ship pressure (X 10 3, sixdof_nhflow::start_shipwave, X 400; nhflow_momentum_SI_6dof.cpp): the ship moves
+    // once per step at its start; the mean of the pressure of the start and the end of the step as the surface level it
+    // holds, eta_s = -p/(rho g) (shL), its compact face gradient (shx, shy) with the gravity term (si_assemble,
+    // face_update, cell_update, ho_cell_gravity), so that the level under the ship at rest balances it exactly
+    bool shipon = false, ship_first = true;
+    slice4 shA, shL;
+    slice1 shx;
+    slice2 shy;
+    void ship_step(lexer*, fdm_nhf*, ghostcell*);
+
+    // nets (X 320, net_interface::dlm_nhflow; nhflow_momentum_SI_6dof.cpp): the forces of the net elements on the fluid
+    // (Fext, Gext, Hext) once per step at its start (fixed nets: net_step; on a floating body: fb_step), kept for every
+    // predictor stage and pass (irhs, jrhs, krhs consume them)
+    bool netson = false;
+    std::vector<double> netF, netG, netH;
+    void net_step(lexer*, fdm_nhf*, ghostcell*);
+    void net_save(lexer*, fdm_nhf*);
+    void net_restore(lexer*, fdm_nhf*);
+
+    // the porous floating body (X 16): the Darcy-Forchheimer resistance on the predictor (df_predictor)
+    void fb_porous(lexer*, fdm_nhf*, ghostcell*);
+    std::vector<double> fbPX, fbPY, fbPZ;
+
     // layer face discharges: prognostic Q^{n+1}, Q^n, layer transport of the step (theta weighted),
     // column parts Q~ = A^-1 (I - dt L_v) Q^ and r = A^-1 1
     // layout of the private arrays (see the top of the file): strides, offset, shift (test), number of entries

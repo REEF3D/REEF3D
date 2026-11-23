@@ -184,7 +184,8 @@ void nhflow_momentum_SI::ho_cell_gravity(lexer *p, fdm_nhf *d, double &gu, doubl
     {
     auto aF = [&](int f)
     {
-        return Hx(f,j)*(theta*((etaI(f+1,j) - etaI(f,j))/p->DXP[f+marge] + cx0(f,j)) + (1.0-theta)*gx0(f,j));
+        return Hx(f,j)*(theta*((etaI(f+1,j) - etaI(f,j))/p->DXP[f+marge] + cx0(f,j)) + (1.0-theta)*gx0(f,j)
+                        + (shipon ? shx(f,j) : 0.0));
     };
 
     gu = dt*g*(9.0*(aF(i-1) + aF(i)) - aF(i-2) - aF(i+1))/16.0;
@@ -194,7 +195,8 @@ void nhflow_momentum_SI::ho_cell_gravity(lexer *p, fdm_nhf *d, double &gu, doubl
     {
     auto aF = [&](int f)
     {
-        return Hy(i,f)*(theta*((etaI(i,f+1) - etaI(i,f))/p->DYP[f+marge] + cy0(i,f)) + (1.0-theta)*gy0(i,f));
+        return Hy(i,f)*(theta*((etaI(i,f+1) - etaI(i,f))/p->DYP[f+marge] + cy0(i,f)) + (1.0-theta)*gy0(i,f)
+                        + (shipon ? shy(i,f) : 0.0));
     };
 
     gv = dt*g*(9.0*(aF(j-1) + aF(j)) - aF(j-2) - aF(j+1))/16.0;

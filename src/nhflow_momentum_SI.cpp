@@ -59,6 +59,7 @@ Author: Hans Bihs
 #include"met_forcing.h"
 #include"nhflow_tracer_SI.h"
 #include"nhflow_forcing.h"
+#include"nhflow_fsf_body.h"
 #include<cstring>
 #include<sys/stat.h>
 #include<sys/types.h>
@@ -101,7 +102,8 @@ nhflow_momentum_SI::nhflow_momentum_SI(lexer *p, fdm_nhf *d, ghostcell *pgc, six
                                       qx(p),qxn(p),qxE(p),Hx(p),alx(p),gmx(p),ax(p),kx(p),gx0(p),cx0(p),
                                       qy(p),qyn(p),qyE(p),Hy(p),aly(p),gmy(p),ay(p),ky(p),gy0(p),cy0(p),
                                       eta0(p),WL0(p),etaI(p),gmc(p),rhsW(p),bdiag(p),tS(p),tE(p),tA(p),hoC(p),hoE(p),
-                                      WLk(p),etaB(p),WLb(p),wsrc(p),dfWL(p),dfEta(p),dfC(p),fbfe(p)
+                                      WLk(p),etaB(p),WLb(p),wsrc(p),dfWL(p),dfEta(p),dfC(p),fbfe(p),
+                                      shA(p),shL(p),shx(p),shy(p)
 {
     check(p);
 
@@ -124,6 +126,12 @@ nhflow_momentum_SI::nhflow_momentum_SI(lexer *p, fdm_nhf *d, ghostcell *pgc, six
 
     // 6DOF bodies with direct forcing (X 10 1, 2, 4; nhflow_momentum_SI_6dof.cpp)
     fbon = pnhfdf!=nullptr && p6dof!=nullptr && pnhfdf->floating_flag==1 && (p->X10==1 || p->X10==2 || p->X10==4);
+
+    // the ship pressure (X 10 3; nhflow_momentum_SI_6dof.cpp)
+    shipon = p6dof!=nullptr && p->X10==3;
+
+    // nets (X 320; nhflow_momentum_SI_6dof.cpp)
+    netson = p6dof!=nullptr && p->X320>0 && d->Fext!=nullptr;
 
     if(p->A570==0)
     pwind = new wind_v(p);
@@ -543,29 +551,73 @@ void nhflow_momentum_SI::check(lexer *p)
     msg("VRANS (B 200) is");
 
     // 6DOF (nhflow_momentum_SI_6dof.cpp): the floating body (X 10 1), the prescribed motion (X 10 2) and the wavemaker
-    // (X 10 4) with the direct forcing of the cells (X 15 0-5), the body moved once per step; one Cartesian grid
-    if(p->X10==3)
-    msg("the ship pressure (X 10 3) is");
-
+    // (X 10 4) with the direct forcing of the cells (X 15 0-5), the body moved once per step; the ship pressure (X 10 3)
+    // as a surface level in the gravity term; one Cartesian grid
     if(p->X10>0 && (p->G1>0 || p->geo_mb>0 || p->geo_curv==1))
     msg("6DOF (X 10) on curvilinear, multi-block or refined grids is");
 
-    if(p->X10>0 && p->X15>5)
-    msg("6DOF with X 15 6, 7 (body faces in the HLL fluxes), 8 (sharp hull), 10 (cut faces) or 11 (body in the projection) is");
+    // the body treatments of the explicit projection (X 15 6-11): the semi-implicit step has the body in its eta and
+    // eta-phi solves (the layer faces of the body carry its discharge, the coupled system holds its velocity in its
+    // cells, nhflow_momentum_SI_6dof.cpp) and takes the loads of the hull sides from the water side (as X 15 11)
+    // - X 15 6 / 7: the cell forcing of X 15 1 / 3 (sixdof_obj_nhflow::forcing_kernel_nhflow); their reflective body
+    //   faces belong to the HLL fluxes of the explicit step, the semi-implicit step has its blocked faces instead
+    // - X 15 8 (sharp hull), 10 (cut faces) and 11 (cell and face fractions, the body in the projection): the hull
+    //   objects and the fractions act on the links of the explicit projection (nhflow_pjm_corr); here the cell forcing
+    //   of X 15 1, the default of the semi-implicit step (the forcing of X 15 4, which the explicit NHFLOW takes for
+    //   X 15 11 where it is not available, broke down with the moored cylinder and its net of NHFLOW Aquaculture case 6
+    //   at T 0.761 s and A 536 0.005 at 3.2 s, X 15 1 runs through)
+    if(p->X10>0 && p->X15>11)
+    msg("6DOF with X 15 above 11 is");
 
-    if(p->X10>0 && p->X16>0)
-    msg("the porous floating body (X 16) is");
+    if(p->X10>0 && (p->X15==8 || p->X15==9 || p->X15==10 || p->X15==11))
+    {
+        if(p->X15==9)
+        msg("6DOF with X 15 9 is");
 
-    if(p->X13>0)
-    msg("the water level of the pierced columns (X 13) is");
+        else
+        {
+        if(p->mpirank==0)
+        cout<<"NHFLOW A 510 11/12/13 with 6DOF X 15 "<<p->X15<<": the body is in the eta"<<(p->A520>0 ? "-phi" : "")
+            <<" solve of the semi-implicit step, the cells with the forcing of X 15 1"<<endl;
 
-    if(p->X320>0)
-    msg("nets (X 320) are");
+        p->X15 = 1;
+        }
+    }
+
+    // (check runs twice: driver_logic_nhflow and the constructor; the notes once)
+    static bool noted = false;
+
+    if(p->X10>0 && (p->X15==6 || p->X15==7) && p->mpirank==0 && !noted)
+    cout<<"NHFLOW A 510 11/12/13 with 6DOF X 15 "<<p->X15<<": the cell forcing of X 15 "<<(p->X15==6 ? 1 : 3)
+        <<", the body faces are blocked in the eta"<<(p->A520>0 ? "-phi" : "")<<" solve of the semi-implicit step"<<endl;
+
+    // the porous floating body (X 16): fluid for the solves, the Darcy-Forchheimer resistance on the predictor
+    // (df_predictor), implicit over the step; the porosity n scales the pressure on the hull (the skeleton) only: the
+    // storage n deta/dt and the inertia factor of the porous medium (VRANS B 260) are not in the semi-implicit step
+    if(p->X16>0 && p->X10!=1 && p->X10!=2)
+    msg("the porous body (X 16) other than with X 10 1 or 2 is");
+
+    if(p->X16>0 && p->mpirank==0 && !noted)
+    cout<<"NHFLOW A 510 11/12/13 with the porous floating body X 16: the resistance on the predictor, without the "
+        <<"porous storage and inertia (VRANS)"<<endl;
+
+    // the water level of the pierced columns (X 13 1, nhflow_fsf_body after eta_update); the hull as the top of the
+    // water columns (X 13 2, nhflow_fsf_hull) replaces the body cells by a sigma grid that ends at the keel
+    if(p->X13==2)
+    msg("the hull as the top of the water columns (X 13 2) is");
+
+    if(p->X13>2)
+    msg("X 13 other than 0 or 1 is");
+
+    // nets (X 320): the forces of the net elements on the fluid (net_interface::dlm_nhflow, Fext) once per step at its
+    // start with the velocities of t^n, in every predictor stage and pass (net_step); on a floating body with its
+    // loads (X 10 1), fixed nets without a body (X 10 0)
 
     // the floating body with the non-hydrostatic pressure: the coupled eta-phi system holds the body velocity in its
     // cells, the pressure on the hull contains the added mass; without the stabilised coupling X 197 the explicit
-    // coupling of a body lighter than its added mass grows from step to step (X 197 1 if not given)
-    if(p->X10==1 && p->A520>0 && p->X197<=0.0)
+    // coupling of a body lighter than its added mass grows from step to step (X 197 1 if not given). The porous body
+    // (X 16) has no body cells in the solve
+    if(p->X10==1 && p->A520>0 && p->X197<=0.0 && p->X16==0)
     {
     p->X197 = 1.0;
 
@@ -583,6 +635,8 @@ void nhflow_momentum_SI::check(lexer *p)
 
     if(p->X330>0)
     msg("membranes (X 330) are");
+
+    noted = true;
 
     if(p->Z30>0)
     msg("FEM coupling (Z 30) is");
@@ -685,6 +739,20 @@ void nhflow_momentum_SI::step_single(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflo
     // (si_begin: df_columns); the solids and the body cast on the sigma grid of t^n
     if(fbon)
     fb_step(p,d,pgc);
+
+    // the ship pressure (X 10 3): the ship to t^{n+1}, the level of its pressure over the step
+    if(shipon)
+    ship_step(p,d,pgc);
+
+    // nets (X 320): the forces of the net elements with the velocities of t^n (on a floating body from fb_step), kept
+    // for every predictor stage and pass
+    if(netson)
+    {
+    if(!fbon && !shipon)
+    net_step(p,d,pgc);
+
+    net_save(p,d);
+    }
 
     si_begin(p,d,pgc,S);
 
@@ -1098,11 +1166,29 @@ void nhflow_momentum_SI::si_end_cells(lexer *p, fdm_nhf *d, ghostcell *pgc, nhfl
     // 8. WL, eta, wetting and drying
     eta_update(p,d,pgc,S.pfsf);
 
+    // 6DOF X 13 1: the level of the columns pierced by the body from the surrounding free surface (nhflow_fsf_body, as
+    // after the water level update of an explicit stage; the body is at t^{n+1}, fb_step)
+    const bool pierced = fbon && pfsfbody!=nullptr && p->X13==1;
+
+    if(pierced)
+    {
+    pfsfbody->level(p,d,pgc,p6dof,S.pflow,0,d->WL,1.0);
+    level_ghosts(p,d,pgc);
+    }
+
     // 9.-10. cell momentum, relaxation zones, velocities, omega
     cell_update(p,d,pgc);
 
+    // X 13 1: the velocities of the columns whose depth the level changed stay (A 549 1: cell_update takes the momentum
+    // on the new depth already)
+    if(pierced && elm_mode(p)==0)
+    pfsfbody->momentum(p,d->UH,d->VH,d->WH);
+
     // fixed solids (A 580 1, A 581-590): the cells forced again after the implicit part
     df_reforce(p,d,pgc);
+
+    if(pierced)
+    pfsfbody->print(p,d,pgc,d->WL);
 
     relax(p,d,pgc);
     finish(p,d,pgc);
@@ -2091,6 +2177,10 @@ void nhflow_momentum_SI::si_stage_rhs(lexer *p, fdm_nhf *d, ghostcell *pgc, nhfl
     stage_arrays(s,UHs,VHs,WHs,UHo,VHo,WHo,a);
     const double alpha = 1.0-a;
 
+    // nets (X 320): the forces of the step in every stage and pass (irhs, jrhs, krhs take them out of Fext, Gext, Hext)
+    if(netson)
+    net_restore(p,d);
+
     // sources (as the explicit stage, without the pressure terms and the bed friction)
     pturb->isource(p,d);
     pflow->isource_nhflow(p,d,pgc,pvrans,WL0);
@@ -2946,7 +3036,7 @@ void nhflow_momentum_SI::si_assemble(lexer *p, fdm_nhf *d, ghostcell *pgc)
         alx(i,j) += p->DZN[KP]*Rx[PIJK];
         }
 
-        qxE(i,j) = qh - dt*g*Hx(i,j)*alx(i,j)*((1.0-theta)*gx0(i,j) + theta*cx0(i,j));
+        qxE(i,j) = qh - dt*g*Hx(i,j)*alx(i,j)*((1.0-theta)*gx0(i,j) + theta*cx0(i,j) + (shipon ? shx(i,j) : 0.0));
 
         K = dissipation(p,qxn(i,j),Hx(i,j),dn);
 
@@ -3050,7 +3140,7 @@ void nhflow_momentum_SI::si_assemble(lexer *p, fdm_nhf *d, ghostcell *pgc)
         aly(i,j) += p->DZN[KP]*Ry[PIJK];
         }
 
-        qyE(i,j) = qh - dt*g*Hy(i,j)*aly(i,j)*((1.0-theta)*gy0(i,j) + theta*cy0(i,j));
+        qyE(i,j) = qh - dt*g*Hy(i,j)*aly(i,j)*((1.0-theta)*gy0(i,j) + theta*cy0(i,j) + (shipon ? shy(i,j) : 0.0));
 
         K = dissipation(p,qyn(i,j),Hy(i,j),dn);
 
@@ -3258,7 +3348,7 @@ void nhflow_momentum_SI::face_update(lexer *p, fdm_nhf *d, ghostcell *pgc)
         if(Hx(i,j)>0.0)
         {
         G1 = (etaI(i+1,j) - etaI(i,j))/fdn(p,1,i,j) + cx0(i,j);
-        G = dt*g*Hx(i,j)*(theta*G1 + (1.0-theta)*gx0(i,j));
+        G = dt*g*Hx(i,j)*(theta*G1 + (1.0-theta)*gx0(i,j) + (shipon ? shx(i,j) : 0.0));
 
             for(k=0;k<p->knoz;++k)
             {
@@ -3289,7 +3379,7 @@ void nhflow_momentum_SI::face_update(lexer *p, fdm_nhf *d, ghostcell *pgc)
         if(Hy(i,j)>0.0)
         {
         G1 = (etaI(i,j+1) - etaI(i,j))/fdn(p,2,i,j) + cy0(i,j);
-        G = dt*g*Hy(i,j)*(theta*G1 + (1.0-theta)*gy0(i,j));
+        G = dt*g*Hy(i,j)*(theta*G1 + (1.0-theta)*gy0(i,j) + (shipon ? shy(i,j) : 0.0));
 
             for(k=0;k<p->knoz;++k)
             {
@@ -3614,8 +3704,10 @@ void nhflow_momentum_SI::cell_update(lexer *p, fdm_nhf *d, ghostcell *pgc)
         const double wx1 = (wz && we+ww>0.0) ? wall(p,i,j,1) + wall(p,i,j,2) : 0.0;
         wsum = MAX(we + ww + wx1,1.0);
 
-        gu = (dt*g*(ww*Hx(i-1,j)*(theta*(etaI(i,j) - etaI(i-1,j))/p->DXP[IM1] + (1.0-theta)*gx0(i-1,j))
-                  + we*Hx(i,j)*(theta*(etaI(i+1,j) - etaI(i,j))/p->DXP[IP] + (1.0-theta)*gx0(i,j)))
+        gu = (dt*g*(ww*Hx(i-1,j)*(theta*(etaI(i,j) - etaI(i-1,j))/p->DXP[IM1] + (1.0-theta)*gx0(i-1,j)
+                            + (shipon ? shx(i-1,j) : 0.0))
+                  + we*Hx(i,j)*(theta*(etaI(i+1,j) - etaI(i,j))/p->DXP[IP] + (1.0-theta)*gx0(i,j)
+                                + (shipon ? shx(i,j) : 0.0)))
               + (wx1>0.0 ? wx1*wfor(FSx,Bx) : 0.0))/wsum;
         gv = 0.0;
 
@@ -3626,8 +3718,10 @@ void nhflow_momentum_SI::cell_update(lexer *p, fdm_nhf *d, ghostcell *pgc)
             const double wy1 = (wz && we+ww>0.0) ? wall(p,i,j,3) + wall(p,i,j,4) : 0.0;
             wsum = MAX(we + ww + wy1,1.0);
 
-            gv = (dt*g*(ww*Hy(i,j-1)*(theta*(etaI(i,j) - etaI(i,j-1))/p->DYP[JM1] + (1.0-theta)*gy0(i,j-1))
-                      + we*Hy(i,j)*(theta*(etaI(i,j+1) - etaI(i,j))/p->DYP[JP] + (1.0-theta)*gy0(i,j)))
+            gv = (dt*g*(ww*Hy(i,j-1)*(theta*(etaI(i,j) - etaI(i,j-1))/p->DYP[JM1] + (1.0-theta)*gy0(i,j-1)
+                                + (shipon ? shy(i,j-1) : 0.0))
+                      + we*Hy(i,j)*(theta*(etaI(i,j+1) - etaI(i,j))/p->DYP[JP] + (1.0-theta)*gy0(i,j)
+                                    + (shipon ? shy(i,j) : 0.0)))
                   + (wy1>0.0 ? wy1*wfor(FSy,By) : 0.0))/wsum;
             }
 
@@ -3894,7 +3988,8 @@ void nhflow_momentum_SI::df_cast(lexer *p, fdm_nhf *d, ghostcell *pgc)
     LOOP
     p->DF[IJK] = (sol && d->SOLID[IJK]<0.0) ? -1 : 1;
 
-    if(fbon)
+    // the porous floating body (X 16) is fluid for the solves
+    if(fbon && p->X16==0)
     LOOP
     if(p->DF[IJK]>0 && d->FB[IJK]<0.0)
     p->DF[IJK] = -2;
@@ -3958,6 +4053,10 @@ void nhflow_momentum_SI::df_predictor(lexer *p, fdm_nhf *d, ghostcell *pgc)
     lget(p,WHp,dfW.data());
 
     df_apply(p,d,pgc,dfU.data(),dfV.data(),dfW.data(),WL0,false);
+
+    // the porous floating body (X 16): its resistance on the forced predictor (the velocities of df_apply)
+    if(fbon && p->X16==1)
+    fb_porous(p,d,pgc);
 
     // the forced predictor: UHp, VHp, WHp (the cell update, the acceleration of tl2) and UHD, VHD (faces, cells)
     LOOP
