@@ -125,7 +125,7 @@ void seastate_f::start(lexer *p, ghostcell *pgc)
         ++p->count;
         starttime=pgc->timer();
 
-        if(p->mpirank==0 && (p->count%p->P12==0))
+        if(p->mpirank==0 && p->P12>0 && p->count%p->P12==0)
         {
         cout<<"------------------------------------"<<endl;
         cout<<p->count<<endl;
@@ -166,7 +166,7 @@ void seastate_f::start(lexer *p, ghostcell *pgc)
         p->totaltime+=p->itertime;
         p->meantime=p->totaltime/double(p->count);
 
-        if(p->mpirank==0 && (p->count%p->P12==0))
+        if(p->mpirank==0 && p->P12>0 && p->count%p->P12==0)
         {
         cout<<"Hs max: "<<setprecision(5)<<hsmax<<"   Hs mean: "<<setprecision(5)<<hsmean<<"   iterations: "<<iter_done;
         if(p->A700==2)

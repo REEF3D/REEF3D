@@ -131,7 +131,7 @@ void seastate_coupling::wave_step(lexer *p, ghostcell *pgc, double dt)
     tnext = tlast + p->A706;
     ++nstep;
 
-    if(p->mpirank==0 && (!surfbeat() || p->count%p->P12==0))
+    if(p->mpirank==0 && (!surfbeat() || (p->P12>0 && p->count%p->P12==0)))
     cout<<"SEASTATE wave step "<<nstep<<" at simtime "<<p->simtime<<" (dt "<<dt<<" s), forcing ramp "<<ramp(p)<<endl;
 }
 
