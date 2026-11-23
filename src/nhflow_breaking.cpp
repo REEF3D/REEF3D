@@ -30,7 +30,7 @@ Author: Hans Bihs
 
 nhflow_breaking::nhflow_breaking(lexer* p, fdm_nhf *d, ghostcell *pgc) : bx(p), by(p), bd(p), brkflag(p), brkzone(p),
                                                                             brkage(p), brkage_n(p), brkvb(p), bt_us(p), bt_vs(p), bt_vbs(p), brkseed(p),
-                                                                            brkkseed(p), brkk(p), brkk_n(p), brkr(p), brkr_n(p), brkh(p), brkh_n(p), plk_n(p), plh_n(p), etf(p), etf2(p), bt_vbd(p), bt_kwd(p), bt_pa(p), count_n(-1)
+                                                                            brkkseed(p), brkk(p), brkk_n(p), brkr(p), brkr_n(p), brkh(p), brkh_n(p), plk_n(p), plh_n(p), crc(p), crp(p), etf(p), etf2(p), bt_vbd(p), bt_kwd(p), bt_pa(p), count_n(-1)
 {
     SLICELOOP4
     {
@@ -49,6 +49,8 @@ nhflow_breaking::nhflow_breaking(lexer* p, fdm_nhf *d, ghostcell *pgc) : bx(p), 
     brkh_n(i,j)=0.0;
     plk_n(i,j)=0.0;
     plh_n(i,j)=0.0;
+    crc(i,j)=0.0;
+    crp(i,j)=0.0;
     d->plk(i,j)=0.0;
     d->plh(i,j)=0.0;
     bt_vbd(i,j)=0.0;
@@ -165,9 +167,10 @@ void nhflow_breaking::breaking_kennedy(lexer *p, fdm_nhf *d, ghostcell *pgc, sli
     {
     const int npl = pgc->globalisum(pl_count);
     const double xpl = pgc->globalsum(pl_xsum);
+    const double hpl = pgc->globalsum(pl_hsum);
     
     if(p->mpirank==0 && npl>0)
-    cout<<"plunge: "<<npl<<" columns at x = "<<xpl/double(npl)<<" t = "<<p->simtime<<endl;
+    cout<<"plunge: "<<npl<<" columns at x = "<<xpl/double(npl)<<" t = "<<p->simtime<<" H_b = "<<hpl/double(npl)<<endl;
     }
 }
 
@@ -196,6 +199,25 @@ void nhflow_breaking::kennedy_part(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &
     
     if(plk_n(i,j)<=1.0e-8)
     plk_n(i,j) = 0.0;
+    
+    // S 143: the crest of the last wave at the column, the largest eta between an up- and the next down-crossing
+    // of the still water level (eta at the end of the last step)
+    if(p->S143>0.0)
+    {
+        if(p->wet[IJ]!=1)
+        crc(i,j) = 0.0;
+        
+        else
+        if(d->eta(i,j)>0.0)
+        crc(i,j) = MAX(crc(i,j), d->eta(i,j));
+        
+        else
+        if(crc(i,j)>0.0)
+        {
+        crp(i,j) = crc(i,j);
+        crc(i,j) = 0.0;
+        }
+    }
     }
     
     pgc->gcsl_start4(p,brkage_n,1);
@@ -214,6 +236,7 @@ void nhflow_breaking::kennedy_part(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &
     kn_count=0;
     pl_count=0;
     pl_xsum=0.0;
+    pl_hsum=0.0;
     on_count=0;
     on_xsum=0.0;
     
@@ -285,9 +308,14 @@ void nhflow_breaking::kennedy_part(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &
         // its height above the still water level); carried with the front as the age
         // no plunge of an event that starts in the swash or on a shoal shallower than H_b/2 (still-water depth WL - eta):
         // a wetting front has deta/dt > 0 and counts as breaking, but it is no plunging breaker (hb < 0 marks it)
+        // S 143: H_b from the crest of the last wave at the column, if higher (the onset sees the front, well below
+        // the crest)
         if(age<=0.0 || hb==0.0)
         {
         hb = MAX(d->eta(i,j),0.0)/0.75;
+        
+        if(p->S143>0.0)
+        hb = MAX(hb, crp(i,j)/0.75);
         
         if(WL(i,j) - d->eta(i,j) < 0.5*hb)
         hb = -1.0;
@@ -298,6 +326,14 @@ void nhflow_breaking::kennedy_part(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &
             const double B = (et>=2.0*ets) ? 1.0 : et/ets - 1.0;
             
             d->vb(i,j) = B*p->A504*p->A504*Lk*et;
+            
+            // S 143: H_b grows with the crests of the front's columns until the impact window opens. At the onset
+            // the front is still a slope and eta of the onset column well below the crest (Baldock et al. 2011 M_E,
+            // A 550 3, A 542 1: eta/0.75 = 0.29 m at the onset, H = 0.64 m), so the jet landed 0.6 m past the onset
+            // with S 138 2
+            if(p->S143>0.0 && p->S137>0.0 && hb>0.0 && age + p->dt < p->S138*hb/c)
+            hb = MAX(hb, MAX(MAX(d->eta(i,j),0.0), crp(i,j))/0.75);
+            
             brkage(i,j) = age + p->dt;
             brkk(i,j) = kw;
             brkr(i,j) = r0;
@@ -493,7 +529,10 @@ carries the impact turbulence at the surface,
 decaying with the depth below the surface as exp(-d/(S 139 H_b)), and H_b of the event (d->plk, d->plh). With
 S 142 > 0 the impact turbulence stays in the column after the window and decays over S 142 sqrt(H_b/g). The bed
 shear (bedshear_nhflow, u_eff^2 = u^2 + 1.45 k_b) and the suspended-load diffusivity (nhflow_suspended_IM1,
-sqrt(k) 0.1 H_b) take it. H_b = eta_c/0.75 from the crest at the onset; no plunge for an event that starts where the
+sqrt(k) 0.1 H_b) take it. H_b = eta/0.75 of the onset column (S 143 0). That is the front, well below the crest:
+in Baldock M_E it is a quarter to a half of H, and the impact lands too close to the onset. S 143 1: H_b = eta_c/0.75
+with the crest eta_c of the last wave at the column (the largest eta between an up- and a down-crossing of the still
+water level), taken at the onset and over the front's columns until the impact window opens; no plunge for an event that starts where the
 still-water depth is below H_b/2 (swash, wetting fronts), and no impact where the still-water depth is below H_b/4.
 Breaker type: with the wavenumber k of the crest (A 550 4, 5) only plunging breakers, Iribarren number
 xi_b = tan(beta)/sqrt(H_b/L_0) >= 0.4 (Battjes 1974), L_0 = 2 pi/(k tanh(k h)); A 550 3 has no k: every event.
@@ -532,6 +571,7 @@ void nhflow_breaking::plunge(lexer *p, fdm_nhf *d, int ii, int jj, double age, d
     d->plh(i,j) = hb;
     ++pl_count;
     pl_xsum += p->XP[IP];
+    pl_hsum += hb;
     }
     
     i=i0; j=j0;
