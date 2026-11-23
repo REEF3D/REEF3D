@@ -1781,7 +1781,7 @@ void control::ini_default()
     X324=0;     // int number of nets
     X330=0;     // int impermeable membranes, geometry in membrane.dat
     X350=0;     // int ship module, parameters in ship.dat
-	X325_relX=X325_relY=X325_relZ=0.01; // double dynamic net relaxation factors
+	X325_relX=X325_relY=X325_relZ=0.0; // double dynamic net relaxation factors: linear damping -rel*xdot [N s/m] of every knot (0: off; was 0.01, which damped light nets in waves)
 	X400=0;         // sflow external pressure term
     X401_p0=0.0;    // sflow external pressure term p0
     X401_cl=2.0;    // sflow external pressure term cl

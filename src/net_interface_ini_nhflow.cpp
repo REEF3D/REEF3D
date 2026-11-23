@@ -42,7 +42,13 @@ void net_interface::initialize_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
         pgc->bcast_int(&p->net_count, 1);
         
         if(p->mpirank==0)
+        {
         mkdir("./REEF3D_NHFLOW_6DOF_Net",0777);	
+        
+        // the bar nets (X 320 1-3, 11-14) write their force and probe logs to REEF3D_CFD_6DOF also with NHFLOW;
+        // with a floating body (X 10 1) nothing else creates that folder and the logs were lost
+        mkdir("./REEF3D_CFD_6DOF",0777);
+        }
 
         else
         p->X320_type = new int[p->net_count];

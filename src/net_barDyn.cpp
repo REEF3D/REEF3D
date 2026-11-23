@@ -29,6 +29,8 @@ Author: Tobias Martin
 
 net_barDyn::net_barDyn(int number, lexer *p):nNet(number)
 {
+    // the first line of the force log is printed before the first drag force (count 0)
+    Tne = Fx = Fy = Fz = 0.0;
 }
 
 net_barDyn::~net_barDyn()
