@@ -1182,6 +1182,10 @@ void nhflow_momentum_SI::nh_solve(lexer *p, fdm_nhf *d, ghostcell *pgc)
     if(f.type==bc_riemann || f.type==bc_flather)
     faces_set = false;
 
+    // the same on all ranks: face_update exchanges the face discharges (with an absorbing edge B 99 3-5 on one rank
+    // only, the ranks went different ways and waited for each other)
+    faces_set = pgc->globalimin(faces_set ? 1 : 0)==1;
+
     FLOOP
     d->P[FIJK] = 0.0;
 
