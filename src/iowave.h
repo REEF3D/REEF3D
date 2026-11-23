@@ -416,11 +416,6 @@ private:
     slice4 vofheight;
     slice4 genheight;
 
-    //  Written only by wavegen_precalc_relax under F80==4 (VOF-PLIC), which
-    //  FNPF never reaches - it goes through fnpf_precalc_relax instead.  Held
-    //  by pointer so a run that cannot use it does not pay for a full 3D
-    //  field: 3.5 MiB per rank on a 133x200x10 box.
-    std::unique_ptr<field4> vofgen;
 
     int n,count;
     int wtype;
