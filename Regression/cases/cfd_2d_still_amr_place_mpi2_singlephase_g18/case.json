@@ -1,0 +1,29 @@
+{
+ "base": "cfd_2d_still_amr_singlephase_g18",
+ "np": 2,
+ "steps": 120,
+ "ctrl_set": {
+  "M 10": "2"
+ },
+ "control_set": {
+  "M 10": "2"
+ },
+ "ctrl_add": [
+  "G 40 1"
+ ],
+ "description": "cfd_2d_still_amr_singlephase_g18 on 2 ranks with the placement (G 40 1): G 18 with the coarse cells of the shadows and the level-0 rows on the other rank (validation CFD AMR speed/27).",
+ "tags": [
+  "quick",
+  "2d",
+  "levelset",
+  "amr",
+  "singlephase",
+  "still",
+  "mpi",
+  "place"
+ ],
+ "covers": [
+  "cfd_amr::pr_weights with G 18 and the shadows of G 40"
+ ],
+ "architect": "Hans Bihs"
+}
