@@ -48,6 +48,9 @@ Architect: Hans Bihs
 #include<string>
 #include<sys/stat.h>
 #include<sys/types.h>
+#ifdef __linux__
+#include<sched.h>
+#endif
 
 namespace
 {
@@ -156,6 +159,26 @@ void seastate_f::ini_common(lexer *p, ghostcell *pgc, bool coupled_)
     psolv->sparsity(p->A795);
     psolv->geographic_order(p->A796);
     psolv->threads(p->A798);
+
+    // Phase 31: the threads of A 798 need as many cores as threads. A launcher that binds each rank to one core (Open MPI
+    // with one or two ranks) lets them share that core: no gain, nothing else shows it. The cores this rank may run on
+    // (Linux: sched_getaffinity; elsewhere not known), the fewest of all ranks; the binding itself is left to the
+    // launcher, which knows the cores of the other ranks
+    if(p->A798>1 && p->A770!=1)
+    {
+    int cores = 1<<30;
+#ifdef __linux__
+    cpu_set_t set;
+    CPU_ZERO(&set);
+    if(sched_getaffinity(0,sizeof(set),&set)==0)
+    cores = CPU_COUNT(&set);
+#endif
+    cores = pgc->globalimin(cores);
+        if(p->mpirank==0 && cores<p->A798)
+        cout<<endl<<"!!! SEASTATE: A 798 "<<p->A798<<" threads per rank, but a rank may run on "<<cores<<" core"<<(cores==1 ? "" : "s")
+            <<" only (the binding of the launcher): the threads share "<<(cores==1 ? "it" : "them")<<". Start with e.g. mpirun --map-by slot:PE="<<p->A798
+            <<" (Open MPI; one rank: --bind-to none) or --cpus-per-task="<<p->A798<<" (Slurm) !!!"<<endl<<endl;
+    }
 
     // Phase 18: the measured work of the cells for the load map (G 45) and the rebalance (G 46)
     if(!coupled && (p->G45>0 || p->G46>0.0))
