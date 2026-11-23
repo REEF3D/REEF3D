@@ -305,14 +305,24 @@ void iowave::vof_relax(lexer *p, fdm* a, ghostcell *pgc, field& f)
 {
     
     starttime=pgc->timer();
+    
+    // free surface height of each column, absolute z (as eta + phimean): the top face of the
+    // highest fluid cell minus the air of the fluid cells below it. Before, sum(f dz) from k = 0
+    // was the water depth above the bottom of the domain, wrong with z_min != 0 and when solid
+    // cells (bed, structure) below the surface held vof. Solid cells are skipped; air above a
+    // solid (a deck in the zone) is not expected. Local to the rank: a rank below the surface
+    // gets its top face, one above it its bottom face, both give f = 1 / 0 there as they should.
     SLICELOOP4
     {
-        vofheight(i,j)=0.0;
+        double ztop=-1.0e20, air=0.0;
         genheight(i,j)=0.0;
         KLOOP
-        {   
-            vofheight(i,j)+=f(i,j,k)*p->DZN[KP];
+        PCHECK
+        {
+            ztop = MAX(ztop, p->pos_z()+0.5*p->DZN[KP]);
+            air += (1.0-f(i,j,k))*p->DZN[KP];
         }
+        vofheight(i,j) = ztop>-1.0e19 ? ztop-air : p->phimean;
     }
     count=0;
     
