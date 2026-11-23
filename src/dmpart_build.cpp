@@ -148,6 +148,10 @@ static bool build_from(gridv2::reader &gf, int nranks, std::vector<std::vector<c
 
     L.M10 = nranks;
 
+    // DIVEMesh M 20 2 and 5 (grid files of before): the partition chosen automatically, as DIVEMesh does now
+    if(L.M20==2 || L.M20==5)
+    L.M20 = 1;
+
     // REEF3D M 41 (rebalance restart, G 46): the weighted partition with the load map; a layout M 30
     // of DIVEMesh is kept when it gives the ranks (also with M 20 3, 4: their cuts M 31-33 are not
     // used), else the layout is chosen by the load
@@ -269,6 +273,7 @@ static bool build_from(gridv2::reader &gf, int nranks, std::vector<std::vector<c
         }
         geobed.resize(size_t(L.knox)*L.knoy);
         for(double &v : geobed) v = sc.get_double();
+        L.Geobed = &geobed;
     }
     if(D10>0)
     {

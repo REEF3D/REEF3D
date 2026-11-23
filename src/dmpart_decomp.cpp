@@ -49,20 +49,7 @@ void decomp::start(lexer* p, dive* a)
 
     if(p->M20==1)
     {
-        nodecalc(p,a);
-        costfunc(p,a);
-        partition(p,a);
-    }
-    else if(p->M20==2)
-    {
-        nodecalc(p,a);
-        costfunc(p,a);
-        partition_analyse(p,a);
-        nodecalc(p,a);
-        costfunc(p,a);
-        partition(p,a);
-        partition_correction(p,a);
-        partition_voidcheck(p,a);
+        partition_auto(p,a);
     }
     else if(p->M20==3)
     {

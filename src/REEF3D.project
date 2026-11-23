@@ -3600,15 +3600,11 @@
         <VirtualDirectory Name="Decomp">
           <File Name="dmpart_build.cpp"/>
           <File Name="dmpart_decomp.cpp"/>
-          <File Name="dmpart_decomp_analyse.cpp"/>
-          <File Name="dmpart_decomp_correction.cpp"/>
-          <File Name="dmpart_decomp_correction_x.cpp"/>
-          <File Name="dmpart_decomp_correction_y.cpp"/>
-          <File Name="dmpart_decomp_correction_z.cpp"/>
           <File Name="dmpart_decomp_costfunc.cpp"/>
           <File Name="dmpart_decomp_count.cpp"/>
           <File Name="dmpart_decomp_paraslice.cpp"/>
           <File Name="dmpart_decomp_partition.cpp"/>
+          <File Name="dmpart_decomp_partition_auto.cpp"/>
           <File Name="dmpart_decomp_partition_manual.cpp"/>
           <File Name="dmpart_decomp_partition_weighted.cpp"/>
           <File Name="dmpart_decomp_periodic.cpp"/>

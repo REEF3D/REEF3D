@@ -42,15 +42,9 @@ private:
     void surfcount(lexer*,dive*);
     void nodecalc(lexer*,dive*);
     void costfunc(lexer*,dive*);
-    void partition_analyse(lexer*,dive*);
     void partition(lexer*,dive*);
-    void partition_correction(lexer*,dive*);
-    void partition_correct_x(lexer*,dive*);
-    void partition_correct_y(lexer*,dive*);
-    void partition_correct_z(lexer*,dive*);
-    void partition_balance(lexer*,dive*,int);
-    void partition_voidcheck(lexer*,dive*);
     void partition_manual(lexer*,dive*);
+    void partition_auto(lexer*,dive*);
     void partition_weighted(lexer*,dive*);
     void partition_input_check(lexer*,dive*);
     void partition_verify(lexer*,dive*);
