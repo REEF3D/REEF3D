@@ -24,6 +24,9 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"ghostcell.h"
 
+// the displacement body of the hull instead of the hull (NHF_BL=1, nhflow_shipbl_apply.cpp)
+void nhflow_shipbl_apply(lexer*, ghostcell*, double**&, double**&, double**&, double**&, double**&, double**&, int, int&);
+
 void sixdof_geometry::read_stl(lexer *p, ghostcell *pgc)
 {
 	string word;
@@ -149,6 +152,9 @@ void sixdof_geometry::read_stl(lexer *p, ghostcell *pgc)
         rotation_tri(p->X183_phi,p->X183_theta,p->X183_psi,tri_x[qr][1],tri_y[qr][1],tri_z[qr][1],p->X183_x,p->X183_y,p->X183_z);
         rotation_tri(p->X183_phi,p->X183_theta,p->X183_psi,tri_x[qr][2],tri_y[qr][2],tri_z[qr][2],p->X183_x,p->X183_y,p->X183_z);
     }
+    
+    nhflow_shipbl_apply(p,pgc,tri_x,tri_y,tri_z,tri_x0,tri_y0,tri_z0,tstart[entity_count],tricount);
+    tend[entity_count] = tricount;
 }
 
 
