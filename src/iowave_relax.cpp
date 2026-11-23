@@ -289,8 +289,8 @@ void iowave::phi_relax(lexer *p, ghostcell *pgc, field& f)
             }
         }
             
-        // Numerical Beach    
-        if(p->B99==1||p->B99==2)
+        // Numerical Beach: every beach zone (B 99 1 / 2, B 107, B 520 method 2), as the velocities
+        if(p->B99==1||p->B99==2||beach_relax==1)
         {
             // Zone 2
             if(db<1.0e20)
@@ -367,8 +367,8 @@ void iowave::vof_relax(lexer *p, fdm* a, ghostcell *pgc, field& f)
     // difference to the relaxed height is added or taken away: added from the bed upwards into the
     // cells with room, taken away from the top downwards. Writing the whole column anew from its height
     // moved the water of a broken wave within one time step at the start of the beach, where the
-    // relaxation factor is 1.
-    if(p->B99==1||p->B99==2)
+    // relaxation factor is 1. Every beach zone (B 99 1 / 2, B 107, B 520 method 2), as the velocities.
+    if(p->B99==1||p->B99==2||beach_relax==1)
     SLICELOOP4
     {
         db = distbeach(p);
