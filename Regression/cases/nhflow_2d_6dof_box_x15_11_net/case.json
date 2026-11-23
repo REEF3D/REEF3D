@@ -1,0 +1,6 @@
+{"base": "nhflow_2d_6dof_box_x15_11",
+ "ctrl_add": ["X 320 13", "X 321 0.23 0.0018 0.0147 0.0 1140.0 2 6", "X 322 0.05 0.3 6.0 0.025 0.13 0.0 0.0 0.0",
+              "X 323 0.05 0.01 0.05", "X 324 6.0 0.025 0.13"],
+ "description": "nhflow_2d_6dof_box_x15_11 with a dynamic bar net (X 320 13) hanging from the box and a sinker: the net forces on the floating body (X 10 1), and the force and knot-probe logs in REEF3D_CFD_6DOF, which with a floating body only the net interface creates (net_interface::initialize_nhflow; without it the logs were lost).",
+ "tags": ["2d", "nhflow", "6dof", "floating", "net"],
+ "covers": ["net_barDyn with an NHFLOW floating body", "REEF3D_CFD_6DOF of the nets with X 10 1"]}
