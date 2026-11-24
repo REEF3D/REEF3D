@@ -56,6 +56,7 @@ public:
     void initialize_wavemaker(lexer*,fdm_nhf*,ghostcell*,slice&,slice&);
     void hydrodynamic_forces_nhflow(lexer*, fdm_nhf*, ghostcell*,slice&,bool);
     void update_position_nhflow(lexer*, fdm_nhf*, ghostcell*,slice&, bool);
+    void shipbl_step(lexer*, fdm_nhf*, ghostcell*);       // NHF_BL=2, 3 (nhflow_shipbl_apply.cpp)
     void update_wavemaker_nhflow(lexer*, fdm_nhf*, ghostcell*,slice&, int, bool);
     void ini_band(lexer*, ghostcell*);
     void solve_eqmotion_nhflow(lexer*,fdm_nhf*,ghostcell*,int,bool);

@@ -50,6 +50,8 @@ Author: Hans Bihs
 #include"reefcouple.h"
 #include"wave_lib_fnpf_couple.h"
 
+void nhflow_shipbl_sample(lexer*, fdm_nhf*, ghostcell*);
+
 void driver::loop_nhflow()
 {
     if(p->mpirank==0)
@@ -121,6 +123,9 @@ void driver::loop_nhflow()
 
         //timestep control
         p->simtime+=p->dt;
+
+        // ship boundary layer from the mean flow of the run (NHF_BL=2, 3; nhflow_shipbl_apply.cpp)
+        nhflow_shipbl_sample(p,d,pgc);
 
         // long-run statistics (P 160), weight dt of the step just done
         if(plongrun!=nullptr)

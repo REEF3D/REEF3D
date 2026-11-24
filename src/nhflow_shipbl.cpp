@@ -718,6 +718,80 @@ void nhflow_shipbl::double_body()
     dump("Vx",Vx);
     dump("Vy",Vy);
     dump("Vz",Vz);
+
+    Vwx = Vx; Vwy = Vy; Vwz = Vz;
+    db_sub.assign(sub.begin(),sub.end());
+    db_q.resize(N);
+    for(int n=0; n<N; ++n)
+    db_q[n] = 0.25*sig(n)*A[n]/(4.0*PI);
+}
+
+// perturbation velocity / U of the double body at a point of the hull frame
+void nhflow_shipbl::db_vel(double px, double py, double pz, double *out) const
+{
+    const double img[4][3] = {{1.0,1.0,1.0},{1.0,-1.0,1.0},{1.0,1.0,-1.0},{1.0,-1.0,-1.0}};
+    const int N = int(db_q.size());
+    double ox=0.0, oy=0.0, oz=0.0;
+    for(int j=0; j<N; ++j)
+    for(int im=0; im<4; ++im)
+    for(int q=0; q<4; ++q)
+    {
+        const double dx = px - db_sub[12*j+3*q]*img[im][0];
+        const double dy = py - db_sub[12*j+3*q+1]*img[im][1];
+        const double dz = pz - db_sub[12*j+3*q+2]*img[im][2];
+        const double r2 = std::max(dx*dx + dy*dy + dz*dz,1.0e-30);
+        const double w = db_q[j]/(r2*sqrt(r2));
+        ox += dx*w; oy += dy*w; oz += dz*w;
+    }
+    out[0]=ox; out[1]=oy; out[2]=oz;
+}
+
+// ---------------------------------------------------------------- edge velocity of a run (shipbl.py edge, edge_velocity)
+void nhflow_shipbl::offset_points(double dn, std::vector<double> &pts) const
+{
+    const int M = ns*nz;
+    pts.resize(3*M);
+    for(int i=0; i<ns; ++i)
+    for(int k=0; k<nz; ++k)
+    {
+        const int m = i*nz+k;
+        pts[3*m]   = s[i]*L + dn*nx[m];
+        pts[3*m+1] = Pc[m].y + dn*ny[m];
+        pts[3*m+2] = Pc[m].z + dn*nzc[m];
+    }
+}
+
+void nhflow_shipbl::set_edge(const std::vector<double> &pts, const std::vector<double> &vs, double vmiss)
+{
+    const int M = ns*nz;
+    vec off(3*M);
+    for(int m=0; m<M; ++m)
+    {
+        db_vel(pts[3*m],pts[3*m+1],std::min(pts[3*m+2],-1.0e-6),&off[3*m]);
+        off[3*m] += 1.0;
+        if(vs[3*m]>=vmiss)
+        {
+            Vx[m]=Vwx[m]; Vy[m]=Vwy[m]; Vz[m]=Vwz[m];
+            continue;
+        }
+        Vx[m] = vs[3*m]/U   + Vwx[m] - off[3*m];
+        Vy[m] = vs[3*m+1]/U + Vwy[m] - off[3*m+1];
+        Vz[m] = vs[3*m+2]/U + Vwz[m] - off[3*m+2];
+    }
+    dump("off",off);
+    dump("Vx_edge",Vx);
+    dump("Vy_edge",Vy);
+    dump("Vz_edge",Vz);
+    const int ks[3] = {nz-1,nz/2,0};
+    say("  edge velocity of the run, u/U at the water line, mid girth, first cell (double body at the wall)");
+    for(double si : {0.05,0.2,0.5,0.8,0.9,0.95,1.0,1.05,1.2})
+    {
+        const int i = int(std::lround((si-s[0])/ds));
+        if(i<0 || i>=ns)
+        continue;
+        say("    s %6.3f  %.3f (%.3f)  %.3f (%.3f)  %.3f (%.3f)",s[i],Vx[i*nz+ks[0]],Vwx[i*nz+ks[0]],Vx[i*nz+ks[1]],Vwx[i*nz+ks[1]],
+            Vx[i*nz+ks[2]],Vwx[i*nz+ks[2]]);
+    }
 }
 
 // ---------------------------------------------------------------- integral boundary layer

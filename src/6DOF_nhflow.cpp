@@ -109,6 +109,10 @@ void sixdof_nhflow::start_twoway(lexer *p, fdm_nhf *d, ghostcell *pgc, int iter,
         fb_obj[nb]->quat_matrices(p);
         }
         
+        // ship boundary layer from the mean flow of the run (NHF_BL=2, 3)
+        if(finalize==true)
+        fb_obj[nb]->shipbl_step(p,d,pgc);
+        
         // Update position and trimesh
         fb_obj[nb]->update_position_nhflow(p,d,pgc,d->fs,finalize);  
         
@@ -147,6 +151,10 @@ void sixdof_nhflow::start_oneway(lexer *p, fdm_nhf *d, ghostcell *pgc, int iter,
         // Update transformation matrices
         fb_obj[nb]->quat_matrices(p);
         }
+        
+        // ship boundary layer from the mean flow of the run (NHF_BL=2, 3)
+        if(finalize==true)
+        fb_obj[nb]->shipbl_step(p,d,pgc);
         
         // Update position and trimesh
         fb_obj[nb]->update_position_nhflow(p,d,pgc,d->fs,finalize);  

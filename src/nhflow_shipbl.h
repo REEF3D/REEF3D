@@ -42,7 +42,9 @@ Author: Ahmet Soydan
 //                that leaves through the still water line (model assumption, fsw)
 //   body         displacement body: every section moved along its normal by delta*, wake behind the stern
 //
-// The edge velocity is that of the double body alone ("run-free" body).
+// The edge velocity is that of the double body alone ("run-free" body), or, with set_edge, that of a solver run
+// (shipbl.py edge):  V_solver(dn) + U [V_db(wall) - V_db(dn)]  with the mean velocity of the run at the points
+// offset_points(dn), a distance dn from the wall along its normal (dn = band half width + 0.01 L).
 
 class nhflow_shipbl
 {
@@ -66,6 +68,8 @@ public:
     void set_hull(const std::vector<tri3>&);
     void build_grid();
     void double_body();
+    void offset_points(double dn, std::vector<double> &pts) const;                      // (ns nz) x (x, y, z), hull frame
+    void set_edge(const std::vector<double> &pts, const std::vector<double> &vs, double vmiss=1.0e300);    // vs: (ns nz) x (u, v, w) [m/s] at pts; u >= vmiss: no value, the double body alone
     void solve();
     void body(std::vector<tri3>&);
     void run(const std::vector<tri3> &hull, std::vector<tri3> &dispbody);
@@ -91,8 +95,12 @@ private:
     std::vector<double> e1y,e1z,e2y,e2z,nx,ny,nzc,J,h2;     // (ns, nz)
     void metrics();
 
-    // edge velocity / U at the cell centres, (ns, nz)
-    std::vector<double> Vx,Vy,Vz;
+    // edge velocity / U at the cell centres, (ns, nz); that of the double body at the wall
+    std::vector<double> Vx,Vy,Vz,Vwx,Vwy,Vwz;
+
+    // sources of the double body: four points per panel (12 N) and their strengths / (4 pi)
+    std::vector<double> db_sub,db_q;
+    void db_vel(double px, double py, double pz, double *out) const;
 
     // boundary layer, (ns, nz) and (ns)
     std::vector<double> th,H,dstar,cf,Ue,dplane,Ms,Ds;
